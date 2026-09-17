@@ -421,3 +421,8 @@ footer .wrap{color:var(--band-ink-86)}
 .automation-list .case-gain{grid-template-columns:1fr;gap:6px;margin-top:10px}
 @media(max-width:1100px){.language-list--savoirs,.language-list--soft{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.language-list--savoirs,.language-list--soft{grid-template-columns:1fr}}
+
+/* Ressources machine des outils HTML */
+.case-gain.case-res{margin-top:12px;max-width:900px}
+.band--pink .case-gain{color:var(--band-ink)}
+.band--pink .case-gain>span{color:var(--band-ink-86)}
