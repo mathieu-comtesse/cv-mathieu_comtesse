@@ -12,7 +12,7 @@
   const canvas=document.getElementById('sandboard-canvas');
   const stage=document.getElementById('sandboard-stage');
   const reset=document.getElementById('sandboard-reset');
-  if(!canvas||!stage||!reset)return;
+  if(!canvas||!stage||!reset||document.body.dataset.sandEngine==='three')return;
   const ctx=canvas.getContext('2d');let drawing=false,last=null;
   const colors={sand:'#ffa62f',coral:'#ef4b2f',red:'#c8102e',green:'#07583d',ink:'#071b16',blue:'#9db4bd'};
   const seed=(x,y)=>Math.abs(Math.sin(x*12.9898+y*78.233)*43758.5453)%1;
