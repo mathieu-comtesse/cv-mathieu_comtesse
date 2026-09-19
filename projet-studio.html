@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr"><head><script>(() => {
+  const root = document.documentElement;
+  const preference = window.matchMedia('(prefers-color-scheme: dark)');
+  let mode = 'auto';
+  try { const saved = localStorage.getItem('cv-theme'); if (['auto', 'light', 'dark'].includes(saved)) mode = saved; } catch (_) {}
+  const labels = {auto: 'Auto', light: 'Clair', dark: 'Sombre'};
+  function apply() {
+    root.dataset.theme = mode === 'auto' ? (preference.matches ? 'dark' : 'light') : mode;
+    const button = document.getElementById('theme-toggle');
+    if (button) {
+      button.querySelector('span').textContent = 'Apparence : ' + labels[mode];
+      const next = {auto:'light', light:'dark', dark:'auto'}[mode];
+      button.setAttribute('aria-label', 'Apparence : ' + labels[mode] + '. Passer en mode ' + labels[next] + '.');
+      button.title = 'Auto suit le navigateur et le système. Cliquer pour changer.';
+    }
+  }
+  apply();
+  preference.addEventListener('change', apply);
+  document.addEventListener('DOMContentLoaded', () => {
+    apply();
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      mode = {auto:'light', light:'dark', dark:'auto'}[mode];
+      try { localStorage.setItem('cv-theme', mode); } catch (_) {}
+      apply();
+    });
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Mathieu Comtesse - un profil associant M2 MQSE et développement numérique : prévention et co-activité, maintenance réglementaire, méthodes qualité, extraction de données, automatisation et Power BI au service des équipes.">
+<meta name="theme-color" content="#fefefe">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mathieu Comtesse">
+<meta property="og:title" content="Studio d’extracteurs PDF : construire un extracteur sans coder — Mathieu Comtesse">
+<meta property="og:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils. Studio d’extracteurs PDF, extracteurs CERFA et VRE, chaîne Power Automate des plans de prévention, portail Power BI, méthode qualité et enquête terrain.">
+<meta property="og:url" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/projet-studio.html">
+<meta property="og:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="Prévenir, vérifier, maintenir. Du terrain à la conformité.">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Studio d’extracteurs PDF : construire un extracteur sans coder — Mathieu Comtesse">
+<meta name="twitter:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils.">
+<meta name="twitter:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
+<title>Studio d’extracteurs PDF : construire un extracteur sans coder — Mathieu Comtesse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@300;400;700&amp;family=VT323&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="app.js?v=pages-20260919" defer=""></script>
+<style>
+/* Mécanique des trains (gravures) et du curseur - inchangée. */
+.railway{margin-top:0}
+.rail-art{position:relative;width:100%;aspect-ratio:1997 / 787;background:#fff;mix-blend-mode:multiply;overflow:hidden;isolation:isolate;--rail-top:47.649301%}
+.bridge-fixed{position:absolute;inset:0;width:100%;height:100%;max-width:none;z-index:3;clip-path:inset(47.395172% 0 0);pointer-events:none}
+.train-runner{position:absolute;left:0;top:var(--rail-top);z-index:2;pointer-events:none;will-change:transform}
+.train-runner[hidden]{display:none}
+.train-window{position:relative;width:100%;height:100%;transform:translateY(-100%);overflow:hidden}
+.train-window img{display:block;position:absolute;left:0;width:100%;max-width:none;height:auto}
+.steam-passage{position:absolute;inset:0;z-index:2;clip-path:inset(0 0 52.604828%);pointer-events:none}
+.steam-passage[hidden]{display:none}
+.rail-art .steam-video{position:absolute;left:0;top:-1.85%;width:100%;height:auto;max-width:none;display:block;transform:none;mix-blend-mode:normal}
+.tgv-sprite{width:125%;aspect-ratio:2172 / 166;transform:translate3d(-100%,0,0)}
+.tgv-sprite img{top:-156.626506%}
+html[data-theme="dark"] .rail-art{filter:invert(1) grayscale(1);mix-blend-mode:screen;opacity:.72}
+html[data-theme="dark"] .rail-art .steam-video{filter:none;mix-blend-mode:normal;opacity:1}
+/* Curseur : flèche croquis hachurée (49×62, inclinée de 22°, pointe en 1,0). Quand app.js active le calque « négatif » (.cursor-ghost), le curseur passe à la version « traits seuls » pour laisser voir l’inversion entre les hachures. */
+:root{--cv-cursor:url("assets/cursor-sketch-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto){:root{--cv-cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,pointer}}
+html.has-ghost{--cv-cursor:url("assets/cursor-sketch-lines-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-lines-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto){html.has-ghost{--cv-cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,pointer}}
+@media (hover:hover) and (pointer:fine){
+body{cursor:var(--cv-cursor)}
+html body :is(a,button,summary,[role="button"],.scene-step,.scene-toggle,.theme-toggle),html body :is(a,button,summary,[role="button"]) *{cursor:var(--cv-action)}
+html body :is(input,textarea,[contenteditable="true"]){cursor:text}
+html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
+}
+
+
+/* Coins « ⌐ ¬ » : les blocs de bande gardent un peu d’air pour les marques d’angle. */
+.band>.wrap.corners{padding-block:26px}
+</style><link rel="stylesheet" href="pages.css?v=20260919"><script src="pages.js?v=20260919" defer=""></script></head>
+<body data-page="projet-studio"><svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs><pattern id="ts-dots" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" style="fill:var(--white)"></rect><rect x="1.25" y="1.25" width="1.1" height="1.1" style="fill:var(--ink)"></rect></pattern><pattern id="ts-dots-dense" patternUnits="userSpaceOnUse" width="3" height="3"><rect width="3" height="3" style="fill:var(--white)"></rect><rect x="0.5" y="0.5" width="1.6" height="1.6" style="fill:var(--ink)"></rect></pattern></defs></svg>
+<nav class="shade-bar" aria-label="Nuances de la couleur d’accent"><button type="button" class="shade" data-hex="E7E7FE" style="background:#E7E7FE" aria-label="Couleur #E7E7FE"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="BBBCFC" style="background:#BBBCFC" aria-label="Couleur #BBBCFC"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="8F90FA" style="background:#8F90FA" aria-label="Couleur #8F90FA"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="6365F8" style="background:#6365F8" aria-label="Couleur #6365F8"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade is-current" data-hex="272AF5" style="background:#272AF5" aria-label="Couleur #272AF5"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="0B0FF4" style="background:#0B0FF4" aria-label="Couleur #0B0FF4"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="090CC8" style="background:#090CC8" aria-label="Couleur #090CC8"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="07099C" style="background:#07099C" aria-label="Couleur #07099C"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="050770" style="background:#050770" aria-label="Couleur #050770"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="030444" style="background:#030444" aria-label="Couleur #030444"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="010118" style="background:#010118" aria-label="Couleur #010118"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button></nav><a class="skip-link" href="#contenu">Aller au contenu</a><header class="site-header"><div class="site-identity"><a class="site-name" href="index.html">Mathieu Comtesse</a><button class="theme-toggle" id="theme-toggle" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"></path></svg><span>Apparence : Auto</span></button></div><nav class="theme-nav" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="profil.html">Profil</a><a href="competences.html">Compétences</a><a href="projets.html" aria-current="page">Projets</a><a href="automatisations.html">Power Automate</a><a href="methode.html">Qualité &amp; Lean</a><a href="parcours.html">Parcours</a><a href="contact.html">Contact</a></nav></header><main id="contenu" tabindex="-1"><div class="project-back wrap"><a href="projets.html">← Tous les projets</a></div><section class="band band--pink"><div class="wrap corners"><article class="case-study" id="projet-studio"><header class="case-heading"><span class="case-number">01</span><h1 class="page-title">Studio d’extracteurs PDF : construire un extracteur sans coder</h1><span class="case-category">Application génératrice · UI/UX · local &amp; autonome</span></header><p class="case-description">Chaque famille de documents (CERFA, plans de prévention, rapports de contrôle) mérite son extracteur, mais personne ne peut en développer un à la main à chaque fois. Le Studio d’extracteurs PDF est l’application que j’ai conçue pour ça : une page unique, livrée aussi en exécutable autonome, qui tourne entièrement en local, aucun document ne quitte le poste.</p><p class="case-description">Le principe tient en une interface, sans serveur : on dépose un PDF modèle, on trace les zones à lire directement sur la page, on nomme et on type les champs, on ordonne les colonnes par glisser-déposer, on teste sur un lot, puis le Studio génère un extracteur autonome que l’équipe utilise sans le Studio. Tous les extracteurs héritent de la même UI/UX : KPI cliquables, table codée par couleurs, export Excel surligné.</p><figure class="demo-win win"><div class="win__title"><span>Studio d’extracteurs · démonstration</span><span aria-hidden="true">▤</span></div><video class="demo-video" autoplay="" muted="" loop="" playsinline="" preload="auto" poster="assets/studio-poster.jpg" width="1280" height="860" aria-label="Démonstration du Studio d’extracteurs : dépôt d’un PDF modèle, tracé d’une zone sur Entreprise extérieure, nommage du champ, puis onglets Tableau, Mise en page, Test et Générer"><source src="assets/studio-demo.mp4" type="video/mp4"></video><figcaption>Vraie interface, document fictif. Le parcours complet, en boucle : déposer un PDF modèle, tracer la zone « Entreprise extérieure » sur la page, nommer le champ, puis parcourir Tableau, Mise en page (titre et blocs de l’outil généré), Test et Générer. Les réglages fins (ancres, motifs, répétitions, indicateurs) restent hors champ.</figcaption></figure><figure class="flow-diagram"><figcaption>Comment ça fonctionne</figcaption><ol class="flow-steps" style="--steps:5"><li><span class="flow-index">01</span><strong>Déposer un modèle</strong><span>Un PDF représentatif de la famille de documents</span></li><li><span class="flow-index">02</span><strong>Tracer les zones</strong><span>Dessiner sur la page les emplacements à lire, page par page</span></li><li><span class="flow-index">03</span><strong>Définir les champs</strong><span>Nom, type (texte, nombre, date, oui/non), lecture hybride ancre + géométrie, motif, répétitions pour les listes</span></li><li><span class="flow-index">04</span><strong>Tester sur un lot</strong><span>Table de résultats codée : vert conforme, ambre à vérifier, rouge écart, bleu doublon</span></li><li><span class="flow-index">05</span><strong>Générer l’extracteur</strong><span>Un fichier HTML unique qui embarque le lecteur PDF, l’OCR français et le gabarit ; export Excel et CSV, gabarit JSON pour archiver ou partager</span></li></ol></figure><div class="before-after"><div class="dotgrid"><span class="chip">Avant / Après · Un nouvel extracteur</span><div class="win win--grey"><div class="win__title"><span>Développement au cas par cas</span><span aria-hidden="true">▤</span></div><div class="win__body"><pre class="term">Nouveau type de document reçu
+Écrire un lecteur PDF spécifique…
+Coder les règles de lecture…
+Coder l’export Excel…
+Refaire l’interface… <span class="dim">(différente à chaque fois)</span>
+<span class="dim">…</span>
+Nouveau type de document reçu
+Tout recommencer</pre><div class="win__foot"><span>UN DÉVELOPPEMENT PAR DOCUMENT</span><span>INTERFACES HÉTÉROGÈNES</span></div></div></div><div class="win"><div class="win__title"><span>Studio d’extracteurs</span><span aria-hidden="true">▤</span></div><div class="win__body"><pre class="term"><b>$</b> studio --nouveau "Rapport de contrôle"
+Déposer le PDF modèle … <span class="ok">OK</span>
+Zones tracées · champs nommés et typés · colonnes ordonnées
+Test sur le lot … <span class="ok">conforme</span> <b>ambre</b> <span class="ko">écart</span> doublon
+Génération : <b>extracteur_rapport_controle.html</b>
+UI héritée : KPI · couleurs d’état · export surligné
+Aucune donnée transmise : <span class="ok">100 % local</span></pre><div class="win__foot"><span>UN EXTRACTEUR PAR FAMILLE</span><span>MÊME UI/UX PARTOUT</span></div></div></div></div><div class="panel-caption"><div><strong>Avant</strong>Chaque document appelait un développement dédié, avec son interface et ses règles refaites à chaque fois.</div><div><strong>Après</strong>Le Studio produit l’extracteur ; le temps se passe à définir les zones et les contrôles, pas à coder.</div><div><a href="projet-1.html#projet-1">Voir le cas CERFA v2</a></div></div></div><div class="outcome-grid" aria-label="Ce que change le Studio"><div><h4>UI/UX comme méthode</h4><p>Tracer, nommer, tester : le parcours guide la personne pas à pas et rend le résultat lisible avant d’exporter quoi que ce soit.</p></div><div><h4>Un extracteur par famille</h4><p>CERFA, plans de prévention, rapports d’inspection : chaque famille a son extracteur, tous cohérents entre eux.</p></div><div><h4>Hors serveur, confidentiel</h4><p>Le Studio comme chaque extracteur généré est un fichier HTML autonome (ou un exécutable) : pas de serveur, pas d’envoi réseau, tout se lit et se calcule dans le navigateur du poste. Les documents, souvent nominatifs, ne sortent jamais de l’entreprise.</p></div></div><p class="case-benefit"><span>Pour l’équipe</span>Un besoin d’extraction nouveau ne dépend plus d’un développement : on ouvre le Studio, on trace, on teste, on distribue.</p><p class="case-gain"><span>Gain mesuré</span>Un extracteur opérationnel en quelques heures, contre plusieurs jours de développement et de recette pour un lecteur codé à la main.</p><p class="case-gain case-res"><span>Ressources machine</span>Fichier HTML unique de 6,4 Mo qui embarque le lecteur PDF, l’OCR français (WebAssembly) et l’export Excel. Mesuré sur un poste bureautique : environ 65 Mo de mémoire au chargement, une cinquantaine de Mo de plus pendant le tracé et le test d’un gabarit. Aucun besoin de carte graphique : le rendu des pages se fait en 2D dans le navigateur. Seul l’OCR sollicite vraiment le processeur, et uniquement sur les PDF scannés ; un PDF à texte natif se lit en moins d’une seconde. Un ordinateur portable de bureau récent suffit.</p><p class="case-critique"><span>Recul critique</span>Le Studio suppose des documents à mise en page stable ; l’ancre recale la zone, mais un formulaire refondu demande un nouveau gabarit. Le tracé des zones demande un peu de pratique, et l’OCR embarqué reste moins fiable qu’un texte natif. Je n’ai pas encore d’historique de versions des gabarits au-delà de l’export JSON.</p></article></div></section><div class="project-back wrap"><a href="projets.html">← Tous les projets</a></div></main><footer class="site-footer"><span>© 2026 Mathieu Comtesse · Qualité · Sécurité · Numérique</span><a href="contact.html">Me contacter</a></footer></body></html>

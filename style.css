@@ -5,8 +5,8 @@
 
 /* Die Grotesk C est une police commerciale : déposer les fichiers dans assets/fonts/ pour l'activer,
    sinon Host Grotesk (Google Fonts, grotesque très proche) prend le relais. */
-@font-face{font-family:"Die Grotesk C";font-weight:500;font-display:swap;src:local("Die Grotesk C Medium"),local("DieGroteskC-Medium"),url("assets/fonts/DieGroteskC-Medium.woff2") format("woff2")}
-@font-face{font-family:"Die Grotesk C";font-weight:400;font-display:swap;src:local("Die Grotesk C Regular"),local("DieGroteskC-Regular"),url("assets/fonts/DieGroteskC-Regular.woff2") format("woff2")}
+@font-face{font-family:"Die Grotesk C";font-weight:500;font-display:swap;src:local("Die Grotesk C Medium"),local("DieGroteskC-Medium")}
+@font-face{font-family:"Die Grotesk C";font-weight:400;font-display:swap;src:local("Die Grotesk C Regular"),local("DieGroteskC-Regular")}
 
 :root{
   /* Palette */
