@@ -1,6 +1,7 @@
 'use strict';
 (() => {
   const stage = document.querySelector('.rail-art');
+  if (!stage) return;
   const steam = document.getElementById('steam-sprite');
   const video = document.getElementById('steam-video');
   const tgv = document.getElementById('tgv-sprite');
