@@ -135,3 +135,9 @@ body[data-page="contact"] #contact{padding-block:35px;min-height:calc(100svh - v
 body[data-page="contact"] main::before{background-size:auto calc(100svh - var(--nav-height,100px));background-repeat:repeat-x;background-position:right bottom}.driving-stage{align-self:start;height:650px}.settings-body details{font:12px/1.55 var(--mono);margin:16px 0}.settings-body details summary{cursor:pointer}@media(max-width:850px){.driving-stage{height:520px}}@media(max-width:700px){body[data-page="contact"] main::before{background-size:auto 792px}}
 
 body[data-page="contact"] main::before{display:none}.contact-water{position:absolute;bottom:0;left:0;width:100%;height:18%;z-index:-1;pointer-events:none}.contact-art{mask-image:linear-gradient(90deg,transparent 0%,#000 8%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 8%)}
+
+/* Une seule toile conserve la continuité de l’eau et le bateau entier. */
+body[data-page="contact"] .contact-art{background-image:url('contact-scene.png');background-size:100% auto;background-position:center bottom;mask-image:none;-webkit-mask-image:none}
+body[data-page="contact"] main::before,.contact-water{display:none}
+@media(max-width:700px){body[data-page="contact"] .contact-art{background-size:auto 440px;background-position:75% bottom}body[data-page="contact"] #contact{min-height:1000px}}
+.wood-tools{background:#f4e9dd;color:#615267;border:1px solid #baa7b3;box-shadow:0 8px 30px #79688020;border-radius:18px}.wood-tools h1{color:#615267!important}
