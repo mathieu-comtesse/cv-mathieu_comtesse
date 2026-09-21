@@ -15,15 +15,16 @@ const svg=$('cube-graph'),ns='http://www.w3.org/2000/svg';const el=(tag,attrs)=>
 const defs=el('defs',{}),marker=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:4,markerHeight:4,orient:'auto-start-reverse'});marker.append(el('path',{d:'M0 0L10 5L0 10Z',fill:'#38362e'}));defs.append(marker);svg.append(defs);
 const edgeGroup=el('g',{}),dotGroup=el('g',{});svg.append(edgeGroup,dotGroup);
 // 54 intersections of three families of concentric circles.
-// Three families of concentric circles (centres T, L, R). Yellow, green and orange sit on the rays of their own family;
-// red, blue and white sit where two families cross — every facet lies on the circles, as on the reference drawing.
-const fam={T:{x:250,y:198},L:{x:212,y:262},R:{x:288,y:262}},famRadii=[60,78,96,114,132,150],graphPoints=new Array(SLOTS.length);
-const loops=el('g',{'aria-hidden':'true'});svg.insertBefore(loops,edgeGroup);for(const c of Object.values(fam))for(const r of famRadii)loops.append(el('circle',{cx:c.x,cy:c.y,r,fill:'none',stroke:'#b3ad9f','stroke-width':1.8}));
-const ray=(c,angle,radii)=>{const pts=[];for(const r of radii)for(const da of [-13,0,13]){const a=(angle+da)*Math.PI/180;pts.push({x:c.x+r*Math.cos(a),y:c.y+r*Math.sin(a)});}return pts;};
-const cross=(p,q,radii,away)=>{const pts=[],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);for(const ra of radii)for(const rb of radii){const along=(ra*ra-rb*rb+d*d)/(2*d),h=Math.sqrt(Math.max(0,ra*ra-along*along)),mx=p.x+along*dx/d,my=p.y+along*dy/d;const cands=[{x:mx+h*dy/d,y:my-h*dx/d},{x:mx-h*dy/d,y:my+h*dx/d}];pts.push(cands.sort((u,v)=>Math.hypot(v.x-away.x,v.y-away.y)-Math.hypot(u.x-away.x,u.y-away.y))[0]);}return pts;};
-const clusters={2:ray(fam.T,-90,[60,78,96]),4:ray(fam.L,140,[60,78,96]),1:ray(fam.R,40,[60,78,96]),0:cross(fam.T,fam.L,[114,132,150],fam.R),5:cross(fam.T,fam.R,[114,132,150],fam.L),3:cross(fam.L,fam.R,[114,132,150],fam.T)};
+// Reference layout: six compact 3×3 blooms, each sitting exactly on the crossings of two families of concentric
+// circles (three circles per family around the bloom), so every dot lies on drawn rings.
+const fam=[{x:250,y:90},{x:111,y:330},{x:389,y:330}],blooms={0:{x:140,y:190},2:{x:250,y:215},5:{x:360,y:190},4:{x:180,y:320},1:{x:320,y:320},3:{x:250,y:395}},step=16,graphPoints=new Array(SLOTS.length);
+const loops=el('g',{'aria-hidden':'true'});svg.insertBefore(loops,edgeGroup);const drawn=new Set();
+const ring=(c,r)=>{const key=c.x+':'+Math.round(r);if(drawn.has(key))return;drawn.add(key);loops.append(el('circle',{cx:c.x,cy:c.y,r,fill:'none',stroke:'#c3bdae','stroke-width':1.6}));};
+const cross=(p,q,ra,rb,towards)=>{const dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy),along=(ra*ra-rb*rb+d*d)/(2*d),h=Math.sqrt(Math.max(0,ra*ra-along*along)),mx=p.x+along*dx/d,my=p.y+along*dy/d;return [{x:mx+h*dy/d,y:my-h*dx/d},{x:mx-h*dy/d,y:my+h*dx/d}].sort((u,v)=>Math.hypot(u.x-towards.x,u.y-towards.y)-Math.hypot(v.x-towards.x,v.y-towards.y))[0];};
 const perFace={};SLOTS.forEach((slot,i)=>{(perFace[slot.face]??=[]).push(i);});
-for(const face in clusters)perFace[face].forEach((i,k)=>{graphPoints[i]=clusters[face][k];});
+for(const face in blooms){const P=blooms[face];let best=null;for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){const A=fam[i],B=fam[j],ua={x:A.x-P.x,y:A.y-P.y},ub={x:B.x-P.x,y:B.y-P.y},da=Math.hypot(ua.x,ua.y),db=Math.hypot(ub.x,ub.y),sin=Math.abs(ua.x*ub.y-ua.y*ub.x)/(da*db);if(!best||sin>best.sin)best={A,B,da,db,sin};}
+ const pts=[];for(const ka of [-1,0,1])for(const kb of [-1,0,1]){const ra=best.da+ka*step,rb=best.db+kb*step;ring(best.A,ra);ring(best.B,rb);pts.push(cross(best.A,best.B,ra,rb,P));}
+ perFace[face].forEach((i,k)=>{graphPoints[i]=pts[k];});}
 const dots=graphPoints.map((p,i)=>{const node=el('circle',{cx:p.x,cy:p.y,r:8.2,fill:FACE_COLORS[state[i]],stroke:'#25251f','stroke-width':2.2,class:'graph-dot'});const title=el('title',{});title.textContent=`Facette ${i+1} · ${FACES[SLOTS[i].face]}`;node.append(title);dotGroup.append(node);return node;});
 function drawGraph(move=selected){selected=move;$('graph-move').textContent=move.replace("'",'′');edgeGroup.replaceChildren();dots.forEach((n,i)=>{n.setAttribute('fill',FACE_COLORS[state[i]]);n.setAttribute('opacity',1);});}
 function refresh(){stickers.forEach((s,i)=>s.material.color.set(FACE_COLORS[state[i]]));$('cube-state').textContent=state===SOLVED?'Résolu':`${history.length} mouvements`;$('cube-state').dataset.solved=String(state===SOLVED);canvas.dataset.state=state;drawGraph();document.querySelectorAll('.face-controls button,.game-actions button,.game-actions select').forEach(b=>b.disabled=busy||searching);}
