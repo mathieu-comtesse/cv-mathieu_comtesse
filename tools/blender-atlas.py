@@ -74,14 +74,17 @@ class Paper:
                 self.tri(P(t0, h), P(t0, 0), P(tm, h/2, 0.05), alt if i % 2 == 0 else color)
         # flat top and base
         self.quad((x-w/2, y-d/2, z+h), (x+w/2, y-d/2, z+h), (x+w/2, y+d/2, z+h), (x-w/2, y+d/2, z+h), color)
-    def export(self, name, jitter=0.012, tint=0.06):
+    def export(self, name, jitter=0.012, tint=0.06, outward=True):
         bm = self.bm; bmesh.ops.triangulate(bm, faces=bm.faces[:])
         for v in bm.verts: v.co += Vector((random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * jitter
         bm.normal_update(); pos, nor, col = [], [], []
+        centre = sum((v.co for v in bm.verts), Vector()) / max(1, len(bm.verts))
         for f in bm.faces:
-            n = f.normal; base = self.colors[f.material_index]; k = 1 + random.uniform(-tint, tint)
+            n = f.normal.copy(); verts = list(f.verts); base = self.colors[f.material_index]; k = 1 + random.uniform(-tint, tint)
+            # Faces are built as loose triangles: make every one face away from the model's centre so none is culled.
+            if outward and n.dot(f.calc_center_median() - centre - Vector((0, 0, 0.001))) < 0: n = -n; verts.reverse()
             c = [max(0, min(255, int(ch*k*255))) for ch in base]
-            for v in f.verts:
+            for v in verts:
                 p = v.co; pos += [round(p.x, 4), round(p.z, 4), round(-p.y, 4)]; nor += [round(n.x, 4), round(n.z, 4), round(-n.y, 4)]
             col += c
         models[name] = {'position': pos, 'normal': nor, 'color': col}; bm.free()
@@ -122,23 +125,48 @@ p.cone(0.05, 0.3, (0, 0, 0), '#8b5e3c', segs=5, top_r=0.05); p.export('blossom',
 p = Paper(); ret = bmesh.ops.create_icosphere(p.bm, subdivisions=1, radius=0.3); p.paint(p.bm.faces[:], ROCK[0]); p.export('stone', jitter=0.06, tint=0.15)
 
 # --- Paper boat, crane, wave -------------------------------------------------
-p = Paper(); bow, stern, pl, pr, keel, top = (0.55, 0, 0.12), (-0.55, 0, 0.12), (0, -0.22, 0.14), (0, 0.22, 0.14), (0, 0, -0.08), (0, 0, 0.5)
-for a, b in ((bow, pl), (pl, stern), (stern, pr), (pr, bow)): p.tri(a, b, keel, PAPER)
-for a, b in ((bow, pl), (pl, stern), (stern, pr), (pr, bow)): p.tri(a, top, b, RED)
-p.export('boat', jitter=0.008)
+
 p = Paper(); bf, bb, bt, bd = (0.16, 0, 0), (-0.16, 0, 0), (0, 0, 0.12), (0, 0, -0.06); wl, wr = (0.02, -0.55, 0.26), (0.02, 0.55, 0.26); neck, head, tail = (0.42, 0, 0.22), (0.5, 0, 0.16), (-0.46, 0, 0.24)
 for t in ((bf, bt, bb), (bf, bb, bd), (bf, wl, bb), (bf, bb, wr), (bf, neck, bt), (neck, head, bt), (bb, bt, tail)): p.tri(*t, PAPER)
-p.export('crane', jitter=0.004)
+p.export('crane', jitter=0.004, outward=False)
 # a folded wave crest: zigzag strip of paper, blue with a white lip
 p = Paper(); n = 5
 for i in range(n):
     x0 = -0.6 + 1.2*i/n; x1 = -0.6 + 1.2*(i+1)/n; xm = (x0+x1)/2
     p.tri((x0, -0.12, 0), (x1, -0.12, 0), (xm, -0.04, 0.22), '#4fb3c7'); p.tri((x1, -0.12, 0), (x1, 0.12, 0.05), (xm, -0.04, 0.22), '#7fd0de')
     p.tri((x1, 0.12, 0.05), (x0, 0.12, 0.05), (xm, -0.04, 0.22), PAPER); p.tri((x0, 0.12, 0.05), (x0, -0.12, 0), (xm, -0.04, 0.22), '#4fb3c7')
-p.export('wave', jitter=0.01, tint=0.08)
+p.export('wave', jitter=0.01, tint=0.08, outward=False)
 
 # --- Vehicles --------------------------------------------------------------
-p = Paper(); p.box((0.55, 0.3, 0.32), (0, 0, 0.2), RED); p.box((0.12, 0.12, 0.2), (0.18, 0, 0.44), INK); p.box((0.42, 0.28, 0.26), (-0.55, 0, 0.17), YELLOW); p.box((0.42, 0.28, 0.26), (-1.05, 0, 0.17), TEAL); p.export('train', jitter=0.006)
+# Steam locomotive: boiler, cab with pleated roof, chimney, dome, cowcatcher, wheels; a tender and a wagon.
+p = Paper(); p.box((0.9, 0.34, 0.06), (0, 0, 0.14), INK)                                    # frame
+ret = bmesh.ops.create_cone(p.bm, cap_ends=True, segments=8, radius1=0.14, radius2=0.14, depth=0.55); bmesh.ops.transform(p.bm, matrix=Matrix.Rotation(math.pi/2, 4, 'Y') @ Matrix.Translation((0, 0, 0)), verts=ret['verts']); bmesh.ops.transform(p.bm, matrix=Matrix.Translation((0.14, 0, 0.32)), verts=ret['verts']); p.paint(p.owned(ret['verts']), RED)
+p.cone(0.05, 0.16, (0.34, 0, 0.44), INK, segs=8, top_r=0.07); p.cone(0.06, 0.08, (0.12, 0, 0.45), YELLOW, segs=8, top_r=0.04)
+p.faceted_wall(0.28, 0.34, 0.3, (-0.25, 0, 0.17), RED, '#f06a5c', cols=2); p.pleated_roof(0.28, 0.3, 0.06, (-0.25, 0, 0.51), INK, pleats=2, overhang=0.04)
+p.tri((0.44, -0.17, 0.11), (0.44, 0.17, 0.11), (0.56, 0, 0.04), YELLOW)
+for x in (-0.3, -0.05, 0.22):
+    for y in (-0.18, 0.18): p.cone(0.07, 0.03, (x, y, 0.07), INK, segs=8, top_r=0.07)
+p.box((0.42, 0.3, 0.26), (-0.72, 0, 0.17), YELLOW); p.box((0.34, 0.24, 0.08), (-0.72, 0, 0.34), INK)
+p.faceted_wall(0.46, 0.3, 0.3, (-1.28, 0, 0.04), TEAL, '#a6dcd6', cols=2); p.pleated_roof(0.46, 0.3, 0.07, (-1.28, 0, 0.34), '#44444f', pleats=2, overhang=0.04)
+p.export('train', jitter=0.005)
+# Sailboat: pointed folded hull, keel, mast and two sails.
+p = Paper(); bow, stern_l, stern_r, keel = (0.6, 0, 0.14), (-0.5, -0.2, 0.16), (-0.5, 0.2, 0.16), (0.05, 0, -0.1)
+p.tri(bow, (0.05, -0.26, 0.18), keel, PAPER); p.tri((0.05, -0.26, 0.18), stern_l, keel, CREAM); p.tri(stern_l, stern_r, keel, PAPER); p.tri(stern_r, (0.05, 0.26, 0.18), keel, CREAM); p.tri((0.05, 0.26, 0.18), bow, keel, PAPER)
+p.quad(bow, (0.05, -0.26, 0.18), stern_l, (0.05, 0, 0.18), RED); p.quad(bow, (0.05, 0, 0.18), stern_r, (0.05, 0.26, 0.18), RED)  # deck
+p.box((0.03, 0.03, 0.9), (0.05, 0, 0.6), INK); p.tri((0.06, 0, 1.02), (0.06, 0, 0.24), (0.5, 0, 0.3), ORANGE); p.tri((0.04, 0, 0.98), (-0.42, 0, 0.3), (0.04, 0, 0.26), PAPER)
+p.export('boat', jitter=0.006)
+# Fishing boat: rounded hull, wheelhouse, folded flag.
+p = Paper(); p.faceted_wall(0.7, 0.18, 0.3, (0, 0, 0), '#3a6ea5', '#5b8ec4', cols=3); p.tri((0.35, -0.15, 0.18), (0.35, 0.15, 0.18), (0.55, 0, 0.2), '#3a6ea5'); p.tri((0.35, -0.15, 0), (0.55, 0, 0.2), (0.35, -0.15, 0.18), '#5b8ec4'); p.tri((0.35, 0.15, 0.18), (0.55, 0, 0.2), (0.35, 0.15, 0), '#5b8ec4')
+p.box((0.24, 0.22, 0.2), (-0.12, 0, 0.28), CREAM); p.pleated_roof(0.24, 0.22, 0.05, (-0.12, 0, 0.38), RED, pleats=2, overhang=0.03); p.box((0.02, 0.02, 0.4), (0.15, 0, 0.5), INK); p.tri((0.16, 0, 0.7), (0.16, 0, 0.6), (0.3, 0, 0.66), YELLOW)
+p.export('fisher', jitter=0.006)
+# Origami fish: folded body, tail and dorsal fin.
+p = Paper(); nose, top, bottom, tailroot, tail_t, tail_b = (0.3, 0, 0.0), (0.02, 0, 0.12), (0.02, 0, -0.11), (-0.22, 0, 0.0), (-0.4, 0, 0.12), (-0.4, 0, -0.12)
+for side in (-0.05, 0.05):
+    mid = (0.02, side, 0.0)
+    p.tri(nose, top, mid, ORANGE); p.tri(nose, mid, bottom, '#ffb27a'); p.tri(top, tailroot, mid, ORANGE); p.tri(mid, tailroot, bottom, '#ffb27a')
+p.tri(tailroot, tail_t, tail_b, RED); p.tri((0.08, 0, 0.1), (-0.1, 0, 0.1), (-0.02, 0, 0.22), RED)
+p.export('fish', jitter=0.003, outward=False)
+
 p = Paper(); p.box((0.3, 0.16, 0.1), (0, 0, 0.09), PAPER); p.box((0.15, 0.14, 0.1), (-0.02, 0, 0.19), '#3a6ea5'); p.export('car', jitter=0.004)
 p = Paper(); p.cone(0.26, 1.3, (0, 0, 0), PAPER, segs=8, top_r=0.18)
 for i in range(3): p.cone(0.27 - i*0.03, 0.12, (0, 0, 0.22 + i*0.4), RED, segs=8, top_r=0.27 - i*0.03)
@@ -175,7 +203,7 @@ for i in range(segs):
     for tri in ((a, b, m2), (a, m2, m1)): p.paint([bm.faces.new(tri)], ROCK[i % 4])
     for tri in ((m1, m2, c), (m1, c, d)): p.paint([bm.faces.new(tri)], ROCK[(i+2) % 4])
 p.paint([bm.faces.new(bottom[::-1])], ROCK[3])
-p.export('island', jitter=0.03, tint=0.09)
+p.export('island', jitter=0.03, tint=0.09, outward=False)
 
 json.dump(models, open(out, 'w'), separators=(',', ':'))
 print('written', out, {k: len(v['color'])//3 for k, v in models.items()})
