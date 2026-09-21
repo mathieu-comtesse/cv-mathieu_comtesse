@@ -162,8 +162,10 @@ p.export('train', jitter=0.005)
 p = Paper(); bow, stern_l, stern_r, keel = (0.6, 0, 0.14), (-0.5, -0.2, 0.16), (-0.5, 0.2, 0.16), (0.05, 0, -0.1)
 p.tri(bow, (0.05, -0.26, 0.18), keel, PAPER); p.tri((0.05, -0.26, 0.18), stern_l, keel, CREAM); p.tri(stern_l, stern_r, keel, PAPER); p.tri(stern_r, (0.05, 0.26, 0.18), keel, CREAM); p.tri((0.05, 0.26, 0.18), bow, keel, PAPER)
 p.quad(bow, (0.05, -0.26, 0.18), stern_l, (0.05, 0, 0.18), RED); p.quad(bow, (0.05, 0, 0.18), stern_r, (0.05, 0.26, 0.18), RED)  # deck
-p.box((0.03, 0.03, 0.9), (0.05, 0, 0.6), INK); p.tri((0.06, 0, 1.02), (0.06, 0, 0.24), (0.5, 0, 0.3), ORANGE); p.tri((0.04, 0, 0.98), (-0.42, 0, 0.3), (0.04, 0, 0.26), PAPER)
+p.box((0.03, 0.03, 0.9), (0.05, 0, 0.6), INK)
 p.export('boat', jitter=0.006)
+# The sails are a separate piece so the boat can furl them at the quay.
+p = Paper(); p.tri((0.06, 0, 1.02), (0.06, 0, 0.24), (0.5, 0, 0.3), ORANGE); p.tri((0.04, 0, 0.98), (-0.42, 0, 0.3), (0.04, 0, 0.26), PAPER); p.export('sails', jitter=0.004, outward=False)
 # Fishing boat: rounded hull, wheelhouse, folded flag.
 p = Paper(); p.faceted_wall(0.7, 0.18, 0.3, (0, 0, 0), '#3a6ea5', '#5b8ec4', cols=3); p.tri((0.35, -0.15, 0.18), (0.35, 0.15, 0.18), (0.55, 0, 0.2), '#3a6ea5'); p.tri((0.35, -0.15, 0), (0.55, 0, 0.2), (0.35, -0.15, 0.18), '#5b8ec4'); p.tri((0.35, 0.15, 0.18), (0.55, 0, 0.2), (0.35, 0.15, 0), '#5b8ec4')
 p.box((0.24, 0.22, 0.2), (-0.12, 0, 0.28), CREAM); p.pleated_roof(0.24, 0.22, 0.05, (-0.12, 0, 0.38), RED, pleats=2, overhang=0.03); p.box((0.02, 0.02, 0.4), (0.15, 0, 0.5), INK); p.tri((0.16, 0, 0.7), (0.16, 0, 0.6), (0.3, 0, 0.66), YELLOW)
@@ -179,7 +181,7 @@ p.export('fish', jitter=0.003, outward=False)
 p = Paper(); p.box((0.3, 0.16, 0.1), (0, 0, 0.09), PAPER); p.box((0.15, 0.14, 0.1), (-0.02, 0, 0.19), '#3a6ea5'); p.export('car', jitter=0.004)
 p = Paper(); p.cone(0.26, 1.3, (0, 0, 0), PAPER, segs=8, top_r=0.18)
 for i in range(3): p.cone(0.27 - i*0.03, 0.12, (0, 0, 0.22 + i*0.4), RED, segs=8, top_r=0.27 - i*0.03)
-p.cone(0.15, 0.25, (0, 0, 1.3), INK, segs=8, top_r=0.15); p.cone(0.18, 0.2, (0, 0, 1.55), ORANGE, segs=8, top_r=0.0); p.export('lighthouse')
+p.cone(0.15, 0.25, (0, 0, 1.3), '#e9f6ff', segs=8, top_r=0.15); p.cone(0.18, 0.2, (0, 0, 1.55), RED, segs=8, top_r=0.0); p.export('lighthouse')
 
 # --- Island: folded hills, a sandy shore and a rock skirt ---------------------
 p = Paper(); bm = p.bm; segs, rings = 44, 7; R = 4.8
