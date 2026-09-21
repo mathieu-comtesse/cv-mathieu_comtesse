@@ -1,21 +1,16 @@
-# Reprise du 20 septembre 2026
+# Reprise du 21 septembre 2026
 
-Base : mathieu-comtesse/cv-mathieu_comtesse, commit a96560d.
-Branche locale : correction-jeux-contact.
+Base : mathieu-comtesse/cv-mathieu_comtesse, main (dc75913).
+Branche : jeux-immersion-labyrinthe.
 
-Corrections réalisées :
-- Route : ZQSD/flèches, Maj gauche pour accélérer et Ctrl gauche pour freiner ; trafic opposé à 50–76 km/h ; croisements avec feux, stops, priorité à droite, trafic transversal et comptage des infractions. Les obstacles restent pseudo-aléatoires et reproductibles pour comparer les conditions.
-- Sandboard : dessin au clic maintenu, arrêt au relâchement/perte de focus, gain sonore augmenté.
-- Armada : sprites tirés directement de la planche PNG fournie (bateaux, nuages, île, phare, kraken et tonneaux).
-- Contact : image panoramique fournie, sans bande d’eau étirée ni masque de raccord.
-- Firewood : palette adoucie, tête de hache profilée et trajectoire en coordonnées de scène terminant sur le dessus du morceau ciblé.
-
-Vérification : syntaxe des quatre scripts ; test Node des commandes routières, freinage, pause/reprise et bilan ; inspection dans le navigateur intégré de Firewood (coupe 0 → 1), Sandboard (glisser → tracé), Armada (partie lancée) et Contact. Contact inspecté à 390 et 1440 px ; Route sans débordement horizontal à 390 px. Aucune erreur dans le journal navigateur consulté. Le lancement de Chrome automatisé externe a échoué, donc le script Playwright initial n’a pas été exécuté avec succès.
-
-À valider : écoute humaine du son, parties prolongées et équilibre des intersections, comparaison à la vidéo originale d’Armada (non fournie sur ce Mac). Les images fournies sont intégrées ; l’identité exacte avec la vidéo n’est pas garantie.
-
-Publication bloquée : Git local sans authentification GitHub ; connecteur GitHub refusant l’écriture (403 Resource not accessible by integration). Aucun changement envoyé à main et aucune publication du site réalisée.
+Réalisé :
+- Timber ! (ex-Firewood) : hache modélisée dans Blender (`tools/blender-axe.py` → `timber-axe.json`, manche galbé, tête de cognée biseautée, coin), poses en repère caméra (repos, armé, impact), tranchant vers le bas et fente alignée sur la lame (le long du regard), impact garanti même si des images sont sautées.
+- Route : modèle `road-core.js` (10 px/m), berlines/utilitaires/camions/citadines étiquetés avec leur vitesse, panneaux de limitation (30/50/70/90) avec infraction d’excès de vitesse, conteneurs et barrières, piétons avec priorité, panneau de décision (Maintenir / Freiner / Changer de voie / Arrêt d’urgence) inspiré de la vidéo fournie, rayons capteurs vers les objets suivis, décor aléatoire dense, accident définitif avec tête-à-queue, fumée, débris et vignette rouge, clignotement rouge à chaque infraction, recul de caméra et défilement des bordures proportionnels à la vitesse, moteur sonore (bouton Son).
+- Armada : supprimé (fichiers, carte, CSS).
+- Labyrinthe : `labyrinthe.html`, `maze-core.js`, `labyrinthe.js` — carte révélée progressivement (hachures = inconnu), vue subjective tramée, quatre lignes de visée « telles qu’envoyées » avec codes, menu d’options avec barres de confiance (heuristique locale), bandeau de statistiques et frise des décisions, comme dans la vidéo.
+- Textes des jeux à l’infinitif ou au vouvoiement.
 
 Tester : `node tests/road-controls.cjs`.
 Aperçu : lancer `python3 -m http.server 8765` dans ce dossier puis ouvrir http://localhost:8765/projets-perso.html.
-Après rétablissement de l’accès GitHub : pousser la branche correction-jeux-contact et créer une pull request vers main.
+
+Regénérer la hache : `/Applications/Blender.app/Contents/MacOS/Blender --background --python tools/blender-axe.py -- timber-axe.json`.

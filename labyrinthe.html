@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr"><head><script>(() => {
+  const root = document.documentElement;
+  const preference = window.matchMedia('(prefers-color-scheme: dark)');
+  let mode = 'auto';
+  try { const saved = localStorage.getItem('cv-theme'); if (['auto', 'light', 'dark'].includes(saved)) mode = saved; } catch (_) {}
+  const labels = {auto: 'Auto', light: 'Clair', dark: 'Sombre'};
+  function apply() {
+    root.dataset.theme = mode === 'auto' ? (preference.matches ? 'dark' : 'light') : mode;
+    const button = document.getElementById('theme-toggle');
+    if (button) {
+      button.querySelector('span').textContent = 'Apparence : ' + labels[mode];
+      const next = {auto:'light', light:'dark', dark:'auto'}[mode];
+      button.setAttribute('aria-label', 'Apparence : ' + labels[mode] + '. Passer en mode ' + labels[next] + '.');
+      button.title = 'Auto suit le navigateur et le système. Cliquer pour changer.';
+    }
+  }
+  apply();
+  preference.addEventListener('change', apply);
+  document.addEventListener('DOMContentLoaded', () => {
+    apply();
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      mode = {auto:'light', light:'dark', dark:'auto'}[mode];
+      try { localStorage.setItem('cv-theme', mode); } catch (_) {}
+      apply();
+    });
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Mathieu Comtesse - un profil associant M2 MQSE et développement numérique : prévention et co-activité, maintenance réglementaire, méthodes qualité, extraction de données, automatisation et Power BI au service des équipes.">
+<meta name="theme-color" content="#fefefe">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mathieu Comtesse">
+<meta property="og:title" content="Timber !">
+<meta property="og:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils. Studio d’extracteurs PDF, extracteurs CERFA et VRE, chaîne Power Automate des plans de prévention, portail Power BI, méthode qualité et enquête terrain.">
+<meta property="og:url" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/firewood.html">
+<meta property="og:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="Prévenir, vérifier, maintenir. Du terrain à la conformité.">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sandboard — Mathieu Comtesse">
+<meta name="twitter:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils.">
+<meta name="twitter:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
+<title>Labyrinthe — Mathieu Comtesse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@300;400;700&amp;family=VT323&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="app.js?v=pages-20260919" defer=""></script>
+<style>
+/* Mécanique des trains (gravures) et du curseur - inchangée. */
+.railway{margin-top:0}
+.rail-art{position:relative;width:100%;aspect-ratio:1997 / 787;background:#fff;mix-blend-mode:multiply;overflow:hidden;isolation:isolate;--rail-top:47.649301%}
+.bridge-fixed{position:absolute;inset:0;width:100%;height:100%;max-width:none;z-index:3;clip-path:inset(47.395172% 0 0);pointer-events:none}
+.train-runner{position:absolute;left:0;top:var(--rail-top);z-index:2;pointer-events:none;will-change:transform}
+.train-runner[hidden]{display:none}
+.train-window{position:relative;width:100%;height:100%;transform:translateY(-100%);overflow:hidden}
+.train-window img{display:block;position:absolute;left:0;width:100%;max-width:none;height:auto}
+.steam-passage{position:absolute;inset:0;z-index:2;clip-path:inset(0 0 52.604828%);pointer-events:none}
+.steam-passage[hidden]{display:none}
+.rail-art .steam-video{position:absolute;left:0;top:-1.85%;width:100%;height:auto;max-width:none;display:block;transform:none;mix-blend-mode:normal}
+.tgv-sprite{width:125%;aspect-ratio:2172 / 166;transform:translate3d(-100%,0,0)}
+.tgv-sprite img{top:-156.626506%}
+html[data-theme="dark"] .rail-art{filter:invert(1) grayscale(1);mix-blend-mode:screen;opacity:.72}
+html[data-theme="dark"] .rail-art .steam-video{filter:none;mix-blend-mode:normal;opacity:1}
+/* Curseur : flèche croquis hachurée (49×62, inclinée de 22°, pointe en 1,0). Quand app.js active le calque « négatif » (.cursor-ghost), le curseur passe à la version « traits seuls » pour laisser voir l’inversion entre les hachures. */
+:root{--cv-cursor:url("assets/cursor-sketch-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto){:root{--cv-cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,pointer}}
+html.has-ghost{--cv-cursor:url("assets/cursor-sketch-lines-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-lines-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto){html.has-ghost{--cv-cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,pointer}}
+@media (hover:hover) and (pointer:fine){
+body{cursor:var(--cv-cursor)}
+html body :is(a,button,summary,[role="button"],.scene-step,.scene-toggle,.theme-toggle),html body :is(a,button,summary,[role="button"]) *{cursor:var(--cv-action)}
+html body :is(input,textarea,[contenteditable="true"]){cursor:text}
+html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
+}
+
+
+/* Coins « ⌐ ¬ » : les blocs de bande gardent un peu d’air pour les marques d’angle. */
+.band>.wrap.corners{padding-block:26px}
+</style><link rel="stylesheet" href="pages.css?v=20260921-3"><script src="pages.js?v=20260919-4" defer=""></script><style>body[data-page="labyrinthe"] .ink-help{background:#f8f7e9ed!important;color:#234d86!important;padding:8px 12px;border:1px solid #234d8630;max-width:calc(100% - 40px)}</style></head>
+<body data-page="labyrinthe"><svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs><pattern id="ts-dots" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" style="fill:var(--white)"></rect><rect x="1.25" y="1.25" width="1.1" height="1.1" style="fill:var(--ink)"></rect></pattern><pattern id="ts-dots-dense" patternUnits="userSpaceOnUse" width="3" height="3"><rect width="3" height="3" style="fill:var(--white)"></rect><rect x="0.5" y="0.5" width="1.6" height="1.6" style="fill:var(--ink)"></rect></pattern></defs></svg>
+<nav class="shade-bar" aria-label="Nuances de la couleur d’accent"><button type="button" class="shade" data-hex="E7E7FE" style="background:#E7E7FE" aria-label="Couleur #E7E7FE"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="BBBCFC" style="background:#BBBCFC" aria-label="Couleur #BBBCFC"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="8F90FA" style="background:#8F90FA" aria-label="Couleur #8F90FA"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="6365F8" style="background:#6365F8" aria-label="Couleur #6365F8"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade is-current" data-hex="272AF5" style="background:#272AF5" aria-label="Couleur #272AF5"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="0B0FF4" style="background:#0B0FF4" aria-label="Couleur #0B0FF4"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="090CC8" style="background:#090CC8" aria-label="Couleur #090CC8"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="07099C" style="background:#07099C" aria-label="Couleur #07099C"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="050770" style="background:#050770" aria-label="Couleur #050770"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="030444" style="background:#030444" aria-label="Couleur #030444"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button><button type="button" class="shade" data-hex="010118" style="background:#010118" aria-label="Couleur #010118"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128Z"></path></svg></button></nav><a class="skip-link" href="#contenu">Aller au contenu</a><header class="site-header"><div class="site-identity"><a class="site-name" href="index.html">Mathieu Comtesse</a><button class="theme-toggle" id="theme-toggle" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"></path></svg><span>Apparence : Auto</span></button></div><nav class="theme-nav" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="profil.html">Profil</a><a href="competences.html">Compétences</a><a href="projets.html">Projets</a><a href="automatisations.html">Power Automate</a><a href="methode.html">Qualité &amp; Lean</a><a href="parcours.html">Parcours</a><a href="projets-perso.html" aria-current="page">Projets perso</a><a href="contact.html">Contact</a></nav></header><main id="contenu" class="maze-desktop">
+<header class="maze-menubar"><strong>labyrinthe</strong><span id="maze-size-label">×41</span><span id="maze-date"></span></header>
+<div class="maze-toolbar"><button id="maze-new">Générer un labyrinthe</button><button id="maze-auto">Explorer automatiquement</button><label>Taille <select id="maze-size"><option value="21">21 × 21</option><option value="41" selected>41 × 41</option><option value="61">61 × 61</option></select></label><label>Vitesse <input id="maze-speed" type="range" min="1" max="30" value="8"></label></div>
+<div class="maze-layout"><section class="maze-window maze-map-window"><h1>Le labyrinthe — plein là où il a été vu</h1><canvas id="maze-map" width="738" height="738" aria-label="Carte du labyrinthe. Position verte, sortie jaune, zones inexplorées pointillées."></canvas><p class="maze-foot"><span id="maze-state">pas 0 · demandes 0</span><span id="maze-shortest">plus court —</span></p></section>
+<div class="maze-right"><section class="maze-window"><h2>Ce qu’il voit — la ligne de visée, rien d’autre<span id="maze-bearing"></span></h2><canvas id="maze-view" width="800" height="280" tabindex="0" aria-label="Vue à la première personne. Z pour avancer, Q et D pour tourner, S pour reculer."></canvas></section>
+<section class="maze-window"><h2>Donné — les quatre lignes de visée, telles qu’envoyées<span id="maze-tokens">0 tok</span></h2><dl class="maze-sights"><dt>haut</dt><dd id="maze-sight-0"></dd><dt>bas</dt><dd id="maze-sight-2"></dd><dt>gauche</dt><dd id="maze-sight-3"></dd><dt>droite</dt><dd id="maze-sight-1"></dd></dl></section>
+<section class="maze-window"><h2>Le menu — chaque endroit où il peut marcher<span id="maze-menu-meta"></span></h2><div id="maze-menu" class="maze-menu" role="group" aria-label="Options de déplacement"></div><p>Choisir une option, ou Z / S pour avancer et reculer, Q / D pour tourner.</p></section></div></div>
+<section class="maze-window maze-bottom"><h2>Cette exploration<span id="maze-decisions">0 décision</span></h2><div class="maze-stats"><div><small>pas</small><b id="st-steps">0</b></div><div><small>demandes</small><b id="st-asked">0</b></div><div><small>menu</small><b id="st-menu">0 moy.</b></div><div><small>retours</small><b id="st-back">0</b></div><div><small>total</small><b id="st-time">0,0 s</b></div><div><small>vu</small><b id="st-seen">0 %</b></div></div><canvas id="maze-timeline" width="1200" height="34" aria-hidden="true"></canvas><p>Exploration manuelle ou automatique. L’explorateur ne connaît que ses lignes de visée ; le menu est calculé localement, sans appel à une IA.</p></section>
+</main><script src="maze-core.js?v=20260921-2"></script><script src="labyrinthe.js?v=20260921-2"></script></body></html>
