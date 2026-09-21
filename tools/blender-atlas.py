@@ -137,6 +137,15 @@ for i in range(n):
     p.tri((x1, 0.12, 0.05), (x0, 0.12, 0.05), (xm, -0.04, 0.22), PAPER); p.tri((x0, 0.12, 0.05), (x0, -0.12, 0), (xm, -0.04, 0.22), '#4fb3c7')
 p.export('wave', jitter=0.01, tint=0.08, outward=False)
 
+
+# --- Harbour: a plank pier on posts, a mooring bollard and a lantern post.
+p = Paper()
+for i in range(9):
+    p.box((0.42, 1.1, 0.05), (i*0.44, 0, 0.32), ['#c9a06a', '#b8905c', '#d4ad78'][i % 3])
+for x in (0.0, 1.76, 3.52):
+    for y in (-0.42, 0.42): p.cone(0.05, 0.9, (x, y, -0.5), '#7a5a3a', segs=6, top_r=0.05)
+p.cone(0.07, 0.25, (3.4, 0.35, 0.35), INK, segs=6, top_r=0.06); p.box((0.05, 0.05, 0.8), (0.3, -0.4, 0.75), INK); p.box((0.14, 0.14, 0.14), (0.3, -0.4, 1.18), YELLOW)
+p.export('pier', jitter=0.006)
 # --- Vehicles --------------------------------------------------------------
 # Steam locomotive: boiler, cab with pleated roof, chimney, dome, cowcatcher, wheels; a tender and a wagon.
 p = Paper(); p.box((0.9, 0.34, 0.06), (0, 0, 0.14), INK)                                    # frame
