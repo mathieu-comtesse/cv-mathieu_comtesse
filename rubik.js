@@ -15,12 +15,15 @@ const svg=$('cube-graph'),ns='http://www.w3.org/2000/svg';const el=(tag,attrs)=>
 const defs=el('defs',{}),marker=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:4,markerHeight:4,orient:'auto-start-reverse'});marker.append(el('path',{d:'M0 0L10 5L0 10Z',fill:'#38362e'}));defs.append(marker);svg.append(defs);
 const edgeGroup=el('g',{}),dotGroup=el('g',{});svg.append(edgeGroup,dotGroup);
 // 54 intersections of three families of concentric circles.
-// Six clusters of nine facets, one per face, laid on a trefoil of concentric arcs: solved, each cluster is a single colour.
-const centers=[{x:250,y:171},{x:200,y:258},{x:300,y:258}],radii=[64,86,108,130,152],graphPoints=new Array(SLOTS.length);
-const loops=el('g',{'aria-hidden':'true'});svg.insertBefore(loops,edgeGroup);for(const c of centers)for(const radius of radii)loops.append(el('circle',{cx:c.x,cy:c.y,r:radius,fill:'none',stroke:'#b9b3a4','stroke-width':2.2}));
-const clusters={0:{x:150,y:190,rot:-.5},1:{x:305,y:292,rot:.5},2:{x:250,y:190,rot:0},3:{x:250,y:388,rot:0},4:{x:195,y:292,rot:-.5},5:{x:350,y:190,rot:.5}};
+// Six clusters of nine facets: each cluster is the set of intersections of two families of concentric arcs
+// (three circles each), so the solved cube shows six single-colour blooms on a trefoil, as on the reference.
+const centers=[{x:250,y:171},{x:200,y:258},{x:300,y:258}],radii=[78,100,122],decor=[56,144,166],graphPoints=new Array(SLOTS.length);
+const loops=el('g',{'aria-hidden':'true'});svg.insertBefore(loops,edgeGroup);for(const c of centers){for(const radius of radii)loops.append(el('circle',{cx:c.x,cy:c.y,r:radius,fill:'none',stroke:'#aaa497','stroke-width':2.6}));for(const radius of decor)loops.append(el('circle',{cx:c.x,cy:c.y,r:radius,fill:'none',stroke:'#cfc9bb','stroke-width':1.4}));}
+const groups=[];for(let pair=0;pair<3;pair++){const p=centers[pair],q=centers[(pair+1)%3],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);for(const sign of [-1,1]){const pts=[];for(const ra of radii)for(const rb of radii){const along=(ra*ra-rb*rb+d*d)/(2*d),height=Math.sqrt(Math.max(0,ra*ra-along*along)),mx=p.x+along*dx/d,my=p.y+along*dy/d;pts.push({x:mx+sign*height*dy/d,y:my-sign*height*dx/d});}const cx=pts.reduce((s,v)=>s+v.x,0)/9,cy=pts.reduce((s,v)=>s+v.y,0)/9;groups.push({pair,outer:Math.hypot(cx-250,cy-230)>60,pts});}}
+// Reference layout: red and orange share the top-left family pair, white/yellow the bottom pair, blue/green the right pair.
+const faceOfGroup=g=>g.pair===0?(g.outer?0:1):g.pair===1?(g.outer?3:2):(g.outer?5:4);
 const perFace={};SLOTS.forEach((slot,i)=>{(perFace[slot.face]??=[]).push(i);});
-for(const face in perFace){const c=clusters[face],cos=Math.cos(c.rot),sin=Math.sin(c.rot);perFace[face].forEach((i,k)=>{const gx=(k%3-1)*24,gy=(Math.floor(k/3)-1)*24;graphPoints[i]={x:c.x+gx*cos-gy*sin,y:c.y+gx*sin+gy*cos};});}
+for(const g of groups){const face=faceOfGroup(g);perFace[face].forEach((i,k)=>{graphPoints[i]=g.pts[k];});}
 const dots=graphPoints.map((p,i)=>{const node=el('circle',{cx:p.x,cy:p.y,r:9.3,fill:FACE_COLORS[state[i]],stroke:'#25251f','stroke-width':2.5,class:'graph-dot'});const title=el('title',{});title.textContent=`Facette ${i+1} · ${FACES[SLOTS[i].face]}`;node.append(title);dotGroup.append(node);return node;});
 function drawGraph(move=selected){selected=move;$('graph-move').textContent=move.replace("'",'′');edgeGroup.replaceChildren();dots.forEach((n,i)=>{n.setAttribute('fill',FACE_COLORS[state[i]]);n.setAttribute('opacity',1);});}
 function refresh(){stickers.forEach((s,i)=>s.material.color.set(FACE_COLORS[state[i]]));$('cube-state').textContent=state===SOLVED?'Résolu':`${history.length} mouvements`;$('cube-state').dataset.solved=String(state===SOLVED);canvas.dataset.state=state;drawGraph();document.querySelectorAll('.face-controls button,.game-actions button,.game-actions select').forEach(b=>b.disabled=busy||searching);}
