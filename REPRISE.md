@@ -15,6 +15,7 @@ Aperçu : lancer `python3 -m http.server 8765` dans ce dossier puis ouvrir http:
 
 - Sandboard : relief de sable cuit dans Blender (`tools/blender-sand.py` → `sand-height.png` + `sand-normal.png`, rides de vent, dunes, grains), sillons profonds teintés à la gouache, grains colorés qui retombent et se déposent sur la surface ; DA peinte conservée.
 - Route : panneau de réglages compacté et hauteur calée sur l’écran (mode écran court sous 720 px) ; labyrinthe : clavier AZERTY absolu (ZQSD/flèches, A/E pour tourner).
+- Pages projet (route, labyrinthe, Timber !, Rubik, Sandboard) : même gabarit que Fond d’écran Gouache — bandeau, titre, cadre avec légende, trois cartes d’explication, compétences, fil de navigation ; la scène jouable vit dans `*-scene.html` chargé en iframe (`.scene-embed`).
 
 Regénérer le sable : `Blender --background --python tools/blender-sand.py -- sand-height.png sand-normal.png`.
 Regénérer la hache : `/Applications/Blender.app/Contents/MacOS/Blender --background --python tools/blender-axe.py -- timber-axe.json`.

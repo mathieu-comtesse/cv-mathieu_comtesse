@@ -162,3 +162,21 @@ body[data-page="labyrinthe"] .shade-bar{display:none}.maze-desktop{background-co
 @media(max-width:850px){body[data-page="route-vigilance"] .driving-layout{grid-template-columns:1fr}body[data-page="route-vigilance"] .driving-settings{margin:12px 0}body[data-page="route-vigilance"] .driving-stage,#road-canvas{height:clamp(420px,calc(100svh - 150px),660px);min-height:0}body[data-page="route-vigilance"] .driving-settings{max-height:none}.maze-layout{grid-template-columns:1fr}.maze-stats{grid-template-columns:repeat(3,1fr)}.maze-stats div:nth-child(3){border-right:0}.maze-option{grid-template-columns:34px 1fr 44px}.maze-option .bar{display:none}.maze-stats{grid-template-columns:repeat(3,1fr)}.maze-stats div:nth-child(3){border-right:0}.maze-option{grid-template-columns:34px 1fr 44px}.maze-option .bar{display:none}.maze-desktop{padding:10px}.maze-right{gap:12px}.maze-toolbar{gap:9px}body[data-page="firewood"] .wood-tools{font-size:11px}}
 
 @media(max-height:720px){body[data-page="route-vigilance"] .play-page{padding-top:8px}body[data-page="route-vigilance"] .play-heading{margin-bottom:8px}body[data-page="route-vigilance"] .play-heading .skill-kicker{display:none}body[data-page="route-vigilance"] .play-heading h1{font-size:22px;margin:0}body[data-page="route-vigilance"] .play-heading p{font-size:12px}body[data-page="route-vigilance"] .toy-bar{padding:5px 12px;font-size:11px}body[data-page="route-vigilance"] .settings-body{padding:8px 12px}body[data-page="route-vigilance"] .settings-body label{margin-bottom:7px;font-size:11px}body[data-page="route-vigilance"] .settings-body .game-actions{margin:2px 0 6px}body[data-page="route-vigilance"] .settings-body .game-actions button{padding:6px 4px;font-size:11px}body[data-page="route-vigilance"] .settings-body p,body[data-page="route-vigilance"] #road-results{font-size:11px;margin:5px 0}body[data-page="route-vigilance"] .settings-body details{display:none}body[data-page="route-vigilance"] .driving-stage,#road-canvas{height:clamp(340px,calc(100svh - 196px),760px)}body[data-page="route-vigilance"] .driving-settings{max-height:clamp(340px,calc(100svh - 196px),760px)}}
+/* Scènes interactives intégrées dans le cadre des pages projet (iframe). */
+.scene-embed{margin:0;--nav-height:0px;height:100vh;overflow:hidden}
+.scene-embed>main{height:100vh;min-height:0!important}
+.scene-embed[data-page="route-vigilance"] .play-page{height:100vh;box-sizing:border-box;padding:10px;overflow:hidden}
+.scene-embed[data-page="route-vigilance"] .play-heading{display:none}
+.scene-embed[data-page="route-vigilance"] .driving-layout{grid-template-columns:minmax(0,1fr) 300px;gap:10px;height:calc(100vh - 20px)}
+.scene-embed[data-page="route-vigilance"] .driving-stage,.scene-embed[data-page="route-vigilance"] #road-canvas{height:calc(100vh - 20px)!important;min-height:0!important}
+.scene-embed[data-page="route-vigilance"] .driving-settings{height:calc(100vh - 20px);max-height:none!important;margin:0;overflow:auto;box-sizing:border-box}
+.scene-embed[data-page="labyrinthe"],.scene-embed[data-page="rubik"]{overflow:auto}
+.scene-embed[data-page="labyrinthe"] .maze-desktop{min-height:100vh;box-sizing:border-box}
+.scene-embed[data-page="rubik"] .rubik-title{display:none}
+.scene-embed[data-page="rubik"] .rubik-page{padding:14px;min-height:100vh;box-sizing:border-box}
+.scene-embed[data-page="firewood"] .firewood-painted{height:100vh;min-height:0}
+.scene-embed[data-page="sandboard"] main{height:100vh}
+.band--project .gouache-preview{background:#071b16}
+.preview--tall iframe{aspect-ratio:5/4}
+@media(max-width:850px){.scene-embed[data-page="route-vigilance"]{overflow:auto}.scene-embed[data-page="route-vigilance"] .play-page{height:auto;overflow:visible}.scene-embed[data-page="route-vigilance"] .driving-layout{height:auto}.scene-embed[data-page="route-vigilance"] .driving-stage,.scene-embed[data-page="route-vigilance"] #road-canvas{height:62vh!important}.scene-embed[data-page="route-vigilance"] .driving-settings{max-height:none!important}}
+.scene-embed[data-page="sandboard"] .sandboard-overlay{display:none}
