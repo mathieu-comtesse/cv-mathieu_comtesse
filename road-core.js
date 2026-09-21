@@ -11,7 +11,7 @@ const vehicles={
 };
 const limits=[30,50,70,90];
 class RoadRun{
- constructor(seed=1783,settings={}){this.seed=seed>>>0;this.initialSeed=this.seed;this.settings=settings;this.time=0;this.distance=0;this.speed=0;this.x=25;this.heading=0;this.collisions=0;this.violations=0;this.offroad=0;this.running=true;this.crashed=false;this.message='Accélérer avec Maj gauche. Anticiper les croisements.';this.flash=0;this.limit=50;this.speeding=0;this.objects=[];this.scenery=[];this.generated=-1;this.history=[];this.stopReason='';this.advice={action:'Maintenir',reason:'Couloir dégagé.',scores:{Maintenir:1,Freiner:0,'Changer de voie':0,'Arrêt d’urgence':0}};this.populate();}
+ constructor(seed=1783,settings={}){this.seed=seed>>>0;this.initialSeed=this.seed;this.settings=settings;this.time=0;this.distance=0;this.speed=0;this.throttle=0;this.brakeForce=0;this.x=25;this.heading=0;this.collisions=0;this.violations=0;this.offroad=0;this.running=true;this.crashed=false;this.message='Accélérer progressivement avec Maj gauche. Anticiper les freinages.';this.flash=0;this.limit=50;this.speeding=0;this.objects=[];this.scenery=[];this.generated=-1;this.history=[];this.stopReason='';this.advice={action:'Maintenir',reason:'Couloir dégagé.',scores:{Maintenir:1,Freiner:0,'Changer de voie':0,'Arrêt d’urgence':0}};this.populate();}
  random(){this.seed=(this.seed*1664525+1013904223)>>>0;return this.seed/4294967296;}
  populate(){
   while(this.generated<Math.floor(this.distance/55)+14){
@@ -48,7 +48,10 @@ class RoadRun{
   const alcohol=Number(this.settings.alcohol)||0,drug=this.settings.drug==='none'?0:Number(this.settings.level)||0;
   this.history.push({time:this.time,...raw});const delay=alcohol*.16+drug*(this.settings.drug==='sedating'?.5:.2);
   while(this.history.length>1&&this.history[1].time<=this.time-delay)this.history.shift();const input=this.history[0];
-  this.speed=Math.max(0,Math.min(180,this.speed+((input.gas?52:-10)-(input.brake?125:0))*dt));
+  // Pedals build up progressively; thrust fades with speed (drag) and braking peaks near 0.85 g.
+  this.throttle=Math.max(0,Math.min(1,this.throttle+(input.gas?dt/.7:-dt/.35)));this.brakeForce=Math.max(0,Math.min(1,this.brakeForce+(input.brake?dt/.45:-dt/.25)));
+  const thrust=this.throttle*Math.max(0,15-this.speed*.085),coast=2.5+this.speed*.022+this.speed*this.speed*.00012,braking=this.brakeForce*30;
+  this.speed=Math.max(0,Math.min(160,this.speed+(thrust-coast-braking)*dt));
   const oldD=this.distance;this.distance+=this.speed/3.6*dt;
   const steering=(input.right?1:0)-(input.left?1:0);this.heading+=(steering*.44-this.heading*5)*dt;
   this.x+=this.heading*this.speed*1.6*dt-(center(this.distance)-center(oldD));
