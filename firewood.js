@@ -7,17 +7,15 @@ for(let j=1;j<9;j++){const ring=new THREE.Mesh(new THREE.TorusGeometry(j*.087,.0
 // A real clearing with depth and moving grass.
 const grass=[],bladeGeo=new THREE.BufferGeometry();bladeGeo.setAttribute('position',new THREE.Float32BufferAttribute([-.045,0,0,.045,0,0,.02,.28,.015,-.03,.28,.015,.02,.28,.015,.055,.53,.04],3));bladeGeo.computeVertexNormals();const grassMesh=new THREE.InstancedMesh(bladeGeo,new THREE.MeshStandardMaterial({color:'#c2d5b6',side:THREE.DoubleSide,roughness:1}),2400),dummy=new THREE.Object3D();for(let i=0;i<2400;i++){let x=(Math.random()-.5)*24,z=(Math.random()-.5)*24;if(Math.hypot(x,z)<1.25)x+=2;grass.push({x,z,angle:Math.random()*7,phase:Math.random()*7,scale:.5+Math.random()});grassMesh.setColorAt(i,new THREE.Color(['#a5c5b5','#c4d4b0','#a5b6bd','#e1d4b2'][i%4]));}scene.add(grassMesh);
 for(let i=0;i<60;i++){const a=Math.random()*7,r=10+Math.random()*25,x=Math.cos(a)*r,z=Math.sin(a)*r,h=7+Math.random()*9;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.16,.35,h,7),bark);trunk.position.set(x,h/2,z);scene.add(trunk);const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(2+Math.random()*2,1),new THREE.MeshStandardMaterial({color:i%2?'#b3c7b9':'#c6cbb1',roughness:1,flatShading:true}));crown.position.set(x,h,z);scene.add(crown)}
-// First-person tool: shaft along +Y; the wedge projects forward (-Z).
-// Its thin edge, rather than the poll, leads downward during the swing.
-const axe=new THREE.Group(),woodMat=new THREE.MeshStandardMaterial({color:'#b98567',roughness:.86}),steelMat=new THREE.MeshStandardMaterial({color:'#8192a5',metalness:.5,roughness:.42});
-const handle=new THREE.Mesh(new THREE.CylinderGeometry(.033,.05,1.2,12),woodMat);handle.position.y=.59;axe.add(handle);
-const headShape=new THREE.Shape();headShape.moveTo(.13,.97);headShape.lineTo(.13,1.20);headShape.lineTo(-.08,1.26);headShape.lineTo(-.43,1.34);headShape.lineTo(-.43,.99);headShape.lineTo(-.09,1.06);headShape.closePath();
-// Extrude a side profile, with a genuinely thin wedge at the forward edge.
-const headGeo=new THREE.ExtrudeGeometry(headShape,{depth:.12,bevelEnabled:false});
-const bp=headGeo.attributes.position;for(let i=0;i<bp.count;i++){const z=bp.getX(i),y=bp.getY(i),x=bp.getZ(i)-.06;bp.setXYZ(i,x*(z<-.1?Math.max(.08,(z+.43)/.33):1),y,z);}headGeo.computeVertexNormals();
-const bladeMesh=new THREE.Mesh(headGeo,steelMat);bladeMesh.castShadow=true;axe.add(bladeMesh);
-const cuttingEdge=new THREE.Vector3(0,1.16,-.43);
-const edge=new THREE.Mesh(new THREE.BoxGeometry(.009,.35,.012),new THREE.MeshStandardMaterial({color:'#e8edf1',metalness:.8,roughness:.25}));edge.position.set(0,1.165,-.43);axe.add(edge);
+// First-person tool modelled in Blender (tools/blender-axe.py): shaft along +Y, bit toward -Z, thickness along X.
+const axe=new THREE.Group(),woodMat=new THREE.MeshStandardMaterial({color:'#b98567',roughness:.86}),steelMat=new THREE.MeshStandardMaterial({color:'#ffffff',metalness:.45,roughness:.42,vertexColors:true});
+const cuttingEdge=new THREE.Vector3(0,1.17,-.475);
+fetch('timber-axe.json?v=20260921-3').then(r=>r.json()).then(model=>{
+ for(const [name,part] of Object.entries(model)){if(!part.position)continue;const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(part.position,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(part.normal,3));
+  if(name!=='handle'){const colors=[],poll=new THREE.Color('#8e9cab'),bit=new THREE.Color('#f4f7fa');for(let i=0;i<part.position.length;i+=3){const z=part.position[i+2],u=THREE.MathUtils.clamp((-.30-z)/.17,0,1);const col=poll.clone().lerp(bit,u*u);colors.push(col.r,col.g,col.b);}geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));}
+  const mesh=new THREE.Mesh(geo,name==='handle'?woodMat:steelMat);mesh.castShadow=true;axe.add(mesh);}
+ cuttingEdge.fromArray(model.edge.point);
+});
 const gripMat=new THREE.MeshStandardMaterial({color:'#786e89',roughness:1});
 for(const [y,side] of [[.16,1],[.52,-1]]){const hand=new THREE.Mesh(new THREE.SphereGeometry(.082,12,10),gripMat);hand.scale.set(1.1,1.3,.8);hand.position.set(side*.02,y,.045);axe.add(hand);const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.075,.09,.25,12),new THREE.MeshStandardMaterial({color:'#a4bcb5',roughness:1}));cuff.position.set(side*.10,y-.10,.14);cuff.rotation.x=-.9;cuff.rotation.z=-side*.5;axe.add(cuff);}
 scene.add(axe);
@@ -29,8 +27,8 @@ function orient(pose,shaft,edge){tmpY.copy(shaft).normalize();tmpZ.copy(edge).ne
 function cameraPose(pose,grip,shaft,edge){pose.position.copy(grip).applyMatrix4(camera.matrixWorld);orient(pose,tmpY.copy(shaft).applyQuaternion(camera.quaternion),tmpEdge.copy(edge).applyQuaternion(camera.quaternion));}
 // At impact the grip lies on the line from the log toward the viewer's hands, at the axe's own reach,
 // and the head rolls so the edge bites as vertically as the shaft allows.
-const reach=Math.hypot(1.16,.43),bite=Math.atan2(.43,1.16),tmpU=new THREE.Vector3(),tmpW=new THREE.Vector3();
-function strikePose(pose,target){tmpHands.set(.45,-.62,-.8).applyMatrix4(camera.matrixWorld);tmpU.subVectors(target,tmpHands).normalize();tmpW.set(0,-1,0).addScaledVector(tmpU,-tmpU.dot(new THREE.Vector3(0,-1,0))).normalize();
+const tmpU=new THREE.Vector3(),tmpW=new THREE.Vector3();
+function strikePose(pose,target){const reach=Math.hypot(cuttingEdge.y,cuttingEdge.z),bite=Math.atan2(-cuttingEdge.z,cuttingEdge.y);tmpHands.set(.45,-.62,-.8).applyMatrix4(camera.matrixWorld);tmpU.subVectors(target,tmpHands).normalize();tmpW.set(0,-1,0).addScaledVector(tmpU,-tmpU.dot(new THREE.Vector3(0,-1,0))).normalize();
  tmpY.copy(tmpU).multiplyScalar(Math.cos(bite)).addScaledVector(tmpW,-Math.sin(bite));tmpZ.copy(tmpU).multiplyScalar(-Math.sin(bite)).addScaledVector(tmpW,-Math.cos(bite));tmpX.crossVectors(tmpY,tmpZ).normalize();tmpM.makeBasis(tmpX,tmpY,tmpZ);pose.quaternion.setFromRotationMatrix(tmpM);
  pose.position.copy(target).addScaledVector(tmpU,-reach);}
 let orbit=.15,pitch=0,drag=null,chargeAt=null,active=[],flying=[],pile=[],cuts=0,targetCuts=3,logs=0,swing=null,shake=0,muted=false,audio=null,birdAt=0;
@@ -56,7 +54,7 @@ const resize=()=>{const r=host.getBoundingClientRect();renderer.setSize(r.width,
 function frame(t){const dt=Math.min(.035,(t-last)/1000||.016);last=t;camera.position.set(Math.sin(orbit)*1.55,2.3+pitch,Math.cos(orbit)*1.55);camera.lookAt(0,1.0+pitch*.35,0);if(shake>.001){camera.position.x+=(Math.random()-.5)*shake;camera.position.y+=(Math.random()-.5)*shake;shake*=.83}camera.updateMatrixWorld();
 cameraPose(restPose,new THREE.Vector3(.44,-.78,-1.15),new THREE.Vector3(-.22,.92,-.32),new THREE.Vector3(-.4,0,-1));
 cameraPose(raisedPose,new THREE.Vector3(.34,-.42,-.95),new THREE.Vector3(.08,.84,.52),new THREE.Vector3(0,.6,-1));
-else if(swing){const p=(t-swing.t)/1100;strikePose(hitPose,swing.target);if(p>=.53&&!swing.hit){swing.hit=true;impact();canvas.dataset.phase='impact';}
+if(swing){const p=(t-swing.t)/1100;strikePose(hitPose,swing.target);if(p>=.53&&!swing.hit){swing.hit=true;impact();canvas.dataset.phase='impact';}
  if(p<.30){const u=p/.30,ease=u*u*(3-2*u);axe.position.lerpVectors(swing.from,raisedPose.position,ease);axe.quaternion.slerpQuaternions(swing.rotation,raisedPose.quaternion,ease);}
  else if(p<.53){const u=(p-.30)/.23,ease=u*u;axe.position.lerpVectors(raisedPose.position,hitPose.position,ease);axe.quaternion.slerpQuaternions(raisedPose.quaternion,hitPose.quaternion,ease);canvas.dataset.phase='frapper';}
  else if(p<.66){axe.position.copy(hitPose.position);axe.quaternion.copy(hitPose.quaternion);}
