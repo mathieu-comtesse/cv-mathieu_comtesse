@@ -112,9 +112,10 @@ def arch(p, cx, z0, w, h, y, col, spring=0.62):
     p.tri((cx-sh, y, zt - h*0.06), (cx, y, zt), (cx, y, zs), col)
     p.tri((cx, y, zt), (cx+sh, y, zt - h*0.06), (cx, y, zs), col)
 
-def shed(p, x0, x1, y0, y1, eave, ridge, col, alt):
-    """A train-shed span: two long folded slopes meeting on a ridge, closed by gables."""
+def shed(p, x0, x1, y0, y1, eave, ridge, col, alt, wall='#cbb894'):
+    """A train-shed span: two long folded slopes meeting on a ridge, closed by gables and end walls."""
     ym = (y0+y1)/2
+    for x in (x0, x1): p.quad((x, y0, 0), (x, y1, 0), (x, y1, eave), (x, y0, eave), wall)
     p.quad((x0, y0, eave), (x1, y0, eave), (x1, ym, ridge), (x0, ym, ridge), col)
     p.quad((x0, ym, ridge), (x1, ym, ridge), (x1, y1, eave), (x0, y1, eave), alt)
     p.tri((x0, y0, eave), (x0, ym, ridge), (x0, y1, eave), alt)
@@ -140,7 +141,9 @@ for y, sgn in ((-0.34, -1), (0.34, 1)):                                         
     disc(p, (0.72, y, 2.63), 0.23, PAPER, segs=14); disc(p, (0.72, y*1.02, 2.63), 0.2, '#f8fbfd', segs=14)
     hand(p, (0.72, y*1.04, 2.63), math.pi/2 + sgn*0.5, 0.15, 0.015, INK)
     hand(p, (0.72, y*1.04, 2.63), math.pi/2 - sgn*1.9, 0.11, 0.02, INK)
-p.cone(0.19, 0.12, (0.72, 0, 2.84), TRIM, segs=10, top_r=0.19); p.cone(0.15, 0.1, (0.72, 0, 2.96), TRIM, segs=10, top_r=0.05)
+for dx in (-0.15, 0.15):                                                                  # an open belfry on the clock box
+    for dy in (-0.15, 0.15): p.box((0.05, 0.05, 0.26), (0.72 + dx, dy, 2.97), TRIM)
+p.box((0.4, 0.4, 0.05), (0.72, 0, 3.12), TRIM); p.cone(0.25, 0.18, (0.72, 0, 3.14), TRIM, segs=4, top_r=0.0)
 p.export('campus')
 
 # Gare du Nord: the magenta train sheds rising behind a long stone screen of arched bays, statues on its cornice.
@@ -149,6 +152,7 @@ p = Paper()
 for (y0, y1, eave, ridge) in ((-0.48, 0.06, 0.72, 1.42), (0.02, 0.50, 0.66, 1.26), (0.46, 0.86, 0.60, 1.10)):
     shed(p, -1.52, 1.52, y0, y1, eave, ridge, MAGENTA, PLUM)          # the spans over the platforms
     p.box((3.04, 0.04, eave), (0, y0, eave/2), '#cbb894')             # the side wall carrying the eaves
+p.box((3.04, 0.04, 0.6), (0, 0.86, 0.3), '#cbb894')                   # and the back wall of the last span
 p.faceted_wall(2.8, 0.82, 0.26, (0, -0.62, 0), STONE, STONE2, cols=8) # the screen facade
 p.box((2.9, 0.34, 0.09), (0, -0.62, 0.86), STONE)                     # its cornice
 for k in range(8):                                                    # the row of arched bays
@@ -210,12 +214,20 @@ p = Paper(); bf, bb, bt, bd = (0.16, 0, 0), (-0.16, 0, 0), (0, 0, 0.12), (0, 0, 
 for t in ((bf, bt, bb), (bf, bb, bd), (bf, wl, bb), (bf, bb, wr), (bf, neck, bt), (neck, head, bt), (bb, bt, tail)): p.tri(*t, PAPER)
 p.export('crane', jitter=0.004, outward=False)
 # a folded wave crest: zigzag strip of paper, blue with a white lip
-p = Paper(); n = 5
+p = Paper()
+# Cross-section of the breaker (y seaward-positive, z up): back slope, crest, curling lip, hollow underneath.
+PROFILE = [(0.26, 0.0), (0.14, 0.09), (0.04, 0.19), (-0.06, 0.21), (-0.14, 0.15), (-0.12, 0.08), (-0.04, 0.06), (0.0, 0.0)]
+SHADES = ['#1f7f99', '#2f97b0', '#6cc6d6', '#e9f7f9', PAPER, '#bfe6ee', '#2a8aa3']
+n = 9
 for i in range(n):
-    x0 = -0.6 + 1.2*i/n; x1 = -0.6 + 1.2*(i+1)/n; xm = (x0+x1)/2
-    p.tri((x0, -0.12, 0), (x1, -0.12, 0), (xm, -0.04, 0.22), '#4fb3c7'); p.tri((x1, -0.12, 0), (x1, 0.12, 0.05), (xm, -0.04, 0.22), '#7fd0de')
-    p.tri((x1, 0.12, 0.05), (x0, 0.12, 0.05), (xm, -0.04, 0.22), PAPER); p.tri((x0, 0.12, 0.05), (x0, -0.12, 0), (xm, -0.04, 0.22), '#4fb3c7')
-p.export('wave', jitter=0.01, tint=0.08, outward=False)
+    s0, s1 = i/n, (i+1)/n
+    h0, h1 = math.sin(math.pi*s0)**0.7, math.sin(math.pi*s1)**0.7                    # the crest tapers into the sea at both ends
+    x0, x1 = -0.7 + 1.4*s0, -0.7 + 1.4*s1
+    for k in range(len(PROFILE)-1):
+        (ya, za), (yb, zb) = PROFILE[k], PROFILE[k+1]
+        w0, w1 = 0.45 + 0.55*h0, 0.45 + 0.55*h1
+        p.quad((x0, ya*w0, za*h0), (x1, ya*w1, za*h1), (x1, yb*w1, zb*h1), (x0, yb*w0, zb*h0), SHADES[k])
+p.export('wave', jitter=0.006, tint=0.06, outward=False)
 
 
 # --- Harbour: a plank pier on posts, a mooring bollard and a lantern post.
@@ -248,7 +260,16 @@ p.quad(bow, (0.05, -0.26, 0.18), stern_l, (0.05, 0, 0.18), RED); p.quad(bow, (0.
 p.box((0.03, 0.03, 0.9), (0.05, 0, 0.6), INK)
 p.export('boat', jitter=0.006)
 # The sails are a separate piece so the boat can furl them at the quay.
-p = Paper(); p.tri((0.06, 0, 1.02), (0.06, 0, 0.24), (0.5, 0, 0.3), ORANGE); p.tri((0.04, 0, 0.98), (-0.42, 0, 0.3), (0.04, 0, 0.26), PAPER); p.export('sails', jitter=0.004, outward=False)
+def pleated_sail(p, mast_x, foot, top, reach, col, alt, n=7, depth=0.028):
+    """A sail cut into horizontal pleats that fold alternately forward and back, like an accordion."""
+    for i in range(n):
+        t0, t1 = i/n, (i+1)/n
+        z0, z1 = foot + (top-foot)*t0, foot + (top-foot)*t1
+        e0, e1 = mast_x + reach*(1-t0), mast_x + reach*(1-t1)
+        y0, y1 = (depth, -depth) if i % 2 else (-depth, depth)
+        p.quad((mast_x, y0, z0), (e0, y0, z0), (e1, y1, z1), (mast_x, y1, z1), col if i % 2 else alt)
+p = Paper(); pleated_sail(p, 0.06, 0.27, 1.0, 0.44, ORANGE, '#ffb27a'); pleated_sail(p, 0.04, 0.27, 0.96, -0.46, PAPER, CREAM)
+p.export('sails', jitter=0.002, outward=False)
 # Fishing boat: rounded hull, wheelhouse, folded flag.
 p = Paper(); p.faceted_wall(0.7, 0.18, 0.3, (0, 0, 0), '#3a6ea5', '#5b8ec4', cols=3); p.tri((0.35, -0.15, 0.18), (0.35, 0.15, 0.18), (0.55, 0, 0.2), '#3a6ea5'); p.tri((0.35, -0.15, 0), (0.55, 0, 0.2), (0.35, -0.15, 0.18), '#5b8ec4'); p.tri((0.35, 0.15, 0.18), (0.55, 0, 0.2), (0.35, 0.15, 0), '#5b8ec4')
 p.box((0.24, 0.22, 0.2), (-0.12, 0, 0.28), CREAM); p.pleated_roof(0.24, 0.22, 0.05, (-0.12, 0, 0.38), RED, pleats=2, overhang=0.03); p.box((0.02, 0.02, 0.4), (0.15, 0, 0.5), INK); p.tri((0.16, 0, 0.7), (0.16, 0, 0.6), (0.3, 0, 0.66), YELLOW)
@@ -261,7 +282,33 @@ for side in (-0.05, 0.05):
 p.tri(tailroot, tail_t, tail_b, RED); p.tri((0.08, 0, 0.1), (-0.1, 0, 0.1), (-0.02, 0, 0.22), RED)
 p.export('fish', jitter=0.003, outward=False)
 
-p = Paper(); p.box((0.3, 0.16, 0.1), (0, 0, 0.09), PAPER); p.box((0.15, 0.14, 0.1), (-0.02, 0, 0.19), '#3a6ea5'); p.export('car', jitter=0.004)
+# The white hatchback of Route & vigilance: chamfered bonnet, glasshouse with pillars, four wheels, lamps.
+GLASS, TYRE, GREY = '#8fbbd6', '#26262c', '#9aa0a6'
+p = Paper()
+p.box((0.36, 0.18, 0.075), (0, 0, 0.085), PAPER)                                          # lower body
+p.quad((0.18, -0.09, 0.122), (0.18, 0.09, 0.122), (0.07, 0.085, 0.15), (0.07, -0.085, 0.15), CREAM)   # bonnet
+p.quad((-0.18, -0.09, 0.122), (-0.18, 0.09, 0.122), (-0.165, 0.085, 0.15), (-0.165, -0.085, 0.15), CREAM)
+for sgn in (-1, 1):                                                                       # flanks under the bonnet line
+    y = 0.09*sgn
+    p.quad((0.18, y, 0.122), (0.07, 0.085*sgn, 0.15), (-0.165, 0.085*sgn, 0.15), (-0.18, y, 0.122), PAPER)
+bl, br = (0.07, 0.15), (-0.165, 0.15)                                                     # glasshouse
+tf, tr = (0.0, 0.24), (-0.125, 0.24)
+p.quad((bl[0], -0.085, bl[1]), (bl[0], 0.085, bl[1]), (tf[0], 0.07, tf[1]), (tf[0], -0.07, tf[1]), GLASS)        # windscreen
+p.quad((tf[0], -0.07, tf[1]), (tf[0], 0.07, tf[1]), (tr[0], 0.07, tr[1]), (tr[0], -0.07, tr[1]), PAPER)          # roof
+p.quad((tr[0], -0.07, tr[1]), (tr[0], 0.07, tr[1]), (br[0], 0.085, br[1]), (br[0], -0.085, br[1]), GLASS)        # rear window
+for sgn in (-1, 1):
+    yb, yt = 0.085*sgn, 0.07*sgn
+    p.quad((bl[0], yb, bl[1]), (br[0], yb, br[1]), (tr[0], yt, tr[1]), (tf[0], yt, tf[1]), GLASS)                 # side glass
+    p.quad((-0.045, yb*1.01, 0.15), (-0.03, yb*1.01, 0.15), (-0.052, yt*1.01, 0.24), (-0.067, yt*1.01, 0.24), PAPER)  # B-pillar
+    p.box((0.02, 0.025, 0.018), (0.06, 0.1*sgn, 0.16), PAPER)                             # mirror
+    for x in (0.105, -0.11):                                                              # wheels
+        ret = bmesh.ops.create_cone(p.bm, cap_ends=True, segments=10, radius1=0.047, radius2=0.047, depth=0.03)
+        bmesh.ops.transform(p.bm, matrix=Matrix.Translation((x, 0.085*sgn, 0.047)) @ Matrix.Rotation(math.pi/2, 4, 'X'), verts=ret['verts'])
+        p.paint(p.owned(ret['verts']), TYRE)
+    p.box((0.012, 0.035, 0.022), (0.181, 0.055*sgn, 0.105), YELLOW)                      # headlamps
+    p.box((0.012, 0.03, 0.022), (-0.181, 0.06*sgn, 0.108), RED)                          # tail lamps
+p.box((0.02, 0.19, 0.025), (0.183, 0, 0.062), GREY); p.box((0.02, 0.19, 0.025), (-0.183, 0, 0.062), GREY)   # bumpers
+p.export('car', jitter=0.002)
 p = Paper(); p.cone(0.26, 1.3, (0, 0, 0), PAPER, segs=8, top_r=0.18)
 for i in range(3): p.cone(0.27 - i*0.03, 0.12, (0, 0, 0.22 + i*0.4), RED, segs=8, top_r=0.27 - i*0.03)
 p.cone(0.15, 0.25, (0, 0, 1.3), '#e9f6ff', segs=8, top_r=0.15); p.cone(0.18, 0.2, (0, 0, 1.55), RED, segs=8, top_r=0.0); p.export('lighthouse')
