@@ -194,3 +194,9 @@ body.is-night .world-page{background:#1e1e2a;color:#fefefe}body.is-night .world-
 
 /* Pixels : grille de chaleur sous le curseur. */
 .pixels-stage{position:relative;height:100vh;background:#140c08;overflow:hidden}#pixels-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}.pixels-hud{position:absolute;left:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap}.pixels-hud button,.pixels-hud span{font:11px var(--mono);padding:7px 10px;border:1px solid #f0b35a;background:#140c08;color:#f0b35a;box-shadow:2px 2px 0 #f0b35a;cursor:pointer}.pixels-hud span{cursor:default}
+/* Route & vigilance : compteur de verres du simulateur. */
+.drinks{display:grid;gap:5px;margin-bottom:10px}.drinks-title{font:11px var(--mono);text-transform:uppercase;letter-spacing:.04em}
+.drink{display:grid;grid-template-columns:1fr 26px 26px 26px;align-items:center;gap:4px;font:11px var(--mono)}
+.drink button{padding:2px 0!important;font:13px var(--mono);line-height:1;box-shadow:1px 1px 0 #1e1e1e!important}
+.drink output{text-align:center;font:12px var(--mono)}
+#alcohol-readout{font:11px var(--mono);margin:4px 0 0!important;padding:4px 6px;background:#1e1e1e;color:#fefefe}

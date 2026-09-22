@@ -1,11 +1,20 @@
 (()=>{
 'use strict';
-const $=id=>document.getElementById(id),c=$('road-canvas'),g=c.getContext('2d'),{RoadRun,center}=window.RoadModel;
+const $=id=>document.getElementById(id),c=$('road-canvas'),out=c.getContext('2d'),buffer=document.createElement('canvas'),g=buffer.getContext('2d'),{RoadRun,center}=window.RoadModel;
 let audio=null,engine=null,brakeNoise=null,muted=false,w=800,h=720,last=0,model=null,paused=false,keys={},cameraY=0,crashAge=0,finished=false,baseline=null,trackSeed=1783;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const settings=()=>({alcohol:+$('alcohol').value,drug:$('drug').value,level:+$('drug-level').value/100});
-function controls(){$('alcohol-value').value=(+$('alcohol').value).toFixed(1).replace('.',',')+' g/L';$('drug-value').value=$('drug-level').value+' / 100';}
-['alcohol','drug','drug-level'].forEach(id=>$(id).oninput=controls);controls();
+// Widmark: grams of pure alcohol / (body mass × 0.68), a rough estimate — never a legal measurement.
+const drinks=[...document.querySelectorAll('#drinks .drink')];
+function computeAlcohol(){let glasses=0,grams=0;for(const d of drinks){const n=+d.querySelector('output').textContent||0;glasses+=n;grams+=n*(+d.dataset.cl)*10*(+d.dataset.deg)/100*.8;}
+ const weight=+($('weight')?.value||75),bac=grams/(weight*.68);
+ if($('alcohol'))$('alcohol').value=bac.toFixed(2);
+ if($('alcohol-readout'))$('alcohol-readout').textContent=`${glasses} verre${glasses>1?'s':''} · ${Math.round(grams)} g d’alcool · ${bac.toFixed(2).replace('.',',')} g/L`;
+ if($('weight-value'))$('weight-value').value=weight+' kg';}
+for(const d of drinks)for(const b of d.querySelectorAll('button'))b.onclick=()=>{const o=d.querySelector('output');o.textContent=Math.max(0,Math.min(20,(+o.textContent||0)+ +b.dataset.step));computeAlcohol();if(model?.running)model.settings=settings();};
+$('weight')?.addEventListener('input',()=>{computeAlcohol();if(model?.running)model.settings=settings();});
+function controls(){$('drug-value').value=$('drug-level').value+' / 100';computeAlcohol();}
+['drug','drug-level'].forEach(id=>{const e=$(id);if(e)e.oninput=controls;});controls();
 function initAudio(){if(audio||muted)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;audio=new C();const o=audio.createOscillator(),o2=audio.createOscillator(),gain=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o2.type='square';o2.detune.value=-1200;f.type='lowpass';f.frequency.value=420;gain.gain.value=0;o.connect(f);o2.connect(f);f.connect(gain).connect(audio.destination);o.start();o2.start();engine={o,o2,gain,f};const buf=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),a=buf.getChannelData(0);let brown=0;for(let i=0;i<a.length;i++){brown=(brown+(Math.random()*2-1)*.06)/1.03;a[i]=brown;}const src=audio.createBufferSource(),bf=audio.createBiquadFilter(),bg=audio.createGain(),sq=audio.createOscillator(),sqg=audio.createGain(),lfo=audio.createOscillator(),lfog=audio.createGain();src.buffer=buf;src.loop=true;bf.type='bandpass';bf.frequency.value=900;bf.Q.value=.8;bg.gain.value=0;src.connect(bf).connect(bg).connect(audio.destination);src.start();sq.type='sawtooth';sq.frequency.value=1700;lfo.frequency.value=23;lfog.gain.value=90;lfo.connect(lfog).connect(sq.frequency);sqg.gain.value=0;sq.connect(sqg).connect(audio.destination);sq.start();lfo.start();brakeNoise={bg,bf,sqg};}
 function engineSound(r){if(!engine||!brakeNoise||muted)return;const t=audio.currentTime,v=Math.min(1,r.speed/160),th=r.throttle||0,live=r.running&&!paused;engine.gain.gain.setTargetAtTime(live?.03+v*.06+th*.05:0,t,.08);engine.o.frequency.setTargetAtTime(36+v*140+th*28,t,.12);engine.o2.frequency.setTargetAtTime(36+v*140+th*20,t,.12);engine.f.frequency.setTargetAtTime(380+th*520+v*300,t,.1);const bf=r.brakeForce||0,roll=live?bf*Math.min(1,r.speed/50)*.22:0;brakeNoise.bg.gain.setTargetAtTime(roll,t,.05);brakeNoise.bf.frequency.setTargetAtTime(700+r.speed*14,t,.1);brakeNoise.sqg.gain.setTargetAtTime(live&&bf>.75&&r.speed>45?.035*Math.min(1,(r.speed-45)/40):0,t,.06);}
 function crashSound(){if(!audio||muted)return;const buf=audio.createBuffer(1,audio.sampleRate*.8,audio.sampleRate),a=buf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*Math.exp(-i/(audio.sampleRate*.14));const src=audio.createBufferSource(),g2=audio.createGain(),lf=audio.createBiquadFilter();lf.type='lowpass';lf.frequency.value=700;g2.gain.value=.9;src.buffer=buf;src.connect(lf).connect(g2).connect(audio.destination);src.start();}
@@ -14,12 +23,12 @@ function finish(){finished=true;const r=model;keys={};if(!r.settings.alcohol&&r.
 $('road-start').onclick=()=>{if(!model||!model.running)begin();else{paused=!paused;keys={};$('road-start').textContent=paused?'Reprendre':'Mettre en pause';}};
 $('road-random').onclick=()=>{trackSeed=Math.floor(Math.random()*4294967295);begin();};
 $('road-sound').onclick=e=>{muted=!muted;e.target.textContent=muted?'Son : non':'Son : oui';e.target.setAttribute('aria-pressed',!muted);if(!muted){initAudio();audio.resume();}};
-$('road-sober').onclick=()=>{$('alcohol').value=0;$('drug').value='none';$('drug-level').value=0;controls();begin();};
+$('road-sober').onclick=()=>{for(const d of drinks)d.querySelector('output').textContent='0';$('drug').value='none';$('drug-level').value=0;controls();begin();};
 const keyOf=e=>({ShiftLeft:'gas',ControlLeft:'brake',KeyW:'up',KeyZ:'up',KeyA:'left',KeyQ:'left',KeyS:'brake',KeyD:'right',ArrowUp:'gas',ArrowDown:'brake',ArrowLeft:'left',ArrowRight:'right',Space:'brake'}[e.code]);
 window.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;const key=keyOf(e);if(key){e.preventDefault();keys[key]=true;}});
 window.addEventListener('keyup',e=>{keys[keyOf(e)]=false;});window.addEventListener('blur',()=>{keys={};if(model?.running){paused=true;$('road-start').textContent='Reprendre';}});
 for(const b of document.querySelectorAll('[data-drive]')){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys[b.dataset.drive]=true;};b.onpointerup=b.onpointercancel=b.onlostpointercapture=()=>{keys[b.dataset.drive]=false;};}
-function resize(){const r=c.getBoundingClientRect();w=r.width;h=r.height;const d=Math.min(devicePixelRatio,1.75);c.width=w*d;c.height=h*d;g.setTransform(d,0,0,d,0,0);}new ResizeObserver(resize).observe(c);resize();
+function resize(){const r=c.getBoundingClientRect();w=r.width;h=r.height;const d=Math.min(devicePixelRatio,1.75);c.width=buffer.width=w*d;c.height=buffer.height=h*d;g.setTransform(d,0,0,d,0,0);out.setTransform(d,0,0,d,0,0);}new ResizeObserver(resize).observe(c);resize();
 // Ten pixels per metre at full scale: a 48-unit sedan is about five metres long.
 const zoom=()=>1-Math.min(1,(model?.speed||0)/180)*.22,scale=()=>Math.min(1.5,w/390)*zoom(),ppm=()=>9*scale();
 const roadX=d=>w/2+(center(d)-center(model?.distance||0))*scale();
@@ -105,5 +114,16 @@ function render(dt){
  $('road-hud').textContent=`${Math.round(r.speed)} km/h · limite ${r.limit} · ${Math.round(r.time)} / 90 s · ${r.violations||0} infraction(s)`;
  if(model){c.dataset.running=String(r.running&&!paused);c.dataset.speed=Math.round(r.speed);c.dataset.distance=Math.round(r.distance);c.dataset.collisions=r.collisions;c.dataset.violations=r.violations;c.dataset.crashed=String(r.crashed);c.dataset.limit=r.limit;if($('road-status').textContent!==r.message)$('road-status').textContent=r.message;}
 }
-function frame(t){const dt=Math.min(.04,(t-last)/1000||.016);last=t;if(model?.running&&!paused){model.step(dt,{...keys,gas:keys.gas||keys.up});if(!model.running&&!finished)finish();}if(model?.crashed){if(crashAge===0){crashSound();if(engine&&!muted){engine.gain.gain.setTargetAtTime(0,audio.currentTime,.3);brakeNoise.bg.gain.setTargetAtTime(0,audio.currentTime,.1);brakeNoise.sqg.gain.setTargetAtTime(0,audio.currentTime,.1);}}crashAge+=dt;}if(model)engineSound(model);render(dt);requestAnimationFrame(frame);}c.redraw=()=>render(.016);requestAnimationFrame(frame);
+// Impairment: blur, double vision and a warm tint grow with the estimated blood alcohol and the psychoactive setting.
+function present(r){const alcohol=Number(r.settings?.alcohol)||0,drug=r.settings?.drug==='none'?0:Number(r.settings?.level)||0,kind=r.settings?.drug;
+ const blur=Math.min(7,alcohol*2.6+(kind==='sedating'?drug*4:drug*1.5)),ghost=Math.min(16,alcohol*7+(kind==='perception'?drug*14:drug*3)),sway=alcohol*3+(kind==='stimulating'?drug*6:drug*2);
+ out.setTransform(1,0,0,1,0,0);out.clearRect(0,0,c.width,c.height);const d=Math.min(devicePixelRatio,1.75);out.setTransform(d,0,0,d,0,0);
+ if(reduced||(blur<.05&&ghost<.05)){out.filter='none';out.globalAlpha=1;out.drawImage(buffer,0,0,w,h);return;}
+ const t=performance.now()/1000,dx=Math.cos(t*.9)*ghost,dy=Math.sin(t*1.3)*ghost*.5;
+ out.filter=`blur(${blur.toFixed(2)}px) saturate(${(1-Math.min(.5,alcohol*.2)).toFixed(2)})`;
+ out.globalAlpha=1;out.drawImage(buffer,Math.sin(t*1.1)*sway,Math.cos(t*.7)*sway*.6,w,h);
+ out.globalAlpha=Math.min(.55,alcohol*.32+drug*.3);out.drawImage(buffer,dx,dy,w,h);
+ out.filter='none';out.globalAlpha=1;
+ if(alcohol>.2||drug>.2){const v=out.createRadialGradient(w/2,h/2,Math.min(w,h)*.3,w/2,h/2,Math.max(w,h)*.62);v.addColorStop(0,'rgba(20,10,0,0)');v.addColorStop(1,`rgba(20,10,0,${Math.min(.5,alcohol*.22+drug*.25).toFixed(2)})`);out.fillStyle=v;out.fillRect(0,0,w,h);}}
+function frame(t){const dt=Math.min(.04,(t-last)/1000||.016);last=t;if(model?.running&&!paused){model.step(dt,{...keys,gas:keys.gas||keys.up});if(!model.running&&!finished)finish();}if(model?.crashed){if(crashAge===0){crashSound();if(engine&&!muted){engine.gain.gain.setTargetAtTime(0,audio.currentTime,.3);brakeNoise.bg.gain.setTargetAtTime(0,audio.currentTime,.1);brakeNoise.sqg.gain.setTargetAtTime(0,audio.currentTime,.1);}}crashAge+=dt;}if(model)engineSound(model);render(dt);present(model||{settings:{}});requestAnimationFrame(frame);}c.redraw=()=>{render(.016);present(model||{settings:{}});};requestAnimationFrame(frame);
 })();
