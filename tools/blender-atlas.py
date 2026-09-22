@@ -114,6 +114,15 @@ p.faceted_wall(1.2, 0.5, 1.0, (0, 0, 1.4), PAPER, CREAM, cols=2); p.pagoda_roof(
 p = Paper(); p.faceted_wall(1.4, 1.1, 1.1, (0, 0, 0), INK, '#44444f', cols=3); p.box((1.0, 0.04, 0.6), (0, -0.57, 0.65), TEAL)
 p.pleated_roof(1.4, 1.1, 0.25, (0, 0, 1.1), YELLOW, pleats=3, alt=ORANGE); p.export('arcade')
 
+
+# --- Signal box for SNCF Réseau: brick base, glazed upper floor, balcony and a signal mast.
+p = Paper(); p.faceted_wall(1.2, 1.0, 1.0, (0, 0, 0), '#b8623f', '#d07d55', cols=3)
+p.faceted_wall(1.35, 0.7, 1.15, (0, 0, 1.0), '#e9f6ff', '#cfe7f5', cols=3)
+p.pleated_roof(1.45, 1.2, 0.3, (0, 0, 1.7), INK, pleats=3, alt='#44444f', overhang=0.16)
+p.box((1.6, 1.35, 0.05), (0, 0, 1.0), YELLOW)                       # balcony deck
+p.box((0.06, 0.06, 1.7), (0.95, 0.4, 0.85), INK)                    # signal mast
+for k, col in enumerate(['#2fbf6b', YELLOW, RED]): p.cone(0.09, 0.05, (0.95, 0.31, 1.35 + k*0.16), col, segs=8, top_r=0.09)
+p.export('signal', jitter=0.008)
 # --- Nature ------------------------------------------------------------------
 p = Paper()
 for i, (r, h, z) in enumerate([(0.36, 0.5, 0.15), (0.28, 0.45, 0.45), (0.19, 0.4, 0.72)]): p.cone(r, h, (0, 0, z), GREENS[i % 3], segs=6)
