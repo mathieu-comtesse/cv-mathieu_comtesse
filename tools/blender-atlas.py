@@ -156,7 +156,8 @@ for x in (0.0, 1.76, 3.52):
 p.cone(0.07, 0.25, (3.4, 0.35, 0.35), INK, segs=6, top_r=0.06); p.box((0.05, 0.05, 0.8), (0.3, -0.4, 0.75), INK); p.box((0.14, 0.14, 0.14), (0.3, -0.4, 1.18), YELLOW)
 p.export('pier', jitter=0.006)
 # --- Vehicles --------------------------------------------------------------
-# Steam locomotive: boiler, cab with pleated roof, chimney, dome, cowcatcher, wheels; a tender and a wagon.
+# Steam locomotive, tender and wagon exported separately: on the island each car rides its own pair of bogies,
+# so the rake pitches on the slopes and swings through the curves instead of moving as one rigid block.
 p = Paper(); p.box((0.9, 0.34, 0.06), (0, 0, 0.14), INK)                                    # frame
 ret = bmesh.ops.create_cone(p.bm, cap_ends=True, segments=8, radius1=0.14, radius2=0.14, depth=0.55); bmesh.ops.transform(p.bm, matrix=Matrix.Rotation(math.pi/2, 4, 'Y') @ Matrix.Translation((0, 0, 0)), verts=ret['verts']); bmesh.ops.transform(p.bm, matrix=Matrix.Translation((0.14, 0, 0.32)), verts=ret['verts']); p.paint(p.owned(ret['verts']), RED)
 p.cone(0.05, 0.16, (0.34, 0, 0.44), INK, segs=8, top_r=0.07); p.cone(0.06, 0.08, (0.12, 0, 0.45), YELLOW, segs=8, top_r=0.04)
@@ -164,9 +165,11 @@ p.faceted_wall(0.28, 0.34, 0.3, (-0.25, 0, 0.17), RED, '#f06a5c', cols=2); p.ple
 p.tri((0.44, -0.17, 0.11), (0.44, 0.17, 0.11), (0.56, 0, 0.04), YELLOW)
 for x in (-0.3, -0.05, 0.22):
     for y in (-0.18, 0.18): p.cone(0.07, 0.03, (x, y, 0.07), INK, segs=8, top_r=0.07)
-p.box((0.42, 0.3, 0.26), (-0.72, 0, 0.17), YELLOW); p.box((0.34, 0.24, 0.08), (-0.72, 0, 0.34), INK)
-p.faceted_wall(0.46, 0.3, 0.3, (-1.28, 0, 0.04), TEAL, '#a6dcd6', cols=2); p.pleated_roof(0.46, 0.3, 0.07, (-1.28, 0, 0.34), '#44444f', pleats=2, overhang=0.04)
-p.export('train', jitter=0.005)
+p.export('loco', jitter=0.005)
+p = Paper(); p.box((0.42, 0.3, 0.26), (0, 0, 0.17), YELLOW); p.box((0.34, 0.24, 0.08), (0, 0, 0.34), INK)
+p.export('tender', jitter=0.005)
+p = Paper(); p.faceted_wall(0.46, 0.3, 0.3, (0, 0, 0.04), TEAL, '#a6dcd6', cols=2); p.pleated_roof(0.46, 0.3, 0.07, (0, 0, 0.34), '#44444f', pleats=2, overhang=0.04)
+p.export('wagon', jitter=0.005)
 # Sailboat: pointed folded hull, keel, mast and two sails.
 p = Paper(); bow, stern_l, stern_r, keel = (0.6, 0, 0.14), (-0.5, -0.2, 0.16), (-0.5, 0.2, 0.16), (0.05, 0, -0.1)
 p.tri(bow, (0.05, -0.26, 0.18), keel, PAPER); p.tri((0.05, -0.26, 0.18), stern_l, keel, CREAM); p.tri(stern_l, stern_r, keel, PAPER); p.tri(stern_r, (0.05, 0.26, 0.18), keel, CREAM); p.tri((0.05, 0.26, 0.18), bow, keel, PAPER)
