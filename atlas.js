@@ -6,7 +6,7 @@ const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.95,
 const canvas=document.getElementById('world-canvas'),host=canvas.parentElement,card=document.getElementById('world-card'),eggsHud=document.getElementById('world-eggs'),hint=document.getElementById('world-hint');
 const INK='#1e1e1e',PAPER='#fefefe',ORANGE='#ff8a3d',GRASS='#cfe9c2',ROCK='#d9d3c7',WATER='#cfe6ee';
 const paperMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,metalness:0,flatShading:true,side:THREE.DoubleSide});
-const models=await fetch('atlas-models.json?v=20260922-1').then(r=>r.json());
+const models=await fetch('atlas-models.json?v=20260922-2').then(r=>r.json());
 // Folded-paper meshes: one colour per facet (baked in Blender), flat shading and faint crease lines.
 function origami(name,scale=1,creases=true){const m=models[name],geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(m.position,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(m.normal,3));const col=new Float32Array(m.position.length),lin=c=>{c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);};for(let i=0;i<m.color.length;i+=3)for(let k=0;k<3;k++){col[i*3+k*3]=lin(m.color[i]);col[i*3+k*3+1]=lin(m.color[i+1]);col[i*3+k*3+2]=lin(m.color[i+2]);}geo.setAttribute('color',new THREE.BufferAttribute(col,3));
  const mesh=new THREE.Mesh(geo,paperMat);mesh.castShadow=mesh.receiveShadow=true;mesh.scale.setScalar(scale);
@@ -20,6 +20,7 @@ const steps=[
  {id:'lean',name:'Dojo Lean Six Sigma',role:'Yellow Belt · ISO 9001 / 45001 / 14001 / 27001',text:'Analyse des causes, amélioration continue et référentiels qualité, sécurité, environnement et sécurité de l’information.',pos:[-3.4,0,1.8],kind:'dojo'},
  {id:'perso',name:'Arcade des projets perso',role:'Timber !, Route & vigilance, Labyrinthe, Rubik, Sandboard',text:'Le terrain de jeu Three.js et Canvas du site.',pos:[0.4,0,-0.3],kind:'arcade',link:'projets-perso.html'},
 ];
+const SPREAD=1.24;// how far the buildings sit from the centre
 const eggs=new Map();let found=0,night=false,paused=false,dragging=null,spin=0,spinVel=.0018,pitch=.62,zoom=28,audio=null,muted=false,pinch=null;
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();scene.background=new THREE.Color(PAPER);const camera=new THREE.PerspectiveCamera(30,1,.1,100);
@@ -32,7 +33,7 @@ const island=origami('island',1.65);world.add(island);scene.updateMatrixWorld(tr
 const down=new THREE.Raycaster();function groundY(x,z,fallback=null){down.set(new THREE.Vector3(x,8,z),new THREE.Vector3(0,-1,0));const h=down.intersectObject(island,false)[0];return h?h.point.y:(fallback??0);}
 const groundMax=(x,z,rad=.6)=>{let y=groundY(x,z);for(let i=0;i<8;i++){const a=i/8*Math.PI*2,cx=Math.cos(a)*rad,cz=Math.sin(a)*rad;y=Math.max(y,groundY(x+cx,z+cz,y),groundY(x+cx*.55,z+cz*.55,y));}return y;};
 // The island is not a disc: for a bearing, find the last radius where the ground is still well above the sea.
-const shoreRadius=(a,minY=.05)=>{const cx=Math.cos(a),cz=Math.sin(a);let lo=2,hi=9.5;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(groundY(cx*m,cz*m,-9)>minY)lo=m;else hi=m;}return lo;};
+const shoreRadius=(a,minY=.06)=>{const cx=Math.cos(a),cz=Math.sin(a);for(let r=9.4;r>3;r-=.15){if(groundY(cx*r,cz*r,-9)>minY)return r;}return 6.5;};
 // --- Sea: a faceted sheet that folds and unfolds, ringed by paper wave crests.
 const seaGeo=(()=>{const rings=24,segs=72,R=18,pos=[],idx=[];pos.push(0,0,0);for(let r=1;r<=rings;r++)for(let i=0;i<segs;i++){const a=i/segs*Math.PI*2,rad=R*r/rings*(r===rings?1+Math.sin(a*5)*.03:1);pos.push(Math.cos(a)*rad,0,Math.sin(a)*rad);}
  for(let i=0;i<segs;i++)idx.push(0,1+i,1+(i+1)%segs);for(let r=1;r<rings;r++)for(let i=0;i<segs;i++){const a=1+(r-1)*segs+i,b=1+(r-1)*segs+(i+1)%segs,c=1+r*segs+(i+1)%segs,d=1+r*segs+i;idx.push(a,b,c,a,c,d);}
@@ -54,7 +55,7 @@ function ribbon(curve,halfWidth,lift,color,segments=320,across=4,closed=true){co
 const ringRadius=3.05;
 const loop=groundCurve(Array.from({length:40},(_,i)=>{const a=i/40*Math.PI*2;return new THREE.Vector3(Math.cos(a)*ringRadius,0,Math.sin(a)*ringRadius);}),.12,320);
 const road=ribbon(loop,.24,.09,'#e9c98d',420,4,true);world.add(road);
-for(const step of steps){const x=step.pos[0]*1.3,z=step.pos[2]*1.3,r=Math.hypot(x,z),a=Math.atan2(z,x);
+for(const step of steps){const x=step.pos[0]*SPREAD,z=step.pos[2]*SPREAD,r=Math.hypot(x,z),a=Math.atan2(z,x);
  const stopR=r>ringRadius?Math.max(ringRadius+.25,r-1.15):Math.min(ringRadius-.25,r+1.0);
  if(Math.abs(stopR-ringRadius)<.3)continue;
  const from=new THREE.Vector3(Math.cos(a)*ringRadius,0,Math.sin(a)*ringRadius),to=new THREE.Vector3(Math.cos(a)*stopR,0,Math.sin(a)*stopR);
@@ -63,7 +64,7 @@ for(const step of steps){const x=step.pos[0]*1.3,z=step.pos[2]*1.3,r=Math.hypot(
 // --- Buildings by kind.
 const windows=[];function windowRow(group,w,h,d,rows,cols){for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const win=new THREE.Mesh(new THREE.PlaneGeometry(.18,.22),new THREE.MeshStandardMaterial({color:'#dfe7ec',emissive:'#ffb94c',emissiveIntensity:0}));win.position.set(-w/2+(c+.5)*w/cols,.35+r*.42,d/2+.01);group.add(win);windows.push(win);const b=new THREE.LineSegments(new THREE.EdgesGeometry(win.geometry),new THREE.LineBasicMaterial({color:INK}));win.add(b);}}
 function roof(w,d,h,color){const g=new THREE.Group();const shape=new THREE.Shape();shape.moveTo(-w/2,0);shape.lineTo(0,h);shape.lineTo(w/2,0);shape.closePath();const m=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:false}),mat(color));m.position.z=-d/2;m.castShadow=true;g.add(edges(m));return g;}
-function building(step){const g=new THREE.Group();g.position.set(step.pos[0]*1.3,groundMax(step.pos[0]*1.3,step.pos[2]*1.3,.8)-.02,step.pos[2]*1.3);g.userData.step=step;g.add(origami(step.kind));
+function building(step){const g=new THREE.Group();g.position.set(step.pos[0]*SPREAD,groundMax(step.pos[0]*SPREAD,step.pos[2]*SPREAD,.8)-.02,step.pos[2]*SPREAD);g.userData.step=step;g.add(origami(step.kind));
  if(step.kind==='campus'){const bell=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),mat(ORANGE));bell.position.set(0,2.05,.34);g.add(bell);egg(bell,'cloche','La cloche de la fac sonne la fin du cours.',()=>tone([880,1175,1480],.5));}
  else if(step.kind==='station'){const hand=new THREE.Mesh(new THREE.PlaneGeometry(.03,.14),mat(PAPER));hand.position.set(0,.77,.66);g.add(hand);g.userData.hand=hand;const cat=new THREE.Group();const body=box(.28,.16,.14,INK,0,.08,0,false),head=box(.16,.14,.14,INK,.18,.16,0,false);cat.add(body,head);cat.position.set(.9,1.3,.2);g.add(cat);egg(cat,'chat','Un chat sur le toit de la gare : il miaule et saute.',()=>{tone([660,520],.25);cat.userData.jump=1;});g.userData.cat=cat;}
  else if(step.kind==='workshop'){const pdf=box(.35,.45,.05,PAPER,-.95,.25,.4);pdf.rotation.y=.4;g.add(pdf);egg(pdf,'pdf','Un PDF qui traîne : l’extracteur l’a déjà lu.',()=>{tone([440,880],.15);pdf.rotation.y+=Math.PI;});}
@@ -80,14 +81,38 @@ function makeLabel(text){const c=document.createElement('canvas');c.width=512;c.
 function egg(obj,id,text,action){obj.traverse(o=>{o.userData.egg=id;});eggs.set(id,{obj,text,action,found:false});}
 steps.forEach(building);
 // --- Trees folded in Blender.
-for(let i=0;i<26;i++){const a=i/26*Math.PI*2+Math.sin(i)*.3,r=4.9+Math.sin(i*2.3)*1.1;const x=Math.cos(a)*r,z=Math.sin(a)*r;if(steps.some(s=>Math.hypot(s.pos[0]*1.3-x,s.pos[2]*1.3-z)<1.8))continue;const tree=origami(i%4===0?'blossom':i%3?'pine':'bush',.85+Math.random()*.4);tree.position.set(x,groundY(x,z)-.03,z);tree.rotation.y=Math.random()*6.3;world.add(tree);}
+for(let i=0;i<26;i++){const a=i/26*Math.PI*2+Math.sin(i)*.3,r=4.9+Math.sin(i*2.3)*1.1;const x=Math.cos(a)*r,z=Math.sin(a)*r;if(steps.some(s=>Math.hypot(s.pos[0]*SPREAD-x,s.pos[2]*SPREAD-z)<1.8))continue;const tree=origami(i%4===0?'blossom':i%3?'pine':'bush',.85+Math.random()*.4);tree.position.set(x,groundY(x,z)-.03,z);tree.rotation.y=Math.random()*6.3;world.add(tree);}
 const lighthouse=new THREE.Group();lighthouse.add(origami('lighthouse'));const lamp=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.25,8),new THREE.MeshStandardMaterial({color:'#fff6c8',emissive:'#ffcc55',emissiveIntensity:.3,flatShading:true}));lamp.position.y=1.42;lighthouse.add(lamp);const beamPivot=new THREE.Group();beamPivot.position.y=1.42;lighthouse.add(beamPivot);const beam=new THREE.Mesh(new THREE.ConeGeometry(.7,4.5,20,1,true),new THREE.MeshBasicMaterial({color:'#ffe7a0',transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));beam.rotation.z=Math.PI/2;beam.position.x=2.25;beamPivot.add(beam);lighthouse.position.set(6.5,groundY(6.5,-.6)-.02,-.6);world.add(lighthouse);egg(lighthouse,'phare','Le phare s’allume et la nuit tombe sur l’île.',()=>{setNight(!night);tone([330,330],.3);});
 // --- Moving things: a train, a white car, a boat, birds, a duck.
-const rail=groundCurve(Array.from({length:20},(_,i)=>{const a=i/20*Math.PI*2,r=Math.max(5.2,Math.min(7.1,shoreRadius(a)-.95));return new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r);}),.14,300);
+// The track: the coastline smoothed into a gentle loop, then pushed outside every building footprint so it
+// never clips one, and never bent tighter than the rails themselves can be offset.
+const rail=(()=>{const N=72,ang=Array.from({length:N},(_,i)=>i/N*Math.PI*2);
+ const blur=(v,w,it)=>{for(let k=0;k<it;k++){const o=v.slice();v=o.map((_,i)=>{let t=0;for(let j=-w;j<=w;j++)t+=o[(i+j+N*2)%N];return t/(w*2+1);});}return v;};
+ const coast=blur(ang.map(a=>shoreRadius(a)),5,3);
+ // Each building keeps a no-go disc the size of its own footprint plus the ballast.
+ const keep=steps.map(st=>{const g=models[st.kind].position;let hx=0,hz=0;for(let i=0;i<g.length;i+=3){hx=Math.max(hx,Math.abs(g[i]));hz=Math.max(hz,Math.abs(g[i+2]));}
+  return {x:st.pos[0]*SPREAD,z:st.pos[2]*SPREAD,r:Math.hypot(hx,hz)+.45};});
+ let rad=coast.map(r=>r-.9);
+ for(let pass=0;pass<6;pass++){for(let i=0;i<N;i++){const cx=Math.cos(ang[i]),cz=Math.sin(ang[i]);
+   for(const k of keep){const t=k.x*cx+k.z*cz,d=Math.abs(k.x*cz-k.z*cx);if(d<k.r)rad[i]=Math.max(rad[i],t+Math.sqrt(k.r*k.r-d*d));}
+   rad[i]=Math.min(rad[i],coast[i]-.4);}
+  if(pass<5)rad=blur(rad,2,1);}
+ return groundCurve(ang.map((a,i)=>new THREE.Vector3(Math.cos(a)*rad[i],0,Math.sin(a)*rad[i])),.14,360);})();
 const ballast=ribbon(rail,.3,.08,'#bfb7a6',360,3,true);world.add(ballast);
 {const frames=rail.computeFrenetFrames(220,true),railMat=mat('#f2f0ea'),sleeperMat=mat('#2b2b33');for(const side of [-1,1]){const pts=[];for(let i=0;i<=220;i++){const p=rail.getPointAt(i/220),n=frames.normals[i].clone().setY(0).normalize();pts.push(p.clone().addScaledVector(n,side*.11).setY(p.y+.07));}const curve=new THREE.CatmullRomCurve3(pts,true);const r=new THREE.Mesh(new THREE.TubeGeometry(curve,220,.028,4,true),railMat);world.add(r);}
  const sleeper=new THREE.InstancedMesh(new THREE.BoxGeometry(.34,.04,.1),sleeperMat,120),d=new THREE.Object3D();for(let i=0;i<120;i++){const p=rail.getPointAt(i/120),q=rail.getPointAt((i/120+.005)%1);d.position.copy(p).setY(p.y+.035);d.lookAt(q);d.rotateY(Math.PI/2);d.updateMatrix();sleeper.setMatrixAt(i,d.matrix);}sleeper.castShadow=true;world.add(sleeper);}
-const train=new THREE.Group();train.add(origami('train'));world.add(train);let trainT=0,trainSpeed=.028;egg(train,'train','Le train siffle et prend de la vitesse.',()=>{tone([520,520,690],.35);trainSpeed=.09;setTimeout(()=>trainSpeed=.028,4000);});
+// Each car rides on its own two bogies: the body is placed between them, so it pitches on the slopes,
+// leans into the curves and never cuts a corner the way a single rigid model does.
+const railLen=rail.getLength(),cars=[];
+{let s=0;for(const [name,len] of [['loco',1.01],['tender',.42],['wagon',.56],['wagon',.56],['wagon',.56]]){
+  const g=new THREE.Group();g.add(origami(name));g.userData.half=len*.38;g.userData.behind=s+len/2;world.add(g);cars.push(g);s+=len+.08;}}
+const wrap=t=>(t%1+1)%1,_a=new THREE.Vector3(),_b=new THREE.Vector3(),_f=new THREE.Vector3(),_u=new THREE.Vector3(),_s=new THREE.Vector3(),_m=new THREE.Matrix4();
+function carPose(g,dist){const h=g.userData.half;
+ _a.copy(rail.getPointAt(wrap((dist-h)/railLen)));_b.copy(rail.getPointAt(wrap((dist+h)/railLen)));
+ g.position.addVectors(_a,_b).multiplyScalar(.5);g.position.y+=.06;
+ _f.subVectors(_b,_a).normalize();_s.set(0,1,0).cross(_f);if(_s.lengthSq()<1e-8)_s.set(1,0,0);_s.normalize();
+ _u.crossVectors(_f,_s).normalize();g.quaternion.setFromRotationMatrix(_m.makeBasis(_f,_u,_s.crossVectors(_f,_u)));}
+const train=cars[0];cars.slice(1).forEach(c=>c.traverse(o=>o.userData.egg='train'));let trainT=0,trainSpeed=.028;egg(train,'train','Le train siffle et prend de la vitesse.',()=>{tone([520,520,690],.35);trainSpeed=.09;setTimeout(()=>trainSpeed=.028,4000);});
 const car=new THREE.Group();car.add(origami('car'));world.add(car);let carT=0;egg(car,'voiture','La voiture blanche de Route & vigilance respecte la limite.',()=>tone([200,260],.15));
 const boat=new THREE.Group();boat.add(origami('boat',1.1));const sails=origami('sails',1.1,false);boat.add(sails);boat.userData={state:'sail',timer:18+Math.random()*10,blend:1};boat.position.set(6.2,-.45,2.4);scene.add(boat);let boatT=0,boatSpeed=.003;egg(boat,'voilier','Le voilier hisse ses voiles et file, avant de revenir les ranger au quai.',()=>{const u=boat.userData;if(u.state==='dock'){u.timer=-1;}else{boatSpeed=.012;setTimeout(()=>boatSpeed=.003,6000);}tone([392,494],.2);});
 const fish=[];for(let i=0;i<9;i++){const f=origami('fish',.9+Math.random()*.5,false);const a=Math.random()*Math.PI*2,r=9.4+Math.random()*4;f.userData={x:Math.cos(a)*r,z:Math.sin(a)*r,a:Math.random()*6.3,t:Math.random()*10,jump:0,dx:0,dz:0};scene.add(f);fish.push(f);}
@@ -131,7 +156,7 @@ function frame(){const dt=Math.min(.05,clock.getDelta()),t=clock.elapsedTime;if(
  {const pa=seaGeo.attributes.position.array;for(let i=0;i<pa.length;i+=3){const x=seaBase[i],z=seaBase[i+2];pa[i+1]=Math.sin(x*.9+t*1.1)*.07+Math.sin(z*1.3-t*.9)*.06+Math.sin((x+z)*.5+t*.6)*.05;}seaGeo.attributes.position.needsUpdate=true;seaGeo.computeVertexNormals();}
  waves.forEach((w,i)=>{const u=w.userData;u.r-=u.speed*dt;if(u.r<8.2){u.r=12+Math.random()*.8;u.a+=Math.random()*.3-.15;}const near=1-(u.r-8.2)/4;w.position.set(Math.cos(u.a)*u.r,-.46+near*.08+Math.sin(t*3+i)*.03,Math.sin(u.a)*u.r);w.rotation.y=-u.a-Math.PI/2;w.rotation.x=-.25*near;const sc=u.scale*(.6+near*.8);w.scale.set(sc,sc*(.7+near*.6),sc);});
  fish.forEach((f,i)=>{const u=f.userData;u.t+=dt;if(u.jump>0){u.jump+=dt*1.6;const h=Math.sin(Math.min(Math.PI,u.jump*Math.PI))*1.1;f.position.set(u.x+u.dx*u.jump*1.2,-.5+h,u.z+u.dz*u.jump*1.2);f.rotation.z=(.5-u.jump)*1.6;if(u.jump>=1){u.jump=0;u.x+=u.dx*1.2;u.z+=u.dz*1.2;u.a=Math.atan2(u.dz,u.dx);}}else{u.a+=Math.sin(u.t*.7+i)*dt*.4;u.x+=Math.cos(u.a)*dt*.6;u.z+=Math.sin(u.a)*dt*.6;const r=Math.hypot(u.x,u.z);if(r>15||r<8.8){u.a+=Math.PI;u.x+=Math.cos(u.a)*.3;u.z+=Math.sin(u.a)*.3;}f.position.set(u.x,-.56+Math.sin(u.t*3)*.03,u.z);f.rotation.z=0;if(Math.random()<dt*.06){u.jump=.001;u.dx=Math.cos(u.a);u.dz=Math.sin(u.a);}}f.rotation.y=-u.a;f.rotation.x=Math.sin(u.t*9)*.15;});
- trainT=(trainT+trainSpeed*dt)%1;const p=rail.getPointAt(trainT),q=rail.getPointAt((trainT+.01)%1);train.position.copy(p).setY(p.y+.06);train.lookAt(q);train.rotateY(-Math.PI/2);
+ trainT=(trainT+trainSpeed*dt)%1;const head=trainT*railLen;for(const c of cars)carPose(c,head-c.userData.behind);
  carT=(carT+.05*dt)%1;const cp=loop.getPointAt(carT),cq=loop.getPointAt((carT+.01)%1);car.position.copy(cp).setY(groundY(cp.x,cp.z)+.16);car.lookAt(cq);car.rotateY(-Math.PI/2);
  {const u=boat.userData,dock=new THREE.Vector3(Math.cos(harbourAngle)*9.9-Math.cos(harbourAngle+Math.PI/2)*1.1,-.45,Math.sin(harbourAngle)*9.9-Math.sin(harbourAngle+Math.PI/2)*1.1);u.timer-=dt;
  if(u.state==='sail'){boatT+=boatSpeed*dt*60;boat.position.set(Math.cos(boatT*.35)*10.6,-.45+Math.sin(t*2)*.04,Math.sin(boatT*.35)*10.6);boat.rotation.y=-boatT*.35+Math.PI;u.blend=Math.min(1,u.blend+dt*.5);if(u.timer<0&&Math.abs(((boatT*.35)%(Math.PI*2))-harbourAngle)<.25){u.state='in';u.timer=0;}}
