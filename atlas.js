@@ -40,18 +40,23 @@ const waves=[];for(let i=0;i<34;i++){const w=origami('wave',1,false);w.userData=
 for(let i=0;i<9;i++){const a=i/9*Math.PI*2+.4,r=6.9+Math.sin(i*3.3)*.5,st=origami('stone',.5+Math.random()*.6);st.position.set(Math.cos(a)*r,groundY(Math.cos(a)*r,Math.sin(a)*r)-.05,Math.sin(a)*r);st.rotation.set(Math.random(),Math.random()*6,Math.random());world.add(st);}
 // --- Paths: a loop of flat ribbon linking every building.
 const groundCurve=(points,lift,samples)=>{const base=new THREE.CatmullRomCurve3(points,true,'catmullrom',.6),pts=[];for(let i=0;i<samples;i++){const p=base.getPointAt(i/samples);pts.push(new THREE.Vector3(p.x,groundY(p.x,p.z)+lift,p.z));}return new THREE.CatmullRomCurve3(pts,true,'catmullrom',.5);};
-const placed=steps.map(s=>({a:Math.atan2(s.pos[2]*1.3,s.pos[0]*1.3),r:Math.hypot(s.pos[0]*1.3,s.pos[2]*1.3)})).sort((u,v)=>u.a-v.a);
-// Waypoints sit on the bisectors between two neighbouring buildings, so the lane never crosses a roof.
-const between=placed.map((p,i)=>{const q=placed[(i+1)%placed.length];let da=q.a-p.a;if(da<0)da+=Math.PI*2;const a=p.a+da/2,r=Math.max(2.4,Math.min(5.2,(p.r+q.r)/2+.9));return new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r);});
-const loop=groundCurve(between,.12,300);
-function ribbon(curve,halfWidth,lift,color,segments=320,across=4){const pos=[],idx=[],up=new THREE.Vector3(0,1,0),t=new THREE.Vector3(),n=new THREE.Vector3();
- // Every vertex — including the edges — is dropped onto the ground, so the strip hugs bumps sideways as well as along.
- for(let i=0;i<=segments;i++){const u=(i/segments)%1,p=curve.getPointAt(u);t.copy(curve.getTangentAt(u)).setY(0).normalize();n.crossVectors(up,t).normalize();
+function ribbon(curve,halfWidth,lift,color,segments=320,across=4,closed=true){const pos=[],idx=[],up=new THREE.Vector3(0,1,0),t=new THREE.Vector3(),n=new THREE.Vector3();
+ // Every vertex — edges included — is dropped onto the ground, with the centre height as a fallback, so the strip never tears.
+ for(let i=0;i<=segments;i++){const u=closed?(i/segments)%1:Math.min(.999,i/segments),p=curve.getPointAt(u);t.copy(curve.getTangentAt(u)).setY(0).normalize();n.crossVectors(up,t).normalize();
   const mid=groundY(p.x,p.z);for(let k=0;k<=across;k++){const w=(k/across*2-1)*halfWidth,x=p.x+n.x*w,z=p.z+n.z*w;pos.push(x,groundY(x,z,mid)+lift,z);}}
  const row=across+1;for(let i=0;i<segments;i++)for(let k=0;k<across;k++){const a=i*row+k,b=a+1,c2=a+row,d=c2+1;idx.push(a,c2,b,b,c2,d);}
  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setIndex(idx);geo.computeVertexNormals();
  const m=new THREE.Mesh(geo,mat(color,{polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.receiveShadow=true;return m;}
-const road=ribbon(loop,.24,.09,'#e9c98d',420,4);world.add(road);
+// A ring road inside the buildings, plus a short driveway from the ring to each doorstep: it links them, never crosses them.
+const ringRadius=3.05;
+const loop=groundCurve(Array.from({length:40},(_,i)=>{const a=i/40*Math.PI*2;return new THREE.Vector3(Math.cos(a)*ringRadius,0,Math.sin(a)*ringRadius);}),.12,320);
+const road=ribbon(loop,.24,.09,'#e9c98d',420,4,true);world.add(road);
+for(const step of steps){const x=step.pos[0]*1.3,z=step.pos[2]*1.3,r=Math.hypot(x,z),a=Math.atan2(z,x);
+ const stopR=r>ringRadius?Math.max(ringRadius+.25,r-1.15):Math.min(ringRadius-.25,r+1.0);
+ if(Math.abs(stopR-ringRadius)<.3)continue;
+ const from=new THREE.Vector3(Math.cos(a)*ringRadius,0,Math.sin(a)*ringRadius),to=new THREE.Vector3(Math.cos(a)*stopR,0,Math.sin(a)*stopR);
+ const spur=new THREE.CatmullRomCurve3([from,from.clone().lerp(to,.5),to],false,'catmullrom',.5);
+ world.add(ribbon(spur,.19,.09,'#e9c98d',48,3,false));}
 // --- Buildings by kind.
 const windows=[];function windowRow(group,w,h,d,rows,cols){for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const win=new THREE.Mesh(new THREE.PlaneGeometry(.18,.22),new THREE.MeshStandardMaterial({color:'#dfe7ec',emissive:'#ffb94c',emissiveIntensity:0}));win.position.set(-w/2+(c+.5)*w/cols,.35+r*.42,d/2+.01);group.add(win);windows.push(win);const b=new THREE.LineSegments(new THREE.EdgesGeometry(win.geometry),new THREE.LineBasicMaterial({color:INK}));win.add(b);}}
 function roof(w,d,h,color){const g=new THREE.Group();const shape=new THREE.Shape();shape.moveTo(-w/2,0);shape.lineTo(0,h);shape.lineTo(w/2,0);shape.closePath();const m=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:false}),mat(color));m.position.z=-d/2;m.castShadow=true;g.add(edges(m));return g;}
@@ -76,7 +81,7 @@ for(let i=0;i<26;i++){const a=i/26*Math.PI*2+Math.sin(i)*.3,r=5.3+Math.sin(i*2.3
 const lighthouse=new THREE.Group();lighthouse.add(origami('lighthouse'));const lamp=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.25,8),new THREE.MeshStandardMaterial({color:'#fff6c8',emissive:'#ffcc55',emissiveIntensity:.3,flatShading:true}));lamp.position.y=1.42;lighthouse.add(lamp);const beamPivot=new THREE.Group();beamPivot.position.y=1.42;lighthouse.add(beamPivot);const beam=new THREE.Mesh(new THREE.ConeGeometry(.7,4.5,20,1,true),new THREE.MeshBasicMaterial({color:'#ffe7a0',transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));beam.rotation.z=Math.PI/2;beam.position.x=2.25;beamPivot.add(beam);lighthouse.position.set(6.5,groundY(6.5,-.6)-.02,-.6);world.add(lighthouse);egg(lighthouse,'phare','Le phare s’allume et la nuit tombe sur l’île.',()=>{setNight(!night);tone([330,330],.3);});
 // --- Moving things: a train, a white car, a boat, birds, a duck.
 const rail=groundCurve([new THREE.Vector3(5.9,0,-4.8),new THREE.Vector3(7.3,0,0),new THREE.Vector3(5.8,0,4.9),new THREE.Vector3(0,0,7.1),new THREE.Vector3(-5.8,0,4.8),new THREE.Vector3(-7.3,0,0),new THREE.Vector3(-5.9,0,-4.8),new THREE.Vector3(0,0,-7.0)],.14,300);
-const ballast=ribbon(rail,.3,.08,'#bfb7a6',360,3);world.add(ballast);
+const ballast=ribbon(rail,.3,.08,'#bfb7a6',360,3,true);world.add(ballast);
 {const frames=rail.computeFrenetFrames(220,true),railMat=mat('#f2f0ea'),sleeperMat=mat('#2b2b33');for(const side of [-1,1]){const pts=[];for(let i=0;i<=220;i++){const p=rail.getPointAt(i/220),n=frames.normals[i].clone().setY(0).normalize();pts.push(p.clone().addScaledVector(n,side*.11).setY(p.y+.07));}const curve=new THREE.CatmullRomCurve3(pts,true);const r=new THREE.Mesh(new THREE.TubeGeometry(curve,220,.028,4,true),railMat);world.add(r);}
  const sleeper=new THREE.InstancedMesh(new THREE.BoxGeometry(.34,.04,.1),sleeperMat,120),d=new THREE.Object3D();for(let i=0;i<120;i++){const p=rail.getPointAt(i/120),q=rail.getPointAt((i/120+.005)%1);d.position.copy(p).setY(p.y+.035);d.lookAt(q);d.rotateY(Math.PI/2);d.updateMatrix();sleeper.setMatrixAt(i,d.matrix);}sleeper.castShadow=true;world.add(sleeper);}
 const train=new THREE.Group();train.add(origami('train'));world.add(train);let trainT=0,trainSpeed=.028;egg(train,'train','Le train siffle et prend de la vitesse.',()=>{tone([520,520,690],.35);trainSpeed=.09;setTimeout(()=>trainSpeed=.028,4000);});
