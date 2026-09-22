@@ -89,13 +89,84 @@ class Paper:
             col += c
         models[name] = {'position': pos, 'normal': nor, 'color': col}; bm.free()
 
-# --- Buildings ---------------------------------------------------------------
-p = Paper(); p.faceted_wall(2.0, 1.3, 1.1, (0, 0, 0), CREAM, YELLOW, cols=4); p.pleated_roof(2.0, 1.1, 0.7, (0, 0, 1.3), ORANGE, pleats=4, alt=RED)
-p.faceted_wall(0.5, 2.3, 0.5, (0, 0, 0), PAPER, CREAM, cols=2); p.pagoda_roof(0.5, 0.5, 0.5, (0, 0, 2.3), DEEP, curl=0.06, overhang=0.1)
-p.box((0.5, 0.05, 0.6), (0, -0.58, 0.3), INK); p.export('campus')
 
-p = Paper(); p.faceted_wall(2.4, 1.0, 1.2, (0, 0, 0), TEAL, '#a6dcd6', cols=5); p.pleated_roof(2.4, 1.2, 0.35, (0, 0, 1.0), INK, pleats=3, alt='#44444f')
-p.box((2.4, 0.16, 0.08), (0, -0.7, 0.04), YELLOW); p.cone(0.16, 0.05, (0, -0.63, 0.75), PAPER, segs=8, top_r=0.16); p.export('station')
+# --- Shared shapes for the two landmark buildings ----------------------------
+def disc(p, at, r, col, segs=12):
+    """A flat round face in the x-z plane (a clock dial, a porthole), seen from the front."""
+    x, y, z = at
+    ring = [(x + math.cos(i/segs*2*math.pi)*r, y, z + math.sin(i/segs*2*math.pi)*r) for i in range(segs)]
+    for i in range(segs): p.tri((x, y, z), ring[i], ring[(i+1) % segs], col)
+
+def hand(p, at, ang, length, wide, col):
+    """A clock hand: a thin blade lying in the same plane as the dial."""
+    x, y, z = at; dx, dz = math.cos(ang)*length, math.sin(ang)*length
+    px, pz = -math.sin(ang)*wide, math.cos(ang)*wide
+    p.quad((x-px, y, z-pz), (x+px, y, z+pz), (x+dx+px, y, z+dz+pz), (x+dx-px, y, z+dz-pz), col)
+
+def arch(p, cx, z0, w, h, y, col, spring=0.62):
+    """A tall round-headed bay: straight jambs, then a three-facet fan folded over them."""
+    hw = w/2; zs = z0 + h*spring; zt = z0 + h; sh = hw*0.55
+    p.quad((cx-hw, y, z0), (cx+hw, y, z0), (cx+hw, y, zs), (cx-hw, y, zs), col)
+    p.tri((cx-hw, y, zs), (cx-sh, y, zt - h*0.06), (cx, y, zs), col)
+    p.tri((cx+sh, y, zt - h*0.06), (cx+hw, y, zs), (cx, y, zs), col)
+    p.tri((cx-sh, y, zt - h*0.06), (cx, y, zt), (cx, y, zs), col)
+    p.tri((cx, y, zt), (cx+sh, y, zt - h*0.06), (cx, y, zs), col)
+
+def shed(p, x0, x1, y0, y1, eave, ridge, col, alt):
+    """A train-shed span: two long folded slopes meeting on a ridge, closed by gables."""
+    ym = (y0+y1)/2
+    p.quad((x0, y0, eave), (x1, y0, eave), (x1, ym, ridge), (x0, ym, ridge), col)
+    p.quad((x0, ym, ridge), (x1, ym, ridge), (x1, y1, eave), (x0, y1, eave), alt)
+    p.tri((x0, y0, eave), (x0, ym, ridge), (x0, y1, eave), alt)
+    p.tri((x1, y0, eave), (x1, ym, ridge), (x1, y1, eave), alt)
+
+# --- Buildings ---------------------------------------------------------------
+# Universite Sorbonne Paris Nord: the brick wings under their white cornices, and the clock tower above them.
+BRICK, BRICK2, TRIM, PANE = '#b04b30', '#c76044', '#f4f0e6', '#bcd8e4'
+p = Paper()
+p.faceted_wall(1.9, 0.95, 0.9, (-0.55, 0, 0), BRICK, BRICK2, cols=5)                      # long teaching wing
+p.box((1.98, 1.0, 0.09), (-0.55, 0, 0.94), TRIM)                                          # white cornice slab
+for k in range(5):                                                                        # two bands of windows
+    for zz in (0.3, 0.62): p.box((0.2, 0.06, 0.2), (-1.36 + k*0.4, -0.56, zz), PANE)
+p.box((0.5, 0.1, 0.16), (-1.2, -0.52, 0.08), TRIM); p.box((0.34, 0.06, 0.4), (-1.2, -0.55, 0.0), INK)   # entrance canopy and door
+p.faceted_wall(0.62, 2.35, 0.62, (0.72, 0, 0), BRICK, BRICK2, cols=2)                     # the tower shaft
+for x in (0.52, 0.92):                                                                    # white pilasters running its full height
+    p.box((0.07, 0.66, 2.3), (x, 0, 1.15), TRIM)
+for k in range(7):
+    for x in (0.72,): p.box((0.1, 0.06, 0.14), (x, -0.39, 0.35 + k*0.27), PANE)
+p.box((0.74, 0.74, 0.1), (0.72, 0, 2.38), TRIM)                                           # stepped crown
+p.box((0.66, 0.66, 0.42), (0.72, 0, 2.63), TRIM)                                          # the clock box
+for y, sgn in ((-0.34, -1), (0.34, 1)):                                                   # a dial front and back
+    disc(p, (0.72, y, 2.63), 0.23, PAPER, segs=14); disc(p, (0.72, y*1.02, 2.63), 0.2, '#f8fbfd', segs=14)
+    hand(p, (0.72, y*1.04, 2.63), math.pi/2 + sgn*0.5, 0.15, 0.015, INK)
+    hand(p, (0.72, y*1.04, 2.63), math.pi/2 - sgn*1.9, 0.11, 0.02, INK)
+p.cone(0.19, 0.12, (0.72, 0, 2.84), TRIM, segs=10, top_r=0.19); p.cone(0.15, 0.1, (0.72, 0, 2.96), TRIM, segs=10, top_r=0.05)
+p.export('campus')
+
+# Gare du Nord: the magenta train sheds rising behind a long stone screen of arched bays, statues on its cornice.
+MAGENTA, PLUM, STONE, STONE2, PANE2 = '#a4127e', '#7d0c60', '#f1e3c8', '#dfcba6', '#a9dcf1'
+p = Paper()
+for (y0, y1, eave, ridge) in ((-0.48, 0.06, 0.72, 1.42), (0.02, 0.50, 0.66, 1.26), (0.46, 0.86, 0.60, 1.10)):
+    shed(p, -1.52, 1.52, y0, y1, eave, ridge, MAGENTA, PLUM)          # the spans over the platforms
+    p.box((3.04, 0.04, eave), (0, y0, eave/2), '#cbb894')             # the side wall carrying the eaves
+p.faceted_wall(2.8, 0.82, 0.26, (0, -0.62, 0), STONE, STONE2, cols=8) # the screen facade
+p.box((2.9, 0.34, 0.09), (0, -0.62, 0.86), STONE)                     # its cornice
+for k in range(8):                                                    # the row of arched bays
+    cx = -1.19 + k*0.34
+    if abs(cx) < 0.32: continue
+    arch(p, cx, 0.1, 0.21, 0.6, -0.84, PANE2)
+    p.box((0.06, 0.06, 0.82), (cx + 0.17, -0.83, 0.41), STONE2)       # the pilaster between them
+for cx in (-1.19, -0.85, -0.51, 0.51, 0.85, 1.19):                    # statues standing on the cornice
+    p.box((0.08, 0.08, 0.06), (cx, -0.7, 0.93), STONE2)
+    p.cone(0.045, 0.2, (cx, -0.7, 0.96), '#c9b998', segs=6, top_r=0.03)
+p.faceted_wall(0.78, 1.26, 0.4, (0, -0.66, 0), STONE, STONE2, cols=2) # the taller central pavilion
+arch(p, 0, 0.12, 0.46, 0.84, -0.95, PANE2)
+p.box((0.9, 0.48, 0.09), (0, -0.66, 1.28), STONE)
+p.tri((-0.45, -0.95, 1.33), (0.45, -0.95, 1.33), (0, -0.95, 1.56), STONE)   # pediment
+disc(p, (0, -0.97, 1.06), 0.11, PAPER, segs=12)
+hand(p, (0, -0.99, 1.06), 1.9, 0.075, 0.011, INK); hand(p, (0, -0.99, 1.06), -0.6, 0.055, 0.015, INK)
+p.box((0.28, 0.05, 0.11), (-0.95, -0.84, 0.98), STONE); p.box((0.28, 0.05, 0.11), (0.95, -0.84, 0.98), STONE)  # the NORD plaques
+p.export('station')
 
 p = Paper(); p.faceted_wall(1.6, 1.0, 1.4, (0, 0, 0), CORAL, '#f7ad95', cols=3)
 for i in range(3):
