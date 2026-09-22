@@ -18,14 +18,14 @@ const edgeGroup=el('g',{}),dotGroup=el('g',{});svg.append(edgeGroup,dotGroup);
 // Traced from the reference drawing: three families of four concentric rings, centred on the corners of an equilateral
 // triangle. Each pair of families crosses twice, giving six 3×3 rhombi: the near crossings (rings 1-3) hold yellow,
 // green and orange, the far ones (rings 2-4) red, blue and white. Every dot therefore sits on two drawn rings.
-const O={x:250,y:205},spread=40,rings=[74,93,112,130];
+const O={x:250,y:196},spread=46,rings=[60,82,104,126,148];
 const fam=[-90,30,150].map(deg=>{const a=deg*Math.PI/180;return{x:O.x+spread*Math.cos(a),y:O.y+spread*Math.sin(a)};});
 const loops=el('g',{'aria-hidden':'true'});svg.insertBefore(loops,edgeGroup);
 for(const c of fam)for(const r of rings)loops.append(el('circle',{cx:c.x,cy:c.y,r,fill:'none',stroke:'#9c968a','stroke-width':2}));
 // The two crossings of ring ra (family p) and ring rb (family q): keep the one on the near or far side of the centre.
 const lattice=(i,j,near)=>{const p=fam[i],q=fam[j],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);
  const mid={x:(p.x+q.x)/2,y:(p.y+q.y)/2},ux=(mid.x-O.x)/Math.hypot(mid.x-O.x,mid.y-O.y),uy=(mid.y-O.y)/Math.hypot(mid.x-O.x,mid.y-O.y);
- const set=near?rings.slice(0,3):rings.slice(1),pts=[];
+ const set=near?rings.slice(1,4):rings.slice(2),pts=[];
  for(const ra of set)for(const rb of set){const along=(ra*ra-rb*rb+d*d)/(2*d),h=Math.sqrt(Math.max(0,ra*ra-along*along)),mx=p.x+along*dx/d,my=p.y+along*dy/d;
   const cands=[{x:mx+h*dy/d,y:my-h*dx/d},{x:mx-h*dy/d,y:my+h*dx/d}];
   pts.push(cands.sort((u,v)=>((u.x-O.x)*ux+(u.y-O.y)*uy)-((v.x-O.x)*ux+(v.y-O.y)*uy))[near?0:1]);}
@@ -33,7 +33,7 @@ const lattice=(i,j,near)=>{const p=fam[i],q=fam[j],dx=q.x-p.x,dy=q.y-p.y,d=Math.
 const clusters={2:lattice(1,2,true),3:lattice(1,2,false),1:lattice(0,2,true),0:lattice(0,2,false),4:lattice(0,1,true),5:lattice(0,1,false)};
 const graphPoints=new Array(SLOTS.length),perFace={};SLOTS.forEach((slot,i)=>{(perFace[slot.face]??=[]).push(i);});
 for(const face in clusters)perFace[face].forEach((i,k)=>{graphPoints[i]=clusters[face][k];});
-const dots=graphPoints.map((p,i)=>{const node=el('circle',{cx:p.x,cy:p.y,r:8,fill:FACE_COLORS[state[i]],stroke:'#25251f','stroke-width':2.2,class:'graph-dot'});const title=el('title',{});title.textContent=`Facette ${i+1} · ${FACES[SLOTS[i].face]}`;node.append(title);dotGroup.append(node);return node;});
+const dots=graphPoints.map((p,i)=>{const node=el('circle',{cx:p.x,cy:p.y,r:8.6,fill:FACE_COLORS[state[i]],stroke:'#25251f','stroke-width':2.4,class:'graph-dot'});const title=el('title',{});title.textContent=`Facette ${i+1} · ${FACES[SLOTS[i].face]}`;node.append(title);dotGroup.append(node);return node;});
 function drawGraph(move=selected){selected=move;$('graph-move').textContent=move.replace("'",'′');edgeGroup.replaceChildren();dots.forEach((n,i)=>{n.setAttribute('fill',FACE_COLORS[state[i]]);n.setAttribute('opacity',1);});}
 function refresh(){stickers.forEach((s,i)=>s.material.color.set(FACE_COLORS[state[i]]));$('cube-state').textContent=state===SOLVED?'Résolu':`${history.length} mouvements`;$('cube-state').dataset.solved=String(state===SOLVED);canvas.dataset.state=state;drawGraph();document.querySelectorAll('.face-controls button,.game-actions button,.game-actions select').forEach(b=>b.disabled=busy||searching);}
 let turning=null;function playMove(move,record=true,duration=270){return new Promise(resolve=>{busy=true;const info=moveInfo(move);const moving=parts.filter(p=>p.userData.slot[info.axis]===info.sign);for(const part of moving)pivot.attach(part);turning={move,record,resolve,moving,axis:['x','y','z'][info.axis],angle:info.quarter*Math.PI/2,start:performance.now(),duration};drawGraph(move);refresh();});}
