@@ -75,12 +75,12 @@ class Paper:
         # flat top and base
         self.quad((x-w/2, y-d/2, z+h), (x+w/2, y-d/2, z+h), (x+w/2, y+d/2, z+h), (x-w/2, y+d/2, z+h), color)
     def export(self, name, jitter=0.012, tint=0.06, outward=True):
-        bm = self.bm; bmesh.ops.triangulate(bm, faces=bm.faces[:])
-        for v in bm.verts: v.co += Vector((random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * jitter
+        bm = self.bm; bmesh.ops.triangulate(bm, faces=bm.faces[:]); rng = random.Random('atlas:' + name)
+        for v in bm.verts: v.co += Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))) * jitter
         bm.normal_update(); pos, nor, col = [], [], []
         centre = sum((v.co for v in bm.verts), Vector()) / max(1, len(bm.verts))
         for f in bm.faces:
-            n = f.normal.copy(); verts = list(f.verts); base = self.colors[f.material_index]; k = 1 + random.uniform(-tint, tint)
+            n = f.normal.copy(); verts = list(f.verts); base = self.colors[f.material_index]; k = 1 + rng.uniform(-tint, tint)
             # Faces are built as loose triangles: make every one face away from the model's centre so none is culled.
             if outward and n.dot(f.calc_center_median() - centre - Vector((0, 0, 0.001))) < 0: n = -n; verts.reverse()
             c = [max(0, min(255, int(ch*k*255))) for ch in base]
@@ -180,14 +180,54 @@ for i in range(3):
     p.tri((x+0.28, 0.75, 1.0), (x-0.28, 0.75, 1.0), (x+0.1, 0.75, 1.45), ORANGE)
 p.box((0.2, 0.2, 0.6), (0.5, -0.3, 1.4), INK); p.export('workshop')
 
-p = Paper(); p.cone(0.62, 2.6, (0, 0, 0), LILAC, segs=6, top_r=0.5); p.cone(0.66, 0.9, (0, 0, 0.9), '#dccff2', segs=6, top_r=0.58)
+def face_windows(p, verts, rows, col, cols=2, margin=0.16, proud=0.03):
+    """Glaze every side face of a prism made by p.cone: `rows` are (bottom, top) fractions of its height."""
+    zs = sorted({round(v.co.z, 4) for v in verts}); z0, z1 = zs[0], zs[-1]
+    ring = lambda z: sorted([v.co.copy() for v in verts if abs(v.co.z - z) < 1e-3], key=lambda c: math.atan2(c.y, c.x))
+    bot, top = ring(z0), ring(z1); n = len(bot)
+    for i in range(n):
+        b0, b1, t0, t1 = bot[i], bot[(i+1) % n], top[i], top[(i+1) % n]
+        mid = (b0 + b1 + t0 + t1)/4; out = Vector((mid.x, mid.y, 0)).normalized()*proud
+        P = lambda u, f: tuple(b0.lerp(b1, u).lerp(t0.lerp(t1, u), f) + out)
+        for f0, f1 in rows:
+            for c in range(cols):
+                u0 = margin + (1 - 2*margin)*c/cols + 0.05; u1 = margin + (1 - 2*margin)*(c + 1)/cols - 0.05
+                p.quad(P(u0, f0), P(u1, f0), P(u1, f1), P(u0, f1), col)
+p = Paper(); shaft = p.cone(0.62, 2.6, (0, 0, 0), LILAC, segs=6, top_r=0.5); band = p.cone(0.66, 0.9, (0, 0, 0.9), '#dccff2', segs=6, top_r=0.58)
+face_windows(p, shaft, [(0.05, 0.13), (0.18, 0.26), (0.73, 0.8), (0.85, 0.93)], '#bfe3f2')   # below and above the band
+face_windows(p, band, [(0.16, 0.42), (0.58, 0.84)], '#9fd0e8', proud=0.035)                  # the band's own storeys
 p.cone(0.72, 0.16, (0, 0, 2.6), ORANGE, segs=6, top_r=0.72); p.cone(0.5, 0.55, (0, 0, 2.76), YELLOW, segs=6, top_r=0.0); p.export('tower')
 
 p = Paper(); p.faceted_wall(1.8, 0.9, 1.5, (0, 0, 0), PAPER, CREAM, cols=3); p.pagoda_roof(1.8, 1.5, 0.5, (0, 0, 0.9), RED, curl=0.14, overhang=0.3)
 p.faceted_wall(1.2, 0.5, 1.0, (0, 0, 1.4), PAPER, CREAM, cols=2); p.pagoda_roof(1.2, 1.0, 0.42, (0, 0, 1.9), ORANGE, curl=0.12, overhang=0.25); p.export('dojo')
 
-p = Paper(); p.faceted_wall(1.4, 1.1, 1.1, (0, 0, 0), INK, '#44444f', cols=3); p.box((1.0, 0.04, 0.6), (0, -0.57, 0.65), TEAL)
-p.pleated_roof(1.4, 1.1, 0.25, (0, 0, 1.1), YELLOW, pleats=3, alt=ORANGE); p.export('arcade')
+# Stade des projets perso: an oval bowl of stepped stands in four colours, a striped pitch, canopies over the long
+# sides, four floodlight masts and a scoreboard. About the footprint of the other buildings.
+p = Paper()
+AI, BI, AO, BO = 0.72, 0.46, 0.98, 0.72                                 # inner and outer half-axes of the bowl
+TIERS = [(0.0, 0.04), (0.34, 0.2), (0.67, 0.35), (1.0, 0.5)]            # (fraction from inner to outer, height)
+STAND = [(ORANGE, '#d9602b'), (YELLOW, '#e0b24a'), (TEAL, '#5aa9a0'), (CORAL, '#d06e4f')]
+E = lambda a, f, z: ((AI + (AO-AI)*f)*math.cos(a), (BI + (BO-BI)*f)*math.sin(a), z)
+N = 24
+for i in range(N):
+    a0, a1 = 2*math.pi*i/N, 2*math.pi*(i+1)/N; seat, riser = STAND[(i*4)//N]
+    for k in range(3):
+        (f0, z0), (f1, z1) = TIERS[k], TIERS[k+1]
+        p.quad(E(a0, f0, z0), E(a1, f0, z0), E(a1, f0, z1), E(a0, f0, z1), riser)     # riser
+        p.quad(E(a0, f0, z1), E(a1, f0, z1), E(a1, f1, z1), E(a0, f1, z1), seat)      # tread
+    p.quad(E(a0, 1, 0), E(a1, 1, 0), E(a1, 1, 0.5), E(a0, 1, 0.5), CREAM if i % 2 else PAPER)   # outer wall
+    if abs(math.sin((a0+a1)/2)) > 0.62:                                  # folded canopies over the long sides
+        p.quad(E(a0, 1, 0.5), E(a1, 1, 0.5), E(a1, 0.52, 0.66), E(a0, 0.52, 0.66), PAPER if i % 2 else '#e6e6e6')
+    p.tri((0, 0, 0.03), E(a0, 0, 0.03), E(a1, 0, 0.03), '#c8603f')      # running track under the pitch
+for s in range(6):                                                      # the pitch, mown in stripes
+    x0 = -0.55 + 1.1*s/6; x1 = -0.55 + 1.1*(s+1)/6
+    p.quad((x0, -0.31, 0.045), (x1, -0.31, 0.045), (x1, 0.31, 0.045), (x0, 0.31, 0.045), '#4caf50' if s % 2 else '#66c066')
+p.box((0.012, 0.62, 0.004), (0, 0, 0.049), PAPER)                       # halfway line
+for a in (math.pi/4, 3*math.pi/4, 5*math.pi/4, 7*math.pi/4):            # floodlights
+    x, y, _ = E(a, 1.06, 0)
+    p.box((0.04, 0.04, 1.05), (x, y, 0.525), INK); p.box((0.2, 0.06, 0.1), (x, y, 1.08), YELLOW, rot=a + math.pi/2)
+p.box((0.05, 0.38, 0.22), (0.93, 0, 0.62), INK); p.box((0.02, 0.32, 0.16), (0.9, 0, 0.62), TEAL)   # scoreboard
+p.export('arcade')
 
 
 # --- Signal box for SNCF Réseau: brick base, glazed upper floor, balcony and a signal mast.
@@ -196,7 +236,9 @@ p.faceted_wall(1.35, 0.7, 1.15, (0, 0, 1.0), '#e9f6ff', '#cfe7f5', cols=3)
 p.pleated_roof(1.45, 1.2, 0.3, (0, 0, 1.7), INK, pleats=3, alt='#44444f', overhang=0.16)
 p.box((1.6, 1.35, 0.05), (0, 0, 1.0), YELLOW)                       # balcony deck
 p.box((0.06, 0.06, 1.7), (0.95, 0.4, 0.85), INK)                    # signal mast
-for k, col in enumerate(['#2fbf6b', YELLOW, RED]): p.cone(0.09, 0.05, (0.95, 0.31, 1.35 + k*0.16), col, segs=8, top_r=0.09)
+p.box((0.22, 0.07, 0.6), (0.95, 0.4, 1.55), INK)                     # signal head
+for k, col in enumerate(['#6a3fb5', '#e8892b', '#2f9e5b']):          # violet, orange, green, dimmed until lit
+    for y in (0.36, 0.44): disc(p, (0.95, y, 1.37 + k*0.18), 0.065, col, segs=10)
 p.export('signal', jitter=0.008)
 # --- Nature ------------------------------------------------------------------
 p = Paper()
@@ -312,6 +354,16 @@ p.export('car', jitter=0.002)
 p = Paper(); p.cone(0.26, 1.3, (0, 0, 0), PAPER, segs=8, top_r=0.18)
 for i in range(3): p.cone(0.27 - i*0.03, 0.12, (0, 0, 0.22 + i*0.4), RED, segs=8, top_r=0.27 - i*0.03)
 p.cone(0.15, 0.25, (0, 0, 1.3), '#e9f6ff', segs=8, top_r=0.15); p.cone(0.18, 0.2, (0, 0, 1.55), RED, segs=8, top_r=0.0); p.export('lighthouse')
+p = Paper(); rng = random.Random('islet'); RINGS = [(0.62, -0.2), (0.56, 0.18), (0.44, 0.42), (0.3, 0.5)]
+pts = [[((r*(0.86 + 0.28*rng.random()))*math.cos(2*math.pi*i/9), (r*(0.86 + 0.28*rng.random()))*math.sin(2*math.pi*i/9), z + 0.05*rng.random()) for i in range(9)] for r, z in RINGS]
+for k in range(len(pts)-1):
+    for i in range(9):
+        a, b, c, d = pts[k][i], pts[k][(i+1) % 9], pts[k+1][(i+1) % 9], pts[k+1][i]
+        col = ROCK[(i + k) % len(ROCK)] if k < 2 else GREENS[(i + k) % len(GREENS)]
+        p.tri(a, b, c, col); p.tri(a, c, d, ROCK[(i + k + 1) % len(ROCK)] if k < 2 else GREENS[(i + k + 1) % len(GREENS)])
+top = pts[-1]; cz = sum(v[2] for v in top)/9
+for i in range(9): p.tri((0, 0, cz + 0.02), top[i], top[(i+1) % 9], GREENS[i % len(GREENS)])
+p.export('islet', jitter=0.01)
 
 # --- Island: folded hills, a sandy shore and a rock skirt ---------------------
 p = Paper(); bm = p.bm; segs, rings = 44, 7; R = 4.8
