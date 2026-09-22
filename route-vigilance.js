@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id),c=$('road-canvas'),out=c.getContext('2d'),buffer=document.createElement('canvas'),g=buffer.getContext('2d'),{RoadRun,center}=window.RoadModel;
-let audio=null,engine=null,brakeNoise=null,muted=false,w=800,h=720,last=0,model=null,paused=false,keys={},cameraY=0,crashAge=0,finished=false,baseline=null,trackSeed=1783;
+let audio=null,engine=null,muted=false,w=800,h=720,last=0,model=null,paused=false,keys={},cameraY=0,crashAge=0,finished=false,baseline=null,trackSeed=1783;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const settings=()=>({alcohol:+$('alcohol').value,drug:$('drug').value,level:+$('drug-level').value/100});
 // Widmark: grams of pure alcohol / (body mass × 0.68), a rough estimate — never a legal measurement.
@@ -15,9 +15,63 @@ for(const d of drinks)for(const b of d.querySelectorAll('button'))b.onclick=()=>
 $('weight')?.addEventListener('input',()=>{computeAlcohol();if(model?.running)model.settings=settings();});
 function controls(){$('drug-value').value=$('drug-level').value+' / 100';computeAlcohol();}
 ['drug','drug-level'].forEach(id=>{const e=$(id);if(e)e.oninput=controls;});controls();
-function initAudio(){if(audio||muted)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;audio=new C();const o=audio.createOscillator(),o2=audio.createOscillator(),gain=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o2.type='square';o2.detune.value=-1200;f.type='lowpass';f.frequency.value=420;gain.gain.value=0;o.connect(f);o2.connect(f);f.connect(gain).connect(audio.destination);o.start();o2.start();engine={o,o2,gain,f};const buf=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),a=buf.getChannelData(0);let brown=0;for(let i=0;i<a.length;i++){brown=(brown+(Math.random()*2-1)*.06)/1.03;a[i]=brown;}const src=audio.createBufferSource(),bf=audio.createBiquadFilter(),bg=audio.createGain(),sq=audio.createOscillator(),sqg=audio.createGain(),lfo=audio.createOscillator(),lfog=audio.createGain();src.buffer=buf;src.loop=true;bf.type='bandpass';bf.frequency.value=900;bf.Q.value=.8;bg.gain.value=0;src.connect(bf).connect(bg).connect(audio.destination);src.start();sq.type='sawtooth';sq.frequency.value=1700;lfo.frequency.value=23;lfog.gain.value=90;lfo.connect(lfog).connect(sq.frequency);sqg.gain.value=0;sq.connect(sqg).connect(audio.destination);sq.start();lfo.start();brakeNoise={bg,bf,sqg};}
-function engineSound(r){if(!engine||!brakeNoise||muted)return;const t=audio.currentTime,v=Math.min(1,r.speed/160),th=r.throttle||0,live=r.running&&!paused;engine.gain.gain.setTargetAtTime(live?.03+v*.06+th*.05:0,t,.08);engine.o.frequency.setTargetAtTime(36+v*140+th*28,t,.12);engine.o2.frequency.setTargetAtTime(36+v*140+th*20,t,.12);engine.f.frequency.setTargetAtTime(380+th*520+v*300,t,.1);const bf=r.brakeForce||0,roll=live?bf*Math.min(1,r.speed/50)*.22:0;brakeNoise.bg.gain.setTargetAtTime(roll,t,.05);brakeNoise.bf.frequency.setTargetAtTime(700+r.speed*14,t,.1);brakeNoise.sqg.gain.setTargetAtTime(live&&bf>.75&&r.speed>45?.035*Math.min(1,(r.speed-45)/40):0,t,.06);}
-function crashSound(){if(!audio||muted)return;const buf=audio.createBuffer(1,audio.sampleRate*.8,audio.sampleRate),a=buf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*Math.exp(-i/(audio.sampleRate*.14));const src=audio.createBufferSource(),g2=audio.createGain(),lf=audio.createBiquadFilter();lf.type='lowpass';lf.frequency.value=700;g2.gain.value=.9;src.buffer=buf;src.connect(lf).connect(g2).connect(audio.destination);src.start();}
+// --- Sound -----------------------------------------------------------------
+// A four-cylinder four-stroke fires twice per revolution, so what the ear hears is the rev counter, not the
+// speedometer: the note climbs inside each gear and drops on the shift. Everything else is filtered noise —
+// induction, tyres, gravel, brake pads, rubber — because that is what those things actually are.
+const GEARS=[36,60,90,124,160];
+function noiseBuffer(seconds,brown){const buf=audio.createBuffer(1,audio.sampleRate*seconds,audio.sampleRate),a=buf.getChannelData(0);let b=0;
+ for(let i=0;i<a.length;i++){const w=Math.random()*2-1;if(brown){b=(b+w*.045)/1.02;a[i]=b*3.2;}else a[i]=w;}return buf;}
+function noiseChain(buf,type,freq,Q,dest){const src=audio.createBufferSource(),f=audio.createBiquadFilter(),g=audio.createGain();
+ src.buffer=buf;src.loop=true;f.type=type;f.frequency.value=freq;f.Q.value=Q;g.gain.value=0;src.connect(f).connect(g).connect(dest);src.start();return {f,g};}
+function initAudio(){if(audio||muted)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;audio=new C();
+ const master=audio.createGain();master.gain.value=.85;master.connect(audio.destination);
+ // The firing pulse: a harmonic series weighted so the low orders dominate and the upper ones rasp.
+ const N=28,re=new Float32Array(N),im=new Float32Array(N);
+ for(let n=1;n<N;n++){const w=1/Math.pow(n,.92);re[n]=w*Math.cos(n*1.9)*(n%2?1:.55);im[n]=w*Math.sin(n*.7);}
+ const wave=audio.createPeriodicWave(re,im),osc=audio.createOscillator();osc.setPeriodicWave(wave);
+ const sub=audio.createOscillator();sub.type='triangle';
+ const oscG=audio.createGain(),subG=audio.createGain(),body=audio.createBiquadFilter();
+ oscG.gain.value=0;subG.gain.value=0;body.type='lowpass';body.frequency.value=600;body.Q.value=4.5;
+ osc.connect(oscG).connect(body).connect(master);sub.connect(subG).connect(body);osc.start();sub.start();
+ const white=noiseBuffer(2,false),brown=noiseBuffer(2,true);
+ const ind=noiseChain(brown,'bandpass',400,1.1,master),  // induction roar, opens with the throttle
+  road=noiseChain(brown,'lowpass',500,.7,master),        // tyres and wind: the sense of speed
+  grav=noiseChain(white,'bandpass',260,.6,master),       // the verge under the wheels
+  brk=noiseChain(white,'bandpass',1600,1.4,master),      // pad against disc
+  squeal=noiseChain(white,'bandpass',1100,24,master);    // rubber letting go
+ engine={osc,sub,oscG,subG,body,ind,road,grav,brk,squeal,master,gear:0,shift:-9};}
+function engineSound(r){if(!engine||muted)return;const t=audio.currentTime,live=r.running&&!paused;
+ const sp=Math.max(0,r.speed||0),th=r.throttle||0,bf=r.brakeForce||0;
+ let g=0;while(g<GEARS.length-1&&sp>GEARS[g])g++;
+ const lo=g?GEARS[g-1]:0,frac=Math.min(1.1,(sp-lo)/Math.max(1,GEARS[g]-lo)),rpm=820+frac*5500+th*420,f=rpm/30;
+ if(g!==engine.gear){engine.gear=g;engine.shift=t;}
+ const shifting=t-engine.shift<.16,load=Math.min(1,th*.85+frac*.25);
+ engine.osc.frequency.setTargetAtTime(f,t,.04);engine.sub.frequency.setTargetAtTime(f/2,t,.04);
+ engine.oscG.gain.setTargetAtTime(live?(shifting?.018:.045+load*.105):0,t,.04);
+ engine.subG.gain.setTargetAtTime(live?(.03+(1-frac)*.035)*(shifting?.35:1):0,t,.05);
+ engine.body.frequency.setTargetAtTime(300+load*1450+f*3.2,t,.05);
+ engine.ind.f.frequency.setTargetAtTime(230+f*6,t,.05);
+ engine.ind.g.gain.setTargetAtTime(live?(shifting?.008:.015+th*.07):0,t,.04);
+ engine.road.g.gain.setTargetAtTime(live?Math.min(.12,sp*sp*.0000082):0,t,.1);
+ engine.road.f.frequency.setTargetAtTime(280+sp*11,t,.12);
+ engine.grav.g.gain.setTargetAtTime(live&&r.offroadNow?Math.min(.19,.03+sp*.0021):0,t,.05);
+ engine.brk.g.gain.setTargetAtTime(live?bf*Math.min(1,sp/45)*.09:0,t,.03);
+ engine.brk.f.frequency.setTargetAtTime(1450+sp*9,t,.08);
+ const bite=live&&bf>.6&&sp>36?Math.min(1,(bf-.6)/.28)*Math.min(1,(sp-36)/45):0;
+ engine.squeal.g.gain.setTargetAtTime(bite*.13,t,.04);
+ engine.squeal.f.frequency.setTargetAtTime(1020+bite*280+Math.sin(t*9)*60,t,.04);}
+function crashSound(){if(!audio||muted)return;const t=audio.currentTime,out=engine?engine.master:audio.destination;
+ if(engine){engine.oscG.gain.setTargetAtTime(0,t,.05);engine.road.g.gain.setTargetAtTime(0,t,.08);engine.squeal.g.gain.setTargetAtTime(0,t,.03);}
+ const thud=audio.createOscillator(),tg=audio.createGain();thud.type='sine';           // the body hitting
+ thud.frequency.setValueAtTime(90,t);thud.frequency.exponentialRampToValueAtTime(32,t+.35);
+ tg.gain.setValueAtTime(.9,t);tg.gain.exponentialRampToValueAtTime(.001,t+.45);thud.connect(tg).connect(out);thud.start(t);thud.stop(t+.5);
+ const crunch=audio.createBufferSource(),cf=audio.createBiquadFilter(),cg=audio.createGain();  // folding metal
+ crunch.buffer=noiseBuffer(.7,false);cf.type='bandpass';cf.frequency.setValueAtTime(900,t);cf.frequency.exponentialRampToValueAtTime(260,t+.5);cf.Q.value=.8;
+ cg.gain.setValueAtTime(.75,t);cg.gain.exponentialRampToValueAtTime(.001,t+.55);crunch.connect(cf).connect(cg).connect(out);crunch.start(t);
+ for(let i=0;i<5;i++){const s2=audio.createBufferSource(),hf=audio.createBiquadFilter(),hg=audio.createGain(),at=t+.03+i*.055+Math.random()*.05;
+  s2.buffer=noiseBuffer(.12,false);hf.type='highpass';hf.frequency.value=2600+Math.random()*2200;   // glass
+  hg.gain.setValueAtTime(.22,at);hg.gain.exponentialRampToValueAtTime(.001,at+.16);s2.connect(hf).connect(hg).connect(out);s2.start(at);}}
 function begin(){initAudio();model=new RoadRun(trackSeed,settings());c.model=model;paused=false;keys={};finished=false;crashAge=0;cameraY=h*.74;$('road-start').textContent='Mettre en pause';$('road-results').replaceChildren();$('road-status').textContent=model.message;c.focus();}
 function finish(){finished=true;const r=model;keys={};if(!r.settings.alcohol&&r.settings.drug==='none')baseline={distance:r.distance,collisions:r.collisions};$('road-results').textContent=`${r.crashed?'Accident — fin du trajet.':'Trajet terminé.'} ${Math.round(r.distance)} m · ${r.violations} infraction(s) · ${Math.round(r.offroad)} s hors chaussée.`+(baseline&&r.settings.alcohol?` Référence sans substance : ${baseline.collisions} accident(s), ${Math.round(baseline.distance)} m.`:'');$('road-start').textContent='Recommencer';}
 $('road-start').onclick=()=>{if(!model||!model.running)begin();else{paused=!paused;keys={};$('road-start').textContent=paused?'Reprendre':'Mettre en pause';}};
@@ -125,5 +179,5 @@ function present(r){const alcohol=Number(r.settings?.alcohol)||0,drug=r.settings
  out.globalAlpha=Math.min(.55,alcohol*.32+drug*.3);out.drawImage(buffer,dx,dy,w,h);
  out.filter='none';out.globalAlpha=1;
  if(alcohol>.2||drug>.2){const v=out.createRadialGradient(w/2,h/2,Math.min(w,h)*.3,w/2,h/2,Math.max(w,h)*.62);v.addColorStop(0,'rgba(20,10,0,0)');v.addColorStop(1,`rgba(20,10,0,${Math.min(.5,alcohol*.22+drug*.25).toFixed(2)})`);out.fillStyle=v;out.fillRect(0,0,w,h);}}
-function frame(t){const dt=Math.min(.04,(t-last)/1000||.016);last=t;if(model?.running&&!paused){model.step(dt,{...keys,gas:keys.gas||keys.up});if(!model.running&&!finished)finish();}if(model?.crashed){if(crashAge===0){crashSound();if(engine&&!muted){engine.gain.gain.setTargetAtTime(0,audio.currentTime,.3);brakeNoise.bg.gain.setTargetAtTime(0,audio.currentTime,.1);brakeNoise.sqg.gain.setTargetAtTime(0,audio.currentTime,.1);}}crashAge+=dt;}if(model)engineSound(model);render(dt);present(model||{settings:{}});requestAnimationFrame(frame);}c.redraw=()=>{render(.016);present(model||{settings:{}});};requestAnimationFrame(frame);
+function frame(t){const dt=Math.min(.04,(t-last)/1000||.016);last=t;if(model?.running&&!paused){model.step(dt,{...keys,gas:keys.gas||keys.up});if(!model.running&&!finished)finish();}if(model?.crashed){if(crashAge===0)crashSound();/* crashSound() silences the engine and the tyres itself */crashAge+=dt;}if(model)engineSound(model);render(dt);present(model||{settings:{}});requestAnimationFrame(frame);}c.redraw=()=>{render(.016);present(model||{settings:{}});};requestAnimationFrame(frame);
 })();

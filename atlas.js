@@ -6,7 +6,7 @@ const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.95,
 const canvas=document.getElementById('world-canvas'),host=canvas.parentElement,card=document.getElementById('world-card'),eggsHud=document.getElementById('world-eggs'),hint=document.getElementById('world-hint');
 const INK='#1e1e1e',PAPER='#fefefe',ORANGE='#ff8a3d',GRASS='#cfe9c2',ROCK='#d9d3c7',WATER='#cfe6ee';
 const paperMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,metalness:0,flatShading:true,side:THREE.DoubleSide});
-const models=await fetch('atlas-models.json?v=20260922-2').then(r=>r.json());
+const models=await fetch('atlas-models.json?v=20260922-9').then(r=>r.json());
 // Folded-paper meshes: one colour per facet (baked in Blender), flat shading and faint crease lines.
 function origami(name,scale=1,creases=true){const m=models[name],geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(m.position,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(m.normal,3));const col=new Float32Array(m.position.length),lin=c=>{c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);};for(let i=0;i<m.color.length;i+=3)for(let k=0;k<3;k++){col[i*3+k*3]=lin(m.color[i]);col[i*3+k*3+1]=lin(m.color[i+1]);col[i*3+k*3+2]=lin(m.color[i+2]);}geo.setAttribute('color',new THREE.BufferAttribute(col,3));
  const mesh=new THREE.Mesh(geo,paperMat);mesh.castShadow=mesh.receiveShadow=true;mesh.scale.setScalar(scale);
@@ -18,9 +18,10 @@ const steps=[
  {id:'studio',name:'Studio d’extracteurs PDF',role:'Projet · extraction CERFA, VRE et rapports',text:'Les PDF sont lus, structurés et contrôlés : les écarts apparaissent sans relire page par page.',pos:[3.4,0,1.4],kind:'workshop'},
  {id:'bi',name:'Portail Power BI',role:'Projet · tableaux de bord de coactivité',text:'Rapports déployés pour l’équipe au printemps 2026, puis industrialisés avec Power Automate.',pos:[-0.2,0,2.9],kind:'tower'},
  {id:'lean',name:'Dojo Lean Six Sigma',role:'Yellow Belt · ISO 9001 / 45001 / 14001 / 27001',text:'Analyse des causes, amélioration continue et référentiels qualité, sécurité, environnement et sécurité de l’information.',pos:[-3.4,0,1.8],kind:'dojo'},
- {id:'perso',name:'Arcade des projets perso',role:'Timber !, Route & vigilance, Labyrinthe, Rubik, Sandboard',text:'Le terrain de jeu Three.js et Canvas du site.',pos:[0.4,0,-0.3],kind:'arcade',link:'projets-perso.html'},
+ {id:'perso',name:'Arcade des projets perso',role:'Timber !, Route & vigilance, Labyrinthe, Rubik, Sandboard',text:'Le terrain de jeu Three.js et Canvas du site.',pos:[0,0,0],kind:'arcade',link:'projets-perso.html'},
 ];
 const SPREAD=1.24;// how far the buildings sit from the centre
+const footprint=kind=>{const g=models[kind].position;let hx=0,hz=0;for(let i=0;i<g.length;i+=3){hx=Math.max(hx,Math.abs(g[i]));hz=Math.max(hz,Math.abs(g[i+2]));}return Math.hypot(hx,hz);};
 const eggs=new Map();let found=0,night=false,paused=false,dragging=null,spin=0,spinVel=.0018,pitch=.62,zoom=28,audio=null,muted=false,pinch=null;
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();scene.background=new THREE.Color(PAPER);const camera=new THREE.PerspectiveCamera(30,1,.1,100);
@@ -52,12 +53,12 @@ function ribbon(curve,halfWidth,lift,color,segments=320,across=4,closed=true){co
  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setIndex(idx);geo.computeVertexNormals();
  const m=new THREE.Mesh(geo,mat(color,{polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.receiveShadow=true;return m;}
 // A ring road inside the buildings, plus a short driveway from the ring to each doorstep: it links them, never crosses them.
-const ringRadius=3.05;
+const ringRadius=1.72;
 const loop=groundCurve(Array.from({length:40},(_,i)=>{const a=i/40*Math.PI*2;return new THREE.Vector3(Math.cos(a)*ringRadius,0,Math.sin(a)*ringRadius);}),.12,320);
 const road=ribbon(loop,.24,.09,'#e9c98d',420,4,true);world.add(road);
 for(const step of steps){const x=step.pos[0]*SPREAD,z=step.pos[2]*SPREAD,r=Math.hypot(x,z),a=Math.atan2(z,x);
- const stopR=r>ringRadius?Math.max(ringRadius+.25,r-1.15):Math.min(ringRadius-.25,r+1.0);
- if(Math.abs(stopR-ringRadius)<.3)continue;
+ if(r<ringRadius+.5)continue;// the arcade sits inside the ring
+ const stopR=Math.max(ringRadius+.35,r-footprint(step.kind)-.18);// stop at the doorstep, never under the walls
  const from=new THREE.Vector3(Math.cos(a)*ringRadius,0,Math.sin(a)*ringRadius),to=new THREE.Vector3(Math.cos(a)*stopR,0,Math.sin(a)*stopR);
  const spur=new THREE.CatmullRomCurve3([from,from.clone().lerp(to,.5),to],false,'catmullrom',.5);
  world.add(ribbon(spur,.19,.09,'#e9c98d',48,3,false));}
@@ -90,8 +91,7 @@ const rail=(()=>{const N=72,ang=Array.from({length:N},(_,i)=>i/N*Math.PI*2);
  const blur=(v,w,it)=>{for(let k=0;k<it;k++){const o=v.slice();v=o.map((_,i)=>{let t=0;for(let j=-w;j<=w;j++)t+=o[(i+j+N*2)%N];return t/(w*2+1);});}return v;};
  const coast=blur(ang.map(a=>shoreRadius(a)),5,3);
  // Each building keeps a no-go disc the size of its own footprint plus the ballast.
- const keep=steps.map(st=>{const g=models[st.kind].position;let hx=0,hz=0;for(let i=0;i<g.length;i+=3){hx=Math.max(hx,Math.abs(g[i]));hz=Math.max(hz,Math.abs(g[i+2]));}
-  return {x:st.pos[0]*SPREAD,z:st.pos[2]*SPREAD,r:Math.hypot(hx,hz)+.45};});
+ const keep=steps.map(st=>({x:st.pos[0]*SPREAD,z:st.pos[2]*SPREAD,r:footprint(st.kind)+.45}));
  let rad=coast.map(r=>r-.9);
  for(let pass=0;pass<6;pass++){for(let i=0;i<N;i++){const cx=Math.cos(ang[i]),cz=Math.sin(ang[i]);
    for(const k of keep){const t=k.x*cx+k.z*cz,d=Math.abs(k.x*cz-k.z*cx);if(d<k.r)rad[i]=Math.max(rad[i],t+Math.sqrt(k.r*k.r-d*d));}
