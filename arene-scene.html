@@ -12,7 +12,7 @@
 h1{margin:0;font-size:44px;color:var(--gold);text-shadow:2px 2px 0 #5c1433;letter-spacing:1px}h1 small{display:block;font-size:20px;color:#bdb3d4;text-shadow:none}
 h2{margin:4px 0;font-size:22px;color:#bdb3d4;font-weight:normal;text-transform:uppercase}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.picks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.picks.arenas{grid-template-columns:repeat(3,1fr)}
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.picks.arenas{grid-template-columns:repeat(3,1fr)}
 .pick{display:grid;justify-items:center;gap:2px;padding:6px;background:var(--panel);color:var(--ink);border:2px solid var(--line);font:inherit;cursor:pointer;box-shadow:3px 3px 0 #000}
 .pick.on{border-color:var(--gold);background:#231a30}.pick:hover{border-color:#8a7fb0}.pick b{display:block;font-weight:normal;font-size:20px}.pick small{display:block;color:#9a90b3;font-size:16px}
 .pick-art{width:80px;height:88px;image-rendering:pixelated}
@@ -31,15 +31,15 @@ kbd{display:inline-block;min-width:22px;text-align:center;background:#2a2233;bor
 <body><div class="stage"><canvas id="arena-canvas" tabindex="0" aria-label="Arène de combat en pixel art. Joueur 1 : Q D pour marcher, Z pour sauter, S pour se garder, F attaque, G et H compétences, R ultime. Échap : pause."></canvas><canvas id="arena-hud" aria-hidden="true"></canvas>
 <div class="pad" aria-hidden="true"><div><button data-pad="left">◀</button><button data-pad="up">▲</button><button data-pad="down">▼</button><button data-pad="right">▶</button></div><div><button data-pad="atk">A</button><button data-pad="s1">1</button><button data-pad="s2">2</button><button data-pad="ult">★</button></div></div>
 <div class="overlay" id="arena-menu"><div class="menu">
- <h1>Arène des arcanes<small>Mages, prêtresse, chevalier et nécromancienne s’affrontent en pixel art</small></h1>
+ <h1>Arène des arcanes<small>Mages, prêtresse, chevalier, nécromancienne et ninja s’affrontent en pixel art</small></h1>
  <div class="row"><div><h2>Joueur 1 (Q D · Z · S · F G H R)</h2><div class="picks" id="pick-1"></div></div><div><h2 id="p2-label">Adversaire (IA)</h2><div class="picks" id="pick-2"></div></div></div>
  <div><h2>Arène</h2><div class="picks arenas" id="pick-arena"></div></div>
  <div id="skills-info"></div>
  <div class="opts"><label>Mode<select id="mode"><option value="1p">1 joueur contre l’IA</option><option value="2p">2 joueurs sur un clavier</option><option value="train">Entraînement (mannequin)</option></select></label>
   <label>Difficulté<select id="diff"><option value="0">Apprenti</option><option value="1" selected>Adepte</option><option value="2">Archimage</option></select></label>
   <button class="act" id="sound" type="button">Son : oui</button><button class="act main" id="fight" type="button">Combattre !</button></div>
- <p class="help">Z : sauter · S : se garder (réduit les dégâts de 80 %) · attaques enchaînées en trois coups · la mana se recharge seule · la jauge dorée se remplit en donnant et en recevant des coups, puis débloque l’ultime. Échap : pause (M : retour au menu). En 1 joueur, les flèches et Espace marchent aussi. Entraînement : un mannequin increvable, dégâts cumulés, DPS et meilleur combo (T pour remettre à zéro), mana et recharges accélérées.</p>
+ <p class="help">Z : sauter · S : se garder (réduit les dégâts de 80 %) · attaques enchaînées en trois coups · la mana se recharge seule · la jauge dorée se remplit en donnant et en recevant des coups, puis débloque l’ultime. Échap : pause · M : retour au menu à tout moment. En 1 joueur, les flèches et Espace marchent aussi. Entraînement : un mannequin increvable, dégâts cumulés, DPS et meilleur combo (T pour remettre à zéro), mana et recharges accélérées.</p>
 </div></div>
 <div class="overlay end" id="arena-end" hidden><div><h2 id="end-title"></h2><p id="end-stats"></p><p><button class="act main" id="again" type="button">Revanche</button> <button class="act" id="to-menu" type="button">Changer de combattants</button></p></div></div>
 </div>
-<script src="arene.js?v=20260924-2" defer></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
+<script src="arene.js?v=20260924-3" defer></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
