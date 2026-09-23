@@ -3,6 +3,11 @@
    Rendu : scène en HDR dans une cible hors écran, puis une passe finale qui ajoute l’absorption de l’eau,
    des rayons de lumière volumétriques, un halo lumineux, un vignettage et le mappage des tons. */
 import * as THREE from './three.module.js';
+import {GLTFLoader} from './GLTFLoader.js';
+// Diver (rig and four actions) and seabed props, modelled in Blender: tools/blender-diver.py, tools/blender-reef.py.
+const gltf=new GLTFLoader();
+const [DIVER_GLB,REEF_GLB]=await Promise.all([gltf.loadAsync('assets/diver.glb?v=20260924-4'),gltf.loadAsync('assets/reef.glb?v=20260924-4')]);
+const reefMesh=n=>REEF_GLB.scene.getObjectByName(n);
 const $=id=>document.getElementById(id);
 const host=$('abyss-stage'),canvas=$('abyss-canvas');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -12,8 +17,8 @@ const scene=new THREE.Scene();scene.background=null;
 const camera=new THREE.PerspectiveCamera(58,1,.1,400);
 const SURF=24,EDGE=74;
 const SUN=new THREE.Vector3(.32,1,.18).normalize();
-scene.add(new THREE.HemisphereLight(0x7fd6ee,0x2a3a34,1.1));
-const sun=new THREE.DirectionalLight(0xe6fbff,2.2);sun.position.copy(SUN).multiplyScalar(40);scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xa6d4dc,0x4a4032,.95));
+const sun=new THREE.DirectionalLight(0xfff2dc,2.4);sun.position.copy(SUN).multiplyScalar(40);scene.add(sun);
 const uni={uTime:{value:0},uDiver:{value:new THREE.Vector3()},uSun:{value:SUN}};
 const LIN=`vec3 lin(vec3 c){return pow(max(c,0.0),vec3(2.2));}`;
 
@@ -76,34 +81,30 @@ const rocks=[];
 function smoothNormals(g){const p=g.attributes.position,n=g.attributes.normal,acc=new Map(),key=i=>`${p.getX(i).toFixed(3)},${p.getY(i).toFixed(3)},${p.getZ(i).toFixed(3)}`;
  for(let i=0;i<p.count;i++){const k=key(i),a=acc.get(k)||[0,0,0];a[0]+=n.getX(i);a[1]+=n.getY(i);a[2]+=n.getZ(i);acc.set(k,a);}
  for(let i=0;i<p.count;i++){const a=acc.get(key(i)),l=Math.hypot(a[0],a[1],a[2])||1;n.setXYZ(i,a[0]/l,a[1]/l,a[2]/l);}}
-function rock(x,z,s,flat=.7,seed=Math.random()*9){const g=new THREE.IcosahedronGeometry(1,s>6?5:s>2?4:3),p=g.attributes.position,c=[];
- for(let i=0;i<p.count;i++){const X0=p.getX(i),Y0=p.getY(i),Z0=p.getZ(i),k=1+noise3(X0,Y0,Z0,seed)*.35;p.setXYZ(i,X0*k,Y0*k*flat,Z0*k);}
- g.computeVertexNormals();smoothNormals(g);const n=g.attributes.normal;for(let i=0;i<p.count;i++){const up=n.getY(i),t=Math.sin(p.getX(i)*7+seed)*.5+.5,moss=THREE.MathUtils.smoothstep(up,.45,.9);
-  const base=[.3+t*.06,.32+t*.05,.31+t*.04];c.push(base[0]*(1-moss)+.2*moss,base[1]*(1-moss)+.3*moss,base[2]*(1-moss)+.17*moss);
-  if(Math.random()<.04){c[c.length-3]=.45;c[c.length-2]=.22;c[c.length-1]=.4;}}
- g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));bake(g,rockMat,at(x,ground(x,z)+s*.15*flat,z,0,seed,0,s));rocks.push({x,z,s,top:ground(x,z)+s*flat*.9});}
+const rockPlace=[];
+function rock(x,z,s,flat=.7,kind){rockPlace.push({x,z,s,flat,k:kind||'rock'+Math.floor(Math.random()*5),ry:Math.random()*6.28});rocks.push({x,z,s,top:ground(x,z)+s*flat*.8,r:s*.9});}
 for(let i=0;i<70;i++){const x=Math.random()*140-70,z=Math.random()*140-70;if(Math.hypot(x,z-8)>6)rock(x,z,.4+Math.random()*1.8);}
 for(let i=0;i<14;i++){const a=Math.random()*Math.PI*2,r=10+Math.random()*50,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x-2,z-10)>9&&Math.hypot(x+4,z+22)>9)rock(x,z,2.5+Math.random()*2.5,.8);}
 // cliffs closing the horizon, like the walls of a submerged valley
-for(let i=0;i<22;i++){const a=i/22*Math.PI*2+Math.random()*.2,r=66+Math.random()*16;rock(Math.cos(a)*r,Math.sin(a)*r,9+Math.random()*9,1.4+Math.random()*.8);}
-// Red sea fans: a branching fan painted once on a canvas, planted on rocks and sand.
-const fanTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const k=c.getContext('2d');k.lineCap='round';
- const br=(x,y,a,len,w,d)=>{const x2=x+Math.cos(a)*len,y2=y+Math.sin(a)*len;k.strokeStyle=d>4?'#8e1630':d>2?'#c0243e':'#e04a5c';k.lineWidth=w;k.beginPath();k.moveTo(x,y);k.lineTo(x2,y2);k.stroke();
-  if(d>0){br(x2,y2,a-.28-Math.random()*.25,len*.8,w*.72,d-1);br(x2,y2,a+.28+Math.random()*.25,len*.8,w*.72,d-1);if(Math.random()<.4)br(x2,y2,a+(Math.random()-.5)*.3,len*.7,w*.6,d-2);}};
- br(128,256,-Math.PI/2,52,7,7);return new THREE.CanvasTexture(c);})();
-fanTex.colorSpace=THREE.SRGBColorSpace;
-const fanMat=new THREE.MeshStandardMaterial({map:fanTex,alphaTest:.45,side:THREE.DoubleSide,roughness:.9,emissive:0x300810,emissiveIntensity:.4});
-fanMat.onBeforeCompile=sh=>{sh.uniforms.uTime=uni.uTime;sh.vertexShader='uniform float uTime;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>\nvec4 wp=modelMatrix*vec4(transformed,1.0);transformed.z+=sin(uTime*1.2+wp.x*.5+wp.z*.3)*.12*uv.y*uv.y;`);};
-{const fanGeo=new THREE.PlaneGeometry(1,1);fanGeo.translate(0,.5,0);const fans=new THREE.InstancedMesh(fanGeo,fanMat,60),m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),s=new THREE.Vector3(),v=new THREE.Vector3();let n=0;
- for(const r of rocks){if(r.s>6||n>=60)continue;const k=r.s>2?3:1;for(let j=0;j<k&&n<60;j++){const a=Math.random()*6.28,d=r.s*(.2+Math.random()*.4);v.set(r.x+Math.cos(a)*d,r.top-r.s*.25,r.z+Math.sin(a)*d);e.set((Math.random()-.5)*.3,Math.random()*6.28,(Math.random()-.5)*.3);q.setFromEuler(e);const sz=.9+Math.random()*1.5;s.set(sz,sz*(.9+Math.random()*.3),1);m.compose(v,q,s);fans.setMatrixAt(n++,m);}}
- fans.count=n;scene.add(fans);}
+for(let i=0;i<22;i++){const a=i/22*Math.PI*2+Math.random()*.2,r=66+Math.random()*16;rock(Math.cos(a)*r,Math.sin(a)*r,9+Math.random()*9,1.1+Math.random()*.5,'cliff'+(i%2));}
+// one InstancedMesh per Blender variant; rocks are sunk a little into the sand
+const _m4=new THREE.Matrix4(),_q4=new THREE.Quaternion(),_e4=new THREE.Euler(),_s4=new THREE.Vector3(),_v4=new THREE.Vector3();
+function instance(name,list,fn){const src=reefMesh(name);if(!src||!list.length)return null;const im=new THREE.InstancedMesh(src.geometry,src.material,list.length);list.forEach((o,i)=>{fn(o,_v4,_e4,_s4);_q4.setFromEuler(_e4);_m4.compose(_v4,_q4,_s4);im.setMatrixAt(i,_m4);});im.computeBoundingSphere();scene.add(im);return im;}
+{const groups={};for(const r of rockPlace)(groups[r.k]??=[]).push(r);for(const k in groups)instance(k,groups[k],(r,v,e,sc)=>{v.set(r.x,ground(r.x,r.z)+r.s*.08,r.z);e.set(0,r.ry,0);sc.set(r.s,r.s*r.flat/.75,r.s);});
+ REEF_GLB.scene.traverse(o=>{if(o.isMesh&&o.material){o.material.envMapIntensity=.35;o.material.roughness=Math.max(o.material.roughness,.8);}});}
+// Sea fans on the rocks, brain corals and tube sponges on the sand (Blender meshes, instanced).
+{const fans=[[],[],[]];for(const r of rocks){if(r.s>6)continue;const k=r.s>2?3:r.s>1?2:1;for(let j=0;j<k;j++){const a=Math.random()*6.28,d=r.s*(.25+Math.random()*.35);fans[Math.floor(Math.random()*3)].push({x:r.x+Math.cos(a)*d,y:r.top-r.s*.3,z:r.z+Math.sin(a)*d,ry:Math.random()*6.28,s:.7+Math.random()*1.1});}}
+ const fanMat=reefMesh('fan0').material;fanMat.side=THREE.DoubleSide;fanMat.onBeforeCompile=sh=>{sh.uniforms.uTime=uni.uTime;sh.vertexShader='uniform float uTime;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>\nvec4 ip=instanceMatrix*vec4(0.0,0.0,0.0,1.0);transformed.z+=sin(uTime*1.1+ip.x*.4+ip.z*.3)*.09*position.y*position.y;`);};
+ for(let k=0;k<3;k++){reefMesh('fan'+k).material=fanMat;instance('fan'+k,fans[k],(o,v,e,sc)=>{v.set(o.x,o.y,o.z);e.set((Math.random()-.5)*.25,o.ry,(Math.random()-.5)*.25);sc.setScalar(o.s);});}
+ const lumps=[[],[],[]];for(let i=0;i<70;i++){const a=Math.random()*6.28,r=6+Math.random()*58,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x-2,z-10)<5)continue;lumps[i%3].push({x,z,s:.25+Math.random()*.45,ry:Math.random()*6.28});}
+ ['brain0','brain1','tubes0'].forEach((n,k)=>instance(n,lumps[k],(o,v,e,sc)=>{v.set(o.x,ground(o.x,o.z)-.04,o.z);e.set(0,o.ry,0);sc.setScalar(o.s*(k===2?1.2:1));}));}
 const coralCols=[0xff7a59,0xf2668b,0xb07cff,0xffc15e,0x5fd4c4];
 const coralMats=coralCols.map(col=>new THREE.MeshStandardMaterial({color:col,roughness:.8,emissive:col,emissiveIntensity:.05}));
 function coral(x,z){const mat=coralMats[Math.floor(Math.random()*coralMats.length)],base=at(x,ground(x,z)-.05,z,0,Math.random()*6,0,.8+Math.random()*1.2),q=new THREE.Quaternion(),m=new THREE.Matrix4();
  const branch=(o,dir,len,r,depth)=>{q.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);m.compose(o.clone().addScaledVector(dir,len/2),q,new THREE.Vector3(1,1,1));bake(new THREE.CylinderGeometry(r*.7,r,len,6),mat,base.clone().multiply(m));
   const end=o.clone().addScaledVector(dir,len);if(depth>0)for(let k=0;k<2;k++){const nd=dir.clone().add(new THREE.Vector3(Math.random()-.5,.3,Math.random()-.5).multiplyScalar(1.1)).normalize();branch(end,nd,len*.75,r*.7,depth-1);}else{m.makeTranslation(end.x,end.y,end.z);bake(new THREE.SphereGeometry(r*1.1,6,5),mat,base.clone().multiply(m));}};
  for(let k=0;k<3;k++)branch(new THREE.Vector3(),new THREE.Vector3(Math.random()-.5,1,Math.random()-.5).normalize(),.5+Math.random()*.4,.07,2);}
-for(let i=0;i<46;i++){const a=Math.random()*Math.PI*2,r=8+Math.random()*60;coral(Math.cos(a)*r,Math.sin(a)*r);}
+for(let i=0;i<24;i++){const a=Math.random()*Math.PI*2,r=8+Math.random()*60;coral(Math.cos(a)*r,Math.sin(a)*r);}
 const spongeMat=new THREE.MeshStandardMaterial({color:0xd99a3e,roughness:1,side:THREE.DoubleSide});
 for(let i=0;i<30;i++){const x=Math.random()*130-65,z=Math.random()*130-65;bake(new THREE.CylinderGeometry(.25,.18,.6,9,1,true),spongeMat,at(x,ground(x,z)+.25,z));}
 const terracotta=new THREE.MeshStandardMaterial({color:0xa85a36,roughness:.85});
@@ -168,44 +169,16 @@ function updateFish(t,diver){for(const s of fishSchools){for(let i=0;i<s.n;i++){
  fish.instanceMatrix.needsUpdate=true;}
 
 // --- Le scaphandrier ------------------------------------------------------------------------
-// Canvas texture for the canvas suit: woven noise, seams and a few darker wear patches.
-const suitTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const k=c.getContext('2d');k.fillStyle='#dca445';k.fillRect(0,0,256,256);
- for(let i=0;i<9000;i++){const v=Math.random();k.fillStyle=v<.5?'rgba(90,60,20,.10)':'rgba(255,230,160,.08)';k.fillRect(Math.random()*256,Math.random()*256,2,1);}
- for(let i=0;i<14;i++){const g=k.createRadialGradient(Math.random()*256,Math.random()*256,0,128,128,90);g.addColorStop(0,'rgba(80,50,15,.18)');g.addColorStop(1,'rgba(80,50,15,0)');k.fillStyle=g;k.fillRect(0,0,256,256);}
- k.strokeStyle='rgba(70,45,15,.55)';k.lineWidth=2;for(const x of [64,192]){k.setLineDash([5,4]);k.beginPath();k.moveTo(x,0);k.lineTo(x,256);k.stroke();}
- const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);return t;})();
-const copper=new THREE.MeshStandardMaterial({color:0xb86a3a,metalness:1,roughness:.3}),brass=new THREE.MeshStandardMaterial({color:0xd6a453,metalness:1,roughness:.26});
-const suitM=new THREE.MeshStandardMaterial({color:0xffc890,map:suitTex,roughness:.95}),glass=new THREE.MeshStandardMaterial({color:0x0b1a20,metalness:.1,roughness:.04,envMapIntensity:2});
-const darkM=new THREE.MeshStandardMaterial({color:0x2a211a,roughness:.8}),leather=new THREE.MeshStandardMaterial({color:0x5a3620,roughness:.75}),leadM=new THREE.MeshStandardMaterial({color:0x4a4e54,metalness:.4,roughness:.6}),rubber=new THREE.MeshStandardMaterial({color:0x1e1a17,roughness:.6});
+// Materials used by the props and treasures below.
+const brass=new THREE.MeshStandardMaterial({color:0xd6a453,metalness:1,roughness:.26});
+const darkM=new THREE.MeshStandardMaterial({color:0x2a211a,roughness:.8});
+// The diver: one skinned mesh, an AnimationMixer blending idle, walk, bound and brush.
 const diver=new THREE.Group(),rig={};
-const lathe=(pts,seg=20)=>new THREE.LatheGeometry(pts.map(([r,y])=>new THREE.Vector2(r,y)),seg);
-{const helmet=new THREE.Group();helmet.position.y=1.66;diver.add(helmet);rig.helmet=helmet;
- const dome=new THREE.Mesh(new THREE.SphereGeometry(.29,36,28),copper);dome.scale.set(1,1.04,1);helmet.add(dome);
- const port=(x,y,z,r,ry,rx=0,bars=0)=>{const grp=new THREE.Group();grp.position.set(x,y,z);grp.rotation.set(rx,ry,0);
-  const collar=new THREE.Mesh(new THREE.CylinderGeometry(r*1.18,r*1.3,.07,24,1,true),brass);collar.rotation.x=Math.PI/2;collar.position.z=-.01;grp.add(collar);
-  const rim=new THREE.Mesh(new THREE.TorusGeometry(r*1.15,.022,10,28),brass);rim.position.z=.025;grp.add(rim);const gl=new THREE.Mesh(new THREE.CircleGeometry(r*1.1,24),glass);gl.position.z=.02;grp.add(gl);
-  for(let i=0;i<6;i++){const a=i/6*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.013,8,6),brass);b.position.set(Math.cos(a)*r*1.32,Math.sin(a)*r*1.32,.01);grp.add(b);}
-  for(let i=0;i<bars;i++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,r*2.1,6),brass);b.position.set((i-(bars-1)/2)*r*.62,0,.045);grp.add(b);}
-  helmet.add(grp);};
- port(0,-.01,.27,.105,0,0,3);port(.265,-.01,.08,.075,Math.PI/2*.88);port(-.265,-.01,.08,.075,-Math.PI/2*.88);port(0,.19,.19,.06,0,-.75);
- const valve=new THREE.Mesh(new THREE.CylinderGeometry(.03,.035,.12,10),brass);valve.rotation.z=Math.PI/2;valve.position.set(.27,-.16,-.1);helmet.add(valve);rig.valve=valve;
- const inlet=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.1,10),brass);inlet.rotation.x=Math.PI/2*.6;inlet.position.set(-.1,-.1,-.29);helmet.add(inlet);
- const neck=new THREE.Mesh(new THREE.TorusGeometry(.27,.035,10,32),brass);neck.rotation.x=Math.PI/2;neck.position.y=1.44;diver.add(neck);
- const cors=new THREE.Mesh(lathe([[.26,1.47],[.3,1.44],[.4,1.38],[.47,1.3],[.48,1.24],[.44,1.2]],32),copper);cors.scale.z=.82;diver.add(cors);
- for(let i=0;i<12;i++){const a=i/12*Math.PI*2,b=new THREE.Mesh(new THREE.SphereGeometry(.022,8,6),brass);b.position.set(Math.cos(a)*.43,1.28,Math.sin(a)*.43*.82);diver.add(b);}
- for(const z of [.22,-.22]){const w=new THREE.Mesh(new THREE.BoxGeometry(.34,.2,.07),leadM);w.position.set(0,1.1,z*1.18);w.rotation.x=z>0?-.15:.15;diver.add(w);const s=new THREE.Mesh(new THREE.BoxGeometry(.36,.03,.075),brass);s.position.copy(w.position);s.rotation.copy(w.rotation);diver.add(s);}
- const torso=new THREE.Mesh(lathe([[.2,.78],[.28,.84],[.31,.98],[.32,1.12],[.34,1.24],[.3,1.3]],24),suitM);torso.scale.z=.78;diver.add(torso);
- const belt=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.07,24),leather);belt.scale.z=.8;belt.position.y=.86;diver.add(belt);
- const buckle=new THREE.Mesh(new THREE.BoxGeometry(.07,.06,.02),brass);buckle.position.set(0,.86,.245);diver.add(buckle);
- const sheath=new THREE.Mesh(new THREE.BoxGeometry(.05,.24,.04),leather);sheath.position.set(.29,.72,.05);sheath.rotation.z=.08;diver.add(sheath);const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.1,8),brass);hilt.position.set(.3,.88,.05);diver.add(hilt);
- const bag=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),new THREE.MeshStandardMaterial({color:0x6b4a2a,wireframe:true}));bag.scale.set(.8,1.2,.6);bag.position.set(-.3,.66,-.02);diver.add(bag);
- const limb=(x,y,len,r,foot)=>{const pivot=new THREE.Group();pivot.position.set(x,y,0);const l=new THREE.Mesh(lathe([[r*.8,0],[r*1.05,-len*.2],[r*1.12,-len*.55],[r*.95,-len*.85],[r*.85,-len]],14),suitM);pivot.add(l);
-  const cuff=new THREE.Mesh(new THREE.CylinderGeometry(r*.9,r*.9,.05,14),rubber);cuff.position.y=-len;pivot.add(cuff);
-  if(foot){const boot=new THREE.Group();boot.position.set(0,-len-.08,.05);const b=new THREE.Mesh(new THREE.BoxGeometry(.2,.14,.34),leather);boot.add(b);const toe=new THREE.Mesh(new THREE.SphereGeometry(.105,14,10,0,Math.PI*2,0,Math.PI/2),brass);toe.rotation.x=Math.PI/2;toe.scale.set(1,.7,.8);toe.position.set(0,0,.16);boot.add(toe);
-   const sole=new THREE.Mesh(new THREE.BoxGeometry(.23,.05,.38),leadM);sole.position.y=-.08;boot.add(sole);pivot.add(boot);}
-  else{const g=new THREE.Mesh(new THREE.SphereGeometry(r*1.25,12,10),leather);g.scale.set(1,1.2,.8);g.position.y=-len-.07;pivot.add(g);}diver.add(pivot);return pivot;};
- rig.armL=limb(-.4,1.26,.46,.085);rig.armR=limb(.4,1.26,.46,.085);rig.legL=limb(-.13,.8,.52,.105,true);rig.legR=limb(.13,.8,.52,.105,true);
- const brush=new THREE.Group();const handle=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.3,6),new THREE.MeshStandardMaterial({color:0x8a5a2b}));const bristles=new THREE.Mesh(new THREE.BoxGeometry(.07,.08,.03),new THREE.MeshStandardMaterial({color:0xe0cf9a}));bristles.position.y=-.18;brush.add(handle,bristles);brush.position.y=-.62;brush.rotation.x=.4;rig.armR.add(brush);
+{const m=DIVER_GLB.scene;m.traverse(o=>{if(o.isMesh){o.frustumCulled=false;for(const x of [].concat(o.material)){x.envMapIntensity=x.name==='glass'?2.4:x.name==='copper'||x.name==='brass'?1.4:.5;if(x.name==='suit')x.color.setRGB(1.25,1.05,.8);if(x.name==='leather')x.color.setRGB(1.2,1,.9);}}});
+ diver.add(m);rig.model=m;rig.mixer=new THREE.AnimationMixer(m);rig.act={};
+ for(const c of DIVER_GLB.animations){const a=rig.mixer.clipAction(c);a.play();a.setEffectiveWeight(c.name==='idle'?1:0);rig.act[c.name]=a;}
+ rig.act.bound.setLoop(THREE.LoopOnce,1);rig.act.bound.clampWhenFinished=true;rig.w={idle:1,walk:0,bound:0,brush:0};
+ for(const n of ['hose_anchor','valve','lamp_anchor','brush_tip','footL','footR'])rig[n]=m.getObjectByName(n);
  const lamp=new THREE.SpotLight(0xfff0c8,9,16,.5,.6,1.4);lamp.position.set(0,1.62,.3);lamp.target.position.set(0,.5,4);diver.add(lamp,lamp.target);rig.lamp=lamp;}
 diver.position.set(START.x,ground(START.x,START.z),START.z+1.5);scene.add(diver);
 // The air hose from the helmet to the boat: a tube whose vertices follow a sagging curve every frame.
@@ -213,16 +186,16 @@ const HOSE_N=48,HOSE_R=6,hoseGeo=new THREE.BufferGeometry();{const idx=[];for(le
  hoseGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(HOSE_N*HOSE_R*3),3));hoseGeo.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(HOSE_N*HOSE_R*3),3));hoseGeo.setIndex(idx);}
 const hose=new THREE.Mesh(hoseGeo,new THREE.MeshStandardMaterial({color:0x2e2822,roughness:.55}));hose.frustumCulled=false;scene.add(hose);
 const _hp=[],_t=new THREE.Vector3(),_n=new THREE.Vector3(),_b=new THREE.Vector3();for(let i=0;i<HOSE_N;i++)_hp.push(new THREE.Vector3());
-function updateHose(){const a=_p.set(-.1,1.56,-.34).applyMatrix4(diver.matrixWorld).clone(),b=new THREE.Vector3(START.x,SURF,START.z+1),pa=hoseGeo.attributes.position.array,na=hoseGeo.attributes.normal.array,sag=Math.min(6,a.distanceTo(b)*.15);
+function updateHose(){const a=rig.hose_anchor?rig.hose_anchor.getWorldPosition(new THREE.Vector3()):_p.set(-.1,1.56,-.34).applyMatrix4(diver.matrixWorld).clone(),b=new THREE.Vector3(START.x,SURF,START.z+1),pa=hoseGeo.attributes.position.array,na=hoseGeo.attributes.normal.array,sag=Math.min(6,a.distanceTo(b)*.15);
  for(let i=0;i<HOSE_N;i++){const t=i/(HOSE_N-1);_hp[i].set(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t-Math.sin(t*Math.PI)*sag-Math.sin(t*Math.PI*3+uni.uTime.value)*.08,a.z+(b.z-a.z)*t);}
  for(let i=0;i<HOSE_N;i++){_t.subVectors(_hp[Math.min(HOSE_N-1,i+1)],_hp[Math.max(0,i-1)]).normalize();_n.crossVectors(_t,_up);if(_n.lengthSq()<1e-4)_n.set(1,0,0);_n.normalize();_b.crossVectors(_t,_n);
   for(let j=0;j<HOSE_R;j++){const an=j/HOSE_R*Math.PI*2,cx=Math.cos(an),cy=Math.sin(an),k=(i*HOSE_R+j)*3;const nx=_n.x*cx+_b.x*cy,ny=_n.y*cx+_b.y*cy,nz=_n.z*cx+_b.z*cy;pa[k]=_hp[i].x+nx*.035;pa[k+1]=_hp[i].y+ny*.035;pa[k+2]=_hp[i].z+nz*.035;na[k]=nx;na[k+1]=ny;na[k+2]=nz;}}
  hoseGeo.attributes.position.needsUpdate=true;hoseGeo.attributes.normal.needsUpdate=true;hoseGeo.computeBoundingSphere();}
 // Bubbles from the exhaust valve: a steady trickle, and a big burst at each breath.
-const BUB=520,bubbles=new THREE.InstancedMesh(new THREE.SphereGeometry(.04,12,8),new THREE.MeshStandardMaterial({color:0xcff4ff,transparent:true,opacity:.5,metalness:0,roughness:0,envMapIntensity:3,emissive:0x0a2a33}),BUB);bubbles.frustumCulled=false;scene.add(bubbles);
+const BUB=520,bubbles=new THREE.InstancedMesh(new THREE.SphereGeometry(.026,12,8),new THREE.MeshStandardMaterial({color:0xcff4ff,transparent:true,opacity:.5,metalness:0,roughness:0,envMapIntensity:3,emissive:0x0a2a33}),BUB);bubbles.frustumCulled=false;scene.add(bubbles);
 const bubs=Array.from({length:BUB},()=>({p:new THREE.Vector3(0,-99,0),s:1,life:0,ph:0}));let bubT=0,breathT=2,bubI=0;
 function emitBubble(src,spread,size){const b=bubs[bubI++%BUB];b.p.copy(src).add(new THREE.Vector3((Math.random()-.5)*spread,Math.random()*spread,(Math.random()-.5)*spread));b.s=size*(.4+Math.random());b.life=9;b.ph=Math.random()*6;}
-function updateBubbles(dt){const src=_p.set(.36,1.5,-.1).applyMatrix4(diver.matrixWorld).clone();bubT-=dt;breathT-=dt;
+function updateBubbles(dt){const src=rig.valve?rig.valve.getWorldPosition(new THREE.Vector3()):_p.set(.36,1.5,-.1).applyMatrix4(diver.matrixWorld).clone();bubT-=dt;breathT-=dt;
  if(bubT<=0){bubT=.07;emitBubble(src,.05,.5);}
  if(breathT<=0){breathT=3+Math.random()*1.5;for(let k=0;k<26;k++)emitBubble(src,.2,.4+Math.random()*1.2);sound.bubble();}
  if(Math.random()<dt*3)emitBubble(_p.set(ROPE_BASE.x+(Math.random()-.5)*.3,ROPE_BASE.y+Math.random()*4,ROPE_BASE.z),.1,.4);
@@ -298,10 +271,17 @@ for(const it of ITEMS){const [x,z]=it.at,y=ground(x,z);it.pos=new THREE.Vector3(
 const beacon=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,30,16,1,true),new THREE.MeshBasicMaterial({color:0x9ff3ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));scene.add(beacon);
 const pingRing=new THREE.Mesh(new THREE.TorusGeometry(1,.04,6,48),new THREE.MeshBasicMaterial({color:0x9ff3ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));pingRing.rotation.x=Math.PI/2;scene.add(pingRing);
 // Sand kicked up by the brush.
-const DUST=240,dust=new THREE.InstancedMesh(new THREE.SphereGeometry(.035,5,4),new THREE.MeshStandardMaterial({color:0xd9c89c,roughness:1,transparent:true,opacity:.8}),DUST);dust.frustumCulled=false;scene.add(dust);
-const dusts=Array.from({length:DUST},()=>({p:new THREE.Vector3(0,-99,0),v:new THREE.Vector3(),life:0}));let dustI=0;
-function puff(at,n){for(let k=0;k<n;k++){const d=dusts[dustI++%DUST];d.p.copy(at).add(new THREE.Vector3(Math.random()-.5,.1,Math.random()-.5).multiplyScalar(.8));d.v.set(Math.random()-.5,.4+Math.random()*.8,Math.random()-.5);d.life=1.6+Math.random();}}
-function updateDust(dt){for(let i=0;i<DUST;i++){const d=dusts[i];if(d.life>0){d.life-=dt;d.v.multiplyScalar(1-dt*1.2);d.v.y-=dt*.15;d.p.addScaledVector(d.v,dt);}const s=d.life>0?Math.min(1,d.life):0;_m.makeScale(s,s,s).setPosition(d.life>0?d.p:_p.set(0,-99,0));dust.setMatrixAt(i,_m);}dust.instanceMatrix.needsUpdate=true;}
+// Sand kicked up by boots and brush: soft, growing puffs that settle slowly.
+const DUST=420,dustPos=new Float32Array(DUST*3),dustA=new Float32Array(DUST*2);
+const dustGeo=new THREE.BufferGeometry();dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));dustGeo.setAttribute('aSA',new THREE.BufferAttribute(dustA,2));
+const dust=new THREE.Points(dustGeo,new THREE.ShaderMaterial({transparent:true,depthWrite:false,vertexShader:`attribute vec2 aSA;varying float vA;void main(){vec4 mv=modelViewMatrix*vec4(position,1.0);gl_PointSize=aSA.x*420.0/max(.5,-mv.z);vA=aSA.y;gl_Position=projectionMatrix*mv;}`,
+ fragmentShader:`varying float vA;void main(){vec2 c=gl_PointCoord-.5;float d=dot(c,c)*4.0;if(d>1.0)discard;gl_FragColor=vec4(pow(vec3(.62,.58,.47),vec3(2.2)),vA*(1.0-d)*(1.0-d));}`}));
+dust.frustumCulled=false;scene.add(dust);
+const dusts=Array.from({length:DUST},()=>({p:new THREE.Vector3(0,-99,0),v:new THREE.Vector3(),life:0,max:1}));let dustI=0;
+function puff(at,n){for(let k=0;k<n;k++){const d=dusts[dustI++%DUST];d.p.copy(at).add(new THREE.Vector3(Math.random()-.5,.05,Math.random()-.5).multiplyScalar(.5));d.v.set((Math.random()-.5)*.8,.15+Math.random()*.45,(Math.random()-.5)*.8);d.max=d.life=1.8+Math.random()*1.6;}}
+function updateDust(dt){for(let i=0;i<DUST;i++){const d=dusts[i];if(d.life>0){d.life-=dt;d.v.multiplyScalar(1-dt*1.6);d.v.y-=dt*.05;d.p.addScaledVector(d.v,dt);}const k=d.life>0?1-d.life/d.max:1;
+  dustPos[i*3]=d.p.x;dustPos[i*3+1]=d.life>0?d.p.y:-99;dustPos[i*3+2]=d.p.z;dustA[i*2]=.06+k*.3;dustA[i*2+1]=d.life>0?.34*Math.min(1,k*6)*(1-k):0;}
+ dustGeo.attributes.position.needsUpdate=true;dustGeo.attributes.aSA.needsUpdate=true;}
 
 // --- Son --------------------------------------------------------------------------------------
 const sound=(()=>{let ac=null,muted=false,amb=null;const api={};
@@ -316,20 +296,20 @@ const sound=(()=>{let ac=null,muted=false,amb=null;const api={};
  api.toggle=()=>{muted=!muted;if(ac){amb.gain.value=muted?0:.5;}return muted;};return api;})();
 
 // --- Commandes et caméra ------------------------------------------------------------------
-const keys={};let yaw=Math.PI,pitch=.25,dist=5.2,drag=null;
+const keys={};let yaw=Math.PI,pitch=.22,dist=3.6,drag=null,dragT=0;
 addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;keys[e.code]=true;
  if(state.mode==='title'&&(e.code==='Space'||e.code==='Enter')){e.preventDefault();dive();return;}
  if(e.code==='KeyR'&&state.mode==='play')sonar();if(e.code==='KeyJ')toggleJournal();if(e.code==='Escape'&&state.mode==='play'){state.paused=!state.paused;$('abyss-pause').hidden=!state.paused;}
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();});
 addEventListener('keyup',e=>{keys[e.code]=false;});addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);sound.start();});
-canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw-=(e.clientX-drag.x)*.006;pitch=Math.max(-.35,Math.min(1.1,pitch+(e.clientY-drag.y)*.004));drag={x:e.clientX,y:e.clientY};});
-canvas.addEventListener('pointerup',()=>{drag=null;});canvas.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(2.6,Math.min(10,dist*(1+Math.sign(e.deltaY)*.1)));},{passive:false});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;dragT=1.6;yaw-=(e.clientX-drag.x)*.006;pitch=Math.max(-.35,Math.min(1.1,pitch+(e.clientY-drag.y)*.004));drag={x:e.clientX,y:e.clientY};});
+canvas.addEventListener('pointerup',()=>{drag=null;});canvas.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(2.2,Math.min(9,dist*(1+Math.sign(e.deltaY)*.1)));},{passive:false});
 const touch={};for(const b of document.querySelectorAll('[data-touch]')){b.onpointerdown=e=>{e.preventDefault();touch[b.dataset.touch]=true;if(b.dataset.touch==='sonar')sonar();};b.onpointerup=b.onpointerleave=b.onpointercancel=()=>{touch[b.dataset.touch]=false;};}
 const down=(...c)=>c.some(k=>keys[k]);
 
 // --- État du jeu -----------------------------------------------------------------------------
-const state={mode:'title',paused:false,air:1,vel:new THREE.Vector3(),onGround:true,time:0,dives:1,sonarCd:0,sonarT:0,sonarTarget:null,found:0,heartT:0,near:null,faceYaw:Math.PI,endT:0};
+const state={mode:'title',paused:false,air:1,vel:new THREE.Vector3(),onGround:true,speed:0,turnV:0,vy:0,jumpHeld:false,lean:0,stepPh:0,landT:0,time:0,dives:1,sonarCd:0,sonarT:0,sonarTarget:null,found:0,heartT:0,near:null,faceYaw:0,endT:0};
 function dive(){if(state.mode!=='title')return;sound.start();state.mode='play';$('abyss-title').hidden=true;$('abyss-hud').hidden=false;canvas.focus();}
 $('abyss-dive').onclick=dive;$('abyss-again').onclick=()=>location.reload();$('abyss-sound').onclick=e=>{e.target.textContent=sound.toggle()?'Son : non':'Son : oui';};$('abyss-journal-btn').onclick=toggleJournal;$('card-close').onclick=()=>{$('abyss-card').hidden=true;};
 function toggleJournal(){const j=$('abyss-journal');j.hidden=!j.hidden;if(!j.hidden)renderJournal();}
@@ -343,32 +323,62 @@ function updateSlots(){const s=$('abyss-slots');s.replaceChildren();for(const it
 updateSlots();
 const fmtT=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 
-function stepPlay(dt){state.time+=dt;state.sonarCd-=dt;state.sonarT-=dt;
- const f=(down('KeyW','ArrowUp')||touch.fwd?1:0)-(down('KeyS','ArrowDown')||touch.back?1:0),r=(down('KeyD','ArrowRight')||touch.right?1:0)-(down('KeyA','ArrowLeft')||touch.left?1:0),up=(down('Space')||touch.up?1:0)-(down('ShiftLeft','ShiftRight','KeyC')||touch.down?1:0);
- const gy=ground(diver.position.x,diver.position.z);state.onGround=diver.position.y<=gy+.05;
- const speed=state.onGround&&up<=0?2:3.4,fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
- const want=new THREE.Vector3((fx*f+rx*r)*speed,up>0?2.2:up<0?-2.4:-.45,(fz*f+rz*r)*speed);if(state.onGround&&up===0)want.y=0;
- state.vel.lerp(want,Math.min(1,dt*2.2));diver.position.addScaledVector(state.vel,dt);
- diver.position.x=THREE.MathUtils.clamp(diver.position.x,-EDGE,EDGE);diver.position.z=THREE.MathUtils.clamp(diver.position.z,-EDGE,EDGE);
- const g2=ground(diver.position.x,diver.position.z);if(diver.position.y<g2){diver.position.y=g2;state.vel.y=Math.max(0,state.vel.y);}if(diver.position.y>SURF-2.2){diver.position.y=SURF-2.2;state.vel.y=Math.min(0,state.vel.y);}
- const hv=Math.hypot(state.vel.x,state.vel.z);if(hv>.2){const target=Math.atan2(state.vel.x,state.vel.z);let d=target-state.faceYaw;d=Math.atan2(Math.sin(d),Math.cos(d));state.faceYaw+=d*Math.min(1,dt*5);}
- diver.rotation.y=state.faceYaw;const swim=!state.onGround;diver.rotation.x=THREE.MathUtils.lerp(diver.rotation.x,swim?Math.min(.9,hv*.3):0,dt*3);
- // limbs: flutter kicks and breast strokes in the water, a heavy walk on the sand
- const t=state.time,step=hv*2.6;if(swim){rig.legL.rotation.x=Math.sin(t*6)*.5;rig.legR.rotation.x=-Math.sin(t*6)*.5;rig.armL.rotation.x=-1.2+Math.sin(t*2.4)*.6;rig.armR.rotation.x=-1.2+Math.sin(t*2.4)*.6;rig.armL.rotation.z=-.4-Math.cos(t*2.4)*.4;rig.armR.rotation.z=.4+Math.cos(t*2.4)*.4;}
- else{const s=Math.sin(t*step*1.4)*Math.min(.6,hv*.35);rig.legL.rotation.x=s;rig.legR.rotation.x=-s;rig.armL.rotation.x=-s*.8;rig.armR.rotation.x=s*.8;rig.armL.rotation.z=-.15;rig.armR.rotation.z=.15;}
+// Heavy-boot walking on the seabed: forward/back with inertia, tank-style turning, low-gravity bounds.
+const WALK=1.2,RUN=1.9,BACK=.55,ACC=1.9,BRAKE=2.6,TURN=1.7,STAND_TURN=1.25,G=2.4,BOUND_VY=1.75;
+const lerp=THREE.MathUtils.lerp,clamp=THREE.MathUtils.clamp;
+function footPuff(foot){if(!foot)return;foot.getWorldPosition(_p);_p.y=ground(_p.x,_p.z)+.05;puff(_p,4);}
+function stepPlay(dt){state.time+=dt;state.sonarCd-=dt;state.sonarT-=dt;dragT-=dt;
+ const fwd=(down('KeyW','ArrowUp')||touch.fwd?1:0)-(down('KeyS','ArrowDown')||touch.back?1:0),turn=(down('KeyA','ArrowLeft')||touch.left?1:0)-(down('KeyD','ArrowRight')||touch.right?1:0);
+ const run=down('ShiftLeft','ShiftRight')||touch.down,jump=down('Space')||touch.up,brushing=!!(state.near&&(down('KeyE')||touch.brush)&&state.onGround);
+ // turning: quicker on the move, slower standing; while brushing the diver faces the find
+ if(brushing){const d=state.near.pos,want=Math.atan2(d.x-diver.position.x,d.z-diver.position.z);let dd=want-state.faceYaw;dd=Math.atan2(Math.sin(dd),Math.cos(dd));state.faceYaw+=dd*Math.min(1,dt*3);state.turnV=0;}
+ else{state.turnV=lerp(state.turnV,turn*(Math.abs(state.speed)>.25?TURN:STAND_TURN)*(state.onGround?1:.5),Math.min(1,dt*5));state.faceYaw+=state.turnV*dt;}
+ // forward speed: the suit weighs ~90 kg in water, so it takes a moment to get going and to stop
+ const target=brushing?0:fwd>0?(run?RUN:WALK):fwd<0?-BACK:0,a=(fwd!==0&&!brushing?ACC:BRAKE)*(state.onGround?1:.3);
+ state.speed+=clamp(target-state.speed,-a*dt,a*dt);
+ const sx=Math.sin(state.faceYaw),sz=Math.cos(state.faceYaw);diver.position.x+=sx*state.speed*dt;diver.position.z+=sz*state.speed*dt;
+ // rocks push the diver out
+ for(const r of rocks){const dx=diver.position.x-r.x,dz=diver.position.z-r.z,d=Math.hypot(dx,dz),min=r.r+.35;if(d<min&&d>1e-4&&diver.position.y<r.top){diver.position.x=r.x+dx/d*min;diver.position.z=r.z+dz/d*min;state.speed*=.9;}}
+ diver.position.x=clamp(diver.position.x,-EDGE,EDGE);diver.position.z=clamp(diver.position.z,-EDGE,EDGE);
+ // bounds: a slow push off the sand, a long floating arc, a soft landing in a puff of sand
+ const gy=ground(diver.position.x,diver.position.z);
+ if(jump&&!state.jumpHeld&&state.onGround&&!brushing){state.vy=BOUND_VY+(run?.25:0);state.onGround=false;state.speed+=(fwd>0?.35:0);rig.act.bound.reset().play();footPuff(rig.footL);footPuff(rig.footR);}
+ state.jumpHeld=jump;
+ if(!state.onGround){state.vy-=G*dt;state.vy=Math.max(state.vy,-2.2);diver.position.y+=state.vy*dt;if(diver.position.y<=gy&&state.vy<0){diver.position.y=gy;state.onGround=true;state.landT=.35;footPuff(rig.footL);footPuff(rig.footR);puff(diver.position,10);}}
+ else diver.position.y=lerp(diver.position.y,gy,Math.min(1,dt*10));
+ if(diver.position.y>SURF-2.2){diver.position.y=SURF-2.2;state.vy=Math.min(0,state.vy);}
+ state.landT-=dt;
+ // body: lean into turns and acceleration, face the heading
+ state.lean=lerp(state.lean,-state.turnV*Math.min(1,Math.abs(state.speed))*.09,Math.min(1,dt*4));
+ diver.rotation.set(state.onGround?Math.max(0,state.speed)*.05:0,state.faceYaw,state.lean,'YXZ');
+ // animation weights, smoothed: idle / walk / bound / brush
+ const sp=Math.abs(state.speed),turning=Math.abs(state.turnV)>.35&&sp<.25;
+ const W={idle:0,walk:state.onGround?Math.max(clamp(sp/.8,0,1),turning?.6:0):0,bound:state.onGround?(state.landT>0?.5:0):1,brush:brushing?1:0};
+ if(brushing){W.walk=0;W.bound=0;}W.idle=Math.max(0,1-W.walk-W.bound-W.brush);
+ for(const k in W){rig.w[k]=lerp(rig.w[k],W[k],Math.min(1,dt*6));rig.act[k].setEffectiveWeight(rig.w[k]);}
+ rig.act.walk.setEffectiveTimeScale((state.speed<-.05?-1:1)*Math.max(.55,sp/1.05)*(turning?.7:1));
+ // footfalls: two contacts per walk cycle kick up sand
+ if(rig.w.walk>.4&&state.onGround){const ph=(rig.act.walk.time/rig.act.walk.getClip().duration)%1,step=Math.floor(ph*2);if(step!==state.stepPh){state.stepPh=step;footPuff(step?rig.footR:rig.footL);}}
  // air: surface-supplied by the hose, but the compressor on the boat only has so much; refill at the anchor line
  const nearRope=Math.hypot(diver.position.x-ROPE_BASE.x,diver.position.z-ROPE_BASE.z)<3;state.air=Math.min(1,Math.max(0,state.air+(nearRope?.25:-1/240)*dt));$('abyss-rope').hidden=!nearRope||state.air>=.999;
  if(state.air<.2){state.heartT-=dt;if(state.heartT<=0){state.heartT=.9;sound.heart();}}
- if(state.air<=0){state.dives++;state.air=1;diver.position.set(START.x,ground(START.x,START.z),START.z+1.5);state.vel.set(0,0,0);$('abyss-flash').classList.remove('go');void $('abyss-flash').offsetWidth;$('abyss-flash').classList.add('go');}
+ if(state.air<=0){state.dives++;state.air=1;diver.position.set(START.x,ground(START.x,START.z),START.z+1.5);state.speed=0;state.vy=0;state.onGround=true;$('abyss-flash').classList.remove('go');void $('abyss-flash').offsetWidth;$('abyss-flash').classList.add('go');}
  // digging
- state.near=null;for(const it of ITEMS){if(it.found)continue;if(it.pos.distanceTo(diver.position)<2.4){state.near=it;break;}}
- if(state.near&&(down('KeyE')||touch.brush)){const it=state.near;it.dig=Math.min(1,it.dig+dt/2.6);rig.armR.rotation.x=-.9+Math.sin(t*18)*.35;if(Math.random()<.5)puff(it.pos,2);if(Math.floor(t*8)!==Math.floor((t-dt)*8))sound.brush();
+ const t=state.time;state.near=null;for(const it of ITEMS){if(it.found)continue;if(it.pos.distanceTo(diver.position)<2.4){state.near=it;break;}}
+ if(brushing){const it=state.near;it.dig=Math.min(1,it.dig+dt/2.6);if(Math.random()<.6){if(rig.brush_tip){rig.brush_tip.getWorldPosition(_p);puff(_p,2);}else puff(it.pos,2);}if(Math.floor(t*8)!==Math.floor((t-dt)*8))sound.brush();
   it.mound.scale.set(1-it.dig*.4,.45*(1-it.dig),1-it.dig*.4);it.obj.position.y=it.pos.y-.25+it.dig*.55;it.obj.rotation.z=.35*(1-it.dig);if(it.dig>=1)discover(it);}
  const pr=$('abyss-prompt');if(state.near){pr.hidden=false;pr.querySelector('span').textContent=state.near.dig>0?`Dégager au pinceau : ${Math.round(state.near.dig*100)} %`:'Maintenir E pour dégager au pinceau';pr.querySelector('i').style.width=state.near.dig*100+'%';}else pr.hidden=true;
  uni.uDiver.value.copy(diver.position);}
-const camTarget=new THREE.Vector3(),camPos=new THREE.Vector3();
-function placeCamera(dt,snap){camTarget.copy(diver.position).add(_p.set(0,1.3,0));const cp=Math.cos(pitch);camPos.set(camTarget.x+Math.sin(yaw)*dist*cp,camTarget.y+Math.sin(pitch)*dist,camTarget.z+Math.cos(yaw)*dist*cp);
- const gy=ground(camPos.x,camPos.z)+.5;if(camPos.y<gy)camPos.y=gy;if(camPos.y>SURF-.4)camPos.y=SURF-.4;if(snap)camera.position.copy(camPos);else camera.position.lerp(camPos,Math.min(1,dt*6));camera.lookAt(camTarget);}
+// Third-person camera: swings behind the diver when walking (unless the player just looked around), eases in, stays above the sand.
+const camTarget=new THREE.Vector3(),camPos=new THREE.Vector3(),camLook=new THREE.Vector3();
+function placeCamera(dt,snap){
+ if(state.mode==='play'&&dragT<=0&&Math.abs(state.speed)>.2){let d=(state.faceYaw+Math.PI)-yaw;d=Math.atan2(Math.sin(d),Math.cos(d));yaw+=d*Math.min(1,dt*1.8*Math.min(1,Math.abs(state.speed)));}
+ camTarget.copy(diver.position).add(_p.set(0,1.45,0));const cp=Math.cos(pitch);camPos.set(camTarget.x+Math.sin(yaw)*dist*cp,camTarget.y+Math.sin(pitch)*dist,camTarget.z+Math.cos(yaw)*dist*cp);
+ // keep the lens out of rocks: slide it back towards the diver until it clears them
+ for(let k=0;k<6;k++){let hit=false;for(const r of rocks){const dx=camPos.x-r.x,dz=camPos.z-r.z;if(dx*dx+dz*dz<(r.r*.95+.3)**2&&camPos.y<r.top+.4){hit=true;break;}}if(!hit)break;camPos.lerp(camTarget,.3);}
+ const gy=ground(camPos.x,camPos.z)+.45;if(camPos.y<gy)camPos.y=gy;if(camPos.y>SURF-.4)camPos.y=SURF-.4;
+ if(snap){camera.position.copy(camPos);camLook.copy(camTarget);}else{camera.position.lerp(camPos,Math.min(1,dt*4));camLook.lerp(camTarget,Math.min(1,dt*8));}
+ const sh=state.landT>0?state.landT*.04:0;camera.lookAt(camLook.x,camLook.y-sh,camLook.z);}
 function hud(){const a=state.air,deg=a*360;$('air-ring').style.background=`conic-gradient(${a<.2?'#ff6b74':'#ffe8b0'} ${deg}deg, rgba(255,255,255,.12) 0)`;$('air-time').textContent=fmtT(a*240);$('abyss-depth').textContent=`${Math.max(0,SURF-diver.position.y).toFixed(1).replace('.',',')} m`;$('abyss-hud').classList.toggle('low',a<.2);
  const arrow=$('abyss-sonar');if(state.sonarT>0&&state.sonarTarget&&!state.sonarTarget.found){arrow.hidden=false;const d=state.sonarTarget.pos.clone().sub(diver.position),fw=d.x*-Math.sin(yaw)+d.z*-Math.cos(yaw),rt=d.x*Math.cos(yaw)+d.z*-Math.sin(yaw);arrow.querySelector('b').style.transform=`rotate(${Math.atan2(rt,fw)}rad)`;arrow.querySelector('span').textContent=`${Math.round(Math.hypot(d.x,d.z))} m`;}else arrow.hidden=true;}
 let last=performance.now(),perfT=0,perfN=0,quality=0;
@@ -376,9 +386,9 @@ function degrade(){if(quality>=3)return;quality++;if(quality===1){grassMesh.coun
 if(new URLSearchParams(location.search).has('lite')){quality=2;degrade();grassMesh.count=3000;fish.count=300;}
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!state.paused){uni.uTime.value+=dt;
  if(state.mode==='play')stepPlay(dt);
- if(state.mode==='title'){yaw+=dt*.08;pitch=.3;}
- if(state.mode==='ending'){state.endT+=dt;if(state.endT>2.5){diver.position.y+=dt*2.2;state.vel.set(0,0,0);rig.legL.rotation.x=Math.sin(uni.uTime.value*6)*.5;rig.legR.rotation.x=-rig.legL.rotation.x;}if(state.endT>3.2&&$('abyss-end').hidden){$('abyss-end').hidden=false;$('end-summary').textContent=`Les huit babioles sont au carnet en ${fmtT(state.time)}, avec ${state.dives} plongée${state.dives>1?'s':''}. Le musée le plus absurde de la Méditerranée ouvre ses portes.`;}}
- updateFish(uni.uTime.value,diver.position);updateBubbles(dt);updateDust(dt);
+ if(state.mode==='title'){yaw+=dt*.08;pitch=.28;}
+ if(state.mode==='ending'){state.endT+=dt;if(state.endT>2.5){diver.position.y+=dt*2.2;for(const k in rig.w){rig.w[k]=lerp(rig.w[k],k==='bound'?1:0,Math.min(1,dt*4));rig.act[k].setEffectiveWeight(rig.w[k]);}}if(state.endT>3.2&&$('abyss-end').hidden){$('abyss-end').hidden=false;$('end-summary').textContent=`Les huit babioles sont au carnet en ${fmtT(state.time)}, avec ${state.dives} plongée${state.dives>1?'s':''}. Le musée le plus absurde de la Méditerranée ouvre ses portes.`;}}
+ rig.mixer.update(dt);updateFish(uni.uTime.value,diver.position);updateBubbles(dt);updateDust(dt);
   for(const it of ITEMS){if(!it.found){it.glint.material.rotation=uni.uTime.value;it.glint.scale.setScalar(.35+.25*Math.max(0,Math.sin(uni.uTime.value*2+it.pos.x)));}else{it.obj.rotation.y+=dt*.6;it.obj.position.y=it.pos.y+.4+Math.sin(uni.uTime.value*1.5)*.08;}}
  if(pingRing.userData.t!==undefined){pingRing.userData.t+=dt;const k=pingRing.userData.t;pingRing.scale.setScalar(1+k*14);pingRing.material.opacity=Math.max(0,.8-k*.5);}
  if(beacon.userData.t!==undefined){beacon.userData.t+=dt;beacon.material.opacity=Math.max(0,.35*Math.sin(Math.min(1,beacon.userData.t/4.5)*Math.PI));}
@@ -389,6 +399,9 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!state.pa
  requestAnimationFrame(frame);}
 function resize(){const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);post.setSize(Math.max(1,Math.round(r.width*pixelRatio)),Math.max(1,Math.round(r.height*pixelRatio)));camera.aspect=r.width/Math.max(1,r.height);camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(host);resize();placeCamera(0,true);requestAnimationFrame(frame);
-window.AbyssGame={state,ITEMS,diver,discover,sonar,dive};
+window.AbyssGame={state,ITEMS,diver,discover,sonar,dive,keys,rig,
+ // advance the simulation without waiting for frames (automated checks)
+ look(y,p,d){yaw=state.faceYaw+y;pitch=p;dist=d;dragT=99;},
+ step(n,dt=1/30){for(let i=0;i<n;i++){uni.uTime.value+=dt;stepPlay(dt);rig.mixer.update(dt);diver.updateMatrixWorld();placeCamera(dt,false);}}};
 // Test hook (?shot=item,found,swim,sonar): stage a scene without waiting for input, for automated screenshots.
 {const q=new URLSearchParams(location.search).get('shot');if(q){const [item,found,swim,son]=q.split(',').map(Number);dive();const it=ITEMS[item||0];diver.position.set(it.pos.x-1.5,it.pos.y+(swim||0),it.pos.z+1);for(let i=0;i<(found||0);i++)discover(ITEMS[i]);if(son)sonar();diver.updateMatrixWorld();placeCamera(0,true);}}

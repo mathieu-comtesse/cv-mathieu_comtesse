@@ -30,7 +30,7 @@
 .touch{position:absolute;bottom:12px;left:12px;right:12px;display:none;justify-content:space-between;pointer-events:none}.touch div{display:grid;grid-template-columns:repeat(3,46px);gap:5px;pointer-events:auto}.touch button{height:46px;background:rgba(3,20,28,.6);color:var(--ink);border:1px solid var(--line);border-radius:10px;font:14px "JetBrains Mono",monospace;touch-action:none}
 @media (hover:none) and (pointer:coarse){.touch{display:flex}.keys{display:none}#abyss-prompt{bottom:130px}}
 </style></head>
-<body><div id="abyss-stage"><canvas id="abyss-canvas" tabindex="0" aria-label="Plongée sous-marine en 3D. Z Q S D ou flèches pour nager, Espace pour monter, Maj pour descendre, glisser la souris pour regarder, E maintenu pour dégager un objet, R pour le sonar, J pour le carnet."></canvas>
+<body><div id="abyss-stage"><canvas id="abyss-canvas" tabindex="0" aria-label="Plongée sous-marine en 3D. Z et S ou flèches haut et bas pour marcher, Q et D ou flèches gauche et droite pour tourner, Maj pour presser le pas, Espace pour bondir, glisser la souris pour regarder, E maintenu pour dégager un objet, R pour le sonar, J pour le carnet."></canvas>
 <div class="title" id="abyss-title"><h1>ABYSSES &amp; BABIOLES</h1><p>Au large de Massalia, un archéologue du dimanche enfile un scaphandre en laiton. Huit objets dorment sous le sable : certains sont historiques, d’autres franchement absurdes. Les dégager au pinceau, les inscrire au carnet.</p><div><button class="btn" id="abyss-dive" type="button"><kbd>Espace</kbd> Plonger</button></div></div>
 <div class="hud" id="abyss-hud" hidden>
  <div class="obj">Retrouver les babioles englouties · <span id="abyss-count"></span><small>Le sonar (R) indique la plus proche</small><div class="slots" id="abyss-slots"></div></div>
@@ -44,7 +44,7 @@
 <div class="card" id="abyss-card" hidden><h2 id="card-name"></h2><em id="card-era"></em><p id="card-text"></p><small id="card-count"></small><br><button class="btn" id="card-close" type="button">Continuer</button></div>
 <div class="end" id="abyss-end" hidden><div><h2>COLLECTION COMPLÈTE</h2><p id="end-summary"></p><button class="btn" id="abyss-again" type="button">Replonger</button></div></div>
 <div id="abyss-pause" hidden>PAUSE</div><div id="abyss-flash"></div>
-<div class="keys"><span>🖱 Regarder</span><span><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> Nager</span><span><kbd>Espace</kbd> Monter</span><span><kbd>Maj</kbd> Descendre</span><span><kbd>E</kbd> Pinceau</span><span><kbd>R</kbd> Sonar</span><span><kbd>J</kbd> Carnet</span></div>
-<div class="touch" aria-hidden="true"><div><span></span><button data-touch="fwd">▲</button><span></span><button data-touch="left">◀</button><button data-touch="back">▼</button><button data-touch="right">▶</button></div><div><button data-touch="up">⤒</button><button data-touch="brush">E</button><button data-touch="sonar">R</button><button data-touch="down">⤓</button></div></div>
+<div class="keys"><span>🖱 Regarder</span><span><kbd>Z</kbd><kbd>S</kbd> Marcher</span><span><kbd>Q</kbd><kbd>D</kbd> Tourner</span><span><kbd>Maj</kbd> Presser le pas</span><span><kbd>Espace</kbd> Bondir</span><span><kbd>E</kbd> Pinceau</span><span><kbd>R</kbd> Sonar</span><span><kbd>J</kbd> Carnet</span></div>
+<div class="touch" aria-hidden="true"><div><span></span><button data-touch="fwd">▲</button><span></span><button data-touch="left">◀</button><button data-touch="back">▼</button><button data-touch="right">▶</button></div><div><button data-touch="up">⤒</button><button data-touch="brush">E</button><button data-touch="sonar">R</button><button data-touch="down">»</button></div></div>
 </div>
-<script type="module" src="abysses.js?v=20260924-1"></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
+<script type="module" src="abysses.js?v=20260924-2"></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
