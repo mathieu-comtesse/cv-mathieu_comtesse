@@ -134,7 +134,7 @@
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType && e.pointerType !== 'mouse') return;
     x = e.clientX; y = e.clientY;
-    ghost.hidden = false;
+    ghost.hidden = !!(e.target.closest && e.target.closest('canvas,video,iframe,.world-stage,.scene-embed'));
     if (!raf) raf = requestAnimationFrame(paint);
   }, {passive: true});
   document.documentElement.addEventListener('mouseleave', () => { ghost.hidden = true; });

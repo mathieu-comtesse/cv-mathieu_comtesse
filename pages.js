@@ -34,6 +34,6 @@
 // Menus déroulants de la barre du haut : un seul ouvert à la fois, fermés par Échap ou un clic ailleurs.
 (()=>{const menus=[...document.querySelectorAll('.nav-menu')];if(!menus.length)return;
   menus.forEach(m=>m.addEventListener('toggle',()=>{if(m.open)menus.forEach(o=>{if(o!==m)o.open=false;});}));
-  document.addEventListener('click',e=>{menus.forEach(m=>{if(m.open&&!m.contains(e.target))m.open=false;});});
+  document.addEventListener('click',e=>{menus.forEach(m=>{if(m.open&&(!m.contains(e.target)||e.target.closest('.nav-panel a')))m.open=false;});});
   document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;menus.forEach(m=>{if(m.open){m.open=false;m.querySelector('summary').focus();}});});
 })();

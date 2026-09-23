@@ -23,12 +23,12 @@ const steps=[
 const SPREAD=1.24;// how far the buildings sit from the centre
 const footprint=kind=>{const g=models[kind].position;let hx=0,hz=0;for(let i=0;i<g.length;i+=3){hx=Math.max(hx,Math.abs(g[i]));hz=Math.max(hz,Math.abs(g[i+2]));}return Math.hypot(hx,hz);};
 const eggs=new Map();let found=0,night=false,paused=false,dragging=null,spin=0,spinVel=.0018,pitch=.62,zoom=28,audio=null,muted=false,pinch=null;
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1.14;
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true});let pixelRatio=Math.min(devicePixelRatio,1.5);renderer.setPixelRatio(pixelRatio);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1.14;
 // A pale sea haze: the ocean fades into it at the horizon, so the island floats on the paper of the page.
 const SKY='#e3efec',NIGHT_SKY='#1b2230';const scene=new THREE.Scene();scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,36,78);const camera=new THREE.PerspectiveCamera(30,1,.1,100);
 const world=new THREE.Group();scene.add(world);
 // Warm late-morning sun, sky-blue fill from above and sand bounce from below; the shadow box also covers the lagoon and the clouds' shadows.
-const hemi=new THREE.HemisphereLight('#e6f4ff','#ecd9b0',1.1),sun=new THREE.DirectionalLight('#fff0d4',2.1);sun.position.set(14,24,10);sun.castShadow=true;sun.shadow.mapSize.set(3072,3072);sun.shadow.bias=-.0008;sun.shadow.normalBias=.045;sun.shadow.intensity=.8;Object.assign(sun.shadow.camera,{left:-17,right:17,top:17,bottom:-17,near:1,far:70});scene.add(hemi,sun);
+const hemi=new THREE.HemisphereLight('#e6f4ff','#ecd9b0',1.1),sun=new THREE.DirectionalLight('#fff0d4',2.1);sun.position.set(14,24,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0008;sun.shadow.normalBias=.045;sun.shadow.intensity=.8;Object.assign(sun.shadow.camera,{left:-17,right:17,top:17,bottom:-17,near:1,far:70});scene.add(hemi,sun);
 const edges=(mesh,color='#8f8a80')=>{const l=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry,28),new THREE.LineBasicMaterial({color,transparent:true,opacity:.55}));mesh.add(l);return mesh;};
 const box=(w,h,d,color,x=0,y=0,z=0,outline=true)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;return outline?edges(m):m;};
 // --- Island folded in Blender.
@@ -198,7 +198,7 @@ float wCaustic(vec2 p,float t){vec2 i=p;float c=1.;for(int n=0;n<4;n++){float tt
  foam=max(foam,.75*smoothstep(.82,1.,sin(depth*16.-uTime*1.8+nz*2.5))*(1.-smoothstep(.1,.42,depth)));
  wc=mix(wc,uFoam,foam);wa=max(wa,foam*.92);
  diffuseColor=vec4(wc,wa);`);};
-const water=new THREE.Mesh(new THREE.PlaneGeometry(140,140,220,220).rotateX(-Math.PI/2),waterMat);water.position.y=-.5;water.receiveShadow=true;scene.add(water);
+const water=new THREE.Mesh(new THREE.PlaneGeometry(140,140,170,170).rotateX(-Math.PI/2),waterMat);water.position.y=-.5;water.receiveShadow=true;scene.add(water);
 // --- Fishing spots: one reef bank off each building, named after it.
 const spotNames={usp:['Anse de la fac',0],sncf:['Récif de la gare',0],reseau:['Passe du signal',0],studio:['Chenal de l’atelier',-.5],bi:['Lagon de la tour',0],lean:['Banc du dojo',.4]};
 const spots=steps.filter(s=>spotNames[s.id]).map(s=>{const [name,off]=spotNames[s.id],a=Math.atan2(s.pos[2],s.pos[0])+off,r=waterline(a)+2.2;return {id:s.id,name,x:Math.cos(a)*r,z:Math.sin(a)*r};});
@@ -255,9 +255,9 @@ function trail(obj,dt,stern=.35){const u=obj.userData,p=obj.position;if(!u.last)
 // --- Sailing: take the helm of the fishing boat. ZQSD or the arrows (physical keys), Space to stop, Escape to leave.
 const sail={on:false,speed:0,heading:0,roll:0,keys:new Set(),brake:false,goal:null},camTarget=new THREE.Vector3(0,.4,0),_ct=new THREE.Vector3();fisher.rotation.order='YZX';
 const bubble=document.getElementById('world-bubble'),sailHud=document.getElementById('world-sailhud'),sailBtn=document.getElementById('world-sail'),pad=document.getElementById('world-pad'),fishPanel=document.getElementById('world-fish');
-function enterSail(){if(sail.on)return;sail.on=true;fisher.userData.go=0;sail.heading=-Math.atan2(fisher.position.z,fisher.position.x);/* bow to the open sea */sail.speed=0;sail.goal={zoom:13,pitch:.98};card.hidden=true;document.body.classList.add('is-sailing');sailHud.hidden=false;pad.hidden=false;sailBtn.textContent='⚓ Quitter la barre';sailBtn.setAttribute('aria-pressed','true');hint.textContent='Vous tenez la barre : approchez un banc de poissons pour pêcher.';canvas.focus();}
+function enterSail(){if(sail.on)return;sail.on=true;fisher.userData.go=0;sail.heading=-Math.atan2(fisher.position.z,fisher.position.x);/* bow to the open sea */sail.speed=0;sail.goal={zoom:13,pitch:.98};card.hidden=true;document.body.classList.add('is-sailing');sailHud.hidden=false;pad.hidden=false;sailBtn.textContent='⚓ Quitter la barre';sailBtn.setAttribute('aria-pressed','true');hint.textContent='Vous tenez la barre : approchez un banc de poissons pour pêcher.';canvas.focus({preventScroll:true});}
 function exitSail(){if(!sail.on)return;endFishing();sail.on=false;sail.keys.clear();fisher.userData.go=42.001;sail.goal={zoom:28,pitch:.62};document.body.classList.remove('is-sailing');sailHud.hidden=true;pad.hidden=true;bubble.hidden=true;sailBtn.textContent='⛵ Naviguer';sailBtn.setAttribute('aria-pressed','false');}
-sailBtn.onclick=()=>{sail.on?exitSail():enterSail();sailBtn.blur();canvas.focus();};
+sailBtn.onclick=()=>{sail.on?exitSail():enterSail();sailBtn.blur();canvas.focus({preventScroll:true});};
 pad.querySelectorAll('button').forEach(b=>{const k=b.dataset.k,on=e=>{e.preventDefault();k==='fish'?(nearSpot()&&startFishing(nearSpot())):sail.keys.add(k);},off=()=>sail.keys.delete(k);b.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(t=>b.addEventListener(t,off));});
 const nearSpot=()=>{let best=null,bd=1.6;for(const s of spots){const d=Math.hypot(s.x-fisher.position.x,s.z-fisher.position.z);if(d<bd){bd=d;best=s;}}return best;};
 function updateSail(dt,t){const u=sail,thrust=(u.keys.has('up')?1:0)-(u.keys.has('down')?.55:0),turn=(u.keys.has('left')?1:0)-(u.keys.has('right')?1:0);
@@ -376,10 +376,12 @@ canvas.addEventListener('touchmove',e=>{if(e.touches.length===2){const d=Math.hy
 function pick(e,click){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(ndc,camera);const hit=ray.intersectObjects([world,boat,duck,fisher,pier,...fish,...birds],true).find(h=>h.object.visible&&!(h.object.isLineSegments));canvas.style.cursor=hit&&(hit.object.userData.egg||hit.object.userData.building)?'pointer':'grab';if(!click||!hit)return;const o=hit.object;if(o.userData.egg){const e2=eggs.get(o.userData.egg);e2.action?.();foundEgg(o.userData.egg,e2.text);return;}if(o.userData.building)showCard(o.userData.building.userData.step);}
 document.getElementById('world-pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'▶':'Ⅱ';e.target.setAttribute('aria-label',paused?'Reprendre la rotation':'Mettre en pause');};
 document.getElementById('world-reset').onclick=()=>{exitSail();spin=0;pitch=.62;zoom=28;card.hidden=true;setNight(false);};
-window.addEventListener('keydown',e=>{if(onSailKey(e,true))return;if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;if(e.code==='ArrowLeft')spin-=.08;if(e.code==='ArrowRight')spin+=.08;if(e.key==='+'||e.key==='=')zoom=Math.max(8,zoom-2);if(e.key==='-')zoom=Math.min(40,zoom+2);if(e.code==='Space'){e.preventDefault();document.getElementById('world-pause').click();}});
+window.addEventListener('keydown',e=>{if(onSailKey(e,true))return;if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;if(/^Arrow/.test(e.code))e.preventDefault();if(e.code==='ArrowLeft')spin-=.08;if(e.code==='ArrowRight')spin+=.08;if(e.code==='ArrowUp')pitch=Math.min(1.25,pitch+.04);if(e.code==='ArrowDown')pitch=Math.max(.35,pitch-.04);if(e.key==='+'||e.key==='=')zoom=Math.max(8,zoom-2);if(e.key==='-')zoom=Math.min(40,zoom+2);if(e.code==='Space'){e.preventDefault();document.getElementById('world-pause').click();}});
 const resize=()=>{const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(host);resize();
 const clock=new THREE.Clock();
-function frame(){const dt=Math.min(.05,clock.getDelta()),t=clock.elapsedTime;if(!paused&&!dragging&&!sail.on)spin+=spinVel;
+let perfT=0,perfN=0;
+function frame(){const raw=clock.getDelta(),dt=Math.min(.05,raw),t=clock.elapsedTime;
+ if(raw<.25){perfT+=raw;perfN++;}if(perfT>2){const avg=perfT/perfN;if(avg>.024&&pixelRatio>.9){pixelRatio=Math.max(.85,pixelRatio-.2);renderer.setPixelRatio(pixelRatio);resize();}perfT=perfN=0;}if(!paused&&!dragging&&!sail.on)spin+=spinVel;
  if(sail.goal){const g=sail.goal,k=Math.min(1,dt*2.2);zoom+=(g.zoom-zoom)*k;pitch+=(g.pitch-pitch)*k;if(Math.abs(g.zoom-zoom)<.05)sail.goal=null;}
  // At the helm the camera follows the boat from high above; otherwise it circles the island, shifted clear of the intro text.
  // while fishing, aim a little nearer so the boat sits above the fishing panel
