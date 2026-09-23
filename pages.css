@@ -221,3 +221,51 @@ body.is-night .world-stage::after{background:radial-gradient(ellipse at 50% 45%,
 .drink button{padding:2px 0!important;font:13px var(--mono);line-height:1;box-shadow:1px 1px 0 #1e1e1e!important}
 .drink output{text-align:center;font:12px var(--mono)}
 #alcohol-readout{font:11px var(--mono);margin:4px 0 0!important;padding:4px 6px;background:#1e1e1e;color:#fefefe}
+/* Barre du haut : quatre entrées, deux menus déroulants (Le CV, Projets perso). Une seule ligne, hauteur stable. */
+.theme-nav{flex-wrap:nowrap;align-items:flex-start;position:relative}
+.nav-menu{position:relative}
+.nav-menu>summary{list-style:none;cursor:pointer;padding:9px 30px 9px 12px;font-size:15px;line-height:1.15;border:1px solid var(--ink);background:var(--white);color:var(--ink);position:relative;user-select:none;transition:background-color .16s ease,color .16s ease}
+.nav-menu>summary::-webkit-details-marker{display:none}
+.nav-menu>summary::after{content:"";position:absolute;right:12px;top:50%;width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:translateY(-70%) rotate(45deg);transition:transform .16s ease}
+.nav-menu[open]>summary::after{transform:translateY(-25%) rotate(-135deg)}
+.nav-menu>summary:hover,.nav-menu>summary:focus-visible{background:#ececec}
+.nav-menu>summary.is-current,.nav-menu[open]>summary{background:var(--ink);color:var(--white)}
+.nav-panel{position:absolute;left:0;top:calc(100% + 6px);z-index:60;display:grid;grid-template-columns:repeat(2,minmax(200px,1fr));gap:6px;width:min(520px,calc(100vw - 32px));padding:8px;background:var(--white);border:1px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.theme-nav .nav-panel a{display:flex;flex-direction:column;gap:3px;padding:9px 10px;border:1px solid transparent;font-size:14px}
+.theme-nav .nav-panel a:hover,.theme-nav .nav-panel a:focus-visible{border-color:var(--ink);background:#ececec}
+.theme-nav .nav-panel a small{font:11px var(--mono);opacity:.65;line-height:1.3}
+.theme-nav .nav-panel a[aria-current="page"] small{opacity:.8}
+.theme-nav .nav-panel .nav-all{grid-column:1/-1;border-color:var(--ink)}
+@media(max-width:640px){.theme-nav{flex-wrap:wrap}.nav-menu>summary{font-size:12px;padding:8px 24px 8px 8px}.nav-menu>summary::after{right:9px}.nav-panel{position:fixed;left:16px;right:16px;top:auto;width:auto;grid-template-columns:1fr;max-height:70vh;overflow:auto}}
+html[data-theme="dark"] .nav-menu>summary:hover,html[data-theme="dark"] .theme-nav .nav-panel a:hover{background:#2a2a2a}
+
+/* Les blocs d'information ne bougent plus au survol : seul le contour s'accentue. Les cartes cliquables gardent leur relief. */
+.skill:hover,.quality-grid>article:hover,.impact-benefits>div:hover,.outcome-grid>div:hover,.profile-facts>div:hover,.language-list>div:hover,.timeline-item:hover,.automation-list>article:hover,.profile-copy>p:hover,.flow-steps>li:hover{transform:none!important;box-shadow:none}
+
+/* Synthèse : l'essentiel visible, le détail dans un volet qui s'ouvre au clic. */
+.more{margin-top:10px}
+.more>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:12px var(--mono);border:1px solid currentColor;padding:6px 10px;user-select:none}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::before{content:"+";font-weight:700}
+.more[open]>summary::before{content:"−"}
+.more>summary .more-close,.more[open]>summary .more-open{display:none}
+.more[open]>summary .more-close{display:inline}
+.more>summary:hover,.more>summary:focus-visible{background:var(--ink);color:var(--white)}
+.more-body{margin-top:12px;display:grid;gap:10px}
+.more-body>*{margin:0}
+/* Listes de savoirs et de savoir-être : titres en pastilles, définition au clic. */
+.language-list>details{border:1px solid var(--ink);background:var(--white)}
+.language-list>details>summary{list-style:none;cursor:pointer;padding:10px 12px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.language-list>details>summary::-webkit-details-marker{display:none}
+.language-list>details>summary h4{margin:0}
+.language-list>details>summary::after{content:"+";font:700 13px var(--mono)}
+.language-list>details[open]>summary::after{content:"−"}
+.language-list>details>p{margin:0;padding:0 12px 12px}
+.skill .skill-level{margin-bottom:0}
+/* Projets : cartes resserrées, le détail est sur la page du projet. */
+.project-directory .theme-card p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.automation-lead{margin:6px 0 0}
+.language-list{align-items:start}
+.language-list>details{color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.language-list>details>summary h4{font:13px/1.3 var(--mono);letter-spacing:.02em}
+html[data-theme="dark"] :is(.skill>p,.quality-grid p,.impact-benefits p,.outcome-grid p,.language-list p,.profile-facts dd,.timeline p){color:rgba(254,254,254,.86)!important}
