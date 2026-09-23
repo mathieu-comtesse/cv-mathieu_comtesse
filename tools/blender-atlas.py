@@ -366,7 +366,7 @@ for i in range(9): p.tri((0, 0, cz + 0.02), top[i], top[(i+1) % 9], GREENS[i % l
 p.export('islet', jitter=0.01)
 
 # --- Island: folded hills, a sandy shore and a rock skirt ---------------------
-p = Paper(); bm = p.bm; segs, rings = 44, 7; R = 4.8
+p = Paper(); bm = p.bm; segs, rings = 56, 8; R = 4.8
 def radius_at(a): return R + math.sin(a*3)*0.35 + math.sin(a*7+1)*0.22
 grid = []
 for ring in range(rings + 1):
@@ -375,7 +375,7 @@ for ring in range(rings + 1):
         a = i/segs*math.tau; t = ring/rings; r = radius_at(a)*t
         hill = noise.noise(Vector((math.cos(a)*r*0.45, math.sin(a)*r*0.45, 0.7)))*0.35 + 0.12
         z = max(0.02, hill*(1 - t**3)) if ring else hill + 0.05
-        if t > 0.86: z = 0.02 + (1-t)*0.3   # beach slopes down to the water
+        if t > 0.8: z = 0.02 + (1-t)*0.35   # beach slopes down to the water
         row.append(bm.verts.new(Vector((math.cos(a)*r, math.sin(a)*r, z))))
     grid.append(row)
 centre = grid[0][0]
@@ -383,20 +383,41 @@ for ring in range(rings):
     for i in range(segs):
         a, b = grid[ring][i], grid[ring][(i+1) % segs]; c, d = grid[ring+1][(i+1) % segs], grid[ring+1][i]
         t = (ring + 0.5)/rings
-        col = SAND[i % 3] if t > 0.86 else GRASS[(i + ring) % 4]
+        col = SAND[i % 3] if t > 0.8 else GRASS[(i + ring) % 4]
         if ring == 0: p.paint([bm.faces.new((centre, c, d))], col)
         else:
             for tri in ((a, b, c), (a, c, d)):
                 try: p.paint([bm.faces.new(tri)], col)
                 except ValueError: pass
-bottom = [bm.verts.new(Vector((v.co.x*1.05, v.co.y*1.05, -1.2))) for v in grid[rings]]
-mid = [bm.verts.new(Vector((v.co.x*1.09, v.co.y*1.09, -0.45 + random.uniform(-0.12, 0.12)))) for v in grid[rings]]
-for i in range(segs):
-    a, b = grid[rings][i], grid[rings][(i+1) % segs]; m1, m2 = mid[i], mid[(i+1) % segs]; c, d = bottom[(i+1) % segs], bottom[i]
-    for tri in ((a, b, m2), (a, m2, m1)): p.paint([bm.faces.new(tri)], ROCK[i % 4])
-    for tri in ((m1, m2, c), (m1, c, d)): p.paint([bm.faces.new(tri)], ROCK[(i+2) % 4])
-p.paint([bm.faces.new(bottom[::-1])], ROCK[3])
+# The sand runs on past the tide line and shelves gently under the sea (the water sits at -0.3 here), so the
+# lagoon reads shallow and turquoise over it before the sea floor drops away.
+SHORE = [(1.06, -0.1, '#f4dc9f'), (1.13, -0.27, '#f0d9a4'), (1.21, -0.42, '#ecd6a6'), (1.3, -0.58, '#e3cfa2'), (1.36, -1.2, '#cdbf98')]
+prev = grid[rings]
+for k, (s, z, col) in enumerate(SHORE):
+    ring = [bm.verts.new(Vector((v.co.x*s/(1 + 0.02*k) * (1 + 0.02*k), v.co.y*s, z + (random.uniform(-0.03, 0.03) if k < 4 else 0)))) for v in grid[rings]]
+    for i in range(segs):
+        a, b = prev[i], prev[(i+1) % segs]; c, d = ring[(i+1) % segs], ring[i]
+        for j, tri in enumerate(((a, b, c), (a, c, d))): p.paint([bm.faces.new(tri)], col if (i + j) % 3 else SAND[(i + k) % 3] if k < 2 else col)
+    prev = ring
+p.paint([bm.faces.new(prev[::-1])], ROCK[3])
 p.export('island', jitter=0.03, tint=0.09, outward=False)
+
+# --- Beach palm: a leaning trunk of stacked folded rings and seven fronds, each creased down its spine.
+p = Paper(); lean = 0.22; seg = 6; H = 1.25
+for i in range(seg):
+    t0, t1 = i/seg, (i+1)/seg
+    x0, x1 = lean*t0*t0, lean*t1*t1
+    p.cone(0.075 - 0.025*t0, H/seg*1.02, (x0, 0, H*t0), ['#a8805a', '#8f6a48'][i % 2], segs=6, top_r=0.07 - 0.025*t1)
+top = (lean, 0, H)
+for i in range(7):
+    a = i/7*math.tau + 0.3; L = 0.62 + 0.08*(i % 2); ca, sa = math.cos(a), math.sin(a)
+    mid = (top[0] + ca*L*0.55, sa*L*0.55, H + 0.1); tip = (top[0] + ca*L, sa*L, H - 0.28)
+    w = 0.14; nx, ny = -sa*w, ca*w
+    for side, col in ((1, GREENS[0]), (-1, GREENS[2])):
+        edge = (mid[0] + nx*side, mid[1] + ny*side, mid[2] - 0.05)
+        p.tri(top, mid, edge, col); p.tri(mid, tip, edge, GREENS[3] if side > 0 else GREENS[2])
+for i in range(3): p.cone(0.045, 0.08, (lean + math.cos(i*2.1)*0.06, math.sin(i*2.1)*0.06, H - 0.1), '#6b4a2e', segs=5, top_r=0.03)
+p.export('palm', jitter=0.004, outward=False)
 
 json.dump(models, open(out, 'w'), separators=(',', ':'))
 print('written', out, {k: len(v['color'])//3 for k, v in models.items()})
