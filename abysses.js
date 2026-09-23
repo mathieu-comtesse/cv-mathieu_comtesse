@@ -286,14 +286,15 @@ function updateDust(dt){for(let i=0;i<DUST;i++){const d=dusts[i];if(d.life>0){d.
 // --- Son --------------------------------------------------------------------------------------
 const sound=(()=>{let ac=null,muted=false,amb=null;const api={};
  const noiseBuf=s=>{const b=ac.createBuffer(1,ac.sampleRate*s,ac.sampleRate),d=b.getChannelData(0);let l=0;for(let i=0;i<d.length;i++){const w=Math.random()*2-1;l=(l+w*.02)/1.02;d[i]=l*3.5;}return b;};
- api.start=()=>{if(ac||muted)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C();const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=noiseBuf(4);s.loop=true;f.type='lowpass';f.frequency.value=380;g.gain.value=.5;s.connect(f).connect(g).connect(ac.destination);s.start();amb=g;};
+ // No continuous ambience: only bubbles, brush, sonar and finds make a sound. Audio sleeps when the page is hidden.
+ api.start=()=>{if(ac||muted)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C();document.addEventListener('visibilitychange',()=>{if(document.hidden)ac.suspend();else if(!muted)ac.resume();});};
  const tone=(f0,f1,dur,vol,type='sine',delay=0)=>{if(!ac||muted)return;const t=ac.currentTime+delay,o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0008,t+dur);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur+.05);};
  const hiss=(dur,vol,freq,q=1,delay=0)=>{if(!ac||muted)return;const t=ac.currentTime+delay,s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=noiseBuf(dur+.1);f.type='bandpass';f.frequency.value=freq;f.Q.value=q;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.connect(f).connect(g).connect(ac.destination);s.start(t);};
  api.bubble=()=>{for(let k=0;k<4;k++)tone(300+Math.random()*500,900+Math.random()*700,.07,.025,'sine',k*.06+Math.random()*.05);};
  api.ping=()=>{for(let k=0;k<4;k++)tone(1350,1300,.9,.12/(k+1),'sine',k*.32);};
  api.brush=()=>hiss(.12,.25,2600,2);api.found=()=>{[523,659,784,1046].forEach((f,k)=>tone(f,f,.8,.07,'triangle',k*.11));};
  api.heart=()=>{tone(70,45,.15,.3);tone(70,45,.15,.22,'sine',.22);};
- api.toggle=()=>{muted=!muted;if(ac){amb.gain.value=muted?0:.5;}return muted;};return api;})();
+ api.toggle=()=>{muted=!muted;if(ac){if(muted)ac.suspend();else ac.resume();}return muted;};return api;})();
 
 // --- Commandes et caméra ------------------------------------------------------------------
 const keys={};let yaw=Math.PI,pitch=.22,dist=3.6,drag=null,dragT=0;
