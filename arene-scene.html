@@ -4,7 +4,8 @@
 :root{--ink:#f3ecff;--bg:#0b0812;--panel:#16111f;--line:#3a3249;--gold:#ffc233}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:18px/1.2 VT323,monospace;overflow:hidden}
 .stage{position:relative;width:100%;height:100%;display:grid;place-items:center}
-#arena-canvas{width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16/9;image-rendering:pixelated;image-rendering:crisp-edges;display:block;outline:none}
+#arena-canvas,#arena-hud{width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16/9;image-rendering:pixelated;image-rendering:crisp-edges;display:block;outline:none}
+#arena-canvas,#arena-hud{grid-area:1/1}#arena-hud{pointer-events:none;image-rendering:auto}
 .overlay{position:absolute;inset:0;overflow:auto;padding:14px;background:linear-gradient(180deg,rgba(11,8,18,.55),rgba(11,8,18,.88))}
 .overlay[hidden]{display:none}
 .menu{max-width:980px;margin:0 auto;display:grid;gap:10px}
@@ -27,7 +28,7 @@ kbd{display:inline-block;min-width:22px;text-align:center;background:#2a2233;bor
 @media (hover:none) and (pointer:coarse){.pad{display:flex}}
 @media(max-width:720px){.row,#skills-info{grid-template-columns:1fr}.picks{grid-template-columns:repeat(2,1fr)}h1{font-size:34px}}
 </style></head>
-<body><div class="stage"><canvas id="arena-canvas" tabindex="0" aria-label="Arène de combat en pixel art. Joueur 1 : Q D pour marcher, Z pour sauter, S pour se garder, F attaque, G et H compétences, R ultime. Échap : pause."></canvas>
+<body><div class="stage"><canvas id="arena-canvas" tabindex="0" aria-label="Arène de combat en pixel art. Joueur 1 : Q D pour marcher, Z pour sauter, S pour se garder, F attaque, G et H compétences, R ultime. Échap : pause."></canvas><canvas id="arena-hud" aria-hidden="true"></canvas>
 <div class="pad" aria-hidden="true"><div><button data-pad="left">◀</button><button data-pad="up">▲</button><button data-pad="down">▼</button><button data-pad="right">▶</button></div><div><button data-pad="atk">A</button><button data-pad="s1">1</button><button data-pad="s2">2</button><button data-pad="ult">★</button></div></div>
 <div class="overlay" id="arena-menu"><div class="menu">
  <h1>Arène des arcanes<small>Mages, prêtresse, chevalier et nécromancienne s’affrontent en pixel art</small></h1>
@@ -41,4 +42,4 @@ kbd{display:inline-block;min-width:22px;text-align:center;background:#2a2233;bor
 </div></div>
 <div class="overlay end" id="arena-end" hidden><div><h2 id="end-title"></h2><p id="end-stats"></p><p><button class="act main" id="again" type="button">Revanche</button> <button class="act" id="to-menu" type="button">Changer de combattants</button></p></div></div>
 </div>
-<script src="arene.js?v=20260923-1" defer></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
+<script src="arene.js?v=20260924-1" defer></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
