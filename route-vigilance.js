@@ -164,20 +164,24 @@ function render(dt){
  if(r.crashed){const pulse=.28+.18*Math.sin(crashAge*6);const v=g.createRadialGradient(w/2,h/2,Math.min(w,h)*.25,w/2,h/2,Math.max(w,h)*.7);v.addColorStop(0,'rgba(200,20,40,0)');v.addColorStop(1,`rgba(200,20,40,${reduced?.35:pulse+.15})`);g.fillStyle=v;g.fillRect(0,0,w,h);g.strokeStyle='#ff3b50';g.lineWidth=10;g.strokeRect(5,5,w-10,h-10);}
  if(r.flash>0&&!r.crashed){g.fillStyle=`rgba(235,35,48,${reduced?.18:.12+.2*(.5+.5*Math.cos(r.flash*Math.PI*4))})`;g.fillRect(0,0,w,h);g.strokeStyle='#ff3b50';g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);}
  if(model&&!r.crashed&&!paused)decisionPanel(r);
- if(r.crashed||paused||!model){g.fillStyle='#0c1420bd';g.fillRect(0,h*.35,w,h*.26);g.textAlign='center';g.fillStyle=r.crashed?'#ff6b74':'#f3f8ff';g.font=`bold ${Math.min(30,w/13)}px monospace`;g.fillText(r.crashed?'ACCIDENT':paused?'PAUSE':'PRENDRE LE VOLANT',w/2,h*.44);g.font='13px monospace';g.fillStyle='#fff';g.fillText(r.crashed?(r.message||'')+' Recommencer pour repartir.':paused?'Reprendre avec le bouton de conduite':'ZQSD · Maj gauche / Ctrl gauche',w/2,h*.50);g.textAlign='left';}
  $('road-hud').textContent=`${Math.round(r.speed)} km/h · limite ${r.limit} · ${Math.round(r.time)} / 90 s · ${r.violations||0} infraction(s)`;
  if(model){c.dataset.running=String(r.running&&!paused);c.dataset.speed=Math.round(r.speed);c.dataset.distance=Math.round(r.distance);c.dataset.collisions=r.collisions;c.dataset.violations=r.violations;c.dataset.crashed=String(r.crashed);c.dataset.limit=r.limit;if($('road-status').textContent!==r.message)$('road-status').textContent=r.message;}
 }
 // Impairment: blur, double vision and a warm tint grow with the estimated blood alcohol and the psychoactive setting.
+// The accident / pause window sits on top of the game: it is drawn after the impairment pass, so it stays sharp.
+function banner(r){if(!(r.crashed||paused||!model))return;const x=out;x.save();x.filter='none';x.globalAlpha=1;
+ x.fillStyle='#0c1420bd';x.fillRect(0,h*.35,w,h*.26);x.strokeStyle=r.crashed?'#ff3b50':'#f3f8ff55';x.lineWidth=2;x.strokeRect(1,h*.35,w-2,h*.26);
+ x.textAlign='center';x.fillStyle=r.crashed?'#ff6b74':'#f3f8ff';x.font=`bold ${Math.min(30,w/13)}px monospace`;x.fillText(r.crashed?'ACCIDENT':paused?'PAUSE':'PRENDRE LE VOLANT',w/2,h*.44);
+ x.font='13px monospace';x.fillStyle='#fff';x.fillText(r.crashed?(r.message||'')+' Recommencer pour repartir.':paused?'Reprendre avec le bouton de conduite':'ZQSD · Maj gauche / Ctrl gauche',w/2,h*.50);x.restore();}
 function present(r){const alcohol=Number(r.settings?.alcohol)||0,drug=r.settings?.drug==='none'?0:Number(r.settings?.level)||0,kind=r.settings?.drug;
  const blur=Math.min(7,alcohol*2.6+(kind==='sedating'?drug*4:drug*1.5)),ghost=Math.min(16,alcohol*7+(kind==='perception'?drug*14:drug*3)),sway=alcohol*3+(kind==='stimulating'?drug*6:drug*2);
  out.setTransform(1,0,0,1,0,0);out.clearRect(0,0,c.width,c.height);const d=Math.min(devicePixelRatio,1.75);out.setTransform(d,0,0,d,0,0);
- if(reduced||(blur<.05&&ghost<.05)){out.filter='none';out.globalAlpha=1;out.drawImage(buffer,0,0,w,h);return;}
+ if(reduced||(blur<.05&&ghost<.05)){out.filter='none';out.globalAlpha=1;out.drawImage(buffer,0,0,w,h);banner(r);return;}
  const t=performance.now()/1000,dx=Math.cos(t*.9)*ghost,dy=Math.sin(t*1.3)*ghost*.5;
  out.filter=`blur(${blur.toFixed(2)}px) saturate(${(1-Math.min(.5,alcohol*.2)).toFixed(2)})`;
  out.globalAlpha=1;out.drawImage(buffer,Math.sin(t*1.1)*sway,Math.cos(t*.7)*sway*.6,w,h);
  out.globalAlpha=Math.min(.55,alcohol*.32+drug*.3);out.drawImage(buffer,dx,dy,w,h);
  out.filter='none';out.globalAlpha=1;
- if(alcohol>.2||drug>.2){const v=out.createRadialGradient(w/2,h/2,Math.min(w,h)*.3,w/2,h/2,Math.max(w,h)*.62);v.addColorStop(0,'rgba(20,10,0,0)');v.addColorStop(1,`rgba(20,10,0,${Math.min(.5,alcohol*.22+drug*.25).toFixed(2)})`);out.fillStyle=v;out.fillRect(0,0,w,h);}}
+ if(alcohol>.2||drug>.2){const v=out.createRadialGradient(w/2,h/2,Math.min(w,h)*.3,w/2,h/2,Math.max(w,h)*.62);v.addColorStop(0,'rgba(20,10,0,0)');v.addColorStop(1,`rgba(20,10,0,${Math.min(.5,alcohol*.22+drug*.25).toFixed(2)})`);out.fillStyle=v;out.fillRect(0,0,w,h);}banner(r);}
 function frame(t){const dt=Math.min(.04,(t-last)/1000||.016);last=t;if(model?.running&&!paused){model.step(dt,{...keys,gas:keys.gas||keys.up});if(!model.running&&!finished)finish();}if(model?.crashed){if(crashAge===0)crashSound();/* crashSound() silences the engine and the tyres itself */crashAge+=dt;}if(model)engineSound(model);render(dt);present(model||{settings:{}});requestAnimationFrame(frame);}c.redraw=()=>{render(.016);present(model||{settings:{}});};requestAnimationFrame(frame);
 })();
