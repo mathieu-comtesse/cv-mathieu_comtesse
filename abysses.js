@@ -365,7 +365,7 @@ function stepPlay(dt){state.time+=dt;state.sonarCd-=dt;state.sonarT-=dt;dragT-=d
  if(state.air<=0){state.dives++;state.air=1;diver.position.set(START.x,ground(START.x,START.z),START.z+1.5);state.speed=0;state.vy=0;state.onGround=true;$('abyss-flash').classList.remove('go');void $('abyss-flash').offsetWidth;$('abyss-flash').classList.add('go');}
  // digging
  const t=state.time;state.near=null;for(const it of ITEMS){if(it.found)continue;if(it.pos.distanceTo(diver.position)<2.4){state.near=it;break;}}
- if(brushing){const it=state.near;it.dig=Math.min(1,it.dig+dt/2.6);if(Math.random()<.6){if(rig.brush_tip){rig.brush_tip.getWorldPosition(_p);puff(_p,2);}else puff(it.pos,2);}if(Math.floor(t*8)!==Math.floor((t-dt)*8))sound.brush();
+ if(brushing&&state.near){const it=state.near;it.dig=Math.min(1,it.dig+dt/2.6);if(Math.random()<.6){if(rig.brush_tip){rig.brush_tip.getWorldPosition(_p);puff(_p,2);}else puff(it.pos,2);}if(Math.floor(t*8)!==Math.floor((t-dt)*8))sound.brush();
   it.mound.scale.set(1-it.dig*.4,.45*(1-it.dig),1-it.dig*.4);it.obj.position.y=it.pos.y-.25+it.dig*.55;it.obj.rotation.z=.35*(1-it.dig);if(it.dig>=1)discover(it);}
  const pr=$('abyss-prompt');if(state.near){pr.hidden=false;pr.querySelector('span').textContent=state.near.dig>0?`Dégager au pinceau : ${Math.round(state.near.dig*100)} %`:'Maintenir E pour dégager au pinceau';pr.querySelector('i').style.width=state.near.dig*100+'%';}else pr.hidden=true;
  uni.uDiver.value.copy(diver.position);}
@@ -384,7 +384,7 @@ function hud(){const a=state.air,deg=a*360;$('air-ring').style.background=`conic
 let last=performance.now(),perfT=0,perfN=0,quality=0;
 function degrade(){if(quality>=3)return;quality++;if(quality===1){grassMesh.count=12000;fish.count=1100;post.comp.uniforms.uSteps.value=16;}else if(quality===2){pixelRatio=Math.max(.6,pixelRatio-.4);renderer.setPixelRatio(pixelRatio);resize();post.comp.uniforms.uSteps.value=12;}else{grassMesh.count=5000;fish.count=500;post.bloom=false;post.comp.uniforms.uSteps.value=8;}}
 if(new URLSearchParams(location.search).has('lite')){quality=2;degrade();grassMesh.count=3000;fish.count=300;}
-function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!state.paused){uni.uTime.value+=dt;
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;if(!state.paused){uni.uTime.value+=dt;
  if(state.mode==='play')stepPlay(dt);
  if(state.mode==='title'){yaw+=dt*.08;pitch=.28;}
  if(state.mode==='ending'){state.endT+=dt;if(state.endT>2.5){diver.position.y+=dt*2.2;for(const k in rig.w){rig.w[k]=lerp(rig.w[k],k==='bound'?1:0,Math.min(1,dt*4));rig.act[k].setEffectiveWeight(rig.w[k]);}}if(state.endT>3.2&&$('abyss-end').hidden){$('abyss-end').hidden=false;$('end-summary').textContent=`Les huit babioles sont au carnet en ${fmtT(state.time)}, avec ${state.dives} plongée${state.dives>1?'s':''}. Le musée le plus absurde de la Méditerranée ouvre ses portes.`;}}
@@ -395,8 +395,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!state.pa
  diver.updateMatrixWorld();updateHose();placeCamera(dt,false);if(state.mode!=='title')hud();}
  post.render();
  // Adaptive quality: on a slow machine, fewer grass blades and fish, then a lower resolution.
- perfT+=Math.min(dt,.5);perfN++;if(perfT>2){if(perfT/perfN>.03)degrade();perfT=perfN=0;}
- requestAnimationFrame(frame);}
+ perfT+=Math.min(dt,.5);perfN++;if(perfT>2){if(perfT/perfN>.03)degrade();perfT=perfN=0;}}
 function resize(){const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);post.setSize(Math.max(1,Math.round(r.width*pixelRatio)),Math.max(1,Math.round(r.height*pixelRatio)));camera.aspect=r.width/Math.max(1,r.height);camera.updateProjectionMatrix();}
 new ResizeObserver(resize).observe(host);resize();placeCamera(0,true);requestAnimationFrame(frame);
 window.AbyssGame={state,ITEMS,diver,discover,sonar,dive,keys,rig,
