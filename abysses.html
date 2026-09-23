@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr"><head><script>(() => {
+  const root = document.documentElement;
+  const preference = window.matchMedia('(prefers-color-scheme: dark)');
+  let mode = 'auto';
+  try { const saved = localStorage.getItem('cv-theme'); if (['auto', 'light', 'dark'].includes(saved)) mode = saved; } catch (_) {}
+  const labels = {auto: 'Auto', light: 'Clair', dark: 'Sombre'};
+  function apply() {
+    root.dataset.theme = mode === 'auto' ? (preference.matches ? 'dark' : 'light') : mode;
+    const button = document.getElementById('theme-toggle');
+    if (button) {
+      button.querySelector('span').textContent = 'Apparence : ' + labels[mode];
+      const next = {auto:'light', light:'dark', dark:'auto'}[mode];
+      button.setAttribute('aria-label', 'Apparence : ' + labels[mode] + '. Passer en mode ' + labels[next] + '.');
+      button.title = 'Auto suit le navigateur et le système. Cliquer pour changer.';
+    }
+  }
+  apply();
+  preference.addEventListener('change', apply);
+  document.addEventListener('DOMContentLoaded', () => {
+    apply();
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      mode = {auto:'light', light:'dark', dark:'auto'}[mode];
+      try { localStorage.setItem('cv-theme', mode); } catch (_) {}
+      apply();
+    });
+  });
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Mathieu Comtesse - un profil associant M2 MQSE et développement numérique : prévention et co-activité, maintenance réglementaire, méthodes qualité, extraction de données, automatisation et Power BI au service des équipes.">
+<meta name="theme-color" content="#fefefe">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mathieu Comtesse">
+<meta property="og:title" content="Abysses & babioles">
+<meta property="og:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils. Studio d’extracteurs PDF, extracteurs CERFA et VRE, chaîne Power Automate des plans de prévention, portail Power BI, méthode qualité et enquête terrain.">
+<meta property="og:url" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/abysses.html">
+<meta property="og:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="Prévenir, vérifier, maintenir. Du terrain à la conformité.">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Abysses & babioles — Mathieu Comtesse">
+<meta name="twitter:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils.">
+<meta name="twitter:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
+<title>Abysses & babioles — Mathieu Comtesse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@300;400;700&amp;family=VT323&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="app.js?v=20260923-fluide" defer=""></script>
+<style>
+/* Mécanique des trains (gravures) et du curseur - inchangée. */
+.railway{margin-top:0}
+.rail-art{position:relative;width:100%;aspect-ratio:1997 / 787;background:#fff;mix-blend-mode:multiply;overflow:hidden;isolation:isolate;--rail-top:47.649301%}
+.bridge-fixed{position:absolute;inset:0;width:100%;height:100%;max-width:none;z-index:3;clip-path:inset(47.395172% 0 0);pointer-events:none}
+.train-runner{position:absolute;left:0;top:var(--rail-top);z-index:2;pointer-events:none;will-change:transform}
+.train-runner[hidden]{display:none}
+.train-window{position:relative;width:100%;height:100%;transform:translateY(-100%);overflow:hidden}
+.train-window img{display:block;position:absolute;left:0;width:100%;max-width:none;height:auto}
+.steam-passage{position:absolute;inset:0;z-index:2;clip-path:inset(0 0 52.604828%);pointer-events:none}
+.steam-passage[hidden]{display:none}
+.rail-art .steam-video{position:absolute;left:0;top:-1.85%;width:100%;height:auto;max-width:none;display:block;transform:none;mix-blend-mode:normal}
+.tgv-sprite{width:125%;aspect-ratio:2172 / 166;transform:translate3d(-100%,0,0)}
+.tgv-sprite img{top:-156.626506%}
+html[data-theme="dark"] .rail-art{filter:invert(1) grayscale(1);mix-blend-mode:screen;opacity:.72}
+html[data-theme="dark"] .rail-art .steam-video{filter:none;mix-blend-mode:normal;opacity:1}
+/* Curseur : flèche croquis hachurée (49×62, inclinée de 22°, pointe en 1,0). Quand app.js active le calque « négatif » (.cursor-ghost), le curseur passe à la version « traits seuls » pour laisser voir l’inversion entre les hachures. */
+:root{--cv-cursor:url("assets/cursor-sketch-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto){:root{--cv-cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,pointer}}
+html.has-ghost{--cv-cursor:url("assets/cursor-sketch-lines-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-lines-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto){html.has-ghost{--cv-cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,pointer}}
+@media (hover:hover) and (pointer:fine){
+body{cursor:var(--cv-cursor)}
+html body :is(a,button,summary,[role="button"],.scene-step,.scene-toggle,.theme-toggle),html body :is(a,button,summary,[role="button"]) *{cursor:var(--cv-action)}
+html body :is(input,textarea,[contenteditable="true"]){cursor:text}
+html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
+}
+
+
+/* Coins « ⌐ ¬ » : les blocs de bande gardent un peu d’air pour les marques d’angle. */
+.band>.wrap.corners{padding-block:26px}
+</style><link rel="stylesheet" href="pages.css?v=20260923-nav2"><script src="pages.js?v=20260923-nav2" defer=""></script></head>
+<body data-page="projets"><svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs><pattern id="ts-dots" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" style="fill:var(--white)"></rect><rect x="1.25" y="1.25" width="1.1" height="1.1" style="fill:var(--ink)"></rect></pattern><pattern id="ts-dots-dense" patternUnits="userSpaceOnUse" width="3" height="3"><rect width="3" height="3" style="fill:var(--white)"></rect><rect x="0.5" y="0.5" width="1.6" height="1.6" style="fill:var(--ink)"></rect></pattern></defs></svg>
+<a class="skip-link" href="#contenu">Aller au contenu</a><header class="site-header"><div class="site-identity"><a class="site-name" href="index.html">Mathieu Comtesse</a><button class="theme-toggle" id="theme-toggle" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"></path></svg><span>Apparence : Auto</span></button></div><nav class="theme-nav" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="profil.html">Profil</a><details class="nav-menu"><summary>Compétences</summary><div class="nav-panel"><a class="nav-all" href="competences.html">Compétences<small>Toute la page</small></a><a href="competences.html#savoirs">Savoirs<small>Ce que je connais</small></a><a href="competences.html#savoir-faire-mqse">Savoir-faire MQSE<small>Qualité, audit, prévention, habilitations</small></a><a href="competences.html#savoir-faire-numerique">Savoir-faire numérique<small>Power BI, extraction, automatisation</small></a><a href="competences.html#langages">Langages<small>Coder, interroger, communiquer</small></a><a href="competences.html#savoir-etre">Savoir-être<small>Comment je travaille</small></a></div></details><details class="nav-menu"><summary>Projets</summary><div class="nav-panel"><a class="nav-all" href="projets.html">Projets<small>Toute la page</small></a><a href="projet-studio.html">Studio d’extracteurs PDF<small>Un extracteur sans coder</small></a><a href="projet-charte.html">Interface commune<small>Une UI/UX pour tous les outils</small></a><a href="projet-1.html">CERFA v2<small>Fiches d’intervention → données du parc</small></a><a href="projet-vre.html">Extracteur VRE<small>Rapports de vérification électrique</small></a><a href="projet-2.html">Retrouver tout le suivi<small>OT, équipement, bâtiment</small></a><a href="projet-3.html">PP &amp; MOSO<small>Du dépôt à la consultation</small></a><a href="projet-4.html">Power BI<small>Tableaux de bord et portail</small></a><a href="projet-5.html">Dialogue terrain<small>Processus EPM / EPTx</small></a></div></details><details class="nav-menu"><summary>Power Automate</summary><div class="nav-panel"><a class="nav-all" href="automatisations.html">Power Automate<small>Toute la page</small></a><a href="automatisations.html#flux-pp">Chaîne PP<small>VM reliée au cloud</small></a><a href="automatisations.html#flux-alertes">Alertes financières<small>Dépassements par périmètre</small></a><a href="automatisations.html#flux-mails">Mails du matin<small>Récapitulatif quotidien</small></a><a href="automatisations.html#flux-relances">Demandes sans réponse<small>Suivi et relances</small></a></div></details><a href="methode.html">Qualité &amp; Lean</a><a href="parcours.html">Parcours</a><details class="nav-menu"><summary class="is-current">Projets perso</summary><div class="nav-panel"><a class="nav-all" href="projets-perso.html">Projets perso<small>Toute la page</small></a><a href="atlas.html">Atlas du parcours<small>L’île en origami</small></a><a href="labyrinthe.html">Labyrinthe<small>Carte et vue subjective</small></a><a href="route-vigilance.html">Route &amp; vigilance<small>Conduite et vigilance</small></a><a href="arene.html">Arène des arcanes<small>Combat en pixel art</small></a><a href="abysses.html" aria-current="page">Abysses &amp; babioles<small>Fouilles sous-marines</small></a><a href="firewood.html">Timber !<small>Fendre du bois en 3D</small></a><a href="rubik.html">Rubik’s Cube<small>Permutations et graphes</small></a><a href="sandboard.html">Sandboard<small>Dessiner dans le sable</small></a><a href="pixels.html">Pixels<small>Une grille qui s’échauffe</small></a><a href="fond-ecran-gouache.html">Fond d’écran Gouache<small>Aquarium animé</small></a></div></details><a href="contact.html">Contact</a></nav></header><main id="contenu" tabindex="-1">
+<section class="band band--gouache band--project" id="abysses"><div class="wrap corners">
+ <div class="section-label"><span>Projet personnel</span><span>Exploration sous-marine</span></div>
+ <div class="section-heading"><h1 class="page-title">Abysses &amp; babioles, <em>fouilles sous-marines.</em></h1><p>Un scaphandrier en laiton explore un fond marin en 3D : épave, herbiers, coraux et bancs de poissons. Huit objets dorment sous le sable, entre vraie archéologie et franche absurdité ; il faut les dégager au pinceau et les inscrire au carnet.</p></div>
+ <figure class="gouache-preview preview--wide"><iframe src="abysses-scene.html?v=20260923-1" title="Abysses & babioles : scène interactive" loading="lazy" allowfullscreen allow="autoplay; fullscreen"></iframe><figcaption>Glisser la souris : regarder · Z Q S D ou flèches : nager · Espace : monter · Maj : descendre · E maintenu : pinceau · R : sonar · J : carnet · L’air se recharge à la ligne de mouillage</figcaption></figure>
+ <div class="quality-grid gouache-features"><article><span class="skill-kicker">Monde</span><h3>Un fond marin vivant</h3><p>2 047 poissons en bancs qui s’écartent au passage du plongeur, 25 000 brins d’herbier qui ondulent et se couchent, caustiques sur le sable, rayons de lumière et neige marine.</p></article><article><span class="skill-kicker">Fouilles</span><h3>Huit babioles à dégager</h3><p>Mécanisme d’Anticythère, amphore de garum, casque corinthien, canard de 1992, tablette de cire, chat qui juge, miroir étrusque, ancre de Massalia : chaque fiche mêle un fait réel et une touche d’humour.</p></article><article><span class="skill-kicker">Plongée</span><h3>Air, sonar et carnet</h3><p>La réserve d’air baisse, le sonar indique la babiole la plus proche, le carnet de fouilles garde la collection jusqu’à la remontée finale.</p></article></div>
+ <div class="gouache-stack"><strong>Compétences mobilisées</strong><span>Three.js (WebGL) · shaders GLSL écrits à la main (sable, caustiques, herbier, surface, neige marine) · InstancedMesh (poissons, herbes, bulles) · géométries fusionnées · caméra à la troisième personne · qualité adaptative · Web Audio · Pointer Events · GitHub Pages</span></div>
+</div></section>
+<nav class="page-trail wrap" aria-label="Continuer la visite"><a href="arene.html"><span>Retour</span>Arène des arcanes</a><a href="labyrinthe.html"><span>Projet interactif</span>Labyrinthe</a></nav>
+<script>/* Le clavier atteint la scène intégrée : survol ou clic sur le cadre, puis les touches de jeu lui sont transmises. */(()=>{const f=document.querySelector('.gouache-preview iframe');if(!f)return;let over=false;const fig=f.parentElement;fig.addEventListener('pointerenter',()=>{over=true;});fig.addEventListener('pointerleave',()=>{over=false;});fig.addEventListener('pointerdown',()=>{try{f.contentWindow.focus();}catch(_){}});const keys=['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','ShiftLeft','ShiftRight','KeyC','KeyE','KeyR','KeyJ','Escape','Enter'];for(const type of ['keydown','keyup'])window.addEventListener(type,e=>{if(!(over||document.activeElement===f)||!keys.includes(e.code)||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;e.preventDefault();try{f.contentWindow.dispatchEvent(new KeyboardEvent(type,{code:e.code,key:e.key,shiftKey:e.shiftKey,ctrlKey:e.ctrlKey,repeat:e.repeat,bubbles:true,cancelable:true}));}catch(_){}});})();</script></main><footer class="site-footer"><span>© 2026 Mathieu Comtesse · Qualité · Sécurité · Numérique</span><a href="contact.html">Me contacter</a></footer></body></html>

@@ -220,7 +220,18 @@ body.is-night .world-stage::after{background:radial-gradient(ellipse at 50% 45%,
 .drink{display:grid;grid-template-columns:1fr 26px 26px 26px;align-items:center;gap:4px;font:11px var(--mono)}
 .drink button{padding:2px 0!important;font:13px var(--mono);line-height:1;box-shadow:1px 1px 0 #1e1e1e!important}
 .drink output{text-align:center;font:12px var(--mono)}
-#alcohol-readout{font:11px var(--mono);margin:4px 0 0!important;padding:4px 6px;background:#1e1e1e;color:#fefefe}
+.bac{margin-top:4px;padding:7px 8px 8px;background:#1e1e1e;color:#fefefe}
+body[data-page="route-vigilance"] .driving-settings .bac :is(p,span){color:#fefefe!important}
+#alcohol-readout{display:block;font:10.5px var(--mono);white-space:nowrap}
+.bac-gauge{position:relative;height:6px;margin:8px 0 17px;background:#454545}
+#bac-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:#7ee0b0;transition:width .25s,background-color .25s}
+.bac[data-level="warn"] #bac-fill{background:#f5c26b}.bac[data-level="over"] #bac-fill{background:#ff6b74}.bac[data-level="crime"] #bac-fill{background:#ff3b50}
+.bac-gauge b{position:absolute;top:-3px;width:1px;height:12px;background:#fefefe}
+.bac-gauge em{position:absolute;right:0;top:9px;font:normal 9px var(--mono);color:#bdbdbd}.bac-gauge b::after{content:attr(data-l);position:absolute;top:12px;left:50%;transform:translateX(-50%);font:9px var(--mono);color:#bdbdbd;white-space:nowrap}
+body[data-page="route-vigilance"] .settings-body #bac-verdict{font:11px/1.45 var(--mono);margin:0}
+.bac[data-level="over"] #bac-verdict,.bac[data-level="crime"] #bac-verdict{color:#ffb3b8!important}
+.run-compare{width:100%;border-collapse:collapse;font:11px/1.35 var(--mono);margin:6px 0}.run-compare :is(th,td){border-bottom:1px solid #1e1e1e33;padding:3px 4px;text-align:left;vertical-align:top}.run-compare thead th{border-bottom-color:#1e1e1e}
+body[data-page="route-vigilance"] #road-results p{margin:6px 0}body[data-page="route-vigilance"] #road-results .prevention{border-left:3px solid #d8262f;padding-left:8px}
 /* Barre du haut : quatre entrées, deux menus déroulants (Le CV, Projets perso). Une seule ligne, hauteur stable. */
 .theme-nav{flex-wrap:wrap;align-items:flex-start;position:relative}
 .nav-menu{position:relative}

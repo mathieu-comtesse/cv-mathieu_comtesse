@@ -1,0 +1,50 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abysses &amp; babioles — scène</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f4ead2;--dim:#b9c7c4;--gold:#e8c983;--line:rgba(244,234,210,.35)}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#06222c;color:var(--ink);font:17px/1.4 "Cormorant Garamond",Georgia,serif;overflow:hidden}
+#abyss-stage{position:fixed;inset:0}#abyss-canvas{display:block;width:100%;height:100%;outline:none;touch-action:none;cursor:grab}#abyss-canvas:active{cursor:grabbing}
+[hidden]{display:none!important}
+.title{position:absolute;inset:0;display:grid;align-content:center;padding:6vw;background:linear-gradient(90deg,rgba(3,20,28,.8),rgba(3,20,28,.2) 60%,transparent)}
+.title h1{margin:0;font-size:clamp(40px,6vw,76px);letter-spacing:.08em;font-weight:600;color:var(--gold);text-shadow:0 2px 20px rgba(0,0,0,.5)}
+.title p{max-width:520px;font-style:italic;font-size:clamp(17px,1.6vw,21px);color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:8px 20px;border:1px solid var(--line);border-radius:999px;background:rgba(3,20,28,.55);color:var(--ink);font:600 18px "Cormorant Garamond",serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.btn:hover{border-color:var(--gold)}kbd{font:11px "JetBrains Mono",monospace;background:var(--ink);color:#06222c;border-radius:4px;padding:1px 6px;letter-spacing:0;text-transform:none}
+.keys{position:absolute;left:18px;bottom:14px;display:flex;flex-wrap:wrap;gap:12px;font:12px "JetBrains Mono",monospace;color:var(--dim)}.keys span{display:flex;gap:5px;align-items:center}
+.hud{position:absolute;inset:0;pointer-events:none}
+.obj{position:absolute;left:18px;top:14px;font-size:17px}.obj small{display:block;color:var(--dim);font-style:italic}.slots{display:flex;gap:6px;margin-top:6px}.slots i{width:14px;height:14px;border-radius:50%;border:1px solid var(--gold)}.slots i.on{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.air{position:absolute;right:18px;top:14px;display:flex;gap:10px;align-items:center;text-align:right;font:12px "JetBrains Mono",monospace;color:var(--dim)}
+#air-ring{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;position:relative}#air-ring::after{content:"";position:absolute;inset:4px;border-radius:50%;background:rgba(3,20,28,.8)}#air-ring b{position:relative;z-index:1;font:10px "JetBrains Mono",monospace;color:var(--ink)}
+.air strong{display:block;font:15px "JetBrains Mono",monospace;color:var(--ink)}.hud.low .air strong{color:#ff8f96;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.4}}
+.hud-btns{position:absolute;right:18px;top:66px;display:flex;gap:6px;pointer-events:auto}.hud-btns .btn{font-size:13px;padding:4px 12px}
+#abyss-prompt{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);min-width:280px;text-align:center;padding:8px 16px;background:rgba(3,20,28,.65);border:1px solid var(--line);border-radius:10px}#abyss-prompt div{height:3px;background:rgba(255,255,255,.15);margin-top:6px}#abyss-prompt i{display:block;height:100%;background:var(--gold);width:0}
+#abyss-rope{position:absolute;left:50%;top:18%;transform:translateX(-50%);font-style:italic;color:#bff4ff}
+#abyss-sonar{position:absolute;left:50%;top:70px;transform:translateX(-50%);display:grid;justify-items:center;gap:2px;font:13px "JetBrains Mono",monospace;color:#bff4ff}#abyss-sonar b{width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:22px solid #9ff3ff;filter:drop-shadow(0 0 6px #9ff3ff)}
+.card{position:absolute;right:18px;bottom:18px;width:min(420px,calc(100% - 36px));padding:18px 20px;background:rgba(6,30,38,.9);border:1px solid var(--gold);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.card h2{margin:0;color:var(--gold);font-size:25px;line-height:1.1}.card em{display:block;color:var(--dim);margin:4px 0 8px}.card p{margin:0 0 8px}.card small{font:11px "JetBrains Mono",monospace;color:var(--dim)}.card .btn{margin-top:6px;font-size:13px;padding:4px 14px}
+.journal{position:absolute;left:18px;top:90px;width:min(360px,calc(100% - 36px));max-height:calc(100% - 120px);overflow:auto;padding:14px 16px;background:rgba(6,30,38,.9);border:1px solid var(--line);border-radius:12px;pointer-events:auto}
+.journal h3{margin:0 0 6px;color:var(--gold)}.journal ol{margin:0;padding-left:20px;display:grid;gap:6px}.journal li small{display:block;color:var(--dim);font-style:italic}.journal li:not(.got) b{color:var(--dim)}
+.end{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,rgba(3,20,28,.35),rgba(3,20,28,.85))}.end h2{font-size:clamp(28px,4vw,48px);letter-spacing:.1em;color:var(--gold);margin:0 0 10px;font-weight:600}.end p{max-width:560px;margin:0 auto 16px;font-size:20px}
+#abyss-pause{position:absolute;inset:0;display:grid;place-items:center;background:rgba(3,20,28,.6);font-size:32px;letter-spacing:.2em}
+#abyss-flash{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}#abyss-flash.go{animation:blackout 2.4s}@keyframes blackout{0%{opacity:0}30%,55%{opacity:1}100%{opacity:0}}
+.touch{position:absolute;bottom:12px;left:12px;right:12px;display:none;justify-content:space-between;pointer-events:none}.touch div{display:grid;grid-template-columns:repeat(3,46px);gap:5px;pointer-events:auto}.touch button{height:46px;background:rgba(3,20,28,.6);color:var(--ink);border:1px solid var(--line);border-radius:10px;font:14px "JetBrains Mono",monospace;touch-action:none}
+@media (hover:none) and (pointer:coarse){.touch{display:flex}.keys{display:none}#abyss-prompt{bottom:130px}}
+</style></head>
+<body><div id="abyss-stage"><canvas id="abyss-canvas" tabindex="0" aria-label="Plongée sous-marine en 3D. Z Q S D ou flèches pour nager, Espace pour monter, Maj pour descendre, glisser la souris pour regarder, E maintenu pour dégager un objet, R pour le sonar, J pour le carnet."></canvas>
+<div class="title" id="abyss-title"><h1>ABYSSES &amp; BABIOLES</h1><p>Au large de Massalia, un archéologue du dimanche enfile un scaphandre en laiton. Huit objets dorment sous le sable : certains sont historiques, d’autres franchement absurdes. Les dégager au pinceau, les inscrire au carnet.</p><div><button class="btn" id="abyss-dive" type="button"><kbd>Espace</kbd> Plonger</button></div></div>
+<div class="hud" id="abyss-hud" hidden>
+ <div class="obj">Retrouver les babioles englouties · <span id="abyss-count"></span><small>Le sonar (R) indique la plus proche</small><div class="slots" id="abyss-slots"></div></div>
+ <div class="air"><div>AIR<strong id="air-time">4:00</strong>prof. <span id="abyss-depth">0 m</span></div><div id="air-ring"><b>O₂</b></div></div>
+ <div class="hud-btns"><button class="btn" id="abyss-journal-btn" type="button">Carnet (J)</button><button class="btn" id="abyss-sound" type="button">Son : oui</button></div>
+ <div id="abyss-rope" hidden>Ligne de mouillage : le compresseur du bateau remplit la réserve d’air</div>
+ <div id="abyss-sonar" hidden><b></b><span></span></div>
+ <div id="abyss-prompt" hidden><span></span><div><i></i></div></div>
+</div>
+<div class="journal" id="abyss-journal" hidden><h3>Carnet de fouilles</h3><ol id="journal-list"></ol></div>
+<div class="card" id="abyss-card" hidden><h2 id="card-name"></h2><em id="card-era"></em><p id="card-text"></p><small id="card-count"></small><br><button class="btn" id="card-close" type="button">Continuer</button></div>
+<div class="end" id="abyss-end" hidden><div><h2>COLLECTION COMPLÈTE</h2><p id="end-summary"></p><button class="btn" id="abyss-again" type="button">Replonger</button></div></div>
+<div id="abyss-pause" hidden>PAUSE</div><div id="abyss-flash"></div>
+<div class="keys"><span>🖱 Regarder</span><span><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> Nager</span><span><kbd>Espace</kbd> Monter</span><span><kbd>Maj</kbd> Descendre</span><span><kbd>E</kbd> Pinceau</span><span><kbd>R</kbd> Sonar</span><span><kbd>J</kbd> Carnet</span></div>
+<div class="touch" aria-hidden="true"><div><span></span><button data-touch="fwd">▲</button><span></span><button data-touch="left">◀</button><button data-touch="back">▼</button><button data-touch="right">▶</button></div><div><button data-touch="up">⤒</button><button data-touch="brush">E</button><button data-touch="sonar">R</button><button data-touch="down">⤓</button></div></div>
+</div>
+<script type="module" src="abysses.js?v=20260923-1"></script><script>document.addEventListener('pointerdown',()=>window.focus());</script></body></html>
