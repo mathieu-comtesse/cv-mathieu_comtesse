@@ -37,3 +37,22 @@
   document.addEventListener('click',e=>{menus.forEach(m=>{if(m.open&&(!m.contains(e.target)||e.target.closest('.nav-panel a')))m.open=false;});});
   document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;menus.forEach(m=>{if(m.open){m.open=false;m.querySelector('summary').focus();}});});
 })();
+
+// Compétences : bouton « Tout déplier / Tout replier ».
+(()=>{const btn=document.querySelector('.fold-all');if(!btn)return;const all=()=>[...document.querySelectorAll('#contenu details')];
+  const sync=()=>{const open=all().every(d=>d.open);btn.textContent=open?'Tout replier':'Tout déplier';btn.setAttribute('aria-pressed',String(open));};
+  btn.addEventListener('click',()=>{const open=!all().every(d=>d.open);all().forEach(d=>d.open=open);sync();});
+  all().forEach(d=>d.addEventListener('toggle',sync));
+  // Un lien vers une section ouvre ses cadres.
+  const reveal=()=>{const t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));if(t&&t.querySelectorAll)t.querySelectorAll('details').forEach(d=>d.open=true);};
+  reveal();window.addEventListener('hashchange',reveal);
+})();
+
+// Projets : onglets Gains & leviers / Tous les projets (#gains, #liste).
+(()=>{const tabs=[...document.querySelectorAll('.project-tabs [role="tab"]')];if(!tabs.length)return;
+  const show=(id,focus)=>{tabs.forEach(t=>{const on=t.getAttribute('aria-controls')===id;t.setAttribute('aria-selected',String(on));t.tabIndex=on?0:-1;document.getElementById(t.getAttribute('aria-controls')).hidden=!on;if(on&&focus)t.focus();});};
+  tabs.forEach((t,i)=>{t.addEventListener('click',()=>{show(t.getAttribute('aria-controls'));history.replaceState(null,'','#'+t.getAttribute('aria-controls'));});
+    t.addEventListener('keydown',e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;e.preventDefault();const n=tabs[(i+d+tabs.length)%tabs.length];show(n.getAttribute('aria-controls'),true);});});
+  const fromHash=()=>{const id=location.hash.slice(1);show(id==='liste'?'liste':'gains');};
+  fromHash();window.addEventListener('hashchange',fromHash);
+})();
