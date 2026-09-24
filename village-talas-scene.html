@@ -880,10 +880,11 @@ const TX={
    x.fillStyle='#2e3a1e';x.save();x.translate(18,46);x.rotate(-.07);x.font='italic 700 30px Georgia, serif';x.fillText('Café de la Piste',0,0);x.restore();
    for(let i=0;i<6;i++){const b=26+i*15;x.fillRect(b,88,8,24);x.fillRect(b+2,78,4,12)}x.fillRect(16,110,w-32,4);x.fillRect(150,92,44,4);x.fillRect(158,96,4,14);x.fillRect(184,96,4,14)})
 };
+function facadeTex(c,r,base){return ctex(32*c,32*r,(x,w,h)=>{x.fillStyle=base;x.fillRect(0,0,w,h);for(let i=0;i<c;i++)for(let j=0;j<r;j++){x.fillStyle='rgba(255,255,255,.5)';x.fillRect(i*32+6,j*32+5,20,23);x.fillStyle=Math.random()<.45?'#ffd35a':'#243a8c';x.fillRect(i*32+8,j*32+7,16,19)}})}
 const tmat=(t,rx,ry)=>{t.repeat.set(rx,ry);return new THREE.MeshToonMaterial({map:t,gradientMap:grad})};
 
 function buildPlatformer(){
-  /* Vue de côté (z = 0) en trois zones inspirées des jeux de plateforme en 2,5D : le village enneigé la nuit, la rue du café, puis le pont du hangar le long de l'A320. */
+  /* Vue de côté (z = 0) en trois zones inspirées des jeux de plateforme en 2,5D : le village enneigé la nuit, la rue du café, puis les toits et le chantier du centre-ville. */
   const s=new THREE.Scene();s.background=skyTex('#081766','#3a5fd4');
   s.add(new THREE.HemisphereLight('#dfe6ff','#6b5a7a',.8));
   const sun=new THREE.DirectionalLight('#fff4dc',.6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-16,right:16,top:16,bottom:-16,near:1,far:60});s.add(sun);s.add(sun.target);
@@ -895,6 +896,14 @@ function buildPlatformer(){
   {const g=new THREE.BufferGeometry(),a=[];for(let i=0;i<260;i++)a.push(rand(-40,160),rand(8,45),-70);g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));s.add(new THREE.Points(g,new THREE.PointsMaterial({color:'#ffffff',size:.35})))}
   const moon=new THREE.Mesh(new THREE.CircleGeometry(3.2,24),new THREE.MeshBasicMaterial({color:'#fff3bf'}));moon.position.set(8,26,-66);s.add(moon);
   const clouds=[];for(let i=0;i<8;i++){const c=new THREE.Mesh(new THREE.PlaneGeometry(14,7),new THREE.MeshBasicMaterial({map:TX.cloud(),transparent:true,alphaTest:.05}));c.position.set(-12+i*14,rand(17,24),-40);s.add(c);clouds.push(c)}
+  // silhouette de la ville la nuit : immeubles éclairés, néons, antennes, châteaux d'eau
+  const blinks=[],SKC=['#5b4b8a','#3d5a8a','#7a5c9e','#4a6fa5','#8a5a7a','#2f4a7a'];
+  for(let x=-24;x<160;x+=rand(5.5,8.5)){const w=rand(4.5,7.5),h=rand(9,24),z=rand(-30,-24);
+    mk(new THREE.BoxGeometry(w,h,4),tmat(facadeTex(Math.max(2,Math.round(w/1.5)),Math.round(h/1.8),SKC[Math.floor(rand(0,6))]),1,1),x,h/2,z,s).castShadow=false;
+    const r=Math.random();
+    if(r<.25){mk(new THREE.CylinderGeometry(.05,.05,3,5),'#adb5bd',x,h+1.5,z,s);const a=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),new THREE.MeshBasicMaterial({color:'#ff3b3b'}));a.position.set(x,h+3,z);s.add(a);blinks.push(a)}
+    else if(r<.42){const t=new THREE.Group();t.position.set(x+w*.2,h,z);s.add(t);[-1,1].forEach(q=>mk(new THREE.CylinderGeometry(.06,.06,1.6,5),'#5c3a1e',q*.5,.8,0,t));outline(mk(new THREE.CylinderGeometry(.9,.9,1.4,12),'#8a5a3a',0,2.3,0,t),1.05);outline(mk(new THREE.ConeGeometry(1,.6,12),'#6b4a2e',0,3.3,0,t),1.05)}
+    else if(r<.6){const n=labelPlane(['HÔTEL','CINÉ','BAR','PHARMACIE','DINER'][Math.floor(rand(0,5))],3.2,1,{bg:'#1c1c3a',border:['#f06595','#66e3ff','#ffd43b'][Math.floor(rand(0,3))],fg:'#ffd6f0',size:110});n.position.set(x,h*.7,z+2.05);s.add(n)}}
   const snowG=new THREE.BufferGeometry(),sa=[];for(let i=0;i<700;i++)sa.push(rand(-20,80),rand(0,24),rand(-9,4));snowG.setAttribute('position',new THREE.Float32BufferAttribute(sa,3));
   const snowP=new THREE.Points(snowG,new THREE.PointsMaterial({color:'#ffffff',size:.12}));s.add(snowP);
   // ---------- zone 1 : Colomiers sous la neige
@@ -927,11 +936,11 @@ function buildPlatformer(){
   outline(mk(new THREE.CylinderGeometry(.45,.4,1,12),'#6c757d',13.6,.5,0,s),1.08);outline(mk(new THREE.CylinderGeometry(.5,.5,.12,12),'#868e96',13.6,1.04,0,s),1.08);mk(new THREE.BoxGeometry(.3,.12,.12),INK,13.6,1.16,0,s);
   SOL.push({x0:13.15,x1:14.05,y0:0,y1:1.1});
   const crate=new THREE.Group();s.add(crate);outline(mk(new THREE.BoxGeometry(1.2,1.2,1.2),'#d9a05b',0,.6,0,crate),1.05);[.25,.95].forEach(y=>mk(new THREE.BoxGeometry(1.22,.12,1.22),'#a8733a',0,y,0,crate));mk(new THREE.BoxGeometry(1.24,.2,1.24),'#f8fbff',0,1.25,0,crate);
-  const CR={x0:15.5,x1:16.7,y0:0,y1:1.2,push:1,min:14.1,max:21.2,m:crate};crate.position.x=16.1;SOL.push(CR);
+  const CR={x0:15.5,x1:16.7,y0:0,y1:1.2,push:1,min:14.1,max:21,m:crate};crate.position.x=16.1;SOL.push(CR);
   // cabane rose (toit enneigé = plateforme) et grande maison avec échelle et balcon
-  B(5.5,2.2,1.4,'#d6479e',23.75,1.1,-1.3);B(.9,1.6,.1,'#7b2a5c',22.6,.8,-.55);B(1,.8,.1,'#ffd35a',25,1.3,-.55);
+  B(5.5,2.2,2.6,'#d6479e',23.75,1.1,-.6);B(.9,1.6,.1,'#7b2a5c',22.6,.8,.72);B(1,.8,.1,'#ffd35a',25,1.3,.72);
   B(6,.3,3.2,'#f8fbff',23.75,2.05,-.6);for(let x=21.2;x<26.4;x+=.45){const c=mk(new THREE.ConeGeometry(.07,rand(.25,.5),5),'#bfe6ff',x,1.75,.95,s);c.rotation.x=Math.PI}
-  ONE.push({x0:21,x1:26.5,y:2.2});
+  SOL.push({x0:21,x1:26.5,y0:0,y1:2.2});
   B(6,6.2,1.6,'#8f7ad6',27.5,3.1,-2.4);const rf=outline(mk(new THREE.ConeGeometry(4.6,2.6,4),'#c0392b',27.5,7.5,-2.4,s),1.03);rf.rotation.y=Math.PI/4;
   [[25.8,4],[29.2,4]].forEach(([x,y])=>{B(.9,1.2,.1,'#ffffff',x,y,-1.55);mk(new THREE.BoxGeometry(.7,1,.12),'#ffd35a',x,y,-1.5,s)});
   [-.3,.3].forEach(q=>mk(new THREE.BoxGeometry(.1,2.8,.1),'#8a4f22',26+q,3.5,-1.3,s));for(let y=2.4;y<4.8;y+=.4)mk(new THREE.BoxGeometry(.6,.08,.08),'#8a4f22',26,y,-1.3,s);
@@ -942,8 +951,8 @@ function buildPlatformer(){
   const badge=new THREE.Group();badge.position.set(29.2,5.5,0);s.add(badge);outline(mk(new THREE.BoxGeometry(.7,.5,.06),'#4dabf7',0,0,0,badge),1.1);const bl=labelPlane('BADGE',.62,.3,{bg:'#fff',border:'#1971c2',size:120});bl.position.z=.04;badge.add(bl);
   PICK.push({x:29.2,y:5.5,kind:'badge',m:badge,spin:badge});
   // le gardien et sa grille
-  const guard=makePerson({shirt:'#343a70',pants:'#212529',hat:'#212529',scale:.6});guard.position.set(32.8,0,0);guard.rotation.y=-Math.PI/2;s.add(guard);
-  const bub=new THREE.Group();bub.position.set(32.4,3.4,0);s.add(bub);const bm=new THREE.MeshBasicMaterial({color:'#ffffff'});
+  const guard=makePerson({shirt:'#343a70',pants:'#212529',hat:'#212529',scale:.6});guard.position.set(32.8,0,-1.2);guard.rotation.y=-Math.PI/2;s.add(guard);
+  const bub=new THREE.Group();bub.position.set(32.4,3.4,-1.2);s.add(bub);const bm=new THREE.MeshBasicMaterial({color:'#ffffff'});
   [[0,0,.75],[.6,.1,.5],[-.6,.1,.5],[.3,.45,.5],[-.3,.45,.5]].forEach(([x,y,r])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),bm);m.position.set(x,y,0);m.scale.z=.3;bub.add(m)});
   [[.1,-.9,.18],[.25,-1.25,.11]].forEach(([x,y,r])=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),bm);m.position.set(x,y,0);bub.add(m)});
   const bic=labelPlane('BADGE ?',1.4,.55,{bg:'#d0ebff',border:'#1971c2',size:110});bic.position.set(0,.15,.3);bub.add(bic);
@@ -956,7 +965,7 @@ function buildPlatformer(){
   [41,57].forEach(x=>{mk(new THREE.CylinderGeometry(.6,.6,.03,16),'#6c5a4a',x,.02,.6,s).castShadow=false});
   mk(new THREE.BoxGeometry(20,6,.5),tmat(TX.brick(),6,2),48,3,-2.6,s);
   const cafe=new THREE.Mesh(new THREE.PlaneGeometry(6.4,3.2),new THREE.MeshBasicMaterial({map:TX.cafe()}));cafe.position.set(46,2.6,-2.33);s.add(cafe);B(6.8,.3,.3,'#2f9e44',46,4.3,-2.3);B(6.8,.3,.3,'#2f9e44',46,.95,-2.3);
-  B(18,6,.5,'#e8913a',67,3,-2.6);B(1.6,2.6,.12,'#c0392b',64,1.3,-2.3);const hs=labelPlane('HANGAR A320 →',4,1,{bg:'#fffaf0',border:'#e03131',size:80});hs.position.set(70.5,4.3,-2.3);s.add(hs);
+  B(18,6,.5,'#e8913a',67,3,-2.6);B(1.6,2.6,.12,'#c0392b',64,1.3,-2.3);const hs=labelPlane('CHANTIER TALAS →',4,1,{bg:'#fffaf0',border:'#e03131',size:80});hs.position.set(70.5,4.3,-2.3);s.add(hs);
   epi(48.5,.9,'chaussures');[47,50].forEach(x=>coin(x,1.4));
   tip(55,2.5,'<b>Bloc conseil :</b> un regard ouvert se balise et se protège avant l’intervention. Sinon, c’est la chute assurée.');
   const fork=new THREE.Group();s.add(fork);outline(mk(new THREE.BoxGeometry(1.6,1,1.2),'#fab005',0,.7,0,fork),1.05);outline(mk(new THREE.BoxGeometry(.9,.7,1),'#2b3a67',-.2,1.55,0,fork),1.05);
@@ -965,41 +974,48 @@ function buildPlatformer(){
   B(1.4,.6,1.4,'#a8733a',70.2,.3,0);B(1.4,1.2,1.4,'#a8733a',71.6,.6,0);SOL.push({x0:69.5,x1:70.9,y0:0,y1:.6},{x0:70.9,x1:72.3,y0:0,y1:1.2});
   [72.4,74.9].forEach(x=>mk(new THREE.BoxGeometry(.12,3,.12),'#1971c2',x,1.5,-.6,s));B(2.7,.15,1.4,'#e8591a',73.65,2.33,-.3);ONE.push({x0:72.3,x1:75,y:2.4});
   epi(73.8,3.3,'lunettes');
-  // ---------- zone 3 : le hangar, le long de la « coque » de l'A320
-  B(2,26,18,'#5c6f8f',77,13,-11.6);const hg=labelPlane('HANGAR A320',4.4,1,{bg:'#fff3bf',border:'#1971c2',size:90});hg.position.set(77,8,-2.5);s.add(hg);
-  floor(76,160,TX.deck());
-  mk(new THREE.BoxGeometry(90,34,.5),'#c9b0f0',122,17,-22,s).castShadow=false;for(let x=84;x<165;x+=12)B(7,5,.3,'#1c2c7c',x,22,-21.7);
-  const fus=outline(mk(new THREE.CylinderGeometry(6,6,70,32),'#f8f9fa',118,5.5,-9.5,s),1.01);fus.rotation.z=Math.PI/2;outline(mk(new THREE.SphereGeometry(6,24,16),'#f8f9fa',83,5.5,-9.5,s),1.01).scale.x=1.5;
-  mk(new THREE.BoxGeometry(70,.7,.2),'#4dabf7',118,5.2,-3.45,s);mk(new THREE.BoxGeometry(70,.12,.12),'#9c6b3a',118,3.2,-3.9,s);
-  for(let x=86;x<152;x+=2.4){const h=outline(mk(new THREE.CylinderGeometry(.45,.45,.2,16),'#5aa9d6',x,7.2,-3.7,s),1.15);h.rotation.x=Math.PI/2}
-  const fin=outline(mk(new THREE.BoxGeometry(9,12,.8),'#f8f9fa',141,17,-9.5,s),1.03);fin.rotation.z=-.35;mk(new THREE.BoxGeometry(4,4,.9),'#4dabf7',142,18,-9.5,s).rotation.z=-.35;
-  for(let x=78;x<104;x+=1.5){mk(new THREE.BoxGeometry(.12,.8,.12),'#ffffff',x,.4,1.9,s)}mk(new THREE.BoxGeometry(26,.1,.14),'#9c6b3a',91,.82,1.9,s);
+  // ---------- zone 3 : le centre-ville de nuit, les toits, puis l'échafaudage de l'immeuble Talas
+  floor(76,150,TX.pave());
+  // palissade et barrière du chantier : Victor s'y arrête
+  for(let x=76.5;x<84;x+=1.5)B(1.4,2.4,.15,x%3<1.5?'#2f9e44':'#f8f9fa',x,1.2,-2.4);
+  const cs=labelPlane('CHANTIER TALAS · EPI OBLIGATOIRES',6.8,.9,{bg:'#fff3bf',border:'#e03131',size:70});cs.position.set(80,2.95,-2.3);s.add(cs);
+  B(.3,1.4,.3,'#e03131',78.5,.7,-1.4);const arm=mk(new THREE.BoxGeometry(3,.18,.18),'#f8f9fa',78.5,2.1,-1.4,s);arm.rotation.z=1.25;
   epi(81,.9,'auditive');[80,82.5].forEach(x=>coin(x,1.4));
-  // auvent rayé = trampoline
-  [85.2,88.8].forEach(x=>[-.8,.8].forEach(z=>outline(mk(new THREE.CylinderGeometry(.1,.1,1.3,8),'#f06595',x,.65,z,s),1.1)));
-  const awn=new THREE.Group();awn.position.set(87,1.2,0);s.add(awn);outline(mk(new THREE.BoxGeometry(4.2,.25,2.2),tmat(TX.stripes(),4,1),0,0,0,awn),1.04);
+  // kiosque et son auvent rayé = trampoline (poteaux à l'arrière seulement)
+  B(4.4,2.6,1.4,'#e8a3c9',87,1.3,-2.1);B(3,.9,.1,'#ffd35a',87,1.7,-1.35);
+  [85.2,88.8].forEach(x=>outline(mk(new THREE.CylinderGeometry(.1,.1,1.3,8),'#f06595',x,.65,-.9,s),1.1));
+  const awn=new THREE.Group();awn.position.set(87,1.2,-.1);s.add(awn);outline(mk(new THREE.BoxGeometry(4.2,.25,2.2),tmat(TX.stripes(),4,1),0,0,0,awn),1.04);
   for(let i=0;i<10;i++){const sc=mk(new THREE.CylinderGeometry(.21,.21,.08,10,1,false,0,Math.PI),i%2?'#ffd43b':'#f06595',-1.9+i*.42,-.12,1.12,awn);sc.rotation.x=Math.PI/2;sc.rotation.y=Math.PI}
   const TRAMP={x0:85,x1:89,y:1.3,tramp:1};ONE.push(TRAMP);coin(87,3.8);
-  // passerelle haute, riveteuse bruyante
-  B(14.2,.3,2.4,tmat(TX.deck(),7,1),97.1,3.05,0);for(let x=90.4;x<104;x+=1.4){mk(new THREE.BoxGeometry(.1,.9,.1),'#ffffff',x,3.65,-1.05,s);mk(new THREE.CylinderGeometry(.07,.07,3.1,6),'#868e96',x,1.55,.9,s)}mk(new THREE.BoxGeometry(14,.1,.14),'#9c6b3a',97.1,4.1,-1.05,s);
-  ONE.push({x0:89.4,x1:104.2,y:3.2});
-  tip(92,5.3,'<b>Bloc conseil :</b> au-dessus de 3 m, protection collective d’abord (garde-corps, filets). Le harnais, c’est quand on ne peut pas faire autrement.');
-  outline(mk(new THREE.BoxGeometry(.8,.6,.6),'#ffd43b',97,3.5,-.7,s),1.08);const rings=[0,1,2].map(()=>mk(new THREE.TorusGeometry(1,.05,4,24),'#ff6b6b',97,3.6,-.7,s));
-  HZ.push({x0:95,x1:99,y:3.2,kind:'bruit'});[91.5,93.5,101,103].forEach(x=>coin(x,4.1));
-  // échafaudage vers la dérive
+  // immeubles bas : blocs solides, on court et on saute sur leurs toits
+  const block=(x0,x1,h,col)=>{const w=x1-x0;mk(new THREE.BoxGeometry(w,h,3),tmat(facadeTex(Math.round(w/1.6),Math.max(1,Math.round(h/1.6)),col),1,1),(x0+x1)/2,h/2,0,s);
+    B(w+.3,.25,3.3,'#495057',(x0+x1)/2,h+.02,0);SOL.push({x0,x1,y0:0,y1:h+.14})};
+  block(90,100,3.2,'#7a5c9e');block(101.2,108,4.2,'#3d5a8a');block(109.3,113,3.6,'#8a5a7a');
+  B(.8,1.1,.8,'#8a4f22',96,3.9,0);B(1,.2,1,'#f8fbff',96,4.5,0);SOL.push({x0:95.6,x1:96.4,y0:3.2,y1:4.6});
+  B(1,1,1,'#adb5bd',106,4.85,0);SOL.push({x0:105.5,x1:106.5,y0:4.2,y1:5.35});
+  outline(mk(new THREE.BoxGeometry(1.2,.8,.7),'#ced4da',98.4,3.75,-1,s),1.05);const rings=[0,1,2].map(()=>mk(new THREE.TorusGeometry(1,.05,4,24),'#ff6b6b',98.4,3.8,-1,s));
+  HZ.push({x0:97.4,x1:99.6,y:3.34,kind:'bruit'});
+  tip(104,6.6,'<b>Bloc conseil :</b> au-dessus de 3 m, protection collective d’abord (garde-corps, filets). Le harnais, c’est quand on ne peut pas faire autrement.');
+  [92,94,98,102.5,107.3,111].forEach((x,i)=>coin(x,[4.2,4.2,4.4,5.2,5.9,4.6][i]));
+  // l'immeuble Talas en rénovation et son échafaudage
+  mk(new THREE.BoxGeometry(27,17,3),tmat(facadeTex(14,9,'#5b4b8a'),1,1),127.5,8.5,-4,s);
+  const ban=labelPlane('IMMEUBLE TALAS · RÉNOVATION',8,1.2,{bg:'#fffaf0',border:'#5f3dc4',size:80});ban.position.set(127,17.8,-2.4);s.add(ban);
   const scaf=(x,y,w,col,extra={})=>{const p=Object.assign({x0:x-w/2,x1:x+w/2,y,w,cx:x,scaf:1},extra);const g=new THREE.Group();g.position.set(x,y,0);s.add(g);p.g=g;
-    outline(mk(new THREE.BoxGeometry(w,.3,2.4),col,0,-.15,0,g),1.03);
-    if(!p.move){[-1,1].forEach(a=>[-1,1].forEach(b=>mk(new THREE.CylinderGeometry(.07,.07,y,6),'#868e96',a*(w/2-.2),-y/2,b,g)));for(let yy=1.4;yy<y;yy+=1.6){const c=mk(new THREE.CylinderGeometry(.05,.05,w-.4,6),'#adb5bd',0,-yy,-1,g);c.rotation.z=Math.PI/2}}
+    outline(mk(new THREE.BoxGeometry(w,.3,2.2),col,0,-.15,-.1,g),1.03);
+    if(!p.move){[-1,1].forEach(a=>mk(new THREE.CylinderGeometry(.07,.07,y,6),'#868e96',a*(w/2-.2),-y/2,-1.1,g));for(let yy=1.4;yy<y;yy+=1.6){const c=mk(new THREE.CylinderGeometry(.05,.05,w-.4,6),'#adb5bd',0,-yy,-1.1,g);c.rotation.z=Math.PI/2}}
     ONE.push(p);return p};
-  scaf(106.5,4.35,3.2,'#c8783a');const P2=scaf(110.8,5.5,3.2,'#2d5bd8');epi(110.8,6.4,'harnais');
-  const P3=scaf(115.1,6.65,3.2,'#c8783a');for(let k=0;k<22;k++)mk(new THREE.ConeGeometry(.08,.3,4),'#adb5bd',115.1+rand(-1.4,1.4),6.8,rand(-.6,.6),s);HZ.push({x0:113.5,x1:116.7,y:6.65,kind:'clous'});
-  const MP=scaf(119.4,7.8,3.2,'#2d5bd8',{move:1,base:119.4});
-  const P5=scaf(123.7,8.95,4,'#c8783a');mk(new THREE.CylinderGeometry(1,1,.04,16),'#69db7c',122.8,8.97,0,s);[-1,1].forEach(q=>outline(mk(new THREE.CylinderGeometry(.3,.3,.6,10),'#2f9e44',122.8+q*1.1,9.25,-.8,s),1.1));HZ.push({x0:121.8,x1:124,y:8.95,kind:'solvant'});
-  [-.3,.3].forEach(q=>mk(new THREE.BoxGeometry(.1,3.3,.1),'#8a4f22',125.2+q,10.5,-1.1,s));for(let y=9.3;y<12.1;y+=.4)mk(new THREE.BoxGeometry(.6,.08,.08),'#8a4f22',125.2,y,-1.1,s);LAD.push({x:125.2,y0:8.95,y1:12.1});
-  scaf(127,12.1,4.4,'#2d5bd8');
-  scaf(133,13.25,4.6,'#c8783a',{final:1});mk(new THREE.CylinderGeometry(.06,.06,3,6),INK,134.4,14.75,-.6,s);mk(new THREE.BoxGeometry(1.4,.9,.05),'#ff6b6b',135.1,15.75,-.6,s);
-  const fl=labelPlane('DÉRIVE : INSPECTION',3.6,.9,{bg:'#fff3bf',border:'#ff6b6b',size:70});fl.position.set(133,16.6,-.6);s.add(fl);
-  [106.5,115.1,123,127.5].forEach((x,i)=>coin(x,[5.3,7.6,9.9,13][i]));
+  scaf(116.1,4.75,3.2,'#c8783a');scaf(120.4,5.9,3.2,'#2d5bd8');epi(120.4,6.8,'harnais');
+  scaf(124.7,7.05,3.2,'#c8783a');for(let k=0;k<22;k++)mk(new THREE.ConeGeometry(.08,.3,4),'#adb5bd',124.7+rand(-1.4,1.4),7.2,rand(-.6,.4),s);HZ.push({x0:123.1,x1:125.6,y:7.05,kind:'clous'});
+  [-.3,.3].forEach(q=>mk(new THREE.BoxGeometry(.1,3.3,.1),'#8a4f22',126+q,8.6,-1.3,s));for(let y=7.4;y<10.2;y+=.4)mk(new THREE.BoxGeometry(.6,.08,.08),'#8a4f22',126,y,-1.3,s);LAD.push({x:126,y0:7.05,y1:10.2});
+  scaf(127.5,10.2,4.4,'#2d5bd8');mk(new THREE.CylinderGeometry(.8,.8,.04,16),'#69db7c',128.9,10.22,-.2,s);outline(mk(new THREE.CylinderGeometry(.3,.3,.6,10),'#2f9e44',129.3,10.5,-.9,s),1.1);HZ.push({x0:128.2,x1:129.7,y:10.2,kind:'solvant'});
+  const MP=scaf(132.4,11.35,3.2,'#c8783a',{move:1,base:132.4});
+  scaf(136.8,12.5,4.6,'#2d5bd8',{final:1});mk(new THREE.CylinderGeometry(.06,.06,3,6),INK,138.2,14,-.8,s);mk(new THREE.BoxGeometry(1.4,.9,.05),'#ff6b6b',138.9,15,-.8,s);
+  const fl=labelPlane('TOIT : INSPECTION',3.6,.9,{bg:'#fff3bf',border:'#ff6b6b',size:70});fl.position.set(136.8,15.9,-.8);s.add(fl);
+  [116.1,124.7,127.5,132.4].forEach((x,i)=>coin(x,[5.7,8,11.1,12.3][i]));
+  // Victor Marchal, le poursuivant
+  const boss=makePerson({shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:.62});boss.visible=false;boss.position.set(20,0,0);boss.rotation.y=Math.PI/2;s.add(boss);
+  const CH={on:false,x:20,y:0,vy:0,cd:0,talk:0,stop:77.2,done:false};
+  const PITS=[[44.3,45.7],[51.3,52.7]];
   // ---------- Dylan
   const body=makePerson({shirt:'#4dabf7',pants:'#364fc7',vest:1,scale:.55});body.rotation.y=Math.PI/2;s.add(body);
   const HW=.33,HH=1.7;
@@ -1035,6 +1051,7 @@ function buildPlatformer(){
     FK.x+=FK.dir*2.4*dt;if(FK.x>FK.b||FK.x<FK.a)FK.dir*=-1;fork.position.x=FK.x;fork.rotation.y=FK.dir>0?0:Math.PI;
     {const nx=MP.base+Math.sin(T*1.1)*1.2;MP.dx=nx-MP.cx;MP.cx=nx;MP.x0=nx-MP.w/2;MP.x1=nx+MP.w/2;MP.g.position.x=nx}
     if(TRAMP.squash>0){TRAMP.squash=Math.max(0,TRAMP.squash-dt*4);awn.scale.y=1-.5*TRAMP.squash}
+    blinks.forEach((b,i)=>b.visible=Math.sin(T*3+i)>0);
     rings.forEach((r,i)=>{const k=(T*.8+i/3)%1;r.scale.setScalar(.3+k*2);r.material=mat(k<.5?'#ff6b6b':'#ffa8a8')});
     if(st.msgT>0){st.msgT-=dt;if(st.msgT<=0)$('#pmsg').hidden=true}
     if(st.done)return;
@@ -1047,7 +1064,7 @@ function buildPlatformer(){
       else if(ix&&!KEYS.U&&!KEYS.D){st.climb=null;st.peak=st.pos.y;if(st.pos.y>l.y1-.6)st.pos.y=l.y1;else if(st.pos.y<l.y0+.6)st.pos.y=l.y0}
       else if(st.pos.y>=l.y1){st.pos.y=l.y1;st.climb=null;st.ground=true;st.peak=l.y1}
       else if(st.pos.y<=l.y0){st.pos.y=l.y0;st.climb=null;st.ground=true;st.peak=l.y0}}
-    else if(lad&&((KEYS.U&&st.pos.y<lad.y1-.05)||(KEYS.D&&st.pos.y>lad.y0+.05))){st.climb=lad;st.vel.set(0,0,0)}
+    else if(lad&&((KEYS.U&&st.pos.y<lad.y1-.05)||(KEYS.D&&st.pos.y>lad.y0+.05))){st.climb=lad;st.ground=false;st.vel.set(0,0,0)}
     else{
       const onIce=st.ground&&st.pos.y<.05&&ICE.some(i=>st.pos.x>i.x0&&st.pos.x<i.x1);
       const tv=ix*(st.stun>0?2:5.2);if(st.kb>0)st.kb-=dt;else st.vel.x=onIce?st.vel.x+(tv-st.vel.x)*Math.min(1,dt*1.2):tv;
@@ -1058,7 +1075,7 @@ function buildPlatformer(){
       for(const b of SOL){if(b.off||!overX(b.x0,b.x1)||st.pos.y+HH<=b.y0+.02||st.pos.y>=b.y1-.02)continue;
         if(b.push&&st.ground&&ix){const d=ix>0?st.pos.x+HW-b.x0:st.pos.x-HW-b.x1;const nx0=Math.max(b.min,Math.min(b.max-(b.x1-b.x0),b.x0+d)),mv=nx0-b.x0;b.x0+=mv;b.x1+=mv;b.m.position.x=(b.x0+b.x1)/2}
         if(overX(b.x0,b.x1)){st.pos.x=st.pos.x<(b.x0+b.x1)/2?b.x0-HW:b.x1+HW;if(st.kb<=0)st.vel.x=0}}
-      st.pos.x=Math.max(-5,Math.min(137,st.pos.x));
+      st.pos.x=Math.max(-5,Math.min(140,st.pos.x));
       const py=st.pos.y;st.pos.y+=st.vel.y*dt;let land=null;
       if(st.vel.y<=0){for(const b of SOL)if(!b.off&&overX(b.x0,b.x1)&&py>=b.y1-.06&&st.pos.y<=b.y1){land={y:b.y1,sup:b};break}
         if(!land)for(const p of ONE)if(st.pos.x>p.x0-.15&&st.pos.x<p.x1+.15&&py>=p.y-.06&&st.pos.y<=p.y){land={y:p.y,sup:p};break}}
@@ -1079,11 +1096,24 @@ function buildPlatformer(){
       else if(st.npcT<=0){st.npcT=4;msg('<b>Le gardien :</b> « Pas de badge, pas d’accès au site. » Tu l’as laissé sur le balcon, en haut de l’échelle…',4)}}
     if(st.hcd<=0&&Math.abs(st.pos.x-FK.x)<FK.w/2+HW&&st.pos.y<FK.h){st.hcd=1.4;const sgn=Math.sign(st.pos.x-FK.x)||-1;st.vel.set(sgn*7,6,0);st.kb=.35;st.ground=false;
       hurt('<b>BOUM !</b> Le chariot élévateur roule dans l’allée des piétons. Il faut séparer les flux (§8.1.2).')}
+    // poursuite : Victor Marchal court après Dylan jusqu'à la barrière du chantier
+    if(!CH.on&&!CH.done&&st.gateOpen){CH.on=true;CH.x=Math.min(26,st.pos.x-11);boss.visible=true;msg('<b>Victor Marchal te court après :</b> « Dépêche-toi, Dylan ! La cadence ! » Cours jusqu’au chantier !',3.5)}
+    if(CH.on){const dx=st.pos.x-CH.x,spd=Math.abs(dx)>9?6.6:4.6,tx=Math.min(CH.stop,st.pos.x);CH.cd=Math.max(0,CH.cd-dt);CH.talk-=dt;
+      if(CH.x<tx-.2)CH.x+=spd*dt;else if(CH.x>tx+.2)CH.x-=spd*dt;
+      const ah=CH.x+(dx>=0?.9:-.9);
+      if(CH.y<=0&&(PITS.some(([a,b])=>ah>a&&ah<b)||SOL.some(b=>!b.floor&&!b.off&&b.y0<.1&&b.y1<1.7&&ah>b.x0&&ah<b.x1)||Math.abs(FK.x-ah)<FK.w/2+.3))CH.vy=9.4;
+      if(CH.y>0||CH.vy>0){CH.vy-=22*dt;CH.y+=CH.vy*dt;if(CH.y<0){CH.y=0;CH.vy=0}}
+      boss.position.set(CH.x,CH.y+(CH.y<=0?Math.abs(Math.sin(T*13))*.1:0),-.05);boss.rotation.y=dx>=0?Math.PI/2:-Math.PI/2;
+      if(dx<6&&dx>0&&CH.talk<=0){CH.talk=6;msg('<b>Victor :</b> « Plus vite, Dylan ! La cadence ! »',1.8)}
+      if(CH.cd<=0&&Math.abs(dx)<.7&&Math.abs(st.pos.y-CH.y)<1.5){CH.cd=2;CH.x-=5*Math.sign(dx||1);st.vel.set(6*Math.sign(dx||1),5,0);st.kb=.3;st.ground=false;
+        hurt('<b>Victor te rattrape !</b> « Pas le temps pour la sécurité ! » La pression de la cadence, ça fait mal.');if(st.done)return}
+      if(CH.x>=CH.stop-.3&&st.pos.x>78.5){CH.on=false;CH.done=true;CH.leave=6;msg('<b>Victor s’arrête net devant la barrière :</b> « Zone EPI ? Je n’ai pas de casque, moi ! » Il fait demi-tour.',4)}}
+    if(CH.leave>0){CH.leave-=dt;CH.x-=3*dt;boss.position.x=CH.x;boss.rotation.y=-Math.PI/2;if(CH.leave<=0)boss.visible=false}
     const p=st.plat;
     if(st.ground&&st.cd<=0){const z=HZ.find(h=>Math.abs(st.pos.y-h.y)<.05&&st.pos.x>h.x0&&st.pos.x<h.x1);if(z){st.cd=1.6;
       if(z.kind==='clous'){if(st.ppe.chaussures)msg('Les chaussures de sécurité t’évitent les clous.');else{st.stun=1.2;hurt('<b>AÏE !</b> Des clous, et pas de chaussures de sécurité.')}}
       if(z.kind==='solvant'){if(st.ppe.lunettes)msg('Projection de solvant ! Les lunettes te protègent.');else{st.blind=3;hurt('<b>AAAH !</b> Du solvant dans les yeux. Tu ne vois plus rien.')}}
-      if(z.kind==='bruit'){if(st.ppe.auditive)msg('La riveteuse hurle, mais tes protections auditives filtrent.');else{st.dizzy=3.2;hurt('<b>BZZZZZ !</b> Le bruit te désoriente : commandes inversées !')}}}}
+      if(z.kind==='bruit'){if(st.ppe.auditive)msg('Le compresseur hurle, mais tes protections auditives filtrent.');else{st.dizzy=3.2;hurt('<b>BZZZZZ !</b> Le bruit te désoriente : commandes inversées !')}}}}
     if(st.done)return;
     if(p&&p.scaf&&st.pos.y>4){st.spawn-=dt;if(st.spawn<=0){st.spawn=rand(.9,1.4);spawnObj()}}
     for(let i=st.objs.length-1;i>=0;i--){const b=st.objs[i];b.v+=18*dt;b.o.position.y-=b.v*dt;b.o.rotation.x+=dt*6;
@@ -1100,8 +1130,8 @@ function buildPlatformer(){
 }
 async function platformSection(n){
   const room=cur;
-  await say('karim','Il faut inspecter la dérive de l’A320, au hangar, de l’autre côté de Colomiers. Il a neigé cette nuit… et là-haut, l’échafaudage n’a pas de garde-corps.');
-  await say('boulon','Traverse le village, la rue du café et le hangar jusqu’à la dérive ! '+(TOUCH?'Croix pour avancer et grimper aux échelles, gros bouton SAUT.':'Flèches ou ZQSD pour avancer et grimper aux échelles (▲ ▼), ESPACE pour sauter.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('karim','Ce soir, il faut inspecter le chantier de rénovation de notre immeuble, en centre-ville, tout en haut de l’échafaudage. Il a neigé… et le patron est pressé.');
+  await say('boulon','Traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Victor Marchal va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer et grimper aux échelles, gros bouton SAUT.':'Flèches ou ZQSD pour avancer et grimper aux échelles (▲ ▼), ESPACE pour sauter.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0;
   const ok=await trial(n,async()=>{
     hidePanel();await fade(1);const PW=buildPlatformer();setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';await fade(0);
@@ -1111,7 +1141,7 @@ async function platformSection(n){
     return r;
   },()=>{const c=cur.cause||{};return {drop:c.drop||null,why:c.why||'tombé de l’échafaudage.',moral:c.moral||'Travail en hauteur : protection collective d’abord.'}});
   $('#hud .right').style.visibility='visible';$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;
-  if(ok)await say('boulon',`<b>Dérive atteinte !</b> ${got} EPI sur 5 et ${coins} pièces S récupérés. Bravo, mais retiens la leçon : les EPI sont le <b>dernier recours</b> de la hiérarchie des mesures. En vrai, on commence par des garde-corps, des filets et des longes porte-outils, qui protègent tout le monde sans rien avoir à ramasser.`,{cls:'good'});
+  if(ok)await say('boulon',`<b>Toit atteint !</b> ${got} EPI sur 5 et ${coins} pièces S récupérés. Bravo, mais retiens la leçon : les EPI sont le <b>dernier recours</b> de la hiérarchie des mesures. En vrai, on commence par des garde-corps, des filets et des longes porte-outils, qui protègent tout le monde sans rien avoir à ramasser.`,{cls:'good'});
   await fade(1);setWorld(room);await fade(0);
 }
 
