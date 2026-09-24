@@ -146,6 +146,67 @@ for dx in (-0.15, 0.15):                                                        
 p.box((0.4, 0.4, 0.05), (0.72, 0, 3.12), TRIM); p.cone(0.25, 0.18, (0.72, 0, 3.14), TRIM, segs=4, top_r=0.0)
 p.export('campus')
 
+# Avignon Universite, campus Hannah Arendt (the old Hotel-Dieu): a pale limestone front, its projecting centre with
+# two orders of columns around the arched door and the arched balcony window, a clock in the pediment under an iron
+# bell-cote, a balustrade along the roof, and two plane trees and clipped hedges on the paved forecourt.
+LIME, LIME2, LIGHT, SHADE, GLASS2, ZINC = '#ecdcb8', '#dcc89f', '#f6ecd4', '#b9a47e', '#5f6f78', '#b8b2a6'
+p = Paper(); W, D, H = 2.3, 0.85, 1.25; fy = -D/2
+p.faceted_wall(W, H, D, (0, 0, 0), LIME, LIME2, cols=6)                                   # the long front block
+p.box((W + 0.08, D + 0.06, 0.04), (0, 0, 0.6), LIGHT)                                     # string course between the floors
+p.box((W + 0.1, D + 0.1, 0.07), (0, 0, H + 0.035), LIGHT)                                 # cornice
+p.box((W - 0.3, D - 0.25, 0.12), (0, 0.06, H + 0.13), ZINC)                               # low roof behind the balustrade
+for x in (-W/2 + 0.04, W/2 - 0.04): p.box((0.09, 0.07, H), (x, fy - 0.01, H/2), LIGHT)    # corner pilasters
+for side in (-1, 1):                                                                      # two bays of windows each side, both floors
+    for x in (0.66, 0.96):
+        for zc, h in ((0.3, 0.34), (0.92, 0.4)):
+            p.box((0.2, 0.04, h + 0.06), (side*x, fy - 0.045, zc), LIGHT)
+            p.box((0.14, 0.04, h), (side*x, fy - 0.07, zc), GLASS2)
+            p.box((0.02, 0.03, h), (side*x, fy - 0.09, zc), LIGHT)                        # mullion
+# Balustrade along the roof, broken by the pediment.
+for side in (-1, 1):
+    x0, x1 = 0.52, W/2
+    p.box((x1 - x0, 0.07, 0.04), (side*(x0 + x1)/2, fy - 0.01, H + 0.09), LIGHT)
+    p.box((x1 - x0, 0.07, 0.04), (side*(x0 + x1)/2, fy - 0.01, H + 0.27), LIGHT)
+    n = 8
+    for i in range(n): p.box((0.035, 0.035, 0.16), (side*(x0 + (i + 0.5)*(x1 - x0)/n), fy - 0.01, H + 0.18), LIGHT)
+# The projecting centre.
+cy = fy - 0.07
+p.box((1.0, 0.14, H), (0, cy + 0.07, H/2), LIGHT)
+p.box((0.34, 0.03, 0.58), (0, cy - 0.02, 0.29), LIME2)                                     # door surround
+arch(p, 0, 0.0, 0.28, 0.5, cy - 0.045, '#3a3430')                                        # the arched door
+p.box((0.32, 0.03, 0.54), (0, cy - 0.02, 0.93), LIME2)                                     # window surround
+arch(p, 0, 0.66, 0.26, 0.48, cy - 0.045, GLASS2)                                          # the arched balcony window
+for zb, zt in ((0.0, 0.58), (0.64, 1.2)):                                                 # two orders of columns
+    for x in (-0.4, -0.23, 0.23, 0.4):
+        p.cone(0.045, zt - zb - 0.06, (x, cy - 0.05, zb + 0.03), LIGHT, segs=8, top_r=0.04)
+        p.box((0.11, 0.11, 0.035), (x, cy - 0.05, zb + 0.015), SHADE)                     # base
+        p.box((0.12, 0.12, 0.04), (x, cy - 0.05, zt - 0.02), LIGHT)                       # capital
+p.box((0.56, 0.2, 0.04), (0, cy - 0.1, 0.64), LIGHT)                                      # the balcony slab and its railing
+for i in range(7): p.box((0.03, 0.03, 0.14), (-0.24 + i*0.08, cy - 0.18, 0.72), LIGHT)
+p.box((0.56, 0.035, 0.03), (0, cy - 0.18, 0.8), LIGHT)
+# Pediment with its clock, folded back to the roof.
+pz, ph, pw = H + 0.07, 0.36, 0.56
+p.tri((-pw, cy - 0.02, pz), (pw, cy - 0.02, pz), (0, cy - 0.02, pz + ph), LIGHT)
+p.quad((-pw, cy - 0.02, pz), (0, cy - 0.02, pz + ph), (0, 0.1, pz + ph), (-pw, 0.1, pz), LIME2)
+p.quad((0, cy - 0.02, pz + ph), (pw, cy - 0.02, pz), (pw, 0.1, pz), (0, 0.1, pz + ph), LIME)
+disc(p, (0, cy - 0.03, pz + 0.14), 0.1, PAPER, segs=14)
+hand(p, (0, cy - 0.04, pz + 0.14), math.pi/2 + 0.4, 0.075, 0.009, INK)
+hand(p, (0, cy - 0.04, pz + 0.14), math.pi/2 - 2.0, 0.055, 0.012, INK)
+for x in (-0.07, 0.07): p.box((0.025, 0.025, 0.24), (x, cy + 0.05, pz + ph + 0.1), INK)  # the iron bell-cote
+p.box((0.18, 0.025, 0.025), (0, cy + 0.05, pz + ph + 0.22), INK)
+p.cone(0.06, 0.08, (0, cy + 0.05, pz + ph + 0.23), INK, segs=4)
+# Forecourt: paving, clipped hedges and two plane trees.
+p.box((1.2, 1.1, 0.03), (0, fy - 0.62, 0.0), '#e6d6bb')
+for side in (-1, 1):
+    p.box((0.36, 0.18, 0.14), (side*0.62, fy - 1.0, 0.07), '#3f7d46')
+    tx, ty = side*1.32, fy - 0.8
+    p.cone(0.055, 0.95, (tx, ty, 0), '#c9b89c', segs=6, top_r=0.035)                     # pale mottled trunk
+    for k, a in enumerate((0.4, 2.5, 4.4)):
+        p.box((0.03, 0.03, 0.34), (tx + math.cos(a)*0.08, ty + math.sin(a)*0.08, 0.95), '#b9a88c', rot=a)
+    p.cone(0.24, 0.24, (tx, ty, 1.0), '#a9c46f', segs=6, top_r=0.14)                       # a thin spring crown
+    p.cone(0.14, 0.14, (tx, ty, 1.24), '#c2d78a', segs=6, top_r=0.0)
+p.export('avignon')
+
 # Gare du Nord: the magenta train sheds rising behind a long stone screen of arched bays, statues on its cornice.
 MAGENTA, PLUM, STONE, STONE2, PANE2 = '#a4127e', '#7d0c60', '#f1e3c8', '#dfcba6', '#a9dcf1'
 p = Paper()
