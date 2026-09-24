@@ -510,7 +510,16 @@ function fit(){
 }
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,250));
 $('#rotok').onclick=()=>{window.__rotOk=1;$('#rotate').hidden=true};
-if(document.fullscreenEnabled||document.webkitFullscreenEnabled){$('#fs').hidden=false;$('#fs').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else{await document.documentElement.requestFullscreen();try{await screen.orientation.lock('landscape')}catch(e){}}}catch(e){}setTimeout(fit,300)}}
+/* Plein écran : dans le site, la page parente agrandit le cadre (vrai plein écran, ou pseudo plein écran sur iPhone) ; seul, le jeu utilise l'API du navigateur. */
+{const IN_FRAME=window.parent!==window,D=document.documentElement,FS=$('#fs');
+  const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement,canFS=!!(D.requestFullscreen||D.webkitRequestFullscreen);
+  const label=on=>{FS.textContent=on?'Quitter le plein écran':'Plein écran'};
+  if(IN_FRAME||canFS){FS.hidden=false;
+    FS.onclick=async()=>{if(IN_FRAME){parent.postMessage({talasFS:'toggle'},'*');return}
+      try{if(fsEl())await(document.exitFullscreen||document.webkitExitFullscreen).call(document);else{await(D.requestFullscreen||D.webkitRequestFullscreen).call(D);try{await screen.orientation.lock('landscape')}catch(e){}}}catch(e){}setTimeout(fit,300)};
+    ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{label(!!fsEl());setTimeout(fit,200)}));
+    addEventListener('message',e=>{if(e.source===parent&&e.data&&typeof e.data.talasFS==='boolean'){label(e.data.talasFS);setTimeout(fit,200)}});
+    addEventListener('keydown',e=>{if(e.key==='Escape'&&IN_FRAME)parent.postMessage({talasFS:'exit'},'*')})}}
 function placeCam(dt){
   if(!cur)return;if(cur.cam){cur.cam(dt);return}const d=cur.dist;
   if(cur.hub){camera.position.set(cur.look.x+Math.sin(cur.yaw)*d*.74,d*.62,cur.look.z+Math.cos(cur.yaw)*d*.74)}
@@ -1376,7 +1385,8 @@ async function start(){
    <p>Tu es <b>Dylan</b>, alternant HSE chez Talas Aéronautique. Airbus exige la certification ISO 45001 dans douze mois. Ton CDI en dépend !</p>
    <p>Boulon, ton robot guide, t’emmène dans les <b>sept ateliers</b> du village. Chaque atelier est un chapitre de la norme, avec son propre mini-jeu : lancer, combat, tuyaux, mémory, plateforme 2D, lampe torche et casse-briques. Et tes choix dans un atelier reviennent dans les autres : c’est ça, un <b>système</b>.</p>
    <div class="grid"><div><b>Pour jouer</b>Souris ou doigt pour viser, tourner, éclairer. Flèches et ESPACE sur l’échafaudage et au casse-briques.</div><div class="r"><b>Attention</b>Rate un mini-jeu et Dylan meurt. Âmes sensibles s’abstenir.</div><div class="l"><b>Chrono</b>25 minutes pour tout réussir avant l’audit. Des étoiles et ton CDI à la clé.</div></div>
-   <div class="row"><button class="btn go" id="play">Jouer</button></div>`);
+   <div class="row"><button class="btn go" id="play">Jouer</button><button class="btn alt" id="fs2">Plein écran</button></div>`);
+  const f2=m.querySelector('#fs2');f2.hidden=$('#fs').hidden;f2.onclick=()=>$('#fs').onclick();
   m.querySelector('#play').onclick=()=>{closeModal();S.intro=0;S.tEnd=performance.now()+TLIMIT;hubHint()};m.querySelector('#play').focus();
 }
 if(window.THREE)start();else document.getElementById('loading').textContent='Impossible de charger le moteur 3D. Recharge la page.';
