@@ -56,3 +56,15 @@
   const fromHash=()=>{const id=location.hash.slice(1);show(id==='liste'?'liste':'gains');};
   fromHash();window.addEventListener('hashchange',fromHash);
 })();
+
+// Mobile : la barre de navigation se replie derrière un bouton « Menu » ; le panneau liste toutes les pages.
+(()=>{const header=document.querySelector('.site-header'),nav=header&&header.querySelector('.theme-nav'),id=header&&header.querySelector('.site-identity');if(!nav||!id)return;
+  nav.id=nav.id||'site-nav';const btn=document.createElement('button');btn.type='button';btn.className='nav-toggle';btn.setAttribute('aria-controls',nav.id);btn.setAttribute('aria-expanded','false');btn.innerHTML='<span class="nav-toggle-bars" aria-hidden="true"></span><span class="nav-toggle-label">Menu</span>';id.append(btn);
+  const set=open=>{header.classList.toggle('is-open',open);btn.setAttribute('aria-expanded',String(open));btn.querySelector('.nav-toggle-label').textContent=open?'Fermer':'Menu';document.documentElement.classList.toggle('nav-locked',open);
+    // Dans le panneau mobile, la rubrique de la page courante est dépliée d'office.
+    if(open)nav.querySelectorAll('.nav-menu').forEach(m=>{if(m.querySelector('summary.is-current'))m.open=true;});};
+  btn.addEventListener('click',e=>{e.stopPropagation();set(!header.classList.contains('is-open'));});
+  nav.addEventListener('click',e=>{if(e.target.closest('a'))set(false);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&header.classList.contains('is-open')){set(false);btn.focus();}});
+  matchMedia('(min-width:761px)').addEventListener('change',e=>{if(e.matches)set(false);});
+})();

@@ -332,7 +332,7 @@ function render(dt){
 function banner(r){if(!(r.crashed||paused||!model))return;const x=out,im=impair(r.settings);x.save();x.filter='none';x.globalAlpha=1;
  x.fillStyle='rgba(12,20,32,.8)';x.fillRect(0,h*.35,w,h*.28);x.strokeStyle=r.crashed?'#ff3b50':'rgba(243,248,255,.35)';x.lineWidth=2;x.strokeRect(1,h*.35,w-2,h*.28);
  x.textAlign='center';x.fillStyle=r.crashed?'#ff6b74':'#f3f8ff';x.font=`bold ${Math.min(30,w/13)}px monospace`;x.fillText(r.crashed?'VÉHICULE HORS D’USAGE':paused?'PAUSE':'PRENDRE LE VOLANT',w/2,h*.44);
- x.font='13px monospace';x.fillStyle='#fff';x.fillText(r.crashed?'Trop de chocs : recommencer pour repartir.':paused?'Reprendre avec le bouton de conduite':'ZQSD · Maj gauche / Ctrl gauche',w/2,h*.50);
+ x.font='13px monospace';x.fillStyle='#fff';x.fillText(r.crashed?'Trop de chocs : recommencer pour repartir.':paused?'Reprendre avec le bouton de conduite':(matchMedia('(pointer:coarse)').matches?'Accélérer pour démarrer · ← → pour tourner':'ZQSD · Maj gauche / Ctrl gauche'),w/2,h*.50);
  const note=im.alcohol>=.5?`${fmt(im.alcohol)} g/L : au-delà de la limite légale, ce trajet ne devrait pas avoir lieu.`:im.alcohol>0?`${fmt(im.alcohol)} g/L : sous la limite générale, mais les réflexes sont déjà touchés.`:im.drug?'Psychoactif simulé : ne pas conduire sous l’effet d’une substance.':'';
  if(note){x.font='12px monospace';x.fillStyle=im.alcohol>=.5?'#ffb3b8':'#f5d58f';x.fillText(note,w/2,h*.56);}x.restore();}
 // Impairment of the driver's eyes, grown from the estimated blood alcohol and the psychoactive setting:

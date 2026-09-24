@@ -350,3 +350,42 @@ html[data-theme="dark"] .fold-body>p{color:rgba(254,254,254,.86)!important}
 .gain-kpis a:first-child{background:#1e1e1e;color:#fefefe}.gain-kpis a:first-child span{color:rgba(254,254,254,.8)}.band .gain-kpis a:first-child strong{color:#fefefe;background:linear-gradient(transparent 62%,color-mix(in srgb,var(--pink,#272AF5) 70%,transparent) 62%)}.gain-kpis a:first-child:hover{background:#000}
 @media(max-width:1100px){.gain-kpis a:nth-child(2){border-right:1px solid #1e1e1e}.gain-kpis a:first-child{grid-column:1/-1;border-right:0;border-bottom:1px solid #1e1e1e}.gain-kpis a:nth-child(3){border-right:0}.gain-kpis a:nth-child(-n+3){border-bottom:1px solid #1e1e1e}}
 .band .gain-money{color:#1e1e1e}
+
+/* --- Mobile : en-tête compact, menu repliable. --- */
+.nav-toggle{display:none}
+@media(max-width:760px){
+ .site-header{padding:10px 16px}
+ .site-identity{margin-bottom:0;gap:10px}
+ .site-identity .site-name{margin-right:auto}
+ .site-header .theme-toggle span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ .site-header .theme-toggle{min-width:44px;min-height:44px;justify-content:center}
+ .site-header .theme-toggle svg{width:20px;height:20px}
+ .nav-toggle{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;font:13px var(--mono);border:1px solid var(--ink);background:var(--white);color:var(--ink)}
+ .nav-toggle-bars,.nav-toggle-bars::before,.nav-toggle-bars::after{display:block;width:16px;height:1.5px;background:currentColor;position:relative;transition:transform .2s ease,background-color .2s ease}
+ .nav-toggle-bars::before,.nav-toggle-bars::after{content:"";position:absolute;left:0}
+ .nav-toggle-bars::before{top:-5px}.nav-toggle-bars::after{top:5px}
+ .is-open .nav-toggle{background:var(--ink);color:var(--white)}
+ .is-open .nav-toggle-bars{background:transparent}
+ .is-open .nav-toggle-bars::before{transform:translateY(5px) rotate(45deg)}
+ .is-open .nav-toggle-bars::after{transform:translateY(-5px) rotate(-45deg)}
+ .site-header .theme-nav{display:none}
+ .site-header.is-open .theme-nav{display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;margin-top:10px;max-height:calc(100svh - 76px);overflow:auto;overscroll-behavior:contain;padding-bottom:12px}
+ .site-header.is-open .theme-nav>a,.site-header.is-open .nav-menu>summary{display:block;font-size:17px;padding:12px 14px;min-height:44px}
+ .site-header.is-open .nav-menu>summary{padding-right:40px}.site-header.is-open .nav-menu>summary::after{right:16px}
+ .site-header.is-open .nav-panel{position:static;width:auto;max-height:none;overflow:visible;grid-template-columns:1fr;margin-top:6px;box-shadow:none;border-style:dashed}
+ .site-header.is-open .theme-nav .nav-panel a{font-size:15px;padding:10px 12px}
+ html.nav-locked,html.nav-locked body{overflow:hidden}
+}
+@media(prefers-reduced-motion:reduce){.nav-toggle-bars,.nav-toggle-bars::before,.nav-toggle-bars::after{transition:none}}
+/* Atlas sur téléphone : titre discret, bandeaux et commandes resserrés pour laisser voir l'île. */
+@media(max-width:640px){.world-intro{max-width:calc(100% - 32px)}.world-intro h1{font-size:30px;margin-bottom:6px}.world-role{font-size:10px;margin:0 0 8px}.world-links a{font-size:11px;padding:5px 7px}
+ .world-hud span{font-size:10px;padding:4px 6px}.world-controls{gap:5px}.world-controls button{font-size:11px;padding:6px 7px}.world-card{left:16px;width:auto;bottom:118px;padding:40px 14px 14px}.world-card p{font-size:13px}}
+/* Route sur téléphone : la route pleine largeur, les réglages en dessous. */
+@media(max-width:760px){.scene-embed[data-page="route-vigilance"] .driving-layout{grid-template-columns:1fr;height:auto;gap:12px}
+ .scene-embed[data-page="route-vigilance"] .driving-stage,.scene-embed[data-page="route-vigilance"] #road-canvas{height:min(62vh,560px)!important}
+ .scene-embed[data-page="route-vigilance"] .driving-settings{height:auto;margin:0}
+ .touch-driving button{min-height:48px;min-width:48px;font-size:14px}}
+/* Scènes de jeu sur téléphone : un cadre à la hauteur de l'écran, jouable sans zoomer. */
+@media(max-width:760px){.gouache-preview.preview--wide iframe,.gouache-preview.preview--tall iframe{aspect-ratio:auto;height:calc(100svh - 96px);min-height:460px}
+ .gouache-preview{margin:24px 0 20px;box-shadow:4px 4px 0 #071b16}}
+@media(max-width:760px){body[data-page="labyrinthe"] :is(.maze-window,.maze-bottom,.maze-left,.maze-right) h2{display:flex;flex-wrap:wrap;gap:2px 10px}body[data-page="labyrinthe"] :is(.maze-window,.maze-bottom,.maze-left,.maze-right) h2>span{margin-left:auto;white-space:nowrap}}

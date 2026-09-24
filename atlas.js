@@ -375,7 +375,7 @@ function updateWalk(dt,t){const k=walk.keys,turn=(k.has('left')?1:0)-(k.has('rig
  camera.position.set(walk.pos.x,walk.pos.y+EYE+(moving?Math.sin(walk.bob)*.012:0),walk.pos.z);camera.rotation.set(walk.look,walk.yaw,0);
  // Labels shrink to signposts at eye level and step aside when you stand right under them.
  for(const h of houses){const l=h.userData.label,d=Math.hypot(h.position.x-walk.pos.x,h.position.z-walk.pos.z);l.scale.set(1.15,.29,1);l.position.y=l.userData.y+.15;l.visible=d>1.3;}
- const g=nearHouse();if(g!==walk.near){walk.near=g;hint.textContent=g?`E · ouvrir la fiche : ${g.userData.step.name}`:'À pied · ZQSD, glisser pour regarder';}}
+ const g=nearHouse();if(g!==walk.near){walk.near=g;hint.textContent=g?`E · ouvrir la fiche : ${g.userData.step.name}`:(matchMedia('(pointer:coarse)').matches?'À pied · flèches pour marcher, glisser pour regarder':'À pied · ZQSD, glisser pour regarder');}}
 function onWalkKey(e,down){if(!walk.on||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return false;
  const K={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'sleft',KeyD:'sright',ArrowLeft:'left',ArrowRight:'right'}[e.code];
  if(K){e.preventDefault();down?walk.keys.add(K):walk.keys.delete(K);return true;}
@@ -481,6 +481,8 @@ function frame(){const raw=clock.getDelta(),dt=Math.min(.05,raw),t=clock.elapsed
  updateLagoon(dt,t);
  renderer.render(scene,camera);requestAnimationFrame(frame);}
 setNight(false);eggsHud.textContent=`Easter eggs : 0 / ${eggs.size}`;canvas.dataset.ready='true';frame();
+// On a touch screen the hint speaks of fingers, not of a mouse wheel.
+if(matchMedia('(pointer:coarse)').matches)hint.textContent='Glisser pour tourner · toucher un bâtiment · pincer pour zoomer';
 // ?marche opens the island on foot (shareable link).
 if(/[?&]marche\b/.test(location.search))enterWalk();
 // Audit hook for automated checks: can every easter egg be seen and clicked from some orbit angle and zoom?
