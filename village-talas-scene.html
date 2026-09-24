@@ -585,14 +585,17 @@ function throw3D(n,cfg){return new Promise(res=>{
   let k=0,tries=0,hits=0,obj=null,vel=null,aim=null,flying=false;
   function spawn(){const j=items[k];obj=junkMesh(j);obj.position.copy(home);R.stage.add(obj);
     const l=labelPlane(j.t,2.2,.55,{bg:'#fffaf0',border:j.c,size:80});l.position.y=.9;obj.add(l);obj.userData.l=l;flying=false;
+    const ring=mk(new THREE.TorusGeometry(.6,.06,6,24),'#ffe066',0,-1.05,0,obj);ring.rotation.x=Math.PI/2;ring.castShadow=false;obj.userData.ring=ring;
+    [-.13,.13].forEach(x=>{mk(new THREE.SphereGeometry(.09,10,8),'#ffffff',x,.12,.36,obj);const p=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:INK}));p.position.set(x,.12,.44);obj.add(p)});
     const [bx,bz]=binAt[k%binAt.length];bin.userData.move=k>=3;bin.position.set(bx,0,bz)}
   function velFrom(e){const r=cv.getBoundingClientRect(),nx=(e.clientX-aim.x)/r.height,ny=Math.max(0,Math.min(.55,(e.clientY-aim.y)/r.height));return V(-nx*16,4+ny*11,-ny*20)}
   function preview(v){const p=home.clone(),w=v.clone();dots.forEach(d=>{for(let s=0;s<3;s++){w.y-=G*.02;p.addScaledVector(w,.02)}d.position.copy(p);d.visible=p.y>0})}
   R.onDown=e=>{if(obj&&!flying)aim={x:e.clientX,y:e.clientY}};
   R.onMove=e=>{if(aim)preview(velFrom(e))};
-  R.onUp=e=>{if(!aim)return;const v=velFrom(e);aim=null;dots.forEach(d=>d.visible=false);if(v.z>-1.5)return;vel=v;flying=true;obj.remove(obj.userData.l)};
+  R.onUp=e=>{if(!aim)return;const v=velFrom(e);aim=null;dots.forEach(d=>d.visible=false);if(v.z>-1.5)return;vel=v;flying=true;obj.remove(obj.userData.l);obj.remove(obj.userData.ring)};
   R.extra=(dt,T)=>{if(bin.userData.move)bin.position.x=Math.sin(T*(k>=5?1.6:1.1))*4.5;
-    if(!flying)return;const y0=obj.position.y;vel.y-=G*dt;obj.position.addScaledVector(vel,dt);obj.rotation.x+=dt*8;obj.rotation.z+=dt*5;
+    if(!flying){if(obj&&!aim){const h=Math.abs(Math.sin(T*4));obj.position.y=home.y+h*.2;obj.rotation.y=Math.sin(T*2.5)*.35;obj.scale.set(1+(1-h)*.08,1-(1-h)*.08,1);const r=obj.userData.ring;if(r){r.position.y=-1.05-h*.2;r.scale.setScalar(1+.15*Math.sin(T*5))}}return}
+    const y0=obj.position.y;vel.y-=G*dt;obj.position.addScaledVector(vel,dt);obj.rotation.x+=dt*8;obj.rotation.z+=dt*5;
     if(vel.y<0&&y0>=BIN_Y&&obj.position.y<BIN_Y&&Math.hypot(obj.position.x-bin.position.x,obj.position.z-bin.position.z)<BIN_R){flying=false;land(true)}
     else if(obj.position.y<=.25){flying=false;land(false)}};
   async function land(ok){const o=obj;obj=null;tries++;pts(n,ok);const it=items[k],nb=k<N-1?'Déchet suivant':'Terminer';
@@ -948,7 +951,12 @@ function buildPlatformer(){
   outline(mk(new THREE.CylinderGeometry(.45,.4,1,12),'#6c757d',13.6,.5,0,s),1.08);outline(mk(new THREE.CylinderGeometry(.5,.5,.12,12),'#868e96',13.6,1.04,0,s),1.08);mk(new THREE.BoxGeometry(.3,.12,.12),INK,13.6,1.16,0,s);
   SOL.push({x0:13.15,x1:14.05,y0:0,y1:1.1});
   const crate=new THREE.Group();s.add(crate);outline(mk(new THREE.BoxGeometry(1.2,1.2,1.2),'#d9a05b',0,.6,0,crate),1.05);[.25,.95].forEach(y=>mk(new THREE.BoxGeometry(1.22,.12,1.22),'#a8733a',0,y,0,crate));mk(new THREE.BoxGeometry(1.24,.2,1.24),'#f8fbff',0,1.25,0,crate);
-  const CR={x0:15.5,x1:16.7,y0:0,y1:1.2,push:1,min:14.1,max:21,m:crate};crate.position.x=16.1;SOL.push(CR);
+  const CR={x0:15.5,x1:16.7,y0:0,y1:1.2,push:1,min:14.1,max:21,m:crate,pushT:0};crate.position.x=16.1;SOL.push(CR);
+  /* objet déplaçable : halo qui pulse, yeux qui suivent Dylan, panneau qui rebondit */
+  const cbody=new THREE.Group();[...crate.children].forEach(c=>cbody.add(c));crate.add(cbody);
+  CR.glow=new THREE.Mesh(new THREE.BoxGeometry(1.75,1.75,1.75),new THREE.MeshBasicMaterial({color:'#ff922b',side:THREE.BackSide}));CR.glow.position.y=.62;crate.add(CR.glow);
+  CR.pupils=[-.26,.26].map(x=>{outline(mk(new THREE.SphereGeometry(.17,12,10),'#ffffff',x,.72,.6,cbody),1.12);const p=new THREE.Mesh(new THREE.SphereGeometry(.08,8,6),new THREE.MeshBasicMaterial({color:INK}));p.position.set(x,.72,.76);cbody.add(p);return p});
+  CR.sign=labelPlane('◀ POUSSE-MOI ▶',2.6,.6,{bg:'#fff3bf',border:'#f08c00',size:80});CR.sign.position.set(0,2.2,.2);crate.add(CR.sign);CR.cbody=cbody;
   // cabane rose (toit enneigé = plateforme) et grande maison avec échelle et balcon
   B(5.5,2.2,2.6,'#d6479e',23.75,1.1,-.6);B(.9,1.6,.1,'#7b2a5c',22.6,.8,.72);B(1,.8,.1,'#ffd35a',25,1.3,.72);
   B(6,.3,3.2,'#f8fbff',23.75,2.05,-.6);for(let x=21.2;x<26.4;x+=.45){const c=mk(new THREE.ConeGeometry(.07,rand(.25,.5),5),'#bfe6ff',x,1.75,.95,s);c.rotation.x=Math.PI}
@@ -1054,6 +1062,11 @@ function buildPlatformer(){
   W.update=(dt,T)=>{
     fx.update(dt);
     // décor animé
+    {const done=CR.x1>=CR.max-.02,k=Math.sin(T*4);CR.glow.visible=CR.sign.visible=!done;CR.glow.material.color.set(k>0?'#ffd43b':'#ff6b00');CR.glow.scale.setScalar(1.02+.05*k);
+      CR.sign.position.y=2.1+Math.abs(Math.sin(T*3))*.3;CR.sign.rotation.z=Math.sin(T*2.2)*.1;
+      const dx=Math.max(-1,Math.min(1,st.pos.x-CR.m.position.x)),dy=Math.max(-1,Math.min(1,(st.pos.y-.4)*.6)),blink=(T%3.2)<.12?.15:1;CR.pupils.forEach((p,i)=>{p.position.x=(i?.26:-.26)+dx*.07;p.position.y=.72+dy*.06;p.scale.y=blink});
+      CR.pushT=Math.max(0,CR.pushT-dt*3);CR.cbody.rotation.z=Math.sin(T*22)*.07*CR.pushT;CR.cbody.scale.set(1+.07*CR.pushT,1-.07*CR.pushT,1);
+      if(done&&!CR.cheer){CR.cheer=1;fx.burst(V(CR.m.position.x,1.8,0),24);msg('<b>Caisse calée !</b> Grimpe dessus pour atteindre le toit de la cabane.',3)}}
     clouds.forEach((c,i)=>{c.position.x+=dt*.4;if(c.position.x>110)c.position.x=-20});
     const sp=snowG.attributes.position;for(let i=0;i<sp.count;i++){let y=sp.getY(i)-dt*(1.2+(i%5)*.2);if(y<0)y=24;sp.setY(i,y);sp.setX(i,sp.getX(i)+Math.sin(T+i)*dt*.3)}sp.needsUpdate=true;
     PICK.forEach(it=>{if(!it.got){if(it.kind==='coin')it.m.rotation.y+=dt*3;else if(it.spin)it.spin.rotation.y+=dt*2;it.m.position.y=it.y+Math.sin(T*3+it.x)*.08}});
@@ -1085,7 +1098,7 @@ function buildPlatformer(){
       if(st.ground&&st.plat&&st.plat.dx)st.pos.x+=st.plat.dx;
       st.pos.x+=st.vel.x*dt;
       for(const b of SOL){if(b.off||!overX(b.x0,b.x1)||st.pos.y+HH<=b.y0+.02||st.pos.y>=b.y1-.02)continue;
-        if(b.push&&st.ground&&ix){const d=ix>0?st.pos.x+HW-b.x0:st.pos.x-HW-b.x1;const nx0=Math.max(b.min,Math.min(b.max-(b.x1-b.x0),b.x0+d)),mv=nx0-b.x0;b.x0+=mv;b.x1+=mv;b.m.position.x=(b.x0+b.x1)/2}
+        if(b.push&&st.ground&&ix){const d=ix>0?st.pos.x+HW-b.x0:st.pos.x-HW-b.x1;const nx0=Math.max(b.min,Math.min(b.max-(b.x1-b.x0),b.x0+d)),mv=nx0-b.x0;b.x0+=mv;b.x1+=mv;b.m.position.x=(b.x0+b.x1)/2;if(mv){b.pushT=1;if(Math.random()<.2)fx.burst(V(mv>0?b.x0:b.x1,.15,0),3)}}
         if(overX(b.x0,b.x1)){st.pos.x=st.pos.x<(b.x0+b.x1)/2?b.x0-HW:b.x1+HW;if(st.kb<=0)st.vel.x=0}}
       st.pos.x=Math.max(-5,Math.min(140,st.pos.x));
       const py=st.pos.y;st.pos.y+=st.vel.y*dt;let land=null;
