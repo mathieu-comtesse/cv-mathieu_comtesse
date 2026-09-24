@@ -11,6 +11,8 @@
 .touch .ptext{font-size:17px}.touch .btn{font-size:15px;padding:7px 11px}.touch .btn small{font-size:13px}
 .touch #pad>div{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,58px)}.touch #pad .jump{width:116px;height:116px;font-size:20px}
 .touch #panel{max-height:68%}
+
+.touch.fsmode #area{left:max(env(safe-area-inset-left,0px),34px);right:max(env(safe-area-inset-right,0px),34px)}
 #timer.warn{background:#ffe3e3;color:#c92a2a}#timer.warn #timev{animation:blink 1s steps(2) infinite}@keyframes blink{50%{opacity:.25}}.touch .right .btn{font-size:13px;padding:3px 8px}
 #panel{margin:0 auto;max-width:940px}.mcard{max-width:760px}
 :root{--ink:#1a1214;--win:#fff8e7;--hi:#ffffff;--lo:#7a6a9c;--title:#5f3dc4;--yellow:#ffe066;--green2:#d3f9d8;--red2:#ffe3e3;color-scheme:light}
@@ -514,7 +516,7 @@ $('#rotok').onclick=()=>{window.__rotOk=1;$('#rotate').hidden=true};
 /* Plein écran : dans le site, la page parente agrandit le cadre (vrai plein écran, ou pseudo plein écran sur iPhone) ; seul, le jeu utilise l'API du navigateur. */
 {const IN_FRAME=window.parent!==window,D=document.documentElement,FS=$('#fs');
   const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement,canFS=!!(D.requestFullscreen||D.webkitRequestFullscreen);
-  const label=on=>{FS.textContent=on?'Quitter le plein écran':'Plein écran'};
+  const label=on=>{FS.textContent=on?'Quitter':'Plein écran';D.classList.toggle('fsmode',on)};
   if(IN_FRAME||canFS){FS.hidden=false;
     FS.onclick=async()=>{if(IN_FRAME){parent.postMessage({talasFS:'toggle'},'*');return}
       try{if(fsEl())await(document.exitFullscreen||document.webkitExitFullscreen).call(document);else{await(D.requestFullscreen||D.webkitRequestFullscreen).call(D);try{await screen.orientation.lock('landscape')}catch(e){}}}catch(e){}setTimeout(fit,300)};
@@ -528,10 +530,10 @@ function placeCam(dt){
   camera.lookAt(cur.look);
 }
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();
-function pick(e){if(!cur)return null;const r=cv.getBoundingClientRect();ptr.x=(e.clientX-r.left)/r.width*2-1;ptr.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(ptr,camera);
+function pick(e){if(!cur||!cur.clickables)return null;const r=cv.getBoundingClientRect();ptr.x=(e.clientX-r.left)/r.width*2-1;ptr.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(ptr,camera);
   for(const h of ray.intersectObjects(cur.clickables,true)){let o=h.object;while(o&&!o.userData.onClick)o=o.parent;if(o)return o}return null}
 let down=null,hovered=null;
-cv.addEventListener('pointerdown',e=>{if(cur&&cur.onDown)cur.onDown(e);down={x:e.clientX,y:e.clientY,yaw:cur&&cur.yaw};dragging=false});
+cv.addEventListener('pointerdown',e=>{if(cur&&cur.platformer){KEYS.J=1;setTimeout(()=>KEYS.J=0,160);return}if(cur&&cur.onDown)cur.onDown(e);down={x:e.clientX,y:e.clientY,yaw:cur&&cur.yaw};dragging=false});
 cv.addEventListener('pointermove',e=>{
   if(cur&&cur.onMove)cur.onMove(e);
   if(down&&cur&&cur.hub&&Math.abs(e.clientX-down.x)>6){dragging=true;cur.yaw=down.yaw-(e.clientX-down.x)*.006}
@@ -873,7 +875,7 @@ function ppeMesh(k){const g=new THREE.Group();
 const KEYS={};
 const keyOf=k=>({ArrowLeft:'L',a:'L',q:'L',A:'L',Q:'L',ArrowRight:'R',d:'R',D:'R',ArrowUp:'U',w:'U',z:'U',W:'U',Z:'U',ArrowDown:'D',s:'D',S:'D',' ':'J'})[k];
 addEventListener('keydown',e=>{const k=keyOf(e.key);if(k&&cur&&(cur.platformer||cur.keys)){KEYS[k]=1;e.preventDefault()}});
-addEventListener('keyup',e=>{const k=keyOf(e.key);if(k)KEYS[k]=0});
+addEventListener('keyup',e=>{const k=keyOf(e.key);if(k){KEYS[k]=0;if(cur&&(cur.platformer||cur.keys))e.preventDefault()}});
 document.querySelectorAll('#pad [data-k]').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{KEYS[k]=1;e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>KEYS[k]=0))});
 
 /* Décor peint : textures dessinées sur canvas (neige, pavés, planches, briques, rayures, nuages bouclés, vitrine). */
@@ -953,8 +955,8 @@ function buildPlatformer(){
   SOL.push({x0:21,x1:26.5,y0:0,y1:2.2});
   B(6,6.2,1.6,'#8f7ad6',27.5,3.1,-2.4);const rf=outline(mk(new THREE.ConeGeometry(4.6,2.6,4),'#c0392b',27.5,7.5,-2.4,s),1.03);rf.rotation.y=Math.PI/4;
   [[25.8,4],[29.2,4]].forEach(([x,y])=>{B(.9,1.2,.1,'#ffffff',x,y,-1.55);mk(new THREE.BoxGeometry(.7,1,.12),'#ffd35a',x,y,-1.5,s)});
-  [-.3,.3].forEach(q=>mk(new THREE.BoxGeometry(.1,2.8,.1),'#8a4f22',26+q,3.5,-1.3,s));for(let y=2.4;y<4.8;y+=.4)mk(new THREE.BoxGeometry(.6,.08,.08),'#8a4f22',26,y,-1.3,s);
-  LAD.push({x:26,y0:2.2,y1:4.8});
+  [-.3,.3].forEach(q=>mk(new THREE.BoxGeometry(.1,5,.1),'#8a4f22',27.2+q,2.5,-1.3,s));for(let y=.4;y<4.8;y+=.4)mk(new THREE.BoxGeometry(.6,.08,.08),'#8a4f22',27.2,y,-1.3,s);
+  LAD.push({x:27.2,y0:0,y1:4.8});
   B(4.4,.25,1.8,'#6b4f9e',27.8,4.68,-.8);for(let x=25.8;x<30;x+=.5)mk(new THREE.BoxGeometry(.06,.8,.06),'#2b3a67',x,5.2,-1.55,s);mk(new THREE.BoxGeometry(4.4,.08,.08),'#2b3a67',27.8,5.6,-1.55,s);
   ONE.push({x0:25.6,x1:30,y:4.8});
   epi(23.3,3.1,'casque');[22,24.6].forEach(x=>coin(x,3.2));coin(27.2,5.6);
@@ -1067,7 +1069,7 @@ function buildPlatformer(){
     if(st.done)return;
     st.stun=Math.max(0,st.stun-dt);st.dizzy=Math.max(0,st.dizzy-dt);st.blind=Math.max(0,st.blind-dt);st.cd=Math.max(0,st.cd-dt);st.hcd=Math.max(0,st.hcd-dt);st.npcT=Math.max(0,st.npcT-dt);
     $('#blind').style.opacity=st.blind>0?Math.min(1,st.blind)*.85:0;
-    let ix=(KEYS.R?1:0)-(KEYS.L?1:0);if(st.dizzy>0)ix=-ix;
+    let ix=(KEYS.R?1:0)-(KEYS.L?1:0);if(st.dizzy>0)ix=-ix;if(ix)st.face=ix;
     const lad=ladderAt();
     if(st.climb){const l=st.climb;st.pos.x=l.x;st.pos.y+=((KEYS.U?1:0)-(KEYS.D?1:0))*3.2*dt;st.vel.set(0,0,0);
       if(KEYS.J){st.climb=null;st.vel.set(ix*4,6,0);st.peak=st.pos.y}
@@ -1103,7 +1105,7 @@ function buildPlatformer(){
     PICK.forEach(it=>{if(!it.got&&Math.abs(st.pos.x-it.x)<.7&&st.pos.y<it.y+.5&&st.pos.y+HH>it.y-.3){it.got=1;collect(it)}});
     TIPS.forEach(tb=>{if(!tb.seen&&Math.abs(st.pos.x-tb.x)<.8&&st.pos.y+HH>tb.y-.45&&st.pos.y<tb.y+.4){tb.seen=1;msg(tb.t,5);fx.burst(V(tb.x,tb.y,0),10);tb.g.children[0].material=mat('#fcc2d7')}});
     if(!st.gateOpen&&Math.abs(st.pos.x-32.8)<1.7&&st.pos.y<.5){if(st.badge){st.gateOpen=true;GATE.off=1;msg('<b>Le gardien :</b> « Badge vérifié. Bonne journée ! » La grille s’ouvre.',3);fx.burst(V(35.2,3,0),16)}
-      else if(st.npcT<=0){st.npcT=4;msg('<b>Le gardien :</b> « Pas de badge, pas d’accès au site. » Tu l’as laissé sur le balcon, en haut de l’échelle…',4)}}
+      else if(st.npcT<=0){st.npcT=4;msg('<b>Le gardien :</b> « Pas de badge, pas d’accès au site. » Il est resté sur le balcon : l’échelle part du sol, juste après la cabane rose…',4)}}
     if(st.hcd<=0&&Math.abs(st.pos.x-FK.x)<FK.w/2+HW&&st.pos.y<FK.h){st.hcd=1.4;const sgn=Math.sign(st.pos.x-FK.x)||-1;st.vel.set(sgn*7,6,0);st.kb=.35;st.ground=false;
       hurt('<b>BOUM !</b> Le chariot élévateur roule dans l’allée des piétons. Il faut séparer les flux (§8.1.2).')}
     // poursuite : Victor Marchal court après Dylan jusqu'à la barrière du chantier
@@ -1134,17 +1136,17 @@ function buildPlatformer(){
     if(st.climb)body.position.y+=Math.abs(Math.sin(st.pos.y*6))*.05;else body.position.y+=st.ground&&ix?Math.abs(Math.sin(T*14))*.12:0;
     sun.position.set(st.pos.x+6,st.pos.y+18,10);sun.target.position.copy(st.pos);
   };
-  W.cam=dt=>{const want=V(st.pos.x+2.5,Math.max(2.4,st.pos.y+2.4),12);camera.position.lerp(want,1-Math.pow(.002,dt||.016));const l=V(camera.position.x,camera.position.y-.9,0);if(st.dizzy>0)l.x+=Math.sin(performance.now()/90)*.5;camera.lookAt(l)};
+  W.cam=dt=>{st.look=(st.look===undefined?2.5:st.look)+((st.face||1)*2.5-(st.look===undefined?2.5:st.look))*Math.min(1,(dt||.016)*2);const want=V(st.pos.x+st.look,Math.max(2.4,st.pos.y+2.4),12);camera.position.lerp(want,1-Math.pow(.002,dt||.016));const l=V(camera.position.x,camera.position.y-.9,0);if(st.dizzy>0)l.x+=Math.sin(performance.now()/90)*.5;camera.lookAt(l)};
   camera.position.set(2.5,2.4,12);
   return W;
 }
 async function platformSection(n){
   const room=cur;
   await say('karim','Ce soir, il faut inspecter le chantier de rénovation de notre immeuble, en centre-ville, tout en haut de l’échafaudage. Il a neigé… et le patron est pressé.');
-  await say('boulon','Traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Victor Marchal va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer et grimper aux échelles, gros bouton SAUT.':'Flèches ou ZQSD pour avancer et grimper aux échelles (▲ ▼), ESPACE pour sauter.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','Traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Victor Marchal va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer et grimper aux échelles, tape l’écran (ou le bouton SAUT) pour sauter.':'Flèches ou ZQSD pour avancer et grimper aux échelles (▲ ▼), ESPACE pour sauter.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0;
   const ok=await trial(n,async()=>{
-    hidePanel();await fade(1);const PW=buildPlatformer();setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';await fade(0);
+    hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);const PW=buildPlatformer();setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';await fade(0);
     const r=await PW.run();$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;Object.keys(KEYS).forEach(k=>KEYS[k]=0);
     got=Object.keys(PW.st.ppe).length;coins=PW.st.coins;
     if(r){pts(n,true);PPE.forEach(p=>pts(n,!!PW.st.ppe[p.k]));cdi(8)}else PW.lastCause=PW.cause;
