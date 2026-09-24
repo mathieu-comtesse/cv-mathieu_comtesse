@@ -306,7 +306,7 @@ const ITEMS=[
  {id:'miroir',name:'Miroir en bronze, filtre intégré',era:'Époque étrusque, IVe siècle av. J.-C.',at:[16,-44],
   text:'Avant le verre étamé, on se regardait dans du bronze poli ; les Étrusques gravaient des scènes au dos. Filtre par défaut : patine vert-de-gris.',
   build(){const g=new THREE.Group(),d=M(new THREE.CylinderGeometry(.24,.24,.03,28),new THREE.MeshStandardMaterial({color:0xc9b07a,metalness:1,roughness:.12}));d.rotation.x=Math.PI/2;g.add(d);g.add(M(new THREE.CylinderGeometry(.03,.03,.3,8),bronze,0,-.36,0));return g;}},
- {id:'ancre',name:'Ancre phocéenne « J’♥ Massalia »',era:'Vers 600 av. J.-C. (graffiti : non daté)',at:[34,34],
+ {id:'ancre',name:'Ancre phocéenne « J’aime Massalia »',era:'Vers 600 av. J.-C. (graffiti : non daté)',at:[34,34],
   text:'Des marins grecs venus de Phocée ont fondé Massalia, la future Marseille, vers 600 av. J.-C. Les ancres de l’époque étaient souvent des pierres percées. Le graffiti est sans doute plus récent.',
   build(){const g=new THREE.Group(),st=M(new THREE.CylinderGeometry(.35,.42,.2,7),new THREE.MeshStandardMaterial({color:0x8b8d86,roughness:1,flatShading:true}));g.add(st);const hole=M(new THREE.TorusGeometry(.09,.03,6,12),darkM,0,.11,0);hole.rotation.x=Math.PI/2;g.add(hole);const heart=M(new THREE.SphereGeometry(.05,8,6),new THREE.MeshStandardMaterial({color:0xe23b4a,emissive:0x901020,emissiveIntensity:.6}),.2,.11,.1);g.add(heart);return g;}}
 ];
