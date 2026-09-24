@@ -15,7 +15,8 @@
 #panel{margin:0 auto;max-width:940px}.mcard{max-width:760px}
 :root{--ink:#1a1214;--win:#fff8e7;--hi:#ffffff;--lo:#7a6a9c;--title:#5f3dc4;--yellow:#ffe066;--green2:#d3f9d8;--red2:#ffe3e3;color-scheme:light}
 html,body{height:100%;overflow:hidden}
-body{font-family:"Pixelify Sans","Courier New",monospace;color:var(--ink);background-color:#1098ad;background-image:linear-gradient(45deg,#15aabf 25%,transparent 25%,transparent 75%,#15aabf 75%),linear-gradient(45deg,#15aabf 25%,transparent 25%,transparent 75%,#15aabf 75%);background-size:32px 32px;background-position:0 0,16px 16px}
+@font-face{font-family:"Paragraphe";src:local("Georgia"),local("Times New Roman"),local("Times"),local("DejaVu Serif"),local("Noto Serif"),local("Liberation Serif");unicode-range:U+00A7;font-weight:100 900}
+body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(--ink);background-color:#1098ad;background-image:linear-gradient(45deg,#15aabf 25%,transparent 25%,transparent 75%,#15aabf 75%),linear-gradient(45deg,#15aabf 25%,transparent 25%,transparent 75%,#15aabf 75%);background-size:32px 32px;background-position:0 0,16px 16px}
 #area{position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px)}
 #frame{position:absolute;left:50%;top:50%;width:640px;height:480px;transform:translate(-50%,-50%);transform-origin:center;overflow:hidden;background:#2890e2;box-shadow:0 0 0 4px #fff,0 0 0 8px var(--ink),0 12px 0 8px rgba(0,0,0,.25);font-size:14px;line-height:1.3}
 #cv{position:absolute;left:0;top:0;width:640px;height:480px;display:block;image-rendering:pixelated;touch-action:none}
@@ -234,7 +235,7 @@ function wrap(x,text,maxW){const words=text.split(' ');const lines=[];let l='';f
 function labelTex(text,w,h,{bg='#fffaf0',fg=INK,border=INK,size=80}={}){
   const cw=512,ch=Math.round(512*h/w);const c=document.createElement('canvas');c.width=cw;c.height=ch;const x=c.getContext('2d');
   rr(x,8,8,cw-16,ch-16,Math.min(48,ch/4));x.fillStyle=bg;x.fill();x.lineWidth=14;x.strokeStyle=border;x.stroke();
-  let fs=size,lines;for(;fs>18;fs-=3){x.font=`600 ${fs}px "Pixelify Sans", "Courier New", monospace`;lines=wrap(x,text,cw-70);if(lines.length*fs*1.12<ch-44&&lines.every(l=>x.measureText(l).width<cw-60))break}
+  let fs=size,lines;for(;fs>18;fs-=3){x.font=`600 ${fs}px "Paragraphe", "Pixelify Sans", "Courier New", monospace`;lines=wrap(x,text,cw-70);if(lines.length*fs*1.12<ch-44&&lines.every(l=>x.measureText(l).width<cw-60))break}
   x.fillStyle=fg;x.textAlign='center';x.textBaseline='middle';const lh=fs*1.12;const y0=ch/2-(lines.length-1)*lh/2;lines.forEach((l,i)=>x.fillText(l,cw/2,y0+i*lh));
   const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
 }
@@ -1379,7 +1380,7 @@ function showLinks(){
 
 /* ================= DÉMARRAGE ================= */
 async function start(){
-  try{await Promise.race([document.fonts.load('600 40px "Pixelify Sans"'),wait(2500)])}catch(e){}
+  try{await Promise.race([Promise.all([document.fonts.load('600 40px "Pixelify Sans"'),document.fonts.load('600 40px "Paragraphe"','§')]),wait(2500)])}catch(e){}
   HUB=buildHub();setWorld(HUB);refreshSigns();loop();$('#loading').remove();S.intro=1;
   const m=modal(`<span class="tag">Un jeu ISO 45001 pour grands enfants</span><h1>Le Village <span>Talas</span></h1>
    <p>Tu es <b>Dylan</b>, alternant HSE chez Talas Aéronautique. Airbus exige la certification ISO 45001 dans douze mois. Ton CDI en dépend !</p>
