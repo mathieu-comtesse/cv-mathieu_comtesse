@@ -118,7 +118,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <div id="bt" hidden><div class="bbox foe win"><b>VICTOR MARCHAL</b> <span>Nv. 99 · PDG</span><div class="hp"><i id="hpc"></i></div><em id="hpcv">100 / 100</em></div><div class="bbox me win"><b>DYLAN</b> <span>Nv. 1 · Alternant</span><div class="hp"><i id="hpd"></i></div><em id="hpdv">100 / 100</em></div></div>
 <div id="phud" hidden><div class="win" id="php"></div><div class="win" id="ppe"></div></div>
 <div id="pmsg" class="win" hidden></div>
-<div id="pad" hidden><div><span></span><button class="btn alt" data-k="U">▲</button><span></span><button class="btn alt" data-k="L">◀</button><button class="btn alt" data-k="D">▼</button><button class="btn alt" data-k="R">▶</button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
+<div id="pad" hidden><div><span></span><button class="btn alt" data-k="U"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><span></span><button class="btn alt" data-k="L"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button class="btn alt" data-k="D"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button><button class="btn alt" data-k="R"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
 <div id="blind"></div>
 <div id="panel" class="win" hidden><div class="tbar" id="pname"></div><div class="pin"><div class="por" id="por"></div><div class="pbody"><div class="ptext" id="ptext"></div><div class="pact" id="pact"></div></div></div></div>
 <div id="modal" hidden></div>
@@ -209,7 +209,7 @@ async function runScript(n,script){
     await say(s.w,typeof s.t==='function'?s.t():s.t);
   }
 }
-function modal(html,title='TALAS.EXE'){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class="mcard win"><div class="tbar"><b>${title}</b><span>▣</span></div><div class="mbody">${html}</div></div>`;return m}
+function modal(html,title='TALAS.EXE'){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class="mcard win"><div class="tbar"><b>${title}</b><span><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="9" y="9" width="6" height="6" fill="currentColor"/></svg></span></div><div class="mbody">${html}</div></div>`;return m}
 const closeModal=()=>{$('#modal').hidden=true};
 const fade=on=>new Promise(r=>{$('#fade').classList.toggle('on',on);setTimeout(r,380)});
 
@@ -477,7 +477,7 @@ const allDone=()=>[0,1,2,3,4,5,6].every(i=>S.done[i]);
 function nextN(){for(let i=0;i<7;i++)if(!S.done[i])return unlocked(i)?i:null;return 7}
 function refreshSigns(){
   B.forEach((b,n)=>{const st=stars(n);const open=unlocked(n);
-    b.userData.sign.userData.relabel(`${CH[n].cl} ${CH[n].t}${S.done[n]?'  '+'★'.repeat(st)+'☆'.repeat(3-st):open?'':'  (fermé)'}`,{bg:open?'#fffaf0':'#dee2e6',border:open?PAL[n%8]:'#868e96',fg:INK,size:78})});
+    b.userData.sign.userData.relabel(`${CH[n].cl} ${CH[n].t}${S.done[n]?'  · '+st+'/3':open?'':'  (fermé)'}`,{bg:open?'#fffaf0':'#dee2e6',border:open?PAL[n%8]:'#868e96',fg:INK,size:78})});
   HUB_TOWER.userData.sign.userData.relabel(allDone()||S.all?'Tour de contrôle : le verdict':'Tour de contrôle (fermée)',{bg:allDone()||S.all?'#fff3bf':'#dee2e6',border:'#ff6b6b',size:70});
   hud();
 }
@@ -986,7 +986,7 @@ function buildPlatformer(){
   const cbody=new THREE.Group();[...crate.children].forEach(c=>cbody.add(c));crate.add(cbody);
   CR.glow=new THREE.Mesh(new THREE.BoxGeometry(1.75,1.75,1.75),new THREE.MeshBasicMaterial({color:'#ff922b',side:THREE.BackSide}));CR.glow.position.y=.62;crate.add(CR.glow);
   CR.pupils=[-.26,.26].map(x=>{outline(mk(new THREE.SphereGeometry(.17,12,10),'#ffffff',x,.72,.6,cbody),1.12);const p=new THREE.Mesh(new THREE.SphereGeometry(.08,8,6),new THREE.MeshBasicMaterial({color:INK}));p.position.set(x,.72,.76);cbody.add(p);return p});
-  CR.sign=labelPlane('◀ POUSSE-MOI ▶',2.6,.6,{bg:'#fff3bf',border:'#f08c00',size:80});CR.sign.position.set(0,2.2,.2);crate.add(CR.sign);CR.cbody=cbody;
+  CR.sign=labelPlane('POUSSE-MOI !',2.6,.6,{bg:'#fff3bf',border:'#f08c00',size:80});CR.sign.position.set(0,2.2,.2);crate.add(CR.sign);CR.cbody=cbody;
   // cabane rose (toit enneigé = plateforme) et grande maison avec échelle et balcon
   B(5.5,2.2,2.6,'#d6479e',23.75,1.1,-.6);B(.9,1.6,.1,'#7b2a5c',22.6,.8,.72);B(1,.8,.1,'#ffd35a',25,1.3,.72);
   B(6,.3,3.2,'#f8fbff',23.75,2.05,-.6);for(let x=21.2;x<26.4;x+=.45){const c=mk(new THREE.ConeGeometry(.07,rand(.25,.5),5),'#bfe6ff',x,1.75,.95,s);c.rotation.x=Math.PI}
@@ -1111,7 +1111,7 @@ function buildPlatformer(){
   const bl2=labelPlane('FRAGILE',.9,.3,{bg:'#fff3bf',border:'#e03131',fg:'#e03131',size:90});bl2.position.set(0,.9,.56);box.add(bl2);
   const boxEyes=[-.2,.2].map(x=>{const e=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),new THREE.MeshBasicMaterial({color:INK}));e.position.set(x,1.1,.57);box.add(e);e.visible=false;return e});
   const BOX={x:-39.5};box.position.set(BOX.x,0,0);
-  tip(-41.5,2.5,'<b>Bloc conseil :</b> un vigile garde l’atelier. Cache-toi dans le carton (▼) et avance à petits pas : il ne verra rien.');
+  tip(-41.5,2.5,'<b>Bloc conseil :</b> un vigile garde l’atelier. Cache-toi dans le carton (flèche bas) et avance à petits pas : il ne verra rien.');
   arrow(-36,1.6);[-30,-27,-24].forEach(x=>coin(x,.9));
   B(3,5,.4,'#495057',-15.5,2.5,-2.7);const ex=labelPlane('SORTIE → VILLAGE',3.2,.7,{bg:'#2f9e44',fg:'#fff',border:'#2b8a3e',size:80});ex.position.set(-15.5,5.4,-2.4);s.add(ex);
   const EN=[];
@@ -1177,7 +1177,7 @@ function buildPlatformer(){
     $('#blind').style.opacity=st.blind>0?Math.min(1,st.blind)*.85:0;
     st.spinT=Math.max(0,st.spinT-dt);st.spinCD=Math.max(0,st.spinCD-dt);st.caughtT=Math.max(0,(st.caughtT||0)-dt);
     const dEdge=KEYS.D&&!st.dPrev;st.dPrev=KEYS.D;
-    if(dEdge&&!st.cart&&!st.climb&&st.ground){if(st.hidden){st.hidden=false;BOX.x=st.pos.x;msg('Tu sors du carton.',1.2)}else if(Math.abs(st.pos.x-BOX.x)<1&&st.pos.y<.1){st.hidden=true;msg('<b>Caché dans le carton !</b> Avance à petits pas… ▼ pour sortir.',2.4)}}
+    if(dEdge&&!st.cart&&!st.climb&&st.ground){if(st.hidden){st.hidden=false;BOX.x=st.pos.x;msg('Tu sors du carton.',1.2)}else if(Math.abs(st.pos.x-BOX.x)<1&&st.pos.y<.1){st.hidden=true;msg('<b>Caché dans le carton !</b> Avance à petits pas… flèche bas pour sortir.',2.4)}}
     HH=st.hidden||(st.cart&&KEYS.D)?1:1.7;st.duck=st.cart&&!!KEYS.D;
     if(KEYS.S&&st.spinCD<=0&&!st.hidden&&!st.climb){st.spinT=.45;st.spinCD=.75;st.idleT=0;
       EN.forEach(e=>{if(Math.abs(e.x-st.pos.x)<1.8&&st.pos.y<1.5){if(e.kind==='ouvrier'&&e.stun<=0){e.stun=3;fx.burst(V(e.x,1.6,0),10);msg('<b>BOING !</b> L’ouvrier pressé voit des étoiles. Passe vite !',2)}else if(e.kind==='vigile')msg('Le vigile ne se laisse pas faire : mieux vaut passer incognito…',2)}});
@@ -1222,9 +1222,9 @@ function buildPlatformer(){
       else if(st.npcT<=0){st.npcT=4;msg('<b>Le gardien :</b> « Pas de badge, pas d’accès au site. » Il est resté sur le balcon : l’échelle part du sol, juste après la cabane rose…',4)}}
     if(st.hcd<=0&&Math.abs(st.pos.x-FK.x)<FK.w/2+HW&&st.pos.y<FK.h){st.hcd=1.4;const sgn=Math.sign(st.pos.x-FK.x)||-1;st.vel.set(sgn*7,6,0);st.kb=.35;st.ground=false;
       hurt('<b>BOUM !</b> Le chariot élévateur roule dans l’allée des piétons. Il faut séparer les flux (§8.1.2).')}
-    if(!st.cart&&!st.cartDone&&st.ground&&st.pos.x<-60&&Math.abs(st.pos.x-cartM.position.x)<.7&&st.pos.y<.2){st.cart=true;st.face=1;msg('<b>En voiture !</b> SAUT pour franchir les trous, ▼ pour baisser la tête sous les poutres.',3)}
+    if(!st.cart&&!st.cartDone&&st.ground&&st.pos.x<-60&&Math.abs(st.pos.x-cartM.position.x)<.7&&st.pos.y<.2){st.cart=true;st.face=1;msg('<b>En voiture !</b> SAUT pour franchir les trous, flèche bas pour baisser la tête sous les poutres.',3)}
     if(st.cart){cartM.position.set(st.pos.x,Math.max(0,st.pos.y),0);
-      BEAMS.forEach(b=>{if(!b.hit&&Math.abs(st.pos.x-b.x)<.7&&st.pos.y+HH>b.y0){b.hit=1;hurt('<b>BONG !</b> Une poutre ! Baisse la tête (▼).');setTimeout(()=>b.hit=0,1500)}});if(st.done)return;
+      BEAMS.forEach(b=>{if(!b.hit&&Math.abs(st.pos.x-b.x)<.7&&st.pos.y+HH>b.y0){b.hit=1;hurt('<b>BONG !</b> Une poutre ! Baisse la tête (flèche bas).');setTimeout(()=>b.hit=0,1500)}});if(st.done)return;
       if(st.pos.x>=-41){st.cart=false;st.cartDone=true;st.vel.x=0;cartM.position.x=-41;fx.burst(V(-41,1,0),20);msg('<b>Arrivé !</b> Descends du chariot et continue.',2)}}
     if(st.carry){st.carryT-=dt;const n=Math.max(0,Math.ceil(st.carryT));if(n!==st.carryN){st.carryN=n;tmr.userData.relabel(String(n),{bg:n<=4?'#ffe3e3':'#fff3bf',border:'#e03131',fg:'#e03131',size:150})}
       tmr.visible=true;tmr.position.set(st.pos.x,st.pos.y+2.5,0);
@@ -1277,7 +1277,7 @@ function buildPlatformer(){
 async function platformSection(n){
   const room=cur;
   await say('karim','Ce soir, il faut inspecter le chantier de rénovation de notre immeuble, en centre-ville, tout en haut de l’échafaudage. Il a neigé… et le patron est pressé.');
-  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Victor Marchal va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer, grimper et te cacher (▼), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (▼), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Victor Marchal va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0;
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);const PW=buildPlatformer();setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';await fade(0);
