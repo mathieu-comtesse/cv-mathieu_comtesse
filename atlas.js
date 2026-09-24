@@ -90,7 +90,7 @@ function building(step){const g=new THREE.Group();g.position.set(step.pos[0]*SPR
   const sand=new THREE.Mesh(new THREE.CircleGeometry(.13,20),mat('#ffd9a8'));sand.rotation.x=-Math.PI/2;sand.position.set(-.08,.052,.14);g.add(sand);egg(sand,'sable','Une flaque de sable : le Sandboard en miniature.',()=>{tone([300,240],.2);sand.material.color.set('#ff9a3d');});
   const hedge=new THREE.Group();for(let i=0;i<3;i++){const h=box(.06,.13,.22,'#8fd39a',.08+i*.08,.115,-.12,false);hedge.add(h);}g.add(hedge);egg(hedge,'haie','La haie du Labyrinthe, taillée au carré.',()=>{tone([500,600,700,800],.1);hedge.scale.y=1.4;setTimeout(()=>hedge.scale.y=1,400);});}
  // Label floats clear of the roof: measured on the building itself, always drawn on top.
- const top=new THREE.Box3().setFromObject(g).max.y-g.position.y;const label=makeLabel(step.name,step.tag);label.position.y=top+(step.kind==='arcade'?1.5:.45);g.add(label);
+ const bb=new THREE.Box3().setFromObject(g);g.userData.box=bb;const top=bb.max.y-g.position.y;const label=makeLabel(step.name,step.tag);label.position.y=top+(step.kind==='arcade'?1.5:.45);g.add(label);g.userData.label=label;label.userData.y=label.position.y;
  g.traverse(o=>{if(o.isMesh)o.userData.building=g;});world.add(g);return g;}
 function makeLabel(text,sub=''){const c=document.createElement('canvas');c.width=640;c.height=160;const x=c.getContext('2d');x.fillStyle=INK;x.fillRect(0,0,640,160);x.fillStyle=PAPER;x.fillRect(5,5,630,150);x.fillStyle=INK;x.textAlign='center';x.textBaseline='middle';
  const fit=(t,size,weight,max)=>{x.font=`${weight} ${size}px "JetBrains Mono",monospace`;while(x.measureText(t).width>max&&size>14){size-=2;x.font=`${weight} ${size}px "JetBrains Mono",monospace`;}};
@@ -111,7 +111,7 @@ function paperCat(){const cat=new THREE.Group(),C='#2a2830',D='#1a1920',eyeM=new
  const tail=new THREE.Group();tail.position.set(-.13,.05,0);let prev=tail;for(let i=0;i<6;i++){const seg=new THREE.Group();seg.position.set(i?-.045:0,i?.03:0,0);const m=new THREE.Mesh(new THREE.CylinderGeometry(.018-i*.002,.02-i*.002,.05,5),mat(i===5?D:C));m.rotation.z=1.1;seg.add(m);prev.add(seg);prev=seg;tail.userData['s'+i]=seg;}
  cat.add(haunch,chest,head,tail);cat.userData.head=head;cat.userData.tail=tail;cat.userData.eyes=eyeM;return cat;}
 function egg(obj,id,text,action){obj.traverse(o=>{o.userData.egg=id;});eggs.set(id,{obj,text,action,found:false});}
-steps.forEach(building);
+const houses=steps.map(building);
 // --- Trees folded in Blender.
 for(let i=0;i<26;i++){const a=i/26*Math.PI*2+Math.sin(i)*.3,r=4.9+Math.sin(i*2.3)*1.1;const x=Math.cos(a)*r,z=Math.sin(a)*r;if(steps.some(s=>Math.hypot(s.pos[0]*SPREAD-x,s.pos[2]*SPREAD-z)<1.8))continue;const tree=origami(i%4===0?'blossom':i%3?'pine':'bush',.85+Math.random()*.4);tree.position.set(x,groundY(x,z)-.03,z);tree.rotation.y=Math.random()*6.3;world.add(tree);}
 const lighthouse=new THREE.Group();lighthouse.add(origami('lighthouse'));const lamp=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.25,8),new THREE.MeshStandardMaterial({color:'#fff6c8',emissive:'#ffcc55',emissiveIntensity:.3,flatShading:true}));lamp.position.y=1.42;lighthouse.add(lamp);const beamPivot=new THREE.Group();beamPivot.position.y=1.42;lighthouse.add(beamPivot);const beam=new THREE.Mesh(new THREE.ConeGeometry(.7,4.5,20,1,true),new THREE.MeshBasicMaterial({color:'#ffe7a0',transparent:true,opacity:0,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));beam.rotation.z=Math.PI/2;beam.position.x=2.25;beamPivot.add(beam);const isletA=.35,isletR=waterline(isletA)+2.1,isletX=Math.cos(isletA)*isletR,isletZ=Math.sin(isletA)*isletR;
@@ -275,10 +275,10 @@ function trail(obj,dt,stern=.35){const u=obj.userData,p=obj.position;if(!u.last)
 // --- Sailing: take the helm of the fishing boat. ZQSD or the arrows (physical keys), Space to stop, Escape to leave.
 const sail={on:false,speed:0,heading:0,roll:0,keys:new Set(),brake:false,goal:null},camTarget=new THREE.Vector3(0,.4,0),_ct=new THREE.Vector3();fisher.rotation.order='YZX';
 const bubble=document.getElementById('world-bubble'),sailHud=document.getElementById('world-sailhud'),sailBtn=document.getElementById('world-sail'),pad=document.getElementById('world-pad'),fishPanel=document.getElementById('world-fish');
-function enterSail(){if(sail.on)return;sail.on=true;fisher.userData.go=0;sail.heading=-Math.atan2(fisher.position.z,fisher.position.x);/* bow to the open sea */sail.speed=0;sail.goal={zoom:13,pitch:.98};card.hidden=true;document.body.classList.add('is-sailing');sailHud.hidden=false;pad.hidden=false;sailBtn.textContent='⚓ Quitter la barre';sailBtn.setAttribute('aria-pressed','true');hint.textContent='Vous tenez la barre : approchez un banc de poissons pour pêcher.';canvas.focus({preventScroll:true});}
+function enterSail(){if(sail.on)return;exitWalk();sail.on=true;fisher.userData.go=0;sail.heading=-Math.atan2(fisher.position.z,fisher.position.x);/* bow to the open sea */sail.speed=0;sail.goal={zoom:13,pitch:.98};card.hidden=true;document.body.classList.add('is-sailing');sailHud.hidden=false;pad.hidden=false;sailBtn.textContent='⚓ Quitter la barre';sailBtn.setAttribute('aria-pressed','true');hint.textContent='Vous tenez la barre : approchez un banc de poissons pour pêcher.';canvas.focus({preventScroll:true});}
 function exitSail(){if(!sail.on)return;endFishing();sail.on=false;sail.keys.clear();fisher.userData.go=42.001;sail.goal={zoom:28,pitch:.62};document.body.classList.remove('is-sailing');sailHud.hidden=true;pad.hidden=true;bubble.hidden=true;sailBtn.textContent='⛵ Naviguer';sailBtn.setAttribute('aria-pressed','false');}
 sailBtn.onclick=()=>{sail.on?exitSail():enterSail();sailBtn.blur();canvas.focus({preventScroll:true});};
-pad.querySelectorAll('button').forEach(b=>{const k=b.dataset.k,on=e=>{e.preventDefault();k==='fish'?(nearSpot()&&startFishing(nearSpot())):sail.keys.add(k);},off=()=>sail.keys.delete(k);b.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(t=>b.addEventListener(t,off));});
+pad.querySelectorAll('button').forEach(b=>{const k=b.dataset.k,on=e=>{e.preventDefault();if(walk.on){k==='fish'?walkInteract():walk.keys.add(k);return;}k==='fish'?(nearSpot()&&startFishing(nearSpot())):sail.keys.add(k);},off=()=>{sail.keys.delete(k);walk.keys.delete(k);};b.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(t=>b.addEventListener(t,off));});
 const nearSpot=()=>{let best=null,bd=1.6;for(const s of spots){const d=Math.hypot(s.x-fisher.position.x,s.z-fisher.position.z);if(d<bd){bd=d;best=s;}}return best;};
 function updateSail(dt,t){const u=sail,thrust=(u.keys.has('up')?1:0)-(u.keys.has('down')?.55:0),turn=(u.keys.has('left')?1:0)-(u.keys.has('right')?1:0);
  if(fishing.phase)u.speed*=Math.pow(.15,dt);else{u.speed+=(thrust*2.1-u.speed*1.05)*dt;if(u.brake)u.speed*=Math.pow(.04,dt);}
@@ -347,6 +347,43 @@ function updateFishing(dt,t){const f=fishing;if(!f.phase)return;f.t+=dt;fisher.u
   if(k>=1){hooked.visible=false;bobber.visible=fishLine.visible=false;tone([523,659,784],.18);showResult();if(!eggs.get('pêche').found)foundEgg('pêche','Première prise : le carnet de bord s’ouvre dans le coin.');}}
  if(!bobber.visible)return;bobber.position.copy(_bp);
  const pa=lineGeo.attributes.position;_ctl.lerpVectors(_tip,_bp,.5);_ctl.y-=sag;for(let i=0;i<32;i++){const s=i/31,a=(1-s)*(1-s),b=2*(1-s)*s,c=s*s;pa.setXYZ(i,_tip.x*a+_ctl.x*b+_bp.x*c,_tip.y*a+_ctl.y*b+_bp.y*c,_tip.z*a+_ctl.z*b+_bp.z*c);}pa.needsUpdate=true;}
+// --- Walking: explore the island at eye level. ZQSD (physical keys) to walk and strafe, drag to look, ← → to turn,
+// Shift to run, E to open the nearest building's card, Escape to leave. Collisions are cast against the real meshes.
+const walk={on:false,pos:new THREE.Vector3(),yaw:0,look:-.08,keys:new Set(),run:false,bob:0,near:null,lastFov:30},EYE=.3,walkHud=document.getElementById('world-walkhud'),walkBtn=document.getElementById('world-walk');
+const walkRay=new THREE.Raycaster();walkRay.params.Line.threshold=.001;walkRay.camera=camera;
+const obstacles=()=>world.children.filter(o=>o!==island&&!o.isSprite);
+function blocked(from,dir,len){walkRay.far=len;for(const h of [.2,.3]){walkRay.set(new THREE.Vector3(from.x,groundY(from.x,from.z)+h,from.z),dir);const hit=walkRay.intersectObjects(obstacles(),true).find(x=>x.object.isMesh&&x.object.visible);if(hit)return true;}return false;}
+const dry=(x,z)=>groundY(x,z,-9)>-.4;
+function enterWalk(){if(walk.on)return;exitSail();card.hidden=true;walk.on=true;walk.keys.clear();
+ // Start on the ring road, facing the stadium, on the side the camera was looking from.
+ const a=Math.atan2(Math.cos(spin),Math.sin(spin));walk.pos.set(Math.cos(a)*2.05,0,Math.sin(a)*2.05);walk.yaw=Math.atan2(walk.pos.x,walk.pos.z);walk.look=-.08;
+ walk.lastFov=camera.fov;camera.fov=62;camera.near=.02;camera.updateProjectionMatrix();camera.rotation.order='YXZ';
+ document.body.classList.add('is-sailing','is-walking');walkHud.hidden=false;pad.hidden=false;walkBtn.textContent='🚶 Quitter la marche';walkBtn.setAttribute('aria-pressed','true');hint.textContent='À pied sur l’île : approchez un bâtiment et appuyez sur E pour ouvrir sa fiche.';canvas.focus({preventScroll:true});}
+function exitWalk(){if(!walk.on)return;for(const h of houses){const l=h.userData.label;l.scale.set(2.6,.65,1);l.position.y=l.userData.y;l.visible=true;}walk.on=false;walk.keys.clear();camera.fov=walk.lastFov;camera.near=.1;camera.updateProjectionMatrix();camera.rotation.order='XYZ';
+ document.body.classList.remove('is-sailing','is-walking');walkHud.hidden=true;pad.hidden=true;walkBtn.textContent='🚶 Marcher';walkBtn.setAttribute('aria-pressed','false');}
+walkBtn.onclick=()=>{walk.on?exitWalk():enterWalk();walkBtn.blur();canvas.focus({preventScroll:true});};
+function nearHouse(){let best=null,bd=1.5;for(const g of houses){const b=g.userData.box,dx=Math.max(b.min.x-walk.pos.x,0,walk.pos.x-b.max.x),dz=Math.max(b.min.z-walk.pos.z,0,walk.pos.z-b.max.z),d=Math.hypot(dx,dz);if(d<bd){bd=d;best=g;}}return best;}
+function walkInteract(){const g=nearHouse();if(g)showCard(g.userData.step);}
+function updateWalk(dt,t){const k=walk.keys,turn=(k.has('left')?1:0)-(k.has('right')?1:0);walk.yaw+=turn*dt*1.9;
+ const fwd=(k.has('up')?1:0)-(k.has('down')?1:0),side=(k.has('sright')?1:0)-(k.has('sleft')?1:0),speed=(walk.run?2.3:1.15)*dt;
+ const moving=fwd||side;if(moving){const sy=Math.sin(walk.yaw),cy=Math.cos(walk.yaw),v=new THREE.Vector3(-sy*fwd+cy*side,0,-cy*fwd-sy*side).normalize();
+  // Try the full step, then slide along whichever axis is free.
+  for(const d of [v,new THREE.Vector3(v.x,0,0),new THREE.Vector3(0,0,v.z)]){if(d.lengthSq()<1e-4)continue;const dir=d.clone().normalize(),nx=walk.pos.x+dir.x*speed,nz=walk.pos.z+dir.z*speed;
+   if(dry(nx,nz)&&!blocked(walk.pos,dir,speed+.14)){walk.pos.x=nx;walk.pos.z=nz;break;}}
+  walk.bob+=dt*(walk.run?13:9);}
+ const gy=groundY(walk.pos.x,walk.pos.z);walk.pos.y+=(gy-walk.pos.y)*Math.min(1,dt*12);
+ camera.position.set(walk.pos.x,walk.pos.y+EYE+(moving?Math.sin(walk.bob)*.012:0),walk.pos.z);camera.rotation.set(walk.look,walk.yaw,0);
+ // Labels shrink to signposts at eye level and step aside when you stand right under them.
+ for(const h of houses){const l=h.userData.label,d=Math.hypot(h.position.x-walk.pos.x,h.position.z-walk.pos.z);l.scale.set(1.15,.29,1);l.position.y=l.userData.y+.15;l.visible=d>1.3;}
+ const g=nearHouse();if(g!==walk.near){walk.near=g;hint.textContent=g?`E · ouvrir la fiche : ${g.userData.step.name}`:'À pied · ZQSD, glisser pour regarder';}}
+function onWalkKey(e,down){if(!walk.on||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return false;
+ const K={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'sleft',KeyD:'sright',ArrowLeft:'left',ArrowRight:'right'}[e.code];
+ if(K){e.preventDefault();down?walk.keys.add(K):walk.keys.delete(K);return true;}
+ if(e.code==='ShiftLeft'||e.code==='ShiftRight'){walk.run=down;return true;}
+ if((e.code==='KeyE'||e.code==='Enter')&&down&&!e.repeat){e.preventDefault();walkInteract();return true;}
+ if(e.code==='Escape'&&down){card.hidden?exitWalk():card.hidden=true;return true;}return false;}
+window.addEventListener('keyup',e=>onWalkKey(e,false));
+window.addEventListener('blur',()=>{walk.keys.clear();walk.run=false;});
 function onSailKey(e,down){if(!sail.on||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return false;const K={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'}[e.code];
  if(fishing.phase){if(e.code==='Space'||e.code==='KeyF'){e.preventDefault();if(fishing.phase==='reel')fishing.holding=down;else if(down&&!e.repeat&&/caught|lost|log/.test(fishing.phase))startFishing(fishing.spot);return true;}
   if(e.code==='Escape'&&down){endFishing();return true;}if(K){e.preventDefault();if(down&&/caught|lost|log/.test(fishing.phase)){endFishing();sail.keys.add(K);}else if(!down)sail.keys.delete(K);return true;}return false;}
@@ -388,15 +425,15 @@ let sparks=[];function fireworks(){tone([523,659,784,1047],.3);for(let i=0;i<120
 // --- Interaction.
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let downAt=null;
 canvas.addEventListener('pointerdown',e=>{downAt={x:e.clientX,y:e.clientY,spin};dragging={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener('pointermove',e=>{if(dragging){spin=downAt.spin+(e.clientX-downAt.x)*.006;pitch=THREE.MathUtils.clamp(pitch-(e.clientY-dragging.y)*.002,.35,1.25);dragging.y=e.clientY;}else{pick(e,false);}});
+canvas.addEventListener('pointermove',e=>{if(dragging&&walk.on){walk.yaw-=(e.clientX-dragging.x)*.004;walk.look=THREE.MathUtils.clamp(walk.look-(e.clientY-dragging.y)*.003,-1.1,.9);dragging.x=e.clientX;dragging.y=e.clientY;}else if(dragging){spin=downAt.spin+(e.clientX-downAt.x)*.006;pitch=THREE.MathUtils.clamp(pitch-(e.clientY-dragging.y)*.002,.35,1.25);dragging.y=e.clientY;}else{pick(e,false);}});
 canvas.addEventListener('pointerup',e=>{const moved=downAt&&Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)>5;dragging=null;if(!moved)pick(e,true);});
 canvas.addEventListener('pointercancel',()=>dragging=null);
-canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.02,8,40);},{passive:false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();if(walk.on)return;zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.02,8,40);},{passive:false});
 canvas.addEventListener('touchmove',e=>{if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pinch)zoom=THREE.MathUtils.clamp(zoom*(pinch/d),8,40);pinch=d;e.preventDefault();}},{passive:false});canvas.addEventListener('touchend',()=>pinch=null);
 function pick(e,click){const r=canvas.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(ndc,camera);const hit=ray.intersectObjects([world,boat,duck,fisher,pier,...fish,...birds],true).find(h=>h.object.visible&&!(h.object.isLineSegments));canvas.style.cursor=hit&&(hit.object.userData.egg||hit.object.userData.building)?'pointer':'grab';if(!click||!hit)return;const o=hit.object;if(o.userData.egg){const e2=eggs.get(o.userData.egg);e2.action?.();foundEgg(o.userData.egg,e2.text);return;}if(o.userData.building)showCard(o.userData.building.userData.step);}
 document.getElementById('world-pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'▶':'Ⅱ';e.target.setAttribute('aria-label',paused?'Reprendre la rotation':'Mettre en pause');};
-document.getElementById('world-reset').onclick=()=>{exitSail();spin=0;pitch=.62;zoom=28;card.hidden=true;setNight(false);};
-window.addEventListener('keydown',e=>{if(onSailKey(e,true))return;if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;if(/^Arrow/.test(e.code))e.preventDefault();if(e.code==='ArrowLeft')spin-=.08;if(e.code==='ArrowRight')spin+=.08;if(e.code==='ArrowUp')pitch=Math.min(1.25,pitch+.04);if(e.code==='ArrowDown')pitch=Math.max(.35,pitch-.04);if(e.key==='+'||e.key==='=')zoom=Math.max(8,zoom-2);if(e.key==='-')zoom=Math.min(40,zoom+2);if(e.code==='Space'){e.preventDefault();document.getElementById('world-pause').click();}});
+document.getElementById('world-reset').onclick=()=>{exitWalk();exitSail();spin=0;pitch=.62;zoom=28;card.hidden=true;setNight(false);};
+window.addEventListener('keydown',e=>{if(onWalkKey(e,true)||onSailKey(e,true))return;if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName))return;if(/^Arrow/.test(e.code))e.preventDefault();if(e.code==='ArrowLeft')spin-=.08;if(e.code==='ArrowRight')spin+=.08;if(e.code==='ArrowUp')pitch=Math.min(1.25,pitch+.04);if(e.code==='ArrowDown')pitch=Math.max(.35,pitch-.04);if(e.key==='+'||e.key==='=')zoom=Math.max(8,zoom-2);if(e.key==='-')zoom=Math.min(40,zoom+2);if(e.code==='Space'){e.preventDefault();document.getElementById('world-pause').click();}});
 const resize=()=>{const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(host);resize();
 const clock=new THREE.Clock();
 let perfT=0,perfN=0;
@@ -405,8 +442,9 @@ function frame(){const raw=clock.getDelta(),dt=Math.min(.05,raw),t=clock.elapsed
  if(sail.goal){const g=sail.goal,k=Math.min(1,dt*2.2);zoom+=(g.zoom-zoom)*k;pitch+=(g.pitch-pitch)*k;if(Math.abs(g.zoom-zoom)<.05)sail.goal=null;}
  // At the helm the camera follows the boat from high above; otherwise it circles the island, shifted clear of the intro text.
  // while fishing, aim a little nearer so the boat sits above the fishing panel
+ if(walk.on)updateWalk(dt,t);else{
  camTarget.lerp(sail.on?_ct.set(fisher.position.x+(fishing.phase?Math.sin(spin)*1.8:0),-.3,fisher.position.z+(fishing.phase?Math.cos(spin)*1.8:0)):_ct.set(0,.4,0),Math.min(1,dt*(sail.on?3:1.6)));
- const dist=zoom,shift=innerWidth>850&&!sail.on?-4.6*(zoom/28):0;camera.position.set(camTarget.x+Math.sin(spin)*dist*Math.cos(pitch),camTarget.y+Math.sin(pitch)*dist,camTarget.z+Math.cos(spin)*dist*Math.cos(pitch));camera.lookAt(camTarget);camera.translateX(shift);camera.lookAt(camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3())));
+ const dist=zoom,shift=innerWidth>850&&!sail.on?-4.6*(zoom/28):0;camera.position.set(camTarget.x+Math.sin(spin)*dist*Math.cos(pitch),camTarget.y+Math.sin(pitch)*dist,camTarget.z+Math.cos(spin)*dist*Math.cos(pitch));camera.lookAt(camTarget);camera.translateX(shift);camera.lookAt(camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3())));}
  water.material.userData.u.uTime.value=t;reefSway.value=t;
  waves.forEach(w=>{const u=w.userData,f=u.foam;u.age+=dt;
   if(u.phase==='in'){u.d-=u.speed*dt*(.7+.6*Math.min(1,u.d/3));if(u.d<.42){u.phase='break';u.age=0;}}
@@ -443,6 +481,8 @@ function frame(){const raw=clock.getDelta(),dt=Math.min(.05,raw),t=clock.elapsed
  updateLagoon(dt,t);
  renderer.render(scene,camera);requestAnimationFrame(frame);}
 setNight(false);eggsHud.textContent=`Easter eggs : 0 / ${eggs.size}`;canvas.dataset.ready='true';frame();
+// ?marche opens the island on foot (shareable link).
+if(/[?&]marche\b/.test(location.search))enterWalk();
 // Audit hook for automated checks: can every easter egg be seen and clicked from some orbit angle and zoom?
 window.AtlasGame={eggs,foundEgg,boat,view(sp,pt,z){spin=sp;pitch=pt;zoom=z;paused=true;},shot(id,dist=1.6,az=.6,el=.35){const o=eggs.get(id).obj,c=new THREE.Vector3();new THREE.Box3().setFromObject(o).getCenter(c);const cam=camera.clone();cam.position.set(c.x+Math.sin(az)*dist*Math.cos(el),c.y+Math.sin(el)*dist,c.z+Math.cos(az)*dist*Math.cos(el));cam.lookAt(c);renderer.render(scene,cam);return canvas.toDataURL('image/jpeg',.85);},audit(){const out={},cam=camera.clone(),rc=new THREE.Raycaster(),targets=[world,boat,duck,fisher,pier,...fish,...birds],box=new THREE.Box3(),c=new THREE.Vector3(),sz=new THREE.Vector3();
  scene.updateMatrixWorld(true);
@@ -451,3 +491,5 @@ window.AtlasGame={eggs,foundEgg,boat,view(sp,pt,z){spin=sp;pitch=pt;zoom=z;pause
    const dir=c.clone().sub(cam.position).normalize();rc.set(cam.position,dir);rc.camera=cam;const hit=rc.intersectObjects(targets,true).find(h=>h.object.visible&&!h.object.isLineSegments);
    if(hit&&hit.object.userData.egg===id){const d=cam.position.distanceTo(c),px=Math.max(sz.x,sz.y,sz.z)/d*(600/2)/Math.tan(cam.fov*Math.PI/360);if(!best||px>best.px)best={z,spin:+sp.toFixed(2),px:+px.toFixed(1)};}}
   out[id]=best||'INVISIBLE';});return out;}};
+// Walking test hook: AtlasGame.walkFor(keys,frames) advances the walker without a keyboard.
+Object.assign(window.AtlasGame,{walk,enterWalk,exitWalk,walkFor(keys,n=30,dt=1/30){walk.keys=new Set(keys);for(let i=0;i<n;i++)updateWalk(dt,0);walk.keys.clear();return walk.pos.clone();}});
