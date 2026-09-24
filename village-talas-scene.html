@@ -115,7 +115,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
     <button class="btn" id="unlock">Tout ouvrir</button>
   </div>
 </div>
-<div id="bt" hidden><div class="bbox foe win"><b>GEORGES BARTHÉLEMY</b> <span>Nv. 99 · PDG</span><div class="hp"><i id="hpc"></i></div><em id="hpcv">100 / 100</em></div><div class="bbox me win"><b>DYLAN</b> <span>Nv. 1 · Alternant</span><div class="hp"><i id="hpd"></i></div><em id="hpdv">100 / 100</em></div></div>
+<div id="bt" hidden><div class="bbox foe win"><b>AURELIEN LEFAUCONNIER</b> <span>Nv. 99 · PDG</span><div class="hp"><i id="hpc"></i></div><em id="hpcv">100 / 100</em></div><div class="bbox me win"><b>DYLAN</b> <span>Nv. 1 · Alternant</span><div class="hp"><i id="hpd"></i></div><em id="hpdv">100 / 100</em></div></div>
 <div id="phud" hidden><div class="win" id="php"></div><div class="win" id="ppe"></div></div>
 <div id="pmsg" class="win" hidden></div>
 <div id="pad" hidden><div><span></span><button class="btn alt" data-k="U"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><span></span><button class="btn alt" data-k="L"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button class="btn alt" data-k="D"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button><button class="btn alt" data-k="R"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
@@ -176,7 +176,7 @@ const FICHE=[
 const PPL={
  boulon:{n:'Boulon',r:'ton robot guide'},
  dylan:{n:'Dylan',r:'alternant HSE',c:'#74c0fc',i:'DY'},
- ceo:{n:'Georges Barthélemy',r:'CEO de Talas',c:'#9775fa',i:'GB'},
+ ceo:{n:'Aurelien Lefauconnier',r:'CEO de Talas',c:'#9775fa',i:'AL'},
  karim:{n:'Mathieu',r:'chef d’atelier',c:'#ffa94d',i:'MA'},
  lea:{n:'Mathilde',r:'peintre aéro, élue CSE',c:'#69db7c',i:'MT'},
  sabrina:{n:'Neila',r:'responsable RH',c:'#f783ac',i:'NE'},
@@ -866,17 +866,17 @@ async function battle(n){
     await tween(.55,k=>{p.position.lerpVectors(a,b,k);p.position.y+=Math.sin(k*Math.PI)*2.2;p.rotation.y+=.25;p.rotation.x+=.15},E.lin);
     R.stage.remove(p);R.fx.burst(b,16);redFlash();blink(to);
   }
-  await say('boulon','ARÈNE ! Georges Barthélemy te défie. À chaque attaque du PDG, choisis LA compétence qui la contre selon la norme. Mauvais choix : il riposte, et ça fait très mal.');
+  await say('boulon','ARÈNE ! Aurelien Lefauconnier te défie. À chaque attaque du PDG, choisis LA compétence qui la contre selon la norme. Mauvais choix : il riposte, et ça fait très mal.');
   for(const a of [...ATK,...ATK2]){
     if(hpC<=0||hpD<=0)break;
-    if(a===ATK2[0]){R.fx.burst(ceo.position.clone().add(V(0,3,0)),30);tween(.6,k=>{ceo.rotation.z=Math.sin(k*Math.PI*6)*.2});await say('ceo','<b>GEORGES ENRAGE !</b> Sa cravate se dresse, il tape du poing sur le bureau : « Tu crois m’avoir ? Deuxième round ! »',{cls:'bad'})}
-    await say('ceo',`<b>GEORGES utilise ${a.name} !</b><br>${a.line}`);
+    if(a===ATK2[0]){R.fx.burst(ceo.position.clone().add(V(0,3,0)),30);tween(.6,k=>{ceo.rotation.z=Math.sin(k*Math.PI*6)*.2});await say('ceo','<b>AURELIEN ENRAGE !</b> Sa cravate se dresse, il tape du poing sur le bureau : « Tu crois m’avoir ? Deuxième round ! »',{cls:'bad'})}
+    await say('ceo',`<b>AURELIEN utilise ${a.name} !</b><br>${a.line}`);
     const opts=shuffle([SK[a.counter],...shuffle(Object.values(SK).filter(s=>s.id!==a.counter)).slice(0,3)]);
     const sk=await say('dylan','Que doit faire Dylan ?',{btns:opts.map(s=>({t:`<b>${s.name}</b><small>${s.desc}</small>`,v:s})),grid:true});
     say('dylan',`<b>DYLAN utilise ${sk.name} !</b>`,{btns:[]});await hit(dy,ceo,sk.shape);
     if(sk.id===a.counter){const d=Math.round(rand(25,30));hpC-=d;pts(n,true);pop('foe',d);paint();boulonJump();await say('boulon',`<b>C’est super efficace !</b> ${sk.fb}`,{cls:'good'})}
     else{pts(n,false);hpC-=5;pop('foe',5);paint();await say('boulon','<b>Ce n’est pas très efficace…</b> Cet argument ne répond pas à l’objection.',{cls:'bad'});
-      say('ceo',`<b>GEORGES riposte : ${a.pn} !</b>`,{btns:[]});await hit(ceo,dy,a.ps);hpD-=35;pop('me',35);paint();boulonShake();await say('ceo',a.pt,{cls:'bad'})}
+      say('ceo',`<b>AURELIEN riposte : ${a.pn} !</b>`,{btns:[]});await hit(ceo,dy,a.ps);hpD-=35;pop('me',35);paint();boulonShake();await say('ceo',a.pt,{cls:'bad'})}
   }
   $('#bt').hidden=true;
   if(hpD<=0){S.flags.leader=false;return false}
@@ -1026,7 +1026,7 @@ function buildPlatformer(){
   epi(73.8,3.3,'lunettes');
   // ---------- zone 3 : le centre-ville de nuit, les toits, puis l'échafaudage de l'immeuble Talas
   floor(76,150,TX.pave());
-  // palissade et barrière du chantier : Georges s'y arrête
+  // palissade et barrière du chantier : Aurelien s'y arrête
   for(let x=76.5;x<84;x+=1.5)B(1.4,2.4,.15,x%3<1.5?'#2f9e44':'#f8f9fa',x,1.2,-2.4);
   const cs=labelPlane('CHANTIER TALAS · EPI OBLIGATOIRES',6.8,.9,{bg:'#fff3bf',border:'#e03131',size:70});cs.position.set(80,2.95,-2.3);s.add(cs);
   B(.3,1.4,.3,'#e03131',78.5,.7,-1.4);const arm=mk(new THREE.BoxGeometry(3,.18,.18),'#f8f9fa',78.5,2.1,-1.4,s);arm.rotation.z=1.25;
@@ -1062,7 +1062,7 @@ function buildPlatformer(){
   scaf(136.8,12.5,4.6,'#2d5bd8',{final:1});mk(new THREE.CylinderGeometry(.06,.06,3,6),INK,138.2,14,-.8,s);mk(new THREE.BoxGeometry(1.4,.9,.05),'#ff6b6b',138.9,15,-.8,s);
   const fl=labelPlane('TOIT : INSPECTION',3.6,.9,{bg:'#fff3bf',border:'#ff6b6b',size:70});fl.position.set(136.8,15.9,-.8);s.add(fl);
   [116.1,124.7,127.5,132.4].forEach((x,i)=>coin(x,[5.7,8,11.1,12.3][i]));
-  // Georges Barthélemy, le poursuivant
+  // Aurelien Lefauconnier, le poursuivant
   const boss=makePerson({shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:.62});boss.visible=false;boss.position.set(20,0,0);boss.rotation.y=Math.PI/2;s.add(boss);
   const CH={on:false,x:20,y:0,vy:0,cd:0,talk:0,stop:77.2,done:false};
   const PITS=[[44.3,45.7],[51.3,52.7]];
@@ -1140,7 +1140,7 @@ function buildPlatformer(){
   function collect(it){s.remove(it.m);fx.burst(V(it.x,it.y,0),it.kind==='coin'?6:14);
     if(it.kind==='coin')st.coins++;
     if(it.kind==='ext'){st.carry='ext';st.carryT=12;st.carryN=0;msg('<b>Extincteur en main !</b> 12 s pour atteindre le feu avant qu’il ne se propage (§8.2).',3)}
-    if(it.kind==='badge'){st.badge=true;msg('<b>+ Badge d’accès !</b> Le gardien t’attend devant la grille.',3.2)}
+    if(it.kind==='badge'){st.badge=true;msg('<b>+ Badge d’accès !</b> Georges, le gardien, t’attend devant la grille.',3.2)}
     if(it.kind==='ppe'){const d=PPE.find(q=>q.k===it.k);st.ppe[it.k]=1;const m=ppeMesh(it.k);const at={casque:[0,3.05,0,1.75],chaussures:[0,.12,.1,1.2],lunettes:[0,2.62,.74,1],auditive:[0,2.55,0,1.9],harnais:[0,1.45,0,1.9]}[it.k];
       const shoe=it.k==='chaussures',rg=body.userData.rig;m.position.set(at[0],at[1]-(shoe?0:.8),at[2]);m.scale.setScalar(at[3]);if(it.k==='harnais')m.rotation.x=Math.PI/2;(shoe?rg.pose:rg.up).add(m);msg(`<b>+ ${d.n} !</b> ${d.l}`,3.2)}
     hudP()}
@@ -1218,8 +1218,8 @@ function buildPlatformer(){
     // ramassage, conseils, gardien, chariot, dangers
     PICK.forEach(it=>{if(!it.got&&Math.abs(st.pos.x-it.x)<.7&&st.pos.y<it.y+.5&&st.pos.y+HH>it.y-.3){it.got=1;collect(it)}});
     TIPS.forEach(tb=>{if(!tb.seen&&Math.abs(st.pos.x-tb.x)<.8&&st.pos.y+HH>tb.y-.45&&st.pos.y<tb.y+.4){tb.seen=1;msg(tb.t,5);fx.burst(V(tb.x,tb.y,0),10);tb.g.children[0].material=mat('#fcc2d7')}});
-    if(!st.gateOpen&&Math.abs(st.pos.x-32.8)<1.7&&st.pos.y<.5){if(st.badge){st.gateOpen=true;GATE.off=1;msg('<b>Le gardien :</b> « Badge vérifié. Bonne journée ! » La grille s’ouvre.',3);fx.burst(V(35.2,3,0),16)}
-      else if(st.npcT<=0){st.npcT=4;msg('<b>Le gardien :</b> « Pas de badge, pas d’accès au site. » Il est resté sur le balcon : l’échelle part du sol, juste après la cabane rose…',4)}}
+    if(!st.gateOpen&&Math.abs(st.pos.x-32.8)<1.7&&st.pos.y<.5){if(st.badge){st.gateOpen=true;GATE.off=1;msg('<b>Georges Barthélemy, le gardien :</b> « Badge vérifié. Bonne journée ! » La grille s’ouvre.',3);fx.burst(V(35.2,3,0),16)}
+      else if(st.npcT<=0){st.npcT=4;msg('<b>Georges Barthélemy, le gardien :</b> « Pas de badge, pas d’accès au site. » Il est resté sur le balcon : l’échelle part du sol, juste après la cabane rose…',4)}}
     if(st.hcd<=0&&Math.abs(st.pos.x-FK.x)<FK.w/2+HW&&st.pos.y<FK.h){st.hcd=1.4;const sgn=Math.sign(st.pos.x-FK.x)||-1;st.vel.set(sgn*7,6,0);st.kb=.35;st.ground=false;
       hurt('<b>BOUM !</b> Le chariot élévateur roule dans l’allée des piétons. Il faut séparer les flux (§8.1.2).')}
     if(!st.cart&&!st.cartDone&&st.ground&&st.pos.x<-60&&Math.abs(st.pos.x-cartM.position.x)<.7&&st.pos.y<.2){st.cart=true;st.face=1;msg('<b>En voiture !</b> SAUT pour franchir les trous, flèche bas pour baisser la tête sous les poutres.',3)}
@@ -1239,18 +1239,18 @@ function buildPlatformer(){
       if(e.kind==='vigile'){if(!st.hidden&&!st.caughtT&&st.pos.y<2&&((dx*e.dir>0&&Math.abs(dx)<5.2)||Math.abs(dx)<.7)){st.caughtT=1.2;redFlash();msg('<b>Le vigile :</b> « Hé toi ! Qu’est-ce que tu fais là ? Retour à l’entrée ! » Cache-toi dans le carton, et n’en sors qu’après la sortie.',3.6);st.pos.set(-41.2,0,0);st.vel.set(0,0,0);st.peak=0;BOX.x=-39.5}}
       else if(e.stun<=0&&st.hcd<=0&&!st.hidden&&Math.abs(dx)<.65&&st.pos.y<1.5){st.hcd=1.4;const sg=Math.sign(dx)||1;st.vel.set(sg*6,5.5,0);st.kb=.35;st.ground=false;hurt('<b>Un ouvrier pressé te bouscule !</b> « Pousse-toi, on est en retard ! » Sonne-le avec la toupie (E).')}});
     if(st.done)return;
-    // poursuite : Georges Barthélemy court après Dylan jusqu'à la barrière du chantier
-    if(!CH.on&&!CH.done&&st.gateOpen){CH.on=true;CH.x=Math.min(26,st.pos.x-11);boss.visible=true;msg('<b>Georges Barthélemy te court après :</b> « Dépêche-toi, Dylan ! La cadence ! » Cours jusqu’au chantier !',3.5)}
+    // poursuite : Aurelien Lefauconnier court après Dylan jusqu'à la barrière du chantier
+    if(!CH.on&&!CH.done&&st.gateOpen){CH.on=true;CH.x=Math.min(26,st.pos.x-11);boss.visible=true;msg('<b>Aurelien Lefauconnier te court après :</b> « Dépêche-toi, Dylan ! La cadence ! » Cours jusqu’au chantier !',3.5)}
     if(CH.on){const dx=st.pos.x-CH.x,spd=Math.abs(dx)>9?6.6:4.6,tx=Math.min(CH.stop,st.pos.x);CH.cd=Math.max(0,CH.cd-dt);CH.talk-=dt;
       if(CH.x<tx-.2)CH.x+=spd*dt;else if(CH.x>tx+.2)CH.x-=spd*dt;
       const ah=CH.x+(dx>=0?.9:-.9);
       if(CH.y<=0&&(PITS.some(([a,b])=>ah>a&&ah<b)||SOL.some(b=>!b.floor&&!b.off&&b.y0<.1&&b.y1<1.7&&ah>b.x0&&ah<b.x1)||Math.abs(FK.x-ah)<FK.w/2+.3))CH.vy=9.4;
       if(CH.y>0||CH.vy>0){CH.vy-=22*dt;CH.y+=CH.vy*dt;if(CH.y<0){CH.y=0;CH.vy=0}}
       boss.position.set(CH.x,CH.y,-.05);animPerson(boss,CH.y>0?'jump':Math.abs(dx)<.3?'idle':'run',T);boss.rotation.y=dx>=0?Math.PI/2:-Math.PI/2;
-      if(dx<6&&dx>0&&CH.talk<=0){CH.talk=6;msg('<b>Georges :</b> « Plus vite, Dylan ! La cadence ! »',1.8)}
+      if(dx<6&&dx>0&&CH.talk<=0){CH.talk=6;msg('<b>Aurelien :</b> « Plus vite, Dylan ! La cadence ! »',1.8)}
       if(CH.cd<=0&&Math.abs(dx)<.7&&Math.abs(st.pos.y-CH.y)<1.5){CH.cd=2;CH.x-=5*Math.sign(dx||1);st.vel.set(6*Math.sign(dx||1),5,0);st.kb=.3;st.ground=false;
-        hurt('<b>Georges te rattrape !</b> « Pas le temps pour la sécurité ! » La pression de la cadence, ça fait mal.');if(st.done)return}
-      if(CH.x>=CH.stop-.3&&st.pos.x>78.5){CH.on=false;CH.done=true;CH.leave=6;msg('<b>Georges s’arrête net devant la barrière :</b> « Zone EPI ? Je n’ai pas de casque, moi ! » Il fait demi-tour.',4)}}
+        hurt('<b>Aurelien te rattrape !</b> « Pas le temps pour la sécurité ! » La pression de la cadence, ça fait mal.');if(st.done)return}
+      if(CH.x>=CH.stop-.3&&st.pos.x>78.5){CH.on=false;CH.done=true;CH.leave=6;msg('<b>Aurelien s’arrête net devant la barrière :</b> « Zone EPI ? Je n’ai pas de casque, moi ! » Il fait demi-tour.',4)}}
     if(CH.leave>0){CH.leave-=dt;CH.x-=3*dt;boss.position.x=CH.x;animPerson(boss,'run',T);boss.rotation.y=-Math.PI/2;if(CH.leave<=0)boss.visible=false}
     const p=st.plat;
     if(st.ground&&st.cd<=0){const z=HZ.find(h=>Math.abs(st.pos.y-h.y)<.05&&st.pos.x>h.x0&&st.pos.x<h.x1);if(z){st.cd=1.6;
@@ -1277,7 +1277,7 @@ function buildPlatformer(){
 async function platformSection(n){
   const room=cur;
   await say('karim','Ce soir, il faut inspecter le chantier de rénovation de notre immeuble, en centre-ville, tout en haut de l’échafaudage. Il a neigé… et le patron est pressé.');
-  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Georges Barthélemy va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Aurelien Lefauconnier va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0;
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);const PW=buildPlatformer();setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';await fade(0);
@@ -1324,7 +1324,7 @@ RUN[1]=async()=>{
   const R=cur;R.ceo=makeCEO();R.ceo.position.set(3,0,-3);R.scene.add(R.ceo);
   await runScript(1,[
    {w:'nar',t:'Mardi, 9 h. Tout en haut de la tour, le bureau du patron.'},
-   {w:'dylan',t:'Monsieur Barthélemy, la politique SST est prête. Il me faut votre signature, et surtout votre engagement.'},
+   {w:'dylan',t:'Monsieur Lefauconnier, la politique SST est prête. Il me faut votre signature, et surtout votre engagement.'},
    {w:'ceo',t:'Mon engagement ? Assieds-toi, petit. Convaincs-moi.'}]);
   await trial(1,()=>battle(1),CAUSES.ceo);
   await runScript(1,[
@@ -1521,8 +1521,8 @@ async function finale(){
    {k:F.changement,g:'Cobot analysé avant sa mise en service (§8.1.3) : l’opportunité SST est saisie (§6.1.2.3).',b:'Cobot sans analyse (§8.1.3) : une opportunité devient un nouveau risque, écart d’audit (§9.2).'},
    {k:F.prevention,g:'Plan de prévention avec l’entreprise extérieure (§8.1.4.2).',b:'Entreprise extérieure sans plan de prévention (§8.1.4.2), écart d’audit (§9.2).'}];
   S.tStop=1;const bad=D.filter(d=>!d.k).length;const win=pct>=.65&&!F.accident&&bad<=1&&!S.timeout;
-  const W={h:'Certifié ! CDI signé !',p:'Six semaines plus tard, l’organisme certificateur rend son verdict : aucune non-conformité majeure. Airbus renouvelle le contrat. Georges Barthélemy te tend un stylo : « Dylan, ton CDI. Et tu présenteras la démarche à l’autre site. »'};
-  const L={h:'Catastrophe…',p:`${S.timeout?'Les 45 minutes sont écoulées avant la fin des ateliers. ':''}L’auditeur de certification relève ${Math.max(bad,2)} non-conformités majeures. Airbus place Talas sous surveillance. ${F.accident?'L’inspection du travail enquête sur l’accident d’Eliott. ':''}Georges Barthélemy soupire : « On va se donner un peu de temps. Pour la certification… et pour ton CDI. »`};
+  const W={h:'Certifié ! CDI signé !',p:'Six semaines plus tard, l’organisme certificateur rend son verdict : aucune non-conformité majeure. Airbus renouvelle le contrat. Aurelien Lefauconnier te tend un stylo : « Dylan, ton CDI. Et tu présenteras la démarche à l’autre site. »'};
+  const L={h:'Catastrophe…',p:`${S.timeout?'Les 45 minutes sont écoulées avant la fin des ateliers. ':''}L’auditeur de certification relève ${Math.max(bad,2)} non-conformités majeures. Airbus place Talas sous surveillance. ${F.accident?'L’inspection du travail enquête sur l’accident d’Eliott. ':''}Aurelien Lefauconnier soupire : « On va se donner un peu de temps. Pour la certification… et pour ton CDI. »`};
   // travelling vers la piste
   const l0=HUB.look.clone();await tween(1,k=>{HUB.look.lerpVectors(l0,V(0,2.5,2),k);HUB.yaw*=1-k},E.inOut);
   showLinks();
