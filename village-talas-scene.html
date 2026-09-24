@@ -115,7 +115,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
     <button class="btn" id="unlock">Tout ouvrir</button>
   </div>
 </div>
-<div id="bt" hidden><div class="bbox foe win"><b>VICTOR MARCHAL</b> <span>Nv. 99 · PDG</span><div class="hp"><i id="hpc"></i></div><em id="hpcv">100 / 100</em></div><div class="bbox me win"><b>DYLAN</b> <span>Nv. 1 · Alternant</span><div class="hp"><i id="hpd"></i></div><em id="hpdv">100 / 100</em></div></div>
+<div id="bt" hidden><div class="bbox foe win"><b>GEORGES BARTHÉLEMY</b> <span>Nv. 99 · PDG</span><div class="hp"><i id="hpc"></i></div><em id="hpcv">100 / 100</em></div><div class="bbox me win"><b>DYLAN</b> <span>Nv. 1 · Alternant</span><div class="hp"><i id="hpd"></i></div><em id="hpdv">100 / 100</em></div></div>
 <div id="phud" hidden><div class="win" id="php"></div><div class="win" id="ppe"></div></div>
 <div id="pmsg" class="win" hidden></div>
 <div id="pad" hidden><div><span></span><button class="btn alt" data-k="U"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><span></span><button class="btn alt" data-k="L"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button class="btn alt" data-k="D"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button><button class="btn alt" data-k="R"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
@@ -176,11 +176,11 @@ const FICHE=[
 const PPL={
  boulon:{n:'Boulon',r:'ton robot guide'},
  dylan:{n:'Dylan',r:'alternant HSE',c:'#74c0fc',i:'DY'},
- ceo:{n:'Victor Marchal',r:'CEO de Talas',c:'#9775fa',i:'VM'},
- karim:{n:'Karim',r:'chef d’atelier',c:'#ffa94d',i:'KB'},
- lea:{n:'Léa',r:'peintre aéro, élue CSE',c:'#69db7c',i:'LF'},
- sabrina:{n:'Sabrina',r:'responsable RH',c:'#f783ac',i:'SO'},
- audit:{n:'Mme Roux',r:'auditrice interne',c:'#ff8787',i:'MR'},
+ ceo:{n:'Georges Barthélemy',r:'CEO de Talas',c:'#9775fa',i:'GB'},
+ karim:{n:'Mathieu',r:'chef d’atelier',c:'#ffa94d',i:'MA'},
+ lea:{n:'Mathilde',r:'peintre aéro, élue CSE',c:'#69db7c',i:'MT'},
+ sabrina:{n:'Neila',r:'responsable RH',c:'#f783ac',i:'NE'},
+ audit:{n:'Lorette',r:'auditrice interne',c:'#ff8787',i:'LO'},
  nar:{n:'Pendant ce temps…',r:''}
 };
 /* ================= PANNEAU DE DIALOGUE ================= */
@@ -822,7 +822,7 @@ const SK={
  resp:{id:'resp',name:'UPPERCUT §5.1',desc:'La responsabilité ne se délègue pas.',shape:'fist',fb:'§5.1 : la direction assume la responsabilité de la prévention. Elle délègue des tâches, jamais la responsabilité.'},
  cout:{id:'cout',name:'TABLEUR DES COÛTS CACHÉS',desc:'Un Excel de 14 onglets, en pleine face.',shape:'excel',fb:'14 accidents avec arrêt, des jours perdus, un client qui peut partir : la SST est un investissement (§5.1 c).'},
  bird:{id:'bird',name:'PYRAMIDE DE BIRD',desc:'600 presque-accidents tombent du ciel.',shape:'pyramid',fb:'Plus de signalements, c’est moins d’accidents graves. Et la direction protège ceux qui signalent (§5.1 j).'},
- cse:{id:'cse',name:'INVOCATION DU CSE',desc:'Léa et 40 opérateurs débarquent.',shape:'crowd',fb:'§5.4 : consultation et participation des travailleurs non cadres. Ce sont eux qui voient les vrais dangers.'},
+ cse:{id:'cse',name:'INVOCATION DU CSE',desc:'Mathilde et 40 opérateurs débarquent.',shape:'crowd',fb:'§5.4 : consultation et participation des travailleurs non cadres. Ce sont eux qui voient les vrais dangers.'},
  revue:{id:'revue',name:'REVUE DE DIRECTION ÉCLAIR',desc:'Agenda, décisions, compte rendu. Bam.',shape:'agenda',fb:'La politique vit dans les processus et se pilote en revue de direction (§5.1 d, §9.3).'}
 };
 const ATK=[
@@ -866,17 +866,17 @@ async function battle(n){
     await tween(.55,k=>{p.position.lerpVectors(a,b,k);p.position.y+=Math.sin(k*Math.PI)*2.2;p.rotation.y+=.25;p.rotation.x+=.15},E.lin);
     R.stage.remove(p);R.fx.burst(b,16);redFlash();blink(to);
   }
-  await say('boulon','ARÈNE ! Victor Marchal te défie. À chaque attaque du PDG, choisis LA compétence qui la contre selon la norme. Mauvais choix : il riposte, et ça fait très mal.');
+  await say('boulon','ARÈNE ! Georges Barthélemy te défie. À chaque attaque du PDG, choisis LA compétence qui la contre selon la norme. Mauvais choix : il riposte, et ça fait très mal.');
   for(const a of [...ATK,...ATK2]){
     if(hpC<=0||hpD<=0)break;
-    if(a===ATK2[0]){R.fx.burst(ceo.position.clone().add(V(0,3,0)),30);tween(.6,k=>{ceo.rotation.z=Math.sin(k*Math.PI*6)*.2});await say('ceo','<b>VICTOR ENRAGE !</b> Sa cravate se dresse, il tape du poing sur le bureau : « Tu crois m’avoir ? Deuxième round ! »',{cls:'bad'})}
-    await say('ceo',`<b>VICTOR utilise ${a.name} !</b><br>${a.line}`);
+    if(a===ATK2[0]){R.fx.burst(ceo.position.clone().add(V(0,3,0)),30);tween(.6,k=>{ceo.rotation.z=Math.sin(k*Math.PI*6)*.2});await say('ceo','<b>GEORGES ENRAGE !</b> Sa cravate se dresse, il tape du poing sur le bureau : « Tu crois m’avoir ? Deuxième round ! »',{cls:'bad'})}
+    await say('ceo',`<b>GEORGES utilise ${a.name} !</b><br>${a.line}`);
     const opts=shuffle([SK[a.counter],...shuffle(Object.values(SK).filter(s=>s.id!==a.counter)).slice(0,3)]);
     const sk=await say('dylan','Que doit faire Dylan ?',{btns:opts.map(s=>({t:`<b>${s.name}</b><small>${s.desc}</small>`,v:s})),grid:true});
     say('dylan',`<b>DYLAN utilise ${sk.name} !</b>`,{btns:[]});await hit(dy,ceo,sk.shape);
     if(sk.id===a.counter){const d=Math.round(rand(25,30));hpC-=d;pts(n,true);pop('foe',d);paint();boulonJump();await say('boulon',`<b>C’est super efficace !</b> ${sk.fb}`,{cls:'good'})}
     else{pts(n,false);hpC-=5;pop('foe',5);paint();await say('boulon','<b>Ce n’est pas très efficace…</b> Cet argument ne répond pas à l’objection.',{cls:'bad'});
-      say('ceo',`<b>VICTOR riposte : ${a.pn} !</b>`,{btns:[]});await hit(ceo,dy,a.ps);hpD-=35;pop('me',35);paint();boulonShake();await say('ceo',a.pt,{cls:'bad'})}
+      say('ceo',`<b>GEORGES riposte : ${a.pn} !</b>`,{btns:[]});await hit(ceo,dy,a.ps);hpD-=35;pop('me',35);paint();boulonShake();await say('ceo',a.pt,{cls:'bad'})}
   }
   $('#bt').hidden=true;
   if(hpD<=0){S.flags.leader=false;return false}
@@ -1026,7 +1026,7 @@ function buildPlatformer(){
   epi(73.8,3.3,'lunettes');
   // ---------- zone 3 : le centre-ville de nuit, les toits, puis l'échafaudage de l'immeuble Talas
   floor(76,150,TX.pave());
-  // palissade et barrière du chantier : Victor s'y arrête
+  // palissade et barrière du chantier : Georges s'y arrête
   for(let x=76.5;x<84;x+=1.5)B(1.4,2.4,.15,x%3<1.5?'#2f9e44':'#f8f9fa',x,1.2,-2.4);
   const cs=labelPlane('CHANTIER TALAS · EPI OBLIGATOIRES',6.8,.9,{bg:'#fff3bf',border:'#e03131',size:70});cs.position.set(80,2.95,-2.3);s.add(cs);
   B(.3,1.4,.3,'#e03131',78.5,.7,-1.4);const arm=mk(new THREE.BoxGeometry(3,.18,.18),'#f8f9fa',78.5,2.1,-1.4,s);arm.rotation.z=1.25;
@@ -1062,7 +1062,7 @@ function buildPlatformer(){
   scaf(136.8,12.5,4.6,'#2d5bd8',{final:1});mk(new THREE.CylinderGeometry(.06,.06,3,6),INK,138.2,14,-.8,s);mk(new THREE.BoxGeometry(1.4,.9,.05),'#ff6b6b',138.9,15,-.8,s);
   const fl=labelPlane('TOIT : INSPECTION',3.6,.9,{bg:'#fff3bf',border:'#ff6b6b',size:70});fl.position.set(136.8,15.9,-.8);s.add(fl);
   [116.1,124.7,127.5,132.4].forEach((x,i)=>coin(x,[5.7,8,11.1,12.3][i]));
-  // Victor Marchal, le poursuivant
+  // Georges Barthélemy, le poursuivant
   const boss=makePerson({shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:.62});boss.visible=false;boss.position.set(20,0,0);boss.rotation.y=Math.PI/2;s.add(boss);
   const CH={on:false,x:20,y:0,vy:0,cd:0,talk:0,stop:77.2,done:false};
   const PITS=[[44.3,45.7],[51.3,52.7]];
@@ -1239,18 +1239,18 @@ function buildPlatformer(){
       if(e.kind==='vigile'){if(!st.hidden&&!st.caughtT&&st.pos.y<2&&((dx*e.dir>0&&Math.abs(dx)<5.2)||Math.abs(dx)<.7)){st.caughtT=1.2;redFlash();msg('<b>Le vigile :</b> « Hé toi ! Qu’est-ce que tu fais là ? Retour à l’entrée ! » Cache-toi dans le carton, et n’en sors qu’après la sortie.',3.6);st.pos.set(-41.2,0,0);st.vel.set(0,0,0);st.peak=0;BOX.x=-39.5}}
       else if(e.stun<=0&&st.hcd<=0&&!st.hidden&&Math.abs(dx)<.65&&st.pos.y<1.5){st.hcd=1.4;const sg=Math.sign(dx)||1;st.vel.set(sg*6,5.5,0);st.kb=.35;st.ground=false;hurt('<b>Un ouvrier pressé te bouscule !</b> « Pousse-toi, on est en retard ! » Sonne-le avec la toupie (E).')}});
     if(st.done)return;
-    // poursuite : Victor Marchal court après Dylan jusqu'à la barrière du chantier
-    if(!CH.on&&!CH.done&&st.gateOpen){CH.on=true;CH.x=Math.min(26,st.pos.x-11);boss.visible=true;msg('<b>Victor Marchal te court après :</b> « Dépêche-toi, Dylan ! La cadence ! » Cours jusqu’au chantier !',3.5)}
+    // poursuite : Georges Barthélemy court après Dylan jusqu'à la barrière du chantier
+    if(!CH.on&&!CH.done&&st.gateOpen){CH.on=true;CH.x=Math.min(26,st.pos.x-11);boss.visible=true;msg('<b>Georges Barthélemy te court après :</b> « Dépêche-toi, Dylan ! La cadence ! » Cours jusqu’au chantier !',3.5)}
     if(CH.on){const dx=st.pos.x-CH.x,spd=Math.abs(dx)>9?6.6:4.6,tx=Math.min(CH.stop,st.pos.x);CH.cd=Math.max(0,CH.cd-dt);CH.talk-=dt;
       if(CH.x<tx-.2)CH.x+=spd*dt;else if(CH.x>tx+.2)CH.x-=spd*dt;
       const ah=CH.x+(dx>=0?.9:-.9);
       if(CH.y<=0&&(PITS.some(([a,b])=>ah>a&&ah<b)||SOL.some(b=>!b.floor&&!b.off&&b.y0<.1&&b.y1<1.7&&ah>b.x0&&ah<b.x1)||Math.abs(FK.x-ah)<FK.w/2+.3))CH.vy=9.4;
       if(CH.y>0||CH.vy>0){CH.vy-=22*dt;CH.y+=CH.vy*dt;if(CH.y<0){CH.y=0;CH.vy=0}}
       boss.position.set(CH.x,CH.y,-.05);animPerson(boss,CH.y>0?'jump':Math.abs(dx)<.3?'idle':'run',T);boss.rotation.y=dx>=0?Math.PI/2:-Math.PI/2;
-      if(dx<6&&dx>0&&CH.talk<=0){CH.talk=6;msg('<b>Victor :</b> « Plus vite, Dylan ! La cadence ! »',1.8)}
+      if(dx<6&&dx>0&&CH.talk<=0){CH.talk=6;msg('<b>Georges :</b> « Plus vite, Dylan ! La cadence ! »',1.8)}
       if(CH.cd<=0&&Math.abs(dx)<.7&&Math.abs(st.pos.y-CH.y)<1.5){CH.cd=2;CH.x-=5*Math.sign(dx||1);st.vel.set(6*Math.sign(dx||1),5,0);st.kb=.3;st.ground=false;
-        hurt('<b>Victor te rattrape !</b> « Pas le temps pour la sécurité ! » La pression de la cadence, ça fait mal.');if(st.done)return}
-      if(CH.x>=CH.stop-.3&&st.pos.x>78.5){CH.on=false;CH.done=true;CH.leave=6;msg('<b>Victor s’arrête net devant la barrière :</b> « Zone EPI ? Je n’ai pas de casque, moi ! » Il fait demi-tour.',4)}}
+        hurt('<b>Georges te rattrape !</b> « Pas le temps pour la sécurité ! » La pression de la cadence, ça fait mal.');if(st.done)return}
+      if(CH.x>=CH.stop-.3&&st.pos.x>78.5){CH.on=false;CH.done=true;CH.leave=6;msg('<b>Georges s’arrête net devant la barrière :</b> « Zone EPI ? Je n’ai pas de casque, moi ! » Il fait demi-tour.',4)}}
     if(CH.leave>0){CH.leave-=dt;CH.x-=3*dt;boss.position.x=CH.x;animPerson(boss,'run',T);boss.rotation.y=-Math.PI/2;if(CH.leave<=0)boss.visible=false}
     const p=st.plat;
     if(st.ground&&st.cd<=0){const z=HZ.find(h=>Math.abs(st.pos.y-h.y)<.05&&st.pos.x>h.x0&&st.pos.x<h.x1);if(z){st.cd=1.6;
@@ -1277,7 +1277,7 @@ function buildPlatformer(){
 async function platformSection(n){
   const room=cur;
   await say('karim','Ce soir, il faut inspecter le chantier de rénovation de notre immeuble, en centre-ville, tout en haut de l’échafaudage. Il a neigé… et le patron est pressé.');
-  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Victor Marchal va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier ! Georges Barthélemy va te courir après : ne te laisse pas rattraper. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0;
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);const PW=buildPlatformer();setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';await fade(0);
@@ -1324,7 +1324,7 @@ RUN[1]=async()=>{
   const R=cur;R.ceo=makeCEO();R.ceo.position.set(3,0,-3);R.scene.add(R.ceo);
   await runScript(1,[
    {w:'nar',t:'Mardi, 9 h. Tout en haut de la tour, le bureau du patron.'},
-   {w:'dylan',t:'Monsieur Marchal, la politique SST est prête. Il me faut votre signature, et surtout votre engagement.'},
+   {w:'dylan',t:'Monsieur Barthélemy, la politique SST est prête. Il me faut votre signature, et surtout votre engagement.'},
    {w:'ceo',t:'Mon engagement ? Assieds-toi, petit. Convaincs-moi.'}]);
   await trial(1,()=>battle(1),CAUSES.ceo);
   await runScript(1,[
@@ -1333,7 +1333,7 @@ RUN[1]=async()=>{
     {t:'Moi, Dylan. Je m’occupe de tout.',d:-6,fb:'Un alternant seul ne peut pas porter le système. §5.3 demande des rôles à tous les niveaux.'},
     {t:'Personne en particulier : c’est collectif.',d:-6,fb:'Si tout le monde est responsable, personne ne l’est.'}]},
    {w:'lea',t:'Au fait, Dylan, le CSE voudrait être associé. D’habitude on nous présente les choses une fois décidées.'},
-   {q:'Comment j’associe Léa et les opérateurs ?',opts:[
+   {q:'Comment j’associe Mathilde et les opérateurs ?',opts:[
     {t:'Je leur donne du temps, de la formation et des moyens pour participer : dangers, choix des mesures, enquêtes après incident.',d:6,fb:'§5.4 : consultation et participation des travailleurs non cadres, en levant les obstacles (temps, langue, peur).'},
     {t:'Je leur envoie le compte rendu une fois tout validé.',d:-6,fb:'Informer n’est pas consulter. §5.4 veut une participation avant les décisions.'},
     {t:'Je passe par les chefs d’équipe, ils les représentent.',d:-4,fb:'Les chefs ne sont pas les travailleurs non cadres visés au §5.4.'}]}]);
@@ -1343,7 +1343,7 @@ RUN[2]=async()=>{
    {w:'nar',t:'Mercredi, dans le hangar. Ça sent le solvant, les riveteuses font un boucan d’enfer.'},
    {w:'karim',t:'Ton évaluation des risques, tu la fais comment ? On a un document unique de 2021, tu n’as qu’à le recopier.'},
    {q:'Comment j’identifie les dangers ?',opts:[
-    {t:'Je fais le tour des postes avec les opérateurs et Léa, y compris la maintenance, la nuit et les intérimaires.',d:8,set:{participation:true},fb:'§6.1.2.1 et §5.4 : identification continue, avec les travailleurs, y compris les activités inhabituelles.'},
+    {t:'Je fais le tour des postes avec les opérateurs et Mathilde, y compris la maintenance, la nuit et les intérimaires.',d:8,set:{participation:true},fb:'§6.1.2.1 et §5.4 : identification continue, avec les travailleurs, y compris les activités inhabituelles.'},
     {t:'Je recopie le document de 2021 et je change les dates.',d:-8,set:{participation:false},fb:'Un document figé rate les changements : nouvelle nacelle, cadence doublée. Et personne du terrain n’a été associé.'},
     {t:'Je confie tout à un cabinet externe.',d:-4,set:{participation:false},fb:'Un cabinet peut aider, mais la participation des travailleurs ne se sous-traite pas.'}]},
    {if:()=>S.flags.participation,w:'lea',t:'Merci de venir sur le terrain ! Un truc que personne n’a noté : sur la nacelle au-dessus de l’aile, les outils ne sont pas attachés. Des clés sont déjà tombées.'},
@@ -1360,7 +1360,7 @@ RUN[2]=async()=>{
     {a:'Chariot dans l’allée',b:'Allées piétonnes séparées',fb:'Séparer les flux piétons et engins : protection collective, organisation du site.'},
     {a:'Charges de 25 kg',b:'Aide à la manutention',fb:'Un palan ou un chariot adapté supprime le port de charges lourdes.'}]}))>=.5,CAUSES.risques);
   await runScript(2,[{w:'karim',q:'Bon. Et ton objectif pour l’année ?',opts:[
-    {t:'Réduire de 50 % l’exposition aux solvants en cabine d’ici juin 2027, mesurée tous les trimestres. Pilotes : Léa et moi.',d:8,fb:'§6.2 : un objectif cohérent avec la politique, mesurable, suivi, avec responsable et échéance.'},
+    {t:'Réduire de 50 % l’exposition aux solvants en cabine d’ici juin 2027, mesurée tous les trimestres. Pilotes : Mathilde et moi.',d:8,fb:'§6.2 : un objectif cohérent avec la politique, mesurable, suivi, avec responsable et échéance.'},
     {t:'Zéro accident, pour toujours.',d:-6,fb:'Un slogan, pas un objectif : ni moyens, ni date, et ça pousse à cacher les accidents.'},
     {t:'Améliorer la sécurité en général.',d:-6,fb:'Ni mesurable ni daté : impossible à suivre au §9.1.'}]}]);
 };
@@ -1396,7 +1396,7 @@ RUN[3]=async()=>{
 };
 RUN[4]=async()=>{
   await runScript(4,[
-   {w:'nar',t:'Deux mois plus tard. La cadence a doublé. Karim court partout.'},
+   {w:'nar',t:'Deux mois plus tard. La cadence a doublé. Mathieu court partout.'},
    {w:'karim',q:'Le cobot de perçage arrive vendredi. On le branche lundi, on verra bien.',opts:[
     {t:'On analyse les risques avant la mise en service : zone de travail partagée, arrêt d’urgence, formation. Lundi, c’est trop tôt.',d:8,set:{changement:true},fb:'§8.1.3 : gestion du changement. Un nouvel équipement, ce sont de nouveaux dangers à évaluer avant.'},
     {t:'D’accord, on analysera s’il y a un souci.',d:-8,set:{changement:false},fb:'Attendre le souci, c’est attendre l’accident.'},
@@ -1422,7 +1422,7 @@ RUN[5]=async()=>{
    {w:'nar',t:'Six mois après le lancement. L’audit interne, avant la vraie certification.'},
    {w:'audit',t:'Bonjour Dylan. Je fais le tour des ateliers. Pour chaque constat, dis-moi : conforme ou écart ?'},
    {w:'boulon',t:'Attention : certains constats dépendent de tes choix dans les autres ateliers. C’est ça, un système !'}]);
-  await trial(5,async()=>(await torch3D(5,{time:60,hint:'Coupure de courant dans le hangar ! Mme Roux te prête sa lampe. Balaie l’atelier et clique sur chaque ÉCART. Attention : certains écarts viennent de tes choix dans les autres ateliers.',after:'Chaque écart ouvre une action corrective (§10.2).',
+  await trial(5,async()=>(await torch3D(5,{time:60,hint:'Coupure de courant dans le hangar ! Lorette te prête sa lampe. Balaie l’atelier et clique sur chaque ÉCART. Attention : certains écarts viennent de tes choix dans les autres ateliers.',after:'Chaque écart ouvre une action corrective (§10.2).',
    props:[
     {k:'exitBlocked',bad:1,t:'Issue de secours encombrée',fb:'Une sortie de secours doit rester dégagée en permanence (§8.2).'},
     {k:'extMissing',bad:1,t:'Extincteur absent de son support',fb:'Moyen de secours manquant : la réponse aux urgences n’est plus garantie (§8.2).'},
@@ -1452,12 +1452,12 @@ RUN[6]=async()=>{
   const p=S.flags.participation;if(!p)S.flags.accident=true;
   await runScript(6,[
    {w:'nar',t:'Mardi, 14 h 12. Hangar, poste aile gauche.'},
-   {if:()=>!p,w:'nar',t:'Une clé de 1,2 kg tombe de la nacelle et frappe l’épaule de Mehdi, monteur. Clavicule cassée : 45 jours d’arrêt.'},
+   {if:()=>!p,w:'nar',t:'Une clé de 1,2 kg tombe de la nacelle et frappe l’épaule d’Eliott, monteur. Clavicule cassée : 45 jours d’arrêt.'},
    {if:()=>!p,w:'karim',t:'Ce risque n’est même pas dans l’évaluation…'},
    {if:()=>!p,w:'lea',t:'Nous, on le savait. Personne ne nous a demandé.'},
    {if:()=>!p,w:'boulon',t:'Effet domino : pas de participation (§5.4), danger oublié (§6.1.2), aucune mesure (§8.1.2), accident (§10.2).'},
    {if:()=>p,w:'nar',t:'Une clé glisse de la nacelle… et s’arrête net, retenue par sa longe porte-outil installée le mois dernier.'},
-   {if:()=>p,w:'lea',t:'La longe ! Le danger qu’on t’avait montré. Mehdi a quand même rempli une fiche de presque-accident.'},
+   {if:()=>p,w:'lea',t:'La longe ! Le danger qu’on t’avait montré. Eliott a quand même rempli une fiche de presque-accident.'},
    {if:()=>p,w:'boulon',t:'Effet domino réussi : participation (§5.4), danger identifié (§6.1.2), mesure technique (§8.1.2), presque-accident remonté (§10.2).'},
    {w:'karim',t:'Bon. On fait quoi maintenant ?'}]);
   await trial(6,async()=>(await breakout3D(6,{hint:'Casse-briques des causes ! Au premier rang, les symptômes. Au fond, en rouge, les causes racines : il faut les frapper deux fois. Casse tout pour que l’accident ne recommence pas (§10.2).',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
@@ -1516,13 +1516,13 @@ async function finale(){
   busy=true;hidePanel();const F=S.flags;let o=0,t=0;Object.values(S.res).forEach(r=>{o+=r.o;t+=r.t});const pct=t?o/t:0;
   const D=[
    {k:F.leader,g:'Direction engagée (§5.1), budget débloqué (§7.1), aspiration de la cabine financée (§8.1.2).',b:'Direction peu convaincue (§5.1), budget formation gelé (§7.1), compétences fragiles (§7.2).'},
-   {k:F.participation,g:'Travailleurs associés (§5.4), chute d’objets repérée (§6.1.2), longes installées (§8.1.2), simple presque-accident (§10.2).',b:'Travailleurs ignorés (§5.4), danger oublié (§6.1.2), aucune mesure (§8.1.2), accident de Mehdi (§10.2).'},
+   {k:F.participation,g:'Travailleurs associés (§5.4), chute d’objets repérée (§6.1.2), longes installées (§8.1.2), simple presque-accident (§10.2).',b:'Travailleurs ignorés (§5.4), danger oublié (§6.1.2), aucune mesure (§8.1.2), accident d’Eliott (§10.2).'},
    {k:F.accueil,g:'Accueil sécurité des intérimaires (§7.3), conforme à l’audit (§9.2).',b:'Intérimaires non accueillis (§7.3), écart d’audit (§9.2), action corrective à ouvrir (§10.2).'},
    {k:F.changement,g:'Cobot analysé avant sa mise en service (§8.1.3) : l’opportunité SST est saisie (§6.1.2.3).',b:'Cobot sans analyse (§8.1.3) : une opportunité devient un nouveau risque, écart d’audit (§9.2).'},
    {k:F.prevention,g:'Plan de prévention avec l’entreprise extérieure (§8.1.4.2).',b:'Entreprise extérieure sans plan de prévention (§8.1.4.2), écart d’audit (§9.2).'}];
   S.tStop=1;const bad=D.filter(d=>!d.k).length;const win=pct>=.65&&!F.accident&&bad<=1&&!S.timeout;
-  const W={h:'Certifié ! CDI signé !',p:'Six semaines plus tard, l’organisme certificateur rend son verdict : aucune non-conformité majeure. Airbus renouvelle le contrat. Victor Marchal te tend un stylo : « Dylan, ton CDI. Et tu présenteras la démarche à l’autre site. »'};
-  const L={h:'Catastrophe…',p:`${S.timeout?'Les 45 minutes sont écoulées avant la fin des ateliers. ':''}L’auditeur de certification relève ${Math.max(bad,2)} non-conformités majeures. Airbus place Talas sous surveillance. ${F.accident?'L’inspection du travail enquête sur l’accident de Mehdi. ':''}Victor Marchal soupire : « On va se donner un peu de temps. Pour la certification… et pour ton CDI. »`};
+  const W={h:'Certifié ! CDI signé !',p:'Six semaines plus tard, l’organisme certificateur rend son verdict : aucune non-conformité majeure. Airbus renouvelle le contrat. Georges Barthélemy te tend un stylo : « Dylan, ton CDI. Et tu présenteras la démarche à l’autre site. »'};
+  const L={h:'Catastrophe…',p:`${S.timeout?'Les 45 minutes sont écoulées avant la fin des ateliers. ':''}L’auditeur de certification relève ${Math.max(bad,2)} non-conformités majeures. Airbus place Talas sous surveillance. ${F.accident?'L’inspection du travail enquête sur l’accident d’Eliott. ':''}Georges Barthélemy soupire : « On va se donner un peu de temps. Pour la certification… et pour ton CDI. »`};
   // travelling vers la piste
   const l0=HUB.look.clone();await tween(1,k=>{HUB.look.lerpVectors(l0,V(0,2.5,2),k);HUB.yaw*=1-k},E.inOut);
   showLinks();
