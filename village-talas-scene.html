@@ -163,7 +163,7 @@ function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.c
 const CH=[
  {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le fantôme en pantoufles'},
  {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG'},
- {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et la table des mesures'},
+ {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et le festin des mesures'},
  {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le karaoké sécurité'},
  {cl:'§8',t:'Réalisation',sub:'L’usine à peinture',g:'L’échafaudage'},
  {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'Le polygraphe de Lorette'},
@@ -207,7 +207,7 @@ const KEYHELP={
  attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
  karaoke:`<span>${K('Q')} piste gauche</span><span>${K('S')} piste du milieu</span><span>${K('D')} piste droite</span><span>(flèches aussi)</span>`,
  poly:`<span>Clic sur un menteur : tampon ÉCART</span><span>Les nez qui s’allongent mentent</span>`,
- table:`<span>${K('Q')}${K('D')} se pencher</span><span>${K('Espace')} attraper</span><span>${K('S')} taper sur les doigts</span><span>ou clic sur une mesure</span>`,
+ festin:`<span>${K('Espace')} tamponner</span><span>${K('Q')}${K('D')} refiler à gauche / à droite</span><span>${K('S')} taper sur les doigts</span><span>ou clic sur les assiettes</span>`,
  operation:`<span>Clic maintenu sur une cause</span><span>Glisser dans le couloir jusqu’au rond vert</span>`};
 function keyHelp(k){const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
 
@@ -277,6 +277,7 @@ function portrait(k){
   if(k==='lea')return W(`<path d="M57 28Q78 34 71 62Q65 50 58 46Z" fill="#8d5524" ${st}/><path d="M21 32Q19 70 40 75Q61 70 59 32Z" fill="#f1c27d" ${st}/><path d="M19 38Q21 12 40 12Q59 12 61 38Q51 26 40 29Q29 26 19 38Z" fill="#8d5524" ${st}/><rect x="23" y="19" width="34" height="11" rx="5" fill="#f8f9fa" ${st}/><circle cx="30" cy="24.5" r="4" fill="#ff6b6b" ${st}/><circle cx="50" cy="24.5" r="4" fill="#ff6b6b" ${st}/><path d="M26 43q5-4 10 0M44 43q5-4 10 0" fill="none" ${st}/><path d="M24 42l-3-3M56 42l3-3" ${st}/><path d="M40 47v7h-3" fill="none" ${st}/><path d="M30 61Q40 71 50 61Z" fill="#c92a2a" ${st}/><path d="M50 53l4-4 1 4 5 0-4 3 2 5-4-3-4 3 1-5z" fill="#51cf66"/>`);
   if(k==='sabrina')return W(`<circle cx="40" cy="11" r="9" fill="#212529" ${st}/><path d="M21 30Q19 70 40 75Q61 70 59 30Z" fill="#8d5524" ${st}/><path d="M20 36Q22 16 40 16Q58 16 60 36Q52 25 40 26Q28 25 20 36Z" fill="#212529" ${st}/><circle cx="31" cy="45" r="7" fill="#e7f5ff" ${st}/><circle cx="49" cy="45" r="7" fill="#e7f5ff" ${st}/><path d="M38 45h4" ${st}/><circle cx="31" cy="46" r="2.5" fill="${INK}"/><circle cx="49" cy="46" r="2.5" fill="${INK}"/><path d="M26 35l9-2M45 33l9 2" ${st}/><path d="M40 50l3 6h-4" fill="none" ${st}/><path d="M32 63Q40 58 48 63Q40 69 32 63Z" fill="#e64980" ${st}/><circle cx="18" cy="52" r="3" fill="#fcc419" ${st}/>`);
   if(k==='audit')return W(`<path d="M17 38Q14 12 40 12Q66 12 63 38V62H56V36Q40 30 24 36V62H17Z" fill="#e8590c" ${st}/><path d="M24 32Q22 70 40 75Q58 70 56 32Z" fill="#ffe8cc" ${st}/><rect x="23" y="40" width="15" height="11" fill="#fff" ${st}/><rect x="42" y="40" width="15" height="11" fill="#fff" ${st}/><path d="M38 45h4" ${st}/><circle cx="31" cy="46" r="2.3" fill="${INK}"/><circle cx="49" cy="46" r="2.3" fill="${INK}"/><path d="M25 36l11 1M44 37l11-1" ${st}/><path d="M40 53v5" ${st}/><path d="M35 65h10" ${st}/><path d="M60 22L74 6" stroke="#fcc419" stroke-width="5" stroke-linecap="round"/><path d="M74 6l2-2" stroke="#ff8787" stroke-width="5" stroke-linecap="round"/>`);
+  if(k==='eliott')return W(`<ellipse cx="15" cy="48" rx="6" ry="9" fill="#ffd8b1" ${st}/><ellipse cx="65" cy="48" rx="6" ry="9" fill="#ffd8b1" ${st}/><path d="M22 32Q19 70 40 77Q61 70 58 32Z" fill="#ffd8b1" ${st}/><path d="M16 34Q40 -2 64 34Z" fill="#2f9e44" ${st}/><rect x="11" y="31" width="58" height="6" rx="3" fill="#2f9e44" ${st}/><circle cx="32" cy="48" r="3.5" fill="${INK}"/><circle cx="48" cy="48" r="3.5" fill="${INK}"/><path d="M31 62Q40 69 49 62" fill="none" ${st}/>`);
   return W(`<circle cx="40" cy="40" r="34" fill="#ced4da" ${st}/>`);
 }
 function buildFace(g,kind,skin,hy=2.55){
@@ -746,104 +747,103 @@ function homeDylan(R){const d=R.dylan;d.position.set(7.8,0,-4.4);d.rotation.set(
 function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
   return say(who,text,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
 
-/* ================= MINI-JEU : LA TABLE DES MESURES (jeu de fête à 4 façon « Food Feast » d'Astérix Mega Madness) =================
-   Quatre collègues assis au bureau partagé d'un open space. L'imprimante du plan d'actions crache des mesures sur la table.
-   Plus une mesure est haute dans la hiérarchie (§8.1.2), plus elle rapporte. Les bras s'étirent pour piquer la mesure du voisin,
-   ou même le haut de sa pile ; on se défend en tapant sur les doigts. */
+/* ================= MINI-JEU : LE FESTIN DES MESURES (d'après l'épreuve « Food Feast » d'Astérix Mega Madness) =================
+   Quatre collègues assis à deux tables en planches, une assiette chacun. Les mesures volent au-dessus des têtes et retombent
+   dans les assiettes. On VALIDE une bonne mesure (plus elle est haut dans la hiérarchie §8.1.2, plus elle rapporte, et plus
+   elle est longue à tamponner) ou on REFILE une fausse bonne idée au voisin. Les bots refilent leurs mauvaises idées,
+   piquent dans les assiettes avec leurs bras élastiques ; on leur tape sur les doigts. */
 const HIER=[{n:'Élimination',v:5,c:'#2f9e44'},{n:'Substitution',v:4,c:'#1c7ed6'},{n:'Protection collective',v:3,c:'#7048e8'},{n:'Organisation',v:2,c:'#f59f00'},{n:'EPI',v:1,c:'#e8590c'},{n:'Fausse bonne idée',v:-2,c:'#868e96'}];
-function table3D(n,cfg){return new Promise(res=>{
-  keyHelp('table');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;
-  const X=[-4.5,-1.5,1.5,4.5],TY=1.05,ZS=.55,SC=.85;
-  /* l'open space : moquette, cloisons, tableau blanc, plantes, imprimante */
-  mk(new THREE.BoxGeometry(18,.04,9),'#5c7cfa',0,.03,-1,R.stage).receiveShadow=true;
-  mk(new THREE.BoxGeometry(22,7,.2),'#dbe4ff',0,3.5,-3.3,R.stage);[-6,0,6].forEach(x=>mk(new THREE.BoxGeometry(.12,7,.3),'#adb5bd',x,3.5,-3.2,R.stage));
-  const wb=labelPlane('PLAN D’ACTIONS : À PRENDRE !',5,1,{bg:'#ffffff',border:'#495057',size:70});wb.position.set(-3,3,-3.15);R.stage.add(wb);
-  [-8,8].forEach(x=>{outline(mk(new THREE.CylinderGeometry(.45,.35,.8,12),'#e8590c',x,.4,-2.5,R.stage),1.06);outline(mk(new THREE.SphereGeometry(.8,10,8),'#2f9e44',x,1.5,-2.5,R.stage),1.04)});
-  const pr=new THREE.Group();pr.position.set(3,0,-2.5);R.stage.add(pr);outline(mk(new THREE.BoxGeometry(1.8,1.2,1.2),'#e9ecef',0,.6,0,pr),1.04);mk(new THREE.BoxGeometry(1.2,.08,.6),'#343a40',0,1.22,.2,pr);
-  const pl=labelPlane('IMPRIMANTE DU PLAN',2.2,.45,{bg:'#fff3bf',border:'#495057',size:80});pl.position.set(0,1.6,.2);pr.add(pl);
-  /* le bureau partagé : plateau, voile de fond qui cache les jambes, pieds, sièges derrière */
-  outline(mk(new THREE.BoxGeometry(13,.16,2.2),'#c8864a',0,TY-.08,.1,R.stage),1.02);mk(new THREE.BoxGeometry(13,1,.1),'#a86b35',0,.5,1.15,R.stage);
-  const P=[{n:'Mathieu',m:makePerson({shirt:'#ffa94d',pants:'#495057',hat:'#f8f9fa',scale:SC}),c:'#ffa94d',style:'chef',excuse:'Allô ? Oui, la cadence…'},
-    {n:'Dylan',m:R.dylan,c:'#4dabf7'},
-    {n:'Neila',m:addHair(makePerson({shirt:'#f783ac',pants:'#364fc7',scale:SC}),'#4a2511',1),c:'#f783ac',style:'voleuse',excuse:'Tu as vu mes nouvelles chaussures ?'},
-    {n:'Eliott',m:makePerson({shirt:'#b197fc',pants:'#343a40',hat:'#2f9e44',scale:SC}),c:'#9775fa',style:'brouillon',excuse:'Attends, je finis mon croissant.'}];
+function feast3D(n,cfg){return new Promise(res=>{
+  keyHelp('festin');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';
+  const X=[-4.4,-1.8,1.8,4.4],TY=1.05,PZ=.45,SC=.95;
+  /* l'open space : moquette, cloison, tableau blanc, plantes, imprimante */
+  mk(new THREE.BoxGeometry(22,.04,10),'#5c7cfa',0,.03,-1,R.stage).receiveShadow=true;
+  mk(new THREE.BoxGeometry(24,8,.2),'#dbe4ff',0,4,-3.3,R.stage);[-7,0,7].forEach(x=>mk(new THREE.BoxGeometry(.12,8,.3),'#adb5bd',x,4,-3.2,R.stage));
+  const wb=labelPlane('PLAN D’ACTIONS : À TAMPONNER !',5.4,1,{bg:'#ffffff',border:'#495057',size:70});wb.position.set(-3.6,4.4,-3.15);R.stage.add(wb);
+  [-8.6,8.6].forEach(x=>{outline(mk(new THREE.CylinderGeometry(.5,.4,.9,12),'#e8590c',x,.45,-2.4,R.stage),1.06);outline(mk(new THREE.SphereGeometry(.9,10,8),'#2f9e44',x,1.7,-2.4,R.stage),1.04)});
+  const pr=new THREE.Group();pr.position.set(3.6,2.6,-3);R.stage.add(pr);outline(mk(new THREE.BoxGeometry(2,1.3,1),'#e9ecef',0,0,0,pr),1.04);mk(new THREE.BoxGeometry(1.4,.08,.5),'#343a40',0,.66,.2,pr);
+  const pl=labelPlane('IMPRIMANTE DU PLAN',2.3,.45,{bg:'#fff3bf',border:'#495057',size:80});pl.position.set(0,1.05,.1);pr.add(pl);mk(new THREE.BoxGeometry(2.2,.2,1.2),'#adb5bd',3.6,1.85,-3,R.stage);
+  /* deux tables en planches, une assiette par convive */
+  const plank=ctex(64,64,(x,w,h)=>{for(let i=0;i<4;i++){x.fillStyle=i%2?'#a06a3c':'#8e5b30';x.fillRect(i*16,0,16,h);x.fillStyle='rgba(0,0,0,.3)';x.fillRect(i*16+15,0,1,h);x.fillRect(i*16+6,(i*23)%h,2,5)}});
+  [-3.1,3.1].forEach(cx=>{outline(mk(new THREE.BoxGeometry(5.6,.2,2.4),tmat(plank,3,1),cx,TY-.1,.15,R.stage),1.02);mk(new THREE.BoxGeometry(5.6,.9,.12),'#6b4423',cx,.55,1.3,R.stage);[-2.5,2.5].forEach(dx=>mk(new THREE.BoxGeometry(.2,1,.2),'#5c3a1e',cx+dx,.5,1.1,R.stage))});
+  const plates=X.map(x=>{const g=new THREE.Group();g.position.set(x,TY,PZ);R.stage.add(g);outline(mk(new THREE.CylinderGeometry(.62,.48,.16,18),'#7a4a24',0,.08,0,g),1.06);mk(new THREE.CylinderGeometry(.5,.5,.02,18),'#5c3317',0,.17,0,g);return g});
+  const P=[{n:'Mathieu',k:'karim',m:makePerson({shirt:'#ffa94d',pants:'#495057',skin:'#c68642',hat:'#1971c2',scale:SC}),c:'#ffa94d',style:'chef',excuse:'Allô ? Oui, la cadence…'},
+    {n:'Dylan',k:'dylan',m:R.dylan,c:'#4dabf7'},
+    {n:'Neila',k:'sabrina',m:addHair(makePerson({shirt:'#f783ac',pants:'#364fc7',skin:'#8d5524',scale:SC}),'#212529',1,1),c:'#f783ac',style:'voleuse',excuse:'Tu as vu mes nouvelles chaussures ?'},
+    {n:'Eliott',k:'eliott',m:makePerson({shirt:'#b197fc',pants:'#343a40',hat:'#2f9e44',scale:SC}),c:'#9775fa',style:'brouillon',excuse:'Attends, je finis mon croissant.'}];
   const me=P[1];
-  P.forEach((p,i)=>{p.i=i;p.x=X[i];p.m.scale.setScalar(SC);p.m.position.set(X[i],-.1,-.9);p.m.rotation.set(0,0,0);if(p!==me)R.stage.add(p.m);
-    outline(mk(new THREE.BoxGeometry(1.3,1.6,.2),'#343a40',X[i],1.3,-1.7,R.stage),1.04);
-    p.bag=[];p.stun=0;p.cd=rand(3,6);p.reach=null;p.lean=0;p.idle=0;p.react=rand(.35,.7);
-    p.tag=labelPlane(p.n+' : 0',2.4,.5,{bg:'#fffaf0',border:p.c,size:80});p.tag.position.set(X[i],3.35,-.9);R.stage.add(p.tag);
-    p.pile=new THREE.Group();p.pile.position.set(X[i]+.95,TY,.05);R.stage.add(p.pile);
-    p.ouch=labelPlane('AÏE !',1.3,.5,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:110});p.ouch.position.set(X[i],3.9,-.9);p.ouch.visible=false;R.stage.add(p.ouch)});
-  const warn=labelPlane('TAPE SUR LES DOIGTS !',2.8,.55,{bg:'#ffe3e3',border:'#e03131',fg:'#e03131',size:80});warn.visible=false;R.stage.add(warn);
-  const rm=document.createElement('div');rm.className='win';rm.style.cssText='position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:5;padding:3px 10px;max-width:62%;text-align:center;font-size:13px';rm.hidden=true;$('#frame').append(rm);
+  P.forEach((p,i)=>{p.i=i;p.m.scale.setScalar(SC);p.m.position.set(X[i],-.15,-.75);p.m.rotation.set(0,0,0);if(p!==me)R.stage.add(p.m);
+    outline(mk(new THREE.BoxGeometry(1.4,1.8,.2),'#343a40',X[i],1.4,-1.6,R.stage),1.04);
+    p.plate=[];p.score=0;p.stun=0;p.busy=null;p.reach=null;p.idle=0;p.think=rand(.3,.8);p.cd=rand(3,5);
+    p.ouch=labelPlane('AÏE !',1.3,.5,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:110});p.ouch.position.set(X[i],3.9,-.7);p.ouch.visible=false;R.stage.add(p.ouch)});
+  /* bandeau du haut comme dans le jeu : quatre médaillons, les scores, le sablier au milieu */
+  const hud=document.createElement('div');hud.style.cssText='position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:6;display:flex;gap:18px;align-items:flex-start;pointer-events:none';
+  const med=p=>`<div style="text-align:center"><div style="width:56px;height:56px;border-radius:50%;border:3px solid ${INK};background:${p.c};overflow:hidden;margin:0 auto">${portrait(p.k).replace('<svg','<svg width="50" height="50" style="display:block;margin:3px auto 0"')}</div><div class="fsc" style="font-weight:700;font-size:22px;line-height:1.1;color:#ffd43b;-webkit-text-stroke:1.5px ${INK};text-shadow:2px 2px 0 ${INK}">0</div></div>`;
+  hud.innerHTML=med(P[0])+med(P[1])+`<div style="text-align:center;padding-top:6px"><svg width="34" height="48" viewBox="0 0 34 48"><path d="M3 2h28M3 46h28M6 2q0 16 11 22Q6 30 6 46h22q0-16-11-22Q28 18 28 2" fill="#fff3bf" stroke="${INK}" stroke-width="3"/><path class="sand" d="M9 40h16l-8-12z" fill="#e8590c"/></svg><div class="ftm" style="font-weight:700;font-size:16px;color:#fff;-webkit-text-stroke:1px ${INK}">60</div></div>`+med(P[2])+med(P[3]);
+  $('#frame').append(hud);const scEls=[...hud.querySelectorAll('.fsc')];
+  const rm=document.createElement('div');rm.className='win';rm.style.cssText='position:absolute;left:50%;top:92px;transform:translateX(-50%);z-index:5;padding:3px 10px;max-width:62%;text-align:center;font-size:13px';rm.hidden=true;$('#frame').append(rm);
   let rmT=0;const say2=(h,d=2)=>{rm.innerHTML=h;rm.hidden=false;rmT=d};
-  const items=[];let t=0,spawnT=.6,done=false,pk={},slaps=0;
-  const score=p=>p.bag.reduce((a,b)=>a+b.v,0);
-  const board=()=>{pmsg(P.map(p=>`<span style="color:${p===me?'#1864ab':'inherit'}">${p.n} : <b>${score(p)}</b></span>`).join('<br>')+`<br>Temps : <b>${Math.max(0,Math.ceil(cfg.time-t))}</b> s`);$('#pmsg').classList.add('corner')};
-  function refresh(p){p.tag.userData.relabel(p.n+' : '+score(p),{bg:'#fffaf0',border:p.c,size:80});while(p.pile.children.length)p.pile.remove(p.pile.children[0]);
-    p.bag.slice(-8).forEach((b,i)=>outline(mk(new THREE.BoxGeometry(.7,.14,.5),HIER[b.h].c,0,.07+i*.16,0,p.pile),1.08))}
-  /* une mesure jaillit de l'imprimante et atterrit devant l'un des quatre */
-  function spawn(){const z=Math.floor(Math.random()*4);if(items.filter(o=>o.zone===z).length>=2)return;const it=cfg.items[Math.floor(Math.random()*cfg.items.length)],H=HIER[it.h];
-    const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.8,.1,.6),'#ffffff',0,0,0,g),1.1);mk(new THREE.BoxGeometry(.6,.11,.08),H.c,0,0,-.15,g);mk(new THREE.BoxGeometry(.6,.11,.08),H.c,0,0,.05,g);
-    const l=labelPlane(`${it.t} (${H.v>0?'+':''}${H.v})`,2.8,.62,{bg:'#fffaf0',border:H.c,size:80});l.position.set(0,.55,.1);g.add(l);
-    const o={it,g,zone:z,v:H.v,h:it.h,x:X[z]+rand(-.35,.35),q:0,life:cfg.life||3.4,fly:1,p0:V(3,1.6,-2.3),age:0};g.position.copy(o.p0);R.stage.add(g);items.push(o);
-    tween(.25,q=>pr.scale.set(1+q*.06,1-q*.08,1)).then(()=>pr.scale.set(1,1,1));beep(300,.05,'triangle',.03)}
-  function take(p,o){items.splice(items.indexOf(o),1);const g=o.g,w0=g.position.clone();p.bag.push({v:o.v,h:o.h,t:o.it.t});
-    tween(.25,q=>{g.position.lerpVectors(w0,p.pile.position.clone().add(V(0,.4,0)),q);g.scale.setScalar(1-q*.7)}).then(()=>{R.stage.remove(g);refresh(p)});
-    if(p===me){pts(n,o.v>0);beep(o.v>0?600+o.v*90:120,.12,o.v>0?'square':'sawtooth');say2(o.v>0?`<b>+${o.v} : ${o.it.t}</b> (${HIER[o.h].n})`:`<b>${o.v} : ${o.it.t}</b>, une fausse bonne idée !`,1.6);if(o.v<0)boulonShake()}
-    else if(o.zone===1)say2(`<b>${p.n}</b> te pique « ${o.it.t} » sous le nez !`,1.8)}
-  function steal(from,to){const b=from.bag.pop();if(!b)return;to.bag.push(b);refresh(from);refresh(to);R.fx.burst(from.pile.position.clone().add(V(0,.6,0)),6);
-    if(from===me){pts(n,false);beep(160,.2,'sawtooth');shake();say2(`<b>${to.n}</b> pioche « ${b.t} » dans ta pile !`,2)}}
-  /* le bras (élastique, comme dans les dessins animés) s'étire vers une cible */
-  function reachTo(p,target,dur){p.reach={target,k:0,dur,back:0}}
-  function slap(p){if(!p.reach||p.reach.back)return false;p.stun=1.6;p.reach.back=1;p.ouch.visible=true;slaps++;pts(n,true);beep(220,.12,'square',.08);shake();say2(`<b>CLAC !</b> Tu tapes sur les doigts de ${p.n}.`,1.6);return true}
-  function tryGrab(zone){if(me.reach||me.stun>0)return;const o=items.filter(q=>!q.fly&&q.zone===zone).sort((a,b)=>b.v-a.v)[0];if(!o){reachTo(me,{x:X[zone],miss:1},.22);return}o.claimed=me;reachTo(me,{item:o},.24)}
-  const threat=()=>P.find(p=>p!==me&&p.reach&&!p.reach.back&&(p.reach.target.pile===me||(p.reach.target.item&&p.reach.target.item.zone===1)));
-  R.onDown=e=>{if(done)return;const th=threat();const pt=planeAt(e,TY);if(!pt)return;
-    if(th&&Math.abs(pt.x-X[1])<1.8){slap(th);return}
-    let z=X.reduce((b,x,i)=>Math.abs(pt.x-x)<Math.abs(pt.x-X[b])?i:b,0);if(Math.abs(z-1)>1)z=2;me.lean=z-1;tryGrab(z)};
-  function armPose(p){const rg=p.m.userData.rig,r=p.reach;rg.shs.forEach(s=>s.scale.set(1,1,1));if(!r)return;
-    const k=r.back?Math.max(0,1-r.k):Math.min(1,r.k),tg=r.target.item?r.target.item.g.position:r.target.pile?r.target.pile.pile.position:V(r.target.x,TY,ZS);
-    const side=tg.x>=p.m.position.x?1:-1,sh=rg.shs[side>0?1:0];const sp=V(p.m.position.x+side*.62*SC,p.m.position.y+1.8*SC,p.m.position.z);
-    const d=tg.clone().add(V(0,.2,0)).sub(sp),L=d.length();const q=new THREE.Quaternion().setFromUnitVectors(V(0,-1,0),d.normalize());
-    sh.quaternion.slerp(q,k);sh.children[0].rotation.z=side*.35*(1-k);sh.scale.y=1+(Math.max(1,L/(.9*SC))-1)*k}
-  function botThink(p,dt){if(p.reach||p.stun>0)return;if(p.idle>0){p.idle-=dt;return}
-    if(Math.random()<dt*.18){p.idle=rand(.8,1.5);say2(`<b>${p.n} :</b> « ${p.excuse} »`,1.3);return}
-    p.cd-=dt;
-    if(me.bag.length&&p.cd<=0&&Math.abs(p.i-1)===1&&(p.style==='voleuse'||(p.style==='chef'&&Math.random()<.5))){p.cd=p.style==='voleuse'?rand(4,6):rand(7,10);reachTo(p,{pile:me},1.1);return}
-    let best=null,bs=-1e9;items.forEach(o=>{if(o.fly||o.claimed||Math.abs(o.zone-p.i)>1||o.age<p.react)return;let sc=o.v*(p.style==='chef'?1.5:1)-(o.zone===p.i?0:1.8);
-      if(o.v<0)sc=p.style==='brouillon'&&Math.random()<.5?1:-99;if(sc>bs){bs=sc;best=o}});
-    if(best&&bs>-50){best.claimed=p;reachTo(p,{item:best},best.zone===p.i?.42:.62)}}
+  const air=[];let t=0,spawnT=.8,done=false,pk={},slaps=0,valid=0,bad=0;
+  const top=p=>p.plate[p.plate.length-1];
+  function pop(p,txt,col){const l=labelPlane(txt,1.4,.6,{bg:'#fffaf0',border:col,fg:col,size:120});l.position.set(X[p.i],3.1,-.5);R.stage.add(l);tween(.9,q=>{l.position.y=3.1+q*1.2}).then(()=>R.stage.remove(l))}
+  function lay(p){p.plate.forEach((o,k)=>{o.g.position.set(X[p.i]+(k-(p.plate.length-1)/2)*.28,TY+.25+k*.14,PZ);o.g.rotation.set(0,0,0);o.g.userData.l.visible=k===p.plate.length-1})}
+  function makeItem(it){const H=HIER[it.h],g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.8,.12,.6),'#ffffff',0,0,0,g),1.1);mk(new THREE.BoxGeometry(.6,.13,.1),H.c,0,0,-.12,g);mk(new THREE.BoxGeometry(.6,.13,.1),H.c,0,0,.1,g);
+    const l=labelPlane(`${it.t} (${H.v>0?'+':''}${H.v})`,2.5,.55,{bg:'#fffaf0',border:H.c,size:80});l.position.set(0,-.62,1.02);g.add(l);g.userData.l=l;R.stage.add(g);return {it,g,v:H.v,h:it.h}}
+  /* une mesure s'envole de l'imprimante et retombe dans une assiette (cible au sol pour se préparer) */
+  function launch(o,from,to,dur,h){const ring=mk(new THREE.TorusGeometry(.7,.06,4,20),'#e03131',X[to],TY+.2,PZ,R.stage);ring.rotation.x=Math.PI/2;ring.castShadow=false;
+    o.g.userData.l.visible=false;air.push({o,p0:from.clone(),to,q:0,dur,h,ring})}
+  function spawn(){const to=[0,1,2,3].filter(i=>P[i].plate.length<3);if(!to.length)return;const t2=to[Math.floor(Math.random()*to.length)];
+    const o=makeItem(cfg.items[Math.floor(Math.random()*cfg.items.length)]);launch(o,V(3.6,3.3,-2.6),t2,rand(1.1,1.4),rand(3.5,5));
+    tween(.2,q=>pr.scale.set(1+q*.06,1-q*.08,1)).then(()=>pr.scale.set(1,1,1));beep(300,.05,'triangle',.03)}
+  function land(a){R.stage.remove(a.ring);const p=P[a.to];if(p.plate.length>=3){R.stage.remove(a.o.g);return}a.o.age=0;p.plate.push(a.o);lay(p);R.fx.burst(V(X[a.to],TY+.4,PZ),4)}
+  /* valider = tamponner la mesure ; plus elle est haute dans la hiérarchie, plus c'est long */
+  function validate(p){const o=top(p);if(!o||p.busy||p.stun>0||p.reach)return;p.busy={o,k:0,dur:o.v>0?.35+o.v*.16:.5}}
+  function finish(p){const o=p.busy.o;p.busy=null;const i=p.plate.indexOf(o);if(i<0)return;p.plate.splice(i,1);R.stage.remove(o.g);lay(p);p.score+=o.v;scEls[p.i].textContent=p.score;
+    pop(p,(o.v>0?'+':'')+o.v,o.v>0?HIER[o.h].c:'#e03131');
+    if(p===me){pts(n,o.v>0);beep(o.v>0?600+o.v*90:120,.14,o.v>0?'square':'sawtooth');if(o.v>0){valid++;say2(`<b>Tamponné : ${o.it.t}</b> (${HIER[o.h].n}, +${o.v})`,1.6)}else{bad++;p.stun=1;boulonShake();say2(`<b>Indigestion administrative !</b> « ${o.it.t} » n’est pas une mesure (−2).`,2)}}}
+  /* refiler la mesure du dessus au voisin (utile pour les fausses bonnes idées) */
+  function pass(p,dir){const j=p.i+dir;if(j<0||j>3||p.busy||p.stun>0||p.reach)return;const o=p.plate.pop();if(!o)return;lay(p);launch(o,o.g.position.clone(),j,.5,1.4);
+    if(p===me)beep(500,.06,'triangle',.04);else if(j===1)say2(`<b>${p.n}</b> te refile « ${o.it.t} » !`,1.8)}
+  function reachTo(p,victim,o){p.reach={victim,o,k:0,dur:p.style==='voleuse'?.8:1,back:0}}
+  function slap(p){if(!p.reach||p.reach.back)return;p.stun=1.6;p.reach.back=1;p.reach.k=0;p.ouch.visible=true;slaps++;pts(n,true);beep(220,.12,'square',.08);shake();say2(`<b>CLAC !</b> Tu tapes sur les doigts de ${p.n}.`,1.6)}
+  const threat=()=>P.find(p=>p!==me&&p.reach&&!p.reach.back&&p.reach.victim===me);
+  R.onDown=e=>{if(done)return;const th=threat();if(th){slap(th);return}const pt=planeAt(e,TY);if(!pt)return;if(pt.x<X[1]-1.1)pass(me,-1);else if(pt.x>X[1]+1.1)pass(me,1);else validate(me)};
+  function armPose(p){const rg=p.m.userData.rig;rg.shs.forEach(s=>s.scale.set(1,1,1));
+    if(p.busy){const k=p.busy.k;rg.shs[1].rotation.x=-1.2-Math.abs(Math.sin(k*Math.PI*3))*1.1;rg.shs[0].rotation.x=-.9;return}
+    const r=p.reach;if(!r)return;const k=r.back?Math.max(0,1-r.k):Math.min(1,r.k),tg=V(X[r.victim.i],TY+.3,PZ);
+    const side=tg.x>=X[p.i]?1:-1,sh=rg.shs[side>0?1:0],sp=V(X[p.i]+side*.62*SC,p.m.position.y+1.8*SC,p.m.position.z);
+    const d=tg.sub(sp),L=d.length(),q=new THREE.Quaternion().setFromUnitVectors(V(0,-1,0),d.normalize());sh.quaternion.slerp(q,k);sh.children[0].rotation.z=side*.35*(1-k);sh.scale.y=1+(Math.max(1,L/(.9*SC))-1)*k}
+  function bot(p,dt){if(p.busy||p.reach||p.stun>0)return;if(p.idle>0){p.idle-=dt;return}if(Math.random()<dt*.15){p.idle=rand(.8,1.4);say2(`<b>${p.n} :</b> « ${p.excuse} »`,1.3);return}
+    p.think-=dt;p.cd-=dt;if(p.think>0)return;p.think=rand(.25,.55);const o=top(p);
+    if(o){if(o.v<0&&!(p.style==='brouillon'&&Math.random()<.5)){const nb=[p.i-1,p.i+1].filter(j=>j>=0&&j<=3);pass(p,(nb.includes(1)&&Math.random()<.75?1:nb[Math.floor(Math.random()*nb.length)])-p.i);return}validate(p);return}
+    if(p.cd<=0){const vs=[p.i-1,p.i+1].filter(j=>j>=0&&j<=3).map(j=>P[j]).filter(v=>{const q=top(v);return q&&q.v>=2&&q.age>.9&&!v.busy});
+      const v=vs.find(v=>v===me)||vs[0];if(v&&(p.style!=='brouillon')){p.cd=p.style==='voleuse'?rand(3,5):rand(6,9);reachTo(p,v,top(v))}}}
   R.extra=(dt,T)=>{if(done)return;t+=dt;rmT-=dt;if(rmT<=0)rm.hidden=true;
     spawnT-=dt;if(spawnT<=0){spawn();spawnT=rand(cfg.spawn[0],cfg.spawn[1])}
-    for(let i=items.length-1;i>=0;i--){const o=items[i];
-      if(o.fly){o.q=Math.min(1,o.q+dt/.6);const to=V(o.x,TY+.06,ZS);o.g.position.lerpVectors(o.p0,to,o.q);o.g.position.y+=2.2*4*o.q*(1-o.q);o.g.rotation.y+=dt*9;if(o.q>=1){o.fly=0;o.g.rotation.y=0}continue}
-      o.age+=dt;o.life-=dt;o.g.visible=o.life>1||Math.sin(o.life*22)>0;if(o.life<=0&&!o.claimed){R.stage.remove(o.g);items.splice(i,1)}}
-    /* Dylan : Q / D pour se pencher, Espace pour attraper, S pour taper sur les doigts */
-    const lean=(KEYS.R?1:0)-(KEYS.L?1:0);if(!me.reach)me.lean=lean;const jE=KEYS.J&&!pk.J,sE=(KEYS.D||KEYS.S)&&!pk.D;pk.J=KEYS.J;pk.D=KEYS.D||KEYS.S;
-    if(sE){const th=threat();if(th)slap(th);else say2('Personne à taper… pour l’instant.',1)}
-    if(jE)tryGrab(1+me.lean);
-    P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);if(p.stun<=0)p.ouch.visible=false;if(p!==me)botThink(p,dt);
+    for(let i=air.length-1;i>=0;i--){const a=air[i];a.q=Math.min(1,a.q+dt/a.dur);const to=V(X[a.to],TY+.3,PZ);a.o.g.position.lerpVectors(a.p0,to,a.q);a.o.g.position.y+=a.h*4*a.q*(1-a.q);a.o.g.rotation.x+=dt*7;a.o.g.rotation.z+=dt*5;
+      a.ring.scale.setScalar(1+Math.sin(T*14)*.12);if(a.q>=1){air.splice(i,1);land(a)}}
+    P.forEach(p=>p.plate.forEach(o=>o.age+=dt));
+    /* Dylan : Espace tamponne, Q / D refilent à gauche / à droite, S tape sur les doigts */
+    const E=k=>{const v=!!KEYS[k]&&!pk[k];pk[k]=!!KEYS[k];return v};const eJ=E('J'),eL=E('L'),eR=E('R'),eD=E('D'),eS=E('S');
+    if(eD||eS){const th=threat();if(th)slap(th)}if(eJ)validate(me);if(eL)pass(me,-1);if(eR)pass(me,1);
+    P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);if(p.stun<=0)p.ouch.visible=false;if(p!==me)bot(p,dt);
+      if(p.busy){p.busy.k+=dt/p.busy.dur;if(p.busy.k>=1)finish(p)}
       const r=p.reach;if(r){r.k+=dt/(r.back?.25:r.dur);
-        if(!r.back&&r.k>=1){const tg=r.target;
-          if(tg.item){if(items.includes(tg.item))take(p,tg.item);tg.item.claimed=null}
-          else if(tg.pile)steal(tg.pile,p);
-          r.back=1;r.k=0}
-        else if(r.back&&r.k>=1){p.reach=null;if(p!==me)p.react=rand(.35,.7)}}
-      animPerson(p.m,p.stun>0?'stun':'idle',T+p.i);armPose(p);
-      const lx=p===me?me.lean*.35:0;p.m.position.x=X[p.i]+lx;p.m.rotation.z=-lx*.4;if(p.stun>0)p.m.position.y=-.1+Math.abs(Math.sin(T*18))*.08;else p.m.position.y=-.1});
-    const th=threat();warn.visible=!!th;if(th){warn.position.set(X[1],2.2+Math.sin(T*14)*.08,.6)}
-    if(Math.floor(t*4)!==Math.floor((t-dt)*4))board();
+        if(!r.back&&r.k>=1){const i=r.victim.plate.indexOf(r.o);if(i>=0&&!(r.victim.busy&&r.victim.busy.o===r.o)){r.victim.plate.splice(i,1);lay(r.victim);p.plate.push(r.o);lay(p);if(r.victim===me){pts(n,false);beep(160,.2,'sawtooth');shake();say2(`<b>${p.n}</b> pique « ${r.o.it.t} » dans ton assiette !`,2)}}r.back=1;r.k=0}
+        else if(r.back&&r.k>=1)p.reach=null}
+      animPerson(p.m,p.stun>0?'stun':'idle',T+p.i);armPose(p);p.m.position.y=p.busy?-.15-Math.abs(Math.sin(p.busy.k*Math.PI*3))*.05:-.15});
+    const left=Math.max(0,Math.ceil(cfg.time-t));const tm=hud.querySelector('.ftm');if(tm.textContent!=String(left))tm.textContent=left;hud.querySelector('.sand').setAttribute('transform',`translate(0 ${(t/cfg.time)*8}) scale(1 ${Math.max(.05,1-t/cfg.time)})`);
+    const th=threat();if(th&&!R.warned){R.warned=1;say2('<b>Une main dans ton assiette !</b> Tape sur les doigts ('+(TOUCH?'flèche bas':'S')+') !',1.2)}if(!th)R.warned=0;
     if(t>=cfg.time)end()};
-  function end(){if(done)return;done=true;rm.remove();$('#pad').hidden=true;R.cam=null;R.onDown=null;P.forEach(p=>{if(p!==me)R.stage.remove(p.m);else{p.m.userData.rig.shs.forEach(s=>s.scale.set(1,1,1));p.m.scale.setScalar(.9);p.m.rotation.set(0,0,0)}});R.clear();
-    const rank=[...P].sort((a,b)=>score(b)-score(a)),pos=rank.indexOf(me)+1,r=[1,.75,.4,.2][pos-1];
-    const hi=me.bag.filter(b=>b.v>=3).length,epi=me.bag.filter(b=>b.v===1).length,bad=me.bag.filter(b=>b.v<0).length;
-    gameEnd(n,r,'karim',`<b>${pos===1?'Tu gagnes la table !':pos+'e sur 4.'}</b> ${rank.map(p=>`${p.n} ${score(p)}`).join(' · ')}.<br>Dans ta pile : ${hi} mesure${hi>1?'s':''} du haut de la hiérarchie, ${epi} EPI, ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''}, ${slaps} tape${slaps>1?'s':''} sur les doigts. ${cfg.after||''}`,res)}
-  /* caméra de face, à hauteur de table, comme un jeu de fête */
-  R.cam=()=>{camera.position.set(0,5.4,11.5);camera.lookAt(0,1.3,-1)};
-  me.m.position.set(X[1],-.1,-.9);me.m.rotation.set(0,0,0);me.m.scale.setScalar(SC);
+  function end(){if(done)return;done=true;rm.remove();hud.remove();$('#pad').hidden=true;$('#hud .right').style.visibility='visible';R.cam=null;
+    me.m.userData.rig.shs.forEach(s=>s.scale.set(1,1,1));me.m.scale.setScalar(.9);me.m.rotation.set(0,0,0);R.clear();
+    const rank=[...P].sort((a,b)=>b.score-a.score),pos=rank.indexOf(me)+1,r=[1,.75,.4,.2][pos-1];
+    gameEnd(n,r,'karim',`<b>${pos===1?'Tu remportes le festin !':pos+'e sur 4.'}</b> ${rank.map(p=>`${p.n} ${p.score}`).join(' · ')}.<br>Tu as tamponné ${valid} mesure${valid>1?'s':''}, avalé ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''} et tapé ${slaps} fois sur des doigts. ${cfg.after||''}`,res)}
+  /* caméra de face, légèrement plongeante, comme dans le jeu */
+  R.cam=()=>{camera.position.set(0,4.6,10.2);camera.lookAt(0,2,-1)};
+  me.m.position.set(X[1],-.15,-.75);me.m.rotation.set(0,0,0);me.m.scale.setScalar(SC);
   const go=R.extra;R.extra=null;
-  say('karim',cfg.hint,{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();board();say2(TOUCH?'Flèches gauche/droite pour te pencher, SAUT pour attraper, flèche bas pour taper sur les doigts. Ou touche directement une mesure.':'Q / D pour te pencher, Espace pour attraper, S pour taper sur les doigts. Ou clique sur une mesure.',3.5);R.extra=go});
+  say('karim',cfg.hint,{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();say2(TOUCH?'Touche ton assiette pour tamponner, à gauche ou à droite pour refiler. Flèche bas pour taper sur les doigts.':'Espace : tamponner · Q / D : refiler à gauche / à droite · S : taper sur les doigts.',3.5);R.extra=go});
 })}
 
 /* ================= MINI-JEU : LE FANTÔME EN PANTOUFLES (attraper au vol) ================= */
@@ -1740,7 +1740,7 @@ RUN[2]=async()=>{
     {a:'Riveteuses 95 dB',b:'Capotage des machines',fb:'On réduit le bruit à la source avant de distribuer des bouchons.'},
     {a:'Chariot dans l’allée',b:'Allées piétonnes séparées',fb:'Séparer les flux piétons et engins : protection collective, organisation du site.'},
     {a:'Charges de 25 kg',b:'Aide à la manutention',fb:'Un palan ou un chariot adapté supprime le port de charges lourdes.'}]}))>=.5,CAUSES.risques);
-  await trial(2,async()=>(await table3D(2,{time:60,spawn:[.45,.85],hint:'À table ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. L’imprimante les crache sur le bureau : plus elles sont haut dans la hiérarchie, plus elles rapportent (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1, fausse bonne idée −2). Attrape celles qui tombent devant toi ou devant tes voisins… et surveille ta pile : on a les bras longs. Tape-nous sur les doigts ! Termine dans les deux premiers.',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
+  await trial(2,async()=>(await feast3D(2,{time:60,spawn:[.7,1.1],hint:'À table pour le festin des mesures ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. L’imprimante les fait voler au-dessus de nos têtes et elles retombent dans nos assiettes. Tamponne les bonnes (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1 : plus c’est haut, plus c’est long à tamponner) et refile les fausses bonnes idées (−2) à tes voisins. Méfie-toi : on te refilera les nôtres, et on a les bras longs. Tape-nous sur les doigts ! Termine dans les deux premiers.',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
    items:[{t:'Supprimer le solvant',h:0},{t:'Supprimer le port de charges',h:0},{t:'Peinture à l’eau',h:1},{t:'Riveteuse silencieuse',h:1},
     {t:'Garde-corps',h:2},{t:'Aspiration à la source',h:2},{t:'Capotage',h:2},{t:'Filet sous la nacelle',h:2},
     {t:'Allées séparées',h:3},{t:'Rotation des postes',h:3},{t:'Formation nacelle',h:3},
