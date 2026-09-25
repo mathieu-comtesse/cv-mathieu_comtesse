@@ -160,13 +160,13 @@ function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.c
 
 /* ================= DONNÉES ================= */
 const CH=[
- {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le lancer de déchets'},
+ {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le fantôme en pantoufles'},
  {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG'},
  {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux du plan d’actions'},
- {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le mémory des preuves'},
+ {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le karaoké sécurité'},
  {cl:'§8',t:'Réalisation',sub:'L’usine à peinture',g:'L’échafaudage'},
- {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'La lampe de l’auditrice'},
- {cl:'§10',t:'Amélioration',sub:'L’atelier des engrenages',g:'Le casse-briques des causes'}
+ {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'Le polygraphe de Lorette'},
+ {cl:'§10',t:'Amélioration',sub:'L’atelier des engrenages',g:'L’opération des causes'}
 ];
 const FICHE=[
  {obj:"Comprendre ce qui influence l’entreprise et ce qu’on attend d’elle, pour fixer le périmètre du système SST.",in:"Enjeux internes et externes, attentes des travailleurs, d’Airbus, des autorités.",out:"Domaine d’application, parties intéressées et leurs exigences.",link:"Nourrit §5.2 Politique et §6.1 Risques et opportunités.",risk:"Un système hors sol, qui ignore la cadence et le client.",opp:"Faire de l’exigence d’Airbus un argument commercial."},
@@ -203,8 +203,10 @@ const hidePanel=()=>{$('#panel').hidden=true};
 const K=t=>`<kbd>${t}</kbd>`;
 const KEYHELP={
  parcours:`<span>${K('Q')}${K('D')} avancer</span><span>${K('Z')} grimper</span><span>${K('S')} se cacher, se baisser</span><span>${K('Espace')} sauter</span><span>${K('E')} tournoyer</span><span>(flèches aussi)</span>`,
- briques:`<span>${K('Q')}${K('D')} ou souris : raquette</span><span>${K('Espace')} ou clic : lancer la balle</span>`,
- lancer:`<span>Clic maintenu, glisser vers le bas : viser</span><span>Relâcher : lancer</span>`};
+ attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
+ karaoke:`<span>${K('Q')} piste gauche</span><span>${K('S')} piste du milieu</span><span>${K('D')} piste droite</span><span>(flèches aussi)</span>`,
+ poly:`<span>Clic sur un menteur : tampon ÉCART</span><span>Les nez qui s’allongent mentent</span>`,
+ operation:`<span>Clic maintenu sur une cause</span><span>Glisser dans le couloir jusqu’au rond vert</span>`};
 function keyHelp(k){const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
 
 async function runScript(n,script){
@@ -600,52 +602,6 @@ function boulonShake(){const b=cur&&cur.boulon;if(!b)return;const r=b.rotation.z
 function planeAt(e,y=0){const r=cv.getBoundingClientRect();ptr.x=(e.clientX-r.left)/r.width*2-1;ptr.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(ptr,camera);
   const o=ray.ray.origin,d=ray.ray.direction;if(Math.abs(d.y)<1e-4)return null;const t=(y-o.y)/d.y;return t>0?o.clone().addScaledVector(d,t):null}
 
-/* ================= MINI-JEU : LE LANCER (visée au lance-pierre) ================= */
-function junkMesh(j){const g=new THREE.Group();
-  if(j.s==='cup'){outline(mk(new THREE.CylinderGeometry(.35,.28,.6,12),j.c,0,0,0,g),1.1);mk(new THREE.TorusGeometry(.16,.05,6,10),j.c,.38,0,0,g)}
-  if(j.s==='flat')outline(mk(new THREE.BoxGeometry(.9,.1,.65),j.c,0,0,0,g),1.1);
-  if(j.s==='box'){outline(mk(new THREE.BoxGeometry(.45,.3,.35),j.c,0,0,0,g),1.1);mk(new THREE.TorusGeometry(.3,.04,5,12),INK,.2,0,.3,g)}
-  if(j.s==='ball')outline(mk(new THREE.IcosahedronGeometry(.4,0),j.c,0,0,0,g),1.1);
-  return g}
-function throw3D(n,cfg){return new Promise(res=>{
-  keyHelp('lancer');const R=cur;R.clear();const items=cfg.items,N=items.length,G=18,BIN_R=.98,home=V(0,1.1,2.4);
-  /* bacs de tri sélectif grillagés : on voit à travers, donc où tombe le déchet */
-  const TRI={papier:{n:'PAPIER',c:'#1c7ed6'},emb:{n:'EMBALLAGES',c:'#f59f00'},om:{n:'ORDURES',c:'#495057'},bio:{n:'BIODÉCHETS',c:'#8d5524'},deee:{n:'DEEE',c:'#e03131'}};
-  const bins=Object.keys(TRI).map((key,i)=>{const t=TRI[key],g=new THREE.Group();g.position.set((i-2)*2.9,0,-3.3);
-    const gt=ctex(64,64,(x,w,h)=>{x.clearRect(0,0,w,h);x.strokeStyle=t.c;x.lineWidth=7;for(let q=0;q<=64;q+=16){x.beginPath();x.moveTo(q,0);x.lineTo(q,64);x.stroke();x.beginPath();x.moveTo(0,q);x.lineTo(64,q);x.stroke()}});gt.repeat.set(8,2);
-    const wall=new THREE.Mesh(new THREE.CylinderGeometry(1.05,.85,1.4,26,1,true),new THREE.MeshBasicMaterial({map:gt,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));wall.position.y=.7;g.add(wall);
-    const rim=outline(mk(new THREE.TorusGeometry(1.05,.1,6,26),t.c,0,1.4,0,g),1.1);rim.rotation.x=Math.PI/2;mk(new THREE.CylinderGeometry(.85,.85,.08,22),t.c,0,.04,0,g);
-    const l=labelPlane(t.n,2.2,.55,{bg:'#fffaf0',border:t.c,size:90});l.position.set(0,2.15,0);g.add(l);R.stage.add(g);return {key,g,t}});
-  const BIN_Y2=1.4;
-  const dots=[];for(let i=0;i<16;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.09,6,5),new THREE.MeshBasicMaterial({color:'#ffffff'}));d.visible=false;R.stage.add(d);dots.push(d)}
-  let k=0,tries=0,hits=0,obj=null,vel=null,aim=null,flying=false;
-  function spawn(){const j=items[k];obj=junkMesh(j);obj.position.copy(home);R.stage.add(obj);
-    const l=labelPlane(j.t,2.2,.55,{bg:'#fffaf0',border:j.c,size:80});l.position.y=.9;obj.add(l);obj.userData.l=l;flying=false;
-    const ring=mk(new THREE.TorusGeometry(.6,.06,6,24),'#ffe066',0,-1.05,0,obj);ring.rotation.x=Math.PI/2;ring.castShadow=false;obj.userData.ring=ring;
-    [-.13,.13].forEach(x=>{mk(new THREE.SphereGeometry(.09,10,8),'#ffffff',x,.12,.36,obj);const p=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:INK}));p.position.set(x,.12,.44);obj.add(p)});}
-  function velFrom(e){const r=cv.getBoundingClientRect(),nx=(e.clientX-aim.x)/r.height,ny=Math.max(0,Math.min(.55,(e.clientY-aim.y)/r.height));return V(-nx*16,4+ny*11,-ny*20)}
-  function preview(v){const p=home.clone(),w=v.clone();dots.forEach(d=>{for(let s=0;s<3;s++){w.y-=G*.02;p.addScaledVector(w,.02)}d.position.copy(p);d.visible=p.y>0})}
-  R.onDown=e=>{if(obj&&!flying)aim={x:e.clientX,y:e.clientY}};
-  R.onMove=e=>{if(aim)preview(velFrom(e))};
-  R.onUp=e=>{if(!aim)return;const v=velFrom(e);aim=null;dots.forEach(d=>d.visible=false);if(v.z>-1.5)return;vel=v;flying=true;obj.remove(obj.userData.l);obj.remove(obj.userData.ring)};
-  R.extra=(dt,T)=>{bins.forEach((b,i)=>{b.g.children[0].rotation.y=Math.sin(T+i)*.05});
-    if(!flying){if(obj&&!aim){const h=Math.abs(Math.sin(T*4));obj.position.y=home.y+h*.2;obj.rotation.y=Math.sin(T*2.5)*.35;obj.scale.set(1+(1-h)*.08,1-(1-h)*.08,1);const r=obj.userData.ring;if(r){r.position.y=-1.05-h*.2;r.scale.setScalar(1+.15*Math.sin(T*5))}}return}
-    const y0=obj.position.y;vel.y-=G*dt;obj.position.addScaledVector(vel,dt);obj.rotation.x+=dt*8;obj.rotation.z+=dt*5;
-    let hitB=null;if(vel.y<0&&y0>=BIN_Y2&&obj.position.y<BIN_Y2)hitB=bins.find(b=>Math.hypot(obj.position.x-b.g.position.x,obj.position.z-b.g.position.z)<BIN_R);
-    if(hitB){flying=false;land(hitB)}else if(obj.position.y<=.25){flying=false;land(null)}};
-  async function land(b){const o=obj;obj=null;tries++;const it=items[k],ok=!!b&&b.key===it.bin,nb=k<N-1?'Déchet suivant':'Terminer';pts(n,ok);
-    if(ok){hits++;R.stage.remove(o);R.fx.burst(b.g.position.clone().add(V(0,2,0)));boulonJump();
-      await say('boulon',`<b>Bien trié : bac ${b.t.n.toLowerCase()} !</b> ${it.why}<br>Sous ${it.t.toLowerCase()}, un document utile : ${it.doc}`,{btns:[{t:nb,go:1}],cls:'good'});next();return}
-    boulonShake();if(b)R.fx.burst(b.g.position.clone().add(V(0,2,0)),6);tween(.5,q=>o.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(o));
-    const why=b?`<b>Mauvais bac : ${b.t.n.toLowerCase()} !</b> ${it.t} va dans le bac <b>${TRI[it.bin].n.toLowerCase()}</b>.`:'<b>Raté, à côté des bacs !</b>';
-    if(tries<3){say('boulon',`${why} Encore ${3-tries} essai${3-tries>1?'s':''}.`,{btns:[],cls:'bad'});await wait(1400);spawn()}
-    else{await say('boulon',`<b>Raté trois fois.</b> Boulon le ramasse à ta place. Dessous : ${it.doc}`,{btns:[{t:nb,go:1}],cls:'bad'});next()}}
-  function next(){k++;tries=0;if(k<N){say('boulon',`Déchet ${k+1} / ${N} : ${items[k].t}. Quel bac ?`,{btns:[]});spawn();return}
-    keyHelp();R.onDown=R.onMove=R.onUp=R.extra=null;const r=hits/N;cdi(r>=.85?8:r>=.6?2:-6);
-    say('boulon',`<b>${hits} déchets sur ${N} bien triés !</b> ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
-  say('boulon',cfg.hint,{btns:[{t:'C’est parti !',go:1}]}).then(()=>{say('boulon',`Déchet 1 / ${N} : ${items[0].t}. Quel bac ?`,{btns:[]});spawn()});
-})}
-
 /* ================= MINI-JEU : LES TUYAUX (casse-tête de rotation) ================= */
 const ROT=m=>((m<<1)|(m>>3))&15;
 function pipe3D(n,cfg){return new Promise(res=>{
@@ -685,105 +641,189 @@ function pipe3D(n,cfg){return new Promise(res=>{
   say('boulon',cfg.hint,{btns:[{t:'C’est parti !',go:1}]}).then(build);
 })}
 
-/* ================= MINI-JEU : LE MÉMORY (paires) ================= */
-function memory3D(n,cfg){return new Promise(res=>{
-  const R=cur;R.clear();const cards=shuffle(cfg.pairs.flatMap((p,i)=>[{t:p.a,i,col:PAL[(i*2+1)%8]},{t:p.b,full:p.full,i,col:PAL[(i*2+1)%8]}]));
-  const cols=Math.ceil(cards.length/2);
-  cards.forEach((o,k)=>{const r=Math.floor(k/cols),c=k%cols;const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(2.6,1.5,.16),'#5f3dc4',0,0,0,g),1.04);
-    o.lab=labelPlane('?',2.4,1.3,{bg:'#fffaf0',border:'#5f3dc4',size:150});o.lab.position.z=.09;g.add(o.lab);
-    g.position.set((c-(cols-1)/2)*2.95,1.1,1.1+r*2.5);g.rotation.x=-.35;g.userData={onClick:()=>flip(o)};o.g=g;R.stage.add(g);R.clickables.push(g)});
-  const turn=(o,up)=>tween(.12,k=>{o.g.scale.x=1-k}).then(()=>{o.lab.userData.relabel(up?o.t:'?',up?{bg:'#fffaf0',border:o.col,size:80}:{bg:'#fffaf0',border:'#5f3dc4',size:150});return tween(.12,k=>{o.g.scale.x=k})});
-  let open=[],lock=false,found=0,errs=0;const seen=new Set();
-  say('boulon',cfg.hint,{btns:[]});
-  async function flip(o){if(lock||o.done||open.includes(o))return;open.push(o);await turn(o,1);
-    if(open.length<2){say('boulon',`<b>${o.t}</b><br>Trouve la carte qui va avec.`,{btns:[]});return}
-    lock=true;const [a,b]=open;open=[];
-    if(a.i===b.i){a.done=b.done=1;found++;pts(n,true);[a,b].forEach(x=>R.clickables.splice(R.clickables.indexOf(x.g),1));R.fx.burst(b.g.position.clone().add(V(0,1,0)));boulonJump();
-      await say('boulon',`<b>Paire trouvée !</b> ${cfg.pairs[a.i].full}`,{btns:[],cls:'good'})}
-    else{const knew=cards.some(c=>c!==a&&c.i===a.i&&seen.has(c))||cards.some(c=>c!==b&&c.i===b.i&&seen.has(c));if(knew){errs++;pts(n,false)}boulonShake();
-      say('boulon',knew?'<b>Raté, et tu l’avais déjà vue !</b> Concentre-toi.':'<b>Pas la bonne paire.</b> Retiens bien les cartes.',{btns:[],cls:knew?'bad':''});await wait(1100);await Promise.all([turn(a,0),turn(b,0)])}
-    seen.add(a);seen.add(b);lock=false;
-    if(found===cfg.pairs.length){const r=found/(found+errs);cdi(r>=.85?8:r>=.6?2:-6);await wait(300);
-      await say('boulon',`<b>Toutes les paires en ${errs} erreur${errs>1?'s':''} de mémoire !</b> ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'});res(r)}}
+/* ================= OUTILS COMMUNS AUX MINI-JEUX ================= */
+const pmsg=h=>{const m=$('#pmsg');m.hidden=false;m.innerHTML=h};
+let AC=null;
+function beep(f,d=.12,type='square',v=.05){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+function shake(){const fr=$('#frame');fr.classList.remove('shake');void fr.offsetWidth;fr.classList.add('shake')}
+function homeDylan(R){const d=R.dylan;d.position.set(7.8,0,-4.4);d.rotation.set(0,-.5,0);animPerson(d,'idle',0)}
+function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
+  return say(who,text,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
+
+/* ================= MINI-JEU : LE FANTÔME EN PANTOUFLES (attraper au vol) ================= */
+function ghostMesh(){const g=new THREE.Group();
+  outline(mk(new THREE.SphereGeometry(1,20,16),'#f8f9fa',0,.3,0,g),1.05);
+  outline(mk(new THREE.CylinderGeometry(1,1.15,1.1,20,1,true),'#f8f9fa',0,-.35,0,g),1.05);
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;mk(new THREE.SphereGeometry(.28,10,8),'#f8f9fa',Math.cos(a)*1.02,-.9,Math.sin(a)*1.02,g)}
+  [-1,1].forEach(q=>{mk(new THREE.SphereGeometry(.2,12,10),INK,q*.35,.5,.88,g).scale.set(1,1.4,.5);mk(new THREE.TorusGeometry(.27,.04,6,16),INK,q*.35,.5,.95,g);
+    outline(mk(new THREE.BoxGeometry(.5,.25,.8),'#f783ac',q*.45,-1.45,.1,g),1.08);mk(new THREE.SphereGeometry(.16,8,6),'#ffffff',q*.45,-1.3,.45,g)});
+  const mouth=mk(new THREE.SphereGeometry(.22,12,10),INK,0,.05,.92,g);mouth.scale.set(1.2,.8,.4);g.userData.mouth=mouth;return g}
+function flyMesh(it){const g=new THREE.Group(),b=new THREE.Group();g.add(b);g.userData.b=b;
+  if(it.doc){outline(mk(new THREE.BoxGeometry(.8,.06,1),'#ffffff',0,0,0,b),1.1);[-.25,0,.25].forEach(z=>mk(new THREE.BoxGeometry(.6,.07,.05),'#4dabf7',0,0,z,b))}
+  else if(it.s==='sock'){outline(mk(new THREE.BoxGeometry(.3,.8,.3),it.c,0,.1,0,b),1.1);outline(mk(new THREE.BoxGeometry(.5,.3,.3),it.c,.1,-.35,0,b),1.1);mk(new THREE.BoxGeometry(.32,.1,.32),'#e03131',0,.4,0,b)}
+  else if(it.s==='pizza'){outline(mk(new THREE.CylinderGeometry(.6,.6,.1,3),'#fcc419',0,0,0,b),1.1);[[.1,.1],[-.2,0],[.05,-.2]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.1,.1,.12,8),'#e03131',x,0,z,b))}
+  else if(it.s==='cup'){outline(mk(new THREE.CylinderGeometry(.3,.25,.5,12),it.c,0,0,0,b),1.1);mk(new THREE.CylinderGeometry(.27,.27,.05,12),'#69db7c',0,.24,0,b)}
+  else if(it.s==='fish'){outline(mk(new THREE.BoxGeometry(.9,.06,.06),'#f1f3f5',0,0,0,b),1.1);for(let i=0;i<4;i++)mk(new THREE.BoxGeometry(.04,.05,.4),'#f1f3f5',-.25+i*.15,0,0,b);outline(mk(new THREE.ConeGeometry(.2,.3,3),'#f1f3f5',.55,0,0,b),1.1).rotation.z=-Math.PI/2}
+  else outline(mk(new THREE.IcosahedronGeometry(.35,0),it.c||'#adb5bd',0,0,0,b),1.1);
+  const l=labelPlane(it.t,2,.45,{bg:it.doc?'#fffaf0':'#ffe3e3',border:it.doc?'#1c7ed6':'#e03131',size:80});l.position.y=.75;g.add(l);return g}
+function catch3D(n,cfg){return new Promise(res=>{
+  keyHelp('attrape');const R=cur;R.clear();R.keys=1;const dy=R.dylan,CY=4,CZ=2.2,XM=7.2,NX=.9;
+  const ghost=ghostMesh();ghost.position.set(0,2.6,-3.2);R.stage.add(ghost);
+  const hou=labelPlane('HOU HOU !',2,.6,{bg:'#fffaf0',border:'#7048e8',size:100});hou.position.set(0,2,0);ghost.add(hou);hou.visible=false;
+  const net=new THREE.Group();R.stage.add(net);mk(new THREE.CylinderGeometry(.06,.06,1.7,6),'#8d5524',-.5,-.8,0,net).rotation.z=.55;
+  outline(mk(new THREE.TorusGeometry(.95,.07,6,24),'#fab005',0,0,0,net),1.1).rotation.x=Math.PI/2;
+  const bag=new THREE.Mesh(new THREE.ConeGeometry(.95,1,14,1,true),new THREE.MeshBasicMaterial({color:'#ffffff',wireframe:true}));bag.position.y=-.5;bag.rotation.x=Math.PI;net.add(bag);
+  const docs=cfg.docs.map(d=>({...d,doc:1})),seq=shuffle([...docs.slice(0,-1),...cfg.junk.map(j=>({...j}))]);seq.push(docs[docs.length-1]);
+  const ND=docs.length;let got=0,yuck=0,k=0,next=1.4,tx=0,dx=0,stun=0,done=false,t=0,gulp=0;const air=[];
+  const status=()=>pmsg(`Documents attrapés : <b>${got} / ${ND}</b> · beurk : <b>${yuck}</b>`);
+  R.onMove=e=>{const p=planeAt(e,CY);if(p)tx=Math.max(-XM,Math.min(XM,p.x-NX))};
+  function throwOne(){const it=seq[k++],m=flyMesh(it),p0=ghost.position.clone().add(V(0,-.3,.8));m.position.copy(p0);R.stage.add(m);
+    air.push({it,m,p0,p1:V(rand(-XM,XM)+NX*.5,CY,CZ),q:0,dur:Math.max(1.3,2.2-k*.05),h:rand(2,3.5),fly:1});ghost.userData.laugh=.7}
+  function caught(a){R.stage.remove(a.m);gulp=.3;R.fx.burst(net.position.clone(),8);
+    if(a.it.doc){got++;pts(n,true);beep(880,.1);say('boulon',`<b>Attrapé : ${a.it.t}.</b> ${a.it.info}`,{btns:[],cls:'good'})}
+    else{yuck++;pts(n,false);stun=.9;beep(140,.25,'sawtooth');boulonShake();say('dylan',`<b>Beurk, ${a.it.t.toLowerCase()} !</b> ${a.it.why}`,{btns:[],cls:'bad'})}status()}
+  function splat(a){const m=a.m;m.position.y=.1;tween(.6,q=>m.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(m));
+    if(a.it.doc){pts(n,false);say('boulon',`<b>${a.it.t} s’écrase par terre.</b> Un document de contexte perdu !`,{btns:[],cls:'bad'})}}
+  R.extra=(dt,T)=>{if(done)return;t+=dt;
+    ghost.position.x=Math.sin(t*.8)*5.5+Math.sin(t*2.1)*1.2;ghost.position.y=2.6+Math.sin(t*3)*.3;ghost.rotation.z=Math.sin(t*2.1)*.15;ghost.rotation.y=Math.sin(t*1.3)*.3;
+    const lg=ghost.userData.laugh>0;if(lg)ghost.userData.laugh-=dt;hou.visible=lg;ghost.userData.mouth.scale.y=lg?.8+Math.abs(Math.sin(t*20))*.8:.8;
+    next-=dt;if(k<seq.length&&next<=0){throwOne();if(k>6&&k<seq.length-1&&Math.random()<.3)throwOne();next=Math.max(.8,1.8-k*.05)}
+    if(KEYS.L)tx-=13*dt;if(KEYS.R)tx+=13*dt;tx=Math.max(-XM,Math.min(XM,tx));
+    const prev=dx;if(stun>0)stun-=dt;else dx+=Math.max(-14*dt,Math.min(14*dt,tx-dx));const mv=Math.abs(dx-prev)>.005;
+    dy.position.set(dx,0,CZ);dy.rotation.y=mv?(dx>prev?.6:-.6):0;animPerson(dy,stun>0?'stun':mv?'run':'idle',T);if(stun<=0)dy.userData.rig.shs[1].rotation.x=-2.6;
+    gulp=Math.max(0,gulp-dt);net.position.set(dx+NX,CY,CZ);net.rotation.z=stun>0?Math.sin(T*20)*.3:(prev-dx)*3;bag.scale.set(1,1+gulp*2,1);
+    const nx=dx+NX;
+    for(let i=air.length-1;i>=0;i--){const a=air[i],p=a.m.position;
+      if(a.fly){a.q=Math.min(1,a.q+dt/a.dur);p.lerpVectors(a.p0,a.p1,a.q);p.y+=a.h*4*a.q*(1-a.q);a.m.userData.b.rotation.x+=dt*6;a.m.userData.b.rotation.z+=dt*4;
+        if(a.q>=1){a.fly=0;a.vy=-2;a.vx=(a.p1.x-a.p0.x)/a.dur;a.vz=(a.p1.z-a.p0.z)/a.dur}}
+      else{a.vy-=18*dt;p.x+=a.vx*dt;p.z+=a.vz*dt;p.y+=a.vy*dt}
+      if(a.q>.9&&p.y>CY-1.3&&p.y<CY+.6&&Math.abs(p.x-nx)<1.05&&Math.abs(p.z-CZ)<1.2){caught(a);air.splice(i,1)}
+      else if(!a.fly&&p.y<.2){splat(a);air.splice(i,1)}}
+    if(k>=seq.length&&!air.length){done=true;R.stage.remove(net);const r=got/(ND+yuck);
+      gameEnd(n,r,'boulon',`<b>${got} documents sur ${ND} attrapés, ${yuck} déchet${yuck>1?'s':''} avalé${yuck>1?'s':''} par l’épuisette.</b> ${cfg.after||''}`,res)}};
+  const go=R.extra;R.extra=null;
+  say('boulon',cfg.hint,{btns:[{t:'Attrape-les !',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Glisse le doigt pour déplacer Dylan.':'Souris ou Q D pour déplacer Dylan.',{btns:[]});R.extra=go});
 })}
 
-/* ================= MINI-JEU : LA LAMPE DE L'AUDITRICE (recherche dans le noir) ================= */
-function propMesh(k){const g=new THREE.Group();
-  if(k==='exitBlocked'||k==='exitOk'){outline(mk(new THREE.BoxGeometry(1.8,2.6,.2),'#adb5bd',0,1.3,0,g),1.04);mk(new THREE.BoxGeometry(1.4,2.2,.1),'#e9ecef',0,1.15,.12,g);
-    const s=labelPlane('SORTIE',1.6,.5,{bg:'#2f9e44',fg:'#fff',border:'#2b8a3e',size:100});s.position.set(0,2.9,.15);g.add(s);
-    if(k==='exitBlocked')[[-.45,.4],[.45,.4],[0,1.2]].forEach(([x,y])=>outline(mk(new THREE.BoxGeometry(.8,.8,.8),'#c8781e',x,y,.8,g),1.05))}
-  if(k==='extOk'||k==='extMissing'){mk(new THREE.BoxGeometry(.15,2.2,.15),'#868e96',0,1.1,0,g);const s=labelPlane('EXTINCTEUR',1.5,.42,{bg:'#e03131',fg:'#fff',border:'#c92a2a',size:90});s.position.set(0,2.45,.1);g.add(s);
-    if(k==='extOk'){outline(mk(new THREE.CylinderGeometry(.22,.22,.9,12),'#e03131',0,1,.3,g),1.08);mk(new THREE.CylinderGeometry(.08,.08,.2,6),INK,0,1.55,.3,g)}else mk(new THREE.TorusGeometry(.12,.03,5,10),'#adb5bd',0,1.5,.12,g)}
-  if(k==='nacOk'||k==='nacOld'){outline(mk(new THREE.BoxGeometry(1.8,.3,1.2),'#fcc419',0,.15,0,g),1.04);[-1,1].forEach(s=>mk(new THREE.BoxGeometry(.12,2,.12),'#fcc419',s*.8,1.2,0,g));outline(mk(new THREE.BoxGeometry(1.8,.8,1.2),'#ffd43b',0,2.5,0,g),1.04);
-    const ok=k==='nacOk',s=labelPlane(ok?'VÉRIF : 2 MOIS':'VÉRIF : 14 MOIS',1.6,.5,{bg:ok?'#d3f9d8':'#ffe3e3',border:ok?'#2f9e44':'#e03131',size:80});s.position.set(0,2.5,.62);g.add(s)}
-  if(k==='drumOk'||k==='drumOpen'){const d=outline(mk(new THREE.CylinderGeometry(.45,.45,1.2,14),'#2f9e44',0,.6,0,g),1.06);
-    if(k==='drumOpen'){d.rotation.z=Math.PI/2;d.position.y=.45;mk(new THREE.CylinderGeometry(1.1,1.1,.03,18),'#69db7c',1.1,.02,.3,g).castShadow=false}else mk(new THREE.CylinderGeometry(.46,.46,.06,14),INK,0,1.22,0,g)}
-  if(k==='cobotOk'||k==='cobotBare'){outline(mk(new THREE.CylinderGeometry(.5,.6,.5,12),'#ff922b',0,.25,0,g),1.05);outline(mk(new THREE.BoxGeometry(.3,1.6,.3),'#ff922b',0,1.2,0,g),1.06);outline(mk(new THREE.BoxGeometry(1.2,.25,.25),'#ff922b',.5,2,0,g),1.06);
-    if(k==='cobotOk')[[-1.2,0],[1.2,0],[0,-1.2],[0,1.2]].forEach(([x,z])=>mk(new THREE.BoxGeometry(z?2.4:.08,.8,x?2.4:.08),'#ffd43b',x,.4,z,g))}
-  if(k==='tempOk'||k==='tempLost'){g.add(makePerson({shirt:'#adb5bd',pants:'#364fc7',vest:k==='tempOk',hat:k==='tempOk'?'#ffd43b':null,scale:.55}));
-    if(k==='tempLost'){const q=labelPlane('?',.8,.8,{bg:'#fff',border:INK,size:180});q.position.set(.7,2.3,0);g.add(q)}}
-  if(k==='bench'){outline(mk(new THREE.BoxGeometry(2.2,.9,1),'#8d5524',0,.45,0,g),1.04);mk(new THREE.BoxGeometry(.5,.3,.3),'#868e96',-.5,1.05,0,g)}
-  if(k==='cableBad'||k==='cableOk'){if(k==='cableOk'){outline(mk(new THREE.BoxGeometry(2.4,.25,.35),'#adb5bd',0,.13,0,g),1.06)}else{const c=mk(new THREE.TorusGeometry(.5,.08,6,20,Math.PI*1.4),INK,0,.1,0,g);c.rotation.x=Math.PI/2;[0,1,2].forEach(i=>mk(new THREE.OctahedronGeometry(.12),'#ffd43b',.5+i*.15,.25+i*.12,0,g))}
-    outline(mk(new THREE.CylinderGeometry(.45,.45,.5,14),'#e8591a',-1,.25,0,g),1.06)}
-  if(k==='stackHigh'||k==='stackOk'){const n=k==='stackOk'?2:6;for(let i=0;i<n;i++){const b=outline(mk(new THREE.BoxGeometry(1,.8,.9),'#c68a4a',(k==='stackHigh'?i*.08:0),.4+i*.8,0,g),1.05);if(k==='stackHigh')b.rotation.z=(i%2?1:-1)*.06}}
-  if(k==='aidEmpty'||k==='aidOk'){mk(new THREE.BoxGeometry(.15,1.6,.15),'#868e96',0,.8,0,g);outline(mk(new THREE.BoxGeometry(1,.7,.4),'#ffffff',0,1.8,0,g),1.06);[[.5,.14],[.14,.5]].forEach(([w,h])=>mk(new THREE.BoxGeometry(w,h,.05),'#2f9e44',0,1.8,.22,g));
-    if(k==='aidEmpty'){const l=labelPlane('VIDE',.9,.35,{bg:'#ffe3e3',border:'#e03131',fg:'#e03131',size:100});l.position.set(0,2.4,.1);g.add(l)}}
-  if(k==='boxes'){outline(mk(new THREE.BoxGeometry(1,1,1),'#c8781e',0,.5,0,g),1.05);outline(mk(new THREE.BoxGeometry(.8,.8,.8),'#d9a05b',.2,1.4,.1,g),1.05)}
-  return g}
-function torch3D(n,cfg){return new Promise(res=>{
-  const R=cur;R.clear();const lts=[];R.scene.traverse(o=>{if(o.isLight){lts.push([o,o.intensity]);o.intensity*=.1}});
-  const spot=new THREE.SpotLight('#fff3bf',2.4,40,.3,.45,1);spot.position.set(0,12,6);spot.target.position.set(0,0,-1);R.stage.add(spot);R.stage.add(spot.target);
-  const slots=shuffle([[-6.3,-3.9],[-3,-4.2],[.4,-3.9],[3.6,-4.2],[6.4,-3.6],[-5.8,-.6],[-2.2,-1],[1.6,-.7],[5.4,-.4],[-4,2],[0,1.8],[4,2]]);
-  const props=cfg.props,bad=props.filter(p=>p.bad).length;let found=0,wrong=0,done=false,left=cfg.time;
-  const status=()=>{const m=$('#pmsg');m.hidden=false;m.innerHTML=`Écarts trouvés : <b>${found} / ${bad}</b> · <b>${left}</b> s`};
-  props.forEach((p,i)=>{const g=propMesh(p.k);const [x,z]=slots[i];g.position.set(x,0,z);g.rotation.y=rand(-.3,.3);
-    g.userData={onClick:()=>check(p,g)};R.stage.add(g);R.clickables.push(g)});
-  R.onMove=e=>{const p=planeAt(e,0);if(!p)return;spot.target.position.copy(p);spot.position.set(p.x,12,p.z+6)};
-  function check(p,g){if(done||p.hit)return;p.hit=1;R.clickables.splice(R.clickables.indexOf(g),1);pts(n,!!p.bad);
-    if(p.bad){found++;const ring=mk(new THREE.TorusGeometry(1.3,.1,6,24),'#e03131',g.position.x,.1,g.position.z,R.stage);ring.rotation.x=Math.PI/2;
-      const l=labelPlane('ÉCART',1.6,.5,{bg:'#ffe3e3',border:'#e03131',size:100});l.position.set(g.position.x,3.6,g.position.z);R.stage.add(l);boulonJump();
-      say('audit',`<b>Écart : ${p.t}.</b> ${p.fb}`,{btns:[],cls:'good'});status();if(found===bad)end()}
-    else{wrong++;boulonShake();say('audit',`<b>Rien à signaler :</b> ${p.t}. Chaque fausse alerte fait perdre des points.`,{btns:[],cls:'bad'})}}
-  const iv=setInterval(()=>{if(done)return;left--;status();if(left<=0)end()},1000/SPD);
-  async function end(){if(done)return;done=true;clearInterval(iv);R.onMove=null;$('#pmsg').hidden=true;
-    const miss=props.filter(p=>p.bad&&!p.hit);miss.forEach(()=>pts(n,false));await wait(900);lts.forEach(([o,v])=>o.intensity=v);R.stage.remove(spot);
-    const r=found/(bad+wrong);cdi(r>=.85?8:r>=.6?2:-6);
-    await say('boulon',`<b>${found} écart${found>1?'s':''} sur ${bad} trouvé${found>1?'s':''}</b>, ${wrong} fausse${wrong>1?'s':''} alerte${wrong>1?'s':''}.${miss.length?'<br>Manqués : '+miss.map(p=>`<b>${p.t}</b>`).join(', ')+'.':''} ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'});res(r)}
-  say('audit',cfg.hint,{btns:[{t:'Allumer la lampe',go:1}]}).then(()=>{status();say('audit','Balaie le hangar avec la lampe, clique sur chaque écart.',{btns:[]})});
+/* ================= MINI-JEU : LE KARAOKÉ DU QUART D'HEURE SÉCURITÉ (rythme) ================= */
+function karaoke3D(n,cfg){return new Promise(res=>{
+  keyHelp('karaoke');const R=cur;R.clear();const LX=[-4,0,4],HZ=2.4,Z0=-6,TR=cfg.travel||2.4,WIN=.2,COL=['#e03131','#2f9e44','#1c7ed6'],KL=['Q','S','D'];
+  const pads=LX.map((x,i)=>{const g=new THREE.Group();g.position.set(x,.05,HZ);R.stage.add(g);outline(mk(new THREE.TorusGeometry(.85,.12,6,28),COL[i],0,0,0,g),1.1).rotation.x=Math.PI/2;
+    if(!TOUCH){const l=labelPlane(KL[i],1.1,1.1,{bg:'#fffaf0',border:COL[i],size:150});l.rotation.x=-Math.PI/2;l.position.y=.02;g.add(l)}return g});
+  LX.forEach((x,i)=>mk(new THREE.BoxGeometry(.12,.02,HZ-Z0),COL[i],x,.02,(HZ+Z0)/2,R.stage).castShadow=false);
+  const dy=R.dylan,arm=dy.userData.rig.shs[1].children[0];dy.rotation.y=-.3;const mic=outline(mk(new THREE.SphereGeometry(.22,10,8),INK,0,-1.05,0,arm),1.1);
+  const ops=[[-7,-1.2],[7,-1.2],[-7.4,1.8],[7.4,1.8]].map(([x,z],i)=>{const p=makePerson({shirt:['#adb5bd','#ffa94d','#74c0fc','#b197fc'][i],pants:'#364fc7',hat:'#ffd43b',vest:1,scale:.7});p.position.set(x,0,z);p.rotation.y=x<0?.6:-.6;R.stage.add(p);
+    const zz=labelPlane('Z z z',1.3,.6,{bg:'#fffaf0',border:'#5f3dc4',size:110});zz.position.set(0,3.4,0);p.add(zz);return {p,zz,awake:0}});
+  const notes=[];let tt=cfg.beat*4,last=-1;
+  cfg.lines.forEach((l,li)=>{l.split(' ').forEach((w,wi)=>{let lane;do lane=Math.floor(Math.random()*3);while(lane===last&&Math.random()<.6);last=lane;notes.push({w,li,wi,lane,t:tt,st:0});tt+=cfg.beat});tt+=cfg.beat*2});
+  const N=notes.length,TEND=tt;let t=0,on=false,hits=0,strays=0,combo=0,best=0,done=false;
+  const scale=[523,587,659,784,880];
+  function lyric(){const li=(notes.find(x=>!x.st)||notes[N-1]).li;
+    pmsg(`<span style="font-size:17px">${notes.filter(x=>x.li===li).map(x=>x.st===1?`<b style="color:#2f9e44">${x.w}</b>`:x.st===2?`<s style="color:#e03131">${x.w}</s>`:x.w).join(' ')}</span><br>Couplet ${li+1} / ${cfg.lines.length} · combo <b>${combo}</b>`)}
+  function wake(on){const o=on?ops.find(x=>!x.awake):ops.slice().reverse().find(x=>x.awake);if(o)o.awake=on}
+  function press(lane){if(!on||done)return;const pd=pads[lane];pd.scale.setScalar(1.25);
+    let best1=null;for(const x of notes)if(!x.st&&x.lane===lane&&Math.abs(x.t-t)<WIN&&(!best1||Math.abs(x.t-t)<Math.abs(best1.t-t)))best1=x;
+    if(best1){best1.st=1;hits++;combo++;best=Math.max(best,combo);pts(n,true);beep(scale[(best1.wi+best1.li)%5],.14);if(best1.m){R.fx.burst(best1.m.position.clone().add(V(0,.6,0)),6);R.stage.remove(best1.m)}if(combo%3===0)wake(1)}
+    else{strays++;combo=0;beep(160,.1,'sawtooth',.03)}lyric()}
+  const onKey=e=>{const m={q:0,a:0,ArrowLeft:0,s:1,ArrowDown:1,d:2,ArrowRight:2}[e.key.length===1?e.key.toLowerCase():e.key];if(m===undefined||!on)return;e.preventDefault();if(!e.repeat)press(m)};
+  addEventListener('keydown',onKey);
+  R.onDown=e=>{const r=cv.getBoundingClientRect();press(Math.max(0,Math.min(2,Math.floor((e.clientX-r.left)/r.width*3))))};
+  R.extra=(dt,T)=>{const beatK=Math.abs(Math.sin(Math.PI*t/cfg.beat));
+    pads.forEach(p=>p.scale.setScalar(Math.max(1,p.scale.x-dt*2)));
+    animPerson(dy,'walk',T);dy.userData.rig.shs[1].rotation.x=-2.3;dy.position.y=beatK*.15;
+    ops.forEach((o,i)=>{if(o.awake){animPerson(o.p,combo>=6?'run':'idle',T+i);o.p.position.y=beatK*.25;o.zz.visible=false;if(combo>=6)o.p.rotation.y+=dt*4}else{animPerson(o.p,'lie',T+i);o.p.position.y=0;o.zz.visible=true;o.zz.position.y=2.2+Math.sin(T*2+i)*.2}});
+    if(!on||done)return;t+=dt;
+    for(const x of notes){if(x.st)continue;const d=x.t-t;
+      if(d<=TR&&!x.m){const g=new THREE.Group();outline(mk(new THREE.CylinderGeometry(.7,.7,.3,18),COL[x.lane],0,.2,0,g),1.08);const l=labelPlane(x.w,2.8,.6,{bg:'#fffaf0',border:COL[x.lane],size:80});l.position.y=1;g.add(l);R.stage.add(g);x.m=g}
+      if(x.m)x.m.position.set(LX[x.lane],0,HZ-d/TR*(HZ-Z0));
+      if(d<-WIN){x.st=2;combo=0;pts(n,false);beep(110,.2,'sawtooth',.04);wake(0);if(x.m){const m=x.m;tween(.3,q=>m.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(m))}lyric()}}
+    if(t>TEND){done=true;removeEventListener('keydown',onKey);arm.remove(mic);const r=hits/(N+strays*.5);ops.forEach(o=>o.awake=r>=.6);
+      gameEnd(n,r,'sabrina',`<b>${hits} mots sur ${N} chantés en rythme</b> (meilleur combo : ${best}). ${r>=.6?'Tout l’atelier fait la chenille !':'La moitié de l’atelier ronfle encore…'} ${cfg.after||''}`,res)}};
+  say('sabrina',cfg.hint,{btns:[{t:'Micro !',go:1}]}).then(()=>{hidePanel();on=true;lyric()});
 })}
 
-/* ================= MINI-JEU : LE CASSE-BRIQUES DES CAUSES ================= */
-function breakout3D(n,cfg){return new Promise(res=>{
-  keyHelp('briques');const R=cur;R.clear();R.keys=1;const XW=7.2,ZB=-4.6,PZ=2.6,BR=.3,PW=2.6;
-  [-1,1].forEach(s=>mk(new THREE.BoxGeometry(.4,.6,7.8),'#5f3dc4',s*(XW+.2),.3,-.8,R.stage));mk(new THREE.BoxGeometry(2*XW+.8,.6,.4),'#5f3dc4',0,.3,ZB-.2,R.stage);
-  const pad=outline(mk(new THREE.BoxGeometry(PW,.4,.5),'#4dabf7',0,.4,PZ,R.stage),1.05);
-  const ball=outline(mk(new THREE.SphereGeometry(BR,14,10),'#ffd43b',0,.45,PZ-.6,R.stage),1.1);
-  const bricks=cfg.bricks.map((b,i)=>{const r=Math.floor(i/5),c=i%5,w=2.6,d=.9,x=(c-2)*2.8,z=ZB+.9+r*1.25,col=b.root?'#e03131':PAL[(i+2)%8];
-    const g=new THREE.Group();g.position.set(x,.4,z);outline(mk(new THREE.BoxGeometry(w,.5,d),col,0,0,0,g),1.04);
-    const l=labelPlane(b.t,w-.1,d-.05,{bg:'#fffaf0',border:col,size:70});l.rotation.x=-Math.PI/2;l.position.y=.26;g.add(l);R.stage.add(g);return {g,b,x,z,w,d,hp:b.root?2:1,alive:1}});
-  let px=0,stuck=true,sp=cfg.sp||8,lives=3,broken=0,done=false;const v=V(0,0,0);
-  const status=()=>{const m=$('#pmsg');m.hidden=false;m.innerHTML=`Vies : <b>${lives}</b> · Briques : <b>${broken} / ${bricks.length}</b>`};
-  const launch=()=>{if(!stuck||done)return;stuck=false;const a=rand(-.5,.5);v.set(Math.sin(a)*sp,0,-Math.cos(a)*sp)};
-  R.onMove=e=>{const p=planeAt(e,.4);if(p)px=p.x};R.onDown=launch;
-  function hitBrick(k){k.hp--;R.fx.burst(k.g.position.clone(),8);if(k.hp>0){k.g.children[0].material=mat('#ff8787');return}
-    k.alive=0;broken++;pts(n,true);sp=Math.min(12,sp+.25);v.setLength(sp);R.stage.remove(k.g);status();
-    if(k.b.fb)say('boulon',`<b>Cause racine cassée : ${k.b.t}.</b> ${k.b.fb}`,{btns:[],cls:'good'});
-    if(broken===bricks.length)end()}
-  function lose(){lives--;pts(n,false);stuck=true;boulonShake();status();
-    if(lives<=0)end();else say('boulon',`<b>Balle perdue !</b> Encore ${lives} vie${lives>1?'s':''}. Clique ou ESPACE pour relancer.`,{btns:[],cls:'bad'})}
-  function collide(){const p=ball.position;
-    if(p.x<-XW+BR){p.x=-XW+BR;v.x=Math.abs(v.x)}if(p.x>XW-BR){p.x=XW-BR;v.x=-Math.abs(v.x)}if(p.z<ZB+BR){p.z=ZB+BR;v.z=Math.abs(v.z)}
-    if(v.z>0&&p.z>PZ-.25-BR&&p.z<PZ+.3&&Math.abs(p.x-px)<PW/2+BR){const a=Math.max(-1.1,Math.min(1.1,(p.x-px)/(PW/2)*1.05));v.set(Math.sin(a)*sp,0,-Math.cos(a)*sp);p.z=PZ-.25-BR}
-    if(p.z>PZ+1.4){lose();return}
-    for(const k of bricks){if(!k.alive)continue;const dx=p.x-k.x,dz=p.z-k.z,ox=k.w/2+BR-Math.abs(dx),oz=k.d/2+BR-Math.abs(dz);
-      if(ox>0&&oz>0){if(ox<oz){v.x=Math.sign(dx)*Math.abs(v.x);p.x+=Math.sign(dx)*ox}else{v.z=Math.sign(dz)*Math.abs(v.z);p.z+=Math.sign(dz)*oz}hitBrick(k);return}}}
-  R.extra=dt=>{if(done)return;if(KEYS.L)px-=11*dt;if(KEYS.R)px+=11*dt;px=Math.max(-XW+PW/2,Math.min(XW-PW/2,px));pad.position.x=px;
-    if(stuck){ball.position.set(px,.45,PZ-.6);if(KEYS.J)launch();return}
-    const steps=Math.ceil(sp*dt/.15);for(let s=0;s<steps&&!stuck&&!done;s++){ball.position.x+=v.x*dt/steps;ball.position.z+=v.z*dt/steps;collide()}ball.rotation.x+=dt*8};
-  async function end(){if(done)return;done=true;keyHelp();R.extra=R.onMove=R.onDown=null;R.keys=0;$('#pmsg').hidden=true;
-    const r=broken/bricks.length;cdi(r>=.85?8:r>=.6?2:-6);if(r===1)R.fx.burst(V(0,3,-2),36);
-    await say('boulon',`<b>${broken} briques sur ${bricks.length} cassées !</b> ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'});res(r)}
-  say('boulon',cfg.hint,{btns:[{t:'C’est parti !',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Glisse le doigt pour bouger la raquette, touche pour lancer.':'Souris ou flèches pour la raquette, clic ou ESPACE pour lancer.',{btns:[]})});
+/* ================= MINI-JEU : LE POLYGRAPHE DE LORETTE (repérer les menteurs) ================= */
+function poly3D(n,cfg){return new Promise(res=>{
+  keyHelp('poly');const R=cur;R.clear();const claims=shuffle(cfg.claims.slice()),N=claims.length,XA=-11,XB=11,Z=.6,sp=cfg.sp||1.5,GAP=5.2;
+  mk(new THREE.BoxGeometry(24,.06,1.8),'#c92a2a',0,.03,Z,R.stage).castShadow=false;
+  const lor=makePerson({shirt:'#ff8787',pants:'#495057',scale:.75});lor.position.set(3.8,0,-4);lor.rotation.y=-.3;R.stage.add(lor);
+  const mach=new THREE.Group();mach.position.set(1,0,-4.2);R.stage.add(mach);outline(mk(new THREE.BoxGeometry(2.2,1.2,1),'#495057',0,.6,0,mach),1.05);
+  mk(new THREE.BoxGeometry(1.8,.05,.8),'#fffaf0',0,1.23,0,mach);const needle=mk(new THREE.BoxGeometry(.06,.06,.7),'#e03131',0,1.3,0,mach);
+  const ml=labelPlane('POLYGRAPHE',2.2,.5,{bg:'#fff3bf',border:'#e03131',size:90});ml.position.set(0,1.8,.3);mach.add(ml);
+  let t=0,idx=0,ok=0,done=false;const walk=[];
+  const status=()=>pmsg(`Témoins passés : <b>${claims.filter(c=>c.out).length} / ${N}</b> · bons jugements : <b>${ok}</b>`);
+  function spawn(c){const w=new THREE.Group();w.position.set(XA,0,Z);R.stage.add(w);
+    const p=makePerson({shirt:PAL[(idx*3+1)%8],pants:'#495057',hat:['#ffd43b','#f8f9fa','#ff922b'][idx%3],vest:idx%2,scale:.62});p.rotation.y=Math.PI/2;w.add(p);
+    const ng=new THREE.ConeGeometry(.1,.45,8);ng.translate(0,.225,0);const nose=outline(mk(ng,'#ffd8b1',0,1.75,.55,p.userData.rig.up),1.12);nose.rotation.x=Math.PI/2;
+    const b=labelPlane(`« ${c.t} »`,4.4,1.1,{bg:'#fffaf0',border:INK,size:60});b.position.set(0,3.2,0);w.add(b);
+    c.w=w;c.p=p;c.nose=nose;c.b=b;c.v=sp;c.hold=0;c.grow=rand(-7,-5);w.userData={onClick:()=>judge(c)};R.clickables.push(w);walk.push(c)}
+  function stamp(c,txt,col){const s=labelPlane(txt,2.4,.8,{bg:'#fffaf0',border:col,fg:col,size:120});s.position.set(0,2.1,.9);s.rotation.z=-.2;c.w.add(s);tween(.25,q=>s.scale.setScalar(3-2*q),E.back)}
+  function judge(c){if(done||c.j)return;c.j=1;R.clickables.splice(R.clickables.indexOf(c.w),1);c.hold=1.2;shake();beep(200,.15,'square',.06);
+    if(c.lie){ok++;pts(n,true);stamp(c,'ÉCART !','#e03131');boulonJump();say('audit',`<b>Démasqué !</b> ${c.fb}`,{btns:[],cls:'good'})}
+    else{pts(n,false);stamp(c,'OUPS','#868e96');c.b.userData.relabel('« Mais… c’est vrai ! »',{bg:'#fffaf0',border:INK,size:60});boulonShake();say('audit',`<b>Fausse accusation !</b> « ${c.t} » était vrai.`,{btns:[],cls:'bad'})}status()}
+  R.extra=(dt,T)=>{if(done)return;t+=dt;
+    if(idx<N&&t>=idx*GAP/sp)spawn(claims[idx++]);let amp=0;
+    for(let i=walk.length-1;i>=0;i--){const c=walk[i],x=c.w.position.x;
+      if(c.hold>0){c.hold-=dt;animPerson(c.p,'stun',T)}else{c.w.position.x+=(c.j?1.7:1)*c.v*dt;animPerson(c.p,c.j&&c.lie?'sneak':'walk',T+i)}
+      if(c.lie){const g=Math.max(0,Math.min(1,(x-c.grow)/8));c.nose.scale.set(1,1+g*7,1);amp=Math.max(amp,g)}else c.nose.scale.y=1+Math.sin(T*3)*.05;
+      if(x>XB){walk.splice(i,1);R.stage.remove(c.w);c.out=1;if(!c.j){const i2=R.clickables.indexOf(c.w);if(i2>=0)R.clickables.splice(i2,1);
+        if(c.lie){pts(n,false);boulonShake();say('audit',`<b>Il a menti et il est passé !</b> ${c.fb}`,{btns:[],cls:'bad'})}else{ok++;pts(n,true);say('audit',`<b>Bien vu :</b> « ${c.t} », c’était vrai.`,{btns:[],cls:'good'})}}status()}}
+    needle.position.x=Math.sin(t*37)*(.08+amp*.7);animPerson(lor,amp>.5?'stun':'idle',T);
+    if(idx>=N&&!walk.length){done=true;const r=ok/N;gameEnd(n,r,'boulon',`<b>${ok} bons jugements sur ${N}.</b> ${cfg.after||''}`,res)}};
+  const go=R.extra;R.extra=null;
+  say('audit',cfg.hint,{btns:[{t:'Premier témoin !',go:1}]}).then(()=>{status();say('audit',TOUCH?'Touche un menteur pour le tamponner.':'Clique sur un menteur pour le tamponner.',{btns:[]});R.extra=go});
+})}
+
+/* ================= MINI-JEU : OPÉRATION TALAS (extraire les causes à la pince) ================= */
+const OP_PATHS=[[[-2.8,-1],[-2.8,-2.1],[-1.8,-2.1],[-1.8,-3.6]],[[-1.6,1.1],[-2.9,1.1],[-2.9,2],[-2.2,2],[-2.2,3.2]],[[.6,-.4],[.6,-2],[-.4,-2],[-.4,-3.6]],
+  [[1,1.3],[2.2,1.3],[2.2,2.1],[1.4,2.1],[1.4,3.2]],[[3.4,-.6],[3.4,-2],[2.4,-2],[2.4,-3.6]]];
+function segDist(px,pz,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],L=dx*dx+dz*dz,k=Math.max(0,Math.min(1,((px-a[0])*dx+(pz-a[1])*dz)/L));return Math.hypot(px-a[0]-k*dx,pz-a[1]-k*dz)}
+function surgery3D(n,cfg){return new Promise(res=>{
+  keyHelp('operation');const R=cur;R.clear();const W2=cfg.w/2,CR=.6,TY=1.52,IY=1.8,N=cfg.causes.length;
+  outline(mk(new THREE.BoxGeometry(15,.3,7.6),'#dee2e6',.4,1.05,-.3,R.stage),1.02);[[-6.6,-3.6],[7.4,-3.6],[-6.6,3],[7.4,3]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.15,.15,1,8),'#868e96',x,.5,z,R.stage));
+  const body=new THREE.Group();R.stage.add(body);
+  outline(mk(new THREE.BoxGeometry(9,.3,5.6),'#ffc9a8',.7,1.35,-.2,body),1.02);
+  const head=outline(mk(new THREE.SphereGeometry(1.4,20,16),'#ffc9a8',-5.3,1.6,-.2,body),1.04);head.scale.y=.7;
+  [-.7,.3].forEach(z=>{mk(new THREE.SphereGeometry(.25,10,8),'#ffffff',-5.8,2.4,z,body);mk(new THREE.SphereGeometry(.12,8,6),INK,-5.8,2.58,z,body)});
+  const nm=new THREE.MeshToonMaterial({color:'#a61e1e',gradientMap:grad});const nose=outline(new THREE.Mesh(new THREE.SphereGeometry(.38,14,10),nm),1.1);nose.position.set(-5.2,2.55,-.2);body.add(nose);
+  mk(new THREE.TorusGeometry(.35,.06,6,14,Math.PI),INK,-4.6,2.3,-.2,body).rotation.set(-Math.PI/2,0,Math.PI/2);
+  [-1.3,.9].forEach(z=>outline(mk(new THREE.BoxGeometry(3.2,.5,1.4),'#4dabf7',6.8,1.45,z,body),1.03));
+  const aie=labelPlane('AÏE !',1.6,.6,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:120});aie.position.set(-5.3,4,-.2);body.add(aie);aie.visible=false;
+  const hic=labelPlane('HIC !',1.4,.55,{bg:'#fffaf0',border:'#7048e8',size:120});hic.position.set(-3.6,3.6,-.2);body.add(hic);hic.visible=false;
+  const tray=new THREE.Group();tray.position.set(-7.6,0,2.6);R.stage.add(tray);mk(new THREE.CylinderGeometry(.08,.08,1.2,6),'#868e96',0,.6,0,tray);outline(mk(new THREE.BoxGeometry(1.8,.15,1.3),'#adb5bd',0,1.25,0,tray),1.05);
+  const shapes=[()=>new THREE.BoxGeometry(.55,.35,.55),()=>new THREE.TorusGeometry(.26,.1,6,12),()=>new THREE.CylinderGeometry(.25,.25,.45,10),()=>new THREE.OctahedronGeometry(.33),()=>new THREE.IcosahedronGeometry(.3,0)];
+  const items=cfg.causes.map((c,i)=>{const P=OP_PATHS[i];const cav=mk(new THREE.CircleGeometry(CR,22),'#7a1c1c',P[0][0],TY,P[0][1],body);cav.rotation.x=-Math.PI/2;cav.castShadow=false;
+    for(let s=0;s<P.length-1;s++){const a=P[s],b=P[s+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);const m=mk(new THREE.BoxGeometry(L+cfg.w,.02,cfg.w),'#c2410c',(a[0]+b[0])/2,TY-.005,(a[1]+b[1])/2,body);m.rotation.y=-Math.atan2(b[1]-a[1],b[0]-a[0]);m.castShadow=false}
+    const ex=mk(new THREE.CircleGeometry(.45,18),'#40c057',P[P.length-1][0],TY+.01,P[P.length-1][1],body);ex.rotation.x=-Math.PI/2;ex.castShadow=false;
+    const g=new THREE.Group();outline(mk(shapes[i%5](),PAL[(i*2+1)%8],0,0,0,g),1.1);g.position.set(P[0][0],IY,P[0][1]);body.add(g);
+    const l=labelPlane(c.t,3,.6,{bg:'#fffaf0',border:PAL[(i*2+1)%8],size:70});l.position.y=.9;g.add(l);l.visible=false;return {...c,P,g,l,i}});
+  let grab=null,ptrW=null,t=0,hicT=3,hk=0,buzz=0,out=0,done=false,flash=0;
+  const left=()=>Math.max(0,Math.ceil(cfg.time-t));
+  const status=()=>pmsg(`Causes extraites : <b>${out} / ${N}</b> · bzzzt : <b>${buzz}</b> · <b>${left()}</b> s`);
+  const local=p=>V(p.x-body.position.x,0,p.z-body.position.z);
+  function back(it){const g=it.g,f=g.position.clone(),to=V(it.P[0][0],IY,it.P[0][1]);it.l.visible=false;tween(.25,q=>g.position.lerpVectors(f,to,q))}
+  function zap(it){buzz++;pts(n,false);grab=null;back(it);flash=.7;shake();beep(90,.4,'sawtooth',.08);boulonShake();
+    say('boulon','<b>Bzzzt ! Tu as touché le bord.</b> Le patient hurle, la cause retourne dans son trou.',{btns:[],cls:'bad'});status()}
+  function win(it){grab=null;it.done=1;out++;pts(n,true);it.l.visible=false;beep(988,.15);const g=it.g,w0=g.getWorldPosition(V(0,0,0));body.remove(g);g.position.copy(w0);R.stage.add(g);
+    const to=V(-8.2+(out-1)%3*.6,1.55+Math.floor((out-1)/3)*.4,2.4+(out%2)*.3);tween(.5,q=>{g.position.lerpVectors(w0,to,q);g.position.y+=Math.sin(q*Math.PI)*1.5});R.fx.burst(w0,10);
+    say('boulon',`<b>Extrait : ${it.t} !</b> ${it.fb}`,{btns:[],cls:'good'});status();if(out===N)end()}
+  function check(){if(!grab||!ptrW)return;const l=local(ptrW),it=grab,P=it.P;it.g.position.set(l.x,IY,l.z);
+    const inCav=Math.hypot(l.x-P[0][0],l.z-P[0][1])<CR;let d=9;for(let s=0;s<P.length-1;s++)d=Math.min(d,segDist(l.x,l.z,P[s],P[s+1]));
+    if(!inCav&&d>W2){zap(it);return}const e=P[P.length-1];if(Math.hypot(l.x-e[0],l.z-e[1])<.4)win(it)}
+  R.onDown=e=>{if(done||grab)return;const p=planeAt(e,IY);if(!p)return;const l=local(p);let bestD=.9,b=null;items.forEach(it=>{if(it.done)return;const d=Math.hypot(l.x-it.g.position.x,l.z-it.g.position.z);if(d<bestD){bestD=d;b=it}});
+    if(b){grab=b;ptrW=V(b.g.position.x+body.position.x,IY,b.g.position.z+body.position.z);b.l.visible=true;beep(660,.06)}};
+  R.onMove=e=>{if(!grab)return;const p=planeAt(e,IY);if(p){ptrW=p;check()}};
+  R.onUp=()=>{if(grab){back(grab);grab=null}};
+  R.extra=(dt,T)=>{if(done)return;t+=dt;const s=left();if(s!==R.lastS){R.lastS=s;status()}
+    body.position.y=Math.sin(T*1.6)*.04;if(cfg.wig){body.position.z=Math.sin(t*1.3)*cfg.wig;hicT-=dt;if(hicT<=0){hicT=rand(2.5,4.5);hk=1;beep(300,.08,'triangle',.05)}}
+    hk=Math.max(0,hk-dt*2.5);body.position.x=hk*.45;hic.visible=hk>.2;
+    flash=Math.max(0,flash-dt);nm.color.set(flash>0&&Math.sin(T*30)>0?'#ff2020':'#a61e1e');nose.scale.setScalar(1+flash*.8);aie.visible=flash>0;
+    items.forEach((it,i)=>{if(!it.done&&it!==grab)it.g.position.y=IY+Math.abs(Math.sin(T*3+i))*.12;if(it!==grab)it.g.children[0].rotation.y+=dt});
+    check();if(t>=cfg.time)end()};
+  const go=R.extra;R.extra=null;
+  function end(){if(done)return;done=true;const miss=items.filter(it=>!it.done);miss.forEach(()=>pts(n,false));const r=out/(N+buzz*.5);
+    gameEnd(n,r,'boulon',`<b>${out} causes sur ${N} extraites, ${buzz} bzzzt.</b>${miss.length?'<br>Restées dans le patient : '+miss.map(it=>`<b>${it.t}</b>`).join(', ')+'.':''} ${cfg.after||''}`,res)}
+  say('boulon',cfg.hint,{btns:[{t:'Enfiler les gants',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert, sans sortir du couloir orange.':'Clic maintenu sur une cause, puis glisse-la jusqu’au rond vert sans sortir du couloir orange.',{btns:[]});R.extra=go});
 })}
 
 /* ================= MORT DE DYLAN (et gore) ================= */
@@ -1336,18 +1376,25 @@ RUN[0]=async()=>{
    {w:'dylan',t:'Avant la politique, il me faut le contexte : les enjeux, les parties intéressées, les obligations légales. Une partie de ce bazar va me servir.'},
    {w:'boulon',t:'Bzzz ! §4.1 et §4.2 : on commence par comprendre l’entreprise et ce que les travailleurs et les autres parties intéressées attendent. C’est l’entrée de tout le système !'}
   ]);
-  await trial(0,async()=>(await throw3D(0,{hint:'Le bureau déborde ! Trie chaque déchet dans le bon bac : papier (bleu), emballages (jaune), ordures ménagères (gris), biodéchets (marron), DEEE (rouge). Lance comme avec un lance-pierre : appuie, tire vers le bas en visant (les points blancs montrent la trajectoire), relâche. Sous chaque déchet se cache un document utile.',after:'Tous ces documents forment le dossier Contexte (§4) : il nourrit la politique et l’évaluation des risques.',
-   items:[
-    {t:'Tasse moisie',bin:'om',why:'La céramique cassée ne se recycle pas avec le verre : ordures ménagères.',c:'#f8f9fa',s:'cup',doc:'<b>Rapport annuel</b> : cadence A320 doublée en 2027. Enjeu interne : plus d’intérim, plus de fatigue (§4.1).'},
-    {t:'Flyer pizza',bin:'papier',why:'Tous les papiers se trient, même les prospectus.',c:'#ff922b',s:'flat',doc:'<b>Courrier d’Airbus</b> : exigences SST pour les fournisseurs. Partie intéressée externe (§4.2).'},
-    {t:'Magazine auto',bin:'papier',why:'Magazines et journaux vont au papier.',c:'#4dabf7',s:'flat',doc:'<b>PV du CSE</b> : plainte sur le bruit des riveteuses. Attentes des travailleurs (§4.2).'},
-    {t:'Chargeur cassé',bin:'deee',why:'Tout ce qui a une prise ou une pile est un DEEE : collecte spécifique.',c:'#495057',s:'box',doc:'<b>Registre des accidents</b> : 14 accidents avec arrêt en 2025, donnée d’entrée de l’évaluation des risques.'},
-    {t:'Pot de yaourt',bin:'emb',why:'Depuis 2023, tous les emballages plastiques vont au bac jaune.',c:'#f8f9fa',s:'cup',doc:'<b>Arrêté ICPE</b> de la cabine peinture : exigence légale à suivre (§6.1.3).'},
-    {t:'Canette écrasée',bin:'emb',why:'Métal d’emballage : bac jaune.',c:'#51cf66',s:'cup',doc:'<b>Enquête du CSE sur le travail de nuit</b> : 60 % des opérateurs signalent de la fatigue (§4.2).'},
-    {t:'Vieux sandwich',bin:'bio',why:'Les restes alimentaires vont aux biodéchets.',c:'#fcc419',s:'flat',doc:'<b>Contrat avec l’agence d’intérim</b> : 40 intérimaires prévus en 2027. Enjeu interne (§4.1).'},
-    {t:'Stylo mâchouillé',bin:'om',why:'Les stylos ne se recyclent pas dans les bacs classiques.',c:'#4dabf7',s:'box',doc:'<b>Fiche de données de sécurité du solvant</b> : produit CMR, exigences légales associées (§6.1.3).'},
-    {t:'Ticket de parking',bin:'om',why:'Papier thermique : non recyclable, ordures ménagères.',c:'#ced4da',s:'flat',doc:'<b>Plan de circulation du site</b> : piétons et chariots se croisent. Un enjeu à traiter (§4.1).'},
-    {t:'Boule de papier',bin:'papier',why:'Papier froissé, papier quand même.',c:'#fff3bf',s:'ball',doc:'<b>« POLITIQUE SST, brouillon 2019 »</b>. La voilà enfin !'}]}))>=.5,CAUSES.bureau);
+  await trial(0,async()=>(await catch3D(0,{hint:'Le fantôme de ton prédécesseur hante le bureau, en pantoufles, et jette ses dossiers en ricanant ! Attrape au vol, avec l’épuisette, les <b>documents utiles</b> (étiquette bleue). Évite les déchets (étiquette rouge) : ils collent à l’épuisette.',after:'Enjeux, parties intéressées, exigences légales : le contexte du §4 est posé.',
+   docs:[
+    {t:'Rapport annuel',info:'Cadence A320 doublée en 2027. Enjeu interne : plus d’intérim, plus de fatigue (§4.1).'},
+    {t:'Courrier d’Airbus',info:'Exigences SST pour les fournisseurs. Partie intéressée externe (§4.2).'},
+    {t:'PV du CSE',info:'Plainte sur le bruit des riveteuses. Attentes des travailleurs (§4.2).'},
+    {t:'Registre des accidents',info:'14 accidents avec arrêt en 2025, donnée d’entrée de l’évaluation des risques.'},
+    {t:'Arrêté ICPE',info:'Cabine peinture : exigence légale à suivre (§6.1.3).'},
+    {t:'Enquête CSE de nuit',info:'60 % des opérateurs de nuit signalent de la fatigue (§4.2).'},
+    {t:'Contrat d’intérim',info:'40 intérimaires prévus en 2027. Enjeu interne (§4.1).'},
+    {t:'FDS du solvant',info:'Produit CMR, exigences légales associées (§6.1.3).'},
+    {t:'Plan de circulation',info:'Piétons et chariots se croisent. Un enjeu à traiter (§4.1).'},
+    {t:'Politique SST 2019',info:'Le brouillon de la politique SST. La voilà enfin !'}],
+   junk:[
+    {t:'Chaussette sale',s:'sock',c:'#adb5bd',why:'Elle sent le vestiaire de 2019.'},
+    {t:'Pizza froide',s:'pizza',why:'Quatre fromages, trois ans d’âge.'},
+    {t:'Tasse moisie',s:'cup',c:'#f8f9fa',why:'Une civilisation vit dedans.'},
+    {t:'Arête de poisson',s:'fish',why:'Le fantôme a déjeuné au bureau.'},
+    {t:'Chewing-gum',s:'blob',c:'#f783ac',why:'Mâché, remâché, collé.'},
+    {t:'Vieux sandwich',s:'blob',c:'#fcc419',why:'Jambon-beurre, période préhistorique.'}]}))>=.5,CAUSES.bureau);
   await runScript(0,[
    {w:'nar',t:'Huit phrases dans ce brouillon… dont une vraie bombe.'},
    {w:'boulon',q:'La politique doit contenir des engagements précis (§5.2). Quelle phrase faut-il absolument rayer ?',opts:[
@@ -1412,22 +1459,11 @@ RUN[3]=async()=>{
     {t:'Quart d’heure sécurité chaque semaine en atelier, affichage en français, anglais et portugais, et une boîte à remontées anonyme.',d:6,fb:'§7.4 : quoi, quand, à qui, comment, en tenant compte des langues et des publics.'},
     {t:'Un mail mensuel du service HSE.',d:-4,fb:'Les opérateurs ne lisent pas leurs mails en atelier.'},
     {t:'Une lettre d’information trimestrielle.',d:-4,fb:'Trop rare et à sens unique.'}]}]);
-  await trial(3,async()=>(await memory3D(3,{hint:'Mémory ! Retourne deux cartes : une exigence du §7 et l’action de Talas qui la prouve. Trouve les cinq paires.',after:'Ces preuves serviront à l’audit (§9.2).',
-   pairs:[
-    {a:'§7.1 Ressources',b:'Budget aspiration',full:'§7.1 : budget pour l’aspiration à la source de la cabine peinture.'},
-    {a:'§7.2 Compétences',b:'Habilitation nacelle',full:'§7.2 : habilitation nacelle pour 12 opérateurs, vérifiée avant accès.'},
-    {a:'§7.3 Sensibilisation',b:'Droit de retrait connu',full:'§7.3 : chacun connaît les dangers de son poste et son droit de retrait.'},
-    {a:'§7.4 Communication',b:'Quart d’heure sécurité',full:'§7.4 : quart d’heure sécurité hebdomadaire en trois langues.'},
-    {a:'§7.5 Documents',b:'Fiches de poste à jour',full:'§7.5 : fiches de poste versionnées, accessibles en atelier.'}]}))>=.5,CAUSES.support);
-  await say('boulon','<b>Deuxième manche !</b> Cette fois, associe chaque situation de Talas à la bonne réponse du chapitre 7. Six paires.');
-  await trial(3,async()=>(await memory3D(3,{hint:'Retourne une situation et la réponse qui va avec. Six paires à trouver.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',
-   pairs:[
-    {a:'15 intérimaires lundi',b:'Accueil sécurité 2 h',full:'§7.3 : sensibiliser avant la prise de poste.'},
-    {a:'Nouvelle nacelle',b:'Habilitation avant usage',full:'§7.2 : compétence prouvée avant d’utiliser l’équipement.'},
-    {a:'Opérateurs lusophones',b:'Consignes traduites',full:'§7.4 : communiquer dans la langue des gens.'},
-    {a:'Fiche de poste v3',b:'Version 2 retirée',full:'§7.5 : maîtriser les versions des documents.'},
-    {a:'Presque-accident',b:'Boîte à remontées',full:'§7.4 : un canal simple pour remonter les signaux faibles.'},
-    {a:'Aspiration usée',b:'Budget voté en revue',full:'§7.1 : ressources arbitrées par la direction.'}]}))>=.5,CAUSES.support);
+  await trial(3,async()=>(await karaoke3D(3,{beat:.62,hint:'Le quart d’heure sécurité, version karaoké ! Les mots arrivent sur trois pistes : quand un mot touche son cercle, appuie sur sa piste ('+(TOUCH?'touche la gauche, le milieu ou la droite de l’écran':'Q, S ou D (ou les flèches)')+'). Chaque mot raté endort un opérateur, chaque série de trois en réveille un.',after:'Sensibilisation (§7.3) et communication (§7.4) : le message est passé.',
+   lines:['Casque vissé, chaussures fermées, on entre','Je connais les dangers de mon poste','Si ça craint, droit de retrait','Consignes traduites pour tout le monde','Allées piétonnes, on ne coupe pas']}))>=.5,CAUSES.support);
+  await say('sabrina','<b>Le refrain !</b> Plus vite : l’équipe de nuit vient d’arriver.');
+  await trial(3,async()=>(await karaoke3D(3,{beat:.5,travel:2,hint:'Refrain accéléré : mêmes pistes, tempo plus rapide.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',
+   lines:['Accueil sécurité avant la prise de poste','Habilitation nacelle avant de monter','Presque-accident ? Je le remonte !','Fiche de poste à jour, version trois','Le quart d’heure, tout le monde chante']}))>=.5,CAUSES.support);
 };
 RUN[4]=async()=>{
   await runScript(4,[
@@ -1457,23 +1493,24 @@ RUN[5]=async()=>{
    {w:'nar',t:'Six mois après le lancement. L’audit interne, avant la vraie certification.'},
    {w:'audit',t:'Bonjour Dylan. Je fais le tour des ateliers. Pour chaque constat, dis-moi : conforme ou écart ?'},
    {w:'boulon',t:'Attention : certains constats dépendent de tes choix dans les autres ateliers. C’est ça, un système !'}]);
-  await trial(5,async()=>(await torch3D(5,{time:60,hint:'Coupure de courant dans le hangar ! Lorette te prête sa lampe. Balaie l’atelier et clique sur chaque ÉCART. Attention : certains écarts viennent de tes choix dans les autres ateliers.',after:'Chaque écart ouvre une action corrective (§10.2).',
-   props:[
-    {k:'exitBlocked',bad:1,t:'Issue de secours encombrée',fb:'Une sortie de secours doit rester dégagée en permanence (§8.2).'},
-    {k:'extMissing',bad:1,t:'Extincteur absent de son support',fb:'Moyen de secours manquant : la réponse aux urgences n’est plus garantie (§8.2).'},
-    {k:'nacOld',bad:1,t:'Nacelle vérifiée il y a 14 mois',fb:'Vérification obligatoire tous les 6 mois : exigence légale non respectée (§9.1.2).'},
-    S.flags.changement?{k:'cobotOk',t:'Cobot dans sa zone clôturée'}:{k:'cobotBare',bad:1,t:'Cobot sans barrière ni analyse',fb:'Conséquence de ton choix à l’usine : changement non maîtrisé (§8.1.3).'},
-    S.flags.prevention?{k:'drumOk',t:'Fût fermé et étiqueté'}:{k:'drumOpen',bad:1,t:'Fût renversé par l’entreprise de nettoyage',fb:'Conséquence de ton choix à l’usine : pas de plan de prévention (§8.1.4.2).'},
-    S.flags.accueil?{k:'tempOk',t:'Intérimaire équipé et accueilli'}:{k:'tempLost',bad:1,t:'Intérimaire perdu, sans équipement',fb:'Conséquence de l’accueil sauté à l’école des ressources (§7.3).'},
-    {k:'extOk',t:'Extincteur en place'},{k:'nacOk',t:'Nacelle vérifiée il y a 2 mois'},{k:'bench',t:'Établi rangé'},{k:'boxes',t:'Cartons stockés hors passage'},{k:'exitOk',t:'Sortie de secours dégagée'}]}))>=.5,CAUSES.audit);
-  await say('audit','Et maintenant, le local de stockage. Toujours sans lumière, bien sûr.');
-  await trial(5,async()=>(await torch3D(5,{time:60,hint:'Local de stockage : même principe, de nouveaux écarts. Balaie avec la lampe et clique sur chaque ÉCART.',after:'Deux zones auditées : tes constats partent en revue de direction (§9.3).',
-   props:[
-    {k:'cableBad',bad:1,t:'Câble électrique dénudé',fb:'Risque d’électrisation : consigner, réparer, protéger (§8.1.2).'},
-    {k:'stackHigh',bad:1,t:'Cartons empilés jusqu’au plafond',fb:'Risque de chute d’objets : limiter la hauteur de stockage.'},
-    {k:'aidEmpty',bad:1,t:'Trousse de secours vide',fb:'Les moyens de premiers secours se vérifient régulièrement (§8.2).'},
-    {k:'exitBlocked',bad:1,t:'Issue du local encombrée',fb:'Une sortie de secours reste dégagée, même dans un local de stockage.'},
-    {k:'cableOk',t:'Câbles sous goulotte'},{k:'stackOk',t:'Stockage à hauteur d’homme'},{k:'aidOk',t:'Trousse de secours complète'},{k:'extOk',t:'Extincteur en place'},{k:'bench',t:'Établi rangé'},{k:'boxes',t:'Cartons hors passage'}]}))>=.5,CAUSES.audit);
+  await trial(5,async()=>(await poly3D(5,{sp:1.5,hint:'Lorette a branché son polygraphe. Les chefs d’équipe défilent et jurent que tout est conforme. <b>Quand ils mentent, leur nez s’allonge.</b> Tamponne ÉCART sur les menteurs avant qu’ils sortent, laisse passer ceux qui disent vrai. Certains mensonges viennent de tes choix dans les autres ateliers !',after:'Chaque écart ouvre une action corrective (§10.2).',
+   claims:[
+    {t:'L’issue de secours est dégagée.',lie:1,fb:'Elle est encombrée de cartons. Une sortie de secours reste dégagée en permanence (§8.2).'},
+    {t:'L’extincteur est sur son support.',lie:1,fb:'Le support est vide : la réponse aux urgences n’est plus garantie (§8.2).'},
+    {t:'La nacelle a été vérifiée il y a 2 mois.',lie:1,fb:'Quatorze mois ! La vérification est obligatoire tous les 6 mois (§9.1.2).'},
+    {t:'Le cobot est dans sa zone clôturée.',lie:!S.flags.changement,fb:'Ni barrière ni analyse : conséquence de ton choix à l’usine (§8.1.3).'},
+    {t:'Le fût de solvant est fermé et étiqueté.',lie:!S.flags.prevention,fb:'L’entreprise de nettoyage l’a renversé : pas de plan de prévention (§8.1.4.2).'},
+    {t:'Les intérimaires ont eu leur accueil.',lie:!S.flags.accueil,fb:'Un intérimaire erre sans équipement : l’accueil sauté à l’école des ressources (§7.3).'},
+    {t:'L’établi est rangé.'},{t:'Les cartons sont stockés hors passage.'}]}))>=.5,CAUSES.audit);
+  await say('audit','Et maintenant, les chefs du local de stockage. Ils marchent plus vite, ceux-là.');
+  await trial(5,async()=>(await poly3D(5,{sp:1.9,hint:'Local de stockage : même principe, les témoins pressent le pas.',after:'Deux zones auditées : tes constats partent en revue de direction (§9.3).',
+   claims:[
+    {t:'Les câbles passent sous goulotte.',lie:1,fb:'Un câble est dénudé : risque d’électrisation. Consigner, réparer, protéger (§8.1.2).'},
+    {t:'On stocke à hauteur d’homme.',lie:1,fb:'Cartons empilés jusqu’au plafond : risque de chute d’objets.'},
+    {t:'La trousse de secours est complète.',lie:1,fb:'Elle est vide. Les moyens de premiers secours se vérifient régulièrement (§8.2).'},
+    {t:'L’issue du local est dégagée.',lie:1,fb:'Encombrée, même dans un local de stockage.'},
+    {t:'L’éclairage de secours fonctionne.',lie:1,fb:'Deux blocs sur trois sont morts : on évacuerait dans le noir (§8.2).'},
+    {t:'L’extincteur du local est en place.'},{t:'Les produits sont rangés par famille.'},{t:'Les allées sont marquées au sol.'}]}))>=.5,CAUSES.audit);
   await runScript(5,[{w:'audit',q:'Pour le tableau de bord SST, tu retiens quels indicateurs ?',opts:[
     {t:'Taux de fréquence, presque-accidents remontés, part des actions soldées à temps.',d:6,fb:'§9.1 : des résultats, des signaux faibles et le pilotage du système.'},
     {t:'Affiches dans le hall, épaisseur du classeur, mails envoyés.',d:-6,fb:'Ça mesure l’agitation, pas la performance.'},
@@ -1495,26 +1532,21 @@ RUN[6]=async()=>{
    {if:()=>p,w:'lea',t:'La longe ! Le danger qu’on t’avait montré. Eliott a quand même rempli une fiche de presque-accident.'},
    {if:()=>p,w:'boulon',t:'Effet domino réussi : participation (§5.4), danger identifié (§6.1.2), mesure technique (§8.1.2), presque-accident remonté (§10.2).'},
    {w:'karim',t:'Bon. On fait quoi maintenant ?'}]);
-  await trial(6,async()=>(await breakout3D(6,{hint:'Casse-briques des causes ! Au premier rang, les symptômes. Au fond, en rouge, les causes racines : il faut les frapper deux fois. Casse tout pour que l’accident ne recommence pas (§10.2).',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
-   bricks:[
-    {t:'Danger jamais évalué',root:1,fb:'Retour au §6.1 : l’évaluation des risques doit être mise à jour.'},
-    {t:'Outils non attachés',root:1,fb:'Mesure technique : longes porte-outils sur tous les postes en hauteur.'},
-    {t:'Opérateurs pas consultés',root:1,fb:'§5.4 : ceux qui travaillent sur la nacelle connaissaient le danger.'},
-    {t:'Pas de filet sous la nacelle',root:1,fb:'Protection collective d’abord (§8.1.2).'},
-    {t:'Cadence doublée sans analyse',root:1,fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'},
-    {t:'Nacelle encombrée'},{t:'Consigne floue'},{t:'Chef d’équipe débordé'},{t:'Intérimaire seul'},{t:'Rien n’a été signalé'},
-    {t:'Clé tombée'},{t:'Épaule cassée'},{t:'45 jours d’arrêt'},{t:'Poste arrêté'},{t:'Équipe choquée'}]}))>=.5,CAUSES.correct);
-  await say('boulon','<b>Niveau 2 !</b> Les causes organisationnelles, plus nombreuses et plus coriaces. La balle va plus vite.');
-  await trial(6,async()=>(await breakout3D(6,{sp:9.5,hint:'Niveau 2 : vingt briques. Au fond, en rouge, cinq causes racines organisationnelles à frapper deux fois.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
-   bricks:[
-    {t:'Pas d’analyse du changement',root:1,fb:'§8.1.3 : un changement se prépare.'},
-    {t:'Formation nacelle périmée',root:1,fb:'§7.2 : compétences à maintenir.'},
-    {t:'Plan de prévention absent',root:1,fb:'§8.1.4.2 : coordination avec les entreprises extérieures.'},
-    {t:'Retour d’expérience jamais partagé',root:1,fb:'§10.3 : ce qu’on apprend doit circuler.'},
-    {t:'Indicateurs qui cachent tout',root:1,fb:'§9.1 : mesurer vrai, même quand ça fait mal.'},
-    {t:'Planning trop serré'},{t:'Sous-effectif la nuit'},{t:'Outils prêtés sans contrôle'},{t:'Consignes en anglais seulement'},{t:'Pas de quart d’heure sécurité'},
-    {t:'Écarts d’audit non soldés'},{t:'Fatigue en fin de poste'},{t:'Zone mal éclairée'},{t:'Chef absent du terrain'},{t:'Chute évitée de justesse'},
-    {t:'Opérateur choqué'},{t:'Arrêt de travail'},{t:'Client inquiet'},{t:'Enquête de l’inspection'},{t:'Production arrêtée'}]}))>=.5,CAUSES.correct);
+  await trial(6,async()=>(await surgery3D(6,{w:.8,time:70,hint:'Opération Talas ! L’accident est allongé sur la table, ses causes racines coincées dans le ventre. Extrais-les à la pince par le couloir orange, jusqu’au rond vert. Si tu touches le bord : bzzzt, son nez s’allume et il hurle.',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
+   causes:[
+    {t:'Danger jamais évalué',fb:'Retour au §6.1 : l’évaluation des risques doit être mise à jour.'},
+    {t:'Outils non attachés',fb:'Mesure technique : longes porte-outils sur tous les postes en hauteur.'},
+    {t:'Opérateurs pas consultés',fb:'§5.4 : ceux qui travaillent sur la nacelle connaissaient le danger.'},
+    {t:'Pas de filet sous la nacelle',fb:'Protection collective d’abord (§8.1.2).'},
+    {t:'Cadence doublée sans analyse',fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'}]}))>=.5,CAUSES.correct);
+  await say('boulon','<b>Deuxième patient !</b> Les causes organisationnelles. Couloirs plus étroits… et il a le hoquet.');
+  await trial(6,async()=>(await surgery3D(6,{w:.62,wig:.35,time:75,hint:'Même opération, couloirs plus étroits, et le patient bouge à chaque hoquet.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
+   causes:[
+    {t:'Pas d’analyse du changement',fb:'§8.1.3 : un changement se prépare.'},
+    {t:'Formation nacelle périmée',fb:'§7.2 : compétences à maintenir.'},
+    {t:'Plan de prévention absent',fb:'§8.1.4.2 : coordination avec les entreprises extérieures.'},
+    {t:'Retour d’expérience jamais partagé',fb:'§10.3 : ce qu’on apprend doit circuler.'},
+    {t:'Indicateurs qui cachent tout',fb:'§9.1 : mesurer vrai, même quand ça fait mal.'}]}))>=.5,CAUSES.correct);
   await runScript(6,[{w:'ceo',q:'Et ensuite ? On clôt le dossier ?',opts:[
     {t:'On vérifie l’efficacité dans trois mois, on met des longes sur tous les postes en hauteur, et on partage le retour d’expérience avec l’autre site.',d:8,fb:'§10.3 : amélioration continue. L’action se généralise et la boucle repart vers §6.1.'},
     {t:'Oui, on a sanctionné le responsable.',d:-8,fb:'Chercher un coupable éteint les remontées. Les causes sont souvent organisationnelles.'},
