@@ -88,6 +88,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #phud{position:absolute;left:8px;right:8px;top:36px;z-index:5;display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:space-between;pointer-events:none}
 #phud .win{padding:2px 6px;display:flex;gap:4px;align-items:center}
 #pmsg{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:5;padding:4px 10px;max-width:92%;text-align:center;font-size:14px}
+#pmsg.corner{left:8px;top:56px;transform:none;text-align:left;font-size:12px;line-height:1.35;padding:3px 8px}
 #pad{position:absolute;right:8px;bottom:8px;left:8px;z-index:6;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
 #pad>div{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px;pointer-events:auto}
 #pad button{font:inherit;font-weight:700;font-size:16px;padding:0;text-align:center;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -161,8 +162,8 @@ function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.c
 /* ================= DONNÉES ================= */
 const CH=[
  {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le fantôme en pantoufles'},
- {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG'},
- {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux du plan d’actions'},
+ {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG et l’évacuation du géant'},
+ {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et le festin des mesures'},
  {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le karaoké sécurité'},
  {cl:'§8',t:'Réalisation',sub:'L’usine à peinture',g:'L’échafaudage'},
  {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'Le polygraphe de Lorette'},
@@ -206,6 +207,8 @@ const KEYHELP={
  attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
  karaoke:`<span>${K('Q')} piste gauche</span><span>${K('S')} piste du milieu</span><span>${K('D')} piste droite</span><span>(flèches aussi)</span>`,
  poly:`<span>Clic sur un menteur : tampon ÉCART</span><span>Les nez qui s’allongent mentent</span>`,
+ fuite:`<span>${K('Q')}${K('D')} changer de voie</span><span>${K('Z')} ou ${K('Espace')} sauter</span><span>${K('S')} glisser</span>`,
+ festin:`<span>${K('Espace')} tamponner</span><span>${K('Q')}${K('D')} refiler à gauche / à droite</span><span>${K('S')} taper sur les doigts</span><span>ou clic sur les assiettes</span>`,
  operation:`<span>Clic maintenu sur une cause</span><span>Glisser dans le couloir jusqu’au rond vert</span>`};
 function keyHelp(k){const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
 
@@ -275,6 +278,7 @@ function portrait(k){
   if(k==='lea')return W(`<path d="M57 28Q78 34 71 62Q65 50 58 46Z" fill="#8d5524" ${st}/><path d="M21 32Q19 70 40 75Q61 70 59 32Z" fill="#f1c27d" ${st}/><path d="M19 38Q21 12 40 12Q59 12 61 38Q51 26 40 29Q29 26 19 38Z" fill="#8d5524" ${st}/><rect x="23" y="19" width="34" height="11" rx="5" fill="#f8f9fa" ${st}/><circle cx="30" cy="24.5" r="4" fill="#ff6b6b" ${st}/><circle cx="50" cy="24.5" r="4" fill="#ff6b6b" ${st}/><path d="M26 43q5-4 10 0M44 43q5-4 10 0" fill="none" ${st}/><path d="M24 42l-3-3M56 42l3-3" ${st}/><path d="M40 47v7h-3" fill="none" ${st}/><path d="M30 61Q40 71 50 61Z" fill="#c92a2a" ${st}/><path d="M50 53l4-4 1 4 5 0-4 3 2 5-4-3-4 3 1-5z" fill="#51cf66"/>`);
   if(k==='sabrina')return W(`<circle cx="40" cy="11" r="9" fill="#212529" ${st}/><path d="M21 30Q19 70 40 75Q61 70 59 30Z" fill="#8d5524" ${st}/><path d="M20 36Q22 16 40 16Q58 16 60 36Q52 25 40 26Q28 25 20 36Z" fill="#212529" ${st}/><circle cx="31" cy="45" r="7" fill="#e7f5ff" ${st}/><circle cx="49" cy="45" r="7" fill="#e7f5ff" ${st}/><path d="M38 45h4" ${st}/><circle cx="31" cy="46" r="2.5" fill="${INK}"/><circle cx="49" cy="46" r="2.5" fill="${INK}"/><path d="M26 35l9-2M45 33l9 2" ${st}/><path d="M40 50l3 6h-4" fill="none" ${st}/><path d="M32 63Q40 58 48 63Q40 69 32 63Z" fill="#e64980" ${st}/><circle cx="18" cy="52" r="3" fill="#fcc419" ${st}/>`);
   if(k==='audit')return W(`<path d="M17 38Q14 12 40 12Q66 12 63 38V62H56V36Q40 30 24 36V62H17Z" fill="#e8590c" ${st}/><path d="M24 32Q22 70 40 75Q58 70 56 32Z" fill="#ffe8cc" ${st}/><rect x="23" y="40" width="15" height="11" fill="#fff" ${st}/><rect x="42" y="40" width="15" height="11" fill="#fff" ${st}/><path d="M38 45h4" ${st}/><circle cx="31" cy="46" r="2.3" fill="${INK}"/><circle cx="49" cy="46" r="2.3" fill="${INK}"/><path d="M25 36l11 1M44 37l11-1" ${st}/><path d="M40 53v5" ${st}/><path d="M35 65h10" ${st}/><path d="M60 22L74 6" stroke="#fcc419" stroke-width="5" stroke-linecap="round"/><path d="M74 6l2-2" stroke="#ff8787" stroke-width="5" stroke-linecap="round"/>`);
+  if(k==='eliott')return W(`<ellipse cx="15" cy="48" rx="6" ry="9" fill="#ffd8b1" ${st}/><ellipse cx="65" cy="48" rx="6" ry="9" fill="#ffd8b1" ${st}/><path d="M22 32Q19 70 40 77Q61 70 58 32Z" fill="#ffd8b1" ${st}/><path d="M16 34Q40 -2 64 34Z" fill="#2f9e44" ${st}/><rect x="11" y="31" width="58" height="6" rx="3" fill="#2f9e44" ${st}/><circle cx="32" cy="48" r="3.5" fill="${INK}"/><circle cx="48" cy="48" r="3.5" fill="${INK}"/><path d="M31 62Q40 69 49 62" fill="none" ${st}/>`);
   return W(`<circle cx="40" cy="40" r="34" fill="#ced4da" ${st}/>`);
 }
 function buildFace(g,kind,skin,hy=2.55){
@@ -405,13 +409,15 @@ function animPerson(p,mode,t){const r=p.userData.rig;if(!r)return;const {pose,hi
   else if(mode==='crouch'){pose.scale.set(1.1,.55,1.1)}
   else{up.scale.y=1+Math.sin(t*3)*.02;shs.forEach((s,i)=>s.rotation.x=Math.sin(t*3+i)*.08)}}
 /* Lorette, l'auditrice : carré roux, frange et lunettes rondes, comme sur son portrait */
-function makeLorette(){const p=makePerson({shirt:'#ff8787',pants:'#495057',scale:.75}),up=p.userData.rig.up,H='#d9480f';
+/* coiffure au carré (Lorette : roux et lunettes ; Neila : longs cheveux bruns) */
+function addHair(p,H,long,glasses){const up=p.userData.rig.up;
   outline(mk(new THREE.SphereGeometry(.7,18,12,0,Math.PI*2,0,Math.PI*.55),H,0,1.9,-.05,up),1.04);
-  [-1,1].forEach(q=>outline(mk(new THREE.SphereGeometry(.32,12,10),H,q*.56,1.5,-.05,up),1.06).scale.set(.75,1.6,1.1));
-  outline(mk(new THREE.SphereGeometry(.62,14,10),H,0,1.6,-.32,up),1.04).scale.set(1.1,1.15,.75);
+  [-1,1].forEach(q=>outline(mk(new THREE.SphereGeometry(.32,12,10),H,q*.56,long?1.3:1.5,-.05,up),1.06).scale.set(.75,long?2.3:1.6,1.1));
+  outline(mk(new THREE.SphereGeometry(.62,14,10),H,0,long?1.35:1.6,-.32,up),1.04).scale.set(1.1,long?1.6:1.15,.75);
   mk(new THREE.BoxGeometry(.95,.2,.3),H,0,2.28,.42,up).rotation.x=-.35;
-  [-1,1].forEach(q=>mk(new THREE.TorusGeometry(.17,.035,6,14),INK,q*.22,1.95,.6,up));mk(new THREE.BoxGeometry(.14,.035,.035),INK,0,1.95,.61,up);
+  if(glasses){[-1,1].forEach(q=>mk(new THREE.TorusGeometry(.17,.035,6,14),INK,q*.22,1.95,.6,up));mk(new THREE.BoxGeometry(.14,.035,.035),INK,0,1.95,.61,up)}
   return p}
+const makeLorette=()=>addHair(makePerson({shirt:'#ff8787',pants:'#495057',scale:.75}),'#d9480f',0,1);
 const makeDylan=()=>makePerson({shirt:'#4dabf7',pants:'#364fc7',hat:'#ffd43b',vest:1,scale:.9});
 const makeCEO=()=>makePerson({shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:1.3});
 
@@ -561,8 +567,8 @@ const DECOR=[
  /* §6 : le hangar des risques, avec un tronçon de fuselage */
  {sky:['#495057','#adb5bd'],floor:()=>ctex(64,64,(x,w,h)=>{x.fillStyle='#8d949c';x.fillRect(0,0,w,h);x.fillStyle='#7c838b';for(let i=0;i<40;i++)x.fillRect((i*23)%w,(i*41)%h,2,2);x.fillStyle='#fcc419';x.fillRect(0,28,w,4)}),
   wall:()=>wallMat(ctex(32,64,(x,w,h)=>{x.fillStyle='#5c7185';x.fillRect(0,0,w,h);x.fillStyle='#4a5d70';x.fillRect(0,0,6,h);x.fillRect(16,0,6,h)}),24,2),
-  build(s,W){const up=[];const fus=outline(mk(new THREE.CylinderGeometry(3,3,11,24,1,true),'#e9ecef',0,2.4,-5,s),1.02);fus.rotation.z=Math.PI/2;fus.material=new THREE.MeshToonMaterial({color:'#e9ecef',gradientMap:grad,side:THREE.DoubleSide});
-   for(let i=0;i<8;i++)mk(new THREE.BoxGeometry(.5,.6,.1),'#1c7ed6',-4.2+i*1.2,3.6,-2.05,s);
+  build(s,W){const up=[];const fus=outline(mk(new THREE.CylinderGeometry(1.5,1.5,11,24,1,true),'#e9ecef',0,1.5,-5.3,s),1.02);fus.rotation.z=Math.PI/2;fus.material=new THREE.MeshToonMaterial({color:'#e9ecef',gradientMap:grad,side:THREE.DoubleSide});
+   for(let i=0;i<8;i++)mk(new THREE.BoxGeometry(.4,.45,.1),'#1c7ed6',-4.2+i*1.2,2.2,-3.85,s);
    const hook=new THREE.Group();hook.position.set(-10,8.5,-3);s.add(hook);mk(new THREE.BoxGeometry(.06,6,.06),'#343a40',0,-3,0,hook);outline(mk(new THREE.TorusGeometry(.35,.1,6,12,Math.PI*1.4),'#fab005',0,-6.2,0,hook),1.1);
    up.push((dt,T)=>hook.rotation.z=Math.sin(T*1.1)*.12);
    [[10.5,-4.8],[12,-3.6],[-12,-4]].forEach(([x,z],i)=>outline(mk(new THREE.CylinderGeometry(.55,.55,1.3,12),['#1c7ed6','#e03131','#2f9e44'][i],x,.65,z,s),1.05));
@@ -739,26 +745,246 @@ let AC=null;
 function beep(f,d=.12,type='square',v=.05){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
 function shake(){const fr=$('#frame');fr.classList.remove('shake');void fr.offsetWidth;fr.classList.add('shake')}
 function homeDylan(R){const d=R.dylan;d.position.set(7.8,0,-4.4);d.rotation.set(0,-.5,0);animPerson(d,'idle',0)}
-function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
+function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
   return say(who,text,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
+
+/* ================= MINI-JEU : LE FESTIN DES MESURES (d'après l'épreuve « Food Feast » d'Astérix Mega Madness) =================
+   Quatre collègues assis à deux tables en planches, une assiette chacun. Les mesures volent au-dessus des têtes et retombent
+   dans les assiettes. On VALIDE une bonne mesure (plus elle est haut dans la hiérarchie §8.1.2, plus elle rapporte, et plus
+   elle est longue à tamponner) ou on REFILE une fausse bonne idée au voisin. Les bots refilent leurs mauvaises idées,
+   piquent dans les assiettes avec leurs bras élastiques ; on leur tape sur les doigts. */
+const HIER=[{n:'Élimination',v:5,c:'#2f9e44'},{n:'Substitution',v:4,c:'#1c7ed6'},{n:'Protection collective',v:3,c:'#7048e8'},{n:'Organisation',v:2,c:'#f59f00'},{n:'EPI',v:1,c:'#e8590c'},{n:'Fausse bonne idée',v:-2,c:'#868e96'}];
+function feast3D(n,cfg){return new Promise(res=>{
+  keyHelp('festin');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';
+  const X=[-4.4,-1.8,1.8,4.4],TY=1.05,PZ=.45,SC=.95;
+  /* l'open space : moquette, cloison, tableau blanc, plantes, imprimante */
+  mk(new THREE.BoxGeometry(22,.04,10),'#5c7cfa',0,.03,-1,R.stage).receiveShadow=true;
+  mk(new THREE.BoxGeometry(24,8,.2),'#dbe4ff',0,4,-3.3,R.stage);[-7,0,7].forEach(x=>mk(new THREE.BoxGeometry(.12,8,.3),'#adb5bd',x,4,-3.2,R.stage));
+  const wb=labelPlane('PLAN D’ACTIONS : À TAMPONNER !',5.4,1,{bg:'#ffffff',border:'#495057',size:70});wb.position.set(-3.6,4.4,-3.15);R.stage.add(wb);
+  [-8.6,8.6].forEach(x=>{outline(mk(new THREE.CylinderGeometry(.5,.4,.9,12),'#e8590c',x,.45,-2.4,R.stage),1.06);outline(mk(new THREE.SphereGeometry(.9,10,8),'#2f9e44',x,1.7,-2.4,R.stage),1.04)});
+  const pr=new THREE.Group();pr.position.set(3.6,2.6,-3);R.stage.add(pr);outline(mk(new THREE.BoxGeometry(2,1.3,1),'#e9ecef',0,0,0,pr),1.04);mk(new THREE.BoxGeometry(1.4,.08,.5),'#343a40',0,.66,.2,pr);
+  const pl=labelPlane('IMPRIMANTE DU PLAN',2.3,.45,{bg:'#fff3bf',border:'#495057',size:80});pl.position.set(0,1.05,.1);pr.add(pl);mk(new THREE.BoxGeometry(2.2,.2,1.2),'#adb5bd',3.6,1.85,-3,R.stage);
+  /* deux tables en planches, une assiette par convive */
+  const plank=ctex(64,64,(x,w,h)=>{for(let i=0;i<4;i++){x.fillStyle=i%2?'#a06a3c':'#8e5b30';x.fillRect(i*16,0,16,h);x.fillStyle='rgba(0,0,0,.3)';x.fillRect(i*16+15,0,1,h);x.fillRect(i*16+6,(i*23)%h,2,5)}});
+  [-3.1,3.1].forEach(cx=>{outline(mk(new THREE.BoxGeometry(5.6,.2,2.4),tmat(plank,3,1),cx,TY-.1,.15,R.stage),1.02);mk(new THREE.BoxGeometry(5.6,.9,.12),'#6b4423',cx,.55,1.3,R.stage);[-2.5,2.5].forEach(dx=>mk(new THREE.BoxGeometry(.2,1,.2),'#5c3a1e',cx+dx,.5,1.1,R.stage))});
+  const plates=X.map(x=>{const g=new THREE.Group();g.position.set(x,TY,PZ);R.stage.add(g);outline(mk(new THREE.CylinderGeometry(.62,.48,.16,18),'#7a4a24',0,.08,0,g),1.06);mk(new THREE.CylinderGeometry(.5,.5,.02,18),'#5c3317',0,.17,0,g);return g});
+  const P=[{n:'Mathieu',k:'karim',m:makePerson({shirt:'#ffa94d',pants:'#495057',skin:'#c68642',hat:'#1971c2',scale:SC}),c:'#ffa94d',style:'chef',excuse:'Allô ? Oui, la cadence…'},
+    {n:'Dylan',k:'dylan',m:R.dylan,c:'#4dabf7'},
+    {n:'Neila',k:'sabrina',m:addHair(makePerson({shirt:'#f783ac',pants:'#364fc7',skin:'#8d5524',scale:SC}),'#212529',1,1),c:'#f783ac',style:'voleuse',excuse:'Tu as vu mes nouvelles chaussures ?'},
+    {n:'Eliott',k:'eliott',m:makePerson({shirt:'#b197fc',pants:'#343a40',hat:'#2f9e44',scale:SC}),c:'#9775fa',style:'brouillon',excuse:'Attends, je finis mon croissant.'}];
+  const me=P[1];
+  P.forEach((p,i)=>{p.i=i;p.m.scale.setScalar(SC);p.m.position.set(X[i],-.15,-.75);p.m.rotation.set(0,0,0);if(p!==me)R.stage.add(p.m);
+    outline(mk(new THREE.BoxGeometry(1.4,1.8,.2),'#343a40',X[i],1.4,-1.6,R.stage),1.04);
+    p.plate=[];p.score=0;p.stun=0;p.busy=null;p.reach=null;p.idle=0;p.think=rand(.3,.8);p.cd=rand(3,5);
+    p.ouch=labelPlane('AÏE !',1.3,.5,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:110});p.ouch.position.set(X[i],3.9,-.7);p.ouch.visible=false;R.stage.add(p.ouch)});
+  /* bandeau du haut comme dans le jeu : quatre médaillons, les scores, le sablier au milieu */
+  const hud=document.createElement('div');hud.style.cssText='position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:6;display:flex;gap:18px;align-items:flex-start;pointer-events:none';
+  const med=p=>`<div style="text-align:center"><div style="width:56px;height:56px;border-radius:50%;border:3px solid ${INK};background:${p.c};overflow:hidden;margin:0 auto">${portrait(p.k).replace('<svg','<svg width="50" height="50" style="display:block;margin:3px auto 0"')}</div><div class="fsc" style="font-weight:700;font-size:22px;line-height:1.1;color:#ffd43b;-webkit-text-stroke:1.5px ${INK};text-shadow:2px 2px 0 ${INK}">0</div></div>`;
+  hud.innerHTML=med(P[0])+med(P[1])+`<div style="text-align:center;padding-top:6px"><svg width="34" height="48" viewBox="0 0 34 48"><path d="M3 2h28M3 46h28M6 2q0 16 11 22Q6 30 6 46h22q0-16-11-22Q28 18 28 2" fill="#fff3bf" stroke="${INK}" stroke-width="3"/><path class="sand" d="M9 40h16l-8-12z" fill="#e8590c"/></svg><div class="ftm" style="font-weight:700;font-size:16px;color:#fff;-webkit-text-stroke:1px ${INK}">60</div></div>`+med(P[2])+med(P[3]);
+  $('#frame').append(hud);const scEls=[...hud.querySelectorAll('.fsc')];
+  const rm=document.createElement('div');rm.className='win';rm.style.cssText='position:absolute;left:50%;top:92px;transform:translateX(-50%);z-index:5;padding:3px 10px;max-width:62%;text-align:center;font-size:13px';rm.hidden=true;$('#frame').append(rm);
+  let rmT=0;const say2=(h,d=2)=>{rm.innerHTML=h;rm.hidden=false;rmT=d};
+  const air=[];let t=0,spawnT=.8,done=false,pk={},slaps=0,valid=0,bad=0;
+  const top=p=>p.plate[p.plate.length-1];
+  function pop(p,txt,col){const l=labelPlane(txt,1.4,.6,{bg:'#fffaf0',border:col,fg:col,size:120});l.position.set(X[p.i],3.1,-.5);R.stage.add(l);tween(.9,q=>{l.position.y=3.1+q*1.2}).then(()=>R.stage.remove(l))}
+  function lay(p){p.plate.forEach((o,k)=>{o.g.position.set(X[p.i]+(k-(p.plate.length-1)/2)*.28,TY+.25+k*.14,PZ);o.g.rotation.set(0,0,0);o.g.userData.l.visible=k===p.plate.length-1})}
+  function makeItem(it){const H=HIER[it.h],g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.8,.12,.6),'#ffffff',0,0,0,g),1.1);mk(new THREE.BoxGeometry(.6,.13,.1),H.c,0,0,-.12,g);mk(new THREE.BoxGeometry(.6,.13,.1),H.c,0,0,.1,g);
+    const l=labelPlane(`${it.t} (${H.v>0?'+':''}${H.v})`,2.5,.55,{bg:'#fffaf0',border:H.c,size:80});l.position.set(0,-.62,1.02);g.add(l);g.userData.l=l;R.stage.add(g);return {it,g,v:H.v,h:it.h}}
+  /* une mesure s'envole de l'imprimante et retombe dans une assiette (cible au sol pour se préparer) */
+  function launch(o,from,to,dur,h){const ring=mk(new THREE.TorusGeometry(.7,.06,4,20),'#e03131',X[to],TY+.2,PZ,R.stage);ring.rotation.x=Math.PI/2;ring.castShadow=false;
+    o.g.userData.l.visible=false;air.push({o,p0:from.clone(),to,q:0,dur,h,ring})}
+  function spawn(){const to=[0,1,2,3].filter(i=>P[i].plate.length<3);if(!to.length)return;const t2=to[Math.floor(Math.random()*to.length)];
+    const o=makeItem(cfg.items[Math.floor(Math.random()*cfg.items.length)]);launch(o,V(3.6,3.3,-2.6),t2,rand(1.1,1.4),rand(3.5,5));
+    tween(.2,q=>pr.scale.set(1+q*.06,1-q*.08,1)).then(()=>pr.scale.set(1,1,1));beep(300,.05,'triangle',.03)}
+  function land(a){R.stage.remove(a.ring);const p=P[a.to];if(p.plate.length>=3){R.stage.remove(a.o.g);return}a.o.age=0;p.plate.push(a.o);lay(p);R.fx.burst(V(X[a.to],TY+.4,PZ),4)}
+  /* valider = tamponner la mesure ; plus elle est haute dans la hiérarchie, plus c'est long */
+  function validate(p){const o=top(p);if(!o||p.busy||p.stun>0||p.reach)return;p.busy={o,k:0,dur:o.v>0?.35+o.v*.16:.5}}
+  function finish(p){const o=p.busy.o;p.busy=null;const i=p.plate.indexOf(o);if(i<0)return;p.plate.splice(i,1);R.stage.remove(o.g);lay(p);p.score+=o.v;scEls[p.i].textContent=p.score;
+    pop(p,(o.v>0?'+':'')+o.v,o.v>0?HIER[o.h].c:'#e03131');
+    if(p===me){pts(n,o.v>0);beep(o.v>0?600+o.v*90:120,.14,o.v>0?'square':'sawtooth');if(o.v>0){valid++;say2(`<b>Tamponné : ${o.it.t}</b> (${HIER[o.h].n}, +${o.v})`,1.6)}else{bad++;p.stun=1;boulonShake();say2(`<b>Indigestion administrative !</b> « ${o.it.t} » n’est pas une mesure (−2).`,2)}}}
+  /* refiler la mesure du dessus au voisin (utile pour les fausses bonnes idées) */
+  function pass(p,dir){const j=p.i+dir;if(j<0||j>3||p.busy||p.stun>0||p.reach)return;const o=p.plate.pop();if(!o)return;lay(p);launch(o,o.g.position.clone(),j,.5,1.4);
+    if(p===me)beep(500,.06,'triangle',.04);else if(j===1)say2(`<b>${p.n}</b> te refile « ${o.it.t} » !`,1.8)}
+  function reachTo(p,victim,o){p.reach={victim,o,k:0,dur:p.style==='voleuse'?.8:1,back:0}}
+  function slap(p){if(!p.reach||p.reach.back)return;p.stun=1.6;p.reach.back=1;p.reach.k=0;p.ouch.visible=true;slaps++;pts(n,true);beep(220,.12,'square',.08);shake();say2(`<b>CLAC !</b> Tu tapes sur les doigts de ${p.n}.`,1.6)}
+  const threat=()=>P.find(p=>p!==me&&p.reach&&!p.reach.back&&p.reach.victim===me);
+  R.onDown=e=>{if(done)return;const th=threat();if(th){slap(th);return}const pt=planeAt(e,TY);if(!pt)return;if(pt.x<X[1]-1.1)pass(me,-1);else if(pt.x>X[1]+1.1)pass(me,1);else validate(me)};
+  function armPose(p){const rg=p.m.userData.rig;rg.shs.forEach(s=>s.scale.set(1,1,1));
+    if(p.busy){const k=p.busy.k;rg.shs[1].rotation.x=-1.2-Math.abs(Math.sin(k*Math.PI*3))*1.1;rg.shs[0].rotation.x=-.9;return}
+    const r=p.reach;if(!r)return;const k=r.back?Math.max(0,1-r.k):Math.min(1,r.k),tg=V(X[r.victim.i],TY+.3,PZ);
+    const side=tg.x>=X[p.i]?1:-1,sh=rg.shs[side>0?1:0],sp=V(X[p.i]+side*.62*SC,p.m.position.y+1.8*SC,p.m.position.z);
+    const d=tg.sub(sp),L=d.length(),q=new THREE.Quaternion().setFromUnitVectors(V(0,-1,0),d.normalize());sh.quaternion.slerp(q,k);sh.children[0].rotation.z=side*.35*(1-k);sh.scale.y=1+(Math.max(1,L/(.9*SC))-1)*k}
+  function bot(p,dt){if(p.busy||p.reach||p.stun>0)return;if(p.idle>0){p.idle-=dt;return}if(Math.random()<dt*.15){p.idle=rand(.8,1.4);say2(`<b>${p.n} :</b> « ${p.excuse} »`,1.3);return}
+    p.think-=dt;p.cd-=dt;if(p.think>0)return;p.think=rand(.25,.55);const o=top(p);
+    if(o){if(o.v<0&&!(p.style==='brouillon'&&Math.random()<.5)){const nb=[p.i-1,p.i+1].filter(j=>j>=0&&j<=3);pass(p,(nb.includes(1)&&Math.random()<.75?1:nb[Math.floor(Math.random()*nb.length)])-p.i);return}validate(p);return}
+    if(p.cd<=0){const vs=[p.i-1,p.i+1].filter(j=>j>=0&&j<=3).map(j=>P[j]).filter(v=>{const q=top(v);return q&&q.v>=2&&q.age>.9&&!v.busy});
+      const v=vs.find(v=>v===me)||vs[0];if(v&&(p.style!=='brouillon')){p.cd=p.style==='voleuse'?rand(3,5):rand(6,9);reachTo(p,v,top(v))}}}
+  R.extra=(dt,T)=>{if(done)return;t+=dt;rmT-=dt;if(rmT<=0)rm.hidden=true;
+    spawnT-=dt;if(spawnT<=0){spawn();spawnT=rand(cfg.spawn[0],cfg.spawn[1])}
+    for(let i=air.length-1;i>=0;i--){const a=air[i];a.q=Math.min(1,a.q+dt/a.dur);const to=V(X[a.to],TY+.3,PZ);a.o.g.position.lerpVectors(a.p0,to,a.q);a.o.g.position.y+=a.h*4*a.q*(1-a.q);a.o.g.rotation.x+=dt*7;a.o.g.rotation.z+=dt*5;
+      a.ring.scale.setScalar(1+Math.sin(T*14)*.12);if(a.q>=1){air.splice(i,1);land(a)}}
+    P.forEach(p=>p.plate.forEach(o=>o.age+=dt));
+    /* Dylan : Espace tamponne, Q / D refilent à gauche / à droite, S tape sur les doigts */
+    const E=k=>{const v=!!KEYS[k]&&!pk[k];pk[k]=!!KEYS[k];return v};const eJ=E('J'),eL=E('L'),eR=E('R'),eD=E('D'),eS=E('S');
+    if(eD||eS){const th=threat();if(th)slap(th)}if(eJ)validate(me);if(eL)pass(me,-1);if(eR)pass(me,1);
+    P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);if(p.stun<=0)p.ouch.visible=false;if(p!==me)bot(p,dt);
+      if(p.busy){p.busy.k+=dt/p.busy.dur;if(p.busy.k>=1)finish(p)}
+      const r=p.reach;if(r){r.k+=dt/(r.back?.25:r.dur);
+        if(!r.back&&r.k>=1){const i=r.victim.plate.indexOf(r.o);if(i>=0&&!(r.victim.busy&&r.victim.busy.o===r.o)){r.victim.plate.splice(i,1);lay(r.victim);p.plate.push(r.o);lay(p);if(r.victim===me){pts(n,false);beep(160,.2,'sawtooth');shake();say2(`<b>${p.n}</b> pique « ${r.o.it.t} » dans ton assiette !`,2)}}r.back=1;r.k=0}
+        else if(r.back&&r.k>=1)p.reach=null}
+      animPerson(p.m,p.stun>0?'stun':'idle',T+p.i);armPose(p);p.m.position.y=p.busy?-.15-Math.abs(Math.sin(p.busy.k*Math.PI*3))*.05:-.15});
+    const left=Math.max(0,Math.ceil(cfg.time-t));const tm=hud.querySelector('.ftm');if(tm.textContent!=String(left))tm.textContent=left;hud.querySelector('.sand').setAttribute('transform',`translate(0 ${(t/cfg.time)*8}) scale(1 ${Math.max(.05,1-t/cfg.time)})`);
+    const th=threat();if(th&&!R.warned){R.warned=1;say2('<b>Une main dans ton assiette !</b> Tape sur les doigts ('+(TOUCH?'flèche bas':'S')+') !',1.2)}if(!th)R.warned=0;
+    if(t>=cfg.time)end()};
+  function end(){if(done)return;done=true;rm.remove();hud.remove();$('#pad').hidden=true;$('#hud .right').style.visibility='visible';R.cam=null;
+    me.m.userData.rig.shs.forEach(s=>s.scale.set(1,1,1));me.m.scale.setScalar(.9);me.m.rotation.set(0,0,0);R.clear();
+    const rank=[...P].sort((a,b)=>b.score-a.score),pos=rank.indexOf(me)+1,r=[1,.75,.4,.2][pos-1];
+    gameEnd(n,r,'karim',`<b>${pos===1?'Tu remportes le festin !':pos+'e sur 4.'}</b> ${rank.map(p=>`${p.n} ${p.score}`).join(' · ')}.<br>Tu as tamponné ${valid} mesure${valid>1?'s':''}, avalé ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''} et tapé ${slaps} fois sur des doigts. ${cfg.after||''}`,res)}
+  /* caméra de face, légèrement plongeante, comme dans le jeu */
+  R.cam=()=>{camera.position.set(0,4.6,10.2);camera.lookAt(0,2,-1)};
+  me.m.position.set(X[1],-.15,-.75);me.m.rotation.set(0,0,0);me.m.scale.setScalar(SC);
+  const go=R.extra;R.extra=null;
+  say('karim',cfg.hint,{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();say2(TOUCH?'Touche ton assiette pour tamponner, à gauche ou à droite pour refiler. Flèche bas pour taper sur les doigts.':'Espace : tamponner · Q / D : refiler à gauche / à droite · S : taper sur les doigts.',3.5);R.extra=go});
+})}
+
+/* ================= MINI-JEU : L'EXERCICE D'ÉVACUATION (course poursuite façon Hercule, vue de dos) =================
+   Aurelien, déguisé en géant pour un exercice d'urgence grandeur nature, saccage l'avenue de l'usine. Dylan court sur trois voies
+   vers le point de rassemblement : sauter, glisser, changer de voie, et guider au passage les collègues paniqués (§8.2). */
+function run3D(n,cfg){return new Promise(async res=>{
+  const room=cur,L=cfg.len||620,LX=[-2.3,0,2.3];
+  const s=new THREE.Scene();s.background=skyTex('#e8590c','#ffd8a8');s.fog=new THREE.Fog('#ffc078',45,150);
+  s.add(new THREE.HemisphereLight('#fff4e6','#8a4b2a',.95));const sun=new THREE.DirectionalLight('#ffe8cc',.55);sun.position.set(-8,20,10);s.add(sun);
+  const fx=makeFX(s);
+  /* l'avenue : pavés, trottoirs, façades en briques et colonnes, fumée au loin */
+  mk(new THREE.BoxGeometry(8.4,.4,L+80),tmat(TX.pave(),4,(L+80)/4),0,-.2,-L/2+10,s).castShadow=false;
+  [-1,1].forEach(q=>mk(new THREE.BoxGeometry(2.4,.6,L+80),'#c0763a',q*5.4,.1,-L/2+10,s).castShadow=false);
+  const FM=['#a0522d','#8b3a2b','#b5651d','#7a3b1f','#c2410c','#9c4221'].map(c=>new THREE.MeshToonMaterial({map:facadeTex(3,5,c),gradientMap:grad}));
+  /* façades et colonnes montées sur un pivot au pied, côté rue : elles peuvent basculer dans l'avenue */
+  const BLD=[];for(let z=10;z>-L-60;z-=7)[-1,1].forEach(q=>{const h=rand(6,15),w=rand(5,7),g=new THREE.Group();g.position.set(q*7.2,0,z);s.add(g);const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,6.6),FM[Math.floor(rand(0,6))]);b.position.set(q*w/2,h/2,0);g.add(b);BLD.push({g,q,z,h,fall:-1})});
+  const COL=[];for(let z=0;z>-L-40;z-=14)[-1,1].forEach(q=>{const g=new THREE.Group();g.position.set(q*4.7,0,z);s.add(g);outline(mk(new THREE.CylinderGeometry(.38,.45,5,10),'#e8b07a',0,2.5,0,g),1.04);mk(new THREE.BoxGeometry(1,.3,1),'#c0763a',0,5.1,0,g);COL.push({g,q,z,top:z<-40&&Math.random()<.45,st:0,t:0})});
+  const DEB=[];
+  for(let z=-40;z>-L;z-=60){const l=labelPlane(['USINE TALAS','ATELIER PEINTURE','HANGAR 3','CANTINE'][Math.floor(rand(0,4))],4,.8,{bg:'#fffaf0',border:'#c2410c',size:80});l.position.set(rand(-1,1)>0?4.2:-4.2,4.2,z);l.rotation.y=l.position.x>0?-.5:.5;s.add(l)}
+  const goal=new THREE.Group();goal.position.set(0,0,-L-6);s.add(goal);mk(new THREE.BoxGeometry(8.4,.05,8),'#2f9e44',0,.02,0,goal).castShadow=false;
+  [-3.6,3.6].forEach(x=>mk(new THREE.BoxGeometry(.2,4,.2),'#495057',x,2,0,goal));const gl=labelPlane('POINT DE RASSEMBLEMENT',7.4,1.1,{bg:'#d3f9d8',border:'#2f9e44',size:80});gl.position.set(0,4.2,0);goal.add(gl);
+  /* le géant : Aurelien dans son costume d'exercice */
+  const giant=makeCEO();giant.scale.setScalar(4.8);s.add(giant);giant.rotation.y=0;
+  /* sa massue, dans la main droite */
+  const club=new THREE.Group();giant.userData.rig.shs[1].children[0].add(club);club.position.y=-.95;outline(mk(new THREE.CylinderGeometry(.34,.14,1.9,10),'#8d5524',0,-.9,0,club),1.08);[0,1,2,3].forEach(i=>mk(new THREE.ConeGeometry(.08,.28,5),'#adb5bd',Math.cos(i*1.6)*.32,-1.5,Math.sin(i*1.6)*.32,club));
+  const GI={x:0,tx:0,smash:0,side:1,sT:2,hit:0,throwA:0};
+  const gtag=labelPlane('« EXERCICE ! LA CADENCE !! »',9,1.5,{bg:'#fffaf0',border:'#7048e8',size:90});s.add(gtag);
+  /* Dylan, de dos */
+  const body=makePerson({shirt:'#4dabf7',pants:'#364fc7',hat:'#ffd43b',vest:1,scale:.9});body.rotation.y=Math.PI;s.add(body);
+  const st={z:0,x:0,lane:1,y:0,vy:0,slide:0,sp:cfg.speed||11,hp:3,inv:0,saved:0,done:false,pk:{}};
+  /* obstacles, collègues à guider, cœurs */
+  const OB=[];let colTotal=0;
+  const add=(o)=>{OB.push(o);return o};
+  function box(z,lane){const g=outline(mk(new THREE.BoxGeometry(1.6,1.1,1.2),'#b07a3e',LX[lane],.55,z,s),1.04);mk(new THREE.BoxGeometry(1.62,.1,1.22),'#7a4f22',LX[lane],.9,z,s);add({k:'box',z,x:LX[lane],w:1.6,d:1.2,h:1,m:g})}
+  function beam(z){const g=new THREE.Group();g.position.z=z;s.add(g);outline(mk(new THREE.BoxGeometry(8.4,.5,.6),'#e03131',0,1.45,0,g),1.03);[-4,4].forEach(x=>mk(new THREE.BoxGeometry(.3,1.5,.3),'#495057',x,.75,0,g));
+    const l=labelPlane('BAISSE-TOI !',2.4,.5,{bg:'#fff3bf',border:'#e03131',size:80});l.position.set(0,2.05,0);g.add(l);add({k:'beam',z,x:0,w:8.4,d:.6,m:g})}
+  function pit(z,lane){const m=mk(new THREE.BoxGeometry(2.1,.05,2.6),'#1a1214',LX[lane],.03,z,s);m.castShadow=false;add({k:'pit',z,x:LX[lane],w:2,d:2.4,m})}
+  function fire(z,lane){const g=new THREE.Group();g.position.set(LX[lane],0,z);s.add(g);const f=[0,1,2].map(i=>{const c=new THREE.Mesh(new THREE.ConeGeometry(.3,1,8),new THREE.MeshBasicMaterial({color:i%2?'#ffd43b':'#ff6b00'}));c.position.set((i-1)*.45,.5,0);g.add(c);return c});add({k:'fire',z,x:LX[lane],w:1.6,d:1,m:g,f})}
+  function barrel(z,lane){const m=outline(mk(new THREE.CylinderGeometry(.5,.5,1.4,14),'#495057',LX[lane],.5,z,s),1.06);m.rotation.z=Math.PI/2;add({k:'barrel',z,x:LX[lane],w:1.4,d:1,h:.9,m,roll:1})}
+  function colleague(z,lane){const m=makePerson({shirt:PAL[Math.floor(rand(0,8))],pants:'#495057',hat:Math.random()<.5?'#ffd43b':null,vest:Math.random()<.5,scale:.75});m.position.set(LX[lane],0,z);s.add(m);
+    const l=labelPlane('AU SECOURS !',2,.45,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:80});l.position.y=3.2;m.add(l);colTotal++;add({k:'col',z,x:LX[lane],w:1,d:1,m,lane,vx:rand(-1,1)})}
+  function heart(z,lane){const g=new THREE.Group();g.position.set(LX[lane],1.3,z);s.add(g);outline(mk(new THREE.SphereGeometry(.28,10,8),'#e03131',-.16,0,0,g),1.1);outline(mk(new THREE.SphereGeometry(.28,10,8),'#e03131',.16,0,0,g),1.1);const t=mk(new THREE.ConeGeometry(.4,.5,4),'#e03131',0,-.3,0,g);t.rotation.z=Math.PI;add({k:'heart',z,x:LX[lane],w:1,d:1,m:g})}
+  for(let z=-28;z>-L+15;z-=rand(8,12)){const r=Math.random(),ln=Math.floor(rand(0,3));
+    if(r<.22)box(z,ln);else if(r<.34)beam(z);else if(r<.48)pit(z,ln);else if(r<.6)fire(z,ln);else if(r<.7)barrel(z,ln);else if(r<.94)colleague(z,ln);else heart(z,ln);
+    if(Math.random()<.35&&r<.6){const l2=(ln+1+Math.floor(rand(0,2)))%3;colleague(z-4,l2)}}
+  const air=[];let throwT=3;
+  function smashAt(gz,side){shake();beep(60,.5,'sawtooth',.09);let k=0;
+    BLD.filter(b=>b.q===side&&b.fall<0&&Math.abs(b.z-gz)<9).slice(0,2).forEach(b=>{b.fall=0;k++;
+      for(let i=0;i<6;i++){const m=outline(mk(new THREE.BoxGeometry(rand(.8,1.4),rand(.6,1),rand(.8,1.3)),['#a0522d','#8b3a2b','#c2410c'][i%3],b.q*rand(6,8),rand(b.h*.5,b.h),b.z+rand(-3,3),s),1.05);DEB.push({m,v:V(-b.q*rand(4,8),rand(2,6),rand(-3,1)),r:V(rand(-6,6),0,rand(-6,6))})}});
+    fx.burst(V(side*6,3,gz),20)}
+  function throwCrate(){GI.throwA=.5;const ln=Math.floor(rand(0,3)),tz=st.z-26-rand(0,6),g=outline(mk(new THREE.BoxGeometry(1.4,1.1,1.2),'#c68a4a',0,0,0,s),1.05);const p0=V(giant.position.x+rand(-3,3),16,giant.position.z+2);g.position.copy(p0);
+    const ring=mk(new THREE.TorusGeometry(1,.08,4,20),'#e03131',LX[ln],.06,tz,s);ring.rotation.x=Math.PI/2;ring.castShadow=false;air.push({g,p0,p1:V(LX[ln],.55,tz),q:0,dur:1.3,ring,ln,tz})}
+  const rm=document.createElement('div');rm.className='win';rm.style.cssText='position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:5;padding:3px 10px;max-width:62%;text-align:center;font-size:13px';rm.hidden=true;$('#frame').append(rm);
+  let rmT=0;const say2=(h,d=1.8)=>{rm.innerHTML=h;rm.hidden=false;rmT=d};
+  const heartsTxt=()=>[0,1,2].map(i=>`<span style="color:${i<st.hp?'#e03131':'#ced4da'}">♥</span>`).join('');
+  const board=()=>{pmsg(`PV ${heartsTxt()}<br>Évacués : <b>${st.saved} / ${colTotal}</b><br>Rassemblement : <b>${Math.max(0,Math.round(L+st.z))}</b> m`);$('#pmsg').classList.add('corner')};
+  function hurt(t){if(st.inv>0)return;st.hp--;st.inv=1.3;st.sp=Math.max(9,st.sp-3);redFlash();beep(120,.25,'sawtooth',.07);say2(t,2);board();if(st.hp<=0)finish(false)}
+  const W={scene:s,fx,noOff:1,keys:1,dylan:body,look:V(0,0,0),baseD:1,fitW:1};
+  W.cam=dt=>{const want=V(st.x*.55,3.6+st.y*.35,st.z+7.5);camera.position.lerp(want,1-Math.pow(.001,dt||.016));camera.lookAt(st.x*.3,2.2,st.z-10)};
+  W.update=(dt,T)=>{fx.update(dt);rmT-=dt;if(rmT<=0)rm.hidden=true;if(st.done)return;
+    if(!st.go){body.position.set(st.x,0,st.z);animPerson(body,'idle',T);giant.position.set(0,0,st.z-78);animPerson(giant,'idle',T);gtag.position.set(0,19,st.z-75);return}
+    const E=k=>{const v=!!KEYS[k]&&!st.pk[k];st.pk[k]=!!KEYS[k];return v};
+    if(E('L'))st.lane=Math.max(0,st.lane-1);if(E('R'))st.lane=Math.min(2,st.lane+1);
+    if((E('U')||E('J'))&&st.y<=0){st.vy=8.6;st.slide=0;beep(500,.05,'triangle',.03)}if((E('D')||E('S'))&&st.y<=0){st.slide=.65}
+    st.sp=Math.min(cfg.max||17,st.sp+dt*.12);st.z-=st.sp*dt;st.x+=(LX[st.lane]-st.x)*Math.min(1,dt*12);
+    st.vy-=24*dt;st.y=Math.max(0,st.y+st.vy*dt);if(st.y<=0)st.vy=0;st.slide=Math.max(0,st.slide-dt);st.inv=Math.max(0,st.inv-dt);
+    body.position.set(st.x,st.y,st.z);body.visible=st.inv<=0||Math.sin(T*30)>0;
+    animPerson(body,st.y>0?'jump':st.slide>0?'crouch':'run',T*1.4);if(st.slide>0)body.userData.rig.pose.rotation.x=-.6;
+    /* le géant reste devant, piétine, et lance des caisses */
+    /* le géant marche lourdement, balance sa massue, cogne les façades et fait tout trembler */
+    const gz=Math.max(-L-40,st.z-78),rg=giant.userData.rig;
+    GI.sT-=dt;if(GI.sT<=0&&!GI.smash){GI.smash=.01;GI.side=Math.random()<.5?-1:1;GI.tx=GI.side*3.2;GI.sT=rand(2.2,3.6)}
+    if(!GI.smash&&Math.abs(GI.x-GI.tx)<.2)GI.tx=rand(-2.5,2.5);GI.x+=(GI.tx-GI.x)*Math.min(1,dt*1.6);
+    animPerson(giant,'walk',T*.35);let lean=Math.sin(T*1.4)*.1,cl=Math.sin(T*1.4)*.6-.3,fwd=.05;
+    if(GI.smash){GI.smash+=dt;const k=GI.smash;
+      if(k<.55){cl=-.3-(k/.55)*2.7;lean=-GI.side*.18*(k/.55)}
+      else if(k<.75){const q=(k-.55)/.2;cl=-3+q*2.8;lean=GI.side*.4*q;fwd=.4*q;if(!GI.hit&&q>.8){GI.hit=1;smashAt(gz,GI.side)}}
+      else if(k<1.3){cl=-.2;lean=GI.side*.4*(1-(k-.75)/.55);fwd=.4}
+      else{GI.smash=0;GI.hit=0}}
+    rg.shs[1].rotation.x=cl;rg.shs[1].rotation.z=GI.side*.25;rg.up.rotation.z=lean;rg.up.rotation.x=fwd;
+    if(GI.throwA>0){GI.throwA-=dt;rg.shs[0].rotation.x=-2.8+(1-GI.throwA/.5)*2.6}else rg.shs[0].rotation.x=-Math.sin(T*1.4)*.6;
+    const ph=Math.sin(T*2.8);giant.position.set(GI.x,Math.abs(ph)*.7,gz);giant.rotation.y=Math.sin(T*.7)*.25+GI.x*-.04;
+    if(ph*Math.sin((T-dt)*2.8)<0){fx.burst(V(GI.x+(ph>0?1.5:-1.5),.3,gz+1),5);beep(55,.12,'sine',.05)}
+    /* les façades qui s'effondrent, les gravats qui roulent dans l'avenue, les colonnes qui tombent en travers */
+    BLD.forEach(b=>{if(b.fall<0||b.fall>1.4)return;b.fall+=dt;const a=Math.min(1.1,b.fall*1.4);b.g.rotation.z=b.q*a;b.g.position.y=-Math.min(b.h*.35,b.fall*2.5);if(Math.random()<dt*8)fx.burst(V(b.q*6,rand(1,4),b.z+rand(-3,3)),3)});
+    for(let i=DEB.length-1;i>=0;i--){const d=DEB[i],m=d.m;d.v.y-=20*dt;m.position.addScaledVector(d.v,dt);m.rotation.x+=d.r.x*dt;m.rotation.z+=d.r.z*dt;
+      if(m.position.y<=.45){m.position.y=.45;DEB.splice(i,1);if(Math.abs(m.position.x)<3.6&&m.position.z<st.z-5)add({k:'box',z:m.position.z,x:m.position.x,w:1.2,d:1.1,h:.9,m});}}
+    COL.forEach(c=>{if(!c.top||c.st===3)return;const d=st.z-c.z;
+      if(c.st===0&&d>0&&d<30){c.st=1;c.t=0;const l=labelPlane('CRAC !',1.6,.6,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:120});l.position.set(0,5.9,0);c.g.add(l);c.lab=l}
+      if(c.st===1){c.t+=dt;c.g.rotation.z=Math.sin(c.t*45)*.05;if(c.t>.7){c.st=2;c.t=0;c.g.remove(c.lab)}}
+      else if(c.st===2){c.t+=dt;const a=Math.min(1.5,c.t*c.t*6);c.g.rotation.z=c.q*a;if(a>=1.5){c.st=3;fx.burst(V(c.q*2.2,.5,c.z),14);beep(70,.3,'square',.07);add({k:'box',z:c.z,x:c.q*2.2,w:4.6,d:.9,h:.9,m:c.g})}}});
+    gtag.position.set(giant.position.x,19+Math.sin(T*2)*.3,gz+3);
+    throwT-=dt;if(throwT<=0&&st.z>-L+40){throwCrate();throwT=rand(2.2,3.6)}
+    for(let i=air.length-1;i>=0;i--){const a=air[i];a.q=Math.min(1,a.q+dt/a.dur);a.g.position.lerpVectors(a.p0,a.p1,a.q);a.g.position.y+=10*4*a.q*(1-a.q)*.4;a.g.rotation.x+=dt*6;a.ring.scale.setScalar(1+Math.sin(T*14)*.1);
+      if(a.q>=1){air.splice(i,1);s.remove(a.ring);fx.burst(a.p1.clone(),10);beep(90,.2,'square',.05);add({k:'box',z:a.tz,x:LX[a.ln],w:1.4,d:1.2,h:1,m:a.g})}}
+    /* collisions */
+        for(const o of OB){if(o.gone)continue;
+      if(o.roll){o.z+=4*dt;o.m.position.z=o.z;o.m.rotation.x+=dt*6}
+      if(o.k==='fire')o.f.forEach((c,i)=>c.scale.set(1,1+Math.sin(T*14+i*2)*.3,1));
+      if(o.k==='col'&&!o.saved){o.x+=o.vx*dt;if(Math.abs(o.x)>2.6)o.vx*=-1;o.m.position.x=o.x;o.m.rotation.y=o.vx>0?Math.PI/2:-Math.PI/2;animPerson(o.m,'run',T+o.z)}
+      if(o.saved){o.m.position.x+=o.side*6*dt;o.m.position.z-=3*dt;animPerson(o.m,'run',T+o.z);if(Math.abs(o.m.position.x)>9){s.remove(o.m);o.gone=1}continue}
+      if(Math.abs(o.z-st.z)>o.d/2+.35||Math.abs(o.x-st.x)>o.w/2+.35)continue;
+      if(o.k==='box'||o.k==='barrel'){if(st.y<(o.h||1)-.05){hurt(o.k==='box'?'<b>BAM !</b> Une caisse en travers du chemin. Change de voie ou saute !':'<b>BOUM !</b> Un fût qui roule. Évite-le !');o.gone=1;s.remove(o.m);fx.burst(V(o.x,.8,o.z),8)}}
+      else if(o.k==='beam'){if(st.slide<=0){hurt('<b>BONG !</b> Une poutre basse. Glisse dessous (flèche bas) !');o.gone=1}}
+      else if(o.k==='fire'){if(st.y<.5){hurt('<b>AÏE !</b> Des flammes. Saute par-dessus !');o.gone=1}}
+      else if(o.k==='pit'){if(st.y<=0){hurt('<b>OUPS !</b> Une trappe ouverte. Saute !');o.gone=1;st.vy=6}}
+      else if(o.k==='col'){o.saved=1;o.side=o.x>=0?1:-1;st.saved++;pts(n,true);o.m.children.forEach(c=>{if(c.userData.relabel)c.userData.relabel('MERCI DYLAN !',{bg:'#d3f9d8',border:'#2f9e44',fg:'#2b8a3e',size:80})});beep(760,.1);say2(`<b>Collègue évacué !</b> ${st.saved} / ${colTotal}`,1.2);board()}
+      else if(o.k==='heart'){o.gone=1;s.remove(o.m);if(st.hp<3){st.hp++;say2('<b>+1 cœur !</b>',1.2)}board()}}
+    if(Math.floor(-st.z/10)!==Math.floor((-st.z+st.sp*dt)/10))board();
+    if(st.z<=-L){finish(true)}};
+  let resolveRun;
+  function finish(ok){if(st.done)return;st.done=true;$('#pad').hidden=true;keyHelp();rm.remove();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');Object.keys(KEYS).forEach(k=>KEYS[k]=0);
+    const missed=colTotal-st.saved;for(let i=0;i<missed;i++)pts(n,false);if(!ok)pts(n,false);
+    const r=ok?.4+.6*st.saved/Math.max(1,colTotal):0;setTimeout(()=>resolveRun({ok,r}),ok?600:400)}
+  hidePanel();await fade(1);setWorld(W);camera.position.set(0,3.6,7.5);$('#pad').hidden=!TOUCH;keyHelp('fuite');board();await fade(0);
+  await say('ceo',cfg.hint,{btns:[{t:'Courir !',go:1}]});st.go=true;hidePanel();say2(TOUCH?'Flèches gauche / droite : changer de voie · SAUT : sauter · flèche bas : glisser':'Q / D : changer de voie · Z ou Espace : sauter · S : glisser',3.5);
+  const out=await new Promise(r=>{resolveRun=r});
+  await fade(1);setWorld(room);await fade(0);
+  cdi(out.r>=.85?8:out.r>=.6?2:-6);
+  if(out.ok)await say('ceo',`<b>Aurelien retire sa tête de géant :</b> « Exercice terminé ! » ${st.saved} collègue${st.saved>1?'s':''} sur ${colTotal} guidé${st.saved>1?'s':''} jusqu’au point de rassemblement. ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:out.r>=.6?'good':'bad'});
+  res(out.r)})}
 
 /* ================= MINI-JEU : LE FANTÔME EN PANTOUFLES (attraper au vol) ================= */
 function slipperMesh(){const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.42,.2,.75),'#f783ac',0,0,0,g),1.1);mk(new THREE.BoxGeometry(.44,.12,.35),'#fcc2d7',0,.13,.12,g);
   outline(mk(new THREE.SphereGeometry(.14,10,8),'#ffffff',0,.24,.26,g),1.12);return g}
 function ghostMesh(){const g=new THREE.Group(),b=new THREE.Group();g.add(b);const U=g.userData;U.b=b;
-  const wm=new THREE.MeshToonMaterial({color:'#f1f3ff',gradientMap:grad,transparent:true,opacity:.93});U.wm=wm;
-  const pts=[];for(let i=0;i<=18;i++){const t=i/18,y=1.35-t*2.7,r=t<.42?Math.sin(t/.42*Math.PI/2)*1.08:1.08-(t-.42)*.9;pts.push(new THREE.Vector2(Math.max(.02,r),y))}
-  const body=new THREE.Mesh(new THREE.LatheGeometry(pts,26),wm);b.add(body);outline(body,1.04);
-  U.tail=[0,1,2,3,4,5,6,7].map(i=>{const a=i/8*Math.PI*2;const m=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),wm);m.position.set(Math.cos(a)*.62,-1.3,Math.sin(a)*.62);b.add(m);return m});
-  const halo=new THREE.Mesh(new THREE.SphereGeometry(1.5,18,14),new THREE.MeshBasicMaterial({color:'#b2f2bb',transparent:true,opacity:.18,depthWrite:false}));halo.position.y=.2;b.add(halo);U.halo=halo;
-  U.eyes=[-1,1].map(q=>{const e=mk(new THREE.SphereGeometry(.26,14,10),'#ffffff',q*.34,.55,.9,b);e.scale.set(1,1.3,.5);const p=new THREE.Mesh(new THREE.SphereGeometry(.11,10,8),new THREE.MeshBasicMaterial({color:INK}));p.position.set(q*.34,.52,1.04);b.add(p);
-    mk(new THREE.TorusGeometry(.3,.04,6,18),INK,q*.34,.55,1.02,b);const br=mk(new THREE.BoxGeometry(.38,.07,.07),INK,q*.34,.95,.98,b);br.rotation.z=q*-.35;return p});
-  mk(new THREE.BoxGeometry(.18,.04,.04),INK,0,.58,1.04,b);
-  const mouth=mk(new THREE.SphereGeometry(.24,12,10),'#5f1a37',0,.02,1.0,b);mouth.scale.set(1.3,.5,.4);U.mouth=mouth;
-  const cap=new THREE.Group();cap.position.set(.1,1.2,0);cap.rotation.z=-.5;b.add(cap);
-  for(let i=0;i<4;i++)mk(new THREE.CylinderGeometry(.62-i*.15,.7-i*.15,.4,16),i%2?'#ffffff':'#e03131',0,.2+i*.4,0,cap);outline(mk(new THREE.SphereGeometry(.2,10,8),'#ffffff',0,1.8,0,cap),1.1);
-  U.hands=[-1,1].map(q=>{const h=new THREE.Group();h.position.set(q*1.05,.05,.1);b.add(h);const m=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),wm);m.position.set(q*.35,-.1,0);h.add(m);return h});
-  U.slippers=[-1,1].map(q=>{const s=slipperMesh();s.position.set(q*.45,-1.75,.2);b.add(s);return s});
+  /* un vrai fantôme en drap : dôme, drap qui s'évase, ourlet en pointes, orbites noires, bouche « Ooo »… et le côté grotesque : langue pendante, bonnet de nuit, pantoufles roses */
+  const wm=new THREE.MeshToonMaterial({color:'#ffffff',emissive:'#8f9ac4',gradientMap:grad});U.wm=wm;
+  const pts=[];for(let i=0;i<=20;i++){const t=i/20,y=1.5-t*2.9,r=t<.35?Math.sin(t/.35*Math.PI/2)*.95:.95+(t-.35)*.55;pts.push(new THREE.Vector2(Math.max(.02,r),y))}
+  pts.reverse();const body=new THREE.Mesh(new THREE.LatheGeometry(pts,28),wm);b.add(body);outline(body,1.035);
+  U.tail=[];for(let i=0;i<12;i++){const a=i/12*Math.PI*2,c=new THREE.Mesh(new THREE.ConeGeometry(.27,.55,6),wm);c.position.set(Math.cos(a)*1.12,-1.62,Math.sin(a)*1.12);c.rotation.x=Math.PI;b.add(c);U.tail.push(c)}
+  const hole=new THREE.MeshBasicMaterial({color:'#12061f'});
+  U.eyes=[[-1,.3,1],[1,.22,1.35]].map(([q,r,sy])=>{const e=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),hole);e.scale.set(1,sy,.35);e.position.set(q*.36,.72,.86);b.add(e);
+    const hl=new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),new THREE.MeshBasicMaterial({color:'#e03131'}));hl.position.set(q*.36,.72,.96);b.add(hl);return hl});
+  const mouth=new THREE.Mesh(new THREE.SphereGeometry(.26,14,10),hole);mouth.scale.set(.85,1.2,.35);mouth.position.set(.05,.08,.93);b.add(mouth);U.mouth=mouth;
+  const tongue=mk(new THREE.SphereGeometry(.16,10,8),'#f06595',.12,-.18,1.02,b);tongue.scale.set(1,1.8,.5);U.tongue=tongue;
+  const cap=new THREE.Group();cap.position.set(.15,1.3,0);cap.rotation.z=-.55;b.add(cap);
+  for(let i=0;i<4;i++)mk(new THREE.CylinderGeometry(.55-i*.13,.62-i*.13,.36,16),i%2?'#ffffff':'#e03131',0,.18+i*.36,0,cap);outline(mk(new THREE.SphereGeometry(.18,10,8),'#ffffff',0,1.6,0,cap),1.1);
+  U.hands=[-1,1].map(q=>{const h=new THREE.Group();h.position.set(q*.95,.15,.05);b.add(h);const f=new THREE.Mesh(new THREE.SphereGeometry(.3,12,8),wm);f.scale.set(2,.75,.7);f.rotation.z=q*-.5;f.position.set(q*.45,-.15,0);h.add(f);return h});
+  U.slippers=[-1,1].map(q=>{const s=slipperMesh();s.position.set(q*.45,-2.05,.2);b.add(s);return s});
   return g}
 function flyMesh(it){const g=new THREE.Group(),b=new THREE.Group();g.add(b);g.userData.b=b;
   if(it.doc){outline(mk(new THREE.BoxGeometry(.8,.06,1),'#ffffff',0,0,0,b),1.1);[-.25,0,.25].forEach(z=>mk(new THREE.BoxGeometry(.6,.07,.05),'#4dabf7',0,0,z,b))}
@@ -777,7 +1003,7 @@ function catch3D(n,cfg){return new Promise(res=>{
   const bag=new THREE.Mesh(new THREE.ConeGeometry(.95,1,14,1,true),new THREE.MeshBasicMaterial({color:'#ffffff',wireframe:true}));bag.position.y=-.5;bag.rotation.x=Math.PI;net.add(bag);
   const docs=cfg.docs.map(d=>({...d,doc:1})),seq=shuffle([...docs.slice(0,-1),...cfg.junk.map(j=>({...j}))]);seq.push(docs[docs.length-1]);
   const ND=docs.length;let got=0,yuck=0,bonk=0,k=0,next=1.4,tx=0,dx=0,stun=0,done=false,t=0,gulp=0,slipT=7,tele=0,wx=0,wy=2.3;const air=[],slips=[];
-  const status=()=>pmsg(`Documents attrapés : <b>${got} / ${ND}</b> · beurk : <b>${yuck}</b> · pantoufles reçues : <b>${bonk}</b>`);
+  const status=()=>{pmsg(`Documents : <b>${got} / ${ND}</b><br>Beurk : <b>${yuck}</b><br>Pantoufles : <b>${bonk}</b>`);$('#pmsg').classList.add('corner')};
   R.onMove=e=>{const p=planeAt(e,CY);if(p)tx=Math.max(-XM,Math.min(XM,p.x-NX))};
   function throwOne(){const it=seq[k++],m=flyMesh(it),p0=ghost.position.clone().add(V(0,-.3,.8));m.position.copy(p0);R.stage.add(m);
     air.push({it,m,p0,p1:V(rand(-XM,XM)+NX*.5,CY,CZ),q:0,dur:Math.max(1.2,2.1-k*.05),h:rand(2,3.5),fly:1});G.laugh=.7}
@@ -797,10 +1023,10 @@ function catch3D(n,cfg){return new Promise(res=>{
     else{if(Math.abs(ghost.position.x-wx)<.3||Math.random()<dt*.2)wx=rand(-6.5,6.5);ghost.position.x+=(wx-ghost.position.x)*Math.min(1,dt*1.4);if(Math.random()<dt*.07&&t>4)teleport()}
     wy=2.3+Math.sin(t*3)*.35+(G.wind>0?.5:0);ghost.position.y+=(wy-ghost.position.y)*Math.min(1,dt*5);
     G.b.rotation.z=Math.sin(t*2.1)*.12-(wx-ghost.position.x)*.05;G.b.rotation.y=(G.wind>0?G.wind*15:0)+Math.sin(t*1.3)*.25;
-    G.tail.forEach((m,i)=>{m.position.y=-1.3+Math.sin(t*6+i)*.12});G.halo.material.opacity=.14+Math.sin(t*4)*.06;
+    G.tail.forEach((m,i)=>{m.position.y=-1.62+Math.sin(t*6+i)*.1;m.rotation.z=Math.sin(t*4+i)*.25});
     G.hands.forEach((h,i)=>h.rotation.z=Math.sin(t*5+i*Math.PI)*.5+(G.laugh>0?(i?-1:1)*.6:0));
-    const ex=Math.max(-1,Math.min(1,(dx-ghost.position.x)/6));G.eyes.forEach((p,i)=>{p.position.x=(i?.34:-.34)+ex*.1;p.position.y=.48});
-    const lg=G.laugh>0;if(lg)G.laugh-=dt;hou.visible=lg;G.mouth.scale.y=lg?.5+Math.abs(Math.sin(t*20))*.9:.5;if(lg)G.b.position.y=Math.abs(Math.sin(t*25))*.08;G.wind=Math.max(0,(G.wind||0)-dt);
+    const ex=Math.max(-1,Math.min(1,(dx-ghost.position.x)/6));G.eyes.forEach((p,i)=>{p.position.x=(i?.36:-.36)+ex*.08;p.position.y=.72+Math.sin(t*7+i)*.03});G.tongue.rotation.z=Math.sin(t*6)*.3;
+    const lg=G.laugh>0;if(lg)G.laugh-=dt;hou.visible=lg;G.mouth.scale.y=lg?1.2+Math.abs(Math.sin(t*20))*.9:1.2;if(lg)G.b.position.y=Math.abs(Math.sin(t*25))*.08;G.wind=Math.max(0,(G.wind||0)-dt);
     next-=dt;if(k<seq.length&&next<=0){throwOne();if(k>5&&k<seq.length-1&&Math.random()<.35)throwOne();next=Math.max(.75,1.8-k*.06)}
     slipT-=dt;if(slipT<=0&&k<seq.length){slipT=rand(3.5,6);throwSlipper()}
     if(KEYS.L)tx-=13*dt;if(KEYS.R)tx+=13*dt;tx=Math.max(-XM,Math.min(XM,tx));
@@ -973,6 +1199,7 @@ const CAUSES={
  risques:{drop:{t:'RISQUE NON IDENTIFIÉ',c:'#ff6b6b'},why:'percuté par un risque qu’il n’avait pas vu venir.',moral:'Un risque mal classé est un risque mal traité (§6.1.2).'},
  support:{drop:{t:'PREUVES MANQUANTES',c:'#cc5de8'},why:'enseveli sous les preuves qui manquaient.',moral:'Sans compétences ni preuves documentées (§7), rien ne tient.'},
  audit:{drop:{t:'RAPPORT : 47 ÉCARTS',c:'#ff922b'},why:'écrasé par un rapport d’audit.',moral:'Mieux vaut trouver ses écarts avant l’auditeur (§9.2).'},
+ evac:{drop:{t:'COSTUME DE GÉANT',c:'#9775fa'},why:'piétiné par un PDG déguisé en géant pendant l’exercice d’évacuation.',moral:'Un exercice d’urgence se prépare : itinéraire dégagé, guides-files, point de rassemblement connu de tous (§8.2).'},
  correct:{drop:{t:'ARBRE DES CAUSES',c:'#40c057'},why:'tombé sous un (vrai) arbre des causes.',moral:'Sans analyse des causes, l’accident recommence (§10.2).'}
 };
 async function killDylan(W,body,drop){
@@ -1603,6 +1830,8 @@ RUN[1]=async()=>{
    {w:'dylan',t:'Monsieur Lefauconnier, la politique SST est prête. Il me faut votre signature, et surtout votre engagement.'},
    {w:'ceo',t:'Mon engagement ? Assieds-toi, petit. Convaincs-moi.'}]);
   await trial(1,()=>battle(1),CAUSES.ceo);
+  await say('boulon','Aurelien a signé… puis il a filé au vestiaire. On entend un grand BOUM dans l’avenue de l’usine.');
+  await trial(1,async()=>(await run3D(1,{len:620,hint:'Exercice d’évacuation grandeur nature ! J’ai loué un costume de géant pour tester votre plan d’urgence ! Dylan, montre l’exemple : cours jusqu’au point de rassemblement et guide au passage tes collègues paniqués. Change de voie, saute les caisses, les flammes et les trappes, glisse sous les poutres. Et gare à mes caisses : le cercle rouge montre où elles tombent !',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac);
   await runScript(1,[
    {w:'ceo',q:'Et qui est responsable de la sécurité dans les ateliers, alors ?',opts:[
     {t:'Chaque manager a des responsabilités SST écrites et connues de son équipe. Vous gardez la responsabilité finale.',d:6,fb:'§5.3 : rôles, responsabilités et autorités attribués et communiqués à tous les niveaux.'},
@@ -1635,6 +1864,12 @@ RUN[2]=async()=>{
     {a:'Riveteuses 95 dB',b:'Capotage des machines',fb:'On réduit le bruit à la source avant de distribuer des bouchons.'},
     {a:'Chariot dans l’allée',b:'Allées piétonnes séparées',fb:'Séparer les flux piétons et engins : protection collective, organisation du site.'},
     {a:'Charges de 25 kg',b:'Aide à la manutention',fb:'Un palan ou un chariot adapté supprime le port de charges lourdes.'}]}))>=.5,CAUSES.risques);
+  await trial(2,async()=>(await feast3D(2,{time:60,spawn:[.7,1.1],hint:'À table pour le festin des mesures ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. L’imprimante les fait voler au-dessus de nos têtes et elles retombent dans nos assiettes. Tamponne les bonnes (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1 : plus c’est haut, plus c’est long à tamponner) et refile les fausses bonnes idées (−2) à tes voisins. Méfie-toi : on te refilera les nôtres, et on a les bras longs. Tape-nous sur les doigts ! Termine dans les deux premiers.',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
+   items:[{t:'Supprimer le solvant',h:0},{t:'Supprimer le port de charges',h:0},{t:'Peinture à l’eau',h:1},{t:'Riveteuse silencieuse',h:1},
+    {t:'Garde-corps',h:2},{t:'Aspiration à la source',h:2},{t:'Capotage',h:2},{t:'Filet sous la nacelle',h:2},
+    {t:'Allées séparées',h:3},{t:'Rotation des postes',h:3},{t:'Formation nacelle',h:3},
+    {t:'Casque',h:4},{t:'Bouchons d’oreille',h:4},{t:'Gants',h:4},{t:'Masque',h:4},
+    {t:'Affiche « Soyez prudents »',h:5},{t:'Prime zéro accident',h:5},{t:'Masque périmé',h:5}]}))>=.5,CAUSES.risques);
   await runScript(2,[{w:'karim',q:'Bon. Et ton objectif pour l’année ?',opts:[
     {t:'Réduire de 50 % l’exposition aux solvants en cabine d’ici juin 2027, mesurée tous les trimestres. Pilotes : Mathilde et moi.',d:8,fb:'§6.2 : un objectif cohérent avec la politique, mesurable, suivi, avec responsable et échéance.'},
     {t:'Zéro accident, pour toujours.',d:-6,fb:'Un slogan, pas un objectif : ni moyens, ni date, et ça pousse à cacher les accidents.'},
