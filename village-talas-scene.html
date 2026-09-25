@@ -608,41 +608,42 @@ function junkMesh(j){const g=new THREE.Group();
   if(j.s==='ball')outline(mk(new THREE.IcosahedronGeometry(.4,0),j.c,0,0,0,g),1.1);
   return g}
 function throw3D(n,cfg){return new Promise(res=>{
-  keyHelp('lancer');const R=cur;R.clear();const items=cfg.items,N=items.length,G=18,BIN_Y=1.5,BIN_R=1.12,home=V(0,1.1,2.4);
-  const bin=new THREE.Group();{/* corbeille grillagée : on voit à travers, et donc où tombe le déchet */
-    const gt=ctex(64,64,(x,w,h)=>{x.clearRect(0,0,w,h);x.strokeStyle='#343a40';x.lineWidth=6;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(64,i);x.stroke()}});gt.repeat.set(10,2);
-    const wall=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1,1.5,28,1,true),new THREE.MeshBasicMaterial({map:gt,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));wall.position.y=.75;bin.add(wall);
-    const rim=mk(new THREE.TorusGeometry(1.25,.08,6,28),'#343a40',0,1.5,0,bin);rim.rotation.x=Math.PI/2;mk(new THREE.CylinderGeometry(1,1,.06,24),'#495057',0,.03,0,bin);
-    const tgt=mk(new THREE.TorusGeometry(.9,.06,6,24),'#ffd43b',0,1.52,0,bin);tgt.rotation.x=Math.PI/2;tgt.castShadow=false}
-  const bl=labelPlane('POUBELLE',2,.6,{bg:'#fffaf0',border:'#868e96',size:90});bl.position.set(0,2.3,0);bin.add(bl);R.stage.add(bin);
+  keyHelp('lancer');const R=cur;R.clear();const items=cfg.items,N=items.length,G=18,BIN_R=.98,home=V(0,1.1,2.4);
+  /* bacs de tri sélectif grillagés : on voit à travers, donc où tombe le déchet */
+  const TRI={papier:{n:'PAPIER',c:'#1c7ed6'},emb:{n:'EMBALLAGES',c:'#f59f00'},om:{n:'ORDURES',c:'#495057'},bio:{n:'BIODÉCHETS',c:'#8d5524'},deee:{n:'DEEE',c:'#e03131'}};
+  const bins=Object.keys(TRI).map((key,i)=>{const t=TRI[key],g=new THREE.Group();g.position.set((i-2)*2.9,0,-3.3);
+    const gt=ctex(64,64,(x,w,h)=>{x.clearRect(0,0,w,h);x.strokeStyle=t.c;x.lineWidth=7;for(let q=0;q<=64;q+=16){x.beginPath();x.moveTo(q,0);x.lineTo(q,64);x.stroke();x.beginPath();x.moveTo(0,q);x.lineTo(64,q);x.stroke()}});gt.repeat.set(8,2);
+    const wall=new THREE.Mesh(new THREE.CylinderGeometry(1.05,.85,1.4,26,1,true),new THREE.MeshBasicMaterial({map:gt,transparent:true,alphaTest:.3,side:THREE.DoubleSide}));wall.position.y=.7;g.add(wall);
+    const rim=outline(mk(new THREE.TorusGeometry(1.05,.1,6,26),t.c,0,1.4,0,g),1.1);rim.rotation.x=Math.PI/2;mk(new THREE.CylinderGeometry(.85,.85,.08,22),t.c,0,.04,0,g);
+    const l=labelPlane(t.n,2.2,.55,{bg:'#fffaf0',border:t.c,size:90});l.position.set(0,2.15,0);g.add(l);R.stage.add(g);return {key,g,t}});
+  const BIN_Y2=1.4;
   const dots=[];for(let i=0;i<16;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.09,6,5),new THREE.MeshBasicMaterial({color:'#ffffff'}));d.visible=false;R.stage.add(d);dots.push(d)}
-  const binAt=[[0,-3.2],[-4.5,-2.4],[4.5,-3.6],[0,-4],[0,-3],[0,-3.8],[0,-3.4],[0,-4],[0,-3],[0,-3.6]];
   let k=0,tries=0,hits=0,obj=null,vel=null,aim=null,flying=false;
   function spawn(){const j=items[k];obj=junkMesh(j);obj.position.copy(home);R.stage.add(obj);
     const l=labelPlane(j.t,2.2,.55,{bg:'#fffaf0',border:j.c,size:80});l.position.y=.9;obj.add(l);obj.userData.l=l;flying=false;
     const ring=mk(new THREE.TorusGeometry(.6,.06,6,24),'#ffe066',0,-1.05,0,obj);ring.rotation.x=Math.PI/2;ring.castShadow=false;obj.userData.ring=ring;
-    [-.13,.13].forEach(x=>{mk(new THREE.SphereGeometry(.09,10,8),'#ffffff',x,.12,.36,obj);const p=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:INK}));p.position.set(x,.12,.44);obj.add(p)});
-    const [bx,bz]=binAt[k%binAt.length];bin.userData.move=k>=3;bin.position.set(bx,0,bz)}
+    [-.13,.13].forEach(x=>{mk(new THREE.SphereGeometry(.09,10,8),'#ffffff',x,.12,.36,obj);const p=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:INK}));p.position.set(x,.12,.44);obj.add(p)});}
   function velFrom(e){const r=cv.getBoundingClientRect(),nx=(e.clientX-aim.x)/r.height,ny=Math.max(0,Math.min(.55,(e.clientY-aim.y)/r.height));return V(-nx*16,4+ny*11,-ny*20)}
   function preview(v){const p=home.clone(),w=v.clone();dots.forEach(d=>{for(let s=0;s<3;s++){w.y-=G*.02;p.addScaledVector(w,.02)}d.position.copy(p);d.visible=p.y>0})}
   R.onDown=e=>{if(obj&&!flying)aim={x:e.clientX,y:e.clientY}};
   R.onMove=e=>{if(aim)preview(velFrom(e))};
   R.onUp=e=>{if(!aim)return;const v=velFrom(e);aim=null;dots.forEach(d=>d.visible=false);if(v.z>-1.5)return;vel=v;flying=true;obj.remove(obj.userData.l);obj.remove(obj.userData.ring)};
-  R.extra=(dt,T)=>{if(bin.userData.move)bin.position.x=Math.sin(T*(k>=7?1.3:k>=5?1:.7))*3.5;
+  R.extra=(dt,T)=>{bins.forEach((b,i)=>{b.g.children[0].rotation.y=Math.sin(T+i)*.05});
     if(!flying){if(obj&&!aim){const h=Math.abs(Math.sin(T*4));obj.position.y=home.y+h*.2;obj.rotation.y=Math.sin(T*2.5)*.35;obj.scale.set(1+(1-h)*.08,1-(1-h)*.08,1);const r=obj.userData.ring;if(r){r.position.y=-1.05-h*.2;r.scale.setScalar(1+.15*Math.sin(T*5))}}return}
     const y0=obj.position.y;vel.y-=G*dt;obj.position.addScaledVector(vel,dt);obj.rotation.x+=dt*8;obj.rotation.z+=dt*5;
-    if(vel.y<0&&y0>=BIN_Y&&obj.position.y<BIN_Y&&Math.hypot(obj.position.x-bin.position.x,obj.position.z-bin.position.z)<BIN_R){flying=false;land(true)}
-    else if(obj.position.y<=.25){flying=false;land(false)}};
-  async function land(ok){const o=obj;obj=null;tries++;pts(n,ok);const it=items[k],nb=k<N-1?'Déchet suivant':'Terminer';
-    if(ok){hits++;R.stage.remove(o);R.fx.burst(bin.position.clone().add(V(0,2,0)));boulonJump();
-      await say('boulon',`<b>Panier !</b> Sous ${it.t.toLowerCase()}, un document utile : ${it.doc}`,{btns:[{t:nb,go:1}],cls:'good'});next();return}
-    boulonShake();tween(.5,q=>o.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(o));
-    if(tries<3){say('boulon',`<b>Raté !</b> Encore ${3-tries} essai${3-tries>1?'s':''}. Tire plus ou moins loin vers le bas pour régler la force.`,{btns:[],cls:'bad'});await wait(600);spawn()}
+    let hitB=null;if(vel.y<0&&y0>=BIN_Y2&&obj.position.y<BIN_Y2)hitB=bins.find(b=>Math.hypot(obj.position.x-b.g.position.x,obj.position.z-b.g.position.z)<BIN_R);
+    if(hitB){flying=false;land(hitB)}else if(obj.position.y<=.25){flying=false;land(null)}};
+  async function land(b){const o=obj;obj=null;tries++;const it=items[k],ok=!!b&&b.key===it.bin,nb=k<N-1?'Déchet suivant':'Terminer';pts(n,ok);
+    if(ok){hits++;R.stage.remove(o);R.fx.burst(b.g.position.clone().add(V(0,2,0)));boulonJump();
+      await say('boulon',`<b>Bien trié : bac ${b.t.n.toLowerCase()} !</b> ${it.why}<br>Sous ${it.t.toLowerCase()}, un document utile : ${it.doc}`,{btns:[{t:nb,go:1}],cls:'good'});next();return}
+    boulonShake();if(b)R.fx.burst(b.g.position.clone().add(V(0,2,0)),6);tween(.5,q=>o.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(o));
+    const why=b?`<b>Mauvais bac : ${b.t.n.toLowerCase()} !</b> ${it.t} va dans le bac <b>${TRI[it.bin].n.toLowerCase()}</b>.`:'<b>Raté, à côté des bacs !</b>';
+    if(tries<3){say('boulon',`${why} Encore ${3-tries} essai${3-tries>1?'s':''}.`,{btns:[],cls:'bad'});await wait(1400);spawn()}
     else{await say('boulon',`<b>Raté trois fois.</b> Boulon le ramasse à ta place. Dessous : ${it.doc}`,{btns:[{t:nb,go:1}],cls:'bad'});next()}}
-  function next(){k++;tries=0;if(k<N){say('boulon',`Déchet ${k+1} / ${N}${k===3?' : attention, la poubelle bouge !':''}`,{btns:[]});spawn();return}
+  function next(){k++;tries=0;if(k<N){say('boulon',`Déchet ${k+1} / ${N} : ${items[k].t}. Quel bac ?`,{btns:[]});spawn();return}
     keyHelp();R.onDown=R.onMove=R.onUp=R.extra=null;const r=hits/N;cdi(r>=.85?8:r>=.6?2:-6);
-    say('boulon',`<b>${hits} déchets sur ${N} dans la poubelle !</b> ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
-  say('boulon',cfg.hint,{btns:[{t:'C’est parti !',go:1}]}).then(()=>{say('boulon',`Déchet 1 / ${N}`,{btns:[]});spawn()});
+    say('boulon',`<b>${hits} déchets sur ${N} bien triés !</b> ${cfg.after||''}`,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
+  say('boulon',cfg.hint,{btns:[{t:'C’est parti !',go:1}]}).then(()=>{say('boulon',`Déchet 1 / ${N} : ${items[0].t}. Quel bac ?`,{btns:[]});spawn()});
 })}
 
 /* ================= MINI-JEU : LES TUYAUX (casse-tête de rotation) ================= */
@@ -1335,18 +1336,18 @@ RUN[0]=async()=>{
    {w:'dylan',t:'Avant la politique, il me faut le contexte : les enjeux, les parties intéressées, les obligations légales. Une partie de ce bazar va me servir.'},
    {w:'boulon',t:'Bzzz ! §4.1 et §4.2 : on commence par comprendre l’entreprise et ce que les travailleurs et les autres parties intéressées attendent. C’est l’entrée de tout le système !'}
   ]);
-  await trial(0,async()=>(await throw3D(0,{hint:'Le bureau déborde ! Vide-le comme avec un lance-pierre : appuie sur la scène, tire vers le bas pour viser (les points blancs montrent la trajectoire), relâche pour lancer. Sous chaque déchet se cache un document utile.',after:'Tous ces documents forment le dossier Contexte (§4) : il nourrit la politique et l’évaluation des risques.',
+  await trial(0,async()=>(await throw3D(0,{hint:'Le bureau déborde ! Trie chaque déchet dans le bon bac : papier (bleu), emballages (jaune), ordures ménagères (gris), biodéchets (marron), DEEE (rouge). Lance comme avec un lance-pierre : appuie, tire vers le bas en visant (les points blancs montrent la trajectoire), relâche. Sous chaque déchet se cache un document utile.',after:'Tous ces documents forment le dossier Contexte (§4) : il nourrit la politique et l’évaluation des risques.',
    items:[
-    {t:'Tasse moisie',c:'#f8f9fa',s:'cup',doc:'<b>Rapport annuel</b> : cadence A320 doublée en 2027. Enjeu interne : plus d’intérim, plus de fatigue (§4.1).'},
-    {t:'Flyer pizza',c:'#ff922b',s:'flat',doc:'<b>Courrier d’Airbus</b> : exigences SST pour les fournisseurs. Partie intéressée externe (§4.2).'},
-    {t:'Magazine auto',c:'#4dabf7',s:'flat',doc:'<b>PV du CSE</b> : plainte sur le bruit des riveteuses. Attentes des travailleurs (§4.2).'},
-    {t:'Chargeur cassé',c:'#495057',s:'box',doc:'<b>Registre des accidents</b> : 14 accidents avec arrêt en 2025, donnée d’entrée de l’évaluation des risques.'},
-    {t:'Gobelet sale',c:'#e03131',s:'cup',doc:'<b>Arrêté ICPE</b> de la cabine peinture : exigence légale à suivre (§6.1.3).'},
-    {t:'Canette écrasée',c:'#51cf66',s:'cup',doc:'<b>Enquête du CSE sur le travail de nuit</b> : 60 % des opérateurs signalent de la fatigue (§4.2).'},
-    {t:'Vieux sandwich',c:'#fcc419',s:'flat',doc:'<b>Contrat avec l’agence d’intérim</b> : 40 intérimaires prévus en 2027. Enjeu interne (§4.1).'},
-    {t:'Stylo mâchouillé',c:'#4dabf7',s:'box',doc:'<b>Fiche de données de sécurité du solvant</b> : produit CMR, exigences légales associées (§6.1.3).'},
-    {t:'Ticket de parking',c:'#ced4da',s:'flat',doc:'<b>Plan de circulation du site</b> : piétons et chariots se croisent. Un enjeu à traiter (§4.1).'},
-    {t:'Boule de papier',c:'#fff3bf',s:'ball',doc:'<b>« POLITIQUE SST, brouillon 2019 »</b>. La voilà enfin !'}]}))>=.5,CAUSES.bureau);
+    {t:'Tasse moisie',bin:'om',why:'La céramique cassée ne se recycle pas avec le verre : ordures ménagères.',c:'#f8f9fa',s:'cup',doc:'<b>Rapport annuel</b> : cadence A320 doublée en 2027. Enjeu interne : plus d’intérim, plus de fatigue (§4.1).'},
+    {t:'Flyer pizza',bin:'papier',why:'Tous les papiers se trient, même les prospectus.',c:'#ff922b',s:'flat',doc:'<b>Courrier d’Airbus</b> : exigences SST pour les fournisseurs. Partie intéressée externe (§4.2).'},
+    {t:'Magazine auto',bin:'papier',why:'Magazines et journaux vont au papier.',c:'#4dabf7',s:'flat',doc:'<b>PV du CSE</b> : plainte sur le bruit des riveteuses. Attentes des travailleurs (§4.2).'},
+    {t:'Chargeur cassé',bin:'deee',why:'Tout ce qui a une prise ou une pile est un DEEE : collecte spécifique.',c:'#495057',s:'box',doc:'<b>Registre des accidents</b> : 14 accidents avec arrêt en 2025, donnée d’entrée de l’évaluation des risques.'},
+    {t:'Pot de yaourt',bin:'emb',why:'Depuis 2023, tous les emballages plastiques vont au bac jaune.',c:'#f8f9fa',s:'cup',doc:'<b>Arrêté ICPE</b> de la cabine peinture : exigence légale à suivre (§6.1.3).'},
+    {t:'Canette écrasée',bin:'emb',why:'Métal d’emballage : bac jaune.',c:'#51cf66',s:'cup',doc:'<b>Enquête du CSE sur le travail de nuit</b> : 60 % des opérateurs signalent de la fatigue (§4.2).'},
+    {t:'Vieux sandwich',bin:'bio',why:'Les restes alimentaires vont aux biodéchets.',c:'#fcc419',s:'flat',doc:'<b>Contrat avec l’agence d’intérim</b> : 40 intérimaires prévus en 2027. Enjeu interne (§4.1).'},
+    {t:'Stylo mâchouillé',bin:'om',why:'Les stylos ne se recyclent pas dans les bacs classiques.',c:'#4dabf7',s:'box',doc:'<b>Fiche de données de sécurité du solvant</b> : produit CMR, exigences légales associées (§6.1.3).'},
+    {t:'Ticket de parking',bin:'om',why:'Papier thermique : non recyclable, ordures ménagères.',c:'#ced4da',s:'flat',doc:'<b>Plan de circulation du site</b> : piétons et chariots se croisent. Un enjeu à traiter (§4.1).'},
+    {t:'Boule de papier',bin:'papier',why:'Papier froissé, papier quand même.',c:'#fff3bf',s:'ball',doc:'<b>« POLITIQUE SST, brouillon 2019 »</b>. La voilà enfin !'}]}))>=.5,CAUSES.bureau);
   await runScript(0,[
    {w:'nar',t:'Huit phrases dans ce brouillon… dont une vraie bombe.'},
    {w:'boulon',q:'La politique doit contenir des engagements précis (§5.2). Quelle phrase faut-il absolument rayer ?',opts:[
