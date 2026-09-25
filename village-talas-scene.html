@@ -163,7 +163,7 @@ function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.c
 const CH=[
  {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le fantôme en pantoufles'},
  {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG'},
- {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux du plan d’actions'},
+ {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et la course aux mesures'},
  {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le karaoké sécurité'},
  {cl:'§8',t:'Réalisation',sub:'L’usine à peinture',g:'L’échafaudage'},
  {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'Le polygraphe de Lorette'},
@@ -207,6 +207,7 @@ const KEYHELP={
  attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
  karaoke:`<span>${K('Q')} piste gauche</span><span>${K('S')} piste du milieu</span><span>${K('D')} piste droite</span><span>(flèches aussi)</span>`,
  poly:`<span>Clic sur un menteur : tampon ÉCART</span><span>Les nez qui s’allongent mentent</span>`,
+ course:`<span>${K('Z')}${K('Q')}${K('S')}${K('D')} ou clic : courir</span><span>${K('Espace')} : bousculer et reprendre une mesure</span>`,
  operation:`<span>Clic maintenu sur une cause</span><span>Glisser dans le couloir jusqu’au rond vert</span>`};
 function keyHelp(k){const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
 
@@ -742,6 +743,73 @@ function shake(){const fr=$('#frame');fr.classList.remove('shake');void fr.offse
 function homeDylan(R){const d=R.dylan;d.position.set(7.8,0,-4.4);d.rotation.set(0,-.5,0);animPerson(d,'idle',0)}
 function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
   return say(who,text,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
+
+/* ================= MINI-JEU : LA COURSE AUX MESURES (jeu de fête à 4, façon Astérix Mega Madness) =================
+   Dylan contre trois collègues pilotés par l'ordinateur. Plus une mesure est haute dans la hiérarchie (§8.1.2), plus elle rapporte.
+   Les bots foncent sur les meilleures mesures et volent celles de Dylan ; Dylan peut les bousculer pour les reprendre. */
+const HIER=[{n:'Élimination',v:5,c:'#2f9e44'},{n:'Substitution',v:4,c:'#1c7ed6'},{n:'Protection collective',v:3,c:'#7048e8'},{n:'Organisation',v:2,c:'#f59f00'},{n:'EPI',v:1,c:'#e8590c'},{n:'Fausse bonne idée',v:-2,c:'#868e96'}];
+function race3D(n,cfg){return new Promise(res=>{
+  keyHelp('course');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;const XM=8.2,Z0=-4.4,Z1=3.4;
+  const rm=document.createElement('div');rm.className='win';rm.style.cssText='position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:5;padding:3px 10px;max-width:62%;text-align:center;font-size:13px';rm.hidden=true;$('#frame').append(rm);
+  let rmT=0;const say2=(h,d=2.2)=>{rm.innerHTML=h;rm.hidden=false;rmT=d};
+  mk(new THREE.BoxGeometry(2*XM+1,.1,Z1-Z0+1),'#dee2e6',0,.02,(Z0+Z1)/2,R.stage).receiveShadow=true;
+  [[0,Z0-.5,2*XM+1.4,.3],[0,Z1+.5,2*XM+1.4,.3],[-XM-.55,(Z0+Z1)/2,.3,Z1-Z0+1.3],[XM+.55,(Z0+Z1)/2,.3,Z1-Z0+1.3]].forEach(([x,z,w,d])=>mk(new THREE.BoxGeometry(w,.5,d),'#fab005',x,.25,z,R.stage));
+  const P=[{k:'dylan',n:'Dylan',m:R.dylan,x:0,z:1.5,sp:6.4,c:'#4dabf7'},
+    {k:'karim',n:'Mathieu',m:makePerson({shirt:'#ffa94d',pants:'#495057',hat:'#f8f9fa',scale:.8}),x:-5,z:-2.5,sp:4.2,c:'#ffa94d',style:'chef',excuse:'Allô ? Oui, la cadence…'},
+    {k:'sabrina',n:'Neila',m:makePerson({shirt:'#f783ac',pants:'#364fc7',scale:.8}),x:5,z:-2.5,sp:4.4,c:'#f783ac',style:'voleuse',excuse:'Tu as vu mes nouvelles chaussures ?'},
+    {k:'eliott',n:'Eliott',m:makePerson({shirt:'#b197fc',pants:'#343a40',hat:'#2f9e44',scale:.8}),x:0,z:-3.6,sp:4.8,c:'#9775fa',style:'brouillon',excuse:'Attends, je refais mon lacet.'}];
+  P.forEach((p,i)=>{if(i)R.stage.add(p.m);p.m.position.set(p.x,0,p.z);p.bag=[];p.stun=0;p.cd=0;p.vx=0;p.vz=0;p.dash=0;p.dcd=0;p.tgt=null;
+    p.tag=labelPlane(p.n+' : 0',2.4,.5,{bg:'#fffaf0',border:p.c,size:80});R.stage.add(p.tag);p.pile=new THREE.Group();R.stage.add(p.pile)});
+  const me=P[0],bots=P.slice(1),items=[];let t=0,spawnT=.5,done=false,mx=null,mz=null,jPrev=0;
+  const score=p=>p.bag.reduce((a,b)=>a+b.v,0);
+  const board=()=>{pmsg(P.map(p=>`<span style="color:${p===me?'#1864ab':'inherit'}">${p.n} : <b>${score(p)}</b></span>`).join('<br>')+`<br>Temps : <b>${Math.max(0,Math.ceil(cfg.time-t))}</b> s`);$('#pmsg').classList.add('corner')};
+  function refresh(p){p.tag.userData.relabel(p.n+' : '+score(p),{bg:'#fffaf0',border:p.c,size:80});while(p.pile.children.length)p.pile.remove(p.pile.children[0]);
+    p.bag.slice(-6).forEach((b,i)=>outline(mk(new THREE.BoxGeometry(.5,.22,.5),HIER[b.h].c,0,i*.24,0,p.pile),1.08))}
+  function spawn(){const pool=cfg.items.filter(it=>!items.some(o=>o.it===it));if(!pool.length)return;const it=pool[Math.floor(Math.random()*pool.length)];
+    const g=new THREE.Group();let x,z,k=0;do{x=rand(-XM+.8,XM-.8);z=rand(Z0+.6,Z1-.6);k++}while(k<20&&P.some(p=>Math.hypot(p.x-x,p.z-z)<2));g.position.set(x,0,z);R.stage.add(g);
+    const H=HIER[it.h];outline(mk(new THREE.CylinderGeometry(.55,.55,.25,16),H.c,0,.3,0,g),1.08);
+    const l=labelPlane(`${it.t} (${H.v>0?'+':''}${H.v})`,3.4,.75,{bg:'#fffaf0',border:H.c,size:90});l.position.y=1.2;g.add(l);
+    items.push({it,g,x,z,life:cfg.life||9,v:H.v,h:it.h});g.scale.setScalar(.01);tween(.3,q=>g.scale.setScalar(Math.max(.01,q)),E.back)}
+  function grab(p,o){items.splice(items.indexOf(o),1);R.stage.remove(o.g);p.bag.push({v:o.v,h:o.h,t:o.it.t});refresh(p);R.fx.burst(V(o.x,1,o.z),o.v>0?8:4);
+    if(p===me){pts(n,o.v>0);beep(o.v>0?600+o.v*90:120,.12,o.v>0?'square':'sawtooth');say2(o.v>0?`<b>+${o.v} : ${o.it.t}</b> (${HIER[o.h].n})`:`<b>${o.v} : ${o.it.t}</b>, une fausse bonne idée !`,1.8);if(o.v<0){me.stun=.8;boulonShake()}}
+    else if(o.v>=4)say2(`<b>${p.n}</b> te rafle « ${o.it.t} » (+${o.v}) !`,1.8)}
+  function steal(from,to){const b=from.bag.pop();if(!b)return;to.bag.push(b);refresh(from);refresh(to);R.fx.burst(V(from.x,2.2,from.z),6);
+    if(from===me){pts(n,false);beep(160,.2,'sawtooth');shake();say2(`<b>${to.n}</b> te pique « ${b.t} » ! Bouscule-le pour la reprendre (${TOUCH?'SAUT':'Espace'}).`,2.4)}
+    else{beep(900,.1);say2(`<b>Reprise !</b> Tu récupères « ${b.t} » à ${from.n}.`,1.8)}}
+  R.onDown=e=>{const p=planeAt(e,0);if(p){mx=p.x;mz=p.z}};R.onMove=e=>{if(e.buttons&&mx!==null){const p=planeAt(e,0);if(p){mx=p.x;mz=p.z}}};
+  function botTarget(b){const choose=()=>{let best=null,bs=-1e9;items.forEach(o=>{const d=Math.hypot(o.x-b.x,o.z-b.z)+.5;let sc;
+      if(b.style==='chef')sc=o.v*2.2-d;else if(b.style==='brouillon')sc=(o.v<0?1.5:o.v)-d*1.4;else sc=o.v*1.5-d;if(o.v<0&&b.style!=='brouillon')sc-=50;if(sc>bs){bs=sc;best=o}});return best};
+    if(b.style==='voleuse'&&me.bag.length>=2&&b.cd<=0)return {x:me.x,z:me.z,chase:1};
+    if(b.style==='chef'&&me.bag.length>=4&&b.cd<=0&&Math.hypot(me.x-b.x,me.z-b.z)<4)return {x:me.x,z:me.z,chase:1};
+    const o=choose();return o?{x:o.x,z:o.z}:{x:Math.sin(t+b.x)*3,z:0}}
+  R.extra=(dt,T)=>{if(done)return;t+=dt;rmT-=dt;if(rmT<=0)rm.hidden=true;
+    spawnT-=dt;if(spawnT<=0&&items.length<(cfg.max||6)){spawn();spawnT=rand(.7,1.3)}
+    for(let i=items.length-1;i>=0;i--){const o=items[i];o.life-=dt;o.g.rotation.y+=dt*1.5;o.g.visible=o.life>2||Math.sin(o.life*20)>0;if(o.life<=0){R.stage.remove(o.g);items.splice(i,1)}}
+    /* Dylan : clavier (ZQSD / flèches) ou clic pour viser une destination */
+    let ix=(KEYS.R?1:0)-(KEYS.L?1:0),iz=(KEYS.D?1:0)-(KEYS.U?1:0);if(ix||iz){mx=null}else if(mx!==null){const dx=mx-me.x,dz=mz-me.z,d=Math.hypot(dx,dz);if(d>.2){ix=dx/d;iz=dz/d}else mx=null}
+    const jp=KEYS.J||KEYS.S;if(jp&&!jPrev&&me.dcd<=0&&me.stun<=0){me.dash=.25;me.dcd=1.1;beep(400,.08,'triangle',.05)}jPrev=jp;
+    P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);p.cd=Math.max(0,p.cd-dt);p.dash=Math.max(0,p.dash-dt);p.dcd=Math.max(0,p.dcd-dt);
+      let ax=0,az=0;if(p===me){const L=Math.hypot(ix,iz)||1;ax=ix/L;az=iz/L;if(!ix&&!iz){ax=az=0}}
+      else if(p.idle>0){p.idle-=dt}else{if(Math.random()<dt*.3){p.idle=rand(.8,1.6);if(Math.hypot(p.x-me.x,p.z-me.z)<5)say2(`<b>${p.n} :</b> « ${p.excuse} »`,1.4)}if(!p.tgt||Math.random()<dt*2)p.tgt=botTarget(p);const dx=p.tgt.x-p.x,dz=p.tgt.z-p.z,d=Math.hypot(dx,dz);if(d>.15){ax=dx/d;az=dz/d}}
+      const sp=p.stun>0?0:p.sp*(p.dash>0?2.6:1);p.vx+=(ax*sp-p.vx)*Math.min(1,dt*10);p.vz+=(az*sp-p.vz)*Math.min(1,dt*10);
+      p.x=Math.max(-XM,Math.min(XM,p.x+p.vx*dt));p.z=Math.max(Z0,Math.min(Z1,p.z+p.vz*dt))});
+    /* collisions entre personnages : on se pousse ; les bots volent, Dylan reprend en bousculant */
+    for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||.01;if(d<.9){const push=(.9-d)/2;a.x-=dx/d*push;a.z-=dz/d*push;b.x+=dx/d*push;b.z+=dz/d*push;
+      const bot=a===me?b:b===me?a:null;
+      if(bot){if(me.dash>0&&bot.stun<=0){bot.stun=1.4;bot.vx=dx/d*(a===me?9:-9);bot.vz=dz/d*(a===me?9:-9);me.dash=0;if(bot.bag.length)steal(bot,me);else say2(`<b>BOUM !</b> ${bot.n} valdingue.`,1.4)}
+        else if(bot.cd<=0&&bot.stun<=0&&me.bag.length&&me.stun<=0){bot.cd=cfg.stealCd||2.6;me.stun=.5;steal(me,bot)}}}}
+    P.forEach(p=>{for(const o of items.slice())if(Math.hypot(o.x-p.x,o.z-p.z)<.85&&p.stun<=0){if(p!==me&&o.v<0&&p.style!=='brouillon')continue;grab(p,o)}
+      p.m.position.set(p.x,0,p.z);const mv=Math.hypot(p.vx,p.vz)>.4;if(mv)p.m.rotation.y=Math.atan2(p.vx,p.vz);
+      animPerson(p.m,p.stun>0?'stun':p.dash>0?'spin':mv?'run':'idle',T+p.x);p.tag.position.set(p.x,3.1,p.z);p.pile.position.set(p.x,2.55,p.z-.1)});
+    if(Math.floor(t*4)!==Math.floor((t-dt)*4))board();
+    if(t>=cfg.time)end()};
+  function end(){if(done)return;done=true;rm.remove();$('#pad').hidden=true;items.forEach(o=>R.stage.remove(o.g));P.forEach(p=>{R.stage.remove(p.tag);R.stage.remove(p.pile);if(p!==me)R.stage.remove(p.m)});
+    const rank=[...P].sort((a,b)=>score(b)-score(a)),pos=rank.indexOf(me)+1,r=[1,.75,.4,.2][pos-1];
+    const lg=me.bag.filter(b=>b.v>=3).length,epi=me.bag.filter(b=>b.v===1).length,bad=me.bag.filter(b=>b.v<0).length;
+    gameEnd(n,r,'karim',`<b>${pos===1?'Tu gagnes la course !':pos+'e sur 4.'}</b> Classement : ${rank.map(p=>`${p.n} ${score(p)}`).join(' · ')}.<br>Dans ton sac : ${lg} mesure${lg>1?'s':''} du haut de la hiérarchie, ${epi} EPI, ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''}. ${cfg.after||''}`,res)}
+  const go=R.extra;R.extra=null;
+  say('karim',cfg.hint,{btns:[{t:'Partez !',go:1}]}).then(()=>{hidePanel();board();say2(TOUCH?'Croix pour courir, SAUT pour bousculer.':'ZQSD ou flèches (ou clic) pour courir, Espace pour bousculer.',3);R.extra=go});
+})}
 
 /* ================= MINI-JEU : LE FANTÔME EN PANTOUFLES (attraper au vol) ================= */
 function slipperMesh(){const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.42,.2,.75),'#f783ac',0,0,0,g),1.1);mk(new THREE.BoxGeometry(.44,.12,.35),'#fcc2d7',0,.13,.12,g);
@@ -1637,6 +1705,12 @@ RUN[2]=async()=>{
     {a:'Riveteuses 95 dB',b:'Capotage des machines',fb:'On réduit le bruit à la source avant de distribuer des bouchons.'},
     {a:'Chariot dans l’allée',b:'Allées piétonnes séparées',fb:'Séparer les flux piétons et engins : protection collective, organisation du site.'},
     {a:'Charges de 25 kg',b:'Aide à la manutention',fb:'Un palan ou un chariot adapté supprime le port de charges lourdes.'}]}))>=.5,CAUSES.risques);
+  await trial(2,async()=>(await race3D(2,{time:60,hint:'Course aux mesures ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. Elles apparaissent dans le hangar : plus elles sont haut dans la hiérarchie, plus elles rapportent (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1). Les fausses bonnes idées font perdre 2 points. Et on va te piquer tes mesures : bouscule-nous pour les reprendre. Termine dans les deux premiers !',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
+   items:[{t:'Supprimer le solvant',h:0},{t:'Supprimer le port de charges',h:0},{t:'Peinture à l’eau',h:1},{t:'Riveteuse silencieuse',h:1},
+    {t:'Garde-corps',h:2},{t:'Aspiration à la source',h:2},{t:'Capotage',h:2},{t:'Filet sous la nacelle',h:2},
+    {t:'Allées séparées',h:3},{t:'Rotation des postes',h:3},{t:'Formation nacelle',h:3},
+    {t:'Casque',h:4},{t:'Bouchons d’oreille',h:4},{t:'Gants',h:4},{t:'Masque',h:4},
+    {t:'Affiche « Soyez prudents »',h:5},{t:'Prime zéro accident',h:5},{t:'Masque périmé',h:5}]}))>=.5,CAUSES.risques);
   await runScript(2,[{w:'karim',q:'Bon. Et ton objectif pour l’année ?',opts:[
     {t:'Réduire de 50 % l’exposition aux solvants en cabine d’ici juin 2027, mesurée tous les trimestres. Pilotes : Mathilde et moi.',d:8,fb:'§6.2 : un objectif cohérent avec la politique, mesurable, suivi, avec responsable et échéance.'},
     {t:'Zéro accident, pour toujours.',d:-6,fb:'Un slogan, pas un objectif : ni moyens, ni date, et ça pousse à cacher les accidents.'},
