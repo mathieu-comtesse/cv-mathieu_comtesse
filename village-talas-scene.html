@@ -88,6 +88,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #phud{position:absolute;left:8px;right:8px;top:36px;z-index:5;display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:space-between;pointer-events:none}
 #phud .win{padding:2px 6px;display:flex;gap:4px;align-items:center}
 #pmsg{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:5;padding:4px 10px;max-width:92%;text-align:center;font-size:14px}
+#pmsg.corner{left:8px;top:56px;transform:none;text-align:left;font-size:12px;line-height:1.35;padding:3px 8px}
 #pad{position:absolute;right:8px;bottom:8px;left:8px;z-index:6;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
 #pad>div{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px;pointer-events:auto}
 #pad button{font:inherit;font-weight:700;font-size:16px;padding:0;text-align:center;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -739,7 +740,7 @@ let AC=null;
 function beep(f,d=.12,type='square',v=.05){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
 function shake(){const fr=$('#frame');fr.classList.remove('shake');void fr.offsetWidth;fr.classList.add('shake')}
 function homeDylan(R){const d=R.dylan;d.position.set(7.8,0,-4.4);d.rotation.set(0,-.5,0);animPerson(d,'idle',0)}
-function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
+function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
   return say(who,text,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
 
 /* ================= MINI-JEU : LE FANTÔME EN PANTOUFLES (attraper au vol) ================= */
@@ -777,7 +778,7 @@ function catch3D(n,cfg){return new Promise(res=>{
   const bag=new THREE.Mesh(new THREE.ConeGeometry(.95,1,14,1,true),new THREE.MeshBasicMaterial({color:'#ffffff',wireframe:true}));bag.position.y=-.5;bag.rotation.x=Math.PI;net.add(bag);
   const docs=cfg.docs.map(d=>({...d,doc:1})),seq=shuffle([...docs.slice(0,-1),...cfg.junk.map(j=>({...j}))]);seq.push(docs[docs.length-1]);
   const ND=docs.length;let got=0,yuck=0,bonk=0,k=0,next=1.4,tx=0,dx=0,stun=0,done=false,t=0,gulp=0,slipT=7,tele=0,wx=0,wy=2.3;const air=[],slips=[];
-  const status=()=>pmsg(`Documents attrapés : <b>${got} / ${ND}</b> · beurk : <b>${yuck}</b> · pantoufles reçues : <b>${bonk}</b>`);
+  const status=()=>{pmsg(`Documents : <b>${got} / ${ND}</b><br>Beurk : <b>${yuck}</b><br>Pantoufles : <b>${bonk}</b>`);$('#pmsg').classList.add('corner')};
   R.onMove=e=>{const p=planeAt(e,CY);if(p)tx=Math.max(-XM,Math.min(XM,p.x-NX))};
   function throwOne(){const it=seq[k++],m=flyMesh(it),p0=ghost.position.clone().add(V(0,-.3,.8));m.position.copy(p0);R.stage.add(m);
     air.push({it,m,p0,p1:V(rand(-XM,XM)+NX*.5,CY,CZ),q:0,dur:Math.max(1.2,2.1-k*.05),h:rand(2,3.5),fly:1});G.laugh=.7}
