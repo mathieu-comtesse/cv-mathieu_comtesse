@@ -163,7 +163,7 @@ function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.c
 const CH=[
  {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le fantôme en pantoufles'},
  {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG'},
- {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et la course aux mesures'},
+ {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et la table des mesures'},
  {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le karaoké sécurité'},
  {cl:'§8',t:'Réalisation',sub:'L’usine à peinture',g:'L’échafaudage'},
  {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'Le polygraphe de Lorette'},
@@ -207,7 +207,7 @@ const KEYHELP={
  attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
  karaoke:`<span>${K('Q')} piste gauche</span><span>${K('S')} piste du milieu</span><span>${K('D')} piste droite</span><span>(flèches aussi)</span>`,
  poly:`<span>Clic sur un menteur : tampon ÉCART</span><span>Les nez qui s’allongent mentent</span>`,
- course:`<span>${K('Z')}${K('Q')}${K('S')}${K('D')} ou clic : courir</span><span>${K('Espace')} : bousculer et reprendre une mesure</span>`,
+ table:`<span>${K('Q')}${K('D')} se pencher</span><span>${K('Espace')} attraper</span><span>${K('S')} taper sur les doigts</span><span>ou clic sur une mesure</span>`,
  operation:`<span>Clic maintenu sur une cause</span><span>Glisser dans le couloir jusqu’au rond vert</span>`};
 function keyHelp(k){const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
 
@@ -407,13 +407,15 @@ function animPerson(p,mode,t){const r=p.userData.rig;if(!r)return;const {pose,hi
   else if(mode==='crouch'){pose.scale.set(1.1,.55,1.1)}
   else{up.scale.y=1+Math.sin(t*3)*.02;shs.forEach((s,i)=>s.rotation.x=Math.sin(t*3+i)*.08)}}
 /* Lorette, l'auditrice : carré roux, frange et lunettes rondes, comme sur son portrait */
-function makeLorette(){const p=makePerson({shirt:'#ff8787',pants:'#495057',scale:.75}),up=p.userData.rig.up,H='#d9480f';
+/* coiffure au carré (Lorette : roux et lunettes ; Neila : longs cheveux bruns) */
+function addHair(p,H,long,glasses){const up=p.userData.rig.up;
   outline(mk(new THREE.SphereGeometry(.7,18,12,0,Math.PI*2,0,Math.PI*.55),H,0,1.9,-.05,up),1.04);
-  [-1,1].forEach(q=>outline(mk(new THREE.SphereGeometry(.32,12,10),H,q*.56,1.5,-.05,up),1.06).scale.set(.75,1.6,1.1));
-  outline(mk(new THREE.SphereGeometry(.62,14,10),H,0,1.6,-.32,up),1.04).scale.set(1.1,1.15,.75);
+  [-1,1].forEach(q=>outline(mk(new THREE.SphereGeometry(.32,12,10),H,q*.56,long?1.3:1.5,-.05,up),1.06).scale.set(.75,long?2.3:1.6,1.1));
+  outline(mk(new THREE.SphereGeometry(.62,14,10),H,0,long?1.35:1.6,-.32,up),1.04).scale.set(1.1,long?1.6:1.15,.75);
   mk(new THREE.BoxGeometry(.95,.2,.3),H,0,2.28,.42,up).rotation.x=-.35;
-  [-1,1].forEach(q=>mk(new THREE.TorusGeometry(.17,.035,6,14),INK,q*.22,1.95,.6,up));mk(new THREE.BoxGeometry(.14,.035,.035),INK,0,1.95,.61,up);
+  if(glasses){[-1,1].forEach(q=>mk(new THREE.TorusGeometry(.17,.035,6,14),INK,q*.22,1.95,.6,up));mk(new THREE.BoxGeometry(.14,.035,.035),INK,0,1.95,.61,up)}
   return p}
+const makeLorette=()=>addHair(makePerson({shirt:'#ff8787',pants:'#495057',scale:.75}),'#d9480f',0,1);
 const makeDylan=()=>makePerson({shirt:'#4dabf7',pants:'#364fc7',hat:'#ffd43b',vest:1,scale:.9});
 const makeCEO=()=>makePerson({shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:1.3});
 
@@ -744,71 +746,104 @@ function homeDylan(R){const d=R.dylan;d.position.set(7.8,0,-4.4);d.rotation.set(
 function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');R.onDown=R.onMove=R.onUp=R.extra=null;R.keys=0;homeDylan(R);cdi(r>=.85?8:r>=.6?2:-6);
   return say(who,text,{btns:[{t:'Continuer',go:1}],cls:r>=.6?'good':'bad'}).then(()=>res(r))}
 
-/* ================= MINI-JEU : LA COURSE AUX MESURES (jeu de fête à 4, façon Astérix Mega Madness) =================
-   Dylan contre trois collègues pilotés par l'ordinateur. Plus une mesure est haute dans la hiérarchie (§8.1.2), plus elle rapporte.
-   Les bots foncent sur les meilleures mesures et volent celles de Dylan ; Dylan peut les bousculer pour les reprendre. */
+/* ================= MINI-JEU : LA TABLE DES MESURES (jeu de fête à 4 façon « Food Feast » d'Astérix Mega Madness) =================
+   Quatre collègues assis au bureau partagé d'un open space. L'imprimante du plan d'actions crache des mesures sur la table.
+   Plus une mesure est haute dans la hiérarchie (§8.1.2), plus elle rapporte. Les bras s'étirent pour piquer la mesure du voisin,
+   ou même le haut de sa pile ; on se défend en tapant sur les doigts. */
 const HIER=[{n:'Élimination',v:5,c:'#2f9e44'},{n:'Substitution',v:4,c:'#1c7ed6'},{n:'Protection collective',v:3,c:'#7048e8'},{n:'Organisation',v:2,c:'#f59f00'},{n:'EPI',v:1,c:'#e8590c'},{n:'Fausse bonne idée',v:-2,c:'#868e96'}];
-function race3D(n,cfg){return new Promise(res=>{
-  keyHelp('course');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;const XM=8.2,Z0=-4.4,Z1=3.4;
+function table3D(n,cfg){return new Promise(res=>{
+  keyHelp('table');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;
+  const X=[-4.5,-1.5,1.5,4.5],TY=1.05,ZS=.55,SC=.85;
+  /* l'open space : moquette, cloisons, tableau blanc, plantes, imprimante */
+  mk(new THREE.BoxGeometry(18,.04,9),'#5c7cfa',0,.03,-1,R.stage).receiveShadow=true;
+  mk(new THREE.BoxGeometry(22,7,.2),'#dbe4ff',0,3.5,-3.3,R.stage);[-6,0,6].forEach(x=>mk(new THREE.BoxGeometry(.12,7,.3),'#adb5bd',x,3.5,-3.2,R.stage));
+  const wb=labelPlane('PLAN D’ACTIONS : À PRENDRE !',5,1,{bg:'#ffffff',border:'#495057',size:70});wb.position.set(-3,3,-3.15);R.stage.add(wb);
+  [-8,8].forEach(x=>{outline(mk(new THREE.CylinderGeometry(.45,.35,.8,12),'#e8590c',x,.4,-2.5,R.stage),1.06);outline(mk(new THREE.SphereGeometry(.8,10,8),'#2f9e44',x,1.5,-2.5,R.stage),1.04)});
+  const pr=new THREE.Group();pr.position.set(3,0,-2.5);R.stage.add(pr);outline(mk(new THREE.BoxGeometry(1.8,1.2,1.2),'#e9ecef',0,.6,0,pr),1.04);mk(new THREE.BoxGeometry(1.2,.08,.6),'#343a40',0,1.22,.2,pr);
+  const pl=labelPlane('IMPRIMANTE DU PLAN',2.2,.45,{bg:'#fff3bf',border:'#495057',size:80});pl.position.set(0,1.6,.2);pr.add(pl);
+  /* le bureau partagé : plateau, voile de fond qui cache les jambes, pieds, sièges derrière */
+  outline(mk(new THREE.BoxGeometry(13,.16,2.2),'#c8864a',0,TY-.08,.1,R.stage),1.02);mk(new THREE.BoxGeometry(13,1,.1),'#a86b35',0,.5,1.15,R.stage);
+  const P=[{n:'Mathieu',m:makePerson({shirt:'#ffa94d',pants:'#495057',hat:'#f8f9fa',scale:SC}),c:'#ffa94d',style:'chef',excuse:'Allô ? Oui, la cadence…'},
+    {n:'Dylan',m:R.dylan,c:'#4dabf7'},
+    {n:'Neila',m:addHair(makePerson({shirt:'#f783ac',pants:'#364fc7',scale:SC}),'#4a2511',1),c:'#f783ac',style:'voleuse',excuse:'Tu as vu mes nouvelles chaussures ?'},
+    {n:'Eliott',m:makePerson({shirt:'#b197fc',pants:'#343a40',hat:'#2f9e44',scale:SC}),c:'#9775fa',style:'brouillon',excuse:'Attends, je finis mon croissant.'}];
+  const me=P[1];
+  P.forEach((p,i)=>{p.i=i;p.x=X[i];p.m.scale.setScalar(SC);p.m.position.set(X[i],-.1,-.9);p.m.rotation.set(0,0,0);if(p!==me)R.stage.add(p.m);
+    outline(mk(new THREE.BoxGeometry(1.3,1.6,.2),'#343a40',X[i],1.3,-1.7,R.stage),1.04);
+    p.bag=[];p.stun=0;p.cd=rand(3,6);p.reach=null;p.lean=0;p.idle=0;p.react=rand(.35,.7);
+    p.tag=labelPlane(p.n+' : 0',2.4,.5,{bg:'#fffaf0',border:p.c,size:80});p.tag.position.set(X[i],3.35,-.9);R.stage.add(p.tag);
+    p.pile=new THREE.Group();p.pile.position.set(X[i]+.95,TY,.05);R.stage.add(p.pile);
+    p.ouch=labelPlane('AÏE !',1.3,.5,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:110});p.ouch.position.set(X[i],3.9,-.9);p.ouch.visible=false;R.stage.add(p.ouch)});
+  const warn=labelPlane('TAPE SUR LES DOIGTS !',2.8,.55,{bg:'#ffe3e3',border:'#e03131',fg:'#e03131',size:80});warn.visible=false;R.stage.add(warn);
   const rm=document.createElement('div');rm.className='win';rm.style.cssText='position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:5;padding:3px 10px;max-width:62%;text-align:center;font-size:13px';rm.hidden=true;$('#frame').append(rm);
-  let rmT=0;const say2=(h,d=2.2)=>{rm.innerHTML=h;rm.hidden=false;rmT=d};
-  mk(new THREE.BoxGeometry(2*XM+1,.1,Z1-Z0+1),'#dee2e6',0,.02,(Z0+Z1)/2,R.stage).receiveShadow=true;
-  [[0,Z0-.5,2*XM+1.4,.3],[0,Z1+.5,2*XM+1.4,.3],[-XM-.55,(Z0+Z1)/2,.3,Z1-Z0+1.3],[XM+.55,(Z0+Z1)/2,.3,Z1-Z0+1.3]].forEach(([x,z,w,d])=>mk(new THREE.BoxGeometry(w,.5,d),'#fab005',x,.25,z,R.stage));
-  const P=[{k:'dylan',n:'Dylan',m:R.dylan,x:0,z:1.5,sp:6.4,c:'#4dabf7'},
-    {k:'karim',n:'Mathieu',m:makePerson({shirt:'#ffa94d',pants:'#495057',hat:'#f8f9fa',scale:.8}),x:-5,z:-2.5,sp:4.2,c:'#ffa94d',style:'chef',excuse:'Allô ? Oui, la cadence…'},
-    {k:'sabrina',n:'Neila',m:makePerson({shirt:'#f783ac',pants:'#364fc7',scale:.8}),x:5,z:-2.5,sp:4.4,c:'#f783ac',style:'voleuse',excuse:'Tu as vu mes nouvelles chaussures ?'},
-    {k:'eliott',n:'Eliott',m:makePerson({shirt:'#b197fc',pants:'#343a40',hat:'#2f9e44',scale:.8}),x:0,z:-3.6,sp:4.8,c:'#9775fa',style:'brouillon',excuse:'Attends, je refais mon lacet.'}];
-  P.forEach((p,i)=>{if(i)R.stage.add(p.m);p.m.position.set(p.x,0,p.z);p.bag=[];p.stun=0;p.cd=0;p.vx=0;p.vz=0;p.dash=0;p.dcd=0;p.tgt=null;
-    p.tag=labelPlane(p.n+' : 0',2.4,.5,{bg:'#fffaf0',border:p.c,size:80});R.stage.add(p.tag);p.pile=new THREE.Group();R.stage.add(p.pile)});
-  const me=P[0],bots=P.slice(1),items=[];let t=0,spawnT=.5,done=false,mx=null,mz=null,jPrev=0;
+  let rmT=0;const say2=(h,d=2)=>{rm.innerHTML=h;rm.hidden=false;rmT=d};
+  const items=[];let t=0,spawnT=.6,done=false,pk={},slaps=0;
   const score=p=>p.bag.reduce((a,b)=>a+b.v,0);
   const board=()=>{pmsg(P.map(p=>`<span style="color:${p===me?'#1864ab':'inherit'}">${p.n} : <b>${score(p)}</b></span>`).join('<br>')+`<br>Temps : <b>${Math.max(0,Math.ceil(cfg.time-t))}</b> s`);$('#pmsg').classList.add('corner')};
   function refresh(p){p.tag.userData.relabel(p.n+' : '+score(p),{bg:'#fffaf0',border:p.c,size:80});while(p.pile.children.length)p.pile.remove(p.pile.children[0]);
-    p.bag.slice(-6).forEach((b,i)=>outline(mk(new THREE.BoxGeometry(.5,.22,.5),HIER[b.h].c,0,i*.24,0,p.pile),1.08))}
-  function spawn(){const pool=cfg.items.filter(it=>!items.some(o=>o.it===it));if(!pool.length)return;const it=pool[Math.floor(Math.random()*pool.length)];
-    const g=new THREE.Group();let x,z,k=0;do{x=rand(-XM+.8,XM-.8);z=rand(Z0+.6,Z1-.6);k++}while(k<20&&P.some(p=>Math.hypot(p.x-x,p.z-z)<2));g.position.set(x,0,z);R.stage.add(g);
-    const H=HIER[it.h];outline(mk(new THREE.CylinderGeometry(.55,.55,.25,16),H.c,0,.3,0,g),1.08);
-    const l=labelPlane(`${it.t} (${H.v>0?'+':''}${H.v})`,3.4,.75,{bg:'#fffaf0',border:H.c,size:90});l.position.y=1.2;g.add(l);
-    items.push({it,g,x,z,life:cfg.life||9,v:H.v,h:it.h});g.scale.setScalar(.01);tween(.3,q=>g.scale.setScalar(Math.max(.01,q)),E.back)}
-  function grab(p,o){items.splice(items.indexOf(o),1);R.stage.remove(o.g);p.bag.push({v:o.v,h:o.h,t:o.it.t});refresh(p);R.fx.burst(V(o.x,1,o.z),o.v>0?8:4);
-    if(p===me){pts(n,o.v>0);beep(o.v>0?600+o.v*90:120,.12,o.v>0?'square':'sawtooth');say2(o.v>0?`<b>+${o.v} : ${o.it.t}</b> (${HIER[o.h].n})`:`<b>${o.v} : ${o.it.t}</b>, une fausse bonne idée !`,1.8);if(o.v<0){me.stun=.8;boulonShake()}}
-    else if(o.v>=4)say2(`<b>${p.n}</b> te rafle « ${o.it.t} » (+${o.v}) !`,1.8)}
-  function steal(from,to){const b=from.bag.pop();if(!b)return;to.bag.push(b);refresh(from);refresh(to);R.fx.burst(V(from.x,2.2,from.z),6);
-    if(from===me){pts(n,false);beep(160,.2,'sawtooth');shake();say2(`<b>${to.n}</b> te pique « ${b.t} » ! Bouscule-le pour la reprendre (${TOUCH?'SAUT':'Espace'}).`,2.4)}
-    else{beep(900,.1);say2(`<b>Reprise !</b> Tu récupères « ${b.t} » à ${from.n}.`,1.8)}}
-  R.onDown=e=>{const p=planeAt(e,0);if(p){mx=p.x;mz=p.z}};R.onMove=e=>{if(e.buttons&&mx!==null){const p=planeAt(e,0);if(p){mx=p.x;mz=p.z}}};
-  function botTarget(b){const choose=()=>{let best=null,bs=-1e9;items.forEach(o=>{const d=Math.hypot(o.x-b.x,o.z-b.z)+.5;let sc;
-      if(b.style==='chef')sc=o.v*2.2-d;else if(b.style==='brouillon')sc=(o.v<0?1.5:o.v)-d*1.4;else sc=o.v*1.5-d;if(o.v<0&&b.style!=='brouillon')sc-=50;if(sc>bs){bs=sc;best=o}});return best};
-    if(b.style==='voleuse'&&me.bag.length>=2&&b.cd<=0)return {x:me.x,z:me.z,chase:1};
-    if(b.style==='chef'&&me.bag.length>=4&&b.cd<=0&&Math.hypot(me.x-b.x,me.z-b.z)<4)return {x:me.x,z:me.z,chase:1};
-    const o=choose();return o?{x:o.x,z:o.z}:{x:Math.sin(t+b.x)*3,z:0}}
+    p.bag.slice(-8).forEach((b,i)=>outline(mk(new THREE.BoxGeometry(.7,.14,.5),HIER[b.h].c,0,.07+i*.16,0,p.pile),1.08))}
+  /* une mesure jaillit de l'imprimante et atterrit devant l'un des quatre */
+  function spawn(){const z=Math.floor(Math.random()*4);if(items.filter(o=>o.zone===z).length>=2)return;const it=cfg.items[Math.floor(Math.random()*cfg.items.length)],H=HIER[it.h];
+    const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.8,.1,.6),'#ffffff',0,0,0,g),1.1);mk(new THREE.BoxGeometry(.6,.11,.08),H.c,0,0,-.15,g);mk(new THREE.BoxGeometry(.6,.11,.08),H.c,0,0,.05,g);
+    const l=labelPlane(`${it.t} (${H.v>0?'+':''}${H.v})`,2.8,.62,{bg:'#fffaf0',border:H.c,size:80});l.position.set(0,.55,.1);g.add(l);
+    const o={it,g,zone:z,v:H.v,h:it.h,x:X[z]+rand(-.35,.35),q:0,life:cfg.life||3.4,fly:1,p0:V(3,1.6,-2.3),age:0};g.position.copy(o.p0);R.stage.add(g);items.push(o);
+    tween(.25,q=>pr.scale.set(1+q*.06,1-q*.08,1)).then(()=>pr.scale.set(1,1,1));beep(300,.05,'triangle',.03)}
+  function take(p,o){items.splice(items.indexOf(o),1);const g=o.g,w0=g.position.clone();p.bag.push({v:o.v,h:o.h,t:o.it.t});
+    tween(.25,q=>{g.position.lerpVectors(w0,p.pile.position.clone().add(V(0,.4,0)),q);g.scale.setScalar(1-q*.7)}).then(()=>{R.stage.remove(g);refresh(p)});
+    if(p===me){pts(n,o.v>0);beep(o.v>0?600+o.v*90:120,.12,o.v>0?'square':'sawtooth');say2(o.v>0?`<b>+${o.v} : ${o.it.t}</b> (${HIER[o.h].n})`:`<b>${o.v} : ${o.it.t}</b>, une fausse bonne idée !`,1.6);if(o.v<0)boulonShake()}
+    else if(o.zone===1)say2(`<b>${p.n}</b> te pique « ${o.it.t} » sous le nez !`,1.8)}
+  function steal(from,to){const b=from.bag.pop();if(!b)return;to.bag.push(b);refresh(from);refresh(to);R.fx.burst(from.pile.position.clone().add(V(0,.6,0)),6);
+    if(from===me){pts(n,false);beep(160,.2,'sawtooth');shake();say2(`<b>${to.n}</b> pioche « ${b.t} » dans ta pile !`,2)}}
+  /* le bras (élastique, comme dans les dessins animés) s'étire vers une cible */
+  function reachTo(p,target,dur){p.reach={target,k:0,dur,back:0}}
+  function slap(p){if(!p.reach||p.reach.back)return false;p.stun=1.6;p.reach.back=1;p.ouch.visible=true;slaps++;pts(n,true);beep(220,.12,'square',.08);shake();say2(`<b>CLAC !</b> Tu tapes sur les doigts de ${p.n}.`,1.6);return true}
+  function tryGrab(zone){if(me.reach||me.stun>0)return;const o=items.filter(q=>!q.fly&&q.zone===zone).sort((a,b)=>b.v-a.v)[0];if(!o){reachTo(me,{x:X[zone],miss:1},.22);return}o.claimed=me;reachTo(me,{item:o},.24)}
+  const threat=()=>P.find(p=>p!==me&&p.reach&&!p.reach.back&&(p.reach.target.pile===me||(p.reach.target.item&&p.reach.target.item.zone===1)));
+  R.onDown=e=>{if(done)return;const th=threat();const pt=planeAt(e,TY);if(!pt)return;
+    if(th&&Math.abs(pt.x-X[1])<1.8){slap(th);return}
+    let z=X.reduce((b,x,i)=>Math.abs(pt.x-x)<Math.abs(pt.x-X[b])?i:b,0);if(Math.abs(z-1)>1)z=2;me.lean=z-1;tryGrab(z)};
+  function armPose(p){const rg=p.m.userData.rig,r=p.reach;rg.shs.forEach(s=>s.scale.set(1,1,1));if(!r)return;
+    const k=r.back?Math.max(0,1-r.k):Math.min(1,r.k),tg=r.target.item?r.target.item.g.position:r.target.pile?r.target.pile.pile.position:V(r.target.x,TY,ZS);
+    const side=tg.x>=p.m.position.x?1:-1,sh=rg.shs[side>0?1:0];const sp=V(p.m.position.x+side*.62*SC,p.m.position.y+1.8*SC,p.m.position.z);
+    const d=tg.clone().add(V(0,.2,0)).sub(sp),L=d.length();const q=new THREE.Quaternion().setFromUnitVectors(V(0,-1,0),d.normalize());
+    sh.quaternion.slerp(q,k);sh.children[0].rotation.z=side*.35*(1-k);sh.scale.y=1+(Math.max(1,L/(.9*SC))-1)*k}
+  function botThink(p,dt){if(p.reach||p.stun>0)return;if(p.idle>0){p.idle-=dt;return}
+    if(Math.random()<dt*.18){p.idle=rand(.8,1.5);say2(`<b>${p.n} :</b> « ${p.excuse} »`,1.3);return}
+    p.cd-=dt;
+    if(me.bag.length&&p.cd<=0&&Math.abs(p.i-1)===1&&(p.style==='voleuse'||(p.style==='chef'&&Math.random()<.5))){p.cd=p.style==='voleuse'?rand(4,6):rand(7,10);reachTo(p,{pile:me},1.1);return}
+    let best=null,bs=-1e9;items.forEach(o=>{if(o.fly||o.claimed||Math.abs(o.zone-p.i)>1||o.age<p.react)return;let sc=o.v*(p.style==='chef'?1.5:1)-(o.zone===p.i?0:1.8);
+      if(o.v<0)sc=p.style==='brouillon'&&Math.random()<.5?1:-99;if(sc>bs){bs=sc;best=o}});
+    if(best&&bs>-50){best.claimed=p;reachTo(p,{item:best},best.zone===p.i?.42:.62)}}
   R.extra=(dt,T)=>{if(done)return;t+=dt;rmT-=dt;if(rmT<=0)rm.hidden=true;
-    spawnT-=dt;if(spawnT<=0&&items.length<(cfg.max||6)){spawn();spawnT=rand(.7,1.3)}
-    for(let i=items.length-1;i>=0;i--){const o=items[i];o.life-=dt;o.g.rotation.y+=dt*1.5;o.g.visible=o.life>2||Math.sin(o.life*20)>0;if(o.life<=0){R.stage.remove(o.g);items.splice(i,1)}}
-    /* Dylan : clavier (ZQSD / flèches) ou clic pour viser une destination */
-    let ix=(KEYS.R?1:0)-(KEYS.L?1:0),iz=(KEYS.D?1:0)-(KEYS.U?1:0);if(ix||iz){mx=null}else if(mx!==null){const dx=mx-me.x,dz=mz-me.z,d=Math.hypot(dx,dz);if(d>.2){ix=dx/d;iz=dz/d}else mx=null}
-    const jp=KEYS.J||KEYS.S;if(jp&&!jPrev&&me.dcd<=0&&me.stun<=0){me.dash=.25;me.dcd=1.1;beep(400,.08,'triangle',.05)}jPrev=jp;
-    P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);p.cd=Math.max(0,p.cd-dt);p.dash=Math.max(0,p.dash-dt);p.dcd=Math.max(0,p.dcd-dt);
-      let ax=0,az=0;if(p===me){const L=Math.hypot(ix,iz)||1;ax=ix/L;az=iz/L;if(!ix&&!iz){ax=az=0}}
-      else if(p.idle>0){p.idle-=dt}else{if(Math.random()<dt*.3){p.idle=rand(.8,1.6);if(Math.hypot(p.x-me.x,p.z-me.z)<5)say2(`<b>${p.n} :</b> « ${p.excuse} »`,1.4)}if(!p.tgt||Math.random()<dt*2)p.tgt=botTarget(p);const dx=p.tgt.x-p.x,dz=p.tgt.z-p.z,d=Math.hypot(dx,dz);if(d>.15){ax=dx/d;az=dz/d}}
-      const sp=p.stun>0?0:p.sp*(p.dash>0?2.6:1);p.vx+=(ax*sp-p.vx)*Math.min(1,dt*10);p.vz+=(az*sp-p.vz)*Math.min(1,dt*10);
-      p.x=Math.max(-XM,Math.min(XM,p.x+p.vx*dt));p.z=Math.max(Z0,Math.min(Z1,p.z+p.vz*dt))});
-    /* collisions entre personnages : on se pousse ; les bots volent, Dylan reprend en bousculant */
-    for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i],b=P[j],dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||.01;if(d<.9){const push=(.9-d)/2;a.x-=dx/d*push;a.z-=dz/d*push;b.x+=dx/d*push;b.z+=dz/d*push;
-      const bot=a===me?b:b===me?a:null;
-      if(bot){if(me.dash>0&&bot.stun<=0){bot.stun=1.4;bot.vx=dx/d*(a===me?9:-9);bot.vz=dz/d*(a===me?9:-9);me.dash=0;if(bot.bag.length)steal(bot,me);else say2(`<b>BOUM !</b> ${bot.n} valdingue.`,1.4)}
-        else if(bot.cd<=0&&bot.stun<=0&&me.bag.length&&me.stun<=0){bot.cd=cfg.stealCd||2.6;me.stun=.5;steal(me,bot)}}}}
-    P.forEach(p=>{for(const o of items.slice())if(Math.hypot(o.x-p.x,o.z-p.z)<.85&&p.stun<=0){if(p!==me&&o.v<0&&p.style!=='brouillon')continue;grab(p,o)}
-      p.m.position.set(p.x,0,p.z);const mv=Math.hypot(p.vx,p.vz)>.4;if(mv)p.m.rotation.y=Math.atan2(p.vx,p.vz);
-      animPerson(p.m,p.stun>0?'stun':p.dash>0?'spin':mv?'run':'idle',T+p.x);p.tag.position.set(p.x,3.1,p.z);p.pile.position.set(p.x,2.55,p.z-.1)});
+    spawnT-=dt;if(spawnT<=0){spawn();spawnT=rand(cfg.spawn[0],cfg.spawn[1])}
+    for(let i=items.length-1;i>=0;i--){const o=items[i];
+      if(o.fly){o.q=Math.min(1,o.q+dt/.6);const to=V(o.x,TY+.06,ZS);o.g.position.lerpVectors(o.p0,to,o.q);o.g.position.y+=2.2*4*o.q*(1-o.q);o.g.rotation.y+=dt*9;if(o.q>=1){o.fly=0;o.g.rotation.y=0}continue}
+      o.age+=dt;o.life-=dt;o.g.visible=o.life>1||Math.sin(o.life*22)>0;if(o.life<=0&&!o.claimed){R.stage.remove(o.g);items.splice(i,1)}}
+    /* Dylan : Q / D pour se pencher, Espace pour attraper, S pour taper sur les doigts */
+    const lean=(KEYS.R?1:0)-(KEYS.L?1:0);if(!me.reach)me.lean=lean;const jE=KEYS.J&&!pk.J,sE=(KEYS.D||KEYS.S)&&!pk.D;pk.J=KEYS.J;pk.D=KEYS.D||KEYS.S;
+    if(sE){const th=threat();if(th)slap(th);else say2('Personne à taper… pour l’instant.',1)}
+    if(jE)tryGrab(1+me.lean);
+    P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);if(p.stun<=0)p.ouch.visible=false;if(p!==me)botThink(p,dt);
+      const r=p.reach;if(r){r.k+=dt/(r.back?.25:r.dur);
+        if(!r.back&&r.k>=1){const tg=r.target;
+          if(tg.item){if(items.includes(tg.item))take(p,tg.item);tg.item.claimed=null}
+          else if(tg.pile)steal(tg.pile,p);
+          r.back=1;r.k=0}
+        else if(r.back&&r.k>=1){p.reach=null;if(p!==me)p.react=rand(.35,.7)}}
+      animPerson(p.m,p.stun>0?'stun':'idle',T+p.i);armPose(p);
+      const lx=p===me?me.lean*.35:0;p.m.position.x=X[p.i]+lx;p.m.rotation.z=-lx*.4;if(p.stun>0)p.m.position.y=-.1+Math.abs(Math.sin(T*18))*.08;else p.m.position.y=-.1});
+    const th=threat();warn.visible=!!th;if(th){warn.position.set(X[1],2.2+Math.sin(T*14)*.08,.6)}
     if(Math.floor(t*4)!==Math.floor((t-dt)*4))board();
     if(t>=cfg.time)end()};
-  function end(){if(done)return;done=true;rm.remove();$('#pad').hidden=true;items.forEach(o=>R.stage.remove(o.g));P.forEach(p=>{R.stage.remove(p.tag);R.stage.remove(p.pile);if(p!==me)R.stage.remove(p.m)});
+  function end(){if(done)return;done=true;rm.remove();$('#pad').hidden=true;R.cam=null;R.onDown=null;P.forEach(p=>{if(p!==me)R.stage.remove(p.m);else{p.m.userData.rig.shs.forEach(s=>s.scale.set(1,1,1));p.m.scale.setScalar(.9);p.m.rotation.set(0,0,0)}});R.clear();
     const rank=[...P].sort((a,b)=>score(b)-score(a)),pos=rank.indexOf(me)+1,r=[1,.75,.4,.2][pos-1];
-    const lg=me.bag.filter(b=>b.v>=3).length,epi=me.bag.filter(b=>b.v===1).length,bad=me.bag.filter(b=>b.v<0).length;
-    gameEnd(n,r,'karim',`<b>${pos===1?'Tu gagnes la course !':pos+'e sur 4.'}</b> Classement : ${rank.map(p=>`${p.n} ${score(p)}`).join(' · ')}.<br>Dans ton sac : ${lg} mesure${lg>1?'s':''} du haut de la hiérarchie, ${epi} EPI, ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''}. ${cfg.after||''}`,res)}
+    const hi=me.bag.filter(b=>b.v>=3).length,epi=me.bag.filter(b=>b.v===1).length,bad=me.bag.filter(b=>b.v<0).length;
+    gameEnd(n,r,'karim',`<b>${pos===1?'Tu gagnes la table !':pos+'e sur 4.'}</b> ${rank.map(p=>`${p.n} ${score(p)}`).join(' · ')}.<br>Dans ta pile : ${hi} mesure${hi>1?'s':''} du haut de la hiérarchie, ${epi} EPI, ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''}, ${slaps} tape${slaps>1?'s':''} sur les doigts. ${cfg.after||''}`,res)}
+  /* caméra de face, à hauteur de table, comme un jeu de fête */
+  R.cam=()=>{camera.position.set(0,5.4,11.5);camera.lookAt(0,1.3,-1)};
+  me.m.position.set(X[1],-.1,-.9);me.m.rotation.set(0,0,0);me.m.scale.setScalar(SC);
   const go=R.extra;R.extra=null;
-  say('karim',cfg.hint,{btns:[{t:'Partez !',go:1}]}).then(()=>{hidePanel();board();say2(TOUCH?'Croix pour courir, SAUT pour bousculer.':'ZQSD ou flèches (ou clic) pour courir, Espace pour bousculer.',3);R.extra=go});
+  say('karim',cfg.hint,{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();board();say2(TOUCH?'Flèches gauche/droite pour te pencher, SAUT pour attraper, flèche bas pour taper sur les doigts. Ou touche directement une mesure.':'Q / D pour te pencher, Espace pour attraper, S pour taper sur les doigts. Ou clique sur une mesure.',3.5);R.extra=go});
 })}
 
 /* ================= MINI-JEU : LE FANTÔME EN PANTOUFLES (attraper au vol) ================= */
@@ -1705,7 +1740,7 @@ RUN[2]=async()=>{
     {a:'Riveteuses 95 dB',b:'Capotage des machines',fb:'On réduit le bruit à la source avant de distribuer des bouchons.'},
     {a:'Chariot dans l’allée',b:'Allées piétonnes séparées',fb:'Séparer les flux piétons et engins : protection collective, organisation du site.'},
     {a:'Charges de 25 kg',b:'Aide à la manutention',fb:'Un palan ou un chariot adapté supprime le port de charges lourdes.'}]}))>=.5,CAUSES.risques);
-  await trial(2,async()=>(await race3D(2,{time:60,hint:'Course aux mesures ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. Elles apparaissent dans le hangar : plus elles sont haut dans la hiérarchie, plus elles rapportent (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1). Les fausses bonnes idées font perdre 2 points. Et on va te piquer tes mesures : bouscule-nous pour les reprendre. Termine dans les deux premiers !',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
+  await trial(2,async()=>(await table3D(2,{time:60,spawn:[.45,.85],hint:'À table ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. L’imprimante les crache sur le bureau : plus elles sont haut dans la hiérarchie, plus elles rapportent (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1, fausse bonne idée −2). Attrape celles qui tombent devant toi ou devant tes voisins… et surveille ta pile : on a les bras longs. Tape-nous sur les doigts ! Termine dans les deux premiers.',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
    items:[{t:'Supprimer le solvant',h:0},{t:'Supprimer le port de charges',h:0},{t:'Peinture à l’eau',h:1},{t:'Riveteuse silencieuse',h:1},
     {t:'Garde-corps',h:2},{t:'Aspiration à la source',h:2},{t:'Capotage',h:2},{t:'Filet sous la nacelle',h:2},
     {t:'Allées séparées',h:3},{t:'Rotation des postes',h:3},{t:'Formation nacelle',h:3},
