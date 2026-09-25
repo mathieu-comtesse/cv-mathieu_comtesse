@@ -84,6 +84,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .bbox em{font-style:normal;font-size:12px;float:right}
 .dmg{position:absolute;z-index:7;font-size:28px;font-weight:700;color:#e03131;text-shadow:2px 2px 0 #fff,-2px -2px 0 #fff,2px -2px 0 #fff,-2px 2px 0 #fff;animation:dmg 1s forwards;pointer-events:none}
 @keyframes dmg{from{transform:translateY(0)}to{transform:translateY(-40px);opacity:0}}
+.roll{height:300px;overflow:hidden;position:relative;text-align:center}.roll>div{position:absolute;left:0;right:0;animation:roll 16s linear forwards}.roll h3{margin:18px 0 6px;font-size:15px;letter-spacing:1px;color:#5f3dc4}.roll p{margin:2px 0;font-size:17px}@keyframes roll{from{transform:translateY(300px)}to{transform:translateY(-100%)}}
 /* plateforme */
 #phud{position:absolute;left:8px;right:8px;top:36px;z-index:5;display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:space-between;pointer-events:none}
 #phud .win{padding:2px 6px;display:flex;gap:4px;align-items:center}
@@ -2012,6 +2013,15 @@ function hubHint(){const nx=nextN();
 function clickTower(){if(busy||!$('#modal').hidden)return;if(!(allDone()||S.all)){boulonShake();say('boulon','La tour de contrôle ouvrira quand les sept ateliers seront terminés.',{btns:[]});return}finale()}
 $('#unlock').onclick=()=>{S.all=true;refreshSigns();say('boulon','Mode oral : tous les ateliers sont ouverts. Les choix non faits comptent comme ratés dans les effets domino.',{btns:[]})};
 
+/* Générique de fin : scénario coproduit, développement */
+const CREDITS={dev:'Mathieu Comtesse',scenario:['Eliott Corne','Dylan Zouiter','Mathilde Chartrel','Georges Barthélemy Fonkou','Neila Mimane','Lorette Dagleris']};
+function credits(){return new Promise(res=>{const m=modal(`<h1>Le Village <span>Talas</span></h1><div class="roll"><div>
+    <h3>UN JEU SÉRIEUX ISO 45001</h3><p>Le Village Talas</p>
+    <h3>DÉVELOPPEMENT</h3><p><b>${CREDITS.dev}</b></p>
+    <h3>SCÉNARIO, COPRODUIT AVEC</h3>${CREDITS.scenario.map(n=>`<p>${n}</p>`).join('')}
+    <h3>DANS LES RÔLES</h3><p>Dylan, alternant HSE</p><p>Aurelien Lefauconnier, PDG (et géant)</p><p>Mathieu, Mathilde, Neila, Lorette, Eliott, Georges Barthélemy</p><p>Boulon, robot guide</p>
+    <h3>MERCI D’AVOIR JOUÉ !</h3><p>Et n’oubliez pas : les EPI, c’est en dernier.</p></div></div><div class="row"><button class="btn go" id="crok">Continuer</button></div>`,'GENERIQUE.EXE');
+  const done=()=>{closeModal();res()};m.querySelector('#crok').onclick=done;m.querySelector('.roll>div').addEventListener('animationend',()=>{m.querySelector('#crok').focus()})})}
 async function finale(){
   busy=true;hidePanel();const F=S.flags;let o=0,t=0;Object.values(S.res).forEach(r=>{o+=r.o;t+=r.t});const pct=t?o/t:0;
   const D=[
@@ -2028,14 +2038,15 @@ async function finale(){
   showLinks();
   if(win){HUB.fx.clearWeather();const pl=HUB.plane,h=pl.userData.home;await tween(3,k=>{pl.position.set(h.x+k*k*40,h.y+Math.max(0,k-.35)*k*26,h.z);pl.rotation.z=Math.min(.35,Math.max(0,k-.35))},E.lin);HUB.fx.confetti()}
   else{HUB.fx.storm();boulonShake()}
-  await wait(900);
+  await wait(900);await credits();
   const show=(e,other)=>{const m=modal(`<span class="tag" style="background:${win?'#2f9e44':'#e03131'}">${win?'Scénario réussite':'Scénario catastrophe'}</span><h1>${e.h}</h1><p>${e.p}</p><p><b>${o} bonnes décisions sur ${t}</b> · CDI ${S.cdi} %</p>
     <h2 style="font-size:24px">Les effets domino de ton système</h2><div class="dom">${D.map(d=>`<div class="${d.k?'g':'r'}"><b>${d.k?'Opportunité saisie':'Risque réalisé'}</b><br>${d.k?d.g:d.b}</div>`).join('')}</div>
     <p>Dans le village, les tuyaux lumineux montrent le cycle PDCA : Contexte, Planification, Support, Réalisation, Évaluation, Amélioration… puis retour à la Planification. Le Leadership est relié au centre.</p>
-    <div class="row"><button class="btn" id="oth">Voir l’autre fin</button><button class="btn" id="look">Regarder le village</button><button class="btn go" id="again">Rejouer</button></div><p id="othT" hidden><b>${other.h}</b> ${other.p}</p>`);
+    <div class="row"><button class="btn" id="oth">Voir l’autre fin</button><button class="btn" id="cred">Générique</button><button class="btn" id="look">Regarder le village</button><button class="btn go" id="again">Rejouer</button></div><p id="othT" hidden><b>${other.h}</b> ${other.p}</p>`);
     m.querySelector('#oth').onclick=()=>{m.querySelector('#othT').hidden=false};
     m.querySelector('#look').onclick=()=>{closeModal();say('boulon','Voici ton système. Tourne le village pour suivre les tuyaux !',{btns:[{t:'Revoir le verdict',go:1}]}).then(()=>show(e,other))};
-    m.querySelector('#again').onclick=()=>location.reload()};
+    m.querySelector('#again').onclick=()=>location.reload();
+    m.querySelector('#cred').onclick=()=>{closeModal();credits().then(()=>show(e,other))}};
   show(win?W:L,win?L:W);
 }
 function showLinks(){
