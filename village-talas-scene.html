@@ -90,7 +90,9 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #cine .ctxt.pop{animation:cpop .18s ease-out}@keyframes cpop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 #cine:not(.on) .cpor{opacity:0}#frame.cine #phud{opacity:0;transition:opacity .2s}#phud{transition:opacity .2s}
 .keyhole{position:absolute;inset:0;z-index:25;pointer-events:none}
-.pmed{width:34px;height:34px;border-radius:50%;margin-right:4px;vertical-align:middle}
+#plife{display:flex;align-items:center;gap:6px;pointer-events:none}#plife img{width:60px;height:60px;border-radius:50%;filter:drop-shadow(0 3px 0 rgba(0,0,0,.45))}
+#plife b{display:block;font-family:"Rye",Georgia,serif;font-weight:400;font-size:26px;line-height:1;color:#fff;text-shadow:2px 2px 0 #1b3a8a,-1px -1px 0 #1b3a8a,1px -1px 0 #1b3a8a,-1px 1px 0 #1b3a8a}
+#plife.hit{animation:phit .4s}@keyframes phit{25%{transform:translateX(-5px) rotate(-6deg)}50%{transform:translateX(5px) rotate(5deg)}75%{transform:translateX(-3px)}}
 .toonui #frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(10,20,70,.32) 100%)}
 /* carton titre et podium du chantier */
 .tcard{position:absolute;inset:0;z-index:30;background:#c8102e;display:flex;align-items:center;justify-content:center;font-family:"Luckiest Guy","Trebuchet MS",sans-serif;color:#fff;overflow:auto}
@@ -174,7 +176,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
     <button class="btn" id="unlock">Tout ouvrir</button>
   </div>
 </div>
-<div id="phud" hidden><div class="win" id="php"></div><div id="ptime"></div><button class="win" id="psave" type="button" title="Recommencer au dernier drapeau (touche R)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/></svg>Sauvegarde</button><div class="win" id="ppe"></div></div>
+<div id="phud" hidden><div id="plife"></div><div class="win" id="php"></div><div id="ptime"></div><button class="win" id="psave" type="button" title="Recommencer au dernier drapeau (touche R)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/></svg>Sauvegarde</button><div class="win" id="ppe"></div></div>
 <div id="pmsg" class="win" hidden></div><div id="cine"><div class="cbar ctop"></div><div class="cbar cbot"><div class="cpor"></div><div class="ctxt"></div></div></div>
 <div id="keys" class="win" hidden></div>
 <div id="pad" hidden><div><span></span><button class="btn alt" data-k="U"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><span></span><button class="btn alt" data-k="L"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button class="btn alt" data-k="D"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button><button class="btn alt" data-k="R"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
@@ -3174,12 +3176,27 @@ function propMesh(k){const g=new THREE.Group();
 function jetTex(){return PT.jet||(PT.jet=(()=>{const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');const g=x.createLinearGradient(128,0,0,0);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(200,230,255,0)');x.fillStyle=g;
   x.beginPath();x.moveTo(128,28);x.lineTo(0,4);x.lineTo(0,60);x.lineTo(128,36);x.fill();return new THREE.CanvasTexture(c)})())}
 function glowTex(){return PT.glow||(PT.glow=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})())}
+/* panneau danger ISO 7010 façon dessin animé : liseré blanc, bord noir, jaune ombré, point d'exclamation */
+function warnTex(){return PT.warn||(PT.warn=(()=>{const c=document.createElement('canvas');c.width=256;c.height=240;const x=c.getContext('2d');x.lineJoin='round';x.lineCap='round';
+  /* triangle bombé, coins ronds et côtés qui gonflent : tracé à la main, pas à la règle */
+  const tri=k=>{const P=[[128,26+k*1.25],[234-k*1.05,214-k*.65],[22+k*1.05,217-k*.65]],o=[[7,-3],[0,8],[-7,-3]];x.beginPath();x.moveTo(P[0][0],P[0][1]);
+    for(let i=0;i<3;i++){const p=P[i],n=P[(i+1)%3];x.quadraticCurveTo((p[0]+n[0])/2+o[i][0],(p[1]+n[1])/2+o[i][1],n[0],n[1])}x.closePath()};
+  x.save();x.translate(6,8);tri(0);x.fillStyle='rgba(26,16,20,.35)';x.fill();x.restore();
+  tri(0);x.lineWidth=18;x.strokeStyle='#1a1014';x.stroke();x.fillStyle='#fffdf2';x.fill();
+  tri(14);x.lineWidth=16;x.strokeStyle='#1a1014';x.stroke();
+  tri(22);const gr=x.createRadialGradient(100,90,10,128,150,150);gr.addColorStop(0,'#fff27a');gr.addColorStop(.5,'#ffcf1f');gr.addColorStop(1,'#f08c00');x.fillStyle=gr;x.fill();
+  x.save();tri(22);x.clip();x.strokeStyle='rgba(180,90,0,.25)';x.lineWidth=5;for(let i=0;i<14;i++){x.beginPath();const y=60+i*12;x.moveTo(30,y+Math.sin(i)*4);x.quadraticCurveTo(128,y-10+Math.cos(i*2)*6,226,y+4);x.stroke()}x.restore();
+  x.fillStyle='rgba(255,255,255,.7)';x.beginPath();x.ellipse(96,98,9,26,.55,0,7);x.fill();x.beginPath();x.arc(84,128,5,0,7);x.fill();
+  /* point d'exclamation dodu, penché, contour encre */
+  x.save();x.translate(130,0);x.rotate(.08);x.beginPath();x.moveTo(-22,70);x.quadraticCurveTo(0,52,22,70);x.quadraticCurveTo(12,120,6,158);x.quadraticCurveTo(0,166,-6,158);x.quadraticCurveTo(-12,120,-22,70);x.closePath();
+  x.fillStyle='#1a1014';x.fill();x.beginPath();x.ellipse(0,188,14,12,0,0,7);x.fill();x.fillStyle='rgba(255,255,255,.55)';x.beginPath();x.ellipse(-9,84,4,10,.3,0,7);x.fill();x.restore();
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t})())}
 /* onomatopées de dessin animé : étoile à pointes et lettres épaisses */
 function onoTex(t,c1='#ffd23f',c2='#e03131'){const k='o'+t+c1;return PT[k]||(PT[k]=(()=>{const c=document.createElement('canvas');c.width=320;c.height=200;const x=c.getContext('2d');x.translate(160,100);
   x.fillStyle=c1;x.strokeStyle='#1a1a1a';x.lineWidth=6;x.beginPath();for(let i=0;i<=24;i++){const a=i/24*Math.PI*2,r=i%2?62:96;x.lineTo(Math.cos(a)*r*1.5,Math.sin(a)*r*.95)}x.closePath();x.fill();x.stroke();
   x.font=`${t.length>7?40:52}px "Luckiest Guy","Trebuchet MS",sans-serif`;x.textAlign='center';x.textBaseline='middle';x.lineWidth=8;x.strokeStyle='#1a1a1a';x.strokeText(t,0,4);x.fillStyle=c2;x.fillText(t,0,4);return new THREE.CanvasTexture(c)})())}
 /* médaillon du personnage qui parle, dessiné à la main */
-const portraitURL=who=>`assets/talas/por-${who}.png?v=1`;
+const portraitURL=who=>`assets/talas/por-${who}.png?v=2`;
 const fmtT=t=>{const m=Math.floor(t/60),s=Math.floor(t%60),c=Math.floor(t*100)%100;return `${m}'${String(s).padStart(2,'0')}"${String(c).padStart(2,'0')}`};
 const CHANTIER_REC=165;
 /* sous-titres façon dessin animé : bandes noires, médaillon, capitales qui défilent par morceaux */
@@ -3258,7 +3275,7 @@ function loadGLB(url){return fetch(url).then(r=>{if(!r.ok)throw new Error(url);r
   const root=new THREE.Group();(json.scenes[json.scene||0].nodes).forEach(i=>root.add(mk2(i)));return root})}
 /* personnages Blender : chargés une fois, clonés ensuite ; chaque pièce prend la couleur de son rôle */
 const TOONGLB={};const TOONMAT={};
-function preloadToons(){const L=['dylan','aurelien','bernard','georges','worker'];return Promise.all(L.map(k=>TOONGLB[k]?1:loadGLB(`assets/talas/${k}.glb?v=1`).then(r=>TOONGLB[k]=r).catch(()=>0)))}
+function preloadToons(){const L=['dylan','aurelien','bernard','georges','worker'];return Promise.all(L.map(k=>TOONGLB[k]?1:loadGLB(`assets/talas/${k}.glb?v=2`).then(r=>TOONGLB[k]=r).catch(()=>0)))}
 const TPAL={
   dylan:{skin:'#e6ad86',nose:'#d89c78',shirt:'#6cb0e8',sleeve:'#6cb0e8',vest:'#ff8420',stripe:'#e8ecef',pants:'#3a58b8',belt:'#3a2210',shoe:'#6e4220',sole:'#3a2210',hair:'#5a3214',hat:'#ffd02a',white:'#ffffff',pupil:'#1f4f9a',mouth:'#6a2418',stubble:'#c99472'},
   aurelien:{skin:'#eab39a',nose:'#e07a6a',shirt:'#2c3470',sleeve:'#2c3470',pants:'#262d62',shoe:'#121216',sole:'#050505',hair:'#b8bfc8',collar:'#f4f6fa',tie:'#c81e1e',gold:'#e8b923',cigar:'#6a3e1e',ember:'#ff5010',white:'#ffffff',pupil:'#56687a',mouth:'#7a3028'},
@@ -3344,8 +3361,11 @@ function buildPlatformer(){
     for(let x=x0+3;x<x1;x+=12){const l=labelPlane(['ZONE ASSEMBLAGE','PORT DES EPI OBLIGATOIRE','ALLÉE PIÉTONS','ATTENTION ENGINS'][Math.floor(rand(0,4))],2,.5,{bg:'#fff',border:'#2f6fd6',fg:'#2f6fd6',size:70});l.position.set(x,1.8,z+.1);s.add(l)}};
   const toolbox=(x,z=-2.4)=>{const g=new THREE.Group();g.position.set(x,0,z);s.add(g);bx(1.4,1.1,.8,'#d62b1e',0,.55,0,g);for(let i=0;i<3;i++)bx(1.3,.05,.82,'#8a1a12',0,.3+i*.3,0,g);[-.5,.5].forEach(q=>{const w=mk(new THREE.CylinderGeometry(.1,.1,.08,10),'#222',q,.1,.42,g);w.rotation.x=Math.PI/2});g.rotation.z=rand(-.04,.04)};
   const drum=(x,z=-2.2,c='#2f6fd6')=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,1.1,16),flat(c));b.position.set(x,.55,z);s.add(b);[.2,.9].forEach(y=>{const r=new THREE.Mesh(new THREE.TorusGeometry(.43,.03,6,18),flat('#1a3a7a'));r.rotation.x=Math.PI/2;r.position.set(x,y,z);s.add(r)})};
-  const warn=(x,z=-1)=>{const g=new THREE.Group();g.position.set(x,0,z);s.add(g);bx(.06,1,.06,'#555',0,.5,0,g);const sh=new THREE.Shape();sh.moveTo(-.4,0);sh.lineTo(.4,0);sh.lineTo(0,.7);sh.closePath();const t=new THREE.Mesh(new THREE.ShapeGeometry(sh),flat('#f7c31c'));t.position.set(0,.95,.04);g.add(t);
-    const ex=labelPlane('!',.3,.4,{bg:'#f7c31c',border:'#f7c31c',size:200});ex.position.set(0,1.18,.06);g.add(ex);g.rotation.z=rand(-.15,.15)};
+  const WARNS=[];const warn=(x,z=-1)=>{const g=new THREE.Group();g.position.set(x,0,z);s.add(g);outline(mk(new THREE.TorusGeometry(.22,.1,8,16),'#2b2b33',0,.1,0,g),1.08).rotation.x=Math.PI/2;
+    const sp=new THREE.Group();sp.position.y=.12;g.add(sp);for(let i=0;i<5;i++){const r=mk(new THREE.TorusGeometry(.07,.022,6,12),'#adb5bd',0,.04+i*.05,0,sp);r.rotation.x=Math.PI/2}
+    const pole=outline(mk(new THREE.CylinderGeometry(.045,.055,1,10),'#8a94a3',.06,.72,0,sp),1.12);pole.rotation.z=-.12;
+    const t=new THREE.Mesh(new THREE.PlaneGeometry(1.15,1.08),new THREE.MeshBasicMaterial({map:warnTex(),transparent:true,depthWrite:false}));t.position.set(.12,1.45,.06);t.rotation.z=rand(-.18,.18);sp.add(t);
+    WARNS.push({x,sp,ph:rand(0,6),k:0,near:0})};
   const arrow=(x,y=0,z=-1.2,dir=1)=>{const g=new THREE.Group();g.position.set(x,y,z);s.add(g);bx(.1,1.4,.1,'#b07a45',0,.7,0,g);const sh=new THREE.Shape();sh.moveTo(-.6,-.18);sh.lineTo(.2,-.18);sh.lineTo(.2,-.4);sh.lineTo(.7,0);sh.lineTo(.2,.4);sh.lineTo(.2,.18);sh.lineTo(-.6,.18);sh.closePath();
     const a=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.1,bevelEnabled:false}),flat('#f58ab4'));a.position.set(0,1.45,0);a.scale.x=dir;a.rotation.z=rand(-.15,.15);g.add(a)};
   const coin=(x,y)=>{const g=new THREE.Group();g.position.set(x,y,0);s.add(g);const d=mk(new THREE.CylinderGeometry(.3,.3,.08,18),'#f58ab4',0,0,0,g);d.rotation.x=Math.PI/2;
@@ -3507,7 +3527,7 @@ function buildPlatformer(){
   const coinSvg=`<svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f58ab4" stroke="#d6336c" stroke-width="2"/><text x="12" y="17" font-size="13" text-anchor="middle" font-weight="700" fill="#fff">S</text></svg>`;
   const heartSvg=on=>`<svg width="18" height="16" viewBox="0 0 22 20"><path d="M11 18 2 9.5A5 5 0 0 1 11 3a5 5 0 0 1 9 6.5Z" fill="${on?'#ff4d8d':'none'}" stroke="${on?'#b3134f':'#ff4d8d'}" stroke-width="2"/></svg>`;
   const keySvg='<svg width="22" height="14" viewBox="0 0 30 16"><circle cx="7" cy="8" r="5" fill="none" stroke="#e0a820" stroke-width="3"/><path d="M12 7h16v3h-3v4h-3v-4h-3v3h-3v-3h-4z" fill="#f5c542"/></svg>';
-  const hudP=()=>{$('#php').innerHTML=`<img class="pmed" src="${portraitURL('dylan')}" alt="">`+Array.from({length:HPMAX},(_,i)=>heartSvg(i<st.hp)).join('')+` <span class="pc">${coinSvg}x${String(st.coins).padStart(3,'0')}</span>${st.badge?' <b>BADGE</b>':''}${st.carry==='key'?' '+keySvg:''}`;$('#ppe').innerHTML='EPI '+PPE.map(p=>ppeIcon(p.k,st.ppe[p.k])).join('')};
+  let hpShown=HPMAX;const hudP=()=>{const L=$('#plife');L.innerHTML=`<img src="${portraitURL('dylan')}" alt="Dylan"><div><b>x${st.hp}</b>${Array.from({length:HPMAX},(_,i)=>heartSvg(i<st.hp)).join('')}</div>`;if(st.hp<hpShown){L.classList.remove('hit');void L.offsetWidth;L.classList.add('hit')}hpShown=st.hp;$('#php').innerHTML=`<span class="pc">${coinSvg}x${String(st.coins).padStart(3,'0')}</span>${st.badge?' <b>BADGE</b>':''}${st.carry==='key'?' '+keySvg:''}`;$('#ppe').innerHTML='EPI '+PPE.map(p=>ppeIcon(p.k,st.ppe[p.k])).join('')};
   const W={scene:s,fx,platformer:1,hd:1,fov:32,noOff:1,dylan:body,look:V(0,0,0),baseD:1,fitW:1,st,run(){return new Promise(r=>{W.resolve=r;hudP();if(!W.restored)say2('boulon','Bienvenue au hangar d’assemblage ! Dépose ton rapport d’inspection dans la salle de revue de direction, tout là-haut. Le chrono tourne !')})}};
   const end=(ok,cause)=>{if(st.done)return;st.done=true;W.cause=cause;W.time=st.t;$('#blind').style.opacity=0;cineOff();setTimeout(()=>W.resolve(ok),ok?900:350)};
   function dropCarry(silent){const k=st.carry;if(!k||k==='key')return;st.carry=null;held.visible=false;tmr.visible=false;const it=PICK.find(p=>p.kind==='prop'&&p.k===k);if(it){it.got=0;s.add(it.m);it.m.position.set(it.home[0],it.home[1],0)}if(!silent)PX.puff(V(st.pos.x,st.pos.y+2.4,0),4,{c:['#ffffff'],size:[.3,.5],sp:1.2})}
@@ -3563,6 +3583,7 @@ function buildPlatformer(){
     fx.update(dt);PX.step(dt);cineTick(dt);
     for(let i=TW.length-1;i>=0;i--){const w=TW[i];w.t+=dt;const k=w.t/.5;w.sp.scale.setScalar(w.sz*Math.sin(Math.min(1,k)*Math.PI));w.sp.material.rotation=k*2;if(k>=1){s.remove(w.sp);TW.splice(i,1)}}
     if(Math.random()<dt*9){const c=PICK.filter(it=>!it.got&&Math.abs(it.x-st.pos.x)<12);const it=c[Math.floor(Math.random()*c.length)];if(it)twinkle(V(it.x+rand(-.3,.3),it.y+rand(-.3,.3),.3),it.kind==='coin'?'#ffd6ea':'#fff3bf',rand(.5,.9))}
+    WARNS.forEach(w=>{const n=Math.abs(st.pos.x-w.x)<.7&&st.pos.y<1.5;if(n&&!w.near){w.k=1;ono('BOING !',V(w.x,2.6,.2))}w.near=n;w.k=Math.max(0,w.k-dt*.9);w.sp.rotation.z=Math.sin(T*2+w.ph)*.04+Math.sin(T*14)*.35*w.k*w.k;w.sp.scale.y=1+Math.sin(T*18)*.08*w.k});
     BGW.forEach((b,i)=>{animToon(b.w,'idle',T+i);const r=b.w.userData.rig;r.shs[1].rotation.x=-1.6+Math.sin(T*18+i)*.15;const on=Math.sin(T*3+i*2)>.2;b.sp.visible=on&&Math.random()<.8;b.sp.scale.setScalar(.8+Math.random()*.8)});
     AGV.forEach(v=>{v.x+=v.dir*2*dt;if(v.x>v.b){v.x=v.b;v.dir=-1}if(v.x<v.a){v.x=v.a;v.dir=1}v.g.position.set(v.x,0,-7.2);v.g.rotation.y=v.dir>0?0:Math.PI;v.gl.material.opacity=Math.sin(T*10)>0?.9:.2});
     back.position.x=camera.position.x*back.userData.par+120*(1-back.userData.par);
