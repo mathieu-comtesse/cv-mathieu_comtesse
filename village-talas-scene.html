@@ -2067,20 +2067,27 @@ let shake=0,flash=0;
   function vicCam(){const v=A.vic;if(!v)return;const k=(performance.now()-v.t0)/1000,f=v.f;f.J.head.getWorldPosition(vicP);v.o.getWorldPosition(vicH);
     const dive=k>1.5&&k<2.4?Math.sin((k-1.5)/.9*Math.PI):0,a=v.a0+k*1.25,r=2.3-dive*1.95,tgt=vicP.clone().lerp(vicH,dive).add(V(0,-.25*(1-dive),0));
     cam.position.set(tgt.x+Math.sin(a)*r+Math.sin(k*9)*.03,.35+dive*.9+Math.sin(k*2)*.12,tgt.z+Math.cos(a)*r);cam.fov=74;cam.updateProjectionMatrix();cam.lookAt(tgt)}
+  /* traductions façon fansub (jaune cerné de noir, note du traducteur) pour les caractères japonais de la fin */
+  const NDT={red:['安全 (anzen) = « sécurité »','N.d.T. : ce n’est pas le nom d’un sushi.'],
+    d:['ディラン = « Di-ra-n » : Dylan, prononcé casque sur la tête','安全第一 = « La sécurité d’abord, le café ensuite »','認証 45001 = « Certifié. Oui, vraiment. Arrête de demander. »'],
+    c:['オーレリアン = « Ô-ré-ri-anne » : trop long pour tenir sur un tampon','安全第一 = « La sécurité d’abord… d’après le service juridique »','認証 45001 = « Certifié… sous réserve de l’audit de mardi »']};
+  function fansub(g,w,h,t,y){g.font=`700 ${Math.round(h*.042)}px "Trebuchet MS",sans-serif`;g.textAlign='center';g.lineJoin='round';g.lineWidth=4;g.strokeStyle='#000';g.fillStyle='#ffe14d';g.strokeText(t,w/2,y);g.fillText(t,w/2,y)}
   function endFrame(k,who){const w=vsC.width=Math.round(box.clientWidth/2),h=vsC.height=Math.round(box.clientHeight/2),g=vsC.getContext('2d');
     if(k<1.5){g.fillStyle='#b30f14';g.fillRect(0,0,w,h);const rg=g.createRadialGradient(w/2,h/2,10,w/2,h/2,w*.7);rg.addColorStop(0,'rgba(255,90,40,.5)');rg.addColorStop(1,'rgba(60,0,0,.6)');g.fillStyle=rg;g.fillRect(0,0,w,h);
       if(ok(CAL)){const q=Math.min(1,k/.25),s=(2.2-1.2*(1-Math.pow(1-q,3)))*h*.5/CAL.height;g.globalAlpha=q;g.drawImage(CAL,w/2-CAL.width*s/2+(Math.random()-.5)*(k<.3?6:0),h*.46-CAL.height*s/2,CAL.width*s,CAL.height*s);g.globalAlpha=1}
-      g.font=`400 ${Math.round(h*.07)}px Rye,Georgia`;g.textAlign='center';g.fillStyle='#fff4d6';g.fillText('LA SÉCURITÉ GAGNE',w/2,h*.92);return}
+      g.font=`400 ${Math.round(h*.07)}px Rye,Georgia`;g.textAlign='center';g.fillStyle='#fff4d6';g.fillText('LA SÉCURITÉ GAGNE',w/2,h*.92);
+      if(k>.35)fansub(g,w,h,NDT.red[0],h*.08);if(k>.8)fansub(g,w,h,NDT.red[1],h*.14);return}
     const im=CARD[who];if(ok(im))g.drawImage(im,0,0,w,h);else{g.fillStyle='#e2d6bc';g.fillRect(0,0,w,h)}
     const q=(k-1.5)/.5;if(q<1){g.save();g.beginPath();g.moveTo(0,h);g.lineTo(w*q*1.6,h);g.lineTo(w*q*1.6-h*.6,0);g.lineTo(0,0);g.closePath();g.restore();
       g.fillStyle='#b30f14';g.beginPath();g.moveTo(w*q*1.6,h);g.lineTo(w,h);g.lineTo(w,0);g.lineTo(w*q*1.6-h*.6,0);g.closePath();g.fill();
       g.save();g.globalCompositeOperation='lighter';['#ff2a2a','#ff9f1a','#ffe14d','#4dff88','#3db8ff','#b44dff'].forEach((c,i)=>{g.fillStyle=c;g.globalAlpha=.8;const x=w*q*1.6-i*4;g.beginPath();g.moveTo(x,h);g.lineTo(x+4,h);g.lineTo(x+4-h*.6,0);g.lineTo(x-h*.6,0);g.fill()});g.restore()}
-    g.font=`400 ${Math.round(h*.075)}px Rye,Georgia`;g.textAlign='center';g.lineWidth=5;g.strokeStyle='#1a1414';g.fillStyle='#fff4d6';const t=who==='d'?'DYLAN GAGNE !':'AURELIEN GAGNE !';g.strokeText(t,w/2,h*.95);g.fillText(t,w/2,h*.95)}
+    g.font=`400 ${Math.round(h*.075)}px Rye,Georgia`;g.textAlign='center';g.lineWidth=5;g.strokeStyle='#1a1414';g.fillStyle='#fff4d6';const t=who==='d'?'DYLAN GAGNE !':'AURELIEN GAGNE !';g.strokeText(t,w/2,h*.95);g.fillText(t,w/2,h*.95);
+    if(k>2.1){const L=NDT[who],i=Math.min(L.length-1,Math.floor((k-2.1)/1.35));fansub(g,w,h,L[i],h*.07)}}
   async function victory(f){const who=f===DY?'d':'c',o=certificate(who==='d');f.J.hdR.add(o);o.position.set(0,-.12,.08);o.rotation.set(-.3,Math.PI/2,0);
     A.vic={f,o,t0:performance.now(),a0:f===DY?-.6:.6};try{beep(523,.12,'square',.05);setTimeout(()=>beep(659,.12,'square',.05),130);setTimeout(()=>beep(784,.3,'square',.06),260)}catch(e){}
     const dance=async()=>{for(let i=0;i<4&&A.vic;i++)await play(f,f===DY?[[.22,'winD',f.cur.x,0,0,'out'],[.2,'crouchD',f.cur.x,-.12,0,'io']]:[[.22,'tauntC',f.cur.x,0,0,'out'],[.2,'idleC',f.cur.x,0,0,'io']])};dance();
     await wait(3400);A.vic=null;o.parent&&o.parent.remove(o);vsC.style.display='block';const t0=performance.now();try{beep(98,.5,'sawtooth',.07)}catch(e){}
-    await new Promise(res=>{const st=()=>{const k=(performance.now()-t0)/1000;endFrame(k,who);if(k>1.5&&!A.sl){A.sl=1;try{beep(1200,.15,'triangle',.05)}catch(e){}}if(k<5.2)requestAnimationFrame(st);else res()};st()});
+    await new Promise(res=>{const st=()=>{const k=(performance.now()-t0)/1000;endFrame(k,who);if(k>1.5&&!A.sl){A.sl=1;try{beep(1200,.15,'triangle',.05)}catch(e){}}if(k<6.4)requestAnimationFrame(st);else res()};st()});
     vsC.style.display='none';A.sl=0}
   const quake=(ms,amp)=>{A.qEnd=performance.now()+ms;A.qAmp=amp||8};
   /* portrait : on tourne le personnage vers une caméra de studio, on lui donne l'expression, on rend son buste */
