@@ -83,11 +83,11 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 @font-face{font-family:"Rye";src:url(assets/fonts/rye.woff2) format("woff2");font-display:swap}
 @font-face{font-family:"Luckiest Guy";src:url(assets/fonts/luckiest-guy.woff2) format("woff2");font-display:swap}
 /* sous-titres façon dessin animé : bandes noires, médaillon, capitales qui défilent */
-#cine{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}#cine .bar{position:absolute;left:0;right:0;height:13%;background:#000;transition:transform .3s ease-out}
-#cine .top{top:0;transform:translateY(-101%)}#cine .bot{bottom:0;transform:translateY(101%)}#cine.on .top,#cine.on .bot{transform:none}
-#cine .por{position:absolute;left:3.5%;bottom:calc(100% - 22px);width:78px;height:78px;background-size:cover;border-radius:50%;box-shadow:0 3px 0 rgba(0,0,0,.5)}
-#cine .txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Rye",Georgia,serif;color:#e2e88c;font-size:21px;letter-spacing:2.5px;text-shadow:2px 2px 0 #4a3a00;padding:0 8% 0 16%;text-align:center;line-height:1.1}
-#cine .txt.pop{animation:cpop .18s ease-out}@keyframes cpop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+#cine{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}#cine .cbar{position:absolute;left:0;right:0;height:13%;background:#000;transition:transform .3s ease-out}
+#cine .ctop{top:0;transform:translateY(-101%)}#cine .cbot{bottom:0;transform:translateY(101%)}#cine.on .ctop,#cine.on .cbot{transform:none}
+#cine .cpor{position:absolute;left:3.5%;bottom:calc(100% - 22px);width:78px;height:78px;background-size:cover;border-radius:50%;box-shadow:0 3px 0 rgba(0,0,0,.5)}
+#cine .ctxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Rye",Georgia,serif;color:#e2e88c;font-size:21px;letter-spacing:2.5px;text-shadow:2px 2px 0 #4a3a00;padding:0 8% 0 16%;text-align:center;line-height:1.1}
+#cine .ctxt.pop{animation:cpop .18s ease-out}@keyframes cpop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 #frame.cine #phud{opacity:0;transition:opacity .2s}#phud{transition:opacity .2s}
 .keyhole{position:absolute;inset:0;z-index:25;pointer-events:none}
 /* carton titre et podium du chantier */
@@ -173,7 +173,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
   </div>
 </div>
 <div id="phud" hidden><div class="win" id="php"></div><div id="ptime"></div><button class="win" id="psave" type="button" title="Recommencer au dernier drapeau (touche R)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/></svg>Sauvegarde</button><div class="win" id="ppe"></div></div>
-<div id="pmsg" class="win" hidden></div><div id="cine"><div class="bar top"></div><div class="bar bot"><div class="por"></div><div class="txt"></div></div></div>
+<div id="pmsg" class="win" hidden></div><div id="cine"><div class="cbar ctop"></div><div class="cbar cbot"><div class="cpor"></div><div class="ctxt"></div></div></div>
 <div id="keys" class="win" hidden></div>
 <div id="pad" hidden><div><span></span><button class="btn alt" data-k="U"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><span></span><button class="btn alt" data-k="L"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button class="btn alt" data-k="D"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button><button class="btn alt" data-k="R"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
 <div id="blind"></div>
@@ -3198,8 +3198,8 @@ const CHANTIER_REC=165;
 const CINE={q:null,t:0,i:0,chunks:[],who:null};
 function cine(who,text){const el=$('#cine');if(!el)return;const plain=String(text).replace(/<[^>]+>/g,'').replace(/[«»]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
   const ws=plain.split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>26){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
-  CINE.chunks=ch;CINE.i=0;CINE.t=0;CINE.who=who;el.querySelector('.por').style.backgroundImage=`url(${portraitURL(who)})`;el.classList.add('on');$('#frame').classList.add('cine');cineShow()}
-function cineShow(){const el=$('#cine');const c=CINE.chunks[CINE.i];const tx=el.querySelector('.txt');tx.textContent=c;tx.classList.remove('pop');void tx.offsetWidth;tx.classList.add('pop');CINE.t=.7+c.length*.05}
+  CINE.chunks=ch;CINE.i=0;CINE.t=0;CINE.who=who;el.querySelector('.cpor').style.backgroundImage=`url(${portraitURL(who)})`;el.classList.add('on');$('#frame').classList.add('cine');cineShow()}
+function cineShow(){const el=$('#cine');const c=CINE.chunks[CINE.i];const tx=el.querySelector('.ctxt');tx.textContent=c;tx.classList.remove('pop');void tx.offsetWidth;tx.classList.add('pop');CINE.t=.7+c.length*.05}
 function cineTick(dt){if(!CINE.chunks.length)return;CINE.t-=dt;if(CINE.t>0)return;CINE.i++;if(CINE.i<CINE.chunks.length){cineShow();return}CINE.chunks=[];cineOff()}
 function cineOff(){CINE.chunks=[];const el=$('#cine');if(el)el.classList.remove('on');$('#frame').classList.remove('cine')}
 
