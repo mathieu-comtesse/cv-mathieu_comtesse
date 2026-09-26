@@ -423,7 +423,10 @@ function buildFace(g,kind,skin,hy=2.55){
   return h;
 }
 function makeBoulon(){
-  const g=new THREE.Group();
+  const g=new THREE.Group();if(ILE.boulon){g.add(ILE.boulon.clone());const eb=new THREE.MeshBasicMaterial({color:'#66e3ff'});
+    [[-.32,1.5,.28],[.3,1.55,.34]].forEach(([x,y,s])=>{const e=new THREE.Mesh(new THREE.BoxGeometry(s,s,.04),eb);e.position.set(x,y,.72);g.add(e)});const br=new THREE.Mesh(new THREE.BoxGeometry(.36,.06,.04),eb);br.position.set(.3,1.8,.72);br.rotation.z=.3;g.add(br);
+    [[-.22,1.22],[-.08,1.18],[.08,1.18],[.22,1.22]].forEach(([x,y])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.12,.07,.04),eb);m.position.set(x,y,.72);g.add(m)});
+    const prop=new THREE.Group();prop.position.set(0,2.8,0);g.add(prop);[0,1].forEach(i=>{const b=mk(new THREE.BoxGeometry(1.5,.06,.26),i?'#4dabf7':'#ff6b6b',0,0,0,prop);b.rotation.y=i*Math.PI/2});outline(mk(new THREE.SphereGeometry(.13,10,8),'#ff6b6b',0,0,0,prop),1.2);g.userData.prop=prop;return g}
   outline(mk(new THREE.BoxGeometry(1.7,1.4,1.3),'#ffcc33',0,1.45,0,g),1.05);
   mk(new THREE.BoxGeometry(1.3,.82,.06),'#1c3d5a',0,1.45,.66,g);
   const eb=new THREE.MeshBasicMaterial({color:'#66e3ff'});
@@ -459,7 +462,7 @@ function makeTree(kind){
 }
 /* décor de l'île modelé dans Blender (arbres, piliers moussus, nuages, goélands, avion) : chargé avant le village, repli sur les formes simples sinon */
 const ILE={},ILEMAT=new THREE.MeshLambertMaterial({vertexColors:true});
-function preloadIle(){return Promise.all(['saule','palmier','touffu','pilier','nuage','goeland','avion'].map(k=>ILE[k]?1:loadGLB(`assets/talas/ile/${k}.glb?v=1`).then(g=>{g.traverse(o=>{if(o.isMesh){o.material=ILEMAT;o.castShadow=true}});ILE[k]=g}).catch(()=>0)))}
+function preloadIle(){return Promise.all(['saule','palmier','touffu','pilier','nuage','goeland','avion','atelier0','atelier1','atelier2','atelier3','atelier4','atelier5','atelier6','boulon'].map(k=>ILE[k]?1:loadGLB(`assets/talas/ile/${k}.glb?v=1`).then(g=>{g.traverse(o=>{if(o.isMesh){o.material=ILEMAT;o.castShadow=true}});ILE[k]=g}).catch(()=>0)))}
 const ileTree=i=>{const g=new THREE.Group(),m=ILE[['saule','touffu','palmier','touffu'][i%4]].clone();m.scale.setScalar(.72);g.add(m);g.userData.kind='round';g.userData.crown=m;g.userData.ph=rand(0,6);return g};
 function ileGull(){const b=ILE.goeland.clone();b.scale.setScalar(1.4);b.userData.wings=[['aile_L',-1],['aile_R',1]].map(([n,q])=>{const w=b.getObjectByName(n);w.userData.q=q;return w});return b}
 function buildNature(s,{ground=0,trees=40,treeSpot,grass=900,grassSpot,flowers=60,bushes=20,bushSpot,leaves=150,birds=5,butterflies=7,center=V(0,0,0)}){if(ILE.goeland)birds+=3;
@@ -546,6 +549,11 @@ const B=[];let HUB,arrow;
 function building(n){
   const g=new THREE.Group();const c=PAL[n%PAL.length];
   const box=(w,h,d,col,x=0,y=0,z=0)=>outline(mk(new THREE.BoxGeometry(w,h,d),col,x,y+h/2,z,g),1.04);
+  const glb=ILE['atelier'+n];if(glb){g.add(glb.clone());
+    if(n===1){mk(new THREE.CylinderGeometry(.05,.05,1.4,6),INK,0,7.3,0,g);g.userData.flag=mk(new THREE.BoxGeometry(.9,.55,.04),'#ff6b6b',.45,7.7,0,g)}
+    if(n===4){g.userData.smoke=[];for(let i=0;i<4;i++){const p=mk(new THREE.SphereGeometry(.45,12,10),'#ffffff',-1.2,5,-.6,g);p.castShadow=false;g.userData.smoke.push(p)}}
+    if(n===6){const gear=new THREE.Group();gear.position.set(0,3.6,0);g.add(gear);outline(mk(new THREE.TorusGeometry(.9,.3,10,24),'#fcc419',0,0,0,gear),1.06);for(let i=0;i<8;i++){const t=mk(new THREE.BoxGeometry(.4,.5,.5),'#fcc419',Math.cos(i*Math.PI/4)*1.3,Math.sin(i*Math.PI/4)*1.3,0,gear);t.rotation.z=i*Math.PI/4}g.userData.gear=gear}
+    const sign=labelPlane('',5.2,1.8,{});sign.position.set(0,n===1?9.4:6.8,0);g.add(sign);g.userData.sign=sign;return g}
   if(n===0){box(3.4,2.6,3,'#e8a33a');const r=outline(mk(new THREE.ConeGeometry(2.8,1.8,4),'#c0281a',0,3.5,0,g),1.04);r.rotation.y=Math.PI/4}
   if(n===1){outline(mk(new THREE.CylinderGeometry(1.4,1.6,5,20),'#7b3fc4',0,2.5,0,g),1.04);outline(mk(new THREE.ConeGeometry(1.8,1.8,20),'#f2b31d',0,5.9,0,g),1.04);mk(new THREE.CylinderGeometry(.05,.05,1.4,6),INK,0,7.3,0,g);const f=mk(new THREE.BoxGeometry(.9,.55,.04),'#ff6b6b',.45,7.7,0,g);g.userData.flag=f}
   if(n===2){box(4.4,1.4,3.4,'#1a9a8a');const r=outline(mk(new THREE.CylinderGeometry(1.7,1.7,4.4,20,1,false,0,Math.PI),'#2d5bd8',0,1.4,0,g),1.04);r.rotation.z=Math.PI/2;r.rotation.y=Math.PI/2}
