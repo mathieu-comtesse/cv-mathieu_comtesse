@@ -259,7 +259,7 @@ const HOWTO={
   tc:['◀ ▶ : avancer, reculer','▲ : grimper, ▼ : se baisser','SAUT : sauter, deux fois pour un double saut','TOUR : tournoyer']},
  poly:{but:'Les chefs d’équipe défilent et jurent que tout est conforme. Quand un nez s’allonge, c’est un mensonge : tamponne ÉCART sur le menteur. Ne tamponne pas ceux qui disent vrai.',
   kb:['Clic sur un menteur : tampon ÉCART'],tc:['Touche un menteur : tampon ÉCART']},
- operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Attention : le patient a le hoquet.',
+ operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Pièges : le hoquet fait sauter le corps, chaque battement de cœur resserre les couloirs, des caillots font des allers-retours. Chaque bzzzt coûte 4 secondes.',
   kb:['Clic maintenu sur une cause, puis glisser jusqu’au rond vert'],tc:['Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert']}};
 function howto(k){const h=HOWTO[k];return `<div class="howto"><p><b>Le but :</b> ${h.but}</p><p><b>${TOUCH?'Sur écran tactile':'Commandes'} :</b></p><ul>${(TOUCH?h.tc:h.kb).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 const KEYHELP={
@@ -1327,24 +1327,31 @@ function surgery3D(n,cfg){return new Promise(res=>{
   const tray=new THREE.Group();tray.position.set(-7.6,0,2.6);R.stage.add(tray);mk(new THREE.CylinderGeometry(.08,.08,1.2,6),'#868e96',0,.6,0,tray);outline(mk(new THREE.BoxGeometry(1.8,.15,1.3),'#adb5bd',0,1.25,0,tray),1.05);
   const shapes=[()=>new THREE.BoxGeometry(.5,.32,.5),()=>new THREE.TorusGeometry(.24,.09,6,12),()=>new THREE.CylinderGeometry(.23,.23,.42,10),()=>new THREE.OctahedronGeometry(.3),()=>new THREE.IcosahedronGeometry(.28,0)];
   const slots=shuffle(OP_PATHS.map((P,i)=>i)).slice(0,N);
+  const SEGS=[],CLOTS=[];
   const items=cfg.causes.map((c,i)=>{const P=OP_PATHS[slots[i]];const cav=mk(new THREE.CircleGeometry(CR,22),'#7a1c1c',P[0][0],TY,P[0][1],body);cav.rotation.x=-Math.PI/2;cav.castShadow=false;
-    for(let s=0;s<P.length-1;s++){const a=P[s],b=P[s+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);const m=mk(new THREE.BoxGeometry(L+cfg.w,.02,cfg.w),'#c2410c',(a[0]+b[0])/2,TY-.005,(a[1]+b[1])/2,body);m.rotation.y=-Math.atan2(b[1]-a[1],b[0]-a[0]);m.castShadow=false}
+    for(let s=0;s<P.length-1;s++){const a=P[s],b=P[s+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);const m=mk(new THREE.BoxGeometry(L+cfg.w,.02,cfg.w),'#c2410c',(a[0]+b[0])/2,TY-.005,(a[1]+b[1])/2,body);m.rotation.y=-Math.atan2(b[1]-a[1],b[0]-a[0]);m.castShadow=false;SEGS.push({m,a,b,L})}
     const ex=mk(new THREE.CircleGeometry(.42,18),'#40c057',P[P.length-1][0],TY+.01,P[P.length-1][1],body);ex.rotation.x=-Math.PI/2;ex.castShadow=false;
     const g=new THREE.Group();outline(mk(shapes[i%5](),PAL[(i*2+1)%8],0,0,0,g),1.1);g.position.set(P[0][0],IY,P[0][1]);body.add(g);
     const l=labelPlane(c.t,3,.6,{bg:'#fffaf0',border:PAL[(i*2+1)%8],size:70});l.position.y=.9;g.add(l);l.visible=false;return {...c,P,g,l,i}});
-  let grab=null,ptrW=null,t=0,hicT=rand(2,3.5),hk=0,kick=0,buzz=0,out=0,done=false,flash=0;
+  const clotM=new THREE.MeshToonMaterial({color:'#d9261c',gradientMap:grad});
+  shuffle(SEGS.filter(g=>g.L>.7)).slice(0,cfg.clots||0).forEach((g,k)=>{const c=outline(new THREE.Mesh(new THREE.IcosahedronGeometry(.25,1),clotM),1.14);c.position.y=TY+.12;body.add(c);
+    [-1,1].forEach(q=>mk(new THREE.SphereGeometry(.05,6,5),'#ffffff',q*.08,.12,.12,c));CLOTS.push({c,a:g.a,b:g.b,sp:rand(.7,1.3)*(cfg.clotSp||1),ph:rand(0,6.3),x:0,z:0})});
+  let grab=null,ptrW=null,t=0,hicT=rand(2,3.5),hk=0,kick=0,buzz=0,out=0,done=false,flash=0,beatK=1,beatP=0,lastBeat=0;
+  const beatTxt=labelPlane('BOUM-BOUM',1.8,.5,{bg:'#fff5f5',border:'#c92a2a',fg:'#c92a2a',size:100});beatTxt.position.set(.7,3.2,-.2);body.add(beatTxt);beatTxt.visible=false;
   const left=()=>Math.max(0,Math.ceil(cfg.time-t));
   const status=()=>pmsg(`Causes extraites : <b>${out} / ${N}</b> · bzzzt : <b>${buzz}</b> · <b>${left()}</b> s`);
   const local=p=>V(p.x-body.position.x,0,p.z-body.position.z);
   function back(it){const g=it.g,f=g.position.clone(),to=V(it.P[0][0],IY,it.P[0][1]);it.l.visible=false;tween(.25,q=>g.position.lerpVectors(f,to,q))}
-  function zap(it){buzz++;tsAdd('bzzt');pts(n,false);grab=null;back(it);flash=.8;kick=1;shake();beep(90,.4,'sawtooth',.08);boulonShake();
-    say('boulon','<b>Bzzzt ! Tu as touché le bord.</b> Le patient hurle, la cause retourne dans son trou.',{btns:[],cls:'bad'});status()}
+  function zap(it,why){buzz++;tsAdd('bzzt');pts(n,false);grab=null;back(it);flash=.8;kick=1;shake();beep(90,.4,'sawtooth',.08);boulonShake();t+=cfg.pen||0;
+    say('boulon',`<b>Bzzzt ! ${why||'Tu as touché le bord.'}</b> Le patient hurle, la cause retourne dans son trou${cfg.pen?` et tu perds ${cfg.pen} secondes`:''}.`,{btns:[],cls:'bad'});status()}
   function win(it){grab=null;it.done=1;out++;pts(n,true);it.l.visible=false;beep(988,.15);const g=it.g,w0=g.getWorldPosition(V(0,0,0));body.remove(g);g.position.copy(w0);R.stage.add(g);
     const to=V(-8.2+(out-1)%3*.6,1.55+Math.floor((out-1)/3)*.4,2.4+(out%2)*.3);tween(.5,q=>{g.position.lerpVectors(w0,to,q);g.position.y+=Math.sin(q*Math.PI)*1.5});R.fx.burst(w0,10);
     say('boulon',`<b>Extrait : ${it.t} !</b> ${it.fb}`,{btns:[],cls:'good'});status();if(out===N)end()}
   function check(){if(!grab||!ptrW)return;const l=local(ptrW),it=grab,P=it.P;it.g.position.set(l.x,IY,l.z);
     const inCav=Math.hypot(l.x-P[0][0],l.z-P[0][1])<CR;let d=9;for(let s=0;s<P.length-1;s++)d=Math.min(d,segDist(l.x,l.z,P[s],P[s+1]));
-    if(!inCav&&d>W2){zap(it);return}const e=P[P.length-1];if(Math.hypot(l.x-e[0],l.z-e[1])<.4)win(it)}
+    if(!inCav&&d>W2*beatK){zap(it,beatK<.9?'L’artère s’est contractée sur ta pince.':'Tu as touché le bord.');return}
+    for(const k of CLOTS)if(Math.hypot(l.x-k.x,l.z-k.z)<.4){zap(it,'Un caillot t’a percuté.');return}
+    const e=P[P.length-1];if(Math.hypot(l.x-e[0],l.z-e[1])<.4)win(it)}
   R.onDown=e=>{if(done||grab)return;const p=planeAt(e,IY);if(!p)return;const l=local(p);let bestD=.9,b=null;items.forEach(it=>{if(it.done)return;const d=Math.hypot(l.x-it.g.position.x,l.z-it.g.position.z);if(d<bestD){bestD=d;b=it}});
     if(b){grab=b;ptrW=V(b.g.position.x+body.position.x,IY,b.g.position.z+body.position.z);b.l.visible=true;beep(660,.06)}};
   R.onMove=e=>{if(!grab)return;const p=planeAt(e,IY);if(p){ptrW=p;check()}};
@@ -1358,6 +1365,10 @@ function surgery3D(n,cfg){return new Promise(res=>{
     eyes.forEach(e=>e.scale.setScalar(1+j*.9+flash*.5));mouth.scale.set(1.2+j*.3,.3+j*.9+flash*.7,.5);
     legs.forEach((g,i)=>g.rotation.z=(j*.35+Math.sin(T*30+i*3)*kick*.25)*(i?1:-1));hic.visible=hk>.25;hic.position.y=3.8+j;
     flash=Math.max(0,flash-dt);nm.color.set(flash>0&&Math.sin(T*30)>0?'#ff2020':'#a61e1e');nose.scale.setScalar(1+flash*.9);aie.visible=flash>0;
+    /* battement : les couloirs se contractent brièvement à chaque pulsation */
+    {const bpm=cfg.bpm||0;beatP=bpm?Math.pow(Math.max(0,Math.sin(t*bpm*Math.PI)),10):0;beatK=1-(cfg.squeeze||0)*beatP;SEGS.forEach(g=>g.m.scale.z=beatK);
+     if(bpm&&beatP>.9&&t-lastBeat>.3){lastBeat=t;beep(70,.12,'sine',.08)}beatTxt.visible=beatP>.3;beatTxt.scale.setScalar(1+beatP*.25);torso.scale.x*=1+beatP*.015}
+    CLOTS.forEach(k=>{const u=.5+.5*Math.sin(t*k.sp+k.ph);k.x=k.a[0]+(k.b[0]-k.a[0])*u;k.z=k.a[1]+(k.b[1]-k.a[1])*u;k.c.position.x=k.x;k.c.position.z=k.z;k.c.rotation.y+=dt*3;k.c.scale.setScalar(1+Math.sin(T*8+k.ph)*.12)});
     items.forEach((it,i)=>{if(!it.done&&it!==grab){it.g.position.y=IY+Math.abs(Math.sin(T*3+i))*.12;it.g.children[0].rotation.y+=dt}});
     check();if(t>=cfg.time)end()};
   const go=R.extra;R.extra=null;
@@ -3668,7 +3679,7 @@ RUN[6]=async()=>{
    {if:()=>p,w:'lea',t:'La longe ! Le danger qu’on t’avait montré. Eliott a quand même rempli une fiche de presque-accident.'},
    {if:()=>p,w:'boulon',t:'Effet domino réussi : participation (§5.4), danger identifié (§6.1.2), mesure technique (§8.1.2), presque-accident remonté (§10.2).'},
    {w:'karim',t:'Bon. On fait quoi maintenant ?'}]);
-  await trial(6,async()=>(await surgery3D(6,{w:.7,wig:.25,hic:[3.5,5.5],time:85,hint:'Opération Talas ! L’accident est allongé sur la table, ses causes racines coincées dans le ventre. Extrais-les à la pince par le couloir orange, jusqu’au rond vert. Si tu touches le bord : bzzzt, son nez s’allume et il hurle. Et il a le hoquet : à chaque HIC, tout son corps saute.',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
+  await trial(6,async()=>(await surgery3D(6,{w:.7,wig:.25,hic:[3.5,5.5],time:85,bpm:.9,squeeze:.3,clots:3,clotSp:.8,pen:4,hint:'Opération Talas ! L’accident est allongé sur la table, ses causes racines coincées dans le ventre. Extrais-les à la pince par le couloir orange, jusqu’au rond vert. Si tu touches le bord : bzzzt, son nez s’allume, il hurle et tu perds 4 secondes. Il a le hoquet : à chaque HIC, tout son corps saute. Son cœur bat : à chaque BOUM-BOUM, les couloirs se resserrent. Et des caillots se promènent dans les couloirs.',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
    causes:[
     {t:'Danger jamais évalué',fb:'Retour au §6.1 : l’évaluation des risques doit être mise à jour.'},
     {t:'Outils non attachés',fb:'Mesure technique : longes porte-outils sur tous les postes en hauteur.'},
@@ -3677,7 +3688,7 @@ RUN[6]=async()=>{
     {t:'Cadence doublée sans analyse',fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'},
     {t:'Zone dessous non balisée',fb:'On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2).'}]}))>=.5,CAUSES.correct);
   await say('boulon','<b>Deuxième patient !</b> Huit causes organisationnelles, des couloirs plus étroits… et un hoquet carabiné.');
-  await trial(6,async()=>(await surgery3D(6,{w:.56,wig:.5,hic:[2,3.4],time:100,hint:'Même opération : couloirs plus étroits, hoquet deux fois plus fréquent. Attends la fin du HIC avant de passer un virage.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
+  await trial(6,async()=>(await surgery3D(6,{w:.56,wig:.5,hic:[2,3.4],time:100,bpm:1.3,squeeze:.4,clots:6,clotSp:1.2,pen:4,hint:'Même opération, en pire : couloirs plus étroits, hoquet deux fois plus fréquent, cœur qui s’emballe et deux fois plus de caillots. Attends la fin du HIC et du BOUM-BOUM avant de passer un virage.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
    causes:[
     {t:'Pas d’analyse du changement',fb:'§8.1.3 : un changement se prépare.'},
     {t:'Formation nacelle périmée',fb:'§7.2 : compétences à maintenir.'},
