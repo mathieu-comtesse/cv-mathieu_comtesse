@@ -98,7 +98,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .pintro .pblack{position:absolute;inset:0;background:#05070d;transition:opacity .6s}
 .pintro .plogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.92);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transition:opacity .5s,transform 2.4s ease-out}
 .pintro .plogo.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
-.pintro .pword{font-size:54px;letter-spacing:14px;padding-left:14px;background:linear-gradient(100deg,#8a93a6 0%,#8a93a6 40%,#fff 50%,#8a93a6 60%,#8a93a6 100%);background-size:300% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
+.pintro .pword{font-size:44px;letter-spacing:8px;padding-left:8px;text-align:center;background:linear-gradient(100deg,#8a93a6 0%,#8a93a6 40%,#fff 50%,#8a93a6 60%,#8a93a6 100%);background-size:300% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
 .pintro .plogo.on .pword{animation:psweep 1.6s .3s ease-in-out forwards}@keyframes psweep{to{background-position:0 0}}
 .pintro .psub{font:600 13px/1 "Trebuchet MS",sans-serif;letter-spacing:8px;color:#8a93a6;text-transform:uppercase}
 .pintro .pbar{position:absolute;left:0;right:0;height:12%;background:#000;transition:transform .6s ease}.pintro .ptop{top:0}.pintro .pbot{bottom:0}
@@ -819,7 +819,7 @@ $('#rotok').onclick=()=>{window.__rotOk=1;$('#rotate').hidden=true};
     addEventListener('keydown',e=>{if(e.key==='Escape'&&IN_FRAME)parent.postMessage({talasFS:'exit'},'*')})}}
 function placeCam(dt){
   if(!cur)return;if(cur.cam){cur.cam(dt);return}const d=cur.dist;
-  if(cur.hub){camera.position.set(cur.look.x+Math.sin(cur.yaw)*d*.74,d*.62,cur.look.z+Math.cos(cur.yaw)*d*.74)}
+  if(cur.hub){/* île : lacet (glisser gauche-droite), tangage (glisser haut-bas), zoom (molette, pincement) */const p=cur.pitch??.697,D=d*.965*(cur.zoom||1);camera.position.set(cur.look.x+Math.sin(cur.yaw)*D*Math.cos(p),D*Math.sin(p)+.5,cur.look.z+Math.cos(cur.yaw)*D*Math.cos(p))}
   else camera.position.set(cur.look.x,cur.look.y+d*.6,cur.look.z+d*.8);
   camera.lookAt(cur.look);
 }
@@ -827,10 +827,13 @@ const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();
 function pick(e){if(!cur||!cur.clickables)return null;const r=cv.getBoundingClientRect();ptr.x=(e.clientX-r.left)/r.width*2-1;ptr.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(ptr,camera);
   for(const h of ray.intersectObjects(cur.clickables,true)){let o=h.object;while(o&&!o.userData.onClick)o=o.parent;if(o)return o}return null}
 let down=null,hovered=null;
-cv.addEventListener('pointerdown',e=>{if(cur&&cur.platformer){if(cur.onDown&&cur.onDown(e))return;KEYS.J=1;setTimeout(()=>KEYS.J=0,160);return}if(cur&&cur.onDown)cur.onDown(e);down={x:e.clientX,y:e.clientY,yaw:cur&&cur.yaw};dragging=false});
+cv.addEventListener('pointerdown',e=>{if(cur&&cur.platformer){if(cur.onDown&&cur.onDown(e))return;KEYS.J=1;setTimeout(()=>KEYS.J=0,160);return}if(cur&&cur.onDown)cur.onDown(e);down={x:e.clientX,y:e.clientY,yaw:cur&&cur.yaw,pitch:cur&&(cur.pitch??.697)};dragging=false;PTRS.set(e.pointerId,{x:e.clientX,y:e.clientY});if(PTRS.size===2&&cur&&cur.hub){const [a,b]=[...PTRS.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:cur.zoom||1}}});
+const PTRS=new Map();let pinch0=null;['pointerup','pointercancel'].forEach(t=>addEventListener(t,e=>{PTRS.delete(e.pointerId);if(PTRS.size<2)pinch0=null}));
+cv.addEventListener('wheel',e=>{if(!cur||!cur.hub)return;e.preventDefault();cur.zoom=Math.max(.4,Math.min(1.9,(cur.zoom||1)*Math.exp(e.deltaY*.0012)))},{passive:false});
 cv.addEventListener('pointermove',e=>{
   if(cur&&cur.onMove)cur.onMove(e);
-  if(down&&cur&&cur.hub&&Math.abs(e.clientX-down.x)>6){dragging=true;cur.yaw=down.yaw-(e.clientX-down.x)*.006}
+  if(cur&&cur.hub&&PTRS.size===2&&PTRS.has(e.pointerId)){PTRS.set(e.pointerId,{x:e.clientX,y:e.clientY});const [a,b]=[...PTRS.values()],dd=Math.hypot(a.x-b.x,a.y-b.y);if(pinch0)cur.zoom=Math.max(.4,Math.min(1.9,pinch0.z*pinch0.d/dd));dragging=true;return}
+  if(down&&cur&&cur.hub&&(Math.abs(e.clientX-down.x)>6||Math.abs(e.clientY-down.y)>6)){dragging=true;cur.yaw=down.yaw-(e.clientX-down.x)*.006;cur.pitch=Math.max(.18,Math.min(1.45,down.pitch+(e.clientY-down.y)*.005))}
   const o=pick(e);cv.style.cursor=o?'pointer':(cur&&cur.hub?'grab':'default');
   if(o!==hovered){if(hovered&&hovered.userData.hover)tweenScale(hovered,1);if(o&&o.userData.hover)tweenScale(o,1.08);hovered=o}
 });
@@ -4273,7 +4276,7 @@ function showLinks(){
 
 /* ouverture façon jeu du commerce : logo du studio avec reflet, survol de l'île en cinémascope, titre qui claque ; clic ou touche pour passer */
 function proIntro(){return new Promise(res=>{const W=cur,d=document.createElement('div');d.className='pintro';
-  d.innerHTML=`<div class="pblack"></div><div class="pbar ptop"></div><div class="pbar pbot"></div><div class="plogo"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="42" fill="none" stroke="#8a93a6" stroke-width="3"/><path d="M14 52 L46 40 L78 30 L70 40 L50 46 L44 64 L38 64 L40 48 L22 54 Z" fill="#fff"/><circle cx="46" cy="46" r="34" fill="none" stroke="#ffd43b" stroke-width="2" stroke-dasharray="4 7"/></svg><div class="pword">TALAS</div><div class="psub">studio · présente</div></div>
+  d.innerHTML=`<div class="pblack"></div><div class="pbar ptop"></div><div class="pbar pbot"></div><div class="plogo"><svg width="120" height="92" viewBox="0 0 120 92"><g transform="rotate(180 60 44)"><path d="M16 60 Q16 16 60 14 Q104 16 104 60 Z" fill="#ffd43b" stroke="#1a1014" stroke-width="4"/><rect x="8" y="58" width="104" height="10" rx="5" fill="#f2b31d" stroke="#1a1014" stroke-width="4"/><path d="M60 14 V58" stroke="#1a1014" stroke-width="3"/><path d="M34 66 Q60 92 86 66" fill="none" stroke="#1a1014" stroke-width="3"/></g><circle cx="38" cy="74" r="3" fill="#8a93a6"/><circle cx="84" cy="80" r="2" fill="#8a93a6"/></svg><div class="pword">CASQUE À L’ENVERS</div><div class="psub">studio · présente · aucun blessé pendant la production</div></div>
     <div class="ptitle"><b>LE VILLAGE TALAS</b><i>UN JEU ISO 45001</i></div><div class="pflash"></div><div class="pskip">Clic ou touche pour passer</div>`;
   $('#frame').append(d);const q=c=>d.querySelector(c),t0=performance.now(),y0=W.yaw,d0=W.dist;let done=false,st=0;
   const chord=(f,dl)=>{try{f.forEach((x,i)=>setTimeout(()=>beep(x,.9,'triangle',.035),dl+i*60))}catch(e){}};
