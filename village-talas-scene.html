@@ -1141,14 +1141,15 @@ function run3D(n,cfg){return new Promise(async res=>{
     const slab=new THREE.Mesh(new THREE.BoxGeometry(2.6,5.4,3.4),M);slab.position.y=2.7;g.add(slab);outline(slab,1.02);const cor=new THREE.Mesh(new THREE.BoxGeometry(2.7,.3,3.5),HZ);cor.position.y=5.4;g.add(cor);
     add({k:'wall',z,x:q*1.2,w:5.2,d:3.4,q,g,fall:-1,bumpT:0})}
   function heart(z,lane){const g=new THREE.Group();g.position.set(LX[lane],1.3,z);s.add(g);outline(mk(new THREE.SphereGeometry(.28,10,8),'#e03131',-.16,0,0,g),1.1);outline(mk(new THREE.SphereGeometry(.28,10,8),'#e03131',.16,0,0,g),1.1);const t=mk(new THREE.ConeGeometry(.4,.5,4),'#e03131',0,-.3,0,g);t.rotation.z=Math.PI;add({k:'heart',z,x:LX[lane],w:1,d:1,m:g})}
-  const WZ=[];{let q=Math.random()<.5?-1:1;for(let z=-80;z>-L+40;z-=rand(70,85)){wall(z,q);WZ.push(z);q=-q}}
+  const WZ=[];{let q=Math.random()<.5?-1:1;for(let z=-90;z>-L+40;z-=rand(110,130)){wall(z,q);WZ.push(z);q=-q}}
   const nearWall=z=>WZ.some(w=>Math.abs(w-z)<12);
-  for(let z=-40;z>-L+20;z-=rand(28,36)){if(nearWall(z))continue;const r=Math.random(),ln=Math.floor(rand(0,3));
-    if(r<.1)box(z,ln);else if(r<.17)beam(z);else if(r<.24)pit(z,ln);else if(r<.31)fire(z,ln);else if(r<.35)barrel(z,ln);else if(r<.68)colleague(z,ln);else if(r<.86)item(z,ln);else heart(z,ln);
-    if(Math.random()<.45){const l2=(ln+1+Math.floor(rand(0,2)))%3;if(!nearWall(z-7))(Math.random()<.55?item:heart)(z-7,l2)}}
+  const IZ=ITEMS.map((_,i)=>-60-(i+.5)*(L-120)/ITEMS.length);IZ.forEach(z=>{let zz=z;while(nearWall(zz))zz-=14;item(zz,Math.floor(rand(0,3)))});const nearItem=z=>IZ.some(i=>Math.abs(i-z)<9);
+  for(let z=-40;z>-L+20;z-=rand(28,36)){if(nearWall(z)||nearItem(z))continue;const r=Math.random(),ln=Math.floor(rand(0,3));
+    if(r<.12)box(z,ln);else if(r<.2)beam(z);else if(r<.28)pit(z,ln);else if(r<.36)fire(z,ln);else if(r<.4)barrel(z,ln);else if(r<.8)colleague(z,ln);else heart(z,ln);
+    if(Math.random()<.3){const l2=(ln+1+Math.floor(rand(0,2)))%3;if(!nearWall(z-7)&&!nearItem(z-7))heart(z-7,l2)}}
   const air=[];let throwT=3;
   function smashAt(gz,side){shake();beep(60,.5,'sawtooth',.09);let k=0;puff(V(side*6,2,gz),16,{size:[1.5,3.2],sp:4});chips(V(side*6,6,gz),14,['#a0522d','#8b3a2b','#74c0fc'],7);
-    BLD.filter(b=>b.q===side&&b.fall<0&&Math.abs(b.z-gz)<9).slice(0,2).forEach(b=>{b.fall=0;k++;
+    BLD.filter(b=>b.q===side&&b.fall<0&&Math.abs(b.z-gz)<9).slice(0,1).forEach(b=>{b.fall=0;k++;
       for(let i=0;i<6;i++){const m=outline(mk(new THREE.BoxGeometry(rand(.8,1.4),rand(.6,1),rand(.8,1.3)),['#868e96','#adb5bd','#f2c230'][i%3],b.q*rand(6,8),rand(b.h*.5,b.h),b.z+rand(-3,3),s),1.05);DEB.push({m,v:V(-b.q*rand(4,8),rand(2,6),rand(-3,1)),r:V(rand(-6,6),0,rand(-6,6))})}});
   }
   function throwCrate(){GI.throwA=.5;const ln=Math.floor(rand(0,3)),tz=st.z-30-rand(0,6),g=outline(mk(new THREE.BoxGeometry(1.3,1,1.1),'#ced4da',0,0,0,s),1.05);mk(new THREE.BoxGeometry(1.1,.12,.9),'#495057',0,.56,0,g);const p0=V(giant.position.x+rand(-3,3),16,giant.position.z+2);g.position.copy(p0);
@@ -1159,7 +1160,18 @@ function run3D(n,cfg){return new Promise(async res=>{
   const heartsTxt=()=>[...Array(st.maxhp).keys()].map(i=>`<span style="color:${i<st.hp?'#e03131':'#ced4da'}">♥</span>`).join('');
   const board=()=>{pmsg(`PV ${heartsTxt()}<br>Évacués : <b>${st.saved} / ${colTotal}</b><br>Matériel : <b>${st.items} / ${itemTotal()}</b><br>Rassemblement : <b>${Math.max(0,Math.round(L+st.z))}</b> m`);$('#pmsg').classList.add('corner')};
   function hurt(t){if(st.inv>0)return;st.hp--;st.inv=2;shake();puff(V(st.x,1,st.z-.5),5,{size:[.4,.8]});st.sp=Math.max(6.5,st.sp-1.5);redFlash();beep(120,.25,'sawtooth',.07);say2(t,2);board();if(st.hp<=0)finish(false)}
-  const W={scene:s,fx,noOff:1,keys:1,dylan:body,look:V(0,0,0),baseD:1,fitW:1};
+  sun.castShadow=true;sun.shadow.mapSize.set(TOUCH?1024:2048,TOUCH?1024:2048);Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14,near:1,far:60});sun.shadow.bias=-.0008;s.add(sun.target);
+  {const ar=ctex(64,64,(x,W,H)=>{x.clearRect(0,0,W,H);x.fillStyle='#2fbf5a';x.beginPath();x.moveTo(32,4);x.lineTo(58,30);x.lineTo(42,30);x.lineTo(42,60);x.lineTo(22,60);x.lineTo(22,30);x.lineTo(6,30);x.closePath();x.fill()});
+   const am=new THREE.MeshBasicMaterial({map:ar,transparent:true,depthWrite:false});for(let z=-8;z>-L;z-=12){const m=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.1),am);m.rotation.x=-Math.PI/2;m.position.set(z%24?-3.5:3.5,.02,z);s.add(m)}
+   const ex=ctex(128,48,(x,W,H)=>{x.fillStyle='#1f8a3c';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.font='bold 15px sans-serif';x.fillText('SORTIE',52,20);x.fillText('DE SECOURS',40,38);
+     x.beginPath();x.arc(24,11,4,0,7);x.fill();x.lineWidth=4;x.strokeStyle='#fff';x.beginPath();x.moveTo(22,16);x.lineTo(18,28);x.lineTo(10,36);x.moveTo(18,28);x.lineTo(28,36);x.moveTo(20,20);x.lineTo(30,24);x.stroke()});
+   const em=new THREE.MeshBasicMaterial({map:ex});BLD.forEach((b,i)=>{if(i%3)return;const m=new THREE.Mesh(new THREE.BoxGeometry(1.4,.52,.12),em);m.position.set(0,2.6,0);m.rotation.y=b.q>0?-Math.PI/2:Math.PI/2;m.position.x=-b.q*.08;b.g.add(m)})}
+  {const role=(txt,col,band,x)=>{const m=makePerson({shirt:'#495057',pants:'#343a40',hat:'#ffd43b',vest:col==='#ff922b',scale:.8});m.position.set(x,0,1.8);m.rotation.y=Math.PI;goal.add(m);
+     const a=outline(mk(new THREE.CylinderGeometry(.16,.16,.26,12),band,0,0,0,m.userData.rig.shs[0].children[0]),1.1);a.position.y=-.3;
+     const l=labelPlane(txt,2.2,.42,{bg:'#fffaf0',border:band,fg:band,size:70});l.position.set(0,4.2,0);l.rotation.y=Math.PI;m.add(l);return m};
+   const SF=role('SERRE-FILE','#e03131','#e03131',2.6),GF=role('GUIDE-FILE','#ff922b','#ff922b',-2.6);
+   const cl=outline(mk(new THREE.BoxGeometry(.32,.42,.04),'#f1f3f5',0,0,0,SF.userData.rig.shs[1].children[0]),1.1);cl.position.y=-.55;SF.userData.rig.shs[1].rotation.x=-1.2}
+  const W={scene:s,fx,noOff:1,keys:1,hd:1,plainui:1,dylan:body,look:V(0,0,0),baseD:1,fitW:1,st,OB};
   W.cam=dt=>{const want=V(st.x*.5,4.7+st.y*.35,st.z+9.5);camera.position.lerp(want,1-Math.pow(.001,dt||.016));camera.lookAt(st.x*.3,2,st.z-12)};
   W.update=(dt,T)=>{fx.update(dt);rmT-=dt;if(rmT<=0)rm.hidden=true;if(st.done)return;
     if(!st.go){body.position.set(st.x,0,st.z);animPerson(body,'idle',T);giant.position.set(0,0,st.z-78);animPerson(giant,'idle',T);gtag.position.set(0,19,st.z-75);return}
@@ -1173,12 +1185,12 @@ function run3D(n,cfg){return new Promise(async res=>{
     st.vy-=21*dt;st.y=Math.max(0,st.y+st.vy*dt);if(st.y<=0)st.vy=0;st.slide=Math.max(0,st.slide-dt);st.inv=Math.max(0,st.inv-dt);
     PX.step(dt);{const a=ASH.geometry.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)+dt*.6,x=a.getX(i)+Math.sin(T+i)*dt*.3;if(y>12)y=0;a.setY(i,y);a.setX(i,x)}a.needsUpdate=true;ASH.position.z=st.z}
     sunD.position.z=st.z;sunD.children.forEach((m,i)=>{if(i<70)m.position.y+=Math.sin(T*.3+i)*.004});BEA.forEach((b,i)=>b.visible=Math.sin(T*8+i)>-.2);ARM.forEach(a=>{a.b.rotation.z=a.q*(.3+Math.sin(T*1.6+a.ph)*.35);a.e.rotation.z=-a.q*(.9+Math.sin(T*2.1+a.ph)*.5);a.b.parent.rotation.y=Math.sin(T*.9+a.ph)*.8});BRZ.forEach((f,i)=>f.forEach((c,k)=>c.scale.set(1,1+Math.sin(T*14+i+k*2)*.3,1)));
-    body.position.set(st.x,st.y,st.z);body.visible=st.inv<=0||Math.sin(T*30)>0;
+    body.position.set(st.x,st.y,st.z);body.visible=st.inv<=0||Math.sin(T*30)>0;sun.position.set(st.x-6,14,st.z+12);sun.target.position.set(st.x,0,st.z-4);
     animPerson(body,st.y>0?'jump':st.slide>0?'crouch':'run',T*1.2);if(st.slide>0)body.userData.rig.pose.rotation.x=-.6;body.userData.rig.pose.rotation.z=Math.max(-.35,Math.min(.35,st.lean||0));body.rotation.y=Math.PI+Math.max(-.3,Math.min(.3,(st.lean||0)*.8));
     /* le géant reste devant, piétine, et lance des caisses */
     /* le géant marche lourdement, balance sa massue, cogne les façades et fait tout trembler */
     const gz=Math.max(-L-40,st.z-78),rg=giant.userData.rig;
-    GI.sT-=dt;if(GI.sT<=0&&!GI.smash){GI.smash=.01;GI.side=Math.random()<.5?-1:1;GI.tx=GI.side*3.2;GI.sT=rand(2.2,3.6)}
+    GI.sT-=dt;if(GI.sT<=0&&!GI.smash){GI.smash=.01;GI.side=Math.random()<.5?-1:1;GI.tx=GI.side*3.2;GI.sT=rand(7,10)}
     if(!GI.smash&&Math.abs(GI.x-GI.tx)<.2)GI.tx=rand(-2.5,2.5);GI.x+=(GI.tx-GI.x)*Math.min(1,dt*1.6);
     animPerson(giant,'walk',T*.35);let lean=Math.sin(T*1.4)*.1,cl=Math.sin(T*1.4)*.6-.3,fwd=.05;
     if(GI.smash){GI.smash+=dt;const k=GI.smash;
@@ -1191,9 +1203,9 @@ function run3D(n,cfg){return new Promise(async res=>{
     const ph=Math.sin(T*2.8);giant.position.set(GI.x,Math.abs(ph)*.7,gz);giant.rotation.y=Math.sin(T*.7)*.25+GI.x*-.04;
     if(ph*Math.sin((T-dt)*2.8)<0){puff(V(GI.x+(ph>0?1.5:-1.5),.3,gz+1),5,{size:[1.2,2.4],sp:3,up:.5});beep(55,.12,'sine',.05)}
     /* les façades qui s'effondrent, les gravats qui roulent dans l'avenue, les colonnes qui tombent en travers */
-    BLD.forEach(b=>{if(b.fall<0||b.fall>1.8)return;b.fall+=dt;const a=Math.min(.5,b.fall*.8),a2=Math.min(1.35,b.fall*b.fall*2.4);b.g.rotation.z=b.q*a;b.top.rotation.z=b.q*a2;b.g.position.y=-Math.min(b.h*.3,b.fall*2.2);
+    BLD.forEach(b=>{if(b.fall<0||b.fall>1.8)return;b.fall+=dt;const a=Math.min(.35,b.fall*.6),a2=Math.min(1.2,b.fall*b.fall*2.2);b.g.rotation.z=-b.q*a;b.top.rotation.z=-b.q*a2;b.g.position.y=-Math.min(b.h*.45,b.fall*3);
       if(Math.random()<dt*14)puff(V(b.q*rand(5,8),rand(.5,2),b.z+rand(-3,3)),1,{size:[1.2,2.4],sp:1.5});if(Math.random()<dt*8)chips(V(b.q*6.5,b.h*.5,b.z+rand(-3,3)),2,['#74c0fc','#a5d8ff'],3,[.1,.25]);
-      if(!b.boom&&a2>=1.3){b.boom=1;puff(V(b.q*4,.5,b.z),14,{size:[1.5,3],sp:5,up:.8});chips(V(b.q*4,1,b.z),12,['#adb5bd','#74c0fc','#f2c230'],6);ring(V(b.q*4,0,b.z));if(Math.abs(b.z-st.z)<40)shake()}});
+      if(!b.boom&&a2>=1.15){b.boom=1;puff(V(b.q*6,.5,b.z),14,{size:[1.5,3],sp:5,up:.8});chips(V(b.q*4,1,b.z),12,['#adb5bd','#74c0fc','#f2c230'],6);ring(V(b.q*4,0,b.z));if(Math.abs(b.z-st.z)<40)shake()}});
     for(let i=DEB.length-1;i>=0;i--){const d=DEB[i],m=d.m;d.v.y-=20*dt;m.position.addScaledVector(d.v,dt);m.rotation.x+=d.r.x*dt;m.rotation.z+=d.r.z*dt;
       if(m.position.y<=.45){m.position.y=.45;DEB.splice(i,1);puff(m.position.clone(),3,{size:[.6,1.2]});chips(m.position.clone(),4);if(Math.abs(m.position.x)<3.6&&m.position.z<st.z-12&&Math.random()<.12)add({k:'box',z:m.position.z,x:m.position.x,w:1.2,d:1.1,h:.9,m});}}
     COL.forEach(c=>{if(!c.top||c.st===3)return;const d=st.z-c.z;
