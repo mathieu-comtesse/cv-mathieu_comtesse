@@ -462,7 +462,8 @@ function makeTree(kind){
 }
 /* décor de l'île modelé dans Blender (arbres, piliers moussus, nuages, goélands, avion) : chargé avant le village, repli sur les formes simples sinon */
 const ILE={},ILEMAT=new THREE.MeshLambertMaterial({vertexColors:true});
-function preloadIle(){return Promise.all(['saule','palmier','touffu','pilier','nuage','goeland','avion','atelier0','atelier1','atelier2','atelier3','atelier4','atelier5','atelier6','boulon'].map(k=>ILE[k]?1:loadGLB(`assets/talas/ile/${k}.glb?v=1`).then(g=>{g.traverse(o=>{if(o.isMesh){o.material=ILEMAT;o.castShadow=true}});ILE[k]=g}).catch(()=>0)))}
+function ileMat(o){const g=o.geometry;if(g.userData.map){o.material=new THREE.MeshLambertMaterial({map:g.userData.map,vertexColors:!!g.attributes.color,alphaTest:g.userData.alpha==='MASK'?.45:0,transparent:g.userData.alpha==='BLEND',side:g.userData.ds?THREE.DoubleSide:THREE.FrontSide})}else o.material=ILEMAT}
+function preloadIle(){if(!ILE.ciel)ILE.ciel=new THREE.TextureLoader().load('assets/talas/ile/ciel.jpg?v=1');return Promise.all(['sol','falaise','fond','saule','palmier','touffu','pilier','nuage','goeland','avion','atelier0','atelier1','atelier2','atelier3','atelier4','atelier5','atelier6','boulon'].map(k=>ILE[k]?1:loadGLB(`assets/talas/ile/${k}.glb?v=1`).then(g=>{g.traverse(o=>{if(o.isMesh){ileMat(o);o.castShadow=true}});ILE[k]=g}).catch(()=>0)))}
 const ileTree=i=>{const g=new THREE.Group(),m=ILE[['saule','touffu','palmier','touffu'][i%4]].clone();m.scale.setScalar(.72);g.add(m);g.userData.kind='round';g.userData.crown=m;g.userData.ph=rand(0,6);return g};
 function ileGull(){const b=ILE.goeland.clone();b.scale.setScalar(1.4);b.userData.wings=[['aile_L',-1],['aile_R',1]].map(([n,q])=>{const w=b.getObjectByName(n);w.userData.q=q;return w});return b}
 function buildNature(s,{ground=0,trees=40,treeSpot,grass=900,grassSpot,flowers=60,bushes=20,bushSpot,leaves=150,birds=5,butterflies=7,center=V(0,0,0)}){if(ILE.goeland)birds+=3;
@@ -583,7 +584,16 @@ function buildHub(){
   const s=new THREE.Scene();s.background=skyTex('#0048e0','#7ec0ea');s.fog=new THREE.Fog('#8cc4e6',80,190);lights(s,30);
   const cz=document.createElement('canvas');cz.width=cz.height=256;{const x=cz.getContext('2d');x.fillStyle='#17a3a3';x.fillRect(0,0,256,256);x.strokeStyle='rgba(210,255,245,.55)';x.lineCap='round';
     for(let i=0;i<70;i++){x.lineWidth=rand(1.5,4);x.beginPath();const px=rand(0,256),py=rand(0,256);x.moveTo(px,py);x.bezierCurveTo(px+rand(-30,30),py+rand(-30,30),px+rand(-30,30),py+rand(-30,30),px+rand(-40,40),py+rand(-40,40));x.stroke()}}
-  const caus=new THREE.CanvasTexture(cz);caus.wrapS=caus.wrapT=THREE.RepeatWrapping;caus.repeat.set(26,26);
+  let W2=null;const caus=new THREE.CanvasTexture(cz);caus.wrapS=caus.wrapT=THREE.RepeatWrapping;caus.repeat.set(26,26);
+  const SEA=ILE.sol?-2.2:-.7;
+  if(ILE.sol){/* île cuite dans Blender : dessus (herbe, chemins, place, piste), falaises moussues et plage, fonds marins vus à travers l'eau */
+    ['sol','falaise','fond'].forEach(k=>{const m=ILE[k].clone();m.traverse(o=>{if(o.isMesh){o.receiveShadow=true;o.castShadow=k==='falaise'}});s.add(m)});
+    const sky=new THREE.Mesh(new THREE.SphereGeometry(400,48,24),new THREE.MeshBasicMaterial({map:ILE.ciel,side:THREE.BackSide,fog:false}));s.add(sky);s.background=new THREE.Color('#aad7f5');s.fog=new THREE.Fog('#a6d4f2',90,260);
+    const w=new THREE.Mesh(new THREE.CircleGeometry(170,64),new THREE.MeshPhongMaterial({color:'#2fc6c0',transparent:true,opacity:.55,shininess:120,specular:'#ffffff',depthWrite:false}));w.position.y=SEA;w.rotation.x=-Math.PI/2;w.renderOrder=2;s.add(w);
+    const c2=document.createElement('canvas');c2.width=c2.height=256;{const x=c2.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,256,256);x.strokeStyle='#ffffff';x.lineCap='round';for(let i=0;i<90;i++){x.globalAlpha=rand(.3,.9);x.lineWidth=rand(1,3);x.beginPath();const px=rand(0,256),py=rand(0,256);x.moveTo(px,py);x.bezierCurveTo(px+rand(-25,25),py+rand(-25,25),px+rand(-25,25),py+rand(-25,25),px+rand(-35,35),py+rand(-35,35));x.stroke()}}
+    const ct=new THREE.CanvasTexture(c2);ct.wrapS=ct.wrapT=THREE.RepeatWrapping;ct.repeat.set(85,85);
+    const w2=new THREE.Mesh(new THREE.CircleGeometry(170,64),new THREE.MeshBasicMaterial({map:ct,color:'#dffcff',transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthWrite:false}));w2.position.y=SEA+.03;w2.rotation.x=-Math.PI/2;w2.renderOrder=3;s.add(w2);W2=w2}
+  else{
   const w=new THREE.Mesh(new THREE.CircleGeometry(160,48),new THREE.MeshLambertMaterial({map:caus,color:'#9ff5ee'}));w.position.y=-.7;w.rotation.x=-Math.PI/2;s.add(w);
   const shoal=new THREE.Mesh(new THREE.RingGeometry(24,40,64),new THREE.MeshBasicMaterial({color:'#7ff0dc',transparent:true,opacity:.35,depthWrite:false}));shoal.rotation.x=-Math.PI/2;shoal.position.y=-.66;s.add(shoal);
   mk(new THREE.CylinderGeometry(26.2,27.6,.4,56),'#ecdcae',0,-.62,0,s).castShadow=false;
@@ -593,6 +603,7 @@ function buildHub(){
   const ring=mk(new THREE.TorusGeometry(9,.7,4,64),'#c8a050',0,.4,0,s);ring.rotation.x=Math.PI/2;ring.scale.z=.12;ring.castShadow=false;
   const run=mk(new THREE.BoxGeometry(24,.08,4),'#868e96',0,.43,15,s);run.castShadow=false;
   for(let i=0;i<10;i++)mk(new THREE.BoxGeometry(1.2,.02,.25),'#ffffff',-10.8+i*2.4,.48,15,s).castShadow=false;
+  }
   const clickables=[];
   for(let n=0;n<7;n++){
     const a=(-100+n*200/6)*Math.PI/180;const b=building(n);b.position.set(Math.sin(a)*13,.4,-Math.cos(a)*13);b.lookAt(0,.4,0);b.rotateY(0);
@@ -610,9 +621,12 @@ function buildHub(){
     treeSpot:()=>{const a=rand(0,Math.PI*2),r=rand(15.5,22.3),x=Math.sin(a)*r,z=-Math.cos(a)*r;return (z>9&&Math.abs(x)<16)?null:[x,z]},
     grassSpot:()=>{const a=rand(0,Math.PI*2),r=rand(4.4,22.8),x=Math.sin(a)*r,z=-Math.cos(a)*r;if(z>12.3&&z<17.7&&Math.abs(x)<12.6)return null;if(Math.abs(r-9)<.8)return null;if(Math.abs(r-13)<2.6)return null;return [x,z]},
     bushSpot:()=>{const a=rand(0,Math.PI*2),r=rand(10.2,17),x=Math.sin(a)*r,z=-Math.cos(a)*r;if(z>8)return null;if(Math.abs(r-13)<2.4)return null;return [x,z]}});
-  if(ILE.pilier)for(let i=0;i<30;i++){const a=i/30*Math.PI*2+rand(-.05,.05),r=rand(23.6,25.2),m=ILE.pilier.clone();m.position.set(Math.sin(a)*r,-1.3,-Math.cos(a)*r);m.rotation.y=rand(0,6);m.scale.set(rand(.5,.7),rand(.2,.3),rand(.5,.7));if(!(m.position.z>9&&Math.abs(m.position.x)<13))s.add(m)}
-  const foam=new THREE.Mesh(new THREE.TorusGeometry(25.2,.35,4,64),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6}));foam.rotation.x=Math.PI/2;foam.position.y=-.55;foam.material.color.set('#7c84ff');s.add(foam);
-  if(ILE.pilier)for(let i=0;i<18;i++){const a=i/18*Math.PI*2+rand(-.12,.12),r=rand(42,80),m=ILE.pilier.clone();m.position.set(Math.sin(a)*r,-1.6,-Math.cos(a)*r);m.rotation.y=rand(0,6);const k=rand(1.3,2.8);m.scale.set(k,k*rand(.8,1.4),k);s.add(m)}
+  if(ILE.pilier&&!ILE.sol)for(let i=0;i<30;i++){const a=i/30*Math.PI*2+rand(-.05,.05),r=rand(23.6,25.2),m=ILE.pilier.clone();m.position.set(Math.sin(a)*r,-1.3,-Math.cos(a)*r);m.rotation.y=rand(0,6);m.scale.set(rand(.5,.7),rand(.2,.3),rand(.5,.7));if(!(m.position.z>9&&Math.abs(m.position.x)<13))s.add(m)}
+  const foam=new THREE.Mesh(new THREE.TorusGeometry(25.2,.35,4,64),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6}));foam.rotation.x=Math.PI/2;foam.position.y=SEA+.15;foam.material.color.set('#7c84ff');if(ILE.sol){/* écume sur la vraie ligne de rivage : pied de falaise ~25,4, bord de la plage ~29,7 (même profil que dans Blender) */
+    const bn=a=>{const d=Math.atan2(Math.sin(a+Math.PI/2),Math.cos(a+Math.PI/2));return Math.max(0,Math.min(1,(1.25-Math.abs(d))/.35))},NA=240,pos=[],ix=[];
+    for(let i=0;i<=NA;i++){const a=i/NA*Math.PI*2,r=25.5*(1-bn(a))+29.8*bn(a);[r-.35,r+.9].forEach(rr=>pos.push(Math.cos(a)*rr,0,-Math.sin(a)*rr));if(i<NA)ix.push(i*2,i*2+1,i*2+2,i*2+1,i*2+3,i*2+2)}
+    const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));fg.setIndex(ix);foam.geometry=fg;foam.rotation.x=0;foam.material=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide});foam.renderOrder=4}s.add(foam);
+  if(ILE.pilier)for(let i=0;i<18;i++){const a=i/18*Math.PI*2+rand(-.12,.12),r=rand(42,80),m=ILE.pilier.clone();m.position.set(Math.sin(a)*r,SEA-1,-Math.cos(a)*r);m.rotation.y=rand(0,6);const k=rand(1.3,2.8);m.scale.set(k,k*rand(.8,1.4),k);s.add(m)}
   if(!ILE.pilier)for(let i=0;i<14;i++){const a=i/14*Math.PI*2+rand(-.1,.1),r=rand(70,95);const h=new THREE.Mesh(new THREE.SphereGeometry(rand(10,18),20,12),matF(['#7dbb9a','#5e8a85','#94c9a8'][i%3]));h.position.set(Math.sin(a)*r,-2,-Math.cos(a)*r);h.scale.y=rand(.35,.6);s.add(h)}
   if(!ILE.pilier)for(let i=0;i<9;i++){const a=rand(0,Math.PI*2),r=rand(55,68);const p=new THREE.Group();p.position.set(Math.sin(a)*r,-1,-Math.cos(a)*r);const hh=rand(6,11);
     outline(mk(new THREE.CylinderGeometry(rand(1.6,2.4),rand(2.6,3.4),hh,9),matF('#c8a878'),0,hh/2,0,p),1.04);outline(mk(new THREE.SphereGeometry(2.6,10,6,0,Math.PI*2,0,Math.PI/2),matF('#46a82a'),0,hh,0,p),1.05);s.add(p)}
@@ -620,10 +634,10 @@ function buildHub(){
   const sun=new THREE.Mesh(new THREE.SphereGeometry(5,24,16),new THREE.MeshBasicMaterial({color:'#ffe066'}));sun.position.set(-50,48,-80);s.add(sun);
   arrow=outline(mk(new THREE.ConeGeometry(1.15,2.3,20),'#ff1f1f',0,0,0,s),1.12);arrow.rotation.x=Math.PI;const aring=mk(new THREE.TorusGeometry(1.5,.16,6,32),'#ff1f1f',0,.5,0,s);aring.rotation.x=Math.PI/2;aring.castShadow=false;arrow.userData.ring=aring;
   const fx=makeFX(s);
-  const W={scene:s,clickables,hub:1,look:V(0,1.5,1),yaw:0,baseD:37,fitW:46,boulon:bo,plane:pl,fx,
+  const W={scene:s,clickables,hub:1,hd:1,plainui:1,look:V(0,1.5,1),yaw:0,baseD:37,fitW:46,boulon:bo,plane:pl,fx,
     update(dt,T){
       bo.userData.prop.rotation.y+=dt*8;bo.position.y=.45+Math.abs(Math.sin(T*2.2))*.3;bo.rotation.y=Math.sin(T*.6)*.6;
-      clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>55)c.position.x=-55});caus.offset.set(T*.004,T*.006);nat.update(dt,T);foam.scale.setScalar(1+Math.sin(T*1.5)*.012);foam.material.opacity=.45+Math.sin(T*1.5)*.2;
+      clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>55)c.position.x=-55});caus.offset.set(T*.004,T*.006);if(W2){W2.material.map.offset.set(-T*.006,T*.004)}nat.update(dt,T);foam.scale.setScalar(1+Math.sin(T*1.5)*.012);foam.material.opacity=.45+Math.sin(T*1.5)*.2;
       B.forEach((b,n)=>{if(b.userData.gear)b.userData.gear.rotation.z+=dt*.8;if(b.userData.flag)b.userData.flag.rotation.y=Math.sin(T*3)*.3;
         if(b.userData.smoke)b.userData.smoke.forEach((p,i)=>{const k=((T*.35+i/4)%1);p.position.set(-1.2+k*.6,4.9+k*3,-.6);p.scale.setScalar(.4+k*1.2)})});
       const nx=nextN();if(nx!==null){const t=nx===7?HUB_TOWER:B[nx];const p=t.getWorldPosition(V(0,0,0));arrow.visible=true;const dd=V(-p.x,0,-p.z).normalize(),rg=arrow.userData.ring;arrow.position.set(p.x+dd.x*3.4,3.3+Math.abs(Math.sin(T*4))*.7,p.z+dd.z*3.4);arrow.scale.setScalar(1+Math.sin(T*8)*.06);rg.visible=true;rg.position.set(p.x+dd.x*3.4,.5,p.z+dd.z*3.4);rg.scale.setScalar(1+((T*1.5)%1)*.5)}else{arrow.visible=false;arrow.userData.ring.visible=false}
@@ -766,7 +780,7 @@ function buildRoom(n){
 
 /* ================= MOTEUR 3D : CAMÉRA & CLICS ================= */
 let cur=null,dragging=false,busy=false;
-function setWorld(w){cur=w;renderer.setPixelRatio(w&&w.hd?(TOUCH?1.5:2):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd));fit()}
+function setWorld(w){cur=w;renderer.setPixelRatio(w&&w.hd?(TOUCH?1.5:2):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd&&!w.plainui));fit()}
 function fit(){
   const A=$('#area'),aw=A.clientWidth||innerWidth,ah=A.clientHeight||innerHeight;
   GW=Math.round(GH*Math.max(4/3,Math.min(2.2,aw/ah))/2)*2;
@@ -3387,9 +3401,14 @@ function loadGLB(url){return fetch(url).then(r=>{if(!r.ok)throw new Error(url);r
     let arr;if(bv.byteStride&&bv.byteStride!==n*T.BYTES_PER_ELEMENT){const src=new DataView(bin),out=new T(a.count*n),get={5126:'getFloat32',5123:'getUint16',5121:'getUint8',5125:'getUint32'}[a.componentType];
       for(let k=0;k<a.count;k++)for(let c=0;c<n;c++)out[k*n+c]=src[get](o+k*bv.byteStride+c*T.BYTES_PER_ELEMENT,true);arr=out}else arr=new T(bin,o,a.count*n);
     if(a.normalized){const m=a.componentType===5123?65535:a.componentType===5121?255:1,f=new Float32Array(arr.length);for(let k=0;k<arr.length;k++)f[k]=arr[k]/m;arr=f}return {arr,n}};
+  const TX={};const tex=i=>TX[i]||(TX[i]=(()=>{const im=json.images[i],bv=json.bufferViews[im.bufferView],t=new THREE.Texture();t.flipY=false;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;
+    const el=new Image();el.onload=()=>{t.image=el;t.needsUpdate=true};el.src=URL.createObjectURL(new Blob([new Uint8Array(bin,bv.byteOffset||0,bv.byteLength)],{type:im.mimeType}));return t})());
   const meshes=(json.meshes||[]).map(m=>m.primitives.map(p=>{const g=new THREE.BufferGeometry(),A=p.attributes;
     const P=acc(A.POSITION);g.setAttribute('position',new THREE.BufferAttribute(P.arr,3));if(A.NORMAL!==undefined)g.setAttribute('normal',new THREE.BufferAttribute(acc(A.NORMAL).arr,3));
     if(A.COLOR_0!==undefined){const C=acc(A.COLOR_0);let c=C.arr;if(C.n===4){const t=new Float32Array(c.length/4*3);for(let k=0,j=0;k<c.length;k+=4)t[j++]=c[k],t[j++]=c[k+1],t[j++]=c[k+2];c=t}g.setAttribute('color',new THREE.BufferAttribute(c,3))}
+    if(A.TEXCOORD_0!==undefined)g.setAttribute('uv',new THREE.BufferAttribute(acc(A.TEXCOORD_0).arr,2));
+    const M=p.material!==undefined&&json.materials?json.materials[p.material]:null,bt=M&&M.pbrMetallicRoughness&&M.pbrMetallicRoughness.baseColorTexture;
+    if(bt){g.userData.map=tex(json.textures[bt.index].source);g.userData.alpha=M.alphaMode||'OPAQUE'}if(M&&M.doubleSided)g.userData.ds=1;
     if(p.indices!==undefined)g.setIndex(new THREE.BufferAttribute(acc(p.indices).arr,1));if(A.NORMAL===undefined)g.computeVertexNormals();return g}));
   const mk2=i=>{const n=json.nodes[i];let o;if(n.mesh!==undefined){const gs=meshes[n.mesh];o=gs.length===1?new THREE.Mesh(gs[0]):new THREE.Group();if(gs.length>1)gs.forEach(g=>o.add(new THREE.Mesh(g)))}else o=new THREE.Group();
     o.name=n.name||'';if(n.translation)o.position.fromArray(n.translation);if(n.rotation)o.quaternion.fromArray(n.rotation);if(n.scale)o.scale.fromArray(n.scale);(n.children||[]).forEach(c=>o.add(mk2(c)));return o};
