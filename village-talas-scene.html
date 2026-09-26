@@ -628,6 +628,9 @@ function buildHub(){
     grassSpot:()=>{const a=rand(0,Math.PI*2),r=rand(4.4,22.8),x=Math.sin(a)*r,z=-Math.cos(a)*r;if(z>12.3&&z<17.7&&Math.abs(x)<12.6)return null;if(Math.abs(r-9)<.8)return null;if(Math.abs(r-13)<2.6)return null;return [x,z]},
     bushSpot:()=>{const a=rand(0,Math.PI*2),r=rand(10.2,17),x=Math.sin(a)*r,z=-Math.cos(a)*r;if(z>8)return null;if(Math.abs(r-13)<2.4)return null;return [x,z]}});
   if(ILE.pilier&&!ILE.sol)for(let i=0;i<30;i++){const a=i/30*Math.PI*2+rand(-.05,.05),r=rand(23.6,25.2),m=ILE.pilier.clone();m.position.set(Math.sin(a)*r,-1.3,-Math.cos(a)*r);m.rotation.y=rand(0,6);m.scale.set(rand(.5,.7),rand(.2,.3),rand(.5,.7));if(!(m.position.z>9&&Math.abs(m.position.x)<13))s.add(m)}
+  if(ILE.sol&&ILE.fougere)[45,135,225,315].forEach(dg=>{const a=dg*Math.PI/180,x=Math.sin(a)*5.3,z=-Math.cos(a)*5.3;/* jardinières de la place, en pierre claire, fougères et petit palmier */
+    outline(mk(new THREE.CylinderGeometry(1,1.05,.5,20),'#b3b0c6',x,.65,z,s),1.04);mk(new THREE.CylinderGeometry(.9,.9,.06,20),'#5a3e22',x,.92,z,s);
+    const f=ILE.fougere.clone();f.position.set(x,.9,z);f.scale.setScalar(.8);s.add(f);const p=ILE.palmier2.clone();p.position.set(x,.9,z);p.scale.setScalar(.45);p.rotation.y=a;s.add(p)});
   if(ILE.ponton){[[-7,.1],[9,-.15]].forEach(([x,r])=>{const p=ILE.ponton.clone();p.position.set(x,-1.75,28.2);p.rotation.y=r;s.add(p)})}
   if(ILE.buisson1){for(let i=0;i<70;i++){const a=i/70*Math.PI*2+rand(-.03,.03),x=Math.sin(a)*rand(22.4,23.2),z=-Math.cos(a)*rand(22.4,23.2);if(z>12&&Math.abs(x)<17)continue;
       const b=ILE[i%3?'buisson1':'buisson2'].clone();b.position.set(x,.35,z);b.rotation.y=rand(0,6);b.scale.setScalar(rand(.9,1.4));s.add(b)}
@@ -640,7 +643,7 @@ function buildHub(){
   if(!ILE.pilier)for(let i=0;i<14;i++){const a=i/14*Math.PI*2+rand(-.1,.1),r=rand(70,95);const h=new THREE.Mesh(new THREE.SphereGeometry(rand(10,18),20,12),matF(['#7dbb9a','#5e8a85','#94c9a8'][i%3]));h.position.set(Math.sin(a)*r,-2,-Math.cos(a)*r);h.scale.y=rand(.35,.6);s.add(h)}
   if(!ILE.pilier)for(let i=0;i<9;i++){const a=rand(0,Math.PI*2),r=rand(55,68);const p=new THREE.Group();p.position.set(Math.sin(a)*r,-1,-Math.cos(a)*r);const hh=rand(6,11);
     outline(mk(new THREE.CylinderGeometry(rand(1.6,2.4),rand(2.6,3.4),hh,9),matF('#c8a878'),0,hh/2,0,p),1.04);outline(mk(new THREE.SphereGeometry(2.6,10,6,0,Math.PI*2,0,Math.PI/2),matF('#46a82a'),0,hh,0,p),1.05);s.add(p)}
-  const clouds=[];for(let i=0;i<7;i++){const c=new THREE.Group();if(ILE.nuage){const n=ILE.nuage.clone();n.scale.setScalar(rand(1.1,1.8));c.add(n)}else for(let j=0;j<4;j++){const m=new THREE.Mesh(new THREE.SphereGeometry(rand(1.4,2.4),14,12),mat('#ffffff'));m.position.set(j*1.8-2.7,rand(-.3,.4),rand(-.5,.5));c.add(m)}c.position.set(rand(-40,40),rand(15,22),rand(-45,10));c.userData.v=rand(.6,1.4);s.add(c);clouds.push(c)}
+  const clouds=[];for(let i=0;i<(ILE.sol?0:7);i++){const c=new THREE.Group();if(ILE.nuage){const n=ILE.nuage.clone();n.scale.setScalar(rand(1.1,1.8));c.add(n)}else for(let j=0;j<4;j++){const m=new THREE.Mesh(new THREE.SphereGeometry(rand(1.4,2.4),14,12),mat('#ffffff'));m.position.set(j*1.8-2.7,rand(-.3,.4),rand(-.5,.5));c.add(m)}c.position.set(rand(-40,40),rand(15,22),rand(-45,10));c.userData.v=rand(.6,1.4);s.add(c);clouds.push(c)}
   const sun=new THREE.Mesh(new THREE.SphereGeometry(5,24,16),new THREE.MeshBasicMaterial({color:'#ffe066'}));sun.position.set(-50,48,-80);s.add(sun);
   arrow=outline(mk(new THREE.ConeGeometry(1.15,2.3,20),'#ff1f1f',0,0,0,s),1.12);arrow.rotation.x=Math.PI;const aring=mk(new THREE.TorusGeometry(1.5,.16,6,32),'#ff1f1f',0,.5,0,s);aring.rotation.x=Math.PI/2;aring.castShadow=false;arrow.userData.ring=aring;
   const fx=makeFX(s);
