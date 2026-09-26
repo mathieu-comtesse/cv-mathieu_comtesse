@@ -1,0 +1,3 @@
+Rye : Copyright (c) 2012, Sorkin Type Co. Licence SIL Open Font License 1.1 (https://openfontlicense.org).
+Luckiest Guy : Astigmatic (AOETI). Licence Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+Fichiers issus des paquets Fontsource.
