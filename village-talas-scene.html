@@ -3250,8 +3250,44 @@ function animToon(p,mode,t){animPerson(p,mode,t);const r=p.userData.rig;if(!r||!
   else if(mode==='idle'){elbows.forEach(e=>e.rotation.x=-.25);head.rotation.z=Math.sin(t*1.3)*.06}
   /* la tête se tourne de trois quarts vers la caméra, comme dans le dessin animé */
   const ry=p.rotation.y;if(Math.abs(Math.abs(ry)-Math.PI/2)<.3){head.rotation.y+=-ry*.62;up.rotation.y+=-ry*.2}
-  const bl=(t%3.4)<.12?.15:1;r.eyes.forEach(e=>e.scale.y=1.3*bl);r.shout=Math.max(0,r.shout-.016);
-  const open=mode==='jump'||mode==='fall'||mode==='stun'||r.shout>0;r.mouthS.visible=!open;r.mouthO.visible=open;r.eyes.forEach(e=>{const w=r.shout>0?1.25:1;e.scale.x=.9*w})}
+  const bl=(t%3.4)<.12?.15:1,E0=r.eyeS||[.9,1.3];r.eyes.forEach(e=>{if(e)e.scale.y=E0[1]*bl});r.shout=Math.max(0,r.shout-.016);
+  const open=mode==='jump'||mode==='fall'||mode==='stun'||r.shout>0;if(r.mouthS)r.mouthS.visible=!open;if(r.mouthO)r.mouthO.visible=open;r.eyes.forEach(e=>{if(!e)return;const w=r.shout>0?1.25:1;e.scale.x=E0[0]*w})}
+/* lecteur .glb minimal (glTF 2.0 binaire) : hiérarchie de nœuds, maillages indexés, normales, couleurs de sommets.
+   Suffisant pour les personnages modelés dans Blender ; évite de charger GLTFLoader depuis un CDN. */
+function loadGLB(url){return fetch(url).then(r=>{if(!r.ok)throw new Error(url);return r.arrayBuffer()}).then(buf=>{
+  const dv=new DataView(buf);if(dv.getUint32(0,true)!==0x46546C67)throw new Error('glb');
+  let off=12,json=null,bin=null;while(off<buf.byteLength){const len=dv.getUint32(off,true),type=dv.getUint32(off+4,true);
+    if(type===0x4E4F534A)json=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,off+8,len)));else if(type===0x004E4942)bin=buf.slice(off+8,off+8+len);off+=8+len}
+  const CT={5120:Int8Array,5121:Uint8Array,5122:Int16Array,5123:Uint16Array,5125:Uint32Array,5126:Float32Array},NC={SCALAR:1,VEC2:2,VEC3:3,VEC4:4};
+  const acc=i=>{const a=json.accessors[i],bv=json.bufferViews[a.bufferView],T=CT[a.componentType],n=NC[a.type],o=(bv.byteOffset||0)+(a.byteOffset||0);
+    let arr;if(bv.byteStride&&bv.byteStride!==n*T.BYTES_PER_ELEMENT){const src=new DataView(bin),out=new T(a.count*n),get={5126:'getFloat32',5123:'getUint16',5121:'getUint8',5125:'getUint32'}[a.componentType];
+      for(let k=0;k<a.count;k++)for(let c=0;c<n;c++)out[k*n+c]=src[get](o+k*bv.byteStride+c*T.BYTES_PER_ELEMENT,true);arr=out}else arr=new T(bin,o,a.count*n);
+    if(a.normalized){const m=a.componentType===5123?65535:a.componentType===5121?255:1,f=new Float32Array(arr.length);for(let k=0;k<arr.length;k++)f[k]=arr[k]/m;arr=f}return {arr,n}};
+  const meshes=(json.meshes||[]).map(m=>m.primitives.map(p=>{const g=new THREE.BufferGeometry(),A=p.attributes;
+    const P=acc(A.POSITION);g.setAttribute('position',new THREE.BufferAttribute(P.arr,3));if(A.NORMAL!==undefined)g.setAttribute('normal',new THREE.BufferAttribute(acc(A.NORMAL).arr,3));
+    if(A.COLOR_0!==undefined){const C=acc(A.COLOR_0);let c=C.arr;if(C.n===4){const t=new Float32Array(c.length/4*3);for(let k=0,j=0;k<c.length;k+=4)t[j++]=c[k],t[j++]=c[k+1],t[j++]=c[k+2];c=t}g.setAttribute('color',new THREE.BufferAttribute(c,3))}
+    if(p.indices!==undefined)g.setIndex(new THREE.BufferAttribute(acc(p.indices).arr,1));if(A.NORMAL===undefined)g.computeVertexNormals();return g}));
+  const mk2=i=>{const n=json.nodes[i];let o;if(n.mesh!==undefined){const gs=meshes[n.mesh];o=gs.length===1?new THREE.Mesh(gs[0]):new THREE.Group();if(gs.length>1)gs.forEach(g=>o.add(new THREE.Mesh(g)))}else o=new THREE.Group();
+    o.name=n.name||'';if(n.translation)o.position.fromArray(n.translation);if(n.rotation)o.quaternion.fromArray(n.rotation);if(n.scale)o.scale.fromArray(n.scale);(n.children||[]).forEach(c=>o.add(mk2(c)));return o};
+  const root=new THREE.Group();(json.scenes[json.scene||0].nodes).forEach(i=>root.add(mk2(i)));return root})}
+/* personnages Blender : chargés une fois, clonés ensuite ; chaque pièce prend la couleur de son rôle */
+const TOONGLB={};const TOONMAT={};
+function preloadToons(){const L=['dylan','aurelien','bernard','georges','worker'];return Promise.all(L.map(k=>TOONGLB[k]?1:loadGLB(`assets/talas/${k}.glb?v=1`).then(r=>TOONGLB[k]=r).catch(()=>0)))}
+const TPAL={
+  dylan:{skin:'#e6ad86',nose:'#d89c78',shirt:'#6cb0e8',sleeve:'#6cb0e8',vest:'#ff8420',stripe:'#e8ecef',pants:'#3a58b8',belt:'#3a2210',shoe:'#6e4220',sole:'#3a2210',hair:'#5a3214',hat:'#ffd02a',white:'#ffffff',pupil:'#1f4f9a',mouth:'#6a2418',stubble:'#c99472'},
+  aurelien:{skin:'#eab39a',nose:'#e07a6a',shirt:'#2c3470',sleeve:'#2c3470',pants:'#262d62',shoe:'#121216',sole:'#050505',hair:'#b8bfc8',collar:'#f4f6fa',tie:'#c81e1e',gold:'#e8b923',cigar:'#6a3e1e',ember:'#ff5010',white:'#ffffff',pupil:'#56687a',mouth:'#7a3028'},
+  bernard:{skin:'#f0b489',nose:'#e0806a',shirt:'#e03131',sleeve:'#e03131',pants:'#3b3f55',shoe:'#2b2b2b',sole:'#111',hair:'#555555',hat:'#f8f9fa',white:'#ffffff',pupil:'#3a2a1a',mouth:'#6a2418',stubble:'#b9876a'},
+  georges:{skin:'#e8b48a',nose:'#d8966e',shirt:'#343a70',sleeve:'#343a70',pants:'#212529',shoe:'#1a1a1a',sole:'#050505',hair:'#3b2414',hat:'#212529',white:'#ffffff',pupil:'#2a1a0a',mouth:'#6a2418'},
+  worker:{skin:'#f2ad7e',nose:'#e0906a',shirt:'#e8590c',sleeve:'#e8590c',vest:'#ff922b',stripe:'#e9ecef',pants:'#495057',shoe:'#3a2a1a',sole:'#1a1a1a',hair:'#3b2414',hat:'#ffd43b',white:'#ffffff',pupil:'#2a1a0a',mouth:'#6a2418'}};
+function toonFromGLB(kind,pal,scale){const src=TOONGLB[kind];if(!src)return null;const P=Object.assign({},TPAL[kind],pal||{}),g=src.clone(true);
+  g.traverse(o=>{if(!o.isMesh)return;const role=(o.name.split('__')[1]||'skin').replace(/\.\d+$/,''),c=P[role]||'#ff00ff',unlit=role==='ember'||role==='pupil';const k=role+c;
+    o.material=TOONMAT[k]||(TOONMAT[k]=unlit?new THREE.MeshBasicMaterial({color:c}):new THREE.MeshLambertMaterial({color:c,vertexColors:true}));o.castShadow=false});
+  const n=x=>g.getObjectByName(x);const pose=n('pose'),up=n('up'),head=n('head');
+  const f=x=>{let r=null;g.traverse(o=>{if(!r&&o.name.startsWith(x))r=o});return r};
+  const rig={eyeS:[1,1],pose,up,head,hips:[n('hip_L'),n('hip_R')],knees:[n('knee_L'),n('knee_R')],shs:[n('sh_L'),n('sh_R')],elbows:[n('el_L'),n('el_R')],eyes:[f('eye_L'),f('eye_R')],mouthS:f('mouthS'),mouthO:f('mouthO'),shout:0,glb:1,
+    attach:{casque:[0,2.38,.02,1.22],chaussures:[0,.08,.13,1.05],lunettes:[0,2.38,.5,.7],auditive:[0,2.28,0,1.25],harnais:[0,1.24,0,1.05]}};
+  rig.shs.forEach((s,i)=>s.rotation.z=(i?-1:1)*-.22);if(rig.mouthO)rig.mouthO.visible=false;
+  const outer=new THREE.Group();outer.add(g);outer.userData.rig=rig;outer.scale.setScalar(scale||.62);return outer}
 /* étoile à quatre branches qui scintille */
 function starTex(){return PT.star||(PT.star=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.translate(32,32);x.fillStyle='#fff';x.beginPath();for(let i=0;i<8;i++){const a=i/8*Math.PI*2,r=i%2?5:30;x.lineTo(Math.cos(a)*r,Math.sin(a)*r)}x.fill();
   const g=x.createRadialGradient(0,0,0,0,0,14);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.beginPath();x.arc(0,0,14,0,7);x.fill();return new THREE.CanvasTexture(c)})())}
@@ -3263,13 +3299,14 @@ function paintOver(x,w,h,k,R){for(let i=0;i<Math.round(w*h/900);i++){const X=R()
   if(PT_SHADE[k]){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(255,255,255,.1)');g.addColorStop(.6,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(10,20,70,.2)');x.fillStyle=g;x.fillRect(0,0,w,h)}}
 function buildPlatformer(){
   LBL.font='Luckiest Guy';
+  const toon=(kind,pal,sc,fb)=>toonFromGLB(kind,pal,sc)||makeToon(Object.assign({scale:sc},fb));
   const s=new THREE.Scene();s.background=ptx('sky');s.fog=new THREE.Fog('#9cc2ec',60,150);
   s.add(new THREE.HemisphereLight('#ffffff','#a9c8f0',.92));const sun=new THREE.DirectionalLight('#fff6e6',.6);sun.position.set(-6,14,10);s.add(sun);
   const fx=makeFX(s),PX=makeParts(s);
   const SOL=[],ONE=[],HZ=[],LAD=[],PICK=[],TIPS=[],BLK=[],BRK=[],TRAMPS=[],LIFTS=[],BALLS=[],EN=[],SHADE=[],ONO=[],LINES=[],ROBOTS=[],LAMPS=[];
   const bx=(w,h,d,m,x,y,z,p=s)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='string'?flat(m):m);o.position.set(x,y,z);p.add(o);return o};
   /* ---------- le hangar : bardage et grande porte au fond, sol époxy, charpente, lampes ---------- */
-  const back=new THREE.Mesh(new THREE.PlaneGeometry(420,30),new THREE.MeshBasicMaterial({map:ptx('hangar',7,1),fog:false}));back.position.set(120,14,-34);back.userData.par=.35;s.add(back);
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(420,30),new THREE.MeshBasicMaterial({map:ptx('hangar',7,1),fog:false}));back.position.set(120,14,-34);back.userData.par=.35;s.add(back);new THREE.TextureLoader().load('assets/talas/hangar-fond.jpg?v=1',t=>{t.wrapS=THREE.RepeatWrapping;t.repeat.set(7,1);back.material.map=t;back.material.needsUpdate=true});
   const far=new THREE.Mesh(new THREE.PlaneGeometry(520,40),pmat('floor2',30,2));far.rotation.x=-Math.PI/2;far.position.set(120,-.02,-26);s.add(far);
   for(let x=-10;x<260;x+=14){const t=new THREE.Group();t.position.set(x,22,-8);s.add(t);bx(14,.35,.35,pmat('steel',3,.3),0,0,0,t);bx(14,.35,.35,pmat('steel',3,.3),0,2.2,0,t);for(let k=0;k<7;k++){const d=bx(.2,2.6,.2,'#65627f',-6+k*2,1.1,0,t);d.rotation.z=k%2?.6:-.6}
     const lp=new THREE.Group();lp.position.set(x+7,19.6,-4);s.add(lp);bx(.05,2.4,.05,'#333',0,1.2,0,lp);const sh=mk(new THREE.ConeGeometry(.7,.5,16,1,true),'#f7c31c',0,0,0,lp);sh.material.side=THREE.DoubleSide;
@@ -3278,7 +3315,7 @@ function buildPlatformer(){
   for(let x=0;x<250;x+=38){const r=new THREE.Mesh(new THREE.PlaneGeometry(5,30),new THREE.MeshBasicMaterial({map:rayTex(),transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));r.position.set(x,11,-9);r.rotation.z=.32;s.add(r)}
   /* riveteurs au travail sur les tronçons, étincelles ; chariots automatiques à gyrophare */
   const BGW=[],AGV=[];[[24,-11.4],[68,-13.4],[122,-11.4],[180,-13.4],[236,-11.4]].forEach(([x,z])=>{bx(2,.2,1.2,pmat('checker',1,.6),x,2.6,z);[-.8,.8].forEach(q=>bx(.12,2.6,.12,'#f7c31c',x+q,1.3,z));
-    const w=makeToon({shirt:'#2f9e44',pants:'#495057',hat:'#ffd43b',vest:1,scale:.52});w.position.set(x,2.7,z);w.rotation.y=Math.PI;s.add(w);
+    const w=toon('worker',{shirt:'#2f9e44',sleeve:'#2f9e44'},.52,{shirt:'#2f9e44',pants:'#495057',hat:'#ffd43b',vest:1});w.position.set(x,2.7,z);w.rotation.y=Math.PI;s.add(w);
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:starTex(),color:'#ffb347',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.position.set(x,4,z-.9);sp.scale.setScalar(1.2);s.add(sp);BGW.push({w,sp,x})});
   [[10,40],[95,130],[180,215]].forEach(([a,b],i)=>{const g=new THREE.Group();s.add(g);bx(2.2,.5,1.4,pmat('yellow',1,.3),0,.35,0,g);bx(2.22,.12,1.42,pmat('hazard',2,1),0,.12,0,g);bx(1.2,.8,1,pmat('crate',.5,.3),0,1,0,g);
     const bc=mk(new THREE.SphereGeometry(.14,10,8),'#ff922b',.9,.75,0,g);const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),color:'#ff922b',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));gl.position.set(.9,.8,0);gl.scale.setScalar(1.4);g.add(gl);
@@ -3341,7 +3378,7 @@ function buildPlatformer(){
   const shadowOf=o=>{const m=new THREE.Mesh(new THREE.CircleGeometry(.5,18),new THREE.MeshBasicMaterial({color:'#123a7a',transparent:true,opacity:.35,depthWrite:false}));m.rotation.x=-Math.PI/2;s.add(m);SHADE.push({o,m});return m};
   const ono=(t,p,c1,c2)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:onoTex(t,c1,c2),transparent:true,depthWrite:false,depthTest:false}));sp.position.copy(p);sp.scale.set(.1,.1,1);sp.renderOrder=20;s.add(sp);ONO.push({sp,t:0,z:rand(-.2,.2)})};
   /* compagnon qui porte un panneau de fuselage : allers-retours, il balaie tout sur son passage */
-  function worker(a,b,y=0,col='#e8590c'){const m=makeToon({shirt:col,pants:'#495057',hat:'#ffd43b',vest:1,scale:.6});s.add(m);const pl=bx(.9,.14,3.2,pmat('skin',.4,.3),0,2.2,0,m.userData.rig.up);pl.rotation.x=.04;bx(.92,.06,.1,'#7fa84a',0,2.11,1.55,m.userData.rig.up);
+  function worker(a,b,y=0,col='#e8590c'){const m=toon('worker',{shirt:col,sleeve:col},.6,{shirt:col,pants:'#495057',hat:'#ffd43b',vest:1});s.add(m);const pl=bx(.9,.14,3.2,pmat('skin',.4,.3),0,2.2,0,m.userData.rig.up);pl.rotation.x=.04;bx(.92,.06,.1,'#7fa84a',0,2.11,1.55,m.userData.rig.up);
     const st2=new THREE.Group();[0,1,2].forEach(i=>{mk(new THREE.OctahedronGeometry(.13),'#ffd43b',Math.cos(i*2.1)*.5,0,Math.sin(i*2.1)*.5,st2)});st2.visible=false;s.add(st2);
     const e={x:a,a,b,dir:1,m,stun:0,sp:2.2,y,stars:st2,reach:1.5};EN.push(e);shadowOf(m);return e}
   /* robot de perçage : son bras balaie l'allée, on passe quand il est levé */
@@ -3367,7 +3404,7 @@ function buildPlatformer(){
   const bglow=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.8),new THREE.MeshBasicMaterial({map:glowTex(),color:'#7fd0ff',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));bglow.position.z=-.1;badge.add(bglow);
   PICK.push({x:54.4,y:5.7,kind:'badge',m:badge,spin:badge});
   /* le portique d'accès : loge de Georges, tourniquet, lecteur de badge qui passe au vert */
-  const guard=makeToon({shirt:'#343a70',pants:'#212529',cap:'#212529',mustache:1,hair:'#555',scale:.64});guard.position.set(58.6,0,-1.6);guard.rotation.y=-Math.PI/2;s.add(guard);
+  const guard=toon('georges',null,.64,{shirt:'#343a70',pants:'#212529',cap:'#212529',mustache:1,hair:'#555'});guard.position.set(58.6,0,-1.6);guard.rotation.y=-Math.PI/2;s.add(guard);
   {const lo=new THREE.Group();lo.position.set(58.4,0,-2.6);s.add(lo);bx(2.4,2.6,1.6,pmat('cladding',1,1),0,1.3,0,lo);bx(1.8,.9,.1,'#bfe6f7',0,1.7,.81,lo);bx(2.6,.2,1.8,'#2f6fd6',0,2.7,0,lo);const l=labelPlane('ACCUEIL SÛRETÉ',2,.4,{bg:'#fff',border:'#2f6fd6',fg:'#2f6fd6',size:80});l.position.set(0,2.4,.84);lo.add(l)}
   const gate=new THREE.Group();gate.position.set(61.2,0,0);s.add(gate);for(let i=0;i<8;i++)bx(.08,3.4,.08,'#2b3a67',-.7+i*.2,1.7,0,gate);[.4,3.2].forEach(y=>bx(1.6,.1,.1,'#2b3a67',0,y,0,gate));[-1,1].forEach(q=>bx(.35,3.8,.35,'#495057',61.2+q*.95,1.9,0));
   const reader=bx(.3,.45,.12,'#1a1a1a',60.1,1.3,.3);const led=new THREE.Mesh(new THREE.CircleGeometry(.07,12),new THREE.MeshBasicMaterial({color:'#e03131'}));led.position.set(60.1,1.42,.37);s.add(led);
@@ -3398,7 +3435,7 @@ function buildPlatformer(){
       setTimeout(()=>{s.remove(b);boom(V(106.2,1.4,0),bar,'PSCHHHT !');BAR.off=1;st.barOpen=1;say2('boulon','Pschhht ! Le gabarit s’est dégagé. Énergie maîtrisée, allée libre.')},1300)},
     refuse:['boulon','Un gabarit d’assemblage bloque l’allée. Il faudrait de l’air pour actionner son vérin…']});
   /* ---------- 3. le burger de Bernard le riveteur et le chien de sûreté du magasin EPI ---------- */
-  const bern=makeToon({shirt:'#e03131',pants:'#3b3f55',cap:'#f8f9fa',belly:1,hair:'#555',nose:'#e8806a',grumpy:1,scale:.8});bern.position.set(113.6,.9,-.6);bern.rotation.y=Math.PI/2;s.add(bern);shadowOf(bern);
+  const bern=toon('bernard',null,.8,{shirt:'#e03131',pants:'#3b3f55',cap:'#f8f9fa',belly:1,hair:'#555',nose:'#e8806a',grumpy:1});bern.position.set(113.6,.9,-.6);bern.rotation.y=Math.PI/2;s.add(bern);shadowOf(bern);
   {bx(1.4,.9,1.2,'#5b86c9',113.6,.45,-.6);bx(.7,.35,.5,'#d6336c',116.8,.18,0);SOL.push({x0:116.45,x1:117.15,y0:0,y1:.36,step:1});const l=labelPlane('COIN PAUSE',1.6,.4,{bg:'#fff',border:'#37b24d',fg:'#37b24d',size:80});l.position.set(112,2.8,-2.4);s.add(l);
     const vm=new THREE.Group();vm.position.set(110.8,0,-2.3);s.add(vm);bx(1.1,2.2,.9,'#e03131',0,1.1,0,vm);bx(.8,1.2,.05,'#bfe6f7',0,1.4,.46,vm)}
   const BURGER=prop(116.8,.9,'burger');
@@ -3426,7 +3463,7 @@ function buildPlatformer(){
   concrete(150,168,7.6,8,0,4.2,'#dfe8f7');ONE.push({x0:150,x1:168,y:8,cx:159,w:18});
   {const cm=pmat('concrete',3,1.5,'#f7e0cf');bx(18,7.6,.3,cm,159,3.8,-3.1);for(let r=0;r<3;r++){bx(9,.12,1,'#9a6a3e',158,1.4+r*1.6,-2.5);for(let i=0;i<8;i++)bx(.7,.8,.6,['#ffd43b','#4dabf7','#ff6b6b','#ff922b','#495057'][(i+r)%5],154.2+i*1.05,1.85+r*1.6,-2.5)}
     for(let i=0;i<14;i++)mk(new THREE.CylinderGeometry(.26,.26,.5,12),'#f7b6d2',151.6+(i%5)*.52-(Math.floor(i/5)%2)*.26,.25+Math.floor(i/5)*.5,-1.6+(i%2)*.3,s);
-    const kp=makeToon({shirt:'#fff',pants:'#495057',hair:'#8a5a36',scale:.6});kp.position.set(163,0,-2);s.add(kp);bx(3,1.1,1,'#8a5a36',163,.55,-1.4);
+    const kp=toon('georges',{shirt:'#f8f9fa',sleeve:'#f8f9fa',hat:'#2f6fd6',pants:'#495057'},.6,{shirt:'#fff',pants:'#495057',hair:'#8a5a36'});kp.position.set(163,0,-2);s.add(kp);bx(3,1.1,1,'#8a5a36',163,.55,-1.4);
     const cm2=new THREE.Group();cm2.position.set(165.4,0,-1.6);s.add(cm2);bx(.9,1.8,.8,'#3b3f55',0,.9,0,cm2);bx(.6,.5,.1,'#1f1f24',0,1.25,.41,cm2);const cl=labelPlane('CAFÉ',.7,.24,{bg:'#fff3bf',border:'#5a2e12',size:90});cl.position.set(0,1.7,.42);cm2.add(cl)}
   epi(156.4,1.1,'auditive');epi(160.2,1.1,'harnais');const CAFE=prop(165.4,1.3,'cafe');ladder(167.2,0,8,-.4);
   /* ---------- 4. la mezzanine des bureaux d'atelier : clims, cloison, les sanitaires d'Aurelien ---------- */
@@ -3444,7 +3481,7 @@ function buildPlatformer(){
   const wdoor=new THREE.Group();wdoor.position.set(-.95,1.2,0);wcb.add(wdoor);bx(.08,2.2,1.4,pmat('wood',.3,.8,'#ee7aad'),0,0,0,wdoor);{const hs=new THREE.Shape();hs.moveTo(0,-.1);hs.bezierCurveTo(-.04,-.06,-.14,.02,-.14,.08);hs.bezierCurveTo(-.14,.16,-.03,.16,0,.1);hs.bezierCurveTo(.03,.16,.14,.16,.14,.08);hs.bezierCurveTo(.14,.02,.04,-.06,0,-.1);
     const hm=new THREE.Mesh(new THREE.ShapeGeometry(hs),flat('#3a1020'));hm.position.set(-.05,.6,0);hm.rotation.y=-Math.PI/2;hm.scale.setScalar(1.6);wdoor.add(hm)}
   const occ=labelPlane('OCCUPÉ',1.3,.36,{bg:'#fff',border:'#e03131',fg:'#e03131',size:90});occ.position.set(0,3.1,1);wcb.add(occ);
-  const boss=makeToon({shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',hair:'#3b2a1a',grumpy:1,cigar:1,scale:.66});boss.visible=false;s.add(boss);
+  const boss=toon('aurelien',null,.7,{shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',hair:'#3b2a1a',grumpy:1,cigar:1});boss.visible=false;s.add(boss);
   const WC={x0:199,x1:201,y0:8.12,y1:10.8};SOL.push(WC);
   BLK.push({x:197.6,need:'cafe',sol:WC,y:8.12,label:'sanitaires',open(){st.carry=null;held.visible=false;st.wcOpen=1;
       tween(.35,k=>wdoor.rotation.y=k*1.9);boss.visible=true;boss.position.set(198.6,8.12,.6);boss.rotation.y=-Math.PI/2;say2('aurelien','Mon café ! Enfin ! Glou glou glou… Ah, ça réveille !');ono('GLOU GLOU !',V(198.6,11.2,.8),'#ffd23f','#5a2e12');
@@ -3469,7 +3506,7 @@ function buildPlatformer(){
   BLK.push({x:245,need:'key',sol:DOOR,y:15.4,label:'porte',open(){st.carry=null;held.visible=false;DOOR.off=1;tween(.4,k=>hdoor.rotation.y=-k*1.6);fx.burst(V(247.2,17,1),24);ono('CLAC !',V(247.2,18.4,1.2),'#ffd23f','#2f6fd6');say2('boulon','La salle de revue de direction est ouverte. Dépose ton rapport d’inspection !');st.finish=1},
     refuse:['boulon','La salle de revue de direction est fermée à clé. Qui peut bien l’avoir ?…']});
   /* ---------- Dylan ---------- */
-  const body=makeToon({shirt:'#4dabf7',pants:'#364fc7',vest:1,hair:'#6b3e1e',scale:.6});body.rotation.y=Math.PI/2;s.add(body);shadowOf(body);
+  const body=toon('dylan',null,.6,{shirt:'#4dabf7',pants:'#364fc7',vest:1,hair:'#6b3e1e'});body.rotation.y=Math.PI/2;s.add(body);shadowOf(body);
   const held=new THREE.Group();held.position.set(0,2.4,.2);held.visible=false;body.userData.rig.up.add(held);
   const setHeld=k=>{held.clear();const m=propMesh(k);m.scale.setScalar(1.35);held.add(m);held.userData.k=k};
   const think=new THREE.Sprite(new THREE.SpriteMaterial({map:thinkTex('air'),transparent:true,depthWrite:false}));think.scale.set(2.2,1.72,1);think.visible=false;s.add(think);
@@ -3531,7 +3568,7 @@ function buildPlatformer(){
   W.restartSave=()=>{if(st.done)return;const sv=W.lastSave,x=sv?sv.x:-1,y=sv?sv.y:0;dropCarry(true);
     Object.assign(st,{climb:null,kb:0,stun:0,dizzy:0,blind:0,plat:null,ground:true,peak:y,check:x,checkY:y,spinT:0,pound:0});st.pos.set(x,y+.02,0);st.vel.set(0,0,0);
     if(CH.on)CH.x=Math.min(CH.x,x-8);camera.position.set(x+2.5,y+2.5,11.5);PX.ring(V(x,y,0),'#f58ab4');say2('boulon',sv?'Retour au dernier drapeau.':'Aucun drapeau touché : retour au départ.')};
-  const AP=(m,mode,t)=>animToon(m,mode,t);
+  const AP=(m,mode,t)=>animToon(m,mode,t);const _cp=new THREE.Vector3();
   /* lignes de vitesse derrière Dylan quand il file */
   /* traînée de silhouettes roses, comme la Panthère quand elle file */
   const GH=[];const ghost=()=>{const c=body.clone(true);const m=new THREE.MeshBasicMaterial({color:'#f58ab4',transparent:true,opacity:.4,depthWrite:false});c.traverse(o=>{if(o.isMesh)o.material=m});s.add(c);GH.push({c,m,t:0})};
@@ -3557,7 +3594,7 @@ function buildPlatformer(){
     TRAMPS.forEach(t=>{if(t.squash>0){t.squash=Math.max(0,t.squash-dt*4);t.g.scale.y=.25*(1-.6*t.squash)}});
     if(!st.dogFed){dog.userData.hd.rotation.x=Math.abs(st.pos.x-147)<6?Math.sin(T*14)*.25:0;dog.userData.tl.rotation.z=Math.sin(T*6)*.4}else{dog.userData.tl.rotation.z=Math.sin(T*16)*.6}
     if(!st.wcOpen){const nr=Math.abs(st.pos.x-200)<8;wcb.rotation.z=nr?Math.sin(T*30)*.02:0;occ.position.y=3.1+(nr?Math.abs(Math.sin(T*6))*.15:0)}
-    if(boss.visible&&st.wcOpen){AP(boss,'idle',T);boss.userData.rig.up.rotation.z=Math.sin(T*18)*.05}
+    if(boss.visible&&st.wcOpen){AP(boss,'idle',T);boss.userData.rig.up.rotation.z=Math.sin(T*18)*.05;const em=boss.getObjectByName('ember__ember')||boss.userData.rig.head;if(em&&Math.random()<dt*7){em.getWorldPosition(_cp);PX.puff(_cp.clone(),1,{c:['#e9ecef','#ced4da','#f8f9fa'],size:[.12,.28],sp:.25,up:.9,grav:.9,life:[1.4,2.2]})}}
     AP(guard,'idle',T);if(!CH.on&&!CH.leave)AP(bern,'idle',T);
     ONO.forEach((o,i)=>{o.t+=dt;const k=o.t;const sc=k<.15?k/.15*1.25:k<.3?1.25-(k-.15)/.15*.25:1;o.sp.scale.set(2.2*sc,1.4*sc,1);o.sp.material.rotation=o.z;o.sp.position.y+=dt*.6;if(k>.9)o.sp.material.opacity=Math.max(0,1-(k-.9)/.4)});
     for(let i=ONO.length-1;i>=0;i--)if(ONO[i].t>1.3){s.remove(ONO[i].sp);ONO.splice(i,1)}
@@ -3673,6 +3710,10 @@ function buildPlatformer(){
     const inShop=st.pos.x>150.2&&st.pos.x<167.8&&st.pos.y<7.6;shopF.visible=!inShop;
   };
   W.cam=dt=>{st.look=(st.look===undefined?2.5:st.look)+((st.face||1)*2.5-(st.look===undefined?2.5:st.look))*Math.min(1,(dt||.016)*2);const want=V(st.pos.x+st.look*.8,Math.max(2.5,st.pos.y+2.5),11.5);camera.position.lerp(want,1-Math.pow(.002,dt||.016));const l=V(camera.position.x,camera.position.y-1.05,0);if(st.dizzy>0)l.x+=Math.sin(performance.now()/90)*.5;camera.lookAt(l)};
+  /* ombres de contact peintes sous les plateformes, caisses et blocs (comme les ombres cuites des jeux de l'époque) */
+  {const t=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,4,32,32,32);g.addColorStop(0,'rgba(10,30,80,.55)');g.addColorStop(1,'rgba(10,30,80,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
+    const sm2=new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false});const dec=(x0,x1,z=0,d=2.6)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0+1.2,d),sm2);m.rotation.x=-Math.PI/2;m.position.set((x0+x1)/2,.012,z);s.add(m)};
+    SOL.forEach(b=>{if(!b.floor&&!b.step&&b.y0<.2&&b.y1<9)dec(b.x0,b.x1)});ONE.forEach(p=>{if(p.y<7&&!p.tramp&&!p.vm)dec(p.x0,p.x1,0,2.4)})}
   LBL.font=null;camera.position.set(1.5,2.5,11.5);
   return W;
 }
@@ -3713,7 +3754,7 @@ async function platformSection(n){
   let got=0,coins=0,save=null,t=0,card=false;
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);try{await Promise.race([Promise.all([document.fonts.load('40px "Luckiest Guy"'),document.fonts.load('20px "Rye"')]),new Promise(r=>setTimeout(r,1500))])}catch(e){}
-    if(!card){card=true;await chantierCard()}
+    if(!card){card=true;await Promise.all([chantierCard(),Promise.race([preloadToons(),new Promise(r=>setTimeout(r,6000))])])}
     const PW=buildPlatformer();PW.rec=chantierRec();PW.onSave=sv=>save=sv;if(save)PW.restore(save);setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;keyHelp('parcours');$('#hud .right').style.visibility='hidden';
     const kh=keyhole(true);await fade(0);await kh;
     const r=await PW.run();keyHelp();$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();Object.keys(KEYS).forEach(k=>KEYS[k]=0);
