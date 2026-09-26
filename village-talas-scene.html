@@ -1637,6 +1637,14 @@ function arena2D(STAGE){
   const SPW=180,SPH=200;
   function spr(f,t){if(!f._cv){f._cv=document.createElement('canvas');f._cv.width=SPW;f._cv.height=SPH}if(f._st!==t){f._pts=spRender(f._cv,f,t,SPK[f.k].k*SC);f._st=t}return f._cv}
   function face(f,t,s){const cv=spr(f,t),K=SPK[f.k],sc=K.k*SC,cx=SPW/2+f._pts.head[0]*sc,cy=SPH-4+f._pts.head[1]*sc,r=K.R*sc*1.3;g.imageSmoothingEnabled=false;g.drawImage(cv,cx-r,cy-r,2*r,2*r,-s,-s,2*s,2*s);g.imageSmoothingEnabled=true}
+  /* traînée de mouvement du poing : ruban en éventail le long de la trajectoire récente */
+  function smear(f){const P=f.hh||[];if(f.hid||P.length<3)return;let L=0;for(let i=1;i<P.length;i++)L+=Math.hypot(P[i].x-P[i-1].x,P[i].y-P[i-1].y);if(L<14)return;
+    const n=P.length,rib=(k,col,al)=>{const Lf=[],Rt=[];P.forEach((p,i)=>{const a=P[Math.max(0,i-1)],b=P[Math.min(n-1,i+1)],dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy)||1,w=(.8+i/(n-1)*10)*k;
+        Lf.push([p.x-dy/l*w,p.y+dx/l*w]);Rt.push([p.x+dy/l*w,p.y-dx/l*w])});
+      g.globalAlpha=al;g.fillStyle=col;g.beginPath();Lf.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));Rt.reverse().forEach(q=>g.lineTo(q[0],q[1]));g.closePath();g.fill()};
+    g.save();rib(1.5,'#a5d8ff',.45);rib(1,'#e7f5ff',.7);rib(.45,'#ffffff',.95);
+    g.globalAlpha=.7;g.strokeStyle='#ffffff';g.lineWidth=1;g.lineCap='round';const a=P[0],b=P[n-1],dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy)||1;
+    for(let i=-1;i<=1;i++){const ox=-dy/l*i*9,oy=dx/l*i*9;g.beginPath();g.moveTo(a.x+ox-dx*.3,a.y+oy-dy*.3);g.lineTo(a.x+ox+dx*.35,a.y+oy+dy*.35);g.stroke()}g.restore()}
   function drawF(f,t){if(f.hid)return;const K=FK[f.k],k=SPK[f.k].k;
     g.save();g.globalAlpha=f.alpha;g.translate(Math.round(f.x+A.ox+(f.jit?rand(-f.jit,f.jit):0)),Math.round(FY-f.y+A.oy));
     if(f.lie){g.translate(f.dir*(K.legL+K.bh+2*K.R)*SC*.5*f.lie,-K.bw*.45*SC*f.lie);g.rotate(-f.dir*f.lie*Math.PI/2)}
@@ -1645,6 +1653,7 @@ function arena2D(STAGE){
     const[hx,hy]=m(P.head),[fx,fy]=m(P.hand),shY=P.sh[1]*k,hipY=P.hip*k;
     for(const s of f.stuck)s(g,hx,hy,shY,hipY);
     f.hand=[fx,fy];if(f.prop)f.prop(g,fx,fy,f.aF+f.eF,t);
+    if(!f._tr){const pt=g.getTransform().transformPoint(new DOMPoint(fx,fy));f.hh=(f.hh||[]).filter(q=>t-q.t<.2);f.hh.push({x:pt.x/RES,y:pt.y/RES,t})}
     if(f.xray&&((t*18)|0)%2){g.strokeStyle='#fff';g.lineWidth=1.2;g.lineCap='round';g.beginPath();g.ellipse(hx+1,hy,7,8,0,0,7);g.stroke();g.fillStyle='#fff';g.fillRect(hx+3,hy-2,2.5,2.5);g.fillRect(hx+6,hy-2,2.5,2.5);
       line(hx,hy+8,0,hipY,'#fff',1.6);for(let i=0;i<5;i++)line(-7,shY+4+i*4,7,shY+4+i*4,'#fff',1.1);line(4,shY+2,fx,fy,'#fff',1.4);line(0,hipY,6,-2,'#fff',1.4);line(0,hipY,-8,-2,'#fff',1.4)}
     if(f.wet){g.fillStyle='#74c0fc';for(let i=0;i<3;i++)g.fillRect(hx-5+i*5,hy+8+((t*20+i*7)%8),1.3,2.2)}
@@ -1682,9 +1691,9 @@ function arena2D(STAGE){
       A.SPL.forEach(s=>{g.fillStyle=s.c;g.beginPath();g.ellipse(s.x+A.ox,FY+1+A.oy,s.w,s.w*.35,0,0,7);g.fill()})}
     if(A.dark){g.fillStyle=`rgba(20,16,50,${A.dark})`;g.fillRect(0,0,W,H)}
     if(A.cloud){const[cx,cy]=toC(C.x,headW(C).y+48);g.fillStyle='#495057';for(let i=0;i<6;i++){g.beginPath();g.arc(cx-30+i*12,cy+Math.sin(t*3+i)*2,10+(i%2)*4,0,7);g.fill()}}
-    const order=D.busy>C.busy?[C,D]:[D,C];const oq=oc.getContext('2d'),tq=tc.getContext('2d');oq.setTransform(1,0,0,1,0,0);oq.clearRect(0,0,W*RES,H*RES);oq.setTransform(RES,0,0,RES,0,0);g=oq;order.forEach(f=>{(f.trail||[]).forEach(q=>{const x0=f.x,a0=f.alpha;f.x=q.x;f.alpha=q.a;drawF(f,t);f.x=x0;f.alpha=a0});drawF(f,t)});g=g0;
+    const order=D.busy>C.busy?[C,D]:[D,C];const oq=oc.getContext('2d'),tq=tc.getContext('2d');oq.setTransform(1,0,0,1,0,0);oq.clearRect(0,0,W*RES,H*RES);oq.setTransform(RES,0,0,RES,0,0);g=oq;order.forEach(f=>{f._tr=1;(f.trail||[]).forEach(q=>{const x0=f.x,a0=f.alpha;f.x=q.x;f.alpha=q.a;drawF(f,t);f.x=x0;f.alpha=a0});f._tr=0;drawF(f,t)});g=g0;
     tq.globalCompositeOperation='source-over';tq.clearRect(0,0,W*RES,H*RES);tq.drawImage(oc,0,0);tq.globalCompositeOperation='source-in';tq.fillStyle='#0c0a16';tq.fillRect(0,0,W*RES,H*RES);tq.globalCompositeOperation='source-over';
-    if(!A.ko){g.save();g.globalAlpha=.72;g.transform(1,0,-.6,-.2,.6*FY,1.2*FY);g.drawImage(tc,0,0,W,H);g.restore()}g.drawImage(oc,0,0,W,H);
+    if(!A.ko){g.save();g.globalAlpha=.72;g.transform(1,0,-.6,-.2,.6*FY,1.2*FY);g.drawImage(tc,0,0,W,H);g.restore()}g.drawImage(oc,0,0,W,H);order.forEach(f=>smear(f));
     for(const o of A.X){const[X,Y]=toC(o.x,o.y);g.save();g.translate(Math.round(X),Math.round(Y));if(o.r)g.rotate(o.r);o.draw(g,t,o);g.restore()}
     for(const p of A.P){const[X,Y]=toC(p.x,p.y);
       if(p.k==='blood'){const an=Math.atan2(-(p.vy||0),p.vx||0),st=1+Math.min(1.6,Math.hypot(p.vx||0,p.vy||0)/160);g.save();g.translate(X,Y);g.rotate(an);g.fillStyle=p.c;g.beginPath();g.ellipse(0,0,p.s*.55*st,p.s*.45,0,0,7);g.fill();g.beginPath();g.moveTo(-p.s*.4*st,-p.s*.3);g.lineTo(-p.s*1.3*st,0);g.lineTo(-p.s*.4*st,p.s*.3);g.fill();g.fillStyle='rgba(255,200,200,.6)';g.beginPath();g.arc(p.s*.15,-p.s*.15,p.s*.14,0,7);g.fill();g.restore()}
