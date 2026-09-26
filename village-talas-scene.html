@@ -75,7 +75,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .stars{display:flex;gap:4px}
 .dead h1{color:#c92a2a;font-size:44px;text-shadow:3px 3px 0 #2b1d3a}
 .dead .tbar{background:#c92a2a}
-.roll{height:300px;overflow:hidden;position:relative;text-align:center}.roll>div{position:absolute;left:0;right:0;animation:roll 16s linear forwards}.roll h3{margin:18px 0 6px;font-size:15px;letter-spacing:1px;color:#5f3dc4}.roll p{margin:2px 0;font-size:17px}@keyframes roll{from{transform:translateY(300px)}to{transform:translateY(-100%)}}
+.roll{height:300px;overflow:hidden;position:relative;text-align:center}.roll>div{position:absolute;left:0;right:0;animation:roll 42s linear forwards}.roll p.sm{font-size:13px;opacity:.75;font-style:italic;max-width:520px;margin:2px auto}.roll h3{margin:18px 0 6px;font-size:15px;letter-spacing:1px;color:#5f3dc4}.roll p{margin:2px 0;font-size:17px}@keyframes roll{from{transform:translateY(300px)}to{transform:translateY(-100%)}}
 /* plateforme */
 #phud{position:absolute;left:8px;right:8px;top:36px;z-index:5;display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:space-between;pointer-events:none}
 #phud .win{padding:2px 6px;display:flex;gap:4px;align-items:center}
@@ -3732,13 +3732,33 @@ function clickTower(){if(busy||!$('#modal').hidden)return;if(!(allDone()||S.all)
 $('#unlock').onclick=()=>{S.all=true;refreshSigns();say('boulon','Mode oral : tous les ateliers sont ouverts. Les choix non faits comptent comme ratés dans les effets domino.',{btns:[]})};
 
 /* Générique de fin : scénario coproduit, développement */
-const CREDITS={dev:'Mathieu Comtesse',scenario:['Eliott Corne','Dylan Zouiter','Mathilde Chartrel','Georges Barthélemy Fonkou','Neila Mimane','Lorette Dagleris']};
+const CREDITS={dev:'Mathieu Comtesse',scenario:['Eliott Corne','Dylan Zouiter','Mathilde Chartrel','Georges Barthélemy Fonkou','Neila Mimane','Lorette Dagleris'],
+ facts:{'Eliott Corne':'a relu le scénario perché sur une nacelle, longe attachée, par pur professionnalisme',
+  'Dylan Zouiter':'a prêté son prénom au héros ; réclame depuis des droits d’auteur pour chacune de ses 37 morts',
+  'Mathilde Chartrel':'a répondu « MATHILDE !! » à chaque appel au mégaphone, y compris ceux qui ne lui étaient pas destinés',
+  'Georges Barthélemy Fonkou':'a refusé l’accès au plateau à l’équipe de tournage : pas de badge, pas d’accès',
+  'Neila Mimane':'invaincue au festin des mesures ; soupçonnée d’avoir tamponné le traiteur',
+  'Lorette Dagleris':'a fait passer tout le casting au polygraphe ; le nez du PDG ne s’en est jamais remis'}};
 function credits(){return new Promise(res=>{const m=modal(`<h1>Le Village <span>Talas</span></h1><div class="roll"><div>
-    <h3>UN JEU SÉRIEUX ISO 45001</h3><p>Le Village Talas</p>
-    <h3>DÉVELOPPEMENT</h3><p><b>${CREDITS.dev}</b></p>
-    <h3>SCÉNARIO, COPRODUIT AVEC</h3>${CREDITS.scenario.map(n=>`<p>${n}</p>`).join('')}
-    <h3>DANS LES RÔLES</h3><p>Dylan, alternant HSE</p><p>Aurelien Lefauconnier, PDG (et géant)</p><p>Mathieu, Mathilde, Neila, Lorette, Eliott, Georges Barthélemy</p><p>Boulon, robot guide</p>
-    <h3>MERCI D’AVOIR JOUÉ !</h3><p>Et n’oubliez pas : les EPI, c’est en dernier.</p></div></div><div class="row"><button class="btn go" id="crok">Continuer</button></div>`,'GENERIQUE.EXE');
+    <h3>UN JEU SÉRIEUX ISO 45001</h3><p>(sérieux, c’est vite dit)</p>
+    <h3>DÉVELOPPEMENT</h3><p><b>${CREDITS.dev}</b></p><p class="sm">qui a codé 4 000 lignes, un fantôme en pantoufles et un PDG à tête gonflable, sans casque ni gants</p>
+    <h3>SCÉNARIO, COPRODUIT AVEC</h3>${CREDITS.scenario.map(n=>`<p><b>${n}</b></p><p class="sm">${CREDITS.facts[n]}</p>`).join('')}<p class="sm">aucun scénariste n’a été blessé pendant l’écriture ; deux ont fait un malaise au karaoké</p>
+    <h3>DANS LES RÔLES</h3>
+    <p><b>Dylan</b>, alternant HSE, mort 37 fois en service</p>
+    <p><b>Aurelien Lefauconnier</b>, PDG, cigare, cravate au garde-à-vous</p>
+    <p><b>La tête d’Aurelien</b>, dans son propre rôle, gonflée à 2,2 bars</p>
+    <p><b>Le fantôme du prédécesseur</b>, en pantoufles roses</p>
+    <p><b>Boulon</b>, robot guide, seul employé à jour de ses formations</p>
+    <p><b>L’accidenté du §10</b>, anesthésié par principe, hoquet non contractuel</p>
+    <h3>CASCADES</h3><p>Dylan (sans doublure, sans EPI, sans avenir)</p>
+    <h3>ACCESSOIRES</h3><p>Une Rolex en or massif (lancée 214 fois)</p><p>Un fax de 1997 (toujours en garantie)</p><p>Une vague de Deauville (prêtée par la mairie)</p><p>Trois caillots, dont un avec des yeux</p>
+    <h3>MAQUILLAGE ET HÉMOGLOBINE</h3><p>412 litres de sang de PDG (garantis 100 % factices)</p>
+    <h3>RESTAURATION</h3><p>Le festin des mesures de prévention (aucune n’a été digérée)</p>
+    <h3>MUSIQUE</h3><p>Le quart d’heure sécurité, en karaoké, faux du début à la fin</p>
+    <h3>SÉCURITÉ SUR LE TOURNAGE</h3><p>Plan de prévention signé après le tournage</p><p class="sm">Document unique : introuvable. Il a été vu pour la dernière fois dans le centre de doc.</p>
+    <h3>REMERCIEMENTS</h3><p>L’inspection du travail, pour sa patience</p><p>Le CSE, invoqué 58 fois sans préavis</p><p>La norme ISO 45001, qu’aucun personnage n’a lue en entier</p>
+    <h3>AVERTISSEMENT</h3><p class="sm">Toute ressemblance avec une entreprise existante serait une non-conformité majeure.</p>
+    <h3>MERCI D’AVOIR JOUÉ !</h3><p>Et n’oubliez pas : les EPI, c’est en dernier.</p><p class="sm">Aucun Dylan n’a été maltraité. Enfin, si. Mais c’était pour la pédagogie.</p></div></div><div class="row"><button class="btn go" id="crok">Continuer</button></div>`,'GENERIQUE.EXE');
   const done=()=>{closeModal();res()};m.querySelector('#crok').onclick=done;m.querySelector('.roll>div').addEventListener('animationend',()=>{m.querySelector('#crok').focus()})})}
 async function finale(){
   busy=true;hidePanel();const F=S.flags;let o=0,t=0;Object.values(S.res).forEach(r=>{o+=r.o;t+=r.t});const pct=t?o/t:0;
