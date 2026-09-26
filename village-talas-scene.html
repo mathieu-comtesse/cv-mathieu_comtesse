@@ -94,6 +94,20 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #plife b{display:block;font-family:"Rye",Georgia,serif;font-weight:400;font-size:26px;line-height:1;color:#fff;text-shadow:2px 2px 0 #1b3a8a,-1px -1px 0 #1b3a8a,1px -1px 0 #1b3a8a,-1px 1px 0 #1b3a8a}
 #plife.hit{animation:phit .4s}@keyframes phit{25%{transform:translateX(-5px) rotate(-6deg)}50%{transform:translateX(5px) rotate(5deg)}75%{transform:translateX(-3px)}}
 .toonui #frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(10,20,70,.32) 100%)}
+.pintro{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:pointer;font-family:"Luckiest Guy","Trebuchet MS",sans-serif;color:#fff}
+.pintro .pblack{position:absolute;inset:0;background:#05070d;transition:opacity .6s}
+.pintro .plogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.92);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transition:opacity .5s,transform 2.4s ease-out}
+.pintro .plogo.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.pintro .pword{font-size:54px;letter-spacing:14px;padding-left:14px;background:linear-gradient(100deg,#8a93a6 0%,#8a93a6 40%,#fff 50%,#8a93a6 60%,#8a93a6 100%);background-size:300% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
+.pintro .plogo.on .pword{animation:psweep 1.6s .3s ease-in-out forwards}@keyframes psweep{to{background-position:0 0}}
+.pintro .psub{font:600 13px/1 "Trebuchet MS",sans-serif;letter-spacing:8px;color:#8a93a6;text-transform:uppercase}
+.pintro .pbar{position:absolute;left:0;right:0;height:12%;background:#000;transition:transform .6s ease}.pintro .ptop{top:0}.pintro .pbot{bottom:0}
+.pintro.out .ptop{transform:translateY(-101%)}.pintro.out .pbot{transform:translateY(101%)}
+.pintro .ptitle{position:absolute;left:0;right:0;top:36%;text-align:center;opacity:0;transform:scale(2.6);transition:opacity .25s,transform .35s cubic-bezier(.2,1.6,.4,1)}
+.pintro .ptitle.on{opacity:1;transform:scale(1)}.pintro .ptitle b{display:block;font-size:66px;line-height:1;color:#ffd43b;text-shadow:0 4px 0 #b35900,0 8px 18px rgba(0,0,0,.6)}
+.pintro .ptitle i{display:block;margin-top:10px;font:700 16px "Trebuchet MS",sans-serif;letter-spacing:6px;font-style:normal;text-shadow:0 2px 6px #000}
+.pintro .pflash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}.pintro .pflash.on{animation:pfl .5s ease-out}@keyframes pfl{from{opacity:.85}to{opacity:0}}
+.pintro .pskip{position:absolute;right:16px;bottom:calc(12% + 10px);font:600 12px "Trebuchet MS",sans-serif;opacity:.7;letter-spacing:1px}
 /* carton titre et podium du chantier */
 .tcard{position:absolute;inset:0;z-index:30;background:#c8102e;display:flex;align-items:center;justify-content:center;font-family:"Luckiest Guy","Trebuchet MS",sans-serif;color:#fff;overflow:auto}
 .tcard .tin{width:min(94%,760px);text-align:center}
@@ -4155,6 +4169,21 @@ function showLinks(){
   HUB.links=runners;const up=HUB.update;HUB.update=(dt,T)=>{up(dt,T);runners.forEach(r=>{r.d.position.copy(r.cv.getPoint((T*.18+r.o)%1))})};
 }
 
+/* ouverture façon jeu du commerce : logo du studio avec reflet, survol de l'île en cinémascope, titre qui claque ; clic ou touche pour passer */
+function proIntro(){return new Promise(res=>{const W=cur,d=document.createElement('div');d.className='pintro';
+  d.innerHTML=`<div class="pblack"></div><div class="pbar ptop"></div><div class="pbar pbot"></div><div class="plogo"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="42" fill="none" stroke="#8a93a6" stroke-width="3"/><path d="M14 52 L46 40 L78 30 L70 40 L50 46 L44 64 L38 64 L40 48 L22 54 Z" fill="#fff"/><circle cx="46" cy="46" r="34" fill="none" stroke="#ffd43b" stroke-width="2" stroke-dasharray="4 7"/></svg><div class="pword">TALAS</div><div class="psub">studio · présente</div></div>
+    <div class="ptitle"><b>LE VILLAGE TALAS</b><i>UN JEU ISO 45001</i></div><div class="pflash"></div><div class="pskip">Clic ou touche pour passer</div>`;
+  $('#frame').append(d);const q=c=>d.querySelector(c),t0=performance.now(),y0=W.yaw,d0=W.dist;let done=false,st=0;
+  const chord=(f,dl)=>{try{f.forEach((x,i)=>setTimeout(()=>beep(x,.9,'triangle',.035),dl+i*60))}catch(e){}};
+  W.cam=()=>{const k=Math.max(0,(performance.now()-t0)/1000-2.2),e=Math.min(1,k/6.4),ez=1-Math.pow(1-e,3),a=y0+2.4*(1-ez),r=(d0||37)*(1.9-.9*ez);
+    camera.position.set(W.look.x+Math.sin(a)*r*.74,r*(.2+.42*ez)+4,W.look.z+Math.cos(a)*r*.74);camera.lookAt(W.look.x,W.look.y+2*(1-ez),W.look.z)};
+  const end=gone=>{if(done)return;done=true;delete W.cam;if(gone===true){d.remove();removeEventListener('keydown',end,true);return res('gone')}d.classList.add('out');q('.pblack').style.opacity=0;q('.ptitle').style.opacity=0;removeEventListener('keydown',end,true);setTimeout(()=>{d.remove();res()},650)};
+  d.onclick=()=>end();addEventListener('keydown',end,true);
+  const tick=()=>{if(done)return;if(cur!==W)return end(true);const k=(performance.now()-t0)/1000;
+    if(st===0&&k>.2){st=1;q('.plogo').classList.add('on');chord([392,494,587],200)}
+    if(st===1&&k>1.9){st=2;q('.plogo').style.opacity=0;q('.pblack').style.opacity=0}
+    if(st===2&&k>5){st=3;q('.ptitle').classList.add('on');q('.pflash').classList.add('on');chord([262,330,392,523],0);try{beep(70,.4,'square',.06)}catch(e){}}
+    if(k>9)return end();requestAnimationFrame(tick)};tick()})}
 /* ================= DÉMARRAGE ================= */
 async function start(){
   try{await Promise.race([Promise.all([document.fonts.load('600 40px "Pixelify Sans"'),document.fonts.load('600 40px "Paragraphe"','§')]),wait(2500)])}catch(e){}
@@ -4167,9 +4196,9 @@ async function start(){
    <div class="row"><button class="btn go" id="play">Jouer</button><button class="btn alt" id="fs2">Plein écran</button></div>`);
   const f2=m.querySelector('#fs2');f2.hidden=$('#fs').hidden;f2.onclick=()=>$('#fs').onclick();
   const ps=m.querySelector('#pseudo');if(ps){try{ps.value=localStorage.getItem('talasPseudo')||''}catch(e){}ps.addEventListener('keydown',e=>{if(e.key==='Enter')m.querySelector('#play').click();e.stopPropagation()})}
-  m.querySelector('#play').onclick=()=>{if(ps){const v=ps.value.trim().replace(/\s+/g,' ').slice(0,20);if(!v){ps.classList.add('err');ps.focus();ps.placeholder='Choisis un pseudo pour jouer';return}
+  m.querySelector('#play').onclick=async()=>{if(ps){const v=ps.value.trim().replace(/\s+/g,' ').slice(0,20);if(!v){ps.classList.add('err');ps.focus();ps.placeholder='Choisis un pseudo pour jouer';return}
       try{localStorage.setItem('talasPseudo',v)}catch(e){}tsStart(v)}
-    closeModal();S.intro=0;S.tEnd=performance.now()+TLIMIT;hubHint()};(ps||m.querySelector('#play')).focus();
+    closeModal();const r=await proIntro();S.intro=0;S.tEnd=performance.now()+TLIMIT;if(r!=='gone')hubHint()};(ps||m.querySelector('#play')).focus();
 }
 if(window.THREE)start();else document.getElementById('loading').textContent='Impossible de charger le moteur 3D. Recharge la page.';
 </script>
