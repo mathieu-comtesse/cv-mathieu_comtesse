@@ -81,24 +81,58 @@ def post(x, y):
     add('cyl', (x, y, 1.2), (.12, .12, 2.1), CHROME, v=16)
     add('sph', (x, y, 2.45), (.62, .62, .62), CHROME, smooth=True, v=32)
 
-# sol blanc brillant (reflète piliers, poteaux et soucoupe)
+# sol de marbre blanc brillant (reflète piliers, lampadaires et baie vitrée)
 floor = mat('#e9edf2', .12, .6)
 add('cube', (0, 8, -.05), (60, 44, .1), floor)
 for x in (-3.5, 3.5, -10.5, 10.5): pillar(x, 13)
-for x in (0, -7, 7): post(x, 11)
-# rebord du fond
-add('cube', (0, 30.5, .15), (80, .6, .3), METAL)
-# la soucoupe : disque bleu acier, bande nervurée, rangée d'ampoules, dôme
-U = (0, 160, 6.0)
-steel = mat('#5d7fb0', .3, .5); steel2 = mat('#2f4d80', .35, .5); bulb = mat('#ffffff', .2, emit=1.6)
-s1 = add('sph', U, (150, 150, 16), steel, smooth=True, v=96)
-add('cyl', (U[0], U[1], U[2] + 1.2), (104, 104, 7), steel2, v=128)
-for k in range(160):
-    a = k * math.pi / 80; add('cube', (U[0] + math.cos(a) * 52.2, U[1] + math.sin(a) * 52.2, U[2] + 1.2), (1.1, 1.1, 6.6), mat('#8fb0dc', .3, .5), rot=(0, 0, a))
-for k in range(120):
-    a = k * math.pi / 60; add('sph', (U[0] + math.cos(a) * 73, U[1] + math.sin(a) * 73, U[2] + 2.2), (1.9, 1.9, 1.9), bulb, smooth=True, v=16)
-add('sph', (U[0], U[1], U[2] + 6), (84, 84, 34), mat('#c7d7ee', .15, .6), smooth=True, v=96)
-
+for x in (-7, 7): post(x, 11)
+# --- le bureau du PDG en haut de la tour : baie vitrée sur la ville, bandeau de spots, bureau, fauteuil, plantes ---
+SW, SH = 2048, 512
+sky = Image.new('RGB', (SW, SH)); d = ImageDraw.Draw(sky)
+for y in range(SH):
+    t = y / SH; d.line([(0, y), (SW, y)], fill=(int(150 + 90 * t), int(190 + 55 * t), int(232 + 18 * t)))
+random.seed(7)
+x = 0
+while x < SW:   # silhouettes de la ville et des hangars, bleutées par la distance
+    w_ = random.randint(40, 120); h_ = random.randint(60, 230); col = random.choice([(150, 172, 205), (138, 160, 196), (164, 184, 214)])
+    d.rectangle([x, SH - h_, x + w_, SH], fill=col)
+    for wy in range(SH - h_ + 8, SH - 6, 14):
+        for wx in range(x + 6, x + w_ - 6, 12):
+            if random.random() < .55: d.rectangle([wx, wy, wx + 5, wy + 6], fill=(214, 228, 244))
+    x += w_ + random.randint(4, 20)
+for hx in (300, 1400):   # hangars Airbus en voûte
+    d.pieslice([hx, SH - 170, hx + 360, SH + 170], 180, 360, fill=(176, 194, 220)); d.rectangle([hx + 150, SH - 80, hx + 210, SH], fill=(130, 150, 186))
+d.polygon([(1650, 120), (1780, 112), (1800, 104), (1812, 112), (1790, 120), (1720, 126)], fill=(240, 244, 250)); d.polygon([(1712, 116), (1740, 96), (1752, 96), (1735, 118)], fill=(240, 244, 250))
+sky.save(os.path.join(TMP, 'city.png'))
+cm = bpy.data.materials.new('city'); cm.use_nodes = True; nc = cm.node_tree; nc.nodes.clear()
+o_ = nc.nodes.new('ShaderNodeOutputMaterial'); em = nc.nodes.new('ShaderNodeEmission'); tx = nc.nodes.new('ShaderNodeTexImage'); tx.image = bpy.data.images.load(os.path.join(TMP, 'city.png'))
+nc.links.new(tx.outputs['Color'], em.inputs['Color']); em.inputs['Strength'].default_value = 1.0; nc.links.new(em.outputs[0], o_.inputs[0])
+bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 80, 19)); city = bpy.context.active_object
+city.scale = (170, 42, 1); city.rotation_euler = (math.pi / 2, 0, 0); city.data.materials.append(cm)
+# baie vitrée : montants et traverses chromés, allège, puis plafond bleu nuit et son bandeau de spots
+for k in range(-14, 15): add('cube', (k * 3.2, 34, 3.5), (.16, .16, 7), METAL)
+for z_ in (.02, 3.3, 6.6): add('cube', (0, 34, z_), (100, .2, .16), METAL)
+add('cube', (0, 34.2, .4), (100, .4, .8), mat('#d8dfe9', .3, .5))
+add('cube', (0, 24, 7.2), (100, 24, .3), mat('#2f4d80', .4, .4))
+add('cube', (0, 33.6, 6.4), (100, 1.2, 1.6), mat('#5d7fb0', .3, .5))
+bulb = mat('#ffffff', .2, emit=1.6)
+for k in range(-30, 31): add('sph', (k * 1.6, 33.0, 6.2), (.7, .7, .7), bulb, smooth=True, v=16)
+add('cube', (0, 33.4, 5.1), (100, .3, .5), mat('#8fb0dc', .3, .5))
+# le bureau du PDG, son fauteuil de cuir, sa plaque dorée, ses dossiers
+wood = mat('#5a3418', .35, .5)
+add('cube', (0, 26, .45), (5.0, 1.4, .9), wood, bevel=.04); add('cube', (0, 26, .93), (5.2, 1.6, .08), mat('#3b2412', .2, .7), bevel=.02)
+add('cube', (0, 25.15, .7), (1.2, .05, .22), mat('#fcc419', .15, .9))
+add('cube', (1.3, 26, 1.1), (.9, .6, .06), mat('#212529', .3)); add('cube', (1.3, 26.25, 1.35), (.9, .05, .55), mat('#74c0fc', .1, emit=.6))
+for k in range(4): add('cube', (-1.6 + k * .12, 26, 1.02 + k * .05), (.7, .5, .05), mat(['#f8f9fa', '#ffe066', '#ff8787', '#a5d8ff'][k], .5))
+add('cube', (0, 27.6, 1.5), (1.6, .5, 3.0), mat('#1c1c22', .25, .6), bevel=.15); add('cube', (0, 27.2, .6), (1.6, 1.2, .4), mat('#1c1c22', .25, .6), bevel=.1)
+# grandes plantes et armoires
+for x_ in (-5.2, 5.2):
+    add('cyl', (x_, 20, .45), (1.4, 1.4, .9), mat('#f8f9fa', .3), v=24)
+    for k in range(12):
+        a = k * .52; lf = add('cone', (x_ + math.cos(a) * .4, 20 + math.sin(a) * .4, 1.6), (.5, .12, 2.2), mat('#2f9e44' if k % 2 else '#51cf66', .5), v=6); lf.rotation_euler = (math.cos(a) * .6, math.sin(a) * .6, a)
+for x_ in (-15, -13.2, 13.2, 15):
+    add('cube', (x_, 30, 1.2), (1.6, .9, 2.4), mat('#adb5bd', .35, .6), bevel=.03)
+    for r in range(3): add('cube', (x_, 29.54, .5 + r * .75), (1.3, .02, .5), mat('#ced4da', .3, .6))
 sc.render.filepath = os.path.join(OUT, 'stage.jpg'); sc.render.image_settings.file_format = 'JPEG'; sc.render.image_settings.quality = 90
 bpy.ops.render.render(write_still=True)
 print('ok')
