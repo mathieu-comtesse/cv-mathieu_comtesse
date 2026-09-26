@@ -221,7 +221,7 @@ for k in range(3): add('cyl', (18.5 + math.cos(k * 2.1) * .2, -4.3 + math.sin(k 
 add('cube', (18.5, -4.3, .95), (.5, .45, .42), mat('#2b2f36', .3), c=c, bevel=.03)
 add('cube', (18.5 - .26, -4.3, .97), (.02, .34, .3), mat('#74c0fc', .1, emit=.8), c=c)
 # couloir
-for x in (16.5, 15.5, 14.5, 13.5, 10.5): bench('bench%d' % int(x * 10), x, -6.45)
+for x in (15.5, 13.5, 12.5, 9.5): bench('bench%d' % int(x * 10), x, -5.35)   # contre le mur des salles, assis face au couloir
 for k, (x, y) in enumerate(((17.8, 6.5), (11, 6.6), (6.5, 6.6), (2.5, 6.6), (1.4, 5.3))): plant('plant%d' % k, x, -y)
 for k, x in enumerate((7.6, 3.6)):
     c = occ('ext%d' % k, x + 6.8)
