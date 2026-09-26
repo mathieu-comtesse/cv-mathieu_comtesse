@@ -247,7 +247,6 @@ body[data-page="route-vigilance"] #road-results p{margin:6px 0}body[data-page="r
 .theme-nav .nav-panel a small{font:11px var(--mono);opacity:.65;line-height:1.3}
 .theme-nav .nav-panel a[aria-current="page"] small{opacity:.8}
 .theme-nav .nav-panel .nav-all{grid-column:1/-1;border-color:var(--ink)}
-.nav-menu:last-of-type .nav-panel{left:auto;right:0}
 @media(max-width:640px){.theme-nav{flex-wrap:wrap}.nav-menu>summary{font-size:12px;padding:8px 24px 8px 8px}.nav-menu>summary::after{right:9px}.nav-panel{position:fixed;left:16px;right:16px;top:auto;width:auto;grid-template-columns:1fr;max-height:70vh;overflow:auto}}
 html[data-theme="dark"] .nav-menu>summary:hover,html[data-theme="dark"] .theme-nav .nav-panel a:hover{background:#2a2a2a}
 
