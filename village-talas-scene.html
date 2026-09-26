@@ -3732,11 +3732,17 @@ function clickTower(){if(busy||!$('#modal').hidden)return;if(!(allDone()||S.all)
 $('#unlock').onclick=()=>{S.all=true;refreshSigns();say('boulon','Mode oral : tous les ateliers sont ouverts. Les choix non faits comptent comme ratés dans les effets domino.',{btns:[]})};
 
 /* Générique de fin : scénario coproduit, développement */
-const CREDITS={dev:'Mathieu Comtesse',scenario:['Eliott Corne','Dylan Zouiter','Mathilde Chartrel','Georges Barthélemy Fonkou','Neila Mimane','Lorette Dagleris']};
+const CREDITS={dev:'Mathieu Comtesse',scenario:['Eliott Corne','Dylan Zouiter','Mathilde Chartrel','Georges Barthélemy Fonkou','Neila Mimane','Lorette Dagleris'],
+ facts:{'Eliott Corne':'a relu le scénario perché sur une nacelle, longe attachée, par pur professionnalisme',
+  'Dylan Zouiter':'a prêté son prénom au héros ; réclame depuis des droits d’auteur pour chacune de ses 37 morts',
+  'Mathilde Chartrel':'a répondu « MATHILDE !! » à chaque appel au mégaphone, y compris ceux qui ne lui étaient pas destinés',
+  'Georges Barthélemy Fonkou':'a refusé l’accès au plateau à l’équipe de tournage : pas de badge, pas d’accès',
+  'Neila Mimane':'invaincue au festin des mesures ; soupçonnée d’avoir tamponné le traiteur',
+  'Lorette Dagleris':'a fait passer tout le casting au polygraphe ; le nez du PDG ne s’en est jamais remis'}};
 function credits(){return new Promise(res=>{const m=modal(`<h1>Le Village <span>Talas</span></h1><div class="roll"><div>
     <h3>UN JEU SÉRIEUX ISO 45001</h3><p>(sérieux, c’est vite dit)</p>
     <h3>DÉVELOPPEMENT</h3><p><b>${CREDITS.dev}</b></p><p class="sm">qui a codé 4 000 lignes, un fantôme en pantoufles et un PDG à tête gonflable, sans casque ni gants</p>
-    <h3>SCÉNARIO, COPRODUIT AVEC</h3>${CREDITS.scenario.map(n=>`<p>${n}</p>`).join('')}<p class="sm">aucun scénariste n’a été blessé pendant l’écriture ; deux ont fait un malaise au karaoké</p>
+    <h3>SCÉNARIO, COPRODUIT AVEC</h3>${CREDITS.scenario.map(n=>`<p><b>${n}</b></p><p class="sm">${CREDITS.facts[n]}</p>`).join('')}<p class="sm">aucun scénariste n’a été blessé pendant l’écriture ; deux ont fait un malaise au karaoké</p>
     <h3>DANS LES RÔLES</h3>
     <p><b>Dylan</b>, alternant HSE, mort 37 fois en service</p>
     <p><b>Aurelien Lefauconnier</b>, PDG, cigare, cravate au garde-à-vous</p>
