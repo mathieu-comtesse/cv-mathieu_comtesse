@@ -1752,7 +1752,15 @@ function arena2D(STAGE){
      await tween(.1,k=>{C.lF=k*1.9;C.lean=-.3});hitF(D,{power:1.7,blood:9,teeth:1,kb:0,y:12,x:D.x+10,face:'hurt'});say3('RÉVEIL !',{x:D.x+10,y:96,size:13,c1:'#fff',c2:'#e03131',life:.8});
      const x0=D.x;await tween(.3,k=>{D.x=x0-24*k;D.y=14*Math.sin(k*Math.PI)});C.lF=0;await getUp(D);await Promise.all([goHome(D),goHome(C)]);C.busy=0},
    async thalasso(){C.busy=1;D.busy=1;say3('THALASSO !',{y:92,size:14,c1:'#e7f5ff',c2:'#1c7ed6',life:1});
-     const wv=addX({x:W+60,y:0,r:0,draw:(g,t)=>{g.scale(1.9,1.9);g.fillStyle='#1c7ed6';g.strokeStyle=INK2;g.lineWidth=1.5;g.beginPath();g.moveTo(-40,0);g.quadraticCurveTo(-45,-70,0,-72);g.quadraticCurveTo(-20,-60,-10,-40);g.lineTo(60,-30);g.lineTo(60,0);g.closePath();g.fill();g.stroke();g.fillStyle='#fff';for(let i=0;i<6;i++)g.fillRect(-30+i*8,-72+Math.abs(Math.sin(t*9+i))*6+i*3,5,3)}});
+     /* une vraie vague de Deauville : rouleau qui déferle vers Dylan, dégradé d'eau, écume, embruns */
+     const wv=addX({x:W+60,y:0,r:0,draw:(g,t)=>{const c=Math.sin(t*6)*4,H2=150,body=()=>{g.beginPath();g.moveTo(-70,0);g.bezierCurveTo(-70,-40,-40,-H2+20,10,-H2);g.bezierCurveTo(-30,-H2-18+c,-86,-H2+10,-84,-H2+42);
+        g.bezierCurveTo(-82,-H2+64,-58,-H2+64,-52,-H2+50);g.bezierCurveTo(-46,-H2+36,-26,-H2+50,-10,-H2+80);g.bezierCurveTo(10,-60,60,-40,140,-30);g.bezierCurveTo(220,-22,300,-14,460,-10);g.lineTo(460,0);g.closePath()};
+        const gr=g.createLinearGradient(0,-H2,0,0);gr.addColorStop(0,'#74c0fc');gr.addColorStop(.35,'#1c7ed6');gr.addColorStop(1,'#0b3d7a');g.fillStyle=gr;body();g.fill();g.strokeStyle='#08264d';g.lineWidth=2;g.stroke();
+        g.save();body();g.clip();g.fillStyle='#0b4f9c';g.beginPath();g.moveTo(-40,0);g.bezierCurveTo(-30,-60,0,-110,20,-128);g.bezierCurveTo(0,-80,20,-30,60,0);g.fill();
+        g.strokeStyle='rgba(165,216,255,.8)';g.lineWidth=2;for(let k=0;k<5;k++){g.beginPath();g.moveTo(-50+k*38,-10-k*6);g.quadraticCurveTo(-20+k*38,-40-k*10+c,10+k*38,-16-k*6);g.stroke()}g.restore();
+        g.fillStyle='#ffffff';for(let k=0;k<22;k++){const a=k/21,x=-84+a*96+Math.sin(t*9+k)*2,y=-H2+42-Math.sin(a*Math.PI)*58+Math.cos(t*7+k*1.7)*3;g.beginPath();g.arc(x,y,5+(k%3)*2,0,7);g.fill()}
+        for(let k=0;k<14;k++){g.fillStyle=k%2?'#ffffff':'#d0ebff';g.beginPath();g.arc(-70+k*16+Math.sin(t*8+k)*3,-4-Math.abs(Math.sin(t*6+k))*6,6,0,7);g.fill()}
+        g.fillStyle='#e7f5ff';for(let k=0;k<10;k++){const q=(t*1.6+k/10)%1;g.fillRect(-84-q*50+Math.sin(k*3)*14,-H2+40-q*30+q*q*90,3,3)}}});
      const gl=addX({x:W,y:170,r:0,draw:DR.gull});let hit=0;const x0=D.x;
      await tween(1.3,k=>{wv.x=W+60-k*(W+140);gl.x=W-k*W*1.2;gl.y=170+Math.sin(k*20)*4;if(Math.random()<.6)part({k:'drop',x:wv.x-30+rand(0,40),y:rand(20,60),vx:rand(-80,20),vy:rand(20,80),c:'#a5d8ff',life:.8});
        if(!hit&&wv.x<D.x+30){hit=1;hitF(D,{power:1.3,blood:4,kb:0,face:'hurt'});D.wet=1;tween(.3,q=>D.lie=q*.9)}if(hit)D.x=Math.max(14,x0-(D.x+30-wv.x)*.3)},E.lin);
