@@ -93,6 +93,9 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .arui button.on{background:rgba(255,214,70,.22)}.arui button.on b::before{content:'▶';position:absolute;margin-left:-14px;animation:blink 1s steps(2) infinite}
 .arui .go{float:right;color:#ffd43b;animation:blink 1s steps(2) infinite}
 .touch .arui{font-size:17px}.touch .arui h4{font-size:19px}.touch .arui button i{font-size:14px}
+.howto{margin-top:8px;padding:6px 10px;background:#fff;border:2px dashed var(--lo);font-size:.95em;line-height:1.4}
+.howto p{margin:2px 0}.howto ul{margin:2px 0 0;padding-left:18px}.howto li{margin:2px 0}
+.howto kbd{display:inline-block;min-width:1.5em;padding:0 5px;text-align:center;font:inherit;font-weight:700;background:var(--yellow);border:2px solid;border-color:#fff7cc #b08900 #b08900 #fff7cc;box-shadow:0 0 0 1px var(--ink)}
 #pad{position:absolute;right:8px;bottom:8px;left:8px;z-index:6;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
 #pad>div{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px;pointer-events:auto}
 #pad button{font:inherit;font-weight:700;font-size:16px;padding:0;text-align:center;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -205,6 +208,35 @@ function say(k,text,{btns=[{t:'Suivant',go:1}],cls='',row=false,grid=false}={}){
 const hidePanel=()=>{$('#panel').hidden=true};
 /* Touches affichées sur ordinateur (clavier AZERTY, flèches acceptées aussi) */
 const K=t=>`<kbd>${t}</kbd>`;
+/* « Comment jouer » : le but et les commandes de chaque mini-jeu, version clavier ou version tactile */
+const HOWTO={
+ attrape:{but:'Attrape les documents à étiquette bleue avec l’épuisette. Évite les déchets à étiquette rouge. Quand un cercle rouge apparaît sous Dylan, écarte-toi : une pantoufle arrive.',
+  kb:['<kbd>Q</kbd> <kbd>D</kbd>, les flèches ◀ ▶ ou la souris : déplacer Dylan'],tc:['Boutons ◀ ▶ en bas à gauche : déplacer Dylan']},
+ combat:{but:'Aurelien attaque avec une mauvaise excuse. Choisis la réponse qui la contre selon la norme, avant la fin du chrono : ta bonne réponse déclenche ton attaque. Mauvaise réponse ou chrono écoulé : c’est lui qui frappe.',
+  kb:['<kbd>1</kbd> à <kbd>4</kbd> : choisir une réponse','<kbd>↑</kbd> <kbd>↓</kbd> puis <kbd>Espace</kbd> ou <kbd>Entrée</kbd> : choisir et valider','<kbd>Espace</kbd> : passer au message suivant'],
+  tc:['Touche une réponse pour la choisir','Touche le panneau du bas pour continuer']},
+ fuite:{but:'Cours jusqu’à la sortie sans te faire écraser par le géant. Saute ou glisse sous les obstacles, et guide les collègues perdus au passage.',
+  kb:['<kbd>Q</kbd> <kbd>D</kbd> : changer de voie','<kbd>Espace</kbd> : sauter','<kbd>S</kbd> : glisser','<kbd>E</kbd> : guider un collègue'],
+  tc:['◀ ▶ : changer de voie','SAUT : sauter','▼ : glisser','TOUR : guider un collègue']},
+ tuyaux:{but:'Fais couler l’eau du bloc rouge (le danger) jusqu’au bloc vert (la mesure) en tournant les tuiles de tuyau. Cinq tuyaux, 50 secondes chacun.',
+  kb:['Clic sur une tuile : la tourner d’un quart de tour'],tc:['Touche une tuile : la tourner d’un quart de tour']},
+ festin:{but:'Les plats arrivent dans ton assiette : tamponne les bonnes mesures, refile les mauvaises à tes voisins, et tape sur les doigts de ceux qui piquent dans ton assiette.',
+  kb:['<kbd>Espace</kbd> : tamponner le plat','<kbd>Q</kbd> <kbd>D</kbd> : le refiler à gauche ou à droite','<kbd>S</kbd> : taper sur les doigts','Ou clic sur les assiettes'],
+  tc:['Touche ton assiette : tamponner','Touche à gauche ou à droite : refiler','▼ : taper sur les doigts']},
+ karaoke:{but:'Chante chaque mot pile quand il arrive sur la ligne, dans la bonne piste. Plus tu es en rythme, plus la salle est convaincue.',
+  kb:['<kbd>Q</kbd> : piste gauche','<kbd>S</kbd> : piste du milieu','<kbd>D</kbd> : piste droite','(les flèches marchent aussi)'],
+  tc:['Touche le tiers gauche, du milieu ou droit de l’écran : la piste correspondante']},
+ doc:{but:'Les visiteurs font la queue avec une question. Ouvre leur fiche et envoie chacun vers la bonne ressource avant que sa patience s’épuise.',
+  kb:['Clic sur un visiteur : ouvrir sa fiche','Clic sur une destination, ou <kbd>1</kbd> à <kbd>5</kbd> : l’y envoyer','Flèches ou glisser : déplacer la vue'],
+  tc:['Touche un visiteur : ouvrir sa fiche','Touche une destination : l’y envoyer','Glisse le doigt : déplacer la vue']},
+ parcours:{but:'Grimpe jusqu’au sommet du chantier, puis livre ton rapport au quai Talas. Ramasse les pièces au passage et ne te laisse pas rattraper par Aurelien.',
+  kb:['<kbd>Q</kbd> <kbd>D</kbd> : avancer, reculer','<kbd>Z</kbd> : grimper','<kbd>S</kbd> : se baisser, se cacher','<kbd>Espace</kbd> : sauter, deux fois pour un double saut','<kbd>E</kbd> : tournoyer (les flèches marchent aussi)'],
+  tc:['◀ ▶ : avancer, reculer','▲ : grimper, ▼ : se baisser','SAUT : sauter, deux fois pour un double saut','TOUR : tournoyer']},
+ poly:{but:'Les chefs d’équipe défilent et jurent que tout est conforme. Quand un nez s’allonge, c’est un mensonge : tamponne ÉCART sur le menteur. Ne tamponne pas ceux qui disent vrai.',
+  kb:['Clic sur un menteur : tampon ÉCART'],tc:['Touche un menteur : tampon ÉCART']},
+ operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Attention : le patient a le hoquet.',
+  kb:['Clic maintenu sur une cause, puis glisser jusqu’au rond vert'],tc:['Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert']}};
+function howto(k){const h=HOWTO[k];return `<div class="howto"><p><b>Le but :</b> ${h.but}</p><p><b>${TOUCH?'Sur écran tactile':'Commandes'} :</b></p><ul>${(TOUCH?h.tc:h.kb).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 const KEYHELP={
  parcours:`<span>${K('Q')}${K('D')} avancer</span><span>${K('Z')} grimper</span><span>${K('S')} se cacher, se baisser</span><span>${K('Espace')} sauter, 2 fois pour un double saut</span><span>${K('E')} tournoyer</span><span>(flèches aussi)</span>`,
  attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
@@ -739,7 +771,7 @@ function pipe3D(n,cfg){return new Promise(res=>{
       round++;if(round<cfg.rounds.length){build();return}
       R.clear();const r=solved/cfg.rounds.length;cdi(r>=.85?8:r>=.6?2:-6);res(r)}
   }
-  say('boulon',cfg.hint,{btns:[{t:'C’est parti !',go:1}]}).then(build);
+  say('boulon',cfg.hint+howto('tuyaux'),{btns:[{t:'C’est parti !',go:1}]}).then(build);
 })}
 
 /* ================= OUTILS COMMUNS AUX MINI-JEUX ================= */
@@ -847,7 +879,7 @@ function feast3D(n,cfg){return new Promise(res=>{
   R.cam=()=>{camera.position.set(0,4.6,10.2);camera.lookAt(0,2,-1)};
   me.m.position.set(X[1],-.15,-.75);me.m.rotation.set(0,0,0);me.m.scale.setScalar(SC);
   const go=R.extra;R.extra=null;
-  say('karim',cfg.hint,{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();say2(TOUCH?'Touche ton assiette pour tamponner, à gauche ou à droite pour refiler. Flèche bas pour taper sur les doigts.':'Espace : tamponner · Q / D : refiler à gauche / à droite · S : taper sur les doigts.',3.5);R.extra=go});
+  say('karim',cfg.hint+howto('festin'),{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();say2(TOUCH?'Touche ton assiette pour tamponner, à gauche ou à droite pour refiler. Flèche bas pour taper sur les doigts.':'Espace : tamponner · Q / D : refiler à gauche / à droite · S : taper sur les doigts.',3.5);R.extra=go});
 })}
 
 /* ================= PARTICULES PLEINES (partagées par la course et le parcours) =================
@@ -1040,7 +1072,7 @@ function run3D(n,cfg){return new Promise(async res=>{
     const missed=colTotal-st.saved;for(let i=0;i<missed;i++)pts(n,false);if(!ok)pts(n,false);
     const r=ok?.4+.6*st.saved/Math.max(1,colTotal):0;setTimeout(()=>resolveRun({ok,r}),ok?600:400)}
   hidePanel();await fade(1);setWorld(W);camera.position.set(0,4.7,9.5);keyHelp('fuite');board();await fade(0);
-  await say('ceo',cfg.hint,{btns:[{t:'Courir !',go:1}],cls:'compact'});st.go=true;$('#pad').hidden=!TOUCH;hidePanel();say2(TOUCH?'◀ ▶ voie · SAUT sauter · ▼ glisser · TOUR guider':'Q / D voie · Espace sauter · S glisser · E guider',3);
+  await say('ceo',cfg.hint+howto('fuite'),{btns:[{t:'Courir !',go:1}],cls:'compact'});st.go=true;$('#pad').hidden=!TOUCH;hidePanel();say2(TOUCH?'◀ ▶ voie · SAUT sauter · ▼ glisser · TOUR guider':'Q / D voie · Espace sauter · S glisser · E guider',3);
   const out=await new Promise(r=>{resolveRun=r});
   await fade(1);setWorld(room);await fade(0);
   cdi(out.r>=.85?8:out.r>=.6?2:-6);
@@ -1128,7 +1160,7 @@ function catch3D(n,cfg){return new Promise(res=>{
     if(k>=seq.length&&!air.length&&!slips.length){done=true;R.stage.remove(net);const r=got/(ND+yuck+bonk*.5);
       {const pd=$('#pad');pd.hidden=true;delete pd.dataset.only}gameEnd(n,r,'boulon',`<b>${got} documents sur ${ND} attrapés, ${yuck} déchet${yuck>1?'s':''} dans l’épuisette, ${bonk} pantoufle${bonk>1?'s':''} reçue${bonk>1?'s':''}.</b> ${cfg.after||''}`,res)}};
   const go=R.extra;R.extra=null;
-  say('boulon',cfg.hint,{btns:[{t:'Attrape-les !',go:1}]}).then(()=>{status();if(TOUCH){hidePanel();const pd=$('#pad');pd.dataset.only='LR';pd.hidden=false}else say('boulon','Souris ou Q D pour déplacer Dylan.',{btns:[]});R.extra=go});
+  say('boulon',cfg.hint+howto('attrape'),{btns:[{t:'Attrape-les !',go:1}]}).then(()=>{status();if(TOUCH){hidePanel();const pd=$('#pad');pd.dataset.only='LR';pd.hidden=false}else say('boulon','Souris ou Q D pour déplacer Dylan.',{btns:[]});R.extra=go});
 })}
 
 /* ================= MINI-JEU : LE KARAOKÉ DU QUART D'HEURE SÉCURITÉ (rythme) ================= */
@@ -1165,7 +1197,7 @@ function karaoke3D(n,cfg){return new Promise(res=>{
       if(d<-WIN){x.st=2;combo=0;pts(n,false);beep(110,.2,'sawtooth',.04);wake(0);if(x.m){const m=x.m;tween(.3,q=>m.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(m))}lyric()}}
     if(t>TEND){done=true;removeEventListener('keydown',onKey);arm.remove(mic);const r=hits/(N+strays*.5);ops.forEach(o=>o.awake=r>=.6);
       gameEnd(n,r,'sabrina',`<b>${hits} mots sur ${N} chantés en rythme</b> (meilleur combo : ${best}). ${r>=.6?'Tout l’atelier fait la chenille !':'La moitié de l’atelier ronfle encore…'} ${cfg.after||''}`,res)}};
-  say('sabrina',cfg.hint,{btns:[{t:'Micro !',go:1}]}).then(()=>{hidePanel();on=true;lyric()});
+  say('sabrina',cfg.hint+howto('karaoke'),{btns:[{t:'Micro !',go:1}]}).then(()=>{hidePanel();on=true;lyric()});
 })}
 
 /* ================= MINI-JEU : LE POLYGRAPHE DE LORETTE (repérer les menteurs) ================= */
@@ -1197,7 +1229,7 @@ function poly3D(n,cfg){return new Promise(res=>{
     needle.position.x=Math.sin(t*37)*(.08+amp*.7);animPerson(lor,amp>.5?'stun':'idle',T);
     if(idx>=N&&!walk.length){done=true;const r=ok/N;gameEnd(n,r,'boulon',`<b>${ok} bons jugements sur ${N}.</b> ${cfg.after||''}`,res)}};
   const go=R.extra;R.extra=null;
-  say('audit',cfg.hint,{btns:[{t:'Premier témoin !',go:1}]}).then(()=>{status();say('audit',TOUCH?'Touche un menteur pour le tamponner.':'Clique sur un menteur pour le tamponner.',{btns:[]});R.extra=go});
+  say('audit',cfg.hint+howto('poly'),{btns:[{t:'Premier témoin !',go:1}]}).then(()=>{status();say('audit',TOUCH?'Touche un menteur pour le tamponner.':'Clique sur un menteur pour le tamponner.',{btns:[]});R.extra=go});
 })}
 
 /* ================= MINI-JEU : OPÉRATION TALAS (extraire les causes à la pince) ================= */
@@ -1268,7 +1300,7 @@ function surgery3D(n,cfg){return new Promise(res=>{
   const go=R.extra;R.extra=null;
   function end(){if(done)return;done=true;const miss=items.filter(it=>!it.done);miss.forEach(()=>pts(n,false));const r=out/(N+buzz*.5);
     gameEnd(n,r,'boulon',`<b>${out} causes sur ${N} extraites, ${buzz} bzzzt.</b>${miss.length?'<br>Restées dans le patient : '+miss.map(it=>`<b>${it.t}</b>`).join(', ')+'.':''} ${cfg.after||''}`,res)}
-  say('boulon',cfg.hint,{btns:[{t:'Enfiler les gants',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert, sans sortir du couloir orange. Attention au hoquet !':'Clic maintenu sur une cause, puis glisse-la jusqu’au rond vert sans sortir du couloir orange. Attention au hoquet !',{btns:[]});R.extra=go});
+  say('boulon',cfg.hint+howto('operation'),{btns:[{t:'Enfiler les gants',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert, sans sortir du couloir orange. Attention au hoquet !':'Clic maintenu sur une cause, puis glisse-la jusqu’au rond vert sans sortir du couloir orange. Attention au hoquet !',{btns:[]});R.extra=go});
 })}
 
 /* ================= MORT DE DYLAN (et gore) ================= */
@@ -1939,7 +1971,8 @@ async function battle(n){
   const R=cur;
   const stageP=new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='assets/talas-fight/stage.jpg?v=3'});
   R.ceo.rotation.y=-.9;
-  await say('ceo','« Mon engagement ? Il se mérite, petit. Pas de réunion, pas de PowerPoint : on règle ça dans mon bureau, à l’ancienne. JE TE DÉFIE ! »');hidePanel();
+  await say('ceo','« Mon engagement ? Il se mérite, petit. Pas de réunion, pas de PowerPoint : on règle ça dans mon bureau, à l’ancienne. JE TE DÉFIE ! »');
+  await say('boulon','<b>Comment se passe le combat</b>'+howto('combat'),{btns:[{t:'En garde !',go:1}]});hidePanel();
   const STAGE=await stageP,SC0=[R.dylan,R.ceo].map(o=>o.scale.clone());
   await beam(R,[R.dylan,R.ceo]);R.clear();
   const A=arena2D(STAGE);await A.challenger();
@@ -2049,7 +2082,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   /* décor et personnages pré-calculés dans Blender (voir tools/talas-doc) */
   const AS='assets/talas-doc/',ld=f=>new Promise((ok,ko)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=ko;im.src=AS+f+'?v='+DOCV}),js=f=>fetch(AS+f+'?v='+DOCV).then(r=>r.json());
   const assets=Promise.all([ld('bg.jpg'),ld('occ.png'),js('scene.json')]);
-  await say('sabrina',cfg.hint,{btns:[{t:'Ouvrir le centre !',go:1}],cls:'compact'});hidePanel();
+  await say('sabrina',cfg.hint+howto('doc'),{btns:[{t:'Ouvrir le centre !',go:1}],cls:'compact'});hidePanel();
   const[IBG,IOCC,SM]=await assets;const CM=docSprites(SM.S),ICH=CM.img;
   const fr=$('#frame'),c=document.createElement('canvas');c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;z-index:2;touch-action:none;cursor:'+HAND;fr.append(c);
   /* panneau de commande en bas, façon Theme Hospital : métal bleu-gris en relief, écrans LCD, boutons à icônes */
@@ -2678,7 +2711,7 @@ function buildPlatformer(){
 async function platformSection(n){
   const room=cur;
   await say('karim','Ce soir, il faut inspecter le chantier de rénovation de notre immeuble, tout en haut de l’échafaudage, puis porter le rapport au quai Talas, au bord du canal. Il a neigé… et le patron est pressé.');
-  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier, puis descends livrer ton rapport au quai Talas, sur le canal ! Aurelien Lefauconnier va te courir après : ne te laisse pas rattraper. Tu n’as que 3 cœurs : ramasse les cœurs rouges en route. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.',{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','Sors de l’entrepôt, traverse le village, la rue du café et les toits jusqu’au sommet du chantier, puis descends livrer ton rapport au quai Talas, sur le canal ! Aurelien Lefauconnier va te courir après : ne te laisse pas rattraper. Tu n’as que 3 cœurs : ramasse les cœurs rouges en route. '+(TOUCH?'Croix pour avancer, grimper et te cacher (flèche bas), tape l’écran ou SAUT pour sauter, TOUR pour tournoyer.':'Flèches ou ZQSD pour avancer, grimper et te cacher (flèche bas), ESPACE pour sauter, E pour tournoyer.')+' Pousse la caisse, rebondis sur l’auvent, touche les blocs ? pour des conseils et ramasse les pièces S. Chaque EPI protège d’UN danger précis. Le cercle rouge annonce un objet qui tombe.'+howto('parcours'),{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0,save=null;
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);const PW=buildPlatformer();PW.onSave=sv=>save=sv;if(save)PW.restore(save);setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;keyHelp('parcours');$('#hud .right').style.visibility='hidden';await fade(0);
