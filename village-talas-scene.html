@@ -3207,7 +3207,7 @@ function cineOff(){CINE.chunks=[];const el=$('#cine');if(el)el.classList.remove(
 
 /* personnage façon dessin animé : membres fins et souples (genoux, coudes), grosse tête, grands yeux, gants blancs, grosses chaussures.
    Même squelette que makePerson (pose, hanches, buste, épaules) pour réutiliser les animations, plus genoux, coudes, tête, yeux et bouche. */
-function makeToon(o={}){const g=new THREE.Group(),pose=new THREE.Group();g.add(pose);const sk=o.skin||'#ffd8b1',pants=o.pants||'#364fc7',shirt=o.shirt||'#4dabf7';
+function makeToon(o={}){const g=new THREE.Group(),pose=new THREE.Group();g.add(pose);const sk=o.skin||'#f2ad7e',pants=o.pants||'#364fc7',shirt=o.shirt||'#4dabf7';
   const tube=(r1,r2,h,c,par,y)=>mk(new THREE.CylinderGeometry(r1,r2,h,12),c,0,y,0,par);
   const knees=[];const hips=[-1,1].map(sd=>{const h=new THREE.Group();h.position.set(sd*.19,1,0);pose.add(h);tube(.11,.09,.52,pants,h,-.26);mk(new THREE.SphereGeometry(.1,10,8),pants,0,-.5,0,h);
     const k=new THREE.Group();k.position.y=-.5;h.add(k);tube(.085,.07,.44,pants,k,-.22);const sh=mk(new THREE.SphereGeometry(.2,16,10),o.shoe||'#2b2b2b',0,-.43,.13,k);sh.scale.set(.95,.62,1.75);
@@ -3248,6 +3248,8 @@ function animToon(p,mode,t){animPerson(p,mode,t);const r=p.userData.rig;if(!r||!
   else if(mode==='climb'){knees.forEach((k,i)=>k.rotation.x=1+Math.sin(t*9+(i?Math.PI:0))*.5);elbows.forEach(e=>e.rotation.x=-.9)}
   else if(mode==='stun'){head.rotation.z=Math.sin(t*9)*.25;elbows.forEach(e=>e.rotation.x=-.6)}
   else if(mode==='idle'){elbows.forEach(e=>e.rotation.x=-.25);head.rotation.z=Math.sin(t*1.3)*.06}
+  /* la tête se tourne de trois quarts vers la caméra, comme dans le dessin animé */
+  const ry=p.rotation.y;if(Math.abs(Math.abs(ry)-Math.PI/2)<.3){head.rotation.y+=-ry*.62;up.rotation.y+=-ry*.2}
   const bl=(t%3.4)<.12?.15:1;r.eyes.forEach(e=>e.scale.y=1.3*bl);r.shout=Math.max(0,r.shout-.016);
   const open=mode==='jump'||mode==='fall'||mode==='stun'||r.shout>0;r.mouthS.visible=!open;r.mouthO.visible=open;r.eyes.forEach(e=>{const w=r.shout>0?1.25:1;e.scale.x=.9*w})}
 /* étoile à quatre branches qui scintille */
@@ -3524,11 +3526,11 @@ function buildPlatformer(){
     if(sv.key){st.carry='key';setHeld('key');held.visible=true}
     BRK.forEach((b,i)=>{if(sv.brk[i]){b.off=1;s.remove(b.m)}});
     SAVES.forEach((c,i)=>{if(i<=sv.i){c.on=1;c.f.userData.relabel()}});
-    st.pos.set(sv.x,sv.y,0);st.check=sv.x;st.checkY=sv.y;st.peak=sv.y;camera.position.set(sv.x+2.5,sv.y+2.9,14.5);hudP();say2('boulon','Reprise au dernier drapeau.')};
+    st.pos.set(sv.x,sv.y,0);st.check=sv.x;st.checkY=sv.y;st.peak=sv.y;camera.position.set(sv.x+2.5,sv.y+2.5,11.5);hudP();say2('boulon','Reprise au dernier drapeau.')};
   const CH={on:false,x:113.6,y:0,vy:0,cd:0,talk:0,done:false,leave:0};
   W.restartSave=()=>{if(st.done)return;const sv=W.lastSave,x=sv?sv.x:-1,y=sv?sv.y:0;dropCarry(true);
     Object.assign(st,{climb:null,kb:0,stun:0,dizzy:0,blind:0,plat:null,ground:true,peak:y,check:x,checkY:y,spinT:0,pound:0});st.pos.set(x,y+.02,0);st.vel.set(0,0,0);
-    if(CH.on)CH.x=Math.min(CH.x,x-8);camera.position.set(x+2.5,y+2.9,14.5);PX.ring(V(x,y,0),'#f58ab4');say2('boulon',sv?'Retour au dernier drapeau.':'Aucun drapeau touché : retour au départ.')};
+    if(CH.on)CH.x=Math.min(CH.x,x-8);camera.position.set(x+2.5,y+2.5,11.5);PX.ring(V(x,y,0),'#f58ab4');say2('boulon',sv?'Retour au dernier drapeau.':'Aucun drapeau touché : retour au départ.')};
   const AP=(m,mode,t)=>animToon(m,mode,t);
   /* lignes de vitesse derrière Dylan quand il file */
   /* traînée de silhouettes roses, comme la Panthère quand elle file */
@@ -3670,8 +3672,8 @@ function buildPlatformer(){
     torn.visible=st.spinT>0;if(st.spinT>0){torn.position.set(st.pos.x,st.pos.y,0);torn.children.forEach((c,i)=>{c.rotation.y=T*(22+i*6)*(i%2?-1:1);c.scale.setScalar(1+(.45-st.spinT)*.8)})}
     const inShop=st.pos.x>150.2&&st.pos.x<167.8&&st.pos.y<7.6;shopF.visible=!inShop;
   };
-  W.cam=dt=>{st.look=(st.look===undefined?2.5:st.look)+((st.face||1)*2.5-(st.look===undefined?2.5:st.look))*Math.min(1,(dt||.016)*2);const want=V(st.pos.x+st.look,Math.max(2.9,st.pos.y+2.9),14.5);camera.position.lerp(want,1-Math.pow(.002,dt||.016));const l=V(camera.position.x,camera.position.y-1.25,0);if(st.dizzy>0)l.x+=Math.sin(performance.now()/90)*.5;camera.lookAt(l)};
-  LBL.font=null;camera.position.set(1.5,2.9,14.5);
+  W.cam=dt=>{st.look=(st.look===undefined?2.5:st.look)+((st.face||1)*2.5-(st.look===undefined?2.5:st.look))*Math.min(1,(dt||.016)*2);const want=V(st.pos.x+st.look*.8,Math.max(2.5,st.pos.y+2.5),11.5);camera.position.lerp(want,1-Math.pow(.002,dt||.016));const l=V(camera.position.x,camera.position.y-1.05,0);if(st.dizzy>0)l.x+=Math.sin(performance.now()/90)*.5;camera.lookAt(l)};
+  LBL.font=null;camera.position.set(1.5,2.5,11.5);
   return W;
 }
 
