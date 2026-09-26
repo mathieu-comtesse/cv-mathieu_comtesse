@@ -3487,7 +3487,7 @@ function buildPlatformer(){
   const SOL=[],ONE=[],HZ=[],LAD=[],PICK=[],TIPS=[],BLK=[],BRK=[],TRAMPS=[],LIFTS=[],BALLS=[],EN=[],SHADE=[],ONO=[],LINES=[],ROBOTS=[],LAMPS=[];
   const bx=(w,h,d,m,x,y,z,p=s)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='string'?flat(m):m);o.position.set(x,y,z);p.add(o);return o};
   /* ---------- le hangar : bardage et grande porte au fond, sol époxy, charpente, lampes ---------- */
-  const back=new THREE.Mesh(new THREE.PlaneGeometry(420,30),new THREE.MeshBasicMaterial({map:ptx('hangar',7,1),fog:false}));back.position.set(120,14,-34);back.userData.par=.35;s.add(back);new THREE.TextureLoader().load('assets/talas/hangar-fond.jpg?v=1',t=>{const c=document.createElement('canvas');c.width=t.image.width/2;c.height=t.image.height/2;const x=c.getContext('2d');x.filter='blur(4px)';x.drawImage(t.image,-8,-8,c.width+16,c.height+16);const b=new THREE.CanvasTexture(c);b.wrapS=THREE.RepeatWrapping;b.repeat.set(7,1);back.material.map=b;back.material.needsUpdate=true});
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(420,30),new THREE.MeshBasicMaterial({map:ptx('hangar',7,1),fog:false}));back.position.set(120,14,-34);back.userData.par=.35;s.add(back);new THREE.TextureLoader().load('assets/talas/hangar-fond.jpg?v=1',t=>{t.wrapS=THREE.RepeatWrapping;t.repeat.set(7,1);back.material.map=t;back.material.needsUpdate=true});
   const far=new THREE.Mesh(new THREE.PlaneGeometry(520,40),pmat('floor2',30,2));far.rotation.x=-Math.PI/2;far.position.set(120,-.02,-26);s.add(far);
   for(let x=-10;x<260;x+=14){const t=new THREE.Group();t.position.set(x,22,-8);s.add(t);bx(14,.35,.35,pmat('steel',3,.3),0,0,0,t);bx(14,.35,.35,pmat('steel',3,.3),0,2.2,0,t);for(let k=0;k<7;k++){const d=bx(.2,2.6,.2,'#65627f',-6+k*2,1.1,0,t);d.rotation.z=k%2?.6:-.6}
     const lp=new THREE.Group();lp.position.set(x+7,19.6,-4);s.add(lp);bx(.05,2.4,.05,'#333',0,1.2,0,lp);const sh=mk(new THREE.ConeGeometry(.7,.5,16,1,true),'#f7c31c',0,0,0,lp);sh.material.side=THREE.DoubleSide;
@@ -3530,36 +3530,6 @@ function buildPlatformer(){
   const ramp=(x0,x1,y0,y1)=>{const n=Math.ceil((x1-x0)/.3);for(let i=0;i<n;i++){const a=x0+i*(x1-x0)/n,b=a+(x1-x0)/n;SOL.push({x0:a,x1:b,y0:y0-1,y1:y0+(y1-y0)*(i+1)/n,step:1})}
     const L=Math.hypot(x1-x0,y1-y0),p=bx(L,.25,2,pmat('checker',L/1.5,1.3),(x0+x1)/2,(y0+y1)/2-.05,0);p.rotation.z=Math.atan2(y1-y0,x1-x0)};
   /* bosse : aile, capot moteur ou dérive posés sur chandelles, on marche dessus (colonnes de 25 cm) */
-
-  /* pâte à modeler violette façon Claybound : une rangée de colonnes fines (collisions « marche ») dont on change la hauteur en tirant dessus ;
-     le volume reste constant (on déplace la pâte, on n'en crée pas). Clic-glisser ou doigt ; au clavier, Z à côté la façonne vers la forme utile. */
-  const CLAY=[];const clayTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),im=x.createImageData(256,256),H=new Float32Array(256*256);
-    const P=[...Array(9)].map(()=>[rand(0,256),rand(0,256),rand(6,11)]);for(let j=0;j<256;j++)for(let i=0;i<256;i++){let h=0;P.forEach(([px,py,f])=>{for(const ox of[-256,0,256])for(const oy of[-256,0,256]){const d=Math.hypot(i-px-ox,j-py-oy);if(d<70)h+=Math.sin(d/f*6.28)*(1-d/70)*.5}});H[j*256+i]=h+Math.sin(i*.9+j*.3)*.05}
-    for(let j=0;j<256;j++)for(let i=0;i<256;i++){const k=j*256+i,dx=H[j*256+(i+1)%256]-H[k],dy=H[((j+1)%256)*256+i]-H[k];const n=[-dx*1.2,-dy*1.2,1],l=Math.hypot(...n);im.data[k*4]=(n[0]/l*.5+.5)*255;im.data[k*4+1]=(n[1]/l*.5+.5)*255;im.data[k*4+2]=(n[2]/l*.5+.5)*255;im.data[k*4+3]=255}
-    x.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t})();
-  const clayMat=new THREE.MeshStandardMaterial({color:'#8d52e0',roughness:.62,metalness:0,normalMap:clayTex,normalScale:new THREE.Vector2(1.1,1.1),vertexColors:true});
-  function clay(x0,x1,base,init,goal){const n=Math.round((x1-x0)/.2),dx=(x1-x0)/n,h=new Float32Array(n);for(let i=0;i<n;i++)h[i]=Math.max(0,init((i+.5)/n));
-    let V=0;h.forEach(v=>V+=v);const G=new Float32Array(n);let gv=0;for(let i=0;i<n;i++){G[i]=Math.max(0,goal((i+.5)/n));gv+=G[i]}for(let i=0;i<n;i++)G[i]*=V/gv;
-    const cols=[...Array(n)].map((_,i)=>{const c={x0:x0+i*dx,x1:x0+(i+1)*dx,y0:base-1,y1:base+h[i],step:1,clay:1};SOL.push(c);return c});
-    const M=16,D=1.7,geo=new THREE.BufferGeometry(),pos=new Float32Array((n+2)*(M+1)*3),col=new Float32Array((n+2)*(M+1)*3),uv=new Float32Array((n+2)*(M+1)*2),idx=[];
-    for(let i=0;i<n+1;i++)for(let j=0;j<M;j++){const a=i*(M+1)+j,b=a+M+1;idx.push(a,b,a+1,b,b+1,a+1)}
-    geo.setIndex(idx);geo.setAttribute('position',new THREE.BufferAttribute(pos,3));geo.setAttribute('color',new THREE.BufferAttribute(col,3));geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));
-    const mesh=new THREE.Mesh(geo,clayMat);mesh.castShadow=mesh.receiveShadow=true;s.add(mesh);
-    const C={x0,x1,base,n,dx,h,G,V,cols,geo,mesh,dirty:1,grab:0};
-    C.build=()=>{let k=0;for(let i=0;i<n+2;i++){const x=i===0?x0:i===n+1?x1:x0+(i-.5)*dx,hh=i===0||i===n+1?0:h[i-1];
-        for(let j=0;j<=M;j++){const z=-D/2+D*j/M,e=Math.pow(Math.abs(z)/(D/2),3),prof=Math.sqrt(Math.max(0,1-e)),y=base+.02+(hh+.18)*prof-.18*(1-prof)*0,sh=.62+.38*prof*Math.min(1,hh/1.2+.4);
-          const bump=hh>.05?(Math.sin(x*5.3+z*3.1)*.5+Math.sin(x*2.1-z*4.7)*.5)*.05*prof:0;pos[k*3]=x;pos[k*3+1]=base+(hh+.16)*prof+bump;pos[k*3+2]=z;col[k*3]=sh;col[k*3+1]=sh;col[k*3+2]=sh;uv[k*2]=x*.45;uv[k*2+1]=(z+hh*.6)*.45;k++}}
-      geo.attributes.position.needsUpdate=geo.attributes.color.needsUpdate=geo.attributes.uv.needsUpdate=true;geo.computeVertexNormals();geo.computeBoundingSphere();
-      cols.forEach((c,i)=>c.y1=base+h[i]);C.dirty=0};
-    /* garder le volume : ce qu'on ajoute sous le doigt est pris ailleurs (en priorité loin du doigt), sans descendre sous zéro */
-    C.conserve=(wt)=>{for(let it=0;it<4;it++){let sum=0;h.forEach(v=>sum+=v);const diff=sum-V;if(Math.abs(diff)<1e-3)break;let ws=0;const w=[];for(let i=0;i<n;i++){w[i]=(1-(wt?wt[i]:0))*(diff>0?(h[i]>0?1:0):1);ws+=w[i]}if(ws<=0)break;for(let i=0;i<n;i++)h[i]=Math.max(0,h[i]-diff*w[i]/ws)}};
-    C.smooth=k=>{const t=Float32Array.from(h);for(let i=1;i<n-1;i++)h[i]=t[i]+(t[i-1]+t[i+1]-2*t[i])*k};
-    C.pull=(px,py,f)=>{const wt=new Float32Array(n);for(let i=0;i<n;i++){const x=x0+(i+.5)*dx;wt[i]=Math.exp(-Math.pow((x-px)/.7,2));h[i]+=(Math.min(5,Math.max(0,py-base))-h[i])*wt[i]*f}C.conserve(wt);C.smooth(.12);C.dirty=1};
-    C.morph=f=>{for(let i=0;i<n;i++)h[i]+=(G[i]-h[i])*f;C.conserve();C.dirty=1};
-    C.build();CLAY.push(C);return C}
-  const zAt=e=>{const r=cv.getBoundingClientRect(),p=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),rc=new THREE.Raycaster();rc.setFromCamera(p,camera);
-    const o=rc.ray.origin,d=rc.ray.direction;if(Math.abs(d.z)<1e-4)return null;const t=-o.z/d.z;return t>0?o.clone().addScaledVector(d,t):null};
-  let grabbed=null;
   const hump=(x0,x1,H,tint='#c9e3a0')=>{const n=Math.ceil((x1-x0)/.25),f=u=>H*Math.pow(Math.sin(Math.PI*u),.8);for(let i=0;i<n;i++){const a=x0+i*(x1-x0)/n,b=a+(x1-x0)/n;SOL.push({x0:a,x1:b,y0:-1,y1:f((i+.5)/n),step:1})}
     const sh=new THREE.Shape();sh.moveTo(x0-.2,0);for(let i=0;i<=24;i++){const u=i/24;sh.lineTo(x0+(x1-x0)*u,f(u))}sh.lineTo(x1+.2,0);sh.closePath();
     const g=new THREE.ExtrudeGeometry(sh,{depth:2.8,bevelEnabled:true,bevelSize:.15,bevelThickness:.3,bevelSegments:3,curveSegments:8});g.translate(0,0,-1.4);s.add(new THREE.Mesh(g,pmat('skin',.12,.2,tint)));
@@ -3613,8 +3583,7 @@ function buildPlatformer(){
   tip(24.4,5.4,'§6.1.2 : avant de monter, on identifie les dangers. Plateforme avec garde-corps et plinthes, vérifiée avant chaque utilisation.');
   worker(27.5,34.5);robot(36.6);
   hump(39,47,1.7,'#d4e8b0');epi(43,2.7,'chaussures');[40.5,45.5].forEach(x=>coin(x,2.3));
-  plank(49,53.4,2.4,{scaf:1});plank(51,55.4,4.8,{scaf:1});clay(47.2,49.3,0,u=>2.1*Math.pow(Math.sin(Math.PI*u),1.4),u=>Math.pow(u,1.25));
-  tip(45.6,2.2,'Pâte à modeler ! Clique et tire dessus (ou Z à côté) pour en faire une rampe jusqu’au badge. §7.1.3 : on adapte l’installation au travail, pas l’inverse.');plank(55.8,57.6,2.4,{scaf:1});heart(50.2,3.3);
+  plank(49,53.4,2.4,{scaf:1});plank(51,55.4,4.8,{scaf:1});ladder(49.4,0,2.4);plank(55.8,57.6,2.4,{scaf:1});heart(50.2,3.3);
   const badge=new THREE.Group();badge.position.set(54.4,5.7,0);s.add(badge);mk(new THREE.BoxGeometry(.7,.5,.06),'#4dabf7',0,0,0,badge);const bl=labelPlane('BADGE',.62,.3,{bg:'#fff',border:'#1971c2',size:120});bl.position.z=.04;badge.add(bl);
   const bglow=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.8),new THREE.MeshBasicMaterial({map:glowTex(),color:'#7fd0ff',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));bglow.position.z=-.1;badge.add(bglow);
   PICK.push({x:54.4,y:5.7,kind:'badge',m:badge,spin:badge});
@@ -3642,7 +3611,6 @@ function buildPlatformer(){
   {bx(3,.1,2.6,pmat('hazard',3,1),85.5,.01,-.2)}
   heart(88,3.2);tramp(89.4,91.4,.6);plank(92,98,5.2,{scaf:1});plank(98.4,101,2.6,{scaf:1});worker(92.6,97.4,5.2,'#1c7ed6');[93,94.5,96].forEach(x=>coin(x,6.1));
   hump(101.5,104.5,.9,'#e8f0ff');
-  clay(107.5,113.1,0,u=>Math.abs(u-.5)<.14?4.6:0,u=>1);tip(106.9,2.3,'Un mur de pâte barre l’allée : écrase-le (tire vers le bas, ou Z à côté). §8.1.2 : on supprime l’obstacle à la source plutôt que de l’escalader.');
   const bar=new THREE.Group();bar.position.set(106.2,0,0);s.add(bar);
   {[-1,1].forEach(q=>{bx(.3,3.2,.3,pmat('yellow',.3,1),q*.8,1.6,-.6,bar);bx(.3,3.2,.3,pmat('yellow',.3,1),q*.8,1.6,.6,bar)});bx(1.9,.3,1.5,pmat('hazard',2,1),0,3.1,0,bar);bx(1.4,1.4,.2,pmat('skin',.4,.4),0,1.6,0,bar);
     const rb=labelPlane('GABARIT BLOQUÉ',1.8,.42,{bg:'#fff',border:'#e03131',fg:'#e03131',size:90});rb.position.set(0,2.5,.78);bar.add(rb)}
@@ -3788,14 +3756,8 @@ function buildPlatformer(){
   /* traînée de silhouettes roses, comme la Panthère quand elle file */
   const TW=[];const twinkle=(p,c='#ffffff',sz=.7)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:starTex(),color:c,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.position.copy(p);sp.scale.setScalar(.01);s.add(sp);TW.push({sp,t:0,sz})};
   const speedLine=()=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(rand(.8,1.6),.05),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.8,depthWrite:false}));m.position.set(st.pos.x-(st.face||1)*.8,st.pos.y+rand(.4,1.6),.6);s.add(m);LINES.push({m,t:0,d:-(st.face||1)})};
-  /* pâte : saisie au clic / au doigt (sinon le clic fait sauter), étirée tant qu'on tient */
-  W.onDown=e=>{const p=zAt(e);if(!p)return false;for(const C of CLAY)if(p.x>C.x0-.5&&p.x<C.x1+.5&&p.y>C.base-.6&&p.y<C.base+5.6){grabbed={C,p};beep(180,.08,'triangle',.04);return true}return false};
-  W.onMove=e=>{if(grabbed){const p=zAt(e);if(p)grabbed.p=p}};W.onUp=()=>{grabbed=null};
   W.update=(dt,T)=>{
     fx.update(dt);PX.step(dt);cineTick(dt);
-    if(grabbed)grabbed.C.pull(grabbed.p.x,grabbed.p.y,Math.min(1,dt*9));
-    CLAY.forEach(C=>{if(KEYS.U&&!st.climb&&st.pos.x>C.x0-1.8&&st.pos.x<C.x1+1.8&&Math.abs(st.pos.y-C.base)<2.6){C.morph(Math.min(1,dt*1.8));if(Math.random()<dt*8)PX.puff(V(rand(C.x0,C.x1),C.base+.3,.6),1,{c:['#b98cf0','#8d52e0'],size:[.15,.3],sp:1.5,up:.4})}
-      if(C.dirty){C.build();C.cols.forEach(c=>{if(st.pos.x>c.x0-HW&&st.pos.x<c.x1+HW&&st.pos.y<c.y1&&st.pos.y>c.y1-1.3){st.pos.y=c.y1;if(st.vel.y<0)st.vel.y=0}})}});
     for(let i=TW.length-1;i>=0;i--){const w=TW[i];w.t+=dt;const k=w.t/.5;w.sp.scale.setScalar(w.sz*Math.sin(Math.min(1,k)*Math.PI));w.sp.material.rotation=k*2;if(k>=1){s.remove(w.sp);TW.splice(i,1)}}
     if(Math.random()<dt*9){const c=PICK.filter(it=>!it.got&&Math.abs(it.x-st.pos.x)<12);const it=c[Math.floor(Math.random()*c.length)];if(it)twinkle(V(it.x+rand(-.3,.3),it.y+rand(-.3,.3),.3),it.kind==='coin'?'#ffd6ea':'#fff3bf',rand(.5,.9))}
     WARNS.forEach(w=>{const n=Math.abs(st.pos.x-w.x)<.7&&st.pos.y<1.5;if(n&&!w.near){w.k=1;ono('BOING !',V(w.x,2.6,.2))}w.near=n;w.k=Math.max(0,w.k-dt*.9);w.sp.rotation.z=Math.sin(T*2+w.ph)*.04+Math.sin(T*14)*.35*w.k*w.k;w.sp.scale.y=1+Math.sin(T*18)*.08*w.k});
@@ -3937,9 +3899,6 @@ function buildPlatformer(){
     const sm2=new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false});const dec=(x0,x1,z=0,d=2.6)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0+1.2,d),sm2);m.rotation.x=-Math.PI/2;m.position.set((x0+x1)/2,.012,z);s.add(m)};
     SOL.forEach(b=>{if(!b.floor&&!b.step&&b.y0<.2&&b.y1<9)dec(b.x0,b.x1)});ONE.forEach(p=>{if(p.y<7&&!p.tramp&&!p.vm)dec(p.x0,p.x1,0,2.4)})}
   LBL.font=null;camera.position.set(1.5,2.5,11.5);
-  /* rendu pâte à modeler : chaque matériau du niveau devient une pâte satinée avec empreintes de doigts (étiquettes et effets exclus) */
-  {const cache=new Map();s.traverse(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material))return;const m=o.material;if(m.isMeshBasicMaterial||m.isMeshStandardMaterial||m.isShaderMaterial||(m.transparent&&m.opacity<.99))return;
-    let n=cache.get(m);if(!n){n=new THREE.MeshStandardMaterial({color:m.color,map:m.map||null,vertexColors:!!m.vertexColors,roughness:.72,metalness:0,normalMap:clayTex,normalScale:new THREE.Vector2(.5,.5),side:m.side,alphaTest:m.alphaTest||0});cache.set(m,n)}o.material=n})}
   return W;
 }
 
