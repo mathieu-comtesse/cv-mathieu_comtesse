@@ -923,8 +923,8 @@ function feast3D(n,cfg){return new Promise(res=>{
       a.ring.scale.setScalar(1+Math.sin(T*14)*.12);if(a.q>=1){air.splice(i,1);land(a)}}
     P.forEach(p=>p.plate.forEach(o=>o.age+=dt));
     /* Dylan : Espace tamponne, Q / D refilent à gauche / à droite, S tape sur les doigts */
-    const E=k=>{const v=!!KEYS[k]&&!pk[k];pk[k]=!!KEYS[k];return v};const eJ=E('J'),eL=E('L'),eR=E('R'),eD=E('D'),eS=E('S');
-    if(eD||eS){const th=threat();if(th)slap(th)}if(eJ)validate(me);if(eL)pass(me,-1);if(eR)pass(me,1);
+    const E=k=>{const v=(!!KEYS[k]&&!pk[k])||!!KEYP[k];pk[k]=!!KEYS[k];KEYP[k]=0;return v};const eJ=E('J'),eL=E('L'),eR=E('R'),eD=E('D'),eS=E('S');
+    if(eD||eS){const th=threat();if(th)slap(th);else{beep(160,.05,'square',.03);say2('<b>Personne ne pique dans ton assiette.</b> Garde S pour les mains baladeuses !',1.2)}}if(eJ)validate(me);if(eL)pass(me,-1);if(eR)pass(me,1);
     P.forEach(p=>{p.stun=Math.max(0,p.stun-dt);if(p.stun<=0)p.ouch.visible=false;if(p!==me)bot(p,dt);
       if(p.busy){p.busy.k+=dt/p.busy.dur;if(p.busy.k>=1)finish(p)}
       const r=p.reach;if(r){r.k+=dt/(r.back?.25:r.dur);
@@ -3113,7 +3113,9 @@ function wearPPE(rig,k){const pop=o=>{const s0=o.scale.clone();o.scale.multiplyS
     const so=mk(new THREE.BoxGeometry(1,1,1),EPIC.jaune,c.x,bb.min.y,c.z,m);so.scale.set(sz.x*1.06,sz.y*.3,sz.z*1.04);pop(cap)})}
 const KEYS={};
 const keyOf=k=>({e:'S',E:'S',ArrowLeft:'L',a:'L',q:'L',A:'L',Q:'L',ArrowRight:'R',d:'R',D:'R',ArrowUp:'U',w:'U',z:'U',W:'U',Z:'U',ArrowDown:'D',s:'D',S:'D',' ':'J'})[k];
-addEventListener('keydown',e=>{const k=keyOf(e.key);if(k&&cur&&(cur.platformer||cur.keys)){KEYS[k]=1;e.preventDefault()}});
+/* KEYP garde chaque appui jusqu'à ce qu'un jeu le lise : une frappe plus courte qu'une image n'est jamais perdue */
+const KEYP={};
+addEventListener('keydown',e=>{const k=keyOf(e.key);if(k&&cur&&(cur.platformer||cur.keys)){KEYS[k]=1;if(!e.repeat)KEYP[k]=1;e.preventDefault()}});
 addEventListener('keyup',e=>{const k=keyOf(e.key);if(k){KEYS[k]=0;if(cur&&(cur.platformer||cur.keys))e.preventDefault()}});
 document.querySelectorAll('#pad [data-k]').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{KEYS[k]=1;e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>KEYS[k]=0))});
 
