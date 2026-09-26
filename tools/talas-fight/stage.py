@@ -17,7 +17,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 import common; common._mats.clear()
 sc = bpy.context.scene
 sc.render.engine = 'CYCLES'; sc.cycles.samples = 96; sc.cycles.use_denoising = True; sc.cycles.device = 'CPU'
-sc.render.resolution_x, sc.render.resolution_y = 480, 240
+sc.render.resolution_x, sc.render.resolution_y = 960, 480
 sc.view_settings.view_transform = 'Standard'
 # ciel glacé en dégradé vertical
 w = bpy.data.worlds.new('w'); sc.world = w; w.use_nodes = True; nt = w.node_tree
