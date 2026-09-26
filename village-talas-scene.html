@@ -3174,10 +3174,10 @@ function buildPlatformer(){
     const p=Object.assign({x0,x1,y,cx,w,scaf:1,g},o.extra||{});ONE.push(p);return p};
   const ladder=(x,y0,y1,z=-.9)=>{const h=y1-y0;[-.3,.3].forEach(q=>bx(.1,h+.3,.1,pmat('wood',.1,h/3),x+q,y0+h/2,z));for(let y=y0+.35;y<y1;y+=.4)bx(.62,.08,.08,pmat('wood',.3,.1),x,y,z);LAD.push({x,y0,y1})};
   /* rampe : marches invisibles de 15 cm, planche inclinée visible */
-  const ramp=(x0,x1,y0,y1)=>{const n=Math.ceil((x1-x0)/.5);for(let i=0;i<n;i++){const a=x0+i*(x1-x0)/n,b=a+(x1-x0)/n;SOL.push({x0:a,x1:b,y0:y0-1,y1:y0+(y1-y0)*(i+1)/n,step:1})}
+  const ramp=(x0,x1,y0,y1)=>{const n=Math.ceil((x1-x0)/.3);for(let i=0;i<n;i++){const a=x0+i*(x1-x0)/n,b=a+(x1-x0)/n;SOL.push({x0:a,x1:b,y0:y0-1,y1:y0+(y1-y0)*(i+1)/n,step:1})}
     const L=Math.hypot(x1-x0,y1-y0),p=bx(L,.25,2,pmat('wood',L/3,.4),(x0+x1)/2,(y0+y1)/2-.05,0);p.rotation.z=Math.atan2(y1-y0,x1-x0)};
   /* dune de sable : colonnes de 50 cm qui suivent une bosse, rendue par un profil extrudé */
-  const dune=(x0,x1,H,z=0)=>{const n=Math.ceil((x1-x0)/.5),f=u=>H*Math.pow(Math.sin(Math.PI*u),.8);for(let i=0;i<n;i++){const a=x0+i*(x1-x0)/n,b=a+(x1-x0)/n;SOL.push({x0:a,x1:b,y0:-1,y1:f((i+.5)/n),step:1})}
+  const dune=(x0,x1,H,z=0)=>{const n=Math.ceil((x1-x0)/.25),f=u=>H*Math.pow(Math.sin(Math.PI*u),.8);for(let i=0;i<n;i++){const a=x0+i*(x1-x0)/n,b=a+(x1-x0)/n;SOL.push({x0:a,x1:b,y0:-1,y1:f((i+.5)/n),step:1})}
     const sh=new THREE.Shape();sh.moveTo(x0-.3,0);for(let i=0;i<=24;i++){const u=i/24;sh.lineTo(x0+(x1-x0)*u,f(u))}sh.lineTo(x1+.3,0);sh.closePath();
     const g=new THREE.ExtrudeGeometry(sh,{depth:3.4,bevelEnabled:true,bevelSize:.3,bevelThickness:.6,bevelSegments:3,curveSegments:8});g.translate(0,0,-1.7+z);const m=new THREE.Mesh(g,pmat('sand',.25,.25));s.add(m);
     for(let i=0;i<2;i++){const t=new THREE.Group();t.position.set(rand(x0+.8,x1-.8),H*.7,rand(-1.2,-.4));t.rotation.z=rand(-.5,.5);s.add(t);bx(.07,1.3,.07,'#9a6a3e',0,.4,0,t);bx(.3,.4,.05,'#8a8fa3',0,-.2,0,t)}};
@@ -3249,8 +3249,8 @@ function buildPlatformer(){
     refuse:'Un tréteau « ROUTE BARRÉE » bloque le passage. Il faudrait de quoi le faire sauter…'});
   /* ---------- 3. le burger de Bernard et le chien du magasin EPI ---------- */
   const bern=makePerson({shirt:'#e03131',pants:'#3b3f55',hat:'#f8f9fa',scale:.78});bern.scale.x*=1.25;bern.position.set(113.6,.9,-.6);bern.rotation.y=Math.PI/2;s.add(bern);shadowOf(bern);
-  {bx(1.4,.9,1.2,pmat('wood',.4,.3,'#c9965a'),113.6,.45,-.6);bx(.7,.35,.5,'#d6336c',115.2,.18,0);SOL.push({x0:114.85,x1:115.55,y0:0,y1:.36})}
-  const BURGER=prop(115.2,.9,'burger');
+  {bx(1.4,.9,1.2,pmat('wood',.4,.3,'#c9965a'),113.6,.45,-.6);bx(.7,.35,.5,'#d6336c',116.8,.18,0);SOL.push({x0:116.45,x1:117.15,y0:0,y1:.36,step:1})}
+  const BURGER=prop(116.8,.9,'burger');
   plank(118,124,2.6,{scaf:1});plank(125,131,4.4,{scaf:1});plank(131.5,133.2,2.2,{scaf:1});epi(121,3.5,'lunettes');
   {for(let i=0;i<3;i++){const p=mk(new THREE.CylinderGeometry(.28,.28,.5,12),['#e03131','#1c7ed6','#2f9e44'][i],128.4+i*.5,4.65,-.5,s)}const sv=mk(new THREE.CylinderGeometry(.9,.9,.03,18),'#69db7c',129.2,4.43,.2,s);HZ.push({x0:128.1,x1:130.3,y:4.4,kind:'solvant'})}
   {const pp=new THREE.Group();pp.position.set(121,0,-2.2);s.add(pp);bx(.3,6,.3,'#a9b2c3',0,3,0,pp);bx(6,.3,.3,'#a9b2c3',3,5.8,0,pp);bx(.3,3,.3,'#a9b2c3',6,4.4,0,pp);[[0,5.8],[6,5.8]].forEach(([x,y])=>mk(new THREE.SphereGeometry(.26,10,8),'#8d97aa',x,y,0,pp))}
@@ -3339,7 +3339,7 @@ function buildPlatformer(){
   const ladderAt=()=>LAD.find(l=>Math.abs(st.pos.x-l.x)<.55&&st.pos.y>=l.y0-.1&&st.pos.y<=l.y1+.1);
   function collect(it){if(it.kind==='prop'){if(st.carry){it.got=0;if(st.npcT<=0){st.npcT=2;msg('Les mains sont déjà prises : une chose à la fois.',1.6)}return}s.remove(it.m);st.carry=it.k;setHeld(it.k);held.visible=true;
       if(it.k==='bomb'){st.carryT=25;st.carryN=0;msg('<b>Charge de démolition allumée !</b> 25 secondes pour l’apporter au tréteau « ROUTE BARRÉE ». Cours !',3.4)}
-      if(it.k==='burger'){msg('<b>Tu chipes le burger de Bernard !</b> « HÉ ! MON BURGER ! » Il te court après. File jusqu’au chien !',3.2);CH.on=true;CH.back=0;CH.x=113.6;CH.y=0;bern.rotation.y=Math.PI/2}
+      if(it.k==='burger'){msg('<b>Tu chipes le burger de Bernard !</b> « HÉ ! MON BURGER ! » Il te court après. File jusqu’au chien !',3.2);CH.on=true;CH.back=0;CH.x=113.6;CH.y=0;CH.wake=1.1;bern.rotation.y=Math.PI/2}
       if(it.k==='cafe')msg('<b>Un café bien chaud.</b> Monte l’échelle et apporte-le sur le toit. Si tu te fais toucher, il se renverse !',3.4);
       hudP();return}
     s.remove(it.m);fx.burst(V(it.x,it.y,0),it.kind==='coin'?6:14);
@@ -3425,7 +3425,7 @@ function buildPlatformer(){
       st.pos.x+=st.vel.x*dt;
       for(const b of SOL){if(b.off||!overX(b.x0,b.x1)||st.pos.y+HH<=b.y0+.02||st.pos.y>=b.y1-.02)continue;
         /* petite marche (rampe, dune) : on monte dessus au lieu de buter */
-        if(b.y1-st.pos.y<=.36&&(st.ground||st.vel.y<=0)){st.pos.y=b.y1;continue}
+        if(b.step&&b.y1-st.pos.y<=.5&&(st.ground||st.vel.y<=0)){st.pos.y=b.y1;continue}
         st.pos.x=st.pos.x<(b.x0+b.x1)/2?b.x0-HW:b.x1+HW;if(st.kb<=0)st.vel.x=0}
       st.pos.x=Math.max(-6,Math.min(251.6,st.pos.x));
       const py=st.pos.y;st.pos.y+=st.vel.y*dt;let land=null;
@@ -3444,7 +3444,7 @@ function buildPlatformer(){
       if(st.pos.y<-1.3){hurt('<b>AÏE !</b> Un trou sans balisage ni garde-corps.');if(st.done)return;st.pos.set(st.check-.6,st.checkY||0,0);st.vel.set(0,0,0);st.peak=st.checkY||0;st.ground=true}
       if(!st.ground&&st.vel.y<0&&st.ppe.harnais&&st.safe&&st.safe.y>6&&st.pos.y<st.safe.y-2.2){st.pos.set(st.safe.cx!==undefined?Math.max(st.safe.x0+.4,Math.min(st.safe.x1-.4,st.pos.x)):st.pos.x,st.safe.y+.01,0);st.vel.set(0,0,0);st.peak=st.pos.y;st.ground=true;st.plat=st.safe;msg('<b>CLAC !</b> Le harnais te retient. Ouf.')}}
     st.dustT=(st.dustT||0)-dt;if(st.ground&&Math.abs(st.vel.x)>4&&st.dustT<=0){st.dustT=.12;PX.puff(V(st.pos.x-(st.face||1)*.3,st.pos.y+.1,0),1,{c:['#ffffff','#e7f5ff'],size:[.2,.38],sp:.6,up:.4,life:[.35,.6]})}
-    PICK.forEach(it=>{if(!it.got&&Math.abs(st.pos.x-it.x)<.7&&st.pos.y<it.y+.5&&st.pos.y+HH>it.y-.3){it.got=1;collect(it)}});
+    PICK.forEach(it=>{if(!it.got&&Math.abs(st.pos.x-it.x)<(it.kind==='prop'?1.05:.7)&&st.pos.y<it.y+.6&&st.pos.y+HH>it.y-.3){it.got=1;collect(it)}});
     SAVES.forEach((c,i)=>{if(!c.on&&Math.abs(st.pos.x-c.x)<.9&&Math.abs(st.pos.y-c.y)<1.6){c.on=1;c.f.userData.relabel();fx.burst(V(c.x,c.y+2.4,0),18);msg('<b>Drapeau !</b> En cas de chute, tu repartiras d’ici.',2);W.lastSave=snap(i);if(W.onSave)W.onSave(W.lastSave)}});
     TIPS.forEach(tb=>{if(!tb.seen&&Math.abs(st.pos.x-tb.x)<.8&&st.pos.y+HH>tb.y-.45&&st.pos.y<tb.y+.4){tb.seen=1;msg(tb.t,5);fx.burst(V(tb.x,tb.y,0),10);tb.g.children[0].material=mat('#fcc2d7')}});
     /* passages verrouillés : la bulle de pensée montre l'objet qu'il faut */
@@ -3467,7 +3467,8 @@ function buildPlatformer(){
       const dx=st.pos.x-e.x;if(e.stun<=0&&st.hcd<=0&&Math.abs(dx)<e.reach&&st.pos.y<e.y+2.4&&st.pos.y+HH>e.y+.8){st.hcd=1.4;const sg=Math.sign(dx)||1;st.vel.set(sg*6,5.5,0);st.kb=.35;st.ground=false;hurt('<b>BLAM !</b> Un ouvrier pressé te balaie avec sa planche. Sonne-le avec la toupie (E) ou saute par-dessus.')}});
     if(st.done)return;
     /* Bernard le costaud court après son burger */
-    if(CH.on){const dx=st.pos.x-CH.x,spd=Math.abs(dx)>8?6.4:4.4,tx=Math.min(144,st.pos.x);CH.cd=Math.max(0,CH.cd-dt);CH.talk-=dt;
+    if(CH.on&&CH.wake>0){CH.wake-=dt;bern.position.set(113.6,.9+Math.abs(Math.sin(T*20))*.15,-.6);AP(bern,'stun',T)}
+    else if(CH.on){const dx=st.pos.x-CH.x,spd=Math.abs(dx)>8?6.4:4.4,tx=Math.min(144,st.pos.x);CH.cd=Math.max(0,CH.cd-dt);CH.talk-=dt;
       if(CH.x<tx-.2)CH.x+=spd*dt;else if(CH.x>tx+.2)CH.x-=spd*dt;
       const ah=CH.x+(dx>=0?.9:-.9);if(CH.y<=0&&(SOL.some(b=>!b.floor&&!b.off&&!b.step&&b.y0<.1&&b.y1<2&&ah>b.x0&&ah<b.x1)||EN.some(e=>Math.abs(e.x-ah)<.8&&e.y<.1)))CH.vy=9.4;
       let gy=0;for(const b of SOL)if(b.step&&!b.off&&CH.x>b.x0&&CH.x<b.x1)gy=Math.max(gy,b.y1);
