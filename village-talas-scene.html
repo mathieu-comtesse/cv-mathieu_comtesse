@@ -2087,13 +2087,18 @@ let shake=0,flash=0;
   /* gerbe de feu sur les gros coups */
   function fireBurst(p){[0xfff3b0,0xffa94d,0xff6b00,0xe03131].forEach((col,j)=>{for(let i=0;i<6;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:glowT,color:col,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
     m.position.copy(p);scene.add(m);const v=V((Math.random()-.5)*3,1+Math.random()*2.5,(Math.random()-.5)*1.5),s0=.3+j*.12;FX.push({o:m,t:0,life:.45+j*.08,upd:(q,k,dt)=>{q.o.position.addScaledVector(v,dt);q.o.scale.setScalar(s0*(1+k*2.2));q.o.material.opacity=1-k}})}})}
-  /* balafre arc-en-ciel en diagonale sur tout l'écran */
-  const fxC=document.createElement('canvas');fxC.className='a3fx';box.append(fxC);let slashT=-1;
-  function slashDraw(dR){if(slashT<0)return;slashT+=dR;const w=fxC.width=box.clientWidth,h=fxC.height=box.clientHeight,g=fxC.getContext('2d'),k=slashT/.42;if(k>=1){slashT=-1;g.clearRect(0,0,w,h);return}
-    g.save();g.translate(w/2,h/2);g.rotate(-.5);const L=Math.hypot(w,h),x0=-L/2+L*Math.min(1,k*2.2),th=h*.16*(1-Math.max(0,k-.5)*2);g.globalCompositeOperation='lighter';
-    ['#ff2a2a','#ff9f1a','#ffe14d','#4dff88','#3db8ff','#b44dff'].forEach((c,i)=>{g.globalAlpha=.7*(1-k*.6);g.fillStyle=c;g.fillRect(-L/2,(i-3)*th/6,x0+L/2,th/6)});
-    g.globalAlpha=1-k;g.fillStyle='#fff';g.fillRect(-L/2,-th*.08,x0+L/2,th*.16);g.restore()}
-  const slash=()=>{slashT=0;flash=Math.max(flash,.6)};
+  /* balafre des gros coups : lame blanche bordée des couleurs de la gerbe de feu, et « CRITIQUE ! » ;
+     le coup final garde le finish d'arcade : deux balafres arc-en-ciel croisées et « COUP FINAL ! » */
+  const fxC=document.createElement('canvas');fxC.className='a3fx';box.append(fxC);let slashT=-1,slashK='crit';
+  const FEU=['#8a1a0a','#e8590c','#ffa94d','#ffe8a0','#ffa94d','#e8590c'],IRIS=['#ff2a2a','#ff9f1a','#ffe14d','#4dff88','#3db8ff','#b44dff'];
+  function slashDraw(dR){if(slashT<0)return;slashT+=dR;const fin=slashK==='fin',w=fxC.width=box.clientWidth,h=fxC.height=box.clientHeight,g=fxC.getContext('2d'),k=slashT/(fin?.95:.55);if(k>=1){slashT=-1;g.clearRect(0,0,w,h);return}
+    const L=Math.hypot(w,h),lame=(rot,kk,cols,th0)=>{if(kk<=0||kk>=1)return;g.save();g.translate(w/2,h/2);g.rotate(rot);const x0=-L/2+L*Math.min(1,kk*2.4),th=th0*(1-Math.max(0,kk-.45)/.55);
+      cols.forEach((c,i)=>{g.globalAlpha=.75*(1-kk*.6);g.fillStyle=c;g.fillRect(-L/2,(i-cols.length/2)*th/cols.length,x0+L/2,th/cols.length)});g.globalAlpha=1-kk;g.fillStyle='#fff';g.fillRect(-L/2,-th*.1,x0+L/2,th*.2);g.restore()};
+    g.globalCompositeOperation='lighter';if(fin){lame(-.5,k*1.3,IRIS,h*.2);lame(.5,(k-.16)*1.3,IRIS.slice().reverse(),h*.2)}else lame(-.5,k,FEU,h*.11);g.globalCompositeOperation='source-over';
+    const txt=fin?'COUP FINAL !':'CRITIQUE !',p=Math.min(1,k*6),sc=(fin?1.35:1)*(1.7-.7*p);g.save();g.translate(w*(fin?.5:.64),h*(fin?.28:.34));g.rotate(-.12);g.scale(sc,sc);g.globalAlpha=k<.7?1:1-(k-.7)/.3;
+    g.font=`700 ${Math.round(h*.085)}px 'Pixelify Sans',monospace`;g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';g.fillStyle='#3a0a0a';g.fillText(txt,h*.008,h*.008);
+    g.lineWidth=h*.012;g.strokeStyle=fin?'#7a0a0a':'#a02000';g.strokeText(txt,0,0);const gr=g.createLinearGradient(0,-h*.04,0,h*.04);gr.addColorStop(0,'#fffbe0');gr.addColorStop(1,fin?'#ffd43b':'#ffa94d');g.fillStyle=gr;g.fillText(txt,0,0);g.restore()}
+  const slash=()=>{slashK=A.fin?'fin':'crit';slashT=0;flash=Math.max(flash,A.fin?.9:.5)};
   /* dessins au fusain (Blender + passe fusain) pour l'écran VS et la carte de fin */
   const img=src=>{const i=new Image();i.src=src;return i},INK={d:img('assets/talas/fusain-dylan.png?v=1'),c:img('assets/talas/fusain-aurelien.png?v=1')},
     CARD={d:img('assets/talas/carte-dylan.jpg?v=1'),c:img('assets/talas/carte-aurelien.jpg?v=1')},CAL=img('assets/talas/cal-anzen.png?v=1'),ok=i=>i.complete&&i.naturalWidth>0;
@@ -2203,7 +2208,7 @@ let shake=0,flash=0;
         apply(f,f.anim.tr,tt,RT+(f===AU?1.3:0));if(f.anim.t>=f.anim.end){const r=f.anim.res;f.anim=null;r()}}
       else apply(f,[[0,f.cur.p,[f.cur.x,f.cur.y,f.cur.rz]]],0,RT+(f===AU?1.3:0));
       if(f.faceT>0){f.faceT-=dR;if(f.faceT<=0&&f.face!=='ko')f.face=f===AU&&A.rage?'angry':'n'}f.J.setFace(f.face)});
-    if(A.rage&&A.tie){const hd=AU.J.head;hd.scale.setScalar(2.2+Math.sin(RT*6)*.08);A.tie.rotation.x=-2.3+Math.sin(RT*40)*.06;A.tie.rotation.z=Math.sin(RT*31)*.12;A.tie.userData.segs.forEach((g,i)=>g.rotation.z=Math.sin(RT*16-i*1.3)*.12);AU.J.faces.mat.emissiveIntensity=.5+Math.sin(RT*5)*.2;
+    if(A.rage&&A.tie){const hd=AU.J.head;hd.scale.setScalar(2.2+Math.sin(RT*6)*.08);A.tie.userData.blade.rotation.z=-1.95+Math.sin(RT*40)*.06;A.tie.userData.segs.forEach((g,i)=>g.rotation.z=i?-.28+Math.sin(RT*16-i*1.3)*.12:0);AU.J.faces.mat.emissiveIntensity=.5+Math.sin(RT*5)*.2;
       if(Math.random()<dR*4){[-1,1].forEach(q=>{hd.localToWorld(hp.set(q*.14,.14,0));smoke(hp.clone(),true)})}}
     if(whip>0){DY.J.head.rotation.x-=Math.sin(whip*9)*whip*.5;DY.J.head.rotation.z+=Math.sin(whip*7)*whip*.3;whip=Math.max(0,whip-dt*2.2)}
     if(jig.C>0){const b=AU.J.spine.children[0];if(b){const q=1+Math.sin(jig.C*38)*jig.C*.06;b.scale.set(1/Math.sqrt(q),q,1/Math.sqrt(q))}jig.C=Math.max(0,jig.C-dt*2.5)}
@@ -2445,7 +2450,7 @@ let shake=0,flash=0;
     async intro(r){quake(700,10);await bigText('ROUND '+r,1000);quake(900,16);try{beep(660,.3,'square',.06)}catch(e){}await bigText('FIGHT !',850,'red')},
     async rage(){A.rage=1;face(AU,'angry',99);showName('AURELIEN FULMINE !',true);quake(2600,10);camFocus(AU.cur.x,1.7,3,34,4.5,true);
       /* la cravate se dresse : une vraie cravate 3D sort du col et pointe vers le ciel en vibrant */
-      const tie=new THREE.Group();tie.position.set(0,.5,.3);tie.scale.setScalar(1.9);AU.J.spine.add(tie);
+      const tie=new THREE.Group();tie.position.set(0,.525,.125);tie.scale.setScalar(1.6);/* au col, le nœud posé sur la poitrine (le col du costume est à z .09) */AU.J.spine.add(tie);
       const tc=document.createElement('canvas');tc.width=tc.height=64;const tx=tc.getContext('2d');tx.fillStyle='#c81e1e';tx.fillRect(0,0,64,64);tx.strokeStyle='#8a0a0a';tx.lineWidth=7;
       for(let i=-64;i<128;i+=16){tx.beginPath();tx.moveTo(i,0);tx.lineTo(i+64,64);tx.stroke()}tx.strokeStyle='#f2c230';tx.lineWidth=1.5;for(let i=-60;i<128;i+=16){tx.beginPath();tx.moveTo(i,0);tx.lineTo(i+64,64);tx.stroke()}
       const tt=new THREE.CanvasTexture(tc);tt.wrapS=tt.wrapT=THREE.RepeatWrapping;tt.repeat.set(9,9);const red=new THREE.MeshLambertMaterial({map:tt});
@@ -2453,15 +2458,17 @@ let shake=0,flash=0;
         const m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.008,bevelEnabled:true,bevelThickness:.006,bevelSize:.004,bevelSegments:2,curveSegments:4}),red);m.position.z=-.004;par.add(m);return m};
       /* nœud, puis pan en trois tronçons articulés qui s'élargissent jusqu'à la pointe en V */
       const tface=new THREE.Group();tface.rotation.y=Math.PI/2;tie.add(tface);/* face vers la caméra : le combat est vu de profil */
-      piece([[-.042,0],[.042,0],[.03,-.05],[-.03,-.05]],tface,0);const W=y=>.03+(-y-.05)*.2;
-      let par=tface;const segs=[];[[-.05,-.15],[-.15,-.25],[-.25,-.34]].forEach(([y0,y1],i)=>{const g=new THREE.Group();g.position.y=i?(y0-[-.05,-.15,-.25][i-1]):y0;par.add(g);
+      piece([[-.036,0],[.036,0],[.024,-.05],[-.024,-.05]],tface,0);
+      /* le pan pivote sous le nœud : le nœud reste collé au col quand la cravate se dresse */
+      const blade=new THREE.Group();blade.position.y=-.045;tface.add(blade);const W=y=>.03+(-y-.05)*.2;
+      let par=blade;const segs=[];[[-.05,-.15],[-.15,-.25],[-.25,-.34]].forEach(([y0,y1],i)=>{const g=new THREE.Group();g.position.y=i?(y0-[-.05,-.15,-.25][i-1]):y0+.045;par.add(g);
         const P=[[-W(y0),y0],[W(y0),y0],[W(y1),y1]];if(i===2)P.push([0,y1-.07]);P.push([-W(y1),y1]);piece(P,g,y0);segs.push(g);par=g});
-      mesh(new THREE.BoxGeometry(.1,.014,.02),sm({color:0xf2c230}),segs[0],0,-.06,.01);tie.userData.segs=segs;A.tie=tie;
+      mesh(new THREE.BoxGeometry(.1,.014,.02),sm({color:0xf2c230}),segs[0],0,-.06,.01);tie.userData.segs=segs;tie.userData.blade=blade;A.tie=tie;
       /* il gonfle : tête énorme, torse qui enfle, visage écarlate, vapeur par les oreilles */
       const hd=AU.J.head,sp=AU.J.spine,fm=AU.J.faces.mat;fm.emissive=new THREE.Color(0xff1a00);
       try{beep(90,.6,'sawtooth',.07)}catch(e){}
       await tw(1.6,k=>{const w=Math.sin(k*28)*.12*(1-k);hd.scale.setScalar(1+ez(k)*1.2+w);sp.scale.set(1+ez(k)*.28,1+ez(k)*.08,1+ez(k)*.34);
-        tie.rotation.x=-ez(k)*2.3+Math.sin(k*60)*.08;tie.rotation.z=Math.sin(k*45)*.15*ez(k);tie.userData.segs.forEach((g,i)=>g.rotation.z=Math.sin(k*40-i*1.3)*.16*ez(k));fm.emissiveIntensity=ez(k)*.7;if(Math.random()<.35){[-1,1].forEach(q=>{hd.localToWorld(hp.set(q*.14,.14,0));smoke(hp.clone(),true)})}
+        tie.userData.blade.rotation.z=-ez(k)*1.95+Math.sin(k*60)*.08;tie.userData.segs.forEach((g,i)=>g.rotation.z=i?(-.28+Math.sin(k*40-i*1.3)*.14)*ez(k):0);fm.emissiveIntensity=ez(k)*.7;if(Math.random()<.35){[-1,1].forEach(q=>{hd.localToWorld(hp.set(q*.14,.14,0));smoke(hp.clone(),true)})}
         flash=Math.max(flash,.18*Math.abs(Math.sin(k*18)));flashQ.material.color.set(0xfa5252)});
       flashQ.material.color.set(0xffffff);puffAcc=99;try{beep(60,.4,'square',.07)}catch(e){}},
     taunt(){face(AU,'smug',1.2);play(AU,[[.25,'tauntC',AU.home,0,0,'out'],[.35,'tauntC',AU.home,0,0],[.3,'idleC',AU.home,0,0,'io']])},
@@ -2473,7 +2480,7 @@ let shake=0,flash=0;
     hp:()=>({c:AU.hp,d:DY.hp}),
     round1(){A.wins.push(AU.hp/AU.max<=DY.hp/DY.max?'D':'C');wEl[A.wins.at(-1)==='D'?0:1].textContent+='★'},
     async finish(res){if(res==='time'){await bigText('DÉCISION DU JURY',1500);return}
-      if(res==='C'){AU.hp=0;face(DY,'shout',2);camFocus(AU.cur.x,1,4.6,34,2.6,true);
+      A.fin=1;if(res==='C'){AU.hp=0;face(DY,'shout',2);camFocus(AU.cur.x,1,4.6,34,2.6,true);
         await play(DY,[[.2,'crouchD',DY.cur.x,-.18,0,'out'],[.16,'airD',AU.cur.x-2,.9,0,'out'],[.22,'airD',AU.cur.x-1.7,1.1,0,'out'],[.2,'strikeD',AU.cur.x-1.5,.1,0,'in']],[[.78,()=>{impact(AU,true,1);face(AU,'ko',99);
           play(AU,[[.08,'hitC',AU.cur.x+.1,.05,-.25,'snap'],[.25,'flyD',AU.cur.x+1.2,1,-1.9,'out'],[.3,'flyD',AU.cur.x+2.4,1.1,-3.6,'lin'],[.28,'flyD',AU.cur.x+3.1,.4,-5.3,'in'],[.06,'lieD',AU.cur.x+3.3,-.72,-(Math.PI*1.5+.12),'in'],[.14,'lieD',AU.cur.x+3.5,-.5,-(Math.PI*1.5+.05),'out'],[.12,'lieD',AU.cur.x+3.6,-.74,-Math.PI*1.5,'in']],
             [[1.15,()=>{dust(V(AU.cur.x,0,0),10);ring(V(AU.cur.x,0,0));shake=.14}]])}]]);
