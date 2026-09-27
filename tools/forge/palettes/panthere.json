@@ -1,0 +1,11 @@
+{
+  "$doc": "Palette de la direction artistique « Panthère » (parcours). Clé = famille de rôle (nom sans chiffre final : gris_clair2 -> gris_clair), à défaut la teinte seule (bleu_nuit -> bleu). Les rôles lum_* ne sont jamais recolorés. style.outline = contour encre sur les accessoires.",
+  "style": { "outline": false, "background": "#86c6e4" },
+  "roles": {
+    "blanc": "#fff6e5", "gris_clair": "#f6e1b7", "gris": "#d6b98e", "gris_fonce": "#ac7b68", "noir": "#561c22",
+    "bleu_nuit": "#561c22", "bleu_fonce": "#2e72d2", "bleu": "#2e72d2", "bleu_pale": "#9aa2d4", "cyan": "#5aa7ea",
+    "orange": "#eea34c", "orange_fonce": "#c16e26", "brun": "#a45c22", "jaune": "#f7b928", "jaune_fonce": "#dc9a4d",
+    "rouge": "#c14120", "rouge_fonce": "#9e3216", "rouge_nuit": "#561c22", "rose": "#f58ab4", "rose_fonce": "#d6336c",
+    "vert": "#43a36a", "vert_fonce": "#2f7a4c", "violet": "#6c73a6", "violet_fonce": "#565c8c"
+  }
+}
