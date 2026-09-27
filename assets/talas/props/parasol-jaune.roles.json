@@ -1,0 +1,35 @@
+{
+ "id": "parasol-jaune",
+ "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\tools\\forge\\models\\ile-mobilier.mts",
+ "size": [
+  2.891,
+  2.45,
+  2.997
+ ],
+ "parts": [
+  "mat",
+  "toile"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#fffbef",
+   "unlit": false
+  },
+  "jaune": {
+   "hex": "#ffbf00",
+   "unlit": false
+  },
+  "orange": {
+   "hex": "#bf7224",
+   "unlit": false
+  },
+  "orange2": {
+   "hex": "#efb75a",
+   "unlit": false
+  },
+  "orange_fonce": {
+   "hex": "#8f5736",
+   "unlit": false
+  }
+ }
+}

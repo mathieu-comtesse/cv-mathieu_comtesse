@@ -1,0 +1,30 @@
+{
+ "id": "palette",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\wooden-pallet\\model.ts",
+ "size": [
+  1.304,
+  0.15,
+  0.874
+ ],
+ "parts": [
+  "corps"
+ ],
+ "roles": {
+  "gris_clair": {
+   "hex": "#a4afad",
+   "unlit": false
+  },
+  "orange": {
+   "hex": "#df5400",
+   "unlit": false
+  },
+  "orange_pale": {
+   "hex": "#af8e6e",
+   "unlit": false
+  },
+  "rouge_fonce": {
+   "hex": "#805d58",
+   "unlit": false
+  }
+ }
+}
