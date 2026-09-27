@@ -1,0 +1,3 @@
+out/
+# générées, elles pointent vers out/ (non versionné)
+galerie*.html
