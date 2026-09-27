@@ -78,6 +78,8 @@ const I={skull:'<path fill="#1a1214" d="M12 2a8 8 0 0 0-8 8v4l2 2v4h3v-2h2v2h2v-
  pipe:'<path fill="#868e96" stroke="#1a1214" stroke-width="2" d="M3 8h10v8h8v4H9V12H3z"/>',
  plate:'<ellipse cx="12" cy="14" rx="10" ry="5" fill="#fff" stroke="#1a1214" stroke-width="2"/><path fill="#e8590c" d="M7 13c2-4 8-4 10 0z"/>',
  run:'<circle cx="14.5" cy="3.8" r="2.6" fill="#1a1214"/><g stroke="#1a1214" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7.5L10.5 13.5"/><path d="M12.5 8.5l3.5 2.5 3-1.5"/><path d="M12.5 8.5l-3.5 1-2 2.5"/><path d="M10.5 13.5l3.5 3-1 4.5"/><path d="M10.5 13.5l-2.5 3.5-4 .5"/></g>',
+ buoy:'<path fill="#e03131" stroke="#1a1214" stroke-width="1.5" d="M12 2l5 14H7z"/><path fill="#1a1214" d="M9.2 8h5.6l.8 2.4H8.4z"/><rect x="5" y="16" width="14" height="4" rx="2" fill="#fab005" stroke="#1a1214" stroke-width="1.5"/>',
+ mega:'<path fill="#ff922b" stroke="#1a1214" stroke-width="1.5" d="M3 10h4l10-5v14L7 14H3z"/><path fill="#1a1214" d="M7 14l2 6h3l-2-6z"/><path d="M19 9c1.5 1.5 1.5 4.5 0 6" stroke="#1a1214" stroke-width="1.8" fill="none"/>',
  scalpel:'<path fill="#adb5bd" stroke="#1a1214" stroke-width="1.5" d="M3 21l9-9 3 3-9 7z"/><path fill="#1c7ed6" d="M13 11l6-6 2 2-6 6z"/>',
  clock:'<circle cx="12" cy="12" r="9" fill="#fff" stroke="#1a1214" stroke-width="2"/><path d="M12 7v5l3 3" stroke="#1a1214" stroke-width="2" fill="none"/>'};
 const ico=k=>`<svg viewBox="0 0 24 24">${I[k]}</svg>`;
@@ -119,7 +121,11 @@ function build(ss,ev){const by={};ev.forEach(e=>(by[e.session_id]=by[e.session_i
    ['§7','Le centre de doc','doc','red',fmt(sum('angry')),'visiteurs repartis furieux sans leur fiche'],
    ['§8','Le parcours de l’échafaudage','coin','yel',fmt(sum('coins')),'pièces ramassées sur le chantier'],
    ['§9','La revue de direction, le jeu télé','lie','red',fmt(sum('buzz')),'coups de buzzer sur le plateau (et '+fmt(sum('ecarts'))+' écarts d’audit démasqués)'],
-   ['§10','L’opération des causes','scalpel','red',fmt(sum('bzzt')),'bzzzt : le patient a senti passer la pince']];
+   ['§10','L’opération des causes','scalpel','red',fmt(sum('bzzt')),'bzzzt : le patient a senti passer la pince'],
+   ['§10','La régate de l’amélioration continue','wave','',fmt(sum('jet_vol'),1)+' s','de vol plané au-dessus du lagon, sans brevet de pilote'],
+   ['§10','La régate de l’amélioration continue','drop','',fmt(sum('jet_eau'),1)+' L','d’eau salée avalés par Dylan (dont '+fmt(sum('jet_plongeon'))+' plongeons façon sous-marin)'],
+   ['§10','La régate de l’amélioration continue','buoy','red',fmt(sum('jet_ecarts')),'bouées snobées, soit autant d’écarts à corriger (§10.2)'],
+   ['§10','La régate de l’amélioration continue','mega','yel',fmt(sum('signalements')),'signalements repêchés dans les vagues (et '+fmt(sum('jet_plage'))+' échouages : les palmiers portent plainte)']];
   $('#fun').innerHTML=F.map(([ch,n,k,c,v,l])=>`<div class="card ${c}">${ico(k)}<div><small class="mg">${ch} · ${n}</small><br><b>${v}</b></div><span>${l}</span></div>`).join('');
   $('#rows').innerHTML=S.map(s=>`<tr title="${esc(s.full)}"><td><b>${esc(s.p)}</b><br><span class="id">#${s.id} · ${s.at.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})} · ${s.min} min</span></td><td><div class="pips">${s.st.map((x,k)=>`<i class="pip ${x}" title="${CH[k]} ${NAMES[k]}">${CH[k].slice(1)}</i>`).join('')}</div></td><td>${s.cdi==null?'<span class="id">en cours</span>':`<div class="cdi"><i style="width:${s.cdi}%"></i></div>`}</td><td>${s.deaths}</td><td><span class="tag">${title(s)}</span></td></tr>`).join('');
   const reachN=CH.map((_,k)=>S.filter(s=>s.st[k]!=='no').length);
@@ -130,7 +136,7 @@ function build(ss,ev){const by={};ev.forEach(e=>(by[e.session_id]=by[e.session_i
   const L=[];if(fast)L.push(['clock',`<b>${esc(fast.p)}</b> : ${fast.min} min. Plus rapide qu’une réunion CSE.`]);if(dead&&dead.deaths)L.push(['skull',`<b>${esc(dead.p)}</b> : ${dead.deaths} morts. L’inspection du travail est en route.`]);
   if(slow&&slow!==fast)L.push(['doc',`<b>${esc(slow.p)}</b> : ${slow.min} min. A probablement lu toute la norme.`]);if(!L.length)L.push(['clock','Personne n’a encore fini le jeu. Le podium attend.']);
   $('#fame').innerHTML=L.map(([k,t])=>`<div style="display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center">${ico(k).replace('<svg','<svg width="28" height="28"')}<span>${t}</span></div>`).join('')}
-$('#csv').onclick=()=>{const K=['slippers','blood','run_m','saved','items','mesures','parades','meals','notes','angry','coins','buzz','ecarts','bzzt','tiles','lies'];/* tiles et lies : anciens jeux, gardés pour l’historique */
+$('#csv').onclick=()=>{const K=['slippers','blood','run_m','saved','items','mesures','parades','meals','notes','angry','coins','buzz','ecarts','bzzt','jet_vol','jet_eau','jet_plongeon','jet_ecarts','jet_plage','signalements','bouees','etapes10','tiles','lies'];/* tiles et lies : anciens jeux, gardés pour l’historique */
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',rows=[['pseudo','session','date','minutes','morts','certifie','cdi',...CH,...K].map(q).join(';')];
   DATA.forEach(s=>rows.push([s.p,s.full,s.at.toISOString(),s.min,s.deaths,s.win?1:0,s.cdi??'',...s.st,...K.map(k=>s.c[k]||0)].map(q).join(';')));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+rows.join('\n')],{type:'text/csv'}));a.download='talas-sessions.csv';a.click()};

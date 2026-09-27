@@ -16,6 +16,44 @@
   window.TALAS_JETSKI = J
   const G = 9.81
 
+  /* ---------------- chapitre 10 : une étape par bouée, des signalements à ramasser, une banque de questions ---------------- */
+  const ETAPES = [
+    ['§10.1', 'OPPORTUNITÉS', 'Déterminer les opportunités d’amélioration et mettre en œuvre les actions pour atteindre les résultats du système SST.'],
+    ['§10.2', 'SIGNALER', 'Tout incident, presque-accident ou non-conformité est remonté, sans chercher de coupable : on ne corrige que ce qu’on connaît.'],
+    ['§10.2 a', 'RÉAGIR', 'Réagir en temps utile : maîtriser la situation et corriger (mise en sécurité, premiers secours, arrêt de l’activité).'],
+    ['§10.2 a', 'CONSÉQUENCES', 'Faire face aux conséquences : prise en charge du blessé, information des proches, déclaration, remise en état.'],
+    ['§10.2 b', 'AVEC LES TRAVAILLEURS', 'Évaluer, avec la participation des travailleurs et des autres parties intéressées, s’il faut agir sur les causes.'],
+    ['§10.2 b', 'ENQUÊTER', 'Enquêter sur l’incident ou examiner la non-conformité : faits, témoins, lieux, conditions de travail.'],
+    ['§10.2 b', 'CAUSES', 'Déterminer les causes, y compris organisationnelles : arbre des causes, 5 pourquoi, Ishikawa.'],
+    ['§10.2 b', 'CAS SIMILAIRES', 'Vérifier si des incidents similaires se sont produits ou pourraient se produire ailleurs (autres postes, autres sites).'],
+    ['§10.2 c', 'REVOIR LES RISQUES', 'Revoir les évaluations existantes des risques SST et des autres risques (§6.1).'],
+    ['§10.2 d', 'AGIR', 'Mettre en œuvre les actions nécessaires, dans l’ordre de la hiérarchie des mesures (§8.1.2) et en gérant le changement (§8.1.3).'],
+    ['§10.2 e', 'NOUVEAUX DANGERS', 'Avant d’agir, évaluer les risques liés aux dangers nouveaux ou modifiés par l’action elle-même.'],
+    ['§10.2 f', 'EFFICACITÉ', 'Examiner l’efficacité des actions, y compris correctives : l’écart a-t-il vraiment disparu ?'],
+    ['§10.2 g', 'SYSTÈME & PREUVES', 'Modifier le système si nécessaire, conserver les informations documentées (nature de l’événement, actions, résultats) et les communiquer aux travailleurs.'],
+    ['§10.3', 'AMÉLIORER SANS FIN', 'Amélioration continue : meilleure performance SST, culture de prévention, participation des travailleurs, résultats communiqués.']
+  ]
+  const SIGNALEMENTS = [
+    ['Presque-accident', 'Un presque-accident signalé, c’est un accident évité demain (§10.2).'],
+    ['Non-conformité d’audit', 'Un écart d’audit interne se traite comme un incident : causes, action, efficacité (§9.2, §10.2).'],
+    ['Situation dangereuse', 'Une situation dangereuse repérée par un opérateur : on la remonte avant qu’elle ne blesse (§10.2).'],
+    ['Accident du travail', 'Accident : réagir, soigner, déclarer, puis analyser les causes (§10.2 a et b).'],
+    ['Remontée terrain', 'Une remarque d’un travailleur est une opportunité d’amélioration (§10.1, §5.4).'],
+    ['Maladie professionnelle', 'Une atteinte à la santé est aussi un incident au sens de la norme (§3.35, §10.2).']
+  ]
+  const BANQUE = {
+    cause: [
+      { q: 'Que fais-tu avant le tour suivant ?', opts: [['Je cherche la cause : j’arrive trop vite et trop large sur les bouées, je ralentis avant et je prends la corde', 1], ['C’est la faute du jet-ski, je n’y peux rien', 0], ['Je fais pareil, ça passera bien', 0]], fb: '§10.2 : on analyse la cause de l’écart et on met en œuvre l’action qui l’élimine.' },
+      { q: 'Avec qui analyses-tu tes écarts ?', opts: [['Avec l’équipe : ceux qui étaient sur l’eau ont vu ce que je n’ai pas vu', 1], ['Seul, c’est plus rapide', 0], ['Avec le directeur, lui seul décide', 0]], fb: '§10.2 b : l’évaluation se fait avec la participation des travailleurs (§5.4).' },
+      { q: 'Quelle action corrective choisis-tu ?', opts: [['Supprimer la cause (repérer la bouée plus tôt) avant d’ajouter des consignes', 1], ['Mettre un casque plus solide', 0], ['Écrire une note de service « faites attention »', 0]], fb: '§10.2 d : l’action suit la hiérarchie des mesures (§8.1.2) ; l’EPI et la consigne viennent en dernier.' },
+      { q: 'Une bouée ratée au même virage que Neila. Et alors ?', opts: [['Je vérifie si le même écart peut arriver ailleurs ou à d’autres', 1], ['Ce n’est pas mon problème', 0], ['Je supprime la bouée du parcours', 0]], fb: '§10.2 b : on regarde si des incidents similaires existent ou pourraient se produire.' }],
+    efficacite: [
+      { q: 'Ton action corrective a-t-elle marché ?', opts: [['Je compare au tour précédent : je vérifie l’efficacité, puis je vise encore mieux', 1], ['Je ne mesure rien, l’important c’est d’avoir fait une action', 0], ['J’ai fini un tour, j’arrête de chercher à progresser', 0]], fb: '§10.2 f et §10.3 : on vérifie l’efficacité, et l’amélioration continue ne s’arrête jamais.' },
+      { q: 'Que gardes-tu comme trace de ce tour ?', opts: [['Les écarts, leurs causes, les actions et leurs résultats', 1], ['Rien, tout le monde s’en souvient', 0], ['Seulement le temps du tour, s’il est bon', 0]], fb: '§10.2 g : informations documentées sur la nature des événements, les actions et leurs résultats.' },
+      { q: 'Ton action a créé un nouveau risque (virage plus serré). Tu fais quoi ?', opts: [['J’évalue ce nouveau danger avant de généraliser l’action', 1], ['Tant pis, on verra bien', 0], ['J’annule toute action corrective', 0]], fb: '§10.2 e : on évalue les risques des dangers nouveaux ou modifiés avant d’agir.' },
+      { q: 'Plus aucun écart. Et maintenant ?', opts: [['Je partage ce qui a marché avec l’équipe et je fixe un objectif plus ambitieux', 1], ['On peut arrêter la démarche', 0], ['Je garde ma méthode pour moi', 0]], fb: '§10.3 : communiquer les résultats et promouvoir une culture qui soutient l’amélioration continue.' }]
+  }
+
   /* ---------------- la houle ---------------- */
   const HOULE = [ // amplitude (m), longueur d'onde (m), direction (rad), raideur (0..1), phase
     [.9, 46, .35, .55, 0], [.55, 27, 1.25, .6, 1.7], [.28, 15, 2.4, .65, 4.1], [.15, 9.5, -.6, .7, 2.3], [.07, 5.8, .95, .75, 5.2], [.04, 3.4, 2.0, .75, .9]
@@ -78,9 +116,10 @@ void main(){
   vec3 c=mix(body,refl,fr*.85);
   vec3 Hh=normalize(uSun+V);float nh=max(dot(N,Hh),0.);c+=uSunC*(pow(nh,1100.)*7.+pow(nh,120.)*.3);
   float fn=fbm(q*1.25+vec2(t*.35,-t*.22));
-  float crest=smoothstep(.66,.36,vFoam)*smoothstep(.32,.72,fn+.15);
-  float shore=(1.-smoothstep(0.,7.,di))*smoothstep(.35,.75,fbm(q*2.1+t*.4)*.8+.35*sin(di*2.6-t*2.2));
-  float foam=clamp(crest+shore*.9,0.,1.);
+  float crest=smoothstep(.6,.34,vFoam)*smoothstep(.4,.75,fn+.1);
+  float shore=(1.-smoothstep(0.,3.5,di))*smoothstep(.45,.8,fbm(q*2.1+t*.4)*.85+.2*sin(di*2.6-t*2.2));
+  vec2 wd=vec2(.94,.34);float sk=vn(vec2(dot(q,wd)*.07+t*.04,dot(q,vec2(-wd.y,wd.x))*.9));float streak=smoothstep(.8,.95,sk)*smoothstep(.45,.75,fn)*.28*(1.-smoothstep(40.,160.,z));
+  float foam=clamp(crest+shore*.9+streak,0.,1.);
   c=mix(c,vec3(.95,.99,1.),foam*.88);
   c=mix(c,uFog,smoothstep(uFN,uFF,z));
   gl_FragColor=vec4(c,1.);}`
@@ -189,9 +228,9 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
     O.forEach(([x, z], i) => (i ? sh.lineTo(x, -z) : sh.moveTo(x, -z))); sh.closePath()
     const hg = new THREE.ExtrudeGeometry(sh, { depth: .5, bevelEnabled: true, bevelThickness: .1, bevelSize: .08, bevelSegments: 2, curveSegments: 6 }); hg.rotateX(-Math.PI / 2)
     const p = hg.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (y < .12) { p.setX(i, p.getX(i) * .5); p.setY(i, y - .12 * (1 - Math.abs(p.getX(i)) * 2)) } } hg.computeVertexNormals()
-    const hull = new THREE.Mesh(hg, new THREE.MeshLambertMaterial({ color: coul[0] })); hull.position.y = -.2; body.add(hull)
+    const hull = new THREE.Mesh(hg, new THREE.MeshPhongMaterial({ color: coul[0], shininess: 90, specular: '#ffffff' })); hull.position.y = -.2; body.add(hull)
     const strip = new THREE.Mesh(new THREE.BoxGeometry(1.14, .12, 2.5), new THREE.MeshLambertMaterial({ color: '#ffffff' })); strip.position.set(0, .12, .05); body.add(strip)
-    const top = new THREE.Mesh(new THREE.BoxGeometry(.9, .25, 1.2), new THREE.MeshLambertMaterial({ color: coul[1] })); top.position.set(0, .42, .65); top.rotation.x = -.18; body.add(top)
+    const top = new THREE.Mesh(new THREE.BoxGeometry(.9, .25, 1.2), new THREE.MeshPhongMaterial({ color: coul[1], shininess: 70, specular: '#ffffff' })); top.position.set(0, .42, .65); top.rotation.x = -.18; body.add(top)
     const seat = new THREE.Mesh(new THREE.BoxGeometry(.5, .22, 1.2), new THREE.MeshLambertMaterial({ color: '#212529' })); seat.position.set(0, .42, -.45); body.add(seat)
     const bar = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .9, 6), new THREE.MeshLambertMaterial({ color: '#343a40' })); bar.rotation.z = Math.PI / 2; bar.position.set(0, .82, .38); body.add(bar)
     const col = new THREE.Mesh(new THREE.CylinderGeometry(.05, .06, .45, 6), bar.material); col.position.set(0, .62, .45); col.rotation.x = -.5; body.add(col)
@@ -215,7 +254,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
   }
 
   /* ---------------- embruns : particules (gerbes, panache, éclaboussures) ---------------- */
-  function embruns(THREE, s) {
+  function embruns(THREE, s, opa, grand) {
     const N = 1400, pos = new Float32Array(N * 3), sz = new Float32Array(N), al = new Float32Array(N), P = []
     for (let i = 0; i < N; i++) { P.push({ x: 0, y: -99, z: 0, vx: 0, vy: 0, vz: 0, t: 0, L: 0, s: 0 }); pos[i * 3 + 1] = -99 }
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('aS', new THREE.BufferAttribute(sz, 1)); geo.setAttribute('aA', new THREE.BufferAttribute(al, 1))
@@ -229,7 +268,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
       for (let i = 0; i < N; i++) { const p = P[i]; if (p.y < -50) continue; p.t += dt; if (p.t > p.L) { p.y = -99; pos[i * 3 + 1] = -99; al[i] = 0; continue }
         p.vy -= G * dt; p.vx *= 1 - .6 * dt; p.vz *= 1 - .6 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt
         if (p.vy < 0 && (i & 3) === (Math.floor(p.t * 60) & 3)) { const w = eau(p.x, p.z, 1); if (p.y < w.y) { p.t = Math.max(p.t, p.L - .12); p.vy *= -.1 } }
-        pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z; const k = p.t / p.L; sz[i] = p.s * (1 + k * 1.3); al[i] = (1 - k) * .6 }
+        pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z; const k = p.t / p.L; sz[i] = p.s * (1 + k * (grand ? 3 : 1.3)); al[i] = (1 - k) * (opa || .6) }
       geo.attributes.position.needsUpdate = true; geo.attributes.aS.needsUpdate = true; geo.attributes.aA.needsUpdate = true }
     return { emit, update, mat }
   }
@@ -269,12 +308,18 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         return { u: best, d: Math.sqrt(bd) } }
     }
   }
-  function bouee(THREE, cote) { // cote -1 : passer à gauche (jaune ◀) ; +1 : passer à droite (rouge ▶)
+  function bouee(THREE, cote, etape) { // cote -1 : passer à gauche (jaune ◀) ; +1 : passer à droite (rouge ▶)
     const g = new THREE.Group(), c = cote < 0 ? '#fab005' : '#e03131'
     const base = new THREE.Mesh(new THREE.CylinderGeometry(.9, 1.1, 1, 14), new THREE.MeshLambertMaterial({ color: c })); base.position.y = .3; g.add(base)
     const cone = new THREE.Mesh(new THREE.ConeGeometry(.8, 3, 14), new THREE.MeshLambertMaterial({ map: bandeTex(THREE, c, '#212529', 6) })); cone.position.y = 2.1; g.add(cone)
     const sign = new THREE.Mesh(new THREE.CircleGeometry(.95, 24), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: ctx(THREE, 128, 128, (x, w, h) => { x.fillStyle = '#fff'; x.beginPath(); x.arc(64, 64, 62, 0, 7); x.fill(); x.fillStyle = c; x.beginPath(); x.arc(64, 64, 52, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = '900 80px Arial Black, Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(cote < 0 ? '◀' : '▶', 64, 70) }) }))
-    sign.position.y = 4.4; g.add(sign); g.userData.sign = sign; return g
+    sign.position.y = 4.4; g.add(sign); g.userData.sign = sign
+    if (etape) { const pl = new THREE.Mesh(new THREE.PlaneGeometry(3.4, .95), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: ctx(THREE, 360, 100, (x, w, h) => {
+      x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = c; x.fillRect(0, 0, w, 8); x.fillRect(0, h - 8, w, 8)
+      x.fillStyle = '#495057'; x.font = '700 24px Arial'; x.textAlign = 'center'; x.fillText(etape[0], w / 2, 36); x.fillStyle = '#212529'; x.font = '900 30px Arial Black, Arial'
+      let t = etape[1], fs = 30; while (x.measureText(t).width > w - 16 && fs > 16) { fs -= 2; x.font = `900 ${fs}px Arial Black, Arial` } x.fillText(t, w / 2, 76) }) }))
+      pl.position.y = 5.8; g.add(pl); g.userData.panneau = pl }
+    return g
   }
 
   /* ---------------- HUD ---------------- */
@@ -285,17 +330,30 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
       <div id="jsPlace" style="position:absolute;right:16px;top:48px;font-size:52px;font-style:italic"></div>
       <canvas id="jsCompteur" width="220" height="130" style="position:absolute;right:10px;bottom:${TOUCH ? 150 : 12}px;width:190px"></canvas>
       <div id="jsMsg" style="position:absolute;left:0;right:0;top:34%;text-align:center;font-size:54px;opacity:0;transition:opacity .2s,transform .2s"></div>
-      <div id="jsGouttes" style="position:absolute;inset:0"></div>`
+      <div id="jsGouttes" style="position:absolute;inset:0"></div>
+      <canvas id="jsFx" style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen"></canvas>
+      <div id="jsSig" style="position:absolute;left:16px;top:152px;font:700 14px Arial;color:#fff;-webkit-text-stroke:0;text-shadow:1px 1px 0 #000"></div>
+      <div id="jsFiche" style="position:absolute;left:16px;bottom:64px;max-width:min(520px,60%);background:rgba(255,250,240,.95);color:#212529;-webkit-text-stroke:0;text-shadow:none;font:600 14px/1.35 Arial;padding:8px 12px;border-left:6px solid #2f9e44;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s"></div>`
     const f = document.getElementById('frame'); f.append(d)
     const cv = d.querySelector('#jsCompteur'), g = cv.getContext('2d'), msg = d.querySelector('#jsMsg')
-    let mT = 0
+    let mT = 0, fT = 0; const fiche = d.querySelector('#jsFiche'), fx = d.querySelector('#jsFx'), fg = fx.getContext('2d')
     return {
       d,
+      fiche(h, ok) { fiche.innerHTML = h; fiche.style.borderLeftColor = ok ? '#2f9e44' : '#e03131'; fiche.style.opacity = 1; fiche.style.transform = 'translateY(0)'; fT = 3.2 },
+      sig(n, t) { d.querySelector('#jsSig').innerHTML = `📣 Signalements : <b>${n} / ${t}</b>` },
+      effets(sol, v) { // reflets du soleil dans l'objectif, lignes de vitesse
+        const w = fx.clientWidth, h = fx.clientHeight; if (fx.width !== w) { fx.width = w; fx.height = h } fg.clearRect(0, 0, w, h)
+        if (sol) { const sx = (sol.x * .5 + .5) * w, sy = (-sol.y * .5 + .5) * h, cx = w / 2, cy = h / 2
+          const gr = fg.createRadialGradient(sx, sy, 0, sx, sy, h * .35); gr.addColorStop(0, 'rgba(255,245,210,.55)'); gr.addColorStop(1, 'rgba(255,245,210,0)'); fg.fillStyle = gr; fg.fillRect(0, 0, w, h)
+          ;[[.35, .05, '255,214,165'], [.7, .03, '165,216,255'], [1.25, .07, '178,242,187'], [1.6, .02, '255,255,255'], [1.9, .045, '255,190,120']].forEach(([k, r, c]) => { const x = sx + (cx - sx) * k, y = sy + (cy - sy) * k, rr = h * r
+            const g2 = fg.createRadialGradient(x, y, 0, x, y, rr); g2.addColorStop(0, `rgba(${c},.28)`); g2.addColorStop(.7, `rgba(${c},.12)`); g2.addColorStop(1, `rgba(${c},0)`); fg.fillStyle = g2; fg.beginPath(); fg.arc(x, y, rr, 0, 7); fg.fill() }) }
+        if (v > 13) { const a = Math.min(.3, (v - 13) / 20), cx = w / 2, cy = h * .45; fg.strokeStyle = `rgba(255,255,255,${a})`; fg.lineWidth = 2
+          for (let i = 0; i < 26; i++) { const an = Math.random() * Math.PI * 2, r0 = h * (.42 + Math.random() * .2), r1 = r0 + h * (.12 + Math.random() * .2); fg.beginPath(); fg.moveTo(cx + Math.cos(an) * r0 * 1.6, cy + Math.sin(an) * r0); fg.lineTo(cx + Math.cos(an) * r1 * 1.6, cy + Math.sin(an) * r1); fg.stroke() } } },
       tour(t, n) { d.querySelector('#jsTour').innerHTML = `${t}<span style="font-size:.6em">/${n}</span>` },
       place(p, n) { d.querySelector('#jsPlace').innerHTML = `${p}<span style="font-size:.55em">/${n}</span>` },
       temps(h) { d.querySelector('#jsTemps').innerHTML = h },
       msg(t, c, dur) { msg.textContent = t; msg.style.color = c || '#ffd43b'; msg.style.opacity = 1; msg.style.transform = 'scale(1.15)'; setTimeout(() => (msg.style.transform = 'scale(1)'), 90); mT = dur || 1.2 },
-      tick(dt) { if (mT > 0) { mT -= dt; if (mT <= 0) msg.style.opacity = 0 } },
+      tick(dt) { if (mT > 0) { mT -= dt; if (mT <= 0) msg.style.opacity = 0 } if (fT > 0) { fT -= dt; if (fT <= 0) { fiche.style.opacity = 0; fiche.style.transform = 'translateY(8px)' } } },
       compteur(kmh, pw) { g.clearRect(0, 0, 220, 130); const cx = 110, cy = 112, R = 88
         g.lineWidth = 16; g.strokeStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(cx, cy, R, Math.PI, 2 * Math.PI); g.stroke()
         const k = Math.min(1, kmh / 90), gr = g.createLinearGradient(20, 0, 200, 0); gr.addColorStop(0, '#40c057'); gr.addColorStop(.55, '#fab005'); gr.addColorStop(1, '#e03131')
@@ -321,13 +379,42 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
       const sky = new THREE.Mesh(new THREE.SphereGeometry(360, 32, 16), cielMat(THREE, PAL)); sky.renderOrder = -1; sky.frustumCulled = false; s.add(sky)
       const mer = new THREE.Mesh(merGeo(THREE), merMat(THREE, PAL)); mer.frustumCulled = false; s.add(mer)
       const H = ile(THREE, s), C = parcours(THREE), D = decor(THREE, s, C, H)
-      const SP = embruns(THREE, s), foamT = ecumeTex(THREE); foamT.wrapS = foamT.wrapT = THREE.RepeatWrapping
+      const SP = embruns(THREE, s), BR = embruns(THREE, s, .22, true), foamT = ecumeTex(THREE); foamT.wrapS = foamT.wrapT = THREE.RepeatWrapping
+      const NBq = cfg.bouees || 14
+      /* tremplins flottants : de vrais sauts, pour la pénétration et le rebond à l'arrivée */
+      const RAMPES = [(3 + .1) / NBq, (10 + .1) / NBq].map((u) => { const p = C.at(u), t = C.tan(u), L = 7, Wd = 4.6, Hm = 1.7
+        const g = new THREE.Group(); g.position.set(p.x, 0, p.z); g.rotation.y = Math.atan2(-t.z, t.x); s.add(g)
+        const sh = new THREE.Shape(); sh.moveTo(0, -.3); sh.lineTo(L, Hm - .3); sh.lineTo(L, -.3); sh.closePath()
+        const geo = new THREE.ExtrudeGeometry(sh, { depth: Wd, bevelEnabled: false }); geo.translate(-L / 2, 0, -Wd / 2)
+        const tx = ctx(THREE, 256, 128, (x, w, h) => { for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? '#ffffff' : '#ff7a1a'; x.fillRect(i * w / 8, 0, w / 8, h) } x.fillStyle = 'rgba(0,0,0,.2)'; x.fillRect(0, h - 10, w, 10) })
+        const m = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ map: tx, shininess: 40 })); g.add(m)
+        ;[-1, 1].forEach((q) => { const f = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, L + .6, 12), new THREE.MeshPhongMaterial({ color: '#1c7ed6', shininess: 60 })); f.rotation.z = Math.PI / 2; f.position.set(0, -.25, q * (Wd / 2 + .1)); g.add(f) })
+        const lbl = new THREE.Mesh(new THREE.PlaneGeometry(3.6, .7), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: ctx(THREE, 256, 50, (x, w, h) => { x.fillStyle = '#1c3faa'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff'; x.font = 'italic 900 30px Arial Black, Arial'; x.textAlign = 'center'; x.fillText('TALAS · §10', w / 2, 36) }) }))
+        lbl.position.set(L / 2 + .02, Hm * .45, 0); lbl.rotation.y = Math.PI / 2; g.add(lbl)
+        return { x0: p.x - t.x * L / 2, z0: p.z - t.z * L / 2, dx: t.x, dz: t.z, L, Wd, Hm, pente: Hm / L } })
+      const rampe = (x, z) => { for (const r of RAMPES) { const sx = (x - r.x0) * r.dx + (z - r.z0) * r.dz, lx = (x - r.x0) * -r.dz + (z - r.z0) * r.dx; if (sx >= 0 && sx <= r.L && Math.abs(lx) <= r.Wd / 2) return { y: -.3 + r.Hm * sx / r.L, r } } return null }
+      /* ombres portées sur l'eau (on voit la hauteur des sauts) et anneaux d'écume à l'atterrissage */
+      const ombreT = ctx(THREE, 64, 64, (x, w, h) => { const g2 = x.createRadialGradient(32, 32, 0, 32, 32, 32); g2.addColorStop(0, 'rgba(0,30,45,.55)'); g2.addColorStop(1, 'rgba(0,30,45,0)'); x.fillStyle = g2; x.fillRect(0, 0, w, h) })
+      const ombre = () => { const m = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 3.6), new THREE.MeshBasicMaterial({ map: ombreT, transparent: true, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.renderOrder = 1; s.add(m); return m }
+      const ANN = [0, 1, 2, 3].map(() => { const m = new THREE.Mesh(new THREE.RingGeometry(.9, 1.35, 40), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide })); m.rotation.x = -Math.PI / 2; m.renderOrder = 2; s.add(m); return { m, t: 9 } })
+      let annI = 0; const anneau = (x, z, k) => { const a = ANN[annI++ % ANN.length]; a.t = 0; a.k = k; a.x = x; a.z = z }
+      /* mouettes au-dessus de l'île */
+      const MOU = [0, 1, 2, 3, 4, 5].map((i) => { const g = new THREE.Group(), wm = new THREE.MeshLambertMaterial({ color: '#ffffff', side: THREE.DoubleSide })
+        const ail = [-1, 1].map((q) => { const w = new THREE.Mesh(new THREE.PlaneGeometry(.9, .28), wm); w.geometry.translate(q * .45, 0, 0); g.add(w); return w })
+        const b = new THREE.Mesh(new THREE.SphereGeometry(.14, 8, 6), wm); b.scale.set(1, .8, 2.2); g.add(b); s.add(g); return { g, ail, r: 30 + i * 6, h: 18 + (i % 3) * 4, ph: i * 1.3, sp: .25 + (i % 2) * .08 } })
+      /* signalements à ramasser (§10.2 : tout remonter) */
+      const SIG = SIGNALEMENTS.map(([t, fb], i) => { const u = (i * 2 + 1.35) / (NBq), p = C.at(u), tn = C.tan(u), lat = (i % 2 ? 2.5 : -2.5), g = new THREE.Group()
+        const fut = new THREE.Mesh(new THREE.CylinderGeometry(.55, .55, 1.2, 16), new THREE.MeshPhongMaterial({ color: '#ff922b', shininess: 60 })); fut.position.y = .3; g.add(fut)
+        ;[.05, .55].forEach((y) => { const c2 = new THREE.Mesh(new THREE.CylinderGeometry(.57, .57, .1, 16), new THREE.MeshPhongMaterial({ color: '#ffffff' })); c2.position.y = y; g.add(c2) })
+        const lb = new THREE.Mesh(new THREE.PlaneGeometry(3, .7), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, map: ctx(THREE, 300, 70, (x, w, h) => { x.fillStyle = 'rgba(255,146,43,.95)'; x.beginPath(); x.roundRect ? x.roundRect(0, 0, w, h, 14) : x.rect(0, 0, w, h); x.fill(); x.fillStyle = '#fff'; x.font = '900 26px Arial Black, Arial'; x.textAlign = 'center'; let fs = 26; while (x.measureText('📣 ' + t).width > w - 12 && fs > 14) { fs -= 2; x.font = `900 ${fs}px Arial Black, Arial` } x.fillText('📣 ' + t, w / 2, 45) }) }))
+        lb.position.y = 1.9; g.add(lb); s.add(g); return { g, lb, t, fb, x: p.x + -tn.z * lat, z: p.z + tn.x * lat, pris: false } })
+      let nSig = 0
 
       /* bouées : alternées, du côté extérieur ou intérieur de la trajectoire */
-      const NB = cfg.bouees || 14, B = []
+      const NB = NBq, B = []
       for (let i = 0; i < NB; i++) { const u = (i + .6) / NB, p = C.at(u), t = C.tan(u), nx = -t.z, nz = t.x, side = (i * 7 + 3) % 5 < 2 ? 1 : -1, off = 6.5
         const bx = p.x + nx * off * side, bz = p.z + nz * off * side, cote = side > 0 ? 1 : -1 // bouée à gauche de la trajectoire (côté +n) -> on passe à sa droite (▶)
-        const m = bouee(THREE, cote); m.position.set(bx, 0, bz); s.add(m); B.push({ u, x: bx, z: bz, cote, m, lat: off * side }) }
+        const et = ETAPES[i % ETAPES.length], m = bouee(THREE, cote, et); m.position.set(bx, 0, bz); s.add(m); B.push({ u, x: bx, z: bz, cote, m, lat: off * side, et, vu: 0 }) }
       const fleche = new THREE.Mesh(new THREE.ConeGeometry(.9, 1.8, 4), new THREE.MeshBasicMaterial({ color: '#ffffff' })); fleche.rotation.z = Math.PI; s.add(fleche)
 
       /* concurrents et joueur */
@@ -338,7 +425,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         { nom: 'Mathieu', jet: jetski(THREE, ['#e8590c', '#ffffff'], pilote('worker', { shirt: '#ffa94d', sleeve: '#ffa94d' })), skill: .93, lane: .3 }
       ]
       const P0 = C.at(0), T0 = C.tan(0)
-      coureurs.forEach((c, i) => { s.add(c.jet); c.wake = sillage(THREE, s, foamT); c.lap = 0; c.u = 0; c.prog = 0; c.fini = false; c.half = false
+      coureurs.forEach((c, i) => { s.add(c.jet); c.ombre = ombre(); c.wake = sillage(THREE, s, foamT); c.lap = 0; c.u = 0; c.prog = 0; c.fini = false; c.half = false
         const lat = (i - 1.5) * 3.2, back = 4 + (i % 2) * 3; c.x = P0.x - T0.x * back + (-T0.z) * lat; c.z = P0.z - T0.z * back + T0.x * lat; c.yaw = Math.atan2(T0.x, T0.z); c.v = 0; c.bu = 0; c.miss = 0; c.ok = 0 })
       const me = coureurs[0]; me.y = -.1
       /* état physique du joueur */
@@ -346,7 +433,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
       J.etat = { S, me, coureurs, B }
       const FLOT = [[0, -.18, 1.25, .9], [0, -.22, -1.15, 1.25], [-.5, -.22, -.05, .95], [.5, -.22, -.05, .95]] // x, y, z locaux, poids
       const LAPS = cfg.tours || 3
-      const H2 = hud(); H2.tour(1, LAPS); H2.place(1, 4)
+      const H2 = hud(); H2.tour(1, LAPS); H2.place(1, 4); H2.sig(0, SIGNALEMENTS.length)
 
       /* monde du jeu */
       let T = 0, go = false, pause = false, fin = false, chrono = 0, tours = [], shake = 0, lastLand = 0
@@ -382,16 +469,21 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
             const F = wgt * (13.5 * Math.min(depth, 1.4) * lift - 2.6 * vPt * Math.min(1, depth * 3))
             fy += F; tp += F * lz; tr += F * lx; wet++; if (i === 1) stern = 1; nx += w.nx; nz += w.nz; maxDepth = Math.max(maxDepth, depth) }
         })
+        /* tremplin : la coque suit la pente puis s'envole au bout */
+        const rp = rampe(me.x, me.z)
+        if (rp && me.y < rp.y + .45) { me.y = rp.y + .45; S.vy = Math.max(S.vy, Math.max(0, vf) * rp.r.pente); S.wp += (Math.atan(rp.r.pente) - S.pitch) * 12 * dt; wet = 0; S.air = Math.max(S.air, .3); S.surRampe = 1 } else S.surRampe = 0
         const wasAir = !S.wet; S.wet = wet > 0
         // atterrissage : la coque s'enfonce (pénétration), gerbe proportionnelle à la vitesse d'impact
         if (wasAir && S.wet && S.air > .25) {
           const imp = -S.vy; lastLand = T
+          tsAdd('jet_vol', +S.air.toFixed(2)); tsAdd('jet_eau', +(imp * .6).toFixed(1)) // secondes de vol, litres d'eau avalés à l'impact
           const nose = -S.pitch
           const n = Math.min(260, 40 + imp * 26)
           for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, r = Math.random(); SP.emit(me.x + Math.cos(a) * r * 1.4, me.y, me.z + Math.sin(a) * r * 1.4, Math.cos(a) * (2 + imp * .6) * Math.random() + S.vx * .3, 2 + imp * .9 * Math.random(), Math.sin(a) * (2 + imp * .6) * Math.random() + S.vz * .3, .7 + Math.random() * .6, .12 + Math.random() * .18) }
           shake = Math.min(.5, imp * .05); try { beep(110 + Math.random() * 30, .18, 'sawtooth', .05) } catch (e) {}
+          anneau(me.x, me.z, Math.min(2.5, .8 + imp * .18)); for (let k = 0; k < 14; k++) BR.emit(me.x + (Math.random() - .5) * 2, me.y + .2, me.z + (Math.random() - .5) * 2, (Math.random() - .5) * 3, 1 + Math.random() * 2, (Math.random() - .5) * 3, 1.3, .7)
           if (imp > 6) H2.gouttes(Math.round(imp))
-          if (nose > .45 && imp > 5) { S.vx *= .55; S.vz *= .55; H2.msg('PLONGEON !', '#74c0fc', .9) } else if (imp > 7) H2.msg('SPLASH !', '#ffffff', .6)
+          if (nose > .45 && imp > 5) { S.vx *= .55; S.vz *= .55; H2.msg('PLONGEON !', '#74c0fc', .9); tsAdd('jet_plongeon') } else if (imp > 7) H2.msg('SPLASH !', '#ffffff', .6)
           S.air = 0 }
         if (!S.wet) S.air += dt
         fy -= G; S.vy += fy * dt
@@ -416,16 +508,19 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         me.x += S.vx * dt; me.z += S.vz * dt; me.y += S.vy * dt; S.pitch += S.wp * dt; S.roll += S.wr * dt
         S.pitch = Math.max(-.9, Math.min(.9, S.pitch)); S.roll = Math.max(-.8, Math.min(.8, S.roll))
         // l'île : on ne monte pas sur la plage
-        const r = Math.hypot(me.x, me.z), hi = H(me.x, me.z); if (hi > -.2) { const k = (r + .01); me.x += me.x / k * .6; me.z += me.z / k * .6; S.vx *= .9; S.vz *= .9 }
+        const r = Math.hypot(me.x, me.z), hi = H(me.x, me.z); if (hi > -.2 && !S.plage && go) { S.plage = 1; tsAdd('jet_plage'); H2.msg('ÉCHOUAGE !', '#ffe066', .8) } if (hi < -.8) S.plage = 0; if (hi > -.2) { const k = (r + .01), ox = me.x / k, oz = me.z / k; me.x += ox * .8; me.z += oz * .8; const vn = S.vx * ox + S.vz * oz; if (vn < 0) { S.vx -= ox * vn * 1.6; S.vz -= oz * vn * 1.6 } S.vx *= .96; S.vz *= .96 }
         me.v = v; me.yaw = S.yaw
         // panache arrière et gerbes de proue
         if (emet && S.wet && v > 3) { const n2 = Math.round(v * .22)
           for (let k = 0; k < n2; k++) SP.emit(me.x - fx * 1.4 + (Math.random() - .5) * .3, me.y - .1, me.z - fz * 1.4 + (Math.random() - .5) * .3, -fx * v * .22 + (Math.random() - .5) * 1.4, 2 + v * .22 * Math.random() + 1, -fz * v * .22 + (Math.random() - .5) * 1.4, .45 + Math.random() * .4, .1 + Math.random() * .14)
+          if (Math.random() < v * .03) BR.emit(me.x - fx * 1.8, me.y + .4, me.z - fz * 1.8, -fx * v * .12, 1.5 + Math.random(), -fz * v * .12, 1.1, .55)
           if (v > 7) for (let k = 0; k < 2; k++) { const q = k ? 1 : -1; SP.emit(me.x + fx * 1.1 + rx * q * .5, me.y, me.z + fz * 1.1 + rz * q * .5, rx * q * (1.5 + v * .12) + S.vx * .7, 1.2 + Math.random() * 1.8, rz * q * (1.5 + v * .12) + S.vz * .7, .45, .08 + Math.random() * .08) }
           if (S.dive > .5) for (let k = 0; k < 6; k++) SP.emit(me.x + fx * 1.4, me.y + .3, me.z + fz * 1.4, S.vx * .6 + (Math.random() - .5) * 3, 3 + Math.random() * 4, S.vz * .6 + (Math.random() - .5) * 3, .6, .4) }
       }
       function autoSteer() { // pilote automatique (comptes rendus) : vise le bon côté de la prochaine bouée
-        const b = B[me.bu % NB], t = C.tan(b.u), nx = -t.z, nz = t.x, tx = b.x + nx * -b.cote * 3.4 + t.x * 2, tz = b.z + nz * -b.cote * 3.4 + t.z * 2
+        const b = B[me.bu % NB], t = C.tan(b.u), nx = -t.z, nz = t.x
+        let tx = b.x + nx * -b.cote * 3.4 + t.x * 2, tz = b.z + nz * -b.cote * 3.4 + t.z * 2
+        for (const r of RAMPES) { const sx = (me.x - r.x0) * r.dx + (me.z - r.z0) * r.dz, lx = (me.x - r.x0) * -r.dz + (me.z - r.z0) * r.dx; if (sx > -40 && sx < r.L && Math.abs(lx) < 14) { tx = r.x0 + r.dx * (r.L + 4); tz = r.z0 + r.dz * (r.L + 4) } } // un tremplin devant : on le prend
         const want = Math.atan2(tx - me.x, tz - me.z); let d = want - S.yaw; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI
         return Math.max(-1, Math.min(1, -d * 2.2))
       }
@@ -436,8 +531,8 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
           const lat = (c.x - b.x) * -t.z + (c.z - b.z) * t.x // > 0 : on est à gauche de la bouée (sens de la course)
           const ok = Math.abs(lat) < 28 && (b.cote < 0 ? lat > 0 : lat < 0)
           c.bu++; if (ok) c.ok++; else c.miss++
-          if (joueur) { if (ok) { const av = S.power; S.power = Math.min(5, S.power + 1); tsAdd('bouees'); H2.msg(S.power >= 5 && av < 5 ? 'PUISSANCE MAX !' : 'BOUÉE !', '#ffd43b', .8); try { beep(880, .08, 'square', .05) } catch (e) {} }
-            else { S.power = 0; H2.msg('ÉCART !', '#ff6b6b', 1); try { beep(160, .25, 'sawtooth', .06) } catch (e) {}; ecartsTour++ } }
+          if (joueur) { b.vu = ok ? 1 : -1; H2.fiche(`${ok ? '✔' : '✘ Étape sautée :'} <b>${b.et[0]} · ${b.et[1]}</b><br>${b.et[2]}`, ok); if (ok) { const av = S.power; S.power = Math.min(5, S.power + 1); tsAdd('bouees'); H2.msg(S.power >= 5 && av < 5 ? 'PUISSANCE MAX !' : 'BOUÉE !', '#ffd43b', .8); try { beep(880, .08, 'square', .05) } catch (e) {} }
+            else { S.power = 0; tsAdd('jet_ecarts'); H2.msg('ÉCART !', '#ff6b6b', 1); try { beep(160, .25, 'sawtooth', .06) } catch (e) {}; ecartsTour++ } }
         }
       }
       let ecartsTour = 0, bonnes = 0
@@ -454,7 +549,11 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         const tx = la.x + -bt.z * latT * .6, tz = la.z + bt.x * latT * .6
         let d = Math.atan2(tx - c.x, tz - c.z) - c.yaw; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI
         c.yaw += Math.max(-1.4, Math.min(1.4, d * 2)) * dt; c.x += Math.sin(c.yaw) * c.v * dt; c.z += Math.cos(c.yaw) * c.v * dt
-        const w = eau(c.x, c.z); c.y = (c.y === undefined ? w.y : c.y + (w.y - .12 - c.y) * Math.min(1, dt * 6)); c.nx = w.nx; c.nz = w.nz
+        const w = eau(c.x, c.z), rp = rampe(c.x, c.z); c.nx = w.nx; c.nz = w.nz
+        if (c.y === undefined) c.y = w.y
+        if (rp && c.y < rp.y + .45) { c.y = rp.y + .45; c.vy = c.v * rp.r.pente; c.air = 1 }
+        else if (c.air) { c.vy -= G * dt; c.y += c.vy * dt; if (c.y < w.y - .12) { c.air = 0; anneau(c.x, c.z, 1.2); for (let k = 0; k < 40; k++) { const a = Math.random() * 6.3; SP.emit(c.x, w.y, c.z, Math.cos(a) * 3 * Math.random(), 2 + Math.random() * 4, Math.sin(a) * 3 * Math.random(), .8, .15) } } }
+        else c.y = c.y + (w.y - .12 - c.y) * Math.min(1, dt * 6)
         c.steer = Math.max(-1, Math.min(1, d * 2))
         if (Math.random() < c.v * dt * .9) { const fx = Math.sin(c.yaw), fz = Math.cos(c.yaw); SP.emit(c.x - fx * 1.4, c.y, c.z - fz * 1.4, -fx * c.v * .18, 3 + Math.random() * 3, -fz * c.v * .18, .5, .14) }
       }
@@ -466,15 +565,18 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         if (c.lap >= LAPS && !c.fini) { c.fini = true; c.rang = coureurs.filter((o) => o.fini).length }
       }
       /* fin de tour : écarts, action corrective (§10.2), nouveau tour pour s'améliorer (§10.3) */
-      const QUESTIONS = cfg.questions || [
+      const tire = (l) => l[Math.floor(Math.random() * l.length)]
+      const ecartsParTour = []
+      const QUESTIONS = cfg.questions || [Object.assign({}, tire(BANQUE.cause)), Object.assign({}, tire(BANQUE.efficacite))].map((Q, i) => { const txt = Q.q; return Object.assign(Q, { q: (e) => `Tour ${i + 1} terminé : <b>${e} écart${e > 1 ? 's' : ''}</b> (bouées manquées)${i ? ` contre ${ecartsParTour[0]} au tour 1` : ''}. ${txt}` }) })
+      const _ANCIENNES = [
         { q: e => `Tour 1 terminé : <b>${e} écart${e > 1 ? 's' : ''}</b> (bouées manquées). Que fais-tu avant le tour 2 ?`, opts: [['Je cherche la cause : j’arrive trop vite et trop large sur les bouées, je ralentis avant et je prends la corde', 1], ['C’est la faute du jet-ski, je n’y peux rien', 0], ['Je fais pareil, ça passera bien', 0]], fb: '§10.2 : on réagit à l’écart, on en analyse la cause et on met en œuvre l’action qui l’élimine.' },
         { q: e => `Tour 2 terminé : <b>${e} écart${e > 1 ? 's' : ''}</b>. Ton action corrective a-t-elle marché ?`, opts: [['Je compare au tour 1 : je vérifie l’efficacité de l’action, puis je vise encore mieux', 1], ['Je ne mesure rien, l’important c’est d’avoir fait une action', 0], ['J’ai fini un tour, j’arrête de chercher à progresser', 0]], fb: '§10.2 et §10.3 : on vérifie l’efficacité des actions, et l’amélioration continue ne s’arrête jamais.' }
       ]
       async function finTour() {
         const tt = chrono - tours.reduce((a, b) => a + b, 0); tours.push(tt)
-        if (me.lap >= LAPS) return
+        if (me.lap >= LAPS) { ecartsParTour.push(ecartsTour); return }
         const Q = QUESTIONS[me.lap - 1]; if (!Q) return
-        pause = true; const e = ecartsTour; ecartsTour = 0
+        pause = true; const e = ecartsTour; ecartsTour = 0; ecartsParTour.push(e)
         const opts = Q.opts.map(([t, ok], i) => ({ t, v: i, ok })).sort(() => Math.random() - .5)
         const ch = await say('boulon', Q.q(e), { btns: opts.map((o) => ({ t: o.t, v: o.v })), grid: false })
         const good = Q.opts[ch] && Q.opts[ch][1]; pts(n, !!good); if (good) { bonnes++; S.power = Math.min(5, S.power + 2); S.boost = 1.2 }
@@ -491,7 +593,17 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         const sub = 4, h = dt / sub
         for (let k = 0; k < sub; k++) { if (fin) { S.vx *= 1 - h; S.vz *= 1 - h } physique(h, k === 0) }
         coureurs.forEach((c) => { if (!c.joueur) ia(c, dt); if (go) { progres(c); bouees(c, c.joueur) } })
-        SP.update(dt)
+        SP.update(dt); BR.update(dt)
+        coureurs.forEach((c) => { const x = c.joueur ? me.x : c.x, z = c.joueur ? me.z : c.z, y = c.joueur ? me.y : c.y, w = eau(x, z, 1), alt = Math.max(0, y - w.y)
+          c.ombre.position.set(x, w.y + .06, z); c.ombre.rotation.z = -(c.joueur ? S.yaw : c.yaw); c.ombre.scale.setScalar(1 + alt * .25); c.ombre.material.opacity = Math.max(0, 1 - alt / 7) })
+        ANN.forEach((a) => { a.t += dt; const k = a.t / 1.4; if (k >= 1) { a.m.visible = false; return } a.m.visible = true; const w = eau(a.x, a.z, 1); a.m.position.set(a.x, w.y + .07, a.z); a.m.scale.setScalar(a.k * (1 + k * 3.2)); a.m.material.opacity = (1 - k) * .75 })
+        MOU.forEach((m) => { const a = T * m.sp + m.ph; m.g.position.set(Math.cos(a) * m.r, m.h + Math.sin(T * .7 + m.ph) * 1.5, Math.sin(a) * m.r); m.g.rotation.set(0, -a, .35); const f = Math.sin(T * 9 + m.ph) * .6; m.ail[0].rotation.z = f; m.ail[1].rotation.z = -f })
+        SIG.forEach((g) => { if (g.pris) return; const w = eau(g.x, g.z); g.g.position.set(g.x, w.y - .2, g.z); g.g.rotation.x = w.nz * .5; g.g.rotation.z = -w.nx * .5; g.lb.lookAt(camera.position)
+          if (Math.hypot(me.x - g.x, me.z - g.z) < 2.6 && go) { g.pris = true; s.remove(g.g); nSig++; tsAdd('signalements'); H2.sig(nSig, SIG.length); H2.msg('SIGNALÉ !', '#ff922b', .9); H2.fiche(`📣 <b>${g.t}</b><br>${g.fb}`, true); S.boost = Math.min(2.5, S.boost + .8)
+            for (let k = 0; k < 30; k++) SP.emit(g.x, w.y + .5, g.z, (Math.random() - .5) * 5, 2 + Math.random() * 4, (Math.random() - .5) * 5, .7, .16); try { beep(1175, .1, 'triangle', .05) } catch (e) {} } })
+        if (Math.random() < dt * 6) { const a = S.yaw + (Math.random() - .5) * 1.6, d = 10 + Math.random() * 30, x = me.x + Math.sin(a) * d, z = me.z + Math.cos(a) * d, w = eau(x, z, 1) // moutons : les crêtes éclatent
+          if (w.crete < .5) for (let k = 0; k < 10; k++) SP.emit(x, w.y, z, (Math.random() - .5) * 1.5 + .9, 1 + Math.random() * 2, (Math.random() - .5) * 1.5 + .3, .6, .12) }
+        { const sv = camera.position.clone().add(PAL.sun.clone().multiplyScalar(300)).project(camera); H2.effets(sv.z < 1 && Math.abs(sv.x) < 1.3 && Math.abs(sv.y) < 1.3 ? sv : null, me.v) }
         // poses et sillages
         coureurs.forEach((c) => {
           const j = c.jet, fx = Math.sin(c.yaw), fz = Math.cos(c.yaw)
@@ -518,11 +630,16 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         try { beep(660, .2, 'square', .05); setTimeout(() => beep(990, .3, 'square', .05), 200) } catch (e) {}
         await new Promise((r) => setTimeout(r, 2600))
         const tot = me.ok + me.miss, taux = tot ? me.ok / tot : 0
-        const r = Math.max(0, Math.min(1, [1, .72, .45, .25][rang - 1] * .35 + taux * .45 + bonnes / QUESTIONS.length * .2))
+        const r = Math.max(0, Math.min(1, [1, .72, .45, .25][rang - 1] * .3 + taux * .4 + bonnes / QUESTIONS.length * .2 + nSig / SIG.length * .1))
         pts(n, rang <= 2); pts(n, taux >= .7)
         H2.remove(); await fade(1); setWorld(room); await fade(0)
+        if (typeof tsAdd === 'function') tsAdd('etapes10', B.filter((b) => b.vu === 1).length)
         cdi(r >= .85 ? 8 : r >= .6 ? 2 : -6)
-        await say('boulon', `<b>${rang === 1 ? 'Victoire' : rang + 'e place'} en ${fmt(chrono)}.</b> Bouées passées du bon côté : ${me.ok} sur ${tot}, ${me.miss} écart${me.miss > 1 ? 's' : ''}. Tours : ${tours.map(fmt).join(' · ')}.<br>${cfg.after || 'Chaque tour, tu as corrigé tes écarts et tu as fait mieux : c’est ça, l’amélioration continue (§10.3).'}`, { btns: [{ t: 'Continuer', go: 1 }], cls: r >= .6 ? 'good' : 'bad' })
+        const vues = B.filter((b) => b.vu === 1).length, sautees = B.filter((b) => b.vu === -1).map((b) => b.et[1].toLowerCase())
+        await say('boulon', `<b>${rang === 1 ? 'Victoire' : rang + 'e place'} en ${fmt(chrono)}.</b> Tours : ${tours.map(fmt).join(' · ')}.<br>
+          📉 <b>Écarts par tour :</b> ${ecartsParTour.join(' → ')} ${ecartsParTour.length > 1 && ecartsParTour[ecartsParTour.length - 1] < ecartsParTour[0] ? '(ça baisse : l’amélioration continue se mesure !)' : ''}<br>
+          🧭 <b>Étapes du §10 validées au dernier passage :</b> ${vues} sur ${B.length}${sautees.length ? ` (sautées : ${[...new Set(sautees)].join(', ')})` : ''}<br>
+          📣 <b>Signalements remontés :</b> ${nSig} sur ${SIG.length}<br>${cfg.after || 'Chaque tour, tu as corrigé tes écarts et tu as fait mieux : c’est ça, l’amélioration continue (§10.3).'}`, { btns: [{ t: 'Continuer', go: 1 }], cls: r >= .6 ? 'good' : 'bad' })
         res(r)
       }
 
@@ -538,7 +655,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
   /* aides : panneau « Le but / Commandes » et bandeau des touches */
   addEventListener('DOMContentLoaded', () => {
     try {
-      HOWTO.jetski = { but: 'Trois tours autour de l’île Talas. Passe chaque bouée du bon côté (◀ jaune : à gauche, ▶ rouge : à droite) : chaque bouée réussie ajoute de la puissance, chaque bouée manquée est un écart qui te la fait perdre. À la fin de chaque tour, choisis l’action corrective, puis fais mieux au tour suivant.',
+      HOWTO.jetski = { but: 'Trois tours autour de l’île Talas. Passe chaque bouée du bon côté (◀ jaune : à gauche, ▶ rouge : à droite) : chaque bouée réussie ajoute de la puissance, chaque bouée manquée est un écart qui te la fait perdre. Chaque bouée porte une étape du §10 (de « signaler » à « améliorer sans fin ») ; fonce aussi sur les fûts orange 📣 pour remonter les signalements. À la fin de chaque tour, choisis l’action corrective, puis fais mieux au tour suivant. Les tremplins TALAS font décoller !',
         kb: ['Q / D ou flèches : tourner', 'S ou flèche bas : plonger sous la vague', 'Le moteur accélère tout seul'], tc: ['◀ ▶ : tourner', '▼ : plonger sous la vague', 'Le moteur accélère tout seul'] }
       KEYHELP.jetski = `<span>${K('Q')}${K('D')} tourner</span><span>${K('S')} plonger sous la vague</span><span>◀ jaune : passe à gauche · ▶ rouge : passe à droite</span>`
     } catch (e) {}
