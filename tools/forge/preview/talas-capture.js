@@ -227,6 +227,15 @@
       window.__isDone = () => finished
       return { seconds: 75, label: '§6 · Le festin des mesures', script: () => new Promise(() => {}), after: () => { clearInterval(iv); window.feast3D = orig; window.TALAS_JEUX.budget3D = bud } }
     },
+    /* une journée complète sur l'île aux tourbillons, en 48 s, caméra en lent survol */
+    async cycle() {
+      hideUi(); window.TALAS_NUIT.on = true; window.TALAS_ILE.on = true; await window.TALAS_ILE.preload()
+      HUB = buildHub(); setWorld(HUB); if (typeof refreshSigns === 'function') refreshSigns(); window.__vueBuilt = false
+      const t0 = performance.now(), D = 48000
+      HUB.cam = () => { const k = (performance.now() - t0) / D; window.TALAS_NUIT.fixe = (k + .015) % 1; const a = -.5 + k * 1.2
+        camera.position.set(Math.sin(a) * 50, 13 + Math.sin(k * 6.28) * 3, Math.cos(a) * 50); camera.lookAt(0, 7, 0) }
+      return { seconds: 48, label: 'L’île aux tourbillons : une journée', script: () => sleep(D), after: () => { window.TALAS_NUIT.fixe = null } }
+    },
     /* combat contre le PDG (§5), scénarisé : trois bonnes réponses (coups critiques), Aurelien fulmine (cravate dressée), coup final */
     async combat() {
       hideUi(); let finished = false
@@ -257,9 +266,10 @@
       return { seconds: 1, label: '', script: () => sleep(1000) }
     },
     /* vue fixe pour les photos : île avant ou après, caméra posée (record.mjs --photos) */
-    async vue({ apres, pos, look, rebuild }) { // eslint-disable-line
+    async vue({ apres, nuit, pos, look, rebuild }) { // eslint-disable-line
       hideUi()
-      if (rebuild || !window.__vueBuilt || window.__vueApres !== !!apres) {
+      if (rebuild || !window.__vueBuilt || window.__vueApres !== !!apres || window.__vueNuit !== !!nuit) {
+        window.__vueNuit = !!nuit; if (window.TALAS_NUIT) window.TALAS_NUIT.on = !!nuit
         window.TALAS_ILE.on = !!apres; if (apres) await window.TALAS_ILE.preload()
         HUB = buildHub(); setWorld(HUB); if (typeof refreshSigns === 'function') refreshSigns(); window.__vueBuilt = true; window.__vueApres = !!apres
       }

@@ -18,6 +18,7 @@ const args = process.argv.slice(2), SHORT = args.includes('--court')
 const ALL = {
   budget: ['atelier', { n: 2, jeu: 'budget3D', label: '§6 · Le budget de l’atelier', plan: { 1: [[0, 2], [1, 2], [3, 4]], 2: [[3, 2], [4, 3], [2, 4]], 3: [[0, 0]], 4: [[2, 2], [4, 2]] } }],
   combat: ['combat', {}],
+  'ile-cycle': ['cycle', {}],
   festin: ['festin', {}],
   revue: ['atelier', { n: 5, jeu: 'revue3D', label: '§9 · La revue de direction, le jeu télé' }],
   intro: ['intro', {}], 'ile-avant': ['ile', { apres: false }], 'ile-apres': ['ile', { apres: true }], 'parcours-avant': ['parcours', { apres: false }], 'parcours-apres': ['parcours', { apres: true }] }
@@ -77,9 +78,10 @@ console.log(`jeu prêt en ${((Date.now() - t0) / 1000).toFixed(1)} s`)
 const pi = args.indexOf('--photos')
 if (pi >= 0) {
   const shots = JSON.parse(readFileSync(resolve(args[pi + 1]), 'utf8')), dir = resolve(HERE, '../out/photos'); mkdirSync(dir, { recursive: true })
-  for (const [nom, quand, pos, look] of shots) {
+  for (const [nom, quand, pos, look, heure] of shots) {
     if (typeof pos === 'string' && pos.startsWith('parcours:')) { const [, x, y, zoom] = pos.split(':').map(Number); await ev(`TalasCapture.stage('pvue', ${JSON.stringify({ apres: quand === 'apres', x, y, zoom: zoom || 0 })})`) }
-    else await ev(`TalasCapture.stage('vue', ${JSON.stringify({ apres: quand === 'apres', pos, look })})`)
+    else await ev(`TalasCapture.stage('vue', ${JSON.stringify({ apres: quand === 'apres' || quand === 'nuit', nuit: quand === 'nuit', pos, look })})`)
+    if (heure !== undefined) await ev(`window.TALAS_NUIT && (TALAS_NUIT.fixe = ${heure})`)
     for (let i = 0; i < (String(pos).startsWith('parcours:') ? 90 : 12); i++) await ev(`TalasCapture.step(${1000 / FPS})`)
     const { data } = await S('Page.captureScreenshot', { format: 'png' }); writeFileSync(join(dir, `${nom}.png`), Buffer.from(data, 'base64'))
     await ev('TalasCapture.unstage()'); console.log('📷 ' + nom)
