@@ -239,6 +239,14 @@
       RUN[n]().catch((e) => console.error(e))
       return { seconds: 1, label: '', script: () => sleep(1000) }
     },
+    /* la régate de l'amélioration continue (§10), jouée par le pilote automatique */
+    async jetski() {
+      hideUi(); const R = buildRoom(6); setWorld(R); S.ch = 6; window.TALAS_JETSKI.auto = true
+      let fin = false; window.__isDone = () => fin
+      const iv = setInterval(() => { const P = document.getElementById('pact'), panel = document.getElementById('panel'); if (P && panel && !panel.hidden) { const b = P.querySelector('.btn.go') || P.querySelector('button'); if (b) b.click() } }, 1200)
+      window.TALAS_JETSKI.course(6, { tours: 3 }).then(() => { fin = true })
+      return { seconds: 150, label: '§10 · La régate de l’amélioration continue', script: () => sleep(150000), after: () => { clearInterval(iv); window.TALAS_JETSKI.auto = false } }
+    },
     /* une journée complète sur l'île aux tourbillons, en 48 s, caméra en lent survol */
     async cycle() {
       hideUi(); window.TALAS_NUIT.on = true; window.TALAS_ILE.on = true; await window.TALAS_ILE.preload()

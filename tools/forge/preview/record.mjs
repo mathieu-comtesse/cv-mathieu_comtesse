@@ -18,6 +18,7 @@ const args = process.argv.slice(2), SHORT = args.includes('--court')
 const ALL = {
   budget: ['atelier', { n: 2, jeu: 'budget3D', label: '§6 · Le budget de l’atelier', plan: { 1: [[0, 2], [1, 2], [3, 4]], 2: [[3, 2], [4, 3], [2, 4]], 3: [[0, 0]], 4: [[2, 2], [4, 2]] } }],
   combat: ['combat', {}],
+  jetski: ['jetski', {}],
   'ile-cycle': ['cycle', {}],
   festin: ['festin', {}],
   revue: ['atelier', { n: 5, jeu: 'revue3D', label: '§9 · La revue de direction, le jeu télé' }],
@@ -92,6 +93,21 @@ if (pi >= 0) {
 if (args.includes('--planche')) {
   const url = await ev('TalasCapture.plancheDA()'), dir = resolve(HERE, '../out/photos'); mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, 'planche-da-panthere.png'), Buffer.from(url.split(',')[1], 'base64')); console.log('🎨 planche-da-panthere.png'); plan.length = 0
+}
+/* --images K : pas de vidéo, une photo toutes les K secondes -> out/photos/<nom>-<s>.png (aperçu rapide) */
+const ii = args.indexOf('--images')
+if (ii >= 0) {
+  const K = +args[ii + 1] || 4, dir = resolve(HERE, '../out/photos'); mkdirSync(dir, { recursive: true })
+  for (const [file, name, opts] of plan) {
+    const { seconds } = await ev(`TalasCapture.stage(${JSON.stringify(name)}, ${JSON.stringify(opts)})`)
+    for (let i = 1; i <= seconds * FPS; i++) {
+      await ev(`TalasCapture.step(${1000 / FPS})`)
+      if (i % (K * FPS) === 0) { const { data } = await S('Page.captureScreenshot', { format: 'jpeg', quality: 90 }); writeFileSync(join(dir, `${file}-${String(i / FPS).padStart(3, '0')}.jpg`), Buffer.from(data, 'base64')); console.log(`📷 ${file} ${i / FPS} s`) }
+      if (i % 30 === 0 && i > FPS * 3 && await ev('TalasCapture.isDone()')) break
+    }
+    await ev('TalasCapture.unstage()')
+  }
+  plan.length = 0
 }
 for (const [file, name, opts] of plan) {
   const { seconds } = await ev(`TalasCapture.stage(${JSON.stringify(name)}, ${JSON.stringify(opts)})`)
