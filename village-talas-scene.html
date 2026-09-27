@@ -217,6 +217,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-ile.js?v=1"></script>
 <script src="talas-jeux.js?v=1"></script>
 <script src="talas-ile-nuit.js?v=1"></script>
+<script src="talas-salles.js?v=1"></script>
 <script>
 /* ================= UTILITAIRES ================= */
 const $=s=>document.querySelector(s);
@@ -320,7 +321,7 @@ const HOWTO={
   tc:['◀ ▶ : avancer, reculer','▲ : grimper','SAUT : sauter, deux fois pour un double saut','TOUR : tournoyer (compagnons, cloisons)','▼ en plein saut : plongeon','Passe sur un objet pour le prendre, puis va devant le passage bloqué','Sauvegarde (en haut) : revenir au dernier drapeau touché']},
  poly:{but:'Les chefs d’équipe défilent et jurent que tout est conforme. Quand un nez s’allonge, c’est un mensonge : tamponne ÉCART sur le menteur. Ne tamponne pas ceux qui disent vrai.',
   kb:['Clic sur un menteur : tampon ÉCART'],tc:['Touche un menteur : tampon ÉCART']},
- operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Pièges : le hoquet fait sauter le corps, chaque battement de cœur resserre les couloirs, des caillots font des allers-retours. Chaque bzzzt coûte 4 secondes.',
+ operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Pièges : le hoquet fait sauter le corps, chaque battement de cœur resserre les couloirs, des caillots font des allers-retours. Ta main tremble un peu tant que tu tiens une cause. Chaque bzzzt coûte des secondes et pèse lourd dans la note.',
   kb:['Clic maintenu sur une cause, puis glisser jusqu’au rond vert'],tc:['Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert']}};
 function howto(k){const h=HOWTO[k];return `<div class="howto"><p><b>Le but :</b> ${h.but}</p><p><b>${TOUCH?'Sur écran tactile':'Commandes'} :</b></p><ul>${(TOUCH?h.tc:h.kb).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 const KEYHELP={
@@ -1490,10 +1491,10 @@ function surgery3D(n,cfg){return new Promise(res=>{
   function win(it){grab=null;it.done=1;out++;pts(n,true);it.l.visible=false;beep(988,.15);const g=it.g,w0=g.getWorldPosition(V(0,0,0));body.remove(g);g.position.copy(w0);R.stage.add(g);
     const to=V(-8.2+(out-1)%3*.6,1.55+Math.floor((out-1)/3)*.4,2.4+(out%2)*.3);tween(.5,q=>{g.position.lerpVectors(w0,to,q);g.position.y+=Math.sin(q*Math.PI)*1.5});R.fx.burst(w0,10);
     say('boulon',`<b>Extrait : ${it.t} !</b> ${it.fb}`,{btns:[],cls:'good'});status();if(out===N)end()}
-  function check(){if(!grab||!ptrW)return;const l=local(ptrW),it=grab,P=it.P;it.g.position.set(l.x,IY,l.z);
+  function check(){if(!grab||!ptrW)return;const l=local(ptrW),it=grab,P=it.P;if(cfg.tremble){const a=cfg.tremble;l.x+=(Math.sin(t*11.3)+Math.sin(t*17.9+1.3)*.6)*a;l.z+=(Math.sin(t*13.7+2.1)+Math.sin(t*7.3)*.6)*a}it.g.position.set(l.x,IY,l.z);
     const inCav=Math.hypot(l.x-P[0][0],l.z-P[0][1])<CR;let d=9;for(let s=0;s<P.length-1;s++)d=Math.min(d,segDist(l.x,l.z,P[s],P[s+1]));
     if(!inCav&&d>W2*beatK){zap(it,beatK<.9?'L’artère s’est contractée sur ta pince.':'Tu as touché le bord.');return}
-    for(const k of CLOTS)if(Math.hypot(l.x-k.x,l.z-k.z)<.4){zap(it,'Un caillot t’a percuté.');return}
+    for(const k of CLOTS)if(Math.hypot(l.x-k.x,l.z-k.z)<.46){zap(it,'Un caillot t’a percuté.');return}
     const e=P[P.length-1];if(Math.hypot(l.x-e[0],l.z-e[1])<.4)win(it)}
   R.onDown=e=>{if(done||grab)return;const p=planeAt(e,IY);if(!p)return;const l=local(p);let bestD=.9,b=null;items.forEach(it=>{if(it.done)return;const d=Math.hypot(l.x-it.g.position.x,l.z-it.g.position.z);if(d<bestD){bestD=d;b=it}});
     if(b){grab=b;ptrW=V(b.g.position.x+body.position.x,IY,b.g.position.z+body.position.z);b.l.visible=true;beep(660,.06)}};
@@ -1515,7 +1516,7 @@ function surgery3D(n,cfg){return new Promise(res=>{
     items.forEach((it,i)=>{if(!it.done&&it!==grab){it.g.position.y=IY+Math.abs(Math.sin(T*3+i))*.12;it.g.children[0].rotation.y+=dt}});
     check();if(t>=cfg.time)end()};
   const go=R.extra;R.extra=null;
-  function end(){if(done)return;done=true;const miss=items.filter(it=>!it.done);miss.forEach(()=>pts(n,false));const r=out/(N+buzz*.5);
+  function end(){if(done)return;done=true;const miss=items.filter(it=>!it.done);miss.forEach(()=>pts(n,false));const r=out/(N+buzz*.9);
     gameEnd(n,r,'boulon',`<b>${out} causes sur ${N} extraites, ${buzz} bzzzt.</b>${miss.length?'<br>Restées dans le patient : '+miss.map(it=>`<b>${it.t}</b>`).join(', ')+'.':''} ${cfg.after||''}`,res)}
   say('boulon',cfg.hint+howto('operation'),{btns:[{t:'Enfiler les gants',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert, sans sortir du couloir orange. Attention au hoquet !':'Clic maintenu sur une cause, puis glisse-la jusqu’au rond vert sans sortir du couloir orange. Attention au hoquet !',{btns:[]});R.extra=go});
 })}
@@ -4170,7 +4171,7 @@ RUN[6]=async()=>{
    {if:()=>p,w:'lea',t:'La longe ! Le danger qu’on t’avait montré. Eliott a quand même rempli une fiche de presque-accident.'},
    {if:()=>p,w:'boulon',t:'Effet domino réussi : participation (§5.4), danger identifié (§6.1.2), mesure technique (§8.1.2), presque-accident remonté (§10.2).'},
    {w:'karim',t:'Bon. On fait quoi maintenant ?'}]);
-  await trial(6,async()=>(await surgery3D(6,{w:.7,wig:.25,hic:[3.5,5.5],time:85,bpm:.9,squeeze:.3,clots:3,clotSp:.8,pen:4,hint:'Opération Talas ! L’accident est allongé sur la table, ses causes racines coincées dans le ventre. Extrais-les à la pince par le couloir orange, jusqu’au rond vert. Si tu touches le bord : bzzzt, son nez s’allume, il hurle et tu perds 4 secondes. Il a le hoquet : à chaque HIC, tout son corps saute. Son cœur bat : à chaque BOUM-BOUM, les couloirs se resserrent. Et des caillots se promènent dans les couloirs.',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
+  await trial(6,async()=>(await surgery3D(6,{w:.54,wig:.42,hic:[2.4,4],time:75,bpm:1.1,squeeze:.38,clots:4,clotSp:1.05,pen:5,tremble:.035,hint:'Opération Talas ! L’accident est allongé sur la table, ses causes racines coincées dans le ventre. Extrais-les à la pince par le couloir orange, jusqu’au rond vert. Si tu touches le bord : bzzzt, son nez s’allume, il hurle et tu perds 4 secondes. Il a le hoquet : à chaque HIC, tout son corps saute. Son cœur bat : à chaque BOUM-BOUM, les couloirs se resserrent. Et des caillots se promènent dans les couloirs.',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
    causes:[
     {t:'Danger jamais évalué',fb:'Retour au §6.1 : l’évaluation des risques doit être mise à jour.'},
     {t:'Outils non attachés',fb:'Mesure technique : longes porte-outils sur tous les postes en hauteur.'},
@@ -4179,7 +4180,7 @@ RUN[6]=async()=>{
     {t:'Cadence doublée sans analyse',fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'},
     {t:'Zone dessous non balisée',fb:'On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2).'}]}))>=.5,CAUSES.correct);
   await say('boulon','<b>Deuxième patient !</b> Huit causes organisationnelles, des couloirs plus étroits… et un hoquet carabiné.');
-  await trial(6,async()=>(await surgery3D(6,{w:.56,wig:.5,hic:[2,3.4],time:100,bpm:1.3,squeeze:.4,clots:6,clotSp:1.2,pen:4,hint:'Même opération, en pire : couloirs plus étroits, hoquet deux fois plus fréquent, cœur qui s’emballe et deux fois plus de caillots. Attends la fin du HIC et du BOUM-BOUM avant de passer un virage.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
+  await trial(6,async()=>(await surgery3D(6,{w:.44,wig:.62,hic:[1.6,2.8],time:90,bpm:1.55,squeeze:.42,clots:7,clotSp:1.5,pen:7,tremble:.04,hint:'Même opération, en pire : couloirs plus étroits, hoquet deux fois plus fréquent, cœur qui s’emballe et presque deux fois plus de caillots. Attends la fin du HIC et du BOUM-BOUM avant de passer un virage.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
    causes:[
     {t:'Pas d’analyse du changement',fb:'§8.1.3 : un changement se prépare.'},
     {t:'Formation nacelle périmée',fb:'§7.2 : compétences à maintenir.'},
