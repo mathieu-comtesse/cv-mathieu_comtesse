@@ -216,6 +216,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-props.js?v=1"></script>
 <script src="talas-ile.js?v=1"></script>
 <script src="talas-jeux.js?v=1"></script>
+<script src="talas-ile-nuit.js?v=1"></script>
 <script>
 /* ================= UTILITAIRES ================= */
 const $=s=>document.querySelector(s);
@@ -664,11 +665,13 @@ function buildHub(){
         if(b.userData.smoke){const o=b.userData.smokeAt||[-1.2,4.9,-.6];b.userData.smoke.forEach((p,i)=>{const k=((T*.35+i/4)%1);p.position.set(o[0]+k*.6,o[1]+k*3,o[2]);p.scale.setScalar(.4+k*1.2)})}});
       const nx=nextN();if(nx!==null){const t=nx===7?HUB_TOWER:B[nx];const p=t.getWorldPosition(V(0,0,0));arrow.visible=true;const dd=V(-p.x,0,-p.z).normalize(),rg=arrow.userData.ring;arrow.position.set(p.x+dd.x*3.4,3.3+Math.abs(Math.sin(T*4))*.7,p.z+dd.z*3.4);arrow.scale.setScalar(1+Math.sin(T*8)*.06);rg.visible=true;rg.position.set(p.x+dd.x*3.4,.5,p.z+dd.z*3.4);rg.scale.setScalar(1+((T*1.5)%1)*.5)}else{arrow.visible=false;arrow.userData.ring.visible=false}
       if(!dragging&&!S.intro)W.yaw+=dt*.02*Math.sin(T*.2);
-      fx.update(dt);if(W.ile)W.ile.update(dt,T);
+      fx.update(dt);if(W.ile)W.ile.update(dt,T);if(W.nuit)W.nuit.update(dt,T);
       const q=new THREE.Quaternion();[...B,HUB_TOWER].forEach(b=>{b.getWorldQuaternion(q);b.userData.sign.quaternion.copy(q.invert().multiply(camera.quaternion))});
     }};
   /* refonte de l'île (talas-ile.js) : détails et animations posés sur le relief ; ?ile=classique pour l'ancienne */
   if(window.TALAS_ILE)try{W.ile=TALAS_ILE.decorate({s,THREE,SEA,B,tower:tw,plane:pl,rand,grad,outline,ILE})}catch(e){console.warn('île',e)}
+  /* proposition « l'île aux épaves » (talas-ile-nuit.js) : ?ile=epaves */
+  if(window.TALAS_NUIT)try{W.nuit=TALAS_NUIT.apply({s,THREE,SEA,B,tower:tw,rand,grad,outline})}catch(e){console.warn('nuit',e)}
   return W;
 }
 let HUB_TOWER;
