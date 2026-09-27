@@ -22,11 +22,16 @@
   const LV = ['Élimination', 'Substitution', 'Protection collective', 'Organisation', 'EPI']
   const COST = [5, 4, 3, 2, 1]
   const LVCOL = ['#2f9e44', '#1c7ed6', '#7048e8', '#f08c00', '#e64980']
+  /* ce que fait chaque niveau, en clair (mêmes règles que le moteur plus bas) */
+  const EFFET = ['plus aucun danger ne sort du poste, pour toute l’année', 'moitié moins de dangers, et des dangers plus petits', 'une barrière arrête 85 % des dangers à la sortie du poste', 'balisage : les dangers ralentissent et la moitié est arrêtée', 'n’arrête rien : évite la blessure une fois sur deux']
+  /* probabilité qu'un danger prévu au poste blesse quelqu'un, avec les mesures achetées */
+  const passe = (p) => p.bought.has(0) ? 0 : (p.bought.has(1) ? .5 : 1) * (p.bought.has(2) ? .15 : 1) * (p.bought.has(3) ? .5 : 1) * (p.bought.has(4) ? .5 : 1)
+  const vague = (q) => (q <= 2 ? 1 : 2) // dangers par poste et par trimestre : l'activité monte en cours d'année
 
   /* =============================== §6 : LE BUDGET DE L'ATELIER =============================== */
   function budget3D(n, cfg) {
     return new Promise(async (res) => {
-      const R = cur; R.clear(); const unframe = frame(R, V(0, .2, -.2), 11.5, 17.6)
+      const R = cur; R.clear(); const unframe = frame(R, V(0, 1.1, -1.2), 12.5, 17.6) // cadré assez haut pour voir les mesures empilées au-dessus des postes
       const st = R.stage, SP = typeof SPD !== 'undefined' ? SPD : 1
       const P = window.TalasProps, props = cfg.postes.map((p) => p.prop).filter(Boolean)
       try { await Promise.race([Promise.all([P ? P.preload(props) : 0, typeof preloadToons === 'function' ? preloadToons() : 0]), new Promise((r) => setTimeout(r, 5000))]) } catch (e) {}
@@ -71,11 +76,12 @@
       }
 
       /* ---- dangers en marche ---- */
-      let hz = [], waveHits = 0, stopped = 0
+      let hz = [], waveHits = 0, stopped = 0, B = {}
+      const note = (k) => { B[k] = (B[k] || 0) + 1 }
       function spawn(p) {
-        if (p.bought.has(0)) return
+        if (p.bought.has(0)) { note('elim'); return }
         const weak = p.bought.has(1)
-        if (weak && Math.random() < .5) return // la substitution rend le danger rare…
+        if (weak && Math.random() < .5) { note('subst'); return } // la substitution rend le danger rare…
         const g = new THREE.Group(); g.position.set(p.x, .6, p.z + .9); st.add(g)
         const b = outline(mk(new THREE.IcosahedronGeometry(weak ? .24 : .34, 1), p.col, 0, 0, 0, g), 1.08)
         const l = labelPlane('!', .42, .42, { bg: '#fffaf0', border: p.col, fg: p.col, size: 150 }); l.position.y = .62; g.add(l)
@@ -96,36 +102,58 @@
         postes.forEach((p) => { if (p.ring) p.ring.scale.setScalar(1 + Math.sin(T * 4) * .04) })
       }
       const len3 = (h) => h.len
-      function kill(h) { h.dead = true; stopped++; tsAdd('parades'); R.fx.burst(h.g.position.clone(), 12); st.remove(h.g) }
+      function kill(h, why) { h.dead = true; stopped++; note(why); tsAdd('parades'); R.fx.burst(h.g.position.clone(), 12); st.remove(h.g) }
       function hit(h) {
         h.dead = true; st.remove(h.g)
         const dmg = h.p.bought.has(4) && Math.random() < .5 ? 0 : h.dmg // l'EPI n'arrête pas le danger : il évite parfois la blessure
-        if (!dmg) { R.fx.burst(TEAM.clone().add(V(0, 1.5, 0)), 6); return }
+        if (!dmg) { note('epi'); R.fx.burst(TEAM.clone().add(V(0, 1.5, 0)), 6); return }
         hp = Math.max(0, hp - dmg); waveHits += dmg; showHp(); boulonShake()
         team.children.forEach((w) => { if (!w.userData.epi) { const y0 = w.position.y; tween(.3, (k) => { w.position.y = y0 + Math.sin(k * Math.PI) * .25 }) } })
       }
 
+      /* ---- repères de clic : une flèche qui sautille au-dessus de chaque poste pendant la préparation ---- */
+      const clics = postes.map((p) => { const l = labelPlane(TOUCH ? '▼ TOUCHE' : '▼ CLIQUE', 1.5, .42, { bg: '#ffd43b', border: '#212529', fg: '#212529', size: 80 }); l.position.set(p.x, 0, p.z + 1.1); l.visible = false; st.add(l); return l })
+      let clicOn = false
+      const extra0 = R.extra
+      R.extra = (dt, T) => { extra0(dt, T); clics.forEach((l, i) => { l.visible = clicOn && !postes[i].bought.has(0) && budget > 0; l.position.y = 1.75 + Math.abs(Math.sin(T * 4 + i)) * .18 }) }
+
       /* ---- déroulé : préparation, trimestre, bilan ---- */
       let pickRes = null
-      await say('boulon', cfg.hint + howto('budget'), { btns: [{ t: 'C’est parti !', go: 1 }] })
-      const Q = cfg.waves || 4
+      await say('boulon', cfg.hint + howto('budget'), { btns: [{ t: 'Comment réussir ?', go: 1 }] })
+      const Q = cfg.waves || 4, TOT = Array.from({ length: Q }, (_, k) => vague(k + 1)).reduce((a, b) => a + b, 0) * postes.length, BUD = (cfg.budget || 8) + (Q - 1) * (cfg.gain || 5)
+      const tr = (l) => `<tr><td style="color:${LVCOL[l]};font-weight:700;padding:1px 6px 1px 0">${LV[l]}</td><td style="text-align:right;padding-right:8px;white-space:nowrap">${COST[l]} pt${COST[l] > 1 ? 's' : ''}</td><td>${EFFET[l]}</td></tr>`
+      await say('boulon', `<b>Comment réussir l’année</b><br>
+        🎯 <b>Objectif :</b> finir le 4<sup>e</sup> trimestre avec <b>au moins ${Math.ceil(HPMAX / 2)} points de santé sur ${HPMAX}</b>. Chaque danger qui atteint l’équipe lui retire 1 point.<br>
+        ⚠ <b>La menace :</b> chaque poste envoie 1 danger aux trimestres 1 et 2, puis 2 aux trimestres 3 et 4, soit <b>${TOT} dangers</b> si tu ne fais rien : l’équipe n’y survit pas.<br>
+        💰 <b>Ton budget :</b> ${cfg.budget || 8} pts maintenant, +${cfg.gain || 5} pts à chaque trimestre (${BUD} pts sur l’année). Une mesure achetée reste en place toute l’année.
+        <table style="margin:6px 0;font-size:.92em;border-collapse:collapse">${[0, 1, 2, 3, 4].map(tr).join('')}</table>
+        🖱 <b>À chaque trimestre :</b> ① ${TOUCH ? 'touche' : 'clique sur'} un poste (flèche jaune), ② choisis une mesure, ③ recommence tant qu’il te reste des points, ④ appuie sur « Lancer le trimestre » et regarde.<br>
+        💡 <b>Astuce :</b> supprimer un danger dès le 1<sup>er</sup> trimestre coûte cher, mais ce poste ne te coûtera plus rien ensuite. Les EPI seuls ne suffisent jamais. La prévision t’indique en direct si tu es sur la bonne voie.`, { btns: [{ t: 'C’est parti !', go: 1 }] })
       for (let q = 1; q <= Q; q++) {
         // préparation : on clique les postes pour financer, puis on lance le trimestre
         for (;;) {
           const pick = new Promise((r) => (pickRes = r))
-          const r = await Promise.race([say('boulon', `<b>Trimestre ${q} / ${Q}</b> · Budget : <b>${budget} pts</b> · Équipe : ${hp} / ${HPMAX}<br>Clique un poste pour y financer une mesure, puis lance le trimestre.`, { btns: [{ t: `Lancer le trimestre ${q}`, go: 1, v: 'go' }] }), pick])
-          pickRes = null
+          /* prévision : blessures attendues ce trimestre, et santé en fin d'année si l'on ne change plus rien */
+          const risque = postes.reduce((a, p) => a + passe(p), 0), ceT = risque * vague(q)
+          let fin = hp; for (let k = q; k <= Q; k++) fin -= risque * vague(k)
+          const obj = Math.ceil(HPMAX / 2), bon = fin >= obj, col = bon ? '#2b8a3e' : fin >= obj - 3 ? '#e8590c' : '#c92a2a'
+          const prev = `<div style="margin-top:4px;padding:4px 8px;border-left:4px solid ${col};background:#fff9db">📊 <b>Prévision</b> : ${vague(q) * postes.filter((p) => !p.bought.has(0)).length} danger(s) sortiront ce trimestre, environ <b>${ceT.toFixed(1).replace('.', ',')} blessure(s)</b>. Sans nouvelle mesure, l’équipe finira l’année vers <b style="color:${col}">${Math.max(0, Math.round(fin))} / ${HPMAX}</b> (objectif : ${obj}). ${bon ? 'Tu es sur la bonne voie.' : budget > 0 ? 'Investis encore : commence par les postes sans mesure.' : 'Plus de budget : lance le trimestre, tu gagneras +' + (cfg.gain || 5) + ' pts.'}</div>`
+          clicOn = true
+          const r = await Promise.race([say('boulon', `<b>Trimestre ${q} / ${Q}</b> · Budget : <b>${budget} pts</b> · Équipe : ${hp} / ${HPMAX}<br>${budget > 0 ? `${TOUCH ? 'Touche' : 'Clique sur'} un poste marqué d’une flèche jaune pour y financer une mesure, ou lance le trimestre.` : 'Budget épuisé pour ce trimestre.'}${prev}`, { btns: [{ t: `Lancer le trimestre ${q} ▶`, go: 1, v: 'go' }] }), pick])
+          pickRes = null; clicOn = false
           if (r === 'go') break
           const p = postes[r]
-          const opts = [0, 1, 2, 3, 4].filter((l) => p.lv[l] && !p.bought.has(l)).map((l) => ({ t: `<b>${LV[l]}</b> · ${p.lv[l]} <small>(${COST[l]} pts)</small>`, v: l }))
-          const choice = await say('boulon', `<b>${p.t}</b> · danger : ${p.h}<br>Budget : ${budget} pts. Que finances-tu ?`, { btns: [...opts.map((o) => ({ ...o, t: COST[o.v] > budget ? `<s>${o.t}</s>` : o.t })), { t: 'Annuler', v: -1 }], grid: true })
+          const opts = [0, 1, 2, 3, 4].filter((l) => p.lv[l] && !p.bought.has(l)).map((l) => ({ t: `<b>${LV[l]}</b> · ${p.lv[l]} <small>(${COST[l]} pt${COST[l] > 1 ? 's' : ''})</small><br><small>${EFFET[l]}</small>`, v: l }))
+          if (!opts.length || p.bought.has(0)) { await say('boulon', `<b>${p.t}</b> : ${p.bought.has(0) ? 'le danger est supprimé, rien à ajouter.' : 'toutes les mesures possibles sont déjà financées.'}`); continue }
+          const deja = [...p.bought].map((l) => LV[l]).join(', ')
+          const choice = await say('boulon', `<b>${p.t}</b> · danger : ${p.h}<br>${deja ? `Déjà en place : ${deja} (${Math.round(passe(p) * 100)} % des dangers blessent encore). ` : 'Aucune mesure : chaque danger de ce poste blesse l’équipe. '}Budget : <b>${budget} pts</b>. Que finances-tu ?`, { btns: [...opts.map((o) => ({ ...o, t: COST[o.v] > budget ? `<s>${o.t}</s>` : o.t })), { t: 'Annuler', v: -1 }], grid: true })
           if (choice < 0 || choice === undefined) continue
           if (COST[choice] > budget) { await say('boulon', 'Pas assez de budget ce trimestre. Garde des points pour le prochain, ou choisis une mesure moins chère.'); continue }
           place(p, choice)
           if (choice === 4 && ![0, 1, 2].some((l) => p.bought.has(l))) await say('boulon', 'Des EPI seuls ? C’est le dernier recours (§8.1.2) : ils n’arrêtent pas le danger, ils limitent seulement les dégâts.', { cls: 'bad' })
         }
         // le trimestre : chaque poste envoie q dangers, espacés
-        waveHits = 0; say('boulon', `<b>Trimestre ${q} en cours…</b> Regarde tes mesures travailler.`, { btns: [] })
+        waveHits = 0; B = {}; say('boulon', `<b>Trimestre ${q} en cours…</b> Les boules « ! » sont les dangers : regarde tes mesures les arrêter avant l’équipe.`, { btns: [] })
         const n0 = q <= 2 ? 1 : 2 // l'activité monte en cours d'année
         for (let k = 0; k < n0; k++) { postes.forEach((p, i) => setTimeout(() => spawn(p), (k * 1500 + i * 260) / SP)) }
         await new Promise((r) => setTimeout(r, ((n0 - 1) * 1500 + 5 * 260) / SP + 400))
@@ -134,7 +162,8 @@
         const ok = waveHits <= 2; pts(n, ok)
         budget += cfg.gain || 5
         const eliminated = postes.filter((p) => p.bought.has(0)).length
-        await say('boulon', `<b>Fin du trimestre ${q}</b> · ${waveHits ? `${waveHits} point${waveHits > 1 ? 's' : ''} de santé perdu${waveHits > 1 ? 's' : ''}` : 'aucun blessé'} · Équipe : ${hp} / ${HPMAX}<br>${eliminated ? `${eliminated} source${eliminated > 1 ? 's' : ''} de danger supprimée${eliminated > 1 ? 's' : ''} : elle${eliminated > 1 ? 's' : ''} ne coûte${eliminated > 1 ? 'nt' : ''} plus rien, trimestre après trimestre.` : 'Aucune source supprimée : les mêmes dangers reviendront au trimestre suivant.'} Budget du trimestre suivant : +${cfg.gain || 5} pts.`,
+        const bil = [['elim', 'supprimés à la source (élimination)'], ['subst', 'évités par la substitution'], ['coll', 'arrêtés par la protection collective'], ['orga', 'arrêtés par l’organisation'], ['epi', 'blessures évitées par les EPI']].filter(([k]) => B[k]).map(([k, t]) => `<b>${B[k]}</b> ${t}`)
+        await say('boulon', `<b>Fin du trimestre ${q}</b> · ${waveHits ? `${waveHits} point${waveHits > 1 ? 's' : ''} de santé perdu${waveHits > 1 ? 's' : ''}` : 'aucun blessé'} · Équipe : ${hp} / ${HPMAX} (objectif en fin d’année : ${Math.ceil(HPMAX / 2)})<br>${bil.length ? 'Tes mesures : ' + bil.join(' · ') + '.<br>' : 'Aucune mesure n’a joué : tous les dangers sont arrivés jusqu’à l’équipe.<br>'}${eliminated ? `${eliminated} source${eliminated > 1 ? 's' : ''} de danger supprimée${eliminated > 1 ? 's' : ''} : elle${eliminated > 1 ? 's' : ''} ne coûte${eliminated > 1 ? 'nt' : ''} plus rien, trimestre après trimestre.` : 'Aucune source supprimée : les mêmes dangers reviendront au trimestre suivant.'} Budget du trimestre suivant : +${cfg.gain || 5} pts.`,
           { btns: [{ t: q < Q ? 'Préparer le trimestre suivant' : 'Voir le bilan', go: 1 }], cls: ok ? 'good' : 'bad' })
       }
       // bilan pédagogique : répartition des mesures dans la hiérarchie
@@ -241,7 +270,7 @@
   /* aides de jeu (panneau « Le but / Commandes » du jeu) */
   const addHowto = () => {
     try {
-      HOWTO.budget = { but: 'Des dangers sortent des postes et marchent vers l’équipe. Chaque trimestre, finance des mesures sur les postes : plus la mesure est haute dans la hiérarchie, plus elle coûte… et plus elle protège. Garde l’équipe en bonne santé sur quatre trimestres.', kb: ['Clic sur un poste : financer une mesure', 'Bouton « Lancer le trimestre » : les dangers arrivent'], tc: ['Touche un poste : financer une mesure', 'Bouton « Lancer le trimestre » : les dangers arrivent'] }
+      HOWTO.budget = { but: 'Garder l’équipe au-dessus de la moitié de sa santé après quatre trimestres. Chaque trimestre, les cinq postes envoient des dangers vers l’équipe (1 par poste, puis 2 à partir du 3<sup>e</sup> trimestre). Avant chaque trimestre, dépense ton budget en mesures : elles restent en place toute l’année, et plus elles sont hautes dans la hiérarchie, plus elles coûtent et plus elles protègent.', kb: ['Clic sur un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'], tc: ['Touche un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'] }
       HOWTO.revue = { but: 'Trois manches sur le plateau de la revue de direction : buzze les entrées obligatoires, démasque les écarts de l’audit, réponds à la grande question.', kb: ['Clic sur le buzzer ou ESPACE : buzzer', 'Boutons : répondre'], tc: ['Touche le buzzer : buzzer', 'Boutons : répondre'] }
     } catch (e) { setTimeout(addHowto, 50) }
   }
