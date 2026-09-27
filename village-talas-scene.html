@@ -96,11 +96,15 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .toonui #frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(10,20,70,.32) 100%)}
 .pintro{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:pointer;font-family:"Luckiest Guy","Trebuchet MS",sans-serif;color:#fff}
 .pintro .pblack{position:absolute;inset:0;background:#05070d;transition:opacity .6s}
-.pintro .plogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.92);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transition:opacity .5s,transform 2.4s ease-out}
+.pintro .plogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.92);display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transition:opacity .6s,transform 5.6s ease-out}
 .pintro .plogo.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .pintro .pword{font-size:44px;letter-spacing:8px;padding-left:8px;text-align:center;background:linear-gradient(100deg,#8a93a6 0%,#8a93a6 40%,#fff 50%,#8a93a6 60%,#8a93a6 100%);background-size:300% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;color:transparent}
 .pintro .plogo.on .pword{animation:psweep 1.6s .3s ease-in-out forwards}@keyframes psweep{to{background-position:0 0}}
 .pintro .psub{font:600 13px/1 "Trebuchet MS",sans-serif;letter-spacing:8px;color:#8a93a6;text-transform:uppercase}
+.psub{opacity:0;transform:translateY(6px);transition:opacity .9s 1.9s,transform .9s 1.9s}.plogo.on .psub{opacity:1;transform:none}
+/* le bloc du logo est placé à left:50% : sans largeur propre il n'aurait que la moitié de l'écran et le nom passerait sur deux lignes */
+.pintro .plogo{width:max-content;max-width:94%}.pintro .pword,.pintro .psub{white-space:nowrap}.pintro .psub{text-align:center}
+@media (max-width:640px){.pintro .pword{font-size:30px;letter-spacing:5px}.pintro .psub{white-space:normal;letter-spacing:4px;line-height:1.5}}
 .pintro .pbar{position:absolute;left:0;right:0;height:12%;background:#000;transition:transform .6s ease}.pintro .ptop{top:0}.pintro .pbot{bottom:0}
 .pintro.out .ptop{transform:translateY(-101%)}.pintro.out .pbot{transform:translateY(101%)}
 .pintro .ptitle{position:absolute;left:0;right:0;top:36%;text-align:center;opacity:0;transform:scale(2.6);transition:opacity .25s,transform .35s cubic-bezier(.2,1.6,.4,1)}
@@ -208,6 +212,10 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="talas-config.js?v=2"></script>
+<script src="talas-panthere.js?v=1"></script>
+<script src="talas-props.js?v=1"></script>
+<script src="talas-ile.js?v=1"></script>
+<script src="talas-jeux.js?v=1"></script>
 <script>
 /* ================= UTILITAIRES ================= */
 const $=s=>document.querySelector(s);
@@ -246,10 +254,10 @@ function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.c
 const CH=[
  {cl:'§4',t:'Contexte',sub:'La maison du bureau en désordre',g:'Le fantôme en pantoufles'},
  {cl:'§5',t:'Leadership',sub:'La tour du grand patron',g:'Le combat contre le PDG et l’évacuation du géant'},
- {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Les tuyaux et le festin des mesures'},
+ {cl:'§6',t:'Planification',sub:'Le hangar des risques',g:'Le budget de l’atelier et le festin des mesures'},
  {cl:'§7',t:'Support',sub:'L’école des ressources',g:'Le karaoké sécurité et le centre de doc'},
  {cl:'§8',t:'Réalisation',sub:'L’usine à peinture',g:'L’échafaudage'},
- {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'Le polygraphe de Lorette'},
+ {cl:'§9',t:'Évaluation',sub:'L’observatoire de l’audit',g:'La revue de direction, le jeu télé'},
  {cl:'§10',t:'Amélioration',sub:'L’atelier des engrenages',g:'L’opération des causes'}
 ];
 const FICHE=[
@@ -656,9 +664,11 @@ function buildHub(){
         if(b.userData.smoke){const o=b.userData.smokeAt||[-1.2,4.9,-.6];b.userData.smoke.forEach((p,i)=>{const k=((T*.35+i/4)%1);p.position.set(o[0]+k*.6,o[1]+k*3,o[2]);p.scale.setScalar(.4+k*1.2)})}});
       const nx=nextN();if(nx!==null){const t=nx===7?HUB_TOWER:B[nx];const p=t.getWorldPosition(V(0,0,0));arrow.visible=true;const dd=V(-p.x,0,-p.z).normalize(),rg=arrow.userData.ring;arrow.position.set(p.x+dd.x*3.4,3.3+Math.abs(Math.sin(T*4))*.7,p.z+dd.z*3.4);arrow.scale.setScalar(1+Math.sin(T*8)*.06);rg.visible=true;rg.position.set(p.x+dd.x*3.4,.5,p.z+dd.z*3.4);rg.scale.setScalar(1+((T*1.5)%1)*.5)}else{arrow.visible=false;arrow.userData.ring.visible=false}
       if(!dragging&&!S.intro)W.yaw+=dt*.02*Math.sin(T*.2);
-      fx.update(dt);
+      fx.update(dt);if(W.ile)W.ile.update(dt,T);
       const q=new THREE.Quaternion();[...B,HUB_TOWER].forEach(b=>{b.getWorldQuaternion(q);b.userData.sign.quaternion.copy(q.invert().multiply(camera.quaternion))});
     }};
+  /* refonte de l'île (talas-ile.js) : détails et animations posés sur le relief ; ?ile=classique pour l'ancienne */
+  if(window.TALAS_ILE)try{W.ile=TALAS_ILE.decorate({s,THREE,SEA,B,tower:tw,plane:pl,rand,grad,outline,ILE})}catch(e){console.warn('île',e)}
   return W;
 }
 let HUB_TOWER;
@@ -3476,24 +3486,27 @@ function rayTex(){return PT.ray||(PT.ray=(()=>{const c=document.createElement('c
   const h=x.createLinearGradient(0,0,64,0);h.addColorStop(0,'rgba(0,0,0,1)');h.addColorStop(.5,'rgba(0,0,0,0)');h.addColorStop(1,'rgba(0,0,0,1)');x.globalCompositeOperation='destination-out';x.fillStyle=h;x.fillRect(0,0,64,256);return new THREE.CanvasTexture(c)})())}
 /* passe « peinture à la main » : coups de pinceau et ombre en bas des surfaces verticales */
 const PT_NOPAINT={sky:1};const PT_SHADE={cladding:1,crate:1,concrete:1,wood:1,yellow:1,skin:1,steel:1,checker:1,hangar:1};
+/* direction artistique du parcours (talas-panthere.js) : repeint les textures sous les mêmes clés */
+if(window.TALAS_DA)TALAS_DA.patch(PTD,PT_NOPAINT);
 function paintOver(x,w,h,k,R){for(let i=0;i<Math.round(w*h/900);i++){const X=R()*w,Y=R()*h,L=8+R()*30,a=(R()<.7?0:Math.PI/2)+(R()-.5)*.4;x.strokeStyle=R()<.5?'rgba(255,255,255,.07)':'rgba(10,20,60,.07)';x.lineWidth=2+R()*5;x.lineCap='round';x.beginPath();x.moveTo(X,Y);x.lineTo(X+Math.cos(a)*L,Y+Math.sin(a)*L);x.stroke()}
   if(PT_SHADE[k]){const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(255,255,255,.1)');g.addColorStop(.6,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(10,20,70,.2)');x.fillStyle=g;x.fillRect(0,0,w,h)}}
 function buildPlatformer(){
   LBL.font='Luckiest Guy';
-  const toon=(kind,pal,sc,fb)=>toonFromGLB(kind,pal,sc)||makeToon(Object.assign({scale:sc},fb));
-  const s=new THREE.Scene();s.background=ptx('sky');s.fog=new THREE.Fog('#9cc2ec',60,150);
-  s.add(new THREE.HemisphereLight('#ffffff','#a9c8f0',.92));const sun=new THREE.DirectionalLight('#fff6e6',.6);sun.position.set(-6,14,10);s.add(sun);
+  const toon=(kind,pal,sc,fb)=>{const o=toonFromGLB(kind,pal,sc)||makeToon(Object.assign({scale:sc},fb));/* direction Panthère : personnages en dessin animé (talas-panthere.js) */return window.TALAS_DA&&TALAS_DA.on&&TALAS_DA.cartoon?TALAS_DA.cartoon(o,kind):o};
+  const DA=window.TALAS_DA&&TALAS_DA.on?TALAS_DA.scene:null;
+  const s=new THREE.Scene();s.background=ptx('sky');s.fog=new THREE.Fog(...(DA?DA.fog:['#9cc2ec',60,150]));
+  s.add(new THREE.HemisphereLight(...(DA?DA.hemi:['#ffffff','#a9c8f0',.92])));const sun=new THREE.DirectionalLight(...(DA?DA.sun:['#fff6e6',.6]));sun.position.set(-6,14,10);s.add(sun);
   const fx=makeFX(s),PX=makeParts(s,1);
   const SOL=[],ONE=[],HZ=[],LAD=[],PICK=[],TIPS=[],BLK=[],BRK=[],TRAMPS=[],LIFTS=[],BALLS=[],EN=[],SHADE=[],ONO=[],LINES=[],ROBOTS=[],LAMPS=[];
   const bx=(w,h,d,m,x,y,z,p=s)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof m==='string'?flat(m):m);o.position.set(x,y,z);p.add(o);return o};
   /* ---------- le hangar : bardage et grande porte au fond, sol époxy, charpente, lampes ---------- */
-  const back=new THREE.Mesh(new THREE.PlaneGeometry(420,30),new THREE.MeshBasicMaterial({map:ptx('hangar',7,1),fog:false}));back.position.set(120,14,-34);back.userData.par=.35;s.add(back);new THREE.TextureLoader().load('assets/talas/hangar-fond.jpg?v=1',t=>{t.wrapS=THREE.RepeatWrapping;t.repeat.set(7,1);back.material.map=t;back.material.needsUpdate=true});
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(420,30),new THREE.MeshBasicMaterial({map:ptx('hangar',7,1),fog:false}));back.position.set(120,14,-34);back.userData.par=.35;s.add(back);if(!(DA&&DA.skipHangarPhoto))new THREE.TextureLoader().load('assets/talas/hangar-fond.jpg?v=1',t=>{t.wrapS=THREE.RepeatWrapping;t.repeat.set(7,1);back.material.map=t;back.material.needsUpdate=true});
   const far=new THREE.Mesh(new THREE.PlaneGeometry(520,40),pmat('floor2',30,2));far.rotation.x=-Math.PI/2;far.position.set(120,-.02,-26);s.add(far);
   for(let x=-10;x<260;x+=14){const t=new THREE.Group();t.position.set(x,22,-8);s.add(t);bx(14,.35,.35,pmat('steel',3,.3),0,0,0,t);bx(14,.35,.35,pmat('steel',3,.3),0,2.2,0,t);for(let k=0;k<7;k++){const d=bx(.2,2.6,.2,'#65627f',-6+k*2,1.1,0,t);d.rotation.z=k%2?.6:-.6}
     const lp=new THREE.Group();lp.position.set(x+7,19.6,-4);s.add(lp);bx(.05,2.4,.05,'#333',0,1.2,0,lp);const sh=mk(new THREE.ConeGeometry(.7,.5,16,1,true),'#f7c31c',0,0,0,lp);sh.material.side=THREE.DoubleSide;
     const gl=new THREE.Mesh(new THREE.PlaneGeometry(3.4,3.4),new THREE.MeshBasicMaterial({map:glowTex(),color:'#fff3c4',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));gl.position.set(0,-.3,.3);lp.add(gl);LAMPS.push(gl)}
   /* rayons de lumière sous la verrière */
-  for(let x=0;x<250;x+=38){const r=new THREE.Mesh(new THREE.PlaneGeometry(5,30),new THREE.MeshBasicMaterial({map:rayTex(),transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));r.position.set(x,11,-9);r.rotation.z=.32;s.add(r)}
+  if(!(DA&&DA.skipRays))for(let x=0;x<250;x+=38){const r=new THREE.Mesh(new THREE.PlaneGeometry(5,30),new THREE.MeshBasicMaterial({map:rayTex(),transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));r.position.set(x,11,-9);r.rotation.z=.32;s.add(r)}
   /* riveteurs au travail sur les tronçons, étincelles ; chariots automatiques à gyrophare */
   const BGW=[],AGV=[];[[24,-11.4],[68,-13.4],[122,-11.4],[180,-13.4],[236,-11.4]].forEach(([x,z])=>{bx(2,.2,1.2,pmat('checker',1,.6),x,2.6,z);[-.8,.8].forEach(q=>bx(.12,2.6,.12,'#f7c31c',x+q,1.3,z));
     const w=toon('worker',{shirt:'#2f9e44',sleeve:'#2f9e44'},.52,{shirt:'#2f9e44',pants:'#495057',hat:'#ffd43b',vest:1});w.position.set(x,2.7,z);w.rotation.y=Math.PI;s.add(w);
@@ -3535,7 +3548,7 @@ function buildPlatformer(){
     const g=new THREE.ExtrudeGeometry(sh,{depth:2.8,bevelEnabled:true,bevelSize:.15,bevelThickness:.3,bevelSegments:3,curveSegments:8});g.translate(0,0,-1.4);s.add(new THREE.Mesh(g,pmat('skin',.12,.2,tint)));
     [x0+.8,(x0+x1)/2,x1-.8].forEach(x=>bx(.3,.4,.3,'#f7c31c',x,.2,1.3))};
   /* cloisons de zone (panneaux bleus et blancs) au lieu de palissades */
-  const zone=(x0,x1,z=-3.6,h=2.4)=>{for(let x=x0;x<x1;x+=2.1){const p=bx(2,h+rand(-.15,.2),.12,x%4.2<2.1?'#ffffff':'#5b86c9',x+1,h/2,z+rand(-.1,.1));p.rotation.z=rand(-.035,.035)}
+  const zone=(x0,x1,z=-3.6,h=2.4)=>{for(let x=x0;x<x1;x+=2.1){const p=bx(2,h+rand(-.15,.2),.12,window.TALAS_DA&&TALAS_DA.on?pmat('fence',1,1,x%4.2<2.1?'#ffffff':'#ffe2c8'):x%4.2<2.1?'#ffffff':'#5b86c9',x+1,h/2,z+rand(-.1,.1));p.rotation.z=rand(-.035,.035)}
     for(let x=x0+3;x<x1;x+=12){const l=labelPlane(['ZONE ASSEMBLAGE','PORT DES EPI OBLIGATOIRE','ALLÉE PIÉTONS','ATTENTION ENGINS'][Math.floor(rand(0,4))],2,.5,{bg:'#fff',border:'#2f6fd6',fg:'#2f6fd6',size:70});l.position.set(x,1.8,z+.1);s.add(l)}};
   const toolbox=(x,z=-2.4)=>{const g=new THREE.Group();g.position.set(x,0,z);s.add(g);bx(1.4,1.1,.8,'#d62b1e',0,.55,0,g);for(let i=0;i<3;i++)bx(1.3,.05,.82,'#8a1a12',0,.3+i*.3,0,g);[-.5,.5].forEach(q=>{const w=mk(new THREE.CylinderGeometry(.1,.1,.08,10),'#222',q,.1,.42,g);w.rotation.x=Math.PI/2});g.rotation.z=rand(-.04,.04)};
   const drum=(x,z=-2.2,c='#2f6fd6')=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,1.1,16),flat(c));b.position.set(x,.55,z);s.add(b);[.2,.9].forEach(y=>{const r=new THREE.Mesh(new THREE.TorusGeometry(.43,.03,6,18),flat('#1a3a7a'));r.rotation.x=Math.PI/2;r.position.set(x,y,z);s.add(r)})};
@@ -3640,6 +3653,7 @@ function buildPlatformer(){
       tween(.5,k=>{b.position.x=st.pos.x+(147.4-st.pos.x)*k;b.position.y=st.pos.y+2.3+Math.sin(k*Math.PI)*1.2-k*(st.pos.y+1.2)}).then(()=>{s.remove(b);PX.puff(V(147.4,1.3,.4),8,{c:['#e0913a','#7a3b1e','#5aa832'],size:[.15,.3],sp:2});ono('MIAM !',V(147.4,2.6,.6),'#ffd23f','#d6336c')});
       DOG.off=1;say2('rivet','Wouf ! Slurp ! Le chien de sûreté engloutit le burger et va digérer dans sa niche. La porte du magasin EPI est libre.')},
     refuse:['rivet','Grrr… Wouf ! Le chien de sûreté garde le magasin EPI. Il a l’air affamé…']});
+  if(window.TALAS_DA&&TALAS_DA.on&&TALAS_DA.cartoon)TALAS_DA.cartoon(dog,'chien');
   /* ---------- le magasin EPI : façade qui s'efface quand Dylan entre ---------- */
   const shopF=new THREE.Group();s.add(shopF);{const cm=pmat('cladding',1.2,1.5,'#dfe8f7');bx(2.2,7.6,.4,cm,151.1,3.8,1.9,shopF);bx(12.6,7.6,.4,cm,161.7,3.8,1.9,shopF);bx(3.6,4.4,.4,cm,154,5.8,1.9,shopF);
     const aw=new THREE.Group();aw.position.set(160,4.6,2.6);shopF.add(aw);for(let i=0;i<10;i++)bx(.8,.25,1.4,i%2?'#ffffff':'#2f6fd6',-3.6+i*.8,0,0,aw);aw.rotation.x=.35;
@@ -3706,6 +3720,7 @@ function buildPlatformer(){
   const heartSvg=on=>`<svg width="18" height="16" viewBox="0 0 22 20"><path d="M11 18 2 9.5A5 5 0 0 1 11 3a5 5 0 0 1 9 6.5Z" fill="${on?'#ff4d8d':'none'}" stroke="${on?'#b3134f':'#ff4d8d'}" stroke-width="2"/></svg>`;
   const keySvg='<svg width="22" height="14" viewBox="0 0 30 16"><circle cx="7" cy="8" r="5" fill="none" stroke="#e0a820" stroke-width="3"/><path d="M12 7h16v3h-3v4h-3v-4h-3v3h-3v-3h-4z" fill="#f5c542"/></svg>';
   let hpShown=HPMAX;const hudP=()=>{const L=$('#plife');L.innerHTML=`<img src="${portraitURL('dylan')}" alt="Dylan"><div><b>x${st.hp}</b>${Array.from({length:HPMAX},(_,i)=>heartSvg(i<st.hp)).join('')}</div>`;if(st.hp<hpShown){L.classList.remove('hit');void L.offsetWidth;L.classList.add('hit')}hpShown=st.hp;$('#php').innerHTML=`<span class="pc">${coinSvg}x${String(st.coins).padStart(3,'0')}</span>${st.badge?' <b>BADGE</b>':''}${st.carry==='key'?' '+keySvg:''}`;$('#ppe').innerHTML='EPI '+PPE.map(p=>ppeIcon(p.k,st.ppe[p.k])).join('')};
+  if(window.TALAS_DA&&TALAS_DA.on&&TALAS_DA.decor)TALAS_DA.decor(s);/* flancs bordeaux du décor */
   const W={scene:s,fx,platformer:1,hd:1,fov:32,noOff:1,dylan:body,look:V(0,0,0),baseD:1,fitW:1,st,run(){return new Promise(r=>{W.resolve=r;hudP();if(!W.restored)say2('boulon','Bienvenue au hangar d’assemblage ! Dépose ton rapport d’inspection dans la salle de revue de direction, tout là-haut. Le chrono tourne !')})}};
   const end=(ok,cause)=>{if(st.done)return;st.done=true;W.cause=cause;W.time=st.t;$('#blind').style.opacity=0;cineOff();setTimeout(()=>W.resolve(ok),ok?900:350)};
   function dropCarry(silent){const k=st.carry;if(!k||k==='key')return;st.carry=null;held.visible=false;tmr.visible=false;const it=PICK.find(p=>p.kind==='prop'&&p.k===k);if(it){it.got=0;s.add(it.m);it.m.position.set(it.home[0],it.home[1],0)}if(!silent)PX.puff(V(st.pos.x,st.pos.y+2.4,0),4,{c:['#ffffff'],size:[.3,.5],sp:1.2})}
@@ -3723,7 +3738,7 @@ function buildPlatformer(){
     if(it.kind==='coin'){st.coins++;tsAdd('coins');beep(1200+st.coins%5*80,.05,'triangle',.03)}
     if(it.kind==='heart'){if(st.hp<HPMAX){st.hp++;ono('+1 !',V(it.x,it.y+1,.6),'#ffd6e7','#d6336c')}else{st.coins+=3;tsAdd('coins',3)}}
     if(it.kind==='badge'){st.badge=true;ono('BADGE !',V(it.x,it.y+1.2,.6),'#bfe6ff','#1971c2');say2('boulon','Ton badge d’accès ! Présente-le au portique de Georges, au bout de l’allée.')}
-    if(it.kind==='ppe'){const d=PPE.find(q=>q.k===it.k);st.ppe[it.k]=1;const rg=body.userData.rig;if(rg.glb)wearPPE(rg,it.k);else{const m=ppeMesh(it.k),at=rg.attach[it.k],shoe=it.k==='chaussures';m.position.set(at[0],at[1]-(shoe?0:.8),at[2]);m.scale.setScalar(at[3]);(shoe?rg.pose:rg.up).add(m)}ono('EPI !',V(it.x,it.y+1.4,.6),'#fff3bf','#e8590c');say2('boulon',`${d.n} ! ${d.l} Mais rappel §8.1.2 : l’EPI, c’est le dernier recours.`)}
+    if(it.kind==='ppe'){const d=PPE.find(q=>q.k===it.k);st.ppe[it.k]=1;const rg=body.userData.rig;if(rg.glb){wearPPE(rg,it.k);if(window.TALAS_DA&&TALAS_DA.on&&TALAS_DA.cartoon)TALAS_DA.cartoon(body,'dylan')}else{const m=ppeMesh(it.k),at=rg.attach[it.k],shoe=it.k==='chaussures';m.position.set(at[0],at[1]-(shoe?0:.8),at[2]);m.scale.setScalar(at[3]);(shoe?rg.pose:rg.up).add(m)}ono('EPI !',V(it.x,it.y+1.4,.6),'#fff3bf','#e8590c');say2('boulon',`${d.n} ! ${d.l} Mais rappel §8.1.2 : l’EPI, c’est le dernier recours.`)}
     hudP()}
   /* explosion cartoon : nuage rose, éclats, tache rose au sol */
   function boom(p,obj,word='BADABOUM !'){PX.puff(p,26,{c:['#ffffff','#e6eef4','#c9d3dc'],size:[.7,1.8],sp:5,up:2.2,life:[1,1.8]});PX.ring(V(p.x,.05,p.z),'#ffffff');shake();redFlash();ono(word,V(p.x,p.y+2,.8));
@@ -4021,13 +4036,15 @@ RUN[2]=async()=>{
    {w:'boulon',t:'§6.1.3 : on suit aussi les exigences légales. Ici : vérification des nacelles, valeurs limites pour les solvants, arrêté ICPE.'},
    {w:'karim',t:'Et les « opportunités », c’est quoi ? Moi je ne vois que des problèmes.'},
    {w:'boulon',t:'La norme demande d’évaluer les risques ET les opportunités ! Pour la SST, et pour le système lui-même (§6.1.2.2 et §6.1.2.3).'}]);
-  await trial(2,async()=>(await pipe3D(2,{time:50,hint:'Plan d’actions (§6.1.4) : chaque danger doit être relié à sa mesure. Tourne les tuiles de tuyau pour faire couler l’eau du bloc rouge (le danger) jusqu’au bloc vert (la mesure). Cinq tuyaux, 50 secondes chacun.',
-   rounds:[
-    {a:'Solvants CMR',b:'Aspiration à la source',fb:'Protection collective : elle protège tous les peintres, sans effort de leur part.'},
-    {a:'Travail sur l’aile',b:'Garde-corps',fb:'Contre la chute de hauteur, la protection collective passe avant le harnais.'},
-    {a:'Riveteuses 95 dB',b:'Capotage des machines',fb:'On réduit le bruit à la source avant de distribuer des bouchons.'},
-    {a:'Chariot dans l’allée',b:'Allées piétonnes séparées',fb:'Séparer les flux piétons et engins : protection collective, organisation du site.'},
-    {a:'Charges de 25 kg',b:'Aide à la manutention',fb:'Un palan ou un chariot adapté supprime le port de charges lourdes.'}]}))>=.5,CAUSES.risques);
+  /* §6.1.4 : le budget de l'atelier (talas-jeux.js), remplace les tuyaux */
+  await trial(2,async()=>(await TALAS_JEUX.budget3D(2,{hint:'Plan d’actions (§6.1.4) et objectifs (§6.2) : tu gères le budget prévention du hangar pour l’année. Cinq postes produisent des dangers qui marchent vers l’équipe. Chaque trimestre, finance des mesures : <b>élimination 5 pts, substitution 4, protection collective 3, organisation 2, EPI 1</b>. Objectif de l’année : garder l’équipe au-dessus de 50 % de santé.',
+   after:'Supprimer le danger coûte plus cher la première fois, mais il ne revient plus : c’est tout le sens de la hiérarchie des mesures (§8.1.2).',
+   postes:[
+    {t:'Cabine de peinture',h:'Solvants CMR',col:'#40c057',prop:'fut-chimique',sc:1.1,lv:['Supprimer le solvant','Peinture à l’eau','Aspiration à la source','Rotation des postes','Masque à cartouche']},
+    {t:'Travail sur l’aile',h:'Chute de hauteur',col:'#fd7e14',prop:'rayonnage',sc:.55,lv:['Travailler depuis le sol','','Garde-corps','Formation nacelle','Harnais']},
+    {t:'Rivetage',h:'Bruit 95 dB',col:'#845ef7',prop:'poste-soudure',sc:.8,lv:['','Riveteuse silencieuse','Capotage des machines','Rotation des postes','Bouchons d’oreille']},
+    {t:'Allée centrale',h:'Chariot et piétons',col:'#fab005',prop:'chariot-elevateur',sc:.45,ry:-.6,lv:['Supprimer le croisement','','Allées piétonnes séparées','Plan de circulation','Gilet haute visibilité']},
+    {t:'Réception',h:'Charges de 25 kg',col:'#339af0',prop:'palette',sc:1,lv:['Supprimer le port de charges','Pièces allégées','Palan de manutention','Formation gestes et postures','Gants et genouillères']}]}))>=.5,CAUSES.risques);
   await trial(2,async()=>(await feast3D(2,{time:60,spawn:[.7,1.1],hint:'À table pour le festin des mesures ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. L’imprimante les fait voler au-dessus de nos têtes et elles retombent dans nos assiettes. Tamponne les bonnes (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1 : plus c’est haut, plus c’est long à tamponner) et refile les fausses bonnes idées (−2) à tes voisins. Méfie-toi : on te refilera les nôtres, et on a les bras longs. Tape-nous sur les doigts ! Termine dans les deux premiers.',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
    items:[{t:'Supprimer le solvant',h:0},{t:'Supprimer le port de charges',h:0},{t:'Peinture à l’eau',h:1},{t:'Riveteuse silencieuse',h:1},
     {t:'Garde-corps',h:2},{t:'Aspiration à la source',h:2},{t:'Capotage',h:2},{t:'Filet sous la nacelle',h:2},
@@ -4088,32 +4105,36 @@ RUN[5]=async()=>{
    {w:'nar',t:'Six mois après le lancement. L’audit interne, avant la vraie certification.'},
    {w:'audit',t:'Bonjour Dylan. Je fais le tour des ateliers. Pour chaque constat, dis-moi : conforme ou écart ?'},
    {w:'boulon',t:'Attention : certains constats dépendent de tes choix dans les autres ateliers. C’est ça, un système !'}]);
-  await trial(5,async()=>(await poly3D(5,{sp:1.5,hint:'Lorette a branché son polygraphe. Les chefs d’équipe défilent et jurent que tout est conforme. <b>Quand ils mentent, leur nez s’allonge.</b> Tamponne ÉCART sur les menteurs avant qu’ils sortent, laisse passer ceux qui disent vrai. Certains mensonges viennent de tes choix dans les autres ateliers !',after:'Chaque écart ouvre une action corrective (§10.2).',
-   claims:[
+  /* §9.2 et §9.3 : revue de direction, le jeu télé (talas-jeux.js), remplace le polygraphe */
+  await trial(5,async()=>(await TALAS_JEUX.revue3D(5,{hint:'Aurelien a transformé la revue de direction en jeu télévisé. Trois manches : le buzzer des entrées (§9.3), le vrai ou faux de l’audit (§9.2), la grande question. <b>Certains constats dépendent de tes choix dans les autres ateliers !</b>',
+   after:'Chaque écart ouvre une action corrective (§10.2), et les décisions de la revue repartent vers le leadership (§5).',
+   entrees:[
+    {t:'Résultats de l’audit interne',ok:1,fb:'Entrée obligatoire : la revue examine les résultats d’audit (§9.3).'},
+    {t:'Le chiffre d’affaires du trimestre',fb:'Utile au comité de direction, pas une entrée de la revue SST.'},
+    {t:'Incidents, non-conformités et actions correctives',ok:1,fb:'Entrée obligatoire : les événements et leur traitement (§9.3, §10.2).'},
+    {t:'La couleur des nouveaux casques',fb:'Hors sujet : la revue juge l’efficacité du système, pas la déco.'},
+    {t:'Atteinte des objectifs SST',ok:1,fb:'Entrée obligatoire : où en est-on de nos objectifs (§6.2) ?'},
+    {t:'Résultats de la consultation des travailleurs',ok:1,fb:'Entrée obligatoire : consultation et participation (§5.4).'},
+    {t:'Le menu de la cantine',fb:'Hors sujet, même si le gratin fait débat.'},
+    {t:'Suivi des décisions de la revue précédente',ok:1,fb:'Entrée obligatoire : on vérifie que les décisions ont été appliquées.'},
+    {t:'Le nombre de mails envoyés par le service HSE',fb:'Un chiffre d’activité, pas de performance.'},
+    {t:'Changements des enjeux et des exigences légales',ok:1,fb:'Entrée obligatoire : le contexte évolue (§4, §6.1.3).'}],
+   constats:[
     {t:'L’issue de secours est dégagée.',lie:1,fb:'Elle est encombrée de cartons. Une sortie de secours reste dégagée en permanence (§8.2).'},
-    {t:'L’extincteur est sur son support.',lie:1,fb:'Le support est vide : la réponse aux urgences n’est plus garantie (§8.2).'},
     {t:'La nacelle a été vérifiée il y a 2 mois.',lie:1,fb:'Quatorze mois ! La vérification est obligatoire tous les 6 mois (§9.1.2).'},
     {t:'Le cobot est dans sa zone clôturée.',lie:!S.flags.changement,fb:'Ni barrière ni analyse : conséquence de ton choix à l’usine (§8.1.3).'},
     {t:'Le fût de solvant est fermé et étiqueté.',lie:!S.flags.prevention,fb:'L’entreprise de nettoyage l’a renversé : pas de plan de prévention (§8.1.4.2).'},
     {t:'Les intérimaires ont eu leur accueil.',lie:!S.flags.accueil,fb:'Un intérimaire erre sans équipement : l’accueil sauté à l’école des ressources (§7.3).'},
-    {t:'L’établi est rangé.'},{t:'Les cartons sont stockés hors passage.'}]}))>=.5,CAUSES.audit);
-  await say('audit','Et maintenant, les chefs du local de stockage. Ils marchent plus vite, ceux-là.');
-  await trial(5,async()=>(await poly3D(5,{sp:1.9,hint:'Local de stockage : même principe, les témoins pressent le pas.',after:'Deux zones auditées : tes constats partent en revue de direction (§9.3).',
-   claims:[
     {t:'Les câbles passent sous goulotte.',lie:1,fb:'Un câble est dénudé : risque d’électrisation. Consigner, réparer, protéger (§8.1.2).'},
-    {t:'On stocke à hauteur d’homme.',lie:1,fb:'Cartons empilés jusqu’au plafond : risque de chute d’objets.'},
-    {t:'La trousse de secours est complète.',lie:1,fb:'Elle est vide. Les moyens de premiers secours se vérifient régulièrement (§8.2).'},
-    {t:'L’issue du local est dégagée.',lie:1,fb:'Encombrée, même dans un local de stockage.'},
-    {t:'L’éclairage de secours fonctionne.',lie:1,fb:'Deux blocs sur trois sont morts : on évacuerait dans le noir (§8.2).'},
-    {t:'L’extincteur du local est en place.'},{t:'Les produits sont rangés par famille.'},{t:'Les allées sont marquées au sol.'}]}))>=.5,CAUSES.audit);
+    {t:'L’établi est rangé.'},{t:'Les produits sont rangés par famille.'}],
+   questions:[
+    {q:'Que doit produire la revue de direction ?',souffle:'Un beau compte rendu pour le classeur, non ?',opts:[{t:'Des décisions : le système est-il adapté, quelles actions si un objectif n’est pas atteint, quelles ressources',ok:1},{t:'Un compte rendu de réunion à ranger',ok:0},{t:'Des félicitations pour le service HSE',ok:0}],fb:'§9.3 : la revue produit des décisions et des moyens, pas seulement un document.'},
+    {q:'Qui conduit la revue de direction ?',souffle:'Dylan, tu t’en occupes ?',opts:[{t:'La direction : c’est son rôle de leadership',ok:1},{t:'Le responsable HSE, seul',ok:0},{t:'L’auditeur externe',ok:0}],fb:'La direction en est responsable (§5.1, §9.3). Le HSE prépare, la direction décide.'},
+    {q:'Et une fois la réunion terminée ?',souffle:'On affiche seulement les bons chiffres ?',opts:[{t:'On conserve une trace écrite et on communique les résultats aux travailleurs',ok:1},{t:'On n’en parle plus jusqu’à l’an prochain',ok:0},{t:'On affiche les résultats seulement s’ils sont bons',ok:0}],fb:'Informations documentées conservées et résultats communiqués (§9.3, §7.4).'}]}))>=.5,CAUSES.audit);
   await runScript(5,[{w:'audit',q:'Pour le tableau de bord SST, tu retiens quels indicateurs ?',opts:[
     {t:'Taux de fréquence, presque-accidents remontés, part des actions soldées à temps.',d:6,fb:'§9.1 : des résultats, des signaux faibles et le pilotage du système.'},
     {t:'Affiches dans le hall, épaisseur du classeur, mails envoyés.',d:-6,fb:'Ça mesure l’agitation, pas la performance.'},
     {t:'Le nombre d’accidents déclarés, point.',d:-4,fb:'Indicateur tardif, qui pousse à ne plus déclarer.'}]}]);
-  await runScript(5,[{w:'ceo',q:'Revue de direction. Je te donne dix minutes. Tu me montres quoi ?',opts:[
-    {t:'Les objectifs atteints ou non, les résultats d’audit, les incidents, l’avis des travailleurs, les ressources nécessaires. Et je vous demande de décider.',d:8,fb:'§9.3 : la revue de direction produit des décisions. Elle reboucle vers §5.'},
-    {t:'Une jolie présentation avec le nombre de formations.',d:-6,fb:'Des chiffres d’activité, aucune décision attendue.'},
-    {t:'Rien de spécial, pas d’accident ce mois-ci.',d:-8,fb:'L’absence d’accident ne prouve pas la maîtrise.'}]}]);
 };
 RUN[6]=async()=>{
   const p=S.flags.participation;if(!p)S.flags.accident=true;
@@ -4246,28 +4267,29 @@ function showLinks(){
 }
 
 /* ouverture façon jeu du commerce : logo du studio avec reflet, survol de l'île en cinémascope, titre qui claque ; clic ou touche pour passer */
-function proIntro(){return new Promise(res=>{const W=cur,d=document.createElement('div');d.className='pintro';
+/* LOGO : durée d'affichage du logo du studio (s), le temps de lire la signature ; le survol et le titre suivent */
+function proIntro(){const LOGO=5.6;return new Promise(res=>{const W=cur,d=document.createElement('div');d.className='pintro';
   d.innerHTML=`<div class="pblack"></div><div class="pbar ptop"></div><div class="pbar pbot"></div><div class="plogo"><svg width="120" height="92" viewBox="0 0 120 92"><g transform="rotate(180 60 44)"><path d="M16 60 Q16 16 60 14 Q104 16 104 60 Z" fill="#ffd43b" stroke="#1a1014" stroke-width="4"/><rect x="8" y="58" width="104" height="10" rx="5" fill="#f2b31d" stroke="#1a1014" stroke-width="4"/><path d="M60 14 V58" stroke="#1a1014" stroke-width="3"/><path d="M34 66 Q60 92 86 66" fill="none" stroke="#1a1014" stroke-width="3"/></g><circle cx="38" cy="74" r="3" fill="#8a93a6"/><circle cx="84" cy="80" r="2" fill="#8a93a6"/></svg><div class="pword">CASQUE À L’ENVERS</div><div class="psub">studio · présente · aucun blessé pendant la production</div></div>
     <div class="ptitle"><b>LE VILLAGE TALAS</b><i>UN JEU ISO 45001</i></div><div class="pflash"></div><div class="pskip">Clic ou touche pour passer</div>`;
   $('#frame').append(d);const q=c=>d.querySelector(c),t0=performance.now(),y0=W.yaw,d0=W.dist;let done=false,st=0;
   const chord=(f,dl)=>{try{f.forEach((x,i)=>setTimeout(()=>beep(x,.9,'triangle',.035),dl+i*60))}catch(e){}};
-  W.cam=()=>{const k=Math.max(0,(performance.now()-t0)/1000-2.2),e=Math.min(1,k/6.4),ez=1-Math.pow(1-e,3),a=y0+2.4*(1-ez),r=(d0||37)*(1.9-.9*ez);
+  W.cam=()=>{const k=Math.max(0,(performance.now()-t0)/1000-LOGO-.3),e=Math.min(1,k/6.4),ez=1-Math.pow(1-e,3),a=y0+2.4*(1-ez),r=(d0||37)*(1.9-.9*ez);
     camera.position.set(W.look.x+Math.sin(a)*r*.74,r*(.2+.42*ez)+4,W.look.z+Math.cos(a)*r*.74);camera.lookAt(W.look.x,W.look.y+2*(1-ez),W.look.z)};
   const end=gone=>{if(done)return;done=true;delete W.cam;if(gone===true){d.remove();removeEventListener('keydown',end,true);return res('gone')}d.classList.add('out');q('.pblack').style.opacity=0;q('.ptitle').style.opacity=0;removeEventListener('keydown',end,true);setTimeout(()=>{d.remove();res()},650)};
   d.onclick=()=>end();addEventListener('keydown',end,true);
   const tick=()=>{if(done)return;if(cur!==W)return end(true);const k=(performance.now()-t0)/1000;
     if(st===0&&k>.2){st=1;q('.plogo').classList.add('on');chord([392,494,587],200)}
-    if(st===1&&k>1.9){st=2;q('.plogo').style.opacity=0;q('.pblack').style.opacity=0}
-    if(st===2&&k>5){st=3;q('.ptitle').classList.add('on');q('.pflash').classList.add('on');chord([262,330,392,523],0);try{beep(70,.4,'square',.06)}catch(e){}}
-    if(k>9)return end();requestAnimationFrame(tick)};tick()})}
+    if(st===1&&k>LOGO){st=2;q('.plogo').style.opacity=0;q('.pblack').style.opacity=0}
+    if(st===2&&k>LOGO+3.1){st=3;q('.ptitle').classList.add('on');q('.pflash').classList.add('on');chord([262,330,392,523],0);try{beep(70,.4,'square',.06)}catch(e){}}
+    if(k>LOGO+7.1)return end();requestAnimationFrame(tick)};tick()})}
 /* ================= DÉMARRAGE ================= */
 async function start(){
   try{await Promise.race([Promise.all([document.fonts.load('600 40px "Pixelify Sans"'),document.fonts.load('600 40px "Paragraphe"','§')]),wait(2500)])}catch(e){}
-  try{await Promise.race([preloadIle(),wait(6000)])}catch(e){}
+  try{await Promise.race([Promise.all([preloadIle(),window.TALAS_ILE?TALAS_ILE.preload():0]),wait(8000)])}catch(e){}
   HUB=buildHub();setWorld(HUB);refreshSigns();loop();$('#loading').remove();S.intro=1;
   const m=modal(`<span class="tag">Un jeu ISO 45001 pour grands enfants</span><h1>Le Village <span>Talas</span></h1>
    <p>Tu es <b>Dylan</b>, alternant HSE chez Talas Aéronautique. Airbus exige la certification ISO 45001 dans douze mois. Ton CDI en dépend !</p>
-   <p>Boulon, ton robot guide, t’emmène dans les <b>sept ateliers</b> du village. Chaque atelier est un chapitre de la norme, avec son propre mini-jeu : lancer, combat, tuyaux, mémory, plateforme 2D, lampe torche et casse-briques. Et tes choix dans un atelier reviennent dans les autres : c’est ça, un <b>système</b>.</p>
+   <p>Boulon, ton robot guide, t’emmène dans les <b>sept ateliers</b> du village. Chaque atelier est un chapitre de la norme, avec son propre mini-jeu : lancer, combat, défense d’atelier, karaoké, plateforme 2D, jeu télévisé, lampe torche et casse-briques. Et tes choix dans un atelier reviennent dans les autres : c’est ça, un <b>système</b>.</p>
    <div class="grid"><div><b>Pour jouer</b>Souris ou doigt pour viser, tourner, éclairer. Flèches et ESPACE sur l’échafaudage et au casse-briques.</div><div class="r"><b>Attention</b>Rate un mini-jeu et Dylan meurt. Âmes sensibles s’abstenir.</div><div class="l"><b>Chrono</b>45 minutes pour tout réussir avant l’audit. Des étoiles et ton CDI à la clé.</div></div>
    ${TS.on()?`<div class="pseudo"><label for="pseudo"><b>Ton pseudo</b></label><input id="pseudo" maxlength="20" autocomplete="nickname"><small>Seuls ton pseudo et ta progression dans le jeu sont enregistrés, pour les statistiques. Aucun e-mail, aucune adresse IP.</small></div>`:''}
    <div class="row"><button class="btn go" id="play">Jouer</button><button class="btn alt" id="fs2">Plein écran</button></div>`);

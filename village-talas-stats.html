@@ -113,12 +113,12 @@ function build(ss,ev){const by={};ev.forEach(e=>(by[e.session_id]=by[e.session_i
    ['§5','Le combat contre le PDG','drop','red',fmt(sum('blood'),1)+' L','de sang du PDG versés sur la moquette'],
    ['§5','L’évacuation du géant','run','green',fmt(sum('run_m')/1000,1)+' km','courus en fuyant un PDG de 20 mètres'],
    ['§5','L’évacuation du géant','doc','green',fmt(sum('saved'))+' / '+fmt(sum('items')),'collègues sauvés / objets d’évacuation ramassés'],
-   ['§6','Les tuyaux du plan d’actions','pipe','',fmt(sum('tiles')),'tuiles de tuyau tournées (souvent dans le mauvais sens)'],
+   ['§6','Le budget de l’atelier','coin','',fmt(sum('mesures')),'mesures de prévention financées (et '+fmt(sum('parades'))+' dangers arrêtés)'],
    ['§6','Le festin des mesures','plate','yel',fmt(sum('meals')),'mesures de prévention englouties'],
    ['§7','Le karaoké sécurité','note','',fmt(sum('notes')),'fausses notes au quart d’heure sécurité'],
    ['§7','Le centre de doc','doc','red',fmt(sum('angry')),'visiteurs repartis furieux sans leur fiche'],
    ['§8','Le parcours de l’échafaudage','coin','yel',fmt(sum('coins')),'pièces ramassées sur le chantier'],
-   ['§9','Le polygraphe de Lorette','lie','red',fmt(sum('lies')),'mensonges de chefs d’équipe démasqués'],
+   ['§9','La revue de direction, le jeu télé','lie','red',fmt(sum('buzz')),'coups de buzzer sur le plateau (et '+fmt(sum('ecarts'))+' écarts d’audit démasqués)'],
    ['§10','L’opération des causes','scalpel','red',fmt(sum('bzzt')),'bzzzt : le patient a senti passer la pince']];
   $('#fun').innerHTML=F.map(([ch,n,k,c,v,l])=>`<div class="card ${c}">${ico(k)}<div><small class="mg">${ch} · ${n}</small><br><b>${v}</b></div><span>${l}</span></div>`).join('');
   $('#rows').innerHTML=S.map(s=>`<tr title="${esc(s.full)}"><td><b>${esc(s.p)}</b><br><span class="id">#${s.id} · ${s.at.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})} · ${s.min} min</span></td><td><div class="pips">${s.st.map((x,k)=>`<i class="pip ${x}" title="${CH[k]} ${NAMES[k]}">${CH[k].slice(1)}</i>`).join('')}</div></td><td>${s.cdi==null?'<span class="id">en cours</span>':`<div class="cdi"><i style="width:${s.cdi}%"></i></div>`}</td><td>${s.deaths}</td><td><span class="tag">${title(s)}</span></td></tr>`).join('');
@@ -130,7 +130,7 @@ function build(ss,ev){const by={};ev.forEach(e=>(by[e.session_id]=by[e.session_i
   const L=[];if(fast)L.push(['clock',`<b>${esc(fast.p)}</b> : ${fast.min} min. Plus rapide qu’une réunion CSE.`]);if(dead&&dead.deaths)L.push(['skull',`<b>${esc(dead.p)}</b> : ${dead.deaths} morts. L’inspection du travail est en route.`]);
   if(slow&&slow!==fast)L.push(['doc',`<b>${esc(slow.p)}</b> : ${slow.min} min. A probablement lu toute la norme.`]);if(!L.length)L.push(['clock','Personne n’a encore fini le jeu. Le podium attend.']);
   $('#fame').innerHTML=L.map(([k,t])=>`<div style="display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center">${ico(k).replace('<svg','<svg width="28" height="28"')}<span>${t}</span></div>`).join('')}
-$('#csv').onclick=()=>{const K=['slippers','blood','run_m','saved','items','tiles','meals','notes','angry','coins','lies','bzzt'];
+$('#csv').onclick=()=>{const K=['slippers','blood','run_m','saved','items','mesures','parades','meals','notes','angry','coins','buzz','ecarts','bzzt','tiles','lies'];/* tiles et lies : anciens jeux, gardés pour l’historique */
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',rows=[['pseudo','session','date','minutes','morts','certifie','cdi',...CH,...K].map(q).join(';')];
   DATA.forEach(s=>rows.push([s.p,s.full,s.at.toISOString(),s.min,s.deaths,s.win?1:0,s.cdi??'',...s.st,...K.map(k=>s.c[k]||0)].map(q).join(';')));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+rows.join('\n')],{type:'text/csv'}));a.download='talas-sessions.csv';a.click()};
