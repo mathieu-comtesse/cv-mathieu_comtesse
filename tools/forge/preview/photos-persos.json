@@ -1,0 +1,8 @@
+[
+ ["perso-dylan", "apres", "parcours:4:0.6:5", null],
+ ["perso-ouvrier", "apres", "parcours:30:0.6:7", null],
+ ["perso-georges", "apres", "parcours:56:0.6:7", null],
+ ["perso-bernard-chien", "apres", "parcours:141:0.6:8", null],
+ ["perso-dylan-avant", "avant", "parcours:4:0.6:5", null],
+ ["perso-bernard-chien-avant", "avant", "parcours:141:0.6:8", null]
+]

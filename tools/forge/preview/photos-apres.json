@@ -1,0 +1,8 @@
+[
+ ["apres-avion", "apres", [-2, 4.5, 21], [-6, 1.8, 15]],
+ ["apres-ateliers-nord", "apres", [0, 7, 2], [0, 2.5, -13]],
+ ["apres-atelier-ouest", "apres", [-5, 4, -2], [-12.5, 2, -3]],
+ ["apres-place-bancs", "apres", [6, 5.5, 9], [0, 1, 0]],
+ ["apres-vegetation", "apres", [-9, 5, -10], [-16, 2, -14]],
+ ["apres-rochers", "apres", [26, 9, -28], [48, 3, -52]]
+]
