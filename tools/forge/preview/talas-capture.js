@@ -205,6 +205,19 @@
       window.__isDone = () => finished
       return { seconds: 150, label, script: () => new Promise((r) => { const iv = setInterval(() => { if (finished) { clearInterval(iv); r() } }, 500) }), after: () => { stop(); window.TALAS_JEUX[jeu] = orig } }
     },
+    /* combat contre le PDG (§5), scénarisé : trois bonnes réponses (coups critiques), Aurelien fulmine (cravate dressée), coup final */
+    async combat() {
+      hideUi(); let finished = false
+      const A = arena3D(); window.__isDone = () => finished
+      const script = async () => {
+        try {
+          await A.intro(1); await A.skill('resp', true, 26); await A.skill('cout', true, 26)
+          A.round1(); await A.rage(); await A.intro(2); await A.skill('bird', true, 26); await A.finish('C')
+        } catch (e) { console.error(e) }
+        finished = true
+      }
+      return { seconds: 60, label: '§5 · Le combat contre le PDG', script, after: () => { try { A.destroy() } catch (e) {} } }
+    },
     /* parcours en vue fixe : Dylan posé à (x, y), la caméra du jeu le suit ; avant ou après la direction Panthère */
     async pvue({ apres, x, y, zoom }) {
       hideUi()

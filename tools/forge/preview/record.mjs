@@ -17,6 +17,7 @@ const LOG = join(OUT, 'journal.txt'); writeFileSync(LOG, '')
 const args = process.argv.slice(2), SHORT = args.includes('--court')
 const ALL = {
   budget: ['atelier', { n: 2, jeu: 'budget3D', label: '§6 · Le budget de l’atelier', plan: { 1: [[0, 2], [1, 2], [3, 4]], 2: [[3, 2], [4, 3], [2, 4]], 3: [[0, 0]], 4: [[2, 2], [4, 2]] } }],
+  combat: ['combat', {}],
   revue: ['atelier', { n: 5, jeu: 'revue3D', label: '§9 · La revue de direction, le jeu télé' }],
   intro: ['intro', {}], 'ile-avant': ['ile', { apres: false }], 'ile-apres': ['ile', { apres: true }], 'parcours-avant': ['parcours', { apres: false }], 'parcours-apres': ['parcours', { apres: true }] }
 const wanted = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--photos'); if (args.includes('--planche') && !wanted.length) wanted.push('__aucun')
