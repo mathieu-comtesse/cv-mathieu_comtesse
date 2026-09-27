@@ -233,7 +233,9 @@
       HUB = buildHub(); setWorld(HUB); if (typeof refreshSigns === 'function') refreshSigns(); window.__vueBuilt = false
       const t0 = performance.now(), D = 48000
       HUB.cam = () => { const k = (performance.now() - t0) / D; window.TALAS_NUIT.fixe = (k + .015) % 1; const a = -.5 + k * 1.2
-        camera.position.set(Math.sin(a) * 50, 13 + Math.sin(k * 6.28) * 3, Math.cos(a) * 50); camera.lookAt(0, 7, 0) }
+        // survol entre la plage (≈ 30 m) et les rochers en mer (≥ 42 m) ; on s'écarte encore d'un rocher trop proche
+        let R = 36; (window.TALAS_ILE.rocks || []).forEach((r) => { const d = Math.hypot(Math.sin(a) * R - r.x, Math.cos(a) * R - r.z); if (d < (r.R0 || 3) + 4) R = Math.max(31, R - ((r.R0 || 3) + 4 - d)) })
+        camera.position.set(Math.sin(a) * R, 12 + Math.sin(k * 6.28) * 2.5, Math.cos(a) * R); camera.lookAt(0, 5, 0) }
       return { seconds: 48, label: 'L’île aux tourbillons : une journée', script: () => sleep(D), after: () => { window.TALAS_NUIT.fixe = null } }
     },
     /* combat contre le PDG (§5), scénarisé : trois bonnes réponses (coups critiques), Aurelien fulmine (cravate dressée), coup final */
