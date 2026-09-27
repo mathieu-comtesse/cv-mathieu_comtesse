@@ -1,0 +1,48 @@
+{
+ "id": "crochet-grue",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\industrial-crane-hook\\model.ts",
+ "size": [
+  0.555,
+  1.1,
+  0.419
+ ],
+ "parts": [
+  "housing",
+  "hook",
+  "safety_latch"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#e0ebef",
+   "unlit": false
+  },
+  "bleu_fonce": {
+   "hex": "#6c828f",
+   "unlit": false
+  },
+  "bleu_nuit": {
+   "hex": "#1e3f60",
+   "unlit": false
+  },
+  "bleu_nuit2": {
+   "hex": "#002850",
+   "unlit": false
+  },
+  "bleu_pale": {
+   "hex": "#8ea3af",
+   "unlit": false
+  },
+  "lum_cyan": {
+   "hex": "#00b5cf",
+   "unlit": true
+  },
+  "lum_orange": {
+   "hex": "#ef9500",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#ef9500",
+   "unlit": false
+  }
+ }
+}

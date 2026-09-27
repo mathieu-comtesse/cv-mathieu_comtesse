@@ -1,0 +1,23 @@
+{
+ "id": "lampadaire",
+ "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\tools\\forge\\models\\ile-mobilier.mts",
+ "size": [
+  0.764,
+  2.75,
+  0.373
+ ],
+ "parts": [
+  "poteau",
+  "lanterne"
+ ],
+ "roles": {
+  "lum_jaune": {
+   "hex": "#ffcf40",
+   "unlit": true
+  },
+  "violet_nuit": {
+   "hex": "#4b3660",
+   "unlit": false
+  }
+ }
+}

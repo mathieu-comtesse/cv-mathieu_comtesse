@@ -1,0 +1,46 @@
+{
+ "id": "coffret-fusibles",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\industrial-fuse-box\\model.ts",
+ "size": [
+  0.58,
+  0.6,
+  0.286
+ ],
+ "parts": [
+  "corps"
+ ],
+ "roles": {
+  "bleu_nuit": {
+   "hex": "#284150",
+   "unlit": false
+  },
+  "brun": {
+   "hex": "#605442",
+   "unlit": false
+  },
+  "cyan_fonce": {
+   "hex": "#546970",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#a4afae",
+   "unlit": false
+  },
+  "gris_clair2": {
+   "hex": "#d1dfd6",
+   "unlit": false
+  },
+  "gris_clair3": {
+   "hex": "#b3bfbe",
+   "unlit": false
+  },
+  "lum_cyan": {
+   "hex": "#00efef",
+   "unlit": true
+  },
+  "lum_orange": {
+   "hex": "#df3800",
+   "unlit": true
+  }
+ }
+}

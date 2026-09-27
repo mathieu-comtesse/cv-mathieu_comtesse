@@ -1,0 +1,54 @@
+{
+ "id": "fut-chimique",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\chemical-drum\\model.ts",
+ "size": [
+  0.623,
+  0.9,
+  0.647
+ ],
+ "parts": [
+  "corps"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#ffffff",
+   "unlit": false
+  },
+  "bleu_nuit": {
+   "hex": "#3c4e60",
+   "unlit": false
+  },
+  "bleu_nuit2": {
+   "hex": "#1e3750",
+   "unlit": false
+  },
+  "bleu_nuit3": {
+   "hex": "#183140",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#d1dfdc",
+   "unlit": false
+  },
+  "gris_clair2": {
+   "hex": "#99aaaf",
+   "unlit": false
+  },
+  "lum_jaune": {
+   "hex": "#ffff20",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#ef7800",
+   "unlit": false
+  },
+  "rouge": {
+   "hex": "#bf1818",
+   "unlit": false
+  },
+  "rouge_fonce": {
+   "hex": "#805d58",
+   "unlit": false
+  }
+ }
+}
