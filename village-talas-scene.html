@@ -218,6 +218,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-jeux.js?v=1"></script>
 <script src="talas-ile-nuit.js?v=1"></script>
 <script src="talas-salles.js?v=1"></script>
+<script src="talas-jetski.js?v=1"></script>
 <script>
 /* ================= UTILITAIRES ================= */
 const $=s=>document.querySelector(s);
@@ -4179,17 +4180,10 @@ RUN[6]=async()=>{
     {t:'Pas de filet sous la nacelle',fb:'Protection collective d’abord (§8.1.2).'},
     {t:'Cadence doublée sans analyse',fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'},
     {t:'Zone dessous non balisée',fb:'On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2).'}]}))>=.5,CAUSES.correct);
-  await say('boulon','<b>Deuxième patient !</b> Huit causes organisationnelles, des couloirs plus étroits… et un hoquet carabiné.');
-  await trial(6,async()=>(await surgery3D(6,{w:.44,wig:.62,hic:[1.6,2.8],time:90,bpm:1.55,squeeze:.42,clots:7,clotSp:1.5,pen:7,tremble:.04,hint:'Même opération, en pire : couloirs plus étroits, hoquet deux fois plus fréquent, cœur qui s’emballe et presque deux fois plus de caillots. Attends la fin du HIC et du BOUM-BOUM avant de passer un virage.',after:'Traiter les causes organisationnelles, c’est empêcher la prochaine chute d’outil, pas seulement celle-ci (§10.2).',
-   causes:[
-    {t:'Pas d’analyse du changement',fb:'§8.1.3 : un changement se prépare.'},
-    {t:'Formation nacelle périmée',fb:'§7.2 : compétences à maintenir.'},
-    {t:'Plan de prévention absent',fb:'§8.1.4.2 : coordination avec les entreprises extérieures.'},
-    {t:'Retour d’expérience jamais partagé',fb:'§10.3 : ce qu’on apprend doit circuler.'},
-    {t:'Indicateurs qui cachent tout',fb:'§9.1 : mesurer vrai, même quand ça fait mal.'},
-    {t:'Intérimaire sans tuteur',fb:'§7.3 : un nouveau ne reste jamais seul la première semaine.'},
-    {t:'Maintenance reportée',fb:'§8.1 : un équipement non entretenu devient un danger.'},
-    {t:'Alerte du CSE ignorée',fb:'§5.4 : écouter les représentants, c’est gagner du temps.'}]}))>=.5,CAUSES.correct);
+  /* §10.3 : la régate de l'amélioration continue (talas-jetski.js), remplace le deuxième patient */
+  await say('boulon','<b>Fin de l’opération.</b> Place à l’amélioration continue : on ne corrige pas qu’une fois, on progresse tour après tour !');
+  await trial(6,async()=>(await TALAS_JETSKI.course(6,{tours:3,hint:'La régate de l’amélioration continue (§10.3) : trois tours de jet-ski autour de l’île Talas contre Neila, Eliott et Mathieu. Chaque bouée passée du bon côté te donne de la puissance ; chaque bouée manquée est un écart. À la fin de chaque tour, choisis l’action corrective (§10.2), puis fais mieux !',
+   after:'Détecter l’écart, en chercher la cause, corriger, vérifier que ça marche, et recommencer en visant plus haut : c’est la boucle de l’amélioration continue (§10.2 et §10.3).'}))>=.5,CAUSES.correct);
   await runScript(6,[{w:'ceo',q:'Et ensuite ? On clôt le dossier ?',opts:[
     {t:'On vérifie l’efficacité dans trois mois, on met des longes sur tous les postes en hauteur, et on partage le retour d’expérience avec l’autre site.',d:8,fb:'§10.3 : amélioration continue. L’action se généralise et la boucle repart vers §6.1.'},
     {t:'Oui, on a sanctionné le responsable.',d:-8,fb:'Chercher un coupable éteint les remontées. Les causes sont souvent organisationnelles.'},
