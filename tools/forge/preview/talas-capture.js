@@ -227,6 +227,18 @@
       window.__isDone = () => finished
       return { seconds: 75, label: '§6 · Le festin des mesures', script: () => new Promise(() => {}), after: () => { clearInterval(iv); window.feast3D = orig; window.TALAS_JEUX.budget3D = bud } }
     },
+    /* aperçu d'un mini-jeu : on lance le vrai chapitre, les autres mini-jeux du chapitre sont court-circuités,
+       les dialogues sont validés automatiquement ; window.__jeuT marque le début du jeu visé */
+    async apercu({ n, fn }) {
+      document.querySelectorAll('.mbody').forEach((m) => { let p = m; while (p.parentElement && p.parentElement.id !== 'frame') p = p.parentElement; p.style.visibility = 'hidden' })
+      const R = buildRoom(n); setWorld(R); S.ch = n; S.res[n] = { o: 0, t: 0 }; S.done[n] = false; window.__jeuT = 0
+      const JX = window.TALAS_JEUX, noms = ['catch3D', 'battle', 'run3D', 'feast3D', 'karaoke3D', 'docs2D', 'surgery3D', 'budget3D', 'revue3D']
+      noms.forEach((k) => { const host = JX[k] ? JX : window, orig = host[k]; if (!orig) return
+        host[k] = k === fn ? (...a) => { if (!window.__jeuT) window.__jeuT = performance.now(); return orig(...a) } : async () => 1 })
+      setInterval(() => { const P = document.getElementById('pact'), panel = document.getElementById('panel'); if (P && panel && !panel.hidden) { const b = P.querySelector('.btn.go') || P.querySelector('button'); if (b) b.click() } }, 900)
+      RUN[n]().catch((e) => console.error(e))
+      return { seconds: 1, label: '', script: () => sleep(1000) }
+    },
     /* une journée complète sur l'île aux tourbillons, en 48 s, caméra en lent survol */
     async cycle() {
       hideUi(); window.TALAS_NUIT.on = true; window.TALAS_ILE.on = true; await window.TALAS_ILE.preload()
