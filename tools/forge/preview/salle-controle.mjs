@@ -13,12 +13,12 @@ const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = resolve(HERE, '../.
 const CHROME = process.env.CHROME || ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome'].find(existsSync)
 const FFMPEG = process.env.FFMPEG || 'ffmpeg', W = 1120
 
-/* sessions fictives : mêmes joueurs que l'aperçu précédent, compteurs des nouveaux jeux (§6 budget, §9 jeu télé) */
+/* sessions fictives : mêmes joueurs que l'aperçu précédent, compteurs des nouveaux jeux (§6 budget, §9 jeu télé, §10 régate) */
 const DATA = `(() => {
   const P = [
     // pseudo, début, minutes, statut §4..§10 (ok / ko / run / no), morts, fin {win, cdi}, compteurs
     ['Kevin_du_BTP', '2026-09-27T09:45', 40, ['ok','ok','ko','ok','ok','ko','ok'], 2, { win: 1, cdi: 88 },
-      { slippers: 4, blood: 14, run_m: 1900, saved: 5, items: 9, mesures: 12, parades: 21, meals: 14, notes: 6, coins: 41, buzz: 9, ecarts: 4, bzzt: 3 }],
+      { slippers: 4, blood: 14, run_m: 1900, saved: 5, items: 9, mesures: 12, parades: 21, meals: 14, notes: 6, coins: 41, buzz: 9, ecarts: 4, bzzt: 3, jet_vol: 14.6, jet_eau: 37.5, jet_plongeon: 3, jet_ecarts: 5, jet_plage: 2, signalements: 5, bouees: 37, etapes10: 12 }],
     ['LaPréventrice', '2026-09-27T09:50', 4, ['ok','ok','run','no','no','no','no'], 9, null, { slippers: 3, blood: 9, run_m: 800, saved: 2, items: 4, mesures: 3, parades: 4 }],
     ['<b>Hack</b>', '2026-09-27T09:55', 2, ['run','no','no','no','no','no','no'], 0, null, { slippers: 1 }],
     ['Jean-Norme', '2026-09-27T10:00', 4, ['ok','ok','ko','ok','run','no','no'], 1, null, { slippers: 5, blood: 6, run_m: 1100, saved: 3, items: 6, mesures: 9, parades: 15, meals: 8, notes: 4, angry: 1, coins: 18 }],
