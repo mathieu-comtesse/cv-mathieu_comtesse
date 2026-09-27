@@ -175,7 +175,7 @@
         if (E.manche === 1 && E.carte && E.carte !== pending && tick % 3 === 0) { pending = E.carte; const hit = !!E.carte.ok !== (Math.random() < .1); if (hit) setTimeout(() => dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ' })), 900 + Math.random() * 900) }
         return
       }
-      if (/Clique un poste/.test(txt)) { // préparation d'un trimestre du budget
+      if (/Prévision/.test(txt)) { // préparation d'un trimestre du budget
         const m = /Trimestre (\d)/.exec(txt); q = m ? +m[1] : q
         if (tick % 3) return
         const todo = (plan[q] || []).shift()
@@ -204,6 +204,28 @@
       RUN[n]().catch((e) => console.error(e))
       window.__isDone = () => finished
       return { seconds: 150, label, script: () => new Promise((r) => { const iv = setInterval(() => { if (finished) { clearInterval(iv); r() } }, 500) }), after: () => { stop(); window.TALAS_JEUX[jeu] = orig } }
+    },
+    /* festin des mesures (§6) : Dylan laisse son assiette se remplir, les voisins piquent, S tape sur les doigts */
+    async festin() {
+      document.querySelectorAll('.mbody').forEach((m) => { let p = m; while (p.parentElement && p.parentElement.id !== 'frame') p = p.parentElement; p.style.visibility = 'hidden' })
+      const R = buildRoom(2); setWorld(R); S.ch = 2; S.res[2] = { o: 0, t: 0 }; S.done[2] = false
+      let finished = false, tick = 0, seen = ''; const orig = window.feast3D
+      window.feast3D = (...a) => orig(...a).then((r) => { finished = true; return r })
+      const bud = window.TALAS_JEUX.budget3D; window.TALAS_JEUX.budget3D = async () => 1 // le budget a sa propre séquence
+      const key = (k) => { dispatchEvent(new KeyboardEvent('keydown', { key: k })); setTimeout(() => dispatchEvent(new KeyboardEvent('keyup', { key: k })), 120) }
+      const iv = setInterval(() => {
+        if (!tick) window.__festinLog = performance.now() - 200
+        tick++; const P = document.getElementById('pact'), panel = document.getElementById('panel')
+        if (P && panel && !panel.hidden) { if (tick % 4 === 0) (P.querySelector('.btn.go') || P.querySelector('button') || { click() {} }).click(); return }
+        const w = [...document.querySelectorAll('.win')].map((e) => e.hidden ? '' : e.textContent).join('')
+        if (/Une main dans ton assiette|pique/.test(w) && w !== seen) { seen = w; setTimeout(() => key('s'), 350) }
+        if (/CLAC|pique «|Une main/.test(w) && w !== window.__lw) { window.__lw = w; console.warn('[festin] ' + ((performance.now() - window.__festinLog) / 1000).toFixed(1) + ' ' + w) }
+        if (tick % 25 === 0) key('s')      // un coup dans le vide, pour voir le geste
+        if (tick % 9 === 0) key(' ')       // tamponne de temps en temps
+      }, 200)
+      RUN[2]().catch((e) => console.error(e))
+      window.__isDone = () => finished
+      return { seconds: 75, label: '§6 · Le festin des mesures', script: () => new Promise(() => {}), after: () => { clearInterval(iv); window.feast3D = orig; window.TALAS_JEUX.budget3D = bud } }
     },
     /* combat contre le PDG (§5), scénarisé : trois bonnes réponses (coups critiques), Aurelien fulmine (cravate dressée), coup final */
     async combat() {
