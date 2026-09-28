@@ -1,0 +1,299 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Le Palais et l’Oiseau · ISO 45001</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Jeu sérieux ISO 45001 en hommage à Paul Grimault et à son film Le Roi et l’Oiseau : sept étages d’un palais démesuré, sept chapitres de la norme.">
+<style>
+:root{--ink:#2b1d24;--paper:#f3e6c8;--gold:#c9a57f;--red:#c8321f}
+html,body{margin:0;height:100%;background:#1b1420;overflow:hidden;font-family:Georgia,"Times New Roman",serif;color:var(--paper)}
+#wrap{position:fixed;inset:0;display:grid;place-items:center}
+#stage{position:relative;width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;font-size:min(2vw,3.55vh);background:#000;overflow:hidden}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+.ov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(20,12,28,.5);padding:2%;box-sizing:border-box;text-align:center}
+.ov[hidden]{display:none}
+.card{max-width:34em;background:var(--paper);color:var(--ink);border:.15em solid var(--ink);box-shadow:0 0 0 .3em var(--gold),0 0 0 .45em var(--ink);padding:1.1em 1.6em;line-height:1.35}
+.card h1{margin:.1em 0 .2em;font-size:2.1em;font-weight:400;font-style:italic;letter-spacing:.02em;line-height:1.05}
+.card h2{margin:0 0 .3em;font-size:1.25em;font-weight:400;font-style:italic}
+.card p{margin:.35em 0;font-size:.95em}
+.card small{display:block;opacity:.75;font-size:.75em;margin-top:.5em;letter-spacing:.03em}
+.kick{font-size:.7em;letter-spacing:.22em;text-transform:uppercase;color:#8a4a2a}
+button.b{font:inherit;font-size:1em;background:#d9622b;color:#fff8e8;border:.12em solid var(--ink);padding:.35em 1.1em;margin:.5em .25em 0;cursor:pointer;box-shadow:0 .18em 0 var(--ink);border-radius:.15em}
+button.b:active{transform:translateY(.12em);box-shadow:0 .06em 0 var(--ink)}
+button.b.alt{background:#e7d3a8;color:var(--ink)}
+.opts{display:grid;gap:.45em;margin-top:.6em;text-align:left}
+.opts button{font:inherit;font-size:.9em;text-align:left;background:#fbf3de;color:var(--ink);border:.1em solid var(--ink);padding:.4em .7em;cursor:pointer;border-radius:.15em}
+.opts button:hover:not(:disabled){background:#ffe9a8}.opts button.ok{background:#b8e0a8}.opts button.ko{background:#f2b3a6}.opts button:disabled{cursor:default}
+.why{margin-top:.5em;font-size:.85em;font-style:italic;min-height:2.6em}
+#pad{position:absolute;left:0;right:0;bottom:2%;display:none;justify-content:space-between;padding:0 2.5%;pointer-events:none}
+.touch #pad{display:flex}
+#pad div{display:flex;gap:.6em;pointer-events:auto}
+#pad button{width:4.4em;height:4.4em;border-radius:50%;border:.12em solid var(--ink);background:rgba(243,230,200,.55);color:var(--ink);font:inherit;font-size:1em;touch-action:none}
+#pad .big{width:5.6em;height:5.6em;background:rgba(217,98,43,.7);color:#fff}
+#skip{position:absolute;right:1%;top:1%;font-size:.7em;opacity:.8}
+</style></head><body>
+<div id="wrap"><div id="stage"><canvas id="cv" width="800" height="450" aria-label="Le Palais et l’Oiseau, jeu de plateforme ISO 45001"></canvas>
+<div id="pad"><div><button data-k="l" aria-label="Gauche">◀</button><button data-k="r" aria-label="Droite">▶</button></div><div><button data-k="a" aria-label="Agir">E</button><button class="big" data-k="j" aria-label="Sauter">▲</button></div></div>
+<div class="ov" id="ov"></div></div></div>
+<script>
+'use strict';
+/* Le Palais et l’Oiseau : jeu ISO 45001 en hommage à Paul Grimault et à « Le Roi et l’Oiseau » (1980).
+   Décors, personnages et textes sont originaux ; seul l’esprit (palais vertigineux, tyran, oiseau) est cité. */
+const TS=32,VW=800,VH=450,LH=18;
+const $=s=>document.querySelector(s),cv=$('#cv'),g=cv.getContext('2d'),ov=$('#ov');
+let SC=1;function fit(){const w=cv.clientWidth||800,r=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*r);cv.height=Math.round(w*9/16*r);SC=cv.width/VW}
+addEventListener('resize',fit);fit();
+if(matchMedia('(pointer: coarse)').matches)document.documentElement.classList.add('touch');
+const rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,k)=>a+(b-a)*k;
+
+/* ---------- sons ---------- */
+let AC=null;function beep(f,d=.12,type='triangle',v=.05,f2){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),a=AC.createGain();o.type=type;o.frequency.value=f;if(f2)o.frequency.exponentialRampToValueAtTime(f2,AC.currentTime+d);a.gain.value=v;a.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.connect(a);a.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+
+/* ---------- les sept étages : un chapitre de l’ISO 45001 par étage ---------- */
+const LV=[
+ {n:'La cour des gardes',cl:'§4',t:'Contexte de l’organisme',seed:11,haz:['B'],
+  pal:{sky:['#f3d9b1','#9fc9c4'],far:'#c9a98a',mid:'#a98770',stone:'#8a6f5b',top:'#c9a57f'},
+  tip:'Des tonneaux dévalent la cour. Saute par-dessus ! Et souviens-toi : le palais, ce n’est pas que le roi.',
+  quiz:{q:'Pour définir le périmètre de son système de management SST, le palais doit tenir compte de…',
+   o:[['du seul roi, qui décide de tout.',0],['des travailleurs, sous-traitants, visiteurs et autres parties intéressées, et de leurs attentes.',1],['du seul inspecteur, qui passe une fois par an.',0]],
+   why:'§4.1 à 4.3 : on comprend le contexte et les besoins des travailleurs et des autres parties intéressées avant de fixer le périmètre.'}},
+ {n:'Le grand escalier',cl:'§5',t:'Leadership et participation',seed:23,haz:['^'],
+  pal:{sky:['#f0cfc4','#b8a5c9'],far:'#b993a8',mid:'#94708a',stone:'#6f5670',top:'#b592a8'},
+  tip:'Les marches sont piégées de lames. Regarde avant de sauter : un danger visible se contourne.',
+  quiz:{q:'Le roi décide seul et n’écoute jamais les ramoneurs. Que demande la norme ?',
+   o:[['Que la direction s’engage, fixe une politique SST et consulte les travailleurs, y compris non-cadres.',1],['Que le roi désigne un coupable en cas d’accident.',0],['Que les ramoneurs se débrouillent entre eux.',0]],
+   why:'§5.1 à 5.4 : engagement de la direction, politique SST, rôles clairs, consultation et participation des travailleurs.'}},
+ {n:'La salle des machines',cl:'§6',t:'Planification : dangers et risques',seed:37,haz:['L'],
+  pal:{sky:['#cfd8c3','#7fa39a'],far:'#8fb0a5',mid:'#5f8a80',stone:'#4c6a66',top:'#8fb5a8'},
+  tip:'Des barrières laser barrent le passage. Observe leur rythme avant de t’engager : c’est évaluer le risque.',
+  quiz:{q:'Avant de réparer le pont suspendu, quelle est la première démarche ?',
+   o:[['Commencer vite : on verra bien les problèmes en route.',0],['Identifier les dangers, évaluer les risques et fixer les mesures de maîtrise.',1],['Demander aux ouvriers de faire très attention.',0]],
+   why:'§6.1.2 : identifier les dangers et évaluer les risques, avant l’intervention, pas pendant.'}},
+ {n:'Les ateliers des statues',cl:'§7',t:'Support : compétences et sensibilisation',seed:41,haz:['S'],
+  pal:{sky:['#f2e0a8','#d9a066'],far:'#d1a06a',mid:'#b0784a',stone:'#7e5238',top:'#c9915f'},
+  tip:'Des lames pendulaires balaient l’atelier. Un apprenti non formé y laisserait son chapeau.',
+  quiz:{q:'Un apprenti arrive pour travailler sur l’échafaudage. Que faut-il avoir fait ?',
+   o:[['Lui donner un casque et le laisser monter.',0],['Vérifier sa compétence, le former et le sensibiliser aux risques de la tâche.',1],['Lui dire de regarder les anciens.',0]],
+   why:'§7.2 et 7.3 : compétence (formation, expérience) et sensibilisation aux dangers, avant de travailler.'}},
+ {n:'La salle du Colosse',cl:'§8',t:'Réalisation : éliminer le danger',seed:53,haz:['R'],lever:1,
+  pal:{sky:['#c9c4d6','#6b6f8c'],far:'#7c809d',mid:'#565a78',stone:'#3f425c',top:'#8a8eaa'},
+  tip:'Le bras du Colosse balaie les passerelles. Un levier, au début, permet de consigner l’énergie. Appuie sur E devant.',
+  quiz:{q:'Le géant de fer coince parfois un ouvrier. Quelle mesure est la plus efficace ?',
+   o:[['Distribuer des casques plus solides (EPI).',0],['Supprimer le danger : consigner l’énergie, empêcher l’accès à la zone.',1],['Accrocher une affiche « Attention ».',0]],
+   why:'§8.1.2 : hiérarchie des mesures : éliminer, substituer, protéger collectivement, organiser, et seulement en dernier lieu les EPI.'}},
+ {n:'La salle des comptes',cl:'§9',t:'Évaluation des performances',seed:67,haz:['F'],
+  pal:{sky:['#e5d2c0','#8fb0c9'],far:'#a3b6c6',mid:'#7f97ad',stone:'#5c7288',top:'#a4bad0'},
+  tip:'Des pierres se détachent des voûtes quand on passe dessous. Surveille le plafond, et compte tes incidents !',
+  quiz:{q:'Comment le palais sait-il si son système SST fonctionne vraiment ?',
+   o:[['Il n’y a pas eu de plainte cette année.',0],['Surveillance et mesure, audit interne, puis revue de direction.',1],['Le roi a l’impression que tout va bien.',0]],
+   why:'§9.1 à 9.3 : surveiller, mesurer, auditer en interne, puis la direction revoit le système.'}},
+ {n:'Le sommet du palais',cl:'§10',t:'Amélioration',seed:79,haz:['S','L','F'],
+  pal:{sky:['#ffe9c2','#e88f7a'],far:'#e0a08e',mid:'#c47a72',stone:'#8f5560',top:'#dea59a'},
+  tip:'Tout se mélange ici. Dernier étage : les oiseaux de la volière t’attendent derrière la porte.',
+  quiz:{q:'Un ouvrier s’est blessé. Après les premiers secours, que fait-on ?',
+   o:[['On lui reproche son inattention et on continue.',0],['On enquête, on cherche les causes, on corrige et on vérifie l’efficacité des actions.',1],['On note l’incident et on n’en parle plus.',0]],
+   why:'§10.2 : réagir, enquêter, traiter les causes profondes, mettre en œuvre des actions correctives et en vérifier l’efficacité.'}}];
+const HAZTIP={B:'Un tonneau, ça se saute. Ou ça se supprime à la source…',['^']:'Un danger visible se contourne : les lames, on saute.',L:'Attends que le laser s’éteigne : observer, c’est évaluer.',S:'Le pendule a un rythme : passe quand il s’éloigne.',R:'Le levier consigne l’énergie : supprimer le danger, c’est le mieux.',F:'Ne t’attarde pas sous une voûte fissurée.'};
+
+/* ---------- construction d’un étage : suite de plateformes, franchissables par construction ---------- */
+function build(li){const L=LV[li],R=rng(L.seed),n=9,spans=[];let x=2,y=LH-4;
+ for(let i=0;i<n;i++){const len=i===0?8:i===n-1?9:6+Math.floor(R()*3);spans.push({x,len,y});const gap=i===0?2:1+Math.floor(R()*3);
+  const opts=gap===3?[-1,0,1]:[-2,-1,-1,0,1];let dy=opts[Math.floor(R()*opts.length)];const ny=clamp(y+dy,7,LH-3);x+=len+gap;y=ny}
+ const W=x+4,grid=[...Array(LH)].map(()=>Array(W).fill(' '));
+ for(const s of spans)for(let r=s.y;r<Math.min(LH,s.y+3);r++)for(let c=s.x;c<s.x+s.len;c++)grid[r][c]='#';
+ const ents=[],fl=s=>s.y*TS,hz=L.haz;
+ spans.forEach((s,i)=>{if(i===0||i===n-1)return;const mid=s.x+(s.len>>1);
+  if(L.lever&&i===1){ents.push({k:'V',x:(s.x+s.len-2)*TS,y:fl(s)-34,w:26,h:34})}
+  if(i===2)ents.push({k:'h',x:(s.x+1)*TS+6,y:fl(s)-28,w:20,h:20});
+  if(i===5)ents.push({k:'o',x:(s.x+2)*TS+6,y:fl(s)-28,w:20,h:20});
+  if(i===7&&li>1)ents.push({k:'h',x:(s.x+1)*TS+6,y:fl(s)-28,w:20,h:20});
+  if(li>=4&&i===6)ents.push({k:'o',x:(s.x+s.len-2)*TS+6,y:fl(s)-28,w:20,h:20});
+  if(L.lever){if(i===2||i===4||i===6)ents.push({k:'R',x:s.x*TS,x1:(s.x+s.len)*TS,y:fl(s),ph:R()*2});return}
+  if(i%3===1&&i>1)return;const k=hz[i%hz.length];
+  if(k==='B')ents.push({k:'B',x:(s.x+s.len-1)*TS,y:fl(s),t:R()*2});
+  else if(k==='^')ents.push({k:'^',x:(mid-1)*TS,y:fl(s)-14,w:64,h:14});
+  else if(k==='L')ents.push({k:'L',x:mid*TS+12,y:fl(s)-3*TS,w:8,h:3*TS,ph:R()*3.2});
+  else if(k==='S')ents.push({k:'S',ax:mid*TS+16,ay:(s.y-6)*TS,len:5.2*TS,ph:R()*6});
+  else if(k==='F')ents.push({k:'F',x:mid*TS+1,y0:(s.y-6)*TS,y:(s.y-6)*TS,w:30,h:30,st:0,t:0,fy:fl(s)});});
+ const last=spans[n-1],door={x:(last.x+last.len-3)*TS,y:fl(last)-64,w:40,h:64};
+ return{li,W,grid,ents,spans,door,spawn:{x:3*TS,y:spans[0].y*TS-34},PW:W*TS,PH:LH*TS,locked:false,dyn:[]}}
+const solid=(l,tx,ty)=>tx<0||tx>=l.W?true:ty<0||ty>=LH?false:l.grid[ty][tx]==='#';
+
+/* ---------- état ---------- */
+const G={state:'title',li:0,L:null,p:null,hp:3,maxhp:5,score:0,deaths:0,firstTry:0,tries:0,bot:0,god:0,noHaz:0,T:0,cam:{x:0,y:0},part:[],msg:null,bird:{x:0,y:0,fl:0},toast:null,shake:0};
+window.G=G;
+const K={jp:0,ap:0};
+const KEY={ArrowLeft:'l',KeyA:'l',KeyQ:'l',ArrowRight:'r',KeyD:'r',ArrowUp:'j',KeyW:'j',KeyZ:'j',Space:'j',KeyE:'a',ArrowDown:'a'};
+addEventListener('keydown',e=>{const k=KEY[e.code];if(k){if(!K[k]){if(k==='j')K.jp=1;if(k==='a')K.ap=1}K[k]=1;if(G.state==='play')e.preventDefault()}
+ if(G.state==='quiz'&&/^Digit[1-3]$/.test(e.code))answer(+e.code[5]-1)});
+addEventListener('keyup',e=>{const k=KEY[e.code];if(k)K[k]=0});
+document.querySelectorAll('#pad button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{e.preventDefault();if(!K[k]){if(k==='j')K.jp=1;if(k==='a')K.ap=1}K[k]=1});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>K[k]=0))});
+
+function spawnPlayer(){const L=G.L;G.p={x:L.spawn.x,y:L.spawn.y,w:18,h:34,vx:0,vy:0,face:1,on:false,coy:0,buf:0,inv:0,shield:0,anim:0,rx:L.spawn.x,ry:L.spawn.y,rec:0}}
+function startLevel(li,keep){G.li=li;G.L=build(li);if(!keep){}spawnPlayer();G.hp=Math.max(G.hp,3);G.cam.x=0;G.cam.y=clamp(G.p.y-VH*.55,0,G.L.PH-VH);G.part.length=0;
+ G.msg={t:LV[li].tip,life:7};G.state='card';
+ ov.hidden=false;ov.innerHTML=`<div class="card"><div class="kick">Étage ${li+1} sur 7 · ${LV[li].cl}</div><h2>${LV[li].n}</h2><p>${LV[li].t}</p></div>`;
+ setTimeout(()=>{if(G.state==='card'){ov.hidden=true;G.state='play'}},G.bot?900:1700)}
+
+/* ---------- mise à jour ---------- */
+function puff(x,y,c,n=6){for(let i=0;i<n;i++)G.part.push({x,y,vx:(Math.random()-.5)*120,vy:-Math.random()*100,life:.5+Math.random()*.3,c,r:2+Math.random()*3})}
+function hurt(k){const p=G.p;if(G.god||p.inv>0)return;if(k&&HAZTIP[k]&&!G.msg)G.msg={t:'Le Piaf : '+HAZTIP[k],life:4.5};
+ if(p.shield){p.shield=0;p.inv=1.2;beep(300,.2,'square',.05,120);puff(p.x+9,p.y,'#ffd02a',10);return}
+ G.hp--;p.inv=1.6;p.vy=-360;p.vx=-p.face*180;G.shake=.25;beep(160,.3,'sawtooth',.06,60);puff(p.x+9,p.y+10,'#c8321f',10);
+ if(G.hp<=0)die()}
+function die(){if(G.state==='dead')return;G.state='dead';G.deaths++;beep(120,.6,'sawtooth',.07,40);ov.hidden=false;ov.innerHTML=`<div class="card"><h2>Chute au palais…</h2><p>Un étage sans protection, ça finit mal. On reprend cet étage avec trois cœurs.</p></div>`;setTimeout(()=>{G.hp=3;startLevel(G.li)},1500)}
+function collide(p,dt,L){
+ p.x+=p.vx*dt;let x0=Math.floor(p.x/TS),x1=Math.floor((p.x+p.w-.01)/TS),y0=Math.floor(p.y/TS),y1=Math.floor((p.y+p.h-.01)/TS);
+ for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)if(solid(L,tx,ty)){if(p.vx>0)p.x=tx*TS-p.w-.01;else if(p.vx<0)p.x=(tx+1)*TS+.01;p.vx=0;x0=Math.floor(p.x/TS);x1=Math.floor((p.x+p.w-.01)/TS)}
+ p.y+=p.vy*dt;p.on=false;x0=Math.floor(p.x/TS);x1=Math.floor((p.x+p.w-.01)/TS);y0=Math.floor(p.y/TS);y1=Math.floor((p.y+p.h-.01)/TS);
+ for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++)if(solid(L,tx,ty)){if(p.vy>0){p.y=ty*TS-p.h;p.on=true}else if(p.vy<0)p.y=(ty+1)*TS;p.vy=0;y0=Math.floor(p.y/TS);y1=Math.floor((p.y+p.h-.01)/TS)}}
+const hit=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function botInput(){const p=G.p,L=G.L;K.r=1;K.l=0;const ah=p.x+p.w+8,fy=Math.floor((p.y+p.h-6)/TS);
+ const wall=solid(L,Math.floor(ah/TS),fy)||solid(L,Math.floor(ah/TS),fy-1);const gap=p.on&&!solid(L,Math.floor((p.x+p.w+14)/TS),Math.floor((p.y+p.h+4)/TS));
+ let danger=false;for(const e of [...L.ents,...L.dyn]){if(!G.noHaz&&(e.k==='^'||e.k==='Bar')){const ex=e.x,ey=e.y;if(Math.abs(ey-(p.y+p.h))<50&&ex>p.x&&ex-p.x<70)danger=true}}
+ G.bh=(G.bh||0)-1/60;if(p.on&&G.bh<=0&&(wall||gap||danger)){K.jp=1;G.bh=.45}K.j=G.bh>0?1:0;
+ const V=L.ents.find(e=>e.k==='V');if(V&&!L.locked&&Math.abs(p.x-V.x)<24){K.r=0;K.ap=1}}
+function update(dt){G.T+=dt;const L=G.L,p=G.p,t=G.T;
+ if(G.state!=='play')return;
+ if(G.bot)botInput();
+ const acc=p.on?2600:1500,max=205,dir=(K.r?1:0)-(K.l?1:0);
+ if(dir){p.vx=clamp(p.vx+dir*acc*dt,-max,max);p.face=dir}else p.vx*=p.on?Math.pow(.0005,dt):Math.pow(.2,dt);
+ if(Math.abs(p.vx)<6&&!dir)p.vx=0;
+ p.coy=p.on?.1:p.coy-dt;p.buf=K.jp?.12:p.buf-dt;K.jp=0;
+ if(p.buf>0&&p.coy>0){p.vy=-640;p.buf=0;p.coy=0;beep(440,.12,'square',.03,660);puff(p.x+9,p.y+p.h,'#e8d8b0',4)}
+ if(!K.j&&p.vy<-200)p.vy*=Math.pow(.02,dt);
+ p.vy=Math.min(900,p.vy+1900*dt);collide(p,dt,L);p.anim+=Math.abs(p.vx)*dt*.06;p.inv=Math.max(0,p.inv-dt);
+ if(p.on&&t-p.rec>.4){p.rec=t;const bx=Math.floor((p.x+p.w/2)/TS),by=Math.floor((p.y+p.h+2)/TS);if(solid(L,bx-1,by)&&solid(L,bx+1,by)){p.rx=p.x;p.ry=p.y}}
+ if(p.y>L.PH+40){G.hp--;beep(120,.4,'sawtooth',.06,50);if(G.hp<=0){die();return}p.x=p.rx;p.y=p.ry;p.vx=p.vy=0;p.inv=1.5;G.msg={t:'Le Piaf : les palais n’ont pas de garde-corps. Regarde où tu sautes !',life:4}}
+ const pb={x:p.x+2,y:p.y+2,w:p.w-4,h:p.h-2},ac=K.ap;K.ap=0;
+ for(const e of L.ents){
+  if(e.k==='h'||e.k==='o'){if(!e.got&&hit(pb,e)){e.got=1;if(e.k==='h'){p.shield=1;G.toast='Casque ramassé : il absorbe un choc'}else{G.hp=Math.min(G.maxhp,G.hp+1);G.toast='Un cœur de plus'}beep(880,.15,'triangle',.05,1320);puff(e.x+10,e.y+10,'#ffe066',8)}}
+  else if(e.k==='V'){if(ac&&!L.locked&&Math.abs((p.x+9)-(e.x+13))<46){L.locked=true;beep(220,.3,'square',.05,110);G.toast='Énergie consignée : le Colosse est à l’arrêt (§8.1.2)';G.score+=0}}
+  else if(G.noHaz)continue;
+  else if(e.k==='^'){if(hit(pb,e))hurt('^')}
+  else if(e.k==='L'){const c=(t+e.ph)%3.2;e.on=c<1.5;e.tel=c>2.75;if(e.on&&hit(pb,e))hurt('L')}
+  else if(e.k==='S'){const a=.95*Math.sin(t*2.6+e.ph);e.bx=e.ax+Math.sin(a)*e.len;e.by=e.ay+Math.cos(a)*e.len;e.a=a;if(hit(pb,{x:e.bx-14,y:e.by-14,w:28,h:28}))hurt('S')}
+  else if(e.k==='F'){if(e.st===0){if(Math.abs(p.x+9-(e.x+15))<46&&p.y>e.y0-40&&p.y<e.fy+10){e.st=1;e.t=0}}
+   else if(e.st===1){e.t+=dt;if(e.t>.55){e.st=2;e.vy=0}}
+   else if(e.st===2){e.vy+=2400*dt;e.y+=e.vy*dt;if(hit(pb,{x:e.x,y:e.y,w:e.w,h:e.h}))hurt('F');if(e.y+e.h>=e.fy){e.y=e.fy-e.h;e.st=3;e.t=0;G.shake=.15;puff(e.x+15,e.fy,'#cfc6b8',10);beep(90,.3,'sawtooth',.05,50)}}
+   else if(e.st===3){e.t+=dt;if(e.t>.7){e.st=4;e.t=0}}else if(e.st===4){e.t+=dt;if(e.t>2.5){e.st=0;e.y=e.y0}}}
+  else if(e.k==='R'){if(L.locked){e.ax=e.x-110;continue}const c=(t+e.ph)%5.4;e.tel=c<1.5;let ax;if(c<1.5)ax=e.x-110;else if(c<2.6)ax=lerp(e.x-110,e.x1+40,(c-1.5)/1.1);else if(c<3.6)ax=lerp(e.x1+40,e.x-110,(c-2.6)/1);else ax=e.x-110;e.ax=ax;
+   if(c>=1.5&&c<2.6&&hit(pb,{x:ax,y:e.y-46,w:70,h:46}))hurt('R')}
+  else if(e.k==='B'){e.t-=dt;if(e.t<=0&&Math.abs(e.x-p.x)<26*TS&&L.dyn.length<8){e.t=2.9;L.dyn.push({k:'Bar',x:e.x,y:e.y-26,vx:-95,vy:0,w:26,h:26,rot:0,age:0})}}}
+ for(let i=L.dyn.length-1;i>=0;i--){const b=L.dyn[i];b.age+=dt;b.vy=Math.min(700,b.vy+1500*dt);b.x+=b.vx*dt;b.rot-=dt*4;
+  b.y+=b.vy*dt;const bt=Math.floor((b.y+b.h)/TS),bx=Math.floor((b.x+b.w/2)/TS);if(solid(L,bx,bt)&&b.vy>0){b.y=bt*TS-b.h;b.vy=0}
+  if(solid(L,Math.floor((b.x-2)/TS),Math.floor((b.y+b.h/2)/TS)))b.vx=95;
+  if(!G.noHaz&&hit(pb,b))hurt('B');if(b.age>14||b.y>L.PH+60){L.dyn.splice(i,1)}}
+ if(hit(pb,L.door)){openQuiz()}
+ /* oiseau, caméra, particules */
+ const B=G.bird,tx=p.x+9-p.face*26,ty=p.y-30+Math.sin(t*3)*6;B.x=lerp(B.x||tx,tx,1-Math.pow(.02,dt));B.y=lerp(B.y||ty,ty,1-Math.pow(.02,dt));B.fl+=dt*(9+Math.abs(p.vy)*.01);
+ if(G.msg){G.msg.life-=dt;if(G.msg.life<=0)G.msg=null}
+ const cx=clamp(p.x+9-VW/2+p.face*60,0,L.PW-VW),cy=clamp(p.y-VH*.55,0,L.PH-VH);G.cam.x=lerp(G.cam.x,cx,1-Math.pow(.001,dt));G.cam.y=lerp(G.cam.y,cy,1-Math.pow(.004,dt));
+ for(let i=G.part.length-1;i>=0;i--){const q=G.part[i];q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=200*dt;if(q.life<=0)G.part.splice(i,1)}
+ G.shake=Math.max(0,G.shake-dt)}
+
+/* ---------- questionnaire à la porte ---------- */
+function openQuiz(){if(G.state!=='play')return;G.state='quiz';G.tries=0;renderQuiz()}
+function renderQuiz(){const L=LV[G.li],q=L.quiz,R=rng(Date.now()&0xffff);const ord=q.o.map((o,i)=>[R(),i]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);G.ord=ord;
+ ov.hidden=false;ov.innerHTML=`<div class="card"><div class="kick">Porte ${L.cl} · ${L.t}</div><h2>${q.q}</h2><div class="opts">${ord.map((i,k)=>`<button data-i="${k}"><b>${k+1}.</b> ${q.o[i][0]}</button>`).join('')}</div><div class="why" id="why"></div><div id="qact"></div></div>`;
+ ov.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>answer(+b.dataset.i))}
+function answer(k){if(G.state!=='quiz')return;const L=LV[G.li],q=L.quiz,bs=[...ov.querySelectorAll('.opts button')];if(!bs[k]||bs[k].disabled)return;const ok=q.o[G.ord[k]][1];
+ if(ok){bs.forEach(b=>b.disabled=true);bs[k].classList.add('ok');beep(660,.2,'triangle',.06,990);if(G.tries===0)G.firstTry++;$('#why').textContent=q.why;
+  $('#qact').innerHTML=`<button class="b" id="nx">${G.li===6?'Ouvrir la volière':'Étage suivant'}</button>`;$('#nx').onclick=()=>{ov.hidden=true;if(G.li===6)ending();else{G.state='card';startLevel(G.li+1)}};(G.bot?setTimeout($('#nx').onclick,300):0)}
+ else{G.tries++;bs[k].classList.add('ko');bs[k].disabled=true;beep(150,.25,'square',.05,90);$('#why').textContent='Pas tout à fait. Relis les autres propositions.'}}
+
+/* ---------- fin : volière ouverte ---------- */
+function ending(){G.state='end';G.endT=0;G.birds=[...Array(28)].map((_,i)=>({x:VW*.3+Math.random()*VW*.4,y:VH*.7+Math.random()*60,vx:(Math.random()-.5)*60,vy:-60-Math.random()*90,ph:Math.random()*6,d:i*.08}));
+ setTimeout(()=>{if(G.state!=='end')return;ov.hidden=false;const pc=Math.round(G.firstTry/7*100);
+  ov.innerHTML=`<div class="card"><div class="kick">Certificat symbolique</div><h1>Le palais est conforme</h1><p>Les oiseaux de la volière s’envolent : le roi a compris que la sécurité n’est pas un caprice, c’est un système.</p><p><b>${G.firstTry} réponses du premier coup sur 7</b> (${pc} %) · ${G.deaths} chute${G.deaths>1?'s':''}</p><small>« Un danger supprimé vaut mieux que mille casques. » · ISO 45001:2018</small><button class="b" id="again">Rejouer</button><button class="b alt" onclick="location.href='projets-universitaires.html'">Retour au CV</button></div>`;$('#again').onclick=()=>location.reload()},4200)}
+
+/* ---------- dessin ---------- */
+function path(pts){g.beginPath();pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.closePath()}
+const GR=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),R=rng(5),im=x.createImageData(128,128);for(let i=0;i<im.data.length;i+=4){const v=R()<.5?255:0;im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=R()*22}x.putImageData(im,0,0);return c})();
+const TILE={};function tileImg(pal,top,v){const k=pal.stone+top+v;if(TILE[k])return TILE[k];const c=document.createElement('canvas');c.width=c.height=TS;const x=c.getContext('2d'),R=rng(v*97+(top?1:2));
+ x.fillStyle=pal.stone;x.fillRect(0,0,TS,TS);for(let i=0;i<26;i++){x.fillStyle=R()<.5?'rgba(255,255,255,.06)':'rgba(0,0,0,.09)';x.fillRect(R()*TS,R()*TS,3+R()*8,2+R()*5)}
+ x.strokeStyle='rgba(0,0,0,.28)';x.lineWidth=1.5;x.strokeRect(.75,.75,TS-1.5,TS-1.5);if(v){x.beginPath();x.moveTo(TS/2,0);x.lineTo(TS/2,TS);x.stroke()}
+ if(top){x.fillStyle=pal.top;x.fillRect(0,0,TS,7);x.fillStyle='rgba(255,255,255,.25)';x.fillRect(0,0,TS,2);x.fillStyle='rgba(0,0,0,.2)';x.fillRect(0,7,TS,2)}return TILE[k]=c}
+function drawBG(cx,cy,pal,t,li){
+ const s=g.createLinearGradient(0,0,0,VH);s.addColorStop(0,pal.sky[0]);s.addColorStop(1,pal.sky[1]);g.fillStyle=s;g.fillRect(0,0,VW,VH);
+ /* soleil / lune pâle */
+ g.fillStyle='rgba(255,250,230,.55)';g.beginPath();g.arc(600-cx*.02,90-cy*.04,44,0,7);g.fill();
+ /* arcades lointaines */
+ const oy=-cy*.12+40,P=340;for(let i=-1;i<4;i++){const x=i*P-(cx*.16)%P;g.fillStyle=pal.far;g.beginPath();g.rect(x,oy,P,VH+120);g.moveTo(x+50,oy+VH+120);g.lineTo(x+50,oy+190);g.arc(x+P/2,oy+190,P/2-50,Math.PI,0);g.lineTo(x+P-50,oy+VH+120);g.fill('evenodd');
+  g.fillStyle='rgba(255,255,255,.07)';g.fillRect(x,oy,P,14)}
+ /* colonnes cannelées et rayons de lumière */
+ const oy2=-cy*.3+10,P2=250;for(let i=-1;i<5;i++){const x=i*P2-(cx*.38)%P2+20;
+  g.fillStyle='rgba(255,246,214,.10)';path([[x+60,oy2],[x+150,oy2],[x+40,oy2+VH+200],[x-50,oy2+VH+200]]);g.fill();
+  g.fillStyle=pal.mid;g.fillRect(x,oy2,52,VH+260);g.fillStyle='rgba(0,0,0,.14)';for(let k=0;k<5;k++)g.fillRect(x+6+k*9,oy2+22,3,VH+230);
+  g.fillStyle='rgba(255,255,255,.12)';g.fillRect(x,oy2,10,VH+260);g.fillStyle=pal.mid;g.fillRect(x-8,oy2,68,18);g.fillRect(x-8,oy2+VH+240,68,20)}
+ /* enseignes-clins d’œil */
+ if(li===0||li===6){const x=300-cx*.5;g.fillStyle='rgba(43,29,36,.35)';g.fillRect(x-4,60-cy*.5+4,220,40);g.fillStyle='#f3e6c8';g.fillRect(x,60-cy*.5,220,40);g.fillStyle='#2b1d24';g.font='italic 20px Georgia,serif';g.textAlign='center';g.fillText(li?'VIII + VIII = XVI':'V + III = VIII',x+110,60-cy*.5+27)}
+ const h=g.createLinearGradient(0,VH*.55,0,VH);h.addColorStop(0,'rgba(255,255,255,0)');h.addColorStop(1,'rgba(255,240,220,.16)');g.fillStyle=h;g.fillRect(0,VH*.55,VW,VH*.45)}
+function drawPlayer(p,t){const x=Math.round(p.x+p.w/2),y=Math.round(p.y+p.h),f=p.face,sw=Math.sin(p.anim*3)*(p.on?1:0)*(Math.abs(p.vx)>20?1:0),air=!p.on;
+ g.save();g.translate(x,y);g.scale(f,1);if(p.inv>0&&Math.floor(t*20)%2)g.globalAlpha=.45;
+ g.fillStyle='#2b1d24';g.fillRect(-7,-14,5,14-(sw>0?sw*3:0));g.fillRect(2,-14,5,14+(sw>0?-sw*3:0));if(air){g.fillRect(-8,-13,5,11);g.fillRect(3,-16,5,11)}
+ g.fillStyle='#d9622b';g.fillRect(-9,-28,18,16);g.fillStyle='#2b1d24';g.fillRect(-9,-15,18,3);
+ g.fillStyle='#c8321f';g.fillRect(-9,-29,18,4);g.fillRect(6,-28,4,10+sw*3);
+ g.fillStyle='#e8b48a';g.fillRect(-6,-40,12,12);g.fillStyle='#2b1d24';g.fillRect(2,-36,2,3);g.fillStyle='rgba(43,29,36,.5)';g.fillRect(-5,-32,4,3);
+ if(p.shield){g.fillStyle='#ffd02a';g.beginPath();g.arc(0,-40,9,Math.PI,0);g.fill();g.fillRect(-10,-41,20,3);g.strokeStyle='#2b1d24';g.lineWidth=1.5;g.stroke()}
+ else{g.fillStyle='#2b1d24';g.fillRect(-6,-42,12,4);g.fillRect(-4,-52,8,11)}
+ g.restore()}
+function drawBird(t){const B=G.bird,x=B.x+9,y=B.y,fl=Math.sin(B.fl)*.8,f=G.p.face;g.save();g.translate(x,y);g.scale(f,1);
+ g.fillStyle='#7d93b5';g.beginPath();g.ellipse(0,0,10,7,-.15,0,7);g.fill();g.fillStyle='#f0e6cf';g.beginPath();g.ellipse(2,3,6,4,0,0,7);g.fill();
+ g.fillStyle='#5a7096';g.save();g.translate(-2,-2);g.rotate(-.5+fl);g.beginPath();g.ellipse(-4,-5,4,9,0,0,7);g.fill();g.restore();
+ g.fillStyle='#7d93b5';g.beginPath();g.arc(8,-5,5.5,0,7);g.fill();g.fillStyle='#f3b63a';path([[12,-6],[19,-4],[12,-3]]);g.fill();g.fillStyle='#2b1d24';g.fillRect(9,-7,2,2);
+ g.strokeStyle='#5a7096';g.lineWidth=2;g.beginPath();g.moveTo(-9,1);g.lineTo(-17,4);g.stroke();g.restore()}
+function drawEnt(e,t,pal){
+ if(e.k==='h'||e.k==='o'){if(e.got)return;const y=e.y+Math.sin(t*3+e.x)*3;g.save();g.translate(e.x+10,y+10);
+  if(e.k==='h'){g.fillStyle='#ffd02a';g.beginPath();g.arc(0,2,10,Math.PI,0);g.fill();g.fillRect(-12,2,24,4);g.strokeStyle='#2b1d24';g.lineWidth=2;g.stroke()}
+  else{g.fillStyle='#d8321f';g.beginPath();g.moveTo(0,9);g.bezierCurveTo(-16,-2,-8,-14,0,-5);g.bezierCurveTo(8,-14,16,-2,0,9);g.fill();g.strokeStyle='#2b1d24';g.lineWidth=2;g.stroke()}g.restore();return}
+ if(e.k==='V'){g.fillStyle='#4a4f5c';g.fillRect(e.x,e.y+12,26,22);g.fillStyle='#2b1d24';g.fillRect(e.x+4,e.y+16,18,6);g.strokeStyle='#cfc6b8';g.lineWidth=4;g.beginPath();g.moveTo(e.x+13,e.y+14);g.lineTo(e.x+(G.L.locked?24:2),e.y+(G.L.locked?2:0));g.stroke();
+  g.fillStyle=G.L.locked?'#5ab35a':'#d8321f';g.beginPath();g.arc(e.x+13,e.y+28,4,0,7);g.fill();if(G.L.locked){g.strokeStyle='#ffd02a';g.lineWidth=3;g.beginPath();g.arc(e.x+13,e.y-8,5,Math.PI,0);g.stroke();g.fillStyle='#ffd02a';g.fillRect(e.x+7,e.y-8,12,9)}return}
+ if(e.k==='^'){g.fillStyle='#b9c0c9';for(let i=0;i<4;i++){path([[e.x+i*16,e.y+14],[e.x+i*16+8,e.y-2],[e.x+i*16+16,e.y+14]]);g.fill()}g.strokeStyle='#2b1d24';g.lineWidth=1.5;for(let i=0;i<4;i++){path([[e.x+i*16,e.y+14],[e.x+i*16+8,e.y-2],[e.x+i*16+16,e.y+14]]);g.stroke()}return}
+ if(e.k==='L'){g.fillStyle='#3d3f4b';g.fillRect(e.x-6,e.y-8,20,10);g.fillRect(e.x-6,e.y+e.h-2,20,10);
+  if(e.on){g.fillStyle='rgba(216,50,31,.35)';g.fillRect(e.x-6,e.y,20,e.h);g.fillStyle='#ff5a44';g.fillRect(e.x,e.y,8,e.h)}else if(e.tel&&Math.floor(t*14)%2){g.fillStyle='rgba(255,120,90,.55)';g.fillRect(e.x+2,e.y,4,e.h)}return}
+ if(e.k==='S'){g.strokeStyle='#2b1d24';g.lineWidth=3;g.beginPath();g.moveTo(e.ax,e.ay);g.lineTo(e.bx,e.by);g.stroke();g.fillStyle='#3d3f4b';g.fillRect(e.ax-10,e.ay-8,20,10);
+  g.save();g.translate(e.bx,e.by);g.rotate(t*5);g.fillStyle='#c9d0d8';g.beginPath();for(let i=0;i<12;i++){const a=i/12*6.283,r=i%2?10:17;g.lineTo(Math.cos(a)*r,Math.sin(a)*r)}g.closePath();g.fill();g.strokeStyle='#2b1d24';g.lineWidth=2;g.stroke();g.restore();return}
+ if(e.k==='F'){const sh=e.st===1?Math.sin(t*90)*2:0;if(e.st===0||e.st===1){g.strokeStyle='#2b1d24';g.lineWidth=2;g.beginPath();g.moveTo(e.x+15,e.y0-40);g.lineTo(e.x+15,e.y);g.stroke()}
+  if(e.st===2||e.st===0||e.st===1){g.fillStyle='rgba(0,0,0,.22)';if(e.st!==0)g.fillRect(e.x-2,e.fy-3,e.w+4,3);g.fillStyle='#8d877f';g.fillRect(e.x+sh,e.y,e.w,e.h);g.strokeStyle='#2b1d24';g.lineWidth=2;g.strokeRect(e.x+sh,e.y,e.w,e.h);g.beginPath();g.moveTo(e.x+sh+6,e.y);g.lineTo(e.x+sh+14,e.y+16);g.lineTo(e.x+sh+10,e.y+30);g.stroke()}
+  else if(e.st===3){g.fillStyle='#8d877f';[[0,24,10,6],[10,20,8,10],[20,26,9,4]].forEach(r=>g.fillRect(e.x+r[0],e.fy-r[1]+18,r[2],r[3]+6))}return}
+ if(e.k==='R'){const ax=e.ax!==undefined?e.ax:e.x-110,y=e.y;g.fillStyle=G.L.locked?'#5ab35a':(e.tel&&Math.floor(t*10)%2?'#ff3b2a':'#7a2a22');g.beginPath();g.arc(e.x+(e.x1-e.x)/2,y-TS*5.5,7,0,7);g.fill();
+  g.fillStyle='#454a5c';g.fillRect(ax-260,y-38,260,26);g.fillStyle='#2b1d24';g.fillRect(ax-260,y-26,260,4);g.fillStyle='#5b6178';g.fillRect(ax,y-48,70,48);g.strokeStyle='#2b1d24';g.lineWidth=2.5;g.strokeRect(ax,y-48,70,48);
+  g.fillStyle='#8a90a6';for(let i=0;i<3;i++)g.fillRect(ax+52,y-42+i*14,18,10);return}}
+function drawDoor(L,t){const d=L.door;g.fillStyle='#2b1d24';g.fillRect(d.x-6,d.y-6,d.w+12,d.h+6);g.fillStyle='#7a4a2a';g.beginPath();g.rect(d.x,d.y+16,d.w,d.h-16);g.arc(d.x+d.w/2,d.y+20,d.w/2,Math.PI,0);g.fill();
+ g.strokeStyle='#2b1d24';g.lineWidth=2;g.beginPath();g.moveTo(d.x+d.w/2,d.y);g.lineTo(d.x+d.w/2,d.y+d.h);g.stroke();g.fillStyle='#ffd02a';g.beginPath();g.arc(d.x+d.w/2-6,d.y+40,3,0,7);g.arc(d.x+d.w/2+6,d.y+40,3,0,7);g.fill();
+ g.fillStyle='rgba(255,240,180,'+(.18+.1*Math.sin(t*3))+')';g.beginPath();g.arc(d.x+d.w/2,d.y+34,46,0,7);g.fill();g.fillStyle='#f3e6c8';g.font='italic 13px Georgia,serif';g.textAlign='center';g.fillText(LV[L.li].cl,d.x+d.w/2,d.y-14)}
+function bubble(txt,x,y){g.font='13px Georgia,serif';const w=Math.min(300,g.measureText(txt).width+20),lines=[];let l='';txt.split(' ').forEach(wd=>{const t=l?l+' '+wd:wd;if(g.measureText(t).width>w-20&&l){lines.push(l);l=wd}else l=t});lines.push(l);
+ const h=lines.length*17+14;g.fillStyle='#f3e6c8';g.strokeStyle='#2b1d24';g.lineWidth=2;const bx=clamp(x-w/2,8,VW-w-8),by=y-h;g.beginPath();g.rect(bx,by,w,h);g.fill();g.stroke();g.beginPath();g.moveTo(x-6,by+h);g.lineTo(x,by+h+9);g.lineTo(x+6,by+h);g.fillStyle='#f3e6c8';g.fill();
+ g.fillStyle='#2b1d24';g.textAlign='left';lines.forEach((s,i)=>g.fillText(s,bx+10,by+18+i*17))}
+function hud(){const p=G.p;g.fillStyle='rgba(20,12,28,.55)';g.fillRect(8,8,214,34);for(let i=0;i<G.maxhp;i++){g.save();g.translate(28+i*26,25);g.fillStyle=i<G.hp?'#d8321f':'rgba(255,255,255,.18)';g.beginPath();g.moveTo(0,9);g.bezierCurveTo(-16,-2,-8,-14,0,-5);g.bezierCurveTo(8,-14,16,-2,0,9);g.fill();g.strokeStyle='#2b1d24';g.lineWidth=1.5;g.stroke();g.restore()}
+ if(p.shield){g.fillStyle='#ffd02a';g.beginPath();g.arc(172,28,9,Math.PI,0);g.fill();g.fillRect(162,28,20,3)}
+ g.fillStyle='rgba(20,12,28,.55)';g.fillRect(VW-232,8,224,34);g.fillStyle='#f3e6c8';g.font='italic 14px Georgia,serif';g.textAlign='right';g.fillText('Étage '+(G.li+1)+'/7 · '+LV[G.li].cl+' '+LV[G.li].n.replace(/^L[ae]s? /,''),VW-16,30);
+ if(G.toast){g.font='15px Georgia,serif';g.textAlign='center';const w=g.measureText(G.toast).width+26;g.fillStyle='rgba(20,12,28,.75)';g.fillRect(VW/2-w/2,VH-56,w,30);g.fillStyle='#ffe9a8';g.fillText(G.toast,VW/2,VH-36);G.toastT=(G.toastT||0)+1;if(G.toastT>150){G.toast=null;G.toastT=0}}}
+function render(){g.setTransform(SC,0,0,SC,0,0);const L=G.L;if(!L){g.fillStyle='#1b1420';g.fillRect(0,0,VW,VH);return}
+ const t=G.T,pal=LV[G.li].pal,sh=G.shake>0?(Math.random()-.5)*6:0,cx=Math.round(G.cam.x+sh),cy=Math.round(G.cam.y+sh*.6);
+ drawBG(cx,cy,pal,t,G.li);g.save();g.translate(-cx,-cy);
+ const tx0=Math.floor(cx/TS),tx1=Math.ceil((cx+VW)/TS),ty0=Math.floor(cy/TS),ty1=Math.ceil((cy+VH)/TS);
+ for(let ty=Math.max(0,ty0);ty<Math.min(LH,ty1);ty++)for(let tx=Math.max(0,tx0);tx<Math.min(L.W,tx1);tx++)if(L.grid[ty][tx]==='#'){const top=!solid(L,tx,ty-1);g.drawImage(tileImg(pal,top,(tx*7+ty*3)%2),tx*TS,ty*TS)}
+ drawDoor(L,t);for(const e of L.ents)drawEnt(e,t,pal);
+ for(const b of L.dyn){g.save();g.translate(b.x+13,b.y+13);g.rotate(b.rot);g.fillStyle='#8a5a2e';g.beginPath();g.arc(0,0,13,0,7);g.fill();g.strokeStyle='#2b1d24';g.lineWidth=2;g.stroke();g.strokeStyle='#4a2f18';g.beginPath();g.moveTo(-13,0);g.lineTo(13,0);g.moveTo(0,-13);g.lineTo(0,13);g.stroke();g.restore()}
+ if(G.p){drawPlayer(G.p,t);drawBird(t)}
+ for(const q of G.part){g.globalAlpha=clamp(q.life*2,0,1);g.fillStyle=q.c;g.beginPath();g.arc(q.x,q.y,q.r,0,7);g.fill()}g.globalAlpha=1;g.restore();
+ g.globalCompositeOperation='multiply';g.fillStyle=g.createPattern(GR,'repeat');g.globalAlpha=.55;g.fillRect(0,0,VW,VH);g.globalAlpha=1;g.globalCompositeOperation='source-over';
+ const vg=g.createRadialGradient(VW/2,VH/2,VH*.35,VW/2,VH/2,VH*.95);vg.addColorStop(0,'rgba(20,10,30,0)');vg.addColorStop(1,'rgba(20,10,30,.5)');g.fillStyle=vg;g.fillRect(0,0,VW,VH);
+ if(G.state!=='end'){hud();if(G.msg&&G.state==='play')bubble(G.msg.t,clamp(G.bird.x-cx+8,60,VW-60),G.bird.y-cy-16)}}
+function renderEnd(dt){g.setTransform(SC,0,0,SC,0,0);G.endT+=dt;const pal=LV[6].pal,t=G.endT;
+ drawBG(t*30,-t*40,pal,G.T,6);g.fillStyle='rgba(255,230,190,.25)';g.fillRect(0,0,VW,VH);
+ g.fillStyle='#2b1d24';g.fillRect(VW/2-90,VH-110,180,110);g.strokeStyle='#c9a57f';g.lineWidth=3;for(let i=0;i<9;i++){g.beginPath();g.moveTo(VW/2-90+i*22.5,VH-110);g.lineTo(VW/2-90+i*22.5,VH-30-(t>.8?0:0));g.stroke()}
+ G.birds.forEach(b=>{if(t<b.d)return;b.x+=(b.vx+Math.sin(t*2+b.ph)*30)*dt;b.y+=b.vy*dt;g.save();g.translate(b.x,b.y);const w=Math.sin(t*14+b.ph)*.9;g.fillStyle='#2b1d24';g.beginPath();g.ellipse(0,0,7,4,0,0,7);g.fill();g.save();g.rotate(w);g.beginPath();g.ellipse(-3,-6,3,9,0,0,7);g.fill();g.restore();g.save();g.rotate(-w);g.beginPath();g.ellipse(3,-6,3,9,0,0,7);g.fill();g.restore();g.restore()});
+ const B=G.bird;B.fl+=dt*10;g.save();g.translate(VW/2,VH/2-Math.min(t,3)*40);g.scale(3,3);g.translate(-9,0);const bb=G.bird;const bx=bb.x,by=bb.y;bb.x=9;bb.y=0;drawBird(G.T);bb.x=bx;bb.y=by;g.restore()}
+
+/* ---------- boucle ---------- */
+let last=performance.now();function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;fit();
+ if(G.state==='end')renderEnd(dt);else{update(dt);if(G.state!=='title'&&G.state!=='intro')render();else renderTitle(dt)}}
+function renderTitle(dt){G.T+=dt;if(!G.L){G.L=build(0);G.p=null}g.setTransform(SC,0,0,SC,0,0);const cx=G.T*40;drawBG(cx,0,LV[G.state==='title'?0:0].pal,G.T,0);const vg=g.createRadialGradient(VW/2,VH/2,VH*.3,VW/2,VH/2,VH);vg.addColorStop(0,'rgba(20,10,30,0)');vg.addColorStop(1,'rgba(20,10,30,.55)');g.fillStyle=vg;g.fillRect(0,0,VW,VH);
+ G.bird.x=lerp(G.bird.x||-40,VW*.5+Math.sin(G.T)*60,dt*1.5)+0;G.bird.y=110+Math.sin(G.T*2)*10;G.bird.fl+=dt*9;G.p=G.p||{face:1};drawBird(G.T)}
+function intro(){G.state='intro';ov.hidden=false;ov.innerHTML=`<div class="card"><div class="kick">Le roi Tyrannus XVI</div><h2>Un palais sans garde-corps</h2><p>Le roi a bâti un palais démesuré : sept étages, aucune consigne, aucun casque. Le <b>Piaf</b>, petit oiseau qui en sait long sur la sécurité, t’accompagne.</p><p>Monte les <b>sept étages</b>. Chaque porte s’ouvre en répondant à une question sur un chapitre de l’<b>ISO 45001</b>. Ramasse casques et cœurs, évite les pièges.</p><p><b>Flèches</b> ou <b>Q D</b> pour bouger · <b>Espace</b> ou <b>↑</b> pour sauter · <b>E</b> ou <b>↓</b> pour agir</p><button class="b" id="go">Monter</button></div>`;$('#go').onclick=()=>{ov.hidden=true;G.hp=3;startLevel(0)}}
+ov.innerHTML=`<div class="card"><div class="kick">Jeu sérieux ISO 45001</div><h1>Le Palais et l’Oiseau</h1><p>Un hommage à <b>Paul Grimault</b> (1905-1994) et à son film d’animation <i>Le Roi et l’Oiseau</i> (1980).</p><button class="b" id="st">Jouer</button><button class="b alt" onclick="location.href='projets-universitaires.html'">Retour au CV</button><small>Décors, personnages et textes originaux. Seul l’esprit du film est cité.</small></div>`;
+$('#st').onclick=intro;
+G.jumpTo=(li,tile)=>{startLevel(li);const s=G.L.spans.find(s=>tile>=s.x&&tile<s.x+s.len)||G.L.spans[0];G.p.x=(tile)*TS;G.p.y=s.y*TS-34;G.cam.x=clamp(G.p.x-VW/2,0,G.L.PW-VW);G.cam.y=clamp(G.p.y-VH*.55,0,G.L.PH-VH)};
+requestAnimationFrame(frame);
+</script></body></html>
