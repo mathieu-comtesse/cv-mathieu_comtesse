@@ -1,0 +1,44 @@
+{
+ "id": "barque",
+ "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\tools\\forge\\models\\embarcations.mts",
+ "size": [
+  2.789,
+  0.909,
+  3.752
+ ],
+ "parts": [
+  "coque",
+  "bancs",
+  "rames"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#efe8d1",
+   "unlit": false
+  },
+  "bleu_fonce": {
+   "hex": "#6c798f",
+   "unlit": false
+  },
+  "brun": {
+   "hex": "#804420",
+   "unlit": false
+  },
+  "orange": {
+   "hex": "#bf7224",
+   "unlit": false
+  },
+  "orange2": {
+   "hex": "#cf9f4e",
+   "unlit": false
+  },
+  "orange_fonce": {
+   "hex": "#8f522d",
+   "unlit": false
+  },
+  "orange_pale": {
+   "hex": "#dfc08b",
+   "unlit": false
+  }
+ }
+}

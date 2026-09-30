@@ -1,0 +1,87 @@
+{
+ "id": "bateau-chalutier",
+ "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\tools\\forge\\models\\embarcations.mts",
+ "size": [
+  2.825,
+  4.084,
+  7.178
+ ],
+ "parts": [
+  "coque",
+  "pont",
+  "cabine",
+  "feux",
+  "mat",
+  "cheminee"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#efe8d1",
+   "unlit": false
+  },
+  "bleu": {
+   "hex": "#70b5df",
+   "unlit": false
+  },
+  "bleu_fonce": {
+   "hex": "#6c798f",
+   "unlit": false
+  },
+  "cyan_fonce": {
+   "hex": "#147d9f",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#dfd8c3",
+   "unlit": false
+  },
+  "jaune": {
+   "hex": "#efb300",
+   "unlit": false
+  },
+  "jaune_pale": {
+   "hex": "#efdca4",
+   "unlit": false
+  },
+  "lum_jaune": {
+   "hex": "#ffdf80",
+   "unlit": true
+  },
+  "lum_rouge": {
+   "hex": "#ff0000",
+   "unlit": true
+  },
+  "lum_vert": {
+   "hex": "#00ff40",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#bf7224",
+   "unlit": false
+  },
+  "orange_fonce": {
+   "hex": "#8f551b",
+   "unlit": false
+  },
+  "orange_pale": {
+   "hex": "#dfc08b",
+   "unlit": false
+  },
+  "rouge": {
+   "hex": "#cf1a00",
+   "unlit": false
+  },
+  "violet_fonce": {
+   "hex": "#5e5470",
+   "unlit": false
+  },
+  "violet_nuit": {
+   "hex": "#503660",
+   "unlit": false
+  },
+  "violet_nuit2": {
+   "hex": "#483250",
+   "unlit": false
+  }
+ }
+}
