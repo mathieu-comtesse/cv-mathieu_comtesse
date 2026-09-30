@@ -48,7 +48,7 @@
   /* la distribution : un kit (dylan · homme · femme · costaud · aurelien · bernard) + palette + pièces montrées (coiffure, barbe, lunettes, casque, gilet…) */
   Pz.cast = {
     dylan: { kit: 'dylan' },
-    aurelien: { kit: 'aurelien', echelle: 1.06 },
+    aurelien: { kit: 'aurelien', echelle: 1.06, ancho: 1.12 },   // le PDG est gros : le corps est déjà rond, on l'élargit encore un peu
     bernard: { kit: 'bernard' },
     georges: { kit: 'homme', pal: { skin: '#e8b48a', nose: '#d8966e', shirt: '#343a70', pants: '#212529', shoe: '#1a1a1a', sole: '#050505', hair: '#2a1a0e', mouth: '#6a2418' }, montre: ['cheveux:courts', 'barbe:moustache', 'lunettes_vue'] },
     ouvrier: { kit: 'homme', pal: { skin: '#f2ad7e', nose: '#e0906a', shirt: '#e8590c', pants: '#495057', shoe: '#3a2a1a', hair: '#3b2414', hat: '#ffd43b', vest: '#ff922b', stripe: '#e9ecef' }, montre: ['casque', 'gilet', 'cheveux:ras', 'barbe:moustache', 'lunettes_vue'] },
@@ -156,7 +156,7 @@
   }
   Pz.charger = async function (nom) {
     if (Pz.modeles[nom]) return Pz.modeles[nom]
-    const g = lire(await tampon(Pz.dossier + nom + '.glb?v=1'))
+    const g = lire(await tampon(Pz.dossier + nom + '.glb?v=' + (nom === 'aurelien' ? 3 : 1)))   // aurelien : modèle rond régénéré (v3)
     return (Pz.modeles[nom] = { g, base: construire(g, null) })
   }
   Pz.kitDe = (nom) => (Pz.cast[nom] && Pz.cast[nom].kit) || nom
@@ -175,6 +175,7 @@
     c.traverse((x) => { if (x.userData && x.userData.role) x.material = materiau(x.userData.role, couleurRole(x.userData.role, pal, x.userData.def), !!x.isSkinnedMesh) })
     const outer = new THREE.Group(); outer.add(c)
     outer.scale.setScalar(o.echelle || def.echelle || 1)
+    if (o.ancho || def.ancho) c.scale.set(o.ancho || def.ancho, 1, o.ancho || def.ancho)   // élargissement du modèle seul (le parent garde une échelle uniforme)
     const d = { racine: c, os, outer, mixer: new THREE.AnimationMixer(c), actions: {}, courant: null, nom: null, ps: (ex.pelvisEchelle || 1.2), t: performance.now(), clips: {}, epi: {}, blink: 1 + Math.random() * 3, pal }
     const nomme = (n) => c.getObjectByName(n)
     Object.keys(ex.epi || {}).forEach((k) => { d.epi[k] = { pieces: ex.epi[k].map(nomme).filter(Boolean), on: false } })
@@ -284,6 +285,46 @@
       if (d.clin > 0) { d.clin -= dt; k = Math.max(.08, Math.abs(d.clin - .065) / .065); if (d.clin <= 0) { d.clin = 0; k = 1 } }
       d.yeux.forEach((m) => (m.scale.y = k))
     }
+    secondaire(d, dt)
+  }
+  /* VIE SECONDAIRE : ce que la pose du clip ne dit pas — le poids et l'inertie (principes de « follow-through » et de « overlapping action », comme ce que cherche à apprendre UniMate).
+   * Respiration du buste ; la tête et les bras prennent du retard sur le corps : freinage, démarrage, virage. Ressorts amortis, appliqués aux os APRÈS le mixer (qui réécrit chaque image).
+   * ?vie=non désactive. Les proxys du pont de compatibilité (d.post) s'appliquent ensuite par-dessus. */
+  const VIE_ON = !/[?&]vie=non/.test(location.search)
+  const V_ = new THREE.Vector3(), Q_ = new THREE.Quaternion(), QE = new THREE.Quaternion(), EU_ = new THREE.Euler(), AXY = new THREE.Vector3(0, 1, 0)
+  const ressort = (r, cible, dt, k, c) => { const a = k * (cible - r.x) - c * r.v; r.v += a * dt; r.x += r.v * dt; if (!isFinite(r.x)) { r.x = 0; r.v = 0 } return r.x }
+  function secondaire(d, dt) {
+    if (!VIE_ON || !d.os || !d.os.Head || dt <= 0) return
+    const o = d.outer, os = d.os
+    let S = d.sec
+    o.updateWorldMatrix(true, false); o.getWorldPosition(V_); o.getWorldQuaternion(Q_)
+    const fw = new THREE.Vector3(0, 0, 1).applyQuaternion(Q_), yaw = Math.atan2(fw.x, fw.z)
+    if (!S) { S = d.sec = { p: V_.clone(), yaw, v: new THREE.Vector3(), t: Math.random() * 20, tete: { x: 0, v: 0 }, roll: { x: 0, v: 0 }, cap: { x: 0, v: 0 }, bras: { x: 0, v: 0 }, lisse: new THREE.Vector3() }; return }
+    S.t += dt
+    // vitesse et accélération monde, lissées ; un saut de position (téléportation) est ignoré
+    const v = V_.clone().sub(S.p).multiplyScalar(1 / dt), saut = V_.distanceTo(S.p) > 3 * Math.max(dt, .016) * 9
+    let dy = yaw - S.yaw; if (dy > Math.PI) dy -= 2 * Math.PI; if (dy < -Math.PI) dy += 2 * Math.PI
+    const w = saut ? 0 : dy / dt
+    const acc = saut ? new THREE.Vector3() : v.clone().sub(S.v).multiplyScalar(1 / dt)
+    S.p.copy(V_); S.yaw = yaw; S.v.copy(saut ? new THREE.Vector3() : v)
+    S.lisse.lerp(acc, Math.min(1, dt * 9))
+    const loc = S.lisse.clone().applyQuaternion(QE.copy(Q_).invert())   // accélération dans le repère du personnage (+z = devant)
+    const ax = Math.max(-18, Math.min(18, loc.x)), az = Math.max(-18, Math.min(18, loc.z)), wr = Math.max(-8, Math.min(8, w))
+    // têtes : recul au démarrage / piqué au freinage (tangage), inclinaison dans les virages (roulis), retard de cap
+    const tangage = ressort(S.tete, Math.max(-.22, Math.min(.22, -az * .014)), dt, 70, 9)
+    const roulis = ressort(S.roll, Math.max(-.2, Math.min(.2, ax * .012 - wr * .02)), dt, 60, 8)
+    const cap = ressort(S.cap, Math.max(-.3, Math.min(.3, -wr * .07)), dt, 55, 8)
+    EU_.set(tangage, cap, roulis, 'YXZ'); QE.setFromEuler(EU_)
+    os.Head.quaternion.multiply(QE)
+    if (os.neck_01) { EU_.set(tangage * .4, cap * .3, roulis * .4, 'YXZ'); os.neck_01.quaternion.multiply(QE.setFromEuler(EU_)) }
+    // bras : ils se décollent du corps quand on tourne vite et balancent avec l'inertie
+    const bras = ressort(S.bras, Math.max(-.22, Math.min(.22, Math.abs(wr) * .028 + Math.abs(ax) * .006)), dt, 40, 6)
+    if (os.upperarm_l) { EU_.set(0, 0, bras, 'XYZ'); os.upperarm_l.quaternion.multiply(QE.setFromEuler(EU_)) }
+    if (os.upperarm_r) { EU_.set(0, 0, -bras, 'XYZ'); os.upperarm_r.quaternion.multiply(QE.setFromEuler(EU_)) }
+    // respiration : le buste se gonfle et se dégonfle, un peu plus vite quand le personnage court
+    const vit = Math.min(1, Math.hypot(S.v.x, S.v.z) / 4), b = Math.sin(S.t * (1.5 + vit * 2.6)), k = .011 + vit * .008
+    if (os.spine_03) os.spine_03.scale.set(1 + k * b, 1 + k * .35 * b, 1 + k * 1.3 * b)
+    if (os.spine_02) os.spine_02.scale.set(1 + k * .5 * b, 1, 1 + k * .7 * b)
   }
   /* r128 définit render() dans le constructeur (propriété de l'instance, pas du prototype) : on enveloppe donc le constructeur */
   const WR = THREE.WebGLRenderer

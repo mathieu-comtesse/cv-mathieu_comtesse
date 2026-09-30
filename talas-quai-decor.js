@@ -96,10 +96,12 @@
     /* ------------------------------------------------------------ escaliers et garde-corps */
     const LOTS = { poteau: lot(MT.boisSombre), rampe: lot(MT.corde), limon: lot(MT.bois) }
     const posteG = new THREE.BoxBufferGeometry(.13, 1.1, .13), chapeauG = new THREE.BoxBufferGeometry(.19, .07, .19)
-    function corde(a, b, aff, rayon) { // corde en catenaire de a à b
+    function corde(a, b, aff, rayon, par) { // corde en catenaire de a à b ; `par` : groupe dans le repère duquel a et b sont donnés (sans lui, repère du monde)
       const mid = a.clone().lerp(b, .5); mid.y -= aff === undefined ? .09 : aff
       const cv = new THREE.CatmullRomCurve3([a, mid, b]), L = a.distanceTo(b), g = new THREE.TubeBufferGeometry(cv, Math.max(4, Math.round(L * 3)), rayon || .03, 5, false)
-      const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * L * 5, uv.getY(i)); LOTS.rampe.ajouter(g, new THREE.Matrix4())
+      const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * L * 5, uv.getY(i))
+      let M = new THREE.Matrix4(); if (par) { par.updateWorldMatrix(true, false); M = par.matrixWorld.clone() }
+      LOTS.rampe.ajouter(g, M)
     }
     function garde(pts, o) { // pts : [[x,y,z],…] au niveau du plancher
       o = o || {}; const H = o.h || 1.05, pas = o.pas || 2.1
@@ -110,13 +112,36 @@
         for (let k = 0; k < n; k++) { corde(ps[k].clone().add(V3(0, H - .12, 0)), ps[k + 1].clone().add(V3(0, H - .12, 0)), .08); if (!o.simple) corde(ps[k].clone().add(V3(0, H * .55, 0)), ps[k + 1].clone().add(V3(0, H * .55, 0)), .06) }
       }
     }
+    const riserG = new THREE.BoxBufferGeometry(1, 1, 1), limonG = new THREE.BoxBufferGeometry(1, 1, 1)
+    /* une volée : marches fermées (plateau + contremarche), trois limons, pilotis là où le vide dépasse 60 cm, pierre au pied ; garde-corps des deux côtés.
+     * a, b : bas et haut de la volée, au niveau du dessus des marches ; w : largeur. La roche est creusée dessous par talas-quai.js (creuse). */
     function escalier(a, b, w, o) {
-      o = o || {}; const A = V3(...a), B = V3(...b), d = B.clone().sub(A), run = Math.hypot(d.x, d.z), n = Math.max(2, Math.round(Math.abs(d.y) / .21)), dx = d.x / run, dz = d.z / run, ry = Math.atan2(-dx, -dz)
-      for (let i = 0; i < n; i++) { const u = (i + .5) / n; HAB.planches[i % 3 ? 'clair' : 'usee'].push([A.x + d.x * u, A.y + d.y * (i + 1) / n - .045, A.z + d.z * u, w, run / n * .96, ry + (r() - .5) * .01, (r() - .5) * .12]) }
-      ;[-1, 1].forEach((q) => { const off = V3(-dz * q * (w / 2 - .06), -.2, dx * q * (w / 2 - .06)); const p0 = A.clone().add(off), p1 = B.clone().add(off); LOTS.limon.ajouter(new THREE.BoxBufferGeometry(.1, .36, 1), (() => { const m = new THREE.Matrix4(); const mid = p0.clone().lerp(p1, .5), L = p0.distanceTo(p1); const dummy = new THREE.Object3D(); dummy.position.copy(mid); dummy.lookAt(p1); dummy.scale.set(1, 1, L); dummy.updateMatrix(); return dummy.matrix })()) })
-      if (o.garde !== false) [-1, 1].forEach((q) => { const off = V3(-dz * q * (w / 2 - .03), 0, dx * q * (w / 2 - .03)); garde([A.clone().add(off).toArray(), B.clone().add(off).toArray()], { simple: true, pas: 2 }) })
+      o = o || {}; const A = V3(...a), B = V3(...b), d = B.clone().sub(A), run = Math.hypot(d.x, d.z), L3 = d.length(), n = Math.max(2, Math.round(Math.abs(d.y) / .2)), dx = d.x / run, dz = d.z / run, ry = Math.atan2(-dx, -dz)
+      const ht = d.y / n, pr = run / n, nx = -dz, nz = dx
+      for (let i = 0; i < n; i++) {
+        const u = (i + .5) / n, uf = i / n
+        HAB.planches[i % 3 ? 'clair' : 'usee'].push([A.x + d.x * u, A.y + d.y * (i + 1) / n - .045, A.z + d.z * u, w, pr + .05, ry + (r() - .5) * .01, (r() - .5) * .12])
+        LOTS.limon.ajouter(riserG, placer(A.x + d.x * uf + dx * .02, A.y + d.y * (i + .5) / n - .02, A.z + d.z * uf + dz * .02, 0, ry, 0, w - .05, Math.abs(ht) + .06, .04))
+      }
+      // limons : deux sur les côtés, un au milieu si la volée est large ; ils suivent la pente et dépassent sous les marches
+      const coffres = o.limons !== false ? (w > 3 ? [-1, 0, 1] : [-1, 1]) : []
+      const sol = V3(0, 0, 0), dm = new THREE.Object3D()
+      coffres.forEach((q) => {
+        const off = V3(nx * q * (w / 2 - .09), -.26, nz * q * (w / 2 - .09)), p0 = A.clone().add(off), p1 = B.clone().add(off)
+        dm.position.copy(p0).lerp(p1, .5); dm.lookAt(p1); dm.scale.set(q === 0 ? .14 : .16, .44, L3 + .2); dm.updateMatrix(); LOTS.limon.ajouter(limonG, dm.matrix.clone())
+        // pilotis sous le limon, tous les ~2,4 m, seulement là où le terrain est loin dessous
+        if (o.pilotis !== false) for (let s0 = .6; s0 < L3; s0 += 2.4) {
+          const t = s0 / L3, P = p0.clone().lerp(p1, t), sous = P.y - .22, gnd = hauteur(P.x, P.z)
+          if (sous - gnd > .6) {
+            HAB.piles.push([P.x, sous - .3, P.z])
+            if (q === 1 && sous - gnd > 1.4) { const G = A.clone().add(V3(nx * (w / 2 - .09) * -1, -.26, nz * (w / 2 - .09) * -1)).lerp(B.clone().add(V3(nx * (w / 2 - .09) * -1, -.26, nz * (w / 2 - .09) * -1)), t); poutre(V3(P.x, sous - .02, P.z), V3(G.x, G.y - .22 - .02, G.z), .11, MT.boisSombre, null, .16) }   // traverse entre les deux files de pilotis
+          }
+        }
+      })
+      if (o.garde !== false) [-1, 1].forEach((q) => { const off = V3(nx * q * (w / 2 - .03), Math.abs(ht) * .5, nz * q * (w / 2 - .03)); garde([A.clone().add(off).toArray(), B.clone().add(off).toArray()], { simple: true, pas: 2 }) })
       zoneRampe(A.x, A.y, A.z, B.x, B.y, B.z, w - .1)
-      // piles aux extrémités de l'escalier (dans la roche, elles se perdent dans le terrain)
+      // un seuil de pierre au pied (la volée ne flotte pas sur la roche)
+      if (o.pierre !== false) { const sl = boite(w + .5, .34, .8, MT.pierre, A.x - dx * .25, A.y - .2, A.z - dz * .25, null, .3); sl.rotation.y = ry }
       return { A, B }
     }
     c.escalier = escalier; c.garde = garde; c.corde = corde; c.lanterne = lanterne; c.fenetre = fenetre

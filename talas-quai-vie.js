@@ -114,6 +114,13 @@
     const pous = M.particules({ max: 120, scene: s })
     // hydravion d'arrivée : sert à la fin du jeu (décollage), comme l'avion de l'ancienne île
     { const pl = new THREE.Group(); pl.position.set(6.4, .55, 15.2); pl.rotation.y = -Math.PI / 2; s.add(pl)
+      const PR = window.TalasProps, forge = PR && PR.loaded('hydravion')
+      if (forge) {   // modèle de la forge (embarcations.mts) : nez vers +z du modèle -> +x du groupe, pour que le tangage du décollage (rotation.z) reste un tangage
+        pl.position.set(8.0, 0, 15.2)
+        const mod = PR.make('hydravion', null, { gradientMap: grad, outline: 1.03 }); mod.rotation.y = Math.PI / 2; mod.position.y = -.3; pl.add(mod)
+        Q._helice = mod.userData.parts.helice; Q._heliceForge = true
+        pl.userData.home = pl.position.clone(); pl.userData.dir = V3(0, 0, 1); W.plane = pl; Q._hydravion = pl
+      } else {
       const blanc = ctx.toon('#efe7d4'), rouge = ctx.toon('#c8352a'), orange = ctx.toon('#f08c00')
       const fus = ctx.ombre(new THREE.Mesh(new THREE.CylinderBufferGeometry(.5, .32, 5.2, 12), blanc)); fus.rotation.z = Math.PI / 2; fus.position.y = 1.5; pl.add(fus)
       const nez = ctx.ombre(new THREE.Mesh(new THREE.SphereBufferGeometry(.5, 12, 8), rouge)); nez.position.set(2.6, 1.5, 0); pl.add(nez)
@@ -122,6 +129,7 @@
       const helice = ctx.boite(.06, 1.6, .16, ctx.toon('#2b1c24'), 3.15, 1.5, 0, pl); Q._helice = helice
       const cabine = new THREE.Mesh(new THREE.BoxBufferGeometry(1.1, .5, .8), ctx.MT.vitre); cabine.position.set(.9, 2.0, 0); pl.add(cabine)
       pl.userData.home = pl.position.clone(); pl.userData.dir = V3(0, 0, 1); W.plane = pl; Q._hydravion = pl }
+    }
 
     /* le fantôme de Talas rôde la nuit au-dessus de la jetée, devant la boutique : même drap simulé que dans le grenier */
     let gQ = null; const fumG = M.particules({ max: 170, scene: s }); let fumGT = 0; const gCible = V3(-1, 3.5, 4)
@@ -129,10 +137,13 @@
     function fantomeQuai(dt, T) {
       if (!gQ) return
       const nuit = W.etat ? W.etat.x.night : 0, veut = nuit > .45 && !busy && !W.photoSansFantome ? .72 : 0
-      const k = gQ.scale.x + (veut - gQ.scale.x) * Math.min(1, dt * 1.4); gQ.scale.setScalar(Math.max(.01, k)); gQ.visible = k > .04
+      const kb = gQ.userData.kb === undefined ? gQ.scale.x : gQ.userData.kb, k = kb + (veut - kb) * Math.min(1, dt * 1.4); gQ.userData.kb = k; gQ.scale.setScalar(Math.max(.01, k)); gQ.visible = k > .04   // kb : échelle de base (l'étirement ci-dessous ne doit pas s'accumuler)
       if (!gQ.visible) return
       const a = T * .36; gCible.set(-.6 + Math.sin(a) * 2.6, 3.7 + Math.sin(T * 1.1) * .3, 3.5 + Math.sin(a * 2) * 3.6)
+      const px0 = gQ.position.x, py0 = gQ.position.y, pz0 = gQ.position.z
       gQ.position.lerp(gCible, Math.min(1, dt * 1.8))
+      { const vit = Math.hypot(gQ.position.x - px0, gQ.position.y - py0, gQ.position.z - pz0) / Math.max(dt, .001), lis = (gQ.userData.etire || 0) + (Math.min(.16, vit * .05) - (gQ.userData.etire || 0)) * Math.min(1, dt * 5)
+        gQ.userData.etire = lis; gQ.scale.set(k * (1 - lis * .5), k * (1 + lis), k * (1 - lis * .5)) }   // plus il file, plus il s'étire ; à l'arrêt il reprend sa forme
       const U = gQ.userData, face = Math.atan2(J.x - gQ.position.x, J.z - gQ.position.z)
       let d = face - gQ.rotation.y; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; gQ.rotation.y += d * Math.min(1, dt * 2)
       U.b.rotation.z = Math.sin(T * 1.7) * .1; U.hands.forEach((h, i) => { h.rotation.z = Math.sin(T * 2.4 + i * Math.PI) * .4 + (i ? -1 : 1) * .25 })
@@ -206,7 +217,7 @@
       st.textContent = `#qhud{position:absolute;inset:0;pointer-events:none;z-index:7;font-family:"Luckiest Guy","Trebuchet MS",sans-serif}
         #qhud .qobj{position:absolute;right:10px;top:54px;max-width:44%;display:flex;gap:10px;align-items:center;background:linear-gradient(90deg,rgba(24,14,50,0),rgba(24,14,50,.72) 30%);padding:8px 16px 8px 34px;color:#fff;-webkit-text-stroke:.5px #1a0d22;text-shadow:2px 2px 0 #1a0d22}
         #qhud .qobj svg{flex:none;width:44px;height:52px;filter:drop-shadow(2px 2px 0 #1a0d22)} #qhud .qobj b{display:block;font-size:17px;line-height:1.05;letter-spacing:.3px;color:#ffe9b0} #qhud .qobj span{display:block;font:600 13px/1.2 "Trebuchet MS",sans-serif;-webkit-text-stroke:0;color:#fff;margin-top:3px}
-        #qhud canvas.qmap{position:absolute;right:10px;bottom:${TOUCH ? 156 : 12}px;width:150px;height:150px;filter:drop-shadow(2px 3px 0 rgba(20,10,40,.7))}
+        #qhud canvas.qmap{position:absolute;right:10px;bottom:${TOUCH ? 156 : 12}px;width:170px;height:170px;transition:opacity .15s;filter:drop-shadow(2px 3px 0 rgba(20,10,40,.7))}
         #qhud .qinv{position:absolute;left:50%;bottom:${TOUCH ? 160 : 58}px;transform:translateX(-50%);padding:8px 18px;border-radius:14px;border:3px solid #1a0d22;background:#fff3c8;color:#3a1c40;font-size:17px;text-shadow:none;box-shadow:0 3px 0 #1a0d22;opacity:0;transition:opacity .15s;white-space:nowrap}
         #qhud .qinv i{font-style:normal;display:inline-block;min-width:24px;padding:0 7px;margin-right:8px;border-radius:6px;background:#3a1c40;color:#ffe9b0;text-align:center}
         #qhud .qson{position:absolute;left:12px;top:80px;pointer-events:auto;border:3px solid #1a0d22;border-radius:10px;background:#fff3c8;color:#3a1c40;font:700 12px "Trebuchet MS",sans-serif;padding:4px 10px;box-shadow:0 2px 0 #1a0d22;cursor:pointer}
@@ -225,8 +236,8 @@
       g.fillStyle = '#b8a8ff'; g.strokeStyle = '#b8a8ff'
       Q.zones.forEach((q) => { if (q.t === 'r') g.fillRect((q.x0 - CART.x0) * CART.ppm, (q.z0 - CART.z0) * CART.ppm, (q.x1 - q.x0) * CART.ppm, (q.z1 - q.z0) * CART.ppm); else if (q.t === 'd') { g.beginPath(); g.arc((q.x - CART.x0) * CART.ppm, (q.z - CART.z0) * CART.ppm, q.r * CART.ppm, 0, 7); g.fill() } else { g.lineWidth = q.w * CART.ppm; g.lineCap = 'butt'; g.beginPath(); g.moveTo((q.ax - CART.x0) * CART.ppm, (q.az - CART.z0) * CART.ppm); g.lineTo((q.bx - CART.x0) * CART.ppm, (q.bz - CART.z0) * CART.ppm); g.stroke() } }) }
     function carte(cible, nx) {
-      const R = 150, ppm = 3.2 * 1 // pixels par mètre dans la mini-carte (rayon de 46 m environ)
-      qg.clearRect(0, 0, 300, 300); qg.save(); qg.beginPath(); qg.arc(R, R, R - 8, 0, 7); qg.clip(); qg.fillStyle = '#1d1a4a'; qg.fillRect(0, 0, 300, 300)
+      const R = 150, RM = 128, ppm = 3.2 * 1 // pixels par mètre dans la mini-carte (rayon de 46 m environ) ; RM : rayon du disque, la pastille N reste entière dans la toile
+      qg.clearRect(0, 0, 300, 300); qg.save(); qg.beginPath(); qg.arc(R, R, RM, 0, 7); qg.clip(); qg.fillStyle = '#1d1a4a'; qg.fillRect(0, 0, 300, 300)
       qg.translate(R, R); qg.rotate(W.yaw); qg.scale(ppm / CART.ppm, ppm / CART.ppm); qg.translate(-(J.x - CART.x0) * CART.ppm, -(J.z - CART.z0) * CART.ppm); qg.drawImage(cBase, 0, 0)
       const P = (x, z) => [(x - CART.x0) * CART.ppm, (z - CART.z0) * CART.ppm]
       // ateliers
@@ -234,9 +245,9 @@
         qg.fillStyle = fait ? '#51cf66' : ouv ? '#ffd43b' : '#8888aa'; qg.strokeStyle = '#1a0d22'; qg.lineWidth = 5; qg.beginPath(); qg.arc(px, pz, 15, 0, 7); qg.fill(); qg.stroke(); qg.fillStyle = '#1a0d22'; qg.font = 'bold 22px sans-serif'; qg.textAlign = 'center'; qg.textBaseline = 'middle'; qg.fillText(n === 7 ? '★' : String(n + 4), px, pz + 1) }
       if (cible) { const [px, pz] = P(cible.x, cible.z); qg.strokeStyle = '#ff3a2a'; qg.lineWidth = 6; qg.beginPath(); qg.arc(px, pz, 24 + 5 * Math.sin(W.t * 6), 0, 7); qg.stroke() }
       qg.restore()
-      qg.strokeStyle = '#1a0d22'; qg.lineWidth = 9; qg.beginPath(); qg.arc(R, R, R - 8, 0, 7); qg.stroke(); qg.strokeStyle = '#8f86ff'; qg.lineWidth = 6; qg.beginPath(); qg.arc(R, R, R - 8, 0, 7); qg.stroke()
+      qg.strokeStyle = '#1a0d22'; qg.lineWidth = 9; qg.beginPath(); qg.arc(R, R, RM, 0, 7); qg.stroke(); qg.strokeStyle = '#8f86ff'; qg.lineWidth = 6; qg.beginPath(); qg.arc(R, R, RM, 0, 7); qg.stroke()
       qg.fillStyle = '#8f86ff'; qg.strokeStyle = '#1a0d22'; qg.lineWidth = 3; qg.font = 'bold 26px "Luckiest Guy",sans-serif'; qg.textAlign = 'center'; qg.textBaseline = 'middle'
-      const nxp = R + Math.sin(W.yaw) * (R - 8), nzp = R - Math.cos(W.yaw) * (R - 8); qg.beginPath(); qg.arc(nxp, nzp, 15, 0, 7); qg.fill(); qg.stroke(); qg.fillStyle = '#fff'; qg.fillText('N', nxp, nzp + 1)
+      const nxp = R + Math.sin(W.yaw) * RM, nzp = R - Math.cos(W.yaw) * RM; qg.beginPath(); qg.arc(nxp, nzp, 15, 0, 7); qg.fill(); qg.stroke(); qg.fillStyle = '#fff'; qg.fillText('N', nxp, nzp + 1)
       qg.save(); qg.translate(R, R); qg.rotate(W.yaw - J.ang + Math.PI); qg.fillStyle = '#ffd43b'; qg.strokeStyle = '#1a0d22'; qg.lineWidth = 4; qg.beginPath(); qg.moveTo(0, -17); qg.lineTo(11, 12); qg.lineTo(0, 6); qg.lineTo(-11, 12); qg.closePath(); qg.fill(); qg.stroke(); qg.restore()
     }
     const OBJ = [['Contexte', 'Va à la boutique TALAS : un fantôme hante l’atelier.'], ['Leadership', 'Monte tout en haut, jusqu’au manoir du PDG.'], ['Planification', 'Prends l’escalier de gauche : l’atelier des plans t’attend.'], ['Support', 'Prends l’escalier de droite : la bibliothèque des preuves.'], ['Réalisation', 'Le hangar d’assemblage, sur le quai de gauche.'], ['Évaluation', 'Le studio télé, en haut à droite.'], ['Amélioration', 'Le hangar à bateaux, au bout de la grande jetée.'], ['Le verdict', 'Traverse le pont : le phare rend son verdict.']]
@@ -289,7 +300,7 @@
       if (!libre) { boP.lerp(tb, 1 - Math.pow(.02, dt)); bo.position.copy(boP) }
       bo.userData.prop.rotation.y += dt * 8; { const fy = Math.atan2(camera.position.x - bo.position.x, camera.position.z - bo.position.z); bo.userData.face = fy; if (!bo.userData.busy) bo.rotation.y += (fy - bo.rotation.y) * Math.min(1, dt * 6) }
       // hélice de l'hydravion, phare
-      if (Q._helice) Q._helice.rotation.x += dt * 30
+      if (Q._helice) Q._helice.rotation[Q._heliceForge ? 'z' : 'x'] += dt * 30
       fantomeQuai(dt, T); chienQuai(dt, T)
       fx.update(dt)
       // --- proximité d'un atelier
@@ -301,6 +312,7 @@
       else if (e && !prevS && proche < 0 && chien && !fige && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.8) { chien.userData.aboie(); if (window.TALAS_SON) TALAS_SON.aboie(); try { beep(260, .12, 'square', .05); setTimeout(() => beep(390, .16, 'square', .05), 120) } catch (er) {} fx.burst(V3(cP.x, cP.y + 1.6, cP.z), 8) }
       prevS = e ? 1 : 0
       const dlg = !$('#panel').hidden   // un dialogue est ouvert : pas d'invite par-dessus le panneau
+      qMap.style.opacity = dlg ? 0 : 1
       if (dlg) qInv.style.opacity = 0
       else if (proche >= 0) { const nom = proche === 7 ? 'la tour de contrôle' : CH[proche].t; const ok = proche === 7 ? (allDone() || S.all) : unlocked(proche); qInv.style.opacity = 1; qInvT.textContent = ok ? (proche === 7 ? 'Demander le verdict' : `Entrer : atelier ${nom}`) : `Fermé — termine d’abord l’atelier précédent`; qInv.style.background = ok ? '#fff3c8' : '#e9dcd0' } else if (!fige && !modal && W.pnjInvite && (invPnj = W.pnjInvite())) { qInv.style.opacity = 1; qInvT.textContent = invPnj; qInv.style.background = '#fff3c8' } else if (chien && !fige && !modal && idleT > .9 && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.6) { qInv.style.opacity = 1; qInvT.textContent = 'Caresser le chien-fantôme'; qInv.style.background = '#fff3c8' } else qInv.style.opacity = 0
       // --- objectif

@@ -135,8 +135,9 @@ void main(){
       const sp = Math.min(1, (vitesse || 0) / 3.4)
       gait += dt * (3 + sp * 9.5); wag += dt * (5 + sp * 5); bark = Math.max(0, bark - dt * 3)
       uni.uT.value = T; uni.uGait.value = gait; uni.uSp.value = sp
-      uni.uWag.value = Math.sin(wag) * (.55 + (1 - sp) * .35); uni.uBreath.value = Math.sin(T * 2.1) * .012
-      uni.uHead.value = Math.sin(T * .8) * .22 + Math.sin(T * 2.7) * .05 * sp; uni.uBark.value = bark
+      const repos = 1 - sp, renifle = repos * Math.max(0, Math.sin(T * .41 + 1.3) - .82) * 5.5   // par intermittence, au repos : le museau va et vient
+      uni.uWag.value = Math.sin(wag) * (.55 + repos * .35); uni.uBreath.value = Math.sin(T * 2.1) * .012 + repos * Math.sin(T * 8.6) * .006   // halètement discret
+      uni.uHead.value = Math.sin(T * .8) * .22 + Math.sin(T * 2.7) * .05 * sp + renifle * Math.sin(T * 15) * .07 - sp * .08; uni.uBark.value = bark
       g.updateMatrixWorld(true); inv.copy(boite.matrixWorld).invert()
       cam.copy(camera.position).applyMatrix4(inv); uni.uCamL.value.copy(cam)
       if (dirLune) { L.copy(dirLune).transformDirection(inv).normalize(); uni.uLightL.value.copy(L) }

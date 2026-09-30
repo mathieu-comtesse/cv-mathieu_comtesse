@@ -33,7 +33,38 @@
       const p = y - .32 + n * (d < 1 ? .18 : 1) * (1 + detail) - dd * 1.75 + (M.fbm2(x * .33 + i, z * .33) - .5) * 1.9 * detail + (M.fbm2(x * .8, z * .8 + i) - .5) * .5 * detail
       if (p > h) h = p
     }
-    return Math.max(h, -4)
+    return creuse(x, z, Math.max(h, -4))
+  }
+  /* ============================================================================================== ESCALIERS */
+  /* Chaque volée part du bord d'un plancher et arrive exactement au bord de l'autre (les planchers sont raccourcis en conséquence, voir talas-quai-village.js) :
+   * plus de marches enterrées sous un plancher, donc on peut aussi redescendre. La roche est creusée sous la volée (lit de roche, épaulements adoucis). */
+  const PLACEY = DECK + .55
+  Q.ESC = [
+    { id: 'place-ouest',    a: [-6.9, PLACEY, -17.5],  b: [-11.8, 4.1, -19.0], w: 2.3 },
+    { id: 'place-est',      a: [6.5, PLACEY, -19.4],   b: [9.6, 3.1, -19.8],   w: 2.3 },
+    { id: 'place-centre',   a: [0, PLACEY, -24.35],    b: [0, 7.6, -35.5],     w: 4.2 },
+    { id: 'centre-manoir',  a: [0, 7.6, -46.0],        b: [0, 13.4, -55.6],    w: 3.4 },
+    { id: 'est-studio',     a: [18, 3.1, -29.0],       b: [18.6, 8.0, -37.2],  w: 2.4 },
+    { id: 'ouest-belvedere', a: [-17, 4.1, -27.0],     b: [-19, 9.6, -40.5],   w: 2.4 }
+  ]
+  Q.ESC.forEach((e) => { const dx = e.b[0] - e.a[0], dz = e.b[2] - e.a[2], L = Math.hypot(dx, dz); e.L = L; e.ux = dx / L; e.uz = dz / L })
+  /* distance en plan à l'axe d'une volée (t borné : bouts arrondis) et abscisse t */
+  function versEscalier(e, x, z) {
+    const px = x - e.a[0], pz = z - e.a[2], t = clamp((px * e.ux + pz * e.uz) / e.L, 0, 1)
+    return { t, d: Math.hypot(x - (e.a[0] + e.ux * e.L * t), z - (e.a[2] + e.uz * e.L * t)) }
+  }
+  Q.dansEscalier = (x, z, marge) => { for (const e of Q.ESC) if (versEscalier(e, x, z).d < e.w / 2 + (marge || 0)) return true; return false }
+  /* le terrain est ramené au lit de roche sous les marches : déblai quand la roche dépasse, remblai modéré quand elle est trop basse (au-delà, on laisse le vide : des pilotis y sont plantés) */
+  function creuse(x, z, h) {
+    for (let i = 0; i < Q.ESC.length; i++) {
+      const e = Q.ESC[i], r = versEscalier(e, x, z), reach = e.w / 2 + .45
+      if (r.d > reach + 2.4) continue
+      const lit = e.a[1] + (e.b[1] - e.a[1]) * r.t - .62
+      const m = 1 - sm(reach, reach + 2.4, r.d)
+      const k = h > lit ? m : m * (1 - sm(.9, 1.7, lit - h))
+      h += (lit - h) * k
+    }
+    return h
   }
   Q.hauteur = hauteur
 

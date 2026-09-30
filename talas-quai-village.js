@@ -20,18 +20,13 @@
     sol(-10.5, -8, -1.7, -3.2, DECK); sol(-22.5, -14.5, -10.5, -3.2, DECK)
     sol(1.7, -7, 16, -2.5, DECK); sol(16, -10.5, 28.5, -1, DECK)
     // la place vers les terrasses
-    escalier([-6.7, PLACE.y, -17.5], [-11.5, 4.1, -19.5], 2.3)
-    escalier([4.9, PLACE.y, -22.4], [10.5, 3.1, -23.6], 2.3)
-    escalier([0, PLACE.y, -24.3], [0, 7.6, -35.7], 4.2)
-    escalier([0, 7.6, -47.4], [0, 13.4, -55.4], 3.4)
-    escalier([18, 3.1, -28.6], [18.6, 8.0, -35.6], 2.4)
-    escalier([-17, 4.1, -27.2], [-19, 9.6, -40.2], 2.4)
+    Q.ESC.forEach((e) => escalier(e.a, e.b, e.w))   // bas et haut de chaque volée : au bord des planchers ci-dessous, qui sont raccourcis pour les recevoir
     // terrasses (planchers) : T1 ouest, T3 est, TC centre, T5 nord-est, T4 manoir, T6 belvédère
-    sol(-23, -27, -8, -15, 4.1); sol(8, -29, 22, -17, 3.1); sol(-9, -47.5, 9, -35.5, 7.6); sol(12, -47.5, 28, -34.5, 8.0); sol(-9, -67, 9, -52, 13.4); sol(-27, -50, -14, -40.5, 9.6)
+    sol(-23, -27, -11.8, -15, 4.1); sol(9.6, -29, 22, -17, 3.1); sol(-9, -46, 9, -35.5, 7.6); sol(12, -47.5, 28, -37.2, 8.0); sol(-9, -67, 9, -55.6, 13.4); sol(-27, -50, -14, -40.5, 9.6)
     zoneRampe(9, 7.6, -41.5, 12, 8.0, -41.5, 3.2)
     HAB.planches.clair.push([10.5, 7.8 - .045, -41.5, 3.2, 3.2, PI / 2, 0])
     // le pont du phare (long, en légère montée) et l'îlot
-    const pont = escalier([5.2, PLACE.y, -13.2], [30.5, 2.6, -15.5], 2.4, { garde: false })
+    const pont = escalier([5.2, PLACE.y, -13.2], [30.5, 2.6, -15.5], 2.4, { garde: false, pilotis: false, pierre: false })
     ;(function () { const A = V3(5.2, PLACE.y, -13.2), B = V3(30.5, 2.6, -15.5); for (let q of [-1, 1]) { const n = V3(-(B.z - A.z), 0, B.x - A.x).normalize().multiplyScalar(q * 1.14); garde([A.clone().add(n).toArray(), B.clone().add(n).toArray()], { pas: 2.4 }) }
       for (let t = 0; t <= 1.001; t += .09) HAB.piles.push([A.x + (B.x - A.x) * t, A.y + (B.y - A.y) * t - .0, A.z + (B.z - A.z) * t + 1.3]) })()
     zoneDisque(37, -16, 6.5, 2.6); for (let x = 30.5; x < 43; x += .3) { const w = Math.sqrt(Math.max(0, 6.5 * 6.5 - (x - 37) ** 2)); HAB.planches.clair.push([x, 2.6 - .045, -16, .28, w * 2, PI / 2 * 0 + PI / 2, (r() - .5) * .1]) }
@@ -45,14 +40,14 @@
     { const pts = []; for (let a = 0; a <= 6.284; a += .3927) { const ang = a; const px = Math.cos(ang) * (PLACE.r - .25), pz = PLACE.z + Math.sin(ang) * (PLACE.r - .25); const inOpening = (Math.abs(px) < 1.9 && pz > PLACE.z + 5) || (px < -5.2 && Math.abs(pz - PLACE.z) < 1.6) || (px > 3.5 && pz > PLACE.z + 4.4) || (Math.abs(px) < 2.3 && pz < PLACE.z - 5.8) || (px > 3.5 && pz < PLACE.z - 4); pts.push(inOpening ? null : [px, PLACE.y, pz]) }
       let cur = []; pts.forEach((p) => { if (p) cur.push(p); else { if (cur.length > 1) garde(cur); cur = [] } }); if (cur.length > 1) garde(cur) }
     // terrasses : garde-corps sur les bords qui donnent sur le vide
-    garde([[-23, 4.1, -27], [-23, 4.1, -15], [-8, 4.1, -15]]); garde([[-23, 4.1, -27], [-10.5, 4.1, -27]]); garde([[22, 3.1, -29], [22, 3.1, -17], [12, 3.1, -17]]); garde([[22, 3.1, -29], [19.8, 3.1, -29]]); garde([[-9, 7.6, -35.5], [-2.5, 7.6, -35.5]]); garde([[2.5, 7.6, -35.5], [9, 7.6, -35.5], [9, 7.6, -47.5]])
-    garde([[-9, 7.6, -47.5], [-9, 7.6, -35.5]]); garde([[28, 8, -34.5], [28, 8, -47.5], [12, 8, -47.5]]); garde([[12, 8, -34.5], [16.5, 8, -34.5]]); garde([[20.5, 8, -34.5], [28, 8, -34.5]])
-    garde([[-9, 13.4, -52], [-2.2, 13.4, -52]]); garde([[2.2, 13.4, -52], [9, 13.4, -52], [9, 13.4, -67]]); garde([[-9, 13.4, -67], [-9, 13.4, -52]])
+    garde([[-23, 4.1, -27], [-23, 4.1, -15], [-11.8, 4.1, -15]]); garde([[-23, 4.1, -27], [-18.5, 4.1, -27]]); garde([[-15.5, 4.1, -27], [-11.8, 4.1, -27]]); garde([[22, 3.1, -29], [22, 3.1, -17], [9.6, 3.1, -17]]); garde([[22, 3.1, -29], [19.8, 3.1, -29]]); garde([[9.6, 3.1, -29], [16.3, 3.1, -29]]); garde([[-9, 7.6, -35.5], [-2.5, 7.6, -35.5]]); garde([[2.5, 7.6, -35.5], [9, 7.6, -35.5], [9, 7.6, -46]]); garde([[-9, 7.6, -46], [-2.3, 7.6, -46]]); garde([[2.3, 7.6, -46], [9, 7.6, -46]])
+    garde([[-9, 7.6, -46], [-9, 7.6, -35.5]]); garde([[28, 8, -37.2], [28, 8, -47.5], [12, 8, -47.5]]); garde([[12, 8, -37.2], [17.3, 8, -37.2]]); garde([[22.3, 8, -37.2], [28, 8, -37.2]])
+    garde([[-9, 13.4, -55.6], [-2.2, 13.4, -55.6]]); garde([[2.2, 13.4, -55.6], [9, 13.4, -55.6], [9, 13.4, -67]]); garde([[-9, 13.4, -67], [-9, 13.4, -55.6]])
     garde([[-27, 9.6, -40.5], [-20, 9.6, -40.5]]); garde([[-18, 9.6, -40.5], [-14, 9.6, -40.5], [-14, 9.6, -50], [-27, 9.6, -50], [-27, 9.6, -40.5]])
 
     /* ==================================================================== accessoires : caisses, tonneaux, bollards, lanternes sur poteaux */
     const cais = toonT(T.planches({ taille: 256, planches: 4, pal: ['#6a4a34', '#5a3d2a', '#7a5638'], graine: 31, noeuds: .3 }))
-    function caisse(x, y, z, sz, ry, mat) { Q.obstacles.push({ t: 'b', x, z, hw: sz / 2 + .03, hd: sz / 2 + .03, ry: ry || 0, y }); const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry || 0; s.add(g); const b = boite(sz, sz, sz, mat || cais, 0, sz / 2, 0, g, .7); [-1, 1].forEach((q) => { boite(sz + .05, .08, sz + .05, MT.boisSombre, 0, sz / 2 + q * sz * .38, 0, g); boite(.09, sz + .05, sz + .05, MT.boisSombre, q * sz * .4, sz / 2, 0, g) }); return g }
+    function caisse(x, y, z, sz, ry, mat, par) { if (!par) Q.obstacles.push({ t: 'b', x, z, hw: sz / 2 + .03, hd: sz / 2 + .03, ry: ry || 0, y }); const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry || 0; (par || s).add(g); const b = boite(sz, sz, sz, mat || cais, 0, sz / 2, 0, g, .7); [-1, 1].forEach((q) => { boite(sz + .05, .08, sz + .05, MT.boisSombre, 0, sz / 2 + q * sz * .38, 0, g); boite(.09, sz + .05, sz + .05, MT.boisSombre, q * sz * .4, sz / 2, 0, g) }); return g }
     function tonneau(x, y, z, h) { Q.obstacles.push({ t: 'c', x, z, r: .38, y }); h = h || 1.05; const g = new THREE.Group(); g.position.set(x, y, z); s.add(g); const pts = []; for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push(new THREE.Vector2(.33 * (1 + .18 * Math.sin(t * PI)), t * h)) }
       const m = ombre(new THREE.Mesh(new THREE.LatheBufferGeometry(pts, 12), toonT(T.planches({ taille: 256, planches: 8, vertical: true, pal: ['#7a5232', '#6a4428', '#8a6038'], graine: 8 })))); g.add(m); [.16, .84].forEach((t) => cyl(.375 * (1 + .18 * Math.sin(t * PI)) * .96, .375 * (1 + .18 * Math.sin(t * PI)) * .96, .07, MT.metal, 0, t * h, 0, g, 12)); return g }
     function bollard(x, y, z, h) { Q.obstacles.push({ t: 'c', x, z, r: .24, y }); h = h || 1.1; cyl(.2, .24, h, MT.bois, x, y + h / 2, z); for (let i = 0; i < 4; i++) { const t = new THREE.Mesh(new THREE.TorusBufferGeometry(.235, .05, 5, 14), MT.corde); t.rotation.x = PI / 2; t.position.set(x, y + h - .12 - i * .11, z); s.add(t) } }
@@ -76,8 +71,8 @@
 
     /* ==================================================================== MÂT ET FANIONS DE LA PLACE */
     { const g = new THREE.Group(); g.position.set(0, PLACE.y, PLACE.z); s.add(g); Q.obstacles.push({ t: 'c', x: 0, z: PLACE.z, r: .34, y: PLACE.y }); cyl(.2, .28, 7, MT.bois, 0, 3.5, 0, g, 10); const anneau = new THREE.Mesh(new THREE.TorusBufferGeometry(.5, .07, 6, 16), MT.metal); anneau.rotation.x = PI / 2; anneau.position.y = 3.2; g.add(anneau)
-      for (let i = 0; i < 4; i++) { const a = i / 4 * PI * 2 + .4, R = 6.1; const P0 = V3(0, 6.4, 0), P1 = V3(Math.cos(a) * R, 3.4, Math.sin(a) * R); corde(P0, P1, .5, .025)
-        for (let k = 1; k < 9; k++) { const u = k / 9.5, p = P0.clone().lerp(P1, u); p.y -= Math.sin(u * PI) * .5; const fl = new THREE.Mesh(new THREE.PlaneBufferGeometry(.32, .4), toon(['#e7c45a', '#c8352a', '#4b9098', '#8a4ab0'][(i + k) % 4], { side: THREE.DoubleSide })); fl.position.copy(p).add(V3(0, -.2, 0)); fl.rotation.y = -a; fl.rotation.z = (r() - .5) * .3; g.add(fl) } }
+      ;[[-4.8, 3.5], [4.8, 3.5], [-4.2, -3.6], [4.2, -3.6]].forEach(([px, pz], i) => { const a = Math.atan2(pz, px); const P0 = V3(0, 6.55, 0), P1 = V3(px, 2.86, pz); corde(P0, P1, .5, .025, g)
+        for (let k = 1; k < 9; k++) { const u = k / 9.5, p = P0.clone().lerp(P1, u); p.y -= Math.sin(u * PI) * .5; const fl = new THREE.Mesh(new THREE.PlaneBufferGeometry(.32, .4), toon(['#e7c45a', '#c8352a', '#4b9098', '#8a4ab0'][(i + k) % 4], { side: THREE.DoubleSide })); fl.position.copy(p).add(V3(0, -.2, 0)); fl.rotation.y = -a; fl.rotation.z = (r() - .5) * .3; g.add(fl) } })
       lanterne(0, 6.3, 0, g, { sol: PLACE.y, mare: 8, echelle: 3.6, chaine: .3, force: 1.2 }) }
 
     /* ==================================================================== BANNIÈRES (fantômes de Talas) */
@@ -148,7 +143,9 @@
       const tab = ombre(new THREE.Mesh(new THREE.PlaneBufferGeometry(3.6, 2.2), toonT((() => { const [cv2, x] = [document.createElement('canvas')]; cv2.width = 512; cv2.height = 320; const q = cv2.getContext('2d'); q.fillStyle = '#2f5a86'; q.fillRect(0, 0, 512, 320); q.strokeStyle = 'rgba(255,255,255,.55)'; q.lineWidth = 2; for (let i = 0; i < 16; i++) { q.beginPath(); q.moveTo(0, i * 20); q.lineTo(512, i * 20); q.stroke() } q.lineWidth = 4; q.strokeRect(70, 60, 130, 90); q.strokeRect(230, 60, 200, 60); q.beginPath(); q.arc(150, 230, 50, 0, 7); q.stroke(); q.beginPath(); q.moveTo(200, 105); q.lineTo(230, 90); q.moveTo(330, 120); q.lineTo(330, 210); q.moveTo(330, 210); q.lineTo(430, 210); q.stroke(); return new THREE.CanvasTexture(cv2) })()))); tab.position.set(0, 2.2, 2.7); g.add(tab)
       boite(3.9, 2.5, .1, MT.boisSombre, 0, 2.2, 2.62, g)
       fenetre(g, -2.4, 2.0, 2.63, .8, 1.1, 0); fenetre(g, 2.5, 2.0, 2.63, .8, 1.1, 0); porteFacade(g, 7, 5.2, 0); panneau(g, 'PLANIFICATION', 0, 4.7, 2.75, 4.2, 1.0, 0, { fond: '#3a4a5a' })
-      poutre(V3(3.4, .3, -1), V3(3.4, 5.2, -1), .18, MT.boisSombre, g); poutre(V3(3.4, 5.2, -1), V3(1.2, 5.6, 1.6), .14, MT.boisSombre, g); corde(V3(1.2, 5.6, 1.6), V3(1.2, 3.2, 1.6), .0, .02); caisse(0, 4.1, 0, .01, 0)
+      // palan de levage : potence plantée au pied de la façade, flèche en avant, câble et caisse suspendue
+      poutre(V3(-3.35, .3, 2.95), V3(-3.35, 4.3, 2.95), .18, MT.boisSombre, g); poutre(V3(-3.35, 4.3, 2.95), V3(-3.35, 4.4, 4.2), .14, MT.boisSombre, g); poutre(V3(-3.35, 2.6, 2.95), V3(-3.35, 4.05, 3.75), .09, MT.boisSombre, g)
+      corde(V3(-3.35, 4.36, 4.15), V3(-3.35, 2.85, 4.15), .0, .02, g); caisse(-3.35, 2.05, 4.15, .8, .25, null, g)
       lanterne(-1.2, 3.4, 2.9, g, { sol: 4.1, mare: 4 }); lanterne(1.2, 3.4, 2.9, g, { sol: 4.1, mare: 4 }); cheminee(g, -2, 4.6, -1); etiquette(g, 2, 8); c.planif = g }
     // n°3 — Support : la bibliothèque (T3, est)
     { const g = maison({ x: 18.4, y: 3.1, z: -23, w: 7.2, d: 5.4, h: 3.6, ry: -PI / 2, mur: MUR.ocre, toit: TOIT.ocre, pente: 2 }); PORTES[3] = V3(14.6, 3.1, -23)
@@ -161,7 +158,7 @@
       boite(4.6, 3.1, .16, MT.boisSombre, 0, 1.9, 3.55, g); for (let i = 0; i < 6; i++) boite(.06, 3.1, .05, toon('#2b1c24'), -2 + i * .8, 1.9, 3.64, g); poutre(V3(-2.3, .3, 3.6), V3(2.3, 3.4, 3.6), .08, toon('#2b1c24'), g); poutre(V3(2.3, .3, 3.6), V3(-2.3, 3.4, 3.6), .08, toon('#2b1c24'), g)
       panneau(g, 'RÉALISATION', 0, 4.65, 3.62, 4.4, 1.0, 0, { fond: '#254a52' }); fenetre(g, -3.3, 2.2, 3.55, .7, 1.0, 0); fenetre(g, 3.3, 2.2, 3.55, .7, 1.0, 0)
       // grue à flèche
-      const gr = new THREE.Group(); gr.position.set(-3.2, 0, 3.3); g.add(gr); boite(.25, 6.2, .25, MT.metal, 0, 3.1, 0, gr); poutre(V3(0, 6.2, 0), V3(-4.6, 6.0, 1.8), .18, MT.metal, gr); poutre(V3(0, 6.2, 0), V3(1.5, 6.0, -.6), .14, MT.metal, gr); corde(V3(-4.4, 6.0, 1.75), V3(-4.4, 3.4, 1.75), 0, .025); caisse(-4.4 - 0, 2.6, 1.75, .9, .3)
+      const gr = new THREE.Group(); gr.position.set(-3.2, 0, 3.3); g.add(gr); boite(.25, 6.2, .25, MT.metal, 0, 3.1, 0, gr); poutre(V3(0, 6.2, 0), V3(-4.6, 6.0, 1.8), .18, MT.metal, gr); poutre(V3(0, 6.2, 0), V3(1.5, 6.0, -.6), .14, MT.metal, gr); corde(V3(-4.4, 5.95, 1.75), V3(-4.4, 3.4, 1.75), 0, .025, gr); caisse(-4.4, 2.5, 1.75, .9, .3, null, gr)
       caisse(2.4, 0, 4.6, 1.1, .1); caisse(3.7, 0, 4.4, .9, .5); tonneau(-2.8, 0, 4.4)
       lanterne(-2.6, 3.7, 3.9, g, { sol: DECK, mare: 4 }); lanterne(2.6, 3.7, 3.9, g, { sol: DECK, mare: 4 }); cheminee(g, 2, 5.0, -1.5); etiquette(g, 4, 7.8); c.hangar = g }
     // n°5 — Évaluation : le studio de télévision (T5, nord-est)
@@ -176,7 +173,7 @@
       panneau(g, 'AMÉLIORATION', 0, 4.4, 3.3, 4.6, 1.0, 0, { fond: '#3a2a55' }); boite(4.4, 2.6, .12, toon('#231822'), 0, 1.7, 3.25, g); fenetre(g, -3.3, 2.1, 3.25, .7, 1.0, 0)
       const jet = new THREE.Group(); jet.position.set(0, 0, 5.2); g.add(jet); const coque = ombre(new THREE.Mesh(new THREE.CylinderBufferGeometry(.34, .3, 2.4, 10), toon('#1c7ed6'))); coque.rotation.x = PI / 2; coque.position.y = .7; jet.add(coque); boite(.5, .3, .9, toon('#ffd43b'), 0, 1.05, -.1, jet); boite(.7, .07, .07, MT.metal, 0, 1.4, .5, jet)
       ;[[-1.4, 0, 5.9], [1.4, 0, 5.9]].forEach(([x, y, z]) => boite(.15, .7, .15, MT.boisSombre, x, .4, z, g))
-      for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.SphereBufferGeometry(.32, 10, 8), toon(['#e03131', '#f08c00', '#fff'][i])); b.position.set(3.3, 3.0 - i * .05, 3.3 - i * .6); g.add(b); corde(V3(3.3, 3.4, 3.3 - i * .6), V3(3.3, 3.0 - i * .05 + .3, 3.3 - i * .6), 0, .02) }
+      for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.SphereBufferGeometry(.32, 10, 8), toon(['#e03131', '#f08c00', '#fff'][i])); b.position.set(3.3, 3.0 - i * .05, 3.3 - i * .6); g.add(b); corde(V3(3.3, 3.4, 3.3 - i * .6), V3(3.3, 3.0 - i * .05 + .3, 3.3 - i * .6), 0, .02, g) }
       lanterne(-2.6, 3.4, 3.5, g, { sol: DECK, mare: 4 }); lanterne(2.6, 3.4, 3.5, g, { sol: DECK, mare: 4 }); etiquette(g, 6, 7.4); c.remise = g }
 
     /* ==================================================================== LE PHARE (tour de contrôle du verdict) */
@@ -199,7 +196,15 @@
 
     /* ==================================================================== BATEAUX AMARRÉS */
     Q._bateaux = []
-    function bateau(x, z, ry, coque, cabine) {
+    /* modèles de la forge (tools/forge/models/embarcations.mts) : quille à y = 0, flottaison à 0,58 m (0,18 m pour la barque) ; repli procédural si le GLB manque */
+    function bateauForge(id, x, z, ry, draft, lampe) {
+      const P = window.TalasProps; if (!(P && P.loaded(id))) return null
+      const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; s.add(g)
+      const m = P.make(id, null, { gradientMap: grad, outline: 1.03 }); m.position.y = -draft; g.add(m)
+      if (lampe) { const Lm = lanterne(0, lampe[0], lampe[1], g, { chaine: .05 }); Lm.g.children.forEach((ch) => { if (ch !== Lm.halo) ch.visible = false }) }   // seul le halo de la lanterne d'étrave brille la nuit
+      Q._bateaux.push({ g, ph: r() * 6 }); return g
+    }
+    function bateauProc(x, z, ry, coque, cabine) {
       const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; s.add(g)
       const sh = new THREE.Shape(); sh.moveTo(-2.9, .5); sh.quadraticCurveTo(-2.8, -.55, 0, -.6); sh.quadraticCurveTo(2.4, -.55, 3.7, .35); sh.lineTo(3.7, .55); sh.lineTo(-2.9, .55); sh.closePath()
       const hg = new THREE.ExtrudeBufferGeometry(sh, { depth: 2.2, bevelEnabled: true, bevelSize: .12, bevelThickness: .1, bevelSegments: 2, curveSegments: 8 }); hg.translate(0, 0, -1.1); hg.rotateY(-PI / 2); uvMonde(hg, .5)
@@ -210,9 +215,10 @@
       lanterne(0, 2.6, 1.3, g, { chaine: .2 }); Q._bateaux.push({ g, ph: r() * 6 }); return g
     }
     function fenetreJ(g, x, y, z, w, h) { const v = new THREE.Mesh(new THREE.PlaneBufferGeometry(w, h), MT.vitre); v.position.set(x, y, z + .03); g.add(v); boite(w + .1, h + .1, .05, MT.boisSombre, x, y, z, g) }
-    bateau(14.2, 3.5, PI / 2 + .08, '#c8352a'); bateau(-6.5, 14.6, .12, '#2f6f86', '#e9d8b0'); bateau(36, 4, -.5, '#8a4ab0', '#efe7d4')
+    const bateau = (x, z, ry, coque, cabine, id, lampe) => bateauForge(id, x, z, ry, .58, lampe) || bateauProc(x, z, ry, coque, cabine)
+    bateau(14.2, 3.5, PI / 2 + .08, '#c8352a', undefined, 'bateau-remorqueur', [1.22, 2.92]); bateau(-6.5, 14.6, .12, '#2f6f86', '#e9d8b0', 'bateau-chalutier', [1.3, 3.2]); bateau(36, 4, -.5, '#8a4ab0', '#efe7d4', 'bateau-vedette', [1.15, 2.75])
     // barques amarrées à la boutique
-    ;(function () { const g = new THREE.Group(); g.position.set(-13.2, 0, 4); g.rotation.y = .3; s.add(g); const sh = new THREE.Shape(); sh.moveTo(-1.6, .3); sh.quadraticCurveTo(-1.4, -.35, 0, -.4); sh.quadraticCurveTo(1.4, -.35, 1.7, .3); sh.closePath(); const hg = new THREE.ExtrudeBufferGeometry(sh, { depth: .9, bevelEnabled: false }); hg.translate(0, 0, -.45); ombre; const m = ombre(new THREE.Mesh(hg, toon('#7a5232'))); g.add(m); Q._bateaux.push({ g, ph: 1.7 }) })()
+    ;(function () { if (bateauForge('barque', -13.2, 4, .3, .18)) return; const g = new THREE.Group(); g.position.set(-13.2, 0, 4); g.rotation.y = .3; s.add(g); const sh = new THREE.Shape(); sh.moveTo(-1.6, .3); sh.quadraticCurveTo(-1.4, -.35, 0, -.4); sh.quadraticCurveTo(1.4, -.35, 1.7, .3); sh.closePath(); const hg = new THREE.ExtrudeBufferGeometry(sh, { depth: .9, bevelEnabled: false }); hg.translate(0, 0, -.45); ombre; const m = ombre(new THREE.Mesh(hg, toon('#7a5232'))); g.add(m); Q._bateaux.push({ g, ph: 1.7 }) })()
 
     /* ==================================================================== BANNIÈRES le long des passerelles, filets */
     banniere(-5.2, DECK + 3.3, -17.5, PI / 2, 1.0, 2.3); banniere(5.2, PLACE.y + 3.0, PLACE.z - 3, -PI / 2, 1.0, 2.3)

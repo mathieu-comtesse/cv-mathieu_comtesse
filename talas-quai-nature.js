@@ -46,9 +46,9 @@
     ;[[-17.5, 5.6, 1.5, 'vert'], [-13.4, 7.6, 1.15, 'violet'], [-19, -3.2, 1.2, 'vert'], [-25.6, -19.5, 1.7, 'vert'], [-25, -25.6, 1.4, 'violet'], [24.5, -19.5, 1.5, 'vert'], [25.6, -27, 1.3, 'vert'], [-3.5, -30.5, 1.4, 'vert'], [4.6, -31.4, 1.2, 'violet'], [24.5, -31.5, 1.35, 'vert'],
       [-8, -56, 1.3, 'vert'], [8.6, -55, 1.2, 'violet'], [-11.5, -62, 1.7, 'vert'], [11.6, -64, 1.6, 'vert'], [40.6, -21, 1.3, 'vert'], [33.6, -12.5, 1.1, 'violet'], [-27, -47, 1.4, 'vert'], [-31, -38, 1.6, 'violet'], [29, -47, 1.5, 'vert'], [34, -41, 1.7, 'vert']].forEach(([x, z, sz, t]) => arbre(x, z, sz, t))
     // semis d'arbres et de buissons sur la roche (hors planchers, sur les pentes douces)
-    for (let i = 0, n = 0; i < 1400 && n < 70; i++) { const x = -70 + r() * 140, z = -100 + r() * 100, y = hauteur(x, z); if (y < 1.4 || pente(x, z) < .72 || couvert(x, z, y + .3) || Math.hypot(x - 37, z + 16) < 8) continue
+    for (let i = 0, n = 0; i < 1400 && n < 70; i++) { const x = -70 + r() * 140, z = -100 + r() * 100, y = hauteur(x, z); if (y < 1.4 || pente(x, z) < .72 || couvert(x, z, y + .3) || Math.hypot(x - 37, z + 16) < 8 || Q.dansEscalier(x, z, 3.2)) continue
       if (Math.abs(x) < 14 && z > -30) continue; arbre(x, z, .9 + r() * .8, r() < .18 ? 'violet' : r() < .1 ? 'ambre' : 'vert'); n++ }
-    for (let i = 0, n = 0; i < 2600 && n < 130; i++) { const x = -70 + r() * 140, z = -95 + r() * 90, y = hauteur(x, z); if (y < .9 || pente(x, z) < .68 || couvert(x, z, y + .3)) continue; buisson(x, z, .8 + r() * .7); n++ }
+    for (let i = 0, n = 0; i < 2600 && n < 130; i++) { const x = -70 + r() * 140, z = -95 + r() * 90, y = hauteur(x, z); if (y < .9 || pente(x, z) < .68 || couvert(x, z, y + .3) || Q.dansEscalier(x, z, 2.2)) continue; buisson(x, z, .8 + r() * .7); n++ }
     ;(function () { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(FEU.P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(FEU.N, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(FEU.C, 3)); g.setIndex(FEU.I)
       const m = ombre(new THREE.Mesh(g, new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: grad }))); s.add(m)
       const gt = new THREE.BufferGeometry(); gt.setAttribute('position', new THREE.Float32BufferAttribute(TRONCS.P, 3)); gt.setAttribute('normal', new THREE.Float32BufferAttribute(TRONCS.N, 3)); gt.setAttribute('uv', new THREE.Float32BufferAttribute(TRONCS.U, 2)); gt.setIndex(TRONCS.I)
@@ -57,7 +57,7 @@
     /* ------------------------------------------------------------ rochers (petits blocs de détail) */
     { const G = new THREE.IcosahedronBufferGeometry(1, 1), lotR = c.lot(MT.pierre); const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3()
       const poser = (x, y, z, sz) => { q.setFromEuler(e.set(r() * 3, r() * 6, r() * 3)); p.set(x, y, z); sc.set(sz * (.8 + r() * .6), sz * (.5 + r() * .4), sz * (.8 + r() * .6)); m4.compose(p, q, sc); const g2 = G.clone(); const uv = g2.attributes.uv, pos = g2.attributes.position; for (let i = 0; i < pos.count; i++) { pos.setXYZ(i, pos.getX(i) * (1 + (M.fbm2(pos.getX(i) * 3 + x, pos.getZ(i) * 3) - .5) * .5), pos.getY(i), pos.getZ(i) * (1 + (M.fbm2(pos.getY(i) * 3, pos.getZ(i) * 3 + z) - .5) * .5)) } g2.computeVertexNormals(); uvMonde(g2, .4); lotR.ajouter(g2, m4) }
-      for (let i = 0, n = 0; i < 3000 && n < 150; i++) { const x = -80 + r() * 160, z = -100 + r() * 130, y = hauteur(x, z); if (y < -.3 || y > 14 || couvert(x, z, y + .3)) continue; if (y > 1.2 && r() < .6) continue; poser(x, y - .1, z, .5 + r() * 1.3); n++ }
+      for (let i = 0, n = 0; i < 3000 && n < 150; i++) { const x = -80 + r() * 160, z = -100 + r() * 130, y = hauteur(x, z); if (y < -.3 || y > 14 || couvert(x, z, y + .3) || Q.dansEscalier(x, z, 1.8)) continue; if (y > 1.2 && r() < .6) continue; poser(x, y - .1, z, .5 + r() * 1.3); n++ }
       lotR.construire() }
 
     /* ------------------------------------------------------------ piliers de roche et arche au large (silhouettes du fond, comme sur l'illustration) */
@@ -68,7 +68,7 @@
       const arche = ombre(new THREE.Mesh(new THREE.TorusBufferGeometry(7.4, 2.1, 8, 18, PI), MT.pierre)); arche.position.set(90.5, 16, -54.5); arche.rotation.y = .22; s.add(arche) }
 
     /* ------------------------------------------------------------ herbe au vent (lames issues de l'indice de sommet) */
-    { const hb = M.herbe({ lames: 26000, segments: 5, hauteur: .9, largeur: .085, graine: 77, placer: (rn) => { for (let t = 0; t < 80; t++) { const x = -70 + rn() * 140, z = -100 + rn() * 100, y = hauteur(x, z); if (y > 1.0 && pente(x, z) > .8 && !couvert(x, z, y + .3) && !(Math.abs(x) < 9 && z > -30)) return [x, y - .05, z] } return [0, -40, 0] } })
+    { const hb = M.herbe({ lames: 26000, segments: 5, hauteur: .9, largeur: .085, graine: 77, placer: (rn) => { for (let t = 0; t < 80; t++) { const x = -70 + rn() * 140, z = -100 + rn() * 100, y = hauteur(x, z); if (y > 1.0 && pente(x, z) > .8 && !couvert(x, z, y + .3) && !(Math.abs(x) < 9 && z > -30) && !Q.dansEscalier(x, z, 1.4)) return [x, y - .05, z] } return [0, -40, 0] } })
       s.add(hb.mesh); Q._herbe = hb }
   }
 })()
