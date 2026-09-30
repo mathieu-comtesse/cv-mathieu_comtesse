@@ -1,37 +1,458 @@
 {
   "$doc": "theme:false = jamais recoloré par une direction artistique (couleurs réglementaires ISO 7010). Catalogue de la forge Talas. source = « vibe3d:<chemin model.ts dans vibe3d> » ou « local:<fichier dans tools/forge/models> ». height = hauteur finale en mètres ; maxTris = budget après décimation ; params = objet passé à createModel ; yaw/pitch = angle de l'aperçu.",
-  "defaults": { "maxTris": 4000, "yaw": 35, "pitch": 22, "cartoon": 1, "occlusion": 0.55, "dest": "assets/talas/props" },
+  "defaults": {
+    "maxTris": 4000,
+    "yaw": 35,
+    "pitch": 22,
+    "cartoon": 1,
+    "occlusion": 0.55,
+    "dest": "assets/talas/props"
+  },
   "assets": [
-    { "id": "bouteille-gaz",       "source": "vibe3d:assets/prototypes/industrial-gas-cylinder/model.ts",       "height": 1.5,  "maxTris": 3000, "tags": ["hangar", "risque-chimique"] },
-    { "id": "chariot-elevateur",   "source": "vibe3d:assets/prototypes/industrial-forklift-loader/model.ts",    "height": 2.2,  "maxTris": 6000, "tags": ["hangar", "coactivite"] },
-    { "id": "transpalette",        "source": "vibe3d:assets/prototypes/industrial-pallet-jack/model.ts",        "height": 1.2,  "maxTris": 2500, "tags": ["hangar", "manutention"] },
-    { "id": "caisse-outils",       "source": "vibe3d:assets/prototypes/industrial-toolbox/model.ts",            "height": 0.45, "maxTris": 2000, "tags": ["atelier"] },
-    { "id": "servante-outils",     "source": "vibe3d:assets/prototypes/industrial-tool-cabinet/model.ts",       "height": 1.05, "maxTris": 3000, "tags": ["atelier"] },
-    { "id": "etabli",              "source": "vibe3d:assets/prototypes/industrial-workbench/model.ts",          "height": 1.0,  "maxTris": 4000, "tags": ["atelier"] },
-    { "id": "armoire-electrique",  "source": "vibe3d:assets/prototypes/industrial-electrical-switchboard/model.ts", "height": 2.0, "maxTris": 4000, "tags": ["risque-electrique"] },
-    { "id": "coffret-fusibles",    "source": "vibe3d:assets/prototypes/industrial-fuse-box/model.ts",           "height": 0.6,  "maxTris": 1500, "tags": ["risque-electrique"] },
-    { "id": "palan",               "source": "vibe3d:assets/prototypes/industrial-hoist/model.ts",              "height": 1.4,  "maxTris": 3000, "tags": ["hangar", "levage"] },
-    { "id": "crochet-grue",        "source": "vibe3d:assets/prototypes/industrial-crane-hook/model.ts",         "height": 1.1,  "maxTris": 2500, "tags": ["hangar", "levage"] },
-    { "id": "poste-soudure",       "source": "vibe3d:assets/prototypes/industrial-welding-station/model.ts",    "height": 1.3,  "maxTris": 4000, "tags": ["atelier", "risque-incendie"] },
-    { "id": "robot-soudeur",       "source": "vibe3d:assets/prototypes/industrial-robot-arm/model.ts",          "height": 2.0,  "maxTris": 5000, "tags": ["atelier", "machines"] },
-    { "id": "cone",                "source": "vibe3d:assets/prototypes/traffic-cone/model.ts",                  "height": 0.5,  "maxTris": 800,  "tags": ["balisage"] },
-    { "id": "barriere",            "source": "vibe3d:assets/prototypes/plastic-road-barrier/model.ts",          "height": 1.0,  "maxTris": 1500, "tags": ["balisage"] },
-    { "id": "extincteur",          "source": "vibe3d:assets/f1-prototypes/f1-fire-extinguisher/model.ts",       "height": 0.62, "maxTris": 1500, "tags": ["risque-incendie", "secours"] },
-    { "id": "vestiaire",           "source": "vibe3d:assets/prototypes/locker/model.ts",                        "height": 1.9,  "maxTris": 2000, "tags": ["epi"] },
-    { "id": "palette",             "source": "vibe3d:assets/prototypes/wooden-pallet/model.ts",                 "height": 0.15, "maxTris": 1200, "tags": ["hangar", "manutention"] },
-    { "id": "fut-chimique",        "source": "vibe3d:assets/prototypes/chemical-drum/model.ts",                 "height": 0.9,  "maxTris": 1500, "tags": ["risque-chimique"] },
-    { "id": "rayonnage",           "source": "vibe3d:assets/prototypes/warehouse-shelf/model.ts",               "height": 2.4,  "maxTris": 4000, "tags": ["hangar", "stockage"] },
-    { "id": "chariot-infirmerie",  "source": "vibe3d:assets/prototypes/medical-cart/model.ts",                  "height": 1.0,  "maxTris": 3000, "tags": ["secours"] },
-    { "id": "panneau-danger-general",    "source": "local:panneau-securite.mts", "theme": false, "params": { "kind": "danger", "picto": "general" },    "height": 2.1, "maxTris": 1200, "yaw": 20, "tags": ["signalisation", "iso-7010"] },
-    { "id": "panneau-danger-electrique", "source": "local:panneau-securite.mts", "theme": false, "params": { "kind": "danger", "picto": "electrique" }, "height": 2.1, "maxTris": 1200, "yaw": 20, "tags": ["signalisation", "iso-7010"] },
-    { "id": "panneau-casque",            "source": "local:panneau-securite.mts", "theme": false, "params": { "kind": "obligation", "picto": "casque" }, "height": 2.1, "maxTris": 1200, "yaw": 20, "tags": ["signalisation", "iso-7010", "epi"] },
-    { "id": "panneau-sortie",            "source": "local:panneau-securite.mts", "theme": false, "params": { "kind": "evacuation", "picto": "sortie" }, "height": 2.1, "maxTris": 1200, "yaw": 20, "tags": ["signalisation", "iso-7010", "secours"] },
-    { "id": "avion-a320",      "source": "local:avion-a320.mts", "params": { "longueur": 8.8 }, "height": 2.9, "maxTris": 9000, "yaw": 55, "pitch": 18, "tags": ["ile", "piste"] },
-    { "id": "voilier-rouge",   "source": "local:ile-mobilier.mts", "params": { "kind": "voilier", "couleur": "#e03131", "variante": 1 },   "height": 4.2,  "maxTris": 2500, "tags": ["ile", "mer"] },
-    { "id": "voilier-bleu",    "source": "local:ile-mobilier.mts", "params": { "kind": "voilier", "couleur": "#2f6fd6", "variante": 2 },   "height": 4.2,  "maxTris": 2500, "tags": ["ile", "mer"] },
-    { "id": "lampadaire",      "source": "local:ile-mobilier.mts", "params": { "kind": "lampadaire" },                                    "height": 2.75, "maxTris": 900,  "tags": ["ile", "chemins"] },
-    { "id": "banc",            "source": "local:ile-mobilier.mts", "params": { "kind": "banc" },                                          "height": 0.95, "maxTris": 700,  "tags": ["ile", "place"] },
-    { "id": "parasol-rouge",   "source": "local:ile-mobilier.mts", "params": { "kind": "parasol", "couleur": "#e8590c" },                 "height": 2.45, "maxTris": 900,  "tags": ["ile", "plage"] },
-    { "id": "parasol-jaune",   "source": "local:ile-mobilier.mts", "params": { "kind": "parasol", "couleur": "#f7b928", "variante": 3 }, "height": 2.45, "maxTris": 900,  "tags": ["ile", "plage"] }
+    {
+      "id": "bouteille-gaz",
+      "source": "vibe3d:assets/prototypes/industrial-gas-cylinder/model.ts",
+      "height": 1.5,
+      "maxTris": 3000,
+      "tags": [
+        "hangar",
+        "risque-chimique"
+      ]
+    },
+    {
+      "id": "chariot-elevateur",
+      "source": "vibe3d:assets/prototypes/industrial-forklift-loader/model.ts",
+      "height": 2.2,
+      "maxTris": 6000,
+      "tags": [
+        "hangar",
+        "coactivite"
+      ]
+    },
+    {
+      "id": "transpalette",
+      "source": "vibe3d:assets/prototypes/industrial-pallet-jack/model.ts",
+      "height": 1.2,
+      "maxTris": 2500,
+      "tags": [
+        "hangar",
+        "manutention"
+      ]
+    },
+    {
+      "id": "caisse-outils",
+      "source": "vibe3d:assets/prototypes/industrial-toolbox/model.ts",
+      "height": 0.45,
+      "maxTris": 2000,
+      "tags": [
+        "atelier"
+      ]
+    },
+    {
+      "id": "servante-outils",
+      "source": "vibe3d:assets/prototypes/industrial-tool-cabinet/model.ts",
+      "height": 1.05,
+      "maxTris": 3000,
+      "tags": [
+        "atelier"
+      ]
+    },
+    {
+      "id": "etabli",
+      "source": "vibe3d:assets/prototypes/industrial-workbench/model.ts",
+      "height": 1.0,
+      "maxTris": 4000,
+      "tags": [
+        "atelier"
+      ]
+    },
+    {
+      "id": "armoire-electrique",
+      "source": "vibe3d:assets/prototypes/industrial-electrical-switchboard/model.ts",
+      "height": 2.0,
+      "maxTris": 4000,
+      "tags": [
+        "risque-electrique"
+      ]
+    },
+    {
+      "id": "coffret-fusibles",
+      "source": "vibe3d:assets/prototypes/industrial-fuse-box/model.ts",
+      "height": 0.6,
+      "maxTris": 1500,
+      "tags": [
+        "risque-electrique"
+      ]
+    },
+    {
+      "id": "palan",
+      "source": "vibe3d:assets/prototypes/industrial-hoist/model.ts",
+      "height": 1.4,
+      "maxTris": 3000,
+      "tags": [
+        "hangar",
+        "levage"
+      ]
+    },
+    {
+      "id": "crochet-grue",
+      "source": "vibe3d:assets/prototypes/industrial-crane-hook/model.ts",
+      "height": 1.1,
+      "maxTris": 2500,
+      "tags": [
+        "hangar",
+        "levage"
+      ]
+    },
+    {
+      "id": "poste-soudure",
+      "source": "vibe3d:assets/prototypes/industrial-welding-station/model.ts",
+      "height": 1.3,
+      "maxTris": 4000,
+      "tags": [
+        "atelier",
+        "risque-incendie"
+      ]
+    },
+    {
+      "id": "robot-soudeur",
+      "source": "vibe3d:assets/prototypes/industrial-robot-arm/model.ts",
+      "height": 2.0,
+      "maxTris": 5000,
+      "tags": [
+        "atelier",
+        "machines"
+      ]
+    },
+    {
+      "id": "cone",
+      "source": "vibe3d:assets/prototypes/traffic-cone/model.ts",
+      "height": 0.5,
+      "maxTris": 800,
+      "tags": [
+        "balisage"
+      ]
+    },
+    {
+      "id": "barriere",
+      "source": "vibe3d:assets/prototypes/plastic-road-barrier/model.ts",
+      "height": 1.0,
+      "maxTris": 1500,
+      "tags": [
+        "balisage"
+      ]
+    },
+    {
+      "id": "extincteur",
+      "source": "vibe3d:assets/f1-prototypes/f1-fire-extinguisher/model.ts",
+      "height": 0.62,
+      "maxTris": 1500,
+      "tags": [
+        "risque-incendie",
+        "secours"
+      ]
+    },
+    {
+      "id": "vestiaire",
+      "source": "vibe3d:assets/prototypes/locker/model.ts",
+      "height": 1.9,
+      "maxTris": 2000,
+      "tags": [
+        "epi"
+      ]
+    },
+    {
+      "id": "palette",
+      "source": "vibe3d:assets/prototypes/wooden-pallet/model.ts",
+      "height": 0.15,
+      "maxTris": 1200,
+      "tags": [
+        "hangar",
+        "manutention"
+      ]
+    },
+    {
+      "id": "fut-chimique",
+      "source": "vibe3d:assets/prototypes/chemical-drum/model.ts",
+      "height": 0.9,
+      "maxTris": 1500,
+      "tags": [
+        "risque-chimique"
+      ]
+    },
+    {
+      "id": "rayonnage",
+      "source": "vibe3d:assets/prototypes/warehouse-shelf/model.ts",
+      "height": 2.4,
+      "maxTris": 4000,
+      "tags": [
+        "hangar",
+        "stockage"
+      ]
+    },
+    {
+      "id": "chariot-infirmerie",
+      "source": "vibe3d:assets/prototypes/medical-cart/model.ts",
+      "height": 1.0,
+      "maxTris": 3000,
+      "tags": [
+        "secours"
+      ]
+    },
+    {
+      "id": "panneau-danger-general",
+      "source": "local:panneau-securite.mts",
+      "theme": false,
+      "params": {
+        "kind": "danger",
+        "picto": "general"
+      },
+      "height": 2.1,
+      "maxTris": 1200,
+      "yaw": 20,
+      "tags": [
+        "signalisation",
+        "iso-7010"
+      ]
+    },
+    {
+      "id": "panneau-danger-electrique",
+      "source": "local:panneau-securite.mts",
+      "theme": false,
+      "params": {
+        "kind": "danger",
+        "picto": "electrique"
+      },
+      "height": 2.1,
+      "maxTris": 1200,
+      "yaw": 20,
+      "tags": [
+        "signalisation",
+        "iso-7010"
+      ]
+    },
+    {
+      "id": "panneau-casque",
+      "source": "local:panneau-securite.mts",
+      "theme": false,
+      "params": {
+        "kind": "obligation",
+        "picto": "casque"
+      },
+      "height": 2.1,
+      "maxTris": 1200,
+      "yaw": 20,
+      "tags": [
+        "signalisation",
+        "iso-7010",
+        "epi"
+      ]
+    },
+    {
+      "id": "panneau-sortie",
+      "source": "local:panneau-securite.mts",
+      "theme": false,
+      "params": {
+        "kind": "evacuation",
+        "picto": "sortie"
+      },
+      "height": 2.1,
+      "maxTris": 1200,
+      "yaw": 20,
+      "tags": [
+        "signalisation",
+        "iso-7010",
+        "secours"
+      ]
+    },
+    {
+      "id": "avion-a320",
+      "source": "local:avion-a320.mts",
+      "params": {
+        "longueur": 8.8
+      },
+      "height": 2.9,
+      "maxTris": 9000,
+      "yaw": 55,
+      "pitch": 18,
+      "tags": [
+        "ile",
+        "piste"
+      ]
+    },
+    {
+      "id": "voilier-rouge",
+      "source": "local:ile-mobilier.mts",
+      "params": {
+        "kind": "voilier",
+        "couleur": "#e03131",
+        "variante": 1
+      },
+      "height": 4.2,
+      "maxTris": 2500,
+      "tags": [
+        "ile",
+        "mer"
+      ]
+    },
+    {
+      "id": "voilier-bleu",
+      "source": "local:ile-mobilier.mts",
+      "params": {
+        "kind": "voilier",
+        "couleur": "#2f6fd6",
+        "variante": 2
+      },
+      "height": 4.2,
+      "maxTris": 2500,
+      "tags": [
+        "ile",
+        "mer"
+      ]
+    },
+    {
+      "id": "lampadaire",
+      "source": "local:ile-mobilier.mts",
+      "params": {
+        "kind": "lampadaire"
+      },
+      "height": 2.75,
+      "maxTris": 900,
+      "tags": [
+        "ile",
+        "chemins"
+      ]
+    },
+    {
+      "id": "banc",
+      "source": "local:ile-mobilier.mts",
+      "params": {
+        "kind": "banc"
+      },
+      "height": 0.95,
+      "maxTris": 700,
+      "tags": [
+        "ile",
+        "place"
+      ]
+    },
+    {
+      "id": "parasol-rouge",
+      "source": "local:ile-mobilier.mts",
+      "params": {
+        "kind": "parasol",
+        "couleur": "#e8590c"
+      },
+      "height": 2.45,
+      "maxTris": 900,
+      "tags": [
+        "ile",
+        "plage"
+      ]
+    },
+    {
+      "id": "parasol-jaune",
+      "source": "local:ile-mobilier.mts",
+      "params": {
+        "kind": "parasol",
+        "couleur": "#f7b928",
+        "variante": 3
+      },
+      "height": 2.45,
+      "maxTris": 900,
+      "tags": [
+        "ile",
+        "plage"
+      ]
+    },
+    {
+      "id": "bateau-remorqueur",
+      "source": "local:embarcations.mts",
+      "params": {
+        "kind": "bateau",
+        "variante": 1,
+        "coque": "#c8352a",
+        "cabine": "#efe7d4",
+        "bande": "#efe7d4"
+      },
+      "height": 3.298,
+      "maxTris": 9000,
+      "yaw": 55,
+      "pitch": 18,
+      "tags": [
+        "quai",
+        "mer"
+      ]
+    },
+    {
+      "id": "bateau-chalutier",
+      "source": "local:embarcations.mts",
+      "params": {
+        "kind": "bateau",
+        "variante": 2,
+        "coque": "#2f6f86",
+        "cabine": "#e9d8b0",
+        "bande": "#efe7d4"
+      },
+      "height": 4.084,
+      "maxTris": 9000,
+      "yaw": 55,
+      "pitch": 18,
+      "tags": [
+        "quai",
+        "mer"
+      ]
+    },
+    {
+      "id": "bateau-vedette",
+      "source": "local:embarcations.mts",
+      "params": {
+        "kind": "bateau",
+        "variante": 3,
+        "coque": "#8a4ab0",
+        "cabine": "#efe7d4",
+        "bande": "#efe7d4"
+      },
+      "height": 3.174,
+      "maxTris": 9000,
+      "yaw": 55,
+      "pitch": 18,
+      "tags": [
+        "quai",
+        "mer"
+      ]
+    },
+    {
+      "id": "barque",
+      "source": "local:embarcations.mts",
+      "params": {
+        "kind": "barque",
+        "coque": "#7a523a"
+      },
+      "height": 0.909,
+      "maxTris": 4000,
+      "yaw": 55,
+      "pitch": 22,
+      "tags": [
+        "quai",
+        "mer"
+      ]
+    },
+    {
+      "id": "hydravion",
+      "source": "local:embarcations.mts",
+      "params": {
+        "kind": "hydravion"
+      },
+      "height": 3.518,
+      "maxTris": 16000,
+      "yaw": 60,
+      "pitch": 16,
+      "tags": [
+        "quai",
+        "mer",
+        "finale"
+      ]
+    }
   ]
 }
