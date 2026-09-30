@@ -8,9 +8,10 @@
 #frame button{touch-action:manipulation}
 #rotate{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(0,40,140,.92)}
 .rbox{padding:18px;display:grid;gap:12px;justify-items:center;text-align:center;font-size:17px;max-width:320px}
-.touch .ptext{font-size:17px}.touch .btn{font-size:15px;padding:7px 11px}.touch .btn small{font-size:13px}
-.touch #pad>div{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,58px)}.touch #pad .jump{width:116px;height:116px;font-size:20px}
-.touch #panel{max-height:52%}
+.touch .ptext{font-size:14px;line-height:1.25}.touch .btn{font-size:13px;padding:4px 8px}.touch .btn small{font-size:11px}
+.touch #pad>div{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,58px)}.touch #pad .jump{width:100px;height:100px;font-size:16px}
+.touch #panel{max-height:48%}
+.touch #frame:has(#pad:not([hidden])) #panel:not(.mini){bottom:124px;max-height:calc(100% - 182px)}
 
 .touch.fsmode #area{left:max(env(safe-area-inset-left,0px),34px);right:max(env(safe-area-inset-right,0px),34px)}
 #keys{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:6;padding:4px 10px;font-size:12px;max-width:94%;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;align-items:center}#keys span{white-space:nowrap}#keys kbd{display:inline-block;min-width:18px;padding:0 5px;margin:0 1px;border:2px solid var(--ink);border-bottom-width:4px;background:#fff;font:inherit;font-weight:700;text-align:center}
@@ -46,10 +47,10 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #panel{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;max-height:42%;display:flex;flex-direction:column}
 #panel.good{background:var(--green2)}#panel.bad{background:var(--red2)}
 #panel.compact{left:16%;right:16%}.touch #panel.compact{left:8px;right:8px}#panel.compact .ptext{font-size:13px!important;line-height:1.35}#panel.compact .por{width:34px;height:34px}#panel.compact .btn{font-size:13px!important;padding:4px 10px!important}
-#panel.mini{left:8px;right:auto;bottom:auto;top:196px;transform:none;width:min(350px,calc(100% - 16px));max-height:30%;z-index:7;box-shadow:3px 3px 0 var(--ink)}
+#panel.mini{left:50%;right:auto;bottom:auto;top:62px;transform:translateX(-50%);width:min(400px,calc(100% - 24px));max-height:100px;z-index:7;box-shadow:3px 3px 0 var(--ink)}
 #panel.mini .pin{padding:4px 8px;gap:8px}#panel.mini .por{width:30px;height:30px}#panel.mini .ptext{font-size:12.5px;line-height:1.3}#panel.mini .tbar{padding:0 6px;font-size:10.5px;line-height:1.5}#panel.mini .pact{display:none}
 .hpRow{display:inline-flex;gap:3px;vertical-align:-3px}.hpH{filter:drop-shadow(1px 1px 0 rgba(20,8,30,.55))}.hpH.vide{filter:none}#pmsg .hpRow{margin-left:2px}
-.howto p{margin:2px 0;font-size:13px;line-height:1.3}.howto ul{display:flex;flex-wrap:wrap;gap:2px 14px;margin:2px 0 0;padding:0;list-style:none;font-size:12.5px}
+.howto p{margin:2px 0;font-size:13px;line-height:1.3}.howto ul{display:flex;flex-wrap:wrap;gap:2px 14px;margin:2px 0 0;padding:0;list-style:none;font-size:12.5px}.touch .howto p,.touch .howto ul{font-size:12.5px}
 #rprompt{position:absolute;left:50%;top:43%;transform:translateX(-50%);z-index:5;padding:3px 12px;font-size:16px;font-weight:700;white-space:nowrap;animation:blink 1s steps(2) infinite}
 .pin{display:flex;gap:10px;padding:8px;overflow:auto}
 .por{width:52px;height:52px;flex:none}.por img{display:block;width:100%;height:100%;filter:drop-shadow(1px 2px 0 rgba(20,10,30,.4))}
@@ -177,7 +178,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #pad>div{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px;pointer-events:auto}
 #pad button{font:inherit;font-weight:700;font-size:16px;padding:0;text-align:center;touch-action:none;user-select:none;-webkit-user-select:none}
 #pad .jump{width:84px;height:84px;font-size:16px;pointer-events:auto;text-align:center}
-#pad .acts{display:flex;gap:8px;align-items:flex-end;pointer-events:auto}#pad .spinb{width:60px;height:60px;font-size:13px;text-align:center}.touch #pad .spinb{width:86px;height:86px;font-size:16px}
+#pad .acts{display:flex;gap:8px;align-items:flex-end;pointer-events:auto}#pad .spinb{width:60px;height:60px;font-size:13px;text-align:center}.touch #pad .spinb{width:70px;height:70px;font-size:13px}
 #blind{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(circle at 30% 40%,#2f9e44 0 18%,transparent 19%),radial-gradient(circle at 70% 55%,#37b24d 0 22%,transparent 23%),radial-gradient(circle at 45% 75%,#2b8a3e 0 16%,transparent 17%),radial-gradient(circle at 60% 25%,#51cf66 0 12%,transparent 13%)}
 #flash{position:absolute;inset:0;z-index:7;pointer-events:none;background:#c92a2a;opacity:0}
 #flash.on{animation:fl .6s steps(4)}
@@ -307,15 +308,15 @@ const PPL={
 /* ================= PANNEAU DE DIALOGUE ================= */
 let typing=null;
 function say(k,text,{btns=[{t:'Suivant',go:1}],cls='',row=false,grid=false}={}){
-  const P=$('#panel'),mini=!btns.length&&!(cur&&cur.quai);P.hidden=false;P.className='win '+cls+(mini?' mini':'');clearTimeout(say._t);if(mini)say._t=setTimeout(()=>{if(P.classList.contains('mini'))P.hidden=true},7000);
+  const P=$('#panel'),mini=!btns.length;P.hidden=false;P.className='win '+cls+(mini?' mini':'');clearTimeout(say._t);if(mini)say._t=setTimeout(()=>{if(P.classList.contains('mini'))hidePanel()},3500);
   $('#por').innerHTML=portrait(k);const p=PPL[k];$('#pname').innerHTML=`<b>${p.n}</b><span>${p.r}</span>`;
   const T=$('#ptext');clearInterval(typing);
   if(text.includes('<')){T.innerHTML=text;T.onclick=null}else{let i=0;T.textContent='';typing=setInterval(()=>{i+=3;T.textContent=text.slice(0,i);if(i>=text.length)clearInterval(typing)},14);T.onclick=()=>{clearInterval(typing);T.textContent=text}}
   const A=$('#pact');A.innerHTML='';A.className='pact'+(row?' row':'')+(grid?' grid2':'');
-  return new Promise(res=>{btns.forEach((b,i)=>{const e=document.createElement('button');e.className='btn'+(b.go?' go':'');e.innerHTML=b.t;e.onclick=()=>{clearInterval(typing);res(b.v!==undefined?b.v:i)};A.append(e)});
+  return new Promise(res=>{btns.forEach((b,i)=>{const e=document.createElement('button');e.className='btn'+(b.go?' go':'');e.innerHTML=b.t;e.onclick=()=>{hidePanel();res(b.v!==undefined?b.v:i)};A.append(e)});
     const f=A.querySelector('.btn');if(f)f.focus({preventScroll:true});if(!btns.length)res()});
 }
-const hidePanel=()=>{$('#panel').hidden=true};
+const hidePanel=()=>{clearTimeout(say._t);clearInterval(typing);$('#panel').hidden=true};
 /* Touches affichées sur ordinateur (clavier AZERTY, flèches acceptées aussi) */
 const K=t=>`<kbd>${t}</kbd>`;
 /* « Comment jouer » : le but et les commandes de chaque mini-jeu, version clavier ou version tactile */
@@ -380,7 +381,7 @@ const fade=on=>new Promise(r=>{$('#fade').classList.toggle('on',on);setTimeout(r
 const cv=$('#cv');let GW=640;const GH=480;const TOUCH=matchMedia('(pointer: coarse)').matches;document.documentElement.classList.toggle('touch',TOUCH);
 const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:false});
 renderer.setPixelRatio(1);renderer.setSize(GW,GH,false);
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+renderer.shadowMap.enabled=!TOUCH;renderer.shadowMap.type=THREE.PCFShadowMap;
 const rt=new THREE.WebGLRenderTarget(GW,GH,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter});
 const postScene=new THREE.Scene(),postCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
 postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:{t:{value:rt.texture},L:{value:10}},
@@ -723,12 +724,12 @@ function buildHub(){
   return W;
 }
 let HUB_TOWER;
-const unlocked=n=>S.all||n===0||!!S.done[n-1];
+const unlocked=n=>!S.done[n]&&(S.all||n===0||!!S.done[n-1]);
 const allDone=()=>[0,1,2,3,4,5,6].every(i=>S.done[i]);
 function nextN(){for(let i=0;i<7;i++)if(!S.done[i])return unlocked(i)?i:null;return 7}
 function refreshSigns(){
   B.forEach((b,n)=>{const st=stars(n);const open=unlocked(n);
-    b.userData.sign.userData.relabel(`${CH[n].cl} ${CH[n].t}${S.done[n]?'  · '+st+'/3':open?'':'  (fermé)'}`,{bg:open?'#fffaf0':'#dee2e6',border:open?PAL[n%8]:'#868e96',fg:INK,size:78})});
+    b.userData.sign.userData.relabel(`${CH[n].cl} ${CH[n].t}${S.done[n]?'  · terminé '+st+'/3':open?'':'  (fermé)'}`,{bg:open?'#fffaf0':'#dee2e6',border:open?PAL[n%8]:'#868e96',fg:INK,size:78})});
   HUB_TOWER.userData.sign.userData.relabel(allDone()||S.all?'Tour de contrôle : le verdict':'Tour de contrôle (fermée)',{bg:allDone()||S.all?'#fff3bf':'#dee2e6',border:'#ff6b6b',size:70});
   hud();
 }
@@ -857,7 +858,7 @@ function buildRoom(n){
 /* ================= MOTEUR 3D : CAMÉRA & CLICS ================= */
 let cur=null,dragging=false,busy=false;
 const PXR=+(new URLSearchParams(location.search).get('pr'))||0; /* ?pr=1 : densité de pixels forcée (tests) */
-function setWorld(w){if(window.TALAS_RENDU)TALAS_RENDU.preparer(w);cur=w;if(window.TALAS_SON)TALAS_SON.monde(w);renderer.setPixelRatio(w&&w.hd?(PXR||(TOUCH?1.5:2)):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd&&!w.plainui));fit()}
+function setWorld(w){if(window.TALAS_RENDU)TALAS_RENDU.preparer(w);cur=w;if(window.TALAS_SON)TALAS_SON.monde(w);renderer.setPixelRatio(w&&w.hd?(PXR||(TOUCH?.8:2)):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd&&!w.plainui));fit()}
 function fit(){
   const A=$('#area'),aw=A.clientWidth||innerWidth,ah=A.clientHeight||innerHeight;
   GW=Math.round(GH*Math.max(4/3,Math.min(2.2,aw/ah))/2)*2;
@@ -917,8 +918,8 @@ function timeUp(){
   m.querySelector('#tuv').onclick=async()=>{closeModal();await fade(1);setWorld(HUB);refreshSigns();await fade(0);finale()};
   m.querySelector('#tur').onclick=()=>location.reload();
 }
-const clock=new THREE.Clock();
-function loop(){requestAnimationFrame(loop);tickTimer();const dt=Math.min(clock.getDelta(),.05),T=clock.elapsedTime;
+const clock=new THREE.Clock();let lastTouchFrame=0;
+function loop(){requestAnimationFrame(loop);if(TOUCH){const now=performance.now();if(now-lastTouchFrame<1000/30)return;lastTouchFrame=now}tickTimer();const dt=Math.min(clock.getDelta(),.05),T=clock.elapsedTime;
   for(let i=tweens.length-1;i>=0;i--){const w=tweens[i];w.t+=dt;const k=Math.min(1,w.t/w.dur);w.fn(w.e(k));if(k>=1){tweens.splice(i,1);w.res()}}
   if(cur){cur.update&&cur.update(dt,T);placeCam(dt);if(cur.hd){if(window.TALAS_RENDU&&TALAS_RENDU.actif(cur))TALAS_RENDU.rendre(renderer,cur.scene,camera,cur,T);else renderer.render(cur.scene,camera);return}renderer.setRenderTarget(rt);renderer.render(cur.scene,camera);renderer.setRenderTarget(null);renderer.render(postScene,postCam)}}
 
@@ -3758,7 +3759,8 @@ function buildPlatformer(){
   SOL.push({x0:168,x1:205,y0:0,y1:8.12});
   [[172,1.1],[195.5,.9]].forEach(([x,h])=>{bx(1,h,.9,'#dfe3ea',x,8.1+h/2,0);const f=mk(new THREE.CylinderGeometry(.3,.3,.05,14),'#555',x,8.12+h,0,s);SOL.push({x0:x-.5,x1:x+.5,y0:8.1,y1:8.1+h})});
   {const d=new THREE.Group();d.position.set(178,8.1,-1.6);s.add(d);bx(.8,2.4,.8,'#b8c2d4',0,1.2,0,d);bx(3,.8,.8,'#b8c2d4',1.1,2.4,0,d);d.rotation.z=.08}
-  worker(176,183.4,8.12,'#7048e8');[174,175.5,177].forEach(x=>coin(x,9.2));heart(181,10.3);
+  {const coffeeWorker=worker(178.4,179,8.12,'#7048e8');coffeeWorker.sp=1.1;coffeeWorker.reach=.65;coffeeWorker.hitHeight=1.1}
+  [174,175.5,177].forEach(x=>coin(x,9.2));heart(181,10.3);
   const bw=wall(186.3,187.3,8.12,10.8,0,1.8);const BW={x0:186.3,x1:187.3,y0:8.12,y1:10.8,m:bw,brk:1};SOL.push(BW);BRK.push(BW);
   tip(184.2,10.6,'E pour tournoyer, ou bas en plein saut pour plonger : ça traverse les cloisons. En vrai, on n’abat rien sans permis de travail !');
   [189,190.5,192].forEach(x=>coin(x,9.2));
@@ -3783,7 +3785,7 @@ function buildPlatformer(){
   girder(226,232,14.2);{const rv=new THREE.Group();rv.position.set(229,14.2,-.5);s.add(rv);bx(1.1,.7,.7,'#ced4da',0,.35,0,rv);const rgs=[0,1,2].map(()=>mk(new THREE.TorusGeometry(1,.05,4,24),'#ff6b6b',0,.4,0,rv));rv.userData.rings=rgs;LIFTS.rv=rv;
     const l=labelPlane('RIVETEUSE 110 dB',1.6,.34,{bg:'#fff',border:'#e03131',fg:'#e03131',size:80});l.position.set(0,1.2,.4);rv.add(l)}HZ.push({x0:228,x1:230.2,y:14.2,kind:'bruit'});
   {const cb=bx(1.2,1,24,pmat('yellow',.6,4),230,17.6,-6);const hk=mk(new THREE.TorusGeometry(.3,.08,8,14,Math.PI*1.4),'#555',230,16,-1,s)}
-  girder(233,238.4,12.6);ladder(238.9,12.6,15.4,-.5);girder(239,252,15.4);worker(239.6,244.2,15.4,'#e8590c');
+  girder(233,238.4,12.6);ladder(238.9,12.6,15.4,-.5);girder(239,252,15.4);{const lastWorker=worker(241.4,242.6,15.4,'#e8590c');lastWorker.sp=1.2;lastWorker.reach=.7}
   [213.5,215,216.5,219.5,221,227,231.5,234.5,236].forEach((x,i)=>coin(x,[10.6,10.6,10.6,12.2,12.2,15.2,15.2,13.6,13.6][i]));heart(226.8,16.3);
   tip(209,10,'§8.1.2 : sur le chemin de roulement, harnais accroché à une ligne de vie, et les outils tenus par une dragonne.');
   {concrete(246.6,250.2,15.4,18.2,-.2,2.6,'#dfe8f7');const r=bx(4,.2,3,'#2f6fd6',248.4,18.3,-.2);r.rotation.z=.05;const lb=labelPlane('REVUE DE DIRECTION · §9.3',3.4,.5,{bg:'#fffaf0',border:'#2f9e44',size:80});lb.position.set(248.4,17.6,1.12);s.add(lb)}
@@ -3959,7 +3961,7 @@ function buildPlatformer(){
     EN.forEach(e=>{if(e.stun>0){e.stun-=dt;AP(e.m,'stun',T);e.stars.visible=true;e.stars.position.set(e.x,e.y+2.1,0);e.stars.rotation.y+=dt*6}
       else{e.stars.visible=false;e.x+=e.dir*e.sp*dt;if(e.x>e.b){e.x=e.b;e.dir=-1}if(e.x<e.a){e.x=e.a;e.dir=1}AP(e.m,'walk',T+e.a);e.m.userData.rig.shs.forEach(q=>q.rotation.x=-2.6)}
       e.m.position.set(e.x,e.y,0);e.m.rotation.y=e.dir>0?Math.PI/2:-Math.PI/2;
-      const dx=st.pos.x-e.x;if(e.stun<=0&&st.hcd<=0&&Math.abs(dx)<e.reach&&st.pos.y<e.y+2.4&&st.pos.y+HH>e.y+.8){st.hcd=1.4;const sg=Math.sign(dx)||1;st.vel.set(sg*6,5.5,0);st.kb=.35;st.ground=false;hurt('Un compagnon pressé te balaie avec son panneau de fuselage. Toupie (E), plongeon (bas en l’air) ou double saut !','BLAM !')}});
+      const dx=st.pos.x-e.x;if(e.stun<=0&&st.hcd<=0&&Math.abs(dx)<e.reach&&st.pos.y<e.y+(e.hitHeight||2.4)&&st.pos.y+HH>e.y+.8){st.hcd=1.4;const sg=Math.sign(dx)||1;st.vel.set(sg*6,5.5,0);st.kb=.35;st.ground=false;hurt('Un compagnon pressé te balaie avec son panneau de fuselage. Toupie (E), plongeon (bas en l’air) ou double saut !','BLAM !')}});
     if(st.done)return;
     if(CH.on&&CH.wake>0){CH.wake-=dt;bern.position.set(113.6,.9+Math.abs(Math.sin(T*20))*.15,-.6);AP(bern,'stun',T)}
     else if(CH.on){const dx=st.pos.x-CH.x,spd=Math.abs(dx)>8?6.4:4.4,tx=Math.min(144,st.pos.x);CH.cd=Math.max(0,CH.cd-dt);CH.talk-=dt;
@@ -4038,11 +4040,13 @@ async function platformSection(n){
   const room=cur;
   await say('karim','Audit terrain au hangar d’assemblage : la ligne A320 tourne à plein. Il faut déposer le rapport d’inspection SST en salle de revue de direction, tout en haut, sous la charpente.');
   await say('boulon','Chaque étage du hangar est verrouillé : il faut le bon objet pour passer, et la bulle au-dessus de Dylan te dit lequel. Badge, bouteille d’air, burger, café, clé… Le chrono tourne. Tu as 5 cœurs. '+(TOUCH?'Croix pour avancer et grimper, SAUT pour sauter, TOUR pour tournoyer, bas en plein saut pour plonger.':'Flèches ou ZQSD pour avancer et grimper, ESPACE pour sauter, E pour tournoyer, bas en plein saut pour plonger.')+' Ramasse les pièces S et les EPI : chacun protège d’un danger précis (§8.1.2). Le cercle rouge annonce un objet qui tombe.'+howto('parcours'),{btns:[{t:'C’est parti !',go:1}],cls:''});
-  let got=0,coins=0,save=null,t=0,card=false;
+  let got=0,coins=0,save=null,t=0,card=false,lastPlatform=null;
+  const retire=scene=>{if(window.TALAS_PERSO&&TALAS_PERSO.actifs)scene.traverse(o=>{if(o.userData&&o.userData.perso)TALAS_PERSO.actifs.delete(o.userData.perso)})};
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);try{await Promise.race([Promise.all([document.fonts.load('40px "Luckiest Guy"'),document.fonts.load('20px "Rye"')]),new Promise(r=>setTimeout(r,1500))])}catch(e){}
     if(!card){card=true;await Promise.all([chantierCard(),Promise.race([preloadToons(),new Promise(r=>setTimeout(r,6000))])])}
-    const PW=buildPlatformer();PW.rec=chantierRec();PW.onSave=sv=>save=sv;if(save)PW.restore(save);setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;keyHelp('parcours');$('#hud .right').style.visibility='hidden';
+    if(lastPlatform)retire(lastPlatform.scene);
+    const PW=buildPlatformer();lastPlatform=PW;PW.rec=chantierRec();PW.onSave=sv=>save=sv;if(save)PW.restore(save);setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;keyHelp('parcours');$('#hud .right').style.visibility='hidden';
     const kh=keyhole(true);await fade(0);await kh;
     const r=await PW.run();keyHelp();$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();Object.keys(KEYS).forEach(k=>KEYS[k]=0);
     got=Object.keys(PW.st.ppe).length;coins=PW.st.coins;t=PW.time||PW.st.t;
@@ -4050,8 +4054,12 @@ async function platformSection(n){
     return r;
   },()=>{const c=cur.cause||{};return {drop:c.drop||null,why:c.why||'tombé du chemin de roulement.',moral:c.moral||'Travail en hauteur : protection collective d’abord (§8.1.2).'}});
   keyHelp();$('#hud .right').style.visibility='visible';$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();
+  await fade(1);
+  if(lastPlatform)retire(lastPlatform.scene);
+  retire(room.dylan);
+  room.scene.remove(room.dylan);room.dylan=makeDylan();room.dylan.position.set(7.8,0,-4.4);room.dylan.rotation.y=-.5;room.scene.add(room.dylan);
+  setWorld(room);await fade(0);
   if(ok)await say('boulon',`<b>Rapport déposé en revue de direction en ${fmtT(t)} !</b> ${got} EPI sur 5 et ${coins} pièces S. Bravo, mais retiens la leçon de l’ISO 45001 : les EPI sont le <b>dernier recours</b> (§8.1.2). On commence par supprimer le danger, puis on protège tout le monde d’un coup : garde-corps, coussins de réception, consignation des énergies, charges jamais au-dessus des gens.`,{cls:'good'});
-  await fade(1);setWorld(room);await fade(0);
 }
 
 /* ================= LES ATELIERS ================= */
@@ -4263,6 +4271,7 @@ function carnet(n){return new Promise(res=>{const f=FICHE[n],r=S.res[n]||{o:0,t:
   m.querySelector('#back').onclick=()=>{closeModal();res()};m.querySelector('#back').focus()})}
 async function clickBuilding(n){
   if(busy||!$('#modal').hidden)return;
+  if(S.done[n]){say('boulon',`Le chapitre ${CH[n].t} est terminé. Passe à l’atelier suivant.`,{btns:[]});return}
   if(!unlocked(n)){boulonShake();say('boulon',`L’atelier ${CH[n].t} est encore fermé. Chaque atelier a besoin de ce que produit le précédent : termine d’abord « ${CH[n-1].t} » !`,{btns:[]});return}
   busy=true;hidePanel();
   const p=B[n].getWorldPosition(V(0,0,0));const l0=HUB.look.clone(),d0=HUB.dist;await tween(.7,k=>{HUB.look.lerpVectors(l0,p,k);HUB.dist=d0+(14-d0)*k},E.inOut);
