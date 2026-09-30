@@ -388,3 +388,57 @@ html[data-theme="dark"] .fold-body>p{color:rgba(254,254,254,.86)!important}
 @media(max-width:760px){.gouache-preview.preview--wide iframe,.gouache-preview.preview--tall iframe{aspect-ratio:auto;height:calc(100svh - 96px);min-height:460px}
  .gouache-preview{margin:24px 0 20px;box-shadow:4px 4px 0 #071b16}}
 @media(max-width:760px){body[data-page="labyrinthe"] :is(.maze-window,.maze-bottom,.maze-left,.maze-right) h2{display:flex;flex-wrap:wrap;gap:2px 10px}body[data-page="labyrinthe"] :is(.maze-window,.maze-bottom,.maze-left,.maze-right) h2>span{margin-left:auto;white-space:nowrap}}
+
+/* ---- Gains valorisés au taux horaire, approches Lean / Six Sigma (30 septembre 2026) ---- */
+/* Correctif : dans les bandes à cartes blanches (rose, sauge), titres, outils et textes des cartes restent sombres quel que soit le thème
+   (le thème sombre les passait en blanc sur blanc). */
+.band--pink .quality-grid h3,.band--sage .quality-grid h3{color:#1e1e1e}
+.band--pink .quality-grid .quality-tools,.band--sage .quality-grid .quality-tools,.band--pink .quality-grid .skill-level,.band--sage .quality-grid .skill-level{color:#1e1e1e;border-top-color:#1e1e1e}
+html[data-theme="dark"] :is(.band--pink,.band--sage) :is(.skill>p,.quality-grid p,.impact-benefits p,.outcome-grid p,.language-list p,.profile-facts dd,.timeline p,.fold-body>p){color:rgba(30,30,30,.86)!important}
+html[data-theme="dark"] :is(.band--pink,.band--sage) .fold-body>.skill-level{color:#1e1e1e}
+/* Étapes « Comment ça fonctionne » (Studio, VRE) : le texte était blanc sur des cartes blanches ; légendes Avant / Après lisibles sur la bande bleue ; « Avant » des gains moins pâle. */
+.band--pink .flow-steps>li strong,.band--sage .flow-steps>li strong{color:#1e1e1e}
+.band--pink .flow-steps>li span:not(.flow-index),.band--sage .flow-steps>li span:not(.flow-index){color:rgba(30,30,30,.86)}
+.band--pink .panel-caption strong{color:inherit}
+.gain-before{color:rgba(30,30,30,.64)}
+.cost-estimate h3,.cost-estimate strong{color:#1e1e1e}
+/* Profil (mentions dans les cartes), lien de la page PP & MOSO sur la bande bleue, en-tête du parcours en thème sombre (bande sauge devenue sombre). */
+.profile-facts dd span{color:inherit}
+.band--pink a.text-link{color:inherit;border-bottom-color:currentColor}
+html[data-theme="dark"] .band--sage .section-label>span:last-child,html[data-theme="dark"] .band--sage .section-heading :is(.page-title,em,p,a){color:#fefefe}
+
+/* Cartes de gains : valeur au taux horaire, temps réaffectable, approche (Lean / Six Sigma) */
+.gain-card h3{margin:0;font:500 20px/1.15 var(--display);color:#1e1e1e}
+.gain-value{display:grid;gap:4px;padding-top:10px;border-top:1px dotted #1e1e1e}
+.gain-value b{font:400 10px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#1e1e1e}
+.gain-value p{margin:0 0 6px;font-size:15px;line-height:1.4;color:rgba(30,30,30,.86)}
+.gain-value p:last-child{margin-bottom:0}
+.gain-tags{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.gain-tag{display:inline-block;padding:1px 8px;border:1px solid #1e1e1e;font:11px/1.7 var(--mono);color:#1e1e1e;background:#fefefe}
+.gain-tag--lean{background:#e7e7fe}
+.gain-tag--sigma{background:#1e1e1e;color:#fefefe}
+.gain-tag:hover,.gain-tag:focus-visible{text-decoration:underline}
+.gain-links{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:auto;padding-top:8px;font:12px var(--mono)}
+.gain-links a{color:#1e1e1e;border-bottom:1px solid #1e1e1e}
+.gain-links a:hover{background:#e7e7fe}
+.gain-grid--2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lss-tools{margin:auto 0 0;padding-top:10px;border-top:1px dotted #1e1e1e;font:12px/1.5 var(--mono);color:#1e1e1e}
+.lss-lien{max-width:70ch;margin:22px 0 0;font-size:16px;line-height:1.5;color:var(--band-ink)}
+@media(max-width:700px){.gain-grid--2{grid-template-columns:1fr}}
+
+/* Bandeau « temps rendu × taux horaire » au-dessus des cartes de gains */
+.gain-capacity{margin:0 0 30px;border:1px solid #1e1e1e;background:#fefefe;color:#1e1e1e;box-shadow:4px 4px 0 #1e1e1e}
+.gain-capacity__bar{padding:4px 10px;background:#1e1e1e;color:#fefefe;font:11px/1.6 var(--mono);letter-spacing:.04em}
+.gain-capacity__body{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.gain-capacity__figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-right:1px solid #1e1e1e}
+.gain-capacity__figures p{margin:0;display:grid;align-content:start;gap:6px;padding:18px;border-right:1px solid #1e1e1e}
+.gain-capacity__figures p:last-child{border-right:0}
+.gain-capacity__figures strong{white-space:nowrap;font:500 clamp(18px,1.75vw,27px)/1.05 var(--display);letter-spacing:-.01em;color:#1e1e1e;background:linear-gradient(transparent 62%,color-mix(in srgb,var(--pink,#272AF5) 28%,transparent) 62%);justify-self:start}
+.gain-capacity__figures span{font:12px/1.4 var(--mono);color:rgba(30,30,30,.8)}
+.gain-capacity__text{padding:18px}
+.gain-capacity__text p{margin:0 0 10px;font-size:15px;line-height:1.45;color:rgba(30,30,30,.86)}
+.gain-capacity__text p:last-child{margin-bottom:0}
+.gain-capacity__text strong{font-weight:500;color:#1e1e1e}
+.skills-subheading p a,.gains-lead a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:900px){.gain-capacity__body{grid-template-columns:1fr}.gain-capacity__figures{border-right:0;border-bottom:1px solid #1e1e1e}}
+@media(max-width:600px){.gain-capacity__figures{grid-template-columns:1fr}.gain-capacity__figures p{border-right:0;border-bottom:1px solid #1e1e1e}.gain-capacity__figures p:last-child{border-bottom:0}}
