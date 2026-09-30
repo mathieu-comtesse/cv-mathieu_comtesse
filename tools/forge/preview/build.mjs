@@ -14,7 +14,7 @@ rmSync(OUT, { recursive: true, force: true }); mkdirSync(OUT, { recursive: true 
 let html = readFileSync(join(ROOT, 'village-talas-scene.html'), 'utf8')
 html = html.replace(/<!doctype html>/i, '').replace(/<\/?html[^>]*>/gi, '').replace(/<\/?head>/gi, '').replace(/<\/?body[^>]*>/gi, '')
 html = html.replace(/<title>[^<]*<\/title>/, '<title>Talas préversion</title>')
-html = html.replace('<script src="talas-ile.js?v=1"></script>', '<script src="talas-ile.js?v=1"></script>\n<script src="talas-capture.js"></script>')
+html = html.replace(/<script src="talas-ile\.js[^"]*"><\/script>/, (m) => m + '\n<script src="tools/forge/preview/talas-capture.js"></script>')
 if (!html.includes('talas-capture.js')) throw new Error('point d\'insertion du banc de capture introuvable')
 writeFileSync(join(OUT, 'index.html'), html)
 

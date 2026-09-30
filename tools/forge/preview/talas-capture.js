@@ -258,6 +258,13 @@
         camera.position.set(Math.sin(a) * R, 12 + Math.sin(k * 6.28) * 2.5, Math.cos(a) * R); camera.lookAt(0, 5, 0) }
       return { seconds: 48, label: 'L’île aux tourbillons : une journée', script: () => sleep(D), after: () => { window.TALAS_NUIT.fixe = null } }
     },
+    /* le quai de Talas, en vue fixe (photos à une heure donnée) */
+    async quai({ pos, look, heure, fov, dof }) {
+      hideUi()
+      if (!window.__quai) { try { await preloadToons() } catch (e) {} window.__quai = window.TALAS_QUAI.build() }
+      const W = window.__quai; W.photoDe(pos, look, heure); W.dofForce = dof; W.photo.fov = fov || 46
+      setWorld(W); return { seconds: 1, label: '', script: () => sleep(1000) }
+    },
     /* combat contre le PDG (§5), scénarisé : trois bonnes réponses (coups critiques), Aurelien fulmine (cravate dressée), coup final */
     async combat() {
       hideUi(); let finished = false

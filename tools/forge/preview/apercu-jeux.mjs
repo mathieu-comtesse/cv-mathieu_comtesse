@@ -19,7 +19,7 @@ const W = 1280, H = 720, FPS = 15
 let html = readFileSync(join(ROOT, 'village-talas-scene.html'), 'utf8')
 html = html.replace(/<head>/i, `<head><base href="${pathToFileURL(ROOT).href}/">`)
 html = html.replace(/<script src="talas-config\.js[^"]*"><\/script>/, '<script>window.TALAS_SB={url:"",key:""}</script>')
-html = html.replace('<script src="talas-ile.js?v=1"></script>', '<script src="talas-ile.js?v=1"></script>\n<script src="tools/forge/preview/talas-capture.js"></script>')
+html = html.replace(/<script src="talas-ile\.js[^"]*"><\/script>/, (m) => m + '\n<script src="tools/forge/preview/talas-capture.js"></script>')
 const PAGE = join(OUT, 'capture.html'); writeFileSync(PAGE, html)
 
 const profile = mkdtempSync(join(tmpdir(), 'talas-jeux-'))
@@ -41,7 +41,7 @@ const shot = async (f) => { const { data } = await S('Page.captureScreenshot', {
 
 for (const nom of (choix.length ? choix : Object.keys(JEUX))) {
   const [n, fn, t1, t2] = JEUX[nom]
-  await S('Page.navigate', { url: pathToFileURL(PAGE).href + '?r=' + Date.now() })
+  await S('Page.navigate', { url: pathToFileURL(PAGE).href + (process.env.TALAS_QUERY || '?r=' + Date.now()) })
   const t0 = Date.now(); while (!(await ev('!!(window.TalasCapture && TalasCapture.isReady())').catch(() => false))) { if (Date.now() - t0 > 90000) throw new Error('jeu non prêt'); await new Promise((r) => setTimeout(r, 400)) }
   await ev(`TalasCapture.stage('apercu', ${JSON.stringify({ n, fn })})`)
   let k = 0; while (!(await ev('window.__jeuT > 0')) && k < 120) { await step(15); k++ }

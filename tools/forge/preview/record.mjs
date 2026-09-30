@@ -33,7 +33,7 @@ const W = 1280, H = 720, FPS = 30
 let html = readFileSync(join(ROOT, 'village-talas-scene.html'), 'utf8')
 html = html.replace(/<head>/i, `<head><base href="${pathToFileURL(ROOT).href}/">`)
 html = html.replace(/<script src="talas-config\.js[^"]*"><\/script>/, '<script>window.TALAS_SB={url:"",key:""}</script>')
-html = html.replace('<script src="talas-ile.js?v=1"></script>', '<script src="talas-ile.js?v=1"></script>\n<script src="tools/forge/preview/talas-capture.js"></script>')
+html = html.replace(/<script src="talas-ile\.js[^"]*"><\/script>/, (m) => m + '\n<script src="tools/forge/preview/talas-capture.js"></script>')
 if (!html.includes('talas-capture.js') || html.includes('talas-config.js')) throw new Error('page locale : points d\'insertion introuvables')
 const PAGE = join(OUT, 'capture.html'); writeFileSync(PAGE, html)
 
@@ -66,7 +66,7 @@ const ev = async (expression) => { const r = await S('Runtime.evaluate', { expre
 await S('Page.enable'); await S('Runtime.enable')
 await S('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false })
 await S('Page.addScriptToEvaluateOnNewDocument', { source: 'window.__VIRTUAL_TIME = true' })
-await S('Page.navigate', { url: pathToFileURL(PAGE).href })
+await S('Page.navigate', { url: pathToFileURL(PAGE).href + (process.env.TALAS_QUERY || '') })
 
 const t0 = Date.now()
 while (!(await ev('!!(window.TalasCapture && TalasCapture.isReady())').catch(() => false))) {
@@ -75,12 +75,14 @@ while (!(await ev('!!(window.TalasCapture && TalasCapture.isReady())').catch(() 
 }
 console.log(`jeu prêt en ${((Date.now() - t0) / 1000).toFixed(1)} s`)
 
-/* --photos <fichier.json> : [[nom, avant|apres, [px,py,pz], [lx,ly,lz]], ...] -> out/photos/<nom>.png */
+/* --photos <fichier.json> : [[nom, avant|apres|quai|js, [px,py,pz], [lx,ly,lz]], ...] -> out/photos/<nom>.png */
 const pi = args.indexOf('--photos')
 if (pi >= 0) {
   const shots = JSON.parse(readFileSync(resolve(args[pi + 1]), 'utf8')), dir = resolve(HERE, '../out/photos'); mkdirSync(dir, { recursive: true })
   for (const [nom, quand, pos, look, heure] of shots) {
-    if (typeof pos === 'string' && pos.startsWith('parcours:')) { const [, x, y, zoom] = pos.split(':').map(Number); await ev(`TalasCapture.stage('pvue', ${JSON.stringify({ apres: quand === 'apres', x, y, zoom: zoom || 0 })})`) }
+    if (quand === 'quai') await ev(`TalasCapture.stage('quai', ${JSON.stringify({ pos, look, heure, fov: shots.find((x) => x[0] === nom)[5], dof: shots.find((x) => x[0] === nom)[6] })})`)
+    else if (quand === 'js') await ev(pos)   /* ['nom', 'js', 'expression ou (async()=>{…})()'] : mise en scène libre, évaluée dans la page avant la photo */
+    else if (typeof pos === 'string' && pos.startsWith('parcours:')) { const [, x, y, zoom] = pos.split(':').map(Number); await ev(`TalasCapture.stage('pvue', ${JSON.stringify({ apres: quand === 'apres', x, y, zoom: zoom || 0 })})`) }
     else await ev(`TalasCapture.stage('vue', ${JSON.stringify({ apres: quand === 'apres' || quand === 'nuit', nuit: quand === 'nuit', pos, look })})`)
     if (heure !== undefined) await ev(`window.TALAS_NUIT && (TALAS_NUIT.fixe = ${heure})`)
     for (let i = 0; i < (String(pos).startsWith('parcours:') ? 90 : 12); i++) await ev(`TalasCapture.step(${1000 / FPS})`)
