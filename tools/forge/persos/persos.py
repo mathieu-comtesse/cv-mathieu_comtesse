@@ -138,13 +138,22 @@ def fabriquer(nom, spec_perso, out=OUT, lod=0):
 
     # ---------------------------------------------------------------- corps nu (repère monde, pose de repos)
     dz = 0.28 * bl      # saillie du ventre vers l'avant, en mètres
-    hips_e = lambda P: S.ellipsoid(P, pel + V(0, 0.06, 0.02 + 0.35 * dz), [0.235 * bw, 0.17, 0.17 + 0.35 * dz])
+    hips_base = lambda P: S.ellipsoid(P, pel + V(0, 0.06, 0.02 + 0.35 * dz), [0.235 * bw, 0.17, 0.17 + 0.35 * dz])
+    belly_low = lambda P: S.ellipsoid(P, V(0, pel[1] + 0.13, 0.10 + 0.62 * dz), [0.25 * bw * 0.8 + 0.04 * bl, 0.20, 0.14 + 0.70 * dz])
+    hips_e = (lambda P: S.union(hips_base(P), belly_low(P), k=0.06)) if bl > 0.9 else hips_base
+    hem_y = pel[1] + 0.04 - (0.13 if bl > 0.9 else 0.0)
     def torso(P):
         hips = hips_e(P)
-        waist = S.ellipsoid(P, V(0, s2[1], -0.015 + 0.5 * dz), [0.215 * bw + 0.1 * bl, 0.20, 0.16 + 0.5 * dz])
-        chest = S.ellipsoid(P, V(0, chest_y, 0.005 + 0.2 * dz), [0.255 * bw, 0.22, 0.18 + 0.2 * dz])
         sho = S.capsule(P, uaR, uaL, 0.10)
         nek = S.capsule(P, nk + V(0, -0.10, 0), hd + V(0, 0.02, 0), 0.068)
+        if bl > 0.9:      # corpulent : un vrai ventre rond sous une poitrine qui reste de largeur normale (les épaules ne bougent pas, elles tiennent les bras)
+            bwc = 1 + 0.45 * (bw - 1)
+            waist = S.ellipsoid(P, V(0, s2[1], -0.015 + 0.45 * dz), [0.215 * bw * 0.92 + 0.05 * bl, 0.20, 0.16 + 0.5 * dz])
+            belly = S.ellipsoid(P, V(0, pel[1] + 0.17, 0.10 + 0.60 * dz), [0.25 * bw * 0.8 + 0.04 * bl, 0.23, 0.14 + 0.66 * dz])
+            chest = S.ellipsoid(P, V(0, chest_y, 0.005 + 0.10 * dz), [0.255 * bwc, 0.22, 0.18 + 0.10 * dz])
+            return S.union(hips, waist, belly, chest, sho, nek, k=0.11)
+        waist = S.ellipsoid(P, V(0, s2[1], -0.015 + 0.5 * dz), [0.215 * bw + 0.1 * bl, 0.20, 0.16 + 0.5 * dz])
+        chest = S.ellipsoid(P, V(0, chest_y, 0.005 + 0.2 * dz), [0.255 * bw, 0.22, 0.18 + 0.2 * dz])
         return S.union(hips, waist, chest, sho, nek, k=0.09)
     def arm(P, s):
         ua, la, ha = (uaL, laL, haL) if s > 0 else (uaR, laR, haR)
@@ -169,7 +178,7 @@ def fabriquer(nom, spec_perso, out=OUT, lod=0):
     Lcuff = L_arm - 0.12; Lsl = 0.20
     cuff_kf = lambda Lc: (lambda P: np.maximum(Lc - t_arm(P), arm_d(P) - 0.17))
     def arm_box(ua, ha): return np.minimum(ua, ha) - 0.25, np.maximum(ua, ha) + 0.25
-    zb = (-0.42, 0.42 + dz)
+    zb = (-0.42, 0.50 + dz)
     lo_u, hi_u = box((-0.9, 0.9), (belt_y - 0.15, 2.0), zb)
     hg = 0.031 * hs
 
@@ -195,7 +204,7 @@ def fabriquer(nom, spec_perso, out=OUT, lod=0):
         vest_base = lambda P: S.offset(body_upper(P), 0.05)
         y_lo, y_hi = belt_y + 0.03, nk[1] - 0.02
         wedge = lambda P: np.maximum.reduce([xx(P) - (0.025 + 0.095 * np.clip((yy(P) - y_lo) / (y_hi - y_lo), 0, 1)), 0.02 - P[:, 2], y_lo - yy(P)])   # > 0 : hors du V de devant
-        kf = mnf(cuff_kf(Lcuff), lambda P: yy(P) - (pel[1] + 0.04), lambda P: (nk[1] + 0.06) - yy(P), lambda P: neck_d(P) - 0.088, wedge)
+        kf = mnf(cuff_kf(Lcuff), lambda P: yy(P) - hem_y, lambda P: (nk[1] + 0.06) - yy(P), lambda P: neck_d(P) - 0.088, wedge)
         b.skinned('veston', 'jacket', vest_base, *box((-0.9, 0.9), (pel[1] - 0.15, 2.0), zb), hg, kf=kf)
         # chemise sous le veston : plastron et col
         plast = lambda P: S.offset(torso(P), 0.026)
@@ -477,7 +486,7 @@ PERSOS = {
     'costaud': (dict(build=dict(largeur=1.12, ventre=0.45, cuisse=1.1, bras=1.08, main=1.06), tete=dict(machoire=1.1, joues=1.25, nez=1.25, taille=1.02),
                      coiffures=('cotes', 'coiffe', 'courts', 'ras'), barbes=('chaume', 'moustache'), lunettes_vue=True, cravate=True, epi=('casque', 'gilet', 'chaussures', 'lunettes', 'gants'),
                      visibles=('cheveux:cotes',)), 1),
-    'aurelien': (dict(build=dict(largeur=1.16, ventre=0.55, cuisse=1.05, bras=1.05, main=1.08, taille=0.98), tete=dict(machoire=1.15, joues=1.35, nez=1.6, sourcils=1.5, taille=1.06),
+    'aurelien': (dict(build=dict(largeur=1.42, ventre=0.9, cuisse=1.22, bras=1.18, main=1.1, taille=0.97), tete=dict(machoire=1.32, joues=1.75, nez=1.6, sourcils=1.5, taille=1.08),
                       haut='veston', gilet=False, badge=False, bandes=False, chaussures='ville', coiffures=('coiffe',), barbes=('moustache',), cravate=True, cigare=True, boutons=True, medailles=True,
                       casque='aucun', epi=(), poches=False, visibles=('cheveux:coiffe', 'barbe:moustache', 'cravate')), 1),
     'bernard': (dict(build=dict(largeur=1.1, ventre=0.4, cuisse=1.06, bras=1.06), tete=dict(machoire=1.08, joues=1.2, nez=1.4, sourcils=1.3, taille=1.02), manches='courtes', gilet=False, badge=False, bandes=False,
