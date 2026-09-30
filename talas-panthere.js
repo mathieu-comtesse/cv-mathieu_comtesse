@@ -237,6 +237,7 @@
   function cartoon(obj, kind) {
     // rappelable : les EPI portés en cours de partie sont redessinés au moment où Dylan les enfile
     if (!window.TALAS_DA.on || !obj) return obj
+    if (obj.userData && obj.userData.rig && obj.userData.rig.nouveau) return obj   // les personnages skinnés n'ont pas besoin de coque d'encre : le rendu trace les contours
     const skip = /pupil|mouth|ember|mouthO|mouthS/
     const hulls = []
     obj.traverse((o) => {

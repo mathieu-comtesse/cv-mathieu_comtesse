@@ -10,6 +10,26 @@
   const q = location.search.match(/[?&]ile=([a-z]+)/), qc = location.search.match(/[?&]cycle=(\d+)/)
   const NUIT = { on: !(q && (q[1] === 'fixe' || q[1] === 'classique')), apply, duree: qc ? +qc[1] : 240, fixe: null, heure: 0 }
   window.TALAS_NUIT = NUIT
+  /* état du cycle à l'instant u (0..1) : palette mélangée + direction du soleil (ou de la lune). variante 'quai' : nuit violette */
+  const ETAT = { x: null, sun: null }
+  NUIT.etat = function (u, variante) {
+    const T = window.THREE; if (!ETAT.x) { const C = () => new T.Color(); ETAT.x = { zen: C(), hor: C(), n: [C(), C(), C(), C()], ink: C(), fog: C(), mer: [C(), C(), C(), C()], hemiC: C(), hemiG: C(), dirC: C(), gm: new T.Vector3(), mont: C(), sun: C(), hemiI: 0, dirI: 0, gs: 1, night: 0 }; ETAT.sun = new T.Vector3(); ETAT.cache = {} }
+    const V = variante === 'quai', nom = (k) => (V ? { nuit: 'nuitV', aube: 'aubeV', couchant: 'couchantV', jour: 'jourV' }[k] || k : k)
+    const cv = (k) => ETAT.cache[k] || (ETAT.cache[k] = (() => { const p = PAL[k]; return { zen: new T.Color(p.zen), hor: new T.Color(p.hor), n: p.n.map((h) => new T.Color(h)), ink: new T.Color(p.ink), fog: new T.Color(p.fog), mer: p.mer.map((h) => new T.Color(h)),
+      hemiC: new T.Color(p.hemi[0]), hemiG: new T.Color(p.hemi[1]), hemiI: p.hemi[2], dirC: new T.Color(p.dir[0]), dirI: p.dir[1], gm: new T.Vector3(...p.gm), gs: p.gs, mont: new T.Color(p.mont), sun: new T.Color(p.sun), night: p.night } })())
+    let i = 0; while (i < KEYS.length - 2 && u > KEYS[i + 1][0]) i++
+    const [u0, a] = KEYS[i], [u1, b] = KEYS[i + 1], k0 = (u - u0) / Math.max(1e-6, u1 - u0), k = k0 * k0 * (3 - 2 * k0)
+    const A = cv(nom(a)), B = cv(nom(b)), X = ETAT.x
+    ;['zen', 'hor', 'ink', 'fog', 'hemiC', 'hemiG', 'dirC', 'mont', 'sun'].forEach((f) => X[f].copy(A[f]).lerp(B[f], k))
+    for (let j = 0; j < 4; j++) { X.n[j].copy(A.n[j]).lerp(B.n[j], k); X.mer[j].copy(A.mer[j]).lerp(B.mer[j], k) }
+    X.gm.copy(A.gm).lerp(B.gm, k); X.gs = A.gs + (B.gs - A.gs) * k; X.hemiI = A.hemiI + (B.hemiI - A.hemiI) * k; X.dirI = A.dirI + (B.dirI - A.dirI) * k; X.night = A.night + (B.night - A.night) * k
+    const ang = (u - LEVE) / (COUCHE - LEVE) * Math.PI, dayUp = u >= LEVE && u <= COUCHE, S = ETAT.sun
+    if (dayUp) S.set(Math.cos(ang), Math.sin(ang) * .95, .32).normalize()
+    else { const un = ((u - COUCHE + 1) % 1) / (1 - (COUCHE - LEVE)), an = un * Math.PI; S.set(-Math.cos(an), -Math.sin(an) * .9, -.25).normalize() }
+    return { x: X, sun: S, dayUp, moment: MOMENT(u) }
+  }
+  NUIT.creerCiel = () => skyMat(window.THREE)
+  NUIT.majCiel = (mat, x, sunV, t) => { const U = mat.uniforms; U.uT.value = t; U.uZen.value.copy(x.zen); U.uHor.value.copy(x.hor); U.uN0.value.copy(x.n[0]); U.uN1.value.copy(x.n[1]); U.uN2.value.copy(x.n[2]); U.uN3.value.copy(x.n[3]); U.uInk.value.copy(x.ink); U.uSun.value.copy(sunV); U.uSunC.value.copy(x.sun); U.uNight.value = x.night }
 
   /* ---------------- palettes des quatre moments de la journée ----------------
      ciel (zénith, horizon), nuages (4 tons + encre), brouillard, mer (proche, loin, reflets, creux),
@@ -29,6 +49,15 @@
       mer: ['#3a3f7a', '#6a3f6e', '#ff9a55', '#1f1f4a'], hemi: ['#ffae7a', '#402040', .55], dir: ['#ff8a4a', .6], gm: [1.05, .84, .84], gs: .78,
       mont: '#a86a7a', sun: '#ffb347', night: .35 }
   }
+  /* variante du quai : nuit d'indigo et de violet, reflets orange des lanternes sur l'eau */
+  PAL.nuitV = { zen: '#0e0a2e', hor: '#3a2a80', n: ['#3b2f80', '#5b49b0', '#8d78dc', '#c4b4f6'], ink: '#0b0824', fog: '#2a2066',
+    mer: ['#1c2a6a', '#141c4c', '#f0a04a', '#0a1030'], hemi: ['#8a80e8', '#2a1a48', .78], dir: ['#b4a8ff', .6], gm: [.85, .92, 1.12], gs: .95, mont: '#4a3f9a', sun: '#e6dcff', night: 1 }
+  PAL.aubeV = { zen: '#3a3a7a', hor: '#ffb07a', n: ['#7a5a9a', '#d98a9a', '#ffb98a', '#ffe2c0'], ink: '#3a2450', fog: '#c9948a',
+    mer: ['#2d5a8c', '#5a5f9a', '#ffb07a', '#1c2f5c'], hemi: ['#ffc9a8', '#4a3860', .68], dir: ['#ffb27a', .62], gm: [1, .9, .92], gs: .88, mont: '#9a8ab0', sun: '#ffd08a', night: .3 }
+  PAL.couchantV = { zen: '#3b2a7a', hor: '#ff7a45', n: ['#8a3f8e', '#d8566a', '#ff9a55', '#ffd27a'], ink: '#3a1640', fog: '#c06a70',
+    mer: ['#3a3f8a', '#6a3f7e', '#ff9a55', '#1f1f4a'], hemi: ['#ffae7a', '#4a2050', .62], dir: ['#ff8a4a', .68], gm: [1.05, .86, .9], gs: .82, mont: '#a86a8a', sun: '#ffb347', night: .38 }
+  PAL.jourV = { zen: '#2a78d8', hor: '#c6ecfa', n: ['#86bdea', '#cfe8f8', '#ffffff', '#ffffff'], ink: '#31609a', fog: '#b4dcf2',
+    mer: ['#1e9fb8', '#2a7fb8', '#8ff0ea', '#12708e'], hemi: ['#e8f0ff', '#7a6a5a', .7], dir: ['#fff0cc', .78], gm: [1.02, 1.02, 1], gs: 1.05, mont: '#ffffff', sun: '#fff3b0', night: 0 }
   /* la journée : u de 0 à 1 ; le soleil se lève à 0,05 et se couche à 0,57 */
   const KEYS = [[0, 'nuit'], [.03, 'aube'], [.1, 'jour'], [.47, 'jour'], [.55, 'couchant'], [.63, 'nuit'], [1, 'nuit']]
   const LEVE = .05, COUCHE = .57
@@ -36,13 +65,13 @@
 
   /* ---------------- ciel : tourbillons à plat, trois tons, contour d'encre, soleil, lune, étoiles ---------------- */
   const SKY_U = () => ({ uT: { value: 0 }, uZen: { value: null }, uHor: { value: null }, uN0: { value: null }, uN1: { value: null }, uN2: { value: null }, uN3: { value: null },
-    uInk: { value: null }, uSun: { value: null }, uSunC: { value: null }, uNight: { value: 1 } })
+    uInk: { value: null }, uSun: { value: null }, uSunC: { value: null }, uNight: { value: 1 }, uCouv: { value: 0 }, uEp: { value: 1.3 } })
   function skyMat(THREE) {
     const u = SKY_U(); Object.keys(u).forEach((k) => { if (u[k].value === null) u[k].value = k === 'uSun' ? new THREE.Vector3(0, 1, 0) : new THREE.Color() })
     return new THREE.ShaderMaterial({
       side: THREE.BackSide, depthWrite: false, fog: false, extensions: { derivatives: true }, uniforms: u,
       vertexShader: 'varying vec3 vDir;void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader: `uniform float uT,uNight;uniform vec3 uZen,uHor,uN0,uN1,uN2,uN3,uInk,uSun,uSunC;varying vec3 vDir;
+      fragmentShader: `uniform float uT,uNight,uCouv,uEp;uniform vec3 uZen,uHor,uN0,uN1,uN2,uN3,uInk,uSun,uSunC;varying vec3 vDir;
 float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float h3(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1.,0.)),f.x),mix(h2(i+vec2(0.,1.)),h2(i+vec2(1.,1.)),f.x),f.y);}
@@ -67,14 +96,14 @@ void main(){
     vec2 cc=vec2(cos(ga),sin(ga))*gr+vec2(sin(uT*.03+fi),cos(uT*.025+fi))*.2;
     p=rot(p,cc,.8+.3*sin(fi*3.7),(mod(fi,2.)<1.?1.:-1.)*(4.+sin(fi)));}
   float b=sin(p.y*2.4+fbm(p*.8)*3.4)*.5+.5;
-  float m=smoothstep(.22,.48,fbm(p*.42+7.));
+  float m=smoothstep(.22+uCouv,.48+uCouv,fbm(p*.42+7.));
   float dn=b*m*smoothstep(0.,.07,el);
   float fw=fwidth(dn)*1.4+.003;
   float l1=smoothstep(.28-fw,.28+fw,dn),l2=smoothstep(.5-fw,.5+fw,dn),l3=smoothstep(.72-fw,.72+fw,dn);
   float lit=pow(max(ds,0.),6.)*.35*(1.-uNight);
   vec3 o=mix(c,uN0+uSunC*lit*.4,l1);o=mix(o,uN1+uSunC*lit*.6,l2);o=mix(o,uN2+uSunC*lit,l3);
   o=mix(o,uN3,(1.-smoothstep(0.,fw*1.2,abs(dn-.86)))*.8*l3);
-  o=mix(o,uInk,(1.-smoothstep(0.,fw*1.3,abs(dn-.28)))*.85);
+  o=mix(o,uInk,(1.-smoothstep(0.,fw*uEp,abs(dn-.28)))*.85);
   o=mix(o,uInk,(1.-smoothstep(0.,fw,abs(dn-.5)))*.35);
   vec3 sc=d*170.;float r=h3(floor(sc));
   if(r>.962&&uNight>.01){vec3 f=fract(sc)-.5;float s=1.-smoothstep(.04,.14+.12*fract(r*37.),length(f));

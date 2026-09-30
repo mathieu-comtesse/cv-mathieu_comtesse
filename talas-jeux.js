@@ -211,7 +211,7 @@
       let cheer = 0
       R.extra = (dt, T) => {
         bulbs.forEach((b, i) => b.material.color.set(((i + Math.floor(T * 6)) % 3) ? '#ffd43b' : '#ff6b6b'))
-        if (ceo) { ceo.position.y = 1.05 + Math.abs(Math.sin(T * (cheer > 0 ? 12 : 2))) * (cheer > 0 ? .18 : .04); ceo.rotation.y = Math.sin(T * .8) * .25 }
+        if (ceo) { const nv = ceo.userData.rig && ceo.userData.rig.nouveau; ceo.position.y = 1.05 + (nv ? 0 : Math.abs(Math.sin(T * (cheer > 0 ? 12 : 2))) * (cheer > 0 ? .18 : .04)); ceo.rotation.y = Math.sin(T * .8) * .25; if (nv) animPerson(ceo, cheer > 0 ? 'dance' : 'talk', T) }
         cheer = Math.max(0, cheer - dt)
       }
       const mark = (ok) => { total++; if (ok) { good++; R.fx.burst(V(3.6, 3, -1.4), 18); boulonJump() } else { boulonShake(); cheer = .8 } pts(n, ok); score() }

@@ -144,8 +144,9 @@
       const dx = Math.cos(k.a) * k.dir, dz = Math.sin(k.a) * k.dir
       k.w.position.set(x, hAt(x, z) + Math.abs(Math.sin(T * 7 + k.ph)) * .04, z); k.w.rotation.y = Math.atan2(dx, dz)
       const sw = Math.sin(T * 7 + k.ph) * .55, rg = k.rig
-      if (rg && rg.hips) { rg.hips.forEach((h, i) => h && (h.rotation.x = i ? sw : -sw)); rg.knees.forEach((n, i) => n && (n.rotation.x = Math.max(0, i ? -sw : sw) * .9)) }
-      if (rg && rg.shs) rg.shs.forEach((h, i) => h && (h.rotation.x = (i ? -sw : sw) * .6))
+      if (rg && rg.nouveau) animPerson(k.w, 'walk', T)
+      else if (rg && rg.hips) { rg.hips.forEach((h, i) => h && (h.rotation.x = i ? sw : -sw)); rg.knees.forEach((n, i) => n && (n.rotation.x = Math.max(0, i ? -sw : sw) * .9)) }
+      if (rg && !rg.nouveau && rg.shs) rg.shs.forEach((h, i) => h && (h.rotation.x = (i ? -sw : sw) * .6))
     }))
 
     /* ---------- voiliers en ronde, sillage d'écume ---------- */

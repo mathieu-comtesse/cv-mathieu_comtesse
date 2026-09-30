@@ -239,6 +239,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
   }
   function asseoir(r) { // pose assise, mains sur le guidon (squelette des personnages cartoon ou simples)
     const rig = r.userData.rig; if (!rig) return
+    if (rig.nouveau) { animPerson(r, 'drive', 0); return }   // le clip « conduite » de la bibliothèque : assis, mains en avant
     const H = rig.hips || [], K = rig.knees || [], S = rig.shs || [], E = rig.elbows || []
     H.forEach((h, i) => { h.rotation.x = -1.35; h.rotation.z = (i ? -1 : 1) * .28 }); K.forEach((k) => (k.rotation.x = 1.55))
     if (rig.up) rig.up.rotation.x = .38
