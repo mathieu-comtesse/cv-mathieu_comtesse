@@ -188,7 +188,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;z-index:10;background:#2890e2;color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="talas-mobile.css?v=8">
+<link rel="stylesheet" href="talas-mobile.css?v=9">
 
 <div id="area"><div id="frame">
 <canvas id="cv" width="640" height="480" aria-label="Village 3D de Talas"></canvas>
@@ -238,7 +238,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-quai-decor.js?v=2"></script>
 <script src="talas-quai-village.js?v=2"></script>
 <script src="talas-quai-nature.js?v=2"></script>
-<script src="talas-quai-vie.js?v=10"></script>
+<script src="talas-quai-vie.js?v=11"></script>
 <script src="talas-fantome.js?v=1"></script>
 <script src="talas-chien.js?v=2"></script>
 <script src="talas-perso.js?v=4"></script>
@@ -3305,7 +3305,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   const LCD="background:#0b1208;border:2px solid;border-color:#232b45 #aebde0 #aebde0 #232b45;padding:2px 6px;";
   function paintCard(){const v=served;
     card.innerHTML=`<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:5px"><div style="${LCD}color:#7dff7a;white-space:nowrap;display:flex;flex-direction:column;justify-content:center;line-height:1.1"><small style="color:#3fae3f">ORIENTÉS</small><b style="font-size:17px">${String(ok).padStart(2,'0')}/${String(qs.length).padStart(2,'0')}</b></div><div style="${LCD}color:#7dff7a;white-space:nowrap;display:flex;flex-direction:column;justify-content:center;line-height:1.1"><small style="color:#3fae3f">RÉPUTATION</small><b style="font-size:17px">${done?Math.round(ok/done*100):100} %</b></div>
-      <div style="${LCD}flex:1;color:#ffe066;display:flex;align-items:center;min-height:34px">${v?`<span><b style="color:#8ce99a">${v.nom}</b> : « ${v.q.q} »<br><small>Choisis la ressource qui répond à cette question. ${paced?'Sans limite de temps.':''}</small></span>`:fax.style.display!=='none'?'Lis le retour, puis choisis Visiteur suivant.':spawned<qs.length?'Le prochain visiteur arrive…':'Tous les visiteurs ont été reçus.'}</div></div>
+      <div class="dialogue-copy" style="${LCD}flex:1;color:#ffe066;display:flex;align-items:center;min-height:34px">${v?`<span><b style="color:#8ce99a">${v.nom}</b> : « ${v.q.q} »<br><small>Choisis la ressource qui répond à cette question. ${paced?'Sans limite de temps.':''}</small></span>`:fax.style.display!=='none'?'Lis le retour, puis choisis Visiteur suivant.':spawned<qs.length?'Le prochain visiteur arrive…':'Tous les visiteurs ont été reçus.'}</div></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">${DOCR.map((r,k)=>`<button data-r="${k}" ${v?'':'disabled'} style="display:flex;align-items:center;gap:5px;padding:3px 5px;font:inherit;font-size:12px;color:#fff;text-align:left;cursor:pointer;background:linear-gradient(#8e9cc4,#56648e);border:2px solid;border-color:#c8d4f0 #2a3352 #2a3352 #c8d4f0;opacity:${v?1:.55}"><svg width="22" height="22" viewBox="0 0 24 24" style="flex:none;background:${r.c};border:1px solid #2a3352">${ICO[k]}</svg><span style="line-height:1.1"><b>${TOUCH?'':r.k+' '}${r.n}</b><br><small style="color:#dde4f8">${r.s}</small></span></button>`).join('')}</div>`;
     card.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>send(+b.dataset.r))}
   const onKey=e=>{const k=+e.key;if(k>=1&&k<=5){send(k-1);e.preventDefault()}const P={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(P){cam.x+=P[0]*40;cam.y+=P[1]*30;cam.man=4;e.preventDefault()}};addEventListener('keydown',onKey);
