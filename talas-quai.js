@@ -255,7 +255,8 @@
       const g = new THREE.CylinderBufferGeometry(.17, .21, 1, 8), mat = new THREE.MeshToonMaterial({ map: M.peintre.ecorce({ couleur: '#6a4d39', taille: 256, graine: 3 }), gradientMap: grad })
       const im = new THREE.InstancedMesh(g, mat, HAB.piles.length); im.castShadow = true; im.receiveShadow = true
       const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), sc = new THREE.Vector3()
-      HAB.piles.forEach((a, i) => { const bas = Math.min(-.9, hauteur(a[0], a[2]) - .4), top = a[1] + .32 + r() * .14; p.set(a[0] + (r() - .5) * .04, (bas + top) / 2, a[2] + (r() - .5) * .04); sc.set(1, top - bas, 1); q.setFromAxisAngle(V3(0, 1, 0), r() * 6); m4.compose(p, q, sc); im.setMatrixAt(i, m4) })
+      // Les supports s'arrêtent sous les planches ; ceux des escaliers restent au contact des limons.
+      HAB.piles.forEach((a, i) => { const sol = solEn(a[0], a[2], a[1]), bas = Math.min(-.9, hauteur(a[0], a[2]) - .4), top = Math.min(a[1] + .32, (sol === null ? a[1] : sol) - .10); p.set(a[0] + (r() - .5) * .04, (bas + top) / 2, a[2] + (r() - .5) * .04); sc.set(1, top - bas, 1); q.setFromAxisAngle(V3(0, 1, 0), r() * 6); m4.compose(p, q, sc); im.setMatrixAt(i, m4) })
       im.instanceMatrix.needsUpdate = true; s.add(im)
       // écume autour de chaque pile : petits points de « terre » dans la carte de hauteur
       HAB.piles.forEach((a) => { const px = (a[0] - CARTE.x0) * CARTE.res, pz = (a[2] - CARTE.z0) * CARTE.res; gC.fillStyle = 'rgb(140,0,0)'; gC.beginPath(); gC.arc(px, pz, 1.6, 0, 7); gC.fill() }); tCarte.needsUpdate = true
