@@ -188,7 +188,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;z-index:10;background:#2890e2;color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="talas-mobile.css?v=7">
+<link rel="stylesheet" href="talas-mobile.css?v=8">
 
 <div id="area"><div id="frame">
 <canvas id="cv" width="640" height="480" aria-label="Village 3D de Talas"></canvas>
@@ -232,7 +232,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-panthere.js?v=2"></script>
 <script src="talas-props.js?v=1"></script>
 <script src="talas-ile.js?v=2"></script>
-<script src="talas-jeux.js?v=5"></script>
+<script src="talas-jeux.js?v=6"></script>
 <script src="talas-ile-nuit.js?v=1"></script>
 <script src="talas-quai.js?v=2"></script>
 <script src="talas-quai-decor.js?v=2"></script>
@@ -249,7 +249,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-son.js?v=1"></script>
 <script src="talas-grenier.js?v=1"></script>
 <script src="talas-salles.js?v=1"></script>
-<script src="talas-jetski.js?v=4"></script>
+<script src="talas-jetski.js?v=5"></script>
 <script>
 /* ================= UTILITAIRES ================= */
 const $=s=>document.querySelector(s);
@@ -322,7 +322,7 @@ function dialoguePages(text){
   const walker=document.createTreeWalker(box,NodeFilter.SHOW_TEXT),nodes=[];let node,plain='';
   while(node=walker.nextNode()){nodes.push({node,start:plain.length});plain+=node.textContent}
   if(!nodes.length)return [String(text)];
-  const limit=TOUCH?120:300,pages=[];let from=0;
+  const limit=TOUCH?480:720,pages=[];let from=0;
   const point=offset=>{for(const n of nodes)if(offset<=n.start+n.node.textContent.length)return [n.node,offset-n.start];const n=nodes[nodes.length-1];return [n.node,n.node.textContent.length]};
   while(from<plain.length){
     let end=Math.min(from+limit,plain.length);
@@ -384,33 +384,27 @@ addEventListener('keydown',e=>{
 const K=t=>`<kbd>${t}</kbd>`;
 /* « Comment jouer » : le but et les commandes de chaque mini-jeu, version clavier ou version tactile */
 const HOWTO={
- attrape:{but:'Attrape les documents à étiquette bleue avec l’épuisette. Évite les déchets à étiquette rouge. Quand un cercle rouge apparaît sous Dylan, écarte-toi : une pantoufle arrive.',
-  kb:['<kbd>Q</kbd> <kbd>D</kbd>, les flèches gauche / droite ou la souris : déplacer Dylan'],tc:['Joystick à gauche : déplacer Dylan']},
- combat:{but:'Aurelien attaque avec une mauvaise excuse. Choisis la réponse qui la contre selon la norme, avant la fin du chrono : ta bonne réponse déclenche ton attaque. Mauvaise réponse ou chrono écoulé : c’est lui qui frappe.',
-  kb:['<kbd>1</kbd> à <kbd>4</kbd> : choisir une réponse','<kbd>↑</kbd> <kbd>↓</kbd> puis <kbd>Espace</kbd> ou <kbd>Entrée</kbd> : choisir et valider','<kbd>Espace</kbd> : passer au message suivant'],
-  tc:['Joystick : choisir une réponse','VALIDER : répondre et déclencher la contre-attaque','SUITE : continuer']},
- fuite:{but:'Cours jusqu’à la sortie sans te faire écraser par le géant. Saute ou glisse sous les obstacles, et guide les collègues perdus au passage.',
-  kb:['<kbd>Q</kbd> <kbd>D</kbd> : changer de voie','<kbd>Espace</kbd> : sauter','<kbd>S</kbd> : glisser','<kbd>E</kbd> : guider un collègue'],
-  tc:['Joystick gauche / droite : changer de voie','SAUT : sauter','GLISSADE : passer sous les obstacles','GUIDER : aider un collègue']},
- tuyaux:{but:'Fais couler l’eau du bloc rouge (le danger) jusqu’au bloc vert (la mesure) en tournant les tuiles de tuyau. Cinq tuyaux, 50 secondes chacun.',
-  kb:['Clic sur une tuile : la tourner d’un quart de tour'],tc:['Joystick : viser une tuile','TOURNER : la tourner d’un quart de tour']},
- festin:{but:'Les plats arrivent dans ton assiette : tamponne les bonnes mesures, refile les mauvaises à tes voisins, et tape sur les doigts de ceux qui piquent dans ton assiette.',
-  kb:['<kbd>Espace</kbd> : tamponner le plat','<kbd>Q</kbd> <kbd>D</kbd> : le refiler à gauche ou à droite','<kbd>S</kbd> : taper sur les doigts','Ou clic sur les assiettes'],
-  tc:['Joystick gauche / droite : refiler le plat','TAMPON : valider le plat','TAPER : repousser les mains baladeuses']},
- karaoke:{but:'Chante chaque mot pile quand il arrive sur la ligne, dans la bonne piste. Plus tu es en rythme, plus la salle est convaincue.',
-  kb:['<kbd>Q</kbd> : piste gauche','<kbd>S</kbd> : piste du milieu','<kbd>D</kbd> : piste droite','(les flèches marchent aussi)'],
-  tc:['Joystick : choisir la piste','CHANTER : chanter dans la piste choisie','Micros GAUCHE / DROITE : chanter directement dans ces pistes']},
- doc:{but:'Un visiteur à la fois : lis sa question, puis choisis la ressource qui peut l’aider. La maladie est décorative. Aucun délai pour répondre. Lis le retour, puis clique sur Visiteur suivant.',
-  kb:['Clic sur un visiteur : ouvrir sa fiche','Clic sur une destination, ou <kbd>1</kbd> à <kbd>5</kbd> : l’y envoyer','Flèches ou glisser : déplacer la vue'],
-  tc:['Joystick : choisir une destination','FICHE : consulter le visiteur','VALIDER : envoyer le visiteur ou continuer après le retour','Maintenir VUE + joystick : déplacer la caméra']},
- parcours:{but:'Monte jusqu’à la salle de revue de direction. Les objets se ramassent automatiquement à proximité : badge → portique, air → gabarit, burger → chien, café → Aurelien aux WC. Aurelien te remet aussitôt la clé. Les caisses roses « ? » donnent des conseils : approche-toi pour les lire et les faire disparaître. Le chrono mesure ton parcours.',
-  kb:['<kbd>Q</kbd> <kbd>D</kbd> : avancer, reculer','<kbd>Z</kbd> : grimper aux échelles','<kbd>Espace</kbd> : sauter, deux fois pour un double saut','<kbd>E</kbd> : tournoyer (assomme les compagnons pressés, traverse les cloisons)','<kbd>S</kbd> en plein saut : plongeon qui fait trembler le sol','Passe sur un objet pour le prendre, puis va devant le passage bloqué pour l’utiliser','<kbd>R</kbd> ou le bouton Sauvegarde : revenir au dernier drapeau touché'],
-  tc:['Joystick gauche / droite : avancer, reculer','Joystick vers le haut : grimper','SAUT : sauter, deux fois pour un double saut','TORNADE : attaque tourbillon (compagnons, cloisons)','PLONGEON en plein saut : frapper le sol','Passe sur un objet pour le prendre, puis va devant le passage bloqué','Sauvegarde (en haut) : revenir au dernier drapeau touché']},
- poly:{but:'Les chefs d’équipe défilent et jurent que tout est conforme. Quand un nez s’allonge, c’est un mensonge : tamponne ÉCART sur le menteur. Ne tamponne pas ceux qui disent vrai.',
-  kb:['Clic sur un menteur : tampon ÉCART'],tc:['Joystick : viser un témoin','ÉCART : tamponner le témoin visé']},
- operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Pièges : le hoquet fait sauter le corps, chaque battement de cœur resserre les couloirs, des caillots font des allers-retours. Ta main tremble un peu tant que tu tiens une cause. Chaque bzzzt coûte des secondes et pèse lourd dans la note.',
-  kb:['Clic maintenu sur une cause, puis glisser jusqu’au rond vert'],tc:['Joystick : déplacer le viseur','Maintenir PINCER + joystick : extraire la cause par le couloir','Relâcher PINCER ou POSER : déposer la cause']}};
-function howto(k){const h=HOWTO[k];return `<div class="howto"><p><b>Le but :</b> ${h.but}</p><p><b>${TOUCH?'Sur écran tactile':'Commandes'} :</b></p><ul>${(TOUCH?h.tc:h.kb).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+ attrape:{but:'Attrape les documents bleus. Évite les déchets rouges et les cercles rouges : une pantoufle arrive.',
+  kb:['Q / D, flèches ou souris : déplacer Dylan'],tc:['Joystick : déplacer Dylan']},
+ combat:{but:'Contre chaque excuse avec la bonne réponse ISO avant le chrono. Une erreur laisse Aurelien frapper.',
+  kb:['1 à 4, ou ↑ / ↓ + Entrée : répondre'],tc:['Joystick : choisir','VALIDER : contre-attaquer']},
+ fuite:{but:'Rejoins le rassemblement : évite les obstacles et guide les collègues perdus.',
+  kb:['Q / D : voie','Espace : saut','S : glissade','E : guider'],tc:['Joystick : voie','SAUT · GLISSADE · GUIDER']},
+ tuyaux:{but:'Relie le danger rouge à la mesure verte. 5 tuyaux, 50 s chacun.',
+  kb:['Clic : tourner une tuile'],tc:['Joystick : viser','TOURNER : quart de tour']},
+ festin:{but:'Tamponne les bonnes mesures, refile les mauvaises (−2) et repousse les mains. Élimination +5, substitution +4, collectif +3, organisation +2, EPI +1 : les plus fortes prennent plus de temps. Termine dans les deux premiers.',
+  kb:['Espace : tampon','Q / D : refiler','S : repousser'],tc:['Joystick : refiler','TAMPON · TAPER']},
+ karaoke:{but:'Chante sur la bonne piste quand le mot touche son cercle. 3 réussites réveillent un opérateur ; un raté l’endort.',
+  kb:['Q / S / D, ou flèches : pistes'],tc:['Joystick : piste','CHANTER, ou micros GAUCHE / DROITE']},
+ doc:{but:'Lis chaque question sans chrono. Loi → Légifrance ; guides → INRS ; chimie → FDS ; norme → ISO 45001 ; registres internes → Archives. Lis la correction avant le visiteur suivant.',
+  kb:['Clic visiteur : fiche','Salle ou 1 à 5 : envoyer','Flèches / glisser : vue'],tc:['Joystick : destination','FICHE · VALIDER','VUE + joystick : caméra']},
+ parcours:{but:'Dépose le rapport tout en haut. Ramassage automatique : badge → portique, air → gabarit, burger → chien, café → WC → clé immédiate. Approche les caisses roses « ? » pour lire les conseils. 5 cœurs ; évite les cercles rouges et prends pièces S et EPI (dernier recours, §8.1.2).',
+  kb:['Q / D : avancer','Z : grimper','Espace ×2 : double saut','E : tornade','S en l’air : plongeon','R : dernier drapeau'],tc:['Joystick : avancer / grimper','SAUT ×2 · TORNADE · PLONGEON en l’air','Sauvegarde : dernier drapeau']},
+ poly:{but:'Un nez qui s’allonge révèle un mensonge. Tamponne ÉCART sur les menteurs uniquement.',
+  kb:['Clic : tamponner'],tc:['Joystick : viser','ÉCART : tamponner']},
+ operation:{but:'Extrais les causes par le couloir orange jusqu’au rond vert. Un bord touché coûte du temps. Attention : hoquet, couloirs qui se resserrent, caillots mobiles et main qui tremble.',
+  kb:['Clic maintenu + glisser : extraire'],tc:['Joystick : viseur','PINCER maintenu + joystick : extraire','Relâcher ou POSER : déposer']}};
+function howto(k){const h=HOWTO[k];return `<div class="howto"><p>${h.but}</p><p class="howto-controls"><b>Commandes :</b> ${(TOUCH?h.tc:h.kb).join(' · ')}</p></div>`}
 const KEYHELP={
  parcours:`<span>${K('Q')}${K('D')} avancer</span><span>${K('Z')} grimper</span><span>${K('Espace')} sauter (x2)</span><span>${K('S')} en l’air : plongeon</span><span>${K('E')} tournoyer</span><span>${K('R')} retour au drapeau</span>`,
  attrape:`<span>${K('Q')}${K('D')} ou souris : déplacer Dylan</span><span>Attrape les documents à étiquette bleue</span>`,
@@ -429,7 +423,7 @@ async function runScript(n,script){
     if(s.fn){s.fn();continue}
     if(s.q){
       const op=await say(s.w||'dylan',s.q,{btns:shuffle(s.opts.slice()).map(o=>({t:o.t,v:o}))});
-      await say('dylan',op.t);const ok=op.d>0;pts(n,ok);cdi(op.d);if(op.set)Object.assign(S.flags,op.set);
+      const ok=op.d>0;pts(n,ok);cdi(op.d);if(op.set)Object.assign(S.flags,op.set);
       ok?boulonJump():boulonShake();
       await say('boulon',(ok?'<b>Bien joué !</b> ':'<b>Aïe…</b> ')+op.fb,{cls:ok?'good':'bad'});continue;
     }
@@ -3571,7 +3565,7 @@ const CHANTIER_REC=165;
 /* sous-titres façon dessin animé : bandes noires, médaillon, capitales qui défilent par morceaux */
 const CINE={q:null,t:0,i:0,chunks:[],who:null};
 function cine(who,text){const el=$('#cine');if(!el)return;const plain=String(text).replace(/<[^>]+>/g,'').replace(/[«»]/g,'').replace(/\s+/g,' ').trim();
-  const ws=plain.split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>90){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
+  const ws=plain.split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>300){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
   CINE.chunks=ch;CINE.i=0;CINE.t=0;CINE.who=who;el.querySelector('.cpor').style.backgroundImage=`url(${portraitURL(who)})`;el.classList.add('on');$('#frame').classList.add('cine');cineShow()}
 function cineShow(){const el=$('#cine');const c=CINE.chunks[CINE.i];const tx=el.querySelector('.ctxt');tx.textContent=c;tx.classList.remove('pop');void tx.offsetWidth;tx.classList.add('pop');CINE.t=.7+c.length*.05;syncDialogueButton()}
 function cineTick(dt){if(!CINE.chunks.length)return;CINE.t-=dt;if(CINE.t>0)return;CINE.i++;if(CINE.i<CINE.chunks.length){cineShow();return}CINE.chunks=[];cineOff()}
@@ -4140,8 +4134,7 @@ function chantierPodium(t,coins,epi,x={}){return new Promise(res=>{const rec=cha
   $('#frame').append(d);beep(660,.1,'triangle',.05);setTimeout(()=>beep(880,.14,'triangle',.05),120);setTimeout(()=>beep(1320,.2,'triangle',.05),260);d.querySelector('#pgo').onclick=()=>{d.remove();res()}})}
 async function platformSection(n){
   const room=cur;
-  await say('karim','Audit terrain au hangar d’assemblage : la ligne A320 tourne à plein. Il faut déposer le rapport d’inspection SST en salle de revue de direction, tout en haut, sous la charpente.');
-  await say('boulon','Chaque étage du hangar est verrouillé : il faut le bon objet pour passer, et la bulle au-dessus de Dylan te dit lequel. Badge, bouteille d’air, burger, café, clé… Le chrono tourne. Tu as 5 cœurs. '+(TOUCH?'Joystick à gauche pour avancer et grimper ; à droite, SAUT pour sauter, TORNADE pour tournoyer et PLONGEON en plein saut pour plonger.':'Flèches ou ZQSD pour avancer et grimper, ESPACE pour sauter, E pour tournoyer, bas en plein saut pour plonger.')+' Ramasse les pièces S et les EPI : chacun protège d’un danger précis (§8.1.2). Le cercle rouge annonce un objet qui tombe.'+howto('parcours'),{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','<b>Audit terrain : le hangar.</b>'+howto('parcours'),{btns:[{t:'C’est parti !',go:1}]});
   let got=0,coins=0,save=null,t=0,card=false,lastPlatform=null;
   const retire=scene=>{if(window.TALAS_PERSO&&TALAS_PERSO.actifs)scene.traverse(o=>{if(o.userData&&o.userData.perso)TALAS_PERSO.actifs.delete(o.userData.perso)})};
   const ok=await trial(n,async()=>{
@@ -4161,7 +4154,7 @@ async function platformSection(n){
   retire(room.dylan);
   room.scene.remove(room.dylan);room.dylan=makeDylan();room.dylan.position.set(7.8,0,-4.4);room.dylan.rotation.y=-.5;room.scene.add(room.dylan);
   setWorld(room);await fade(0);
-  if(ok)await say('boulon',`<b>Rapport déposé en revue de direction en ${fmtT(t)} !</b> ${got} EPI sur 5 et ${coins} pièces S. Bravo, mais retiens la leçon de l’ISO 45001 : les EPI sont le <b>dernier recours</b> (§8.1.2). On commence par supprimer le danger, puis on protège tout le monde d’un coup : garde-corps, coussins de réception, consignation des énergies, charges jamais au-dessus des gens.`,{cls:'good'});
+  if(ok)await say('boulon',`<b>Rapport déposé en ${fmtT(t)} !</b> EPI : ${got}/5 · pièces S : ${coins}. §8.1.2 : supprimer le danger, puis protéger collectivement (garde-corps, réception, consignation). Les EPI restent le dernier recours.`,{cls:'good'});
 }
 
 /* ================= LES ATELIERS ================= */
@@ -4169,12 +4162,10 @@ const RUN=[];
 RUN[0]=async()=>{
   await runScript(0,[
    {w:'nar',t:'Lundi, 8 h 02. Talas Aéronautique, à Colomiers : 320 salariés qui fabriquent des morceaux de fuselage et peignent des avions.'},
-   {w:'ceo',t:'Dylan ! Airbus veut que ses fournisseurs soient certifiés ISO 45001 d’ici douze mois. C’est ton projet. Tu réussis, tu signes ton CDI.'},
-   {w:'ceo',t:'Ton prédécesseur a laissé une politique SST quelque part dans son bureau. Retrouve-la. Bon courage, c’est un peu… en désordre.'},
-   {w:'dylan',t:'Avant la politique, il me faut le contexte : les enjeux, les parties intéressées, les obligations légales. Une partie de ce bazar va me servir.'},
-   {w:'boulon',t:'Bzzz ! §4.1 et §4.2 : on commence par comprendre l’entreprise et ce que les travailleurs et les autres parties intéressées attendent. C’est l’entrée de tout le système !'}
+   {w:'ceo',t:'Dylan, tu as douze mois pour certifier Talas ISO 45001 et décrocher ton CDI. Retrouve la politique SST dans le bureau de ton prédécesseur.'},
+   {w:'boulon',t:'D’abord le contexte : enjeux, attentes des travailleurs et autres parties intéressées (§4.1–4.2), obligations légales (§6.1.3). Fouille les dossiers !'}
   ]);
-  await trial(0,async()=>(await catch3D(0,{hint:'Le fantôme de ton prédécesseur hante le bureau, en pantoufles, et jette ses dossiers en ricanant ! Attrape au vol, avec l’épuisette, les <b>documents utiles</b> (étiquette bleue). Évite les déchets (étiquette rouge) : ils collent à l’épuisette. Et gare à ses pantoufles : quand un cercle rouge apparaît sous Dylan, écarte-toi !',after:'Enjeux, parties intéressées, exigences légales : le contexte du §4 est posé.',
+  await trial(0,async()=>(await catch3D(0,{hint:'<b>Le bureau hanté.</b> Récupère le contexte SST et la politique perdue.',after:'Enjeux, parties intéressées, exigences légales : le contexte du §4 est posé.',
    docs:[
     {t:'Rapport annuel',info:'Cadence A320 doublée en 2027. Enjeu interne : plus d’intérim, plus de fatigue (§4.1).'},
     {t:'Courrier d’Airbus',info:'Exigences SST pour les fournisseurs. Partie intéressée externe (§4.2).'},
@@ -4203,12 +4194,11 @@ RUN[0]=async()=>{
 RUN[1]=async()=>{
   const R=cur;R.ceo=makeCEO();R.ceo.position.set(3,0,-3);R.scene.add(R.ceo);
   await runScript(1,[
-   {w:'nar',t:'Mardi, 9 h. Tout en haut de la tour, le bureau du patron.'},
    {w:'dylan',t:'Monsieur Lefauconnier, la politique SST est prête. Il me faut votre signature, et surtout votre engagement.'},
    {w:'ceo',t:'Mon engagement ? Assieds-toi, petit. Convaincs-moi.'}]);
   await trial(1,()=>battle(1),CAUSES.ceo);
   await say('boulon','Aurelien a signé… puis il a filé au vestiaire. On entend un grand BOUM dans l’avenue de l’usine.');
-  await trial(1,async()=>(await run3D(1,{len:560,hint:'Exercice d’évacuation grandeur nature, et c’est moi le géant ! Cours jusqu’au point de rassemblement et guide tes collègues paniqués ('+(TOUCH?'GUIDER':'E')+'). Suis les consignes qui s’affichent devant les obstacles.',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac);
+  await trial(1,async()=>(await run3D(1,{len:560,hint:'<b>Évacuation.</b> Aurelien joue le géant : suis les consignes devant les obstacles.',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac);
   await runScript(1,[
    {w:'ceo',q:'Et qui est responsable de la sécurité dans les ateliers, alors ?',opts:[
     {t:'Chaque manager a des responsabilités SST écrites et connues de son équipe. Vous gardez la responsabilité finale.',d:6,fb:'§5.3 : rôles, responsabilités et autorités attribués et communiqués à tous les niveaux.'},
@@ -4228,14 +4218,11 @@ RUN[2]=async()=>{
     {t:'Je fais le tour des postes avec les opérateurs et Mathilde, y compris la maintenance, la nuit et les intérimaires.',d:8,set:{participation:true},fb:'§6.1.2.1 et §5.4 : identification continue, avec les travailleurs, y compris les activités inhabituelles.'},
     {t:'Je recopie le document de 2021 et je change les dates.',d:-8,set:{participation:false},fb:'Un document figé rate les changements : nouvelle nacelle, cadence doublée. Et personne du terrain n’a été associé.'},
     {t:'Je confie tout à un cabinet externe.',d:-4,set:{participation:false},fb:'Un cabinet peut aider, mais la participation des travailleurs ne se sous-traite pas.'}]},
-   {if:()=>S.flags.participation,w:'lea',t:'Merci de venir sur le terrain ! Un truc que personne n’a noté : sur la nacelle au-dessus de l’aile, les outils ne sont pas attachés. Des clés sont déjà tombées.'},
-   {if:()=>S.flags.participation,w:'dylan',t:'Noté : chute d’objets depuis la nacelle. J’ajoute des longes porte-outils.'},
+   {if:()=>S.flags.participation,w:'lea',t:'Sur la nacelle, des outils sont déjà tombés. Merci d’ajouter des longes porte-outils !'},
    {if:()=>!S.flags.participation,w:'lea',t:'On ne t’a pas beaucoup vu dans l’atelier, toi…'},
-   {w:'boulon',t:'§6.1.3 : on suit aussi les exigences légales. Ici : vérification des nacelles, valeurs limites pour les solvants, arrêté ICPE.'},
-   {w:'karim',t:'Et les « opportunités », c’est quoi ? Moi je ne vois que des problèmes.'},
-   {w:'boulon',t:'La norme demande d’évaluer les risques ET les opportunités ! Pour la SST, et pour le système lui-même (§6.1.2.2 et §6.1.2.3).'}]);
+   {w:'boulon',t:'Suis la loi : nacelles, limites d’exposition aux solvants, ICPE (§6.1.3). Évalue aussi les risques et opportunités pour la SST et le système (§6.1.2.2–6.1.2.3).'}]);
   /* §6.1.4 : le budget de l'atelier (talas-jeux.js), remplace les tuyaux */
-  await trial(2,async()=>(await TALAS_JEUX.budget3D(2,{hint:'Plan d’actions (§6.1.4) et objectifs (§6.2) : tu gères le budget prévention du hangar pour l’année. Cinq postes produisent des dangers qui marchent vers l’équipe. Chaque trimestre, finance des mesures : <b>élimination 5 pts, substitution 4, protection collective 3, organisation 2, EPI 1</b>. Objectif de l’année : garder l’équipe au-dessus de 50 % de santé.',
+  await trial(2,async()=>(await TALAS_JEUX.budget3D(2,{hint:'<b>Budget prévention (§6.1.4, §6.2).</b>',
    after:'Supprimer le danger coûte plus cher la première fois, mais il ne revient plus : c’est tout le sens de la hiérarchie des mesures (§8.1.2).',
    postes:[
     {t:'Cabine de peinture',h:'Solvants CMR',col:'#40c057',prop:'fut-chimique',sc:1.1,lv:['Supprimer le solvant','Peinture à l’eau','Aspiration à la source','Rotation des postes','Masque à cartouche']},
@@ -4243,7 +4230,7 @@ RUN[2]=async()=>{
     {t:'Rivetage',h:'Bruit 95 dB',col:'#845ef7',prop:'poste-soudure',sc:.8,lv:['','Riveteuse silencieuse','Capotage des machines','Rotation des postes','Bouchons d’oreille']},
     {t:'Allée centrale',h:'Chariot et piétons',col:'#fab005',prop:'chariot-elevateur',sc:.45,ry:-.6,lv:['Supprimer le croisement','','Allées piétonnes séparées','Plan de circulation','Gilet haute visibilité']},
     {t:'Réception',h:'Charges de 25 kg',col:'#339af0',prop:'palette',sc:1,lv:['Supprimer le port de charges','Pièces allégées','Palan de manutention','Formation gestes et postures','Gants et genouillères']}]}))>=.5,CAUSES.risques);
-  await trial(2,async()=>(await feast3D(2,{time:60,spawn:[.7,1.1],hint:'À table pour le festin des mesures ! Neila, Eliott et moi, on veut aussi NOS mesures dans le plan d’actions. L’imprimante les fait voler au-dessus de nos têtes et elles retombent dans nos assiettes. Tamponne les bonnes (élimination +5, substitution +4, protection collective +3, organisation +2, EPI +1 : plus c’est haut, plus c’est long à tamponner) et refile les fausses bonnes idées (−2) à tes voisins. Méfie-toi : on te refilera les nôtres, et on a les bras longs. Tape-nous sur les doigts ! Termine dans les deux premiers.',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
+  await trial(2,async()=>(await feast3D(2,{time:60,spawn:[.7,1.1],hint:'<b>Le festin des mesures.</b> Défends ton plan d’actions face à tes voisins !',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
    items:[{t:'Supprimer le solvant',h:0},{t:'Supprimer le port de charges',h:0},{t:'Peinture à l’eau',h:1},{t:'Riveteuse silencieuse',h:1},
     {t:'Garde-corps',h:2},{t:'Aspiration à la source',h:2},{t:'Capotage',h:2},{t:'Filet sous la nacelle',h:2},
     {t:'Allées séparées',h:3},{t:'Rotation des postes',h:3},{t:'Formation nacelle',h:3},
@@ -4256,9 +4243,7 @@ RUN[2]=async()=>{
 };
 RUN[3]=async()=>{
   await runScript(3,[
-   {w:'nar',t:'Jeudi, à l’école des ressources.'},
-   {w:'sabrina',t:()=>S.flags.leader?'Le patron m’a appelée : ton budget est validé. Il a même dit « c’est un investissement ». Tu l’as envoûté ?':'Le patron a signé ta politique… et gelé le budget formation dans la foulée. Il va falloir justifier chaque euro.'},
-   {if:()=>!S.flags.leader,w:'boulon',t:'Effet domino ! Une direction peu engagée (§5.1) prive le système de ressources (§7.1).'},
+   {w:'sabrina',t:()=>S.flags.leader?'Le patron a validé le budget formation. Ton engagement l’a convaincu !':'Politique signée, mais budget formation gelé : sans leadership (§5.1), les ressources manquent (§7.1).'},
    {w:'sabrina',q:'Lundi, 15 intérimaires arrivent pour la montée en cadence. Je les envoie directement en poste ?',opts:[
     {t:'Non : accueil sécurité de deux heures, dangers du poste, droit de retrait, point de rassemblement, puis un tuteur la première semaine.',d:8,set:{accueil:true},fb:'§7.2 et §7.3 : compétence et sensibilisation, y compris le droit de se retirer d’un danger grave et imminent.'},
     {t:'Oui, on leur envoie le livret d’accueil en PDF.',d:-6,set:{accueil:false},fb:'Un PDF non lu ne rend personne compétent.'},
@@ -4267,13 +4252,13 @@ RUN[3]=async()=>{
     {t:'Quart d’heure sécurité chaque semaine en atelier, affichage en français, anglais et portugais, et une boîte à remontées anonyme.',d:6,fb:'§7.4 : quoi, quand, à qui, comment, en tenant compte des langues et des publics.'},
     {t:'Un mail mensuel du service HSE.',d:-4,fb:'Les opérateurs ne lisent pas leurs mails en atelier.'},
     {t:'Une lettre d’information trimestrielle.',d:-4,fb:'Trop rare et à sens unique.'}]}]);
-  await trial(3,async()=>(await karaoke3D(3,{beat:.62,hint:'Le quart d’heure sécurité, version karaoké ! Les mots arrivent sur trois pistes : quand un mot touche son cercle, appuie sur sa piste ('+(TOUCH?'joystick pour choisir la piste puis CHANTER, ou micros GAUCHE / DROITE':'Q, S ou D (ou les flèches)')+'). Chaque mot raté endort un opérateur, chaque série de trois en réveille un.',after:'Sensibilisation (§7.3) et communication (§7.4) : le message est passé.',
+  await trial(3,async()=>(await karaoke3D(3,{beat:.62,hint:'<b>Karaoké sécurité.</b> Réveille l’atelier avec le bon rythme !',after:'Sensibilisation (§7.3) et communication (§7.4) : le message est passé.',
    lines:['Casque vissé, chaussures fermées, on entre','Je connais les dangers de mon poste','Si ça craint, droit de retrait','Consignes traduites pour tout le monde','Allées piétonnes, on ne coupe pas']}))>=.5,CAUSES.support);
   await say('sabrina','<b>Le refrain !</b> Plus vite : l’équipe de nuit vient d’arriver.');
-  await trial(3,async()=>(await karaoke3D(3,{beat:.5,travel:2,hint:'Refrain accéléré : mêmes pistes, tempo plus rapide.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',
+  await trial(3,async()=>(await karaoke3D(3,{beat:.5,travel:2,hint:'<b>Le refrain :</b> mêmes pistes, tempo accéléré.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',
    lines:['Accueil sécurité avant la prise de poste','Habilitation nacelle avant de monter','Presque-accident ? Je le remonte !','Fiche de poste à jour, version trois','Le quart d’heure, tout le monde chante']}))>=.5,CAUSES.support);
   await say('sabrina','Et maintenant, le nouveau centre de documentation SST. Tout le monde a une question et personne ne sait où chercher.');
-  await trial(3,async()=>(await docs2D(3,{count:10,every:1,patience:45,paced:true,hint:'Bienvenue au centre de doc ! Les visiteurs font la queue à l’accueil avec une question. Envoie chacun dans la bonne salle ('+(TOUCH?'touche une salle ou un bouton':'touches 1 à 5, clic sur une salle ou sur un bouton')+') : <b>Légifrance</b> pour la loi, <b>INRS</b> pour les guides pratiques, <b>FDS</b> pour les produits chimiques, <b>ISO 45001</b> pour la norme, <b>Archives</b> pour nos propres registres. Prends le temps de lire la question : un visiteur à la fois, sans délai pour répondre.',after:'Savoir où trouver l’information, c’est déjà la maîtriser : exigences légales (§6.1.3) et information documentée (§7.5).'}))>=.5,CAUSES.support);
+  await trial(3,async()=>(await docs2D(3,{count:10,every:1,patience:45,paced:true,hint:'<b>Centre de documentation.</b> Oriente chaque visiteur vers la bonne ressource.',after:'Savoir où trouver l’information, c’est déjà la maîtriser : exigences légales (§6.1.3) et information documentée (§7.5).'}))>=.5,CAUSES.support);
 };
 RUN[4]=async()=>{
   await runScript(4,[
@@ -4300,11 +4285,9 @@ RUN[4]=async()=>{
 RUN[5]=async()=>{
   const F=S.flags;
   await runScript(5,[
-   {w:'nar',t:'Six mois après le lancement. L’audit interne, avant la vraie certification.'},
-   {w:'audit',t:'Bonjour Dylan. Je fais le tour des ateliers. Pour chaque constat, dis-moi : conforme ou écart ?'},
-   {w:'boulon',t:'Attention : certains constats dépendent de tes choix dans les autres ateliers. C’est ça, un système !'}]);
+   {w:'audit',t:'Six mois déjà ! Audit avant certification : conforme ou écart ? Certains constats dépendent de tes choix précédents.'}]);
   /* §9.2 et §9.3 : revue de direction, le jeu télé (talas-jeux.js), remplace le polygraphe */
-  await trial(5,async()=>(await TALAS_JEUX.revue3D(5,{hint:'Aurelien a transformé la revue de direction en jeu télévisé. Trois manches : le buzzer des entrées (§9.3), le vrai ou faux de l’audit (§9.2), la grande question. <b>Certains constats dépendent de tes choix dans les autres ateliers !</b>',
+  await trial(5,async()=>(await TALAS_JEUX.revue3D(5,{hint:'<b>Revue télévisée (§9.2–9.3).</b> Buzzer, audit, puis grande question. Tes choix précédents influencent les constats.',
    after:'Chaque écart ouvre une action corrective (§10.2), et les décisions de la revue repartent vers le leadership (§5).',
    entrees:[
     {t:'Résultats de l’audit interne',ok:1,fb:'Entrée obligatoire : la revue examine les résultats d’audit (§9.3).'},
@@ -4337,16 +4320,11 @@ RUN[5]=async()=>{
 RUN[6]=async()=>{
   const p=S.flags.participation;if(!p)S.flags.accident=true;
   await runScript(6,[
-   {w:'nar',t:'Mardi, 14 h 12. Hangar, poste aile gauche.'},
-   {if:()=>!p,w:'nar',t:'Une clé de 1,2 kg tombe de la nacelle et frappe l’épaule d’Eliott, monteur. Clavicule cassée : 45 jours d’arrêt.'},
-   {if:()=>!p,w:'karim',t:'Ce risque n’est même pas dans l’évaluation…'},
-   {if:()=>!p,w:'lea',t:'Nous, on le savait. Personne ne nous a demandé.'},
+   {if:()=>!p,w:'lea',t:'Une clé tombe de la nacelle : clavicule cassée, 45 jours d’arrêt pour Eliott. Nous connaissions ce danger oublié, mais personne ne nous a consultés.'},
    {if:()=>!p,w:'boulon',t:'Effet domino : pas de participation (§5.4), danger oublié (§6.1.2), aucune mesure (§8.1.2), accident (§10.2).'},
-   {if:()=>p,w:'nar',t:'Une clé glisse de la nacelle… et s’arrête net, retenue par sa longe porte-outil installée le mois dernier.'},
-   {if:()=>p,w:'lea',t:'La longe ! Le danger qu’on t’avait montré. Eliott a quand même rempli une fiche de presque-accident.'},
-   {if:()=>p,w:'boulon',t:'Effet domino réussi : participation (§5.4), danger identifié (§6.1.2), mesure technique (§8.1.2), presque-accident remonté (§10.2).'},
-   {w:'karim',t:'Bon. On fait quoi maintenant ?'}]);
-  await trial(6,async()=>(await surgery3D(6,{w:.54,wig:.42,hic:[2.4,4],time:75,bpm:1.1,squeeze:.38,clots:4,clotSp:1.05,pen:5,tremble:.035,hint:'Opération Talas ! L’accident est allongé sur la table, ses causes racines coincées dans le ventre. Extrais-les à la pince par le couloir orange, jusqu’au rond vert. Si tu touches le bord : bzzzt, son nez s’allume, il hurle et tu perds 4 secondes. Il a le hoquet : à chaque HIC, tout son corps saute. Son cœur bat : à chaque BOUM-BOUM, les couloirs se resserrent. Et des caillots se promènent dans les couloirs.',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
+   {if:()=>p,w:'lea',t:'Une clé glisse de la nacelle… la longe la retient ! Notre alerte a servi. Eliott déclare le presque-accident.'},
+   {if:()=>p,w:'boulon',t:'Effet domino réussi : participation (§5.4), danger identifié (§6.1.2), mesure technique (§8.1.2), presque-accident remonté (§10.2).'}]);
+  await trial(6,async()=>(await surgery3D(6,{w:.54,wig:.42,hic:[2.4,4],time:75,bpm:1.1,squeeze:.38,clots:4,clotSp:1.05,pen:5,tremble:.035,hint:'<b>Opération Talas.</b> Retrouve les causes racines de l’accident (§10.2).',after:'Ordre de l’action corrective : sécuriser, enquêter avec les travailleurs, trouver les causes racines, mettre à jour l’évaluation des risques, agir, vérifier l’efficacité.',
    causes:[
     {t:'Danger jamais évalué',fb:'Retour au §6.1 : l’évaluation des risques doit être mise à jour.'},
     {t:'Outils non attachés',fb:'Mesure technique : longes porte-outils sur tous les postes en hauteur.'},
@@ -4355,9 +4333,9 @@ RUN[6]=async()=>{
     {t:'Cadence doublée sans analyse',fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'},
     {t:'Zone dessous non balisée',fb:'On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2).'}]}))>=.5,CAUSES.correct);
   /* §10.3 : la régate de l'amélioration continue (talas-jetski.js), remplace le deuxième patient */
-  await say('boulon','<b>Fin de l’opération.</b> Place à l’amélioration continue : on ne corrige pas qu’une fois, on progresse tour après tour !');
-  await trial(6,async()=>(await TALAS_JETSKI.course(6,{tours:3,hint:'La régate de l’amélioration continue (§10.3) : trois tours de jet-ski autour de l’île Talas contre Neila, Eliott et Mathieu. Chaque bouée passée du bon côté te donne de la puissance ; chaque bouée manquée est un écart. À la fin de chaque tour, choisis l’action corrective (§10.2), puis fais mieux !',
-   after:'Détecter l’écart, en chercher la cause, corriger, vérifier que ça marche, et recommencer en visant plus haut : c’est la boucle de l’amélioration continue (§10.2 et §10.3).'}))>=.5,CAUSES.correct);
+  await say('boulon','<b>Causes traitées.</b> Améliore maintenant le système à chaque tour !');
+  await trial(6,async()=>(await TALAS_JETSKI.course(6,{tours:3,hint:'<b>Régate PDCA (§10.2–10.3).</b> Trois tours contre Neila, Eliott et Mathieu.',
+   after:'Écart → cause → correction → vérification → amélioration : la boucle continue (§10.2–10.3).'}))>=.5,CAUSES.correct);
   await runScript(6,[{w:'ceo',q:'Et ensuite ? On clôt le dossier ?',opts:[
     {t:'On vérifie l’efficacité dans trois mois, on met des longes sur tous les postes en hauteur, et on partage le retour d’expérience avec l’autre site.',d:8,fb:'§10.3 : amélioration continue. L’action se généralise et la boucle repart vers §6.1.'},
     {t:'Oui, on a sanctionné le responsable.',d:-8,fb:'Chercher un coupable éteint les remontées. Les causes sont souvent organisationnelles.'},
