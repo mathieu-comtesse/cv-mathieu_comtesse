@@ -32,7 +32,7 @@
   function budget3D(n, cfg) {
     return new Promise(async (res) => {
       const R = cur; R.clear(); const unframe = frame(R, V(0, 1.1, -1.2), 12.5, 17.6) // cadré assez haut pour voir les mesures empilées au-dessus des postes
-      const st = R.stage, SP = typeof SPD !== 'undefined' ? SPD : 1
+      const st = R.stage
       const P = window.TalasProps, props = cfg.postes.map((p) => p.prop).filter(Boolean)
       try { await Promise.race([Promise.all([P ? P.preload(props) : 0, typeof preloadToons === 'function' ? preloadToons() : 0]), new Promise((r) => setTimeout(r, 5000))]) } catch (e) {}
 
@@ -221,24 +221,24 @@
 
       /* ---- manche 1 : le buzzer des entrées (§9.3) ---- */
       let buzzRes = null
-      const press = () => { if (!buzzRes) return; tsAdd('buzz'); const y0 = cap.position.y; tween(.12, (k) => { cap.position.y = y0 - Math.sin(k * Math.PI) * .08 }); const r = buzzRes; buzzRes = null; r(true) }
+      const press = () => { if (!buzzRes) return; tsAdd('buzz'); const y0 = cap.position.y; tween(.12, (k) => { cap.position.y = y0 - Math.sin(k * Math.PI) * .08 }); buzzRes() }
       buzz.userData = { hover: 1, onClick: press }; R.clickables.push(buzz)
-      const onKey = (e) => { if (e.code === 'Space' || e.key === 'b' || e.key === 'B') { e.preventDefault(); press() } }
+      const onKey = (e) => { if (buzzRes && (e.code === 'Space' || e.key === 'b' || e.key === 'B')) { e.preventDefault(); press() } }
       addEventListener('keydown', onKey)
       mobileControls.use('revue',{actions:[{label:'BUZZER',icon:'buzz',down:press,enabled:()=>!!buzzRes}]})
-      await say('boulon', '<b>Manche 1 : le buzzer des entrées.</b><br>Des sujets défilent sur l’écran. <b>Buzze</b> (' + (TOUCH ? 'bouton BUZZER' : 'clic sur le buzzer ou ESPACE') + ') quand c’est une entrée <b>obligatoire</b> de la revue de direction (§9.3). Laisse passer le reste.', { btns: [{ t: 'Prêt !', go: 1 }] })
+      await say('boulon', '<b>Manche 1 : le buzzer des entrées.</b><br>Lis le sujet à ton rythme. S’il est obligatoire en revue de direction (§9.3), choisis <b>BUZZER</b>. Sinon, choisis <b>Hors sujet</b>. Aucun compte à rebours : tu passes au sujet suivant après avoir lu la correction.', { btns: [{ t: 'J’ai compris', go: 1 }] })
+      bar.visible = false
       let last = ''
       for (const [i, c] of cfg.entrees.entries()) {
-        show(c.t, `Sujet ${i + 1} / ${cfg.entrees.length} · entrée obligatoire ? BUZZE !`); ETAT.carte = c; ETAT.manche = 1
-        say('boulon', `${last}<b>Sujet ${i + 1} / ${cfg.entrees.length}.</b> Entrée obligatoire de la revue ? Buzze vite !`, { btns: [] })
-        const dur = (cfg.tCard || 4200) / SP, t0 = performance.now()
-        const tick = setInterval(() => { bar.scale.x = Math.max(.001, 1 - (performance.now() - t0) / dur) }, 50)
-        const buzzed = await Promise.race([new Promise((r) => (buzzRes = r)), new Promise((r) => setTimeout(() => r(false), dur))])
-        buzzRes = null; clearInterval(tick); bar.scale.x = 1
+        show(c.t, `Sujet ${i + 1} / ${cfg.entrees.length} · prends le temps de lire`); ETAT.carte = c; ETAT.manche = 1
+        const answer = say('boulon', `<b>Sujet ${i + 1} / ${cfg.entrees.length}</b><br>${c.t}<br>Cette information doit-elle être examinée en revue de direction ?`, { btns: [{t:'BUZZER · Entrée obligatoire',v:1},{t:'Hors sujet',v:0}], row:true })
+        buzzRes = () => { buzzRes = null; $('#pact button')?.click() }
+        const buzzed = (await answer) === 1
+        buzzRes = null
         const ok = buzzed === !!c.ok; mark(ok)
         last = `<span style="color:${ok ? '#2b8a3e' : '#c92a2a'}"><b>${ok ? 'Bien vu' : buzzed ? 'Hors sujet' : 'Raté'} :</b> ${c.fb}</span><br>`
         show(c.t, ok ? 'BONNE RÉPONSE' : c.ok ? 'IL FALLAIT BUZZER' : 'HORS SUJET', ok ? '#d3f9d8' : '#ffe3e3')
-        await new Promise((r) => setTimeout(r, 900 / SP))
+        await say('boulon', last, {btns:[{t:'Sujet suivant',go:1}],cls:ok?'good':'bad'})
       }
       removeEventListener('keydown', onKey)
 
@@ -246,7 +246,7 @@
       await say('ceo', `${last}<b>Manche 2 : vrai ou faux de l’audit.</b> Mes chefs d’équipe jurent que tout est conforme. À toi de dire si c’est vrai.`, { btns: [{ t: 'Envoyez les constats', go: 1 }] })
       for (const [i, c] of cfg.constats.entries()) {
         show(`« ${c.t} »`, `Constat ${i + 1} / ${cfg.constats.length} · conforme ou écart ?`); ETAT.carte = c; ETAT.manche = 2
-        const ans = await Promise.race([say('ceo', `<b>Constat ${i + 1} / ${cfg.constats.length}</b> · « ${c.t} »`, { btns: [{ t: 'Conforme', v: 0 }, { t: 'Écart', v: 1 }], row: true }), new Promise((r) => setTimeout(() => r(-1), (cfg.tAudit || 9000) / SP))])
+        const ans = await say('ceo', `<b>Constat ${i + 1} / ${cfg.constats.length}</b> · « ${c.t} »<br>Prends le temps de lire, puis choisis ta réponse.`, { btns: [{ t: 'Conforme', v: 0 }, { t: 'Écart', v: 1 }], row: true })
         const ok = ans === (c.lie ? 1 : 0); mark(ok); if (c.lie && ans === 1) tsAdd('ecarts')
         show(`« ${c.t} »`, ok ? (c.lie ? 'ÉCART CONFIRMÉ' : 'CONFORME') : ans < 0 ? 'TEMPS ÉCOULÉ' : 'MAUVAISE RÉPONSE', ok ? '#d3f9d8' : '#ffe3e3')
         await say('audit', `${ok ? 'Validé :' : 'Écart :'} ${c.lie ? c.fb || 'C’était un écart : il ouvre une action corrective (§10.2).' : 'C’était conforme : preuve vérifiée sur le terrain.'}`, { cls: ok ? 'good' : 'bad' })
@@ -273,7 +273,7 @@
   const addHowto = () => {
     try {
       HOWTO.budget = { but: 'Garder l’équipe au-dessus de la moitié de sa santé après quatre trimestres. Chaque trimestre, les cinq postes envoient des dangers vers l’équipe (1 par poste, puis 2 à partir du 3<sup>e</sup> trimestre). Avant chaque trimestre, dépense ton budget en mesures : elles restent en place toute l’année, et plus elles sont hautes dans la hiérarchie, plus elles coûtent et plus elles protègent.', kb: ['Clic sur un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'], tc: ['Joystick : viser un poste', 'MESURE : choisir une protection à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'] }
-      HOWTO.revue = { but: 'Trois manches sur le plateau de la revue de direction : buzze les entrées obligatoires, démasque les écarts de l’audit, réponds à la grande question.', kb: ['Clic sur le buzzer ou ESPACE : buzzer', 'Boutons : répondre'], tc: ['BUZZER : valider une entrée obligatoire', 'Joystick : choisir une réponse', 'VALIDER : répondre'] }
+      HOWTO.revue = { but: 'Trois manches à ton rythme : choisis BUZZER pour une entrée obligatoire, Hors sujet pour les autres, puis repère les écarts et réponds aux questions. Lis chaque correction avant de continuer.', kb: ['Clic sur BUZZER ou ESPACE : entrée obligatoire', 'Bouton Hors sujet : refuser le sujet', 'Boutons : répondre, puis continuer'], tc: ['Joystick : choisir BUZZER ou Hors sujet', 'VALIDER : répondre', 'SUITE : continuer après la correction'] }
     } catch (e) { setTimeout(addHowto, 50) }
   }
   addEventListener('DOMContentLoaded', addHowto)

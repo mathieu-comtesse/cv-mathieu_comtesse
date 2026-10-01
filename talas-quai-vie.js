@@ -332,11 +332,11 @@
         const d0 = 7.6 * (W.zoom || 1) + J.courir * .8, dR = Math.cos(W.yaw), sR = -Math.sin(W.yaw)
         W.look.set(J.x + dR * .9, J.y + 1.75, J.z + sR * .9); W.dist += (d0 - W.dist) * Math.min(1, dt * 6)
       }
-      const ph = W.pitch, D = W.dist
+      const ph = W.pitch, D = W.dist * (W.pdcaOverview ? (W.zoom || 1) : 1)
       const want = V3(W.look.x + Math.sin(W.yaw) * Math.cos(ph) * D, W.look.y + Math.sin(ph) * D, W.look.z + Math.cos(W.yaw) * Math.cos(ph) * D)
       const sol = Math.max(ctx.hauteur(want.x, want.z), 0) + .7; if (want.y < sol) want.y = sol
       { const a = W.look; let lim = 1
-        for (let t = .12; t <= 1.001; t += .08) { if (camDans(a.x + (want.x - a.x) * t, a.y + (want.y - a.y) * t, a.z + (want.z - a.z) * t)) { lim = Math.max(.12, t - .1); break } }
+        if (!W.pdcaOverview) for (let t = .12; t <= 1.001; t += .08) { if (camDans(a.x + (want.x - a.x) * t, a.y + (want.y - a.y) * t, a.z + (want.z - a.z) * t)) { lim = Math.max(.12, t - .1); break } }
         if (lim < 1) want.set(a.x + (want.x - a.x) * lim, a.y + (want.y - a.y) * lim, a.z + (want.z - a.z) * lim) }
       camP.lerp(want, libre ? 1 - Math.pow(.0005, dt) : 1 - Math.pow(.0009, dt)); camL.lerp(W.look, 1 - Math.pow(.0002, dt))
       if (!W.photo) pCentre.set(J.x, J.y, J.z)

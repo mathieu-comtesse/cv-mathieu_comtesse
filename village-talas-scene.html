@@ -188,7 +188,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;z-index:10;background:#2890e2;color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="talas-mobile.css?v=4">
+<link rel="stylesheet" href="talas-mobile.css?v=5">
 
 <div id="area"><div id="frame">
 <canvas id="cv" width="640" height="480" aria-label="Village 3D de Talas"></canvas>
@@ -231,13 +231,13 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-panthere.js?v=2"></script>
 <script src="talas-props.js?v=1"></script>
 <script src="talas-ile.js?v=2"></script>
-<script src="talas-jeux.js?v=4"></script>
+<script src="talas-jeux.js?v=5"></script>
 <script src="talas-ile-nuit.js?v=1"></script>
 <script src="talas-quai.js?v=2"></script>
 <script src="talas-quai-decor.js?v=2"></script>
 <script src="talas-quai-village.js?v=2"></script>
 <script src="talas-quai-nature.js?v=2"></script>
-<script src="talas-quai-vie.js?v=9"></script>
+<script src="talas-quai-vie.js?v=10"></script>
 <script src="talas-fantome.js?v=1"></script>
 <script src="talas-chien.js?v=2"></script>
 <script src="talas-perso.js?v=4"></script>
@@ -315,7 +315,7 @@ const PPL={
 /* ================= PANNEAU DE DIALOGUE ================= */
 let typing=null;
 function say(k,text,{btns=[{t:'Suivant',go:1}],cls='',row=false,grid=false}={}){
-  const P=$('#panel'),mini=!btns.length;P.hidden=false;P.className='win '+cls+(mini?' mini':'');clearTimeout(say._t);if(mini)say._t=setTimeout(()=>{if(P.classList.contains('mini'))hidePanel()},TOUCH?Math.max(7000,String(text).replace(/<[^>]+>/g,'').length*60):3500);
+  const P=$('#panel'),mini=!btns.length;P.hidden=false;P.className='win '+cls+(mini?' mini':'');clearTimeout(say._t);if(mini)say._t=setTimeout(()=>{if(P.classList.contains('mini'))hidePanel()},Math.max(7000,String(text).replace(/<[^>]+>/g,'').length*65));
   $('#por').innerHTML=portrait(k);const p=PPL[k];$('#pname').innerHTML=`<b>${p.n}</b><span>${p.r}</span>`;
   const T=$('#ptext');clearInterval(typing);
   if(text.includes('<')){T.innerHTML=text;T.onclick=null}else{let i=0;T.textContent='';typing=setInterval(()=>{i+=3;T.textContent=text.slice(0,i);if(i>=text.length)clearInterval(typing)},14);T.onclick=()=>{clearInterval(typing);T.textContent=text}}
@@ -344,10 +344,10 @@ const HOWTO={
  karaoke:{but:'Chante chaque mot pile quand il arrive sur la ligne, dans la bonne piste. Plus tu es en rythme, plus la salle est convaincue.',
   kb:['<kbd>Q</kbd> : piste gauche','<kbd>S</kbd> : piste du milieu','<kbd>D</kbd> : piste droite','(les flèches marchent aussi)'],
   tc:['Joystick : choisir la piste','CHANTER : chanter dans la piste choisie','Micros GAUCHE / DROITE : chanter directement dans ces pistes']},
- doc:{but:'Les visiteurs font la queue avec une question. Ouvre leur fiche et envoie chacun vers la bonne ressource avant que sa patience s’épuise.',
+ doc:{but:'Un visiteur à la fois : lis sa question, puis choisis la ressource qui peut l’aider. La maladie est décorative. Aucun délai pour répondre. Lis le retour, puis clique sur Visiteur suivant.',
   kb:['Clic sur un visiteur : ouvrir sa fiche','Clic sur une destination, ou <kbd>1</kbd> à <kbd>5</kbd> : l’y envoyer','Flèches ou glisser : déplacer la vue'],
-  tc:['Joystick : choisir une destination','FICHE : consulter le visiteur','ENVOYER : l’orienter vers la destination sélectionnée','Maintenir VUE + joystick : déplacer la caméra']},
- parcours:{but:'Monte étage par étage dans le hangar d’assemblage jusqu’à la salle de revue de direction et bats le chrono. Chaque passage se déverrouille avec le bon objet : la bulle au-dessus de Dylan te dit lequel (badge, bouteille d’air, burger, café, clé).',
+  tc:['Joystick : choisir une destination','FICHE : consulter le visiteur','VALIDER : envoyer le visiteur ou continuer après le retour','Maintenir VUE + joystick : déplacer la caméra']},
+ parcours:{but:'Monte jusqu’à la salle de revue de direction. Les objets se ramassent automatiquement à proximité : badge → portique, air → gabarit, burger → chien, café → Aurelien aux WC. Aurelien te remet aussitôt la clé. Les caisses roses « ? » donnent des conseils : approche-toi pour les lire et les faire disparaître. Le chrono mesure ton parcours.',
   kb:['<kbd>Q</kbd> <kbd>D</kbd> : avancer, reculer','<kbd>Z</kbd> : grimper aux échelles','<kbd>Espace</kbd> : sauter, deux fois pour un double saut','<kbd>E</kbd> : tournoyer (assomme les compagnons pressés, traverse les cloisons)','<kbd>S</kbd> en plein saut : plongeon qui fait trembler le sol','Passe sur un objet pour le prendre, puis va devant le passage bloqué pour l’utiliser','<kbd>R</kbd> ou le bouton Sauvegarde : revenir au dernier drapeau touché'],
   tc:['Joystick gauche / droite : avancer, reculer','Joystick vers le haut : grimper','SAUT : sauter, deux fois pour un double saut','TORNADE : attaque tourbillon (compagnons, cloisons)','PLONGEON en plein saut : frapper le sol','Passe sur un objet pour le prendre, puis va devant le passage bloqué','Sauvegarde (en haut) : revenir au dernier drapeau touché']},
  poly:{but:'Les chefs d’équipe défilent et jurent que tout est conforme. Quand un nez s’allonge, c’est un mensonge : tamponne ÉCART sur le menteur. Ne tamponne pas ceux qui disent vrai.',
@@ -3166,6 +3166,7 @@ function docSprites(S){
   return{img:atlas,cw,ch,ax,ay,frames:DOC_FRAMES}
 }
 function docs2D(n,cfg){return new Promise(async res=>{
+  const paced=cfg.paced!==false,patience=cfg.patience||45;
   const HAND=`url("data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M7 2c2 0 3 1 3 3v8l1-1c1-1 3-1 4 0l1 1 1-1c1-1 3-1 4 0l1 1c1-1 3-1 4 1v8c0 4-3 7-7 7h-5c-3 0-5-2-7-4l-5-6c-1-2 1-4 3-3l2 2V5c0-2 1-3 3-3z" fill="#ffd43b" stroke="#3b2412" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 14v5M20 14v5M11 15v4" stroke="#b8860b" stroke-width="1.2"/></svg>')}") 7 2, pointer`;
   const R=cur;R.clear();keyHelp('doc');
   /* décor et personnages pré-calculés dans Blender (voir tools/talas-doc) */
@@ -3220,7 +3221,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   const qs=shuffle(DOCQ.slice()).slice(0,cfg.count||10),ARCH=shuffle([0,1,2,3,4,5,6,7]);let spawned=0,done=0,ok=0,served=null,spawnT=1;const V=[],PUD=[];
   const NOMS=['M. Pignon','Mme Boulard','M. Tarlouze','Mme Crépin','M. Grosbec','Mme Lavache','M. Poildur','Mme Zinzin','M. Bigoudi','Mme Frisson','M. Pataud','Mme Rondelle'],
     MAL=['Tête enflée','Langue bien pendue','Pilosité administrative','Invisibilité réglementaire','Calvitie réfléchissante','Blondeur de dossier','Cravatite aiguë','Mamie-classeur'];
-  function mkV(q){const v={q,arch:ARCH[spawned%8],nom:NOMS[(spawned*5+3)%NOMS.length],i:20,j:5,p:[],sp:rand(2.6,3.2),st:'in',spot:-1,pat:cfg.patience||16,t:0,res:null,ail:AIL[Math.random()*AIL.length|0],
+  function mkV(q){const v={q,arch:ARCH[spawned%8],nom:NOMS[(spawned*5+3)%NOMS.length],i:20,j:5,p:[],sp:rand(2.6,3.2),st:'in',spot:-1,pat:patience,t:0,res:null,ail:AIL[Math.random()*AIL.length|0],
     skin:SKN[Math.random()*6|0],coat:COAT[Math.random()*9|0],nose:rand(1.6,3),hair:Math.random()*5|0,hairC:['#2b2320','#6b3e1c','#e8b84a','#c9cdd2','#a83a2a'][Math.random()*5|0],glass:Math.random()<.3,big:Math.random()<.4,ph:rand(0,6),pants:['#3c4a8c','#4a4f58','#5c3a1e','#2b2f36','#35684a'][Math.random()*5|0],shirt:['#f1f3f5','#ffe8cc','#d0ebff'][Math.random()*3|0],tie:Math.random()<.4?['#c92a2a','#1c7ed6','#2b8a3e'][Math.random()*3|0]:null,fdir:-1,fback:true};
     if(v.ail==='hairy')v.hairy=1;V.push(v);return v}
   function goTo(v,i,j){const a=Math.round(v.i),b=Math.round(v.j);v.p=path(a,b,i,j);if(v.p.length&&v.p[0][0]===a&&v.p[0][1]===b)v.p.shift()}
@@ -3234,19 +3235,19 @@ function docs2D(n,cfg){return new Promise(async res=>{
   const fcv=document.createElement('canvas');fcv.width=84;fcv.height=112;fcv.style.cssText='width:63px;height:84px;image-rendering:pixelated;background:linear-gradient(#8d86bf,#6f68a8);border:2px solid;border-color:#2a3352 #c8d4f0 #c8d4f0 #2a3352;flex:none';
   function openFiche(v){fiche.v=v;fiche.style.display='block';paintFiche();beep(520,.05,'square',.04)}
   function closeFiche(){fiche.v=null;fiche.style.display='none'}
-  function paintFiche(){const v=fiche.v;if(!v)return;const can=(v.st==='wait'||v.st==='in')&&v.spot>=0,pq=Math.max(0,v.pat/(cfg.patience||16));
+  function paintFiche(){const v=fiche.v;if(!v)return;const can=(v.st==='wait'||v.st==='in')&&v.spot>=0,pq=Math.max(0,v.pat/(patience));
     fiche.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;background:#2a3352;padding:2px 6px"><b>${v.nom}</b><button data-x style="font:inherit;color:#fff;background:#c92a2a;border:2px solid;border-color:#ff8787 #7a1010 #7a1010 #ff8787;cursor:pointer;padding:0 5px">X</button></div>
       <div style="display:flex;gap:6px;padding:5px"><span data-p></span><div style="flex:1;display:grid;gap:4px;align-content:start"><div>Maladie : <b style="color:#ffe066">${MAL[v.arch]}</b></div>
-      <div>Patience<div style="${LCD}height:10px;padding:1px"><div style="height:100%;width:${pq*100}%;background:${pq>.5?'#51cf66':pq>.25?'#fcc419':'#fa5252'}"></div></div></div>
+      <div>${paced?'À ton rythme':'Patience'}<div style="${LCD}height:10px;padding:1px"><div style="height:100%;width:${pq*100}%;background:${pq>.5?'#51cf66':pq>.25?'#fcc419':'#fa5252'}"></div></div></div>
       <div style="${LCD}color:#ffe066;font-size:11px;min-height:40px">« ${v.q.q} »</div></div></div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:0 5px 5px">${DOCR.map((r,k)=>`<button data-s="${k}" ${can?'':'disabled'} title="${r.n}" style="${BEV}padding:2px;cursor:pointer;opacity:${can?1:.5}"><svg width="100%" height="20" viewBox="0 0 24 24" style="background:${r.c}">${ICO[k]}</svg><div style="font:10px 'Pixelify Sans',monospace;color:#fff;white-space:nowrap;overflow:hidden">${r.n}</div></button>`).join('')}</div>`;
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:0 5px 5px">${DOCR.map((r,k)=>`<button data-s="${k}" ${can?'':'disabled'} title="${r.n}" style="${BEV}padding:2px;cursor:pointer;opacity:${can?1:.5}"><svg width="100%" height="20" viewBox="0 0 24 24" style="background:${r.c}">${ICO[k]}</svg><div style="font:10px 'Pixelify Sans',monospace;color:#fff;white-space:normal;overflow-wrap:anywhere">${r.n}</div></button>`).join('')}</div>`;
     fiche.querySelector('[data-p]').replaceWith(fcv);fiche.querySelector('[data-x]').onclick=closeFiche;fiche.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>send(+b.dataset.s,v))}
   function drawFiche(){const v=fiche.v;if(!v)return;if(!V.includes(v)){closeFiche();return}const q=fcv.getContext('2d');q.clearRect(0,0,84,112);
     const fr2=frameOf(v,{walk:v.p.length>0&&!(v.stop>0),back:false,puke:v.stop>0}),col=FI[fr2];q.drawImage(ICH,col*(CM.cw+1),v.arch*(CM.ch+1),CM.cw,CM.ch,0,-12,CM.cw,CM.ch);
-    if((T*4|0)!==fiche.last){fiche.last=T*4|0;const b=fiche.querySelector('[style*="height:100%"]');if(b){const pq=Math.max(0,v.pat/(cfg.patience||16));b.style.width=pq*100+'%';b.style.background=pq>.5?'#51cf66':pq>.25?'#fcc419':'#fa5252'}}}
+    if((T*4|0)!==fiche.last){fiche.last=T*4|0;const b=fiche.querySelector('[style*="height:100%"]');if(b){const pq=Math.max(0,v.pat/(patience));b.style.width=pq*100+'%';b.style.background=pq>.5?'#51cf66':pq>.25?'#fcc419':'#fa5252'}}}
   /* fax du jeu pour les retours pédagogiques */
-  const fax=document.createElement('div');fax.style.cssText="position:absolute;z-index:6;right:10px;top:46px;width:min(280px,55%);background:#fdf8e4;background-image:repeating-linear-gradient(#fdf8e4 0 15px,#e8e1c4 15px 16px);color:#2a2238;font:12px 'Pixelify Sans',monospace;border:2px solid #2a3352;box-shadow:4px 4px 0 rgba(0,0,0,.35);display:none;cursor:pointer";fr.append(fax);
-  fax.onclick=()=>{fax.style.display='none'};
+  const fax=document.createElement('div');fax.className='mobile-doc-feedback';fax.style.cssText="position:absolute;z-index:6;right:10px;top:46px;width:min(280px,55%);background:#fdf8e4;background-image:repeating-linear-gradient(#fdf8e4 0 15px,#e8e1c4 15px 16px);color:#2a2238;font:12px 'Pixelify Sans',monospace;border:2px solid #2a3352;box-shadow:4px 4px 0 rgba(0,0,0,.35);display:none;cursor:pointer";fr.append(fax);
+  const nextVisitor=()=>{fax.style.display='none';spawnT=0};
   const FT=[];
   /* --- panneau de commande --- */
   const ICO=['<path d="M12 3v17M5 20h14M4 8h16M4 8l-3 6h6zM20 8l-3 6h6z" fill="none" stroke="#fff" stroke-width="2"/>','<path d="M3 5h7v15H3zM12 5h9v15h-9z" fill="#ffd8a8" stroke="#fff" stroke-width="1.5"/><path d="M5 9h3M14 9h5M14 12h5" stroke="#7a4a22" stroke-width="1.5"/>',
@@ -3254,7 +3255,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   const LCD="background:#0b1208;border:2px solid;border-color:#232b45 #aebde0 #aebde0 #232b45;padding:2px 6px;";
   function paintCard(){const v=served;
     card.innerHTML=`<div style="display:flex;gap:6px;align-items:stretch;margin-bottom:5px"><div style="${LCD}color:#7dff7a;white-space:nowrap;display:flex;flex-direction:column;justify-content:center;line-height:1.1"><small style="color:#3fae3f">ORIENTÉS</small><b style="font-size:17px">${String(ok).padStart(2,'0')}/${String(qs.length).padStart(2,'0')}</b></div><div style="${LCD}color:#7dff7a;white-space:nowrap;display:flex;flex-direction:column;justify-content:center;line-height:1.1"><small style="color:#3fae3f">RÉPUTATION</small><b style="font-size:17px">${done?Math.round(ok/done*100):100} %</b></div>
-      <div style="${LCD}flex:1;color:#ffe066;display:flex;align-items:center;min-height:34px">${v?`<span><b style="color:#8ce99a">${v.nom}</b> (${MAL[v.arch]}) : « ${v.q.q} »</span>`:spawned<qs.length?'Conseiller : le prochain visiteur arrive…':'Conseiller : plus personne dans la file.'}</div></div>
+      <div style="${LCD}flex:1;color:#ffe066;display:flex;align-items:center;min-height:34px">${v?`<span><b style="color:#8ce99a">${v.nom}</b> : « ${v.q.q} »<br><small>Choisis la ressource qui répond à cette question. ${paced?'Sans limite de temps.':''}</small></span>`:fax.style.display!=='none'?'Lis le retour, puis choisis Visiteur suivant.':spawned<qs.length?'Le prochain visiteur arrive…':'Tous les visiteurs ont été reçus.'}</div></div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">${DOCR.map((r,k)=>`<button data-r="${k}" ${v?'':'disabled'} style="display:flex;align-items:center;gap:5px;padding:3px 5px;font:inherit;font-size:12px;color:#fff;text-align:left;cursor:pointer;background:linear-gradient(#8e9cc4,#56648e);border:2px solid;border-color:#c8d4f0 #2a3352 #2a3352 #c8d4f0;opacity:${v?1:.55}"><svg width="22" height="22" viewBox="0 0 24 24" style="flex:none;background:${r.c};border:1px solid #2a3352">${ICO[k]}</svg><span style="line-height:1.1"><b>${TOUCH?'':r.k+' '}${r.n}</b><br><small style="color:#dde4f8">${r.s}</small></span></button>`).join('')}</div>`;
     card.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>send(+b.dataset.r))}
   const onKey=e=>{const k=+e.key;if(k>=1&&k<=5){send(k-1);e.preventDefault()}const P={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(P){cam.x+=P[0]*40;cam.y+=P[1]*30;cam.man=4;e.preventDefault()}};addEventListener('keydown',onKey);
@@ -3267,11 +3268,11 @@ function docs2D(n,cfg){return new Promise(async res=>{
     const a=(x-W/2+cam.x)/(16*S),b=(y-H*.52+cam.y)/(8*S),i=Math.floor((a+b)/2),j=Math.floor((b-a)/2);if(inb(i,j)&&ROOM[M[i][j]]!==undefined)send(ROOM[M[i][j]],fiche.v&&(fiche.v.st==='wait'||fiche.v.st==='in')?fiche.v:null)});
   paintCard();
   let mobileView=false;
-  mobileControls.use('doc',{root:card,choices:()=>fiche.v?fiche.querySelectorAll('[data-s]'):card.querySelectorAll('[data-r]'),navigationAllowed:()=>!mobileView,
+  mobileControls.use('doc',{root:card,choices:()=>fax.style.display!=='none'?fax.querySelectorAll('button'):fiche.v?fiche.querySelectorAll('[data-s]'):card.querySelectorAll('[data-r]'),navigationAllowed:()=>!mobileView,
     onMove:(v,dt)=>{if(mobileView&&v.active){cam.x+=v.x*220*dt;cam.y+=v.y*180*dt;cam.man=5}},
     actions:[{label:'FICHE',icon:'document',enabled:()=>!!(fiche.v||served),down:()=>{if(fiche.v)closeFiche();else if(served)openFiche(served)}},
       {label:'VUE',icon:'view',down:()=>mobileView=true,up:()=>mobileView=false},
-      {label:'ENVOYER',icon:'send',enabled:()=>!!(fiche.v||served),down:()=>send(mobileControls.selection,fiche.v||served)}]});
+      {label:'VALIDER',icon:'send',enabled:()=>fax.style.display!=='none'||!!(fiche.v||served),down:()=>fax.style.display!=='none'?nextVisitor():send(mobileControls.selection,fiche.v||served)}]});
   /* --- personnel des salles (sprites Blender) et petites animations par-dessus le décor --- */
   const busy=r=>V.some(v=>v.st==='visit'&&v.room===r);
   const STAFF=[[8,2.8,2.6,0],[9,5.2,2.6,1],[10,8.3,2.6,2],[11,12.3,2.6,3],[12,14.3,2.8,4],[13,17,2.75,-1]].map(([ci,i,j,k])=>({ci,i,j,k,ph:rand(0,6),sp:1}));
@@ -3293,7 +3294,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   let last=performance.now(),finished=false;
   function mv(o,dt){const[ti,tj]=o.p[0],di=ti-o.i,dj=tj-o.j,d=Math.hypot(di,dj),m=o.sp*dt;if(d>1e-4){const sx=di-dj,sy=di+dj;if(Math.abs(sx)>.01)o.fdir=Math.sign(sx);o.fback=sy<-.01}if(d<=m){o.i=ti;o.j=tj;o.p.shift()}else{o.i+=di/d*m;o.j+=dj/d*m}}
   function step(dt){T+=dt;
-    if(spawned<qs.length){spawnT-=dt;const inQ=V.filter(v=>v.st==='in'||v.st==='wait').length;if(spawnT<=0&&inQ<QS.length){const v=mkV(qs[spawned]);v.born=spawned++;spawnT=cfg.every||5;relayQueue()}}
+    if(spawned<qs.length){spawnT-=dt;const inQ=V.filter(v=>v.st==='in'||v.st==='wait').length;if(spawnT<=0&&inQ<QS.length&&(!paced||(!V.length&&fax.style.display==='none'))){const v=mkV(qs[spawned]);v.born=spawned++;spawnT=cfg.every||5;relayQueue()}}
     for(const v of V){v.t+=dt;
       if(v.pukeT!==undefined){v.pukeT-=dt;if(v.pukeT<=0){v.pukeT=undefined;v.stop=1.1;PUD.push({i:v.i,j:v.j,a:0});beep(120,.3,'sawtooth',.05);setTimeout(()=>beep(90,.3,'sawtooth',.05),150)}}
       if(v.stop>0)v.stop-=dt;else if(v.p.length)mv(v,dt);
@@ -3302,7 +3303,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
       else if(v.st==='visit'){v.vt-=dt;if(v.vt<=0){const good=v.room===v.q.r;if(good){ok++;beep(880,.1,'square',.05);setTimeout(()=>beep(1175,.12,'square',.05),90)}else beep(160,.25,'sawtooth',.05);pts(n,good);done++;
         pmsg(good?`<b>${DOCR[v.room].n} :</b> ${v.q.fb}`:`<b>${DOCR[v.room].n} ?</b> Raté. ${v.q.fb}`,good);FT.push({i:v.i+.5,j:v.j+.5,t:0,s:good?'+1 RÉPUTATION':'−1 RÉPUTATION',c:good?'#8ce99a':'#ff8787'});leave(v,good?'ok':'ko');if(follow===v)follow=null;paintCard()}}
       else if(v.st==='out'&&v.exit){v.gone=1}
-      if(v.st==='wait'&&v.spot===0){if(served!==v){served=v;paintCard()}v.pat-=dt;if(v.pat<=0){served=null;tsAdd('angry');pts(n,false);done++;pmsg(`<b>Trop long !</b> Le visiteur repart en râlant : « Je fais au pif ». ${v.q.fb}`,false);leave(v,'angry');relayQueue();paintCard()}}}
+      if(v.st==='wait'&&v.spot===0){if(served!==v){served=v;paintCard()}if(!paced)v.pat-=dt;if(v.pat<=0){served=null;tsAdd('angry');pts(n,false);done++;pmsg(`<b>Trop long !</b> Le visiteur repart en râlant : « Je fais au pif ». ${v.q.fb}`,false);leave(v,'angry');relayQueue();paintCard()}}}
     PUD.forEach(p=>p.a=Math.min(1,p.a+dt*2));
     if(JN.mt>0){JN.mt-=dt;if(JN.mt<=0){PUD.splice(PUD.indexOf(JN.tg),1);JN.tg=null}}
     else if(JN.p.length)mv(JN,dt);else if(PUD.length){const pd=PUD[0];if(JN.tg===pd){JN.mt=1.8}else{JN.tg=pd;goTo(JN,Math.round(pd.i),Math.round(pd.j));if(!JN.p.length)JN.mt=1.8}}
@@ -3312,13 +3313,13 @@ function docs2D(n,cfg){return new Promise(async res=>{
     if(follow&&follow.st==='visit'&&follow.vt<(cfg.visit||2.6)-1.4)follow=null;
     if(cam.man>0)cam.man-=dt;else{const f=follow&&V.includes(follow)?focus(follow.i+.5,follow.j+.5):focus(15,2.6),k=first?1:Math.min(1,dt*2.2);cam.x+=(f[0]-cam.x)*k;cam.y+=(f[1]-cam.y)*k;first=false}
     cam.x=Math.max(W/2-SM.BX,Math.min(SM.BW-SM.BX-W/2,cam.x));cam.y=Math.max(H*.52-SM.BY,Math.min(SM.BH-SM.BY-H*.48+60,cam.y));
-    if(!finished&&done>=qs.length&&!V.length){finished=true;setTimeout(end,600)}}
-  function pmsg(h,good){fax.style.display='block';fax.innerHTML=`<div style="background:#2a3352;color:#fff;padding:2px 6px;display:flex;justify-content:space-between"><b>FAX</b><span>${good?'<span style=\"color:#8ce99a\">BIEN ORIENTÉ</span>':'<span style=\"color:#ff8787\">ERREUR</span>'}</span></div><div style="padding:5px 7px;line-height:16px">${h}</div>`;beep(1400,.04,'square',.03);setTimeout(()=>beep(1100,.04,'square',.03),70);clearTimeout(pmsg.t);pmsg.t=setTimeout(()=>{fax.style.display='none'},6500)}
+    if(!finished&&done>=qs.length&&!V.length&&fax.style.display==='none'){finished=true;setTimeout(end,600)}}
+  function pmsg(h,good){fax.style.display='block';fax.innerHTML=`<div style="background:#2a3352;color:#fff;padding:2px 6px;display:flex;justify-content:space-between"><b>FAX</b><span>${good?'<span style=\"color:#8ce99a\">BIEN ORIENTÉ</span>':'<span style=\"color:#ff8787\">ERREUR</span>'}</span></div><div style="padding:5px 7px;line-height:1.45">${h}</div>${paced?'<button class="btn go" data-next style="margin:6px 8px">Visiteur suivant</button>':''}`;if(paced){const next=fax.querySelector('[data-next]');next.textContent=done>=qs.length?'Voir le bilan':'Visiteur suivant';next.onclick=nextVisitor;next.focus({preventScroll:true})}beep(1400,.04,'square',.03);setTimeout(()=>beep(1100,.04,'square',.03),70);clearTimeout(pmsg.t);if(!paced)pmsg.t=setTimeout(nextVisitor,12000)}
   const DOORSP=DOORS.map((d,k)=>({k,mid:[(d[0]+d[2])/2+.5,(d[1]+d[3])/2+.5],c:SM.occ.find(o=>o.n==='door'+k+'_closed'),o:SM.occ.find(o=>o.n==='door'+k+'_open')}));
   const STATIC=SM.occ.filter(o=>!/^door\d/.test(o.n));
   function draw(dt){g.fillStyle='#46a53c';g.fillRect(0,0,W,H);const[ox,oy]=iso(0,0);g.drawImage(IBG,Math.round(ox-SM.BX),Math.round(oy-SM.BY));
     const L=[];STATIC.forEach(o=>L.push({z:ZW(o),d:()=>occ(o)}));DOORSP.forEach(d=>{const sp=near(...d.mid)?d.o:d.c;if(sp)L.push({z:ZW(sp),d:()=>occ(sp)})});OBJ.forEach(o=>L.push({z:o.i+o.j,d:o.d}));
-    V.forEach(v=>L.push({z:v.i+v.j+1.02,d:()=>{const pq=v.pat/(cfg.patience||16),sitting=v.st==='wait'&&v.spot>=4&&v.spot<=7&&!v.p.length,walk=v.p.length>0&&!(v.stop>0),back=v.p.length?v.fback:false,
+    V.forEach(v=>L.push({z:v.i+v.j+1.02,d:()=>{const pq=v.pat/(patience),sitting=v.st==='wait'&&v.spot>=4&&v.spot<=7&&!v.p.length,walk=v.p.length>0&&!(v.stop>0),back=v.p.length?v.fback:false,
       r=sprite(v.arch,v.i+.5,v.j+.5,frameOf(v,{walk,back,sit:sitting,puke:v.stop>0,act:v.st==='wait'&&!sitting&&v.spot===0&&pq<.6?'watch':null}),sitting?-1:v.fdir||-1,back,!sitting);
       if(v.stop>0){const d=v.fdir||1;for(let k=0;k<7;k++){const q=((T*3+k/7)%1);g.fillStyle=k%2?'#9dbd5c':'#f8f9fa';g.fillRect(r.hx+d*(16+q*10),r.y-62+q*58,5,4)}}
       const mx=r.hx,my=r.top-(v.arch===0?14:2);if(v.st==='wait'&&v.spot===0)mood(mx,my,'ask',Math.max(0,pq));else if(v.st==='wait'&&pq<1&&(T+v.ph)%4<1.2)mood(mx,my,'wait');else if(v.res)mood(mx,my,v.res==='ok'?'ok':v.stop>0||v.res==='ko'?'sick':'angry');
@@ -3514,7 +3515,7 @@ const CHANTIER_REC=165;
 /* sous-titres façon dessin animé : bandes noires, médaillon, capitales qui défilent par morceaux */
 const CINE={q:null,t:0,i:0,chunks:[],who:null};
 function cine(who,text){const el=$('#cine');if(!el)return;const plain=String(text).replace(/<[^>]+>/g,'').replace(/[«»]/g,'').replace(/\s+/g,' ').trim();
-  const ws=(TOUCH?plain:plain.toUpperCase()).split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>(TOUCH?90:26)){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
+  const ws=plain.split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>90){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
   CINE.chunks=ch;CINE.i=0;CINE.t=0;CINE.who=who;el.querySelector('.cpor').style.backgroundImage=`url(${portraitURL(who)})`;el.classList.add('on');$('#frame').classList.add('cine');cineShow()}
 function cineShow(){const el=$('#cine');const c=CINE.chunks[CINE.i];const tx=el.querySelector('.ctxt');tx.textContent=c;tx.classList.remove('pop');void tx.offsetWidth;tx.classList.add('pop');CINE.t=.7+c.length*.05}
 function cineTick(dt){if(!CINE.chunks.length)return;CINE.t-=dt;if(CINE.t>0)return;CINE.i++;if(CINE.i<CINE.chunks.length){cineShow();return}CINE.chunks=[];cineOff()}
@@ -3697,7 +3698,7 @@ function buildPlatformer(){
     const gl=new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.4),new THREE.MeshBasicMaterial({map:glowTex(),color:'#ff7ab0',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));gl.position.z=-.1;g.add(gl);PICK.push({x,y,kind:'heart',m:g,spin:m})};
   const epi=(x,y,k)=>{const g=new THREE.Group();g.position.set(x,y,0);s.add(g);const m=ppeMesh(k);m.scale.setScalar(1.2);g.add(m);const d=PPE.find(q=>q.k===k);
     const l=labelPlane(d.n,2.6,.6,{bg:'#fffaf0',border:d.c,size:70});l.position.y=1;g.add(l);PICK.push({x,y,kind:'ppe',k,m:g,spin:m})};
-  const prop=(x,y,k)=>{const g=new THREE.Group();g.position.set(x,y,0);s.add(g);const m=propMesh(k);g.add(m);const it={x,y,kind:'prop',k,m:g,spin:m,home:[x,y]};PICK.push(it);return it};
+  const prop=(x,y,k)=>{const g=new THREE.Group();g.position.set(x,y,0);s.add(g);const m=propMesh(k);g.add(m);const names={air:'AIR → GABARIT',burger:'BURGER → CHIEN',cafe:'CAFÉ → WC'};const l=labelPlane(names[k]||k,2.8,.5,{bg:'#fffaf0',border:'#2f6fd6',fg:'#2f6fd6',size:68});l.position.y=.9;g.add(l);const it={x,y,kind:'prop',k,m:g,spin:m,home:[x,y]};PICK.push(it);return it};
   const tip=(x,y,t)=>{const g=new THREE.Group();g.position.set(x,y,0);s.add(g);mk(new THREE.BoxGeometry(.8,.8,.8),'#f7a8cf',0,0,0,g);
     [.41,-.41].forEach(z=>{const l=labelPlane('?',.7,.7,{bg:'#f7a8cf',border:'#d6336c',fg:'#d6336c',size:180});l.position.z=z;if(z<0)l.rotation.y=Math.PI;g.add(l)});TIPS.push({x,y,t,g})};
   /* coussin gonflable de réception (protection collective contre les chutes) : il fait rebondir */
@@ -3813,10 +3814,11 @@ function buildPlatformer(){
   const occ=labelPlane('OCCUPÉ',1.3,.36,{bg:'#fff',border:'#e03131',fg:'#e03131',size:90});occ.position.set(0,3.1,1);wcb.add(occ);
   const boss=toon('aurelien',null,.7,{shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',hair:'#3b2a1a',grumpy:1,cigar:1});boss.visible=false;s.add(boss);
   const WC={x0:199,x1:201,y0:8.12,y1:10.8};SOL.push(WC);
-  BLK.push({x:197.6,need:'cafe',sol:WC,y:8.12,label:'sanitaires',open(){st.carry=null;held.visible=false;st.wcOpen=1;
-      tween(.35,k=>wdoor.rotation.y=k*1.9);boss.visible=true;boss.position.set(198.6,8.12,.6);boss.rotation.y=-Math.PI/2;say2('aurelien','Mon café ! Enfin ! Glou glou glou… Ah, ça réveille !');ono('GLOU GLOU !',V(198.6,11.2,.8),'#ffd23f','#5a2e12');
+  BLK.push({x:197.6,need:'cafe',sol:WC,y:8.12,label:'sanitaires',open(){st.wcOpen=1;st.carry='key';held.visible=true;setHeld('key');hudP();
+      if(W.lastSave){W.lastSave={...W.lastSave,wc:true,key:true,carry:'key'};if(W.onSave)W.onSave(W.lastSave)}
+      tween(.35,k=>wdoor.rotation.y=k*1.9);boss.visible=true;boss.position.set(198.6,8.12,.6);boss.rotation.y=-Math.PI/2;say2('aurelien','Mon café ! Merci. Tiens, voici la clé de la salle de revue de direction : elle est dans tes mains !');ono('GLOU GLOU !',V(198.6,11.2,.8),'#ffd23f','#5a2e12');
       for(let i=0;i<8;i++)setTimeout(()=>PX.puff(V(198.6+(i%2?.3:-.3),10.3,.6),2,{c:['#ffffff','#e9ecef'],size:[.3,.5],sp:.6,up:1.4}),i*180);
-      setTimeout(()=>{say2('aurelien','Tiens, la clé de la salle de revue de direction. Et plus vite que ça : la direction s’engage, paraît-il !');st.carry='key';held.visible=true;setHeld('key');hudP();
+      setTimeout(()=>{if(st.done)return;
         tween(.6,k=>{wcb.rotation.z=-k*1.45;wcb.position.x=k*1.2},E.out);WC.off=1;fx.burst(V(200,10,0),20);ono('BADABOUM !',V(201,10.6,.6))},1800)},
     refuse:['aurelien','Occupé ! Je ne sors pas sans mon café. Et on ne passe pas !']});
   /* ---------- 5. le chemin de roulement du pont roulant, la nacelle, la salle de revue de direction ---------- */
@@ -3834,13 +3836,13 @@ function buildPlatformer(){
   const hdoor=new THREE.Group();hdoor.position.set(247.1,15.4,1.12);s.add(hdoor);bx(1.1,2,.1,'#c0392b',.55,1,0,hdoor);mk(new THREE.SphereGeometry(.07,8,6),'#f5c542',.95,1,.08,hdoor);
   const DOOR={x0:246.4,x1:247.2,y0:15.4,y1:17.8};SOL.push(DOOR);
   BLK.push({x:245,need:'key',sol:DOOR,y:15.4,label:'porte',open(){st.carry=null;held.visible=false;DOOR.off=1;tween(.4,k=>hdoor.rotation.y=-k*1.6);fx.burst(V(247.2,17,1),24);ono('CLAC !',V(247.2,18.4,1.2),'#ffd23f','#2f6fd6');say2('boulon','La salle de revue de direction est ouverte. Dépose ton rapport d’inspection !');st.finish=1},
-    refuse:['boulon','La salle de revue de direction est fermée à clé. Qui peut bien l’avoir ?…']});
+    refuse:['boulon','La clé est chez Aurelien, dans les WC à gauche sur la mezzanine. Prends le café à la machine du magasin EPI, monte l’échelle et approche-toi des WC.']});
   /* ---------- Dylan ---------- */
   const body=toon('dylan',null,.6,{shirt:'#4dabf7',pants:'#364fc7',vest:1,hair:'#6b3e1e'});body.rotation.y=Math.PI/2;s.add(body);shadowOf(body);if(body.userData.rig.glb)body.userData.rig.hat.forEach(m=>m.visible=false);if(body.userData.rig.nouveau)TALAS_PERSO.porter(body.userData.rig.model,'chaussures',false,{sans:1});
   const held=new THREE.Group();held.position.set(0,2.4,.2);held.visible=false;body.userData.rig.up.add(held);
   const setHeld=k=>{held.clear();const m=propMesh(k);m.scale.setScalar(1.35);held.add(m);held.userData.k=k};
   const think=new THREE.Sprite(new THREE.SpriteMaterial({map:thinkTex('air'),transparent:true,depthWrite:false}));think.scale.set(2.2,1.72,1);think.visible=false;s.add(think);
-  const tmr=labelPlane('25',.9,.6,{bg:'#fff3bf',border:'#e03131',fg:'#e03131',size:150});tmr.visible=false;s.add(tmr);
+  const tmr=labelPlane('45',.9,.6,{bg:'#fff3bf',border:'#e03131',fg:'#e03131',size:150});tmr.visible=false;s.add(tmr);
   /* tornade rose de la toupie */
   const torn=new THREE.Group();s.add(torn);torn.visible=false;const windM=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.85,depthWrite:false});
   for(let i=0;i<6;i++){const g=new THREE.Group();g.position.y=.15+i*.36;torn.add(g);[0,1].forEach(k=>{const a=new THREE.Mesh(new THREE.TorusGeometry(.42+i*.13,.03-i*.003,4,28,Math.PI*(.7+k*.35)),windM);a.rotation.x=Math.PI/2;a.rotation.z=k*Math.PI+i;a.position.y=k*.08;g.add(a)})}
@@ -3862,7 +3864,7 @@ function buildPlatformer(){
   const overX=(a,b)=>st.pos.x+HW>a&&st.pos.x-HW<b;
   const ladderAt=()=>LAD.find(l=>Math.abs(st.pos.x-l.x)<.55&&st.pos.y>=l.y0-.1&&st.pos.y<=l.y1+.1);
   function collect(it){if(it.kind==='prop'){if(st.carry){it.got=0;if(st.npcT<=0){st.npcT=2.5;say2('dylan','Les mains sont déjà prises : une chose à la fois.')}return}s.remove(it.m);st.carry=it.k;setHeld(it.k);held.visible=true;
-      if(it.k==='air'){st.carryT=25;st.carryN=0;ono('PSSSSS !',V(st.pos.x,st.pos.y+3,.6),'#cfe8ff','#2f6fd6');say2('boulon','Cette bouteille d’air fuit ! 25 secondes pour l’apporter au gabarit bloqué avant qu’elle ne décolle. Cours !')}
+      if(it.k==='air'){st.carryT=45;st.carryN=0;ono('PSSSSS !',V(st.pos.x,st.pos.y+3,.6),'#cfe8ff','#2f6fd6');say2('boulon','Cette bouteille d’air fuit ! 45 secondes pour l’apporter au gabarit bloqué avant qu’elle ne décolle. Cours !')}
       if(it.k==='burger'){say2('bernard','Hé ! Mon burger ! Reviens ici, voleur !');CH.on=true;CH.back=0;CH.x=113.6;CH.y=0;CH.wake=1.1;bern.rotation.y=Math.PI/2}
       if(it.k==='cafe')say2('boulon','Un café bien chaud. Monte l’échelle et apporte-le sur la mezzanine. Si tu te fais toucher, il se renverse !');
       hudP();return}
@@ -3882,7 +3884,7 @@ function buildPlatformer(){
   const SAVES=[[30,0],[57,0],[64,0],[101.5,0],[110,0],[152,0],[190,8.12],[207,8.12],[234,12.6]].map(([x,y])=>{const g=new THREE.Group();g.position.set(x,y,-.9);s.add(g);bx(.08,2.6,.08,'#8a5a36',0,1.3,0,g);
     const fg=new THREE.PlaneGeometry(.95,.62,6,2),fp=fg.attributes.position;for(let i=0;i<fp.count;i++)fp.setZ(i,Math.sin((fp.getX(i)+.475)*6)*.06);fg.translate(.5,0,0);
     const f=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({color:'#f58ab4',side:THREE.DoubleSide}));f.position.set(.05,2.24,0);g.add(f);f.userData.relabel=()=>f.material=new THREE.MeshLambertMaterial({color:'#51cf66',side:THREE.DoubleSide});return {x,y,g,f,on:0}});
-  const snap=i=>({i,x:SAVES[i].x,y:SAVES[i].y,ppe:{...st.ppe},badge:st.badge,coins:st.coins,t:st.t,gate:!!st.gateOpen,bar:!!st.barOpen,dog:!!st.dogFed,wc:!!st.wcOpen,key:st.carry==='key',brk:BRK.map(b=>!!b.off),picks:PICK.map(p=>!!p.got&&p.kind!=='prop'),tips:TIPS.map(t=>!!t.seen)});
+  const snap=i=>({i,x:SAVES[i].x,y:SAVES[i].y,ppe:{...st.ppe},badge:st.badge,coins:st.coins,t:st.t,gate:!!st.gateOpen,bar:!!st.barOpen,dog:!!st.dogFed,wc:!!st.wcOpen,key:st.carry==='key'||!!st.wcOpen,carry:st.carry,carryT:st.carryT,brk:BRK.map(b=>!!b.off),picks:PICK.map(p=>!!p.got&&p.kind!=='prop'),tips:TIPS.map(t=>!!t.seen)});
   W.restore=sv=>{W.lastSave=sv;PICK.forEach((p,i)=>{if(!sv.picks[i]||p.got)return;p.got=1;if(p.kind==='ppe'||p.kind==='badge')collect(p);else s.remove(p.m)});W.restored=true;
     st.coins=sv.coins;st.badge=sv.badge;st.t=sv.t||0;TIPS.forEach((t,i)=>{if(sv.tips[i])t.seen=1});
     const openB=(lab)=>{const b=BLK.find(q=>q.label===lab);b.done=1;b.sol.off=1};
@@ -3890,7 +3892,8 @@ function buildPlatformer(){
     if(sv.bar){st.barOpen=1;openB('gabarit');s.remove(bar);PICK.find(p=>p.k==='air').got=1;s.remove(AIR.m)}
     if(sv.dog){st.dogFed=1;openB('chien');CH.done=true;PICK.find(p=>p.k==='burger').got=1;s.remove(BURGER.m);dog.position.set(145.6,0,-1);dog.rotation.y=0}
     if(sv.wc){st.wcOpen=1;openB('sanitaires');wcb.rotation.z=-1.45;wcb.position.x=1.2;PICK.find(p=>p.k==='cafe').got=1;s.remove(CAFE.m)}
-    if(sv.key){st.carry='key';setHeld('key');held.visible=true}
+    const savedCarry=sv.key||sv.wc?'key':sv.carry;
+    if(savedCarry){st.carry=savedCarry;setHeld(savedCarry);held.visible=true;st.carryT=sv.carryT||45;const it=PICK.find(p=>p.kind==='prop'&&p.k===savedCarry);if(it){it.got=1;s.remove(it.m)}}
     BRK.forEach((b,i)=>{if(sv.brk[i]){b.off=1;s.remove(b.m)}});
     SAVES.forEach((c,i)=>{if(i<=sv.i){c.on=1;c.f.userData.relabel()}});
     st.pos.set(sv.x,sv.y,0);st.check=sv.x;st.checkY=sv.y;st.peak=sv.y;camera.position.set(sv.x+2.5,sv.y+2.5,11.5);hudP();say2('boulon','Reprise au dernier drapeau.')};
@@ -3985,7 +3988,7 @@ function buildPlatformer(){
     st.dustT=(st.dustT||0)-dt;if(st.ground&&Math.abs(st.vel.x)>4&&st.dustT<=0){st.dustT=.12;PX.puff(V(st.pos.x-(st.face||1)*.3,st.pos.y+.1,0),1,{c:['#ffffff','#e7f5ff'],size:[.2,.38],sp:.6,up:.4,life:[.35,.6]});if(Math.random()<.6)speedLine()}
     PICK.forEach(it=>{if(!it.got&&Math.abs(st.pos.x-it.x)<(it.kind==='prop'?1.05:.7)&&st.pos.y<it.y+.6&&st.pos.y+HH>it.y-.3){it.got=1;collect(it)}});
     SAVES.forEach((c,i)=>{if(!c.on&&Math.abs(st.pos.x-c.x)<.9&&Math.abs(st.pos.y-c.y)<1.6){c.on=1;c.f.userData.relabel();fx.burst(V(c.x,c.y+2.4,0),18);ono('DRAPEAU !',V(c.x,c.y+3.4,.6),'#d3f9d8','#2b8a3e');W.lastSave=snap(i);if(W.onSave)W.onSave(W.lastSave)}});
-    TIPS.forEach(tb=>{if(!tb.seen&&Math.abs(st.pos.x-tb.x)<.8&&st.pos.y+HH>tb.y-.45&&st.pos.y<tb.y+.4){tb.seen=1;st.tipsSeen++;say2('boulon',tb.t);fx.burst(V(tb.x,tb.y,0),10);tb.g.children[0].material=mat('#fcc2d7')}});
+    TIPS.forEach(tb=>{if(!tb.seen&&Math.abs(st.pos.x-tb.x)<1.4&&st.pos.y+HH+1.5>tb.y&&st.pos.y<tb.y+.6){tb.seen=1;st.tipsSeen++;say2('boulon',tb.t);fx.burst(V(tb.x,tb.y,0),10);s.remove(tb.g)}});
     /* passages verrouillés : la bulle de pensée montre l'objet qu'il faut, le personnage le dit en sous-titre */
     let want=null;BLK.forEach(b=>{if(b.done)return;const near=Math.abs(st.pos.x-b.x)<3.2&&Math.abs(st.pos.y-b.y)<2;if(!near)return;const has=b.need==='badge'?st.badge:st.carry===b.need;
       if(has&&Math.abs(st.pos.x-b.x)<1.4){b.done=1;b.open();hudP()}else if(!has){want=b.need;if(st.npcT<=0&&Math.abs(st.pos.x-b.x)<1.8){st.npcT=6;say2(b.refuse[0],b.refuse[1])}}});
@@ -4214,7 +4217,7 @@ RUN[3]=async()=>{
   await trial(3,async()=>(await karaoke3D(3,{beat:.5,travel:2,hint:'Refrain accéléré : mêmes pistes, tempo plus rapide.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',
    lines:['Accueil sécurité avant la prise de poste','Habilitation nacelle avant de monter','Presque-accident ? Je le remonte !','Fiche de poste à jour, version trois','Le quart d’heure, tout le monde chante']}))>=.5,CAUSES.support);
   await say('sabrina','Et maintenant, le nouveau centre de documentation SST. Tout le monde a une question et personne ne sait où chercher.');
-  await trial(3,async()=>(await docs2D(3,{count:10,every:5,patience:16,hint:'Bienvenue au centre de doc ! Les visiteurs font la queue à l’accueil avec une question. Envoie chacun dans la bonne salle ('+(TOUCH?'touche une salle ou un bouton':'touches 1 à 5, clic sur une salle ou sur un bouton')+') : <b>Légifrance</b> pour la loi, <b>INRS</b> pour les guides pratiques, <b>FDS</b> pour les produits chimiques, <b>ISO 45001</b> pour la norme, <b>Archives</b> pour nos propres registres. Ne les fais pas trop attendre !',after:'Savoir où trouver l’information, c’est déjà la maîtriser : exigences légales (§6.1.3) et information documentée (§7.5).'}))>=.5,CAUSES.support);
+  await trial(3,async()=>(await docs2D(3,{count:10,every:1,patience:45,paced:true,hint:'Bienvenue au centre de doc ! Les visiteurs font la queue à l’accueil avec une question. Envoie chacun dans la bonne salle ('+(TOUCH?'touche une salle ou un bouton':'touches 1 à 5, clic sur une salle ou sur un bouton')+') : <b>Légifrance</b> pour la loi, <b>INRS</b> pour les guides pratiques, <b>FDS</b> pour les produits chimiques, <b>ISO 45001</b> pour la norme, <b>Archives</b> pour nos propres registres. Prends le temps de lire la question : un visiteur à la fois, sans délai pour répondre.',after:'Savoir où trouver l’information, c’est déjà la maîtriser : exigences légales (§6.1.3) et information documentée (§7.5).'}))>=.5,CAUSES.support);
 };
 RUN[4]=async()=>{
   await runScript(4,[
@@ -4381,12 +4384,20 @@ async function finale(){
   if(win){HUB.fx.clearWeather();const pl=HUB.plane,h=pl.userData.home;const dr=pl.userData.dir||V(1,0,0);await tween(3,k=>{pl.position.set(h.x+dr.x*k*k*40,h.y+Math.max(0,k-.35)*k*26,h.z+dr.z*k*k*40);pl.rotation.z=Math.min(.35,Math.max(0,k-.35))},E.lin);HUB.fx.confetti()}
   else{HUB.fx.storm();boulonShake()}
   await wait(900);await credits();
-  const show=(e,other)=>{const m=modal(`<span class="tag" style="background:${win?'#2f9e44':'#e03131'}">${win?'Scénario réussite':'Scénario catastrophe'}</span><h1>${e.h}</h1><p>${e.p}</p><p><b>${o} bonnes décisions sur ${t}</b> · CDI ${S.cdi} %</p>
+  const revisit=document.createElement('button');revisit.className='btn pdca-revisit';revisit.textContent='Revoir le verdict';revisit.hidden=true;revisit.title=TOUCH?'Joystick ou glisser : tourner · pincer : zoomer':'Glisser : tourner · molette : zoomer';$('#frame').append(revisit);
+  let panorama=null;
+  const explore=()=>{
+    closeModal();hidePanel();cineOff();busy=true;HUB.pdcaOverview=true;revisit.hidden=false;
+    if(!panorama){const bounds=new THREE.Box3().setFromPoints(B.filter(Boolean).map(b=>b.getWorldPosition(V(0,0,0))));const size=bounds.getSize(V(0,0,0));panorama={look:bounds.getCenter(V(0,0,0)).add(V(0,7,0)),dist:Math.max(48,size.length()*1.3)}}
+    HUB.look.copy(panorama.look);HUB.dist=panorama.dist;HUB.yaw=0;HUB.pitch=.7;HUB.zoom=1;
+    mobileControls.use('village',{mode:'move',onMove:(v,dt)=>{if(!HUB.pdcaOverview||!v.active)return;HUB.yaw-=v.x*dt*1.2;HUB.pitch=Math.max(.25,Math.min(1.4,HUB.pitch+v.y*dt*.7))},actions:[{label:'VERDICT',icon:'document',down:()=>revisit.click()}]});
+  };
+  const show=(e,other)=>{HUB.pdcaOverview=false;revisit.hidden=true;const m=modal(`<div class="row"><button class="btn go" id="look">Fermer et voir le cycle PDCA</button><button class="btn" id="again">Rejouer</button></div><span class="tag" style="background:${win?'#2f9e44':'#e03131'}">${win?'Scénario réussite':'Scénario catastrophe'}</span><h1>${e.h}</h1><p>${e.p}</p><p><b>${o} bonnes décisions sur ${t}</b> · CDI ${S.cdi} %</p>
     <h2 style="font-size:24px">Les effets domino de ton système</h2><div class="dom">${D.map(d=>`<div class="${d.k?'g':'r'}"><b>${d.k?'Opportunité saisie':'Risque réalisé'}</b><br>${d.k?d.g:d.b}</div>`).join('')}</div>
     <p>Dans le village, les tuyaux lumineux montrent le cycle PDCA : Contexte, Planification, Support, Réalisation, Évaluation, Amélioration… puis retour à la Planification. Le Leadership est relié au centre.</p>
-    <div class="row"><button class="btn" id="oth">Voir l’autre fin</button><button class="btn" id="cred">Générique</button><button class="btn" id="look">Regarder le village</button><button class="btn go" id="again">Rejouer</button></div><p id="othT" hidden><b>${other.h}</b> ${other.p}</p>`);
+    <div class="row"><button class="btn" id="oth">Voir l’autre fin</button><button class="btn" id="cred">Générique</button></div><p id="othT" hidden><b>${other.h}</b> ${other.p}</p>`);
     m.querySelector('#oth').onclick=()=>{m.querySelector('#othT').hidden=false};
-    m.querySelector('#look').onclick=()=>{closeModal();say('boulon','Voici ton système. Tourne le village pour suivre les tuyaux !',{btns:[{t:'Revoir le verdict',go:1}]}).then(()=>show(e,other))};
+    m.querySelector('#look').onclick=explore;revisit.onclick=()=>show(e,other);m.querySelector('#look').focus({preventScroll:true});
     m.querySelector('#again').onclick=()=>location.reload();
     m.querySelector('#cred').onclick=()=>{closeModal();credits().then(()=>show(e,other))}};
   show(win?W:L,win?L:W);
