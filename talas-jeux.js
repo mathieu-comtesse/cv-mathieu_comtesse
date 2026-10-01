@@ -120,16 +120,8 @@
 
       /* ---- déroulé : préparation, trimestre, bilan ---- */
       let pickRes = null
-      await say('boulon', cfg.hint + howto('budget'), { btns: [{ t: 'Comment réussir ?', go: 1 }] })
-      const Q = cfg.waves || 4, TOT = Array.from({ length: Q }, (_, k) => vague(k + 1)).reduce((a, b) => a + b, 0) * postes.length, BUD = (cfg.budget || 8) + (Q - 1) * (cfg.gain || 5)
-      const tr = (l) => `<tr><td style="color:${LVCOL[l]};font-weight:700;padding:1px 6px 1px 0">${LV[l]}</td><td style="text-align:right;padding-right:8px;white-space:nowrap">${COST[l]} pt${COST[l] > 1 ? 's' : ''}</td><td>${EFFET[l]}</td></tr>`
-      await say('boulon', `<b>Comment réussir l’année</b><br>
-        <b>Objectif :</b> finir le 4<sup>e</sup> trimestre avec <b>au moins ${Math.ceil(HPMAX / 2)} points de santé sur ${HPMAX}</b>. Chaque danger qui atteint l’équipe lui retire 1 point.<br>
-        <b>La menace :</b> chaque poste envoie 1 danger aux trimestres 1 et 2, puis 2 aux trimestres 3 et 4, soit <b>${TOT} dangers</b> si tu ne fais rien : l’équipe n’y survit pas.<br>
-        <b>Ton budget :</b> ${cfg.budget || 8} pts maintenant, +${cfg.gain || 5} pts à chaque trimestre (${BUD} pts sur l’année). Une mesure achetée reste en place toute l’année.
-        <table style="margin:6px 0;font-size:.92em;border-collapse:collapse">${[0, 1, 2, 3, 4].map(tr).join('')}</table>
-        <b>À chaque trimestre :</b> ① ${TOUCH ? 'touche' : 'clique sur'} un poste (flèche jaune), ② choisis une mesure, ③ recommence tant qu’il te reste des points, ④ appuie sur « Lancer le trimestre » et regarde.<br>
-        <b>Astuce :</b> supprimer un danger dès le 1<sup>er</sup> trimestre coûte cher, mais ce poste ne te coûtera plus rien ensuite. Les EPI seuls ne suffisent jamais. La prévision t’indique en direct si tu es sur la bonne voie.`, { btns: [{ t: 'C’est parti !', go: 1 }] })
+      const Q = cfg.waves || 4
+      await say('boulon', `${cfg.hint}<br><b>Objectif :</b> garder au moins ${Math.ceil(HPMAX / 2)} / ${HPMAX} de santé. Budget : ${cfg.budget || 8} pts, puis +${cfg.gain || 5} par trimestre.${howto('budget')}`, { btns: [{ t: 'C’est parti !', go: 1 }] })
       for (let q = 1; q <= Q; q++) {
         // préparation : on clique les postes pour financer, puis on lance le trimestre
         for (;;) {
@@ -217,8 +209,6 @@
       }
       const mark = (ok) => { total++; if (ok) { good++; R.fx.burst(V(3.6, 3, -1.4), 18); boulonJump() } else { boulonShake(); cheer = .8 } pts(n, ok); score() }
 
-      await say('boulon', cfg.hint + howto('revue'), { btns: [{ t: 'Que le jeu commence !', go: 1 }] })
-
       /* ---- manche 1 : le buzzer des entrées (§9.3) ---- */
       let buzzRes = null
       const press = () => { if (!buzzRes) return; tsAdd('buzz'); const y0 = cap.position.y; tween(.12, (k) => { cap.position.y = y0 - Math.sin(k * Math.PI) * .08 }); buzzRes() }
@@ -226,7 +216,7 @@
       const onKey = (e) => { if (buzzRes && (e.code === 'Space' || e.key === 'b' || e.key === 'B')) { e.preventDefault(); press() } }
       addEventListener('keydown', onKey)
       mobileControls.use('revue',{actions:[{label:'BUZZER',icon:'buzz',down:press,enabled:()=>!!buzzRes}]})
-      await say('boulon', '<b>Manche 1 : le buzzer des entrées.</b><br>Lis le sujet à ton rythme. S’il est obligatoire en revue de direction (§9.3), choisis <b>BUZZER</b>. Sinon, choisis <b>Hors sujet</b>. Aucun compte à rebours : tu passes au sujet suivant après avoir lu la correction.', { btns: [{ t: 'J’ai compris', go: 1 }] })
+      await say('boulon', `${cfg.hint}${howto('revue')}`, { btns: [{ t: 'J’ai compris', go: 1 }] })
       bar.visible = false
       let last = ''
       for (const [i, c] of cfg.entrees.entries()) {
@@ -243,7 +233,7 @@
       removeEventListener('keydown', onKey)
 
       /* ---- manche 2 : vrai ou faux de l'audit (§9.2) ---- */
-      await say('ceo', `${last}<b>Manche 2 : vrai ou faux de l’audit.</b> Mes chefs d’équipe jurent que tout est conforme. À toi de dire si c’est vrai.`, { btns: [{ t: 'Envoyez les constats', go: 1 }] })
+      await say('ceo', '<b>Manche 2 : audit.</b> Conforme ou écart ? Vérifie les preuves.', { btns: [{ t: 'Envoyez les constats', go: 1 }] })
       for (const [i, c] of cfg.constats.entries()) {
         show(`« ${c.t} »`, `Constat ${i + 1} / ${cfg.constats.length} · conforme ou écart ?`); ETAT.carte = c; ETAT.manche = 2
         const ans = await say('ceo', `<b>Constat ${i + 1} / ${cfg.constats.length}</b> · « ${c.t} »<br>Prends le temps de lire, puis choisis ta réponse.`, { btns: [{ t: 'Conforme', v: 0 }, { t: 'Écart', v: 1 }], row: true })
@@ -272,8 +262,8 @@
   /* aides de jeu (panneau « Le but / Commandes » du jeu) */
   const addHowto = () => {
     try {
-      HOWTO.budget = { but: 'Garder l’équipe au-dessus de la moitié de sa santé après quatre trimestres. Chaque trimestre, les cinq postes envoient des dangers vers l’équipe (1 par poste, puis 2 à partir du 3<sup>e</sup> trimestre). Avant chaque trimestre, dépense ton budget en mesures : elles restent en place toute l’année, et plus elles sont hautes dans la hiérarchie, plus elles coûtent et plus elles protègent.', kb: ['Clic sur un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'], tc: ['Joystick : viser un poste', 'MESURE : choisir une protection à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'] }
-      HOWTO.revue = { but: 'Trois manches à ton rythme : choisis BUZZER pour une entrée obligatoire, Hors sujet pour les autres, puis repère les écarts et réponds aux questions. Lis chaque correction avant de continuer.', kb: ['Clic sur BUZZER ou ESPACE : entrée obligatoire', 'Bouton Hors sujet : refuser le sujet', 'Boutons : répondre, puis continuer'], tc: ['Joystick : choisir BUZZER ou Hors sujet', 'VALIDER : répondre', 'SUITE : continuer après la correction'] }
+      HOWTO.budget = { but: '4 trimestres : 1 danger par poste, puis 2 dès le 3e. Chaque coup retire 1 santé. Les mesures restent acquises ; supprimer le danger évite son retour.', kb: ['Clic poste : financer', 'Répéter, puis lancer le trimestre', 'Surveille la prévision'], tc: ['Joystick : poste', 'MESURE : financer', 'Répéter, puis lancer le trimestre', 'Surveille la prévision'] }
+      HOWTO.revue = { but: 'Sans chrono : BUZZER pour une entrée obligatoire (§9.3), Hors sujet sinon. Lis la correction avant de continuer.', kb: ['Clic / Espace : BUZZER', 'Boutons : répondre', 'Bouton dialogue / F : suite'], tc: ['Joystick : réponse', 'VALIDER : répondre', 'Bouton dialogue : suite'] }
     } catch (e) { setTimeout(addHowto, 50) }
   }
   addEventListener('DOMContentLoaded', addHowto)
