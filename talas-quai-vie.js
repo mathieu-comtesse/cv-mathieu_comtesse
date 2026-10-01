@@ -252,7 +252,7 @@
     }
     const OBJ = [['Contexte', 'Va à la boutique TALAS : un fantôme hante l’atelier.'], ['Leadership', 'Monte tout en haut, jusqu’au manoir du PDG.'], ['Planification', 'Prends l’escalier de gauche : l’atelier des plans t’attend.'], ['Support', 'Prends l’escalier de droite : la bibliothèque des preuves.'], ['Réalisation', 'Le hangar d’assemblage, sur le quai de gauche.'], ['Évaluation', 'Le studio télé, en haut à droite.'], ['Amélioration', 'Le hangar à bateaux, au bout de la grande jetée.'], ['Le verdict', 'Traverse le pont : le phare rend son verdict.']]
 
-    let prevS = 0, moveT = 0, pasT = 0, idleT = 0, mapTime = 0
+    let prevS = 0, moveT = 0, pasT = 0, idleT = 0, mapTime = 0, sprintMobile = false
     const majSon = () => { qSon.textContent = 'Son : ' + (window.TALAS_SON && TALAS_SON.on ? 'oui' : 'non') }; majSon(); qSon.onclick = () => { if (window.TALAS_SON) { TALAS_SON.regler(!TALAS_SON.on); majSon() } }
     const camDans = (x, y, z) => { if (ctx.hauteur(x, z) > y + .1) return true
       for (const o of Q.obstacles) { if (o.t !== 'b' || !o.h) continue; if (y < o.y - .3 || y > o.y + o.h) continue; const cx = Math.cos(o.ry), sx = Math.sin(o.ry), lx = (x - o.x) * cx - (z - o.z) * sx, lz = (x - o.x) * sx + (z - o.z) * cx; if (Math.abs(lx) < o.hw + .5 && Math.abs(lz) < o.hd + .5) return true }
@@ -260,17 +260,19 @@
     W.suivre = function (dt, T, pCentre) {
       const libre = W.photo || busy || S.tStop, fige = libre || S.intro
       // --- entrées
-      const modal = !$('#modal').hidden
+      const modal = !$('#modal').hidden, v = mobileControls.vector
       let ix = 0, iz = 0, intensite = 0
       if (!fige && !modal) {
-        const v = mobileControls.vector
         const ax = v.active ? v.x : (KEYS.R ? 1 : 0) - (KEYS.L ? 1 : 0), az = v.active ? -v.y : (KEYS.U ? 1 : 0) - (KEYS.D ? 1 : 0)
         if (ax || az) { const cy = Math.cos(W.yaw), sy = Math.sin(W.yaw); ix = cy * ax - sy * az; iz = -sy * ax - cy * az; const n = Math.hypot(ix, iz); ix /= n; iz /= n; intensite = v.active ? v.magnitude : 1 }
       }
       const veut = ix || iz
       idleT = !veut && J.vit < .3 ? idleT + dt : 0 // le chien n'invite à la caresse que quand Dylan s'arrête un instant
       if (veut && !fige && !$('#panel').hidden) { moveT += dt; if (moveT > .7) hidePanel() } else if (!veut) moveT = 0
-      J.courir += ((KE.shift && veut ? 1 : 0) - J.courir) * Math.min(1, dt * 8)
+      // Bord du joystick : courir ; revenir vers le centre : marcher.
+      // Deux seuils évitent de basculer sans cesse lorsque le doigt tremble.
+      sprintMobile = !!(TOUCH && veut && v.active && v.magnitude >= (sprintMobile ? .8 : .92))
+      J.courir += (((KE.shift || sprintMobile) && veut ? 1 : 0) - J.courir) * Math.min(1, dt * 8)
       const vitMax = (perso ? 2.3 : 3.5) + J.courir * (perso ? 3.4 : 2.8)
       J.vit += ((veut ? vitMax * intensite : 0) - J.vit) * Math.min(1, dt * (veut ? 9 : 12))
       if (J.vit > 1 && !libre) { pasT -= J.vit * dt; if (pasT <= 0) { pasT = 1.55; if (window.TALAS_SON) TALAS_SON.pas(J.courir > .5) } } else pasT = .2
@@ -354,7 +356,7 @@
     const introA = V3(38, 24, 62), introL = V3(2, 5, -20), tmpI = V3(0, 0, 0)
     W.introCam = function (e) { const k = e * e * (3 - 2 * e); camera.position.lerpVectors(introA, camP, k); tmpI.lerpVectors(introL, camL, k); camera.lookAt(tmpI); W.focus = camera.position.distanceTo(tmpI); cielSuit() }
     W.finaleLook = W.plane.position.clone().add(V3(0, 3, 0)); W.finaleYaw = Math.PI / 2 + .35; W.finaleDist = 24; W.linkScale = 2.4
-    W.hint0 = TOUCH ? 'Salut Dylan, moi c’est Boulon ! Voici le village Talas : sept ateliers, un par chapitre de la norme, et chacun nourrit le suivant. Avance avec les flèches à l’écran, glisse pour tourner la caméra, et appuie sur ENTRER devant la boutique TALAS (le cercle rouge).' : 'Salut Dylan, moi c’est Boulon ! Voici le village Talas : sept ateliers, un par chapitre de la norme, et chacun nourrit le suivant. Marche avec Z Q S D ou les flèches (Maj pour courir), glisse la souris pour tourner la caméra, et appuie sur E devant la porte de la boutique TALAS (le cercle rouge).'
+    W.hint0 = TOUCH ? 'Boulon, ton guide ! Sept ateliers pour l’ISO 45001. Joystick : marcher ; pousse-le au bord pour sprinter. Glisse pour tourner la caméra, puis AGIR devant la boutique TALAS (cercle rouge).' : 'Salut Dylan, moi c’est Boulon ! Voici le village Talas : sept ateliers, un par chapitre de la norme, et chacun nourrit le suivant. Marche avec Z Q S D ou les flèches (Maj pour courir), glisse la souris pour tourner la caméra, et appuie sur E devant la porte de la boutique TALAS (le cercle rouge).'
     W.photoDe = (pos, look, heure) => { W.photo = pos ? { pos: V3(...pos), look: V3(...look) } : null; if (heure !== undefined) W.heureFixe = heure }
   }
 })()
