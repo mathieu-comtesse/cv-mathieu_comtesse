@@ -139,9 +139,6 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .touch #ptime{top:300px}
 #pmsg{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:5;padding:4px 10px;max-width:92%;text-align:center;font-size:14px}
 #pmsg.corner{left:8px;top:56px;transform:none;text-align:left;font-size:12px;line-height:1.35;padding:3px 8px}
-#pad[data-only="LR"] [data-k]:not([data-k="L"]):not([data-k="R"]){visibility:hidden}
-#pad[data-only="quai"] .jump{display:none}
-#pad[data-only="quai"]{z-index:8}
 .arui{position:absolute;inset:0;z-index:4;pointer-events:none;font:700 15px/1.3 'Pixelify Sans',monospace;color:#fff}
 .arui .ap{position:absolute;left:10px;right:10px;background:rgba(10,14,38,.86);border:2px solid #7fa6e0;box-shadow:0 0 0 2px rgba(10,14,38,.6);padding:6px 10px;pointer-events:auto}
 .arui .top{top:66px}.arui .bot{bottom:8px;max-height:60%;overflow:auto}
@@ -150,7 +147,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 .arui .hd{display:flex;justify-content:space-between;gap:8px;color:#8fe6ff;font-size:13px;margin-bottom:3px}
 .arui button{display:grid;grid-template-columns:22px 1fr;gap:1px 6px;width:100%;text-align:left;font:inherit;color:#fff;background:transparent;border:0;border-top:1px solid rgba(127,166,224,.35);padding:5px 4px;cursor:pointer}
 .arui button b{grid-row:span 2;color:#ffd43b;font-size:17px}.arui button i{font-style:normal;color:#ffd8a8;font-size:12px}
-.arui button.on{background:rgba(255,214,70,.22)}.arui button.on b::before{content:'▶';position:absolute;margin-left:-14px;animation:blink 1s steps(2) infinite}
+.arui button.on{background:rgba(255,214,70,.22)}.arui button.on b::before{content:'';position:absolute;margin-left:-14px;margin-top:4px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid currentColor;animation:blink 1s steps(2) infinite}
 .arui .go{float:right;color:#ffd43b;animation:blink 1s steps(2) infinite}
 .touch .arui{font-size:17px}.touch .arui h4{font-size:19px}.touch .arui button i{font-size:14px}
 .mcard{max-height:calc(100dvh - 16px);overflow-y:auto}
@@ -191,6 +188,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;z-index:10;background:#2890e2;color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<link rel="stylesheet" href="talas-mobile.css?v=4">
 
 <div id="area"><div id="frame">
 <canvas id="cv" width="640" height="480" aria-label="Village 3D de Talas"></canvas>
@@ -207,7 +205,14 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <div id="phud" hidden><div id="plife"></div><div class="win" id="php"></div><div id="ptime"></div><button class="win" id="psave" type="button" title="Recommencer au dernier drapeau (touche R)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/></svg>Sauvegarde</button><div class="win" id="ppe"></div></div>
 <div id="pmsg" class="win" hidden></div><div id="cine"><div class="cbar ctop"></div><div class="cbar cbot"><div class="cpor"></div><div class="ctxt"></div></div></div>
 <div id="keys" class="win" hidden></div>
-<div id="pad" hidden><div><span></span><button class="btn alt" data-k="U"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><span></span><button class="btn alt" data-k="L"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button class="btn alt" data-k="D"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button><button class="btn alt" data-k="R"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button></div><span class="acts"><button class="btn alt spinb" data-k="S">TOUR</button><button class="btn go jump" data-k="J">SAUT</button></span></div>
+<div id="pad" hidden aria-label="Commandes tactiles">
+  <div class="move"><div id="joystick" role="group" aria-label="Joystick mobile : maintenir et glisser le doigt">
+    <svg class="directions" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path d="M54 17 60 11 66 17Q67 18 65 18H55Q53 18 54 17Z"/><path d="M103 54 109 60 103 66Q102 67 102 65V55Q102 53 103 54Z"/><path d="M66 103 60 109 54 103Q53 102 55 102H65Q67 102 66 103Z"/><path d="M17 66 11 60 17 54Q18 53 18 55V65Q18 67 17 66Z"/></svg>
+    <span class="socket" aria-hidden="true"></span><span class="shaft" aria-hidden="true"></span>
+    <span class="stick" aria-hidden="true"><span class="grip"></span></span>
+  </div><span class="joystick-caption" aria-hidden="true">JOYSTICK</span></div>
+  <span class="acts"><button class="btn alt spinb" type="button"></button><button class="btn alt diveb" type="button"></button><button class="btn go jump" type="button"></button></span>
+</div>
 <div id="blind"></div>
 <div id="panel" class="win" hidden><div class="tbar" id="pname"></div><div class="pin"><div class="por" id="por"></div><div class="pbody"><div class="ptext" id="ptext"></div><div class="pact" id="pact"></div></div></div></div>
 <div id="modal" hidden></div>
@@ -219,18 +224,19 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="talas-rendu.js?v=1"></script>
+<script src="talas-mobile.js?v=4"></script>
 <script src="talas-monde.js?v=1"></script>
 <script src="talas-config.js?v=2"></script>
 <script src="talas-panthere.js?v=2"></script>
 <script src="talas-props.js?v=1"></script>
 <script src="talas-ile.js?v=2"></script>
-<script src="talas-jeux.js?v=2"></script>
+<script src="talas-jeux.js?v=4"></script>
 <script src="talas-ile-nuit.js?v=1"></script>
 <script src="talas-quai.js?v=2"></script>
 <script src="talas-quai-decor.js?v=2"></script>
 <script src="talas-quai-village.js?v=2"></script>
 <script src="talas-quai-nature.js?v=2"></script>
-<script src="talas-quai-vie.js?v=5"></script>
+<script src="talas-quai-vie.js?v=8"></script>
 <script src="talas-fantome.js?v=1"></script>
 <script src="talas-chien.js?v=2"></script>
 <script src="talas-perso.js?v=3"></script>
@@ -241,7 +247,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-son.js?v=1"></script>
 <script src="talas-grenier.js?v=1"></script>
 <script src="talas-salles.js?v=1"></script>
-<script src="talas-jetski.js?v=2"></script>
+<script src="talas-jetski.js?v=4"></script>
 <script>
 /* ================= UTILITAIRES ================= */
 const $=s=>document.querySelector(s);
@@ -308,7 +314,7 @@ const PPL={
 /* ================= PANNEAU DE DIALOGUE ================= */
 let typing=null;
 function say(k,text,{btns=[{t:'Suivant',go:1}],cls='',row=false,grid=false}={}){
-  const P=$('#panel'),mini=!btns.length;P.hidden=false;P.className='win '+cls+(mini?' mini':'');clearTimeout(say._t);if(mini)say._t=setTimeout(()=>{if(P.classList.contains('mini'))hidePanel()},3500);
+  const P=$('#panel'),mini=!btns.length;P.hidden=false;P.className='win '+cls+(mini?' mini':'');clearTimeout(say._t);if(mini)say._t=setTimeout(()=>{if(P.classList.contains('mini'))hidePanel()},TOUCH?Math.max(7000,String(text).replace(/<[^>]+>/g,'').length*60):3500);
   $('#por').innerHTML=portrait(k);const p=PPL[k];$('#pname').innerHTML=`<b>${p.n}</b><span>${p.r}</span>`;
   const T=$('#ptext');clearInterval(typing);
   if(text.includes('<')){T.innerHTML=text;T.onclick=null}else{let i=0;T.textContent='';typing=setInterval(()=>{i+=3;T.textContent=text.slice(0,i);if(i>=text.length)clearInterval(typing)},14);T.onclick=()=>{clearInterval(typing);T.textContent=text}}
@@ -322,31 +328,31 @@ const K=t=>`<kbd>${t}</kbd>`;
 /* « Comment jouer » : le but et les commandes de chaque mini-jeu, version clavier ou version tactile */
 const HOWTO={
  attrape:{but:'Attrape les documents à étiquette bleue avec l’épuisette. Évite les déchets à étiquette rouge. Quand un cercle rouge apparaît sous Dylan, écarte-toi : une pantoufle arrive.',
-  kb:['<kbd>Q</kbd> <kbd>D</kbd>, les flèches ◀ ▶ ou la souris : déplacer Dylan'],tc:['Boutons ◀ ▶ en bas à gauche : déplacer Dylan']},
+  kb:['<kbd>Q</kbd> <kbd>D</kbd>, les flèches gauche / droite ou la souris : déplacer Dylan'],tc:['Joystick à gauche : déplacer Dylan']},
  combat:{but:'Aurelien attaque avec une mauvaise excuse. Choisis la réponse qui la contre selon la norme, avant la fin du chrono : ta bonne réponse déclenche ton attaque. Mauvaise réponse ou chrono écoulé : c’est lui qui frappe.',
   kb:['<kbd>1</kbd> à <kbd>4</kbd> : choisir une réponse','<kbd>↑</kbd> <kbd>↓</kbd> puis <kbd>Espace</kbd> ou <kbd>Entrée</kbd> : choisir et valider','<kbd>Espace</kbd> : passer au message suivant'],
-  tc:['Touche une réponse pour la choisir','Touche le panneau du bas pour continuer']},
+  tc:['Joystick : choisir une réponse','VALIDER : répondre et déclencher la contre-attaque','SUITE : continuer']},
  fuite:{but:'Cours jusqu’à la sortie sans te faire écraser par le géant. Saute ou glisse sous les obstacles, et guide les collègues perdus au passage.',
   kb:['<kbd>Q</kbd> <kbd>D</kbd> : changer de voie','<kbd>Espace</kbd> : sauter','<kbd>S</kbd> : glisser','<kbd>E</kbd> : guider un collègue'],
-  tc:['◀ ▶ : changer de voie','SAUT : sauter','▼ : glisser','TOUR : guider un collègue']},
+  tc:['Joystick gauche / droite : changer de voie','SAUT : sauter','GLISSADE : passer sous les obstacles','GUIDER : aider un collègue']},
  tuyaux:{but:'Fais couler l’eau du bloc rouge (le danger) jusqu’au bloc vert (la mesure) en tournant les tuiles de tuyau. Cinq tuyaux, 50 secondes chacun.',
-  kb:['Clic sur une tuile : la tourner d’un quart de tour'],tc:['Touche une tuile : la tourner d’un quart de tour']},
+  kb:['Clic sur une tuile : la tourner d’un quart de tour'],tc:['Joystick : viser une tuile','TOURNER : la tourner d’un quart de tour']},
  festin:{but:'Les plats arrivent dans ton assiette : tamponne les bonnes mesures, refile les mauvaises à tes voisins, et tape sur les doigts de ceux qui piquent dans ton assiette.',
   kb:['<kbd>Espace</kbd> : tamponner le plat','<kbd>Q</kbd> <kbd>D</kbd> : le refiler à gauche ou à droite','<kbd>S</kbd> : taper sur les doigts','Ou clic sur les assiettes'],
-  tc:['Touche ton assiette : tamponner','Touche à gauche ou à droite : refiler','▼ : taper sur les doigts']},
+  tc:['Joystick gauche / droite : refiler le plat','TAMPON : valider le plat','TAPER : repousser les mains baladeuses']},
  karaoke:{but:'Chante chaque mot pile quand il arrive sur la ligne, dans la bonne piste. Plus tu es en rythme, plus la salle est convaincue.',
   kb:['<kbd>Q</kbd> : piste gauche','<kbd>S</kbd> : piste du milieu','<kbd>D</kbd> : piste droite','(les flèches marchent aussi)'],
-  tc:['Touche le tiers gauche, du milieu ou droit de l’écran : la piste correspondante']},
+  tc:['Joystick : choisir la piste','CHANTER : chanter dans la piste choisie','Micros GAUCHE / DROITE : chanter directement dans ces pistes']},
  doc:{but:'Les visiteurs font la queue avec une question. Ouvre leur fiche et envoie chacun vers la bonne ressource avant que sa patience s’épuise.',
   kb:['Clic sur un visiteur : ouvrir sa fiche','Clic sur une destination, ou <kbd>1</kbd> à <kbd>5</kbd> : l’y envoyer','Flèches ou glisser : déplacer la vue'],
-  tc:['Touche un visiteur : ouvrir sa fiche','Touche une destination : l’y envoyer','Glisse le doigt : déplacer la vue']},
+  tc:['Joystick : choisir une destination','FICHE : consulter le visiteur','ENVOYER : l’orienter vers la destination sélectionnée','Maintenir VUE + joystick : déplacer la caméra']},
  parcours:{but:'Monte étage par étage dans le hangar d’assemblage jusqu’à la salle de revue de direction et bats le chrono. Chaque passage se déverrouille avec le bon objet : la bulle au-dessus de Dylan te dit lequel (badge, bouteille d’air, burger, café, clé).',
   kb:['<kbd>Q</kbd> <kbd>D</kbd> : avancer, reculer','<kbd>Z</kbd> : grimper aux échelles','<kbd>Espace</kbd> : sauter, deux fois pour un double saut','<kbd>E</kbd> : tournoyer (assomme les compagnons pressés, traverse les cloisons)','<kbd>S</kbd> en plein saut : plongeon qui fait trembler le sol','Passe sur un objet pour le prendre, puis va devant le passage bloqué pour l’utiliser','<kbd>R</kbd> ou le bouton Sauvegarde : revenir au dernier drapeau touché'],
-  tc:['◀ ▶ : avancer, reculer','▲ : grimper','SAUT : sauter, deux fois pour un double saut','TOUR : tournoyer (compagnons, cloisons)','▼ en plein saut : plongeon','Passe sur un objet pour le prendre, puis va devant le passage bloqué','Sauvegarde (en haut) : revenir au dernier drapeau touché']},
+  tc:['Joystick gauche / droite : avancer, reculer','Joystick vers le haut : grimper','SAUT : sauter, deux fois pour un double saut','TORNADE : attaque tourbillon (compagnons, cloisons)','PLONGEON en plein saut : frapper le sol','Passe sur un objet pour le prendre, puis va devant le passage bloqué','Sauvegarde (en haut) : revenir au dernier drapeau touché']},
  poly:{but:'Les chefs d’équipe défilent et jurent que tout est conforme. Quand un nez s’allonge, c’est un mensonge : tamponne ÉCART sur le menteur. Ne tamponne pas ceux qui disent vrai.',
-  kb:['Clic sur un menteur : tampon ÉCART'],tc:['Touche un menteur : tampon ÉCART']},
+  kb:['Clic sur un menteur : tampon ÉCART'],tc:['Joystick : viser un témoin','ÉCART : tamponner le témoin visé']},
  operation:{but:'Extrais chaque cause de l’accident sans toucher les bords du couloir orange, jusqu’au rond vert. Pièges : le hoquet fait sauter le corps, chaque battement de cœur resserre les couloirs, des caillots font des allers-retours. Ta main tremble un peu tant que tu tiens une cause. Chaque bzzzt coûte des secondes et pèse lourd dans la note.',
-  kb:['Clic maintenu sur une cause, puis glisser jusqu’au rond vert'],tc:['Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert']}};
+  kb:['Clic maintenu sur une cause, puis glisser jusqu’au rond vert'],tc:['Joystick : déplacer le viseur','Maintenir PINCER + joystick : extraire la cause par le couloir','Relâcher PINCER ou POSER : déposer la cause']}};
 function howto(k){const h=HOWTO[k];return `<div class="howto"><p><b>Le but :</b> ${h.but}</p><p><b>${TOUCH?'Sur écran tactile':'Commandes'} :</b></p><ul>${(TOUCH?h.tc:h.kb).map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 const KEYHELP={
  parcours:`<span>${K('Q')}${K('D')} avancer</span><span>${K('Z')} grimper</span><span>${K('Espace')} sauter (x2)</span><span>${K('S')} en l’air : plongeon</span><span>${K('E')} tournoyer</span><span>${K('R')} retour au drapeau</span>`,
@@ -358,7 +364,7 @@ const KEYHELP={
  operation:`<span>Clic maintenu sur une cause</span><span>Glisser dans le couloir jusqu’au rond vert</span>`};
 $('#psave').onclick=e=>{e.stopPropagation();if(cur&&cur.restartSave)cur.restartSave();e.currentTarget.blur()};
 addEventListener('keydown',e=>{if((e.key==='r'||e.key==='R')&&cur&&cur.restartSave&&!e.target.closest('input,textarea'))cur.restartSave()});
-function keyHelp(k){const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
+function keyHelp(k){if(TOUCH)mobileControls.use(k||'dialogue');const e=$('#keys');if(!k||TOUCH){e.hidden=true;return}e.innerHTML=KEYHELP[k];e.hidden=false}
 
 async function runScript(n,script){
   for(const s of script){
@@ -858,12 +864,12 @@ function buildRoom(n){
 /* ================= MOTEUR 3D : CAMÉRA & CLICS ================= */
 let cur=null,dragging=false,busy=false;
 const PXR=+(new URLSearchParams(location.search).get('pr'))||0; /* ?pr=1 : densité de pixels forcée (tests) */
-function setWorld(w){if(window.TALAS_RENDU)TALAS_RENDU.preparer(w);cur=w;if(window.TALAS_SON)TALAS_SON.monde(w);renderer.setPixelRatio(w&&w.hd?(PXR||(TOUCH?.8:2)):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd&&!w.plainui));fit()}
+function setWorld(w){mobileControls.use(w&&w.quai?'quai':w&&w.platformer?'parcours':w&&w.hub?'village':'dialogue');const qhud=$('#qhud');if(qhud)qhud.style.display=w&&w.quai?'':'none';if(window.TALAS_RENDU)TALAS_RENDU.preparer(w);cur=w;if(window.TALAS_SON)TALAS_SON.monde(w);renderer.setPixelRatio(w&&w.hd?(PXR||(TOUCH?.8:2)):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd&&!w.plainui));fit()}
 function fit(){
   const A=$('#area'),aw=A.clientWidth||innerWidth,ah=A.clientHeight||innerHeight;
   GW=Math.round(GH*Math.max(4/3,Math.min(2.2,aw/ah))/2)*2;
   const fr=$('#frame');fr.style.width=GW+'px';cv.style.width=GW+'px';renderer.setSize(GW,GH,false);rt.setSize(GW,GH);
-  const s=Math.min(aw/GW,ah/GH);fr.style.transform=`translate(-50%,-50%) scale(${s})`;
+  const s=Math.min(aw/GW,ah/GH);fr.style.setProperty('--mobile-unit',String(1/s));fr.style.transform=`translate(-50%,-50%) scale(${s})`;
   const portrait=TOUCH&&ah>aw;$('#rotate').hidden=!portrait||window.__rotOk;
   camera.aspect=GW/GH;
   if(cur){const vf=camera.fov*Math.PI/180;cur.dist=Math.max(cur.baseD,(cur.fitW/2)/(Math.tan(vf/2)*camera.aspect)*1.05)}
@@ -901,7 +907,7 @@ cv.addEventListener('pointermove',e=>{
   const o=pick(e);cv.style.cursor=o?'pointer':(cur&&cur.hub?'grab':'default');
   if(o!==hovered){if(hovered&&hovered.userData.hover)tweenScale(hovered,1);if(o&&o.userData.hover)tweenScale(o,1.08);hovered=o}
 });
-addEventListener('pointerup',e=>{if(cur&&cur.onUp)cur.onUp(e);const wasDrag=dragging;down=null;setTimeout(()=>dragging=false,0);if(wasDrag||e.target!==cv||!$('#modal').hidden)return;const o=pick(e);if(o)o.userData.onClick()});
+addEventListener('pointerup',e=>{if(e.target.closest?.('#pad'))return;if(cur&&cur.onUp)cur.onUp(e);const wasDrag=dragging;down=null;setTimeout(()=>dragging=false,0);if(wasDrag||e.target!==cv||!$('#modal').hidden)return;const o=pick(e);if(o)o.userData.onClick()});
 function tweenScale(o,to){const f=o.scale.x;tween(.18,k=>o.scale.setScalar(f+(to-f)*k))}
 
 const TLIMIT=45*60*1000;
@@ -912,14 +918,14 @@ function tickTimer(){
 }
 document.addEventListener('visibilitychange',()=>{if(!S.tEnd||S.tStop)return;if(document.hidden)S.tHidden=performance.now();else if(S.tHidden){S.tEnd+=performance.now()-S.tHidden;S.tHidden=0}});
 function timeUp(){
-  Object.keys(KEYS).forEach(k=>KEYS[k]=0);['#pad','#phud','#pmsg','#keys'].forEach(q=>$(q).hidden=true);delete $('#pad').dataset.only;$('#blind').style.opacity=0;$('#hud .right').style.visibility='visible';hidePanel();redFlash();
+  Object.keys(KEYS).forEach(k=>KEYS[k]=0);['#phud','#pmsg','#keys'].forEach(q=>$(q).hidden=true);$('#blind').style.opacity=0;$('#hud .right').style.visibility='visible';hidePanel();redFlash();
   const m=modal(`<h1>TEMPS ÉCOULÉ</h1><p><b>45 minutes.</b> L’auditeur de certification sonne à la porte de Talas… et le système n’est pas prêt.</p><p><b>Moralité SST :</b> un système de management se planifie. Sans échéances tenues (§6.2), la certification n’attend personne.</p><div class="row"><button class="btn go" id="tuv">Voir le verdict</button><button class="btn" id="tur">Rejouer</button></div>`,'CHRONO.EXE');
   m.querySelector('.mcard').classList.add('dead');
   m.querySelector('#tuv').onclick=async()=>{closeModal();await fade(1);setWorld(HUB);refreshSigns();await fade(0);finale()};
   m.querySelector('#tur').onclick=()=>location.reload();
 }
 const clock=new THREE.Clock();let lastTouchFrame=0;
-function loop(){requestAnimationFrame(loop);if(TOUCH){const now=performance.now();if(now-lastTouchFrame<1000/30)return;lastTouchFrame=now}tickTimer();const dt=Math.min(clock.getDelta(),.05),T=clock.elapsedTime;
+function loop(){requestAnimationFrame(loop);if(TOUCH){const now=performance.now();if(now-lastTouchFrame<1000/30)return;lastTouchFrame=now}tickTimer();const dt=Math.min(clock.getDelta(),.05),T=clock.elapsedTime;mobileControls.step(dt);
   for(let i=tweens.length-1;i>=0;i--){const w=tweens[i];w.t+=dt;const k=Math.min(1,w.t/w.dur);w.fn(w.e(k));if(k>=1){tweens.splice(i,1);w.res()}}
   if(cur){cur.update&&cur.update(dt,T);placeCam(dt);if(cur.hd){if(window.TALAS_RENDU&&TALAS_RENDU.actif(cur))TALAS_RENDU.rendre(renderer,cur.scene,camera,cur,T);else renderer.render(cur.scene,camera);return}renderer.setRenderTarget(rt);renderer.render(cur.scene,camera);renderer.setRenderTarget(null);renderer.render(postScene,postCam)}}
 
@@ -933,7 +939,7 @@ function planeAt(e,y=0){const r=cv.getBoundingClientRect();ptr.x=(e.clientX-r.le
 /* ================= MINI-JEU : LES TUYAUX (casse-tête de rotation) ================= */
 const ROT=m=>((m<<1)|(m>>3))&15;
 function pipe3D(n,cfg){return new Promise(res=>{
-  const R=cur,C=6,RW=4,S=2.1,cellPos=(c,r)=>V((c-(C-1)/2)*S,.15,-3.6+r*S);let round=0,solved=0;
+  mobileControls.use('tuyaux');const R=cur,C=6,RW=4,S=2.1,cellPos=(c,r)=>V((c-(C-1)/2)*S,.15,-3.6+r*S);let round=0,solved=0;
   function build(){
     R.clear();const rd=cfg.rounds[round];
     const r0=Math.floor(rand(0,RW)),r1=Math.floor(rand(0,RW)),path=[];let r=r0;
@@ -985,7 +991,7 @@ function gameEnd(n,r,who,text,res){const R=cur;keyHelp();$('#pmsg').hidden=true;
    piquent dans les assiettes avec leurs bras élastiques ; on leur tape sur les doigts. */
 const HIER=[{n:'Élimination',v:5,c:'#2f9e44'},{n:'Substitution',v:4,c:'#1c7ed6'},{n:'Protection collective',v:3,c:'#7048e8'},{n:'Organisation',v:2,c:'#f59f00'},{n:'EPI',v:1,c:'#e8590c'},{n:'Fausse bonne idée',v:-2,c:'#868e96'}];
 function feast3D(n,cfg){return new Promise(res=>{
-  keyHelp('festin');const R=cur;R.clear();R.keys=1;$('#pad').hidden=!TOUCH;$('#hud .right').style.visibility='hidden';
+  keyHelp('festin');const R=cur;R.clear();R.keys=1;$('#hud .right').style.visibility='hidden';
   const X=[-4.4,-1.8,1.8,4.4],TY=1.05,PZ=.45,SC=.95;
   /* l'open space : moquette, cloison, tableau blanc, plantes, imprimante */
   mk(new THREE.BoxGeometry(22,.04,10),'#5c7cfa',0,.03,-1,R.stage).receiveShadow=true;
@@ -1007,7 +1013,7 @@ function feast3D(n,cfg){return new Promise(res=>{
     outline(mk(new THREE.BoxGeometry(1.4,1.8,.2),'#343a40',X[i],1.4,-1.6,R.stage),1.04);
     p.plate=[];p.score=0;p.stun=0;p.busy=null;p.reach=null;p.idle=0;p.think=rand(.3,.8);p.cd=rand(3,5);
     p.ouch=labelPlane('AÏE !',1.3,.5,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:110});p.ouch.position.set(X[i],3.9,-.7);p.ouch.visible=false;R.stage.add(p.ouch);
-    p.warn=labelPlane(TOUCH?'▼ PAS TOUCHE !':'S : PAS TOUCHE !',2.2,.5,{bg:'#fff3bf',border:'#e03131',fg:'#c92a2a',size:90});p.warn.position.set(X[i],3.25,-.4);p.warn.visible=false;R.stage.add(p.warn)});
+    p.warn=labelPlane(TOUCH?'TAPER : PAS TOUCHE !':'S : PAS TOUCHE !',2.2,.5,{bg:'#fff3bf',border:'#e03131',fg:'#c92a2a',size:90});p.warn.position.set(X[i],3.25,-.4);p.warn.visible=false;R.stage.add(p.warn)});
   /* bandeau du haut comme dans le jeu : quatre médaillons, les scores, le sablier au milieu */
   const hud=document.createElement('div');hud.style.cssText='position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:6;display:flex;gap:18px;align-items:flex-start;pointer-events:none';
   const med=p=>`<div style="text-align:center"><div style="width:56px;height:56px;border-radius:50%;border:3px solid ${INK};background:${p.c};overflow:hidden;margin:0 auto">${portrait(p.k).replace('<svg','<svg width="50" height="50" style="display:block;margin:3px auto 0"')}</div><div class="fsc" style="font-weight:700;font-size:22px;line-height:1.1;color:#ffd43b;-webkit-text-stroke:1.5px ${INK};text-shadow:2px 2px 0 ${INK}">0</div></div>`;
@@ -1076,9 +1082,9 @@ function feast3D(n,cfg){return new Promise(res=>{
         else if(r.back&&r.k>=1)p.reach=null}
       animPerson(p.m,p.stun>0?'stun':'idle',T+p.i);armPose(p);p.m.position.y=p.busy?-.15-Math.abs(Math.sin(p.busy.k*Math.PI*3))*.05:-.15});
     const left=Math.max(0,Math.ceil(cfg.time-t));const tm=hud.querySelector('.ftm');if(tm.textContent!=String(left))tm.textContent=left;hud.querySelector('.sand').setAttribute('transform',`translate(0 ${(t/cfg.time)*8}) scale(1 ${Math.max(.05,1-t/cfg.time)})`);
-    const th=threat();if(th&&!R.warned){R.warned=1;say2('<b>Une main dans ton assiette !</b> Tape sur les doigts ('+(TOUCH?'flèche bas':'S')+') !',1.2)}if(!th)R.warned=0;
+    const th=threat();if(th&&!R.warned){R.warned=1;say2('<b>Une main dans ton assiette !</b> Tape sur les doigts ('+(TOUCH?'TAPER':'S')+') !',1.2)}if(!th)R.warned=0;
     if(t>=cfg.time)end()};
-  function end(){if(done)return;done=true;rm.remove();hud.remove();$('#pad').hidden=true;$('#hud .right').style.visibility='visible';R.cam=null;
+  function end(){if(done)return;done=true;rm.remove();hud.remove();$('#hud .right').style.visibility='visible';R.cam=null;
     me.m.userData.rig.shs.forEach(s=>s.scale.set(1,1,1));me.m.scale.setScalar(.9);me.m.rotation.set(0,0,0);R.clear();
     const rank=[...P].sort((a,b)=>b.score-a.score),pos=rank.indexOf(me)+1,r=[1,.75,.4,.2][pos-1];
     gameEnd(n,r,'karim',`<b>${pos===1?'Tu remportes le festin !':pos+'e sur 4.'}</b> ${rank.map(p=>`${p.n} ${p.score}`).join(' · ')}.<br>Tu as tamponné ${valid} mesure${valid>1?'s':''}, avalé ${bad} fausse${bad>1?'s':''} bonne${bad>1?'s':''} idée${bad>1?'s':''} et tapé ${slaps} fois sur des doigts. ${cfg.after||''}`,res)}
@@ -1086,7 +1092,7 @@ function feast3D(n,cfg){return new Promise(res=>{
   R.cam=()=>{camera.position.set(0,4.6,10.2);camera.lookAt(0,2,-1)};
   me.m.position.set(X[1],-.15,-.75);me.m.rotation.set(0,0,0);me.m.scale.setScalar(SC);
   const go=R.extra;R.extra=null;
-  say('karim',cfg.hint+howto('festin'),{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();say2(TOUCH?'Touche ton assiette pour tamponner, à gauche ou à droite pour refiler. Flèche bas pour taper sur les doigts.':'Espace : tamponner · Q / D : refiler à gauche / à droite · S : taper sur les doigts.',3.5);R.extra=go});
+  say('karim',cfg.hint+howto('festin'),{btns:[{t:'À table !',go:1}]}).then(()=>{hidePanel();say2(TOUCH?'Joystick : refiler le plat. TAMPON : valider. TAPER : repousser les mains.':'Espace : tamponner · Q / D : refiler à gauche / à droite · S : taper sur les doigts.',3.5);R.extra=go});
 })}
 
 /* ================= PARTICULES PLEINES (partagées par la course et le parcours) =================
@@ -1251,7 +1257,7 @@ function run3D(n,cfg){return new Promise(async res=>{
   W.cam=dt=>{const want=V(st.x*.5,4.7+st.y*.35,st.z+9.5);camera.position.lerp(want,1-Math.pow(.001,dt||.016));camera.lookAt(st.x*.3,2,st.z-12)};
   W.update=(dt,T)=>{fx.update(dt);rmT-=dt;if(rmT<=0)rm.hidden=true;if(st.done)return;
     if(!st.go){body.position.set(st.x,0,st.z);animPerson(body,'idle',T);giant.position.set(0,0,st.z-78);animPerson(giant,'idle',T);gtag.position.set(0,19,st.z-75);return}
-    const E=k=>{const v=!!KEYS[k]&&!st.pk[k];st.pk[k]=!!KEYS[k];return v};
+    const E=k=>{const v=(!!KEYS[k]&&!st.pk[k])||!!KEYP[k];st.pk[k]=!!KEYS[k];KEYP[k]=0;return v};
     if(E('L'))st.lane=Math.max(0,st.lane-1);if(E('R'))st.lane=Math.min(2,st.lane+1);
     if(E('U')||E('J'))st.bj=.2;if(E('D'))st.bs=.2;st.bj=Math.max(0,(st.bj||0)-dt);st.bs=Math.max(0,(st.bs||0)-dt);
     if(st.bj>0&&st.y<=.05){st.vy=9.2;st.slide=0;st.bj=0;beep(500,.05,'triangle',.03)}if(st.bs>0&&st.y<=.05){st.slide=.9;st.bs=0}
@@ -1315,22 +1321,22 @@ function run3D(n,cfg){return new Promise(async res=>{
       else if(o.k==='pit'){if(st.y<=0){hurt('<b>OUPS !</b> Une trappe ouverte. Saute !');o.gone=1;st.vy=6}}
       else if(o.k==='heart'){o.gone=1;s.remove(o.m);chips(V(o.x,1.3,o.z),12,['#ff3d63','#ffb3c6','#ffffff'],5,[.08,.2]);if(st.hp<st.maxhp){st.hp++;say2('<b>+1 cœur !</b>',1.2)}else say2('<b>Cœur plein !</b>',1);board()}
       else if(o.k==='item'){o.gone=1;s.remove(o.m);st.items++;tsAdd('items');pts(n,true);beep(990,.08,'triangle',.05);setTimeout(()=>beep(1320,.1,'triangle',.05),90);puff(V(o.x,1.2,o.z),5,{size:[.3,.6],c:['#ffd43b','#fff3bf']});say2(`<b>${o.name} récupéré !</b> ${o.tip}`,3.2);board()}
-      else if(o.k==='wall'){if(o.fall>=1&&((o.q<0&&st.x<1.3)||(o.q>0&&st.x>-1.3))){st.z=Math.max(st.z,o.z+o.d/2+.35);st.sp=Math.max(6,st.sp*.7);if(!o.bumpT||o.bumpT<=0){o.bumpT=1.2;shake();beep(80,.2,'square',.07);say2(`<b>PAF !</b> On ne traverse pas un immeuble effondré. Passe ${o.q<0?'à droite ▶':'◀ à gauche'} !`,2)}}}}
-    {const J=TOUCH?'SAUT':'Espace',S2=TOUCH?'▼':'S',G=TOUCH?'TOUR':'E',LN=TOUCH?'◀ ▶':'Q / D';let best=null,bd=99;
+      else if(o.k==='wall'){if(o.fall>=1&&((o.q<0&&st.x<1.3)||(o.q>0&&st.x>-1.3))){st.z=Math.max(st.z,o.z+o.d/2+.35);st.sp=Math.max(6,st.sp*.7);if(!o.bumpT||o.bumpT<=0){o.bumpT=1.2;shake();beep(80,.2,'square',.07);say2(`<b>PAF !</b> On ne traverse pas un immeuble effondré. Passe ${o.q<0?'à droite':'à gauche'} !`,2)}}}}
+    {const J=TOUCH?'SAUT':'Espace',S2=TOUCH?'TAPER':'S',G=TOUCH?'GUIDER':'E',LN=TOUCH?'JOYSTICK':'Q / D';let best=null,bd=99;
       for(const o of OB){if(o.gone||o.saved||o.missed)continue;const d=st.z-o.z;if(o.k==='col'){if(d>-1.5&&d<11&&Math.abs(o.x-st.x)<4&&d<bd){bd=d;best=o}continue}
         if(o.k==='heart'||d<1.5||d>13||Math.abs(o.x-st.x)>o.w/2+.35)continue;if(d<bd){bd=d;best=o}}
       if(!best){const w=OB.find(o=>o.k==='wall'&&o.fall>=0&&st.z-o.z>1&&st.z-o.z<42);if(w)best={k:w.q<0?'wallL':'wallR'}}
-      const P2={wallL:['#1c7ed6',`PASSE À DROITE ▶ (${LN})`],wallR:['#1c7ed6',`◀ PASSE À GAUCHE (${LN})`],box:['#e8590c',`SAUTE (${J}) ou CHANGE DE VOIE (${LN})`],barrel:['#e8590c',`SAUTE (${J}) ou CHANGE DE VOIE (${LN})`],pit:['#e03131',`SAUTE ! (${J})`],fire:['#e03131',`SAUTE ! (${J})`],beam:['#7048e8',`GLISSE ! (${S2})`],col:['#2f9e44',`GUIDE-LE ! (${G})`]}[best&&best.k];
+      const P2={wallL:['#1c7ed6',`PASSE À DROITE (${LN})`],wallR:['#1c7ed6',`PASSE À GAUCHE (${LN})`],box:['#e8590c',`SAUTE (${J}) ou CHANGE DE VOIE (${LN})`],barrel:['#e8590c',`SAUTE (${J}) ou CHANGE DE VOIE (${LN})`],pit:['#e03131',`SAUTE ! (${J})`],fire:['#e03131',`SAUTE ! (${J})`],beam:['#7048e8',`GLISSE ! (${S2})`],col:['#2f9e44',`GUIDE-LE ! (${G})`]}[best&&best.k];
       if(P2){rp.hidden=false;rp.style.color=P2[0];rp.textContent=P2[1]}else rp.hidden=true}
     if(st.z<-L+60)RASS.forEach((m,i)=>{animPerson(m,'idle',T+i);m.position.y=Math.abs(Math.sin(T*6+i))*.25;const r=m.userData.rig;if(r)r.shs[i%2].rotation.x=-2.7+Math.sin(T*10+i)*.4});
     if(Math.floor(-st.z/10)!==Math.floor((-st.z+st.sp*dt)/10))board();
     if(st.z<=-L){tsAdd('run_m',L);finish(true)}};
   let resolveRun;
-  function finish(ok){if(st.done)return;st.done=true;$('#pad').hidden=true;keyHelp();rm.remove();rp.remove();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');Object.keys(KEYS).forEach(k=>KEYS[k]=0);
+  function finish(ok){if(st.done)return;st.done=true;keyHelp();rm.remove();rp.remove();$('#pmsg').hidden=true;$('#pmsg').classList.remove('corner');Object.keys(KEYS).forEach(k=>KEYS[k]=0);
     const missed=colTotal-st.saved;for(let i=0;i<missed;i++)pts(n,false);if(!ok)pts(n,false);
     const r=ok?.4+.6*st.saved/Math.max(1,colTotal):0;setTimeout(()=>resolveRun({ok,r}),ok?600:400)}
   hidePanel();await fade(1);setWorld(W);camera.position.set(0,4.7,9.5);keyHelp('fuite');board();await fade(0);
-  await say('ceo',cfg.hint+howto('fuite'),{btns:[{t:'Courir !',go:1}],cls:'compact'});st.go=true;$('#pad').hidden=!TOUCH;hidePanel();say2(TOUCH?'◀ ▶ voie · SAUT sauter · ▼ glisser · TOUR guider':'Q / D voie · Espace sauter · S glisser · E guider',3);
+  await say('ceo',cfg.hint+howto('fuite'),{btns:[{t:'Courir !',go:1}],cls:'compact'});st.go=true;hidePanel();say2(TOUCH?'Joystick : voie · SAUT sauter · GLISSADE se baisser · GUIDER les collègues':'Q / D voie · Espace sauter · S glisser · E guider',3);
   const out=await new Promise(r=>{resolveRun=r});
   await fade(1);setWorld(room);await fade(0);
   cdi(out.r>=.85?8:out.r>=.6?2:-6);
@@ -1385,8 +1391,8 @@ function catch3D(n,cfg){return new Promise(res=>{
   outline(mk(new THREE.TorusGeometry(.95,.07,6,24),'#fab005',0,0,0,net),1.1).rotation.x=Math.PI/2;
   const bag=new THREE.Mesh(new THREE.ConeGeometry(.95,1,14,1,true),new THREE.MeshBasicMaterial({color:'#ffffff',wireframe:true}));bag.position.y=-.5;bag.rotation.x=Math.PI;net.add(bag);
   const docs=cfg.docs.map(d=>({...d,doc:1})),seq=shuffle([...docs.slice(0,-1),...cfg.junk.map(j=>({...j}))]);seq.push(docs[docs.length-1]);
-  const ND=docs.length;let got=0,yuck=0,bonk=0,k=0,next=1.8,tx=0,dx=0,vx=0,stun=0,done=false,t=0,gulp=0,slipT=7,tele=0,wx=0,wy=GR?3.7:2.3;const air=[],slips=[];R.aide={air,slips,setTx:v=>{tx=Math.max(-XM,Math.min(XM,v))}};
-  const status=()=>{pmsg(`Documents : <b>${got} / ${ND}</b><br>Beurk : <b>${yuck}</b><br>Pantoufles : <b>${bonk}</b>${TOUCH?'<br>◀ ▶ en bas : déplacer Dylan':''}`);$('#pmsg').classList.add('corner')};
+  const ND=docs.length;let got=0,yuck=0,bonk=0,k=0,next=1.8,tx=0,dx=0,vx=0,stun=0,done=false,t=0,gulp=0,slipT=7,tele=0,wx=0,wy=GR?3.7:2.3;const air=[],slips=[];R.aide={air,slips,setTx:v=>{tx=Math.max(-XM,Math.min(XM,v))}};mobileControls.use('attrape',{actions:[{label:'CENTRER',icon:'net',down:()=>R.aide.setTx(0)}]});
+  const status=()=>{pmsg(`Documents : <b>${got} / ${ND}</b><br>Beurk : <b>${yuck}</b><br>Pantoufles : <b>${bonk}</b>${TOUCH?'<br>Joystick en bas à gauche : déplacer Dylan':''}`);$('#pmsg').classList.add('corner')};
   R.onMove=e=>{if(TOUCH)return;const p=R.mouseX?R.mouseX(e):planeAt(e,CY);if(p)tx=Math.max(-XM,Math.min(XM,p.x-NX))};
   function throwOne(){const it=seq[k++],m=flyMesh(it),p0=ghost.position.clone().add(V(0,-.3,.8));m.position.copy(p0);R.stage.add(m);
     air.push({it,m,p0,p1:V(rand(-XM,XM)+NX*.5,CY,CZ),q:0,dur:Math.max(1.6,2.4-k*.04),h:rand(2,3.5),fly:1});G.laugh=.7}
@@ -1413,7 +1419,7 @@ function catch3D(n,cfg){return new Promise(res=>{
     next-=dt;if(k<seq.length&&next<=0){throwOne();if(k>9&&k<seq.length-1&&Math.random()<.15)throwOne();next=Math.max(1.5,2.6-k*.05)}
     slipT-=dt;if(slipT<=0&&k<seq.length){slipT=rand(6,9);throwSlipper()}
     /* déplacement souple : vitesse limitée, accélération douce, la souris donne une cible que Dylan rejoint sans à-coups */
-    const kx=(KEYS.R?1:0)-(KEYS.L?1:0);if(kx)tx=dx;const want=kx?kx*6:Math.max(-6,Math.min(6,(tx-dx)*2.2));
+    const kx=mobileControls.vector.active?mobileControls.vector.x:(KEYS.R?1:0)-(KEYS.L?1:0);if(kx)tx=dx;const want=kx?kx*6:Math.max(-6,Math.min(6,(tx-dx)*2.2));
     const prev=dx;if(stun>0){stun-=dt;vx*=.85}else vx+=(want-vx)*Math.min(1,dt*5);dx=Math.max(-XM,Math.min(XM,dx+vx*dt));const mv=Math.abs(vx)>.4;
     dy.position.set(dx,0,CZ);dy.rotation.y=(GR?Math.PI:0)+(mv?(dx>prev?.6:-.6)*(GR?-1:1):0);animPerson(dy,stun>0?'stun':mv?'run':'idle',T);if(stun<=0)dy.userData.rig.shs[1].rotation.x=-2.6;
     gulp=Math.max(0,gulp-dt);net.position.set(dx+NX,CY,CZ);net.rotation.z=stun>0?Math.sin(T*20)*.3:(prev-dx)*3;bag.scale.set(1,1+gulp*2,1);
@@ -1429,9 +1435,9 @@ function catch3D(n,cfg){return new Promise(res=>{
         if(s.q>=1){R.stage.remove(s.ring);R.fx.burst(p.clone(),6);if(Math.abs(dx-s.p1.x)<.9){bonk++;tsAdd('slippers');stun=1.3;pts(n,false);beep(120,.3,'square',.07);shake();say('dylan','<b>BONK !</b> Une pantoufle rose en pleine tête. Le fantôme est mort de rire.',{btns:[],cls:'bad'});status()}s.st='back';s.q=0;s.p0=p.clone()}}
       else{s.q=Math.min(1,s.q+dt/.9);const to=s.sl.getWorldPosition(V(0,0,0));p.lerpVectors(s.p0,to,s.q);p.y+=2*4*s.q*(1-s.q);if(s.q>=1){R.stage.remove(s.m);s.sl.visible=true;slips.splice(i,1)}}}
     if(k>=seq.length&&!air.length&&!slips.length){done=true;R.stage.remove(net);const r=got/(ND+yuck+bonk*.5);
-      {const pd=$('#pad');pd.hidden=true;delete pd.dataset.only}const fin=()=>gameEnd(n,r,'boulon',`<b>${got} documents sur ${ND} attrapés, ${yuck} déchet${yuck>1?'s':''} dans l’épuisette, ${bonk} pantoufle${bonk>1?'s':''} reçue${bonk>1?'s':''}.</b> ${cfg.after||''}`,res);if(R.capture)R.capture(ghost,r,fin);else fin()}};
+      const fin=()=>gameEnd(n,r,'boulon',`<b>${got} documents sur ${ND} attrapés, ${yuck} déchet${yuck>1?'s':''} dans l’épuisette, ${bonk} pantoufle${bonk>1?'s':''} reçue${bonk>1?'s':''}.</b> ${cfg.after||''}`,res);if(R.capture)R.capture(ghost,r,fin);else fin()}};
   const go=R.extra;R.extra=null;
-  say('boulon',cfg.hint+howto('attrape'),{btns:[{t:'Attrape-les !',go:1}]}).then(()=>{status();if(TOUCH){hidePanel();const pd=$('#pad');pd.dataset.only='LR';pd.hidden=false}else say('boulon','Souris ou Q D pour déplacer Dylan.',{btns:[]});R.extra=go});
+  say('boulon',cfg.hint+howto('attrape'),{btns:[{t:'Attrape-les !',go:1}]}).then(()=>{status();if(TOUCH){hidePanel();}else say('boulon','Souris ou Q D pour déplacer Dylan.',{btns:[]});R.extra=go});
 })}
 
 /* ================= MINI-JEU : LE KARAOKÉ DU QUART D'HEURE SÉCURITÉ (rythme) ================= */
@@ -1447,28 +1453,51 @@ function karaoke3D(n,cfg){return new Promise(res=>{
   cfg.lines.forEach((l,li)=>{l.split(' ').forEach((w,wi)=>{let lane;do lane=Math.floor(Math.random()*3);while(lane===last&&Math.random()<.6);last=lane;notes.push({w,li,wi,lane,t:tt,st:0});tt+=cfg.beat});tt+=cfg.beat*2});
   const N=notes.length,TEND=tt;let t=0,on=false,hits=0,strays=0,combo=0,best=0,done=false;
   const scale=[523,587,659,784,880];
-  function lyric(){const li=(notes.find(x=>!x.st)||notes[N-1]).li;
-    pmsg(`<span style="font-size:17px">${notes.filter(x=>x.li===li).map(x=>x.st===1?`<b style="color:#2f9e44">${x.w}</b>`:x.st===2?`<s style="color:#e03131">${x.w}</s>`:x.w).join(' ')}</span><br>Couplet ${li+1} / ${cfg.lines.length} · combo <b>${combo}</b>`)}
+  // Subtitle timing follows the song's note clock, regardless of hits or missed words.
+  const lyrics=document.createElement('div');lyrics.id='karaoke-lyrics';lyrics.hidden=true;
+  lyrics.setAttribute('role','region');lyrics.setAttribute('aria-label','Paroles du karaoké');
+  lyrics.innerHTML='<div class="lyrics-previous"></div><div class="lyrics-current"></div><div class="lyrics-next"></div><div class="lyrics-score"></div>';
+  $('#frame').append(lyrics);let lyricLine=-1,lyricWord=-2;
+  function lyric(){lyrics.querySelector('.lyrics-score').textContent=`Couplet ${Math.max(0,lyricLine)+1} / ${cfg.lines.length} · Combo ${combo} · Meilleur ${best}`}
+  function subtitles(){
+    let idx=-1;for(let i=0;i<N;i++){if(t>=notes[i].t-WIN)idx=i;else break}
+    const note=notes[Math.max(0,idx)];
+    if(note.li!==lyricLine){
+      lyricLine=note.li;lyrics.querySelector('.lyrics-previous').textContent=cfg.lines[lyricLine-1]||'';
+      lyrics.querySelector('.lyrics-next').textContent=cfg.lines[lyricLine+1]||'';
+      const line=document.createElement('div');line.className='lyrics-line';
+      notes.forEach((x,i)=>{if(x.li!==lyricLine)return;const word=document.createElement('span');word.dataset.note=i;word.textContent=x.w+' ';line.append(word)});
+      lyrics.querySelector('.lyrics-current').replaceChildren(line);lyric();
+    }
+    if(idx!==lyricWord){lyricWord=idx;lyrics.dataset.word=idx>=0?note.w:'';lyrics.dataset.line=note.li;
+      lyrics.querySelectorAll('[data-note]').forEach(e=>{const i=+e.dataset.note;e.className=i<idx?'sung':i===idx?'singing':'upcoming';if(i===idx)e.setAttribute('aria-current','true');else e.removeAttribute('aria-current')});
+      const active=lyrics.querySelector('.singing'),viewport=lyrics.querySelector('.lyrics-current');
+      if(active&&viewport.scrollHeight>viewport.clientHeight)viewport.scrollTop=Math.max(0,active.offsetTop-viewport.offsetTop-viewport.clientHeight/2);
+    }
+    const progress=Math.max(0,Math.min(1,(t-(note.t-WIN))/cfg.beat));
+    lyrics.querySelector('.singing')?.style.setProperty('--sung',(progress*100).toFixed(1)+'%');
+  }
   function wake(on){const o=on?ops.find(x=>!x.awake):ops.slice().reverse().find(x=>x.awake);if(o)o.awake=on}
   function press(lane){if(!on||done)return;const pd=pads[lane];pd.scale.setScalar(1.25);
     let best1=null;for(const x of notes)if(!x.st&&x.lane===lane&&Math.abs(x.t-t)<WIN&&(!best1||Math.abs(x.t-t)<Math.abs(best1.t-t)))best1=x;
     if(best1){best1.st=1;hits++;combo++;best=Math.max(best,combo);pts(n,true);beep(scale[(best1.wi+best1.li)%5],.14);if(best1.m){R.fx.burst(best1.m.position.clone().add(V(0,.6,0)),6);R.stage.remove(best1.m)}if(combo%3===0)wake(1)}
     else{strays++;combo=0;beep(160,.1,'sawtooth',.03)}lyric()}
+  let mobileLane=1;mobileControls.use('karaoke',{onDirection:d=>{mobileLane=Math.max(0,Math.min(2,mobileLane+(d==='previous'?-1:1)))},actions:[{label:'GAUCHE',icon:'micLeft',down:()=>press(0)},{label:'DROITE',icon:'micRight',down:()=>press(2)},{label:'CHANTER',icon:'mic',down:()=>press(mobileLane)}]});
   const onKey=e=>{const m={q:0,a:0,ArrowLeft:0,s:1,ArrowDown:1,d:2,ArrowRight:2}[e.key.length===1?e.key.toLowerCase():e.key];if(m===undefined||!on)return;e.preventDefault();if(!e.repeat)press(m)};
   addEventListener('keydown',onKey);
   R.onDown=e=>{const r=cv.getBoundingClientRect();press(Math.max(0,Math.min(2,Math.floor((e.clientX-r.left)/r.width*3))))};
   R.extra=(dt,T)=>{const beatK=Math.abs(Math.sin(Math.PI*t/cfg.beat));
-    pads.forEach(p=>p.scale.setScalar(Math.max(1,p.scale.x-dt*2)));
+    pads.forEach((p,i)=>p.scale.setScalar(Math.max(TOUCH&&i===mobileLane?1.08:1,p.scale.x-dt*2)));
     animPerson(dy,'walk',T);dy.userData.rig.shs[1].rotation.x=-2.3;dy.position.y=beatK*.15;
     ops.forEach((o,i)=>{if(o.awake){const nv=o.p.userData.rig.nouveau;animPerson(o.p,combo>=6?(nv?'dance':'run'):'idle',T+i);o.p.position.y=nv?(combo>=6?0:beatK*.06):beatK*.25;o.zz.visible=false;if(combo>=6&&!nv)o.p.rotation.y+=dt*4}else{animPerson(o.p,'lie',T+i);o.p.position.y=0;o.zz.visible=true;o.zz.position.y=2.2+Math.sin(T*2+i)*.2}});
-    if(!on||done)return;t+=dt;
+    if(!on||done)return;t+=dt;subtitles();
     for(const x of notes){if(x.st)continue;const d=x.t-t;
       if(d<=TR&&!x.m){const g=new THREE.Group();outline(mk(new THREE.CylinderGeometry(.7,.7,.3,18),COL[x.lane],0,.2,0,g),1.08);const l=labelPlane(x.w,2.8,.6,{bg:'#fffaf0',border:COL[x.lane],size:80});l.position.y=1;g.add(l);R.stage.add(g);x.m=g}
       if(x.m)x.m.position.set(LX[x.lane],0,HZ-d/TR*(HZ-Z0));
       if(d<-WIN){x.st=2;combo=0;tsAdd('notes');pts(n,false);beep(110,.2,'sawtooth',.04);wake(0);if(x.m){const m=x.m;tween(.3,q=>m.scale.setScalar(Math.max(.01,1-q))).then(()=>R.stage.remove(m))}lyric()}}
-    if(t>TEND){done=true;removeEventListener('keydown',onKey);arm.remove(mic);const r=hits/(N+strays*.5);ops.forEach(o=>o.awake=r>=.6);
+    if(t>TEND){done=true;lyrics.remove();removeEventListener('keydown',onKey);arm.remove(mic);const r=hits/(N+strays*.5);ops.forEach(o=>o.awake=r>=.6);
       gameEnd(n,r,'sabrina',`<b>${hits} mots sur ${N} chantés en rythme</b> (meilleur combo : ${best}). ${r>=.6?'Tout l’atelier fait la chenille !':'La moitié de l’atelier ronfle encore…'} ${cfg.after||''}`,res)}};
-  say('sabrina',cfg.hint+howto('karaoke'),{btns:[{t:'Micro !',go:1}]}).then(()=>{hidePanel();on=true;lyric()});
+  say('sabrina',cfg.hint+howto('karaoke'),{btns:[{t:'Micro !',go:1}]}).then(()=>{hidePanel();on=true;lyrics.hidden=false;subtitles();lyric()});
 })}
 
 /* ================= MINI-JEU : LE POLYGRAPHE DE LORETTE (repérer les menteurs) ================= */
@@ -1582,7 +1611,7 @@ function surgery3D(n,cfg){return new Promise(res=>{
   const go=R.extra;R.extra=null;
   function end(){if(done)return;done=true;const miss=items.filter(it=>!it.done);miss.forEach(()=>pts(n,false));const r=out/(N+buzz*.9);
     gameEnd(n,r,'boulon',`<b>${out} causes sur ${N} extraites, ${buzz} bzzzt.</b>${miss.length?'<br>Restées dans le patient : '+miss.map(it=>`<b>${it.t}</b>`).join(', ')+'.':''} ${cfg.after||''}`,res)}
-  say('boulon',cfg.hint+howto('operation'),{btns:[{t:'Enfiler les gants',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Pose le doigt sur une cause et fais-la glisser jusqu’au rond vert, sans sortir du couloir orange. Attention au hoquet !':'Clic maintenu sur une cause, puis glisse-la jusqu’au rond vert sans sortir du couloir orange. Attention au hoquet !',{btns:[]});R.extra=go});
+  say('boulon',cfg.hint+howto('operation'),{btns:[{t:'Enfiler les gants',go:1}]}).then(()=>{status();say('boulon',TOUCH?'Vise une cause avec le joystick. Maintiens PINCER et guide-la jusqu’au rond vert. POSER ou relâcher PINCER la repose. Attention au hoquet !':'Clic maintenu sur une cause, puis glisse-la jusqu’au rond vert sans sortir du couloir orange. Attention au hoquet !',{btns:[]});R.extra=go});
 })}
 
 /* ================= MORT DE DYLAN (et gore) ================= */
@@ -2269,7 +2298,7 @@ let shake=0,flash=0;
     if(U.mode==='ask'){ui.innerHTML=`<div class="ap top"><h4>${esc(U.title)}</h4>${esc(U.line)}</div><div class="ap bot"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div>`;
       ui.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>U.done(U.opts[+b.dataset.i]))}
     else if(U.mode==='cap')ui.innerHTML=`<div class="ap top"><h4 class="good">${esc(U.title)}</h4>${esc(U.text)}</div>`;
-    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">▶ ${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
+    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
   function uiKey(e){const U=A.ui;if(!U||U.mode==='cap')return;
     if(U.mode==='ask'){const d=+e.key;if(d>=1&&d<=U.opts.length){U.done(U.opts[d-1]);e.preventDefault();return}
       if(e.key==='ArrowUp'||e.key==='z'||e.key==='Z'){U.sel=(U.sel+U.opts.length-1)%U.opts.length;renderUI();e.preventDefault()}
@@ -2842,7 +2871,7 @@ function arena2D(STAGE){
     if(U.mode==='ask'){ui.innerHTML=`<div class="ap top"><h4>${esc(U.title)}</h4>${esc(U.line)}</div><div class="ap bot"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div>`;
       ui.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>U.done(U.opts[+b.dataset.i]))}
     else if(U.mode==='cap')ui.innerHTML=`<div class="ap top"><h4 class="good">${esc(U.title)}</h4>${esc(U.text)}</div>`;
-    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">▶ ${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
+    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
   function uiKey(e){const U=A.ui;if(!U||U.mode==='cap')return;
     if(U.mode==='ask'){const d=+e.key;if(d>=1&&d<=U.opts.length){U.done(U.opts[d-1]);e.preventDefault();return}
       if(e.key==='ArrowUp'||e.key==='z'||e.key==='Z'){U.sel=(U.sel+U.opts.length-1)%U.opts.length;renderUI();beep(700,.03,'square',.03);e.preventDefault()}
@@ -3020,7 +3049,7 @@ async function beam(R,who){const cols=who.map(o=>{const g2=new THREE.Group();g2.
   const s0=who.map(o=>o.scale.clone());await tween(.6,k=>who.forEach((o,i)=>{o.scale.set(s0[i].x*(1-k*.8),s0[i].y*(1+k*1.5),s0[i].z*(1-k*.8));o.position.y=k*3}),E.inOut);
   who.forEach(o=>{o.visible=false;o.position.y=0});redFlash();await tween(.25,k=>cols.forEach(g2=>g2.children.forEach(m=>m.scale.set(1-k,1,1-k))));cols.forEach(g2=>R.scene.remove(g2))}
 async function battle(n){
-  const R=cur;
+  const R=cur;mobileControls.use('combat');
   const stageP=new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='assets/talas-fight/stage.jpg?v=3'});
   R.ceo.rotation.y=-.9;
   await say('ceo','« Mon engagement ? Il se mérite, petit. Pas de réunion, pas de PowerPoint : on règle ça dans mon bureau, à l’ancienne. JE TE DÉFIE ! »');
@@ -3132,7 +3161,7 @@ function docSprites(S){
 }
 function docs2D(n,cfg){return new Promise(async res=>{
   const HAND=`url("data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M7 2c2 0 3 1 3 3v8l1-1c1-1 3-1 4 0l1 1 1-1c1-1 3-1 4 0l1 1c1-1 3-1 4 1v8c0 4-3 7-7 7h-5c-3 0-5-2-7-4l-5-6c-1-2 1-4 3-3l2 2V5c0-2 1-3 3-3z" fill="#ffd43b" stroke="#3b2412" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 14v5M20 14v5M11 15v4" stroke="#b8860b" stroke-width="1.2"/></svg>')}") 7 2, pointer`;
-  const R=cur;R.clear();keyHelp();
+  const R=cur;R.clear();keyHelp('doc');
   /* décor et personnages pré-calculés dans Blender (voir tools/talas-doc) */
   const AS='assets/talas-doc/',ld=f=>new Promise((ok,ko)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=ko;im.src=AS+f+'?v='+DOCV}),js=f=>fetch(AS+f+'?v='+DOCV).then(r=>r.json());
   const assets=Promise.all([ld('bg.jpg'),ld('occ.png'),js('scene.json')]);
@@ -3140,7 +3169,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   const[IBG,IOCC,SM]=await assets;const CM=docSprites(SM.S),ICH=CM.img;
   const fr=$('#frame'),c=document.createElement('canvas');c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;z-index:2;touch-action:none;cursor:'+HAND;fr.append(c);
   /* panneau de commande en bas, façon Theme Hospital : métal bleu-gris en relief, écrans LCD, boutons à icônes */
-  const card=document.createElement('div');card.style.cssText="position:absolute;left:0;right:0;bottom:0;z-index:5;padding:5px 8px 6px;background:linear-gradient(#7a8bb5,#46547c 55%,#343f60);border-top:3px solid #aebde0;box-shadow:inset 0 -3px 0 #232b45;color:#fff;font:13px 'Pixelify Sans',monospace";fr.append(card);
+  const card=document.createElement('div');card.className='mobile-doc-card';card.style.cssText="position:absolute;left:0;right:0;bottom:0;z-index:5;padding:5px 8px 6px;background:linear-gradient(#7a8bb5,#46547c 55%,#343f60);border-top:3px solid #aebde0;box-shadow:inset 0 -3px 0 #232b45;color:#fff;font:13px 'Pixelify Sans',monospace";fr.append(card);
   let g=c.getContext('2d');const INK2='#1a1030';let W=0,H=360,S=3,run=true,T=0;
   /* --- plan : 21 x 9 cases. Les salles au fond, le couloir devant, l'accueil à droite, l'entrée tout à droite --- */
   const GI=21,GJ=9,M=[];for(let i=0;i<GI;i++){M[i]=[];for(let j=0;j<GJ;j++)M[i][j]=0}
@@ -3195,7 +3224,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
   function leave(v,res){v.st='out';v.res=res;goTo(v,...EXIT);v.exit=1;if(res==='ko')v.pukeT=rand(.5,1.2)}
   /* --- fiche du visiteur : fenêtre bleu-gris en relief, portrait animé, maladie, patience, question, envoi --- */
   const BEV='background:linear-gradient(#8e9cc4,#56648e);border:3px solid;border-color:#c8d4f0 #2a3352 #2a3352 #c8d4f0;';
-  const fiche=document.createElement('div');fiche.style.cssText=`position:absolute;z-index:6;left:10px;top:46px;width:min(300px,60%);${BEV}color:#fff;font:12px 'Pixelify Sans',monospace;display:none;box-shadow:4px 4px 0 rgba(0,0,0,.35)`;fr.append(fiche);
+  const fiche=document.createElement('div');fiche.className='mobile-doc-fiche';fiche.style.cssText=`position:absolute;z-index:6;left:10px;top:46px;width:min(300px,60%);${BEV}color:#fff;font:12px 'Pixelify Sans',monospace;display:none;box-shadow:4px 4px 0 rgba(0,0,0,.35)`;fr.append(fiche);
   const fcv=document.createElement('canvas');fcv.width=84;fcv.height=112;fcv.style.cssText='width:63px;height:84px;image-rendering:pixelated;background:linear-gradient(#8d86bf,#6f68a8);border:2px solid;border-color:#2a3352 #c8d4f0 #c8d4f0 #2a3352;flex:none';
   function openFiche(v){fiche.v=v;fiche.style.display='block';paintFiche();beep(520,.05,'square',.04)}
   function closeFiche(){fiche.v=null;fiche.style.display='none'}
@@ -3231,6 +3260,12 @@ function docs2D(n,cfg){return new Promise(async res=>{
     let hit=null,hz=-1;V.forEach(v=>{const[vx,vy]=iso(v.i+.5,v.j+.5);if(Math.abs(x-vx)<16&&y>vy-104&&y<vy+6&&v.i+v.j>hz){hit=v;hz=v.i+v.j}});if(hit){openFiche(hit);return}
     const a=(x-W/2+cam.x)/(16*S),b=(y-H*.52+cam.y)/(8*S),i=Math.floor((a+b)/2),j=Math.floor((b-a)/2);if(inb(i,j)&&ROOM[M[i][j]]!==undefined)send(ROOM[M[i][j]],fiche.v&&(fiche.v.st==='wait'||fiche.v.st==='in')?fiche.v:null)});
   paintCard();
+  let mobileView=false;
+  mobileControls.use('doc',{root:card,choices:()=>fiche.v?fiche.querySelectorAll('[data-s]'):card.querySelectorAll('[data-r]'),navigationAllowed:()=>!mobileView,
+    onMove:(v,dt)=>{if(mobileView&&v.active){cam.x+=v.x*220*dt;cam.y+=v.y*180*dt;cam.man=5}},
+    actions:[{label:'FICHE',icon:'document',enabled:()=>!!(fiche.v||served),down:()=>{if(fiche.v)closeFiche();else if(served)openFiche(served)}},
+      {label:'VUE',icon:'view',down:()=>mobileView=true,up:()=>mobileView=false},
+      {label:'ENVOYER',icon:'send',enabled:()=>!!(fiche.v||served),down:()=>send(mobileControls.selection,fiche.v||served)}]});
   /* --- personnel des salles (sprites Blender) et petites animations par-dessus le décor --- */
   const busy=r=>V.some(v=>v.st==='visit'&&v.room===r);
   const STAFF=[[8,2.8,2.6,0],[9,5.2,2.6,1],[10,8.3,2.6,2],[11,12.3,2.6,3],[12,14.3,2.8,4],[13,17,2.75,-1]].map(([ci,i,j,k])=>({ci,i,j,k,ph:rand(0,6),sp:1}));
@@ -3346,7 +3381,7 @@ const keyOf=k=>({e:'S',E:'S',ArrowLeft:'L',a:'L',q:'L',A:'L',Q:'L',ArrowRight:'R
 const KEYP={};
 addEventListener('keydown',e=>{const k=keyOf(e.key);if(k&&cur&&(cur.platformer||cur.keys)){KEYS[k]=1;if(!e.repeat)KEYP[k]=1;e.preventDefault()}});
 addEventListener('keyup',e=>{const k=keyOf(e.key);if(k){KEYS[k]=0;if(cur&&(cur.platformer||cur.keys))e.preventDefault()}});
-document.querySelectorAll('#pad [data-k]').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{KEYS[k]=1;e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>KEYS[k]=0))});
+const mobileControls=TalasMobileControls.create({pad:$('#pad'),keys:KEYS,pressed:KEYP,mobile:TOUCH,getWorld:()=>cur,sceneTarget:()=>cv});
 
 /* Décor peint : textures dessinées sur canvas (neige, pavés, planches, briques, rayures, nuages bouclés, vitrine). */
 function ctex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.NearestFilter;return t}
@@ -3471,8 +3506,8 @@ const fmtT=t=>{const m=Math.floor(t/60),s=Math.floor(t%60),c=Math.floor(t*100)%1
 const CHANTIER_REC=165;
 /* sous-titres façon dessin animé : bandes noires, médaillon, capitales qui défilent par morceaux */
 const CINE={q:null,t:0,i:0,chunks:[],who:null};
-function cine(who,text){const el=$('#cine');if(!el)return;const plain=String(text).replace(/<[^>]+>/g,'').replace(/[«»]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
-  const ws=plain.split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>26){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
+function cine(who,text){const el=$('#cine');if(!el)return;const plain=String(text).replace(/<[^>]+>/g,'').replace(/[«»]/g,'').replace(/\s+/g,' ').trim();
+  const ws=(TOUCH?plain:plain.toUpperCase()).split(' '),ch=[];let cur2='';for(const w of ws){if(cur2&&(cur2+' '+w).length>(TOUCH?90:26)){ch.push(cur2);cur2=w}else cur2=cur2?cur2+' '+w:w}if(cur2)ch.push(cur2);
   CINE.chunks=ch;CINE.i=0;CINE.t=0;CINE.who=who;el.querySelector('.cpor').style.backgroundImage=`url(${portraitURL(who)})`;el.classList.add('on');$('#frame').classList.add('cine');cineShow()}
 function cineShow(){const el=$('#cine');const c=CINE.chunks[CINE.i];const tx=el.querySelector('.ctxt');tx.textContent=c;tx.classList.remove('pop');void tx.offsetWidth;tx.classList.add('pop');CINE.t=.7+c.length*.05}
 function cineTick(dt){if(!CINE.chunks.length)return;CINE.t-=dt;if(CINE.t>0)return;CINE.i++;if(CINE.i<CINE.chunks.length){cineShow();return}CINE.chunks=[];cineOff()}
@@ -3897,24 +3932,25 @@ function buildPlatformer(){
       BRK.forEach(b=>{if(!b.off&&Math.abs((b.x0+b.x1)/2-x)<r&&y<b.y1&&y+HH>b.y0){b.off=1;hit=1;s.remove(b.m);PX.chips(V((b.x0+b.x1)/2,b.y0+1,0),18,['#f3ece2','#dfe3ea','#b7c2d6'],4,[.15,.35],b.y0+.05);
         PX.puff(V((b.x0+b.x1)/2,b.y0+1.2,0),14,{c:['#ffffff','#ece6dc'],size:[.5,1.1],sp:3});ono('CRAAAC !',V((b.x0+b.x1)/2,b.y0+2.6,.6))}});
       if(hit&&!st.smashMsg){st.smashMsg=1;say2('boulon','Bien joué ! Mais en vrai, un collègue sonné, c’est un accident à déclarer (§10.2).')}};
-    if(KEYS.S&&st.spinCD<=0&&!st.climb){st.spinT=.45;st.spinCD=.75;st.idleT=0;PX.puff(V(st.pos.x,st.pos.y+.1,0),6,{c:['#ffffff','#e6eef4'],size:[.25,.5],sp:3.5,up:.3});beep(420,.18,'sawtooth',.03);smash(st.pos.x,st.pos.y,1.9,'BOING !')}
-    let ix=(KEYS.R?1:0)-(KEYS.L?1:0);if(st.dizzy>0)ix=-ix;
-    if(ix&&ix!==st.face&&st.ground&&Math.abs(st.vel.x)>4){st.squash=-.4;PX.puff(V(st.pos.x+st.face*.3,st.pos.y+.1,0),4,{c:['#ffffff'],size:[.25,.45],sp:1.4,up:.3})}
-    if(ix)st.face=ix;
+    const tapJ=!!KEYP.J,tapD=!!KEYP.D,tapS=!!KEYP.S;KEYP.J=KEYP.D=KEYP.S=0;
+    if((KEYS.S||tapS)&&st.spinCD<=0&&!st.climb){st.spinT=.45;st.spinCD=.75;st.idleT=0;PX.puff(V(st.pos.x,st.pos.y+.1,0),6,{c:['#ffffff','#e6eef4'],size:[.25,.5],sp:3.5,up:.3});beep(420,.18,'sawtooth',.03);smash(st.pos.x,st.pos.y,1.9,'BOING !')}
+    let ix=mobileControls.vector.active?mobileControls.vector.x:(KEYS.R?1:0)-(KEYS.L?1:0);if(st.dizzy>0)ix=-ix;
+    if(ix&&Math.sign(ix)!==st.face&&st.ground&&Math.abs(st.vel.x)>4){st.squash=-.4;PX.puff(V(st.pos.x+st.face*.3,st.pos.y+.1,0),4,{c:['#ffffff'],size:[.25,.45],sp:1.4,up:.3})}
+    if(ix)st.face=Math.sign(ix);
     const lad=ladderAt();
-    if(st.climb){const l=st.climb;st.pos.x=l.x;st.pos.y+=((KEYS.U?1:0)-(KEYS.D?1:0))*3.4*dt;st.vel.set(0,0,0);
-      if(KEYS.J){st.climb=null;st.vel.set(ix*4,6,0);st.peak=st.pos.y}
+    if(st.climb){const l=st.climb;st.pos.x=l.x;st.pos.y+=(mobileControls.vector.active?-mobileControls.vector.y:(KEYS.U?1:0)-(KEYS.D?1:0))*3.4*dt;st.vel.set(0,0,0);
+      if(KEYS.J||tapJ){st.climb=null;st.vel.set(ix*4,6,0);st.peak=st.pos.y}
       else if(ix&&!KEYS.U&&!KEYS.D){st.climb=null;st.peak=st.pos.y;if(st.pos.y>l.y1-.6)st.pos.y=l.y1;else if(st.pos.y<l.y0+.6)st.pos.y=l.y0}
       else if(st.pos.y>=l.y1){st.pos.y=l.y1;st.climb=null;st.ground=true;st.peak=l.y1}
       else if(st.pos.y<=l.y0){st.pos.y=l.y0;st.climb=null;st.ground=true;st.peak=l.y0}}
     else if(lad&&((KEYS.U&&st.pos.y<lad.y1-.05)||(KEYS.D&&st.pos.y>lad.y0+.05))){st.climb=lad;st.ground=false;st.vel.set(0,0,0)}
     else{
       const tv=ix*(st.stun>0?2:st.carry?4.9:5.8);if(st.kb>0)st.kb-=dt;else if(!st.pound)st.vel.x+=(tv-st.vel.x)*Math.min(1,dt*(st.ground?14:7));
-      const jk=KEYS.J||(KEYS.U&&!lad),jE=jk&&!st.jPrev;st.jPrev=jk;if(st.ground)st.dj=false;
+      const jk=KEYS.J||tapJ||(KEYS.U&&!lad),jE=tapJ||(jk&&!st.jPrev);st.jPrev=jk;if(st.ground)st.dj=false;
       if(jk&&st.ground){st.vel.y=9.2;st.ground=false;st.squash=.9;PX.puff(V(st.pos.x,st.pos.y+.1,0),3,{c:['#ffffff'],size:[.25,.5],sp:1.2,up:.3});beep(520,.06,'triangle',.03)}
       else if(jE&&!st.ground&&!st.dj&&!st.pound){st.dj=true;st.vel.y=8.6;st.peak=st.pos.y;st.flip=1;PX.ring(V(st.pos.x,st.pos.y,0),'#ffffff');PX.puff(V(st.pos.x,st.pos.y,0),5,{c:['#ffffff','#e6eef4'],size:[.2,.4],sp:1.6,up:-.2});beep(700,.06,'triangle',.05);setTimeout(()=>beep(1050,.08,'triangle',.05),50)}
       /* plongeon : bas en plein saut, Dylan pique vers le sol et fait trembler tout autour */
-      const dE=KEYS.D&&!st.dPrev;st.dPrev=KEYS.D;if(dE&&!st.ground&&!st.pound&&!st.climb&&st.pos.y>st.peak-3){st.pound=1;st.vel.set(0,4,0);st.flip=0;beep(300,.2,'sawtooth',.03)}
+      const dE=tapD||(KEYS.D&&!st.dPrev);st.dPrev=KEYS.D;if(dE&&!st.ground&&!st.pound&&!st.climb&&st.pos.y>st.peak-3){st.pound=1;st.vel.set(0,4,0);st.flip=0;beep(300,.2,'sawtooth',.03)}
       st.vel.y-=(st.pound&&st.vel.y<4?46:22)*dt;
       if(st.ground&&st.plat&&st.plat.vm)st.pos.y=st.plat.y;
       st.pos.x+=st.vel.x*dt;
@@ -4039,21 +4075,21 @@ function chantierPodium(t,coins,epi,x={}){return new Promise(res=>{const rec=cha
 async function platformSection(n){
   const room=cur;
   await say('karim','Audit terrain au hangar d’assemblage : la ligne A320 tourne à plein. Il faut déposer le rapport d’inspection SST en salle de revue de direction, tout en haut, sous la charpente.');
-  await say('boulon','Chaque étage du hangar est verrouillé : il faut le bon objet pour passer, et la bulle au-dessus de Dylan te dit lequel. Badge, bouteille d’air, burger, café, clé… Le chrono tourne. Tu as 5 cœurs. '+(TOUCH?'Croix pour avancer et grimper, SAUT pour sauter, TOUR pour tournoyer, bas en plein saut pour plonger.':'Flèches ou ZQSD pour avancer et grimper, ESPACE pour sauter, E pour tournoyer, bas en plein saut pour plonger.')+' Ramasse les pièces S et les EPI : chacun protège d’un danger précis (§8.1.2). Le cercle rouge annonce un objet qui tombe.'+howto('parcours'),{btns:[{t:'C’est parti !',go:1}],cls:''});
+  await say('boulon','Chaque étage du hangar est verrouillé : il faut le bon objet pour passer, et la bulle au-dessus de Dylan te dit lequel. Badge, bouteille d’air, burger, café, clé… Le chrono tourne. Tu as 5 cœurs. '+(TOUCH?'Joystick à gauche pour avancer et grimper ; à droite, SAUT pour sauter, TORNADE pour tournoyer et PLONGEON en plein saut pour plonger.':'Flèches ou ZQSD pour avancer et grimper, ESPACE pour sauter, E pour tournoyer, bas en plein saut pour plonger.')+' Ramasse les pièces S et les EPI : chacun protège d’un danger précis (§8.1.2). Le cercle rouge annonce un objet qui tombe.'+howto('parcours'),{btns:[{t:'C’est parti !',go:1}],cls:''});
   let got=0,coins=0,save=null,t=0,card=false,lastPlatform=null;
   const retire=scene=>{if(window.TALAS_PERSO&&TALAS_PERSO.actifs)scene.traverse(o=>{if(o.userData&&o.userData.perso)TALAS_PERSO.actifs.delete(o.userData.perso)})};
   const ok=await trial(n,async()=>{
     hidePanel();if(document.activeElement)document.activeElement.blur();await fade(1);try{await Promise.race([Promise.all([document.fonts.load('40px "Luckiest Guy"'),document.fonts.load('20px "Rye"')]),new Promise(r=>setTimeout(r,1500))])}catch(e){}
     if(!card){card=true;await Promise.all([chantierCard(),Promise.race([preloadToons(),new Promise(r=>setTimeout(r,6000))])])}
     if(lastPlatform)retire(lastPlatform.scene);
-    const PW=buildPlatformer();lastPlatform=PW;PW.rec=chantierRec();PW.onSave=sv=>save=sv;if(save)PW.restore(save);setWorld(PW);$('#phud').hidden=false;$('#pad').hidden=!TOUCH;keyHelp('parcours');$('#hud .right').style.visibility='hidden';
+    const PW=buildPlatformer();lastPlatform=PW;PW.rec=chantierRec();PW.onSave=sv=>save=sv;if(save)PW.restore(save);setWorld(PW);$('#phud').hidden=false;keyHelp('parcours');$('#hud .right').style.visibility='hidden';
     const kh=keyhole(true);await fade(0);await kh;
-    const r=await PW.run();keyHelp();$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();Object.keys(KEYS).forEach(k=>KEYS[k]=0);
+    const r=await PW.run();keyHelp();$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();Object.keys(KEYS).forEach(k=>KEYS[k]=0);
     got=Object.keys(PW.st.ppe).length;coins=PW.st.coins;t=PW.time||PW.st.t;
     if(r){pts(n,true);PPE.forEach(p=>pts(n,!!PW.st.ppe[p.k]));cdi(8);await keyhole(false);await chantierPodium(t,coins,got,{tips:PW.st.tipsSeen,tipsN:6,hits:PW.st.hits});$('.keyhole')&&$('.keyhole').remove()}else PW.lastCause=PW.cause;
     return r;
   },()=>{const c=cur.cause||{};return {drop:c.drop||null,why:c.why||'tombé du chemin de roulement.',moral:c.moral||'Travail en hauteur : protection collective d’abord (§8.1.2).'}});
-  keyHelp();$('#hud .right').style.visibility='visible';$('#pad').hidden=true;$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();
+  keyHelp();$('#hud .right').style.visibility='visible';$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();
   await fade(1);
   if(lastPlatform)retire(lastPlatform.scene);
   retire(room.dylan);
@@ -4106,7 +4142,7 @@ RUN[1]=async()=>{
    {w:'ceo',t:'Mon engagement ? Assieds-toi, petit. Convaincs-moi.'}]);
   await trial(1,()=>battle(1),CAUSES.ceo);
   await say('boulon','Aurelien a signé… puis il a filé au vestiaire. On entend un grand BOUM dans l’avenue de l’usine.');
-  await trial(1,async()=>(await run3D(1,{len:560,hint:'Exercice d’évacuation grandeur nature, et c’est moi le géant ! Cours jusqu’au point de rassemblement et guide tes collègues paniqués ('+(TOUCH?'TOUR':'E')+'). Suis les consignes qui s’affichent devant les obstacles.',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac);
+  await trial(1,async()=>(await run3D(1,{len:560,hint:'Exercice d’évacuation grandeur nature, et c’est moi le géant ! Cours jusqu’au point de rassemblement et guide tes collègues paniqués ('+(TOUCH?'GUIDER':'E')+'). Suis les consignes qui s’affichent devant les obstacles.',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac);
   await runScript(1,[
    {w:'ceo',q:'Et qui est responsable de la sécurité dans les ateliers, alors ?',opts:[
     {t:'Chaque manager a des responsabilités SST écrites et connues de son équipe. Vous gardez la responsabilité finale.',d:6,fb:'§5.3 : rôles, responsabilités et autorités attribués et communiqués à tous les niveaux.'},
@@ -4165,7 +4201,7 @@ RUN[3]=async()=>{
     {t:'Quart d’heure sécurité chaque semaine en atelier, affichage en français, anglais et portugais, et une boîte à remontées anonyme.',d:6,fb:'§7.4 : quoi, quand, à qui, comment, en tenant compte des langues et des publics.'},
     {t:'Un mail mensuel du service HSE.',d:-4,fb:'Les opérateurs ne lisent pas leurs mails en atelier.'},
     {t:'Une lettre d’information trimestrielle.',d:-4,fb:'Trop rare et à sens unique.'}]}]);
-  await trial(3,async()=>(await karaoke3D(3,{beat:.62,hint:'Le quart d’heure sécurité, version karaoké ! Les mots arrivent sur trois pistes : quand un mot touche son cercle, appuie sur sa piste ('+(TOUCH?'touche la gauche, le milieu ou la droite de l’écran':'Q, S ou D (ou les flèches)')+'). Chaque mot raté endort un opérateur, chaque série de trois en réveille un.',after:'Sensibilisation (§7.3) et communication (§7.4) : le message est passé.',
+  await trial(3,async()=>(await karaoke3D(3,{beat:.62,hint:'Le quart d’heure sécurité, version karaoké ! Les mots arrivent sur trois pistes : quand un mot touche son cercle, appuie sur sa piste ('+(TOUCH?'joystick pour choisir la piste puis CHANTER, ou micros GAUCHE / DROITE':'Q, S ou D (ou les flèches)')+'). Chaque mot raté endort un opérateur, chaque série de trois en réveille un.',after:'Sensibilisation (§7.3) et communication (§7.4) : le message est passé.',
    lines:['Casque vissé, chaussures fermées, on entre','Je connais les dangers de mon poste','Si ça craint, droit de retrait','Consignes traduites pour tout le monde','Allées piétonnes, on ne coupe pas']}))>=.5,CAUSES.support);
   await say('sabrina','<b>Le refrain !</b> Plus vite : l’équipe de nuit vient d’arriver.');
   await trial(3,async()=>(await karaoke3D(3,{beat:.5,travel:2,hint:'Refrain accéléré : mêmes pistes, tempo plus rapide.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',

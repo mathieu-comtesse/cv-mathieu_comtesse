@@ -46,7 +46,7 @@
         if (P && p.prop && P.loaded(p.prop)) { model = P.make(p.prop, {}, { gradientMap: grad, outline: 1.035 }); model.scale.setScalar(p.sc || 1); model.position.y = .32; model.rotation.y = p.ry || 0; g.add(model) }
         else model = outline(mk(new THREE.BoxGeometry(1, 1, 1), p.col, 0, .82, 0, g), 1.04)
         const lab = labelPlane(p.t, 2.8, .6, { bg: '#fffaf0', border: p.col, size: 60 }); lab.position.set(0, 2.55, 0); g.add(lab)
-        const hz = labelPlane('⚠ ' + p.h, 2.8, .5, { bg: p.col, border: p.col, fg: '#fff', size: 56 }); hz.position.set(0, 2.05, 0); g.add(hz)
+        const hz = labelPlane(p.h, 2.8, .5, { bg: p.col, border: p.col, fg: '#fff', size: 56 }); hz.position.set(0, 2.05, 0); g.add(hz)
         // voie peinte du poste vers l'équipe
         const d = V(TEAM.x - x, 0, TEAM.z - z), L = d.length()
         for (let k = .12; k < .9; k += .09) { const s = mk(new THREE.BoxGeometry(.18, .02, .36), '#ffd43b', x + d.x * k, .11, z + d.z * k, st); s.rotation.y = Math.atan2(d.x, d.z); s.castShadow = false }
@@ -112,8 +112,9 @@
       }
 
       /* ---- repères de clic : une flèche qui sautille au-dessus de chaque poste pendant la préparation ---- */
-      const clics = postes.map((p) => { const l = labelPlane(TOUCH ? '▼ TOUCHE' : '▼ CLIQUE', 1.5, .42, { bg: '#ffd43b', border: '#212529', fg: '#212529', size: 80 }); l.position.set(p.x, 0, p.z + 1.1); l.visible = false; st.add(l); return l })
+      const clics = postes.map((p) => { const l = labelPlane(TOUCH ? 'TOUCHE' : 'CLIQUE', 1.5, .42, { bg: '#ffd43b', border: '#212529', fg: '#212529', size: 80 }); l.position.set(p.x, 0, p.z + 1.1); l.visible = false; st.add(l); return l })
       let clicOn = false
+      mobileControls.use('budget',{panelPassthrough:()=>clicOn})
       const extra0 = R.extra
       R.extra = (dt, T) => { extra0(dt, T); clics.forEach((l, i) => { l.visible = clicOn && !postes[i].bought.has(0) && budget > 0; l.position.y = 1.75 + Math.abs(Math.sin(T * 4 + i)) * .18 }) }
 
@@ -123,12 +124,12 @@
       const Q = cfg.waves || 4, TOT = Array.from({ length: Q }, (_, k) => vague(k + 1)).reduce((a, b) => a + b, 0) * postes.length, BUD = (cfg.budget || 8) + (Q - 1) * (cfg.gain || 5)
       const tr = (l) => `<tr><td style="color:${LVCOL[l]};font-weight:700;padding:1px 6px 1px 0">${LV[l]}</td><td style="text-align:right;padding-right:8px;white-space:nowrap">${COST[l]} pt${COST[l] > 1 ? 's' : ''}</td><td>${EFFET[l]}</td></tr>`
       await say('boulon', `<b>Comment réussir l’année</b><br>
-        🎯 <b>Objectif :</b> finir le 4<sup>e</sup> trimestre avec <b>au moins ${Math.ceil(HPMAX / 2)} points de santé sur ${HPMAX}</b>. Chaque danger qui atteint l’équipe lui retire 1 point.<br>
-        ⚠ <b>La menace :</b> chaque poste envoie 1 danger aux trimestres 1 et 2, puis 2 aux trimestres 3 et 4, soit <b>${TOT} dangers</b> si tu ne fais rien : l’équipe n’y survit pas.<br>
-        💰 <b>Ton budget :</b> ${cfg.budget || 8} pts maintenant, +${cfg.gain || 5} pts à chaque trimestre (${BUD} pts sur l’année). Une mesure achetée reste en place toute l’année.
+        <b>Objectif :</b> finir le 4<sup>e</sup> trimestre avec <b>au moins ${Math.ceil(HPMAX / 2)} points de santé sur ${HPMAX}</b>. Chaque danger qui atteint l’équipe lui retire 1 point.<br>
+        <b>La menace :</b> chaque poste envoie 1 danger aux trimestres 1 et 2, puis 2 aux trimestres 3 et 4, soit <b>${TOT} dangers</b> si tu ne fais rien : l’équipe n’y survit pas.<br>
+        <b>Ton budget :</b> ${cfg.budget || 8} pts maintenant, +${cfg.gain || 5} pts à chaque trimestre (${BUD} pts sur l’année). Une mesure achetée reste en place toute l’année.
         <table style="margin:6px 0;font-size:.92em;border-collapse:collapse">${[0, 1, 2, 3, 4].map(tr).join('')}</table>
-        🖱 <b>À chaque trimestre :</b> ① ${TOUCH ? 'touche' : 'clique sur'} un poste (flèche jaune), ② choisis une mesure, ③ recommence tant qu’il te reste des points, ④ appuie sur « Lancer le trimestre » et regarde.<br>
-        💡 <b>Astuce :</b> supprimer un danger dès le 1<sup>er</sup> trimestre coûte cher, mais ce poste ne te coûtera plus rien ensuite. Les EPI seuls ne suffisent jamais. La prévision t’indique en direct si tu es sur la bonne voie.`, { btns: [{ t: 'C’est parti !', go: 1 }] })
+        <b>À chaque trimestre :</b> ① ${TOUCH ? 'touche' : 'clique sur'} un poste (flèche jaune), ② choisis une mesure, ③ recommence tant qu’il te reste des points, ④ appuie sur « Lancer le trimestre » et regarde.<br>
+        <b>Astuce :</b> supprimer un danger dès le 1<sup>er</sup> trimestre coûte cher, mais ce poste ne te coûtera plus rien ensuite. Les EPI seuls ne suffisent jamais. La prévision t’indique en direct si tu es sur la bonne voie.`, { btns: [{ t: 'C’est parti !', go: 1 }] })
       for (let q = 1; q <= Q; q++) {
         // préparation : on clique les postes pour financer, puis on lance le trimestre
         for (;;) {
@@ -137,9 +138,9 @@
           const risque = postes.reduce((a, p) => a + passe(p), 0), ceT = risque * vague(q)
           let fin = hp; for (let k = q; k <= Q; k++) fin -= risque * vague(k)
           const obj = Math.ceil(HPMAX / 2), bon = fin >= obj, col = bon ? '#2b8a3e' : fin >= obj - 3 ? '#e8590c' : '#c92a2a'
-          const prev = `<div style="margin-top:4px;padding:4px 8px;border-left:4px solid ${col};background:#fff9db">📊 <b>Prévision</b> : ${vague(q) * postes.filter((p) => !p.bought.has(0)).length} danger(s) sortiront ce trimestre, environ <b>${ceT.toFixed(1).replace('.', ',')} blessure(s)</b>. Sans nouvelle mesure, l’équipe finira l’année vers <b style="color:${col}">${Math.max(0, Math.round(fin))} / ${HPMAX}</b> (objectif : ${obj}). ${bon ? 'Tu es sur la bonne voie.' : budget > 0 ? 'Investis encore : commence par les postes sans mesure.' : 'Plus de budget : lance le trimestre, tu gagneras +' + (cfg.gain || 5) + ' pts.'}</div>`
+          const prev = `<div style="margin-top:4px;padding:4px 8px;border-left:4px solid ${col};background:#fff9db"><b>Prévision</b> : ${vague(q) * postes.filter((p) => !p.bought.has(0)).length} danger(s) sortiront ce trimestre, environ <b>${ceT.toFixed(1).replace('.', ',')} blessure(s)</b>. Sans nouvelle mesure, l’équipe finira l’année vers <b style="color:${col}">${Math.max(0, Math.round(fin))} / ${HPMAX}</b> (objectif : ${obj}). ${bon ? 'Tu es sur la bonne voie.' : budget > 0 ? 'Investis encore : commence par les postes sans mesure.' : 'Plus de budget : lance le trimestre, tu gagneras +' + (cfg.gain || 5) + ' pts.'}</div>`
           clicOn = true
-          const r = await Promise.race([say('boulon', `<b>Trimestre ${q} / ${Q}</b> · Budget : <b>${budget} pts</b> · Équipe : ${hp} / ${HPMAX}<br>${budget > 0 ? `${TOUCH ? 'Touche' : 'Clique sur'} un poste marqué d’une flèche jaune pour y financer une mesure, ou lance le trimestre.` : 'Budget épuisé pour ce trimestre.'}${prev}`, { btns: [{ t: `Lancer le trimestre ${q} ▶`, go: 1, v: 'go' }] }), pick])
+          const r = await Promise.race([say('boulon', `<b>Trimestre ${q} / ${Q}</b> · Budget : <b>${budget} pts</b> · Équipe : ${hp} / ${HPMAX}<br>${budget > 0 ? `${TOUCH ? 'Touche' : 'Clique sur'} un poste marqué d’une flèche jaune pour y financer une mesure, ou lance le trimestre.` : 'Budget épuisé pour ce trimestre.'}${prev}`, { btns: [{ t: `Lancer le trimestre ${q}`, go: 1, v: 'go' }] }), pick])
           pickRes = null; clicOn = false
           if (r === 'go') break
           const p = postes[r]
@@ -224,7 +225,8 @@
       buzz.userData = { hover: 1, onClick: press }; R.clickables.push(buzz)
       const onKey = (e) => { if (e.code === 'Space' || e.key === 'b' || e.key === 'B') { e.preventDefault(); press() } }
       addEventListener('keydown', onKey)
-      await say('boulon', '<b>Manche 1 : le buzzer des entrées.</b><br>Des sujets défilent sur l’écran. <b>Buzze</b> (clic sur le buzzer ou ESPACE) quand c’est une entrée <b>obligatoire</b> de la revue de direction (§9.3). Laisse passer le reste.', { btns: [{ t: 'Prêt !', go: 1 }] })
+      mobileControls.use('revue',{actions:[{label:'BUZZER',icon:'buzz',down:press,enabled:()=>!!buzzRes}]})
+      await say('boulon', '<b>Manche 1 : le buzzer des entrées.</b><br>Des sujets défilent sur l’écran. <b>Buzze</b> (' + (TOUCH ? 'bouton BUZZER' : 'clic sur le buzzer ou ESPACE') + ') quand c’est une entrée <b>obligatoire</b> de la revue de direction (§9.3). Laisse passer le reste.', { btns: [{ t: 'Prêt !', go: 1 }] })
       let last = ''
       for (const [i, c] of cfg.entrees.entries()) {
         show(c.t, `Sujet ${i + 1} / ${cfg.entrees.length} · entrée obligatoire ? BUZZE !`); ETAT.carte = c; ETAT.manche = 1
@@ -244,10 +246,10 @@
       await say('ceo', `${last}<b>Manche 2 : vrai ou faux de l’audit.</b> Mes chefs d’équipe jurent que tout est conforme. À toi de dire si c’est vrai.`, { btns: [{ t: 'Envoyez les constats', go: 1 }] })
       for (const [i, c] of cfg.constats.entries()) {
         show(`« ${c.t} »`, `Constat ${i + 1} / ${cfg.constats.length} · conforme ou écart ?`); ETAT.carte = c; ETAT.manche = 2
-        const ans = await Promise.race([say('ceo', `<b>Constat ${i + 1} / ${cfg.constats.length}</b> · « ${c.t} »`, { btns: [{ t: '✔ Conforme', v: 0 }, { t: '✘ Écart', v: 1 }], row: true }), new Promise((r) => setTimeout(() => r(-1), (cfg.tAudit || 9000) / SP))])
+        const ans = await Promise.race([say('ceo', `<b>Constat ${i + 1} / ${cfg.constats.length}</b> · « ${c.t} »`, { btns: [{ t: 'Conforme', v: 0 }, { t: 'Écart', v: 1 }], row: true }), new Promise((r) => setTimeout(() => r(-1), (cfg.tAudit || 9000) / SP))])
         const ok = ans === (c.lie ? 1 : 0); mark(ok); if (c.lie && ans === 1) tsAdd('ecarts')
         show(`« ${c.t} »`, ok ? (c.lie ? 'ÉCART CONFIRMÉ' : 'CONFORME') : ans < 0 ? 'TEMPS ÉCOULÉ' : 'MAUVAISE RÉPONSE', ok ? '#d3f9d8' : '#ffe3e3')
-        await say('audit', `${ok ? '✔' : '✘'} ${c.lie ? c.fb || 'C’était un écart : il ouvre une action corrective (§10.2).' : 'C’était conforme : preuve vérifiée sur le terrain.'}`, { cls: ok ? 'good' : 'bad' })
+        await say('audit', `${ok ? 'Validé :' : 'Écart :'} ${c.lie ? c.fb || 'C’était un écart : il ouvre une action corrective (§10.2).' : 'C’était conforme : preuve vérifiée sur le terrain.'}`, { cls: ok ? 'good' : 'bad' })
       }
 
       /* ---- manche 3 : la grande question (§9.3) ---- */
@@ -257,7 +259,7 @@
         const ans = await say('ceo', `<b>${q.q}</b>${q.souffle ? `<br><i>Aurelien souffle : « ${q.souffle} »</i>` : ''}`, { btns: q.opts.map((o, k) => ({ t: o.t, v: k })), grid: q.opts.length > 2 })
         const ok = !!q.opts[ans].ok; mark(ok)
         show(q.q, ok ? 'BONNE RÉPONSE' : 'PERDU', ok ? '#d3f9d8' : '#ffe3e3')
-        await say('boulon', `${ok ? '✔' : '✘'} ${q.fb}`, { cls: ok ? 'good' : 'bad' })
+        await say('boulon', `${ok ? 'Validé :' : 'Écart :'} ${q.fb}`, { cls: ok ? 'good' : 'bad' })
       }
       const ratio = total ? good / total : 0
       show(`${good} / ${total}`, ratio >= .5 ? 'LA REVUE EST VALIDÉE' : 'LA REVUE EST À REFAIRE', ratio >= .5 ? '#d3f9d8' : '#ffe3e3')
@@ -270,8 +272,8 @@
   /* aides de jeu (panneau « Le but / Commandes » du jeu) */
   const addHowto = () => {
     try {
-      HOWTO.budget = { but: 'Garder l’équipe au-dessus de la moitié de sa santé après quatre trimestres. Chaque trimestre, les cinq postes envoient des dangers vers l’équipe (1 par poste, puis 2 à partir du 3<sup>e</sup> trimestre). Avant chaque trimestre, dépense ton budget en mesures : elles restent en place toute l’année, et plus elles sont hautes dans la hiérarchie, plus elles coûtent et plus elles protègent.', kb: ['Clic sur un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'], tc: ['Touche un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'] }
-      HOWTO.revue = { but: 'Trois manches sur le plateau de la revue de direction : buzze les entrées obligatoires, démasque les écarts de l’audit, réponds à la grande question.', kb: ['Clic sur le buzzer ou ESPACE : buzzer', 'Boutons : répondre'], tc: ['Touche le buzzer : buzzer', 'Boutons : répondre'] }
+      HOWTO.budget = { but: 'Garder l’équipe au-dessus de la moitié de sa santé après quatre trimestres. Chaque trimestre, les cinq postes envoient des dangers vers l’équipe (1 par poste, puis 2 à partir du 3<sup>e</sup> trimestre). Avant chaque trimestre, dépense ton budget en mesures : elles restent en place toute l’année, et plus elles sont hautes dans la hiérarchie, plus elles coûtent et plus elles protègent.', kb: ['Clic sur un poste (flèche jaune) : choisir une mesure à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'], tc: ['Joystick : viser un poste', 'MESURE : choisir une protection à financer', 'Recommence tant qu’il te reste des points', 'Bouton « Lancer le trimestre » : les dangers arrivent, tes mesures jouent', 'La prévision indique si tu es sur la bonne voie'] }
+      HOWTO.revue = { but: 'Trois manches sur le plateau de la revue de direction : buzze les entrées obligatoires, démasque les écarts de l’audit, réponds à la grande question.', kb: ['Clic sur le buzzer ou ESPACE : buzzer', 'Boutons : répondre'], tc: ['BUZZER : valider une entrée obligatoire', 'Joystick : choisir une réponse', 'VALIDER : répondre'] }
     } catch (e) { setTimeout(addHowto, 50) }
   }
   addEventListener('DOMContentLoaded', addHowto)

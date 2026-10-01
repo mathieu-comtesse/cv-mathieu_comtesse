@@ -224,7 +224,7 @@
         #qhud .qaide{position:absolute;left:12px;top:58px;font:600 12px "Trebuchet MS",sans-serif;color:#fff;text-shadow:1px 1px 0 #1a0d22;opacity:.85}`
       const d = document.createElement('div'); d.id = 'qhud'
       d.innerHTML = `<div class="qobj"><svg viewBox="0 0 44 52"><path d="M22 3 40 14v18c0 9-8 15-18 17C12 47 4 41 4 32V14z" fill="#3a7bd5" stroke="#1a0d22" stroke-width="3" stroke-linejoin="round"/><path d="M14 30c0-9 4-15 8-15s8 6 8 15l-3-2-2 3-3-3-3 3-2-3z" fill="#e9fff4" stroke="#1a0d22" stroke-width="2"/><circle cx="19" cy="24" r="1.6" fill="#1a0d22"/><circle cx="25" cy="24" r="1.6" fill="#1a0d22"/></svg><div><b class="qtitre">Objectif</b><span class="qtexte"></span></div></div>
-        <canvas class="qmap" width="300" height="300"></canvas><div class="qinv"><i>${TOUCH ? '▶' : 'E'}</i><span></span></div><div class="qaide">${TOUCH ? '' : 'ZQSD / flèches : marcher · Maj : courir · glisser : tourner la caméra · E : entrer'}</div><button class="qson" type="button"></button>`
+        <canvas class="qmap" width="300" height="300"></canvas><div class="qinv"><i>${TOUCH ? 'ACTION' : 'E'}</i><span></span></div><div class="qaide">${TOUCH ? '' : 'ZQSD / flèches : marcher · Maj : courir · glisser : tourner la caméra · E : entrer'}</div><button class="qson" type="button"></button>`
       document.getElementById('frame').append(d); return d
     }
     const hud = hudCreer(), qSon = hud.querySelector('.qson'), qMap = hud.querySelector('canvas.qmap'), qg = qMap.getContext('2d'), qTitre = hud.querySelector('.qtitre'), qTexte = hud.querySelector('.qtexte'), qInv = hud.querySelector('.qinv'), qInvT = qInv.querySelector('span')
@@ -252,7 +252,7 @@
     }
     const OBJ = [['Contexte', 'Va à la boutique TALAS : un fantôme hante l’atelier.'], ['Leadership', 'Monte tout en haut, jusqu’au manoir du PDG.'], ['Planification', 'Prends l’escalier de gauche : l’atelier des plans t’attend.'], ['Support', 'Prends l’escalier de droite : la bibliothèque des preuves.'], ['Réalisation', 'Le hangar d’assemblage, sur le quai de gauche.'], ['Évaluation', 'Le studio télé, en haut à droite.'], ['Amélioration', 'Le hangar à bateaux, au bout de la grande jetée.'], ['Le verdict', 'Traverse le pont : le phare rend son verdict.']]
 
-    let prevS = 0, moveT = 0, padOn = false, pasT = 0, idleT = 0
+    let prevS = 0, moveT = 0, pasT = 0, idleT = 0
     const majSon = () => { qSon.textContent = 'Son : ' + (window.TALAS_SON && TALAS_SON.on ? 'oui' : 'non') }; majSon(); qSon.onclick = () => { if (window.TALAS_SON) { TALAS_SON.regler(!TALAS_SON.on); majSon() } }
     const camDans = (x, y, z) => { if (ctx.hauteur(x, z) > y + .1) return true
       for (const o of Q.obstacles) { if (o.t !== 'b' || !o.h) continue; if (y < o.y - .3 || y > o.y + o.h) continue; const cx = Math.cos(o.ry), sx = Math.sin(o.ry), lx = (x - o.x) * cx - (z - o.z) * sx, lz = (x - o.x) * sx + (z - o.z) * cx; if (Math.abs(lx) < o.hw + .5 && Math.abs(lz) < o.hd + .5) return true }
@@ -261,20 +261,18 @@
       const libre = W.photo || busy || S.tStop, fige = libre || S.intro
       // --- entrées
       const modal = !$('#modal').hidden
-      let ix = 0, iz = 0
+      let ix = 0, iz = 0, intensite = 0
       if (!fige && !modal) {
-        const ax = (KEYS.R ? 1 : 0) - (KEYS.L ? 1 : 0), az = (KEYS.U ? 1 : 0) - (KEYS.D ? 1 : 0)
-        if (ax || az) { const cy = Math.cos(W.yaw), sy = Math.sin(W.yaw); ix = cy * ax - sy * az; iz = -sy * ax - cy * az; const n = Math.hypot(ix, iz); ix /= n; iz /= n }
+        const v = mobileControls.vector
+        const ax = v.active ? v.x : (KEYS.R ? 1 : 0) - (KEYS.L ? 1 : 0), az = v.active ? -v.y : (KEYS.U ? 1 : 0) - (KEYS.D ? 1 : 0)
+        if (ax || az) { const cy = Math.cos(W.yaw), sy = Math.sin(W.yaw); ix = cy * ax - sy * az; iz = -sy * ax - cy * az; const n = Math.hypot(ix, iz); ix /= n; iz /= n; intensite = v.active ? v.magnitude : 1 }
       }
       const veut = ix || iz
       idleT = !veut && J.vit < .3 ? idleT + dt : 0 // le chien n'invite à la caresse que quand Dylan s'arrête un instant
       if (veut && !fige && !$('#panel').hidden) { moveT += dt; if (moveT > .7) hidePanel() } else if (!veut) moveT = 0
-      if (TOUCH) { const pd = document.getElementById('pad'), sb = pd.querySelector('.spinb'), on = !fige && !modal
-        if (on) { if (pd.hidden) pd.hidden = false; pd.dataset.only = 'quai'; if (sb && sb.textContent !== 'ENTRER') sb.textContent = 'ENTRER' } else if (padOn) { pd.hidden = true; delete pd.dataset.only; if (sb) sb.textContent = 'TOUR' }
-        padOn = on }
       J.courir += ((KE.shift && veut ? 1 : 0) - J.courir) * Math.min(1, dt * 8)
       const vitMax = (perso ? 2.3 : 3.5) + J.courir * (perso ? 3.4 : 2.8)
-      J.vit += ((veut ? vitMax : 0) - J.vit) * Math.min(1, dt * (veut ? 9 : 12))
+      J.vit += ((veut ? vitMax * intensite : 0) - J.vit) * Math.min(1, dt * (veut ? 9 : 12))
       if (J.vit > 1 && !libre) { pasT -= J.vit * dt; if (pasT <= 0) { pasT = 1.55; if (window.TALAS_SON) TALAS_SON.pas(J.courir > .5) } } else pasT = .2
       if (J.vit > .05) {
         const dx = (veut ? ix : Math.sin(J.ang)) * J.vit * dt, dz = (veut ? iz : Math.cos(J.ang)) * J.vit * dt, r0 = .34
@@ -307,9 +305,11 @@
       let proche = -1, dm = 3.4, invPnj = null
       if (!fige && !modal) for (const k in ctx.PORTES) { const p = ctx.PORTES[k], d = Math.hypot(p.x - J.x, p.z - J.z); if (d < dm && Math.abs(p.y - J.y) < 2.6) { dm = d; proche = +k } }
       J.proche = proche
-      const e = !!KEYS.S; if (e && !prevS && proche >= 0) { if (proche === 7) clickTower(); else clickBuilding(proche) }
-      else if (e && !prevS && proche < 0 && !fige && W.pnjParle && W.pnjParle()) { /* un habitant du quai répond (talas-quai-pnj.js) */ }
-      else if (e && !prevS && proche < 0 && chien && !fige && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.8) { chien.userData.aboie(); if (window.TALAS_SON) TALAS_SON.aboie(); try { beep(260, .12, 'square', .05); setTimeout(() => beep(390, .16, 'square', .05), 120) } catch (er) {} fx.burst(V3(cP.x, cP.y + 1.6, cP.z), 8) }
+      if (TOUCH) mobileControls.setAction(proche >= 0 ? 'enter' : 'interact')
+      const e = !!KEYS.S, appui = (e && !prevS) || !!KEYP.S; KEYP.S = 0;
+      if (appui && proche >= 0) { if (proche === 7) clickTower(); else clickBuilding(proche) }
+      else if (appui && proche < 0 && !fige && !modal && W.pnjParle && W.pnjParle()) { /* un habitant du quai répond (talas-quai-pnj.js) */ }
+      else if (appui && proche < 0 && chien && !fige && !modal && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.8) { chien.userData.aboie(); if (window.TALAS_SON) TALAS_SON.aboie(); try { beep(260, .12, 'square', .05); setTimeout(() => beep(390, .16, 'square', .05), 120) } catch (er) {} fx.burst(V3(cP.x, cP.y + 1.6, cP.z), 8) }
       prevS = e ? 1 : 0
       const dlg = !$('#panel').hidden   // un dialogue est ouvert : pas d'invite par-dessus le panneau
       qMap.style.opacity = dlg ? 0 : 1
@@ -327,7 +327,8 @@
       // --- caméra
       const uti = Math.abs(W.yaw - yawPrec) > 1e-4; if (uti) manuel = W.t; yawPrec = W.yaw
       if (!libre) {
-        if (W.t - manuel > 1.4 && J.vit > 1.5) { let d = Math.atan2(-Math.sin(J.ang), -Math.cos(J.ang)) - W.yaw; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; if (Math.abs(d) < 2.3) { W.yaw += d * Math.min(1, dt * 1.6); yawPrec = W.yaw } }
+        // Keep the camera basis stable while the thumb circles the stick.
+        if (!mobileControls.vector.active && W.t - manuel > 1.4 && J.vit > 1.5) { let d = Math.atan2(-Math.sin(J.ang), -Math.cos(J.ang)) - W.yaw; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; if (Math.abs(d) < 2.3) { W.yaw += d * Math.min(1, dt * 1.6); yawPrec = W.yaw } }
         const d0 = 7.6 * (W.zoom || 1) + J.courir * .8, dR = Math.cos(W.yaw), sR = -Math.sin(W.yaw)
         W.look.set(J.x + dR * .9, J.y + 1.75, J.z + sR * .9); W.dist += (d0 - W.dist) * Math.min(1, dt * 6)
       }

@@ -7,7 +7,7 @@
  * Le jet-ski : quatre flotteurs (proue, poupe, bâbord, tribord) montés en ressorts amortis : il s'enfonce dans l'eau à
  * l'atterrissage (pénétration) puis rebondit, tangue et roule dans la houle, déjauge à grande vitesse, dérive en virage.
  * S = plonger : la proue passe sous la vague au lieu de décoller.
- * La course : trois tours, bouées à passer du bon côté (◀ jaune : passe à gauche, ▶ rouge : passe à droite) ; une
+ * La course : trois tours, bouées à passer du bon côté (jaune : passe à gauche, rouge : passe à droite) ; une
  * bouée manquée est un écart qui fait perdre de la puissance ; à chaque fin de tour, une action corrective (§10.2),
  * puis un nouveau tour pour s'améliorer (§10.3).
  *   TALAS_JETSKI.course(n, cfg) -> Promise<ratio de réussite>      TALAS_JETSKI.auto = true -> pilote automatique */
@@ -309,11 +309,11 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         return { u: best, d: Math.sqrt(bd) } }
     }
   }
-  function bouee(THREE, cote, etape) { // cote -1 : passer à gauche (jaune ◀) ; +1 : passer à droite (rouge ▶)
+  function bouee(THREE, cote, etape) { // cote -1 : passer à gauche (jaune) ; +1 : passer à droite (rouge)
     const g = new THREE.Group(), c = cote < 0 ? '#fab005' : '#e03131'
     const base = new THREE.Mesh(new THREE.CylinderGeometry(.9, 1.1, 1, 14), new THREE.MeshLambertMaterial({ color: c })); base.position.y = .3; g.add(base)
     const cone = new THREE.Mesh(new THREE.ConeGeometry(.8, 3, 14), new THREE.MeshLambertMaterial({ map: bandeTex(THREE, c, '#212529', 6) })); cone.position.y = 2.1; g.add(cone)
-    const sign = new THREE.Mesh(new THREE.CircleGeometry(.95, 24), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: ctx(THREE, 128, 128, (x, w, h) => { x.fillStyle = '#fff'; x.beginPath(); x.arc(64, 64, 62, 0, 7); x.fill(); x.fillStyle = c; x.beginPath(); x.arc(64, 64, 52, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = '900 80px Arial Black, Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(cote < 0 ? '◀' : '▶', 64, 70) }) }))
+    const sign = new THREE.Mesh(new THREE.CircleGeometry(.95, 24), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: ctx(THREE, 128, 128, (x, w, h) => { x.fillStyle = '#fff'; x.beginPath(); x.arc(64, 64, 62, 0, 7); x.fill(); x.fillStyle = c; x.beginPath(); x.arc(64, 64, 52, 0, 7); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.moveTo(cote < 0 ? 36 : 92, 64); x.lineTo(cote < 0 ? 86 : 42, 36); x.lineTo(cote < 0 ? 86 : 42, 92); x.closePath(); x.fill() }) }))
     sign.position.y = 4.4; g.add(sign); g.userData.sign = sign
     if (etape) { const pl = new THREE.Mesh(new THREE.PlaneGeometry(3.4, .95), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: ctx(THREE, 360, 100, (x, w, h) => {
       x.fillStyle = '#fffaf0'; x.fillRect(0, 0, w, h); x.fillStyle = c; x.fillRect(0, 0, w, 8); x.fillRect(0, h - 8, w, 8)
@@ -341,7 +341,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
     return {
       d,
       fiche(h, ok) { fiche.innerHTML = h; fiche.style.borderLeftColor = ok ? '#2f9e44' : '#e03131'; fiche.style.opacity = 1; fiche.style.transform = 'translateY(0)'; fT = 3.2 },
-      sig(n, t) { d.querySelector('#jsSig').innerHTML = `📣 Signalements : <b>${n} / ${t}</b>` },
+      sig(n, t) { d.querySelector('#jsSig').innerHTML = `Signalements : <b>${n} / ${t}</b>` },
       effets(sol, v) { // reflets du soleil dans l'objectif, lignes de vitesse
         const w = fx.clientWidth, h = fx.clientHeight; if (fx.width !== w) { fx.width = w; fx.height = h } fg.clearRect(0, 0, w, h)
         if (sol) { const sx = (sol.x * .5 + .5) * w, sy = (-sol.y * .5 + .5) * h, cx = w / 2, cy = h / 2
@@ -407,14 +407,14 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
       const SIG = SIGNALEMENTS.map(([t, fb], i) => { const u = (i * 2 + 1.35) / (NBq), p = C.at(u), tn = C.tan(u), lat = (i % 2 ? 2.5 : -2.5), g = new THREE.Group()
         const fut = new THREE.Mesh(new THREE.CylinderGeometry(.55, .55, 1.2, 16), new THREE.MeshPhongMaterial({ color: '#ff922b', shininess: 60 })); fut.position.y = .3; g.add(fut)
         ;[.05, .55].forEach((y) => { const c2 = new THREE.Mesh(new THREE.CylinderGeometry(.57, .57, .1, 16), new THREE.MeshPhongMaterial({ color: '#ffffff' })); c2.position.y = y; g.add(c2) })
-        const lb = new THREE.Mesh(new THREE.PlaneGeometry(3, .7), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, map: ctx(THREE, 300, 70, (x, w, h) => { x.fillStyle = 'rgba(255,146,43,.95)'; x.beginPath(); x.roundRect ? x.roundRect(0, 0, w, h, 14) : x.rect(0, 0, w, h); x.fill(); x.fillStyle = '#fff'; x.font = '900 26px Arial Black, Arial'; x.textAlign = 'center'; let fs = 26; while (x.measureText('📣 ' + t).width > w - 12 && fs > 14) { fs -= 2; x.font = `900 ${fs}px Arial Black, Arial` } x.fillText('📣 ' + t, w / 2, 45) }) }))
+        const lb = new THREE.Mesh(new THREE.PlaneGeometry(3, .7), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, map: ctx(THREE, 300, 70, (x, w, h) => { x.fillStyle = 'rgba(255,146,43,.95)'; x.beginPath(); x.roundRect ? x.roundRect(0, 0, w, h, 14) : x.rect(0, 0, w, h); x.fill(); x.fillStyle = '#fff'; x.font = '900 26px Arial Black, Arial'; x.textAlign = 'center'; let fs = 26; while (x.measureText(t).width > w - 12 && fs > 14) { fs -= 2; x.font = `900 ${fs}px Arial Black, Arial` } x.fillText(t, w / 2, 45) }) }))
         lb.position.y = 1.9; g.add(lb); s.add(g); return { g, lb, t, fb, x: p.x + -tn.z * lat, z: p.z + tn.x * lat, pris: false } })
       let nSig = 0
 
       /* bouées : alternées, du côté extérieur ou intérieur de la trajectoire */
       const NB = NBq, B = []
       for (let i = 0; i < NB; i++) { const u = (i + .6) / NB, p = C.at(u), t = C.tan(u), nx = -t.z, nz = t.x, side = (i * 7 + 3) % 5 < 2 ? 1 : -1, off = 6.5
-        const bx = p.x + nx * off * side, bz = p.z + nz * off * side, cote = side > 0 ? 1 : -1 // bouée à gauche de la trajectoire (côté +n) -> on passe à sa droite (▶)
+        const bx = p.x + nx * off * side, bz = p.z + nz * off * side, cote = side > 0 ? 1 : -1 // bouée à gauche de la trajectoire (côté +n) -> on passe à sa droite
         const et = ETAPES[i % ETAPES.length], m = bouee(THREE, cote, et); m.position.set(bx, 0, bz); s.add(m); B.push({ u, x: bx, z: bz, cote, m, lat: off * side, et, vu: 0 }) }
       const fleche = new THREE.Mesh(new THREE.ConeGeometry(.9, 1.8, 4), new THREE.MeshBasicMaterial({ color: '#ffffff' })); fleche.rotation.z = Math.PI; s.add(fleche)
 
@@ -491,7 +491,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         S.wp += (tp * 1.9 - S.wp * (S.wet ? 2.2 : .35)) * dt; S.wr += (tr * 3.2 - S.wr * (S.wet ? 3 : .5)) * dt
         if (!S.wet) S.wp += (-.18 - S.pitch) * 1.2 * dt // en l'air, la proue redescend doucement
         // commandes
-        const au = J.auto, st = au ? autoSteer() : (KEYS.R ? 1 : 0) - (KEYS.L ? 1 : 0)
+        const au = J.auto, st = au ? autoSteer() : mobileControls.vector.active ? mobileControls.vector.x : (KEYS.R ? 1 : 0) - (KEYS.L ? 1 : 0)
         S.steer += (st - S.steer) * Math.min(1, dt * 7)
         S.dive = Math.max(0, Math.min(1, S.dive + ((KEYS.D && !au) ? 1 : -1) * dt * 4))
         const vmax = 15.5 + S.power * 1.1 + S.boost
@@ -532,7 +532,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
           const lat = (c.x - b.x) * -t.z + (c.z - b.z) * t.x // > 0 : on est à gauche de la bouée (sens de la course)
           const ok = Math.abs(lat) < 28 && (b.cote < 0 ? lat > 0 : lat < 0)
           c.bu++; if (ok) c.ok++; else c.miss++
-          if (joueur) { b.vu = ok ? 1 : -1; H2.fiche(`${ok ? '✔' : '✘ Étape sautée :'} <b>${b.et[0]} · ${b.et[1]}</b><br>${b.et[2]}`, ok); if (ok) { const av = S.power; S.power = Math.min(5, S.power + 1); tsAdd('bouees'); H2.msg(S.power >= 5 && av < 5 ? 'PUISSANCE MAX !' : 'BOUÉE !', '#ffd43b', .8); try { beep(880, .08, 'square', .05) } catch (e) {} }
+          if (joueur) { b.vu = ok ? 1 : -1; H2.fiche(`${ok ? 'Validé :' : 'Étape sautée :'} <b>${b.et[0]} · ${b.et[1]}</b><br>${b.et[2]}`, ok); if (ok) { const av = S.power; S.power = Math.min(5, S.power + 1); tsAdd('bouees'); H2.msg(S.power >= 5 && av < 5 ? 'PUISSANCE MAX !' : 'BOUÉE !', '#ffd43b', .8); try { beep(880, .08, 'square', .05) } catch (e) {} }
             else { S.power = 0; tsAdd('jet_ecarts'); H2.msg('ÉCART !', '#ff6b6b', 1); try { beep(160, .25, 'sawtooth', .06) } catch (e) {}; ecartsTour++ } }
         }
       }
@@ -581,7 +581,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         const opts = Q.opts.map(([t, ok], i) => ({ t, v: i, ok })).sort(() => Math.random() - .5)
         const ch = await say('boulon', Q.q(e), { btns: opts.map((o) => ({ t: o.t, v: o.v })), grid: false })
         const good = Q.opts[ch] && Q.opts[ch][1]; pts(n, !!good); if (good) { bonnes++; S.power = Math.min(5, S.power + 2); S.boost = 1.2 }
-        await say('boulon', `${good ? '✔ Bien vu. Puissance +2 pour le tour suivant.' : '✘ Pas vraiment.'} ${Q.fb}`, { cls: good ? 'good' : 'bad' })
+        await say('boulon', `${good ? 'Bien vu. Puissance +2 pour le tour suivant.' : 'Pas vraiment.'} ${Q.fb}`, { cls: good ? 'good' : 'bad' })
         hidePanel(); pause = false; H2.tour(me.lap + 1, LAPS); H2.msg(`TOUR ${me.lap + 1}`, '#ffd43b', 1.2)
       }
       const fmt = (t) => `${Math.floor(t / 60)}'${(t % 60).toFixed(2).padStart(5, '0')}"`
@@ -600,7 +600,7 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         ANN.forEach((a) => { a.t += dt; const k = a.t / 1.4; if (k >= 1) { a.m.visible = false; return } a.m.visible = true; const w = eau(a.x, a.z, 1); a.m.position.set(a.x, w.y + .07, a.z); a.m.scale.setScalar(a.k * (1 + k * 3.2)); a.m.material.opacity = (1 - k) * .75 })
         MOU.forEach((m) => { const a = T * m.sp + m.ph; m.g.position.set(Math.cos(a) * m.r, m.h + Math.sin(T * .7 + m.ph) * 1.5, Math.sin(a) * m.r); m.g.rotation.set(0, -a, .35); const f = Math.sin(T * 9 + m.ph) * .6; m.ail[0].rotation.z = f; m.ail[1].rotation.z = -f })
         SIG.forEach((g) => { if (g.pris) return; const w = eau(g.x, g.z); g.g.position.set(g.x, w.y - .2, g.z); g.g.rotation.x = w.nz * .5; g.g.rotation.z = -w.nx * .5; g.lb.lookAt(camera.position)
-          if (Math.hypot(me.x - g.x, me.z - g.z) < 2.6 && go) { g.pris = true; s.remove(g.g); nSig++; tsAdd('signalements'); H2.sig(nSig, SIG.length); H2.msg('SIGNALÉ !', '#ff922b', .9); H2.fiche(`📣 <b>${g.t}</b><br>${g.fb}`, true); S.boost = Math.min(2.5, S.boost + .8)
+          if (Math.hypot(me.x - g.x, me.z - g.z) < 2.6 && go) { g.pris = true; s.remove(g.g); nSig++; tsAdd('signalements'); H2.sig(nSig, SIG.length); H2.msg('SIGNALÉ !', '#ff922b', .9); H2.fiche(`<b>${g.t}</b><br>${g.fb}`, true); S.boost = Math.min(2.5, S.boost + .8)
             for (let k = 0; k < 30; k++) SP.emit(g.x, w.y + .5, g.z, (Math.random() - .5) * 5, 2 + Math.random() * 4, (Math.random() - .5) * 5, .7, .16); try { beep(1175, .1, 'triangle', .05) } catch (e) {} } })
         if (Math.random() < dt * 6) { const a = S.yaw + (Math.random() - .5) * 1.6, d = 10 + Math.random() * 30, x = me.x + Math.sin(a) * d, z = me.z + Math.cos(a) * d, w = eau(x, z, 1) // moutons : les crêtes éclatent
           if (w.crete < .5) for (let k = 0; k < 10; k++) SP.emit(x, w.y, z, (Math.random() - .5) * 1.5 + .9, 1 + Math.random() * 2, (Math.random() - .5) * 1.5 + .3, .6, .12) }
@@ -638,16 +638,16 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
         cdi(r >= .85 ? 8 : r >= .6 ? 2 : -6)
         const vues = B.filter((b) => b.vu === 1).length, sautees = B.filter((b) => b.vu === -1).map((b) => b.et[1].toLowerCase())
         await say('boulon', `<b>${rang === 1 ? 'Victoire' : rang + 'e place'} en ${fmt(chrono)}.</b> Tours : ${tours.map(fmt).join(' · ')}.<br>
-          📉 <b>Écarts par tour :</b> ${ecartsParTour.join(' → ')} ${ecartsParTour.length > 1 && ecartsParTour[ecartsParTour.length - 1] < ecartsParTour[0] ? '(ça baisse : l’amélioration continue se mesure !)' : ''}<br>
-          🧭 <b>Étapes du §10 validées au dernier passage :</b> ${vues} sur ${B.length}${sautees.length ? ` (sautées : ${[...new Set(sautees)].join(', ')})` : ''}<br>
-          📣 <b>Signalements remontés :</b> ${nSig} sur ${SIG.length}<br>${cfg.after || 'Chaque tour, tu as corrigé tes écarts et tu as fait mieux : c’est ça, l’amélioration continue (§10.3).'}`, { btns: [{ t: 'Continuer', go: 1 }], cls: r >= .6 ? 'good' : 'bad' })
+          <b>Écarts par tour :</b> ${ecartsParTour.join(' → ')} ${ecartsParTour.length > 1 && ecartsParTour[ecartsParTour.length - 1] < ecartsParTour[0] ? '(ça baisse : l’amélioration continue se mesure !)' : ''}<br>
+          <b>Étapes du §10 validées au dernier passage :</b> ${vues} sur ${B.length}${sautees.length ? ` (sautées : ${[...new Set(sautees)].join(', ')})` : ''}<br>
+          <b>Signalements remontés :</b> ${nSig} sur ${SIG.length}<br>${cfg.after || 'Chaque tour, tu as corrigé tes écarts et tu as fait mieux : c’est ça, l’amélioration continue (§10.3).'}`, { btns: [{ t: 'Continuer', go: 1 }], cls: r >= .6 ? 'good' : 'bad' })
         res(r)
       }
 
       /* départ : fondu, consignes, compte à rebours */
       hidePanel(); await fade(1); setWorld(W); W.cam(1); if (typeof keyHelp === 'function') keyHelp('jetski'); await fade(0)
       if (!J.auto) await say('boulon', (cfg.hint || '') + (typeof howto === 'function' ? howto('jetski') : ''), { btns: [{ t: 'Moteur !', go: 1 }] })
-      hidePanel(); if (typeof $ === 'function' && TOUCH) $('#pad').hidden = false
+      hidePanel(); if (TOUCH) mobileControls.use('jetski')
       for (const t of ['3', '2', '1']) { H2.msg(t, '#ffffff', .9); try { beep(440, .12, 'square', .05) } catch (e) {} await new Promise((r) => setTimeout(r, 900)) }
       H2.msg('PARTEZ !', '#ffd43b', 1.2); try { beep(880, .3, 'square', .06) } catch (e) {}; go = true; S.boost = 1
     })
@@ -656,9 +656,9 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
   /* aides : panneau « Le but / Commandes » et bandeau des touches */
   addEventListener('DOMContentLoaded', () => {
     try {
-      HOWTO.jetski = { but: 'Trois tours autour de l’île Talas. Passe chaque bouée du bon côté (◀ jaune : à gauche, ▶ rouge : à droite) : chaque bouée réussie ajoute de la puissance, chaque bouée manquée est un écart qui te la fait perdre. Chaque bouée porte une étape du §10 (de « signaler » à « améliorer sans fin ») ; fonce aussi sur les fûts orange 📣 pour remonter les signalements. À la fin de chaque tour, choisis l’action corrective, puis fais mieux au tour suivant. Les tremplins TALAS font décoller !',
-        kb: ['Q / D ou flèches : tourner', 'S ou flèche bas : plonger sous la vague', 'Le moteur accélère tout seul'], tc: ['◀ ▶ : tourner', '▼ : plonger sous la vague', 'Le moteur accélère tout seul'] }
-      KEYHELP.jetski = `<span>${K('Q')}${K('D')} tourner</span><span>${K('S')} plonger sous la vague</span><span>◀ jaune : passe à gauche · ▶ rouge : passe à droite</span>`
+      HOWTO.jetski = { but: 'Trois tours autour de l’île Talas. Passe chaque bouée du bon côté (jaune : à gauche, rouge : à droite) : chaque bouée réussie ajoute de la puissance, chaque bouée manquée est un écart qui te la fait perdre. Chaque bouée porte une étape du §10 (de « signaler » à « améliorer sans fin ») ; fonce aussi sur les fûts orange pour remonter les signalements. À la fin de chaque tour, choisis l’action corrective, puis fais mieux au tour suivant. Les tremplins TALAS font décoller !',
+        kb: ['Q / D ou flèches : tourner', 'S ou flèche bas : plonger sous la vague', 'Le moteur accélère tout seul'], tc: ['Glisser le joystick gauche / droite : tourner', 'PLONGER : passer sous la vague', 'Le moteur accélère tout seul'] }
+      KEYHELP.jetski = `<span>${K('Q')}${K('D')} tourner</span><span>${K('S')} plonger sous la vague</span><span>jaune : passe à gauche · rouge : passe à droite</span>`
     } catch (e) {}
   })
 })()
