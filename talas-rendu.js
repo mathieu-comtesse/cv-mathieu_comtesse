@@ -24,6 +24,7 @@
   const R = window.TALAS_RENDU = { on: P.get('monde') !== 'classique' && P.get('rendu') !== 'classique', niveau: 2, actifCourant: 0 }
   const fxq = P.get('fx'); if (fxq !== null) R.niveau = Math.max(0, Math.min(2, +fxq || 0))
   else if (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) R.niveau = 1
+  R.mobileEconome = fxq === null && typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
   if (!R.on) { R.actif = () => false; R.preparer = () => {}; R.rendre = () => {}; R.neutre = () => {}; R.lune = { on() {}, poser() {}, reglages() {} }; R.profils = {}; return } // rendu classique : l'interface reste appelable, elle ne fait rien
 
   /* ------------------------------------------------------------------------------------------------------------
@@ -136,7 +137,7 @@ if(rInfo.x > .5){
   let rdr = null, W = 0, H = 0
   const quadGeo = new THREE.PlaneGeometry(2, 2)
   const quad = new THREE.Mesh(quadGeo, null); quad.frustumCulled = false
-  const quadScene = new THREE.Scene(); quadScene.add(quad)
+  const quadScene = new THREE.Scene(); quadScene.userData.talasPostProcess = true; quadScene.add(quad)
   const quadCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
   const VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }'
   const mkMat = (fs, uniforms, extra) => new THREE.ShaderMaterial(Object.assign({ vertexShader: VS, fragmentShader: fs, uniforms, depthTest: false, depthWrite: false }, extra || {}))
@@ -333,14 +334,14 @@ void main(){
     const half = rdr.capabilities.isWebGL2 && rdr.extensions.has('EXT_color_buffer_float')
     const type = half ? THREE.HalfFloatType : THREE.UnsignedByteType
     const tg = (w, h, o) => new THREE.WebGLRenderTarget(Math.max(2, w | 0), Math.max(2, h | 0), Object.assign({ minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type, depthBuffer: false, stencilBuffer: false }, o || {}))
-    const t = { half }
+    const t = { half }, small = R.mobileEconome ? 2 : W >> 1, smallH = R.mobileEconome ? 2 : H >> 1
     t.scene = tg(W, H, { depthBuffer: true }); t.scene.depthTexture = new THREE.DepthTexture(W, H, THREE.UnsignedIntType)
     const hw = W >> 1, hh = H >> 1
-    t.ao = tg(hw, hh, { type: THREE.UnsignedByteType }); t.ao2 = tg(hw, hh, { type: THREE.UnsignedByteType })
-    t.comp = tg(W, H); t.dof = tg(hw, hh)
+    t.ao = tg(small, smallH, { type: THREE.UnsignedByteType }); t.ao2 = tg(small, smallH, { type: THREE.UnsignedByteType })
+    t.comp = tg(W, H); t.dof = tg(small, smallH)
     t.down = []; t.up = []; let bw = hw, bh = hh
-    for (let i = 0; i < 5; i++) { t.down.push(tg(bw, bh)); t.up.push(tg(bw, bh)); bw >>= 1; bh >>= 1 }
-    t.pre = tg(hw, hh)
+    for (let i = 0; i < (R.mobileEconome ? 0 : 5); i++) { t.down.push(tg(bw, bh)); t.up.push(tg(bw, bh)); bw >>= 1; bh >>= 1 }
+    t.pre = tg(small, smallH)
     t.gm = tg(hw, hh, { depthBuffer: true }); t.gb1 = tg(hw, hh); t.gb2 = tg(hw, hh)
     // noyau hémisphérique déterministe
     let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647
@@ -431,7 +432,7 @@ void main(){
     if (dofOn) { t.mDof.uniforms.uMaxPx.value = 7 * dpr; dessiner(t.mDof, t.dof) }
     // 5. bloom
     let bloomTex = null
-    if (p.bloom > 0) {
+    if (p.bloom > 0 && !R.mobileEconome) {
       t.mPre.uniforms.uKnee.value.set(p.seuil, .28); dessiner(t.mPre, t.down[0])
       for (let i = 1; i < 5; i++) { t.mDown.uniforms.tSrc.value = t.down[i - 1].texture; t.mDown.uniforms.uTexel.value.set(1 / t.down[i - 1].width, 1 / t.down[i - 1].height); dessiner(t.mDown, t.down[i]) }
       // la montée : up[4] = down[4] ; up[i] = down[i] + tente(up[i+1])
@@ -452,3 +453,4 @@ void main(){
   R.neutre = () => { U.rInfo.value.x = 0; R.actifCourant = 0 }
   R.liberer = liberer
 })()
+

@@ -330,8 +330,9 @@
   const WR = THREE.WebGLRenderer
   THREE.WebGLRenderer = function (o) {
     const r = new WR(o), r0 = r.render
-    r.render = function (scene, camera) { if (scene && scene.isScene && Pz.actifs.size) Pz.avancer(scene); return r0.apply(this, arguments) }
+    r.render = function (scene, camera) { if (scene && scene.isScene && !scene.userData.talasPostProcess && !scene.overrideMaterial && Pz.actifs.size) Pz.avancer(scene); return r0.apply(this, arguments) }
     return r
   }
   THREE.WebGLRenderer.prototype = WR.prototype
 })()
+

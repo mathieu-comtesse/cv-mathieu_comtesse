@@ -252,7 +252,7 @@
     }
     const OBJ = [['Contexte', 'Va à la boutique TALAS : un fantôme hante l’atelier.'], ['Leadership', 'Monte tout en haut, jusqu’au manoir du PDG.'], ['Planification', 'Prends l’escalier de gauche : l’atelier des plans t’attend.'], ['Support', 'Prends l’escalier de droite : la bibliothèque des preuves.'], ['Réalisation', 'Le hangar d’assemblage, sur le quai de gauche.'], ['Évaluation', 'Le studio télé, en haut à droite.'], ['Amélioration', 'Le hangar à bateaux, au bout de la grande jetée.'], ['Le verdict', 'Traverse le pont : le phare rend son verdict.']]
 
-    let prevS = 0, moveT = 0, pasT = 0, idleT = 0
+    let prevS = 0, moveT = 0, pasT = 0, idleT = 0, mapTime = 0
     const majSon = () => { qSon.textContent = 'Son : ' + (window.TALAS_SON && TALAS_SON.on ? 'oui' : 'non') }; majSon(); qSon.onclick = () => { if (window.TALAS_SON) { TALAS_SON.regler(!TALAS_SON.on); majSon() } }
     const camDans = (x, y, z) => { if (ctx.hauteur(x, z) > y + .1) return true
       for (const o of Q.obstacles) { if (o.t !== 'b' || !o.h) continue; if (y < o.y - .3 || y > o.y + o.h) continue; const cx = Math.cos(o.ry), sx = Math.sin(o.ry), lx = (x - o.x) * cx - (z - o.z) * sx, lz = (x - o.x) * sx + (z - o.z) * cx; if (Math.abs(lx) < o.hw + .5 && Math.abs(lz) < o.hd + .5) return true }
@@ -319,9 +319,9 @@
       const nx = nextN(); const cible = nx === null ? null : ctx.PORTES[nx]
       { const cb = nx === null ? null : (nx === 7 ? HUB_TOWER : B[nx]); W.contour = cb && !fige ? { objets: [cb], couleur: '#ffd86a', force: (.5 + .22 * Math.sin(T * 4)) * (proche === nx ? 1.6 : 1) } : null } // éclat de contour doré autour de l'atelier à rejoindre
       if (cible && !fige) { flecheObj.visible = bague.visible = true; const tp = nx === 7 ? 19.6 : nx === 1 ? 6.6 : 5.4; flecheObj.position.set(cible.x, cible.y + tp + Math.abs(Math.sin(T * 4)) * .5, cible.z); flecheObj.rotation.y = T * 2.4; bague.position.set(cible.x, cible.y + .08, cible.z); bague.scale.setScalar(1 + Math.sin(T * 5) * .08) } else flecheObj.visible = bague.visible = false
-      const oi = nx === null ? null : OBJ[nx]; if (oi) { qTitre.textContent = 'Objectif : ' + oi[0]; qTexte.textContent = oi[1] } else { qTitre.textContent = 'Village Talas'; qTexte.textContent = 'Choisis un atelier.' }
+      const oi = nx === null ? null : OBJ[nx]; if (oi) { const title = 'Objectif : ' + oi[0]; if (qTitre.textContent !== title) qTitre.textContent = title; if (qTexte.textContent !== oi[1]) qTexte.textContent = oi[1] } else { if (qTitre.textContent !== 'Village Talas') qTitre.textContent = 'Village Talas'; if (qTexte.textContent !== 'Choisis un atelier.') qTexte.textContent = 'Choisis un atelier.' }
       hud.style.display = ((libre && !W.photo) || S.intro || W.sansHud) ? 'none' : ''
-      carte(cible, nx)
+      mapTime -= dt; if (!TOUCH || mapTime <= 0) { if (!dlg) carte(cible, nx); mapTime = .1 }
       // --- panneaux d'ateliers tournés vers la caméra
       const q = new THREE.Quaternion(); B.concat([HUB_TOWER]).forEach((b) => { if (b && b.userData.sign) { b.getWorldQuaternion(q); b.userData.sign.quaternion.copy(q.invert().multiply(camera.quaternion)) } })
       // --- caméra

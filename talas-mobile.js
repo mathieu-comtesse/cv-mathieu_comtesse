@@ -55,7 +55,7 @@ window.TalasMobileControls=(()=>{
     aim.innerHTML='<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="9"/><path d="M16 1v8m0 14v8M1 16h8m14 0h8"/></svg>';frame.append(aim);
     const owners=new Map(),captures=new Map(),holds=new Map();
     const vector={x:0,y:0,magnitude:0,active:false},point={x:.5,y:.45};
-    let joystickId=null,base='dialogue',options={},current=null,signature='',routing='',selection=0,choiceElements=[],direction='',repeat=0,virtualDown=false,lastTarget=null;
+    let joystickId=null,base='dialogue',options={},current=null,signature='',routing='',selection=0,choiceElements=[],direction='',repeat=0,virtualDown=false,lastTarget=null,syncTime=0,cursorDirty=true;
     function own(id,next){
       const before=new Set([...owners.values()].flat());
       if(next.length)owners.set(id,next);else owners.delete(id);
@@ -83,7 +83,7 @@ window.TalasMobileControls=(()=>{
       for(const k of Object.keys(pressed))pressed[k]=0;
     }
     function use(name,opts={}){
-      if(!mobile)return;reset();base=profiles[name]?name:'dialogue';options=opts;current=null;signature='';selection=0;choiceElements=[];point.x=.5;point.y=.45;sync();
+      if(!mobile)return;reset();base=profiles[name]?name:'dialogue';options=opts;current=null;signature='';selection=0;choiceElements=[];point.x=.5;point.y=.45;cursorDirty=true;syncTime=0;sync();
     }
     const visible=e=>e?.isConnected&&!e.disabled&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden';
     function choiceModel(root,name,els,go){
@@ -121,6 +121,7 @@ window.TalasMobileControls=(()=>{
       if(signature!==sig||current?.root!==m.root){
         if(m.mode==='cursor'&&current?.name==='dialogue')document.querySelector('#panel .pin')?.scrollTo(0,0);
         choiceElements.forEach(e=>e.classList.remove('mobile-selected'));if(routing!==route||current?.root!==m.root)reset();routing=route;signature=sig;current=m;selection=0;choiceElements=els;
+        highlight();
         pad.dataset.profile=m.name;pad.dataset.actions=m.actions.length;pad.dataset.axis=m.axis||'all';
         pad.setAttribute('aria-label','Commandes mobiles : '+m.name);
         buttons.forEach((b,i)=>{
@@ -130,10 +131,10 @@ window.TalasMobileControls=(()=>{
         });
       }else{
         current=m;
-        if(els.some((e,i)=>e!==choiceElements[i])){choiceElements.forEach(e=>e.classList.remove('mobile-selected'));choiceElements=els;selection=Math.min(selection,Math.max(0,els.length-1))}
+        if(els.some((e,i)=>e!==choiceElements[i])){choiceElements.forEach(e=>e.classList.remove('mobile-selected'));choiceElements=els;selection=Math.min(selection,Math.max(0,els.length-1));highlight()}
       }
-      buttons.forEach((b,i)=>{const a=m.actions[i];if(!a)return;b.disabled=a.enabled===false||(typeof a.enabled==='function'&&!a.enabled())||(a.panel&&!visible(document.querySelector('#panel:not([hidden]) #pact button')))||(m.mode==='choices'&&!els.length&&!a.down)});
-      highlight();aim.hidden=m.mode!=='cursor';
+      buttons.forEach((b,i)=>{const a=m.actions[i];if(!a)return;const disabled=!!(a.enabled===false||(typeof a.enabled==='function'&&!a.enabled())||(a.panel&&!visible(document.querySelector('#panel:not([hidden]) #pact button')))||(m.mode==='choices'&&!els.length&&!a.down));if(b.disabled!==disabled)b.disabled=disabled});
+      const hidden=m.mode!=='cursor';if(aim.hidden!==hidden){aim.hidden=hidden;cursorDirty=true}
     }
     function move(e){
       const r=joystick.getBoundingClientRect(),radius=r.width*.24;let x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
@@ -175,11 +176,11 @@ window.TalasMobileControls=(()=>{
       b.addEventListener('click',e=>{if(e.detail===0&&mobile){sync();const id='keyboard-'+i;pressAction(i,id);liftAction(i,{pointerId:id,stopPropagation(){}})}});
     });
     function step(dt){
-      if(!mobile)return;sync();current.onMove?.(vector,dt);
-      if(current.mode==='cursor'){
+      if(!mobile)return;syncTime-=dt;if(syncTime<=0){sync();syncTime=.1}current.onMove?.(vector,dt);
+      if(current.mode==='cursor'&&(cursorDirty||vector.magnitude>0||virtualDown)){
         const t=target(),r=t?.getBoundingClientRect();
         if(r?.width&&r.height){const speed=current.speed||220;point.x=Math.max(.02,Math.min(.98,point.x+vector.x*speed*dt/r.width));point.y=Math.max(.02,Math.min(.98,point.y+vector.y*speed*dt/r.height));
-          const f=frame.getBoundingClientRect();aim.style.left=(r.left-f.left+point.x*r.width)/f.width*100+'%';aim.style.top=(r.top-f.top+point.y*r.height)/f.height*100+'%';if(virtualDown)eventAt('pointermove')}
+          const f=frame.getBoundingClientRect();aim.style.left=(r.left-f.left+point.x*r.width)/f.width*100+'%';aim.style.top=(r.top-f.top+point.y*r.height)/f.height*100+'%';cursorDirty=false;if(virtualDown)eventAt('pointermove')}
       }
       if(current.mode==='choices'||current.mode==='select'){
         const d=vector.magnitude>.45?(Math.abs(vector.y)>Math.abs(vector.x)?Math.sign(vector.y):Math.sign(vector.x)):0;
@@ -188,10 +189,10 @@ window.TalasMobileControls=(()=>{
     }
     function setAction(mode){
       if(!mobile||base!=='quai')return;
-      const enter=mode==='enter';options.actions=[action(enter?'ENTRER':'AGIR',enter?'enter':'interact','S')];
+      const enter=mode==='enter';if(options.actions?.[0]?.icon===(enter?'enter':'interact'))return;syncTime=0;options.actions=[action(enter?'ENTRER':'AGIR',enter?'enter':'interact','S')];
     }
     new MutationObserver(()=>{if(mobile&&pad.hidden)pad.hidden=false}).observe(pad,{attributes:true,attributeFilter:['hidden']});
-    addEventListener('blur',reset);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});pad.addEventListener('contextmenu',e=>e.preventDefault());
+    addEventListener('resize',()=>cursorDirty=true);addEventListener('orientationchange',()=>cursorDirty=true);addEventListener('blur',reset);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});pad.addEventListener('contextmenu',e=>e.preventDefault());
     sync();return {reset,vector,use,step,setAction,svg,get profile(){return base},get selection(){return selection}};
   }
   return {create,icons,svg,profiles};
