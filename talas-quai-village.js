@@ -15,7 +15,10 @@
     /* ==================================================================== ponton, rampes d'accès, garde-corps */
     // le ponton d'arrivée est déjà posé par talas-quai.js (de z = 19 à z = -10) ; on le prolonge jusqu'à la place
     sol(-1.7, -11.3, 1.7, -10, DECK)
-    escalier([0, DECK, -11.3], [0, PLACE.y, -13.1], 3.2, { garde: false })
+    const passage = id => Q.PASSAGES.find(e => e.id === id)
+    const acces = (id, o) => { const e = passage(id); return escalier(e.a, e.b, e.w, Object.assign({ pas: e.pas }, o)) }
+    const bord = pts => garde(pts, { ouvertures: Q.PASSAGES })
+    acces('ponton-place', { garde: false })
     // plates-formes reliées au ponton : quai du hangar (ouest, n°4), grande jetée (est, n°6)
     sol(-10.5, -8, -1.7, -3.2, DECK); sol(-22.5, -14.5, -10.5, -3.2, DECK)
     sol(1.7, -7, 16, -2.5, DECK); sol(16, -10.5, 28.5, -1, DECK)
@@ -23,27 +26,23 @@
     Q.ESC.forEach((e) => escalier(e.a, e.b, e.w))   // bas et haut de chaque volée : au bord des planchers ci-dessous, qui sont raccourcis pour les recevoir
     // terrasses (planchers) : T1 ouest, T3 est, TC centre, T5 nord-est, T4 manoir, T6 belvédère
     sol(-23, -27, -11.8, -15, 4.1); sol(9.6, -29, 22, -17, 3.1); sol(-9, -46, 9, -35.5, 7.6); sol(12, -47.5, 28, -37.2, 8.0); sol(-9, -67, 9, -55.6, 13.4); sol(-27, -50, -14, -40.5, 9.6)
-    zoneRampe(9, 7.6, -41.5, 12, 8.0, -41.5, 3.2)
-    HAB.planches.clair.push([10.5, 7.8 - .045, -41.5, 3.2, 3.2, PI / 2, 0])
+    acces('centre-studio', { pierre: false })
     // le pont du phare (long, en légère montée) et l'îlot
-    const pont = escalier([5.2, PLACE.y, -13.2], [30.5, 2.6, -15.5], 2.4, { garde: false, pilotis: false, pierre: false })
-    ;(function () { const A = V3(5.2, PLACE.y, -13.2), B = V3(30.5, 2.6, -15.5); for (let q of [-1, 1]) { const n = V3(-(B.z - A.z), 0, B.x - A.x).normalize().multiplyScalar(q * 1.14); garde([A.clone().add(n).toArray(), B.clone().add(n).toArray()], { pas: 2.4 }) }
-      for (let t = 0; t <= 1.001; t += .09) HAB.piles.push([A.x + (B.x - A.x) * t, A.y + (B.y - A.y) * t - .0, A.z + (B.z - A.z) * t + 1.3]) })()
-    zoneDisque(37, -16, 6.5, 2.6); for (let x = 30.5; x < 43; x += .3) { const w = Math.sqrt(Math.max(0, 6.5 * 6.5 - (x - 37) ** 2)); HAB.planches.clair.push([x, 2.6 - .045, -16, .28, w * 2, PI / 2 * 0 + PI / 2, (r() - .5) * .1]) }
+    acces('place-phare', { pierre: false })
+    zoneDisque(37, -16, 6.5, 2.6)
+    for (let x = 30.5 + .15; x < 43.5; x += .3) { const w = Math.sqrt(Math.max(0, 6.5 * 6.5 - (x - 37) ** 2)); HAB.planches.clair.push([x, 2.6 - .045, -16, w * 2, .286, PI / 2, (r() - .5) * .1]) }
     // garde-corps du ponton (avec ouvertures vers les plates-formes)
-    garde([[-1.7, DECK, 19], [-1.7, DECK, 8.6]]); garde([[-1.7, DECK, -8.1], [-1.7, DECK, -11.3]]); garde([[1.7, DECK, 19], [1.7, DECK, 9.6]]); garde([[1.7, DECK, 5.9], [1.7, DECK, -2.4]]); garde([[1.7, DECK, -7.1], [1.7, DECK, -11.3]])
-    garde([[-11.5, DECK, 8.5], [-11.5, DECK, -3.2]]); garde([[-11.5, DECK, 8.5], [-1.7, DECK, 8.5]]); garde([[1.7, DECK, 9.5], [7.5, DECK, 9.5], [7.5, DECK, 6], [1.7, DECK, 6]])
-    garde([[-22.5, DECK, -3.2], [-10.5, DECK, -3.2]]); garde([[-22.5, DECK, -14.5], [-10.5, DECK, -14.5]]); garde([[-22.5, DECK, -3.2], [-22.5, DECK, -14.5]]); garde([[-10.5, DECK, -14.5], [-10.5, DECK, -8.05]])
-    garde([[-10.5, DECK, -8.05], [-1.7, DECK, -8.05]])
-    garde([[1.7, DECK, -7], [16, DECK, -7], [16, DECK, -10.5], [28.5, DECK, -10.5], [28.5, DECK, -1], [16, DECK, -1], [16, DECK, -2.5], [1.7, DECK, -2.5]])
-    // la place
-    { const pts = []; for (let a = 0; a <= 6.284; a += .3927) { const ang = a; const px = Math.cos(ang) * (PLACE.r - .25), pz = PLACE.z + Math.sin(ang) * (PLACE.r - .25); const inOpening = (Math.abs(px) < 1.9 && pz > PLACE.z + 5) || (px < -5.2 && Math.abs(pz - PLACE.z) < 1.6) || (px > 3.5 && pz > PLACE.z + 4.4) || (Math.abs(px) < 2.3 && pz < PLACE.z - 5.8) || (px > 3.5 && pz < PLACE.z - 4); pts.push(inOpening ? null : [px, PLACE.y, pz]) }
-      let cur = []; pts.forEach((p) => { if (p) cur.push(p); else { if (cur.length > 1) garde(cur); cur = [] } }); if (cur.length > 1) garde(cur) }
-    // terrasses : garde-corps sur les bords qui donnent sur le vide
-    garde([[-23, 4.1, -27], [-23, 4.1, -15], [-11.8, 4.1, -15]]); garde([[-23, 4.1, -27], [-18.5, 4.1, -27]]); garde([[-15.5, 4.1, -27], [-11.8, 4.1, -27]]); garde([[22, 3.1, -29], [22, 3.1, -17], [9.6, 3.1, -17]]); garde([[22, 3.1, -29], [19.8, 3.1, -29]]); garde([[9.6, 3.1, -29], [16.3, 3.1, -29]]); garde([[-9, 7.6, -35.5], [-2.5, 7.6, -35.5]]); garde([[2.5, 7.6, -35.5], [9, 7.6, -35.5], [9, 7.6, -46]]); garde([[-9, 7.6, -46], [-2.3, 7.6, -46]]); garde([[2.3, 7.6, -46], [9, 7.6, -46]])
-    garde([[-9, 7.6, -46], [-9, 7.6, -35.5]]); garde([[28, 8, -37.2], [28, 8, -47.5], [12, 8, -47.5]]); garde([[12, 8, -37.2], [17.3, 8, -37.2]]); garde([[22.3, 8, -37.2], [28, 8, -37.2]])
-    garde([[-9, 13.4, -55.6], [-2.2, 13.4, -55.6]]); garde([[2.2, 13.4, -55.6], [9, 13.4, -55.6], [9, 13.4, -67]]); garde([[-9, 13.4, -67], [-9, 13.4, -55.6]])
-    garde([[-27, 9.6, -40.5], [-20, 9.6, -40.5]]); garde([[-18, 9.6, -40.5], [-14, 9.6, -40.5], [-14, 9.6, -50], [-27, 9.6, -50], [-27, 9.6, -40.5]])
+    bord([[-1.7, DECK, 19], [-1.7, DECK, 8.6]]); bord([[-1.7, DECK, -8.1], [-1.7, DECK, -11.3]]); bord([[1.7, DECK, 19], [1.7, DECK, 9.6]]); bord([[1.7, DECK, 5.9], [1.7, DECK, -2.4]]); bord([[1.7, DECK, -7.1], [1.7, DECK, -11.3]])
+    bord([[-11.5, DECK, 8.5], [-11.5, DECK, -3.2]]); bord([[-11.5, DECK, 8.5], [-1.7, DECK, 8.5]]); bord([[1.7, DECK, 9.5], [7.5, DECK, 9.5], [7.5, DECK, 6], [1.7, DECK, 6]])
+    bord([[-22.5, DECK, -3.2], [-10.5, DECK, -3.2]]); bord([[-22.5, DECK, -14.5], [-10.5, DECK, -14.5]]); bord([[-22.5, DECK, -3.2], [-22.5, DECK, -14.5]]); bord([[-10.5, DECK, -14.5], [-10.5, DECK, -8.05]])
+    bord([[-10.5, DECK, -8.05], [-1.7, DECK, -8.05]])
+    bord([[1.7, DECK, -7], [16, DECK, -7], [16, DECK, -10.5], [28.5, DECK, -10.5], [28.5, DECK, -1], [16, DECK, -1], [16, DECK, -2.5], [1.7, DECK, -2.5]])
+    // Bords complets, découpés à partir des accès réels plutôt que de trous approximatifs.
+    { const pts = []; for (let i = 0; i <= 64; i++) { const a = i / 64 * PI * 2; pts.push([Math.cos(a) * (PLACE.r - .25), PLACE.y, PLACE.z + Math.sin(a) * (PLACE.r - .25)]) } bord(pts) }
+    const terrasse = (x0, z0, x1, z1, y) => bord([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1], [x0, y, z0]])
+    terrasse(-23, -27, -11.8, -15, 4.1); terrasse(9.6, -29, 22, -17, 3.1)
+    terrasse(-9, -46, 9, -35.5, 7.6); terrasse(12, -47.5, 28, -37.2, 8.0)
+    terrasse(-9, -67, 9, -55.6, 13.4); terrasse(-27, -50, -14, -40.5, 9.6)
 
     /* ==================================================================== accessoires : caisses, tonneaux, bollards, lanternes sur poteaux */
     const cais = toonT(T.planches({ taille: 256, planches: 4, pal: ['#6a4a34', '#5a3d2a', '#7a5638'], graine: 31, noeuds: .3 }))
@@ -61,17 +60,17 @@
     for (let z = 16; z > -10; z -= 5.2) { const w = (Math.round(z) % 2) ? -1 : 1; potence(w * 1.5, z, w > 0 ? -PI / 2 : PI / 2, DECK); postes.push(V3(w * 1.5, DECK + 2.86, z)) }
     // guirlandes d'ampoules tendues d'un poteau au suivant (elles s'allument la nuit)
     for (let i = 0; i < postes.length - 1; i++) { const a = postes[i], b = postes[i + 1]; corde(a, b, .5, .012); for (let k = 1; k < 10; k++) { const t = k / 10; Q._ampoules.push([a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t - Math.sin(t * PI) * .5, a.z + (b.z - a.z) * t]) } }
-    ;[[-4.8, PLACE.z + 3.5], [4.8, PLACE.z + 3.5], [-4.2, PLACE.z - 3.6], [4.2, PLACE.z - 3.6]].forEach(([x, z]) => potence(x, z, Math.atan2(-x, -(z - PLACE.z)), PLACE.y))
+    ;[[-4.8, PLACE.z + 3.5], [4.0, PLACE.z + 4.6], [-4.2, PLACE.z - 3.6], [4.2, PLACE.z - 3.6]].forEach(([x, z]) => potence(x, z, Math.atan2(-x, -(z - PLACE.z)), PLACE.y))
     // gros bollards à cordages en bord de ponton
     ;[[-1.55, 17], [1.55, 17], [-1.55, 12.4], [1.55, 10.6], [-1.55, 1.6], [1.55, 3.4], [-1.55, -9], [1.55, -9]].forEach(([x, z]) => bollard(x, DECK, z, 1.15))
     // caisses et tonneaux
     caisse(-3.2, DECK, 12.4, 1.1, .3); caisse(-3.2, DECK + 1.1, 12.4, .8, -.4); tonneau(-3.6, DECK, 15.2); tonneau(-3.6, DECK, 9.6); tonneau(4.6, DECK, 7.4); caisse(6.2, DECK, 8, 1.0, .5); caisse(-8.2, DECK, 8.1, 1.2, .1)
     caisse(3.4, DECK, -4.6, 1.2, .2); caisse(3.4, DECK + 1.2, -4.6, .9, .5); tonneau(6, DECK, -5.4); tonneau(6.9, DECK, -4.9, .95); caisse(-15.6, DECK, -3.9, 1.1, -.2)
-    caisse(-5.2, PLACE.y, PLACE.z + 5.4, 1.1, .6); tonneau(5.6, PLACE.y, PLACE.z + 3.8)
+    caisse(-5.2, PLACE.y, PLACE.z + 5.4, 1.1, .6); tonneau(3.6, PLACE.y, PLACE.z + 5.0)
 
     /* ==================================================================== MÂT ET FANIONS DE LA PLACE */
     { const g = new THREE.Group(); g.position.set(0, PLACE.y, PLACE.z); s.add(g); Q.obstacles.push({ t: 'c', x: 0, z: PLACE.z, r: .34, y: PLACE.y }); cyl(.2, .28, 7, MT.bois, 0, 3.5, 0, g, 10); const anneau = new THREE.Mesh(new THREE.TorusBufferGeometry(.5, .07, 6, 16), MT.metal); anneau.rotation.x = PI / 2; anneau.position.y = 3.2; g.add(anneau)
-      ;[[-4.8, 3.5], [4.8, 3.5], [-4.2, -3.6], [4.2, -3.6]].forEach(([px, pz], i) => { const a = Math.atan2(pz, px); const P0 = V3(0, 6.55, 0), P1 = V3(px, 2.86, pz); corde(P0, P1, .5, .025, g)
+      ;[[-4.8, 3.5], [4.0, 4.6], [-4.2, -3.6], [4.2, -3.6]].forEach(([px, pz], i) => { const a = Math.atan2(pz, px); const P0 = V3(0, 6.55, 0), P1 = V3(px, 2.86, pz); corde(P0, P1, .5, .025, g)
         for (let k = 1; k < 9; k++) { const u = k / 9.5, p = P0.clone().lerp(P1, u); p.y -= Math.sin(u * PI) * .5; const fl = new THREE.Mesh(new THREE.PlaneBufferGeometry(.32, .4), toon(['#e7c45a', '#c8352a', '#4b9098', '#8a4ab0'][(i + k) % 4], { side: THREE.DoubleSide })); fl.position.copy(p).add(V3(0, -.2, 0)); fl.rotation.y = -a; fl.rotation.z = (r() - .5) * .3; g.add(fl) } })
       lanterne(0, 6.3, 0, g, { sol: PLACE.y, mare: 8, echelle: 3.6, chaine: .3, force: 1.2 }) }
 
@@ -181,6 +180,17 @@
       const bandes = (() => { const cv = document.createElement('canvas'); cv.width = 64; cv.height = 256; const x = cv.getContext('2d'); for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? '#efe7d6' : '#c8352a'; x.fillRect(0, i * 32, 64, 32) } for (let i = 0; i < 60; i++) { x.fillStyle = 'rgba(0,0,0,.05)'; x.fillRect(Math.random() * 64, Math.random() * 256, 2, 14) } const t = new THREE.CanvasTexture(cv); t.wrapS = THREE.RepeatWrapping; t.repeat.set(3, 1); return t })()
       const fut = ombre(new THREE.Mesh(new THREE.CylinderBufferGeometry(1.35, 2.2, 13, 24, 1), toonT(bandes))); fut.position.y = 6.5; g.add(fut)
       cyl(2.6, 2.9, .8, MT.pierre, 0, .4, 0, g, 24); const gal = cyl(2.0, 1.7, .3, MT.boisSombre, 0, 13.2, 0, g, 24); gal.scale.set(1, 1, 1)
+      // Entrée sur la face ouest, dans l'axe du pont : porche en pierre, porte ferrée et seuil.
+      const entree = new THREE.Group(); entree.rotation.y = -PI / 2; g.add(entree)
+      boite(1.55, 2.35, .14, MT.bois, 0, 1.275, 3.02, entree, .8)
+      for (const q of [-1, 1]) {
+        boite(.24, 2.65, 1.15, MT.pierre, q * .91, 1.325, 2.6, entree, .6)
+        boite(1.52, .1, .08, MT.metal, 0, 1.275 + q * .73, 3.12, entree)
+      }
+      boite(2.06, .26, 1.2, MT.pierre, 0, 2.65, 2.62, entree, .6)
+      boite(2.06, .1, .6, MT.pierre, 0, .05, 3.22, entree, .6)
+      cyl(.08, .08, .06, MT.cuivre, .52, 1.18, 3.16, entree, 8).rotation.x = PI / 2
+      lanterne(-1.18, 2.55, 3.1, entree, { sol: 2.6, mare: 3, chaine: .12 })
       for (let a = 0; a < 6.28; a += .5) boite(.08, .9, .08, MT.metal, Math.cos(a) * 1.9, 13.75, Math.sin(a) * 1.9, g); const rg = new THREE.Mesh(new THREE.TorusBufferGeometry(1.9, .05, 5, 24), MT.metal); rg.rotation.x = PI / 2; rg.position.y = 14.2; g.add(rg)
       const lant = new THREE.Mesh(new THREE.CylinderBufferGeometry(1.15, 1.25, 1.8, 16), new THREE.MeshBasicMaterial({ color: '#ffe6a0' })); lant.position.y = 14.4; g.add(lant); Q._phareCoeur = lant.material
       const toitPh = ombre(new THREE.Mesh(new THREE.ConeBufferGeometry(1.75, 1.7, 16), toon('#c8352a'))); toitPh.position.y = 16.1; g.add(toitPh); cyl(.1, .1, .8, MT.metal, 0, 17.2, 0, g, 6)
@@ -191,7 +201,7 @@
       // cabane, barque et rochers au pied
       const cab = maison({ x: 37 + 4, y: 2.6, z: -16 + 2.4, w: 3.2, d: 2.6, h: 2.3, ry: -.6, mur: MUR.gris, toit: TOIT.brun, pente: 1.1, dep: .5 }); fenetre(cab, 0, 1.6, 1.33, .6, .8, 0)
       lanterne(-1.8, 3.4, 4.2, g, { sol: 2.6, mare: 5 })
-      g.userData = { hover: 1, onClick: () => clickTower() }; HUB_TOWER = g; cliquables.push(g); PORTES[7] = V3(33.4, 2.6, -16)
+      g.userData = { hover: 1, onClick: () => clickTower() }; HUB_TOWER = g; cliquables.push(g); PORTES[7] = V3(33.5, 2.6, -16)
       const sg = labelPlane('', 5.2, 1.8, {}); sg.position.set(0, 19.4, 0); g.add(sg); g.userData.sign = sg }
 
     /* ==================================================================== BATEAUX AMARRÉS */
