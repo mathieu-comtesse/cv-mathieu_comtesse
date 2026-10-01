@@ -105,6 +105,37 @@
     }
     function garde(pts, o) { // pts : [[x,y,z],…] au niveau du plancher
       o = o || {}; const H = o.h || 1.05, pas = o.pas || 2.1
+      // Découpe les bords des plateaux autour des accès, avant de placer poteaux et cordages.
+      if (o.ouvertures) {
+        for (let i = 0; i < pts.length - 1; i++) {
+          const A = V3(...pts[i]), B = V3(...pts[i + 1]), dx = B.x - A.x, dz = B.z - A.z, l2 = dx * dx + dz * dz
+          if (l2 < .0001) continue
+          let morceaux = [[0, 1]]
+          for (const e of o.ouvertures) for (const p of [e.a, e.b]) {
+            if (Math.abs(A.y - p[1]) > .6 || Math.abs(B.y - p[1]) > .6) continue
+            const t = ((p[0] - A.x) * dx + (p[2] - A.z) * dz) / l2
+            const d2 = (A.x + t * dx - p[0]) ** 2 + (A.z + t * dz - p[2]) ** 2, rayon = e.w / 2 + .22
+            if (d2 >= rayon * rayon) continue
+            const dt = Math.sqrt((rayon * rayon - d2) / l2), lo = t - dt, hi = t + dt
+            morceaux = morceaux.flatMap(([a, b]) => hi <= a || lo >= b ? [[a, b]] : [[a, Math.max(a, lo)], [Math.min(b, hi), b]].filter(([u, v]) => v - u > .001))
+          }
+          // Sur un bord courbe, l'accès peut croiser le garde-corps après son extrémité : dégager aussi son axe.
+          for (const e of o.ouvertures) {
+            if (![e.a, e.b].some(p => Math.abs(A.y - p[1]) <= .6 && Math.abs(B.y - p[1]) <= .6)) continue
+            const ex = e.b[0] - e.a[0], ez = e.b[2] - e.a[2], L = Math.hypot(ex, ez), rayon = e.w / 2 + .22
+            const along = ((A.x - e.a[0]) * ex + (A.z - e.a[2]) * ez) / L, da = (dx * ex + dz * ez) / L
+            const across = (-(A.x - e.a[0]) * ez + (A.z - e.a[2]) * ex) / L, dc = (-dx * ez + dz * ex) / L
+            let lo = 0, hi = 1
+            for (const [v, dv, min, max] of [[along, da, 0, L], [across, dc, -rayon, rayon]]) {
+              if (Math.abs(dv) < .000001) { if (v < min || v > max) hi = -1 }
+              else { const a = (min - v) / dv, b = (max - v) / dv; lo = Math.max(lo, Math.min(a, b)); hi = Math.min(hi, Math.max(a, b)) }
+            }
+            if (hi > lo) morceaux = morceaux.flatMap(([a, b]) => hi <= a || lo >= b ? [[a, b]] : [[a, Math.max(a, lo)], [Math.min(b, hi), b]].filter(([u, v]) => v - u > .001))
+          }
+          for (const [a, b] of morceaux) if ((b - a) * Math.sqrt(l2) > .12) garde([A.clone().lerp(B, a).toArray(), A.clone().lerp(B, b).toArray()], Object.assign({}, o, { ouvertures: null }))
+        }
+        return
+      }
       for (let i = 0; i < pts.length - 1; i++) {
         const A = V3(...pts[i]), B = V3(...pts[i + 1]), L = A.distanceTo(B), n = Math.max(1, Math.round(L / pas))
         const ps = []; for (let k = 0; k <= n; k++) ps.push(A.clone().lerp(B, k / n))
@@ -116,12 +147,17 @@
     /* une volée : marches fermées (plateau + contremarche), trois limons, pilotis là où le vide dépasse 60 cm, pierre au pied ; garde-corps des deux côtés.
      * a, b : bas et haut de la volée, au niveau du dessus des marches ; w : largeur. La roche est creusée dessous par talas-quai.js (creuse). */
     function escalier(a, b, w, o) {
-      o = o || {}; const A = V3(...a), B = V3(...b), d = B.clone().sub(A), run = Math.hypot(d.x, d.z), L3 = d.length(), n = Math.max(2, Math.round(Math.abs(d.y) / .2)), dx = d.x / run, dz = d.z / run, ry = Math.atan2(-dx, -dz)
+      o = o || {}; const A = V3(...a), B = V3(...b), d = B.clone().sub(A), run = Math.hypot(d.x, d.z), L3 = d.length(), n = Math.max(2, Math.ceil(Math.abs(d.y) / .2), o.pas ? Math.ceil(run / o.pas) : 0), dx = d.x / run, dz = d.z / run, ry = Math.atan2(-dx, -dz)
       const ht = d.y / n, pr = run / n, nx = -dz, nz = dx
       for (let i = 0; i < n; i++) {
         const u = (i + .5) / n, uf = i / n
         HAB.planches[i % 3 ? 'clair' : 'usee'].push([A.x + d.x * u, A.y + d.y * (i + 1) / n - .045, A.z + d.z * u, w, pr + .05, ry + (r() - .5) * .01, (r() - .5) * .12])
         LOTS.limon.ajouter(riserG, placer(A.x + d.x * uf + dx * .02, A.y + d.y * (i + .5) / n - .02, A.z + d.z * uf + dz * .02, 0, ry, 0, w - .05, Math.abs(ht) + .06, .04))
+      }
+      // Trois petites lames au niveau de chaque plateau raccordent toute la largeur de la volée.
+      for (const [P, sens] of [[A, -1], [B, 1]]) {
+        for (let i = 0; i < 3; i++) HAB.planches.clair.push([P.x + dx * sens * (i + .5) * .16, P.y - .045, P.z + dz * sens * (i + .5) * .16, w, .18, ry, 0])
+        zoneRampe(P.x, P.y, P.z, P.x + dx * sens * .48, P.y, P.z + dz * sens * .48, w - .1)
       }
       // limons : deux sur les côtés, un au milieu si la volée est large ; ils suivent la pente et dépassent sous les marches
       const coffres = o.limons !== false ? (w > 3 ? [-1, 0, 1] : [-1, 1]) : []
