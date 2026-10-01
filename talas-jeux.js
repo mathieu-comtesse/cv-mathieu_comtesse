@@ -32,7 +32,7 @@
   function budget3D(n, cfg) {
     return new Promise(async (res) => {
       const R = cur; R.clear(); const unframe = frame(R, V(0, 1.1, -1.2), 12.5, 17.6) // cadré assez haut pour voir les mesures empilées au-dessus des postes
-      const st = R.stage
+      const st = R.stage, SP = typeof SPD !== 'undefined' ? SPD : 1
       const P = window.TalasProps, props = cfg.postes.map((p) => p.prop).filter(Boolean)
       try { await Promise.race([Promise.all([P ? P.preload(props) : 0, typeof preloadToons === 'function' ? preloadToons() : 0]), new Promise((r) => setTimeout(r, 5000))]) } catch (e) {}
 
@@ -179,7 +179,7 @@
   function revue3D(n, cfg) {
     return new Promise(async (res) => {
       const R = cur; R.clear(); const unframe = frame(R, V(0, 2.2, -2.2), 12.5, 15.5)
-      const st = R.stage, SP = typeof SPD !== 'undefined' ? SPD : 1
+      const st = R.stage
       try { await Promise.race([typeof preloadToons === 'function' ? preloadToons() : 0, new Promise((r) => setTimeout(r, 5000))]) } catch (e) {}
 
       /* ---- plateau télé ---- */
