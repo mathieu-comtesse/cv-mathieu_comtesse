@@ -87,43 +87,45 @@
 }
 @media(prefers-reduced-motion:reduce){#karaoke-lyrics .lyrics-line{animation:none}}
 
-/* Dialogue dock: compact reading surface, independent of the gameplay buttons. */
-#frame{--dialogue-unit:1;--dialogue-font-size:7px}
+/* Dialogue dock uses the quay interaction prompt’s cream / ink art direction. */
+#frame{--dialogue-unit:1;--dialogue-font-size:7px;--dialogue-font:"Luckiest Guy","Trebuchet MS",sans-serif;--dialogue-cream:#fff3c8;--dialogue-ink:#1a0d22;--dialogue-text:#3a1c40}
 #frame #panel,#frame #panel.mini,#frame #panel.compact{
-  --accent:#b88b46;left:50%;right:auto;top:auto;bottom:76px;transform:translateX(-50%);
+  left:50%;right:auto;top:auto;bottom:76px;transform:translateX(-50%);
   width:min(480px,calc(100% - 32px));max-width:none;max-height:130px;margin:0;
-  border:1px solid #dcc9a5;border-top:2px solid var(--accent);border-radius:12px;
-  background:linear-gradient(120deg,#fffaf0,#efe9db);color:#202c3e;
-  box-shadow:0 8px 24px #07111e55,inset 0 1px 0 #fff;overflow:hidden;z-index:8;
-  font-family:Arial,Helvetica,sans-serif;text-shadow:none;
+  border:3px solid var(--dialogue-ink);border-radius:14px;
+  background:var(--dialogue-cream);color:var(--dialogue-text);
+  box-shadow:0 3px 0 var(--dialogue-ink);overflow:hidden;z-index:8;
+  font-family:var(--dialogue-font);text-shadow:none;
 }
-#frame #panel.good{--accent:#53876b}
-#frame #panel.bad{--accent:#b86b65}
-#frame #panel .tbar{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-height:0;padding:9px 12px 0 58px;border:0;background:none;color:#23344d;font:700 var(--dialogue-font-size)/1.3 Arial,Helvetica,sans-serif;letter-spacing:.01em}
-#frame #panel .tbar span{min-width:0;overflow-wrap:anywhere;font-size:var(--dialogue-font-size);font-weight:400;color:#66707d}
-#dialogue-page{margin-left:auto;font-size:var(--dialogue-font-size);white-space:nowrap;color:#806539;font-variant-numeric:tabular-nums}
+#frame #panel.good .tbar b{color:#2a613a}
+#frame #panel.bad .tbar b{color:#922e49}
+#frame #panel .tbar{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-height:0;padding:9px 12px 0 58px;border:0;background:none;color:var(--dialogue-text);font:700 var(--dialogue-font-size)/1.3 var(--dialogue-font);letter-spacing:0}
+#frame #panel .tbar span{min-width:0;overflow-wrap:anywhere;font-size:var(--dialogue-font-size);font-weight:400;color:var(--dialogue-text)}
+#dialogue-page{margin-left:auto;background:var(--dialogue-text);color:#ffe9b0;padding:1px 5px;border-radius:4px;font-size:var(--dialogue-font-size);white-space:nowrap;font-variant-numeric:tabular-nums}
+#dialogue-page:empty{display:none}
 #frame #panel .pin{padding:6px 12px 10px 58px;gap:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b6aa94 transparent}
-#frame #panel .por{position:absolute;left:10px;top:11px;width:36px;height:36px;box-sizing:border-box;border:1px solid #c4aa77;border-radius:50%;padding:2px;background:#dce4ec;box-shadow:0 2px 4px #24354d22}
+#frame #panel .por{position:absolute;left:10px;top:11px;width:36px;height:36px;box-sizing:border-box;border:2px solid var(--dialogue-ink);border-radius:50%;padding:1px;background:#ffe9b0;box-shadow:0 2px 0 var(--dialogue-ink)}
 #frame #panel .por img{filter:none;border-radius:50%}
 #frame #panel .pbody{min-width:0;min-height:0;gap:8px}
 #frame #panel .ptext{font-size:var(--dialogue-font-size)!important;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
 #frame #panel .ptext ol{font-size:inherit}
-#frame #panel .howto{margin-top:8px;padding:6px 8px;border:1px solid #c9c2b4;border-radius:6px;background:#e8e4d9;color:#25334a}
-#frame #panel .howto p,#frame #panel .howto ul{font-size:inherit;line-height:1.45}
+#frame #panel .howto{margin-top:4px;padding:0;border:0;border-radius:0;background:none;color:inherit}
+#frame #panel .howto p{margin:0 0 4px;font-size:inherit;line-height:1.4}
+#frame #panel .howto-controls{color:var(--dialogue-text)}
 #frame #panel .pact[hidden]{display:none}
 #frame #panel.has-choices{max-height:48%}
-#frame #panel .btn{min-height:40px;padding:8px 12px!important;border:1px solid #c7b794;border-radius:7px;background:#fffcf6;color:#24354d;font:600 var(--dialogue-font-size)/1.4 Arial,Helvetica,sans-serif!important;box-shadow:0 2px 0 #c4b99d44;text-shadow:none;white-space:normal;overflow-wrap:anywhere}
-#frame #panel .btn:hover,#frame #panel .btn:focus-visible{background:#eee0c3;border-color:#95743e}
-#dialogue-control{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:61;width:52px;height:52px;box-sizing:border-box;padding:5px 0;border:1px solid #e2c58b;border-radius:50%;background:radial-gradient(circle at 35% 20%,#526076,#17283f 75%);color:#fff7e6;box-shadow:inset 0 0 0 3px #0c192b80,0 3px 10px #07111e55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 var(--dialogue-font-size)/1 Arial,Helvetica,sans-serif;letter-spacing:.03em;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#frame #panel .btn{min-height:40px;padding:8px 12px!important;border:2px solid var(--dialogue-ink);border-radius:6px;background:var(--dialogue-text);color:#ffe9b0;font:600 var(--dialogue-font-size)/1.4 var(--dialogue-font)!important;box-shadow:0 2px 0 var(--dialogue-ink);text-shadow:none;white-space:normal;overflow-wrap:anywhere}
+#frame #panel .btn:hover,#frame #panel .btn:focus-visible{background:#57315c;border-color:var(--dialogue-ink)}
+#dialogue-control{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:61;width:52px;height:52px;box-sizing:border-box;padding:5px 0;border:3px solid var(--dialogue-ink);border-radius:50%;background:var(--dialogue-cream);color:var(--dialogue-text);box-shadow:0 3px 0 var(--dialogue-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 var(--dialogue-font-size)/1 var(--dialogue-font);letter-spacing:.03em;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #dialogue-control[hidden]{display:none}
-#dialogue-control svg{width:26px;height:26px;fill:none;stroke:#e2c58b;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-#dialogue-control:active{background:#735b35}
+#dialogue-control svg{width:26px;height:26px;fill:none;stroke:var(--dialogue-text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+#dialogue-control:active{background:#ffe9b0}
 #dialogue-control:focus-visible{outline:2px solid #fff;outline-offset:3px}
 #frame #cine .ctop{display:none}
-#frame #cine .cbot{left:50%;right:auto;top:auto;bottom:76px;width:min(480px,calc(100% - 32px));height:auto;min-height:60px;max-height:130px;box-sizing:border-box;transform:translate(-50%,160%);border:1px solid #dcc9a5;border-top:2px solid #b88b46;border-radius:12px;background:linear-gradient(120deg,#fffaf0,#efe9db);box-shadow:0 8px 24px #07111e55;opacity:0;overflow:auto}
+#frame #cine .cbot{left:50%;right:auto;top:auto;bottom:76px;width:min(480px,calc(100% - 32px));height:auto;min-height:60px;max-height:130px;box-sizing:border-box;transform:translate(-50%,160%);border:3px solid var(--dialogue-ink);border-radius:14px;background:var(--dialogue-cream);box-shadow:0 3px 0 var(--dialogue-ink);opacity:0;overflow:auto}
 #frame #cine.on .cbot{transform:translateX(-50%);opacity:1}
-#frame #cine .cpor{left:10px;top:12px;bottom:auto;width:36px;height:36px;border:1px solid #c4aa77;box-shadow:none}
-#frame #cine .ctxt{position:relative;inset:auto;display:block;min-height:36px;padding:10px 12px 10px 58px;box-sizing:border-box;font:400 var(--dialogue-font-size)/1.45 Arial,Helvetica,sans-serif;letter-spacing:0;text-shadow:none;text-align:left;color:#202c3e;overflow-wrap:anywhere}
+#frame #cine .cpor{left:10px;top:12px;bottom:auto;width:36px;height:36px;border:2px solid var(--dialogue-ink);box-shadow:0 2px 0 var(--dialogue-ink)}
+#frame #cine .ctxt{position:relative;inset:auto;display:block;min-height:36px;padding:10px 12px 10px 58px;box-sizing:border-box;font:400 var(--dialogue-font-size)/1.45 var(--dialogue-font);letter-spacing:0;text-shadow:none;text-align:left;color:var(--dialogue-text);overflow-wrap:anywhere}
 .touch #frame{--dialogue-unit:var(--mobile-unit);--dialogue-font-size:calc(7px * var(--mobile-unit))}
 .touch #frame #panel,.touch #frame #panel.mini,.touch #frame #panel.compact,.touch #frame #cine .cbot{bottom:calc(74px * var(--mobile-unit));width:min(calc(440px * var(--mobile-unit)),calc(100% - 300px * var(--mobile-unit)));max-height:calc(106px * var(--mobile-unit));border-radius:calc(10px * var(--mobile-unit))}
 .touch #frame #panel .tbar{padding:calc(7px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) 0 calc(46px * var(--mobile-unit));gap:calc(6px * var(--mobile-unit));font-size:var(--dialogue-font-size)}
@@ -149,7 +151,7 @@
 
 /* A single typeface and size also cover nested markup and inline text styles. */
 #frame #panel,#frame #panel *,#frame #cine .ctxt,#frame #cine .ctxt *,#frame #dialogue-control,#frame #dialogue-control span{
-  font-family:Arial,Helvetica,sans-serif!important;
+  font-family:var(--dialogue-font)!important;
   font-size:var(--dialogue-font-size)!important;
   line-height:1.4!important;
   letter-spacing:0;
