@@ -88,7 +88,7 @@
 @media(prefers-reduced-motion:reduce){#karaoke-lyrics .lyrics-line{animation:none}}
 
 /* Dialogue dock uses the quay interaction prompt’s cream / ink art direction. */
-#frame{--dialogue-unit:1;--dialogue-font-size:7px;--dialogue-font:"Luckiest Guy","Trebuchet MS",sans-serif;--dialogue-cream:#fff3c8;--dialogue-ink:#1a0d22;--dialogue-text:#3a1c40}
+#frame{--dialogue-unit:1;--dialogue-font-size:9px;--dialogue-font:"Luckiest Guy","Trebuchet MS",sans-serif;--dialogue-cream:#fff3c8;--dialogue-ink:#1a0d22;--dialogue-text:#3a1c40}
 #frame #panel,#frame #panel.mini,#frame #panel.compact{
   left:50%;right:auto;top:auto;bottom:76px;transform:translateX(-50%);
   width:min(480px,calc(100% - 32px));max-width:none;max-height:130px;margin:0;
@@ -126,7 +126,7 @@
 #frame #cine.on .cbot{transform:translateX(-50%);opacity:1}
 #frame #cine .cpor{left:10px;top:12px;bottom:auto;width:36px;height:36px;border:2px solid var(--dialogue-ink);box-shadow:0 2px 0 var(--dialogue-ink)}
 #frame #cine .ctxt{position:relative;inset:auto;display:block;min-height:36px;padding:10px 12px 10px 58px;box-sizing:border-box;font:400 var(--dialogue-font-size)/1.45 var(--dialogue-font);letter-spacing:0;text-shadow:none;text-align:left;color:var(--dialogue-text);overflow-wrap:anywhere}
-.touch #frame{--dialogue-unit:var(--mobile-unit);--dialogue-font-size:calc(7px * var(--mobile-unit))}
+.touch #frame{--dialogue-unit:var(--mobile-unit);--dialogue-font-size:calc(9px * var(--mobile-unit))}
 .touch #frame #panel,.touch #frame #panel.mini,.touch #frame #panel.compact,.touch #frame #cine .cbot{bottom:calc(74px * var(--mobile-unit));width:min(calc(440px * var(--mobile-unit)),calc(100% - 300px * var(--mobile-unit)));max-height:calc(106px * var(--mobile-unit));border-radius:calc(10px * var(--mobile-unit))}
 .touch #frame #panel .tbar{padding:calc(7px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) 0 calc(46px * var(--mobile-unit));gap:calc(6px * var(--mobile-unit));font-size:var(--dialogue-font-size)}
 .touch #frame #panel .tbar span{display:none}
@@ -149,8 +149,14 @@
 
 #frame:has(#modal:not([hidden])) #dialogue-control,#frame:has(.tcard) #dialogue-control,#frame:has(#fade.on) #dialogue-control{visibility:hidden}
 
-/* A single typeface and size also cover nested markup and inline text styles. */
-#frame #panel,#frame #panel *,#frame #cine .ctxt,#frame #cine .ctxt *,#frame #dialogue-control,#frame #dialogue-control span{
+/* Same size for every dialogue renderer, including nested and inline text.
+   Text-entry fields keep their input size to avoid mobile focus zoom. */
+#frame #panel,#frame #panel *,#frame #cine .ctxt,#frame #cine .ctxt *,#frame #dialogue-control,#frame #dialogue-control span,
+#frame .arui .ap,#frame .arui .ap *,
+#frame .mobile-doc-fiche,#frame .mobile-doc-fiche *,#frame .mobile-doc-feedback,#frame .mobile-doc-feedback *,
+#frame .dialogue-copy,#frame .dialogue-copy *,
+#frame #modal .mcard,#frame #modal .mcard :not(input):not(textarea),
+#frame #pmsg,#frame #pmsg *,#frame #rprompt,#frame #rprompt *{
   font-family:var(--dialogue-font)!important;
   font-size:var(--dialogue-font-size)!important;
   line-height:1.4!important;
