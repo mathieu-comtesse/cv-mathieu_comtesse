@@ -656,8 +656,8 @@ void main(){vec3 d=normalize(vD);vec3 c=ciel(d);
   /* aides : panneau « Le but / Commandes » et bandeau des touches */
   addEventListener('DOMContentLoaded', () => {
     try {
-      HOWTO.jetski = { but: 'Trois tours autour de l’île Talas. Passe chaque bouée du bon côté (jaune : à gauche, rouge : à droite) : chaque bouée réussie ajoute de la puissance, chaque bouée manquée est un écart qui te la fait perdre. Chaque bouée porte une étape du §10 (de « signaler » à « améliorer sans fin ») ; fonce aussi sur les fûts orange pour remonter les signalements. À la fin de chaque tour, choisis l’action corrective, puis fais mieux au tour suivant. Les tremplins TALAS font décoller !',
-        kb: ['Q / D ou flèches : tourner', 'S ou flèche bas : plonger sous la vague', 'Le moteur accélère tout seul'], tc: ['Glisser le joystick gauche / droite : tourner', 'PLONGER : passer sous la vague', 'Le moteur accélère tout seul'] }
+      HOWTO.jetski = { but: 'Jaune : passe à gauche ; rouge : à droite. Réussite = puissance ; bouée ratée = écart. Fûts orange : signalements. Tremplins : sauts. Chaque tour finit par une action corrective.',
+        kb: ['Q / D ou flèches : tourner', 'S : plonger sous la vague', 'Accélération automatique'], tc: ['Joystick : tourner', 'PLONGER : sous la vague', 'Accélération automatique'] }
       KEYHELP.jetski = `<span>${K('Q')}${K('D')} tourner</span><span>${K('S')} plonger sous la vague</span><span>jaune : passe à gauche · rouge : passe à droite</span>`
     } catch (e) {}
   })
