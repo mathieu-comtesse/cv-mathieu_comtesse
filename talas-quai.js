@@ -48,16 +48,22 @@
     { id: 'ouest-belvedere', a: [-17, 4.1, -27.0],     b: [-19, 9.6, -40.5],   w: 2.4 }
   ]
   Q.ESC.forEach((e) => { const dx = e.b[0] - e.a[0], dz = e.b[2] - e.a[2], L = Math.hypot(dx, dz); e.L = L; e.ux = dx / L; e.uz = dz / L })
+  // Les accès et leurs ouvertures partagent les mêmes extrémités : aucun garde-corps devant une volée.
+  Q.PASSAGES = Q.ESC.concat([
+    { id: 'ponton-place', a: [0, DECK, -11.3], b: [0, PLACEY, -13.1], w: 3.2 },
+    { id: 'centre-studio', a: [9, 7.6, -41.5], b: [12, 8.0, -41.5], w: 3.2, pas: .3 },
+    { id: 'place-phare', a: [5.0, PLACEY, -13.7], b: [33.5, 2.6, -16], w: 2.8, pas: .3 }
+  ])
   /* distance en plan à l'axe d'une volée (t borné : bouts arrondis) et abscisse t */
   function versEscalier(e, x, z) {
-    const px = x - e.a[0], pz = z - e.a[2], t = clamp((px * e.ux + pz * e.uz) / e.L, 0, 1)
-    return { t, d: Math.hypot(x - (e.a[0] + e.ux * e.L * t), z - (e.a[2] + e.uz * e.L * t)) }
+    const dx = e.b[0] - e.a[0], dz = e.b[2] - e.a[2], t = clamp(((x - e.a[0]) * dx + (z - e.a[2]) * dz) / (dx * dx + dz * dz), 0, 1)
+    return { t, d: Math.hypot(x - (e.a[0] + dx * t), z - (e.a[2] + dz * t)) }
   }
-  Q.dansEscalier = (x, z, marge) => { for (const e of Q.ESC) if (versEscalier(e, x, z).d < e.w / 2 + (marge || 0)) return true; return false }
+  Q.dansEscalier = (x, z, marge) => { for (const e of Q.PASSAGES) if (versEscalier(e, x, z).d < e.w / 2 + (marge || 0)) return true; return false }
   /* le terrain est ramené au lit de roche sous les marches : déblai quand la roche dépasse, remblai modéré quand elle est trop basse (au-delà, on laisse le vide : des pilotis y sont plantés) */
   function creuse(x, z, h) {
-    for (let i = 0; i < Q.ESC.length; i++) {
-      const e = Q.ESC[i], r = versEscalier(e, x, z), reach = e.w / 2 + .45
+    for (let i = 0; i < Q.PASSAGES.length; i++) {
+      const e = Q.PASSAGES[i], r = versEscalier(e, x, z), reach = e.w / 2 + .45
       if (r.d > reach + 2.4) continue
       const lit = e.a[1] + (e.b[1] - e.a[1]) * r.t - .62
       const m = 1 - sm(reach, reach + 2.4, r.d)
@@ -71,18 +77,19 @@
   /* ============================================================================================== ZONES PRATICABLES */
   const ZONES = []
   const zoneRect = (x0, z0, x1, z1, y) => ZONES.push({ t: 'r', x0: Math.min(x0, x1), z0: Math.min(z0, z1), x1: Math.max(x0, x1), z1: Math.max(z0, z1), y })
-  const zoneDisque = (x, z, r, y) => ZONES.push({ t: 'd', x, z, r, y })
+  const zoneDisque = (x, z, r, y, exclusions) => ZONES.push({ t: 'd', x, z, r, y, exclusions })
   const zoneRampe = (ax, ay, az, bx, by, bz, w) => ZONES.push({ t: 's', ax, ay, az, bx, by, bz, w })
   function solEn(x, z, yPref) {
     let best = null, bd = 1e9
     for (const q of ZONES) {
       let y = null
       if (q.t === 'r') { if (x >= q.x0 && x <= q.x1 && z >= q.z0 && z <= q.z1) y = q.y }
-      else if (q.t === 'd') { if ((x - q.x) ** 2 + (z - q.z) ** 2 <= q.r * q.r) y = q.y }
+      else if (q.t === 'd') { if ((x - q.x) ** 2 + (z - q.z) ** 2 <= q.r * q.r && (!q.exclusions || !q.exclusions.some(e => x >= e.x0 && x <= e.x1 && z >= e.z0 && z <= e.z1))) y = q.y }
       else {
-        const dx = q.bx - q.ax, dz = q.bz - q.az, L2 = dx * dx + dz * dz, u = clamp(((x - q.ax) * dx + (z - q.az) * dz) / L2, 0, 1)
+        const dx = q.bx - q.ax, dz = q.bz - q.az, L2 = dx * dx + dz * dz, u = ((x - q.ax) * dx + (z - q.az) * dz) / L2
         const px = q.ax + dx * u, pz = q.az + dz * u
-        if ((x - px) ** 2 + (z - pz) ** 2 <= (q.w / 2) ** 2) y = q.ay + (q.by - q.ay) * u
+        // Empreinte rectangulaire : les paliers ne débordent pas virtuellement sous les marches.
+        if (u >= -.000001 && u <= 1.000001 && (x - px) ** 2 + (z - pz) ** 2 <= (q.w / 2) ** 2) y = q.ay + (q.by - q.ay) * clamp(u, 0, 1)
       }
       if (y !== null) { const d = Math.abs(y - yPref); if (d < bd) { bd = d; best = y } }
     }
@@ -207,13 +214,14 @@
 
     /* ---------- ponton principal, place, quais : planches en instances ---------- */
     const rangee = (x0, z0, x1, z1, y, o) => { // remplit un rectangle de planches (long axe X si sens 'x')
-      o = o || {}; const sens = o.sens || (Math.abs(z1 - z0) >= Math.abs(x1 - x0) ? 'z' : 'x'), pas = .3
+      o = o || {}; const sens = o.sens || (Math.abs(z1 - z0) >= Math.abs(x1 - x0) ? 'z' : 'x')
+      const span = sens === 'z' ? Math.abs(z1 - z0) : Math.abs(x1 - x0), n = Math.ceil(span / .3), pas = span / n
       if (sens === 'z') { // rangées empilées le long de z, chaque planche court sur x (longueur x1-x0)
         const L = Math.abs(x1 - x0), cx = (x0 + x1) / 2
-        for (let z = Math.min(z0, z1) + pas / 2; z < Math.max(z0, z1); z += pas) { const k = r(); HAB.planches[k < .16 ? 'sombre' : k < .5 ? 'usee' : 'clair'].push([cx + (r() - .5) * .03, y - .045 + (r() - .5) * .012, z, L + .02, pas * .92, (r() - .5) * .018, (r() - .5) * .14]) }
+        for (let i = 0; i < n; i++) { const z = Math.min(z0, z1) + (i + .5) * pas, k = r(); HAB.planches[k < .16 ? 'sombre' : k < .5 ? 'usee' : 'clair'].push([cx, y - .045 + (r() - .5) * .008, z, L + .02, pas - .014, 0, (r() - .5) * .14]) }
       } else {
         const L = Math.abs(z1 - z0), cz = (z0 + z1) / 2
-        for (let x = Math.min(x0, x1) + pas / 2; x < Math.max(x0, x1); x += pas) { const k = r(); HAB.planches[k < .16 ? 'sombre' : k < .5 ? 'usee' : 'clair'].push([x, y - .045 + (r() - .5) * .012, cz + (r() - .5) * .03, L + .02, pas * .92, Math.PI / 2 + (r() - .5) * .018, (r() - .5) * .14]) }
+        for (let i = 0; i < n; i++) { const x = Math.min(x0, x1) + (i + .5) * pas, k = r(); HAB.planches[k < .16 ? 'sombre' : k < .5 ? 'usee' : 'clair'].push([x, y - .045 + (r() - .5) * .008, cz, L + .02, pas - .014, Math.PI / 2, (r() - .5) * .14]) }
       }
     }
     const pilesSous = (x0, z0, x1, z1, y, pas) => { pas = pas || 2.6; for (let x = x0; x <= x1 + .01; x += pas) for (const z of [z0, z1]) HAB.piles.push([x, y, z]); for (let z = z0 + pas; z < z1 - .01; z += pas) for (const x of [x0, x1]) HAB.piles.push([x, y, z]) }
@@ -226,8 +234,13 @@
     // 3. la place ronde au bout du ponton (3 marches)
     const PLACE = { x: 0, z: -17.5, r: 7, y: DECK + .55 }
     for (let a = 0; a < 6.28; a += .11) for (let rr = 0.2; rr < PLACE.r - .05; rr += .3) {} // (les planches de la place sont posées en rangées d'un disque, voir plus bas)
-    for (let z = PLACE.z - PLACE.r + .15; z < PLACE.z + PLACE.r; z += .3) { const w = Math.sqrt(Math.max(0, PLACE.r ** 2 - (z - PLACE.z) ** 2)); if (w < .8) continue; const k = r(); HAB.planches[k < .2 ? 'sombre' : k < .55 ? 'usee' : 'clair'].push([PLACE.x + (r() - .5) * .04, PLACE.y - .045, z, w * 2, .276, (r() - .5) * .02, (r() - .5) * .14]) }
-    zoneDisque(PLACE.x, PLACE.z, PLACE.r - .3, PLACE.y)
+    const entreePlace = Q.PASSAGES.find(e => e.id === 'ponton-place'), demiEntree = entreePlace.w / 2
+    for (let z = PLACE.z - PLACE.r + .15; z < PLACE.z + PLACE.r; z += .3) {
+      const w = Math.sqrt(Math.max(0, PLACE.r ** 2 - (z - PLACE.z) ** 2)); if (w < .8) continue
+      const pieces = z + .138 > entreePlace.b[2] ? [[-w, -demiEntree], [demiEntree, w]] : [[-w, w]]
+      for (const [x0, x1] of pieces) if (x1 > x0) { const k = r(); HAB.planches[k < .2 ? 'sombre' : k < .55 ? 'usee' : 'clair'].push([(x0 + x1) / 2, PLACE.y - .045, z, x1 - x0, .276, 0, (r() - .5) * .14]) }
+    }
+    zoneDisque(PLACE.x, PLACE.z, PLACE.r - .3, PLACE.y, [{ x0: -demiEntree, x1: demiEntree, z0: entreePlace.b[2], z1: PLACE.z + PLACE.r }])
     for (let a = 0; a < 6.28; a += 1.0) HAB.piles.push([Math.cos(a) * (PLACE.r - .5), PLACE.y, PLACE.z + Math.sin(a) * (PLACE.r - .5)])
 
     Q._rangee = rangee; Q._pilesSous = pilesSous; Q._zones = { rect: zoneRect, disque: zoneDisque, rampe: zoneRampe }
