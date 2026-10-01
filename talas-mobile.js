@@ -31,7 +31,7 @@ window.TalasMobileControls=(()=>{
   const svg=icon=>`<svg class="action-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">${icons[icon]||icons.confirm}</svg>`;
   const action=(label,icon,key,extra={})=>({label,icon,key,...extra});
   const profiles={
-    dialogue:{mode:'choices',actions:[action('SUITE','continue',null,{enabled:false})]},
+    dialogue:{mode:'choices',actions:[]},
     quai:{mode:'move',actions:[action('AGIR','interact','S')]},
     village:{mode:'cursor',actions:[action('ENTRER','enter',null,{cursor:'click'})]},
     parcours:{mode:'move',actions:[action('TORNADE','tornado','S'),action('PLONGEON','dive','D'),action('SAUT','jump','J')]},
@@ -98,6 +98,7 @@ window.TalasMobileControls=(()=>{
       const arena=document.querySelector('.arui .ap.bot');
       if(arena){const els=arena.querySelectorAll('button');return choiceModel(arena,'combat',els.length?els:[arena])}
       const panel=document.querySelector('#panel'),answers=panel?.querySelectorAll('#pact button');
+      if(panel&&!panel.hidden&&!answers.length&&!panel.classList.contains('mini')&&!options.panelPassthrough?.())return {name:'dialogue',mode:'choices',root:panel,choices:[],actions:[]};
       if(panel&&!panel.hidden&&answers.length&&!options.panelPassthrough?.())return choiceModel(panel,'dialogue',answers);
       const p=profiles[base],a=options.actions||p.actions;
       return {...p,...options,name:base,choices:options.choices?.(),actions:a};
@@ -133,7 +134,7 @@ window.TalasMobileControls=(()=>{
         current=m;
         if(els.some((e,i)=>e!==choiceElements[i])){choiceElements.forEach(e=>e.classList.remove('mobile-selected'));choiceElements=els;selection=Math.min(selection,Math.max(0,els.length-1));highlight()}
       }
-      buttons.forEach((b,i)=>{const a=m.actions[i];if(!a)return;const disabled=!!(a.enabled===false||(typeof a.enabled==='function'&&!a.enabled())||(a.panel&&!visible(document.querySelector('#panel:not([hidden]) #pact button')))||(m.mode==='choices'&&!els.length&&!a.down));if(b.disabled!==disabled)b.disabled=disabled});
+      buttons.forEach((b,i)=>{const a=m.actions[i];if(!a)return;const disabled=!!(a.enabled===false||(typeof a.enabled==='function'&&!a.enabled())||(a.panel&&!visible(document.querySelector('#dialogue-control')))||(m.mode==='choices'&&!els.length&&!a.down));if(b.disabled!==disabled)b.disabled=disabled});
       const hidden=m.mode!=='cursor';if(aim.hidden!==hidden){aim.hidden=hidden;cursorDirty=true}
     }
     function move(e){
@@ -163,7 +164,7 @@ window.TalasMobileControls=(()=>{
       if(a.key)own(id,[a.key]);
       if(already)return;
       if(a.cursor)cursor(a.cursor);
-      else if(a.panel)document.querySelector('#panel:not([hidden]) #pact button')?.click();
+      else if(a.panel)document.querySelector('#dialogue-control')?.click();
       else a.down?.();
     }
     function liftAction(i,e){
