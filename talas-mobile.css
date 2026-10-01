@@ -94,7 +94,7 @@
   width:min(480px,calc(100% - 32px));max-width:none;max-height:130px;margin:0;
   border:1px solid #dcc9a5;border-top:2px solid var(--accent);border-radius:12px;
   background:linear-gradient(120deg,#fffaf0,#efe9db);color:#202c3e;
-  box-shadow:0 8px 24px #07111e55,inset 0 1px 0 #fff;overflow:hidden;z-index:58;
+  box-shadow:0 8px 24px #07111e55,inset 0 1px 0 #fff;overflow:hidden;z-index:8;
   font-family:Arial,Helvetica,sans-serif;text-shadow:none;
 }
 #frame #panel.good{--accent:#53876b}
@@ -144,3 +144,5 @@
 @media(prefers-reduced-motion:reduce){#frame #cine .cbot,#frame #cine .ctxt.pop{transition:none;animation:none}}
 
 #frame:has(#panel:not([hidden])) #cine .cbot{visibility:hidden}
+
+#frame:has(#modal:not([hidden])) #dialogue-control,#frame:has(.tcard) #dialogue-control,#frame:has(#fade.on) #dialogue-control{visibility:hidden}
