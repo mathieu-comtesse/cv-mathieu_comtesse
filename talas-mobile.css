@@ -1,15 +1,6 @@
 /* Readable dialogue layering applies on computers and phones alike. */
-#frame:has(#panel:not([hidden])) #qhud .qobj,#frame:has(#panel:not([hidden])) #qhud .qaide,#frame.cine #qhud .qobj,#frame.cine #qhud .qaide{visibility:hidden}
-#panel,#panel.mini{z-index:8;box-sizing:border-box}
-#panel .tbar{flex-wrap:wrap;line-height:1.35}
-#panel .tbar span{min-width:0;overflow-wrap:anywhere}
-#panel .pin,.mcard,.mbody{min-height:0;min-width:0}
-#panel .ptext,#panel .btn,.mobile-doc-card,.mobile-doc-fiche{white-space:normal;overflow-wrap:anywhere;line-height:1.45}
-#panel.mini{max-height:calc(100% - 130px)}
-#panel.mini .pin{overflow:auto}
-#cine .cbot{height:auto;min-height:76px}
-#cine .ctxt{position:relative;min-height:52px;padding:12px 6% 12px 16%;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;font-size:17px;letter-spacing:0;line-height:1.4;text-shadow:1px 1px 0 #000}
-#cine .cpor{top:12px;bottom:auto;width:52px;height:52px}
+#frame:has(#panel.has-choices:not([hidden])) #qhud .qobj,#frame:has(#panel.has-choices:not([hidden])) #qhud .qaide{visibility:hidden}
+
 .mobile-doc-card{box-sizing:border-box;max-height:calc(100% - 80px);overflow:auto}
 .mobile-doc-card>div>div,.mobile-doc-card button,.mobile-doc-card button span,.mobile-doc-fiche button{min-width:0}
 .mobile-doc-card button{white-space:normal;overflow-wrap:anywhere}
@@ -48,29 +39,10 @@
 .touch #mobile-aim svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2}
 .touch #mobile-aim[hidden]{display:none}
 .touch .mobile-selected{outline:calc(2px * var(--mobile-unit)) solid #e5bd73!important;outline-offset:calc(-2px * var(--mobile-unit));background-color:#e5bd7330!important}
-.touch #panel,.touch #panel button,.touch #pmsg{font-family:Arial,Helvetica,sans-serif}
-.touch #panel{box-sizing:border-box;left:calc(12px * var(--mobile-unit));right:calc(12px * var(--mobile-unit));bottom:calc(12px * var(--mobile-unit));max-width:calc(460px * var(--mobile-unit));max-height:42%;border:1px solid #9bacc1;border-radius:calc(8px * var(--mobile-unit));background:rgba(255,255,255,.97);box-shadow:0 2px 10px rgba(0,0,0,.2);overflow:hidden}
-.touch #panel .tbar{padding:calc(4px * var(--mobile-unit)) calc(10px * var(--mobile-unit));font-size:calc(11px * var(--mobile-unit));background:#24354d}
-.touch #panel .pin{min-height:0;overflow:auto;padding:calc(8px * var(--mobile-unit));gap:calc(8px * var(--mobile-unit))}
-.touch #panel .pbody{gap:calc(6px * var(--mobile-unit))}
-.touch #panel .por{width:calc(28px * var(--mobile-unit));height:calc(28px * var(--mobile-unit))}
-.touch #panel .ptext,.touch #panel.compact .ptext{font-size:calc(13px * var(--mobile-unit))!important;line-height:1.4}
-.touch #panel .howto{margin-top:calc(6px * var(--mobile-unit));padding:calc(6px * var(--mobile-unit));border-width:1px}
-.touch #panel .howto p,.touch #panel .howto ul,.touch #panel .ptext ol{font-size:inherit;line-height:1.4}
-.touch #panel .btn,.touch #panel.compact .btn{box-sizing:border-box;min-height:calc(44px * var(--mobile-unit));padding:calc(6px * var(--mobile-unit)) calc(10px * var(--mobile-unit))!important;font-size:calc(13px * var(--mobile-unit))!important;line-height:1.3;border-width:1px;border-radius:calc(4px * var(--mobile-unit));box-shadow:none}
-.touch #panel .btn small{font-size:calc(11px * var(--mobile-unit))}
-.touch #frame:has(#pad:not([hidden])) #panel:not(.mini){bottom:calc(140px * var(--mobile-unit));max-height:calc(100% - 188px * var(--mobile-unit))}
-.touch #panel.mini{left:50%;right:auto;top:calc(70px * var(--mobile-unit));bottom:auto;width:min(calc(390px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)));max-height:calc(100% - 210px * var(--mobile-unit))}
-.touch #panel.mini .ptext{font-size:calc(13px * var(--mobile-unit));line-height:1.4}
-.touch #cine .ctop{display:none}
-.touch #cine .cbot{left:50%;right:auto;top:calc(70px * var(--mobile-unit));bottom:auto;width:min(calc(390px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)));height:auto;min-height:calc(48px * var(--mobile-unit));box-sizing:border-box;transform:translateX(-50%);border:1px solid #9bacc1;border-radius:calc(8px * var(--mobile-unit));background:rgba(255,255,255,.96);box-shadow:0 2px 10px rgba(0,0,0,.2);opacity:0}
-.touch #cine.on .cbot{transform:translateX(-50%);opacity:1}
-.touch #cine .cpor{left:calc(8px * var(--mobile-unit));top:calc(10px * var(--mobile-unit));bottom:auto;width:calc(28px * var(--mobile-unit));height:calc(28px * var(--mobile-unit));box-shadow:none}
-.touch #cine .ctxt{position:relative;padding:calc(8px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) calc(44px * var(--mobile-unit));min-height:calc(30px * var(--mobile-unit));font:400 calc(13px * var(--mobile-unit))/1.4 Arial,Helvetica,sans-serif;letter-spacing:0;color:#172033;text-shadow:none;text-align:left;justify-content:flex-start}
 .touch #frame.cine #phud{opacity:1}
 .touch #ptime{left:50%;top:calc(444px - 38px * var(--mobile-unit));transform:translateX(-50%);padding:calc(4px * var(--mobile-unit)) calc(8px * var(--mobile-unit));border-radius:calc(4px * var(--mobile-unit));background:rgba(17,27,45,.76);font:700 calc(12px * var(--mobile-unit))/1.3 Arial,Helvetica,sans-serif;text-shadow:none}
 
-.touch #frame.cine #qhud .qobj,.touch #frame:has(#panel:not([hidden])) #qhud .qobj{opacity:0}
+
 
 /* Answers remain reachable above the permanent controls in every game. */
 .touch .arui{font-family:Arial,Helvetica,sans-serif;font-size:calc(13px * var(--mobile-unit))}
@@ -84,9 +56,6 @@
 .touch #modal .mcard{max-height:calc(100% - 16px * var(--mobile-unit));font:400 calc(13px * var(--mobile-unit))/1.4 Arial,Helvetica,sans-serif}
 .touch #modal .btn{min-height:calc(44px * var(--mobile-unit));font:700 calc(13px * var(--mobile-unit))/1.2 Arial}
 .touch .tcard{box-sizing:border-box;padding-bottom:calc(140px * var(--mobile-unit))}
-/* Keep the five budget posts visible while the joystick is aiming. */
-.touch #frame:has(#pad[data-profile="budget"][data-actions="2"]) #panel{top:calc(48px * var(--mobile-unit));bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:min(calc(460px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)));max-height:calc(48px * var(--mobile-unit))}
-.touch #frame:has(#pad[data-profile="budget"][data-actions="2"]) #panel .tbar,.touch #frame:has(#pad[data-profile="budget"][data-actions="2"]) #panel .por{display:none}
 .touch .mobile-doc-card{left:calc(12px * var(--mobile-unit))!important;right:calc(12px * var(--mobile-unit))!important;bottom:calc(140px * var(--mobile-unit))!important;font:400 calc(11px * var(--mobile-unit))/1.3 Arial!important;padding:calc(4px * var(--mobile-unit))!important}
 .touch .mobile-doc-card button{min-height:calc(44px * var(--mobile-unit));font:700 calc(10px * var(--mobile-unit))/1.2 Arial!important;flex-direction:column}
 .touch .mobile-doc-fiche{top:calc(48px * var(--mobile-unit))!important;max-height:calc(100% - 188px * var(--mobile-unit));overflow:auto;font:400 calc(12px * var(--mobile-unit))/1.3 Arial!important}
@@ -117,3 +86,61 @@
   .touch #karaoke-lyrics .lyrics-current{max-height:2.9em;overflow:hidden;padding:0}
 }
 @media(prefers-reduced-motion:reduce){#karaoke-lyrics .lyrics-line{animation:none}}
+
+/* Dialogue dock: compact reading surface, independent of the gameplay buttons. */
+#frame{--dialogue-unit:1}
+#frame #panel,#frame #panel.mini,#frame #panel.compact{
+  --accent:#b88b46;left:50%;right:auto;top:auto;bottom:76px;transform:translateX(-50%);
+  width:min(480px,calc(100% - 32px));max-width:none;max-height:130px;margin:0;
+  border:1px solid #dcc9a5;border-top:2px solid var(--accent);border-radius:12px;
+  background:linear-gradient(120deg,#fffaf0,#efe9db);color:#202c3e;
+  box-shadow:0 8px 24px #07111e55,inset 0 1px 0 #fff;overflow:hidden;z-index:58;
+  font-family:Arial,Helvetica,sans-serif;text-shadow:none;
+}
+#frame #panel.good{--accent:#53876b}
+#frame #panel.bad{--accent:#b86b65}
+#frame #panel .tbar{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-height:0;padding:9px 12px 0 58px;border:0;background:none;color:#23344d;font:700 13px/1.3 Arial,Helvetica,sans-serif;letter-spacing:.01em}
+#frame #panel .tbar span{min-width:0;overflow-wrap:anywhere;font-size:10px;font-weight:400;color:#66707d}
+#dialogue-page{margin-left:auto;font-size:10px;white-space:nowrap;color:#806539;font-variant-numeric:tabular-nums}
+#frame #panel .pin{padding:6px 12px 10px 58px;gap:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b6aa94 transparent}
+#frame #panel .por{position:absolute;left:10px;top:11px;width:36px;height:36px;box-sizing:border-box;border:1px solid #c4aa77;border-radius:50%;padding:2px;background:#dce4ec;box-shadow:0 2px 4px #24354d22}
+#frame #panel .por img{filter:none;border-radius:50%}
+#frame #panel .pbody{min-width:0;min-height:0;gap:8px}
+#frame #panel .ptext{font-size:14px!important;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
+#frame #panel .ptext ol{font-size:inherit}
+#frame #panel .howto{margin-top:8px;padding:6px 8px;border:1px solid #c9c2b4;border-radius:6px;background:#e8e4d9;color:#25334a}
+#frame #panel .howto p,#frame #panel .howto ul{font-size:inherit;line-height:1.45}
+#frame #panel .pact[hidden]{display:none}
+#frame #panel.has-choices{max-height:48%}
+#frame #panel .btn{min-height:40px;padding:8px 12px!important;border:1px solid #c7b794;border-radius:7px;background:#fffcf6;color:#24354d;font:600 13px/1.4 Arial,Helvetica,sans-serif!important;box-shadow:0 2px 0 #c4b99d44;text-shadow:none;white-space:normal;overflow-wrap:anywhere}
+#frame #panel .btn:hover,#frame #panel .btn:focus-visible{background:#eee0c3;border-color:#95743e}
+#dialogue-control{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:61;width:52px;height:52px;box-sizing:border-box;padding:5px 0;border:1px solid #e2c58b;border-radius:50%;background:radial-gradient(circle at 35% 20%,#526076,#17283f 75%);color:#fff7e6;box-shadow:inset 0 0 0 3px #0c192b80,0 3px 10px #07111e55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 8px/1 Arial,Helvetica,sans-serif;letter-spacing:.03em;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#dialogue-control[hidden]{display:none}
+#dialogue-control svg{width:26px;height:26px;fill:none;stroke:#e2c58b;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+#dialogue-control:active{background:#735b35}
+#dialogue-control:focus-visible{outline:2px solid #fff;outline-offset:3px}
+#frame #cine .ctop{display:none}
+#frame #cine .cbot{left:50%;right:auto;top:auto;bottom:76px;width:min(480px,calc(100% - 32px));height:auto;min-height:60px;max-height:130px;box-sizing:border-box;transform:translate(-50%,160%);border:1px solid #dcc9a5;border-top:2px solid #b88b46;border-radius:12px;background:linear-gradient(120deg,#fffaf0,#efe9db);box-shadow:0 8px 24px #07111e55;opacity:0;overflow:auto}
+#frame #cine.on .cbot{transform:translateX(-50%);opacity:1}
+#frame #cine .cpor{left:10px;top:12px;bottom:auto;width:36px;height:36px;border:1px solid #c4aa77;box-shadow:none}
+#frame #cine .ctxt{position:relative;inset:auto;display:block;min-height:36px;padding:10px 12px 10px 58px;box-sizing:border-box;font:400 14px/1.45 Arial,Helvetica,sans-serif;letter-spacing:0;text-shadow:none;text-align:left;color:#202c3e;overflow-wrap:anywhere}
+.touch #frame{--dialogue-unit:var(--mobile-unit)}
+.touch #frame #panel,.touch #frame #panel.mini,.touch #frame #panel.compact,.touch #frame #cine .cbot{bottom:calc(74px * var(--mobile-unit));width:min(calc(440px * var(--mobile-unit)),calc(100% - 300px * var(--mobile-unit)));max-height:calc(106px * var(--mobile-unit));border-radius:calc(10px * var(--mobile-unit))}
+.touch #frame #panel .tbar{padding:calc(7px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) 0 calc(46px * var(--mobile-unit));gap:calc(6px * var(--mobile-unit));font-size:calc(11px * var(--mobile-unit))}
+.touch #frame #panel .tbar span{display:none}
+.touch #frame #panel .tbar small{font-size:calc(10px * var(--mobile-unit))}
+.touch #frame #panel .pin{padding:calc(5px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) calc(46px * var(--mobile-unit))}
+.touch #frame #panel .por,.touch #frame #cine .cpor{left:calc(8px * var(--mobile-unit));top:calc(10px * var(--mobile-unit));width:calc(28px * var(--mobile-unit));height:calc(28px * var(--mobile-unit))}
+.touch #frame #panel .ptext{font-size:calc(13px * var(--mobile-unit))!important;line-height:1.4}
+.touch #dialogue-control{bottom:calc(12px * var(--mobile-unit));width:calc(52px * var(--mobile-unit));height:calc(52px * var(--mobile-unit));font-size:calc(8px * var(--mobile-unit))}
+.touch #dialogue-control svg{width:calc(26px * var(--mobile-unit));height:calc(26px * var(--mobile-unit))}
+.touch #frame #panel.has-choices{bottom:calc(140px * var(--mobile-unit));width:min(calc(480px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)));max-height:calc(100% - 190px * var(--mobile-unit))}
+.touch #frame #panel .btn{min-height:calc(44px * var(--mobile-unit));padding:calc(6px * var(--mobile-unit)) calc(10px * var(--mobile-unit))!important;font-size:calc(13px * var(--mobile-unit))!important}
+.touch #frame #cine .ctxt{min-height:calc(36px * var(--mobile-unit));padding:calc(8px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) calc(46px * var(--mobile-unit));font-size:calc(13px * var(--mobile-unit))}
+/* Small phones reserve the control row; the reading strip sits just above it. */
+@media(max-width:700px),(max-height:350px){
+ .touch #frame #panel:not(.has-choices),.touch #frame #cine .cbot{bottom:calc(140px * var(--mobile-unit));width:calc(100% - 24px * var(--mobile-unit));max-height:calc(90px * var(--mobile-unit))}
+}
+@media(prefers-reduced-motion:reduce){#frame #cine .cbot,#frame #cine .ctxt.pop{transition:none;animation:none}}
+
+#frame:has(#panel:not([hidden])) #cine .cbot{visibility:hidden}
