@@ -47,7 +47,7 @@
     /* ==================================================================== accessoires : caisses, tonneaux, bollards, lanternes sur poteaux */
     const cais = toonT(T.planches({ taille: 256, planches: 4, pal: ['#6a4a34', '#5a3d2a', '#7a5638'], graine: 31, noeuds: .3 }))
     function caisse(x, y, z, sz, ry, mat, par) { if (!par) Q.obstacles.push({ t: 'b', x, z, hw: sz / 2 + .03, hd: sz / 2 + .03, ry: ry || 0, y }); const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry || 0; (par || s).add(g); const b = boite(sz, sz, sz, mat || cais, 0, sz / 2, 0, g, .7); [-1, 1].forEach((q) => { boite(sz + .05, .08, sz + .05, MT.boisSombre, 0, sz / 2 + q * sz * .38, 0, g); boite(.09, sz + .05, sz + .05, MT.boisSombre, q * sz * .4, sz / 2, 0, g) }); return g }
-    function tonneau(x, y, z, h) { Q.obstacles.push({ t: 'c', x, z, r: .38, y }); h = h || 1.05; const g = new THREE.Group(); g.position.set(x, y, z); s.add(g); const pts = []; for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push(new THREE.Vector2(.33 * (1 + .18 * Math.sin(t * PI)), t * h)) }
+    function tonneau(x, y, z, h, par) { if (!par) Q.obstacles.push({ t: 'c', x, z, r: .38, y }); h = h || 1.05; const g = new THREE.Group(); g.position.set(x, y, z); (par || s).add(g); const pts = []; for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push(new THREE.Vector2(.33 * (1 + .18 * Math.sin(t * PI)), t * h)) }
       const m = ombre(new THREE.Mesh(new THREE.LatheBufferGeometry(pts, 12), toonT(T.planches({ taille: 256, planches: 8, vertical: true, pal: ['#7a5232', '#6a4428', '#8a6038'], graine: 8 })))); g.add(m); [.16, .84].forEach((t) => cyl(.375 * (1 + .18 * Math.sin(t * PI)) * .96, .375 * (1 + .18 * Math.sin(t * PI)) * .96, .07, MT.metal, 0, t * h, 0, g, 12)); return g }
     function bollard(x, y, z, h) { Q.obstacles.push({ t: 'c', x, z, r: .24, y }); h = h || 1.1; cyl(.2, .24, h, MT.bois, x, y + h / 2, z); for (let i = 0; i < 4; i++) { const t = new THREE.Mesh(new THREE.TorusBufferGeometry(.235, .05, 5, 14), MT.corde); t.rotation.x = PI / 2; t.position.set(x, y + h - .12 - i * .11, z); s.add(t) } }
     function potence(x, z, ry, y) { // poteau de lanterne : mât + bras
@@ -64,9 +64,9 @@
     // gros bollards à cordages en bord de ponton
     ;[[-1.55, 17], [1.55, 17], [-1.55, 12.4], [1.55, 10.6], [-1.55, 1.6], [1.55, 3.4], [-1.55, -9], [1.55, -9]].forEach(([x, z]) => bollard(x, DECK, z, 1.15))
     // caisses et tonneaux
-    caisse(-3.2, DECK, 12.4, 1.1, .3); caisse(-3.2, DECK + 1.1, 12.4, .8, -.4); tonneau(-3.6, DECK, 15.2); tonneau(-3.6, DECK, 9.6); tonneau(4.6, DECK, 7.4); caisse(6.2, DECK, 8, 1.0, .5); caisse(-8.2, DECK, 8.1, 1.2, .1)
+    caisse(-9.8, DECK, 7.2, 1.1, .3); caisse(-9.8, DECK + 1.1, 7.2, .8, -.4); tonneau(-3.7, DECK, 7.7); tonneau(-6.9, DECK, 7.2); tonneau(4.6, DECK, 7.4); caisse(6.2, DECK, 8, 1.0, .5); caisse(-8.2, DECK, 7.7, 1.2, .1)
     caisse(3.4, DECK, -4.6, 1.2, .2); caisse(3.4, DECK + 1.2, -4.6, .9, .5); tonneau(6, DECK, -5.4); tonneau(6.9, DECK, -4.9, .95); caisse(-15.6, DECK, -3.9, 1.1, -.2)
-    caisse(-5.2, PLACE.y, PLACE.z + 5.4, 1.1, .6); tonneau(3.6, PLACE.y, PLACE.z + 5.0)
+    caisse(-5.3, PLACE.y, PLACE.z + 2.2, 1.1, .6); tonneau(3.6, PLACE.y, PLACE.z + 5.0)
 
     /* ==================================================================== MÂT ET FANIONS DE LA PLACE */
     { const g = new THREE.Group(); g.position.set(0, PLACE.y, PLACE.z); s.add(g); Q.obstacles.push({ t: 'c', x: 0, z: PLACE.z, r: .34, y: PLACE.y }); cyl(.2, .28, 7, MT.bois, 0, 3.5, 0, g, 10); const anneau = new THREE.Mesh(new THREE.TorusBufferGeometry(.5, .07, 6, 16), MT.metal); anneau.rotation.x = PI / 2; anneau.position.y = 3.2; g.add(anneau)
@@ -150,7 +150,7 @@
     { const g = maison({ x: 18.4, y: 3.1, z: -23, w: 7.2, d: 5.4, h: 3.6, ry: -PI / 2, mur: MUR.ocre, toit: TOIT.ocre, pente: 2 }); PORTES[3] = V3(14.6, 3.1, -23)
       const rond = new THREE.Mesh(new THREE.CircleBufferGeometry(.7, 20), MT.vitre); rond.position.set(0, 4.4, 2.75); g.add(rond); const bague = new THREE.Mesh(new THREE.TorusBufferGeometry(.72, .09, 6, 20), MT.boisSombre); bague.position.set(0, 4.4, 2.76); g.add(bague)
       fenetre(g, -2.4, 2.0, 2.73, .8, 1.15, 0); fenetre(g, 2.5, 2.0, 2.73, .8, 1.15, 0); porteFacade(g, 7.2, 5.4, 0); panneau(g, 'SUPPORT', 0, 3.4, 2.85, 3.0, .9, 0, { fond: '#6a4a2a' })
-      for (let i = 0; i < 6; i++) boite(.14, .5 + r() * .2, .4, toon(['#c8352a', '#e9b63a', '#5a8fd0', '#e9e0c8', '#4a9a5a'][i % 5]), -2.5 + i * .17, 4.3 - 3.2 + .5, 3.2, g); caisse(2.7, 0, 3.4, .8, .3); c.livres = 1
+      for (let i = 0; i < 6; i++) boite(.14, .5 + r() * .2, .4, toon(['#c8352a', '#e9b63a', '#5a8fd0', '#e9e0c8', '#4a9a5a'][i % 5]), -2.5 + i * .17, 4.3 - 3.2 + .5, 3.2, g); caisse(2.7, 0, 3.4, .8, .3, null, g); c.livres = 1
       lanterne(-1.2, 3.5, 3.0, g, { sol: 3.1, mare: 4 }); lanterne(1.2, 3.5, 3.0, g, { sol: 3.1, mare: 4 }); banniere(3.7, 3.4, 2.85, 0, 1, 2.3); etiquette(g, 3, 8.3); c.biblio = g }
     // n°4 — Réalisation : le hangar d'assemblage (quai ouest)
     { const g = maison({ x: -17.6, y: DECK, z: -9.4, w: 8.2, d: 7, h: 3.9, ry: PI / 2, mur: MUR.teal, toit: TOIT.teal, pente: 1.5, dep: .9 }); PORTES[4] = V3(-13.8, DECK, -9.4)
@@ -158,7 +158,7 @@
       panneau(g, 'RÉALISATION', 0, 4.65, 3.62, 4.4, 1.0, 0, { fond: '#254a52' }); fenetre(g, -3.3, 2.2, 3.55, .7, 1.0, 0); fenetre(g, 3.3, 2.2, 3.55, .7, 1.0, 0)
       // grue à flèche
       const gr = new THREE.Group(); gr.position.set(-3.2, 0, 3.3); g.add(gr); boite(.25, 6.2, .25, MT.metal, 0, 3.1, 0, gr); poutre(V3(0, 6.2, 0), V3(-4.6, 6.0, 1.8), .18, MT.metal, gr); poutre(V3(0, 6.2, 0), V3(1.5, 6.0, -.6), .14, MT.metal, gr); corde(V3(-4.4, 5.95, 1.75), V3(-4.4, 3.4, 1.75), 0, .025, gr); caisse(-4.4, 2.5, 1.75, .9, .3, null, gr)
-      caisse(2.4, 0, 4.6, 1.1, .1); caisse(3.7, 0, 4.4, .9, .5); tonneau(-2.8, 0, 4.4)
+      caisse(2.4, 0, 4.6, 1.1, .1, null, g); caisse(3.7, 0, 4.4, .9, .5, null, g); tonneau(-2.8, 0, 5.5, undefined, g)
       lanterne(-2.6, 3.7, 3.9, g, { sol: DECK, mare: 4 }); lanterne(2.6, 3.7, 3.9, g, { sol: DECK, mare: 4 }); cheminee(g, 2, 5.0, -1.5); etiquette(g, 4, 7.8); c.hangar = g }
     // n°5 — Évaluation : le studio de télévision (T5, nord-est)
     { const g = maison({ x: 21, y: 8.0, z: -43.4, w: 8, d: 6, h: 3.7, ry: 0, mur: MUR.creme, toit: TOIT.teal, pente: 1.2, dep: .7 }); PORTES[5] = V3(21, 8.0, -37.7)
@@ -206,13 +206,20 @@
 
     /* ==================================================================== BATEAUX AMARRÉS */
     Q._bateaux = []
-    /* modèles de la forge (tools/forge/models/embarcations.mts) : quille à y = 0, flottaison à 0,58 m (0,18 m pour la barque) ; repli procédural si le GLB manque */
-    function bateauForge(id, x, z, ry, draft, lampe) {
+    // Même garde à l'eau pour les modèles importés et procéduraux, d'après leur géométrie réelle.
+    function amarreBateau(g, ph) {
+      g.updateWorldMatrix(true, true)
+      const bas = new THREE.Box3().setFromObject(g).min.y, baseY = g.position.y + .22 - bas
+      g.position.y = baseY
+      Q._bateaux.push({ g, baseY, ph: ph === undefined ? r() * 6 : ph })
+      return g
+    }
+    function bateauForge(id, x, z, ry, lampe) {
       const P = window.TalasProps; if (!(P && P.loaded(id))) return null
       const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; s.add(g)
-      const m = P.make(id, null, { gradientMap: grad, outline: 1.03 }); m.position.y = -draft; g.add(m)
+      const m = P.make(id, null, { gradientMap: grad, outline: 1.03 }); g.add(m); amarreBateau(g)
       if (lampe) { const Lm = lanterne(0, lampe[0], lampe[1], g, { chaine: .05 }); Lm.g.children.forEach((ch) => { if (ch !== Lm.halo) ch.visible = false }) }   // seul le halo de la lanterne d'étrave brille la nuit
-      Q._bateaux.push({ g, ph: r() * 6 }); return g
+      return g
     }
     function bateauProc(x, z, ry, coque, cabine) {
       const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; s.add(g)
@@ -222,13 +229,13 @@
       const cab = boite(1.7, 1.3, 1.9, toon(cabine || '#efe7d4'), 0, 1.15, -.3, g, .5); boite(1.9, .12, 2.1, MT.boisSombre, 0, 1.85, -.3, g); fenetreJ(g, 0, 1.3, .68, .9, .5)
       cyl(.22, .26, .9, toon('#c8352a'), 0, 2.4, -.7, g, 8); boite(.4, .08, .4, MT.boisSombre, 0, 2.87, -.7, g)
       for (let i = 0; i < 2; i++) { const b = new THREE.Mesh(new THREE.TorusBufferGeometry(.25, .1, 6, 12), toon('#221a20')); b.position.set(i ? 1.1 : -1.1, .35, .6); b.rotation.y = PI / 2; g.add(b) }
-      lanterne(0, 2.6, 1.3, g, { chaine: .2 }); Q._bateaux.push({ g, ph: r() * 6 }); return g
+      amarreBateau(g); lanterne(0, 2.6, 1.3, g, { chaine: .2 }); return g
     }
     function fenetreJ(g, x, y, z, w, h) { const v = new THREE.Mesh(new THREE.PlaneBufferGeometry(w, h), MT.vitre); v.position.set(x, y, z + .03); g.add(v); boite(w + .1, h + .1, .05, MT.boisSombre, x, y, z, g) }
-    const bateau = (x, z, ry, coque, cabine, id, lampe) => bateauForge(id, x, z, ry, .58, lampe) || bateauProc(x, z, ry, coque, cabine)
+    const bateau = (x, z, ry, coque, cabine, id, lampe) => bateauForge(id, x, z, ry, lampe) || bateauProc(x, z, ry, coque, cabine)
     bateau(14.2, 3.5, PI / 2 + .08, '#c8352a', undefined, 'bateau-remorqueur', [1.22, 2.92]); bateau(-6.5, 14.6, .12, '#2f6f86', '#e9d8b0', 'bateau-chalutier', [1.3, 3.2]); bateau(36, 4, -.5, '#8a4ab0', '#efe7d4', 'bateau-vedette', [1.15, 2.75])
     // barques amarrées à la boutique
-    ;(function () { if (bateauForge('barque', -13.2, 4, .3, .18)) return; const g = new THREE.Group(); g.position.set(-13.2, 0, 4); g.rotation.y = .3; s.add(g); const sh = new THREE.Shape(); sh.moveTo(-1.6, .3); sh.quadraticCurveTo(-1.4, -.35, 0, -.4); sh.quadraticCurveTo(1.4, -.35, 1.7, .3); sh.closePath(); const hg = new THREE.ExtrudeBufferGeometry(sh, { depth: .9, bevelEnabled: false }); hg.translate(0, 0, -.45); ombre; const m = ombre(new THREE.Mesh(hg, toon('#7a5232'))); g.add(m); Q._bateaux.push({ g, ph: 1.7 }) })()
+    ;(function () { if (bateauForge('barque', -13.2, 4, .3)) return; const g = new THREE.Group(); g.position.set(-13.2, 0, 4); g.rotation.y = .3; s.add(g); const sh = new THREE.Shape(); sh.moveTo(-1.6, .3); sh.quadraticCurveTo(-1.4, -.35, 0, -.4); sh.quadraticCurveTo(1.4, -.35, 1.7, .3); sh.closePath(); const hg = new THREE.ExtrudeBufferGeometry(sh, { depth: .9, bevelEnabled: false }); hg.translate(0, 0, -.45); ombre; const m = ombre(new THREE.Mesh(hg, toon('#7a5232'))); g.add(m); amarreBateau(g, 1.7) })()
 
     /* ==================================================================== BANNIÈRES le long des passerelles, filets */
     banniere(-5.2, DECK + 3.3, -17.5, PI / 2, 1.0, 2.3); banniere(5.2, PLACE.y + 3.0, PLACE.z - 3, -PI / 2, 1.0, 2.3)
