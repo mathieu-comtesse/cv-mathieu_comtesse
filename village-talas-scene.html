@@ -234,11 +234,11 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-ile.js?v=2"></script>
 <script src="talas-jeux.js?v=6"></script>
 <script src="talas-ile-nuit.js?v=1"></script>
-<script src="talas-quai.js?v=3"></script>
+<script src="talas-quai.js?v=4"></script>
 <script src="talas-quai-decor.js?v=3"></script>
-<script src="talas-quai-village.js?v=3"></script>
+<script src="talas-quai-village.js?v=4"></script>
 <script src="talas-quai-nature.js?v=2"></script>
-<script src="talas-quai-vie.js?v=11"></script>
+<script src="talas-quai-vie.js?v=12"></script>
 <script src="talas-fantome.js?v=1"></script>
 <script src="talas-chien.js?v=2"></script>
 <script src="talas-perso.js?v=4"></script>
@@ -930,13 +930,15 @@ function fit(){
 }
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,250));
 $('#rotok').onclick=()=>{window.__rotOk=1;$('#rotate').hidden=true};
-/* Plein écran : dans le site, la page parente agrandit le cadre (vrai plein écran, ou pseudo plein écran sur iPhone) ; seul, le jeu utilise l'API du navigateur. */
+/* Appel synchrone depuis le geste du joueur : conserve l'activation nécessaire au plein écran. */
 {const IN_FRAME=window.parent!==window,D=document.documentElement,FS=$('#fs');
   const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement,canFS=!!(D.requestFullscreen||D.webkitRequestFullscreen);
   const label=on=>{FS.textContent=on?'Quitter':'Plein écran';D.classList.toggle('fsmode',on)};
   if(IN_FRAME||canFS){FS.hidden=false;
-    FS.onclick=async()=>{if(IN_FRAME){parent.postMessage({talasFS:'toggle'},'*');return}
-      try{if(fsEl())await(document.exitFullscreen||document.webkitExitFullscreen).call(document);else{await(D.requestFullscreen||D.webkitRequestFullscreen).call(D);try{await screen.orientation.lock('landscape')}catch(e){}}}catch(e){}setTimeout(fit,300)};
+    window.talasGameFullscreen=async(action='toggle')=>{if(IN_FRAME){try{if(typeof parent.talasFullscreen==='function')return parent.talasFullscreen(action)}catch(_){}parent.postMessage({talasFS:action},location.origin);return}
+      const active=!!fsEl();if(action==='enter'&&active)return;
+      try{if(active&&action!=='enter'){await(document.exitFullscreen||document.webkitExitFullscreen).call(document);try{screen.orientation.unlock()}catch(_){}}else if(action!=='exit'){await(D.requestFullscreen||D.webkitRequestFullscreen).call(D,{navigationUI:'hide'});try{await screen.orientation.lock('landscape')}catch(_){}}}catch(_){}setTimeout(fit,200)};
+    FS.onclick=()=>window.talasGameFullscreen();
     ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{label(!!fsEl());setTimeout(fit,200)}));
     addEventListener('message',e=>{if(e.source===parent&&e.data&&typeof e.data.talasFS==='boolean'){label(e.data.talasFS);setTimeout(fit,200)}});
     addEventListener('keydown',e=>{if(e.key==='Escape'&&IN_FRAME)parent.postMessage({talasFS:'exit'},'*')})}}
@@ -4481,7 +4483,8 @@ async function start(){
   const ps=m.querySelector('#pseudo');if(ps){try{ps.value=localStorage.getItem('talasPseudo')||''}catch(e){}ps.addEventListener('keydown',e=>{if(e.key==='Enter')m.querySelector('#play').click();e.stopPropagation()})}
   m.querySelector('#play').onclick=async()=>{if(ps){const v=ps.value.trim().replace(/\s+/g,' ').slice(0,20);if(!v){ps.classList.add('err');ps.focus();ps.placeholder='Choisis un pseudo pour jouer';return}
       try{localStorage.setItem('talasPseudo',v)}catch(e){}tsStart(v)}
-    closeModal();const r=await proIntro();S.intro=0;S.tEnd=performance.now()+TLIMIT;if(r!=='gone')hubHint()};(ps||m.querySelector('#play')).focus();
+    if(TOUCH&&window.talasGameFullscreen)window.talasGameFullscreen('enter');
+    if(ps)ps.blur();closeModal();const r=await proIntro();S.intro=0;S.tEnd=performance.now()+TLIMIT;if(r!=='gone')hubHint()};(ps||m.querySelector('#play')).focus();
 }
 if(window.THREE)start();else document.getElementById('loading').textContent='Impossible de charger le moteur 3D. Recharge la page.';
 </script>
