@@ -15,8 +15,9 @@
 precision highp float;
 uniform float uT, uGait, uSp, uWag, uBreath, uHead, uAlpha, uBark, uSteps;
 uniform vec3 uCamL, uLightL, uCol, uCol2, uAmb, uLightC;
+uniform mat4 uClipFromLocal;
 varying vec3 vP;
-const vec3 BMIN = vec3(-1.05, -.02, -1.75), BMAX = vec3(1.05, 2.25, 1.85);
+const vec3 BMIN = vec3(-1.05, -.36, -1.75), BMAX = vec3(1.05, 2.25, 1.85);
 
 float h31(vec3 p){ p = fract(p * .1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
 float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
@@ -86,6 +87,7 @@ void main(){
   if (tF <= tN) discard;
   float t = tN + h31(vec3(gl_FragCoord.xy, uT * 3.)) * .05;
   vec4 acc = vec4(0.);
+  float firstVisible = -1.;
   int N = int(uSteps);
   for (int i = 0; i < 64; i++){
     if (i >= N || t > tF || acc.a > .97) break;
@@ -104,11 +106,21 @@ void main(){
       col += vec3(.7, 1., .95) * pow(clamp(1. - dn, 0., 1.), 3.) * .25;
       float a = 1. - exp(-dn * st * 24.);
       col = mix(col, vec3(1., .95, .5) * 1.6, eg); a = max(a, eg);
+      if (firstVisible < 0. && a > .005) firstVisible = t;
       acc.rgb += (1. - acc.a) * col * a; acc.a += (1. - acc.a) * a;
     }
     t += st;
   }
   if (acc.a < .01) discard;
+  /* La profondeur de la brume visible, pas celle de la face arrière du cube :
+     sinon le sol masque les pattes et les caisses découpent le chien. */
+  vec4 clip = uClipFromLocal * vec4(ro + rd * max(firstVisible, tN), 1.);
+  float depth = clamp(.5 * clip.z / clip.w + .5, 0., 1.);
+  #if defined(GL_EXT_frag_depth)
+    gl_FragDepthEXT = depth;
+  #elif __VERSION__ >= 300
+    gl_FragDepth = depth;
+  #endif
   gl_FragColor = vec4(acc.rgb * uAlpha, acc.a * uAlpha);
 }`
 
@@ -120,13 +132,15 @@ void main(){
       uCamL: { value: new THREE.Vector3() }, uLightL: { value: new THREE.Vector3(0, 1, 0) }, uCol: { value: new THREE.Color(o.couleur || '#5dffd0') }, uCol2: { value: new THREE.Color(o.ombre || '#3a2a9a') },
       uAmb: { value: new THREE.Color('#8f86ff').multiplyScalar(.55) }, uLightC: { value: new THREE.Color('#ffffff') }
     }
+    uni.uClipFromLocal = { value: new THREE.Matrix4() }
     const mat = new THREE.ShaderMaterial({
       uniforms: uni, transparent: true, depthWrite: false, side: THREE.BackSide,
+      extensions: { fragDepth: true },
       blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
       vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
       fragmentShader: FRAG
     })
-    const geo = new THREE.BoxBufferGeometry(2.1, 2.27, 3.6); geo.translate(0, 1.115, .05)
+    const geo = new THREE.BoxBufferGeometry(2.1, 2.61, 3.6); geo.translate(0, .945, .05)
     const boite = new THREE.Mesh(geo, mat); boite.frustumCulled = false; boite.renderOrder = 7; g.add(boite)
     const inv = new THREE.Matrix4(), cam = new THREE.Vector3(), L = new THREE.Vector3()
     let gait = 0, wag = 0, bark = 0
@@ -139,6 +153,8 @@ void main(){
       uni.uWag.value = Math.sin(wag) * (.55 + repos * .35); uni.uBreath.value = Math.sin(T * 2.1) * .012 + repos * Math.sin(T * 8.6) * .006   // halètement discret
       uni.uHead.value = Math.sin(T * .8) * .22 + Math.sin(T * 2.7) * .05 * sp + renifle * Math.sin(T * 15) * .07 - sp * .08; uni.uBark.value = bark
       g.updateMatrixWorld(true); inv.copy(boite.matrixWorld).invert()
+      camera.updateMatrixWorld(true)
+      uni.uClipFromLocal.value.copy(camera.projectionMatrix).multiply(camera.matrixWorldInverse).multiply(boite.matrixWorld)
       cam.copy(camera.position).applyMatrix4(inv); uni.uCamL.value.copy(cam)
       if (dirLune) { L.copy(dirLune).transformDirection(inv).normalize(); uni.uLightL.value.copy(L) }
       if (couleurLune) uni.uLightC.value.copy(couleurLune)
@@ -146,6 +162,7 @@ void main(){
     }
     U.aboie = () => { bark = 1 }
     U.materiau = mat
+    U.solOffset = .36 // repère local : toutes les pattes et leur brume restent dans le volume.
     return g
   }
 })()

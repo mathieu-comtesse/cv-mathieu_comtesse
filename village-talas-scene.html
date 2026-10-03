@@ -244,9 +244,10 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="talas-quai-decor.js?v=3"></script>
 <script src="talas-quai-village.js?v=4"></script>
 <script src="talas-quai-nature.js?v=2"></script>
-<script src="talas-quai-vie.js?v=12"></script>
+<script src="talas-compagnons.js?v=1"></script>
+<script src="talas-quai-vie.js?v=13"></script>
 <script src="talas-fantome.js?v=1"></script>
-<script src="talas-chien.js?v=2"></script>
+<script src="talas-chien.js?v=3"></script>
 <script src="talas-perso.js?v=4"></script>
 <script src="talas-perso-compat.js?v=1"></script>
 <script src="talas-quai-pnj.js?v=2"></script>
@@ -546,25 +547,25 @@ function buildFace(g,kind,skin,hy=2.55){
 }
 function makeBoulon(){
   const g=new THREE.Group();if(ILE.boulon){g.add(ILE.boulon.clone());const eb=new THREE.MeshBasicMaterial({color:'#66e3ff'});
-    [[-.32,1.5,.28],[.3,1.55,.34]].forEach(([x,y,s])=>{const e=new THREE.Mesh(new THREE.BoxGeometry(s,s,.04),eb);e.position.set(x,y,.72);g.add(e)});const br=new THREE.Mesh(new THREE.BoxGeometry(.36,.06,.04),eb);br.position.set(.3,1.8,.72);br.rotation.z=.3;g.add(br);
+    [[-.32,1.5,.28],[.3,1.55,.34]].forEach(([x,y,s])=>{const e=new THREE.Mesh(new THREE.BoxGeometry(s,s,.04),eb);e.name="visage_eye"+x;e.position.set(x,y,.72);g.add(e)});const br=new THREE.Mesh(new THREE.BoxGeometry(.36,.06,.04),eb);br.position.set(.3,1.8,.72);br.rotation.z=.3;g.add(br);
     [[-.22,1.22],[-.08,1.18],[.08,1.18],[.22,1.22]].forEach(([x,y])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.12,.07,.04),eb);m.position.set(x,y,.72);g.add(m)});
-    const prop=new THREE.Group();prop.position.set(0,2.8,0);g.add(prop);[0,1].forEach(i=>{const b=mk(new THREE.BoxGeometry(1.5,.06,.26),i?'#4dabf7':'#ff6b6b',0,0,0,prop);b.rotation.y=i*Math.PI/2});outline(mk(new THREE.SphereGeometry(.13,10,8),'#ff6b6b',0,0,0,prop),1.2);g.userData.prop=prop;return g}
+    const prop=new THREE.Group();prop.position.set(0,2.8,0);g.add(prop);[0,1].forEach(i=>{const b=mk(new THREE.BoxGeometry(1.5,.06,.26),i?'#4dabf7':'#ff6b6b',0,0,0,prop);b.rotation.y=i*Math.PI/2});outline(mk(new THREE.SphereGeometry(.13,10,8),'#ff6b6b',0,0,0,prop),1.2);g.userData.prop=prop;return window.TALAS_COMPAGNONS?TALAS_COMPAGNONS.articulerBoulon(g):g}
   outline(mk(new THREE.BoxGeometry(1.7,1.4,1.3),'#ffcc33',0,1.45,0,g),1.05);
   mk(new THREE.BoxGeometry(1.3,.82,.06),'#1c3d5a',0,1.45,.66,g);
   const eb=new THREE.MeshBasicMaterial({color:'#66e3ff'});
-  [[-.32,1.5,.28],[.3,1.55,.34]].forEach(([x,y,s])=>{const e=new THREE.Mesh(new THREE.BoxGeometry(s,s,.04),eb);e.position.set(x,y,.7);g.add(e)});
+  [[-.32,1.5,.28],[.3,1.55,.34]].forEach(([x,y,s])=>{const e=new THREE.Mesh(new THREE.BoxGeometry(s,s,.04),eb);e.name="visage_eye"+x;e.position.set(x,y,.7);g.add(e)});
   const br=new THREE.Mesh(new THREE.BoxGeometry(.36,.06,.04),eb);br.position.set(.3,1.8,.7);br.rotation.z=.3;g.add(br);
   [[-.22,1.22],[-.08,1.18],[.08,1.18],[.22,1.22]].forEach(([x,y])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.12,.07,.04),eb);m.position.set(x,y,.7);g.add(m)});
-  [-1,1].forEach(s=>{outline(mk(new THREE.CylinderGeometry(.14,.14,.12,8),'#adb5bd',s*.9,1.45,0,g),1.1).rotation.z=Math.PI/2;
-    const a=mk(new THREE.CylinderGeometry(.07,.07,.6,6),'#868e96',s*1.05,1.1,.1,g);a.rotation.z=s*.5;
-    outline(mk(new THREE.BoxGeometry(.24,.2,.24),'#ff6b6b',s*1.22,.82,.18,g),1.1);
-    mk(new THREE.CylinderGeometry(.08,.08,.5,6),'#868e96',s*.35,.5,0,g);
-    outline(mk(new THREE.BoxGeometry(.36,.18,.5),'#ff6b6b',s*.35,.15,.08,g),1.1)});
+  [-1,1].forEach(s=>{outline(mk(new THREE.CylinderGeometry(.14,.14,.12,8),'#adb5bd',s*.9,1.45,0,g),1.1);g.children[g.children.length-1].name='epaule__metal';g.children[g.children.length-1].rotation.z=Math.PI/2;
+    const a=mk(new THREE.CylinderGeometry(.07,.07,.6,6),'#868e96',s*1.05,1.1,.1,g);a.name='bras__metal2';a.rotation.z=s*.5;
+    outline(mk(new THREE.BoxGeometry(.24,.2,.24),'#ff6b6b',s*1.22,.82,.18,g),1.1).name='pince__red';
+    mk(new THREE.CylinderGeometry(.08,.08,.5,6),'#868e96',s*.35,.5,0,g).name='jambe__metal2';
+    outline(mk(new THREE.BoxGeometry(.36,.18,.5),'#ff6b6b',s*.35,.15,.08,g),1.1).name='pied__red'});
   mk(new THREE.CylinderGeometry(.05,.05,.55,6),INK,0,2.4,0,g);
   const prop=new THREE.Group();prop.position.set(0,2.72,0);g.add(prop);
   [0,1].forEach(i=>{const b=mk(new THREE.BoxGeometry(1.5,.06,.26),i?'#4dabf7':'#ff6b6b',0,0,0,prop);b.rotation.y=i*Math.PI/2});
   outline(mk(new THREE.SphereGeometry(.13,10,8),'#ff6b6b',0,0,0,prop),1.2);
-  g.userData.prop=prop;return g;
+  g.userData.prop=prop;return window.TALAS_COMPAGNONS?TALAS_COMPAGNONS.articulerBoulon(g):g;
 }
 
 /* ================= NATURE ================= */
@@ -772,7 +773,7 @@ function buildHub(){
   const fx=makeFX(s);
   const W={scene:s,clickables,hub:1,hd:1,plainui:1,look:V(0,1.5,1),yaw:0,baseD:37,fitW:46,boulon:bo,plane:pl,fx,
     update(dt,T){
-      bo.userData.prop.rotation.y+=dt*8;bo.position.y=.45+Math.abs(Math.sin(T*2.2))*.3;bo.rotation.y=Math.sin(T*.6)*.6;
+      if(bo.userData.animer)bo.userData.animer(dt,T);else bo.userData.prop.rotation.y+=dt*8;bo.position.y=.45+Math.abs(Math.sin(T*2.2))*.3;bo.rotation.y=Math.sin(T*.6)*.6;
       clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>55)c.position.x=-55});caus.offset.set(T*.004,T*.006);if(W2){W2.material.map.offset.set(-T*.006,T*.004)}nat.update(dt,T);foam.scale.setScalar(1+Math.sin(T*1.5)*.012);foam.material.opacity=.45+Math.sin(T*1.5)*.2;
       B.forEach((b,n)=>{if(b.userData.gear)b.userData.gear.rotation.z+=dt*.8;if(b.userData.flag)b.userData.flag.rotation.y=Math.sin(T*3)*.3;
         if(b.userData.smoke){const o=b.userData.smokeAt||[-1.2,4.9,-.6];b.userData.smoke.forEach((p,i)=>{const k=((T*.35+i/4)%1);p.position.set(o[0]+k*.6,o[1]+k*3,o[2]);p.scale.setScalar(.4+k*1.2)})}});
@@ -914,7 +915,7 @@ function buildRoom(n){
   const fx=makeFX(s);
   const W={scene:s,clickables:[],look:V(0,.6,-.6),baseD:19,fitW:18,boulon:bo,dylan:dy,stage,fx,bobY:0,
     clear(){while(stage.children.length)stage.remove(stage.children[0]);W.clickables.length=0;W.onDown=W.onMove=W.onUp=W.extra=null;W.keys=0},
-    update(dt,T){deco.forEach(f=>f(dt,T));bo.userData.prop.rotation.y+=dt*9;const fy=Math.atan2(camera.position.x-bo.position.x,camera.position.z-bo.position.z);bo.userData.face=fy;if(!bo.userData.busy){bo.position.y=Math.abs(Math.sin(T*2.4))*.25;bo.rotation.y+=(fy-bo.rotation.y)*Math.min(1,dt*6)}fx.update(dt);W.extra&&W.extra(dt,T)}};
+    update(dt,T){deco.forEach(f=>f(dt,T));if(bo.userData.animer)bo.userData.animer(dt,T,{talk:!$('#panel').hidden});else bo.userData.prop.rotation.y+=dt*9;const fy=Math.atan2(camera.position.x-bo.position.x,camera.position.z-bo.position.z);bo.userData.face=fy;if(!bo.userData.busy){bo.position.y=Math.abs(Math.sin(T*2.4))*.25;bo.rotation.y+=(fy-bo.rotation.y)*Math.min(1,dt*6)}fx.update(dt);W.extra&&W.extra(dt,T)}};
   const deco=D.build(s,W);
   return W;
 }
@@ -996,7 +997,7 @@ function loop(now=performance.now()){requestAnimationFrame(loop);if(!mainFrames.
   if(TOUCH&&!PXR&&cur?.hd){const ratio=mobileResolution.sample(now);if(ratio!==null){renderer.setPixelRatio(ratio);fit()}}
   if(cur){cur.update&&cur.update(dt,T);placeCam(dt);if(cur.hd){if(window.TALAS_RENDU&&TALAS_RENDU.actif(cur))TALAS_RENDU.rendre(renderer,cur.scene,camera,cur,T);else renderer.render(cur.scene,camera);return}renderer.setRenderTarget(rt);renderer.render(cur.scene,camera);renderer.setRenderTarget(null);renderer.render(postScene,postCam)}}
 
-function boulonJump(){const b=cur&&cur.boulon;if(!b)return;b.userData.busy=1;const r0=b.userData.face!==undefined?b.userData.face:b.rotation.y;tween(.5,k=>{b.position.y=Math.sin(k*Math.PI)*1.4;b.rotation.y=r0+k*Math.PI*2},E.lin).then(()=>{b.rotation.y=r0;b.userData.busy=0});cur.fx.burst(b.position.clone().add(V(0,2.2,0)),10)}
+function boulonJump(){const b=cur&&cur.boulon;if(!b)return;b.userData.busy=1;const y0=b.position.y,r0=b.userData.face!==undefined?b.userData.face:b.rotation.y;tween(.5,k=>{b.position.y=y0+Math.sin(k*Math.PI)*1.4;b.rotation.y=r0+k*Math.PI*2},E.lin).then(()=>{b.position.y=y0;b.rotation.y=r0;b.userData.busy=0});cur.fx.burst(b.position.clone().add(V(0,2.2,0)),10)}
 function boulonShake(){const b=cur&&cur.boulon;if(!b)return;const r=b.rotation.z;tween(.5,k=>{b.rotation.z=r+Math.sin(k*Math.PI*6)*.25*(1-k)},E.lin)}
 
 /* ================= OUTIL : POINTEUR SUR UN PLAN ================= */
@@ -4500,3 +4501,4 @@ if(window.THREE)start();else document.getElementById('loading').textContent='Imp
 </script>
 
 </body></html>
+

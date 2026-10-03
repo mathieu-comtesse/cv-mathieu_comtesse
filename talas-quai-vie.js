@@ -155,56 +155,40 @@
       fumG.lumiere(camera, W.soleil.position.clone().sub(W.soleil.target.position), new THREE.Color('#8fa0ff').multiplyScalar(.5), new THREE.Color('#6a58c0'), new THREE.Color('#3dffc4')); fumG.maj(dt, T, camera)
     }
     const DECKG = ctx.DECK
-    /* le chien-fantôme : un volume raymarché (SDF + bruit), il trotte à côté de Dylan. Il obéit aux mêmes règles que lui : jamais au-dessus de l'eau,
-     * jamais à travers un poteau, une caisse ou un habitant ; bloqué, il contourne (du même côté tant que ça passe) et, si Dylan file trop loin, il le rejoint d'un bond. */
-    let chien = null; const cP = V3(J.x + 1.6, J.y, J.z + 2.2); let cAng = Math.PI, cVit = 0, cCote = 1, cBloque = 0
-    if (window.TALAS_CHIEN && TALAS_CHIEN.creer) { chien = TALAS_CHIEN.creer(); chien.scale.setScalar(.62); chien.position.copy(cP); s.add(chien); W.chien = chien }
-    const lumV = V3(0, 1, 0), lumC = new THREE.Color(), ambC = new THREE.Color(), RC = .3
-    // sol praticable en (x, z) pour le chien, ou null : hors du ponton, dans un obstacle ou dans un habitant (un pas qui s'en éloigne reste permis, pour ne jamais rester coincé dedans)
+    /* Le chien de brume explore le quai, s'arrête pour renifler et revient de lui-même.
+     * Sa position de navigation est le sol ; le volume visible est calé au-dessus, pattes comprises. */
+    let chien = null; const cP = V3(J.x + 1.6, J.y, J.z + 2.2)
+    if (window.TALAS_CHIEN && TALAS_CHIEN.creer) { chien = TALAS_CHIEN.creer(); chien.scale.setScalar(.62); chien.position.set(cP.x, cP.y + chien.userData.solOffset * .62 + .04, cP.z); s.add(chien); W.chien = chien }
+    const lumV = V3(0, 1, 0), lumC = new THREE.Color(), ambC = new THREE.Color(), RC = .62
     const chienLibre = (x, z, y0) => {
       const y = Q.sol(x, z, y0); if (y === null || Math.abs(y - y0) > .7) return null
+      // Une empreinte entière sur le ponton, pas seulement son point central.
+      for (const [dx, dz] of [[RC,0],[-RC,0],[0,RC],[0,-RC]]) { const h = Q.sol(x + dx, z + dz, y); if (h === null || Math.abs(h - y) > .7) return null }
       for (const o of Q.obstacles) {
-        if (Math.abs((o.y || 0) - y0) > 3.2) continue
+        if (Math.abs((o.y || 0) - y) > 3.2) continue
         if (o.t === 'c') { if ((x - o.x) ** 2 + (z - o.z) ** 2 < (o.r + RC) ** 2) return null }
         else { const cx = Math.cos(o.ry), sx = Math.sin(o.ry), lx = (x - o.x) * cx - (z - o.z) * sx, lz = (x - o.x) * sx + (z - o.z) * cx; if (Math.abs(lx) < o.hw + RC && Math.abs(lz) < o.hd + RC) return null }
       }
       const rond = (ox, oz, r) => { const d2 = (x - ox) ** 2 + (z - oz) ** 2; return d2 < (r + RC) ** 2 && d2 <= (cP.x - ox) ** 2 + (cP.z - oz) ** 2 }
-      if (rond(J.x, J.z, .4)) return null
-      if (W.pnjSolides) for (const n of W.pnjSolides()) if (Math.abs(n.y - y0) < 1.6 && rond(n.x, n.z, n.r)) return null
+      if (Math.abs(J.y - y) < 1.6 && rond(J.x, J.z, .4)) return null
+      if (W.pnjSolides) for (const n of W.pnjSolides()) if (Math.abs(n.y - y) < 1.6 && rond(n.x, n.z, n.r)) return null
       return y
     }
+    if (chienLibre(cP.x, cP.z, cP.y) === null) for (let i = 0; i < 24; i++) { const a = i * Math.PI / 12, x = J.x + Math.sin(a) * 1.8, z = J.z + Math.cos(a) * 1.8, y = chienLibre(x, z, J.y); if (y !== null) { cP.set(x, y, z); break } }
+    const chienBalade = window.TALAS_COMPAGNONS ? TALAS_COMPAGNONS.promeneur({ position: cP, sol: Q.sol, libre: chienLibre }) : null
+    W.chienComportement = chienBalade
     function chienQuai(dt, T) {
-      if (!chien) return
-      const sx = Math.sin(J.ang), cz = Math.cos(J.ang)
-      // où le chien voudrait être : devant à côté de Dylan, sinon devant, sinon de l'autre côté, sinon derrière (le premier emplacement libre)
-      let tx = J.x, tz = J.z, ty = null
-      for (const [av, la] of [[1.2, 1.5], [1.6, 0], [1.2, -1.5], [-1.2, 1.5], [-1.2, -1.5], [-1.8, 0]]) {
-        const x = J.x + sx * av + cz * la, z = J.z + cz * av - sx * la, y = Q.sol(x, z, J.y)
-        if (y !== null && Math.abs(y - J.y) <= 1 && chienLibre(x, z, J.y) !== null) { tx = x; tz = z; ty = y; break }
-      }
-      if (ty === null) { tx = J.x; tz = J.z; ty = J.y }
-      const dx = tx - cP.x, dz = tz - cP.z, d = Math.hypot(dx, dz)
-      const v = d > .45 ? Math.min(6.4, (d - .35) * 3.4) : 0
-      cVit += (v - cVit) * Math.min(1, dt * 6)
-      let cap = cAng, avance = false
-      if (d > .01 && cVit > .05) {
-        const base = Math.atan2(dx, dz), pas = cVit * dt
-        const essais = [0, .5 * cCote, -.5 * cCote, 1 * cCote, -1 * cCote, 1.6 * cCote, -1.6 * cCote, 2.3 * cCote, -2.3 * cCote]
-        for (let passe = 0; passe < 2 && !avance; passe++) for (const da of essais) {
-          const a = base + da, nx = cP.x + Math.sin(a) * pas, nz = cP.z + Math.cos(a) * pas
-          if (chienLibre(nx, nz, cP.y) === null) continue
-          if (passe === 0 && chienLibre(cP.x + Math.sin(a) * (pas + .3), cP.z + Math.cos(a) * (pas + .3), cP.y) === null) continue // un coup d'œil devant, pour ne pas raser les obstacles
-          cP.x = nx; cP.z = nz; cap = a; if (da) cCote = da > 0 ? 1 : -1; avance = true; break
-        }
-      }
-      if (!avance && d > .8) { cBloque += dt; cVit *= .6 } else cBloque = 0
-      if (d > 9 || cBloque > 1.4) { cP.set(tx, ty, tz); cVit = 0; cBloque = 0 }
-      const sy = Q.sol(cP.x, cP.z, cP.y); cP.y += ((sy === null ? ty : sy) - cP.y) * Math.min(1, dt * 12)
-      const vise = cVit > .3 ? (avance ? cap : cAng) : Math.atan2(J.x - cP.x, J.z - cP.z); let da = vise - cAng; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; cAng += da * Math.min(1, dt * (cVit > .3 ? 8 : 2.5))
-      chien.position.copy(cP); chien.rotation.y = cAng
+      if (!chien || !chienBalade) return
+      const mouvement = chienBalade.update(dt, J)
+      let solVisible = cP.y
+      for (const [dx, dz] of [[RC,0],[-RC,0],[0,RC],[0,-RC]]) { const h = Q.sol(cP.x + dx, cP.z + dz, cP.y); if (h !== null) solVisible = Math.max(solVisible, h) }
+      const minY = solVisible + chien.userData.solOffset * chien.scale.y + .04
+      // Montée immédiate pour ne jamais traverser une pente ; descente amortie sans passer sous le sol.
+      chien.position.set(cP.x, Math.max(minY, chien.position.y + (minY - chien.position.y) * (1 - Math.exp(-dt * 14))), cP.z)
+      chien.rotation.y = mouvement.angle
       lumV.copy(W.soleil.position).sub(W.soleil.target.position).normalize(); lumC.copy(W.soleil.color).multiplyScalar(Math.min(1.2, W.soleil.intensity)); ambC.copy(W.hemi.color).multiplyScalar(W.hemi.intensity * .75)
       chien.userData.materiau.uniforms.uAlpha.value = .8 + .2 * (W.etat ? W.etat.x.night : 0)
-      chien.userData.tick(dt, T, cVit, camera, lumV, lumC, ambC)
+      chien.userData.tick(dt, T, mouvement.speed, camera, lumV, lumC, ambC)
     }
     // flèche d'objectif et mini-carte
     const flecheObj = ctx.ombre(new THREE.Mesh(new THREE.ConeBufferGeometry(.5, 1.1, 4), new THREE.MeshToonMaterial({ color: '#ff3a2a', gradientMap: grad }))); flecheObj.rotation.x = Math.PI; flecheObj.visible = false; s.add(flecheObj)
@@ -310,10 +294,11 @@
       } else animPerson(dylan, mode, T * (1 + J.courir * .35))
       if (J.vit > 3 && Math.random() < dt * (6 + J.courir * 8)) pous.emettre({ pos: [J.x - Math.sin(J.ang) * .3 + (Math.random() - .5) * .3, J.y + .12, J.z - Math.cos(J.ang) * .3 + (Math.random() - .5) * .3], vel: [-Math.sin(J.ang) * .8 + (Math.random() - .5) * .6, .5, -Math.cos(J.ang) * .8 + (Math.random() - .5) * .6], t0: .16, t1: .5, c0: '#efe4d0', c1: '#d8ccb8', a0: .55, a1: 0, vie: .7, grav: -.3, vent: 0 })
       pous.lumiere(camera, W.soleil.position.clone().sub(W.soleil.target.position), W.soleil.color.clone().multiplyScalar(W.soleil.intensity * .6), W.hemi.color.clone().multiplyScalar(W.hemi.intensity * .7)); pous.maj(dt, T, camera)
-      // Boulon suit Dylan
-      const tb = V3(J.x - Math.sin(J.ang + 1.1) * 1.5, J.y + 1.5 + Math.sin(T * 2.2) * .18, J.z - Math.cos(J.ang + 1.1) * 1.5)
-      if (!libre) { boP.lerp(tb, 1 - Math.pow(.02, dt)); bo.position.copy(boP) }
-      bo.userData.prop.rotation.y += dt * 8; { const fy = Math.atan2(camera.position.x - bo.position.x, camera.position.z - bo.position.z); bo.userData.face = fy; if (!bo.userData.busy) bo.rotation.y += (fy - bo.rotation.y) * Math.min(1, dt * 6) }
+      // Boulon suit avec de l'inertie ; ses articulations restent vivantes, même à l'arrêt.
+      const tb = V3(J.x - Math.sin(J.ang + 1.1) * 1.5 + Math.sin(T * .7) * .14, J.y + 1.5 + Math.sin(T * 2.2) * .18, J.z - Math.cos(J.ang + 1.1) * 1.5 + Math.cos(T * .9) * .12)
+      if (!libre && !bo.userData.busy) { boP.lerp(tb, 1 - Math.pow(.02, dt)); bo.position.copy(boP) }
+      if (bo.userData.animer) bo.userData.animer(dt, T, { speed: J.vit, talk: !$('#panel').hidden }); else bo.userData.prop.rotation.y += dt * 8
+      { const fy = Math.atan2(camera.position.x - bo.position.x, camera.position.z - bo.position.z); bo.userData.face = fy; if (!bo.userData.busy) { const d = Math.atan2(Math.sin(fy - bo.rotation.y), Math.cos(fy - bo.rotation.y)); bo.rotation.y += d * (1 - Math.exp(-dt * 4)) } }
       // hélice de l'hydravion, phare
       if (Q._helice) Q._helice.rotation[Q._heliceForge ? 'z' : 'x'] += dt * 30
       fantomeQuai(dt, T); chienQuai(dt, T)
@@ -326,7 +311,7 @@
       const e = !!KEYS.S, appui = (e && !prevS) || !!KEYP.S; KEYP.S = 0;
       if (appui && proche >= 0) { if (proche === 7) clickTower(); else clickBuilding(proche) }
       else if (appui && proche < 0 && !fige && !modal && W.pnjParle && W.pnjParle()) { /* un habitant du quai répond (talas-quai-pnj.js) */ }
-      else if (appui && proche < 0 && chien && !fige && !modal && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.8) { chien.userData.aboie(); if (window.TALAS_SON) TALAS_SON.aboie(); try { beep(260, .12, 'square', .05); setTimeout(() => beep(390, .16, 'square', .05), 120) } catch (er) {} fx.burst(V3(cP.x, cP.y + 1.6, cP.z), 8) }
+      else if (appui && proche < 0 && chien && !fige && !modal && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.8) { if (chienBalade) chienBalade.caresse(); chien.userData.aboie(); if (window.TALAS_SON) TALAS_SON.aboie(); try { beep(260, .12, 'square', .05); setTimeout(() => beep(390, .16, 'square', .05), 120) } catch (er) {} fx.burst(V3(cP.x, cP.y + 1.6, cP.z), 8) }
       prevS = e ? 1 : 0
       const dlg = !$('#panel').hidden   // un dialogue est ouvert : pas d'invite par-dessus le panneau
       qMap.style.opacity = dlg ? 0 : 1
