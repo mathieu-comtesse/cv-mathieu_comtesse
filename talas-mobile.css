@@ -182,3 +182,48 @@
 #frame:has(#modal:not([hidden])) #dialogue-dismiss,#frame:has(.tcard) #dialogue-dismiss,#frame:has(#fade.on) #dialogue-dismiss{visibility:hidden}
 /* Cinematic/story dialogue replaces the gameplay action, never overlays it. */
 .touch #frame:has(#cine.on) #pad .acts{visibility:hidden}
+
+/* Review: answer contrast and compact CEO combat, not yet published. */
+#frame #panel .pact .btn,#frame #panel .pact .btn *{color:#fff3c8!important;-webkit-text-fill-color:#fff3c8!important;-webkit-text-stroke:0;text-shadow:none}
+#frame #panel .pact .btn:hover,#frame #panel .pact .btn:focus,#frame #panel .pact .btn:focus-visible,#frame #panel .pact .btn.mobile-selected{background:#57305f!important;color:#fff3c8!important;-webkit-text-fill-color:#fff3c8!important;outline-color:#54ddd8!important}
+#frame #panel.has-choices{display:flex;flex-direction:column;overflow:hidden}
+#frame #panel.has-choices .tbar{flex:none}
+#frame #panel.has-choices .pin{flex:1;min-height:0;display:block;overflow:auto;overscroll-behavior:contain}
+#frame #panel.has-choices .pbody{display:block}
+#frame #panel.has-choices .ptext{margin-bottom:8px}
+#frame #panel.has-choices .pact{gap:6px}
+#frame #panel.has-choices .pact .btn{flex:none;height:auto;min-width:0;white-space:normal;overflow-wrap:anywhere}
+#frame .arui{--arena-unit:1;--arena-font-size:8px;z-index:20}
+#frame .arui .ap,#frame .arui .ap *{font-family:Arial,Helvetica,sans-serif!important;font-size:var(--arena-font-size)!important;line-height:1.35!important;letter-spacing:0;text-shadow:none;-webkit-text-stroke:0}
+#frame .arui .ap{left:50%;right:auto;transform:translateX(-50%);width:min(460px,calc(100% - 32px));box-sizing:border-box;padding:8px 10px;border:2px solid #bba0dc;border-radius:8px;background:rgba(26,18,45,.96);color:#fff3d7;box-shadow:0 3px 0 #100e20}
+#frame .arui .ap.ask{display:flex;flex-direction:column;overflow:hidden}
+#frame .arui .arena-question{flex:none;padding-bottom:6px;border-bottom:1px solid #bba0dc60}
+#frame .arui .arena-question h4,#frame .arui h4{font-size:calc(9px * var(--arena-unit))!important;line-height:1.25!important;margin:0 0 4px;color:#ffd87c}
+#frame .arui .arena-question p{margin:0;color:#fff3d7}
+#frame .arui .arena-answers{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8f72b1 #241933;padding:0 2px 2px}
+#frame .arui .hd{margin:5px 0 3px;color:#c6f3ff}
+#frame .arui button{box-sizing:border-box;grid-template-columns:18px minmax(0,1fr);gap:2px 5px;white-space:normal;overflow-wrap:anywhere;color:#fff3d7;min-height:40px;padding:5px 6px;border:1px solid #8f72b160;border-radius:4px;margin-top:4px;background:#352443}
+#frame .arui button span,#frame .arui button b{color:#fff3d7}
+#frame .arui button i{color:#bcdde9}
+#frame .arui button.on,#frame .arui button.mobile-selected,#frame .arui button:focus-visible{background:#543363!important;outline-color:#54ddd8!important}
+#frame .arui button.on b::before{display:none}
+#frame .arui .arena-feedback{margin:0;overflow-wrap:anywhere}
+#frame .arui .go{display:none}
+#frame .arui .ap.top{top:58px;max-height:80px;overflow:auto}
+.touch #frame .arui{--arena-unit:var(--mobile-unit);--arena-font-size:calc(8px * var(--mobile-unit))}
+.touch #frame .arui .ap{width:min(calc(460px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)));padding:calc(6px * var(--mobile-unit)) calc(8px * var(--mobile-unit));border-radius:calc(6px * var(--mobile-unit))}
+.touch #frame .arui .ap.bot{bottom:calc((var(--touch-main) + 26px) * var(--mobile-unit) + var(--game-safe-bottom,0px));max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+.touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+.touch #frame .arui .arena-question{padding-bottom:calc(5px * var(--mobile-unit))}
+.touch #frame .arui .arena-answers{padding:0 calc(2px * var(--mobile-unit)) calc(2px * var(--mobile-unit))}
+.touch #frame .arui button{min-height:calc(44px * var(--mobile-unit));padding:calc(4px * var(--mobile-unit)) calc(6px * var(--mobile-unit));grid-template-columns:calc(16px * var(--mobile-unit)) minmax(0,1fr);gap:calc(2px * var(--mobile-unit)) calc(5px * var(--mobile-unit));margin-top:calc(4px * var(--mobile-unit))}
+.touch #frame .arui .ap.top{top:calc(48px * var(--mobile-unit));max-height:calc(70px * var(--mobile-unit))}
+/* Two-column answers match the compact office proposal. The question stays outside the scrollable list. */
+#frame .arui .arena-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;gap:4px;flex:1 1 auto}
+#frame .arui .arena-answers .hd{grid-column:1 / -1}
+#frame .arui .arena-answers button{margin-top:0}
+#frame .arui .arena-question{max-height:58px;overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
+.touch #frame .arui .arena-answers{gap:calc(4px * var(--mobile-unit))}
+.touch #frame .arui .arena-question{max-height:calc(48px * var(--mobile-unit))}
+.touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 66px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+@media(max-height:280px){.touch #frame .arui .arena-answers .hd{display:none}}

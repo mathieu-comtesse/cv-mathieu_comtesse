@@ -194,7 +194,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;z-index:10;background:#2890e2;color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="talas-mobile.css?v=20261003-actions-1">
+<link rel="stylesheet" href="talas-mobile.css?v=20261003-pdg-1">
 
 <div id="area"><div id="frame">
 <canvas id="cv" width="640" height="480" aria-label="Village 3D de Talas"></canvas>
@@ -233,7 +233,8 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="talas-performance.js?v=1"></script>
 <script src="talas-rendu.js?v=2"></script>
-<script src="talas-mobile.js?v=20261003-actions-1"></script>
+<script src="talas-mobile.js?v=20261003-pdg-1"></script>
+<script src="talas-bureau-pdg.js?v=20261003-pdg-1"></script>
 <script src="talas-monde.js?v=1"></script>
 <script src="talas-config.js?v=2"></script>
 <script src="talas-panthere.js?v=2"></script>
@@ -854,12 +855,7 @@ const DECOR=[
  /* §5 : le bureau du PDG, en haut de la tour */
  {sky:['#4dabf7','#d0ebff'],floor:()=>{const t=ctex(64,64,(x,w,h)=>{x.fillStyle='#7a1f2b';x.fillRect(0,0,w,h);x.strokeStyle='#d4a017';x.lineWidth=4;x.strokeRect(6,6,w-12,h-12)});return t},
   wall:()=>wallMat(ctex(128,64,(x,w,h)=>{x.fillStyle='#a5d8ff';x.fillRect(0,0,w,h);x.fillStyle='#4c6ef5';for(let i=0;i<8;i++){const bh=12+((i*37)%40);x.fillRect(i*16,h-bh,13,bh)}x.fillStyle='#ffe066';for(let i=0;i<40;i++)x.fillRect((i*29)%w,h-4-((i*13)%40),2,2);x.fillStyle='#dee2e6';for(let i=0;i<=4;i++)x.fillRect(i*32-2,0,4,h);x.fillRect(0,0,w,3)}),4,2),
-  build(s,W){const up=[];const desk=new THREE.Group();desk.position.set(0,0,-4.8);s.add(desk);outline(mk(new THREE.BoxGeometry(5,1.3,1.6),'#6b3a1e',0,.65,0,desk),1.03);
-   const np=labelPlane('A. LEFAUCONNIER · PDG',3,.45,{bg:'#fcc419',border:'#8a5a00',size:70});np.position.set(0,1,.82);desk.add(np);
-   [-1.6,1.6].forEach((x,i)=>{outline(mk(new THREE.CylinderGeometry(.18,.3,.3,10),'#fab005',x,1.45,0,desk),1.1);outline(mk(new THREE.CylinderGeometry(.35,.12,.6,12),'#fcc419',x,1.9,0,desk),1.1)});
-   const globe=outline(mk(new THREE.SphereGeometry(.8,16,12),'#4dabf7',-11,1.8,-4.5,s),1.05);mk(new THREE.CylinderGeometry(.08,.3,1,8),'#8a5a3a',-11,.5,-4.5,s);up.push(dt=>globe.rotation.y+=dt*.8);
-   const plant=new THREE.Group();plant.position.set(11,0,-4.6);s.add(plant);outline(mk(new THREE.CylinderGeometry(.6,.45,1,12),'#e8590c',0,.5,0,plant),1.06);for(let i=0;i<6;i++){const l=mk(new THREE.ConeGeometry(.25,1.8,6),'#2f9e44',Math.cos(i)*.3,1.8,Math.sin(i)*.3,plant);l.rotation.z=Math.cos(i)*.5;l.rotation.x=Math.sin(i)*.5}
-   up.push((dt,T)=>plant.rotation.y=Math.sin(T*.8)*.1);return up}},
+  build(s,W){TalasBureauPDG.build({THREE,scene:s});return []}},
  /* §6 : le hangar des risques, avec un tronçon de fuselage */
  {sky:['#495057','#adb5bd'],floor:()=>ctex(64,64,(x,w,h)=>{x.fillStyle='#8d949c';x.fillRect(0,0,w,h);x.fillStyle='#7c838b';for(let i=0;i<40;i++)x.fillRect((i*23)%w,(i*41)%h,2,2);x.fillStyle='#fcc419';x.fillRect(0,28,w,4)}),
   wall:()=>wallMat(ctex(32,64,(x,w,h)=>{x.fillStyle='#5c7185';x.fillRect(0,0,w,h);x.fillStyle='#4a5d70';x.fillRect(0,0,6,h);x.fillRect(16,0,6,h)}),24,2),
@@ -912,8 +908,10 @@ function buildRoom(n){
   if(n===0&&window.TALAS_GRENIER&&TALAS_GRENIER.on&&TALAS_GRENIER.monde&&renderer.capabilities.isWebGL2)return TALAS_GRENIER.monde();
   const D=DECOR[n];const s=new THREE.Scene();s.background=skyTex(...D.sky);lights(s,16);if(D.dim)s.children.forEach(o=>{if(o.isLight)o.intensity*=D.dim});
   const ft=D.floor();ft.repeat.set(20,17);const floor=new THREE.Mesh(new THREE.PlaneGeometry(70,60),new THREE.MeshToonMaterial({map:ft,gradientMap:grad}));floor.rotation.x=-Math.PI/2;floor.position.z=20;floor.receiveShadow=true;s.add(floor);
-  mk(new THREE.BoxGeometry(34,12,.6),D.wall(),0,6,-6.5,s);
-  [-1,1].forEach(sd=>mk(new THREE.BoxGeometry(.6,12,12),D.wall(),sd*17,6,-1,s));
+  if(n!==1){
+    mk(new THREE.BoxGeometry(34,12,.6),D.wall(),0,6,-6.5,s);
+    [-1,1].forEach(sd=>mk(new THREE.BoxGeometry(.6,12,12),D.wall(),sd*17,6,-1,s));
+  }
   const ban=labelPlane(`${CH[n].cl}  ${CH[n].t}`,9,1.6,{bg:'#fffaf0',border:PAL[n%8],size:110});ban.position.set(0,9.3,-6.15);s.add(ban);
   const bo=makeBoulon();bo.scale.setScalar(.8);bo.position.set(-7.6,0,-4.6);bo.rotation.y=.5;s.add(bo);
   const dy=makeDylan();dy.position.set(7.8,0,-4.4);dy.rotation.y=-.5;s.add(dy);
@@ -1911,7 +1909,7 @@ function spRender(cv,f,t,scale){const q=cv.getContext('2d',{willReadFrequently:t
   q.setTransform(1,0,0,1,0,0);q.putImageData(id,0,0);return pts}
 /* ===== Combat en 3D temps réel, rendu d'arcade fin des années 90 (Three.js) =====
    Dylan et Aurelien modelés en sections (têtes, torses, membres musclés), textures peintes, expressions, cigare fumant,
-   cour de l'usine Talas de nuit ; même interface que l'arène 2D, qui reste en secours si la 3D n'est pas disponible. */
+   bureau fastueux et grotesque du PDG ; même interface que l'arène 2D, qui reste en secours si la 3D n'est pas disponible. */
 function arena3D(){
 const RW=640,RH=480,V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const cv=document.createElement('canvas'),R=new THREE.WebGLRenderer({canvas:cv,antialias:false,preserveDrawingBuffer:!TOUCH});
@@ -1928,42 +1926,11 @@ const lam=(o)=>new THREE.MeshLambertMaterial(Object.assign({flatShading:true},o)
 const phong=(o)=>new THREE.MeshPhongMaterial(Object.assign({flatShading:true,shininess:60},o));
 function mesh(geo,mat,parent,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;if(parent)parent.add(m);return m}
 
-/* ---------- arène : cour de l'usine Talas, de nuit ---------- */
+/* ---------- combat dans le bureau du PDG : décor partagé avec le chapitre ---------- */
 const LAMPS=[];
 function arena(){
-  /* ciel : dégradé nuit + étoiles */
-  const sky=new THREE.Mesh(new THREE.SphereGeometry(120,16,8),new THREE.MeshBasicMaterial({side:THREE.BackSide,fog:false,map:tex(8,64,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#02030a');gr.addColorStop(.42,'#070b1e');gr.addColorStop(.52,'#1a2046');gr.addColorStop(1,'#05060c');g.fillStyle=gr;g.fillRect(0,0,w,h)})}));scene.add(sky);
-  const sp=[];for(let i=0;i<260;i++){const a=Math.random()*Math.PI*2,e=.12+Math.random()*1.2;sp.push(Math.cos(a)*Math.cos(e)*110,Math.sin(e)*110,Math.sin(a)*Math.cos(e)*110)}
-  const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xdde6ff,size:1.4,sizeAttenuation:false,fog:false})));
-  /* bitume : grain, fissures, ligne jaune, taches d'huile */
-  const asph=tex(128,128,(g,w,h)=>{g.fillStyle='#4a4a52';g.fillRect(0,0,w,h);noise(g,w,h,1.4,['#3c3c44','#57575f','#44444c','#62626a','#35353c']);
-    g.strokeStyle='#2a2a30';g.lineWidth=1;for(let k=0;k<5;k++){g.beginPath();let x=Math.random()*w,y=Math.random()*h;g.moveTo(x,y);for(let s=0;s<7;s++){x+=(Math.random()-.5)*18;y+=Math.random()*10;g.lineTo(x,y)}g.stroke()}
-    g.fillStyle='rgba(20,20,26,.55)';g.beginPath();g.ellipse(90,30,14,8,.3,0,7);g.fill()},[10,4]);
-  const ground=mesh(new THREE.PlaneGeometry(60,24),lam({map:asph}),scene,0,0,-3);ground.rotation.x=-Math.PI/2;ground.castShadow=false;
-  const paint=lam({color:0xe8c43a});[-9,-3,3,9].forEach(x=>{const p=mesh(new THREE.PlaneGeometry(2.4,.14),paint,scene,x,.01,1.6);p.rotation.x=-Math.PI/2;p.castShadow=false});
-  const pz=mesh(new THREE.PlaneGeometry(.14,5),lam({color:0xd8d8d0}),scene,-11,.01,-.5);pz.rotation.x=-Math.PI/2;pz.castShadow=false;
-  /* grillage : losanges sur texture transparente, poteaux et barre du haut */
-  const mesh_t=tex(32,32,(g,w,h)=>{g.clearRect(0,0,w,h);g.strokeStyle='#7fa8a0';g.lineWidth=2;g.beginPath();g.moveTo(0,16);g.lineTo(16,0);g.lineTo(32,16);g.lineTo(16,32);g.closePath();g.stroke();g.fillStyle='#b8d8d0';g.fillRect(15,0,2,2);g.fillRect(0,15,2,2)},[40,3]);
-  const fence=new THREE.Mesh(new THREE.PlaneGeometry(40,2.6),new THREE.MeshLambertMaterial({map:mesh_t,transparent:true,alphaTest:.5,side:THREE.DoubleSide}));fence.position.set(0,1.3,-4.2);fence.castShadow=true;scene.add(fence);
-  const steel=phong({color:0x8a949c});for(let x=-20;x<=20;x+=2.5)mesh(new THREE.CylinderGeometry(.05,.05,2.7,6),steel,scene,x,1.35,-4.2);
-  mesh(new THREE.CylinderGeometry(.04,.04,40,6),steel,scene,0,2.62,-4.2).rotation.z=Math.PI/2;
-  /* conteneurs empilés : tôle ondulée, pochoir TALAS, numéros */
-  const cont=(col,dark,label)=>tex(64,32,(g,w,h)=>{g.fillStyle=col;g.fillRect(0,0,w,h);for(let x=0;x<w;x+=3){g.fillStyle=dark;g.fillRect(x,0,1,h)}noise(g,w,h,.25,['rgba(0,0,0,.25)','rgba(255,255,255,.12)','#6a3a1a']);
-    g.fillStyle='rgba(255,255,255,.85)';g.font='bold 9px monospace';g.fillText(label,6,13);g.font='6px monospace';g.fillText('TLSU 450'+((Math.random()*90)|0),6,22);g.fillStyle=dark;g.fillRect(0,0,w,2);g.fillRect(0,h-2,w,2)});
-  const CT=[['#2f6fa8','#1f4c78','TALAS'],['#2b8a7e','#1c5f57','TALAS'],['#9c4a2a','#6e3018','TALAS'],['#3f5fb0','#2a4080','TALAS'],['#7a8a2a','#55611c','TALAS']];
-  let k=0;for(let x=-18;x<=18;x+=6.3){for(let lv=0;lv<((Math.round(x)%3)?1:2);lv++){const[c,d,l]=CT[(k++)%CT.length],t=cont(c,d,l);const m=mesh(new THREE.BoxGeometry(6,2.5,2.4),[lam({map:t}),lam({map:t}),lam({color:d}),lam({color:d}),lam({map:t}),lam({map:t})],scene,x+(lv%2)*.6,1.25+lv*2.52,-9-(lv%2)*.3)}}
-  /* pont au loin : treillis en silhouette avec lampes */
-  const dk=lam({color:0x1a1f30});mesh(new THREE.BoxGeometry(70,.5,1),dk,scene,6,7,-32);
-  for(let x=-28;x<=40;x+=4){const a=mesh(new THREE.BoxGeometry(.2,5.4,.2),dk,scene,x,9.5,-32);a.rotation.z=((x/4)%2?1:-1)*.62}
-  mesh(new THREE.BoxGeometry(70,.3,.8),dk,scene,6,12,-32);[-20,40].forEach(x=>mesh(new THREE.BoxGeometry(1.4,20,1.4),dk,scene,x,5,-32));
-  for(let x=-26;x<=38;x+=3)mesh(new THREE.BoxGeometry(.18,.18,.1),new THREE.MeshBasicMaterial({color:0xffd27a}),scene,x,7.35,-31.4);
-  /* lampadaires au sodium : tête lumineuse + lumière chaude */
-  [[-7.5,-3.2],[8,-3.2]].forEach(([x,z])=>{mesh(new THREE.CylinderGeometry(.07,.09,5.2,6),steel,scene,x,2.6,z);const arm=mesh(new THREE.BoxGeometry(1.1,.08,.08),steel,scene,x+.5,5.15,z);
-    mesh(new THREE.BoxGeometry(.5,.14,.3),new THREE.MeshBasicMaterial({color:0xffc870}),scene,x+1,5.05,z);const L=new THREE.PointLight(0xffa850,1.25,14,1.6);L.position.set(x+1,4.8,z+.3);scene.add(L);LAMPS.push([x+1,4.95,z+.1,L])});
-  /* lumières : lune bleutée (ombres dures), ambiance froide */
-  scene.add(new THREE.HemisphereLight(0x6070b0,0x201a14,.5));const rim=new THREE.DirectionalLight(0x7fa8ff,.7);rim.position.set(2,4,-8);scene.add(rim);const fill=new THREE.DirectionalLight(0xffe0c0,.35);fill.position.set(0,2,9);scene.add(fill);
-  const moon=new THREE.DirectionalLight(0xb8c8ff,.95);moon.position.set(-6,12,8);moon.castShadow=true;moon.shadow.mapSize.set(512,512);
-  Object.assign(moon.shadow.camera,{left:-10,right:10,top:8,bottom:-4,near:1,far:40});scene.add(moon);
+  scene.fog=new THREE.Fog(0x292036,20,55);
+  TalasBureauPDG.build({THREE,scene,lights:true});
 }
 
 /* ---------- personnages : anatomie sculptée (tête, torse, membres musclés), ombrage lissé, textures peintes ---------- */
@@ -2369,10 +2336,10 @@ let shake=0,flash=0;
   const ui=document.createElement('div');ui.className='arui';fr.append(ui);
   const esc=t=>String(t).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
   function renderUI(){const U=A.ui;if(!U){ui.innerHTML='';return}
-    if(U.mode==='ask'){ui.innerHTML=`<div class="ap top"><h4>${esc(U.title)}</h4>${esc(U.line)}</div><div class="ap bot"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div>`;
+    if(U.mode==='ask'){ui.innerHTML=`<div class="ap bot ask" role="region" aria-label="Question du PDG et réponses"><header class="arena-question"><h4>${esc(U.title)}</h4><p>${esc(U.line)}</p></header><div class="arena-answers"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div></div>`;
       ui.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>U.done(U.opts[+b.dataset.i]))}
     else if(U.mode==='cap')ui.innerHTML=`<div class="ap top"><h4 class="good">${esc(U.title)}</h4>${esc(U.text)}</div>`;
-    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
+    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4><p class="arena-feedback">${esc(U.text)}</p><div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
   function uiKey(e){const U=A.ui;if(!U||U.mode==='cap')return;
     if(U.mode==='ask'){const d=+e.key;if(d>=1&&d<=U.opts.length){U.done(U.opts[d-1]);e.preventDefault();return}
       if(e.key==='ArrowUp'||e.key==='z'||e.key==='Z'){U.sel=(U.sel+U.opts.length-1)%U.opts.length;renderUI();e.preventDefault()}
@@ -2405,7 +2372,7 @@ let shake=0,flash=0;
     trailGeo.attributes.position.needsUpdate=true;trailGeo.attributes.color.needsUpdate=true;
     for(let i=FX.length-1;i>=0;i--){const f=FX[i];f.t+=dt||dR*.02;const k=Math.min(1,f.t/f.life);f.upd(f,k,dt);if(k>=1&&!f.keep&&f.life<1.5){scene.remove(f.o);FX.splice(i,1)}}
     /* caméra : cadre toujours les deux combattants ; jamais de gros plan pendant les attaques, seuls les plans larges des coups spéciaux passent */
-    const mid=(DY.cur.x+AU.cur.x)/2,dist=Math.abs(AU.root.position.x-DY.root.position.x);let gx=mid,gy=1.05,gz=4.8+dist*.55,gfov=36,py=1.4;
+    const mid=(DY.cur.x+AU.cur.x)/2,dist=Math.abs(AU.root.position.x-DY.root.position.x);let gx=mid,gy=1.45,gz=5.2+dist*.55,gfov=40,py=1.9;
     if(A.camO&&performance.now()<A.camO.until&&A.camO.dist>gz){gx=A.camO.x;gy=A.camO.y;gz=A.camO.dist;gfov=A.camO.fov;py=A.camO.low?.6:1.3}
     if(A.vsT>0){A.vsT-=dR;const a=A.vsT*.9;gx=Math.sin(a)*1.5;gz=4+Math.cos(a)*1.2;py=1.6}
     const k2=1-Math.pow(.02,dR);cam.position.x+=(gx-cam.position.x)*k2;cam.position.y+=(py-cam.position.y)*k2;cam.position.z+=(gz-cam.position.z)*k2;cam.fov+=(gfov-cam.fov)*k2;cam.updateProjectionMatrix();
@@ -2416,7 +2383,7 @@ let shake=0,flash=0;
     if(A.tick){A.timer-=dR;if(A.timer<=0){A.timer=0;A.tick=false;A.onTime&&A.onTime(null)}}tmEl.textContent=String(Math.ceil(A.timer)).padStart(2,'0');
     [DY,AU].forEach((f,i)=>{f.shown+=(f.hp-f.shown)*Math.min(1,dR*3);bars[i].querySelector('i').style.width=(f.hp/f.max*100)+'%';bars[i].querySelector('u').style.width=(f.shown/f.max*100)+'%'});
     fireStep(dR);slashDraw(dR);vicCam();R.render(scene,cam);requestAnimationFrame(loop)}
-  const camLook=V(0,1.05,0);cam.position.set(0,1.4,6.5);requestAnimationFrame(loop);
+  const camLook=V(0,1.45,0);cam.position.set(0,1.9,7.1);requestAnimationFrame(loop);
   /* ================= OBJETS D'ATTAQUE : chaque coup sort son objet, l'utilise, et a son effet propre ================= */
   const TW=[];const tw=(d,fn)=>new Promise(r=>TW.push({t:0,d,fn,r}));                 /* animations au temps simulé (arrêt sur image et ralenti compris) */
   const lerp=(a,b,k)=>a+(b-a)*k,ez=k=>1-Math.pow(1-k,3);
@@ -2703,29 +2670,16 @@ function arena2D(STAGE){
     const gr=g.createLinearGradient(0,-size*.45,0,size*.45);gr.addColorStop(0,c1);gr.addColorStop(.48,c1);gr.addColorStop(.56,c2);gr.addColorStop(1,c2);g.fillStyle=gr;g.fillText(s,0,0);g.restore()}
   /* --- décor : salle du conseil au sommet de la tour, dôme et colonnes à cours de bourse --- */
   function paintBg(){const b=document.createElement('canvas');b.width=W*RES;b.height=H*RES;const x=b.getContext('2d');
-    if(STAGE){x.fillStyle='#e9edf2';x.fillRect(0,0,W*RES,H*RES);x.drawImage(STAGE,Math.round((W*RES-STAGE.width)/2),0,STAGE.width,STAGE.height);return b}
+    // The old stage image depicts another arena; use the executive office below.
     x.scale(RES,RES);
-    let gr=x.createLinearGradient(0,0,0,HZ);gr.addColorStop(0,'#4f86d4');gr.addColorStop(.55,'#b9dcff');gr.addColorStop(1,'#f1f8ff');x.fillStyle=gr;x.fillRect(0,0,W,HZ);
-    x.fillStyle='#a9c8ea';for(let i=0,px=-4;px<W;i++){const w=8+(i*37%15),h=10+(i*53%26);x.fillRect(px,HZ-34-h,w,h+10);px+=w+1}
-    x.fillStyle='#d0e3f7';for(let i=0,px=0;px<W;i++){const w=6+(i*29%9);x.fillRect(px,HZ-30-(i*17%8),w,12);px+=w+3}
-    /* dôme bleu à nervures, comme la soucoupe de la vidéo */
-    x.fillStyle='#284a80';x.beginPath();x.ellipse(W/2,HZ-26,W*.47,70,0,Math.PI,0);x.fill();
-    x.strokeStyle='#6f95cc';x.lineWidth=2;for(let i=1;i<14;i++){const a=Math.PI+i*Math.PI/14;x.beginPath();x.moveTo(W/2+Math.cos(a)*W*.47,HZ-26+Math.sin(a)*70);x.lineTo(W/2+Math.cos(a)*W*.2,HZ-26+Math.sin(a)*30);x.stroke()}
-    x.fillStyle='#9fc0ea';x.beginPath();x.ellipse(W/2,HZ-26,W*.2,30,0,Math.PI,0);x.fill();
-    x.fillStyle='#e7eef8';x.fillRect(0,HZ-30,W,9);x.fillStyle='#8aa4c8';x.fillRect(0,HZ-22,W,3);
-    for(let i=0;i<W;i+=12){x.fillStyle=(i/12)%2?'#ffe066':'#fff';x.fillRect(i+4,HZ-28,4,4)}
-    /* colonnes roses gravées de courbes boursières */
-    const n=Math.max(3,Math.round(W/115));for(let i=0;i<n;i++){const px=Math.round(W*(i+.5)/n)-14,top=14,bot=HZ-6;
-      x.fillStyle='#e9ecef';x.fillRect(px-4,top,36,10);x.fillStyle='#adb5bd';x.fillRect(px-4,top+10,36,3);
-      x.fillStyle='#f3a6a6';x.fillRect(px,top+13,28,bot-top-24);x.fillStyle='#fbd0d0';x.fillRect(px+2,top+13,5,bot-top-24);
-      x.strokeStyle='#c92a2a';x.lineWidth=1.5;for(let k=0;k<3;k++){x.beginPath();let yy=top+22+k*6;x.moveTo(px+4,yy);for(let s=0;s<(bot-top-40)/9;s++){yy+=9;x.lineTo(px+6+(s*7+k*5)%18,yy)}x.stroke()}
-      x.fillStyle='#fff';x.beginPath();x.arc(px+14,top+44,7,0,7);x.fill();x.fillStyle='#c92a2a';x.font='bold 10px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('€',px+14,top+45);
-      x.fillStyle='#ced4da';x.fillRect(px-4,bot-11,36,11);x.fillStyle='#868e96';x.fillRect(px-4,bot-3,36,3);for(let k=0;k<4;k++){x.fillStyle='#495057';x.fillRect(px+k*9,bot-8,3,3)}
-      x.fillStyle='rgba(243,166,166,.35)';x.fillRect(px,HZ+2,28,26)}
-    /* boules chromées sur pieds, entre les colonnes */
-    for(let i=0;i<n;i++){const px=Math.round(W*(i+1)/n);if(px>=W)continue;x.fillStyle='#868e96';x.fillRect(px-1,HZ-18,3,14);x.fillStyle='#dee2e6';x.beginPath();x.arc(px,HZ-21,4,0,7);x.fill();x.fillStyle='#fff';x.fillRect(px-2,HZ-23,2,2)}
-    gr=x.createLinearGradient(0,HZ,0,H);gr.addColorStop(0,'#f8fafd');gr.addColorStop(1,'#aebfd4');x.fillStyle=gr;x.fillRect(0,HZ-4,W,H-HZ+4);
-    x.fillStyle='#8aa0bd';x.fillRect(0,HZ-4,W,2);x.fillStyle='#d6e0ec';for(let yy=HZ+8;yy<H;yy+=10)x.fillRect(0,yy,W,1);
+    x.fillStyle='#49302b';x.fillRect(0,0,W,HZ);x.fillStyle='#d6a23b';
+    for(let px=0;px<W;px+=44)x.fillRect(px,0,2,HZ);
+    [-.28,.28].forEach(q=>{const wx=W*(.5+q),ww=W*.21;x.fillStyle='#d6a23b';x.fillRect(wx-ww/2,26,ww,95);x.fillStyle='#33365e';x.fillRect(wx-ww/2+4,30,ww-8,87);x.fillStyle='#4e567a';for(let i=0;i<6;i++){const hh=20+(i*17)%42;x.fillRect(wx-ww/2+7+i*ww/7,112-hh,ww/9,hh)}x.fillStyle='#711e43';x.fillRect(wx-ww/2-8,22,12,109);x.fillRect(wx+ww/2-4,22,12,109)});
+    x.fillStyle='#d6a23b';x.fillRect(W/2-34,12,68,79);x.fillStyle='#40274f';x.fillRect(W/2-29,17,58,69);x.fillStyle='#e6bd89';x.beginPath();x.ellipse(W/2+2,44,14,19,0,0,7);x.fill();x.fillStyle='#ddd9e6';x.fillRect(W/2-12,23,28,6);x.fillStyle='#342965';x.fillRect(W/2-22,64,44,18);x.fillStyle='#e6bd89';x.beginPath();x.moveTo(W/2-11,43);x.lineTo(W/2-21,51);x.lineTo(W/2-10,53);x.fill();x.fillStyle='#fff3c8';x.font='bold 6px Arial';x.textAlign='center';x.fillText('MOI, EMPLOYÉ DU MOIS',W/2,99);
+    x.fillStyle='#d6a23b';x.fillRect(W*.28,119,W*.44,5);x.fillStyle='#593932';x.fillRect(W*.29,124,W*.42,31);x.fillStyle='#d6a23b';x.fillRect(W*.36,129,W*.28,14);x.fillStyle='#21172c';x.font='bold 7px Arial';x.fillText('PRÉSIDENT DE MOI',W/2,139);
+    x.strokeStyle='#d6a23b';x.lineWidth=3;x.beginPath();x.ellipse(W/2,22,30,8,0,0,7);x.stroke();for(let i=0;i<6;i++){const a=i*Math.PI/3;x.fillStyle='#fff2c6';x.beginPath();x.arc(W/2+Math.cos(a)*30,18+Math.sin(a)*5,2,0,7);x.fill()}
+    x.fillStyle='#403b4c';x.fillRect(0,HZ-4,W,H-HZ+4);x.strokeStyle='#76637d';x.lineWidth=1;for(let yy=HZ+10;yy<H;yy+=17){x.beginPath();x.moveTo(0,yy);x.lineTo(W,yy);x.stroke()}
+    x.fillStyle='#d6a23b';x.fillRect(W*.14,HZ+18,W*.72,38);x.fillStyle='#711e43';x.fillRect(W*.14+3,HZ+21,W*.72-6,32);
     return b}
   /* --- particules --- */
   function part(o){if(A.P.length<700)A.P.push(Object.assign({x:0,y:0,vx:0,vy:0,g:320,life:1.2,t:0,s:2,c:'#c92a2a',k:'blood',r:0,vr:0},o))}
@@ -2942,10 +2896,10 @@ function arena2D(STAGE){
   const ui=document.createElement('div');ui.className='arui';fr.append(ui);
   const esc=t=>String(t).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
   function renderUI(){const U=A.ui;if(!U){ui.innerHTML='';return}
-    if(U.mode==='ask'){ui.innerHTML=`<div class="ap top"><h4>${esc(U.title)}</h4>${esc(U.line)}</div><div class="ap bot"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div>`;
+    if(U.mode==='ask'){ui.innerHTML=`<div class="ap bot ask" role="region" aria-label="Question du PDG et réponses"><header class="arena-question"><h4>${esc(U.title)}</h4><p>${esc(U.line)}</p></header><div class="arena-answers"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div></div>`;
       ui.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>U.done(U.opts[+b.dataset.i]))}
     else if(U.mode==='cap')ui.innerHTML=`<div class="ap top"><h4 class="good">${esc(U.title)}</h4>${esc(U.text)}</div>`;
-    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
+    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4><p class="arena-feedback">${esc(U.text)}</p><div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
   function uiKey(e){const U=A.ui;if(!U||U.mode==='cap')return;
     if(U.mode==='ask'){const d=+e.key;if(d>=1&&d<=U.opts.length){U.done(U.opts[d-1]);e.preventDefault();return}
       if(e.key==='ArrowUp'||e.key==='z'||e.key==='Z'){U.sel=(U.sel+U.opts.length-1)%U.opts.length;renderUI();beep(700,.03,'square',.03);e.preventDefault()}
@@ -3125,7 +3079,7 @@ async function beam(R,who){const cols=who.map(o=>{const g2=new THREE.Group();g2.
   who.forEach(o=>{o.visible=false;o.position.y=0});redFlash();await tween(.25,k=>cols.forEach(g2=>g2.children.forEach(m=>m.scale.set(1-k,1,1-k))));cols.forEach(g2=>R.scene.remove(g2))}
 async function battle(n){
   const R=cur;mobileControls.use('combat');
-  const stageP=new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src='assets/talas-fight/stage.jpg?v=3'});
+  const stageP=Promise.resolve(null); // Both renderers now build the executive office.
   R.ceo.rotation.y=-.9;
   await say('ceo','« Mon engagement ? Il se mérite, petit. Pas de réunion, pas de PowerPoint : on règle ça dans mon bureau, à l’ancienne. JE TE DÉFIE ! »');
   await say('boulon','<b>Comment se passe le combat</b>'+howto('combat'),{btns:[{t:'En garde !',go:1}]});hidePanel();
@@ -4507,4 +4461,3 @@ if(window.THREE)start();else document.getElementById('loading').textContent='Imp
 </script>
 
 </body></html>
-

@@ -121,7 +121,7 @@ window.TalasMobileControls=(()=>{
     function highlight(){
       choiceElements.forEach((e,i)=>e.classList.toggle('mobile-selected',i===selection));
       const e=choiceElements[selection];if(!visible(e))return;
-      const scroller=e.closest('.pin,.ap,.mbody')||current?.root;
+      const scroller=e.closest('.pin,.arena-answers,.ap,.mbody')||current?.root;
       if(scroller&&e!==scroller){const r=e.getBoundingClientRect(),s=scroller.getBoundingClientRect();if(r.bottom>s.bottom||r.top<s.top)e.scrollIntoView({block:'nearest',inline:'nearest'})}
     }
     function sync(){
