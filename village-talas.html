@@ -91,7 +91,11 @@ html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
 <section class="band band--gouache band--project" id="village-talas"><div class="wrap corners">
  <div class="section-label"><span>Projet personnel</span><span>Jeu sérieux · Three.js</span></div>
  <div class="section-heading"><h1 class="page-title">Le Village Talas, l’ISO 45001 <em>en sept ateliers.</em></h1><p>Dylan, alternant HSE chez un sous-traitant aéronautique, a douze mois pour obtenir la certification ISO 45001 exigée par Airbus. Chaque bâtiment du village est un chapitre de la norme, avec son propre mini-jeu, et les choix faits dans un atelier reviennent dans les autres.</p></div>
- <figure class="gouache-preview preview--wide"><iframe src="village-talas-scene.html?v=20261003-mobile-plein-ecran" title="Le Village Talas : jeu interactif" loading="lazy" allow="fullscreen" allowfullscreen></iframe><figcaption><button type="button" class="talas-fs" id="talas-fs">Plein écran</button> Sur mobile : joystick à gauche et boutons d’action à droite · souris pour viser, tourner et éclairer · flèches et Espace sur l’échafaudage et au casse-briques · « Tout ouvrir » pour accéder directement à un chapitre · jeu en paysage sur téléphone. <span class="talas-install">Sur iPhone : Partager → Sur l’écran d’accueil pour jouer sans les barres de Safari.</span></figcaption></figure>
+ <figure class="gouache-preview preview--wide"><iframe src="village-talas-scene.html?v=20261003-mobile-sans-marges" title="Le Village Talas : jeu interactif" loading="lazy" allow="fullscreen" allowfullscreen></iframe><figcaption><button type="button" class="talas-fs" id="talas-fs">Plein écran</button> <button type="button" class="talas-fs" id="talas-install-open" hidden>Sans les barres Safari</button> Sur mobile : joystick à gauche et boutons d’action à droite · souris pour viser, tourner et éclairer · flèches et Espace sur l’échafaudage et au casse-briques · « Tout ouvrir » pour accéder directement à un chapitre · jeu en paysage sur téléphone. <span class="talas-install">Sur iPhone : Partager → Sur l’écran d’accueil → activer « Ouvrir comme app web » → Ajouter. Lance ensuite l’icône Talas en paysage.</span></figcaption><dialog class="talas-install-dialog" id="talas-install-dialog" aria-labelledby="talas-install-title">
+<div class="talas-install-copy"><h2 id="talas-install-title">Talas sans les barres Safari</h2><p>Pour jouer sur tout l’écran de ton iPhone, lance Talas comme une app web.</p>
+<ol><li>Dans Safari, touche <b>Partager</b>.</li><li>Choisis <b>Sur l’écran d’accueil</b>.</li><li>Active <b>Ouvrir comme app web</b>, puis touche <b>Ajouter</b>.</li><li>Ouvre l’icône <b>Talas</b> depuis l’écran d’accueil et tourne ton téléphone en paysage.</li></ol>
+<p class="talas-install-note">Le bouton « Agrandir » remplit la page ; Safari garde ses propres barres tant que tu joues dans un onglet.</p>
+<button type="button" class="talas-fs" id="talas-install-close">Compris</button></div></dialog></figure>
  <div class="quality-grid gouache-features talas-extra"><article><span class="skill-kicker">Prise en main</span><h3>Un « comment jouer » par mini-jeu</h3><p>Chaque mini-jeu s’ouvre sur son but et ses commandes, adaptés à l’appareil : touches clavier sur ordinateur, boutons à l’écran sur téléphone.</p></article><article><span class="skill-kicker">Suivi des parties</span><h3>Statistiques et salle de contrôle</h3><p>Le joueur choisit un pseudo ; chaque partie envoie son avancement chapitre par chapitre et des compteurs par mini-jeu (pantoufles reçues, litres de sang du PDG, kilomètres courus, collègues sauvés, pièces, fausses notes…). Les données sont stockées dans une base Supabase (PostgreSQL) : les joueurs peuvent seulement y ajouter leurs parties, et seul le propriétaire peut les lire, après connexion par lien envoyé par e-mail. Une salle de contrôle privée, dans le style du jeu, les présente : registre des sessions, taux d’abandon par chapitre, bêtisier et panthéon. Seuls le pseudo et la progression sont enregistrés.</p><figure class="talas-shot"><a href="assets/talas-salle-controle-grand.jpg?v=4" class="talas-zoom" aria-label="Agrandir l’aperçu de la salle de contrôle"><img src="assets/talas-salle-controle.jpg?v=4" alt="Salle de contrôle du Village Talas, avec des données fictives : compteurs, bêtisier par mini-jeu, registre des sessions et taux d’abandon par chapitre" width="800" height="836" loading="lazy"></a><figcaption>Aperçu avec des données fictives · cliquer pour agrandir</figcaption></figure></article><article class="talas-qr"><span class="skill-kicker">Accès direct</span><h3>Jouer depuis un téléphone</h3><img src="assets/qr-village-talas.png" alt="QR code vers la page du Village Talas" width="160" height="160" loading="lazy"><p>Scanner pour ouvrir le jeu, à jouer en paysage.</p></article></div>
  <div class="gouache-stack"><strong>Crédits</strong><span>Développement : Mathieu Comtesse · Scénario coproduit avec Eliott Corne, Dylan Zouiter, Mathilde Chartrel, Georges Barthélemy Fonkou, Neila Mimane et Lorette Dagleris</span></div>
  <div class="gouache-stack"><strong>Compétences mobilisées</strong><span>ISO 45001 (§4 à §10) · hiérarchie des mesures de prévention · organisation de l’évacuation · audit interne · JavaScript · Three.js (rendu toon, modélisation procédurale, animation par squelette, effets) · Canvas 2D · Pointer Events · commandes tactiles · Supabase (PostgreSQL, sécurité par lignes, connexion par lien magique) · tableau de bord</span></div>
@@ -114,20 +118,27 @@ lb.addEventListener('click',close);document.addEventListener('keydown',key);docu
 html.talas-full{overflow:hidden;overscroll-behavior:none;scroll-behavior:auto}
 html.talas-full body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
 .talas-install{display:inline-block;margin-top:4px}
+.talas-install-dialog{width:min(420px,calc(100% - 32px));max-height:calc(100dvh - 32px);box-sizing:border-box;padding:0;border:3px solid #1a0d22;border-radius:12px;background:#fff3c8;color:#3a1c40;font:14px/1.45 Arial,Helvetica,sans-serif;box-shadow:0 4px 0 #1a0d22;overflow:auto;touch-action:pan-y}
+.talas-install-dialog::backdrop{background:rgba(26,13,34,.8)}
+.talas-install-copy{padding:18px}.talas-install-copy h2{font-size:18px;line-height:1.2;margin:0 0 12px}.talas-install-copy p{margin:0 0 12px}.talas-install-copy ol{padding-left:22px;margin:0 0 12px}.talas-install-copy li{margin:0 0 8px}.talas-install-copy b{font-weight:700}.talas-install-copy .talas-install-note{font-size:12px}.talas-install-copy button{min-height:44px}
 </style>
 <script>/* Plein écran paysage : appel direct depuis le clic, verrouillage de la page et mode écran d'accueil. */(()=>{
 const fig=document.querySelector('#village-talas .gouache-preview'),f=fig&&fig.querySelector('iframe'),btn=document.getElementById('talas-fs');if(!f)return;
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true;
+const iphone=/iPhone|iPod/.test(navigator.userAgent);
+const install=document.getElementById('talas-install-dialog'),installOpen=document.getElementById('talas-install-open'),installClose=document.getElementById('talas-install-close');
 let scrollBefore=0,locked=false;
 const native=()=>document.fullscreenElement||document.webkitFullscreenElement;
 const real=()=>native()===fig||native()===f;
 const on=()=>real()||fig.classList.contains('is-full');
-const send=()=>{const v=on();btn.textContent=v?'Quitter le plein écran':'Plein écran';try{f.contentWindow.postMessage({talasFS:v},location.origin)}catch(_){}};
+const send=()=>{const v=on();btn.textContent=v?(real()?'Quitter le plein écran':'Réduire le jeu'):(iphone&&!standalone()?'Agrandir le jeu':'Plein écran');installOpen.hidden=!iphone||standalone();try{f.contentWindow.postMessage({talasFS:v,talasFSNative:real()},location.origin)}catch(_){}};
 const display=v=>{
   if(v&&!locked){scrollBefore=window.scrollY;locked=true}
   fig.classList.toggle('is-full',v);document.documentElement.classList.toggle('talas-full',v);
   if(!v&&locked){locked=false;try{screen.orientation.unlock()}catch(_){}window.scrollTo(0,scrollBefore)}send();
 };
 window.talasFullscreen=async(action='toggle')=>{
+  if(action==='install'){if(install&&!install.open)install.showModal();return}
   if(action==='enter'&&on())return;
   if(action==='exit'||(action==='toggle'&&on())){
     if(real()){try{await(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(_){return}}display(false);return;
@@ -136,11 +147,13 @@ window.talasFullscreen=async(action='toggle')=>{
   const request=fig.requestFullscreen||fig.webkitRequestFullscreen;
   if(request){try{await request.call(fig,{navigationUI:'hide'});try{await screen.orientation.lock('landscape')}catch(_){}}catch(_){/* iPhone : cadre fixe jusqu'au lancement depuis l'écran d'accueil. */}}
 };
-btn.addEventListener('click',()=>window.talasFullscreen());
+btn.addEventListener('click',()=>{window.talasFullscreen();if(iphone&&!standalone())window.talasFullscreen('install')});
+installOpen.addEventListener('click',()=>window.talasFullscreen('install'));
+installClose.addEventListener('click',()=>{install.close();(on()?f:installOpen).focus()});
 f.addEventListener('load',send);
 addEventListener('message',e=>{if(e.source!==f.contentWindow||e.origin!==location.origin||!e.data)return;if(['toggle','enter','exit'].includes(e.data.talasFS))window.talasFullscreen(e.data.talasFS)});
-addEventListener('keydown',e=>{if(e.key==='Escape'&&on())window.talasFullscreen('exit')});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&on()&&!install.open)window.talasFullscreen('exit')});
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>display(real())));
-if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)display(true);
+if(standalone())display(true);else send();
 })();</script>
 </main><footer class="site-footer"><span>© 2026 Mathieu Comtesse · Qualité · Sécurité · Numérique</span><a href="contact.html">Me contacter</a></footer></body></html>
