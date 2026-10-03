@@ -227,3 +227,28 @@
 .touch #frame .arui .arena-question{max-height:calc(48px * var(--mobile-unit))}
 .touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 66px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
 @media(max-height:280px){.touch #frame .arui .arena-answers .hd{display:none}}
+
+/* Combat quality pass: readable UI is independent of the retro scene raster. */
+#frame .arui{--arena-font-size:12px}
+#frame .arui .ap{width:min(620px,calc(100% - 32px));padding:9px 12px}
+#frame .arui h4,#frame .arui .arena-question h4{font-size:var(--arena-font-size)!important;line-height:1.3!important}
+#frame .arui .ap.ask{max-height:50%}
+#frame .arui .arena-question{max-height:76px}
+#frame .arui .arena-answers button{min-height:44px;line-height:1.3!important}
+#frame .arui .arena-answers button i{display:none}
+#frame .arui .ap.bot:not(.ask){max-height:130px;overflow:auto}
+.touch #frame .arui{--arena-font-size:calc(12px * var(--mobile-unit))}
+.touch #frame .arui .ap{width:min(calc(620px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)))}
+.touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+.touch #frame .arui .arena-question{max-height:calc(76px * var(--mobile-unit))}
+.touch #frame .arui .ap.bot:not(.ask){max-height:calc(125px * var(--mobile-unit))}
+.talas-retro-fx,.talas-retro-cinema,.talas-retro-banner{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated}
+.talas-retro-fx{z-index:3}.talas-retro-banner{z-index:8}.talas-retro-cinema{z-index:25;background:#10101c}
+#frame.combat-cinema #pad,#frame.combat-cinema #dialogue-control,#frame.combat-cinema #dialogue-dismiss{visibility:hidden!important}
+#frame .a3 .a3crt{opacity:.15}#frame .a3{overflow:hidden}
+/* Brush letters contain black paper around the ink: screen blending reveals the arena. */
+.talas-retro-banner{mix-blend-mode:screen}
+/* Keep combat type and target widths constant in screen pixels on large displays too. */
+#frame .arui{--arena-unit:var(--mobile-unit,1);--arena-font-size:calc(12px * var(--arena-unit))}
+#frame .arui .ap{width:min(calc(620px * var(--arena-unit)),calc(100% - 32px * var(--arena-unit)));padding:calc(7px * var(--arena-unit)) calc(10px * var(--arena-unit))}
+#frame .arui .arena-answers button{min-height:calc(44px * var(--arena-unit));padding:calc(4px * var(--arena-unit)) calc(6px * var(--arena-unit));grid-template-columns:calc(18px * var(--arena-unit)) minmax(0,1fr)}
