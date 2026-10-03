@@ -19,22 +19,6 @@
 .touch #joystick .directions{position:absolute;inset:0;width:100%;height:100%;fill:#f5f5f2;pointer-events:none}
 .touch #joystick.is-down .stick{background:linear-gradient(145deg,#adadad,#a3a3a3)}
 .touch .joystick-caption{display:none}
-.touch #pad .acts{display:grid;grid-template-columns:calc(56px * var(--mobile-unit)) calc(72px * var(--mobile-unit));grid-template-rows:repeat(2,calc(56px * var(--mobile-unit)));gap:calc(8px * var(--mobile-unit));align-items:center;pointer-events:none}
-.touch #pad .acts button{--accent:#e5bd73;box-sizing:border-box;width:calc(56px * var(--mobile-unit));height:calc(56px * var(--mobile-unit));padding:0;border:calc(1px * var(--mobile-unit)) solid var(--accent);border-radius:50%;background:radial-gradient(circle at 35% 15%,rgba(70,85,107,.97),rgba(20,31,48,.95) 70%);color:#f6f8fc;box-shadow:inset 0 calc(1px * var(--mobile-unit)) calc(2px * var(--mobile-unit)) #ffffff59,inset 0 0 0 calc(3px * var(--mobile-unit)) #0a111c73,0 calc(3px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) #040a1466;font:700 calc(8px * var(--mobile-unit))/1 Arial;letter-spacing:.025em;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(3px * var(--mobile-unit));touch-action:none;-webkit-tap-highlight-color:transparent;text-shadow:none;user-select:none}
-.touch #pad .acts button[hidden]{display:none!important}
-.touch #pad .acts button:nth-child(1){grid-column:1;grid-row:1}
-.touch #pad .acts button:nth-child(2){grid-column:1;grid-row:2}
-.touch #pad .acts button::before{content:none}
-.touch #pad .action-icon{width:calc(28px * var(--mobile-unit));height:calc(28px * var(--mobile-unit));fill:none;stroke:var(--accent);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.touch #pad .acts button.cool{--accent:#b2d6ec}
-.touch #pad .acts button.primary{grid-column:2;grid-row:1 / 3;width:calc(72px * var(--mobile-unit));height:calc(72px * var(--mobile-unit));justify-self:end;background:radial-gradient(circle at 35% 15%,rgba(111,89,49,.97),rgba(47,37,22,.96) 70%);font-size:calc(9px * var(--mobile-unit))}
-.touch #pad .primary .action-icon{width:calc(34px * var(--mobile-unit));height:calc(34px * var(--mobile-unit))}
-.touch #pad[data-actions="1"] .acts{display:flex;align-items:center;height:calc(120px * var(--mobile-unit))}
-.touch #pad[data-actions="2"] .acts button:not(.primary){grid-row:1 / 3}
-.touch #pad .acts button.is-down{background:linear-gradient(#f5d797,#cda25b);color:#162338;transform:scale(.94);box-shadow:inset 0 calc(2px * var(--mobile-unit)) calc(4px * var(--mobile-unit)) #0005,0 calc(1px * var(--mobile-unit)) calc(4px * var(--mobile-unit)) #0006}
-.touch #pad .acts button.is-down .action-icon{stroke:#162338}
-.touch #pad .acts button:disabled{opacity:.42}
-.touch #pad .acts button:focus-visible{outline:calc(2px * var(--mobile-unit)) solid #fff;outline-offset:calc(3px * var(--mobile-unit))}
 .touch #mobile-aim{position:absolute;width:calc(30px * var(--mobile-unit));height:calc(30px * var(--mobile-unit));transform:translate(-50%,-50%);z-index:28;pointer-events:none;color:#ffe3a7;filter:drop-shadow(0 1px 1px #07111e)}
 .touch #mobile-aim svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2}
 .touch #mobile-aim[hidden]{display:none}
@@ -162,3 +146,39 @@
   line-height:1.4!important;
   letter-spacing:0;
 }
+
+
+/* Modern TALAS action dock. Map and primary action occupy separate corners.
+   Dimensions are screen pixels, then compensated for the scene transform. */
+.touch #frame{--touch-main:72px;--touch-secondary:48px;--touch-joystick:120px;--touch-map:88px;--action-main:calc(var(--touch-main) * var(--mobile-unit));--action-secondary:calc(var(--touch-secondary) * var(--mobile-unit));--action-gap:calc(12px * var(--mobile-unit));--action-edge:calc(16px * var(--mobile-unit) + var(--game-safe-right,0px))}
+.touch #pad>.move{width:calc(var(--touch-joystick) * var(--mobile-unit));height:calc(var(--touch-joystick) * var(--mobile-unit))}
+.touch #pad .acts,.touch #pad[data-actions="1"] .acts{position:relative;display:block;width:calc(var(--action-main) + var(--action-secondary) + var(--action-gap));height:calc(var(--action-main) + var(--action-secondary) + var(--action-gap));pointer-events:none}
+.touch #pad .acts button,.touch #frame #dialogue-control,.touch #frame #dialogue-dismiss{--accent:#54ddd8;position:absolute;box-sizing:border-box;width:var(--action-secondary);height:var(--action-secondary);padding:0;border:0;border-radius:50%;background:linear-gradient(145deg,#626476,#141929);box-shadow:0 calc(3px * var(--mobile-unit)) 0 #10121f,0 calc(5px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) #0d102a70;display:block;color:#fff5d9;pointer-events:auto;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transform:none;text-shadow:none;font:700 calc(9px * var(--mobile-unit))/1 var(--dialogue-font,'Trebuchet MS',sans-serif)}
+.touch #pad .acts button{right:calc(var(--action-main) + var(--action-gap));bottom:calc(var(--action-secondary) + var(--action-gap))}
+.touch #pad .acts button:nth-child(2){bottom:0}
+.touch #pad .acts button.primary{right:0;bottom:0;width:var(--action-main);height:var(--action-main);--accent:#ff9561}
+.touch #pad[data-actions="2"] .acts button:not(.primary){bottom:calc(22px * var(--mobile-unit))}
+.touch #pad .acts button[hidden],#dialogue-dismiss[hidden]{display:none!important}
+.action-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;clip-path:circle(44% at 50% 50%);transform:scale(1.13);pointer-events:none}
+.action-drawing{position:absolute;inset:5%;border:calc(2px * var(--mobile-unit)) solid var(--accent);border-radius:50%;background:radial-gradient(ellipse at 35% 20%,#514763,#282139 65%);box-shadow:inset 0 calc(2px * var(--mobile-unit)) 0 #a5a1b74d,inset 0 calc(-4px * var(--mobile-unit)) 0 #151526,0 0 0 calc(2px * var(--mobile-unit)) #191c29;pointer-events:none;display:grid;place-items:center}
+.touch #pad .action-icon{width:57%;height:57%;fill:#fff2cf25;stroke:#fff1ca;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #171322);pointer-events:none}
+.touch #pad [data-icon="tornado"]{--accent:#a99bff}
+.touch #pad .cool{--accent:#61d6fa}
+.touch #pad .action-label,.touch #frame #dialogue-control>span,.touch #frame #dialogue-dismiss>span{position:absolute;bottom:-4%;left:50%;transform:translateX(-50%);max-width:132%;box-sizing:border-box;padding:calc(3px * var(--mobile-unit)) calc(5px * var(--mobile-unit));border:calc(1px * var(--mobile-unit)) solid #77768b;border-radius:calc(5px * var(--mobile-unit));background:#202336;color:#fff5d9;white-space:nowrap;font:700 calc(9px * var(--mobile-unit))/1 var(--dialogue-font,'Trebuchet MS',sans-serif);pointer-events:none}
+.touch #pad .acts button.is-down,.touch #frame #dialogue-control:active,.touch #frame #dialogue-dismiss:active{transform:scale(.94);filter:brightness(1.2)}
+.touch #pad .acts button:disabled{opacity:.45}
+.touch #pad .acts button:focus-visible,.touch #frame #dialogue-control:focus-visible,.touch #frame #dialogue-dismiss:focus-visible{outline:calc(2px * var(--mobile-unit)) solid #fff;outline-offset:calc(4px * var(--mobile-unit))}
+.touch #frame #qhud canvas.qmap{top:min(calc(50px * var(--mobile-unit) + var(--game-safe-top,0px)),calc(100% - var(--action-main) - (var(--touch-map) + 32px) * var(--mobile-unit) - var(--game-safe-bottom,0px)));right:calc(12px * var(--mobile-unit) + var(--game-safe-right,0px));bottom:auto;width:calc(var(--touch-map) * var(--mobile-unit));height:calc(var(--touch-map) * var(--mobile-unit))}
+.touch #frame #qhud .qobj{right:calc((var(--touch-map) + 28px) * var(--mobile-unit) + var(--game-safe-right,0px));top:calc(48px * var(--mobile-unit) + var(--game-safe-top,0px));max-width:45%;padding:calc(6px * var(--mobile-unit)) calc(8px * var(--mobile-unit));gap:calc(6px * var(--mobile-unit))}
+.touch #frame #qhud .qobj svg{width:calc(25px * var(--mobile-unit));height:calc(30px * var(--mobile-unit))}
+.touch #frame #qhud .qobj b{font-size:calc(10px * var(--mobile-unit))}
+.touch #frame #qhud .qobj span{font-size:calc(9px * var(--mobile-unit))}
+.touch #frame #dialogue-control{left:auto;right:var(--action-edge);bottom:calc(12px * var(--mobile-unit) + var(--game-safe-bottom,0px));width:var(--action-main);height:var(--action-main)}
+.touch #frame #dialogue-dismiss{left:auto;right:calc(var(--action-edge) + var(--action-main) + var(--action-gap));bottom:calc(12px * var(--mobile-unit) + var(--game-safe-bottom,0px));z-index:61}
+.touch #frame #dialogue-control[data-mini="true"]{right:calc(var(--action-edge) + var(--action-main) + var(--action-secondary) + 2 * var(--action-gap));width:var(--action-secondary);height:var(--action-secondary)}
+.touch #frame #dialogue-control[data-choices="true"]{right:calc(var(--action-edge) + var(--action-main) + var(--action-gap));width:var(--action-secondary);height:var(--action-secondary)}
+#dialogue-dismiss{position:absolute;left:calc(50% + 42px);bottom:12px;width:44px;height:44px;border:0;border-radius:50%;background:#25263a;color:#fff3d3;z-index:61;cursor:pointer}
+#dialogue-dismiss>span{position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);font:700 9px/1 'Trebuchet MS',sans-serif;background:#202336;padding:3px 5px;border-radius:4px}
+#frame:has(#modal:not([hidden])) #dialogue-dismiss,#frame:has(.tcard) #dialogue-dismiss,#frame:has(#fade.on) #dialogue-dismiss{visibility:hidden}
+/* Cinematic/story dialogue replaces the gameplay action, never overlays it. */
+.touch #frame:has(#cine.on) #pad .acts{visibility:hidden}

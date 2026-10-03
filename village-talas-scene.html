@@ -194,7 +194,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;z-index:10;background:#2890e2;color:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="talas-mobile.css?v=9">
+<link rel="stylesheet" href="talas-mobile.css?v=20261003-actions-1">
 
 <div id="area"><div id="frame">
 <canvas id="cv" width="640" height="480" aria-label="Village 3D de Talas"></canvas>
@@ -221,6 +221,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 </div>
 <div id="blind"></div>
 <button id="dialogue-control" type="button" hidden aria-label="Passer le dialogue"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 5h20v16H15l-7 6v-6H6z"/><path d="m15 10 5 3-5 3"/></svg><span>SUITE</span></button>
+<button id="dialogue-dismiss" type="button" hidden aria-label="Fermer tout le dialogue"><img class="action-art" src="talas-action-close.png?v=20261003" alt="" draggable="false"><span>FERMER</span></button>
 <div id="panel" class="win" role="region" aria-label="Dialogue" hidden><div class="tbar" id="pname"></div><div class="pin"><div class="por" id="por"></div><div class="pbody"><div class="ptext" id="ptext"></div><div class="pact" id="pact"></div></div></div></div>
 <div id="modal" hidden></div>
 <div id="flash"></div>
@@ -232,7 +233,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="talas-performance.js?v=1"></script>
 <script src="talas-rendu.js?v=2"></script>
-<script src="talas-mobile.js?v=6"></script>
+<script src="talas-mobile.js?v=20261003-actions-1"></script>
 <script src="talas-monde.js?v=1"></script>
 <script src="talas-config.js?v=2"></script>
 <script src="talas-panthere.js?v=2"></script>
@@ -342,6 +343,8 @@ function syncDialogueButton(){
   const button=$('#dialogue-control'),state=dialogueState;
   const cinematic=$('#cine').classList.contains('on');
   button.hidden=!state&&!cinematic;
+  button.dataset.mini=String(!!state?.mini);button.dataset.choices=String(!!state?.choices);
+  const dismiss=$('#dialogue-dismiss');dismiss.hidden=button.hidden||!!state?.folded||!!state?.choices||!!state?.mini||!!state&&state.index===state.pages.length-1;
   let label='SUITE',hint='Passer la phrase (F)';
   if(state){
     if(state.folded){label='DIALOGUE';hint='Réouvrir le dialogue (F)'}
@@ -349,6 +352,8 @@ function syncDialogueButton(){
     else if(state.mini||state.index===state.pages.length-1){label='FERMER';hint='Fermer le dialogue et continuer (F)'}
     else hint=`Passer à la page ${state.index+2} sur ${state.pages.length} (F)`;
   }
+  const icon=label==='FERMER'?'close':'dialogue';
+  if(button.dataset.icon!==icon){button.dataset.icon=icon;button.innerHTML=TalasMobileControls.art(icon)+'<span></span>'}
   button.querySelector('span').textContent=label;button.setAttribute('aria-label',hint);button.title=hint;
 }
 function renderDialoguePage(){
@@ -382,7 +387,8 @@ const hidePanel=()=>{clearTimeout(say._t);clearInterval(typing);dialogueState=nu
 say.advance=advanceDialogue;
 say.complete=()=>advanceDialogue(true);
 $('#dialogue-control').onclick=()=>advanceDialogue();
-['pointerdown','pointerup','pointercancel'].forEach(type=>$('#dialogue-control').addEventListener(type,e=>e.stopPropagation()));
+$('#dialogue-dismiss').onclick=()=>advanceDialogue(true);
+['#dialogue-control','#dialogue-dismiss'].forEach(selector=>['pointerdown','pointerup','pointercancel'].forEach(type=>$(selector).addEventListener(type,e=>e.stopPropagation())));
 addEventListener('keydown',e=>{
   if(e.target.closest('input,textarea,[contenteditable="true"]')||$('#dialogue-control').hidden||!$('#modal').hidden||document.querySelector('.tcard')||$('#fade').classList.contains('on'))return;
   if(e.key==='f'||e.key==='F'||e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)advanceDialogue(e.key==='Escape')}

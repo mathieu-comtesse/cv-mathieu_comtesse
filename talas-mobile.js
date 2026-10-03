@@ -29,6 +29,8 @@ window.TalasMobileControls=(()=>{
     camera:'<path d="M5 9h5l2-4h8l2 4h5v20H5z"/><circle cx="16" cy="19" r="6"/>'
   };
   const svg=icon=>`<svg class="action-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">${icons[icon]||icons.confirm}</svg>`;
+  const artwork={interact:'interact',enter:'interact',jump:'jump',tornado:'tornado',dialogue:'dialogue',close:'close'};
+  const art=icon=>artwork[icon]?`<img class="action-art" src="talas-action-${artwork[icon]}.png?v=20261003" alt="" draggable="false" decoding="async">`:`<span class="action-drawing" aria-hidden="true">${svg(icon)}</span>`;
   const action=(label,icon,key,extra={})=>({label,icon,key,...extra});
   const profiles={
     dialogue:{mode:'choices',actions:[]},
@@ -36,7 +38,7 @@ window.TalasMobileControls=(()=>{
     village:{mode:'cursor',actions:[action('ENTRER','enter',null,{cursor:'click'})]},
     parcours:{mode:'move',actions:[action('TORNADE','tornado','S'),action('PLONGEON','dive','D'),action('SAUT','jump','J')]},
     fuite:{mode:'move',axis:'horizontal',actions:[action('GUIDER','guide','S'),action('GLISSADE','slide','D'),action('SAUT','jump','J')]},
-    attrape:{mode:'move',axis:'horizontal',actions:[action('ATTRAPER','net',null,{enabled:false})]},
+    attrape:{mode:'move',axis:'horizontal',actions:[]},
     festin:{mode:'move',axis:'horizontal',actions:[action('TAPER','slap','D'),action('TAMPON','stamp','J')]},
     jetski:{mode:'move',axis:'horizontal',actions:[action('PLONGER','dive','D')]},
     tuyaux:{mode:'cursor',actions:[action('TOURNER','rotate',null,{cursor:'click'})]},
@@ -45,12 +47,20 @@ window.TalasMobileControls=(()=>{
     revue:{mode:'cursor',actions:[action('BUZZER','buzz',null)]},
     karaoke:{mode:'select',actions:[action('GAUCHE','micLeft',null),action('DROITE','micRight',null),action('CHANTER','mic',null)]},
     doc:{mode:'choices',actions:[action('FICHE','document',null),action('VUE','view',null),action('ENVOYER','send',null)]},
-    combat:{mode:'choices',actions:[action('SUITE','continue',null,{enabled:false})]},
+    combat:{mode:'choices',actions:[]},
     operation:{mode:'cursor',speed:100,actions:[action('POSER','release',null,{cursor:'release'}),action('PINCER','pinch',null,{cursor:'hold'})]}
   };
   function create({pad,keys,pressed,mobile=false,getWorld=()=>null,sceneTarget=()=>document.querySelector('#cv')}){
     const joystick=pad.querySelector('#joystick'),stick=joystick.querySelector('.stick'),stem=joystick.querySelector('.shaft');
     const buttons=[...pad.querySelectorAll('.acts button')],frame=pad.parentElement;
+    function layout(){
+      if(!mobile)return;
+      const height=frame.getBoundingClientRect().height||innerHeight;
+      const clamp=(min,value,max)=>Math.max(min,Math.min(max,value));
+      const sizes={main:clamp(52,height*.2,76),secondary:clamp(44,height*.14,52),joystick:clamp(88,height*.32,120),map:clamp(56,height*.23,92)};
+      for(const [name,size] of Object.entries(sizes)){const property='--touch-'+name,value=size.toFixed(2)+'px';if(frame.style.getPropertyValue(property)!==value)frame.style.setProperty(property,value)}
+    }
+    layout();
     const aim=document.createElement('div');aim.id='mobile-aim';aim.hidden=true;aim.setAttribute('aria-hidden','true');
     aim.innerHTML='<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="9"/><path d="M16 1v8m0 14v8M1 16h8m14 0h8"/></svg>';frame.append(aim);
     const owners=new Map(),captures=new Map(),holds=new Map();
@@ -127,7 +137,7 @@ window.TalasMobileControls=(()=>{
         pad.setAttribute('aria-label','Commandes mobiles : '+m.name);
         buttons.forEach((b,i)=>{
           const a=m.actions[i];b.hidden=!a;b.classList.toggle('primary',!!a&&i===m.actions.length-1);if(!a)return;
-          b.innerHTML=svg(a.icon)+`<span class="action-label">${a.label}</span>`;b.setAttribute('aria-label',a.label);
+          b.innerHTML=art(a.icon)+`<span class="action-label">${a.label}</span>`;b.setAttribute('aria-label',a.label);b.dataset.icon=a.icon;
           b.classList.toggle('primary',i===m.actions.length-1);b.classList.toggle('cool',a.icon==='slide'||a.icon==='dive');
         });
       }else{
@@ -193,8 +203,9 @@ window.TalasMobileControls=(()=>{
       const enter=mode==='enter';if(options.actions?.[0]?.icon===(enter?'enter':'interact'))return;syncTime=0;options.actions=[action(enter?'ENTRER':'AGIR',enter?'enter':'interact','S')];
     }
     new MutationObserver(()=>{if(mobile&&pad.hidden)pad.hidden=false}).observe(pad,{attributes:true,attributeFilter:['hidden']});
-    addEventListener('resize',()=>cursorDirty=true);addEventListener('orientationchange',()=>cursorDirty=true);addEventListener('blur',reset);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});pad.addEventListener('contextmenu',e=>e.preventDefault());
+    const resized=()=>{cursorDirty=true;layout()};
+    addEventListener('resize',resized);addEventListener('orientationchange',resized);window.visualViewport?.addEventListener('resize',resized);new MutationObserver(layout).observe(frame,{attributes:true,attributeFilter:['style']});addEventListener('blur',reset);document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});pad.addEventListener('contextmenu',e=>e.preventDefault());
     sync();return {reset,vector,use,step,setAction,svg,get profile(){return base},get selection(){return selection}};
   }
-  return {create,icons,svg,profiles};
+  return {create,icons,svg,art,profiles};
 })();
