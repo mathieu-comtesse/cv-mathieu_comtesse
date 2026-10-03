@@ -13,7 +13,13 @@
 .touch #panel{max-height:48%}
 .touch #frame:has(#pad:not([hidden])) #panel:not(.mini){bottom:124px;max-height:calc(100% - 182px)}
 
-.touch.fsmode #area{left:max(env(safe-area-inset-left,0px),34px);right:max(env(safe-area-inset-right,0px),34px)}
+.touch #area,.touch.fsmode #area{inset:0}
+.touch body{background:#000}
+.touch #frame{box-shadow:none;--game-safe-left:calc(env(safe-area-inset-left,0px) * var(--mobile-unit,1));--game-safe-right:calc(env(safe-area-inset-right,0px) * var(--mobile-unit,1));--game-safe-top:calc(env(safe-area-inset-top,0px) * var(--mobile-unit,1));--game-safe-bottom:calc(env(safe-area-inset-bottom,0px) * var(--mobile-unit,1))}
+.touch #frame #hud{left:calc(6px + var(--game-safe-left));right:calc(6px + var(--game-safe-right));top:calc(6px + var(--game-safe-top))}
+.touch #frame #pad{left:calc(16px * var(--mobile-unit) + var(--game-safe-left));right:calc(16px * var(--mobile-unit) + var(--game-safe-right));bottom:calc(12px * var(--mobile-unit) + var(--game-safe-bottom))}
+.touch #frame #qhud .qobj,.touch #frame #qhud canvas.qmap{right:calc(12px + var(--game-safe-right))}
+.touch #frame #qhud .qson,.touch #frame #qhud .qaide{left:calc(12px + var(--game-safe-left))}
 #keys{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:6;padding:4px 10px;font-size:12px;max-width:94%;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;align-items:center}#keys span{white-space:nowrap}#keys kbd{display:inline-block;min-width:18px;padding:0 5px;margin:0 1px;border:2px solid var(--ink);border-bottom-width:4px;background:#fff;font:inherit;font-weight:700;text-align:center}
 #timer.warn{background:#ffe3e3;color:#c92a2a}#timer.warn #timev{animation:blink 1s steps(2) infinite}@keyframes blink{50%{opacity:.25}}.touch .right .btn{font-size:13px;padding:3px 8px}
 #panel{margin:0 auto;max-width:940px}.mcard{max-width:760px}
@@ -918,9 +924,12 @@ let cur=null,dragging=false,busy=false,activeRenderers=0;
 const mobileResolution=TalasPerformance.resolution(),mainFrames=TalasPerformance.frameGate(TOUCH);
 const PXR=+(new URLSearchParams(location.search).get('pr'))||0; /* ?pr=1 : densité de pixels forcée (tests) */
 function setWorld(w){mobileControls.use(w&&w.quai?'quai':w&&w.platformer?'parcours':w&&w.hub?'village':'dialogue');const qhud=$('#qhud');if(qhud)qhud.style.display=w&&w.quai?'':'none';if(window.TALAS_RENDU)TALAS_RENDU.preparer(w);cur=w;mobileResolution.reset(performance.now());if(window.TALAS_SON)TALAS_SON.monde(w);renderer.setPixelRatio(w&&w.hd?(PXR||(TOUCH?mobileResolution.ratio:2)):1);cv.style.imageRendering=w&&w.hd?'auto':'';camera.fov=w&&w.fov||42;document.documentElement.classList.toggle('toonui',!!(w&&w.hd&&!w.plainui));fit()}
+function gamePixelRatio(r){return TOUCH?r*Math.min(1,Math.sqrt(2.2*GH/GW)):r}
 function fit(){
   const A=$('#area'),aw=A.clientWidth||innerWidth,ah=A.clientHeight||innerHeight;
-  GW=Math.round(GH*Math.max(4/3,Math.min(2.2,aw/ah))/2)*2;
+  /* Paysage mobile : caméra et surface suivent le ratio réel, sans étirement ni recadrage. */
+  GW=TOUCH&&aw>=ah?GH*aw/ah:Math.round(GH*Math.max(4/3,Math.min(2.2,aw/ah))/2)*2;
+  if(TOUCH&&!PXR&&cur?.hd)renderer.setPixelRatio(gamePixelRatio(mobileResolution.ratio));
   const fr=$('#frame');fr.style.width=GW+'px';cv.style.width=GW+'px';renderer.setSize(GW,GH,false);rt.setSize(GW,GH);
   const s=Math.min(aw/GW,ah/GH);fr.style.setProperty('--mobile-unit',String(1/s));fr.style.transform=`translate(-50%,-50%) scale(${s})`;
   const portrait=TOUCH&&ah>aw;$('#rotate').hidden=!portrait||window.__rotOk;
@@ -929,18 +938,19 @@ function fit(){
   const off=cur&&cur.noOff?0:cur&&!cur.hub?Math.round(GH*.1):Math.round(GH*.05);camera.setViewOffset(GW,GH,0,off,GW,GH);camera.updateProjectionMatrix();
 }
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,250));
+if(window.visualViewport)visualViewport.addEventListener('resize',fit);
 $('#rotok').onclick=()=>{window.__rotOk=1;$('#rotate').hidden=true};
 /* Appel synchrone depuis le geste du joueur : conserve l'activation nécessaire au plein écran. */
 {const IN_FRAME=window.parent!==window,D=document.documentElement,FS=$('#fs');
   const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement,canFS=!!(D.requestFullscreen||D.webkitRequestFullscreen);
-  const label=on=>{FS.textContent=on?'Quitter':'Plein écran';D.classList.toggle('fsmode',on)};
+  const label=(on,native=!!fsEl())=>{FS.textContent=on?(native?'Quitter':'Réduire'):'Plein écran';D.classList.toggle('fsmode',on)};
   if(IN_FRAME||canFS){FS.hidden=false;
     window.talasGameFullscreen=async(action='toggle')=>{if(IN_FRAME){try{if(typeof parent.talasFullscreen==='function')return parent.talasFullscreen(action)}catch(_){}parent.postMessage({talasFS:action},location.origin);return}
       const active=!!fsEl();if(action==='enter'&&active)return;
       try{if(active&&action!=='enter'){await(document.exitFullscreen||document.webkitExitFullscreen).call(document);try{screen.orientation.unlock()}catch(_){}}else if(action!=='exit'){await(D.requestFullscreen||D.webkitRequestFullscreen).call(D,{navigationUI:'hide'});try{await screen.orientation.lock('landscape')}catch(_){}}}catch(_){}setTimeout(fit,200)};
     FS.onclick=()=>window.talasGameFullscreen();
     ['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,()=>{label(!!fsEl());setTimeout(fit,200)}));
-    addEventListener('message',e=>{if(e.source===parent&&e.data&&typeof e.data.talasFS==='boolean'){label(e.data.talasFS);setTimeout(fit,200)}});
+    addEventListener('message',e=>{if(e.source===parent&&e.data&&typeof e.data.talasFS==='boolean'){label(e.data.talasFS,e.data.talasFSNative===true);setTimeout(fit,200)}});
     addEventListener('keydown',e=>{if(e.key==='Escape'&&IN_FRAME)parent.postMessage({talasFS:'exit'},'*')})}}
 function placeCam(dt){
   if(!cur)return;if(cur.cam){cur.cam(dt);return}const d=cur.dist;
