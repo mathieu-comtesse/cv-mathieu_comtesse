@@ -75,7 +75,7 @@
       // bannières : le vent (le même bruit que l'herbe et la fumée) les fait ondoyer
       ;(Q._BAN || []).forEach((b) => { const p = b.geo.attributes.position, a = p.array; for (let i = 0; i < p.count; i++) { const bx = b.base[i * 3], by = b.base[i * 3 + 1], k = (0.5 - by / 2.4) ; const w = M.vent(bx + b.ph, T * .3, T)[0]; a[i * 3 + 2] = Math.sin(T * 2.4 + bx * 2.2 + by * 1.1 + b.ph) * b.amp * Math.max(0, Math.min(1, .5 - by * .2)) * (.6 + w * .4); a[i * 3 + 1] = by - Math.abs(a[i * 3 + 2]) * .15 } p.needsUpdate = true; b.geo.computeVertexNormals() })
       // bateaux
-      ;(Q._bateaux || []).forEach((b) => { b.g.position.y = Math.sin(T * 1.1 + b.ph) * .06 - .1; b.g.rotation.z = Math.sin(T * .9 + b.ph) * .025; b.g.rotation.x = Math.sin(T * .7 + b.ph * 1.3) * .015 })
+      ;(Q._bateaux || []).forEach((b) => { b.g.position.y = (b.baseY || 0) + Math.sin(T * 1.1 + b.ph) * .025; b.g.rotation.z = Math.sin(T * .9 + b.ph) * .009; b.g.rotation.x = Math.sin(T * .7 + b.ph * 1.3) * .006 })
       // girouette
       if (ctx.girouette) ctx.girouette.rotation.y = Math.sin(T * .4) * 1.2 + 1.2
       // fumée des cheminées
@@ -224,7 +224,7 @@
         #qhud .qaide{position:absolute;left:12px;top:58px;font:600 12px "Trebuchet MS",sans-serif;color:#fff;text-shadow:1px 1px 0 #1a0d22;opacity:.85}`
       const d = document.createElement('div'); d.id = 'qhud'
       d.innerHTML = `<div class="qobj"><svg viewBox="0 0 44 52"><path d="M22 3 40 14v18c0 9-8 15-18 17C12 47 4 41 4 32V14z" fill="#3a7bd5" stroke="#1a0d22" stroke-width="3" stroke-linejoin="round"/><path d="M14 30c0-9 4-15 8-15s8 6 8 15l-3-2-2 3-3-3-3 3-2-3z" fill="#e9fff4" stroke="#1a0d22" stroke-width="2"/><circle cx="19" cy="24" r="1.6" fill="#1a0d22"/><circle cx="25" cy="24" r="1.6" fill="#1a0d22"/></svg><div><b class="qtitre">Objectif</b><span class="qtexte"></span></div></div>
-        <canvas class="qmap" width="300" height="300"></canvas><div class="qinv"><i>${TOUCH ? 'ACTION' : 'E'}</i><span></span></div><div class="qaide">${TOUCH ? '' : 'ZQSD / flèches : marcher · Maj : courir · glisser : tourner la caméra · E : entrer'}</div><button class="qson" type="button"></button>`
+        <canvas class="qmap" width="300" height="300" aria-label="Minimap : objectif rouge, repère clignotant en bordure quand il est hors champ"></canvas><div class="qinv"><i>${TOUCH ? 'ACTION' : 'E'}</i><span></span></div><div class="qaide">${TOUCH ? '' : 'ZQSD / flèches : marcher · Maj : courir · glisser : tourner la caméra · E : entrer'}</div><button class="qson" type="button"></button>`
       document.getElementById('frame').append(d); return d
     }
     const hud = hudCreer(), qSon = hud.querySelector('.qson'), qMap = hud.querySelector('canvas.qmap'), qg = qMap.getContext('2d'), qTitre = hud.querySelector('.qtitre'), qTexte = hud.querySelector('.qtexte'), qInv = hud.querySelector('.qinv'), qInvT = qInv.querySelector('span')
@@ -237,6 +237,13 @@
       Q.zones.forEach((q) => { if (q.t === 'r') g.fillRect((q.x0 - CART.x0) * CART.ppm, (q.z0 - CART.z0) * CART.ppm, (q.x1 - q.x0) * CART.ppm, (q.z1 - q.z0) * CART.ppm); else if (q.t === 'd') { g.beginPath(); g.arc((q.x - CART.x0) * CART.ppm, (q.z - CART.z0) * CART.ppm, q.r * CART.ppm, 0, 7); g.fill() } else { g.lineWidth = q.w * CART.ppm; g.lineCap = 'butt'; g.beginPath(); g.moveTo((q.ax - CART.x0) * CART.ppm, (q.az - CART.z0) * CART.ppm); g.lineTo((q.bx - CART.x0) * CART.ppm, (q.bz - CART.z0) * CART.ppm); g.stroke() } }) }
     function carte(cible, nx) {
       const R = 150, RM = 128, ppm = 3.2 * 1 // pixels par mètre dans la mini-carte (rayon de 46 m environ) ; RM : rayon du disque, la pastille N reste entière dans la toile
+      let bordX = null, bordZ = null, direction = 0
+      if (cible) {
+        const dx = (cible.x - J.x) * ppm, dz = (cible.z - J.z) * ppm, c = Math.cos(W.yaw), s = Math.sin(W.yaw)
+        const x = dx * c - dz * s, z = dx * s + dz * c, d = Math.hypot(x, z)
+        // La pastille en bordure s'efface dès que le point de l'objectif tient dans la carte.
+        if (d > RM - 16) { bordX = R + x / d * RM; bordZ = R + z / d * RM; direction = Math.atan2(z, x) }
+      }
       qg.clearRect(0, 0, 300, 300); qg.save(); qg.beginPath(); qg.arc(R, R, RM, 0, 7); qg.clip(); qg.fillStyle = '#1d1a4a'; qg.fillRect(0, 0, 300, 300)
       qg.translate(R, R); qg.rotate(W.yaw); qg.scale(ppm / CART.ppm, ppm / CART.ppm); qg.translate(-(J.x - CART.x0) * CART.ppm, -(J.z - CART.z0) * CART.ppm); qg.drawImage(cBase, 0, 0)
       const P = (x, z) => [(x - CART.x0) * CART.ppm, (z - CART.z0) * CART.ppm]
@@ -247,8 +254,16 @@
       qg.restore()
       qg.strokeStyle = '#1a0d22'; qg.lineWidth = 9; qg.beginPath(); qg.arc(R, R, RM, 0, 7); qg.stroke(); qg.strokeStyle = '#8f86ff'; qg.lineWidth = 6; qg.beginPath(); qg.arc(R, R, RM, 0, 7); qg.stroke()
       qg.fillStyle = '#8f86ff'; qg.strokeStyle = '#1a0d22'; qg.lineWidth = 3; qg.font = 'bold 26px "Luckiest Guy",sans-serif'; qg.textAlign = 'center'; qg.textBaseline = 'middle'
-      const nxp = R + Math.sin(W.yaw) * RM, nzp = R - Math.cos(W.yaw) * RM; qg.beginPath(); qg.arc(nxp, nzp, 15, 0, 7); qg.fill(); qg.stroke(); qg.fillStyle = '#fff'; qg.fillText('N', nxp, nzp + 1)
+      // Si l'objectif est au nord, garder les deux repères lisibles sur leur axe.
+      const nordProche = bordX !== null && Math.hypot(bordX - (R + Math.sin(W.yaw) * RM), bordZ - (R - Math.cos(W.yaw) * RM)) < 34
+      const nordR = nordProche ? RM - 36 : RM, nxp = R + Math.sin(W.yaw) * nordR, nzp = R - Math.cos(W.yaw) * nordR; qg.beginPath(); qg.arc(nxp, nzp, 15, 0, 7); qg.fill(); qg.stroke(); qg.fillStyle = '#fff'; qg.fillText('N', nxp, nzp + 1)
       qg.save(); qg.translate(R, R); qg.rotate(W.yaw - J.ang + Math.PI); qg.fillStyle = '#ffd43b'; qg.strokeStyle = '#1a0d22'; qg.lineWidth = 4; qg.beginPath(); qg.moveTo(0, -17); qg.lineTo(11, 12); qg.lineTo(0, 6); qg.lineTo(-11, 12); qg.closePath(); qg.fill(); qg.stroke(); qg.restore()
+      if (bordX !== null) {
+        qg.save(); qg.globalAlpha = .45 + .55 * (.5 + .5 * Math.sin(W.t * 6)); qg.fillStyle = '#ff3a2a'; qg.strokeStyle = '#fff3c8'; qg.lineWidth = 3
+        qg.beginPath(); qg.arc(bordX, bordZ, 14, 0, 7); qg.fill(); qg.stroke()
+        qg.strokeStyle = '#1a0d22'; qg.lineWidth = 3; qg.beginPath(); qg.arc(bordX, bordZ, 17, 0, 7); qg.stroke()
+        qg.translate(bordX, bordZ); qg.rotate(direction); qg.fillStyle = '#fff3c8'; qg.beginPath(); qg.moveTo(8, 0); qg.lineTo(-4, -5); qg.lineTo(-1, 0); qg.lineTo(-4, 5); qg.closePath(); qg.fill(); qg.restore()
+      }
     }
     const OBJ = [['Contexte', 'Va à la boutique TALAS : un fantôme hante l’atelier.'], ['Leadership', 'Monte tout en haut, jusqu’au manoir du PDG.'], ['Planification', 'Prends l’escalier de gauche : l’atelier des plans t’attend.'], ['Support', 'Prends l’escalier de droite : la bibliothèque des preuves.'], ['Réalisation', 'Le hangar d’assemblage, sur le quai de gauche.'], ['Évaluation', 'Le studio télé, en haut à droite.'], ['Amélioration', 'Le hangar à bateaux, au bout de la grande jetée.'], ['Le verdict', 'Traverse le pont : le phare rend son verdict.']]
 
