@@ -1,0 +1,12 @@
+{
+  "name": "Le Village Talas",
+  "short_name": "Talas",
+  "lang": "fr",
+  "start_url": "./village-talas.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#1a0d22",
+  "theme_color": "#1a0d22",
+  "icons": [{"src": "assets/talas/por-boulon.png", "type": "image/png", "purpose": "any"}]
+}
