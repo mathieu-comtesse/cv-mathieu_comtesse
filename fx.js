@@ -13,6 +13,8 @@ document.querySelectorAll('em.flip[data-a][data-b]').forEach(el=>{
     ctx.font=`${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
     const w=c=>c?ctx.measureText(c).width/size:0;
     el.setAttribute('aria-label',el.dataset.a);el.textContent='';el.classList.add('is-built');
+    /* boîte de largeur fixe (le plus large des deux mots) : le mot reste au même endroit, sur la même ligne, quel que soit l'état */
+    el.style.width=Math.max(A.reduce((t,c)=>t+w(c),0),B.reduce((t,c)=>t+w(c),0))+'em';
     for(let i=0;i<n;i++){
       const a=A[i]||'',b=B[i]||'',s=document.createElement('span');
       s.className='fs';s.setAttribute('aria-hidden','true');

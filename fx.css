@@ -20,7 +20,8 @@
 @media (max-width:760px),(hover:none){.fx-thumb{display:none}}
 
 /* ---- Mot qui bascule : chaque lettre est un cube, départ décalé, largeur qui s'adapte ---- */
-em.flip.is-built{display:inline-block;perspective:900px;white-space:nowrap;line-height:1.2em;vertical-align:baseline;margin-left:.14em}
+.hero h1 em.flip,em.flip{color:var(--pink,#272AF5)}
+em.flip.is-built{display:inline-block;perspective:900px;white-space:nowrap;line-height:1.2em;vertical-align:baseline;text-align:left}
 .fs{display:inline-block;position:relative;height:1.2em;width:var(--wa);transform-style:preserve-3d;vertical-align:-.25em;animation:fs-cycle 8s var(--d,0s) infinite ease-in-out}
 .fs .f{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;font-style:normal;line-height:1}
 .fs .f1{transform:translateZ(.6em)}
