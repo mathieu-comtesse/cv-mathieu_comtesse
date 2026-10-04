@@ -1,0 +1,55 @@
+/* Refonte : proposition. Réutilise la charte du site (style.css) et ajoute six effets en CSS/JS natifs. */
+.rf-bar{position:sticky;top:0;z-index:20;display:flex;gap:24px;align-items:center;justify-content:space-between;padding:12px var(--gutter);background:var(--white);border-bottom:1px solid var(--ink);font-family:var(--mono);font-size:13px}
+.rf-bar nav{display:flex;gap:18px;flex-wrap:wrap}.rf-bar nav a{padding:2px 0;border-bottom:1px solid transparent}.rf-bar nav a:hover{border-color:var(--ink)}
+.rf-tag{font-family:var(--pixel);font-size:18px;background:var(--pink);color:#fefefe;padding:1px 8px}
+/* 1 · text stream + flip */
+.rf-hero{padding-block:clamp(48px,9vw,120px) clamp(32px,5vw,64px)}
+.rf-intro{display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:13px;margin-bottom:28px;flex-wrap:wrap}
+.rf-intro .dots{flex:1;min-width:30px;height:6px;background:radial-gradient(circle,var(--ink) 1px,transparent 1.4px) 0 0/6px 6px}
+.rf-h1{font-size:clamp(44px,8.6vw,128px);line-height:.88;font-weight:500;max-width:17ch}
+.rf-stream::after{content:"";display:inline-block;width:.5ch;height:.85em;margin-left:2px;background:var(--pink);vertical-align:-.08em;animation:rf-blink 1s steps(1) infinite;opacity:0}
+.rf-stream.is-typing::after{opacity:1}.rf-stream.is-done::after{display:none}
+@keyframes rf-blink{50%{opacity:0}}
+.rf-sub{font-family:var(--mono);font-size:clamp(14px,1.5vw,18px);line-height:1.5;max-width:60ch;margin:28px 0;min-height:3em}
+.rf-flip{display:inline-block;position:relative;perspective:700px;color:var(--pink);white-space:nowrap;vertical-align:top}
+.rf-flip span{display:inline-block;transform-origin:50% 100%;backface-visibility:hidden}
+.rf-flip .out{position:absolute;left:0;top:0}
+.rf-flip.go .in{animation:rf-in .5s .22s cubic-bezier(.2,.8,.2,1) both}.rf-flip.go .out{animation:rf-out .3s cubic-bezier(.6,0,.8,.4) both}
+@keyframes rf-in{from{transform:rotateX(-90deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes rf-out{from{transform:none;opacity:1}to{transform:rotateX(90deg);opacity:0}}
+/* 2 · marquee */
+.rf-marquee{border-block:1px solid var(--ink);overflow:hidden;background:var(--ink);color:var(--white);user-select:none}
+.rf-track{overflow:hidden;cursor:grab;touch-action:pan-y;padding:14px 0}.rf-track+.rf-track{border-top:1px solid var(--grey-2)}.rf-track.drag{cursor:grabbing}
+.rf-row{display:flex;gap:28px;width:max-content;align-items:center;font-family:var(--pixel);font-size:clamp(28px,4vw,48px);line-height:1;will-change:transform;padding-left:28px}
+.rf-row i{font-style:normal;color:var(--pink);filter:brightness(1.8)}
+/* 3 · hover img */
+.rf-list{border-top:1px solid var(--ink)}
+.rf-list a{display:grid;grid-template-columns:56px 1fr auto;gap:18px;align-items:baseline;padding:18px 4px;border-bottom:1px solid var(--ink);transition:padding .25s,background .25s,color .25s}
+.rf-list .n{font-family:var(--pixel);font-size:22px}.rf-list b{font-weight:500;font-size:clamp(26px,4.2vw,56px);line-height:1}
+.rf-list em{font-family:var(--mono);font-size:13px;color:var(--ink-86)}
+.rf-list a:hover,.rf-list a:focus-visible{padding-left:20px;background:var(--ink);color:var(--white)}.rf-list a:hover em,.rf-list a:focus-visible em{color:var(--white)}
+.rf-peek{position:fixed;left:0;top:0;width:min(320px,34vw);z-index:30;pointer-events:none;opacity:0;transform:translate(-999px,-999px) rotate(-3deg) scale(.92);transition:opacity .2s,scale .2s}
+.rf-peek.on{opacity:1}.rf-peek img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover}
+@media (hover:none){.rf-peek{display:none}.rf-list a{grid-template-columns:40px 1fr}.rf-list em{grid-column:2}}
+/* 4 · gallery */
+.rf-gallery{display:flex;gap:clamp(18px,3vw,40px);overflow-x:auto;padding:30px 4px 44px;scroll-snap-type:x proximity;cursor:grab;align-items:center;scrollbar-width:thin}
+.rf-gallery.drag{cursor:grabbing;scroll-snap-type:none}.rf-gallery.drag a{pointer-events:none}
+.frame{flex:none;scroll-snap-align:center;width:clamp(240px,30vw,400px);aspect-ratio:4/3;position:relative;background:var(--white);border:10px solid var(--white);outline:2px solid var(--ink);box-shadow:8px 8px 0 var(--ink);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.frame--tall{aspect-ratio:3/4;width:clamp(220px,24vw,320px)}
+.frame:nth-child(odd){transform:rotate(-1.2deg)}.frame:nth-child(even){transform:rotate(1deg) translateY(10px)}
+.frame:hover,.frame:focus-visible{transform:rotate(0) translateY(-8px) scale(1.03)}
+.frame img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.85);transition:filter .3s}.frame:hover img{filter:none}
+.plaque{position:absolute;left:-10px;right:-10px;bottom:-54px;display:flex;flex-direction:column;font-family:var(--mono);font-size:12px;color:var(--ink)}.plaque b{font-family:var(--display);font-weight:500;font-size:18px}
+/* 5 · split showcase */
+.rf-split{display:flex;gap:0;border:1px solid var(--ink);min-height:420px;box-shadow:6px 6px 0 var(--ink)}
+.side{flex:1 1 0;padding:clamp(20px,3vw,40px);display:flex;flex-direction:column;gap:16px;transition:flex-grow .6s cubic-bezier(.2,.8,.2,1);min-width:0;overflow:hidden}
+.side--avant{background:var(--grey);border-right:1px solid var(--ink)}.side--apres{background:var(--white)}
+.rf-split:hover .side,.rf-split:focus-within .side{flex-grow:.55}.rf-split .side:hover,.rf-split .side:focus{flex-grow:2.2}
+.side h2{font-size:clamp(26px,3.4vw,46px);line-height:.95}.side p{font-family:var(--mono);font-size:14px;line-height:1.5}
+.side .term{font-family:var(--mono);font-size:13px;line-height:1.6;white-space:pre-wrap}.side .ko{color:#b3261e;font-weight:700}
+.side video{width:100%;border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink);aspect-ratio:1280/790;object-fit:cover;background:var(--grey)}
+.side p a{text-decoration:underline}
+@media (max-width:760px){.rf-split{flex-direction:column}.rf-split .side:hover,.rf-split .side:focus{flex-grow:1}.side--avant{border-right:0;border-bottom:1px solid var(--ink)}}
+@media (prefers-reduced-motion:reduce){.rf-stream::after{animation:none}.frame,.side,.rf-list a{transition:none}.rf-flip.go .in,.rf-flip.go .out{animation:none}}
+
+.rf-hero .hero-links a{font-size:clamp(18px,2vw,24px)}

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refonte · proposition · Mathieu Comtesse</title>
+<meta name="robots" content="noindex">
+<script>(()=>{const r=document.documentElement,m=matchMedia('(prefers-color-scheme: dark)');let s='auto';try{const v=localStorage.getItem('cv-theme');if(['auto','light','dark'].includes(v))s=v}catch(_){}r.dataset.theme=s==='auto'?(m.matches?'dark':'light'):s})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=JetBrains+Mono:wght@300;400;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="refonte.css">
+</head><body>
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+<header class="rf-bar"><a class="site-name" href="../index.html">Mathieu Comtesse</a>
+ <nav aria-label="Navigation principale"><a href="#projets">Projets</a><a href="#perso">Projets perso</a><a href="#gares">Dernier projet</a><a href="../contact.html">Contact</a></nav>
+ <span class="rf-tag">Proposition de refonte · non publiée</span></header>
+
+<main id="contenu">
+
+<!-- 1 · TEXT STREAM + FLIP TEXT : le héros s'écrit comme une sortie de terminal -->
+<header class="rf-hero wrap">
+ <p class="rf-intro"><span>M2 MQSE · Sorbonne Paris Nord</span><span class="dots" aria-hidden="true"></span><span>Alternance · SNCF Gares &amp; Connexions</span></p>
+ <h1 class="rf-h1"><span class="rf-stream" data-stream="Prévenir, vérifier, maintenir. Du terrain à la "></span><span class="rf-flip" data-words="conformité.|traçabilité.|fiabilité.|décision." aria-live="off"></span></h1>
+ <p class="rf-sub rf-stream" data-stream="Je relie les exigences MQSE aux outils numériques : extraction PDF, Power Automate, Power BI." data-delay="2600"></p>
+ <div class="hero-links"><a href="#projets">Voir les projets</a><a href="../contact.html">Me contacter</a></div>
+</header>
+
+<!-- 2 · DRAGGABLE MARQUEE : compétences et normes, bande qu'on peut saisir -->
+<section class="rf-marquee" aria-label="Compétences et référentiels (défilement, saisissable à la souris)">
+ <div class="rf-track" data-speed="38"><div class="rf-row">
+  <span>Power BI</span><i>◆</i><span>DAX</span><i>◆</i><span>Power Automate</span><i>◆</i><span>ISO 9001</span><i>◆</i><span>ISO 45001</span><i>◆</i><span>ISO 14001</span><i>◆</i><span>ISO 27001</span><i>◆</i><span>Lean</span><i>◆</i><span>Six Sigma</span><i>◆</i><span>Extraction PDF</span><i>◆</i><span>Co-activité</span><i>◆</i><span>Plans de prévention</span><i>◆</i><span>Audit</span><i>◆</i>
+ </div></div>
+ <div class="rf-track rf-track--rev" data-speed="26"><div class="rf-row">
+  <span>CERFA</span><i>✦</i><span>VRE</span><i>✦</i><span>MOSO</span><i>✦</i><span>GMAO</span><i>✦</i><span>SharePoint</span><i>✦</i><span>HTML / CSS</span><i>✦</i><span>Python</span><i>✦</i><span>Habilitations</span><i>✦</i><span>Maintenance réglementaire</span><i>✦</i><span>Gares souterraines</span><i>✦</i>
+ </div></div>
+</section>
+
+<!-- 3 · HOVER IMG : la liste des projets, l'aperçu suit le curseur -->
+<section class="band band--white" id="projets"><div class="wrap">
+ <div class="section-label"><span>Projets</span><span>Survoler pour voir, cliquer pour ouvrir</span></div>
+ <ol class="rf-list" id="rf-list">
+  <li><a href="../projet-gares.html" data-img="../assets/demo-gares-poster.jpg"><span class="n">09</span><b>Gares prioritaires</b><em>≥ 10–15 min par équipement</em></a></li>
+  <li><a href="../projet-4.html" data-img="../assets/demo-powerbi-poster.jpg"><span class="n">07</span><b>Portail Power BI</b><em>3–5 min → 10 s</em></a></li>
+  <li><a href="../projet-3.html" data-img="../assets/demo-ppchain-poster.jpg"><span class="n">06</span><b>PP &amp; MOSO</b><em>du dépôt à la consultation</em></a></li>
+  <li><a href="../projet-vre.html" data-img="../assets/demo-vre-poster.jpg"><span class="n">04</span><b>Extracteur VRE</b><em>30 min → qq min par rapport</em></a></li>
+  <li><a href="../projet-1.html" data-img="../assets/demo-cerfa-poster.jpg"><span class="n">03</span><b>CERFA v3</b><em>fiches → données du parc</em></a></li>
+  <li><a href="../projet-studio.html" data-img="../assets/studio-poster.jpg"><span class="n">01</span><b>Studio d’extracteurs PDF</b><em>5–10 j → qq heures</em></a></li>
+  <li><a href="../projet-5.html" data-img="../assets/talas-salle-controle.jpg"><span class="n">08</span><b>Dialogue terrain</b><em>16 arbitrages obtenus</em></a></li>
+ </ol>
+ <figure class="rf-peek win" id="rf-peek" aria-hidden="true"><div class="win__title"><span>Aperçu</span></div><img alt="" width="640" height="395"></figure>
+</div></section>
+
+<!-- 4 · ART GALLERY : projets perso accrochés comme des tableaux -->
+<section class="band band--sage" id="perso"><div class="wrap">
+ <div class="section-label"><span>Projets perso</span><span>Galerie · glisser ou faire défiler</span></div>
+ <div class="rf-gallery" id="rf-gallery" tabindex="0" aria-label="Galerie des projets personnels">
+  <a class="frame" href="../fond-ecran-gouache.html"><img src="../gouache-scene.png" alt="" loading="lazy"><span class="plaque"><b>Fond d’écran Gouache</b>Aquarium animé</span></a>
+  <a class="frame frame--tall" href="../firewood.html"><img src="../firewood-pastel.png" alt="" loading="lazy"><span class="plaque"><b>Timber !</b>Fendre du bois en 3D</span></a>
+  <a class="frame" href="../abysses.html"><img src="../recif-gouache-preview.jpg" alt="" loading="lazy"><span class="plaque"><b>Abysses &amp; babioles</b>Fouilles sous-marines</span></a>
+  <a class="frame frame--tall" href="../sandboard.html"><img src="../sand-painted.png" alt="" loading="lazy"><span class="plaque"><b>Sandboard</b>Dessiner dans le sable</span></a>
+  <a class="frame" href="../village-talas.html"><img src="../assets/talas-salle-controle-grand.jpg" alt="" loading="lazy"><span class="plaque"><b>Village Talas</b>Jeu sérieux ISO 45001</span></a>
+  <a class="frame" href="../contact.html"><img src="../contact-scene.png" alt="" loading="lazy"><span class="plaque"><b>Contact</b>Le voyage</span></a>
+ </div>
+</div></section>
+
+<!-- 5 · SPLIT SHOWCASE : avant / après du dernier projet -->
+<section class="band band--white" id="gares"><div class="wrap">
+ <div class="section-label"><span>Dernier projet</span><span>Survoler un côté pour l’agrandir</span></div>
+ <div class="rf-split" id="rf-split">
+  <article class="side side--avant" tabindex="0"><span class="chip">Avant</span><h2>GMAO + plusieurs Power BI</h2>
+   <pre class="term"><b>$</b> ouvrir la GMAO
+chercher l’équipement
+<b>$</b> ouvrir un premier Power BI
+retrouver la gare
+<b>$</b> ouvrir un second Power BI
+vérifier les mises en conformité
+<span class="ko">à reconstituer outil par outil</span></pre></article>
+  <article class="side side--apres" tabindex="0"><span class="chip">Après</span><h2>Une fiche, un équipement</h2>
+   <video muted loop playsinline preload="none" poster="../assets/demo-gares-poster.jpg" data-src="../assets/demo-gares.mp4"></video>
+   <p>Criticité, maintenance préventive, mises en conformité. 10 à 15 minutes gagnées par équipement. <a href="../projet-gares.html">Voir le projet ↗</a></p></article>
+ </div>
+</div></section>
+
+</main>
+<footer class="site-footer"><span>© 2026 Mathieu Comtesse · Qualité · Sécurité · Numérique</span><a href="../contact.html">Me contacter</a></footer>
+<script src="refonte.js"></script>
+</body></html>
