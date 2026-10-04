@@ -9,72 +9,84 @@
 </head><body>
 <a class="skip-link" href="#contenu">Aller au contenu</a>
 <header class="rf-bar"><a class="site-name" href="../index.html">Mathieu Comtesse</a>
- <nav aria-label="Navigation principale"><a href="#projets">Projets</a><a href="#perso">Projets perso</a><a href="#gares">Dernier projet</a><a href="../contact.html">Contact</a></nav>
+ <nav aria-label="Navigation principale"><a href="#profils">Profil</a><a href="#demos">Démos</a><a href="#projets">Projets</a><a href="#perso">Projets perso</a><a href="../contact.html">Contact</a></nav>
  <span class="rf-tag">Proposition de refonte · non publiée</span></header>
 
 <main id="contenu">
 
-<!-- 1 · TEXT STREAM + FLIP TEXT : le héros s'écrit comme une sortie de terminal -->
+<!-- 1 · FLIP TEXT (titre) + TEXT STREAM (défilement vertical réactif au scroll) -->
 <header class="rf-hero wrap">
  <p class="rf-intro"><span>M2 MQSE · Sorbonne Paris Nord</span><span class="dots" aria-hidden="true"></span><span>Alternance · SNCF Gares &amp; Connexions</span></p>
- <h1 class="rf-h1"><span class="rf-stream" data-stream="Prévenir, vérifier, maintenir. Du terrain à la "></span><span class="rf-flip" data-words="conformité.|traçabilité.|fiabilité.|décision." aria-live="off"></span></h1>
- <p class="rf-sub rf-stream" data-stream="Je relie les exigences MQSE aux outils numériques : extraction PDF, Power Automate, Power BI." data-delay="2600"></p>
- <div class="hero-links"><a href="#projets">Voir les projets</a><a href="../contact.html">Me contacter</a></div>
+ <div class="rf-hero-grid">
+  <div>
+   <h1 class="rf-h1">Prévenir, vérifier, maintenir. Du terrain à la <span class="rf-flip" data-flip="conformité."></span></h1>
+   <div class="hero-links"><a href="#projets">Voir les projets</a><a href="../contact.html">Me contacter</a></div>
+   <p class="hero-meta">Yellow Belt Lean Six Sigma · ISO 9001 / 45001 / 14001 / 27001 · Power BI · Power Automate</p>
+  </div>
+  <div class="rf-stream" data-prefix="Mon métier" data-items="Prévenir|Vérifier|Maintenir|Automatiser|Tracer|Décider" role="img" aria-label="Prévenir, vérifier, maintenir, automatiser, tracer, décider"></div>
+ </div>
 </header>
 
-<!-- 2 · DRAGGABLE MARQUEE : compétences et normes, bande qu'on peut saisir -->
-<section class="rf-marquee" aria-label="Compétences et référentiels (défilement, saisissable à la souris)">
- <div class="rf-track" data-speed="38"><div class="rf-row">
-  <span>Power BI</span><i>◆</i><span>DAX</span><i>◆</i><span>Power Automate</span><i>◆</i><span>ISO 9001</span><i>◆</i><span>ISO 45001</span><i>◆</i><span>ISO 14001</span><i>◆</i><span>ISO 27001</span><i>◆</i><span>Lean</span><i>◆</i><span>Six Sigma</span><i>◆</i><span>Extraction PDF</span><i>◆</i><span>Co-activité</span><i>◆</i><span>Plans de prévention</span><i>◆</i><span>Audit</span><i>◆</i>
- </div></div>
- <div class="rf-track rf-track--rev" data-speed="26"><div class="rf-row">
-  <span>CERFA</span><i>✦</i><span>VRE</span><i>✦</i><span>MOSO</span><i>✦</i><span>GMAO</span><i>✦</i><span>SharePoint</span><i>✦</i><span>HTML / CSS</span><i>✦</i><span>Python</span><i>✦</i><span>Habilitations</span><i>✦</i><span>Maintenance réglementaire</span><i>✦</i><span>Gares souterraines</span><i>✦</i>
- </div></div>
-</section>
-
-<!-- 3 · HOVER IMG : la liste des projets, l'aperçu suit le curseur -->
-<section class="band band--white" id="projets"><div class="wrap">
- <div class="section-label"><span>Projets</span><span>Survoler pour voir, cliquer pour ouvrir</span></div>
- <ol class="rf-list" id="rf-list">
-  <li><a href="../projet-gares.html" data-img="../assets/demo-gares-poster.jpg"><span class="n">09</span><b>Gares prioritaires</b><em>≥ 10–15 min par équipement</em></a></li>
-  <li><a href="../projet-4.html" data-img="../assets/demo-powerbi-poster.jpg"><span class="n">07</span><b>Portail Power BI</b><em>3–5 min → 10 s</em></a></li>
-  <li><a href="../projet-3.html" data-img="../assets/demo-ppchain-poster.jpg"><span class="n">06</span><b>PP &amp; MOSO</b><em>du dépôt à la consultation</em></a></li>
-  <li><a href="../projet-vre.html" data-img="../assets/demo-vre-poster.jpg"><span class="n">04</span><b>Extracteur VRE</b><em>30 min → qq min par rapport</em></a></li>
-  <li><a href="../projet-1.html" data-img="../assets/demo-cerfa-poster.jpg"><span class="n">03</span><b>CERFA v3</b><em>fiches → données du parc</em></a></li>
-  <li><a href="../projet-studio.html" data-img="../assets/studio-poster.jpg"><span class="n">01</span><b>Studio d’extracteurs PDF</b><em>5–10 j → qq heures</em></a></li>
-  <li><a href="../projet-5.html" data-img="../assets/talas-salle-controle.jpg"><span class="n">08</span><b>Dialogue terrain</b><em>16 arbitrages obtenus</em></a></li>
- </ol>
- <figure class="rf-peek win" id="rf-peek" aria-hidden="true"><div class="win__title"><span>Aperçu</span></div><img alt="" width="640" height="395"></figure>
-</div></section>
-
-<!-- 4 · ART GALLERY : projets perso accrochés comme des tableaux -->
-<section class="band band--sage" id="perso"><div class="wrap">
- <div class="section-label"><span>Projets perso</span><span>Galerie · glisser ou faire défiler</span></div>
- <div class="rf-gallery" id="rf-gallery" tabindex="0" aria-label="Galerie des projets personnels">
-  <a class="frame" href="../fond-ecran-gouache.html"><img src="../gouache-scene.png" alt="" loading="lazy"><span class="plaque"><b>Fond d’écran Gouache</b>Aquarium animé</span></a>
-  <a class="frame frame--tall" href="../firewood.html"><img src="../firewood-pastel.png" alt="" loading="lazy"><span class="plaque"><b>Timber !</b>Fendre du bois en 3D</span></a>
-  <a class="frame" href="../abysses.html"><img src="../recif-gouache-preview.jpg" alt="" loading="lazy"><span class="plaque"><b>Abysses &amp; babioles</b>Fouilles sous-marines</span></a>
-  <a class="frame frame--tall" href="../sandboard.html"><img src="../sand-painted.png" alt="" loading="lazy"><span class="plaque"><b>Sandboard</b>Dessiner dans le sable</span></a>
-  <a class="frame" href="../village-talas.html"><img src="../assets/talas-salle-controle-grand.jpg" alt="" loading="lazy"><span class="plaque"><b>Village Talas</b>Jeu sérieux ISO 45001</span></a>
-  <a class="frame" href="../contact.html"><img src="../contact-scene.png" alt="" loading="lazy"><span class="plaque"><b>Contact</b>Le voyage</span></a>
+<!-- 6 · SPLIT SHOWCASE : les deux profils du CV -->
+<section class="band band--white" id="profils"><div class="wrap">
+ <div class="section-label"><span>Deux profils, un CV</span><span>Choisir un côté</span></div>
+ <div class="rf-split" data-split>
+  <a class="card" href="../competences.html#savoir-faire-mqse"><span class="icon" aria-hidden="true">01</span><h2>Prévention &amp; MQSE</h2><p>Co-activité, plans de prévention, audit, habilitations, ISO 45001.</p><span class="tag">Qualité · Sécurité</span></a>
+  <a class="card" href="../projets.html"><span class="icon" aria-hidden="true">02</span><h2>Numérique &amp; data</h2><p>Extraction PDF, Power Automate, Power BI, interfaces HTML.</p><span class="tag">Outils métier</span></a>
  </div>
 </div></section>
 
-<!-- 5 · SPLIT SHOWCASE : avant / après du dernier projet -->
+<!-- 3 · DRAGGABLE MARQUEE : démonstrations en images, avec inertie -->
+<section class="band band--ink" id="demos"><div class="wrap">
+ <div class="section-label"><span>Démonstrations</span><span>Glisser, lancer, ou flèches du clavier</span></div>
+</div>
+ <div class="rf-marquee" id="rf-marquee" tabindex="0" role="region" aria-label="Démonstrations des projets. Glisser ou utiliser les flèches gauche et droite.">
+  <div class="rf-mtrack">
+   <a class="m-item" href="../projet-gares.html"><img src="../assets/demo-gares-poster.jpg" alt="" width="400" height="247" draggable="false"><span>Gares prioritaires</span></a>
+   <a class="m-item" href="../projet-4.html"><img src="../assets/demo-powerbi-poster.jpg" alt="" width="400" height="247" draggable="false"><span>Portail Power BI</span></a>
+   <a class="m-item" href="../projet-3.html"><img src="../assets/demo-ppchain-poster.jpg" alt="" width="400" height="247" draggable="false"><span>PP &amp; MOSO</span></a>
+   <a class="m-item" href="../projet-vre.html"><img src="../assets/demo-vre-poster.jpg" alt="" width="400" height="247" draggable="false"><span>Extracteur VRE</span></a>
+   <a class="m-item" href="../projet-1.html"><img src="../assets/demo-cerfa-poster.jpg" alt="" width="400" height="247" draggable="false"><span>CERFA v3</span></a>
+   <a class="m-item" href="../projet-studio.html"><img src="../assets/studio-poster.jpg" alt="" width="400" height="247" draggable="false"><span>Studio d’extracteurs PDF</span></a>
+  </div>
+ </div>
+</section>
+
+<!-- 4 · HOVER IMG : liste des projets, bande d'aperçus qui suit le curseur -->
+<section class="band band--white" id="projets"><div class="wrap">
+ <div class="section-label"><span>Projets</span><span>Survoler pour voir, cliquer pour ouvrir</span></div>
+ <div class="rf-hover" id="rf-hover">
+  <div class="rf-projects">
+   <a class="rf-project" href="../projet-gares.html"><h2>Gares prioritaires</h2><p>≥ 10–15 min par équipement</p></a>
+   <a class="rf-project" href="../projet-4.html"><h2>Portail Power BI</h2><p>3–5 min → 10 s</p></a>
+   <a class="rf-project" href="../projet-3.html"><h2>PP &amp; MOSO</h2><p>du dépôt à la consultation</p></a>
+   <a class="rf-project" href="../projet-vre.html"><h2>Extracteur VRE</h2><p>30 min → qq min par rapport</p></a>
+   <a class="rf-project" href="../projet-1.html"><h2>CERFA v3</h2><p>fiches → données du parc</p></a>
+   <a class="rf-project" href="../projet-studio.html"><h2>Studio d’extracteurs PDF</h2><p>5–10 j → qq heures</p></a>
+  </div>
+  <div class="rf-thumbs" aria-hidden="true">
+   <div><img src="../assets/demo-gares-poster.jpg" alt=""></div><div><img src="../assets/demo-powerbi-poster.jpg" alt=""></div><div><img src="../assets/demo-ppchain-poster.jpg" alt=""></div><div><img src="../assets/demo-vre-poster.jpg" alt=""></div><div><img src="../assets/demo-cerfa-poster.jpg" alt=""></div><div><img src="../assets/studio-poster.jpg" alt=""></div>
+  </div>
+ </div>
+</div></section>
+
+<!-- 5 · ART GALLERY : grille WebGL à distorsion en barillet, projets perso -->
+<section class="band band--ink" id="perso"><div class="wrap">
+ <div class="section-label"><span>Projets perso</span><span>Glisser pour explorer la galerie</span></div>
+ <div class="rf-gallery" id="rf-gallery" aria-label="Galerie des projets personnels, grille à explorer à la souris ou au doigt">
+  <span class="rf-hint" aria-hidden="true">glisser pour explorer</span>
+ </div>
+ <ul class="rf-gallery-links">
+  <li><a href="../fond-ecran-gouache.html">Fond d’écran Gouache</a></li><li><a href="../firewood.html">Timber !</a></li><li><a href="../abysses.html">Abysses &amp; babioles</a></li><li><a href="../sandboard.html">Sandboard</a></li><li><a href="../village-talas.html">Village Talas</a></li><li><a href="../contact.html">Contact</a></li><li><a href="../projets-perso.html">Tous les projets perso ↗</a></li>
+ </ul>
+</div></section>
+
+<!-- 6b · SPLIT SHOWCASE (variante) : avant / après du dernier projet -->
 <section class="band band--white" id="gares"><div class="wrap">
- <div class="section-label"><span>Dernier projet</span><span>Survoler un côté pour l’agrandir</span></div>
- <div class="rf-split" id="rf-split">
-  <article class="side side--avant" tabindex="0"><span class="chip">Avant</span><h2>GMAO + plusieurs Power BI</h2>
-   <pre class="term"><b>$</b> ouvrir la GMAO
-chercher l’équipement
-<b>$</b> ouvrir un premier Power BI
-retrouver la gare
-<b>$</b> ouvrir un second Power BI
-vérifier les mises en conformité
-<span class="ko">à reconstituer outil par outil</span></pre></article>
-  <article class="side side--apres" tabindex="0"><span class="chip">Après</span><h2>Une fiche, un équipement</h2>
-   <video muted loop playsinline preload="none" poster="../assets/demo-gares-poster.jpg" data-src="../assets/demo-gares.mp4"></video>
-   <p>Criticité, maintenance préventive, mises en conformité. 10 à 15 minutes gagnées par équipement. <a href="../projet-gares.html">Voir le projet ↗</a></p></article>
+ <div class="section-label"><span>Dernier projet</span><span>Gares prioritaires</span></div>
+ <div class="rf-split" data-split>
+  <div class="card"><span class="icon" aria-hidden="true">Avant</span><h2>GMAO + plusieurs Power BI</h2><p>Pour un équipement, glaner les informations outil par outil.</p><span class="tag">Aucun suivi</span></div>
+  <a class="card" href="../projet-gares.html"><span class="icon" aria-hidden="true">Après</span><h2>Une fiche, un équipement</h2><p>Criticité, maintenance préventive, mises en conformité. 10 à 15 min gagnées.</p><span class="tag">Voir le projet ↗</span></a>
  </div>
 </div></section>
 
