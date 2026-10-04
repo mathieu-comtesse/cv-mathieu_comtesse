@@ -1,0 +1,25 @@
+<!doctype html><meta charset="utf-8"><title>Banc d'essai des modèles Route & vigilance</title>
+<style>html,body{margin:0;height:100%;background:#8aa0c8;font:12px monospace}#c{position:fixed;inset:0;width:100%;height:100%}#i{position:fixed;left:8px;top:8px;background:#fffc;padding:4px 8px}</style>
+<canvas id="c"></canvas><div id="i">chargement…</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../../route-3d-modeles.js"></script>
+<script>
+/* ouvrir : python3 -m http.server puis tools/route/banc.html?m=berline&vue=arriere&c=%23c8321f  (m : joueur, hatch, citadine, berline, suv, fourgon, camion, cycliste, pieton, cerf, chien, vache) */
+const q = new URLSearchParams(location.search)
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true }); r.setSize(innerWidth, innerHeight, false); r.setPixelRatio(1)
+const sc = new THREE.Scene(); sc.background = new THREE.Color('#8aa0c8'); sc.fog = new THREE.Fog('#8aa0c8', 30, 140)
+sc.add(new THREE.HemisphereLight('#bcd0f0', '#2a3028', .5)); const sol = new THREE.DirectionalLight('#fff4e0', .8); sol.position.set(-6, 12, 8); sc.add(sol)
+{ const sol0 = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshPhongMaterial({ color: '#34364a' })); sol0.rotation.x = -Math.PI / 2; sc.add(sol0) }
+// environnement : cubes peints (jour / crépuscule / nuit)
+const ENVS = Modeles3D.creerEnvs(); if (!q.has('noenv')) sc.environment = ENVS[q.get('env') || 'jour']
+const FICH = Object.assign({}, Modeles3D.FICHIERS); for (const k in FICH) Modeles3D.FICHIERS[k] = '../../' + FICH[k]
+Modeles3D.charger(THREE).then(() => {
+  const nom = q.get('m') || 'joueur', V = Modeles3D.creer(nom, { couleur: q.get('c') || '#c8321f', couleur2: '#34425a' })
+  if (q.has('envi')) V.groupe.traverse((c) => { if (c.isMesh) { c.material = c.material.clone(); c.material.envMapIntensity = +q.get('envi') } })
+  sc.add(V.groupe); V.maj(0, { vitesse: 0, freine: q.has('frein'), nuit: q.has('nuit'), allure: 0 })
+  const t = V.taille, R = Math.max(t.x, t.y, t.z), cam = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, .1, 400)
+  const vue = q.get('vue') || '3q', k = { '3q': [.9, .45, -1.0], arriere: [0, .35, -1.2], avant: [0, .3, 1.2], cote: [1.3, .25, 0], haut: [0, 1.4, -.3] }[vue]
+  const d = R * 1.9 * (+q.get('z') || 1); cam.position.set(k[0] * d, k[1] * d + t.y * .3, k[2] * d); cam.lookAt(0, t.y * .45, 0)
+  r.render(sc, cam); document.getElementById('i').textContent = nom + ' · ' + vue + ' · ' + sc.children.length; window.PRET = true
+}).catch((e) => { document.getElementById('i').textContent = 'ERREUR ' + e.message; window.ERREUR = e.message })
+</script>

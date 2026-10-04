@@ -48,6 +48,20 @@
     const so = new THREE.CylinderGeometry(.5, .6, .5, 6); so.translate(0, .25, 0); GEO.souche = [plat(so, (x, y, z, i) => col(i % 4 < 2 ? '#bd4a3a' : '#8c3326'))]
     const po = new THREE.BoxGeometry(.12, .95, .12); po.translate(0, .475, 0); const pt = new THREE.BoxGeometry(.13, .16, .13); pt.translate(0, .86, 0)
     GEO.poteau = [plat(po, () => col('#e8e9ee')), plat(pt, () => col('#d84a3a'))]
+    // maison de hameau : mur, toit à deux pans, porte, fenêtres, cheminée (unités : 1 m, centrés au sol) ; le jeu les met à l'échelle
+    const mur = new THREE.BoxGeometry(1, 1, 1); mur.translate(0, .5, 0); GEO.mur = [plat(mur, (x, y) => col(y > .25 ? '#e6dccb' : '#b9ad98'))]
+    { const pr = new THREE.BufferGeometry(), v = [], tri = (a, b, c) => v.push(...a, ...b, ...c)
+      const A = [-.5, 0, -.5], B = [.5, 0, -.5], C = [0, 1, -.5], A2 = [-.5, 0, .5], B2 = [.5, 0, .5], C2 = [0, 1, .5]
+      tri(A, B, C); tri(A2, C2, B2); tri(A, C, C2); tri(A, C2, A2); tri(B, B2, C2); tri(B, C2, C); tri(A, A2, B2); tri(A, B2, B)
+      pr.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); pr.computeVertexNormals(); GEO.toit = [plat(pr, (x, y, z, i) => col(i % 6 < 3 ? '#9a4a37' : '#7f3b2c'))] }
+    const fen = new THREE.BoxGeometry(1, 1, 1); GEO.fenetre = [plat(fen, () => col('#26374d'))]
+    const por = new THREE.BoxGeometry(1, 1, 1); GEO.porte = [plat(por, () => col('#5b3b28'))]
+    const chem = new THREE.BoxGeometry(1, 1, 1); chem.translate(0, .5, 0); GEO.cheminee = [plat(chem, () => col('#8c7f74'))]
+    const volet = new THREE.BoxGeometry(1, 1, 1); GEO.volet = [plat(volet, () => col('#3c6b5c'))]
+    // lampadaire : mât, bras, tête éclairante
+    const lm = new THREE.CylinderGeometry(.06, .08, 6, 6); lm.translate(0, 3, 0); const lb = new THREE.BoxGeometry(1.2, .08, .08); lb.translate(.55, 5.95, 0)
+    GEO.lampadaire = [plat(lm, () => col('#4a4f5c')), plat(lb, () => col('#4a4f5c'))]
+    const lt = new THREE.BoxGeometry(.5, .12, .24); lt.translate(1.1, 5.9, 0); GEO.lampe = [plat(lt, () => col('#fff3c4'))]
     GEO.pret = true
   }
   const M4 = new THREE.Matrix4(), Q4 = new THREE.Quaternion(), E4 = new THREE.Euler()
@@ -77,14 +91,25 @@
       }
     })
   }
-  function textureCiel() {
+  function texturePanneau(kind) {       // 50 / 70 / 80 : disque rouge ; 'agglo' : entrée d'agglomération ; 'pieton' : panneau bleu carré
+    return toile(128, 128, (g, w, h) => {
+      g.fillStyle = 'rgba(0,0,0,0)'; g.clearRect(0, 0, w, h)
+      if (kind === 'pieton') { g.fillStyle = '#1b5cc0'; g.fillRect(6, 6, 116, 116); g.fillStyle = '#fff'; g.fillRect(14, 14, 100, 100); g.fillStyle = '#1b5cc0'; g.fillRect(18, 18, 92, 92); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(64, 26); g.lineTo(104, 100); g.lineTo(24, 100); g.closePath(); g.fill(); g.fillStyle = '#1b5cc0'; g.beginPath(); g.arc(64, 52, 7, 0, 7); g.fill(); g.fillRect(60, 60, 8, 22); return }
+      if (kind === 'agglo') { g.fillStyle = '#fff'; g.fillRect(4, 24, 120, 80); g.strokeStyle = '#c0261e'; g.lineWidth = 8; g.strokeRect(8, 28, 112, 72); g.fillStyle = '#1e2330'; g.font = 'bold 26px sans-serif'; g.textAlign = 'center'; g.fillText('HAMEAU', 64, 70); g.font = 'bold 15px sans-serif'; g.fillText('50 km/h', 64, 92); return }
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.fill(); g.strokeStyle = '#c0261e'; g.lineWidth = 15; g.beginPath(); g.arc(64, 64, 52, 0, 7); g.stroke()
+      g.fillStyle = '#16181f'; g.font = 'bold 56px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(kind, 64, 68)
+    })
+  }
+  function textureCiel(jour) {
     return toile(1024, 512, (g, w, h) => {
-      const d = g.createLinearGradient(0, 0, 0, h); d.addColorStop(0, '#26365f'); d.addColorStop(.38, '#3b5187'); d.addColorStop(.62, '#5f79a8'); d.addColorStop(.8, '#8ea2c4'); d.addColorStop(1, '#a9b8d2')
+      const d = g.createLinearGradient(0, 0, 0, h)
+      if (jour) { d.addColorStop(0, '#3f78c8'); d.addColorStop(.38, '#6ea0dd'); d.addColorStop(.62, '#a4c6ea'); d.addColorStop(.8, '#cfe0f2'); d.addColorStop(1, '#e3ecf6') }
+      else { d.addColorStop(0, '#26365f'); d.addColorStop(.38, '#3b5187'); d.addColorStop(.62, '#5f79a8'); d.addColorStop(.8, '#8ea2c4'); d.addColorStop(1, '#a9b8d2') }
       g.fillStyle = d; g.fillRect(0, 0, w, h)
       const R = mulberry32(99)
       for (let i = 0; i < 70; i++) {             // traînées de nuages étirées, inclinées comme dans la pluie
         const x = R() * w, y = h * (.12 + R() * .5), L = 120 + R() * 320, T = 5 + R() * 14
-        g.save(); g.translate(x, y); g.rotate(-.12 + R() * .1); const r = g.createRadialGradient(0, 0, 0, 0, 0, L); r.addColorStop(0, 'rgba(220,230,250,' + (.1 + R() * .16) + ')'); r.addColorStop(1, 'rgba(220,230,250,0)')
+        g.save(); g.translate(x, y); g.rotate(-.12 + R() * .1); const r = g.createRadialGradient(0, 0, 0, 0, 0, L); r.addColorStop(0, (jour ? 'rgba(255,255,255,' : 'rgba(220,230,250,') + (jour ? .22 + R() * .3 : .1 + R() * .16) + ')'); r.addColorStop(1, jour ? 'rgba(255,255,255,0)' : 'rgba(220,230,250,0)')
         g.fillStyle = r; g.scale(1, T / L); g.beginPath(); g.arc(0, 0, L, 0, 7); g.fill(); g.restore()
       }
     })
@@ -102,12 +127,15 @@
     const phare = new THREE.SpotLight('#fff1cf', 2.6, 190, .62, .75, 1.15); phare.castShadow = false; scene.add(phare, phare.target)
     const materiaux = {
       terrain: new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 4, specular: 0x222a30 }),
-      route: new THREE.MeshPhongMaterial({ color: '#34364a', shininess: 70, specular: 0x6b7fb0 }),
+      route: new THREE.MeshPhongMaterial({ color: '#34364a', shininess: 90, specular: 0x333d58 }),
       accotement: new THREE.MeshPhongMaterial({ color: '#57525a', shininess: 8, specular: 0x222222 }),
       blanc: new THREE.MeshPhongMaterial({ color: '#e7eaf3', shininess: 90, specular: 0xaab6d8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
       jaune: new THREE.MeshPhongMaterial({ color: '#e9b82a', shininess: 70, specular: 0x998844, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
       decor: new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 5, specular: 0x1e2426 }),
-      panneau: new THREE.MeshBasicMaterial({ map: textureChevrons(), side: THREE.DoubleSide })
+      panneau: new THREE.MeshBasicMaterial({ map: textureChevrons(), side: THREE.DoubleSide }),
+      lampe: new THREE.MeshBasicMaterial({ color: '#fff3c4' }),
+      pan50: new THREE.MeshBasicMaterial({ map: texturePanneau('50'), transparent: true, alphaTest: .3, side: THREE.DoubleSide }), pan80: new THREE.MeshBasicMaterial({ map: texturePanneau('80'), transparent: true, alphaTest: .3, side: THREE.DoubleSide }),
+      panpieton: new THREE.MeshBasicMaterial({ map: texturePanneau('pieton'), side: THREE.DoubleSide }), panagglo: new THREE.MeshBasicMaterial({ map: texturePanneau('agglo'), transparent: true, alphaTest: .3, side: THREE.DoubleSide })
     }
     materiaux.route.polygonOffset = true; materiaux.route.polygonOffsetFactor = -1; materiaux.route.polygonOffsetUnits = -1
     const troncons = new Map(), groupeTroncons = new THREE.Group(); scene.add(groupeTroncons)
@@ -197,6 +225,61 @@
         const ps = [], us = []; for (const q of pan) { for (const i of [0, 2, 1, 1, 2, 3]) { ps.push(q[i][0], q[i][1], q[i][2]); us.push(q[i][3], q[i][4]) } }
         const gp = new THREE.BufferGeometry(); gp.setAttribute('position', new THREE.Float32BufferAttribute(ps, 3)); gp.setAttribute('uv', new THREE.Float32BufferAttribute(us, 2)); const me = new THREE.Mesh(gp, materiaux.panneau); me.frustumCulled = false; g.add(me)
       }
+
+      // ---- hameaux : maisons, lampadaires, panneaux, passage piéton ----
+      const hm = piste.hameaux.filter((h) => h.s1 > s0 - 20 && h.s0 < s1 + 20)
+      if (hm.length) {
+        const maisons = [], lamp = [], lampes = [], tex = { '50': [], '80': [], pieton: [], agglo: [] }
+        const Rh = mulberry32(piste.graine * 11 + k * 977)
+        for (const h of hm) {
+          // maisons des deux côtés, alignées sur la route, espacées de 16 à 26 m
+          for (const cote of [-1, 1]) {
+            for (let s = Math.max(h.s0 + 8, Math.ceil(s0 / 18) * 18) + Rh() * 6; s < Math.min(h.s1 - 4, s1); s += 17 + Rh() * 10) {
+              if (Math.abs(s - h.passage) < 9 && Rh() < .7) continue
+              const d = cote * (12.5 + Rh() * 6), w = 6.5 + Rh() * 4, pr = 6 + Rh() * 3, ha = 3.8 + Rh() * 2.2
+              const p = place(s, d), e = piste.echant(s), yaw = -e.th + (cote > 0 ? 0 : Math.PI) + (Rh() - .5) * .25
+              const base = M4.clone().compose(V3(p[0], p[1] - 1.2, p[2]), Q4.clone().setFromEuler(E4.clone().set(0, yaw, 0)), V3(1, 1, 1))
+              const teinte = [.9 + Rh() * .1, .9 + Rh() * .1, .88 + Rh() * .12]
+              const loc = (lx, ly, lz, sx, sy, sz) => base.clone().multiply(M4.clone().compose(V3(lx, ly, lz), Q4.clone().identity(), V3(sx, sy, sz)))
+              maisons.push({ g: GEO.mur, m: loc(0, 0, 0, w, ha + 1.2, pr), t: teinte })
+              maisons.push({ g: GEO.toit, m: loc(0, ha + 1.2, 0, w + .7, 2.4 + Rh() * .8, pr + .7), t: [.9 + Rh() * .2, .9 + Rh() * .15, .9 + Rh() * .15] })
+              maisons.push({ g: GEO.cheminee, m: loc(w * .25, ha + 1.2, 0, .5, 2.6, .5), t: [1, 1, 1] })
+              const zf = -pr / 2 - .02          // façade tournée vers la route (−z local)
+              maisons.push({ g: GEO.porte, m: loc((Rh() - .5) * w * .4, 1.2 + 1.0, zf, 1.0, 2.0, .08), t: [1, 1, 1] })
+              for (const fx of [-w * .33, w * .33]) for (const fy of [1.2 + 1.7, 1.2 + ha - 1.0]) { if (fy > 1.2 + ha - .5) continue
+                maisons.push({ g: GEO.volet, m: loc(fx - .62, fy, zf - .005, .28, 1.35, .05), t: [1, 1, 1] }); maisons.push({ g: GEO.volet, m: loc(fx + .62, fy, zf - .005, .28, 1.35, .05), t: [1, 1, 1] }); maisons.push({ g: GEO.fenetre, m: loc(fx, fy, zf - .01, .9, 1.25, .06), t: [1, 1, 1] }) }
+              arbres.push({ s, d, r: Math.max(w, pr) * .5 })
+            }
+          }
+          // lampadaires tous les 26 m, des deux côtés (têtes allumées la nuit)
+          for (let s = Math.ceil(Math.max(h.s0, s0) / 26) * 26; s < Math.min(h.s1, s1); s += 26) for (const cote of [-1, 1]) {
+            const p = place(s, cote * 6.1), e = piste.echant(s), yaw = -e.th + (cote > 0 ? Math.PI : 0)
+            lamp.push({ g: GEO.lampadaire, m: mat(p[0], p[1], p[2], yaw, 1, 1, 1), t: [1, 1, 1] }); lampes.push({ g: GEO.lampe, m: mat(p[0], p[1], p[2], yaw, 1, 1, 1), t: [1, 1, 1] })
+          }
+          // panneaux : entrée (50), sortie (80), passage piéton de part et d'autre du passage
+          const poste = (s, cote, kind, dy) => { const p = place(s, cote * 5.7), e = piste.echant(s), yaw = -e.th, hw = .42
+            tex[kind].push({ p, e, cote, hw, y0: p[1] + (dy || 1.6) }); lamp.push({ g: [GEO.poteau[0]], m: mat(p[0], p[1] - .02, p[2], 0, .6, 1.8, .6), t: [1, 1, 1] }) }
+          if (h.s0 - 40 >= s0 && h.s0 - 40 < s1) { poste(h.s0 - 40, 1, 'agglo'); poste(h.s0 - 10, 1, '50'); poste(h.s0 - 10, -1, '50') }
+          if (h.s1 + 14 >= s0 && h.s1 + 14 < s1) { poste(h.s1 + 14, 1, '80'); poste(h.s1 + 14, -1, '80') }
+          if (h.passage - 22 >= s0 && h.passage - 22 < s1) poste(h.passage - 22, 1, 'pieton', 1.9)
+          if (h.passage + 22 >= s0 && h.passage + 22 < s1) poste(h.passage + 22, -1, 'pieton', 1.9)
+          // passage piéton : bandes blanches parallèles à la route sur toute la largeur
+          if (h.passage >= s0 - 3 && h.passage < s1 + 3) {
+            const zq = []
+            for (let d0 = -4.0; d0 < 4.0; d0 += 1.0) for (let a = -1.4; a < 1.4; a += 2.8) { const sA = h.passage + a, sB = h.passage + a + 2.8
+              const A_ = pt(sA, d0, .035), B_ = pt(sA, d0 + .5, .035), C_ = pt(sB, d0, .035), D_ = pt(sB, d0 + .5, .035); zq.push(...A_, ...B_, ...C_, ...B_, ...D_, ...C_) }
+            mk(zq, materiaux.blanc, 2)
+          }
+        }
+        for (const [nm, arr] of [['maison', maisons], ['lamp', lamp]]) { const gm = fusion(arr); if (gm) { const me = new THREE.Mesh(gm, materiaux.decor); me.frustumCulled = true; g.add(me) } }
+        const gl = fusion(lampes); if (gl) { const me = new THREE.Mesh(gl, materiaux.lampe); me.frustumCulled = true; g.add(me) }
+        for (const kind in tex) for (const t of tex[kind]) {
+          const f = V3(t.e.fx, 0, t.e.fz), r = V3(t.e.rx, 0, t.e.rz), hw = t.hw, y0 = t.y0, y1 = y0 + hw * 2
+          const A = V3(t.p[0], 0, t.p[2]).sub(r.clone().multiplyScalar(hw)), B = V3(t.p[0], 0, t.p[2]).add(r.clone().multiplyScalar(hw))
+          const gp = new THREE.BufferGeometry(); gp.setAttribute('position', new THREE.Float32BufferAttribute([A.x, y0, A.z, B.x, y0, B.z, A.x, y1, A.z, B.x, y0, B.z, B.x, y1, B.z, A.x, y1, A.z], 3)); gp.setAttribute('uv', new THREE.Float32BufferAttribute([1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1], 2))
+          const me = new THREE.Mesh(gp, materiaux['pan' + kind]); me.frustumCulled = false; g.add(me)
+        }
+      }
       groupeTroncons.add(g)
       return { g, arbres, k }
     }
@@ -209,7 +292,8 @@
     function arbresProches(s) { const out = []; const k0 = Math.floor(s / CH); for (let k = k0 - 1; k <= k0 + 1; k++) { const t = troncons.get(k); if (t) for (const a of t.arbres) out.push(a) } return out }
 
     /* ---- ciel, montagnes lointaines (suivent la voiture en x/z) ---- */
-    const ciel = new THREE.Mesh(new THREE.SphereGeometry(8500, 32, 16), new THREE.MeshBasicMaterial({ map: textureCiel(), side: THREE.BackSide, fog: false, depthWrite: false })); ciel.renderOrder = -10; scene.add(ciel)
+    const cieux = { crep: textureCiel(false), jour: textureCiel(true) }
+    const ciel = new THREE.Mesh(new THREE.SphereGeometry(8500, 32, 16), new THREE.MeshBasicMaterial({ map: cieux.crep, side: THREE.BackSide, fog: false, depthWrite: false })); ciel.renderOrder = -10; scene.add(ciel)
     const montagnes = new THREE.Group(); scene.add(montagnes)
     { const R = mulberry32(4242), mNeige = new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 2, fog: true })
       for (let i = 0; i < 46; i++) {
@@ -321,7 +405,7 @@
       return conteneur
     }
 
-    const M = { scene, camera, piste, materiaux, phare, cone, lune, ciel, montagnes, balises, balise, voiture, ligneIdeale, actualiser, arbresProches, majPluie, pluie, CH, troncons }
+    const M = { scene, camera, piste, materiaux, phare, cone, lune, ciel, cieux, montagnes, balises, balise, voiture, ligneIdeale, actualiser, arbresProches, majPluie, pluie, CH, troncons }
     M.suivre = (x, z) => { ciel.position.set(x, 0, z); montagnes.position.set(x, 0, z) }
     return M
   }
