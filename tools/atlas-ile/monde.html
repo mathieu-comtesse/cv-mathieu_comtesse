@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Banc du monde de l'atlas</title>
+<style>html,body{margin:0;height:100%;background:#123;overflow:hidden}canvas{display:block;width:100vw;height:100vh}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+/* Banc du monde complet (sans interface) : ?az=0.3&el=0.85&d=38&tx=0&ty=-1&tz=0&t=3&nuit=0&pr=1&steps=3 */
+import * as THREE from '../../three.module.js';
+import { creerRendu } from '../../atlas-rendu.js';
+import { creerMonde } from '../../atlas-monde.js';
+const q = new URLSearchParams(location.search), num = (k, d) => q.has(k) ? +q.get(k) : d;
+const R = creerRendu(document.getElementById('c'), { qualite: 1 });
+const M = await creerMonde(R, { qualite: 1 });
+R.dimensionner(innerWidth, innerHeight, num('pr', 1)); M.camera.aspect = innerWidth / innerHeight; M.camera.fov = num('fov', 30); M.camera.updateProjectionMatrix();
+const az = num('az', 0.3), el = num('el', 0.85), d = num('d', 38), t0 = new THREE.Vector3(num('tx', 0), num('ty', -1), num('tz', 0));
+M.camera.position.set(t0.x + Math.sin(az) * Math.cos(el) * d, t0.y + Math.sin(el) * d, t0.z + Math.cos(az) * Math.cos(el) * d); M.camera.lookAt(t0);
+if (q.has('nuit')) { M.ciel.nuit(num('nuit', 0)); R.reglages.nuit = num('nuit', 0); }
+let t = num('t', 3);
+window.image = (dt) => { t += dt; M.tick(dt, t); R.rendre(M.scene, q.has('nonuages') ? null : M.sceneNuages, M.camera, t); };
+for (let i = 0; i < num('steps', 3); i++) window.image(0.016);
+window.M = M; window.pret = true; document.title = 'pret';
+if (q.has('anim')) { let last = performance.now(); (function b(){ const n = performance.now(); window.image(Math.min(0.05, (n - last) / 1000)); last = n; requestAnimationFrame(b); })(); }
+</script></body></html>
