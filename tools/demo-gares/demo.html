@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=1280">
+<title>Rapport Gares prioritaires · démonstration</title>
+<style>
+:root{--bg:#EAE8E1;--surf:#F5F4EF;--ink:#1A1A1A;--mut:#6b6a63;--grn:#1C7A3E;--red:#B3261E;--org:#E8A33D;--slate:#3A3F52;--chip:#A8D8F8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1280px;height:790px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;cursor:none}
+.serif{font-family:Georgia,"Times New Roman",serif}.mono{font-family:Consolas,"DejaVu Sans Mono",monospace}
+#top{height:40px;background:#f6f6f4;border-bottom:1px solid #d6d5cf;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:13px}
+#top b{font-weight:600}#top .badge{border:1px solid #bbb;border-radius:3px;padding:4px 8px;font-size:12px;background:#fff}
+#tabs{position:absolute;left:0;right:0;bottom:0;height:30px;background:#f6f6f4;border-top:1px solid #d6d5cf;display:flex;font-size:13px}
+#tabs div{padding:6px 18px;border-right:1px solid #ddd}#tabs div.on{background:#fff;font-weight:600;border-bottom:3px solid #e5b800}
+.page{position:absolute;left:0;right:0;top:40px;bottom:30px;padding:26px 32px 0;display:none}.page.on{display:block}
+.chip{display:inline-block;background:var(--chip);border:2px solid var(--ink);font:10px Consolas,monospace;letter-spacing:.12em;padding:3px 9px;text-transform:uppercase}
+h1{font:700 36px Georgia,serif;margin-top:8px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:22px}
+.sub{font:11px Consolas,monospace;color:var(--mut);margin-top:6px}
+.nav{display:flex;gap:6px;align-items:center}
+.btn{width:34px;height:34px;border:2px solid var(--ink);background:var(--surf);box-shadow:3px 3px 0 var(--ink);display:flex;align-items:center;justify-content:center;font:700 16px Consolas,monospace}
+.btn.w{width:auto;padding:0 14px;font:600 13px "Segoe UI",sans-serif;gap:8px}
+.lab{font:10px Consolas,monospace;letter-spacing:.1em;color:var(--mut);text-transform:uppercase}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.card{background:var(--surf);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:14px 18px;position:relative}
+.card.g{border-top:6px solid var(--grn)}.card.r{border-top:6px solid var(--red)}
+.num{font:700 34px Georgia,serif;margin:6px 0 2px}.note{font:11px Consolas,monospace;color:var(--mut)}
+.bar{height:12px;border:2px solid var(--ink);background:#ddd;margin-top:8px;position:relative}.bar i{position:absolute;left:0;top:0;bottom:0}
+.row{display:flex;align-items:center;justify-content:space-between;background:var(--surf);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:12px 20px;margin-bottom:10px}
+.row h3{font:700 17px Georgia,serif}.row .v{font:700 15px Consolas,monospace;display:flex;align-items:center;gap:16px}.row .bar{width:140px;margin:0}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:10px}
+.tile{background:var(--surf);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:18px;height:210px;display:flex;flex-direction:column;justify-content:space-between}
+.tile h3{font:700 22px Georgia,serif;margin-top:8px}.tile p{font-size:12.5px;color:#444;line-height:1.4;margin-top:8px}
+.tile .go{font:700 12px Consolas,monospace}
+.tab{background:var(--surf);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);font-size:13px;width:100%;border-collapse:collapse}
+.tab th{text-align:left;padding:9px 12px;border-bottom:2px solid var(--ink);font-weight:600;font-size:12px}
+.tab td{padding:8px 12px;border-bottom:1px solid #d8d6cd}.tab tr:nth-child(even) td{background:#ecebe4}
+#crit-wrap{border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);background:var(--surf)}#crit-wrap .tab{border:0}#crit-wrap th{position:sticky;top:0;background:var(--surf)}
+.tab tr.sel td{background:var(--chip)!important;font-weight:600}
+.pill{display:inline-block;min-width:62px;text-align:center;border:2px solid var(--ink);padding:1px 8px;font:700 11px Consolas,monospace;color:#fff}
+.R{background:var(--red)}.O{background:var(--org);color:var(--ink)}.V{background:var(--grn)}.H{background:var(--slate)}
+.seg{display:flex;height:16px;border:2px solid var(--ink);margin:0 0 14px}.seg i{display:block;height:100%}
+.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.leg{display:flex;justify-content:space-between;align-items:center;background:var(--surf);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:9px 14px;font:700 15px Georgia,serif}
+.leg b{font:700 16px Consolas,monospace}
+.filters{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.fchip{border:2px solid var(--ink);background:var(--surf);padding:5px 12px;font:600 12px "Segoe UI",sans-serif;box-shadow:2px 2px 0 var(--ink)}.fchip.on{background:var(--ink);color:#fff}
+.ok{color:var(--grn);font-weight:700}.ko{color:var(--red);font-weight:700}
+.foot{position:absolute;left:32px;right:32px;bottom:8px;border-top:1px dashed #999;padding-top:6px;font:10px Consolas,monospace;color:var(--mut)}
+#cursor{position:fixed;left:0;top:0;width:22px;height:30px;z-index:99;pointer-events:none;transform:translate(-100px,-100px)}
+.rip{position:fixed;width:12px;height:12px;border:2px solid #1d4ed8;border-radius:50%;z-index:98;pointer-events:none;animation:rip .5s ease-out forwards}
+@keyframes rip{from{transform:translate(-50%,-50%) scale(.5);opacity:1}to{transform:translate(-50%,-50%) scale(3.4);opacity:0}}
+.hl{outline:3px solid #1d4ed8;outline-offset:2px}
+</style></head><body>
+<div id="top"><div><b>Rapport Gares prioritaires</b> &nbsp;·&nbsp; Vue rapport</div><div class="badge">Données fictives · démonstration</div></div>
+
+<section class="page on" id="p-accueil">
+ <div class="head"><div><span class="chip">Portail</span><h1>Gares prioritaires</h1><div class="sub">Vigilance, criticité et maintenance des gares du périmètre</div></div><div class="nav"><div class="lab" style="text-align:right;margin-right:10px">Actualisé le<br><b class="mono" style="font-size:15px;color:var(--ink)">28/09/2026</b></div></div></div>
+ <div class="tiles">
+  <div class="tile" id="t-crit"><div><span class="lab">Criticité</span><h3>Classement par criticité</h3><p>Rouge, orange, vert : la priorité de chaque gare et la conformité de sa source normale.</p></div><span class="go">OUVRIR →</span></div>
+  <div class="tile" id="t-vig"><div><span class="lab">Vigilance</span><h3>Gares sous vigilance</h3><p>Équipements suivis, maintenance préventive en retard, mises en conformité.</p></div><span class="go">OUVRIR →</span></div>
+  <div class="tile" id="t-det"><div><span class="lab">Détail</span><h3>Liste et fiche équipement</h3><p>Choisir un équipement et retrouver sa maintenance préventive et ses mises en conformité.</p></div><span class="go">OUVRIR →</span></div>
+  <div class="tile" id="t-qual"><div><span class="lab">Contrôle</span><h3>Qualité des données</h3><p>Six contrôles de cohérence entre les sources, tracés plutôt que masqués.</p></div><span class="go">OUVRIR →</span></div>
+ </div>
+ <div class="foot">Données fictives · aucune donnée d'exploitation · 14 gares de démonstration</div>
+</section>
+
+<section class="page" id="p-crit">
+ <div class="head"><div><span class="chip">Criticité</span><h1>Classement par criticité</h1><div class="sub">Criticité réglementaire et conformité de la source normale, référentiel de démonstration</div></div><div class="nav"><div class="btn" id="c-prev">‹</div><div class="btn" id="c-home">⌂</div><div class="btn" id="c-next">›</div></div></div>
+ <div class="kpis">
+  <div class="card r"><div class="lab">Gares classées rouge</div><div class="num" style="color:var(--red)" id="k-r">0</div><div class="note" id="k-r2"></div></div>
+  <div class="card g"><div class="lab">Conformité source normale</div><div class="num" id="k-conf">0 %</div><div class="bar"><i id="k-confbar" style="background:var(--grn);width:0"></i></div></div>
+  <div class="card"><div class="lab">Gares souterraines</div><div class="num" id="k-sout">0</div><div class="note">périmètre plus complexe</div></div>
+  <div class="card"><div class="lab">Gares du périmètre</div><div class="num" id="k-tot">0</div><div class="note">dont gares à venir en 2028</div></div>
+ </div>
+ <div class="legend" id="legend"></div>
+ <div class="seg" id="seg"></div>
+ <div class="filters"><span class="lab">Filtrer</span><div class="fchip on" id="f-all">Toutes</div><div class="fchip" id="f-sout">Souterraines</div><div class="fchip" id="f-nc">Source non conforme</div></div>
+ <div id="crit-wrap" style="max-height:292px;overflow:hidden;border-bottom:0"><table class="tab" id="crit-tab" style="box-shadow:none;border-width:2px"><thead><tr><th>Gare</th><th>Criticité</th><th>Type</th><th>Source normale</th><th>Équipements rattachés</th></tr></thead><tbody></tbody></table></div>
+ <div class="foot">Les délais d'intervention du contrat dépendent du classement · données fictives</div>
+</section>
+
+<section class="page" id="p-vig">
+ <div class="head"><div><span class="chip">Vigilance</span><h1>Gares sous vigilance</h1><div class="sub">Équipements ayant une maintenance préventive et une mise en conformité sur l'année civile</div></div><div class="nav"><div class="btn" id="y-prev">‹</div><div class="btn" id="y-ref">↻</div><div class="btn" id="y-next">›</div><div style="margin-left:12px;text-align:right"><div class="lab">Année civile</div><b class="mono" style="font-size:16px" id="y-val">2026</b></div></div></div>
+ <div class="kpis">
+  <div class="card g"><div class="lab">Sites vigilés</div><div class="num" id="v-sites">5</div><div class="note">sélection tenue dans un classeur</div></div>
+  <div class="card"><div class="lab">Équipements rattachés</div><div class="num" id="v-eq">0</div><div class="note">3 familles</div></div>
+  <div class="card g"><div class="lab">Suivi MPREV et MEC</div><div class="num" style="color:var(--grn)" id="v-suivi">0</div><div class="bar"><i id="v-suivibar" style="background:var(--grn);width:0"></i></div></div>
+  <div class="card r"><div class="lab">MPREV en retard</div><div class="num" style="color:var(--red)" id="v-ret">0</div><div class="note">à planifier</div></div>
+ </div>
+ <div class="row" id="r-det" style="background:var(--chip)"><h3>Suivi MEC / MPREV</h3><div class="v"><span id="rv-a" style="color:var(--grn)">0</span><div class="bar"><i id="rv-bar" style="background:var(--grn);width:0"></i></div></div></div>
+ <div class="row"><h3>Équipements sous contrat</h3><div class="v"><span id="rv-b">0</span><div class="bar"><i id="rv-bar2" style="background:var(--ink);width:0"></i></div></div></div>
+ <div class="row"><h3>Postes énergie</h3><div class="v"><span id="rv-c">0</span><div class="bar"><i id="rv-bar3" style="background:var(--ink);width:0"></i></div></div></div>
+ <div class="row"><h3>Autres biens techniques</h3><div class="v"><span id="rv-d">0</span><div class="bar"><i id="rv-bar4" style="background:var(--ink);width:0"></i></div></div></div>
+ <div class="foot">Données fictives · les sites suivis se choisissent dans le classeur de vigilance partagé</div>
+</section>
+
+<section class="page" id="p-det">
+ <div class="head"><div><span class="chip">Détail</span><h1 id="det-title">Gare Exemple-Nord</h1><div class="sub" id="det-sub">Liste des équipements sous vigilance · sélectionner une ligne</div></div><div class="nav"><div class="btn" id="d-prev">‹</div><div class="btn w" id="d-fiche">Voir la fiche</div><div class="btn w" id="d-back" style="display:none">← Retour à la liste</div></div></div>
+ <div id="det-list"><table class="tab" id="eq-tab"><thead><tr><th>N° équipement</th><th>Libellé</th><th>Famille</th><th>Prochaine MPREV</th><th>MEC</th></tr></thead><tbody></tbody></table></div>
+ <div id="det-fiche" style="display:none">
+  <div class="kpis" style="grid-template-columns:2fr 1fr 1fr">
+   <div class="card"><div class="lab">Équipement</div><div class="num" style="font-size:26px" id="f-lib"></div><div class="note" id="f-meta"></div></div>
+   <div class="card r"><div class="lab">MPREV en retard</div><div class="num" style="color:var(--red)" id="f-ret">0</div></div>
+   <div class="card g"><div class="lab">MEC soldées</div><div class="num" style="color:var(--grn)" id="f-mec">0</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+   <div><div class="lab" style="margin-bottom:6px">Maintenance préventive (MPREV)</div><table class="tab" id="mp-tab"><thead><tr><th>Date prévue</th><th>Nature</th><th>Statut</th></tr></thead><tbody></tbody></table></div>
+   <div><div class="lab" style="margin-bottom:6px">Mises en conformité (MEC)</div><table class="tab" id="mec-tab"><thead><tr><th>Émise le</th><th>Objet</th><th>Statut</th></tr></thead><tbody></tbody></table></div>
+  </div>
+ </div>
+ <div class="foot">Données fictives · MPREV filtrée sur le numéro d'équipement, MEC sur le bâtiment</div>
+</section>
+
+<section class="page" id="p-qual">
+ <div class="head"><div><span class="chip">Contrôle</span><h1>Qualité des données</h1><div class="sub">Cohérence entre le référentiel et les exports de la GMAO</div></div><div class="nav"><div class="btn" id="q-prev">‹</div><div class="btn" id="q-home">⌂</div></div></div>
+ <div id="q-rows"></div>
+ <div class="foot">Données fictives · chaque écart est tracé, jamais masqué</div>
+</section>
+
+<div id="tabs"><div class="on" data-p="accueil">Accueil</div><div data-p="crit">Criticité</div><div data-p="vig">Gares vigilées</div><div data-p="det">Détail équipement</div><div data-p="qual">Qualité des données</div></div>
+<svg id="cursor" viewBox="0 0 22 30"><path d="M2 1l0 22 6-5 4 9 4-2-4-9 8 0z" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/></svg>
+
+<script>
+const GARES=[
+["Gare Exemple-Nord","R",1,0,412],["Gare de Démonstration","R",1,1,388],["Gare Modèle-Centre","R",1,0,356],["Gare Souterraine Test","R",1,1,297],
+["Halte de Démonstration","O",0,1,142],["Gare Fictive-Est","O",0,0,203],["Gare Maquette","O",0,1,176],
+["Gare Exemple-Sud","V",0,1,121],["Gare Fictive-Ouest","V",0,1,98],["Halte Test-1","V",0,1,64],["Halte Modèle","V",0,0,71],["Gare Exemple-Ouest","V",0,1,109],
+["Halte Hors-1","H",0,1,38],["Halte Hors-2","H",0,1,41]];
+const LAB={R:"Rouge",O:"Orange",V:"Vert",H:"Hors classement"},COL={R:"var(--red)",O:"var(--org)",V:"var(--grn)",H:"var(--slate)"};
+const EQ=[["DEMO-0101","Groupe électrogène 1","Contrat","12/10/2026","Soldée"],["DEMO-0102","Onduleur principal","Contrat","04/11/2026","Émise"],["DEMO-0103","Tableau général BT","Énergie","02/08/2026 (retard)","Soldée"],["DEMO-0104","Pompe de relevage A","Contrat","15/09/2026 (retard)","Émise"],["DEMO-0105","Désenfumage quai 2","Contrat","20/12/2026","Soldée"],["DEMO-0106","Ascenseur accès nord","Contrat","30/10/2026","Soldée"],["DEMO-0107","Poste HT/BT","Énergie","11/01/2027","Soldée"],["DEMO-0108","Ventilation galerie","Divers","05/12/2026","Émise"]];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let curP="accueil",fil="all",year=2026,selRow=null;
+async function scrollTo(el,to,ms){const a=el.scrollTop,t0=performance.now();await new Promise(r=>(function f(t){const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;el.scrollTop=a+(to-a)*e;k<1?requestAnimationFrame(f):r()})(t0))}
+function show(p){curP=p;$$(".page").forEach(e=>e.classList.toggle("on",e.id==="p-"+p));$$("#tabs div").forEach(e=>e.classList.toggle("on",e.dataset.p===p));if(p==="crit")animCrit();if(p==="vig")animVig();}
+const ORDER=["accueil","crit","vig","det","qual"];
+function count(el,to,suf="",ms=700){const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/ms);el.textContent=Math.round(to*(1-Math.pow(1-k,3))).toLocaleString("fr-FR")+suf;if(k<1)requestAnimationFrame(f)})(t0)}
+function tableCrit(){const tb=$("#crit-tab tbody");tb.innerHTML="";GARES.filter(g=>fil==="all"||(fil==="sout"&&g[2])||(fil==="nc"&&!g[3])).forEach(g=>{tb.insertAdjacentHTML("beforeend",`<tr><td>${g[0]}</td><td><span class="pill ${g[1]}">${LAB[g[1]].replace(" classement","")}</span></td><td>${g[2]?"Souterraine":"Surface"}</td><td>${g[3]?'<span class="ok">Conforme</span>':'<span class="ko">Non conforme</span>'}</td><td class="mono">${g[4]}</td></tr>`)});}
+function animCrit(){const n=k=>GARES.filter(g=>g[1]===k).length,tot=GARES.length;count($("#k-r"),n("R"));$("#k-r2").textContent=GARES.filter(g=>g[1]==="R"&&!g[3]).length+" sans source normale conforme";const c=Math.round(100*GARES.filter(g=>g[3]).length/tot);count($("#k-conf"),c," %");setTimeout(()=>$("#k-confbar").style.width=c+"%",50);count($("#k-sout"),GARES.filter(g=>g[2]).length);count($("#k-tot"),tot);
+ $("#legend").innerHTML=["R","O","V","H"].map(k=>`<div class="leg"><span style="display:flex;gap:10px;align-items:center"><i style="display:inline-block;width:14px;height:14px;border:2px solid var(--ink);background:${COL[k]}"></i>${LAB[k]}</span><b style="color:${COL[k]}">${n(k)}</b></div>`).join("");
+ $("#seg").innerHTML=["R","O","V","H"].map(k=>`<i style="background:${COL[k]};width:${100*n(k)/tot}%"></i>`).join("");tableCrit();}
+const YD={2026:{eq:1840,suivi:46,ret:23,a:46,b:620,c:18,d:1202,dd:1840},2025:{eq:1790,suivi:31,ret:41,a:31,b:600,c:18,d:1172,dd:1790}};
+function animVig(){const d=YD[year];$("#y-val").textContent=year;count($("#v-eq"),d.eq);count($("#v-suivi"),d.suivi);count($("#v-ret"),d.ret);$("#v-suivibar").style.width=(100*d.suivi/d.eq*8)+"%";
+ [["#rv-a",d.a,"#rv-bar"],["#rv-b",d.b,"#rv-bar2"],["#rv-c",d.c,"#rv-bar3"],["#rv-d",d.d,"#rv-bar4"]].forEach(([s,v,b])=>{$(s).textContent=v.toLocaleString("fr-FR")+" / "+d.eq.toLocaleString("fr-FR");$(b).style.width=Math.max(2,100*v/d.eq)+"%"});}
+function eqTable(){const tb=$("#eq-tab tbody");tb.innerHTML="";EQ.forEach((e,i)=>tb.insertAdjacentHTML("beforeend",`<tr data-i="${i}" class="${selRow===i?"sel":""}"><td class="mono">${e[0]}</td><td>${e[1]}</td><td>${e[2]}</td><td>${e[3].includes("retard")?'<span class="ko">'+e[3]+'</span>':e[3]}</td><td>${e[4]}</td></tr>`));}
+function fiche(i){const e=EQ[i];$("#f-lib").textContent=e[1];$("#f-meta").textContent=e[0]+" · "+e[2]+" · Gare Exemple-Nord";$("#f-ret").textContent=e[3].includes("retard")?1:0;$("#f-mec").textContent=e[4]==="Soldée"?"2 / 2":"1 / 2";
+ $("#mp-tab tbody").innerHTML=`<tr><td>${e[3].replace(" (retard)","")}</td><td>Visite annuelle</td><td>${e[3].includes("retard")?'<span class="ko">En retard</span>':'<span class="ok">Planifiée</span>'}</td></tr><tr><td>14/03/2026</td><td>Contrôle semestriel</td><td><span class="ok">Réalisée</span></td></tr><tr><td>10/09/2025</td><td>Visite annuelle</td><td><span class="ok">Réalisée</span></td></tr>`;
+ $("#mec-tab tbody").innerHTML=`<tr><td>22/05/2026</td><td>Mise en conformité sécurité</td><td>${e[4]==="Soldée"?'<span class="ok">Soldée</span>':'<span class="ko">Émise</span>'}</td></tr><tr><td>03/02/2026</td><td>Remise en état câblage</td><td><span class="ok">Soldée</span></td></tr>`;}
+// navigation par clic
+$$("#tabs div").forEach(t=>t.onclick=()=>show(t.dataset.p));
+[["#t-crit","crit"],["#t-vig","vig"],["#t-det","det"],["#t-qual","qual"],["#c-home","accueil"],["#q-home","accueil"],["#c-prev","accueil"],["#c-next","vig"],["#d-prev","vig"],["#q-prev","det"]].forEach(([s,p])=>$(s).onclick=()=>show(p));
+$("#f-all").onclick=()=>{fil="all";setF()};$("#f-sout").onclick=()=>{fil="sout";setF()};$("#f-nc").onclick=()=>{fil="nc";setF()};
+function setF(){["all","sout","nc"].forEach(k=>$("#f-"+k).classList.toggle("on",k===fil));tableCrit()}
+$("#y-prev").onclick=()=>{year=2025;animVig()};$("#y-next").onclick=()=>{year=2026;animVig()};$("#y-ref").onclick=()=>animVig();
+$("#r-det").onclick=()=>show("det");
+$("#eq-tab").addEventListener("click",e=>{const tr=e.target.closest("tr[data-i]");if(tr){selRow=+tr.dataset.i;eqTable()}});
+$("#d-fiche").onclick=()=>{if(selRow==null)selRow=3;fiche(selRow);$("#det-list").style.display="none";$("#det-fiche").style.display="block";$("#d-fiche").style.display="none";$("#d-back").style.display="flex";$("#det-sub").textContent="Fiche équipement · maintenance préventive et mises en conformité"};
+$("#d-back").onclick=()=>{$("#det-list").style.display="block";$("#det-fiche").style.display="none";$("#d-fiche").style.display="flex";$("#d-back").style.display="none";$("#det-sub").textContent="Liste des équipements sous vigilance · sélectionner une ligne"};
+const Q=[["Équipements rattachés à un site du référentiel",96,"ok"],["Ordres de travail rattachés à un équipement",92,"ok"],["Devis rattachés à un ordre de travail",94,"ok"],["Vérifications réglementaires rattachées",91,"ok"],["Gares avec un classement de criticité",100,"ok"],["Gares avec une source normale renseignée",69,"ko"]];
+$("#q-rows").innerHTML=Q.map(q=>`<div class="row"><h3>${q[0]}</h3><div class="v"><span class="${q[2]}">${q[1]} %</span><div class="bar"><i style="background:${q[2]==="ok"?"var(--grn)":"var(--red)"};width:${q[1]}%"></i></div></div></div>`).join("");
+eqTable();animCrit();
+// curseur + script de démonstration
+const cur=$("#cursor");let cx=1100,cy=700;cur.style.transform=`translate(${cx}px,${cy}px)`;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function center(el){const r=el.getBoundingClientRect();return [r.left+r.width*.5,r.top+r.height*.55]}
+async function move(el,ms=850){const [x,y]=typeof el==="string"?center($(el)):(el instanceof Element?center(el):el);const x0=cx,y0=cy,t0=performance.now();
+ await new Promise(res=>(function f(t){const k=Math.min(1,(t-t0)/ms),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;const bow=Math.sin(Math.PI*e)*-26;cx=x0+(x-x0)*e;cy=y0+(y-y0)*e+bow;cur.style.transform=`translate(${cx}px,${cy}px)`;k<1?requestAnimationFrame(f):res()})(t0));}
+async function click(sel,ms){const el=typeof sel==="string"?$(sel):sel;await move(el,ms||850);await sleep(220);const r=document.createElement("div");r.className="rip";r.style.left=cx+"px";r.style.top=cy+"px";document.body.appendChild(r);setTimeout(()=>r.remove(),600);el.click();await sleep(260)}
+window.demo=async function(){
+ await sleep(1800);
+ await click("#t-crit");await sleep(2600);
+ await move("#k-conf",700);await sleep(900);
+ await click("#f-sout");await sleep(2400);
+ await click("#f-nc");await sleep(1800);
+ await click("#f-all");await sleep(500);await scrollTo($("#crit-wrap"),400,1600);await sleep(700);await scrollTo($("#crit-wrap"),0,900);await sleep(300);
+ await click("#c-next");await sleep(2200);
+ await click("#y-prev");await sleep(1800);
+ await click("#y-next");await sleep(1600);
+ await click("#r-det");await sleep(1600);
+ await click("#eq-tab tbody tr:nth-child(4)");await sleep(1300);
+ await click("#d-fiche");await sleep(2600);
+ await move("#mp-tab tbody tr:nth-child(1)",700);await sleep(1600);
+ await click("#d-back");await sleep(1100);
+ await click("#tabs div[data-p=qual]");await sleep(2800);
+ await click("#q-home");await sleep(2400);
+ window.__done=true;
+};
+</script></body></html>
