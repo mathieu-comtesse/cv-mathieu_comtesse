@@ -75,7 +75,7 @@ if(hv&&matchMedia('(hover:hover) and (min-width:769px)').matches){const box=$('.
 /* ---- ArtGallery : grille infinie, distorsion en barillet, zoom au glisser (shader repris tel quel, en WebGL direct) ---- */
 const gal=$('#rf-gallery');
 if(gal){
- const ITEMS=[["Gouache","../gouache-scene.png",2026],["Timber","../firewood-pastel.png",2026],["Abysses","../recif-gouache-preview.jpg",2026],["Sandboard","../sand-painted.png",2026],["Talas","../assets/talas-salle-controle-grand.jpg",2026],["Contact","../contact-scene.png",2026],["Voyage","../contact-voyage.png",2026],["Tornade","../talas-action-tornado.png",2026]];
+ let ITEMS=[];try{ITEMS=JSON.parse(gal.dataset.items||'[]')}catch(_){}
  const CELL=.75,ZOOM=1.25,LERP=reduce?1:.075,BG=[0,0,0],BORDER=[1,1,1,.15];
  const VS='attribute vec2 p;varying vec2 vUv;void main(){vUv=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
  const FS=`precision highp float;uniform vec2 uOffset;uniform vec2 uResolution;uniform vec4 uBorderColor;uniform vec3 uBg;uniform vec2 uMousePos;uniform float uZoom;uniform float uCellSize;uniform float uTextureCount;uniform sampler2D uImageAtlas;uniform sampler2D uTextAtlas;varying vec2 vUv;
@@ -104,7 +104,7 @@ if(gal){
    const ia=document.createElement('canvas');ia.width=ia.height=A*SZ;const ic=ia.getContext('2d');ic.fillStyle='#000';ic.fillRect(0,0,ia.width,ia.height);
    const ta=document.createElement('canvas');ta.width=ta.height=A*SZ;const tc=ta.getContext('2d');
    ITEMS.forEach((it,i)=>{const x=(i%A)*SZ,y=Math.floor(i/A)*SZ,im=imgs[i];
-    if(im){const s=Math.max(SZ/im.width,SZ/im.height),w=im.width*s,h=im.height*s;ic.save();ic.beginPath();ic.rect(x,y,SZ,SZ);ic.clip();ic.drawImage(im,x+(SZ-w)/2,y+(SZ-h)/2,w,h);ic.restore()}
+    if(im){const yi=(A-1-Math.floor(i/A))*SZ,s=Math.max(SZ/im.width,SZ/im.height),w=im.width*s,h=im.height*s;ic.save();ic.beginPath();ic.rect(x,yi,SZ,SZ);ic.clip();ic.drawImage(im,x+(SZ-w)/2,yi+(SZ-h)/2,w,h);ic.restore()}
     const t=document.createElement('canvas');t.width=2048;t.height=256;const c=t.getContext('2d');c.font='80px monospace';c.fillStyle='rgba(160,160,160,1)';c.textBaseline='middle';c.textAlign='left';c.fillText(it[0].toUpperCase(),30,128);c.textAlign='right';c.fillText(String(it[2]),2048-30,128);tc.drawImage(t,x,y,SZ,SZ)});
    try{tex(0,ia);tex(1,ta)}catch(e){gal.removeChild(cv);return}
    gl.uniform1i(U('uImageAtlas'),0);gl.uniform1i(U('uTextAtlas'),1);gl.uniform1f(u.cell,CELL);gl.uniform1f(u.cnt,N);gl.uniform4f(u.bor,...BORDER);gl.uniform3f(u.bg,...BG);
@@ -121,4 +121,13 @@ if(gal){
     gl.uniform2f(u.off,st.off[0],st.off[1]);gl.uniform1f(u.zoom,st.zoom);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)})();
    gal.addEventListener('pointerdown',()=>hint&&(hint.style.opacity=0),{once:true})})
  }}
+
+/* ---- onglets des compétences ---- */
+const tabs=$$('.rf-tabs [role=tab]');
+const showTab=id=>{tabs.forEach(t=>{const on=t.id===id;t.setAttribute('aria-selected',on);const p=document.getElementById(t.getAttribute('aria-controls'));if(p)p.hidden=!on})};
+tabs.forEach(t=>t.addEventListener('click',()=>showTab(t.id)));
+$$('[data-tab]').forEach(a=>a.addEventListener('click',()=>showTab('t-'+a.dataset.tab)));
+/* ---- section courante dans la barre ---- */
+const links=$$('#rf-nav a'),secs=links.map(l=>document.querySelector(l.getAttribute('href'))).filter(Boolean);
+if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-45% 0px -50% 0px'});secs.forEach(s=>io.observe(s))}
 })();
