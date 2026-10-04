@@ -1,0 +1,15 @@
+/* Projets perso : galerie plein écran (grille WebGL à distorsion en barillet, inspirée d'ObsidianUI Art Gallery, MIT). */
+.pg-stage{position:relative;width:100%;height:calc(100svh - var(--nav-height,72px) - 56px);min-height:420px;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;border-bottom:1px solid var(--ink)}
+.pg-stage canvas{display:block;width:100%;height:100%}
+.pg-stage.is-over{cursor:pointer}.pg-stage.is-drag{cursor:grabbing}
+.pg-title{position:absolute;left:clamp(16px,3vw,40px);top:clamp(14px,2.4vw,28px);z-index:3;pointer-events:none;color:#fefefe;mix-blend-mode:difference}
+.pg-title b{display:block;font:500 clamp(26px,4vw,56px)/1 var(--display)}.pg-title span{font:12px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.pg-hint{max-width:92%;overflow:hidden;text-overflow:ellipsis;position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;pointer-events:none;font:10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);transition:opacity .4s;white-space:nowrap}
+.pg-more{display:block;height:56px;line-height:56px;text-align:center;font:13px var(--mono);letter-spacing:.06em;border-bottom:1px solid var(--ink);color:var(--ink)}
+.pg-more:hover{background:var(--ink);color:var(--white)}
+/* aperçu au survol (hover img) : suit le curseur, la bande d'images coulisse d'un projet à l'autre */
+.pg-peek{position:fixed;left:0;top:0;width:340px;pointer-events:none;z-index:150;border:1px solid var(--ink);background:var(--white);box-shadow:6px 6px 0 var(--ink);transform:translate(-999px,-999px) scale(0);will-change:transform;overflow:hidden}
+.pg-peek .win{height:212px;overflow:hidden}.pg-peek .strip{display:flex;flex-direction:column;will-change:transform}.pg-peek .strip>div{flex:none;width:340px;height:212px}.pg-peek img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.pg-peek .cap{padding:9px 12px 10px;border-top:1px solid var(--ink);background:var(--white);color:var(--ink)}.pg-peek .cap b{display:block;font:500 17px/1.15 var(--display)}.pg-peek .cap span{display:block;font:11px/1.4 var(--mono);color:var(--ink-86);margin-top:3px}
+@media (hover:none){.pg-peek{display:none}}
+.pg-has-gl .personal-intro{padding-top:36px}

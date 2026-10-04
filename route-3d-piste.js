@@ -66,6 +66,7 @@
     for (let r = 0; r < 6; r++) for (let i = 1; i < N - 1; i++) ligne[i] = (ligne[i - 1] + 2 * ligne[i] + ligne[i + 1]) / 4
 
     const P = { graine, longueur, DS, N, kappa, ks, theta, X, Y, Z, bank, ligne, virages, ALT0, LARGEUR: 9, CP: [.25, .5, .75, 1].map((f) => f * longueur) }
+    P.hameaux = []
     P.idx = (s) => clamp(s / DS, 0, N - 1.0001)
     P.echant = (s) => {    // échantillon interpolé à l'abscisse s (m) : position, cap, courbure, dévers, ligne
       const f = P.idx(s), i = Math.floor(f), t = f - i, j = i + 1
@@ -89,6 +90,9 @@
       const cuvette = ad > 240 ? Math.pow((ad - 240) / 360, 2) * 260 : 0
       return route + talus + fossé + colline + cuvette
     }
+    P.hameaux = genererZones(P, graine)
+    P.limite = (s) => limiteA(P, s)
+    P.hameau = (s, marge) => hameauA(P, s, marge)
     return P
   }
 
@@ -123,6 +127,30 @@
   }
   /* temps auquel la table atteint l'abscisse s */
   function tempsA(P, table, s) { const f = P.idx(s), i = Math.floor(f); return table[i] + (table[Math.min(P.N - 1, i + 1)] - table[i]) * (f - i) }
+
+
+  /* ---------------------------------------------------------------------------------------------------------- hameaux et limitations de vitesse */
+  /* Tout est déterministe : un hameau de 320 m environ tous les 1,6 à 2,3 km (limitation 50 km/h, passage piéton au centre), et une limitation de base à 80 km/h
+   * (70 dans les grandes courbes serrées, annoncée par un panneau). limite(s) donne la vitesse autorisée en m/s ; hameau(s) renvoie le hameau le plus proche. */
+  function genererZones(P, graine) {
+    const rnd = mulberry32(graine * 3 + 11), hameaux = []
+    let s = 900 + rnd() * 500
+    while (s < P.longueur - 600) {
+      const L = 300 + rnd() * 80
+      // éviter les épingles : on cherche, autour de s, un tronçon peu courbe
+      let c = s, meilleur = 1e9
+      for (let q = s - 220; q <= s + 220; q += 20) { let k = 0; for (let m = -170; m <= 170; m += 34) k += Math.abs(P.echant(Math.max(0, q + m)).k); if (k < meilleur) { meilleur = k; c = q } }
+      hameaux.push({ s0: c - L / 2, s1: c + L / 2, centre: c, L, limite: 50 / 3.6, passage: c + (rnd() - .5) * 30, nom: ['Les Granges', 'Le Pré-Haut', 'La Combe', 'Saint-Aubin', 'Les Mazets', 'Le Villard', 'La Fontaine', 'Champlong'][hameaux.length % 8] })
+      s = c + L / 2 + 1500 + rnd() * 700
+    }
+    return hameaux
+  }
+  function limiteA(P, s) {
+    for (const h of P.hameaux) if (s >= h.s0 && s <= h.s1) return h.limite
+    const k = Math.abs(P.echant(s).k)
+    return k > 1 / 160 ? 50 / 3.6 : k > 1 / 260 ? 70 / 3.6 : 80 / 3.6
+  }
+  function hameauA(P, s, marge) { marge = marge || 0; for (const h of P.hameaux) if (s >= h.s0 - marge && s <= h.s1 + marge) return h; return null }
 
   const fmt = (t, n) => { const neg = t < 0; t = Math.abs(t); const m = Math.floor(t / 60), s = t - m * 60; return (neg ? '-' : '') + m + ':' + (s < 10 ? '0' : '') + s.toFixed(n === undefined ? 2 : n) }   // toujours m:ss.cc, comme dans les classements
 

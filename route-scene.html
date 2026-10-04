@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2b3a5e"><title>Route & vigilance — course de montagne sous la pluie</title>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2b3a5e"><title>Route & vigilance — conduire dans la circulation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=VT323&amp;family=Host+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
 <style>
 :root{--ink:#0d1220;--pale:rgba(224,230,242,.84);--pale2:rgba(214,222,238,.7);--bleu:#3f9cf3;--vert:#58d68d;--ambre:#f0b429;--rouge:#e5484d;--mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;--px:'VT323','JetBrains Mono',monospace}
@@ -6,26 +6,17 @@
 #vue{position:fixed;inset:0;width:100%;height:100%;display:block;outline:none}
 #hud{position:fixed;inset:0;pointer-events:none;font-family:var(--mono)}
 #hud>*{position:absolute}
-/* bandeau supérieur : quatre points de passage + classement en direct */
-#haut{left:1.2%;right:1.2%;top:1.6%;display:grid;grid-template-columns:repeat(5,1fr);gap:1.1%}
-.tab{background:var(--pale);color:#151b2c;border-radius:2px;padding:.22em .5em .28em;min-height:2.85em;font-size:clamp(8px,.82vw,13px);line-height:1.35;letter-spacing:.01em;box-shadow:0 1px 0 rgba(0,0,0,.25)}
-.tab h4{margin:0 0 .15em;font:700 .7em/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#56617c}
-.tab div{display:flex;justify-content:space-between;gap:.6em;white-space:nowrap}.tab div b{font-weight:700}.tab div i{font-style:normal;color:#56617c}
-.tab.vide div{visibility:hidden}.tab.neuf{animation:flash 1.6s ease-out}
-@keyframes flash{0%{background:#ffe59a;transform:scale(1.04)}100%{background:var(--pale);transform:none}}
-#live .pt{display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--bleu);margin-right:.35em;vertical-align:-.08em;box-shadow:0 0 0 .14em rgba(63,156,243,.3)}
-/* bas gauche : défi de la semaine */
-#info{left:1.2%;bottom:2.4%;width:min(17vw,250px);background:rgba(14,18,30,.6);border-radius:3px;padding:.5em .65em;font-size:clamp(7px,.72vw,11px);line-height:1.5;color:#dce3f3}
-#info b{font-weight:700;color:#fff;letter-spacing:.02em}#info .cps{display:flex;gap:.9em;align-items:center;margin:.35em 0 .25em;position:relative}#info .cps::before{content:'';position:absolute;left:0;right:0;top:-.2em;height:2px;background:linear-gradient(90deg,#9bb0d8 var(--p,0%),rgba(255,255,255,.22) var(--p,0%))}
-#info .cps span{opacity:.6}#info .cps span.ok{opacity:1;color:#8fe3a8}#info .bas{display:flex;justify-content:space-between;opacity:.9}#info .pro{position:absolute;right:.65em;bottom:.45em;opacity:.7;letter-spacing:.1em}
-/* bas centre : écart avec l'adversaire choisi */
-#ecart{left:60%;bottom:2.6%;width:min(17.5vw,270px);text-align:center}
-#ecart .nom{font:400 clamp(8px,.78vw,12px)/1 var(--mono);color:#e5ebf8;text-align:left;margin:0 0 .35em 10%;opacity:.9}
-#ecart .barre{height:2px;margin-left:6%;background:rgba(235,240,252,.85);position:relative;border-radius:2px}
-#ecart .puce{position:absolute;left:-.55vw;top:50%;width:clamp(12px,1.4vw,22px);height:clamp(12px,1.4vw,22px);border-radius:50%;background:radial-gradient(circle at 35% 32%,#9fd2ff,#2f86e6 62%,#1f63b8);border:2px solid #dfeeff;transform:translateY(-50%);box-shadow:0 0 10px rgba(63,156,243,.7)}
-#ecart .val{display:flex;align-items:center;justify-content:flex-end;gap:.35em;font:700 clamp(14px,2.05vw,34px)/1.05 var(--mono);letter-spacing:.02em;margin:.22em 0 0;text-shadow:0 2px 0 rgba(10,14,28,.6)}
-#ecart .val svg{width:1.05em;height:.62em}#ecart .leg{font:400 clamp(6px,.62vw,10px)/1 var(--mono);color:#cfd8ec;text-align:right;letter-spacing:.06em;margin-top:.35em}
-#ecart.avance .val{color:#eaf3ff}#ecart.retard .val{color:#ffd9d6}
+/* haut gauche : limite de vitesse et trajet */
+#trajet{left:1.4%;top:2%;display:flex;gap:.9em;align-items:center}
+#trajet .lim{width:clamp(46px,5.4vw,82px);aspect-ratio:1;border-radius:50%;background:#fff;border:clamp(5px,.7vw,10px) solid #d7261e;display:grid;place-items:center;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+#trajet .lim span{font:700 clamp(15px,2vw,32px)/1 'Host Grotesk',system-ui,sans-serif;color:#16181f}#trajet .lim.exces{animation:clignote .5s steps(2) infinite}
+@keyframes clignote{50%{background:#ffd8d4}}
+#trajet .zone{display:flex;flex-direction:column;gap:.15em;background:rgba(14,18,30,.62);padding:.45em .7em;border-radius:3px;font-size:clamp(8px,.85vw,13px);line-height:1.3;color:#e3e9f6}#trajet .zone b{font-weight:700;color:#fff;letter-spacing:.02em}#trajet .zone span{opacity:.85}
+/* haut droite : vigilance (compteurs) */
+#vigil{right:1.4%;top:2%;width:min(19vw,260px);background:rgba(14,18,30,.62);border-radius:3px;padding:.5em .7em;font-size:clamp(8px,.82vw,12.5px);line-height:1.5;color:#dce3f3}
+#vigil h4{margin:0 0 .3em;font:700 .8em/1.2 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#9fb2d8}#vigil div{display:flex;justify-content:space-between;gap:.8em}#vigil b{font-weight:700;color:#fff}#vigil b.mal{color:#ff8a84}#vigil b.ok{color:#8fe3a8}
+#alerte{left:50%;top:22%;transform:translateX(-50%);text-align:center;font:700 clamp(13px,1.6vw,26px)/1.25 var(--mono);color:#fff;text-shadow:0 2px 0 rgba(10,14,28,.7);opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none}#alerte.on{opacity:1}#alerte small{display:block;font:400 .55em/1.4 var(--mono);letter-spacing:.1em;color:#ffd9a8}
+#gyro{inset:0;pointer-events:none;opacity:0;background:linear-gradient(90deg,rgba(40,90,255,.28),transparent 35%,transparent 65%,rgba(255,40,40,.28))}#gyro.on{animation:gyro .8s steps(2) infinite;opacity:1}@keyframes gyro{50%{transform:scaleX(-1)}}
 /* bas droite : compteur circulaire, rapport engagé, vitesse */
 #jauge{right:1.4%;bottom:2.4%;width:min(15.4vw,250px);aspect-ratio:1}
 #jauge svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -66,38 +57,38 @@ table.res{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:
 #tactile{left:0;right:0;bottom:0;height:0;pointer-events:none}
 .tz{position:absolute;bottom:max(12px,env(safe-area-inset-bottom));width:clamp(64px,17vw,110px);height:clamp(64px,17vw,110px);border-radius:50%;border:2px solid rgba(230,238,255,.55);background:rgba(20,30,52,.46);color:#fff;font:700 clamp(12px,3.4vw,18px) var(--mono);display:none;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent}.tz.on{background:rgba(63,156,243,.55)}
 .tactile #tg{left:14px;display:flex}.tactile #td{left:calc(14px + clamp(64px,17vw,110px) + 12px);display:flex}.tactile #ta{right:14px;display:flex}.tactile #tf{right:calc(14px + clamp(64px,17vw,110px) + 12px);display:flex}
-.tactile #jauge{left:50%;right:auto;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom));width:min(27vh,32vw)}.tactile #ecart{left:auto;right:1.5%;bottom:auto;top:19%;width:min(34vw,250px)}.tactile #info{display:none}.tactile #haut{gap:.6%}.tactile .tab{font-size:clamp(6px,1.7vw,10px);min-height:0}.tactile #menubtn{top:9%}
+.tactile #jauge{left:50%;right:auto;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom));width:min(27vh,32vw)}.tactile #vigil{top:13%;width:min(30vw,200px)}.tactile .tab{font-size:clamp(6px,1.7vw,10px);min-height:0}.tactile #menubtn{bottom:auto;top:9%}
 @media (max-height:480px){.tactile .tz{width:clamp(58px,22vh,96px);height:clamp(58px,22vh,96px)}.tactile #td{left:calc(14px + clamp(58px,22vh,96px) + 12px)}.tactile #tf{right:calc(14px + clamp(58px,22vh,96px) + 12px)}.tactile #bandeau{top:24%}.tactile #decompte{top:20%}}
-#menubtn{right:1.2%;top:8.2%;pointer-events:auto;display:flex;gap:.4em}#menubtn button{appearance:none;border:1px solid rgba(214,224,246,.45);background:rgba(14,18,30,.55);color:#e7edfa;border-radius:5px;padding:.25em .6em;font:400 clamp(9px,.9vw,12px) var(--mono);cursor:pointer}
-@media (prefers-reduced-motion:reduce){.tab.neuf,#decompte.on{animation:none}}
+#menubtn{left:1.4%;bottom:2.6%;pointer-events:auto;display:flex;gap:.4em}#menubtn button{appearance:none;border:1px solid rgba(214,224,246,.45);background:rgba(14,18,30,.55);color:#e7edfa;border-radius:5px;padding:.25em .6em;font:400 clamp(9px,.9vw,12px) var(--mono);cursor:pointer}
+@media (prefers-reduced-motion:reduce){#decompte.on,#trajet .lim.exces,#gyro.on{animation:none}}
 </style></head>
-<body><canvas id="vue" tabindex="0" aria-label="Course de montagne sous la pluie. Flèches ou ZQSD pour conduire, Espace pour le frein à main, Tab pour changer d’adversaire, R pour repartir."></canvas>
+<body><canvas id="vue" tabindex="0" aria-label="Conduite en 3D sur une route de montagne avec circulation : voitures, camions, cyclistes, piétons, animaux. Flèches ou ZQSD pour conduire, Espace pour le frein à main, R pour repartir."></canvas>
 <div id="hud" aria-live="off">
- <div id="haut"><div class="tab vide" id="cp1"><h4>Point de passage 1</h4><div><b></b><i></i></div><div><b></b><i></i></div></div><div class="tab vide" id="cp2"><h4>Point de passage 2</h4><div><b></b><i></i></div><div><b></b><i></i></div></div><div class="tab vide" id="cp3"><h4>Point de passage 3</h4><div><b></b><i></i></div><div><b></b><i></i></div></div><div class="tab vide" id="cp4"><h4>Arrivée</h4><div><b></b><i></i></div><div><b></b><i></i></div></div><div class="tab" id="live"><h4>Classement en direct</h4><div><b id="lgap"><span class="pt"></span>0.0</b><i id="lnom">—</i></div><div><b id="ltemps">0:00.00</b><i id="ljoueur">Toi</i></div></div></div>
+ <div id="trajet"><div class="lim" id="lim" aria-label="Vitesse limite"><span id="limv">80</span></div><div class="zone"><b id="zone">Route de montagne</b><span id="kmrest">9,2 km à parcourir</span><span id="meteo"></span></div></div>
+ <div id="vigil" aria-live="polite"><h4>Vigilance</h4><div><span>Collisions</span><b id="ncol">0</b></div><div><span>Quasi-accidents</span><b id="nqua">0</b></div><div><span>Excès de vitesse</span><b id="nexc">0 s</b></div><div><span>Distance de sécurité</span><b id="ndis">0 s</b></div><div><span>Dernière réaction</span><b id="nrea">—</b></div></div>
  <div id="menubtn"><button id="bson" type="button" aria-pressed="true">Son : oui</button><button id="bpause" type="button">Menu</button></div>
- <div id="info"><b>Défi de la semaine</b><br>Dernier jour : <span id="dfin">—</span><div class="cps" id="cps"><span>CP1</span><span>CP2</span><span>CP3</span><span>CP4</span></div><div class="bas"><span id="alt">alt. 1400 m</span></div><div class="bas"><span id="km">km 0.0</span></div><span class="pro">PRO</span></div>
- <div id="ecart" class="avance"><div class="nom" id="enom">—</div><div class="barre"><i class="puce"></i></div><div class="val"><svg viewBox="0 0 24 14" id="eico" aria-hidden="true"><path d="M2 11l10-8 10 8" fill="none" stroke="#58d68d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="eval">+00.0</span></div><div class="leg">adversaire choisi</div></div>
  <div id="jauge"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#dfe7f8"/></linearGradient></defs>
    <circle cx="100" cy="100" r="92" fill="rgba(14,18,30,.42)"/><path id="arc0" d="" fill="none" stroke="rgba(235,240,252,.35)" stroke-width="3" stroke-linecap="round"/><path id="arcz" d="" fill="none" stroke="#e5484d" stroke-width="9" stroke-linecap="butt"/><path id="arc1" d="" fill="none" stroke="url(#gr)" stroke-width="9" stroke-linecap="butt"/><g id="graduations" stroke="rgba(235,240,252,.75)" stroke-width="2"></g></svg>
-   <div class="rapport" id="rapport">N</div><div class="vit" id="vit">000</div><div class="joueur" id="pnom">Toi</div></div>
- <div id="bandeau"></div><div id="decompte"></div><div id="choc"></div>
+   <div class="rapport" id="rapport">N</div><div class="vit" id="vit">000</div><div class="joueur" id="pnom">km/h</div></div>
+ <div id="alerte" aria-live="assertive"></div><div id="gyro"></div><div id="bandeau"></div><div id="decompte"></div><div id="choc"></div>
  <div id="tactile"><div class="tz" id="tg" role="button" aria-label="Gauche">◀</div><div class="tz" id="td" role="button" aria-label="Droite">▶</div><div class="tz" id="tf" role="button" aria-label="Frein">FREIN</div><div class="tz" id="ta" role="button" aria-label="Accélérer">GAZ</div></div>
  <!-- menu de départ : conditions du trajet (prévention) et commandes -->
- <div class="ecran on" id="menu"><div class="carte"><h1>Route &amp; <em>vigilance</em></h1><p>Une course de montagne sous la pluie, à la poursuite de fantômes : le chronomètre est un prétexte, la vraie leçon est ailleurs. Règle les conditions du trajet à droite, roule à jeun, puis <b>après quelques verres</b> : les mêmes virages, la même voiture, et un écart qui se creuse.</p>
-  <div class="grille"><div><h3>Commandes</h3><div class="touches"><span><kbd>Z</kbd> <kbd>↑</kbd></span><span>accélérer</span><span><kbd>S</kbd> <kbd>↓</kbd></span><span>freiner, maintenu à l’arrêt : marche arrière</span><span><kbd>Q</kbd> <kbd>D</kbd> <kbd>←</kbd> <kbd>→</kbd></span><span>diriger</span><span><kbd>Espace</kbd></span><span>frein à main (glisse)</span><span><kbd>Tab</kbd></span><span>changer d’adversaire</span><span><kbd>R</kbd> · <kbd>M</kbd> · <kbd>N</kbd></span><span>repartir · son · jour / nuit</span></div>
-   <p class="note" style="margin-top:.9em">La ligne bleue sur la route est la trajectoire idéale ; elle passe au rouge quand il faut freiner. Le chiffre du bas est ton avance (+) ou ton retard (−) sur l’adversaire choisi, à la même abscisse. Quatre points de passage et une arrivée à environ 9,2 km.</p></div>
+ <div class="ecran on" id="menu"><div class="carte"><h1>Route &amp; <em>vigilance</em></h1><p>Un trajet de 9 km sur une route de montagne, dans la circulation : voitures, camions, cyclistes, piétons, animaux. Pas de chrono, pas de record : l’enjeu est d’arriver sans accident. Règle les conditions du trajet à droite, roule à jeun, puis <b>après quelques verres</b> : la même route, la même circulation, et des réflexes qui se dégradent.</p>
+  <div class="grille"><div><h3>Commandes</h3><div class="touches"><span><kbd>Z</kbd> <kbd>↑</kbd></span><span>accélérer</span><span><kbd>S</kbd> <kbd>↓</kbd></span><span>freiner, maintenu à l’arrêt : marche arrière</span><span><kbd>Q</kbd> <kbd>D</kbd> <kbd>←</kbd> <kbd>→</kbd></span><span>diriger</span><span><kbd>Espace</kbd></span><span>frein à main (glisse)</span><span><kbd>R</kbd> · <kbd>M</kbd> · <kbd>N</kbd></span><span>repartir · son · jour / nuit</span></div>
+   <p class="note" style="margin-top:.9em">On roule à droite. La limite affichée change : 80 km/h sur la route, 50 km/h dans les quatre hameaux, moins dans les virages serrés. Des usagers surgissent sans prévenir (piéton, cerf, chien, cycliste qui se rabat, véhicule qui freine) : le temps que tu mets à réagir est mesuré. Dépasser, c’est se retrouver face aux véhicules qui arrivent.</p></div>
    <div><h3>Conditions du trajet</h3><div class="verres" id="verres"><span>Bière · 25 cl à 5°</span><button type="button" data-v="0" data-s="-1" aria-label="Moins de bière">−</button><output>0</output><button type="button" data-v="0" data-s="1" aria-label="Plus de bière">+</button><span>Vin · 12,5 cl à 12°</span><button type="button" data-v="1" data-s="-1" aria-label="Moins de vin">−</button><output>0</output><button type="button" data-v="1" data-s="1" aria-label="Plus de vin">+</button><span>Spiritueux · 3 cl à 40°</span><button type="button" data-v="2" data-s="-1" aria-label="Moins de spiritueux">−</button><output>0</output><button type="button" data-v="2" data-s="1" aria-label="Plus de spiritueux">+</button></div>
     <div class="bac" id="bac" data-niveau="aucun"><span id="bacLu">0 verre · 0,00 g/L</span><div class="jauge" aria-hidden="true"><i id="bacBarre"></i><b style="left:10%"></b><b style="left:25%"></b><b style="left:40%"></b></div><span id="bacVerdict">0,0 g/L : aucune consommation simulée.</span></div>
     <label>Corpulence <output id="poidsV">75 kg</output></label><input id="poids" type="range" min="45" max="120" step="5" value="75" style="width:100%">
     <label>Profil (Widmark)<select id="sexe"><option value="m">Homme</option><option value="f">Femme</option></select></label>
     <label>Psychoactif simulé<select id="drogue"><option value="none">Aucun</option><option value="sedating">Vigilance diminuée</option><option value="stimulating">Impulsivité, corrections excessives</option><option value="perception">Perception perturbée</option></select></label>
     <label>Intensité fictive <output id="drogueV">0 / 100</output></label><input id="drogueN" type="range" min="0" max="100" step="5" value="0" style="width:100%">
-    <label>Moment<select id="moment"><option value="crepuscule">Crépuscule pluvieux</option><option value="nuit">Nuit</option></select></label>
-    <label>Adversaire<select id="adv"></select></label></div></div>
+    <label>Moment<select id="moment"><option value="jour">Jour</option><option value="crepuscule" selected>Crépuscule pluvieux</option><option value="nuit">Nuit</option></select></label>
+    <label>Circulation<select id="trafic"><option value="0.6">Fluide</option><option value="1" selected>Normale</option><option value="1.6">Dense</option></select></label>
+    <label>Voiture<select id="couleurV"><option value="#b32d24">Rouge</option><option value="#2a5ca8">Bleu</option><option value="#e9ebef">Blanc</option><option value="#23262e">Noir</option></select></label></div></div>
   <div class="actions"><button class="btn" id="go" type="button">Démarrer</button><button class="btn second" id="goSobre" type="button">Comparer à jeun</button><a class="btn second" href="route-capteurs.html" style="text-decoration:none;display:inline-block">Ancienne vue capteurs</a></div>
   <p class="note" style="margin-top:1em">Simulation de prévention, pas un test d’aptitude : l’alcoolémie est estimée par la formule de Widmark (elle varie selon le repas, la santé, le rythme de consommation). Effets simulés : réaction retardée, vision floue et doublée, champ visuel rétréci, paupières lourdes, conduite qui louvoie. Après consommation, ne prenez pas le volant : organisez un retour accompagné.</p></div></div>
  <div class="ecran" id="fin"><div class="carte"><h1 id="finTitre">Arrivée</h1><div id="finCorps"></div><div class="actions"><button class="btn" id="rejouer" type="button">Rejouer</button><button class="btn second" id="retourMenu" type="button">Conditions du trajet</button></div></div></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="route-3d-piste.js?v=1"></script><script src="route-3d-monde.js?v=1"></script><script src="route-3d-jeu.js?v=1"></script>
+<script src="route-3d-piste.js?v=2"></script><script src="route-3d-trafic.js?v=2"></script><script src="route-3d-modeles.js?v=2"></script><script src="route-3d-accident.js?v=2"></script><script src="route-3d-monde.js?v=2"></script><script src="route-3d-jeu.js?v=2"></script>
 </body></html>
