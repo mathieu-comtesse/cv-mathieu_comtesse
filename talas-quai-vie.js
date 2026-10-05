@@ -262,6 +262,7 @@
     const asseoir = (q) => { J.assis = q; J.x = q.x; J.z = q.z; J.y = q.y - .5; J.ang = q.ang; J.vit = 0; try { beep(330, .08, 'triangle', .03) } catch (er) {} }
     const lever = () => { const q = J.assis; if (!q) return; J.assis = null; J.x = q.sortie.x; J.z = q.sortie.z; J.y = q.plan; J.vit = 0 }
     const siegeToucher = (appui, proche, fige, modal) => {
+      if (Q.loisirToucher && Q.loisirToucher(appui, proche, fige, modal)) return true   // loisirs de l'île (talas-quai-loisirs.js)
       if (!appui || fige || modal) return false
       if (J.assis) { lever(); return true }
       if (proche >= 0) return false
@@ -300,7 +301,8 @@
       const mode = J.vit > 4.6 ? 'run' : J.vit > .5 ? 'walk' : 'idle'
       if (perso) {   // la bibliothèque Quaternius : la cadence de la foulée suit la vitesse réelle
         const v = J.vit
-        if (J.assis) TALAS_PERSO.jouer(dylan, 'Sitting_Idle_Loop', { vitesse: 1, fondu: .3 })
+        if (Q.loisirClip && Q.loisirClip()) TALAS_PERSO.jouer(dylan, Q.loisirClip(), { vitesse: 1.2, fondu: .12 })
+        else if (J.assis) TALAS_PERSO.jouer(dylan, 'Sitting_Idle_Loop', { vitesse: 1, fondu: .3 })
         else if (v < .15) TALAS_PERSO.jouer(dylan, 'Idle_Loop', { vitesse: 1, fondu: .25 })
         else if (J.courir > .45 || v > 3.6) TALAS_PERSO.jouer(dylan, 'Jog_Fwd_Loop', { vitesse: Math.max(.55, Math.min(1.35, v / 5.2)), fondu: .2 })
         else TALAS_PERSO.jouer(dylan, 'Walk_Loop', { vitesse: Math.max(.9, Math.min(3, v / .92)), fondu: .2 })
@@ -316,6 +318,7 @@
       if (Q._helice) Q._helice.rotation[Q._heliceForge ? 'z' : 'x'] += dt * 30
       fantomeQuai(dt, T); chienQuai(dt, T)
       if (Q.zenAnim) Q.zenAnim(dt, T, J)
+      if (Q.loisirTick) Q.loisirTick(dt, T, J, W, veut)
       fx.update(dt)
       // --- proximité d'un atelier
       let proche = -1, dm = 3.4, invPnj = null
@@ -330,9 +333,10 @@
       prevS = e ? 1 : 0
       const dlg = !$('#panel').hidden   // un dialogue est ouvert : pas d'invite par-dessus le panneau
       qMap.style.opacity = dlg ? 0 : 1
-      if (dlg) qInv.style.opacity = 0
-      else if (J.assis) { qInv.style.opacity = 1; qInvT.textContent = 'Se lever (E ou une direction)'; qInv.style.background = '#fff3c8' }
-      else if (proche < 0 && !fige && !modal && siegeProche()) { qInv.style.opacity = 1; qInvT.textContent = 'S’asseoir au jardin zen'; qInv.style.background = '#fff3c8' }
+      if (dlg || (Q.loisirActif && Q.loisirActif())) qInv.style.opacity = 0
+      else if (J.assis) { qInv.style.opacity = 1; qInvT.textContent = (Q.loisirInviteAssis && Q.loisirInviteAssis(J)) || 'Se lever (E ou une direction)'; qInv.style.background = '#fff3c8' }
+      else if (proche < 0 && !fige && !modal && Q.loisirInvite && (Q._invL = Q.loisirInvite(J))) { qInv.style.opacity = 1; qInvT.textContent = Q._invL; qInv.style.background = '#fff3c8' }
+      else if (proche < 0 && !fige && !modal && siegeProche()) { qInv.style.opacity = 1; qInvT.textContent = siegeProche().hamac ? 'S’allonger dans le hamac' : 'S’asseoir au jardin zen'; qInv.style.background = '#fff3c8' }
       else if (proche >= 0) { const nom = proche === 7 ? 'la tour de contrôle' : CH[proche].t; const ok = proche === 7 ? (allDone() || S.all) : unlocked(proche); qInv.style.opacity = 1; qInvT.textContent = ok ? (proche === 7 ? 'Demander le verdict' : `Entrer : atelier ${nom}`) : `Fermé — termine d’abord l’atelier précédent`; qInv.style.background = ok ? '#fff3c8' : '#e9dcd0' } else if (!fige && !modal && W.pnjInvite && (invPnj = W.pnjInvite())) { qInv.style.opacity = 1; qInvT.textContent = invPnj; qInv.style.background = '#fff3c8' } else if (chien && !fige && !modal && idleT > .9 && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.6) { qInv.style.opacity = 1; qInvT.textContent = 'Caresser le chien-fantôme'; qInv.style.background = '#fff3c8' } else qInv.style.opacity = 0
       // --- objectif
       const nx = nextN(); const cible = nx === null ? null : ctx.PORTES[nx]
@@ -345,7 +349,7 @@
       const q = new THREE.Quaternion(); B.concat([HUB_TOWER]).forEach((b) => { if (b && b.userData.sign) { b.getWorldQuaternion(q); b.userData.sign.quaternion.copy(q.invert().multiply(camera.quaternion)) } })
       // --- caméra
       const uti = Math.abs(W.yaw - yawPrec) > 1e-4; if (uti) manuel = W.t; yawPrec = W.yaw
-      if (!libre) {
+      if (!libre && !W.camLoisir) {
         // Keep the camera basis stable while the thumb circles the stick.
         if (!mobileControls.vector.active && W.t - manuel > 1.4 && J.vit > 1.5) { let d = Math.atan2(-Math.sin(J.ang), -Math.cos(J.ang)) - W.yaw; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; if (Math.abs(d) < 2.3) { W.yaw += d * Math.min(1, dt * 1.6); yawPrec = W.yaw } }
         const d0 = 7.6 * (W.zoom || 1) + J.courir * .8, dR = Math.cos(W.yaw), sR = -Math.sin(W.yaw)

@@ -161,3 +161,11 @@ Demande : refaire l'île de l'atlas comme une île flottante, avec les graphisme
 - Ponton : pilotis jusqu'au fond, culée de pierre côté plage, défenses, bouée, planches usées. Bateaux (`props_def.py`) : coque à carène colorée et hublots, liston, pont à lattes, vitres cadrées, haubans, garde-corps, ancre, feux, pavillon ; voiles bombées à lattes.
 - Arbres (`atlas-flore.js`) : tubes avec évasement du pied, pied enterré, transport parallèle des anneaux (plus de vrille), stries et mousse, contreforts (`racines`).
 - Lianes et racines : `tools/atlas-ile/ile_lianes.py` pose des brins sur la surface réelle de `ile.bin` (`assets/atlas/ile-lianes.json`) ; `atlas-roches.js` les lit, lisse (Catmull-Rom) et ajoute feuilles, fleurs et mousse.
+
+### Loisirs du quai de Talas (5 octobre 2026)
+- `talas-quai-loisirs.js` (appelé par `talas-quai-decor.js`, branché dans `talas-quai-vie.js` : `Q.loisirToucher`, `Q.loisirTick`, `Q.loisirInvite`, `Q.loisirClip`) ajoute quatre pauses, une par quartier, toutes jouables avec la seule touche E / ACTION (une direction quitte le jeu) :
+  - **papier-avions** au belvédère (nord-ouest) : cap puis force par deux appuis, vent, trois ballons-cibles portant un anneau (1 / 2 / 3 points), 5 lancers, meilleur score mémorisé ;
+  - **pétanque contre Boulon** sur la terrasse nord-est : piste de gravier, 3 boules chacun, chocs, boules mortes hors piste, Boulon pointe ou tire ;
+  - **lanternes des vœux** sur la grande jetée : trois engagements ISO 45001, la lanterne rejoint un ciel qui garde la mémoire des vœux (localStorage `talas-voeux`) et brille la nuit ;
+  - **hamac** sur la terrasse ouest : on s'y assoit (système de sièges de `talas-quai-zen.js`), E de nouveau pour la sieste (le jour avance de 0,3).
+- Emplacements choisis loin des portes d'ateliers (l'invite « Entrer » est prioritaire à moins de 3,4 m) : constantes `AVC`, `PTC`, `LNC`, `HMC` en tête du fichier. Les cibles du papier-avions sont calibrées avec la physique de `avions.tick`. `?loisirs=non` retire le tout.
