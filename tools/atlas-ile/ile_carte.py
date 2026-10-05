@@ -41,7 +41,7 @@ BATIMENTS = {
     'lean':     dict(pos=(-5.3, -4.2), r=1.9),    # dojo, sur la colline, sous les cerisiers
     'bi':       dict(pos=(3.6, -4.8), r=2.6),     # tour Power BI, sur sa plate-forme hexagonale
     'avignon':  dict(pos=(-7.3, -0.3), r=2.1),    # Hôtel-Dieu d'Avignon
-    'usp':      dict(pos=(-6.6, 3.6), r=2.2),     # campus de Paris Nord
+    'usp':      dict(pos=(-6.6, 3.6), r=2.6),     # campus de Paris Nord
     'studio':   dict(pos=(-1.3, -2.0), r=1.9),    # atelier des extracteurs PDF
     'sncf':     dict(pos=(7.3, 3.2), r=2.3),     # gare et son petit réseau
     'reseau':   dict(pos=(6.9, 6.4), r=1.25),      # poste de signalisation

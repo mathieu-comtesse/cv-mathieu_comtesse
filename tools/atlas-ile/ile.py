@@ -199,14 +199,6 @@ def champ(res=0.1, graine=7, log=print):
     F = np.where(w_sec > 0.02, F + w_sec * (F_col - F), F).astype(np.float32)
     del q_, r_, xq, zq, yq, rx, ry, rz, dx_, dy_, dz_, ccx, ccz, px, pz, d_hex, ix, iz, Fc, haz, F_col, w_sec
     log('colonnes de basalte')
-    # arches et grottes : tunnels de roche retirés près de la pointe et en façade
-    for (a0, a1, yy, ra) in ((3.9, 4.6, -6.6, 1.15), (0.6, 1.3, -4.4, 0.95)):
-        p0 = point_falaise(a0, yy) + np.array([math.cos(a0), 0, math.sin(a0)], np.float32) * 0.5
-        p1 = point_falaise(a1, yy - 0.5) + np.array([math.cos(a1), 0, math.sin(a1)], np.float32) * 0.5
-        c = (p0 + p1) / 2
-        r0 = sous_grille(g, c, np.linalg.norm(p1 - p0) / 2 + ra + 1.2)
-        sl, v = r0
-        F[sl] = smax(F[sl], -capsule_conique(v, p0, p1, ra, ra), 0.18)
     # rainure des chutes d'eau : l'eau a creusé un couloir sur la falaise, du seuil jusqu'au vide
     for (cx_, cz_) in CHUTES:
         a_ = math.atan2((cz_ - CENTRE[1]) / ETIRE[1], (cx_ - CENTRE[0]) / ETIRE[0])
@@ -216,7 +208,7 @@ def champ(res=0.1, graine=7, log=print):
             if r0 is None: continue
             sl, v = r0
             F[sl] = smax(F[sl], -ellipsoide(v, pf + np.array([math.cos(a_), 0, math.sin(a_)], np.float32) * 0.1, (0.55, 0.5, 0.55)), 0.2)
-    log('arches et rainures')
+    log('rainures')
     ctx_sol = F_sol
 
     # coupe par la surface : tout ce qui est au-dessus du relief disparaît
@@ -289,5 +281,19 @@ def champ(res=0.1, graine=7, log=print):
         log(f'joints λ={lam} : {len(Q) / 1e6:.2f} M échantillons')
     # le tout dernier : un peu de bruit fin sur la lèvre de terre (mottes)
     F = F.astype(np.float32)
+    # étanchéité : on bouche les fentes et les poches fines (fermeture morphologique de la matière sous la lèvre de terre), puis tout vide fermé
+    import scipy.ndimage as ndi
+    plein = F < 0
+    ball = ndi.generate_binary_structure(3, 1); ball = ndi.iterate_structure(ball, max(2, int(round(0.34 / res))))
+    ferme = ndi.binary_closing(plein, structure=ball, border_value=0)
+    ferme &= (Y < -0.9) & (F_out < 1.5)                                  # seulement le socle, jamais la prairie ni le lagon
+    F = np.where(ferme & ~plein, np.float32(-0.04), F).astype(np.float32)
+    vide, nv = ndi.label(F >= 0)
+    if nv > 1:
+        tailles = np.bincount(vide.ravel()); tailles[0] = 0; ext = tailles.argmax()
+        enferme = (vide != ext) & (vide > 0)
+        F = np.where(enferme, np.float32(-0.04), F).astype(np.float32)
+        log(f'vides fermés comblés : {int(enferme.sum())} voxels')
+    F[:2] = 1.0; F[-2:] = 1.0; F[:, :2] = 1.0; F[:, -2:] = 1.0; F[:, :, :2] = 1.0; F[:, :, -2:] = 1.0      # bords de la grille hors matière : maillage fermé
     log('relief')
     return g, F, dict(H=H, F_out=F_out, F_sol=ctx_sol, w3=w3, strate=(ys, A, B), prof=prof)

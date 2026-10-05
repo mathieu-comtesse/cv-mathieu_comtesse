@@ -14,7 +14,7 @@ sortie = args[0]; voulus = args[1:]
 bpy.ops.wm.read_factory_settings(use_empty=True)
 for nom, f in batiments_def.BATIMENTS.items():
     if voulus and nom not in voulus: continue
-    K = Kit(nom); f(K); ob = K.fin()
+    K = Kit(nom); K.sans_pied = nom not in ('avignon', 'usp', 'sncf', 'reseau', 'studio', 'bi', 'lean', 'perso', 'phare'); f(K); ob = K.fin()
     print('bâtiment', nom, len(ob.data.polygons), 'faces,', len(ob.data.materials), 'matériaux')
 os.makedirs(os.path.dirname(os.path.abspath(sortie)), exist_ok=True)
 bpy.ops.export_scene.gltf(filepath=sortie, export_format='GLB', export_apply=True, export_yup=True, export_cameras=False, export_lights=False,

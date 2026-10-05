@@ -30,24 +30,41 @@ class Kit:
             for f in faces: f.material_index = idx; f.smooth = lisse
         return faces
     # ------------------------------------------------------------------------------------------ primitives
-    def boite(self, taille, c, mat, rot=0.0, biseau=0.0, lisse=False, haut=None):
+    def boite(self, taille, c, mat, rot=0.0, biseau=0.0, lisse=False, haut=None, pied=None):
         """Boîte de taille (x, y, z) centrée en c. haut : matériau différent pour la face supérieure."""
         r = bmesh.ops.create_cube(self.bm, size=1.0)
         m = Matrix.Translation(Vector(c)) @ rot_mat(rot) @ Matrix.Diagonal((taille[0], taille[1], taille[2], 1.0))
         faces = self._fin_prim(r['verts'], mat, lisse, m, biseau)
+        self._pied(taille, c, mat, rot, forcer=pied)
         if haut:
             idx = self.slot(haut)
             for f in faces:
                 if f.normal.y > 0.9: f.material_index = idx
         return faces
-    def cylindre(self, c, r, h, mat, seg=20, r_haut=None, rot=0.0, lisse=True, ferme=True, biseau=0.0, axe='y'):
+    PIED_Y = -2.0
+    def _pied(self, taille, c, mat, rot, forcer=None):
+        """Jupe de fondation : tout volume large posé au sol est prolongé vers le bas jusqu'à PIED_Y. Le jeu recale le bas de la jupe sur le relief
+        de l'île (atlas-batiments.js, ajusterPieds) : plus aucune partie de bâtiment ne flotte au-dessus d'une pente ou d'une falaise."""
+        bas = c[1] - taille[1] / 2
+        if forcer is False or bas > 0.2 or bas < -0.01: return
+        if forcer is not True and (getattr(self, 'sans_pied', False) or min(taille[0], taille[2]) < 0.5): return
+        h = bas - self.PIED_Y
+        r = bmesh.ops.create_cube(self.bm, size=1.0)
+        m = Matrix.Translation(Vector((c[0], (bas + self.PIED_Y) / 2, c[2]))) @ rot_mat(rot) @ Matrix.Diagonal((taille[0], h, taille[2], 1.0))
+        self._fin_prim(r['verts'], mat, False, m, 0.0)
+    def cylindre(self, c, r, h, mat, seg=20, r_haut=None, rot=0.0, lisse=True, ferme=True, biseau=0.0, axe='y', pied=None):
         """Cylindre / tronc de cône posé sur c (le centre de la base), de hauteur h. axe='x' ou 'z' : couché, c = centre de la base, qui part vers +x ou +z."""
         res = bmesh.ops.create_cone(self.bm, cap_ends=ferme, cap_tris=False, segments=seg, radius1=r, radius2=(r if r_haut is None else r_haut), depth=h)
         # create_cone est dirigé selon z (radius1 en -z) : on le couche selon y, x ou z
         if axe == 'y': m = Matrix.Translation(Vector(c) + Vector((0, h / 2, 0))) @ rot_mat(rot) @ Matrix.Rotation(-math.pi / 2, 4, 'X')
         elif axe == 'z': m = Matrix.Translation(Vector(c) + Vector((0, 0, h / 2))) @ rot_mat(rot)
         else: m = Matrix.Translation(Vector(c) + Vector((h / 2, 0, 0))) @ rot_mat(rot) @ Matrix.Rotation(math.pi / 2, 4, 'Y')
-        return self._fin_prim(res['verts'], mat, lisse, m, biseau)
+        faces = self._fin_prim(res['verts'], mat, lisse, m, biseau)
+        if axe == 'y' and ferme and pied is not False and -0.01 <= c[1] <= 0.2 and (pied is True or (r >= 0.4 and not getattr(self, 'sans_pied', False))):
+            hp = c[1] - self.PIED_Y
+            rp = bmesh.ops.create_cone(self.bm, cap_ends=True, cap_tris=False, segments=seg, radius1=r, radius2=r, depth=hp)
+            self._fin_prim(rp['verts'], mat, lisse, Matrix.Translation(Vector((c[0], self.PIED_Y + hp / 2, c[2]))) @ rot_mat(rot) @ Matrix.Rotation(-math.pi / 2, 4, 'X'), 0.0)
+        return faces
     def ruban(self, pts, largeur, epais, mat):
         """Bande épaisse le long d'un tracé (liste de points) : tablier cintré d'un pont, rampe, chemin surélevé."""
         P = [Vector(p) for p in pts]; n = len(P); L = []; Rr = []
@@ -64,14 +81,14 @@ class Kit:
             q(L[i] + dn, L[i + 1] + dn, L[i + 1], L[i])                            # flanc gauche
             q(Rr[i], Rr[i + 1], Rr[i + 1] + dn, Rr[i] + dn)                        # flanc droit
         q(L[0] + dn, L[0], Rr[0], Rr[0] + dn); q(Rr[-1] + dn, Rr[-1], L[-1], L[-1] + dn)
-    def coque(self, sections, mat, mat_pont=None):
+    def coque(self, sections, mat, mats=None):
         """Coque par sections : liste de (x, [(z, y), ...]) du même nombre de points (z, y) par section, de l'étrave à la poupe ; fermée aux extrémités."""
         idx = self.slot(mat)
         anneaux = [[self.bm.verts.new((x, y, z)) for (z, y) in pts] for x, pts in sections]
         k = len(sections[0][1])
         for i in range(len(anneaux) - 1):
             for j in range(k):
-                f = self.bm.faces.new((anneaux[i][j], anneaux[i + 1][j], anneaux[i + 1][(j + 1) % k], anneaux[i][(j + 1) % k])); f.material_index = idx; f.smooth = True
+                f = self.bm.faces.new((anneaux[i][j], anneaux[i + 1][j], anneaux[i + 1][(j + 1) % k], anneaux[i][(j + 1) % k])); f.material_index = self.slot(mats[j]) if mats else idx; f.smooth = (j != k - 1)
         for ring, flip in ((anneaux[0], True), (anneaux[-1], False)):
             f = self.bm.faces.new(ring[::-1] if flip else ring); f.material_index = idx
         fs = [f for r in anneaux for v in r for f in v.link_faces]
@@ -254,7 +271,7 @@ class Kit:
         """Escalier montant vers l'intérieur du bâtiment : le bas des marches est en c, la direction de montée est -z local (dirn tourne)."""
         rot = dirn * math.pi / 2; m = Matrix.Translation(Vector(c)) @ rot_mat(rot)
         for i in range(n):
-            self.boite((largeur, hauteur_marche * (i + 1), profondeur_marche), (m @ Vector((0, hauteur_marche * (i + 1) / 2, -(i + 0.5) * profondeur_marche)))[:], mat, rot=rot, biseau=0.006)
+            self.boite((largeur, hauteur_marche * (i + 1), profondeur_marche), (m @ Vector((0, hauteur_marche * (i + 1) / 2, -(i + 0.5) * profondeur_marche)))[:], mat, rot=rot, biseau=0.006, pied=True)
     def garde_corps(self, a, b, h, mat, poteaux=0.35, lisse=0.02, mat_poteau=None):
         """Garde-corps entre deux points (x, y, z) : poteaux et main courante."""
         A = Vector(a); B = Vector(b); d = B - A; L = d.length; n = max(1, int(L / poteaux))
