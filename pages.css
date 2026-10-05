@@ -475,3 +475,4 @@ body.is-night .world-intro h1,body.is-night .world-lead,body.is-night .world-rol
 .world-fish .fish-log li{border-color:rgba(255,255,255,.2);border-radius:10px}.world-fish .fish-rarity.r2{color:#ffb04a}.world-fish .fish-rarity.r3{color:#c4a1ff}
 @media(max-width:850px){.world-pin small{display:none}.world-pin{padding:5px 8px 5px 5px;font-size:12px}.world-pin .pin-ico{width:28px;height:28px}.world-pin b{font-size:12px}.world-card{bottom:50%}}
 @media(max-width:640px){.world-pin{padding:4px;border-radius:50%}.world-pin .pin-txt,.world-pin>svg{display:none}.world-pin .pin-ico{width:30px;height:30px}.world-hud{bottom:128px}}
+.hero-pitch{max-width:760px;margin:28px auto 0;font-size:var(--lead);line-height:var(--lead-lh);letter-spacing:var(--lead-ls);color:var(--ink-86)}
