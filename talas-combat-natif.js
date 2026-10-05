@@ -16,6 +16,7 @@
       data.handling=await N.json(BASE+'prises.json');
       await Promise.all(Object.values(data.handling.actors).map(async a=>{a.sheets=await Promise.all(a.atlases.map(file=>N.image('assets/talas-natifs/characters/'+file)))}));
       for(const fx of Object.values(data.effects))for(const entry of Object.values(fx.images))entry.image=await N.image(BASE+entry.file);
+      if(window.TALAS_ARCADE_FX)data.arcade=await window.TALAS_ARCADE_FX.preload(N);
       return data;
     },
     attach({box,DY,AU,A,R},N){
@@ -264,6 +265,7 @@
           effect('aura',px(AU.root.position.x),foot-92*unit,state.t-(state.rageStart||0),.8,290*unit,-1,true);
           effect('electric',px(AU.root.position.x),foot-135*unit,state.t,.38,270*unit,-1,true);
         }
+        H.arcade?.behind(g,{px,foot,unit});
         for(const [role,f] of [['d',DY],['c',AU]]){
           let pose=f.cur.p,elapsed=state.t,duration=0;
           if(f.anim){let i=0;while(i<f.anim.tr.length-1&&f.anim.tr[i+1][0]<=f.anim.t)i++;const a=f.anim.tr[i],b=f.anim.tr[Math.min(i+1,f.anim.tr.length-1)];pose=b[1];elapsed=f.anim.t-a[0];duration=b[0]-a[0]}
@@ -297,6 +299,7 @@
           if(dartGesture&&!held){const virtual={role,kind:'dart',born:state.attack.start};drawGrip(virtual,actor,'dart',1);state.hands[role]=virtual.lastHeld}
           if(caught){drawGrip({role,kind:caught.kind,born:state.t},actor,caught.kind,1);}
           if(gag?.kind==='stamp-mark')objectSprite('stamp-mark',px(f.root.position.x)-8*unit,y-140*unit,42,-.18);
+          H.arcade?.actor(role,pose,phase,f);
           if(['strikeD','swingC','followC','relD'].includes(pose)&&phase>.05&&phase<.8)effect(role==='c'?'swing':'sweep',px(f.root.position.x)+(role==='c'?-35:35)*unit,y-95*unit,phase,.8,150*unit,role==='c'?-1:1);
           state.clips[role]={id,pose,ticks,index,handling:handIndex,identity:role==='d'?'Dylan':'Aurelien',x:f.root.position.x};N.stats.combatFrames++;
         }
@@ -331,6 +334,7 @@
           for(let i=0;i<16;i++){const f=(state.t*1.3+i*.073)%1;objectSprite('coins',px(DY.root.position.x)+(i%4-1.5)*28*unit,foot-h*.7+f*h*.65,22,state.t*4+i)}
         }
         for(const e of state.effects)effect(e.kind,px(e.x),foot-e.y*83*unit,e.t,e.life,e.size*unit,e.dir);
+        H.arcade?.draw(g,{px,foot,unit});
         if(state.flash){g.save();g.globalAlpha=state.flash/.1;g.fillStyle='#fff1cc';g.fillRect(0,0,w,h);g.restore()}
         if(state.cut)H.cutFrame(g,w,h,state.cut.t,state.cut.right,state.cut.txt);
         // Native gold frame, animated energy texture and original glyphs, driven by the real HP/timer.
@@ -369,6 +373,7 @@
         }
         state.viewport={width:w,height:h,pixelated:true};state.health=[clamp(DY.hp/DY.max),clamp(AU.hp/AU.max)];
       };
+      if(window.TALAS_ARCADE_FX)H.arcade=window.TALAS_ARCADE_FX.attach(H,N,{DY,AU});
       H.detruire=()=>{cv.remove();style.remove()};window.TALAS_HK.dernier=H;return H;
     }
   };
