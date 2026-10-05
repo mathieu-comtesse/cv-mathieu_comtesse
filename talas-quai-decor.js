@@ -210,6 +210,7 @@
 
     /* ------------------------------------------------------------ construction du village */
     if (Q.decorVillage) Q.decorVillage(c)
+    if (Q.zen) Q.zen(c)                                    // jardin zen de la terrasse centrale (talas-quai-zen.js)
     for (const k in LOTS) LOTS[k].construire()
     if (Q.decorNature) Q.decorNature(c)
   }

@@ -256,6 +256,17 @@
     const camDans = (x, y, z) => { if (ctx.hauteur(x, z) > y + .1) return true
       for (const o of Q.obstacles) { if (o.t !== 'b' || !o.h) continue; if (y < o.y - .3 || y > o.y + o.h) continue; const cx = Math.cos(o.ry), sx = Math.sin(o.ry), lx = (x - o.x) * cx - (z - o.z) * sx, lz = (x - o.x) * sx + (z - o.z) * cx; if (Math.abs(lx) < o.hw + .5 && Math.abs(lz) < o.hd + .5) return true }
       return false }
+    /* ---- s'asseoir (bancs du jardin zen, talas-quai-zen.js) : E près d'une place pour s'asseoir, E ou une direction pour se relever ---- */
+    const DY_ASSIS = .0
+    const siegeProche = () => { if (J.assis || !Q.sieges) return null; let b = null, bd = 1.7; for (const q of Q.sieges) { if (Math.abs(q.y - .5 - J.y) > 1.2) continue; const d = Math.hypot(q.x - J.x, q.z - J.z); if (d < bd) { bd = d; b = q } } return b }
+    const asseoir = (q) => { J.assis = q; J.x = q.x; J.z = q.z; J.y = q.y - .5; J.ang = q.ang; J.vit = 0; try { beep(330, .08, 'triangle', .03) } catch (er) {} }
+    const lever = () => { const q = J.assis; if (!q) return; J.assis = null; J.x = q.sortie.x; J.z = q.sortie.z; J.y = q.plan; J.vit = 0 }
+    const siegeToucher = (appui, proche, fige, modal) => {
+      if (!appui || fige || modal) return false
+      if (J.assis) { lever(); return true }
+      if (proche >= 0) return false
+      const q = siegeProche(); if (q) { asseoir(q); return true }
+      return false }
     W.suivre = function (dt, T, pCentre) {
       const libre = W.photo || busy || S.tStop, fige = libre || S.intro
       // --- entrées
@@ -266,6 +277,7 @@
         if (ax || az) { const cy = Math.cos(W.yaw), sy = Math.sin(W.yaw); ix = cy * ax - sy * az; iz = -sy * ax - cy * az; const n = Math.hypot(ix, iz); ix /= n; iz /= n; intensite = v.active ? v.magnitude : 1 }
       }
       const veut = ix || iz
+      if (J.assis) { if (veut || fige || modal) lever(); else { J.vit = 0; J.ang = J.assis.ang } }
       idleT = !veut && J.vit < .3 ? idleT + dt : 0 // le chien n'invite à la caresse que quand Dylan s'arrête un instant
       if (veut && !fige && !$('#panel').hidden) { moveT += dt; if (moveT > .7) hidePanel() } else if (!veut) moveT = 0
       // Bord du joystick : courir ; revenir vers le centre : marcher.
@@ -283,12 +295,13 @@
         J.x = nx; J.z = nz; J.y += (y - J.y) * Math.min(1, dt * 16)
       }
       if (veut) { let d = Math.atan2(ix, iz) - J.ang; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; J.ang += d * Math.min(1, dt * 12) }
-      if (!libre || W.gardeJoueur) { dylan.position.set(J.x, J.y, J.z); dylan.rotation.y = J.ang }
+      if (!libre || W.gardeJoueur) { dylan.position.set(J.x, J.y + (J.assis ? DY_ASSIS : 0), J.z); dylan.rotation.y = J.ang }
       // animation
       const mode = J.vit > 4.6 ? 'run' : J.vit > .5 ? 'walk' : 'idle'
       if (perso) {   // la bibliothèque Quaternius : la cadence de la foulée suit la vitesse réelle
         const v = J.vit
-        if (v < .15) TALAS_PERSO.jouer(dylan, 'Idle_Loop', { vitesse: 1, fondu: .25 })
+        if (J.assis) TALAS_PERSO.jouer(dylan, 'Sitting_Idle_Loop', { vitesse: 1, fondu: .3 })
+        else if (v < .15) TALAS_PERSO.jouer(dylan, 'Idle_Loop', { vitesse: 1, fondu: .25 })
         else if (J.courir > .45 || v > 3.6) TALAS_PERSO.jouer(dylan, 'Jog_Fwd_Loop', { vitesse: Math.max(.55, Math.min(1.35, v / 5.2)), fondu: .2 })
         else TALAS_PERSO.jouer(dylan, 'Walk_Loop', { vitesse: Math.max(.9, Math.min(3, v / .92)), fondu: .2 })
       } else animPerson(dylan, mode, T * (1 + J.courir * .35))
@@ -302,6 +315,7 @@
       // hélice de l'hydravion, phare
       if (Q._helice) Q._helice.rotation[Q._heliceForge ? 'z' : 'x'] += dt * 30
       fantomeQuai(dt, T); chienQuai(dt, T)
+      if (Q.zenAnim) Q.zenAnim(dt, T, J)
       fx.update(dt)
       // --- proximité d'un atelier
       let proche = -1, dm = 3.4, invPnj = null
@@ -309,13 +323,16 @@
       J.proche = proche
       if (TOUCH) mobileControls.setAction(proche >= 0 ? 'enter' : 'interact')
       const e = !!KEYS.S, appui = (e && !prevS) || !!KEYP.S; KEYP.S = 0;
-      if (appui && proche >= 0) { if (proche === 7) clickTower(); else clickBuilding(proche) }
+      const siegeFait = siegeToucher(appui, proche, fige, modal)
+      if (siegeFait) { /* assis / relevé : rien d'autre à faire */ } else if (appui && proche >= 0) { if (proche === 7) clickTower(); else clickBuilding(proche) }
       else if (appui && proche < 0 && !fige && !modal && W.pnjParle && W.pnjParle()) { /* un habitant du quai répond (talas-quai-pnj.js) */ }
       else if (appui && proche < 0 && chien && !fige && !modal && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.8) { if (chienBalade) chienBalade.caresse(); chien.userData.aboie(); if (window.TALAS_SON) TALAS_SON.aboie(); try { beep(260, .12, 'square', .05); setTimeout(() => beep(390, .16, 'square', .05), 120) } catch (er) {} fx.burst(V3(cP.x, cP.y + 1.6, cP.z), 8) }
       prevS = e ? 1 : 0
       const dlg = !$('#panel').hidden   // un dialogue est ouvert : pas d'invite par-dessus le panneau
       qMap.style.opacity = dlg ? 0 : 1
       if (dlg) qInv.style.opacity = 0
+      else if (J.assis) { qInv.style.opacity = 1; qInvT.textContent = 'Se lever (E ou une direction)'; qInv.style.background = '#fff3c8' }
+      else if (proche < 0 && !fige && !modal && siegeProche()) { qInv.style.opacity = 1; qInvT.textContent = 'S’asseoir au jardin zen'; qInv.style.background = '#fff3c8' }
       else if (proche >= 0) { const nom = proche === 7 ? 'la tour de contrôle' : CH[proche].t; const ok = proche === 7 ? (allDone() || S.all) : unlocked(proche); qInv.style.opacity = 1; qInvT.textContent = ok ? (proche === 7 ? 'Demander le verdict' : `Entrer : atelier ${nom}`) : `Fermé — termine d’abord l’atelier précédent`; qInv.style.background = ok ? '#fff3c8' : '#e9dcd0' } else if (!fige && !modal && W.pnjInvite && (invPnj = W.pnjInvite())) { qInv.style.opacity = 1; qInvT.textContent = invPnj; qInv.style.background = '#fff3c8' } else if (chien && !fige && !modal && idleT > .9 && Math.hypot(cP.x - J.x, cP.z - J.z) < 2.6) { qInv.style.opacity = 1; qInvT.textContent = 'Caresser le chien-fantôme'; qInv.style.background = '#fff3c8' } else qInv.style.opacity = 0
       // --- objectif
       const nx = nextN(); const cible = nx === null ? null : ctx.PORTES[nx]
