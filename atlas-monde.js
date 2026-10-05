@@ -9,7 +9,7 @@ import { creerNuages } from './atlas-nuages.js';
 import { chargerIle, creerEau } from './atlas-ile.js';
 import { creerFlore, aleatoire } from './atlas-flore.js';
 import { peupler } from './atlas-decor.js';
-import { chargerBatiments } from './atlas-batiments.js';
+import { chargerBatiments, ajusterPieds } from './atlas-batiments.js';
 import { ETAPES } from './atlas-etapes.js';
 import { creerRoches } from './atlas-roches.js';
 
@@ -53,7 +53,7 @@ export async function creerMonde(R, opts = {}) {
     const [x, z] = b.pos; groupe.position.set(x, sol(x, z, b.r * 0.55) - 0.02, z);
     groupe.rotation.y = e.id === 'sncf' ? Math.PI : Math.atan2(e.vers[0] - x, e.vers[1] - z);
     groupe.userData.etape = e; groupe.traverse((o) => { if (o.isMesh) o.userData.batiment = groupe; });
-    scene.add(groupe); groupe.updateMatrixWorld(true);
+    scene.add(groupe); groupe.updateMatrixWorld(true); ajusterPieds(groupe, carte, b.pos);
     const box = new THREE.Box3().setFromObject(groupe);
     bats[e.id] = { groupe, ancres, etape: e, box, rayon: b.r, x, z, haut: box.max.y };
   }
@@ -63,7 +63,7 @@ export async function creerMonde(R, opts = {}) {
   const [pa, pb] = [meta.pont.a, meta.pont.b];
   const pont = poser('pont', pa[0], 0, pa[1], Math.atan2(pb[0] - pa[0], pb[1] - pa[1]));
   const [qa, qb] = [meta.ponton.a, meta.ponton.b];
-  const ponton = poser('ponton', qa[0], 0, qa[1], Math.atan2(qb[0] - qa[0], qb[1] - qa[1]));
+  const ponton = poser('ponton', qa[0], 0, qa[1], Math.atan2(qb[0] - qa[0], qb[1] - qa[1])); ajusterPieds(ponton, carte, qa);
   const yawPonton = Math.atan2(qb[0] - qa[0], qb[1] - qa[1]), dirPonton = V3(Math.sin(yawPonton), 0, Math.cos(yawPonton)), latPonton = V3(Math.cos(yawPonton), 0, -Math.sin(yawPonton));
   const bout = V3(qa[0], 0, qa[1]).addScaledVector(dirPonton, 2.75);
   /* bateaux amarrés : le yacht d'un côté du ponton, le bateau de pêche et le voilier de l'autre */
@@ -81,7 +81,7 @@ export async function creerMonde(R, opts = {}) {
 
   /* phare : sur le bord avant-gauche de l'île */
   const bk = meta.bord[Math.round(2.62 / (Math.PI * 2) * 120) % 120], px = bk[0] - bk[3] * 1.15, pz = bk[2] - bk[4] * 1.15;
-  const phare = poser('phare', px, carte.hauteur(px, pz) - 0.05, pz, 0);
+  const phare = poser('phare', px, carte.hauteur(px, pz) - 0.05, pz, 0); ajusterPieds(phare, carte, [0, 0.3]);
 
   /* ------------------------------------------------------------------------------------------------ voie ferrée : boucle autour de la prairie de la gare */
   const voie = (() => {

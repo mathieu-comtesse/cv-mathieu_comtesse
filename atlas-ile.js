@@ -72,6 +72,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
       float hroche(vec3 q){ float a = n3(q), b = n3(q * 2.7 + 3.1), c = n3(q * 7.9 + 11.); return (1. - abs(a * 2. - 1.)) * .55 + b * .3 + (1. - abs(c * 2. - 1.)) * .22; }
       float causti(vec2 p, float t){ vec2 i = p; float c = 1.; for (int n = 0; n < 4; n++){ float tt = t * (1. - 3.5 / float(n + 1)); i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x)); c += 1. / length(vec2(p.x / (sin(i.x + tt) / .005), p.y / (cos(i.y + tt) / .005))); } c /= 4.; c = 1.17 - pow(c, 1.4); return pow(abs(c), 8.); }
     ` + sh.fragmentShader
+      .replace('#include <normal_fragment_begin>', 'vec3 normal = normalize(vNormal); vec3 nonPerturbedNormal = normal;')
       .replace('#include <color_fragment>', `#include <color_fragment>
         float mid_ = floor(vMat + .5);
         float rocheW = (mid_ < .5 || mid_ > 5.5) ? 1. : 0.;
@@ -111,7 +112,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
 export async function chargerIle(ciel) {
   const carte = await chargerCarte();
   const mailles = await chargerMailles(ICI('assets/atlas/ile.bin'));
-  const materiau = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, envMapIntensity: 0.3 });
+  const materiau = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, envMapIntensity: 0.3, side: THREE.DoubleSide });
   const partage = eclairer(materiau, ciel, carte, { bump: 0.5 });
   const mesh = new THREE.Mesh(mailles.ile.geo, materiau);
   mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = false;

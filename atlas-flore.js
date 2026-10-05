@@ -102,19 +102,31 @@ class Geo {
     this.tri(a, b, d); this.tri(a, d, e);
   }
   /* tube le long d'une courbe (tableau de points), rayons r0 -> r1, anneaux de couleur alternée si bague */
-  tube(pts, r0, r1, seg = 6, col = [.35, .25, .17], bague = 0, vent0 = 0, vent1 = 0) {
+  tube(pts, r0, r1, seg = 6, col = [.35, .25, .17], bague = 0, vent0 = 0, vent1 = 0, flare = 0, striure = 0) {
     const m = pts.length, base = this.n, up = new THREE.Vector3(0, 1, 0), t = new THREE.Vector3(), s = new THREE.Vector3(), b = new THREE.Vector3();
+    const mousse = [.27, .36, .16], hash = (a, c) => { const x = Math.sin(a * 12.9898 + c * 78.233) * 43758.5453; return x - Math.floor(x); };
     for (let i = 0; i < m; i++) {
-      const k = i / (m - 1), r = r0 + (r1 - r0) * k;
+      const k = i / (m - 1), r = (r0 + (r1 - r0) * k) * (1 + flare * Math.exp(-k * 7.5));      // évasement du pied : le tronc s'élargit vers le sol et ses racines
       t.subVectors(pts[Math.min(m - 1, i + 1)], pts[Math.max(0, i - 1)]).normalize();
-      s.crossVectors(Math.abs(t.y) > .95 ? new THREE.Vector3(1, 0, 0) : up, t).normalize(); b.crossVectors(t, s).normalize();
-      const f = bague && (i % bague === 0) ? .78 : 1;
+      if (i === 0) s.crossVectors(Math.abs(t.y) > .95 ? new THREE.Vector3(1, 0, 0) : up, t); else s.addScaledVector(t, -s.dot(t));      // transport parallèle : pas de vrille entre anneaux
+      s.normalize(); b.crossVectors(t, s).normalize();
+      const f = bague && (i % bague === 0) ? .78 : 1, vert = Math.max(0, 1 - k * 9) * .42;       // base mousseuse, plus sombre
       for (let j = 0; j <= seg; j++) {
         const a = j / seg * Math.PI * 2, nx = Math.cos(a) * s.x + Math.sin(a) * b.x, ny = Math.cos(a) * s.y + Math.sin(a) * b.y, nz = Math.cos(a) * s.z + Math.sin(a) * b.z;
-        this.sommet([pts[i].x + nx * r, pts[i].y + ny * r, pts[i].z + nz * r], [nx, ny, nz], [j / seg, k], [col[0] * f, col[1] * f, col[2] * f], vent0 + (vent1 - vent0) * k);
+        const v = f * (1 + striure * (hash(j % seg, 3) - .5) * 2) * (1 - vert * .3);                // stries d'écorce : une teinte par côte verticale
+        this.sommet([pts[i].x + nx * r, pts[i].y + ny * r, pts[i].z + nz * r], [nx, ny, nz], [j / seg, k], [(col[0] * (1 - vert) + mousse[0] * vert) * v, (col[1] * (1 - vert) + mousse[1] * vert) * v, (col[2] * (1 - vert) + mousse[2] * vert) * v], vent0 + (vent1 - vent0) * k);
       }
     }
     for (let i = 0; i < m - 1; i++) for (let j = 0; j < seg; j++) { const a = base + i * (seg + 1) + j, b2 = a + 1, c = a + seg + 1, d = c + 1; this.tri(a, c, b2); this.tri(b2, c, d); }
+  }
+  /* contreforts : racines apparentes qui partent du tronc, s'étalent à la surface et plongent dans le sol */
+  racines(rng, n, r, col, hauteur = .34, portee = 3.2) {
+    for (let k = 0; k < n; k++) {
+      const a = k / n * Math.PI * 2 + (rng() - .5) * .7, L = r * portee * (.75 + rng() * .5), cx = Math.cos(a), cz = Math.sin(a), lat = (rng() - .5) * r * .9;
+      const prof = [[.4 * r, hauteur * r, 0], [1.2 * r, .13 * r, .2], [L * .5, .04 * r, .6], [L * .78, -.03 * r, .85], [L, -.14 * r, 1]];
+      const pts = prof.map(([d, y, w]) => new THREE.Vector3(cx * d - cz * lat * w, y, cz * d + cx * lat * w));
+      this.tube(pts, r * .38, r * .07, 5, col, 0, 0, 0, 0, .12);
+    }
   }
   geometrie() {
     const g = new THREE.BufferGeometry();
@@ -200,28 +212,28 @@ export function creerFlore(ciel, textures) {
     }
   };
   const courbeTronc = (rng, h, courbe, base = V3(0, 0, 0), n = 9, dirFixe = null) => {
-    const dir = dirFixe ?? rng() * Math.PI * 2, pts = [];
-    for (let i = 0; i < n; i++) { const t = i / (n - 1); pts.push(V3(base.x + Math.cos(dir) * courbe * t * t * h, base.y + h * t, base.z + Math.sin(dir) * courbe * t * t * h)); }
+    const dir = dirFixe ?? rng() * Math.PI * 2, pts = [V3(base.x, base.y - .16, base.z)];                       // le pied s'enfonce dans le sol
+    for (let i = 0; i < n; i++) { const t = Math.pow(i / (n - 1), 1.25); pts.push(V3(base.x + Math.cos(dir) * courbe * t * t * h, base.y + h * t, base.z + Math.sin(dir) * courbe * t * t * h)); }
     return { pts, dir };
   };
   const batir = {
     feuillu(seed) {
       const rng = aleatoire(seed), gb = new Geo(), gf = new Geo(), h = 2.3 + rng() * 1.1, { pts } = courbeTronc(rng, h, .25);
-      gb.tube(pts, .17, .06, 6, hexc('#5c4332'), 0, 0, .1);
+      gb.tube(pts, .17, .06, 8, hexc('#5c4332'), 0, 0, .1, .85, .14); gb.racines(rng, 4 + (rng() * 2 | 0), .17, hexc('#52392b'));
       const top = pts[pts.length - 1], nb = 3 + (rng() * 3 | 0);
       for (let b = 0; b < nb; b++) { const a = rng() * 6.3, d = b ? .55 + rng() * .5 : 0; cimeBlob(gf, rng, V3(top.x + Math.cos(a) * d, top.y - .1 + rng() * .7 + (b ? -.15 : .25), top.z + Math.sin(a) * d), .95 + rng() * .45, 34, 1.15, hexc('#2f6a2a'), hexc('#8cc646')); }
       return [gb, gf, 'feuillu'];
     },
     pin(seed) {
-      const rng = aleatoire(seed), gb = new Geo(), gf = new Geo(), h = 3.0 + rng() * 1.3, pts = Array.from({ length: 6 }, (_, i) => V3(0, h * i / 5, 0));
-      gb.tube(pts, .13, .03, 6, hexc('#4a3626'));
+      const rng = aleatoire(seed), gb = new Geo(), gf = new Geo(), h = 3.0 + rng() * 1.3, pts = [V3(0, -.16, 0), ...Array.from({ length: 7 }, (_, i) => V3(0, h * Math.pow(i / 6, 1.2), 0))];
+      gb.tube(pts, .13, .03, 8, hexc('#4a3626'), 0, 0, 0, .8, .16); gb.racines(rng, 5, .13, hexc('#43301f'));
       const etages = 6;
       for (let e = 0; e < etages; e++) { const t = e / (etages - 1), y = h * (.28 + t * .68), r = (1 - t) * .95 + .18; cimeBlob(gf, rng, V3(0, y, 0), r, 20 - e * 2, .9 - t * .25, hexc('#1c4a2b'), hexc('#4a8a3c')); }
       return [gb, gf, 'pin'];
     },
     sakura(seed) {
       const rng = aleatoire(seed), gb = new Geo(), gf = new Geo(), h = 1.9 + rng() * .8, { pts } = courbeTronc(rng, h, .5);
-      gb.tube(pts, .14, .05, 6, hexc('#4b382c'), 0, 0, .1);
+      gb.tube(pts, .14, .05, 8, hexc('#4b382c'), 0, 0, .1, .8, .12); gb.racines(rng, 4, .14, hexc('#47342a'));
       const top = pts[pts.length - 1];
       for (let b = 0; b < 4; b++) { const a = rng() * 6.3, d = b ? .5 + rng() * .5 : 0; cimeBlob(gf, rng, V3(top.x + Math.cos(a) * d, top.y + (rng() - .3) * .4, top.z + Math.sin(a) * d), .85 + rng() * .35, 36, 1.0, hexc('#d9709f'), hexc('#fbd2e2')); }
       return [gb, gf, 'sakura'];
@@ -233,7 +245,7 @@ export function creerFlore(ciel, textures) {
     },
     palmier(seed) {
       const rng = aleatoire(seed), gb = new Geo(), gf = new Geo(), h = 2.6 + rng() * 1.5, { pts, dir } = courbeTronc(rng, h, .5 + rng() * .7, V3(0, 0, 0), 12, 0);
-      gb.tube(pts, .12, .075, 7, hexc('#8d7a62'), 1, 0, .25);
+      gb.tube(pts, .12, .075, 9, hexc('#8d7a62'), 1, 0, .25, 1.0, .06); gb.racines(rng, 7, .1, hexc('#7d6b55'), .22, 1.9);
       const top = pts[pts.length - 1], nf = 11 + (rng() * 3 | 0);
       for (let f = 0; f < nf; f++) {
         const a = f / nf * Math.PI * 2 + rng() * .35, hautf = .7 + rng() * .5, L = 1.55 + rng() * .5, relev = .85 - (f % 3) * .22 + rng() * .1;
@@ -253,7 +265,7 @@ export function creerFlore(ciel, textures) {
     },
     bananier(seed) {
       const rng = aleatoire(seed), gb = new Geo(), gf = new Geo(), nf = 6 + (rng() * 3 | 0);
-      gb.tube([V3(0, 0, 0), V3(0, .5, 0), V3(0, 1.0, 0)], .08, .05, 6, hexc('#8cb256'));
+      gb.tube([V3(0, -.1, 0), V3(0, 0, 0), V3(0, .5, 0), V3(0, 1.0, 0)], .08, .05, 8, hexc('#8cb256'), 0, 0, 0, .5, .05);
       for (let f = 0; f < nf; f++) {
         const a = f / nf * Math.PI * 2 + rng() * .5, L = 1.5 + rng() * .8, cx = Math.cos(a), cz = Math.sin(a), seg = 7, relev = .5 + rng() * .5, W = .5 + rng() * .15;
         const base = gf.n, col = mixc(hexc('#6fb338'), hexc('#a4d44c'), rng());

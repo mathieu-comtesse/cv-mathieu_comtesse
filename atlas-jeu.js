@@ -69,6 +69,18 @@ export function creerJeu(M, R, dom) {
   poseSurAncre('sncf', 'chat', chat); declarer(chat, 'chat', 'Un chat sur le toit de la gare : il miaule et saute.', () => { tone([660, 520], 0.25); chat.userData.saut = 1; });
   // horloge de la gare : une aiguille qui tourne
   const aiguille = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.12, 0.01), mat('#17161c')); aiguille.position.set(0, 0.05, 0.012); const pivotH = new THREE.Group(); pivotH.add(aiguille); poseSurAncre('sncf', 'horloge', pivotH);
+  // tour de Paris Nord : cadrans d'horloge (heure réelle) sur deux faces et inscription « PARIS 13 NORD » sur la troisième
+  const horlogesUSP = [];
+  { const toile = (w, h, f) => { const c = document.createElement('canvas'); c.width = w; c.height = h; f(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+    const cadran = toile(256, 256, (x, w, h) => { x.fillStyle = '#fbf8ef'; x.beginPath(); x.arc(128, 128, 124, 0, 6.3); x.fill(); x.strokeStyle = '#1b2433'; x.lineWidth = 7; x.stroke();
+      for (let i = 0; i < 60; i++) { const a = i / 60 * Math.PI * 2, g = i % 5 === 0; x.lineWidth = g ? 6 : 2; x.beginPath(); x.moveTo(128 + Math.sin(a) * (g ? 98 : 108), 128 - Math.cos(a) * (g ? 98 : 108)); x.lineTo(128 + Math.sin(a) * 116, 128 - Math.cos(a) * 116); x.stroke(); }
+      x.fillStyle = '#1b2433'; x.font = 'bold 26px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; for (let n = 1; n <= 12; n++) { const a = n / 12 * Math.PI * 2; x.fillText(String(n), 128 + Math.sin(a) * 78, 128 - Math.cos(a) * 78); } });
+    const enseigne = toile(512, 320, (x, w, h) => { x.fillStyle = '#f6f1e6'; x.fillRect(0, 0, w, h); x.fillStyle = '#1f4a8c'; x.font = '800 118px "Host Grotesk", Arial, sans-serif'; x.textAlign = 'left'; x.textBaseline = 'alphabetic'; x.fillText('PARIS', 24, 150); x.font = '800 78px "Host Grotesk", Arial, sans-serif'; x.fillText('13', 24, 238); x.font = '600 34px "Host Grotesk", Arial, sans-serif'; x.fillText('NORD', 124, 238);
+      x.lineWidth = 12; x.strokeStyle = '#1f4a8c'; x.beginPath(); x.moveTo(318, 232); x.quadraticCurveTo(380, 40, 470, 120); x.stroke(); x.beginPath(); x.moveTo(350, 236); x.quadraticCurveTo(405, 120, 480, 170); x.stroke(); });
+    const fait = (nom, rot) => { const g = new THREE.Group(), face = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.56), new THREE.MeshStandardMaterial({ map: cadran, roughness: 0.6 })), hh = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.13, 0.005), mat('#1b2433')), mm = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.2, 0.005), mat('#1b2433')), hp = new THREE.Group(), mp = new THREE.Group();
+      hh.position.y = 0.065; mm.position.y = 0.1; hp.add(hh); mp.add(mm); hp.position.z = mp.position.z = 0.006; g.add(face, hp, mp); g.rotation.y = rot; M.bats.usp.ancres[nom].add(g); horlogesUSP.push({ hp, mp }); };
+    fait('cadran_e', Math.PI / 2); fait('cadran_o', -Math.PI / 2);
+    const pan = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.41), new THREE.MeshStandardMaterial({ map: enseigne, roughness: 0.7 })); M.bats.usp.ancres.enseigne.add(pan); }
   // signal : un voyant qui change d'aspect
   const signal = (() => { const feu = new THREE.Mesh(new THREE.SphereGeometry(0.052, 14, 10), new THREE.MeshBasicMaterial({ color: '#39d98a' })), halo = new THREE.PointLight('#39d98a', 0.5, 1.6); feu.add(halo);
     const aspects = [{ c: '#39d98a', a: 'feu', d: 7 }, { c: '#ff9a2e', a: 'feu_orange', d: 3.5 }, { c: '#9b5cf0', a: 'feu_violet', d: 3.5 }]; const S = { aspect: 0, t: 0, feu, halo, aspects, regler(k) { this.aspect = (k % 3 + 3) % 3; this.t = 0; const a = aspects[this.aspect]; feu.material.color.set(a.c); halo.color.set(a.c); feu.position.copy(M.bats.reseau.ancres[a.a].position); } };
@@ -245,6 +257,7 @@ export function creerJeu(M, R, dom) {
     // signal
     signal.t += dt; if (signal.t > signal.aspects[signal.aspect].d) signal.regler(signal.aspect + 1); signal.halo.intensity = 0.5 + nuitK * 1.2;
     // horloge de la gare et chat
+    { const d = new Date(), mi = d.getMinutes() + d.getSeconds() / 60, he = (d.getHours() % 12) + mi / 60; for (const h of horlogesUSP) { h.mp.rotation.z = -mi / 60 * Math.PI * 2; h.hp.rotation.z = -he / 12 * Math.PI * 2; } }
     pivotH.rotation.z = -t * 0.2; { const u = chat.userData; u.tete.rotation.y = Math.sin(t * 0.6) * 0.5; u.tete.rotation.z = Math.sin(t * 0.9) * 0.08; for (let i = 0; i < 6; i++) u.queue.userData['s' + i].rotation.z = 0.22 + Math.sin(t * 2.2 - i * 0.6) * 0.18; u.queue.rotation.y = Math.sin(t * 0.8) * 0.4; u.yeux.emissiveIntensity = 0.4 + nuitK * 1.2;
       if (u.saut) { u.saut += dt * 4; chat.position.y = Math.sin(Math.min(Math.PI, u.saut)) * 0.35; chat.rotation.z = Math.sin(Math.min(Math.PI, u.saut)) * 0.3; if (u.saut > Math.PI) { u.saut = 0; chat.position.y = 0; chat.rotation.z = 0; } } }
     if (ceinture.userData.tourne) { ceinture.rotation.y += dt * 6; ceinture.userData.tourne += dt; if (ceinture.userData.tourne > 1.5) { ceinture.userData.tourne = 0; ceinture.rotation.y = 0; } }

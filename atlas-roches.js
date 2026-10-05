@@ -57,17 +57,31 @@ export async function creerRoches({ M, decor, flore }) {
   const meshes = [];
   lots.forEach((liste, k) => { if (!liste.length) return; const m = mailles['r' + k], im = new THREE.InstancedMesh(m.geo, mat, liste.length); liste.forEach((q, i) => im.setMatrixAt(i, q)); im.instanceMatrix.needsUpdate = true; im.castShadow = im.receiveShadow = true; im.frustumCulled = false; groupe.add(im); meshes.push(im); });
 
-  // 4. racines et lianes pendantes sous la lèvre de terre (tubes) et leurs feuilles (cartes à texture)
-  const racines = (() => {
-    const g = new flore.Geo(), gf = new flore.Geo(), rr = aleatoire(31), brun = [0.27, 0.19, 0.12], vert = [0.2, 0.42, 0.14];
-    for (let k = 0; k < 120; k++) {
-      if (rr() < 0.5) continue; const [bx, by, bz, dx, dz] = bord[k], long = 0.8 + rr() * 2.8, lat = (rr() - 0.5) * 0.2, vine = rr() < 0.45;
-      const pts = []; for (let i = 0; i < 9; i++) { const t = i / 8; pts.push(V3(bx + dx * 0.06 + lat * t + Math.sin(t * 5 + k) * 0.05, by - 0.5 - t * long, bz + dz * 0.06 + Math.cos(t * 4 + k) * 0.05)); }
-      g.tube(pts, vine ? 0.012 : 0.03, 0.004, 5, vine ? vert : brun, 0, 0.0, 1.0);
-      if (vine) for (let i = 1; i < 9; i += 1) { const p = pts[i], a = rr() * 6.3; gf.carte([p.x, p.y, p.z], [Math.cos(a), 0, Math.sin(a)], [0, 1, 0], 0.2, 0.2, [0, 0.4, 1], [0.5 + rr() * 0.3, 0.85, 0.5], 1); }
+  // 4. lianes et racines posées sur la roche (tools/atlas-ile/ile_lianes.py : chaque brin épouse la surface réelle de la falaise)
+  const racines = await (async () => {
+    let brins = []; try { brins = await (await fetch(new URL('assets/atlas/ile-lianes.json', import.meta.url).href)).json(); } catch (e) { console.warn('lianes indisponibles', e); }
+    const g = new flore.Geo(), gf = new flore.Geo(), gp = new flore.Geo(), rr = aleatoire(31);
+    const bruns = [[0.2, 0.11, 0.06], [0.26, 0.15, 0.08], [0.16, 0.09, 0.05], [0.3, 0.19, 0.1]], verts = [[0.18, 0.4, 0.13], [0.24, 0.48, 0.16], [0.14, 0.34, 0.14]];
+    for (const b of brins) {
+      const pts = []; for (let i = 0; i < b.p.length; i += 3) pts.push(V3(b.p[i], b.p[i + 1], b.p[i + 2]));
+      if (pts.length < 3) continue;
+      const lisse = new THREE.CatmullRomCurve3(pts, false, 'centripetal').getPoints((pts.length - 1) * 3);      // courbe douce : les brins ne forment plus de coudes
+      if (b.t === 'liane') {
+        const col = verts[(rr() * verts.length) | 0];
+        g.tube(lisse, b.r[0], b.r[1], 5, col, 0, 0, 1.0, 0, 0.1);
+        for (let i = 1; i < pts.length; i++) { const p = pts[i], k = i / pts.length;
+          for (let c = 0; c < 2; c++) { const a = rr() * 6.3, s = (0.22 + rr() * 0.2) * (1 - k * 0.45); gf.carte([p.x, p.y, p.z], [Math.cos(a), 0, Math.sin(a)], [0, 1, 0], s, s, [0, 0.4, 1], [0.45 + rr() * 0.3, 0.85, 0.5], 0.4 + k * 0.6); }
+          if (rr() < 0.07) { const a = rr() * 6.3; gp.carte([p.x, p.y - 0.04, p.z], [Math.cos(a), 0, Math.sin(a)], [0, 1, 0], 0.15, 0.15, [0, 0.3, 1], [1, 0.9, 0.95], 0.5); } }
+      } else {
+        const brun = bruns[(rr() * bruns.length) | 0], mousse = rr() < 0.5;
+        g.tube(lisse, b.r[0] * 1.35, b.r[1] * 1.2, b.t === 'racine' ? 7 : 6, brun, 0, 0, 0, b.t === 'racine' ? 0.35 : 0.2, 0.22);
+        if (mousse) for (let i = 1; i < pts.length - 1; i += 2) { const p = pts[i], a = rr() * 6.3, s = 0.14 + rr() * 0.16; gf.carte([p.x, p.y, p.z], [Math.cos(a), 0, Math.sin(a)], [0, 1, 0], s, s, [0, 0.5, 1], [0.35 + rr() * 0.2, 0.72, 0.3], 0.15); }
+      }
     }
-    const m = new THREE.Mesh(g.geometrie(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 })); m.castShadow = true; m.frustumCulled = false; groupe.add(m);
-    const f = new THREE.Mesh(gf.geometrie(), flore.mats.buisson); f.frustumCulled = false; groupe.add(f); return m;
+    const m = new THREE.Mesh(g.geometrie(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, envMapIntensity: 0.3 })); m.castShadow = m.receiveShadow = true; m.frustumCulled = false; groupe.add(m);
+    const f = new THREE.Mesh(gf.geometrie(), flore.mats.buisson); f.frustumCulled = false; f.castShadow = true; groupe.add(f);
+    if (gp.n) { const q = new THREE.Mesh(gp.geometrie(), flore.mats.sakura); q.frustumCulled = false; groupe.add(q); }
+    return m;
   })();
 
   // 5. fragments flottants

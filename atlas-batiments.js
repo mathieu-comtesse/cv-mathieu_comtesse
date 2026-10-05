@@ -170,3 +170,29 @@ export async function chargerBatiments(ciel, url = new URL('assets/atlas/batimen
     },
   };
 }
+
+/* Jupe de fondation : les volumes larges posés au sol ont été prolongés jusqu'à y = -2 (blender_kit.py, _pied). On ramène le bas de ces jupes sur le
+ * relief réel de l'île (carte.hauteur), pour qu'aucune dalle, aucun escalier ni aucun mur ne flotte au-dessus d'une pente ou d'une falaise.
+ * À appeler une fois le groupe placé (position, rotation) et sa matrice monde à jour. */
+export function ajusterPieds(groupe, carte, centre) {
+  groupe.updateMatrixWorld(true);
+  const p = new THREE.Vector3(), inv = new THREE.Matrix4(), base = groupe.position.y;
+  const sol = (x, z) => {                                                                       // hauteur du relief, ramenée vers le centre si le point est dans le vide
+    for (let k = 0; k <= 12; k++) { const t = k / 12, h = carte.hauteur(x + (centre[0] - x) * t, z + (centre[1] - z) * t); if (h > -20) return h; }
+    return base - 0.5;
+  };
+  groupe.traverse((o) => {
+    if (!o.isMesh) return;
+    const pos = o.geometry.attributes.position; let touche = false;
+    for (let i = 0; i < pos.count; i++) if (pos.getY(i) < -1.9) { touche = true; break; }
+    if (!touche) return;
+    o.geometry = o.geometry.clone(); const P = o.geometry.attributes.position; inv.copy(o.matrixWorld).invert();
+    for (let i = 0; i < P.count; i++) {
+      if (P.getY(i) >= -1.9) continue;
+      p.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld);
+      p.y = Math.min(sol(p.x, p.z) - 0.1, base - 0.08);
+      p.applyMatrix4(inv); P.setXYZ(i, P.getX(i), p.y, P.getZ(i));
+    }
+    P.needsUpdate = true; o.geometry.computeBoundingBox(); o.geometry.computeBoundingSphere();
+  });
+}
