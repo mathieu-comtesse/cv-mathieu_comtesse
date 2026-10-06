@@ -1,0 +1,254 @@
+/* Readable dialogue layering applies on computers and phones alike. */
+#frame:has(#panel.has-choices:not([hidden])) #qhud .qobj,#frame:has(#panel.has-choices:not([hidden])) #qhud .qaide{visibility:hidden}
+
+.mobile-doc-card{box-sizing:border-box;max-height:calc(100% - 80px);overflow:auto}
+.mobile-doc-card>div>div,.mobile-doc-card button,.mobile-doc-card button span,.mobile-doc-fiche button{min-width:0}
+.mobile-doc-card button{white-space:normal;overflow-wrap:anywhere}
+.mobile-doc-feedback{box-sizing:border-box;max-height:calc(100% - 100px);overflow:auto}
+.pdca-revisit{position:absolute;right:12px;top:52px;z-index:9;max-width:calc(100% - 24px)}
+/* Mobile UI sizes are screen CSS pixels, compensated for the game's scaled frame. */
+.touch #frame{--mobile-unit:1}
+.touch #pad{left:calc(16px * var(--mobile-unit));right:calc(16px * var(--mobile-unit));bottom:calc(12px * var(--mobile-unit));gap:calc(12px * var(--mobile-unit));font-family:Arial,Helvetica,sans-serif;z-index:60}
+.touch #pad>.move{display:block;width:calc(120px * var(--mobile-unit));height:calc(120px * var(--mobile-unit));flex:none;pointer-events:auto;position:relative}
+/* Reference joystick: four matte sectors, recessed boot and smooth grey cap. */
+.touch #joystick{position:relative;width:100%;height:100%;box-sizing:border-box;border:0;border-radius:50%;background:conic-gradient(from 45deg,#383838 0deg 1deg,#505050 1deg 89deg,#383838 89deg 91deg,#4c4c4c 91deg 179deg,#383838 179deg 181deg,#515151 181deg 269deg,#383838 269deg 271deg,#545454 271deg 359deg,#383838 359deg);box-shadow:inset 0 calc(1px * var(--mobile-unit)) calc(2px * var(--mobile-unit)) #ffffff0d,0 calc(3px * var(--mobile-unit)) calc(5px * var(--mobile-unit)) #00000030;touch-action:none;user-select:none;-webkit-user-select:none}
+.touch #joystick .socket{position:absolute;inset:22%;border-radius:50%;background:radial-gradient(circle at 50% 42%,#414141 0 41%,#303030 43% 62%,#3c3c3c 64% 73%,#292929 75% 100%);box-shadow:inset 0 calc(4px * var(--mobile-unit)) calc(5px * var(--mobile-unit)) #00000048,0 calc(2px * var(--mobile-unit)) calc(2px * var(--mobile-unit)) #ffffff08;pointer-events:none}
+.touch #joystick .shaft{position:absolute;left:50%;top:50%;width:46%;height:46%;border-radius:50%;background:radial-gradient(circle at 48% 40%,#4a4a4a 0 63%,#333333 65% 81%,#252525 83%);box-shadow:calc(-3px * var(--mobile-unit)) calc(4px * var(--mobile-unit)) calc(3px * var(--mobile-unit)) #00000040;transform:translate(-50%,-50%);pointer-events:none}
+.touch #pad #joystick .stick{position:absolute;left:50%;top:50%;display:block;width:44%;height:44%;box-sizing:border-box;border:calc(1px * var(--mobile-unit)) solid #333333;border-radius:50%;background:linear-gradient(145deg,#a6a6a6,#9d9d9d);box-shadow:inset 0 calc(1px * var(--mobile-unit)) calc(1px * var(--mobile-unit)) #ffffff1a,calc(-4px * var(--mobile-unit)) calc(5px * var(--mobile-unit)) calc(2px * var(--mobile-unit)) #00000030;transform:translate(-50%,-50%);pointer-events:none;will-change:transform}
+.touch #joystick .grip{display:none}
+.touch #joystick .directions{position:absolute;inset:0;width:100%;height:100%;fill:#f5f5f2;pointer-events:none}
+.touch #joystick.is-down .stick{background:linear-gradient(145deg,#adadad,#a3a3a3)}
+.touch .joystick-caption{display:none}
+.touch #mobile-aim{position:absolute;width:calc(30px * var(--mobile-unit));height:calc(30px * var(--mobile-unit));transform:translate(-50%,-50%);z-index:28;pointer-events:none;color:#ffe3a7;filter:drop-shadow(0 1px 1px #07111e)}
+.touch #mobile-aim svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2}
+.touch #mobile-aim[hidden]{display:none}
+.touch .mobile-selected{outline:calc(2px * var(--mobile-unit)) solid #e5bd73!important;outline-offset:calc(-2px * var(--mobile-unit));background-color:#e5bd7330!important}
+.touch #frame.cine #phud{opacity:1}
+.touch #ptime{left:50%;top:calc(444px - 38px * var(--mobile-unit));transform:translateX(-50%);padding:calc(4px * var(--mobile-unit)) calc(8px * var(--mobile-unit));border-radius:calc(4px * var(--mobile-unit));background:rgba(17,27,45,.76);font:700 calc(12px * var(--mobile-unit))/1.3 Arial,Helvetica,sans-serif;text-shadow:none}
+
+
+
+/* Answers remain reachable above the permanent controls in every game. */
+.touch .arui{font-family:Arial,Helvetica,sans-serif;font-size:calc(13px * var(--mobile-unit))}
+.touch .arui .ap{box-sizing:border-box}
+.touch .arui .bot{bottom:calc(140px * var(--mobile-unit));max-height:calc(100% - 188px * var(--mobile-unit));overflow:auto}
+.touch .arui .top{top:calc(48px * var(--mobile-unit));max-height:calc(76px * var(--mobile-unit));overflow:auto}
+.touch .arui h4{font:700 calc(14px * var(--mobile-unit))/1.2 Arial;letter-spacing:0;text-shadow:none}
+.touch .arui button{min-height:calc(44px * var(--mobile-unit));font-size:calc(13px * var(--mobile-unit))}
+.touch .arui button i,.touch .arui small{font-size:calc(11px * var(--mobile-unit))}
+.touch #modal{box-sizing:border-box;padding-bottom:calc(140px * var(--mobile-unit))}
+.touch #modal .mcard{max-height:calc(100% - 16px * var(--mobile-unit));font:400 calc(13px * var(--mobile-unit))/1.4 Arial,Helvetica,sans-serif}
+.touch #modal .btn{min-height:calc(44px * var(--mobile-unit));font:700 calc(13px * var(--mobile-unit))/1.2 Arial}
+.touch .tcard{box-sizing:border-box;padding-bottom:calc(140px * var(--mobile-unit))}
+.touch .mobile-doc-card{left:calc(12px * var(--mobile-unit))!important;right:calc(12px * var(--mobile-unit))!important;bottom:calc(140px * var(--mobile-unit))!important;font:400 calc(11px * var(--mobile-unit))/1.3 Arial!important;padding:calc(4px * var(--mobile-unit))!important}
+.touch .mobile-doc-card button{min-height:calc(44px * var(--mobile-unit));font:700 calc(10px * var(--mobile-unit))/1.2 Arial!important;flex-direction:column}
+.touch .mobile-doc-fiche{top:calc(48px * var(--mobile-unit))!important;max-height:calc(100% - 188px * var(--mobile-unit));overflow:auto;font:400 calc(12px * var(--mobile-unit))/1.3 Arial!important}
+.touch .mobile-doc-fiche button{min-height:calc(44px * var(--mobile-unit))}
+.touch .mobile-doc-feedback{top:calc(48px * var(--mobile-unit))!important;right:calc(12px * var(--mobile-unit))!important;width:min(calc(330px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)))!important;max-height:calc(100% - 188px * var(--mobile-unit));font:400 calc(13px * var(--mobile-unit))/1.45 Arial!important;cursor:default!important}
+.touch .mobile-doc-feedback .btn,.touch .pdca-revisit{min-height:calc(44px * var(--mobile-unit));font:700 calc(13px * var(--mobile-unit))/1.3 Arial}
+.touch .pdca-revisit{top:calc(48px * var(--mobile-unit));right:calc(12px * var(--mobile-unit))}
+
+/* Karaoke subtitles use real note timings and remain readable without scoring a hit. */
+#karaoke-lyrics{position:absolute;left:50%;top:58px;transform:translateX(-50%);width:min(480px,90%);box-sizing:border-box;padding:8px 14px;background:rgba(12,24,40,.94);border:1px solid #9aafc5;border-radius:8px;color:#f1f5fb;font:400 15px/1.45 Arial,Helvetica,sans-serif;text-align:center;z-index:8;pointer-events:none}
+#karaoke-lyrics[hidden]{display:none}
+#karaoke-lyrics .lyrics-previous,#karaoke-lyrics .lyrics-next{min-height:1.3em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#b5c5d6;font-size:11px;line-height:1.3}
+#karaoke-lyrics .lyrics-previous{opacity:.6}
+#karaoke-lyrics .lyrics-current{padding:4px 0;font-weight:700;min-height:1.45em}
+#karaoke-lyrics .lyrics-line{animation:lyrics-in .2s ease-out}
+#karaoke-lyrics .sung{color:#f4cf8a}
+#karaoke-lyrics .singing{--sung:0%;background:linear-gradient(90deg,#ffd36f var(--sung),#fff var(--sung));background-clip:text;-webkit-background-clip:text;color:transparent;text-decoration:underline;text-decoration-color:#e5bd73;text-underline-offset:3px}
+#karaoke-lyrics .upcoming{color:#e0e9f4}
+#karaoke-lyrics .lyrics-score{margin-top:4px;padding-top:4px;border-top:1px solid #91a6be40;color:#bfd0e2;font-size:10px;line-height:1.3}
+@keyframes lyrics-in{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.touch #karaoke-lyrics{top:calc(50px * var(--mobile-unit));width:min(calc(480px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)));padding:calc(6px * var(--mobile-unit)) calc(12px * var(--mobile-unit));font-size:calc(15px * var(--mobile-unit));max-height:calc(100% - 190px * var(--mobile-unit));overflow:hidden}
+.touch #karaoke-lyrics .lyrics-previous,.touch #karaoke-lyrics .lyrics-next{font-size:calc(11px * var(--mobile-unit))}
+.touch #karaoke-lyrics .lyrics-score{font-size:calc(10px * var(--mobile-unit))}
+.touch #karaoke-lyrics .lyrics-current{padding:calc(4px * var(--mobile-unit)) 0}
+@media(max-width:480px),(max-height:350px){
+  .touch #karaoke-lyrics{padding:calc(3px * var(--mobile-unit)) calc(10px * var(--mobile-unit));font-size:calc(13px * var(--mobile-unit))}
+  .touch #karaoke-lyrics .lyrics-previous,.touch #karaoke-lyrics .lyrics-next,.touch #karaoke-lyrics .lyrics-score{display:none}
+  .touch #karaoke-lyrics .lyrics-current{max-height:2.9em;overflow:hidden;padding:0}
+}
+@media(prefers-reduced-motion:reduce){#karaoke-lyrics .lyrics-line{animation:none}}
+
+/* Dialogue dock uses the quay interaction prompt’s cream / ink art direction. */
+#frame{--dialogue-unit:1;--dialogue-font-size:9px;--dialogue-font:"Luckiest Guy","Trebuchet MS",sans-serif;--dialogue-cream:#fff3c8;--dialogue-ink:#1a0d22;--dialogue-text:#3a1c40}
+#frame #panel,#frame #panel.mini,#frame #panel.compact{
+  left:50%;right:auto;top:auto;bottom:76px;transform:translateX(-50%);
+  width:min(480px,calc(100% - 32px));max-width:none;max-height:130px;margin:0;
+  border:3px solid var(--dialogue-ink);border-radius:14px;
+  background:var(--dialogue-cream);color:var(--dialogue-text);
+  box-shadow:0 3px 0 var(--dialogue-ink);overflow:hidden;z-index:8;
+  font-family:var(--dialogue-font);text-shadow:none;
+}
+#frame #panel.good .tbar b{color:#2a613a}
+#frame #panel.bad .tbar b{color:#922e49}
+#frame #panel .tbar{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-height:0;padding:9px 12px 0 58px;border:0;background:none;color:var(--dialogue-text);font:700 var(--dialogue-font-size)/1.3 var(--dialogue-font);letter-spacing:0}
+#frame #panel .tbar span{min-width:0;overflow-wrap:anywhere;font-size:var(--dialogue-font-size);font-weight:400;color:var(--dialogue-text)}
+#dialogue-page{margin-left:auto;background:var(--dialogue-text);color:#ffe9b0;padding:1px 5px;border-radius:4px;font-size:var(--dialogue-font-size);white-space:nowrap;font-variant-numeric:tabular-nums}
+#dialogue-page:empty{display:none}
+#frame #panel .pin{padding:6px 12px 10px 58px;gap:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#b6aa94 transparent}
+#frame #panel .por{position:absolute;left:10px;top:11px;width:36px;height:36px;box-sizing:border-box;border:2px solid var(--dialogue-ink);border-radius:50%;padding:1px;background:#ffe9b0;box-shadow:0 2px 0 var(--dialogue-ink)}
+#frame #panel .por img{filter:none;border-radius:50%}
+#frame #panel .pbody{min-width:0;min-height:0;gap:8px}
+#frame #panel .ptext{font-size:var(--dialogue-font-size)!important;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
+#frame #panel .ptext ol{font-size:inherit}
+#frame #panel .howto{margin-top:4px;padding:0;border:0;border-radius:0;background:none;color:inherit}
+#frame #panel .howto p{margin:0 0 4px;font-size:inherit;line-height:1.4}
+#frame #panel .howto-controls{color:var(--dialogue-text)}
+#frame #panel .pact[hidden]{display:none}
+#frame #panel.has-choices{max-height:48%}
+#frame #panel .btn{min-height:40px;padding:8px 12px!important;border:2px solid var(--dialogue-ink);border-radius:6px;background:var(--dialogue-text);color:#ffe9b0;font:600 var(--dialogue-font-size)/1.4 var(--dialogue-font)!important;box-shadow:0 2px 0 var(--dialogue-ink);text-shadow:none;white-space:normal;overflow-wrap:anywhere}
+#frame #panel .btn:hover,#frame #panel .btn:focus-visible{background:#57315c;border-color:var(--dialogue-ink)}
+#dialogue-control{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:61;width:52px;height:52px;box-sizing:border-box;padding:5px 0;border:3px solid var(--dialogue-ink);border-radius:50%;background:var(--dialogue-cream);color:var(--dialogue-text);box-shadow:0 3px 0 var(--dialogue-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 var(--dialogue-font-size)/1 var(--dialogue-font);letter-spacing:.03em;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#dialogue-control[hidden]{display:none}
+#dialogue-control svg{width:26px;height:26px;fill:none;stroke:var(--dialogue-text);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+#dialogue-control:active{background:#ffe9b0}
+#dialogue-control:focus-visible{outline:2px solid #fff;outline-offset:3px}
+#frame #cine .ctop{display:none}
+#frame #cine .cbot{left:50%;right:auto;top:auto;bottom:76px;width:min(480px,calc(100% - 32px));height:auto;min-height:60px;max-height:130px;box-sizing:border-box;transform:translate(-50%,160%);border:3px solid var(--dialogue-ink);border-radius:14px;background:var(--dialogue-cream);box-shadow:0 3px 0 var(--dialogue-ink);opacity:0;overflow:auto}
+#frame #cine.on .cbot{transform:translateX(-50%);opacity:1}
+#frame #cine .cpor{left:10px;top:12px;bottom:auto;width:36px;height:36px;border:2px solid var(--dialogue-ink);box-shadow:0 2px 0 var(--dialogue-ink)}
+#frame #cine .ctxt{position:relative;inset:auto;display:block;min-height:36px;padding:10px 12px 10px 58px;box-sizing:border-box;font:400 var(--dialogue-font-size)/1.45 var(--dialogue-font);letter-spacing:0;text-shadow:none;text-align:left;color:var(--dialogue-text);overflow-wrap:anywhere}
+.touch #frame{--dialogue-unit:var(--mobile-unit);--dialogue-font-size:calc(9px * var(--mobile-unit))}
+.touch #frame #panel,.touch #frame #panel.mini,.touch #frame #panel.compact,.touch #frame #cine .cbot{bottom:calc(74px * var(--mobile-unit));width:min(calc(440px * var(--mobile-unit)),calc(100% - 300px * var(--mobile-unit)));max-height:calc(106px * var(--mobile-unit));border-radius:calc(10px * var(--mobile-unit))}
+.touch #frame #panel .tbar{padding:calc(7px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) 0 calc(46px * var(--mobile-unit));gap:calc(6px * var(--mobile-unit));font-size:var(--dialogue-font-size)}
+.touch #frame #panel .tbar span{display:none}
+.touch #frame #panel .tbar small{font-size:var(--dialogue-font-size)}
+.touch #frame #panel .pin{padding:calc(5px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) calc(46px * var(--mobile-unit))}
+.touch #frame #panel .por,.touch #frame #cine .cpor{left:calc(8px * var(--mobile-unit));top:calc(10px * var(--mobile-unit));width:calc(28px * var(--mobile-unit));height:calc(28px * var(--mobile-unit))}
+.touch #frame #panel .ptext{font-size:var(--dialogue-font-size)!important;line-height:1.4}
+.touch #dialogue-control{bottom:calc(12px * var(--mobile-unit));width:calc(52px * var(--mobile-unit));height:calc(52px * var(--mobile-unit));font-size:var(--dialogue-font-size)}
+.touch #dialogue-control svg{width:calc(26px * var(--mobile-unit));height:calc(26px * var(--mobile-unit))}
+.touch #frame #panel.has-choices{bottom:calc(140px * var(--mobile-unit));width:min(calc(480px * var(--mobile-unit)),calc(100% - 24px * var(--mobile-unit)));max-height:calc(100% - 190px * var(--mobile-unit))}
+.touch #frame #panel .btn{min-height:calc(44px * var(--mobile-unit));padding:calc(6px * var(--mobile-unit)) calc(10px * var(--mobile-unit))!important;font-size:var(--dialogue-font-size)!important}
+.touch #frame #cine .ctxt{min-height:calc(36px * var(--mobile-unit));padding:calc(8px * var(--mobile-unit)) calc(10px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) calc(46px * var(--mobile-unit));font-size:var(--dialogue-font-size)}
+/* Small phones reserve the control row; the reading strip sits just above it. */
+@media(max-width:700px),(max-height:350px){
+ .touch #frame #panel:not(.has-choices),.touch #frame #cine .cbot{bottom:calc(140px * var(--mobile-unit));width:calc(100% - 24px * var(--mobile-unit));max-height:calc(90px * var(--mobile-unit))}
+}
+@media(prefers-reduced-motion:reduce){#frame #cine .cbot,#frame #cine .ctxt.pop{transition:none;animation:none}}
+
+#frame:has(#panel:not([hidden])) #cine .cbot{visibility:hidden}
+
+#frame:has(#modal:not([hidden])) #dialogue-control,#frame:has(.tcard) #dialogue-control,#frame:has(#fade.on) #dialogue-control{visibility:hidden}
+
+/* Same size for every dialogue renderer, including nested and inline text.
+   Text-entry fields keep their input size to avoid mobile focus zoom. */
+#frame #panel,#frame #panel *,#frame #cine .ctxt,#frame #cine .ctxt *,#frame #dialogue-control,#frame #dialogue-control span,
+#frame .arui .ap,#frame .arui .ap *,
+#frame .mobile-doc-fiche,#frame .mobile-doc-fiche *,#frame .mobile-doc-feedback,#frame .mobile-doc-feedback *,
+#frame .dialogue-copy,#frame .dialogue-copy *,
+#frame #modal .mcard,#frame #modal .mcard :not(input):not(textarea),
+#frame #pmsg,#frame #pmsg *,#frame #rprompt,#frame #rprompt *{
+  font-family:var(--dialogue-font)!important;
+  font-size:var(--dialogue-font-size)!important;
+  line-height:1.4!important;
+  letter-spacing:0;
+}
+
+
+/* Modern TALAS action dock. Map and primary action occupy separate corners.
+   Dimensions are screen pixels, then compensated for the scene transform. */
+.touch #frame{--touch-main:72px;--touch-secondary:48px;--touch-joystick:120px;--touch-map:88px;--action-main:calc(var(--touch-main) * var(--mobile-unit));--action-secondary:calc(var(--touch-secondary) * var(--mobile-unit));--action-gap:calc(12px * var(--mobile-unit));--action-edge:calc(16px * var(--mobile-unit) + var(--game-safe-right,0px))}
+.touch #pad>.move{width:calc(var(--touch-joystick) * var(--mobile-unit));height:calc(var(--touch-joystick) * var(--mobile-unit))}
+.touch #pad .acts,.touch #pad[data-actions="1"] .acts{position:relative;display:block;width:calc(var(--action-main) + var(--action-secondary) + var(--action-gap));height:calc(var(--action-main) + var(--action-secondary) + var(--action-gap));pointer-events:none}
+.touch #pad .acts button,.touch #frame #dialogue-control,.touch #frame #dialogue-dismiss{--accent:#54ddd8;position:absolute;box-sizing:border-box;width:var(--action-secondary);height:var(--action-secondary);padding:0;border:0;border-radius:50%;background:linear-gradient(145deg,#626476,#141929);box-shadow:0 calc(3px * var(--mobile-unit)) 0 #10121f,0 calc(5px * var(--mobile-unit)) calc(8px * var(--mobile-unit)) #0d102a70;display:block;color:#fff5d9;pointer-events:auto;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transform:none;text-shadow:none;font:700 calc(9px * var(--mobile-unit))/1 var(--dialogue-font,'Trebuchet MS',sans-serif)}
+.touch #pad .acts button{right:calc(var(--action-main) + var(--action-gap));bottom:calc(var(--action-secondary) + var(--action-gap))}
+.touch #pad .acts button:nth-child(2){bottom:0}
+.touch #pad .acts button.primary{right:0;bottom:0;width:var(--action-main);height:var(--action-main);--accent:#ff9561}
+.touch #pad[data-actions="2"] .acts button:not(.primary){bottom:calc(22px * var(--mobile-unit))}
+.touch #pad .acts button[hidden],#dialogue-dismiss[hidden]{display:none!important}
+.action-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;clip-path:circle(44% at 50% 50%);transform:scale(1.13);pointer-events:none}
+.action-drawing{position:absolute;inset:5%;border:calc(2px * var(--mobile-unit)) solid var(--accent);border-radius:50%;background:radial-gradient(ellipse at 35% 20%,#514763,#282139 65%);box-shadow:inset 0 calc(2px * var(--mobile-unit)) 0 #a5a1b74d,inset 0 calc(-4px * var(--mobile-unit)) 0 #151526,0 0 0 calc(2px * var(--mobile-unit)) #191c29;pointer-events:none;display:grid;place-items:center}
+.touch #pad .action-icon{width:57%;height:57%;fill:#fff2cf25;stroke:#fff1ca;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 0 #171322);pointer-events:none}
+.touch #pad [data-icon="tornado"]{--accent:#a99bff}
+.touch #pad .cool{--accent:#61d6fa}
+.touch #pad .action-label,.touch #frame #dialogue-control>span,.touch #frame #dialogue-dismiss>span{position:absolute;bottom:-4%;left:50%;transform:translateX(-50%);max-width:132%;box-sizing:border-box;padding:calc(3px * var(--mobile-unit)) calc(5px * var(--mobile-unit));border:calc(1px * var(--mobile-unit)) solid #77768b;border-radius:calc(5px * var(--mobile-unit));background:#202336;color:#fff5d9;white-space:nowrap;font:700 calc(9px * var(--mobile-unit))/1 var(--dialogue-font,'Trebuchet MS',sans-serif);pointer-events:none}
+.touch #pad .acts button.is-down,.touch #frame #dialogue-control:active,.touch #frame #dialogue-dismiss:active{transform:scale(.94);filter:brightness(1.2)}
+.touch #pad .acts button:disabled{opacity:.45}
+.touch #pad .acts button:focus-visible,.touch #frame #dialogue-control:focus-visible,.touch #frame #dialogue-dismiss:focus-visible{outline:calc(2px * var(--mobile-unit)) solid #fff;outline-offset:calc(4px * var(--mobile-unit))}
+.touch #frame #qhud canvas.qmap{top:min(calc(50px * var(--mobile-unit) + var(--game-safe-top,0px)),calc(100% - var(--action-main) - (var(--touch-map) + 32px) * var(--mobile-unit) - var(--game-safe-bottom,0px)));right:calc(12px * var(--mobile-unit) + var(--game-safe-right,0px));bottom:auto;width:calc(var(--touch-map) * var(--mobile-unit));height:calc(var(--touch-map) * var(--mobile-unit))}
+.touch #frame #qhud .qobj{right:calc((var(--touch-map) + 28px) * var(--mobile-unit) + var(--game-safe-right,0px));top:calc(48px * var(--mobile-unit) + var(--game-safe-top,0px));max-width:45%;padding:calc(6px * var(--mobile-unit)) calc(8px * var(--mobile-unit));gap:calc(6px * var(--mobile-unit))}
+.touch #frame #qhud .qobj svg{width:calc(25px * var(--mobile-unit));height:calc(30px * var(--mobile-unit))}
+.touch #frame #qhud .qobj b{font-size:calc(10px * var(--mobile-unit))}
+.touch #frame #qhud .qobj span{font-size:calc(9px * var(--mobile-unit))}
+.touch #frame #dialogue-control{left:auto;right:var(--action-edge);bottom:calc(12px * var(--mobile-unit) + var(--game-safe-bottom,0px));width:var(--action-main);height:var(--action-main)}
+.touch #frame #dialogue-dismiss{left:auto;right:calc(var(--action-edge) + var(--action-main) + var(--action-gap));bottom:calc(12px * var(--mobile-unit) + var(--game-safe-bottom,0px));z-index:61}
+.touch #frame #dialogue-control[data-mini="true"]{right:calc(var(--action-edge) + var(--action-main) + var(--action-secondary) + 2 * var(--action-gap));width:var(--action-secondary);height:var(--action-secondary)}
+.touch #frame #dialogue-control[data-choices="true"]{right:calc(var(--action-edge) + var(--action-main) + var(--action-gap));width:var(--action-secondary);height:var(--action-secondary)}
+#dialogue-dismiss{position:absolute;left:calc(50% + 42px);bottom:12px;width:44px;height:44px;border:0;border-radius:50%;background:#25263a;color:#fff3d3;z-index:61;cursor:pointer}
+#dialogue-dismiss>span{position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);font:700 9px/1 'Trebuchet MS',sans-serif;background:#202336;padding:3px 5px;border-radius:4px}
+#frame:has(#modal:not([hidden])) #dialogue-dismiss,#frame:has(.tcard) #dialogue-dismiss,#frame:has(#fade.on) #dialogue-dismiss{visibility:hidden}
+/* Cinematic/story dialogue replaces the gameplay action, never overlays it. */
+.touch #frame:has(#cine.on) #pad .acts{visibility:hidden}
+
+/* Review: answer contrast and compact CEO combat, not yet published. */
+#frame #panel .pact .btn,#frame #panel .pact .btn *{color:#fff3c8!important;-webkit-text-fill-color:#fff3c8!important;-webkit-text-stroke:0;text-shadow:none}
+#frame #panel .pact .btn:hover,#frame #panel .pact .btn:focus,#frame #panel .pact .btn:focus-visible,#frame #panel .pact .btn.mobile-selected{background:#57305f!important;color:#fff3c8!important;-webkit-text-fill-color:#fff3c8!important;outline-color:#54ddd8!important}
+#frame #panel.has-choices{display:flex;flex-direction:column;overflow:hidden}
+#frame #panel.has-choices .tbar{flex:none}
+#frame #panel.has-choices .pin{flex:1;min-height:0;display:block;overflow:auto;overscroll-behavior:contain}
+#frame #panel.has-choices .pbody{display:block}
+#frame #panel.has-choices .ptext{margin-bottom:8px}
+#frame #panel.has-choices .pact{gap:6px}
+#frame #panel.has-choices .pact .btn{flex:none;height:auto;min-width:0;white-space:normal;overflow-wrap:anywhere}
+#frame .arui{--arena-unit:1;--arena-font-size:8px;z-index:20}
+#frame .arui .ap,#frame .arui .ap *{font-family:Arial,Helvetica,sans-serif!important;font-size:var(--arena-font-size)!important;line-height:1.35!important;letter-spacing:0;text-shadow:none;-webkit-text-stroke:0}
+#frame .arui .ap{left:50%;right:auto;transform:translateX(-50%);width:min(460px,calc(100% - 32px));box-sizing:border-box;padding:8px 10px;border:2px solid #bba0dc;border-radius:8px;background:rgba(26,18,45,.96);color:#fff3d7;box-shadow:0 3px 0 #100e20}
+#frame .arui .ap.ask{display:flex;flex-direction:column;overflow:hidden}
+#frame .arui .arena-question{flex:none;padding-bottom:6px;border-bottom:1px solid #bba0dc60}
+#frame .arui .arena-question h4,#frame .arui h4{font-size:calc(9px * var(--arena-unit))!important;line-height:1.25!important;margin:0 0 4px;color:#ffd87c}
+#frame .arui .arena-question p{margin:0;color:#fff3d7}
+#frame .arui .arena-answers{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8f72b1 #241933;padding:0 2px 2px}
+#frame .arui .hd{margin:5px 0 3px;color:#c6f3ff}
+#frame .arui button{box-sizing:border-box;grid-template-columns:18px minmax(0,1fr);gap:2px 5px;white-space:normal;overflow-wrap:anywhere;color:#fff3d7;min-height:40px;padding:5px 6px;border:1px solid #8f72b160;border-radius:4px;margin-top:4px;background:#352443}
+#frame .arui button span,#frame .arui button b{color:#fff3d7}
+#frame .arui button i{color:#bcdde9}
+#frame .arui button.on,#frame .arui button.mobile-selected,#frame .arui button:focus-visible{background:#543363!important;outline-color:#54ddd8!important}
+#frame .arui button.on b::before{display:none}
+#frame .arui .arena-feedback{margin:0;overflow-wrap:anywhere}
+#frame .arui .go{display:none}
+#frame .arui .ap.top{top:58px;max-height:80px;overflow:auto}
+.touch #frame .arui{--arena-unit:var(--mobile-unit);--arena-font-size:calc(8px * var(--mobile-unit))}
+.touch #frame .arui .ap{width:min(calc(460px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)));padding:calc(6px * var(--mobile-unit)) calc(8px * var(--mobile-unit));border-radius:calc(6px * var(--mobile-unit))}
+.touch #frame .arui .ap.bot{bottom:calc((var(--touch-main) + 26px) * var(--mobile-unit) + var(--game-safe-bottom,0px));max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+.touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+.touch #frame .arui .arena-question{padding-bottom:calc(5px * var(--mobile-unit))}
+.touch #frame .arui .arena-answers{padding:0 calc(2px * var(--mobile-unit)) calc(2px * var(--mobile-unit))}
+.touch #frame .arui button{min-height:calc(44px * var(--mobile-unit));padding:calc(4px * var(--mobile-unit)) calc(6px * var(--mobile-unit));grid-template-columns:calc(16px * var(--mobile-unit)) minmax(0,1fr);gap:calc(2px * var(--mobile-unit)) calc(5px * var(--mobile-unit));margin-top:calc(4px * var(--mobile-unit))}
+.touch #frame .arui .ap.top{top:calc(48px * var(--mobile-unit));max-height:calc(70px * var(--mobile-unit))}
+/* Two-column answers match the compact office proposal. The question stays outside the scrollable list. */
+#frame .arui .arena-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:max-content;align-content:start;gap:4px;flex:1 1 auto}
+#frame .arui .arena-answers .hd{grid-column:1 / -1}
+#frame .arui .arena-answers button{margin-top:0}
+#frame .arui .arena-question{max-height:58px;overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
+.touch #frame .arui .arena-answers{gap:calc(4px * var(--mobile-unit))}
+.touch #frame .arui .arena-question{max-height:calc(48px * var(--mobile-unit))}
+.touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 66px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+@media(max-height:280px){.touch #frame .arui .arena-answers .hd{display:none}}
+
+/* Combat quality pass: readable UI is independent of the retro scene raster. */
+#frame .arui{--arena-font-size:12px}
+#frame .arui .ap{width:min(620px,calc(100% - 32px));padding:9px 12px}
+#frame .arui h4,#frame .arui .arena-question h4{font-size:var(--arena-font-size)!important;line-height:1.3!important}
+#frame .arui .ap.ask{max-height:50%}
+#frame .arui .arena-question{max-height:76px}
+#frame .arui .arena-answers button{min-height:44px;line-height:1.3!important}
+#frame .arui .arena-answers button i{display:none}
+#frame .arui .ap.bot:not(.ask){max-height:130px;overflow:auto}
+.touch #frame .arui{--arena-font-size:calc(12px * var(--mobile-unit))}
+.touch #frame .arui .ap{width:min(calc(620px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)))}
+.touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
+.touch #frame .arui .arena-question{max-height:calc(76px * var(--mobile-unit))}
+.touch #frame .arui .ap.bot:not(.ask){max-height:calc(125px * var(--mobile-unit))}
+.talas-retro-fx,.talas-retro-cinema,.talas-retro-banner{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated}
+.talas-retro-fx{z-index:3}.talas-retro-banner{z-index:8}.talas-retro-cinema{z-index:25;background:#10101c}
+#frame.combat-cinema #pad,#frame.combat-cinema #dialogue-control,#frame.combat-cinema #dialogue-dismiss{visibility:hidden!important}
+#frame .a3 .a3crt{opacity:.15}#frame .a3{overflow:hidden}
+/* Brush letters contain black paper around the ink: screen blending reveals the arena. */
+.talas-retro-banner{mix-blend-mode:screen}
+/* Keep combat type and target widths constant in screen pixels on large displays too. */
+#frame .arui{--arena-unit:var(--mobile-unit,1);--arena-font-size:calc(12px * var(--arena-unit))}
+#frame .arui .ap{width:min(calc(620px * var(--arena-unit)),calc(100% - 32px * var(--arena-unit)));padding:calc(7px * var(--arena-unit)) calc(10px * var(--arena-unit))}
+#frame .arui .arena-answers button{min-height:calc(44px * var(--arena-unit));padding:calc(4px * var(--arena-unit)) calc(6px * var(--arena-unit));grid-template-columns:calc(18px * var(--arena-unit)) minmax(0,1fr)}

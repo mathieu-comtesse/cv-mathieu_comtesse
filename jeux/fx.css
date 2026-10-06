@@ -1,0 +1,35 @@
+/* Effets d'interface (inspirés d'ObsidianUI, MIT) : survol des onglets, aperçus des menus déroulants, mot qui bascule. */
+
+/* ---- Split showcase : l'onglet survolé glisse vers l'extérieur, se tasse et s'élève (ressort) ---- */
+@media (hover:hover) and (min-width:761px){
+  .theme-nav>a,.theme-nav>.nav-menu>summary{transition:transform .45s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-radius .3s,background-color .16s ease,color .16s ease}
+  .theme-nav>a:hover,.theme-nav>a:focus-visible,.theme-nav>.nav-menu>summary:hover,.theme-nav>.nav-menu>summary:focus-visible{transform:translateX(var(--fx-sx,0)) scale(.97);box-shadow:4px 4px 0 var(--ink);border-radius:8px;z-index:3}
+}
+
+/* ---- Hover img : aperçu qui suit le curseur et bande d'images qui coulisse selon l'élément survolé ---- */
+.fx-thumb{position:fixed;left:0;top:0;width:320px;height:200px;overflow:hidden;pointer-events:none;z-index:200;border:1px solid var(--ink);background:var(--white);box-shadow:6px 6px 0 var(--ink);transform:translate(-999px,-999px) scale(0);will-change:transform}
+.fx-strip{display:flex;flex-direction:column;will-change:transform}
+.fx-strip>div{flex:none;width:320px;height:200px}.fx-strip img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.theme-nav .nav-panel a[data-img] .fx-t{display:block;transition:transform .5s ease}
+.theme-nav .nav-panel a[data-img] small{transition:transform .5s ease,opacity .5s ease}
+@media (hover:hover){
+  .theme-nav .nav-panel a[data-img]:hover,.theme-nav .nav-panel a[data-img]:focus-visible{opacity:.6}
+  .theme-nav .nav-panel a[data-img]:hover .fx-t,.theme-nav .nav-panel a[data-img]:focus-visible .fx-t{transform:translateX(-4px)}
+  .theme-nav .nav-panel a[data-img]:hover small,.theme-nav .nav-panel a[data-img]:focus-visible small{transform:translateX(4px)}
+}
+@media (max-width:760px),(hover:none){.fx-thumb{display:none}}
+
+/* ---- Mot qui bascule : chaque lettre est un cube, départ décalé, largeur qui s'adapte ---- */
+.hero h1 em.flip,em.flip{color:var(--pink,#272AF5)}
+em.flip.is-built{display:inline-block;perspective:900px;white-space:nowrap;line-height:1.2em;vertical-align:baseline;text-align:left}
+.fs{display:inline-block;position:relative;height:1.2em;width:var(--wa);transform-style:preserve-3d;vertical-align:-.25em;animation:fs-cycle 8s var(--d,0s) infinite ease-in-out}
+.fs .f{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;font-style:normal;line-height:1}
+.fs .f1{transform:translateZ(.6em)}
+.fs .f2{transform:rotateX(-90deg) translateZ(.6em)}
+.fs .f3{transform:rotateX(-180deg) translateZ(.6em)}
+@keyframes fs-cycle{
+  0%,36%{transform:rotateX(0deg);width:var(--wa)}
+  46%,86%{transform:rotateX(90deg);width:var(--wb)}
+  96%,100%{transform:rotateX(180deg);width:var(--wa)}
+}
+@media (prefers-reduced-motion:reduce){.fs{animation:none}.fs .f2,.fs .f3{display:none}}
