@@ -1,0 +1,60 @@
+{
+ "id": "chariot-elevateur",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\industrial-forklift-loader\\model.ts",
+ "size": [
+  3.465,
+  2.2,
+  1.255
+ ],
+ "parts": [
+  "corps",
+  "inner_mast",
+  "carriage"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#ffffff",
+   "unlit": false
+  },
+  "bleu_fonce": {
+   "hex": "#687480",
+   "unlit": false
+  },
+  "bleu_nuit": {
+   "hex": "#3c4e60",
+   "unlit": false
+  },
+  "bleu_nuit2": {
+   "hex": "#183140",
+   "unlit": false
+  },
+  "bleu_nuit3": {
+   "hex": "#1e3750",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#d1dfdc",
+   "unlit": false
+  },
+  "gris_clair2": {
+   "hex": "#a4afad",
+   "unlit": false
+  },
+  "gris_clair3": {
+   "hex": "#99aaaf",
+   "unlit": false
+  },
+  "gris_clair4": {
+   "hex": "#dfdfdf",
+   "unlit": false
+  },
+  "lum_jaune": {
+   "hex": "#ffff20",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#ef7800",
+   "unlit": false
+  }
+ }
+}

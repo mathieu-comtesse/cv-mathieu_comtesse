@@ -1,0 +1,67 @@
+{
+ "id": "palan",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\industrial-hoist\\model.ts",
+ "size": [
+  0.546,
+  1.4,
+  0.314
+ ],
+ "parts": [
+  "corps",
+  "load"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#ffffff",
+   "unlit": false
+  },
+  "bleu_fonce": {
+   "hex": "#687480",
+   "unlit": false
+  },
+  "bleu_nuit": {
+   "hex": "#3c4e60",
+   "unlit": false
+  },
+  "bleu_nuit2": {
+   "hex": "#183140",
+   "unlit": false
+  },
+  "bleu_nuit3": {
+   "hex": "#1e3750",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#99aaaf",
+   "unlit": false
+  },
+  "gris_clair2": {
+   "hex": "#d1dfdc",
+   "unlit": false
+  },
+  "gris_clair3": {
+   "hex": "#a4afad",
+   "unlit": false
+  },
+  "gris_clair4": {
+   "hex": "#dfdfdf",
+   "unlit": false
+  },
+  "lum_cyan": {
+   "hex": "#00ffff",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#ef7800",
+   "unlit": false
+  },
+  "orange_fonce": {
+   "hex": "#9f8d6e",
+   "unlit": false
+  },
+  "rouge": {
+   "hex": "#bf1818",
+   "unlit": false
+  }
+ }
+}

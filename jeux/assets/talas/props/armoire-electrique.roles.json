@@ -1,0 +1,55 @@
+{
+ "id": "armoire-electrique",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\industrial-electrical-switchboard\\model.ts",
+ "size": [
+  1.455,
+  2,
+  0.983
+ ],
+ "parts": [
+  "corps",
+  "amber_breaker_lever"
+ ],
+ "roles": {
+  "bleu_nuit": {
+   "hex": "#284150",
+   "unlit": false
+  },
+  "bleu_nuit2": {
+   "hex": "#485760",
+   "unlit": false
+  },
+  "brun": {
+   "hex": "#605442",
+   "unlit": false
+  },
+  "cyan_fonce": {
+   "hex": "#546970",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#a4afae",
+   "unlit": false
+  },
+  "gris_clair2": {
+   "hex": "#d1dfd6",
+   "unlit": false
+  },
+  "gris_clair3": {
+   "hex": "#b3bfbe",
+   "unlit": false
+  },
+  "lum_cyan": {
+   "hex": "#00ffff",
+   "unlit": true
+  },
+  "lum_orange": {
+   "hex": "#ff4000",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#cf8100",
+   "unlit": false
+  }
+ }
+}

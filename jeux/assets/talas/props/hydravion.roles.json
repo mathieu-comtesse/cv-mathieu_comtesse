@@ -1,0 +1,68 @@
+{
+ "id": "hydravion",
+ "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\tools\\forge\\models\\embarcations.mts",
+ "size": [
+  10.171,
+  3.518,
+  7.491
+ ],
+ "parts": [
+  "fuselage",
+  "capot",
+  "helice",
+  "empennage",
+  "gouvernail",
+  "aile",
+  "feux",
+  "feux2",
+  "haubans",
+  "feux3",
+  "flotteurs"
+ ],
+ "roles": {
+  "blanc": {
+   "hex": "#efe8d1",
+   "unlit": false
+  },
+  "bleu": {
+   "hex": "#70b5df",
+   "unlit": false
+  },
+  "bleu_fonce": {
+   "hex": "#284980",
+   "unlit": false
+  },
+  "bleu_fonce2": {
+   "hex": "#586780",
+   "unlit": false
+  },
+  "lum_jaune": {
+   "hex": "#ffdf80",
+   "unlit": true
+  },
+  "lum_rouge": {
+   "hex": "#ff0000",
+   "unlit": true
+  },
+  "lum_vert": {
+   "hex": "#00ff40",
+   "unlit": true
+  },
+  "orange": {
+   "hex": "#ef9500",
+   "unlit": false
+  },
+  "rouge": {
+   "hex": "#cf1a00",
+   "unlit": false
+  },
+  "violet_fonce": {
+   "hex": "#5e5470",
+   "unlit": false
+  },
+  "violet_nuit": {
+   "hex": "#483250",
+   "unlit": false
+  }
+ }
+}

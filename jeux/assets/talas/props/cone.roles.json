@@ -1,0 +1,42 @@
+{
+ "id": "cone",
+ "source": "C:\\Users\\pihan\\Documents\\vibe3d\\assets\\prototypes\\traffic-cone\\model.ts",
+ "size": [
+  0.316,
+  0.5,
+  0.327
+ ],
+ "parts": [
+  "corps"
+ ],
+ "roles": {
+  "bleu_nuit": {
+   "hex": "#102840",
+   "unlit": false
+  },
+  "bleu_nuit2": {
+   "hex": "#364b60",
+   "unlit": false
+  },
+  "cyan": {
+   "hex": "#00b5cf",
+   "unlit": false
+  },
+  "gris_clair": {
+   "hex": "#a4aeaf",
+   "unlit": false
+  },
+  "gris_clair2": {
+   "hex": "#d1dfda",
+   "unlit": false
+  },
+  "gris_clair3": {
+   "hex": "#99adaf",
+   "unlit": false
+  },
+  "lum_orange": {
+   "hex": "#cf6800",
+   "unlit": true
+  }
+ }
+}
