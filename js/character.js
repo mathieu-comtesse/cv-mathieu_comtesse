@@ -149,12 +149,14 @@ export async function createCharacter({
   const hairMaterials = new Set(['Material #417']);
   const hairDarkMaterials = new Set(['Material #680', 'Material #1064']);
   const frameMaterials = new Set(['Material #474','Material #462','Material #464','Material #465','Material #466','Material #467','Material #468']);
+  const denimMaterials = new Map([['Material #146', '#243552'], ['Material #83', '#3b5273'], ['Material #169', '#30445f']]);
   const applyPalette = (m) => {
     if (!m) return;
     if (skinMaterials.has(m.name)) m.color.copy(paleSkin);
     else if (skinShadeMaterials.has(m.name)) m.color.copy(paleSkinShade);
     else if (hairMaterials.has(m.name)) m.color.copy(chestnut);
     else if (hairDarkMaterials.has(m.name)) m.color.copy(chestnutDark);
+    else if (denimMaterials.has(m.name)) { m.color.set(denimMaterials.get(m.name)); m.roughness = 0.9; m.metalness = 0; }
     else if (frameMaterials.has(m.name)) m.color.copy(frameBlack);
     if (m.name === 'Material #1168') { m.color.set('#eef7ff'); m.transparent = true; m.opacity = 0.1; m.depthWrite = false; m.roughness = 0.05; m.metalness = 0; }          // verres de vue : clairs, pas noirs
     if (m.name === 'Material #1167') { m.color.set('#f7fbff'); m.transparent = true; m.opacity = 0.13; m.depthWrite = false; m.roughness = 0.06; m.metalness = 0; }
@@ -199,34 +201,37 @@ export async function createCharacter({
       const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * 0.07, ground, f0.z + fwd.z * 0.07);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
-      shoe.scale.multiplyScalar(1.3);                                // baskets plus grosses (style chibi)
+      shoe.scale.multiplyScalar(1.14);                               // 992 chunky mais proportionnée au corps
       bone.add(shoe); nbShoes.push(shoe);
-      // jambe de pantalon baggy, modélisée : tube évasé à anneaux elliptiques, plis verticaux qui s'accentuent vers le bas, froissements au-dessus du revers,
-      // ourlet plus long derrière que devant (il repose sur la languette de la basket), intérieur sombre. Porté par le mollet, suit la jambe.
+      // Bas de jean : coupe droite légèrement ample, plis longs et souples.
       const calf = bone.parent, knee = calf.getWorldPosition(new THREE.Vector3());
-      const A = new THREE.Vector3(f0.x, ground + 0.055, f0.z), P1 = knee.clone().lerp(A, 0.22);
+      const A = new THREE.Vector3(f0.x, ground + 0.058, f0.z), P1 = knee.clone().lerp(A, 0.18);
       const axis = A.clone().sub(P1), len = axis.length(); axis.normalize();
-      const fwdW = new THREE.Vector3().subVectors(b0, f0); fwdW.y = 0; fwdW.normalize();             // avant du pied
+      const fwdW = new THREE.Vector3().subVectors(b0, f0); fwdW.y = 0; fwdW.normalize();
       const sideV = new THREE.Vector3().crossVectors(axis, fwdW).normalize(), front = new THREE.Vector3().crossVectors(sideV, axis).normalize();
-      const RINGS = 12, SEG = 20, pos = [], idx = [], rnd = (i) => { const s = Math.sin(i * 12.9898) * 43758.5453; return s - Math.floor(s); };
+      const RINGS = 18, SEG = 28, pos = [], idx = [];
       for (let i = 0; i <= RINGS; i++) {
         const t = i / RINGS, e = t * t * (3 - 2 * t);
-        const rx0 = 0.066 + 0.07 * e, rz0 = 0.062 + 0.064 * e;                                    // largeur : légèrement plus large côté côtés que devant/derrière
-        const pinch = i === RINGS - 1 ? 0.93 : i === RINGS ? 1.02 : 1;                             // revers : léger resserrement puis rebord
+        const rx0 = 0.061 + 0.027 * e, rz0 = 0.057 + 0.023 * e;
+        const cuff = i >= RINGS - 1 ? (i === RINGS ? 1.015 : 0.975) : 1;
         for (let j = 0; j < SEG; j++) {
-          const th = (j / SEG) * Math.PI * 2, fold = Math.sin(th * 5 + t * 2.2) * 0.011 * e + (rnd(i * 31 + j) - 0.5) * 0.003 * e + Math.sin(th * 3 - t * 5) * 0.004 * e;
-          const hem = i === RINGS ? -0.045 * Math.max(0, Math.cos(th)) + 0.02 * Math.max(0, -Math.cos(th)) : 0;     // ourlet : remonte devant, descend derrière
-          const rr = 1 + (fold / 0.06);
-          const x = Math.sin(th) * rx0 * pinch * rr, z = Math.cos(th) * rz0 * pinch * rr;
-          const drop = t * len + hem + (rnd(i * 7 + j) - 0.5) * 0.002;
+          const th = (j / SEG) * Math.PI * 2;
+          const fold = (Math.sin(th * 4 + t * 1.7) * 0.0038 + Math.sin(th * 7 - t * 3.1) * 0.0016) * e;
+          const rr = 1 + fold / 0.06;
+          const x = Math.sin(th) * rx0 * cuff * rr, z = Math.cos(th) * rz0 * cuff * rr;
+          const hem = i === RINGS ? (-0.012 * Math.max(0, Math.cos(th)) + 0.006 * Math.max(0, -Math.cos(th))) : 0;
+          const drop = t * len + hem;
           pos.push(P1.x + sideV.x * x + front.x * z + axis.x * drop, P1.y + sideV.y * x + front.y * z + axis.y * drop, P1.z + sideV.z * x + front.z * z + axis.z * drop);
         }
       }
-      for (let i = 0; i < RINGS; i++) for (let j = 0; j < SEG; j++) { const a0 = i * SEG + j, a1 = i * SEG + (j + 1) % SEG, b0_ = (i + 1) * SEG + j, b1 = (i + 1) * SEG + (j + 1) % SEG; idx.push(a0, b0_, a1, a1, b0_, b1); }
-      const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setIndex(idx);
-      const flat = pg.toNonIndexed(); flat.computeVertexNormals();
-      const pant = new THREE.Mesh(flat, new THREE.MeshStandardMaterial({ color: '#59627e', roughness: 0.92, flatShading: true, side: THREE.DoubleSide }));
-      pant.castShadow = true; pant.frustumCulled = false;
+      for (let i = 0; i < RINGS; i++) for (let j = 0; j < SEG; j++) {
+        const a0 = i * SEG + j, a1 = i * SEG + (j + 1) % SEG, b0_ = (i + 1) * SEG + j, b1 = (i + 1) * SEG + (j + 1) % SEG;
+        idx.push(a0, b0_, a1, a1, b0_, b1);
+      }
+      const pg = new THREE.BufferGeometry();
+      pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setIndex(idx); pg.computeVertexNormals();
+      const pant = new THREE.Mesh(pg, new THREE.MeshStandardMaterial({ color: '#344a69', roughness: 0.9, metalness: 0, flatShading: false, side: THREE.DoubleSide }));
+      pant.castShadow = true; pant.receiveShadow = true; pant.frustumCulled = false;
       pant.applyMatrix4(calf.matrixWorld.clone().invert());
       calf.add(pant); nbShoes.push(pant);
     }
@@ -310,6 +315,7 @@ export async function createCharacter({
   // GAIT_STABILIZER : pose neutre de référence pour que bassin et torse ne restent pas inclinés d'un côté après le retarget.
   const gaitRest = {};
   for (const n of ['pelvis', 'spine_01', 'spine_02', 'spine_03', 'neck_01']) if (bones[n]) gaitRest[n] = bones[n].quaternion.clone();
+  const gaitPelvisRest = bones.pelvis.position.clone();
   let ov = null, ovW = 0, post = null, lean = 0, leanW = 0, levelW = 0; const LEVEL_SIGN = -1;
 
   const _pq = new THREE.Quaternion(), _qg = new THREE.Quaternion(), _R = new THREE.Quaternion(), _M = new THREE.Quaternion(), _v = new THREE.Vector3();
@@ -363,8 +369,35 @@ export async function createCharacter({
   };
   const resetLook = () => { portrait.targetX = 0; portrait.targetY = 0; };
 
+  const plantSeatedFeet = (groundY) => {
+    if (![bones.thigh_l,bones.calf_l,bones.foot_l,bones.ball_l,bones.thigh_r,bones.calf_r,bones.foot_r,bones.ball_r].every(Boolean)) return;
+    group.updateMatrixWorld(true);
+    const qg = group.getWorldQuaternion(new THREE.Quaternion());
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(qg); forward.y = 0; forward.normalize();
+    const side = new THREE.Vector3(1, 0, 0).applyQuaternion(qg); side.y = 0; side.normalize();
+    const pelvisW = bones.pelvis.getWorldPosition(new THREE.Vector3());
+    const plant = (sgn, thigh, calf, foot) => {
+      const target = foot.getWorldPosition(new THREE.Vector3());
+      const rel = target.clone().sub(pelvisW);
+      const fd = rel.dot(forward);
+      if (fd < 0.22) target.addScaledVector(forward, 0.22 - fd);
+      const lat = rel.dot(side), wanted = sgn * Math.max(0.105, Math.abs(lat));
+      target.addScaledVector(side, wanted - lat);
+      target.y = groundY + 0.055;
+      const knee = calf.getWorldPosition(new THREE.Vector3());
+      const pole = knee.clone().addScaledVector(forward, 0.30).addScaledVector(side, sgn * 0.12);
+      ik2(thigh, calf, foot, target, pole);
+      group.updateMatrixWorld(true);
+      const toe = target.clone().addScaledVector(forward, 0.16); toe.y = groundY + 0.058;
+      aim(foot, toe);
+    };
+    plant(-1, bones.thigh_l, bones.calf_l, bones.foot_l);
+    plant( 1, bones.thigh_r, bones.calf_r, bones.foot_r);
+    group.updateMatrixWorld(true);
+  };
+
   return {
-    group, model, bones, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook,
+    group, model, bones, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet,
     play(name, { fade = 0.25, speed = 1 } = {}) {
       const clip = clips[name] || clips.Idle_Loop || Object.values(clips)[0]; if (!clip) return;
       activeClipName = clip.name || name;
@@ -388,9 +421,12 @@ export async function createCharacter({
     update(dt, t) {
       mixer.update(dt); group.updateMatrixWorld(true);
 
-      // GAIT_STABILIZER : réduit le roulis latéral du retarget, en gardant balancement des bras, flexion des genoux et pas.
-      if (/Walk|Jog|Sprint/i.test(activeClipName)) {
-        const weights = { pelvis: 0.11, spine_01: 0.07, spine_02: 0.055, spine_03: 0.045, neck_01: 0.035 };
+      // GAIT_STABILIZER : recentre le bassin et réduit le roulis du retarget sans supprimer le pas.
+      const locomotion = /Walk|Jog|Sprint/i.test(activeClipName);
+      if (locomotion) {
+        bones.pelvis.position.x += (gaitPelvisRest.x - bones.pelvis.position.x) * 0.48;
+        bones.pelvis.position.z += (gaitPelvisRest.z - bones.pelvis.position.z) * 0.16;
+        const weights = { pelvis: 0.24, spine_01: 0.12, spine_02: 0.075, spine_03: 0.045, neck_01: 0.025 };
         for (const [n, w] of Object.entries(weights)) if (bones[n] && gaitRest[n]) bones[n].quaternion.slerp(gaitRest[n], w);
         group.updateMatrixWorld(true);
       }
@@ -407,9 +443,12 @@ export async function createCharacter({
       // mise à niveau : la ligne des épaules reste horizontale (le retarget laissait ~7° de roulis debout et ~11° assis, d'où le côté « de travers »)
       if (bones.upperarm_l && bones.upperarm_r && bones.spine_01) {
         const a = group.worldToLocal(bones.upperarm_l.getWorldPosition(_v.clone())), b2 = group.worldToLocal(bones.upperarm_r.getWorldPosition(_v.clone()));
-        const roll = Math.atan2(a.y - b2.y, Math.hypot(a.x - b2.x, a.z - b2.z));
-        levelW += (roll - levelW) * (1 - Math.exp(-dt * 12));
-        for (const n of ['spine_01', 'spine_02', 'spine_03']) rotChar(bones[n], levelW * LEVEL_SIGN / 3, _Z);
+        const rawRoll = Math.atan2(a.y - b2.y, Math.hypot(a.x - b2.x, a.z - b2.z));
+        const maxRoll = THREE.MathUtils.degToRad(locomotion ? 2.5 : 5);
+        const roll = THREE.MathUtils.clamp(rawRoll, -maxRoll, maxRoll);
+        levelW += (roll - levelW) * (1 - Math.exp(-dt * 10));
+        const gain = locomotion ? 0.55 : 1;
+        for (const n of ['spine_01', 'spine_02', 'spine_03']) rotChar(bones[n], levelW * LEVEL_SIGN * gain / 3, _Z);
       }
       leanW += (lean - leanW) * (1 - Math.exp(-dt * 6));
       if (Math.abs(leanW) > 1e-3) for (const n of ['spine_01', 'spine_02', 'spine_03']) if (bones[n]) rotChar(bones[n], leanW / 3, _Z);        // redresse le buste (le rig importé penche d'un côté en marchant)
