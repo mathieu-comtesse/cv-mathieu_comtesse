@@ -256,6 +256,7 @@ export async function createCharacter({
     if (!nb992Gltf || !bones.foot_l || !bones.foot_r || !clips.Idle_Loop) return false;
     const tm = new THREE.AnimationMixer(group), act = tm.clipAction(clips.Idle_Loop); act.play(); tm.update(0); group.updateMatrixWorld(true);
     const ground = Math.min(bones.ball_l.getWorldPosition(new THREE.Vector3()).y, bones.ball_r.getWorldPosition(new THREE.Vector3()).y) - 0.04;
+    const nbForwardOffset = { left: 0.097159, right: 0.097856 }; // Blender: centre de la NB992 aligné sur le centre de l'ouverture du jean JNCO
     for (const [side, bone, ball] of [['left', bones.foot_l, bones.ball_l], ['right', bones.foot_r, bones.ball_r]]) {
       const src = nb992Gltf.scene.getObjectByName('nb_' + side); if (!src) continue;
       const shoe = src.clone(true);
@@ -263,7 +264,8 @@ export async function createCharacter({
       const f0 = bone.getWorldPosition(new THREE.Vector3()), b0 = ball.getWorldPosition(new THREE.Vector3());
       const fwd = b0.clone().sub(f0); fwd.y = 0; fwd.normalize();
       const x = new THREE.Vector3(0, 1, 0).cross(fwd).normalize();
-      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * 0.135, ground, f0.z + fwd.z * 0.135);
+      const shoeForward = nbForwardOffset[side];
+      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * shoeForward, ground, f0.z + fwd.z * shoeForward);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
       shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Shujaat
