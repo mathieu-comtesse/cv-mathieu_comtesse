@@ -729,8 +729,22 @@ export async function createRoom(container, bubbleEl) {
       { const cur = director.current, seated = cur && (cur.clip === 'Driving_Loop' || cur.clip === 'Sitting_Idle_Loop' || cur.ritual) && director.mode === 'activity';
         if (hero.model && director.mode !== 'carried') {
           if (modelBaseY === null) modelBaseY = hero.model.position.y;
-          if (seated || (director.current && director.mode !== 'activity' && cur && (cur.clip === 'Driving_Loop' || cur.clip === 'Sitting_Idle_Loop'))) hero.model.position.y = modelBaseY;
-          else { hero.model.position.y = modelBaseY; hero.group.updateMatrixWorld(true); const lo = Math.min(hero.wp('ball_l').y, hero.wp('ball_r').y) - hero.group.position.y; hero.model.position.y = modelBaseY - (lo - 0.04); }
+          if (seated) {
+            hero.model.position.y = modelBaseY;
+            hero.group.updateMatrixWorld(true);
+            const soleY = Math.min(hero.wp('ball_l').y, hero.wp('ball_r').y);
+            const wantY = floorY(hero.group.position.x, hero.group.position.z) + 0.04;
+            const dy = wantY - soleY;
+            hero.group.position.y += dy * (1 - Math.exp(-dt * 16));
+            hero.group.updateMatrixWorld(true);
+          } else if (director.current && director.mode !== 'activity' && cur && (cur.clip === 'Driving_Loop' || cur.clip === 'Sitting_Idle_Loop')) {
+            hero.model.position.y = modelBaseY;
+          } else {
+            hero.model.position.y = modelBaseY;
+            hero.group.updateMatrixWorld(true);
+            const lo = Math.min(hero.wp('ball_l').y, hero.wp('ball_r').y) - hero.group.position.y;
+            hero.model.position.y = modelBaseY - (lo - 0.04);
+          }
         } }
       const s = hero.group.scale.x; hero.group.scale.setScalar(s + (1 - s) * (1 - Math.exp(-dt * 10)));
       bubbleT += dt;
