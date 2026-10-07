@@ -1,4 +1,4 @@
-import { THREE, mat, loadBuffer } from './kit.js?v=c08daaf';
+import { THREE, mat, loadBuffer } from './kit.js?v=ce185e0';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 
 // Character imported from 84b390d3dd44755f.fbx and converted to a compact skinned GLB.
@@ -99,9 +99,9 @@ function makeWateringCan() {
 }
 
 export async function createCharacter({
-  modelUrl = 'assets/mathieu-character.glb?v=c08daaf',
-  rigUrl = 'assets/rig.json?v=c08daaf',
-  animsUrl = 'assets/anims.glb?v=c08daaf',
+  modelUrl = 'assets/mathieu-character.glb?v=ce185e0',
+  rigUrl = 'assets/rig.json?v=ce185e0',
+  animsUrl = 'assets/anims.glb?v=ce185e0',
   targetHeight = 1.72,
 } = {}) {
   const [modelBuffer, rigBuffer, animBuffer] = await Promise.all([
@@ -111,9 +111,49 @@ export async function createCharacter({
   const parse = (b) => new Promise((res, rej) => loader.parse(b, '', res, rej));
   const [characterGltf, animGltf] = await Promise.all([parse(modelBuffer), parse(animBuffer)]);
 
+  // JEAN_BLENDER : le bas du jean est prolongé sous Blender (tools/blender_jean.py) pour tomber sur les chaussures, avec un évasement et un ourlet.
+  // La géométrie des maillages « legs » est remplacée ; les poids de peau sont remappés par nom d'os vers le squelette du modèle.
+  try {
+    const jeanGltf = await parse(await loadBuffer('assets/jean-legs.glb?v=ce185e0'));
+    const src = [], dst = [];
+    jeanGltf.scene.traverse((o) => { if (o.isSkinnedMesh) src.push(o); });
+    characterGltf.scene.traverse((o) => { if (o.isSkinnedMesh && /^legs/.test(o.name)) dst.push(o); });
+    if (src.length && dst.length) {
+      const sNames = src[0].skeleton.bones.map((b) => b.name), dNames = dst[0].skeleton.bones.map((b) => b.name);
+      const remap = sNames.map((n) => Math.max(0, dNames.indexOf(n)));
+      for (const d of dst) {
+        const m = src.find((q) => q.material?.name === d.material?.name); if (!m) continue;
+        const g = m.geometry.clone(), si = g.attributes.skinIndex;
+        for (let i = 0; i < si.count; i++) { si.setXYZW(i, remap[si.getX(i)], remap[si.getY(i)], remap[si.getZ(i)], remap[si.getW(i)]); }
+        d.geometry = g; d.frustumCulled = false;
+      }
+    }
+  } catch (_) {}
+
+  // TSHIRT_BLENDER : la chemise (veste) est retirée, remplacée par un T-shirt à manches courtes ; le bras droit est tatoué en noir, bras et main (tools/blender_tshirt_arm.py).
+  // Le modèle Sketchfab demandé n'est pas téléchargeable (choix de l'auteur) : le T-shirt est modélisé sous Blender à partir du torse existant.
+  try {
+    const tg = await parse(await loadBuffer('assets/tshirt-arm.glb?v=ce185e0'));
+    const src = [], old = [], ref = [];
+    tg.scene.traverse((o) => { if (o.isSkinnedMesh) src.push(o); });
+    characterGltf.scene.traverse((o) => { if (/^(jacket|arm|shirt|id|clip)(_\d+)?$/.test(o.name)) old.push(o); if (o.isSkinnedMesh && /^legs/.test(o.name)) ref.push(o); });
+    if (src.length && ref.length) {
+      const dSk = ref[0].skeleton, dNames = dSk.bones.map((b) => b.name), sNames = src[0].skeleton.bones.map((b) => b.name);
+      const remap = sNames.map((n) => Math.max(0, dNames.indexOf(n)));
+      old.forEach((o) => o.removeFromParent());
+      for (const sm of src) {
+        const g = sm.geometry.clone(), si = g.attributes.skinIndex;
+        for (let i = 0; i < si.count; i++) si.setXYZW(i, remap[si.getX(i)], remap[si.getY(i)], remap[si.getZ(i)], remap[si.getW(i)]);
+        (Array.isArray(sm.material) ? sm.material : [sm.material]).forEach((q) => { if (/^Material #(82|577|611)$/.test(q.name)) q.side = THREE.DoubleSide; });      // faces du torse et des manches vues des deux côtés : plus de trou à l'épaule
+        const m = new THREE.SkinnedMesh(g, sm.material); m.name = sm.name; m.frustumCulled = false;
+        characterGltf.scene.add(m); m.bind(dSk, ref[0].bindMatrix);
+      }
+    }
+  } catch (_) {}
+
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
-  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=c08daaf')); } catch (_) {}
+  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=ce185e0')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
   const sourceRootQuat = qFromArray(sourceRig.root?.q || [0, 0, 0, 1]);
@@ -216,7 +256,7 @@ export async function createCharacter({
   const shoeVisuals = [], sockVisuals = [], shoeParts = [], trouserCuffs = [];
   let shoesOn = true;
   if (originalLegs) originalLegs.visible = true;
-  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = true; trouserCuffs.push(o); } });
+  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = false; trouserCuffs.push(o); } });
   if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_[1-8]$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
   // Monte la paire de New Balance 992 (assets/nb992.glb : deux nœuds nb_left / nb_right, orteils vers +Z, semelle à y = 0, ~29 cm) sur les os des pieds.
   // La pose de référence est l'Idle : dans cette pose le pied est à plat, on y place chaque chaussure puis on la fige dans le repère de l'os.
@@ -448,7 +488,7 @@ export async function createCharacter({
       else if (shoes) shoes.visible = shoesOn;
       sockVisuals.forEach((o) => { o.visible = !shoesOn; });
       if (originalLegs) originalLegs.visible = true;
-      trouserCuffs.forEach((o) => { o.visible = true; });
+      trouserCuffs.forEach((o) => { o.visible = false; });         // chevilles d'origine : le jean prolongé couvre déjà la cheville
     },
     flash(kind, secs = 0.7) { flashKind = kind; flash = secs; },
     talk(on) { talking = on; },

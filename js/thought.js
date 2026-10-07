@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=c08daaf';
+import { THREE } from './kit.js?v=ce185e0';
 
 /* Bulle de pensée : un nuage avec la miniature 3D de l'activité qui tourne lentement (comme les pensées du personnage de référence).
  * Un second rendu minuscule (96 px) dessine une copie de l'objet ; le nuage est un SVG, la traîne de deux petits cercles. */
