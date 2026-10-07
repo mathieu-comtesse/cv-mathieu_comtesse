@@ -153,8 +153,8 @@ export async function createCharacter({
     if (!m) return;
     if (skinMaterials.has(m.name)) m.color.copy(paleSkin);
     else if (skinShadeMaterials.has(m.name)) m.color.copy(paleSkinShade);
-    else if (hairMaterials.has(m.name)) m.color.copy(chestnut);
-    else if (hairDarkMaterials.has(m.name)) m.color.copy(chestnutDark);
+    else if (hairMaterials.has(m.name)) { m.color.copy(chestnut); m.roughness = 0.52; m.metalness = 0; }
+    else if (hairDarkMaterials.has(m.name)) { m.color.copy(chestnutDark); m.roughness = 0.58; m.metalness = 0; }
     else if (frameMaterials.has(m.name)) m.color.copy(frameBlack);
     if (m.name === 'Material #1168') { m.color.set('#eef7ff'); m.transparent = true; m.opacity = 0.1; m.depthWrite = false; m.roughness = 0.05; m.metalness = 0; }          // verres de vue : clairs, pas noirs
     if (m.name === 'Material #1167') { m.color.set('#f7fbff'); m.transparent = true; m.opacity = 0.13; m.depthWrite = false; m.roughness = 0.06; m.metalness = 0; }
