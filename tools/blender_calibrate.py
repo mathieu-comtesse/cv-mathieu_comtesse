@@ -1,3 +1,4 @@
+# Blender calibration run — character / NB992 reference
 import bpy, json, math
 from mathutils import Vector
 
