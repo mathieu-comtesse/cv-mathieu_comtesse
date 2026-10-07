@@ -170,9 +170,40 @@ export async function createCharacter({
   const skeleton = skinned[0]?.skeleton;
   if (!skeleton || !bones.pelvis || !bones.Head) throw new Error('Rig FBX converti incomplet');
 
-  // Preserve black frames / transparent lenses and replace only the expression plate.
+  // Preserve black frames / transparent lenses. Prefer the exact Shujaat expression textures
+  // extracted from /info/; fall back to the local procedural face if an asset is unavailable.
   const faces = {};
   for (const k of ['neutral','blink','happy','amazed','talkA','talkO','sip']) faces[k] = faceTexture(k);
+  const loadExactFace = (name) => new Promise((resolve) => {
+    new THREE.TextureLoader().load(
+      `assets/shujaat-head/${name}.png?v=shujaat-head-v1`,
+      (tex) => {
+        // Recolor the dark iris/eye detail to Mathieu blue while preserving
+        // Shujaat's exact expression drawing and alpha.
+        try {
+          const img = tex.image, c = document.createElement('canvas');
+          c.width = img.width; c.height = img.height;
+          const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
+          const id = ctx.getImageData(0, 0, c.width, c.height), d = id.data;
+          for (let y = 0; y < c.height * 0.68; y++) for (let x = 0; x < c.width; x++) {
+            const i = (y * c.width + x) * 4;
+            const a = d[i + 3], lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
+            if (a > 32 && lum < 92) { d[i] = 47; d[i + 1] = 127; d[i + 2] = 224; }
+          }
+          ctx.putImageData(id, 0, 0);
+          const out = new THREE.CanvasTexture(c);
+          out.colorSpace = THREE.SRGBColorSpace;
+          out.magFilter = THREE.LinearFilter; out.minFilter = THREE.LinearMipmapLinearFilter;
+          out.needsUpdate = true; resolve(out);
+        } catch (_) { tex.colorSpace = THREE.SRGBColorSpace; resolve(tex); }
+      },
+      undefined,
+      () => resolve(null)
+    );
+  });
+  const exactFaces = await Promise.all(['neutral','blink','happy','amazed'].map(loadExactFace));
+  ['neutral','blink','happy','amazed'].forEach((k, i) => { if (exactFaces[i]) faces[k] = exactFaces[i]; });
+
   const plate = model.getObjectByName('expression_plate');
   let plateMat = null;
   if (plate?.isMesh || plate?.isSkinnedMesh) {
