@@ -188,19 +188,19 @@ for side in ('left','right'):
 out['nb992_root_local']=nb_local
 out['runtime_nb_scale']=RUNTIME_NB_SCALE
 
-# Runtime shoe root is centered along the NB longitudinal axis.
-# For the baggy JNCO hem, the most robust target is therefore the center of the hem opening,
-# measured from the foot bone in the same forward direction.
+# The visual defect is at the heel: align the back of the scaled NB992 with
+# the rear edge of the JNCO hem opening. This keeps the shoe under the jean
+# instead of centering it around the ankle bone.
 recs={}
 hem_fit=out.get('jnco_hem_fit',{})
 for side in ('left','right'):
     if side not in hem_fit or side not in nb_local: continue
-    hem_center=hem_fit[side]['center_from_foot_m']
-    nb_center=nb_local[side]['forward_center_local_m']*RUNTIME_NB_SCALE
-    rec=hem_center-nb_center
+    hem_back=hem_fit[side]['back_from_foot_m']
+    nb_heel=nb_local[side]['heel_local_forward_m']*RUNTIME_NB_SCALE
+    rec=hem_back-nb_heel
     recs[side]={
-        'jnco_hem_center_from_foot_m':hem_center,
-        'nb_center_from_root_scaled_m':nb_center,
+        'jnco_hem_back_from_foot_m':hem_back,
+        'nb_heel_from_root_scaled_m':nb_heel,
         'recommended_forward_root_offset_m':rec,
     }
 if recs:
