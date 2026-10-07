@@ -472,6 +472,29 @@ export async function createCharacter({
           b.quaternion.slerp(_poseQ, shujaatPoseW);
         }
         group.updateMatrixWorld(true);
+
+        // FAUTEUIL_SANS_LIVRE : la pose source supposait un objet tenu.
+        // On conserve bassin/jambes/dos Shujaat mais on pose les mains sur les cuisses.
+        if (shujaatPose === 'fauteuil' &&
+            bones.upperarm_l && bones.lowerarm_l && bones.hand_l &&
+            bones.upperarm_r && bones.lowerarm_r && bones.hand_r &&
+            bones.thigh_l && bones.calf_l && bones.thigh_r && bones.calf_r) {
+          const restHand = (side, upper, lower, hand, thigh, calf) => {
+            const hip = thigh.getWorldPosition(new THREE.Vector3());
+            const knee = calf.getWorldPosition(new THREE.Vector3());
+            const target = hip.clone().lerp(knee, 0.34);
+            target.y += 0.055;
+            const elbow = lower.getWorldPosition(new THREE.Vector3());
+            const pole = elbow.clone();
+            pole.y += 0.12;
+            ik2(upper, lower, hand, target, pole);
+            const hq = SHUJAAT_POSES.debout[side === 'l' ? 'hand_l' : 'hand_r']?.q;
+            if (hq) hand.quaternion.slerp(_poseQ.set(hq[0], hq[1], hq[2], hq[3]).normalize(), 0.78);
+            group.updateMatrixWorld(true);
+          };
+          restHand('l', bones.upperarm_l, bones.lowerarm_l, bones.hand_l, bones.thigh_l, bones.calf_l);
+          restHand('r', bones.upperarm_r, bones.lowerarm_r, bones.hand_r, bones.thigh_r, bones.calf_r);
+        }
       }
 
       // mise à niveau : la ligne des épaules reste horizontale (le retarget laissait ~7° de roulis debout et ~11° assis, d'où le côté « de travers »)
