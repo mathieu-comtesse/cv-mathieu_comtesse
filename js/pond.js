@@ -1,4 +1,4 @@
-import { THREE, group, canvasTexture, rng } from './kit.js?v=b1e8f97';
+import { THREE, group, canvasTexture, rng } from './kit.js?v=18942b7';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 
 /* ───────────── Étang vivant ─────────────
@@ -304,7 +304,7 @@ export function rockGeo(seed, s) {
 }
 
 /** Étang. `cx, cz` : centre dans le repère du parent ; `posts` : pieux du ponton (repère du parent), entourés de ronds d'eau. */
-export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9, rainRect = null, rainH = 1.5 } = {}) {
+export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9, rainRect = null, rainH = 1.5, mistOutside = null } = {}) {
   const g = group(), shape = makeShape(seed, { rx, rzBack, rzFront, floorZ: floorZ === null ? null : floorZ - cz });
   const uni = { uTime: { value: 0 }, uNight: { value: 0 }, uRain: { value: 0 }, uMist: { value: 0 }, uCloud: { value: 0 } };
   const inside = (x, z, m = 0.85) => shape.frac(x, z) < m;
@@ -404,6 +404,7 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
 
   /* brume, pluie */
   const mistPts = []; for (let i = 0; i < 150; i++) { const q = randIn(0.95); mistPts.push([q.x, q.z]); }
+  if (mistOutside) { const mr = rng(seed + 90); for (let i = 0, t = 0; i < mistOutside.count && t < 4000; t++) { const th = mr() * TAU, f = 1.08 + mr() * 1.9, [x, z] = shape.at(th, f), px = x + cx, pz = z + cz; if (mistOutside.exclude(px, pz) || pz < -1.9) continue; mistPts.push([x, z]); i++; } }   // la brume se répand aussi dans le jardin
   const mist = mistPuffs(mistPts); g.add(mist);
   const rainPts = []; for (let i = 0; i < 340; i++) { const q = randIn(1.05); rainPts.push([q.x, q.z]); }
   if (rainRect) { const rr = rng(seed + 70); for (let i = 0; i < 150; i++) rainPts.push([rainRect.x0 - cx + rr() * (rainRect.x1 - rainRect.x0), rainRect.z0 - cz + rr() * (rainRect.z1 - rainRect.z0)]); }

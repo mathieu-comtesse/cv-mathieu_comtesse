@@ -1,11 +1,10 @@
-import { TRACKS } from './music.js?v=b1e8f97';
+import { TRACKS } from './music.js?v=18942b7';
 
 /* Juke-box : le lecteur intégré Spotify (iFrame API) joue un titre choisi ou tiré au hasard dans TRACKS, puis enchaîne tout seul au hasard.
- * Sans connexion, Spotify donne des extraits de 30 s ; connecté dans le navigateur, les titres entiers. */
-const MAX_AUTO = 3;   // après 3 titres enchaînés seuls, la musique s'arrête si personne ne la relance
+ * Sans connexion, Spotify donne des extraits de 30 s ; connecté dans le navigateur, les titres entiers. L'enchaînement est continu : seule une pause demandée par le visiteur l'arrête. */
 
 export function createJukebox({ onTrack, onState } = {}) {
-  let auto = 0, bag = [], last = -1, ctrl = null, loading = false, on = false, want = null, paused = false, lastPos = 0, endAt = 0;
+  let bag = [], last = -1, ctrl = null, loading = false, on = false, want = null, paused = false, userPause = false, lastPos = 0, endAt = 0;
   const box = document.createElement('div');
   box.style.cssText = 'position:fixed;right:16px;bottom:16px;width:min(320px,calc(100vw - 32px));z-index:30;display:none;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.25)';
   const slot = document.createElement('div'); box.append(slot); document.body.append(box);
@@ -16,7 +15,7 @@ export function createJukebox({ onTrack, onState } = {}) {
   };
   const uri = (i) => `spotify:track:${TRACKS[i].id}`;
   function go(i) {
-    last = i; bag = bag.filter((k) => k !== i); want = i; lastPos = 0; paused = false; endAt = performance.now();
+    last = i; bag = bag.filter((k) => k !== i); want = i; lastPos = 0; paused = false; userPause = false; endAt = performance.now();
     onTrack && onTrack(i); emit();
     if (ctrl) { ctrl.loadUri(uri(i)); ctrl.play(); }
   }
@@ -28,10 +27,10 @@ export function createJukebox({ onTrack, onState } = {}) {
         c.addListener('ready', () => { if (on) c.play(); });
         c.addListener('playback_update', (e) => {
           const d = e.data; if (!on || !d) return;
-          // fin de morceau : le lecteur se remet à 0 en pause (ou s'arrête tout près de la durée) -> on enchaîne un autre titre au hasard
-          if (!d.isPaused) { lastPos = d.position; paused = false; emit(); return; }
-          const ended = lastPos > 4000 && (d.position < 1200 || (d.duration && d.position >= d.duration - 1500));
-          if (ended && performance.now() - endAt > 3000) { if (++auto >= MAX_AUTO) { api.stop(); return; } go(nextRandom()); return; }
+          // le lecteur se met en pause tout seul à la fin d'un titre (ou d'un extrait de 30 s) : si ce n'est pas une pause demandée, on enchaîne
+          if (!d.isPaused) { lastPos = d.position; paused = false; userPause = false; emit(); return; }
+          if (userPause) { if (!paused) { paused = true; emit(); } return; }
+          if (lastPos > 2500 && performance.now() - endAt > 2500) { go(nextRandom()); return; }
           if (!paused && d.position > 1200) { paused = true; emit(); }
         });
       });
@@ -41,10 +40,10 @@ export function createJukebox({ onTrack, onState } = {}) {
   const api = {
     get playing() { return on ? want : -1; },
     get isOn() { return on; },
-    random() { auto = 0; on = true; box.style.display = 'block'; go(nextRandom()); init(); },
+    random() { on = true; box.style.display = 'block'; go(nextRandom()); init(); },
     next() { this.random(); },
-    play(i) { auto = 0; on = true; box.style.display = 'block'; go(i); init(); },
-    toggle() { auto = 0; if (!on) { this.random(); return; } if (ctrl) { ctrl.togglePlay(); paused = !paused; emit(); } },
+    play(i) { on = true; box.style.display = 'block'; go(i); init(); },
+    toggle() { if (!on) { this.random(); return; } if (ctrl) { ctrl.togglePlay(); paused = !paused; userPause = paused; emit(); } },
     stop() { on = false; box.style.display = 'none'; paused = false; if (ctrl) ctrl.pause(); emit(); },
   };
   return api;

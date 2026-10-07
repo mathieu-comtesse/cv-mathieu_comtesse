@@ -1,6 +1,6 @@
-import { makePond } from './pond.js?v=b1e8f97';
-import { makeGarden } from './garden.js?v=b1e8f97';
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=b1e8f97';
+import { makePond } from './pond.js?v=18942b7';
+import { makeGarden } from './garden.js?v=18942b7';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=18942b7';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
  * Repère local : origine au centre du sol de tatamis, +z = côté ouvert (shoji coulissants → balcon en bois → mer).
@@ -149,16 +149,16 @@ export function createChashitsu() {
   lantern.position.set(RW / 2 - 0.5, DK.y, DK.z0 + 0.55); lantern.userData.id = 'andon';
   vista.add(lantern);
 
+  const excl = (x, z) => (Math.abs(x) < 2.25 && z < 3.2) || (x > 2.25 && x < 3.5 && z < 2.6);      // pièce, balcon et sentier : pas de plantes
   /* étang : rive irrégulière qui passe sous le ponton, rochers ancrés sur la rive */
   const SEA = { w: 5.4, d: 3.3, z0: DK.z0 + DK.depth + 0.3, y: WL };
-  const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15, rainRect: { x0: -2.05, x1: 2.05, z0: ZB, z1: ZF + 0.1 }, rainH: 2.9 }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
+  const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15, rainRect: { x0: -2.05, x1: 2.05, z0: ZB, z1: ZF + 0.1 }, rainH: 2.9, mistOutside: { count: 170, exclude: (x, z) => Math.abs(x) < 2.25 && z < 3.2 } }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
 
   /* jardin : traits de mousse et d'herbe, sans limite ; couloir libre (pas japonais) le long du côté droit pour entrer par le balcon */
-  const excl = (x, z) => (Math.abs(x) < 2.25 && z < 3.2) || (x > 2.25 && x < 3.5 && z < 2.6);
   const garden = makeGarden({ shape: sea.userData.shape, pc: [0.15, 2.95], uni: sea.userData.uni, exclude: excl }); vista.add(garden);
 
   return {
-    group: g, lantern, lanternGlow: paperL, panels, vista,
+    garden, group: g, lantern, lanternGlow: paperL, panels, vista,
     setRoofFade(v) { roofTarget = v; },
     togglePanel(i) { const q = panels[i]; if (q) q.target = q.target ? 0 : 1; },
     setPanels(v) { panels.forEach((q) => { q.target = v; }); },

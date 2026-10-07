@@ -1,6 +1,6 @@
-import { THREE, group, rng, canvasTexture } from './kit.js?v=b1e8f97';
+import { THREE, group, rng, canvasTexture } from './kit.js?v=18942b7';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
-import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=b1e8f97';
+import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=18942b7';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité
@@ -78,10 +78,10 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
 
   /* mousse et herbe : des traits dont la densité décroît, sans bord */
   const mossI = [], grassI = [];
-  for (let tries = 0; (mossI.length < 4200 || grassI.length < 1500) && tries < 40000; tries++) {
-    const th = r() * TAU, f = 1.05 + -Math.log(1 - r()) * 0.75, [cx0, cz0] = at(th, f);
+  for (let tries = 0; (mossI.length < 6200 || grassI.length < 2200) && tries < 60000; tries++) {
+    const th = r() * TAU, f = 1.05 + -Math.log(1 - r()) * 1.1, [cx0, cz0] = at(th, f);
     if (!ok(cx0, cz0, 1.05)) continue;
-    const p = Math.exp(-(f - 1.05) * 0.95) * fadeBack(cz0); if (r() > p) continue;
+    const p = Math.exp(-(f - 1.05) * 0.7) * fadeBack(cz0); if (r() > p) continue;
     const n = 7 + ((r() * 10) | 0), rad = 0.08 + r() * 0.2, herb = r() < 0.3;               // une touffe : lames serrées autour d'un point
     for (let k = 0; k < n; k++) {
       const a = r() * TAU, d = Math.sqrt(r()) * rad, x = cx0 + Math.cos(a) * d, z = cz0 + Math.sin(a) * d;
@@ -121,7 +121,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const l1 = toro(0.95); const [lx, lz] = at(Math.PI * 0.82, 1.22); l1.position.set(lx, -0.02, lz); g.add(l1); lanterns.push(l1);
   const l2 = toro(0.62); l2.position.set(2.35, -0.02, 2.6 - 0.0); g.add(l2); lanterns.push(l2);
   if (exclude(l2.position.x, l2.position.z) || fracOf(l2.position.x, l2.position.z) < 1.1) { const [x, z] = at(Math.PI * 0.12, 1.25); l2.position.set(x, -0.02, z); }
-  const pines = [[-3.5, 0.6, 2.2, 5], [3.9, 1.0, 2.5, 7], [-4.4, 3.2, 1.7, 9]];
+  const pines = [[-3.5, 0.6, 2.2, 5], [3.9, 1.0, 2.5, 7], [-4.4, 3.2, 1.7, 9], [-6.2, 1.2, 2.3, 11], [-7.4, 4.0, 1.9, 13], [-5.6, 6.0, 1.6, 15]];
   for (const [x, z, h, sd] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = pin(sd, h); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
   const mp = erable(3); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
   const mp2 = erable(6); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);

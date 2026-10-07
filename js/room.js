@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=b1e8f97';
-import * as F from './furniture.js?v=b1e8f97';
-import { createCharacter } from './character.js?v=b1e8f97';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=18942b7';
+import * as F from './furniture.js?v=18942b7';
+import { createCharacter } from './character.js?v=18942b7';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=b1e8f97';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=b1e8f97';
-import { createRitual } from './ritual.js?v=b1e8f97';
-import { createChashitsu } from './chashitsu.js?v=b1e8f97';
-import { createRetroSet } from './retro.js?v=b1e8f97';
-import { createNav } from './nav.js?v=b1e8f97';
-import { createDirector } from './director.js?v=b1e8f97';
-import { createThought } from './thought.js?v=b1e8f97';
-import { createWeather } from './weather.js?v=b1e8f97';
-import { createJukebox } from './jukebox.js?v=b1e8f97';
-import { TRACKS, COVER } from './music.js?v=b1e8f97';
+import { loadBuffer } from './kit.js?v=18942b7';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=18942b7';
+import { createRitual } from './ritual.js?v=18942b7';
+import { createChashitsu } from './chashitsu.js?v=18942b7';
+import { createRetroSet } from './retro.js?v=18942b7';
+import { createNav } from './nav.js?v=18942b7';
+import { createDirector } from './director.js?v=18942b7';
+import { createThought } from './thought.js?v=18942b7';
+import { createWeather } from './weather.js?v=18942b7';
+import { createJukebox } from './jukebox.js?v=18942b7';
+import { TRACKS, COVER } from './music.js?v=18942b7';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=b1e8f97'), load('assets/tableau.jpg?v=b1e8f97'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=18942b7'), load('assets/tableau.jpg?v=18942b7'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -225,7 +225,7 @@ export async function createRoom(container, bubbleEl) {
   const view = { az: 36 * DEG, el: 26 * DEG, zoom: 1, tAz: 36 * DEG, tEl: 26 * DEG, tZoom: 1 };
   const target = new THREE.Vector3(0.1, 0.8, -0.2), tgt = target.clone(), home = target.clone();
   const DEF = { az: 36 * DEG, el: 26 * DEG, zoom: 1 };
-  let fit = 1, W = 1, H = 1;
+  let fit = 1, W = 1, H = 1, halfW = 1, panU = 0, panT = 0;
 
   let scrollOff = 0, scrollT = 0;                                  // la caméra baisse quand l'en-tête défile (comme la scène de référence)
   function orient() {
@@ -239,10 +239,14 @@ export async function createRoom(container, bubbleEl) {
   }
   function computeFit() {
     const save = { az: view.az, el: view.el };
+    const gp = cs.garden.parent; gp.remove(cs.garden);                  // le jardin n'a pas de bord : il ne compte ni dans le centrage ni dans le cadrage
     view.az = DEF.az; view.el = DEF.el; orient();
     items.forEach((i) => { i.obj.position.copy(i.base); });
     world.updateMatrixWorld(true);
-    const inv0 = new THREE.Box3().setFromObject(world); inv0.getCenter(target); tgt.copy(target); home.copy(target);
+    const inv0 = new THREE.Box3().setFromObject(world);
+    const gz = [[CS.x - 4.4, CS.z - 0.8], [CS.x + 4.4, CS.z - 0.8], [CS.x - 4.4, CS.z + 5.4], [CS.x + 4.4, CS.z + 5.4]];     // partie dense du jardin (le reste se dissout)
+    for (const [x, z] of gz) inv0.expandByPoint(new THREE.Vector3(x, 0, z));
+    inv0.getCenter(target); tgt.copy(target); home.copy(target);
     orient();
     const inv = camera.matrixWorldInverse, v = new THREE.Vector3(), bb = new THREE.Box3();
     let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
@@ -253,9 +257,11 @@ export async function createRoom(container, bubbleEl) {
         x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y);
       }
     }
+    for (const [x, z] of gz) { v.set(x, 0, z).applyMatrix4(inv); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
     const mx = Math.max(Math.abs(x0), Math.abs(x1)), my = Math.max(Math.abs(y0), Math.abs(y1)), aspect = W / H;
-    // la scène doit tenir dans 94 % de la largeur et 88 % de la hauteur
-    fit = Math.max(my / 0.88, mx / 0.94 / aspect);
+    gp.add(cs.garden);
+    // cadrage sur la hauteur seulement : sur écran large le jardin comble les côtés, sur téléphone la scène dépasse (glisser pour la parcourir)
+    fit = my / 0.9; halfW = mx; void aspect;
     view.az = save.az; view.el = save.el;
   }
   let resScale = 1;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
@@ -271,7 +277,10 @@ export async function createRoom(container, bubbleEl) {
   }
   function applyFrustum() {
     const aspect = W / H, h = fit / view.zoom;
-    camera.left = -h * aspect; camera.right = h * aspect; camera.top = h; camera.bottom = -h;
+    const lim = Math.max(0, halfW - h * aspect * 0.4);                  // panoramique : seulement quand la scène dépasse de l'écran
+    panT = Math.min(lim, Math.max(-lim, panT)); if (view.zoom > 1.15 || view.tZoom > 1.15) panT = 0;
+    panU += (panT - panU) * 0.2;
+    camera.left = -h * aspect + panU; camera.right = h * aspect + panU; camera.top = h; camera.bottom = -h;
     camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(container);
@@ -345,7 +354,8 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if (drag.moved > 6) {
+        if (drag.moved > 6 && W / H < 1.1) { panT -= dx * (2 * (fit / view.zoom) * (W / H)) / W; }          // téléphone : un doigt fait défiler la scène
+        else if (drag.moved > 6) {
           view.tAz -= dx * 0.006;
           view.tEl = Math.min(58 * DEG, Math.max(14 * DEG, view.tEl + dy * 0.004));
           el.style.cursor = 'grabbing';
