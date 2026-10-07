@@ -9,7 +9,8 @@ on:
       - "tools/test-native-geometry.mjs"
       - "tools/test-scene-runtime.mjs"
       - "tools/test-motion-fit.mjs"
-      - "assets/jeans-jnco-fit.glb"
+      - "tools/test-custom-scene.mjs"
+      - "assets/jeans-baggy.glb"
       - "shupi/assets/**"
       - ".github/workflows/scene-smoke.yml"
   workflow_dispatch:
@@ -38,11 +39,11 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v14" index.html
-          grep -q "character.js?v=cv-scene-v14" js/room.js
-          grep -q "retro.js?v=heel-blender-v9" js/room.js
-          grep -q "room.js?v=cv-scene-v14" js/main.js
-          test -s assets/jeans-jnco-fit.glb
+          grep -q "js/main.js?v=cv-scene-v15" index.html
+          grep -q "character.js?v=cv-scene-v15" js/room.js
+          grep -q "retro.js?v=cv-scene-v15" js/room.js
+          grep -q "room.js?v=cv-scene-v15" js/main.js
+          test -s assets/jeans-baggy.glb
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
   runtime:
@@ -60,6 +61,8 @@ jobs:
         run: node tools/test-scene-runtime.mjs
       - name: Check original activities, effects and sounds
         run: node tools/test-motion-fit.mjs
+      - name: Check customized furniture, props and motion
+        run: node tools/test-custom-scene.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

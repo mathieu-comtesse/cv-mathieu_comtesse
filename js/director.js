@@ -20,10 +20,10 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   };
 
   function idle() { hero.stop(); hero.play('Idle_Loop', { fade: 0.2 }); hero.setBase('neutral'); hero.talk(false); hero.setOverride(null); hero.setNativePose?.(null); hero.can.visible = false; }
-  function clearActivity() {
+  function clearActivity(reason = 'leave') {
     if (!cur) return;
     const rit = cur.ritual; ritual.stop(); hero.setPost(null); hero.setShoes(!rit); hero.can.visible = false; hero.setOverride(null); hero.setNativePose?.(null); hero.talk(false);
-    ui.rain(false); ui.music(false, cur);
+    ui.activityEnd?.(cur, reason); ui.music(false, cur);
     cur = null;
   }
   function start(s) {
@@ -84,8 +84,10 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     let from = [pos.x, pos.z];
     const q = [];
     if (cur) { const ex = cur.exit ? cur.exit() : { from: cur.approach, steps: [api.glide(cur.approach[0], cur.approach[1], floorY(cur.approach[0], cur.approach[1]), g.rotation.y, 0.45, 'Idle_Loop')] }; q.push(api.fn(clearActivity), ...ex.steps); from = ex.from; }
+    const path = st.route ? null : nav.path(from, st.approach);
+    if (path && !path.length) { api.stand(); return false; }
     q.push(api.fn(() => { ui.say(st); mode = 'walk'; }));
-    q.push(...(st.route ? st.route(from) : [api.walk(nav.path(from, st.approach))]));
+    q.push(...(st.route ? st.route(from) : [api.walk(path)]));
     q.push(...(st.noFace ? [] : [api.face(st.yaw)]), ...enterSteps(st));
     steps = q; mode = 'walk'; if (!cur) { /* départ immédiat */ }
   };
@@ -95,7 +97,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   }
   /** Pose directement le personnage dans l'activité (glisser-déposer). */
   api.placeInto = (st) => {
-    steps = []; step = null; clearActivity();
+    steps = []; step = null; clearActivity('place');
     ui.poof(pos);
     const a = st.approach; pos.set(a[0], floorY(a[0], a[1]), a[1]); g.rotation.y = st.yaw;
     ui.poof(pos);
@@ -108,7 +110,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     steps = [api.fn(clearActivity), api.fn(() => ui.say(null)), ...ex.steps, api.fn(() => { mode = 'idle'; idle(); })]; mode = 'walk';
   };
   api.lift = () => {
-    steps = []; step = null; clearActivity(); ui.say(null);
+    steps = []; step = null; clearActivity('carry'); ui.say(null);
     mode = 'carried'; carryTo = { x: pos.x, z: pos.z }; hero.stop(); hero.play('Jump_Loop', { fade: 0.15 }); hero.setBase('amazed');
   };
   api.carry = (x, z) => { carryTo = { x, z }; };

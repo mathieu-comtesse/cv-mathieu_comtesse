@@ -7,7 +7,8 @@ import { TRACKS } from './music.js?v=bf01a16';
 export function createJukebox({ onTrack, onState } = {}) {
   let bag = [], last = -1, ctrl = null, loading = false, on = false, want = null, paused = false, userPause = false, started = false, tries = 0, lastPos = 0, lastPlayAt = 0, endAt = 0;
   const box = document.createElement('div');
-  box.style.cssText = 'position:fixed;right:16px;bottom:16px;width:min(320px,calc(100vw - 32px));z-index:30;display:none;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+  box.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:320px;height:80px;opacity:0;pointer-events:none';
+  box.setAttribute('aria-hidden', 'true');
   const slot = document.createElement('div'); box.append(slot); document.body.append(box);
   const emit = () => onState && onState({ on, paused });
   const nextRandom = () => {
@@ -47,11 +48,11 @@ export function createJukebox({ onTrack, onState } = {}) {
   const api = {
     get playing() { return on ? want : -1; },
     get isOn() { return on; },
-    random() { on = true; box.style.display = 'block'; go(nextRandom()); init(); },
+    random() { on = true;  go(nextRandom()); init(); },
     next() { this.random(); },
-    play(i) { on = true; box.style.display = 'block'; go(i); init(); },
+    play(i) { on = true;  go(i); init(); },
     toggle() { if (!on) { this.random(); return; } if (ctrl) { ctrl.togglePlay(); paused = !paused; userPause = paused; if (!paused) lastPlayAt = now(); emit(); } },
-    stop() { on = false; box.style.display = 'none'; paused = false; if (ctrl) ctrl.pause(); emit(); },
+    stop() { on = false;  paused = false; if (ctrl) ctrl.pause(); emit(); },
   };
   return api;
 }

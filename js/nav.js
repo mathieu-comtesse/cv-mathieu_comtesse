@@ -17,7 +17,7 @@ export function createNav({ x0, x1, z0, z1, cell = 0.1, radius = 0.16 }) {
   };
   function nearest(x, z) {                                       // case libre la plus proche
     if (free(x, z)) return [x, z];
-    const i0 = ix(x), j0 = iz(z);
+    const i0 = Math.max(0, Math.min(nx-1, ix(x))), j0 = Math.max(0, Math.min(nz-1, iz(z)));
     for (let r = 1; r < Math.max(nx, nz); r++) {
       let best = null, bd = 1e9;
       for (let j = j0 - r; j <= j0 + r; j++) for (let i = i0 - r; i <= i0 + r; i++) {
@@ -30,6 +30,7 @@ export function createNav({ x0, x1, z0, z1, cell = 0.1, radius = 0.16 }) {
   }
   function path(from, to) {                                      // from, to : [x, z] ; renvoie une liste de points [x, z] (sans le départ)
     const s = nearest(from[0], from[1]), g = nearest(to[0], to[1]);
+    if (!free(...s) || !free(...g)) return [];
     const si = ix(s[0]), sj = iz(s[1]), gi = ix(g[0]), gj = iz(g[1]);
     const dist = new Float32Array(nx * nz).fill(1e9), prev = new Int32Array(nx * nz).fill(-1), done = new Uint8Array(nx * nz);
     const open = [[0, id(si, sj)]]; dist[id(si, sj)] = 0;
@@ -52,7 +53,8 @@ export function createNav({ x0, x1, z0, z1, cell = 0.1, radius = 0.16 }) {
     const pts = [];
     for (let c = id(gi, gj); c !== -1 && c !== id(si, sj); c = prev[c]) { const k = center(c % nx, (c / nx) | 0); pts.push(k); }
     pts.reverse();
-    if (!pts.length || prev[id(gi, gj)] === -1 && (gi !== si || gj !== sj)) return [to];
+    if (gi === si && gj === sj) return line(s, g) ? [g] : [];
+    if (prev[id(gi, gj)] === -1) return [];
     // lissage : on saute les points intermédiaires dès que la ligne de vue est libre
     const out = []; let a = s, k = 0;
     while (k < pts.length) {
@@ -62,5 +64,5 @@ export function createNav({ x0, x1, z0, z1, cell = 0.1, radius = 0.16 }) {
     out[out.length - 1] = [g[0], g[1]];
     return out;
   }
-  return { block, free, nearest, path, grid: { nx, nz, x0, z0, cell, blocked } };
+  return { block, free, nearest, path, line, grid: { nx, nz, x0, z0, cell, blocked } };
 }

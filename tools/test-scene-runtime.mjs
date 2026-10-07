@@ -69,16 +69,11 @@ try {
     const deskBounds = await page.evaluate(() => window.room.bbox('desk'));
     assert.ok(deskBounds[1].every((max, i) => max - deskBounds[0][i] < 4), 'Imported desk must retain its physical size');
     assert.ok(await page.evaluate(() => {
-      const desk = window.room.scene.getObjectByName('NativeExactDeskSet');
-      return ['Standing desk', 'Fractal North chalk white PC', 'Ceramic coffee mug', 'Apple Studio Display',
-        'Logitech MX Keys keyboard', 'Logitech MX Master 4 mouse', 'Nommo left speaker', 'Nommo right speaker']
-        .every(name => {
-          const object = desk.getObjectByName(name);
-          let meshes = 0;
-          object?.traverse(child => { if (child.isMesh) meshes++; });
-          return object?.visible && meshes > 0;
-        });
-    }), 'Every desk object must be visible and contain meshes');
+      return ['Moonlander','CurvedLandscapeMonitor','PortraitMonitor','ErgonomicVerticalMouse'].every(name=>{
+        const object=window.room.scene.getObjectByName(name);let meshes=0;
+        object?.traverse(child=>{if(child.isMesh)meshes++;});return object?.visible&&meshes>0;
+      });
+    }), 'The customized desk equipment must remain visible after native loading');
     assert.ok(after.frames > before.frames + 5, 'Rendering must continue after the iframe loads');
     assert.ok(after.hero, 'Character must appear');
     await page.screenshot({ path: path.join(output, `scene-${viewport.width}.png`) });
@@ -110,9 +105,10 @@ try {
       // advancing frames, instead of stranding the initial carpet frame.
       const firstFrame = after.frames;
       await page.evaluate(() => {
-        const desk = window.room.scene.getObjectByName('NativeExactDeskSet');
+        const desk = window.room.scene.getObjectByName('NativeMotionEffects');
         const foreignArray = document.querySelector('iframe').contentWindow.Float32Array;
         desk.traverse((object) => {
+          object.visible = true;
           const attribute = object.geometry?.attributes.position;
           if (attribute) {
             const incompatible = attribute.clone();

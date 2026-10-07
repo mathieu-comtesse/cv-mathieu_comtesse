@@ -262,6 +262,7 @@ export function officeChair() {
  * Les pastilles de couleur du fichier d'origine (échantillons de tissus) sont masquées. Avant du siège = +z. */
 export function officeChairFrom(gltf) {
   const g = group();
+  g.name = 'HermanMillerSetu';
   const root = gltf.scene.clone(true);
   const grey = { Aluminum: '#d4d6d6', 'Studio White': '#b9bcbe', Casters: '#202124' };
   root.traverse((o) => {
@@ -276,7 +277,26 @@ export function officeChairFrom(gltf) {
   const inner = group(root);
   inner.position.set(-0.335, 0, 0.325);          // centre le siège sur son axe
   const turn = group(inner); turn.rotation.y = -Math.PI / 2;
-  g.add(turn);
+  g.add(turn); g.updateMatrixWorld(true);
+  const base = new THREE.Group(), swivel = new THREE.Group();
+  base.name='SetuFixedBase';swivel.name='SetuSwivel';
+  swivel.userData.dynamic=true;g.userData.dynamic=true;
+  const meshes=[];turn.traverse(o=>{if(o.isMesh&&o.visible)meshes.push(o);});
+  for(const source of meshes) {
+    const geometry=source.geometry.clone().applyMatrix4(source.matrixWorld);
+    const p=geometry.attributes.position,idx=geometry.index;
+    const lower=[],upper=[];
+    for(let i=0;i<(idx?idx.count:p.count);i+=3) {
+      const triangle=[0,1,2].map(k=>idx?idx.getX(i+k):i+k);
+      (Math.max(...triangle.map(v=>p.getY(v)))>0.34?upper:lower).push(...triangle);
+    }
+    for(const [indices,parent] of [[lower,base],[upper,swivel]]) if(indices.length) {
+      const geo=geometry.clone();geo.setIndex(indices);geo.computeBoundingBox();
+      const part=new THREE.Mesh(geo,source.material);part.castShadow=part.receiveShadow=true;parent.add(part);
+    }
+  }
+  g.remove(turn);g.add(base,swivel);
+  g.userData.swivel=swivel;g.userData.restYaw=0;
   return g;
 }
 
@@ -502,9 +522,11 @@ export function alocasia() {
   // pot en terre cuite, ventre rond, lèvre épaisse
   const prof = [[0.0, 0.0], [0.13, 0.0], [0.19, 0.05], [0.235, 0.15], [0.245, 0.27], [0.225, 0.36], [0.24, 0.385], [0.245, 0.41], [0.225, 0.41], [0.215, 0.39]];
   const potTex = canvasTexture(128, 128, (c, w, h) => { c.fillStyle = '#b4623a'; c.fillRect(0, 0, w, h); for (let i = 0; i < 160; i++) { c.fillStyle = `rgba(${r() > 0.5 ? '255,200,160' : '90,40,20'},${0.06 + r() * 0.1})`; c.fillRect(r() * w, r() * h, 2 + r() * 8, 1 + r() * 3); } });
-  g.add(mesh(new THREE.LatheGeometry(prof.map(([x, y]) => new THREE.Vector2(x, y)), 28), new THREE.MeshStandardMaterial({ map: potTex, roughness: 0.9, side: THREE.DoubleSide })));
+  g.add(mesh(new THREE.LatheGeometry(prof.map(([x, y]) => new THREE.Vector2(x * 1.42, y)), 28), new THREE.MeshStandardMaterial({ map: potTex, roughness: 0.9, side: THREE.DoubleSide })));
   const soil = mat('#3a2f29', { roughness: 1 });
-  g.add(cyl(0.215, 0.215, 0.012, soil, 0, 0.37, 0, 28));
+  g.add(cyl(0.3053, 0.3053, 0.012, soil, 0, 0.37, 0, 28));
+  g.userData.waterTarget = new THREE.Vector3(0, 0.379, 0);
+  g.userData.waterRadius = 0.3053;
   for (let i = 0; i < 26; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * 0.2; g.add(box(0.02, 0.012, 0.016, mat(r() > 0.5 ? '#d8d2c4' : '#7d7468'), Math.cos(a) * d, 0.379, Math.sin(a) * d)).rotation.y = r() * 3; }
   // tronc fibreux
   const bark = mat('#8a6a49', { roughness: 1 });
@@ -1042,8 +1064,9 @@ export function borneFromGltf(gltf, k = 1.0) {
   const bb = new THREE.Box3().setFromObject(root), sc = k;
   root.traverse((o) => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; const m = o.material.clone(); o.material = m; m.roughness = 1; m.metalness = 0; } });
   const glowM = new THREE.MeshBasicMaterial({ color: '#fff3d6', toneMapped: false, side: THREE.DoubleSide });
-  const slot = new THREE.Mesh(new THREE.PlaneGeometry(0.27, 0.068), glowM);        // fente lumineuse sous le capot
-  slot.rotation.x = Math.PI / 2; slot.position.set(0.15, 0.1475, 0.234); root.add(slot);
+  const slot = new THREE.Mesh(new THREE.PlaneGeometry(0.27, 0.068), glowM);
+  slot.visible = false;        // fente lumineuse sous le capot
+  slot.rotation.x = Math.PI / 2; slot.position.set(0.15, 0.1475, 0.234);
   const inner = group(root); inner.scale.setScalar(sc);
   inner.position.set(-(bb.max.x + bb.min.x) / 2 * sc, -bb.min.y * sc, -(bb.max.z + bb.min.z) / 2 * sc);
   g.add(inner);
@@ -1075,4 +1098,13 @@ export function akariFromGltf(gltf, height = 0.5) {
   inner.position.set(-(bb.max.x + bb.min.x) / 2 * k, -bb.min.y * k, -(bb.max.z + bb.min.z) / 2 * k);
   g.add(inner); g.userData.glow = glow;
   return g;
+}
+
+export function roadBikeFrom(gltf) {
+  const g=group(),root=gltf.scene.clone(true);root.updateMatrixWorld(true);
+  const bb=new THREE.Box3().setFromObject(root),size=bb.getSize(new THREE.Vector3());
+  const scale=1.75/size.x;root.scale.multiplyScalar(scale);
+  root.position.set(-(bb.min.x+bb.max.x)*scale/2,-bb.min.y*scale,-(bb.min.z+bb.max.z)*scale/2);
+  root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;}});
+  g.add(root);g.name='RoadBikeTrekFinish';return g;
 }

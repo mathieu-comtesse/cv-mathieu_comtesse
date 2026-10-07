@@ -40,7 +40,7 @@ export function createRetroSet() {
   g.add(tv);
 
   /* ── PlayStation (SCPH-1002) ── */
-  const ps = group();
+  const ps = group(); ps.name="PlayStation1"; ps.userData.dynamic=true;
   const grey = new THREE.MeshStandardMaterial({ color: '#b3b3ae', roughness: 0.6 });
   const greyD = new THREE.MeshStandardMaterial({ color: '#9b9b97', roughness: 0.65 });
   const PW = 0.32, PH = 0.065, PD = 0.22;
@@ -157,7 +157,7 @@ export function createRetroSet() {
   }
   const litMat = rocker.material; litMat.userData.unique = true;
   const api = {
-    pad,
+    pad, console: ps,
     get padHeld() { return padHeld; },
     setPadHeld(v) { padHeld = !!v; },
     updatePad(dt, handL, handR) {

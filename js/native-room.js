@@ -124,7 +124,7 @@ async function build() {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.tabIndex = -1;
-  iframe.src = './shupi/index.html?embed&profile=mobile&v=cv-scene-v14';
+  iframe.src = './shupi/index.html?embed&profile=mobile&v=cv-scene-v15';
   iframe.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:480px;height:320px;opacity:0;pointer-events:none;border:0;z-index:-1';
   document.body.appendChild(iframe);
 
@@ -191,8 +191,55 @@ async function build() {
     return clone;
   };
 
+  const frontCover = await new THREE.TextureLoader().loadAsync('assets/popper-front.png');
+  const backCover = await new THREE.TextureLoader().loadAsync('assets/popper-back.png');
+  frontCover.colorSpace = backCover.colorSpace = THREE.SRGBColorSpace;
+  const sourceBook = sourceScene.getObjectByName('iso:book');
+  sourceBook.userData.title = 'Objective Knowledge — Karl R. Popper';
+  sourceBook.traverse(o => {
+    if (!o.isMesh || !/artwork/.test(o.name)) return;
+    o.material = new THREE.MeshStandardMaterial({map: /back/.test(o.name) ? backCover : frontCover, roughness: 0.85, side: THREE.DoubleSide});
+  });
   const book = makeProp('iso:book');
+  book.userData.title = sourceBook.userData.title;
+  book.traverse(o => {
+    if(!o.isMesh)return;
+    if(o.userData.bookFace) o.material = new THREE.MeshStandardMaterial({map:o.userData.bookFace==='back'?backCover:frontCover,roughness:0.85,side:THREE.DoubleSide});
+    else if(!o.userData.bookPaper && !/receiver/.test(o.name)) {o.material=o.material.clone();o.material.color?.set('#599bea');}
+  });
+  const bookPreview = new THREE.Group();bookPreview.name='ObjectiveKnowledgePreview';
+  const paper=new THREE.MeshStandardMaterial({color:'#efe9dc',roughness:1});
+  const cover=new THREE.MeshStandardMaterial({color:'#599bea',roughness:0.8});
+  bookPreview.add(new THREE.Mesh(new THREE.BoxGeometry(0.15,0.24,0.018),[cover,cover,cover,cover,new THREE.MeshStandardMaterial({map:frontCover,roughness:0.85}),new THREE.MeshStandardMaterial({map:backCover,roughness:0.85})]));
+  bookPreview.userData.title=book.userData.title;
   const wateringCan = makeProp('iso:can');
+  const waterTarget = new THREE.Object3D();waterTarget.name='MathieuWaterTarget';sourceScene.add(waterTarget);
+  const setWaterTarget = (hero, target, radius) => {
+    hero.model.updateMatrixWorld(true);sourceCharacter.updateMatrixWorld(true);
+    const inverseMap=sourceCharacter.matrixWorld.clone().multiply(hero.model.matrixWorld.clone().invert());
+    waterTarget.position.copy(target).applyMatrix4(inverseMap);
+    waterTarget.userData.radius=radius / Math.max(0.0001,hero.model.getWorldScale(new THREE.Vector3()).x);
+    for(const station of sceneApi.simStations) if(station.kind==='water') station.wateringTarget=waterTarget;
+    waterTarget.updateMatrixWorld(true);
+  };
+  const aimWateringCan = (hero, target) => {
+    if(!wateringCan?.visible) return;
+    wateringCan.updateWorldMatrix(true,true);
+    const tip=wateringCan.userData.spout;
+    if(!tip)return;
+    const spout=new THREE.Vector3(tip.x,tip.y,tip.z).applyMatrix4(wateringCan.matrixWorld);
+    const delta=new THREE.Vector3(target.x-spout.x,0,target.z-spout.z);
+    waterAimDelta.copy(delta);waterSpoutY=spout.y;waterSoilY=target.y;
+    // Keep the sprinkler above the soil and the handle in the same hands.
+    wateringCan.position.add(delta);wateringCan.updateMatrixWorld(true);
+    for(const side of ['l','r']) {
+      const upper=hero.bones['upperarm_'+side],lower=hero.bones['lowerarm_'+side],hand=hero.bones['hand_'+side];
+      const to=hand.getWorldPosition(new THREE.Vector3()).add(delta);
+      const elbow=lower.getWorldPosition(new THREE.Vector3());elbow.y-=0.05;
+      hero.ik2(upper,lower,hand,to,elbow);
+    }
+    hero.group.updateMatrixWorld(true);
+  };
   const effects = new THREE.Group();
   effects.name = 'NativeMotionEffects';
   effects.userData.dynamic = true;
@@ -209,6 +256,7 @@ async function build() {
     }
     for (let i=0;i<Math.min(source.children.length,clone.children.length);i++) syncChildren(source.children[i],clone.children[i]);
   };
+  let waterAimDelta = new THREE.Vector3(), waterSpoutY=0, waterSoilY=0;
   const syncEffects = (hero) => {
     hero.model.updateMatrixWorld(true);
     const map = hero.model.matrixWorld.clone().multiply(sourceCharacter.matrixWorld.clone().invert());
@@ -217,6 +265,15 @@ async function build() {
     for (const {source,clone} of effectPairs) {
       syncChildren(source,clone);
       parentInv.clone().multiply(map).multiply(source.matrixWorld).decompose(clone.position,clone.quaternion,clone.scale);
+      if(source.name==='iso:water' && mode==='water') {
+        clone.updateMatrixWorld(true);
+        const localDelta=waterAimDelta.clone().transformDirection(clone.matrixWorld.clone().invert()).multiplyScalar(waterAimDelta.length()/clone.getWorldScale(new THREE.Vector3()).x);
+        for(const drop of clone.children) if(drop.visible) {
+          const worldPoint=drop.getWorldPosition(new THREE.Vector3());
+          const k=THREE.MathUtils.clamp((worldPoint.y-waterSoilY)/Math.max(0.02,waterSpoutY-waterSoilY),0,1);
+          drop.position.addScaledVector(localDelta,k);
+        }
+      }
     }
   };
 
@@ -313,11 +370,12 @@ async function build() {
     }
   };
 
-  const applyPose = (hero, amount = 1) => {
+  const applyPose = (hero, amount = 1, { upperOnly = false } = {}) => {
     if (!sourceCharacter || !hero?.bones) return;
     const w = Math.max(0, Math.min(1, amount));
 
     for (const [srcName, targetName] of Object.entries(SOURCE_TO_TARGET)) {
+      if (upperOnly && /^(pelvis|thigh_|calf_|foot_|ball_)/.test(targetName)) continue;
       const src = sourceBones[srcName];
       const dst = hero.bones[targetName];
       if (!src || !dst) continue;
@@ -351,6 +409,13 @@ async function build() {
   const update = (dt) => {
     shupi.mixer?.update(dt);
     shupi._emit('frame', dt);
+    if (mode === 'walk' || mode === 'run') {
+      const walk = sourceFeatures.walk;
+      walk?.update((walk.authoredSpeed || 8) * (mode === 'run' ? 1.4 : 0.75), 1);
+      if (!sceneApi.previewWalking) sceneApi.previewWalk({x: -100, z: shupi.model.position.z < 0 ? 100 : -100}, mode === 'run');
+    }
+    sourceBook.traverse(o => { if(o.isMesh && /artwork/.test(o.name)) { const cover=/back/.test(o.name)?backCover:frontCover;if(o.material.map!==cover){o.material.map=cover;o.material.needsUpdate=true;} } });
+    sourceScene.traverse(o => { if (/Shed plant leaf/.test(o.name)) o.visible = false; });
     sourceScene.updateMatrixWorld(true);
   };
   return {
@@ -362,17 +427,20 @@ async function build() {
     deskSet: desk.root,
     deskDisplay: desk.display,
     book,
+    bookPreview,
     wateringCan,
     effects,
     syncEffects,
     syncBook: (targetRoot) => syncProp(book, 'iso:book', targetRoot.model || targetRoot),
     syncWateringCan: (targetRoot) => syncProp(wateringCan, 'iso:can', targetRoot.model || targetRoot),
     setMode,
+    setWaterTarget,
+    aimWateringCan,
     applyPose,
     resumeSound,
     stop,
     get mode() { return mode; },
-    get seatYawOffset() { return mode === 'work' ? shupi.model.rotation.y - modeFacing : 0; },
+    get seatYawOffset() { const s = sceneApi.simStations.find(s => s.kind === 'work'); return s?.swivel ? s.swivel.object.rotation.y - s.swivel.sat : 0; },
   };
 }
 

@@ -16,14 +16,15 @@ export function createThought(el) {
   const sun = new THREE.DirectionalLight('#fff3e0', 2.2); sun.position.set(2, 3, 2.5); scene.add(sun);
   const cam = new THREE.OrthographicCamera(-0.62, 0.62, 0.62, -0.62, 0.1, 20); cam.position.set(0, 0, 5); cam.lookAt(0, 0, 0);
   const spin = new THREE.Group(), tilt = new THREE.Group(); tilt.add(spin); scene.add(tilt);
-  let rate = 0.9, sourcePreview = null, nativeActive = false;
+  let rate = 0.9, sourcePreview = null, nativeActive = false, readingBook = null;
   const localVisible = (on) => { for (const child of el.children) if (!child.classList.contains('action-bubble')) child.style.display = on ? '' : 'none'; };
   const sourceLabel = (text) => /bureau/.test(text) ? 'Work at the desk'
     : /Arroser/.test(text) ? 'Water plant'
     : /Lire/.test(text) ? sourcePreview?.items.find(s=>s.startsWith('Read '))
     : /Jouer/.test(text) ? 'Play on the lounge chair' : null;
   return {
-    useSource(api) {
+    useSource(api, book = null) {
+      readingBook = book;
       sourcePreview?.bubble.dispose();
       sourcePreview = api ? api.createThoughtPreview(el) : null;
       nativeActive = false;
@@ -31,7 +32,8 @@ export function createThought(el) {
       localVisible(!sourcePreview);
     },
     show(obj, text, { tiltDeg = 25, scale = 1, yaw = -17 } = {}) {
-      if (sourcePreview) {
+      if (/Lire/.test(text) && readingBook) obj = readingBook;
+      if (sourcePreview && !/Lire|Jouer/.test(text)) {
         const label = sourceLabel(text);
         if (label && sourcePreview.items.includes(label)) {
           nativeActive = true; localVisible(false); sourcePreview.show(label);
@@ -40,6 +42,7 @@ export function createThought(el) {
         }
         sourcePreview.bubble.hide();
       }
+      if (/Lire|Jouer/.test(text)) sourcePreview?.bubble.hide();
       nativeActive = false; localVisible(true);
       while (spin.children.length) spin.remove(spin.children[0]);
       if (obj) {
