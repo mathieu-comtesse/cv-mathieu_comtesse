@@ -65,6 +65,46 @@ if sh_candidates and nb_candidates:
     if nb>0:
         out['recommended_nb_scale']=sh/nb
 
+# More reliable Shujaat shoe split: use armature vertex groups instead of spatial median.
+clear()
+import_glb('assets/mathieu-character.glb')
+shoe_objs=[o for o in bpy.context.scene.objects if o.type=='MESH' and 'shoe' in o.name.lower()]
+left_pts=[]; right_pts=[]; groups_seen=set()
+for obj in shoe_objs:
+    M=obj.matrix_world
+    group_names={i:g.name for i,g in enumerate(obj.vertex_groups)}
+    groups_seen.update(group_names.values())
+    for v in obj.data.vertices:
+        lw=rw=0.0
+        for ge in v.groups:
+            name=group_names.get(ge.group,'').lower()
+            if any(k in name for k in ('foot_l','ball_l','calf_l','lleg','left')):
+                lw += ge.weight
+            if any(k in name for k in ('foot_r','ball_r','calf_r','rleg','right')):
+                rw += ge.weight
+        p=M @ v.co
+        if lw>rw and lw>0:
+            left_pts.append(p)
+        elif rw>lw and rw>0:
+            right_pts.append(p)
+
+out['shoe_vertex_groups']=sorted(groups_seen)
+out['shujaat_shoe_left_weighted']=dims(left_pts)
+out['shujaat_shoe_right_weighted']=dims(right_pts)
+target_character_height=1.72
+char_h=out['character']['max_dim']
+char_scale=target_character_height/char_h
+out['target_character_height']=target_character_height
+out['character_normalization_scale']=char_scale
+weighted=[x for x in (out.get('shujaat_shoe_left_weighted'),out.get('shujaat_shoe_right_weighted')) if x]
+if weighted:
+    shoe_native=sum(x['max_dim'] for x in weighted)/len(weighted)
+    shoe_target=shoe_native*char_scale
+    out['shujaat_target_shoe_max_dim']=shoe_target
+    nb=out.get('nb992_nb_left',{}).get('max_dim') or out.get('nb992_all',{}).get('max_dim')
+    if nb:
+        out['recommended_runtime_nb_scale']=shoe_target/nb
+
 with open('blender-calibration.json','w',encoding='utf8') as f:
     json.dump(out,f,indent=2)
 print(json.dumps(out,indent=2))
