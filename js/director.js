@@ -16,10 +16,10 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     wait: (t) => ({ k: 'wait', wait: t }),
   };
 
-  function idle() { hero.stop(); hero.play('Idle_Loop', { fade: 0.2 }); hero.setBase('neutral'); hero.talk(false); hero.setOverride(null); hero.can.visible = false; }
+  function idle() { hero.stop(); hero.play('Idle_Loop', { fade: 0.2 }); hero.setBase('neutral'); hero.talk(false); hero.setOverride(null); hero.setShujaatPose?.(null); hero.can.visible = false; }
   function clearActivity() {
     if (!cur) return;
-    const rit = cur.ritual; ritual.stop(); hero.setPost(null); hero.setShoes(!rit); hero.can.visible = false; hero.setOverride(null); hero.talk(false);
+    const rit = cur.ritual; ritual.stop(); hero.setPost(null); hero.setShoes(!rit); hero.can.visible = false; hero.setOverride(null); hero.setShujaatPose?.(null); hero.talk(false);
     ui.rain(false); ui.music(false, cur);
     cur = null;
   }
