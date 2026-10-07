@@ -57,10 +57,18 @@ export async function createRoom(container, bubbleEl) {
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
   const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=bf01a16'), load('assets/tableau.jpg?v=bf01a16'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
-  const shujaatBridge = await getShujaatRoomBridge().catch((e) => {
-    console.warn('[Shujaat room] runtime exact indisponible, fallback procédural', e);
+  // Le runtime Shujaat ne doit jamais bloquer l'affichage de la pièce.
+  // S'il n'est pas prêt rapidement, on affiche immédiatement le décor local,
+  // puis les interactions restent utilisables au lieu de laisser un écran blanc.
+  const shujaatBridgePromise = getShujaatRoomBridge().catch((e) => {
+    console.warn('[Shujaat room] runtime exact indisponible', e);
     return null;
   });
+  const shujaatBridge = await Promise.race([
+    shujaatBridgePromise,
+    new Promise((resolve) => setTimeout(() => resolve(null), 1400)),
+  ]);
+  if (!shujaatBridge) console.warn('[Shujaat room] démarrage immédiat en fallback local');
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
