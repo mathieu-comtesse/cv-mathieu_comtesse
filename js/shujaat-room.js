@@ -1,4 +1,5 @@
 import { THREE } from './kit.js?v=shujaat-room-v2';
+import { cloneShujaatObject } from './shujaat-geometry.js?v=render-recovery-v10';
 
 const SOURCE_TO_TARGET = {
   Base_HumanPelvis001: 'pelvis',
@@ -58,9 +59,10 @@ function poseOf(o) {
   return { p, q, s };
 }
 
-function makeDeskSet(scene) {
+function makeDeskSet(scene, pieces) {
+  const find = (name) => pieces?.find((object) => object.name === name) || scene.getObjectByName(name);
   scene.updateMatrixWorld(true);
-  const desk = scene.getObjectByName('Standing desk');
+  const desk = find('Standing desk');
   if (!desk) throw new Error('Standing desk introuvable');
 
   const anchor = desk.matrixWorld.clone();
@@ -70,11 +72,11 @@ function makeDeskSet(scene) {
 
   let deskClone = null;
   for (const name of DESK_OBJECTS) {
-    const src = scene.getObjectByName(name);
+    const src = find(name);
     if (!src) continue;
     src.updateMatrixWorld(true);
 
-    const clone = src.clone(true);
+    const clone = cloneShujaatObject(src);
     clone.matrixAutoUpdate = true;
     const rel = inv.clone().multiply(src.matrixWorld);
     rel.decompose(clone.position, clone.quaternion, clone.scale);
@@ -102,6 +104,11 @@ function makeDeskSet(scene) {
   if (width > 0.001) root.scale.setScalar(1.9 / width);
   root.updateMatrixWorld(true);
 
+  const setSize = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
+  if (![setSize.x, setSize.y, setSize.z].every((value) => Number.isFinite(value) && value <= 4)) {
+    throw new Error('Bureau Shujaat hors échelle : conservation du bureau local');
+  }
+
   const display =
     root.getObjectByName('Apple Studio Display') ||
     root.getObjectByName('Fractal North chalk white PC') ||
@@ -119,8 +126,41 @@ async function build() {
   document.body.appendChild(iframe);
 
   const sceneApi = await waitFor(() => iframe.contentWindow?.shupiHeader?.scene);
+  await sceneApi.ready;
+  sceneApi.setRoom(true);
+  sceneApi.stopSim?.();
+  // Offscreen iframe frames are throttled. Finish the source's entrance before
+  // copying so early pieces at scale 0.001 do not magnify later desk objects.
+  sceneApi.furniture?.group.userData.entrance?.dispose();
   const shupi = sceneApi.shupi;
   const sourceScene = shupi.scene;
+  const pieces = sceneApi.furniture?.pieces;
+  // The scene API exists before all GLTF placeholders contain their meshes.
+  // Wait for the complete desk instead of permanently cloning empty groups.
+  await waitFor(() => DESK_OBJECTS.every((name) => {
+    let ready = false;
+    (pieces?.find((object) => object.name === name) || sourceScene.getObjectByName(name))?.traverse((object) => {
+      if (object.isMesh && object.geometry?.attributes.position?.count) ready = true;
+    });
+    return ready;
+  }));
+  // The source also animates its furniture entrance. Cloning during that
+  // animation can normalize an almost-zero desk width into an enormous set.
+  let deskSignature = '', stableSince = performance.now();
+  await waitFor(() => {
+    sourceScene.updateMatrixWorld(true);
+    const objects = DESK_OBJECTS.map((name) => pieces?.find((object) => object.name === name) || sourceScene.getObjectByName(name));
+    const bounds = new THREE.Box3().setFromObject(objects[0]);
+    const signature = [...bounds.min.toArray(), ...bounds.max.toArray(),
+      ...objects.flatMap((object) => [...object.matrixWorld.elements])]
+      .map((v) => v.toFixed(4)).join(',');
+    if (signature !== deskSignature) {
+      deskSignature = signature;
+      stableSince = performance.now();
+      return false;
+    }
+    return performance.now() - stableSince > 500;
+  });
   const sourceCharacter = shupi.character || shupi.model;
 
   const sourceBones = {};
@@ -128,12 +168,12 @@ async function build() {
     if (o.isBone && SOURCE_TO_TARGET[o.name]) sourceBones[o.name] = o;
   });
 
-  const desk = makeDeskSet(sourceScene);
+  const desk = makeDeskSet(sourceScene, pieces);
 
   const makeProp = (name) => {
     const src = sourceScene.getObjectByName(name);
     if (!src) return null;
-    const clone = src.clone(true);
+    const clone = cloneShujaatObject(src);
     clone.name = 'ShujaatExact:' + name;
     clone.visible = false;
     clone.traverse((o) => {

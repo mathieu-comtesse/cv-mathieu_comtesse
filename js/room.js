@@ -140,8 +140,13 @@ export async function createRoom(container, bubbleEl) {
 
   // chargement Shujaat asynchrone : bureau/PC/tasse + animations/sons exacts,
   // mais seulement APRÈS que la pièce locale ait été construite.
-  setTimeout(() => {
-    import('./shujaat-room.js?v=heel-blender-v9')
+  const fallbackDeskChildren = [...deskSet.children];
+  let bridgeStarted = false;
+  container.dataset.shujaat = 'pending';
+  const loadShujaatBridge = () => {
+    bridgeStarted = true;
+    container.dataset.shujaat = 'loading';
+    import('./shujaat-room.js?v=render-recovery-v10')
       .then((m) => m.getShujaatRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -170,9 +175,27 @@ export async function createRoom(container, bubbleEl) {
         }
 
         console.info('[Shujaat] pont exact chargé après affichage de la scène');
+        container.dataset.shujaat = 'ready';
       })
-      .catch((e) => console.warn('[Shujaat] pont asynchrone indisponible, fallback conservé', e));
-  }, 0);
+      .catch((e) => {
+        if (shujaatBridge) restoreLocalDesk(e);
+        container.dataset.shujaat = 'fallback';
+        console.warn('[Shujaat] pont asynchrone indisponible, fallback conservé', e);
+      });
+  };
+
+  const restoreLocalDesk = (error) => {
+    const bridge = shujaatBridge;
+    shujaatBridge = null;
+    bridge?.stop();
+    bridge?.book?.removeFromParent();
+    bridge?.wateringCan?.removeFromParent();
+    for (const child of [...deskSet.children]) deskSet.remove(child);
+    for (const child of fallbackDeskChildren) deskSet.add(child);
+    uw = deskSet.children.find((o) => o.userData.id === 'pc');
+    container.dataset.shujaat = 'fallback';
+    console.warn('[Shujaat] rendu incompatible, bureau local restauré', error);
+  };
 
   const chair = F.officeChairFrom(setuGltf);
   add('chair', chair, -2.15, 0.3, -Math.PI / 2 + 0.15, 0, 0.2);
@@ -845,12 +868,13 @@ export async function createRoom(container, bubbleEl) {
       director.update(dt);
       const exactMotion = syncShujaatMotionMode();
       if (exactMotion !== 'idle') {
-        hero.setShujaatPose?.(null);
         if (exactMotion === 'water' && shujaatBridge?.wateringCan) hero.can.visible = false;
       }
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
-      if (exactMotion !== 'idle') shujaatBridge?.applyPose(hero, 1);
+      // The Base_Human and local UE rigs have different bone axes. Keep the
+      // local animations, captured poses and seated IK; the iframe supplies
+      // activities, sounds and props without overwriting the character's rig.
       { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
         followTea = ritual.state.active || (director.current && director.current.ritual) || cs.panels.some((q) => q.target > 0.5) || inRoom || hp.x < CS.x + 2.6 && hp.z > CS.z - 3.5;
         cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
@@ -954,7 +978,17 @@ export async function createRoom(container, bubbleEl) {
       L.light.intensity = L.k * (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1);
     }
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % 3 === 0;
-    renderer.render(scene, camera);
+    try {
+      renderer.render(scene, camera);
+    } catch (error) {
+      if (!shujaatBridge) throw error;
+      restoreLocalDesk(error);
+      renderer.render(scene, camera);
+    }
+    container.dataset.sceneFrames = String(frameNo);
+    container.dataset.sceneReady = String(spawned);
+    // Load the optional iframe only after the local room and hero have appeared.
+    if (!bridgeStarted && since > 2.5) loadShujaatBridge();
     requestAnimationFrame(frame);
   }
   resize();
@@ -967,5 +1001,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, cs, scene, camera, renderer };
+  return { wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
 }
