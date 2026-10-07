@@ -31,8 +31,9 @@ await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBuf
     });
 
 await page.goto('http://scene.test/');await page.waitForFunction(()=>document.getElementById('room')?.dataset.native==='ready',null,{timeout:60000});
-await page.evaluate(()=>window.room.pauseAutonomy(600000));
 await page.mouse.click(720,760);
+// The gesture sets an 18-second autonomy pause; extend it after the click.
+await page.evaluate(()=>window.room.pauseAutonomy(600000));
 
 await page.evaluate(()=>{window.room.opts.noAdapt=true;for(const s of Object.values(window.room.stations))s.maxMs=120000;});
 const evidence={};
