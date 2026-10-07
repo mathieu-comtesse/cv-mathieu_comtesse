@@ -245,7 +245,7 @@ export async function createCharacter({
 
   const shoes = model.getObjectByName('shoes');
   const originalLegs = model.getObjectByName('legs');
-  const shoeVisuals = [], shoeCuffVisuals = [], sockVisuals = [], shoeParts = [], trouserCuffs = [];
+  const shoeVisuals = [], sockVisuals = [], shoeParts = [], trouserCuffs = [];
   let shoesOn = true;
   if (originalLegs) originalLegs.visible = true;
   if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = false; trouserCuffs.push(o); } });
@@ -268,46 +268,6 @@ export async function createCharacter({
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
       shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Shujaat
       bone.add(shoe); shoeVisuals.push(shoe);
-
-      // JEAN_SHOE_BRIDGE : le bas du jean doit entrer visuellement dans la NB992.
-      // Le pont est enfant de la chaussure : il suit donc exactement la cheville,
-      // recouvre le talon et supprime le jour visible entre pantalon et basket.
-      {
-        const denim = new THREE.MeshStandardMaterial({
-          color: '#17283d',
-          roughness: 0.94,
-          metalness: 0,
-          side: THREE.DoubleSide,
-        });
-        const cuff = new THREE.Group();
-        cuff.name = 'jean_cuff_' + side;
-
-        const ankle = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.060, 0.071, 0.205, 16, 2, false),
-          denim
-        );
-        ankle.name = 'jean_cuff_ankle_' + side;
-        ankle.position.set(0, 0.132, -0.055);
-        ankle.scale.z = 0.88;
-
-        const heel = new THREE.Mesh(
-          new THREE.BoxGeometry(0.112, 0.155, 0.060),
-          denim
-        );
-        heel.name = 'jean_cuff_heel_' + side;
-        heel.position.set(0, 0.098, -0.108);
-        heel.rotation.x = -0.08;
-
-        for (const m of [ankle, heel]) {
-          m.castShadow = true;
-          m.receiveShadow = true;
-        }
-
-        cuff.add(ankle, heel);
-        shoe.add(cuff);
-        shoeCuffVisuals.push(cuff);
-      }
-
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
       // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
       const sock = new THREE.Group();
@@ -498,58 +458,8 @@ export async function createCharacter({
     group.updateMatrixWorld(true);
   };
 
-  // ASSISE_L : bassin au fond du siège, jambes projetées vers l'avant et
-  // genoux presque verrouillés. Utilisé sur bureau, fauteuil et sofa.
-  const poseSeatedL = (groundY) => {
-    if (![bones.thigh_l,bones.calf_l,bones.foot_l,bones.ball_l,bones.thigh_r,bones.calf_r,bones.foot_r,bones.ball_r].every(Boolean)) return;
-    group.updateMatrixWorld(true);
-
-    const qg = group.getWorldQuaternion(new THREE.Quaternion());
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(qg);
-    forward.y = 0; forward.normalize();
-    const side = new THREE.Vector3(1, 0, 0).applyQuaternion(qg);
-    side.y = 0; side.normalize();
-
-    const stretch = (sgn, thigh, calf, foot, ball) => {
-      const hip = thigh.getWorldPosition(new THREE.Vector3());
-      const knee0 = calf.getWorldPosition(new THREE.Vector3());
-      const ankle0 = foot.getWorldPosition(new THREE.Vector3());
-      const l1 = hip.distanceTo(knee0);
-      const l2 = knee0.distanceTo(ankle0);
-      const maxReach = (l1 + l2) * 0.992;
-
-      const targetY = groundY + 0.060;
-      const dy = targetY - hip.y;
-      const lateral = sgn * 0.115;
-      const usable = Math.max(0.10, Math.sqrt(Math.max(maxReach * maxReach - dy * dy - lateral * lateral, 0.01)));
-
-      const target = hip.clone()
-        .addScaledVector(forward, usable)
-        .addScaledVector(side, lateral);
-      target.y = targetY;
-
-      // Le pôle reste légèrement au-dessus : le genou reste pratiquement droit
-      // au lieu de se rabattre sous le siège.
-      const pole = hip.clone()
-        .addScaledVector(forward, usable * 0.52)
-        .addScaledVector(side, sgn * 0.22);
-      pole.y += 0.32;
-
-      ik2(thigh, calf, foot, target, pole);
-      group.updateMatrixWorld(true);
-
-      const toe = target.clone().addScaledVector(forward, 0.18);
-      toe.y = groundY + 0.058;
-      aim(foot, toe);
-      group.updateMatrixWorld(true);
-    };
-
-    stretch(-1, bones.thigh_l, bones.calf_l, bones.foot_l, bones.ball_l);
-    stretch( 1, bones.thigh_r, bones.calf_r, bones.foot_r, bones.ball_r);
-  };
-
   return {
-    group, model, bones, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet, poseSeatedL,
+    group, model, bones, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet,
     play(name, { fade = 0.25, speed = 1 } = {}) {
       const clip = clips[name] || clips.Idle_Loop || Object.values(clips)[0]; if (!clip) return;
       activeClipName = clip.name || name;
@@ -568,7 +478,6 @@ export async function createCharacter({
       shoesOn = !!on;
       if (shoeVisuals.length) shoeVisuals.forEach((o) => { o.visible = shoesOn; });
       else if (shoes) shoes.visible = shoesOn;
-      shoeCuffVisuals.forEach((o) => { o.visible = shoesOn; });
       sockVisuals.forEach((o) => { o.visible = !shoesOn; });
       if (originalLegs) originalLegs.visible = true;
       trouserCuffs.forEach((o) => { o.visible = false; });         // chevilles d'origine : le jean prolongé couvre déjà la cheville
@@ -582,12 +491,11 @@ export async function createCharacter({
     setLookView(right, toCam) { view.right.copy(right); view.toCam.copy(toCam); },       // repère de l'écran : droite de l'écran et direction vers la caméra (horizontales, unitaires)
     setHeadOnly(on = true) {
       model.traverse((o) => {
-        if ((o.isMesh || o.isSkinnedMesh) && /^(jacket|arm|shirt|legs|shoes|id|clip|nb_|jean_cuff)/.test(o.name)) o.visible = !on;
+        if ((o.isMesh || o.isSkinnedMesh) && /^(jacket|arm|shirt|legs|shoes|id|clip|nb_)/.test(o.name)) o.visible = !on;
         else if (o.isMesh && !o.name && o.parent && (o.parent === bones.foot_l || o.parent === bones.foot_r)) o.visible = !on;
       });
       if (originalLegs) originalLegs.visible = !on;
       shoeVisuals.forEach((o) => { o.visible = !on && shoesOn; });
-      shoeCuffVisuals.forEach((o) => { o.visible = !on && shoesOn; });
       sockVisuals.forEach((o) => { o.visible = !on && !shoesOn; });
     },
     setHeadScale() {},
