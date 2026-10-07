@@ -182,10 +182,11 @@ export async function createCharacter({
 
   const shoes = model.getObjectByName('shoes');
   const originalLegs = model.getObjectByName('legs');
-  const shoeVisuals = [], sockVisuals = [], shoeParts = [];
+  const shoeVisuals = [], sockVisuals = [], shoeParts = [], trouserCuffs = [];
   let shoesOn = true;
   if (originalLegs) originalLegs.visible = true;
-  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:[1-9]|1[0-2])$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
+  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = true; trouserCuffs.push(o); } });
+  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_[1-8]$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
   // Monte la paire de New Balance 992 (assets/nb992.glb : deux nœuds nb_left / nb_right, orteils vers +Z, semelle à y = 0, ~29 cm) sur les os des pieds.
   // La pose de référence est l'Idle : dans cette pose le pied est à plat, on y place chaque chaussure puis on la fige dans le repère de l'os.
   const attachNB992 = () => {
@@ -202,7 +203,7 @@ export async function createCharacter({
       const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * 0.07, ground, f0.z + fwd.z * 0.07);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
-      shoe.scale.multiplyScalar(1.08);                               // 992 chunky mais proportionnée au corps
+      shoe.scale.multiplyScalar(1.14);                               // 992 chunky mais proportionnée au corps
       bone.add(shoe); shoeVisuals.push(shoe);
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
       // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
@@ -402,6 +403,7 @@ export async function createCharacter({
       else if (shoes) shoes.visible = shoesOn;
       sockVisuals.forEach((o) => { o.visible = !shoesOn; });
       if (originalLegs) originalLegs.visible = true;
+      trouserCuffs.forEach((o) => { o.visible = true; });
     },
     flash(kind, secs = 0.7) { flashKind = kind; flash = secs; },
     talk(on) { talking = on; },
