@@ -26,31 +26,36 @@ initReveal();
   }
 }
 
-// Portrait Shujaat strict 1:1 : le rendu est exécuté par le runtime original local.
-const portraitFrame = document.getElementById('shujaatPortraitFrame');
-const portraitHost = document.getElementById('portrait');
+// Portrait Shujaat strict 1:1 — parent interaction logic reproduced from shujaat.info/info/.
+const portraitHost = document.querySelector('.shupi-portrait');
+const portraitFrame = portraitHost?.querySelector('iframe');
+const portraitApi = () => portraitFrame?.contentWindow?.shupiPortrait;
 
-if (portraitFrame && portraitHost) {
-  const lookAt = (event) => {
-    const api = portraitFrame.contentWindow?.shupiPortrait;
-    if (!api) return;
+if (portraitFrame) {
+  document.addEventListener('pointermove', event => {
     const rect = portraitFrame.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width * 2 - 1;
-    const y = (event.clientY - rect.top) / rect.height * 2 - 1;
-    try { api.lookAtPointer(x, y); } catch {}
-  };
-
-  document.addEventListener('pointermove', (event) => {
-    if (event.pointerType === 'touch') return;
-    lookAt(event);
+    try {
+      portraitFrame.contentWindow?.shupiPortrait?.lookAtPointer(
+        (event.clientX - rect.left) / rect.width * 2 - 1,
+        (event.clientY - rect.top) / rect.height * 2 - 1
+      );
+    } catch {}
   }, { passive: true });
 
-  const forward = (event) => {
+  document.documentElement.addEventListener('pointerleave', () => {
+    try { portraitFrame.contentWindow?.shupiPortrait?.lookAtPointer(0, 0); } catch {}
+  });
+
+  // Forward mouse gestures through the transparent portrait overflow.
+  const host = portraitFrame.parentElement;
+  function forward(event) {
     if (event.pointerType === 'touch') return;
     const api = portraitFrame.contentWindow?.shupiPortrait;
     const canvas = api?.scene?.domElement;
     if (!canvas) return;
+
     const rect = portraitFrame.getBoundingClientRect();
+
     if (
       event.type === 'pointerdown' &&
       (
@@ -63,6 +68,7 @@ if (portraitFrame && portraitHost) {
     ) return;
 
     const wasHeld = api.isHeld;
+
     canvas.dispatchEvent(new portraitFrame.contentWindow.PointerEvent(event.type, {
       clientX: event.clientX - rect.left,
       clientY: event.clientY - rect.top,
@@ -75,13 +81,27 @@ if (portraitFrame && portraitHost) {
     }));
 
     if (api.isHeld && event.type === 'pointerdown') {
-      try { portraitHost.setPointerCapture(event.pointerId); } catch {}
+      try { host.setPointerCapture(event.pointerId); } catch {}
     }
 
     if (wasHeld || api.isHeld) event.preventDefault();
-  };
-
-  for (const type of ['pointerdown','pointerup','pointercancel']) {
-    document.addEventListener(type, forward, { passive: false });
   }
+
+  for (const name of ['pointerdown','pointermove','pointerup','pointercancel']) {
+    document.addEventListener(name, forward, { passive: false });
+  }
+
+  // Keep the exact portrait API defaults after the iframe is ready.
+  portraitFrame.addEventListener('load', () => {
+    const ready = () => {
+      const api = portraitApi();
+      if (!api) return requestAnimationFrame(ready);
+      try {
+        api.setHeadOnly(true);
+        api.setHeadScale(1.2);
+        api.setModify(true);
+      } catch {}
+    };
+    ready();
+  }, { once: true });
 }
