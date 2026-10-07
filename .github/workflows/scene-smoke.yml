@@ -25,10 +25,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=blender-seat-pad-v8" index.html
-          grep -q "character.js?v=blender-seat-pad-v8" js/room.js
-          grep -q "retro.js?v=blender-seat-pad-v8" js/room.js
-          grep -q "room.js?v=blender-seat-pad-v8" js/main.js
-          grep -q "const nbForwardOffset = { left: 0.097159, right: 0.097856 }" js/character.js
+          grep -q "js/main.js?v=heel-blender-v9" index.html
+          grep -q "character.js?v=heel-blender-v9" js/room.js
+          grep -q "retro.js?v=heel-blender-v9" js/room.js
+          grep -q "room.js?v=heel-blender-v9" js/main.js
+          grep -q "const nbForwardOffset = { left: 0.226688, right: 0.223570 }" js/character.js
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
