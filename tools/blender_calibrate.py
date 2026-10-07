@@ -1,6 +1,10 @@
-# Blender calibration run — character / NB992 reference
-import bpy, json, math
+# Blender calibration run — character / JNCO jean / NB992
+# Calibrates the NB992 from the original Shujaat shoe envelope instead of visual guessing.
+import bpy, json
 from mathutils import Vector
+
+TARGET_HEIGHT = 1.72
+RUNTIME_NB_SCALE = 1.39795
 
 def clear():
     bpy.ops.object.select_all(action='SELECT')
@@ -9,18 +13,20 @@ def clear():
 def import_glb(path):
     bpy.ops.import_scene.gltf(filepath=path)
 
-def world_vertices(objs):
+def evaluated_world_vertices(obj):
     deps = bpy.context.evaluated_depsgraph_get()
+    eo = obj.evaluated_get(deps)
+    mesh = eo.to_mesh()
+    M = eo.matrix_world
+    pts = [M @ v.co for v in mesh.vertices]
+    eo.to_mesh_clear()
+    return pts
+
+def world_vertices(objs):
     pts=[]
     for obj in objs:
-        if obj.type != 'MESH':
-            continue
-        eo=obj.evaluated_get(deps)
-        mesh=eo.to_mesh()
-        M=eo.matrix_world
-        for v in mesh.vertices:
-            pts.append(M @ v.co)
-        eo.to_mesh_clear()
+        if obj.type == 'MESH':
+            pts.extend(evaluated_world_vertices(obj))
     return pts
 
 def dims(pts):
@@ -30,80 +36,149 @@ def dims(pts):
     d=mx-mn
     return {'min':list(mn),'max':list(mx),'dims':list(d),'max_dim':max(d)}
 
+def armature():
+    return next((o for o in bpy.context.scene.objects if o.type=='ARMATURE'), None)
+
+def bone_world(arm, name):
+    pb = arm.pose.bones.get(name) if arm else None
+    if not pb: return None
+    return arm.matrix_world @ pb.head
+
+def horizontal_forward(foot, ball):
+    v = ball-foot
+    v.z = 0
+    if v.length < 1e-8:
+        return Vector((0,1,0))
+    return v.normalized()
+
+def weighted_shoe_points():
+    left=[]; right=[]; groups=set()
+    for obj in [o for o in bpy.context.scene.objects if o.type=='MESH' and 'shoe' in o.name.lower()]:
+        deps=bpy.context.evaluated_depsgraph_get()
+        eo=obj.evaluated_get(deps)
+        mesh=eo.to_mesh()
+        M=eo.matrix_world
+        names={i:g.name for i,g in enumerate(obj.vertex_groups)}
+        groups.update(names.values())
+        # Evaluated mesh vertex groups are not guaranteed to survive identically;
+        # read weights from original vertices while positions come from evaluated mesh by index.
+        src=obj.data.vertices
+        for i,v in enumerate(mesh.vertices):
+            sv=src[i] if i < len(src) else None
+            lw=rw=0.0
+            if sv:
+                for ge in sv.groups:
+                    name=names.get(ge.group,'').lower()
+                    if any(k in name for k in ('foot_l','ball_l','calf_l','lleg','left')): lw += ge.weight
+                    if any(k in name for k in ('foot_r','ball_r','calf_r','rleg','right')): rw += ge.weight
+            p=M @ v.co
+            if lw>rw and lw>0: left.append(p)
+            elif rw>lw and rw>0: right.append(p)
+        eo.to_mesh_clear()
+    return left,right,sorted(groups)
+
+def root_local_vertices(root):
+    inv=root.matrix_world.inverted()
+    pts=[]
+    for obj in root.children_recursive:
+        if obj.type!='MESH': continue
+        for p in evaluated_world_vertices(obj):
+            pts.append(inv @ p)
+    if root.type=='MESH':
+        for p in evaluated_world_vertices(root):
+            pts.append(inv @ p)
+    return pts
+
 out={}
 
+# Character + original Shujaat shoes.
 clear()
 import_glb('assets/mathieu-character.glb')
 meshes=[o for o in bpy.context.scene.objects if o.type=='MESH']
-out['character']=dims(world_vertices(meshes))
-shoe_objs=[o for o in meshes if 'shoe' in o.name.lower()]
-pts=world_vertices(shoe_objs)
-out['shujaat_shoes_pair']=dims(pts)
-if pts:
-    xs=sorted(p.x for p in pts)
-    med=xs[len(xs)//2]
-    left=[p for p in pts if p.x<=med]
-    right=[p for p in pts if p.x>med]
-    out['shujaat_shoe_left_cluster']=dims(left)
-    out['shujaat_shoe_right_cluster']=dims(right)
+all_pts=world_vertices(meshes)
+out['character']=dims(all_pts)
+raw_h=out['character']['max_dim']
+char_scale=TARGET_HEIGHT/raw_h
+out['target_character_height']=TARGET_HEIGHT
+out['character_normalization_scale']=char_scale
 
-clear()
-import_glb('assets/nb992.glb')
-nb_objs=[o for o in bpy.context.scene.objects if o.type=='MESH']
-out['nb992_all']=dims(world_vertices(nb_objs))
-for o in nb_objs:
-    if 'left' in o.name.lower() or 'right' in o.name.lower():
-        out['nb992_'+o.name]=dims(world_vertices([o]))
-
-# Compare the largest per-shoe Shujaat cluster with the largest NB shoe dimension.
-sh_candidates=[out.get('shujaat_shoe_left_cluster'),out.get('shujaat_shoe_right_cluster')]
-sh_candidates=[x for x in sh_candidates if x]
-nb_candidates=[v for k,v in out.items() if k.startswith('nb992_') and k!='nb992_all' and isinstance(v,dict)]
-if sh_candidates and nb_candidates:
-    sh=max(x['max_dim'] for x in sh_candidates)
-    nb=max(x['max_dim'] for x in nb_candidates)
-    if nb>0:
-        out['recommended_nb_scale']=sh/nb
-
-# More reliable Shujaat shoe split: use armature vertex groups instead of spatial median.
-clear()
-import_glb('assets/mathieu-character.glb')
-shoe_objs=[o for o in bpy.context.scene.objects if o.type=='MESH' and 'shoe' in o.name.lower()]
-left_pts=[]; right_pts=[]; groups_seen=set()
-for obj in shoe_objs:
-    M=obj.matrix_world
-    group_names={i:g.name for i,g in enumerate(obj.vertex_groups)}
-    groups_seen.update(group_names.values())
-    for v in obj.data.vertices:
-        lw=rw=0.0
-        for ge in v.groups:
-            name=group_names.get(ge.group,'').lower()
-            if any(k in name for k in ('foot_l','ball_l','calf_l','lleg','left')):
-                lw += ge.weight
-            if any(k in name for k in ('foot_r','ball_r','calf_r','rleg','right')):
-                rw += ge.weight
-        p=M @ v.co
-        if lw>rw and lw>0:
-            left_pts.append(p)
-        elif rw>lw and rw>0:
-            right_pts.append(p)
-
-out['shoe_vertex_groups']=sorted(groups_seen)
+arm=armature()
+fl=bone_world(arm,'foot_l'); bl=bone_world(arm,'ball_l')
+fr=bone_world(arm,'foot_r'); br=bone_world(arm,'ball_r')
+left_pts,right_pts,groups=weighted_shoe_points()
+out['shoe_vertex_groups']=groups
 out['shujaat_shoe_left_weighted']=dims(left_pts)
 out['shujaat_shoe_right_weighted']=dims(right_pts)
-target_character_height=1.72
-char_h=out['character']['max_dim']
-char_scale=target_character_height/char_h
-out['target_character_height']=target_character_height
-out['character_normalization_scale']=char_scale
-weighted=[x for x in (out.get('shujaat_shoe_left_weighted'),out.get('shujaat_shoe_right_weighted')) if x]
-if weighted:
-    shoe_native=sum(x['max_dim'] for x in weighted)/len(weighted)
-    shoe_target=shoe_native*char_scale
-    out['shujaat_target_shoe_max_dim']=shoe_target
-    nb=out.get('nb992_nb_left',{}).get('max_dim') or out.get('nb992_all',{}).get('max_dim')
-    if nb:
-        out['recommended_runtime_nb_scale']=shoe_target/nb
+
+fit={}
+for side,pts,foot,ball in [('left',left_pts,fl,bl),('right',right_pts,fr,br)]:
+    if not pts or foot is None or ball is None: continue
+    fwd=horizontal_forward(foot,ball)
+    proj=[(p-foot).dot(fwd)*char_scale for p in pts]
+    vertical=[(p.z-foot.z)*char_scale for p in pts]
+    fit[side]={
+        'foot_world_raw':list(foot),
+        'ball_world_raw':list(ball),
+        'forward_raw':list(fwd),
+        'original_shoe_back_from_foot_m':min(proj),
+        'original_shoe_front_from_foot_m':max(proj),
+        'original_shoe_length_m':max(proj)-min(proj),
+        'original_shoe_low_from_foot_m':min(vertical),
+        'original_shoe_high_from_foot_m':max(vertical),
+    }
+out['original_shoe_fit']=fit
+
+# JNCO hem, used as a second independent check.
+clear()
+import_glb('assets/jeans-jnco.glb')
+jm=[o for o in bpy.context.scene.objects if o.type=='MESH']
+jpts=world_vertices(jm)
+out['jnco']=dims(jpts)
+if jpts:
+    zmin=min(p.z for p in jpts)
+    hem=[p for p in jpts if p.z <= zmin + 0.85]  # lower ~8.5 cm after normalization
+    out['jnco_hem']=dims(hem)
+
+# NB992 local envelope, in the named root's local coordinates.
+clear()
+import_glb('assets/nb992.glb')
+nb_all=[o for o in bpy.context.scene.objects if o.type=='MESH']
+out['nb992_all']=dims(world_vertices(nb_all))
+nb_local={}
+for side in ('left','right'):
+    root=bpy.context.scene.objects.get('nb_'+side)
+    if not root: continue
+    pts=root_local_vertices(root)
+    if not pts: continue
+    mn=Vector((min(p.x for p in pts),min(p.y for p in pts),min(p.z for p in pts)))
+    mx=Vector((max(p.x for p in pts),max(p.y for p in pts),max(p.z for p in pts)))
+    nb_local[side]={
+        'min':list(mn),'max':list(mx),'dims':list(mx-mn),
+        'heel_local_z_m':mn.z,
+        'toe_local_z_m':mx.z,
+        'sole_local_y_m':mn.y,
+    }
+out['nb992_root_local']=nb_local
+out['runtime_nb_scale']=RUNTIME_NB_SCALE
+
+# Solve the JS root offset so NB heel matches the original Shujaat heel.
+recs={}
+for side in ('left','right'):
+    if side not in fit or side not in nb_local: continue
+    orig_back=fit[side]['original_shoe_back_from_foot_m']
+    heel=nb_local[side]['heel_local_z_m']*RUNTIME_NB_SCALE
+    rec=orig_back-heel
+    recs[side]={
+        'original_heel_from_foot_m':orig_back,
+        'nb_heel_from_root_scaled_m':heel,
+        'recommended_forward_root_offset_m':rec,
+    }
+if recs:
+    vals=[v['recommended_forward_root_offset_m'] for v in recs.values()]
+    out['recommended_forward_root_offset_m']=sum(vals)/len(vals)
+    out['recommended_forward_root_offset_left_m']=recs.get('left',{}).get('recommended_forward_root_offset_m')
+    out['recommended_forward_root_offset_right_m']=recs.get('right',{}).get('recommended_forward_root_offset_m')
+out['shoe_alignment']=recs
 
 with open('blender-calibration.json','w',encoding='utf8') as f:
     json.dump(out,f,indent=2)
