@@ -1,10 +1,10 @@
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=ce185e0';
-import { playFullscreen } from './play.js?v=ce185e0';
-import { dbtn } from './dbtn.js?v=ce185e0';
-import { initHoverDiagrams } from './hoverdiag.js?v=ce185e0';
-import { initFlip } from './flip.js?v=ce185e0';
-import { initFlipText } from './fliptext.js?v=ce185e0';
-import { createMarquee } from './marquee.js?v=ce185e0';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=8ca0d7c';
+import { playFullscreen } from './play.js?v=8ca0d7c';
+import { dbtn } from './dbtn.js?v=8ca0d7c';
+import { initHoverDiagrams } from './hoverdiag.js?v=8ca0d7c';
+import { initFlip } from './flip.js?v=8ca0d7c';
+import { initFlipText } from './fliptext.js?v=8ca0d7c';
+import { createMarquee } from './marquee.js?v=8ca0d7c';
 
 // le site s'adresse à « vous » : on écarte les phrases à la 1re personne des textes repris du CV
 const vous = (t) => String(t || '').split(/(?<=[.!?])\s+/).filter((x) => !/\b(j[’']|je|mon|ma|mes|moi)\b/i.test(x)).join(' ');
