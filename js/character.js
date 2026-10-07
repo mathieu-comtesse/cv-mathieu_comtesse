@@ -149,14 +149,12 @@ export async function createCharacter({
   const hairMaterials = new Set(['Material #417']);
   const hairDarkMaterials = new Set(['Material #680', 'Material #1064']);
   const frameMaterials = new Set(['Material #474','Material #462','Material #464','Material #465','Material #466','Material #467','Material #468']);
-  const denimMaterials = new Map([['Material #146', '#243552'], ['Material #83', '#3b5273'], ['Material #169', '#30445f']]);
   const applyPalette = (m) => {
     if (!m) return;
     if (skinMaterials.has(m.name)) m.color.copy(paleSkin);
     else if (skinShadeMaterials.has(m.name)) m.color.copy(paleSkinShade);
     else if (hairMaterials.has(m.name)) m.color.copy(chestnut);
     else if (hairDarkMaterials.has(m.name)) m.color.copy(chestnutDark);
-    else if (denimMaterials.has(m.name)) { m.color.set(denimMaterials.get(m.name)); m.roughness = 0.9; m.metalness = 0; }
     else if (frameMaterials.has(m.name)) m.color.copy(frameBlack);
     if (m.name === 'Material #1168') { m.color.set('#eef7ff'); m.transparent = true; m.opacity = 0.1; m.depthWrite = false; m.roughness = 0.05; m.metalness = 0; }          // verres de vue : clairs, pas noirs
     if (m.name === 'Material #1167') { m.color.set('#f7fbff'); m.transparent = true; m.opacity = 0.13; m.depthWrite = false; m.roughness = 0.06; m.metalness = 0; }
@@ -183,7 +181,9 @@ export async function createCharacter({
   }
 
   const shoes = model.getObjectByName('shoes');
-  const nbShoes = [], shoeParts = [];
+  const legacyShorts = model.getObjectByName('legs');
+  const shoeVisuals = [], denimVisuals = [], sockVisuals = [], shoeParts = [];
+  let shoesOn = true;
   if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:[1-9]|1[0-2])$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
   // Monte la paire de New Balance 992 (assets/nb992.glb : deux nœuds nb_left / nb_right, orteils vers +Z, semelle à y = 0, ~29 cm) sur les os des pieds.
   // La pose de référence est l'Idle : dans cette pose le pied est à plat, on y place chaque chaussure puis on la fige dans le repère de l'os.
@@ -202,7 +202,7 @@ export async function createCharacter({
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
       shoe.scale.multiplyScalar(1.14);                               // 992 chunky mais proportionnée au corps
-      bone.add(shoe); nbShoes.push(shoe);
+      bone.add(shoe); shoeVisuals.push(shoe);
       // Bas de jean : coupe droite légèrement ample, plis longs et souples.
       const calf = bone.parent, knee = calf.getWorldPosition(new THREE.Vector3());
       const A = new THREE.Vector3(f0.x, ground + 0.058, f0.z), P1 = knee.clone().lerp(A, 0.18);
@@ -233,11 +233,76 @@ export async function createCharacter({
       const pant = new THREE.Mesh(pg, new THREE.MeshStandardMaterial({ color: '#344a69', roughness: 0.9, metalness: 0, flatShading: false, side: THREE.DoubleSide }));
       pant.castShadow = true; pant.receiveShadow = true; pant.frustumCulled = false;
       pant.applyMatrix4(calf.matrixWorld.clone().invert());
-      calf.add(pant); nbShoes.push(pant);
+      calf.add(pant); denimVisuals.push(pant);
+
+      // Partie haute du jean : remplace le short d'origine par une vraie jambe de pantalon.
+      const thigh = calf.parent;
+      if (thigh) {
+        const hip = thigh.getWorldPosition(new THREE.Vector3());
+        const kneeW = calf.getWorldPosition(new THREE.Vector3());
+        const v = kneeW.clone().sub(hip), upperLen = Math.max(0.12, v.length() * 0.92), dir = v.clone().normalize();
+        const upperGeo = new THREE.CylinderGeometry(0.078, 0.070, upperLen, 22, 5, true);
+        const upper = new THREE.Mesh(upperGeo, new THREE.MeshStandardMaterial({
+          color: '#344a69', roughness: 0.9, metalness: 0, flatShading: false, side: THREE.DoubleSide
+        }));
+        const mid = hip.clone().lerp(kneeW, 0.50).addScaledVector(dir, 0.015);
+        upper.position.copy(mid);
+        upper.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+        upper.updateMatrix();
+        upper.applyMatrix4(thigh.matrixWorld.clone().invert());
+        upper.castShadow = true; upper.receiveShadow = true; upper.frustumCulled = false;
+        thigh.add(upper); denimVisuals.push(upper);
+      }
+
+      // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
+      // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
+      const sock = new THREE.Group();
+      const sockMat = new THREE.MeshStandardMaterial({ color: '#e8e6df', roughness: 0.96, metalness: 0 });
+      const sockFoot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 10), sockMat);
+      sockFoot.scale.set(0.88, 0.58, 2.05);
+      sockFoot.position.set(0, 0.035, 0.080);
+      const sockAnkle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.050, 0.105, 16, 3), sockMat);
+      sockAnkle.position.set(0, 0.075, -0.005);
+      for (const m of [sockFoot, sockAnkle]) { m.castShadow = true; m.receiveShadow = true; }
+      sock.add(sockFoot, sockAnkle);
+      const sockWorld = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd)
+        .setPosition(f0.x + fwd.x * 0.045, ground + 0.012, f0.z + fwd.z * 0.045);
+      const sockLocal = bone.matrixWorld.clone().invert().multiply(sockWorld);
+      sockLocal.decompose(sock.position, sock.quaternion, sock.scale);
+      sock.visible = false;
+      bone.add(sock); sockVisuals.push(sock);
     }
+
+    // Ce mesh était le short de la tenue d'origine. Il créait les pans triangulaires
+    // visibles au-dessus du nouveau jean : on le retire définitivement du rendu.
+    if (legacyShorts) legacyShorts.visible = false;
+
+    // Petite pièce de ceinture/crotch pour raccorder proprement les deux jambes du jean.
+    if (bones.pelvis && !model.getObjectByName('runtime_jean_waist')) {
+      group.updateMatrixWorld(true);
+      const waistGeo = new THREE.SphereGeometry(0.145, 22, 12);
+      const waist = new THREE.Mesh(waistGeo, new THREE.MeshStandardMaterial({
+        color: '#30445f', roughness: 0.9, metalness: 0
+      }));
+      waist.name = 'runtime_jean_waist';
+      waist.scale.set(1.12, 0.62, 0.84);
+      const pw = bones.pelvis.getWorldPosition(new THREE.Vector3());
+      const wq = bones.pelvis.getWorldQuaternion(new THREE.Quaternion());
+      const wm = new THREE.Matrix4().compose(
+        pw.clone().add(new THREE.Vector3(0, -0.075, 0)),
+        wq,
+        waist.scale.clone()
+      );
+      waist.scale.set(1,1,1);
+      const local = bones.pelvis.matrixWorld.clone().invert().multiply(wm);
+      local.decompose(waist.position, waist.quaternion, waist.scale);
+      waist.castShadow = true; waist.receiveShadow = true; waist.frustumCulled = false;
+      bones.pelvis.add(waist); denimVisuals.push(waist);
+    }
+
     act.stop(); tm.stopAllAction(); tm.uncacheRoot(group);
     shoeParts.forEach((o) => { o.visible = false; });
-    return nbShoes.length === 2;
+    return shoeVisuals.length === 2;
   };
   const { can, canTip } = makeWateringCan(); group.add(can);
 
@@ -408,7 +473,14 @@ export async function createCharacter({
     setBase(kind) { base = kind; setFace(base); },
     setOverride(o) { ov = o; if (o) ovW = 0; },
     setPost(fn) { post = fn; },
-    setShoes(on) { if (nbShoes.length) nbShoes.forEach((s) => { s.visible = on; }); else if (shoes) shoes.visible = on; },
+    setShoes(on) {
+      shoesOn = !!on;
+      if (shoeVisuals.length) shoeVisuals.forEach((o) => { o.visible = shoesOn; });
+      else if (shoes) shoes.visible = shoesOn;
+      sockVisuals.forEach((o) => { o.visible = !shoesOn; });
+      denimVisuals.forEach((o) => { o.visible = true; });
+      if (legacyShorts) legacyShorts.visible = false;
+    },
     flash(kind, secs = 0.7) { flashKind = kind; flash = secs; },
     talk(on) { talking = on; },
     setDeviceTilt(on) { portrait.deviceTilt = !!on; if (!on) resetLook(); },
@@ -416,7 +488,16 @@ export async function createCharacter({
     setAmazed(on) { portrait.amazed = !!on; },
     setLean(v) { lean = v; },
     setLookView(right, toCam) { view.right.copy(right); view.toCam.copy(toCam); },       // repère de l'écran : droite de l'écran et direction vers la caméra (horizontales, unitaires)
-    setHeadOnly(on = true) { model.traverse((o) => { if ((o.isMesh || o.isSkinnedMesh) && /^(jacket|arm|shirt|legs|shoes|id|clip|nb_)/.test(o.name)) o.visible = !on; else if (o.isMesh && !o.name && o.parent && (o.parent === bones.foot_l || o.parent === bones.foot_r)) o.visible = !on; }); nbShoes.forEach((s) => { s.visible = !on; }); },
+    setHeadOnly(on = true) {
+      model.traverse((o) => {
+        if ((o.isMesh || o.isSkinnedMesh) && /^(jacket|arm|shirt|shoes|id|clip|nb_)/.test(o.name)) o.visible = !on;
+        else if (o.isMesh && !o.name && o.parent && (o.parent === bones.foot_l || o.parent === bones.foot_r)) o.visible = !on;
+      });
+      if (legacyShorts) legacyShorts.visible = false;
+      denimVisuals.forEach((o) => { o.visible = !on; });
+      shoeVisuals.forEach((o) => { o.visible = !on && shoesOn; });
+      sockVisuals.forEach((o) => { o.visible = !on && !shoesOn; });
+    },
     setHeadScale() {},
     update(dt, t) {
       mixer.update(dt); group.updateMatrixWorld(true);
