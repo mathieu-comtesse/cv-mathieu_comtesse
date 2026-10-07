@@ -57,6 +57,23 @@ for g in legs.vertex_groups: jean.vertex_groups.new(name=g.name)
 dt = jean.modifiers.new('DT', 'DATA_TRANSFER'); dt.object = legs; dt.use_vert_data = True; dt.data_types_verts = {'VGROUP_WEIGHTS'}
 dt.vert_mapping = 'POLYINTERP_NEAREST'; dt.layers_vgroup_select_src = 'ALL'; dt.layers_vgroup_select_dst = 'NAME'
 bpy.ops.object.modifier_apply(modifier='DT')
+# bas du jean : l'ourlet doit suivre le pied (comme la chaussure), pas le mollet. Le poids du pied monte de 0 (z 3,0) à 1 (z ≤ 1,3), côté déterminé par les poids existants.
+vg = {g.name: g for g in jean.vertex_groups}
+def side_of(v):
+    l = sum(w.weight for w in v.groups if jean.vertex_groups[w.group].name.endswith('_l')); r = sum(w.weight for w in v.groups if jean.vertex_groups[w.group].name.endswith('_r'))
+    return 'l' if l >= r else 'r'
+FT0, FT1 = 3.0, 1.3
+nfoot = 0
+for v in jean.data.vertices:
+    if v.co.z >= FT0: continue
+    k = min(1.0, (FT0 - v.co.z) / (FT0 - FT1)); k = k * k * (3 - 2 * k)
+    sd = side_of(v)
+    for w in v.groups: pass
+    cur = {jean.vertex_groups[w.group].name: w.weight for w in v.groups}
+    tot = sum(cur.values()) or 1.0
+    for name, wt in cur.items(): vg[name].add([v.index], wt / tot * (1 - k), 'REPLACE')
+    vg['foot_' + sd].add([v.index], cur.get('foot_' + sd, 0) / tot * (1 - k) + k, 'REPLACE'); nfoot += 1
+print('sommets pondérés vers le pied :', nfoot)
 bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4)
 bpy.ops.object.vertex_group_normalize_all(group_select_mode='ALL', lock_active=False)
 am = jean.modifiers.new('Armature', 'ARMATURE'); am.object = arm; jean.parent = arm

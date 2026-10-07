@@ -1,6 +1,6 @@
-import { makePond } from './pond.js?v=7385b58';
-import { makeGarden } from './garden.js?v=7385b58';
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=7385b58';
+import { makePond } from './pond.js?v=bf01a16';
+import { makeGarden } from './garden.js?v=bf01a16';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=bf01a16';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
  * Repère local : origine au centre du sol de tatamis, +z = côté ouvert (shoji coulissants → balcon en bois → mer).

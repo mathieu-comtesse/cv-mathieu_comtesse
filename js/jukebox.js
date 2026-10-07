@@ -1,4 +1,4 @@
-import { TRACKS } from './music.js?v=7385b58';
+import { TRACKS } from './music.js?v=bf01a16';
 
 /* Juke-box : le lecteur intégré Spotify (iFrame API) joue un titre choisi ou tiré au hasard dans TRACKS, puis enchaîne tout seul au hasard, sans limite.
  * Sans connexion, Spotify ne donne que des extraits de 30 s ; connecté dans le navigateur, les titres entiers. Seule une pause demandée par le visiteur arrête l'enchaînement.
