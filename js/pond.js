@@ -1,4 +1,4 @@
-import { THREE, group, canvasTexture, rng } from './kit.js?v=068a541';
+import { THREE, group, canvasTexture, rng } from './kit.js?v=b1e8f97';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 
 /* ───────────── Étang vivant ─────────────
@@ -9,7 +9,7 @@ import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
  *  - koï, petits poissons argentés, nénuphars et lotus ; brume en volutes, pluie, ronds d'eau autour des rochers et des pieux.
  * `update(t, night, k)` reçoit la météo k = { rain, mist, cloud }. */
 
-const TAU = Math.PI * 2;
+export const TAU = Math.PI * 2;
 const GLSL_HASH = `float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
 float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 7.1; a *= 0.5; } return s; }`;
@@ -206,7 +206,7 @@ function lotus(r) {
 }
 
 /* ─── plantes : lames qui ondulent (vertex shader), instanciées ─── */
-function bladeGeo(segs = 6, w0 = 0.014) {       // hauteur normalisée 0 → 1, légère courbure
+export function bladeGeo(segs = 6, w0 = 0.014) {       // hauteur normalisée 0 → 1, légère courbure
   const pos = [], idx = [], uv = [];
   for (let i = 0; i <= segs; i++) { const h = i / segs, w = w0 * (1 - 0.85 * h * h) * 0.5, bend = h * h * 0.12; pos.push(-w, h, bend, w, h, bend); uv.push(0, h, 1, h); }
   for (let i = 0; i < segs; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
@@ -217,7 +217,7 @@ function tuftGeo() {                             // cornifle : touffe de brins f
   for (let k = 0; k < 9; k++) { const g = bladeGeo(5, 0.012), a = r() * TAU, lean = 0.25 + r() * 0.5, sc = 0.7 + r() * 0.5, p = g.attributes.position; for (let i = 0; i < p.count; i++) { const h = p.getY(i); p.setX(i, p.getX(i) + Math.cos(a) * h * h * lean); p.setZ(i, p.getZ(i) + Math.sin(a) * h * h * lean); p.setY(i, h * sc); } parts.push(g); }
   return mergeGeometries(parts);
 }
-function plantMaterial(uni, base, tip, sway) {
+export function plantMaterial(uni, base, tip, sway) {
   return new THREE.ShaderMaterial({
     uniforms: { uTime: uni.uTime, uNight: uni.uNight, uBase: { value: new THREE.Color(base) }, uTip: { value: new THREE.Color(tip) }, uSway: { value: sway } },
     side: THREE.DoubleSide,
@@ -232,7 +232,7 @@ function plantMaterial(uni, base, tip, sway) {
     fragmentShader: `uniform vec3 uBase, uTip; uniform float uNight; varying float vH, vK; void main(){ vec3 c = mix(uBase, uTip, vH) * vK; c *= mix(1.0, 0.45, uNight); gl_FragColor = vec4(c, 1.0); }`,
   });
 }
-function scatter(geo, mat, items) {
+export function scatter(geo, mat, items) {
   const m = new THREE.InstancedMesh(geo, mat, items.length), d = new THREE.Object3D();
   items.forEach((it, i) => { d.position.set(it.x, it.y ?? 0, it.z); d.rotation.set(it.tx || 0, it.ry ?? 0, it.tz || 0); d.scale.set(it.sx ?? 1, it.sy ?? 1, it.sx ?? 1); d.updateMatrix(); m.setMatrixAt(i, d.matrix); });
   m.instanceMatrix.needsUpdate = true; m.frustumCulled = false; return m;
@@ -253,7 +253,7 @@ function mistPuffs(points) {
       void main(){
         float life = fract(uTime * 0.04 + aP.z), sd = aP.w;
         vec3 c = vec3(aP.x + sin(uTime * 0.21 + sd * 6.0 + life * 3.2) * 0.3 * life + life * 0.25, 0.04 + life * 0.5 + life * life * 0.18, aP.y + cos(uTime * 0.17 + sd * 5.0 + life * 2.6) * 0.24 * life);
-        float size = (0.3 + 0.75 * life) * (0.75 + 0.6 * sd);
+        float size = (0.38 + 0.9 * life) * (0.8 + 0.6 * sd);
         vec4 mv = modelViewMatrix * vec4(c, 1.0); mv.xy += position.xy * size;
         vUv = uv; vSeed = sd; vA = smoothstep(0.0, 0.2, life) * pow(1.0 - life, 1.3) * uMist;
         gl_Position = projectionMatrix * mv;
@@ -264,7 +264,7 @@ function mistPuffs(points) {
         float d = length(vUv - 0.5) * 2.0;
         float n = fbm(vUv * 3.2 + vSeed * 9.0 + vec2(uTime * 0.05, -uTime * 0.03));
         float a = smoothstep(1.0, 0.1, d) * (0.25 + 1.1 * n);
-        a = clamp(a, 0.0, 1.0) * vA * 0.8;
+        a = clamp(a * 1.25, 0.0, 1.0) * vA * 1.0;
         gl_FragColor = vec4(mix(vec3(1.0), vec3(0.5, 0.6, 0.78), uNight), a);
       }`,
   });
@@ -274,7 +274,7 @@ function mistPuffs(points) {
 /* ─── pluie : traits dans le volume au-dessus de l'eau ─── */
 function rainLines(points, H) {
   const N = points.length, seed = new Float32Array(N * 6), end = new Float32Array(N * 2), rank = new Float32Array(N * 2), pos = new Float32Array(N * 6), r = rng(77);
-  points.forEach(([x, z], i) => { const ph = r(), rk = (i + 0.5) / N; for (let k = 0; k < 2; k++) { const o = i * 2 + k; seed.set([x, z, ph], o * 3); end[o] = k; rank[o] = rk; } });
+  points.forEach(([x, z], i) => { const ph = r(), rk = r(); for (let k = 0; k < 2; k++) { const o = i * 2 + k; seed.set([x, z, ph], o * 3); end[o] = k; rank[o] = rk; } });
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 3));
   g.setAttribute('aEnd', new THREE.BufferAttribute(end, 1)); g.setAttribute('aRank', new THREE.BufferAttribute(rank, 1));
@@ -293,7 +293,7 @@ function rainLines(points, H) {
   const l = new THREE.LineSegments(g, m); l.frustumCulled = false; l.renderOrder = 4; l.userData.uni = uni; return l;
 }
 
-function rockGeo(seed, s) {
+export function rockGeo(seed, s) {
   const geo = new THREE.SphereGeometry(1, 18, 12), p = geo.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
@@ -304,7 +304,7 @@ function rockGeo(seed, s) {
 }
 
 /** Étang. `cx, cz` : centre dans le repère du parent ; `posts` : pieux du ponton (repère du parent), entourés de ronds d'eau. */
-export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9 } = {}) {
+export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9, rainRect = null, rainH = 1.5 } = {}) {
   const g = group(), shape = makeShape(seed, { rx, rzBack, rzFront, floorZ: floorZ === null ? null : floorZ - cz });
   const uni = { uTime: { value: 0 }, uNight: { value: 0 }, uRain: { value: 0 }, uMist: { value: 0 }, uCloud: { value: 0 } };
   const inside = (x, z, m = 0.85) => shape.frac(x, z) < m;
@@ -403,10 +403,11 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
   g.add(scatter(new THREE.CylinderGeometry(0.006, 0.008, 1, 5).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ color: '#4a7a3a', roughness: 0.8 }), stems));
 
   /* brume, pluie */
-  const mistPts = []; for (let i = 0; i < 64; i++) { const q = randIn(0.95); mistPts.push([q.x, q.z]); }
+  const mistPts = []; for (let i = 0; i < 150; i++) { const q = randIn(0.95); mistPts.push([q.x, q.z]); }
   const mist = mistPuffs(mistPts); g.add(mist);
   const rainPts = []; for (let i = 0; i < 340; i++) { const q = randIn(1.05); rainPts.push([q.x, q.z]); }
-  const rain = rainLines(rainPts, 1.5); g.add(rain);
+  if (rainRect) { const rr = rng(seed + 70); for (let i = 0; i < 150; i++) rainPts.push([rainRect.x0 - cx + rr() * (rainRect.x1 - rainRect.x0), rainRect.z0 - cz + rr() * (rainRect.z1 - rainRect.z0)]); }
+  const rain = rainLines(rainPts, rainH); g.add(rain);
 
   const v = new THREE.Vector3(), v2 = new THREE.Vector3();
   g.userData.uni = uni; g.userData.shape = shape;

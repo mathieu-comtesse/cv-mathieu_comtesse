@@ -1,4 +1,4 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, bone, canvasTexture, rng, inkify } from './kit.js?v=068a541';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, bone, canvasTexture, rng, inkify } from './kit.js?v=b1e8f97';
 
 /* ───────────────────────── Rituel du thé (chanoyu, matcha) ─────────────────────────
  * Repère « invité » : origine au centre du zabuton de l'invité, +z vers l'hôte, +y vers le haut, y = 0 sur la surface du tatami.

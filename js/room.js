@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=068a541';
-import * as F from './furniture.js?v=068a541';
-import { createCharacter } from './character.js?v=068a541';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=b1e8f97';
+import * as F from './furniture.js?v=b1e8f97';
+import { createCharacter } from './character.js?v=b1e8f97';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=068a541';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=068a541';
-import { createRitual } from './ritual.js?v=068a541';
-import { createChashitsu } from './chashitsu.js?v=068a541';
-import { createRetroSet } from './retro.js?v=068a541';
-import { createNav } from './nav.js?v=068a541';
-import { createDirector } from './director.js?v=068a541';
-import { createThought } from './thought.js?v=068a541';
-import { createWeather } from './weather.js?v=068a541';
-import { createJukebox } from './jukebox.js?v=068a541';
-import { TRACKS, COVER } from './music.js?v=068a541';
+import { loadBuffer } from './kit.js?v=b1e8f97';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=b1e8f97';
+import { createRitual } from './ritual.js?v=b1e8f97';
+import { createChashitsu } from './chashitsu.js?v=b1e8f97';
+import { createRetroSet } from './retro.js?v=b1e8f97';
+import { createNav } from './nav.js?v=b1e8f97';
+import { createDirector } from './director.js?v=b1e8f97';
+import { createThought } from './thought.js?v=b1e8f97';
+import { createWeather } from './weather.js?v=b1e8f97';
+import { createJukebox } from './jukebox.js?v=b1e8f97';
+import { TRACKS, COVER } from './music.js?v=b1e8f97';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=068a541'), load('assets/tableau.jpg?v=068a541'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=b1e8f97'), load('assets/tableau.jpg?v=b1e8f97'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=b1e8f97').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -404,7 +404,10 @@ export async function createRoom(container, bubbleEl) {
   nav.block({ x0: 0.55, x1: 1.15, z0: -2.45, z1: -1.85 });                      // pied du lampadaire (le bras passe au-dessus)
   nav.block({ x0: CS.x - 1.35, x1: CS.x + 1.35, z0: CS.z - 1.8, z1: CS.z + 1.8 });   // plate-forme du thé : on n'y entre que par la porte
   nav.block({ x0: CS.x - 2.05, x1: CS.x + 2.05, z0: CS.z + cs.spec.DK.z0, z1: CS.z + cs.spec.DK.z0 + 1.1 });   // balcon
-  nav.block({ x0: CS.x - 3.3, x1: CS.x + 3.3, z0: CS.z + cs.spec.SEA.z0 - 0.3, z1: 14 });                              // mer
+  nav.block({ x0: CS.x - 3.5, x1: CS.x + 3.5, z0: CS.z + cs.spec.SEA.z0 - 0.3, z1: 14 });                              // étang
+  nav.block({ x0: CS.x + 3.5, x1: CS.x + 12, z0: CS.z - 2.1, z1: 14 });                                                // jardin à droite (la rive est aussi interdite)
+  nav.block({ x0: CS.x - 12, x1: CS.x - 1.35, z0: CS.z - 2.1, z1: 14 });                                               // jardin à gauche
+  // seul le sentier de pas japonais à droite de la pièce du thé mène au balcon
   const floorY = (x, z) => {
     if (Math.abs(x - CS.x) < 1.35 && Math.abs(z - CS.z) < 1.8) return cs.spec.RH;
     if (Math.abs(x - CS.x) < 2.05 && z > CS.z + cs.spec.DK.z0 - 0.02 && z < CS.z + cs.spec.DK.z0 + 1.1) return cs.spec.DK.y;
@@ -454,12 +457,13 @@ export async function createRoom(container, bubbleEl) {
 
   /* thé : entrée par le balcon, chaussures ôtées devant le shoji, porte ouverte, puis zabuton de l'invité */
   { const st = stations.cha, DKz = CS.z + cs.spec.DK.z0, rowZ = DKz + 0.22;
-    const D = { walk: null };
+    let closeTok = 0;
     st.route = (from, drop) => {
       const open = [() => { cs.setPanels(1); hero.setShoes(false); }];
       const inside = [{ k: 'walk', pts: [[CS.x, DKz + 0.1], [CS.x, CS.z + cs.spec.RD / 2 - 0.6], [CS.x, TEA.z]] }];
       if (drop) return [{ k: 'fn', fn: open[0] }, ...inside.slice(1)];
       return [
+        { k: 'fn', fn: () => { closeTok++; cs.setPanels(1); } },                              // les paravents s'ouvrent dès qu'il part : jardin et balcon apparaissent
         { k: 'walk', pts: nav.path(from, [CS.x + 2.5, rowZ]) },
         { k: 'walk', pts: [[CS.x - 0.55, rowZ]] },
         { k: 'face', yaw: Math.PI / 2 }, { k: 'fn', fn: () => { hero.setShoes(false); hero.flash('neutral', 0.1); } }, { k: 'wait', wait: 0.5 },
@@ -472,8 +476,9 @@ export async function createRoom(container, bubbleEl) {
       steps: [
         { k: 'glide', x: CS.x, z: TEA.z + 0.4, y: cs.spec.RH, yaw: 0, dur: 0.5, clip: 'Idle_Loop' },
         { k: 'walk', pts: [[CS.x, CS.z + cs.spec.RD / 2 - 0.6], [CS.x, DKz + 0.1], [CS.x - 0.55, rowZ]] },
-        { k: 'fn', fn: () => { hero.setShoes(true); cs.setPanels(0); } }, { k: 'wait', wait: 0.4 },
+        { k: 'fn', fn: () => { hero.setShoes(true); } }, { k: 'wait', wait: 0.4 },
         { k: 'walk', pts: [[CS.x + 1.4, rowZ], [CS.x + 2.5, rowZ]] },
+        { k: 'fn', fn: () => { const tk = ++closeTok; setTimeout(() => { if (tk === closeTok) cs.setPanels(0); }, 5000); } },     // refermés une fois qu'il s'est éloigné sur le sentier
       ],
     });
   }
@@ -707,6 +712,8 @@ export async function createRoom(container, bubbleEl) {
       director.update(dt);
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
+      { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
+        cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
       // pieds au sol quand il est debout ou marche (le rig importé a sa propre hauteur de bassin)
       hero.setLean(director.current && director.mode === 'activity' && (director.current.clip === 'Driving_Loop' || director.current.clip === 'Sitting_Idle_Loop' || director.current.ritual) ? 0 : 0);
       { const cur = director.current, seated = cur && (cur.clip === 'Driving_Loop' || cur.clip === 'Sitting_Idle_Loop' || cur.ritual) && director.mode === 'activity';
