@@ -60,6 +60,7 @@ export function createRetroSet() {
 
   /* ── manette ── */
   const pad = group();
+  pad.userData.dynamic = true;
   const padM = new THREE.MeshStandardMaterial({ color: '#b6b6b1', roughness: 0.55 });
   pad.add(rbox(0.14, 0.024, 0.07, 0.01, padM, 0, 0.012, 0));
   for (const s of [-1, 1]) { const grip = rbox(0.038, 0.03, 0.075, 0.014, padM, s * 0.068, 0.015, 0.05); grip.rotation.y = s * -0.28; pad.add(grip); }
@@ -68,6 +69,22 @@ export function createRetroSet() {
   for (const x of [-0.012, 0.012]) pad.add(rbox(0.014, 0.005, 0.008, 0.002, mat('#7c7c79'), x, 0.025, 0.012));
   for (const s of [-1, 1]) pad.add(rbox(0.03, 0.01, 0.014, 0.004, padM, s * 0.045, 0.026, -0.036));
   pad.scale.setScalar(1.35); pad.position.set(0.28, 0, 0.78); pad.rotation.y = 0.55; g.add(pad);
+
+  const padHome = {
+    position: pad.position.clone(),
+    quaternion: pad.quaternion.clone(),
+    scale: pad.scale.clone(),
+  };
+  let padHeld = false;
+  const padTargetPos = new THREE.Vector3();
+  const padTargetQuat = new THREE.Quaternion();
+  const padRight = new THREE.Vector3();
+  const padUp = new THREE.Vector3(0, 1, 0);
+  const padForward = new THREE.Vector3();
+  const padWorld = new THREE.Matrix4();
+  const padParentInv = new THREE.Matrix4();
+  const padLocal = new THREE.Matrix4();
+  const padTmpScale = new THREE.Vector3(1, 1, 1);
 
   /* ── câbles posés au sol ── */
   const FLOOR = 0.006;
@@ -140,6 +157,40 @@ export function createRetroSet() {
   }
   const litMat = rocker.material; litMat.userData.unique = true;
   const api = {
+    pad,
+    get padHeld() { return padHeld; },
+    setPadHeld(v) { padHeld = !!v; },
+    updatePad(dt, handL, handR) {
+      const k = 1 - Math.exp(-dt * (padHeld ? 16 : 9));
+
+      if (padHeld && handL && handR) {
+        g.updateMatrixWorld(true);
+        handL.updateWorldMatrix(true, false);
+        handR.updateWorldMatrix(true, false);
+
+        const L = handL.getWorldPosition(new THREE.Vector3());
+        const R = handR.getWorldPosition(new THREE.Vector3());
+        padTargetPos.copy(L).add(R).multiplyScalar(0.5);
+        padTargetPos.y -= 0.012;
+
+        padRight.copy(R).sub(L).normalize();
+        padForward.crossVectors(padRight, padUp).normalize();
+        if (padForward.lengthSq() < 1e-5) padForward.set(0, 0, 1);
+
+        padWorld.makeBasis(padRight, padUp, padForward).setPosition(padTargetPos);
+        padParentInv.copy(g.matrixWorld).invert();
+        padLocal.copy(padParentInv).multiply(padWorld);
+        padLocal.decompose(padTargetPos, padTargetQuat, padTmpScale);
+
+        pad.position.lerp(padTargetPos, k);
+        pad.quaternion.slerp(padTargetQuat, k);
+        pad.scale.lerp(padHome.scale, k);
+      } else {
+        pad.position.lerp(padHome.position, k);
+        pad.quaternion.slerp(padHome.quaternion, k);
+        pad.scale.lerp(padHome.scale, k);
+      }
+    },
     strip, cordStart, get stripOn() { return st.strip; },
     setStrip(v) { st.strip = v; litMat.emissiveIntensity = v ? 1.6 : 0; litMat.color.set(v ? '#ff5a2a' : '#6b2a18'); if (!v) this.powerOff(); },
     group: g, tvCenter: new THREE.Vector3(-0.04, Y0 + H * 0.52, frontZ + 0.02),
