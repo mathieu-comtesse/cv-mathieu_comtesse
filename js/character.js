@@ -183,7 +183,18 @@ export async function createCharacter({
   const shoes = model.getObjectByName('shoes');
   const legacyShorts = model.getObjectByName('legs');
   const shoeVisuals = [], denimVisuals = [], sockVisuals = [], shoeParts = [];
+  const baggyDenimMat = new THREE.MeshStandardMaterial({
+    color: '#344a69',
+    roughness: 0.92,
+    metalness: 0,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
+    side: THREE.DoubleSide,
+    flatShading: false
+  });
   let shoesOn = true;
+  if (legacyShorts) legacyShorts.visible = false; // hide original shorts immediately
   if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:[1-9]|1[0-2])$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
   // Monte la paire de New Balance 992 (assets/nb992.glb : deux nœuds nb_left / nb_right, orteils vers +Z, semelle à y = 0, ~29 cm) sur les os des pieds.
   // La pose de référence est l'Idle : dans cette pose le pied est à plat, on y place chaque chaussure puis on la fige dans le repère de l'os.
@@ -203,55 +214,73 @@ export async function createCharacter({
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
       shoe.scale.multiplyScalar(1.14);                               // 992 chunky mais proportionnée au corps
       bone.add(shoe); shoeVisuals.push(shoe);
-      // Bas de jean : coupe droite légèrement ample, plis longs et souples.
-      const calf = bone.parent, knee = calf.getWorldPosition(new THREE.Vector3());
-      const A = new THREE.Vector3(f0.x, ground + 0.058, f0.z), P1 = knee.clone().lerp(A, 0.18);
-      const axis = A.clone().sub(P1), len = axis.length(); axis.normalize();
-      const fwdW = new THREE.Vector3().subVectors(b0, f0); fwdW.y = 0; fwdW.normalize();
-      const sideV = new THREE.Vector3().crossVectors(axis, fwdW).normalize(), front = new THREE.Vector3().crossVectors(sideV, axis).normalize();
-      const RINGS = 18, SEG = 28, pos = [], idx = [];
-      for (let i = 0; i <= RINGS; i++) {
-        const t = i / RINGS, e = t * t * (3 - 2 * t);
-        const rx0 = 0.061 + 0.027 * e, rz0 = 0.057 + 0.023 * e;
-        const cuff = i >= RINGS - 1 ? (i === RINGS ? 1.015 : 0.975) : 1;
-        for (let j = 0; j < SEG; j++) {
-          const th = (j / SEG) * Math.PI * 2;
-          const fold = (Math.sin(th * 4 + t * 1.7) * 0.0038 + Math.sin(th * 7 - t * 3.1) * 0.0016) * e;
-          const rr = 1 + fold / 0.06;
-          const x = Math.sin(th) * rx0 * cuff * rr, z = Math.cos(th) * rz0 * cuff * rr;
-          const hem = i === RINGS ? (-0.012 * Math.max(0, Math.cos(th)) + 0.006 * Math.max(0, -Math.cos(th))) : 0;
-          const drop = t * len + hem;
-          pos.push(P1.x + sideV.x * x + front.x * z + axis.x * drop, P1.y + sideV.y * x + front.y * z + axis.y * drop, P1.z + sideV.z * x + front.z * z + axis.z * drop);
-        }
-      }
-      for (let i = 0; i < RINGS; i++) for (let j = 0; j < SEG; j++) {
-        const a0 = i * SEG + j, a1 = i * SEG + (j + 1) % SEG, b0_ = (i + 1) * SEG + j, b1 = (i + 1) * SEG + (j + 1) % SEG;
-        idx.push(a0, b0_, a1, a1, b0_, b1);
-      }
-      const pg = new THREE.BufferGeometry();
-      pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setIndex(idx); pg.computeVertexNormals();
-      const pant = new THREE.Mesh(pg, new THREE.MeshStandardMaterial({ color: '#344a69', roughness: 0.9, metalness: 0, flatShading: false, side: THREE.DoubleSide }));
-      pant.castShadow = true; pant.receiveShadow = true; pant.frustumCulled = false;
-      pant.applyMatrix4(calf.matrixWorld.clone().invert());
-      calf.add(pant); denimVisuals.push(pant);
-
-      // Partie haute du jean : remplace le short d'origine par une vraie jambe de pantalon.
-      const thigh = calf.parent;
-      if (thigh) {
-        const hip = thigh.getWorldPosition(new THREE.Vector3());
+      // JEAN BAGGY CONTINU : cuisse ample + genou recouvert + jambe large.
+      // Les trois volumes se chevauchent volontairement autour du genou : aucune pose
+      // de marche ou d'assise ne peut laisser apparaître un trou transparent.
+      const calf = bone.parent, thigh = calf?.parent;
+      if (calf && thigh) {
+        group.updateMatrixWorld(true);
+        const hipW = thigh.getWorldPosition(new THREE.Vector3());
         const kneeW = calf.getWorldPosition(new THREE.Vector3());
-        const v = kneeW.clone().sub(hip), upperLen = Math.max(0.12, v.length() * 0.92), dir = v.clone().normalize();
-        const upperGeo = new THREE.CylinderGeometry(0.078, 0.070, upperLen, 22, 5, true);
-        const upper = new THREE.Mesh(upperGeo, new THREE.MeshStandardMaterial({
-          color: '#344a69', roughness: 0.9, metalness: 0, flatShading: false, side: THREE.DoubleSide
-        }));
-        const mid = hip.clone().lerp(kneeW, 0.50).addScaledVector(dir, 0.015);
-        upper.position.copy(mid);
-        upper.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+        const footW = bone.getWorldPosition(new THREE.Vector3());
+
+        // --- Cuisse baggy ---
+        const up = kneeW.clone().sub(hipW);
+        const upLen = Math.max(0.18, up.length());
+        const upDir = up.clone().normalize();
+        const upperGeo = new THREE.CylinderGeometry(
+          0.122,  // bassin
+          0.112,  // genou
+          upLen * 1.16,
+          28, 8, false
+        );
+        const upper = new THREE.Mesh(upperGeo, baggyDenimMat);
+        const upperMid = hipW.clone().lerp(kneeW, 0.52);
+        upper.position.copy(upperMid);
+        upper.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), upDir);
         upper.updateMatrix();
         upper.applyMatrix4(thigh.matrixWorld.clone().invert());
         upper.castShadow = true; upper.receiveShadow = true; upper.frustumCulled = false;
         thigh.add(upper); denimVisuals.push(upper);
+
+        // --- Genou baggy / soufflet de recouvrement ---
+        const kneeGeo = new THREE.SphereGeometry(0.122, 24, 16);
+        const knee = new THREE.Mesh(kneeGeo, baggyDenimMat);
+        knee.scale.set(1.05, 0.92, 1.08);
+        knee.position.copy(kneeW);
+        knee.updateMatrix();
+        knee.applyMatrix4(calf.matrixWorld.clone().invert());
+        knee.castShadow = true; knee.receiveShadow = true; knee.frustumCulled = false;
+        calf.add(knee); denimVisuals.push(knee);
+
+        // --- Bas de jambe baggy, légèrement resserré à la chaussure ---
+        const down = footW.clone().sub(kneeW);
+        const downLen = Math.max(0.18, down.length());
+        const downDir = down.clone().normalize();
+        const lowerGeo = new THREE.CylinderGeometry(
+          0.112,  // juste sous le genou
+          0.088,  // ourlet
+          downLen * 1.18,
+          28, 10, false
+        );
+        const lower = new THREE.Mesh(lowerGeo, baggyDenimMat);
+        const lowerMid = kneeW.clone().lerp(footW, 0.53);
+        lower.position.copy(lowerMid);
+        lower.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), downDir);
+        lower.updateMatrix();
+        lower.applyMatrix4(calf.matrixWorld.clone().invert());
+        lower.castShadow = true; lower.receiveShadow = true; lower.frustumCulled = false;
+        calf.add(lower); denimVisuals.push(lower);
+
+        // --- Ourlet souple autour de la 992 ---
+        const hemGeo = new THREE.TorusGeometry(0.088, 0.012, 8, 28);
+        const hem = new THREE.Mesh(hemGeo, baggyDenimMat);
+        hem.position.copy(footW.clone().addScaledVector(downDir, -0.01));
+        hem.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), downDir);
+        hem.updateMatrix();
+        hem.applyMatrix4(calf.matrixWorld.clone().invert());
+        hem.castShadow = true; hem.receiveShadow = true; hem.frustumCulled = false;
+        calf.add(hem); denimVisuals.push(hem);
       }
 
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
@@ -280,16 +309,16 @@ export async function createCharacter({
     // Petite pièce de ceinture/crotch pour raccorder proprement les deux jambes du jean.
     if (bones.pelvis && !model.getObjectByName('runtime_jean_waist')) {
       group.updateMatrixWorld(true);
-      const waistGeo = new THREE.SphereGeometry(0.145, 22, 12);
+      const waistGeo = new THREE.SphereGeometry(0.168, 28, 16);
       const waist = new THREE.Mesh(waistGeo, new THREE.MeshStandardMaterial({
         color: '#30445f', roughness: 0.9, metalness: 0
       }));
       waist.name = 'runtime_jean_waist';
-      waist.scale.set(1.12, 0.62, 0.84);
+      waist.scale.set(1.16, 0.72, 0.92);
       const pw = bones.pelvis.getWorldPosition(new THREE.Vector3());
       const wq = bones.pelvis.getWorldQuaternion(new THREE.Quaternion());
       const wm = new THREE.Matrix4().compose(
-        pw.clone().add(new THREE.Vector3(0, -0.075, 0)),
+        pw.clone().add(new THREE.Vector3(0, -0.060, 0)),
         wq,
         waist.scale.clone()
       );
