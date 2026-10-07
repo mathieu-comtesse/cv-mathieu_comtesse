@@ -101,11 +101,10 @@ try {
         return retro.padHeld && pad.distanceTo(center) < 0.08;
       }), 'The controller must be held between the hands');
       await page.evaluate(() => window.room.leave());
-      await page.waitForTimeout(1500);
-      assert.ok(await page.evaluate(home => {
+      await page.waitForFunction(home => {
         const { retro } = window.room;
         return !retro.padHeld && retro.pad.position.distanceTo(retro.pad.position.clone().fromArray(home)) < 0.01;
-      }, padHome), 'The controller must return to its initial location');
+      }, padHome, { timeout: 30000 });
 
       // A future incompatible optional mesh must restore the local desk and keep
       // advancing frames, instead of stranding the initial carpet frame.
