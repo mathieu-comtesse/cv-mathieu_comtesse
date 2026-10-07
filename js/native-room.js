@@ -124,7 +124,7 @@ async function build() {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.tabIndex = -1;
-  iframe.src = './shupi/index.html?embed&profile=mobile';
+  iframe.src = './shupi/index.html?embed&profile=mobile&v=cv-scene-v14';
   iframe.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:480px;height:320px;opacity:0;pointer-events:none;border:0;z-index:-1';
   document.body.appendChild(iframe);
 

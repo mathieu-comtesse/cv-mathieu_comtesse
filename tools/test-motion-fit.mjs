@@ -46,7 +46,7 @@ for (const id of ['ekstrem','alocasia','desk','sofa']) {
   try {
    await page.waitForFunction(id=>{const a=document.querySelector('iframe').contentWindow.shupiHeader.scene;return a.simDoing?.doing==='busy' && a.simDoing?.busy==={ekstrem:'read',alocasia:'water',desk:'work'}[id]},id,{timeout:120000});
   } catch(error) {
-   const diagnostic=await page.evaluate(()=>{const r=window.room,s=document.querySelector('iframe').contentWindow.shupiHeader;return {mode:r.director.mode,source:s.scene.simDoing,position:s.model.position.toArray(),frames:document.getElementById('room').dataset.sceneFrames};});
+   const diagnostic=await page.evaluate(()=>{const r=window.room,s=document.querySelector('iframe').contentWindow.shupiHeader;return {mode:r.director.mode,source:s.scene.simDoing,position:s.scene.shupi.model.position.toArray(),frames:document.getElementById('room').dataset.sceneFrames};});
    await writeFile(path.join(output,'activity-'+id+'-failure.json'),JSON.stringify(diagnostic,null,2));
    await page.screenshot({path:path.join(output,'activity-'+id+'-failure.png')});
    console.error('Activity did not start:',id,JSON.stringify(diagnostic));
