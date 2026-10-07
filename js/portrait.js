@@ -1,5 +1,5 @@
-import { THREE } from './kit.js?v=8ca0d7c';
-import { createCharacter } from './character.js?v=8ca0d7c';
+import { THREE } from './kit.js?v=7385b58';
+import { createCharacter } from './character.js?v=7385b58';
 
 /* Portrait 3D de la page Info : le personnage, en buste, dont la tête suit le curseur (comme le portrait de la référence). */
 export async function initPortrait(host) {

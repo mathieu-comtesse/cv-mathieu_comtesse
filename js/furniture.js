@@ -1,4 +1,4 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, bone, rng, canvasTexture, bake } from './kit.js?v=8ca0d7c';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, bone, rng, canvasTexture, bake } from './kit.js?v=7385b58';
 
 const CHROME = () => mat('#d9dce0', { metalness: 0.9, roughness: 0.22 });
 const BLACK = () => mat('#1b1c1f', { roughness: 0.55 });
