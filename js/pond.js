@@ -1,4 +1,4 @@
-import { THREE, group, canvasTexture, rng } from './kit.js?v=f7dc458';
+import { THREE, group, canvasTexture, rng } from './kit.js?v=3cff226';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 
 /* ───────────── Étang : eau transparente, fond à caustiques, carpes koï, nénuphars, brume ─────────────
@@ -181,18 +181,51 @@ function lotus(r) {
   const f = new THREE.Group(); f.add(m, heart); f.scale.setScalar(r); return f;
 }
 
-/** Brume : nappes de bruit qui dérivent, opacité pilotée par la météo. */
+/** Brume : nappes de bruit qui dérivent au-dessus du bassin seulement (bords fondus), opacité pilotée par la météo. */
 function mistLayer(W, D, y, seed, drift) {
   const r = rng(seed);
   const tex = canvasTexture(256, 128, (c, w, h) => {
     c.clearRect(0, 0, w, h);
-    for (let i = 0; i < 46; i++) { const x = r() * w, yy = r() * h, rad = 16 + r() * 34; for (const dx of [-w, 0, w]) { const gr = c.createRadialGradient(x + dx, yy, 0, x + dx, yy, rad); gr.addColorStop(0, 'rgba(255,255,255,.34)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(x + dx - rad, yy - rad, rad * 2, rad * 2); } }
+    for (let i = 0; i < 70; i++) { const x = r() * w, yy = r() * h, rad = 20 + r() * 40; for (const dx of [-w, 0, w]) { const gr = c.createRadialGradient(x + dx, yy, 0, x + dx, yy, rad); gr.addColorStop(0, 'rgba(255,255,255,.62)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(x + dx - rad, yy - rad, rad * 2, rad * 2); } }
   });
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(1.4, 1);
-  const m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0, color: '#ffffff', fog: false });
+  const uni = { uMap: { value: tex }, uOff: { value: new THREE.Vector2() }, uOp: { value: 0 }, uCol: { value: new THREE.Color('#ffffff') } };
+  const m = new THREE.ShaderMaterial({              // fondu sur les bords : la brume ne déborde pas du bassin
+    uniforms: uni, transparent: true, depthWrite: false,
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform sampler2D uMap; uniform vec2 uOff; uniform float uOp; uniform vec3 uCol; varying vec2 vUv;
+      void main(){ vec2 e = min(vUv, 1.0 - vUv) / vec2(0.2, 0.28); float f = smoothstep(0.0, 1.0, min(min(e.x, e.y), 1.0));
+        float a = texture2D(uMap, vUv * vec2(1.4, 1.0) + uOff).a * f * uOp; gl_FragColor = vec4(uCol, a); }`,
+  });
   const p = new THREE.Mesh(new THREE.PlaneGeometry(W, D), m); p.rotation.x = -Math.PI / 2; p.position.y = y; p.renderOrder = 3;
-  p.userData.update = (t, k, night) => { tex.offset.x = (t * drift) % 1; tex.offset.y = Math.sin(t * 0.07 + seed) * 0.05; m.opacity = Math.min(0.85, k.mist * 0.8); m.color.set(night ? '#7f93b8' : '#ffffff'); p.visible = m.opacity > 0.01; };
+  p.userData.update = (t, k, night) => { uni.uOff.value.set((t * drift) % 1, Math.sin(t * 0.07 + seed) * 0.05); uni.uOp.value = Math.min(1, k.mist * 1.15); uni.uCol.value.set(night ? '#7f93b8' : '#ffffff'); p.visible = uni.uOp.value > 0.01; };
   return p;
+}
+
+/** Pluie : traits qui tombent dans le volume au-dessus du bassin (tout se passe dans le vertex shader). */
+function rainLines(W, D, H, N = 320) {
+  const pos = new Float32Array(N * 6), seed = new Float32Array(N * 6), end = new Float32Array(N * 2), rank = new Float32Array(N * 2), r = rng(77);
+  for (let i = 0; i < N; i++) {
+    const x = (r() - 0.5) * W, z = (r() - 0.5) * D, ph = r(), rk = (i + 0.5) / N;
+    for (let k = 0; k < 2; k++) { const o = (i * 2 + k); seed.set([x, z, ph], o * 3); end[o] = k; rank[o] = rk; }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 3));
+  g.setAttribute('aEnd', new THREE.BufferAttribute(end, 1)); g.setAttribute('aRank', new THREE.BufferAttribute(rank, 1));
+  const uni = { uTime: { value: 0 }, uRain: { value: 0 }, uNight: { value: 0 } };
+  const m = new THREE.ShaderMaterial({
+    uniforms: uni, transparent: true, depthWrite: false,
+    vertexShader: `uniform float uTime, uRain; attribute vec3 aSeed; attribute float aEnd, aRank; varying float vA;
+      void main(){
+        float f = fract(aSeed.z + uTime * (1.5 + aSeed.z * 0.6));
+        vec3 p = vec3(aSeed.x - f * 0.12 + aEnd * 0.025, ${H.toFixed(2)} * (1.0 - f) + aEnd * 0.1, aSeed.y);
+        vA = step(aRank, uRain) * (0.25 + 0.5 * (1.0 - f * 0.3));
+        gl_Position = vA > 0.0 ? projectionMatrix * modelViewMatrix * vec4(p, 1.0) : vec4(2.0, 2.0, 2.0, 1.0);
+      }`,
+    fragmentShader: `uniform float uNight; varying float vA; void main(){ gl_FragColor = vec4(mix(vec3(0.36, 0.5, 0.68), vec3(0.72, 0.8, 0.95), uNight), vA); }`,
+  });
+  const l = new THREE.LineSegments(g, m); l.frustumCulled = false; l.renderOrder = 4; l.userData.uni = uni;
+  return l;
 }
 
 export function makePond(W, D, depth = 0.6) {
@@ -232,8 +265,9 @@ export function makePond(W, D, depth = 0.6) {
   });
 
   /* brume sur l'eau */
-  const mists = [mistLayer(W + 1.4, D + 1.4, 0.12, 2, 0.011), mistLayer(W + 2.0, D + 1.8, 0.3, 7, -0.007)];
+  const mists = [mistLayer(W, D, 0.3, 2, 0.011), mistLayer(W - 0.2, D - 0.2, 0.38, 7, -0.007)];
   mists.forEach((m) => g.add(m));
+  const rain = rainLines(W, D, 1.5); rain.position.y = 0; g.add(rain);
 
   const v = new THREE.Vector3(), v2 = new THREE.Vector3();
   g.userData.uni = uni;
@@ -247,6 +281,7 @@ export function makePond(W, D, depth = 0.6) {
     }
     for (const pd of pads) { const u = pd.userData; pd.position.y = 0.016 + Math.sin(t * 1.1 + u.seed) * 0.004 + k.rain * Math.sin(t * 9 + u.seed * 3) * 0.002; pd.rotation.y = u.seed * 1.7 + Math.sin(t * 0.12 + u.seed) * 0.12; }
     for (const m of mists) m.userData.update(t, k, night);
+    const ru = rain.userData.uni; ru.uTime.value = t; ru.uRain.value = k.rain; ru.uNight.value = uni.uNight.value; rain.visible = k.rain > 0.02;
   };
   g.userData.bounds = { W, D };
   return g;

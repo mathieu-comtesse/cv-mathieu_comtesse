@@ -1,7 +1,7 @@
-import { createRoom } from './room.js?v=f7dc458';
-import { initUI } from './ui.js?v=f7dc458';
-import { initTheme } from './theme.js?v=f7dc458';
-import { initHome } from './home.js?v=f7dc458';
+import { createRoom } from './room.js?v=3cff226';
+import { initUI } from './ui.js?v=3cff226';
+import { initTheme } from './theme.js?v=3cff226';
+import { initHome } from './home.js?v=3cff226';
 initUI();
 initTheme();
 

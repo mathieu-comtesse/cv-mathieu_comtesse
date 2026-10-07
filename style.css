@@ -85,13 +85,6 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 /* bouton clair / sombre dans la pilule de navigation */
 .btn.theme{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;font:inherit}
 .btn.theme svg{display:block}
-/* pastille sur le tiroir du meuble vert */
-.hot{position:absolute;left:0;top:0;z-index:7;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:#fff;box-shadow:0 4px 12px rgb(0 0 0 / .25);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s}
-.hot.show{opacity:.95;pointer-events:auto}
-.hot svg{display:block;width:100%;height:100%;padding:5px}
-.hot::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid rgb(232 69 43 / .55);animation:hotp 2s ease-out infinite}
-@keyframes hotp{from{transform:scale(.8);opacity:1}to{transform:scale(1.35);opacity:0}}
-@media (prefers-reduced-motion:reduce){.hot::after{animation:none}}
 
 .bubble.thought .cap{display:none}
 /* lecteur de musique : pastille en bas à gauche de la pièce (boutons Discover) */
@@ -173,13 +166,5 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .dg-l{font:700 13.5px Arial,sans-serif;fill:var(--ink)}.dg-s{font:500 10.5px Arial,sans-serif;fill:var(--mute)}
 @media(max-width:900px){.hd-wrap{display:none}}
 /* météo */
-.wx{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;--wx-mist:0;--wx-cloud:0}
-.wx::before{content:"";position:absolute;inset:0;background:rgb(98 112 134);opacity:calc(var(--wx-cloud) * .13)}
-.wx-mist{position:absolute;left:-30%;width:160%;height:52%;background:radial-gradient(closest-side,rgb(255 255 255 / .8),rgb(255 255 255 / 0));opacity:calc(var(--wx-mist) * .9);will-change:transform}
-.wx-m1{top:30%;animation:wxdrift 36s ease-in-out infinite alternate}.wx-m2{top:56%;height:44%;animation:wxdrift 50s ease-in-out infinite alternate-reverse}
-:root[data-theme=dark] .wx-mist{background:radial-gradient(closest-side,rgb(125 145 185 / .62),rgb(125 145 185 / 0))}
-@keyframes wxdrift{from{transform:translateX(-7%)}to{transform:translateX(7%)}}
-.wx-rain{position:absolute;inset:0;width:100%;height:100%}
 .wx-btn{position:absolute;right:12px;bottom:34px;z-index:8;box-shadow:0 2px 8px rgb(0 0 0 / .18)}
 @media(max-width:760px){.wx-btn{bottom:84px}}
-@media(prefers-reduced-motion:reduce){.wx-mist{animation:none}}

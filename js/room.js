@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=f7dc458';
-import * as F from './furniture.js?v=f7dc458';
-import { createCharacter } from './character.js?v=f7dc458';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=3cff226';
+import * as F from './furniture.js?v=3cff226';
+import { createCharacter } from './character.js?v=3cff226';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=f7dc458';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=f7dc458';
-import { createRitual } from './ritual.js?v=f7dc458';
-import { createChashitsu } from './chashitsu.js?v=f7dc458';
-import { createRetroSet } from './retro.js?v=f7dc458';
-import { createNav } from './nav.js?v=f7dc458';
-import { createDirector } from './director.js?v=f7dc458';
-import { createThought } from './thought.js?v=f7dc458';
-import { createWeather } from './weather.js?v=f7dc458';
-import { createJukebox } from './jukebox.js?v=f7dc458';
-import { TRACKS, COVER } from './music.js?v=f7dc458';
+import { loadBuffer } from './kit.js?v=3cff226';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=3cff226';
+import { createRitual } from './ritual.js?v=3cff226';
+import { createChashitsu } from './chashitsu.js?v=3cff226';
+import { createRetroSet } from './retro.js?v=3cff226';
+import { createNav } from './nav.js?v=3cff226';
+import { createDirector } from './director.js?v=3cff226';
+import { createThought } from './thought.js?v=3cff226';
+import { createWeather } from './weather.js?v=3cff226';
+import { createJukebox } from './jukebox.js?v=3cff226';
+import { TRACKS, COVER } from './music.js?v=3cff226';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=f7dc458'), load('assets/tableau.jpg?v=f7dc458'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=3cff226'), load('assets/tableau.jpg?v=3cff226'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -496,7 +496,7 @@ export async function createRoom(container, bubbleEl) {
   // météo : la pastille montre le temps qu'il fait et le fait changer au clic
   const wxBtn = document.createElement('button'); wxBtn.className = 'dbtn dbtn--sm wx-btn'; wxBtn.type = 'button';
   wxBtn.innerHTML = face('', 'Ciel dégagé'); container.appendChild(wxBtn);
-  const wx = createWeather(container, { button: wxBtn });
+  const wx = createWeather({ button: wxBtn });
   const mpPlay = pill.querySelector('.mp-play'), mpNext = pill.querySelector('.mp-next'), mpCrate = pill.querySelector('.mp-crate');
   const mpLabel = (i) => { const t = TRACKS[i]; mpPlay.querySelector('.dbtn__text').textContent = clip(t.t, 26) + ' \u00b7 ' + clip(t.a, 16); };
   const jukebox = createJukebox({
@@ -601,12 +601,6 @@ export async function createRoom(container, bubbleEl) {
   }
   const card = document.createElement('div'); card.className = 'sleeve-card'; container.appendChild(card);
   let cardFor = -2;
-  // pastille cliquable sur le tiroir : reste au-dessus du personnage, qui peut le masquer quand il écoute un vinyle
-  const hot = document.createElement('button'); hot.className = 'hot'; hot.type = 'button'; hot.setAttribute('aria-label', 'Ouvrir le tiroir à disques');
-  hot.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#1c1a17"/><circle cx="12" cy="12" r="3.2" fill="#e8452b"/><circle cx="12" cy="12" r="0.9" fill="#fff"/><path d="M5.5 9a7 7 0 0 1 4-3.4" stroke="#fff" stroke-opacity=".5" stroke-width="1" fill="none" stroke-linecap="round"/></svg>';
-  hot.addEventListener('click', (e) => { e.stopPropagation(); openCrate(!crate.isOpen); });
-  hot.addEventListener('pointerdown', (e) => e.stopPropagation());
-  container.appendChild(hot);
   window.addEventListener('keydown', (e) => {
     if (!crate.isOpen || appOpen) return;
     const cur = crate.sel >= 0 ? crate.sel : jukebox.playing >= 0 ? jukebox.playing : 0;
@@ -699,7 +693,7 @@ export async function createRoom(container, bubbleEl) {
     scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
     // personnage
     if (ritual.state.active) ritual.update(dt);
-    wx.update(dt, night); sun.intensity = sunBase * (1 - 0.55 * wx.k.cloud); hemi.intensity = hemiBase * (1 + 0.15 * wx.k.cloud);
+    wx.update(dt); sun.intensity = sunBase * (1 - 0.55 * wx.k.cloud); hemi.intensity = hemiBase * (1 + 0.15 * wx.k.cloud);
     cs.update(dt, t, night, wx.k); retro.update(dt);
     // vapeur du bol et de la kama
     { const ud = tea.userData; ud.sBowl.position.copy(ritual.object.position).y += 0.075; ud.sKama.position.copy(ud.fk.position).add(ud.fk.userData.steamAnchor);
@@ -748,7 +742,6 @@ export async function createRoom(container, bubbleEl) {
     }
     // tiroir à pochettes
     crate.update(dt, view.az);
-    { const q = new THREE.Vector3(-1.075, 0.74, -2.2).project(camera); hot.style.transform = `translate(${((q.x + 1) / 2) * W}px, ${((1 - q.y) / 2) * H}px) translate(-50%, -50%)`; hot.classList.toggle('show', !crate.isOpen && !appOpen && since > 2); }
     if (crate.isOpen && crate.sel >= 0 && !appOpen) {
       if (cardFor !== crate.sel) {
         cardFor = crate.sel; const t = TRACKS[cardFor], c = 52, col = cardFor % COVER.cols, row = (cardFor / COVER.cols) | 0;
