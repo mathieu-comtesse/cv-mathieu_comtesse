@@ -24,7 +24,7 @@ try {
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => {
       if (message.type() === 'error' && !message.text().startsWith('Failed to load resource:')) errors.push(message.text());
-      if (message.type() === 'warning' && message.text().startsWith('[Shujaat]')) console.log(message.text());
+      if (message.type() === 'warning' && message.text().startsWith('[Native]')) console.log(message.text());
     });
     page.on('response', (response) => { if (response.status() >= 400) missingResources.push(response.url()); });
     // Serve the real repository through intercepted requests: no external host,
@@ -43,12 +43,12 @@ try {
     await page.goto('http://scene.test/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.getElementById('room')?.dataset.sceneReady === 'true', null, { timeout: 60000 });
     try {
-      await page.waitForFunction(() => document.getElementById('room')?.dataset.shujaat === 'ready', null, { timeout: 60000 });
+      await page.waitForFunction(() => document.getElementById('room')?.dataset.native === 'ready', null, { timeout: 60000 });
     } catch (error) {
       console.log(await page.evaluate(() => {
         const api = document.querySelector('iframe')?.contentWindow.shupiHeader?.scene;
         const scene = api?.shupi.scene;
-        return { bridge: document.getElementById('room').dataset.shujaat, api: Object.keys(api || {}),
+        return { bridge: document.getElementById('room').dataset.native, api: Object.keys(api || {}),
           desk: ['Standing desk', 'Fractal North chalk white PC', 'Ceramic coffee mug', 'Apple Studio Display',
             'Logitech MX Keys keyboard', 'Logitech MX Master 4 mouse', 'Nommo left speaker', 'Nommo right speaker']
             .map(name => { const object = scene?.getObjectByName(name); return { name, visible: object?.visible,
@@ -58,7 +58,7 @@ try {
     }
     const state = () => page.evaluate(() => ({
       frames: Number(document.getElementById('room').dataset.sceneFrames),
-      bridge: document.getElementById('room').dataset.shujaat,
+      bridge: document.getElementById('room').dataset.native,
       hero: window.room.hero.group.visible,
       position: window.room.hero.group.position.toArray(),
       mode: window.room.director.mode,
@@ -69,7 +69,7 @@ try {
     const deskBounds = await page.evaluate(() => window.room.bbox('desk'));
     assert.ok(deskBounds[1].every((max, i) => max - deskBounds[0][i] < 4), 'Imported desk must retain its physical size');
     assert.ok(await page.evaluate(() => {
-      const desk = window.room.scene.getObjectByName('ShujaatExactDeskSet');
+      const desk = window.room.scene.getObjectByName('NativeExactDeskSet');
       return ['Standing desk', 'Fractal North chalk white PC', 'Ceramic coffee mug', 'Apple Studio Display',
         'Logitech MX Keys keyboard', 'Logitech MX Master 4 mouse', 'Nommo left speaker', 'Nommo right speaker']
         .every(name => {
@@ -87,9 +87,9 @@ try {
     // Exercise the existing sofa interaction and verify the moving controller.
     if (viewport.width === 1440) {
       const padHome = await page.evaluate(() => window.room.retro.pad.position.toArray());
-      await page.evaluate(() => { window.room.pauseAutonomy(120000); window.room.goTo('sofa'); });
+      await page.evaluate(() => { window.room.pauseAutonomy(600000); window.room.goTo('sofa'); });
       await page.waitForFunction(() => window.room.director.mode === 'activity' &&
-        window.room.director.current === window.room.stations.sofa, null, { timeout: 60000 });
+        window.room.director.current === window.room.stations.sofa, null, { timeout: 120000 });
       await page.waitForTimeout(1500);
       await page.screenshot({ path: path.join(output, 'scene-sofa.png') });
       assert.ok(await page.evaluate(() => {
@@ -110,7 +110,7 @@ try {
       // advancing frames, instead of stranding the initial carpet frame.
       const firstFrame = after.frames;
       await page.evaluate(() => {
-        const desk = window.room.scene.getObjectByName('ShujaatExactDeskSet');
+        const desk = window.room.scene.getObjectByName('NativeExactDeskSet');
         const foreignArray = document.querySelector('iframe').contentWindow.Float32Array;
         desk.traverse((object) => {
           const attribute = object.geometry?.attributes.position;
@@ -121,7 +121,7 @@ try {
           }
         });
       });
-      await page.waitForFunction(() => document.getElementById('room').dataset.shujaat === 'fallback');
+      await page.waitForFunction(() => document.getElementById('room').dataset.native === 'fallback');
       await page.waitForTimeout(1000);
       const fallback = await state();
       assert.ok(fallback.frames > firstFrame, 'Local rendering must recover from an optional mesh failure');

@@ -6,7 +6,7 @@ on:
     paths:
       - "index.html"
       - "js/**"
-      - "tools/test-shujaat-geometry.mjs"
+      - "tools/test-native-geometry.mjs"
       - "tools/test-scene-runtime.mjs"
       - "tools/test-motion-fit.mjs"
       - "assets/jeans-jnco-fit.glb"
@@ -29,19 +29,19 @@ jobs:
           node --check js/room.js
           node --check js/character.js
           node --check js/retro.js
-          node --check js/shujaat-room.js
-          node --check js/shujaat-geometry.js
+          node --check js/native-room.js
+          node --check js/native-geometry.js
           node --check js/thought.js
           node --check js/director.js
       - name: Check iframe geometry compatibility
-        run: node tools/test-shujaat-geometry.mjs
+        run: node tools/test-native-geometry.mjs
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=motion-arrival-v12" index.html
-          grep -q "character.js?v=motion-fit-v11" js/room.js
+          grep -q "js/main.js?v=cv-scene-v13" index.html
+          grep -q "character.js?v=cv-scene-v13" js/room.js
           grep -q "retro.js?v=heel-blender-v9" js/room.js
-          grep -q "room.js?v=motion-arrival-v12" js/main.js
+          grep -q "room.js?v=cv-scene-v13" js/main.js
           test -s assets/jeans-jnco-fit.glb
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js

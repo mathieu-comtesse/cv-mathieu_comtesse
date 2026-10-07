@@ -4,12 +4,12 @@ import vm from 'node:vm';
 import * as THREE from '../vendor/three.module.min.js';
 
 const threeURL = new URL('../vendor/three.module.min.js', import.meta.url).href;
-const source = (await readFile(new URL('../js/shujaat-geometry.js', import.meta.url), 'utf8'))
+const source = (await readFile(new URL('../js/native-geometry.js', import.meta.url), 'utf8'))
   .replace("from 'three'", `from '${threeURL}'`);
-const { copyShujaatAttribute, copyShujaatGeometry, cloneShujaatObject } =
+const { copyNativeAttribute, copyNativeGeometry, cloneNativeObject } =
   await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
-// vm creates the same constructor boundary as the Shujaat iframe.
+// vm creates the same constructor boundary as the Native iframe.
 const foreign = vm.runInNewContext(`({
   positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
   indices: new Uint16Array([0, 1, 2]),
@@ -29,7 +29,7 @@ geometry.morphAttributes.position = [new THREE.BufferAttribute(foreign.positions
 geometry.morphTargetsRelative = true;
 geometry.computeBoundingBox();
 geometry.computeBoundingSphere();
-const copied = copyShujaatGeometry(geometry);
+const copied = copyNativeGeometry(geometry);
 assert.ok(copied.attributes.position.array instanceof Float32Array);
 assert.ok(copied.index.array instanceof Uint16Array);
 assert.ok(copied.attributes.color.array instanceof Uint8Array);
@@ -44,22 +44,22 @@ copied.attributes.position.array[0] = 42;
 assert.equal(foreign.positions[0], 0);
 
 const packed = new THREE.InterleavedBuffer(foreign.interleaved, 5);
-const uv = copyShujaatAttribute(new THREE.InterleavedBufferAttribute(packed, 2, 3));
+const uv = copyNativeAttribute(new THREE.InterleavedBufferAttribute(packed, 2, 3));
 assert.ok(uv.array instanceof Float32Array);
 assert.deepEqual([...uv.array], [10, 20, 30, 40]);
-const half = copyShujaatAttribute({ array: foreign.half, itemSize: 1, isFloat16BufferAttribute: true });
+const half = copyNativeAttribute({ array: foreign.half, itemSize: 1, isFloat16BufferAttribute: true });
 assert.ok(half.isFloat16BufferAttribute);
 assert.equal(half.getX(0), 1);
 
 const root = new THREE.Group();
 root.add(new THREE.Mesh(geometry), new THREE.Mesh(geometry));
-const clone = cloneShujaatObject(root);
+const clone = cloneNativeObject(root);
 assert.notEqual(clone.children[0].geometry, geometry);
 assert.equal(clone.children[0].geometry, clone.children[1].geometry);
 assert.equal(root.children[0].geometry, geometry);
 const instances = new THREE.InstancedMesh(geometry, new THREE.MeshBasicMaterial(), 1);
 instances.instanceMatrix = new THREE.InstancedBufferAttribute(foreign.positions, 3, false, 2);
-const instanceClone = cloneShujaatObject(instances);
+const instanceClone = cloneNativeObject(instances);
 assert.ok(instanceClone.instanceMatrix.array instanceof Float32Array);
 assert.equal(instanceClone.instanceMatrix.meshPerAttribute, 2);
 console.log('PASS: cross-realm geometry, indices, normalized/interleaved/morph/half/instance attributes and source isolation');

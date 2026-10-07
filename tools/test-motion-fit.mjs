@@ -30,10 +30,10 @@ await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBuf
       }
     });
 
-await page.goto('http://scene.test/');await page.waitForFunction(()=>document.getElementById('room')?.dataset.shujaat==='ready',null,{timeout:60000});
+await page.goto('http://scene.test/');await page.waitForFunction(()=>document.getElementById('room')?.dataset.native==='ready',null,{timeout:60000});
 await page.evaluate(()=>window.room.pauseAutonomy(600000));
 await page.mouse.click(720,760);
-assert.equal(await page.evaluate(()=>{const desk=window.room.scene.getObjectByName('ShujaatExactDeskSet');return !!desk.getObjectByName('Setu task chair');}),false,'Imported desk must not contain a second office chair');
+assert.equal(await page.evaluate(()=>{const desk=window.room.scene.getObjectByName('NativeExactDeskSet');return !!desk.getObjectByName('Setu task chair');}),false,'Imported desk must not contain a second office chair');
 await page.screenshot({path:path.join(output,'fit-standing.png')});
 const report=[];
 for (const id of ['ekstrem','alocasia','desk','sofa']) {
@@ -54,11 +54,11 @@ for (const id of ['ekstrem','alocasia','desk','sofa']) {
    throw error;
   }
  }
- if(['ekstrem','alocasia'].includes(id)) await page.waitForFunction(id=>window.room.scene.getObjectByName('ShujaatExact:iso:'+(id==='ekstrem'?'book':'can'))?.visible,id,{timeout:15000});
+ if(['ekstrem','alocasia'].includes(id)) await page.waitForFunction(id=>window.room.scene.getObjectByName('NativeExact:iso:'+(id==='ekstrem'?'book':'can'))?.visible,id,{timeout:15000});
  await page.waitForTimeout(id==='alocasia'?300:1500);
  await page.screenshot({path:path.join(output,'activity-'+id+'.png')});
  report.push(await page.evaluate(async id=>{let T=await import('three'),r=window.room,a=document.querySelector('iframe').contentWindow.shupiHeader.scene;
- const obj=n=>r.scene.getObjectByName(n);const book=obj('ShujaatExact:iso:book'),can=obj('ShujaatExact:iso:can');
+ const obj=n=>r.scene.getObjectByName(n);const book=obj('NativeExact:iso:book'),can=obj('NativeExact:iso:can');
  const pos=o=>o?.getWorldPosition(new T.Vector3()).toArray();
  return {id,source:a.simDoing,head:pos(r.hero.head),pelvis:pos(r.hero.bones.pelvis),handL:pos(r.hero.bones.hand_l),handR:pos(r.hero.bones.hand_r),book:{visible:book?.visible,pos:pos(book)},can:{visible:can?.visible,pos:pos(can)},frames:document.getElementById('room').dataset.sceneFrames};},id));
  if(process.env.SCENE_EXPORT_POSES==='1' && ['desk','sofa'].includes(id)) {
@@ -70,7 +70,7 @@ for (const id of ['ekstrem','alocasia','desk','sofa']) {
 for(const item of report){const distance=(a,b)=>Math.hypot(...a.map((x,i)=>x-b[i]));if(item.id==='ekstrem'){assert.ok(item.book.visible);assert.ok(distance(item.book.pos,item.handL.map((x,i)=>(x+item.handR[i])/2))<.15,'Book must stay between both hands');}if(item.id==='alocasia'){assert.ok(item.can.visible);assert.ok(Math.min(distance(item.can.pos,item.handL),distance(item.can.pos,item.handR))<.5,'Watering can must stay in a hand');}}
 await page.evaluate(()=>{window.room.director.stand();window.room.director.setRun(true);window.room.director.go(window.room.stations.alocasia);});
 await page.waitForTimeout(2000);
-const movement=await page.evaluate(()=>{let r=window.room,e=r.scene.getObjectByName('ShujaatMotionEffects'),visible=0;e.traverseVisible(o=>{if(o.isMesh)visible++;});const a=document.querySelector('iframe').contentWindow.audioEvidence;return {mode:r.director.mode,run:r.director.running,effects:visible,audio:a.filter(s=>s.peak>0&&s.state==='running').length};});
+const movement=await page.evaluate(()=>{let r=window.room,e=r.scene.getObjectByName('NativeMotionEffects'),visible=0;e.traverseVisible(o=>{if(o.isMesh)visible++;});const a=document.querySelector('iframe').contentWindow.audioEvidence;return {mode:r.director.mode,run:r.director.running,effects:visible,audio:a.filter(s=>s.peak>0&&s.state==='running').length};});
 assert.ok(movement.effects>0,'Original walking/running particles must be visible');assert.ok(movement.audio>0,'Original action sounds must generate audible buffers');
 await page.evaluate(()=>window.room.director.lift());await page.waitForTimeout(400);await page.evaluate(()=>{let p=window.room.hero.group.position;window.room.director.drop(p.x,p.z);});await page.waitForTimeout(800);
 assert.deepEqual(errors,[],'Activities must not stop the rendering loop');

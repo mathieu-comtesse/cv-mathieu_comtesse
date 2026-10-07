@@ -7,12 +7,12 @@ const ARRAY_TYPES = {
   Int16Array, Uint16Array, Int32Array, Uint32Array,
 };
 
-export function copyShujaatAttribute(source) {
+export function copyNativeAttribute(source) {
   const interleaved = source.isInterleavedBufferAttribute;
   const values = interleaved ? source.data.array : source.array;
   const type = Object.prototype.toString.call(values).slice(8, -1);
   const ArrayType = ARRAY_TYPES[type];
-  if (!ArrayType) throw new TypeError(`Unsupported Shujaat attribute: ${type}`);
+  if (!ArrayType) throw new TypeError(`Unsupported Native attribute: ${type}`);
   let array;
   if (interleaved) {
     array = new ArrayType(source.count * source.itemSize);
@@ -34,15 +34,15 @@ export function copyShujaatAttribute(source) {
   return attribute;
 }
 
-export function copyShujaatGeometry(source) {
+export function copyNativeGeometry(source) {
   const geometry = new THREE.BufferGeometry();
   geometry.name = source.name;
-  if (source.index) geometry.setIndex(copyShujaatAttribute(source.index));
+  if (source.index) geometry.setIndex(copyNativeAttribute(source.index));
   for (const [name, attribute] of Object.entries(source.attributes)) {
-    geometry.setAttribute(name, copyShujaatAttribute(attribute));
+    geometry.setAttribute(name, copyNativeAttribute(attribute));
   }
   for (const [name, attributes] of Object.entries(source.morphAttributes || {})) {
-    geometry.morphAttributes[name] = attributes.map(copyShujaatAttribute);
+    geometry.morphAttributes[name] = attributes.map(copyNativeAttribute);
   }
   geometry.morphTargetsRelative = source.morphTargetsRelative;
   for (const group of source.groups) geometry.addGroup(group.start, group.count, group.materialIndex);
@@ -52,15 +52,15 @@ export function copyShujaatGeometry(source) {
   return geometry;
 }
 
-export function cloneShujaatObject(source, geometries = new WeakMap()) {
+export function cloneNativeObject(source, geometries = new WeakMap()) {
   const clone = source.clone(true);
   clone.traverse((object) => {
     if (!object.geometry) return;
     const sourceGeometry = object.geometry;
-    if (!geometries.has(sourceGeometry)) geometries.set(sourceGeometry, copyShujaatGeometry(sourceGeometry));
+    if (!geometries.has(sourceGeometry)) geometries.set(sourceGeometry, copyNativeGeometry(sourceGeometry));
     object.geometry = geometries.get(sourceGeometry);
-    if (object.instanceMatrix) object.instanceMatrix = copyShujaatAttribute(object.instanceMatrix);
-    if (object.instanceColor) object.instanceColor = copyShujaatAttribute(object.instanceColor);
+    if (object.instanceMatrix) object.instanceMatrix = copyNativeAttribute(object.instanceMatrix);
+    if (object.instanceColor) object.instanceColor = copyNativeAttribute(object.instanceColor);
   });
   return clone;
 }

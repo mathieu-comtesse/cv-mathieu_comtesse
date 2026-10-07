@@ -171,27 +171,27 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 @media(max-width:760px){.wx-btn{bottom:84px}}
 
 
-/* INFO SHUJAAT REF V2 */
-.page-info-shujaat .info-main{max-width:1120px;padding:0 24px 56px}
-.page-info-shujaat .info-about-ref{padding:132px 0 30px;text-align:center}
-.page-info-shujaat .info-heading{max-width:18ch;font-size:clamp(42px,6.1vw,78px);line-height:.92;margin:0 auto 12px}
-.page-info-shujaat .portrait{width:min(90vw,560px);height:470px;margin:8px auto -32px}
-.page-info-shujaat .bio-primary{max-width:650px;margin:0 auto;gap:12px;font-size:16px;line-height:1.55;color:var(--ink)}
-.page-info-shujaat .bio-primary p:last-child{color:var(--mute)}
+/* INFO NATIVE REF V2 */
+.page-info-native .info-main{max-width:1120px;padding:0 24px 56px}
+.page-info-native .info-about-ref{padding:132px 0 30px;text-align:center}
+.page-info-native .info-heading{max-width:18ch;font-size:clamp(42px,6.1vw,78px);line-height:.92;margin:0 auto 12px}
+.page-info-native .portrait{width:min(90vw,560px);height:470px;margin:8px auto -32px}
+.page-info-native .bio-primary{max-width:650px;margin:0 auto;gap:12px;font-size:16px;line-height:1.55;color:var(--ink)}
+.page-info-native .bio-primary p:last-child{color:var(--mute)}
 .info-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:58px auto 20px;max-width:760px}
 .info-card{min-height:330px;padding:28px 24px;border:1px solid var(--line);border-radius:26px;background:var(--card);text-align:center}
 .info-card-kicker{margin:0 0 26px;color:var(--mute);font-size:12px}
 .info-card-lines{display:grid;gap:22px}.info-card-lines.compact{gap:20px}
 .info-card-lines p{display:grid;gap:2px;margin:0}.info-card-lines b{font-size:15px}.info-card-lines span{font-size:13px;color:var(--mute)}
-.page-info-shujaat .info-impact-ref{max-width:980px;margin:58px auto 0}
-.page-info-shujaat .info-impact-ref article{min-height:190px}
-.page-info-shujaat .info-contact-ref{padding:82px 0 28px}
-.page-info-shujaat .info-contact-ref h2{font-size:clamp(36px,5vw,62px)}
+.page-info-native .info-impact-ref{max-width:980px;margin:58px auto 0}
+.page-info-native .info-impact-ref article{min-height:190px}
+.page-info-native .info-contact-ref{padding:82px 0 28px}
+.page-info-native .info-contact-ref h2{font-size:clamp(36px,5vw,62px)}
 .info-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 @media(max-width:760px){
-  .page-info-shujaat .info-about-ref{padding-top:108px}
-  .page-info-shujaat .info-heading{font-size:clamp(38px,11vw,58px)}
-  .page-info-shujaat .portrait{height:390px;margin-bottom:-18px}
+  .page-info-native .info-about-ref{padding-top:108px}
+  .page-info-native .info-heading{font-size:clamp(38px,11vw,58px)}
+  .page-info-native .portrait{height:390px;margin-bottom:-18px}
   .info-pair{grid-template-columns:1fr;max-width:520px}
 }
 
@@ -229,7 +229,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 
 
 
-/* STRICT SHUJAAT PORTRAIT — same parent geometry as shujaat.info/info/ */
+/* STRICT NATIVE PORTRAIT — same parent geometry as the local portrait runtime */
 .shupi-portrait{
   width:100%;
   height:100%;
@@ -257,7 +257,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
   .shupi-portrait{pointer-events:none!important}
 }
 @media(max-width:760px){
-  .page-info-shujaat .portrait.shupi-portrait{
+  .page-info-native .portrait.shupi-portrait{
     min-height:0;
     height:350px;
     overflow:visible!important;

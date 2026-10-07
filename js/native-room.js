@@ -1,5 +1,5 @@
-import { THREE } from './kit.js?v=shujaat-room-v2';
-import { cloneShujaatObject } from './shujaat-geometry.js?v=render-recovery-v10';
+import { THREE } from './kit.js?v=native-room-v2';
+import { cloneNativeObject } from './native-geometry.js?v=render-recovery-v10';
 
 const SOURCE_TO_TARGET = {
   Base_HumanPelvis001: 'pelvis',
@@ -46,7 +46,7 @@ function waitFor(fn, timeout = 30000) {
       let v = null;
       try { v = fn(); } catch {}
       if (v) return resolve(v);
-      if (performance.now() - started > timeout) return reject(new Error('Runtime Shujaat indisponible'));
+      if (performance.now() - started > timeout) return reject(new Error('Runtime Native indisponible'));
       requestAnimationFrame(tick);
     };
     tick();
@@ -68,7 +68,7 @@ function makeDeskSet(scene, pieces) {
   const anchor = desk.matrixWorld.clone();
   const inv = anchor.clone().invert();
   const root = new THREE.Group();
-  root.name = 'ShujaatExactDeskSet';
+  root.name = 'NativeExactDeskSet';
 
   let deskClone = null;
   for (const name of DESK_OBJECTS) {
@@ -76,7 +76,7 @@ function makeDeskSet(scene, pieces) {
     if (!src) continue;
     src.updateMatrixWorld(true);
 
-    const clone = cloneShujaatObject(src);
+    const clone = cloneNativeObject(src);
     // The reference desk owns its task chair as a child. The local room
     // already has the requested Herman Miller Setu, so do not duplicate it.
     clone.getObjectByName('Setu task chair')?.removeFromParent();
@@ -109,7 +109,7 @@ function makeDeskSet(scene, pieces) {
 
   const setSize = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
   if (![setSize.x, setSize.y, setSize.z].every((value) => Number.isFinite(value) && value <= 4)) {
-    throw new Error('Bureau Shujaat hors échelle : conservation du bureau local');
+    throw new Error('Bureau Native hors échelle : conservation du bureau local');
   }
 
   const display =
@@ -178,8 +178,8 @@ async function build() {
   const makeProp = (name) => {
     const src = sourceScene.getObjectByName(name);
     if (!src) return null;
-    const clone = cloneShujaatObject(src);
-    clone.name = 'ShujaatExact:' + name;
+    const clone = cloneNativeObject(src);
+    clone.name = 'NativeExact:' + name;
     clone.visible = false;
     clone.traverse((o) => {
       if (o.isMesh) {
@@ -194,13 +194,13 @@ async function build() {
   const book = makeProp('iso:book');
   const wateringCan = makeProp('iso:can');
   const effects = new THREE.Group();
-  effects.name = 'ShujaatMotionEffects';
+  effects.name = 'NativeMotionEffects';
   effects.userData.dynamic = true;
   const effectPairs = ['iso:dust', 'iso:star', 'iso:water', 'Room atmosphere particles']
     .map(name => sourceScene.getObjectByName(name)).filter(Boolean)
-    .map(source => { const clone = cloneShujaatObject(source); effects.add(clone); return {source, clone}; });
+    .map(source => { const clone = cloneNativeObject(source); effects.add(clone); return {source, clone}; });
   const syncChildren = (source, clone) => {
-    while (clone.children.length < source.children.length) clone.add(cloneShujaatObject(source.children[clone.children.length]));
+    while (clone.children.length < source.children.length) clone.add(cloneNativeObject(source.children[clone.children.length]));
     clone.visible = source.visible;
     clone.position.copy(source.position); clone.quaternion.copy(source.quaternion); clone.scale.copy(source.scale);
     if (source.isInstancedMesh) {
@@ -257,7 +257,7 @@ async function build() {
     mode = next;
 
     try {
-      // L'API sonore exacte de Shujaat expose wake(), pas resume().
+      // L'API sonore exacte de Native expose wake(), pas resume().
       sceneApi.sound?.wake?.();
       if (next === 'jump') {
         sceneApi.stopSim?.();
@@ -303,13 +303,13 @@ async function build() {
       else if (next === 'coffee') sceneApi.setSimActivity?.('coffee', targetName || 'Standing desk');
       else if (next === 'sit') sceneApi.setSimActivity?.('read', targetName || 'Setu task chair');
       else if (next === 'think') {
-        // Shujaat's idle simulation owns the exact thinking pose + synthetic cue.
+        // Native's idle simulation owns the exact thinking pose + synthetic cue.
         sceneApi.stopSim?.();
       } else {
         sceneApi.stopSim?.();
       }
     } catch (e) {
-      console.warn('[Shujaat bridge] activity', next, e);
+      console.warn('[Native bridge] activity', next, e);
     }
   };
 
@@ -376,7 +376,7 @@ async function build() {
   };
 }
 
-export function getShujaatRoomBridge() {
+export function getNativeRoomBridge() {
   if (!singleton) singleton = build();
   return singleton;
 }

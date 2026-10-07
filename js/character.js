@@ -99,9 +99,9 @@ function makeWateringCan() {
 }
 
 export async function createCharacter({
-  modelUrl = 'assets/mathieu-character.glb?v=bf01a16',
-  rigUrl = 'assets/rig.json?v=bf01a16',
-  animsUrl = 'assets/anims.glb?v=bf01a16',
+  modelUrl = 'assets/mathieu-character.glb?v=cv-scene-v13',
+  rigUrl = 'assets/rig.json?v=cv-scene-v13',
+  animsUrl = 'assets/anims.glb?v=cv-scene-v13',
   targetHeight = 1.72,
 } = {}) {
   const [modelBuffer, rigBuffer, animBuffer] = await Promise.all([
@@ -129,7 +129,7 @@ export async function createCharacter({
 
   // JEAN_JNCO : jean « JNCO Twin Cannon » monté sur le squelette sous Blender (tools/blender_jnco.py) ; il remplace les jambes d'origine.
   try {
-    const jeanGltf = await parse(await loadBuffer('assets/jeans-jnco-fit.glb?v=motion-fit-v11'));
+    const jeanGltf = await parse(await loadBuffer('assets/jeans-jnco-fit.glb?v=cv-scene-v13'));
     const meshes = attachSkinned(jeanGltf, { double: true });
     if (meshes.length) { let legsNode = null; characterGltf.scene.traverse((o) => { if (o.name === 'legs') legsNode = o; }); legsNode?.removeFromParent(); meshes.forEach((m) => { m.name = 'jean_' + m.name; }); }
   } catch (_) {}
@@ -137,7 +137,7 @@ export async function createCharacter({
   // TSHIRT_BLENDER : la chemise (veste) est retirée, remplacée par un T-shirt gris d'une seule pièce ; le bras droit est tatoué en noir, bras et main (tools/blender_tshirt_arm.py).
   // Le modèle Sketchfab demandé n'est pas téléchargeable (choix de l'auteur) : le T-shirt est modélisé sous Blender dans le même style.
   try {
-    const tg = await parse(await loadBuffer('assets/tshirt-arm.glb?v=bf01a16'));
+    const tg = await parse(await loadBuffer('assets/tshirt-arm.glb?v=cv-scene-v13'));
     const old = []; characterGltf.scene.traverse((o) => { if (/^(jacket|arm|shirt|id|clip)(_\d+)?$/.test(o.name)) old.push(o); });
     const added = attachSkinned(tg, { double: true });
     if (added.length) old.forEach((o) => o.removeFromParent());
@@ -145,7 +145,7 @@ export async function createCharacter({
 
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
-  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=bf01a16')); } catch (_) {}
+  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
   const sourceRootQuat = qFromArray(sourceRig.root?.q || [0, 0, 0, 1]);
@@ -202,16 +202,16 @@ export async function createCharacter({
   const skeleton = skinned[0]?.skeleton;
   if (!skeleton || !bones.pelvis || !bones.Head) throw new Error('Rig FBX converti incomplet');
 
-  // Preserve black frames / transparent lenses. Prefer the exact Shujaat expression textures
+  // Preserve black frames / transparent lenses. Prefer the exact Native expression textures
   // extracted from /info/; fall back to the local procedural face if an asset is unavailable.
   const faces = {};
   for (const k of ['neutral','blink','happy','amazed','talkA','talkO','sip']) faces[k] = faceTexture(k);
   const loadExactFace = (name) => new Promise((resolve) => {
     new THREE.TextureLoader().load(
-      `assets/shujaat-head/${name}.png?v=shujaat-head-v1`,
+      `assets/native-head/${name}.png?v=native-head-v1`,
       (tex) => {
         // Recolor the dark iris/eye detail to Mathieu blue while preserving
-        // Shujaat's exact expression drawing and alpha.
+        // Native's exact expression drawing and alpha.
         try {
           const img = tex.image, c = document.createElement('canvas');
           c.width = img.width; c.height = img.height;
@@ -287,9 +287,9 @@ export async function createCharacter({
       const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(center.x, ground, center.z);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
-      shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Shujaat
+      shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Native
       bone.add(shoe); shoeVisuals.push(shoe);
-      shoe.userData.calibration = { reference: 'posed-original-Shujaat-shoe', center: center.toArray() };
+      shoe.userData.calibration = { reference: 'posed-original-Native-shoe', center: center.toArray() };
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
       // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
       const sock = new THREE.Group();
@@ -384,8 +384,8 @@ export async function createCharacter({
   attachNB992();
 
   const mixer = new THREE.AnimationMixer(group);
-  const SHUJAAT_POSES = {"debout":{"pelvis":{"p":[0,6.166055,-0.404867],"q":[0.5,0.5,0.5,0.5]},"spine_01":{"p":[0.389787,0.000004,0.022795],"q":[-0.00014,-0.004488,0.031204,0.999503]},"spine_02":{"p":[1.623798,0,0],"q":[-0.000019,0.00023,-0.10655,0.994307]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,0.093318,0.995636]},"neck_01":{"p":[0.107162,0.168386,0],"q":[0.124175,-0.013644,0.226652,0.965931]},"Head":{"p":[2.14181,0,0],"q":[0.170278,-0.026548,-0.016466,0.984901]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.030261,-0.706506,0.028738,0.706475]},"upperarm_l":{"p":[1.010852,0,0],"q":[-0.000132,-0.390297,0.119742,0.912869]},"lowerarm_l":{"p":[1.842897,0,0],"q":[0.002051,-0.000733,-0.003965,0.99999]},"hand_l":{"p":[2.016544,0,0],"q":[0.001854,0.013851,0.007954,0.999871]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.030286,0.706848,0.028736,0.706132]},"upperarm_r":{"p":[1.010852,0,0],"q":[-0.000003,0.390804,0.120512,0.912551]},"lowerarm_r":{"p":[1.842897,0,0],"q":[-0.003745,0.001555,-0.001651,0.99999]},"hand_r":{"p":[2.016544,0,0],"q":[-0.002399,-0.013023,0.009313,0.999869]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.121705,-0.810279,0.546576,0.172889]},"calf_l":{"p":[1.904545,-0.000008,0],"q":[0.068452,-0.43709,-0.132421,0.886979]},"foot_l":{"p":[3.777062,0,0],"q":[-0.420308,0.528843,0.661118,0.32648]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.000005,-0.000581,0.004258,0.999991]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.121704,0.810279,0.546577,0.172889]},"calf_r":{"p":[1.904545,-0.000008,0.000001],"q":[-0.068501,0.437122,-0.132456,0.886954]},"foot_r":{"p":[3.777062,0,0],"q":[0.420233,-0.528813,0.661193,0.326474]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.000004,0.000471,0.004265,0.999991]}},"bureau":{"pelvis":{"p":[0,5.109032,0.973361],"q":[0.477715,0.521333,0.477715,0.521334]},"spine_01":{"p":[0.388433,0.000004,0],"q":[0,0,0.115273,0.993334]},"spine_02":{"p":[1.623798,0,0],"q":[0,0,-0.105526,0.994417]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,0.093318,0.995636]},"neck_01":{"p":[0.107162,0.168386,0],"q":[-0.010833,0.002874,0.136516,0.990574]},"Head":{"p":[2.14181,0,0],"q":[-0.000002,0.000028,-0.110572,0.993868]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.029493,-0.70671,0.029517,0.706271]},"upperarm_l":{"p":[1.329737,-0.026682,-0.000198],"q":[-0.172232,-0.231901,0.693099,0.660432]},"lowerarm_l":{"p":[1.842897,0,0],"q":[-0.033992,0.062736,0.129467,0.989013]},"hand_l":{"p":[2.016544,0,0],"q":[0.00005,0.014413,0.010844,0.999837]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.029493,0.70671,0.029517,0.706272]},"upperarm_r":{"p":[1.329737,-0.026681,0.000198],"q":[0.130401,0.223434,0.625335,0.736226]},"lowerarm_r":{"p":[1.842897,0,0],"q":[0.034265,-0.129662,0.212939,0.967817]},"hand_r":{"p":[2.016544,0,0],"q":[-0.00005,-0.014412,0.010844,0.999837]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.594028,-0.497345,0.33244,0.537831]},"calf_l":{"p":[1.9907,0,0],"q":[0.051418,-0.430892,-0.073986,0.897894]},"foot_l":{"p":[3.0416,0,0],"q":[-0.614936,0.499211,0.416612,0.44618]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.210814,-0.001977,0.417122,0.88406]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.593954,0.497563,0.332291,0.537803]},"calf_r":{"p":[1.9909,0,0],"q":[-0.051907,0.431248,-0.073894,0.897703]},"foot_r":{"p":[3.0424,0,0],"q":[0.614677,-0.499299,0.417191,0.445897]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.210614,0.001523,0.417114,0.884113]}},"fauteuil":{"pelvis":{"p":[0,5.529032,-0.506639],"q":[0.477715,0.521333,0.477715,0.521334]},"spine_01":{"p":[0.388433,0.000004,0],"q":[0.000352,-0.002988,-0.030057,0.999544]},"spine_02":{"p":[1.623798,0,0],"q":[0,0,-0.084388,0.996433]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,-0.232372,0.972627]},"neck_01":{"p":[0.107162,0.168386,0],"q":[-0.0258,-0.005044,0.552829,0.83288]},"Head":{"p":[2.14181,0,0],"q":[0.00011,0.000247,0.024891,0.99969]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.029534,-0.706701,0.029516,0.706279]},"upperarm_l":{"p":[1.010852,0,0],"q":[0.027414,-0.338815,0.126976,0.931842]},"lowerarm_l":{"p":[1.842897,0,0],"q":[0.014525,-0.21727,0.421556,0.880269]},"hand_l":{"p":[2.016544,0,0],"q":[0.000406,0.014905,0.010654,0.999832]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.029534,0.706701,0.029516,0.706279]},"upperarm_r":{"p":[1.010852,0,0],"q":[-0.027539,0.338359,0.126477,0.932072]},"lowerarm_r":{"p":[1.842897,0,0],"q":[-0.017,0.223059,0.4165,0.881184]},"hand_r":{"p":[2.016544,0,0],"q":[-0.000406,-0.014906,0.010655,0.999832]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.60067,-0.4853,0.314282,0.552184]},"calf_l":{"p":[1.9907,0,0],"q":[0.039531,-0.336188,-0.053375,0.939449]},"foot_l":{"p":[3.0416,0,0],"q":[-0.614936,0.499211,0.416612,0.44618]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.210814,-0.001977,0.417122,0.88406]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.600602,0.485518,0.314131,0.552152]},"calf_r":{"p":[1.9909,0,0],"q":[-0.03875,0.328142,-0.051474,0.942428]},"foot_r":{"p":[3.0424,0,0],"q":[0.614677,-0.499299,0.417191,0.445897]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.210614,0.001523,0.417114,0.884113]}},"arrose":{"pelvis":{"p":[0,6.203864,-0.527753],"q":[0.5,0.5,0.5,0.5]},"spine_01":{"p":[0.382038,0.000004,0.014976],"q":[0.009818,-0.003533,0.061209,0.99807]},"spine_02":{"p":[1.623798,0,0],"q":[0,0,-0.105526,0.994417]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,0.093318,0.995636]},"neck_01":{"p":[0.107162,0.168386,0],"q":[0.001411,0.003703,0.296695,0.954964]},"Head":{"p":[2.14181,0,0],"q":[-0.000006,0.00002,-0.110573,0.993868]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.029493,-0.70671,0.029517,0.706271]},"upperarm_l":{"p":[1.010852,0,0],"q":[0.03205,-0.398108,0.10631,0.910594]},"lowerarm_l":{"p":[1.842897,0,0],"q":[0.000307,0.000051,0.000016,1]},"hand_l":{"p":[2.016544,0,0],"q":[0.00005,0.014413,0.010844,0.999837]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.029493,0.70671,0.029517,0.706272]},"upperarm_r":{"p":[1.010852,0,0],"q":[0.281482,0.465938,0.249235,0.800969]},"lowerarm_r":{"p":[1.842897,0,0],"q":[0.128536,-0.073784,0.309121,0.939404]},"hand_r":{"p":[2.016544,0,0],"q":[0.007396,0.175686,-0.647826,0.741216]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.180477,-0.799244,0.532511,0.212292]},"calf_l":{"p":[1.904545,-0.000008,0],"q":[0.074919,-0.488948,-0.151593,0.855766]},"foot_l":{"p":[3.777062,0,0],"q":[-0.428301,0.524165,0.652415,0.340828]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.000005,-0.000581,0.004258,0.999991]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.180476,0.799244,0.532512,0.212292]},"calf_r":{"p":[1.904545,-0.000008,0.000001],"q":[-0.074969,0.488979,-0.151625,0.855739]},"foot_r":{"p":[3.777062,0,0],"q":[0.428228,-0.524133,0.652492,0.340822]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.000004,0.000471,0.004265,0.999991]}}};
-  let shujaatPose = null, shujaatPoseW = 0;
+  const NATIVE_POSES = {"debout":{"pelvis":{"p":[0,6.166055,-0.404867],"q":[0.5,0.5,0.5,0.5]},"spine_01":{"p":[0.389787,0.000004,0.022795],"q":[-0.00014,-0.004488,0.031204,0.999503]},"spine_02":{"p":[1.623798,0,0],"q":[-0.000019,0.00023,-0.10655,0.994307]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,0.093318,0.995636]},"neck_01":{"p":[0.107162,0.168386,0],"q":[0.124175,-0.013644,0.226652,0.965931]},"Head":{"p":[2.14181,0,0],"q":[0.170278,-0.026548,-0.016466,0.984901]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.030261,-0.706506,0.028738,0.706475]},"upperarm_l":{"p":[1.010852,0,0],"q":[-0.000132,-0.390297,0.119742,0.912869]},"lowerarm_l":{"p":[1.842897,0,0],"q":[0.002051,-0.000733,-0.003965,0.99999]},"hand_l":{"p":[2.016544,0,0],"q":[0.001854,0.013851,0.007954,0.999871]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.030286,0.706848,0.028736,0.706132]},"upperarm_r":{"p":[1.010852,0,0],"q":[-0.000003,0.390804,0.120512,0.912551]},"lowerarm_r":{"p":[1.842897,0,0],"q":[-0.003745,0.001555,-0.001651,0.99999]},"hand_r":{"p":[2.016544,0,0],"q":[-0.002399,-0.013023,0.009313,0.999869]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.121705,-0.810279,0.546576,0.172889]},"calf_l":{"p":[1.904545,-0.000008,0],"q":[0.068452,-0.43709,-0.132421,0.886979]},"foot_l":{"p":[3.777062,0,0],"q":[-0.420308,0.528843,0.661118,0.32648]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.000005,-0.000581,0.004258,0.999991]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.121704,0.810279,0.546577,0.172889]},"calf_r":{"p":[1.904545,-0.000008,0.000001],"q":[-0.068501,0.437122,-0.132456,0.886954]},"foot_r":{"p":[3.777062,0,0],"q":[0.420233,-0.528813,0.661193,0.326474]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.000004,0.000471,0.004265,0.999991]}},"bureau":{"pelvis":{"p":[0,5.109032,0.973361],"q":[0.477715,0.521333,0.477715,0.521334]},"spine_01":{"p":[0.388433,0.000004,0],"q":[0,0,0.115273,0.993334]},"spine_02":{"p":[1.623798,0,0],"q":[0,0,-0.105526,0.994417]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,0.093318,0.995636]},"neck_01":{"p":[0.107162,0.168386,0],"q":[-0.010833,0.002874,0.136516,0.990574]},"Head":{"p":[2.14181,0,0],"q":[-0.000002,0.000028,-0.110572,0.993868]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.029493,-0.70671,0.029517,0.706271]},"upperarm_l":{"p":[1.329737,-0.026682,-0.000198],"q":[-0.172232,-0.231901,0.693099,0.660432]},"lowerarm_l":{"p":[1.842897,0,0],"q":[-0.033992,0.062736,0.129467,0.989013]},"hand_l":{"p":[2.016544,0,0],"q":[0.00005,0.014413,0.010844,0.999837]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.029493,0.70671,0.029517,0.706272]},"upperarm_r":{"p":[1.329737,-0.026681,0.000198],"q":[0.130401,0.223434,0.625335,0.736226]},"lowerarm_r":{"p":[1.842897,0,0],"q":[0.034265,-0.129662,0.212939,0.967817]},"hand_r":{"p":[2.016544,0,0],"q":[-0.00005,-0.014412,0.010844,0.999837]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.594028,-0.497345,0.33244,0.537831]},"calf_l":{"p":[1.9907,0,0],"q":[0.051418,-0.430892,-0.073986,0.897894]},"foot_l":{"p":[3.0416,0,0],"q":[-0.614936,0.499211,0.416612,0.44618]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.210814,-0.001977,0.417122,0.88406]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.593954,0.497563,0.332291,0.537803]},"calf_r":{"p":[1.9909,0,0],"q":[-0.051907,0.431248,-0.073894,0.897703]},"foot_r":{"p":[3.0424,0,0],"q":[0.614677,-0.499299,0.417191,0.445897]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.210614,0.001523,0.417114,0.884113]}},"fauteuil":{"pelvis":{"p":[0,5.529032,-0.506639],"q":[0.477715,0.521333,0.477715,0.521334]},"spine_01":{"p":[0.388433,0.000004,0],"q":[0.000352,-0.002988,-0.030057,0.999544]},"spine_02":{"p":[1.623798,0,0],"q":[0,0,-0.084388,0.996433]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,-0.232372,0.972627]},"neck_01":{"p":[0.107162,0.168386,0],"q":[-0.0258,-0.005044,0.552829,0.83288]},"Head":{"p":[2.14181,0,0],"q":[0.00011,0.000247,0.024891,0.99969]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.029534,-0.706701,0.029516,0.706279]},"upperarm_l":{"p":[1.010852,0,0],"q":[0.027414,-0.338815,0.126976,0.931842]},"lowerarm_l":{"p":[1.842897,0,0],"q":[0.014525,-0.21727,0.421556,0.880269]},"hand_l":{"p":[2.016544,0,0],"q":[0.000406,0.014905,0.010654,0.999832]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.029534,0.706701,0.029516,0.706279]},"upperarm_r":{"p":[1.010852,0,0],"q":[-0.027539,0.338359,0.126477,0.932072]},"lowerarm_r":{"p":[1.842897,0,0],"q":[-0.017,0.223059,0.4165,0.881184]},"hand_r":{"p":[2.016544,0,0],"q":[-0.000406,-0.014906,0.010655,0.999832]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.60067,-0.4853,0.314282,0.552184]},"calf_l":{"p":[1.9907,0,0],"q":[0.039531,-0.336188,-0.053375,0.939449]},"foot_l":{"p":[3.0416,0,0],"q":[-0.614936,0.499211,0.416612,0.44618]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.210814,-0.001977,0.417122,0.88406]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.600602,0.485518,0.314131,0.552152]},"calf_r":{"p":[1.9909,0,0],"q":[-0.03875,0.328142,-0.051474,0.942428]},"foot_r":{"p":[3.0424,0,0],"q":[0.614677,-0.499299,0.417191,0.445897]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.210614,0.001523,0.417114,0.884113]}},"arrose":{"pelvis":{"p":[0,6.203864,-0.527753],"q":[0.5,0.5,0.5,0.5]},"spine_01":{"p":[0.382038,0.000004,0.014976],"q":[0.009818,-0.003533,0.061209,0.99807]},"spine_02":{"p":[1.623798,0,0],"q":[0,0,-0.105526,0.994417]},"spine_03":{"p":[1.236288,0,0],"q":[0,0,0.093318,0.995636]},"neck_01":{"p":[0.107162,0.168386,0],"q":[0.001411,0.003703,0.296695,0.954964]},"Head":{"p":[2.14181,0,0],"q":[-0.000006,0.00002,-0.110573,0.993868]},"clavicle_l":{"p":[0,0,0.578879],"q":[-0.029493,-0.70671,0.029517,0.706271]},"upperarm_l":{"p":[1.010852,0,0],"q":[0.03205,-0.398108,0.10631,0.910594]},"lowerarm_l":{"p":[1.842897,0,0],"q":[0.000307,0.000051,0.000016,1]},"hand_l":{"p":[2.016544,0,0],"q":[0.00005,0.014413,0.010844,0.999837]},"clavicle_r":{"p":[0,0,-0.578879],"q":[0.029493,0.70671,0.029517,0.706272]},"upperarm_r":{"p":[1.010852,0,0],"q":[0.281482,0.465938,0.249235,0.800969]},"lowerarm_r":{"p":[1.842897,0,0],"q":[0.128536,-0.073784,0.309121,0.939404]},"hand_r":{"p":[2.016544,0,0],"q":[0.007396,0.175686,-0.647826,0.741216]},"thigh_l":{"p":[-0.219521,-0.082107,0.894632],"q":[-0.180477,-0.799244,0.532511,0.212292]},"calf_l":{"p":[1.904545,-0.000008,0],"q":[0.074919,-0.488948,-0.151593,0.855766]},"foot_l":{"p":[3.777062,0,0],"q":[-0.428301,0.524165,0.652415,0.340828]},"ball_l":{"p":[1.790934,-0.465626,-0.011176],"q":[-0.000005,-0.000581,0.004258,0.999991]},"thigh_r":{"p":[-0.219521,-0.082107,-0.894632],"q":[0.180476,0.799244,0.532512,0.212292]},"calf_r":{"p":[1.904545,-0.000008,0.000001],"q":[-0.074969,0.488979,-0.151625,0.855739]},"foot_r":{"p":[3.777062,0,0],"q":[0.428228,-0.524133,0.652492,0.340822]},"ball_r":{"p":[1.790934,-0.465626,0.011176],"q":[0.000004,0.000471,0.004265,0.999991]}}};
+  let nativePose = null, nativePoseW = 0;
   const _poseP = new THREE.Vector3(), _poseQ = new THREE.Quaternion();
 
   let action = null, activeClipName = 'Idle_Loop', base = 'neutral', blink = 0, nextBlink = 2, flash = 0, flashKind = null, talking = false;
@@ -394,11 +394,11 @@ export async function createCharacter({
   const gaitRest = {};
   for (const n of ['pelvis', 'spine_01', 'spine_02', 'spine_03', 'neck_01']) {
     if (bones[n]) {
-      const q = SHUJAAT_POSES.debout[n]?.q;
+      const q = NATIVE_POSES.debout[n]?.q;
       gaitRest[n] = q ? new THREE.Quaternion(q[0], q[1], q[2], q[3]) : bones[n].quaternion.clone();
     }
   }
-  const gp = SHUJAAT_POSES.debout.pelvis.p;
+  const gp = NATIVE_POSES.debout.pelvis.p;
   const gaitPelvisRest = new THREE.Vector3(gp[0], gp[1], gp[2]);
   let ov = null, ovW = 0, post = null, lean = 0, leanW = 0, levelW = 0; const LEVEL_SIGN = -1;
 
@@ -432,7 +432,7 @@ export async function createCharacter({
   const wp = (n) => bones[n]?.getWorldPosition(new THREE.Vector3());
   const setFace = (kind) => { if (plateMat && faces[kind] && plateMat.map !== faces[kind]) { plateMat.map = faces[kind]; plateMat.needsUpdate = true; } };
 
-  // Portrait interaction extracted from shujaat.info/info/: the outer page forwards
+  // Portrait interaction extracted from the local portrait runtime: the outer page forwards
   // normalized pointer coordinates (-1..1) to shupiPortrait.lookAtPointer().
   // We reproduce that API directly on the imported FBX head/neck.
   const portrait = {
@@ -538,9 +538,9 @@ export async function createCharacter({
     setBase(kind) { base = kind; setFace(base); },
     setOverride(o) { ov = o; if (o) ovW = 0; },
     setPost(fn) { post = fn; },
-    setShujaatPose(name) {
-      shujaatPose = name && SHUJAAT_POSES[name] ? name : null;
-      shujaatPoseW = 0;
+    setNativePose(name) {
+      nativePose = name && NATIVE_POSES[name] ? name : null;
+      nativePoseW = 0;
     },
     setShoes(on) {
       shoesOn = !!on;
@@ -590,23 +590,23 @@ export async function createCharacter({
       }
       if (post) post(dt, t);
 
-      // POSE_SHUJAAT_EXACTE : positions/quaternions extraites directement du runtime shujaat.info.
+      // POSE_NATIVE_EXACTE : positions/quaternions extraites directement du runtime the local runtime.
       // Le GLB Mathieu provient du même FBX et conserve ces repères locaux : aucune conversion d'axes n'est nécessaire.
-      if (shujaatPose && SHUJAAT_POSES[shujaatPose]) {
-        shujaatPoseW += (1 - shujaatPoseW) * (1 - Math.exp(-dt * 12));
-        const snap = SHUJAAT_POSES[shujaatPose];
+      if (nativePose && NATIVE_POSES[nativePose]) {
+        nativePoseW += (1 - nativePoseW) * (1 - Math.exp(-dt * 12));
+        const snap = NATIVE_POSES[nativePose];
         for (const [n, tr] of Object.entries(snap)) {
           const b = bones[n]; if (!b) continue;
           _poseP.set(tr.p[0], tr.p[1], tr.p[2]);
           _poseQ.set(tr.q[0], tr.q[1], tr.q[2], tr.q[3]).normalize();
-          b.position.lerp(_poseP, shujaatPoseW);
-          b.quaternion.slerp(_poseQ, shujaatPoseW);
+          b.position.lerp(_poseP, nativePoseW);
+          b.quaternion.slerp(_poseQ, nativePoseW);
         }
         group.updateMatrixWorld(true);
 
         // FAUTEUIL_SANS_LIVRE : la pose source supposait un objet tenu.
-        // On conserve bassin/jambes/dos Shujaat mais on pose les mains sur les cuisses.
-        if (shujaatPose === 'fauteuil' &&
+        // On conserve bassin/jambes/dos Native mais on pose les mains sur les cuisses.
+        if (nativePose === 'fauteuil' &&
             bones.upperarm_l && bones.lowerarm_l && bones.hand_l &&
             bones.upperarm_r && bones.lowerarm_r && bones.hand_r &&
             bones.thigh_l && bones.calf_l && bones.thigh_r && bones.calf_r) {
@@ -619,7 +619,7 @@ export async function createCharacter({
             const pole = elbow.clone();
             pole.y += 0.12;
             ik2(upper, lower, hand, target, pole);
-            const hq = SHUJAAT_POSES.debout[side === 'l' ? 'hand_l' : 'hand_r']?.q;
+            const hq = NATIVE_POSES.debout[side === 'l' ? 'hand_l' : 'hand_r']?.q;
             if (hq) hand.quaternion.slerp(_poseQ.set(hq[0], hq[1], hq[2], hq[3]).normalize(), 0.78);
             group.updateMatrixWorld(true);
           };
@@ -629,7 +629,7 @@ export async function createCharacter({
       }
 
       // mise à niveau : la ligne des épaules reste horizontale (le retarget laissait ~7° de roulis debout et ~11° assis, d'où le côté « de travers »)
-      if (!shujaatPose && bones.upperarm_l && bones.upperarm_r && bones.spine_01) {
+      if (!nativePose && bones.upperarm_l && bones.upperarm_r && bones.spine_01) {
         const a = group.worldToLocal(bones.upperarm_l.getWorldPosition(_v.clone())), b2 = group.worldToLocal(bones.upperarm_r.getWorldPosition(_v.clone()));
         const rawRoll = Math.atan2(a.y - b2.y, Math.hypot(a.x - b2.x, a.z - b2.z));
         const maxRoll = THREE.MathUtils.degToRad(locomotion ? 2.5 : 5);
@@ -639,7 +639,7 @@ export async function createCharacter({
         for (const n of ['spine_01', 'spine_02', 'spine_03']) rotChar(bones[n], levelW * LEVEL_SIGN * gain / 3, _Z);
       }
       leanW += (lean - leanW) * (1 - Math.exp(-dt * 6));
-      if (!shujaatPose && Math.abs(leanW) > 1e-3) for (const n of ['spine_01', 'spine_02', 'spine_03']) if (bones[n]) rotChar(bones[n], leanW / 3, _Z);        // redresse le buste (le rig importé penche d'un côté en marchant)
+      if (!nativePose && Math.abs(leanW) > 1e-3) for (const n of ['spine_01', 'spine_02', 'spine_03']) if (bones[n]) rotChar(bones[n], leanW / 3, _Z);        // redresse le buste (le rig importé penche d'un côté en marchant)
       if (portrait.enabled && bones.Head) {
         const kLook = 1 - Math.exp(-dt * portrait.damping);
         portrait.x += (portrait.targetX - portrait.x) * kLook;

@@ -26,7 +26,7 @@ initReveal();
   }
 }
 
-// Portrait Shujaat strict 1:1 — parent interaction logic reproduced from shujaat.info/info/.
+// Portrait Native strict 1:1 — parent interaction logic reproduced from the local portrait runtime.
 const portraitHost = document.querySelector('.shupi-portrait');
 const portraitFrame = portraitHost?.querySelector('iframe');
 const portraitApi = () => portraitFrame?.contentWindow?.shupiPortrait;

@@ -1,5 +1,5 @@
 # Blender calibration run — character / JNCO jean / NB992
-# Calibrates the NB992 from the original Shujaat shoe envelope instead of visual guessing.
+# Calibrates the NB992 from the original Native shoe envelope instead of visual guessing.
 import bpy, json
 from mathutils import Vector
 
@@ -91,7 +91,7 @@ def root_local_vertices(root):
 
 out={}
 
-# Character + original Shujaat shoes.
+# Character + original Native shoes.
 clear()
 import_glb('assets/mathieu-character.glb')
 meshes=[o for o in bpy.context.scene.objects if o.type=='MESH']
@@ -107,8 +107,8 @@ fl=bone_world(arm,'foot_l'); bl=bone_world(arm,'ball_l')
 fr=bone_world(arm,'foot_r'); br=bone_world(arm,'ball_r')
 left_pts,right_pts,groups=weighted_shoe_points()
 out['shoe_vertex_groups']=groups
-out['shujaat_shoe_left_weighted']=dims(left_pts)
-out['shujaat_shoe_right_weighted']=dims(right_pts)
+out['native_shoe_left_weighted']=dims(left_pts)
+out['native_shoe_right_weighted']=dims(right_pts)
 
 fit={}
 for side,pts,foot,ball in [('left',left_pts,fl,bl),('right',right_pts,fr,br)]:
