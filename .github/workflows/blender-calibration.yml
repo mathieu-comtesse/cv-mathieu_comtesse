@@ -1,0 +1,37 @@
+name: Blender character calibration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "assets/mathieu-character.glb"
+      - "assets/nb992.glb"
+      - "tools/blender_calibrate.py"
+      - ".github/workflows/blender-calibration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+
+      - name: Measure character and shoes in Blender
+        run: blender --background --python tools/blender_calibrate.py
+
+      - name: Show calibration
+        run: cat blender-calibration.json
+
+      - name: Upload calibration report
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-calibration
+          path: blender-calibration.json
