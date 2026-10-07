@@ -1,12 +1,12 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=bf01a16';
-import { createCharacter } from './character.js?v=seat-l-v3';
+import { createCharacter } from './character.js?v=bf01a16';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
 import { createRitual } from './ritual.js?v=bf01a16';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
-import { createRetroSet } from './retro.js?v=seat-l-v3';
+import { createRetroSet } from './retro.js?v=bf01a16';
 import { createNav } from './nav.js?v=bf01a16';
 import { createDirector } from './director.js?v=bf01a16';
 import { createThought } from './thought.js?v=bf01a16';
@@ -57,18 +57,10 @@ export async function createRoom(container, bubbleEl) {
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
   const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=bf01a16'), load('assets/tableau.jpg?v=bf01a16'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
-  // Le runtime Shujaat ne doit jamais bloquer l'affichage de la pièce.
-  // S'il n'est pas prêt rapidement, on affiche immédiatement le décor local,
-  // puis les interactions restent utilisables au lieu de laisser un écran blanc.
-  const shujaatBridgePromise = getShujaatRoomBridge().catch((e) => {
-    console.warn('[Shujaat room] runtime exact indisponible', e);
+  const shujaatBridge = await getShujaatRoomBridge().catch((e) => {
+    console.warn('[Shujaat room] runtime exact indisponible, fallback procédural', e);
     return null;
   });
-  const shujaatBridge = await Promise.race([
-    shujaatBridgePromise,
-    new Promise((resolve) => setTimeout(() => resolve(null), 1400)),
-  ]);
-  if (!shujaatBridge) console.warn('[Shujaat room] démarrage immédiat en fallback local');
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -243,7 +235,7 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── personnage ─── */
   /* ─── performances : fusion des maillages statiques (≈ 1 500 maillages → quelques centaines d'appels de rendu) ─── */
-  tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true; retro.pad.userData.dynamic = true;
+  tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true;
   { world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
 
   const hero = await createCharacter();
@@ -477,13 +469,13 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', shujaatMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
-    ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', shujaatMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', seatBack: 0.18, hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
+    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', shujaatMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', shujaatMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', shujaatMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.0, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', shujaatMode: 'water', sourceTarget: null, pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
     dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', shujaatMode: 'water', sourceTarget: 'Snake plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.2, 0, -1.95], yaw: 2.27, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
-    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'sofa', seatBack: 0.24, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.35, 0, 4.42], yaw: Math.PI, approach: [0.35, 3.75], noFace: true, tv: true, think: TVBOX }),
+    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'sofa', hipClearance: 0.09, y: 0, face: 'happy', pos: [0.35, 0, 4.42], yaw: Math.PI, approach: [0.35, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.approach) st.approach = nav.nearest(st.pos[0], st.pos[2]);
@@ -697,27 +689,6 @@ export async function createRoom(container, bubbleEl) {
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
   const atDesk = () => director.current === stations.desk && director.mode === 'activity';
-  const poseGamepadHands = () => {
-    const b = hero.bones;
-    if (![b.upperarm_l,b.lowerarm_l,b.hand_l,b.upperarm_r,b.lowerarm_r,b.hand_r,b.pelvis].every(Boolean)) return;
-
-    hero.group.updateMatrixWorld(true);
-    const qg = hero.group.getWorldQuaternion(new THREE.Quaternion());
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(qg); forward.y = 0; forward.normalize();
-    const side = new THREE.Vector3(1, 0, 0).applyQuaternion(qg); side.y = 0; side.normalize();
-    const center = b.pelvis.getWorldPosition(new THREE.Vector3())
-      .addScaledVector(forward, 0.32);
-    center.y += 0.16;
-
-    const lTarget = center.clone().addScaledVector(side, -0.085);
-    const rTarget = center.clone().addScaledVector(side,  0.085);
-    const lPole = b.lowerarm_l.getWorldPosition(new THREE.Vector3()).addScaledVector(side, -0.22); lPole.y += 0.12;
-    const rPole = b.lowerarm_r.getWorldPosition(new THREE.Vector3()).addScaledVector(side,  0.22); rPole.y += 0.12;
-
-    hero.ik2(b.upperarm_l, b.lowerarm_l, b.hand_l, lTarget, lPole);
-    hero.ik2(b.upperarm_r, b.lowerarm_r, b.hand_r, rTarget, rPole);
-    hero.group.updateMatrixWorld(true);
-  };
   function activate(id) {
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
@@ -834,33 +805,16 @@ export async function createRoom(container, bubbleEl) {
           if (modelBaseY === null) modelBaseY = hero.model.position.y;
           if (seated) {
             hero.model.position.y = modelBaseY;
-
-            // FESSES_AU_DOSSIER : le centre du personnage est reculé sur l'axe du siège,
-            // au lieu de rester au milieu de l'assise.
-            const seatForward = new THREE.Vector3(
-              Math.sin(cur.yaw || 0),
-              0,
-              Math.cos(cur.yaw || 0)
-            );
-            const back = cur.seatBack || 0;
-            const targetX = cur.pos[0] - seatForward.x * back;
-            const targetZ = cur.pos[2] - seatForward.z * back;
-            const kp = 1 - Math.exp(-dt * 16);
-            hero.group.position.x += (targetX - hero.group.position.x) * kp;
-            hero.group.position.z += (targetZ - hero.group.position.z) * kp;
-
             hero.group.updateMatrixWorld(true);
             const sy = seatSurfaceY(cur);
             const pelvis = hero.wp('pelvis');
             if (sy != null && pelvis) {
-              const targetPelvisY = sy + (cur.hipClearance || 0.09);
+              const targetPelvisY = sy + (cur.hipClearance || 0.19);
               const dy = targetPelvisY - pelvis.y;
-              hero.group.position.y += dy * (1 - Math.exp(-dt * 16));
+              hero.group.position.y += dy * (1 - Math.exp(-dt * 14));
               hero.group.updateMatrixWorld(true);
             }
-
-            // ASSISE EN L : sur tous les sièges, jambes tendues, genoux presque verrouillés.
-            hero.poseSeatedL?.(floorY(hero.group.position.x, hero.group.position.z) + 0.01);
+            if (hero.plantSeatedFeet && exactMotion === 'idle') hero.plantSeatedFeet(floorY(hero.group.position.x, hero.group.position.z) + 0.01);      // pieds posés au sol, genoux fléchis
           } else if (!(cur && cur.ritual && director.mode === 'activity')) {
             hero.model.position.y = modelBaseY;
             hero.group.updateMatrixWorld(true);
@@ -875,14 +829,6 @@ export async function createRoom(container, bubbleEl) {
         if (exactMotion === 'water') shujaatBridge.syncWateringCan(hero.group);
         else if (shujaatBridge.wateringCan) shujaatBridge.wateringCan.visible = false;
       }
-
-      // MANETTE_PS1 : Mathieu la prend une fois assis sur le sofa,
-      // la tient à deux mains et elle revient à son emplacement lorsqu'il se lève.
-      const playingConsole = director.current === stations.sofa && director.mode === 'activity';
-      retro.setPadHeld?.(playingConsole);
-      if (playingConsole) poseGamepadHands();
-      retro.updatePad?.(dt, hero.bones.hand_l, hero.bones.hand_r);
-
       const s = hero.group.scale.x; hero.group.scale.setScalar(s + (1 - s) * (1 - Math.exp(-dt * 10)));
       bubbleT += dt;
       const showB = !!thoughtFor && director.mode !== 'carried' && !appOpen && bubbleT > 0.35;
