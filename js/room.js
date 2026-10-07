@@ -365,6 +365,7 @@ export async function createRoom(container, bubbleEl) {
   };
   el.addEventListener('pointerdown', (e) => {
     pauseAutonomy();
+    shujaatBridge?.resumeSound?.();
     el.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
@@ -468,12 +469,12 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', pose: 'bureau', seatId: 'chair', hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
-    ekstrem:  S({ label: 'Se poser dans le fauteuil', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'ekstrem', hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
+    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', shujaatMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', shujaatMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
-    alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.0, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
-    bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
-    dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.2, 0, -1.95], yaw: 2.27, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
+    alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', shujaatMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.0, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
+    bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', shujaatMode: 'water', sourceTarget: null, pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
+    dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', shujaatMode: 'water', sourceTarget: 'Snake plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.2, 0, -1.95], yaw: 2.27, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
     sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'sofa', hipClearance: 0.09, y: 0, face: 'happy', pos: [0.35, 0, 4.42], yaw: Math.PI, approach: [0.35, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
@@ -727,6 +728,21 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── boucle ─── */
   const opts = { dtCap: 0.05 };
+  let shujaatMotionMode = 'idle';
+  const syncShujaatMotionMode = () => {
+    if (!shujaatBridge || !hero.group.visible) return 'idle';
+    let next = 'idle';
+    const cur = director.current;
+    if (director.mode === 'walk') next = 'walk';
+    else if (director.mode === 'activity' && cur?.shujaatMode) next = cur.shujaatMode;
+
+    if (next !== shujaatMotionMode) {
+      shujaatMotionMode = next;
+      shujaatBridge.setMode(next, cur?.sourceTarget || null);
+    }
+    return next;
+  };
+
   const clock = new THREE.Clock();
   let running = true;
   const startAt = performance.now();
@@ -770,8 +786,14 @@ export async function createRoom(container, bubbleEl) {
       if (director.mode === 'activity' && !appOpen && !crate.isOpen && director.current && performance.now() - actSince > (director.current.maxMs || 25000)) { director.stand(); actSince = performance.now(); }
       autonomousTick();
       director.update(dt);
+      const exactMotion = syncShujaatMotionMode();
+      if (exactMotion !== 'idle') {
+        hero.setShujaatPose?.(null);
+        if (exactMotion === 'water' && shujaatBridge?.wateringCan) hero.can.visible = false;
+      }
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
+      if (exactMotion !== 'idle') shujaatBridge?.applyPose(hero, 1);
       { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
         followTea = ritual.state.active || (director.current && director.current.ritual) || cs.panels.some((q) => q.target > 0.5) || inRoom || hp.x < CS.x + 2.6 && hp.z > CS.z - 3.5;
         cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
@@ -792,7 +814,7 @@ export async function createRoom(container, bubbleEl) {
               hero.group.position.y += dy * (1 - Math.exp(-dt * 14));
               hero.group.updateMatrixWorld(true);
             }
-            if (hero.plantSeatedFeet) hero.plantSeatedFeet(floorY(hero.group.position.x, hero.group.position.z) + 0.01);      // pieds posés au sol, genoux fléchis
+            if (hero.plantSeatedFeet && exactMotion === 'idle') hero.plantSeatedFeet(floorY(hero.group.position.x, hero.group.position.z) + 0.01);      // pieds posés au sol, genoux fléchis
           } else if (!(cur && cur.ritual && director.mode === 'activity')) {
             hero.model.position.y = modelBaseY;
             hero.group.updateMatrixWorld(true);
@@ -800,6 +822,13 @@ export async function createRoom(container, bubbleEl) {
             hero.model.position.y = modelBaseY - (lo - 0.04);
           }
         } }
+      if (shujaatBridge) {
+        if (exactMotion === 'read') shujaatBridge.syncBook(hero.group);
+        else if (shujaatBridge.book) shujaatBridge.book.visible = false;
+
+        if (exactMotion === 'water') shujaatBridge.syncWateringCan(hero.group);
+        else if (shujaatBridge.wateringCan) shujaatBridge.wateringCan.visible = false;
+      }
       const s = hero.group.scale.x; hero.group.scale.setScalar(s + (1 - s) * (1 - Math.exp(-dt * 10)));
       bubbleT += dt;
       const showB = !!thoughtFor && director.mode !== 'carried' && !appOpen && bubbleT > 0.35;
