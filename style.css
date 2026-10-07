@@ -7,7 +7,7 @@ a{color:inherit}
 .btn{display:inline-flex;align-items:center;padding:9px 17px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px;transition:transform .25s var(--spring),opacity .2s}
 .btn:hover{transform:scale(.97)}.btn[aria-current]{background:var(--ink);color:var(--bg)}.dark{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 /* en-tête : la pièce 3D */
-.room{position:relative;height:min(780px,88vh);min-height:520px;overflow:hidden}.room canvas{position:absolute;inset:0}
+.room{position:relative;height:max(520px,calc(100svh - 28px));overflow:hidden}.room canvas{position:absolute;inset:0}
 .hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);margin:0;padding:8px 12px;border-radius:999px;background:var(--card);color:var(--mute);font-size:11px;white-space:nowrap;pointer-events:none;max-width:92%;overflow:hidden;text-overflow:ellipsis}
 .bubble{position:absolute;z-index:5;opacity:0}.bubble.show{opacity:1;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
 @keyframes pop{from{scale:.6}to{scale:1}}
@@ -65,7 +65,8 @@ body.lock{overflow:hidden}
 footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
 .credits{max-width:62ch;text-align:left;font-size:12px}.credits summary{cursor:pointer;text-align:center;color:var(--mute)}.credits ul{margin:10px 0 0;padding-left:18px;display:grid;gap:4px}.credits a{color:inherit}
 .ns{text-align:center;color:var(--mute)}
-@media(max-width:760px){.room{height:60vh;min-height:420px}.hint{white-space:normal;width:90%;text-align:center;border-radius:14px}}
+@media(max-width:809px){.room{height:max(400px,56svh)}.nav{top:auto;bottom:24px}footer{padding-bottom:112px}}
+@media(max-width:760px){.room{height:max(400px,56svh)}.hint{white-space:normal;width:90%;text-align:center;border-radius:14px}}
 /* pensée : nuage + miniature 3D, traîne de deux cercles vers la tête */
 .bubble.thought{padding:0;width:176px;height:160px;border-radius:0;background:none;box-shadow:none;white-space:normal;filter:drop-shadow(0 6px 10px rgb(0 0 0 / .16));color:#1c1a17}
 .bubble.thought::after{display:none}

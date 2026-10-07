@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=18942b7';
-import * as F from './furniture.js?v=18942b7';
-import { createCharacter } from './character.js?v=18942b7';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=d40f751';
+import * as F from './furniture.js?v=d40f751';
+import { createCharacter } from './character.js?v=d40f751';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=18942b7';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=18942b7';
-import { createRitual } from './ritual.js?v=18942b7';
-import { createChashitsu } from './chashitsu.js?v=18942b7';
-import { createRetroSet } from './retro.js?v=18942b7';
-import { createNav } from './nav.js?v=18942b7';
-import { createDirector } from './director.js?v=18942b7';
-import { createThought } from './thought.js?v=18942b7';
-import { createWeather } from './weather.js?v=18942b7';
-import { createJukebox } from './jukebox.js?v=18942b7';
-import { TRACKS, COVER } from './music.js?v=18942b7';
+import { loadBuffer } from './kit.js?v=d40f751';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=d40f751';
+import { createRitual } from './ritual.js?v=d40f751';
+import { createChashitsu } from './chashitsu.js?v=d40f751';
+import { createRetroSet } from './retro.js?v=d40f751';
+import { createNav } from './nav.js?v=d40f751';
+import { createDirector } from './director.js?v=d40f751';
+import { createThought } from './thought.js?v=d40f751';
+import { createWeather } from './weather.js?v=d40f751';
+import { createJukebox } from './jukebox.js?v=d40f751';
+import { TRACKS, COVER } from './music.js?v=d40f751';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=18942b7'), load('assets/tableau.jpg?v=18942b7'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=18942b7').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=d40f751'), load('assets/tableau.jpg?v=d40f751'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -225,7 +225,7 @@ export async function createRoom(container, bubbleEl) {
   const view = { az: 36 * DEG, el: 26 * DEG, zoom: 1, tAz: 36 * DEG, tEl: 26 * DEG, tZoom: 1 };
   const target = new THREE.Vector3(0.1, 0.8, -0.2), tgt = target.clone(), home = target.clone();
   const DEF = { az: 36 * DEG, el: 26 * DEG, zoom: 1 };
-  let fit = 1, W = 1, H = 1, halfW = 1, panU = 0, panT = 0;
+  let fit = 1, W = 1, H = 1, halfW = 1, panU = 0, panV = 0, panUser = 0, followTea = false;
 
   let scrollOff = 0, scrollT = 0;                                  // la caméra baisse quand l'en-tête défile (comme la scène de référence)
   function orient() {
@@ -237,31 +237,38 @@ export async function createRoom(container, bubbleEl) {
     camera.lookAt(target);
     camera.updateMatrixWorld(true);
   }
+  /* cadrage : mêmes proportions que la scène de référence (pièce principale sur ~75 % de la hauteur, ~78 % de la largeur au plus).
+   * La pièce du thé et son jardin sont à gauche, hors cadre sur écran moyen : la caméra glisse vers eux quand le personnage y va. Sur téléphone la scène dépasse de l'écran. */
+  const TEAGROUP = new Set(['chashitsu', 'cha', 'shoes']);
+  let csX = 0, csHalf = 1, tableX0 = 0, tableX1 = 0, roomCx = 0, roomCy = 0;
   function computeFit() {
     const save = { az: view.az, el: view.el };
-    const gp = cs.garden.parent; gp.remove(cs.garden);                  // le jardin n'a pas de bord : il ne compte ni dans le centrage ni dans le cadrage
+    const gp = cs.garden.parent; gp.remove(cs.garden);                  // le jardin n'a pas de bord : il ne compte pas dans le cadrage
     view.az = DEF.az; view.el = DEF.el; orient();
     items.forEach((i) => { i.obj.position.copy(i.base); });
     world.updateMatrixWorld(true);
-    const inv0 = new THREE.Box3().setFromObject(world);
-    const gz = [[CS.x - 4.4, CS.z - 0.8], [CS.x + 4.4, CS.z - 0.8], [CS.x - 4.4, CS.z + 5.4], [CS.x + 4.4, CS.z + 5.4]];     // partie dense du jardin (le reste se dissout)
-    for (const [x, z] of gz) inv0.expandByPoint(new THREE.Vector3(x, 0, z));
-    inv0.getCenter(target); tgt.copy(target); home.copy(target);
+    const room = new THREE.Box3(), bb = new THREE.Box3();
+    for (const it of items) if (!TEAGROUP.has(it.id)) room.union(bb.setFromObject(it.holder));
+    room.getCenter(target); tgt.copy(target); home.copy(target);
     orient();
-    const inv = camera.matrixWorldInverse, v = new THREE.Vector3(), bb = new THREE.Box3();
-    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-    for (const it of items) {
-      bb.setFromObject(it.holder);
-      for (const x of [bb.min.x, bb.max.x]) for (const y of [bb.min.y, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) {
-        v.set(x, y, z).applyMatrix4(inv);
-        x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y);
+    const inv = camera.matrixWorldInverse, v = new THREE.Vector3();
+    const ext = (filter) => {
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (const it of items) {
+        if (!filter(it)) continue;
+        bb.setFromObject(it.holder);
+        for (const x of [bb.min.x, bb.max.x]) for (const y of [bb.min.y, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) { v.set(x, y, z).applyMatrix4(inv); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
       }
-    }
-    for (const [x, z] of gz) { v.set(x, 0, z).applyMatrix4(inv); x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); }
-    const mx = Math.max(Math.abs(x0), Math.abs(x1)), my = Math.max(Math.abs(y0), Math.abs(y1)), aspect = W / H;
+      return [x0, x1, y0, y1];
+    };
+    const [rx0, rx1, ry0, ry1] = ext((it) => !TEAGROUP.has(it.id));
+    const [tx0, tx1] = ext((it) => TEAGROUP.has(it.id));
     gp.add(cs.garden);
-    // cadrage sur la hauteur seulement : sur écran large le jardin comble les côtés, sur téléphone la scène dépasse (glisser pour la parcourir)
-    fit = my / 0.9; halfW = mx; void aspect;
+    const mx = (rx1 - rx0) / 2, my = (ry1 - ry0) / 2, aspect = W / H;
+    roomCx = (rx0 + rx1) / 2; roomCy = (ry0 + ry1) / 2;
+    fit = aspect >= 1.1 ? Math.max(my / 0.75, mx / 0.78 / aspect) : mx / (1.35 * aspect);
+    halfW = mx; tableX0 = rx0 - roomCx; tableX1 = rx1 - roomCx;
+    csX = (tx0 + tx1) / 2 - roomCx; csHalf = (tx1 - tx0) / 2;
     view.az = save.az; view.el = save.el;
   }
   let resScale = 1;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
@@ -276,11 +283,16 @@ export async function createRoom(container, bubbleEl) {
     computeFit(); applyFrustum();
   }
   function applyFrustum() {
-    const aspect = W / H, h = fit / view.zoom;
-    const lim = Math.max(0, halfW - h * aspect * 0.4);                  // panoramique : seulement quand la scène dépasse de l'écran
-    panT = Math.min(lim, Math.max(-lim, panT)); if (view.zoom > 1.15 || view.tZoom > 1.15) panT = 0;
-    panU += (panT - panU) * 0.2;
-    camera.left = -h * aspect + panU; camera.right = h * aspect + panU; camera.top = h; camera.bottom = -h;
+    const aspect = W / H, h = fit / view.zoom, wv = h * aspect;
+    // panoramique : la scène dépasse de l'écran sur téléphone (un doigt fait glisser) ; la caméra glisse seule vers la pièce du thé quand le personnage y est
+    const lo = Math.min(0, csX - csHalf + wv * 0.35), hi = Math.max(0, tableX1 - wv * 0.35);
+    panUser = Math.min(hi, Math.max(lo, panUser));
+    const want = (view.zoom > 1.15 || view.tZoom > 1.15) ? 0 : followTea ? Math.min(0, csX) : panUser;
+    panU += (want - panU) * 0.06;
+    panV += ((followTea && view.zoom <= 1.15 ? -0.4 * h : 0) - panV) * 0.06;        // vers le jardin, la caméra descend aussi
+    const cyShift = view.zoom > 1.15 ? 0 : roomCy, cxShift = view.zoom > 1.15 ? 0 : roomCx;
+    const off = cyShift + h * 0.03 * Math.min(1, view.zoom);              // la pièce est centrée dans la section, très légèrement plus bas
+    camera.left = -wv + panU + cxShift; camera.right = wv + panU + cxShift; camera.top = h + off + panV; camera.bottom = -h + off + panV;
     camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(container);
@@ -346,7 +358,7 @@ export async function createRoom(container, bubbleEl) {
       p.x = e.clientX; p.y = e.clientY;
       if (pointers.size === 2) {
         const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (pinch) view.tZoom = Math.min(2.6, Math.max(0.7, view.tZoom * (d / pinch)));
+        if (pinch) view.tZoom = Math.min(2.6, Math.max(0.4, view.tZoom * (d / pinch)));
         pinch = d;
       } else if (hdrag) {
         hdrag.moved += Math.abs(dx) + Math.abs(dy);
@@ -354,7 +366,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if (drag.moved > 6 && W / H < 1.1) { panT -= dx * (2 * (fit / view.zoom) * (W / H)) / W; }          // téléphone : un doigt fait défiler la scène
+        if (drag.moved > 6 && W / H < 1.1) { panUser -= dx * (2 * (fit / view.zoom) * (W / H)) / W; }          // téléphone : un doigt fait défiler la scène
         else if (drag.moved > 6) {
           view.tAz -= dx * 0.006;
           view.tEl = Math.min(58 * DEG, Math.max(14 * DEG, view.tEl + dy * 0.004));
@@ -392,9 +404,10 @@ export async function createRoom(container, bubbleEl) {
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
   el.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) { e.preventDefault(); panUser += e.deltaX * 0.01 * (fit / view.zoom); return; }   // geste horizontal du pavé tactile : panoramique
     if (!e.ctrlKey && !e.metaKey && !e.shiftKey) return;     // la molette normale fait défiler la page
     e.preventDefault();
-    view.tZoom = Math.min(2.6, Math.max(0.7, view.tZoom * Math.exp(-e.deltaY * 0.0015)));
+    view.tZoom = Math.min(2.6, Math.max(0.4, view.tZoom * Math.exp(-e.deltaY * 0.0015)));
   }, { passive: false });
   el.addEventListener('dblclick', () => { view.tAz = DEF.az; view.tEl = DEF.el; view.tZoom = 1; });
   el.style.cursor = 'grab';
@@ -723,6 +736,7 @@ export async function createRoom(container, bubbleEl) {
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
       { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
+        followTea = ritual.state.active || (director.current && director.current.ritual) || cs.panels.some((q) => q.target > 0.5) || inRoom || hp.x < CS.x + 2.6 && hp.z > CS.z - 3.5;
         cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
       // pieds au sol quand il est debout ou marche (le rig importé a sa propre hauteur de bassin)
       hero.setLean(director.current && director.mode === 'activity' && (director.current.clip === 'Driving_Loop' || director.current.clip === 'Sitting_Idle_Loop' || director.current.ritual) ? 0 : 0);

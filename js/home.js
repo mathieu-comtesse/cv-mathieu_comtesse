@@ -1,10 +1,10 @@
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=18942b7';
-import { playFullscreen } from './play.js?v=18942b7';
-import { dbtn } from './dbtn.js?v=18942b7';
-import { initHoverDiagrams } from './hoverdiag.js?v=18942b7';
-import { initFlip } from './flip.js?v=18942b7';
-import { initFlipText } from './fliptext.js?v=18942b7';
-import { createMarquee } from './marquee.js?v=18942b7';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=d40f751';
+import { playFullscreen } from './play.js?v=d40f751';
+import { dbtn } from './dbtn.js?v=d40f751';
+import { initHoverDiagrams } from './hoverdiag.js?v=d40f751';
+import { initFlip } from './flip.js?v=d40f751';
+import { initFlipText } from './fliptext.js?v=d40f751';
+import { createMarquee } from './marquee.js?v=d40f751';
 
 // le site s'adresse à « vous » : on écarte les phrases à la 1re personne des textes repris du CV
 const vous = (t) => String(t || '').split(/(?<=[.!?])\s+/).filter((x) => !/\b(j[’']|je|mon|ma|mes|moi)\b/i.test(x)).join(' ');
@@ -56,7 +56,7 @@ export function initHome() {
     const root = document.getElementById(id); if (!root) continue;
     root.innerHTML = `<div class="mq-track">${list.map((p, i) => card(p, i, kind)).join('')}</div>`;
     root.addEventListener('click', (e) => { const b = e.target.closest('.pc'); if (b) open(list[+b.dataset.i], kind); });
-    createMarquee(root, { speed: kind === 'pro' ? 0.7 : 0.55, direction: dir });
+    createMarquee(root);
     if (kind === 'pro') initHoverDiagrams(root, list);
   }
 }
