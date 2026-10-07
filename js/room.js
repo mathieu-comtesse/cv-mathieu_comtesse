@@ -56,9 +56,10 @@ export async function createRoom(container, bubbleEl) {
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
   const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=bf01a16'), load('assets/tableau.jpg?v=bf01a16'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
-  // MODE STABLE : la scène locale ne dépend plus du mini-runtime Shujaat au démarrage.
-  // Cela garantit que le décor Three.js s'affiche immédiatement.
-  const shujaatBridge = null;
+  // MODE STABLE : la scène locale démarre sans attendre Shujaat.
+  // Le pont exact est chargé plus tard en import dynamique : aucune panne du runtime
+  // de référence ne peut empêcher le décor Three.js de s'afficher.
+  let shujaatBridge = null;
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -136,6 +137,42 @@ export async function createRoom(container, bubbleEl) {
 
   add('desk', deskSet, -3.1, 0.25, Math.PI / 2, 0, 0.12);
   mkLamp('brontes', brontes.userData.glow, new THREE.PointLight('#ffd9a0', 0, 3, 2), '#fff0d0', '#9a948a');
+
+  // chargement Shujaat asynchrone : bureau/PC/tasse + animations/sons exacts,
+  // mais seulement APRÈS que la pièce locale ait été construite.
+  setTimeout(() => {
+    import('./shujaat-room.js?v=async-room-v7')
+      .then((m) => m.getShujaatRoomBridge())
+      .then((bridge) => {
+        if (!bridge) return;
+        shujaatBridge = bridge;
+
+        // Remplacement du set de bureau sans toucher au lampadaire Brontes local.
+        const keep = deskSet.children.filter((o) => o.userData?.id === 'brontes');
+        for (const child of [...deskSet.children]) {
+          if (!keep.includes(child)) deskSet.remove(child);
+        }
+        if (bridge.deskSet) deskSet.add(bridge.deskSet);
+
+        uw = bridge.deskDisplay || bridge.deskSet?.getObjectByName('Apple Studio Display') || uw;
+        if (uw) {
+          uw.userData.id = 'pc';
+          uw.traverse?.((o) => { if (o.isMesh) o.userData.id = 'pc'; });
+        }
+
+        if (bridge.book && !bridge.book.parent) {
+          bridge.book.userData.dynamic = true;
+          world.add(bridge.book);
+        }
+        if (bridge.wateringCan && !bridge.wateringCan.parent) {
+          bridge.wateringCan.userData.dynamic = true;
+          world.add(bridge.wateringCan);
+        }
+
+        console.info('[Shujaat] pont exact chargé après affichage de la scène');
+      })
+      .catch((e) => console.warn('[Shujaat] pont asynchrone indisponible, fallback conservé', e));
+  }, 0);
 
   const chair = F.officeChairFrom(setuGltf);
   add('chair', chair, -2.15, 0.3, -Math.PI / 2 + 0.15, 0, 0.2);
