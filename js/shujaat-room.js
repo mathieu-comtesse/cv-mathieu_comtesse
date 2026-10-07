@@ -184,6 +184,8 @@ async function build() {
     mode = next;
 
     try {
+      // L'API sonore exacte de Shujaat expose wake(), pas resume().
+      sceneApi.sound?.wake?.();
       if (next === 'walk') {
         const a = (++walkSeed % 2) ? 1 : -1;
         sceneApi.stopSim?.();
@@ -228,7 +230,7 @@ async function build() {
 
   const resumeSound = () => {
     try {
-      sceneApi.sound?.resume?.();
+      sceneApi.sound?.wake?.();
       sceneApi.sound?.setVisibility?.(1);
     } catch {}
   };
