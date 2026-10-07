@@ -227,16 +227,39 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 }
 
 
-/* STRICT SHUJAAT PORTRAIT */
+
+
+/* STRICT SHUJAAT PORTRAIT — same parent geometry as shujaat.info/info/ */
 .shupi-portrait{
-  position:relative;
-  overflow:visible;
-}
-.shupi-portrait iframe{
-  display:block;
   width:100%;
   height:100%;
+  min-height:400px;
+  position:relative;
+  overflow:visible!important;
+  z-index:2;
+  touch-action:auto;
+  pointer-events:auto!important;
+}
+.shupi-portrait iframe{
+  position:absolute;
+  inset:0;
+  width:100%;
   border:0;
   background:transparent;
+  color-scheme:light;
+  top:-200px;
+  bottom:auto;
+  height:calc(100% + 400px);
+  pointer-events:none;
   overflow:hidden;
+}
+@media(pointer:coarse){
+  .shupi-portrait{pointer-events:none!important}
+}
+@media(max-width:760px){
+  .page-info-shujaat .portrait.shupi-portrait{
+    min-height:0;
+    height:350px;
+    overflow:visible!important;
+  }
 }
