@@ -31,15 +31,29 @@ await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBuf
     });
 
 await page.goto('http://scene.test/');await page.waitForFunction(()=>document.getElementById('room')?.dataset.shujaat==='ready',null,{timeout:60000});
-await page.evaluate(()=>window.room.pauseAutonomy(120000));
+await page.evaluate(()=>window.room.pauseAutonomy(600000));
 await page.mouse.click(720,760);
 assert.equal(await page.evaluate(()=>{const desk=window.room.scene.getObjectByName('ShujaatExactDeskSet');return !!desk.getObjectByName('Setu task chair');}),false,'Imported desk must not contain a second office chair');
 await page.screenshot({path:path.join(output,'fit-standing.png')});
 const report=[];
 for (const id of ['ekstrem','alocasia','desk','sofa']) {
+ console.log('Checking activity:',id);
  await page.evaluate(id=>window.room.director.placeInto(window.room.stations[id]),id);
  await page.waitForFunction(()=>window.room.director.mode==='activity');
- if(id!=='sofa') await page.waitForFunction(id=>{const a=document.querySelector('iframe').contentWindow.shupiHeader.scene;return a.simDoing?.doing==='busy' && a.simDoing?.busy==={ekstrem:'read',alocasia:'water',desk:'work'}[id]},id,{timeout:30000});
+ if(id!=='sofa') {
+  // Software WebGL runners advance the capped simulation clock more slowly.
+  // Keep the activity assertion and allow its authored approach to complete.
+  try {
+   await page.waitForFunction(id=>{const a=document.querySelector('iframe').contentWindow.shupiHeader.scene;return a.simDoing?.doing==='busy' && a.simDoing?.busy==={ekstrem:'read',alocasia:'water',desk:'work'}[id]},id,{timeout:120000});
+  } catch(error) {
+   const diagnostic=await page.evaluate(()=>{const r=window.room,s=document.querySelector('iframe').contentWindow.shupiHeader;return {mode:r.director.mode,source:s.scene.simDoing,position:s.model.position.toArray(),frames:document.getElementById('room').dataset.sceneFrames};});
+   await writeFile(path.join(output,'activity-'+id+'-failure.json'),JSON.stringify(diagnostic,null,2));
+   await page.screenshot({path:path.join(output,'activity-'+id+'-failure.png')});
+   console.error('Activity did not start:',id,JSON.stringify(diagnostic));
+   await browser.close();
+   throw error;
+  }
+ }
  if(['ekstrem','alocasia'].includes(id)) await page.waitForFunction(id=>window.room.scene.getObjectByName('ShujaatExact:iso:'+(id==='ekstrem'?'book':'can'))?.visible,id,{timeout:15000});
  await page.waitForTimeout(id==='alocasia'?300:1500);
  await page.screenshot({path:path.join(output,'activity-'+id+'.png')});
