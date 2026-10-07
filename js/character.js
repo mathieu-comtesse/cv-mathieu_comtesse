@@ -203,7 +203,7 @@ export async function createCharacter({
       const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * 0.07, ground, f0.z + fwd.z * 0.07);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
-      shoe.scale.multiplyScalar(1.93);                              // ~56 cm : mêmes proportions cartoon que les chaussures Shujaat
+      shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Shujaat
       bone.add(shoe); shoeVisuals.push(shoe);
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
       // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
