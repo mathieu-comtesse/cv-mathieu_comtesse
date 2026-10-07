@@ -105,17 +105,19 @@ try {
       // advancing frames, instead of stranding the initial carpet frame.
       const firstFrame = after.frames;
       await page.evaluate(() => {
-        const desk = window.room.scene.getObjectByName('NativeMotionEffects');
-        const foreignArray = document.querySelector('iframe').contentWindow.Float32Array;
-        desk.traverse((object) => {
-          object.visible = true;
-          const attribute = object.geometry?.attributes.position;
-          if (attribute) {
-            const incompatible = attribute.clone();
-            incompatible.array = new foreignArray(attribute.array);
-            object.geometry.setAttribute('position', incompatible);
-          }
+        const effects = window.room.scene.getObjectByName('NativeMotionEffects');
+        let template;
+        window.room.scene.getObjectByName('Moonlander').traverse(object => {
+          if (!template && object.isMesh) template = object;
         });
+        // Inject a deterministic render failure. Foreign typed arrays can be
+        // accepted by newer Chromium versions and no longer trigger an error.
+        const probe = template.clone();
+        probe.name = 'OptionalMeshFailureProbe';
+        probe.visible = true;
+        probe.frustumCulled = false;
+        probe.onBeforeRender = () => { throw new TypeError('Simulated optional mesh incompatibility'); };
+        effects.add(probe);
       });
       await page.waitForFunction(() => document.getElementById('room').dataset.native === 'fallback');
       await page.waitForTimeout(1000);
