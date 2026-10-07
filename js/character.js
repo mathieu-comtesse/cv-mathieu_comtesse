@@ -102,7 +102,7 @@ export async function createCharacter({
   modelUrl = 'assets/mathieu-character.glb?v=34884da',
   rigUrl = 'assets/rig.json?v=34884da',
   animsUrl = 'assets/anims.glb?v=34884da',
-  targetHeight = 1.58,
+  targetHeight = 1.50,
 } = {}) {
   const [modelBuffer, rigBuffer, animBuffer] = await Promise.all([
     loadBuffer(modelUrl), loadBuffer(rigUrl), loadBuffer(animsUrl),
