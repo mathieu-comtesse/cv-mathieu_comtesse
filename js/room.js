@@ -233,7 +233,7 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── personnage ─── */
   /* ─── performances : fusion des maillages statiques (≈ 1 500 maillages → quelques centaines d'appels de rendu) ─── */
-  tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true;
+  tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true; retro.pad.userData.dynamic = true;
   { world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
 
   const hero = await createCharacter();
@@ -687,6 +687,28 @@ export async function createRoom(container, bubbleEl) {
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
   const atDesk = () => director.current === stations.desk && director.mode === 'activity';
+  const poseGamepadHands = () => {
+    const b = hero.bones;
+    if (![b.upperarm_l,b.lowerarm_l,b.hand_l,b.upperarm_r,b.lowerarm_r,b.hand_r,b.pelvis].every(Boolean)) return;
+
+    hero.group.updateMatrixWorld(true);
+    const qg = hero.group.getWorldQuaternion(new THREE.Quaternion());
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(qg); forward.y = 0; forward.normalize();
+    const side = new THREE.Vector3(1, 0, 0).applyQuaternion(qg); side.y = 0; side.normalize();
+
+    const center = b.pelvis.getWorldPosition(new THREE.Vector3())
+      .addScaledVector(forward, 0.31);
+    center.y += 0.16;
+
+    const lTarget = center.clone().addScaledVector(side, -0.085);
+    const rTarget = center.clone().addScaledVector(side,  0.085);
+    const lPole = b.lowerarm_l.getWorldPosition(new THREE.Vector3()).addScaledVector(side, -0.22); lPole.y += 0.12;
+    const rPole = b.lowerarm_r.getWorldPosition(new THREE.Vector3()).addScaledVector(side,  0.22); rPole.y += 0.12;
+
+    hero.ik2(b.upperarm_l, b.lowerarm_l, b.hand_l, lTarget, lPole);
+    hero.ik2(b.upperarm_r, b.lowerarm_r, b.hand_r, rTarget, rPole);
+    hero.group.updateMatrixWorld(true);
+  };
   function activate(id) {
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
@@ -843,6 +865,12 @@ export async function createRoom(container, bubbleEl) {
         if (exactMotion === 'water') shujaatBridge.syncWateringCan(hero.group);
         else if (shujaatBridge.wateringCan) shujaatBridge.wateringCan.visible = false;
       }
+
+      const playingConsole = director.current === stations.sofa && director.mode === 'activity';
+      retro.setPadHeld?.(playingConsole);
+      if (playingConsole) poseGamepadHands();
+      retro.updatePad?.(dt, hero.bones.hand_l, hero.bones.hand_r);
+
       const s = hero.group.scale.x; hero.group.scale.setScalar(s + (1 - s) * (1 - Math.exp(-dt * 10)));
       bubbleT += dt;
       const showB = !!thoughtFor && director.mode !== 'carried' && !appOpen && bubbleT > 0.35;
