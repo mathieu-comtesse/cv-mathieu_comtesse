@@ -1,0 +1,34 @@
+name: Import Shujaat portrait textures
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/import-shujaat-head.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download extracted portrait textures
+        run: |
+          set -e
+          mkdir -p assets/shujaat-head
+          curl -fL "https://shujaat.info/shupi/assets/3c679457ba7a59e3.png" -o assets/shujaat-head/neutral.png
+          curl -fL "https://shujaat.info/shupi/assets/12d678b434911d38.png" -o assets/shujaat-head/blink.png
+          curl -fL "https://shujaat.info/shupi/assets/99f7060ec447951d.png" -o assets/shujaat-head/happy.png
+          curl -fL "https://shujaat.info/shupi/assets/b77d612676826576.png" -o assets/shujaat-head/amazed.png
+      - name: Commit portrait assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/shujaat-head
+          git diff --cached --quiet || git commit -m "Ajoute les textures faciales Shujaat extraites"
+          git push
