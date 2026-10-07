@@ -1,17 +1,17 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box } from './kit.js?v=8bc1499';
-import * as F from './furniture.js?v=8bc1499';
-import { createCharacter } from './character.js?v=8bc1499';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=34884da';
+import * as F from './furniture.js?v=34884da';
+import { createCharacter } from './character.js?v=34884da';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=8bc1499';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=8bc1499';
-import { createRitual } from './ritual.js?v=8bc1499';
-import { createChashitsu } from './chashitsu.js?v=8bc1499';
-import { createRetroSet } from './retro.js?v=8bc1499';
-import { createNav } from './nav.js?v=8bc1499';
-import { createDirector } from './director.js?v=8bc1499';
-import { createThought } from './thought.js?v=8bc1499';
-import { createJukebox } from './jukebox.js?v=8bc1499';
-import { TRACKS, COVER } from './music.js?v=8bc1499';
+import { loadBuffer } from './kit.js?v=34884da';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=34884da';
+import { createRitual } from './ritual.js?v=34884da';
+import { createChashitsu } from './chashitsu.js?v=34884da';
+import { createRetroSet } from './retro.js?v=34884da';
+import { createNav } from './nav.js?v=34884da';
+import { createDirector } from './director.js?v=34884da';
+import { createThought } from './thought.js?v=34884da';
+import { createJukebox } from './jukebox.js?v=34884da';
+import { TRACKS, COVER } from './music.js?v=34884da';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -27,7 +27,8 @@ export async function createRoom(container, bubbleEl) {
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.autoUpdate = false;                       // carte d'ombres recalculée seulement 1 image sur 3 (la pièce est quasi statique)
   container.appendChild(renderer.domElement);
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y pinch-zoom;image-rendering:pixelated';
 
@@ -40,7 +41,7 @@ export async function createRoom(container, bubbleEl) {
   const sun = new THREE.DirectionalLight('#fff0dc', 2.0);
   sun.position.set(3.5, 7.5, -2.2);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 20 });
   sun.shadow.radius = 5; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   scene.add(hemi, sun);
@@ -52,7 +53,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=8bc1499'), load('assets/tableau.jpg?v=8bc1499'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=8bc1499').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=34884da'), load('assets/tableau.jpg?v=34884da'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -75,7 +76,7 @@ export async function createRoom(container, bubbleEl) {
   };
 
   const lamps = {};
-  const mkLamp = (key, glowMat, light, onColor, offColor) => { lamps[key] = { glow: glowMat, light, on: false, onColor, offColor, k: 0 }; glowMat.color.set(offColor); };
+  const mkLamp = (key, glowMat, light, onColor, offColor) => { lamps[key] = { glow: glowMat, light, on: false, onColor, offColor, k: 0 }; glowMat.color.set(offColor); if (glowMat.userData) glowMat.userData.unique = true; };
 
   if (rugTex) add('rug', F.rug(rugTex, 3.1, 4.3), 0.0, 1.1, 0, 0, 0.0, world, 0);
 
@@ -209,6 +210,10 @@ export async function createRoom(container, bubbleEl) {
   for (const L of Object.values(lamps)) world.add(L.light);
 
   /* ─── personnage ─── */
+  /* ─── performances : fusion des maillages statiques (≈ 1 500 maillages → quelques centaines d'appels de rendu) ─── */
+  tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true;
+  { world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
+
   const hero = await createCharacter();
   hero.group.visible = false; world.add(hero.group);
   if (/[?&]squelette/.test(location.search)) scene.add(new THREE.SkeletonHelper(hero.group));
@@ -252,10 +257,11 @@ export async function createRoom(container, bubbleEl) {
     fit = Math.max(my / 0.88, mx / 0.94 / aspect);
     view.az = save.az; view.el = save.el;
   }
+  let resScale = 1;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
   function resize() {
     W = container.clientWidth || 1; H = container.clientHeight || 1;
     // rendu en basse définition (≈720 px de haut), agrandi sans lissage : même grain que la scène de référence
-    const ih = Math.min(H * (window.devicePixelRatio || 1), 720), k = ih / H;
+    const ih = Math.min(H * (window.devicePixelRatio || 1), 720) * resScale, k = ih / H;
     renderer.setPixelRatio(1);
     renderer.setSize(Math.round(W * k), Math.round(ih), false);
     ink.res.value.set(Math.round(W * k), Math.round(ih));
@@ -286,7 +292,7 @@ export async function createRoom(container, bubbleEl) {
   };
 
   const pointers = new Map();
-  let drag = null, pinch = 0, hovered = null, hdrag = null;
+  let drag = null, pinch = 0, hovered = null, hdrag = null, lastHover = 0;
   let autonomousPauseUntil = 0;
   const pauseAutonomy = (ms = 18000) => { autonomousPauseUntil = performance.now() + ms; };
   const el = renderer.domElement;
@@ -346,9 +352,13 @@ export async function createRoom(container, bubbleEl) {
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
-      const near = heroNear(e.clientX, e.clientY);
-      const id = crateHover >= 0 ? 'sleeve' : near ? 'hero' : pickIdAt(e.clientX, e.clientY);
-      if (id !== hovered) { hovered = id; el.style.cursor = near ? 'grab' : id ? 'pointer' : 'grab'; }
+      const now = performance.now();
+      if (now - lastHover > 80) {                                    // le survol interroge toute la scène : au plus 12 fois par seconde
+        lastHover = now;
+        const near = heroNear(e.clientX, e.clientY);
+        const id = crateHover >= 0 ? 'sleeve' : near ? 'hero' : pickIdAt(e.clientX, e.clientY);
+        if (id !== hovered) { hovered = id; el.style.cursor = near ? 'grab' : id ? 'pointer' : 'grab'; }
+      }
     }
   });
   const up = (e) => {
@@ -479,18 +489,20 @@ export async function createRoom(container, bubbleEl) {
   };
   // lecteur de musique : un seul clic lance un titre au hasard, puis ça défile tout seul
   const pill = document.createElement('div'); pill.className = 'mpill';
-  pill.innerHTML = `<button class="mp-play" type="button" aria-label="Lancer la musique">${IC.play}<span>Lancer la musique</span></button><button class="mp-next" type="button" aria-label="Titre suivant" hidden>${IC.next}</button><button class="mp-crate" type="button" aria-label="Choisir un disque dans le tiroir">${IC.crate}</button>`;
+  const face = (icon, label = '') => `<span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true">${icon}</span>${label ? `<span class="dbtn__text">${label}</span>` : ''}`;
+  pill.innerHTML = `<button class="dbtn dbtn--sm mp-play" type="button" aria-label="Lancer la musique">${face(IC.play, 'Lancer la musique')}</button><button class="dbtn dbtn--icon dbtn--sm mp-next" type="button" aria-label="Titre suivant" hidden>${face(IC.next)}</button><button class="dbtn dbtn--icon dbtn--sm mp-crate" type="button" aria-label="Choisir un disque dans le tiroir">${face(IC.crate)}</button>`;
   container.appendChild(pill);
   const mpPlay = pill.querySelector('.mp-play'), mpNext = pill.querySelector('.mp-next'), mpCrate = pill.querySelector('.mp-crate');
-  const mpLabel = (i) => { const t = TRACKS[i]; mpPlay.querySelector('span').textContent = clip(t.t, 26) + ' \u00b7 ' + clip(t.a, 16); };
+  const mpLabel = (i) => { const t = TRACKS[i]; mpPlay.querySelector('.dbtn__text').textContent = clip(t.t, 26) + ' \u00b7 ' + clip(t.a, 16); };
   const jukebox = createJukebox({
     onTrack: (i) => { crate.setPlaying(i); mpLabel(i); },
     onState: ({ on, paused }) => {
       pill.classList.toggle('on', on);
-      mpPlay.firstElementChild.outerHTML = on && !paused ? IC.pause : IC.play;
+      mpPlay.querySelector('.dbtn__icon').innerHTML = on && !paused ? IC.pause : IC.play;
+      mpPlay.classList.toggle('dbtn--on', on);
       mpPlay.setAttribute('aria-label', on ? (paused ? 'Reprendre' : 'Mettre en pause') : 'Lancer la musique');
       mpNext.hidden = !on;
-      if (!on) mpPlay.querySelector('span').textContent = 'Lancer la musique';
+      if (!on) mpPlay.querySelector('.dbtn__text').textContent = 'Lancer la musique';
     },
   });
   mpPlay.addEventListener('click', (e) => { e.stopPropagation(); jukebox.toggle(); });
@@ -655,9 +667,15 @@ export async function createRoom(container, bubbleEl) {
   let running = true;
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
+  let fpsEma = 0.016, frameNo = 0, lastUp = 0;
   function frame() {
     if (!running) return;
-    const dt = Math.min(clock.getDelta(), opts.dtCap);
+    const rawDt = clock.getDelta(), dt = Math.min(rawDt, opts.dtCap);
+    fpsEma += (Math.min(rawDt, 0.1) - fpsEma) * 0.06; frameNo++;
+    if (!opts.noAdapt && frameNo % 45 === 0 && frameNo > 90) {
+      if (fpsEma > 0.026 && resScale > 0.56) { resScale = Math.max(0.56, resScale - 0.09); resize(); }
+      else if (fpsEma < 0.0185 && resScale < 1 && frameNo - lastUp > 240) { resScale = Math.min(1, resScale + 0.06); lastUp = frameNo; resize(); }
+    }
     const t = clock.elapsedTime;
     // entrée en cascade
     const since = (performance.now() - startAt) / 1000;
@@ -701,7 +719,7 @@ export async function createRoom(container, bubbleEl) {
       bubbleT += dt;
       const showB = !!thoughtFor && director.mode !== 'carried' && !appOpen && bubbleT > 0.35;
       thoughtEl.classList.toggle('show', showB);
-      if (showB) { thought.update(dt); v3.set(0, 0, 0); hero.head.getWorldPosition(v3); v3.y += 0.42; v3.project(camera); thoughtEl.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 30, 215)}px) translate(-50%, -100%)`; }
+      if (showB) { if (frameNo % 3 === 0) thought.update(dt * 3); v3.set(0, 0, 0); hero.head.getWorldPosition(v3); v3.y += 0.42; v3.project(camera); thoughtEl.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 30, 215)}px) translate(-50%, -100%)`; }
     }
     for (const z of zones) if (z.ring.visible) { const near = z === zoneNear; z.ring.material.opacity = near ? 1 : 0.55 + Math.sin(t * 5) * 0.2; z.ring.scale.setScalar(near ? 1.25 : 1 + Math.sin(t * 5) * 0.05); z.ring.material.color.set(near ? '#fff3b0' : '#ffb23d'); }
     for (const p of puffs) {
@@ -743,6 +761,7 @@ export async function createRoom(container, bubbleEl) {
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1);
     }
+    renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % 3 === 0;
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }

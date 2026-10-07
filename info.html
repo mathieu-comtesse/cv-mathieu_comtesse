@@ -8,15 +8,15 @@
 <meta name="theme-color" content="#f5f7fb">
 <script>{const n=new Date(),m=n.getHours()*60+n.getMinutes();document.documentElement.dataset.theme=(m>=1320||m<270)?'dark':'light';document.documentElement.classList.add('js')}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23e8452b%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2716%27 font-family=%27sans-serif%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27white%27%3EMC%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=8bc1499">
+<link rel="stylesheet" href="style.css?v=34884da">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="js/info.js?v=8bc1499"></script>
+<script type="module" src="js/info.js?v=34884da"></script>
 </head>
 <body class="page-info">
 <nav class="nav" aria-label="Navigation">
-  <a class="btn" href="index.html#work">Projets</a>
-  <a class="btn" href="info.html" aria-current="page">Info</a>
-  <button class="btn theme" id="theme" type="button" aria-label="Passer en mode sombre"></button>
+  <a class="dbtn dbtn--sm" href="index.html#work"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Projets</span></a>
+  <a class="dbtn dbtn--sm dbtn--on" href="info.html" aria-current="page"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Info</span></a>
+  <button class="dbtn dbtn--icon dbtn--sm theme" id="theme" type="button" aria-label="Passer en mode sombre"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"></span></button>
 </nav>
 <main class="info-main">
 <section class="about">
@@ -86,7 +86,7 @@
 <section class="block contact">
   <h2 class="reveal">Parlons de vos processus.</h2>
   <p class="reveal">Un flux répétitif, des PDF à dépouiller, un suivi à fiabiliser : décrivez-moi votre situation, je vous propose le bon outil.</p>
-  <div class="reveal"><a class="btn dark" href="mailto:mathieu@comtesse.me">Me contacter</a> <a class="btn" href="https://github.com/mathieu-comtesse">GitHub</a></div>
+  <div class="reveal"><a class="dbtn" href="mailto:mathieu@comtesse.me"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Me contacter</span></a> <a class="dbtn" href="https://github.com/mathieu-comtesse"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">GitHub</span></a></div>
 </section>
 </main>
 <footer><p>Mathieu Comtesse © 2026</p><details class="credits">

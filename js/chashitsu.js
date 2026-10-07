@@ -1,4 +1,4 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=8bc1499';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=34884da';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
  * Repère local : origine au centre du sol de tatamis, +z = côté ouvert (shoji coulissants → balcon en bois → mer).

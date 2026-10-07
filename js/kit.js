@@ -189,3 +189,47 @@ export async function loadBuffer(url) {
   if (!r.ok) throw new Error(url);
   return r.arrayBuffer();
 }
+
+/* ─── Fusion globale des maillages statiques d'un objet de la scène ───
+ * Regroupe par (propriétaire cliquable, matériau, ombres) : chaque objet garde son identifiant pour le survol et le clic, mais passe de dizaines
+ * de maillages à quelques-uns. Les sous-arbres marqués userData.dynamic (animés) sont laissés intacts ; les matériaux marqués userData.unique
+ * (lampes, écran de la télé, interrupteur) ne sont pas dédoublonnés. Les matériaux identiques sont mutualisés pour réduire les changements d'état. */
+const matSig = (m) => [m.type, m.color && m.color.getHex(), m.emissive && m.emissive.getHex(), m.emissiveIntensity, m.roughness, m.metalness, m.map && m.map.uuid, m.bumpMap && m.bumpMap.uuid, m.bumpScale,
+  m.side, m.vertexColors, m.flatShading, m.opacity, m.transparent, m.alphaTest, m.envMapIntensity, m.depthWrite, m.toneMapped, m.normalMap && m.normalMap.uuid, m.clearcoat].join('|');
+export function mergeStatic(root) {
+  root.updateWorldMatrix(true, true);
+  const sigs = mergeStatic.sigs || (mergeStatic.sigs = new Map());
+  const buckets = new Map(), drop = [];
+  const ownerOf = (o) => { for (let p = o.parent; p && p !== root.parent; p = p.parent) { if (p.userData && p.userData.id) return p; if (p === root) return root; } return root; };
+  const dynamic = (o) => { for (let p = o; p && p !== root.parent; p = p.parent) if (p.userData && p.userData.dynamic) return true; return false; };
+  root.traverse((o) => {
+    if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || Array.isArray(o.material) || !o.visible) return;
+    const m = o.material;
+    if (m.transparent || dynamic(o)) return;
+    let mat = m;
+    if (!(m.userData && m.userData.unique)) { const s = matSig(m); if (sigs.has(s)) mat = sigs.get(s); else sigs.set(s, m); }
+    const owner = ownerOf(o);
+    const isInk = !!o.userData.isInk || m === ink.mat || m === ink.matInst;
+    const key = owner.uuid + '|' + mat.uuid + '|' + (o.castShadow && !isInk ? 1 : 0) + (o.receiveShadow && !isInk ? 1 : 0) + '|' + (isInk ? 'i' : '') + (o.geometry.attributes.color ? 'c' : '');
+    let b = buckets.get(key); if (!b) { b = { owner, mat, cast: o.castShadow && !isInk, recv: o.receiveShadow && !isInk, list: [], ink: isInk, col: !!o.geometry.attributes.color }; buckets.set(key, b); }
+    owner.updateWorldMatrix(true, false);
+    const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv' && !(k === 'color' && b.col)) g.deleteAttribute(k);
+    if (!g.attributes.normal) g.computeVertexNormals();
+    if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+    g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(new THREE.Matrix4().copy(owner.matrixWorld).invert(), o.matrixWorld));
+    b.list.push(g); drop.push(o);
+  });
+  for (const o of drop) o.removeFromParent();
+  let made = 0;
+  for (const b of buckets.values()) {
+    const merged = mergeGeometries(b.list, false);
+    b.list.forEach((g) => g.dispose());
+    if (!merged) continue;
+    const me = new THREE.Mesh(merged, b.mat);
+    me.castShadow = b.cast && !b.ink; me.receiveShadow = b.recv; if (b.ink) me.userData.isInk = true;
+    me.matrixAutoUpdate = false; me.updateMatrix();
+    b.owner.add(me); made++;
+  }
+  return made;
+}

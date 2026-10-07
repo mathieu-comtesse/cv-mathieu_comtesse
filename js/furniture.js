@@ -1,4 +1,4 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, bone, rng, canvasTexture, bake } from './kit.js?v=8bc1499';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, bone, rng, canvasTexture, bake } from './kit.js?v=34884da';
 
 const CHROME = () => mat('#d9dce0', { metalness: 0.9, roughness: 0.22 });
 const BLACK = () => mat('#1b1c1f', { roughness: 0.55 });
@@ -952,7 +952,7 @@ export function falkland(gltf, k = 0.62, cable = 0.5) {
   const root = gltf.scene.clone(true); root.updateMatrixWorld(true);
   const bb = new THREE.Box3().setFromObject(root);
   const fabric = [];
-  root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; const m = o.material.clone(); o.material = m; m.side = THREE.DoubleSide; if (m.map) { m.roughness = 0.9; m.metalness = 0; fabric.push(m); } else { m.metalness = 0.5; m.roughness = 0.45; } } });
+  root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; const m = o.material.clone(); o.material = m; m.side = THREE.DoubleSide; if (m.map) { m.roughness = 0.9; m.metalness = 0; m.userData.unique = true; fabric.push(m); } else { m.metalness = 0.5; m.roughness = 0.45; } } });
   const inner = group(root); inner.scale.setScalar(k);
   inner.position.set(-(bb.max.x + bb.min.x) / 2 * k, -bb.max.y * k, -(bb.max.z + bb.min.z) / 2 * k);
   g.add(inner);
@@ -979,13 +979,17 @@ export function usmDrawer(spec, coverTex, tracks, cover) {
   dr.add(box(inner, 0.006, DEP, green, 0, yb, zc), box(0.006, 0.2, DEP, green, -inner / 2, yb + 0.1, zc), box(0.006, 0.2, DEP, green, inner / 2, yb + 0.1, zc), box(inner, 0.2, 0.006, green, 0, yb + 0.1, spec.z - DEP));
   const sl = group(); sl.position.set(0, yb + 0.003, zc); dr.add(sl);
   const N = tracks.length, span = inner - 0.04, pitch = span / (N - 1), SH = 0.27;
-  const paper = new THREE.MeshStandardMaterial({ color: '#efe9dc', roughness: 0.8 });
+  // un seul matériau (la planche de pochettes) : la face visible lit sa case, les autres faces lisent une case crème (la 1re case libre de la planche)
   const coverM = new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.55 });
   const sleeves = [];
+  const slots = cover.cols * cover.rows, cream = [(N % cover.cols + 0.5) / cover.cols, 1 - (((N / cover.cols) | 0) + 0.5) / cover.rows];
   for (let i = 0; i < N; i++) {
     const geo = new THREE.BoxGeometry(0.004, SH, SH), uv = geo.attributes.uv, col = i % cover.cols, row = (i / cover.cols) | 0;
-    for (let k = 0; k < 4; k++) { uv.setXY(k, (col + (1 - uv.getX(k))) / cover.cols, 1 - (row + 1 - uv.getY(k)) / cover.rows); }
-    const m = new THREE.Mesh(geo, [coverM, paper, paper, paper, paper, paper]); m.position.y = SH / 2; m.castShadow = true;
+    for (let k = 0; k < uv.count; k++) {
+      if (k < 4) uv.setXY(k, (col + (1 - uv.getX(k))) / cover.cols, 1 - (row + 1 - uv.getY(k)) / cover.rows);   // face +x : la pochette
+      else uv.setXY(k, cream[0], cream[1]);                                                                       // autres faces : papier
+    }
+    const m = new THREE.Mesh(geo, coverM); m.position.y = SH / 2; m.castShadow = false;
     const piv = group(m); piv.position.x = -span / 2 + i * pitch; piv.rotation.order = 'YXZ'; piv.rotation.z = 0.45;
     sl.add(piv); sleeves.push({ piv, rise: 0, tilt: 0.45, yaw: 0 });
   }
@@ -1012,6 +1016,8 @@ export function usmDrawer(spec, coverTex, tracks, cover) {
     update(dt, camAz) {
       st.open += (st.want - st.open) * (1 - Math.exp(-dt * 6)); if (Math.abs(st.want - st.open) < 0.002) st.open = st.want;
       dr.position.z = st.open * st.open * (3 - 2 * st.open) * 0.3;
+      sl.visible = st.open > 0.02;                       // fermé : pochettes invisibles, aucun appel de rendu
+      if (!sl.visible) return;
       const yawTo = Math.atan2(-Math.cos(camAz), Math.sin(camAz));
       const k = 1 - Math.exp(-dt * 14);
       for (let i = 0; i < N; i++) {

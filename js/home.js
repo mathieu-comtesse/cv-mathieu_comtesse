@@ -1,8 +1,10 @@
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=8bc1499';
-import { playFullscreen } from './play.js?v=8bc1499';
-import { initFlip } from './flip.js?v=8bc1499';
-import { initFlipText } from './fliptext.js?v=8bc1499';
-import { createMarquee } from './marquee.js?v=8bc1499';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=34884da';
+import { playFullscreen } from './play.js?v=34884da';
+import { dbtn } from './dbtn.js?v=34884da';
+import { initHoverDiagrams } from './hoverdiag.js?v=34884da';
+import { initFlip } from './flip.js?v=34884da';
+import { initFlipText } from './fliptext.js?v=34884da';
+import { createMarquee } from './marquee.js?v=34884da';
 
 // le site s'adresse à « vous » : on écarte les phrases à la 1re personne des textes repris du CV
 const vous = (t) => String(t || '').split(/(?<=[.!?])\s+/).filter((x) => !/\b(j[’']|je|mon|ma|mes|moi)\b/i.test(x)).join(' ');
@@ -12,7 +14,7 @@ function card(p, i, kind) {
   return `<button class="pc ${kind}" type="button" data-i="${i}" data-k="${kind}" aria-label="${esc(p.title)}">
     <span class="pc-img${p.pixel ? ' px' : ''}" style="background-image:url('${p.img}')"></span>
     <span class="pc-body"><b>${esc(p.title)}</b><span class="pc-sub">${esc(p.sub)}</span>
-    ${kind === 'pro' ? `<span class="pc-g"><small>Temps</small><strong>${esc(p.time)}</strong><em>${esc(p.timeCtx)}</em></span><span class="pc-g m"><small>Argent</small><strong>${esc(p.money)}</strong><em>${esc(p.moneyCtx)}</em></span>` : ''}</span></button>`;
+    ${kind === 'pro' ? `<span class="pc-gains"><small>Gains</small><strong>${esc(p.time)}</strong><strong class="m">${esc(p.money)}</strong><em>${esc(p.timeCtx)}</em></span>` : ''}</span></button>`;
 }
 
 /* fiche synthétique d'un projet : image, gain, trois lignes ; Échap ou clic à côté pour fermer */
@@ -29,10 +31,10 @@ function initDetail() {
     if (kind === 'pro') {
       const d = p.pro;
       txt.innerHTML = `<p class="k">Projet professionnel</p><h3>${esc(p.title)}</h3><p class="s">${esc(p.sub)}</p>
-        <div class="g"><small>Temps</small><strong>${esc(p.time)}</strong><span>${esc(p.timeCtx)}</span></div><div class="g m"><small>Argent</small><strong>${esc(p.money)}</strong><span>${esc(p.moneyCtx)}</span></div>
+        <div class="g"><small>Gains</small><strong>${esc(p.time)}</strong><span>${esc(p.timeCtx)}</span><strong class="m">${esc(p.money)}</strong><span>${esc(p.moneyCtx)}</span></div>
         ${d && vous(d.lead) ? `<p>${esc(vous(d.lead))}</p>` : ''}${d && vous(d.gain) ? `<p><b>Gain.</b> ${esc(vous(d.gain))}</p>` : ''}${d && vous(d.team) ? `<p><b>Pour l’équipe.</b> ${esc(vous(d.team))}</p>` : ''}`;
     } else {
-      txt.innerHTML = `<p class="k">Projet personnel · ${esc(p.sub)}</p><h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p><p><a class="btn dark" href="${CV}${p.url}" target="_blank" rel="noopener">Jouer</a></p>`;
+      txt.innerHTML = `<p class="k">Projet personnel · ${esc(p.sub)}</p><h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p><p>${dbtn('Jouer', { tag: 'a', href: CV + p.url })}</p>`;
     }
     ov.hidden = false; requestAnimationFrame(() => ov.classList.add('on')); document.body.classList.add('lock');
     ov.querySelector('.detail-x').focus();
@@ -42,7 +44,7 @@ function initDetail() {
 function initUniv() {
   const host = document.getElementById('univ'); if (!host) return;
   host.innerHTML = `<button class="univ-card" type="button" aria-label="Jouer à ${esc(UNIV.title)}"><span class="univ-img" style="background-image:url('${UNIV.img}')"></span>
-    <span class="univ-txt"><span class="k">Projet universitaire · ${esc(UNIV.sub)}</span><h3>${esc(UNIV.title)}</h3><p>${esc(UNIV.desc)}</p><span class="btn dark">Jouer en plein écran</span></span></button>`;
+    <span class="univ-txt"><span class="k">Projet universitaire · ${esc(UNIV.sub)}</span><h3>${esc(UNIV.title)}</h3><p>${esc(UNIV.desc)}</p>${dbtn('Jouer en plein écran')}</span></button>`;
   host.querySelector('.univ-card').addEventListener('click', () => playFullscreen(CV + UNIV.url, UNIV.title));
 }
 
@@ -55,5 +57,6 @@ export function initHome() {
     root.innerHTML = `<div class="mq-track">${list.map((p, i) => card(p, i, kind)).join('')}</div>`;
     root.addEventListener('click', (e) => { const b = e.target.closest('.pc'); if (b) open(list[+b.dataset.i], kind); });
     createMarquee(root, { speed: kind === 'pro' ? 0.7 : 0.55, direction: dir });
+    if (kind === 'pro') initHoverDiagrams(root, list);
   }
 }
