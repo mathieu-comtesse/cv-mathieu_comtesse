@@ -1,0 +1,48 @@
+name: Import Shujaat room runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/import-shujaat-room.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import-room:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Import exact Shujaat room runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://shujaat.info/shupi/assets"
+          mkdir -p shupi/assets
+          for f in             iso-scene-CTE1Lebo.js             thought-presets-_pi_GkjI.js             9b8c8f838bafda95.wav
+          do
+            curl --retry 4 --retry-delay 2 -fsSL "$base/$f" -o "shupi/assets/$f"
+          done
+
+          # preload-helper contains the exact hashed texture names expected by the
+          # Shujaat runtime. Import any that are not already in the repository.
+          grep -oE '\./assets/[A-Za-z0-9._-]+' shupi/assets/preload-helper-BzeXWD9c.js             | sed 's#^./assets/##' | sort -u             | while read -r f; do
+                [ -n "$f" ] || continue
+                [ -f "shupi/assets/$f" ] && continue
+                curl --retry 4 --retry-delay 2 -fsSL "$base/$f" -o "shupi/assets/$f"
+              done
+
+      - name: Commit room runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shupi/assets
+          git diff --cached --quiet || git commit -m "Importe le runtime complet de la pièce Shujaat"
+          git push
