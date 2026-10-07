@@ -1,0 +1,34 @@
+name: Scene smoke check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "js/**"
+      - ".github/workflows/scene-smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --check js/main.js
+          node --check js/room.js
+          node --check js/character.js
+          node --check js/retro.js
+          node --check js/shujaat-room.js
+      - name: Check scene entrypoints
+        run: |
+          set -euo pipefail
+          grep -q "js/main.js?v=blender-seat-pad-v8" index.html
+          grep -q "character.js?v=blender-seat-pad-v8" js/room.js
+          grep -q "retro.js?v=blender-seat-pad-v8" js/room.js
+          grep -q "room.js?v=blender-seat-pad-v8" js/main.js
+          grep -q "const nbForwardOffset = { left: 0.097159, right: 0.097856 }" js/character.js
+          grep -q "hero.poseSeatedL" js/room.js
+          grep -q "retro.setPadHeld" js/room.js
