@@ -1,5 +1,5 @@
-import { PAGES } from './pages.js?v=56ab04d';
-import { PERSO, PRO, CV } from './data.js?v=56ab04d';
+import { PAGES } from './pages.js?v=c08daaf';
+import { PERSO, PRO, CV } from './data.js?v=c08daaf';
 
 /* Deux interfaces plein écran ouvertes depuis la pièce 3D :
  *  - « retro » : la télé cathodique + PS1 → menu de jeux façon console (projets perso), écran de chargement, écran titre, jeu, bouton retour ;

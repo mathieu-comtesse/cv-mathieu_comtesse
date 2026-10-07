@@ -1,4 +1,4 @@
-import { initTheme, initReveal } from './theme.js?v=56ab04d';
+import { initTheme, initReveal } from './theme.js?v=c08daaf';
 
 initTheme();
 initReveal();

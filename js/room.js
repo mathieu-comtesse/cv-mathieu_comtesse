@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=56ab04d';
-import * as F from './furniture.js?v=56ab04d';
-import { createCharacter } from './character.js?v=56ab04d';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=c08daaf';
+import * as F from './furniture.js?v=c08daaf';
+import { createCharacter } from './character.js?v=c08daaf';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=56ab04d';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=56ab04d';
-import { createRitual } from './ritual.js?v=56ab04d';
-import { createChashitsu } from './chashitsu.js?v=56ab04d';
-import { createRetroSet } from './retro.js?v=56ab04d';
-import { createNav } from './nav.js?v=56ab04d';
-import { createDirector } from './director.js?v=56ab04d';
-import { createThought } from './thought.js?v=56ab04d';
-import { createWeather } from './weather.js?v=56ab04d';
-import { createJukebox } from './jukebox.js?v=56ab04d';
-import { TRACKS, COVER } from './music.js?v=56ab04d';
+import { loadBuffer } from './kit.js?v=c08daaf';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=c08daaf';
+import { createRitual } from './ritual.js?v=c08daaf';
+import { createChashitsu } from './chashitsu.js?v=c08daaf';
+import { createRetroSet } from './retro.js?v=c08daaf';
+import { createNav } from './nav.js?v=c08daaf';
+import { createDirector } from './director.js?v=c08daaf';
+import { createThought } from './thought.js?v=c08daaf';
+import { createWeather } from './weather.js?v=c08daaf';
+import { createJukebox } from './jukebox.js?v=c08daaf';
+import { TRACKS, COVER } from './music.js?v=c08daaf';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=56ab04d'), load('assets/tableau.jpg?v=56ab04d'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=56ab04d').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=c08daaf'), load('assets/tableau.jpg?v=c08daaf'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=c08daaf').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -446,33 +446,31 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', pose: 'bureau', seatId: 'chair', hipClearance: 0.18, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
-    ekstrem:  S({ label: 'Se poser dans le fauteuil', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'ekstrem', hipClearance: 0.20, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
+    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', pose: 'bureau', seatId: 'chair', hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    ekstrem:  S({ label: 'Se poser dans le fauteuil', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'ekstrem', hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.0, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
     dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.2, 0, -1.95], yaw: 2.27, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
-    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'sofa', hipClearance: 0.20, y: 0, face: 'happy', pos: [0.35, 0, 4.42], yaw: Math.PI, approach: [0.35, 3.75], noFace: true, tv: true, think: TVBOX }),
+    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'sofa', hipClearance: 0.09, y: 0, face: 'happy', pos: [0.35, 0, 4.42], yaw: Math.PI, approach: [0.35, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.approach) st.approach = nav.nearest(st.pos[0], st.pos[2]);
   stations.chair = stations.desk; stations.stool = stations.bonsai; stations.shoes = stations.cha; stations.chashitsu = stations.cha;
 
-  // Assise réelle : on mesure le dessus du meuble sous le bassin, puis on y pose le pelvis.
-  // Cela évite les deux erreurs précédentes : personnage en lévitation ou assis au sol.
-  const seatRaycaster = new THREE.Raycaster();
-  const seatDown = new THREE.Vector3(0, -1, 0);
+  // Assise : hauteur du dessus de chaque siège = fraction de la hauteur du meuble, mesurée sous Blender (bpy) sur les modèles d'origine
+  // (lancers de rayons verticaux sur une grille 14 × 14, médiane des surfaces d'assise) : canapé 0,405 · siège de bureau 0,53 · Ekstrem 0,50.
+  // Le bassin se pose à 0,09 m au-dessus : c'est l'écart mesuré entre l'os du bassin et le point le plus bas des fesses dans la pose assise.
+  const SEAT_FRAC = { sofa: 0.405, chair: 0.53, ekstrem: 0.5 };
+  const SEAT_HIP = 0.09;
+  const seatBox = new THREE.Box3();
   const seatSurfaceY = (st) => {
     if (!st?.seatId) return null;
     const it = items.find((q) => q.id === st.seatId);
     if (!it) return null;
-    world.updateMatrixWorld(true);
-    const x = hero.group.position.x, z = hero.group.position.z;
-    seatRaycaster.set(new THREE.Vector3(x, 2.5, z), seatDown);
-    seatRaycaster.far = 3.5;
-    const hits = seatRaycaster.intersectObject(it.holder, true)
-      .filter((h) => h.point.y > 0.18 && h.point.y < 1.25);
-    return hits.length ? hits[0].point.y : null;
+    const lift = it.obj.position.y - it.base.y;                      // les meubles tombent en arrivant : on retire ce décalage
+    seatBox.setFromObject(it.holder);
+    return (seatBox.min.y - lift) + (seatBox.max.y - seatBox.min.y) * (SEAT_FRAC[st.seatId] ?? 0.45);
   };
 
   // Déplacements autonomes, comme sur le site de référence : le personnage se lève et va d'une activité à l'autre.
@@ -772,6 +770,7 @@ export async function createRoom(container, bubbleEl) {
               hero.group.position.y += dy * (1 - Math.exp(-dt * 14));
               hero.group.updateMatrixWorld(true);
             }
+            if (hero.plantSeatedFeet) hero.plantSeatedFeet(floorY(hero.group.position.x, hero.group.position.z) + 0.01);      // pieds posés au sol, genoux fléchis
           } else if (!(cur && cur.ritual && director.mode === 'activity')) {
             hero.model.position.y = modelBaseY;
             hero.group.updateMatrixWorld(true);
