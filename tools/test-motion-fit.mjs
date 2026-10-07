@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+
+const { chromium } = await import(process.env.PLAYWRIGHT_PACKAGE
+  ? pathToFileURL(process.env.PLAYWRIGHT_PACKAGE).href : 'playwright');
+const root = fileURLToPath(new URL('../', import.meta.url));
+const output = process.env.SCENE_TEST_OUTPUT || path.join(root, 'test-results');
+await mkdir(output, { recursive: true });
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
+  '.css': 'text/css', '.json': 'application/json', '.png': 'image/png',
+  '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml',
+  '.glb': 'model/gltf-binary', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg' };
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
+  args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+
+const context=await browser.newContext({viewport:{width:1440,height:900}});const page=await context.newPage();
+const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(['error','warning'].includes(m.type()))console.log(m.text().slice(0,220))});
+await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){if(this.buffer){const b=this.buffer.getChannelData(0);let peak=0;for(let i=0;i<b.length;i+=64)peak=Math.max(peak,Math.abs(b[i]));window.audioEvidence.push({peak,state:this.context.state});}return original.apply(this,args);};});
+    await context.route('http://scene.test/**', async (route) => {
+      const url = new URL(route.request().url());
+      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+      if (!filename.startsWith(root)) return route.fulfill({ status: 403 });
+      try {
+        const body = await readFile(filename);
+        await route.fulfill({ body, contentType: types[path.extname(filename)] || 'application/octet-stream' });
+      } catch {
+        await route.fulfill({ status: 404, body: url.pathname });
+      }
+    });
+
+await page.goto('http://scene.test/');await page.waitForFunction(()=>document.getElementById('room')?.dataset.shujaat==='ready',null,{timeout:60000});
+await page.evaluate(()=>window.room.pauseAutonomy(120000));
+await page.mouse.click(720,760);
+assert.equal(await page.evaluate(()=>{const desk=window.room.scene.getObjectByName('ShujaatExactDeskSet');return !!desk.getObjectByName('Setu task chair');}),false,'Imported desk must not contain a second office chair');
+await page.screenshot({path:path.join(output,'fit-standing.png')});
+const report=[];
+for (const id of ['ekstrem','alocasia','desk','sofa']) {
+ await page.evaluate(id=>window.room.director.placeInto(window.room.stations[id]),id);
+ await page.waitForFunction(()=>window.room.director.mode==='activity');
+ if(id!=='sofa') await page.waitForFunction(id=>{const a=document.querySelector('iframe').contentWindow.shupiHeader.scene;return a.simDoing?.doing==='busy' && a.simDoing?.busy==={ekstrem:'read',alocasia:'water',desk:'work'}[id]},id,{timeout:30000});
+ if(['ekstrem','alocasia'].includes(id)) await page.waitForFunction(id=>window.room.scene.getObjectByName('ShujaatExact:iso:'+(id==='ekstrem'?'book':'can'))?.visible,id,{timeout:15000});
+ await page.waitForTimeout(id==='alocasia'?300:1500);
+ await page.screenshot({path:path.join(output,'activity-'+id+'.png')});
+ report.push(await page.evaluate(async id=>{let T=await import('three'),r=window.room,a=document.querySelector('iframe').contentWindow.shupiHeader.scene;
+ const obj=n=>r.scene.getObjectByName(n);const book=obj('ShujaatExact:iso:book'),can=obj('ShujaatExact:iso:can');
+ const pos=o=>o?.getWorldPosition(new T.Vector3()).toArray();
+ return {id,source:a.simDoing,head:pos(r.hero.head),pelvis:pos(r.hero.bones.pelvis),handL:pos(r.hero.bones.hand_l),handR:pos(r.hero.bones.hand_r),book:{visible:book?.visible,pos:pos(book)},can:{visible:can?.visible,pos:pos(can)},frames:document.getElementById('room').dataset.sceneFrames};},id));
+ if(process.env.SCENE_EXPORT_POSES==='1' && ['desk','sofa'].includes(id)) {
+  const snapshot=await page.evaluate(async id=>{const {GLTFExporter}=await import('/tools/GLTFExporter.js'),T=await import('three');let r=window.room;const furniture=r.scene.children.flatMap(o=>o.children).find(o=>o.userData.id===(id==='sofa'?'sofa':'chair'));r.scene.updateMatrixWorld(true);const pose=Object.fromEntries(Object.entries(r.hero.bones).map(([n,b])=>[n,{position:b.getWorldPosition(new T.Vector3()).toArray(),matrix:b.matrixWorld.toArray()}]));const baked=new T.Group();for(const root of [r.hero.group,furniture])root?.traverseVisible(o=>{if(!o.isMesh)return;const geometry=o.geometry.clone(),p=geometry.attributes.position,v=new T.Vector3();o.skeleton?.update();for(let i=0;i<p.count;i++){o.getVertexPosition(i,v);v.applyMatrix4(o.matrixWorld);p.setXYZ(i,v.x,v.y,v.z);}geometry.deleteAttribute('skinIndex');geometry.deleteAttribute('skinWeight');geometry.computeVertexNormals();const mesh=new T.Mesh(geometry,o.material);mesh.name=o.name;baked.add(mesh);});const glb=await new GLTFExporter().parseAsync(baked,{binary:true});return {bytes:Array.from(new Uint8Array(glb)),pose};},id);
+  await writeFile(path.join(output,'pose-'+id+'.glb'),Buffer.from(snapshot.bytes));
+  await writeFile(path.join(output,'pose-'+id+'.json'),JSON.stringify(snapshot.pose,null,2));
+ }
+}
+for(const item of report){const distance=(a,b)=>Math.hypot(...a.map((x,i)=>x-b[i]));if(item.id==='ekstrem'){assert.ok(item.book.visible);assert.ok(distance(item.book.pos,item.handL.map((x,i)=>(x+item.handR[i])/2))<.15,'Book must stay between both hands');}if(item.id==='alocasia'){assert.ok(item.can.visible);assert.ok(Math.min(distance(item.can.pos,item.handL),distance(item.can.pos,item.handR))<.5,'Watering can must stay in a hand');}}
+await page.evaluate(()=>{window.room.director.stand();window.room.director.setRun(true);window.room.director.go(window.room.stations.alocasia);});
+await page.waitForTimeout(2000);
+const movement=await page.evaluate(()=>{let r=window.room,e=r.scene.getObjectByName('ShujaatMotionEffects'),visible=0;e.traverseVisible(o=>{if(o.isMesh)visible++;});const a=document.querySelector('iframe').contentWindow.audioEvidence;return {mode:r.director.mode,run:r.director.running,effects:visible,audio:a.filter(s=>s.peak>0&&s.state==='running').length};});
+assert.ok(movement.effects>0,'Original walking/running particles must be visible');assert.ok(movement.audio>0,'Original action sounds must generate audible buffers');
+await page.evaluate(()=>window.room.director.lift());await page.waitForTimeout(400);await page.evaluate(()=>{let p=window.room.hero.group.position;window.room.director.drop(p.x,p.z);});await page.waitForTimeout(800);
+assert.deepEqual(errors,[],'Activities must not stop the rendering loop');
+await writeFile(path.join(output,'feature-test.json'),JSON.stringify({report,movement,errors},null,2));console.log(JSON.stringify({report,movement,errors},null,2));await browser.close();

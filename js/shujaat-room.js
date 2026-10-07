@@ -77,6 +77,9 @@ function makeDeskSet(scene, pieces) {
     src.updateMatrixWorld(true);
 
     const clone = cloneShujaatObject(src);
+    // The reference desk owns its task chair as a child. The local room
+    // already has the requested Herman Miller Setu, so do not duplicate it.
+    clone.getObjectByName('Setu task chair')?.removeFromParent();
     clone.matrixAutoUpdate = true;
     const rel = inv.clone().multiply(src.matrixWorld);
     rel.decompose(clone.position, clone.quaternion, clone.scale);
@@ -126,7 +129,7 @@ async function build() {
   document.body.appendChild(iframe);
 
   const sceneApi = await waitFor(() => iframe.contentWindow?.shupiHeader?.scene);
-  await sceneApi.ready;
+  const sourceFeatures = await sceneApi.ready;
   sceneApi.setRoom(true);
   sceneApi.stopSim?.();
   // Offscreen iframe frames are throttled. Finish the source's entrance before
@@ -165,7 +168,9 @@ async function build() {
 
   const sourceBones = {};
   sourceCharacter?.traverse?.((o) => {
-    if (o.isBone && SOURCE_TO_TARGET[o.name]) sourceBones[o.name] = o;
+    // FBX loader keeps a transform bone and an identity skin child with the
+    // same name. The first one is the animated transform used by the source.
+    if (o.isBone && SOURCE_TO_TARGET[o.name] && !sourceBones[o.name]) sourceBones[o.name] = o;
   });
 
   const desk = makeDeskSet(sourceScene, pieces);
@@ -188,6 +193,32 @@ async function build() {
 
   const book = makeProp('iso:book');
   const wateringCan = makeProp('iso:can');
+  const effects = new THREE.Group();
+  effects.name = 'ShujaatMotionEffects';
+  effects.userData.dynamic = true;
+  const effectPairs = ['iso:dust', 'iso:star', 'iso:water', 'Room atmosphere particles']
+    .map(name => sourceScene.getObjectByName(name)).filter(Boolean)
+    .map(source => { const clone = cloneShujaatObject(source); effects.add(clone); return {source, clone}; });
+  const syncChildren = (source, clone) => {
+    while (clone.children.length < source.children.length) clone.add(cloneShujaatObject(source.children[clone.children.length]));
+    clone.visible = source.visible;
+    clone.position.copy(source.position); clone.quaternion.copy(source.quaternion); clone.scale.copy(source.scale);
+    if (source.isInstancedMesh) {
+      clone.instanceMatrix.array.set(source.instanceMatrix.array); clone.instanceMatrix.needsUpdate = true;
+      clone.count = source.count;
+    }
+    for (let i=0;i<Math.min(source.children.length,clone.children.length);i++) syncChildren(source.children[i],clone.children[i]);
+  };
+  const syncEffects = (hero) => {
+    hero.model.updateMatrixWorld(true);
+    const map = hero.model.matrixWorld.clone().multiply(sourceCharacter.matrixWorld.clone().invert());
+    effects.parent?.updateMatrixWorld(true);
+    const parentInv = effects.parent?.matrixWorld.clone().invert() || new THREE.Matrix4();
+    for (const {source,clone} of effectPairs) {
+      syncChildren(source,clone);
+      parentInv.clone().multiply(map).multiply(source.matrixWorld).decompose(clone.position,clone.quaternion,clone.scale);
+    }
+  };
 
   const syncProp = (clone, sourceName, targetRoot) => {
     if (!clone || !targetRoot) return false;
@@ -198,6 +229,7 @@ async function build() {
     }
 
     sourceScene.updateMatrixWorld(true);
+    syncChildren(src, clone);
     sourceCharacter.updateMatrixWorld(true);
     targetRoot.updateMatrixWorld(true);
 
@@ -216,6 +248,7 @@ async function build() {
   let mode = 'idle';
   let lastMode = '';
   let walkSeed = 0;
+  let modeFacing = 0;
 
   const setMode = (next, targetName = null) => {
     if (!next) next = 'idle';
@@ -226,15 +259,40 @@ async function build() {
     try {
       // L'API sonore exacte de Shujaat expose wake(), pas resume().
       sceneApi.sound?.wake?.();
-      if (next === 'walk') {
+      if (next === 'jump') {
+        sceneApi.stopSim?.();
+        sourceFeatures.ragdoll?.grab();
+        sceneApi.sound?.play('sim-jump');
+        sceneApi.sound?.loop('scratch');
+        return;
+      }
+      if (sourceFeatures.ragdoll?.active) {
+        sourceFeatures.ragdoll.release();
+        sceneApi.sound?.release('scratch');
+        sourceFeatures.flourish?.land(shupi.model.position, 0.8);
+        sceneApi.sound?.play('sim-land');
+      }
+      if (next === 'walk' || next === 'run') {
         const a = (++walkSeed % 2) ? 1 : -1;
         sceneApi.stopSim?.();
-        sceneApi.previewWalk?.({ x: a * 105, z: 95 }, false);
+        sceneApi.previewWalk?.({ x: a * 105, z: 95 }, next === 'run');
         return;
       }
 
       sceneApi.previewWalk?.({ x: shupi.model?.position?.x || 0, z: shupi.model?.position?.z || 0 }, false);
       sceneApi.stopSim?.();
+
+      // Navigation is already performed by the apartment director. Start the
+      // source at its station entry so it runs the real alignment/hop/sitting
+      // transition, rather than walking across a second invisible room first.
+      const activity = next === 'sit' ? 'read' : next;
+      const station = sceneApi.simStations.find(s => s.kind === activity && (!targetName || s.piece?.name === targetName))
+        || sceneApi.simStations.find(s => s.kind === activity);
+      if (station && (station.entry || station.at)) {
+        shupi.model.position.copy(station.entry || station.at);
+        shupi.model.rotation.y = station.facing;
+        modeFacing = station.facing;
+      }
 
       if (next === 'read') sceneApi.setSimActivity?.('read', targetName || 'DYVLINGE lounge chair');
       else if (next === 'water') sceneApi.setSimActivity?.('water', targetName || null);
@@ -243,9 +301,9 @@ async function build() {
       else if (next === 'sit') sceneApi.setSimActivity?.('read', targetName || 'Setu task chair');
       else if (next === 'think') {
         // Shujaat's idle simulation owns the exact thinking pose + synthetic cue.
-        sceneApi.setSimActivity?.(null);
+        sceneApi.stopSim?.();
       } else {
-        sceneApi.setSimActivity?.(null);
+        sceneApi.stopSim?.();
       }
     } catch (e) {
       console.warn('[Shujaat bridge] activity', next, e);
@@ -263,7 +321,7 @@ async function build() {
 
       // Same authoring FBX: local transforms are directly compatible.
       dst.quaternion.slerp(src.quaternion, w);
-      if (targetName === 'pelvis') dst.position.lerp(src.position, w);
+    dst.position.lerp(src.position, w);
     }
     hero.group.updateMatrixWorld(true);
   };
@@ -284,21 +342,34 @@ async function build() {
     mode = 'idle';
   };
 
+  // Run the source mixer and procedural frame callbacks on the room clock.
+  // An offscreen iframe's own animation frames are otherwise throttled.
+  shupi._running = false;
+  const update = (dt) => {
+    shupi.mixer?.update(dt);
+    shupi._emit('frame', dt);
+    sourceScene.updateMatrixWorld(true);
+  };
   return {
     iframe,
     sceneApi,
     shupi,
+    sourceFeatures,
+    update,
     deskSet: desk.root,
     deskDisplay: desk.display,
     book,
     wateringCan,
-    syncBook: (targetRoot) => syncProp(book, 'iso:book', targetRoot),
-    syncWateringCan: (targetRoot) => syncProp(wateringCan, 'iso:can', targetRoot),
+    effects,
+    syncEffects,
+    syncBook: (targetRoot) => syncProp(book, 'iso:book', targetRoot.model || targetRoot),
+    syncWateringCan: (targetRoot) => syncProp(wateringCan, 'iso:can', targetRoot.model || targetRoot),
     setMode,
     applyPose,
     resumeSound,
     stop,
     get mode() { return mode; },
+    get seatYawOffset() { return mode === 'work' ? shupi.model.rotation.y - modeFacing : 0; },
   };
 }
 

@@ -129,7 +129,7 @@ export async function createCharacter({
 
   // JEAN_JNCO : jean « JNCO Twin Cannon » monté sur le squelette sous Blender (tools/blender_jnco.py) ; il remplace les jambes d'origine.
   try {
-    const jeanGltf = await parse(await loadBuffer('assets/jeans-jnco.glb?v=bf01a16'));
+    const jeanGltf = await parse(await loadBuffer('assets/jeans-jnco-fit.glb?v=motion-fit-v11'));
     const meshes = attachSkinned(jeanGltf, { double: true });
     if (meshes.length) { let legsNode = null; characterGltf.scene.traverse((o) => { if (o.name === 'legs') legsNode = o; }); legsNode?.removeFromParent(); meshes.forEach((m) => { m.name = 'jean_' + m.name; }); }
   } catch (_) {}
@@ -256,7 +256,22 @@ export async function createCharacter({
     if (!nb992Gltf || !bones.foot_l || !bones.foot_r || !clips.Idle_Loop) return false;
     const tm = new THREE.AnimationMixer(group), act = tm.clipAction(clips.Idle_Loop); act.play(); tm.update(0); group.updateMatrixWorld(true);
     const ground = Math.min(bones.ball_l.getWorldPosition(new THREE.Vector3()).y, bones.ball_r.getWorldPosition(new THREE.Vector3()).y) - 0.04;
-    const nbForwardOffset = { left: 0.226688, right: 0.223570 }; // Blender: talon NB992 aligné sur le bord arrière de l'ouverture du jean JNCO
+    const originalShoePoints = { left: [], right: [] };
+    for (const mesh of shoeParts) {
+      if (!mesh.isSkinnedMesh) continue;
+      mesh.skeleton.update();
+      const indexes = mesh.geometry.attributes.skinIndex, weights = mesh.geometry.attributes.skinWeight;
+      for (let i = 0; i < indexes.count; i++) {
+        let left = 0, right = 0;
+        for (let j = 0; j < 4; j++) {
+          const name = mesh.skeleton.bones[indexes.getComponent(i, j)]?.name || '';
+          if (name.endsWith('_l')) left += weights.getComponent(i, j);
+          if (name.endsWith('_r')) right += weights.getComponent(i, j);
+        }
+        const side = left >= right ? 'left' : 'right';
+        originalShoePoints[side].push(mesh.getVertexPosition(i, new THREE.Vector3()).applyMatrix4(mesh.matrixWorld));
+      }
+    }
     for (const [side, bone, ball] of [['left', bones.foot_l, bones.ball_l], ['right', bones.foot_r, bones.ball_r]]) {
       const src = nb992Gltf.scene.getObjectByName('nb_' + side); if (!src) continue;
       const shoe = src.clone(true);
@@ -264,12 +279,17 @@ export async function createCharacter({
       const f0 = bone.getWorldPosition(new THREE.Vector3()), b0 = ball.getWorldPosition(new THREE.Vector3());
       const fwd = b0.clone().sub(f0); fwd.y = 0; fwd.normalize();
       const x = new THREE.Vector3(0, 1, 0).cross(fwd).normalize();
-      const shoeForward = nbForwardOffset[side];
-      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * shoeForward, ground, f0.z + fwd.z * shoeForward);
+      // Center each new sole on the posed original shoe envelope, which follows
+      // the actual foot and its lateral position. A forward-only offset cannot
+      // fix a displacement across the leg when the ankle turns.
+      const originalBox = new THREE.Box3().setFromPoints(originalShoePoints[side]);
+      const center = originalShoePoints[side].length ? originalBox.getCenter(new THREE.Vector3()) : f0;
+      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(center.x, ground, center.z);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
       shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Shujaat
       bone.add(shoe); shoeVisuals.push(shoe);
+      shoe.userData.calibration = { reference: 'posed-original-Shujaat-shoe', center: center.toArray() };
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
       // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
       const sock = new THREE.Group();

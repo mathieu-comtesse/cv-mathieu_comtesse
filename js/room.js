@@ -1,6 +1,6 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=bf01a16';
-import { createCharacter } from './character.js?v=heel-blender-v9';
+import { createCharacter } from './character.js?v=motion-fit-v11';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
@@ -8,8 +8,8 @@ import { createRitual } from './ritual.js?v=bf01a16';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
 import { createRetroSet } from './retro.js?v=heel-blender-v9';
 import { createNav } from './nav.js?v=bf01a16';
-import { createDirector } from './director.js?v=bf01a16';
-import { createThought } from './thought.js?v=bf01a16';
+import { createDirector } from './director.js?v=motion-fit-v11';
+import { createThought } from './thought.js?v=motion-fit-v11';
 import { createWeather } from './weather.js?v=bf01a16';
 import { createJukebox } from './jukebox.js?v=bf01a16';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
@@ -146,7 +146,7 @@ export async function createRoom(container, bubbleEl) {
   const loadShujaatBridge = () => {
     bridgeStarted = true;
     container.dataset.shujaat = 'loading';
-    import('./shujaat-room.js?v=render-recovery-v10')
+    import('./shujaat-room.js?v=motion-fit-v11')
       .then((m) => m.getShujaatRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -173,6 +173,9 @@ export async function createRoom(container, bubbleEl) {
           bridge.wateringCan.userData.dynamic = true;
           world.add(bridge.wateringCan);
         }
+        if (bridge.effects) world.add(bridge.effects);
+        thought.useSource(bridge.sceneApi);
+        if (thoughtFor) thought.show(thoughtFor.think?.obj, thoughtFor.label, thoughtFor.think);
 
         console.info('[Shujaat] pont exact chargé après affichage de la scène');
         container.dataset.shujaat = 'ready';
@@ -190,6 +193,8 @@ export async function createRoom(container, bubbleEl) {
     bridge?.stop();
     bridge?.book?.removeFromParent();
     bridge?.wateringCan?.removeFromParent();
+    bridge?.effects?.removeFromParent();
+    thought.useSource(null);
     for (const child of [...deskSet.children]) deskSet.remove(child);
     for (const child of fallbackDeskChildren) deskSet.add(child);
     uw = deskSet.children.find((o) => o.userData.id === 'pc');
@@ -695,6 +700,9 @@ export async function createRoom(container, bubbleEl) {
       },
     },
   });
+  window.addEventListener('keydown', e => { if (e.key === 'Shift') director.setRun(true); });
+  window.addEventListener('keyup', e => { if (e.key === 'Shift') director.setRun(false); });
+  window.addEventListener('blur', () => director.setRun(false));
   for (const st of Object.values(stations)) {
     st.enter = () => {
       hero.setBase(st.face); hero.talk(false); hero.can.visible = !!st.can; hero.setOverride(st.ov || null); hero.setShujaatPose?.(st.pose || null);
@@ -813,7 +821,8 @@ export async function createRoom(container, bubbleEl) {
     if (!shujaatBridge || !hero.group.visible) return 'idle';
     let next = 'idle';
     const cur = director.current;
-    if (director.mode === 'walk') next = 'walk';
+    if (director.mode === 'carried') next = 'jump';
+    else if (director.mode === 'walk') next = director.running ? 'run' : 'walk';
     else if (director.mode === 'activity' && cur?.shujaatMode) next = cur.shujaatMode;
 
     if (next !== shujaatMotionMode) {
@@ -872,9 +881,12 @@ export async function createRoom(container, bubbleEl) {
       }
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
-      // The Base_Human and local UE rigs have different bone axes. Keep the
-      // local animations, captured poses and seated IK; the iframe supplies
-      // activities, sounds and props without overwriting the character's rig.
+      if (shujaatBridge && !director.current?.ritual) {
+        try {
+          shujaatBridge.update(dt);
+          shujaatBridge.applyPose(hero);
+        } catch (error) { restoreLocalDesk(error); }
+      }
       { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
         followTea = ritual.state.active || (director.current && director.current.ritual) || cs.panels.some((q) => q.target > 0.5) || inRoom || hp.x < CS.x + 2.6 && hp.z > CS.z - 3.5;
         cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
@@ -886,12 +898,16 @@ export async function createRoom(container, bubbleEl) {
           if (modelBaseY === null) modelBaseY = hero.model.position.y;
           if (seated) {
             hero.model.position.y = modelBaseY;
+            if (cur === stations.desk && shujaatBridge) {
+              hero.group.rotation.y = cur.yaw + shujaatBridge.seatYawOffset;
+              chair.children[0].rotation.y = -Math.PI / 2 + shujaatBridge.seatYawOffset;
+            }
 
             // Bassin au fond du siège : recul contrôlé vers le dossier.
             const seatForward = new THREE.Vector3(
-              Math.sin(cur.yaw || 0),
+              Math.sin(hero.group.rotation.y || 0),
               0,
-              Math.cos(cur.yaw || 0)
+              Math.cos(hero.group.rotation.y || 0)
             );
             const back = cur.seatBack || 0;
             const targetX = cur.pos[0] - seatForward.x * back;
@@ -911,7 +927,7 @@ export async function createRoom(container, bubbleEl) {
             }
 
             // Posture demandée : assise en L, jambes tendues, genoux non repliés.
-            hero.poseSeatedL?.(floorY(hero.group.position.x, hero.group.position.z) + 0.01);
+            if (!shujaatBridge || cur === stations.sofa) hero.poseSeatedL?.(floorY(hero.group.position.x, hero.group.position.z) + 0.01);
           } else if (!(cur && cur.ritual && director.mode === 'activity')) {
             hero.model.position.y = modelBaseY;
             hero.group.updateMatrixWorld(true);
@@ -920,11 +936,14 @@ export async function createRoom(container, bubbleEl) {
           }
         } }
       if (shujaatBridge) {
-        if (exactMotion === 'read') shujaatBridge.syncBook(hero.group);
+        try {
+        shujaatBridge.syncEffects(hero);
+        if (exactMotion === 'read') shujaatBridge.syncBook(hero);
         else if (shujaatBridge.book) shujaatBridge.book.visible = false;
 
-        if (exactMotion === 'water') shujaatBridge.syncWateringCan(hero.group);
+        if (exactMotion === 'water') shujaatBridge.syncWateringCan(hero);
         else if (shujaatBridge.wateringCan) shujaatBridge.wateringCan.visible = false;
+        } catch (error) { restoreLocalDesk(error); }
       }
 
       const playingConsole = director.current === stations.sofa && director.mode === 'activity';

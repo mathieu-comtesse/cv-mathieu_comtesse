@@ -1,4 +1,5 @@
 import { THREE } from './kit.js?v=bf01a16';
+import { n as sourceSettings, t as sourcePreset } from '../shupi/assets/thought-presets-_pi_GkjI.js';
 
 /* Bulle de pensée : un nuage avec la miniature 3D de l'activité qui tourne lentement (comme les pensées du personnage de référence).
  * Un second rendu minuscule (96 px) dessine une copie de l'objet ; le nuage est un SVG, la traîne de deux petits cercles. */
@@ -15,9 +16,31 @@ export function createThought(el) {
   const sun = new THREE.DirectionalLight('#fff3e0', 2.2); sun.position.set(2, 3, 2.5); scene.add(sun);
   const cam = new THREE.OrthographicCamera(-0.62, 0.62, 0.62, -0.62, 0.1, 20); cam.position.set(0, 0, 5); cam.lookAt(0, 0, 0);
   const spin = new THREE.Group(), tilt = new THREE.Group(); tilt.add(spin); scene.add(tilt);
-  let rate = 0.9;
+  let rate = 0.9, sourcePreview = null, nativeActive = false;
+  const localVisible = (on) => { for (const child of el.children) if (!child.classList.contains('action-bubble')) child.style.display = on ? '' : 'none'; };
+  const sourceLabel = (text) => /bureau/.test(text) ? 'Work at the desk'
+    : /Arroser/.test(text) ? 'Water plant'
+    : /Lire/.test(text) ? sourcePreview?.items.find(s=>s.startsWith('Read '))
+    : /Jouer/.test(text) ? 'Play on the lounge chair' : null;
   return {
+    useSource(api) {
+      sourcePreview?.bubble.dispose();
+      sourcePreview = api ? api.createThoughtPreview(el) : null;
+      nativeActive = false;
+      if (sourcePreview) for (const c of el.querySelectorAll('.action-bubble canvas')) { c.style.transform = 'none'; c.style.left = '0'; c.style.top = '0'; c.style.width = '100%'; c.style.height = '100%'; }
+      localVisible(!sourcePreview);
+    },
     show(obj, text, { tiltDeg = 25, scale = 1, yaw = -17 } = {}) {
+      if (sourcePreview) {
+        const label = sourceLabel(text);
+        if (label && sourcePreview.items.includes(label)) {
+          nativeActive = true; localVisible(false); sourcePreview.show(label);
+          for (const c of el.querySelectorAll('.action-bubble canvas')) { c.style.transform = 'none'; c.style.left = '0'; c.style.top = '0'; c.style.width = '100%'; c.style.height = '100%'; }
+          sourcePreview.bubble.setSettings(sourceSettings(sourcePreset(label))); return;
+        }
+        sourcePreview.bubble.hide();
+      }
+      nativeActive = false; localVisible(true);
       while (spin.children.length) spin.remove(spin.children[0]);
       if (obj) {
         const c = obj.clone(true);
@@ -32,6 +55,6 @@ export function createThought(el) {
       }
       cap.textContent = '';
     },
-    update(dt) { if (spin.children.length) { spin.rotation.y += dt * rate; renderer.render(scene, cam); } },
+    update(dt) { if (nativeActive) sourcePreview.bubble.update(dt, true); else if (spin.children.length) { spin.rotation.y += dt * rate; renderer.render(scene, cam); } },
   };
 }

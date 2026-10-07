@@ -8,6 +8,9 @@ on:
       - "js/**"
       - "tools/test-shujaat-geometry.mjs"
       - "tools/test-scene-runtime.mjs"
+      - "tools/test-motion-fit.mjs"
+      - "assets/jeans-jnco-fit.glb"
+      - "shupi/assets/**"
       - ".github/workflows/scene-smoke.yml"
   workflow_dispatch:
 
@@ -28,16 +31,18 @@ jobs:
           node --check js/retro.js
           node --check js/shujaat-room.js
           node --check js/shujaat-geometry.js
+          node --check js/thought.js
+          node --check js/director.js
       - name: Check iframe geometry compatibility
         run: node tools/test-shujaat-geometry.mjs
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=render-recovery-v10" index.html
-          grep -q "character.js?v=heel-blender-v9" js/room.js
+          grep -q "js/main.js?v=motion-fit-v11" index.html
+          grep -q "character.js?v=motion-fit-v11" js/room.js
           grep -q "retro.js?v=heel-blender-v9" js/room.js
-          grep -q "room.js?v=render-recovery-v10" js/main.js
-          grep -q "const nbForwardOffset = { left: 0.226688, right: 0.223570 }" js/character.js
+          grep -q "room.js?v=motion-fit-v11" js/main.js
+          test -s assets/jeans-jnco-fit.glb
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
   runtime:
@@ -53,6 +58,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Check room rendering and interactions
         run: node tools/test-scene-runtime.mjs
+      - name: Check original activities, effects and sounds
+        run: node tools/test-motion-fit.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
