@@ -60,6 +60,7 @@ export function createRetroSet() {
 
   /* ── manette ── */
   const pad = group();
+  pad.userData.dynamic = true;
   const padM = new THREE.MeshStandardMaterial({ color: '#b6b6b1', roughness: 0.55 });
   pad.add(rbox(0.14, 0.024, 0.07, 0.01, padM, 0, 0.012, 0));
   for (const s of [-1, 1]) { const grip = rbox(0.038, 0.03, 0.075, 0.014, padM, s * 0.068, 0.015, 0.05); grip.rotation.y = s * -0.28; pad.add(grip); }
@@ -157,7 +158,7 @@ export function createRetroSet() {
   }
   const litMat = rocker.material; litMat.userData.unique = true;
   const api = {
-    strip, cordStart, pad,
+    pad,
     get padHeld() { return padHeld; },
     setPadHeld(v) { padHeld = !!v; },
     updatePad(dt, handL, handR) {
