@@ -14,6 +14,7 @@ import { createWeather } from './weather.js?v=bf01a16';
 import { createJukebox } from './jukebox.js?v=bf01a16';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
+import { getShujaatRoomBridge } from './shujaat-room.js?v=shujaat-room-v2';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -56,6 +57,11 @@ export async function createRoom(container, bubbleEl) {
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
   const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=bf01a16'), load('assets/tableau.jpg?v=bf01a16'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
+  const shujaatBridge = await getShujaatRoomBridge().catch((e) => {
+    console.warn('[Shujaat room] runtime exact indisponible, fallback procédural', e);
+    return null;
+  });
+
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const items = [];                     // { holder, obj, delay, id }
@@ -81,39 +87,55 @@ export async function createRoom(container, bubbleEl) {
 
   if (rugTex) add('rug', F.rug(rugTex, 3.1, 4.3), 0.0, 1.1, 0, 0, 0.0, world, 0);
 
-  // bureau + objets
+  // Bureau Shujaat exact : les objets viennent directement du runtime local Shujaat.
+  // Fallback procédural uniquement si le mini-runtime n'a pas pu se charger.
   const deskSet = group();
-  deskSet.add(F.desk());
-  const uw = F.ultrawide(); uw.position.set(-0.2, 0.74, -0.2); uw.userData.id = 'pc'; deskSet.add(uw);
-  const pm = F.portraitMonitor(); pm.position.set(0.52, 0.74, -0.18); pm.rotation.y = -0.22; pm.userData.id = 'pc'; deskSet.add(pm);
-  const kb = F.moonlander(); kb.position.set(-0.12, 0.74, 0.2); deskSet.add(kb);
-  const mouse = F.verticalMouse(); mouse.position.set(0.3, 0.74, 0.24); mouse.rotation.y = 0.1; deskSet.add(mouse);
-  const brontes = F.brontes();
-  add('brontes', brontes, -0.8, -0.22, 0.4, 0.74, 0, deskSet);
-  const tw = F.tower(); tw.position.set(0.8, 0.74, -0.08); tw.rotation.y = -0.12; deskSet.add(tw);
+  deskSet.userData.dynamic = true;
 
-  // SNOW_PEAK_DESK_SET : tasse titane 450 + dessous de verre bleu/vert (reproduction procédurale d'après les photos).
-  {
-    const set = new THREE.Group();
+  let uw;
+  const brontes = F.brontes();
+
+  if (shujaatBridge?.deskSet) {
+    deskSet.add(shujaatBridge.deskSet);
+    uw = shujaatBridge.deskDisplay || shujaatBridge.deskSet.getObjectByName('Apple Studio Display');
+    if (uw) {
+      uw.userData.id = 'pc';
+      uw.traverse?.((o) => { if (o.isMesh) o.userData.id = 'pc'; });
+    }
+
+    // Le lampadaire déjà présent dans le CV est conservé, sans modifier le set Shujaat.
+    add('brontes', brontes, -0.8, -0.22, 0.4, 0.74, 0, deskSet);
+
+    if (shujaatBridge.book) {
+      shujaatBridge.book.userData.dynamic = true;
+      world.add(shujaatBridge.book);
+    }
+    if (shujaatBridge.wateringCan) {
+      shujaatBridge.wateringCan.userData.dynamic = true;
+      world.add(shujaatBridge.wateringCan);
+    }
+  } else {
+    deskSet.add(F.desk());
+    uw = F.ultrawide(); uw.position.set(-0.2, 0.74, -0.2); uw.userData.id = 'pc'; deskSet.add(uw);
+    const pm = F.portraitMonitor(); pm.position.set(0.52, 0.74, -0.18); pm.rotation.y = -0.22; pm.userData.id = 'pc'; deskSet.add(pm);
+    const kb = F.moonlander(); kb.position.set(-0.12, 0.74, 0.2); deskSet.add(kb);
+    const mouse = F.verticalMouse(); mouse.position.set(0.3, 0.74, 0.24); mouse.rotation.y = 0.1; deskSet.add(mouse);
+    add('brontes', brontes, -0.8, -0.22, 0.4, 0.74, 0, deskSet);
+    const tw = F.tower(); tw.position.set(0.8, 0.74, -0.08); tw.rotation.y = -0.12; deskSet.add(tw);
+
     const titanium = new THREE.MeshStandardMaterial({ color: '#b8b4b0', roughness: 0.34, metalness: 0.82 });
-    const blue = new THREE.MeshStandardMaterial({ color: '#36a6e8', roughness: 0.48, metalness: 0.02 });
-    const green = new THREE.MeshStandardMaterial({ color: '#64ae36', roughness: 0.48, metalness: 0.02 });
-    const coaster = new THREE.Group();
-    const cb = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.082, 0.008, 36), blue); cb.scale.set(1.15, 1, 0.92); cb.position.y = 0.004; coaster.add(cb);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.078, 0.009, 8, 36), green); ring.rotation.x = Math.PI / 2; ring.scale.set(1.15, 0.92, 1); ring.position.y = 0.009; coaster.add(ring);
     const mug = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.049, 0.095, 28, 1, true), titanium); body.position.y = 0.056; mug.add(body);
     const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.049, 0.049, 0.004, 28), titanium); bottom.position.y = 0.009; mug.add(bottom);
     const lip = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.0022, 6, 28), titanium); lip.rotation.x = Math.PI / 2; lip.position.y = 0.104; mug.add(lip);
-    const h1 = new THREE.Mesh(new THREE.TorusGeometry(0.046, 0.003, 6, 24, Math.PI * 1.38), titanium.clone()); h1.rotation.set(Math.PI / 2, 0, Math.PI / 2); h1.position.set(0.055, 0.061, 0); h1.scale.set(1.0, 1.25, 1.0); mug.add(h1);
-    const hinge = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.061, 0.012), titanium); hinge.position.set(0.052, 0.058, 0); mug.add(hinge);
-    const mark = new THREE.Mesh(new THREE.PlaneGeometry(0.034, 0.024), new THREE.MeshBasicMaterial({ color: '#171717', transparent: true, opacity: 0.9, side: THREE.DoubleSide })); mark.position.set(0, 0.060, 0.0515); mug.add(mark);
-    set.add(coaster, mug); set.position.set(0.56, 0.742, 0.23); set.rotation.y = -0.12; deskSet.add(set);
+    mug.position.set(0.56, 0.742, 0.23); deskSet.add(mug);
+
+    inkify(deskSet, { skip: (o) => {
+      for (let p = o; p; p = p.parent) if (p.userData && p.userData.id === 'brontes') return true;
+      return false;
+    } });
   }
-  const dcab = (pts, r = 0.0028) => deskSet.add(tube(pts.map(([x, y, z]) => [x, y + 0.74, z]), r, mat('#121214', { roughness: 0.6 }), { segs: 40, radial: 5 }));
-  dcab([[0.77, 0.3, -0.3], [0.76, 0.012, -0.34], [0.62, 0.006, -0.36], [0.5, 0.006, -0.3], [0.5, 0.03, -0.2]]);
-  dcab([[0.79, 0.28, -0.3], [0.78, 0.012, -0.36], [0.4, 0.006, -0.4], [0.0, 0.006, -0.36], [-0.2, 0.03, -0.28]]);
-  inkify(deskSet, { skip: (o) => { if (o.geometry && o.geometry.type === 'TubeGeometry') return true; for (let p = o; p; p = p.parent) if (p.userData && p.userData.id === 'brontes') return true; return false; } });
+
   add('desk', deskSet, -3.1, 0.25, Math.PI / 2, 0, 0.12);
   mkLamp('brontes', brontes.userData.glow, new THREE.PointLight('#ffd9a0', 0, 3, 2), '#fff0d0', '#9a948a');
 
