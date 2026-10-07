@@ -408,8 +408,8 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ label: 'Travailler au bureau', clip: 'Driving_Loop', y: 0.13, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.06), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
-    ekstrem:  S({ label: 'Se poser dans le fauteuil', clip: 'Sitting_Idle_Loop', y: 0.39, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
+    desk:     S({ label: 'Travailler au bureau', clip: 'Driving_Loop', y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.06), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    ekstrem:  S({ label: 'Se poser dans le fauteuil', clip: 'Sitting_Idle_Loop', y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, -0.14), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', maxMs: 12000, can: true, ov: can, pos: [-2.0, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
@@ -689,6 +689,10 @@ export async function createRoom(container, bubbleEl) {
       director.update(dt);
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
+      { const cur = director.current;
+        const seated = cur && director.mode === 'activity' && (cur.clip === 'Driving_Loop' || cur.clip === 'Sitting_Idle_Loop');
+        if (seated && hero.plantSeatedFeet) hero.plantSeatedFeet(hero.group.position.y + 0.01);
+      }
       // pieds au sol quand il est debout ou marche (le rig importé a sa propre hauteur de bassin)
       hero.setLean(director.current && director.mode === 'activity' && (director.current.clip === 'Driving_Loop' || director.current.clip === 'Sitting_Idle_Loop' || director.current.ritual) ? 0 : 0);
       { const cur = director.current, seated = cur && (cur.clip === 'Driving_Loop' || cur.clip === 'Sitting_Idle_Loop' || cur.ritual) && director.mode === 'activity';
