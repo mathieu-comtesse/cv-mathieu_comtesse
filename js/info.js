@@ -1,5 +1,5 @@
-import { initTheme, initReveal } from './theme.js?v=3cff226';
-import { initPortrait } from './portrait.js?v=3cff226';
+import { initTheme, initReveal } from './theme.js?v=068a541';
+import { initPortrait } from './portrait.js?v=068a541';
 
 initTheme();
 initReveal();

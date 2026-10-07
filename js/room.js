@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=3cff226';
-import * as F from './furniture.js?v=3cff226';
-import { createCharacter } from './character.js?v=3cff226';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=068a541';
+import * as F from './furniture.js?v=068a541';
+import { createCharacter } from './character.js?v=068a541';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=3cff226';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=3cff226';
-import { createRitual } from './ritual.js?v=3cff226';
-import { createChashitsu } from './chashitsu.js?v=3cff226';
-import { createRetroSet } from './retro.js?v=3cff226';
-import { createNav } from './nav.js?v=3cff226';
-import { createDirector } from './director.js?v=3cff226';
-import { createThought } from './thought.js?v=3cff226';
-import { createWeather } from './weather.js?v=3cff226';
-import { createJukebox } from './jukebox.js?v=3cff226';
-import { TRACKS, COVER } from './music.js?v=3cff226';
+import { loadBuffer } from './kit.js?v=068a541';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=068a541';
+import { createRitual } from './ritual.js?v=068a541';
+import { createChashitsu } from './chashitsu.js?v=068a541';
+import { createRetroSet } from './retro.js?v=068a541';
+import { createNav } from './nav.js?v=068a541';
+import { createDirector } from './director.js?v=068a541';
+import { createThought } from './thought.js?v=068a541';
+import { createWeather } from './weather.js?v=068a541';
+import { createJukebox } from './jukebox.js?v=068a541';
+import { TRACKS, COVER } from './music.js?v=068a541';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -47,14 +47,14 @@ export async function createRoom(container, bubbleEl) {
   sun.shadow.radius = 5; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   scene.add(hemi, sun);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.3, color: '#3b4a73' }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.3, color: '#3b4a73', depthWrite: false }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
   scene.add(ground);
 
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=3cff226'), load('assets/tableau.jpg?v=3cff226'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=3cff226').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=068a541'), load('assets/tableau.jpg?v=068a541'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=068a541').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -404,7 +404,7 @@ export async function createRoom(container, bubbleEl) {
   nav.block({ x0: 0.55, x1: 1.15, z0: -2.45, z1: -1.85 });                      // pied du lampadaire (le bras passe au-dessus)
   nav.block({ x0: CS.x - 1.35, x1: CS.x + 1.35, z0: CS.z - 1.8, z1: CS.z + 1.8 });   // plate-forme du thé : on n'y entre que par la porte
   nav.block({ x0: CS.x - 2.05, x1: CS.x + 2.05, z0: CS.z + cs.spec.DK.z0, z1: CS.z + cs.spec.DK.z0 + 1.1 });   // balcon
-  nav.block({ x0: CS.x - 2.1, x1: CS.x + 2.1, z0: CS.z + cs.spec.SEA.z0 - 0.3, z1: 14 });                              // mer
+  nav.block({ x0: CS.x - 3.3, x1: CS.x + 3.3, z0: CS.z + cs.spec.SEA.z0 - 0.3, z1: 14 });                              // mer
   const floorY = (x, z) => {
     if (Math.abs(x - CS.x) < 1.35 && Math.abs(z - CS.z) < 1.8) return cs.spec.RH;
     if (Math.abs(x - CS.x) < 2.05 && z > CS.z + cs.spec.DK.z0 - 0.02 && z < CS.z + cs.spec.DK.z0 + 1.1) return cs.spec.DK.y;

@@ -1,5 +1,5 @@
-import { makePond } from './pond.js?v=3cff226';
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=3cff226';
+import { makePond } from './pond.js?v=068a541';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=068a541';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
  * Repère local : origine au centre du sol de tatamis, +z = côté ouvert (shoji coulissants → balcon en bois → mer).
@@ -48,17 +48,6 @@ function shojiPanel(W = 0.9, H = 1.75) {
   return bake(g);
 }
 
-function rock(seed, s) {
-  const geo = new THREE.SphereGeometry(1, 18, 12); const p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    const n = 1 + 0.16 * Math.sin(x * 2.3 + seed) * Math.cos(z * 2.1 + seed * 1.7) + 0.1 * Math.sin(y * 3.1 + seed * 0.7) + 0.06 * Math.sin((x + z) * 5.3 + seed);
-    p.setXYZ(i, x * n, Math.max(y, -0.15) * n * 0.62, z * n);
-  }
-  geo.computeVertexNormals(); geo.scale(s * 1.25, s, s);
-  return mesh(geo, new THREE.MeshStandardMaterial({ color: '#434a55', roughness: 0.95 }));
-}
-
 export function createChashitsu() {
   const g = group();
   const { w: RW, d: RD, h: RH } = ROOM;
@@ -92,8 +81,10 @@ export function createChashitsu() {
   planks.position.y = DK.y - 0.022;
   for (const x of [-RW / 2 - 0.2, 0, RW / 2 + 0.2]) planks.add(box(0.07, 0.06, DK.depth + 0.04, beam, x, -0.05, DK.z0 + DK.depth / 2));
   vista.add(bake(planks));
-  // pieds du balcon
-  for (const x of [-RW / 2 - 0.25, RW / 2 + 0.25]) vista.add(box(0.09, 0.4, 0.09, post, x, DK.y - 0.2, DK.z0 + DK.depth - 0.07));
+  // pieux du ponton : ils plongent dans l'eau jusqu'au fond de sable (l'étang passe sous le plancher)
+  const WL = -0.12;                                                   // niveau de l'eau
+  const posts = [[-1.6, DK.z0 + DK.depth - 0.07], [-0.55, DK.z0 + DK.depth - 0.07], [0.55, DK.z0 + DK.depth - 0.07], [1.6, DK.z0 + DK.depth - 0.07], [-1.6, DK.z0 + 0.55], [1.6, DK.z0 + 0.55]];
+  { const yb = WL - 0.74, yt = DK.y - 0.04; for (const [x, z] of posts) vista.add(box(0.09, yt - yb, 0.09, post, x, (yt + yb) / 2, z)); }
 
   /* mobilier du balcon : table basse, coussin rond, lanterne andon */
   const table = group();
@@ -115,11 +106,9 @@ export function createChashitsu() {
   lantern.position.set(RW / 2 - 0.5, DK.y, DK.z0 + 0.55); lantern.userData.id = 'andon';
   vista.add(lantern);
 
-  /* mer et rochers */
-  const SEA = { w: 3.6, d: 1.9, z0: DK.z0 + DK.depth + 0.3, y: -0.3 };
-  const sea = makePond(SEA.w, SEA.d); sea.position.set(0, SEA.y, SEA.z0 + SEA.d / 2); vista.add(sea);
-  const rocks = [[-1.45, 1.55, 0.3, 3], [-0.95, 1.7, 0.2, 4], [1.2, 1.7, 0.24, 5], [1.5, 1.4, 0.34, 6], [-1.62, 0.9, 0.22, 8]];   // rochers sur la rive du fond
-  for (const [x, dz, s, seed] of rocks) { const rk = rock(seed, s); rk.position.set(x, SEA.y + s * 0.2, SEA.z0 + dz); rk.rotation.y = seed; vista.add(rk); }
+  /* étang : rive irrégulière qui passe sous le ponton, rochers ancrés sur la rive */
+  const SEA = { w: 5.4, d: 3.3, z0: DK.z0 + DK.depth + 0.3, y: WL };
+  const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15 }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
 
   return {
     group: g, lantern, lanternGlow: paperL, panels, vista,
