@@ -1,12 +1,12 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=bf01a16';
-import { createCharacter } from './character.js?v=shoe-forward-v6';
+import { createCharacter } from './character.js?v=blender-seat-pad-v8';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
 import { createRitual } from './ritual.js?v=bf01a16';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
-import { createRetroSet } from './retro.js?v=stable-3d-v5';
+import { createRetroSet } from './retro.js?v=blender-seat-pad-v8';
 import { createNav } from './nav.js?v=bf01a16';
 import { createDirector } from './director.js?v=bf01a16';
 import { createThought } from './thought.js?v=bf01a16';
