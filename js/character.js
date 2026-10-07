@@ -458,8 +458,54 @@ export async function createCharacter({
     group.updateMatrixWorld(true);
   };
 
+  // ASSISE_L : bassin au fond, jambes longues vers l'avant, genoux quasi verrouillés.
+  const poseSeatedL = (groundY) => {
+    if (![bones.thigh_l,bones.calf_l,bones.foot_l,bones.thigh_r,bones.calf_r,bones.foot_r].every(Boolean)) return;
+    group.updateMatrixWorld(true);
+
+    const qg = group.getWorldQuaternion(new THREE.Quaternion());
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(qg);
+    forward.y = 0; forward.normalize();
+    const side = new THREE.Vector3(1, 0, 0).applyQuaternion(qg);
+    side.y = 0; side.normalize();
+
+    const stretch = (sgn, thigh, calf, foot) => {
+      const hip = thigh.getWorldPosition(new THREE.Vector3());
+      const knee0 = calf.getWorldPosition(new THREE.Vector3());
+      const ankle0 = foot.getWorldPosition(new THREE.Vector3());
+      const l1 = hip.distanceTo(knee0);
+      const l2 = knee0.distanceTo(ankle0);
+      const reach = (l1 + l2) * 0.994;
+      const targetY = groundY + 0.055;
+      const dy = targetY - hip.y;
+      const lateral = sgn * 0.11;
+      const forwardLen = Math.sqrt(Math.max(reach * reach - dy * dy - lateral * lateral, 0.02));
+
+      const target = hip.clone()
+        .addScaledVector(forward, forwardLen)
+        .addScaledVector(side, lateral);
+      target.y = targetY;
+
+      const pole = hip.clone()
+        .addScaledVector(forward, forwardLen * 0.60)
+        .addScaledVector(side, sgn * 0.17);
+      pole.y += 0.22;
+
+      ik2(thigh, calf, foot, target, pole);
+      group.updateMatrixWorld(true);
+
+      const toe = target.clone().addScaledVector(forward, 0.17);
+      toe.y = groundY + 0.055;
+      aim(foot, toe);
+    };
+
+    stretch(-1, bones.thigh_l, bones.calf_l, bones.foot_l);
+    stretch( 1, bones.thigh_r, bones.calf_r, bones.foot_r);
+    group.updateMatrixWorld(true);
+  };
+
   return {
-    group, model, bones, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet,
+    group, model, bones, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet, poseSeatedL,
     play(name, { fade = 0.25, speed = 1 } = {}) {
       const clip = clips[name] || clips.Idle_Loop || Object.values(clips)[0]; if (!clip) return;
       activeClipName = clip.name || name;
