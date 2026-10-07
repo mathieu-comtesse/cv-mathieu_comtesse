@@ -56,11 +56,13 @@ for (const id of ['ekstrem','alocasia','desk','sofa']) {
  }
  if(['ekstrem','alocasia'].includes(id)) await page.waitForFunction(id=>window.room.scene.getObjectByName('NativeExact:iso:'+(id==='ekstrem'?'book':'can'))?.visible,id,{timeout:15000});
  await page.waitForTimeout(id==='alocasia'?300:1500);
- await page.screenshot({path:path.join(output,'activity-'+id+'.png')});
+ // Sample the animated state before a slow software screenshot can finish it.
  report.push(await page.evaluate(async id=>{let T=await import('three'),r=window.room,a=document.querySelector('iframe').contentWindow.shupiHeader.scene;
  const obj=n=>r.scene.getObjectByName(n);const book=obj('NativeExact:iso:book'),can=obj('NativeExact:iso:can');
  const pos=o=>o?.getWorldPosition(new T.Vector3()).toArray();
  return {id,source:a.simDoing,head:pos(r.hero.head),pelvis:pos(r.hero.bones.pelvis),handL:pos(r.hero.bones.hand_l),handR:pos(r.hero.bones.hand_r),book:{visible:book?.visible,pos:pos(book)},can:{visible:can?.visible,pos:pos(can)},frames:document.getElementById('room').dataset.sceneFrames};},id));
+ await writeFile(path.join(output,'activity-states.json'),JSON.stringify(report,null,2));
+ await page.screenshot({path:path.join(output,'activity-'+id+'.png')});
  if(process.env.SCENE_EXPORT_POSES==='1' && ['desk','sofa'].includes(id)) {
   const snapshot=await page.evaluate(async id=>{const {GLTFExporter}=await import('/tools/GLTFExporter.js'),T=await import('three');let r=window.room;const furniture=r.scene.children.flatMap(o=>o.children).find(o=>o.userData.id===(id==='sofa'?'sofa':'chair'));r.scene.updateMatrixWorld(true);const pose=Object.fromEntries(Object.entries(r.hero.bones).map(([n,b])=>[n,{position:b.getWorldPosition(new T.Vector3()).toArray(),matrix:b.matrixWorld.toArray()}]));const baked=new T.Group();for(const root of [r.hero.group,furniture])root?.traverseVisible(o=>{if(!o.isMesh)return;const geometry=o.geometry.clone(),p=geometry.attributes.position,v=new T.Vector3();o.skeleton?.update();for(let i=0;i<p.count;i++){o.getVertexPosition(i,v);v.applyMatrix4(o.matrixWorld);p.setXYZ(i,v.x,v.y,v.z);}geometry.deleteAttribute('skinIndex');geometry.deleteAttribute('skinWeight');geometry.computeVertexNormals();const mesh=new T.Mesh(geometry,o.material);mesh.name=o.name;baked.add(mesh);});const glb=await new GLTFExporter().parseAsync(baked,{binary:true});return {bytes:Array.from(new Uint8Array(glb)),pose};},id);
   await writeFile(path.join(output,'pose-'+id+'.glb'),Buffer.from(snapshot.bytes));
