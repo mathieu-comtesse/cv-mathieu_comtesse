@@ -1,0 +1,43 @@
+name: Import strict Shujaat portrait
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/shujaat-strict-manifest.txt"
+      - ".github/workflows/import-shujaat-strict.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download byte-identical Shujaat portrait runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS='|' read -r expected url path; do
+            [ -n "$expected" ] || continue
+            mkdir -p "$(dirname "$path")"
+            curl --retry 3 --retry-delay 2 -fL "$url" -o "$path"
+            actual="$(sha256sum "$path" | awk '{print $1}')"
+            if [ "$actual" != "$expected" ]; then
+              echo "SHA mismatch: $path"
+              echo "expected: $expected"
+              echo "actual:   $actual"
+              exit 1
+            fi
+          done < tools/shujaat-strict-manifest.txt
+      - name: Commit strict portrait runtime
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shupi
+          git diff --cached --quiet || git commit -m "Importe le portrait Shujaat strict 1:1"
+          git push
