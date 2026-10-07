@@ -129,6 +129,50 @@ async function build() {
   });
 
   const desk = makeDeskSet(sourceScene);
+
+  const makeProp = (name) => {
+    const src = sourceScene.getObjectByName(name);
+    if (!src) return null;
+    const clone = src.clone(true);
+    clone.name = 'ShujaatExact:' + name;
+    clone.visible = false;
+    clone.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+        o.frustumCulled = false;
+      }
+    });
+    return clone;
+  };
+
+  const book = makeProp('iso:book');
+  const wateringCan = makeProp('iso:can');
+
+  const syncProp = (clone, sourceName, targetRoot) => {
+    if (!clone || !targetRoot) return false;
+    const src = sourceScene.getObjectByName(sourceName);
+    if (!src || !src.visible) {
+      clone.visible = false;
+      return false;
+    }
+
+    sourceScene.updateMatrixWorld(true);
+    sourceCharacter.updateMatrixWorld(true);
+    targetRoot.updateMatrixWorld(true);
+
+    const rel = sourceCharacter.matrixWorld.clone().invert().multiply(src.matrixWorld);
+    const targetWorld = targetRoot.matrixWorld.clone().multiply(rel);
+    const parentInv = clone.parent
+      ? clone.parent.matrixWorld.clone().invert()
+      : new THREE.Matrix4();
+
+    const local = parentInv.multiply(targetWorld);
+    local.decompose(clone.position, clone.quaternion, clone.scale);
+    clone.visible = true;
+    return true;
+  };
+
   let mode = 'idle';
   let lastMode = '';
   let walkSeed = 0;
@@ -204,6 +248,10 @@ async function build() {
     shupi,
     deskSet: desk.root,
     deskDisplay: desk.display,
+    book,
+    wateringCan,
+    syncBook: (targetRoot) => syncProp(book, 'iso:book', targetRoot),
+    syncWateringCan: (targetRoot) => syncProp(wateringCan, 'iso:can', targetRoot),
     setMode,
     applyPose,
     resumeSound,
