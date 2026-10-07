@@ -139,6 +139,31 @@ if jpts:
     hem=[p for p in jpts if p.z <= zmin + 0.85]  # lower ~8.5 cm after normalization
     out['jnco_hem']=dims(hem)
 
+    jarm=armature()
+    jfl=bone_world(jarm,'foot_l'); jbl=bone_world(jarm,'ball_l')
+    jfr=bone_world(jarm,'foot_r'); jbr=bone_world(jarm,'ball_r')
+    hem_fit={}
+    if all(v is not None for v in (jfl,jbl,jfr,jbr)):
+        for side,foot,ball,other in [('left',jfl,jbl,jfr),('right',jfr,jbr,jfl)]:
+            fwd=horizontal_forward(foot,ball)
+            # Side split by nearest ankle in the horizontal plane.
+            sidepts=[]
+            for p in hem:
+                dl=(Vector((p.x,p.y,0))-Vector((foot.x,foot.y,0))).length
+                dr=(Vector((p.x,p.y,0))-Vector((other.x,other.y,0))).length
+                if dl <= dr:
+                    sidepts.append(p)
+            if sidepts:
+                projs=sorted((p-foot).dot(fwd)*char_scale for p in sidepts)
+                hem_fit[side]={
+                    'back_from_foot_m':projs[0],
+                    'front_from_foot_m':projs[-1],
+                    'center_from_foot_m':(projs[0]+projs[-1])*0.5,
+                    'median_from_foot_m':projs[len(projs)//2],
+                    'count':len(projs),
+                }
+        out['jnco_hem_fit']=hem_fit
+
 # NB992 local envelope, in the named root's local coordinates.
 clear()
 import_glb('assets/nb992.glb')
@@ -154,23 +179,28 @@ for side in ('left','right'):
     mx=Vector((max(p.x for p in pts),max(p.y for p in pts),max(p.z for p in pts)))
     nb_local[side]={
         'min':list(mn),'max':list(mx),'dims':list(mx-mn),
-        'heel_local_z_m':mn.z,
-        'toe_local_z_m':mx.z,
-        'sole_local_y_m':mn.y,
+        # Blender's glTF import maps the original Three.js shoe +Z forward axis to Blender local +Y.
+        'heel_local_forward_m':mn.y,
+        'toe_local_forward_m':mx.y,
+        'forward_center_local_m':(mn.y+mx.y)*0.5,
+        'sole_local_z_m':mn.z,
     }
 out['nb992_root_local']=nb_local
 out['runtime_nb_scale']=RUNTIME_NB_SCALE
 
-# Solve the JS root offset so NB heel matches the original Shujaat heel.
+# Runtime shoe root is centered along the NB longitudinal axis.
+# For the baggy JNCO hem, the most robust target is therefore the center of the hem opening,
+# measured from the foot bone in the same forward direction.
 recs={}
+hem_fit=out.get('jnco_hem_fit',{})
 for side in ('left','right'):
-    if side not in fit or side not in nb_local: continue
-    orig_back=fit[side]['original_shoe_back_from_foot_m']
-    heel=nb_local[side]['heel_local_z_m']*RUNTIME_NB_SCALE
-    rec=orig_back-heel
+    if side not in hem_fit or side not in nb_local: continue
+    hem_center=hem_fit[side]['center_from_foot_m']
+    nb_center=nb_local[side]['forward_center_local_m']*RUNTIME_NB_SCALE
+    rec=hem_center-nb_center
     recs[side]={
-        'original_heel_from_foot_m':orig_back,
-        'nb_heel_from_root_scaled_m':heel,
+        'jnco_hem_center_from_foot_m':hem_center,
+        'nb_center_from_root_scaled_m':nb_center,
         'recommended_forward_root_offset_m':rec,
     }
 if recs:
