@@ -1,12 +1,12 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=bf01a16';
-import { createCharacter } from './character.js?v=blender-seat-pad-v8';
+import { createCharacter } from './character.js?v=heel-blender-v9';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
 import { createRitual } from './ritual.js?v=bf01a16';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
-import { createRetroSet } from './retro.js?v=blender-seat-pad-v8';
+import { createRetroSet } from './retro.js?v=heel-blender-v9';
 import { createNav } from './nav.js?v=bf01a16';
 import { createDirector } from './director.js?v=bf01a16';
 import { createThought } from './thought.js?v=bf01a16';
@@ -141,7 +141,7 @@ export async function createRoom(container, bubbleEl) {
   // chargement Shujaat asynchrone : bureau/PC/tasse + animations/sons exacts,
   // mais seulement APRÈS que la pièce locale ait été construite.
   setTimeout(() => {
-    import('./shujaat-room.js?v=async-room-v7')
+    import('./shujaat-room.js?v=heel-blender-v9')
       .then((m) => m.getShujaatRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
