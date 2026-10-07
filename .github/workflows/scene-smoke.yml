@@ -38,10 +38,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=motion-fit-v11" index.html
+          grep -q "js/main.js?v=motion-arrival-v12" index.html
           grep -q "character.js?v=motion-fit-v11" js/room.js
           grep -q "retro.js?v=heel-blender-v9" js/room.js
-          grep -q "room.js?v=motion-fit-v11" js/main.js
+          grep -q "room.js?v=motion-arrival-v12" js/main.js
           test -s assets/jeans-jnco-fit.glb
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js

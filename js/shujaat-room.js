@@ -290,6 +290,9 @@ async function build() {
         || sceneApi.simStations.find(s => s.kind === activity);
       if (station && (station.entry || station.at)) {
         shupi.model.position.copy(station.entry || station.at);
+        // The native director rejects an empty path when start equals target.
+        // Begin just behind the station so its real arrival runs too.
+        shupi.model.position.addScaledVector(new THREE.Vector3(Math.cos(station.facing), 0, -Math.sin(station.facing)), -2);
         shupi.model.rotation.y = station.facing;
         modeFacing = station.facing;
       }

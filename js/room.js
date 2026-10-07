@@ -146,7 +146,7 @@ export async function createRoom(container, bubbleEl) {
   const loadShujaatBridge = () => {
     bridgeStarted = true;
     container.dataset.shujaat = 'loading';
-    import('./shujaat-room.js?v=motion-fit-v11')
+    import('./shujaat-room.js?v=motion-arrival-v12')
       .then((m) => m.getShujaatRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -871,8 +871,9 @@ export async function createRoom(container, bubbleEl) {
     if (!spawned && since > 1.6) { spawned = true; director.spawn(0.9, 0.7, 0.7); hero.group.visible = true; hero.group.scale.setScalar(0.01); poof(hero.group.position); }
     if (hero.group.visible) {
       // minuteur : aucune activité ne dure indéfiniment (arrosage 12 s, assis 25 s, thé 34 s), même déclenchée par l'utilisateur
-      if (director.mode !== actMode) { if (director.mode === 'activity') actSince = performance.now(); actMode = director.mode; }
-      if (director.mode === 'activity' && !appOpen && !crate.isOpen && director.current && performance.now() - actSince > (director.current.maxMs || 25000)) { director.stand(); actSince = performance.now(); }
+      if (director.mode !== actMode) { if (director.mode === 'activity') actSince = 0; actMode = director.mode; }
+      if (director.mode === 'activity') actSince += dt * 1000;
+      if (director.mode === 'activity' && !appOpen && !crate.isOpen && director.current && actSince > (director.current.maxMs || 25000)) { director.stand(); actSince = 0; }
       autonomousTick();
       director.update(dt);
       const exactMotion = syncShujaatMotionMode();
