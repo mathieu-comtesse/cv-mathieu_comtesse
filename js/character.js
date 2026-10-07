@@ -1,4 +1,4 @@
-import { THREE, mat, loadBuffer } from './kit.js?v=d40f751';
+import { THREE, mat, loadBuffer } from './kit.js?v=0801b99';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 
 // Character imported from 84b390d3dd44755f.fbx and converted to a compact skinned GLB.
@@ -99,9 +99,9 @@ function makeWateringCan() {
 }
 
 export async function createCharacter({
-  modelUrl = 'assets/mathieu-character.glb?v=d40f751',
-  rigUrl = 'assets/rig.json?v=d40f751',
-  animsUrl = 'assets/anims.glb?v=d40f751',
+  modelUrl = 'assets/mathieu-character.glb?v=0801b99',
+  rigUrl = 'assets/rig.json?v=0801b99',
+  animsUrl = 'assets/anims.glb?v=0801b99',
   targetHeight = 1.72,
 } = {}) {
   const [modelBuffer, rigBuffer, animBuffer] = await Promise.all([
@@ -113,7 +113,7 @@ export async function createCharacter({
 
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
-  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=d40f751')); } catch (_) {}
+  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=0801b99')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
   const sourceRootQuat = qFromArray(sourceRig.root?.q || [0, 0, 0, 1]);

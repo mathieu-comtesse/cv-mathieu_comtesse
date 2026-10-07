@@ -1,6 +1,6 @@
-import { THREE, group, rng, canvasTexture } from './kit.js?v=d40f751';
+import { THREE, group, rng, canvasTexture } from './kit.js?v=0801b99';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
-import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=d40f751';
+import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=0801b99';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité

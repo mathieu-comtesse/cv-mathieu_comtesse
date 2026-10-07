@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=d40f751';
+import { THREE } from './kit.js?v=0801b99';
 
 /* Séquence de dégustation de l'invité (matcha, école Urasenke), en repère « invité »
  * (origine = surface du zabuton, +z vers l'hôte, y = 0 sur le zabuton ; le tatami est donc à y = −0,07).

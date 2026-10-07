@@ -1,18 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=d40f751';
-import * as F from './furniture.js?v=d40f751';
-import { createCharacter } from './character.js?v=d40f751';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=0801b99';
+import * as F from './furniture.js?v=0801b99';
+import { createCharacter } from './character.js?v=0801b99';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=d40f751';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=d40f751';
-import { createRitual } from './ritual.js?v=d40f751';
-import { createChashitsu } from './chashitsu.js?v=d40f751';
-import { createRetroSet } from './retro.js?v=d40f751';
-import { createNav } from './nav.js?v=d40f751';
-import { createDirector } from './director.js?v=d40f751';
-import { createThought } from './thought.js?v=d40f751';
-import { createWeather } from './weather.js?v=d40f751';
-import { createJukebox } from './jukebox.js?v=d40f751';
-import { TRACKS, COVER } from './music.js?v=d40f751';
+import { loadBuffer } from './kit.js?v=0801b99';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=0801b99';
+import { createRitual } from './ritual.js?v=0801b99';
+import { createChashitsu } from './chashitsu.js?v=0801b99';
+import { createRetroSet } from './retro.js?v=0801b99';
+import { createNav } from './nav.js?v=0801b99';
+import { createDirector } from './director.js?v=0801b99';
+import { createThought } from './thought.js?v=0801b99';
+import { createWeather } from './weather.js?v=0801b99';
+import { createJukebox } from './jukebox.js?v=0801b99';
+import { TRACKS, COVER } from './music.js?v=0801b99';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=d40f751'), load('assets/tableau.jpg?v=d40f751'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=d40f751').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=0801b99'), load('assets/tableau.jpg?v=0801b99'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=0801b99').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);

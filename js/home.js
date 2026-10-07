@@ -1,10 +1,10 @@
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=d40f751';
-import { playFullscreen } from './play.js?v=d40f751';
-import { dbtn } from './dbtn.js?v=d40f751';
-import { initHoverDiagrams } from './hoverdiag.js?v=d40f751';
-import { initFlip } from './flip.js?v=d40f751';
-import { initFlipText } from './fliptext.js?v=d40f751';
-import { createMarquee } from './marquee.js?v=d40f751';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=0801b99';
+import { playFullscreen } from './play.js?v=0801b99';
+import { dbtn } from './dbtn.js?v=0801b99';
+import { initHoverDiagrams } from './hoverdiag.js?v=0801b99';
+import { initFlip } from './flip.js?v=0801b99';
+import { initFlipText } from './fliptext.js?v=0801b99';
+import { createMarquee } from './marquee.js?v=0801b99';
 
 // le site s'adresse à « vous » : on écarte les phrases à la 1re personne des textes repris du CV
 const vous = (t) => String(t || '').split(/(?<=[.!?])\s+/).filter((x) => !/\b(j[’']|je|mon|ma|mes|moi)\b/i.test(x)).join(' ');
@@ -46,6 +46,7 @@ function initUniv() {
   host.innerHTML = `<button class="univ-card" type="button" aria-label="Jouer à ${esc(UNIV.title)}"><span class="univ-img" style="background-image:url('${UNIV.img}')"></span>
     <span class="univ-txt"><span class="k">Projet universitaire · ${esc(UNIV.sub)}</span><h3>${esc(UNIV.title)}</h3><p>${esc(UNIV.desc)}</p>${dbtn('Jouer en plein écran')}</span></button>`;
   host.querySelector('.univ-card').addEventListener('click', () => playFullscreen(CV + UNIV.url, UNIV.title));
+  initHoverDiagrams(host, [UNIV], { sel: '.univ-card', kicker: 'CONSTRUIT AVEC' });
 }
 
 export function initHome() {
@@ -57,6 +58,6 @@ export function initHome() {
     root.innerHTML = `<div class="mq-track">${list.map((p, i) => card(p, i, kind)).join('')}</div>`;
     root.addEventListener('click', (e) => { const b = e.target.closest('.pc'); if (b) open(list[+b.dataset.i], kind); });
     createMarquee(root);
-    if (kind === 'pro') initHoverDiagrams(root, list);
+    initHoverDiagrams(root, list, kind === 'pro' ? {} : { kicker: 'CONSTRUIT AVEC' });
   }
 }
