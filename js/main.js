@@ -1,4 +1,4 @@
-import { createRoom } from './room.js?v=seat-l-v3';
+import { createRoom } from './room.js?v=scene-unblock-v4';
 import { initUI } from './ui.js?v=bf01a16';
 import { initTheme } from './theme.js?v=bf01a16';
 import { initHome } from './home.js?v=bf01a16';
