@@ -263,7 +263,7 @@ export async function createCharacter({
       const f0 = bone.getWorldPosition(new THREE.Vector3()), b0 = ball.getWorldPosition(new THREE.Vector3());
       const fwd = b0.clone().sub(f0); fwd.y = 0; fwd.normalize();
       const x = new THREE.Vector3(0, 1, 0).cross(fwd).normalize();
-      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * 0.07, ground, f0.z + fwd.z * 0.07);
+      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(f0.x + fwd.x * 0.135, ground, f0.z + fwd.z * 0.135);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
       shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Shujaat
