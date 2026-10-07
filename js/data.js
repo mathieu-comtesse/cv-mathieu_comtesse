@@ -4,7 +4,7 @@ export const CV = "jeux/";
 export const PERSO = [
  {
   "id": "atlas",
-  "img": "assets/games/atlas.png?v=34884da",
+  "img": "assets/games/atlas.png?v=f7dc458",
   "n": "Atlas du parcours",
   "genre": "Exploration",
   "color": "#3b7fd8",
@@ -13,7 +13,7 @@ export const PERSO = [
  },
  {
   "id": "labyrinthe",
-  "img": "assets/games/labyrinthe.png?v=34884da",
+  "img": "assets/games/labyrinthe.png?v=f7dc458",
   "n": "Labyrinthe",
   "genre": "Exploration",
   "color": "#8a6d3b",
@@ -22,7 +22,7 @@ export const PERSO = [
  },
  {
   "id": "route",
-  "img": "assets/games/route.png?v=34884da",
+  "img": "assets/games/route.png?v=f7dc458",
   "n": "Route & vigilance",
   "genre": "Prévention",
   "color": "#c9402e",
@@ -31,7 +31,7 @@ export const PERSO = [
  },
  {
   "id": "arene",
-  "img": "assets/games/arene.png?v=34884da",
+  "img": "assets/games/arene.png?v=f7dc458",
   "n": "Arène des arcanes",
   "genre": "Combat",
   "color": "#7a3fb0",
@@ -40,7 +40,7 @@ export const PERSO = [
  },
  {
   "id": "abysses",
-  "img": "assets/games/abysses.png?v=34884da",
+  "img": "assets/games/abysses.png?v=f7dc458",
   "n": "Abysses & babioles",
   "genre": "Exploration 3D",
   "color": "#1c7f95",
@@ -49,7 +49,7 @@ export const PERSO = [
  },
  {
   "id": "timber",
-  "img": "assets/games/timber.png?v=34884da",
+  "img": "assets/games/timber.png?v=f7dc458",
   "n": "Timber !",
   "genre": "Jeu 3D",
   "color": "#5a8a3c",
@@ -58,7 +58,7 @@ export const PERSO = [
  },
  {
   "id": "rubik",
-  "img": "assets/games/rubik.png?v=34884da",
+  "img": "assets/games/rubik.png?v=f7dc458",
   "n": "Rubik’s Cube",
   "genre": "Casse-tête",
   "color": "#d9a21b",
@@ -67,7 +67,7 @@ export const PERSO = [
  },
  {
   "id": "sandboard",
-  "img": "assets/games/sandboard.png?v=34884da",
+  "img": "assets/games/sandboard.png?v=f7dc458",
   "n": "Sandboard",
   "genre": "Sable 3D",
   "color": "#c9955a",
@@ -76,7 +76,7 @@ export const PERSO = [
  },
  {
   "id": "pixels",
-  "img": "assets/games/pixels.png?v=34884da",
+  "img": "assets/games/pixels.png?v=f7dc458",
   "n": "Pixels",
   "genre": "Canvas",
   "color": "#e0527a",
@@ -85,7 +85,7 @@ export const PERSO = [
  },
  {
   "id": "gouache",
-  "img": "assets/games/gouache.png?v=34884da",
+  "img": "assets/games/gouache.png?v=f7dc458",
   "n": "Fond d’écran Gouache",
   "genre": "Fond d’écran",
   "color": "#4aa58a",

@@ -1,17 +1,18 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=34884da';
-import * as F from './furniture.js?v=34884da';
-import { createCharacter } from './character.js?v=34884da';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=f7dc458';
+import * as F from './furniture.js?v=f7dc458';
+import { createCharacter } from './character.js?v=f7dc458';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=34884da';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=34884da';
-import { createRitual } from './ritual.js?v=34884da';
-import { createChashitsu } from './chashitsu.js?v=34884da';
-import { createRetroSet } from './retro.js?v=34884da';
-import { createNav } from './nav.js?v=34884da';
-import { createDirector } from './director.js?v=34884da';
-import { createThought } from './thought.js?v=34884da';
-import { createJukebox } from './jukebox.js?v=34884da';
-import { TRACKS, COVER } from './music.js?v=34884da';
+import { loadBuffer } from './kit.js?v=f7dc458';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=f7dc458';
+import { createRitual } from './ritual.js?v=f7dc458';
+import { createChashitsu } from './chashitsu.js?v=f7dc458';
+import { createRetroSet } from './retro.js?v=f7dc458';
+import { createNav } from './nav.js?v=f7dc458';
+import { createDirector } from './director.js?v=f7dc458';
+import { createThought } from './thought.js?v=f7dc458';
+import { createWeather } from './weather.js?v=f7dc458';
+import { createJukebox } from './jukebox.js?v=f7dc458';
+import { TRACKS, COVER } from './music.js?v=f7dc458';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
 const DEG = Math.PI / 180;
@@ -53,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=34884da'), load('assets/tableau.jpg?v=34884da'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=34884da').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=f7dc458'), load('assets/tableau.jpg?v=f7dc458'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=f7dc458').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -492,6 +493,10 @@ export async function createRoom(container, bubbleEl) {
   const face = (icon, label = '') => `<span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true">${icon}</span>${label ? `<span class="dbtn__text">${label}</span>` : ''}`;
   pill.innerHTML = `<button class="dbtn dbtn--sm mp-play" type="button" aria-label="Lancer la musique">${face(IC.play, 'Lancer la musique')}</button><button class="dbtn dbtn--icon dbtn--sm mp-next" type="button" aria-label="Titre suivant" hidden>${face(IC.next)}</button><button class="dbtn dbtn--icon dbtn--sm mp-crate" type="button" aria-label="Choisir un disque dans le tiroir">${face(IC.crate)}</button>`;
   container.appendChild(pill);
+  // météo : la pastille montre le temps qu'il fait et le fait changer au clic
+  const wxBtn = document.createElement('button'); wxBtn.className = 'dbtn dbtn--sm wx-btn'; wxBtn.type = 'button';
+  wxBtn.innerHTML = face('', 'Ciel dégagé'); container.appendChild(wxBtn);
+  const wx = createWeather(container, { button: wxBtn });
   const mpPlay = pill.querySelector('.mp-play'), mpNext = pill.querySelector('.mp-next'), mpCrate = pill.querySelector('.mp-crate');
   const mpLabel = (i) => { const t = TRACKS[i]; mpPlay.querySelector('.dbtn__text').textContent = clip(t.t, 26) + ' \u00b7 ' + clip(t.a, 16); };
   const jukebox = createJukebox({
@@ -647,12 +652,12 @@ export async function createRoom(container, bubbleEl) {
   for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 5), dropM); m.visible = false; world.add(m); rain.drops.push({ m, t: Math.random() }); }
 
   /* ─── jour / nuit ─── */
-  let night = false;
+  let night = false, sunBase = 2.0, hemiBase = 0.85;
   function applyTheme() {
     const th = document.documentElement.dataset.theme;
     night = th ? th === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
     hemi.intensity = night ? 0.5 : 0.85; hemi.color.set(night ? '#9db4e0' : '#fff7e8'); hemi.groundColor.set(night ? '#2a3350' : '#cdbfa5');
-    sun.intensity = night ? 0.55 : 2.0; sun.color.set(night ? '#a9bde8' : '#fff0dc');
+    sunBase = night ? 0.55 : 2.0; hemiBase = night ? 0.5 : 0.85; sun.intensity = sunBase; sun.color.set(night ? '#a9bde8' : '#fff0dc');
     scene.environmentIntensity = night ? 0.12 : 0.22;
     ground.material.opacity = night ? 0.35 : 0.22;
     for (const k in lamps) if (!lamps[k].manual) lamps[k].on = night;
@@ -694,7 +699,8 @@ export async function createRoom(container, bubbleEl) {
     scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
     // personnage
     if (ritual.state.active) ritual.update(dt);
-    cs.update(dt, t, night); retro.update(dt);
+    wx.update(dt, night); sun.intensity = sunBase * (1 - 0.55 * wx.k.cloud); hemi.intensity = hemiBase * (1 + 0.15 * wx.k.cloud);
+    cs.update(dt, t, night, wx.k); retro.update(dt);
     // vapeur du bol et de la kama
     { const ud = tea.userData; ud.sBowl.position.copy(ritual.object.position).y += 0.075; ud.sKama.position.copy(ud.fk.position).add(ud.fk.userData.steamAnchor);
       const drunk = ud.bowl.userData.tea.visible ? 1 : 0; updateSteam(ud.sBowl, t, 0.3, 0.1, drunk); updateSteam(ud.sKama, t + 1.3, 0.34, 0.13, 0.8); }
@@ -779,5 +785,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, cs, scene, camera, renderer };
+  return { wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, cs, scene, camera, renderer };
 }

@@ -1,4 +1,5 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=34884da';
+import { makePond } from './pond.js?v=f7dc458';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=f7dc458';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
  * Repère local : origine au centre du sol de tatamis, +z = côté ouvert (shoji coulissants → balcon en bois → mer).
@@ -6,7 +7,7 @@ import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake 
  *  - paroi du fond en shoji fermés, côté mer : 3 shoji (0,9 × 1,75 m) sur 3 rails, papier de riz translucide, kumiko en grille, plinthe en bois ;
  *  - poteaux d'angle, poutre sur les trois côtés fermés (jamais côté caméra : la vue reste dégagée) ;
  *  - engawa : plancher en lames de bois, table basse, coussin rond, lanterne andon allumée la nuit ;
- *  - mer : bloc d'eau à houle animée, crêtes écumeuses, rochers sombres au pied du balcon. */
+ *  - étang : eau transparente (reflets, ondes de pluie, écume), fond à caustiques, carpes koï, nénuphars et lotus, brume ; rochers sur la rive. */
 
 export const ROOM = { w: 2.7, d: 3.6, h: 0.12 };
 
@@ -45,43 +46,6 @@ function shojiPanel(W = 0.9, H = 1.75) {
   for (let i = 0; i <= 5; i++) g.add(box(W - 2 * T, S * 0.8, 0.026, wood, 0, y0 + (y1 - y0) * i / 5, 0));
   for (let i = 1; i <= 3; i++) g.add(box(S * 0.8, y1 - y0, 0.026, wood, -W / 2 + T + (W - 2 * T) * i / 4, (y0 + y1) / 2, 0));
   return bake(g);
-}
-
-/* ── mer : bloc d'eau à houle animée ── */
-function makeSea(W, D, depth = 1.1) {
-  const g = group();
-  const uni = { uTime: { value: 0 }, uNight: { value: 0 } };
-  const geo = new THREE.PlaneGeometry(W, D, 96, 64); geo.rotateX(-Math.PI / 2);
-  const m = new THREE.ShaderMaterial({
-    uniforms: uni,
-    vertexShader: `
-      uniform float uTime; varying float vH; varying vec2 vP;
-      float wave(vec2 p){ return sin(p.x*2.1+uTime*1.3)*0.5 + sin(p.y*3.3-uTime*1.7+p.x)*0.35 + sin((p.x+p.y)*5.2+uTime*2.3)*0.15; }
-      void main(){ vec3 p = position; float k = smoothstep(-${(D / 2).toFixed(2)}, ${(D / 2).toFixed(2)} * 0.2, p.z) * 0.9 + 0.1; float h = wave(p.xz) * 0.055 * k; p.y += h; vH = h; vP = p.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.0); }`,
-    fragmentShader: `
-      uniform float uTime, uNight; varying float vH; varying vec2 vP;
-      void main(){
-        vec3 deep = mix(vec3(0.09,0.37,0.52), vec3(0.02,0.07,0.2), uNight);
-        vec3 shallow = mix(vec3(0.27,0.68,0.76), vec3(0.06,0.17,0.38), uNight);
-        float t = clamp((vP.y + ${(D / 2).toFixed(2)}) / ${D.toFixed(2)}, 0.0, 1.0);
-        vec3 col = mix(shallow, deep, smoothstep(0.0, 0.9, 1.0 - t));
-        float stripe = sin(vP.y*9.0 - uTime*1.6 + sin(vP.x*3.0)*1.4);
-        float crest = smoothstep(0.045, 0.085, vH) + smoothstep(0.93, 0.995, stripe) * 0.45;
-        float shore = smoothstep(0.3, 0.0, 1.0 - t) * (0.55 + 0.45*sin(uTime*1.4 + vP.x*2.0));
-        col = mix(col, mix(vec3(0.95,0.98,1.0), vec3(0.45,0.6,0.85), uNight), clamp(crest*0.8 + shore*0.7, 0.0, 1.0));
-        gl_FragColor = vec4(col, 1.0);
-      }`,
-  });
-  const top = new THREE.Mesh(geo, m); top.position.y = 0;
-  g.add(top);
-  // flancs du bloc (dégradé vertical)
-  const side = canvasTexture(8, 64, (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#2c7f95'); gr.addColorStop(1, '#0d3a52'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
-  const sm = new THREE.MeshBasicMaterial({ map: side });
-  for (const [x, z, ry, len] of [[0, D / 2, 0, W], [W / 2, 0, Math.PI / 2, D], [0, -D / 2, Math.PI, W], [-W / 2, 0, -Math.PI / 2, D]]) {
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(len, depth), sm); p.position.set(x, -depth / 2, z); p.rotation.y = ry; g.add(p);
-  }
-  g.userData.uni = uni;
-  return g;
 }
 
 function rock(seed, s) {
@@ -153,15 +117,15 @@ export function createChashitsu() {
 
   /* mer et rochers */
   const SEA = { w: 3.6, d: 1.9, z0: DK.z0 + DK.depth + 0.3, y: -0.3 };
-  const sea = makeSea(SEA.w, SEA.d); sea.position.set(0, SEA.y, SEA.z0 + SEA.d / 2); vista.add(sea);
-  const rocks = [[-1.3, 0.25, 0.3, 3], [-0.5, 0.15, 0.22, 4], [0.7, 0.3, 0.26, 5], [1.4, 0.55, 0.34, 6], [-1.5, 1.0, 0.24, 8]];
+  const sea = makePond(SEA.w, SEA.d); sea.position.set(0, SEA.y, SEA.z0 + SEA.d / 2); vista.add(sea);
+  const rocks = [[-1.45, 1.55, 0.3, 3], [-0.95, 1.7, 0.2, 4], [1.2, 1.7, 0.24, 5], [1.5, 1.4, 0.34, 6], [-1.62, 0.9, 0.22, 8]];   // rochers sur la rive du fond
   for (const [x, dz, s, seed] of rocks) { const rk = rock(seed, s); rk.position.set(x, SEA.y + s * 0.2, SEA.z0 + dz); rk.rotation.y = seed; vista.add(rk); }
 
   return {
     group: g, lantern, lanternGlow: paperL, panels, vista,
     togglePanel(i) { const q = panels[i]; if (q) q.target = q.target ? 0 : 1; },
     setPanels(v) { panels.forEach((q) => { q.target = v; }); },
-    update(dt, t, night) {
+    update(dt, t, night, wx) {
       let reveal = 0;
       for (const q of panels) {
         q.open += (q.target - q.open) * (1 - Math.exp(-dt * 3.2));
@@ -171,7 +135,7 @@ export function createChashitsu() {
       }
       const r = Math.min(1, reveal * 1.6), e = r * r * (3 - 2 * r);
       vista.visible = e > 0.01; vista.scale.set(1, Math.max(e, 0.001), 1);
-      sea.userData.uni.uTime.value = t; sea.userData.uni.uNight.value += ((night ? 1 : 0) - sea.userData.uni.uNight.value) * Math.min(1, dt * 2);
+      if (vista.visible) sea.userData.update(t, night, wx || { rain: 0, mist: 0, cloud: 0 });
     },
     spec: { RW, RD, RH, DK, SEA },
   };
