@@ -1,6 +1,6 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=bf01a16';
-import { createCharacter } from './character.js?v=stable-3d-v5';
+import { createCharacter } from './character.js?v=shoe-forward-v6';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
@@ -14,7 +14,6 @@ import { createWeather } from './weather.js?v=bf01a16';
 import { createJukebox } from './jukebox.js?v=bf01a16';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { getShujaatRoomBridge } from './shujaat-room.js?v=shujaat-room-v2';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -57,10 +56,9 @@ export async function createRoom(container, bubbleEl) {
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
   const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf] = await Promise.all([load('assets/tapis.webp?v=bf01a16'), load('assets/tableau.jpg?v=bf01a16'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=bf01a16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej)))]);
 
-  const shujaatBridge = await getShujaatRoomBridge().catch((e) => {
-    console.warn('[Shujaat room] runtime exact indisponible, fallback procédural', e);
-    return null;
-  });
+  // MODE STABLE : la scène locale ne dépend plus du mini-runtime Shujaat au démarrage.
+  // Cela garantit que le décor Three.js s'affiche immédiatement.
+  const shujaatBridge = null;
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
