@@ -256,7 +256,7 @@ export async function createCharacter({
     if (!nb992Gltf || !bones.foot_l || !bones.foot_r || !clips.Idle_Loop) return false;
     const tm = new THREE.AnimationMixer(group), act = tm.clipAction(clips.Idle_Loop); act.play(); tm.update(0); group.updateMatrixWorld(true);
     const ground = Math.min(bones.ball_l.getWorldPosition(new THREE.Vector3()).y, bones.ball_r.getWorldPosition(new THREE.Vector3()).y) - 0.04;
-    const nbForwardOffset = { left: 0.097159, right: 0.097856 }; // Blender: centre de la NB992 aligné sur le centre de l'ouverture du jean JNCO
+    const nbForwardOffset = { left: 0.226688, right: 0.223570 }; // Blender: talon NB992 aligné sur le bord arrière de l'ouverture du jean JNCO
     for (const [side, bone, ball] of [['left', bones.foot_l, bones.ball_l], ['right', bones.foot_r, bones.ball_r]]) {
       const src = nb992Gltf.scene.getObjectByName('nb_' + side); if (!src) continue;
       const shoe = src.clone(true);
