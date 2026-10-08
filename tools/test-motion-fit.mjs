@@ -35,7 +35,7 @@ await page.goto('http://scene.test/');await page.waitForFunction(()=>document.ge
 await sceneTestProfile(page);
 await page.mouse.click(720,760);
 // The gesture sets an 18-second autonomy pause; extend it after the click.
-await page.evaluate(()=>{window.room.pauseAutonomy(600000);window.room.opts.noAdapt=true;window.room.renderer.setPixelRatio(.5);for(const s of Object.values(window.room.stations))s.maxMs=300000;});
+await page.evaluate(()=>{window.room.pauseAutonomy(600000);window.room.opts.noAdapt=true;for(const s of Object.values(window.room.stations))s.maxMs=300000;});
 assert.equal(await page.evaluate(()=>{return !!window.room.scene.getObjectByName('NativeExactDeskSet')?.getObjectByName('Setu task chair');}),false,'Imported desk must not contain a second office chair');
 await page.screenshot({path:path.join(output,'fit-standing.png')});
 const report=[];

@@ -37,7 +37,7 @@ await page.mouse.click(720,760);
 // The gesture sets an 18-second autonomy pause; extend it after the click.
 await page.evaluate(()=>window.room.pauseAutonomy(600000));
 
-await page.evaluate(()=>{window.room.opts.noAdapt=true;window.room.renderer.setPixelRatio(.5);for(const s of Object.values(window.room.stations))s.maxMs=300000;});
+await page.evaluate(()=>{window.room.opts.noAdapt=true;for(const s of Object.values(window.room.stations))s.maxMs=300000;});
 const evidence={};
 evidence.decor=await page.evaluate(()=>{const r=window.room,names=['Moonlander','CurvedLandscapeMonitor','PortraitMonitor','ErgonomicVerticalMouse','RoadBikeFinish','UltrawideMonitorArm','PortraitMonitorArm','UltrawideWebcam','GamingDesktopPC','Nommo left speaker','Nommo right speaker','DeskMug'];return {objects:names.map(name=>({name,present:!!r.scene.getObjectByName(name)})),ps1:r.stations.sofa.think.obj.getObjectByName('PlayStation1')?.name,chairs:r.scene.getObjectsByProperty('name','HermanMillerSetu').length};});
 assert.ok(evidence.decor.objects.every(x=>x.present));assert.equal(evidence.decor.chairs,1);assert.equal(evidence.decor.ps1,'PlayStation1');

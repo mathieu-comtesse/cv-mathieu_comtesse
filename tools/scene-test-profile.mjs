@@ -4,8 +4,11 @@ export async function sceneTestProfile(page) {
   page.setDefaultTimeout(120000);
   if ((process.env.SCENE_WEBGL_BACKEND || 'swiftshader') !== 'swiftshader') return;
   const profile=await page.evaluate(()=>{
-    const r=window.room; r.opts.noAdapt=true; r.renderer.setPixelRatio(.5);
+    const r=window.room; r.opts.noAdapt=true; r.renderer.setPixelRatio(.25);
     r.renderer.shadowMap.autoUpdate=false;
+    // The room requests refreshed shadows every third frame. Cache the maps
+    // already rendered during startup, including explicit refresh requests.
+    Object.defineProperty(r.renderer.shadowMap,'needsUpdate',{configurable:true,get:()=>false,set:()=>{}});
     const source=document.querySelector('iframe')?.contentWindow?.shupiHeader?.scene?.shupi;
     if(source?.renderer?.shadowMap) source.renderer.shadowMap.autoUpdate=false;
     return {pixelRatio:r.renderer.getPixelRatio(),liveShadows:false,sourceShadowCache:!!source?.renderer?.shadowMap};
