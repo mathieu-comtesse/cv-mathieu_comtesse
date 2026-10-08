@@ -1,25 +1,83 @@
 {
-  "version": "cv-scene-v18",
-  "authoring": "Blender 5.2 LTS",
-  "tshirt": {
-    "source": "tshirt.glb",
-    "sourceSha256": "c21ef90d256b1f28177e8468cc9f69a83dbdd0cc4111addc23f9893e82a1103a",
-    "output": "assets/tshirt-fitted.glb",
-    "originalPreserved": true,
-    "triangles": 6000
-  },
-  "projects": [
-    "cerfa",
-    "charte",
-    "finance",
-    "gares",
-    "pa",
-    "powerbi",
-    "studio",
-    "suivi",
-    "terrain",
-    "vmvre",
-    "vre"
-  ],
-  "content": "Professional process descriptions; illustrative fictional data. Dual VM takeover is a proposed architecture requiring validation in the restricted environment."
+  "version": "cv-scene-v20",
+  "authoring": "Blender 5.2",
+  "models": [
+    {
+      "id": "finance",
+      "steps": 7,
+      "bytes": 537436,
+      "sha256": "82bc726f68da90f0cc27a663225015186176cecb7efeb6c2feccc93487c7b72a",
+      "source": "project-variety-finance.blend"
+    },
+    {
+      "id": "vmvre",
+      "steps": 9,
+      "bytes": 578752,
+      "sha256": "3b9ff042828701b87be40f1c38c37458fc4452a74405cdae033d4c416d18e5bf",
+      "source": "project-variety-vmvre.blend"
+    },
+    {
+      "id": "pa",
+      "steps": 7,
+      "bytes": 490560,
+      "sha256": "f1eb94dc97bffc3a87e5205028c0bece768ebe2e20f4f80ed8dabbe03a1a90e6",
+      "source": "project-variety-pa.blend"
+    },
+    {
+      "id": "cerfa",
+      "steps": 7,
+      "bytes": 489028,
+      "sha256": "ed22fe0ad66e11aa23f4ce139b833f60f767de83517fb443699d2e7fea042afc",
+      "source": "project-variety-cerfa.blend"
+    },
+    {
+      "id": "vre",
+      "steps": 6,
+      "bytes": 492080,
+      "sha256": "77e16d4099beb5f5a6ec01f09eb456eb2d2e3f66ce023a8f2e919aa122b451ab",
+      "source": "project-variety-vre.blend"
+    },
+    {
+      "id": "studio",
+      "steps": 7,
+      "bytes": 486508,
+      "sha256": "feb6c3e6f33610ce73b90a5847cc6e4e9523533d8cc11d39c349da80663ac944",
+      "source": "project-variety-studio.blend"
+    },
+    {
+      "id": "powerbi",
+      "steps": 7,
+      "bytes": 500416,
+      "sha256": "09612edc1491695c88b372ab9ac03df02c066358200048ea4f2ecfcbfe82fcfa",
+      "source": "project-variety-powerbi.blend"
+    },
+    {
+      "id": "suivi",
+      "steps": 6,
+      "bytes": 739940,
+      "sha256": "41cc4d87112487acb6282e838099718225dab2f7a1e205f9f59df7c96b05eb9d",
+      "source": "project-variety-suivi.blend"
+    },
+    {
+      "id": "gares",
+      "steps": 6,
+      "bytes": 698868,
+      "sha256": "133a1e992a38ce48a3adfcc904db26b48eaf690034510c35c7a177f1ec93f8ce",
+      "source": "project-variety-gares.blend"
+    },
+    {
+      "id": "terrain",
+      "steps": 5,
+      "bytes": 372220,
+      "sha256": "e8791db361523fc12070c632b2647780967ff9ab875eb594684074be3379d9c1",
+      "source": "project-variety-terrain.blend"
+    },
+    {
+      "id": "charte",
+      "steps": 5,
+      "bytes": 496180,
+      "sha256": "354c9e55eb87a79bb31f6452ec8ba066c86d7c093d4fc183efa9c1d3e148e540",
+      "source": "project-variety-charte.blend"
+    }
+  ]
 }

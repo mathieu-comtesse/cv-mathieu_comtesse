@@ -7,17 +7,388 @@ const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, uni
 
 // Comment ça marche : 4 ou 5 étapes par projet (affichées en schéma au survol). Faits tirés du CV.
 const DIAG = {
-  finance: [['Excel', 'Les quatre flux CS, Locatif, MEC et PPTM lisent le suivi financier et les seuils configurés dans Excel.'], ['Filtrage', 'Les règles PRG, PSE et GLOBAL sont appliquées ; les lignes KO sont exclues.'], ['Seuil', 'Le montant est comparé au seuil de sa catégorie. Le seuil est une donnée du classeur, pas une valeur à ressaisir dans le flux.'], ['Alerte', 'Une alerte signale le dépassement à traiter. Cette démonstration utilise des montants fictifs.']],
-  vmvre: [['Dépôt', 'Un rapport déposé sur SharePoint déclenche une demande de traitement.'], ['Contrôle', 'La VM relève les demandes toutes les deux minutes, vérifie le code final du rapport et lit les sept chiffres du numéro d’OT.'], ['Excel', 'La VM retrouve l’OT, inscrit le lien du rapport, enregistre puis vérifie le classeur. Le résultat et l’historique évitent les doublons.'], ['Récapitulatif', 'À 17 h, un second flux regroupe les intégrations confirmées encore non notifiées. Sans nouvelle intégration, aucun mail n’est envoyé.']],
-  pa: [['Dépôt', 'Le plan de prévention arrive'], ['Lecture', 'Champs extraits automatiquement'], ['Classement', 'Rangé et saisi au listing'], ['Alerte', 'Relances avant l’échéance']],
-  cerfa: [['Dépôt du lot', 'Fiches CERFA et attestations (PDF)'], ['Lecture', 'Pages 1 et 2, cases lues sur le rendu'], ['Contrôles', 'Doublons, non-conformités, retards'], ['Indicateurs', 'KPI cliquables et filtres'], ['Export', 'Excel filtré et surligné']],
-  vre: [['Rapports PDF', 'Vérifications électriques'], ['Comptage', 'Équipements, départs, écarts'], ['Vérification', 'Chaque total reste sous contrôle'], ['Injection', 'Classeur de suivi SharePoint']],
-  studio: [['Modèle', 'Un exemple du document'], ['Tracé', 'Repérer les zones à lire'], ['Test', 'Essai sur des documents réels'], ['Extracteur', 'Page HTML autonome'], ['Diffusion', 'Fichier ou exécutable, 100 % local']],
-  powerbi: [['Sources', 'PDF, Excel, SharePoint'], ['Power Query', 'Préparation et contrôle'], ['Modèle et DAX', 'Mesures et indicateurs'], ['Pages HTML', 'Générées dans les mesures'], ['Portail', 'Plan, PDF et échéance en 10 s']],
-  suivi: [['GMAO', 'Ordres de travail'], ['Exports', 'Autres logiciels et sites'], ['Rattachement', 'Équipement et bâtiment'], ['Interface unique', 'Recherche en quelques secondes']],
-  gares: [['Sources', 'GMAO, référentiel, SharePoint'], ['Modèle', '19 tables, 159 mesures'], ['Règles', 'Criticité et conformité calculées'], ['Fiche', 'Gare, équipement, maintenance']],
-  terrain: [['Gemba', 'Observer sur le terrain'], ['Faits', 'Entretiens et preuves'], ['État des lieux', 'Processus EPM / EPTx'], ['EPM light', 'Processus simplifié'], ['Arbitrage', 'Décision en réunion d’agence']],
-  charte: [['Charte UI', 'Règles visuelles communes'], ['Composants', 'Boutons, tableaux, indicateurs'], ['Outils', 'CERFA, VRE, Studio, PP'], ['Local', 'Aucune donnée hors du poste']],
+  "finance": [
+    [
+      "Excel",
+      "Lecture du suivi financier et des seuils configurés dans le classeur.",
+      "excel"
+    ],
+    [
+      "Déclenchement",
+      "Les quatre flux CS, Locatif, MEC et PPTM lancent le traitement.",
+      "automate"
+    ],
+    [
+      "Lecture structurée",
+      "Les données Excel deviennent une table exploitable par les règles.",
+      "excel-script"
+    ],
+    [
+      "Filtrage",
+      "PRG, PSE et GLOBAL sont appliqués ; les lignes KO sont exclues.",
+      "extract"
+    ],
+    [
+      "Comparaison",
+      "Chaque montant est comparé au seuil de sa catégorie.",
+      "check"
+    ],
+    [
+      "Alerte",
+      "Le dépassement est orienté vers une alerte à traiter.",
+      "outlook"
+    ],
+    [
+      "Suivi",
+      "Le résultat reste identifiable pour éviter une notification en double.",
+      "excel"
+    ]
+  ],
+  "vmvre": [
+    [
+      "SharePoint",
+      "Dépôt du rapport PDF.",
+      "sharepoint"
+    ],
+    [
+      "Power Automate",
+      "Une demande de traitement est créée.",
+      "automate"
+    ],
+    [
+      "File d’attente",
+      "Les demandes attendent leur relevé par la VM.",
+      "queue"
+    ],
+    [
+      "VM Windows",
+      "La VM relève les demandes toutes les deux minutes.",
+      "vm"
+    ],
+    [
+      "Extraction",
+      "Le code final R004 et le numéro OT à sept chiffres sont contrôlés.",
+      "extract"
+    ],
+    [
+      "Excel",
+      "Le classeur de suivi et l’OT sont retrouvés.",
+      "excel"
+    ],
+    [
+      "Injection",
+      "Le lien du rapport est écrit, puis le classeur est enregistré et vérifié.",
+      "inject"
+    ],
+    [
+      "Historique",
+      "Le résultat confirmé est enregistré pour éviter les doublons.",
+      "export"
+    ],
+    [
+      "Outlook",
+      "À 17 h, seules les nouvelles intégrations confirmées sont regroupées dans le récapitulatif.",
+      "outlook"
+    ]
+  ],
+  "pa": [
+    [
+      "Dépôt",
+      "Le plan de prévention arrive dans la bibliothèque.",
+      "sharepoint"
+    ],
+    [
+      "Flux",
+      "Power Automate prend en charge le document.",
+      "automate"
+    ],
+    [
+      "Extraction",
+      "Les champs du plan sont lus.",
+      "extract"
+    ],
+    [
+      "Contrôle",
+      "Les données et l’échéance sont vérifiées.",
+      "check"
+    ],
+    [
+      "Listing Excel",
+      "Les données alimentent le suivi.",
+      "excel"
+    ],
+    [
+      "Classement",
+      "Le plan est rangé et son lien reste associé au suivi.",
+      "inject"
+    ],
+    [
+      "Relance",
+      "Les échéances déclenchent les alertes et relances.",
+      "outlook"
+    ]
+  ],
+  "cerfa": [
+    [
+      "Lot PDF",
+      "Les fiches CERFA et attestations sont déposées.",
+      "pdf"
+    ],
+    [
+      "Lecture",
+      "Les pages 1 et 2 sont rendues et les cases sont lues.",
+      "extract"
+    ],
+    [
+      "Contrôles",
+      "Doublons, non-conformités et retards sont repérés.",
+      "check"
+    ],
+    [
+      "HTML",
+      "Une interface permet de consulter le lot.",
+      "html"
+    ],
+    [
+      "Indicateurs",
+      "Les KPI et filtres permettent de retrouver les anomalies.",
+      "chart"
+    ],
+    [
+      "Excel",
+      "Le tableau filtré est préparé avec ses surlignages.",
+      "excel"
+    ],
+    [
+      "Export",
+      "Le lot sélectionné est exporté pour exploitation.",
+      "export"
+    ]
+  ],
+  "vre": [
+    [
+      "Rapport PDF",
+      "Réception du rapport de vérification électrique.",
+      "pdf"
+    ],
+    [
+      "Extraction",
+      "Les équipements, départs et écarts sont repérés.",
+      "extract"
+    ],
+    [
+      "Comptage",
+      "Les totaux sont calculés.",
+      "script"
+    ],
+    [
+      "Vérification",
+      "Chaque total reste sous contrôle.",
+      "check"
+    ],
+    [
+      "Excel",
+      "Les résultats rejoignent la structure du suivi.",
+      "excel"
+    ],
+    [
+      "Injection",
+      "Le classeur de suivi SharePoint reçoit les données.",
+      "inject"
+    ]
+  ],
+  "studio": [
+    [
+      "Modèle PDF",
+      "Un exemple du document sert de modèle.",
+      "pdf"
+    ],
+    [
+      "Zones",
+      "Les zones à lire sont tracées.",
+      "extract"
+    ],
+    [
+      "Règles",
+      "La configuration décrit les champs à extraire.",
+      "script"
+    ],
+    [
+      "Test",
+      "Les règles sont essayées sur des documents réels.",
+      "check"
+    ],
+    [
+      "HTML",
+      "Une page autonome porte l’extracteur.",
+      "html"
+    ],
+    [
+      "Export",
+      "Le fichier ou l’exécutable est produit.",
+      "export"
+    ],
+    [
+      "Utilisation",
+      "Le traitement reste intégralement local.",
+      "vm"
+    ]
+  ],
+  "powerbi": [
+    [
+      "Sources",
+      "PDF, Excel et SharePoint alimentent le modèle.",
+      "excel"
+    ],
+    [
+      "Power Query",
+      "Les données sont préparées et contrôlées.",
+      "extract"
+    ],
+    [
+      "Modèle",
+      "Les tables et relations organisent le suivi.",
+      "powerbi"
+    ],
+    [
+      "DAX",
+      "Les mesures calculent les indicateurs.",
+      "script"
+    ],
+    [
+      "HTML",
+      "Les pages sont générées dans les mesures.",
+      "html"
+    ],
+    [
+      "Portail",
+      "Plans, PDF et échéances deviennent consultables.",
+      "powerbi"
+    ],
+    [
+      "Recherche",
+      "Le document utile est retrouvé en environ dix secondes.",
+      "check"
+    ]
+  ],
+  "suivi": [
+    [
+      "GMAO",
+      "Les ordres de travail constituent le point de départ.",
+      "queue"
+    ],
+    [
+      "Exports",
+      "Les autres logiciels et sites fournissent leurs données.",
+      "export"
+    ],
+    [
+      "Extraction",
+      "Les informations utiles sont isolées.",
+      "extract"
+    ],
+    [
+      "Rattachement",
+      "Chaque ligne retrouve son équipement et son bâtiment.",
+      "inject"
+    ],
+    [
+      "Interface",
+      "Le suivi est regroupé dans une interface unique.",
+      "html"
+    ],
+    [
+      "Recherche",
+      "Les liens et informations deviennent accessibles en quelques secondes.",
+      "check"
+    ]
+  ],
+  "gares": [
+    [
+      "Sources",
+      "GMAO, référentiel et SharePoint sont réunis.",
+      "sharepoint"
+    ],
+    [
+      "Préparation",
+      "Les données sont rapprochées et contrôlées.",
+      "extract"
+    ],
+    [
+      "Power BI",
+      "Le modèle comporte 19 tables et 159 mesures.",
+      "powerbi"
+    ],
+    [
+      "Calculs",
+      "La criticité et la conformité sont calculées.",
+      "script"
+    ],
+    [
+      "Fiche gare",
+      "Gare, équipement et maintenance deviennent consultables.",
+      "chart"
+    ],
+    [
+      "Priorités",
+      "Les équipements à surveiller sont identifiés.",
+      "check"
+    ]
+  ],
+  "terrain": [
+    [
+      "Gemba",
+      "Observer les activités sur le terrain.",
+      "field"
+    ],
+    [
+      "Faits",
+      "Entretiens et preuves documentent la situation.",
+      "extract"
+    ],
+    [
+      "Processus",
+      "Les processus EPM et EPTx sont représentés.",
+      "queue"
+    ],
+    [
+      "EPM light",
+      "Le processus simplifié est proposé.",
+      "chart"
+    ],
+    [
+      "Arbitrage",
+      "Les décisions sont prises en réunion d’agence.",
+      "check"
+    ]
+  ],
+  "charte": [
+    [
+      "Charte",
+      "Les règles visuelles communes sont définies.",
+      "design"
+    ],
+    [
+      "Composants",
+      "Boutons, tableaux et indicateurs partagent les mêmes conventions.",
+      "html"
+    ],
+    [
+      "Outils",
+      "CERFA, VRE, Studio et PP adoptent la même interface.",
+      "script"
+    ],
+    [
+      "Usage",
+      "Les écrans facilitent lecture, contrôle et export.",
+      "export"
+    ],
+    [
+      "Local",
+      "Aucune donnée n’est envoyée hors du poste.",
+      "vm"
+    ]
+  ]
 };
 
 // Chaque carte : un gain de TEMPS et un gain d'ARGENT (taux horaire de 104,74 € utilisé dans le CV), par process et par projet. 'ctx' = ce que le chiffre mesure.

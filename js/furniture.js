@@ -20,33 +20,17 @@ export function desk() {
   return bake(g);
 }
 
-function screenTexture(kind, w, h) {
-  return canvasTexture(w, h, (c) => {
-    if (kind === 'wide') {
-      // fond d'écran Windows XP (Bliss), dossier « Projets pro », barre des tâches et bouton démarrer
-      const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#1d5fd0'); sky.addColorStop(0.6, '#6aa9ef'); sky.addColorStop(1, '#c5e3ff'); c.fillStyle = sky; c.fillRect(0, 0, w, h);
-      c.fillStyle = 'rgba(255,255,255,0.9)'; for (const [x, y, rx, ry] of [[0.2, 0.22, 0.12, 0.07], [0.32, 0.18, 0.09, 0.06], [0.74, 0.16, 0.14, 0.06], [0.88, 0.24, 0.09, 0.05]]) { c.beginPath(); c.ellipse(x * w, y * h, rx * w, ry * h, 0, 0, 6.3); c.fill(); }
-      const hill = c.createLinearGradient(0, h * 0.5, 0, h); hill.addColorStop(0, '#7ec43a'); hill.addColorStop(0.5, '#4f9a1c'); hill.addColorStop(1, '#2e6f10'); c.fillStyle = hill;
-      c.beginPath(); c.moveTo(0, h * 0.72); c.bezierCurveTo(w * 0.2, h * 0.55, w * 0.45, h * 0.5, w * 0.65, h * 0.62); c.bezierCurveTo(w * 0.8, h * 0.7, w * 0.9, h * 0.62, w, h * 0.56); c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
-      // icône dossier
-      c.fillStyle = '#e8b73a'; c.fillRect(w * 0.03, h * 0.08, w * 0.05, h * 0.09); c.fillStyle = '#f6d36a'; c.fillRect(w * 0.03, h * 0.105, w * 0.05, h * 0.065);
-      c.fillStyle = '#fff'; c.font = `${Math.round(h * 0.045)}px sans-serif`; c.textAlign = 'center'; c.fillText('Projets pro', w * 0.055, h * 0.215);
-      // barre des tâches
-      const tb = c.createLinearGradient(0, h * 0.93, 0, h); tb.addColorStop(0, '#3f8cf3'); tb.addColorStop(0.2, '#245edb'); tb.addColorStop(1, '#1941a5'); c.fillStyle = tb; c.fillRect(0, h * 0.93, w, h * 0.07);
-      c.fillStyle = '#3c9a2c'; c.fillRect(0, h * 0.93, w * 0.1, h * 0.07); c.fillStyle = '#fff'; c.font = `italic bold ${Math.round(h * 0.045)}px sans-serif`; c.textAlign = 'left'; c.fillText('démarrer', w * 0.022, h * 0.985);
-      c.fillStyle = '#0b81d6'; c.fillRect(w * 0.93, h * 0.93, w * 0.07, h * 0.07);
-    } else {
-      c.fillStyle = '#f4f1ea'; c.fillRect(0, 0, w, h);
-      const accent = '#e8452b';
-      c.fillStyle = '#ffffff'; c.fillRect(0, 0, w, h * 0.09);
-      c.fillStyle = accent; c.fillRect(w * 0.06, h * 0.03, w * 0.3, h * 0.03);
-      for (let i = 0; i < 8; i++) {
-        c.fillStyle = '#ffffff'; c.fillRect(w * 0.05, h * (0.12 + i * 0.108), w * 0.9, h * 0.092);
-        c.fillStyle = i % 3 === 0 ? accent : '#243044'; c.fillRect(w * 0.09, h * (0.135 + i * 0.108), w * 0.1, h * 0.04);
-        c.fillStyle = '#cfc9ba'; c.fillRect(w * 0.23, h * (0.137 + i * 0.108), w * 0.6, h * 0.016);
-        c.fillRect(w * 0.23, h * (0.165 + i * 0.108), w * 0.38, h * 0.016);
-      }
-    }
+function screenTexture(kind,w,h) {
+  return canvasTexture(w,h,c=>{
+    const tall=kind==='tall';c.fillStyle='#edf2f6';c.fillRect(0,0,w,h);
+    c.fillStyle='#142d46';c.fillRect(0,0,w,h*.09);c.fillStyle='#ffffff';c.font='600 '+Math.round(h*.041)+'px sans-serif';c.fillText(tall?'Suivi des opérations':'Pilotage des projets',w*.055,h*.06);
+    const left=tall?.05:.20,width=tall?.90:.76;
+    if(!tall){c.fillStyle='#e2e9ed';c.fillRect(0,h*.09,w*.16,h*.91);c.font=Math.round(h*.032)+'px sans-serif';for(const [i,label] of ['Vue générale','Rapports','Financier','Échéances'].entries()){c.fillStyle=i===0?'#157c60':'#506273';c.fillText(label,w*.023,h*(.19+i*.09));}}
+    c.fillStyle='#253d52';c.font='600 '+Math.round(h*.042)+'px sans-serif';c.fillText(tall?'Rapports à intégrer':'Point financier · synthèse',w*left,h*.17);
+    const cols=tall?1:3;for(let i=0;i<cols;i++){const cw=width/cols*.94,x=w*(left+i*width/cols);c.fillStyle='#ffffff';c.fillRect(x,h*.21,w*cw,h*.14);c.fillStyle=['#14855d','#376bba','#af742c'][i];c.font='700 '+Math.round(h*.06)+'px sans-serif';c.fillText(['24','8','4'][i],x+w*.025,h*.30);c.fillStyle='#586a76';c.font=Math.round(h*.025)+'px sans-serif';c.fillText(['Rapports validés','Traitements','Flux actifs'][i],x+w*.025,h*.33);}
+    c.fillStyle='#ffffff';c.fillRect(w*left,h*.39,w*width,h*.54);
+    if(tall){c.font=Math.round(h*.025)+'px sans-serif';for(let i=0;i<7;i++){const y=h*(.46+i*.061);c.fillStyle='#deeee5';c.fillRect(w*.09,y-w*.02,w*.07,w*.07);c.fillStyle='#286a50';c.fillText('✓',w*.104,y+w*.027);c.fillStyle='#243d51';c.fillText('OT '+(1000421+i),w*.21,y+w*.008);c.fillStyle='#8c9ba6';c.fillRect(w*.21,y+w*.036,w*.54,h*.008);}}else{for(let i=0;i<4;i++){c.strokeStyle='#e4ebef';c.beginPath();c.moveTo(w*left+w*.02,h*(.47+i*.105));c.lineTo(w*(left+width)-w*.02,h*(.47+i*.105));c.stroke();}for(let i=0;i<8;i++){const x=w*(left+.055+i*.085),bh=h*(.12+(i%4)*.067);c.fillStyle=i%3===0?'#247d62':'#6b9bb6';c.fillRect(x,h*.86-bh,w*.041,bh);}}
+    c.fillStyle='#637b8a';c.font=Math.round(h*.022)+'px sans-serif';c.fillText('Données de démonstration',w*left,h*.975);
   });
 }
 
@@ -1119,7 +1103,14 @@ export function mountedMonitor(panelGltf, armGltf, portrait = false, webcamGltf 
   panel.traverse(o=>{
     if(!o.isMesh)return;
     o.castShadow=o.receiveShadow=true;
-    if(/Screen/.test(o.name))o.material=new THREE.MeshBasicMaterial({map:portrait?screenTexture('tall',400,720):o.material.map,side:THREE.DoubleSide,toneMapped:false});
+    if(/Screen/.test(o.name)){
+      // Map the new dashboard in panel coordinates, independent of the source image UVs.
+      const geometry=o.geometry.clone();geometry.computeBoundingBox();
+      const bounds=geometry.boundingBox,p=geometry.attributes.position,uv=new Float32Array(p.count*2);
+      for(let i=0;i<p.count;i++){uv[i*2]=(p.getX(i)-bounds.min.x)/(bounds.max.x-bounds.min.x);uv[i*2+1]=(p.getY(i)-bounds.min.y)/(bounds.max.y-bounds.min.y);}
+      geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));o.geometry=geometry;
+      o.material=new THREE.MeshBasicMaterial({map:screenTexture(portrait?'tall':'wide',portrait?900:1800,portrait?1600:760),side:THREE.DoubleSide,toneMapped:false});
+    }
   });
   arm.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
   g.add(arm,panel);

@@ -1,5 +1,5 @@
-import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v19';
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v18';
+import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v20';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v20';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';
@@ -45,9 +45,9 @@ function initDetail() {
 function initUniv() {
   const host = document.getElementById('univ'); if (!host) return;
   host.innerHTML = `<button class="univ-card" type="button" aria-label="Jouer à ${esc(UNIV.title)}"><span class="univ-img" style="background-image:url('${UNIV.img}')"></span>
-    <span class="univ-txt"><span class="k">Projet universitaire · ${esc(UNIV.sub)}</span><h3>${esc(UNIV.title)}</h3><p>${esc(UNIV.desc)}</p>${dbtn('Jouer en plein écran')}</span></button>`;
+    <span class="univ-txt"><span class="k">Projet universitaire · ${esc(UNIV.sub)}</span><h3>${esc(UNIV.title)}</h3><p>${esc(UNIV.desc)}</p>${dbtn('Jouer en plein écran', { tag: 'span' })}</span></button>`;
   host.querySelector('.univ-card').addEventListener('click', () => playFullscreen(CV + UNIV.url, UNIV.title));
-  initHoverDiagrams(host, [UNIV], { sel: '.univ-card', kicker: 'CONSTRUIT AVEC' });
+  initHoverDiagrams(host.querySelector('.univ-img'), [UNIV], { sel: '.univ-img', kicker: 'CONSTRUIT AVEC' });
 }
 
 export function initHome() {

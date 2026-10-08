@@ -28,6 +28,8 @@ jobs:
         run: |
           set -euo pipefail
           node --check js/project-dioramas.js
+          node --check js/process-symbols.js
+          node --check js/projects-data.js
           node --check js/home.js
           node --check js/main.js
           node --check js/room.js
@@ -42,10 +44,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v19" index.html
-          grep -q "character.js?v=cv-scene-v18" js/room.js
+          grep -q "js/main.js?v=cv-scene-v20" index.html
+          grep -q "character.js?v=cv-scene-v20" js/room.js
           grep -q "retro.js?v=cv-scene-v17" js/room.js
-          grep -q "room.js?v=cv-scene-v18" js/main.js
+          grep -q "room.js?v=cv-scene-v20" js/main.js
           test -s assets/jeans-baggy.glb
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js

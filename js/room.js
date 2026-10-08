@@ -1,6 +1,6 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
-import * as F from './furniture.js?v=cv-scene-v17';
-import { createCharacter } from './character.js?v=cv-scene-v18';
+import * as F from './furniture.js?v=cv-scene-v20';
+import { createCharacter } from './character.js?v=cv-scene-v20';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
 
   // MODE STABLE : la scène locale démarre sans attendre Native.
   // Le pont exact est chargé plus tard en import dynamique : aucune panne du runtime
@@ -107,7 +107,7 @@ export async function createRoom(container, bubbleEl) {
     }
 
     // Le lampadaire déjà présent dans le CV est conservé, sans modifier le set Native.
-    add('brontes', brontes, -0.8, -0.22, 0.4, 0.74, 0, deskSet);
+    add('brontes', brontes, -0.77, 0.29, 0.4, 0.74, 0, deskSet);
 
     if (nativeBridge.book) {
       nativeBridge.book.userData.dynamic = true;
@@ -123,7 +123,7 @@ export async function createRoom(container, bubbleEl) {
     const pm = F.mountedMonitor(portraitPanel,monitorArm,true); pm.name = 'PortraitMonitor'; pm.position.set(0.39, 0.74, -0.36); pm.rotation.y = -0.14; pm.userData.id = 'pc'; deskSet.add(pm);
     const kb = F.moonlander(); kb.name = 'Moonlander'; kb.position.set(-0.12, 0.74, 0.2); deskSet.add(kb);
     const mouse = F.verticalMouse(); mouse.name = 'ErgonomicVerticalMouse'; mouse.position.set(0.3, 0.74, 0.24); mouse.rotation.y = 0.1; deskSet.add(mouse);
-    add('brontes', brontes, -0.8, -0.22, 0.4, 0.74, 0, deskSet);
+    add('brontes', brontes, -0.77, 0.29, 0.4, 0.74, 0, deskSet);
     const tw = F.suppliedComputer(computerModel); tw.position.set(0.80, 0.74, -0.06); tw.rotation.y = Math.PI - 0.12; deskSet.add(tw);
 
     const titanium = new THREE.MeshStandardMaterial({ color: '#b8b4b0', roughness: 0.34, metalness: 0.82 });
@@ -150,11 +150,12 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v17')
+    import('./native-room.js?v=cv-scene-v20')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
         nativeBridge = bridge;
+        for(const name of ['Nommo left speaker','Nommo right speaker']){const o=bridge.sceneApi.shupi.scene.getObjectByName(name);if(o)o.visible=false;bridge.deskSet.getObjectByName(name)?.removeFromParent();}
         bridge.sceneApi.sound?.setMuted?.(sceneMuted);
 
         // Le bureau personnalisé reste en place ; le pont fournit les gestes et les sons.
@@ -165,10 +166,6 @@ export async function createRoom(container, bubbleEl) {
         if (bridge.wateringCan && !bridge.wateringCan.parent) {
           bridge.wateringCan.userData.dynamic = true;
           world.add(bridge.wateringCan);
-        }
-        for(const [name,x] of [['Nommo left speaker',-.78],['Nommo right speaker',.66]]){
-          const source=bridge.deskSet.getObjectByName(name);
-          if(source){const speaker=F.desktopSpeaker(source,name);speaker.position.set(x,.74,-.11);deskSet.add(speaker);fallbackDeskChildren.push(speaker);}
         }
         if (bridge.effects) world.add(bridge.effects);
         thought.useSource(bridge.sceneApi, bridge.bookPreview);
@@ -209,8 +206,6 @@ export async function createRoom(container, bubbleEl) {
 
   const STOOL_X = 2.0, STOOL_Z = 4.55;           // tabouret à droite du canapé, portant le bonsaï
   const bonsai = F.bonsai(); inkify(bonsai, { skip: (o) => !['9b9a92'].includes(o.material.color.getHexString()) }); add('bonsai', bonsai, STOOL_X, STOOL_Z, 0.5, 0.372, 0.42);
-  const sp1 = F.speakerFromGltf(jblGltf, 1.15), sp2 = F.speakerFromGltf(jblGltf, 1.15);
-  const spPosts = [F.speakerPosts(sp1), F.speakerPosts(sp2)];
   const alo = F.alocasia(); inkify(alo, { skip: (o) => !(o.material.map && o.material.map.image && o.material.map.image.width === 128 && o.material.side === THREE.DoubleSide) });
   add('alocasia', alo, -3.1, 3.25, 0.6, 0, 0.9).scale.setScalar(0.9);
   const sofaObj = F.sofaFrom(sofaGltf, 2.2, { recline: 0, slide: 0, lateral: 0 });
@@ -221,7 +216,7 @@ export async function createRoom(container, bubbleEl) {
   add('falk', falk, FK.x, FK.z, 0.4, FK.top, 1.0, world, 0);
   mkLamp('falk', falk.userData.glow, new THREE.PointLight('#ffd9a0', 0, 4.5, 2), '#fff0d0', '#ffffff');
   lamps.falk.light.position.set(FK.x, FK.top - falk.userData.height / 2, FK.z);
-  add('speaker1', sp1, -2.6, -2.5, 0.35, 0, 0.5);
+  
 
   const EKS = 1.3;                           // l'Ekstrem est un grand fauteuil
   const ek = F.ekstremFrom(ekGltf); add('ekstrem', ek, 2.3, -0.95, -0.45, 0, 0.35).scale.setScalar(EKS);
@@ -270,32 +265,16 @@ export async function createRoom(container, bubbleEl) {
 
   if (paintTex) { const pt = add('painting', F.painting(paintTex), -0.7, -2.95, 0, 1.35, 0.7, world, 0); pt.scale.setScalar(1.3); }
   const dra = F.dracaena(); inkify(dra, { skip: (o) => o.material.color.getHexString() !== 'b3a893' }); add('dracaena', dra, 2.85, -2.45, 0.3, 0, 0.65);
-  add('speaker2', sp2, 1.25, -2.5, -0.35, 0, 0.75);
+  
   const ekBox = new THREE.Box3().setFromObject(ek.parent); // ligne de l'étagère = pied le plus extérieur de l'Ekstrem
   ek.parent.updateMatrixWorld(true);
   add('shelf1', F.shelf(), ekBox.max.x - 0.04, 1.8, Math.PI / 2, 0, 0.8);
 
-  // câbles d'enceintes : de l'arrière de l'ampli (derrière le meuble vert) jusqu'aux bornes de chaque enceinte
-  { world.updateMatrixWorld(true);
-    const ampPost = F.ampPosts(amp); usmSet.updateMatrixWorld(true);
-    const run = (aKey, spId, spk, sp) => {
-      const holder = items.find((i) => i.id === spId).holder;
-      ['black', 'red'].forEach((c, ci) => {
-        const A = amp.localToWorld(ampPost[aKey + c].clone());
-        const S = holder.localToWorld(sp[c].clone());
-        const o = ci * 0.014, zz = -2.7 - o;
-        const mid = (A.x + S.x) / 2;
-        const pts = [[A.x, A.y, A.z], [A.x, A.y - 0.02, A.z - 0.08], [A.x, 0.45, zz], [A.x + (S.x - A.x) * 0.15, 0.01, zz - 0.03], [mid, 0.006, zz + 0.16 + o], [S.x + (A.x - S.x) * 0.1, 0.007, zz - 0.02], [S.x, S.y * 0.3, S.z - 0.05], [S.x, S.y, S.z]];
-        const t = tube(pts, 0.0045, new THREE.MeshStandardMaterial({ color: c === 'red' ? '#b32525' : '#18181a', roughness: 0.5 }), { segs: 90, radial: 5 });
-        add('wire' + spId + c, t, 0, 0, 0, 0, 0.8, world, 0);
-      });
-    };
-    run('L', 'speaker1', null, spPosts[0]); run('R', 'speaker2', null, spPosts[1]); }
   // positions des sources lumineuses (repère monde)
   const yawed = (v, yaw, ox, oz) => { v = v.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); return [ox + v.x, v.y, oz + v.z]; };
   lamps.arc.light.position.set(...yawed(new THREE.Vector3(1.38, 2.05, 0), ARC_YAW, 0.85, -2.15));
   lamps.beton.light.position.set(-0.3, 1.0, -2.3);
-  lamps.brontes.light.position.set(...yawed(new THREE.Vector3(-0.8, 1.15, -0.22), Math.PI / 2, -3.1, 0.25));
+  lamps.brontes.light.position.set(...yawed(new THREE.Vector3(-0.77, 1.15, 0.29), Math.PI / 2, -3.1, 0.25));
   for (const L of Object.values(lamps)) world.add(L.light);
 
   /* ─── personnage ─── */
@@ -509,7 +488,7 @@ export async function createRoom(container, bubbleEl) {
     const bb = new THREE.Box3().setFromObject(it.holder);
     nav.block({ x0: bb.min.x + shrink, x1: bb.max.x - shrink, z0: bb.min.z + shrink, z1: bb.max.z - shrink });
   };
-  ['desk', 'chair', 'usm', 'speaker1', 'speaker2', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike'].forEach((id) => footprint(id));
+  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike'].forEach((id) => footprint(id));
   // Block pots and lower stems; overhead leaves must not close walkable aisles.
   for(const id of ['alocasia','dracaena','bonsai']){
     const plant=items.find(i=>i.id===id)?.holder;if(!plant)continue;
@@ -548,7 +527,7 @@ export async function createRoom(container, bubbleEl) {
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.48, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: null, pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
     dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Snake plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [3.65, 0, -2.45], yaw: -Math.PI / 2, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
-    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'fauteuil', seatId: 'sofa', seatBack: 0.07, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
+    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', seatId: 'sofa', seatBack: 0.07, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.ritual) st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]]));
@@ -663,7 +642,7 @@ export async function createRoom(container, bubbleEl) {
   mpCrate.addEventListener('click', (e) => { e.stopPropagation(); openCrate(!crate.isOpen); });
   pill.addEventListener('pointerdown', (e) => e.stopPropagation());
   let modelBaseY = null, thoughtFor = null, music = false, bubbleT = 0, spawned = false;
-  const speakers = ['speaker1', 'speaker2'].map((id) => items.find((i) => i.id === id));
+  const speakers = []; // The music remains available through its controls.
   const record = tt.userData.record, arm = tt.userData.arm;
   let armAng = 0.5;
 
@@ -810,7 +789,6 @@ export async function createRoom(container, bubbleEl) {
     if (id === 'pc') { if (atDesk()) openPc(); else goTo('desk', openPc); return; }
     if (/^shoji\d$/.test(id)) { cs.togglePanel(+id.slice(5)); return; }
     if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; return; }
-    if (id === 'speaker1' || id === 'speaker2') { setMusic(!music); return; }
     if (stations[id]) goTo(id);
   }
   const leave = () => director.stand();
@@ -955,7 +933,9 @@ export async function createRoom(container, bubbleEl) {
             const sy = seatSurfaceY(cur);
             if (sy != null) {
               const dy = sy + 0.008 - hero.hipContactY();
-              hero.group.position.y += dy * (1 - Math.exp(-dt * 16));
+              // Never blend through the cushion when a new pose changes the
+              // trouser volume. Lift immediately, then settle down smoothly.
+              hero.group.position.y += dy > 0 ? dy : dy * (1 - Math.exp(-dt * 16));
               hero.group.updateMatrixWorld(true);
             }
 
