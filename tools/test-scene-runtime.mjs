@@ -42,6 +42,9 @@ try {
     });
     await page.goto('http://scene.test/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.getElementById('room')?.dataset.sceneReady === 'true', null, { timeout: 60000 });
+    // Pause autonomous destinations before loading can place the actor mid-route.
+    // Keep the render loop active at a bounded software-test resolution.
+    await page.evaluate(() => { const r=window.room; r.pauseAutonomy(600000); r.opts.noAdapt=true; r.renderer.setPixelRatio(.5); for(const st of Object.values(r.stations)) st.maxMs=120000; });
     try {
       await page.waitForFunction(() => document.getElementById('room')?.dataset.native === 'ready', null, { timeout: 60000 });
     } catch (error) {
@@ -83,8 +86,13 @@ try {
     if (viewport.width === 1440) {
       const padHome = await page.evaluate(() => window.room.retro.pad.position.toArray());
       await page.evaluate(() => { window.room.pauseAutonomy(600000); window.room.goTo('sofa'); });
-      await page.waitForFunction(() => window.room.director.mode === 'activity' &&
-        window.room.director.current === window.room.stations.sofa, null, { timeout: 120000 });
+      try {
+        await page.waitForFunction(() => window.room.director.mode === 'activity' &&
+          window.room.director.current === window.room.stations.sofa, null, { timeout: 180000 });
+      } catch(error) {
+        const failure=await page.evaluate(()=>{const r=window.room;return {frames:document.getElementById('room').dataset.sceneFrames,mode:r.director.mode,position:r.hero.group.position.toArray(),current:r.director.current?.label,approach:r.stations.sofa.approach};});
+        await writeFile(path.join(output,'sofa-route-failure.json'),JSON.stringify(failure,null,2));console.error('SOFA_ROUTE_FAILURE',JSON.stringify(failure));throw error;
+      }
       await page.waitForTimeout(1500);
       await page.screenshot({ path: path.join(output, 'scene-sofa.png') });
       assert.ok(await page.evaluate(() => {

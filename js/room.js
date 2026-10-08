@@ -1,17 +1,17 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
-import * as F from './furniture.js?v=cv-scene-v16';
-import { createCharacter } from './character.js?v=cv-scene-v16';
+import * as F from './furniture.js?v=cv-scene-v17';
+import { createCharacter } from './character.js?v=cv-scene-v17';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
 import { createRitual } from './ritual.js?v=bf01a16';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
-import { createRetroSet } from './retro.js?v=cv-scene-v16';
-import { createNav } from './nav.js?v=cv-scene-v16';
-import { createDirector } from './director.js?v=cv-scene-v16';
-import { createThought } from './thought.js?v=cv-scene-v16';
+import { createRetroSet } from './retro.js?v=cv-scene-v17';
+import { createNav } from './nav.js?v=cv-scene-v17';
+import { createDirector } from './director.js?v=cv-scene-v17';
+import { createThought } from './thought.js?v=cv-scene-v17';
 import { createWeather } from './weather.js?v=bf01a16';
-import { createJukebox } from './jukebox.js?v=cv-scene-v16';
+import { createJukebox } from './jukebox.js?v=cv-scene-v17';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v16'), load('assets/tableau.jpg?v=cv-scene-v16'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v16').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish.glb?v=cv-scene-v16').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, jblGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/jbl.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
 
   // MODE STABLE : la scène locale démarre sans attendre Native.
   // Le pont exact est chargé plus tard en import dynamique : aucune panne du runtime
@@ -63,8 +63,8 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
-  const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v16').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
-  const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-panel.glb','monitor-portrait-panel.glb','humanscale-m2-arm.glb','desk-webcam.glb','gaming-pc.glb'].map(model));
+  const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
+  const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-curved-panel.glb','monitor-portrait-panel.glb','humanscale-m2-arm.glb','desk-webcam.glb','gaming-pc.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
     const holder = group(obj);
@@ -148,7 +148,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v16')
+    import('./native-room.js?v=cv-scene-v17')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
