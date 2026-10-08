@@ -90,8 +90,12 @@ try {
       const padHome = await page.evaluate(() => window.room.retro.pad.position.toArray());
       await page.evaluate(() => { window.room.pauseAutonomy(600000); window.room.goTo('sofa'); });
       try {
+        // A CPU-only runner advances the capped simulation clock slowly.
+        // Still require the complete real route and the authored activity.
         await page.waitForFunction(() => window.room.director.mode === 'activity' &&
-          window.room.director.current === window.room.stations.sofa, null, { timeout: 180000 });
+          window.room.director.current === window.room.stations.sofa, null, {
+            timeout: (process.env.SCENE_WEBGL_BACKEND || 'swiftshader') === 'swiftshader' ? 360000 : 180000,
+          });
       } catch(error) {
         const failure=await page.evaluate(()=>{const r=window.room;return {frames:document.getElementById('room').dataset.sceneFrames,mode:r.director.mode,position:r.hero.group.position.toArray(),current:r.director.current?.label,approach:r.stations.sofa.approach};});
         await writeFile(path.join(output,'sofa-route-failure.json'),JSON.stringify(failure,null,2));console.error('SOFA_ROUTE_FAILURE',JSON.stringify(failure));throw error;
