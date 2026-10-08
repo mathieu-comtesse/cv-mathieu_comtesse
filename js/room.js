@@ -1,6 +1,6 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=cv-scene-v17';
-import { createCharacter } from './character.js?v=cv-scene-v17';
+import { createCharacter } from './character.js?v=cv-scene-v18';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
@@ -60,6 +60,8 @@ export async function createRoom(container, bubbleEl) {
   // Le pont exact est chargé plus tard en import dynamique : aucune panne du runtime
   // de référence ne peut empêcher le décor Three.js de s'afficher.
   let nativeBridge = null;
+  let sceneMuted = false;
+  const setSceneMuted = value => { sceneMuted = !!value; nativeBridge?.sceneApi.sound?.setMuted?.(sceneMuted); container.dataset.muted=String(sceneMuted); };
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
@@ -153,6 +155,7 @@ export async function createRoom(container, bubbleEl) {
       .then((bridge) => {
         if (!bridge) return;
         nativeBridge = bridge;
+        bridge.sceneApi.sound?.setMuted?.(sceneMuted);
 
         // Le bureau personnalisé reste en place ; le pont fournit les gestes et les sons.
         if (bridge.book && !bridge.book.parent) {
@@ -1040,5 +1043,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
+  return { setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
 }

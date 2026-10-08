@@ -135,9 +135,9 @@ export async function createCharacter({
   } catch (_) {}
 
   // TSHIRT_BLENDER : la chemise (veste) est retirée, remplacée par un T-shirt gris d'une seule pièce ; le bras droit est tatoué en noir, bras et main (tools/blender_tshirt_arm.py).
-  // Le modèle Sketchfab demandé n'est pas téléchargeable (choix de l'auteur) : le T-shirt est modélisé sous Blender dans le même style.
+  // Le t-shirt fourni est ajusté, allégé et lié au squelette sous Blender.
   try {
-    const tg = await parse(await loadBuffer('assets/tshirt-arm.glb?v=cv-scene-v13'));
+    const tg = await parse(await loadBuffer('assets/tshirt-fitted.glb?v=cv-scene-v18'));
     const old = []; characterGltf.scene.traverse((o) => { if (/^(jacket|arm|shirt|id|clip)(_\d+)?$/.test(o.name)) old.push(o); });
     const added = attachSkinned(tg, { double: true });
     if (added.length) old.forEach((o) => o.removeFromParent());

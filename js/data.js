@@ -186,3 +186,22 @@ export const PRO = [
   "play": true
  }
 ];
+
+PRO.unshift(...[
+  {
+    "id": "projet-financier",
+    "title": "Point financier · Power Automate",
+    "sub": "Quatre flux pilotés par les seuils Excel",
+    "lead": "Quatre flux CS, Locatif, MEC et PPTM contrôlent les lignes du point financier. Ils appliquent les règles PRG, PSE et GLOBAL, excluent les lignes KO et signalent les dépassements de seuil. Le paramétrage des seuils reste dans Excel.",
+    "gain": "Les règles et les seuils sont centralisés : le suivi ne dépend plus d’un contrôle manuel de chaque ligne.",
+    "team": "Une alerte indique le dépassement à examiner. Les exemples du portfolio utilisent uniquement des données fictives."
+  },
+  {
+    "id": "projet-vm-vre",
+    "title": "VRE / VLE · traitement par VM",
+    "sub": "SharePoint, demandes, Excel et récapitulatif",
+    "lead": "Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.",
+    "gain": "Un historique conserve les résultats et évite les doublons. Le récapitulatif de 17 h ne reprend que les intégrations confirmées encore non notifiées.",
+    "team": "Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint."
+  }
+]);

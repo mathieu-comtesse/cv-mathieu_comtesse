@@ -51,3 +51,14 @@ export const PAGES = {
 "html": "<main id=\"contenu\"><section class=\"band\"><div class=\"wrap personal-intro\"><span class=\"skill-kicker\">Formation</span><h1>Projets universitaires</h1><p>Réalisés dans le cadre de ma formation.</p><div class=\"theme-grid\"><span class=\"card-index\">01 / Jeu sérieux</span><h3>Le Village Talas · ISO 45001</h3><p>Sept ateliers, sept chapitres de la norme, une dizaine de mini-jeux : fantôme à attraper, combat d’arcade en 3D, évacuation sous les immeubles qui s’effondrent, défense d’atelier au budget prévention, festin, karaoké, centre de doc isométrique, hangar d’assemblage aéronautique en dessin animé, chronométré et à déverrouiller étage par étage, revue de direction en jeu télévisé, opération et régate de jet-ski sur une mer en houle. Avec statistiques des parties et salle de contrôle.</p><span class=\"card-link\">Jouer <span>↗</span></span></div></div></section></main>"
 }
 };
+
+Object.assign(PAGES,{
+  "projet-financier": {
+    "title": "Point financier · Power Automate",
+    "html": "<h1>Point financier · Power Automate</h1><p>Quatre flux pilotés par les seuils Excel</p><h2>Fonctionnement</h2><p>Quatre flux CS, Locatif, MEC et PPTM contrôlent les lignes du point financier. Ils appliquent les règles PRG, PSE et GLOBAL, excluent les lignes KO et signalent les dépassements de seuil. Le paramétrage des seuils reste dans Excel.</p><h2>Résultat</h2><p>Les règles et les seuils sont centralisés : le suivi ne dépend plus d’un contrôle manuel de chaque ligne.</p><h2>Pour l’équipe</h2><p>Une alerte indique le dépassement à examiner. Les exemples du portfolio utilisent uniquement des données fictives.</p>"
+  },
+  "projet-vm-vre": {
+    "title": "VRE / VLE · traitement par VM",
+    "html": "<h1>VRE / VLE · traitement par VM</h1><p>SharePoint, demandes, Excel et récapitulatif</p><h2>Fonctionnement</h2><p>Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.</p><h2>Résultat</h2><p>Un historique conserve les résultats et évite les doublons. Le récapitulatif de 17 h ne reprend que les intégrations confirmées encore non notifiées.</p><h2>Pour l’équipe</h2><p>Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint.</p>"
+  }
+});

@@ -9,14 +9,16 @@
 <script>{const n=new Date(),m=n.getHours()*60+n.getMinutes();document.documentElement.dataset.theme=(m>=1320||m<270)?'dark':'light';document.documentElement.classList.add('js')}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23e8452b%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2716%27 font-family=%27sans-serif%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27white%27%3EMC%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css?v=cv-scene-v17">
+<link rel="stylesheet" href="project-dioramas.css?v=cv-scene-v18">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="js/main.js?v=cv-scene-v17"></script>
+<script type="module" src="js/main.js?v=cv-scene-v18"></script>
 </head>
 <body class="page-home">
 <nav class="nav" aria-label="Navigation">
   <a class="dbtn dbtn--sm" href="#work"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Projets</span></a>
   <a class="dbtn dbtn--sm" href="info.html"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Info</span></a>
   <button class="dbtn dbtn--icon dbtn--sm theme" id="theme" type="button" aria-label="Passer en mode sombre"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"></span></button>
+<button id="scene-mute" class="scene-mute" type="button" aria-pressed="false" aria-label="Couper les sons de la scène" title="Sons de la scène actifs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/><path class="mute-slash" d="m3 3 18 18"/></svg></button>
 </nav>
 <header class="shupi-header">
   <section class="room" id="room" aria-label="Appartement interactif de Mathieu">
@@ -32,8 +34,8 @@
   <p class="hero-meta">Yellow Belt Lean Six Sigma · ISO 9001 / 45001 / 14001 / 27001 · Power BI · Power Automate · Extraction PDF</p>
 </section>
 <section class="strip" id="work">
-  <header class="strip-head"><h2>Projets professionnels</h2><p>Glissez, ou cliquez un projet</p></header>
-  <div class="marquee" id="mq-pro" tabindex="0" aria-label="Projets professionnels : image et gain. Glissez ou utilisez les flèches gauche et droite."></div>
+  <header class="strip-head"><h2>Projets professionnels</h2><p>Des processus à explorer et à faire fonctionner</p></header>
+  <div class="marquee" id="mq-pro" tabindex="0" aria-label="Projets professionnels : ateliers 3D. Glissez ou utilisez les flèches gauche et droite."></div>
 </section>
 <section class="strip">
   <header class="strip-head"><h2>Projet universitaire</h2><p>Cliquez pour jouer</p></header>
@@ -53,7 +55,7 @@
       <li>Canapé DS-450 (de Sede) : modèle 3D de Marije H., <a href="https://3dwarehouse.sketchup.com/model/05759fed-25c6-4b2b-8120-20a3cff98283">3D Warehouse</a>.</li>
       <li>Enceintes JBL L100 MKII : modèle 3D de spencer smith, <a href="https://3dwarehouse.sketchup.com/model/1cd289cc-8b22-40b9-8e36-879f451d7a0b/JBL-L100-MKII">3D Warehouse</a>.</li>
       <li>Suspension Falkland (Danese Milano, Bruno Munari) : modèle 3D de minkyoung K., <a href="https://3dwarehouse.sketchup.com/model/1f132676-ba62-4b68-9e82-82a4a32337a4/falkland-floor-lamp">3D Warehouse</a>.</li>
-      <li>Jean du personnage : modèle « JNCO Twin Cannon baggy jeans » (Sketchfab), fourni par Mathieu Comtesse et adapté au squelette sous Blender (bpy). T-shirt : modélisé sous Blender dans le style du modèle « T-Shirt » de <a href="https://sketchfab.com/3d-models/t-shirt-81081c5803de49bf90f74e577fce4633">Lucas Soler</a> (CC BY 4.0).</li>
+      <li>Jean du personnage : modèle « JNCO Twin Cannon baggy jeans » (Sketchfab), fourni par Mathieu Comtesse et adapté au squelette sous Blender (bpy). T-shirt fourni : ajusté et lié au squelette sous Blender ; ancien modèle de référence de <a href="https://sketchfab.com/3d-models/t-shirt-81081c5803de49bf90f74e577fce4633">Lucas Soler</a> (CC BY 4.0).</li>
       <li>Chaussures New Balance 992 : modèle 3D de SRUSH651, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/new-balance-992-made-in-usa-greymetallic-7a38e58c92d54de59faa0b30f071f0d9">Sketchfab</a> (réduit et recolorié pour la scène).</li>
       <li>Lampe Borne Béton (Le Corbusier) : modèle 3D de Charles R., <a href="https://3dwarehouse.sketchup.com/model/78f07577-1796-46bb-85fa-de107f223701">3D Warehouse</a>.</li>
       <li>Lampe Akari (Isamu Noguchi) : modèle 3D d’Alana Pacheco, <a href="https://3dwarehouse.sketchup.com/model/c4bc36cc-94bc-45f0-8692-d7c6e615f8ad">3D Warehouse</a>.</li>

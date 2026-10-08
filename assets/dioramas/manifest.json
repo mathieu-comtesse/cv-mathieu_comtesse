@@ -1,0 +1,25 @@
+{
+  "version": "cv-scene-v18",
+  "authoring": "Blender 5.2 LTS",
+  "tshirt": {
+    "source": "tshirt.glb",
+    "sourceSha256": "c21ef90d256b1f28177e8468cc9f69a83dbdd0cc4111addc23f9893e82a1103a",
+    "output": "assets/tshirt-fitted.glb",
+    "originalPreserved": true,
+    "triangles": 6000
+  },
+  "projects": [
+    "cerfa",
+    "charte",
+    "finance",
+    "gares",
+    "pa",
+    "powerbi",
+    "studio",
+    "suivi",
+    "terrain",
+    "vmvre",
+    "vre"
+  ],
+  "content": "Professional process descriptions; illustrative fictional data. Dual VM takeover is a proposed architecture requiring validation in the restricted environment."
+}

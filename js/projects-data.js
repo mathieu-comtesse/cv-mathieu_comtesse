@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=bf01a16';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v18';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -7,6 +7,8 @@ const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, uni
 
 // Comment ça marche : 4 ou 5 étapes par projet (affichées en schéma au survol). Faits tirés du CV.
 const DIAG = {
+  finance: [['Excel', 'Les quatre flux CS, Locatif, MEC et PPTM lisent le suivi financier et les seuils configurés dans Excel.'], ['Filtrage', 'Les règles PRG, PSE et GLOBAL sont appliquées ; les lignes KO sont exclues.'], ['Seuil', 'Le montant est comparé au seuil de sa catégorie. Le seuil est une donnée du classeur, pas une valeur à ressaisir dans le flux.'], ['Alerte', 'Une alerte signale le dépassement à traiter. Cette démonstration utilise des montants fictifs.']],
+  vmvre: [['Dépôt', 'Un rapport déposé sur SharePoint déclenche une demande de traitement.'], ['Contrôle', 'La VM relève les demandes toutes les deux minutes, vérifie le code final du rapport et lit les sept chiffres du numéro d’OT.'], ['Excel', 'La VM retrouve l’OT, inscrit le lien du rapport, enregistre puis vérifie le classeur. Le résultat et l’historique évitent les doublons.'], ['Récapitulatif', 'À 17 h, un second flux regroupe les intégrations confirmées encore non notifiées. Sans nouvelle intégration, aucun mail n’est envoyé.']],
   pa: [['Dépôt', 'Le plan de prévention arrive'], ['Lecture', 'Champs extraits automatiquement'], ['Classement', 'Rangé et saisi au listing'], ['Alerte', 'Relances avant l’échéance']],
   cerfa: [['Dépôt du lot', 'Fiches CERFA et attestations (PDF)'], ['Lecture', 'Pages 1 et 2, cases lues sur le rendu'], ['Contrôles', 'Doublons, non-conformités, retards'], ['Indicateurs', 'KPI cliquables et filtres'], ['Export', 'Excel filtré et surligné']],
   vre: [['Rapports PDF', 'Vérifications électriques'], ['Comptage', 'Équipements, départs, écarts'], ['Vérification', 'Chaque total reste sous contrôle'], ['Injection', 'Classeur de suivi SharePoint']],
@@ -22,6 +24,8 @@ const DIAG = {
 const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, title, sub, time, timeCtx, money, moneyCtx, img, pro: byId[pro] || null, diag: DIAG[id] || [] });
 
 export const PRO_CARDS = [
+  G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', '4 flux', 'pour filtrer les lignes et détecter les dépassements', 'Seuils Excel', 'paramétrage centralisé dans le classeur financier', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
+  G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '2 min', 'entre deux relevés des demandes par la VM Windows', '17 h', 'récapitulatif des intégrations confirmées, sans doublon', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
   G('cerfa', 'CERFA v3', 'Fiches et attestations devenues données du parc', '20 h → minutes', 'pour un lot de 300 fiches (≈ 5 min par fiche à la main)', '50 000 €', 'de pénalités de retard identifiées et applicables', 'assets/projets/cerfa.jpg?v=bf01a16', 'projet-1'),
   G('vre', 'Extracteur VRE', 'Rapports de vérification électrique', '25 min', 'gagnées par rapport, sur 7 000 à 10 000 rapports par an', '44 €', 'par rapport traité, saisie directe dans le classeur de suivi', 'assets/projets/vre.jpg?v=bf01a16', 'projet-vre'),
