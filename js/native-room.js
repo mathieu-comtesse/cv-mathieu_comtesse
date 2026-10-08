@@ -237,17 +237,10 @@ async function build() {
     const tip=wateringCan.userData.spout;
     if(!tip)return;
     const spout=new THREE.Vector3(tip.x,tip.y,tip.z).applyMatrix4(wateringCan.matrixWorld);
-    const delta=new THREE.Vector3(target.x-spout.x,0,target.z-spout.z);
-    waterAimDelta.copy(delta);waterSpoutY=spout.y;waterSoilY=target.y;
-    // Keep the sprinkler above the soil and the handle in the same hands.
-    wateringCan.position.add(delta);wateringCan.updateMatrixWorld(true);
-    for(const side of ['l','r']) {
-      const upper=hero.bones['upperarm_'+side],lower=hero.bones['lowerarm_'+side],hand=hero.bones['hand_'+side];
-      const to=hand.getWorldPosition(new THREE.Vector3()).add(delta);
-      const elbow=lower.getWorldPosition(new THREE.Vector3());elbow.y-=0.05;
-      hero.ik2(upper,lower,hand,to,elbow);
-    }
-    hero.group.updateMatrixWorld(true);
+    // Keep the original palm attachment. The drops travel from the actual
+    // sprinkler to the soil; moving the can alone detaches it from the hand.
+    currentWaterTarget.copy(target);
+    waterSpoutY=spout.y;waterSoilY=target.y;
   };
   const effects = new THREE.Group();
   effects.name = 'NativeMotionEffects';
