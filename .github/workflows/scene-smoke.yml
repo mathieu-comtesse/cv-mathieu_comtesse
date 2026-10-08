@@ -7,6 +7,7 @@ on:
       - "index.html"
       - "js/**"
       - "tools/test-native-geometry.mjs"
+      - "tools/scene-test-profile.mjs"
       - "tools/test-scene-runtime.mjs"
       - "tools/test-motion-fit.mjs"
       - "tools/test-custom-scene.mjs"

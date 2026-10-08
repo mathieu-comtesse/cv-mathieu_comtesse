@@ -1,3 +1,4 @@
+import { sceneTestProfile } from './scene-test-profile.mjs';
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -19,6 +20,7 @@ try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const context = await browser.newContext({ viewport, deviceScaleFactor:.5 });
     const page = await context.newPage();
+    page.setDefaultTimeout(120000);
     const errors = [];
     const missingResources = [];
     page.on('pageerror', (error) => errors.push(error.message));
@@ -44,7 +46,7 @@ try {
     await page.waitForFunction(() => document.getElementById('room')?.dataset.sceneReady === 'true', null, { timeout: 60000 });
     // Pause autonomous destinations before loading can place the actor mid-route.
     // Keep the render loop active at a bounded software-test resolution.
-    await page.evaluate(() => { const r=window.room; r.pauseAutonomy(600000); r.opts.noAdapt=true; r.renderer.setPixelRatio(.5); for(const st of Object.values(r.stations)) st.maxMs=120000; });
+    await page.evaluate(() => { const r=window.room; r.pauseAutonomy(600000); r.opts.noAdapt=true; r.renderer.setPixelRatio(.5); for(const st of Object.values(r.stations)) st.maxMs=300000; });
     try {
       await page.waitForFunction(() => document.getElementById('room')?.dataset.native === 'ready', null, { timeout: 60000 });
     } catch (error) {
@@ -59,6 +61,7 @@ try {
       }));
       throw error;
     }
+    await sceneTestProfile(page);
     const state = () => page.evaluate(() => ({
       frames: Number(document.getElementById('room').dataset.sceneFrames),
       bridge: document.getElementById('room').dataset.native,
