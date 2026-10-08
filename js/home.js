@@ -1,4 +1,4 @@
-import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v18';
+import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v19';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v18';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
