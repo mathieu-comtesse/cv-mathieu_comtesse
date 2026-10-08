@@ -1106,5 +1106,41 @@ export function roadBikeFrom(gltf) {
   const scale=1.75/size.x;root.scale.multiplyScalar(scale);
   root.position.set(-(bb.min.x+bb.max.x)*scale/2,-bb.min.y*scale,-(bb.min.z+bb.max.z)*scale/2);
   root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;}});
-  g.add(root);g.name='RoadBikeTrekFinish';return g;
+  g.add(root);g.name='RoadBikeFinish';return g;
+}
+
+export function mountedMonitor(panelGltf, armGltf, portrait = false, webcamGltf = null) {
+  const g=group(),panel=panelGltf.scene.clone(true),arm=armGltf.scene.clone(true);
+  const height=portrait?0.408:0.348;
+  panel.position.set(0,height,0.281);
+  arm.scale.set(1,portrait?0.96:0.82,0.55);
+  arm.name=portrait?'PortraitMonitorArm':'UltrawideMonitorArm';
+  panel.name=portrait?'PortraitPanel':'UltrawidePanel';
+  panel.traverse(o=>{
+    if(!o.isMesh)return;
+    o.castShadow=o.receiveShadow=true;
+    if(/Screen/.test(o.name))o.material=new THREE.MeshBasicMaterial({map:portrait?screenTexture('tall',400,720):o.material.map,side:THREE.DoubleSide,toneMapped:false});
+  });
+  arm.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
+  g.add(arm,panel);
+  if(webcamGltf){
+    const camera=webcamGltf.scene.clone(true);camera.name='UltrawideWebcam';
+    panel.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(panel);
+    camera.position.set(0,bb.max.y-0.015,0.254);
+    camera.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});g.add(camera);
+  }
+  return g;
+}
+
+export function suppliedComputer(gltf){
+  const root=gltf.scene.clone(true);root.name='GamingDesktopPC';
+  root.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});return root;
+}
+
+export function desktopSpeaker(source,name){
+  const root=source.clone(true),g=group(root);root.updateMatrixWorld(true);
+  const bb=new THREE.Box3().setFromObject(root),k=.20/(bb.max.y-bb.min.y);
+  root.scale.multiplyScalar(k);
+  root.position.multiplyScalar(k).sub(new THREE.Vector3((bb.min.x+bb.max.x)/2*k,bb.min.y*k,(bb.min.z+bb.max.z)/2*k));
+  g.name=name;g.userData.sourceModel=name;return g;
 }

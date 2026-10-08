@@ -431,7 +431,11 @@ async function build() {
     wateringCan,
     effects,
     syncEffects,
-    syncBook: (targetRoot) => syncProp(book, 'iso:book', targetRoot.model || targetRoot),
+    syncBook: (targetRoot) => {
+      const ok = syncProp(book, 'iso:book', targetRoot.model || targetRoot);
+      if(ok) for(const half of book.children) if(/cover and pages/.test(half.name)) half.rotation.x *= -1;
+      return ok;
+    },
     syncWateringCan: (targetRoot) => syncProp(wateringCan, 'iso:can', targetRoot.model || targetRoot),
     setMode,
     setWaterTarget,

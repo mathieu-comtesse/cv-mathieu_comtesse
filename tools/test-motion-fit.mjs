@@ -13,9 +13,9 @@ const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/ja
   '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml',
   '.glb': 'model/gltf-binary', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg' };
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
-  args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  args: ['--enable-webgl', `--use-angle=${process.env.SCENE_WEBGL_BACKEND || 'swiftshader'}`, '--enable-unsafe-swiftshader'] });
 
-const context=await browser.newContext({viewport:{width:1440,height:900}});const page=await context.newPage();
+const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:.5});const page=await context.newPage();
 const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(['error','warning'].includes(m.type()))console.log(m.text().slice(0,220))});
 await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){if(this.buffer){const b=this.buffer.getChannelData(0);let peak=0;for(let i=0;i<b.length;i+=64)peak=Math.max(peak,Math.abs(b[i]));window.audioEvidence.push({peak,state:this.context.state});}return original.apply(this,args);};});
     await context.route('http://scene.test/**', async (route) => {
@@ -33,7 +33,7 @@ await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBuf
 await page.goto('http://scene.test/');await page.waitForFunction(()=>document.getElementById('room')?.dataset.native==='ready',null,{timeout:60000});
 await page.mouse.click(720,760);
 // The gesture sets an 18-second autonomy pause; extend it after the click.
-await page.evaluate(()=>window.room.pauseAutonomy(600000));
+await page.evaluate(()=>{window.room.pauseAutonomy(600000);window.room.opts.noAdapt=true;window.room.renderer.setPixelRatio(.5);for(const s of Object.values(window.room.stations))s.maxMs=120000;});
 assert.equal(await page.evaluate(()=>{return !!window.room.scene.getObjectByName('NativeExactDeskSet')?.getObjectByName('Setu task chair');}),false,'Imported desk must not contain a second office chair');
 await page.screenshot({path:path.join(output,'fit-standing.png')});
 const report=[];

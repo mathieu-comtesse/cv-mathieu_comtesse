@@ -52,7 +52,11 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
       while (left > 0 && s.pts.length) {
         const p = s.pts[0], dx = p[0] - pos.x, dz = p[1] - pos.z, d = Math.hypot(dx, dz);
         if (d < 1e-4) { s.pts.shift(); continue; }
-        const m = Math.min(left, d); pos.x += dx / d * m; pos.z += dz / d * m; left -= m;
+        const m = Math.min(left, d), nx = pos.x + dx / d * m, nz = pos.z + dz / d * m;
+        if(!s.allowBlocked && nav.free(pos.x,pos.z) && !nav.line([pos.x,pos.z],[nx,nz])) {
+          s.pts=[];steps=[];clearActivity('blocked');mode='idle';idle();return true;
+        }
+        pos.x=nx;pos.z=nz;left-=m;
         const want = Math.atan2(dx, dz), da = angDiff(g.rotation.y, want);
         g.rotation.y += Math.sign(da) * Math.min(Math.abs(da), dt * 9);
         if (m >= d - 1e-6) s.pts.shift();

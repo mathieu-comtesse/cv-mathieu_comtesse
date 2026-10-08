@@ -9,6 +9,10 @@ export function createJukebox({ onTrack, onState } = {}) {
   const box = document.createElement('div');
   box.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:320px;height:80px;opacity:0;pointer-events:none';
   box.setAttribute('aria-hidden', 'true');
+  box.id = 'spotify-player';
+  // A lazy iframe placed offscreen never starts loading.
+  const eagerFrame = () => { const frame=box.querySelector('iframe'); if(frame) frame.loading='eager'; };
+  new MutationObserver(eagerFrame).observe(box,{childList:true,subtree:true});
   const slot = document.createElement('div'); box.append(slot); document.body.append(box);
   const emit = () => onState && onState({ on, paused });
   const nextRandom = () => {
@@ -27,10 +31,11 @@ export function createJukebox({ onTrack, onState } = {}) {
     if (ctrl || loading) return; loading = true;
     window.onSpotifyIframeApiReady = (A) => {
       A.createController(slot, { uri: uri(want ?? 0), width: '100%', height: 80 }, (c) => {
-        ctrl = c; loading = false;
-        c.addListener('ready', () => { if (on) c.play(); });
+        ctrl = c; loading = false; eagerFrame();
+        c.addListener('ready', () => { box.dataset.ready='true'; if (on) c.play(); });
         c.addListener('playback_update', (e) => {
           const d = e.data; if (!on || !d) return;
+          box.dataset.position=String(d.position);box.dataset.paused=String(d.isPaused);
           if (!d.isPaused) { if (d.position > 300) { started = true; lastPos = d.position; lastPlayAt = now(); } paused = false; userPause = false; emit(); return; }
           if (userPause) { if (!paused) { paused = true; emit(); } return; }
           const dur = d.duration || 0;

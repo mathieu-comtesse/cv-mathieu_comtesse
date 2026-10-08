@@ -293,7 +293,7 @@ export async function createCharacter({
       // the actual foot and its lateral position. A forward-only offset cannot
       // fix a displacement across the leg when the ankle turns.
       const originalBox = new THREE.Box3().setFromPoints(originalShoePoints[side]);
-      const center = f0.clone().addScaledVector(fwd, 0.11);
+      const center = f0.clone().addScaledVector(fwd, 0.17);
       // Ankle lies over the rear quarter of the sole, with equal lateral registration.
       const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(center.x, ground, center.z);
       const local = bone.matrixWorld.clone().invert().multiply(world);
@@ -478,7 +478,8 @@ export async function createCharacter({
       const rel = target.clone().sub(pelvisW);
       const fd = rel.dot(forward);
       if (fd < 0.22) target.addScaledVector(forward, 0.22 - fd);
-      const lat = rel.dot(side), wanted = sgn * Math.max(0.105, Math.abs(lat));
+      sgn = Math.sign(thigh.getWorldPosition(new THREE.Vector3()).sub(pelvisW).dot(side)) || sgn;
+      const lat = rel.dot(side), wanted = sgn * Math.max(0.12, Math.abs(lat));
       target.addScaledVector(side, wanted - lat);
       target.y = groundY + 0.055;
       const knee = calf.getWorldPosition(new THREE.Vector3());
@@ -513,7 +514,9 @@ export async function createCharacter({
       const reach = (l1 + l2) * 0.994;
       const targetY = Math.max(groundY + 0.055, hip.y - reach * 0.32);
       const dy = targetY - hip.y;
-      const lateral = sgn * 0.11;
+      // Derive handedness from the hip: this FBX's left leg is on +X.
+      sgn = Math.sign(hip.clone().sub(bones.pelvis.getWorldPosition(new THREE.Vector3())).dot(side)) || sgn;
+      const lateral = sgn * 0.12;
       const forwardLen = Math.sqrt(Math.max(reach * reach - dy * dy - lateral * lateral, 0.02));
 
       const target = hip.clone()
