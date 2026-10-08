@@ -212,12 +212,21 @@ async function build() {
   const cover=new THREE.MeshStandardMaterial({color:'#599bea',roughness:0.8});
   bookPreview.add(new THREE.Mesh(new THREE.BoxGeometry(0.15,0.24,0.018),[cover,cover,cover,cover,new THREE.MeshStandardMaterial({map:frontCover,roughness:0.85}),new THREE.MeshStandardMaterial({map:backCover,roughness:0.85})]));
   bookPreview.userData.title=book.userData.title;
+  const coffeeMug = makeProp('Ceramic coffee mug');
+  coffeeMug.name='DeskMug';coffeeMug.userData.dynamic=true;coffeeMug.userData.id='coffee';
+  coffeeMug.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(/Mug_(ceramic|handle)/.test(o.name))o.material.color?.set('#7598d0');o.userData.id='coffee';}});
+  const parkCoffeeMug = desk => {
+    coffeeMug.position.set(0,0,0);coffeeMug.quaternion.identity();coffeeMug.scale.setScalar(1);coffeeMug.updateMatrixWorld(true);
+    const bb=new THREE.Box3().setFromObject(coffeeMug),height=bb.max.y-bb.min.y,scale=.12/height;
+    coffeeMug.scale.setScalar(scale);coffeeMug.position.copy(desk.localToWorld(new THREE.Vector3(-.56,.742-bb.min.y*scale,.23)));coffeeMug.visible=true;
+  };
   const wateringCan = makeProp('iso:can');
   const waterTarget = new THREE.Object3D();waterTarget.name='MathieuWaterTarget';sourceScene.add(waterTarget);
   const setWaterTarget = (hero, target, radius) => {
     hero.model.updateMatrixWorld(true);sourceCharacter.updateMatrixWorld(true);
     const inverseMap=sourceCharacter.matrixWorld.clone().multiply(hero.model.matrixWorld.clone().invert());
     waterTarget.position.copy(target).applyMatrix4(inverseMap);
+    waterRadius=radius;currentWaterTarget.copy(target);
     waterTarget.userData.radius=radius / Math.max(0.0001,hero.model.getWorldScale(new THREE.Vector3()).x);
     for(const station of sceneApi.simStations) if(station.kind==='water') station.wateringTarget=waterTarget;
     waterTarget.updateMatrixWorld(true);
@@ -243,7 +252,7 @@ async function build() {
   const effects = new THREE.Group();
   effects.name = 'NativeMotionEffects';
   effects.userData.dynamic = true;
-  const effectPairs = ['iso:dust', 'iso:star', 'iso:water', 'Room atmosphere particles']
+  const effectPairs = ['iso:dust', 'iso:star', 'Room atmosphere particles']
     .map(name => sourceScene.getObjectByName(name)).filter(Boolean)
     .map(source => { const clone = cloneNativeObject(source); effects.add(clone); return {source, clone}; });
   const syncChildren = (source, clone) => {
@@ -257,23 +266,24 @@ async function build() {
     for (let i=0;i<Math.min(source.children.length,clone.children.length);i++) syncChildren(source.children[i],clone.children[i]);
   };
   let waterAimDelta = new THREE.Vector3(), waterSpoutY=0, waterSoilY=0;
+  let waterRadius=.12,waterClock=0;const currentWaterTarget=new THREE.Vector3();
+  const drops=new THREE.Group();drops.name='iso:water';effects.add(drops);
+  const dropGeometry=new THREE.OctahedronGeometry(.006,0),dropMaterial=new THREE.MeshBasicMaterial({color:'#8ec8ee',transparent:true,opacity:.88,toneMapped:false});
+  for(let i=0;i<24;i++){const d=new THREE.Mesh(dropGeometry,dropMaterial);d.name='WaterDrop_'+i;d.scale.set(.75,1.6,.75);d.userData.phase=i/24;d.userData.angle=i*2.39996;drops.add(d);}
+
   const syncEffects = (hero) => {
     hero.model.updateMatrixWorld(true);
     const map = hero.model.matrixWorld.clone().multiply(sourceCharacter.matrixWorld.clone().invert());
     effects.parent?.updateMatrixWorld(true);
     const parentInv = effects.parent?.matrixWorld.clone().invert() || new THREE.Matrix4();
+    drops.visible=mode==='water'&&wateringCan.visible&&sceneApi.simDoing?.busy==='water';
+    if(drops.visible){wateringCan.updateMatrixWorld(true);const tip=wateringCan.userData.spout,start=new THREE.Vector3(tip.x,tip.y,tip.z).applyMatrix4(wateringCan.matrixWorld);
+      for(const d of drops.children){const t=(waterClock/0.62+d.userData.phase)%1,a=d.userData.angle,r=waterRadius*.58*(.35+(d.userData.phase*.65));
+        const end=currentWaterTarget.clone().add(new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r));const p=start.clone().lerp(end,t);p.y+=.035*Math.sin(Math.PI*t);d.position.copy(drops.worldToLocal(p));}}
     for (const {source,clone} of effectPairs) {
       syncChildren(source,clone);
       parentInv.clone().multiply(map).multiply(source.matrixWorld).decompose(clone.position,clone.quaternion,clone.scale);
-      if(source.name==='iso:water' && mode==='water') {
-        clone.updateMatrixWorld(true);
-        const localDelta=waterAimDelta.clone().transformDirection(clone.matrixWorld.clone().invert()).multiplyScalar(waterAimDelta.length()/clone.getWorldScale(new THREE.Vector3()).x);
-        for(const drop of clone.children) if(drop.visible) {
-          const worldPoint=drop.getWorldPosition(new THREE.Vector3());
-          const k=THREE.MathUtils.clamp((worldPoint.y-waterSoilY)/Math.max(0.02,waterSpoutY-waterSoilY),0,1);
-          drop.position.addScaledVector(localDelta,k);
-        }
-      }
+
     }
   };
 
@@ -354,10 +364,11 @@ async function build() {
         modeFacing = station.facing;
       }
 
+      const resolvedTarget=station?.piece?.name || targetName;
       if (next === 'read') sceneApi.setSimActivity?.('read', targetName || 'DYVLINGE lounge chair');
-      else if (next === 'water') sceneApi.setSimActivity?.('water', targetName || null);
+      else if (next === 'water') sceneApi.setSimActivity?.('water', resolvedTarget || null);
       else if (next === 'work') sceneApi.setSimActivity?.('work', targetName || 'Standing desk');
-      else if (next === 'coffee') sceneApi.setSimActivity?.('coffee', targetName || 'Standing desk');
+      else if (next === 'coffee') sceneApi.setSimActivity?.('coffee', resolvedTarget || 'Ceramic coffee mug');
       else if (next === 'sit') sceneApi.setSimActivity?.('read', targetName || 'Setu task chair');
       else if (next === 'think') {
         // Native's idle simulation owns the exact thinking pose + synthetic cue.
@@ -407,6 +418,7 @@ async function build() {
   // An offscreen iframe's own animation frames are otherwise throttled.
   shupi._running = false;
   const update = (dt) => {
+    if(mode==='water')waterClock+=dt;
     shupi.mixer?.update(dt);
     shupi._emit('frame', dt);
     if (mode === 'walk' || mode === 'run') {
@@ -430,6 +442,8 @@ async function build() {
     bookPreview,
     wateringCan,
     effects,
+    coffeeMug,parkCoffeeMug,
+    syncCoffeeMug: (hero,desk) => {if(mode!=='coffee'||!syncProp(coffeeMug,'Held coffee mug',hero.model))parkCoffeeMug(desk);},
     syncEffects,
     syncBook: (targetRoot) => {
       const ok = syncProp(book, 'iso:book', targetRoot.model || targetRoot);

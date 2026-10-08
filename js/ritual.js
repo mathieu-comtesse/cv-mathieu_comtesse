@@ -82,7 +82,7 @@ export function createRitual({ hero, tea, charOrigin }) {
   const toL = (v) => group.worldToLocal(v.clone());
 
   function pose(t) {
-    hero.skeleton.pose(); group.updateMatrixWorld(true);
+    hero.resetBindPose(); group.updateMatrixWorld(true);
     // bassin posé sur les talons
     const P = group.localToWorld(V(0, 0.12, -0.05));
     bones.pelvis.position.copy(bones.pelvis.parent.worldToLocal(P)); group.updateMatrixWorld(true);

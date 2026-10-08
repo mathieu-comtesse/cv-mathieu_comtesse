@@ -1,105 +1,116 @@
 {
-  "version": "cv-scene-v21",
+  "version": "cv-scene-v22",
   "authoring": "Blender 5.2",
   "models": [
     {
       "id": "finance",
       "steps": 7,
       "people": 0,
-      "machines": 7,
-      "bytes": 1005644,
-      "sha256": "7717947a5c3e55190be3a1b4ad49ebb40a6f7fa70da16b780cef73d4900c5e37",
-      "source": "project-variety-finance.blend"
+      "bytes": 652568,
+      "sha256": "a94eaa36ceffdf563fc6e8ded189513f1d11bf95e511073e7900df28071f43cf",
+      "source": "project-variety-finance.blend",
+      "genericChain": false,
+      "activityStops": 7
     },
     {
       "id": "vmvre",
       "steps": 9,
       "people": 0,
-      "machines": 9,
-      "bytes": 1168632,
-      "sha256": "780507d3a023dbc6fd02f11e2bb9a6f2ea1b553f717efac4a64e0933ec13a4a6",
-      "source": "project-variety-vmvre.blend"
+      "bytes": 701612,
+      "sha256": "a6c63081afdb67de7f4365e0f41f8777c132a9e074a714cbbd2fba52aebf8b12",
+      "source": "project-variety-vmvre.blend",
+      "genericChain": false,
+      "activityStops": 9
     },
     {
       "id": "pa",
       "steps": 7,
       "people": 0,
-      "machines": 7,
-      "bytes": 948940,
-      "sha256": "857be0fade15ba91da48633015e420b5047cb4f1fe468e846df0a91698224c86",
-      "source": "project-variety-pa.blend"
+      "bytes": 596040,
+      "sha256": "6306d6f9907efa1333694dab158b93c9625c0001b7f4cc1f354365c0c891162e",
+      "source": "project-variety-pa.blend",
+      "genericChain": false,
+      "activityStops": 7
     },
     {
       "id": "cerfa",
       "steps": 7,
       "people": 0,
-      "machines": 7,
-      "bytes": 918872,
-      "sha256": "48598dd9652650328bef78559be7d52a1dfb9de4364b7abd4e959467e079b1aa",
-      "source": "project-variety-cerfa.blend"
+      "bytes": 565920,
+      "sha256": "b38c107c5552e8075e55f651f267ea2af261466c13e7fd1607e8183007cc396c",
+      "source": "project-variety-cerfa.blend",
+      "genericChain": false,
+      "activityStops": 7
     },
     {
       "id": "vre",
       "steps": 6,
       "people": 0,
-      "machines": 6,
-      "bytes": 888580,
-      "sha256": "d78cca5a151e522d648ba3b460022d35e2b02146e855bc7d9a99509aef37b242",
-      "source": "project-variety-vre.blend"
+      "bytes": 592628,
+      "sha256": "ce70074a6a75985787657dd2d506517b595daf82b637ca5754341a77788582ac",
+      "source": "project-variety-vre.blend",
+      "genericChain": false,
+      "activityStops": 6
     },
     {
       "id": "studio",
       "steps": 7,
       "people": 0,
-      "machines": 7,
-      "bytes": 898668,
-      "sha256": "f7525b559bfdf0071c356dbec295befa1fbb2be1314e5b4ad9450bc6e86ae246",
-      "source": "project-variety-studio.blend"
+      "bytes": 545848,
+      "sha256": "84f034f0e9197cce38ea42f2f9332793b4d39d132666d41f51e68ad53f44ca1d",
+      "source": "project-variety-studio.blend",
+      "genericChain": false,
+      "activityStops": 7
     },
     {
       "id": "powerbi",
       "steps": 7,
       "people": 0,
-      "machines": 7,
-      "bytes": 930228,
-      "sha256": "9f9fd3b2e186281248b98dfa82a1c45b6b9ad9b45b688cc772f47aa453af8761",
-      "source": "project-variety-powerbi.blend"
+      "bytes": 577156,
+      "sha256": "7f6143b8bf6e1686ef7560791b677595621d598af5d70867a300b72f28de2708",
+      "source": "project-variety-powerbi.blend",
+      "genericChain": false,
+      "activityStops": 7
     },
     {
       "id": "suivi",
       "steps": 6,
       "people": 0,
-      "machines": 6,
-      "bytes": 1146508,
-      "sha256": "c2c73c8edc3cb415b4f47d22481e304ca2ad6e1a64c936b757ddd17d41be0073",
-      "source": "project-variety-suivi.blend"
+      "bytes": 850472,
+      "sha256": "ccba7692c353d14c6a7f15659b6e14df64d3ddcfd5abeee3f15a9319a7e1f0f7",
+      "source": "project-variety-suivi.blend",
+      "genericChain": false,
+      "activityStops": 6
     },
     {
       "id": "gares",
       "steps": 6,
       "people": 0,
-      "machines": 6,
-      "bytes": 1059288,
-      "sha256": "5c7287a3c7f642dbf071b7700c972155deea8cc907c30ecf978c90aa9c5fc7a4",
-      "source": "project-variety-gares.blend"
+      "bytes": 763356,
+      "sha256": "b2ad5a1a5e34274430b376291a0a05307284b37fd27a328aba33e60ce220c8ed",
+      "source": "project-variety-gares.blend",
+      "genericChain": false,
+      "activityStops": 6
     },
     {
       "id": "terrain",
       "steps": 5,
       "people": 0,
-      "machines": 5,
-      "bytes": 768040,
-      "sha256": "ea4ee104a2c20ed021af3913817a89552b470f1f3702229e5e4eda9ee8d16e7e",
-      "source": "project-variety-terrain.blend"
+      "bytes": 520808,
+      "sha256": "44985e0a80833160385e89b6e865917743c4baccf3b96ca2956dddf838109b7f",
+      "source": "project-variety-terrain.blend",
+      "genericChain": false,
+      "activityStops": 5
     },
     {
       "id": "charte",
       "steps": 5,
       "people": 0,
-      "machines": 5,
-      "bytes": 735268,
-      "sha256": "c31aa2010ff65bc2b67f901b0a19fb50507f1998901c35f6c72584b63ef23fe9",
-      "source": "project-variety-charte.blend"
+      "bytes": 496492,
+      "sha256": "81a1a40878f60348784a91049246c474afc4aceb2d30ec42475edd5d900f5144",
+      "source": "project-variety-charte.blend",
+      "genericChain": false,
+      "activityStops": 5
     }
   ]
 }

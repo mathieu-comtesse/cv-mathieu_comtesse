@@ -1,14 +1,14 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=cv-scene-v20';
-import { createCharacter } from './character.js?v=cv-scene-v21';
+import { createCharacter } from './character.js?v=cv-scene-v22';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
-import { createRitual } from './ritual.js?v=bf01a16';
+import { createRitual } from './ritual.js?v=cv-scene-v22';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
 import { createRetroSet } from './retro.js?v=cv-scene-v17';
 import { createNav } from './nav.js?v=cv-scene-v17';
-import { createDirector } from './director.js?v=cv-scene-v17';
+import { createDirector } from './director.js?v=cv-scene-v22';
 import { createThought } from './thought.js?v=cv-scene-v17';
 import { createWeather } from './weather.js?v=bf01a16';
 import { createJukebox } from './jukebox.js?v=cv-scene-v17';
@@ -107,7 +107,7 @@ export async function createRoom(container, bubbleEl) {
     }
 
     // Le lampadaire déjà présent dans le CV est conservé, sans modifier le set Native.
-    add('brontes', brontes, -0.77, 0.29, 0.4, 0.74, 0, deskSet);
+    
 
     if (nativeBridge.book) {
       nativeBridge.book.userData.dynamic = true;
@@ -123,15 +123,15 @@ export async function createRoom(container, bubbleEl) {
     const pm = F.mountedMonitor(portraitPanel,monitorArm,true); pm.name = 'PortraitMonitor'; pm.position.set(0.39, 0.74, -0.36); pm.rotation.y = -0.14; pm.userData.id = 'pc'; deskSet.add(pm);
     const kb = F.moonlander(); kb.name = 'Moonlander'; kb.position.set(-0.12, 0.74, 0.2); deskSet.add(kb);
     const mouse = F.verticalMouse(); mouse.name = 'ErgonomicVerticalMouse'; mouse.position.set(0.3, 0.74, 0.24); mouse.rotation.y = 0.1; deskSet.add(mouse);
-    add('brontes', brontes, -0.77, 0.29, 0.4, 0.74, 0, deskSet);
+    
     const tw = F.suppliedComputer(computerModel); tw.position.set(0.80, 0.74, -0.06); tw.rotation.y = Math.PI - 0.12; deskSet.add(tw);
 
-    const titanium = new THREE.MeshStandardMaterial({ color: '#b8b4b0', roughness: 0.34, metalness: 0.82 });
+    const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
     const mug = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.049, 0.095, 28, 1, true), titanium); body.position.y = 0.056; mug.add(body);
     const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.049, 0.049, 0.004, 28), titanium); bottom.position.y = 0.009; mug.add(bottom);
     const lip = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.0022, 6, 28), titanium); lip.rotation.x = Math.PI / 2; lip.position.y = 0.104; mug.add(lip);
-    mug.name = 'DeskMug'; mug.position.set(-0.56, 0.742, 0.23); deskSet.add(mug);
+    mug.name = 'DeskMug'; mug.userData.id='coffee'; mug.userData.dynamic=true; mug.position.set(-0.56, 0.742, 0.23); deskSet.add(mug);
 
     inkify(deskSet, { skip: (o) => {
       for (let p = o; p; p = p.parent) if (p.userData && p.userData.id === 'brontes') return true;
@@ -150,13 +150,16 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v21')
+    import('./native-room.js?v=cv-scene-v22')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
         nativeBridge = bridge;
         for(const name of ['Nommo left speaker','Nommo right speaker']){const o=bridge.sceneApi.shupi.scene.getObjectByName(name);if(o)o.visible=false;bridge.deskSet.getObjectByName(name)?.removeFromParent();}
         bridge.sceneApi.sound?.setMuted?.(sceneMuted);
+        deskSet.getObjectByName('DeskMug')?.removeFromParent();
+        world.add(bridge.coffeeMug);bridge.parkCoffeeMug(deskSet);
+        stations.coffee.think.obj=bridge.coffeeMug;
 
         // Le bureau personnalisé reste en place ; le pont fournit les gestes et les sons.
         if (bridge.book && !bridge.book.parent) {
@@ -268,13 +271,16 @@ export async function createRoom(container, bubbleEl) {
   
   const ekBox = new THREE.Box3().setFromObject(ek.parent); // ligne de l'étagère = pied le plus extérieur de l'Ekstrem
   ek.parent.updateMatrixWorld(true);
-  add('shelf1', F.shelf(), ekBox.max.x - 0.04, 1.8, Math.PI / 2, 0, 0.8);
+  const whiteShelf=F.shelf();
+  add('shelf1', whiteShelf, ekBox.max.x - 0.04, 1.8, Math.PI / 2, 0, 0.8);
+  add('brontes', brontes, -0.40, 0, 0, 1.303, 0, whiteShelf, 0);
 
   // positions des sources lumineuses (repère monde)
   const yawed = (v, yaw, ox, oz) => { v = v.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); return [ox + v.x, v.y, oz + v.z]; };
   lamps.arc.light.position.set(...yawed(new THREE.Vector3(1.38, 2.05, 0), ARC_YAW, 0.85, -2.15));
   lamps.beton.light.position.set(-0.3, 1.0, -2.3);
-  lamps.brontes.light.position.set(...yawed(new THREE.Vector3(-0.77, 1.15, 0.29), Math.PI / 2, -3.1, 0.25));
+  whiteShelf.updateWorldMatrix(true,true);
+  lamps.brontes.light.position.copy(whiteShelf.localToWorld(new THREE.Vector3(-0.40,1.70,0)));
   for (const L of Object.values(lamps)) world.add(L.light);
 
   /* ─── personnage ─── */
@@ -482,7 +488,7 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── navigation ─── */
   world.updateMatrixWorld(true);
-  const nav = createNav({ x0: -8.4, x1: 5.4, z0: -3.8, z1: 12.8, radius: 0.24 });
+  const nav = createNav({ x0: -8.4, x1: 5.4, z0: -3.8, z1: 12.8, radius: 0.34 });
   const footprint = (id, shrink = 0) => {
     const it = items.find((i) => i.id === id); if (!it) return;
     const bb = new THREE.Box3().setFromObject(it.holder);
@@ -522,6 +528,7 @@ export async function createRoom(container, bubbleEl) {
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
     desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    coffee: S({label:'Boire dans la tasse bleue',clip:'Idle_Loop',nativeMode:'coffee',sourceTarget:'Ceramic coffee mug',maxMs:8500,pos:[-2.16,0,.87],yaw:-Math.PI/2,face:'happy',think:{obj:deskSet.getObjectByName('DeskMug'),scale:1.1}}),
     ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', nativeMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', seatBack: -0.10, seatSupport: seat(2.3, -0.95, ekYaw, -0.02), hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, 0), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.48, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
@@ -530,7 +537,7 @@ export async function createRoom(container, bubbleEl) {
     sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', seatId: 'sofa', seatBack: 0.07, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
-  for (const st of Object.values(stations)) if (!st.ritual) st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]]));
+  for (const st of Object.values(stations)) if (!st.ritual) { st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]])); if(st.can){st.pos[0]=st.approach[0];st.pos[2]=st.approach[1];} }
   stations.chair = stations.desk; stations.stool = stations.bonsai; stations.shoes = stations.cha; stations.chashitsu = stations.cha;
 
   // Measure the actual support beneath the pelvis. The Ekstrem has an open
@@ -586,7 +593,7 @@ export async function createRoom(container, bubbleEl) {
       if (drop) return [{ k: 'fn', fn: open[0] }, ...inside.slice(1)];
       return [
         { k: 'fn', fn: () => { closeTok++; cs.setPanels(1); } },                              // les paravents s'ouvrent dès qu'il part : jardin et balcon apparaissent
-        { k: 'walk', allowBlocked: true, pts: nav.path(from, [CS.x + 2.5, rowZ]) },
+        { k: 'walk', pts: nav.path(from, [CS.x + 2.5, rowZ]) },
         { k: 'walk', allowBlocked: true, pts: [[CS.x - 0.55, rowZ]] },
         { k: 'face', yaw: Math.PI / 2 }, { k: 'fn', fn: () => { hero.setShoes(false); hero.flash('neutral', 0.1); } }, { k: 'wait', wait: 0.5 },
         { k: 'fn', fn: () => cs.setPanels(1) }, { k: 'wait', wait: 0.9 },
@@ -818,7 +825,7 @@ export async function createRoom(container, bubbleEl) {
     let next = 'idle';
     const cur = director.current;
     if (director.mode === 'carried') next = 'jump';
-    else if (director.mode === 'walk') next = director.running ? 'run' : 'walk';
+    else if (director.locomoting) next = director.running ? 'run' : 'walk';
     else if (director.mode === 'activity' && cur?.nativeMode) next = cur.nativeMode;
 
     if (next !== nativeMotionMode) {
@@ -864,7 +871,7 @@ export async function createRoom(container, bubbleEl) {
     // vapeur du bol et de la kama
     { const ud = tea.userData; ud.sBowl.position.copy(ritual.object.position).y += 0.075; ud.sKama.position.copy(ud.fk.position).add(ud.fk.userData.steamAnchor);
       const drunk = ud.bowl.userData.tea.visible ? 1 : 0; updateSteam(ud.sBowl, t, 0.3, 0.1, drunk); updateSteam(ud.sKama, t + 1.3, 0.34, 0.13, 0.8); }
-    if (!spawned && since > 1.6) { spawned = true; director.spawn(0.9, 0.7, 0.7); hero.group.visible = true; hero.group.scale.setScalar(0.01); poof(hero.group.position); }
+    if (!spawned && since > 1.6) { spawned = true; director.spawn(...nav.nearest(0.9, 0.7), 0.7); hero.group.visible = true; hero.group.scale.setScalar(0.01); poof(hero.group.position); }
     if (hero.group.visible) {
       // minuteur : aucune activité ne dure indéfiniment (arrosage 12 s, assis 25 s, thé 34 s), même déclenchée par l'utilisateur
       if (director.mode !== actMode) { if (director.mode === 'activity') actSince = 0; actMode = director.mode; }
@@ -953,6 +960,7 @@ export async function createRoom(container, bubbleEl) {
 
         if (exactMotion === 'water') { nativeBridge.syncWateringCan(hero); nativeBridge.aimWateringCan(hero, director.current.waterTarget); }
         else if (nativeBridge.wateringCan) nativeBridge.wateringCan.visible = false;
+        nativeBridge.syncCoffeeMug(hero,deskSet);
         nativeBridge.syncEffects(hero);
         } catch (error) { restoreLocalDesk(error); }
       }

@@ -11,6 +11,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   const api = {
     get mode() { return mode; }, get current() { return cur; },
     get running() { return running; },
+    get locomoting() { return mode === 'walk' && step?.k === 'walk' && step.pts.length > 0; },
     setRun(on) { running = !!on; if (mode === 'walk') hero.play(running ? 'Run_Loop' : 'Walk_Loop', { fade: 0.18, speed: running ? 1.2 : speed / 0.55 }); },
     walk: (pts) => ({ k: 'walk', pts: pts.map((p) => [p[0], p[1]]) }),
     face: (yaw) => ({ k: 'face', yaw }),
@@ -53,7 +54,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
         const p = s.pts[0], dx = p[0] - pos.x, dz = p[1] - pos.z, d = Math.hypot(dx, dz);
         if (d < 1e-4) { s.pts.shift(); continue; }
         const m = Math.min(left, d), nx = pos.x + dx / d * m, nz = pos.z + dz / d * m;
-        if(!s.allowBlocked && nav.free(pos.x,pos.z) && !nav.line([pos.x,pos.z],[nx,nz])) {
+        if(!s.allowBlocked && !nav.line([pos.x,pos.z],[nx,nz])) {
           s.pts=[];steps=[];clearActivity('blocked');mode='idle';idle();return true;
         }
         pos.x=nx;pos.z=nz;left-=m;

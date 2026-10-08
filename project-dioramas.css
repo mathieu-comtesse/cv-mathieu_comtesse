@@ -20,3 +20,7 @@
 .process-dialog[data-playing="false"] .process-labels svg,.process-dialog[data-playing="false"] .process-tool svg{animation-play-state:paused}
 @keyframes tool-transformation{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-3px) scale(1.08)}50%{transform:translateY(2px) scale(.92,1.02)}72%{transform:translateY(-1px) scale(1.05)}}
 @media(prefers-reduced-motion:reduce){.process-labels button.active svg,.process-step[aria-pressed="true"] .process-tool svg{animation:none}}
+
+.process-labels button[hidden]{display:none}
+
+.process-operation{color:var(--process-accent);font-size:13px;margin:2px 0 16px}.process-operation:empty{display:none}

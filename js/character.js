@@ -99,7 +99,7 @@ function makeWateringCan() {
 }
 
 export async function createCharacter({
-  modelUrl = 'assets/reference-character.glb?v=cv-scene-v21',
+  modelUrl = 'assets/reference-character.glb?v=cv-scene-v22',
   rigUrl = 'assets/rig.json?v=cv-scene-v13',
   animsUrl = 'assets/anims.glb?v=cv-scene-v13',
   targetHeight = 1.72,
@@ -148,7 +148,7 @@ export async function createCharacter({
   }
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
-  try { if (!referenceAppearance) nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
+  try { nb992Gltf = await parse(await loadBuffer(referenceAppearance ? 'assets/nb992-stylized.glb?v=cv-scene-v22' : 'assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
   const sourceRootQuat = qFromArray(sourceRig.root?.q || [0, 0, 0, 1]);
@@ -204,6 +204,21 @@ export async function createCharacter({
   });
   const skeleton = skinned[0]?.skeleton;
   if (!skeleton || !bones.pelvis || !bones.Head) throw new Error('Rig FBX converti incomplet');
+  // Some clothes bind to identity skin children, others to animated parents.
+  // Restore their authored local transforms together; Skeleton.pose() on one
+  // subset corrupts the other bindings after a ceremony.
+  const authoredBones = [];
+  model.traverse(o => { if(o.isBone) authoredBones.push({bone:o,p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()}); });
+  const resetBindPose = () => { for(const r of authoredBones){r.bone.position.copy(r.p);r.bone.quaternion.copy(r.q);r.bone.scale.copy(r.s);} group.updateMatrixWorld(true); };
+  if(referenceAppearance) model.getObjectByName('arm')?.traverse(o => {
+    if(!o.isSkinnedMesh) return;
+    const g=o.geometry.clone(),si=g.attributes.skinIndex,sw=g.attributes.skinWeight;
+    const right=i=>{let w=0;for(let j=0;j<4;j++)if(/^(upperarm|lowerarm|hand)_r$/.test(o.skeleton.bones[si.getComponent(i,j)]?.name||''))w+=sw.getComponent(i,j);return w;};
+    const base=Array.isArray(o.material)?o.material[0]:o.material,black=base.clone();black.color.set('#0b0c0e');black.name='RightArmBlackTattoo';
+    const count=g.index?.count||g.attributes.position.count;g.clearGroups();let start=0,last=-1;
+    for(let i=0;i<count;i+=3){const m=[0,1,2].reduce((n,j)=>n+right(g.index?g.index.getX(i+j):i+j),0)>1.5?1:0;if(m!==last){if(last>=0)g.addGroup(start,i-start,last);start=i;last=m;}}
+    if(last>=0)g.addGroup(start,count-start,last);o.geometry=g;o.material=[base,black];
+  });
 
   // Preserve black frames / transparent lenses. Prefer the exact Native expression textures
   // extracted from /info/; fall back to the local procedural face if an asset is unavailable.
@@ -211,7 +226,7 @@ export async function createCharacter({
   for (const k of ['neutral','blink','happy','amazed','talkA','talkO','sip']) faces[k] = faceTexture(k);
   const loadExactFace = (name) => new Promise((resolve) => {
     new THREE.TextureLoader().load(
-      referenceAppearance ? `assets/reference-faces/${name}.png?v=cv-scene-v21` : `assets/native-head/${name}.png?v=native-head-v1`,
+      referenceAppearance ? `assets/reference-faces/${name}.png?v=cv-scene-v22` : `assets/native-head/${name}.png?v=native-head-v1`,
       (tex) => {
         // Recolor the dark iris/eye detail to Mathieu blue while preserving
         // Native's exact expression drawing and alpha.
@@ -251,10 +266,11 @@ export async function createCharacter({
   const shoes = model.getObjectByName('shoes');
   const originalLegs = model.getObjectByName('legs');
   const shoeVisuals = [], sockVisuals = [], shoeParts = [], trouserCuffs = [];
+  const footToSole = new Map();
   let shoesOn = true;
   if (originalLegs) originalLegs.visible = true;
   if (!referenceAppearance && shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = false; trouserCuffs.push(o); } });
-  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_[1-8]$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
+  if (shoes) shoes.traverse((o) => { if (o.isMesh && (referenceAppearance ? !['Material #382','Material #1064','Material #79'].includes(o.material.name) : /^shoes_[1-8]$/.test(o.name))) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
   // Monte la paire de New Balance 992 (assets/nb992.glb : deux nœuds nb_left / nb_right, orteils vers +Z, semelle à y = 0, ~29 cm) sur les os des pieds.
   // La pose de référence est l'Idle : dans cette pose le pied est à plat, on y place chaque chaussure puis on la fige dans le repère de l'os.
   const attachNB992 = () => {
@@ -269,7 +285,8 @@ export async function createCharacter({
       if (!mesh.isSkinnedMesh) continue;
       mesh.skeleton.update();
       const indexes = mesh.geometry.attributes.skinIndex, weights = mesh.geometry.attributes.skinWeight;
-      for (let i = 0; i < indexes.count; i++) {
+      const used = mesh.geometry.index ? new Set(mesh.geometry.index.array) : new Set(Array.from({length:indexes.count},(_,i)=>i));
+      for (const i of used) {
         let left = 0, right = 0;
         for (let j = 0; j < 4; j++) {
           const name = mesh.skeleton.bones[indexes.getComponent(i, j)]?.name || '';
@@ -294,18 +311,21 @@ export async function createCharacter({
       const f0 = bone.getWorldPosition(new THREE.Vector3()), b0 = ball.getWorldPosition(new THREE.Vector3());
       const fwd = b0.clone().sub(f0); fwd.y = 0; fwd.normalize();
       const x = new THREE.Vector3(0, 1, 0).cross(fwd).normalize();
+      const soleRotation=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,new THREE.Vector3(0,1,0),fwd));
+      footToSole.set(bone,bone.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(soleRotation));
       // Center each new sole on the posed original shoe envelope, which follows
       // the actual foot and its lateral position. A forward-only offset cannot
       // fix a displacement across the leg when the ankle turns.
       const originalBox = new THREE.Box3().setFromPoints(originalShoePoints[side]);
-      const center = f0.clone().addScaledVector(fwd, 0.17);
+      const center = referenceAppearance ? originalBox.getCenter(new THREE.Vector3()) : f0.clone().addScaledVector(fwd, 0.17);
       // Ankle lies over the rear quarter of the sole, with equal lateral registration.
-      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(center.x, ground, center.z);
+      const world = new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), fwd).setPosition(center.x, referenceAppearance ? originalBox.min.y : ground, center.z);
       const local = bone.matrixWorld.clone().invert().multiply(world);
       shoe.matrixAutoUpdate = true; local.decompose(shoe.position, shoe.quaternion, shoe.scale);
-      shoe.scale.multiplyScalar(1.39795);                           // mesuré sous Blender : même enveloppe proportionnelle que Native
+      const fitScale=referenceAppearance ? originalBox.getSize(new THREE.Vector3()).z / soleBox.getSize(new THREE.Vector3()).z : 1.39795;
+      shoe.scale.multiplyScalar(fitScale);
       bone.add(shoe); shoeVisuals.push(shoe);
-      shoe.userData.calibration = { reference: 'Blender-independent-sole-center', center: center.toArray(), localSoleCenter: soleCenter.toArray(), scale: 1.39795 };
+      shoe.userData.calibration = { reference: 'Original-sole-envelope', center: center.toArray(), localSoleCenter: soleCenter.toArray(), scale: fitScale };
       // Chaussette opaque, visible uniquement lorsque les chaussures sont retirées.
       // Elle est calée sur le même repère que la basket, donc suit exactement le pied.
       const sock = new THREE.Group();
@@ -474,6 +494,12 @@ export async function createCharacter({
   };
   const resetLook = () => { portrait.targetX = 0; portrait.targetY = 0; };
 
+  const levelFoot = (foot, forward) => {
+    const bind=footToSole.get(foot);if(!bind)return;
+    const up=new THREE.Vector3(0,1,0),x=up.clone().cross(forward).normalize();
+    const desired=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,up,forward)).multiply(bind.clone().invert());
+    foot.quaternion.copy(foot.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(desired));group.updateMatrixWorld(true);
+  };
   const plantSeatedFeet = (groundY) => {
     if (![bones.thigh_l,bones.calf_l,bones.foot_l,bones.ball_l,bones.thigh_r,bones.calf_r,bones.foot_r,bones.ball_r].every(Boolean)) return;
     group.updateMatrixWorld(true);
@@ -495,7 +521,7 @@ export async function createCharacter({
       ik2(thigh, calf, foot, target, pole);
       group.updateMatrixWorld(true);
       const toe = target.clone().addScaledVector(forward, 0.16); toe.y = groundY + 0.058;
-      aim(foot, toe);
+      if(referenceAppearance) levelFoot(foot,forward);else aim(foot, toe);
     };
     plant(-1, bones.thigh_l, bones.calf_l, bones.foot_l);
     plant( 1, bones.thigh_r, bones.calf_r, bones.foot_r);
@@ -542,7 +568,7 @@ export async function createCharacter({
 
       const toe = target.clone().addScaledVector(forward, 0.17);
       toe.y = targetY;
-      aim(foot, toe);
+      if(referenceAppearance) levelFoot(foot,forward);else aim(foot, toe);
     };
 
     stretch(-1, bones.thigh_l, bones.calf_l, bones.foot_l);
@@ -573,7 +599,7 @@ export async function createCharacter({
     return Number.isFinite(lowest)?lowest:wp('pelvis').y-0.13;
   };
   return {
-    group, model, bones, referenceAppearance, hipContactY, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet, poseSeatedL,
+    group, model, bones, referenceAppearance, resetBindPose, hipContactY, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet, poseSeatedL,
     play(name, { fade = 0.25, speed = 1 } = {}) {
       const clip = clips[name] || clips.Idle_Loop || Object.values(clips)[0]; if (!clip) return;
       activeClipName = clip.name || name;
@@ -615,7 +641,7 @@ export async function createCharacter({
     setHeadScale() {},
     update(dt, t) {
       // Reset untracked channels before animation and IK: last frame must not become the next bind pose.
-      for(const [n,rest] of Object.entries(bindPose)){bones[n].position.copy(rest.p);bones[n].quaternion.copy(rest.q);bones[n].scale.copy(rest.s);}
+      resetBindPose();
       mixer.update(dt); group.updateMatrixWorld(true);
 
       // GAIT_STABILIZER : recentre le bassin et réduit le roulis du retarget sans supprimer le pas.
