@@ -1,3 +1,4 @@
+import { initProcessMachines } from './process-machines.js?v=cv-scene-v21';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
 import { createMarquee } from './marquee.js?v=bf01a16';
 import * as THREE from 'three';
@@ -8,17 +9,17 @@ function orbit(camera,canvas){
   canvas.addEventListener('pointermove',e=>{const p=pointers.get(e.pointerId);if(!p)return;if(pointers.size===1){theta-=(e.clientX-p.x)*.006;phi=Math.max(.3,Math.min(Math.PI*.48,phi+(e.clientY-p.y)*.006));}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const [a,b]=[...pointers.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch)distance=Math.max(9,Math.min(22,distance*pinch/d));pinch=d;}});
   const release=e=>{pointers.delete(e.pointerId);pinch=0;};canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
   canvas.addEventListener('wheel',e=>{e.preventDefault();distance=Math.max(9,Math.min(22,distance*Math.exp(e.deltaY*.001)));},{passive:false});
-  return {target,reset(){theta=.6298;phi=.9428;distance=15.8;},update(){camera.position.set(target.x+distance*Math.sin(phi)*Math.sin(theta),target.y+distance*Math.cos(phi),target.z+distance*Math.sin(phi)*Math.cos(theta));camera.lookAt(target);}};
+  return {target,reset(){theta=.6298;phi=.9428;distance=12.8;},update(){camera.position.set(target.x+distance*Math.sin(phi)*Math.sin(theta),target.y+distance*Math.cos(phi),target.z+distance*Math.sin(phi)*Math.cos(theta));camera.lookAt(target);}};
 }
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const palettes={pa:'#328b81',finance:'#cd9355',vmvre:'#587cb3',cerfa:'#df725b',vre:'#668dab',studio:'#bc819e',powerbi:'#c5a647',suivi:'#628d85',gares:'#88a85a',terrain:'#c4835c',charte:'#847eae'};
 const cache=new Map();
-const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v20`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
+const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v21`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
 
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
-  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v20" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span><small class="process-card-gains"><span><strong>${esc(p.time)}</strong></span><span><strong>${esc(p.money)}</strong></span></small></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
+  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v21" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span><small class="process-card-gains"><span><strong>${esc(p.time)}</strong></span><span><strong>${esc(p.money)}</strong></span></small></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
   createMarquee(host, { loopEnd: -1 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
   const modal=document.createElement('dialog');modal.className='process-dialog';modal.setAttribute('aria-labelledby','process-title');
@@ -26,7 +27,7 @@ export function initProjectDioramas(host,projects){
   document.body.append(modal);
   const stage=modal.querySelector('.process-stage'),canvas=stage.querySelector('canvas'),status=stage.querySelector('.process-loading'),labels=stage.querySelector('.process-labels');
   let renderer,scene,camera,controls,model,current,index=0,step=0,elapsed=0,playing=true,raf=0,previous=0,request=0,opener,exception=false;
-  let scenarioTime=0;
+  let machines;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   function setup(){
     if(renderer)return;
@@ -41,9 +42,11 @@ export function initProjectDioramas(host,projects){
   const select=n=>{step=(n+current.diag.length)%current.diag.length;elapsed=0;modal.dataset.step=String(step);modal.querySelectorAll('.process-step').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===step)));modal.querySelector('.process-explanation b').textContent=`${step+1}. ${current.diag[step][0]}`;modal.querySelector('.process-explanation p').textContent=current.diag[step][1];labels.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',i===step));};
   function animate(now){
     if(!modal.open)return;
+    modal.dataset.playing=String(playing);
     const dt=previous?Math.min(.05,(now-previous)/1000):0;previous=now;
     if(playing&&model){elapsed+=dt;if(elapsed>4.6)select(step+1);}
     if(model){
+      machines?.update({step,elapsed,dt,playing,exception});
       const anchors=current.diag.map((_,i)=>model.getObjectByName('StepAnchor_'+i)?.position.clone()||new THREE.Vector3(-2.8+i*5.6/(current.diag.length-1),.65,1.15));
       const end=anchors[step],start=step?anchors[step-1]:end.clone().add(new THREE.Vector3(-.7,0,0));
       for(let i=0;i<3;i++){const packet=model.getObjectByName('Packet_'+i);if(packet){const phase=((elapsed/4.6)+i*.23)%1;packet.position.copy(start).lerp(end,phase);packet.position.y+=.10+Math.sin(phase*Math.PI)*.09;packet.visible=playing||i===0;}}
@@ -74,9 +77,9 @@ export function initProjectDioramas(host,projects){
     const test=modal.querySelector('.process-test');test.hidden=!['finance','vmvre'].includes(current.id);test.textContent=current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));
     if(!reduced){stage.animate([{opacity:.2,transform:'translateY(28px) scale(.84)'},{opacity:1,transform:'none'}],{duration:650,easing:'cubic-bezier(.16,1,.3,1)'});modal.querySelector('.process-copy').animate([{opacity:0,transform:'translateY(15px)'},{opacity:1,transform:'none'}],{duration:600,delay:100,fill:'backwards'});}
-    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v20`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
+    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v21`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
     try{
-      setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);
+      setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);machines=initProcessMachines(model,current.diag,palettes[current.id]);
       const sparkGroup=new THREE.Group();sparkGroup.name='ProcessConfirmation';model.add(sparkGroup);
       for(let i=0;i<10;i++){const spark=new THREE.Mesh(new THREE.IcosahedronGeometry(.022,0),new THREE.MeshBasicMaterial({color:i%3===0?'#ffffff':palettes[current.id],transparent:true,opacity:0}));sparkGroup.add(spark);}
       const beam=new THREE.Mesh(new THREE.PlaneGeometry(.52,.32),new THREE.MeshBasicMaterial({color:'#69d5db',transparent:true,opacity:.23,side:THREE.DoubleSide,depthWrite:false}));beam.name='ProcessScannerBeam';beam.rotation.x=-Math.PI/2;beam.position.set(-.8,.84,.35);model.add(beam);
@@ -98,6 +101,6 @@ export function initProjectDioramas(host,projects){
     modal.querySelector('.process-explanation p').textContent=message;
     modal.querySelector('.process-test').textContent=exception?'Revenir au fonctionnement normal':current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.dataset.exception=String(exception);
-    if(model){if(current.id==='vmvre')for(let i=0;i<2;i++)model.getObjectByName('VM_'+i)?.traverse(o=>{if(o.isMesh&&/Server status LED/.test(o.name)){o.material.color.set(i===(exception?1:0)?'#59bc82':'#d87868');o.material.emissive.set(i===(exception?1:0)?'#164f31':'#4b1313');}});const gate=model.getObjectByName('Budget threshold gate');if(gate)gate.rotation.z=exception?.45:0;const parcels=[0,1,2].map(i=>model.getObjectByName('Packet_'+i));parcels.forEach(p=>{if(p)p.position.z=exception&&current.id==='finance'?.66:0;});}
+    if(model){if(current.id==='vmvre')for(let i=0;i<2;i++)model.getObjectByName('VM_'+i)?.traverse(o=>{if(o.isMesh&&/Server[ _]status[ _]LED/.test(o.name)){o.material.color.set(i===(exception?1:0)?'#59bc82':'#d87868');o.material.emissive.set(i===(exception?1:0)?'#164f31':'#4b1313');}});const gate=(model.getObjectByName('Budget_threshold_gate')||model.getObjectByName('Budget threshold gate'));if(gate)gate.rotation.z=exception?.45:0;const parcels=[0,1,2].map(i=>model.getObjectByName('Packet_'+i));parcels.forEach(p=>{if(p)p.position.z=exception&&current.id==='finance'?.66:0;});}
   };
 }

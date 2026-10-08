@@ -99,10 +99,11 @@ function makeWateringCan() {
 }
 
 export async function createCharacter({
-  modelUrl = 'assets/mathieu-character.glb?v=cv-scene-v13',
+  modelUrl = 'assets/reference-character.glb?v=cv-scene-v21',
   rigUrl = 'assets/rig.json?v=cv-scene-v13',
   animsUrl = 'assets/anims.glb?v=cv-scene-v13',
   targetHeight = 1.72,
+  referenceAppearance = true,
 } = {}) {
   const [modelBuffer, rigBuffer, animBuffer] = await Promise.all([
     loadBuffer(modelUrl), loadBuffer(rigUrl), loadBuffer(animsUrl),
@@ -127,6 +128,7 @@ export async function createCharacter({
     return out;
   };
 
+  if (!referenceAppearance) {
   // JEAN_JNCO : jean « JNCO Twin Cannon » monté sur le squelette sous Blender (tools/blender_jnco.py) ; il remplace les jambes d'origine.
   try {
     const jeanGltf = await parse(await loadBuffer('assets/jeans-baggy.glb?v=cv-scene-v20'));
@@ -143,9 +145,10 @@ export async function createCharacter({
     if (added.length) old.forEach((o) => o.removeFromParent());
   } catch (_) {}
 
+  }
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
-  try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
+  try { if (!referenceAppearance) nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
   const sourceRootQuat = qFromArray(sourceRig.root?.q || [0, 0, 0, 1]);
@@ -182,7 +185,7 @@ export async function createCharacter({
   const hairDarkMaterials = new Set(['Material #680', 'Material #1064']);
   const frameMaterials = new Set(['Material #474','Material #462','Material #464','Material #465','Material #466','Material #467','Material #468']);
   const applyPalette = (m) => {
-    if (!m) return;
+    if (!m || referenceAppearance) return;
     if (skinMaterials.has(m.name)) m.color.copy(paleSkin);
     else if (skinShadeMaterials.has(m.name)) m.color.copy(paleSkinShade);
     else if (hairMaterials.has(m.name)) { m.color.copy(chestnut); m.roughness = 0.52; m.metalness = 0; }
@@ -208,7 +211,7 @@ export async function createCharacter({
   for (const k of ['neutral','blink','happy','amazed','talkA','talkO','sip']) faces[k] = faceTexture(k);
   const loadExactFace = (name) => new Promise((resolve) => {
     new THREE.TextureLoader().load(
-      `assets/native-head/${name}.png?v=native-head-v1`,
+      referenceAppearance ? `assets/reference-faces/${name}.png?v=cv-scene-v21` : `assets/native-head/${name}.png?v=native-head-v1`,
       (tex) => {
         // Recolor the dark iris/eye detail to Mathieu blue while preserving
         // Native's exact expression drawing and alpha.
@@ -220,7 +223,7 @@ export async function createCharacter({
           for (let y = 0; y < c.height * 0.68; y++) for (let x = 0; x < c.width; x++) {
             const i = (y * c.width + x) * 4;
             const a = d[i + 3], lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
-            if (a > 32 && lum < 92) { d[i] = 47; d[i + 1] = 127; d[i + 2] = 224; }
+            if (!referenceAppearance && a > 32 && lum < 92) { d[i] = 47; d[i + 1] = 127; d[i + 2] = 224; }
           }
           ctx.putImageData(id, 0, 0);
           const out = new THREE.CanvasTexture(c);
@@ -233,8 +236,10 @@ export async function createCharacter({
       () => resolve(null)
     );
   });
-  const exactFaces = await Promise.all(['neutral','blink','happy','amazed'].map(loadExactFace));
-  ['neutral','blink','happy','amazed'].forEach((k, i) => { if (exactFaces[i]) faces[k] = exactFaces[i]; });
+  const faceNames = referenceAppearance ? ['neutral','happy','amazed','blink','aa','ee','th','l','mpb','o','oo','sss','fv'] : ['neutral','blink','happy','amazed'];
+  const exactFaces = await Promise.all(faceNames.map(loadExactFace));
+  faceNames.forEach((k, i) => { if (exactFaces[i]) faces[k] = exactFaces[i]; });
+  if (referenceAppearance) { faces.talkA = faces.aa || faces.neutral; faces.talkO = faces.o || faces.neutral; faces.sip = faces.mpb || faces.neutral; }
 
   const plate = model.getObjectByName('expression_plate');
   let plateMat = null;
@@ -248,7 +253,7 @@ export async function createCharacter({
   const shoeVisuals = [], sockVisuals = [], shoeParts = [], trouserCuffs = [];
   let shoesOn = true;
   if (originalLegs) originalLegs.visible = true;
-  if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = false; trouserCuffs.push(o); } });
+  if (!referenceAppearance && shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_(?:9|10|11|12)$/.test(o.name)) { o.visible = false; trouserCuffs.push(o); } });
   if (shoes) shoes.traverse((o) => { if (o.isMesh && /^shoes_[1-8]$/.test(o.name)) shoeParts.push(o); });   // chaussures d'origine ; shoes_9-12 : chevilles d'origine, remplacées par le revers du pantalon
   // Monte la paire de New Balance 992 (assets/nb992.glb : deux nœuds nb_left / nb_right, orteils vers +Z, semelle à y = 0, ~29 cm) sur les os des pieds.
   // La pose de référence est l'Idle : dans cette pose le pied est à plat, on y place chaque chaussure puis on la fige dans le repère de l'os.
@@ -548,13 +553,13 @@ export async function createCharacter({
   // Contact points from the rigged baggy around the pelvis, not the ankle cuffs.
   const hipSamples = [];
   model.traverse(mesh => {
-    if (!mesh.isSkinnedMesh || !mesh.name.startsWith('jean_')) return;
+    if (!mesh.isSkinnedMesh || !/^jean_|^legs/.test(mesh.name)) return;
     const si=mesh.geometry.attributes.skinIndex, sw=mesh.geometry.attributes.skinWeight;
     const indices=[];
     for(let i=0;i<si.count;i++) {
       let weight=0;
-      for(let j=0;j<4;j++) if(mesh.skeleton.bones[si.getComponent(i,j)]?.name==='pelvis') weight+=sw.getComponent(i,j);
-      if(weight>0.5) indices.push(i);
+      for(let j=0;j<4;j++) if(['pelvis','Base_HumanPelvis001'].includes(mesh.skeleton.bones[si.getComponent(i,j)]?.name)) weight+=sw.getComponent(i,j);
+      if(weight>(referenceAppearance?0.95:0.5)) indices.push(i);
     }
     hipSamples.push({mesh,indices});
   });
@@ -568,7 +573,7 @@ export async function createCharacter({
     return Number.isFinite(lowest)?lowest:wp('pelvis').y-0.13;
   };
   return {
-    group, model, bones, hipContactY, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet, poseSeatedL,
+    group, model, bones, referenceAppearance, hipContactY, skeleton, can, canTip, head: bones.Head, clips: Object.keys(clips), rotChar, aim, ik2, wp, mixer, lookAtPointer, lookAtTilt, resetLook, plantSeatedFeet, poseSeatedL,
     play(name, { fade = 0.25, speed = 1 } = {}) {
       const clip = clips[name] || clips.Idle_Loop || Object.values(clips)[0]; if (!clip) return;
       activeClipName = clip.name || name;
@@ -704,7 +709,7 @@ export async function createCharacter({
         can.position.y -= 0.02; can.position.z += 0.07; can.quaternion.identity(); can.rotation.z = -0.35 - Math.sin(t * 2.4) * 0.05;
       }
       nextBlink -= dt;
-      if (nextBlink < 0) { blink = 0.13; nextBlink = 2 + Math.random() * 3.2; }
+      if (nextBlink < 0) { blink = 0.13; nextBlink = referenceAppearance ? 2.2 + Math.random() * 3.8 : 2 + Math.random() * 3.2; }
       blink = Math.max(0, blink - dt); flash = Math.max(0, flash - dt);
       let kd = base;
       if (portrait.amazed || portrait.hover) kd = 'amazed';

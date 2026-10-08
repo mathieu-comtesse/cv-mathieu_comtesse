@@ -15,3 +15,8 @@
 .process-track{overflow:visible;padding:42px 28px 20px;width:max-content;scroll-snap-type:none}.process-card{flex:none;width:290px;cursor:inherit}.process-card img{pointer-events:none}.process-gallery.is-drag .process-card{transform:none}.process-card{transition:transform .4s var(--spring)}@media(max-width:600px){.process-card{width:78vw}.process-track{padding:28px 8px 10px}}
 
 .process-labels button.active{color:var(--process-accent)}.process-stage{height:clamp(280px,39vh,370px)}.process-outcome{margin:16px auto 20px}.process-outcome span{padding:15px 18px}.process-outcome b{font-size:clamp(27px,3vw,39px);margin-bottom:8px}.process-outcome small{margin-bottom:7px}@media(max-width:600px){.process-stage{height:240px}.process-outcome span{padding:14px 16px}.process-outcome b{font-size:30px}}
+
+.process-labels button.active svg,.process-step[aria-pressed="true"] .process-tool svg{animation:tool-transformation 2.3s ease-in-out infinite;transform-origin:50% 70%}
+.process-dialog[data-playing="false"] .process-labels svg,.process-dialog[data-playing="false"] .process-tool svg{animation-play-state:paused}
+@keyframes tool-transformation{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-3px) scale(1.08)}50%{transform:translateY(2px) scale(.92,1.02)}72%{transform:translateY(-1px) scale(1.05)}}
+@media(prefers-reduced-motion:reduce){.process-labels button.active svg,.process-step[aria-pressed="true"] .process-tool svg{animation:none}}

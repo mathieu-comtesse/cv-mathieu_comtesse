@@ -382,7 +382,7 @@ async function build() {
 
       // Same authoring FBX: local transforms are directly compatible.
       dst.quaternion.slerp(src.quaternion, w);
-      if(targetName === 'pelvis') dst.position.lerp(src.position, w);
+      if(hero.referenceAppearance || targetName === 'pelvis') dst.position.lerp(src.position, w);
     }
     hero.group.updateMatrixWorld(true);
   };

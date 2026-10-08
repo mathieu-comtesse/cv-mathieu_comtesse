@@ -1,6 +1,6 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=cv-scene-v20';
-import { createCharacter } from './character.js?v=cv-scene-v20';
+import { createCharacter } from './character.js?v=cv-scene-v21';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
@@ -150,7 +150,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v20')
+    import('./native-room.js?v=cv-scene-v21')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -935,7 +935,7 @@ export async function createRoom(container, bubbleEl) {
               const dy = sy + 0.008 - hero.hipContactY();
               // Never blend through the cushion when a new pose changes the
               // trouser volume. Lift immediately, then settle down smoothly.
-              hero.group.position.y += dy > 0 ? dy : dy * (1 - Math.exp(-dt * 16));
+              hero.group.position.y += hero.referenceAppearance ? dy : (dy > 0 ? dy : dy * (1 - Math.exp(-dt * 16)));
               hero.group.updateMatrixWorld(true);
             }
 

@@ -1,82 +1,104 @@
 {
-  "version": "cv-scene-v20",
+  "version": "cv-scene-v21",
   "authoring": "Blender 5.2",
   "models": [
     {
       "id": "finance",
       "steps": 7,
-      "bytes": 537436,
-      "sha256": "82bc726f68da90f0cc27a663225015186176cecb7efeb6c2feccc93487c7b72a",
+      "people": 0,
+      "machines": 7,
+      "bytes": 1005644,
+      "sha256": "7717947a5c3e55190be3a1b4ad49ebb40a6f7fa70da16b780cef73d4900c5e37",
       "source": "project-variety-finance.blend"
     },
     {
       "id": "vmvre",
       "steps": 9,
-      "bytes": 578752,
-      "sha256": "3b9ff042828701b87be40f1c38c37458fc4452a74405cdae033d4c416d18e5bf",
+      "people": 0,
+      "machines": 9,
+      "bytes": 1168632,
+      "sha256": "780507d3a023dbc6fd02f11e2bb9a6f2ea1b553f717efac4a64e0933ec13a4a6",
       "source": "project-variety-vmvre.blend"
     },
     {
       "id": "pa",
       "steps": 7,
-      "bytes": 490560,
-      "sha256": "f1eb94dc97bffc3a87e5205028c0bece768ebe2e20f4f80ed8dabbe03a1a90e6",
+      "people": 0,
+      "machines": 7,
+      "bytes": 948940,
+      "sha256": "857be0fade15ba91da48633015e420b5047cb4f1fe468e846df0a91698224c86",
       "source": "project-variety-pa.blend"
     },
     {
       "id": "cerfa",
       "steps": 7,
-      "bytes": 489028,
-      "sha256": "ed22fe0ad66e11aa23f4ce139b833f60f767de83517fb443699d2e7fea042afc",
+      "people": 0,
+      "machines": 7,
+      "bytes": 918872,
+      "sha256": "48598dd9652650328bef78559be7d52a1dfb9de4364b7abd4e959467e079b1aa",
       "source": "project-variety-cerfa.blend"
     },
     {
       "id": "vre",
       "steps": 6,
-      "bytes": 492080,
-      "sha256": "77e16d4099beb5f5a6ec01f09eb456eb2d2e3f66ce023a8f2e919aa122b451ab",
+      "people": 0,
+      "machines": 6,
+      "bytes": 888580,
+      "sha256": "d78cca5a151e522d648ba3b460022d35e2b02146e855bc7d9a99509aef37b242",
       "source": "project-variety-vre.blend"
     },
     {
       "id": "studio",
       "steps": 7,
-      "bytes": 486508,
-      "sha256": "feb6c3e6f33610ce73b90a5847cc6e4e9523533d8cc11d39c349da80663ac944",
+      "people": 0,
+      "machines": 7,
+      "bytes": 898668,
+      "sha256": "f7525b559bfdf0071c356dbec295befa1fbb2be1314e5b4ad9450bc6e86ae246",
       "source": "project-variety-studio.blend"
     },
     {
       "id": "powerbi",
       "steps": 7,
-      "bytes": 500416,
-      "sha256": "09612edc1491695c88b372ab9ac03df02c066358200048ea4f2ecfcbfe82fcfa",
+      "people": 0,
+      "machines": 7,
+      "bytes": 930228,
+      "sha256": "9f9fd3b2e186281248b98dfa82a1c45b6b9ad9b45b688cc772f47aa453af8761",
       "source": "project-variety-powerbi.blend"
     },
     {
       "id": "suivi",
       "steps": 6,
-      "bytes": 739940,
-      "sha256": "41cc4d87112487acb6282e838099718225dab2f7a1e205f9f59df7c96b05eb9d",
+      "people": 0,
+      "machines": 6,
+      "bytes": 1146508,
+      "sha256": "c2c73c8edc3cb415b4f47d22481e304ca2ad6e1a64c936b757ddd17d41be0073",
       "source": "project-variety-suivi.blend"
     },
     {
       "id": "gares",
       "steps": 6,
-      "bytes": 698868,
-      "sha256": "133a1e992a38ce48a3adfcc904db26b48eaf690034510c35c7a177f1ec93f8ce",
+      "people": 0,
+      "machines": 6,
+      "bytes": 1059288,
+      "sha256": "5c7287a3c7f642dbf071b7700c972155deea8cc907c30ecf978c90aa9c5fc7a4",
       "source": "project-variety-gares.blend"
     },
     {
       "id": "terrain",
       "steps": 5,
-      "bytes": 372220,
-      "sha256": "e8791db361523fc12070c632b2647780967ff9ab875eb594684074be3379d9c1",
+      "people": 0,
+      "machines": 5,
+      "bytes": 768040,
+      "sha256": "ea4ee104a2c20ed021af3913817a89552b470f1f3702229e5e4eda9ee8d16e7e",
       "source": "project-variety-terrain.blend"
     },
     {
       "id": "charte",
       "steps": 5,
-      "bytes": 496180,
-      "sha256": "354c9e55eb87a79bb31f6452ec8ba066c86d7c093d4fc183efa9c1d3e148e540",
+      "people": 0,
+      "machines": 5,
+      "bytes": 735268,
+      "sha256": "c31aa2010ff65bc2b67f901b0a19fb50507f1998901c35f6c72584b63ef23fe9",
       "source": "project-variety-charte.blend"
     }
   ]
