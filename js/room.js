@@ -8,10 +8,10 @@ import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v29';
 import { createRetroSet } from './retro.js?v=cv-scene-v29';
 import { createNav } from './nav.js?v=cv-scene-v29';
-import { createDirector } from './director.js?v=cv-scene-v29';
+import { createDirector } from './director.js?v=cv-scene-v33';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
-import { createJukebox } from './jukebox.js?v=cv-scene-v29';
+import { createJukebox } from './jukebox.js?v=cv-scene-v33';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v31';
@@ -154,7 +154,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v31')
+    import('./native-room.js?v=cv-scene-v33')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -273,9 +273,11 @@ export async function createRoom(container, bubbleEl) {
   const speakers=[];
   for(const [side,x,z,yaw] of [['L',-1.85,-2.55,.18],['R',.4,-2.65,-.18]]){
     const obj=F.speakerFromGltf(jblModel,1.1);obj.name=`JBL ${side}`;
-    const posts=F.speakerPosts(obj);
+    const posts=F.speakerPosts(obj),bounds=new THREE.Box3().setFromObject(obj);
     add(`jbl${side}`,obj,x,z,yaw,0,.7);
-    speakers.push({obj,side,posts});
+    const waves=new THREE.Group();waves.name=`JBL ${side} sound diffusion`;waves.userData.dynamic=true;
+    for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.RingGeometry(.12,.132,40),new THREE.MeshBasicMaterial({color:'#c7e1ef',transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));ring.position.set(0,.35,bounds.max.z+.018);ring.userData.phase=i/3;waves.add(ring);}
+    obj.add(waves);waves.visible=false;speakers.push({obj,side,posts,waves,front:bounds.max.z});
   }
   world.updateMatrixWorld(true);
   for(const s of speakers)for(const polarity of ['black','red']){
@@ -461,12 +463,11 @@ export async function createRoom(container, bubbleEl) {
     return Math.hypot(cx - (A[0] + abx * t), cy - (A[1] + aby * t)) < R;
   };
   el.addEventListener('pointerdown', (e) => {
-    pauseAutonomy();
     nativeBridge?.resumeSound?.();
     el.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
-      if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false };
+      if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) { pauseAutonomy(6000); hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false }; }
       else {el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:navigationMode==='pan'&&!e.altKey&&e.button!==2};}
     }
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
@@ -503,6 +504,7 @@ export async function createRoom(container, bubbleEl) {
   const up = (e) => {
     pointers.delete(e.pointerId); pinch = 0;
     if (hdrag) {
+      pauseAutonomy(6000);
       if (hdrag.lifted) {
         const g = groundAt(e.clientX, e.clientY), z = zoneAt(e.clientX, e.clientY);
         showZones(false);
@@ -513,7 +515,7 @@ export async function createRoom(container, bubbleEl) {
     if (drag && drag.moved <= 6 && performance.now() - drag.t < 500) {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); const i = crate.indexAt(ray.ray); if (i >= 0) { crate.setSel(i); playTrack(i); drag = null; return; } }
       const id = pickIdAt(e.clientX, e.clientY);
-      if (id) activate(id); else if (crate.isOpen && !jukebox.isOn) openCrate(false);      // tiroir laissé ouvert tant que la musique joue
+      if (id) { pauseAutonomy(6000); activate(id); } else if (crate.isOpen && !jukebox.isOn) openCrate(false);      // tiroir laissé ouvert tant que la musique joue
     }
     drag = null; el.style.cursor = hovered ? 'pointer' : 'grab';
   };
@@ -618,24 +620,26 @@ export async function createRoom(container, bubbleEl) {
   };
 
   // Déplacements autonomes, comme sur le site de référence : le personnage se lève et va d'une activité à l'autre.
-  // Ni vinyle (la musique ne démarre que sur un geste) ni tiroir ouvert : on laisse la main à l'utilisateur.
+  // La musique reste manuelle ; un tiroir ouvert ne fige pas la vie de la pièce.
   const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, stations.cha,...(bicyclePump?[stations.bike]:[])];
+  const autonomousReadyAt = performance.now() + 8000;
   let autonomousNext = performance.now() + 4500 + Math.random() * 3500;
   let autonomousActivitySince = 0, autonomousLast = null, autonomousPrevMode = '';
   const autonomousTick = () => {
     const now = performance.now();
-    if (!greeted && container.dataset.native !== 'fallback') return;
-    if (now < autonomousPauseUntil || appOpen || crate.isOpen || !hero.group.visible) return;
+    if(greetingRemaining>0)return;
+    if (!greeted && container.dataset.native !== 'fallback' && now < autonomousReadyAt) return;
+    if (now < autonomousPauseUntil || appOpen || !hero.group.visible) return;
     const mode = director.mode;
     if (mode !== autonomousPrevMode) { if (mode === 'activity') autonomousActivitySince = now; autonomousPrevMode = mode; }
     const cur = director.current;
-    if (mode === 'activity' && cur !== stations.usm && autonomousActivitySince && now - autonomousActivitySince > (cur?.maxMs || 11000)) {
+    if (mode === 'activity' && autonomousActivitySince && now - autonomousActivitySince > (cur?.maxMs || 11000)) {
       director.stand(); autonomousNext = now + 1800 + Math.random() * 2600; autonomousActivitySince = 0; return;
     }
     if (mode === 'idle' && now >= autonomousNext) {
       const pool = autonomousStations.filter((s) => s !== autonomousLast);
       const st = pool[Math.floor(Math.random() * pool.length)] || autonomousStations[0];
-      autonomousLast = st; director.go(st); autonomousNext = now + 12500 + Math.random() * 7500;
+      autonomousLast = st; const accepted = director.go(st); autonomousNext = now + (accepted === false ? 1500 : 12500 + Math.random() * 7500);
     }
   };
 
@@ -690,7 +694,8 @@ export async function createRoom(container, bubbleEl) {
   const mpLabel = (i) => { const t = TRACKS[i]; mpPlay.querySelector('.dbtn__text').textContent = clip(t.t, 26) + ' \u00b7 ' + clip(t.a, 16); };
   const jukebox = createJukebox({
     onTrack: (i) => { crate.setPlaying(i); mpLabel(i); },
-    onState: ({ on, paused }) => {
+    onState: ({ on, paused, playing }) => {
+      music=playing;
       pill.classList.toggle('on', on);
       mpPlay.querySelector('.dbtn__icon').innerHTML = on && !paused ? IC.pause : IC.play;
       mpPlay.classList.toggle('dbtn--on', on);
@@ -771,7 +776,6 @@ export async function createRoom(container, bubbleEl) {
     };
   }
   function setMusic(on) {
-    music = on;
     if (!on) { jukebox.stop(); return; }
     if (chosen >= 0) { const c = chosen; chosen = -1; jukebox.play(c); } else if (!jukebox.isOn) jukebox.random();
   }
@@ -873,7 +877,7 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── boucle ─── */
   const opts = { dtCap: 0.05 };
-  let nativeMotionMode = 'idle', greetingUntil=0, greeted=false;
+  let nativeMotionMode = 'idle', greetingUntil=0, greetingRemaining=0, greeted=false;
   const syncNativeMotionMode = () => {
     if (!nativeBridge || !hero.group.visible) return 'idle';
     let next = 'idle';
@@ -935,21 +939,22 @@ export async function createRoom(container, bubbleEl) {
       // minuteur : aucune activité ne dure indéfiniment (arrosage 12 s, assis 25 s, thé 34 s), même déclenchée par l'utilisateur
       if (director.mode !== actMode) { if (director.mode === 'activity') actSince = 0; actMode = director.mode; }
       if (director.mode === 'activity') actSince += dt * 1000;
-      if (director.mode === 'activity' && !appOpen && !crate.isOpen && director.current && actSince > (director.current.maxMs || 25000)) { director.stand(); actSince = 0; }
+      if (director.mode === 'activity' && !appOpen && director.current && actSince > (director.current.maxMs || 25000)) { director.stand(); actSince = 0; }
       autonomousTick();
       director.update(dt);
       if (nativeBridge && director.current !== stations.desk) {
         chair.userData.swivel.rotation.y += ((-Math.PI * 0.75) - chair.userData.swivel.rotation.y) * (1 - Math.exp(-dt * 6));
       }
-      if(nativeBridge&&spawned&&!greeted&&director.mode==='idle'){greeted=true;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
-      if(greeted&&performance.now()>=greetingUntil)container.dataset.greeting='false';
+      if(nativeBridge&&spawned&&!greeted&&director.mode==='idle'){greeted=true;greetingRemaining=2.75;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
+      if(greetingRemaining>0){greetingRemaining=Math.max(0,greetingRemaining-dt);greetingUntil=performance.now()+greetingRemaining*1000;autonomousNext=Math.max(autonomousNext,greetingUntil+3000);}
+      if(greeted&&greetingRemaining===0)container.dataset.greeting='false';
       let exactMotion = syncNativeMotionMode();
       if (exactMotion !== 'idle') {
         if (exactMotion === 'water' && nativeBridge?.wateringCan) hero.can.visible = false;
       }
       { const e = camera.matrixWorld.elements; lookRight.set(e[0], 0, e[2]).normalize(); lookTo.set(camera.position.x - target.x, 0, camera.position.z - target.z).normalize(); hero.setLookView(lookRight, lookTo); }
       hero.update(dt, t);
-      if (nativeBridge && !director.current?.ritual) {
+      if (nativeBridge) {
         try {
           if (exactMotion === 'water') {
             const plant = director.current === stations.alocasia ? alo : director.current === stations.bonsai ? bonsai : dra;
@@ -960,15 +965,15 @@ export async function createRoom(container, bubbleEl) {
           nativeBridge.update(dt);
           // The source simulator may start another activity after watering.
           // Hand control back before importing that new pose at the plant.
-          if(exactMotion==='water'&&nativeBridge.waterFinished){
+          if(director.mode==='activity'&&director.current?.nativeMode&&nativeBridge.activityFinished){
             director.stand();director.update(0);exactMotion=syncNativeMotionMode();
             hero.poseStanding();actSince=0;
           }
           // Les jambes des sièges locaux suivent leur propre assise, plus haute que celle de référence.
-          if (exactMotion !== 'idle') nativeBridge.applyPose(hero, 1, director.current?.seatId && director.current!==stations.ekstrem ? { upperOnly:true } : {});
+          if (exactMotion !== 'idle'&&!director.current?.ritual) nativeBridge.applyPose(hero, 1, director.current?.seatId && director.current!==stations.ekstrem ? { upperOnly:true } : {});
         } catch (error) { restoreLocalDesk(error); }
       }
-      if(hero.referenceAppearance && exactMotion==='idle' && ['idle','turn'].includes(director.mode))hero.poseStanding();
+      if(hero.referenceAppearance && exactMotion==='idle' && (!director.current||['idle','turn'].includes(director.mode)))hero.poseStanding();
       { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
         followTea = ritual.state.active || (director.current && director.current.ritual) || cs.panels.some((q) => q.target > 0.5) || inRoom || hp.x < CS.x + 2.6 && hp.z > CS.z - 3.5;
         cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
@@ -1072,6 +1077,7 @@ export async function createRoom(container, bubbleEl) {
       card.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 8, 130)}px) translate(-50%, -100%)`; card.classList.add('show');
     } else { card.classList.remove('show'); cardFor = -2; }
     // musique
+    for(const s of speakers){s.waves.visible=music;for(const ring of s.waves.children){const phase=(t*1.2+ring.userData.phase)%1;ring.scale.setScalar(1+phase*2.1);ring.position.z=s.front+.018+phase*.2;ring.material.opacity=(1-phase)*.32;}}
     record.rotation.y += dt * (music ? 3.4 : 0);
     armAng += ((music ? 0.0 : 0.5) - armAng) * (1 - Math.exp(-dt * 3));
     arm.rotation.y = armAng;

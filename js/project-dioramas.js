@@ -1,5 +1,5 @@
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v29';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v33';
 import { initProcessMachines } from './process-machines.js?v=cv-scene-v29';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 import { createMarquee } from './marquee.js?v=cv-scene-v29';

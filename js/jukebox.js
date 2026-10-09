@@ -14,7 +14,7 @@ export function createJukebox({ onTrack, onState } = {}) {
   const eagerFrame = () => { const frame=box.querySelector('iframe'); if(frame) frame.loading='eager'; };
   new MutationObserver(eagerFrame).observe(box,{childList:true,subtree:true});
   const slot = document.createElement('div'); box.append(slot); document.body.append(box);
-  const emit = () => onState && onState({ on, paused });
+  const emit = () => onState && onState({ on, paused, playing:on&&!paused&&started });
   const nextRandom = () => {
     if (!bag.length) { bag = TRACKS.map((_, i) => i).sort(() => Math.random() - 0.5); if (bag.length > 1 && bag[bag.length - 1] === last) bag.unshift(bag.pop()); }
     return bag.pop();
@@ -56,7 +56,7 @@ export function createJukebox({ onTrack, onState } = {}) {
     random() { on = true;  go(nextRandom()); init(); },
     next() { this.random(); },
     play(i) { on = true;  go(i); init(); },
-    toggle() { if (!on) { this.random(); return; } if (ctrl) { ctrl.togglePlay(); paused = !paused; userPause = paused; if (!paused) lastPlayAt = now(); emit(); } },
+    toggle() { if (!on) { this.random(); return; } if (ctrl) { paused = !paused; userPause = paused; ctrl.togglePlay(); if (!paused) lastPlayAt = now(); emit(); } },
     stop() { on = false;  paused = false; if (ctrl) ctrl.pause(); emit(); },
   };
   return api;

@@ -6,13 +6,13 @@ import { initProcessMachines } from './process-machines.js?v=cv-scene-v29';
 export function initWorkshopPreviews(host, projects, load, palettes) {
   const canvas=document.createElement('canvas');canvas.className='workshop-previews';canvas.setAttribute('aria-hidden','true');host.append(canvas);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),instances=new Map(),pending=new Set();
-  let renderer,environment,visible=false,modal=false,raf=0,last=0,clock=0,frames=0;
+  let renderer,environment,visible=false,modal=false,raf=0,last=0,clock=0,frames=0,renderWidth=0,renderHeight=0;
   const observer=new IntersectionObserver(([e])=>{visible=e.isIntersecting;if(visible)start();else stop();},{rootMargin:'60px'});observer.observe(host);
   function stop(){cancelAnimationFrame(raf);raf=0;last=0;}
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   document.addEventListener('project-workshop',e=>{modal=e.detail.open;modal?stop():start();});
   reduced.addEventListener('change',()=>{instances.forEach(i=>i.elapsed=0);start();});
-  function setup(){if(renderer)return;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;const pmrem=new THREE.PMREMGenerator(renderer);environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;pmrem.dispose();}
+  function setup(){if(renderer)return;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio||1,1.5),2));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;const pmrem=new THREE.PMREMGenerator(renderer);environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;pmrem.dispose();}
   async function request(id){
     if(instances.has(id)||pending.has(id))return;pending.add(id);
     try{const asset=await load(id),project=projects.find(p=>p.id===id),model=asset.scene.clone(true);
@@ -27,9 +27,9 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
   function start(){if(!raf&&visible&&!modal&&!document.hidden)raf=requestAnimationFrame(draw);}
   function draw(now){
     raf=0;if(!visible||modal||document.hidden)return;
-    if(last&&now-last<1000/20){start();return;}const dt=last?Math.min(.08,(now-last)/1000):0;last=now;clock+=dt;
+    if(last&&now-last<1000/30){start();return;}const dt=last?Math.min(.08,(now-last)/1000):0;last=now;clock+=dt;
     const box=host.getBoundingClientRect(),width=Math.round(box.width),height=Math.round(box.height);
-    if(!width||!height){start();return;}setup();if(canvas.width!==width||canvas.height!==height)renderer.setSize(width,height,false);
+    if(!width||!height){start();return;}setup();if(renderWidth!==width||renderHeight!==height){renderer.setSize(width,height,false);renderWidth=width;renderHeight=height;}
     renderer.setScissorTest(false);renderer.clear();renderer.setScissorTest(true);
     const active=new Set();
     for(const card of host.querySelectorAll('.process-card')){

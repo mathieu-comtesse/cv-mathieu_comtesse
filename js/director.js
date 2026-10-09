@@ -25,6 +25,8 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     if (!cur) return;
     const rit = cur.ritual; ritual.stop(); hero.setPost(null); hero.setShoes(!rit); hero.can.visible = false; hero.setOverride(null); hero.setNativePose?.(null); hero.talk(false);
     ui.activityEnd?.(cur, reason); ui.music(false, cur);
+    // Leave the activity pose before moving out to the clear approach point.
+    hero.stop();hero.play('Idle_Loop',{fade:0});hero.poseStanding?.();
     cur = null;
   }
   function start(s) {

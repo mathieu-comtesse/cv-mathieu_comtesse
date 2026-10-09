@@ -193,7 +193,7 @@ PRO.unshift(...[
     "title": "Point financier · Power Automate",
     "sub": "Quatre flux pilotés par les seuils Excel",
     "lead": "Quatre flux CS, Locatif, MEC et PPTM contrôlent les lignes du point financier. Ils appliquent les règles PRG, PSE et GLOBAL, excluent les lignes KO et signalent les dépassements de seuil. Le paramétrage des seuils reste dans Excel.",
-    "gain": "Les règles et les seuils sont centralisés : le suivi ne dépend plus d’un contrôle manuel de chaque ligne.",
+    "gain": "25 minutes de contrôle manuel évitées par jour : 5 minutes pour chacun des cinq périmètres de suivi. Sur 225 jours/an, 93,75 heures valorisées à 104,74 €/h représentent 9 819,38 €, soit environ 9 800 € par an. Les dépassements sont signalés le matin même, sans attendre une consultation du rapport.",
     "team": "Une alerte indique le dépassement à examiner. Les exemples du portfolio utilisent uniquement des données fictives."
   },
   {

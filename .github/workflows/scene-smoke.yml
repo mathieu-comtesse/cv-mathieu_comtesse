@@ -11,6 +11,7 @@ on:
       - "tools/test-native-geometry.mjs"
       - "tools/scene-test-profile.mjs"
       - "tools/test-scene-runtime.mjs"
+      - "tools/test-scene-lifecycle.mjs"
       - "tools/test-motion-fit.mjs"
       - "tools/test-custom-scene.mjs"
       - "assets/jeans-baggy.glb"
@@ -65,10 +66,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v32" index.html
+          grep -q "js/main.js?v=cv-scene-v33" index.html
           grep -q "character.js?v=cv-scene-v29" js/room.js
           grep -q "retro.js?v=cv-scene-v29" js/room.js
-          grep -q "room.js?v=cv-scene-v32" js/main.js
+          grep -q "room.js?v=cv-scene-v33" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb
@@ -88,6 +89,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Check room rendering and interactions
         run: node tools/test-scene-runtime.mjs
+      - name: Check greeting, autonomy, activity exits and particles
+        run: node tools/test-scene-lifecycle.mjs
       - name: Check original activities, effects and sounds
         run: node tools/test-motion-fit.mjs
       - name: Check customized furniture, props and motion

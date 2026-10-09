@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v31';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v33';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -394,7 +394,7 @@ const DIAG = {
 const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, title, sub, time, timeCtx, money, moneyCtx, img, pro: byId[pro] || null, diag: DIAG[id] || [] });
 
 export const PRO_CARDS = [
-  G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', 'À chiffrer', 'temps de contrôle manuel économisé par les quatre flux CS, Locatif, MEC et PPTM', 'À chiffrer', 'valorisation du temps économisé à 104,74 €/h ; volume et durée de référence à renseigner', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
+  G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', '25 min / jour', '5 minutes de vérification par périmètre et par jour évitées, sur cinq périmètres de suivi', '≈ 9 800 € / an', '93,75 heures de contrôle libérées sur 225 jours ; valorisées à 104,74 €/h', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
   G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000–2 500 h par an pour 4 000–5 000 rapports VRE/VLE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480–261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
   G('moteur44', 'Moteur V4.4', 'SharePoint → bonne ligne Excel · Q18 visibles', '5 min / rapport', 'copier-coller de SharePoint vers la bonne ligne Excel évité ; Q18 désormais visibles', '8,73 € / rapport', 'valorisation des 5 minutes économisées à 104,74 €/h', 'assets/dioramas/moteur44.png?v=cv-scene-v29', 'projet-moteur44'),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
@@ -420,9 +420,9 @@ const bases = {
  powerbi: '15–20/60 h × 104,74 €/h = 26,19–34,91 €/plan de prévention. Extraction VM, rangement SharePoint et archivage automatiques. Sur 500 PP/an : 125–166,67 h et 13 092,50–17 456,67 €/an. Consultation distincte : 10 min × environ 40 consultations/jour = 6 h 40 et 698,27 €/jour. Aucun nombre de jours annuels supposé ; ces deux gains ne sont pas cumulés sur une même action.',
  suivi: 'Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.',
  gares: 'Environ 450 consultations/an × 10–15 min × 104,74 €/h ≈ 7 900–11 800 €/an. Parc concerné : environ 1 000 équipements.',
- finance: 'Durée et fréquence des contrôles manuels à renseigner pour calculer le gain à 104,74 €/h.'
+ finance: 'Base déjà chiffrée dans le CV : 5 périmètres × 5 min/jour = 25 min/jour ; 225 jours/an, soit 93,75 h × 104,74 €/h = 9 819,38 €/an (≈ 9 800 €). Ce gain valorise le pointage manuel évité ; les quatre flux CS, Locatif, MEC et PPTM et la vue globale signalent les dépassements le matin même.'
 };
-for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=p.id==='finance'?'pending':p.id==='suivi'?'estimated':p.id==='cerfa'?'penalties':p.time===null?'none':'time-value'; }
+for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=p.id==='suivi'?'estimated':p.id==='cerfa'?'penalties':p.time===null?'none':'time-value'; }
 PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
  {time:'125–167 h / an',timeCtx:'500 PP/an × 15–20 minutes : extraction VM, rangement SharePoint et archivage automatique',money:'13 092,50–17 456,67 € / an',moneyCtx:'500 plans de prévention traités à 104,74 €/h, calcul avant arrondi des heures'},
  {time:'6 h 40 / jour',timeCtx:'10 minutes économisées par consultation × environ 40 consultations par jour',money:'698,27 € / jour',moneyCtx:'consultation des PP à 104,74 €/h ; aucun volume annuel de jours supposé'}

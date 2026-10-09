@@ -58,3 +58,9 @@
 .process-consultation-gain{display:block;font-size:12px;line-height:1.5;margin-top:10px;color:var(--ink);}.process-outcome>span{min-width:0;overflow-wrap:anywhere;}
 
 .process-outcome>span{flex:0 0 calc(50% - 8px);box-sizing:border-box;}@media(max-width:600px){.process-outcome>span{flex-basis:auto;width:100%;}}
+
+/* Les ateliers restent fixes ; seules les machines et les véhicules bougent. */
+.process-gallery .process-card,.process-gallery .process-card:hover,.process-gallery .process-card[data-live=true]:hover,.process-gallery .process-card img,.process-gallery .process-card:hover img{transform:none;transition:none}
+.process-card-action{height:35px;min-height:35px;line-height:17px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.process-card-action:empty{display:block;visibility:hidden}
+.workshop-previews{image-rendering:auto}

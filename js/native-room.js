@@ -309,14 +309,14 @@ async function build() {
   let lastMode = '';
   let walkSeed = 0;
   let modeFacing = 0;
-  let waterStarted=false,waterFinished=false;
+  let waterStarted=false,waterFinished=false,activityStarted=false,activityFinished=false;
 
   const setMode = (next, targetName = null) => {
     if (!next) next = 'idle';
     if (next === lastMode && next !== 'walk') return;
     lastMode = next;
     mode = next;
-    waterStarted=false;waterFinished=false;
+    waterStarted=false;waterFinished=false;activityStarted=false;activityFinished=false;
 
     try {
       // L'API sonore exacte de Native expose wake(), pas resume().
@@ -420,8 +420,13 @@ async function build() {
     if(mode==='water')waterClock+=dt;
     shupi.mixer?.update(dt);
     shupi._emit('frame', dt);
+    const activityState=sceneApi.simDoing;
+    if(['water','read','sit','work','game','coffee'].includes(mode)){
+      if(activityState?.doing==='busy'&&activityState.busy)activityStarted=true;
+      if(activityStarted&&activityState?.doing!=='busy')activityFinished=true;
+    }
     if(mode==='water'){
-      const s=sceneApi.simDoing;
+      const s=activityState;
       if(s?.doing==='busy'&&s.busy==='water')waterStarted=true;
       if(waterStarted&&s?.doing!=='busy')waterFinished=true;
     }
@@ -464,6 +469,7 @@ async function build() {
     stop,
     get mode() { return mode; },
     get waterFinished(){return waterFinished;},
+    get activityFinished(){return activityFinished;},
     get seatYawOffset() { const s = sceneApi.simStations.find(s => s.kind === 'work'); return s?.swivel ? s.swivel.object.rotation.y - s.swivel.sat : 0; },
   };
 }
