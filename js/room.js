@@ -273,11 +273,9 @@ export async function createRoom(container, bubbleEl) {
   const speakers=[];
   for(const [side,x,z,yaw] of [['L',-1.85,-2.55,.18],['R',.4,-2.65,-.18]]){
     const obj=F.speakerFromGltf(jblModel,1.1);obj.name=`JBL ${side}`;
-    const posts=F.speakerPosts(obj),bounds=new THREE.Box3().setFromObject(obj);
+    const posts=F.speakerPosts(obj);
     add(`jbl${side}`,obj,x,z,yaw,0,.7);
-    const waves=new THREE.Group();waves.name=`JBL ${side} sound diffusion`;waves.userData.dynamic=true;
-    for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.RingGeometry(.12,.132,40),new THREE.MeshBasicMaterial({color:'#c7e1ef',transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));ring.position.set(0,.35,bounds.max.z+.018);ring.userData.phase=i/3;waves.add(ring);}
-    obj.add(waves);waves.visible=false;speakers.push({obj,side,posts,waves,front:bounds.max.z});
+    speakers.push({obj,side,posts,baseScale:obj.scale.clone(),cables:[]});
   }
   world.updateMatrixWorld(true);
   for(const s of speakers)for(const polarity of ['black','red']){
@@ -285,6 +283,10 @@ export async function createRoom(container, bubbleEl) {
     const b=s.obj.localToWorld(s.posts[polarity].clone()), offset=polarity==='red'?.014:0;
     const cable=tube([a.toArray(),[a.x,a.y+.018,-2.78],[a.x,.45,-2.81],[a.x,.013,-2.81],[s.obj.parent.position.x,.013,-2.95-offset],[b.x,.013,b.z-.08],b.toArray()],.004,mat(polarity==='red'?'#563c31':'#202124'),{segs:64,radial:5});
     cable.name=`JBL ${s.side} ${polarity} cable`;
+    cable.userData.dynamic=true;
+    const positions=cable.children[0].geometry.attributes.position,rest=positions.array.slice(),weights=new Float32Array(positions.count);
+    for(let i=0;i<positions.count;i++)weights[i]=Math.max(0,1-Math.hypot(rest[i*3]-b.x,rest[i*3+1]-b.y,rest[i*3+2]-b.z)/.15);
+    s.cables.push({cable,positions,rest,weights,post:s.posts[polarity],endCap:cable.children.at(-1),capY:b.y});
     cable.userData.connection={from:a.toArray(),to:b.toArray(),side:s.side,polarity};
     add(`jblCable${s.side}${polarity}`,cable,0,0,0,0,.8,world,0);
   }
@@ -1077,7 +1079,12 @@ export async function createRoom(container, bubbleEl) {
       card.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 8, 130)}px) translate(-50%, -100%)`; card.classList.add('show');
     } else { card.classList.remove('show'); cardFor = -2; }
     // musique
-    for(const s of speakers){s.waves.visible=music;for(const ring of s.waves.children){const phase=(t*1.2+ring.userData.phase)%1;ring.scale.setScalar(1+phase*2.1);ring.position.z=s.front+.018+phase*.2;ring.material.opacity=(1-phase)*.32;}}
+    for(const s of speakers){
+      // Restore the original 3% cabinet pulse; the floor anchor stays fixed.
+      const pulse=music?1+Math.max(0,Math.sin(t*9))*.03:1;
+      s.obj.scale.copy(s.baseScale);s.obj.scale.y*=pulse;
+      for(const link of s.cables){const dy=link.post.y*s.baseScale.y*(pulse-1);for(let i=0;i<link.positions.count;i++)link.positions.array[i*3+1]=link.rest[i*3+1]+dy*link.weights[i];link.positions.needsUpdate=true;link.endCap.position.y=link.capY+dy;}
+    }
     record.rotation.y += dt * (music ? 3.4 : 0);
     armAng += ((music ? 0.0 : 0.5) - armAng) * (1 - Math.exp(-dt * 3));
     arm.rotation.y = armAng;
