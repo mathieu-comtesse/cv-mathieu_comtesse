@@ -203,7 +203,7 @@ export function mergeStatic(root) {
   root.updateWorldMatrix(true, true);
   const sigs = mergeStatic.sigs || (mergeStatic.sigs = new Map());
   const buckets = new Map(), drop = [];
-  const ownerOf = (o) => { for (let p = o.parent; p && p !== root.parent; p = p.parent) { if (p.userData && p.userData.id) return p; if (p === root) return root; } return root; };
+  const ownerOf = (o) => { for (let p = o.parent; p && p !== root.parent; p = p.parent) { if (p.userData && (p.userData.id || p.userData.batchRoot)) return p; if (p === root) return root; } return root; };
   const dynamic = (o) => { for (let p = o; p && p !== root.parent; p = p.parent) if (p.userData && p.userData.dynamic) return true; return false; };
   root.traverse((o) => {
     if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || Array.isArray(o.material) || !o.visible) return;

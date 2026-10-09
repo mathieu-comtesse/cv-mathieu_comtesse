@@ -74,7 +74,8 @@ for (const id of ['ekstrem','alocasia','desk','sofa']) {
 }
 for(const item of report){const distance=(a,b)=>Math.hypot(...a.map((x,i)=>x-b[i]));if(item.id==='ekstrem'){assert.ok(item.book.visible);assert.ok(distance(item.book.pos,item.handL.map((x,i)=>(x+item.handR[i])/2))<.15,'Book must stay between both hands');}if(item.id==='alocasia'){assert.ok(item.can.visible);assert.ok(Math.min(distance(item.can.pos,item.handL),distance(item.can.pos,item.handR))<.5,'Watering can must stay in a hand');}}
 await page.evaluate(()=>{window.room.director.stand();window.room.director.setRun(true);window.room.director.go(window.room.stations.alocasia);});
-await page.waitForTimeout(2000);
+await page.waitForFunction(()=>window.room.director.mode==='walk',null,{timeout:120000});
+await page.waitForTimeout(300);
 const movement=await page.evaluate(()=>{let r=window.room,e=r.scene.getObjectByName('NativeMotionEffects'),visible=0;e.traverseVisible(o=>{if(o.isMesh)visible++;});const a=document.querySelector('iframe').contentWindow.audioEvidence;return {mode:r.director.mode,run:r.director.running,effects:visible,audio:a.filter(s=>s.peak>0&&s.state==='running').length};});
 assert.ok(movement.effects>0,'Original walking/running particles must be visible');assert.ok(movement.audio>0,'Original action sounds must generate audible buffers');
 await page.evaluate(()=>window.room.director.lift());await page.waitForTimeout(400);await page.evaluate(()=>{let p=window.room.hero.group.position;window.room.director.drop(p.x,p.z);});await page.waitForTimeout(800);

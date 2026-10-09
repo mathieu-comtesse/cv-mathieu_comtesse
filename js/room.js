@@ -1,4 +1,4 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v25';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v25b';
 import * as F from './furniture.js?v=cv-scene-v25';
 import { createCharacter } from './character.js?v=cv-scene-v25';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
@@ -150,7 +150,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v25')
+    import('./native-room.js?v=cv-scene-v25b')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -286,7 +286,8 @@ export async function createRoom(container, bubbleEl) {
   /* ─── personnage ─── */
   /* ─── performances : fusion des maillages statiques (≈ 1 500 maillages → quelques centaines d'appels de rendu) ─── */
   tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true; retro.pad.userData.dynamic = true;
-  { world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj);
+  { for(const name of ['Moonlander','ErgonomicVerticalMouse','UltrawidePanel','PortraitPanel','UltrawideMonitorArm','PortraitMonitorArm','UltrawideWebcam','GamingDesktopPC','RoadBikeFinish']){const object=world.getObjectByName(name);if(object)object.userData.batchRoot=true;}
+    world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj);
     const swivel=chair.userData.swivel;swivel.userData.dynamic=false;made+=mergeStatic(swivel);swivel.userData.dynamic=true;fallbackDeskChildren.splice(0,fallbackDeskChildren.length,...deskSet.children); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
 
   const hero = await createCharacter();
@@ -571,6 +572,7 @@ export async function createRoom(container, bubbleEl) {
   let autonomousActivitySince = 0, autonomousLast = null, autonomousPrevMode = '';
   const autonomousTick = () => {
     const now = performance.now();
+    if (!greeted && container.dataset.native !== 'fallback') return;
     if (now < autonomousPauseUntil || appOpen || crate.isOpen || !hero.group.visible) return;
     const mode = director.mode;
     if (mode !== autonomousPrevMode) { if (mode === 'activity') autonomousActivitySince = now; autonomousPrevMode = mode; }
@@ -886,7 +888,7 @@ export async function createRoom(container, bubbleEl) {
       if (nativeBridge && director.current !== stations.desk) {
         chair.userData.swivel.rotation.y += ((-Math.PI * 0.75) - chair.userData.swivel.rotation.y) * (1 - Math.exp(-dt * 6));
       }
-      if(nativeBridge&&spawned&&!greeted){greeted=true;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
+      if(nativeBridge&&spawned&&!greeted&&director.mode==='idle'){greeted=true;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
       if(greeted&&performance.now()>=greetingUntil)container.dataset.greeting='false';
       const exactMotion = syncNativeMotionMode();
       if (exactMotion !== 'idle') {
