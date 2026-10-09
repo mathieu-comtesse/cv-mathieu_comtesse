@@ -1,4 +1,4 @@
-import { createActionHighlight } from './process-highlight.js?v=cv-scene-v27';
+import { createActionHighlight } from './process-highlight.js?v=cv-scene-v28';
 import * as THREE from 'three';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
 

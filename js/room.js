@@ -1,17 +1,17 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v27';
-import * as F from './furniture.js?v=cv-scene-v27';
-import { createCharacter } from './character.js?v=cv-scene-v27';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v28';
+import * as F from './furniture.js?v=cv-scene-v28';
+import { createCharacter } from './character.js?v=cv-scene-v28';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=cv-scene-v27';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v27';
-import { createRitual } from './ritual.js?v=cv-scene-v27';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v27';
-import { createRetroSet } from './retro.js?v=cv-scene-v27';
-import { createNav } from './nav.js?v=cv-scene-v27';
-import { createDirector } from './director.js?v=cv-scene-v27';
-import { createThought } from './thought.js?v=cv-scene-v27';
-import { createWeather } from './weather.js?v=cv-scene-v27';
-import { createJukebox } from './jukebox.js?v=cv-scene-v27';
+import { loadBuffer } from './kit.js?v=cv-scene-v28';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v28';
+import { createRitual } from './ritual.js?v=cv-scene-v28';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v28';
+import { createRetroSet } from './retro.js?v=cv-scene-v28';
+import { createNav } from './nav.js?v=cv-scene-v28';
+import { createDirector } from './director.js?v=cv-scene-v28';
+import { createThought } from './thought.js?v=cv-scene-v28';
+import { createWeather } from './weather.js?v=cv-scene-v28';
+import { createJukebox } from './jukebox.js?v=cv-scene-v28';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
@@ -152,7 +152,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v27')
+    import('./native-room.js?v=cv-scene-v28')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -960,6 +960,10 @@ export async function createRoom(container, bubbleEl) {
               // Never blend through the cushion when a new pose changes the
               // trouser volume. Lift immediately, then settle down smoothly.
               hero.group.position.y += hero.referenceAppearance ? dy : (dy > 0 ? dy : dy * (1 - Math.exp(-dt * 16)));
+              hero.group.updateMatrixWorld(true);
+              // The pelvis lift changes ankle height: solve floor clearance again
+              // in this frame, rather than using the previous frame's root height.
+              if(cur!==stations.ekstrem)hero.poseSeatedL?.(floorY(hero.group.position.x,hero.group.position.z)+0.01,cur===stations.desk?'bureau':'console');
               hero.group.updateMatrixWorld(true);
             }
 

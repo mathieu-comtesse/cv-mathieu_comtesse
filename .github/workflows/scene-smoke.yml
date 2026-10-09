@@ -37,6 +37,9 @@ jobs:
           node --check js/process-highlight.js
           node --check js/marquee.js
           node --check js/projects-data.js
+          node --check js/kit.js
+          node --check js/pages.js
+          node --check js/data.js
           node --check js/home.js
           node --check js/main.js
           node --check js/room.js
@@ -50,13 +53,15 @@ jobs:
         run: node tools/test-navigation.mjs
       - name: Check iframe geometry compatibility
         run: node tools/test-native-geometry.mjs
+      - name: Check suspended painting transforms
+        run: node tools/test-static-transforms.mjs
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v27" index.html
-          grep -q "character.js?v=cv-scene-v27" js/room.js
-          grep -q "retro.js?v=cv-scene-v27" js/room.js
-          grep -q "room.js?v=cv-scene-v27" js/main.js
+          grep -q "js/main.js?v=cv-scene-v28" index.html
+          grep -q "character.js?v=cv-scene-v28" js/room.js
+          grep -q "retro.js?v=cv-scene-v28" js/room.js
+          grep -q "room.js?v=cv-scene-v28" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb

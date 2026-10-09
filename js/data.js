@@ -98,7 +98,7 @@ export const PRO = [
   "id": "projet-studio",
   "title": "Studio d’extracteurs PDF",
   "sub": "Un extracteur sans coder",
-  "lead": "Chaque famille de documents (CERFA, plans de prévention, rapports de contrôle) mérite son extracteur, mais personne ne peut en développer un à la main à chaque fois. Le Studio d’extracteurs PDF est l’application que j’ai conçue pour ça : une page unique, livrée aussi en exécutable autonome, qui tourne entièrement en local, aucun document ne quitte le poste.",
+  "lead": "Chaque famille de documents (CERFA, plans de prévention, rapports de contrôle) mérite son extracteur, mais personne ne peut en développer un à la main à chaque fois. Le Studio d’extracteurs PDF est l’application qu’il a conçue pour ça : une page unique, livrée aussi en exécutable autonome, qui tourne entièrement en local, aucun document ne quitte le poste.",
   "gain": "Un extracteur opérationnel en quelques heures, contre plusieurs jours de développement et de recette pour un lecteur codé à la main. Valorisé au taux horaire de 104,74 € : 5 à 10 jours de 7 h moins ≈ 4 h de Studio, soit ≈ 3 200 à 6 900 € de temps évité par famille de documents (l’estimation ci-dessous, 2 500 à 6 500 € HT, part…",
   "team": "Un besoin d’extraction nouveau ne dépend plus d’un développement : on ouvre le Studio, on trace, on teste, on distribue.",
   "url": "projet-studio.html"
@@ -170,7 +170,7 @@ export const PRO = [
   "id": "projet-5",
   "title": "Dialogue terrain",
   "sub": "Processus EPM / EPTx",
-  "lead": "J’ai mené des interviews et entretiens avec les acteurs métier et animé un groupe de travail pour comprendre où l’information se perd entre travaux et maintenance. Cette démarche MQSE a permis de formaliser un état des lieux, une proposition de processus simplifié et un document de travail pour maintenir à jour le plan annuel de maintenance des équipements de sécurité incendie (PAM SSI).",
+  "lead": "Il a mené des interviews et entretiens avec les acteurs métier et animé un groupe de travail pour comprendre où l’information se perd entre travaux et maintenance. Cette démarche MQSE a permis de formaliser un état des lieux, une proposition de processus simplifié et un document de travail pour maintenir à jour le plan annuel de maintenance des équipements de sécurité incendie (PAM SSI).",
   "gain": "",
   "team": "Un cadre partagé pour éviter les équipements oubliés après travaux, rendre les responsabilités lisibles et préparer un suivi durable.",
   "url": "projet-5.html"
