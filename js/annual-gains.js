@@ -27,3 +27,8 @@ export function rollGainHistory(saved,year,total=ANNUAL_TOTAL){
  }
  state.total={...total};return state;
 }
+
+export function euroCoinRhythm(total=ANNUAL_TOTAL,days=225,hoursPerDay=7){
+ const workingSeconds=days*hoursPerDay*3600,meanMoney=(total.minMoney+total.maxMoney)/2;
+ return {workingSeconds,meanMoney,euroPerSecond:meanMoney/workingSeconds,secondsPerEuro:workingSeconds/meanMoney};
+}

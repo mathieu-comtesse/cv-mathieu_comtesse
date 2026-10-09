@@ -44,6 +44,7 @@ jobs:
           node --check js/process-highlight.js
           node --check js/process-machines.js
           node --check js/marquee.js
+          node --check js/piggy-bank.js
           node --check js/annual-gains.js
           node --check js/projects-data.js
           node --check js/kit.js
@@ -73,7 +74,7 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v35" index.html
+          grep -q "js/main.js?v=cv-scene-v36" index.html
           grep -q "character.js?v=cv-scene-v29" js/room.js
           grep -q "retro.js?v=cv-scene-v29" js/room.js
           grep -q "room.js?v=cv-scene-v34" js/main.js

@@ -35,3 +35,19 @@ const revised=rollGainHistory(after,2027,{...ANNUAL_TOTAL,minHours:999});
 assert.equal(revised.history[0].total.minHours,ANNUAL_TOTAL.minHours);
 assert.equal(calendarGainState(new Date(2028,0,1)).minHours,0);
 console.log('PASS: calendar reset, previous-year retention and frozen historical basis');
+
+const {euroCoinRhythm}=await import('../js/annual-gains.js');
+const cadence=euroCoinRhythm();
+assert.equal(cadence.workingSeconds,5670000);
+assert.equal(cadence.meanMoney.toFixed(2),'752382.33');
+assert.ok(Math.abs(cadence.secondsPerEuro-7.535)<.01);
+assert.equal(euroCoinRhythm(undefined,180,8).workingSeconds,5184000);
+for(const filename of ['pink-piggy-bank.glb','one-euro-coin.glb']){
+ const bytes=await readFile(new URL('../assets/'+filename,import.meta.url));
+ assert.equal(bytes.toString('ascii',0,4),'glTF');
+ const gltf=JSON.parse(bytes.toString('utf8',20,20+bytes.readUInt32LE(12)));
+ assert.ok(gltf.meshes.length>2);assert.ok(gltf.materials.length>1);
+ if(filename.includes('piggy'))assert.ok(gltf.nodes.some(n=>n.name==='CoinSlot'));
+ else assert.ok(gltf.nodes.some(n=>n.name.includes('Embossed_1Euro')));
+}
+console.log('PASS: Blender assets, embossed one-euro coin and working-second cadence');

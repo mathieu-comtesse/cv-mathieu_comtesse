@@ -15,6 +15,9 @@ if(!process.env.SCENE_PUBLIC_URL)await context.route('http://scene.test/**',asyn
 try{
  await page.goto(process.env.SCENE_PUBLIC_URL||'http://scene.test/');
  const pig=page.locator('.annual-gains');await pig.waitFor();await pig.scrollIntoViewIfNeeded();
+ await page.waitForFunction(()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy==='ready',null,{timeout:90000});
+ assert.ok(await pig.locator('.annual-pig-wrap svg').evaluateAll(elements=>elements.every(e=>getComputedStyle(e).display==='none')));
+ assert.match(await page.locator('.automation-cascade').innerText(),/Une production automatisée libère plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
  assert.match(await pig.locator('[data-annual-money]').innerText(),/650/);
  assert.match(await pig.locator('[data-annual-hours]').innerText(),/6.?210/);
@@ -27,6 +30,16 @@ try{
   const b=await pig.boundingBox();assert.ok(b.x>=0&&b.x+b.width<=width+1);
   await page.screenshot({path:path.join(output,'tirelire-'+width+'.png')});
  }
+ const model=page.locator('.annual-pig-wrap');const canvas=page.locator('.piggy-3d');await canvas.focus();
+ await canvas.press('ArrowRight');const rotation=Number(await model.getAttribute('data-rotation'));assert.ok(rotation>-.45);
+ const hit=await canvas.boundingBox();await page.mouse.move(hit.x+hit.width*.3,hit.y+hit.height*.6);await page.mouse.down();await page.mouse.move(hit.x+hit.width*.8,hit.y+hit.height*.6,{steps:8});await page.mouse.up();
+ assert.ok(Number(await model.getAttribute('data-rotation'))>rotation+.5);
+ assert.ok(Math.abs(Number(await model.getAttribute('data-coin-interval'))-7.536)<.02);
+ await pig.locator('.annual-breakdown summary').click();await pig.locator('[data-working-days]').fill('180');await pig.locator('[data-working-days]').press('Tab');
+ assert.ok(Number(await model.getAttribute('data-coin-interval'))<7.536);
+ await pig.locator('[data-working-days]').fill('225');await pig.locator('[data-working-days]').press('Tab');await pig.locator('.annual-breakdown summary').click();
+ await page.waitForFunction(()=>Number(document.querySelector('.annual-pig-wrap').dataset.coins)>0,null,{timeout:45000});
+ await page.screenshot({path:path.join(output,'tirelire-3d-pieces.png')});
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('cv-annual-gain-history-v1')));
  await page.evaluate(state=>localStorage.setItem('cv-annual-gain-history-v1',JSON.stringify(state)),{...saved,year:expectedYear-1});
  await page.reload();await page.locator('.annual-gains').waitFor();
