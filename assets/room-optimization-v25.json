@@ -1,0 +1,74 @@
+[
+  {
+    "asset": "monitor-ultrawide-curved-panel",
+    "sourceTriangles": 48510,
+    "triangles": 20469,
+    "boundsMaxDelta": 4.589557647705078e-06,
+    "bytes": 1347336,
+    "sha256": "2fd4b230a09c2e510e4d1888ba4a99a950086c6562fd9489a4ab0b19ea38daa7"
+  },
+  {
+    "asset": "monitor-portrait-panel",
+    "sourceTriangles": 90,
+    "triangles": 90,
+    "boundsMaxDelta": 0.0,
+    "bytes": 9568,
+    "sha256": "1e4d9a64711fb1516a29bd4e6cfaa61e94024e12774f88d01e46cc694223d80f"
+  },
+  {
+    "asset": "humanscale-m2-arm",
+    "sourceTriangles": 67745,
+    "triangles": 28009,
+    "boundsMaxDelta": 9.202957153320312e-05,
+    "bytes": 1264804,
+    "sha256": "18cde3eec0734d88c005fd4b7dcdf9f554686a11bf1ed75e01c71a3c4dce3b70"
+  },
+  {
+    "asset": "desk-webcam",
+    "sourceTriangles": 12855,
+    "triangles": 5339,
+    "boundsMaxDelta": 3.4362077713012695e-05,
+    "bytes": 255512,
+    "sha256": "a58ed6d433321f26d8be7e92c024251508be98b76745d1a81097582bf0355478"
+  },
+  {
+    "asset": "gaming-pc",
+    "sourceTriangles": 80303,
+    "triangles": 45352,
+    "boundsMaxDelta": 0.0013298839330673218,
+    "bytes": 3786312,
+    "sha256": "4f2efc5ea0c400259c759d8039f49dfdc4bff92fc764b36ac2cc2c8808c6c4fc"
+  },
+  {
+    "asset": "road-bike-finish",
+    "sourceTriangles": 60459,
+    "triangles": 25060,
+    "boundsMaxDelta": 0.002392647322267294,
+    "bytes": 1382720,
+    "sha256": "abbb0fbcce79e7c44cfbde2c60625b1861860e6b1fe315026d1ba1c834983cb4"
+  },
+  {
+    "asset": "ekstrem",
+    "sourceTriangles": 9082,
+    "triangles": 5900,
+    "boundsMaxDelta": 6.47125719197561e-05,
+    "bytes": 614920,
+    "sha256": "9b7e69155ec71902151e075d42c790861f56fb74dfcaa445bc184c0a25410d60"
+  },
+  {
+    "asset": "ds450",
+    "sourceTriangles": 8294,
+    "triangles": 3744,
+    "boundsMaxDelta": 0.0,
+    "bytes": 296984,
+    "sha256": "9e66f6708d2f30375c9875157f3a678b6d37333f3f56645c087bc7cbca3b0630"
+  },
+  {
+    "asset": "setu",
+    "sourceTriangles": 11594,
+    "triangles": 10234,
+    "boundsMaxDelta": 0.0,
+    "bytes": 1008700,
+    "sha256": "9b8f12f262a8bf4140de793604aef8c9112cfe5e7477503fd2ba4bc0d4268230"
+  }
+]

@@ -1,4 +1,4 @@
-import { THREE, mat, loadBuffer } from './kit.js?v=bf01a16';
+import { THREE, mat, loadBuffer } from './kit.js?v=cv-scene-v25';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 
 // Character imported from 84b390d3dd44755f.fbx and converted to a compact skinned GLB.

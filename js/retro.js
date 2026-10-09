@@ -1,4 +1,4 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng, inkify } from './kit.js?v=bf01a16';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng, inkify } from './kit.js?v=cv-scene-v25';
 
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */
@@ -68,7 +68,7 @@ export function createRetroSet() {
   for (const [dx, dz, c] of [[0, -0.014, '#3fae6a'], [0.014, 0, '#d04c4c'], [0, 0.014, '#4f78d0'], [-0.014, 0, '#d86fa3']]) pad.add(cyl(0.0075, 0.0075, 0.007, mat(c, { roughness: 0.4 }), 0.045 + dx, 0.026, -0.002 + dz, 14));
   for (const x of [-0.012, 0.012]) pad.add(rbox(0.014, 0.005, 0.008, 0.002, mat('#7c7c79'), x, 0.025, 0.012));
   for (const s of [-1, 1]) pad.add(rbox(0.03, 0.01, 0.014, 0.004, padM, s * 0.045, 0.026, -0.036));
-  pad.scale.setScalar(1.35); pad.position.set(0.28, 0, 0.78); pad.rotation.y = 0.55; g.add(pad);
+  pad.scale.setScalar(1.65); pad.position.set(0.28, 0, 0.78); pad.rotation.y = 0.55; g.add(pad);
 
   const padHome = {
     position: pad.position.clone(),

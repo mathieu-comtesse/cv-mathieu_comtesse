@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=bf01a16';
+import { THREE } from './kit.js?v=cv-scene-v25';
 import { n as sourceSettings, t as sourcePreset } from '../shupi/assets/thought-presets-_pi_GkjI.js';
 
 /* Bulle de pensée : un nuage avec la miniature 3D de l'activité qui tourne lentement (comme les pensées du personnage de référence).

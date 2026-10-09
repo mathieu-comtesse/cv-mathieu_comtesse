@@ -1,17 +1,17 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
-import * as F from './furniture.js?v=cv-scene-v20';
-import { createCharacter } from './character.js?v=cv-scene-v24c';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v25';
+import * as F from './furniture.js?v=cv-scene-v25';
+import { createCharacter } from './character.js?v=cv-scene-v25';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=bf01a16';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
-import { createRitual } from './ritual.js?v=cv-scene-v22';
-import { createChashitsu } from './chashitsu.js?v=bf01a16';
-import { createRetroSet } from './retro.js?v=cv-scene-v17';
-import { createNav } from './nav.js?v=cv-scene-v24b';
-import { createDirector } from './director.js?v=cv-scene-v24';
-import { createThought } from './thought.js?v=cv-scene-v17';
-import { createWeather } from './weather.js?v=bf01a16';
-import { createJukebox } from './jukebox.js?v=cv-scene-v17';
+import { loadBuffer } from './kit.js?v=cv-scene-v25';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v25';
+import { createRitual } from './ritual.js?v=cv-scene-v25';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v25';
+import { createRetroSet } from './retro.js?v=cv-scene-v25';
+import { createNav } from './nav.js?v=cv-scene-v25';
+import { createDirector } from './director.js?v=cv-scene-v25';
+import { createThought } from './thought.js?v=cv-scene-v25';
+import { createWeather } from './weather.js?v=cv-scene-v25';
+import { createJukebox } from './jukebox.js?v=cv-scene-v25';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
@@ -54,7 +54,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish-v25.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
 
   // MODE STABLE : la scène locale démarre sans attendre Native.
   // Le pont exact est chargé plus tard en import dynamique : aucune panne du runtime
@@ -66,7 +66,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
-  const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-curved-panel.glb','monitor-portrait-panel.glb','humanscale-m2-arm.glb','desk-webcam.glb','gaming-pc.glb'].map(model));
+  const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-curved-panel-v25.glb','monitor-portrait-panel-v25.glb','humanscale-m2-arm-v25.glb','desk-webcam-v25.glb','gaming-pc-v25.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
     const holder = group(obj);
@@ -93,7 +93,7 @@ export async function createRoom(container, bubbleEl) {
   // Bureau Native exact : les objets viennent directement du runtime local Native.
   // Fallback procédural uniquement si le mini-runtime n'a pas pu se charger.
   const deskSet = group();
-  deskSet.userData.dynamic = true;
+  deskSet.userData.dynamic = false;
 
   let uw;
   const brontes = F.brontes();
@@ -150,7 +150,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v24')
+    import('./native-room.js?v=cv-scene-v25')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -286,7 +286,8 @@ export async function createRoom(container, bubbleEl) {
   /* ─── personnage ─── */
   /* ─── performances : fusion des maillages statiques (≈ 1 500 maillages → quelques centaines d'appels de rendu) ─── */
   tt.userData.dynamic = true; crate.root.userData.dynamic = true; cs.group.userData.dynamic = true; tea.userData.dynamic = true; retro.pad.userData.dynamic = true;
-  { world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
+  { world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj);
+    const swivel=chair.userData.swivel;swivel.userData.dynamic=false;made+=mergeStatic(swivel);swivel.userData.dynamic=true;fallbackDeskChildren.splice(0,fallbackDeskChildren.length,...deskSet.children); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
 
   const hero = await createCharacter();
   hero.group.visible = false; world.add(hero.group);
@@ -344,7 +345,7 @@ export async function createRoom(container, bubbleEl) {
     csX = (tx0 + tx1) / 2 - roomCx; csHalf = (tx1 - tx0) / 2;
     view.az = save.az; view.el = save.el;
   }
-  let resScale = 1;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
+  let resScale = .85;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
   function resize() {
     W = container.clientWidth || 1; H = container.clientHeight || 1;
     // rendu en basse définition (≈720 px de haut), agrandi sans lissage : même grain que la scène de référence
@@ -534,7 +535,7 @@ export async function createRoom(container, bubbleEl) {
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.48, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: null, pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
     dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Snake plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [3.65, 0, -2.45], yaw: -Math.PI / 2, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
-    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', seatId: 'sofa', seatBack: -0.21, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
+    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', nativeMode:'game', seatId: 'sofa', seatBack: -0.21, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.ritual) { st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]])); if(st.can){st.pos[0]=st.approach[0];st.pos[2]=st.approach[1];} }
@@ -709,7 +710,7 @@ export async function createRoom(container, bubbleEl) {
   for (const st of Object.values(stations)) {
     st.enter = () => {
       hero.setBase(st.face); hero.talk(false); hero.can.visible = !!st.can; hero.setOverride(st.ov || null); hero.setNativePose?.(st.pose || null);
-      hero.flash('amazed', 0.5);
+      hero.flash('happy', 0.5);
       if (st.music) setMusic(true);
       if (st.ritual) { cs.setPanels(1); ritual.start(); }
       if (st.tv) { if (retro.stripOn) retro.powerOn(); else { thoughtFor = null; thought.show(null, 'La multiprise est \u00e9teinte'); thoughtFor = st; } }
@@ -769,11 +770,11 @@ export async function createRoom(container, bubbleEl) {
 
     const center = b.pelvis.getWorldPosition(new THREE.Vector3())
       .addScaledVector(forward, 0.31);
-    center.y += 0.16;
+    center.y += 0.19;
 
     const pelvis = b.pelvis.getWorldPosition(new THREE.Vector3());
     const leftSign = Math.sign(b.upperarm_l.getWorldPosition(new THREE.Vector3()).sub(pelvis).dot(side)) || 1;
-    const lTarget = center.clone().addScaledVector(side, leftSign * 0.085);
+    const lTarget = center.clone().addScaledVector(side, leftSign * 0.105);
     const rTarget = center.clone().addScaledVector(side, -leftSign * 0.085);
     // Fixed elbow poles avoid feeding the previous IK solution back into itself.
     const lPole = pelvis.clone().addScaledVector(side,leftSign * 0.35).addScaledVector(forward,0.12); lPole.y += 0.30;
@@ -819,12 +820,14 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── boucle ─── */
   const opts = { dtCap: 0.05 };
-  let nativeMotionMode = 'idle';
+  let nativeMotionMode = 'idle', greetingUntil=0, greeted=false;
   const syncNativeMotionMode = () => {
     if (!nativeBridge || !hero.group.visible) return 'idle';
     let next = 'idle';
     const cur = director.current;
-    if (director.mode === 'carried') next = 'jump';
+    if(director.mode==='idle'&&performance.now()<greetingUntil)next='greeting';
+    else if(director.mode==='thinking')next='think';
+    else if (director.mode === 'carried') next = 'jump';
     else if (director.locomoting) next = director.running ? 'run' : 'walk';
     else if (director.mode === 'activity' && cur?.nativeMode) next = cur.nativeMode;
 
@@ -836,7 +839,8 @@ export async function createRoom(container, bubbleEl) {
   };
 
   const clock = new THREE.Clock();
-  let running = true;
+  let running = true, roomVisible=true, workshopOpen=false;
+  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen)running=false;else if(roomVisible&&!document.hidden&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
@@ -882,6 +886,8 @@ export async function createRoom(container, bubbleEl) {
       if (nativeBridge && director.current !== stations.desk) {
         chair.userData.swivel.rotation.y += ((-Math.PI * 0.75) - chair.userData.swivel.rotation.y) * (1 - Math.exp(-dt * 6));
       }
+      if(nativeBridge&&spawned&&!greeted){greeted=true;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
+      if(greeted&&performance.now()>=greetingUntil)container.dataset.greeting='false';
       const exactMotion = syncNativeMotionMode();
       if (exactMotion !== 'idle') {
         if (exactMotion === 'water' && nativeBridge?.wateringCan) hero.can.visible = false;
@@ -898,7 +904,7 @@ export async function createRoom(container, bubbleEl) {
           }
           nativeBridge.update(dt);
           // Les jambes des sièges locaux suivent leur propre assise, plus haute que celle de référence.
-          if (exactMotion !== 'idle' && director.current !== stations.sofa) nativeBridge.applyPose(hero, 1, director.current?.seatId ? { upperOnly: true } : {});
+          if (exactMotion !== 'idle') nativeBridge.applyPose(hero, 1, director.current?.seatId ? { upperOnly: true } : {});
         } catch (error) { restoreLocalDesk(error); }
       }
       if(hero.referenceAppearance && exactMotion==='idle' && ['idle','turn'].includes(director.mode))hero.poseStanding();
@@ -973,7 +979,7 @@ export async function createRoom(container, bubbleEl) {
 
       const s = hero.group.scale.x; hero.group.scale.setScalar(s + (1 - s) * (1 - Math.exp(-dt * 10)));
       bubbleT += dt;
-      const showB = !!thoughtFor && director.mode !== 'carried' && !appOpen && bubbleT > 0.35;
+      const showB = !!thoughtFor && ['thinking','walk','turn'].includes(director.mode) && !appOpen && bubbleT > 0.35;
       thoughtEl.classList.toggle('show', showB);
       if (showB) { if (frameNo % 3 === 0) thought.update(dt * 3); v3.set(0, 0, 0); hero.head.getWorldPosition(v3); v3.y += 0.42; v3.project(camera); thoughtEl.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 30, 215)}px) translate(-50%, -100%)`; }
     }
@@ -1008,7 +1014,7 @@ export async function createRoom(container, bubbleEl) {
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1);
     }
-    renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % 3 === 0;
+    renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % 8 === 0;
     try {
       renderer.render(scene, camera);
     } catch (error) {
@@ -1026,9 +1032,9 @@ export async function createRoom(container, bubbleEl) {
   requestAnimationFrame(frame);
 
   // économie : on arrête quand l'onglet est caché ou le composant hors écran
-  const io = new IntersectionObserver(([e]) => { const vis = e.isIntersecting && !document.hidden; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) running = false; });
+  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) running = false; });
   io.observe(container);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) running = false; else if (!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) running = false; else if (roomVisible&&!workshopOpen&&!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };

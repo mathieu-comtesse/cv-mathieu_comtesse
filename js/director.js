@@ -92,14 +92,14 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     if (cur) { const ex = cur.exit ? cur.exit() : { from: cur.approach, steps: [api.glide(cur.approach[0], cur.approach[1], floorY(cur.approach[0], cur.approach[1]), g.rotation.y, 0.45, 'Idle_Loop')] }; q.push(api.fn(clearActivity), ...ex.steps); from = ex.from; }
     const path = st.route ? null : nav.path(from, st.approach);
     if (path && !path.length) { api.stand(); return false; }
-    q.push(api.fn(() => { ui.say(st); mode = 'walk'; }));
+    q.push(api.fn(() => { ui.say(st); mode = 'thinking'; hero.play('Idle_Loop'); }), api.wait(3));
     q.push(...(st.route ? st.route(from) : [api.walk(path)]));
     q.push(...(st.noFace ? [] : [api.face(st.yaw)]), ...enterSteps(st));
     steps = q; mode = 'walk'; if (!cur) { /* départ immédiat */ }
   };
   function enterSteps(st) {
     return [api.glide(st.pos[0], st.pos[2], st.y || 0, st.yaw, st.ritual ? 0.5 : (st.noFace ? 0.9 : 0.6), st.clip || 'Idle_Loop'),
-      api.fn(() => { cur = st; mode = 'activity'; st.enter && st.enter(); ui.say(st); })];
+      api.fn(() => { cur = st; mode = 'activity'; ui.say(null); st.enter && st.enter(); })];
   }
   /** Pose directement le personnage dans l'activité (glisser-déposer). */
   api.placeInto = (st) => {

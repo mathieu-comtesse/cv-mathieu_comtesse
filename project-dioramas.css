@@ -27,3 +27,10 @@
 
 .process-gallery{position:relative}.workshop-previews{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}.process-card[data-live=true] img{transition:none}.process-card[data-live=true]:hover{transform:translateY(-9px)}
 .pc-img{position:relative;overflow:hidden}.pc-img video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+
+/* Process tools occupy a separate band, never the 3D scene. */
+.process-transform{display:grid;grid-template-columns:50px 44px 50px minmax(0,1fr);gap:18px;align-items:center;max-width:760px;padding:14px 24px;margin:0 auto 20px;border-block:1px solid var(--process-line);color:var(--process-accent);text-align:left}.process-transform span{display:grid;place-items:center;height:42px}.process-transform svg{width:32px;height:32px}.process-transform b{font-size:13px;font-weight:500;color:var(--process-ink)}.transform-input{animation:material-in 4.6s infinite}.transform-machine svg{animation:tool-transformation 1.15s infinite}.transform-output{animation:material-out 4.6s infinite}.process-dialog[data-playing=false] .process-transform *{animation-play-state:paused}.process-stage{width:min(1020px,100%);height:clamp(350px,49vh,490px)}.process-stage canvas{contain:strict}.process-gallery{contain:layout paint}.process-dialog .process-loading{position:absolute;inset:auto 0 12px;text-align:center}
+@keyframes material-in{0%,100%{transform:translateX(-10px);opacity:.3}35%{transform:translateX(15px) scale(.85);opacity:1}60%,85%{transform:translateX(24px) scale(.3);opacity:0}}
+@keyframes material-out{0%,35%{transform:translateX(-24px) scale(.3);opacity:0}65%,90%{transform:none;opacity:1}100%{opacity:.4}}
+@media(max-width:600px){.process-stage{height:300px}.process-transform{padding:12px 16px;gap:8px;grid-template-columns:38px 32px 38px minmax(0,1fr)}.process-transform svg{width:26px;height:26px}.process-transform b{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.process-transform *{animation:none!important}}

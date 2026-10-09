@@ -1,120 +1,138 @@
 {
-  "version": "cv-scene-v24",
+  "version": "cv-scene-v25",
   "authoring": "Blender 5.2",
   "models": [
     {
       "id": "finance",
       "steps": 7,
       "people": 0,
-      "bytes": 652568,
-      "sha256": "a94eaa36ceffdf563fc6e8ded189513f1d11bf95e511073e7900df28071f43cf",
-      "source": "project-variety-finance.blend",
+      "bytes": 1104388,
+      "sha256": "fe8da7f29edd422846d669d0f42f1f42ca1f1284e6d8bdb6e4ebfff7fef4e591",
+      "source": "project-ateliers-v25-finance.blend",
       "genericChain": false,
-      "activityStops": 7
+      "activityStops": 7,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "vmvre",
       "steps": 9,
       "people": 0,
-      "bytes": 701612,
-      "sha256": "a6c63081afdb67de7f4365e0f41f8777c132a9e074a714cbbd2fba52aebf8b12",
-      "source": "project-variety-vmvre.blend",
+      "bytes": 1013452,
+      "sha256": "52341107dbe1fbf6151cc7b686701b51cc1abfad245e8aa275de2ba23f01c627",
+      "source": "project-ateliers-v25-vmvre.blend",
       "genericChain": false,
-      "activityStops": 9
+      "activityStops": 9,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "pa",
       "steps": 7,
       "people": 0,
-      "bytes": 1489928,
-      "sha256": "03b9ffe9ad0ccbeb13fcb81225429e4f158922f06213096e0a0a8542cde68f33",
-      "source": "project-ateliers-v24-pa.blend",
+      "bytes": 2008740,
+      "sha256": "ed231d475761e3e214e0b7da55e29ea42990349ecad3c981a8f1598a58eff778",
+      "source": "project-ateliers-v25-pa.blend",
       "genericChain": false,
       "activityStops": 7,
-      "reference": "Attached industrial workshop videos"
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "cerfa",
       "steps": 7,
       "people": 0,
-      "bytes": 565920,
-      "sha256": "b38c107c5552e8075e55f651f267ea2af261466c13e7fd1607e8183007cc396c",
-      "source": "project-variety-cerfa.blend",
+      "bytes": 915832,
+      "sha256": "35d546b585daa0d196397b1496f946c3f843d3a502ade68df652812d73dade47",
+      "source": "project-ateliers-v25-cerfa.blend",
       "genericChain": false,
-      "activityStops": 7
+      "activityStops": 7,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "vre",
       "steps": 6,
       "people": 0,
-      "bytes": 592628,
-      "sha256": "ce70074a6a75985787657dd2d506517b595daf82b637ca5754341a77788582ac",
-      "source": "project-variety-vre.blend",
+      "bytes": 992532,
+      "sha256": "dc7e01d6bfee66533c1825948669f73704fb5827fdc10b675a2052be8954dee6",
+      "source": "project-ateliers-v25-vre.blend",
       "genericChain": false,
-      "activityStops": 6
+      "activityStops": 6,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "studio",
       "steps": 7,
       "people": 0,
-      "bytes": 707884,
-      "sha256": "f61a447fe1011126ace27f0dcce24b1efb35a5d83993106c51ea871fd783aee8",
-      "source": "project-ateliers-v24-studio.blend",
+      "bytes": 1156584,
+      "sha256": "9915b9d26ce5c336d96c06115d9debd63ac4c2c47bb89c5084da8ae9228d50ff",
+      "source": "project-ateliers-v25-studio.blend",
       "genericChain": false,
       "activityStops": 7,
-      "reference": "Attached industrial workshop videos"
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "powerbi",
       "steps": 7,
       "people": 0,
-      "bytes": 577156,
-      "sha256": "7f6143b8bf6e1686ef7560791b677595621d598af5d70867a300b72f28de2708",
-      "source": "project-variety-powerbi.blend",
+      "bytes": 1248288,
+      "sha256": "7dadeb5627fc8a07ed6b5f5a07828676667eef2c8d232059edee87431b9dd31c",
+      "source": "project-ateliers-v25-powerbi.blend",
       "genericChain": false,
-      "activityStops": 7
+      "activityStops": 7,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "suivi",
       "steps": 6,
       "people": 0,
-      "bytes": 2577408,
-      "sha256": "94c1dc30c17469be1eb77c7d0383d569140bd9e898d8ee185a3003b1621f70d0",
-      "source": "project-ateliers-v24-suivi.blend",
+      "bytes": 3942040,
+      "sha256": "6e2243fab08bfd6041acb6abb80ad9da6f5fbbb04266d184b7fda0098193e408",
+      "source": "project-ateliers-v25-suivi.blend",
       "genericChain": false,
       "activityStops": 6,
-      "reference": "Attached industrial workshop videos"
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "gares",
       "steps": 6,
       "people": 0,
-      "bytes": 763356,
-      "sha256": "b2ad5a1a5e34274430b376291a0a05307284b37fd27a328aba33e60ce220c8ed",
-      "source": "project-variety-gares.blend",
+      "bytes": 1050100,
+      "sha256": "1af9d3238d2f5643650e19903e351337f99443a370404cc55cd44c6b28acbc40",
+      "source": "project-ateliers-v25-gares.blend",
       "genericChain": false,
-      "activityStops": 6
+      "activityStops": 6,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "terrain",
       "steps": 5,
       "people": 0,
-      "bytes": 1071684,
-      "sha256": "dacf482271bf928613e73bb73d02cad24ca310057af7d05a14fc04399fae8c0b",
-      "source": "project-ateliers-v24-terrain.blend",
+      "bytes": 1464576,
+      "sha256": "d069332808cf2a59734dcfbcd2efecb82d845c6fb3b04909522a43b5ce81c573",
+      "source": "project-ateliers-v25-terrain.blend",
       "genericChain": false,
       "activityStops": 5,
-      "reference": "Attached industrial workshop videos"
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     },
     {
       "id": "charte",
       "steps": 5,
       "people": 0,
-      "bytes": 496492,
-      "sha256": "81a1a40878f60348784a91049246c474afc4aceb2d30ec42475edd5d900f5144",
-      "source": "project-variety-charte.blend",
+      "bytes": 838456,
+      "sha256": "df66053ff23e5cbde4e9686e7318fe42928c72d7316fec2cd9084b3de0d1340f",
+      "source": "project-ateliers-v25-charte.blend",
       "genericChain": false,
-      "activityStops": 5
+      "activityStops": 5,
+      "reference": "User supplied industrial videos",
+      "staticBatched": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=bf01a16';
+import { THREE } from './kit.js?v=cv-scene-v25';
 import { createCharacter } from './character.js?v=bf01a16';
 
 /* Portrait 3D de la page Info : le personnage, en buste, dont la tête suit le curseur (comme le portrait de la référence). */

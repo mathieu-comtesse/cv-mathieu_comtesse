@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=native-room-v2';
+import { THREE } from './kit.js?v=cv-scene-v25';
 import { cloneNativeObject } from './native-geometry.js?v=render-recovery-v10';
 
 const SOURCE_TO_TARGET = {
@@ -124,7 +124,7 @@ async function build() {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.tabIndex = -1;
-  iframe.src = './shupi/index.html?embed&profile=mobile&v=cv-scene-v15';
+  iframe.src = './shupi/index.html?embed&profile=mobile&v=cv-scene-v25';
   iframe.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:480px;height:320px;opacity:0;pointer-events:none;border:0;z-index:-1';
   document.body.appendChild(iframe);
 
@@ -319,6 +319,8 @@ async function build() {
     try {
       // L'API sonore exacte de Native expose wake(), pas resume().
       sceneApi.sound?.wake?.();
+      if(next==='greeting'){sceneApi.stopSim?.();sceneApi.greetSource?.();return;}
+      if(next==='think'){sceneApi.stopSim?.();sceneApi.setSimActivity?.('think');return;}
       if (next === 'jump') {
         sceneApi.stopSim?.();
         sourceFeatures.ragdoll?.grab();
@@ -361,6 +363,7 @@ async function build() {
       if (next === 'read') sceneApi.setSimActivity?.('read', targetName || 'DYVLINGE lounge chair');
       else if (next === 'water') sceneApi.setSimActivity?.('water', resolvedTarget || null);
       else if (next === 'work') sceneApi.setSimActivity?.('work', targetName || 'Standing desk');
+      else if(next==='game') sceneApi.setSimActivity?.('game',resolvedTarget);
       else if (next === 'coffee') sceneApi.setSimActivity?.('coffee', resolvedTarget || 'Ceramic coffee mug');
       else if (next === 'sit') sceneApi.setSimActivity?.('read', targetName || 'Setu task chair');
       else if (next === 'think') {
@@ -410,17 +413,19 @@ async function build() {
   // Run the source mixer and procedural frame callbacks on the room clock.
   // An offscreen iframe's own animation frames are otherwise throttled.
   shupi._running = false;
+  const shed=[];sourceScene.traverse(o=>{if(/Shed plant leaf/.test(o.name)){o.visible=false;shed.push(o);}});sourceFeatures.ambient?.setLeafAmount?.(0);
   const update = (dt) => {
     if(mode==='water')waterClock+=dt;
     shupi.mixer?.update(dt);
     shupi._emit('frame', dt);
+    for(const leaf of shed)leaf.visible=false;
     if (mode === 'walk' || mode === 'run') {
       const walk = sourceFeatures.walk;
       walk?.update((walk.authoredSpeed || 8) * (mode === 'run' ? 1.4 : 0.75), 1);
       if (!sceneApi.previewWalking) sceneApi.previewWalk({x: -100, z: shupi.model.position.z < 0 ? 100 : -100}, mode === 'run');
     }
     sourceBook.traverse(o => { if(o.isMesh && /artwork/.test(o.name)) { const cover=/back/.test(o.name)?backCover:frontCover;if(o.material.map!==cover){o.material.map=cover;o.material.needsUpdate=true;} } });
-    sourceScene.traverse(o => { if (/Shed plant leaf/.test(o.name)) o.visible = false; });
+
     sourceScene.updateMatrixWorld(true);
   };
   return {

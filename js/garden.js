@@ -1,4 +1,4 @@
-import { THREE, group, rng, canvasTexture } from './kit.js?v=bf01a16';
+import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v25';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
 
