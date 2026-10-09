@@ -1,3 +1,4 @@
+import { createActionHighlight } from './process-highlight.js?v=cv-scene-v26';
 import * as THREE from 'three';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
 
@@ -34,6 +35,7 @@ export function initProcessMachines(model, steps, accent, activity) {
   const input=at(-2.4,.39,.9),furnace=at(-1.55,.65,-.6),anvil=at(-.4,.905,-.28),delivery=at(1.6,.312,1.1);
   const forgeColor=(root,heat)=>root?.traverse(o=>{if(!o.isMesh)return;o.material.color.set('#a3adb2').lerp(new THREE.Color('#f98337'),heat);o.material.emissive.set('#ec5010');o.material.emissiveIntensity=heat*2.8;});
   const ease=t=>{t=THREE.MathUtils.clamp(t,0,1);return t*t*(3-2*t);};
+  const highlight=createActionHighlight(model,steps,activity,accent);
   let clock=0, oldStep=-1, impact=-10, striking=false;
   return {
     update({step,elapsed,dt,playing,exception}) {
@@ -114,8 +116,9 @@ export function initProcessMachines(model, steps, accent, activity) {
       model.userData.activityClock=clock;
       const hit=step===2&&progress>.24&&progress<.80&&stroke>.94;if(hit&&!striking)impact=clock;striking=hit;
       smoke.forEach((p,i)=>{const t=(clock*.23+i/12)%1;p.position.set(-1.55+Math.sin(i*2.4+t*3)*t*.18,1.76+t*.85,-.83+t*.10);p.scale.setScalar(.35+t*1.4);p.material.opacity=(step===1||step===2)?(1-t)*.28:0;});
+      highlight.update(step,elapsed,playing);
       sparks.forEach((p,i)=>{const t=Math.min(1,(clock-impact)*2.4+i/90),active=step===2&&clock-impact<.42;p.position.set(-.4+Math.sin(i*2.4)*t*.42,.88+Math.sin(t*Math.PI)*.28,-.28+Math.cos(i*2.4)*t*.36);p.material.opacity=active?(1-t)*.95:0;});
     },
-    dispose(){}
+    dispose(){highlight.dispose();}
   };
 }

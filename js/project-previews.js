@@ -1,6 +1,6 @@
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import * as THREE from 'three';
-import { initProcessMachines } from './process-machines.js?v=cv-scene-v25c';
+import { initProcessMachines } from './process-machines.js?v=cv-scene-v26';
 
 // One renderer serves the visible cards; cloned carousel cards never create contexts.
 export function initWorkshopPreviews(host, projects, load, palettes) {
@@ -41,7 +41,7 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
       renderer.setViewport(x,y,w,h);renderer.setScissor(Math.max(0,x),Math.max(0,y),Math.min(w,width-Math.max(0,x)),Math.min(h,height-Math.max(0,y)));
       renderer.shadowMap.needsUpdate=frames%10===0||!i.rendered;i.rendered=true;
       i.camera.aspect=w/h;i.camera.updateProjectionMatrix();renderer.render(i.scene,i.camera);
-      image.style.visibility='hidden';card.dataset.live='true';card.dataset.frames=String(frames);card.dataset.step=String(i.step);
+      image.style.visibility='hidden';card.dataset.live='true';card.dataset.frames=String(frames);card.dataset.step=String(i.step);card.querySelector('.process-card-action').textContent=`${i.step+1}. ${i.project.diag[i.step][0]}`;
     }
     frames++;host.dataset.previewFrames=String(frames);host.dataset.previewActive=String(active.size);
     if(!reduced.matches||pending.size)start();

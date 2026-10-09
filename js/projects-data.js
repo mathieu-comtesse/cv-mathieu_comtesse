@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v18';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v26';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -395,19 +395,34 @@ const DIAG = {
 const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, title, sub, time, timeCtx, money, moneyCtx, img, pro: byId[pro] || null, diag: DIAG[id] || [] });
 
 export const PRO_CARDS = [
-  G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', '4 flux', 'pour filtrer les lignes et détecter les dépassements', 'Seuils Excel', 'paramétrage centralisé dans le classeur financier', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
-  G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '2 min', 'entre deux relevés des demandes par la VM Windows', '17 h', 'récapitulatif des intégrations confirmées, sans doublon', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
+  G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', 'À chiffrer', 'temps de contrôle manuel économisé par les quatre flux CS, Locatif, MEC et PPTM', 'À chiffrer', 'valorisation du temps économisé à 104,74 €/h ; volume et durée de référence à renseigner', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
+  G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000–2 500 h par an pour 4 000–5 000 rapports VRE/VLE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480–261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
-  G('cerfa', 'CERFA v3', 'Fiches et attestations devenues données du parc', '20 h → minutes', 'pour un lot de 300 fiches (≈ 5 min par fiche à la main)', '50 000 €', 'de pénalités de retard identifiées et applicables', 'assets/projets/cerfa.jpg?v=bf01a16', 'projet-1'),
+  G('cerfa', 'CERFA v3', 'Fiches et attestations devenues données du parc', '≈ 20–25 h → minutes', 'dépouillement d’un lot de 300 fiches CERFA et attestations (≈ 5 min par fiche à la main)', '50 000 €', 'de pénalités de retard identifiées et applicables', 'assets/projets/cerfa.jpg?v=bf01a16', 'projet-1'),
   G('vre', 'Extracteur VRE', 'Rapports de vérification électrique', '25 min', 'gagnées par rapport, sur 7 000 à 10 000 rapports par an', '44 €', 'par rapport traité, saisie directe dans le classeur de suivi', 'assets/projets/vre.jpg?v=bf01a16', 'projet-vre'),
   G('studio', 'Studio d’extracteurs PDF', 'Un extracteur sans coder', '5–10 jours → 4 h', 'pour disposer d’un extracteur opérationnel', '3 200–6 900 €', 'évités par famille de documents', 'assets/projets/studio.jpg?v=bf01a16', 'projet-studio'),
   G('powerbi', 'Power BI · PP & MOSO', 'Tableaux de bord et portail', '3–5 min → 10 s', 'pour retrouver un plan, son PDF et son échéance : ≈ 2 h par semaine', '9 400 €', 'par an réaffectés au suivi des échéances (≈ 9 € de saisie évitée par plan)', 'assets/projets/powerbi.jpg?v=bf01a16', 'projet-4'),
   G('suivi', 'Retrouver tout le suivi', 'OT, équipement, bâtiment', '10–15 min', 'gagnées par recherche (≈ 1 h quand elle passe par d’autres outils)', '118–589 k€', 'par an, estimation à confirmer (14 utilisateurs, ≈ 26 € la recherche)', 'assets/projets/suivi.jpg?v=bf01a16', 'projet-2'),
   G('gares', 'Gares prioritaires', 'Vigilance et criticité des gares', '10–15 min', 'gagnées par équipement consulté, probablement davantage', '7 900–11 800 €', 'par an (≈ 1 000 équipements, 2 consultations par jour)', 'assets/projets/gares.jpg?v=bf01a16', 'projet-gares'),
-  G('terrain', 'Dialogue terrain', 'Processus EPM / EPTx', '16', 'arbitrages obtenus en réunion d’agence', 'EPM light', 'processus simplifié proposé à l’arbitrage', 'assets/projets/terrain.jpg?v=bf01a16', 'projet-5'),
-  G('charte', 'Interface commune', 'Une UI/UX pour tous les outils', '1 charte', 'commune à tous les outils construits', '0 donnée', 'envoyée hors du poste : traitement 100 % local', 'assets/projets/charte.jpg?v=bf01a16', 'projet-charte'),
+  G('terrain', 'Dialogue terrain', 'Processus EPM / EPTx', null, '', null, '', 'assets/projets/terrain.jpg?v=bf01a16', 'projet-5'),
+  G('charte', 'Interface commune', 'Une UI/UX pour tous les outils', null, '', null, '', 'assets/projets/charte.jpg?v=bf01a16', 'projet-charte'),
 ];
 
+
+// Base de valorisation : coût horaire du CV, pas un encaissement financier.
+export const HOURLY_RATE = 104.74;
+const bases = {
+ vmvre: '0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu.',
+ pa: '40 min/jour × environ 225 jours/an × 104,74 €/h ≈ 15 700 €/an. Temps de contrôle et saisie des plans de prévention.',
+ cerfa: '50 €/document en retard : environ 1 000 documents identifiés. Pénalités applicables, pas des économies de personnel ni des sommes encaissées.',
+ vre: '25/60 h × 104,74 €/h = 43,64 €/rapport ; environ 305 492–436 417 €/an pour 7 000–10 000 rapports.',
+ studio: 'Environ 31–66 h de développement évitées par famille de PDF (journées de 7 h, contre 4 h avec le studio) × 104,74 €/h.',
+ powerbi: 'Environ 2 h/semaine × 45 semaines × 104,74 €/h ≈ 9 400 €/an. Recherche des plans, PDF et échéances.',
+ suivi: 'Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.',
+ gares: 'Environ 450 consultations/an × 10–15 min × 104,74 €/h ≈ 7 900–11 800 €/an. Parc concerné : environ 1 000 équipements.',
+ finance: 'Durée et fréquence des contrôles manuels à renseigner pour calculer le gain à 104,74 €/h.'
+};
+for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=p.id==='finance'?'pending':p.id==='suivi'?'estimated':p.id==='cerfa'?'penalties':p.time===null?'none':'time-value'; }
 
 // « Construit avec » : langages, outils et méthodes réellement utilisés (relevés dans le code de chaque jeu). Talas : équipe et coproduction en plus.
 const T = (lang, outils, methode, dernier) => [['Langages', lang], ['Outils', outils], ['Méthode', methode], dernier];

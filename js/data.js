@@ -201,7 +201,7 @@ PRO.unshift(...[
     "title": "VRE / VLE · traitement par VM",
     "sub": "SharePoint, demandes, Excel et récapitulatif",
     "lead": "Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.",
-    "gain": "Un historique conserve les résultats et évite les doublons. Le récapitulatif de 17 h ne reprend que les intégrations confirmées encore non notifiées.",
+    "gain": "30 minutes de traitement économisées par rapport VRE/VLE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons ; le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.",
     "team": "Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint."
   }
 ]);

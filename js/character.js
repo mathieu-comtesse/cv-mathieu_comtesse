@@ -1,4 +1,4 @@
-import { THREE, mat, loadBuffer } from './kit.js?v=cv-scene-v25c';
+import { THREE, mat, loadBuffer } from './kit.js?v=cv-scene-v26';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 
 // Character imported from 84b390d3dd44755f.fbx and converted to a compact skinned GLB.
@@ -543,7 +543,8 @@ export async function createCharacter({
   // The Blender seat study uses horizontal thighs, vertical calves and level
   // source soles. Solve from the actual child-bone axis, never an assumed axis.
   let soleHeights=null;
-  const poseSeatedL = (groundY=0.01) => {
+  const poseSeatedL = (groundY=0.01,kind='console') => {
+    if(referenceAppearance&&kind==='bureau'){const p=NATIVE_POSES.bureau.pelvis;bones.pelvis.position.fromArray(p.p);bones.pelvis.quaternion.fromArray(p.q);group.updateMatrixWorld(true);}
     group.updateMatrixWorld(true);
     const forward=new THREE.Vector3(0,0,1).applyQuaternion(group.getWorldQuaternion(new THREE.Quaternion()));forward.y=0;forward.normalize();
     const aimSegment=(bone,child,target)=>{

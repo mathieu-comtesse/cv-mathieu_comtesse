@@ -1,17 +1,17 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v25c';
-import * as F from './furniture.js?v=cv-scene-v25c';
-import { createCharacter } from './character.js?v=cv-scene-v25c';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v26';
+import * as F from './furniture.js?v=cv-scene-v26';
+import { createCharacter } from './character.js?v=cv-scene-v26';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=cv-scene-v25c';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v25c';
-import { createRitual } from './ritual.js?v=cv-scene-v25c';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v25c';
-import { createRetroSet } from './retro.js?v=cv-scene-v25c';
-import { createNav } from './nav.js?v=cv-scene-v25c';
-import { createDirector } from './director.js?v=cv-scene-v25c';
-import { createThought } from './thought.js?v=cv-scene-v25c';
-import { createWeather } from './weather.js?v=cv-scene-v25c';
-import { createJukebox } from './jukebox.js?v=cv-scene-v25c';
+import { loadBuffer } from './kit.js?v=cv-scene-v26';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v26';
+import { createRitual } from './ritual.js?v=cv-scene-v26';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v26';
+import { createRetroSet } from './retro.js?v=cv-scene-v26';
+import { createNav } from './nav.js?v=cv-scene-v26';
+import { createDirector } from './director.js?v=cv-scene-v26';
+import { createThought } from './thought.js?v=cv-scene-v26';
+import { createWeather } from './weather.js?v=cv-scene-v26';
+import { createJukebox } from './jukebox.js?v=cv-scene-v26';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
@@ -55,6 +55,8 @@ export async function createRoom(container, bubbleEl) {
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
   const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish-v25.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+
+  const seatCalibration=await fetch('assets/seat-calibration-v26.json').then(r=>{if(!r.ok)throw Error('Seat calibration missing');return r.json();});
 
   // MODE STABLE : la scène locale démarre sans attendre Native.
   // Le pont exact est chargé plus tard en import dynamique : aucune panne du runtime
@@ -150,7 +152,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v25c')
+    import('./native-room.js?v=cv-scene-v26')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -302,9 +304,14 @@ export async function createRoom(container, bubbleEl) {
   const DEF = { az: 36 * DEG, el: 26 * DEG, zoom: 1 };
   let fit = 1, W = 1, H = 1, halfW = 1, panU = 0, panV = 0, panUser = 0, followTea = false;
 
+  let cameraMode='follow',fitReady=false;
+  const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
+  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mode==='follow'?'pan-y pinch-zoom':'none';};
+  cameraButton.onclick=e=>{e.stopPropagation();setCameraMode(cameraMode==='follow'?'free':'follow');};setCameraMode('follow');
+  const panCamera=(dx,dy)=>{setCameraMode('free');const scale=2*fit/view.zoom/H;const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);tgt.addScaledVector(right,-dx*scale).addScaledVector(up,dy*scale);};
   let scrollOff = 0, scrollT = 0;                                  // la caméra baisse quand l'en-tête défile (comme la scène de référence)
   function orient() {
-    const r = 40, ev = view.el - scrollOff * 12 * DEG;
+    const r = 40, ev = view.el - (cameraMode==='follow'?scrollOff * 12 * DEG:0);
     camera.position.set(
       target.x + Math.sin(view.az) * Math.cos(ev) * r,
       target.y + Math.sin(ev) * r,
@@ -317,14 +324,14 @@ export async function createRoom(container, bubbleEl) {
   const TEAGROUP = new Set(['chashitsu', 'cha', 'shoes']);
   let csX = 0, csHalf = 1, tableX0 = 0, tableX1 = 0, roomCx = 0, roomCy = 0;
   function computeFit() {
-    const save = { az: view.az, el: view.el };
+    const save = { az:view.az,el:view.el,target:target.clone(),tgt:tgt.clone(),positions:items.map(i=>i.obj.position.clone()) };
     const gp = cs.garden.parent; gp.remove(cs.garden);                  // le jardin n'a pas de bord : il ne compte pas dans le cadrage
     view.az = DEF.az; view.el = DEF.el; orient();
     items.forEach((i) => { i.obj.position.copy(i.base); });
     world.updateMatrixWorld(true);
     const room = new THREE.Box3(), bb = new THREE.Box3();
     for (const it of items) if (!TEAGROUP.has(it.id)) room.union(bb.setFromObject(it.holder));
-    room.getCenter(target); tgt.copy(target); home.copy(target);
+    room.getCenter(target); home.copy(target);if(!fitReady)tgt.copy(target);
     orient();
     const inv = camera.matrixWorldInverse, v = new THREE.Vector3();
     const ext = (filter) => {
@@ -345,6 +352,7 @@ export async function createRoom(container, bubbleEl) {
     halfW = mx; tableX0 = rx0 - roomCx; tableX1 = rx1 - roomCx;
     csX = (tx0 + tx1) / 2 - roomCx; csHalf = (tx1 - tx0) / 2;
     view.az = save.az; view.el = save.el;
+    if(fitReady){target.copy(save.target);tgt.copy(save.tgt);}fitReady=true;items.forEach((i,n)=>i.obj.position.copy(save.positions[n]));
   }
   let resScale = .85;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
   function resize() {
@@ -359,15 +367,7 @@ export async function createRoom(container, bubbleEl) {
   }
   function applyFrustum() {
     const aspect = W / H, h = fit / view.zoom, wv = h * aspect;
-    // panoramique : la scène dépasse de l'écran sur téléphone (un doigt fait glisser) ; la caméra glisse seule vers la pièce du thé quand le personnage y est
-    const lo = Math.min(0, csX - csHalf + wv * 0.35), hi = Math.max(0, tableX1 - wv * 0.35);
-    panUser = Math.min(hi, Math.max(lo, panUser));
-    const want = (view.zoom > 1.15 || view.tZoom > 1.15) ? 0 : followTea ? Math.min(0, csX) : panUser;
-    panU += (want - panU) * 0.06;
-    panV += ((followTea && view.zoom <= 1.15 ? -0.4 * h : 0) - panV) * 0.06;        // vers le jardin, la caméra descend aussi
-    const cyShift = view.zoom > 1.15 ? 0 : roomCy, cxShift = view.zoom > 1.15 ? 0 : roomCx;
-    const off = cyShift + h * 0.03 * Math.min(1, view.zoom);              // la pièce est centrée dans la section, très légèrement plus bas
-    camera.left = -wv + panU + cxShift; camera.right = wv + panU + cxShift; camera.top = h + off + panV; camera.bottom = -h + off + panV;
+    camera.left=-wv;camera.right=wv;camera.top=h;camera.bottom=-h;
     camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(container);
@@ -392,7 +392,7 @@ export async function createRoom(container, bubbleEl) {
   let drag = null, pinch = 0, hovered = null, hdrag = null, lastHover = 0;
   let autonomousPauseUntil = 0;
   const pauseAutonomy = (ms = 18000) => { autonomousPauseUntil = performance.now() + ms; };
-  const el = renderer.domElement;
+  const el = renderer.domElement;el.tabIndex=0;el.setAttribute('aria-label','Décor : glisser pour tourner, Maj + glisser pour déplacer, molette pour zoomer');el.addEventListener('contextmenu',e=>e.preventDefault());
   // Portrait Shupi : suivi du pointeur normalisé (-1..1), comme /info/?portrait.
   const updatePortraitLook = (e) => {
     if (e.pointerType === 'touch' || !hero.group.visible || !hero.lookAtPointer) return;
@@ -421,8 +421,8 @@ export async function createRoom(container, bubbleEl) {
     el.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
-      if (!appOpen && heroNear(e.clientX, e.clientY)) hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false };
-      else drag = { x: e.clientX, y: e.clientY, moved: 0, t: performance.now() };
+      if (!appOpen && e.button===0 && !e.shiftKey && heroNear(e.clientX, e.clientY)) hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false };
+      else {setCameraMode('free');el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:e.button!==0||e.shiftKey||e.pointerType==='touch'};}
     }
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
   });
@@ -434,7 +434,7 @@ export async function createRoom(container, bubbleEl) {
       p.x = e.clientX; p.y = e.clientY;
       if (pointers.size === 2) {
         const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (pinch) view.tZoom = Math.min(2.6, Math.max(0.4, view.tZoom * (d / pinch)));
+        if(pinch){setCameraMode('free');view.tZoom=Math.max(.0001,view.tZoom*(d/pinch));panCamera(dx/2,dy/2);}
         pinch = d;
       } else if (hdrag) {
         hdrag.moved += Math.abs(dx) + Math.abs(dy);
@@ -442,12 +442,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if (drag.moved > 6 && W / H < 1.1) { panUser -= dx * (2 * (fit / view.zoom) * (W / H)) / W; }          // téléphone : un doigt fait défiler la scène
-        else if (drag.moved > 6) {
-          view.tAz -= dx * 0.006;
-          view.tEl = Math.min(58 * DEG, Math.max(14 * DEG, view.tEl + dy * 0.004));
-          el.style.cursor = 'grabbing';
-        }
+        if(drag.moved>6){if(drag.pan)panCamera(dx,dy);else{view.tAz-=dx*.006;view.tEl+=dy*.004;}el.style.cursor='grabbing';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -479,13 +474,14 @@ export async function createRoom(container, bubbleEl) {
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
-  el.addEventListener('wheel', (e) => {
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) { e.preventDefault(); panUser += e.deltaX * 0.01 * (fit / view.zoom); return; }   // geste horizontal du pavé tactile : panoramique
-    if (!e.ctrlKey && !e.metaKey && !e.shiftKey) return;     // la molette normale fait défiler la page
-    e.preventDefault();
-    view.tZoom = Math.min(2.6, Math.max(0.4, view.tZoom * Math.exp(-e.deltaY * 0.0015)));
-  }, { passive: false });
-  el.addEventListener('dblclick', () => { view.tAz = DEF.az; view.tEl = DEF.el; view.tZoom = 1; });
+  el.addEventListener('wheel',e=>{
+    if(cameraMode==='follow'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey)return;
+    e.preventDefault();setCameraMode('free');
+    if(Math.abs(e.deltaX)>Math.abs(e.deltaY)*1.5)panCamera(-e.deltaX,0);
+    else view.tZoom=Math.max(.0001,view.tZoom*Math.exp(-e.deltaY*(e.deltaMode===1?.02:.0015)));
+  },{passive:false});
+  el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;setCameraMode('follow');});
+  el.addEventListener('keydown',e=>{if(e.key==='Escape'){setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();panCamera(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();setCameraMode('free');view.tZoom*=e.key==='-'?.8:1.25;}});
   el.style.cursor = 'grab';
 
   /* ─── navigation ─── */
@@ -731,7 +727,7 @@ export async function createRoom(container, bubbleEl) {
     if (v === crate.isOpen) return;
     crate.setOpen(v); crateHover = -1;
     if (appOpen) return;
-    if (v) { tgt.copy(crateFocus); view.tZoom = 6; } else { tgt.copy(home); view.tZoom = 1; }
+    if(v){setCameraMode('free');tgt.copy(crateFocus);view.tZoom=6;}
   }
   function playTrack(i) {
     jukebox.play(i);                                           // le tiroir reste ouvert pendant la diffusion ; seul un clic sur le tiroir, le bouton ou Échap le referme
@@ -751,12 +747,12 @@ export async function createRoom(container, bubbleEl) {
   let appOpen = false;
   function openApp(kind, pos, zoom) {
     if (appOpen) return; appOpen = true;
-    tgt.copy(pos); view.tZoom = zoom;
+    setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;
     thoughtEl.classList.remove('show');
     setTimeout(() => window.dispatchEvent(new CustomEvent('room-open', { detail: { kind } })), 750);
   }
   window.addEventListener('room-close', (e) => {
-    appOpen = false; tgt.copy(home); view.tZoom = 1;
+    appOpen = false;
     if (e.detail && e.detail.kind === 'retro') retro.powerOff();
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
@@ -867,6 +863,7 @@ export async function createRoom(container, bubbleEl) {
     }
     // vue
     const kv = 1 - Math.exp(-dt * 10);
+    if(cameraMode==='follow'&&hero.group.visible&&!appOpen&&!crate.isOpen)tgt.set(hero.group.position.x,hero.wp('spine_02').y*.55,hero.group.position.z);
     target.lerp(tgt, kv);
     view.az += (view.tAz - view.az) * kv; view.el += (view.tEl - view.el) * kv; view.zoom += (view.tZoom - view.zoom) * kv;
     scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
@@ -906,7 +903,7 @@ export async function createRoom(container, bubbleEl) {
           }
           nativeBridge.update(dt);
           // Les jambes des sièges locaux suivent leur propre assise, plus haute que celle de référence.
-          if (exactMotion !== 'idle') nativeBridge.applyPose(hero, 1, director.current?.seatId ? { upperOnly: true } : {});
+          if (exactMotion !== 'idle') nativeBridge.applyPose(hero, 1, director.current?.seatId && director.current!==stations.ekstrem ? { upperOnly:true } : {});
         } catch (error) { restoreLocalDesk(error); }
       }
       if(hero.referenceAppearance && exactMotion==='idle' && ['idle','turn'].includes(director.mode))hero.poseStanding();
@@ -934,8 +931,11 @@ export async function createRoom(container, bubbleEl) {
               Math.cos(hero.group.rotation.y || 0)
             );
             const back = cur.seatBack || 0;
-            const targetX = cur.pos[0] - seatForward.x * back;
-            const targetZ = cur.pos[2] - seatForward.z * back;
+            const calibration=seatCalibration[cur===stations.desk?'desk':cur===stations.ekstrem?'ekstrem':'sofa'];
+            const anchor=cur===stations.desk?new THREE.Vector3(-2.15,0,.3):new THREE.Vector3(2.3,0,-.95);
+            const fitted=calibration?new THREE.Vector3().fromArray(calibration.pelvisLocal).applyAxisAngle(new THREE.Vector3(0,1,0),hero.group.rotation.y).add(anchor):null;
+            const targetX = fitted?fitted.x:cur.pos[0]-seatForward.x*back;
+            const targetZ = fitted?fitted.z:cur.pos[2]-seatForward.z*back;
             const kp = 1 - Math.exp(-dt * 16);
             hero.group.updateMatrixWorld(true);
             const currentPelvis = hero.wp('pelvis');
@@ -944,10 +944,11 @@ export async function createRoom(container, bubbleEl) {
 
             hero.group.updateMatrixWorld(true);
             // Place the legs before measuring the deformed trouser seat.
-            hero.poseSeatedL?.(floorY(hero.group.position.x, hero.group.position.z) + 0.01);
+            if(cur!==stations.ekstrem)hero.poseSeatedL?.(floorY(hero.group.position.x, hero.group.position.z) + 0.01,cur===stations.desk?'bureau':'console');
             hero.group.updateMatrixWorld(true);
-            const sy = seatSurfaceY(cur);
+            const sy = calibration?calibration.supportHeight:seatSurfaceY(cur);
             if (sy != null) {
+              cur.seatContact={yaw:hero.group.rotation.y,y:sy};
               const dy = sy + 0.008 - hero.hipContactY();
               // Never blend through the cushion when a new pose changes the
               // trouser volume. Lift immediately, then settle down smoothly.
@@ -1040,5 +1041,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
+  return { setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
 }

@@ -1,4 +1,4 @@
-import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng, inkify } from './kit.js?v=cv-scene-v25c';
+import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng, inkify } from './kit.js?v=cv-scene-v26';
 
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */
@@ -112,7 +112,27 @@ export function createRetroSet() {
   // cordon de la multiprise : part du bout droit
   const cordStart = new THREE.Vector3(SX + SL / 2, 0.02 + FLOOR, SZ);
   // câble manette : de la prise de façade jusqu'à la manette, avec du mou
-  cable([[0.475, 0.03, 0.12], [0.46, FLOOR, 0.25], [0.52, FLOOR, 0.45], [0.38, FLOOR, 0.6], [0.28, FLOOR, 0.62], [0.2, FLOOR, 0.72], [0.27, 0.014, 0.74], [0.3, 0.02, 0.76]], '#8c8c88', 0.0045);
+  const padSocket = new THREE.Vector3(0,.015,-.041);
+  const cordPoints=Array.from({length:6},()=>new THREE.Vector3());
+  const cordCurve=new THREE.CatmullRomCurve3(cordPoints);cordCurve.arcLengthDivisions=72;
+  cordPoints.forEach((p,i)=>p.set(.475, FLOOR+.015*i,.12+i*.1));
+  const padCord=new THREE.Mesh(new THREE.TubeGeometry(cordCurve,36,.00765,6,false),new THREE.MeshStandardMaterial({color:'#8c8c88',roughness:.6}));
+  padCord.name='PS1ControllerCable';padCord.userData.dynamic=true;padCord.userData.noInk=true;padCord.castShadow=true;g.add(padCord);
+  const lastCordEnd=new THREE.Vector3(Infinity,0,0),cordEnd=new THREE.Vector3(),cordDirection=new THREE.Vector3(),cordCenter=new THREE.Vector3();
+  function updateControllerCord(){
+    g.updateMatrixWorld(true);cordEnd.copy(padSocket);pad.localToWorld(cordEnd);g.worldToLocal(cordEnd);
+    if(cordEnd.distanceToSquared(lastCordEnd)<1e-10)return;lastCordEnd.copy(cordEnd);
+    cordDirection.set(0,0,-1).applyQuaternion(pad.quaternion);
+    cordPoints[0].set(.475,.03,.125);cordPoints[1].set(.46,FLOOR,.30);
+    cordPoints[2].set(.60,FLOOR,.55);cordPoints[3].set(cordEnd.x+cordDirection.x*.15,FLOOR,cordEnd.z+cordDirection.z*.15);
+    cordPoints[4].copy(cordEnd).addScaledVector(cordDirection,.09);cordPoints[4].y=Math.max(FLOOR,cordEnd.y-.07);
+    cordPoints[5].copy(cordEnd);
+    cordCurve.updateArcLengths();
+    const frames=cordCurve.computeFrenetFrames(36,false),a=padCord.geometry.attributes.position,n=padCord.geometry.attributes.normal;
+    for(let i=0;i<=36;i++){cordCurve.getPointAt(i/36,cordCenter);for(let j=0;j<=6;j++){const theta=j/6*Math.PI*2,normal=frames.normals[i].clone().multiplyScalar(Math.cos(theta)).addScaledVector(frames.binormals[i],Math.sin(theta)),v=cordCenter.clone().addScaledVector(normal,.00765),k=i*7+j;a.setXYZ(k,v.x,v.y,v.z);n.setXYZ(k,normal.x,normal.y,normal.z);}}
+    a.needsUpdate=true;n.needsUpdate=true;padCord.geometry.computeBoundingSphere();padCord.userData.endpoint=cordEnd.toArray();
+  }
+  updateControllerCord();
   plug(0.475, 0.03, 0.125, '#8c8c88');
 
   inkify(g, { skip: (o) => o.userData.noInk || (o.material && o.material.isMeshBasicMaterial) || (o.geometry && o.geometry.type === 'TubeGeometry') });
@@ -157,7 +177,7 @@ export function createRetroSet() {
   }
   const litMat = rocker.material; litMat.userData.unique = true;
   const api = {
-    pad, console: ps,
+    pad, padCord, padSocket, console: ps,
     get padHeld() { return padHeld; },
     setPadHeld(v) { padHeld = !!v; },
     updatePad(dt, handL, handR) {
@@ -190,6 +210,7 @@ export function createRetroSet() {
         pad.quaternion.slerp(padHome.quaternion, k);
         pad.scale.lerp(padHome.scale, k);
       }
+      updateControllerCord();
     },
     strip, cordStart, get stripOn() { return st.strip; },
     setStrip(v) { st.strip = v; litMat.emissiveIntensity = v ? 1.6 : 0; litMat.color.set(v ? '#ff5a2a' : '#6b2a18'); if (!v) this.powerOff(); },

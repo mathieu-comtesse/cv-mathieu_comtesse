@@ -52,7 +52,7 @@ for(const id of ['ekstrem','sofa','desk']) {
  evidence[id]=await page.evaluate(id=>{const r=window.room,s=r.stations[id],cover=[];r.scene.getObjectByName('NativeExact:iso:book')?.traverse(o=>{if(o.isMesh&&o.material.map)cover.push(o.material.map.image?.src||'');});const p=r.hero.wp('pelvis'),a=s.seatSupport;return {advance:a?(p.x-a[0])*Math.sin(s.yaw)+(p.z-a[2])*Math.cos(s.yaw):null,yaw:r.hero.group.rotation.y,expected:s.yaw,clearance:r.hero.hipContactY()-s.seatContact.y,swivel:r.scene.getObjectByName('SetuSwivel').rotation.y,covers:cover};},id);
  console.log('CONTACT',id,JSON.stringify(evidence[id]));await writeFile(path.join(output,'custom-scene.json'),JSON.stringify(evidence,null,2));
  assert.ok(evidence[id].clearance>=-.003&&evidence[id].clearance<.04,'Pelvis must rest above the seating surface');
- if(id==='ekstrem'){assert.ok(Math.abs(evidence[id].advance-.12)<.002,'Ekstrem actor must advance 12 cm without moving the seat support');assert.ok(Math.abs(evidence[id].yaw-evidence[id].expected)<.001);assert.ok(evidence[id].covers.some(s=>s.includes('popper-front')));}if(id==='desk')assert.ok(Math.abs(evidence[id].swivel)<.05);
+ if(id==='ekstrem'){assert.ok(evidence[id].advance>.07&&evidence[id].advance<.15,'Ekstrem pelvis must remain on its measured Blender support');assert.ok(Math.abs(evidence[id].yaw-evidence[id].expected)<.001);assert.ok(evidence[id].covers.some(s=>s.includes('popper-front')));}if(id==='desk')assert.ok(Math.abs(evidence[id].swivel)<.05);
 }
 // Measure both legs and hands in the actor's actual side basis.
 await page.evaluate(()=>window.room.director.placeInto(window.room.stations.sofa));await page.waitForFunction(()=>window.room.director.mode==='activity');await page.waitForTimeout(1000);

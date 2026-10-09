@@ -1,0 +1,37 @@
+{
+  "desk": {
+    "contactWorld": [
+      -2.1584036350250244,
+      0.4724680781364441,
+      0.3014875650405884
+    ],
+    "pelvisLocal": [
+      0.00021504063624888659,
+      0,
+      0.008531474231858738
+    ],
+    "supportHeight": 0.4724680781364441,
+    "clearance": 0.008,
+    "method": "area-weighted upward-facing central support triangles in Blender",
+    "supportArea": 0.20456073222101168,
+    "legPose": "seated-pelvis-and-L-legs"
+  },
+  "ekstrem": {
+    "contactWorld": [
+      2.263271182829806,
+      0.5378566980361938,
+      -0.8739655687632372
+    ],
+    "pelvisLocal": [
+      0,
+      0,
+      0.08444075286388397
+    ],
+    "supportHeight": 0.5378566980361938,
+    "clearance": 0.008,
+    "method": "area-weighted upward-facing central support triangles in Blender",
+    "supportArea": 0.042455451999558136,
+    "legPose": "original-reading",
+    "symmetry": "Pelvis centered on the symmetric chair axis"
+  }
+}

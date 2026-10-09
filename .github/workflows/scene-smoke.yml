@@ -32,6 +32,8 @@ jobs:
           node --check js/personal-previews.js
           node --check js/process-symbols.js
           node --check js/process-machines.js
+          node --check js/process-highlight.js
+          node --check js/marquee.js
           node --check js/projects-data.js
           node --check js/home.js
           node --check js/main.js
@@ -49,12 +51,12 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v25c" index.html
-          grep -q "character.js?v=cv-scene-v25c" js/room.js
-          grep -q "retro.js?v=cv-scene-v25c" js/room.js
-          grep -q "room.js?v=cv-scene-v25c" js/main.js
+          grep -q "js/main.js?v=cv-scene-v26" index.html
+          grep -q "character.js?v=cv-scene-v26" js/room.js
+          grep -q "retro.js?v=cv-scene-v26" js/room.js
+          grep -q "room.js?v=cv-scene-v26" js/main.js
           test -s assets/reference-character.glb
-          test -s assets/seat-calibration-v24.json
+          test -s assets/seat-calibration-v26.json
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
   runtime:

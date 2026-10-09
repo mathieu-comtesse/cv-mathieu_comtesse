@@ -34,3 +34,14 @@
 @keyframes material-out{0%,35%{transform:translateX(-24px) scale(.3);opacity:0}65%,90%{transform:none;opacity:1}100%{opacity:.4}}
 @media(max-width:600px){.process-stage{height:300px}.process-transform{padding:12px 16px;gap:8px;grid-template-columns:38px 32px 38px minmax(0,1fr)}.process-transform svg{width:26px;height:26px}.process-transform b{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.process-transform *{animation:none!important}}
+
+/* Larger workshops and contextual gains, with the active action outside the scene. */
+.process-card{width:clamp(360px,32vw,460px)}
+.process-content{max-width:1500px}.process-stage{width:min(1280px,100%);height:clamp(460px,68vh,720px)}
+.process-card-gains{align-items:stretch;gap:10px}.process-card-gains>span{flex:1;min-width:0;text-align:left;background:color-mix(in srgb,var(--ink) 3%,transparent);border-radius:10px;padding:12px}
+.process-card-gains em{display:block;font:normal 10px/1.4 Arial,sans-serif;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}.process-card-gains strong{display:block;line-height:1.25;font-size:19px}.process-card-gains i{display:block;font:normal 11px/1.5 Arial,sans-serif;margin-top:7px}
+.process-card-action{font-size:12px!important;color:var(--ink)!important;padding:9px 12px;border-radius:20px;background:color-mix(in srgb,var(--ink) 5%,transparent);width:fit-content;margin:12px auto!important;position:relative;z-index:2}
+.process-card-action:empty{display:none}.process-outcome{flex-wrap:wrap}.process-gain-basis{flex:0 0 100%;text-align:left;font-size:11px;color:var(--process-muted);line-height:1.6;margin:0}
+@media(max-width:600px){.process-card{width:min(88vw,420px)}.process-stage{height:clamp(330px,55vh,520px)}.process-card-gains strong{font-size:17px}.process-gain-basis{flex:auto}.process-toolbar{position:sticky}}
+
+.room-camera{position:absolute;top:76px;left:16px;z-index:5;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:12px Arial,sans-serif;border-radius:24px;padding:9px 13px;cursor:pointer}.room-camera:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
