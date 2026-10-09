@@ -1,5 +1,5 @@
 {
-  "version": "cv-scene-v22",
+  "version": "cv-scene-v24",
   "authoring": "Blender 5.2",
   "models": [
     {
@@ -26,11 +26,12 @@
       "id": "pa",
       "steps": 7,
       "people": 0,
-      "bytes": 596040,
-      "sha256": "6306d6f9907efa1333694dab158b93c9625c0001b7f4cc1f354365c0c891162e",
-      "source": "project-variety-pa.blend",
+      "bytes": 1489928,
+      "sha256": "03b9ffe9ad0ccbeb13fcb81225429e4f158922f06213096e0a0a8542cde68f33",
+      "source": "project-ateliers-v24-pa.blend",
       "genericChain": false,
-      "activityStops": 7
+      "activityStops": 7,
+      "reference": "Attached industrial workshop videos"
     },
     {
       "id": "cerfa",
@@ -56,11 +57,12 @@
       "id": "studio",
       "steps": 7,
       "people": 0,
-      "bytes": 545848,
-      "sha256": "84f034f0e9197cce38ea42f2f9332793b4d39d132666d41f51e68ad53f44ca1d",
-      "source": "project-variety-studio.blend",
+      "bytes": 707884,
+      "sha256": "f61a447fe1011126ace27f0dcce24b1efb35a5d83993106c51ea871fd783aee8",
+      "source": "project-ateliers-v24-studio.blend",
       "genericChain": false,
-      "activityStops": 7
+      "activityStops": 7,
+      "reference": "Attached industrial workshop videos"
     },
     {
       "id": "powerbi",
@@ -76,11 +78,12 @@
       "id": "suivi",
       "steps": 6,
       "people": 0,
-      "bytes": 850472,
-      "sha256": "ccba7692c353d14c6a7f15659b6e14df64d3ddcfd5abeee3f15a9319a7e1f0f7",
-      "source": "project-variety-suivi.blend",
+      "bytes": 2577408,
+      "sha256": "94c1dc30c17469be1eb77c7d0383d569140bd9e898d8ee185a3003b1621f70d0",
+      "source": "project-ateliers-v24-suivi.blend",
       "genericChain": false,
-      "activityStops": 6
+      "activityStops": 6,
+      "reference": "Attached industrial workshop videos"
     },
     {
       "id": "gares",
@@ -96,11 +99,12 @@
       "id": "terrain",
       "steps": 5,
       "people": 0,
-      "bytes": 520808,
-      "sha256": "44985e0a80833160385e89b6e865917743c4baccf3b96ca2956dddf838109b7f",
-      "source": "project-variety-terrain.blend",
+      "bytes": 1071684,
+      "sha256": "dacf482271bf928613e73bb73d02cad24ca310057af7d05a14fc04399fae8c0b",
+      "source": "project-ateliers-v24-terrain.blend",
       "genericChain": false,
-      "activityStops": 5
+      "activityStops": 5,
+      "reference": "Attached industrial workshop videos"
     },
     {
       "id": "charte",

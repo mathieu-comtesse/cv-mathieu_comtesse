@@ -1,4 +1,5 @@
-import { initProcessMachines } from './process-machines.js?v=cv-scene-v22';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v24';
+import { initProcessMachines } from './process-machines.js?v=cv-scene-v24';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
 import { createMarquee } from './marquee.js?v=bf01a16';
 import * as THREE from 'three';
@@ -15,13 +16,14 @@ function orbit(camera,canvas){
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const palettes={pa:'#328b81',finance:'#cd9355',vmvre:'#587cb3',cerfa:'#df725b',vre:'#668dab',studio:'#bc819e',powerbi:'#c5a647',suivi:'#628d85',gares:'#88a85a',terrain:'#c4835c',charte:'#847eae'};
 const cache=new Map();
-const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v22`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
+const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v24`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
 
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
-  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v22" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span><small class="process-card-gains"><span><strong>${esc(p.time)}</strong></span><span><strong>${esc(p.money)}</strong></span></small></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
+  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v24" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span><small class="process-card-gains"><span><strong>${esc(p.time)}</strong></span><span><strong>${esc(p.money)}</strong></span></small></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
   createMarquee(host, { loopEnd: -1 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
+  initWorkshopPreviews(host,projects,load,palettes);
   const modal=document.createElement('dialog');modal.className='process-dialog';modal.setAttribute('aria-labelledby','process-title');
   modal.innerHTML=`<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Atelier des processus</span><button type="button" class="process-theme" aria-label="Changer le thème de l’atelier">Clair / sombre</button></div><div class="process-content"><div class="process-stage" aria-label="Diorama interactif : faites glisser pour tourner"><img class="process-poster" alt=""/><canvas></canvas><div class="process-labels"></div><p class="process-loading" role="status">Chargement de l’atelier…</p></div><div class="process-copy"><p class="process-operation" aria-live="polite"></p><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="process-sub"></p><div class="process-outcome"></div><div class="process-controls"><button class="process-play" type="button" aria-pressed="false">Mettre en pause</button><button class="process-next" type="button">Étape suivante</button><button class="process-test" type="button" hidden></button></div><div class="process-steps" role="group" aria-label="Étapes du processus"></div><div class="process-explanation" aria-live="polite"><b></b><p></p></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><p class="process-foot">Démonstration avec des données fictives · glissez le modèle pour le tourner</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div>`;
   document.body.append(modal);
@@ -52,17 +54,13 @@ export function initProjectDioramas(host,projects){
       for(let i=0;i<3;i++){const packet=model.getObjectByName('Packet_'+i);if(packet){const phase=((elapsed/4.6)+i*.23)%1;packet.position.copy(start).lerp(end,phase);packet.position.y+=.10+Math.sin(phase*Math.PI)*.09;packet.visible=playing||i===0;}}
       const sparks=model.getObjectByName('ProcessConfirmation');sparks?.children.forEach((o,i)=>{const phase=((elapsed*.7)+i/10)%1;o.position.copy(end).add(new THREE.Vector3(Math.sin(i*2.39)*phase*.22,.10+phase*.32,Math.cos(i*1.91)*phase*.22));o.material.opacity=playing?(1-phase)*.55:0;});
       const beam=model.getObjectByName('ProcessScannerBeam');if(beam){beam.position.copy(end);beam.position.y+=.18;beam.position.z+=Math.sin(elapsed*4)*.09;beam.material.opacity=playing&&['extract','check'].includes(current.diag[step][2])?.30:0;}
-      const van=model.getObjectByName('Vehicle_mail_van');if(van)van.position.x=step===0?-2.0*(1-Math.min(1,elapsed/3)):step===current.diag.length-1?Math.min(2,elapsed*.6):0;
-      const car=model.getObjectByName('Vehicle_inspection_car');if(car){car.position.x=step===0?-1.6*(1-Math.min(1,elapsed/3)):step===current.diag.length-1?Math.min(1.8,elapsed*.6):0;car.position.y=step>0&&step<4?.16*Math.min(1,elapsed):0;const platform=model.getObjectByName('Inspection_platform')||model.getObjectByName('Inspection platform');if(platform)platform.position.y=.85+car.position.y;}
-      const train=model.getObjectByName('Vehicle_train');if(train)train.position.x=step===0?-4*(1-Math.min(1,elapsed/3.8)):step===current.diag.length-1?Math.min(4,elapsed):0;
-      const forklift=model.getObjectByName('Vehicle_forklift');if(forklift){forklift.position.x=step<2?-1.2*Math.min(1,elapsed/3):step<4?-1.2+2.0*Math.min(1,elapsed/3):.8;const load=forklift.getObjectByName('Forklift_load')||forklift.getObjectByName('Forklift load');if(load)load.position.y=.43+(step===3?.15*Math.min(1,elapsed):0);}
-      if(playing){for(const name of ['Vehicle_mail_van','Vehicle_inspection_car','Vehicle_forklift']){const vehicle=model.getObjectByName(name);vehicle?.traverse(o=>{if(/tyre/i.test(o.name)&&step===0)o.rotateY(dt*2.5);});}}
+
     }
     if(current.id==='terrain'&&playing&&model){const p=step===3?model.getObjectByName('ActivityForgedPart')?.position:model.getObjectByName('StepAnchor_'+step)?.position;controls.focus(step>0&&step<4&&p?p:new THREE.Vector3(0,.6,0),dt,step>0&&step<4?9.5:12.8);}
     controls.update();renderer.render(scene,camera);
     labels.querySelectorAll('button').forEach((b,i)=>{const anchor=model?.getObjectByName('StepAnchor_'+i),p=anchor?anchor.getWorldPosition(new THREE.Vector3()):new THREE.Vector3(-2.8+i*5.6/(current.diag.length-1),.65,1.15);p.y+=current.id==='terrain'?1.05:.35;p.project(camera);b.style.left=(p.x*.5+.5)*100+'%';b.style.top=(-p.y*.5+.5)*100+'%';b.classList.toggle('done',i<step);b.hidden=i!==step;});
 
-    const operation=modal.querySelector('.process-operation');if(current.id==='terrain'){const s=['Le billet brut arrive sur la palette.','Le four chauffe le billet avant sa mise en forme.','Le marteau-pilon transforme le billet en poutrelle.','Le pont roulant lève et transporte la pièce forgée.','La pièce refroidie est contrôlée puis déposée en sortie.'][step];if(operation.textContent!==s)operation.textContent=s;}else operation.textContent='';
+    const operation=modal.querySelector('.process-operation');if(current.id==='terrain'){const s=['Le billet brut arrive sur la palette.','Le métal fond dans le creuset, puis est coulé dans le moule.','Le marteau-pilon transforme le billet en poutrelle.','Le pont roulant lève et transporte la pièce forgée.','La pièce refroidie est contrôlée puis déposée en sortie.'][step];if(operation.textContent!==s)operation.textContent=s;}else operation.textContent='';
     modal.dataset.frames=String((Number(modal.dataset.frames)||0)+1);raf=requestAnimationFrame(animate);
   }
   function close(){request++;cancelAnimationFrame(raf);modal.close();document.body.classList.remove('lock');document.dispatchEvent(new CustomEvent('project-workshop',{detail:{open:false}}));opener?.focus();}
@@ -79,7 +77,7 @@ export function initProjectDioramas(host,projects){
     const test=modal.querySelector('.process-test');test.hidden=!['finance','vmvre'].includes(current.id);test.textContent=current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));
     if(!reduced){stage.animate([{opacity:.2,transform:'translateY(28px) scale(.84)'},{opacity:1,transform:'none'}],{duration:650,easing:'cubic-bezier(.16,1,.3,1)'});modal.querySelector('.process-copy').animate([{opacity:0,transform:'translateY(15px)'},{opacity:1,transform:'none'}],{duration:600,delay:100,fill:'backwards'});}
-    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v22`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
+    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v24`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
     try{
       setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);machines=initProcessMachines(model,current.diag,palettes[current.id],current.id);
       const sparkGroup=new THREE.Group();sparkGroup.name='ProcessConfirmation';model.add(sparkGroup);

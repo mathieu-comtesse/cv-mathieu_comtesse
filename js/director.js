@@ -7,11 +7,11 @@ const angDiff = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if
 export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   const g = hero.group, pos = g.position;
   let steps = [], step = null, cur = null, mode = 'idle', carryTo = null;
-  let running = false;
+  let running = false, travelled = 0;
   const api = {
     get mode() { return mode; }, get current() { return cur; },
     get running() { return running; },
-    get locomoting() { return mode === 'walk' && step?.k === 'walk' && step.pts.length > 0; },
+    get locomoting() { return mode === 'walk' && step?.k === 'walk' && step.pts.length > 0 && travelled > 1e-6; },
     setRun(on) { running = !!on; if (mode === 'walk') hero.play(running ? 'Run_Loop' : 'Walk_Loop', { fade: 0.18, speed: running ? 1.2 : speed / 0.55 }); },
     walk: (pts) => ({ k: 'walk', pts: pts.map((p) => [p[0], p[1]]) }),
     face: (yaw) => ({ k: 'face', yaw }),
@@ -57,7 +57,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
         if(!s.allowBlocked && !nav.line([pos.x,pos.z],[nx,nz])) {
           s.pts=[];steps=[];clearActivity('blocked');mode='idle';idle();return true;
         }
-        pos.x=nx;pos.z=nz;left-=m;
+        pos.x=nx;pos.z=nz;left-=m;travelled+=m;
         const want = Math.atan2(dx, dz), da = angDiff(g.rotation.y, want);
         g.rotation.y += Math.sign(da) * Math.min(Math.abs(da), dt * 9);
         if (m >= d - 1e-6) s.pts.shift();
@@ -69,6 +69,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   }
 
   api.update = (dt) => {
+    travelled=0;
     if (mode === 'carried') {
       if (carryTo) { pos.x += (carryTo.x - pos.x) * (1 - Math.exp(-dt * 16)); pos.z += (carryTo.z - pos.z) * (1 - Math.exp(-dt * 16)); pos.y += (0.34 - pos.y) * (1 - Math.exp(-dt * 12)); }
       return;
@@ -122,6 +123,6 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   api.drop = (x, z) => {
     const f = nav.nearest(x, z); steps = [api.glide(f[0], f[1], floorY(f[0], f[1]), g.rotation.y, 0.3, 'Idle_Loop'), api.fn(() => { mode = 'idle'; idle(); })]; step = null; mode = 'walk'; carryTo = null; hero.setBase('neutral');
   };
-  api.spawn = (x, z, yaw = 0) => { pos.set(x, floorY(x, z), z); g.rotation.y = yaw; mode = 'idle'; idle(); };
+  api.spawn = (x, z, yaw = 0) => { steps=[];step=null;clearActivity('spawn');travelled=0;pos.set(x, floorY(x, z), z); g.rotation.y = yaw; mode = 'idle'; idle(); };
   return api;
 }

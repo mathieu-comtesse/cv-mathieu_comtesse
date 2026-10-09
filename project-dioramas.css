@@ -24,3 +24,6 @@
 .process-labels button[hidden]{display:none}
 
 .process-operation{color:var(--process-accent);font-size:13px;margin:2px 0 16px}.process-operation:empty{display:none}
+
+.process-gallery{position:relative}.workshop-previews{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}.process-card[data-live=true] img{transition:none}.process-card[data-live=true]:hover{transform:translateY(-9px)}
+.pc-img{position:relative;overflow:hidden}.pc-img video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}

@@ -10,10 +10,22 @@ export function createNav({ x0, x1, z0, z1, cell = 0.1, radius = 0.16 }) {
   };
   const free = (x, z) => { const i = ix(x), j = iz(z); return inb(i, j) && !blocked[id(i, j)]; };
   const center = (i, j) => [x0 + (i + 0.5) * cell, z0 + (j + 0.5) * cell];
-  const line = (a, b) => {                                       // ligne de vue libre ?
-    const n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / (cell * 0.5));
-    for (let k = 0; k <= n; k++) { const t = n ? k / n : 0; if (!free(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)) return false; }
-    return true;
+  // Traverse every crossed cell, including both sides of a grid corner.
+  // Sampling a long segment can miss a narrow obstacle that the next frame hits.
+  const line = (a,b) => {
+    if(!free(...a)||!free(...b))return false;
+    let i=ix(a[0]),j=iz(a[1]);const ei=ix(b[0]),ej=iz(b[1]);
+    const dx=b[0]-a[0],dz=b[1]-a[1],sx=Math.sign(dx),sz=Math.sign(dz);
+    const txStep=dx?cell/Math.abs(dx):Infinity,tzStep=dz?cell/Math.abs(dz):Infinity;
+    let tx=dx?(x0+(i+(sx>0?1:0))*cell-a[0])/dx:Infinity;
+    let tz=dz?(z0+(j+(sz>0?1:0))*cell-a[1])/dz:Infinity;
+    const clear=(x,y)=>inb(x,y)&&!blocked[id(x,y)];
+    for(let n=0;n<nx+nz+2;n++){
+      if(!clear(i,j))return false;if(i===ei&&j===ej)return true;
+      if(Math.abs(tx-tz)<1e-10){if(!clear(i+sx,j)||!clear(i,j+sz))return false;i+=sx;j+=sz;tx+=txStep;tz+=tzStep;}
+      else if(tx<tz){i+=sx;tx+=txStep;}else{j+=sz;tz+=tzStep;}
+    }
+    return false;
   };
   function nearest(x, z) {                                       // case libre la plus proche
     if (free(x, z)) return [x, z];

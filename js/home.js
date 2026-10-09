@@ -1,4 +1,5 @@
-import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v22';
+import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
+import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v24';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v20';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
@@ -60,6 +61,7 @@ export function initHome() {
     root.innerHTML = `<div class="mq-track">${list.map((p, i) => card(p, i, kind)).join('')}</div>`;
     root.addEventListener('click', (e) => { const b = e.target.closest('.pc'); if (b) open(list[+b.dataset.i], kind); });
     createMarquee(root);
+    initPersonalPreviews(root,list);
     initHoverDiagrams(root, list, kind === 'pro' ? {} : { kicker: 'CONSTRUIT AVEC' });
   }
 }

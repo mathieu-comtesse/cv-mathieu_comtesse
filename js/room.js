@@ -1,14 +1,14 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=cv-scene-v20';
-import { createCharacter } from './character.js?v=cv-scene-v22';
+import { createCharacter } from './character.js?v=cv-scene-v24';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
 import { createRitual } from './ritual.js?v=cv-scene-v22';
 import { createChashitsu } from './chashitsu.js?v=bf01a16';
 import { createRetroSet } from './retro.js?v=cv-scene-v17';
-import { createNav } from './nav.js?v=cv-scene-v17';
-import { createDirector } from './director.js?v=cv-scene-v22';
+import { createNav } from './nav.js?v=cv-scene-v24';
+import { createDirector } from './director.js?v=cv-scene-v24';
 import { createThought } from './thought.js?v=cv-scene-v17';
 import { createWeather } from './weather.js?v=bf01a16';
 import { createJukebox } from './jukebox.js?v=cv-scene-v17';
@@ -150,7 +150,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v23')
+    import('./native-room.js?v=cv-scene-v24')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -898,9 +898,10 @@ export async function createRoom(container, bubbleEl) {
           }
           nativeBridge.update(dt);
           // Les jambes des sièges locaux suivent leur propre assise, plus haute que celle de référence.
-          if (director.current !== stations.sofa) nativeBridge.applyPose(hero, 1, director.current?.seatId ? { upperOnly: true } : {});
+          if (exactMotion !== 'idle' && director.current !== stations.sofa) nativeBridge.applyPose(hero, 1, director.current?.seatId ? { upperOnly: true } : {});
         } catch (error) { restoreLocalDesk(error); }
       }
+      if(hero.referenceAppearance && exactMotion==='idle' && ['idle','turn'].includes(director.mode))hero.poseStanding();
       { const hp = hero.group.position, inRoom = Math.abs(hp.x - CS.x) < 1.7 && hp.z > CS.z - 2.0 && hp.z < CS.z + 4.2;      // le toit s'efface quand le personnage est dessous
         followTea = ritual.state.active || (director.current && director.current.ritual) || cs.panels.some((q) => q.target > 0.5) || inRoom || hp.x < CS.x + 2.6 && hp.z > CS.z - 3.5;
         cs.setRoofFade(ritual.state.active || (inRoom && director.mode !== 'carried') ? 0.2 : 1); }
