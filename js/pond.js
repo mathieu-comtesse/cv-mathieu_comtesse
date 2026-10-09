@@ -1,4 +1,4 @@
-import { THREE, group, canvasTexture, rng } from './kit.js?v=cv-scene-v26';
+import { THREE, group, canvasTexture, rng } from './kit.js?v=cv-scene-v27';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 
 /* ───────────── Étang vivant ─────────────

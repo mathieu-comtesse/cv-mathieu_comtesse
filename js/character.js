@@ -1,4 +1,4 @@
-import { THREE, mat, loadBuffer } from './kit.js?v=cv-scene-v26';
+import { THREE, mat, loadBuffer } from './kit.js?v=cv-scene-v27';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 
 // Character imported from 84b390d3dd44755f.fbx and converted to a compact skinned GLB.
@@ -148,6 +148,8 @@ export async function createCharacter({
   }
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
+  let fittedShoesGltf=null;
+  if(referenceAppearance)try { fittedShoesGltf=await parse(await loadBuffer('assets/nb992-fitted-v27.glb')); } catch (_) {}
   if(!referenceAppearance)try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
@@ -351,6 +353,19 @@ export async function createCharacter({
     shoeParts.forEach((o) => { o.visible = false; });
     return shoeVisuals.length === 2;
   };
+  // Positions, dimensions et raccords ont été cuits dans Blender dans le repère
+  // exact de chaque os de cheville, à partir des faces des chaussures rouges.
+  const attachFittedShoes=()=>{
+    if(!fittedShoesGltf)return false;
+    const entries=['left','right'].map(side=>({side,bone:bones[side==='left'?'foot_l':'foot_r'],shoe:fittedShoesGltf.scene.getObjectByName('nb_'+side),sock:fittedShoesGltf.scene.getObjectByName('sock_'+side)}));
+    if(entries.some(e=>!e.bone||!e.shoe||!e.sock))return false;
+    for(const {side,bone,shoe,sock}of entries){
+      shoe.removeFromParent();sock.removeFromParent();shoe.name='NB992:'+side;sock.name='Sock:'+side;
+      for(const object of [shoe,sock]){object.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;}});bone.add(object);}
+      shoe.userData.fittedInBlender=true;shoeVisuals.push(shoe);sockVisuals.push(sock);
+    }
+    shoeParts.forEach(o=>o.visible=false);return true;
+  };
   const { can, canTip } = makeWateringCan(); group.add(can);
 
   // Retarget les 31 actions de la bibliothèque (rig Quaternius, axe d'os +Y) sur le rig FBX importé (axe d'os +X) : les deux squelettes n'ont pas les mêmes repères
@@ -437,6 +452,7 @@ export async function createCharacter({
     }
     for(const [n,tr]of Object.entries(saved)){bones[n].position.copy(tr.p);bones[n].quaternion.copy(tr.q);}
     group.updateMatrixWorld(true);
+    attachFittedShoes();
   }else attachNB992();
   let nativePose = null, nativePoseW = 0;
   const _poseP = new THREE.Vector3(), _poseQ = new THREE.Quaternion();
@@ -614,7 +630,7 @@ export async function createCharacter({
       shoesOn = !!on;
       if (shoeVisuals.length) shoeVisuals.forEach((o) => { o.visible = shoesOn; });
       else if (shoes) shoes.visible = shoesOn;
-      sockVisuals.forEach((o) => { o.visible = !shoesOn; });
+      sockVisuals.forEach((o) => { o.visible = fittedShoesGltf ? true : !shoesOn; });
       if (originalLegs) originalLegs.visible = true;
       trouserCuffs.forEach((o) => { o.visible = false; });         // chevilles d'origine : le jean prolongé couvre déjà la cheville
     },
@@ -632,7 +648,8 @@ export async function createCharacter({
       });
       if (originalLegs) originalLegs.visible = !on;
       shoeVisuals.forEach((o) => { o.visible = !on && shoesOn; });
-      sockVisuals.forEach((o) => { o.visible = !on && !shoesOn; });
+      sockVisuals.forEach((o) => { o.visible = !on && (fittedShoesGltf ? true : !shoesOn); });
+      if(shoeVisuals.length)shoeParts.forEach(o=>o.visible=false);
     },
     setHeadScale() {},
     update(dt, t) {

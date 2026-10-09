@@ -12,6 +12,8 @@ on:
       - "tools/test-motion-fit.mjs"
       - "tools/test-custom-scene.mjs"
       - "assets/jeans-baggy.glb"
+      - "assets/nb992-fitted-v27.glb"
+      - "assets/shoe-calibration-v27.json"
       - "shupi/assets/**"
       - ".github/workflows/scene-smoke.yml"
   workflow_dispatch:
@@ -51,12 +53,14 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v26" index.html
-          grep -q "character.js?v=cv-scene-v26" js/room.js
-          grep -q "retro.js?v=cv-scene-v26" js/room.js
-          grep -q "room.js?v=cv-scene-v26" js/main.js
+          grep -q "js/main.js?v=cv-scene-v27" index.html
+          grep -q "character.js?v=cv-scene-v27" js/room.js
+          grep -q "retro.js?v=cv-scene-v27" js/room.js
+          grep -q "room.js?v=cv-scene-v27" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
+          test -s assets/nb992-fitted-v27.glb
+          test -s assets/shoe-calibration-v27.json
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
   runtime:

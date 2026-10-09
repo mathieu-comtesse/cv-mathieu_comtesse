@@ -1,17 +1,17 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v26';
-import * as F from './furniture.js?v=cv-scene-v26';
-import { createCharacter } from './character.js?v=cv-scene-v26';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v27';
+import * as F from './furniture.js?v=cv-scene-v27';
+import { createCharacter } from './character.js?v=cv-scene-v27';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=cv-scene-v26';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v26';
-import { createRitual } from './ritual.js?v=cv-scene-v26';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v26';
-import { createRetroSet } from './retro.js?v=cv-scene-v26';
-import { createNav } from './nav.js?v=cv-scene-v26';
-import { createDirector } from './director.js?v=cv-scene-v26';
-import { createThought } from './thought.js?v=cv-scene-v26';
-import { createWeather } from './weather.js?v=cv-scene-v26';
-import { createJukebox } from './jukebox.js?v=cv-scene-v26';
+import { loadBuffer } from './kit.js?v=cv-scene-v27';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v27';
+import { createRitual } from './ritual.js?v=cv-scene-v27';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v27';
+import { createRetroSet } from './retro.js?v=cv-scene-v27';
+import { createNav } from './nav.js?v=cv-scene-v27';
+import { createDirector } from './director.js?v=cv-scene-v27';
+import { createThought } from './thought.js?v=cv-scene-v27';
+import { createWeather } from './weather.js?v=cv-scene-v27';
+import { createJukebox } from './jukebox.js?v=cv-scene-v27';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
@@ -152,7 +152,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v26')
+    import('./native-room.js?v=cv-scene-v27')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -308,6 +308,17 @@ export async function createRoom(container, bubbleEl) {
   const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
   const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mode==='follow'?'pan-y pinch-zoom':'none';};
   cameraButton.onclick=e=>{e.stopPropagation();setCameraMode(cameraMode==='follow'?'free':'follow');};setCameraMode('follow');
+  const zoomControls=document.createElement('div');zoomControls.className='room-zoom';zoomControls.setAttribute('role','group');zoomControls.setAttribute('aria-label','Zoom du décor');
+  zoomControls.innerHTML='<button type="button" class="room-zoom-in" aria-label="Agrandir le décor">+</button><label class="room-zoom-label" for="room-zoom-range">Zoom</label><input id="room-zoom-range" type="range" min="-3" max="4" step="0.02" value="0" aria-label="Zoom du décor"><output for="room-zoom-range">100 %</output><button type="button" class="room-zoom-out" aria-label="Réduire le décor">−</button><button type="button" class="room-zoom-reset" aria-label="Réinitialiser le zoom">1:1</button>';
+  container.append(zoomControls);const zoomRange=zoomControls.querySelector('input'),zoomOutput=zoomControls.querySelector('output');
+  const syncZoom=()=>{const z=view.tZoom;zoomRange.min=String(Math.min(-3,Math.log2(z)));zoomRange.max=String(Math.max(4,Math.log2(z)));zoomRange.value=String(Math.log2(z));zoomRange.setAttribute('aria-valuetext',Math.round(z*100)+' %');zoomOutput.value=Math.round(z*100)+' %';};
+  const changeZoom=z=>{setCameraMode('free');view.tZoom=Math.max(.0001,z);syncZoom();};
+  zoomRange.addEventListener('input',()=>changeZoom(2**Number(zoomRange.value)));
+  zoomControls.querySelector('.room-zoom-in').onclick=()=>changeZoom(view.tZoom*1.25);
+  zoomControls.querySelector('.room-zoom-out').onclick=()=>changeZoom(view.tZoom/1.25);
+  zoomControls.querySelector('.room-zoom-reset').onclick=()=>changeZoom(1);
+  // Les boutons et le curseur ne déclenchent aucune action du personnage.
+  zoomControls.addEventListener('pointerdown',e=>e.stopPropagation());zoomControls.addEventListener('click',e=>e.stopPropagation());
   const panCamera=(dx,dy)=>{setCameraMode('free');const scale=2*fit/view.zoom/H;const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);tgt.addScaledVector(right,-dx*scale).addScaledVector(up,dy*scale);};
   let scrollOff = 0, scrollT = 0;                                  // la caméra baisse quand l'en-tête défile (comme la scène de référence)
   function orient() {
@@ -392,7 +403,7 @@ export async function createRoom(container, bubbleEl) {
   let drag = null, pinch = 0, hovered = null, hdrag = null, lastHover = 0;
   let autonomousPauseUntil = 0;
   const pauseAutonomy = (ms = 18000) => { autonomousPauseUntil = performance.now() + ms; };
-  const el = renderer.domElement;el.tabIndex=0;el.setAttribute('aria-label','Décor : glisser pour tourner, Maj + glisser pour déplacer, molette pour zoomer');el.addEventListener('contextmenu',e=>e.preventDefault());
+  const el = renderer.domElement;el.tabIndex=0;el.setAttribute('aria-label','Décor : clic maintenu pour déplacer, Alt + glisser pour tourner, barre latérale pour zoomer');el.addEventListener('contextmenu',e=>e.preventDefault());
   // Portrait Shupi : suivi du pointeur normalisé (-1..1), comme /info/?portrait.
   const updatePortraitLook = (e) => {
     if (e.pointerType === 'touch' || !hero.group.visible || !hero.lookAtPointer) return;
@@ -422,7 +433,7 @@ export async function createRoom(container, bubbleEl) {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
       if (!appOpen && e.button===0 && !e.shiftKey && heroNear(e.clientX, e.clientY)) hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false };
-      else {setCameraMode('free');el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:e.button!==0||e.shiftKey||e.pointerType==='touch'};}
+      else {el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:!e.altKey&&e.button!==2};}
     }
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
   });
@@ -442,7 +453,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if(drag.moved>6){if(drag.pan)panCamera(dx,dy);else{view.tAz-=dx*.006;view.tEl+=dy*.004;}el.style.cursor='grabbing';}
+        if(drag.moved>6){if(drag.pan)panCamera(dx,dy);else{setCameraMode('free');view.tAz-=dx*.006;view.tEl+=dy*.004;}el.style.cursor='grabbing';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -474,12 +485,7 @@ export async function createRoom(container, bubbleEl) {
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
-  el.addEventListener('wheel',e=>{
-    if(cameraMode==='follow'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey)return;
-    e.preventDefault();setCameraMode('free');
-    if(Math.abs(e.deltaX)>Math.abs(e.deltaY)*1.5)panCamera(-e.deltaX,0);
-    else view.tZoom=Math.max(.0001,view.tZoom*Math.exp(-e.deltaY*(e.deltaMode===1?.02:.0015)));
-  },{passive:false});
+  // La molette garde le défilement natif de la page, même en caméra libre.
   el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;setCameraMode('follow');});
   el.addEventListener('keydown',e=>{if(e.key==='Escape'){setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();panCamera(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();setCameraMode('free');view.tZoom*=e.key==='-'?.8:1.25;}});
   el.style.cursor = 'grab';
@@ -866,6 +872,7 @@ export async function createRoom(container, bubbleEl) {
     if(cameraMode==='follow'&&hero.group.visible&&!appOpen&&!crate.isOpen)tgt.set(hero.group.position.x,hero.wp('spine_02').y*.55,hero.group.position.z);
     target.lerp(tgt, kv);
     view.az += (view.tAz - view.az) * kv; view.el += (view.tEl - view.el) * kv; view.zoom += (view.tZoom - view.zoom) * kv;
+    if(Math.abs(Number(zoomRange.value)-Math.log2(view.tZoom))>.005)syncZoom();
     scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
     // personnage
     if (ritual.state.active) ritual.update(dt);
