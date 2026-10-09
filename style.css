@@ -263,3 +263,6 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
     overflow:visible!important;
   }
 }
+
+/* Garder les lignes animees du titre dans les petits ecrans. */
+@media(max-width:360px){.hero h1{font-size:clamp(22px,6.8vw,24px)}}

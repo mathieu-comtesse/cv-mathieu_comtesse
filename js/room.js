@@ -70,7 +70,7 @@ export async function createRoom(container, bubbleEl) {
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
   const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-curved-panel-v25.glb','monitor-portrait-panel-v25.glb','humanscale-m2-arm-v25.glb','desk-webcam-v25.glb','gaming-pc-v25.glb'].map(model));
-  const [usmModel,pumpModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb'].map(model));
+  const [usmModel,pumpModel,jblModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb','jbl.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
     const holder = group(obj);
@@ -271,8 +271,8 @@ export async function createRoom(container, bubbleEl) {
   add('usm', usmSet, -0.7, -2.4, 0, 0, 0.45);
   const ampTerminals=F.ampPosts(amp);
   const speakers=[];
-  for(const [side,x,z,yaw] of [['L',-1.85,-2.55,.18],['R',1.85,-2.65,-.18]]){
-    const obj=F.speaker(side==='R',true);obj.name=`JBL ${side}`;
+  for(const [side,x,z,yaw] of [['L',-1.85,-2.55,.18],['R',.4,-2.65,-.18]]){
+    const obj=F.speakerFromGltf(jblModel,1.1);obj.name=`JBL ${side}`;
     const posts=F.speakerPosts(obj);
     add(`jbl${side}`,obj,x,z,yaw,0,.7);
     speakers.push({obj,side,posts});
