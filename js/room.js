@@ -1,6 +1,6 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=bf01a16';
 import * as F from './furniture.js?v=cv-scene-v20';
-import { createCharacter } from './character.js?v=cv-scene-v24';
+import { createCharacter } from './character.js?v=cv-scene-v24c';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=bf01a16';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=bf01a16';
@@ -534,7 +534,7 @@ export async function createRoom(container, bubbleEl) {
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.48, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: null, pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
     dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Snake plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [3.65, 0, -2.45], yaw: -Math.PI / 2, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
-    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', seatId: 'sofa', seatBack: 0.07, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
+    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', seatId: 'sofa', seatBack: -0.21, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.ritual) { st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]])); if(st.can){st.pos[0]=st.approach[0];st.pos[2]=st.approach[1];} }

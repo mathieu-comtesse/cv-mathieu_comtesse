@@ -542,7 +542,8 @@ export async function createCharacter({
 
   // The Blender seat study uses horizontal thighs, vertical calves and level
   // source soles. Solve from the actual child-bone axis, never an assumed axis.
-  const poseSeatedL = () => {
+  let soleHeights=null;
+  const poseSeatedL = (groundY=0.01) => {
     group.updateMatrixWorld(true);
     const forward=new THREE.Vector3(0,0,1).applyQuaternion(group.getWorldQuaternion(new THREE.Quaternion()));forward.y=0;forward.normalize();
     const aimSegment=(bone,child,target)=>{
@@ -555,11 +556,18 @@ export async function createCharacter({
       group.updateMatrixWorld(true);
       const hip=thigh.getWorldPosition(new THREE.Vector3()),knee=calf.getWorldPosition(new THREE.Vector3()),ankle=foot.getWorldPosition(new THREE.Vector3()),l1=hip.distanceTo(knee),l2=knee.distanceTo(ankle);
       const wantedKnee=hip.clone().addScaledVector(forward,l1);aimSegment(thigh,calf,wantedKnee);group.updateMatrixWorld(true);
-      const wantedAnkle=calf.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,-l2,0));aimSegment(calf,foot,wantedAnkle);group.updateMatrixWorld(true);
+      const kneeWorld=calf.getWorldPosition(new THREE.Vector3()),reach=soleHeights?Math.min(l2,Math.max(.14,kneeWorld.y-groundY-soleHeights[sd])):l2;
+      if(referenceAppearance&&reach<l2)foot.position.multiplyScalar(reach/l2);group.updateMatrixWorld(true);
+      const wantedAnkle=kneeWorld.clone().add(new THREE.Vector3(0,-reach,0));aimSegment(calf,foot,wantedAnkle);group.updateMatrixWorld(true);
       if(referenceAppearance){if(ball){ball.position.fromArray(NATIVE_POSES.debout['ball_'+sd].p);ball.quaternion.fromArray(NATIVE_POSES.debout['ball_'+sd].q);}levelFoot(foot,forward);}
       else aim(foot,wantedAnkle.clone().addScaledVector(forward,.17));
     }
     group.updateMatrixWorld(true);
+    if(referenceAppearance&&!soleHeights&&shoes){
+      const feet={l:wp('foot_l'),r:wp('foot_r')},lowest={l:Infinity,r:Infinity},point=new THREE.Vector3();
+      shoes.traverse(o=>{if(!o.isSkinnedMesh||o.userData.isInk)return;o.skeleton.update();const a=o.geometry.attributes.position;for(let i=0;i<a.count;i++){o.getVertexPosition(i,point).applyMatrix4(o.matrixWorld);const sd=point.distanceToSquared(feet.l)<point.distanceToSquared(feet.r)?'l':'r';lowest[sd]=Math.min(lowest[sd],point.y);}});
+      if(Number.isFinite(lowest.l)&&Number.isFinite(lowest.r)){soleHeights={l:feet.l.y-lowest.l,r:feet.r.y-lowest.r};poseSeatedL(groundY);}
+    }
   };
   const poseStanding=()=>{for(const[n,tr]of Object.entries(NATIVE_POSES.debout))if(bones[n]){bones[n].position.fromArray(tr.p);bones[n].quaternion.fromArray(tr.q);}group.updateMatrixWorld(true);};
 
