@@ -14,6 +14,15 @@ assert.equal(moteur.money,'8,73 € / rapport');
 assert.equal((5/60*HOURLY_RATE).toFixed(2),'8.73');
 assert.ok(moteur.timeCtx.includes('bonne ligne Excel')&&moteur.timeCtx.includes('Q18'));
 assert.equal(moteur.diag[3][2],'q18');
+const ppMoso=PRO_CARDS.find(p=>p.id==='powerbi');
+assert.equal(ppMoso.time,'15–20 min / PP');
+assert.equal(ppMoso.money,'26,19–34,91 € / PP');
+assert.equal(Math.round(15*Math.round(HOURLY_RATE*100)/60)/100,26.19);
+assert.equal(Math.round(20*Math.round(HOURLY_RATE*100)/60)/100,34.91);
+assert.equal(ppMoso.diag[1][2],'vm');
+assert.match(ppMoso.diag[2][1],/SharePoint/);
+assert.match(ppMoso.diag[3][0],/Archivage/);
+for(const id of ['projet-3','projet-4'])assert.ok(PAGES[id].html.includes('15 à 20 minutes économisées par plan de prévention'));
 for(const project of PRO_CARDS){
  const file=await readFile(new URL('../assets/dioramas/'+project.id+'.glb',import.meta.url));
  assert.equal(file.toString('ascii',0,4),'glTF');

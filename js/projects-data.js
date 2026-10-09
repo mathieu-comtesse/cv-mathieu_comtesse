@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v29';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v30';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -235,42 +235,42 @@ const DIAG = {
     ]
   ],
   "powerbi": [
-    [
-      "Sources",
-      "PDF, Excel et SharePoint alimentent le modèle.",
-      "excel"
-    ],
-    [
-      "Power Query",
-      "Les données sont préparées et contrôlées.",
-      "extract"
-    ],
-    [
-      "Modèle",
-      "Les tables et relations organisent le suivi.",
-      "powerbi"
-    ],
-    [
-      "DAX",
-      "Les mesures calculent les indicateurs.",
-      "script"
-    ],
-    [
-      "HTML",
-      "Les pages sont générées dans les mesures.",
-      "html"
-    ],
-    [
-      "Portail",
-      "Plans, PDF et échéances deviennent consultables.",
-      "powerbi"
-    ],
-    [
-      "Recherche",
-      "Le document utile est retrouvé en environ dix secondes.",
-      "check"
-    ]
+  [
+    "Dépôt du PP",
+    "Le PDF du plan de prévention arrive dans le dossier de dépôt.",
+    "pdf"
   ],
+  [
+    "Extraction par VM",
+    "La VM extrait automatiquement les champs du plan de prévention.",
+    "vm"
+  ],
+  [
+    "Rangement SharePoint",
+    "Le plan de prévention est rangé automatiquement dans le bon dossier SharePoint.",
+    "sharepoint"
+  ],
+  [
+    "Archivage automatique",
+    "L’archivage du plan de prévention est assuré automatiquement.",
+    "sharepoint"
+  ],
+  [
+    "Suivi des données",
+    "Les champs extraits alimentent le suivi ; Power Query prépare les données du portail.",
+    "excel"
+  ],
+  [
+    "Portail PP + MOSO",
+    "Power BI, DAX et les pages HTML présentent les plans, leurs échéances et les marchés MOSO.",
+    "powerbi"
+  ],
+  [
+    "Consultation",
+    "Le plan, son PDF et son échéance se retrouvent en quelques secondes.",
+    "check"
+  ]
+],
   "suivi": [
     [
       "GMAO",
@@ -401,7 +401,7 @@ export const PRO_CARDS = [
   G('cerfa', 'CERFA v3', 'Fiches et attestations devenues données du parc', '≈ 20–25 h → minutes', 'dépouillement d’un lot de 300 fiches CERFA et attestations (≈ 5 min par fiche à la main)', '50 000 €', 'de pénalités de retard identifiées et applicables', 'assets/projets/cerfa.jpg?v=bf01a16', 'projet-1'),
   G('vre', 'Extracteur VRE', 'Rapports de vérification électrique', '25 min', 'gagnées par rapport, sur 7 000 à 10 000 rapports par an', '44 €', 'par rapport traité, saisie directe dans le classeur de suivi', 'assets/projets/vre.jpg?v=bf01a16', 'projet-vre'),
   G('studio', 'Studio d’extracteurs PDF', 'Un extracteur sans coder', '5–10 jours → 4 h', 'pour disposer d’un extracteur opérationnel', '3 200–6 900 €', 'évités par famille de documents', 'assets/projets/studio.jpg?v=bf01a16', 'projet-studio'),
-  G('powerbi', 'Power BI · PP & MOSO', 'Tableaux de bord et portail', '3–5 min → 10 s', 'pour retrouver un plan, son PDF et son échéance : ≈ 2 h par semaine', '9 400 €', 'par an réaffectés au suivi des échéances (≈ 9 € de saisie évitée par plan)', 'assets/projets/powerbi.jpg?v=bf01a16', 'projet-4'),
+  G('powerbi', 'Power BI · PP & MOSO', 'VM · extraction, rangement SharePoint et archivage auto', '15–20 min / PP', 'de l’extraction automatique des champs au rangement dans SharePoint, avec archivage automatique', '26,19–34,91 € / PP', 'temps de traitement libéré par plan de prévention, valorisé à 104,74 €/h', 'assets/projets/powerbi.jpg?v=bf01a16', 'projet-4'),
   G('suivi', 'Retrouver tout le suivi', 'OT, équipement, bâtiment', '10–15 min', 'gagnées par recherche (≈ 1 h quand elle passe par d’autres outils)', '118–589 k€', 'par an, estimation à confirmer (14 utilisateurs, ≈ 26 € la recherche)', 'assets/projets/suivi.jpg?v=bf01a16', 'projet-2'),
   G('gares', 'Gares prioritaires', 'Vigilance et criticité des gares', '10–15 min', 'gagnées par équipement consulté, probablement davantage', '7 900–11 800 €', 'par an (≈ 1 000 équipements, 2 consultations par jour)', 'assets/projets/gares.jpg?v=bf01a16', 'projet-gares'),
   G('terrain', 'Dialogue terrain', 'Processus EPM / EPTx', null, '', null, '', 'assets/projets/terrain.jpg?v=bf01a16', 'projet-5'),
@@ -417,7 +417,7 @@ const bases = {
  cerfa: '50 €/document en retard : environ 1 000 documents identifiés. Pénalités applicables, pas des économies de personnel ni des sommes encaissées.',
  vre: '25/60 h × 104,74 €/h = 43,64 €/rapport ; environ 305 492–436 417 €/an pour 7 000–10 000 rapports.',
  studio: 'Environ 31–66 h de développement évitées par famille de PDF (journées de 7 h, contre 4 h avec le studio) × 104,74 €/h.',
- powerbi: 'Environ 2 h/semaine × 45 semaines × 104,74 €/h ≈ 9 400 €/an. Recherche des plans, PDF et échéances.',
+ powerbi: '15–20/60 h × 104,74 €/h = 26,19–34,91 €/plan de prévention. Extraction des champs par la VM, rangement SharePoint et archivage automatiques ; durée fournie par Mathieu. La consultation du portail conserve son gain distinct (3–5 min → 10 s, environ 2 h/semaine), sans cumul sur une même action.',
  suivi: 'Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.',
  gares: 'Environ 450 consultations/an × 10–15 min × 104,74 €/h ≈ 7 900–11 800 €/an. Parc concerné : environ 1 000 équipements.',
  finance: 'Durée et fréquence des contrôles manuels à renseigner pour calculer le gain à 104,74 €/h.'

@@ -142,9 +142,9 @@ export const PRO = [
  {
   "id": "projet-3",
   "title": "PP & MOSO",
-  "sub": "Du dépôt à la consultation",
-  "lead": "Des indicateurs cliquables et interactifs permettent d’explorer les résultats. L’export Excel reprend les données filtrées avec les informations importantes en surbrillance.",
-  "gain": "Chaque plan, son PDF et son échéance retrouvés en quelques secondes au lieu de fouiller plusieurs classeurs et dossiers partagés.",
+  "sub": "Extraction par VM, rangement SharePoint et archivage automatique",
+  "lead": "La VM extrait automatiquement les champs des plans de prévention, puis les range dans SharePoint avec archivage automatique. Le portail PP & MOSO permet ensuite de consulter les plans, leurs échéances et les données des marchés.",
+  "gain": "15 à 20 minutes économisées par plan de prévention, de l’extraction automatique des champs par la VM au rangement dans SharePoint, avec archivage automatique. À 104,74 €/h, ce temps libéré représente 26,19 à 34,91 € par plan.",
   "team": "",
   "url": "projet-3.html"
  },
