@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=cv-scene-v25';
+import { THREE } from './kit.js?v=cv-scene-v25c';
 import { n as sourceSettings, t as sourcePreset } from '../shupi/assets/thought-presets-_pi_GkjI.js';
 
 /* Bulle de pensée : un nuage avec la miniature 3D de l'activité qui tourne lentement (comme les pensées du personnage de référence).
@@ -33,7 +33,7 @@ export function createThought(el) {
     },
     show(obj, text, { tiltDeg = 25, scale = 1, yaw = -17 } = {}) {
       if (/Lire/.test(text) && readingBook) obj = readingBook;
-      if (sourcePreview && !/Lire|Jouer/.test(text)) {
+      if (sourcePreview && !/Lire|Jouer|bureau/.test(text)) {
         const label = sourceLabel(text);
         if (label && sourcePreview.items.includes(label)) {
           nativeActive = true; localVisible(false); sourcePreview.show(label);
@@ -42,8 +42,8 @@ export function createThought(el) {
         }
         sourcePreview.bubble.hide();
       }
-      if (/Lire|Jouer/.test(text)) sourcePreview?.bubble.hide();
-      nativeActive = false; localVisible(true);
+      if (/Lire|Jouer|bureau/.test(text)) sourcePreview?.bubble.hide();
+      nativeActive = false; localVisible(true); el.dataset.preview = /bureau/.test(text) ? 'custom-desk' : 'local';
       while (spin.children.length) spin.remove(spin.children[0]);
       if (obj) {
         const c = obj.clone(true);

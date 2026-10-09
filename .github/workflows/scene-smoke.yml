@@ -49,10 +49,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v25b" index.html
-          grep -q "character.js?v=cv-scene-v25" js/room.js
-          grep -q "retro.js?v=cv-scene-v25" js/room.js
-          grep -q "room.js?v=cv-scene-v25b" js/main.js
+          grep -q "js/main.js?v=cv-scene-v25c" index.html
+          grep -q "character.js?v=cv-scene-v25c" js/room.js
+          grep -q "retro.js?v=cv-scene-v25c" js/room.js
+          grep -q "room.js?v=cv-scene-v25c" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v24.json
           grep -q "hero.poseSeatedL" js/room.js

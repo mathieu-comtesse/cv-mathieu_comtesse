@@ -1,3 +1,4 @@
+import { assertLightRoomVisible } from './check-render-visibility.mjs';
 import { sceneTestProfile } from './scene-test-profile.mjs';
 import assert from 'node:assert/strict';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -83,6 +84,7 @@ try {
     assert.ok(after.frames > before.frames + 5, 'Rendering must continue after the iframe loads');
     assert.ok(after.hero, 'Character must appear');
     await page.screenshot({ path: path.join(output, `scene-${viewport.width}.png`) });
+    await assertLightRoomVisible(path.join(output, `scene-${viewport.width}.png`));
     assert.deepEqual(errors, [], 'Scene must render without runtime/console errors');
 
     // Exercise the existing sofa interaction and verify the moving controller.

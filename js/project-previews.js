@@ -1,6 +1,6 @@
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import * as THREE from 'three';
-import { initProcessMachines } from './process-machines.js?v=cv-scene-v25';
+import { initProcessMachines } from './process-machines.js?v=cv-scene-v25c';
 
 // One renderer serves the visible cards; cloned carousel cards never create contexts.
 export function initWorkshopPreviews(host, projects, load, palettes) {

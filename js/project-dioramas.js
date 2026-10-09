@@ -1,6 +1,6 @@
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v25';
-import { initProcessMachines } from './process-machines.js?v=cv-scene-v25';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v25c';
+import { initProcessMachines } from './process-machines.js?v=cv-scene-v25c';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
 import { createMarquee } from './marquee.js?v=bf01a16';
 import * as THREE from 'three';

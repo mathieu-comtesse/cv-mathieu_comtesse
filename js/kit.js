@@ -88,9 +88,6 @@ export function bake(root) {
   root.updateWorldMatrix(true, true);
   const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
   const buckets = new Map(), drop = [];
-  // Flatten static multi-material primitives before batching by material.
-  const multi=[];root.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh&&!o.isInstancedMesh&&Array.isArray(o.material)&&o.visible&&!dynamic(o))multi.push(o);});
-  for(const o of multi){const source=o.geometry.index?o.geometry.toNonIndexed():o.geometry;for(const gr of source.groups){if(!o.material[gr.materialIndex]||!gr.count)continue;const geom=new THREE.BufferGeometry();for(const [name,attr] of Object.entries(source.attributes)){if(!['position','normal','uv','color'].includes(name))continue;const values=new attr.array.constructor(gr.count*attr.itemSize);for(let i=0;i<gr.count;i++)for(let j=0;j<attr.itemSize;j++)values[i*attr.itemSize+j]=attr.getComponent(gr.start+i,j);geom.setAttribute(name,new THREE.BufferAttribute(values,attr.itemSize,attr.normalized));}const p=new THREE.Mesh(geom,o.material[gr.materialIndex]);p.position.copy(o.position);p.quaternion.copy(o.quaternion);p.scale.copy(o.scale);p.castShadow=o.castShadow;p.receiveShadow=o.receiveShadow;p.userData={...o.userData};o.parent.add(p);}if(source!==o.geometry)source.dispose();o.removeFromParent();}
   root.traverse((o) => {
     if (!o.isMesh || o.isInstancedMesh || Array.isArray(o.material)) return;
     const g = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone());
@@ -205,6 +202,9 @@ export function mergeStatic(root) {
   const buckets = new Map(), drop = [];
   const ownerOf = (o) => { for (let p = o.parent; p && p !== root.parent; p = p.parent) { if (p.userData && (p.userData.id || p.userData.batchRoot)) return p; if (p === root) return root; } return root; };
   const dynamic = (o) => { for (let p = o; p && p !== root.parent; p = p.parent) if (p.userData && p.userData.dynamic) return true; return false; };
+  // Flatten static multi-material primitives before batching by material.
+  const multi=[];root.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh&&!o.isInstancedMesh&&Array.isArray(o.material)&&o.visible&&!dynamic(o))multi.push(o);});
+  for(const o of multi){const source=o.geometry.index?o.geometry.toNonIndexed():o.geometry;for(const gr of source.groups){if(!o.material[gr.materialIndex]||!gr.count)continue;const geom=new THREE.BufferGeometry();for(const [name,attr] of Object.entries(source.attributes)){if(!['position','normal','uv','color'].includes(name))continue;const values=new attr.array.constructor(gr.count*attr.itemSize);for(let i=0;i<gr.count;i++)for(let j=0;j<attr.itemSize;j++)values[i*attr.itemSize+j]=attr.getComponent(gr.start+i,j);geom.setAttribute(name,new THREE.BufferAttribute(values,attr.itemSize,attr.normalized));}const p=new THREE.Mesh(geom,o.material[gr.materialIndex]);p.position.copy(o.position);p.quaternion.copy(o.quaternion);p.scale.copy(o.scale);p.castShadow=o.castShadow;p.receiveShadow=o.receiveShadow;p.userData={...o.userData};o.parent.add(p);}if(source!==o.geometry)source.dispose();o.removeFromParent();}
   root.traverse((o) => {
     if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || Array.isArray(o.material) || !o.visible) return;
     const m = o.material;
