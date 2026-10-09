@@ -108,7 +108,7 @@ export const PRO = [
   "title": "Moteur V4.4",
   "sub": "SharePoint, ligne Excel et Q18 visibles",
   "lead": "Le moteur V4.4 rend les Q18 visibles dans le suivi, alors qu’ils ne l’étaient pas auparavant. Il remplace le copier-coller depuis SharePoint vers la bonne ligne du classeur Excel.",
-  "gain": "5 minutes économisées par rapport sur le report SharePoint → Excel. Au taux horaire du CV de 104,74 €/h : 5/60 × 104,74 = 8,73 € de temps libéré par rapport.",
+  "gain": "15 minutes économisées par rapport sur le report SharePoint → Excel. Sur 400 à 500 rapports/an : 100 à 125 heures libérées, soit 10 474 à 13 092,50 € par an à 104,74 €/h. Les Q18 sont désormais visibles.",
   "team": "Les données arrivent à la bonne ligne et les Q18 deviennent visibles dans le suivi.",
   "url": "projet-moteur44.html"
 },
@@ -117,7 +117,7 @@ export const PRO = [
   "title": "CERFA v3",
   "sub": "Fiches et attestations → données du parc",
   "lead": "Les fiches d’intervention sur les équipements contenant des fluides frigorigènes (formulaire CERFA) arrivent par centaines, en PDF. La première version de l’extracteur lisait une fiche à la fois ; la v2 lit, extrait et analyse un large panel de fiches en lot, sur une masse de documents que personne ne pouvait dépouiller page par page. La v3, dernière version, traite aussi plusieurs autres types d’attestations dans le même lot : chaque document est reconnu, lu et contrôlé avec ses propres règles.",
-  "gain": "Environ 5 minutes de dépouillement par fiche à la main ; un lot de 300 fiches lu en quelques minutes au lieu d’une vingtaine d’heures. Gain financier : environ 50 000 € de pénalités de retard (50 € par document déposé en retard, fiches CERFA et attestations) identifiées et applicables sans recomptage.",
+  "gain": "Un lot de 300 fiches CERFA et attestations traité en 1 minute 20 secondes, contre 20 à 25 heures à la main. Le temps libéré par lot représente 2 092,47 à 2 616,17 € à 104,74 €/h. Les 50 000 € de pénalités identifiées restent un résultat distinct.",
   "team": "Ne plus dépouiller : superviser un lot entier, concentrer l’analyse sur les doublons, non-conformités et retards, et repartir avec un Excel déjà filtré et surligné.",
   "url": "projet-1.html"
  },
@@ -126,7 +126,7 @@ export const PRO = [
   "title": "Extracteur VRE",
   "sub": "Rapports de vérification électrique",
   "lead": "Les rapports de vérification des installations électriques, produits par les organismes de contrôle, servent à tenir le plan annuel de maintenance (PAM SSI) : il faut compter, bâtiment par bâtiment et local par local, les disjoncteurs (BT31), les fusibles (BT33), les blocs autonomes d’éclairage de sécurité (BT21) et les candélabres (BT11).",
-  "gain": "Environ 30 minutes de comptage par rapport ramenées à quelques minutes de vérification ; les lignes partent dans le classeur de suivi sans ressaisie. Valorisé au taux horaire de 104,74 € : ≈ 44 € par rapport (≈ 25 min gagnées, « quelques minutes » comptées pour 5). Volume : 7 000 à 10 000 rapports par an.",
+  "gain": "25 minutes de comptage évitées par rapport × 4 000 à 5 000 rapports/an : 1 666,67 à 2 083,33 heures, soit 174 566,67 à 218 208,33 € par an à 104,74 €/h. Il s’agit de capacité théorique : le comptage complet était auparavant trop long pour être réalisé.",
   "team": "Mettre à jour le plan annuel de maintenance à partir des rapports de contrôle sans les relire ligne à ligne, et garder la main sur chaque total.",
   "url": "projet-vre.html"
  },
@@ -144,7 +144,7 @@ export const PRO = [
   "title": "PP & MOSO",
   "sub": "Extraction par VM, rangement SharePoint et archivage automatique",
   "lead": "La VM extrait automatiquement les champs des plans de prévention, puis les range dans SharePoint avec archivage automatique. Le portail PP & MOSO permet ensuite de consulter les plans, leurs échéances et les données des marchés.",
-  "gain": "15 à 20 minutes économisées par plan de prévention, de l’extraction automatique des champs par la VM au rangement dans SharePoint, avec archivage automatique. À 104,74 €/h, ce temps libéré représente 26,19 à 34,91 € par plan.",
+  "gain": "15 à 20 minutes économisées par plan de prévention × 400 à 500 plans/an : 100 à 166,67 heures, soit 10 474 à 17 456,67 € par an à 104,74 €/h. Le traitement va de l’extraction VM au rangement SharePoint et à l’archivage automatique.",
   "team": "",
   "url": "projet-3.html"
  },
@@ -153,7 +153,7 @@ export const PRO = [
   "title": "Power BI",
   "sub": "Tableaux de bord et portail",
   "lead": "Concevoir des interfaces Power BI sur mesure en intégrant du HTML et du CSS dans les mesures DAX : tableaux de consultation, indicateurs et navigation adaptés aux besoins des équipes.",
-  "gain": "10 minutes économisées par consultation, environ 40 consultations par jour : 6 h 40 et 698,27 € de temps valorisé par jour. Traitement de 500 PP/an : 15–20 minutes par PP, soit 125–167 h et 13 092,50–17 456,67 €/an, de l’extraction VM à l’archivage automatique dans SharePoint.",
+  "gain": "15 à 20 minutes de traitement par PP × 400 à 500 plans/an : 100 à 166,67 heures et 10 474 à 17 456,67 €/an. Consultation distincte : 10 minutes × environ 40 consultations/jour = 6 h 40 et 698,27 €/jour à 104,74 €/h.",
   "team": "Consulter les PP valides ou archivés, les échéances et les données marché dans une interface lisible et personnalisée.",
   "url": "projet-4.html"
  },
@@ -162,7 +162,7 @@ export const PRO = [
   "title": "Gares prioritaires",
   "sub": "Vigilance et criticité des gares",
   "lead": "Un nouveau rapport Power BI pour suivre les gares à surveiller : classement de criticité, conformité de la source normale, équipements sous vigilance, maintenance préventive et mises en conformité, dans une interface HTML/CSS générée par des mesures DAX.",
-  "gain": "",
+  "gain": "10 à 15 minutes économisées par consultation × 20 à 30 consultations/jour × hypothèse de 225 jours/an : 750 à 1 687,5 heures, soit 78 555 à 176 748,75 € par an à 104,74 €/h.",
   "team": "Repérer en quelques secondes les gares à traiter en priorité, ouvrir la fiche d’un équipement et vérifier d’un coup d’œil sa maintenance préventive et ses mises en conformité.",
   "url": "projet-gares.html"
  },

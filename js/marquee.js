@@ -4,9 +4,9 @@ export function createMarquee(root,{repeat=3,friction=.975,maxThrow=60}={}){
  for(let r=1;r<repeat;r++)for(const n of originals){const c=n.cloneNode(true);c.setAttribute('aria-hidden','true');c.tabIndex=-1;c.querySelectorAll('a,button,[tabindex]').forEach(o=>o.tabIndex=-1);track.append(c);}
  let x=0,width=0,velocity=0,raf=0,lastFrame=0,gesture=null,visible=true,suppressUntil=0;
  const wrap=v=>width?((v%width)+width)%width-width:0;
- const set=()=>track.style.transform=`translate3d(${x}px,0,0)`;
+ const set=()=>{track.style.transform=`translate3d(${x}px,0,0)`;root.dispatchEvent(new CustomEvent('marquee-move',{detail:{x,width}}));};
  const stop=()=>{cancelAnimationFrame(raf);raf=0;lastFrame=0;};
- const measure=()=>{const phase=width?x/width:-1,gap=parseFloat(getComputedStyle(track).columnGap)||0;width=originals.reduce((s,o)=>s+o.getBoundingClientRect().width,0)+gap*originals.length;x=wrap(phase*width);set();};
+ const measure=()=>{const phase=width?x/width:-1,gap=parseFloat(getComputedStyle(track).columnGap)||0;width=originals.reduce((s,o)=>s+o.getBoundingClientRect().width,0)+gap*originals.length;x=wrap(phase*width);root.dataset.marqueePeriod=String(width);set();};
  const tick=now=>{raf=0;if(gesture||!visible||document.hidden)return;const dt=lastFrame?Math.min(50,now-lastFrame):16.67;lastFrame=now;x=wrap(x+velocity*dt);velocity*=Math.pow(friction,dt/16.67);set();if(Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);else{velocity=0;lastFrame=0;}};
  const kick=()=>{if(!raf&&visible&&!document.hidden&&Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);};
  root.addEventListener('dragstart',e=>e.preventDefault());

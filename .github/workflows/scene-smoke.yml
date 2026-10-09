@@ -12,6 +12,10 @@ on:
       - "tools/scene-test-profile.mjs"
       - "tools/test-scene-runtime.mjs"
       - "tools/test-scene-lifecycle.mjs"
+      - "tools/test-project-scroll.mjs"
+      - "tools/test-annual-gains.mjs"
+      - "tools/test-annual-gains-browser.mjs"
+      - "project-dioramas.css"
       - "tools/test-motion-fit.mjs"
       - "tools/test-custom-scene.mjs"
       - "assets/jeans-baggy.glb"
@@ -40,6 +44,7 @@ jobs:
           node --check js/process-highlight.js
           node --check js/process-machines.js
           node --check js/marquee.js
+          node --check js/annual-gains.js
           node --check js/projects-data.js
           node --check js/kit.js
           node --check js/pages.js
@@ -59,6 +64,8 @@ jobs:
         run: node tools/test-native-geometry.mjs
       - name: Check professional project metadata
         run: node tools/test-project-metadata.mjs
+      - name: Check annual gain totals
+        run: node tools/test-annual-gains.mjs
       - name: Check conveyor axes and transport
         run: node tools/test-conveyor-motion.mjs
       - name: Check suspended painting transforms
@@ -66,7 +73,7 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v34" index.html
+          grep -q "js/main.js?v=cv-scene-v35" index.html
           grep -q "character.js?v=cv-scene-v29" js/room.js
           grep -q "retro.js?v=cv-scene-v29" js/room.js
           grep -q "room.js?v=cv-scene-v34" js/main.js
@@ -91,6 +98,10 @@ jobs:
         run: node tools/test-scene-runtime.mjs
       - name: Check greeting, autonomy, activity exits and particles
         run: node tools/test-scene-lifecycle.mjs
+      - name: Check project images stay attached while scrolling
+        run: node tools/test-project-scroll.mjs
+      - name: Check piggy bank, calendar and saved years
+        run: node tools/test-annual-gains-browser.mjs
       - name: Check original activities, effects and sounds
         run: node tools/test-motion-fit.mjs
       - name: Check customized furniture, props and motion
