@@ -1,5 +1,5 @@
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
-import * as F from './furniture.js?v=cv-scene-v29';
+import * as F from './furniture.js?v=cv-scene-v31';
 import { createCharacter } from './character.js?v=cv-scene-v29';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
@@ -14,6 +14,7 @@ import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v29';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
+import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v31';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -69,6 +70,7 @@ export async function createRoom(container, bubbleEl) {
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
   const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-curved-panel-v25.glb','monitor-portrait-panel-v25.glb','humanscale-m2-arm-v25.glb','desk-webcam-v25.glb','gaming-pc-v25.glb'].map(model));
+  const [usmModel,pumpModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
     const holder = group(obj);
@@ -152,7 +154,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v29')
+    import('./native-room.js?v=cv-scene-v31')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -204,9 +206,12 @@ export async function createRoom(container, bubbleEl) {
   const chair = F.officeChairFrom(setuGltf);
   add('chair', chair, -2.15, 0.3, -Math.PI / 2 + 0.15, 0, 0.2);
 
+  let bicycle=null,bicyclePump=null;
   if (bikeGltf) {
-    const bike = F.roadBikeFrom(bikeGltf);
+    const bike = F.roadBikeFrom(bikeGltf);bicycle=bike;
     add('bike', bike, 1.0, -3.35, 0.12, 0, 0.8);
+    bicyclePump=createBicyclePump(pumpModel,bike);
+    add('pump',bicyclePump.root,2.65,-4.15,-Math.PI/2,0,.85);
   }
 
   const STOOL_X = 2.0, STOOL_Z = 4.55;           // tabouret à droite du canapé, portant le bonsaï
@@ -253,14 +258,34 @@ export async function createRoom(container, bubbleEl) {
   const outlet = group(box(0.14, 0.012, 0.14, mat('#ecebe6', { roughness: 0.5 }), 3.82, 0.006, 3.08), box(0.02, 0.014, 0.012, mat('#222'), 3.82, 0.007, 3.05), box(0.02, 0.014, 0.012, mat('#222'), 3.82, 0.007, 3.11));
   add('strip', group(cord, wallPlug, outlet), 0, 0, 0, 0, 0.6, world, 0);
   const usmSet = group();
-  const usmBody = F.usm(); usmSet.add(usmBody);
-  const crate = F.usmDrawer(usmBody.userData.drawerSpec, coverTex, TRACKS, COVER); usmSet.add(crate.root);
-  const amp = F.amplifier(); amp.position.set(-0.37, 0.734, 0); usmSet.add(amp);
+  const usmBody=usmModel.scene;usmBody.name='USM Haller imported sideboard';usmBody.userData.batchRoot=true;
+  const importedFront=usmBody.getObjectByName('USMDrawerFront');importedFront.removeFromParent();importedFront.userData.dynamic=true;
+  usmSet.add(usmBody);
+  const crate = F.usmDrawer({x:-.375,y:.556,z:.253,w:.733,h:.333}, coverTex, TRACKS, COVER); usmSet.add(crate.root);
+  const slidingDrawer=crate.root.children[0];slidingDrawer.remove(slidingDrawer.children[0]);importedFront.position.x=.375;slidingDrawer.add(importedFront);
+  const amp = F.amplifier(); amp.position.set(-0.37, 0.7415, 0); usmSet.add(amp);
   const AMPH = 0.085;
-  const tt = F.turntable(); inkify(tt, { skip: (o) => o.material.color.getHexString() !== '3f2d22' }); tt.position.set(-0.37, 0.734 + AMPH, 0); usmSet.add(tt);
-  const rca = F.rcaCables(-0.37, -0.158, 0.734, 0.734 + 0.05); usmSet.add(rca);
-  const cl = F.borneFromGltf(borneGltf); add('beton', cl, 0.44, 0.0, 0, 0.734, 0, usmSet);
+  const tt = F.turntable(); inkify(tt, { skip: (o) => o.material.color.getHexString() !== '3f2d22' }); tt.position.set(-0.37, 0.7415 + AMPH, 0); usmSet.add(tt);
+  const rca = F.rcaCables(-0.37, -0.158, 0.7415, 0.7415 + 0.05); usmSet.add(rca);
+  const cl = F.borneFromGltf(borneGltf); add('beton', cl, 0.44, 0.0, 0, 0.7415, 0, usmSet);
   add('usm', usmSet, -0.7, -2.4, 0, 0, 0.45);
+  const ampTerminals=F.ampPosts(amp);
+  const speakers=[];
+  for(const [side,x,z,yaw] of [['L',-1.85,-2.55,.18],['R',1.85,-2.65,-.18]]){
+    const obj=F.speaker(side==='R',true);obj.name=`JBL ${side}`;
+    const posts=F.speakerPosts(obj);
+    add(`jbl${side}`,obj,x,z,yaw,0,.7);
+    speakers.push({obj,side,posts});
+  }
+  world.updateMatrixWorld(true);
+  for(const s of speakers)for(const polarity of ['black','red']){
+    const a=amp.localToWorld(ampTerminals[s.side+polarity].clone());
+    const b=s.obj.localToWorld(s.posts[polarity].clone()), offset=polarity==='red'?.014:0;
+    const cable=tube([a.toArray(),[a.x,a.y+.018,-2.78],[a.x,.45,-2.81],[a.x,.013,-2.81],[s.obj.parent.position.x,.013,-2.95-offset],[b.x,.013,b.z-.08],b.toArray()],.004,mat(polarity==='red'?'#563c31':'#202124'),{segs:64,radial:5});
+    cable.name=`JBL ${s.side} ${polarity} cable`;
+    cable.userData.connection={from:a.toArray(),to:b.toArray(),side:s.side,polarity};
+    add(`jblCable${s.side}${polarity}`,cable,0,0,0,0,.8,world,0);
+  }
   mkLamp('beton', cl.userData.glow, new THREE.PointLight('#ffe9c4', 0, 2.5, 2), '#fff3d6', '#8a8780');
 
   const ARC_YAW = -2.36;                      // le bras du lampadaire s'incline vers le tapis
@@ -307,7 +332,15 @@ export async function createRoom(container, bubbleEl) {
   let cameraMode='follow',fitReady=false;
   const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
   const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mode==='follow'?'pan-y pinch-zoom':'none';};
-  cameraButton.onclick=e=>{e.stopPropagation();setCameraMode(cameraMode==='follow'?'free':'follow');};setCameraMode('follow');
+  setCameraMode('follow');
+  let navigationMode='pan';
+  const navigationControls=document.createElement('div');navigationControls.className='room-navigation';navigationControls.setAttribute('role','group');navigationControls.setAttribute('aria-label','Manipulation du décor');
+  navigationControls.innerHTML='<button type="button" data-navigation="pan" aria-label="Déplacer le décor" aria-pressed="true" title="Clic maintenu pour déplacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v18M3 12h18m-12-6 3-3 3 3m-6 12 3 3 3-3M6 9l-3 3 3 3m12-6 3 3-3 3"/></svg>Déplacer</button><button type="button" data-navigation="rotate" aria-label="Tourner le décor" aria-pressed="false" title="Clic maintenu pour tourner à 360°"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 9a8 8 0 0 0-14-3L3 9m0-6v6h6m-5 6a8 8 0 0 0 14 3l3-3m0 6v-6h-6"/></svg>Tourner</button>';
+  container.append(navigationControls);
+  const selectNavigation=mode=>{navigationMode=mode;container.dataset.navigationMode=mode;navigationControls.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.navigation===mode)));};
+  navigationControls.querySelectorAll('button').forEach(b=>b.onclick=()=>{selectNavigation(b.dataset.navigation);setCameraMode('free');});
+  navigationControls.addEventListener('pointerdown',e=>e.stopPropagation());navigationControls.addEventListener('click',e=>e.stopPropagation());selectNavigation('pan');
+  cameraButton.onclick=e=>{e.stopPropagation();const mode=cameraMode==='follow'?'free':'follow';if(mode==='follow')selectNavigation('pan');setCameraMode(mode);};
   const zoomControls=document.createElement('div');zoomControls.className='room-zoom';zoomControls.setAttribute('role','group');zoomControls.setAttribute('aria-label','Zoom du décor');
   zoomControls.innerHTML='<button type="button" class="room-zoom-in" aria-label="Agrandir le décor">+</button><label class="room-zoom-label" for="room-zoom-range">Zoom</label><input id="room-zoom-range" type="range" min="-3" max="4" step="0.02" value="0" aria-label="Zoom du décor"><output for="room-zoom-range">100 %</output><button type="button" class="room-zoom-out" aria-label="Réduire le décor">−</button><button type="button" class="room-zoom-reset" aria-label="Réinitialiser le zoom">1:1</button>';
   container.append(zoomControls);const zoomRange=zoomControls.querySelector('input'),zoomOutput=zoomControls.querySelector('output');
@@ -320,6 +353,7 @@ export async function createRoom(container, bubbleEl) {
   // Les boutons et le curseur ne déclenchent aucune action du personnage.
   zoomControls.addEventListener('pointerdown',e=>e.stopPropagation());zoomControls.addEventListener('click',e=>e.stopPropagation());
   const panCamera=(dx,dy)=>{setCameraMode('free');const scale=2*fit/view.zoom/H;const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),up=new THREE.Vector3(0,1,0).applyQuaternion(camera.quaternion);tgt.addScaledVector(right,-dx*scale).addScaledVector(up,dy*scale);};
+  const rotateCamera=(dx,dy)=>{setCameraMode('free');view.tAz-=dx*.006;view.tEl+=dy*.004;};
   let scrollOff = 0, scrollT = 0;                                  // la caméra baisse quand l'en-tête défile (comme la scène de référence)
   function orient() {
     const r = 40, ev = view.el - (cameraMode==='follow'?scrollOff * 12 * DEG:0);
@@ -403,7 +437,7 @@ export async function createRoom(container, bubbleEl) {
   let drag = null, pinch = 0, hovered = null, hdrag = null, lastHover = 0;
   let autonomousPauseUntil = 0;
   const pauseAutonomy = (ms = 18000) => { autonomousPauseUntil = performance.now() + ms; };
-  const el = renderer.domElement;el.tabIndex=0;el.setAttribute('aria-label','Décor : clic maintenu pour déplacer, Alt + glisser pour tourner, barre latérale pour zoomer');el.addEventListener('contextmenu',e=>e.preventDefault());
+  const el = renderer.domElement;el.tabIndex=0;el.setAttribute('aria-label','Décor : choisir Déplacer ou Tourner, puis maintenir et glisser ; flèches du clavier pour la même action ; barre latérale pour zoomer');el.addEventListener('contextmenu',e=>e.preventDefault());
   // Portrait Shupi : suivi du pointeur normalisé (-1..1), comme /info/?portrait.
   const updatePortraitLook = (e) => {
     if (e.pointerType === 'touch' || !hero.group.visible || !hero.lookAtPointer) return;
@@ -432,8 +466,8 @@ export async function createRoom(container, bubbleEl) {
     el.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
-      if (!appOpen && e.button===0 && !e.shiftKey && heroNear(e.clientX, e.clientY)) hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false };
-      else {el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:!e.altKey&&e.button!==2};}
+      if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false };
+      else {el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:navigationMode==='pan'&&!e.altKey&&e.button!==2};}
     }
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
   });
@@ -453,7 +487,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if(drag.moved>6){if(drag.pan)panCamera(dx,dy);else{setCameraMode('free');view.tAz-=dx*.006;view.tEl+=dy*.004;}el.style.cursor='grabbing';}
+        if(drag.moved>6){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='grabbing';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -486,19 +520,19 @@ export async function createRoom(container, bubbleEl) {
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
   // La molette garde le défilement natif de la page, même en caméra libre.
-  el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;setCameraMode('follow');});
-  el.addEventListener('keydown',e=>{if(e.key==='Escape'){setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();panCamera(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();setCameraMode('free');view.tZoom*=e.key==='-'?.8:1.25;}});
+  el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;selectNavigation('pan');setCameraMode('follow');});
+  el.addEventListener('keydown',e=>{if(e.key==='Escape'){selectNavigation('pan');setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const move=navigationMode==='rotate'?rotateCamera:panCamera;move(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();changeZoom(view.tZoom*(e.key==='-'?.8:1.25));}});
   el.style.cursor = 'grab';
 
   /* ─── navigation ─── */
   world.updateMatrixWorld(true);
-  const nav = createNav({ x0: -8.4, x1: 5.4, z0: -3.8, z1: 12.8, radius: 0.34 });
+  const nav = createNav({ x0: -8.4, x1: 5.4, z0: -4.8, z1: 12.8, radius: 0.34 });
   const footprint = (id, shrink = 0) => {
     const it = items.find((i) => i.id === id); if (!it) return;
     const bb = new THREE.Box3().setFromObject(it.holder);
     nav.block({ x0: bb.min.x + shrink, x1: bb.max.x - shrink, z0: bb.min.z + shrink, z1: bb.max.z - shrink });
   };
-  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike'].forEach((id) => footprint(id));
+  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike', 'pump', 'jblL', 'jblR'].forEach((id) => footprint(id));
   // Block pots and lower stems; overhead leaves must not close walkable aisles.
   for(const id of ['alocasia','dracaena','bonsai']){
     const plant=items.find(i=>i.id===id)?.holder;if(!plant)continue;
@@ -533,6 +567,7 @@ export async function createRoom(container, bubbleEl) {
   const stations = {
     desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
     coffee: S({label:'Boire dans la tasse bleue',clip:'Idle_Loop',nativeMode:'coffee',sourceTarget:'Ceramic coffee mug',maxMs:8500,pos:[-2.16,0,.87],yaw:-Math.PI/2,face:'happy',think:{obj:deskSet.getObjectByName('DeskMug'),scale:1.1}}),
+    bike: S({label:'Regonfler les pneus du vélo',clip:'Idle_Loop',maxMs:14500,pos:[3.18,0,-4.15],yaw:-Math.PI/2,face:'happy',think:{obj:bicyclePump?.root,scale:1.2}}),
     ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', nativeMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', seatBack: -0.10, seatSupport: seat(2.3, -0.95, ekYaw, -0.02), hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, 0), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.48, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
@@ -542,7 +577,22 @@ export async function createRoom(container, bubbleEl) {
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.ritual) { st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]])); if(st.can){st.pos[0]=st.approach[0];st.pos[2]=st.approach[1];} }
+  for(const [id,plant] of [['alocasia',alo],['bonsai',bonsai],['dracaena',dra]]){
+    stations[id].exit=()=>{
+      const p=hero.group.position,center=plant.getWorldPosition(new THREE.Vector3());
+      const dx=p.x-center.x,dz=p.z-center.z,len=Math.hypot(dx,dz)||1;
+      const from=[p.x,p.z];let to=from;
+      for(const d of [.6,.45,.3,.15]){
+        const q=[p.x+dx/len*d,p.z+dz/len*d];
+        if(nav.free(...q)&&nav.line(from,q)){to=q;break;}
+      }
+      return {from:to,steps:[{k:'face',yaw:Math.atan2(dx,dz)},...(to!==from?[{k:'walk',pts:[to]}]:[])]};
+    };
+  }
   stations.chair = stations.desk; stations.stool = stations.bonsai; stations.shoes = stations.cha; stations.chashitsu = stations.cha;
+  stations.pump=stations.bike;
+  // Approach stays on the walking grid; the final stance steadies the pump base.
+  stations.bike.pos[0]=2.95;stations.bike.pos[2]=-4.15;
 
   // Measure the actual support beneath the pelvis. The Ekstrem has an open
   // center; both side rails count as support. Back and armrests are excluded.
@@ -569,7 +619,7 @@ export async function createRoom(container, bubbleEl) {
 
   // Déplacements autonomes, comme sur le site de référence : le personnage se lève et va d'une activité à l'autre.
   // Ni vinyle (la musique ne démarre que sur un geste) ni tiroir ouvert : on laisse la main à l'utilisateur.
-  const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, stations.cha];
+  const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, stations.cha,...(bicyclePump?[stations.bike]:[])];
   let autonomousNext = performance.now() + 4500 + Math.random() * 3500;
   let autonomousActivitySince = 0, autonomousLast = null, autonomousPrevMode = '';
   const autonomousTick = () => {
@@ -579,7 +629,7 @@ export async function createRoom(container, bubbleEl) {
     const mode = director.mode;
     if (mode !== autonomousPrevMode) { if (mode === 'activity') autonomousActivitySince = now; autonomousPrevMode = mode; }
     const cur = director.current;
-    if (mode === 'activity' && cur !== stations.usm && autonomousActivitySince && now - autonomousActivitySince > (cur && cur.ritual ? 32000 : 11000)) {
+    if (mode === 'activity' && cur !== stations.usm && autonomousActivitySince && now - autonomousActivitySince > (cur?.maxMs || 11000)) {
       director.stand(); autonomousNext = now + 1800 + Math.random() * 2600; autonomousActivitySince = 0; return;
     }
     if (mode === 'idle' && now >= autonomousNext) {
@@ -654,7 +704,6 @@ export async function createRoom(container, bubbleEl) {
   mpCrate.addEventListener('click', (e) => { e.stopPropagation(); openCrate(!crate.isOpen); });
   pill.addEventListener('pointerdown', (e) => e.stopPropagation());
   let modelBaseY = null, thoughtFor = null, music = false, bubbleT = 0, spawned = false;
-  const speakers = []; // The music remains available through its controls.
   const record = tt.userData.record, arm = tt.userData.arm;
   let armAng = 0.5;
 
@@ -894,7 +943,7 @@ export async function createRoom(container, bubbleEl) {
       }
       if(nativeBridge&&spawned&&!greeted&&director.mode==='idle'){greeted=true;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
       if(greeted&&performance.now()>=greetingUntil)container.dataset.greeting='false';
-      const exactMotion = syncNativeMotionMode();
+      let exactMotion = syncNativeMotionMode();
       if (exactMotion !== 'idle') {
         if (exactMotion === 'water' && nativeBridge?.wateringCan) hero.can.visible = false;
       }
@@ -909,6 +958,12 @@ export async function createRoom(container, bubbleEl) {
             nativeBridge.setWaterTarget(hero, waterAt, (plant.userData.waterRadius || 0.12) * plant.getWorldScale(new THREE.Vector3()).x);
           }
           nativeBridge.update(dt);
+          // The source simulator may start another activity after watering.
+          // Hand control back before importing that new pose at the plant.
+          if(exactMotion==='water'&&nativeBridge.waterFinished){
+            director.stand();director.update(0);exactMotion=syncNativeMotionMode();
+            hero.poseStanding();actSince=0;
+          }
           // Les jambes des sièges locaux suivent leur propre assise, plus haute que celle de référence.
           if (exactMotion !== 'idle') nativeBridge.applyPose(hero, 1, director.current?.seatId && director.current!==stations.ekstrem ? { upperOnly:true } : {});
         } catch (error) { restoreLocalDesk(error); }
@@ -979,7 +1034,7 @@ export async function createRoom(container, bubbleEl) {
         if (exactMotion === 'read') nativeBridge.syncBook(hero);
         else if (nativeBridge.book) nativeBridge.book.visible = false;
 
-        if (exactMotion === 'water') { nativeBridge.syncWateringCan(hero); nativeBridge.aimWateringCan(hero, director.current.waterTarget); }
+        if (exactMotion === 'water'&&director.current?.waterTarget) { nativeBridge.syncWateringCan(hero); nativeBridge.aimWateringCan(hero, director.current.waterTarget); }
         else if (nativeBridge.wateringCan) nativeBridge.wateringCan.visible = false;
         nativeBridge.syncCoffeeMug(hero,deskSet);
         nativeBridge.syncEffects(hero);
@@ -987,6 +1042,7 @@ export async function createRoom(container, bubbleEl) {
       }
 
       const playingConsole = director.current === stations.sofa && director.mode === 'activity';
+      bicyclePump?.frame(dt,director.current===stations.bike&&director.mode==='activity',hero);
       retro.setPadHeld?.(playingConsole);
       if (playingConsole) poseGamepadHands();
       retro.updatePad?.(dt, hero.bones.hand_l, hero.bones.hand_r);
@@ -1019,7 +1075,6 @@ export async function createRoom(container, bubbleEl) {
     record.rotation.y += dt * (music ? 3.4 : 0);
     armAng += ((music ? 0.0 : 0.5) - armAng) * (1 - Math.exp(-dt * 3));
     arm.rotation.y = armAng;
-    for (const s of speakers) { const b = music ? 1 + Math.max(0, Math.sin(t * 9)) * 0.03 : 1; s.obj.scale.set(1, b, 1); }
     // lampes
     for (const k in lamps) {
       const L = lamps[k];

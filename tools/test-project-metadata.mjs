@@ -19,6 +19,13 @@ assert.equal(ppMoso.time,'15–20 min / PP');
 assert.equal(ppMoso.money,'26,19–34,91 € / PP');
 assert.equal(Math.round(15*Math.round(HOURLY_RATE*100)/60)/100,26.19);
 assert.equal(Math.round(20*Math.round(HOURLY_RATE*100)/60)/100,34.91);
+assert.equal(10*40/60,400/60);
+assert.equal((10*40/60*HOURLY_RATE).toFixed(2),'698.27');
+assert.equal((15*500/60*HOURLY_RATE).toFixed(2),'13092.50');
+assert.equal((20*500/60*HOURLY_RATE).toFixed(2),'17456.67');
+assert.match(ppMoso.extraGains[1].time,/6 h 40/);
+assert.match(ppMoso.extraGains[0].money,/13 092,50/);
+for(const id of ['projet-3','projet-4']){assert.match(PAGES[id].html,/500 plans de prévention/);assert.match(PAGES[id].html,/698,27/);assert.ok(!PAGES[id].html.includes('3 à 5 minutes'));}
 assert.equal(ppMoso.diag[1][2],'vm');
 assert.match(ppMoso.diag[2][1],/SharePoint/);
 assert.match(ppMoso.diag[3][0],/Archivage/);

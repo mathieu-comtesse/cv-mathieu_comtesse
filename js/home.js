@@ -1,6 +1,6 @@
 import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
-import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v29';
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v30';
+import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v31';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v31';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';

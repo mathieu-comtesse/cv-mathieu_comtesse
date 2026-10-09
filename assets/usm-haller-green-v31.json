@@ -1,0 +1,14 @@
+{
+  "source_sha256": "6cb24a020acf19ca5047bcbab9eb3144c6a0687d855ab3b5abc4505e8e32533d",
+  "source_unchanged": true,
+  "dimensions_m": [
+    1.5355007648468018,
+    0.544750988483429,
+    0.7414420247077942
+  ],
+  "meshes": 195,
+  "triangles": 26139,
+  "units": "cm converted to m",
+  "panel_finish": "green",
+  "surface_height_m": 0.7414420354366302
+}

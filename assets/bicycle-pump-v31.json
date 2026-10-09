@@ -1,0 +1,13 @@
+{
+  "height_m": 0.835,
+  "handle_stroke_m": 0.2,
+  "grip_separation_m": 0.2,
+  "required_nodes": [
+    "PumpPiston",
+    "GaugeNeedle",
+    "LeftGrip",
+    "RightGrip",
+    "HoseOutlet"
+  ],
+  "original_assets_modified": false
+}

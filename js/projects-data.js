@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v30';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v31';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -417,12 +417,16 @@ const bases = {
  cerfa: '50 €/document en retard : environ 1 000 documents identifiés. Pénalités applicables, pas des économies de personnel ni des sommes encaissées.',
  vre: '25/60 h × 104,74 €/h = 43,64 €/rapport ; environ 305 492–436 417 €/an pour 7 000–10 000 rapports.',
  studio: 'Environ 31–66 h de développement évitées par famille de PDF (journées de 7 h, contre 4 h avec le studio) × 104,74 €/h.',
- powerbi: '15–20/60 h × 104,74 €/h = 26,19–34,91 €/plan de prévention. Extraction des champs par la VM, rangement SharePoint et archivage automatiques ; durée fournie par Mathieu. La consultation du portail conserve son gain distinct (3–5 min → 10 s, environ 2 h/semaine), sans cumul sur une même action.',
+ powerbi: '15–20/60 h × 104,74 €/h = 26,19–34,91 €/plan de prévention. Extraction VM, rangement SharePoint et archivage automatiques. Sur 500 PP/an : 125–166,67 h et 13 092,50–17 456,67 €/an. Consultation distincte : 10 min × environ 40 consultations/jour = 6 h 40 et 698,27 €/jour. Aucun nombre de jours annuels supposé ; ces deux gains ne sont pas cumulés sur une même action.',
  suivi: 'Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.',
  gares: 'Environ 450 consultations/an × 10–15 min × 104,74 €/h ≈ 7 900–11 800 €/an. Parc concerné : environ 1 000 équipements.',
  finance: 'Durée et fréquence des contrôles manuels à renseigner pour calculer le gain à 104,74 €/h.'
 };
 for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=p.id==='finance'?'pending':p.id==='suivi'?'estimated':p.id==='cerfa'?'penalties':p.time===null?'none':'time-value'; }
+PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
+ {time:'125–167 h / an',timeCtx:'500 PP/an × 15–20 minutes : extraction VM, rangement SharePoint et archivage automatique',money:'13 092,50–17 456,67 € / an',moneyCtx:'500 plans de prévention traités à 104,74 €/h, calcul avant arrondi des heures'},
+ {time:'6 h 40 / jour',timeCtx:'10 minutes économisées par consultation × environ 40 consultations par jour',money:'698,27 € / jour',moneyCtx:'consultation des PP à 104,74 €/h ; aucun volume annuel de jours supposé'}
+];
 
 // « Construit avec » : langages, outils et méthodes réellement utilisés (relevés dans le code de chaque jeu). Talas : équipe et coproduction en plus.
 const T = (lang, outils, methode, dernier) => [['Langages', lang], ['Outils', outils], ['Méthode', methode], dernier];

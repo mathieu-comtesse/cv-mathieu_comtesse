@@ -850,6 +850,7 @@ export function speaker(flip = false, onStand = true) {
   for (const [x, y] of [[-0.088, 0.02], [0.088, 0.02], [-0.088, 0.3], [0.088, 0.3]]) cab.add(sph(0.0065, black, x, y, f + 0.003, 8, 6));
   g.add(cab);
   g.rotation.y = 0;
+  g.userData.terminalHeight=(onStand?.592:0)+H*.3;
   return bake(g);
 }
 
@@ -930,7 +931,7 @@ export function tower() {
 
 /** Bornes d'enceinte (rouge/noire) posées sur la face arrière d'une enceinte ; renvoie les points locaux de raccord. */
 export function speakerPosts(sp) {
-  const bb = new THREE.Box3().setFromObject(sp), zb = bb.min.z - 0.004, y = bb.min.y + (bb.max.y - bb.min.y) * 0.3;
+  const bb = new THREE.Box3().setFromObject(sp), zb = bb.min.z - 0.004, y = sp.userData.terminalHeight ?? bb.min.y + (bb.max.y - bb.min.y) * 0.3;
   const plate = box(0.1, 0.05, 0.008, mat('#111214', { roughness: 0.5 }), 0, y, zb + 0.002);
   sp.add(plate);
   [[-0.025, '#101010'], [0.025, '#c42424']].forEach(([x, c]) => { const p = cyl(0.009, 0.009, 0.014, mat(c, { roughness: 0.35, metalness: 0.3 }), x, y, zb - 0.004, 12); p.rotation.x = Math.PI / 2; sp.add(p); });

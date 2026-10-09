@@ -153,7 +153,7 @@ export const PRO = [
   "title": "Power BI",
   "sub": "Tableaux de bord et portail",
   "lead": "Concevoir des interfaces Power BI sur mesure en intégrant du HTML et du CSS dans les mesures DAX : tableaux de consultation, indicateurs et navigation adaptés aux besoins des équipes.",
-  "gain": "Retrouver un plan, son PDF et son échéance prend une dizaine de secondes au lieu de 3 à 5 minutes de recherche dans les classeurs et les dossiers partagés : sur une trentaine de consultations par semaine, environ 2 heures rendues à l’équipe.",
+  "gain": "10 minutes économisées par consultation, environ 40 consultations par jour : 6 h 40 et 698,27 € de temps valorisé par jour. Traitement de 500 PP/an : 15–20 minutes par PP, soit 125–167 h et 13 092,50–17 456,67 €/an, de l’extraction VM à l’archivage automatique dans SharePoint.",
   "team": "Consulter les PP valides ou archivés, les échéances et les données marché dans une interface lisible et personnalisée.",
   "url": "projet-4.html"
  },
