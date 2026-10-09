@@ -73,7 +73,9 @@ export function createNav({ x0, x1, z0, z1, cell = 0.1, radius = 0.16 }) {
       let m = k; for (let q = pts.length - 1; q >= k; q--) if (line(a, pts[q])) { m = q; break; }
       out.push(pts[m]); a = pts[m]; k = m + 1;
     }
-    out[out.length - 1] = [g[0], g[1]];
+    const beforeGoal=out.length>1?out[out.length-2]:s;
+    if(line(beforeGoal,g))out[out.length-1]=[g[0],g[1]];
+    else out.push([g[0],g[1]]);
     return out;
   }
   return { block, free, nearest, path, line, grid: { nx, nz, x0, z0, cell, blocked } };

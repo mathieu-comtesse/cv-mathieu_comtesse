@@ -42,6 +42,8 @@ jobs:
           node --check js/native-geometry.js
           node --check js/thought.js
           node --check js/director.js
+      - name: Check navigation around obstacles
+        run: node tools/test-navigation.mjs
       - name: Check iframe geometry compatibility
         run: node tools/test-native-geometry.mjs
       - name: Check scene entrypoints
