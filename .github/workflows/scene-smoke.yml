@@ -6,6 +6,8 @@ on:
     paths:
       - "index.html"
       - "js/**"
+      - "tools/test-project-metadata.mjs"
+      - "assets/dioramas/**"
       - "tools/test-native-geometry.mjs"
       - "tools/scene-test-profile.mjs"
       - "tools/test-scene-runtime.mjs"
@@ -33,8 +35,9 @@ jobs:
           node --check js/project-previews.js
           node --check js/personal-previews.js
           node --check js/process-symbols.js
-          node --check js/process-machines.js
+          node --check js/conveyor-motion.js
           node --check js/process-highlight.js
+          node --check js/process-machines.js
           node --check js/marquee.js
           node --check js/projects-data.js
           node --check js/kit.js
@@ -53,15 +56,19 @@ jobs:
         run: node tools/test-navigation.mjs
       - name: Check iframe geometry compatibility
         run: node tools/test-native-geometry.mjs
+      - name: Check professional project metadata
+        run: node tools/test-project-metadata.mjs
+      - name: Check conveyor axes and transport
+        run: node tools/test-conveyor-motion.mjs
       - name: Check suspended painting transforms
         run: node tools/test-static-transforms.mjs
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v28" index.html
-          grep -q "character.js?v=cv-scene-v28" js/room.js
-          grep -q "retro.js?v=cv-scene-v28" js/room.js
-          grep -q "room.js?v=cv-scene-v28" js/main.js
+          grep -q "js/main.js?v=cv-scene-v29" index.html
+          grep -q "character.js?v=cv-scene-v29" js/room.js
+          grep -q "retro.js?v=cv-scene-v29" js/room.js
+          grep -q "room.js?v=cv-scene-v29" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb

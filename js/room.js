@@ -1,17 +1,17 @@
-import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v28';
-import * as F from './furniture.js?v=cv-scene-v28';
-import { createCharacter } from './character.js?v=cv-scene-v28';
+import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
+import * as F from './furniture.js?v=cv-scene-v29';
+import { createCharacter } from './character.js?v=cv-scene-v29';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
-import { loadBuffer } from './kit.js?v=cv-scene-v28';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v28';
-import { createRitual } from './ritual.js?v=cv-scene-v28';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v28';
-import { createRetroSet } from './retro.js?v=cv-scene-v28';
-import { createNav } from './nav.js?v=cv-scene-v28';
-import { createDirector } from './director.js?v=cv-scene-v28';
-import { createThought } from './thought.js?v=cv-scene-v28';
-import { createWeather } from './weather.js?v=cv-scene-v28';
-import { createJukebox } from './jukebox.js?v=cv-scene-v28';
+import { loadBuffer } from './kit.js?v=cv-scene-v29';
+import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
+import { createRitual } from './ritual.js?v=cv-scene-v29';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v29';
+import { createRetroSet } from './retro.js?v=cv-scene-v29';
+import { createNav } from './nav.js?v=cv-scene-v29';
+import { createDirector } from './director.js?v=cv-scene-v29';
+import { createThought } from './thought.js?v=cv-scene-v29';
+import { createWeather } from './weather.js?v=cv-scene-v29';
+import { createJukebox } from './jukebox.js?v=cv-scene-v29';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 
@@ -152,7 +152,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v28')
+    import('./native-room.js?v=cv-scene-v29')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;

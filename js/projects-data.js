@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v28';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v29';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -362,34 +362,33 @@ const DIAG = {
       "check"
     ]
   ],
-  "charte": [
-    [
-      "Charte",
-      "Les règles visuelles communes sont définies.",
-      "design"
-    ],
-    [
-      "Composants",
-      "Boutons, tableaux et indicateurs partagent les mêmes conventions.",
-      "html"
-    ],
-    [
-      "Outils",
-      "CERFA, VRE, Studio et PP adoptent la même interface.",
-      "script"
-    ],
-    [
-      "Usage",
-      "Les écrans facilitent lecture, contrôle et export.",
-      "export"
-    ],
-    [
-      "Local",
-      "Aucune donnée n’est envoyée hors du poste.",
-      "vm"
-    ]
+  "moteur44": [
+  [
+    "SharePoint",
+    "Le rapport est pris en charge depuis SharePoint.",
+    "sharepoint"
+  ],
+  [
+    "Moteur V4.4",
+    "Le moteur rapproche les données du rapport de la bonne ligne du suivi Excel.",
+    "script"
+  ],
+  [
+    "Report dans Excel",
+    "Le report dans la bonne ligne remplace le copier-coller manuel depuis SharePoint : 5 minutes économisées par rapport.",
+    "excel"
+  ],
+  [
+    "Q18 visibles",
+    "Les Q18 deviennent visibles dans le suivi, alors qu’ils ne l’étaient pas auparavant.",
+    "q18"
+  ],
+  [
+    "Suivi mis à jour",
+    "Les données du rapport et les Q18 sont visibles dans le suivi Excel.",
+    "excel"
   ]
-};
+]};
 
 // Chaque carte : un gain de TEMPS et un gain d'ARGENT (taux horaire de 104,74 € utilisé dans le CV), par process et par projet. 'ctx' = ce que le chiffre mesure.
 const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, title, sub, time, timeCtx, money, moneyCtx, img, pro: byId[pro] || null, diag: DIAG[id] || [] });
@@ -397,6 +396,7 @@ const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, t
 export const PRO_CARDS = [
   G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', 'À chiffrer', 'temps de contrôle manuel économisé par les quatre flux CS, Locatif, MEC et PPTM', 'À chiffrer', 'valorisation du temps économisé à 104,74 €/h ; volume et durée de référence à renseigner', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
   G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000–2 500 h par an pour 4 000–5 000 rapports VRE/VLE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480–261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
+  G('moteur44', 'Moteur V4.4', 'SharePoint → bonne ligne Excel · Q18 visibles', '5 min / rapport', 'copier-coller de SharePoint vers la bonne ligne Excel évité ; Q18 désormais visibles', '8,73 € / rapport', 'valorisation des 5 minutes économisées à 104,74 €/h', 'assets/dioramas/moteur44.png?v=cv-scene-v29', 'projet-moteur44'),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
   G('cerfa', 'CERFA v3', 'Fiches et attestations devenues données du parc', '≈ 20–25 h → minutes', 'dépouillement d’un lot de 300 fiches CERFA et attestations (≈ 5 min par fiche à la main)', '50 000 €', 'de pénalités de retard identifiées et applicables', 'assets/projets/cerfa.jpg?v=bf01a16', 'projet-1'),
   G('vre', 'Extracteur VRE', 'Rapports de vérification électrique', '25 min', 'gagnées par rapport, sur 7 000 à 10 000 rapports par an', '44 €', 'par rapport traité, saisie directe dans le classeur de suivi', 'assets/projets/vre.jpg?v=bf01a16', 'projet-vre'),
@@ -405,13 +405,13 @@ export const PRO_CARDS = [
   G('suivi', 'Retrouver tout le suivi', 'OT, équipement, bâtiment', '10–15 min', 'gagnées par recherche (≈ 1 h quand elle passe par d’autres outils)', '118–589 k€', 'par an, estimation à confirmer (14 utilisateurs, ≈ 26 € la recherche)', 'assets/projets/suivi.jpg?v=bf01a16', 'projet-2'),
   G('gares', 'Gares prioritaires', 'Vigilance et criticité des gares', '10–15 min', 'gagnées par équipement consulté, probablement davantage', '7 900–11 800 €', 'par an (≈ 1 000 équipements, 2 consultations par jour)', 'assets/projets/gares.jpg?v=bf01a16', 'projet-gares'),
   G('terrain', 'Dialogue terrain', 'Processus EPM / EPTx', null, '', null, '', 'assets/projets/terrain.jpg?v=bf01a16', 'projet-5'),
-  G('charte', 'Interface commune', 'Une UI/UX pour tous les outils', null, '', null, '', 'assets/projets/charte.jpg?v=bf01a16', 'projet-charte'),
 ];
 
 
 // Base de valorisation : coût horaire du CV, pas un encaissement financier.
 export const HOURLY_RATE = 104.74;
 const bases = {
+ moteur44: '5/60 h × 104,74 €/h = 8,73 €/rapport. Gain sur le copier-coller SharePoint vers la bonne ligne Excel ; durée fournie par Mathieu. Les Q18 sont désormais visibles dans le suivi.',
  vmvre: '0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu.',
  pa: '40 min/jour × environ 225 jours/an × 104,74 €/h ≈ 15 700 €/an. Temps de contrôle et saisie des plans de prévention.',
  cerfa: '50 €/document en retard : environ 1 000 documents identifiés. Pénalités applicables, pas des économies de personnel ni des sommes encaissées.',

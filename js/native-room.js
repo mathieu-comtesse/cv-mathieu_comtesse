@@ -1,4 +1,4 @@
-import { THREE } from './kit.js?v=cv-scene-v28';
+import { THREE } from './kit.js?v=cv-scene-v29';
 import { cloneNativeObject } from './native-geometry.js?v=render-recovery-v10';
 
 const SOURCE_TO_TARGET = {

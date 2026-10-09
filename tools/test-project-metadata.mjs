@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const moduleURL=t=>'data:text/javascript;base64,'+Buffer.from(t).toString('base64');
+const data=await readFile(new URL('../js/data.js',import.meta.url),'utf8');
+const source=(await readFile(new URL('../js/projects-data.js',import.meta.url),'utf8')).replace(/from '\.\/data\.js\?[^']+'/g,"from '"+moduleURL(data)+"'");
+const {PRO_CARDS,HOURLY_RATE}=await import(moduleURL(source));
+const {PAGES}=await import(moduleURL(await readFile(new URL('../js/pages.js',import.meta.url),'utf8')));
+assert.ok(!PRO_CARDS.some(p=>p.id==='charte'));
+assert.equal(PAGES['projet-charte'],undefined);
+const moteur=PRO_CARDS.find(p=>p.id==='moteur44');
+assert.ok(moteur&&moteur.pro&&PAGES[moteur.pro.id]);
+assert.equal(moteur.diag.length,5);
+assert.equal(moteur.money,'8,73 € / rapport');
+assert.equal((5/60*HOURLY_RATE).toFixed(2),'8.73');
+assert.ok(moteur.timeCtx.includes('bonne ligne Excel')&&moteur.timeCtx.includes('Q18'));
+assert.equal(moteur.diag[3][2],'q18');
+for(const project of PRO_CARDS){
+ const file=await readFile(new URL('../assets/dioramas/'+project.id+'.glb',import.meta.url));
+ assert.equal(file.toString('ascii',0,4),'glTF');
+ const gltf=JSON.parse(file.toString('utf8',20,20+file.readUInt32LE(12)));
+ for(let i=0;i<project.diag.length;i++)assert.ok(gltf.nodes.some(n=>n.name==='StepAnchor_'+i),project.id+' missing action '+i);
+}
+console.log('PASS: professional project replacement, time valuation and authored action anchors');

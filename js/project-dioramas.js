@@ -1,8 +1,8 @@
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v28';
-import { initProcessMachines } from './process-machines.js?v=cv-scene-v28';
-import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
-import { createMarquee } from './marquee.js?v=cv-scene-v28';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v29';
+import { initProcessMachines } from './process-machines.js?v=cv-scene-v29';
+import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
+import { createMarquee } from './marquee.js?v=cv-scene-v29';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 function orbit(camera,canvas){
@@ -15,13 +15,13 @@ function orbit(camera,canvas){
 }
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const palettes={pa:'#328b81',finance:'#cd9355',vmvre:'#587cb3',cerfa:'#df725b',vre:'#668dab',studio:'#bc819e',powerbi:'#c5a647',suivi:'#628d85',gares:'#88a85a',terrain:'#c4835c',charte:'#847eae'};
+const palettes={pa:'#328b81',finance:'#cd9355',vmvre:'#587cb3',cerfa:'#df725b',vre:'#668dab',studio:'#bc819e',powerbi:'#c5a647',suivi:'#628d85',gares:'#88a85a',terrain:'#c4835c',moteur44:'#298b81'};
 const cache=new Map();
-const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v25`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
+const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v29`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
 
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
-  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v25" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
+  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v29" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
   createMarquee(host, { loopEnd: -1 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
   initWorkshopPreviews(host,projects,load,palettes);
@@ -76,7 +76,7 @@ export function initProjectDioramas(host,projects){
     const test=modal.querySelector('.process-test');test.hidden=!['finance','vmvre'].includes(current.id);test.textContent=current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));
     if(!reduced){stage.animate([{opacity:.2,transform:'translateY(28px) scale(.84)'},{opacity:1,transform:'none'}],{duration:650,easing:'cubic-bezier(.16,1,.3,1)'});modal.querySelector('.process-copy').animate([{opacity:0,transform:'translateY(15px)'},{opacity:1,transform:'none'}],{duration:600,delay:100,fill:'backwards'});}
-    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v25`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
+    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v29`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
     try{
       setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);machines=initProcessMachines(model,current.diag,palettes[current.id],current.id);
       const sparkGroup=new THREE.Group();sparkGroup.name='ProcessConfirmation';model.add(sparkGroup);

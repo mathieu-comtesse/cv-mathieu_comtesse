@@ -1,12 +1,12 @@
 import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
-import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v28';
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v28';
+import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v29';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v29';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';
 import { initFlip } from './flip.js?v=bf01a16';
 import { initFlipText } from './fliptext.js?v=bf01a16';
-import { createMarquee } from './marquee.js?v=cv-scene-v28';
+import { createMarquee } from './marquee.js?v=cv-scene-v29';
 
 // Les descriptions parlent de Mathieu à la troisième personne et restent complètes.
 const texteProjet = (t) => String(t || '');

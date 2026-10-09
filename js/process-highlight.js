@@ -9,7 +9,7 @@ export function createActionHighlight(model, steps, activity, accent) {
     vre:['ActivityDocument','LiveRobot_Probe|ActivityDocument','LiveRobot_Probe|ActivityDocument','LiveRobot_Probe|ActivityDocument','ActivityDocument','ActivityDocument'],
     studio:['Paper roll|ActivityDocument','PaperRobot|ActivityDocument','MachineSheetCutter|ActivityDocument','MachineSheetCutter|ActivityDocument','ActivityDocument','LivePaperRoller|ActivityDocument','ActivityDocument'],
     powerbi:['ActivityDocument','LiveRoller_Data|ActivityDocument','LiveRobot_Aggregation|ActivityDocument','LiveRobot_Aggregation|ActivityDocument','Interface panel|ActivityDocument','Dashboard[ _]metric|ActivityDocument','ActivityDocument'],
-    charte:['ActivityDocument','LiveRobot_Interface|ActivityDocument','LiveRoller_Interface|ActivityDocument','UI[ _]component|ActivityDocument','Data server|ActivityDocument'],
+    moteur44:['SharePointArchive|ActivityDocument','Moteur44Engine|Moteur44Scanner|ActivityDocument','Moteur44TargetRow|Moteur44ExcelRecord','Moteur44Q18Record','ExcelRegister|Moteur44Q18Record'],
     terrain:['ActivityRawBillet','Forge hearth|Crucible|Molten','MachineForgeHammer|Forge anvil|ActivityRawBillet','MachineCraneCarriage|ActivityForgedPart','Quality scanner|ActivityForgedPart'],
     suivi:['Vehicle_barge','PortCrane|PortTransferredContainer','Vehicle_forklift|PortTransferredContainer','Warehouse|DockDoor','ActivityDocument','ActivityDocument'],
     gares:['Vehicle_train|ActivityDocument','MachineRailSignal|ActivityDocument','Dashboard[ _]metric|ActivityDocument','ActivityDocument','ActivityDocument','MachineRailSignal|ActivityDocument'],

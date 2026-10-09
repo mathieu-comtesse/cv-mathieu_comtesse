@@ -104,14 +104,14 @@ export const PRO = [
   "url": "projet-studio.html"
  },
  {
-  "id": "projet-charte",
-  "title": "Interface commune",
-  "sub": "Une UI/UX pour tous les outils",
-  "lead": "Studio, extracteurs générés, injecteur, outils de plans de prévention : tous les outils livrés dernièrement partagent la même interface, rapports Power BI et mails automatiques compris. Fond papier, encre noire, filets et ombres franches, titres à empattements, commandes et étiquettes en police monospace, accent bleu clair pour les zones actives. Une personne qui a utilisé un outil sait déjà se servir du suivant.",
-  "gain": "",
-  "team": "",
-  "url": "projet-charte.html"
- },
+  "id": "projet-moteur44",
+  "title": "Moteur V4.4",
+  "sub": "SharePoint, ligne Excel et Q18 visibles",
+  "lead": "Le moteur V4.4 rend les Q18 visibles dans le suivi, alors qu’ils ne l’étaient pas auparavant. Il remplace le copier-coller depuis SharePoint vers la bonne ligne du classeur Excel.",
+  "gain": "5 minutes économisées par rapport sur le report SharePoint → Excel. Au taux horaire du CV de 104,74 €/h : 5/60 × 104,74 = 8,73 € de temps libéré par rapport.",
+  "team": "Les données arrivent à la bonne ligne et les Q18 deviennent visibles dans le suivi.",
+  "url": "projet-moteur44.html"
+},
  {
   "id": "projet-1",
   "title": "CERFA v3",

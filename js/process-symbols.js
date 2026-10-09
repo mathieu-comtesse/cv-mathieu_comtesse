@@ -13,6 +13,7 @@ const shapes={
  inject:'<path d="M5 21v8h22v-8M16 2v20m-7-7 7 7 7-7"/>',
  sharepoint:'<circle cx="21" cy="11" r="8" fill="#038387"/><circle cx="22" cy="23" r="7" fill="#41b7b0"/><rect x="2" y="7" width="17" height="20" rx="2" fill="#07757b"/><path d="M14 12H8v5h6v5H8" fill="none" stroke="white" stroke-width="2"/>',
  pdf:'<path d="M6 2h14l6 6v22H6zM20 2v7h6"/><text x="8" y="23" font-size="8" fill="currentColor" stroke="none" font-family="Arial">PDF</text>',
+ q18:'<path d="M6 2h14l6 6v22H6zM20 2v7h6"/><text x="8" y="23" font-size="8" fill="currentColor" stroke="none" font-family="Arial">Q18</text>',
  check:'<circle cx="16" cy="16" r="12"/><path d="m9 16 5 5 10-11"/>',
  queue:'<path d="M3 7h20m-4-4 4 4-4 4M9 16h20m-4-4 4 4-4 4M3 25h20m-4-4 4 4-4 4"/>',
  chart:'<path d="M4 3v25h25M9 23v-8h4v8m4 0V9h4v14m4 0V4h4v19"/>',

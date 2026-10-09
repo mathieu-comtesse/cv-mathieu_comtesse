@@ -1,15 +1,16 @@
-import { createActionHighlight } from './process-highlight.js?v=cv-scene-v28';
+import { createConveyorMotion } from './conveyor-motion.js?v=cv-scene-v29';
+import { createActionHighlight } from './process-highlight.js?v=cv-scene-v29';
 import * as THREE from 'three';
-import { processSymbol } from './process-symbols.js?v=cv-scene-v20';
+import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 
 // The authored machines transform incoming tool symbols into tangible data.
 export function initProcessMachines(model, steps, accent, activity) {
   const heads = steps.map((_,i) => model.getObjectByName('MachineHead_' + i));
   const outputs = steps.map((_,i) => model.getObjectByName('MachineOutput_' + i));
-  const rollers = steps.map((_,i) => model.getObjectByName('MachineRoller_' + i));
+  const conveyors=createConveyorMotion(model);
   const lamps = steps.map((_,i) => model.getObjectByName('MachineStatus_' + i));
   const live=[];
-  model.traverse(o=>{if(/^LiveRobot_|^LiveFan_|^LiveRailTrolley|^LiveRoller_/.test(o.name))live.push(o);});
+  model.traverse(o=>{if(/^LiveRobot_|^LiveFan_|^LiveRailTrolley/.test(o.name))live.push(o);});
   const special = [];
   model.traverse(o => {
     o.userData.machineRest = {p:o.position.clone(), q:o.quaternion.clone(), s:o.scale.clone()};
@@ -46,7 +47,7 @@ export function initProcessMachines(model, steps, accent, activity) {
       for(const o of live){const rest=o.userData.machineRest;if(/^LiveRobot_/.test(o.name))o.rotation.y=.32*Math.sin(clock*1.8);else if(/^LiveRailTrolley/.test(o.name))o.position.x=Math.sin(clock*.4)*1.6;else if(playing)o.rotation.z+=dt*2.8;}
       heads.forEach((head,i)=>{if(head)head.position.y=head.userData.machineRest.p.y-(i===step?.16*stroke:0);});
       outputs.forEach((out,i)=>{if(out){const visible=i<step?1:i===step?Math.min(1,Math.max(0,(progress-.48)*3)):0;out.scale.setScalar(billet?0:i===step?visible:0);}});
-      rollers.forEach((roller,i)=>{if(roller&&playing&&i===step)roller.rotateY(dt*5);});
+      conveyors.update(dt,playing);
       lamps.forEach((lamp,i)=>{if(lamp){lamp.material.emissive.set(i===step?(exception?'#8d210b':accent):'#000000');lamp.material.emissiveIntensity=i===step?.6+.35*stroke:0;}});
       for(const o of special){
         const rest=o.userData.machineRest;
@@ -63,6 +64,17 @@ export function initProcessMachines(model, steps, accent, activity) {
         document.rotation.z=progress<.6?Math.sin(progress*Math.PI)*.12:0;
         document.traverse(o=>{if(/Document_field/.test(o.name)){o.scale.x=.5+.5*ease(progress*2);o.material.color.set(steps[step][2]==='excel'?'#27804d':steps[step][2]==='html'?'#8c62ad':steps[step][2]==='powerbi'?'#e8bd33':accent);}});
       }
+      if(activity==='moteur44'){
+        const rotor=model.getObjectByName('Moteur44Rotor'),scanner=model.getObjectByName('Moteur44Scanner'),row=model.getObjectByName('Moteur44TargetRow'),record=model.getObjectByName('Moteur44ExcelRecord'),q18=model.getObjectByName('Moteur44Q18Record'),cover=model.getObjectByName('Moteur44Q18Shutter');
+        if(rotor&&playing&&step===1)rotor.rotation.z+=dt*3.2;
+        if(scanner)scanner.position.x=scanner.userData.machineRest.p.x+(step===1?.52*Math.sin(progress*Math.PI*2):0);
+        if(row)row.position.y=row.userData.machineRest.p.y+(step===1?.32*Math.sin(progress*Math.PI*4)*(1-progress):0);
+        if(record){record.visible=step>=2;record.scale.x=step===2&&playing?Math.max(.03,ease(progress*2)):1;}
+        if(q18)q18.visible=step>=3;
+        if(cover)cover.position.y=cover.userData.machineRest.p.y+(step>=3?1.03*(step===3&&playing?ease(progress*3):1):0);
+        if(document)document.visible=step<2||(step===2&&progress<.6);
+        model.userData.moteur44State={step,rowMatched:step>=2,excelWritten:step>=2&&(!playing||progress>=.5),q18Visible:step>=3&&(!playing||progress>=.34)};
+      }
       const crane=model.getObjectByName('MachineCraneCarriage');
       const get=n=>model.getObjectByName(n),rest=n=>get(n)?.userData.machineRest.p;
       const pour=step===1&&progress>.38&&progress<.82;
@@ -72,7 +84,6 @@ export function initProcessMachines(model, steps, accent, activity) {
       const pool=get('MoltenSteelPool');if(pool)pool.material.emissiveIntensity=2.1+Math.sin(clock*9)*.5;
       const cutter=get('MachineSheetCutter');if(cutter)cutter.position.y=cutter.userData.machineRest.p.y-(step>0&&step<4?.28*stroke:0);
       const robot=get('PaperRobot');if(robot)robot.rotation.y=step>1&&step<4?Math.sin(progress*Math.PI*2)*.4:0;
-      model.traverse(o=>{if(o.name.startsWith('LivePaperRoller')&&playing&&step<4)o.rotateY(dt*3);});
       const lift=get('DeliveryForklift'),liftLoad=get('DeliveryForkLoad'),van=get('Vehicle_mail_van'),vanCargo=get('VanCargo');
       if(lift){const t=ease(progress);lift.position.copy(lift.userData.machineRest.p);
         if(step===1){lift.position.x+=1.35*t;lift.position.z-=.45*Math.sin(t*Math.PI);lift.rotation.y=.15*Math.sin(t*Math.PI);}
@@ -119,6 +130,6 @@ export function initProcessMachines(model, steps, accent, activity) {
       highlight.update(step,elapsed,playing);
       sparks.forEach((p,i)=>{const t=Math.min(1,(clock-impact)*2.4+i/90),active=step===2&&clock-impact<.42;p.position.set(-.4+Math.sin(i*2.4)*t*.42,.88+Math.sin(t*Math.PI)*.28,-.28+Math.cos(i*2.4)*t*.36);p.material.opacity=active?(1-t)*.95:0;});
     },
-    dispose(){highlight.dispose();}
+    dispose(){highlight.dispose();conveyors.dispose();}
   };
 }
