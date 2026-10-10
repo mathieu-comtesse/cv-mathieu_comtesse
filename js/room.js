@@ -1,5 +1,5 @@
 import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
-import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v50a';
+import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v51';
 import {yamahaTurntable} from './user-props.js?v=cv-scene-v50';
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
 import * as F from './furniture.js?v=cv-scene-v50';
@@ -9,7 +9,7 @@ import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
-import { createRetroSet } from './retro.js?v=cv-scene-v50';
+import { createRetroSet } from './retro.js?v=cv-scene-v51';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v44';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -21,7 +21,7 @@ import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v49';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
-import {createFilmAlbum} from './film-album.js?v=cv-scene-v50';
+import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -173,7 +173,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v44')
+    import('./native-room.js?v=cv-scene-v51')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -330,6 +330,15 @@ export async function createRoom(container, bubbleEl) {
   const filmCamera=mamiyaModel.scene;filmCamera.name='Mamiya6451000S';filmCamera.userData.batchRoot=true;filmCamera.userData.photoGalleryTarget=true;filmCamera.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
   add('mamiya',filmCamera,.62,0,Math.PI,1.303,0,whiteShelf,0);
 
+
+  // Secondary props load after the interactive room; batch their static surfaces.
+  const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb'].map(model)).then(([bagModel,polesModel,stoneModel])=>{
+    const install=(model,name,parent,x,y,z,yaw=0)=>{const root=model.scene;root.name=name;root.userData.batchRoot=true;root.position.set(x,y,z);root.rotation.y=yaw;root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});parent.add(root);mergeStatic(root);return root;};
+    install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38);
+    install(polesModel,'HikingPoles',world,-2.90,0,-1.69,.18);
+    const stone=install(stoneModel,'SuisekiKamogawaishi',whiteShelf,-.535,.835,0,0);stone.scale.setScalar(.90);
+    container.dataset.detailProps='ready';renderer.shadowMap.needsUpdate=true;
+  }).catch(e=>{container.dataset.detailProps='error';console.warn('[Room props]',e);});
 
   // positions des sources lumineuses (repère monde)
   const yawed = (v, yaw, ox, oz) => { v = v.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); return [ox + v.x, v.y, oz + v.z]; };
@@ -821,7 +830,7 @@ export async function createRoom(container, bubbleEl) {
     hero, ritual, nav, floorY,
     ui: {
       poof: (p) => poof(p),
-      activityEnd: (st, reason) => { pumpSound.stop(); if (st.ritual && reason !== 'leave') cs.setPanels(0); },
+      activityEnd: (st, reason) => { pumpSound.stop();if(st.tv){retro.powerOff();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));} if (st.ritual && reason !== 'leave') cs.setPanels(0); },
       music: () => {},
       say: (st) => {
         if (!st) { thoughtFor = null; thoughtEl.classList.remove('show'); return; }
@@ -855,7 +864,7 @@ export async function createRoom(container, bubbleEl) {
     if (v === crate.isOpen) return;
     crate.setOpen(v); crateHover = -1;
     if (appOpen) return;
-    if(v){setCameraMode('free');tgt.copy(crateFocus);view.tZoom=6;}
+    if(v){setCameraMode('free');tgt.copy(crateFocus);view.tZoom=6;}else resetFocus();
   }
   function playTrack(i) {
     jukebox.play(i);                                           // le tiroir reste ouvert pendant la diffusion ; seul un clic sur le tiroir, le bouton ou Échap le referme
@@ -873,6 +882,7 @@ export async function createRoom(container, bubbleEl) {
   const goTo = (id, cb) => { afterEnter = cb || null; director.go(stations[id]); };
 
   let appOpen = false;
+  function resetFocus(){view.tZoom=1;syncZoom();setCameraMode('follow');}
   function openApp(kind, pos, zoom) {
     if (appOpen) return; appOpen = true;
     setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;
@@ -881,7 +891,7 @@ export async function createRoom(container, bubbleEl) {
     setTimeout(() => window.dispatchEvent(new CustomEvent('room-open', { detail: { kind } })), kind === 'xp' ? 1200 : 750);
   }
   window.addEventListener('room-close', (e) => {
-    appOpen = false;
+    appOpen = false;resetFocus();
     if (e.detail && e.detail.kind === 'retro') {retro.powerOff();ps1Sound.exit();}
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
@@ -913,6 +923,7 @@ export async function createRoom(container, bubbleEl) {
   };
   const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
   function activate(id) {
+    if(id==='ps1power'){if(retro.state==='off'||retro.state==='closing')retro.powerOn(true);else{retro.powerOff();ps1Sound.exit();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));}return;}
     if(id==='deskstrip'){deskEquipment?.setPower(!deskEquipment.powered);container.dataset.deskPower=deskEquipment?.powered?'on':'off';return;}
     if(id==='mamiya'){filmAlbum.open();return;}
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
@@ -929,7 +940,7 @@ export async function createRoom(container, bubbleEl) {
     if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; if(id==='screenbar')refreshScreenbar(); return; }
     if (stations[id]) goTo(id);
   }
-  const leave = () => director.stand();
+  const leave = () => {resetFocus();director.stand();};
 
   /* gouttes d'arrosage */
 
@@ -1135,7 +1146,15 @@ export async function createRoom(container, bubbleEl) {
       bubbleT += dt;
       const showB = !!thoughtFor && ['thinking','walk','turn'].includes(director.mode) && !appOpen && bubbleT > 0.35;
       thoughtEl.classList.toggle('show', showB);
-      if (showB) { if (frameNo % 3 === 0) thought.update(dt * 3); v3.set(0, 0, 0); hero.head.getWorldPosition(v3); v3.y += 0.42; v3.project(camera); thoughtEl.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 30, 215)}px) translate(-50%, -100%)`; }
+      if(showB){
+        if(frameNo%3===0)thought.update(dt*3);
+        hero.head.getWorldPosition(v3);v3.project(camera);
+        const hx=(v3.x+1)*W/2,hy=(1-v3.y)*H/2,bw=thoughtEl.offsetWidth||176,bh=thoughtEl.offsetHeight||160;
+        const bx=Math.max(bw/2+6,Math.min(W-bw/2-6,hx)),by=hy-34;
+        thoughtEl.style.transform=`translate(${bx}px, ${by}px) translate(-50%, -100%)`;
+        thoughtEl.dataset.headX=String(hx);thoughtEl.dataset.headY=String(hy);
+        thoughtEl.style.setProperty('--tail-offset',`${hx-bx}px`);
+      }
     }
     for (const z of zones) { if(z.id==='pump')z.ring.visible=zoneOn||hovered==='pump'||hovered==='bike'||(director.mode==='activity'&&director.current===stations.bike); if(!z.ring.visible)continue; const near = z === zoneNear; z.ring.material.opacity = near ? 1 : 0.55 + Math.sin(t * 5) * 0.2; z.ring.scale.setScalar(near ? 1.25 : 1 + Math.sin(t * 5) * 0.05); z.ring.material.color.set(near ? '#fff3b0' : '#ffb23d'); }
     for (const p of puffs) {
@@ -1198,5 +1217,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
+  return { detailPropsReady, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }

@@ -17,6 +17,9 @@ on:
       - "tools/test-film-book-v50.mjs"
       - "tools/test-ps1-v50.mjs"
       - "assets/*-v50.*"
+      - "assets/*-v51.*"
+      - "info.html"
+      - "tools/test-v51-interactions.mjs"
       - "style.css"
       - "tools/test-scene-runtime.mjs"
       - "tools/test-scene-lifecycle.mjs"
@@ -108,10 +111,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v50a" index.html
+          grep -q "js/main.js?v=cv-scene-v51" index.html
           grep -q "character.js?v=cv-scene-v49" js/room.js
-          grep -q "retro.js?v=cv-scene-v50" js/room.js
-          grep -q "room.js?v=cv-scene-v50a" js/main.js
+          grep -q "retro.js?v=cv-scene-v51" js/room.js
+          grep -q "room.js?v=cv-scene-v51" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb
@@ -136,6 +139,8 @@ jobs:
         run: node tools/test-v49-seat-book.mjs
       - name: Check supplied props, power strip, foliage, PS1 sounds and financial emails
         run: node tools/test-v49-features.mjs
+      - name: Check mobile scroll, PS1 power, props and minimal album
+        run: node tools/test-v51-interactions.mjs
       - name: Check bound floating photo book
         run: node tools/test-film-book-v50.mjs
       - name: Check PS1 video timing and menu sounds

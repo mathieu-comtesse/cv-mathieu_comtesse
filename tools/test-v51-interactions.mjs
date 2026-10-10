@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import path from 'node:path';
+import {sceneTestProfile} from './scene-test-profile.mjs';
+const {chromium}=await import(process.env.PLAYWRIGHT_PACKAGE?pathToFileURL(process.env.PLAYWRIGHT_PACKAGE).href:'playwright');
+const root=fileURLToPath(new URL('../',import.meta.url)),output=path.resolve(root,process.env.SCENE_TEST_OUTPUT||'../../outputs/v51');await mkdir(output,{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE,args:['--enable-webgl','--use-angle='+(process.env.SCENE_WEBGL_BACKEND||'swiftshader'),'--enable-unsafe-swiftshader']});
+const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true}),page=await context.newPage(),errors=[],evidence={};page.on('pageerror',e=>{errors.push(e.message);console.log('ERROR',e.message)});page.setDefaultTimeout(120000);
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.glb':'model/gltf-binary','.svg':'image/svg+xml','.mp3':'audio/mpeg','.mp4':'video/mp4'};
+if(!process.env.SCENE_PUBLIC_URL)await context.route('http://scene.test/**',async route=>{const u=new URL(route.request().url()),f=path.resolve(root,'.'+decodeURIComponent(u.pathname==='/'?'/index.html':u.pathname));try{await route.fulfill({body:await readFile(f),contentType:types[path.extname(f)]||'application/octet-stream'});}catch{await route.fulfill({status:404,body:u.pathname});}});
+const base=process.env.SCENE_PUBLIC_URL||'http://scene.test/';
+const cdp=await context.newCDPSession(page);
+const swipe=async(x,y,dx,dy,hold=0,delay=22)=>{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});if(hold)await page.waitForTimeout(hold);for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/12,y:y+dy*i/12}]});await page.waitForTimeout(delay);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(700);};
+const head=()=>page.evaluate(()=>{const f=document.querySelector('iframe'),a=f.contentWindow.shupiPortrait.scene,r=f.getBoundingClientRect(),v=a._target.clone();a.character.getObjectByName('Base_HumanHead').getWorldPosition(v);v.project(a.camera);return{x:r.left+(v.x+1)*r.width/2,y:r.top+(1-v.y)*r.height/2};});
+try{
+ await page.goto(new URL('info.html',base).href);await page.waitForFunction(()=>document.querySelector('iframe')?.contentWindow?.shupiPortrait);await page.waitForTimeout(500);
+ evidence.info=[];
+ for(const hold of [0,400,1200]){
+  await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(200);const p=await head();let before=await page.evaluate(()=>scrollY);await swipe(p.x,p.y,0,-160,hold,hold?50:16);const down=await page.evaluate(()=>scrollY)-before;assert.ok(down>100,'Défilement sur la tête après '+hold+' ms');
+  before=await page.evaluate(()=>scrollY);await swipe(190,230,0,160,hold);const up=before-await page.evaluate(()=>scrollY);assert.ok(up>100,'Défilement vers le haut après '+hold+' ms');evidence.info.push({hold,down,up});console.log('INFO_SCROLL',hold,down,up);
+ }
+ await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(250);const hp=await head();await swipe(hp.x,hp.y,75,0,400);evidence.headInteraction=await page.evaluate(()=>{const a=document.querySelector('iframe').contentWindow.shupiPortrait.scene;let n=0;a.character.traverse(o=>{if(o.name.endsWith(' deformable'))n+=o.geometry.attributes.position.count});return n;});assert.ok(evidence.headInteraction>0);
+ await page.locator('nav a').filter({hasText:'Projets'}).click();await page.waitForURL(/index\.html$/);assert.equal(await page.evaluate(()=>scrollY),0);assert.equal(new URL(page.url()).hash,'');console.log('NAV_TOP_OK');
+ await page.waitForFunction(()=>document.querySelector('#room')?.dataset.sceneReady==='true');await page.evaluate(()=>{room.pauseAutonomy(600000);room.opts.noAdapt=true});await sceneTestProfile(page);
+ await page.waitForFunction(()=>document.querySelector('#room').dataset.detailProps==='ready');
+ await page.evaluate(()=>room.activate('mamiya'));await page.waitForFunction(()=>document.querySelector('.film-album')?.dataset.modelReady==='true'&&document.querySelector('.film-loading').hidden);
+ const album=page.locator('.film-album');assert.equal(await album.locator('header button').count(),1);assert.equal(await album.locator('footer,.film-kicker,.film-book-hint,h2').count(),0);
+ await page.screenshot({path:path.join(output,'livre-mobile-sans-commandes.png')});
+ const br=await album.locator('.film-book').boundingBox();await page.mouse.click(br.x+br.width*.5,br.y+br.height*.5);await page.waitForFunction(()=>document.querySelector('.film-album').dataset.cover==='open'&&document.querySelector('.film-album').dataset.turning==='false');
+ await page.screenshot({path:path.join(output,'livre-ouvert-sans-commandes.png')});await album.locator('.film-close').click();console.log('BOOK_ONLY_OK');
+ await page.setViewportSize({width:1200,height:950});await page.evaluate(()=>{scrollTo(0,0);room.setCameraMode('free');room.view.tAz=.15;room.view.tEl=.85;room.target.set(-.35,.25,2.2);room.view.tZoom=5;});await page.waitForFunction(()=>Math.abs(room.view.zoom-room.view.tZoom)<.005);
+ const button=await page.evaluate(async()=>{const T=await import('three'),b=room.retro.powerButton,p=b.getWorldPosition(new T.Vector3());return room.toScreen(...p.toArray());});await page.mouse.click(...button);await page.waitForFunction(()=>room.ps1Sound.state.buttonEvents===1&&room.retro.state==='warm');console.log('PS1_BUTTON_ON_OK');
+ await page.mouse.click(...button);await page.waitForFunction(()=>room.ps1Sound.state.exitEvents===1&&room.retro.state==='off');console.log('PS1_BUTTON_OFF_OK');
+ await page.evaluate(async()=>{await room.ps1Sound.unlock();room.director.placeInto(room.stations.sofa)});await page.waitForFunction(()=>room.director.mode==='activity'&&room.retro.state==='warm');await page.evaluate(()=>room.leave());await page.waitForFunction(()=>room.retro.state==='off');assert.equal(await page.evaluate(()=>room.view.tZoom),1);console.log('PS1_LEAVE_OFF_OK');
+ await page.evaluate(()=>{room.view.tZoom=5.2;window.dispatchEvent(new CustomEvent('room-close',{detail:{kind:'xp'}}));});assert.equal(await page.evaluate(()=>room.view.tZoom),1);
+ await page.evaluate(()=>{room.crate.setOpen(false);room.activate('drawer');room.activate('drawer');});assert.equal(await page.evaluate(()=>room.view.tZoom),1);console.log('FOCUS_100_OK');
+ await page.evaluate(()=>{room.setCameraMode('free');room.view.tAz=.65;room.view.tEl=.65;room.target.set(-2.4,.56,-1.75);room.view.tZoom=4;});await page.waitForTimeout(1500);await page.screenshot({path:path.join(output,'sac-et-batons-angle.png')});
+ evidence.props=await page.evaluate(async()=>{const T=await import('three'),names=['HikingBackpack','HikingPoles','SuisekiKamogawaishi'];return Object.fromEntries(names.map(n=>{const o=room.scene.getObjectByName(n),b=new T.Box3().setFromObject(o);return[n,{bounds:[b.min.toArray(),b.max.toArray()],parent:o.parent.name,position:o.position.toArray()}]}));});assert.ok(evidence.props.HikingBackpack.bounds[0][1]>-.001);
+ await page.evaluate(()=>{room.view.tAz=.35;room.view.tEl=.5;room.target.set(3.2,.86,1.8);room.view.tZoom=4;});await page.waitForTimeout(1300);await page.screenshot({path:path.join(output,'suiseki-dessus-livres.png')});
+ await page.evaluate(()=>{room.view.tZoom=1;room.setCameraMode('follow');room.director.spawn(-.2,.25);room.goTo('bike');});await page.waitForFunction(()=>document.querySelector('#bubble').classList.contains('show'));await page.waitForTimeout(500);
+ evidence.thought=await page.evaluate(()=>{const b=document.querySelector('#bubble'),r=b.getBoundingClientRect(),roomRect=document.querySelector('#room').getBoundingClientRect();return{headY:+b.dataset.headY+roomRect.top,bottom:r.bottom,gap:+b.dataset.headY+roomRect.top-r.bottom};});assert.ok(Math.abs(evidence.thought.gap-34)<2);await page.screenshot({path:path.join(output,'pensee-alignee.png')});
+ await page.waitForFunction(()=>room.nativeBridge?.sceneApi?.sound);evidence.legacySound=await page.evaluate(()=>{const s=room.nativeBridge.sceneApi.sound,b=s.legacyGameSuppressed||0;s.loop('sim-game-music');s.play('sim-game-music');return(s.legacyGameSuppressed||0)-b;});assert.equal(evidence.legacySound,2);console.log('NINTENDO_FILTER_OK');
+ await page.evaluate(()=>room.activate('mamiya'));await page.waitForFunction(()=>document.querySelector('.film-loading').hidden);await album.locator('canvas').focus();for(let i=0;i<9;i++)await page.keyboard.press('ArrowRight');await page.screenshot({path:path.join(output,'tranche-corrigee.png')});await album.locator('.film-close').click();
+ assert.deepEqual(errors,[]);await writeFile(path.join(output,'validation-v51.json'),JSON.stringify({...evidence,errors},null,2));console.log('V51_OK',JSON.stringify(evidence));
+}finally{await writeFile(path.join(output,'partial-v51.json'),JSON.stringify({...evidence,errors},null,2));await browser.close();}

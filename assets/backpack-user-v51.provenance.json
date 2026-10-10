@@ -1,0 +1,32 @@
+{
+  "source": "backpack.glb",
+  "sourceSHA256": "6067d07c3ef682874203abd02a5f429805f523ca301417a5399f0bb1b797473c",
+  "output": "backpack-user-v51.glb",
+  "outputSHA256": "4b547bf77f7c4186a0666ca6dd15eaf7c9b6784c9d5f99ce128ebe2e14677eef",
+  "dimensionsBlender": [
+    0.325711190700531,
+    0.4458194971084595,
+    0.550000011920929
+  ],
+  "boundsBlender": [
+    [
+      -0.1628555953502655,
+      -0.22290974855422974,
+      0.0
+    ],
+    [
+      0.1628555953502655,
+      0.22290974855422974,
+      0.550000011920929
+    ]
+  ],
+  "triangles": 31992,
+  "bytes": 5881868,
+  "changes": {
+    "height": 0.55,
+    "sourcePreserved": true,
+    "meshBudget": 32000,
+    "weldBeforeSimplification": true,
+    "textureSize": 512
+  }
+}

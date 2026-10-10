@@ -5,10 +5,10 @@ import {preparePaper} from './paper-sheet.js?v=cv-scene-v49';
 const frames=[1514,1510,1500,1513,1507,1506,1495,1505,1493,1504,1494,1489,1512,1511,1509,1508,1503,1496,1498,1499];
 const PAGE_W=1,PAGE_H=1.377;
 export function createFilmAlbum(onChange=()=>{}){
- const album=document.createElement('dialog');album.className='film-album';album.setAttribute('aria-labelledby','film-title');
- album.innerHTML='<header><div><span class="film-kicker">Carnet argentique</span><h2 id="film-title">Fragments de montagne</h2></div><button class="film-close" type="button" aria-label="Quitter l’album"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="film-book"><canvas tabindex="0" role="application" aria-label="Livre photo en 3D. Clique pour ouvrir et tourner les pages. Glisse pour pivoter. Flèches pour inspecter, Entrée pour ouvrir, Échap pour quitter."></canvas><button class="film-page film-left" type="button" aria-label="Tourner la page de gauche"><img class="film-photo" alt=""></button><button class="film-page film-right" type="button" aria-label="Ouvrir le livre"><img class="film-photo" alt=""></button><p class="film-loading" role="status">Préparation du carnet…</p></div><footer><output aria-live="polite"></output><button class="film-bind" type="button">Ouvrir le livre</button><button class="film-front-view" type="button" aria-label="Revenir à la vue de lecture">Vue de lecture</button></footer><p class="film-book-hint">Clique pour ouvrir · Glisse pour inspecter</p>';
+ const album=document.createElement('dialog');album.className='film-album';album.setAttribute('aria-label','Fragments de montagne, livre de photographies argentiques');
+ album.innerHTML='<header><button class="film-close" type="button" aria-label="Quitter l’album"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="film-book"><canvas tabindex="0" role="application" aria-label="Livre photo en 3D. Clique pour ouvrir et tourner les pages. Glisse pour pivoter. Flèches pour inspecter, Entrée pour ouvrir, Échap pour quitter."></canvas><button class="film-page film-left" type="button" aria-label="Tourner la page de gauche"><img class="film-photo" alt=""></button><button class="film-page film-right" type="button" aria-label="Ouvrir le livre"><img class="film-photo" alt=""></button><p class="film-loading" role="status">Préparation du carnet…</p></div>';
  document.body.append(album);
- const stage=album.querySelector('.film-book'),canvas=stage.querySelector('canvas'),leftButton=album.querySelector('.film-left'),rightButton=album.querySelector('.film-right'),count=album.querySelector('output'),status=album.querySelector('.film-loading'),bindButton=album.querySelector('.film-bind'),hint=album.querySelector('.film-book-hint');
+ const stage=album.querySelector('.film-book'),canvas=stage.querySelector('canvas'),leftButton=album.querySelector('.film-left'),rightButton=album.querySelector('.film-right'),status=album.querySelector('.film-loading');
  const textures=new Map(),reduced=matchMedia('(prefers-reduced-motion: reduce)'),ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
  let renderer,scene,camera,pivot,book,frontCover,backCover,leftBlock,rightBlock,binding,leftDeck,rightDeck,left,right,turning,pattern,loadTask;
  let spread=0,returnFocus=null,raf=0,flight=null,request=0,press=null,lastTilt=0,form=0,backFold=0,closedSide='front',ready=false;
@@ -35,7 +35,7 @@ export function createFilmAlbum(onChange=()=>{}){
    const key=new THREE.DirectionalLight('#fff8eb',2.6);key.position.set(-2.6,3.1,4);key.castShadow=true;key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-2,right:2,top:2,bottom:-2,near:.1,far:12});key.shadow.bias=-.0003;key.shadow.normalBias=.008;scene.add(key);
    const rim=new THREE.DirectionalLight('#d4e0ee',1.3);rim.position.set(3,-1,-3);scene.add(rim);
    camera=new THREE.PerspectiveCamera(28,1,.1,30);pivot=new THREE.Group();scene.add(pivot);
-   const [model,grain]=await Promise.all([new GLTFLoader().loadAsync('assets/film-book-v50.glb'),new THREE.TextureLoader().loadAsync('assets/film-paper-grain-v49.webp')]);
+   const [model,grain]=await Promise.all([new GLTFLoader().loadAsync('assets/film-book-v51.glb'),new THREE.TextureLoader().loadAsync('assets/film-paper-grain-v49.webp')]);
    pattern=grain;pattern.wrapS=pattern.wrapT=THREE.RepeatWrapping;
    book=model.scene;book.name='FloatingFilmBook';pivot.add(book);
    frontCover=book.getObjectByName('FrontCoverHinge');backCover=book.getObjectByName('BackCoverHinge');leftBlock=book.getObjectByName('LeftLeafBlock');rightBlock=book.getObjectByName('RightLeafBlock');binding=book.getObjectByName('BookBinding');
@@ -86,12 +86,9 @@ export function createFilmAlbum(onChange=()=>{}){
  }
  function labels(){
   announce();const open=form>.999&&backFold<.001;
-  count.textContent=open?String(spread*2+1).padStart(2,'0')+' — '+String(spread*2+2).padStart(2,'0')+' / '+frames.length:closedSide==='front'?'Première de couverture':'Quatrième de couverture';
   for(const [button,n]of [[leftButton,spread*2],[rightButton,spread*2+1]]){const img=button.querySelector('img');img.src='assets/film/'+frames[n]+'.webp';img.alt='Cliché argentique '+(n+1)+' : paysage de montagne en noir et blanc';button.disabled=!!flight;}
   rightButton.setAttribute('aria-label',open?(spread===9?'Refermer sur la quatrième de couverture':'Tourner la page de droite'):'Ouvrir le livre');
   leftButton.setAttribute('aria-label',open?(spread===0?'Refermer sur la première de couverture':'Tourner la page de gauche'):'Ouvrir le livre');
-  bindButton.textContent=open?'Refermer le livre':'Ouvrir le livre';bindButton.disabled=!!flight;
-  hint.textContent=open?'Clique sur les pages · Glisse pour inspecter':'Clique pour ouvrir · Glisse pour inspecter';
  }
  async function display(token=request){
   status.hidden=false;
@@ -154,7 +151,7 @@ export function createFilmAlbum(onChange=()=>{}){
   else if(e.key==='Home')resetView();else if(e.key==='ArrowLeft')view.yaw-=.22;else if(e.key==='ArrowRight')view.yaw+=.22;else if(e.key==='ArrowUp')view.pitch=Math.max(-1.25,view.pitch-.15);else if(e.key==='ArrowDown')view.pitch=Math.min(1.25,view.pitch+.15);
   if(ready){pose();render();}
  });
- leftButton.onclick=e=>{if(e.detail===0)flip(-1);};rightButton.onclick=e=>{if(e.detail===0)flip(1);};bindButton.onclick=()=>cover(form<.999||backFold>.001,'front');album.querySelector('.film-front-view').onclick=resetView;
+ leftButton.onclick=e=>{if(e.detail===0)flip(-1);};rightButton.onclick=e=>{if(e.detail===0)flip(1);};
  const close=()=>{if(album.open)album.close();};album.querySelector('.film-close').onclick=close;
  album.addEventListener('click',e=>{if(e.target!==album)return;const r=album.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close();});
  album.addEventListener('close',()=>{request++;cancelAnimationFrame(raf);flight=null;press=null;album.dataset.turning='false';onChange(false);document.dispatchEvent(new CustomEvent('film-album-change',{detail:{open:false}}));returnFocus?.focus({preventScroll:true});});

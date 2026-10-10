@@ -10,10 +10,10 @@
 <script>{const u=new URL(location.href);if(/^cv-scene-v\d+[a-z]?$/.test(u.searchParams.get('v')||'')){u.searchParams.delete('v');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}}</script>
 <script>{const n=new Date(),m=n.getHours()*60+n.getMinutes();document.documentElement.dataset.theme=(m>=1320||m<270)?'dark':'light';document.documentElement.classList.add('js')}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23e8452b%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2716%27 font-family=%27sans-serif%27 font-weight=%27700%27 text-anchor=%27middle%27 fill=%27white%27%3EMC%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=cv-scene-v50">
+<link rel="stylesheet" href="style.css?v=cv-scene-v51">
 <link rel="stylesheet" href="project-dioramas.css?v=cv-scene-v49">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="js/main.js?v=cv-scene-v50a"></script>
+<script type="module" src="js/main.js?v=cv-scene-v51"></script>
 </head>
 <body class="page-home">
 <nav class="nav" aria-label="Navigation">
@@ -73,7 +73,8 @@
       <li>Lampe Borne Béton (Le Corbusier) : modèle 3D de Charles R., <a href="https://3dwarehouse.sketchup.com/model/78f07577-1796-46bb-85fa-de107f223701">3D Warehouse</a>.</li>
       <li>Lampe Akari (Isamu Noguchi) : modèle 3D d’Alana Pacheco, <a href="https://3dwarehouse.sketchup.com/model/c4bc36cc-94bc-45f0-8692-d7c6e615f8ad">3D Warehouse</a>.</li>
       <li>Livres « Variety of Books », platine « Yamaha TT-300 » et bloc « Post-it Notes » : fichiers fournis par Mathieu Comtesse, dimensionnés et optimisés sous Blender.</li>
-      <li>Sons PlayStation : « Play on a joystick » (spinopel), « Push button PS1 » et « PS1 Startup » (QuickSounds), fichiers fournis par Mathieu Comtesse. Mixage discret pour la scène.</li>
+      <li>Sons et vidéo PlayStation : « psx », « Push button PS1 », « Game Boot », « Browser To Menu », « Menu », « Red Screen of Death (Short) » et « Sony PlayStation SCEE - Boot screen », fichiers fournis par Mathieu Comtesse. Mixage discret pour la scène.</li>
+      <li>Sac de randonnée : fichier fourni par Mathieu Comtesse, optimisé sous Blender. Bâtons : recréation sous Blender d’après <a href="https://sketchfab.com/3d-models/hiking-poles-a3d3cfd1c26e4dbd8f168991f4a7e604">la référence de Chakkit PP</a>. Suiseki : recréation sous Blender d’après <a href="https://sketchfab.com/3d-models/suiseki-kamogawaishi-type-stone-82d3b58d8fdb48d09193fcd5a27ca84f">la référence du musée virtuel de Małopolska</a>. Ces deux recréations ne sont pas les modèles sources.</li>
       <li>Clichés argentiques : Mathieu Comtesse. Livre : déformation des pages et texture de papier adaptées de <a href="https://paper.design/mono">Paper Mono</a>, à partir de l’archive fournie.</li>
       <li>Animations de personnage : bibliothèque d’animations de son dépôt GitHub. Rendu : <a href="https://threejs.org/">three.js</a>.</li>
     </ul>

@@ -1,0 +1,30 @@
+{
+  "source": "create-hiking-props-v51.py",
+  "sourceSHA256": "b8b16a1bc7e7b4e87ff64c85f806634714b07eed7f49d4c7c03d4fce803b6075",
+  "output": "hiking-poles-recreation-v51.glb",
+  "outputSHA256": "3c9b8e7e253a6af7ccf2bebb4f3087400f9c8598da9ac1f81136fa2356584ee7",
+  "dimensionsBlender": [
+    0.17800000309944153,
+    0.09000000357627869,
+    1.149999976158142
+  ],
+  "boundsBlender": [
+    [
+      -0.08900000154972076,
+      -0.04500000551342964,
+      0.0
+    ],
+    [
+      0.08900000154972076,
+      0.04500000178813934,
+      1.149999976158142
+    ]
+  ],
+  "triangles": 4528,
+  "bytes": 317064,
+  "changes": {
+    "method": "Blender recreation from visible reference; not extracted source mesh",
+    "reference": "https://sketchfab.com/3d-models/hiking-poles-a3d3cfd1c26e4dbd8f168991f4a7e604",
+    "height": 1.15
+  }
+}

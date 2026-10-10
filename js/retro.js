@@ -41,6 +41,9 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
   for (const x of [0.03, 0.095]) ps.add(rbox(0.05, 0.024, 0.006, 0.003, mat('#7b7b78'), x, 0.005 + 0.024, fz + 0.001));
   for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) ps.add(cyl(0.011, 0.012, 0.01, mat('#3b3b3b'), x * 0.135, 0.005, z * 0.085, 12));
   }
+  // Transparent hit volume follows the existing circular POWER button.
+  const powerButton=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,.020,24),new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));
+  powerButton.name='PS1PowerButton';powerButton.position.set(-.123,.062,.066);powerButton.userData.id='ps1power';powerButton.userData.dynamic=true;powerButton.userData.noInk=true;ps.add(powerButton);
   ps.position.set(0.58, 0, 0.0); ps.rotation.y = -0.08; g.add(ps);
 
   /* ── manette ── */
@@ -140,7 +143,7 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
   const videoReady=new Promise(resolve=>{bootVideo.addEventListener('loadedmetadata',resolve,{once:true});bootVideo.addEventListener('error',resolve,{once:true});});
   async function startBoot(){
     const ticket=++st.bootTicket;await videoReady;if(ticket!==st.bootTicket)return;
-    bootVideo.currentTime=0;const audio=await sound?.powerOn();if(ticket!==st.bootTicket)return;
+    bootVideo.currentTime=0;const audio=await sound?.powerOn(st.physicalBoot);if(ticket!==st.bootTicket)return;
     st.bootDuration=audio?.duration||14.916;bootVideo.playbackRate=Number.isFinite(bootVideo.duration)?bootVideo.duration/st.bootDuration:1;st.bootStart=performance.now();
     screenMat.map=bootTexture;screenMat.needsUpdate=true;bootVideo.play().catch(()=>{screenMat.map=tex;screenMat.needsUpdate=true;});
   }
@@ -214,11 +217,11 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
       }
       updateControllerCord();
     },
-    strip, cordStart, get stripOn() { return st.strip; },
+    powerButton, strip, cordStart, get stripOn() { return st.strip; },
     setStrip(v) { st.strip = v; litMat.emissiveIntensity = v ? 1.6 : 0; litMat.color.set(v ? '#ff5a2a' : '#6b2a18'); if (!v) this.powerOff(); },
     group: g, tvCenter: new THREE.Vector3(-0.04, Y0 + H * 0.52, frontZ + 0.02),
     get state() { return st.state; }, bootVideo, get bootDuration(){return st.bootDuration;},
-    powerOn() { if (st.strip && st.state === 'off') { st.state = 'warm'; st.t = 0; st.last = -1;st.bootStart=0;startBoot(); } },
+    powerOn(physical=false) { if (st.strip && (st.state === 'off'||st.state==='closing')) { st.physicalBoot=physical;st.state = 'warm'; st.t = 0; st.last = -1;st.bootStart=0;startBoot(); } },
     powerOff() { if (st.state !== 'off') { st.state = 'closing'; st.t = 0; st.last = -1;st.bootTicket++;bootVideo.pause();screenMat.map=tex;screenMat.needsUpdate=true;sound?.powerOff(); } },
     update(dt) { frame(dt); },
   };

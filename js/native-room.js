@@ -129,6 +129,9 @@ async function build() {
   document.body.appendChild(iframe);
 
   const sceneApi = await waitFor(() => iframe.contentWindow?.shupiHeader?.scene);
+  // Keep the original scene effects, but permanently exclude its Nintendo soundtrack.
+  for(const method of ['loop','play']){const original=sceneApi.sound?.[method];if(original)sceneApi.sound[method]=function(key,...args){if(key==='sim-game-music'){sceneApi.sound.legacyGameSuppressed=(sceneApi.sound.legacyGameSuppressed||0)+1;return;}return original.call(this,key,...args);};}
+  sceneApi.sound?.release('sim-game-music',0);
   const sourceFeatures = await sceneApi.ready;
   sceneApi.setRoom(true);
   sceneApi.stopSim?.();

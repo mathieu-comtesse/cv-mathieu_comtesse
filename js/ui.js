@@ -365,6 +365,7 @@ function xpApp(onClose) {
 export function initUI() {
   inject();
   let cur = null;
+  window.addEventListener('room-request-close',()=>cur?.close());
   window.addEventListener('room-open', (e) => {
     if (cur) return;
     const done = () => { cur = null; window.dispatchEvent(new CustomEvent('room-close', { detail: e.detail })); };

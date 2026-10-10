@@ -98,16 +98,38 @@ if (portraitFrame) {
     document.addEventListener(name, forward, { passive: false });
   }
 
-  // A normal vertical swipe scrolls. A horizontal drag or a deliberate hold stretches the head.
+
+  // The parent owns vertical touch movement: WebKit does not reliably chain
+  // scrolling through a deformable portrait's offscreen iframe.
+  let scrollFrame=0,scrollTouch=null;
+  const cancelPortrait=id=>portraitApi()?.scene.domElement.dispatchEvent(new portraitFrame.contentWindow.PointerEvent('pointercancel',{pointerId:id,bubbles:true}));
+  document.addEventListener('touchstart',event=>{
+    cancelAnimationFrame(scrollFrame);scrollTouch=null;
+    if(event.touches.length!==1||!host.contains(event.target)||event.target.closest?.('a,button,input'))return;
+    const p=event.touches[0];scrollTouch={x:p.clientX,y:p.clientY,lastY:p.clientY,time:performance.now(),velocity:0,vertical:false,id:touchGesture?.id};
+  },{passive:true});
   document.addEventListener('touchmove',event=>{
-    const g=touchGesture;if(!g||event.touches.length!==1)return;const p=event.touches[0],dx=p.clientX-g.x,dy=p.clientY-g.y;
-    if(Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)*1.15){
-      portraitApi()?.scene.domElement.dispatchEvent(new portraitFrame.contentWindow.PointerEvent('pointercancel',{pointerId:g.id,bubbles:true}));cancelTouch();return;
+    const g=scrollTouch;if(!g||event.touches.length!==1)return;
+    const p=event.touches[0],dx=p.clientX-g.x,dy=p.clientY-g.y,now=performance.now();
+    if(!g.vertical&&Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)*1.1){
+      g.vertical=true;cancelPortrait(g.id??touchGesture?.id);cancelTouch();
     }
-    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy))g.locked=true;
-    if(g.locked&&event.cancelable)event.preventDefault();
+    if(g.vertical){
+      if(event.cancelable)event.preventDefault();
+      const delta=g.lastY-p.clientY;window.scrollBy(0,delta);
+      g.velocity=delta/Math.max(8,now-g.time);
+    }else if(Math.abs(dx)>8&&event.cancelable)event.preventDefault();
+    g.lastY=p.clientY;g.time=now;
   },{passive:false});
-  document.addEventListener('touchcancel',cancelTouch,{passive:true});
+  document.addEventListener('touchend',()=>{
+    const g=scrollTouch;scrollTouch=null;
+    if(!g?.vertical)return;
+    let velocity=Math.max(-2,Math.min(2,g.velocity)),last=performance.now();
+    const coast=now=>{const dt=Math.min(32,now-last);last=now;window.scrollBy(0,velocity*dt);velocity*=Math.exp(-dt/100);if(Math.abs(velocity)>.025)scrollFrame=requestAnimationFrame(coast);};
+    scrollFrame=requestAnimationFrame(coast);
+  },{passive:true});
+  document.addEventListener('touchcancel',()=>{scrollTouch=null;cancelTouch();},{passive:true});
+
   const hint=document.createElement('p');hint.className='portrait-touch-hint';hint.textContent='Glisse pour défiler · maintiens la tête pour la déformer';host.append(hint);
 
   // Keep the exact portrait API defaults after the iframe is ready.

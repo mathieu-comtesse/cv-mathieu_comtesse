@@ -1,8 +1,8 @@
 export function createPS1Sound(){
  let context,loading,muted=false,visible=true,ticket=0,menuWanted=false,menuSource,menuGain,actionVoice;
  const buffers={},levels={},voices=new Set();
- const state={ready:false,unlocked:false,muted:false,startupEvents:0,actionEvents:0,browserEvents:0,exitEvents:0,menu:false,levels};
- const files={startup:'ps1-boot-v50.mp3',action:'ps1-action-v50.mp3',browser:'ps1-browser-v50.mp3',exit:'ps1-exit-v50.mp3'};
+ const state={ready:false,unlocked:false,muted:false,buttonEvents:0,startupEvents:0,actionEvents:0,browserEvents:0,exitEvents:0,menu:false,levels};
+ const files={button:'ps1-button-v51.mp3',startup:'ps1-boot-v50.mp3',action:'ps1-action-v50.mp3',browser:'ps1-browser-v50.mp3',exit:'ps1-exit-v50.mp3'};
  const menu=new Audio(new URL('../assets/ps1-menu-v50.mp3',import.meta.url));menu.loop=true;menu.preload='none';
  function gainFor(buffer){
   let sum=0,peak=0,count=0;
@@ -32,11 +32,11 @@ export function createPS1Sound(){
  function stopMenu(){menu.pause();state.menu=false;}
  function startMenu(){if(!menuWanted||muted||!visible)return;menu.play().then(()=>{state.menu=menuWanted&&!muted&&visible&&!menu.paused;if(!state.menu)menu.pause();}).catch(()=>{state.menu=false;});}
  function stop(){ticket++;menuWanted=false;stopMenu();clearVoices();}
- async function effect(key){const own=ticket;try{await unlock();if(own!==ticket)return;const voice=play(key);if(voice)state[key==='action'?'actionEvents':key==='browser'?'browserEvents':'exitEvents']++;}catch{}}
+ async function effect(key){const own=ticket;try{await unlock();if(own!==ticket)return;const voice=play(key);if(voice)state[key==='button'?'buttonEvents':key==='action'?'actionEvents':key==='browser'?'browserEvents':'exitEvents']++;}catch{}}
  return{state,unlock,stop,
-  async powerOn(){
+  async powerOn(physical=false){
    const own=++ticket;menuWanted=false;stopMenu();clearVoices();
-   try{await unlock();if(own!==ticket)return null;const v=play('startup');if(v)state.startupEvents++;return{duration:buffers.startup.duration,startedAt:performance.now()};}catch{return{duration:14.916,startedAt:performance.now()};}
+   try{await unlock();if(own!==ticket)return null;if(physical){const b=play('button');if(b)state.buttonEvents++;}const v=play('startup');if(v)state.startupEvents++;return{duration:buffers.startup.duration,startedAt:performance.now()};}catch{return{duration:14.916,startedAt:performance.now()};}
   },
   powerOff(){stop();},
   openMenu(){menuWanted=false;stopMenu();effect('browser');},

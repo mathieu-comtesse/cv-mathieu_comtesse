@@ -1,0 +1,10 @@
+{
+  "source": "film-book-v50.blend",
+  "output": "film-book-v51.glb",
+  "outputSHA256": "e81859246276d6eeab60c1b0c68a5db2e9809d0ad3e07f02f5237f8515608f6d",
+  "bytes": 907252,
+  "changes": {
+    "spineUVRotationDegrees": 180,
+    "geometryPreserved": true
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "source": "create-hiking-props-v51.py",
+  "sourceSHA256": "b8b16a1bc7e7b4e87ff64c85f806634714b07eed7f49d4c7c03d4fce803b6075",
+  "output": "suiseki-recreation-v51.glb",
+  "outputSHA256": "5fa1af7aa87b48b525e83e54681c1cc4f8f24e7ecbda3628b4d4fe83c1da4664",
+  "dimensionsBlender": [
+    0.4720340371131897,
+    0.2595425248146057,
+    0.21706925332546234
+  ],
+  "boundsBlender": [
+    [
+      -0.2256520688533783,
+      -0.13507013022899628,
+      0.0
+    ],
+    [
+      0.2463819682598114,
+      0.12447239458560944,
+      0.21706925332546234
+    ]
+  ],
+  "triangles": 4762,
+  "bytes": 568168,
+  "changes": {
+    "method": "Blender recreation from visible reference; not exact scanned mesh",
+    "reference": "https://sketchfab.com/3d-models/suiseki-kamogawaishi-type-stone-82d3b58d8fdb48d09193fcd5a27ca84f",
+    "width": 0.46,
+    "base": "carved mahogany"
+  }
+}
