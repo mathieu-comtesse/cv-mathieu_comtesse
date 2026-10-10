@@ -850,6 +850,7 @@ export async function createRoom(container, bubbleEl) {
   window.addEventListener('blur', () => director.setRun(false));
   for (const st of Object.values(stations)) {
     st.enter = () => {
+      actSince=0;actMode='activity';autonomousActivitySince=performance.now();autonomousPrevMode='activity';
       hero.setBase(st.face); hero.talk(false); hero.can.visible = !!st.can; hero.setOverride(st.ov || null); hero.setNativePose?.(st.pose || null);
       hero.flash('happy', 0.5);
       if (st.music) setMusic(true);
@@ -1060,7 +1061,7 @@ export async function createRoom(container, bubbleEl) {
           nativeBridge.update(dt);
           // The source simulator may start another activity after watering.
           // Hand control back before importing that new pose at the plant.
-          if(director.mode==='activity'&&director.current?.nativeMode&&nativeBridge.activityFinished){
+          if(!appOpen&&director.mode==='activity'&&director.current?.nativeMode&&!director.current.tv&&nativeBridge.activityFinished){
             director.stand();director.update(0);exactMotion=syncNativeMotionMode();
             hero.poseStanding();actSince=0;
           }
