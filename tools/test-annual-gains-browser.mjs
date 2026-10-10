@@ -12,13 +12,13 @@ const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.jso
 if(!process.env.SCENE_PUBLIC_URL)await context.route('http://scene.test/**',async route=>{const u=new URL(route.request().url()),f=path.resolve(root,'.'+decodeURIComponent(u.pathname==='/'?'/index.html':u.pathname));try{await route.fulfill({body:await readFile(f),contentType:types[path.extname(f)]||'application/octet-stream'});}catch{await route.fulfill({status:404,body:u.pathname});}});
 
 
-if(!process.env.PIGGY_REQUIRE_REFERENCE)await context.route('https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js',r=>r.fulfill({contentType:'text/javascript',body:'window.Sketchfab=class{init(id,options){options.error();}}'}));
+
 try{
  await page.goto(process.env.SCENE_PUBLIC_URL||'http://scene.test/');
  const pig=page.locator('.annual-gains');await pig.waitFor();await pig.scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy==='ready',null,{timeout:90000});
  assert.ok(await pig.locator('.annual-pig-wrap svg').evaluateAll(elements=>elements.every(e=>getComputedStyle(e).display==='none')));
- if(process.env.PIGGY_REQUIRE_REFERENCE)assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'6d190692d90a4a9db58131855d8c9f33');
+ assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'ceramic-piggy-bank');assert.equal(await pig.locator('iframe').count(),0);
  assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Cerdo hucha.*Legado 3D/);
  assert.match(await page.locator('.automation-cascade').innerText(),/Une production automatisée libère plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
@@ -42,7 +42,14 @@ try{
  assert.ok(Number(await model.getAttribute('data-coin-interval'))<7.536);
  await pig.locator('[data-working-days]').fill('225');await pig.locator('[data-working-days]').press('Tab');await pig.locator('.annual-breakdown summary').click();
  await page.waitForFunction(()=>Number(document.querySelector('.annual-pig-wrap').dataset.coins)>0,null,{timeout:45000});
- if(process.env.PIGGY_REQUIRE_REFERENCE)await page.waitForFunction(()=>{const p=Number(document.querySelector('.annual-pig-wrap').dataset.coinPhase);return p>.05&&p<.18;},null,{timeout:20000});await page.screenshot({path:path.join(output,'tirelire-3d-pieces.png'),timeout:120000});
+ await page.waitForFunction(()=>{const p=Number(document.querySelector('.annual-pig-wrap').dataset.coinPhase);return p>.05&&p<.18;},null,{timeout:20000});await page.screenshot({path:path.join(output,'tirelire-3d-pieces.png'),timeout:120000});
+ const fit={length:Number(await model.getAttribute('data-slot-length')),width:Number(await model.getAttribute('data-slot-width')),diameter:Number(await model.getAttribute('data-coin-diameter')),thickness:Number(await model.getAttribute('data-coin-thickness'))};assert.ok(fit.diameter<fit.length&&fit.thickness<fit.width);
+ for(const angle of [0,1,2]){
+  await canvas.press('ArrowRight');await canvas.press('ArrowRight');if(angle===1)await canvas.press('ArrowUp');await pig.locator('[data-annual-money]').click();
+  await page.waitForFunction(()=>{const e=document.querySelector('.annual-pig-wrap'),p=Number(e.dataset.coinPhase);return p>.78&&p<.82;},null,{timeout:20000});
+  assert.ok(Math.abs(Number(await model.getAttribute('data-coin-x'))+.22)<1e-5);assert.ok(Math.abs(Number(await model.getAttribute('data-coin-z')))<1e-5);
+  await pig.screenshot({path:path.join(output,'insertion-angle-'+angle+'.png'),timeout:120000});
+ }
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('cv-annual-gain-history-v1')));
  await page.evaluate(state=>localStorage.setItem('cv-annual-gain-history-v1',JSON.stringify(state)),{...saved,year:expectedYear-1});
  await page.reload();await page.locator('.annual-gains').waitFor();

@@ -96,3 +96,8 @@
 .piggy-coins-3d{pointer-events:none;clip-path:none}
 
 
+
+/* Native scene: the coin and the hollow pig rotate together. */
+.annual-pig-wrap .piggy-3d{width:100%;height:300px;background:transparent}
+
+.annual-pig-wrap .piggy-3d{outline:none}.annual-pig-wrap:focus-within .piggy-rotate-hint{text-decoration:underline;text-underline-offset:3px;color:var(--ink)}
