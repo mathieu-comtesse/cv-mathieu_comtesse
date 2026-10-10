@@ -3,6 +3,8 @@ export function installDeskEquipment(desk,workstation,towerModel,stripModel,barM
  const tower=towerModel.scene;tower.name='DreamComputerRTX4090';tower.position.set(.535,.742,-.03);tower.scale.setScalar(.95);tower.userData.batchRoot=true;tower.userData.noInk=true;desk.add(tower);
  const gpu=tower.getObjectByName('AsusROGRTX4090');gpu.userData.batchRoot=true;
  const strip=stripModel.scene;strip.name='DeskPowerStrip';strip.position.set(-.24,.005,-.23);strip.userData.batchRoot=true;strip.userData.noInk=true;desk.add(strip);
+ const rocker=strip.getObjectByName('Object_12');rocker.name='DeskStripSwitch';rocker.userData.id='deskstrip';rocker.userData.dynamic=true;rocker.material=rocker.material.clone();rocker.material.userData.unique=true;
+ const switchHit=new THREE.Mesh(new THREE.BoxGeometry(.048,.008,.036),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));switchHit.position.set(-.158,.022,0);switchHit.name='DeskStripSwitchHit';switchHit.userData.id='deskstrip';switchHit.userData.dynamic=true;strip.add(switchHit);
  const findScreen=(name,material)=>{let found;workstation.getObjectByName(name).traverse(o=>{if(o.isMesh&&o.material.name===material)found=o;});if(!found)throw Error('Screen material missing: '+name);return found;};
  const screens=[findScreen('GamingLandscapeMonitor','Material.009'),findScreen('GamingPortraitMonitor','screen.002')];
  screens[0].name='LandscapeWindows11Screen';screens[1].name='PortraitWindows11Screen';
@@ -35,5 +37,7 @@ export function installDeskEquipment(desk,workstation,towerModel,stripModel,barM
  connect('LightBarUSB',[[lc.x,lb.max.y-.02,lb.min.z],[lc.x,lb.max.y-.09,lb.min.z-.03],[lc.x,.77,-.35],[.30,.77,-.35],usb.map((v,i)=>v+(i===0?.015:0))]);
  const outlet=from(strip,'StripCordOutlet');connect('DeskStripPowerCord',[outlet,[outlet[0]+.06,.02,-.31],[.9,.014,-.38],[1.30,.012,-.65],[2.13,.012,-1.10]]);
  const end=[2.13,.012,-1.10];wires.add(box(.07,.02,.07,mat('#ecebe6'),...end));
- return{tower,strip,bar,wires,screens,light,glow};
+ let powered=true;const liveMats=[],copies=new Map();tower.traverse(o=>{const replace=m=>{if(!m?.emissive||m.emissive.getHex()===0||!(m.emissiveIntensity>0))return m;if(!copies.has(m)){const copy=m.clone();copy.userData.unique=true;copies.set(m,copy);liveMats.push([copy,copy.emissiveIntensity]);}return copies.get(m);};if(o.material)o.material=Array.isArray(o.material)?o.material.map(replace):replace(o.material);});
+ const setPower=on=>{powered=!!on;strip.userData.powered=tower.userData.powered=powered;rocker.material.emissive.set('#ff4b16');rocker.material.emissiveIntensity=powered?.7:0;rocker.material.color.set(powered?'#ef431c':'#6b291a');for(const screen of screens)screen.material.color.set(powered?'#ffffff':'#000000');for(const [m,k]of liveMats)m.emissiveIntensity=powered?k:0;};setPower(true);
+ return{tower,strip,bar,wires,screens,light,glow,setPower,get powered(){return powered;}};
 }

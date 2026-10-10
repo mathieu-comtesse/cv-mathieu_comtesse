@@ -8,7 +8,7 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
   const mobile=matchMedia('(max-width:809px)'),reduced=matchMedia('(prefers-reduced-motion: reduce)'),instances=new Map(),pending=new Set();
   let renderer,environment,visible=false,modal=false,raf=0,last=0,clock=0,frames=0,renderWidth=0,renderHeight=0;
   const track=host.querySelector('.mq-track');
-  let trackX=new DOMMatrixReadOnly(track.style.transform||'none').m41,paintX=trackX,period=Number(host.dataset.marqueePeriod)||0,overscan=0;
+  let trackX=mobile.matches?-host.querySelector('.mq-scroll').scrollLeft:new DOMMatrixReadOnly(track.style.transform||'none').m41,paintX=trackX,period=Number(host.dataset.marqueePeriod)||0,overscan=0;
   const align=()=>{
     let shift=trackX-paintX;
     if(period)shift=((shift+period/2)%period+period)%period-period/2;
@@ -20,7 +20,7 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
     trackX=e.detail.x;period=e.detail.width;const shift=align();
     // Move the painted image with the DOM even between two WebGL frames.
     // Repaint before a fast drag can reveal the edge of the buffered image.
-    if(renderer&&visible&&!modal&&!mobile.matches&&Math.abs(shift)>Math.max(32,overscan*.65)){cancelAnimationFrame(raf);raf=0;draw(performance.now(),true);}
+    if(renderer&&visible&&!modal&&Math.abs(shift)>Math.max(32,overscan*.65)){cancelAnimationFrame(raf);raf=0;draw(performance.now(),true);}
     else start();
   });
   const observer=new IntersectionObserver(([e])=>{visible=e.isIntersecting;if(visible)start();else stop();},{rootMargin:'60px'});observer.observe(host);

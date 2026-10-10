@@ -1,5 +1,5 @@
 import { makePond } from './pond.js?v=cv-scene-v44';
-import { makeGarden } from './garden.js?v=cv-scene-v29';
+import { makeGarden } from './garden.js?v=cv-scene-v49';
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=cv-scene-v29';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────

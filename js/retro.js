@@ -3,7 +3,7 @@ import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng,
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */
 
-export function createRetroSet({consoleModel,controllerModel,tvModel}={}) {
+export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) {
   const g = group();
   const plastic = new THREE.MeshStandardMaterial({ color: '#202225', roughness: 0.55 });
   const plasticL = new THREE.MeshStandardMaterial({ color: '#2b2d31', roughness: 0.5 });
@@ -210,8 +210,8 @@ export function createRetroSet({consoleModel,controllerModel,tvModel}={}) {
     setStrip(v) { st.strip = v; litMat.emissiveIntensity = v ? 1.6 : 0; litMat.color.set(v ? '#ff5a2a' : '#6b2a18'); if (!v) this.powerOff(); },
     group: g, tvCenter: new THREE.Vector3(-0.04, Y0 + H * 0.52, frontZ + 0.02),
     get state() { return st.state; },
-    powerOn() { if (st.strip && st.state === 'off') { st.state = 'warm'; st.t = 0; st.last = -1; } },
-    powerOff() { if (st.state !== 'off') { st.state = 'closing'; st.t = 0; st.last = -1; } },
+    powerOn() { if (st.strip && st.state === 'off') { st.state = 'warm'; st.t = 0; st.last = -1;sound?.powerOn(); } },
+    powerOff() { if (st.state !== 'off') { st.state = 'closing'; st.t = 0; st.last = -1;sound?.powerOff(); } },
     update(dt) { frame(dt); },
   };
   frame(0.01);

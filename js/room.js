@@ -1,12 +1,15 @@
+import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
+import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v49';
+import {yamahaTurntable} from './user-props.js?v=cv-scene-v49';
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
-import * as F from './furniture.js?v=cv-scene-v31';
-import { createCharacter } from './character.js?v=cv-scene-v29';
+import * as F from './furniture.js?v=cv-scene-v49';
+import { createCharacter } from './character.js?v=cv-scene-v49';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v44';
-import { createRetroSet } from './retro.js?v=cv-scene-v43';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
+import { createRetroSet } from './retro.js?v=cv-scene-v49';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v44';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -15,10 +18,10 @@ import { createJukebox } from './jukebox.js?v=cv-scene-v48';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
-import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v45';
+import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v49';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
-import {createFilmAlbum} from './film-album.js?v=cv-scene-v47';
+import {createFilmAlbum} from './film-album.js?v=cv-scene-v49';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -38,7 +41,7 @@ export async function createRoom(container, bubbleEl) {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false;                       // carte d'ombres recalculée seulement 1 image sur 3 (la pièce est quasi statique)
   container.appendChild(renderer.domElement);
-  renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y pinch-zoom;image-rendering:pixelated';
+  renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;image-rendering:pixelated';
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -70,14 +73,16 @@ export async function createRoom(container, bubbleEl) {
   // de référence ne peut empêcher le décor Three.js de s'afficher.
   let nativeBridge = null;
   let sceneMuted = false;
+  const ps1Sound=createPS1Sound();
   const pumpSound=createPumpSound('assets/bicycle-pump-user-v43.mp3');
-  const setSceneMuted = value => { sceneMuted = !!value; nativeBridge?.sceneApi.sound?.setMuted?.(sceneMuted); pumpSound.setMuted(sceneMuted); container.dataset.muted=String(sceneMuted); };
+  const setSceneMuted = value => { sceneMuted = !!value; nativeBridge?.sceneApi.sound?.setMuted?.(sceneMuted); pumpSound.setMuted(sceneMuted);ps1Sound.setMuted(sceneMuted); container.dataset.muted=String(sceneMuted); };
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
   const [gamingDeskModel,consoleModel,controllerModel,olivettiModel,mamiyaModel]=await Promise.all(['gaming-desk-user-v42.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb'].map(model));
   const [deskModel,mobileModel,mouseModel,towerModel,stripModel,tvModel,barModel]=await Promise.all(['usm-table-user-v43.glb','usm-mobile-user-v43.glb','mx-master-user-v43.glb','dream-pc-user-v43.glb','powerstrip-user-v43.glb','magnavox-tv-user-v43.glb','screenbar-v43.glb'].map(model));
+  const [booksModel,yamahaModel,notesModel]=await Promise.all(['books-user-v49.glb','yamaha-user-v49.glb','post-it-user-v49.glb'].map(model));
   const windowsWallpaper=await load('assets/windows11-bloom-v43.webp');
   const [usmModel,pumpModel,jblModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb','jbl.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
@@ -108,7 +113,7 @@ export async function createRoom(container, bubbleEl) {
   const deskSet = group();
   deskSet.userData.dynamic = false;
 
-  let uw;
+  let uw,deskEquipment;
   const brontes = F.brontes();
 
   if (nativeBridge?.deskSet) {
@@ -139,7 +144,8 @@ export async function createRoom(container, bubbleEl) {
     const keyboard=F.moonlander();keyboard.name='Moonlander';keyboard.position.set(-.23,.752,.055);keyboard.userData.batchRoot=true;deskSet.add(keyboard);
     const mouse=mouseModel.scene;mouse.name='LogitechMXMaster2S';mouse.position.set(.12,.746,.15);mouse.userData.batchRoot=true;deskSet.add(mouse);
 
-    const equipment=installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
+    const notes=notesModel.scene;notes.name='DeskThickestPostIt';notes.userData.noInk=true;notes.userData.batchRoot=true;notes.position.set(-.51,.742,.11);deskSet.add(notes);
+    const equipment=deskEquipment=installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
     mkLamp('screenbar',equipment.glow,equipment.light,'#fff0cb','#87837c');
     Object.assign(lamps.screenbar,{on:true,manual:true,intensity:.7});
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
@@ -259,7 +265,7 @@ export async function createRoom(container, bubbleEl) {
   lamps.andon.light.position.set(CS.x + cs.spec.RW / 2 - 0.5, 0.4, CS.z + cs.spec.DK.z0 + 0.55);
   world.add(lamps.andon.light);
   // télé cathodique + PS1 + manette sur le tapis, câbles au sol
-  const retro = createRetroSet({consoleModel,controllerModel,tvModel});
+  const retro = createRetroSet({consoleModel,controllerModel,tvModel,sound:ps1Sound});
   add('tv', retro.group, -0.35, 2.2, 0, 0.018, 0.55, world, 0).scale.setScalar(1.3);
   world.updateMatrixWorld(true);
   // cordon de la multiprise : serpente sur le tapis, sort par le bord droit, passe du côté gauche (vu de l'écran) de l'étagère blanche et rejoint la prise au sol
@@ -277,7 +283,7 @@ export async function createRoom(container, bubbleEl) {
   const slidingDrawer=crate.root.children[0];slidingDrawer.remove(slidingDrawer.children[0]);importedFront.position.x=.375;slidingDrawer.add(importedFront);
   const amp = F.amplifier(); amp.position.set(-0.37, 0.7415, 0); usmSet.add(amp);
   const AMPH = 0.085;
-  const tt = F.turntable(); inkify(tt, { skip: (o) => o.material.color.getHexString() !== '3f2d22' }); tt.position.set(-0.37, 0.7415 + AMPH, 0); usmSet.add(tt);
+  const tt = yamahaTurntable(yamahaModel); tt.position.set(-0.37, 0.7415 + AMPH, 0); usmSet.add(tt);
   const rca = F.rcaCables(-0.37, -0.158, 0.7415, 0.7415 + 0.05); usmSet.add(rca);
   const cl = F.borneFromGltf(borneGltf); add('beton', cl, 0.44, 0.0, 0, 0.7415, 0, usmSet);
   add('usm', usmSet, -0.7, -2.4, 0, 0, 0.45);
@@ -315,7 +321,7 @@ export async function createRoom(container, bubbleEl) {
   
   const ekBox = new THREE.Box3().setFromObject(ek.parent); // ligne de l'étagère = pied le plus extérieur de l'Ekstrem
   ek.parent.updateMatrixWorld(true);
-  const whiteShelf=F.shelf();
+  const whiteShelf=F.shelf(booksModel);
   add('shelf1', whiteShelf, ekBox.max.x - 0.04, 1.8, Math.PI / 2, 0, 0.8);
   add('brontes', brontes, -0.40, 0, Math.PI, 1.303, 0, whiteShelf, 0);
   const typewriter=olivettiModel.scene;typewriter.name='OlivettiUnderwood280';typewriter.userData.batchRoot=true;typewriter.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
@@ -339,6 +345,9 @@ export async function createRoom(container, bubbleEl) {
     world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj);
     const swivel=chair.userData.swivel;swivel.userData.dynamic=false;made+=mergeStatic(swivel);swivel.userData.dynamic=true;fallbackDeskChildren.splice(0,fallbackDeskChildren.length,...deskSet.children); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
 
+  for(const plant of [bonsai,alo,dra])animateFoliage(plant);
+  const gardenTrees=[];cs.garden.traverse(o=>{if(o.userData.tree)gardenTrees.push(o);});for(const tree of gardenTrees)animateFoliage(tree,{tree:true});
+  const fallingLeaves=createFallingLeaves(cs.garden,gardenTrees);
   const hero = await createCharacter();
   hero.group.visible = false; world.add(hero.group);
   if (/[?&]squelette/.test(location.search)) scene.add(new THREE.SkeletonHelper(hero.group));
@@ -353,7 +362,7 @@ export async function createRoom(container, bubbleEl) {
 
   let cameraMode='follow',fitReady=false;
   const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
-  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y pinch-zoom':'none';};
+  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y':'none';};
   setCameraMode('follow');
   let navigationMode='pan';
   const navigationControls=document.createElement('div');navigationControls.className='room-navigation';navigationControls.setAttribute('role','group');navigationControls.setAttribute('aria-label','Manipulation du décor');
@@ -422,16 +431,23 @@ export async function createRoom(container, bubbleEl) {
     view.az = save.az; view.el = save.el;
     if(fitReady){target.copy(save.target);tgt.copy(save.tgt);}fitReady=true;items.forEach((i,n)=>i.obj.position.copy(save.positions[n]));
   }
-  let resScale = .85;                                           // résolution adaptative : baisse si l'image met trop de temps, remonte si tout va bien
+  let resScale = .85, renderBucket = -1;
+  function renderResolution() {
+    // Close-ups receive more real pixels, independently of page scale.
+    const detail=mobile.matches?Math.min(3,Math.max(1,view.tZoom)):1;
+    const ih=Math.round(Math.min(H*(devicePixelRatio||1),mobile.matches?460*detail:720)*resScale);
+    const iw=Math.round(W*ih/H);
+    if(renderer.domElement.width!==iw||renderer.domElement.height!==ih){
+      renderer.setPixelRatio(1);renderer.setSize(iw,ih,false);ink.res.value.set(iw,ih);
+      ink.px=mobile.matches?Math.max(1,2/detail):Math.max(2,3*ih/720);
+      if(ink.mat)ink.mat.uniforms.uPx.value=ink.px;
+    }
+    container.dataset.renderPixels=String(iw*ih);
+    container.dataset.sceneZoom=String(view.tZoom);
+  }
   function resize() {
-    W = container.clientWidth || 1; H = container.clientHeight || 1;
-    // rendu en basse définition (≈720 px de haut), agrandi sans lissage : même grain que la scène de référence
-    const ih = Math.min(H * (window.devicePixelRatio || 1), mobile.matches?460:720) * resScale, k = ih / H;
-    renderer.setPixelRatio(1);
-    renderer.setSize(Math.round(W * k), Math.round(ih), false);
-    ink.res.value.set(Math.round(W * k), Math.round(ih));
-    ink.px = Math.max(2, 3 * ih / 720); if (ink.mat) ink.mat.uniforms.uPx.value = ink.px;
-    computeFit(); applyFrustum();
+    W=container.clientWidth||1;H=container.clientHeight||1;
+    renderBucket=-1;renderResolution();computeFit();applyFrustum();
   }
   function applyFrustum() {
     const aspect = W / H, h = fit / view.zoom, wv = h * aspect;
@@ -484,6 +500,7 @@ export async function createRoom(container, bubbleEl) {
     return Math.hypot(cx - (A[0] + abx * t), cy - (A[1] + aby * t)) < R;
   };
   el.addEventListener('pointerdown', (e) => {
+    if(e.pointerType==='touch'&&performance.now()<suppressTouchUntil)return;
     nativeBridge?.resumeSound?.();
     if(e.pointerType!=='touch')el.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -491,7 +508,7 @@ export async function createRoom(container, bubbleEl) {
       if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) { pauseAutonomy(6000); hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false, ready:e.pointerType!=='touch' }; if(!hdrag.ready)hdrag.timer=setTimeout(()=>{if(hdrag)hdrag.ready=true;},220); }
       else {if(e.pointerType!=='touch')el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:navigationMode==='pan'&&!e.altKey&&e.button!==2};}
     }
-    if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
+    if (pointers.size === 2) { if(hdrag)clearTimeout(hdrag.timer); const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
   });
   el.addEventListener('pointermove', (e) => {
     updatePortraitLook(e);
@@ -524,6 +541,7 @@ export async function createRoom(container, bubbleEl) {
     }
   });
   const up = (e) => {
+    if(touchPinch){pointers.delete(e.pointerId);drag=null;return;}
     pointers.delete(e.pointerId); pinch = 0;
     if (hdrag) {
       clearTimeout(hdrag.timer);
@@ -544,7 +562,31 @@ export async function createRoom(container, bubbleEl) {
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel',()=>{pointers.clear();pinch=0;drag=null;if(hdrag){clearTimeout(hdrag.timer);if(hdrag.lifted){showZones(false);director.drop(hero.group.position.x,hero.group.position.z);}hdrag=null;}hero.resetLook?.();});
-  el.addEventListener('touchmove',e=>{if(hdrag?.ready&&e.touches.length===1&&e.cancelable)e.preventDefault();},{passive:false});
+  // Native one-finger page scrolling and a scene-only two-finger pinch.
+  let touchPinch=null,suppressTouchUntil=0;
+  const touchPair=e=>{
+    const [a,b]=e.touches;
+    return {distance:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};
+  };
+  el.addEventListener('touchstart',e=>{
+    if(e.touches.length!==2)return;
+    if(e.cancelable)e.preventDefault();
+    if(hdrag){clearTimeout(hdrag.timer);if(hdrag.lifted){showZones(false);director.drop(hero.group.position.x,hero.group.position.z);}hdrag=null;}
+    drag=null;touchPinch=touchPair(e);setCameraMode('free');pauseAutonomy(6000);
+  },{passive:false});
+  el.addEventListener('touchmove',e=>{
+    if(e.touches.length===2){
+      if(e.cancelable)e.preventDefault();const next=touchPair(e);
+      if(touchPinch){changeZoom(view.tZoom*next.distance/Math.max(1,touchPinch.distance));panCamera(next.x-touchPinch.x,next.y-touchPinch.y);}
+      touchPinch=next;drag=null;return;
+    }
+    if(touchPinch){if(e.cancelable)e.preventDefault();return;}
+    if(hdrag?.ready&&e.cancelable)e.preventDefault();
+  },{passive:false});
+  const endPinch=e=>{if(touchPinch&&e.touches.length===0){touchPinch=null;suppressTouchUntil=performance.now()+350;drag=null;pointers.clear();pinch=0;}};
+  el.addEventListener('touchend',endPinch,{passive:true});
+  el.addEventListener('touchcancel',endPinch,{passive:true});
+
   // La molette garde le défilement natif de la page, même en caméra libre.
   el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;selectNavigation('pan');setCameraMode('follow');});
   el.addEventListener('keydown',e=>{if(e.key==='Escape'){selectNavigation('pan');setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const move=navigationMode==='rotate'?rotateCamera:panCamera;move(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();changeZoom(view.tZoom*(e.key==='-'?.8:1.25));}});
@@ -736,7 +778,7 @@ export async function createRoom(container, bubbleEl) {
   pill.addEventListener('pointerdown', (e) => e.stopPropagation());
   let modelBaseY = null, thoughtFor = null, music = false, bubbleT = 0, spawned = false;
   const record = tt.userData.record, arm = tt.userData.arm;
-  let armAng = 0.5;
+  let armAng = tt.userData.restAngle ?? .5;
 
   /* fumée d'apparition */
   const puffs = [];
@@ -869,6 +911,7 @@ export async function createRoom(container, bubbleEl) {
   };
   const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
   function activate(id) {
+    if(id==='deskstrip'){deskEquipment?.setPower(!deskEquipment.powered);container.dataset.deskPower=deskEquipment?.powered?'on':'off';return;}
     if(id==='mamiya'){filmAlbum.open();return;}
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
@@ -878,8 +921,8 @@ export async function createRoom(container, bubbleEl) {
       else if (retro.state === 'ready') openApp('retro', retro.group.localToWorld(retro.tvCenter.clone()), 5.2);
       return;
     }
-    const openPc = () => openApp('xp', new THREE.Box3().setFromObject(uw).getCenter(new THREE.Vector3()), 5.2);
-    if (id === 'pc') { if (atDesk()) openPc(); else goTo('desk', openPc); return; }
+    const openPc = () => {if(deskEquipment&&!deskEquipment.powered)return;openApp('xp', new THREE.Box3().setFromObject(uw).getCenter(new THREE.Vector3()), 5.2);};
+    if (id === 'pc') { if(deskEquipment&&!deskEquipment.powered)return; if (atDesk()) openPc(); else goTo('desk', openPc); return; }
     if (/^shoji\d$/.test(id)) { cs.togglePanel(+id.slice(5)); return; }
     if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; if(id==='screenbar')refreshScreenbar(); return; }
     if (stations[id]) goTo(id);
@@ -924,15 +967,16 @@ export async function createRoom(container, bubbleEl) {
   };
 
   const clock = new THREE.Clock();
-  let running = true, roomVisible=true, workshopOpen=false;
-  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
+  let running = true, roomVisible=true, workshopOpen=false, albumOpen=false;
+  document.addEventListener('film-album-change',e=>{albumOpen=e.detail.open;if(albumOpen){running=false;pumpSound.stop();ps1Sound.stop();}else if(roomVisible&&!document.hidden&&!workshopOpen&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
+  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!albumOpen&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
   let lastMobileFrame=0;
   function frame(now=performance.now()) {
     if (!running) return;
-    if(mobile.matches&&now-lastMobileFrame<1000/30){requestAnimationFrame(frame);return;}lastMobileFrame=now;
+    
     const rawDt = clock.getDelta(), dt = Math.min(rawDt, opts.dtCap);
     fpsEma += (Math.min(rawDt, 0.1) - fpsEma) * 0.06; frameNo++;
     if (!opts.noAdapt && frameNo % 45 === 0 && frameNo > 90) {
@@ -943,12 +987,13 @@ export async function createRoom(container, bubbleEl) {
     // entrée en cascade
     const since = (performance.now() - startAt) / 1000;
     for (const it of items) {
+      if(it.entranceDone)continue;
       const p = Math.min(1, Math.max(0, (since - it.delay) / 0.85));
       it.holder.visible = since >= it.delay;
       const k = easeOutBounce(p);
       it.obj.position.y = it.base.y + (1 - k) * 2.2;
       const sq = p < 1 ? 1 + Math.sin(p * Math.PI) * 0.0 : 1;
-      it.obj.scale.setScalar(sq);
+      it.obj.scale.setScalar(sq);if(p===1)it.entranceDone=true;
     }
     // vue
     const kv = 1 - Math.exp(-dt * 10);
@@ -956,11 +1001,12 @@ export async function createRoom(container, bubbleEl) {
     target.lerp(tgt, kv);
     view.az += (view.tAz - view.az) * kv; view.el += (view.tEl - view.el) * kv; view.zoom += (view.tZoom - view.zoom) * kv;
     if(Math.abs(Number(zoomRange.value)-Math.log2(view.tZoom))>.005)syncZoom();
+    const detailBucket=Math.round(view.tZoom*8);if(mobile.matches&&detailBucket!==renderBucket){renderBucket=detailBucket;renderResolution();}
     scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
     // personnage
     if (ritual.state.active) ritual.update(dt);
     wx.update(dt); sun.intensity = sunBase * (1 - 0.55 * wx.k.cloud); hemi.intensity = hemiBase * (1 + 0.15 * wx.k.cloud);
-    cs.update(dt, t, night, wx.k); retro.update(dt);
+    cs.update(dt, t, night, wx.k);updateFoliage(t,1+wx.k.rain*.6);if(cs.vista.visible)fallingLeaves.update(dt,1+wx.k.rain*.6); retro.update(dt);
     // vapeur du bol et de la kama
     { const ud = tea.userData; ud.sBowl.position.copy(ritual.object.position).y += 0.075; ud.sKama.position.copy(ud.fk.position).add(ud.fk.userData.steamAnchor);
       const drunk = ud.bowl.userData.tea.visible ? 1 : 0; updateSteam(ud.sBowl, t, 0.3, 0.1, drunk); updateSteam(ud.sKama, t + 1.3, 0.34, 0.13, 0.8); }
@@ -1079,7 +1125,7 @@ export async function createRoom(container, bubbleEl) {
       const playingConsole = director.current === stations.sofa && director.mode === 'activity';
       bicyclePump?.frame(dt,director.current===stations.bike&&director.mode==='activity',hero);
       if(bicyclePump)pumpSound.frame(bicyclePump.state.active,bicyclePump.state.time,bicyclePump.state.cycling,roomVisible&&!document.hidden&&!workshopOpen);
-      retro.setPadHeld?.(playingConsole);
+      retro.setPadHeld?.(playingConsole);ps1Sound.frame(playingConsole&&retro.state==='ready',roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen&&!appOpen,music);
       if (playingConsole) poseGamepadHands();
       retro.updatePad?.(dt, hero.bones.hand_l, hero.bones.hand_r);
 
@@ -1111,17 +1157,18 @@ export async function createRoom(container, bubbleEl) {
     for(const s of speakers){
       // Restore the original 3% cabinet pulse; the floor anchor stays fixed.
       const pulse=music?1+Math.max(0,Math.sin(t*9))*.03:1;
+      if(s.lastPulse===pulse)continue;s.lastPulse=pulse;
       s.obj.scale.copy(s.baseScale);s.obj.scale.y*=pulse;
       for(const link of s.cables){const dy=link.post.y*s.baseScale.y*(pulse-1);for(let i=0;i<link.positions.count;i++)link.positions.array[i*3+1]=link.rest[i*3+1]+dy*link.weights[i];link.positions.needsUpdate=true;link.endCap.position.y=link.capY+dy;}
     }
     record.rotation.y += dt * (music ? 3.4 : 0);
-    armAng += ((music ? 0.0 : 0.5) - armAng) * (1 - Math.exp(-dt * 3));
+    armAng += ((music ? (tt.userData.playAngle??0) : (tt.userData.restAngle??.5)) - armAng) * (1 - Math.exp(-dt * 3));
     arm.rotation.y = armAng;
     // lampes
     for (const k in lamps) {
       const L = lamps[k];
-      L.k += ((L.on ? 1 : 0) - L.k) * (1 - Math.exp(-dt * 8));
-      L.glow.color.set(L.offColor).lerp(new THREE.Color(L.onColor), L.k);
+      L.k += ((L.on && (k!=='screenbar'||!deskEquipment||deskEquipment.powered) ? 1 : 0) - L.k) * (1 - Math.exp(-dt * 8));
+      L.offValue||=new THREE.Color(L.offColor);L.onValue||=new THREE.Color(L.onColor);L.glow.color.copy(L.offValue).lerp(L.onValue,L.k);
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
@@ -1143,11 +1190,11 @@ export async function createRoom(container, bubbleEl) {
   requestAnimationFrame(frame);
 
   // économie : on arrête quand l'onglet est caché ou le composant hors écran
-  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) {running = false;pumpSound.stop();} });
+  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) {running = false;pumpSound.stop();ps1Sound.stop();} });
   io.observe(container);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) {running = false;pumpSound.stop();} else if (roomVisible&&!workshopOpen&&!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) {running = false;pumpSound.stop();ps1Sound.stop();} else if (roomVisible&&!workshopOpen&&!albumOpen&&!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
+  return { foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }

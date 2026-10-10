@@ -83,7 +83,7 @@ if (portraitFrame) {
     }));
 
     if(event.pointerType==='touch'){
-      if(event.type==='pointerdown'&&api.isHeld){cancelTouch();touchGesture={id:event.pointerId,x:event.clientX,y:event.clientY,locked:false,timer:setTimeout(()=>{if(touchGesture)touchGesture.locked=true;},220)};}
+      if(event.type==='pointerdown'&&api.isHeld){cancelTouch();touchGesture={id:event.pointerId,x:event.clientX,y:event.clientY,locked:false,timer:null};}
       if(event.type==='pointerup'||event.type==='pointercancel')cancelTouch();
       return;
     }
@@ -101,7 +101,7 @@ if (portraitFrame) {
   // A normal vertical swipe scrolls. A horizontal drag or a deliberate hold stretches the head.
   document.addEventListener('touchmove',event=>{
     const g=touchGesture;if(!g||event.touches.length!==1)return;const p=event.touches[0],dx=p.clientX-g.x,dy=p.clientY-g.y;
-    if(!g.locked&&Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)){
+    if(Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)*1.15){
       portraitApi()?.scene.domElement.dispatchEvent(new portraitFrame.contentWindow.PointerEvent('pointercancel',{pointerId:g.id,bubbles:true}));cancelTouch();return;
     }
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy))g.locked=true;

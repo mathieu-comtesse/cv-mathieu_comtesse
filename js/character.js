@@ -216,7 +216,7 @@ export async function createCharacter({
     if(!o.isSkinnedMesh) return;
     const g=o.geometry.clone(),si=g.attributes.skinIndex,sw=g.attributes.skinWeight;
     const right=i=>{let w=0;for(let j=0;j<4;j++)if(/^(upperarm|lowerarm|hand)_r$/.test(o.skeleton.bones[si.getComponent(i,j)]?.name||''))w+=sw.getComponent(i,j);return w;};
-    const base=Array.isArray(o.material)?o.material[0]:o.material,black=base.clone();black.color.set('#0b0c0e');black.name='RightArmBlackTattoo';
+    const base=Array.isArray(o.material)?o.material[0]:o.material,black=base.clone();black.color.set('#1C2833');black.name='RightArmBlackTattoo';
     const count=g.index?.count||g.attributes.position.count;g.clearGroups();let start=0,last=-1;
     for(let i=0;i<count;i+=3){const m=[0,1,2].reduce((n,j)=>n+right(g.index?g.index.getX(i+j):i+j),0)>1.5?1:0;if(m!==last){if(last>=0)g.addGroup(start,i-start,last);start=i;last=m;}}
     if(last>=0)g.addGroup(start,count-start,last);o.geometry=g;o.material=[base,black];

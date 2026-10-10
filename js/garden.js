@@ -23,7 +23,7 @@ function taperTube(pts, r0, r1, seg = 14, rad = 7) {
 
 /** pin taillé en nuages : tronc tortueux + coussins de feuillage aplatis */
 function pin(seed, H = 2.0) {
-  const r = rng(seed), g = group();
+  const r = rng(seed), g = group();g.name='GardenTree';g.userData.tree=true;
   const lean = (r() - 0.5) * 0.5, pts = [0, 0.25, 0.5, 0.75, 1].map((t, i) => new THREE.Vector3(Math.sin(t * 3 + seed) * 0.12 + lean * t * t, H * t * 0.78, Math.cos(t * 2.4 + seed) * 0.1));
   g.add(new THREE.Mesh(taperTube(pts, 0.075, 0.035), stone('#5b4332')));
   const pads = [], tops = [];
@@ -39,7 +39,7 @@ function pin(seed, H = 2.0) {
 
 /** érable (momiji) : tronc fin, nuages rouges et orangés */
 function erable(seed) {
-  const r = rng(seed), g = group();
+  const r = rng(seed), g = group();g.name='GardenMaple';g.userData.tree=true;
   const pts = [0, 0.4, 0.75, 1].map((t, i) => new THREE.Vector3(Math.sin(t * 2 + seed) * 0.1, 1.5 * t, Math.cos(t * 2 + seed) * 0.08));
   g.add(new THREE.Mesh(taperTube(pts, 0.05, 0.025), stone('#5a4636')));
   const cols = ['#c9462b', '#e0713a', '#b8352a'], parts = cols.map(() => []);

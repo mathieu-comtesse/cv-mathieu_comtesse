@@ -264,6 +264,9 @@ export function officeChairFrom(gltf) {
   g.add(turn); g.updateMatrixWorld(true);
   const base = new THREE.Group(), swivel = new THREE.Group();
   base.name='SetuFixedBase';swivel.name='SetuSwivel';
+  // Measured centre of the original gas column, not the seat bounding box.
+  const axis=new THREE.Vector3(.0023657436,0,.0302375759);
+  swivel.position.copy(axis);g.userData.swivelAxis=axis.toArray();
   swivel.userData.dynamic=true;g.userData.dynamic=true;
   const meshes=[];turn.traverse(o=>{if(o.isMesh&&o.visible)meshes.push(o);});
   for(const source of meshes) {
@@ -272,10 +275,11 @@ export function officeChairFrom(gltf) {
     const lower=[],upper=[];
     for(let i=0;i<(idx?idx.count:p.count);i+=3) {
       const triangle=[0,1,2].map(k=>idx?idx.getX(i+k):i+k);
-      (Math.max(...triangle.map(v=>p.getY(v)))>0.34?upper:lower).push(...triangle);
+      const fixedColumn=Math.min(...triangle.map(v=>p.getY(v)))<.34&&triangle.every(v=>Math.hypot(p.getX(v)-axis.x,p.getZ(v)-axis.z)<.065);
+      (Math.max(...triangle.map(v=>p.getY(v)))>.34&&!fixedColumn?upper:lower).push(...triangle);
     }
     for(const [indices,parent] of [[lower,base],[upper,swivel]]) if(indices.length) {
-      const geo=geometry.clone();geo.setIndex(indices);geo.computeBoundingBox();
+      const indexed=geometry.clone();indexed.setIndex(indices);const geo=indexed.toNonIndexed();indexed.dispose();if(parent===swivel)geo.translate(-axis.x,0,-axis.z);geo.computeBoundingBox();
       const part=new THREE.Mesh(geo,source.material);part.castShadow=part.receiveShadow=true;parent.add(part);
     }
   }
@@ -879,7 +883,7 @@ export function bench() {
 }
 
 /* ───────────── ÉTAGÈRE MODULAIRE « Omni » (Giotto Stoppino, Kartell) : plastique crème, montants à coins arrondis ───────────── */
-export function shelf() {
+export function shelf(bookModel) {
   const g = group();
   const cream = new THREE.MeshStandardMaterial({ color: '#f2ecdb', roughness: 0.5, emissive: '#3a362c', emissiveIntensity: 0.35 });
   const W = 1.66, H = 1.5, D = 0.36, T = 0.04;
@@ -900,8 +904,7 @@ export function shelf() {
   const bag = canvasTexture(64, 64, (c, w, h) => { for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { c.fillStyle = (x + y) % 2 ? '#e8e6e0' : '#2a2a2c'; c.fillRect(x * 8, y * 8, 8, 8); } });
   g.add(rbox(0.28, 0.14, 0.12, 0.03, new THREE.MeshStandardMaterial({ map: bag, roughness: 0.8 }), bx - 0.02, 1.07 + 0.088, 0.02));
   g.add(cyl(0.12, 0.12, 0.004, mat('#ece8dc'), -bx + 0.1, 0.817 + 0.022, 0.0, 24));
-  const books = ['#d9d4c4', '#2c2c30', '#e8e6dc', '#c9402e'];
-  for (let i = 0; i < 4; i++) g.add(box(0.28 - i * 0.015, 0.03, 0.2, mat(books[i], { roughness: 0.8 }), -bx + 0.12 + (i % 2) * 0.01, 0.257 + 0.033 + i * 0.03, 0.0));
+  if(bookModel){const books=bookModel.scene;books.name='SuppliedVarietyOfBooks';books.userData.batchRoot=true;books.userData.noInk=true;books.position.set(-bx,.275,0);books.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});g.add(books);}
   const kettle = group(sph(0.07, mat('#c9ccd0', { metalness: 0.8, roughness: 0.3 }), 0, 0.06, 0, 18, 12), cyl(0.012, 0.03, 0.05, mat('#c9ccd0', { metalness: 0.8, roughness: 0.3 }), 0, 0.14, 0, 12), sph(0.014, mat('#c9402e'), 0, 0.17, 0, 8, 6));
   kettle.add(mesh(new THREE.TorusGeometry(0.06, 0.007, 6, 18, Math.PI), mat('#1b1c1f'), 0, 0.14, 0).rotateZ(0));
   kettle.position.set(bx - 0.15, 0.55 + 0.018, 0.0); g.add(kettle);

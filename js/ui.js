@@ -1,4 +1,4 @@
-import { PAGES } from './pages.js?v=cv-scene-v45';
+import { PAGES } from './pages.js?v=cv-scene-v49';
 import { PERSO, PRO, CV } from './data.js?v=cv-scene-v45';
 
 /* Deux interfaces plein écran ouvertes depuis la pièce 3D :

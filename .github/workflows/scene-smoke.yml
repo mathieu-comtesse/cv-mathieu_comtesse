@@ -61,6 +61,14 @@ jobs:
           node --check js/home.js
           node --check js/main.js
           node --check js/room.js
+          node --check js/film-album.js
+          node --check js/paper-sheet.js
+          node --check js/finance-emails.js
+          node --check js/foliage.js
+          node --check js/user-props.js
+          node --check js/ps1-sound.js
+          node --check js/info.js
+          node --check js/furniture.js
           node --check js/desk-equipment.js
           node --check js/pump-sound.js
           node --check js/character.js
@@ -89,10 +97,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v48" index.html
-          grep -q "character.js?v=cv-scene-v29" js/room.js
-          grep -q "retro.js?v=cv-scene-v43" js/room.js
-          grep -q "room.js?v=cv-scene-v48" js/main.js
+          grep -q "js/main.js?v=cv-scene-v49" index.html
+          grep -q "character.js?v=cv-scene-v49" js/room.js
+          grep -q "retro.js?v=cv-scene-v49" js/room.js
+          grep -q "room.js?v=cv-scene-v49" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb
@@ -110,6 +118,12 @@ jobs:
         run: |
           npm install --no-save playwright@1.62.1
           npx playwright install --with-deps chromium
+      - name: Check mobile gestures and physical photo book
+        run: node tools/test-v49-mobile-book.mjs
+      - name: Check desk chair axis and page turns
+        run: node tools/test-v49-seat-book.mjs
+      - name: Check supplied props, power strip, foliage, PS1 sounds and financial emails
+        run: node tools/test-v49-features.mjs
       - name: Check room rendering and interactions
         run: node tools/test-scene-runtime.mjs
       - name: Check supplied workstation, shelf props and PS1 cables

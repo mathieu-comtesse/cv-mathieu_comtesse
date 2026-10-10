@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v45';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v49';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -30,12 +30,12 @@ const DIAG = {
     ],
     [
       "Comparaison",
-      "Chaque montant est comparé au seuil de sa catégorie.",
+      "La consommation du compte est comparée au seuil modulable lu dans Excel, actuellement 80 % du montant disponible.",
       "check"
     ],
     [
       "Alerte",
-      "Le dépassement est orienté vers une alerte à traiter.",
+      "Une alerte préventive signale le seuil atteint ; une alerte de dépassement signale des dépenses supérieures aux fonds du compte (TND négatif).",
       "outlook"
     ],
     [
@@ -380,7 +380,7 @@ const DIAG = {
   ],
   [
     "Q18 visibles",
-    "Les Q18 deviennent visibles dans le suivi, alors qu’ils ne l’étaient pas auparavant.",
+    "Une colonne Excel rend les Q18 visibles. Ce classeur alimente Power BI : cette nouvelle visibilité répond aux besoins des COSI (Correspondants en Sécurité incendie) et des clients de l’ABE SUD IdF.",
     "q18"
   ],
   [
@@ -424,7 +424,6 @@ const bases = {
 };
 for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=p.id==='suivi'?'estimated':p.id==='cerfa'?'penalties':p.time===null?'none':'time-value'; }
 PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
- {time:'100–167 h / an',timeCtx:'400–500 PP/an × 15–20 minutes : extraction VM, rangement SharePoint et archivage automatique',money:'10 474–17 456,67 € / an',moneyCtx:'400–500 plans de prévention traités à 104,74 €/h, calcul avant arrondi des heures'},
  {time:'6 h 40 / jour',timeCtx:'10 minutes économisées par consultation × environ 40 consultations par jour',money:'698,27 € / jour',moneyCtx:'consultation des PP à 104,74 €/h ; aucun volume annuel de jours supposé'}
 ];
 

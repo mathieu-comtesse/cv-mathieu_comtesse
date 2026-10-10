@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import path from 'node:path';
+import {sceneTestProfile} from './scene-test-profile.mjs';
+console.log('TEST_STARTED');
+const {chromium}=await import(process.env.PLAYWRIGHT_PACKAGE?pathToFileURL(process.env.PLAYWRIGHT_PACKAGE).href:'playwright');
+const root=fileURLToPath(new URL('../',import.meta.url)),output=path.resolve(root,process.env.SCENE_TEST_OUTPUT||'test-results');await mkdir(output,{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE,args:['--enable-webgl','--use-angle='+ (process.env.SCENE_WEBGL_BACKEND||'swiftshader'),'--enable-unsafe-swiftshader']});
+console.log('BROWSER_STARTED');
+const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true}),page=await context.newPage(),errors=[],missing=[];
+page.setDefaultTimeout(120000);page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});page.on('pageerror',e=>{errors.push(e.message);console.log('PAGE_ERROR',e.message);});page.on('response',r=>{if(r.status()>=400)missing.push(r.url());});
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.glb':'model/gltf-binary','.svg':'image/svg+xml','.mp3':'audio/mpeg','.woff2':'font/woff2'};
+if(!process.env.SCENE_PUBLIC_URL)await context.route('http://scene.test/**',async route=>{const u=new URL(route.request().url()),f=path.resolve(root,'.'+decodeURIComponent(u.pathname==='/'?'/index.html':u.pathname));try{await route.fulfill({body:await readFile(f),contentType:types[path.extname(f)]||'application/octet-stream'});}catch{await route.fulfill({status:404,body:u.pathname});}});
+
+if(process.env.SCENE_BASELINE){const old=JSON.parse(await readFile(path.resolve(root,'../../outputs/v46-baseline-sources.json'),'utf8'));await context.route('http://scene.test/**',async route=>{const key=new URL(route.request().url()).pathname.slice(1);if(old[key])await route.fulfill({body:old[key],contentType:types[path.extname(key)]});else await route.fallback();});}
+
+const url=process.env.SCENE_PUBLIC_URL||'http://scene.test/';const evidence={};
+const swipe=async(x,y,dx,dy,hold=0)=>{const cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});if(hold)await page.waitForTimeout(hold);for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/12,y:y+dy*i/12}]});await page.waitForTimeout(20);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(400);};
+try{
+ await page.goto(url,{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.getElementById('room')?.dataset.sceneReady==='true');await page.evaluate(()=>{room.pauseAutonomy(600000);room.opts.noAdapt=true;});
+ evidence.seat=await page.evaluate(async()=>{const T=await import('three'),r=room,c=r.scene.getObjectByName('HermanMillerSetu'),swivel=c.userData.swivel,axis=new T.Vector3().fromArray(c.userData.swivelAxis),points=[];c.updateWorldMatrix(true,true);const pivot=swivel.getWorldPosition(new T.Vector3()),shaft=axis.clone().applyMatrix4(c.matrixWorld);
+ for(const angle of [0,Math.PI/2,Math.PI,-Math.PI*.75]){swivel.rotation.y=angle;c.updateWorldMatrix(true,true);points.push(swivel.getWorldPosition(new T.Vector3()).distanceTo(shaft));}return {axis:axis.toArray(),offsets:points,collision:new T.Box3().setFromObject(c).intersectsBox(new T.Box3().setFromObject(r.scene.getObjectByName('USMHallerMobile')))};});
+ assert.ok(evidence.seat.offsets.every(x=>x<.000001));assert.equal(evidence.seat.collision,false);
+ await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{room.setCameraMode('free');room.view.tAz=-1.8;room.view.tEl=.4;room.target.set(-2.15,.3,.48);room.view.tZoom=4;});await page.waitForTimeout(1400);await page.screenshot({scale:'css',path:path.join(output,'siege-axe.png')});
+ await page.evaluate(()=>room.activate('mamiya'));await page.waitForFunction(()=>document.querySelector('.film-loading').hidden);await page.screenshot({scale:'css',path:path.join(output,'livre-bureau.png')});
+ await page.locator('.film-right').click();await page.waitForTimeout(600);await page.screenshot({scale:'css',path:path.join(output,'livre-page-tourne-bureau.png')});await page.waitForFunction(()=>document.querySelector('.film-album').dataset.spread==='1');await page.keyboard.press('Escape');
+ await page.locator('.process-gallery').scrollIntoViewIfNeeded();const track=page.locator('.process-track'),start=await track.evaluate(e=>getComputedStyle(e).transform);const rect=await page.locator('.process-gallery').boundingBox();await page.mouse.move(700,rect.y+210);await page.mouse.down();await page.mouse.move(450,rect.y+210,{steps:12});await page.mouse.up();await page.waitForTimeout(300);assert.notEqual(await track.evaluate(e=>getComputedStyle(e).transform),start);
+ // Touch clicking a cloned period must open the same project.
+ await page.setViewportSize({width:390,height:844});await page.locator('.process-gallery').scrollIntoViewIfNeeded();await page.waitForTimeout(800);
+ const target=await page.locator('.process-card').evaluateAll(cards=>{const card=cards.find(c=>{const r=c.getBoundingClientRect();return r.left<230&&r.right>230&&r.top<500&&r.bottom>100;});if(!card)return null;const r=card.getBoundingClientRect();return {id:card.dataset.project,x:230,y:Math.max(150,Math.min(650,r.top+90)),clone:card.getAttribute('aria-hidden')};});assert.ok(target);await page.touchscreen.tap(target.x,target.y);await page.waitForFunction(()=>document.querySelector('.process-dialog').open&&document.querySelector('.process-dialog').dataset.loaded);evidence.clone=target;await page.getByRole('button',{name:'Retour aux projets',exact:true}).click();
+ await page.evaluate(()=>{scrollTo(0,0);room.activate('mamiya');});await page.waitForFunction(()=>document.querySelector('.film-loading').hidden);await page.screenshot({scale:'css',path:path.join(output,'livre-mobile.png')});
+ await page.locator('.film-right').click();await page.waitForTimeout(600);await page.screenshot({scale:'css',path:path.join(output,'livre-page-tourne.png')});await page.waitForFunction(()=>document.querySelector('.film-album').dataset.spread==='1');await page.locator('.film-close').click();
+ assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);await writeFile(path.join(output,'verification-siege-livre.json'),JSON.stringify({...evidence,errors,missing},null,2));console.log('SEAT_BOOK_OK',JSON.stringify(evidence));
+}finally{await browser.close();}

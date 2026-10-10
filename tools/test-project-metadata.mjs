@@ -29,8 +29,13 @@ assert.equal(10*40/60,400/60);
 assert.equal((10*40/60*HOURLY_RATE).toFixed(2),'698.27');
 assert.equal((15*500/60*HOURLY_RATE).toFixed(2),'13092.50');
 assert.equal((20*500/60*HOURLY_RATE).toFixed(2),'17456.67');
-assert.match(ppMoso.extraGains[1].time,/6 h 40/);
-assert.match(ppMoso.extraGains[0].money,/10 474/);
+assert.equal(ppMoso.extraGains.length,1);
+assert.match(ppMoso.extraGains[0].time,/6 h 40/);
+assert.match(ppMoso.money,/10 474/);
+assert.match(moteur.diag[3][1],/Power BI/);
+assert.match(moteur.diag[3][1],/COSI/);
+assert.match(PAGES['projet-financier'].html,/80 %/);
+assert.match(PAGES['projet-financier'].html,/TND devient négatif/);
 for(const id of ['projet-3','projet-4']){assert.match(PAGES[id].html,/400 à 500 plans de prévention/);assert.match(PAGES[id].html,/698,27/);assert.ok(!PAGES[id].html.includes('3 à 5 minutes'));}
 assert.equal(ppMoso.diag[1][2],'vm');
 assert.match(ppMoso.diag[2][1],/SharePoint/);

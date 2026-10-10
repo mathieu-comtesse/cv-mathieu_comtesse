@@ -1,14 +1,25 @@
 
 /* Desktop keeps its continuous rail. Mobile uses the browser's native touch scroll. */
-export function createMarquee(root,{repeat=3,friction=.975,maxThrow=60}={}){
+export function createMarquee(root,{repeat=5,friction=.975,maxThrow=60}={}){
  const track=root.querySelector('.mq-track'),originals=[...track.children],mobile=matchMedia('(max-width:809px)');
  const viewport=document.createElement('div');viewport.className='mq-scroll';track.before(viewport);viewport.append(track);
  for(let r=1;r<repeat;r++)for(const n of originals){const c=n.cloneNode(true);c.setAttribute('aria-hidden','true');c.tabIndex=-1;c.querySelectorAll('a,button,[tabindex]').forEach(o=>o.tabIndex=-1);track.append(c);}
- let x=0,width=0,velocity=0,raf=0,lastFrame=0,gesture=null,visible=true,suppressUntil=0;
+ let x=0,width=0,velocity=0,raf=0,lastFrame=0,gesture=null,visible=true,suppressUntil=0,centred=false;
  const wrap=v=>width?((v%width)+width)%width-width:0;
  const set=()=>{if(mobile.matches){x=-viewport.scrollLeft;track.style.transform='';}else track.style.transform=`translate3d(${x}px,0,0)`;root.dataset.scrollMode=mobile.matches?'native':'drag';root.dispatchEvent(new CustomEvent('marquee-move',{detail:{x,width,native:mobile.matches}}));};
+ const centre=()=>{
+  if(!mobile.matches||!width)return;
+  const pos=viewport.scrollLeft;
+  if(!centred||pos<width||pos>width*3){
+    const phase=((pos%width)+width)%width;
+    const next=width*2+phase,delta=next-pos;
+    viewport.scrollLeft=next;
+    if(gesture)gesture.scroll+=delta;
+    centred=true;root.dataset.loopCount=String((Number(root.dataset.loopCount)||0)+1);
+  }
+ };
  const stop=()=>{cancelAnimationFrame(raf);raf=0;lastFrame=0;};
- const measure=()=>{const phase=width?x/width:-1,gap=parseFloat(getComputedStyle(track).columnGap)||0;width=originals.reduce((s,o)=>s+o.getBoundingClientRect().width,0)+gap*originals.length;x=mobile.matches?-viewport.scrollLeft:wrap(phase*width);root.dataset.marqueePeriod=String(width);set();};
+ const measure=()=>{const phase=width?x/width:-1,gap=parseFloat(getComputedStyle(track).columnGap)||0;width=originals.reduce((s,o)=>s+o.getBoundingClientRect().width,0)+gap*originals.length;x=mobile.matches?-viewport.scrollLeft:wrap(phase*width);root.dataset.marqueePeriod=String(width);centre();set();};
  const tick=now=>{raf=0;if(gesture||!visible||document.hidden||mobile.matches)return;const dt=lastFrame?Math.min(50,now-lastFrame):16.67;lastFrame=now;x=wrap(x+velocity*dt);velocity*=Math.pow(friction,dt/16.67);set();if(Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);else{velocity=0;lastFrame=0;}};
  const kick=()=>{if(!raf&&visible&&!document.hidden&&!mobile.matches&&Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);};
  viewport.addEventListener('scroll',()=>{if(!mobile.matches)return;if(gesture&&Math.abs(viewport.scrollLeft-gesture.scroll)>7)suppressUntil=performance.now()+180;set();},{passive:true});
@@ -25,6 +36,6 @@ export function createMarquee(root,{repeat=3,friction=.975,maxThrow=60}={}){
  root.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();stop();velocity=0;const dx=(e.key==='ArrowLeft'?1:-1)*root.clientWidth*.35;if(mobile.matches)viewport.scrollBy({left:-dx,behavior:'smooth'});else{x=wrap(x+dx);set();}});
  new IntersectionObserver(([e])=>{visible=e.isIntersecting;visible?kick():stop();}).observe(root);
  document.addEventListener('visibilitychange',()=>document.hidden?stop():kick());
- mobile.addEventListener('change',()=>{stop();gesture=null;velocity=0;measure();});
+ mobile.addEventListener('change',()=>{stop();gesture=null;velocity=0;centred=false;measure();});
  new ResizeObserver(measure).observe(track);addEventListener('resize',measure);root.querySelectorAll('img').forEach(i=>{i.draggable=false;if(!i.complete)i.addEventListener('load',measure);});measure();
 }
