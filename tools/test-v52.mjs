@@ -5,6 +5,8 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.PL
 const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage(),errors=[],report={};page.on('pageerror',e=>{errors.push(e.message);console.log('ERROR',e.message)});page.setDefaultTimeout(120000);
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.glb':'model/gltf-binary','.svg':'image/svg+xml','.mp3':'audio/mpeg','.mp4':'video/mp4','.woff2':'font/woff2'};
 if(!process.env.SCENE_PUBLIC_URL)await context.route('http://scene.test/**',async route=>{const u=new URL(route.request().url()),f=path.resolve(root,'.'+decodeURIComponent(u.pathname==='/'?'/index.html':u.pathname));try{await route.fulfill({body:await readFile(f),contentType:types[path.extname(f)]||'application/octet-stream'});}catch{console.log('MISSING',u.pathname);await route.fulfill({status:404,body:u.pathname});}});
+// This scenario checks the console frame lock, not Atlas internals; keep its asynchronous startup out of teardown checks.
+await context.route('**/jeux/*.html',async route=>route.request().frame()!==page.mainFrame()?route.fulfill({body:'<!doctype html><title>Game frame</title><main>Game frame</main>',contentType:'text/html'}):route.fallback());
 try{
  await page.goto(process.env.SCENE_PUBLIC_URL||'http://scene.test/');await page.waitForFunction(()=>window.room&&document.querySelector('#room').dataset.sceneReady==='true');
  await page.evaluate(()=>{room.pauseAutonomy(600000);room.opts.noAdapt=true;for(const st of Object.values(room.stations))st.maxMs=300000;});
