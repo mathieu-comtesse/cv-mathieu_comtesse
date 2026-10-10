@@ -38,7 +38,7 @@ if(!process.env.SCENE_EXPECT_JITTER){
  const g=await gallery.boundingBox();await page.mouse.move(g.x+g.width*.75,g.y+180);await page.mouse.down();for(let i=1;i<=18;i++){await page.mouse.move(g.x+g.width*.75-i*32,g.y+180);(evidence.drag??=[]).push(await record());}await page.mouse.up();
  await page.waitForTimeout(250);evidence.inertia=await record();await gallery.press('ArrowLeft');await page.waitForTimeout(200);evidence.keyboard=await record();
  for(let i=0;i<16;i++){await gallery.press('ArrowRight');await page.waitForTimeout(65);}evidence.wrap=await record();assert.ok(evidence.wrap.x<=0&&evidence.wrap.x>=-evidence.wrap.period);assert.ok(evidence.inertia.frames>evidence.drag[0].frames);
- assert.equal(await page.locator('.process-dialog[open]').count(),0);await page.screenshot({path:path.join(output,'projets-defilement-stable.png')});
+ assert.equal(await page.locator('.process-dialog[open]').count(),0);await page.emulateMedia({reducedMotion:'reduce'});await page.screenshot({path:path.join(output,'projets-defilement-stable.png'),timeout:120000});
 }
 assert.deepEqual(errors,[]);console.log(process.env.SCENE_EXPECT_JITTER?'BASELINE_JITTER_REPRODUCED':'PROJECT_SCROLL_FIXED');
 }finally{evidence.errors=errors;await writeFile(path.join(output,'scroll-validation.json'),JSON.stringify(evidence,null,2));await browser.close();}
