@@ -11,7 +11,7 @@ import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v44';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
-import { createJukebox } from './jukebox.js?v=cv-scene-v33';
+import { createJukebox } from './jukebox.js?v=cv-scene-v48';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';

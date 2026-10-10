@@ -7,6 +7,7 @@ on:
       - "index.html"
       - "js/**"
       - "tools/test-project-metadata.mjs"
+      - "tools/test-jukebox-sequence.mjs"
       - "assets/dioramas/**"
       - "tools/test-native-geometry.mjs"
       - "tools/scene-test-profile.mjs"
@@ -53,6 +54,7 @@ jobs:
           node --check js/piggy-bank.js
           node --check js/annual-gains.js
           node --check js/projects-data.js
+          node --check js/jukebox.js
           node --check js/kit.js
           node --check js/pages.js
           node --check js/data.js
@@ -74,6 +76,8 @@ jobs:
         run: node tools/test-navigation.mjs
       - name: Check iframe geometry compatibility
         run: node tools/test-native-geometry.mjs
+      - name: Check music sequencing
+        run: node tools/test-jukebox-sequence.mjs
       - name: Check professional project metadata
         run: node tools/test-project-metadata.mjs
       - name: Check annual gain totals
@@ -85,10 +89,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v47" index.html
+          grep -q "js/main.js?v=cv-scene-v48" index.html
           grep -q "character.js?v=cv-scene-v29" js/room.js
           grep -q "retro.js?v=cv-scene-v43" js/room.js
-          grep -q "room.js?v=cv-scene-v47" js/main.js
+          grep -q "room.js?v=cv-scene-v48" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb

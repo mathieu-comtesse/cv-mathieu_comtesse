@@ -1,63 +1,140 @@
 import { TRACKS } from './music.js?v=bf01a16';
 
-/* Juke-box : le lecteur intégré Spotify (iFrame API) joue un titre choisi ou tiré au hasard dans TRACKS, puis enchaîne tout seul au hasard, sans limite.
- * Sans connexion, Spotify ne donne que des extraits de 30 s ; connecté dans le navigateur, les titres entiers. Seule une pause demandée par le visiteur arrête l'enchaînement.
- * Détection de fin, trois filets : (1) pause avec position remise à zéro ou proche de la durée, (2) pause à ~30 s (fin d'extrait, quelle que soit la durée annoncée),
- * (3) chien de garde : plus aucun signe de lecture pendant 6 s alors que la lecture n'a pas été mise en pause. Si un titre chargé ne démarre pas, on relance play() (3 essais). */
+// Keep the visitor's pause intent separate from Spotify's end/buffering state.
 export function createJukebox({ onTrack, onState } = {}) {
-  let bag = [], last = -1, ctrl = null, loading = false, on = false, want = null, paused = false, userPause = false, started = false, tries = 0, lastPos = 0, lastPlayAt = 0, endAt = 0;
+  let bag = [], last = -1, ctrl = null, loading = false, ready = false, loadedUri = null;
+  let on = false, want = null, userPause = false, started = false, providerPaused = true, buffering = false;
+  let generation = 0, lastPos = 0, duration = 0, progressAt = 0, requestedAt = 0, tries = 0, recoveryAt = 0, pendingEnd = false;
+  const now = () => performance.now();
   const box = document.createElement('div');
   box.style.cssText = 'position:fixed;left:-10000px;top:-10000px;width:320px;height:80px;opacity:0;pointer-events:none';
   box.setAttribute('aria-hidden', 'true');
   box.id = 'spotify-player';
-  // A lazy iframe placed offscreen never starts loading.
-  const eagerFrame = () => { const frame=box.querySelector('iframe'); if(frame) frame.loading='eager'; };
-  new MutationObserver(eagerFrame).observe(box,{childList:true,subtree:true});
+  const eagerFrame = () => { const frame = box.querySelector('iframe'); if (frame) frame.loading = 'eager'; };
+  new MutationObserver(eagerFrame).observe(box, { childList:true, subtree:true });
   const slot = document.createElement('div'); box.append(slot); document.body.append(box);
-  const emit = () => onState && onState({ on, paused, playing:on&&!paused&&started });
+  const uri = i => 'spotify:track:' + TRACKS[i].id;
+  const emit = () => {
+    box.dataset.state = !on ? 'off' : userPause ? 'paused' : buffering ? 'buffering' : started && !providerPaused ? 'playing' : 'loading';
+    onState?.({ on, paused:userPause, playing:on && !userPause && started && !providerPaused && !buffering });
+  };
   const nextRandom = () => {
-    if (!bag.length) { bag = TRACKS.map((_, i) => i).sort(() => Math.random() - 0.5); if (bag.length > 1 && bag[bag.length - 1] === last) bag.unshift(bag.pop()); }
+    if (!bag.length) {
+      bag = TRACKS.map((_, i) => i);
+      for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]];
+      }
+      if (bag.length > 1 && bag[bag.length - 1] === last) bag.unshift(bag.pop());
+    }
     return bag.pop();
   };
-  const uri = (i) => `spotify:track:${TRACKS[i].id}`;
-  const now = () => performance.now();
+  const requestPlay = () => {
+    if (!on || userPause || !ctrl || !ready) return;
+    ctrl.play();
+  };
+  function load() {
+    if (!ctrl || want === null) return;
+    loadedUri = uri(want);
+    (ctrl.loadEntity || ctrl.loadUri).call(ctrl, loadedUri);
+    const token = generation;
+    setTimeout(() => { if (token === generation) requestPlay(); }, 350);
+  }
   function go(i) {
-    last = i; bag = bag.filter((k) => k !== i); want = i; lastPos = 0; paused = false; userPause = false; started = false; tries = 0; endAt = lastPlayAt = now();
-    onTrack && onTrack(i); emit();
-    if (ctrl) { ctrl.loadUri(uri(i)); setTimeout(() => { if (on && want === i && ctrl) ctrl.play(); }, 350); }
+    generation++;
+    last = want = i; bag = bag.filter(k => k !== i);
+    lastPos = duration = tries = recoveryAt = 0; pendingEnd = false;
+    userPause = started = buffering = false; providerPaused = true;
+    requestedAt = progressAt = now();
+    box.dataset.track = String(i); box.dataset.uri = uri(i);
+    box.dataset.position = '0'; box.dataset.duration = '0';
+    box.dataset.generation = String(generation);
+    onTrack?.(i); emit(); load();
   }
   const advance = () => go(nextRandom());
+  const belongsToCurrent = d => !d.playingURI || d.playingURI === uri(want);
   function init() {
-    if (ctrl || loading) return; loading = true;
-    window.onSpotifyIframeApiReady = (A) => {
-      A.createController(slot, { uri: uri(want ?? 0), width: '100%', height: 80 }, (c) => {
-        ctrl = c; loading = false; eagerFrame();
-        c.addListener('ready', () => { box.dataset.ready='true'; if (on) c.play(); });
-        c.addListener('playback_update', (e) => {
-          const d = e.data; if (!on || !d) return;
-          box.dataset.position=String(d.position);box.dataset.paused=String(d.isPaused);
-          if (!d.isPaused) { if (d.position > 300) { started = true; lastPos = d.position; lastPlayAt = now(); } paused = false; userPause = false; emit(); return; }
-          if (userPause) { if (!paused) { paused = true; emit(); } return; }
-          const dur = d.duration || 0;
-          const ended = started && now() - endAt > 2500 && (d.position < 1200 || (dur && d.position >= dur - 2500) || (lastPos >= 27000 && lastPos <= 32500) || lastPos > 2500 && lastPos >= dur - 2500);
-          if (ended) { advance(); return; }
-          if (!started && tries < 3 && now() - endAt > 1500) { tries++; ctrl.play(); return; }   // titre chargé mais pas démarré
-          if (!paused && d.position > 1200) { paused = true; emit(); }
+    if (ctrl || loading) return;
+    loading = true;
+    window.onSpotifyIframeApiReady = A => {
+      const initialUri = uri(want ?? 0);
+      A.createController(slot, { uri:initialUri, width:'100%', height:80 }, c => {
+        ctrl = c; loadedUri = initialUri; loading = false; eagerFrame();
+        c.addListener('ready', () => {
+          ready = true; box.dataset.ready = 'true';
+          if (want !== null && loadedUri !== uri(want)) load();
+          else { requestedAt = progressAt = now(); requestPlay(); }
+        });
+        c.addListener('playback_started', e => {
+          if (!on || !e.data || !belongsToCurrent(e.data) || userPause) return;
+          started = true; providerPaused = buffering = false; progressAt = now(); emit();
+        });
+        c.addListener('playback_update', e => {
+          const d = e.data;
+          if (!on || !d || !belongsToCurrent(d)) return;
+          const pos = Math.max(0, Number(d.position) || 0);
+          duration = Math.max(0, Number(d.duration) || duration);
+          providerPaused = !!d.isPaused; buffering = !!d.isBuffering;
+          box.dataset.position = String(pos); box.dataset.duration = String(duration);
+          box.dataset.paused = String(providerPaused); box.dataset.buffering = String(buffering);
+          // Late playing events must never undo an explicit visitor pause.
+          if (userPause) { emit(); return; }
+          // Spotify may report the exact final position while isPaused is still false.
+          if (started && !buffering && duration > 0 && pos >= duration && now() - requestedAt > 2500) { advance(); return; }
+          if (!providerPaused && !buffering) {
+            if (pos > 300) started = true;
+            if (pos > lastPos + 20) { progressAt = now(); recoveryAt = 0; }
+            pendingEnd = false; lastPos = pos; emit(); return;
+          }
+          const atEnd = started && !buffering && now() - requestedAt > 2500 &&
+            ((duration > 0 && pos >= duration - 750) ||
+             (pos < 1200 && lastPos > 2500) ||
+             (lastPos >= 27500 && lastPos <= 32500));
+          if (providerPaused && atEnd) { advance(); return; }
+          // Preview boundaries may differ from the full track duration. Allow a
+          // transient pause to clear, then continue unless the visitor paused.
+          if (providerPaused && started && !buffering && !pendingEnd) {
+            pendingEnd = true; const token = generation;
+            setTimeout(() => {
+              if (token === generation && on && !userPause && pendingEnd && providerPaused && !buffering) advance();
+            }, 1000);
+          }
+          emit();
         });
       });
     };
-    const sc = document.createElement('script'); sc.src = 'https://open.spotify.com/embed/iframe-api/v1'; sc.async = true; document.body.append(sc);
+    const script = document.createElement('script');
+    script.src = 'https://open.spotify.com/embed/iframe-api/v1';
+    script.async = true; document.body.append(script);
   }
-  // chien de garde : une lecture qui s'arrête sans pause demandée (fin d'extrait, événement manqué) enchaîne le titre suivant
-  setInterval(() => { if (on && ctrl && started && !paused && !userPause && !document.hidden && now() - lastPlayAt > 6000 && now() - endAt > 3000) advance(); }, 1500);
-  const api = {
+  // Some players stop at the preview boundary without a final paused event.
+  // Only actual position progress resets this watchdog; duplicate events do not.
+  setInterval(() => {
+    if (!on || userPause || !ctrl || !ready) return;
+    const elapsed = now() - progressAt;
+    if (!started) {
+      if (now() - requestedAt > 18000) { advance(); return; }
+      if (now() - requestedAt > [2000, 5000, 10000][tries]) { tries++; requestPlay(); }
+      return;
+    }
+    const wait = buffering ? 30000 : 10000;
+    if (elapsed <= wait) return;
+    if (!buffering && ((duration > 0 && lastPos >= duration - 750) || (lastPos >= 27500 && lastPos <= 32500))) { advance(); return; }
+    if (!recoveryAt) { recoveryAt = now(); requestPlay(); }
+    else if (now() - recoveryAt > (buffering ? 30000 : 6000)) advance();
+  }, 1000);
+  return {
     get playing() { return on ? want : -1; },
     get isOn() { return on; },
-    random() { on = true;  go(nextRandom()); init(); },
+    random() { on = true; advance(); init(); },
     next() { this.random(); },
-    play(i) { on = true;  go(i); init(); },
-    toggle() { if (!on) { this.random(); return; } if (ctrl) { paused = !paused; userPause = paused; ctrl.togglePlay(); if (!paused) lastPlayAt = now(); emit(); } },
-    stop() { on = false;  paused = false; if (ctrl) ctrl.pause(); emit(); },
+    play(i) { if (!TRACKS[i]) return; on = true; go(i); init(); },
+    toggle() {
+      if (!on) { this.random(); return; }
+      userPause = !userPause;
+      if (userPause) ctrl?.pause();
+      else { progressAt = now(); recoveryAt = 0; requestedAt = now(); requestPlay(); }
+      emit();
+    },
+    stop() { on = false; userPause = false; generation++; ctrl?.pause(); emit(); },
   };
-  return api;
 }
