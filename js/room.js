@@ -28,6 +28,8 @@ const easeOutBounce = (x) => {
 };
 
 export async function createRoom(container, bubbleEl) {
+  const mobile=matchMedia('(max-width:809px)');
+  container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
@@ -45,7 +47,7 @@ export async function createRoom(container, bubbleEl) {
   const sun = new THREE.DirectionalLight('#fff0dc', 2.0);
   sun.position.set(3.5, 7.5, -2.2);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.mapSize.set(mobile.matches?512:1024,mobile.matches?512:1024);
   Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 20 });
   sun.shadow.radius = 5; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   scene.add(hemi, sun);
@@ -349,7 +351,7 @@ export async function createRoom(container, bubbleEl) {
 
   let cameraMode='follow',fitReady=false;
   const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
-  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mode==='follow'?'pan-y pinch-zoom':'none';};
+  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y pinch-zoom':'none';};
   setCameraMode('follow');
   let navigationMode='pan';
   const navigationControls=document.createElement('div');navigationControls.className='room-navigation';navigationControls.setAttribute('role','group');navigationControls.setAttribute('aria-label','Manipulation du décor');
@@ -358,9 +360,7 @@ export async function createRoom(container, bubbleEl) {
   const selectNavigation=mode=>{navigationMode=mode;container.dataset.navigationMode=mode;navigationControls.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.navigation===mode)));};
   navigationControls.querySelectorAll('button').forEach(b=>b.onclick=()=>{selectNavigation(b.dataset.navigation);setCameraMode('free');});
   navigationControls.addEventListener('pointerdown',e=>e.stopPropagation());navigationControls.addEventListener('click',e=>e.stopPropagation());selectNavigation('pan');
-  const ledButton=document.createElement('button');ledButton.type='button';ledButton.className='room-led';ledButton.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 7h16v4H4zM8 15v4m4-4v6m4-6v4"/></svg><span>Barre LED</span>';container.append(ledButton);
-  const refreshScreenbar=()=>{const on=!!lamps.screenbar?.on;ledButton.setAttribute('aria-pressed',String(on));ledButton.setAttribute('aria-label',on?'Éteindre la barre LED du moniteur':'Allumer la barre LED du moniteur');ledButton.title=on?'Barre LED allumée':'Barre LED éteinte';container.dataset.screenbar=on?'on':'off';};
-  ledButton.onclick=e=>{e.stopPropagation();activate('screenbar');};ledButton.addEventListener('pointerdown',e=>e.stopPropagation());refreshScreenbar();
+  const refreshScreenbar=()=>{container.dataset.screenbar=lamps.screenbar?.on?'on':'off';};refreshScreenbar();
   cameraButton.onclick=e=>{e.stopPropagation();const mode=cameraMode==='follow'?'free':'follow';if(mode==='follow')selectNavigation('pan');setCameraMode(mode);};
   const zoomControls=document.createElement('div');zoomControls.className='room-zoom';zoomControls.setAttribute('role','group');zoomControls.setAttribute('aria-label','Zoom du décor');
   zoomControls.innerHTML='<button type="button" class="room-zoom-in" aria-label="Agrandir le décor">+</button><label class="room-zoom-label" for="room-zoom-range">Zoom</label><input id="room-zoom-range" type="range" min="-3" max="4" step="0.02" value="0" aria-label="Zoom du décor"><output for="room-zoom-range">100 %</output><button type="button" class="room-zoom-out" aria-label="Réduire le décor">−</button><button type="button" class="room-zoom-reset" aria-label="Réinitialiser le zoom">1:1</button>';
@@ -424,7 +424,7 @@ export async function createRoom(container, bubbleEl) {
   function resize() {
     W = container.clientWidth || 1; H = container.clientHeight || 1;
     // rendu en basse définition (≈720 px de haut), agrandi sans lissage : même grain que la scène de référence
-    const ih = Math.min(H * (window.devicePixelRatio || 1), 720) * resScale, k = ih / H;
+    const ih = Math.min(H * (window.devicePixelRatio || 1), mobile.matches?460:720) * resScale, k = ih / H;
     renderer.setPixelRatio(1);
     renderer.setSize(Math.round(W * k), Math.round(ih), false);
     ink.res.value.set(Math.round(W * k), Math.round(ih));
@@ -507,7 +507,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if(drag.moved>6){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='grabbing';}
+        if(drag.moved>6&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='grabbing';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -707,7 +707,9 @@ export async function createRoom(container, bubbleEl) {
   container.appendChild(pill);
   // météo : la pastille montre le temps qu'il fait et le fait changer au clic
   const wxBtn = document.createElement('button'); wxBtn.className = 'dbtn dbtn--sm wx-btn'; wxBtn.type = 'button';
-  wxBtn.innerHTML = face('', 'Ciel dégagé'); container.appendChild(wxBtn);
+  wxBtn.innerHTML = face('', 'Ciel dégagé');
+  const sceneControls=document.createElement('div');sceneControls.className='scene-controls';sceneControls.setAttribute('role','group');sceneControls.setAttribute('aria-label','Musique et météo');sceneControls.append(pill,wxBtn);
+  const placeControls=()=>{if(mobile.matches){container.after(sceneControls);setCameraMode('follow');}else container.append(sceneControls);container.dataset.renderProfile=mobile.matches?'mobile':'desktop';};placeControls();mobile.addEventListener('change',()=>{placeControls();resize();});
   const wx = createWeather({ button: wxBtn });
   const mpPlay = pill.querySelector('.mp-play'), mpNext = pill.querySelector('.mp-next'), mpCrate = pill.querySelector('.mp-crate');
   const mpLabel = (i) => { const t = TRACKS[i]; mpPlay.querySelector('.dbtn__text').textContent = clip(t.t, 26) + ' \u00b7 ' + clip(t.a, 16); };
@@ -920,13 +922,15 @@ export async function createRoom(container, bubbleEl) {
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
-  function frame() {
+  let lastMobileFrame=0;
+  function frame(now=performance.now()) {
     if (!running) return;
+    if(mobile.matches&&now-lastMobileFrame<1000/30){requestAnimationFrame(frame);return;}lastMobileFrame=now;
     const rawDt = clock.getDelta(), dt = Math.min(rawDt, opts.dtCap);
     fpsEma += (Math.min(rawDt, 0.1) - fpsEma) * 0.06; frameNo++;
     if (!opts.noAdapt && frameNo % 45 === 0 && frameNo > 90) {
-      if (fpsEma > 0.026 && resScale > 0.56) { resScale = Math.max(0.56, resScale - 0.09); resize(); }
-      else if (fpsEma < 0.0185 && resScale < 1 && frameNo - lastUp > 240) { resScale = Math.min(1, resScale + 0.06); lastUp = frameNo; resize(); }
+      if (fpsEma > (mobile.matches?.046:.026) && resScale > 0.56) { resScale = Math.max(0.56, resScale - 0.09); resize(); }
+      else if (fpsEma < (mobile.matches?.035:.0185) && resScale < 1 && frameNo - lastUp > 240) { resScale = Math.min(1, resScale + 0.06); lastUp = frameNo; resize(); }
     }
     const t = clock.elapsedTime;
     // entrée en cascade
@@ -1114,7 +1118,7 @@ export async function createRoom(container, bubbleEl) {
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
-    renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % 8 === 0;
+    renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
     try {
       renderer.render(scene, camera);
     } catch (error) {

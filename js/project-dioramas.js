@@ -1,8 +1,8 @@
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v35';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v46';
 import { initProcessMachines } from './process-machines.js?v=cv-scene-v29';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
-import { createMarquee } from './marquee.js?v=cv-scene-v35';
+import { createMarquee } from './marquee.js?v=cv-scene-v46';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 function orbit(camera,canvas){
@@ -35,9 +35,9 @@ export function initProjectDioramas(host,projects){
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   function setup(){
     if(renderer)return;
-    renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
+    renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(max-width:809px)').matches?1:1.25));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
     scene=new THREE.Scene();const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.24;pmrem.dispose();scene.add(new THREE.HemisphereLight('#ffffff','#bcc6cb',1.3));
-    const key=new THREE.DirectionalLight('#fff6e8',2.5);key.position.set(-4,8,6);key.castShadow=true;key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:.1,far:30});key.shadow.bias=-.0004;scene.add(key);
+    const key=new THREE.DirectionalLight('#fff6e8',2.5);key.position.set(-4,8,6);key.castShadow=true;key.shadow.mapSize.set(matchMedia("(max-width:809px)").matches?512:1024,matchMedia("(max-width:809px)").matches?512:1024);Object.assign(key.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:.1,far:30});key.shadow.bias=-.0004;scene.add(key);
     camera=new THREE.PerspectiveCamera(32,1,.1,100);camera.position.set(8,8,11);controls=orbit(camera,canvas);controls.target.set(0,.6,0);controls.enableDamping=true;controls.enablePan=false;controls.minDistance=9;controls.maxDistance=22;controls.minPolarAngle=.3;controls.maxPolarAngle=Math.PI*.48;
     const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.ShadowMaterial({opacity:.13}));ground.rotation.x=-Math.PI/2;ground.position.y=-.055;ground.receiveShadow=true;scene.add(ground);
     new ResizeObserver(resize).observe(stage);resize();

@@ -23,15 +23,15 @@ try{
  const power=()=>page.evaluate(()=>{const r=window.room,b=r.scene.getObjectByName('LandscapeMonitorLightBar');return{on:r.lamps.screenbar.on,intensity:r.lamps.screenbar.light.intensity,emission:b.getObjectByName('LED_diffuser').material.emissiveIntensity};});
  const states={initial:await power()};assert.ok(states.initial.on&&states.initial.emission>1.45);
  await page.screenshot({path:path.join(output,'led-on.png')});
- await page.getByRole('button',{name:'Éteindre la barre LED du moniteur'}).click();
+ const hit=await page.evaluate(async()=>{const T=await import('three'),r=window.room,b=r.scene.getObjectByName('LandscapeMonitorLightBar').getObjectByName('Horizontal_light_bar'),c=new T.Box3().setFromObject(b).getCenter(new T.Vector3());return r.toScreen(c.x,c.y,c.z);});
+ await page.mouse.click(...hit);
  await page.waitForFunction(()=>window.room.lamps.screenbar.k<.01);
  states.off=await power();assert.ok(!states.off.on&&states.off.intensity<.01&&states.off.emission<.02);
  await page.screenshot({path:path.join(output,'led-off.png')});
- const hit=await page.evaluate(async()=>{const T=await import('three'),r=window.room,b=r.scene.getObjectByName('LandscapeMonitorLightBar').getObjectByName('Horizontal_light_bar'),c=new T.Box3().setFromObject(b).getCenter(new T.Vector3());return r.toScreen(c.x,c.y,c.z);});
  await page.mouse.click(...hit);
  await page.waitForFunction(()=>window.room.lamps.screenbar.on);
  states.modelClick=await power();
- const button=page.locator('.room-led');await button.focus();await button.press('Space');assert.equal((await power()).on,false);await button.press('Enter');assert.equal((await power()).on,true);
+ assert.equal(await page.locator('.room-led').count(),0);
  await page.locator('#theme').click();assert.equal((await power()).on,true);await page.locator('#theme').click();assert.equal((await power()).on,true);
  await page.locator('.annual-gains').scrollIntoViewIfNeeded();await page.locator('.piggy-status').waitFor();
  assert.equal(await page.locator('.annual-pig,.annual-coins,.pig-coin').count(),0);

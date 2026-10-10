@@ -266,3 +266,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 
 /* Garder les lignes animees du titre dans les petits ecrans. */
 @media(max-width:360px){.hero h1{font-size:clamp(22px,6.8vw,24px)}}
+
+/* Mobile: navigation and scene actions have separate, stable areas. */
+@media(max-width:809px){.nav{top:calc(8px + env(safe-area-inset-top));bottom:auto;max-width:calc(100% - 16px)}.room{height:max(360px,52svh);margin-top:60px}.room .hint{display:none}.scene-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin:12px 16px 0;position:relative;z-index:8}.scene-controls .mpill{display:contents}.scene-controls .mp-play{max-width:100%;min-width:0;width:100%;box-shadow:none}.scene-controls .mp-play .dbtn__text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.scene-controls .mp-next{grid-row:2}.scene-controls .mp-crate{grid-column:2;grid-row:1}.scene-controls .wx-btn{position:relative;right:auto;bottom:auto;grid-column:1/-1;justify-self:center;box-shadow:none;min-height:40px}.page-info .info-main{padding-top:90px}.room-camera,.room-navigation,.room-zoom{display:none!important}footer{padding-bottom:40px}}
+@media(min-width:810px){.scene-controls{display:contents}}
