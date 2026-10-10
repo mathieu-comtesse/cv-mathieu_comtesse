@@ -1,0 +1,31 @@
+{
+  "source": "build-screenbar-v43.py",
+  "sourceSHA256": "2641ae15052e2bad574284b61a2f0bcd279284918114c44d0a4570dd568cb480",
+  "output": "screenbar-v43.glb",
+  "outputSHA256": "6f0ffd2812f691f88522def122093fb55fd45567cba670d09e99e3f456aba7e0",
+  "dimensionsBlender": [
+    0.38999998569488525,
+    0.10199999809265137,
+    0.10700001567602158
+  ],
+  "boundsBlender": [
+    [
+      -0.19499999284744263,
+      -0.03199999779462814,
+      -0.0650000050663948
+    ],
+    [
+      0.19499999284744263,
+      0.07000000029802322,
+      0.04200001060962677
+    ]
+  ],
+  "triangles": 232,
+  "bytes": 18564,
+  "changes": {
+    "reference": "User-provided monitor light bar image",
+    "width": 0.39,
+    "support": "Clamp and rear counterweight",
+    "diffuser": "Warm downward LED"
+  }
+}

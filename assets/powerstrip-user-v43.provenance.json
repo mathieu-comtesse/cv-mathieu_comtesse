@@ -1,0 +1,29 @@
+{
+  "source": "bloc_multiprise_-_multipower_block.glb",
+  "sourceSHA256": "a5b983f403b32a4b121c54d164cf3a31c6b3895721c79cc6ffd666629b4d727d",
+  "output": "powerstrip-user-v43.glb",
+  "outputSHA256": "a1db32e18c9d5c2064deaed95000419d2e96b5d8fe2dec44639811835c7112ea",
+  "dimensionsBlender": [
+    0.3800995349884033,
+    0.04682181030511856,
+    0.019040660932660103
+  ],
+  "boundsBlender": [
+    [
+      -0.19004318118095398,
+      -0.02340676821768284,
+      -7.1999193096417e-06
+    ],
+    [
+      0.19005633890628815,
+      0.02341504395008087,
+      0.019033461809158325
+    ]
+  ],
+  "triangles": 6992,
+  "bytes": 265340,
+  "changes": {
+    "exclude": "Presentation ground, banner and source loose cord; new scene cable routes connect devices",
+    "groundAligned": true
+  }
+}

@@ -3,41 +3,24 @@ import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng,
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */
 
-export function createRetroSet({consoleModel,controllerModel}={}) {
+export function createRetroSet({consoleModel,controllerModel,tvModel}={}) {
   const g = group();
   const plastic = new THREE.MeshStandardMaterial({ color: '#202225', roughness: 0.55 });
   const plasticL = new THREE.MeshStandardMaterial({ color: '#2b2d31', roughness: 0.5 });
   const W = 0.66, H = 0.54, D = 0.5, Y0 = 0.035;
 
-  /* ── télé : caisse avant, dos en tronc de pyramide, cadre d'écran, boutons, haut-parleur, pieds ── */
-  const tv = group();
-  tv.add(rbox(W, H, D * 0.5, 0.035, plastic, 0, Y0 + H / 2, D * 0.25 - 0.1));
-  const back = new THREE.BoxGeometry(1, 1, 1); const bp = back.attributes.position;
-  for (let i = 0; i < bp.count; i++) { if (bp.getZ(i) < 0) { bp.setX(i, bp.getX(i) * 0.62); bp.setY(i, bp.getY(i) * 0.62); } }
-  back.computeVertexNormals(); back.scale(W * 0.92, H * 0.92, D * 0.5);
-  const bm = mesh(back, plastic); bm.position.set(0, Y0 + H / 2, -D * 0.25 - 0.1 + 0.0); tv.add(bm);
-  const frontZ = D * 0.5 - 0.1;
-  tv.add(rbox(W * 0.97, H * 0.95, 0.025, 0.02, plasticL, 0, Y0 + H / 2, frontZ));                    // cadre
-  // panneau de commandes à droite
-  const cx = W / 2 - 0.075;
-  tv.add(rbox(0.1, H * 0.78, 0.02, 0.012, mat('#17181a', { roughness: 0.6 }), cx, Y0 + H / 2, frontZ + 0.012));
-  for (const y of [0.74, 0.58]) { const k = cyl(0.026, 0.026, 0.025, mat('#3a3c40', { roughness: 0.4, metalness: 0.4 }), cx, Y0 + H * y, frontZ + 0.03, 20); k.rotation.x = Math.PI / 2; tv.add(k); tv.add(box(0.004, 0.02, 0.004, mat('#d8d8d0'), cx, Y0 + H * y + 0.012, frontZ + 0.044)); }
-  for (let i = 0; i < 8; i++) tv.add(box(0.07, 0.004, 0.006, mat('#0a0a0b'), cx, Y0 + H * 0.38 - i * 0.017, frontZ + 0.023));    // haut-parleur
-  tv.add(box(0.02, 0.01, 0.006, mat('#cc2a2a'), cx - 0.02, Y0 + H * 0.12, frontZ + 0.023));
-  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) tv.add(rbox(0.07, 0.035, 0.07, 0.01, mat('#111214'), x * (W / 2 - 0.07), 0.0175, z * (D / 2 - 0.15) - 0.1 + 0.05));
-  // écran bombé
-  const SW = W * 0.72, SH = H * 0.74;
-  const sg = new THREE.PlaneGeometry(SW, SH, 16, 12); const sp = sg.attributes.position;
-  for (let i = 0; i < sp.count; i++) { const nx = sp.getX(i) / (SW / 2), ny = sp.getY(i) / (SH / 2); sp.setZ(i, 0.03 * (1 - nx * nx * 0.9) * (1 - ny * ny * 0.9)); }
-  sg.computeVertexNormals();
-  const tex = new THREE.CanvasTexture(Object.assign(document.createElement('canvas'), { width: 320, height: 240 }));
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const screenMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }); screenMat.userData.unique = true;
-  const screen = new THREE.Mesh(sg, screenMat); screen.position.set(-0.04, Y0 + H * 0.52, frontZ + 0.015); screen.userData.noInk = true; tv.add(screen);
-  const bezel = new THREE.Mesh(new THREE.RingGeometry(0.001, 0.001, 4), screenMat); bezel.visible = false; tv.add(bezel);
-  for (const [w, h, x, y] of [[SW + 0.05, 0.02, 0, SH / 2 + 0.012], [SW + 0.05, 0.02, 0, -SH / 2 - 0.012], [0.02, SH, -SW / 2 - 0.012, 0], [0.02, SH, SW / 2 + 0.012, 0]])
-    tv.add(box(w, h, 0.02, mat('#0e0f10', { roughness: 0.8 }), -0.04 + x, Y0 + H * 0.52 + y, frontZ + 0.012));
-  g.add(tv);
+  const tv = tvModel ? tvModel.scene : group(); tv.name='MagnavoxCRT'; tv.userData.batchRoot=true;
+  const tex=new THREE.CanvasTexture(Object.assign(document.createElement('canvas'),{width:320,height:240}));tex.colorSpace=THREE.SRGBColorSpace;
+  const screenMat=new THREE.MeshBasicMaterial({map:tex,toneMapped:false});screenMat.userData.unique=true;
+  let screen=tv.getObjectByName('MagnavoxScreen');
+  if(!screen){screen=new THREE.Mesh(new THREE.PlaneGeometry(.49,.36),screenMat);screen.position.set(0,.28,.30);tv.add(screen);}
+  screen.material=screenMat;screen.userData.noInk=true;screen.userData.dynamic=true;screen.name='MagnavoxScreen';
+  // Project the animated picture onto the original CRT glass, preserving its bulge.
+  const positions=screen.geometry.attributes.position;screen.geometry.computeBoundingBox();const sb=screen.geometry.boundingBox,uv=new Float32Array(positions.count*2);
+  for(let i=0;i<positions.count;i++){uv[i*2]=(positions.getX(i)-sb.min.x)/(sb.max.x-sb.min.x);uv[i*2+1]=(positions.getY(i)-sb.min.y)/(sb.max.y-sb.min.y);}
+  screen.geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+  const frontZ=new THREE.Box3().setFromObject(tv).max.z;
+  tv.traverse(o=>{if(o.isMesh){if(o.material?.transmission>0){o.material.transmission=0;o.material.opacity=.08;o.material.depthWrite=false;}o.castShadow=o!==screen;o.receiveShadow=o!==screen;o.userData.noInk=true;}});g.add(tv);
 
   /* ── PlayStation (SCPH-1002) ── */
   const ps = group(); ps.name="PlayStation1"; ps.userData.dynamic=true;
@@ -98,10 +81,12 @@ export function createRetroSet({consoleModel,controllerModel}={}) {
   const mk = (pts, color, r) => { const t = tube(pts, r, new THREE.MeshStandardMaterial({ color, roughness: 0.6 }), { segs: 120, radial: 6 }); g.add(t);staticCables.push(t); return t; };
   const plug = (x, y, z, c = '#d9c24a') => g.add(box(0.016, 0.014, 0.022, mat(c, { roughness: 0.4, metalness: 0.4 }), x, y, z));
   const consolePoint=(name,fallback)=>{g.updateWorldMatrix(true,true);const marker=ps.getObjectByName(name);return marker?g.worldToLocal(marker.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(...fallback);};
+  const tvPoint=(name,fallback)=>{g.updateWorldMatrix(true,true);const marker=tv.getObjectByName(name);return marker?g.worldToLocal(marker.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(...fallback);};
+  const tvAV=tvPoint('TVAVPort',[0,.2,-.33]),tvPower=tvPoint('TVPowerPort',[-.1,.18,-.35]);
   const consolePort=consolePoint('ConsoleControllerPort',[.475,.03,.125]),consoleAV=consolePoint('ConsoleAVPort',[.60,.03,-.12]),consolePower=consolePoint('ConsolePowerPort',[.70,.03,-.12]);
   // vidéo (jaune) + audio (blanc, rouge) de la console vers l'arrière de la télé
   [['#e6c61e', 0], ['#f2f2ee', 0.012], ['#cc2b2b', 0.024]].forEach(([c, o]) => {
-    cable([[consoleAV.x+o,consoleAV.y,consoleAV.z], [0.62 + o, FLOOR, -0.2], [0.55 + o, FLOOR, -0.42], [0.3 + o * 0.6, FLOOR, -0.5], [0.1 + o * 0.6, FLOOR + 0.02, -0.46], [0.02 + o * 0.5, 0.1, -0.4], [0.0 + o * 0.5, 0.2, -0.33]], c, 0.0034);
+    cable([[consoleAV.x+o,consoleAV.y,consoleAV.z], [0.62 + o, FLOOR, -0.2], [0.55 + o, FLOOR, -0.42], [0.3 + o * 0.6, FLOOR, -0.5], [0.1 + o * 0.6, FLOOR + 0.02, -0.46], [0.02 + o * 0.5, 0.1, -0.4], [tvAV.x+o,tvAV.y,tvAV.z]], c, 0.0034);
   });
   // multiprise derrière le set : les deux alimentations y sont branchées, son cordon part vers la droite (raccordé au sol par room.js)
   const SX = 0.3, SZ = -0.8, SL = 0.34;
@@ -114,7 +99,7 @@ export function createRetroSet({consoleModel,controllerModel}={}) {
   const sockY = 0.036 + FLOOR;
   const pw = (pts, r = 0.0055) => { mk(pts, '#141416', r * 1.0); const e = pts[pts.length - 1]; plug(e[0], e[1], e[2], '#1a1a1c'); };
   // alimentation télé : sort par l'arrière de la caisse et rejoint la multiprise
-  pw([[-0.1, 0.18, -0.35], [-0.13, 0.04, -0.46], [-0.12, FLOOR, -0.62], [-0.02, FLOOR, -0.7], [SX - 0.07, sockY + 0.02, SZ + 0.01], [SX - 0.07, sockY + 0.005, SZ]]);
+  pw([tvPower.toArray(), [-0.13, 0.04, -0.46], [-0.12, FLOOR, -0.62], [-0.02, FLOOR, -0.7], [SX - 0.07, sockY + 0.02, SZ + 0.01], [SX - 0.07, sockY + 0.005, SZ]]);
   // alimentation console
   pw([consolePower.toArray(), [0.84, FLOOR, -0.26], [0.78, FLOOR, -0.58], [SX + 0.1, FLOOR + 0.01, SZ + 0.1], [SX + 0.05, sockY + 0.02, SZ + 0.02], [SX + 0.05, sockY + 0.005, SZ]]);
   // cordon de la multiprise : part du bout droit
@@ -186,7 +171,7 @@ export function createRetroSet({consoleModel,controllerModel}={}) {
   }
   const litMat = rocker.material; litMat.userData.unique = true;
   const api = {
-    pad, padCord, padSocket, consolePort, consoleAV, consolePower, staticCables, console: ps,
+    pad, padCord, padSocket, consolePort, consoleAV, consolePower, tv, tvAV, tvPower, screen, staticCables, console: ps,
     get padHeld() { return padHeld; },
     setPadHeld(v) { padHeld = !!v; },
     updatePad(dt, handL, handR) {

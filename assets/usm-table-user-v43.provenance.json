@@ -1,0 +1,30 @@
+{
+  "source": "USM Haller table 1500x750 740 mm.3ds",
+  "sourceSHA256": "bf9e0d3efb665647661e393c6b5e7cac65e953a4802281dfe8e30b3cfb399739",
+  "output": "usm-table-user-v43.glb",
+  "outputSHA256": "156f079ad5248aafc848e2d5836c2b6581440cbf1d79ab944ba9b972c3a94be9",
+  "dimensionsBlender": [
+    1.4999998807907104,
+    0.7500001192092896,
+    0.7400000095367432
+  ],
+  "boundsBlender": [
+    [
+      -0.75,
+      -0.375,
+      0.0
+    ],
+    [
+      0.7499998807907104,
+      0.37500011920928955,
+      0.7400000095367432
+    ]
+  ],
+  "triangles": 1196,
+  "bytes": 87308,
+  "changes": {
+    "scale": 0.01,
+    "units": "source centimetres to metres",
+    "originalGeometry": true
+  }
+}

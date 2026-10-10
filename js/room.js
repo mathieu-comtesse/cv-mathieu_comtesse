@@ -6,7 +6,7 @@ import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v29';
-import { createRetroSet } from './retro.js?v=cv-scene-v41';
+import { createRetroSet } from './retro.js?v=cv-scene-v43';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v33';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -14,7 +14,9 @@ import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v33';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v31';
+import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
+import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v43';
+import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -64,12 +66,15 @@ export async function createRoom(container, bubbleEl) {
   // de référence ne peut empêcher le décor Three.js de s'afficher.
   let nativeBridge = null;
   let sceneMuted = false;
-  const setSceneMuted = value => { sceneMuted = !!value; nativeBridge?.sceneApi.sound?.setMuted?.(sceneMuted); container.dataset.muted=String(sceneMuted); };
+  const pumpSound=createPumpSound('assets/bicycle-pump-user-v43.mp3');
+  const setSceneMuted = value => { sceneMuted = !!value; nativeBridge?.sceneApi.sound?.setMuted?.(sceneMuted); pumpSound.setMuted(sceneMuted); container.dataset.muted=String(sceneMuted); };
 
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
   const [gamingDeskModel,consoleModel,controllerModel,olivettiModel,mamiyaModel]=await Promise.all(['gaming-desk-user-v42.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb'].map(model));
+  const [deskModel,mobileModel,mouseModel,towerModel,stripModel,tvModel,barModel]=await Promise.all(['usm-table-user-v43.glb','usm-mobile-user-v43.glb','mx-master-user-v43.glb','dream-pc-user-v43.glb','powerstrip-user-v43.glb','magnavox-tv-user-v43.glb','screenbar-v43.glb'].map(model));
+  const windowsWallpaper=await load('assets/windows11-bloom-v43.webp');
   const [usmModel,pumpModel,jblModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb','jbl.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
@@ -122,22 +127,24 @@ export async function createRoom(container, bubbleEl) {
       world.add(nativeBridge.wateringCan);
     }
   } else {
-    deskSet.add(F.desk());
-    const workstation=gamingDeskModel.scene;workstation.name='GamingDeskSetup';workstation.position.y=.74;deskSet.add(workstation);
+    const table=deskModel.scene;table.name="USMHallerTable";table.userData.batchRoot=true;deskSet.add(table);
+    const mobile=mobileModel.scene;mobile.name="USMHallerMobile";mobile.position.set(.48,0,-.04);mobile.userData.batchRoot=true;deskSet.add(mobile);
+    const workstation=gamingDeskModel.scene;workstation.name='GamingDeskSetup';workstation.position.set(-.105,.74,0);workstation.scale.setScalar(.72);deskSet.add(workstation);
     for(const part of workstation.children){part.userData.batchRoot=true;part.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});}
     uw=workstation.getObjectByName('GamingLandscapeMonitor');uw.userData.id='pc';workstation.getObjectByName('GamingPortraitMonitor').userData.id='pc';
-    const keyboard=F.moonlander();keyboard.name='Moonlander';keyboard.position.set(-.17,.754,.08);keyboard.userData.batchRoot=true;deskSet.add(keyboard);
-    const mouse=F.verticalMouse();mouse.name='ErgonomicVerticalMouse';mouse.position.set(.35,.750,.18);mouse.userData.batchRoot=true;deskSet.add(mouse);
+    const keyboard=F.moonlander();keyboard.name='Moonlander';keyboard.position.set(-.23,.752,.055);keyboard.userData.batchRoot=true;deskSet.add(keyboard);
+    const mouse=mouseModel.scene;mouse.name='LogitechMXMaster2S';mouse.position.set(.12,.746,.15);mouse.userData.batchRoot=true;deskSet.add(mouse);
 
+    installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
     const mug = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.049, 0.095, 28, 1, true), titanium); body.position.y = 0.056; mug.add(body);
     const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.049, 0.049, 0.004, 28), titanium); bottom.position.y = 0.009; mug.add(bottom);
     const lip = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.0022, 6, 28), titanium); lip.rotation.x = Math.PI / 2; lip.position.y = 0.104; mug.add(lip);
-    mug.name = 'DeskMug'; mug.userData.id='coffee'; mug.userData.dynamic=true; mug.position.set(-0.78, 0.742, 0.29); deskSet.add(mug);
+    mug.name = 'DeskMug'; mug.userData.id='coffee'; mug.userData.dynamic=true; mug.position.set(-0.61, 0.742, 0.29); deskSet.add(mug);
 
     inkify(deskSet, { skip: (o) => {
-      for (let p = o; p; p = p.parent) if (p.userData && p.userData.id === 'brontes') return true;
+      for (let p = o; p; p = p.parent) if (p.userData && (p.userData.id === 'brontes' || p.userData.noInk || /^Gaming(LandscapeMonitor|PortraitMonitor|MonitorArms)/.test(p.name))) return true;
       return false;
     } });
   }
@@ -153,7 +160,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v41')
+    import('./native-room.js?v=cv-scene-v43')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -203,7 +210,7 @@ export async function createRoom(container, bubbleEl) {
   };
 
   const chair = F.officeChairFrom(setuGltf);
-  add('chair', chair, -2.15, 0.3, -Math.PI / 2 + 0.15, 0, 0.2);
+  add('chair', chair, -2.15, 0.48, -Math.PI / 2, 0, 0.2);
 
   let bicycle=null,bicyclePump=null;
   if (bikeGltf) {
@@ -246,7 +253,7 @@ export async function createRoom(container, bubbleEl) {
   lamps.andon.light.position.set(CS.x + cs.spec.RW / 2 - 0.5, 0.4, CS.z + cs.spec.DK.z0 + 0.55);
   world.add(lamps.andon.light);
   // télé cathodique + PS1 + manette sur le tapis, câbles au sol
-  const retro = createRetroSet({consoleModel,controllerModel});
+  const retro = createRetroSet({consoleModel,controllerModel,tvModel});
   add('tv', retro.group, -0.35, 2.2, 0, 0.018, 0.55, world, 0).scale.setScalar(1.3);
   world.updateMatrixWorld(true);
   // cordon de la multiprise : serpente sur le tapis, sort par le bord droit, passe du côté gauche (vu de l'écran) de l'étagère blanche et rejoint la prise au sol
@@ -304,11 +311,11 @@ export async function createRoom(container, bubbleEl) {
   ek.parent.updateMatrixWorld(true);
   const whiteShelf=F.shelf();
   add('shelf1', whiteShelf, ekBox.max.x - 0.04, 1.8, Math.PI / 2, 0, 0.8);
-  add('brontes', brontes, -0.40, 0, 0, 1.303, 0, whiteShelf, 0);
+  add('brontes', brontes, -0.40, 0, Math.PI, 1.303, 0, whiteShelf, 0);
   const typewriter=olivettiModel.scene;typewriter.name='OlivettiUnderwood280';typewriter.userData.batchRoot=true;typewriter.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
-  add('olivetti',typewriter,.22,0,0,1.303,0,whiteShelf,0);
+  add('olivetti',typewriter,.22,0,Math.PI,1.303,0,whiteShelf,0);
   const filmCamera=mamiyaModel.scene;filmCamera.name='Mamiya6451000S';filmCamera.userData.batchRoot=true;filmCamera.userData.photoGalleryTarget=true;filmCamera.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
-  add('mamiya',filmCamera,.62,0,0,1.303,0,whiteShelf,0);
+  add('mamiya',filmCamera,.62,0,Math.PI,1.303,0,whiteShelf,0);
 
 
   // positions des sources lumineuses (repère monde)
@@ -538,7 +545,7 @@ export async function createRoom(container, bubbleEl) {
   const nav = createNav({ x0: -8.4, x1: 5.4, z0: -4.8, z1: 12.8, radius: 0.34 });
   const footprint = (id, shrink = 0) => {
     const it = items.find((i) => i.id === id); if (!it) return;
-    const bb = new THREE.Box3().setFromObject(it.holder);
+    const bb = new THREE.Box3().setFromObject(id==='desk'?it.obj.getObjectByName('USMHallerTable'):it.holder);
     nav.block({ x0: bb.min.x + shrink, x1: bb.max.x - shrink, z0: bb.min.z + shrink, z1: bb.max.z - shrink });
   };
   ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike', 'pump', 'jblL', 'jblR'].forEach((id) => footprint(id));
@@ -565,7 +572,7 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── stations du personnage ─── */
   const seat = (x, z, yaw, back) => { const v = new THREE.Vector3(0, 0, back).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); return [x + v.x, 0, z + v.z]; };
-  const deskYaw = -Math.PI / 2 + 0.15, ekYaw = -0.45;
+  const deskYaw = -Math.PI / 2, ekYaw = -0.45;
   const can = { lean: 0.08, armR: -1.3, foreR: -0.4, head: 0.2 };
   const psThought = new THREE.Group(); psThought.name='PlayStation1Thought';
   const thoughtConsole=retro.console.clone(true);thoughtConsole.position.set(0,0,0);psThought.add(thoughtConsole);
@@ -574,7 +581,7 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.3, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.48, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
     coffee: S({label:'Boire dans la tasse bleue',clip:'Idle_Loop',nativeMode:'coffee',sourceTarget:'Ceramic coffee mug',maxMs:8500,pos:[-2.16,0,.87],yaw:-Math.PI/2,face:'happy',think:{obj:deskSet.getObjectByName('DeskMug'),scale:1.1}}),
     bike: S({label:'Regonfler les pneus du vélo',clip:'Idle_Loop',maxMs:14500,pos:[3.18,0,-4.15],yaw:-Math.PI/2,face:'happy',think:{obj:bicyclePump?.root,scale:1.2}}),
     ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', nativeMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', seatBack: -0.10, seatSupport: seat(2.3, -0.95, ekYaw, -0.02), hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, 0), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
@@ -582,7 +589,7 @@ export async function createRoom(container, bubbleEl) {
     alocasia: S({ label: 'Arroser l\u2019alocasia', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Chinese money plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [-2.48, 0, 3.25], yaw: -1.57, think: { obj: alo, tiltDeg: 8, scale: 1.2 } }),
     bonsai:   S({ label: 'Arroser le bonsa\u00ef', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: null, pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [2.85, 0, 4.55], yaw: -1.57, think: { obj: bonsai, tiltDeg: 20, scale: 1.0 } }),
     dracaena: S({ label: 'Arroser le dragonnier', clip: 'Idle_Loop', nativeMode: 'water', sourceTarget: 'Snake plant', pose: 'arrose', maxMs: 12000, can: true, ov: can, pos: [3.65, 0, -2.45], yaw: -Math.PI / 2, think: { obj: dra, tiltDeg: 8, scale: 1.2 } }),
-    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', nativeMode:'game', seatId: 'sofa', seatBack: -0.21, hipClearance: 0.09, y: 0, face: 'happy', pos: [0.90, 0, 4.43], yaw: Math.PI, approach: [0.90, 3.75], noFace: true, tv: true, think: TVBOX }),
+    sofa:     S({ label: 'Jouer \u00e0 la console', clip: 'Sitting_Idle_Loop', pose: 'console', nativeMode:'game', seatId: 'sofa', seatBack: -0.21, hipClearance: 0.09, y: 0, face: 'happy', pos: [-0.35, 0, 4.43], yaw: Math.PI, approach: [-0.35, 3.75], noFace: true, tv: true, think: TVBOX }),
     cha:      S({ label: 'C\u00e9r\u00e9monie du th\u00e9', ritual: true, maxMs: 34000, y: TEA.y + 0.125, pos: [TEA.x, 0, TEA.z], yaw: 0, approach: [CS.x, TEA.z], think: { obj: tea, tiltDeg: 32, scale: 1.0 } }),
   };
   for (const st of Object.values(stations)) if (!st.ritual) { st.approach = nav.nearest(...(st.approach || [st.pos[0], st.pos[2]])); if(st.can){st.pos[0]=st.approach[0];st.pos[2]=st.approach[1];} }
@@ -759,7 +766,7 @@ export async function createRoom(container, bubbleEl) {
     hero, ritual, nav, floorY,
     ui: {
       poof: (p) => poof(p),
-      activityEnd: (st, reason) => { if (st.ritual && reason !== 'leave') cs.setPanels(0); },
+      activityEnd: (st, reason) => { pumpSound.stop(); if (st.ritual && reason !== 'leave') cs.setPanels(0); },
       music: () => {},
       say: (st) => {
         if (!st) { thoughtFor = null; thoughtEl.classList.remove('show'); return; }
@@ -904,7 +911,7 @@ export async function createRoom(container, bubbleEl) {
 
   const clock = new THREE.Clock();
   let running = true, roomVisible=true, workshopOpen=false;
-  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen)running=false;else if(roomVisible&&!document.hidden&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
+  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
@@ -992,7 +999,7 @@ export async function createRoom(container, bubbleEl) {
           if (modelBaseY === null) modelBaseY = hero.model.position.y;
           if (seated) {
             hero.model.position.y = modelBaseY;
-            if (cur === stations.ekstrem) hero.group.rotation.y = cur.yaw;
+            if (cur === stations.ekstrem || cur === stations.sofa) hero.group.rotation.y = cur.yaw;
             if (cur === stations.desk && nativeBridge) {
               hero.group.rotation.y = cur.yaw + nativeBridge.seatYawOffset;
               chair.userData.swivel.rotation.y = nativeBridge.seatYawOffset;
@@ -1006,7 +1013,7 @@ export async function createRoom(container, bubbleEl) {
             );
             const back = cur.seatBack || 0;
             const calibration=seatCalibration[cur===stations.desk?'desk':cur===stations.ekstrem?'ekstrem':'sofa'];
-            const anchor=cur===stations.desk?new THREE.Vector3(-2.15,0,.3):new THREE.Vector3(2.3,0,-.95);
+            const anchor=cur===stations.desk?new THREE.Vector3(-2.15,0,.48):new THREE.Vector3(2.3,0,-.95);
             const fitted=calibration?new THREE.Vector3().fromArray(calibration.pelvisLocal).applyAxisAngle(new THREE.Vector3(0,1,0),hero.group.rotation.y).add(anchor):null;
             const targetX = fitted?fitted.x:cur.pos[0]-seatForward.x*back;
             const targetZ = fitted?fitted.z:cur.pos[2]-seatForward.z*back;
@@ -1055,6 +1062,7 @@ export async function createRoom(container, bubbleEl) {
 
       const playingConsole = director.current === stations.sofa && director.mode === 'activity';
       bicyclePump?.frame(dt,director.current===stations.bike&&director.mode==='activity',hero);
+      if(bicyclePump)pumpSound.frame(bicyclePump.state.active,bicyclePump.state.time,bicyclePump.state.cycling,roomVisible&&!document.hidden&&!workshopOpen);
       retro.setPadHeld?.(playingConsole);
       if (playingConsole) poseGamepadHands();
       retro.updatePad?.(dt, hero.bones.hand_l, hero.bones.hand_r);
@@ -1119,11 +1127,11 @@ export async function createRoom(container, bubbleEl) {
   requestAnimationFrame(frame);
 
   // économie : on arrête quand l'onglet est caché ou le composant hors écran
-  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) running = false; });
+  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) {running = false;pumpSound.stop();} });
   io.observe(container);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) running = false; else if (roomVisible&&!workshopOpen&&!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) {running = false;pumpSound.stop();} else if (roomVisible&&!workshopOpen&&!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
+  return { pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, cs, scene, camera, renderer };
 }

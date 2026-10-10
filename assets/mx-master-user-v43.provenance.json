@@ -1,0 +1,30 @@
+{
+  "source": "logitech_mx_master_2s_danish_blends.glb",
+  "sourceSHA256": "70e1ab8462bbba7e9c3d370ab2735aa5e657ece9360aedc256359f139a6379ef",
+  "output": "mx-master-user-v43.glb",
+  "outputSHA256": "915385ca0e7e90e4ba8c2bf1d941a4bc67d935eafef8b1dd5972b8fd4d9d420b",
+  "dimensionsBlender": [
+    0.08297854661941528,
+    0.1259986013174057,
+    0.047615405172109604
+  ],
+  "boundsBlender": [
+    [
+      -0.04138294979929924,
+      -0.06294634938240051,
+      -1.2078357758404934e-10
+    ],
+    [
+      0.041595593094825745,
+      0.06305225193500519,
+      0.047615405172109604
+    ]
+  ],
+  "triangles": 7590,
+  "bytes": 587348,
+  "changes": {
+    "length": 0.126,
+    "groundAligned": true,
+    "rotationZ": -1.5707963267948966
+  }
+}

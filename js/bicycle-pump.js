@@ -25,6 +25,7 @@ export function createBicyclePump(gltf,bike){
   const phase=cycling?(stage%1.05)/1.05:0;
   const push=(1-Math.cos(phase*Math.PI*2))/2;
   piston.position.y=-.20*push;
+  state.cycling=cycling;
   state.strokes=Math.min(5,Math.floor(stage/1.05));
   if(cycling)state.pressure[state.wheel]=Math.min(1,(stage/1.05)/5);
   needle.rotation.z=2.25-4.5*state.pressure[state.wheel];

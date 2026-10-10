@@ -76,7 +76,7 @@ try {
     const deskBounds = await page.evaluate(() => window.room.bbox('desk'));
     assert.ok(deskBounds[1].every((max, i) => max - deskBounds[0][i] < 4), 'Imported desk must retain its physical size');
     assert.ok(await page.evaluate(() => {
-      return ['GamingLandscapeMonitor','GamingPortraitMonitor','GamingMonitorArms','GamingDeskMat','Moonlander','ErgonomicVerticalMouse'].every(name=>{
+      return ['GamingLandscapeMonitor','GamingPortraitMonitor','GamingMonitorArms','GamingDeskMat','Moonlander','LogitechMXMaster2S'].every(name=>{
         const object=window.room.scene.getObjectByName(name);let meshes=0;
         object?.traverse(child=>{if(child.isMesh)meshes++;});return object?.visible&&meshes>0;
       });

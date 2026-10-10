@@ -1,0 +1,45 @@
+{
+  "source": "dream_computer_setup.glb",
+  "sourceSHA256": "029f6ecc56793cabb859dc05823214982cbc4ae2f9f28d96302d86662650b0d7",
+  "output": "dream-pc-user-v43.glb",
+  "outputSHA256": "c418fece514e799b519ba89f10600c724437c9a71d6b2d1315ddfa5c80fddff0",
+  "dimensionsBlender": [
+    0.43196427822113037,
+    0.2544543445110321,
+    0.47494232654571533
+  ],
+  "boundsBlender": [
+    [
+      -0.21600013971328735,
+      -0.12715642154216766,
+      0.0
+    ],
+    [
+      0.21596413850784302,
+      0.12729792296886444,
+      0.47494232654571533
+    ]
+  ],
+  "triangles": 43760,
+  "bytes": 5940240,
+  "changes": {
+    "GPU": "asus_rog_geforce_rtx_4090_v2.0.glb",
+    "GPUsha256": "294eff198920bf3f26874a5e1ba268648f3303407e9c2019e7f69362257f00dd",
+    "originalGPU": "RTX2080ti",
+    "height": 0.475,
+    "orientation": "Original long axis X and fan-facing negative Y preserved",
+    "oldGpuBounds": [
+      [
+        -3.97541475,
+        3.07541609,
+        -5.19437838
+      ],
+      [
+        4.33828163,
+        4.36609602,
+        -1.23167491
+      ]
+    ]
+  },
+  "textureLimit": 512
+}

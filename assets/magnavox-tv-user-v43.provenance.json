@@ -1,0 +1,32 @@
+{
+  "source": "magnavox_19_crt_tv_-_rr1938_w122.glb",
+  "sourceSHA256": "86947859839d26ca9e6ccfa133ae0b37de61b6b5662524b486102fca3a19ca7c",
+  "output": "magnavox-tv-user-v43.glb",
+  "outputSHA256": "c30c8d8e326fbc3c5f75b3b9a7e8f61b7ea20f68a2141e3ebc5826a246ed7e3e",
+  "dimensionsBlender": [
+    0.6600451469421387,
+    0.6279911398887634,
+    0.5325290560722351
+  ],
+  "boundsBlender": [
+    [
+      -0.33002394437789917,
+      -0.31599149107933044,
+      -6.605932139791548e-05
+    ],
+    [
+      0.3300212025642395,
+      0.311999648809433,
+      0.532463014125824
+    ]
+  ],
+  "triangles": 20043,
+  "bytes": 2540068,
+  "changes": {
+    "width": 0.66,
+    "screen": "Original curved geometry, live PS1 image applied by runtime",
+    "rotationZ": -1.5707963267948966,
+    "exclude": "Loose original cord and plug replaced with connected scene power cable"
+  },
+  "textureLimit": 512
+}
