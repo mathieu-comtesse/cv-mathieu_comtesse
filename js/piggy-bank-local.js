@@ -11,11 +11,11 @@ export async function initPiggyBank(host){
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(150,156,false);renderer.outputColorSpace=THREE.SRGBColorSpace;
   const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-1.4,1.4,1.55,-1.55,.1,30);camera.position.set(3.8,2.6,5.6);camera.lookAt(0,1.13,0);
   scene.add(new THREE.HemisphereLight(0xffffff,0x9c7189,2.2));const key=new THREE.DirectionalLight(0xffffff,3.1);key.position.set(2,5,5);scene.add(key);const rim=new THREE.DirectionalLight(0xffddeb,1.5);rim.position.set(-3,3,-2);scene.add(rim);
-  const [pig,coin]=await Promise.all(['pink-piggy-bank','one-euro-coin'].map(name=>new GLTFLoader().loadAsync('assets/'+name+'.glb?v=cv-scene-v36')));
+  const [pig,coin]=await Promise.all(['pink-piggy-bank','one-euro-coin-user'].map(name=>new GLTFLoader().loadAsync('assets/'+name+'.glb?v=cv-scene-v38')));
   const assembly=new THREE.Group();assembly.rotation.y=-.45;scene.add(assembly);assembly.add(pig.scene);
   const falling=coin.scene;assembly.add(falling);falling.rotation.x=Math.PI/2;falling.visible=false;
   for(const el of fallback)el.setAttribute('hidden','');
-  host.dataset.piggy='ready';
+  host.dataset.piggy='ready';host.dataset.coinAsset='one-euro-coin-user.glb';
   const box=host.closest('.annual-gains'),label=box.querySelector('[data-coin-rate]'),daysInput=box.querySelector('[data-working-days]'),hoursInput=box.querySelector('[data-working-hours]');
   let config={days:225,hours:7};try{const stored=JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')||'null');if(stored&&stored.days>=1&&stored.days<=366&&stored.hours>=1&&stored.hours<=24)config=stored;}catch{}
   daysInput.value=config.days;hoursInput.value=config.hours;

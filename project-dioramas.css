@@ -83,16 +83,16 @@
 /* Original textured model, with independent coins and retained attribution. */
 .pro-gains-heading{grid-template-columns:minmax(180px,1fr) minmax(560px,760px)}
 .annual-gains{grid-template-columns:300px minmax(0,1fr);gap:12px 24px}
-.annual-pig-wrap{width:300px;height:336px;position:relative}
+.annual-pig-wrap{width:300px;height:320px;position:relative}
 .piggy-reference{position:absolute;inset:0 auto auto 0;width:300px;height:300px;border:0;border-radius:12px;background:#f5f7fa}
 .piggy-coins-3d{width:300px;height:300px}
-.piggy-credit{position:absolute;bottom:17px;left:0;right:0;font-size:9px;text-align:center;color:var(--mute)}
+
 .annual-values{align-self:center}
 @media(max-width:1100px){.pro-gains-heading{display:block}.annual-gains{margin-top:20px;max-width:760px}}
-@media(max-width:640px){.annual-gains{grid-template-columns:minmax(0,1fr);padding:16px}.annual-pig-wrap{width:min(300px,100%);height:336px;margin:auto}.piggy-reference,.piggy-coins-3d{width:100%;height:300px}.annual-values strong{font-size:28px}}
+@media(max-width:640px){.annual-gains{grid-template-columns:minmax(0,1fr);padding:16px}.annual-pig-wrap{width:min(300px,100%);height:320px;margin:auto}.piggy-reference,.piggy-coins-3d{width:100%;height:300px}.annual-values strong{font-size:28px}}
 
 .piggy-coins-3d{clip-path:inset(0 0 36px 0)}
 
 .piggy-coins-3d{pointer-events:none;clip-path:none}
 
-.piggy-credit{font-size:10px}
+

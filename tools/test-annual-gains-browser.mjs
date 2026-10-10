@@ -19,6 +19,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy==='ready',null,{timeout:90000});
  assert.ok(await pig.locator('.annual-pig-wrap svg').evaluateAll(elements=>elements.every(e=>getComputedStyle(e).display==='none')));
  if(process.env.PIGGY_REQUIRE_REFERENCE)assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'6d190692d90a4a9db58131855d8c9f33');
+ assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Cerdo hucha.*Legado 3D/);
  assert.match(await page.locator('.automation-cascade').innerText(),/Une production automatisée libère plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
  assert.match(await pig.locator('[data-annual-money]').innerText(),/650/);
