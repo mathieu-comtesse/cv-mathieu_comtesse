@@ -48,8 +48,10 @@ if (portraitFrame) {
 
   // Forward mouse gestures through the transparent portrait overflow.
   const host = portraitFrame.parentElement;
+  let touchGesture=null;
+  const cancelTouch=()=>{if(touchGesture)clearTimeout(touchGesture.timer);touchGesture=null;};
   function forward(event) {
-    if (event.pointerType === 'touch') return;
+
     const api = portraitFrame.contentWindow?.shupiPortrait;
     const canvas = api?.scene?.domElement;
     if (!canvas) return;
@@ -80,6 +82,11 @@ if (portraitFrame) {
       cancelable: true,
     }));
 
+    if(event.pointerType==='touch'){
+      if(event.type==='pointerdown'&&api.isHeld){cancelTouch();touchGesture={id:event.pointerId,x:event.clientX,y:event.clientY,locked:false,timer:setTimeout(()=>{if(touchGesture)touchGesture.locked=true;},220)};}
+      if(event.type==='pointerup'||event.type==='pointercancel')cancelTouch();
+      return;
+    }
     if (api.isHeld && event.type === 'pointerdown') {
       try { host.setPointerCapture(event.pointerId); } catch {}
     }
@@ -90,6 +97,18 @@ if (portraitFrame) {
   for (const name of ['pointerdown','pointermove','pointerup','pointercancel']) {
     document.addEventListener(name, forward, { passive: false });
   }
+
+  // A normal vertical swipe scrolls. A horizontal drag or a deliberate hold stretches the head.
+  document.addEventListener('touchmove',event=>{
+    const g=touchGesture;if(!g||event.touches.length!==1)return;const p=event.touches[0],dx=p.clientX-g.x,dy=p.clientY-g.y;
+    if(!g.locked&&Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)){
+      portraitApi()?.scene.domElement.dispatchEvent(new portraitFrame.contentWindow.PointerEvent('pointercancel',{pointerId:g.id,bubbles:true}));cancelTouch();return;
+    }
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy))g.locked=true;
+    if(g.locked&&event.cancelable)event.preventDefault();
+  },{passive:false});
+  document.addEventListener('touchcancel',cancelTouch,{passive:true});
+  const hint=document.createElement('p');hint.className='portrait-touch-hint';hint.textContent='Glisse pour défiler · maintiens la tête pour la déformer';host.append(hint);
 
   // Keep the exact portrait API defaults after the iframe is ready.
   portraitFrame.addEventListener('load', () => {

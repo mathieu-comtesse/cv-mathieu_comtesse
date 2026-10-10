@@ -18,6 +18,8 @@ import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v45';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
+import {createFilmAlbum} from './film-album.js?v=cv-scene-v47';
+
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
   const n = 7.5625, d = 2.75;
@@ -461,7 +463,7 @@ export async function createRoom(container, bubbleEl) {
   const el = renderer.domElement;el.tabIndex=0;el.setAttribute('aria-label','Décor : choisir Déplacer ou Tourner, puis maintenir et glisser ; flèches du clavier pour la même action ; barre latérale pour zoomer');el.addEventListener('contextmenu',e=>e.preventDefault());
   // Portrait Shupi : suivi du pointeur normalisé (-1..1), comme /info/?portrait.
   const updatePortraitLook = (e) => {
-    if (e.pointerType === 'touch' || !hero.group.visible || !hero.lookAtPointer) return;
+    if (!hero.group.visible || !hero.lookAtPointer) return;
     const r = el.getBoundingClientRect();
     hero.lookAtPointer(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
   };
@@ -483,11 +485,11 @@ export async function createRoom(container, bubbleEl) {
   };
   el.addEventListener('pointerdown', (e) => {
     nativeBridge?.resumeSound?.();
-    el.setPointerCapture(e.pointerId);
+    if(e.pointerType!=='touch')el.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
-      if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) { pauseAutonomy(6000); hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false }; }
-      else {el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:navigationMode==='pan'&&!e.altKey&&e.button!==2};}
+      if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) { pauseAutonomy(6000); hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false, ready:e.pointerType!=='touch' }; if(!hdrag.ready)hdrag.timer=setTimeout(()=>{if(hdrag)hdrag.ready=true;},220); }
+      else {if(e.pointerType!=='touch')el.focus({preventScroll:true});drag={x:e.clientX,y:e.clientY,moved:0,t:performance.now(),pan:navigationMode==='pan'&&!e.altKey&&e.button!==2};}
     }
     if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); drag = null; hdrag = null; }
   });
@@ -499,10 +501,11 @@ export async function createRoom(container, bubbleEl) {
       p.x = e.clientX; p.y = e.clientY;
       if (pointers.size === 2) {
         const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if(pinch){setCameraMode('free');view.tZoom=Math.max(.0001,view.tZoom*(d/pinch));panCamera(dx/2,dy/2);}
+        if(pinch&&e.pointerType!=='touch'){setCameraMode('free');view.tZoom=Math.max(.0001,view.tZoom*(d/pinch));panCamera(dx/2,dy/2);}
         pinch = d;
       } else if (hdrag) {
         hdrag.moved += Math.abs(dx) + Math.abs(dy);
+        if(!hdrag.ready&&hdrag.moved>8){clearTimeout(hdrag.timer);hdrag=null;return;}
         if (!hdrag.lifted && hdrag.moved > 8) { hdrag.lifted = true; director.lift(); showZones(true); el.style.cursor = 'grabbing'; }
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
@@ -523,6 +526,7 @@ export async function createRoom(container, bubbleEl) {
   const up = (e) => {
     pointers.delete(e.pointerId); pinch = 0;
     if (hdrag) {
+      clearTimeout(hdrag.timer);
       pauseAutonomy(6000);
       if (hdrag.lifted) {
         const g = groundAt(e.clientX, e.clientY), z = zoneAt(e.clientX, e.clientY);
@@ -539,7 +543,8 @@ export async function createRoom(container, bubbleEl) {
     drag = null; el.style.cursor = hovered ? 'pointer' : 'grab';
   };
   el.addEventListener('pointerup', up);
-  el.addEventListener('pointercancel', up);
+  el.addEventListener('pointercancel',()=>{pointers.clear();pinch=0;drag=null;if(hdrag){clearTimeout(hdrag.timer);if(hdrag.lifted){showZones(false);director.drop(hero.group.position.x,hero.group.position.z);}hdrag=null;}hero.resetLook?.();});
+  el.addEventListener('touchmove',e=>{if(hdrag?.ready&&e.touches.length===1&&e.cancelable)e.preventDefault();},{passive:false});
   // La molette garde le défilement natif de la page, même en caméra libre.
   el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;selectNavigation('pan');setCameraMode('follow');});
   el.addEventListener('keydown',e=>{if(e.key==='Escape'){selectNavigation('pan');setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const move=navigationMode==='rotate'?rotateCamera:panCamera;move(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();changeZoom(view.tZoom*(e.key==='-'?.8:1.25));}});
@@ -862,7 +867,9 @@ export async function createRoom(container, bubbleEl) {
     hero.ik2(b.upperarm_r, b.lowerarm_r, b.hand_r, rTarget, rPole);
     hero.group.updateMatrixWorld(true);
   };
+  const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
   function activate(id) {
+    if(id==='mamiya'){filmAlbum.open();return;}
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
