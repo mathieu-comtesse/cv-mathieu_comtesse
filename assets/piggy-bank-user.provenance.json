@@ -1,0 +1,9 @@
+{
+  "title": "Piggy Bank",
+  "author": "mistour",
+  "license": "CC-BY-4.0",
+  "source": "https://sketchfab.com/3d-models/piggy-bank-d4387ba82d8f4dda85826ee5815640b9",
+  "sourceSHA256": "d81cfcf2e3a9e1b216c03dbf9801884b3cc0c90de276bb228a9a8b782bae74b1",
+  "normalizedSHA256": "5adb73ef61d782ff999e623b663cd0e5f4ba430784bbb87ac060c692e11a1b5d",
+  "changes": "Uniform scale, centered origin, ground alignment and non-rendered CoinSlotAnchor. Original geometry and materials preserved."
+}

@@ -1,6 +1,6 @@
 import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
 import { initProjectDioramas } from './project-dioramas.js?v=cv-scene-v35';
-import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v39';
+import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v40';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v36';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-scene-v35';
 import { playFullscreen } from './play.js?v=bf01a16';

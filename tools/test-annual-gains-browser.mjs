@@ -18,8 +18,8 @@ try{
  const pig=page.locator('.annual-gains');await pig.waitFor();await pig.scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy==='ready',null,{timeout:90000});
  assert.ok(await pig.locator('.annual-pig-wrap svg').evaluateAll(elements=>elements.every(e=>getComputedStyle(e).display==='none')));
- assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'ceramic-piggy-bank');assert.equal(await pig.locator('iframe').count(),0);
- assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Cerdo hucha.*Legado 3D/);
+ assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'piggy-bank-user');assert.equal(await pig.locator('iframe').count(),0);
+ assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Piggy Bank.*mistour.*CC BY 4.0/);
  assert.match(await page.locator('.automation-cascade').innerText(),/Une production automatisée libère plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
  assert.match(await pig.locator('[data-annual-money]').innerText(),/650/);
@@ -47,7 +47,7 @@ try{
  for(const angle of [0,1,2]){
   await canvas.press('ArrowRight');await canvas.press('ArrowRight');if(angle===1)await canvas.press('ArrowUp');await pig.locator('[data-annual-money]').click();
   await page.waitForFunction(()=>{const e=document.querySelector('.annual-pig-wrap'),p=Number(e.dataset.coinPhase);return p>.78&&p<.82;},null,{timeout:20000});
-  assert.ok(Math.abs(Number(await model.getAttribute('data-coin-x'))+.22)<1e-5);assert.ok(Math.abs(Number(await model.getAttribute('data-coin-z')))<1e-5);
+  assert.ok(Math.abs(Number(await model.getAttribute('data-coin-x')))<1e-5);assert.ok(Math.abs(Number(await model.getAttribute('data-coin-z'))+.43)<1e-5);
   await pig.screenshot({path:path.join(output,'insertion-angle-'+angle+'.png'),timeout:120000});
  }
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('cv-annual-gain-history-v1')));
