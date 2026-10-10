@@ -1,0 +1,42 @@
+{
+  "source": "gaming_setup_v2_low-poly.glb",
+  "sourceSHA256": "fdf5edaf435b41ee5557c0441760bc43091dd6406395f10ace44623f7ea6bc39",
+  "output": "gaming-desk-user-v42.glb",
+  "outputSHA256": "c593fb285602d757cdab7ae1adc71f2f397528bd25df7b313e4466f00638a430",
+  "sourceBytes": 2908876,
+  "outputBytes": 568900,
+  "dimensionsBlender": [
+    1.4495151042938232,
+    0.8492292165756226,
+    0.772193968296051
+  ],
+  "triangles": 1350,
+  "textureLimit": 1024,
+  "meshNames": [
+    "GamingLandscapeMonitor:0",
+    "GamingLandscapeMonitor:1",
+    "GamingPortraitMonitor:0",
+    "GamingPortraitMonitor:1",
+    "GamingDeskMat:0",
+    "GamingDeskSpeakerLeft:0",
+    "GamingDeskSpeakerRight:0",
+    "GamingMonitorArms:0",
+    "GamingMonitorArms:1",
+    "GamingMonitorArms:2",
+    "GamingMonitorArms:3",
+    "GamingMonitorArms:4"
+  ],
+  "changes": {
+    "uniformScale": 0.27,
+    "rotationBlenderZ": -1.5707963267948966,
+    "sourceDesktopHeight": 2.5885467529296875,
+    "selection": "Desk mat, both speakers, landscape and portrait monitors and their articulated dual support. Original desk, chair, tower, keyboard and mouse excluded. Existing Moonlander and vertical ergonomic mouse restored in the scene."
+  },
+  "provenance": {
+    "author": "LagzDesign (https://sketchfab.com/LagzDesign)",
+    "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+    "source": "https://sketchfab.com/3d-models/gaming-setup-v2-low-poly-c4aafe2ed67841b9b52e80e8e469dbb8",
+    "title": "gaming setup v2 (low-poly)"
+  },
+  "sourcesPreserved": true
+}

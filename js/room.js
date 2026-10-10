@@ -69,7 +69,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
-  const [workstationModel,consoleModel,controllerModel,olivettiModel,mamiyaModel,chryslerModel]=await Promise.all(['workstation-user-v41.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb','chrysler-miniature-user-v41.glb'].map(model));
+  const [gamingDeskModel,consoleModel,controllerModel,olivettiModel,mamiyaModel]=await Promise.all(['gaming-desk-user-v42.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb'].map(model));
   const [usmModel,pumpModel,jblModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb','jbl.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
@@ -123,13 +123,11 @@ export async function createRoom(container, bubbleEl) {
     }
   } else {
     deskSet.add(F.desk());
-    const workstation=workstationModel.scene;workstation.name='UserWorkstation';workstation.position.y=.74;deskSet.add(workstation);
-    // Keep each named part stable through static geometry batching and ray casting.
-    for(const part of [...workstation.children])if(part.isMesh){const name=part.name,holder=group();holder.name=name;holder.userData.batchRoot=true;part.name=name+':TexturedMesh';part.removeFromParent();holder.add(part);workstation.add(holder);part.castShadow=part.receiveShadow=true;}
-    uw=workstation.getObjectByName('UserWorkstationMonitor');uw.userData.id='pc';
-    const desktopLamp=workstation.getObjectByName('UserDeskLamp');desktopLamp.userData.id='deskLamp';
-    const bulb=workstation.getObjectByName('UserDeskLampBulb'),lampGlow= new THREE.Mesh(new THREE.SphereGeometry(.009,8,6),new THREE.MeshStandardMaterial({color:'#78736a',emissive:'#ffdda0',emissiveIntensity:.3}));lampGlow.userData.dynamic=true;lampGlow.userData.noInk=true;bulb.add(lampGlow);
-    mkLamp('deskLamp',lampGlow.material,new THREE.PointLight('#ffe2a5',0,2,2),'#fff1cc','#78736a');
+    const workstation=gamingDeskModel.scene;workstation.name='GamingDeskSetup';workstation.position.y=.74;deskSet.add(workstation);
+    for(const part of workstation.children){part.userData.batchRoot=true;part.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});}
+    uw=workstation.getObjectByName('GamingLandscapeMonitor');uw.userData.id='pc';workstation.getObjectByName('GamingPortraitMonitor').userData.id='pc';
+    const keyboard=F.moonlander();keyboard.name='Moonlander';keyboard.position.set(-.17,.754,.08);keyboard.userData.batchRoot=true;deskSet.add(keyboard);
+    const mouse=F.verticalMouse();mouse.name='ErgonomicVerticalMouse';mouse.position.set(.35,.750,.18);mouse.userData.batchRoot=true;deskSet.add(mouse);
 
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
     const mug = new THREE.Group();
@@ -145,7 +143,6 @@ export async function createRoom(container, bubbleEl) {
   }
 
   add('desk', deskSet, -3.1, 0.25, Math.PI / 2, 0, 0.12);
-  deskSet.updateWorldMatrix(true,true);lamps.deskLamp?.light.position.copy(deskSet.getObjectByName('UserDeskLampBulb').getWorldPosition(new THREE.Vector3()));
   mkLamp('brontes', brontes.userData.glow, new THREE.PointLight('#ffd9a0', 0, 3, 2), '#fff0d0', '#9a948a');
 
   // chargement Native asynchrone : bureau/PC/tasse + animations/sons exacts,
@@ -200,7 +197,7 @@ export async function createRoom(container, bubbleEl) {
     thought.useSource(null);
     for (const child of [...deskSet.children]) deskSet.remove(child);
     for (const child of fallbackDeskChildren) deskSet.add(child);
-    uw = deskSet.children.find((o) => o.userData.id === 'pc');
+    uw = deskSet.getObjectByName('GamingLandscapeMonitor') || deskSet.children.find((o) => o.userData.id === 'pc');
     container.dataset.native = 'fallback';
     console.warn('[Native] rendu incompatible, bureau local restauré', error);
   };
@@ -271,8 +268,6 @@ export async function createRoom(container, bubbleEl) {
   const rca = F.rcaCables(-0.37, -0.158, 0.7415, 0.7415 + 0.05); usmSet.add(rca);
   const cl = F.borneFromGltf(borneGltf); add('beton', cl, 0.44, 0.0, 0, 0.7415, 0, usmSet);
   add('usm', usmSet, -0.7, -2.4, 0, 0, 0.45);
-  const miniatureCar=chryslerModel.scene;miniatureCar.name='MiniatureChrysler1971';miniatureCar.userData.batchRoot=true;miniatureCar.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
-  add('miniature-car',miniatureCar,-2.80,-1.90,-.70,0,.66);
 
   const ampTerminals=F.ampPosts(amp);
   const speakers=[];
@@ -546,7 +541,7 @@ export async function createRoom(container, bubbleEl) {
     const bb = new THREE.Box3().setFromObject(it.holder);
     nav.block({ x0: bb.min.x + shrink, x1: bb.max.x - shrink, z0: bb.min.z + shrink, z1: bb.max.z - shrink });
   };
-  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike', 'pump', 'jblL', 'jblR', 'miniature-car'].forEach((id) => footprint(id));
+  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike', 'pump', 'jblL', 'jblR'].forEach((id) => footprint(id));
   // Block pots and lower stems; overhead leaves must not close walkable aisles.
   for(const id of ['alocasia','dracaena','bonsai']){
     const plant=items.find(i=>i.id===id)?.holder;if(!plant)continue;

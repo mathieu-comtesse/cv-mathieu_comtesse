@@ -76,7 +76,7 @@ try {
     const deskBounds = await page.evaluate(() => window.room.bbox('desk'));
     assert.ok(deskBounds[1].every((max, i) => max - deskBounds[0][i] < 4), 'Imported desk must retain its physical size');
     assert.ok(await page.evaluate(() => {
-      return ['UserWorkstationMonitor','UserWorkstationKeyboard','UserWorkstationTower','UserWorkstationMouse'].every(name=>{
+      return ['GamingLandscapeMonitor','GamingPortraitMonitor','GamingMonitorArms','GamingDeskMat','Moonlander','ErgonomicVerticalMouse'].every(name=>{
         const object=window.room.scene.getObjectByName(name);let meshes=0;
         object?.traverse(child=>{if(child.isMesh)meshes++;});return object?.visible&&meshes>0;
       });
@@ -124,7 +124,7 @@ try {
       await page.evaluate(() => {
         const effects = window.room.scene.getObjectByName('NativeMotionEffects');
         let template;
-        window.room.scene.getObjectByName('UserWorkstationMonitor').traverse(object => {
+        window.room.scene.getObjectByName('GamingLandscapeMonitor').traverse(object => {
           if (!template && object.isMesh) template = object;
         });
         // Inject a deterministic render failure. Foreign typed arrays can be
