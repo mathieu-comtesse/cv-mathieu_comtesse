@@ -1,0 +1,32 @@
+{
+  "source": "japanese_traditional_shoes_geta.glb",
+  "sourceSHA256": "c904a58a7d2912982376e8a885098d2e0deb5a0535bd66f78a363ada13d28cb5",
+  "output": "geta-user-v52.glb",
+  "outputSHA256": "77b34b69185ee61cec49f8732897cb55f110a93914a701b421e96884ac5c8780",
+  "dimensionsBlender": [
+    0.40587449073791504,
+    0.2549999952316284,
+    0.07604905217885971
+  ],
+  "boundsBlender": [
+    [
+      -0.2029372602701187,
+      -0.1274999976158142,
+      0.0
+    ],
+    [
+      0.20293724536895752,
+      0.1275000125169754,
+      0.07604905217885971
+    ]
+  ],
+  "triangles": 6192,
+  "bytes": 1535128,
+  "changes": {
+    "originalUnchanged": true,
+    "groundAligned": true,
+    "size": 0.255,
+    "axis": "y",
+    "vertexWeldBeforeDecimation": true
+  }
+}

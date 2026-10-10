@@ -153,16 +153,8 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
   const vignette = () => { const gr = c.createRadialGradient(160, 120, 60, 160, 120, 210); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.5)'); c.fillStyle = gr; c.fillRect(0, 0, 320, 240); };
   function noise(a = 1) { const id = c.createImageData(320, 240), d = id.data; for (let i = 0; i < d.length; i += 4) { const v = (rd() * 255 * a) | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; } c.putImageData(id, 0, 0); }
   function drawOff() { const gr = c.createLinearGradient(0, 0, 320, 240); gr.addColorStop(0, '#16191b'); gr.addColorStop(0.5, '#0a0c0d'); gr.addColorStop(1, '#101315'); c.fillStyle = gr; c.fillRect(0, 0, 320, 240); c.fillStyle = 'rgba(255,255,255,0.05)'; c.beginPath(); c.ellipse(90, 50, 80, 30, -0.4, 0, 6.3); c.fill(); }
-  function drawReady(t) {
-    const gr = c.createLinearGradient(0, 0, 0, 240); gr.addColorStop(0, '#1b2b9a'); gr.addColorStop(1, '#07104a'); c.fillStyle = gr; c.fillRect(0, 0, 320, 240);
-    c.fillStyle = 'rgba(255,255,255,0.05)'; for (let i = 0; i < 18; i++) c.fillRect(0, (i * 14 + t * 40) % 240, 320, 4);
-    c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.font = 'bold 56px "Courier New", monospace'; c.fillStyle = '#0a0f3a'; c.fillText('PLAY ?', 164, 108); 
-    const blink = Math.sin(t * 5) > -0.4; c.fillStyle = blink ? '#ffffff' : '#9aa6ff'; c.fillText('PLAY ?', 160, 104);
-    c.font = '15px "Courier New", monospace'; c.fillStyle = '#c9d2ff'; c.fillText('CLIQUEZ SUR LA TELE', 160, 168);
-    c.fillStyle = '#ffd34a'; c.beginPath(); c.moveTo(60, 98); c.lineTo(60, 122); c.lineTo(80, 110); c.closePath(); c.fill();
-    scan(); vignette();
-  }
+  const readyMenu=new Image();readyMenu.src='assets/ps1-menu-reference-v52.webp';
+  function drawReady(t) {c.fillStyle='#000';c.fillRect(0,0,320,240);if(readyMenu.complete&&readyMenu.naturalWidth){const h=320*readyMenu.naturalHeight/readyMenu.naturalWidth;c.drawImage(readyMenu,0,(240-h)/2,320,h);}scan();vignette();}
   function frame(dt) {
     st.t += dt;
     const t = st.t;

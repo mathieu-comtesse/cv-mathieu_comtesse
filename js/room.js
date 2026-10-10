@@ -1,3 +1,4 @@
+import {createInteractionFeedback} from './interaction-feedback.js?v=cv-scene-v52';
 import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
 import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v51';
 import {yamahaTurntable} from './user-props.js?v=cv-scene-v50';
@@ -6,19 +7,19 @@ import * as F from './furniture.js?v=cv-scene-v50';
 import { createCharacter } from './character.js?v=cv-scene-v49';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
-import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
+import { teaSet, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
-import { createRetroSet } from './retro.js?v=cv-scene-v51';
+import { createRetroSet } from './retro.js?v=cv-scene-v52';
 import { createNav } from './nav.js?v=cv-scene-v29';
-import { createDirector } from './director.js?v=cv-scene-v44';
+import { createDirector } from './director.js?v=cv-scene-v52';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v48';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
-import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v49';
+import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v52';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
@@ -148,7 +149,7 @@ export async function createRoom(container, bubbleEl) {
     const notes=notesModel.scene;notes.name='DeskThickestPostIt';notes.userData.noInk=true;notes.userData.batchRoot=true;notes.position.set(-.51,.742,.11);deskSet.add(notes);
     const equipment=deskEquipment=installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
     mkLamp('screenbar',equipment.glow,equipment.light,'#fff0cb','#87837c');
-    Object.assign(lamps.screenbar,{on:true,manual:true,intensity:.7});
+    Object.assign(lamps.screenbar,{on:true,manual:true,intensity:2.4});
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
     const mug = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.049, 0.095, 28, 1, true), titanium); body.position.y = 0.056; mug.add(body);
@@ -256,7 +257,7 @@ export async function createRoom(container, bubbleEl) {
   const TEA = { x: CS.x, z: CS.z - 0.45, y: cs.spec.RH - 0.055 };
   const tea = teaSet({ mat: false });
   add('cha', tea, TEA.x, TEA.z, 0, TEA.y, 0.6, world, 0);
-  const shoes = shoePair(); inkify(shoes); add('shoes', shoes, CS.x - 0.95, CS.z + cs.spec.RD / 2 + 0.4, 0, cs.spec.DK.y + 0.02, 0.7, world, 0);
+  const shoeAnchor={x:CS.x-.95,z:CS.z+cs.spec.RD/2+.4,y:cs.spec.DK.y+.02};
   const stool = F.stool(); add('stool', stool, STOOL_X, STOOL_Z, 0.2, 0, 0.55);
 
   // lanterne du balcon : l'andon d'origine est remplacé par la lampe Akari de Noguchi (modèle réel)
@@ -332,10 +333,13 @@ export async function createRoom(container, bubbleEl) {
 
 
   // Secondary props load after the interactive room; batch their static surfaces.
-  const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb'].map(model)).then(([bagModel,polesModel,stoneModel])=>{
+  const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb','geta-user-v52.glb','buddha-user-v52.glb','jvc-videosphere-recreation-v52.glb'].map(model)).then(([bagModel,polesModel,stoneModel,getaModel,buddhaModel,jvcModel])=>{
     const install=(model,name,parent,x,y,z,yaw=0)=>{const root=model.scene;root.name=name;root.userData.batchRoot=true;root.position.set(x,y,z);root.rotation.y=yaw;root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});parent.add(root);mergeStatic(root);return root;};
     install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38);
-    install(polesModel,'HikingPoles',world,-2.90,0,-1.69,.18);
+    const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
+    install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
+    install(buddhaModel,'BuddhaFourFaces',world,2.63,0,4.55,.2);
+    install(jvcModel,'JVCVideosphere',whiteShelf,.41,.006,.018,0);
     const stone=install(stoneModel,'SuisekiKamogawaishi',whiteShelf,-.535,.835,0,0);stone.scale.setScalar(.90);
     container.dataset.detailProps='ready';renderer.shadowMap.needsUpdate=true;
   }).catch(e=>{container.dataset.detailProps='error';console.warn('[Room props]',e);});
@@ -346,7 +350,7 @@ export async function createRoom(container, bubbleEl) {
   lamps.beton.light.position.set(-0.3, 1.0, -2.3);
   whiteShelf.updateWorldMatrix(true,true);
   lamps.brontes.light.position.copy(whiteShelf.localToWorld(new THREE.Vector3(-0.40,1.70,0)));
-  for (const L of Object.values(lamps)) world.add(L.light);
+  for (const L of Object.values(lamps)) if(!L.light.parent)world.add(L.light);
 
   /* ─── personnage ─── */
   /* ─── performances : fusion des maillages statiques (≈ 1 500 maillages → quelques centaines d'appels de rendu) ─── */
@@ -510,6 +514,7 @@ export async function createRoom(container, bubbleEl) {
     return Math.hypot(cx - (A[0] + abx * t), cy - (A[1] + aby * t)) < R;
   };
   el.addEventListener('pointerdown', (e) => {
+    if(appOpen)return;
     if(e.pointerType==='touch'&&performance.now()<suppressTouchUntil)return;
     nativeBridge?.resumeSound?.();
     if(e.pointerType!=='touch')el.setPointerCapture(e.pointerId);
@@ -826,9 +831,11 @@ export async function createRoom(container, bubbleEl) {
   const zoneHover = (cx, cy) => { const z = zoneAt(cx, cy); zoneNear = z ? zones.find((q) => stations[q.id] === z) : null; };
 
   /* ─── metteur en scène du personnage ─── */
+  const feedback=createInteractionFeedback(world,new Set(['shoes','pc','tv','ps1power','deskstrip','strip','screenbar','arc','beton','brontes','falk','akari','mamiya','drawer','desk','chair','usm','ekstrem','alocasia','bonsai','dracaena','sofa','cha','bike','pump','shoji0','shoji1','shoji2','shoji3']));feedback.register();detailPropsReady.then(()=>feedback.register());
   const director = createDirector({
     hero, ritual, nav, floorY,
     ui: {
+      isLocked:()=>appOpen,
       poof: (p) => poof(p),
       activityEnd: (st, reason) => { pumpSound.stop();if(st.tv){retro.powerOff();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));} if (st.ritual && reason !== 'leave') cs.setPanels(0); },
       music: () => {},
@@ -879,19 +886,19 @@ export async function createRoom(container, bubbleEl) {
     else if (e.key === 'Enter' && crate.sel >= 0) { e.preventDefault(); playTrack(crate.sel); }
     else if (e.key === 'Escape') openCrate(false);
   });
-  const goTo = (id, cb) => { afterEnter = cb || null; director.go(stations[id]); };
+  const goTo = (id, cb) => { if(appOpen)return false;afterEnter = cb || null; director.go(stations[id]); };
 
   let appOpen = false;
   function resetFocus(){view.tZoom=1;syncZoom();setCameraMode('follow');}
   function openApp(kind, pos, zoom) {
-    if (appOpen) return; appOpen = true;
+    if (appOpen) return; appOpen = true;container.dataset.activityLocked='true';if(hdrag)clearTimeout(hdrag.timer);hdrag=null;drag=null;pointers.clear();
     setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;
     thoughtEl.classList.remove('show');
     if(kind==='retro')ps1Sound.openMenu();
     setTimeout(() => window.dispatchEvent(new CustomEvent('room-open', { detail: { kind } })), kind === 'xp' ? 1200 : 750);
   }
   window.addEventListener('room-close', (e) => {
-    appOpen = false;resetFocus();
+    appOpen = false;container.dataset.activityLocked='false';resetFocus();
     if (e.detail && e.detail.kind === 'retro') {retro.powerOff();ps1Sound.exit();}
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
@@ -923,6 +930,7 @@ export async function createRoom(container, bubbleEl) {
   };
   const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
   function activate(id) {
+    if(appOpen)return false;
     if(id==='ps1power'){if(retro.state==='off'||retro.state==='closing')retro.powerOn(true);else{retro.powerOff();ps1Sound.exit();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));}return;}
     if(id==='deskstrip'){deskEquipment?.setPower(!deskEquipment.powered);container.dataset.deskPower=deskEquipment?.powered?'on':'off';return;}
     if(id==='mamiya'){filmAlbum.open();return;}
@@ -940,7 +948,7 @@ export async function createRoom(container, bubbleEl) {
     if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; if(id==='screenbar')refreshScreenbar(); return; }
     if (stations[id]) goTo(id);
   }
-  const leave = () => {resetFocus();director.stand();};
+  const leave = () => {if(appOpen)return false;resetFocus();director.stand();};
 
   /* gouttes d'arrosage */
 
@@ -1193,6 +1201,7 @@ export async function createRoom(container, bubbleEl) {
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
+    feedback.update(t,hovered,Object.entries(stations).find(([,s])=>s===director.current)?.[0],appOpen);
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
     try {
       renderer.render(scene, camera);
@@ -1217,5 +1226,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { detailPropsReady, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
+  return { feedback, get appOpen(){return appOpen;}, detailPropsReady, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }

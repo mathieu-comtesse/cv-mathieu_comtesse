@@ -1,5 +1,5 @@
 import { PAGES } from './pages.js?v=cv-scene-v49';
-import { PERSO, PRO, CV } from './data.js?v=cv-scene-v45';
+import { PERSO, PRO, CV } from './data.js?v=cv-scene-v52';
 
 /* Deux interfaces plein écran ouvertes depuis la pièce 3D :
  *  - « retro » : la télé cathodique + PS1 → menu de jeux façon console (projets perso), écran de chargement, écran titre, jeu, bouton retour ;
@@ -190,7 +190,7 @@ const PSX = { x: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="
 
 let css = null;
 function inject() {
-  if (css) return; css = el('style', null, CSS); document.head.append(css);
+  if (css) return; const theme=el('link');theme.rel='stylesheet';theme.href='ps1-menu.css?v=cv-scene-v52';document.head.append(theme);css = el('style', null, CSS); document.head.append(css);
   const l = el('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'; document.head.append(l);
 }
 function show(root) { root.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => root.classList.add('show'))); }
@@ -203,7 +203,7 @@ function retroApp(onClose) {
   let view = 'boot', idx = 0, timer = null, closing=false;
   const psSound=action=>window.dispatchEvent(new CustomEvent('ps1-ui',{detail:{action}}));
   const done = () => { if(closing)return;closing=true;psSound('menu-off');clearTimeout(timer); root.classList.add('closing'); setTimeout(() => { hide(root, () => { root.remove(); root.classList.remove('closing'); }); onClose(); }, 420); window.removeEventListener('keydown', key); };
-  const foot = (a) => `<div class="foot">${a.map(([ic, t, k]) => `<span data-k="${k}">${PSX[ic]}${t}</span>`).join('')}</div>`;
+  const foot = (a) => `<div class="foot">${a.map(([ic, t, k]) => `<button type="button" data-k="${k}">${PSX[ic]}${t}</button>`).join('')}</div>`;
   const bind = () => scr.querySelectorAll('[data-k]').forEach((n) => n.addEventListener('click', (e) => { e.stopPropagation(); act(n.dataset.k); }));
   function act(k) {
     if(closing)return;
@@ -216,7 +216,7 @@ function retroApp(onClose) {
     else if (k === 'down' && view === 'menu') { idx = (idx + 1) % PERSO.length; menu(true); }
   }
   function key(e) {
-    const m = { ArrowUp: 'up', ArrowDown: 'down', Enter: 'ok', ' ': 'ok', Escape: 'back', Backspace: 'back' }[e.key];
+    const m = { ArrowLeft: 'up', ArrowRight: 'down', ArrowUp: 'up', ArrowDown: 'down', Enter: 'ok', ' ': 'ok', Escape: 'back', Backspace: 'back' }[e.key];
     if (m) { e.preventDefault(); act(m); }
   }
   function boot() {
@@ -228,14 +228,12 @@ function retroApp(onClose) {
   function menu(keep) {
     view = 'menu';root.dataset.view=view;psSound('menu-on');clearTimeout(timer);
     const g = PERSO[idx];
-    const top = keep ? scr.querySelector('ul')?.scrollTop : 0;
-    scr.innerHTML = `<div class="head"><div><h1>SELECTION DU JEU</h1><div class="sub">MEMORY CARD 1 · ${PERSO.length} PROJETS</div></div><div class="sub">${String(idx + 1).padStart(2, '0')}/${PERSO.length}</div></div>
-      <div class="body"><ul>${PERSO.map((p, i) => `<li data-i="${i}" class="${i === idx ? 'sel' : ''}"><i>${String(i + 1).padStart(2, '0')}</i>${esc(p.n)}</li>`).join('')}</ul>
-      <div class="card"><div class="cover" style="background-image:url('${g.img}')"><span>${esc(g.n)}</span></div><div class="tag">${esc(g.genre).toUpperCase()}</div><div class="desc">${esc(g.desc)}</div>
-      <div class="btns"><button data-k="ok">▶ START</button><a class="b alt" target="_blank" rel="noopener" href="${CV}${g.url}">↗ NOUVEL ONGLET</a></div></div></div>
-      ${foot([['x', 'VALIDER', 'ok'], ['o', 'QUITTER', 'back'], ['t', 'HAUT', 'up']])}`;
-    const ul = scr.querySelector('ul'); if (top) ul.scrollTop = top; ul.querySelector('.sel')?.scrollIntoView({ block: 'nearest' });
-    ul.querySelectorAll('li').forEach((li) => li.addEventListener('click', () => { const i = +li.dataset.i; if (i === idx) act('ok'); else { psSound('action');idx = i; menu(true); } }));
+    scr.innerHTML = `<div class="ps-library" aria-label="Choisir un jeu">${PERSO.map((p,i)=>`<button class="ps-case ${i===idx?'selected':''}" data-i="${i}" aria-label="${esc(p.n)} — ${p.year}" aria-pressed="${i===idx}" style="--tilt:${Math.max(-12,Math.min(12,(i-idx)*-2))}deg;--drop:${Math.min(35,Math.abs(i-idx)*6)}px"><img src="${p.img}" alt="" width="160" height="120"><span>${esc(p.n)}</span></button>`).join('')}</div>
+      <div class="ps-selection"><figure><img class="ps-shot" src="${g.img}" alt="Capture de ${esc(g.n)}" width="640" height="480"><button class="ps-read" data-k="ok">LIRE</button></figure><div class="ps-details"><h1>${esc(g.n)}</h1><p class="ps-publisher">Comt’Star Games</p><p class="ps-year">${g.year}</p></div></div>
+      <div class="ps-dock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h16v11H4zM8 8V5h8v3M4 12h16M10 10v4h4v-4" fill="none" stroke="currentColor" stroke-width="2"/></svg><svg viewBox="0 0 24 24"><path d="M7 7h10l4 11-5-2-2-3h-4l-2 3-5 2zM8 9v5M5.5 11.5h5M16 10v1M18 12v1" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 5h6v5H9zM8 15h8v5H8z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+      ${foot([['x','Valider','ok'],['o','Quitter','back'],['t','Précédent','up'],['t','Suivant','down']])}`;
+    scr.querySelectorAll('[data-i]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(i===idx)act('ok');else{psSound('action');idx=i;menu(true);}}));
+    if(keep)scr.querySelector('.ps-case.selected')?.scrollIntoView({block:'nearest',inline:'center'});
     bind();
   }
   function load() {
@@ -246,13 +244,13 @@ function retroApp(onClose) {
   }
   function title() {
     view = 'title';root.dataset.view=view;const g = PERSO[idx];
-    scr.innerHTML = `<div class="center"><div class="cover" style="background-image:url('${g.img}');width:min(300px,45vw);max-height:26vh"><span></span></div><div class="tag">${esc(g.genre).toUpperCase()}</div><div class="title" style="--c:${g.color}">${esc(g.n)}</div><div class="desc" style="max-width:62ch">${esc(g.desc)}</div><div class="press" data-k="ok" style="cursor:pointer">PRESS START</div>
+    scr.innerHTML = `<div class="center"><div class="cover" style="background-image:url('${g.img}');width:min(300px,45vw);max-height:26vh"><span></span></div><div class="title" style="--c:${g.color}">${esc(g.n)}</div><div class="sub">Comt’Star Games · ${g.year}</div><div class="press" data-k="ok" style="cursor:pointer">PRESS START</div>
       <div class="btns"><button data-k="ok">▶ START</button><a class="b alt" target="_blank" rel="noopener" href="${CV}${g.url}">↗ NOUVEL ONGLET</a></div></div>${foot([['x', 'START', 'ok'], ['o', 'RETOUR', 'back']])}`;
     bind();
   }
   function play() {
     view = 'play';root.dataset.view=view;const g = PERSO[idx];
-    scr.innerHTML = `<div class="head"><div><h1>${esc(g.n)}</h1><div class="sub">${esc(g.genre).toUpperCase()} · EN COURS</div></div><button class="alt" data-k="back">◀ RETOUR</button></div>
+    scr.innerHTML = `<div class="head"><div><h1>${esc(g.n)}</h1><div class="sub">${g.year} · Comt’Star Games</div></div><button class="alt" data-k="back">◀ RETOUR</button></div>
       <div class="play"><iframe title="${esc(g.n)}" allow="autoplay; fullscreen" src="${CV}${g.url}"></iframe>
       <div class="sub">SI L’ECRAN RESTE NOIR, OUVREZ LE JEU DANS UN ONGLET : <a style="color:#ffd34a" target="_blank" rel="noopener" href="${CV}${g.url}">${CV}${g.url}</a></div></div>${foot([['o', 'RETOUR AU MENU', 'back']])}`;
     bind();

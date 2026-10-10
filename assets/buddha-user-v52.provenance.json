@@ -1,0 +1,32 @@
+{
+  "source": "buddha_-_four_faces.glb",
+  "sourceSHA256": "2d8d108579117a1d504fe53977f0eba4d5f65eaff07d3d9989931666089f2aee",
+  "output": "buddha-user-v52.glb",
+  "outputSHA256": "873748e79c5a4adcfef215576862016e9e426dee8eca613f0b06dea8b908907a",
+  "dimensionsBlender": [
+    0.39905762672424316,
+    0.3862563371658325,
+    0.4400331974029541
+  ],
+  "boundsBlender": [
+    [
+      -0.19950242340564728,
+      -0.19304770231246948,
+      3.327350350446068e-05
+    ],
+    [
+      0.1995551884174347,
+      0.19320863485336304,
+      0.44006645679473877
+    ]
+  ],
+  "triangles": 31998,
+  "bytes": 3210376,
+  "changes": {
+    "originalUnchanged": true,
+    "groundAligned": true,
+    "size": 0.44,
+    "axis": "z",
+    "vertexWeldBeforeDecimation": true
+  }
+}

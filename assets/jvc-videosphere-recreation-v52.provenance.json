@@ -1,0 +1,33 @@
+{
+  "source": "create-jvc-v52.py",
+  "sourceSHA256": "767c5c52432fba8f7f12f3e0a1fd3a51d981d7263795f3b595c0405b3b448963",
+  "output": "jvc-videosphere-recreation-v52.glb",
+  "outputSHA256": "94008baf0b5a0668862828bae6f4ef9fc2dc515533e5c26b49858a2deff15354",
+  "dimensionsBlender": [
+    0.2520139813423157,
+    0.2458185851573944,
+    0.46000000834465027
+  ],
+  "boundsBlender": [
+    [
+      -0.12600469589233398,
+      -0.12286616116762161,
+      0.0
+    ],
+    [
+      0.1260092854499817,
+      0.1229524314403534,
+      0.46000000834465027
+    ]
+  ],
+  "triangles": 50290,
+  "bytes": 1616800,
+  "changes": {
+    "method": "Original visual reconstruction in Blender, not a copy of source topology",
+    "reference": "https://sketchfab.com/3d-models/jvc-nivico-videosphere-2e8339246f2941079dfa7e27353551c7",
+    "referenceAuthor": "Fede",
+    "referenceReportedTriangles": 572500,
+    "height": 0.46,
+    "originalDownloadAvailable": false
+  }
+}

@@ -1,0 +1,34 @@
+
+/* PS1 library follows the supplied blue/purple menu reference. */
+#retro[data-view=menu] .scr,#retro[data-view=title] .scr{font-family:Arial,Helvetica,sans-serif;padding:0;background:radial-gradient(ellipse at 46% 45%,#6775ff 0%,#3635ed 25%,#171093 58%,#080325 92%);animation:none}
+#retro[data-view=menu] .lines{background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0 1px,transparent 1px 3px),radial-gradient(ellipse,transparent 56%,rgba(0,0,0,.32))}
+#retro .ps-library{display:flex;gap:clamp(10px,2vw,25px);align-items:flex-start;overflow-x:auto;overflow-y:hidden;flex:0 0 clamp(105px,24vh,210px);padding:20px 24px 12px;scrollbar-width:none;scroll-snap-type:x proximity}
+#retro button.ps-case{display:block;flex:0 0 clamp(76px,9vw,122px);padding:3px;background:#dedde5;color:#12142e;border:0;box-shadow:3px 6px 10px #0009;transform:translateY(var(--drop)) rotate(var(--tilt));text-shadow:none;scroll-snap-align:center;text-align:left}
+#retro .ps-case.selected{outline:2px solid #dcf4ff;box-shadow:0 0 20px #acd9ff9c}
+#retro .ps-case img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;background:#111}
+#retro .ps-case span{display:block;font-size:clamp(8px,.9vw,11px);line-height:1.2;padding:4px 2px;min-height:2.4em}
+#retro .ps-selection{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:clamp(24px,4vw,65px);padding:8px 24px 12px}
+#retro .ps-selection figure{margin:0;min-width:0;width:clamp(210px,33vw,480px);display:flex;flex-direction:column;align-items:center;gap:15px}
+#retro .ps-shot{display:block;max-height:48vh;width:100%;height:auto;object-fit:contain;background:#141222;border:4px solid #eee;box-shadow:5px 7px 20px #0e033885}
+#retro button.ps-read{position:relative;padding:8px 35px;border:0;color:white;font-size:clamp(19px,2.3vw,29px);background:radial-gradient(ellipse,#ff58d9b3,transparent 72%);text-shadow:1px 2px 3px #140244;font-weight:700;letter-spacing:.02em}
+#retro .ps-details{max-width:340px;color:white;text-shadow:0 1px 4px #0005}
+#retro .ps-details h1{color:white;text-shadow:none;font:600 clamp(18px,2.3vw,30px)/1.25 Arial,Helvetica,sans-serif;letter-spacing:0}
+#retro .ps-details p{font-size:clamp(12px,1.3vw,17px);margin:9px 0}
+#retro .ps-publisher,#retro .ps-year{color:#dddfff}
+#retro .ps-dock{display:flex;justify-content:center;gap:clamp(25px,4vw,55px);padding:10px;background:linear-gradient(90deg,#0a025533,#5553eb88,#0a025533)}
+#retro .ps-dock svg{width:32px;height:32px;color:#e6f2e9;filter:drop-shadow(0 0 6px #e6e9ff66)}
+#retro[data-view=menu] .foot{background:#dddde1;color:#353745;font:12px Arial,sans-serif;border:0;padding:8px 12px;gap:18px;justify-content:center}
+#retro .foot button{display:flex;align-items:center;gap:6px;font:inherit;background:transparent;border:0;color:inherit;padding:6px;text-shadow:none}
+#retro button:focus-visible,#retro a:focus-visible{outline:2px solid white;outline-offset:4px}
+#retro[data-view=title] .center{padding:20px}
+@media(max-width:600px){
+ #retro .ps-library{flex-basis:105px;padding:12px 16px}#retro button.ps-case{flex-basis:75px}
+ #retro .ps-selection{flex-direction:column;gap:12px;padding:8px 16px}
+ #retro .ps-selection figure{width:min(64vw,300px);gap:5px}
+ #retro .ps-shot{max-height:34vh}#retro .ps-details{text-align:center}
+ #retro .ps-details p{display:inline-block;margin:6px 5px}
+ #retro .ps-dock{padding:7px}#retro .ps-dock svg{width:25px;height:25px}
+ #retro[data-view=menu] .foot{font-size:11px;gap:4px}
+ #retro .foot svg{width:18px;height:18px}
+}
+@media(prefers-reduced-motion:reduce){#retro .scr,#retro .press{animation:none}}

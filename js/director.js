@@ -10,6 +10,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   let running = false, travelled = 0;
   const api = {
     get mode() { return mode; }, get current() { return cur; },
+    get locked() { return !!ui.isLocked?.(); },
     get running() { return running; },
     get locomoting() { return mode === 'walk' && step?.k === 'walk' && step.pts.length > 0 && travelled > 1e-6; },
     setRun(on) { running = !!on; if (mode === 'walk') hero.play(running ? 'Run_Loop' : 'Walk_Loop', { fade: 0.18, speed: running ? 1.2 : speed / 0.55 }); },
@@ -86,6 +87,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
 
   /** Va à une activité. st = { approach:[x,z], yaw, pos:[x,y,z], y, enter(), exit?() , route?(from) }. */
   api.go = (st) => {
+    if (ui.isLocked?.()) return false;
     if (mode === 'carried') return;
     if (cur === st && mode === 'activity') { api.stand(); return; }
     steps = []; step = null;
@@ -105,6 +107,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   }
   /** Pose directement le personnage dans l'activité (glisser-déposer). */
   api.placeInto = (st) => {
+    if (ui.isLocked?.()) return false;
     steps = []; step = null; clearActivity('place');
     ui.poof(pos);
     const a = st.approach; pos.set(a[0], floorY(a[0], a[1]), a[1]); g.rotation.y = st.yaw;
@@ -112,19 +115,24 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     steps = [...(st.route ? st.route([pos.x, pos.z], true) : []), ...(st.noFace ? [] : [api.face(st.yaw)]), ...enterSteps(st)]; mode = 'walk'; ui.say(st);
   };
   api.stand = () => {
+    if (ui.isLocked?.()) return false;
     if (!cur) return;
     const st = cur; steps = []; step = null;
     const ex = st.exit ? st.exit() : { from: st.approach, steps: [api.glide(st.approach[0], st.approach[1], floorY(st.approach[0], st.approach[1]), g.rotation.y, 0.45, 'Idle_Loop')] };
     steps = [api.fn(clearActivity), api.fn(() => ui.say(null)), ...ex.steps, api.fn(() => { mode = 'idle'; idle(); })]; mode = 'walk';
   };
   api.lift = () => {
+    if (ui.isLocked?.()) return false;
     steps = []; step = null; clearActivity('carry'); ui.say(null);
     mode = 'carried'; carryTo = { x: pos.x, z: pos.z }; hero.stop(); hero.play('Jump_Loop', { fade: 0.15 }); hero.setBase('amazed');
   };
-  api.carry = (x, z) => { carryTo = { x, z }; };
+  api.carry = (x, z) => {
+    if (ui.isLocked?.()) return false; carryTo = { x, z }; };
   api.drop = (x, z) => {
+    if (ui.isLocked?.()) return false;
     const f = nav.nearest(x, z); steps = [api.glide(f[0], f[1], floorY(f[0], f[1]), g.rotation.y, 0.3, 'Idle_Loop'), api.fn(() => { mode = 'idle'; idle(); })]; step = null; mode = 'walk'; carryTo = null; hero.setBase('neutral');
   };
-  api.spawn = (x, z, yaw = 0) => { steps=[];step=null;clearActivity('spawn');travelled=0;pos.set(x, floorY(x, z), z); g.rotation.y = yaw; mode = 'idle'; idle(); };
+  api.spawn = (x, z, yaw = 0) => {
+    if (ui.isLocked?.()) return false; steps=[];step=null;clearActivity('spawn');travelled=0;pos.set(x, floorY(x, z), z); g.rotation.y = yaw; mode = 'idle'; idle(); };
   return api;
 }

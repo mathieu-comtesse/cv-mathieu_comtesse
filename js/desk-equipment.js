@@ -1,4 +1,4 @@
-import {THREE,group,tube,mat,box} from './kit.js?v=cv-scene-v29';
+import {THREE,group,tube,mat,box,canvasTexture} from './kit.js?v=cv-scene-v29';
 export function installDeskEquipment(desk,workstation,towerModel,stripModel,barModel,wallpaper){
  const tower=towerModel.scene;tower.name='DreamComputerRTX4090';tower.position.set(.535,.742,-.03);tower.scale.setScalar(.95);tower.userData.batchRoot=true;tower.userData.noInk=true;desk.add(tower);
  const gpu=tower.getObjectByName('AsusROGRTX4090');gpu.userData.batchRoot=true;
@@ -20,8 +20,11 @@ export function installDeskEquipment(desk,workstation,towerModel,stripModel,barM
  const lb=localBounds(landscape),pb=localBounds(portrait),lc=lb.getCenter(new THREE.Vector3()),pc=pb.getCenter(new THREE.Vector3());
  const bar=barModel.scene;bar.name='LandscapeMonitorLightBar';bar.position.set(lc.x,lb.max.y,lc.z);bar.userData.batchRoot=true;bar.userData.dynamic=true;bar.userData.noInk=true;bar.userData.id='screenbar';desk.add(bar);
  // Downward warm light illuminates the desk, without another shadow map.
- const light=new THREE.SpotLight('#fff0cb',.7,1.0,.80,.6,1);light.position.set(lc.x,lb.max.y+.012,lb.max.z+.04);light.target.position.set(-.23,.74,.10);light.name='MonitorBarDeskLight';desk.add(light,light.target);
- const led=bar.getObjectByName('LED_diffuser');led.material=led.material.clone();led.material.userData.unique=true;const glow=led.material;glow.update=k=>{glow.emissiveIntensity=1.5*k;bar.userData.powered=k>.5;};
+ const light=new THREE.SpotLight('#fff0cb',2.4,2.4,.95,.75,1);light.position.set(lc.x,lb.max.y+.012,lb.max.z+.04);light.target.position.set(-.23,.74,.10);light.name='MonitorBarDeskLight';desk.add(light,light.target);
+ const poolTex=canvasTexture(128,128,(c,w,h)=>{const gr=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);gr.addColorStop(0,'rgba(255,238,195,.48)');gr.addColorStop(.55,'rgba(255,238,195,.20)');gr.addColorStop(1,'rgba(255,238,195,0)');c.fillStyle=gr;c.fillRect(0,0,w,h);});
+ const pool=new THREE.Mesh(new THREE.PlaneGeometry(.76,.44),new THREE.MeshBasicMaterial({map:poolTex,transparent:true,opacity:0,depthWrite:false,toneMapped:false,blending:THREE.AdditiveBlending}));pool.name='ScreenbarWarmLightPool';pool.position.set(-.23,.744,.10);pool.rotation.x=-Math.PI/2;pool.userData.dynamic=true;pool.userData.noInk=true;desk.add(pool);
+ const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:poolTex,transparent:true,opacity:0,depthWrite:false,toneMapped:false,blending:THREE.AdditiveBlending}));halo.name='ScreenbarDiffuserHalo';halo.position.set(lc.x,lb.max.y+.014,lb.max.z+.012);halo.scale.set(.44,.10,1);halo.userData.dynamic=true;halo.userData.noInk=true;desk.add(halo);bar.attach(halo);landscape.attach(bar);
+ const led=bar.getObjectByName('LED_diffuser');led.material=led.material.clone();led.material.userData.unique=true;const glow=led.material;glow.update=k=>{glow.emissiveIntensity=2.2*k;pool.material.opacity=.34*k;halo.material.opacity=.24*k;bar.userData.powered=k>.5;};
  const wires=group();wires.name='DeskConnectedCables';wires.userData.batchRoot=true;wires.userData.dynamic=true;wires.userData.noInk=true;desk.add(wires);
  const from=(root,name)=>{desk.updateWorldMatrix(true,true);return desk.worldToLocal(root.getObjectByName(name).getWorldPosition(new THREE.Vector3())).toArray();};
  const video=from(tower,'PCVideoPort'),usb=from(tower,'PCUSBPort'),power=from(tower,'PCPowerPort');
