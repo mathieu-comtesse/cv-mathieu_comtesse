@@ -20,6 +20,7 @@ on:
       - "tools/test-custom-scene.mjs"
       - "tools/test-user-room-props.mjs"
       - "assets/*-v43.glb"
+      - "assets/*-v44.glb"
       - "assets/*-v43.mp3"
       - "assets/windows11-bloom-v43.webp"
       - "assets/gaming-desk-user-v42.glb"
@@ -66,6 +67,9 @@ jobs:
           node --check js/native-geometry.js
           node --check js/thought.js
           node --check js/director.js
+          node --check js/pond.js
+          node --check js/chashitsu.js
+          node --check js/ui.js
       - name: Check navigation around obstacles
         run: node tools/test-navigation.mjs
       - name: Check iframe geometry compatibility
@@ -81,10 +85,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v43" index.html
+          grep -q "js/main.js?v=cv-scene-v44" index.html
           grep -q "character.js?v=cv-scene-v29" js/room.js
           grep -q "retro.js?v=cv-scene-v43" js/room.js
-          grep -q "room.js?v=cv-scene-v43" js/main.js
+          grep -q "room.js?v=cv-scene-v44" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb

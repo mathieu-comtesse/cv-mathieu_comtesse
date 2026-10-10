@@ -1,0 +1,13 @@
+{
+  "source": "road-bike-finish-v25.glb",
+  "sourceSHA256": "abbb0fbcce79e7c44cfbde2c60625b1861860e6b1fe315026d1ba1c834983cb4",
+  "output": "road-bike-clean-v44.glb",
+  "outputSHA256": "16397c94d9d0e65a9310f1819e6b19a367e6ec9e94ecf0f812cb9b4081eada52",
+  "removed": [
+    "MADONE marking 1",
+    "MADONE marking -1",
+    "Silver seat tube accent",
+    "Silver seat tube accent.001"
+  ],
+  "preserved": "original frame, wheels, materials, dimensions and transforms"
+}

@@ -307,6 +307,7 @@ async function build() {
 
   let mode = 'idle';
   let lastMode = '';
+  let workArrival = 0;
   let walkSeed = 0;
   let modeFacing = 0;
   let waterStarted=false,waterFinished=false,activityStarted=false,activityFinished=false;
@@ -315,7 +316,7 @@ async function build() {
     if (!next) next = 'idle';
     if (next === lastMode && next !== 'walk') return;
     lastMode = next;
-    mode = next;
+    mode = next; workArrival = 0;
     waterStarted=false;waterFinished=false;activityStarted=false;activityFinished=false;
 
     try {
@@ -418,8 +419,11 @@ async function build() {
   const shed=[];sourceScene.traverse(o=>{if(/Shed plant leaf/.test(o.name)){o.visible=false;shed.push(o);}});sourceFeatures.ambient?.setLeafAmount?.(0);
   const update = (dt) => {
     if(mode==='water')waterClock+=dt;
-    shupi.mixer?.update(dt);
-    shupi._emit('frame', dt);
+    workArrival += dt;
+    const settling = Math.min(1, workArrival / 4.5);
+    const motionDt = mode === 'work' ? dt * (0.55 + 0.45 * settling * settling * (3 - 2 * settling)) : dt;
+    shupi.mixer?.update(motionDt);
+    shupi._emit('frame', motionDt);
     const activityState=sceneApi.simDoing;
     if(['water','read','sit','work','game','coffee'].includes(mode)){
       if(activityState?.doing==='busy'&&activityState.busy)activityStarted=true;

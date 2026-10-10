@@ -1,4 +1,4 @@
-import { makePond } from './pond.js?v=bf01a16';
+import { makePond } from './pond.js?v=cv-scene-v44';
 import { makeGarden } from './garden.js?v=cv-scene-v29';
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=cv-scene-v29';
 

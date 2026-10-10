@@ -8,6 +8,8 @@ import { PERSO, PRO, CV } from './data.js?v=cv-scene-v35';
 const CSS = `
 .ov{position:fixed;inset:0;z-index:100;display:none;opacity:0;transition:opacity .35s}
 .ov.on{display:block}.ov.show{opacity:1}
+#xp.ov{transition:opacity .9s ease,transform .9s ease;transform:scale(.985)}#xp.ov.show{transform:scale(1)}
+@media(prefers-reduced-motion:reduce){#xp.ov{transition:none;transform:none}}
 .ov *{box-sizing:border-box}
 /* ───── console ───── */
 #retro{background:#000;font-family:"Press Start 2P","Courier New",monospace;color:#cfe6ff;image-rendering:pixelated}
@@ -350,7 +352,7 @@ function xpApp(onClose) {
   function key(e) { if (e.key === 'Escape') { if (smenu.classList.contains('on')) smenu.classList.remove('on'); else { const l = [...wins].pop(); if (l) l.el.querySelector('[data-b=x]').click(); else off(); } } }
   window.addEventListener('keydown', key);
   show(root);
-  setTimeout(openExplorer, 450);
+  setTimeout(openExplorer, 1000);
   return { close: off };
 }
 

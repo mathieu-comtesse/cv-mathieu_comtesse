@@ -20,7 +20,7 @@ try{
  assert.ok(await pig.locator('.annual-pig-wrap svg').evaluateAll(elements=>elements.every(e=>getComputedStyle(e).display==='none')));
  assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'piggy-bank-user');assert.equal(await pig.locator('iframe').count(),0);
  assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Piggy Bank.*mistour.*CC BY 4.0/);
- assert.match(await page.locator('.automation-cascade').innerText(),/Une production automatisée libère plusieurs équipes/);
+ assert.match(await page.locator('.automation-cascade').innerText(),/Un processus fiable, du temps libéré pour plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
  assert.match(await pig.locator('[data-annual-money]').innerText(),/650/);
  assert.match(await pig.locator('[data-annual-hours]').innerText(),/6.?210/);

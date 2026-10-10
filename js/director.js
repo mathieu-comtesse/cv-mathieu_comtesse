@@ -15,7 +15,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     setRun(on) { running = !!on; if (mode === 'walk') hero.play(running ? 'Run_Loop' : 'Walk_Loop', { fade: 0.18, speed: running ? 1.2 : speed / 0.55 }); },
     walk: (pts) => ({ k: 'walk', pts: pts.map((p) => [p[0], p[1]]) }),
     face: (yaw) => ({ k: 'face', yaw }),
-    glide: (x, z, y, yaw, dur = 0.5, clip = null) => ({ k: 'glide', x, z, y, yaw, dur, clip }),
+    glide: (x, z, y, yaw, dur = 0.5, clip = null, fade = 0.2) => ({ k: 'glide', x, z, y, yaw, dur, clip, fade }),
     fn: (fn) => ({ k: 'fn', fn }),
     wait: (t) => ({ k: 'wait', wait: t }),
   };
@@ -32,7 +32,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   function start(s) {
     s.t = 0;
     if (s.k === 'walk') { hero.play(running ? 'Run_Loop' : 'Walk_Loop', { fade: 0.2, speed: running ? 1.2 : speed / 0.55 }); mode = 'walk'; }
-    else if (s.k === 'glide') { s.from = { x: pos.x, y: pos.y, z: pos.z, yaw: g.rotation.y }; if (s.clip) hero.play(s.clip, { fade: 0.2 }); }
+    else if (s.k === 'glide') { s.from = { x: pos.x, y: pos.y, z: pos.z, yaw: g.rotation.y }; if (s.clip) hero.play(s.clip, { fade: s.fade }); }
     else if (s.k === 'face' && !s.walkAnim) { if (mode === 'walk') { hero.play('Idle_Loop', { fade: 0.15 }); mode = 'turn'; } }
     if (s.k === 'fn') s.fn();
   }
@@ -100,7 +100,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
     steps = q; mode = 'walk'; if (!cur) { /* départ immédiat */ }
   };
   function enterSteps(st) {
-    return [api.glide(st.pos[0], st.pos[2], st.y || 0, st.yaw, st.ritual ? 0.5 : (st.noFace ? 0.9 : 0.6), st.clip || 'Idle_Loop'),
+    return [api.glide(st.pos[0], st.pos[2], st.y || 0, st.yaw, st.enterDuration ?? (st.ritual ? 0.5 : (st.noFace ? 0.9 : 0.6)), st.clip || 'Idle_Loop', st.poseFade ?? 0.2),
       api.fn(() => { cur = st; mode = 'activity'; ui.say(null); st.enter && st.enter(); })];
   }
   /** Pose directement le personnage dans l'activité (glisser-déposer). */

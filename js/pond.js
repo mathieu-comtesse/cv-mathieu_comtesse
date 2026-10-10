@@ -272,25 +272,53 @@ function mistPuffs(points) {
 }
 
 /* ─── pluie : traits dans le volume au-dessus de l'eau ─── */
+/* Rain ribbons and synchronized impacts, evaluated on the GPU in two batches. */
 function rainLines(points, H) {
-  const N = points.length, seed = new Float32Array(N * 6), end = new Float32Array(N * 2), rank = new Float32Array(N * 2), pos = new Float32Array(N * 6), r = rng(77);
-  points.forEach(([x, z], i) => { const ph = r(), rk = r(); for (let k = 0; k < 2; k++) { const o = i * 2 + k; seed.set([x, z, ph], o * 3); end[o] = k; rank[o] = rk; } });
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 3));
-  g.setAttribute('aEnd', new THREE.BufferAttribute(end, 1)); g.setAttribute('aRank', new THREE.BufferAttribute(rank, 1));
-  const uni = { uTime: { value: 0 }, uRain: { value: 0 }, uNight: { value: 0 } };
-  const m = new THREE.ShaderMaterial({
-    uniforms: uni, transparent: true, depthWrite: false,
-    vertexShader: `uniform float uTime, uRain; attribute vec3 aSeed; attribute float aEnd, aRank; varying float vA;
-      void main(){
-        float f = fract(aSeed.z + uTime * (1.5 + aSeed.z * 0.6));
-        vec3 p = vec3(aSeed.x - f * 0.12 + aEnd * 0.025, ${H.toFixed(2)} * (1.0 - f) + aEnd * 0.1, aSeed.y);
-        vA = step(aRank, uRain) * (0.25 + 0.5 * (1.0 - f * 0.3));
-        gl_Position = vA > 0.0 ? projectionMatrix * modelViewMatrix * vec4(p, 1.0) : vec4(2.0, 2.0, 2.0, 1.0);
-      }`,
-    fragmentShader: `uniform float uNight; varying float vA; void main(){ gl_FragColor = vec4(mix(vec3(0.36, 0.5, 0.68), vec3(0.72, 0.8, 0.95), uNight), vA); }`,
-  });
-  const l = new THREE.LineSegments(g, m); l.frustumCulled = false; l.renderOrder = 4; l.userData.uni = uni; return l;
+  const seeds=[],corners=[],ranks=[],positions=[],r=rng(77);
+  const quad=[[-1,0],[1,0],[-1,1],[-1,1],[1,0],[1,1]];
+  points.forEach(([x,z,y=0])=>{const phase=r(),rank=r();for(const [u,v] of quad){seeds.push(x,z,phase,y);corners.push(u,v);ranks.push(rank);positions.push(0,0,0);}});
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  geo.setAttribute('aSeed',new THREE.Float32BufferAttribute(seeds,4));
+  geo.setAttribute('aCorner',new THREE.Float32BufferAttribute(corners,2));
+  geo.setAttribute('aRank',new THREE.Float32BufferAttribute(ranks,1));
+  const uni={uTime:{value:0},uRain:{value:0},uNight:{value:0}};
+  const material=new THREE.ShaderMaterial({uniforms:uni,transparent:true,depthWrite:false,side:THREE.DoubleSide,
+    vertexShader:`uniform float uTime,uRain;attribute vec4 aSeed;attribute vec2 aCorner;attribute float aRank;varying float vAlpha;varying vec2 vUv;
+    void main(){
+      float f=fract(aSeed.z+uTime*(2.3+aSeed.z*.8));
+      float length=.13+aSeed.z*.14;
+      float height=max(0.,${H.toFixed(2)}*(1.-f)-aCorner.y*length);
+      // Each ribbon lands at its own impact point, with a slight wind drift.
+      vec3 p=vec3(aSeed.x+.22*(1.-f)+aCorner.y*length*.07,aSeed.w+height,aSeed.y+.045*(1.-f));
+      vec4 mv=modelViewMatrix*vec4(p,1.);
+      mv.x+=aCorner.x*(.0025+aSeed.z*.002);
+      vUv=aCorner;vAlpha=step(aRank,uRain)*(.38+aSeed.z*.28);
+      gl_Position=projectionMatrix*mv;
+    }`,
+    fragmentShader:`uniform float uNight;varying float vAlpha;varying vec2 vUv;
+    void main(){float feather=1.-smoothstep(.25,1.,abs(vUv.x));float tail=1.-vUv.y*.7;
+      gl_FragColor=vec4(mix(vec3(.55,.66,.72),vec3(.72,.80,.86),uNight),vAlpha*feather*tail);}
+    `});
+  const drops=new THREE.Mesh(geo,material);drops.name='RainStreaks';drops.frustumCulled=false;drops.renderOrder=4;drops.userData.uni=uni;
+  const impactGeo=new THREE.PlaneGeometry(1,1);
+  const impacts=new THREE.InstancedMesh(impactGeo,new THREE.ShaderMaterial({uniforms:uni,transparent:true,depthWrite:false,side:THREE.DoubleSide,
+    vertexShader:`uniform float uTime,uRain;attribute float aPhase,aRank;varying vec2 vUv;varying float vPhase,vAlpha;
+    void main(){float ph=fract(uTime*(2.3+aPhase*.8)+aPhase);float radius=.018+ph*.105;
+      vec3 p=position;p.xy*=radius*2.;vUv=uv*2.-1.;vPhase=ph;vAlpha=step(aRank,uRain)*pow(1.-ph,2.);
+      gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(p,1.);}
+    `,
+    fragmentShader:`varying vec2 vUv;varying float vPhase,vAlpha;
+    void main(){float d=length(vUv);float ring=1.-smoothstep(.035,.12,abs(d-.78));
+      float crown=(1.-smoothstep(.07,.19,d))*(1.-smoothstep(0.,.18,vPhase));
+      gl_FragColor=vec4(.76,.88,.89,(ring*.45+crown*.65)*vAlpha);}
+    `}),points.length);
+  const phase=[],rank=[],pr=rng(77),dummy=new THREE.Object3D();
+  points.forEach(([x,z,y=0],i)=>{phase.push(pr());rank.push(pr());dummy.position.set(x,y+.014,z);dummy.rotation.x=-Math.PI/2;dummy.updateMatrix();impacts.setMatrixAt(i,dummy.matrix);});
+  impactGeo.setAttribute('aPhase',new THREE.InstancedBufferAttribute(new Float32Array(phase),1));
+  impactGeo.setAttribute('aRank',new THREE.InstancedBufferAttribute(new Float32Array(rank),1));
+  impacts.name='RainImpacts';impacts.frustumCulled=false;impacts.renderOrder=4;
+  const root=group(drops,impacts);root.name='ReferenceRain';root.userData.uni=uni;root.userData.dynamic=true;return root;
 }
 
 export function rockGeo(seed, s) {
@@ -406,8 +434,9 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
   const mistPts = []; for (let i = 0; i < 150; i++) { const q = randIn(0.95); mistPts.push([q.x, q.z]); }
   if (mistOutside) { const mr = rng(seed + 90); for (let i = 0, t = 0; i < mistOutside.count && t < 4000; t++) { const th = mr() * TAU, f = 1.08 + mr() * 1.9, [x, z] = shape.at(th, f), px = x + cx, pz = z + cz; if (mistOutside.exclude(px, pz) || pz < -1.9) continue; mistPts.push([x, z]); i++; } }   // la brume se répand aussi dans le jardin
   const mist = mistPuffs(mistPts); g.add(mist);
-  const rainPts = []; for (let i = 0; i < 340; i++) { const q = randIn(1.05); rainPts.push([q.x, q.z]); }
-  if (rainRect) { const rr = rng(seed + 70); for (let i = 0; i < 150; i++) rainPts.push([rainRect.x0 - cx + rr() * (rainRect.x1 - rainRect.x0), rainRect.z0 - cz + rr() * (rainRect.z1 - rainRect.z0)]); }
+  const rainPts = []; for (let i = 0; i < 1100; i++) { const q = randIn(1.05); rainPts.push([q.x, q.z]); }
+  // Extend rain over the garden, leaving the sheltered tea room dry.
+  const rr=rng(seed+70);for(let i=0,tries=0;i<650&&tries<12000;tries++){const x=(rr()-.5)*10,z=(rr()-.5)*8;if(shape.frac(x,z)<1.08||shape.frac(x,z)>2.1||mistOutside?.exclude?.(x+cx,z+cz))continue;rainPts.push([x,z,.055]);i++;}
   const rain = rainLines(rainPts, rainH); g.add(rain);
 
   const v = new THREE.Vector3(), v2 = new THREE.Vector3();

@@ -5,10 +5,10 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v29';
+import { createChashitsu } from './chashitsu.js?v=cv-scene-v44';
 import { createRetroSet } from './retro.js?v=cv-scene-v43';
 import { createNav } from './nav.js?v=cv-scene-v29';
-import { createDirector } from './director.js?v=cv-scene-v33';
+import { createDirector } from './director.js?v=cv-scene-v44';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v33';
@@ -57,7 +57,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-finish-v25.glb?v=cv-scene-v17').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-clean-v44.glb?v=cv-scene-v44').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
 
   const seatCalibration=await fetch('assets/seat-calibration-v26.json').then(r=>{if(!r.ok)throw Error('Seat calibration missing');return r.json();});
 
@@ -127,8 +127,8 @@ export async function createRoom(container, bubbleEl) {
       world.add(nativeBridge.wateringCan);
     }
   } else {
-    const table=deskModel.scene;table.name="USMHallerTable";table.userData.batchRoot=true;deskSet.add(table);
-    const mobile=mobileModel.scene;mobile.name="USMHallerMobile";mobile.position.set(.48,0,-.04);mobile.userData.batchRoot=true;deskSet.add(mobile);
+    const table=deskModel.scene;table.userData.noInk=true;table.name="USMHallerTable";table.userData.batchRoot=true;deskSet.add(table);
+    const mobile=mobileModel.scene;mobile.userData.noInk=true;mobile.name="USMHallerMobile";mobile.position.set(.48,0,-.04);mobile.userData.batchRoot=true;deskSet.add(mobile);
     const workstation=gamingDeskModel.scene;workstation.name='GamingDeskSetup';workstation.position.set(-.105,.74,0);workstation.scale.setScalar(.72);deskSet.add(workstation);
     for(const part of workstation.children){part.userData.batchRoot=true;part.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});}
     uw=workstation.getObjectByName('GamingLandscapeMonitor');uw.userData.id='pc';workstation.getObjectByName('GamingPortraitMonitor').userData.id='pc';
@@ -160,7 +160,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v43')
+    import('./native-room.js?v=cv-scene-v44')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -581,7 +581,7 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.48, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
+    desk:     S({ enterDuration: 2.2, poseFade: 1.2, label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.48, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
     coffee: S({label:'Boire dans la tasse bleue',clip:'Idle_Loop',nativeMode:'coffee',sourceTarget:'Ceramic coffee mug',maxMs:8500,pos:[-2.16,0,.87],yaw:-Math.PI/2,face:'happy',think:{obj:deskSet.getObjectByName('DeskMug'),scale:1.1}}),
     bike: S({label:'Regonfler les pneus du vélo',clip:'Idle_Loop',maxMs:14500,pos:[3.18,0,-4.15],yaw:-Math.PI/2,face:'happy',think:{obj:bicyclePump?.root,scale:1.2}}),
     ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', nativeMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', seatBack: -0.10, seatSupport: seat(2.3, -0.95, ekYaw, -0.02), hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, 0), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
@@ -743,11 +743,11 @@ export async function createRoom(container, bubbleEl) {
   const zones = [];
   { const mk = (id, x, y, z) => {
       const ring = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.38, 40), new THREE.MeshBasicMaterial({ color: '#ffb23d', transparent: true, opacity: 0.85, depthTest: false, side: THREE.DoubleSide }));
-      ring.rotation.x = -Math.PI / 2; ring.position.set(x, y + 0.02, z); ring.renderOrder = 20; ring.visible = false; ring.userData.id = id; world.add(ring);
+      ring.name='ActionRing-'+id; ring.rotation.x = -Math.PI / 2; ring.position.set(x, y + 0.02, z); ring.renderOrder = 20; ring.visible = false; ring.userData.id = id; world.add(ring);
       zones.push({ id, ring, x, z });
     };
     mk('desk', -2.15, 0, 0.3); mk('ekstrem', 2.3, 0, -0.95); mk('usm', -0.8, 0, -1.9); mk('alocasia', -3.1, 0, 3.25);
-    mk('bonsai', STOOL_X, 0, STOOL_Z); mk('dracaena', 2.85, 0, -2.45); mk('sofa', 0.35, 0, 4.4); mk('cha', TEA.x, TEA.y + 0.0, TEA.z);
+    mk('pump', 2.65, 0, -4.15); mk('bonsai', STOOL_X, 0, STOOL_Z); mk('dracaena', 2.85, 0, -2.45); mk('sofa', 0.35, 0, 4.4); mk('cha', TEA.x, TEA.y + 0.0, TEA.z);
   }
   let zoneOn = false, zoneNear = null;
   function showZones(on) { zoneOn = on; for (const z of zones) z.ring.visible = on; zoneNear = null; }
@@ -786,7 +786,7 @@ export async function createRoom(container, bubbleEl) {
       if (st.music) setMusic(true);
       if (st.ritual) { cs.setPanels(1); ritual.start(); }
       if (st.tv) { if (retro.stripOn) retro.powerOn(); else { thoughtFor = null; thought.show(null, 'La multiprise est \u00e9teinte'); thoughtFor = st; } }
-      if (afterEnter) { const f = afterEnter; afterEnter = null; setTimeout(f, 450); }
+      if (afterEnter) { const f = afterEnter; afterEnter = null; setTimeout(() => { if (director.current === st && director.mode === 'activity') f(); }, st === stations.desk ? 2200 : 450); }
     };
   }
   function setMusic(on) {
@@ -822,7 +822,7 @@ export async function createRoom(container, bubbleEl) {
     if (appOpen) return; appOpen = true;
     setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;
     thoughtEl.classList.remove('show');
-    setTimeout(() => window.dispatchEvent(new CustomEvent('room-open', { detail: { kind } })), 750);
+    setTimeout(() => window.dispatchEvent(new CustomEvent('room-open', { detail: { kind } })), kind === 'xp' ? 1200 : 750);
   }
   window.addEventListener('room-close', (e) => {
     appOpen = false;
@@ -1073,7 +1073,7 @@ export async function createRoom(container, bubbleEl) {
       thoughtEl.classList.toggle('show', showB);
       if (showB) { if (frameNo % 3 === 0) thought.update(dt * 3); v3.set(0, 0, 0); hero.head.getWorldPosition(v3); v3.y += 0.42; v3.project(camera); thoughtEl.style.transform = `translate(${((v3.x + 1) / 2) * W}px, ${Math.max(((1 - v3.y) / 2) * H - 30, 215)}px) translate(-50%, -100%)`; }
     }
-    for (const z of zones) if (z.ring.visible) { const near = z === zoneNear; z.ring.material.opacity = near ? 1 : 0.55 + Math.sin(t * 5) * 0.2; z.ring.scale.setScalar(near ? 1.25 : 1 + Math.sin(t * 5) * 0.05); z.ring.material.color.set(near ? '#fff3b0' : '#ffb23d'); }
+    for (const z of zones) { if(z.id==='pump')z.ring.visible=zoneOn||hovered==='pump'||hovered==='bike'||(director.mode==='activity'&&director.current===stations.bike); if(!z.ring.visible)continue; const near = z === zoneNear; z.ring.material.opacity = near ? 1 : 0.55 + Math.sin(t * 5) * 0.2; z.ring.scale.setScalar(near ? 1.25 : 1 + Math.sin(t * 5) * 0.05); z.ring.material.color.set(near ? '#fff3b0' : '#ffb23d'); }
     for (const p of puffs) {
       p.t += dt * 1.6;
       const on = p.t > 0 && p.t < 1;
