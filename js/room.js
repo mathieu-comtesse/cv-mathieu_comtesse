@@ -1,5 +1,5 @@
 import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
-import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v50';
+import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v50a';
 import {yamahaTurntable} from './user-props.js?v=cv-scene-v50';
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
 import * as F from './furniture.js?v=cv-scene-v50';

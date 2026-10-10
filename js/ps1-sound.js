@@ -1,5 +1,5 @@
 export function createPS1Sound(){
- let context,loading,muted=false,visible=true,ticket=0,menuWanted=false,menuSource,menuGain;
+ let context,loading,muted=false,visible=true,ticket=0,menuWanted=false,menuSource,menuGain,actionVoice;
  const buffers={},levels={},voices=new Set();
  const state={ready:false,unlocked:false,muted:false,startupEvents:0,actionEvents:0,browserEvents:0,exitEvents:0,menu:false,levels};
  const files={startup:'ps1-boot-v50.mp3',action:'ps1-action-v50.mp3',browser:'ps1-browser-v50.mp3',exit:'ps1-exit-v50.mp3'};
@@ -24,8 +24,9 @@ export function createPS1Sound(){
  document.addEventListener('pointerdown',wake,{capture:true});document.addEventListener('keydown',wake,{capture:true});
  function play(key){
   if(muted||!visible||!buffers[key]||context?.state!=='running')return;
-  const voice=context.createBufferSource(),gain=context.createGain();voice.buffer=buffers[key];gain.gain.value=levels[key];voice.connect(gain);gain.connect(context.destination);voices.add(voice);
-  voice.onended=()=>{voices.delete(voice);voice.disconnect();gain.disconnect();};voice.start();return voice;
+  if(key==='action'&&actionVoice){try{actionVoice.stop();}catch{}actionVoice=null;}
+  const voice=context.createBufferSource(),gain=context.createGain();voice.buffer=buffers[key];gain.gain.value=levels[key];voice.connect(gain);gain.connect(context.destination);voices.add(voice);if(key==='action')actionVoice=voice;
+  voice.onended=()=>{if(actionVoice===voice)actionVoice=null;voices.delete(voice);voice.disconnect();gain.disconnect();};voice.start();return voice;
  }
  function clearVoices(){for(const v of voices){try{v.stop();}catch{}}voices.clear();}
  function stopMenu(){menu.pause();state.menu=false;}
