@@ -1,4 +1,3 @@
-import {createInteractionFeedback} from './interaction-feedback.js?v=cv-scene-v52';
 import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
 import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v51';
 import {yamahaTurntable} from './user-props.js?v=cv-scene-v50';
@@ -339,7 +338,7 @@ export async function createRoom(container, bubbleEl) {
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
     install(buddhaModel,'BuddhaFourFaces',world,2.63,0,4.55,.2);
-    install(jvcModel,'JVCVideosphere',whiteShelf,.41,.006,.018,0);
+    install(jvcModel,'JVCVideosphere',whiteShelf,.41,.006,.018,Math.PI);
     const stone=install(stoneModel,'SuisekiKamogawaishi',whiteShelf,-.535,.835,0,0);stone.scale.setScalar(.90);
     container.dataset.detailProps='ready';renderer.shadowMap.needsUpdate=true;
   }).catch(e=>{container.dataset.detailProps='error';console.warn('[Room props]',e);});
@@ -831,7 +830,6 @@ export async function createRoom(container, bubbleEl) {
   const zoneHover = (cx, cy) => { const z = zoneAt(cx, cy); zoneNear = z ? zones.find((q) => stations[q.id] === z) : null; };
 
   /* ─── metteur en scène du personnage ─── */
-  const feedback=createInteractionFeedback(world,new Set(['shoes','pc','tv','ps1power','deskstrip','strip','screenbar','arc','beton','brontes','falk','akari','mamiya','drawer','desk','chair','usm','ekstrem','alocasia','bonsai','dracaena','sofa','cha','bike','pump','shoji0','shoji1','shoji2','shoji3']));feedback.register();detailPropsReady.then(()=>feedback.register());
   const director = createDirector({
     hero, ritual, nav, floorY,
     ui: {
@@ -1201,7 +1199,6 @@ export async function createRoom(container, bubbleEl) {
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
-    feedback.update(t,hovered,Object.entries(stations).find(([,s])=>s===director.current)?.[0],appOpen);
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
     try {
       renderer.render(scene, camera);
@@ -1226,5 +1223,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { feedback, get appOpen(){return appOpen;}, detailPropsReady, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
+  return { get appOpen(){return appOpen;}, detailPropsReady, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }

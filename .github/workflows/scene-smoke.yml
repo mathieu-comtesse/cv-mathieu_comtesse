@@ -95,7 +95,6 @@ jobs:
           node --check js/native-geometry.js
           node --check js/thought.js
           node --check js/director.js
-          node --check js/interaction-feedback.js
           node --check js/pond.js
           node --check js/chashitsu.js
           node --check js/ui.js
@@ -116,10 +115,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v52" index.html
+          grep -q "js/main.js?v=cv-scene-v53" index.html
           grep -q "character.js?v=cv-scene-v49" js/room.js
           grep -q "retro.js?v=cv-scene-v52" js/room.js
-          grep -q "room.js?v=cv-scene-v52" js/main.js
+          grep -q "room.js?v=cv-scene-v53" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb
