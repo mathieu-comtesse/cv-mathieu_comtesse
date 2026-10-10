@@ -1,15 +1,15 @@
 import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
-import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v49';
-import {yamahaTurntable} from './user-props.js?v=cv-scene-v49';
+import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v50';
+import {yamahaTurntable} from './user-props.js?v=cv-scene-v50';
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
-import * as F from './furniture.js?v=cv-scene-v49';
+import * as F from './furniture.js?v=cv-scene-v50';
 import { createCharacter } from './character.js?v=cv-scene-v49';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
-import { createRetroSet } from './retro.js?v=cv-scene-v49';
+import { createRetroSet } from './retro.js?v=cv-scene-v50';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v44';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -21,7 +21,7 @@ import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v49';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
-import {createFilmAlbum} from './film-album.js?v=cv-scene-v49';
+import {createFilmAlbum} from './film-album.js?v=cv-scene-v50';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -74,6 +74,7 @@ export async function createRoom(container, bubbleEl) {
   let nativeBridge = null;
   let sceneMuted = false;
   const ps1Sound=createPS1Sound();
+  window.addEventListener('ps1-ui',e=>{const action=e.detail?.action;if(action==='action')ps1Sound.action();else if(action==='menu-on')ps1Sound.menu(true);else if(action==='menu-off')ps1Sound.menu(false);});
   const pumpSound=createPumpSound('assets/bicycle-pump-user-v43.mp3');
   const setSceneMuted = value => { sceneMuted = !!value; nativeBridge?.sceneApi.sound?.setMuted?.(sceneMuted); pumpSound.setMuted(sceneMuted);ps1Sound.setMuted(sceneMuted); container.dataset.muted=String(sceneMuted); };
 
@@ -876,11 +877,12 @@ export async function createRoom(container, bubbleEl) {
     if (appOpen) return; appOpen = true;
     setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;
     thoughtEl.classList.remove('show');
+    if(kind==='retro')ps1Sound.openMenu();
     setTimeout(() => window.dispatchEvent(new CustomEvent('room-open', { detail: { kind } })), kind === 'xp' ? 1200 : 750);
   }
   window.addEventListener('room-close', (e) => {
     appOpen = false;
-    if (e.detail && e.detail.kind === 'retro') retro.powerOff();
+    if (e.detail && e.detail.kind === 'retro') {retro.powerOff();ps1Sound.exit();}
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
   const atDesk = () => director.current === stations.desk && director.mode === 'activity';
@@ -1125,7 +1127,7 @@ export async function createRoom(container, bubbleEl) {
       const playingConsole = director.current === stations.sofa && director.mode === 'activity';
       bicyclePump?.frame(dt,director.current===stations.bike&&director.mode==='activity',hero);
       if(bicyclePump)pumpSound.frame(bicyclePump.state.active,bicyclePump.state.time,bicyclePump.state.cycling,roomVisible&&!document.hidden&&!workshopOpen);
-      retro.setPadHeld?.(playingConsole);ps1Sound.frame(playingConsole&&retro.state==='ready',roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen&&!appOpen,music);
+      retro.setPadHeld?.(playingConsole);ps1Sound.frame(playingConsole&&retro.state==='ready',roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen,music);
       if (playingConsole) poseGamepadHands();
       retro.updatePad?.(dt, hero.bones.hand_l, hero.bones.hand_r);
 

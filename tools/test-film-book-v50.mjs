@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import path from 'node:path';
+const {chromium}=await import(process.env.PLAYWRIGHT_PACKAGE?pathToFileURL(process.env.PLAYWRIGHT_PACKAGE).href:'playwright');
+const root=fileURLToPath(new URL('../',import.meta.url)),output=path.resolve(root,process.env.SCENE_TEST_OUTPUT||'test-results');await mkdir(output,{recursive:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE,args:['--enable-webgl','--use-angle='+(process.env.SCENE_WEBGL_BACKEND||'swiftshader'),'--enable-unsafe-swiftshader']});
+const context=await browser.newContext({viewport:{width:1440,height:1000},hasTouch:true}),page=await context.newPage(),errors=[],missing=[],evidence={};
+page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)missing.push(r.url());});
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.glb':'model/gltf-binary'};
+await context.route('http://scene.test/**',async route=>{const u=new URL(route.request().url());if(u.pathname==='/book.html')return route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="fr"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="style.css"><script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script><body><p>CV de Mathieu Comtesse</p><script type="module">import {createFilmAlbum} from "./js/film-album.js";window.albumHandle=createFilmAlbum();albumHandle.open();</script></body></html>'});try{await route.fulfill({body:await readFile(path.join(root,decodeURIComponent(u.pathname))),contentType:types[path.extname(u.pathname)]||'application/octet-stream'});}catch{await route.fulfill({status:404,body:u.pathname});}});
+const settled=()=>page.waitForFunction(()=>document.querySelector('.film-album').dataset.turning==='false'&&document.querySelector('.film-loading').hidden);
+const album=page.locator('.film-album'),stage=page.locator('.film-book');
+const hit=async(side=0)=>{const b=await stage.boundingBox();await page.mouse.click(b.x+b.width*(.5+side*.22),b.y+b.height*.5);};
+try{
+ await page.goto('http://scene.test/book.html');await page.waitForFunction(()=>document.querySelector('.film-album')?.dataset.modelReady==='true'&&document.querySelector('.film-loading').hidden);
+ evidence.style=await album.evaluate(e=>({background:getComputedStyle(e).backgroundColor,border:getComputedStyle(e).borderWidth,overflow:getComputedStyle(e).overflow,width:e.offsetWidth,height:e.offsetHeight}));assert.equal(evidence.style.background,'rgba(0, 0, 0, 0)');assert.equal(evidence.style.border,'0px');assert.equal(evidence.style.overflow,'visible');
+ assert.equal(await album.getAttribute('data-cover'),'front');await page.screenshot({path:path.join(output,'livre-couverture.png')});
+ await hit();await settled();assert.equal(await album.getAttribute('data-cover'),'open');await page.screenshot({path:path.join(output,'livre-ouvert.png')});
+ await hit(1);await page.waitForFunction(()=>document.querySelector('.film-album').dataset.turning==='true');await page.waitForTimeout(400);await page.screenshot({path:path.join(output,'livre-page-courbee.png')});await settled();assert.equal(await album.getAttribute('data-spread'),'1');
+ const b=await stage.boundingBox();await page.mouse.move(b.x+b.width*.55,b.y+b.height*.55);await page.mouse.down();await page.mouse.move(b.x+b.width*.79,b.y+b.height*.62,{steps:18});await page.mouse.up();assert.equal(await album.getAttribute('data-spread'),'1');evidence.dragYaw=+(await album.getAttribute('data-yaw'));assert.ok(evidence.dragYaw>1);await page.screenshot({path:path.join(output,'livre-reliure.png')});
+ await page.getByRole('button',{name:'Revenir à la vue de lecture'}).click();
+ await hit(-1);await settled();assert.equal(await album.getAttribute('data-spread'),'0');await hit(1);await settled();assert.equal(await album.getAttribute('data-spread'),'1');
+ evidence.photos=['assets/film/1514.webp','assets/film/1510.webp'];
+ for(let i=1;i<10;i++){await settled();evidence.photos.push(...await album.locator('.film-photo').evaluateAll(a=>a.map(n=>n.getAttribute('src'))));if(i<9){await hit(1);await settled();assert.equal(await album.getAttribute('data-spread'),String(i+1));}}
+ assert.equal(new Set(evidence.photos).size,20);await hit(1);await settled();assert.equal(await album.getAttribute('data-cover'),'back');await page.screenshot({path:path.join(output,'livre-quatrieme.png')});
+ await hit();await settled();assert.equal(await album.getAttribute('data-cover'),'open');assert.equal(await album.getAttribute('data-spread'),'9');await page.getByRole('button',{name:'Refermer le livre',exact:true}).click();await settled();assert.equal(await album.getAttribute('data-cover'),'front');
+ await page.locator('.film-book canvas').focus();await page.keyboard.press('ArrowRight');evidence.keyboardYaw=+(await album.getAttribute('data-yaw'));await page.keyboard.press('Home');assert.ok(Math.abs(+(await album.getAttribute('data-yaw'))+.12)<.001);
+ await page.keyboard.press('Escape');assert.equal(await album.evaluate(e=>e.open),false);await page.evaluate(()=>albumHandle.open());await settled();await page.mouse.click(10,10);assert.equal(await album.evaluate(e=>e.open),false);
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>albumHandle.open());await settled();await page.screenshot({path:path.join(output,'livre-couverture-mobile.png')});
+ const m=await stage.boundingBox();await page.touchscreen.tap(m.x+m.width*.5,m.y+m.height*.5);await settled();assert.equal(await album.getAttribute('data-cover'),'open');await page.screenshot({path:path.join(output,'livre-ouvert-mobile.png')});
+ const cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:110,y:m.y+m.height*.5}]});for(let i=1;i<=12;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:110+i*8,y:m.y+m.height*.5+i*2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await album.getAttribute('data-spread'),'0');evidence.mobileYaw=+(await album.getAttribute('data-yaw'));assert.ok(evidence.mobileYaw>.3);
+ evidence.mobile=await album.evaluate(e=>({width:e.offsetWidth,height:e.offsetHeight,viewport:[innerWidth,innerHeight]}));assert.ok(evidence.mobile.height<844*.85);await page.getByRole('button',{name:'Quitter l’album'}).click();assert.equal(await album.evaluate(e=>e.open),false);
+ assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);await writeFile(path.join(output,'browser-book-validation.json'),JSON.stringify({...evidence,errors,missing},null,2));console.log('BOOK_V50_OK',JSON.stringify(evidence));
+}finally{await writeFile(path.join(output,'book-partial.json'),JSON.stringify({...evidence,errors,missing},null,2));await browser.close();}

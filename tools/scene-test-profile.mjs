@@ -4,7 +4,11 @@ export async function sceneTestProfile(page) {
   page.setDefaultTimeout(120000);
   if ((process.env.SCENE_WEBGL_BACKEND || 'swiftshader') !== 'swiftshader') return;
   const profile=await page.evaluate(()=>{
-    const r=window.room; r.opts.noAdapt=true; r.renderer.setPixelRatio(.25);
+    const r=window.room; r.opts.noAdapt=true;
+    // Keep the software raster budget when a real gesture or viewport change
+    // invokes the application's resize; geometry and input remain unchanged.
+    if(!r.renderer._softwareRatioBound){const setRatio=r.renderer.setPixelRatio.bind(r.renderer);r.renderer.setPixelRatio=ratio=>setRatio(Math.min(.25,ratio));r.renderer._softwareRatioBound=true;}
+    r.renderer.setPixelRatio(.25);
     r.renderer.shadowMap.autoUpdate=false;
     // The room requests refreshed shadows every third frame. Cache the maps
     // already rendered during startup, including explicit refresh requests.

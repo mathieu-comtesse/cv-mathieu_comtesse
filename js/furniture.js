@@ -904,7 +904,7 @@ export function shelf(bookModel) {
   const bag = canvasTexture(64, 64, (c, w, h) => { for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { c.fillStyle = (x + y) % 2 ? '#e8e6e0' : '#2a2a2c'; c.fillRect(x * 8, y * 8, 8, 8); } });
   g.add(rbox(0.28, 0.14, 0.12, 0.03, new THREE.MeshStandardMaterial({ map: bag, roughness: 0.8 }), bx - 0.02, 1.07 + 0.088, 0.02));
   g.add(cyl(0.12, 0.12, 0.004, mat('#ece8dc'), -bx + 0.1, 0.817 + 0.022, 0.0, 24));
-  if(bookModel){const books=bookModel.scene;books.name='SuppliedVarietyOfBooks';books.userData.batchRoot=true;books.userData.noInk=true;books.position.set(-bx,.275,0);books.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});g.add(books);}
+  if(bookModel){const books=bookModel.scene;books.name='SuppliedVarietyOfBooks';books.userData.batchRoot=true;books.userData.noInk=true;books.position.set(-W/2+T+.275,.275,0);books.userData.shelfWall='left';books.userData.shelfInnerEdge=-W/2+T;books.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});g.add(books);}
   const kettle = group(sph(0.07, mat('#c9ccd0', { metalness: 0.8, roughness: 0.3 }), 0, 0.06, 0, 18, 12), cyl(0.012, 0.03, 0.05, mat('#c9ccd0', { metalness: 0.8, roughness: 0.3 }), 0, 0.14, 0, 12), sph(0.014, mat('#c9402e'), 0, 0.17, 0, 8, 6));
   kettle.add(mesh(new THREE.TorusGeometry(0.06, 0.007, 6, 18, Math.PI), mat('#1b1c1f'), 0, 0.14, 0).rotateZ(0));
   kettle.position.set(bx - 0.15, 0.55 + 0.018, 0.0); g.add(kettle);

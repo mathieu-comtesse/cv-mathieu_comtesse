@@ -134,7 +134,18 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
   /* ── écran : état et animation d'allumage ── */
   const cv = tex.image, c = cv.getContext('2d');
   const rd = rng(99);
-  const st = { state: 'off', t: 0, last: -1, strip: true };
+  const st = { state: 'off', t: 0, last: -1, strip: true, bootTicket:0, bootDuration:0 };
+  const bootVideo=document.createElement('video');bootVideo.src=new URL('../assets/ps1-boot-video-v50.mp4',import.meta.url);bootVideo.muted=true;bootVideo.playsInline=true;bootVideo.preload='metadata';
+  const bootTexture=new THREE.VideoTexture(bootVideo);bootTexture.colorSpace=THREE.SRGBColorSpace;
+  const videoReady=new Promise(resolve=>{bootVideo.addEventListener('loadedmetadata',resolve,{once:true});bootVideo.addEventListener('error',resolve,{once:true});});
+  async function startBoot(){
+    const ticket=++st.bootTicket;await videoReady;if(ticket!==st.bootTicket)return;
+    bootVideo.currentTime=0;const audio=await sound?.powerOn();if(ticket!==st.bootTicket)return;
+    st.bootDuration=audio?.duration||14.916;bootVideo.playbackRate=Number.isFinite(bootVideo.duration)?bootVideo.duration/st.bootDuration:1;st.bootStart=performance.now();
+    screenMat.map=bootTexture;screenMat.needsUpdate=true;bootVideo.play().catch(()=>{screenMat.map=tex;screenMat.needsUpdate=true;});
+  }
+  function finishBoot(){bootVideo.pause();screenMat.map=tex;screenMat.needsUpdate=true;st.state='ready';st.last=-1;}
+  bootVideo.addEventListener('ended',()=>{if(st.state==='warm')finishBoot();});
   const scan = () => { c.fillStyle = 'rgba(0,0,0,0.22)'; for (let y = 0; y < 240; y += 3) c.fillRect(0, y, 320, 1); };
   const vignette = () => { const gr = c.createRadialGradient(160, 120, 60, 160, 120, 210); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.5)'); c.fillStyle = gr; c.fillRect(0, 0, 320, 240); };
   function noise(a = 1) { const id = c.createImageData(320, 240), d = id.data; for (let i = 0; i < d.length; i += 4) { const v = (rd() * 255 * a) | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; } c.putImageData(id, 0, 0); }
@@ -156,11 +167,8 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
     if (t - st.last < 0.05 && st.state !== 'warm') return;
     st.last = t;
     if (st.state === 'warm') {
-      if (t < 0.18) { c.fillStyle = '#000'; c.fillRect(0, 0, 320, 240); const w = 320 * (t / 0.18); c.fillStyle = '#fff'; c.fillRect(160 - w / 2, 118, w, 4); }
-      else if (t < 0.5) { const k = (t - 0.18) / 0.32; c.fillStyle = '#000'; c.fillRect(0, 0, 320, 240); const h = 4 + 236 * k * k; c.fillStyle = `rgba(255,255,255,${1 - k * 0.2})`; c.fillRect(0, 120 - h / 2, 320, h); }
-      else if (t < 1.4) { const k = (t - 0.5) / 0.9; noise(1 - k * 0.5); c.fillStyle = `rgba(255,255,255,${Math.max(0, 0.5 - k)})`; c.fillRect(0, 0, 320, 240); c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(0, ((t * 260) % 260) - 20, 320, 18); scan(); vignette(); }
-      else if (t < 1.75) { const k = (t - 1.4) / 0.35; drawReady(t); c.fillStyle = `rgba(255,255,255,${1 - k})`; c.fillRect(0, 0, 320, 240); noise(0.25 * (1 - k)); }
-      else { st.state = 'ready'; drawReady(t); }
+      if(st.bootStart&&performance.now()-st.bootStart>=st.bootDuration*1000+150)finishBoot();
+      if(screenMat.map===tex){c.fillStyle='#000';c.fillRect(0,0,320,240);}
     } else if (st.state === 'ready') drawReady(t);
     else if (st.state === 'closing') {
       if (t < 0.25) { const k = t / 0.25; c.fillStyle = '#000'; c.fillRect(0, 0, 320, 240); const h = Math.max(3, 240 * (1 - k * k)); c.fillStyle = '#fff'; c.fillRect(0, 120 - h / 2, 320, h); }
@@ -209,9 +217,9 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
     strip, cordStart, get stripOn() { return st.strip; },
     setStrip(v) { st.strip = v; litMat.emissiveIntensity = v ? 1.6 : 0; litMat.color.set(v ? '#ff5a2a' : '#6b2a18'); if (!v) this.powerOff(); },
     group: g, tvCenter: new THREE.Vector3(-0.04, Y0 + H * 0.52, frontZ + 0.02),
-    get state() { return st.state; },
-    powerOn() { if (st.strip && st.state === 'off') { st.state = 'warm'; st.t = 0; st.last = -1;sound?.powerOn(); } },
-    powerOff() { if (st.state !== 'off') { st.state = 'closing'; st.t = 0; st.last = -1;sound?.powerOff(); } },
+    get state() { return st.state; }, bootVideo, get bootDuration(){return st.bootDuration;},
+    powerOn() { if (st.strip && st.state === 'off') { st.state = 'warm'; st.t = 0; st.last = -1;st.bootStart=0;startBoot(); } },
+    powerOff() { if (st.state !== 'off') { st.state = 'closing'; st.t = 0; st.last = -1;st.bootTicket++;bootVideo.pause();screenMat.map=tex;screenMat.needsUpdate=true;sound?.powerOff(); } },
     update(dt) { frame(dt); },
   };
   frame(0.01);

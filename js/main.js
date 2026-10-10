@@ -1,5 +1,5 @@
-import { createRoom } from './room.js?v=cv-scene-v49';
-import { initUI } from './ui.js?v=cv-scene-v49';
+import { createRoom } from './room.js?v=cv-scene-v50';
+import { initUI } from './ui.js?v=cv-scene-v50';
 import { initTheme } from './theme.js?v=cv-scene-v29';
 import { initHome } from './home.js?v=cv-scene-v49';
 initUI();

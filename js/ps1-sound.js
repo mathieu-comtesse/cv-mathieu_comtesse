@@ -1,25 +1,48 @@
 export function createPS1Sound(){
- let context,loading,muted=false,visible=true,held=false,bootTicket=0,loopVoice;
- const buffers={},voices=new Set(),state={ready:false,unlocked:false,muted:false,joystick:false,buttonEvents:0,startupEvents:0};
- const files={joystick:'ps1-joystick-v49.mp3',button:'ps1-button-v49.mp3',startup:'ps1-startup-v49.mp3'};
+ let context,loading,muted=false,visible=true,ticket=0,menuWanted=false,menuSource,menuGain;
+ const buffers={},levels={},voices=new Set();
+ const state={ready:false,unlocked:false,muted:false,startupEvents:0,actionEvents:0,browserEvents:0,exitEvents:0,menu:false,levels};
+ const files={startup:'ps1-boot-v50.mp3',action:'ps1-action-v50.mp3',browser:'ps1-browser-v50.mp3',exit:'ps1-exit-v50.mp3'};
+ const menu=new Audio(new URL('../assets/ps1-menu-v50.mp3',import.meta.url));menu.loop=true;menu.preload='none';
+ function gainFor(buffer){
+  let sum=0,peak=0,count=0;
+  for(let c=0;c<buffer.numberOfChannels;c++){const a=buffer.getChannelData(c);for(const v of a){sum+=v*v;peak=Math.max(peak,Math.abs(v));}count+=a.length;}
+  const rms=Math.sqrt(sum/count)||1;
+  // Consistent audible effects, bounded peaks; source recordings remain untouched.
+  return Math.min(Math.pow(10,-27/20)/rms,Math.pow(10,-13/20)/(peak||1));
+ }
  async function unlock(){
   context ||= new AudioContext();await context.resume();state.unlocked=context.state==='running';
-  loading ||= Promise.all(Object.entries(files).map(async([key,file])=>{const r=await fetch(new URL('../assets/'+file,import.meta.url));if(!r.ok)throw Error('PS1 sound missing');buffers[key]=await context.decodeAudioData(await r.arrayBuffer());})).then(()=>{state.ready=true;});
+  if(!menuSource){menuSource=context.createMediaElementSource(menu);menuGain=context.createGain();menuGain.gain.value=.75;menuSource.connect(menuGain);menuGain.connect(context.destination);}
+  loading ||= Promise.all(Object.entries(files).map(async([key,file])=>{
+   const r=await fetch(new URL('../assets/'+file,import.meta.url));if(!r.ok)throw Error('PS1 sound missing: '+key);
+   buffers[key]=await context.decodeAudioData(await r.arrayBuffer());levels[key]=gainFor(buffers[key]);
+  })).then(()=>{state.ready=true;});
   await loading;
  }
- const wake=()=>unlock().catch(e=>console.warn('[PS1 audio]',e.message));
+ const wake=()=>unlock().then(()=>{if(menuWanted&&!muted&&visible)startMenu();}).catch(e=>console.warn('[PS1 audio]',e.message));
  document.addEventListener('pointerdown',wake,{capture:true});document.addEventListener('keydown',wake,{capture:true});
- function play(key,volume,delay=0,loop=false){
+ function play(key){
   if(muted||!visible||!buffers[key]||context?.state!=='running')return;
-  const voice=context.createBufferSource(),gain=context.createGain();voice.buffer=buffers[key];voice.loop=loop;gain.gain.value=volume;voice.connect(gain);gain.connect(context.destination);voices.add(voice);
-  voice.onended=()=>{voices.delete(voice);voice.disconnect();gain.disconnect();};voice.start(context.currentTime+delay);return voice;
+  const voice=context.createBufferSource(),gain=context.createGain();voice.buffer=buffers[key];gain.gain.value=levels[key];voice.connect(gain);gain.connect(context.destination);voices.add(voice);
+  voice.onended=()=>{voices.delete(voice);voice.disconnect();gain.disconnect();};voice.start();return voice;
  }
- const stopLoop=()=>{if(loopVoice){try{loopVoice.stop();}catch{}loopVoice=null;}state.joystick=false;};
- function stop(){bootTicket++;stopLoop();for(const voice of voices){try{voice.stop();}catch{}}voices.clear();}
- return {state,unlock,stop,
-  async powerOn(){const ticket=++bootTicket;if(muted||!visible)return;try{await unlock();if(ticket!==bootTicket||muted||!visible)return;stopLoop();if(play('button',.07))state.buttonEvents++;if(play('startup',.045,.18))state.startupEvents++;}catch{}},
+ function clearVoices(){for(const v of voices){try{v.stop();}catch{}}voices.clear();}
+ function stopMenu(){menu.pause();state.menu=false;}
+ function startMenu(){if(!menuWanted||muted||!visible)return;menu.play().then(()=>{state.menu=menuWanted&&!muted&&visible&&!menu.paused;if(!state.menu)menu.pause();}).catch(()=>{state.menu=false;});}
+ function stop(){ticket++;menuWanted=false;stopMenu();clearVoices();}
+ async function effect(key){const own=ticket;try{await unlock();if(own!==ticket)return;const voice=play(key);if(voice)state[key==='action'?'actionEvents':key==='browser'?'browserEvents':'exitEvents']++;}catch{}}
+ return{state,unlock,stop,
+  async powerOn(){
+   const own=++ticket;menuWanted=false;stopMenu();clearVoices();
+   try{await unlock();if(own!==ticket)return null;const v=play('startup');if(v)state.startupEvents++;return{duration:buffers.startup.duration,startedAt:performance.now()};}catch{return{duration:14.916,startedAt:performance.now()};}
+  },
   powerOff(){stop();},
-  frame(active,isVisible=true,music=false){visible=isVisible;held=active;if(!visible){stop();return;}if(muted||!held){stopLoop();return;}if(!loopVoice){loopVoice=play('joystick',music?.015:.025,0,true);state.joystick=!!loopVoice;}},
-  setMuted(on){muted=!!on;state.muted=muted;if(muted)stop();}
+  openMenu(){menuWanted=false;stopMenu();effect('browser');},
+  menu(on){menuWanted=!!on;if(!on)stopMenu();else wake();},
+  action(){effect('action');},
+  exit(){stop();effect('exit');},
+  frame(active,isVisible=true){visible=isVisible;if(!visible){stopMenu();clearVoices();}else if(menuWanted&&!muted&&menu.paused)startMenu();},
+  setMuted(on){muted=!!on;state.muted=muted;if(muted){clearVoices();stopMenu();}else if(menuWanted)wake();}
  };
 }

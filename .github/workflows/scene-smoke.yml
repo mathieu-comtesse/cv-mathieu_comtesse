@@ -11,6 +11,13 @@ on:
       - "assets/dioramas/**"
       - "tools/test-native-geometry.mjs"
       - "tools/scene-test-profile.mjs"
+      - "tools/test-v49-mobile-book.mjs"
+      - "tools/test-v49-seat-book.mjs"
+      - "tools/test-v49-features.mjs"
+      - "tools/test-film-book-v50.mjs"
+      - "tools/test-ps1-v50.mjs"
+      - "assets/*-v50.*"
+      - "style.css"
       - "tools/test-scene-runtime.mjs"
       - "tools/test-scene-lifecycle.mjs"
       - "tools/test-project-scroll.mjs"
@@ -31,6 +38,10 @@ on:
       - "shupi/assets/**"
       - ".github/workflows/scene-smoke.yml"
   workflow_dispatch:
+
+concurrency:
+  group: scene-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   syntax:
@@ -97,10 +108,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v49" index.html
+          grep -q "js/main.js?v=cv-scene-v50" index.html
           grep -q "character.js?v=cv-scene-v49" js/room.js
-          grep -q "retro.js?v=cv-scene-v49" js/room.js
-          grep -q "room.js?v=cv-scene-v49" js/main.js
+          grep -q "retro.js?v=cv-scene-v50" js/room.js
+          grep -q "room.js?v=cv-scene-v50" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb
@@ -108,6 +119,7 @@ jobs:
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
   runtime:
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -124,6 +136,10 @@ jobs:
         run: node tools/test-v49-seat-book.mjs
       - name: Check supplied props, power strip, foliage, PS1 sounds and financial emails
         run: node tools/test-v49-features.mjs
+      - name: Check bound floating photo book
+        run: node tools/test-film-book-v50.mjs
+      - name: Check PS1 video timing and menu sounds
+        run: node tools/test-ps1-v50.mjs
       - name: Check room rendering and interactions
         run: node tools/test-scene-runtime.mjs
       - name: Check supplied workstation, shelf props and PS1 cables
