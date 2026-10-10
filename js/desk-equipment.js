@@ -16,9 +16,10 @@ export function installDeskEquipment(desk,workstation,towerModel,stripModel,barM
  const localBounds=o=>new THREE.Box3().setFromObject(o).applyMatrix4(desk.matrixWorld.clone().invert());
  const landscape=workstation.getObjectByName('GamingLandscapeMonitor'),portrait=workstation.getObjectByName('GamingPortraitMonitor');
  const lb=localBounds(landscape),pb=localBounds(portrait),lc=lb.getCenter(new THREE.Vector3()),pc=pb.getCenter(new THREE.Vector3());
- const bar=barModel.scene;bar.name='LandscapeMonitorLightBar';bar.position.set(lc.x,lb.max.y,lc.z);bar.userData.batchRoot=true;bar.userData.noInk=true;desk.add(bar);
+ const bar=barModel.scene;bar.name='LandscapeMonitorLightBar';bar.position.set(lc.x,lb.max.y,lc.z);bar.userData.batchRoot=true;bar.userData.dynamic=true;bar.userData.noInk=true;bar.userData.id='screenbar';desk.add(bar);
  // Downward warm light illuminates the desk, without another shadow map.
- const light=new THREE.SpotLight('#fff0cb',.7,1.0,.80,.6,1);light.position.set(lc.x,lb.max.y+.012,lb.max.z+.04);light.target.position.set(-.23,.74,.10);desk.add(light,light.target);
+ const light=new THREE.SpotLight('#fff0cb',.7,1.0,.80,.6,1);light.position.set(lc.x,lb.max.y+.012,lb.max.z+.04);light.target.position.set(-.23,.74,.10);light.name='MonitorBarDeskLight';desk.add(light,light.target);
+ const led=bar.getObjectByName('LED_diffuser');led.material=led.material.clone();led.material.userData.unique=true;const glow=led.material;glow.update=k=>{glow.emissiveIntensity=1.5*k;bar.userData.powered=k>.5;};
  const wires=group();wires.name='DeskConnectedCables';wires.userData.batchRoot=true;wires.userData.dynamic=true;wires.userData.noInk=true;desk.add(wires);
  const from=(root,name)=>{desk.updateWorldMatrix(true,true);return desk.worldToLocal(root.getObjectByName(name).getWorldPosition(new THREE.Vector3())).toArray();};
  const video=from(tower,'PCVideoPort'),usb=from(tower,'PCUSBPort'),power=from(tower,'PCPowerPort');
@@ -34,5 +35,5 @@ export function installDeskEquipment(desk,workstation,towerModel,stripModel,barM
  connect('LightBarUSB',[[lc.x,lb.max.y-.02,lb.min.z],[lc.x,lb.max.y-.09,lb.min.z-.03],[lc.x,.77,-.35],[.30,.77,-.35],usb.map((v,i)=>v+(i===0?.015:0))]);
  const outlet=from(strip,'StripCordOutlet');connect('DeskStripPowerCord',[outlet,[outlet[0]+.06,.02,-.31],[.9,.014,-.38],[1.30,.012,-.65],[2.13,.012,-1.10]]);
  const end=[2.13,.012,-1.10];wires.add(box(.07,.02,.07,mat('#ecebe6'),...end));
- return{tower,strip,bar,wires,screens};
+ return{tower,strip,bar,wires,screens,light,glow};
 }

@@ -108,7 +108,7 @@ export const PRO = [
   "title": "Moteur V4.4",
   "sub": "SharePoint, ligne Excel et Q18 visibles",
   "lead": "Le moteur V4.4 rend les Q18 visibles dans le suivi, alors qu’ils ne l’étaient pas auparavant. Il remplace le copier-coller depuis SharePoint vers la bonne ligne du classeur Excel.",
-  "gain": "15 minutes économisées par rapport sur le report SharePoint → Excel. Sur 400 à 500 rapports/an : 100 à 125 heures libérées, soit 10 474 à 13 092,50 € par an à 104,74 €/h. Les Q18 sont désormais visibles.",
+  "gain": "15 minutes économisées par rapport sur le report SharePoint → Excel. Sur 4 000 à 5 000 rapports/an : 1 000 à 1 250 heures libérées, soit 104 740 à 130 925 € par an à 104,74 €/h. Les Q18 sont désormais visibles.",
   "team": "Les données arrivent à la bonne ligne et les Q18 deviennent visibles dans le suivi.",
   "url": "projet-moteur44.html"
 },

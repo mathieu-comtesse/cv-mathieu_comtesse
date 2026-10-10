@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-scene-v35';
+import { CV, PERSO, PRO } from './data.js?v=cv-scene-v45';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -396,7 +396,7 @@ const G = (id, title, sub, time, timeCtx, money, moneyCtx, img, pro) => ({ id, t
 export const PRO_CARDS = [
   G('finance', 'Point financier · Power Automate', 'CS, Locatif, MEC et PPTM', '25 min / jour', '5 minutes de vérification par périmètre et par jour évitées, sur cinq périmètres de suivi', '≈ 9 800 € / an', '93,75 heures de contrôle libérées sur 225 jours ; valorisées à 104,74 €/h', 'assets/dioramas/finance.png?v=cv-scene-v18', 'projet-financier'),
   G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000–2 500 h par an pour 4 000–5 000 rapports VRE/VLE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480–261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
-  G("moteur44", "Moteur V4.4", "SharePoint → bonne ligne Excel · Q18 visibles", "15 min / rapport", "400–500 rapports/an : 100–125 h libérées sur le report SharePoint vers la bonne ligne Excel ; Q18 désormais visibles", "10 474–13 092,50 € / an", "15 min × 400–500 rapports à 104,74 €/h ; soit 26,19 € par rapport", "assets/dioramas/moteur44.png?v=cv-scene-v29", "projet-moteur44"),
+  G("moteur44", "Moteur V4.4", "SharePoint → bonne ligne Excel · Q18 visibles", "15 min / rapport", "4 000–5 000 rapports/an : 1 000–1 250 h libérées sur le report SharePoint vers la bonne ligne Excel ; Q18 désormais visibles", "104 740–130 925 € / an", "15 min × 4 000–5 000 rapports à 104,74 €/h ; soit 26,19 € par rapport", "assets/dioramas/moteur44.png?v=cv-scene-v29", "projet-moteur44"),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
   G("cerfa", "CERFA v3", "Fiches et attestations devenues données du parc", "20–25 h → 1 min 20 s", "pour traiter un lot de 300 fiches CERFA et attestations", "50 000 €", "pénalités de retard identifiées et applicables ; temps libéré du lot valorisé séparément à 2 092,47–2 616,17 €", "assets/projets/cerfa.jpg?v=bf01a16", "projet-1"),
   G("vre", "Extracteur VRE", "Rapports de vérification électrique", "1 667–2 083 h / an", "25 min de comptage évitées par rapport × 4 000–5 000 rapports/an ; capacité théorique rendue disponible", "174 566,67–218 208,33 € / an", "25 min × 4 000–5 000 rapports à 104,74 €/h ; ≈ 43,64 € par rapport", "assets/projets/vre.jpg?v=bf01a16", "projet-vre"),
@@ -411,7 +411,7 @@ export const PRO_CARDS = [
 // Base de valorisation : coût horaire du CV, pas un encaissement financier.
 export const HOURLY_RATE = 104.74;
 const bases = {
- moteur44: '15/60 h × 400–500 rapports/an = 100–125 h/an ; × 104,74 €/h = 10 474–13 092,50 €/an. Report SharePoint vers la bonne ligne Excel et Q18 visibles.',
+ moteur44: '15/60 h × 4 000–5 000 rapports/an = 1 000–1 250 h/an ; × 104,74 €/h = 104 740–130 925 €/an. Report SharePoint vers la bonne ligne Excel et Q18 visibles.',
  vmvre: '0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu.',
  pa: '40 min/jour × environ 225 jours/an × 104,74 €/h ≈ 15 700 €/an. Temps de contrôle et saisie des plans de prévention.',
  cerfa: '50 €/document en retard : environ 1 000 documents identifiés. Pénalités applicables, pas des économies de personnel ni des sommes encaissées.',

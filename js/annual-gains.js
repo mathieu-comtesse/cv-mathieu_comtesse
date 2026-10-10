@@ -6,7 +6,7 @@ const row=(id,title,min,max,basis,estimated=false)=>({id,title,minHours:min,maxH
 export const ANNUAL_GAINS=[
  row('finance','Point financier',hours(25,ANNUAL_DAYS),hours(25,ANNUAL_DAYS),'25 min/jour × 225 jours/an'),
  row('vmvre','VRE / VLE · VM',hours(30,4000),hours(30,5000),'30 min × 4 000–5 000 rapports/an'),
- row('moteur44','Moteur V4.4',hours(15,400),hours(15,500),'15 min × 400–500 rapports/an'),
+ row('moteur44','Moteur V4.4',hours(15,4000),hours(15,5000),'15 min × 4 000–5 000 rapports/an'),
  row('vre','Extracteur VRE',hours(25,4000),hours(25,5000),'25 min × 4 000–5 000 rapports/an ; capacité théorique',true),
  row('powerbi','PP & MOSO · traitement',hours(15,400),hours(20,500),'15–20 min × 400–500 plans/an'),
  row('pp-consultation','PP & MOSO · consultation',hours(10,40*ANNUAL_DAYS),hours(10,40*ANNUAL_DAYS),'10 min × 40 consultations/jour × 225 jours/an',true),

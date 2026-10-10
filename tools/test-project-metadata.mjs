@@ -15,7 +15,7 @@ assert.match(PAGES['projet-financier'].html,/9 819,38/);
 const moteur=PRO_CARDS.find(p=>p.id==='moteur44');
 assert.ok(moteur&&moteur.pro&&PAGES[moteur.pro.id]);
 assert.equal(moteur.diag.length,5);
-assert.equal(moteur.money,'10 474–13 092,50 € / an');
+assert.equal(moteur.money,'104 740–130 925 € / an');
 assert.equal(moteur.time,'15 min / rapport');
 assert.equal((Math.round(15*Math.round(HOURLY_RATE*100)/60)/100).toFixed(2),'26.19');
 assert.ok(moteur.timeCtx.includes('bonne ligne Excel')&&moteur.timeCtx.includes('Q18'));

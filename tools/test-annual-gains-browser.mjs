@@ -17,13 +17,13 @@ try{
  await page.goto(process.env.SCENE_PUBLIC_URL||'http://scene.test/');
  const pig=page.locator('.annual-gains');await pig.waitFor();await pig.scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy==='ready',null,{timeout:90000});
- assert.ok(await pig.locator('.annual-pig-wrap svg').evaluateAll(elements=>elements.every(e=>getComputedStyle(e).display==='none')));
+ assert.equal(await pig.locator('.annual-pig-wrap svg').count(),0);
  assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-model'),'piggy-bank-user');assert.equal(await pig.locator('iframe').count(),0);
  assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Piggy Bank.*mistour.*CC BY 4.0/);
  assert.match(await page.locator('.automation-cascade').innerText(),/Un processus fiable, du temps libéré pour plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
- assert.match(await pig.locator('[data-annual-money]').innerText(),/650/);
- assert.match(await pig.locator('[data-annual-hours]').innerText(),/6.?210/);
+ assert.match(await pig.locator('[data-annual-money]').innerText(),/744/);
+ assert.match(await pig.locator('[data-annual-hours]').innerText(),/7.?110/);
  assert.match(await pig.locator('[data-calendar-label]').innerText(),new RegExp(String(expectedYear)));
  await pig.locator('.annual-breakdown summary').click();assert.equal(await pig.locator('tbody tr').count(),7);
  await pig.locator('.annual-breakdown summary').click();
@@ -37,9 +37,9 @@ try{
  await canvas.press('ArrowRight');const rotation=Number(await model.getAttribute('data-rotation'));assert.ok(rotation>-.45);
  const hit=await canvas.boundingBox();await page.mouse.move(hit.x+hit.width*.3,hit.y+hit.height*.6);await page.mouse.down();await page.mouse.move(hit.x+hit.width*.8,hit.y+hit.height*.6,{steps:8});await page.mouse.up();
  await page.screenshot({path:path.join(output,'rotation-check.png'),timeout:120000});await page.waitForFunction(r=>Math.abs(Number(document.querySelector('.annual-pig-wrap').dataset.rotation)-r)>.4,rotation,{timeout:15000});
- assert.ok(Math.abs(Number(await model.getAttribute('data-coin-interval'))-7.536)<.02);
+ assert.ok(Math.abs(Number(await model.getAttribute('data-coin-interval'))-6.605)<.02);
  await pig.locator('.annual-breakdown summary').click();await pig.locator('[data-working-days]').fill('180');await pig.locator('[data-working-days]').press('Tab');
- assert.ok(Number(await model.getAttribute('data-coin-interval'))<7.536);
+ assert.ok(Number(await model.getAttribute('data-coin-interval'))<6.605);
  await pig.locator('[data-working-days]').fill('225');await pig.locator('[data-working-days]').press('Tab');await pig.locator('.annual-breakdown summary').click();
  await page.waitForFunction(()=>Number(document.querySelector('.annual-pig-wrap').dataset.coins)>0,null,{timeout:45000});
  await page.waitForFunction(()=>{const p=Number(document.querySelector('.annual-pig-wrap').dataset.coinPhase);return p>.05&&p<.18;},null,{timeout:20000});await page.screenshot({path:path.join(output,'tirelire-3d-pieces.png'),timeout:120000});
@@ -58,7 +58,7 @@ try{
  await page.reload();await page.locator('.annual-gains').waitFor();
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('cv-annual-gain-history-v1')).history.length),1);
  await page.emulateMedia({reducedMotion:'reduce'});
- assert.equal(await page.locator('.pig-coin').first().evaluate(e=>getComputedStyle(e).animationName),'none');
+ assert.equal(await page.locator('.pig-coin').count(),0);
  assert.deepEqual(errors,[]);
  await writeFile(path.join(output,'tirelire-validation.json'),JSON.stringify({year:expectedYear,rollover,errors},null,2));
  console.log('PIG_CALENDAR_RESPONSIVE_OK');

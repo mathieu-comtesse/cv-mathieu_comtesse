@@ -15,7 +15,7 @@ import { createJukebox } from './jukebox.js?v=cv-scene-v33';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
-import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v43';
+import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v45';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 const DEG = Math.PI / 180;
@@ -135,7 +135,9 @@ export async function createRoom(container, bubbleEl) {
     const keyboard=F.moonlander();keyboard.name='Moonlander';keyboard.position.set(-.23,.752,.055);keyboard.userData.batchRoot=true;deskSet.add(keyboard);
     const mouse=mouseModel.scene;mouse.name='LogitechMXMaster2S';mouse.position.set(.12,.746,.15);mouse.userData.batchRoot=true;deskSet.add(mouse);
 
-    installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
+    const equipment=installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
+    mkLamp('screenbar',equipment.glow,equipment.light,'#fff0cb','#87837c');
+    Object.assign(lamps.screenbar,{on:true,manual:true,intensity:.7});
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
     const mug = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.049, 0.095, 28, 1, true), titanium); body.position.y = 0.056; mug.add(body);
@@ -356,6 +358,9 @@ export async function createRoom(container, bubbleEl) {
   const selectNavigation=mode=>{navigationMode=mode;container.dataset.navigationMode=mode;navigationControls.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.navigation===mode)));};
   navigationControls.querySelectorAll('button').forEach(b=>b.onclick=()=>{selectNavigation(b.dataset.navigation);setCameraMode('free');});
   navigationControls.addEventListener('pointerdown',e=>e.stopPropagation());navigationControls.addEventListener('click',e=>e.stopPropagation());selectNavigation('pan');
+  const ledButton=document.createElement('button');ledButton.type='button';ledButton.className='room-led';ledButton.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 7h16v4H4zM8 15v4m4-4v6m4-6v4"/></svg><span>Barre LED</span>';container.append(ledButton);
+  const refreshScreenbar=()=>{const on=!!lamps.screenbar?.on;ledButton.setAttribute('aria-pressed',String(on));ledButton.setAttribute('aria-label',on?'Éteindre la barre LED du moniteur':'Allumer la barre LED du moniteur');ledButton.title=on?'Barre LED allumée':'Barre LED éteinte';container.dataset.screenbar=on?'on':'off';};
+  ledButton.onclick=e=>{e.stopPropagation();activate('screenbar');};ledButton.addEventListener('pointerdown',e=>e.stopPropagation());refreshScreenbar();
   cameraButton.onclick=e=>{e.stopPropagation();const mode=cameraMode==='follow'?'free':'follow';if(mode==='follow')selectNavigation('pan');setCameraMode(mode);};
   const zoomControls=document.createElement('div');zoomControls.className='room-zoom';zoomControls.setAttribute('role','group');zoomControls.setAttribute('aria-label','Zoom du décor');
   zoomControls.innerHTML='<button type="button" class="room-zoom-in" aria-label="Agrandir le décor">+</button><label class="room-zoom-label" for="room-zoom-range">Zoom</label><input id="room-zoom-range" type="range" min="-3" max="4" step="0.02" value="0" aria-label="Zoom du décor"><output for="room-zoom-range">100 %</output><button type="button" class="room-zoom-out" aria-label="Réduire le décor">−</button><button type="button" class="room-zoom-reset" aria-label="Réinitialiser le zoom">1:1</button>';
@@ -867,7 +872,7 @@ export async function createRoom(container, bubbleEl) {
     const openPc = () => openApp('xp', new THREE.Box3().setFromObject(uw).getCenter(new THREE.Vector3()), 5.2);
     if (id === 'pc') { if (atDesk()) openPc(); else goTo('desk', openPc); return; }
     if (/^shoji\d$/.test(id)) { cs.togglePanel(+id.slice(5)); return; }
-    if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; return; }
+    if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; if(id==='screenbar')refreshScreenbar(); return; }
     if (stations[id]) goTo(id);
   }
   const leave = () => director.stand();
@@ -1107,7 +1112,7 @@ export async function createRoom(container, bubbleEl) {
       L.k += ((L.on ? 1 : 0) - L.k) * (1 - Math.exp(-dt * 8));
       L.glow.color.set(L.offColor).lerp(new THREE.Color(L.onColor), L.k);
       if (L.glow.update) L.glow.update(L.k);
-      L.light.intensity = L.k * (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1);
+      L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % 8 === 0;
     try {

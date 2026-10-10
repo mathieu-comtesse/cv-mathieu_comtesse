@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/GLTFLoader.js';
-import {ANNUAL_TOTAL,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v36';
+import {ANNUAL_TOTAL,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v45';
 export function initPiggyBank(host){
+ host.dataset.piggy='loading';
+ const status=document.createElement('span');status.className='piggy-status';status.setAttribute('role','status');status.textContent='Chargement de la tirelire 3D…';host.append(status);
  const lazy=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){lazy.disconnect();mountPiggyBank(host);}}, {rootMargin:'200px'});lazy.observe(host);
 }
 async function mountPiggyBank(host){
- const fallback=[...host.querySelectorAll('svg')],canvas=document.createElement('canvas');
+ const canvas=document.createElement('canvas'),status=host.querySelector('.piggy-status');
  canvas.className='piggy-3d';canvas.tabIndex=0;canvas.setAttribute('aria-label','Tirelire rose en céramique : glissez pour pivoter, ou utilisez les flèches');
  host.append(canvas);
  let renderer,observer,raf=0;
@@ -18,11 +20,10 @@ async function mountPiggyBank(host){
   const assembly=new THREE.Group();assembly.rotation.y=.35;scene.add(assembly);assembly.add(pig.scene);
   const falling=coin.scene;assembly.add(falling);falling.visible=false;
   const coinOrientation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2),coinSpin=new THREE.Quaternion(),coinNormal=new THREE.Vector3(0,1,0);
-  for(const el of fallback)el.setAttribute('hidden','');
   pig.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});falling.traverse(o=>{if(o.isMesh)o.castShadow=true;});falling.scale.setScalar(.50/.17);
   const slot=pig.scene.getObjectByName('CoinSlotAnchor');if(!slot)throw Error('Fente absente');const anchor=assembly.worldToLocal(slot.getWorldPosition(new THREE.Vector3()));
   const shadow=new THREE.Mesh(new THREE.PlaneGeometry(5,5),new THREE.ShadowMaterial({opacity:.13}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.006;shadow.receiveShadow=true;scene.add(shadow);
-  host.dataset.piggy='ready';host.dataset.model='piggy-bank-user';host.dataset.slotLength=String(slot.userData.slotLength);host.dataset.slotWidth=String(slot.userData.slotWidth);host.dataset.coinDiameter=String(slot.userData.coinDiameter);host.dataset.coinThickness=String(.009254978*.50/.17);
+  host.dataset.piggy='ready';status?.remove();host.dataset.model='piggy-bank-user';host.dataset.slotLength=String(slot.userData.slotLength);host.dataset.slotWidth=String(slot.userData.slotWidth);host.dataset.coinDiameter=String(slot.userData.coinDiameter);host.dataset.coinThickness=String(.009254978*.50/.17);
   const resize=new ResizeObserver(()=>{const width=host.clientWidth,height=300;renderer.setSize(width,height,false);const horizontal=1.75;camera.left=-horizontal;camera.right=horizontal;camera.top=horizontal*height/width;camera.bottom=-camera.top;camera.updateProjectionMatrix();});resize.observe(host);host.dataset.coinAsset='one-euro-coin-user.glb';
   const box=host.closest('.annual-gains'),label=box.querySelector('[data-coin-rate]'),daysInput=box.querySelector('[data-working-days]'),hoursInput=box.querySelector('[data-working-hours]');
   let config={days:225,hours:7};try{const stored=JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')||'null');if(stored&&stored.days>=1&&stored.days<=366&&stored.hours>=1&&stored.hours<=24)config=stored;}catch{}
@@ -56,5 +57,5 @@ async function mountPiggyBank(host){
   const release=()=>pointer=null;canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
   canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();if(e.key.includes('Left')||e.key.includes('Right'))assembly.rotation.y+=e.key==='ArrowLeft'?-.2:.2;else assembly.rotation.x=Math.max(-.35,Math.min(.35,assembly.rotation.x+(e.key==='ArrowUp'?-.1:.1)));host.dataset.rotation=String(assembly.rotation.y);});
   addEventListener('pagehide',()=>{cancelAnimationFrame(raf);observer.disconnect();resize.disconnect();renderer.dispose();},{once:true});
- }catch(e){canvas.remove();host.dataset.piggy='fallback';renderer?.dispose();console.warn('La tirelire 3D ne peut pas être affichée',e.message);}
+ }catch(e){canvas.remove();host.dataset.piggy='unavailable';if(status)status.textContent='Tirelire 3D indisponible';renderer?.dispose();console.warn('La tirelire 3D ne peut pas être affichée',e.message);}
 }
