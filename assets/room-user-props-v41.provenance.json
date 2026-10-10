@@ -1,0 +1,219 @@
+{
+  "models": [
+    {
+      "source": "sony_playstation_one_controller.glb",
+      "sourceSHA256": "22f373287a646ce137535787991109c03a67ad23f1eb7287f4142645af858984",
+      "output": "ps1-controller-user-v41.glb",
+      "outputSHA256": "76afd3e341c9d4fd692fd456c264aa1d9adc3a1327988082da53034f9195061d",
+      "sourceBytes": 17990700,
+      "outputBytes": 478072,
+      "dimensionsBlender": [
+        0.18000000715255737,
+        0.1137753427028656,
+        0.05538099259138107
+      ],
+      "triangles": 2189,
+      "textureLimit": 512,
+      "meshNames": [
+        "ps1-controller-user-v41:0"
+      ],
+      "changes": {
+        "uniformScale": 0.0780705363511691,
+        "rotationBlenderZ": 0,
+        "groundAligned": true,
+        "originalMaterialsPreserved": true
+      },
+      "provenance": {
+        "author": "synthetic worlds (https://sketchfab.com/syntheticworlds)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/sony-playstation-one-controller-972c17a0fdaa4760ad9a624b3f3e081e",
+        "title": "Sony Playstation One Controller"
+      }
+    },
+    {
+      "source": "playstation_1_-_assignment_-_gap.glb",
+      "sourceSHA256": "fdbeb8a160f2f1e6734534b58bd5bdd56f53485fa1c073fa23119bd9d1eacfec",
+      "output": "ps1-console-user-v41.glb",
+      "outputSHA256": "ea5e6026e81cec87fb97d84757df95424fd4d602c07a52d519f2b7ea7ed30e6a",
+      "sourceBytes": 39021716,
+      "outputBytes": 3883052,
+      "dimensionsBlender": [
+        0.3199999928474426,
+        0.22259485721588135,
+        0.06528010964393616
+      ],
+      "triangles": 15488,
+      "textureLimit": 1024,
+      "meshNames": [
+        "ps1-console-user-v41:0",
+        "ps1-console-user-v41:1",
+        "ps1-console-user-v41:2",
+        "ps1-console-user-v41:3",
+        "ps1-console-user-v41:4"
+      ],
+      "changes": {
+        "uniformScale": 0.06694325976399583,
+        "rotationBlenderZ": -1.5707963267948966,
+        "groundAligned": true,
+        "originalMaterialsPreserved": true
+      },
+      "provenance": {
+        "author": "Lars Maes (https://sketchfab.com/larsmaes)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/playstation-1-assignment-gap-adb971118f094db3991eaf1906ed5d4d",
+        "title": "PlayStation 1 - Assignment - GAP"
+      }
+    },
+    {
+      "source": "olivetti_underwood_280.glb",
+      "sourceSHA256": "67a4ce0ad2d49f4244db8208791c5ba39498ddbf4e115d7bf81605540773cf2f",
+      "output": "olivetti-user-v41.glb",
+      "outputSHA256": "63e65874ae79ae5a3697de48fe34c4f8390d2ccd7ade607ab1840e33fea69d91",
+      "sourceBytes": 5433660,
+      "outputBytes": 2467112,
+      "dimensionsBlender": [
+        0.2989181876182556,
+        0.30000001192092896,
+        0.10246057063341141
+      ],
+      "triangles": 32034,
+      "textureLimit": 512,
+      "meshNames": [
+        "olivetti-user-v41:0",
+        "olivetti-user-v41:1",
+        "olivetti-user-v41:2",
+        "olivetti-user-v41:3"
+      ],
+      "changes": {
+        "uniformScale": 0.1495974154169935,
+        "rotationBlenderZ": 0,
+        "groundAligned": true,
+        "originalMaterialsPreserved": true
+      },
+      "provenance": {
+        "author": "modeldump (https://sketchfab.com/modeldump)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/olivetti-underwood-280-5a942f9025b3481a9077840b690b0066",
+        "title": "Olivetti Underwood 280"
+      }
+    },
+    {
+      "source": "mamiya_645_1000s.glb",
+      "sourceSHA256": "ac81198c286791efece1bdd58cb96569fcf76adee4c29cc3b72075c0ca1866d0",
+      "output": "mamiya-user-v41.glb",
+      "outputSHA256": "c971fc337dd6f10d5c902453954f0919014649808036fc8c602b352300383399",
+      "sourceBytes": 23736080,
+      "outputBytes": 3448252,
+      "dimensionsBlender": [
+        0.23999997973442078,
+        0.22302313148975372,
+        0.12914113700389862
+      ],
+      "triangles": 10840,
+      "textureLimit": 512,
+      "meshNames": [
+        "mamiya-user-v41:0",
+        "mamiya-user-v41:1",
+        "mamiya-user-v41:2",
+        "mamiya-user-v41:3",
+        "mamiya-user-v41:4",
+        "mamiya-user-v41:5",
+        "mamiya-user-v41:6",
+        "mamiya-user-v41:7"
+      ],
+      "changes": {
+        "uniformScale": 0.01149949196437335,
+        "rotationBlenderZ": 3.141592653589793,
+        "groundAligned": true,
+        "originalMaterialsPreserved": true
+      },
+      "provenance": {
+        "author": "Forpinik (https://sketchfab.com/forpinik)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/mamiya-645-1000s-d258846216a14ea3893bb561d5ac7d6d",
+        "title": "Mamiya 645 1000S 📷"
+      }
+    },
+    {
+      "source": "chrysler_-_new_yorker_1971.glb",
+      "sourceSHA256": "88af473c797ce18ca033db9db5eeff3cceb1e8ea6e9befa3eaf7e2302fef2ab8",
+      "output": "chrysler-miniature-user-v41.glb",
+      "outputSHA256": "5aea8acf904b913ccd5615ed42b60a6ab315e7cdaea5e9caee3a02f8d55bdd1e",
+      "sourceBytes": 19108712,
+      "outputBytes": 3445672,
+      "dimensionsBlender": [
+        0.2631453275680542,
+        0.6799999475479126,
+        0.28354743123054504
+      ],
+      "triangles": 42563,
+      "textureLimit": 512,
+      "meshNames": [
+        "chrysler-miniature-user-v41:0",
+        "chrysler-miniature-user-v41:1",
+        "chrysler-miniature-user-v41:2",
+        "chrysler-miniature-user-v41:3",
+        "chrysler-miniature-user-v41:4",
+        "chrysler-miniature-user-v41:5",
+        "chrysler-miniature-user-v41:6",
+        "chrysler-miniature-user-v41:7",
+        "chrysler-miniature-user-v41:8",
+        "chrysler-miniature-user-v41:9",
+        "chrysler-miniature-user-v41:10",
+        "chrysler-miniature-user-v41:11",
+        "chrysler-miniature-user-v41:12",
+        "chrysler-miniature-user-v41:13",
+        "chrysler-miniature-user-v41:14",
+        "chrysler-miniature-user-v41:15",
+        "chrysler-miniature-user-v41:16"
+      ],
+      "changes": {
+        "uniformScale": 0.5460910359558739,
+        "rotationBlenderZ": 1.5707963267948966,
+        "groundAligned": true,
+        "originalMaterialsPreserved": true
+      },
+      "provenance": {
+        "author": "lokeig (https://sketchfab.com/lokeig)",
+        "license": "CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)",
+        "source": "https://sketchfab.com/3d-models/chrysler-new-yorker-1971-3a19f19092614c8cb36d1420288abe21",
+        "title": "Chrysler - New Yorker 1971"
+      }
+    },
+    {
+      "source": "computer_props_camera_base.glb",
+      "sourceSHA256": "27a4fab8fa59a6d6db8e6a54e56597c86f0f2befe4887cb2fe1f42cc9acb61ee",
+      "output": "workstation-user-v41.glb",
+      "outputSHA256": "eacc20dadbe7143b20fe0548565e7a5056f50493d3e9e1c9a9279a6796451443",
+      "sourceBytes": 9449032,
+      "outputBytes": 2161668,
+      "dimensionsBlender": [
+        1.6152122020721436,
+        0.7731344699859619,
+        0.6837412714958191
+      ],
+      "triangles": 1569,
+      "textureLimit": 512,
+      "meshNames": [
+        "UserWorkstationMonitor",
+        "UserWorkstationMouse",
+        "UserWorkstationKeyboard",
+        "UserWorkstationTower",
+        "UserDeskLamp",
+        "UserDeskTelephone",
+        "UserDeskStapler",
+        "UserDeskPencils"
+      ],
+      "changes": {
+        "selection": "Left monitor, keyboard, unit, lamp and mouse; telephone moved right; stapler and pencils from right workstation. All CDs, CD piles, second workstation and desktop speakers excluded."
+      },
+      "provenance": {
+        "author": "Emperor (https://sketchfab.com/Emperor178)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/computer-props-camera-base-29659f88240f48328880a70fc11cad1e",
+        "title": "Computer Props Camera base"
+      }
+    }
+  ],
+  "sourcesPreserved": true
+}

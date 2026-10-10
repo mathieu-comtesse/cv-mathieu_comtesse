@@ -6,7 +6,7 @@ import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, shoePair, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v29';
-import { createRetroSet } from './retro.js?v=cv-scene-v29';
+import { createRetroSet } from './retro.js?v=cv-scene-v41';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v33';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -69,7 +69,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
-  const [widePanel,portraitPanel,monitorArm,webcamModel,computerModel] = await Promise.all(['monitor-ultrawide-curved-panel-v25.glb','monitor-portrait-panel-v25.glb','humanscale-m2-arm-v25.glb','desk-webcam-v25.glb','gaming-pc-v25.glb'].map(model));
+  const [workstationModel,consoleModel,controllerModel,olivettiModel,mamiyaModel,chryslerModel]=await Promise.all(['workstation-user-v41.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb','chrysler-miniature-user-v41.glb'].map(model));
   const [usmModel,pumpModel,jblModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb','jbl.glb'].map(model));
   const items = [];                     // { holder, obj, delay, id }
   const add = (id, obj, x, z, yaw = 0, y = 0, delay = 0, parent = world, contact = 1) => {
@@ -123,19 +123,20 @@ export async function createRoom(container, bubbleEl) {
     }
   } else {
     deskSet.add(F.desk());
-    uw = F.mountedMonitor(widePanel,monitorArm,false,webcamModel); uw.name = 'CurvedLandscapeMonitor'; uw.position.set(-0.27, 0.74, -0.36); uw.userData.id = 'pc'; deskSet.add(uw);
-    const pm = F.mountedMonitor(portraitPanel,monitorArm,true); pm.name = 'PortraitMonitor'; pm.position.set(0.39, 0.74, -0.36); pm.rotation.y = -0.14; pm.userData.id = 'pc'; deskSet.add(pm);
-    const kb = F.moonlander(); kb.name = 'Moonlander'; kb.position.set(-0.12, 0.74, 0.2); deskSet.add(kb);
-    const mouse = F.verticalMouse(); mouse.name = 'ErgonomicVerticalMouse'; mouse.position.set(0.3, 0.74, 0.24); mouse.rotation.y = 0.1; deskSet.add(mouse);
-    
-    const tw = F.suppliedComputer(computerModel); tw.position.set(0.80, 0.74, -0.06); tw.rotation.y = Math.PI - 0.12; deskSet.add(tw);
+    const workstation=workstationModel.scene;workstation.name='UserWorkstation';workstation.position.y=.74;deskSet.add(workstation);
+    // Keep each named part stable through static geometry batching and ray casting.
+    for(const part of [...workstation.children])if(part.isMesh){const name=part.name,holder=group();holder.name=name;holder.userData.batchRoot=true;part.name=name+':TexturedMesh';part.removeFromParent();holder.add(part);workstation.add(holder);part.castShadow=part.receiveShadow=true;}
+    uw=workstation.getObjectByName('UserWorkstationMonitor');uw.userData.id='pc';
+    const desktopLamp=workstation.getObjectByName('UserDeskLamp');desktopLamp.userData.id='deskLamp';
+    const bulb=workstation.getObjectByName('UserDeskLampBulb'),lampGlow= new THREE.Mesh(new THREE.SphereGeometry(.009,8,6),new THREE.MeshStandardMaterial({color:'#78736a',emissive:'#ffdda0',emissiveIntensity:.3}));lampGlow.userData.dynamic=true;lampGlow.userData.noInk=true;bulb.add(lampGlow);
+    mkLamp('deskLamp',lampGlow.material,new THREE.PointLight('#ffe2a5',0,2,2),'#fff1cc','#78736a');
 
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
     const mug = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.049, 0.095, 28, 1, true), titanium); body.position.y = 0.056; mug.add(body);
     const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.049, 0.049, 0.004, 28), titanium); bottom.position.y = 0.009; mug.add(bottom);
     const lip = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.0022, 6, 28), titanium); lip.rotation.x = Math.PI / 2; lip.position.y = 0.104; mug.add(lip);
-    mug.name = 'DeskMug'; mug.userData.id='coffee'; mug.userData.dynamic=true; mug.position.set(-0.56, 0.742, 0.23); deskSet.add(mug);
+    mug.name = 'DeskMug'; mug.userData.id='coffee'; mug.userData.dynamic=true; mug.position.set(-0.78, 0.742, 0.29); deskSet.add(mug);
 
     inkify(deskSet, { skip: (o) => {
       for (let p = o; p; p = p.parent) if (p.userData && p.userData.id === 'brontes') return true;
@@ -144,6 +145,7 @@ export async function createRoom(container, bubbleEl) {
   }
 
   add('desk', deskSet, -3.1, 0.25, Math.PI / 2, 0, 0.12);
+  deskSet.updateWorldMatrix(true,true);lamps.deskLamp?.light.position.copy(deskSet.getObjectByName('UserDeskLampBulb').getWorldPosition(new THREE.Vector3()));
   mkLamp('brontes', brontes.userData.glow, new THREE.PointLight('#ffd9a0', 0, 3, 2), '#fff0d0', '#9a948a');
 
   // chargement Native asynchrone : bureau/PC/tasse + animations/sons exacts,
@@ -154,7 +156,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v33')
+    import('./native-room.js?v=cv-scene-v41')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -247,7 +249,7 @@ export async function createRoom(container, bubbleEl) {
   lamps.andon.light.position.set(CS.x + cs.spec.RW / 2 - 0.5, 0.4, CS.z + cs.spec.DK.z0 + 0.55);
   world.add(lamps.andon.light);
   // télé cathodique + PS1 + manette sur le tapis, câbles au sol
-  const retro = createRetroSet();
+  const retro = createRetroSet({consoleModel,controllerModel});
   add('tv', retro.group, -0.35, 2.2, 0, 0.018, 0.55, world, 0).scale.setScalar(1.3);
   world.updateMatrixWorld(true);
   // cordon de la multiprise : serpente sur le tapis, sort par le bord droit, passe du côté gauche (vu de l'écran) de l'étagère blanche et rejoint la prise au sol
@@ -269,6 +271,9 @@ export async function createRoom(container, bubbleEl) {
   const rca = F.rcaCables(-0.37, -0.158, 0.7415, 0.7415 + 0.05); usmSet.add(rca);
   const cl = F.borneFromGltf(borneGltf); add('beton', cl, 0.44, 0.0, 0, 0.7415, 0, usmSet);
   add('usm', usmSet, -0.7, -2.4, 0, 0, 0.45);
+  const miniatureCar=chryslerModel.scene;miniatureCar.name='MiniatureChrysler1971';miniatureCar.userData.batchRoot=true;miniatureCar.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
+  add('miniature-car',miniatureCar,-2.80,-1.90,-.70,0,.66);
+
   const ampTerminals=F.ampPosts(amp);
   const speakers=[];
   for(const [side,x,z,yaw] of [['L',-1.85,-2.55,.18],['R',.4,-2.65,-.18]]){
@@ -305,6 +310,11 @@ export async function createRoom(container, bubbleEl) {
   const whiteShelf=F.shelf();
   add('shelf1', whiteShelf, ekBox.max.x - 0.04, 1.8, Math.PI / 2, 0, 0.8);
   add('brontes', brontes, -0.40, 0, 0, 1.303, 0, whiteShelf, 0);
+  const typewriter=olivettiModel.scene;typewriter.name='OlivettiUnderwood280';typewriter.userData.batchRoot=true;typewriter.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
+  add('olivetti',typewriter,.22,0,0,1.303,0,whiteShelf,0);
+  const filmCamera=mamiyaModel.scene;filmCamera.name='Mamiya6451000S';filmCamera.userData.batchRoot=true;filmCamera.userData.photoGalleryTarget=true;filmCamera.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
+  add('mamiya',filmCamera,.62,0,0,1.303,0,whiteShelf,0);
+
 
   // positions des sources lumineuses (repère monde)
   const yawed = (v, yaw, ox, oz) => { v = v.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); return [ox + v.x, v.y, oz + v.z]; };
@@ -536,7 +546,7 @@ export async function createRoom(container, bubbleEl) {
     const bb = new THREE.Box3().setFromObject(it.holder);
     nav.block({ x0: bb.min.x + shrink, x1: bb.max.x - shrink, z0: bb.min.z + shrink, z1: bb.max.z - shrink });
   };
-  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike', 'pump', 'jblL', 'jblR'].forEach((id) => footprint(id));
+  ['desk', 'chair', 'usm', 'ekstrem', 'shelf1', 'sofa', 'stool', 'tv', 'bike', 'pump', 'jblL', 'jblR', 'miniature-car'].forEach((id) => footprint(id));
   // Block pots and lower stems; overhead leaves must not close walkable aisles.
   for(const id of ['alocasia','dracaena','bonsai']){
     const plant=items.find(i=>i.id===id)?.holder;if(!plant)continue;
@@ -852,7 +862,7 @@ export async function createRoom(container, bubbleEl) {
       else if (retro.state === 'ready') openApp('retro', retro.group.localToWorld(retro.tvCenter.clone()), 5.2);
       return;
     }
-    const openPc = () => openApp('xp', uw.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.22, 0)), 5.2);
+    const openPc = () => openApp('xp', new THREE.Box3().setFromObject(uw).getCenter(new THREE.Vector3()), 5.2);
     if (id === 'pc') { if (atDesk()) openPc(); else goTo('desk', openPc); return; }
     if (/^shoji\d$/.test(id)) { cs.togglePanel(+id.slice(5)); return; }
     if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; return; }

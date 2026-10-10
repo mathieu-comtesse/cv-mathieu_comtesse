@@ -3,7 +3,7 @@ import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng,
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */
 
-export function createRetroSet() {
+export function createRetroSet({consoleModel,controllerModel}={}) {
   const g = group();
   const plastic = new THREE.MeshStandardMaterial({ color: '#202225', roughness: 0.55 });
   const plasticL = new THREE.MeshStandardMaterial({ color: '#2b2d31', roughness: 0.5 });
@@ -41,6 +41,7 @@ export function createRetroSet() {
 
   /* ── PlayStation (SCPH-1002) ── */
   const ps = group(); ps.name="PlayStation1"; ps.userData.dynamic=true;
+  if(consoleModel){const visual=consoleModel.scene;visual.name='SuppliedPlayStation1';visual.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});ps.add(visual);}else{
   const grey = new THREE.MeshStandardMaterial({ color: '#b3b3ae', roughness: 0.6 });
   const greyD = new THREE.MeshStandardMaterial({ color: '#9b9b97', roughness: 0.65 });
   const PW = 0.32, PH = 0.065, PD = 0.22;
@@ -56,11 +57,14 @@ export function createRetroSet() {
   for (const x of [-0.105, -0.055]) ps.add(rbox(0.04, 0.026, 0.006, 0.003, mat('#202124'), x, 0.005 + 0.024, fz + 0.001));
   for (const x of [0.03, 0.095]) ps.add(rbox(0.05, 0.024, 0.006, 0.003, mat('#7b7b78'), x, 0.005 + 0.024, fz + 0.001));
   for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) ps.add(cyl(0.011, 0.012, 0.01, mat('#3b3b3b'), x * 0.135, 0.005, z * 0.085, 12));
+  }
   ps.position.set(0.58, 0, 0.0); ps.rotation.y = -0.08; g.add(ps);
 
   /* ── manette ── */
   const pad = group();
   pad.userData.dynamic = true;
+  pad.name='PS1Controller';
+  if(controllerModel){const visual=controllerModel.scene;visual.name='SuppliedPS1Controller';visual.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});pad.add(visual);}else{
   const padM = new THREE.MeshStandardMaterial({ color: '#b6b6b1', roughness: 0.55 });
   pad.add(rbox(0.14, 0.024, 0.07, 0.01, padM, 0, 0.012, 0));
   for (const s of [-1, 1]) { const grip = rbox(0.038, 0.03, 0.075, 0.014, padM, s * 0.068, 0.015, 0.05); grip.rotation.y = s * -0.28; pad.add(grip); }
@@ -68,6 +72,7 @@ export function createRetroSet() {
   for (const [dx, dz, c] of [[0, -0.014, '#3fae6a'], [0.014, 0, '#d04c4c'], [0, 0.014, '#4f78d0'], [-0.014, 0, '#d86fa3']]) pad.add(cyl(0.0075, 0.0075, 0.007, mat(c, { roughness: 0.4 }), 0.045 + dx, 0.026, -0.002 + dz, 14));
   for (const x of [-0.012, 0.012]) pad.add(rbox(0.014, 0.005, 0.008, 0.002, mat('#7c7c79'), x, 0.025, 0.012));
   for (const s of [-1, 1]) pad.add(rbox(0.03, 0.01, 0.014, 0.004, padM, s * 0.045, 0.026, -0.036));
+  }
   pad.scale.setScalar(1.65); pad.position.set(0.28, 0, 0.78); pad.rotation.y = 0.55; g.add(pad);
 
   const padHome = {
@@ -89,11 +94,14 @@ export function createRetroSet() {
   /* ── câbles posés au sol ── */
   const FLOOR = 0.006;
   const cable = (pts, color, r = 0.0042) => { r *= 1.7; return mk(pts, color, r); };
-  const mk = (pts, color, r) => { const t = tube(pts, r, new THREE.MeshStandardMaterial({ color, roughness: 0.6 }), { segs: 120, radial: 6 }); g.add(t); return t; };
+  const staticCables=[];
+  const mk = (pts, color, r) => { const t = tube(pts, r, new THREE.MeshStandardMaterial({ color, roughness: 0.6 }), { segs: 120, radial: 6 }); g.add(t);staticCables.push(t); return t; };
   const plug = (x, y, z, c = '#d9c24a') => g.add(box(0.016, 0.014, 0.022, mat(c, { roughness: 0.4, metalness: 0.4 }), x, y, z));
+  const consolePoint=(name,fallback)=>{g.updateWorldMatrix(true,true);const marker=ps.getObjectByName(name);return marker?g.worldToLocal(marker.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(...fallback);};
+  const consolePort=consolePoint('ConsoleControllerPort',[.475,.03,.125]),consoleAV=consolePoint('ConsoleAVPort',[.60,.03,-.12]),consolePower=consolePoint('ConsolePowerPort',[.70,.03,-.12]);
   // vidéo (jaune) + audio (blanc, rouge) de la console vers l'arrière de la télé
   [['#e6c61e', 0], ['#f2f2ee', 0.012], ['#cc2b2b', 0.024]].forEach(([c, o]) => {
-    cable([[0.60 + o, 0.03, -0.12], [0.62 + o, FLOOR, -0.2], [0.55 + o, FLOOR, -0.42], [0.3 + o * 0.6, FLOOR, -0.5], [0.1 + o * 0.6, FLOOR + 0.02, -0.46], [0.02 + o * 0.5, 0.1, -0.4], [0.0 + o * 0.5, 0.2, -0.33]], c, 0.0034);
+    cable([[consoleAV.x+o,consoleAV.y,consoleAV.z], [0.62 + o, FLOOR, -0.2], [0.55 + o, FLOOR, -0.42], [0.3 + o * 0.6, FLOOR, -0.5], [0.1 + o * 0.6, FLOOR + 0.02, -0.46], [0.02 + o * 0.5, 0.1, -0.4], [0.0 + o * 0.5, 0.2, -0.33]], c, 0.0034);
   });
   // multiprise derrière le set : les deux alimentations y sont branchées, son cordon part vers la droite (raccordé au sol par room.js)
   const SX = 0.3, SZ = -0.8, SL = 0.34;
@@ -108,11 +116,12 @@ export function createRetroSet() {
   // alimentation télé : sort par l'arrière de la caisse et rejoint la multiprise
   pw([[-0.1, 0.18, -0.35], [-0.13, 0.04, -0.46], [-0.12, FLOOR, -0.62], [-0.02, FLOOR, -0.7], [SX - 0.07, sockY + 0.02, SZ + 0.01], [SX - 0.07, sockY + 0.005, SZ]]);
   // alimentation console
-  pw([[0.7, 0.03, -0.12], [0.84, FLOOR, -0.26], [0.78, FLOOR, -0.58], [SX + 0.1, FLOOR + 0.01, SZ + 0.1], [SX + 0.05, sockY + 0.02, SZ + 0.02], [SX + 0.05, sockY + 0.005, SZ]]);
+  pw([consolePower.toArray(), [0.84, FLOOR, -0.26], [0.78, FLOOR, -0.58], [SX + 0.1, FLOOR + 0.01, SZ + 0.1], [SX + 0.05, sockY + 0.02, SZ + 0.02], [SX + 0.05, sockY + 0.005, SZ]]);
   // cordon de la multiprise : part du bout droit
   const cordStart = new THREE.Vector3(SX + SL / 2, 0.02 + FLOOR, SZ);
   // câble manette : de la prise de façade jusqu'à la manette, avec du mou
-  const padSocket = new THREE.Vector3(0,.015,-.041);
+  g.updateWorldMatrix(true,true);const socketMarker=pad.getObjectByName('ControllerCableAnchor');
+  const padSocket=socketMarker?pad.worldToLocal(socketMarker.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(0,.015,-.041);
   const cordPoints=Array.from({length:6},()=>new THREE.Vector3());
   const cordCurve=new THREE.CatmullRomCurve3(cordPoints);cordCurve.arcLengthDivisions=72;
   cordPoints.forEach((p,i)=>p.set(.475, FLOOR+.015*i,.12+i*.1));
@@ -123,7 +132,7 @@ export function createRetroSet() {
     g.updateMatrixWorld(true);cordEnd.copy(padSocket);pad.localToWorld(cordEnd);g.worldToLocal(cordEnd);
     if(cordEnd.distanceToSquared(lastCordEnd)<1e-10)return;lastCordEnd.copy(cordEnd);
     cordDirection.set(0,0,-1).applyQuaternion(pad.quaternion);
-    cordPoints[0].set(.475,.03,.125);cordPoints[1].set(.46,FLOOR,.30);
+    cordPoints[0].copy(consolePort);cordPoints[1].set(.46,FLOOR,.30);
     cordPoints[2].set(.60,FLOOR,.55);cordPoints[3].set(cordEnd.x+cordDirection.x*.15,FLOOR,cordEnd.z+cordDirection.z*.15);
     cordPoints[4].copy(cordEnd).addScaledVector(cordDirection,.09);cordPoints[4].y=Math.max(FLOOR,cordEnd.y-.07);
     cordPoints[5].copy(cordEnd);
@@ -133,7 +142,7 @@ export function createRetroSet() {
     a.needsUpdate=true;n.needsUpdate=true;padCord.geometry.computeBoundingSphere();padCord.userData.endpoint=cordEnd.toArray();
   }
   updateControllerCord();
-  plug(0.475, 0.03, 0.125, '#8c8c88');
+  plug(consolePort.x,consolePort.y,consolePort.z,'#8c8c88');
 
   inkify(g, { skip: (o) => o.userData.noInk || (o.material && o.material.isMeshBasicMaterial) || (o.geometry && o.geometry.type === 'TubeGeometry') });
 
@@ -177,7 +186,7 @@ export function createRetroSet() {
   }
   const litMat = rocker.material; litMat.userData.unique = true;
   const api = {
-    pad, padCord, padSocket, console: ps,
+    pad, padCord, padSocket, consolePort, consoleAV, consolePower, staticCables, console: ps,
     get padHeld() { return padHeld; },
     setPadHeld(v) { padHeld = !!v; },
     updatePad(dt, handL, handR) {

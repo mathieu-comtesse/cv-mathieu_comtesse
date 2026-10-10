@@ -218,7 +218,7 @@ async function build() {
   const parkCoffeeMug = desk => {
     coffeeMug.position.set(0,0,0);coffeeMug.quaternion.identity();coffeeMug.scale.setScalar(1);coffeeMug.updateMatrixWorld(true);
     const bb=new THREE.Box3().setFromObject(coffeeMug),height=bb.max.y-bb.min.y,scale=.12/height;
-    coffeeMug.scale.setScalar(scale);coffeeMug.position.copy(desk.localToWorld(new THREE.Vector3(-.56,.742-bb.min.y*scale,.23)));coffeeMug.visible=true;
+    coffeeMug.scale.setScalar(scale);coffeeMug.position.copy(desk.localToWorld(new THREE.Vector3(-.78,.742-bb.min.y*scale,.29)));coffeeMug.visible=true;
   };
   const wateringCan = makeProp('iso:can');
   const waterTarget = new THREE.Object3D();waterTarget.name='MathieuWaterTarget';sourceScene.add(waterTarget);

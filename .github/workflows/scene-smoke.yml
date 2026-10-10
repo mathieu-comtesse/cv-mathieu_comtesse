@@ -74,10 +74,10 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-scene-v39" index.html
+          grep -q "js/main.js?v=cv-scene-v41" index.html
           grep -q "character.js?v=cv-scene-v29" js/room.js
-          grep -q "retro.js?v=cv-scene-v29" js/room.js
-          grep -q "room.js?v=cv-scene-v34" js/main.js
+          grep -q "retro.js?v=cv-scene-v41" js/room.js
+          grep -q "room.js?v=cv-scene-v41" js/main.js
           test -s assets/reference-character.glb
           test -s assets/seat-calibration-v26.json
           test -s assets/nb992-fitted-v27.glb
@@ -97,6 +97,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Check room rendering and interactions
         run: node tools/test-scene-runtime.mjs
+      - name: Check supplied workstation, shelf props and PS1 cables
+        run: node tools/test-user-room-props.mjs
       - name: Check greeting, autonomy, activity exits and particles
         run: node tools/test-scene-lifecycle.mjs
       - name: Check project images stay attached while scrolling
