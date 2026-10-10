@@ -18,7 +18,7 @@ export function initPiggyBank(host){
 }
 async function mountReference(host){
  const iframe=document.createElement('iframe'),canvas=document.createElement('canvas');
- iframe.className='piggy-reference';iframe.title='Cerdo hucha, tirelire de Legado 3D';iframe.allow='autoplay; fullscreen';iframe.allowFullscreen=true;
+ iframe.className='piggy-reference';iframe.title='Cerdo hucha, tirelire de Legado 3D';iframe.allow='autoplay; fullscreen; xr-spatial-tracking; accelerometer';iframe.allowFullscreen=true;
  canvas.className='piggy-3d piggy-coins-3d';canvas.tabIndex=0;canvas.setAttribute('aria-label','Tirelire 3D : glissez pour pivoter, ou utilisez les flèches');
  const credit=document.createElement('a');credit.className='piggy-credit';credit.href='https://sketchfab.com/3d-models/cerdo-hucha-'+MODEL;credit.target='_blank';credit.rel='noopener';credit.textContent='Cerdo hucha · Legado 3D / Sketchfab';
  host.append(iframe,canvas,credit);host.dataset.piggy='loading';
