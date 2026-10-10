@@ -124,7 +124,7 @@ try {
       await page.evaluate(() => {
         const effects = window.room.scene.getObjectByName('NativeMotionEffects');
         let template;
-        window.room.scene.getObjectByName('Moonlander').traverse(object => {
+        window.room.scene.getObjectByName('UserWorkstationMonitor').traverse(object => {
           if (!template && object.isMesh) template = object;
         });
         // Inject a deterministic render failure. Foreign typed arrays can be
