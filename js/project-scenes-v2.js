@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/BufferGeometryUtils.js';
 import {processSymbol} from './process-symbols.js?v=cv-scene-v29';
-import {reconstructedProjects} from './project-scenes-data.js?v=cv-projects-v2b';
+import {reconstructedProjects} from './project-scenes-data.js?v=cv-projects-v3';
 export const isReconstructed=id=>reconstructedProjects.some(p=>p.id===id);
 export function initReconstructedScene(model,id){
  const project=reconstructedProjects.find(p=>p.id===id),steps=project.steps,v=a=>new THREE.Vector3(...a);
@@ -27,16 +27,16 @@ function screenUV(o){
  g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
 }
 function optimise(root){
- root.updateMatrixWorld(true);const groups=new Map();
+ root.updateMatrixWorld(true);const inverseRoot=root.matrixWorld.clone().invert(),groups=new Map();
  root.traverse(o=>{
   if(!o.isMesh||Array.isArray(o.material))return;
   let dynamic=/^(Display_\d|SideDisplay_|StudioScreen|Radar face)/.test(o.name);
-  for(let p=o;p&&p!==root;p=p.parent)if(/^(Drum|Door_|Locker_|Trolley|Spreader|Cargo|HoistCable_|Gauge|Wheel|GateBlade|Alert_|Sweep|ToolParcel|Observer|Colleague)/.test(p.name))dynamic=true;
+  for(let p=o;p&&p!==root;p=p.parent)if(/^(Drum|Door_|Locker_|Trolley|Spreader|Cargo|HoistCable_|Gauge|Wheel|GateBlade|Alert_|Sweep|Blip_|Needle_|Valve_|StatusLamp_|InputDocument|OutputDocument|ToolParcel|Observer|Colleague)/.test(p.name))dynamic=true;
   if(dynamic)return;
   let group=groups.get(o.material.uuid);
   if(!group){group={material:o.material,geo:[],objects:[]};groups.set(o.material.uuid,group)}
   // Blender primitives have different attribute sets. Normalize them before merging.
-  const geo=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(o.matrixWorld);
+  const geo=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverseRoot,o.matrixWorld));
   for(const name of Object.keys(geo.attributes))if(!['position','normal','uv'].includes(name))geo.deleteAttribute(name);
   if(!geo.attributes.normal)geo.computeVertexNormals();
   if(!geo.attributes.uv)geo.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count*2),2));
@@ -61,8 +61,15 @@ function update(T){const t=THREE.MathUtils.euclideanModulo(T,cycle),f=t/duration
   const x=THREE.MathUtils.lerp(-.84,.8,smooth(4.5,5.7,f));let y=1.15-.5*smooth(2,2.7,f)+2.15*smooth(3,3.8,f)-2.15*smooth(5.7,6.5,f)+.9*smooth(7,7.6,f);node('Trolley').position.x=x;node('Spreader').position.set(x,y,0);cargoAttached=f>=2.7&&f<6.6;const cargo=node('Cargo');cargo.position.set(cargoAttached?x:(f<2.7?-.84:.8),cargoAttached?y-.61:.04,0);
   for(let i=0;i<4;i++){const c=reset('HoistCable_'+i);if(c){c.position.y+=(y-1.15)/2;c.position.x+=x;c.scale.y=(3.60-y)/(3.60-1.15)}}operation={time:t,x,hoistY:y,cargoAttached,cargo:cargo.position.toArray(),clearance:y-cargo.position.y-.42};
  }else if(id==='finance'){
-  const ratio=f<5?.22+f*.09:f<6?.65+(f-5)*.17:f<7?.82:1.05;const g=node('Gauge');g.scale.y=Math.min(ratio,1);node('Wheel').rotation.y=gauge/100*Math.PI*2+Math.sin(t*.5)*.025;node('GateBlade').position.y=base.GateBlade.p.y;
+  const ratio=f<5?.22+f*.09:f<6?.65+(f-5)*.17:f<7?.82:1.05;const g=node('Gauge');g.scale.y=Math.min(ratio,1);node('Wheel').rotation.y=gauge/100*Math.PI*2;node('GateBlade').position.y=base.GateBlade.p.y;
   reset('Alert_0').visible=ratio>=gauge/100;reset('Alert_1').visible=ratio>1;operation={time:t,ratio,threshold:gauge/100,preventive:ratio>=gauge/100,overspend:ratio>1};
+ }else if(id==='pa'){
+  const valves=[],needles=[];
+  for(let i=0;i<5;i++){const valve=reset('Valve_'+i);if(valve){const axis=i===2||i===3?'z':'y';valve.rotation[axis]+=smooth([1,8,2,5,4][i],[1.6,8.6,2.6,5.6,4.6][i],f)*Math.PI*.75;valves.push(valve.rotation[axis]);}}
+  for(let i=0;i<3;i++){const needle=reset('Needle_'+i);if(needle){needle.rotation.z=-.9+1.7*smooth(2.8+i*.6,3.6+i*.6,f);needles.push(needle.rotation.z);}}
+  for(let i=0;i<9;i++){const lamp=node('StatusLamp_'+i);lamp?.traverse(o=>{if(o.isMesh){o.material.color.set(i<=step?'#4da97b':'#244d39');o.material.emissive.set(i===step?'#123a23':'#000000');}});}
+  const input=reset('InputDocument'),output=reset('OutputDocument');if(input)input.visible=f<2;if(output)output.visible=f>=6.6;
+  operation={time:t,valves,needles,checked:f>=3.6,classified:f>=6.6};
  }else if(id==='gares'){
   node('Sweep').rotation.y=-t*.9;for(let i=0;i<4;i++){const b=reset('Blip_'+i);b.scale.setScalar(f>=4?1+(i===3?.35:0):.75);b.visible=f>=1+i*.6;}operation.sweep=node('Sweep').rotation.y;
  }else if(id==='studio'){
@@ -74,11 +81,11 @@ function update(T){const t=THREE.MathUtils.euclideanModulo(T,cycle),f=t/duration
  processUpdate(f);model.updateMatrixWorld(true);
 }
 async function extras(){
- for(let i=0;i<9;i++){const tex=await symbolTexture(steps[i].kind);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));s.position.copy(v(steps[i].point)).add(v([0,project.size*.06,0]));s.scale.setScalar(project.size*.065);s.renderOrder=20;scene.add(s);markers.push(s)}
+ for(let i=0;i<(['gares','pa','finance'].includes(id)?0:9);i++){const tex=await symbolTexture(steps[i].kind);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));s.position.copy(v(steps[i].point)).add(v([0,project.size*.06,0]));s.scale.setScalar(project.size*.065);s.renderOrder=20;scene.add(s);markers.push(s)}
  if(id==='cerfa'){const tex=await symbolTexture('pdf');for(let i=0;i<3;i++){const g=new THREE.Group();mesh(new THREE.BoxGeometry(.26,.025,.30),new THREE.MeshStandardMaterial({color:'#eeeadd'}),[0,0,0],g);const m=mesh(new THREE.PlaneGeometry(.22,.26),new THREE.MeshBasicMaterial({map:tex}),[0,.014,0],g);m.rotation.x=-Math.PI/2;scene.add(g);tokens.push(g)}}
  if(id==='vre')for(let i=0;i<3;i++)vrCounters.push(new THREE.Group());
  if(id==='studio'||id==='suivi'){const names=id==='studio'?['StudioScreen']:['Display_0','Display_1','Display_2','SideDisplay_-1','SideDisplay_1'];for(const name of names){const o=node(name);if(o){screenUV(o);o.material=new THREE.MeshBasicMaterial({map:canvasTexture((c,w,h)=>drawDisplay(c,w,h,screens.length)),toneMapped:false});screens.push(o)}}}
- if(id==='gares'){const panel=mesh(new THREE.PlaneGeometry(1.04,.32),new THREE.MeshBasicMaterial({map:canvasTexture(drawDisplay)}),[0,1.95,-.398]);screens.push(panel)}
+
 }
 
  // The process is acted out by objects within the scenery, without added displays or cables.
@@ -107,8 +114,6 @@ async function processExtras(){
   const face=mesh(new THREE.CylinderGeometry(.23,.23,.035,32),mat('#efe9d6'),[0,0,0],clockFace);face.rotation.x=Math.PI/2;
   for(let j=0;j<12;j++){const a=j*Math.PI/6;mesh(new THREE.SphereGeometry(.012,8,6),mat('#71542c'),[Math.sin(a)*.19,Math.cos(a)*.19,.025],clockFace);}
   for(const length of [.12,.17]){const hand=new THREE.Group();clockFace.add(hand);mesh(new THREE.BoxGeometry(.012,length,.02),mat('#71542c'),[0,length/2,.045],hand);clockHands.push(hand);}
- }else if(id==='finance'){
-  for(let j=0;j<2;j++)physical.push({o:paper('outlook',[2.57,1.1+j*.53,.45],.35),j});
  }else if(id==='cerfa'){
   for(let j=0;j<3;j++)physical.push({o:paper('excel',[3.9+j*.20,1.02,.25],.24),j});
  }else if(id==='studio'){
@@ -136,14 +141,14 @@ function processUpdate(f){
   operation.semantic.summaryRows=i===8?(p>.5?2:p>.25?1:0):0;
   operation.semantic.time=i===8&&p>.8?'17:00':'16:59';
  }else if(id==='finance'){
-  physical.forEach(({o,j})=>{o.visible=j?operation.overspend:operation.preventive;o.position.set(2.57,1.1+j*.53+p*.18,.45+p*.23);});
+  physical.forEach(({o,j})=>{o.visible=j?operation.overspend:operation.preventive;o.position.set(2.57,1.1+j*.53,.045);});
   const g=node('Gauge');if(g?.material?.color)g.material.color.set(operation.overspend?'#b94a35':operation.preventive?'#e4aa37':'#417f87');
  }else if(id==='cerfa')physical.forEach(({o,j})=>{o.visible=i>=7;o.position.x=3.7+j*.22+(i===8?p*.55:0);});
  else if(id==='studio')physical.forEach(({o})=>{o.visible=i>=7;o.position.z=.56+.45*smooth(7.5,8.3,f);});
 }
 
  function cleanup(){scene.removeFromParent();scene.traverse(o=>{if(o.isMesh){o.geometry.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.dispose());}if(o.isSprite)o.material.dispose();});resources.forEach(t=>t.dispose());resources=[];}
- const ready=(async()=>{model.traverse(o=>{nodes[o.name]=o;base[o.name]={p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()};});optimise(model);await extras();await processExtras();if(disposed){cleanup();return;}loaded=true;update(0);paintScreens();})();
+ const ready=(async()=>{model.traverse(o=>{nodes[o.name]=o;base[o.name]={p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()};if(o.isMesh&&o.parent?.name.startsWith('StatusLamp_'))o.material=o.material.clone();});optimise(model);await extras();await processExtras();if(disposed){cleanup();return;}loaded=true;update(0);paintScreens();})();
  return {ready,duration,focusPoint:i=>v(steps[i].point),get state(){return {id,ready:loaded,step,elapsed,operation,addedDisplays:0,addedConnections:0}},
  update(state){if(!loaded||disposed)return;step=state.step;elapsed=Math.min(state.elapsed,duration-.001);markers.forEach((m,i)=>m.visible=i===step);let time=step*duration+elapsed;if(id==='finance'&&state.exception)time=6.8*duration;update(time);if(lastScreen!==step){paintScreens();lastScreen=step;}model.userData.processState=this.state;},
  dispose(){disposed=true;cleanup();}};

@@ -1,6 +1,7 @@
+import {projectViews,applyProjectView} from './project-camera.js?v=cv-projects-v3';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import * as THREE from 'three';
-import { initProcessMachines } from './process-machines.js?v=cv-projects-v2b';
+import { initProcessMachines } from './process-machines.js?v=cv-projects-v3';
 
 // One renderer serves the visible cards; cloned carousel cards never create contexts.
 export function initWorkshopPreviews(host, projects, load, palettes) {
@@ -35,8 +36,9 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
       model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});
       const scene=new THREE.Scene();scene.environment=environment;scene.environmentIntensity=.24;scene.add(model,new THREE.HemisphereLight('#ffffff','#bcc6cb',1.3));
       const key=new THREE.DirectionalLight('#fff6e8',2.5);key.position.set(-4,8,6);key.castShadow=!mobile.matches;key.shadow.mapSize.set(512,512);Object.assign(key.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:.1,far:30});key.shadow.bias=-.0004;scene.add(key);
-      const camera=new THREE.PerspectiveCamera(32,720/560,.1,60);camera.position.set(8,8,11);const bounds=new THREE.Box3().setFromObject(model),center=bounds.getCenter(new THREE.Vector3());center.y=Math.max(.7,center.y*.85);const direction=camera.position.clone().normalize();let distance=camera.position.length();for(let pass=0;pass<2;pass++){camera.position.copy(center).addScaledVector(direction,distance);camera.lookAt(center);camera.updateMatrixWorld();let extent=0;for(const x of [bounds.min.x,bounds.max.x])for(const y of [bounds.min.y,bounds.max.y])for(const z of [bounds.min.z,bounds.max.z]){const v=new THREE.Vector3(x,y,z).project(camera);extent=Math.max(extent,Math.abs(v.x),Math.abs(v.y));}distance*=extent/.92;}camera.position.copy(center).addScaledVector(direction,distance);camera.lookAt(center);
-      const machines=initProcessMachines(model,project.diag,palettes[id],id);await machines.ready;instances.set(id,{model,scene,camera,machines,project,elapsed:0,step:0});
+      const camera=new THREE.PerspectiveCamera(32,720/560,.1,100),bounds=new THREE.Box3().setFromObject(model);
+      const machines=initProcessMachines(model,project.diag,palettes[id],id);await machines.ready;
+      const views=projectViews(bounds,camera,id);applyProjectView(camera,views.view());instances.set(id,{model,scene,camera,machines,project,views,elapsed:0,step:0});
       start();
     }catch(e){console.warn('Workshop preview unavailable',id,e);}finally{pending.delete(id);}
   }
@@ -60,8 +62,8 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
       if(!active.has(id)){if(!reduced.matches){i.elapsed+=dt;if(i.elapsed>=(i.machines.duration||4.6)){i.elapsed%=(i.machines.duration||4.6);i.step=(i.step+1)%i.project.diag.length;}}i.machines.update({step:i.step,elapsed:i.elapsed,dt,playing:!reduced.matches,exception:false});active.add(id);}
       const x=rect.left-box.left+overscan,y=height-(rect.bottom-box.top-bandTop),w=rect.width,h=rect.height;
       renderer.setViewport(x,y,w,h);renderer.setScissor(Math.max(0,x),Math.max(0,y),Math.min(w,width-Math.max(0,x)),Math.min(h,height-Math.max(0,y)));
-      renderer.shadowMap.needsUpdate=!mobile.matches&&(frames%10===0||!i.rendered);i.rendered=true;
-      i.camera.aspect=w/h;i.camera.updateProjectionMatrix();renderer.render(i.scene,i.camera);
+      renderer.shadowMap.needsUpdate=!mobile.matches;i.rendered=true;
+      i.camera.aspect=w/h;i.camera.updateProjectionMatrix();applyProjectView(i.camera,i.views.view());renderer.render(i.scene,i.camera);
       image.style.visibility='hidden';card.dataset.live='true';card.dataset.frames=String(frames);if(card.dataset.step!==String(i.step)){card.dataset.step=String(i.step);card.querySelector('.process-card-action').textContent=`${i.step+1}. ${i.project.diag[i.step][0]}`;}
     }
     frames++;host.dataset.previewFrames=String(frames);host.dataset.previewActive=String(active.size);host.dataset.previewPixels=String(canvas.width*canvas.height);host.dataset.previewCalls=String(renderer.info.render.calls);

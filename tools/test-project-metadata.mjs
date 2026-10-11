@@ -43,7 +43,7 @@ assert.match(ppMoso.diag[2][1],/SharePoint/);
 assert.match(ppMoso.diag[3][0],/Archivage/);
 for(const id of ['projet-3','projet-4'])assert.ok(PAGES[id].html.includes('15 à 20 minutes économisées par plan de prévention'));
 for(const project of PRO_CARDS){
- let file=await readFile(new URL('../assets/'+(["cerfa","vre","vmvre","finance","suivi","gares","studio","powerbi","moteur44"].includes(project.id)?'dioramas-v2':'dioramas')+'/'+project.id+'.glb'+(["cerfa","vre","vmvre","finance","suivi","gares","studio","powerbi","moteur44"].includes(project.id)?'.gz':''),import.meta.url));
+ let file=await readFile(new URL('../assets/'+(["cerfa","vre","vmvre","finance","suivi","gares","studio","powerbi","moteur44","pa"].includes(project.id)?'dioramas-v2':'dioramas')+'/'+project.id+'.glb'+(["cerfa","vre","vmvre","finance","suivi","gares","studio","powerbi","moteur44","pa"].includes(project.id)?'.gz':''),import.meta.url));
  if(file[0]===31&&file[1]===139)file=gunzipSync(file);
  assert.equal(file.toString('ascii',0,4),'glTF');
  const gltf=JSON.parse(file.toString('utf8',20,20+file.readUInt32LE(12)));
