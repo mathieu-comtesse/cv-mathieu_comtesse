@@ -1,5 +1,6 @@
 import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
 import { initProjectDioramas } from './project-dioramas.js?v=cv-projects-v4';
+import { initFigures } from './figures.js?v=cv-projects-v5';
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v49';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v45';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v4';
@@ -57,7 +58,7 @@ function initUniv() {
 const numberFR=(n,digits=0)=>n.toLocaleString('fr-FR',{maximumFractionDigits:digits});
 const rangeFR=(min,max,digits=0)=>min===max?numberFR(min,digits):numberFR(min,digits)+'–'+numberFR(max,digits);
 function initAnnualGains(){
- const head=document.querySelector('#mq-pro')?.previousElementSibling;
+ const head=document.querySelector('#work > .strip-head');
  if(!head||head.querySelector('.annual-gains'))return;
  head.classList.add('pro-gains-heading');
  const title=document.createElement('div');title.className='pro-gains-title';
@@ -91,6 +92,7 @@ function initAnnualGains(){
 
 export function initHome() {
   initAnnualGains();
+  initFigures(document.getElementById('figs'));
   initUniv();
   initFlipText(); initFlip();
   const open = initDetail();
