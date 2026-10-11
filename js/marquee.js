@@ -22,7 +22,7 @@ export function createMarquee(root,{repeat=5,friction=.975,maxThrow=60}={}){
  const measure=()=>{const phase=width?x/width:-1,gap=parseFloat(getComputedStyle(track).columnGap)||0;width=originals.reduce((s,o)=>s+o.getBoundingClientRect().width,0)+gap*originals.length;x=mobile.matches?-viewport.scrollLeft:wrap(phase*width);root.dataset.marqueePeriod=String(width);centre();set();};
  const tick=now=>{raf=0;if(gesture||!visible||document.hidden||mobile.matches)return;const dt=lastFrame?Math.min(50,now-lastFrame):16.67;lastFrame=now;x=wrap(x+velocity*dt);velocity*=Math.pow(friction,dt/16.67);set();if(Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);else{velocity=0;lastFrame=0;}};
  const kick=()=>{if(!raf&&visible&&!document.hidden&&!mobile.matches&&Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);};
- viewport.addEventListener('scroll',()=>{if(!mobile.matches)return;if(gesture&&Math.abs(viewport.scrollLeft-gesture.scroll)>7)suppressUntil=performance.now()+180;set();},{passive:true});
+ viewport.addEventListener('scroll',()=>{if(!mobile.matches)return;if(gesture&&Math.abs(viewport.scrollLeft-gesture.scroll)>7)suppressUntil=performance.now()+180;centre();set();},{passive:true});
  root.addEventListener('dragstart',e=>e.preventDefault());
  root.addEventListener('pointerdown',e=>{if(e.button!==0)return;stop();velocity=0;suppressUntil=0;gesture={id:e.pointerId,x:e.clientX,y:e.clientY,start:x,last:e.clientX,time:performance.now(),scroll:viewport.scrollLeft,dragging:false};});
  root.addEventListener('pointermove',e=>{const g=gesture;if(mobile.matches||!g||g.id!==e.pointerId)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;

@@ -1,5 +1,5 @@
 import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
-import { initProjectDioramas } from './project-dioramas.js?v=cv-projects-v4';
+import { initProjectDioramas } from './project-dioramas.js?v=cv-info-rail-v1';
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v49';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v45';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v4';
@@ -8,7 +8,7 @@ import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';
 import { initFlip } from './flip.js?v=bf01a16';
 import { initFlipText } from './fliptext.js?v=bf01a16';
-import { createMarquee } from './marquee.js?v=cv-scene-v49';
+import { createMarquee } from './marquee.js?v=cv-info-rail-v1';
 
 // Les descriptions parlent de Mathieu à la troisième personne et restent complètes.
 const texteProjet = (t) => String(t || '');

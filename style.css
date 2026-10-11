@@ -301,3 +301,9 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .film-album header{justify-content:flex-end}.film-loading{width:1px;height:1px;inset:auto;overflow:hidden;clip-path:inset(50%)}
 
 .film-book canvas:focus-visible{outline:none}
+
+/* Info uses the same infinite, inertial rail as the professional projects. */
+.info-rail-section{margin:58px calc(50% - 50vw) 24px;width:100vw;max-width:100%;padding:0}.page-info-native .info-rail-section{max-width:none}.info-rail{padding:8px 0 24px;touch-action:pan-y}.info-rail .mq-track{align-items:stretch;gap:20px}.info-rail .info-card{flex:0 0 360px;width:360px;min-height:0;text-align:left;padding:28px;border-radius:24px;transition:border-color .2s}.info-rail .info-card:hover{border-color:var(--mute)}.info-rail .info-card-kicker{margin-bottom:24px;font-size:20px;font-weight:600;color:var(--ink)}.info-rail .info-card-lines,.info-rail .info-card-lines.compact{gap:18px}.info-rail .info-card-lines span{line-height:1.5}.info-rail-hint{text-align:center;font-size:12px;color:var(--mute)}.info-rail .mq-scroll{overflow:hidden;touch-action:pan-y}
+@media(max-width:809px){.info-rail .info-card{flex-basis:310px;width:310px;padding:22px}.info-rail,.info-rail .mq-scroll{touch-action:pan-x pan-y}.info-rail .mq-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none}.info-rail .mq-scroll::-webkit-scrollbar{display:none}}
+
+.info-rail .info-card-kicker{text-align:left}.info-rail .info-card--soft .info-card-lines{display:grid;grid-template-columns:1fr 1fr;gap:16px 12px;font-size:12px}.info-rail .info-card--soft .info-card-lines strong{font-size:13px}
