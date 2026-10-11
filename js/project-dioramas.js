@@ -1,7 +1,9 @@
+import {loadProjectModel} from './project-model-loader.js?v=cv-projects-v2';
+import {isReconstructed} from './project-scenes-v2.js?v=cv-projects-v2';
 import {showFinanceEmails} from './finance-emails.js?v=cv-scene-v49';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-scene-v49';
-import { initProcessMachines } from './process-machines.js?v=cv-scene-v29';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v2';
+import { initProcessMachines } from './process-machines.js?v=cv-projects-v2';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 import { createMarquee } from './marquee.js?v=cv-scene-v49';
 import * as THREE from 'three';
@@ -11,19 +13,19 @@ function orbit(camera,canvas){
   canvas.addEventListener('pointerdown',e=>{manualUntil=Infinity;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{const p=pointers.get(e.pointerId);if(!p)return;if(pointers.size===1){theta-=(e.clientX-p.x)*.006;phi=Math.max(.3,Math.min(Math.PI*.48,phi+(e.clientY-p.y)*.006));}pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const [a,b]=[...pointers.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch)distance=Math.max(.1,Math.min(100,distance*pinch/d));pinch=d;}});
   const release=e=>{pointers.delete(e.pointerId);pinch=0;};canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
-  canvas.addEventListener('wheel',e=>{manualUntil=Infinity;e.preventDefault();distance=Math.max(9,Math.min(22,distance*Math.exp(e.deltaY*.001)));},{passive:false});
-  return {target,frame(point,zoom){target.copy(point);distance=zoom;},reset(){theta=.6298;phi=.9428;distance=12.8;manualUntil=0;},focus(point,dt,zoom=12.8){if(performance.now()<manualUntil)return;const k=1-Math.exp(-dt*3);target.lerp(point,k);distance+=(zoom-distance)*k;},update(){camera.position.set(target.x+distance*Math.sin(phi)*Math.sin(theta),target.y+distance*Math.cos(phi),target.z+distance*Math.sin(phi)*Math.cos(theta));camera.lookAt(target);}};
+  canvas.addEventListener('wheel',e=>{manualUntil=Infinity;e.preventDefault();distance=Math.max(2,Math.min(80,distance*Math.exp(e.deltaY*.001)));},{passive:false});
+  return {target,resume(){manualUntil=0;},frame(point,zoom){target.copy(point);distance=zoom;},focusView(point,eye,dt){if(performance.now()<manualUntil)return;const k=1-Math.exp(-dt*3),sph=new THREE.Spherical().setFromVector3(eye.clone().sub(point));target.lerp(point,k);theta+=Math.atan2(Math.sin(sph.theta-theta),Math.cos(sph.theta-theta))*k;phi+=(sph.phi-phi)*k;distance+=(sph.radius-distance)*k;},reset(){theta=.6298;phi=.9428;distance=12.8;manualUntil=0;},focus(point,dt,zoom=12.8){if(performance.now()<manualUntil)return;const k=1-Math.exp(-dt*3);target.lerp(point,k);distance+=(zoom-distance)*k;},update(){camera.position.set(target.x+distance*Math.sin(phi)*Math.sin(theta),target.y+distance*Math.cos(phi),target.z+distance*Math.sin(phi)*Math.cos(theta));camera.lookAt(target);}};
 }
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const extraGainHTML=p=>(p.extraGains||[]).map(g=>`<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('');
 const palettes={pa:'#328b81',finance:'#cd9355',vmvre:'#587cb3',cerfa:'#df725b',vre:'#668dab',studio:'#bc819e',powerbi:'#c5a647',suivi:'#628d85',gares:'#88a85a',terrain:'#c4835c',moteur44:'#298b81'};
 const cache=new Map();
-const load=id=>{if(!cache.has(id))cache.set(id,new GLTFLoader().loadAsync(`assets/dioramas/${id}.glb?v=cv-scene-v29`).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
+const load=id=>{if(!cache.has(id))cache.set(id,loadProjectModel(id,isReconstructed(id)).catch(e=>{cache.delete(id);throw e;}));return cache.get(id);};
 
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
-  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/dioramas/${p.id}.png?v=cv-scene-v29" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
+  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/${isReconstructed(p.id)?'dioramas-v2':'dioramas'}/${p.id}.png?v=cv-projects-v2" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
   createMarquee(host, { loopEnd: -1 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
   initWorkshopPreviews(host,projects,load,palettes);
@@ -31,7 +33,7 @@ export function initProjectDioramas(host,projects){
   modal.innerHTML=`<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Atelier des processus</span><button type="button" class="process-theme" aria-label="Changer le thème de l’atelier">Clair / sombre</button></div><div class="process-content"><div class="process-stage" aria-label="Diorama interactif : faites glisser pour tourner"><img class="process-poster" alt=""/><canvas></canvas><p class="process-loading" role="status">Chargement de l’atelier…</p></div><div class="process-transform" aria-label="Transformation des données"><span class="transform-input"></span><span class="transform-machine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h4l2-5h4l2 5h4v9H4zM7 14h10M10 19v-5m4 5v-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><span class="transform-output"></span><b></b></div><div class="process-copy"><p class="process-operation" aria-live="polite"></p><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="process-sub"></p><div class="process-outcome"></div><div class="process-controls"><button class="process-play" type="button" aria-pressed="false">Mettre en pause</button><button class="process-next" type="button">Étape suivante</button><button class="process-test" type="button" hidden></button></div><div class="process-steps" role="group" aria-label="Étapes du processus"></div><div class="process-explanation" aria-live="polite"><b></b><p></p></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot">Démonstration avec des données fictives · glissez le modèle pour le tourner</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div>`;
   document.body.append(modal);
   const stage=modal.querySelector('.process-stage'),canvas=stage.querySelector('canvas'),status=stage.querySelector('.process-loading'),labels=modal.querySelector('.process-transform');
-  let renderer,scene,camera,controls,model,current,index=0,step=0,elapsed=0,playing=true,raf=0,previous=0,request=0,opener,exception=false;
+  let renderer,scene,camera,controls,model,current,index=0,step=0,elapsed=0,playing=true,autoAdvance=true,raf=0,previous=0,request=0,opener,exception=false;
   let machines;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   function setup(){
@@ -44,13 +46,13 @@ export function initProjectDioramas(host,projects){
     new ResizeObserver(resize).observe(stage);resize();
   }
   function resize(){if(!renderer||!stage.clientWidth)return;renderer.setSize(stage.clientWidth,stage.clientHeight,false);camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();}
-  const select=n=>{step=(n+current.diag.length)%current.diag.length;elapsed=0;modal.dataset.step=String(step);modal.querySelectorAll('.process-step').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===step)));modal.querySelector('.process-explanation b').textContent=`${step+1}. ${current.diag[step][0]}`;modal.querySelector('.process-explanation p').textContent=current.diag[step][1];labels.querySelector('.transform-input').innerHTML=processSymbol(current.diag[Math.max(0,step-1)][2]);labels.querySelector('.transform-output').innerHTML=processSymbol(current.diag[step][2]);labels.querySelector('b').textContent=current.diag[step][0];};
+  const select=n=>{controls?.resume();step=(n+current.diag.length)%current.diag.length;elapsed=0;modal.dataset.step=String(step);modal.querySelectorAll('.process-step').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===step)));modal.querySelector('.process-explanation b').textContent=`${step+1}. ${current.diag[step][0]}`;modal.querySelector('.process-explanation p').textContent=current.diag[step][1];labels.querySelector('.transform-input').innerHTML=processSymbol(current.diag[Math.max(0,step-1)][2]);labels.querySelector('.transform-output').innerHTML=processSymbol(current.diag[step][2]);labels.querySelector('b').textContent=current.diag[step][0];};
   function animate(now){
     if(!modal.open)return;
     modal.dataset.playing=String(playing);
     if(previous&&now-previous<1000/30){raf=requestAnimationFrame(animate);return;}
     const dt=previous?Math.min(.05,(now-previous)/1000):0;previous=now;
-    if(playing&&model){elapsed+=dt;if(elapsed>4.6)select(step+1);}
+    if(playing&&model){elapsed+=dt;if(elapsed>(machines?.duration||4.6)){if(autoAdvance)select(step+1);else{elapsed=(machines?.duration||4.6)-.001;playing=false;modal.querySelector('.process-play').textContent='Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed','true');}}}
     if(model){
       machines?.update({step,elapsed,dt,playing,exception});
       const anchors=current.diag.map((_,i)=>model.getObjectByName('StepAnchor_'+i)?.position.clone()||new THREE.Vector3(-2.8+i*5.6/(current.diag.length-1),.65,1.15));
@@ -60,6 +62,7 @@ export function initProjectDioramas(host,projects){
       const beam=model.getObjectByName('ProcessScannerBeam');if(beam){beam.position.copy(end);beam.position.y+=.18;beam.position.z+=Math.sin(elapsed*4)*.09;beam.material.opacity=playing&&['extract','check'].includes(current.diag[step][2])?.30:0;}
 
     }
+    if(model&&isReconstructed(current.id)&&machines?.focusPoint){const point=machines.focusPoint(step);if(machines.focusEye){const eye=machines.focusEye(step);if(camera.aspect<1.5)eye.sub(point).multiplyScalar(Math.min(2.9,1.5/camera.aspect)).add(point);controls.focusView(point,eye,dt);}else{const distance=current.id==='gares'?3.4:current.id==='vre'?6.4:current.id==='cerfa'?7.4:6.8;controls.focus(point,dt,camera.aspect<1?distance/camera.aspect:distance);}if(new URLSearchParams(location.search).has('inspect'))window.projectSceneState=machines.state;}
     controls.update();renderer.shadowMap.needsUpdate=playing&&Number(modal.dataset.frames||0)%6===0||!Number(modal.dataset.frames);renderer.render(scene,camera);
 
     const operation=modal.querySelector('.process-operation');if(current.id==='terrain'){const s=['Le billet brut arrive sur la palette.','Le métal fond dans le creuset, puis est coulé dans le moule.','Le marteau-pilon transforme le billet en poutrelle.','Le pont roulant lève et transporte la pièce forgée.','La pièce refroidie est contrôlée puis déposée en sortie.'][step];if(operation.textContent!==s)operation.textContent=s;}else operation.textContent=current.diag[step][1];
@@ -67,7 +70,7 @@ export function initProjectDioramas(host,projects){
   }
   function close(){request++;cancelAnimationFrame(raf);modal.close();document.body.classList.remove('lock');document.dispatchEvent(new CustomEvent('project-workshop',{detail:{open:false}}));opener?.focus();}
   async function open(n,trigger){
-    index=n;current=projects[n];exception=false;modal.dataset.exception='false';playing=!reduced;opener=trigger||opener;const ticket=++request;
+    index=n;current=projects[n];autoAdvance=true;exception=false;modal.dataset.exception='false';playing=!reduced;opener=trigger||opener;const ticket=++request;
     if(!modal.open){modal.showModal();document.body.classList.add('lock');document.dispatchEvent(new CustomEvent('project-workshop',{detail:{open:true}}));}
     modal.scrollTop=0;
     modal.dataset.project=current.id;modal.style.setProperty('--process-accent',palettes[current.id]);modal.querySelector('#process-title').textContent=current.title;modal.querySelector('.process-sub').textContent=current.sub;modal.querySelector('.process-eyebrow').textContent=current.id==='vmvre'?'VM Windows · reprise à deux VM à concevoir':'Projet professionnel';
@@ -79,9 +82,9 @@ export function initProjectDioramas(host,projects){
     const test=modal.querySelector('.process-test');test.hidden=!['finance','vmvre'].includes(current.id);test.textContent=current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));
     if(!reduced){stage.animate([{opacity:.2,transform:'translateY(28px) scale(.84)'},{opacity:1,transform:'none'}],{duration:650,easing:'cubic-bezier(.16,1,.3,1)'});modal.querySelector('.process-copy').animate([{opacity:0,transform:'translateY(15px)'},{opacity:1,transform:'none'}],{duration:600,delay:100,fill:'backwards'});}
-    const poster=stage.querySelector('.process-poster');poster.src=`assets/dioramas/${current.id}.png?v=cv-scene-v29`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
+    const poster=stage.querySelector('.process-poster');poster.src=`assets/${isReconstructed(current.id)?'dioramas-v2':'dioramas'}/${current.id}.png?v=cv-projects-v2`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
     try{
-      setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);machines=initProcessMachines(model,current.diag,palettes[current.id],current.id);
+      setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);machines=initProcessMachines(model,current.diag,palettes[current.id],current.id);await machines.ready;if(ticket!==request||!modal.open){machines.dispose();return;}
       const sparkGroup=new THREE.Group();sparkGroup.name='ProcessConfirmation';model.add(sparkGroup);
       for(let i=0;i<10;i++){const spark=new THREE.Mesh(new THREE.IcosahedronGeometry(.022,0),new THREE.MeshBasicMaterial({color:i%3===0?'#ffffff':palettes[current.id],transparent:true,opacity:0}));sparkGroup.add(spark);}
       const beam=new THREE.Mesh(new THREE.PlaneGeometry(.52,.32),new THREE.MeshBasicMaterial({color:'#69d5db',transparent:true,opacity:.23,side:THREE.DoubleSide,depthWrite:false}));beam.name='ProcessScannerBeam';beam.rotation.x=-Math.PI/2;beam.position.set(-.8,.84,.35);model.add(beam);
@@ -90,10 +93,11 @@ export function initProjectDioramas(host,projects){
     modal.querySelector('.process-back').focus();
   }
   host.addEventListener('click',e=>{const b=e.target.closest('button[data-project]');if(b)open(Number(b.dataset.project),b);});
-  modal.addEventListener('click',e=>{const project=e.target.closest('button[data-project]'),s=e.target.closest('button[data-step]');if(project)open(Number(project.dataset.project));else if(s){select(Number(s.dataset.step));playing=false;renderer&&(renderer.shadowMap.needsUpdate=true);modal.querySelector('.process-play').textContent='Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed','true');}});
+  modal.addEventListener('click',e=>{const project=e.target.closest('button[data-project]'),s=e.target.closest('button[data-step]');if(project)open(Number(project.dataset.project));else if(s){select(Number(s.dataset.step));autoAdvance=false;playing=isReconstructed(current.id)&&!reduced;renderer&&(renderer.shadowMap.needsUpdate=true);modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));}});
+  if(new URLSearchParams(location.search).has('inspect'))window.inspectProjectScene=(i,time=0)=>{select(i);elapsed=time;playing=false;machines.update({step,elapsed,dt:0,playing,exception});renderer.shadowMap.needsUpdate=true;renderer.render(scene,camera);return machines.state;};
   modal.querySelector('.process-back').onclick=close;modal.addEventListener('cancel',e=>{e.preventDefault();close();});
-  modal.querySelector('.process-next').onclick=()=>select(step+1);
-  modal.querySelector('.process-play').onclick=e=>{playing=!playing;e.currentTarget.textContent=playing?'Mettre en pause':'Lire l’animation';e.currentTarget.setAttribute('aria-pressed',String(!playing));};
+  modal.querySelector('.process-next').onclick=()=>{select(step+1);if(isReconstructed(current.id)&&!reduced){autoAdvance=false;playing=true;modal.querySelector('.process-play').textContent='Mettre en pause';modal.querySelector('.process-play').setAttribute('aria-pressed','false');}};
+  modal.querySelector('.process-play').onclick=e=>{playing=!playing;autoAdvance=true;e.currentTarget.textContent=playing?'Mettre en pause':'Lire l’animation';e.currentTarget.setAttribute('aria-pressed',String(!playing));};
   modal.querySelector('.process-theme').onclick=()=>modal.classList.toggle('process-dark');
   modal.querySelector('.process-test').onclick=()=>{
     exception=!exception;playing=false;modal.querySelector('.process-play').textContent='Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed','true');select(current.id==='vmvre'?3:4);

@@ -177,15 +177,6 @@ export const PRO = [
   "url": "projet-gares.html"
  },
  {
-  "id": "projet-5",
-  "title": "Dialogue terrain",
-  "sub": "Processus EPM / EPTx",
-  "lead": "Il a mené des interviews et entretiens avec les acteurs métier et animé un groupe de travail pour comprendre où l’information se perd entre travaux et maintenance. Cette démarche MQSE a permis de formaliser un état des lieux, une proposition de processus simplifié et un document de travail pour maintenir à jour le plan annuel de maintenance des équipements de sécurité incendie (PAM SSI).",
-  "gain": "",
-  "team": "Un cadre partagé pour éviter les équipements oubliés après travaux, rendre les responsabilités lisibles et préparer un suivi durable.",
-  "url": "projet-5.html"
- },
- {
   "id": "projet-universitaire",
   "title": "Projet universitaire · Village Talas",
   "sub": "Jeu sérieux ISO 45001",

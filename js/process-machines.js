@@ -1,3 +1,5 @@
+import {initRobotScene,initPaverScene} from './archived-project-scenes.js?v=cv-projects-v2';
+import {isReconstructed,initReconstructedScene} from './project-scenes-v2.js?v=cv-projects-v2';
 import { createConveyorMotion } from './conveyor-motion.js?v=cv-scene-v29';
 import { createActionHighlight } from './process-highlight.js?v=cv-scene-v29';
 import * as THREE from 'three';
@@ -5,6 +7,9 @@ import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 
 // The authored machines transform incoming tool symbols into tangible data.
 export function initProcessMachines(model, steps, accent, activity) {
+  if(activity==='powerbi')return initRobotScene(model);
+  if(activity==='moteur44')return initPaverScene(model);
+  if(isReconstructed(activity))return initReconstructedScene(model,activity);
   const heads = steps.map((_,i) => model.getObjectByName('MachineHead_' + i));
   const outputs = steps.map((_,i) => model.getObjectByName('MachineOutput_' + i));
   const conveyors=createConveyorMotion(model);
