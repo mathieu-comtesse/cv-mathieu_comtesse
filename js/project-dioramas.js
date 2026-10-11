@@ -1,9 +1,9 @@
-import {loadProjectModel} from './project-model-loader.js?v=cv-projects-v2';
-import {isReconstructed} from './project-scenes-v2.js?v=cv-projects-v2';
+import {loadProjectModel} from './project-model-loader.js?v=cv-projects-v2b';
+import {isReconstructed} from './project-scenes-v2.js?v=cv-projects-v2b';
 import {showFinanceEmails} from './finance-emails.js?v=cv-scene-v49';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v2';
-import { initProcessMachines } from './process-machines.js?v=cv-projects-v2';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v2b';
+import { initProcessMachines } from './process-machines.js?v=cv-projects-v2b';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 import { createMarquee } from './marquee.js?v=cv-scene-v49';
 import * as THREE from 'three';
@@ -25,7 +25,7 @@ const load=id=>{if(!cache.has(id))cache.set(id,loadProjectModel(id,isReconstruct
 
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
-  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/${isReconstructed(p.id)?'dioramas-v2':'dioramas'}/${p.id}.png?v=cv-projects-v2" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
+  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/${isReconstructed(p.id)?'dioramas-v2':'dioramas'}/${p.id}.png?v=cv-projects-v2b" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
   createMarquee(host, { loopEnd: -1 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
   initWorkshopPreviews(host,projects,load,palettes);
@@ -82,7 +82,7 @@ export function initProjectDioramas(host,projects){
     const test=modal.querySelector('.process-test');test.hidden=!['finance','vmvre'].includes(current.id);test.textContent=current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));
     if(!reduced){stage.animate([{opacity:.2,transform:'translateY(28px) scale(.84)'},{opacity:1,transform:'none'}],{duration:650,easing:'cubic-bezier(.16,1,.3,1)'});modal.querySelector('.process-copy').animate([{opacity:0,transform:'translateY(15px)'},{opacity:1,transform:'none'}],{duration:600,delay:100,fill:'backwards'});}
-    const poster=stage.querySelector('.process-poster');poster.src=`assets/${isReconstructed(current.id)?'dioramas-v2':'dioramas'}/${current.id}.png?v=cv-projects-v2`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
+    const poster=stage.querySelector('.process-poster');poster.src=`assets/${isReconstructed(current.id)?'dioramas-v2':'dioramas'}/${current.id}.png?v=cv-projects-v2b`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
     try{
       setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);machines=initProcessMachines(model,current.diag,palettes[current.id],current.id);await machines.ready;if(ticket!==request||!modal.open){machines.dispose();return;}
       const sparkGroup=new THREE.Group();sparkGroup.name='ProcessConfirmation';model.add(sparkGroup);

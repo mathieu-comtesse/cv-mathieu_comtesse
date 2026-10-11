@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {batch} from './robot-atelier-v5.js?v=cv-projects-v2';
+import {batch} from './robot-atelier-v5.js?v=cv-projects-v2b';
 const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z),clamp=THREE.MathUtils.clamp;
 const ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)},lerp=(a,b,t)=>a+(b-a)*ease(t);
 const metal=new THREE.MeshStandardMaterial({color:'#b7bdc2',metalness:.8,roughness:.29});

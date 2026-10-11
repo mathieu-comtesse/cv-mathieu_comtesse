@@ -1,5 +1,5 @@
-import {initRobotScene,initPaverScene} from './archived-project-scenes.js?v=cv-projects-v2';
-import {isReconstructed,initReconstructedScene} from './project-scenes-v2.js?v=cv-projects-v2';
+import {initRobotScene,initPaverScene} from './archived-project-scenes.js?v=cv-projects-v2b';
+import {isReconstructed,initReconstructedScene} from './project-scenes-v2.js?v=cv-projects-v2b';
 import { createConveyorMotion } from './conveyor-motion.js?v=cv-scene-v29';
 import { createActionHighlight } from './process-highlight.js?v=cv-scene-v29';
 import * as THREE from 'three';

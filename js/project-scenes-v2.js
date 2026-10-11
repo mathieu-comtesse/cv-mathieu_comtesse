@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/BufferGeometryUtils.js';
 import {processSymbol} from './process-symbols.js?v=cv-scene-v29';
-import {reconstructedProjects} from './project-scenes-data.js?v=cv-projects-v2';
+import {reconstructedProjects} from './project-scenes-data.js?v=cv-projects-v2b';
 export const isReconstructed=id=>reconstructedProjects.some(p=>p.id===id);
 export function initReconstructedScene(model,id){
  const project=reconstructedProjects.find(p=>p.id===id),steps=project.steps,v=a=>new THREE.Vector3(...a);
