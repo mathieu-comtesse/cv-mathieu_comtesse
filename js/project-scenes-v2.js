@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/BufferGeometryUtils.js';
 import {processSymbol} from './process-symbols.js?v=cv-scene-v29';
-import {reconstructedProjects} from './project-scenes-data.js?v=cv-projects-v3';
+import {reconstructedProjects} from './project-scenes-data.js?v=cv-projects-v4';
 export const isReconstructed=id=>reconstructedProjects.some(p=>p.id===id);
 export function initReconstructedScene(model,id){
  const project=reconstructedProjects.find(p=>p.id===id),steps=project.steps,v=a=>new THREE.Vector3(...a);
@@ -31,10 +31,11 @@ function optimise(root){
  root.traverse(o=>{
   if(!o.isMesh||Array.isArray(o.material))return;
   let dynamic=/^(Display_\d|SideDisplay_|StudioScreen|Radar face)/.test(o.name);
-  for(let p=o;p&&p!==root;p=p.parent)if(/^(Drum|Door_|Locker_|Trolley|Spreader|Cargo|HoistCable_|Gauge|Wheel|GateBlade|Alert_|Sweep|Blip_|Needle_|Valve_|StatusLamp_|InputDocument|OutputDocument|ToolParcel|Observer|Colleague)/.test(p.name))dynamic=true;
+  for(let p=o;p&&p!==root;p=p.parent)if(/^(Drum|Door_|Locker_|Trolley|Spreader|Cargo|HoistCable_|Gauge|Wheel|GateBlade|Alert_|Sweep|Blip_|Needle_|Valve_|StatusLamp_|InputDocument|OutputDocument|ToolParcel|Observer|Colleague|MailEnvelope_|ThresholdMarker|FlowPipe_|Exchanger_body)/.test(p.name))dynamic=true;
   if(dynamic)return;
-  let group=groups.get(o.material.uuid);
-  if(!group){group={material:o.material,geo:[],objects:[]};groups.set(o.material.uuid,group)}
+  // Static meshes received per-mesh material clones: identical clones share one draw call.
+  const key=o.material.name||o.material.uuid;let group=groups.get(key);
+  if(!group){group={material:o.material,geo:[],objects:[]};groups.set(key,group)}
   // Blender primitives have different attribute sets. Normalize them before merging.
   const geo=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverseRoot,o.matrixWorld));
   for(const name of Object.keys(geo.attributes))if(!['position','normal','uv'].includes(name))geo.deleteAttribute(name);
@@ -45,11 +46,21 @@ function optimise(root){
  for(const group of groups.values()){
   const merged=mergeGeometries(group.geo,false);
   // A failed merge must never remove visible source meshes.
-  if(merged){const o=mesh(merged,group.material,[0,0,0]);o.name='Static '+group.material.name;group.objects.forEach(o=>o.removeFromParent())}
+  if(merged){const o=mesh(merged,group.material,[0,0,0]);o.name='Static '+group.material.name;group.objects.forEach(o=>{o.removeFromParent();if(o.material!==group.material)o.material.dispose();})}
   group.geo.forEach(g=>g.dispose());
  }
 }
 function node(n){return nodes[n]}
+// Point financier : un tour de volant lève l'opercule d'un pas de vis (valeurs du modèle Blender).
+const PITCH=.055,TRAVEL=1.05,TAU=Math.PI*2;
+function bezier(a,b,c,u){return a.clone().multiplyScalar((1-u)*(1-u)).addScaledVector(b,2*u*(1-u)).addScaledVector(c,u*u)}
+function mailFlight(o,u,exitY,target){
+ // Inside the feed pipe, out through the opened port, then an arc onto its alert plate.
+ const start=v([1.3,exitY,-.30]),mouth=v([1.3,exitY,.34]),end=v(target);
+ if(u<.32){o.position.lerpVectors(start,mouth,smooth(0,1,u/.32));o.rotation.set(0,0,0);return}
+ const k=smooth(0,1,(u-.32)/.68);o.position.copy(bezier(mouth,v([(1.3+target[0])/2,Math.max(exitY,target[1])+.75,.55]),end,k));
+ o.rotation.set(Math.sin(k*Math.PI)*.35,0,Math.sin(k*Math.PI*2)*.22);
+}
 function reset(n){const o=node(n);if(o&&base[n]){o.position.copy(base[n].p);o.quaternion.copy(base[n].q);o.scale.copy(base[n].s)}return o}
 let flowBars,vrCounters=[],cargoAttached=false;
 function update(T){const t=THREE.MathUtils.euclideanModulo(T,cycle),f=t/duration;operation={time:t};
@@ -61,15 +72,27 @@ function update(T){const t=THREE.MathUtils.euclideanModulo(T,cycle),f=t/duration
   const x=THREE.MathUtils.lerp(-.84,.8,smooth(4.5,5.7,f));let y=1.15-.5*smooth(2,2.7,f)+2.15*smooth(3,3.8,f)-2.15*smooth(5.7,6.5,f)+.9*smooth(7,7.6,f);node('Trolley').position.x=x;node('Spreader').position.set(x,y,0);cargoAttached=f>=2.7&&f<6.6;const cargo=node('Cargo');cargo.position.set(cargoAttached?x:(f<2.7?-.84:.8),cargoAttached?y-.61:.04,0);
   for(let i=0;i<4;i++){const c=reset('HoistCable_'+i);if(c){c.position.y+=(y-1.15)/2;c.position.x+=x;c.scale.y=(3.60-y)/(3.60-1.15)}}operation={time:t,x,hoistY:y,cargoAttached,cargo:cargo.position.toArray(),clearance:y-cargo.position.y-.42};
  }else if(id==='finance'){
-  const ratio=f<5?.22+f*.09:f<6?.65+(f-5)*.17:f<7?.82:1.05;const g=node('Gauge');g.scale.y=Math.min(ratio,1);node('Wheel').rotation.y=gauge/100*Math.PI*2;node('GateBlade').position.y=base.GateBlade.p.y;
-  reset('Alert_0').visible=ratio>=gauge/100;reset('Alert_1').visible=ratio>1;operation={time:t,ratio,threshold:gauge/100,preventive:ratio>=gauge/100,overspend:ratio>1};
+  const ratio=f<5?.22+f*.09:f<6?.65+(f-5)*.17:f<7?.82:1.05;const g=node('Gauge');g.scale.y=Math.min(ratio,1);
+  // Seuil modulable : le repère oscille puis se cale à 80 %.
+  const marker=reset('ThresholdMarker');if(marker&&f>=4&&f<5)marker.position.y+=Math.sin((f-4)*TAU*1.5)*(1-smooth(4,4.9,f))*.25;
+  // The handwheel turns the screw; the bronze nut carries the blade by one pitch per turn.
+  const lift=TRAVEL*(.5*smooth(6.06,6.4,f)+.5*smooth(7.06,7.4,f)-smooth(8.12,8.75,f)),turns=lift/PITCH;
+  reset('GateBlade').position.y+=lift;reset('Wheel').rotateY(-turns*TAU);
+  const mails=[[6.4,.52,[2.57,1.1,.06]],[7.4,.74,[2.57,1.63,.06]]].map(([start,exitY,target],i)=>{const o=node('MailEnvelope_'+i),u=THREE.MathUtils.clamp((f-start)/.38,0,1);if(o){o.visible=f>=start&&f<9;mailFlight(o,u,exitY,target);}const plate=node('Alert_'+i);plate?.traverse(m=>{if(m.isMesh&&/Envelope[ _]folds/.test(m.name)){m.visible=u>=1;m.material.emissive?.set(u>=1&&f<8.12?(i?'#5a0b06':'#5a3a00'):'#000000');}});return u>=1?'delivered':f>=start?'sending':'waiting';});
+  operation={time:t,ratio,threshold:gauge/100,preventive:ratio>=gauge/100,overspend:ratio>1,gateLift:lift,wheelTurns:turns,mails};
  }else if(id==='pa'){
   const valves=[],needles=[];
-  for(let i=0;i<5;i++){const valve=reset('Valve_'+i);if(valve){const axis=i===2||i===3?'z':'y';valve.rotation[axis]+=smooth([1,8,2,5,4][i],[1.6,8.6,2.6,5.6,4.6][i],f)*Math.PI*.75;valves.push(valve.rotation[axis]);}}
-  for(let i=0;i<3;i++){const needle=reset('Needle_'+i);if(needle){needle.rotation.z=-.9+1.7*smooth(2.8+i*.6,3.6+i*.6,f);needles.push(needle.rotation.z);}}
+  // Each valve turns three times when its circuit opens: 0 prise en charge, 4 listing,
+  // 2-3 régulateurs du classement, 1 relances.
+  for(let i=0;i<5;i++){const valve=reset('Valve_'+i);if(valve){const axis=i===2||i===3?'z':'y',start=[1.05,8.05,5.05,5.3,4.05][i];valve.rotation[axis]+=smooth(start,start+.55,f)*3*TAU;valves.push(valve.rotation[axis]);}}
+  const flow=paFlow(f);
+  for(let i=0;i<3;i++){const needle=reset('Needle_'+i);if(needle){needle.rotation.z=i<2?-.9+1.7*smooth(3.05+i*.3,3.6+i*.3,f)+.06*Math.sin(t*7+i*2)*flow.red:-.9+1.7*(f<7?0:f<8?.5-.5*Math.cos((f-7)*TAU*1.5):1);needles.push(needle.rotation.z);}}
   for(let i=0;i<9;i++){const lamp=node('StatusLamp_'+i);lamp?.traverse(o=>{if(o.isMesh){o.material.color.set(i<=step?'#4da97b':'#244d39');o.material.emissive.set(i===step?'#123a23':'#000000');}});}
-  const input=reset('InputDocument'),output=reset('OutputDocument');if(input)input.visible=f<2;if(output)output.visible=f>=6.6;
-  operation={time:t,valves,needles,checked:f>=3.6,classified:f>=6.6};
+  const input=reset('InputDocument'),output=reset('OutputDocument');
+  if(input){const drop=1-smooth(0,.3,f),go=smooth(1.05,1.55,f);input.visible=f<1.55;input.position.y+=drop*.45+go*.72;input.position.x+=go*-.39;input.position.z+=go*.06;input.scale.setScalar(1-go*.75);}
+  if(output){const fall=smooth(6.05,6.5,f);output.visible=f>=6.05;output.position.y+=(1-fall)*.62;output.position.x+=(1-fall)*.28;output.scale.setScalar(.3+.7*fall);}
+  paUpdate(t,f,flow);
+  operation={time:t,valves,needles,checked:f>=3.6,classified:f>=6.5,flow,steam:paSteam,relances:paRelances};
  }else if(id==='gares'){
   node('Sweep').rotation.y=-t*.9;for(let i=0;i<4;i++){const b=reset('Blip_'+i);b.scale.setScalar(f>=4?1+(i===3?.35:0):.75);b.visible=f>=1+i*.6;}operation.sweep=node('Sweep').rotation.y;
  }else if(id==='studio'){
@@ -80,7 +103,37 @@ function update(T){const t=THREE.MathUtils.euclideanModulo(T,cycle),f=t/duration
  }else if(id==='suivi'){operation.activeScreen=step%3;}
  processUpdate(f);model.updateMatrixWorld(true);
 }
+// Chaîne des PP : flux qui défile dans les conduites, vapeur des évents, mails de relance.
+let paPipes=[],paStripes,paScanner,paPuffs=[],paMails=[],paSteam=[0,0],paRelances=0;
+const paCircuits={red:'#ff7656',yellow:'#ffd75a',green:'#8dffa8',standby:'#8dffa8'};
+function paFlow(f){return {red:smooth(1.1,1.6,f)*(1+.7*(f>=5&&f<6?Math.sin((f-5)*Math.PI):0)),yellow:smooth(2.05,2.5,f),green:smooth(4.05,4.5,f),standby:smooth(4.05,4.5,f)}}
+function paVentRate(vent,f){f=THREE.MathUtils.euclideanModulo(f,9);return vent?(f<2?0:f<3?1:.22):(f<4?0:f<8?.3:1)}
+function paExtras(){
+ paStripes=canvasTexture((c,w,h)=>{c.fillStyle='#000';c.fillRect(0,0,w,h);c.fillStyle='#fff';for(const y of [0,h/2]){c.beginPath();c.moveTo(w*.40,y+h*.08);c.lineTo(w*.55,y+h*.08);c.lineTo(w*.76,y+h*.25);c.lineTo(w*.55,y+h*.42);c.lineTo(w*.40,y+h*.42);c.lineTo(w*.61,y+h*.25);c.closePath();c.fill();}},128,128);
+ paStripes.colorSpace=THREE.NoColorSpace;paStripes.wrapS=paStripes.wrapT=THREE.RepeatWrapping;paStripes.repeat.set(1/.42,1);
+ for(const [key,color] of Object.entries(paCircuits)){const o=node('FlowPipe_'+key);o?.traverse(m=>{if(m.isMesh){m.material.emissiveMap=paStripes;m.material.emissive.set(color);m.material.emissiveIntensity=0;m.material.needsUpdate=true;paPipes.push({m,key});}});}
+ const body=node('Exchanger_body');if(body?.isMesh)body.material.emissive.set('#ff8a3a');
+ paScanner=mesh(new THREE.TorusGeometry(.215,.012,12,72),new THREE.MeshStandardMaterial({color:'#bff7ff',emissive:'#41d6ff',emissiveIntensity:1.6,roughness:.3}),[0,1.5,-.33]);paScanner.rotation.y=Math.PI/2;paScanner.castShadow=false;
+ const puff=canvasTexture((c,w,h)=>{const g=c.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.45,'rgba(240,244,246,.55)');g.addColorStop(1,'rgba(240,244,246,0)');c.fillStyle=g;c.fillRect(0,0,w,h);},64,64);
+ for(let i=0;i<44;i++){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:puff,transparent:true,depthWrite:false,opacity:0,color:'#9aa6ad'}));sp.renderOrder=5;scene.add(sp);paPuffs.push(sp);}
+ const flapShape=new THREE.Shape([new THREE.Vector2(-.11,0),new THREE.Vector2(.11,0),new THREE.Vector2(0,-.08)]);
+ for(let i=0;i<3;i++){const g=new THREE.Group();mesh(new THREE.BoxGeometry(.22,.15,.008),new THREE.MeshStandardMaterial({color:'#f3eedf',roughness:.8,transparent:true}),[0,0,0],g);mesh(new THREE.ShapeGeometry(flapShape),new THREE.MeshStandardMaterial({color:'#d7462e',roughness:.6,transparent:true,side:THREE.DoubleSide}),[0,.075,.0045],g);scene.add(g);paMails.push(g);}
+}
+function paUpdate(t,f,flow){
+ paStripes.offset.x=-t*.5/.42;
+ for(const {m,key} of paPipes)m.material.emissiveIntensity=.6*flow[key];
+ const reading=f>=2&&f<3,body=node('Exchanger_body');if(body?.isMesh)body.material.emissiveIntensity=reading?.22+.18*Math.sin(t*5):0;
+ paScanner.visible=reading;paScanner.position.x=.025+.6*Math.sin((f-2)*TAU*1.2);
+ // Stateless steam: each puff is reborn on a fixed period, its density set by the vent rate at birth.
+ const vents=[0,1].map(i=>node('SteamVent_'+i)?.getWorldPosition(new THREE.Vector3())??v([0,3,0])),life=2.1,up=v([0,1,0]),out=[v([1,.15,0]),v([0,1,0])];
+ paSteam=[paVentRate(0,f),paVentRate(1,f)];
+ paPuffs.forEach((p,i)=>{const vent=i%2,phase=(i>>1)/(paPuffs.length/2),age=THREE.MathUtils.euclideanModulo(t+phase*life,life),birth=(t-age)/duration,rate=paVentRate(vent,birth),seed=Math.sin(i*12.9898+Math.floor((t-age)/life)*78.233)*43758.5453%1,alive=Math.abs(seed)<rate;
+  p.visible=alive;if(!alive)return;const k=age/life;p.position.copy(vents[vent]).addScaledVector(out[vent],Math.min(age,.5)*.55).addScaledVector(up,age*.24+age*age*.05).add(v([Math.sin(i*1.7)*k*.22,0,Math.cos(i*2.3)*k*.22]));
+  p.scale.setScalar(.08+k*.46);p.material.opacity=.85*Math.pow(1-k,1.2)*smooth(0,.08,k);});
+ paRelances=0;paMails.forEach((g,i)=>{const u=THREE.MathUtils.clamp((f-8.15-i*.22)/.6,0,1);g.visible=u>0&&u<1;if(!g.visible)return;paRelances++;g.position.copy(vents[0]).addScaledVector(out[0],u*.5).addScaledVector(up,u*.62).add(v([0,0,Math.sin(u*Math.PI*2+i)*.12]));g.rotation.set(0,u*1.5+i,Math.sin(u*TAU+i)*.3);g.children.forEach(m=>m.material.opacity=1-smooth(.7,1,u));});
+}
 async function extras(){
+ if(id==='pa')paExtras();
  for(let i=0;i<(['gares','pa','finance'].includes(id)?0:9);i++){const tex=await symbolTexture(steps[i].kind);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));s.position.copy(v(steps[i].point)).add(v([0,project.size*.06,0]));s.scale.setScalar(project.size*.065);s.renderOrder=20;scene.add(s);markers.push(s)}
  if(id==='cerfa'){const tex=await symbolTexture('pdf');for(let i=0;i<3;i++){const g=new THREE.Group();mesh(new THREE.BoxGeometry(.26,.025,.30),new THREE.MeshStandardMaterial({color:'#eeeadd'}),[0,0,0],g);const m=mesh(new THREE.PlaneGeometry(.22,.26),new THREE.MeshBasicMaterial({map:tex}),[0,.014,0],g);m.rotation.x=-Math.PI/2;scene.add(g);tokens.push(g)}}
  if(id==='vre')for(let i=0;i<3;i++)vrCounters.push(new THREE.Group());
@@ -149,7 +202,9 @@ function processUpdate(f){
 
  function cleanup(){scene.removeFromParent();scene.traverse(o=>{if(o.isMesh){o.geometry.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.dispose());}if(o.isSprite)o.material.dispose();});resources.forEach(t=>t.dispose());resources=[];}
  const ready=(async()=>{model.traverse(o=>{nodes[o.name]=o;base[o.name]={p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()};if(o.isMesh&&o.parent?.name.startsWith('StatusLamp_'))o.material=o.material.clone();});optimise(model);await extras();await processExtras();if(disposed){cleanup();return;}loaded=true;update(0);paintScreens();})();
- return {ready,duration,focusPoint:i=>v(steps[i].point),get state(){return {id,ready:loaded,step,elapsed,operation,addedDisplays:0,addedConnections:0}},
+ // Moving effects that must stay inside the fitted camera frame (steam plumes, mail arcs).
+ const framePoints=()=>id==='pa'?[0,1].flatMap(i=>{const p=node('SteamVent_'+i)?.getWorldPosition(new THREE.Vector3());return p?[p.clone().add(v([i?0:.3,.35,0]))]:[]}):id==='finance'?[v([1.9,2.3,.6]),v([2.57,1.9,.2])]:[];
+ return {ready,duration,framePoints,focusPoint:i=>v(steps[i].point),get state(){return {id,ready:loaded,step,elapsed,operation,addedDisplays:0,addedConnections:0}},
  update(state){if(!loaded||disposed)return;step=state.step;elapsed=Math.min(state.elapsed,duration-.001);markers.forEach((m,i)=>m.visible=i===step);let time=step*duration+elapsed;if(id==='finance'&&state.exception)time=6.8*duration;update(time);if(lastScreen!==step){paintScreens();lastScreen=step;}model.userData.processState=this.state;},
  dispose(){disposed=true;cleanup();}};
 }

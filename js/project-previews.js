@@ -1,7 +1,7 @@
-import {projectViews,applyProjectView} from './project-camera.js?v=cv-projects-v3';
+import {projectViews,applyProjectView,modelSamples,stageLights} from './project-camera.js?v=cv-projects-v4';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import * as THREE from 'three';
-import { initProcessMachines } from './process-machines.js?v=cv-projects-v3';
+import { initProcessMachines } from './process-machines.js?v=cv-projects-v4';
 
 // One renderer serves the visible cards; cloned carousel cards never create contexts.
 export function initWorkshopPreviews(host, projects, load, palettes) {
@@ -29,20 +29,20 @@ export function initWorkshopPreviews(host, projects, load, palettes) {
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   document.addEventListener('project-workshop',e=>{modal=e.detail.open;modal?stop():start();});
   reduced.addEventListener('change',()=>{instances.forEach(i=>i.elapsed=0);start();});
-  function setup(){if(renderer)return;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:mobile.matches?'low-power':'default'});renderer.setPixelRatio(mobile.matches?1:Math.min(Math.max(devicePixelRatio||1,1.5),2));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=!mobile.matches;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;const pmrem=new THREE.PMREMGenerator(renderer);environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;pmrem.dispose();}
+  function setup(){if(renderer)return;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:mobile.matches?'low-power':'default'});renderer.setPixelRatio(mobile.matches?1:Math.min(Math.max(devicePixelRatio||1,1),2));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=!mobile.matches;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;const pmrem=new THREE.PMREMGenerator(renderer);environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;pmrem.dispose();}
   async function request(id){
     if(instances.has(id)||pending.has(id))return;pending.add(id);
     try{const asset=await load(id),project=projects.find(p=>p.id===id),model=asset.scene.clone(true);
       model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});
-      const scene=new THREE.Scene();scene.environment=environment;scene.environmentIntensity=.24;scene.add(model,new THREE.HemisphereLight('#ffffff','#bcc6cb',1.3));
-      const key=new THREE.DirectionalLight('#fff6e8',2.5);key.position.set(-4,8,6);key.castShadow=!mobile.matches;key.shadow.mapSize.set(512,512);Object.assign(key.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:.1,far:30});key.shadow.bias=-.0004;scene.add(key);
+      const scene=new THREE.Scene();scene.environment=environment;scene.environmentIntensity=.5;scene.add(model);
       const camera=new THREE.PerspectiveCamera(32,720/560,.1,100),bounds=new THREE.Box3().setFromObject(model);
+      stageLights(scene,{shadow:!mobile.matches,mapSize:512,rim:false}).fit(bounds);
       const machines=initProcessMachines(model,project.diag,palettes[id],id);await machines.ready;
-      const views=projectViews(bounds,camera,id);applyProjectView(camera,views.view());instances.set(id,{model,scene,camera,machines,project,views,elapsed:0,step:0});
+      const views=projectViews(bounds,camera,id,[],[],modelSamples(model,machines.framePoints?.()||[]));applyProjectView(camera,views.view());instances.set(id,{model,scene,camera,machines,project,views,elapsed:0,step:0});
       start();
     }catch(e){console.warn('Workshop preview unavailable',id,e);}finally{pending.delete(id);}
   }
-  mobile.addEventListener('change',()=>{if(renderer){renderer.setPixelRatio(mobile.matches?1:Math.min(Math.max(devicePixelRatio||1,1.5),2));renderer.shadowMap.enabled=!mobile.matches;renderWidth=renderHeight=0;}start();});
+  mobile.addEventListener('change',()=>{if(renderer){renderer.setPixelRatio(mobile.matches?1:Math.min(Math.max(devicePixelRatio||1,1),2));renderer.shadowMap.enabled=!mobile.matches;renderWidth=renderHeight=0;}start();});
   function start(){if(!raf&&visible&&!modal&&!document.hidden)raf=requestAnimationFrame(draw);}
   function draw(now,force=false){
     raf=0;if(!visible||modal||document.hidden)return;

@@ -1,10 +1,10 @@
-import {projectViews} from './project-camera.js?v=cv-projects-v3';
-import {loadProjectModel} from './project-model-loader.js?v=cv-projects-v3';
-import {isReconstructed} from './project-scenes-v2.js?v=cv-projects-v3';
+import {projectViews,modelSamples,stageLights} from './project-camera.js?v=cv-projects-v4';
+import {loadProjectModel} from './project-model-loader.js?v=cv-projects-v4';
+import {isReconstructed} from './project-scenes-v2.js?v=cv-projects-v4';
 import {showFinanceEmails} from './finance-emails.js?v=cv-scene-v49';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
-import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v3';
-import { initProcessMachines } from './process-machines.js?v=cv-projects-v3';
+import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v4';
+import { initProcessMachines } from './process-machines.js?v=cv-projects-v4';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 import { createMarquee } from './marquee.js?v=cv-scene-v49';
 import * as THREE from 'three';
@@ -26,7 +26,7 @@ const load=id=>{if(!cache.has(id))cache.set(id,loadProjectModel(id,isReconstruct
 
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
-  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/${isReconstructed(p.id)?'dioramas-v2':'dioramas'}/${p.id}.png?v=cv-projects-v3" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
+  host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/${isReconstructed(p.id)?'dioramas-v2':'dioramas'}/${p.id}.png?v=cv-projects-v4" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
   createMarquee(host, { loopEnd: -1 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
   initWorkshopPreviews(host,projects,load,palettes);
@@ -35,23 +35,25 @@ export function initProjectDioramas(host,projects){
   document.body.append(modal);
   const stage=modal.querySelector('.process-stage'),canvas=stage.querySelector('canvas'),status=stage.querySelector('.process-loading'),labels=modal.querySelector('.process-transform');
   let renderer,scene,camera,controls,model,current,index=0,step=0,elapsed=0,playing=true,autoAdvance=true,raf=0,previous=0,request=0,opener,exception=false;
-  let machines,views;
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let machines,views,lights,stageVisible=true;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,mobile=matchMedia('(max-width:809px)');
   function setup(){
     if(renderer)return;
-    renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(max-width:809px)').matches?1:1.25));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
-    scene=new THREE.Scene();const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.24;pmrem.dispose();scene.add(new THREE.HemisphereLight('#ffffff','#bcc6cb',1.3));
-    const key=new THREE.DirectionalLight('#fff6e8',2.5);key.position.set(-4,8,6);key.castShadow=true;key.shadow.mapSize.set(matchMedia("(max-width:809px)").matches?512:1024,matchMedia("(max-width:809px)").matches?512:1024);Object.assign(key.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:.1,far:30});key.shadow.bias=-.0004;scene.add(key);
+    renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,mobile.matches?1.25:2));renderer.setClearColor(0,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
+    scene=new THREE.Scene();const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.5;pmrem.dispose();
+    lights=stageLights(scene,{mapSize:mobile.matches?512:2048,rim:!mobile.matches});
     camera=new THREE.PerspectiveCamera(32,1,.1,100);camera.position.set(8,8,11);controls=orbit(camera,canvas);controls.target.set(0,.6,0);controls.enableDamping=true;controls.enablePan=false;controls.minDistance=9;controls.maxDistance=22;controls.minPolarAngle=.3;controls.maxPolarAngle=Math.PI*.48;
-    const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.ShadowMaterial({opacity:.13}));ground.rotation.x=-Math.PI/2;ground.position.y=-.055;ground.receiveShadow=true;scene.add(ground);
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.ShadowMaterial({opacity:.16}));ground.rotation.x=-Math.PI/2;ground.position.y=-.055;ground.receiveShadow=true;scene.add(ground);
     new ResizeObserver(resize).observe(stage);resize();
+    // Reading the steps or the e-mails below the stage: the hidden 3D view stops drawing.
+    new IntersectionObserver(([e])=>{stageVisible=e.isIntersecting;}).observe(stage);
   }
   function resize(){if(!renderer||!stage.clientWidth)return;renderer.setSize(stage.clientWidth,stage.clientHeight,false);camera.aspect=stage.clientWidth/stage.clientHeight;camera.updateProjectionMatrix();}
   const select=n=>{controls?.resume();step=(n+current.diag.length)%current.diag.length;elapsed=0;modal.dataset.step=String(step);modal.querySelectorAll('.process-step').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===step)));modal.querySelector('.process-explanation b').textContent=`${step+1}. ${current.diag[step][0]}`;modal.querySelector('.process-explanation p').textContent=current.diag[step][1];labels.querySelector('.transform-input').innerHTML=processSymbol(current.diag[Math.max(0,step-1)][2]);labels.querySelector('.transform-output').innerHTML=processSymbol(current.diag[step][2]);labels.querySelector('b').textContent=current.diag[step][0];};
   function animate(now){
     if(!modal.open)return;
     modal.dataset.playing=String(playing);
-    if(previous&&now-previous<1000/30){raf=requestAnimationFrame(animate);return;}
+    if(previous&&now-previous<1000/(mobile.matches?30:60)){raf=requestAnimationFrame(animate);return;}
     const dt=previous?Math.min(.05,(now-previous)/1000):0;previous=now;
     if(playing&&model){elapsed+=dt;if(elapsed>(machines?.duration||4.6)){if(autoAdvance)select(step+1);else{elapsed=(machines?.duration||4.6)-.001;playing=false;modal.querySelector('.process-play').textContent='Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed','true');}}}
     if(model){
@@ -64,7 +66,7 @@ export function initProjectDioramas(host,projects){
 
     }
     if(model&&views){const view=views.view(step);controls.focusView(view.target,view.eye,dt);if(new URLSearchParams(location.search).has('inspect'))window.projectSceneState=machines.state;}
-    controls.update();renderer.shadowMap.needsUpdate=true;renderer.render(scene,camera);
+    if(stageVisible){controls.update();renderer.shadowMap.needsUpdate=true;renderer.render(scene,camera);}
 
     const operation=modal.querySelector('.process-operation');if(current.id==='terrain'){const s=['Le billet brut arrive sur la palette.','Le métal fond dans le creuset, puis est coulé dans le moule.','Le marteau-pilon transforme le billet en poutrelle.','Le pont roulant lève et transporte la pièce forgée.','La pièce refroidie est contrôlée puis déposée en sortie.'][step];if(operation.textContent!==s)operation.textContent=s;}else operation.textContent=current.diag[step][1];
     modal.dataset.frames=String((Number(modal.dataset.frames)||0)+1);raf=requestAnimationFrame(animate);
@@ -83,10 +85,10 @@ export function initProjectDioramas(host,projects){
     const test=modal.querySelector('.process-test');test.hidden=!['finance','vmvre'].includes(current.id);test.textContent=current.id==='vmvre'?'Simuler la panne de VM 1':'Simuler un dépassement';
     modal.querySelector('.process-play').textContent=playing?'Mettre en pause':'Lire l’animation';modal.querySelector('.process-play').setAttribute('aria-pressed',String(!playing));
     if(!reduced){stage.animate([{opacity:.2},{opacity:1}],{duration:650,easing:'cubic-bezier(.16,1,.3,1)'});modal.querySelector('.process-copy').animate([{opacity:0,transform:'translateY(15px)'},{opacity:1,transform:'none'}],{duration:600,delay:100,fill:'backwards'});}
-    const poster=stage.querySelector('.process-poster');poster.src=`assets/${isReconstructed(current.id)?'dioramas-v2':'dioramas'}/${current.id}.png?v=cv-projects-v3`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
+    const poster=stage.querySelector('.process-poster');poster.src=`assets/${isReconstructed(current.id)?'dioramas-v2':'dioramas'}/${current.id}.png?v=cv-projects-v4`;poster.hidden=false;status.hidden=false;status.textContent='Chargement de l’atelier…';select(0);
     try{
       setup();const asset=await load(current.id);if(ticket!==request||!modal.open)return;if(model){machines?.dispose();scene.remove(model);model.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});}model=asset.scene.clone(true);model.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();o.castShadow=true;o.receiveShadow=true;}});scene.add(model);const bodyBounds=new THREE.Box3().setFromObject(model);machines=initProcessMachines(model,current.diag,palettes[current.id],current.id);await machines.ready;if(ticket!==request||!modal.open){machines.dispose();return;}
-      controls.reset();resize();views=projectViews(bodyBounds,camera,current.id,current.diag.map((_,i)=>machines.focusPoint?.(i)||bodyBounds.getCenter(new THREE.Vector3())),current.diag.map((_,i)=>machines.focusEye?.(i)));controls.setView(views.view(0));controls.update();modal.scrollTop=0;poster.hidden=true;status.hidden=true;modal.dataset.loaded=current.id;previous=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(animate);
+      controls.reset();resize();lights.fit(bodyBounds);views=projectViews(bodyBounds,camera,current.id,current.diag.map((_,i)=>machines.focusPoint?.(i)||bodyBounds.getCenter(new THREE.Vector3())),current.diag.map((_,i)=>machines.focusEye?.(i)),modelSamples(model,machines.framePoints?.()||[]));controls.setView(views.view(0));controls.update();modal.scrollTop=0;poster.hidden=true;status.hidden=true;modal.dataset.loaded=current.id;previous=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(animate);
     }catch(e){if(ticket!==request)return;status.textContent='Aperçu disponible. Les étapes restent consultables.';console.warn('Project diorama unavailable',e);}
     modal.querySelector('.process-back').focus();
   }

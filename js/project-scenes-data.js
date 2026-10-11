@@ -375,11 +375,11 @@ export const reconstructedProjects=[
       {
         "title": "Seuil modulable",
         "kind": "script",
-        "description": "Le volant symbolise le réglage du seuil. Il est actuellement fixé à 80 % des fonds du compte.",
+        "description": "Le repère rouge de la jauge règle le seuil, ici calé à 80 % des fonds du compte. Le volant de la vanne attend qu’il soit atteint.",
         "point": [
-          1.3,
-          2.7,
-          0
+          -1.43,
+          1.6,
+          1.07
         ]
       },
       {
@@ -395,27 +395,27 @@ export const reconstructedProjects=[
       {
         "title": "Alerte préventive",
         "kind": "outlook",
-        "description": "Le seuil atteint déclenche une alerte préventive pour anticiper un éventuel dépassement.",
+        "description": "Le seuil atteint, le volant fait tourner la vis : l’opercule monte à mi-course et le mail d’alerte préventive sort vers son panneau.",
         "point": [
-          2.57,
-          1.1,
-          0
+          1.95,
+          0.9,
+          0.2
         ]
       },
       {
         "title": "Dépassement des fonds",
         "kind": "outlook",
-        "description": "Une seconde alerte signale des dépenses supérieures aux fonds disponibles : le TND devient négatif.",
+        "description": "La vis ouvre complètement la vanne et un second mail signale des dépenses supérieures aux fonds disponibles : le TND devient négatif.",
         "point": [
-          2.57,
-          1.63,
-          0
+          1.95,
+          1.3,
+          0.2
         ]
       },
       {
         "title": "Historique des alertes",
         "kind": "check",
-        "description": "Le résultat est suivi pour éviter les notifications en double. La vanne ne signifie pas que les dépenses sont bloquées.",
+        "description": "Les mails envoyés restent affichés dans l’historique pour éviter les doublons ; la vis referme la vanne. Elle ne signifie pas que les dépenses sont bloquées.",
         "point": [
           1.3,
           1.3,
@@ -1081,7 +1081,7 @@ export const reconstructedProjects=[
       {
         "title": "Prise en charge",
         "kind": "automate",
-        "description": "Power Automate déclenche le flux : la première vanne s’ouvre pour représenter la prise en charge du document.",
+        "description": "Power Automate déclenche le flux : le plan quitte le bac, la première vanne tourne et le circuit rouge se met à circuler.",
         "point": [
           -0.95,
           1.05,
@@ -1091,7 +1091,7 @@ export const reconstructedProjects=[
       {
         "title": "Lecture des champs",
         "kind": "extract",
-        "description": "Les champs utiles du plan sont lus. Le corps central représente leur traitement, sans intervention manuelle.",
+        "description": "Les champs utiles du plan sont lus : le circuit jaune alimente le corps central, l’anneau de lecture le parcourt et la soupape lâche sa vapeur, sans intervention manuelle.",
         "point": [
           0,
           1.5,
@@ -1111,7 +1111,7 @@ export const reconstructedProjects=[
       {
         "title": "Listing Excel",
         "kind": "excel",
-        "description": "Les données contrôlées alimentent le listing Excel. Le circuit vert représente le suivi structuré.",
+        "description": "Les données contrôlées alimentent le listing Excel : la vanne verte tourne et le circuit vert, le suivi structuré, se met à circuler.",
         "point": [
           0.35,
           0.66,
@@ -1121,7 +1121,7 @@ export const reconstructedProjects=[
       {
         "title": "Classement SharePoint",
         "kind": "inject",
-        "description": "Le plan est rangé dans la bibliothèque et son lien reste associé au suivi. La branche rouge représente ce classement.",
+        "description": "Le plan est rangé dans la bibliothèque et son lien reste associé au suivi : les deux régulateurs de la branche rouge tournent et son flux s’accélère.",
         "point": [
           1.4,
           1.97,
@@ -1131,7 +1131,7 @@ export const reconstructedProjects=[
       {
         "title": "Archivage",
         "kind": "export",
-        "description": "Le document traité rejoint son rangement final. Le bac de sortie représente le plan classé.",
+        "description": "Le document traité sort du circuit et rejoint son rangement final : le bac de sortie représente le plan classé.",
         "point": [
           1,
           0.4,
@@ -1141,7 +1141,7 @@ export const reconstructedProjects=[
       {
         "title": "Surveillance des échéances",
         "kind": "check",
-        "description": "Les échéances sont surveillées pour repérer les plans nécessitant une alerte. Le cadran de contrôle reste fixé à son circuit.",
+        "description": "Les échéances sont surveillées pour repérer les plans nécessitant une alerte : l’aiguille du cadran de contrôle balaie les échéances.",
         "point": [
           0.96,
           1.42,
@@ -1151,7 +1151,7 @@ export const reconstructedProjects=[
       {
         "title": "Alertes et relances",
         "kind": "outlook",
-        "description": "Les échéances déclenchent les alertes et relances. La dernière vanne symbolise leur émission, sans bloquer le processus métier.",
+        "description": "Les échéances déclenchent les alertes et relances : la dernière vanne tourne, l’évent souffle et les mails de relance s’envolent, sans bloquer le processus métier.",
         "point": [
           0.68,
           1.05,

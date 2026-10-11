@@ -115,3 +115,7 @@
 /* Machinery stays anchored while the carousel scrolls. */
 .process-card,.process-card:hover,.process-card img,.process-card:hover img{transform:none;transition:background-color .2s,border-color .2s;}
 .process-card-action{display:block;min-height:2.8em;line-height:1.4;}
+/* Studio backdrop inspired by the Sketchfab references: soft grey vignette behind the models. */
+.process-stage{background:radial-gradient(120% 95% at 50% 36%,#f8f9f9 0%,#eceeef 46%,#d5dadc 100%);border-radius:14px}
+.process-dialog.process-dark .process-stage{background:radial-gradient(120% 95% at 50% 36%,#3b4144 0%,#272c2f 48%,#14181a 100%)}
+.process-poster{mix-blend-mode:multiply}
