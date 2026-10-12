@@ -39,7 +39,7 @@ try{
  await page.screenshot({path:path.join(output,'piggy-loading.png')});
  releasePig();await page.waitForFunction(()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy==='ready');
  assert.equal(await page.locator('.piggy-status').count(),0);
- const motor=page.getByRole('button',{name:'Explorer Moteur V4.4'});const motorText=await motor.innerText();
+ const motor=page.getByRole('button',{name:'Explorer Reporteur Q18'});const motorText=await motor.innerText();
  assert.match(motorText,/4 000–5 000 rapports/);assert.match(motorText,/104 740–130 925/);
  assert.equal(await page.locator('.process-consultation-gain').count(),0);
  const annual=await page.locator('.annual-gains').innerText();assert.match(annual,/3.?194/);assert.match(annual,/postes/);assert.doesNotMatch(annual,/744.?745/);

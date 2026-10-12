@@ -1,7 +1,7 @@
 // Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
 // dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
-import { createMarquee } from './marquee.js?v=cv-projects-v7';
+import { createMarquee } from './marquee.js?v=cv-projects-v8';
 
 // Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
 const MACHINES = {
@@ -22,10 +22,10 @@ const MACHINES = {
     'Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min ; avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.'],
   finance: ['finance', 'Manomètres à contact',
     'Un dépassement de budget se voit trop tard quand on pointe les comptes à la main, périmètre par périmètre.',
-    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour ; avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une seule alerte, puis une seconde si les dépenses dépassent les fonds.'],
+    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour ; avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une seule alerte, puis une seconde si les dépenses dépassent les fonds. En exploitation, une dizaine d’alertes par jour, parfois une trentaine.'],
   pa: ['pp', 'Classeur à échéances',
     'Une échéance de plan de prévention s’oublie quand elle dort dans un dossier parmi des centaines.',
-    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min ; avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint.'],
+    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min ; avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.'],
   powerbi: ['powerbi', 'Carrousel de classeurs',
     'Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.',
     'Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min ; avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.'],
@@ -41,9 +41,12 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
 const kindOf = (p) => (p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
 const timeLabel = (p) => (p.gainStatus === 'estimated' ? 'Temps libéré (estimé)' : 'Temps libéré');
 const moneyLabel = (p, long) => (p.gainStatus === 'result' ? 'Résultat' : p.gainStatus === 'estimated' ? 'Valorisation estimée' : long ? 'Valorisation financière du temps' : 'Valorisation financière');
-const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` +
+const dayLabel = (d) => (d === 0.5 ? 'Une demi-journée' : d === 1 ? '1 jour' : String(d).replace('.', ',') + (d < 2 ? ' jour' : ' jours'));
+const buildHTML = (p) => (p.build ? `<span><small>Construction</small><b>${dayLabel(p.build.days)}</b>${p.build.upkeep === true ? 'puis une amélioration d’une demi-journée par mois' : p.build.upkeep === false ? (p.id === 'pa' ? 'auto-apprenante, sans maintenance' : 'aucune maintenance') : 'essais auprès des équipes compris'}</span>` : '');
+const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` + buildHTML(p) +
   (p.extraGains || []).map((g) => `<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('') +
   (p.gainBasis ? `<p class="process-gain-basis">${esc(p.gainBasis)}</p>` : '');
+
 
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);

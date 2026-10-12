@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/GLTFLoader.js';
-import {ANNUAL_DECLARED,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v57';
+import {ANNUAL_DECLARED,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v58';
 export function initPiggyBank(host){
  host.dataset.piggy='loading';
  const status=document.createElement('span');status.className='piggy-status';status.setAttribute('role','status');status.textContent='Chargement de la tirelire 3D…';host.append(status);

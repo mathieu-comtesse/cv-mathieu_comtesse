@@ -213,7 +213,7 @@ export const reconstructedProjects=[
   },
   {
     "id": "vmvre",
-    "title": "VRE / VLE · traitement par VM",
+    "title": "VRE · traitement par VM",
     "subtitle": "De la file d’attente à l’intégration confirmée",
     "color": "#a3791f",
     "reference": "https://sketchfab.com/3d-models/gantry-crane-for-harbor-rtg-2054115710104ef48d3ef39d3ed6626c",
@@ -900,7 +900,7 @@ export const reconstructedProjects=[
   },
   {
     "id": "moteur44",
-    "title": "Moteur V4.4",
+    "title": "Reporteur Q18",
     "steps": [
       {
         "title": "Rapports SharePoint",
@@ -921,7 +921,7 @@ export const reconstructedProjects=[
       {
         "title": "Prise en charge",
         "kind": "pdf",
-        "description": "Le rapport entre dans le parcours du Moteur V4.4. Les vues suivantes détaillent son rapprochement avec le suivi.",
+        "description": "Le rapport entre dans le parcours du Reporteur Q18. Les vues suivantes détaillent son rapprochement avec le suivi.",
         "operation": "Les tasseaux du tapis entraînent les rapports vers le sommet de la passerelle.",
         "point": [
           3.6,
@@ -935,7 +935,7 @@ export const reconstructedProjects=[
         ]
       },
       {
-        "title": "Moteur V4.4",
+        "title": "Reporteur Q18",
         "kind": "script",
         "description": "Le moteur rapproche les données du rapport de la bonne ligne Excel. La transformation reste liée à ce document.",
         "operation": "Le convoyeur déverse au centre de la structure. Les coffrets et leurs commandes représentent le moteur de traitement.",

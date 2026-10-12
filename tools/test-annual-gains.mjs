@@ -36,12 +36,12 @@ assert.equal(revised.history[0].total.minHours,ANNUAL_DECLARED.minHours);
 assert.equal(calendarGainState(new Date(2028,0,1)).minHours,0);
 console.log('PASS: calendar reset, previous-year retention and frozen historical basis');
 
-// Deux niveaux : volumes fournis et estimations ; le net retire 6 outils × (4 à 9 j de 7 h + 12 demi-journées).
+// Deux niveaux : volumes fournis et estimations ; le net retire 25 jours de construction et 5 outils × 12 demi-journées.
 assert.equal(ANNUAL_DECLARED.minHours.toFixed(2),'3193.75');assert.equal(ANNUAL_DECLARED.maxHours.toFixed(2),'4010.42');
 assert.equal(ANNUAL_ESTIMATED.minHours.toFixed(2),'3916.67');assert.equal(ANNUAL_ESTIMATED.maxHours.toFixed(2),'5270.83');
 assert.equal(ANNUAL_DECLARED.minHours+ANNUAL_ESTIMATED.minHours,ANNUAL_TOTAL.minHours);
-assert.deepEqual([ANNUAL_COST.buildMin,ANNUAL_COST.buildMax,ANNUAL_COST.upkeep],[168,378,252]);
-assert.equal(ANNUAL_NET.minHours.toFixed(2),'2563.75');assert.equal(ANNUAL_NET.maxHours.toFixed(2),'3590.42');
+assert.deepEqual([ANNUAL_COST.buildDays,ANNUAL_COST.build,ANNUAL_COST.upkeep],[25,175,210]);
+assert.equal(ANNUAL_NET.minHours.toFixed(2),'2808.75');assert.equal(ANNUAL_NET.maxHours.toFixed(2),'3625.42');
 const {euroCoinRhythm}=await import('../js/annual-gains.js');
 const cadence=euroCoinRhythm();
 assert.equal(cadence.workingSeconds,5670000);

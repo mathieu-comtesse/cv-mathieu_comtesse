@@ -1,4 +1,4 @@
-// Fig 02 · VRE / VLE traités par VM : deux pointeuses et une seule clé.
+// Fig 02 · VRE traités par VM : deux pointeuses et une seule clé.
 // node figures/build-vm.mjs  →  figures/vm.html
 // Les demandes déposées attendent dans le casier de gauche. Toutes les deux minutes, la
 // pointeuse qui tient la clé relève la plus ancienne, lit R004 et l'OT à sept chiffres,
@@ -276,7 +276,7 @@ draw();
 
 const plate = k.plateHtml({
   fig: "Fig 02",
-  title: "VRE / VLE par VM",
+  title: "VRE par VM",
   hint: "Glisse ← → : heure · P : panne VM 1",
   readout: "08:00 · 0 rapport inscrit · 0 h · 0 €",
   keys: [
@@ -287,4 +287,4 @@ const plate = k.plateHtml({
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Pointeuses VM : flèches gauche et droite pour avancer l'heure, P pour simuler la panne de la VM 1" aria-valuemin="480" aria-valuemax="1034" aria-valuenow="480">${svg}</div>`,
 });
 
-writeFigure("vm", { title: "VRE / VLE · pointeuses VM", plate, live });
+writeFigure("vm", { title: "VRE · pointeuses VM", plate, live });

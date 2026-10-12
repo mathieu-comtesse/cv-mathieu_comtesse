@@ -1,4 +1,4 @@
-// Fig 04 · Moteur V4.4 : un fichier rotatif motorisé.
+// Fig 04 · Reporteur Q18 : un fichier rotatif motorisé.
 // node figures/build-moteur.mjs  →  figures/moteur.html
 // Le rapport SharePoint donne son OT ; on le compose au cadran, le moteur fait tourner le fichier
 // jusqu'à la fiche de la bonne ligne Excel, qui s'écarte et se lève ; le tampon y reporte les données
@@ -278,7 +278,7 @@ draw();
 
 const plate = k.plateHtml({
   fig: "Fig 04",
-  title: "Moteur V4.4",
+  title: "Reporteur Q18",
   hint: "Glisse : fichier · ← → : rapport",
   readout: "Rapport 1 · OT composé _______",
   keys: [
@@ -289,4 +289,4 @@ const plate = k.plateHtml({
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Fichier rotatif : glisser pour tourner les fiches, flèches pour changer de rapport" aria-valuemin="1" aria-valuemax="36" aria-valuenow="1">${svg}</div>`,
 });
 
-writeFigure("moteur", { title: "Moteur V4.4 · fichier rotatif", plate, live });
+writeFigure("moteur", { title: "Reporteur Q18 · fichier rotatif", plate, live });

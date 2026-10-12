@@ -38,7 +38,7 @@ try{
   assert.ok(evidence.swipe.scroll>140,'Le geste tactile doit faire défiler les cartes');assert.ok(Math.abs(await page.evaluate(()=>scrollY)-startY)<10);assert.equal(await page.locator('.process-dialog[open]').count(),0);
   await page.screenshot({scale:'css',path:path.join(output,'mobile-apres-defilement.png')});
   await gallery.press('ArrowRight');await page.waitForTimeout(300);
-  const clickable=page.getByRole('button',{name:'Explorer VRE / VLE · traitement par VM'});await clickable.click();await page.waitForFunction(()=>Number(document.querySelector('.process-dialog').dataset.frames)>5);await page.screenshot({scale:'css',path:path.join(output,'mobile-atelier.png')});await page.getByRole('button',{name:'Retour aux projets'}).click();
+  const clickable=page.getByRole('button',{name:'Explorer VRE · traitement par VM'});await clickable.click();await page.waitForFunction(()=>Number(document.querySelector('.process-dialog').dataset.frames)>5);await page.screenshot({scale:'css',path:path.join(output,'mobile-atelier.png')});await page.getByRole('button',{name:'Retour aux projets'}).click();
   await page.setViewportSize({width:1440,height:1000});await page.locator('#room').scrollIntoViewIfNeeded();await page.waitForTimeout(900);
   assert.equal(await page.locator('.room-camera').isVisible(),true);assert.equal(await page.locator('.room-navigation').isVisible(),true);assert.equal(await page.locator('.room-zoom').isVisible(),true);
   await page.evaluate(()=>{const r=window.room;r.setCameraMode('free');r.target.set(-3.1,1.05,.3);r.view.tAz=70*Math.PI/180;r.view.tEl=30*Math.PI/180;r.view.tZoom=2.8;});await page.waitForTimeout(1000);

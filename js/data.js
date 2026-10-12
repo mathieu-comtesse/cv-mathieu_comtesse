@@ -115,9 +115,9 @@ export const PRO = [
  },
  {
   "id": "projet-moteur44",
-  "title": "Moteur V4.4",
+  "title": "Reporteur Q18",
   "sub": "SharePoint, ligne Excel et Q18 visibles",
-  "lead": "Le moteur V4.4 rend les Q18 visibles dans une colonne Excel. Le classeur alimente Power BI, qui apporte une nouvelle visibilité répondant aux besoins des COSI (Correspondants en Sécurité incendie) et des clients de l’ABE SUD IdF. Il remplace le copier-coller depuis SharePoint vers la bonne ligne du classeur Excel.",
+  "lead": "Le Reporteur Q18 rend les Q18 visibles dans une colonne Excel. Le classeur alimente Power BI, qui apporte une nouvelle visibilité répondant aux besoins des COSI (Correspondants en Sécurité incendie) et des clients de l’ABE SUD IdF. Il remplace le copier-coller depuis SharePoint vers la bonne ligne du classeur Excel.",
   "gain": "15 minutes économisées par rapport sur le report SharePoint → Excel. Sur 4 000 à 5 000 rapports/an : 1 000 à 1 250 heures libérées, soit 104 740 à 130 925 € par an à 104,74 €/h. Les Q18 sont désormais visibles.",
   "team": "Les données arrivent à la bonne ligne ; les Q18 deviennent visibles dans Excel puis dans Power BI, pour les COSI et les clients de l’ABE SUD IdF.",
   "url": "projet-moteur44.html"
@@ -199,10 +199,10 @@ PRO.unshift(...[
   },
   {
     "id": "projet-vm-vre",
-    "title": "VRE / VLE · traitement par VM",
+    "title": "VRE · traitement par VM",
     "sub": "SharePoint, demandes, Excel et récapitulatif",
     "lead": "Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.",
-    "gain": "30 minutes de traitement économisées par rapport VRE/VLE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons ; le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.",
+    "gain": "30 minutes de traitement économisées par rapport VRE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons ; le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.",
     "team": "Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint."
   }
 ]);
