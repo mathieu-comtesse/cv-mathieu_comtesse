@@ -6,13 +6,19 @@ Refonte Unity de la campagne Talas autour de la prévention et des sept chapitre
 
 ## Jouer dans le navigateur
 
+**[Jouer à Talas directement en ligne](https://mathieu-comtesse.github.io/cv-mathieu_comtesse/talas-refonte/)** — cliquer sur ce lien, attendre le chargement puis cliquer sur Continuer. Aucune installation ni serveur local à lancer.
+
+La compilation intègre la décompression des ressources pour fonctionner sur GitHub Pages. La version publiée est dans `talas-refonte` sur la branche de publication ; les sources Unity restent ici.
+
+### Option pour développer en local
+
 Avec Python 3 installé, depuis ce dossier :
 
 ```sh
 python serve-talas.py --root Navigateur --port 8189
 ```
 
-Ouvrir ensuite <http://127.0.0.1:8189/>. Le serveur fournit les en-têtes nécessaires aux fichiers Unity compressés. Une ouverture directe du fichier HTML ou un hébergement statique sans ces en-têtes ne suffit pas.
+Ouvrir ensuite <http://127.0.0.1:8189/>. Le serveur sert les fichiers en HTTP ; la compilation n’exige plus d’en-têtes de décompression spécifiques. Une ouverture directe du fichier HTML depuis le disque ne suffit pas.
 
 Q/D ou flèches : marcher ; Maj : courir ; E : ouvrir l’atelier ; M : carnet. Les commandes propres à chaque activité sont présentées avant de commencer. Cliquer sur le texte, la flèche ou Continuer pour parcourir un dialogue.
 
@@ -39,4 +45,4 @@ Le rendu et la finesse des animations restent en dessous de Silver Pines. Les m�
 
 `Assets`, `Packages` et `ProjectSettings` constituent le projet Unity. `Navigateur` contient la compilation WebGL ; `Validation` conserve les preuves de la livraison locale. Les scripts de l’éditeur se trouvent notamment dans `Assets/TalasCampaign/Editor`.
 
-Cette branche ajoute ce dossier sans modifier la page d’accueil ni les fichiers existants du site.
+La page d’accueil du CV et le Talas initial sont conservés. La publication ajoute le dossier `talas-refonte` et un README avec le lien jouable sur la branche servant GitHub Pages. Cette branche conserve le projet Unity et sa compilation navigateur.
