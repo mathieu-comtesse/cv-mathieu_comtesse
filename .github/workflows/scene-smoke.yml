@@ -123,7 +123,7 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=cv-projects-v6" index.html
+          grep -q "js/main.js?v=cv-projects-v7" index.html
           grep -q "character.js?v=cv-scene-v49" js/room.js
           grep -q "retro.js?v=cv-scene-v52" js/room.js
           grep -q "room.js?v=cv-scene-v55" js/main.js

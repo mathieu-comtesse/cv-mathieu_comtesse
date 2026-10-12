@@ -1,7 +1,7 @@
 // Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
 // dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
-import { createMarquee } from './marquee.js?v=cv-projects-v6';
+import { createMarquee } from './marquee.js?v=cv-projects-v7';
 
 // Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
 const MACHINES = {
@@ -39,14 +39,16 @@ const MACHINES = {
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
 const kindOf = (p) => (p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
-const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>Temps libéré</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${p.gainStatus === 'penalties' ? 'Pénalités identifiées' : 'Valorisation financière du temps'}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` +
+const timeLabel = (p) => (p.gainStatus === 'estimated' ? 'Temps libéré (estimé)' : 'Temps libéré');
+const moneyLabel = (p, long) => (p.gainStatus === 'result' ? 'Résultat' : p.gainStatus === 'estimated' ? 'Valorisation estimée' : long ? 'Valorisation financière du temps' : 'Valorisation financière');
+const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` +
   (p.extraGains || []).map((g) => `<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('') +
   (p.gainBasis ? `<p class="process-gain-basis">${esc(p.gainBasis)}</p>` : '');
 
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);
   host.className = 'marquee process-gallery';
-  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><img class="machine-light" src="assets/figures/${fig}-light.webp" alt="" width="840" height="600" loading="lazy"><img class="machine-dark" src="assets/figures/${fig}-dark.webp" alt="" width="840" height="600" loading="lazy"><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus === 'penalties' ? 'Pénalités identifiées' : 'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><img class="machine-light" src="assets/figures/${fig}-light.webp" alt="" width="840" height="600" loading="lazy"><img class="machine-dark" src="assets/figures/${fig}-dark.webp" alt="" width="840" height="600" loading="lazy"><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
   createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
 

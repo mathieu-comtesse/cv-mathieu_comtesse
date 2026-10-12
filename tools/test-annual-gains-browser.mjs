@@ -22,8 +22,8 @@ try{
  assert.equal(await page.locator('.annual-pig-wrap').getAttribute('data-coin-asset'),'one-euro-coin-user.glb');assert.equal(await pig.locator('.piggy-credit').count(),0);assert.match(await page.locator('footer .credits').textContent(),/Piggy Bank.*mistour.*CC BY 4.0/);
  assert.match(await page.locator('.automation-cascade').innerText(),/Un processus fiable, du temps libéré pour plusieurs équipes/);
  const expectedYear=new Date().getFullYear();assert.equal(await pig.getAttribute('data-calendar-year'),String(expectedYear));
- assert.match(await pig.locator('[data-annual-money]').innerText(),/744/);
- assert.match(await pig.locator('[data-annual-hours]').innerText(),/7.?110/);
+ assert.match(await pig.locator('[data-annual-fte]').innerText(),/postes/);
+ assert.match(await pig.locator('[data-annual-hours]').innerText(),/3.?194/);
  assert.match(await pig.locator('[data-calendar-label]').innerText(),new RegExp(String(expectedYear)));
  await pig.locator('.annual-breakdown summary').click();assert.equal(await pig.locator('tbody tr').count(),7);
  await pig.locator('.annual-breakdown summary').click();
@@ -45,7 +45,7 @@ try{
  await page.waitForFunction(()=>{const p=Number(document.querySelector('.annual-pig-wrap').dataset.coinPhase);return p>.05&&p<.18;},null,{timeout:20000});await page.screenshot({path:path.join(output,'tirelire-3d-pieces.png'),timeout:120000});
  const fit={length:Number(await model.getAttribute('data-slot-length')),width:Number(await model.getAttribute('data-slot-width')),diameter:Number(await model.getAttribute('data-coin-diameter')),thickness:Number(await model.getAttribute('data-coin-thickness'))};assert.ok(fit.diameter<fit.length&&fit.thickness<fit.width);
  for(const angle of [0,1,2]){
-  await canvas.press('ArrowRight');await canvas.press('ArrowRight');if(angle===1)await canvas.press('ArrowUp');await pig.locator('[data-annual-money]').click();
+  await canvas.press('ArrowRight');await canvas.press('ArrowRight');if(angle===1)await canvas.press('ArrowUp');await pig.locator('[data-annual-fte]').click();
   await page.waitForFunction(()=>{const e=document.querySelector('.annual-pig-wrap'),p=Number(e.dataset.coinPhase);return p>.78&&p<.82;},null,{timeout:20000});
   assert.ok(Math.abs(Number(await model.getAttribute('data-coin-x')))<1e-5);assert.ok(Math.abs(Number(await model.getAttribute('data-coin-z'))+.43)<1e-5);
   await pig.screenshot({path:path.join(output,'insertion-angle-'+angle+'.png'),timeout:120000});

@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v4';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v7';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
 const P = (id, title, sub, gain, unit, img, pro) => ({ id, title, sub, gain, unit, img, pro: byId[pro] || null });
@@ -403,7 +403,7 @@ export const PRO_CARDS = [
   G('vmvre', 'VRE / VLE · traitement par VM', 'Rapports, OT, liens Excel et récapitulatif', '30 min / rapport', '2 000–2 500 h par an pour 4 000–5 000 rapports VRE/VLE : rapprochement de l’OT, inscription du lien et vérification dans Excel', '209 480–261 850 € / an', 'temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport', 'assets/dioramas/vmvre.png?v=cv-scene-v18', 'projet-vm-vre'),
   G("moteur44", "Moteur V4.4", "SharePoint → bonne ligne Excel · Q18 visibles", "15 min / rapport", "4 000–5 000 rapports/an : 1 000–1 250 h libérées sur le report SharePoint vers la bonne ligne Excel ; Q18 désormais visibles", "104 740–130 925 € / an", "15 min × 4 000–5 000 rapports à 104,74 €/h ; soit 26,19 € par rapport", "assets/dioramas/moteur44.png?v=cv-scene-v29", "projet-moteur44"),
   G('pa', 'Power Automate · chaîne des PP', 'Dépôt, classement, alerte, relance', '40 min', 'de contrôles et de saisie rendues chaque jour', '15 700 €', 'par an, soit ≈ 17 € et 10 min par plan de prévention', 'assets/projets/pp.jpg?v=bf01a16', 'projet-3'),
-  G("cerfa", "CERFA v3", "Fiches et attestations devenues données du parc", "20–25 h → 1 min 20 s", "pour traiter un lot de 300 fiches CERFA et attestations", "50 000 €", "pénalités de retard identifiées et applicables ; temps libéré du lot valorisé séparément à 2 092,47–2 616,17 €", "assets/projets/cerfa.jpg?v=bf01a16", "projet-1"),
+  G("cerfa", "CERFA v3", "Fiches et attestations devenues données du parc", "20–25 h → 1 min 20 s", "pour traiter un lot de 300 fiches CERFA et attestations", "Audit national", "sur les CERFA fluides frigorigènes ; pénalités applicables et non-conformités remontées", "assets/projets/cerfa.jpg?v=bf01a16", "projet-1"),
   G("vre", "Extracteur VRE", "Rapports de vérification électrique", "1 667–2 083 h / an", "25 min de comptage évitées par rapport × 4 000–5 000 rapports/an ; capacité théorique rendue disponible", "174 566,67–218 208,33 € / an", "25 min × 4 000–5 000 rapports à 104,74 €/h ; ≈ 43,64 € par rapport", "assets/projets/vre.jpg?v=bf01a16", "projet-vre"),
   G('studio', 'Studio d’extracteurs PDF', 'Un extracteur sans coder', '5–10 jours → 4 h', 'pour disposer d’un extracteur opérationnel', '3 200–6 900 €', 'évités par famille de documents', 'assets/projets/studio.jpg?v=bf01a16', 'projet-studio'),
   G("powerbi", "Power BI · PP & MOSO", "VM · extraction, rangement SharePoint et archivage auto", "100–167 h / an", "15–20 min × 400–500 PP/an : extraction VM, rangement SharePoint et archivage automatique", "10 474–17 456,67 € / an", "400–500 plans par an, valorisés à 104,74 €/h ; 26,19–34,91 € par PP", "assets/projets/powerbi.jpg?v=bf01a16", "projet-4"),
@@ -415,18 +415,17 @@ export const PRO_CARDS = [
 // Base de valorisation : coût horaire du CV, pas un encaissement financier.
 export const HOURLY_RATE = 104.74;
 const bases = {
- moteur44: '15/60 h × 4 000–5 000 rapports/an = 1 000–1 250 h/an ; × 104,74 €/h = 104 740–130 925 €/an. Report SharePoint vers la bonne ligne Excel et Q18 visibles.',
- vmvre: '0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu.',
+ moteur44: '15/60 h × 4 000–5 000 rapports/an = 1 000–1 250 h/an ; × 104,74 €/h = 104 740–130 925 €/an. Report SharePoint vers la bonne ligne Excel et Q18 visibles. VM, report Moteur et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).',
+ vmvre: '0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu. VM, report Moteur et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).',
  pa: '40 min/jour × environ 225 jours/an × 104,74 €/h ≈ 15 700 €/an. Temps de contrôle et saisie des plans de prévention.',
- cerfa: '50 €/document en retard : environ 1 000 documents identifiés. Pénalités applicables, pas des économies de personnel ni des sommes encaissées.',
- vre: '25/60 h × 4 000–5 000 rapports/an = 1 666,67–2 083,33 h/an ; × 104,74 €/h = 174 566,67–218 208,33 €/an. Capacité théorique : le comptage manuel complet était auparavant trop long pour être réalisé.',
+ vre: '25/60 h × 4 000–5 000 rapports/an = 1 666,67–2 083,33 h/an ; × 104,74 €/h = 174 566,67–218 208,33 €/an. Capacité théorique : le comptage manuel complet était auparavant trop long pour être réalisé. VM, report Moteur et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).',
  studio: 'Environ 31–66 h de développement évitées par famille de PDF (journées de 7 h, contre 4 h avec le studio) × 104,74 €/h.',
  powerbi: '15–20/60 h × 400–500 PP/an = 100–166,67 h/an ; × 104,74 €/h = 10 474–17 456,67 €/an. Extraction VM, rangement SharePoint et archivage auto. Consultation distincte : 10 min × 40 consultations/jour = 6 h 40 et 698,27 €/jour. Ces deux gains portent sur des actions différentes.',
  suivi: 'Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.',
  gares: '10–15/60 h × 20–30 consultations/jour × 225 jours/an (hypothèse) = 750–1 687,5 h/an ; × 104,74 €/h = 78 555–176 748,75 €/an. Fourchette estimative, non multipliée à nouveau par le parc des équipements.',
  finance: 'Base déjà chiffrée dans le CV : 5 périmètres × 5 min/jour = 25 min/jour ; 225 jours/an, soit 93,75 h × 104,74 €/h = 9 819,38 €/an (≈ 9 800 €). Ce gain valorise le pointage manuel évité ; les quatre flux CS, Locatif, MEC et PPTM et la vue globale signalent les dépassements le matin même.'
 };
-for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=p.id==='suivi'?'estimated':p.id==='cerfa'?'penalties':p.time===null?'none':'time-value'; }
+for (const p of PRO_CARDS) { p.gainBasis=bases[p.id]||''; p.gainStatus=['suivi','vre','gares'].includes(p.id)?'estimated':p.id==='cerfa'?'result':p.time===null?'none':'time-value'; }
 PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
  {time:'6 h 40 / jour',timeCtx:'10 minutes économisées par consultation × environ 40 consultations par jour',money:'698,27 € / jour',moneyCtx:'consultation des PP à 104,74 €/h ; aucun volume annuel de jours supposé'}
 ];

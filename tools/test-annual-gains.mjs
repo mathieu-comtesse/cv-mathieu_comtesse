@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {ANNUAL_GAINS,ANNUAL_TOTAL,ANNUAL_DAYS,ANNUAL_RATE} from '../js/annual-gains.js';
+import {ANNUAL_GAINS,ANNUAL_TOTAL,ANNUAL_DECLARED,ANNUAL_ESTIMATED,ANNUAL_COST,ANNUAL_NET,ANNUAL_DAYS,ANNUAL_RATE} from '../js/annual-gains.js';
 import {readFile} from 'node:fs/promises';
 assert.equal(ANNUAL_DAYS,225);assert.equal(ANNUAL_RATE,104.74);
 assert.equal(new Set(ANNUAL_GAINS.map(r=>r.id)).size,ANNUAL_GAINS.length);
@@ -29,18 +29,24 @@ assert.equal(calendarGainState(new Date(2027,0,1)).minMoney,0);
 assert.equal(calendarGainState(new Date((new Date(2027,0,1).getTime()+new Date(2028,0,1).getTime())/2)).fraction,.5);
 const before=rollGainHistory(null,2026),after=rollGainHistory(before,2027);
 assert.equal(after.year,2027);assert.equal(after.history.length,1);assert.equal(after.history[0].year,2026);
-assert.deepEqual(after.history[0].total,ANNUAL_TOTAL);
+assert.deepEqual(after.history[0].total,ANNUAL_DECLARED);
 assert.equal(rollGainHistory(after,2027).history.length,1);
-const revised=rollGainHistory(after,2027,{...ANNUAL_TOTAL,minHours:999});
-assert.equal(revised.history[0].total.minHours,ANNUAL_TOTAL.minHours);
+const revised=rollGainHistory(after,2027,{...ANNUAL_DECLARED,minHours:999});
+assert.equal(revised.history[0].total.minHours,ANNUAL_DECLARED.minHours);
 assert.equal(calendarGainState(new Date(2028,0,1)).minHours,0);
 console.log('PASS: calendar reset, previous-year retention and frozen historical basis');
 
+// Deux niveaux : volumes fournis et estimations ; le net retire 6 outils × (4 à 9 j de 7 h + 12 demi-journées).
+assert.equal(ANNUAL_DECLARED.minHours.toFixed(2),'3193.75');assert.equal(ANNUAL_DECLARED.maxHours.toFixed(2),'4010.42');
+assert.equal(ANNUAL_ESTIMATED.minHours.toFixed(2),'3916.67');assert.equal(ANNUAL_ESTIMATED.maxHours.toFixed(2),'5270.83');
+assert.equal(ANNUAL_DECLARED.minHours+ANNUAL_ESTIMATED.minHours,ANNUAL_TOTAL.minHours);
+assert.deepEqual([ANNUAL_COST.buildMin,ANNUAL_COST.buildMax,ANNUAL_COST.upkeep],[168,378,252]);
+assert.equal(ANNUAL_NET.minHours.toFixed(2),'2563.75');assert.equal(ANNUAL_NET.maxHours.toFixed(2),'3590.42');
 const {euroCoinRhythm}=await import('../js/annual-gains.js');
 const cadence=euroCoinRhythm();
 assert.equal(cadence.workingSeconds,5670000);
-assert.equal(cadence.meanMoney.toFixed(2),'858431.58');
-assert.ok(Math.abs(cadence.secondsPerEuro-6.605)<.01);
+assert.equal(cadence.meanMoney.toFixed(2),'377282.21');
+assert.ok(Math.abs(cadence.secondsPerEuro-15.029)<.01);
 assert.equal(euroCoinRhythm(undefined,180,8).workingSeconds,5184000);
 for(const filename of ['pink-piggy-bank.glb','one-euro-coin.glb']){
  const bytes=await readFile(new URL('../assets/'+filename,import.meta.url));

@@ -1,7 +1,7 @@
 // Fig 01 · CERFA v3 : une trieuse de fiches.
 // node figures/build-cerfa.mjs  →  figures/cerfa.html (thème clair)
 // Le lot de fiches part du chargeur, passe sous la tête de lecture, puis le poussoir de sa
-// case la fait tomber : conforme, doublon, non-conformité ou retard (50 € par fiche).
+// case la fait tomber : conforme, doublon, non-conformité ou retard.
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -119,7 +119,7 @@ function frontFace() {
   return out.join("");
 }
 
-// Totalisateur des pénalités sur le plateau, à droite des cases : 50 € par fiche en retard.
+// Totalisateur des retards sur le plateau, à droite des cases.
 const TOTAL = { x: 54, y: -6, w: 64, d: 26, r: 2 }, TOTAL_H = 22;
 function totalizer() {
   const out = [], y = TOTAL.y + TOTAL.d, top = DECK + TOTAL_H;
@@ -129,7 +129,7 @@ function totalizer() {
   out.push(D(k.corners(TOTAL, 6).map(([x, yy]) => at([x, yy, top])), { size: 0.45 }));
   const win = flat(TOTAL.x + 6, DECK + 9.5, TOTAL.x + TOTAL.w - 6, DECK + 18.5, 1.6);
   out.push(`<g transform="${front(y)}"><path class="iso-fill fig-window" d="${win}"/><path class="iso-line" data-tone="lo" d="${win}"/>`);
-  out.push(`<text class="fig-digits" data-part="euros" x="${TOTAL.x + TOTAL.w - 9}" y="${-(DECK + 11.4)}" text-anchor="end" font-size="7">0 €</text></g>`);
+  out.push(`<text class="fig-digits" data-part="late" x="${TOTAL.x + TOTAL.w - 9}" y="${-(DECK + 11.4)}" text-anchor="end" font-size="7">0 retard</text></g>`);
   // Manivelle de remise à zéro sur le flanc droit.
   const F = G.frameAlong([TOTAL.x + TOTAL.w, TOTAL.y + 13, DECK + 12], [1, 0, 0]);
   out.push(S(G.disc(0, 2.2, 4.2, F, P), { tone: "lo" }));
@@ -257,7 +257,7 @@ function cardSvg() {
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Une trieuse de fiches sur un établi. Le chargeur à droite tient le lot de fiches CERFA ; chaque fiche passe sous la tête de lecture, puis le poussoir de sa case la fait tomber dans l'une des quatre cases : conforme, doublon, non-conformité ou retard. Des compteurs comptent chaque case et un afficheur cumule 50 € par fiche en retard.",
+  label: "Une trieuse de fiches sur un établi. Le chargeur à droite tient le lot de fiches CERFA ; chaque fiche passe sous la tête de lecture, puis le poussoir de sa case la fait tomber dans l'une des quatre cases : conforme, doublon, non-conformité ou retard. Des compteurs comptent chaque case et un afficheur cumule les fiches en retard.",
   body: [base(), cabinet(), counters(), frontFace(), sidePanel(), transportBack(), `<g data-part="lane"></g>`, transportFront(), pockets(), totalizer()],
 });
 
@@ -268,15 +268,15 @@ const T = ${T}, BED = ${BED}, DECK = ${DECK}, LANE_Y = ${LANE_Y}, POCKET_Y = ${P
 const CARD_SVG = ${JSON.stringify(cardSvg())};
 const CENTRES = ${JSON.stringify(CENTRES)}, HOPPER = ${JSON.stringify(HOPPER)}, READ_X = ${READ_X}, LOT = ${JSON.stringify(LOT)}, KNOB = ${JSON.stringify(KNOB)}, RIGHT_X = ${BACK.x + BACK.w};
 // Vrais chiffres : un lot de 300 fiches en 1 min 20 s ; 20 à 25 h à la main, soit 4 à 5 min par fiche.
-const MACHINE_S = 80 / 300, HAND_MIN = [4, 5], EUROS = 50;
-// Répartition illustrative des fiches entre les cases (les pénalités réelles sont dans la légende).
+const MACHINE_S = 80 / 300, HAND_MIN = [4, 5];
+// Répartition illustrative des fiches entre les cases (les chiffres réels sont dans la légende).
 const WEIGHTS = [0.72, 0.06, 0.1, 0.12];
 const kindOf = (i) => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; const u = (h >>> 0) / 4294967296; let s = 0; for (let k = 0; k < 4; k++) { s += WEIGHTS[k]; if (u < s) return [3, 2, 1, 0][k]; } return 3; };
 const INTERVAL = 0.42, SPEED = 240, PUSH = 0.2, FALL = 0.38;
 const stage = document.querySelector(".iso-stage"), svg = stage.querySelector("svg");
 const $ = (name) => svg.querySelector('[data-part="' + name + '"]');
 const readout = document.querySelector("[data-readout]");
-const lane = $("lane"), hopper = $("hopper-stack"), lamp = $("lamp"), pointer = $("knob-pointer"), lotText = $("lot"), euros = $("euros");
+const lane = $("lane"), hopper = $("hopper-stack"), lamp = $("lamp"), pointer = $("knob-pointer"), lotText = $("lot"), late = $("late");
 const stacks = [0, 1, 2, 3].map((i) => $("stack-" + i)), slots = [0, 1, 2, 3].map((i) => $("slot-" + i)), rams = [0, 1, 2, 3].map((i) => $("ram-" + i)), counts = [0, 1, 2, 3].map((i) => $("count-" + i));
 const still = matchMedia("(prefers-reduced-motion: reduce)");
 const pool = Array.from({ length: 6 }, () => { const u = document.createElementNS("http://www.w3.org/2000/svg", "g"); u.innerHTML = CARD_SVG; u.style.display = "none"; lane.append(u); return u; });
@@ -329,7 +329,7 @@ function draw() {
   const key = s.landed.join(",");
   if (drawn.stacks !== key) {
     s.landed.forEach((n, k) => { stacks[k].innerHTML = stackSvg({ x: CENTRES[k] - CARD.l / 2, y: POCKET_Y, w: CARD.l, d: CARD.w, r: 0.6 }, DECK, n, false); counts[k].textContent = String(n).padStart(4, "0"); });
-    euros.textContent = fr(s.landed[0] * EUROS) + " €";
+    late.textContent = fr(s.landed[0]) + (s.landed[0] > 1 ? " retards" : " retard");
     drawn.stacks = key;
   }
   let reading = false;
@@ -400,7 +400,7 @@ const body = k.plateHtml({
     { mark: "lit", label: "La fiche lue, du chargeur à sa case" },
     { mark: "raised", label: "Cases : conforme, doublon, non-conformité, retard" },
   ],
-  caption: "La trieuse traite un lot de 300 fiches CERFA et attestations en 1 min 20 s, contre 20 à 25 h à la main. Chaque fiche en retard coûte 50 € : sur le parc, environ 1 000 fiches en retard ont été repérées, soit 50 000 € de pénalités applicables. La répartition entre les cases est illustrative.",
+  caption: "La trieuse traite un lot de 300 fiches CERFA et attestations en 1 min 20 s, contre 20 à 25 h à la main. L’extracteur permet d’appliquer des pénalités sur les retards, fait remonter les non-conformités et a permis un audit national sur les CERFA fluides frigorigènes. La répartition entre les cases est illustrative.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Trieuse de fiches CERFA : flèches gauche et droite pour changer la taille du lot, Entrée pour relancer" aria-valuemin="${LOT.min}" aria-valuemax="${LOT.max}" aria-valuenow="${LOT.rest}">${svg}</div>`,
 });
 

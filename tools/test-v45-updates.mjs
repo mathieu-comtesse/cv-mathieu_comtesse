@@ -42,7 +42,7 @@ try{
  const motor=page.getByRole('button',{name:'Explorer Moteur V4.4'});const motorText=await motor.innerText();
  assert.match(motorText,/4 000–5 000 rapports/);assert.match(motorText,/104 740–130 925/);
  assert.equal(await page.locator('.process-consultation-gain').count(),0);
- const annual=await page.locator('.annual-gains').innerText();assert.match(annual,/744.?745/);assert.match(annual,/972.?118/);
+ const annual=await page.locator('.annual-gains').innerText();assert.match(annual,/3.?194/);assert.match(annual,/postes/);assert.doesNotMatch(annual,/744.?745/);
  const cascade=await page.locator('.automation-cascade').innerText();assert.match(cascade,/invisibles/);assert.match(cascade,/points de blocage/);
  await page.screenshot({path:path.join(output,'gains.png')});
  await page.locator('.automation-cascade').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,'cascade.png')});

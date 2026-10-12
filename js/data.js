@@ -127,7 +127,7 @@ export const PRO = [
   "title": "CERFA v3",
   "sub": "Fiches et attestations → données du parc",
   "lead": "Les fiches d’intervention sur les équipements contenant des fluides frigorigènes (formulaire CERFA) arrivent par centaines, en PDF. La première version de l’extracteur lisait une fiche à la fois ; la v2 lit, extrait et analyse un large panel de fiches en lot, sur une masse de documents que personne ne pouvait dépouiller page par page. La v3, dernière version, traite aussi plusieurs autres types d’attestations dans le même lot : chaque document est reconnu, lu et contrôlé avec ses propres règles.",
-  "gain": "Un lot de 300 fiches CERFA et attestations traité en 1 minute 20 secondes, contre 20 à 25 heures à la main. Le temps libéré par lot représente 2 092,47 à 2 616,17 € à 104,74 €/h. Les 50 000 € de pénalités identifiées restent un résultat distinct.",
+  "gain": "Un lot de 300 fiches CERFA et attestations traité en 1 minute 20 secondes, contre 20 à 25 heures à la main. Le temps libéré par lot représente 2 092,47 à 2 616,17 € à 104,74 €/h. L’extracteur permet d’appliquer des pénalités, fait remonter les non-conformités et a permis de réaliser un audit national sur les CERFA fluides frigorigènes.",
   "team": "Ne plus dépouiller : superviser un lot entier, concentrer l’analyse sur les doublons, non-conformités et retards, et repartir avec un Excel déjà filtré et surligné.",
   "url": "projet-1.html"
  },
