@@ -23,7 +23,7 @@ import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v53';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
-import {createPhoneVideo} from './phone-video.js?v=cv-scene-v53';
+import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {

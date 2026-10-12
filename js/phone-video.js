@@ -24,8 +24,8 @@ export function createPhoneVideo(onChange=()=>{}){
   const key=new THREE.DirectionalLight('#fff8eb',1.6);key.position.set(-2.6,3.1,4);scene.add(key);
   camera=new THREE.PerspectiveCamera(28,1,.1,30);pivot=new THREE.Group();scene.add(pivot);
 
-  const titanium=new THREE.MeshStandardMaterial({color:'#8d8a84',metalness:1,roughness:.32});
-  const glass=new THREE.MeshPhysicalMaterial({color:'#6f6d69',metalness:.2,roughness:.55,clearcoat:.4,clearcoatRoughness:.35});
+  const titanium=new THREE.MeshStandardMaterial({color:'#3d5a47',metalness:1,roughness:.34});
+  const glass=new THREE.MeshPhysicalMaterial({color:'#2f4a3a',metalness:.2,roughness:.55,clearcoat:.4,clearcoatRoughness:.35});
   const black=new THREE.MeshStandardMaterial({color:'#050505',metalness:.3,roughness:.18});
 
   // châssis en titane : plaque extrudée à arêtes biseautées
@@ -33,9 +33,9 @@ export function createPhoneVideo(onChange=()=>{}){
   body.position.z=-D/2+bevel;pivot.add(body);
   // dos en verre dépoli et plateau photo
   const back=new THREE.Mesh(flatGeometry(W-.016,H-.016,R-.008),glass);back.rotation.y=Math.PI;back.position.z=-D/2-.0004;pivot.add(back);
-  const plate=new THREE.Mesh(new THREE.ExtrudeGeometry(roundedRect(.36,.38,.07),{depth:.006,bevelEnabled:false,curveSegments:16}),new THREE.MeshPhysicalMaterial({color:'#7a7873',metalness:.1,roughness:.25,clearcoat:.8}));
+  const plate=new THREE.Mesh(new THREE.ExtrudeGeometry(roundedRect(.36,.38,.07),{depth:.006,bevelEnabled:false,curveSegments:16}),new THREE.MeshPhysicalMaterial({color:'#35523f',metalness:.1,roughness:.25,clearcoat:.8}));
   plate.rotation.y=Math.PI;plate.position.set(W/2-.045-.18,H/2-.045-.19,-D/2);pivot.add(plate);
-  const ring=new THREE.MeshStandardMaterial({color:'#9a978f',metalness:1,roughness:.25}),lens=new THREE.MeshStandardMaterial({color:'#07090d',metalness:.6,roughness:.06});
+  const ring=new THREE.MeshStandardMaterial({color:'#6f8f7a',metalness:1,roughness:.25}),lens=new THREE.MeshStandardMaterial({color:'#07090d',metalness:.6,roughness:.06});
   const cx=plate.position.x,cy=plate.position.y,lz=-D/2-.006; // vu de dos, l’objectif est en haut à gauche : x inversé dans le repère du modèle
   for(const[x,y]of[[.085,.09],[.085,-.095],[-.075,-.003]]){
    const r1=new THREE.Mesh(new THREE.CylinderGeometry(.062,.062,.02,48),ring),l1=new THREE.Mesh(new THREE.CylinderGeometry(.047,.047,.022,48),lens);
