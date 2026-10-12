@@ -15,6 +15,6 @@ export const ETAPES = [
     texte: 'Premiers tableaux de bord au printemps 2026, portail déployé pour l’équipe en mai – juin 2026 puis alimenté par Power Automate : un plan retrouvé en 10 s au lieu de 3 à 5 min.', lien: 'projet-4.html', icone: 'BI' },
   { id: 'lean', glb: 'lean', vers: [0.5, 1.0], nom: 'Dojo Lean Six Sigma', tag: 'Yellow Belt validé · ISO', role: 'Yellow Belt validé · ISO 9001 / 45001 / 14001 / 27001',
     texte: 'DMAIC, PDCA, analyse des causes et amélioration continue ; référentiels qualité, sécurité, environnement et sécurité de l’information.', lien: 'methode.html', icone: '6σ' },
-  { id: 'perso', glb: 'perso', vers: [0.5, 9], nom: 'Stade des projets perso', tag: '10 démos jouables en ligne', role: 'Arène des arcanes, Abysses & babioles, Route & vigilance, Timber !, Labyrinthe, Rubik, Sandboard, Pixels',
+  { id: 'perso', glb: 'perso', vers: [0.5, 9], nom: 'Stade des projets perso', tag: '10 démos jouables en ligne', role: 'Arène des arcanes, Route & vigilance, Timber !, Labyrinthe, Rubik, Sandboard, Pixels, LIMEN',
     texte: 'Le terrain de jeu Three.js et Canvas du site : combat en pixel art, plongée modélisée dans Blender, conduite, bûcheronnage, labyrinthe, casse-tête et bacs à sable.', lien: 'projets-perso.html', icone: '▶' },
 ];

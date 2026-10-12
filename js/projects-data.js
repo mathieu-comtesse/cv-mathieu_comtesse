@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v12';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v13';
 import { BUILD } from './annual-gains.js?v=cv-scene-v58';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
@@ -439,7 +439,6 @@ const TECH = {
   labyrinthe: T('HTML, CSS, JavaScript', 'Canvas 2D', 'Lignes de visée : seul ce qui est vu se révèle', ['Modes', 'Exploration manuelle ou automatique']),
   route: T('HTML, JavaScript, GLSL', 'Three.js, modèles GLB (Blender), Web Audio', 'Trafic simulé avec collisions, même trajet comparé', ['Livraison', '3D temps réel dans le navigateur']),
   arene: T('HTML, CSS, JavaScript', 'Canvas 2D en pixel art, Web Audio', 'Adversaire piloté par IA, 6 personnages, 12 compétences', ['Modes', 'Contre l’IA, à deux ou en entraînement']),
-  abysses: T('JavaScript, GLSL', 'Three.js, modèles Blender, Web Audio', 'Instanciation GPU : 2 047 poissons, 25 000 brins d’herbier', ['Jeu', 'Dégager au pinceau huit objets']),
   timber: T('HTML, JavaScript', 'Three.js, Blender, Web Audio', 'Fente, empilement, copeaux instanciés, son du choc', ['Livraison', 'Navigateur, souris et tactile']),
   rubik: T('HTML, JavaScript', 'Three.js, Web Worker', 'Permutations déduites des coordonnées des autocollants', ['Notions', 'Théorie des graphes']),
   sandboard: T('HTML, JavaScript', 'Three.js, Canvas 2D, Web Audio', 'Relief 3D, grains projetés par lancer de rayon', ['Rendu', 'Ombre de palmier, son du tracé']),
