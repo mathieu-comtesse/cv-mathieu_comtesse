@@ -319,3 +319,4 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .figure-dialog .figure-nav.prev{left:0}.figure-dialog .figure-nav.next{right:0}
 .figure-dialog .figure-nav:hover,.figure-dialog .figure-nav:focus-visible{opacity:1;color:var(--process-ink);background:linear-gradient(90deg,var(--process-line),transparent)}.figure-dialog .figure-nav.next:hover,.figure-dialog .figure-nav.next:focus-visible{background:linear-gradient(270deg,var(--process-line),transparent)}
 .fs .f2,.fs .f3{-webkit-user-select:none;user-select:none}
+.figure-head{padding-top:6px}.figure-head .figure-why{margin-bottom:14px}
