@@ -1,5 +1,5 @@
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng, inkify } from './kit.js?v=cv-scene-v29';
-import { createPowerParts, pointOf, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v60';
+import { createPowerParts, pointOf, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */

@@ -11,7 +11,7 @@ const PLUGS = {
   black: { node: 'power_plug_2', base: [0, 5.204, 15.893], exit: [4.652, 7.853, 15.893] },
 };
 const OUTLET = { node: 'power_outlet', top: [0, 2.365, 23.332], depth: 2.33 };
-const STRIP = { nodes: ['connector_strip'], top: [8.62, 2.806, 30.496], pitch: 4.31, count: 5, bottom: -1.275, cord: [25.6, 1.5, 30.2] };
+const STRIP = { nodes: ['connector_strip'], top: [8.62, 2.806, 30.496], pitch: 4.31, count: 5, bottom: -1.275, cord: [25.6, 0.77, 30.5] };   // axe du presse-étoupe mesuré dans le modèle (pointe à x = 26)
 
 export function createPowerParts(model) {
   const rootNode = model.scene.getObjectByName('RootNode');

@@ -92,7 +92,7 @@ export function furoKama() {
   const clay = mat('#7a5646', { roughness: 0.95 }), iron = mat('#2a2724', { roughness: 0.5, metalness: 0.35 });
   const furo = lathe([[0, 0], [0.085, 0], [0.098, 0.02], [0.105, 0.085], [0.1, 0.15], [0.116, 0.16], [0.116, 0.172], [0.086, 0.172]], new THREE.MeshStandardMaterial({ color: '#7a5646', roughness: 0.95, side: THREE.DoubleSide }));
   g.add(furo);
-  g.add(mesh(new THREE.TorusGeometry(0.05, 0.007, 6, 18), iron, 0, 0.173, 0)).rotation.x = Math.PI / 2;
+  { const ring = mesh(new THREE.TorusGeometry(0.05, 0.007, 6, 18), iron, 0, 0.173, 0); ring.rotation.x = Math.PI / 2; g.add(ring); }
   const kama = group();
   kama.add(lathe([[0, 0], [0.07, 0], [0.1, 0.03], [0.108, 0.072], [0.1, 0.112], [0.072, 0.134], [0.064, 0.142], [0.057, 0.14]], new THREE.MeshStandardMaterial({ color: '#2a2724', roughness: 0.5, metalness: 0.35, side: THREE.DoubleSide })));
   const lid = lathe([[0, 0.178], [0.03, 0.174], [0.058, 0.15], [0.062, 0.141]], new THREE.MeshStandardMaterial({ color: '#33302c', roughness: 0.5, metalness: 0.35, side: THREE.DoubleSide }));
@@ -133,7 +133,7 @@ export function kensui() {
 export function bonSet() {
   const g = group();
   g.add(cyl(0.15, 0.15, 0.012, LACQ(), 0, 0.006, 0, 36));
-  g.add(mesh(new THREE.TorusGeometry(0.15, 0.005, 6, 36), LACQ(), 0, 0.012, 0)).rotation.x = Math.PI / 2;
+  { const ring = mesh(new THREE.TorusGeometry(0.15, 0.005, 6, 36), LACQ(), 0, 0.012, 0); ring.rotation.x = Math.PI / 2; g.add(ring); }
   const nat = lathe([[0, 0], [0.03, 0], [0.037, 0.012], [0.037, 0.05], [0.033, 0.062], [0, 0.065]], new THREE.MeshStandardMaterial({ color: '#15100e', roughness: 0.18, metalness: 0.1, side: THREE.DoubleSide }));
   nat.position.set(0.05, 0.012, 0.0); g.add(nat);
   const sc = group(box(0.18, 0.003, 0.011, BAMBOO(), 0, 0, 0), box(0.02, 0.003, 0.011, BAMBOO(), 0.095, 0.006, 0)); sc.children[1].rotation.z = 0.5;
@@ -154,7 +154,7 @@ export function futaoki() { return mesh(new THREE.CylinderGeometry(0.024, 0.024,
 export function chabana() {
   const g = group();
   g.add(mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.22, 14, 1, true), dbl('#a89c5a'), 0, 0.11, 0));
-  g.add(mesh(new THREE.TorusGeometry(0.037, 0.004, 5, 14), mat('#8a7f44'), 0, 0.13, 0)).rotation.x = Math.PI / 2;
+  { const ring = mesh(new THREE.TorusGeometry(0.037, 0.004, 5, 14), mat('#8a7f44'), 0, 0.13, 0); ring.rotation.x = Math.PI / 2; g.add(ring); }
   g.add(bone([0, 0.1, 0], [0.02, 0.36, 0.01], 0.004, 0.003, mat('#3f6a38'), 6));
   const pet = mat('#d1405a', { roughness: 0.6 });
   for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; const p = sph(0.021, pet, 0.02 + Math.cos(a) * 0.022, 0.375, 0.01 + Math.sin(a) * 0.022, 8, 6); p.scale.y = 0.6; g.add(p); }
