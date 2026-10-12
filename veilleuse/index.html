@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LIMEN · une traversée en trois temps</title>
+<meta name="description" content="LIMEN : porte une braise à travers l’averse, le prisme et l’étale. Jeu WebGL en tramage de pixels, environ une heure à une heure et demie.">
+<meta name="theme-color" content="#0a121a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a121a'/%3E%3Cpath d='M16 5c3 5 6 8 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7 1 2 2 2 3-5z' fill='%23e8b360'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"../vendor/three.module.min.js","three/addons/":"../vendor/"}}</script>
+</head>
+<body>
+<canvas id="view" aria-label="Scène de jeu"></canvas>
+
+<div id="hud" hidden>
+  <div id="flame" class="panel" aria-label="Flamme de la veilleuse">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 2c2 4 6 7 6 12a6 6 0 0 1-12 0c0-3 1.6-5 3-7 .8 1.4 1.6 1.8 2.2 1 .8-1.6.8-3.8.8-6z" fill="currentColor"/></svg>
+    <div class="bar"><i id="flame-fill"></i></div>
+  </div>
+  <div id="goals" class="panel"></div>
+  <div id="tide" class="panel" hidden><span>Marée</span><div class="bar"><i id="tide-fill"></i></div><b id="tide-label"></b></div>
+  <div id="coords" class="panel small" hidden></div>
+  <div id="prompt" hidden></div>
+  <div id="arrow" hidden><svg viewBox="0 0 40 40" width="40" height="40"><path d="M20 4l12 28-12-7-12 7z" fill="currentColor"/></svg><span></span></div>
+  <div id="toast"></div>
+  <div id="speech" hidden><div class="who"></div><div class="txt"></div></div>
+  <div class="keys small">
+    <span><b>E</b> agir</span><span><b>H</b> direction</span><span><b>M</b> carte</span><span><b>J</b> carnet</span><span><b>Échap</b> pause</span>
+  </div>
+</div>
+
+<div id="titlecard" aria-live="polite"><h1></h1><p></p></div>
+<div id="fade"></div>
+
+<section id="menu" class="screen">
+  <div class="menu-box">
+    <p class="kicker">trois traversées · 60 à 90 minutes</p>
+    <h1>LIMEN</h1>
+    <p class="lede">Porter une braise. Guider la lumière. Attendre la mer.</p>
+    <div class="buttons">
+      <button id="btn-continue" hidden>Continuer</button>
+      <button id="btn-new">Nouvelle partie</button>
+      <button id="btn-settings">Réglages</button>
+    </div>
+    <p class="small ctl">ZQSD ou WASD : marcher &nbsp; Maj : courir &nbsp; E : agir &nbsp; Souris : caméra &nbsp; Écouteurs recommandés</p>
+  </div>
+</section>
+
+<section id="pause" class="screen" hidden>
+  <div class="menu-box">
+    <h2>Pause</h2>
+    <div class="buttons">
+      <button id="btn-resume">Reprendre</button>
+      <button id="btn-journal">Carnet</button>
+      <button id="btn-settings2">Réglages</button>
+      <button id="btn-quit">Menu principal</button>
+    </div>
+    <p class="small" id="pause-stats"></p>
+  </div>
+</section>
+
+<section id="settings" class="screen" hidden>
+  <div class="menu-box">
+    <h2>Réglages</h2>
+    <label>Volume <input id="set-volume" type="range" min="0" max="100" value="70"></label>
+    <label>Taille des pixels
+      <select id="set-pixels"><option value="360">Fins</option><option value="300" selected>Moyens</option><option value="240">Gros</option><option value="180">Très gros</option></select></label>
+    <label>Ombres
+      <select id="set-shadow"><option value="2048" selected>Nettes</option><option value="1024">Légères</option><option value="512">Minimales</option></select></label>
+    <label class="check"><input id="set-flash" type="checkbox" checked> Éclairs d’orage</label>
+    <label class="check"><input id="set-motion" type="checkbox" checked> Tremblement de caméra</label>
+    <div class="buttons"><button id="btn-settings-back">Retour</button></div>
+    <p class="small">Les changements d’ombres s’appliquent à la prochaine région.</p>
+  </div>
+</section>
+
+<section id="map" class="screen" hidden>
+  <div class="menu-box wide"><h2 id="map-title">Carte</h2><canvas id="map-canvas" width="380" height="380"></canvas><p class="small">M ou Échap pour fermer. Seuls les lieux déjà vus apparaissent.</p></div>
+</section>
+
+<section id="journal" class="screen" hidden>
+  <div class="menu-box wide"><h2>Carnet</h2><div id="journal-body"></div><div class="buttons"><button id="btn-journal-close">Fermer</button></div></div>
+</section>
+
+<section id="ending" class="screen" hidden>
+  <div class="menu-box"><div id="ending-text"></div><p class="small" id="ending-stats"></p><div class="buttons" id="ending-buttons" hidden><button id="btn-end-continue">Continuer à explorer</button><button id="btn-end-menu">Menu principal</button></div></div>
+</section>
+
+<div id="loading"><span>La braise s’allume</span></div>
+<noscript><p style="color:#fff;padding:2rem">Ce jeu demande JavaScript et WebGL.</p></noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
