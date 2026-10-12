@@ -37,7 +37,7 @@ const MACHINES = {
     'Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code ; avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.'],
 };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const FRAME_CSS = 'html,body{background:transparent!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
+const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
 const kindOf = (p) => (p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
 const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>Temps libéré</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${p.gainStatus === 'penalties' ? 'Pénalités identifiées' : 'Valorisation financière du temps'}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` +
   (p.extraGains || []).map((g) => `<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('') +
@@ -53,16 +53,16 @@ export function initProjectFigures(host, projects) {
   const modal = document.createElement('dialog');
   modal.className = 'process-dialog figure-dialog'; modal.setAttribute('aria-labelledby', 'process-title');
   modal.innerHTML = `<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Les machines des projets</span><button type="button" class="process-theme" aria-label="Changer le thème">Clair / sombre</button></div>
-<div class="process-content"><div class="figure-stage"></div><div class="process-copy"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div>`;
+<div class="process-content"><div class="figure-stage"></div><div class="process-copy"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div><button type="button" class="figure-nav prev" aria-label="Projet précédent"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="figure-nav next" aria-label="Projet suivant"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`;
   document.body.append(modal);
   const stage = modal.querySelector('.figure-stage');
-  let opener = null, resize = null, dark = false;
+  let opener = null, resize = null, dark = false, cur = 0;
   const theme = () => (dark ? 'dark' : 'light');
   const paint = () => { const doc = stage.querySelector('iframe')?.contentDocument; if (doc?.body) { doc.body.dataset.theme = theme(); doc.documentElement.style.colorScheme = theme(); } modal.classList.toggle('process-dark', dark); };
   function mount(fig, title) {
     resize?.disconnect();
     const frame = document.createElement('iframe');
-    frame.className = 'figure-frame'; frame.title = title; frame.src = 'figures/' + fig + '.html';
+    frame.className = 'figure-frame'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html';
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument; if (!doc?.body) return;
       const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); paint();
@@ -74,7 +74,7 @@ export function initProjectFigures(host, projects) {
   function close() { modal.close(); resize?.disconnect(); stage.replaceChildren(); document.body.classList.remove('lock'); document.dispatchEvent(new CustomEvent('project-workshop', { detail: { open: false } })); opener?.focus(); }
   function open(n, trigger) {
     const p = list[n], [fig, object, idea, action] = MACHINES[p.id];
-    opener = trigger || opener;
+    opener = trigger || opener; cur = n;
     if (!modal.open) { dark = document.documentElement.dataset.theme === 'dark'; modal.showModal(); document.body.classList.add('lock'); document.dispatchEvent(new CustomEvent('project-workshop', { detail: { open: true } })); }
     modal.scrollTop = 0; modal.dataset.project = p.id;
     modal.querySelector('.process-eyebrow').textContent = kindOf(p) + ' · ' + object;
@@ -89,6 +89,13 @@ export function initProjectFigures(host, projects) {
     mount(fig, object + ' · ' + p.title); paint();
     modal.querySelector('.process-back').focus();
   }
+  function step(d) {
+    open((cur + d + list.length) % list.length);
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) modal.querySelector('.process-content').animate([{ opacity: 0, transform: `translateX(${d * 28}px)` }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)' });
+  }
+  modal.querySelector('.figure-nav.prev').onclick = () => step(-1);
+  modal.querySelector('.figure-nav.next').onclick = () => step(1);
+  modal.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); step(e.key === 'ArrowLeft' ? -1 : 1); } });
   host.addEventListener('click', (e) => { const b = e.target.closest('button[data-project]'); if (b) open(Number(b.dataset.project), b); });
   modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); });
   modal.querySelector('.process-back').onclick = close;

@@ -84,7 +84,7 @@ jobs:
           node --check js/pages.js
           node --check js/data.js
           node --check js/home.js
-          node --check js/figures.js
+          node --check js/project-figures.js
           node --check js/main.js
           node --check js/room.js
           node --check js/film-album.js
