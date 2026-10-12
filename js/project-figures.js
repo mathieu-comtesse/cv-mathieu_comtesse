@@ -1,0 +1,97 @@
+// Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
+// dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
+import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
+import { createMarquee } from './marquee.js?v=cv-projects-v6';
+
+// Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
+const MACHINES = {
+  cerfa: ['cerfa', 'Trieuse de fiches',
+    'Vérifier un lot de fiches à la main, c’est relire chaque case de chaque fiche, et un retard passe facilement inaperçu.',
+    'Prenons l’exemple d’une trieuse de cartes : un chargeur, une tête de lecture et quatre cases. Sans elle, 300 fiches CERFA et attestations demandent 20 à 25 h de relecture ; avec elle, chaque fiche passe sous la tête et tombe dans sa case, conforme, doublon, non-conformité ou retard, et le lot est trié en 1 min 20 s.'],
+  vmvre: ['vm', 'Pointeuses à clé partagée',
+    'Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.',
+    'Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons ; la reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.'],
+  vre: ['vre', 'Trieuse à quatre tubes',
+    'Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.',
+    'Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport ; avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.'],
+  moteur44: ['moteur', 'Fichier rotatif motorisé',
+    'Reporter un rapport dans un grand classeur, c’est d’abord retrouver la bonne ligne parmi des milliers.',
+    'Prenons l’exemple d’un fichier rotatif motorisé. Sans lui, on cherche la ligne de l’OT et on recopie les données depuis SharePoint, 15 min par rapport ; avec lui, on compose l’OT, le fichier tourne jusqu’à la bonne fiche, le tampon y reporte les données et un cavalier rend le Q18 visible dans le suivi qui alimente Power BI, pour les COSI et les clients de l’ABE SUD IdF.'],
+  gares: ['gares', 'Tableau à palettes',
+    'Savoir quelles gares surveiller en premier demandait de croiser plusieurs sources à chaque consultation.',
+    'Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min ; avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.'],
+  finance: ['finance', 'Manomètres à contact',
+    'Un dépassement de budget se voit trop tard quand on pointe les comptes à la main, périmètre par périmètre.',
+    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour ; avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une seule alerte, puis une seconde si les dépenses dépassent les fonds.'],
+  pa: ['pp', 'Classeur à échéances',
+    'Une échéance de plan de prévention s’oublie quand elle dort dans un dossier parmi des centaines.',
+    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min ; avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint.'],
+  powerbi: ['powerbi', 'Carrousel de classeurs',
+    'Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.',
+    'Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min ; avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.'],
+  suivi: ['suivi', 'Standard à fiches',
+    'Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.',
+    'Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure ; avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.'],
+  studio: ['studio', 'Machine à reproduire les clés',
+    'Créer un extracteur pour une nouvelle famille de PDF demandait des jours de développement.',
+    'Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code ; avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.'],
+};
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const FRAME_CSS = 'html,body{background:transparent!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
+const kindOf = (p) => (p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
+const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>Temps libéré</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${p.gainStatus === 'penalties' ? 'Pénalités identifiées' : 'Valorisation financière du temps'}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` +
+  (p.extraGains || []).map((g) => `<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('') +
+  (p.gainBasis ? `<p class="process-gain-basis">${esc(p.gainBasis)}</p>` : '');
+
+export function initProjectFigures(host, projects) {
+  const list = projects.filter((p) => MACHINES[p.id]);
+  host.className = 'marquee process-gallery';
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><img class="machine-light" src="assets/figures/${fig}-light.webp" alt="" width="840" height="600" loading="lazy"><img class="machine-dark" src="assets/figures/${fig}-dark.webp" alt="" width="840" height="600" loading="lazy"><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus === 'penalties' ? 'Pénalités identifiées' : 'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  createMarquee(host, { loopEnd: -1, speed: 0.35 });
+  host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
+
+  const modal = document.createElement('dialog');
+  modal.className = 'process-dialog figure-dialog'; modal.setAttribute('aria-labelledby', 'process-title');
+  modal.innerHTML = `<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Les machines des projets</span><button type="button" class="process-theme" aria-label="Changer le thème">Clair / sombre</button></div>
+<div class="process-content"><div class="figure-stage"></div><div class="process-copy"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div>`;
+  document.body.append(modal);
+  const stage = modal.querySelector('.figure-stage');
+  let opener = null, resize = null, dark = false;
+  const theme = () => (dark ? 'dark' : 'light');
+  const paint = () => { const doc = stage.querySelector('iframe')?.contentDocument; if (doc?.body) { doc.body.dataset.theme = theme(); doc.documentElement.style.colorScheme = theme(); } modal.classList.toggle('process-dark', dark); };
+  function mount(fig, title) {
+    resize?.disconnect();
+    const frame = document.createElement('iframe');
+    frame.className = 'figure-frame'; frame.title = title; frame.src = 'figures/' + fig + '.html';
+    frame.addEventListener('load', () => {
+      const doc = frame.contentDocument; if (!doc?.body) return;
+      const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); paint();
+      const fit = () => { const page = doc.querySelector('.iso-page'); if (page) frame.style.height = Math.ceil(page.getBoundingClientRect().bottom + 8) + 'px'; };
+      resize = new ResizeObserver(fit); resize.observe(doc.body); fit();
+    });
+    stage.replaceChildren(frame);
+  }
+  function close() { modal.close(); resize?.disconnect(); stage.replaceChildren(); document.body.classList.remove('lock'); document.dispatchEvent(new CustomEvent('project-workshop', { detail: { open: false } })); opener?.focus(); }
+  function open(n, trigger) {
+    const p = list[n], [fig, object, idea, action] = MACHINES[p.id];
+    opener = trigger || opener;
+    if (!modal.open) { dark = document.documentElement.dataset.theme === 'dark'; modal.showModal(); document.body.classList.add('lock'); document.dispatchEvent(new CustomEvent('project-workshop', { detail: { open: true } })); }
+    modal.scrollTop = 0; modal.dataset.project = p.id;
+    modal.querySelector('.process-eyebrow').textContent = kindOf(p) + ' · ' + object;
+    modal.querySelector('#process-title').textContent = p.title;
+    modal.querySelector('.figure-why').innerHTML = `<em>${esc(idea)}</em> ${esc(action)}`;
+    modal.querySelector('.process-outcome').innerHTML = gainsHTML(p);
+    const study = modal.querySelector('.process-study'); study.hidden = !p.pro; study.open = false;
+    study.querySelector('div').innerHTML = p.pro ? [p.pro.lead, p.pro.gain, p.pro.team].filter(Boolean).map((t) => '<p>' + esc(t) + '</p>').join('') : '';
+    const mails = modal.querySelector('.finance-mail-host'); mails.hidden = p.id !== 'finance'; if (p.id === 'finance') showFinanceEmails(mails);
+    modal.querySelector('.figure-full').href = 'figures/' + fig + '.html';
+    modal.querySelector('.process-projects').innerHTML = list.map((q, i) => `<button type="button" data-project="${i}" aria-current="${i === n ? 'true' : 'false'}">${esc(q.title)}</button>`).join('');
+    mount(fig, object + ' · ' + p.title); paint();
+    modal.querySelector('.process-back').focus();
+  }
+  host.addEventListener('click', (e) => { const b = e.target.closest('button[data-project]'); if (b) open(Number(b.dataset.project), b); });
+  modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); });
+  modal.querySelector('.process-back').onclick = close;
+  modal.querySelector('.process-theme').onclick = () => { dark = !dark; paint(); };
+  modal.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
+}

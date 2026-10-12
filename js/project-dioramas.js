@@ -6,7 +6,7 @@ import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v4';
 import { initProcessMachines } from './process-machines.js?v=cv-projects-v4';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
-import { createMarquee } from './marquee.js?v=cv-scene-v49';
+import { createMarquee } from './marquee.js?v=cv-projects-v6';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 function orbit(camera,canvas){
@@ -27,7 +27,7 @@ const load=id=>{if(!cache.has(id))cache.set(id,loadProjectModel(id,isReconstruct
 export function initProjectDioramas(host,projects){
   host.className='marquee process-gallery';
   host.innerHTML=`<div class="mq-track process-track">${projects.map((p,i)=>`<button class="process-card" type="button" data-project="${i}" aria-label="Explorer ${esc(p.title)}"><span class="process-kind">${p.id==='vmvre'?'Continuité de traitement':p.id==='finance'?'Pilotage financier':'Processus métier'}</span><img src="assets/${isReconstructed(p.id)?'dioramas-v2':'dioramas'}/${p.id}.png?v=cv-projects-v4" alt="" width="720" height="560" loading="lazy"><b>${esc(p.title)}</b><span>${esc(p.sub)}</span>${p.gainStatus!=='none'?`<small class="process-card-gains"><span><em>Temps libéré</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${p.gainStatus==='penalties'?'Pénalités identifiées':'Valorisation financière'}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>`:''}<span class="process-card-action" aria-hidden="true"></span></button>`).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez pour faire fonctionner un projet</p>`;
-  createMarquee(host, { loopEnd: -1 });
+  createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach(img=>img.draggable=false);
   initWorkshopPreviews(host,projects,load,palettes);
   const modal=document.createElement('dialog');modal.className='process-dialog';modal.setAttribute('aria-labelledby','process-title');

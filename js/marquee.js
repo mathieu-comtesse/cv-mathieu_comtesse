@@ -1,10 +1,12 @@
 
 /* Desktop keeps its continuous rail. Mobile uses the browser's native touch scroll. */
-export function createMarquee(root,{repeat=5,friction=.975,maxThrow=60}={}){
- const track=root.querySelector('.mq-track'),originals=[...track.children],mobile=matchMedia('(max-width:809px)');
+export function createMarquee(root,{repeat=5,friction=.975,maxThrow=60,speed=0}={}){
+ const track=root.querySelector('.mq-track'),originals=[...track.children],mobile=matchMedia('(max-width:809px)'),reduced=matchMedia('(prefers-reduced-motion: reduce)');
  const viewport=document.createElement('div');viewport.className='mq-scroll';track.before(viewport);viewport.append(track);
  for(let r=1;r<repeat;r++)for(const n of originals){const c=n.cloneNode(true);c.setAttribute('aria-hidden','true');c.tabIndex=-1;c.querySelectorAll('a,button,[tabindex]').forEach(o=>o.tabIndex=-1);track.append(c);}
- let x=0,width=0,velocity=0,raf=0,lastFrame=0,gesture=null,visible=true,suppressUntil=0,centred=false;
+ let x=0,width=0,velocity=0,raf=0,lastFrame=0,gesture=null,visible=true,suppressUntil=0,centred=false,hover=false,focused=false;
+ // Défilement continu (ordinateur) : il s'arrête au survol, au clavier, pendant un glissé et si le mouvement est réduit.
+ const auto=()=>speed>0&&!mobile.matches&&!reduced.matches&&!hover&&!focused&&!gesture;
  const wrap=v=>width?((v%width)+width)%width-width:0;
  const set=()=>{if(mobile.matches){x=-viewport.scrollLeft;track.style.transform='';}else track.style.transform=`translate3d(${x}px,0,0)`;root.dataset.scrollMode=mobile.matches?'native':'drag';root.dispatchEvent(new CustomEvent('marquee-move',{detail:{x,width,native:mobile.matches}}));};
  const centre=()=>{
@@ -20,8 +22,10 @@ export function createMarquee(root,{repeat=5,friction=.975,maxThrow=60}={}){
  };
  const stop=()=>{cancelAnimationFrame(raf);raf=0;lastFrame=0;};
  const measure=()=>{const phase=width?x/width:-1,gap=parseFloat(getComputedStyle(track).columnGap)||0;width=originals.reduce((s,o)=>s+o.getBoundingClientRect().width,0)+gap*originals.length;x=mobile.matches?-viewport.scrollLeft:wrap(phase*width);root.dataset.marqueePeriod=String(width);centre();set();};
- const tick=now=>{raf=0;if(gesture||!visible||document.hidden||mobile.matches)return;const dt=lastFrame?Math.min(50,now-lastFrame):16.67;lastFrame=now;x=wrap(x+velocity*dt);velocity*=Math.pow(friction,dt/16.67);set();if(Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);else{velocity=0;lastFrame=0;}};
- const kick=()=>{if(!raf&&visible&&!document.hidden&&!mobile.matches&&Math.abs(velocity)>.002)raf=requestAnimationFrame(tick);};
+ const tick=now=>{raf=0;if(gesture||!visible||document.hidden||mobile.matches)return;const dt=lastFrame?Math.min(50,now-lastFrame):16.67;lastFrame=now;x=wrap(x+velocity*dt-(auto()?speed*dt/16.67:0));velocity*=Math.pow(friction,dt/16.67);set();if(Math.abs(velocity)>.002||auto())raf=requestAnimationFrame(tick);else{velocity=0;lastFrame=0;}};
+ const kick=()=>{if(!raf&&visible&&!document.hidden&&!mobile.matches&&(Math.abs(velocity)>.002||auto()))raf=requestAnimationFrame(tick);};
+ root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')hover=true;});root.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){hover=false;kick();}});
+ root.addEventListener('focusin',()=>{focused=true;});root.addEventListener('focusout',()=>{focused=root.contains(document.activeElement);kick();});reduced.addEventListener('change',kick);
  viewport.addEventListener('scroll',()=>{if(!mobile.matches)return;if(gesture&&Math.abs(viewport.scrollLeft-gesture.scroll)>7)suppressUntil=performance.now()+180;set();},{passive:true});
  root.addEventListener('dragstart',e=>e.preventDefault());
  root.addEventListener('pointerdown',e=>{if(e.button!==0)return;stop();velocity=0;suppressUntil=0;gesture={id:e.pointerId,x:e.clientX,y:e.clientY,start:x,last:e.clientX,time:performance.now(),scroll:viewport.scrollLeft,dragging:false};});

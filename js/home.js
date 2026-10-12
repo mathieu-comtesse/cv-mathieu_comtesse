@@ -1,6 +1,5 @@
 import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
-import { initProjectDioramas } from './project-dioramas.js?v=cv-projects-v4';
-import { initFigures } from './figures.js?v=cv-projects-v5';
+import { initProjectFigures } from './project-figures.js?v=cv-projects-v6';
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v49';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v45';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v4';
@@ -9,7 +8,7 @@ import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';
 import { initFlip } from './flip.js?v=bf01a16';
 import { initFlipText } from './fliptext.js?v=bf01a16';
-import { createMarquee } from './marquee.js?v=cv-scene-v49';
+import { createMarquee } from './marquee.js?v=cv-projects-v6';
 
 // Les descriptions parlent de Mathieu à la troisième personne et restent complètes.
 const texteProjet = (t) => String(t || '');
@@ -92,13 +91,12 @@ function initAnnualGains(){
 
 export function initHome() {
   initAnnualGains();
-  initFigures(document.getElementById('figs'));
   initUniv();
   initFlipText(); initFlip();
   const open = initDetail();
   for (const [id, list, kind, dir] of [['mq-pro', PRO_CARDS, 'pro', 1], ['mq-perso', PERSO_CARDS, 'perso', -1]]) {
     const root = document.getElementById(id); if (!root) continue;
-    if(kind==='pro'){initProjectDioramas(root,list);continue;}
+    if(kind==='pro'){initProjectFigures(root,list);continue;}
     root.innerHTML = `<div class="mq-track">${list.map((p, i) => card(p, i, kind)).join('')}</div>`;
     root.addEventListener('click', (e) => { const b = e.target.closest('.pc'); if (b) open(list[+b.dataset.i], kind); });
     createMarquee(root);
