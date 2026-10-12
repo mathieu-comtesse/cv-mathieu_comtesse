@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v11';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v12';
 import { BUILD } from './annual-gains.js?v=cv-scene-v58';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
@@ -443,6 +443,7 @@ const TECH = {
   timber: T('HTML, JavaScript', 'Three.js, Blender, Web Audio', 'Fente, empilement, copeaux instanciés, son du choc', ['Livraison', 'Navigateur, souris et tactile']),
   rubik: T('HTML, JavaScript', 'Three.js, Web Worker', 'Permutations déduites des coordonnées des autocollants', ['Notions', 'Théorie des graphes']),
   sandboard: T('HTML, JavaScript', 'Three.js, Canvas 2D, Web Audio', 'Relief 3D, grains projetés par lancer de rayon', ['Rendu', 'Ombre de palmier, son du tracé']),
+  limen: T('HTML, JavaScript, GLSL', 'Three.js, rendu basse résolution, Web Audio', 'Palette de 6 teintes par zone, tramage Bayer, monde procédural', ['Durée', 'Environ une heure, sauvegarde automatique']),
   pixels: T('HTML, JavaScript', 'Canvas 2D', 'Chaleur diffusée de case en case sur une grille', ['Rendu', 'Trois palettes']),
   gouache: T('JavaScript, GLSL', 'Three.js, shaders, instanciation, Lively Wallpaper', 'Poissons, herbes et bulles animés, nourrissage au clic', ['Livraison', 'Fond d’écran animé pour Windows']),
 };

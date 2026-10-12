@@ -3,6 +3,16 @@ export const TALAS_URL = "village-talas-scene.html";
 export const CV = "jeux/";
 export const PERSO = [
  {
+  "id": "limen",
+  "img": "assets/screenshots/limen-v1.webp",
+  "year": 2026,
+  "n": "LIMEN",
+  "genre": "Traversée",
+  "color": "#e8b360",
+  "url": "../veilleuse/index.html",
+  "desc": "Porter une braise à travers trois zones : Averse, où la pluie use la flamme, Prisme, où il faut guider la lumière entre des miroirs de cristal, et Étale, où l’estran ne se traverse qu’à marée basse. Le rendu est tramé en pixels, avec une palette réduite par zone, et le monde est généré par code. Compter une heure à une heure et demie."
+ },
+ {
   "id": "atlas",
   "img": "assets/screenshots/atlas-v52.webp",
   "year": 2026,
