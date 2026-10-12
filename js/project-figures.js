@@ -62,7 +62,7 @@ export function initProjectFigures(host, projects) {
   function mountLive(wrap) {
     if (wrap.querySelector('iframe')) return;
     const f = document.createElement('iframe');
-    f.className = 'machine-live'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.src = 'figures/' + wrap.dataset.fig + '.html?v=glow1';
+    f.className = 'machine-live'; f.scrolling = 'no'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.src = 'figures/' + wrap.dataset.fig + '.html?v=glow1';
     f.addEventListener('load', () => {
       const doc = f.contentDocument; if (!doc?.body) return;
       const s = doc.createElement('style'); s.textContent = CARD_CSS; doc.head.append(s); themeFrame(f);
@@ -94,10 +94,10 @@ export function initProjectFigures(host, projects) {
   function mount(fig, title) {
     resize?.disconnect();
     const frame = document.createElement('iframe');
-    frame.className = 'figure-frame'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html?v=glow1';
+    frame.className = 'figure-frame'; frame.style.opacity = '0'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html?v=glow1';
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument; if (!doc?.body) return;
-      const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); paint();
+      const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); paint(); frame.style.opacity = '';
       const fit = () => { const page = doc.querySelector('.iso-page'); if (page) frame.style.height = Math.ceil(page.getBoundingClientRect().bottom + 8) + 'px'; };
       resize = new ResizeObserver(fit); resize.observe(doc.body); fit();
     });

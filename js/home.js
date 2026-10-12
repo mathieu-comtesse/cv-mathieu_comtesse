@@ -1,4 +1,4 @@
-import { initProjectFigures } from './project-figures.js?v=cv-projects-v15';
+import { initProjectFigures } from './project-figures.js?v=cv-projects-v16';
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v58';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, ANNUAL_DECLARED, ANNUAL_ESTIMATED, ANNUAL_COST, ANNUAL_NET, HOURS_PER_FTE, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v58';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v15';
