@@ -9,7 +9,8 @@ import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v29';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
-import { createRetroSet } from './retro.js?v=cv-scene-v52';
+import { createRetroSet } from './retro.js?v=cv-scene-v53';
+import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v60';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v53';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -18,7 +19,7 @@ import { createJukebox } from './jukebox.js?v=cv-scene-v48';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
-import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v52';
+import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v53';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
@@ -82,7 +83,7 @@ export async function createRoom(container, bubbleEl) {
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
   const [gamingDeskModel,consoleModel,controllerModel,olivettiModel,mamiyaModel]=await Promise.all(['gaming-desk-user-v42.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb'].map(model));
-  const [deskModel,mobileModel,mouseModel,towerModel,stripModel,tvModel,barModel]=await Promise.all(['usm-table-user-v43.glb','usm-mobile-user-v43.glb','mx-master-user-v43.glb','dream-pc-user-v43.glb','powerstrip-user-v43.glb','magnavox-tv-user-v43.glb','screenbar-v43.glb'].map(model));
+  const [deskModel,mobileModel,mouseModel,towerModel,stripModel,tvModel,barModel,powerModel]=await Promise.all(['usm-table-user-v43.glb','usm-mobile-user-v43.glb','mx-master-user-v43.glb','dream-pc-user-v43.glb','powerstrip-user-v43.glb','magnavox-tv-user-v43.glb','screenbar-v43.glb','power-plugs.glb'].map(model));
   const [booksModel,yamahaModel,notesModel]=await Promise.all(['books-user-v49.glb','yamaha-user-v49.glb','post-it-user-v49.glb'].map(model));
   const windowsWallpaper=await load('assets/windows11-bloom-v43.webp');
   const [usmModel,pumpModel,jblModel]=await Promise.all(['usm-haller-green-v31.glb','bicycle-pump-v31.glb','jbl.glb'].map(model));
@@ -146,7 +147,7 @@ export async function createRoom(container, bubbleEl) {
     const mouse=mouseModel.scene;mouse.name='LogitechMXMaster2S';mouse.position.set(.12,.746,.15);mouse.userData.batchRoot=true;deskSet.add(mouse);
 
     const notes=notesModel.scene;notes.name='DeskThickestPostIt';notes.userData.noInk=true;notes.userData.batchRoot=true;notes.position.set(-.51,.742,.11);deskSet.add(notes);
-    const equipment=deskEquipment=installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper);
+    const equipment=deskEquipment=installDeskEquipment(deskSet,workstation,towerModel,stripModel,barModel,windowsWallpaper,powerModel);
     mkLamp('screenbar',equipment.glow,equipment.light,'#fff0cb','#87837c');
     Object.assign(lamps.screenbar,{on:true,manual:true,intensity:2.4});
     const titanium = new THREE.MeshStandardMaterial({ color: '#7598d0', roughness: 0.58, metalness: 0 });
@@ -265,15 +266,18 @@ export async function createRoom(container, bubbleEl) {
   lamps.andon.light.position.set(CS.x + cs.spec.RW / 2 - 0.5, 0.4, CS.z + cs.spec.DK.z0 + 0.55);
   world.add(lamps.andon.light);
   // télé cathodique + PS1 + manette sur le tapis, câbles au sol
-  const retro = createRetroSet({consoleModel,controllerModel,tvModel,sound:ps1Sound});
+  const retro = createRetroSet({consoleModel,controllerModel,tvModel,powerModel,sound:ps1Sound});
   add('tv', retro.group, -0.35, 2.2, 0, 0.018, 0.55, world, 0).scale.setScalar(1.3);
   world.updateMatrixWorld(true);
   // cordon de la multiprise : serpente sur le tapis, sort par le bord droit, passe du côté gauche (vu de l'écran) de l'étagère blanche et rejoint la prise au sol
   const cs0 = retro.group.localToWorld(retro.cordStart.clone());
-  const cordPts = [[cs0.x, 0.03, cs0.z], [cs0.x + 0.22, 0.03, cs0.z - 0.16], [cs0.x + 0.5, 0.03, cs0.z + 0.04], [cs0.x + 0.78, 0.03, cs0.z + 0.35], [1.25, 0.03, 2.4], [1.52, 0.026, 2.75], [1.75, 0.01, 3.0], [2.05, 0.008, 3.12], [2.4, 0.008, 2.98], [2.75, 0.008, 3.12], [3.1, 0.008, 2.98], [3.45, 0.008, 3.1], [3.7, 0.008, 3.08]];
-  const cord = tube(cordPts, 0.0105, new THREE.MeshStandardMaterial({ color: '#17181a', roughness: 0.6 }), { segs: 160, radial: 6 });
-  const wallPlug = group(box(0.05, 0.03, 0.04, mat('#17181a'), 3.69, 0.012, 3.08));
-  const outlet = group(box(0.14, 0.012, 0.14, mat('#ecebe6', { roughness: 0.5 }), 3.82, 0.006, 3.08), box(0.02, 0.014, 0.012, mat('#222'), 3.82, 0.007, 3.05), box(0.02, 0.014, 0.012, mat('#222'), 3.82, 0.007, 3.11));
+  // prise murale posée au sol (modèle BlackCube) : la fiche y est enfichée, la sortie du câble regarde vers le cordon
+  const wallParts = createPowerParts(powerModel), OUT = { x: 3.86, z: 3.08 }, OUT_Y = 0.0237;
+  const outlet = wallParts.outlet(); outlet.position.set(OUT.x, OUT_Y, OUT.z);
+  const wallPlug = wallParts.plug('white');
+  const wallExit = insertPlug(wallPlug, new THREE.Vector3(OUT.x, OUT_Y - 0.0006, OUT.z), yawToward(-1, 0));
+  const cordPts = [[cs0.x, cs0.y, cs0.z], [cs0.x + 0.22, 0.03, cs0.z - 0.16], [cs0.x + 0.5, 0.03, cs0.z + 0.04], [cs0.x + 0.78, 0.03, cs0.z + 0.35], [1.25, 0.03, 2.4], [1.52, 0.026, 2.75], [1.75, 0.01, 3.0], [2.05, 0.008, 3.12], [2.4, 0.008, 2.98], [2.75, 0.008, 3.12], [3.1, 0.008, 2.98], [wallExit.x - 0.2, 0.01, wallExit.z + 0.03], [wallExit.x - 0.07, wallExit.y - 0.012, wallExit.z + 0.005], wallExit.toArray()];
+  const cord = tube(cordPts, 0.0105, new THREE.MeshStandardMaterial({ color: '#e2e0d8', roughness: 0.6 }), { segs: 160, radial: 6 });
   add('strip', group(cord, wallPlug, outlet), 0, 0, 0, 0, 0.6, world, 0);
   const usmSet = group();
   const usmBody=usmModel.scene;usmBody.name='USM Haller imported sideboard';usmBody.userData.batchRoot=true;

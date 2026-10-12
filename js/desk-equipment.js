@@ -1,5 +1,6 @@
 import {THREE,group,tube,mat,box,canvasTexture} from './kit.js?v=cv-scene-v29';
-export function installDeskEquipment(desk,workstation,towerModel,stripModel,barModel,wallpaper){
+import {createPowerParts,insertPlug,yawToward} from './power-parts.js?v=cv-scene-v60';
+export function installDeskEquipment(desk,workstation,towerModel,stripModel,barModel,wallpaper,powerModel){
  const tower=towerModel.scene;tower.name='DreamComputerRTX4090';tower.position.set(.535,.742,-.03);tower.scale.setScalar(.95);tower.userData.batchRoot=true;tower.userData.noInk=true;desk.add(tower);
  const gpu=tower.getObjectByName('AsusROGRTX4090');gpu.userData.batchRoot=true;
  const strip=stripModel.scene;strip.name='DeskPowerStrip';strip.position.set(-.24,.005,-.23);strip.userData.batchRoot=true;strip.userData.noInk=true;desk.add(strip);
@@ -27,19 +28,24 @@ export function installDeskEquipment(desk,workstation,towerModel,stripModel,barM
  const led=bar.getObjectByName('LED_diffuser');led.material=led.material.clone();led.material.userData.unique=true;const glow=led.material;glow.update=k=>{glow.emissiveIntensity=2.2*k;pool.material.opacity=.34*k;halo.material.opacity=.24*k;bar.userData.powered=k>.5;};
  const wires=group();wires.name='DeskConnectedCables';wires.userData.batchRoot=true;wires.userData.dynamic=true;wires.userData.noInk=true;desk.add(wires);
  const from=(root,name)=>{desk.updateWorldMatrix(true,true);return desk.worldToLocal(root.getObjectByName(name).getWorldPosition(new THREE.Vector3())).toArray();};
- const video=from(tower,'PCVideoPort'),usb=from(tower,'PCUSBPort'),power=from(tower,'PCPowerPort');
+ const video=from(tower,'PCVideoPort'),usb=from(tower,'PCUSBPort'),pcPower=from(tower,'PCPowerPort');
  const connect=(name,points)=>{const cable=tube(points,.003,mat('#161b20',{roughness:.65}),{segs:40,radial:6});cable.name=name;cable.userData.noInk=true;cable.userData.endpoints=[points[0],points.at(-1)];wires.add(cable);return cable;};
- const socket=x=>[strip.position.x+x,strip.position.y+.025,strip.position.z];
+ // Cinq prises à 4,25 cm d'entraxe (fond des alvéoles du modèle) : chaque cordon se termine par une fiche réellement enfichée.
+ const power=createPowerParts(powerModel),SOCKETS=[-.0939,-.0514,-.0089,.0335,.0760];
+ const plugInto=i=>{const p=power.plug('black');const exit=insertPlug(p,new THREE.Vector3(strip.position.x+SOCKETS[i],strip.position.y+.019-.0006,strip.position.z),yawToward(0,-1));desk.add(p);return exit;};
+ const toStrip=(pts,i)=>{const e=plugInto(i);return [...pts,[e.x,.036,e.z-.06],[e.x,e.y-.006,e.z-.02],e.toArray()];};
  for(const [name,c,b,index] of [['Landscape',lc,lb,0],['Portrait',pc,pb,1]]){
   const port=[c.x,c.y,b.min.z-.004];
   connect(name+'VideoCable',[port,[c.x,c.y,-.30],[c.x,.77,-.35],[.30,.77,-.35],video]);
-  connect(name+'PowerCable',[[port[0]+.02,port[1],port[2]],[c.x,.77,-.35],[c.x,.69,-.38],[c.x,.03,-.38],socket(-.09+index*.07)]);
+  connect(name+'PowerCable',toStrip([[port[0]+.02,port[1],port[2]],[c.x,.77,-.35],[c.x,.69,-.38],[c.x,.03,-.38]],index*2));
  }
  const keyboard=desk.getObjectByName('Moonlander');connect('MoonlanderUSB',[[keyboard.position.x-.09,.767,keyboard.position.z-.09],[-.33,.767,-.12],[-.28,.768,-.33],[.30,.767,-.35],usb]);
- connect('PCPowerCable',[power,[power[0],.70,-.37],[power[0],.04,-.38],[.08,.03,-.35],socket(.06)]);
+ connect('PCPowerCable',toStrip([pcPower,[pcPower[0],.70,-.37],[pcPower[0],.04,-.38],[.08,.03,-.35]],4));
  connect('LightBarUSB',[[lc.x,lb.max.y-.02,lb.min.z],[lc.x,lb.max.y-.09,lb.min.z-.03],[lc.x,.77,-.35],[.30,.77,-.35],usb.map((v,i)=>v+(i===0?.015:0))]);
- const outlet=from(strip,'StripCordOutlet');connect('DeskStripPowerCord',[outlet,[outlet[0]+.06,.02,-.31],[.9,.014,-.38],[1.30,.012,-.65],[2.13,.012,-1.10]]);
- const end=[2.13,.012,-1.10];wires.add(box(.07,.02,.07,mat('#ecebe6'),...end));
+ // prise murale posée au sol : la fiche du multiprise y est enfichée, la sortie du câble regarde vers le cordon
+ const gland=from(strip,'StripCordOutlet'),OUT=[2.13,-1.10],OUT_Y=.0237,wallOutlet=power.outlet();wallOutlet.position.set(OUT[0],OUT_Y,OUT[1]);desk.add(wallOutlet);
+ const wallPlug=power.plug('black'),back=[1.30-OUT[0],-.65-OUT[1]],backLen=Math.hypot(...back),wallExit=insertPlug(wallPlug,new THREE.Vector3(OUT[0],OUT_Y-.0006,OUT[1]),yawToward(...back));desk.add(wallPlug);
+ connect('DeskStripPowerCord',[gland,[gland[0]+.06,.02,-.31],[.9,.014,-.38],[1.30,.012,-.65],[wallExit.x+back[0]/backLen*.16,.012,wallExit.z+back[1]/backLen*.16],[wallExit.x+back[0]/backLen*.06,wallExit.y-.012,wallExit.z+back[1]/backLen*.06],wallExit.toArray()]);
  let powered=true;const liveMats=[],copies=new Map();tower.traverse(o=>{const replace=m=>{if(!m?.emissive||m.emissive.getHex()===0||!(m.emissiveIntensity>0))return m;if(!copies.has(m)){const copy=m.clone();copy.userData.unique=true;copies.set(m,copy);liveMats.push([copy,copy.emissiveIntensity]);}return copies.get(m);};if(o.material)o.material=Array.isArray(o.material)?o.material.map(replace):replace(o.material);});
  const setPower=on=>{powered=!!on;strip.userData.powered=tower.userData.powered=powered;rocker.material.emissive.set('#ff4b16');rocker.material.emissiveIntensity=powered?.7:0;rocker.material.color.set(powered?'#ef431c':'#6b291a');for(const screen of screens)screen.material.color.set(powered?'#ffffff':'#000000');for(const [m,k]of liveMats)m.emissiveIntensity=powered?k:0;};setPower(true);
  return{tower,strip,bar,wires,screens,light,glow,setPower,get powered(){return powered;}};

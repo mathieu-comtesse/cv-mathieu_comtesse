@@ -1,9 +1,10 @@
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, tube, canvasTexture, rng, inkify } from './kit.js?v=cv-scene-v29';
+import { createPowerParts, pointOf, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v60';
 
 /* ───────────── Télé cathodique, PS1, manette et câbles ─────────────
  * Repère local : la télé est à l'origine, face vers +z ; la console est à sa droite (+x), la manette devant. y = 0 au sol (surface du tapis). */
 
-export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) {
+export function createRetroSet({consoleModel,controllerModel,tvModel,powerModel,sound}={}) {
   const g = group();
   const plastic = new THREE.MeshStandardMaterial({ color: '#202225', roughness: 0.55 });
   const plasticL = new THREE.MeshStandardMaterial({ color: '#2b2d31', roughness: 0.5 });
@@ -91,22 +92,28 @@ export function createRetroSet({consoleModel,controllerModel,tvModel,sound}={}) 
   [['#e6c61e', 0], ['#f2f2ee', 0.012], ['#cc2b2b', 0.024]].forEach(([c, o]) => {
     cable([[consoleAV.x+o,consoleAV.y,consoleAV.z], [0.62 + o, FLOOR, -0.2], [0.55 + o, FLOOR, -0.42], [0.3 + o * 0.6, FLOOR, -0.5], [0.1 + o * 0.6, FLOOR + 0.02, -0.46], [0.02 + o * 0.5, 0.1, -0.4], [tvAV.x+o,tvAV.y,tvAV.z]], c, 0.0034);
   });
-  // multiprise derrière le set : les deux alimentations y sont branchées, son cordon part vers la droite (raccordé au sol par room.js)
-  const SX = 0.3, SZ = -0.8, SL = 0.34;
+  // multiprise derrière le set (modèle BlackCube) : les deux alimentations y sont enfichées, son cordon part vers la droite (raccordé au sol par room.js)
+  const SX = 0.3, SZ = -0.8, K = 1.19;
+  const power = createPowerParts(powerModel);
   const strip = group(); strip.userData.id = 'strip';
-  strip.add(rbox(SL, 0.032, 0.062, 0.008, mat('#e9e7e1', { roughness: 0.45 }), SX, 0.016 + FLOOR, SZ));
-  const rocker = rbox(0.03, 0.012, 0.04, 0.004, new THREE.MeshStandardMaterial({ color: '#ff5a2a', emissive: '#ff4a1a', emissiveIntensity: 1.6, roughness: 0.4 }), SX - SL / 2 + 0.03, 0.036 + FLOOR, SZ);
-  strip.add(rocker);
-  for (const x of [-0.07, -0.01, 0.05, 0.11]) { strip.add(box(0.03, 0.004, 0.022, mat('#2a2b2e'), SX + x, 0.033 + FLOOR, SZ)); strip.add(box(0.004, 0.0045, 0.004, mat('#0a0a0b'), SX + x - 0.007, 0.034 + FLOOR, SZ)); strip.add(box(0.004, 0.0045, 0.004, mat('#0a0a0b'), SX + x + 0.007, 0.034 + FLOOR, SZ)); }
-  g.add(strip);
-  const sockY = 0.036 + FLOOR;
-  const pw = (pts, r = 0.0055) => { mk(pts, '#141416', r * 1.0); const e = pts[pts.length - 1]; plug(e[0], e[1], e[2], '#1a1a1c'); };
+  const bar = power.strip(); bar.scale.setScalar(0.01 * K);
+  bar.position.set(SX - 0.0266 * K, FLOOR + bar.userData.height * 0.01 * K, SZ);
+  strip.add(bar); g.add(strip);
+  const rocker = bar.userData.rocker;
+  rocker.material = new THREE.MeshStandardMaterial({ color: '#ff5a2a', emissive: '#ff4a1a', emissiveIntensity: 1.6, roughness: 0.4 });
+  // fiche noire enfichée dans la prise i, sortie du câble vers l'avant (+z) ; renvoie le point de sortie du câble
+  const plugInto = (i) => {
+    const plugIn = power.plug('black'), at = pointOf(bar, bar.userData.sockets[i]); at.y -= 0.0006 * K;
+    const exit = insertPlug(plugIn, at, yawToward(0, 1), K); g.add(plugIn);
+    return exit;
+  };
+  const pw = (pts, i, r = 0.0055) => { const e = plugInto(i); mk([...pts, [e.x, e.y - 0.006, e.z + 0.03], e.toArray()], '#141416', r); };
   // alimentation télé : sort par l'arrière de la caisse et rejoint la multiprise
-  pw([tvPower.toArray(), [-0.13, 0.04, -0.46], [-0.12, FLOOR, -0.62], [-0.02, FLOOR, -0.7], [SX - 0.07, sockY + 0.02, SZ + 0.01], [SX - 0.07, sockY + 0.005, SZ]]);
+  { const e = pointOf(bar, bar.userData.sockets[1]); pw([tvPower.toArray(), [-0.13, 0.04, -0.46], [-0.12, FLOOR, -0.62], [e.x - 0.09, FLOOR + 0.004, -0.62], [e.x - 0.01, FLOOR + 0.012, -0.69]], 1); }
   // alimentation console
-  pw([consolePower.toArray(), [0.84, FLOOR, -0.26], [0.78, FLOOR, -0.58], [SX + 0.1, FLOOR + 0.01, SZ + 0.1], [SX + 0.05, sockY + 0.02, SZ + 0.02], [SX + 0.05, sockY + 0.005, SZ]]);
+  { const e = pointOf(bar, bar.userData.sockets[3]); pw([consolePower.toArray(), [0.84, FLOOR, -0.26], [0.78, FLOOR, -0.58], [e.x + 0.08, FLOOR + 0.008, -0.66], [e.x + 0.01, FLOOR + 0.012, -0.69]], 3); }
   // cordon de la multiprise : part du bout droit
-  const cordStart = new THREE.Vector3(SX + SL / 2, 0.02 + FLOOR, SZ);
+  const cordStart = pointOf(bar, bar.userData.cord);
   // câble manette : de la prise de façade jusqu'à la manette, avec du mou
   g.updateWorldMatrix(true,true);const socketMarker=pad.getObjectByName('ControllerCableAnchor');
   const padSocket=socketMarker?pad.worldToLocal(socketMarker.getWorldPosition(new THREE.Vector3())):new THREE.Vector3(0,.015,-.041);
