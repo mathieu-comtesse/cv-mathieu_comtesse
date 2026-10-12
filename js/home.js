@@ -1,14 +1,13 @@
-import { initPersonalPreviews } from './personal-previews.js?v=cv-scene-v24';
-import { initProjectFigures } from './project-figures.js?v=cv-projects-v14';
+import { initProjectFigures } from './project-figures.js?v=cv-projects-v15';
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v58';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, ANNUAL_DECLARED, ANNUAL_ESTIMATED, ANNUAL_COST, ANNUAL_NET, HOURS_PER_FTE, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v58';
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v14';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v15';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';
 import { initFlip } from './flip.js?v=bf01a16';
 import { initFlipText } from './fliptext.js?v=bf01a16';
-import { createMarquee } from './marquee.js?v=cv-projects-v14';
+import { createMarquee } from './marquee.js?v=cv-projects-v15';
 
 // Les descriptions parlent de Mathieu à la troisième personne et restent complètes.
 const texteProjet = (t) => String(t || '');
@@ -101,7 +100,6 @@ export function initHome() {
     root.innerHTML = `<div class="mq-track">${list.map((p, i) => card(p, i, kind)).join('')}</div>`;
     root.addEventListener('click', (e) => { const b = e.target.closest('.pc'); if (b) open(list[+b.dataset.i], kind); });
     createMarquee(root);
-    initPersonalPreviews(root,list);
     initHoverDiagrams(root, list, kind === 'pro' ? {} : { kicker: 'CONSTRUIT AVEC' });
   }
 }

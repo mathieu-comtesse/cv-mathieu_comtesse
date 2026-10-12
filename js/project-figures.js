@@ -1,7 +1,7 @@
 // Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
 // dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
-import { createMarquee } from './marquee.js?v=cv-projects-v14';
+import { createMarquee } from './marquee.js?v=cv-projects-v15';
 
 // Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
 const MACHINES = {
