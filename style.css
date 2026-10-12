@@ -325,3 +325,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .process-card .machine-wrap{display:block;position:relative;margin:18px 0 24px;transition:transform .4s}.process-card .machine-wrap img{margin:0;transform:none!important}.process-card:hover .machine-wrap{transform:rotate(-2deg) scale(1.035)}.process-card:hover img{transform:none}
 .machine-live{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;pointer-events:none}.machine-wrap.live img{visibility:hidden}
 .room-tip{margin:10px 16px 0;text-align:center;color:var(--mute);font-size:13px;line-height:1.5}
+
+/* iPhone vidéo (sac à dos) : même modale que le livre, objet vertical plus haut */
+.phone-video .film-book{height:min(82svh,780px)}.phone-video-source{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:809px){.phone-video .film-book{height:min(78svh,calc((100vw - 20px)*2.1))}}

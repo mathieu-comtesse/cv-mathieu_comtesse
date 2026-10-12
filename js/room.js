@@ -23,6 +23,7 @@ import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v53';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
+import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -337,7 +338,7 @@ export async function createRoom(container, bubbleEl) {
   // Secondary props load after the interactive room; batch their static surfaces.
   const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb','geta-user-v52.glb','buddha-user-v52.glb','jvc-videosphere-recreation-v52.glb'].map(model)).then(([bagModel,polesModel,stoneModel,getaModel,buddhaModel,jvcModel])=>{
     const install=(model,name,parent,x,y,z,yaw=0)=>{const root=model.scene;root.name=name;root.userData.batchRoot=true;root.position.set(x,y,z);root.rotation.y=yaw;root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});parent.add(root);mergeStatic(root);return root;};
-    install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38);
+    install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38).userData.id='backpack';
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
     install(buddhaModel,'BuddhaFourFaces',world,2.63,0,4.55,.2);
@@ -974,11 +975,13 @@ export async function createRoom(container, bubbleEl) {
     hero.group.updateMatrixWorld(true);
   };
   const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
+  const phoneVideo=createPhoneVideo(open=>pauseAutonomy(open?3600000:3000));
   function activate(id) {
     if(appOpen)return false;
     if(id==='ps1power'){if(retro.state==='off'||retro.state==='closing')retro.powerOn(true);else{retro.powerOff();ps1Sound.exit();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));}return;}
     if(id==='deskstrip'){deskEquipment?.setPower(!deskEquipment.powered);container.dataset.deskPower=deskEquipment?.powered?'on':'off';return;}
     if(id==='mamiya'){filmAlbum.open();return;}
+    if(id==='backpack'){phoneVideo.open();return;}
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
