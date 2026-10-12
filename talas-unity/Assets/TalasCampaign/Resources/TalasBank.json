@@ -1,0 +1,1538 @@
+{
+  "docs": [
+    {
+      "text": "Rapport annuel",
+      "info": "Cadence A320 doublée en 2027. Enjeu interne : plus d’intérim, plus de fatigue (§4.1)."
+    },
+    {
+      "text": "Courrier d’Airbus",
+      "info": "Exigences SST pour les fournisseurs. Partie intéressée externe (§4.2)."
+    },
+    {
+      "text": "PV du CSE",
+      "info": "Plainte sur le bruit des riveteuses. Attentes des travailleurs (§4.2)."
+    },
+    {
+      "text": "Registre des accidents",
+      "info": "14 accidents avec arrêt en 2025, donnée d’entrée de l’évaluation des risques."
+    },
+    {
+      "text": "Arrêté ICPE",
+      "info": "Cabine peinture : exigence légale à suivre (§6.1.3)."
+    },
+    {
+      "text": "Enquête CSE de nuit",
+      "info": "60 % des opérateurs de nuit signalent de la fatigue (§4.2)."
+    },
+    {
+      "text": "Contrat d’intérim",
+      "info": "40 intérimaires prévus en 2027. Enjeu interne (§4.1)."
+    },
+    {
+      "text": "FDS du solvant",
+      "info": "Produit CMR, exigences légales associées (§6.1.3)."
+    },
+    {
+      "text": "Plan de circulation",
+      "info": "Piétons et chariots se croisent. Un enjeu à traiter (§4.1)."
+    },
+    {
+      "text": "Politique SST 2019",
+      "info": "Le brouillon de la politique SST. La voilà enfin !"
+    }
+  ],
+  "combat": [
+    {
+      "text": "« La sécurité, c’est ton boulot. Moi je dirige une entreprise. »",
+      "options": [
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers."
+      ],
+      "correct": 0,
+      "feedback": "§5.1 : la direction assume la responsabilité de la prévention. Elle délègue des tâches, jamais la responsabilité."
+    },
+    {
+      "text": "« Ça va me coûter une fortune. »",
+      "options": [
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus."
+      ],
+      "correct": 3,
+      "feedback": "14 accidents avec arrêt, des jours perdus, un client qui peut partir : la SST est un investissement (§5.1 c)."
+    },
+    {
+      "text": "« Si tout le monde signale tout, on va crouler sous la paperasse. »",
+      "options": [
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité."
+      ],
+      "correct": 2,
+      "feedback": "Plus de signalements, c’est moins d’accidents graves. Et la direction protège ceux qui signalent (§5.1 j)."
+    },
+    {
+      "text": "« Je consulte mes directeurs. Pas besoin des gars de l’atelier. »",
+      "options": [
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus."
+      ],
+      "correct": 1,
+      "feedback": "§5.4 : consultation et participation des travailleurs non cadres. Ce sont eux qui voient les vrais dangers."
+    },
+    {
+      "text": "« Je signe ta politique, on l’affiche dans le hall et on n’en parle plus. »",
+      "options": [
+        "La politique se pilote en revue de direction, avec des décisions et des moyens.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain."
+      ],
+      "correct": 0,
+      "feedback": "La politique vit dans les processus et se pilote en revue de direction (§5.1 d, §9.3)."
+    },
+    {
+      "text": "« Mon objectif SST ? Qu’il n’y ait pas de souci. Voilà, c’est noté. »",
+      "options": [
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Il faut un objectif mesurable et daté, avec un responsable et des moyens."
+      ],
+      "correct": 3,
+      "feedback": "§6.2 : des objectifs mesurables, suivis, avec des moyens, un responsable et une échéance. « Pas de souci », ça ne se mesure pas."
+    },
+    {
+      "text": "« Qui gère les harnais ? Tout le monde. Donc personne. Parfait. »",
+      "options": [
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Chaque rôle doit être attribué et connu de tous, à tous les niveaux.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité."
+      ],
+      "correct": 2,
+      "feedback": "§5.3 : la direction attribue et communique les rôles, responsabilités et autorités à tous les niveaux. Tout le monde, c’est personne."
+    },
+    {
+      "text": "« Ton CDI dépend du chiffre, pas de tes EPI. »",
+      "options": [
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain."
+      ],
+      "correct": 1,
+      "feedback": "§5.1 : la direction assume la responsabilité de la prévention. Elle délègue des tâches, jamais la responsabilité."
+    },
+    {
+      "text": "« On ne déclare plus les petits bobos : les stats seront magnifiques. »",
+      "options": [
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers."
+      ],
+      "correct": 0,
+      "feedback": "Plus de signalements, c’est moins d’accidents graves. Et la direction protège ceux qui signalent (§5.1 j)."
+    },
+    {
+      "text": "« La sécurité ? On verra en janvier. De l’année prochaine. »",
+      "options": [
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "La politique se pilote en revue de direction, avec des décisions et des moyens."
+      ],
+      "correct": 3,
+      "feedback": "La politique vit dans les processus et se pilote en revue de direction (§5.1 d, §9.3)."
+    },
+    {
+      "text": "« Si ça ne rapporte pas sous trois mois, on oublie. »",
+      "options": [
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité."
+      ],
+      "correct": 2,
+      "feedback": "14 accidents avec arrêt, des jours perdus, un client qui peut partir : la SST est un investissement (§5.1 c)."
+    },
+    {
+      "text": "« Mon bureau est ouvert à tous. Le mardi, de 7 h à 7 h 05. »",
+      "options": [
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Les travailleurs et le CSE doivent être consultés : ce sont eux qui voient les dangers.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus."
+      ],
+      "correct": 1,
+      "feedback": "§5.4 : consultation et participation des travailleurs non cadres. Ce sont eux qui voient les vrais dangers."
+    },
+    {
+      "text": "« Le chef d’équipe peut arrêter la ligne ? Faut voir. Demande au chef du chef. »",
+      "options": [
+        "Chaque rôle doit être attribué et connu de tous, à tous les niveaux.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain."
+      ],
+      "correct": 0,
+      "feedback": "§5.3 : la direction attribue et communique les rôles, responsabilités et autorités à tous les niveaux. Tout le monde, c’est personne."
+    },
+    {
+      "text": "« On ne peut pas mettre de chiffre sur la sécurité. C’est un ressenti. »",
+      "options": [
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité.",
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "Il faut un objectif mesurable et daté, avec un responsable et des moyens."
+      ],
+      "correct": 3,
+      "feedback": "§6.2 : des objectifs mesurables, suivis, avec des moyens, un responsable et une échéance. « Pas de souci », ça ne se mesure pas."
+    },
+    {
+      "text": "« J’ai pris la politique SST d’un fabricant de yaourts. Ça fera l’affaire. »",
+      "options": [
+        "Les accidents coûtent plus cher que la prévention : arrêts, retards, clients perdus.",
+        "Chaque presque-accident signalé, c’est un accident grave évité demain.",
+        "La politique se pilote en revue de direction, avec des décisions et des moyens.",
+        "La direction reste responsable de la sécurité : on délègue des tâches, jamais la responsabilité."
+      ],
+      "correct": 2,
+      "feedback": "La politique vit dans les processus et se pilote en revue de direction (§5.1 d, §9.3)."
+    }
+  ],
+  "doc": [
+    {
+      "text": "Sous combien de temps doit-on déclarer un accident du travail à la CPAM ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 0,
+      "feedback": "48 heures : c’est le Code du travail et le Code de la sécurité sociale, sur Légifrance."
+    },
+    {
+      "text": "Le droit de retrait, c’est quel article exactement ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 0,
+      "feedback": "Article L4131-1 du Code du travail. Le texte officiel est sur Légifrance."
+    },
+    {
+      "text": "Tous les combien doit-on faire vérifier la nacelle ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 0,
+      "feedback": "Vérification générale périodique tous les 6 mois : arrêté du 1er mars 2004, sur Légifrance."
+    },
+    {
+      "text": "Le document unique, c’est obligatoire ? Qu’est-ce que la loi exige dedans ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 0,
+      "feedback": "Articles R4121-1 et suivants du Code du travail : la source officielle, c’est Légifrance."
+    },
+    {
+      "text": "Comment choisir des bouchons d’oreille pour les riveteuses ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 1,
+      "feedback": "L’INRS publie des guides pratiques sur les protecteurs auditifs. Gratuits et clairs."
+    },
+    {
+      "text": "Quelle valeur limite d’exposition pour le toluène ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 1,
+      "feedback": "La base VLEP et les fiches toxicologiques de l’INRS donnent les valeurs à jour."
+    },
+    {
+      "text": "Tu as un support pour animer un quart d’heure sécurité sur les chutes ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 1,
+      "feedback": "Affiches, vidéos, brochures : l’INRS est la boîte à outils de la prévention."
+    },
+    {
+      "text": "Ce nouveau diluant est-il CMR ? Il faut quels gants ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 2,
+      "feedback": "La fiche de données de sécurité du fournisseur : sections 2 (dangers) et 8 (EPI)."
+    },
+    {
+      "text": "Avec quoi on éteint un feu de ce vernis ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 2,
+      "feedback": "Section 5 de la FDS : moyens d’extinction adaptés au produit."
+    },
+    {
+      "text": "Du durcisseur m’a giclé dans l’œil, on fait quoi ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 2,
+      "feedback": "Section 4 de la FDS : premiers secours. Et on rince, tout de suite, 15 minutes."
+    },
+    {
+      "text": "Que doit contenir exactement notre politique SST ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 3,
+      "feedback": "§5.2 de la norme ISO 45001 : la liste des engagements est dans le texte de la norme (AFNOR)."
+    },
+    {
+      "text": "Qu’est-ce qu’on doit passer en revue de direction ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 3,
+      "feedback": "§9.3 de l’ISO 45001 : les éléments d’entrée et de sortie de la revue sont listés dans la norme."
+    },
+    {
+      "text": "C’est quoi, pour la norme, un « travailleur non cadre » ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 3,
+      "feedback": "Les définitions sont au §3 de l’ISO 45001. Le texte s’achète à l’AFNOR."
+    },
+    {
+      "text": "Combien d’accidents avec arrêt a-t-on eus en 2025 ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 4,
+      "feedback": "Le registre des accidents, dans nos archives internes : c’est de l’information documentée conservée (§7.5)."
+    },
+    {
+      "text": "Qui est habilité nacelle dans l’équipe de nuit ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 4,
+      "feedback": "Le registre des formations et habilitations : une preuve de compétence (§7.2 et §7.5)."
+    },
+    {
+      "text": "Quels risques ont été évalués au poste peinture ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 4,
+      "feedback": "Notre document unique, dans les archives internes : il est à nous, pas à Légifrance."
+    },
+    {
+      "text": "Où est le dernier rapport de vérification du palan ?",
+      "options": [
+        "LÉGIFRANCE",
+        "INRS",
+        "FDS",
+        "ISO 45001",
+        "ARCHIVES"
+      ],
+      "correct": 4,
+      "feedback": "Le registre de sécurité : les rapports de vérification sont conservés en interne (§7.5.3)."
+    }
+  ],
+  "review": [
+    {
+      "text": "Résultats de l’audit interne",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 0,
+      "feedback": "Entrée obligatoire : la revue examine les résultats d’audit (§9.3)."
+    },
+    {
+      "text": "Le chiffre d’affaires du trimestre",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 1,
+      "feedback": "Utile au comité de direction, pas une entrée de la revue SST."
+    },
+    {
+      "text": "Incidents, non-conformités et actions correctives",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 0,
+      "feedback": "Entrée obligatoire : les événements et leur traitement (§9.3, §10.2)."
+    },
+    {
+      "text": "La couleur des nouveaux casques",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 1,
+      "feedback": "Hors sujet : la revue juge l’efficacité du système, pas la déco."
+    },
+    {
+      "text": "Atteinte des objectifs SST",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 0,
+      "feedback": "Entrée obligatoire : où en est-on de nos objectifs (§6.2) ?"
+    },
+    {
+      "text": "Résultats de la consultation des travailleurs",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 0,
+      "feedback": "Entrée obligatoire : consultation et participation (§5.4)."
+    },
+    {
+      "text": "Le menu de la cantine",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 1,
+      "feedback": "Hors sujet, même si le gratin fait débat."
+    },
+    {
+      "text": "Suivi des décisions de la revue précédente",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 0,
+      "feedback": "Entrée obligatoire : on vérifie que les décisions ont été appliquées."
+    },
+    {
+      "text": "Le nombre de mails envoyés par le service HSE",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 1,
+      "feedback": "Un chiffre d’activité, pas de performance."
+    },
+    {
+      "text": "Changements des enjeux et des exigences légales",
+      "options": [
+        "Entrée obligatoire",
+        "Pas une entrée SST"
+      ],
+      "correct": 0,
+      "feedback": "Entrée obligatoire : le contexte évolue (§4, §6.1.3)."
+    },
+    {
+      "text": "L’issue de secours est dégagée.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Elle est encombrée de cartons. Une sortie de secours reste dégagée en permanence (§8.2)."
+    },
+    {
+      "text": "La nacelle a été vérifiée il y a 2 mois.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Quatorze mois ! La vérification est obligatoire tous les 6 mois (§9.1.2)."
+    },
+    {
+      "text": "Le cobot est dans sa zone clôturée.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "Ni barrière ni analyse : conséquence de ton choix à l’usine (§8.1.3)."
+    },
+    {
+      "text": "Le fût de solvant est fermé et étiqueté.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "L’entreprise de nettoyage l’a renversé : pas de plan de prévention (§8.1.4.2)."
+    },
+    {
+      "text": "Les intérimaires ont eu leur accueil.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "Un intérimaire erre sans équipement : l’accueil sauté à l’école des ressources (§7.3)."
+    },
+    {
+      "text": "Les câbles passent sous goulotte.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Un câble est dénudé : risque d’électrisation. Consigner, réparer, protéger (§8.1.2)."
+    },
+    {
+      "text": "L’établi est rangé.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "Un audit vérifie les faits et les preuves (§9.2)."
+    },
+    {
+      "text": "Les produits sont rangés par famille.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "Un audit vérifie les faits et les preuves (§9.2)."
+    },
+    {
+      "text": "Que doit produire la revue de direction ?",
+      "options": [
+        "Des décisions : le système est-il adapté, quelles actions si un objectif n’est pas atteint, quelles ressources",
+        "Un compte rendu de réunion à ranger",
+        "Des félicitations pour le service HSE"
+      ],
+      "correct": 0,
+      "feedback": "§9.3 : la revue produit des décisions et des moyens, pas seulement un document."
+    },
+    {
+      "text": "Qui conduit la revue de direction ?",
+      "options": [
+        "La direction : c’est son rôle de leadership",
+        "Le responsable HSE, seul",
+        "L’auditeur externe"
+      ],
+      "correct": 0,
+      "feedback": "La direction en est responsable (§5.1, §9.3). Le HSE prépare, la direction décide."
+    },
+    {
+      "text": "Et une fois la réunion terminée ?",
+      "options": [
+        "On conserve une trace écrite et on communique les résultats aux travailleurs",
+        "On n’en parle plus jusqu’à l’an prochain",
+        "On affiche les résultats seulement s’ils sont bons"
+      ],
+      "correct": 0,
+      "feedback": "Informations documentées conservées et résultats communiqués (§9.3, §7.4)."
+    }
+  ],
+  "reviewUnprepared": [
+    {
+      "text": "L’issue de secours est dégagée.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Elle est encombrée de cartons. Une sortie de secours reste dégagée en permanence (§8.2)."
+    },
+    {
+      "text": "La nacelle a été vérifiée il y a 2 mois.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Quatorze mois ! La vérification est obligatoire tous les 6 mois (§9.1.2)."
+    },
+    {
+      "text": "Le cobot est dans sa zone clôturée.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Ni barrière ni analyse : conséquence de ton choix à l’usine (§8.1.3)."
+    },
+    {
+      "text": "Le fût de solvant est fermé et étiqueté.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "L’entreprise de nettoyage l’a renversé : pas de plan de prévention (§8.1.4.2)."
+    },
+    {
+      "text": "Les intérimaires ont eu leur accueil.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Un intérimaire erre sans équipement : l’accueil sauté à l’école des ressources (§7.3)."
+    },
+    {
+      "text": "Les câbles passent sous goulotte.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 1,
+      "feedback": "Un câble est dénudé : risque d’électrisation. Consigner, réparer, protéger (§8.1.2)."
+    },
+    {
+      "text": "L’établi est rangé.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "Un audit vérifie les faits et les preuves (§9.2)."
+    },
+    {
+      "text": "Les produits sont rangés par famille.",
+      "options": [
+        "Constat exact",
+        "Déclarer un écart"
+      ],
+      "correct": 0,
+      "feedback": "Un audit vérifie les faits et les preuves (§9.2)."
+    }
+  ],
+  "jetski": [
+    {
+      "text": "Que fais-tu avant le tour suivant ?",
+      "options": [
+        "Je cherche la cause : j’arrive trop vite et trop large sur les bouées, je ralentis avant et je prends la corde",
+        "C’est la faute du jet-ski, je n’y peux rien",
+        "Je fais pareil, ça passera bien"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 : on analyse la cause de l’écart et on met en œuvre l’action qui l’élimine."
+    },
+    {
+      "text": "Avec qui analyses-tu tes écarts ?",
+      "options": [
+        "Avec l’équipe : ceux qui étaient sur l’eau ont vu ce que je n’ai pas vu",
+        "Seul, c’est plus rapide",
+        "Avec le directeur, lui seul décide"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 b : l’évaluation se fait avec la participation des travailleurs (§5.4)."
+    },
+    {
+      "text": "Quelle action corrective choisis-tu ?",
+      "options": [
+        "Supprimer la cause (repérer la bouée plus tôt) avant d’ajouter des consignes",
+        "Mettre un casque plus solide",
+        "Écrire une note de service « faites attention »"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 d : l’action suit la hiérarchie des mesures (§8.1.2) ; l’EPI et la consigne viennent en dernier."
+    },
+    {
+      "text": "Une bouée ratée au même virage que Neila. Et alors ?",
+      "options": [
+        "Je vérifie si le même écart peut arriver ailleurs ou à d’autres",
+        "Ce n’est pas mon problème",
+        "Je supprime la bouée du parcours"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 b : on regarde si des incidents similaires existent ou pourraient se produire."
+    },
+    {
+      "text": "Ton action corrective a-t-elle marché ?",
+      "options": [
+        "Je compare au tour précédent : je vérifie l’efficacité, puis je vise encore mieux",
+        "Je ne mesure rien, l’important c’est d’avoir fait une action",
+        "J’ai fini un tour, j’arrête de chercher à progresser"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 f et §10.3 : on vérifie l’efficacité, et l’amélioration continue ne s’arrête jamais."
+    },
+    {
+      "text": "Que gardes-tu comme trace de ce tour ?",
+      "options": [
+        "Les écarts, leurs causes, les actions et leurs résultats",
+        "Rien, tout le monde s’en souvient",
+        "Seulement le temps du tour, s’il est bon"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 g : informations documentées sur la nature des événements, les actions et leurs résultats."
+    },
+    {
+      "text": "Ton action a créé un nouveau risque (virage plus serré). Tu fais quoi ?",
+      "options": [
+        "J’évalue ce nouveau danger avant de généraliser l’action",
+        "Tant pis, on verra bien",
+        "J’annule toute action corrective"
+      ],
+      "correct": 0,
+      "feedback": "§10.2 e : on évalue les risques des dangers nouveaux ou modifiés avant d’agir."
+    },
+    {
+      "text": "Plus aucun écart. Et maintenant ?",
+      "options": [
+        "Je partage ce qui a marché avec l’équipe et je fixe un objectif plus ambitieux",
+        "On peut arrêter la démarche",
+        "Je garde ma méthode pour moi"
+      ],
+      "correct": 0,
+      "feedback": "§10.3 : communiquer les résultats et promouvoir une culture qui soutient l’amélioration continue."
+    }
+  ],
+  "dialogue": [
+    {
+      "chapter": 0,
+      "deltas": [
+        8,
+        -6,
+        -6
+      ],
+      "feedbacks": [
+        "Dangereux : ça pousse à ne plus déclarer. Les vrais engagements : conditions sûres, respect de la loi, éliminer les dangers, améliorer en continu, consulter les travailleurs.",
+        "C’est un engagement obligatoire du §5.2 !",
+        "Engagement obligatoire, relié à la hiérarchie des mesures."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "La politique doit contenir des engagements précis (§5.2). Quelle phrase faut-il absolument rayer ?",
+      "options": [
+        "« Objectif : zéro accident déclaré. »",
+        "« Consulter les travailleurs et favoriser leur participation. »",
+        "« Éliminer les dangers et réduire les risques. »"
+      ],
+      "correct": 0,
+      "feedback": "Dangereux : ça pousse à ne plus déclarer. Les vrais engagements : conditions sûres, respect de la loi, éliminer les dangers, améliorer en continu, consulter les travailleurs."
+    },
+    {
+      "chapter": 1,
+      "deltas": [
+        6,
+        -6,
+        -6
+      ],
+      "feedbacks": [
+        "§5.3 : rôles, responsabilités et autorités attribués et communiqués à tous les niveaux.",
+        "Un alternant seul ne peut pas porter le système. §5.3 demande des rôles à tous les niveaux.",
+        "Si tout le monde est responsable, personne ne l’est."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Et qui est responsable de la sécurité dans les ateliers, alors ?",
+      "options": [
+        "Chaque manager a des responsabilités SST écrites et connues de son équipe. Vous gardez la responsabilité finale.",
+        "Moi, Dylan. Je m’occupe de tout.",
+        "Personne en particulier : c’est collectif."
+      ],
+      "correct": 0,
+      "feedback": "§5.3 : rôles, responsabilités et autorités attribués et communiqués à tous les niveaux."
+    },
+    {
+      "chapter": 1,
+      "deltas": [
+        6,
+        -6,
+        -4
+      ],
+      "feedbacks": [
+        "§5.4 : consultation et participation des travailleurs non cadres, en levant les obstacles (temps, langue, peur).",
+        "Informer n’est pas consulter. §5.4 veut une participation avant les décisions.",
+        "Les chefs ne sont pas les travailleurs non cadres visés au §5.4."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Comment j’associe Mathilde et les opérateurs ?",
+      "options": [
+        "Je leur donne du temps, de la formation et des moyens pour participer : dangers, choix des mesures, enquêtes après incident.",
+        "Je leur envoie le compte rendu une fois tout validé.",
+        "Je passe par les chefs d’équipe, ils les représentent."
+      ],
+      "correct": 0,
+      "feedback": "§5.4 : consultation et participation des travailleurs non cadres, en levant les obstacles (temps, langue, peur)."
+    },
+    {
+      "chapter": 2,
+      "deltas": [
+        8,
+        -8,
+        -4
+      ],
+      "feedbacks": [
+        "§6.1.2.1 et §5.4 : identification continue, avec les travailleurs, y compris les activités inhabituelles.",
+        "Un document figé rate les changements : nouvelle nacelle, cadence doublée. Et personne du terrain n’a été associé.",
+        "Un cabinet peut aider, mais la participation des travailleurs ne se sous-traite pas."
+      ],
+      "sets": [
+        {
+          "names": [
+            "participation"
+          ],
+          "values": [
+            true
+          ]
+        },
+        {
+          "names": [
+            "participation"
+          ],
+          "values": [
+            false
+          ]
+        },
+        {
+          "names": [
+            "participation"
+          ],
+          "values": [
+            false
+          ]
+        }
+      ],
+      "text": "Comment j’identifie les dangers ?",
+      "options": [
+        "Je fais le tour des postes avec les opérateurs et Mathilde, y compris la maintenance, la nuit et les intérimaires.",
+        "Je recopie le document de 2021 et je change les dates.",
+        "Je confie tout à un cabinet externe."
+      ],
+      "correct": 0,
+      "feedback": "§6.1.2.1 et §5.4 : identification continue, avec les travailleurs, y compris les activités inhabituelles."
+    },
+    {
+      "chapter": 2,
+      "deltas": [
+        8,
+        -6,
+        -6
+      ],
+      "feedbacks": [
+        "§6.2 : un objectif cohérent avec la politique, mesurable, suivi, avec responsable et échéance.",
+        "Un slogan, pas un objectif : ni moyens, ni date, et ça pousse à cacher les accidents.",
+        "Ni mesurable ni daté : impossible à suivre au §9.1."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Bon. Et ton objectif pour l’année ?",
+      "options": [
+        "Réduire de 50 % l’exposition aux solvants en cabine d’ici juin 2027, mesurée tous les trimestres. Pilotes : Mathilde et moi.",
+        "Zéro accident, pour toujours.",
+        "Améliorer la sécurité en général."
+      ],
+      "correct": 0,
+      "feedback": "§6.2 : un objectif cohérent avec la politique, mesurable, suivi, avec responsable et échéance."
+    },
+    {
+      "chapter": 3,
+      "deltas": [
+        8,
+        -6,
+        -6
+      ],
+      "feedbacks": [
+        "§7.2 et §7.3 : compétence et sensibilisation, y compris le droit de se retirer d’un danger grave et imminent.",
+        "Un PDF non lu ne rend personne compétent.",
+        "Sur le tas, avec une cadence doublée : personne n’aura le temps."
+      ],
+      "sets": [
+        {
+          "names": [
+            "accueil"
+          ],
+          "values": [
+            true
+          ]
+        },
+        {
+          "names": [
+            "accueil"
+          ],
+          "values": [
+            false
+          ]
+        },
+        {
+          "names": [
+            "accueil"
+          ],
+          "values": [
+            false
+          ]
+        }
+      ],
+      "text": "Lundi, 15 intérimaires arrivent pour la montée en cadence. Je les envoie directement en poste ?",
+      "options": [
+        "Non : accueil sécurité de deux heures, dangers du poste, droit de retrait, point de rassemblement, puis un tuteur la première semaine.",
+        "Oui, on leur envoie le livret d’accueil en PDF.",
+        "Oui, les chefs d’équipe les formeront sur le tas."
+      ],
+      "correct": 0,
+      "feedback": "§7.2 et §7.3 : compétence et sensibilisation, y compris le droit de se retirer d’un danger grave et imminent."
+    },
+    {
+      "chapter": 3,
+      "deltas": [
+        6,
+        -4,
+        -4
+      ],
+      "feedbacks": [
+        "§7.4 : quoi, quand, à qui, comment, en tenant compte des langues et des publics.",
+        "Les opérateurs ne lisent pas leurs mails en atelier.",
+        "Trop rare et à sens unique."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Et pour parler de sécurité, tu envoies un mail à tout le monde ?",
+      "options": [
+        "Quart d’heure sécurité chaque semaine en atelier, affichage en français, anglais et portugais, et une boîte à remontées anonyme.",
+        "Un mail mensuel du service HSE.",
+        "Une lettre d’information trimestrielle."
+      ],
+      "correct": 0,
+      "feedback": "§7.4 : quoi, quand, à qui, comment, en tenant compte des langues et des publics."
+    },
+    {
+      "chapter": 4,
+      "deltas": [
+        8,
+        -8,
+        -6
+      ],
+      "feedbacks": [
+        "§8.1.3 : gestion du changement. Un nouvel équipement, ce sont de nouveaux dangers à évaluer avant.",
+        "Attendre le souci, c’est attendre l’accident.",
+        "Le marquage CE couvre la machine, pas son installation dans ton atelier."
+      ],
+      "sets": [
+        {
+          "names": [
+            "changement"
+          ],
+          "values": [
+            true
+          ]
+        },
+        {
+          "names": [
+            "changement"
+          ],
+          "values": [
+            false
+          ]
+        },
+        {
+          "names": [
+            "changement"
+          ],
+          "values": [
+            false
+          ]
+        }
+      ],
+      "text": "Le cobot de perçage arrive vendredi. On le branche lundi, on verra bien.",
+      "options": [
+        "On analyse les risques avant la mise en service : zone de travail partagée, arrêt d’urgence, formation. Lundi, c’est trop tôt.",
+        "D’accord, on analysera s’il y a un souci.",
+        "Il est marqué CE, donc c’est bon."
+      ],
+      "correct": 0,
+      "feedback": "§8.1.3 : gestion du changement. Un nouvel équipement, ce sont de nouveaux dangers à évaluer avant."
+    },
+    {
+      "chapter": 4,
+      "deltas": [
+        8,
+        -8,
+        -4
+      ],
+      "feedbacks": [
+        "§8.1.4.2 : se coordonner avec les entreprises extérieures.",
+        "Ils ne connaissent ni nos solvants ni notre cabine.",
+        "Un règlement ne remplace pas l’analyse commune des risques."
+      ],
+      "sets": [
+        {
+          "names": [
+            "prevention"
+          ],
+          "values": [
+            true
+          ]
+        },
+        {
+          "names": [
+            "prevention"
+          ],
+          "values": [
+            false
+          ]
+        },
+        {
+          "names": [
+            "prevention"
+          ],
+          "values": [
+            false
+          ]
+        }
+      ],
+      "text": "L’entreprise de nettoyage vient vider les bacs de la cabine peinture samedi.",
+      "options": [
+        "Plan de prévention signé avant samedi : visite commune, risques croisés, consignes, équipements.",
+        "Ils connaissent leur métier, on leur laisse les clés.",
+        "On leur envoie notre règlement intérieur."
+      ],
+      "correct": 0,
+      "feedback": "§8.1.4.2 : se coordonner avec les entreprises extérieures."
+    },
+    {
+      "chapter": 4,
+      "deltas": [
+        8,
+        -6,
+        -4
+      ],
+      "feedbacks": [
+        "§8.1.2 : élimination, substitution, protection collective, organisation, et les EPI en dernier.",
+        "Les EPI dépendent du bon port : dernier recours.",
+        "Ça réduit la dose sans toucher au danger."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Alors, par quoi tu commences pour la cabine peinture ?",
+      "options": [
+        "Supprimer ou remplacer le solvant, puis aspirer à la source. Les masques restent le dernier recours.",
+        "Des masques plus performants pour tout le monde.",
+        "Des rotations pour limiter le temps d’exposition."
+      ],
+      "correct": 0,
+      "feedback": "§8.1.2 : élimination, substitution, protection collective, organisation, et les EPI en dernier."
+    },
+    {
+      "chapter": 4,
+      "deltas": [
+        6,
+        -6,
+        -4
+      ],
+      "feedbacks": [
+        "§8.2 : préparer, former, tester et évaluer la réponse aux urgences.",
+        "Les premières minutes, c’est nous. Il faut une réponse préparée et exercée.",
+        "Utile, mais personne n’a jamais pratiqué."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Dernière question : si un fût de solvant se renverse et prend feu, on fait quoi ?",
+      "options": [
+        "On a un plan d’urgence testé : exercice deux fois par an avec les pompiers, fiches réflexes au poste, intérimaires inclus.",
+        "On appelle le 18, ça suffit.",
+        "Les extincteurs sont vérifiés tous les ans."
+      ],
+      "correct": 0,
+      "feedback": "§8.2 : préparer, former, tester et évaluer la réponse aux urgences."
+    },
+    {
+      "chapter": 5,
+      "deltas": [
+        6,
+        -6,
+        -4
+      ],
+      "feedbacks": [
+        "§9.1 : des résultats, des signaux faibles et le pilotage du système.",
+        "Ça mesure l’agitation, pas la performance.",
+        "Indicateur tardif, qui pousse à ne plus déclarer."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Pour le tableau de bord SST, tu retiens quels indicateurs ?",
+      "options": [
+        "Taux de fréquence, presque-accidents remontés, part des actions soldées à temps.",
+        "Affiches dans le hall, épaisseur du classeur, mails envoyés.",
+        "Le nombre d’accidents déclarés, point."
+      ],
+      "correct": 0,
+      "feedback": "§9.1 : des résultats, des signaux faibles et le pilotage du système."
+    },
+    {
+      "chapter": 6,
+      "deltas": [
+        8,
+        -8,
+        -6
+      ],
+      "feedbacks": [
+        "§10.3 : amélioration continue. L’action se généralise et la boucle repart vers §6.1.",
+        "Chercher un coupable éteint les remontées. Les causes sont souvent organisationnelles.",
+        "Un rappel ne supprime pas la cause."
+      ],
+      "sets": [
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        },
+        {
+          "names": [],
+          "values": []
+        }
+      ],
+      "text": "Et ensuite ? On clôt le dossier ?",
+      "options": [
+        "On vérifie l’efficacité dans trois mois, on met des longes sur tous les postes en hauteur, et on partage le retour d’expérience avec l’autre site.",
+        "Oui, on a sanctionné le responsable.",
+        "Oui, on a rappelé la consigne par mail."
+      ],
+      "correct": 0,
+      "feedback": "§10.3 : amélioration continue. L’action se généralise et la boucle repart vers §6.1."
+    }
+  ],
+  "postes": [
+    {
+      "text": "Cabine de peinture",
+      "hazard": "Solvants CMR",
+      "options": [
+        "Supprimer le solvant",
+        "Peinture à l’eau",
+        "Aspiration à la source",
+        "Rotation des postes",
+        "Masque à cartouche"
+      ]
+    },
+    {
+      "text": "Travail sur l’aile",
+      "hazard": "Chute de hauteur",
+      "options": [
+        "Travailler depuis le sol",
+        "",
+        "Garde-corps",
+        "Formation nacelle",
+        "Harnais"
+      ]
+    },
+    {
+      "text": "Rivetage",
+      "hazard": "Bruit 95 dB",
+      "options": [
+        "",
+        "Riveteuse silencieuse",
+        "Capotage des machines",
+        "Rotation des postes",
+        "Bouchons d’oreille"
+      ]
+    },
+    {
+      "text": "Allée centrale",
+      "hazard": "Chariot et piétons",
+      "options": [
+        "Supprimer le croisement",
+        "",
+        "Allées piétonnes séparées",
+        "Plan de circulation",
+        "Gilet haute visibilité"
+      ]
+    },
+    {
+      "text": "Réception",
+      "hazard": "Charges de 25 kg",
+      "options": [
+        "Supprimer le port de charges",
+        "Pièces allégées",
+        "Palan de manutention",
+        "Formation gestes et postures",
+        "Gants et genouillères"
+      ]
+    }
+  ],
+  "feast": [
+    {
+      "text": "Supprimer le solvant",
+      "level": 0
+    },
+    {
+      "text": "Supprimer le port de charges",
+      "level": 0
+    },
+    {
+      "text": "Peinture à l’eau",
+      "level": 1
+    },
+    {
+      "text": "Riveteuse silencieuse",
+      "level": 1
+    },
+    {
+      "text": "Garde-corps",
+      "level": 2
+    },
+    {
+      "text": "Aspiration à la source",
+      "level": 2
+    },
+    {
+      "text": "Capotage",
+      "level": 2
+    },
+    {
+      "text": "Filet sous la nacelle",
+      "level": 2
+    },
+    {
+      "text": "Allées séparées",
+      "level": 3
+    },
+    {
+      "text": "Rotation des postes",
+      "level": 3
+    },
+    {
+      "text": "Formation nacelle",
+      "level": 3
+    },
+    {
+      "text": "Casque",
+      "level": 4
+    },
+    {
+      "text": "Bouchons d’oreille",
+      "level": 4
+    },
+    {
+      "text": "Gants",
+      "level": 4
+    },
+    {
+      "text": "Masque",
+      "level": 4
+    },
+    {
+      "text": "Affiche « Soyez prudents »",
+      "level": 5
+    },
+    {
+      "text": "Prime zéro accident",
+      "level": 5
+    },
+    {
+      "text": "Masque périmé",
+      "level": 5
+    }
+  ],
+  "causes": [
+    {
+      "text": "Danger jamais évalué",
+      "info": "Retour au §6.1 : l’évaluation des risques doit être mise à jour."
+    },
+    {
+      "text": "Outils non attachés",
+      "info": "Mesure technique : longes porte-outils sur tous les postes en hauteur."
+    },
+    {
+      "text": "Opérateurs pas consultés",
+      "info": "§5.4 : ceux qui travaillent sur la nacelle connaissaient le danger."
+    },
+    {
+      "text": "Pas de filet sous la nacelle",
+      "info": "Protection collective d’abord (§8.1.2)."
+    },
+    {
+      "text": "Cadence doublée sans analyse",
+      "info": "Un changement d’organisation se gère comme un changement technique (§8.1.3)."
+    },
+    {
+      "text": "Zone dessous non balisée",
+      "info": "On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2)."
+    }
+  ],
+  "song1": [
+    "Casque vissé, chaussures fermées, on entre",
+    "Je connais les dangers de mon poste",
+    "Si ça craint, droit de retrait",
+    "Consignes traduites pour tout le monde",
+    "Allées piétonnes, on ne coupe pas"
+  ],
+  "song2": [
+    "Accueil sécurité avant la prise de poste",
+    "Habilitation nacelle avant de monter",
+    "Presque-accident ? Je le remonte !",
+    "Fiche de poste à jour, version trois",
+    "Le quart d’heure, tout le monde chante"
+  ],
+  "chapters": [
+    {
+      "text": "Contexte",
+      "clause": "§4",
+      "subtitle": "Le fantôme en pantoufles"
+    },
+    {
+      "text": "Leadership",
+      "clause": "§5",
+      "subtitle": "Le combat contre le PDG et l’évacuation du géant"
+    },
+    {
+      "text": "Planification",
+      "clause": "§6",
+      "subtitle": "Le budget de l’atelier et le festin des mesures"
+    },
+    {
+      "text": "Support",
+      "clause": "§7",
+      "subtitle": "Le karaoké sécurité et le centre de doc"
+    },
+    {
+      "text": "Réalisation",
+      "clause": "§8",
+      "subtitle": "L’échafaudage"
+    },
+    {
+      "text": "Évaluation",
+      "clause": "§9",
+      "subtitle": "La revue de direction, le jeu télé"
+    },
+    {
+      "text": "Amélioration",
+      "clause": "§10",
+      "subtitle": "L’opération des causes"
+    }
+  ],
+  "stages": [
+    {
+      "text": "OPPORTUNITÉS",
+      "info": "Déterminer les opportunités d’amélioration et mettre en œuvre les actions pour atteindre les résultats du système SST."
+    },
+    {
+      "text": "SIGNALER",
+      "info": "Tout incident, presque-accident ou non-conformité est remonté, sans chercher de coupable : on ne corrige que ce qu’on connaît."
+    },
+    {
+      "text": "RÉAGIR",
+      "info": "Réagir en temps utile : maîtriser la situation et corriger (mise en sécurité, premiers secours, arrêt de l’activité)."
+    },
+    {
+      "text": "CONSÉQUENCES",
+      "info": "Faire face aux conséquences : prise en charge du blessé, information des proches, déclaration, remise en état."
+    },
+    {
+      "text": "AVEC LES TRAVAILLEURS",
+      "info": "Évaluer, avec la participation des travailleurs et des autres parties intéressées, s’il faut agir sur les causes."
+    },
+    {
+      "text": "ENQUÊTER",
+      "info": "Enquêter sur l’incident ou examiner la non-conformité : faits, témoins, lieux, conditions de travail."
+    },
+    {
+      "text": "CAUSES",
+      "info": "Déterminer les causes, y compris organisationnelles : arbre des causes, 5 pourquoi, Ishikawa."
+    },
+    {
+      "text": "CAS SIMILAIRES",
+      "info": "Vérifier si des incidents similaires se sont produits ou pourraient se produire ailleurs (autres postes, autres sites)."
+    },
+    {
+      "text": "REVOIR LES RISQUES",
+      "info": "Revoir les évaluations existantes des risques SST et des autres risques (§6.1)."
+    },
+    {
+      "text": "AGIR",
+      "info": "Mettre en œuvre les actions nécessaires, dans l’ordre de la hiérarchie des mesures (§8.1.2) et en gérant le changement (§8.1.3)."
+    },
+    {
+      "text": "NOUVEAUX DANGERS",
+      "info": "Avant d’agir, évaluer les risques liés aux dangers nouveaux ou modifiés par l’action elle-même."
+    },
+    {
+      "text": "EFFICACITÉ",
+      "info": "Examiner l’efficacité des actions, y compris correctives : l’écart a-t-il vraiment disparu ?"
+    },
+    {
+      "text": "SYSTÈME & PREUVES",
+      "info": "Modifier le système si nécessaire, conserver les informations documentées (nature de l’événement, actions, résultats) et les communiquer aux travailleurs."
+    },
+    {
+      "text": "AMÉLIORER SANS FIN",
+      "info": "Amélioration continue : meilleure performance SST, culture de prévention, participation des travailleurs, résultats communiqués."
+    }
+  ]
+}

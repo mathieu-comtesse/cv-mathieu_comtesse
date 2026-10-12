@@ -1,0 +1,32 @@
+{
+  "sourceFilesCompared": 1127,
+  "unchangedSourceFiles": true,
+  "webGzipIntegrity": true,
+  "webFiles": [
+    {
+      "file": "Navigateur.data.gz",
+      "bytes": 19658759,
+      "sha256": "5284b5e9186dfe6255dee807ae7818d610ec1fd3b6ef5ea3fb661adf670c539f"
+    },
+    {
+      "file": "Navigateur.framework.js.gz",
+      "bytes": 88656,
+      "sha256": "e6d262d6d5d46c5ca4535f93a902c1cd4e338116c01d1b20573a2916f052be04"
+    },
+    {
+      "file": "Navigateur.loader.js",
+      "bytes": 26983,
+      "sha256": "0598f2b99d17158f23d61635918e074d7e774b6d26701175ebcfb71f29720f70"
+    },
+    {
+      "file": "Navigateur.wasm.gz",
+      "bytes": 11821726,
+      "sha256": "92d3425a94afc9fd5b9c3e321935c214b045747e0cc2e953f5314743d906ab2d"
+    }
+  ],
+  "allFilesBelow100MiB": true,
+  "unityCachesExcluded": true,
+  "campaignActivitiesPassed": 15,
+  "fileCount": 1164,
+  "bytes": 111605463
+}

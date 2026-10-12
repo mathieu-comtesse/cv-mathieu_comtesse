@@ -1,0 +1,1420 @@
+[
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\fonts_assets_all.bundle",
+    "sha256": "07550796c463a2856464afda958d006b1cf6c5f1dff9ba0b3ff7f044d57133b4",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Font",
+        "pathID": 2393729539826127181,
+        "assetFile": "CAB-43025e8b3c99b66bdc3e8f6e5af5618a",
+        "name": "PapaManAOE",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\PapaManAOE.ttf",
+        "bytes": 83780,
+        "sha256": "298cc3f03c962c967330ce13c45f908d19dbdde80e8f95481565e54c17856a9e"
+      },
+      {
+        "type": "Font",
+        "pathID": 2716190411336593533,
+        "assetFile": "CAB-43025e8b3c99b66bdc3e8f6e5af5618a",
+        "name": "LiberationSans",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\LiberationSans.ttf",
+        "bytes": 350200,
+        "sha256": "e5b0af421ea2bfbc1ac8d251d647268087ae82786234c57f757d1f0b90fa8b49"
+      },
+      {
+        "type": "Font",
+        "pathID": 5542142218924678571,
+        "assetFile": "CAB-43025e8b3c99b66bdc3e8f6e5af5618a",
+        "name": "Inconsolata-SemiBold",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Inconsolata-SemiBold.ttf",
+        "bytes": 98400,
+        "sha256": "19d2b93178ed639960dff03d45de59707f96a58cde2e067c884544792a3aae32"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\ui-shared_assets_all.bundle",
+    "sha256": "7c618232e30acf0ab6b91438138c50c0a7241e5a7466625d853e74e41889862d",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Sprite",
+        "pathID": -8280059179055575692,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "Grittypanel03",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Grittypanel03.png",
+        "dimensions": [
+          1972,
+          902
+        ],
+        "sha256": "8e70f4801c2f86146af349453f2a9d33ae6d1819809202c8c111d0c56ef49589"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4328230312995066799,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "PolaroidPlayer01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\PolaroidPlayer01.png",
+        "dimensions": [
+          1051,
+          1344
+        ],
+        "sha256": "cc38fc949af92d109c8165164425f44fdc9f7c06321c6eb47b64d99e5790b8d6"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -3889443297832305647,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "GrittypanelLegendBar",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittypanelLegendBar.png",
+        "dimensions": [
+          1968,
+          145
+        ],
+        "sha256": "59257d2f56b5f4661db8b0d4c5fa6e5a25c7a60d25d41e6bdabad4a442da41e7"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -1809735428811207191,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "Input_NavigateGeneric",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Input_NavigateGeneric.png",
+        "dimensions": [
+          496,
+          474
+        ],
+        "sha256": "04f78964cf1ef365e0f49ceb5ce18a28b9be6c852b704f361c04b1417e83f596"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -1268573400771225310,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "GrittypanelSmall01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittypanelSmall01.png",
+        "dimensions": [
+          703,
+          119
+        ],
+        "sha256": "1667e6de257a3a74dee93ff060a0d5977596ec99ff0211382a171908ef15d5c9"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 467217302298492688,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "GrittypanelActionButtonWhite",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittypanelActionButtonWhite.png",
+        "dimensions": [
+          512,
+          128
+        ],
+        "sha256": "3171c2263442a6dff0c08ea5fbbb0bece7e356588a678babf324ae1837b9c5ce"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2142158142277283031,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "ReloadGlow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ReloadGlow.png",
+        "dimensions": [
+          512,
+          512
+        ],
+        "sha256": "5a27b97041ca2d5840d893d792cee3205306a0147b8ef5963560a88e3a65e19b"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2154984027232972856,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "Grittypanel02",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Grittypanel02.png",
+        "dimensions": [
+          1725,
+          977
+        ],
+        "sha256": "ebf9537409ee991dedd5dfa726bf1c3f467ab4674601160837d206e678670892"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 5400932120997062484,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "Grittypanel01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Grittypanel01.png",
+        "dimensions": [
+          1706,
+          448
+        ],
+        "sha256": "66fc3cea411f3a1bb73e9bfeb7f1c5d6a741da3b0fddd0b563a6cc31e183bbeb"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8336871899813491469,
+        "assetFile": "CAB-78849e0cccff23b59c85743ee66f2693",
+        "name": "Input_LeftRightArrow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Input_LeftRightArrow.png",
+        "dimensions": [
+          476,
+          85
+        ],
+        "sha256": "8806f14036ddc4c5e237f6ba78253ecc8d3b2de7b14b78245ae759123dcb941b"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_general_compressed_assets_dialogue.bundle",
+    "sha256": "34a0156869adc2928af5e019db2f84e9e7f4fce485ec36e524af1fe0a8c95f12",
+    "sourceUnchanged": true,
+    "extractions": []
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_ui_compressed_assets_game.bundle",
+    "sha256": "ffeed7ee6086bbabd5e169fa7a20aeb9c93de5d02da0c315373227cd1662d465",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Sprite",
+        "pathID": -8866515219516948469,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "HealthIncrease",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\HealthIncrease.png",
+        "dimensions": [
+          69,
+          79
+        ],
+        "sha256": "a3b898fb77d2a1494b3096c7b11bdf87bf83e40ae4b8fbab6cdbcfddc06b3b72"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4861746814560584577,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "ArrowTowardsCamera",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ArrowTowardsCamera.png",
+        "dimensions": [
+          96,
+          32
+        ],
+        "sha256": "d372339075d88492d85170c90c45672d8de9c7d8efa0565ae4392c730c026618"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4860226540082496580,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "ArrowAwayFromCamera",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ArrowAwayFromCamera.png",
+        "dimensions": [
+          96,
+          32
+        ],
+        "sha256": "75a5121a1f7ff61326e1b11d0195f6a458106195e229a6d15f5acecca35da2c7"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -592755342324294208,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "ExamineIcon",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ExamineIcon.png",
+        "dimensions": [
+          128,
+          128
+        ],
+        "sha256": "db4472f4770c7ab69ec5fa5c64f74a9cd7a9a7778f871f5cbbc384e3b0c8efea"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 812878239580409345,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "HealthIncreaseLarge",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\HealthIncreaseLarge.png",
+        "dimensions": [
+          128,
+          108
+        ],
+        "sha256": "1bf439fa0bd5b72d6a09e9a3f12dad5c5dbf5eff805bdda4fed6bbb24420aa48"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 1200236871558719248,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "AddedToMapIcon",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\AddedToMapIcon.png",
+        "dimensions": [
+          80,
+          73
+        ],
+        "sha256": "82932ae905236ab56a95f2b8b1fc016b4ff10678b2323595cd18506fce3e4325"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2726360688810177977,
+        "assetFile": "CAB-d400f502a81a2756fda96fd37ebfcd66",
+        "name": "StaminaBar",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\StaminaBar.png",
+        "dimensions": [
+          64,
+          24
+        ],
+        "sha256": "e0d8e7d068b993c4c99a51cbdc011fe70f19caa4127dc8808087cd2d87d6a9e4"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_patch_scene_assets_compressed_assets_gameui_bfa360b9075f445bfa8ae209c6be6d75.bundle",
+    "sha256": "80eb1e764ec08f3fa28a90ac4e9761e5aa23e837ee3ac6594e50412d381b6d3e",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Sprite",
+        "pathID": -6165533377999153228,
+        "assetFile": "CAB-207d7477a56d42a4ae4f10c7b5cc357b",
+        "name": "BatteryCharge_Low",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\BatteryCharge_Low.png",
+        "dimensions": [
+          80,
+          32
+        ],
+        "sha256": "e042bc40e66c3098bb2bcc7c82db318e33b92d5573f2cae8991e01af65861dd8"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 1210889026317890196,
+        "assetFile": "CAB-207d7477a56d42a4ae4f10c7b5cc357b",
+        "name": "BatteryCharge_Depleted",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\BatteryCharge_Depleted.png",
+        "dimensions": [
+          80,
+          32
+        ],
+        "sha256": "bdf8ad66a65af28d3520f2c12be949aea27043fe8a428521dec53f88b60c08a7"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8751023908144253665,
+        "assetFile": "CAB-207d7477a56d42a4ae4f10c7b5cc357b",
+        "name": "PhotoCameraViewfinder",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\PhotoCameraViewfinder.png",
+        "dimensions": [
+          793,
+          793
+        ],
+        "sha256": "7cc4498bf9253ae640a23bd057303eb79612c232d3a75ab763eed67f0e5f3cfc"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\localization-assets-shared_assets_all.bundle",
+    "sha256": "6a7bf7055f91673039fc75d35a172d4c5c718f987f42ff95edbb0ea4c08001cc",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Texture2D",
+        "pathID": -3037404646332880451,
+        "assetFile": "CAB-736036102da86363a86d423b2d7cb855",
+        "name": "Caveat-Bold SDF Atlas",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Caveat-Bold SDF Atlas.png",
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "sha256": "3e6fe13a86d4ccb2e02253f9a98d7073ec38d9a2b4205b280f4014b7220c58fb"
+      },
+      {
+        "type": "Texture2D",
+        "pathID": -2726511140754901020,
+        "assetFile": "CAB-736036102da86363a86d423b2d7cb855",
+        "name": "NoticiaText-Regular SDF MASTERFONT Atlas",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\NoticiaText-Regular SDF MASTERFONT Atlas.png",
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "sha256": "850bb636d6d2646e99702993525d836e9d026de0773a98a837d5839e8e892f19"
+      },
+      {
+        "type": "Texture2D",
+        "pathID": 1533828976275712074,
+        "assetFile": "CAB-736036102da86363a86d423b2d7cb855",
+        "name": "PermanentMarker-Regular SDF Atlas",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\PermanentMarker-Regular SDF Atlas.png",
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "sha256": "dd64f51c5956bf8c686bbd954e3ef22010e0b57aee9e2abfb040a6137d005b34"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_general_compressed_assets_noticiatext-regularatlasmaterialnounderlay.bundle",
+    "sha256": "4c110055016f82d8f053811720942d3628a14cf0693e20d81fc8ed32c7f47282",
+    "sourceUnchanged": true,
+    "extractions": []
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_general_compressed_assets_choicepanel.bundle",
+    "sha256": "fd99d09808ac524536e5077a9d53e8bf444b866133c8c3394a6dc852c494b1e3",
+    "sourceUnchanged": true,
+    "extractions": []
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_general_compressed_assets_dossierdownarrow.bundle",
+    "sha256": "9c922f44a075a182c4cdeb6efb088fe2274e80233b2ce803d38552ee8dfcf01f",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Sprite",
+        "pathID": 6881750986147490899,
+        "assetFile": "CAB-02edfe060ec426e2d7fc734e6afac7fd",
+        "name": "DossierDownArrow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\DossierDownArrow.png",
+        "dimensions": [
+          51,
+          39
+        ],
+        "sha256": "e1946718773575bce6b6481ec0e3582c7fa808fb1ac6df9609f69bd690711d66"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_ui_compressed_assets_ingamemenu.bundle",
+    "sha256": "0ef777509d91f50eace42ae5b6f6220f66fc11168477f0f97f39470f3cbe7568",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Sprite",
+        "pathID": -8440082742756781245,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Key_Generic_Ground_Ring",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Key_Generic_Ground_Ring.png",
+        "dimensions": [
+          32,
+          20
+        ],
+        "sha256": "2a490755aa907aea2f33765bc05b6ad5a325fad03d73dea2d7860e79c904c29b"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -8100808118092831134,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Coin01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Coin01.png",
+        "dimensions": [
+          127,
+          127
+        ],
+        "sha256": "3b9907ff342109d26fda3b5eb5ad97ee3693299690c72aa25d65dc501c45e566"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -7807551367786859624,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "9mmAmmoCounter",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\9mmAmmoCounter.png",
+        "dimensions": [
+          15,
+          51
+        ],
+        "sha256": "b85c0a7cdc88548cb3a8808c3cf72ca23c13dd478f4140afc0e81fb320c1dab0"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -7640001372548427284,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Church_Bucket_Empty",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Church_Bucket_Empty.png",
+        "dimensions": [
+          264,
+          264
+        ],
+        "sha256": "8d883417fe3605630908c14ab3a3d70918e2973e698b98e672afc4b77c26ae71"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -7562022184097486359,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Pistol_02_Holster",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Pistol_02_Holster.png",
+        "dimensions": [
+          128,
+          255
+        ],
+        "sha256": "7ee4d79015edc9e318c6e9a33a137c13fc8def238af7a333df4fefd82e56d19a"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -7559384665170959184,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Ring_Box",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Ring_Box.png",
+        "dimensions": [
+          247,
+          193
+        ],
+        "sha256": "d3d336bff224af09ab5baed0b6244c8977047f66367e0f157b67a506ac1e5067"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -7546899423913545400,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "DurabilityBar",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\DurabilityBar.png",
+        "dimensions": [
+          774,
+          72
+        ],
+        "sha256": "b252db274c6d17071bff6a430ad33bffd6479fd4ad308ef91b04d81a481393be"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -6968794445749634090,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Sheriff_Antenna",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Sheriff_Antenna.png",
+        "dimensions": [
+          555,
+          143
+        ],
+        "sha256": "60e4980ef122f30cd2874d0c8d26cee5ed8c06fcd45596d3896e558b85526613"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -6516482099836403655,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Bandolier",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Bandolier.png",
+        "dimensions": [
+          279,
+          477
+        ],
+        "sha256": "2ae4b360a57a14209f251f47c5533c86b6ce308af26730c8ae42974c2c869512"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -6335167209692072106,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "SlugAmmoCounter",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\SlugAmmoCounter.png",
+        "dimensions": [
+          31,
+          72
+        ],
+        "sha256": "645d5cdd363e79aa18df582272479c826e87a1bd59883a6e98393dd8e19e198b"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -6090246908388159295,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Ring_Box_Lid",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Ring_Box_Lid.png",
+        "dimensions": [
+          501,
+          381
+        ],
+        "sha256": "d6b63a27f8cc8a56c4cc9d82475c7a724ba22126a4f851acfa3d941cd9fecc75"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -6071636690464306436,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "GrittyPanelDirectional",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittyPanelDirectional.png",
+        "dimensions": [
+          1024,
+          1024
+        ],
+        "sha256": "d856b14cdcba89fef7ebde5b9b7382062ea9b692681983c75b71e8bb6377f163"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5730600345280718321,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "StationBellC",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\StationBellC.png",
+        "dimensions": [
+          390,
+          435
+        ],
+        "sha256": "d03ffa72b3ff5027edf55046e8d54e0309b5221a1fe561cc627fdace9d561c2f"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5497933329237170758,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "ItemboxBackground",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ItemboxBackground.png",
+        "dimensions": [
+          835,
+          987
+        ],
+        "sha256": "0b9a0322eea02c6ee7c2d16a6b29e654d5476f33db626e5533912b1093d1ac15"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5495661824969363176,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "CrimsonBearCard_6",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\CrimsonBearCard_6.png",
+        "dimensions": [
+          140,
+          138
+        ],
+        "sha256": "b3cac76bc920dcf01224b958f85643cfec8dc93be8b4fbdd1df8706cb432c4f6"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5203846676667402530,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "ArtifactSlot_Empty",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ArtifactSlot_Empty.png",
+        "dimensions": [
+          48,
+          48
+        ],
+        "sha256": "e8a23785991895cb59c516aa8a8c20404ee11e3f706bbaee628dd637b8ed3b51"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5190480108788552652,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Item_Map_World",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Item_Map_World.png",
+        "dimensions": [
+          128,
+          128
+        ],
+        "sha256": "d4b360903de9f53bb07762fbea08d43dc034965bc55687f0eac50ba8b1b0f486"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5007042629747238409,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "SaveSlotBackground",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\SaveSlotBackground.png",
+        "dimensions": [
+          1920,
+          1080
+        ],
+        "sha256": "267bd3452dc6d3eae461a585fb139f441371bd204c31e2ac4ff5c85698bb942e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4770367162205389678,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "FoghornCrank_Part_A",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\FoghornCrank_Part_A.png",
+        "dimensions": [
+          248,
+          162
+        ],
+        "sha256": "3da9093f574449a78e0b41eda5917075ab7554795fd79d94f55921aaa0bc4603"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4642206698463746084,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "DossierLeftArrow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\DossierLeftArrow.png",
+        "dimensions": [
+          39,
+          51
+        ],
+        "sha256": "9afc9e296bc7a1d9b38d6b58fcbd719b5a5a331a2ae360c07eb0c5b45e2b0da0"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4446838033032795468,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "RifleAmmoCounter",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\RifleAmmoCounter.png",
+        "dimensions": [
+          26,
+          96
+        ],
+        "sha256": "94e2446bf4a01c6fb54901f64373dbd34764e4fa77175a497cb7055343b8f998"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4431024519760082124,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "GrittyPanelDoubleSided",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittyPanelDoubleSided.png",
+        "dimensions": [
+          1024,
+          1021
+        ],
+        "sha256": "ca54c1e0880a614cbcee09d7064a3fbd2b57d04c697e022ab1a98eb3919a574c"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4415604319167981352,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "WaterPumpArm",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\WaterPumpArm.png",
+        "dimensions": [
+          178,
+          422
+        ],
+        "sha256": "d7a130bb0b93da6f54a68e5040447faf0f54814d24beb8cfc2708fd796292990"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4258476012054820876,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "NailGunReloadPin",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\NailGunReloadPin.png",
+        "dimensions": [
+          89,
+          22
+        ],
+        "sha256": "d6c90c53bc570284a88f96c340a35fa52749ac4ad409208913340a206f442298"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4080865806346989737,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "TabIconOptions",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TabIconOptions.png",
+        "dimensions": [
+          61,
+          61
+        ],
+        "sha256": "632aa592a95f09fd6c0190661f4b71197f26d0f50b1b1a541f7930abeafea63e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -3884848897707599761,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "TabIconInventory",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TabIconInventory.png",
+        "dimensions": [
+          64,
+          64
+        ],
+        "sha256": "711cc2a5504122743ab466e2a49ec3fbb2dbd4d14831c10535f3bf17f82837c1"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -3703517342492263192,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Park_Mask1",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Park_Mask1.png",
+        "dimensions": [
+          160,
+          72
+        ],
+        "sha256": "52b79fd839799bd2b699364d179af868fa904ea04dfd280aae22a9a910cecb7b"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -3630677194531799586,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Ring_Box_With_Ring",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Ring_Box_With_Ring.png",
+        "dimensions": [
+          483,
+          476
+        ],
+        "sha256": "831f9a54dda64105e99230cd0accf34db98d63d20983e0ba2eab742e5e13ea02"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -3590547077513054534,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "SMG01_No_Magazine",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\SMG01_No_Magazine.png",
+        "dimensions": [
+          742,
+          163
+        ],
+        "sha256": "c65d8f3e4344b3e4729aefccb6046840dda2c510b087fedcb7a947406fcacb19"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -3312292925504685739,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "CrimsonBearCard_2",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\CrimsonBearCard_2.png",
+        "dimensions": [
+          140,
+          138
+        ],
+        "sha256": "aa95679d269cd7e4e72f4645bc34269fceeb3cb8de4b5fabd63a906327c2997e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -2869756714219886733,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "NailGunReloadEmpty",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\NailGunReloadEmpty.png",
+        "dimensions": [
+          297,
+          365
+        ],
+        "sha256": "74050ea3a69d50d8cb5194d11c313ee4d896c4b24b7625f9d1ace6da573c7d7b"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -2519151251409360045,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Coin02",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Coin02.png",
+        "dimensions": [
+          32,
+          23
+        ],
+        "sha256": "aeddcbbde130f99d482b165deff95196914279289e5a95cb0051d7dfb44d829a"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -2196909662855200817,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Money_DollarBills",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Money_DollarBills.png",
+        "dimensions": [
+          499,
+          299
+        ],
+        "sha256": "7823311784c918b6f9993518e2b01ac125a0fbc687b3938edaad4811f9986104"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -1885658952270910614,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "TabIconMap",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TabIconMap.png",
+        "dimensions": [
+          64,
+          64
+        ],
+        "sha256": "b8cb8fc6cd6121329213a942ee86e6b6f515d8336d8c0900035addaa8efc596e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -1605490440329907534,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "GrittyCircle01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittyCircle01.png",
+        "dimensions": [
+          504,
+          504
+        ],
+        "sha256": "34fd1d79deaa61d14fd48e56280e4b5fa80c30cf25c277860c12f30407fd4c53"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -1172309320746747385,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "DossierRightArrow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\DossierRightArrow.png",
+        "dimensions": [
+          39,
+          51
+        ],
+        "sha256": "35e9a1571f9427137c94f393a92d6a4e961317c2e960024b3bfdd18ad0406440"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -960072010077538707,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Riverside_Cleaning_Solution",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Riverside_Cleaning_Solution.png",
+        "dimensions": [
+          103,
+          186
+        ],
+        "sha256": "4cf900f6b3eb9de2193de74e7180798ea7daa2a63c72195c4d82a08063e82f4f"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -246421194061906927,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "SaveSlotEmpty",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\SaveSlotEmpty.png",
+        "dimensions": [
+          554,
+          324
+        ],
+        "sha256": "e4e2378a4888f92d8e24a802420c12c3845b8fcdceb7c750425a680f4c535cdb"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -103682030594125672,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "FoghornCrank_Part_B",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\FoghornCrank_Part_B.png",
+        "dimensions": [
+          212,
+          198
+        ],
+        "sha256": "d48b62c07f7549ce455109a0d920c97d672539702321208dae078a2348a5aef9"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 1178806896354802846,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "misc_tile_01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\misc_tile_01.png",
+        "dimensions": [
+          125,
+          102
+        ],
+        "sha256": "b27f9d887ec7bb9857713efa3735e76ab7b42d6e2cb2cdc7f7499b049dd485cb"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 1509424709903416541,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Paperclip01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Paperclip01.png",
+        "dimensions": [
+          63,
+          188
+        ],
+        "sha256": "b0f0786399cd3d7f738e7c5c8c26b72e5b2564f512e598bdbf5a573731a3ddd1"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2063944194073327461,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Flashlight01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Flashlight01.png",
+        "dimensions": [
+          148,
+          320
+        ],
+        "sha256": "3c1fb1ce114b643409ef171f23fc51ffff42b2ae2f746a242d4c7ee95a6ae7b0"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2083868189835803872,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Key_Nightmare_Studio_Apartment_Key_1B",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Key_Nightmare_Studio_Apartment_Key_1B.png",
+        "dimensions": [
+          72,
+          72
+        ],
+        "sha256": "7395340ecbc9a77ac54fee3f18e895f3599f500adf04d7bf8ca79ce30da443c0"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2287054838054351017,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "HealthBarBackground",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\HealthBarBackground.png",
+        "dimensions": [
+          512,
+          128
+        ],
+        "sha256": "0148cdfaf3205f18891ad3fbdd68f5ba2b04d719910128d9f4a04163f6c987ad"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2529199261750829063,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "GrittyPanelThinDoubleSided",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittyPanelThinDoubleSided.png",
+        "dimensions": [
+          1024,
+          256
+        ],
+        "sha256": "a5a2d459da6a6905ddcbc25b07ce6a2e1a5b58fffb1862d324639a8575e896c5"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2588210601079926139,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Cassette_Tape_Police_Alice",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Cassette_Tape_Police_Alice.png",
+        "dimensions": [
+          373,
+          236
+        ],
+        "sha256": "ba54861c5c8b0c619375763793ddc7beb73ce4de803337af2962d2383bd0b1f8"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 3188155018437408563,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "PhotoFilm",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\PhotoFilm.png",
+        "dimensions": [
+          268,
+          300
+        ],
+        "sha256": "80ff2b6f9cee59763fae58d37bdeb5dfd7a2f4e861d144e5ad1e83252a6a479e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 3228511766410595191,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "ItemSlotGlow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ItemSlotGlow.png",
+        "dimensions": [
+          380,
+          226
+        ],
+        "sha256": "632bbce710e488856d24fc3d0b0d955a719e17b72ea11669e874c013f8322d9e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 3349836849038257691,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "NailGunReloadNails",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\NailGunReloadNails.png",
+        "dimensions": [
+          82,
+          94
+        ],
+        "sha256": "226760b9b1d2bf129f0207777226336d25f6fa4b8bca9c811d904f2a3c7ee885"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 4694118150606917196,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "UVFlashlight01",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\UVFlashlight01.png",
+        "dimensions": [
+          191,
+          404
+        ],
+        "sha256": "6f6aed70ef018e6c0a2fe87edaaad6487ca01284fa8e0b7f99f19d88fb620a54"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 5956495661464490035,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "TabIconArtifact",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TabIconArtifact.png",
+        "dimensions": [
+          53,
+          53
+        ],
+        "sha256": "63a9c533ab461dfdc5ed7b077836a24e8c5dd027dbcafbb83993ed35fbf20d7d"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 5986620872108336327,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Medicine_Mixed_GRB",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Medicine_Mixed_GRB.png",
+        "dimensions": [
+          72,
+          200
+        ],
+        "sha256": "c28de54a7c66159f7285f569f6f33a7638f07775e742732d10c4542300c26659"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 6527548183224412831,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "BlurryPanel",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\BlurryPanel.png",
+        "dimensions": [
+          2048,
+          2048
+        ],
+        "sha256": "e3338e1c433cebf7a48e59814a1888841abfec7e93f7f298213691085eed0759"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 6650328411026628056,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "SMG01_Magazine",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\SMG01_Magazine.png",
+        "dimensions": [
+          49,
+          165
+        ],
+        "sha256": "57d9e774ccec88adbae2be9ac2844bc0ac68eac19d492801f26f2896c1b6ef65"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 6691241382935922102,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "BuckshotAmmoCounter",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\BuckshotAmmoCounter.png",
+        "dimensions": [
+          29,
+          70
+        ],
+        "sha256": "d4992924e8b5dbc586d6cef008c96bddbacc9ac8e4cd8ef25da3703db7bdc307"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 6789623893971002761,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Ring_Box_Open",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Ring_Box_Open.png",
+        "dimensions": [
+          487,
+          487
+        ],
+        "sha256": "e60c2a568b175495dda11b369809b4e36b91c61e51e18508eeb97f38dd192196"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 6868240094383381248,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "ArtifactItemBackground",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ArtifactItemBackground.png",
+        "dimensions": [
+          106,
+          106
+        ],
+        "sha256": "61536f53c5c0f22f343c09efb7b170610160f50e259bd55759c4100ed9293f54"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 6920069061284506269,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "FoghornCrank",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\FoghornCrank.png",
+        "dimensions": [
+          267,
+          143
+        ],
+        "sha256": "736e989d584548e5ceff30279d5c2514b706688afca5731b47fafc6900c3d9c3"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 7017493455670792944,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "SavingLoadingIcon",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\SavingLoadingIcon.png",
+        "dimensions": [
+          192,
+          195
+        ],
+        "sha256": "aeb77192475c3093573490a0594160f3caac1263581fa29fcf862b9ab2337a1c"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 7022041837578934477,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Church_Bucket_Water",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Church_Bucket_Water.png",
+        "dimensions": [
+          264,
+          264
+        ],
+        "sha256": "c2628eeddebbe1df0f491918073f3f3c6284346454d7abe616690fd75642df0e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 7138829974387725296,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "TabIconNotes",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TabIconNotes.png",
+        "dimensions": [
+          64,
+          64
+        ],
+        "sha256": "9503f59de2fa1acd532b79524d2ae4cf09615c2405c9b2c044e5f49a6ebb511c"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 7241429627742832014,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "StationBellG",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\StationBellG.png",
+        "dimensions": [
+          390,
+          435
+        ],
+        "sha256": "769f1895999448e30cb2f42c5d2563bf207e8afd2c21f004c64e9cabfd6ab199"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 7708898742567674814,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Key_Generic_Ground_Tag",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Key_Generic_Ground_Tag.png",
+        "dimensions": [
+          62,
+          45
+        ],
+        "sha256": "5d668143d588c88103e36f532d449d6e4ec0e74a2157a07ffeb68a19fae83d01"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8073295058963070754,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "BBAmmoCounter",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\BBAmmoCounter.png",
+        "dimensions": [
+          15,
+          51
+        ],
+        "sha256": "17f7a82e4b535d4e6334e6034835f9abec679f786b0db0b7c9f7ab11643ec346"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8091817636353832923,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "ArtifactSlot_Filled",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ArtifactSlot_Filled.png",
+        "dimensions": [
+          48,
+          48
+        ],
+        "sha256": "aa7e25ebefaa5fa94a17a47654fbe095e886b2094e1d193e8550a129aa0d2a81"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8352865953892504621,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "ActivatedItem",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\ActivatedItem.png",
+        "dimensions": [
+          29,
+          31
+        ],
+        "sha256": "c5ab85491b52c202a073397a980a8a660bef36dd134c6aa97b9625a7e1a2d6fe"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8474250996882989229,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "BriefcaseBackground",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\BriefcaseBackground.png",
+        "dimensions": [
+          813,
+          945
+        ],
+        "sha256": "f8bbff447cb26f48ffc52a01e6b715152f6ed90f88e9fb46b0834dbac2abd925"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8689027357950063603,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "Misc_Ring_Box_Animated_Star",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\Misc_Ring_Box_Animated_Star.png",
+        "dimensions": [
+          103,
+          104
+        ],
+        "sha256": "4f6ded1e4771d2a338be0a1a76dbce21580d525d1cf6c8a4d1e067e6f7527e94"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 9199385856118997202,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "name": "GrittyPanelThinDirectional",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittyPanelThinDirectional.png",
+        "dimensions": [
+          1024,
+          256
+        ],
+        "sha256": "ac3473191ca9b24071978b4aa3166c30aa22de56d5d630a7a30ff9ef84371780"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_scene_assets_compressed_assets_gameui.bundle",
+    "sha256": "a23c3a0fa97b9a132bb1eabf020946b6aaede68d44a8820c698396cf3c49234a",
+    "sourceUnchanged": true,
+    "extractions": [
+      {
+        "type": "Sprite",
+        "pathID": -9157435910132447217,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "QuickMapMask",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\QuickMapMask.png",
+        "dimensions": [
+          978,
+          607
+        ],
+        "sha256": "e90539e25ef9870d4ec5275efc1803a7b58265f4766fe7bb477bfbbf7f14e1d8"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -5664522162645999451,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "IncreaseArrow",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\IncreaseArrow.png",
+        "dimensions": [
+          85,
+          67
+        ],
+        "sha256": "e3919927088aa8c05b8b4f51169ab0b2b6b8e00b73950c1c6d13598d46117a50"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -4474567893370924468,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "TraverseIcon_StairsBoth",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TraverseIcon_StairsBoth.png",
+        "dimensions": [
+          128,
+          125
+        ],
+        "sha256": "c51eafe5bcdc6b091b349d3225af026dbbb2c4f8345dd3abe5dd91d22c269b33"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -2255739179362423295,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "TraverseIcon_LadderDown",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TraverseIcon_LadderDown.png",
+        "dimensions": [
+          56,
+          128
+        ],
+        "sha256": "85aac2d3284584c9ca8c584746ff47c5e05b51851995cdaab48d142ce870836e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": -442193869760183997,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "TraverseIcon_StairsDown",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TraverseIcon_StairsDown.png",
+        "dimensions": [
+          128,
+          118
+        ],
+        "sha256": "cdb6a6a430b0aeb34af390ea3fefc01330a4f618314e4af35c056be9d1ff7369"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 2564802770900286269,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "TraverseIcon_LadderUp",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TraverseIcon_LadderUp.png",
+        "dimensions": [
+          56,
+          128
+        ],
+        "sha256": "194f575fba0d895c4352d4041e8a01ead61205ba422f73f464432ca2fdd09741"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 4224983738579959141,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "WeaponActionRequiredIcon",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\WeaponActionRequiredIcon.png",
+        "dimensions": [
+          119,
+          114
+        ],
+        "sha256": "cff78bad605f6043218d25eb8202bd02874dbe8783af13a8ed886b13c01c313e"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 4359231941218262977,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "TraverseIcon_StairsUp",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\TraverseIcon_StairsUp.png",
+        "dimensions": [
+          128,
+          118
+        ],
+        "sha256": "afdb7f6555c749fab0e66f4cd84edd05ae96d569d835bafc4164e27f3b06f723"
+      },
+      {
+        "type": "Sprite",
+        "pathID": 8805865815436662212,
+        "assetFile": "CAB-2ac5a20a14f3d2050251b0e45a15c8b3",
+        "name": "VignetteOverlay",
+        "export": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\VignetteOverlay.png",
+        "dimensions": [
+          2048,
+          1280
+        ],
+        "sha256": "32044dafb29b6631966d88afa9a68fdf76526216df17d3eac17f31302cec8835"
+      }
+    ]
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\sprites-characterportraits_assets_all.bundle",
+    "sha256": "3e27612250e313ebea48b652926cfb845f0b37c31cd1fffcb5ba1c97b04e1064",
+    "assets": [
+      {
+        "name": "portrait_mask",
+        "pathID": 782635834654335395,
+        "assetFile": "CAB-dfb0d6e9608d457b558b6c9c9fb1fb1e",
+        "image": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\portrait_mask.png",
+        "dimensions": [
+          310,
+          497
+        ],
+        "border": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.0
+        },
+        "ppu": 300.0,
+        "sha256": "298963fc3d67f5ba9a686d452adb03727d78ec850d924ac163837a08a926413b"
+      },
+      {
+        "name": "portrait_inner_glow",
+        "pathID": 9169539366334702784,
+        "assetFile": "CAB-dfb0d6e9608d457b558b6c9c9fb1fb1e",
+        "image": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\portrait_inner_glow.png",
+        "dimensions": [
+          344,
+          508
+        ],
+        "border": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.0
+        },
+        "ppu": 300.0,
+        "sha256": "f11dd302b09d5ef44ad3a31594236708d82c1ca06b479e92cd18941b9b4b0252"
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_general_compressed_assets_dossierdownarrow.bundle",
+    "sha256": "9c922f44a075a182c4cdeb6efb088fe2274e80233b2ce803d38552ee8dfcf01f",
+    "assets": [
+      {
+        "name": "DossierDownArrow",
+        "pathID": 6881750986147490899,
+        "assetFile": "CAB-02edfe060ec426e2d7fc734e6afac7fd",
+        "image": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\DossierDownArrow.png",
+        "dimensions": [
+          51,
+          39
+        ],
+        "border": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.0
+        },
+        "ppu": 100.0,
+        "sha256": "e1946718773575bce6b6481ec0e3582c7fa808fb1ac6df9609f69bd690711d66"
+      }
+    ],
+    "sourceUnchanged": true
+  },
+  {
+    "source": "C:\\Silver Pines\\Carpenter_Data\\StreamingAssets\\aa\\StandaloneWindows64\\team17_auto_base_ui_compressed_assets_ingamemenu.bundle",
+    "sha256": "0ef777509d91f50eace42ae5b6f6220f66fc11168477f0f97f39470f3cbe7568",
+    "assets": [
+      {
+        "name": "GrittyPanelDoubleSided",
+        "pathID": -4431024519760082124,
+        "assetFile": "CAB-10068abf4771238a22be8189cf72d9e7",
+        "image": "C:\\Users\\pihan\\Documents\\Codex\\2026-10-11\\propose-moi-une-refonte-de-talas\\work\\silver-ui\\GrittyPanelDoubleSided.png",
+        "dimensions": [
+          1024,
+          1021
+        ],
+        "border": {
+          "x": 170.5,
+          "y": 170.5,
+          "z": 170.5,
+          "w": 170.5
+        },
+        "ppu": 240.0,
+        "sha256": "ca54c1e0880a614cbcee09d7064a3fbd2b57d04c697e022ab1a98eb3919a574c"
+      }
+    ],
+    "sourceUnchanged": true
+  }
+]

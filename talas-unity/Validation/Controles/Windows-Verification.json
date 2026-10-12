@@ -1,0 +1,17 @@
+{
+    "platform": "WindowsPlayer",
+    "graphicsDevice": "AMD Radeon RX 9070 XT",
+    "renderMethod": "URP offscreen camera with UI",
+    "rendered": true,
+    "movement": true,
+    "animated": true,
+    "combatWin": true,
+    "wrongAnswerRejected": true,
+    "documentationWin": true,
+    "globalClockRunsDuringGames": true,
+    "deathPoseHeld": true,
+    "averageFps": 59.98970031738281,
+    "p95FrameMs": 16.66729736328125,
+    "frames": 180,
+    "errors": 0
+}

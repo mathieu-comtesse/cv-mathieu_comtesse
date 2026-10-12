@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-12",
+  "method": "Interaction réelle et captures du navigateur Codex sur le serveur local",
+  "url": "http://127.0.0.1:8188/",
+  "renderer": "WebGL 2 / shader Talas compatible",
+  "sceneCharactersVisible": true,
+  "quayAndPropsVisible": true,
+  "dialoguePagination": true,
+  "keyboardMovementAndAnimation": true,
+  "notebookOpens": true,
+  "isoDecisionAndFeedback": true,
+  "minigameLoads": "attrape",
+  "minigameCharacterAndPropsVisible": true,
+  "minigameKeyboardMovement": true,
+  "returnToQuay": true,
+  "testCampaignResetWithBackup": true,
+  "allMinigamesPlayedInBrowser": false,
+  "scope": "Contrôle visuel et des commandes sur une activité navigateur. Le contrôle exhaustif des quinze activités est séparé, dans CampaignQA.json, effectué dans Unity."
+}

@@ -1,0 +1,164 @@
+{
+    "started": "2026-10-12T07:04:29.0782792Z",
+    "finished": "2026-10-12T07:06:38.9078045Z",
+    "complete": true,
+    "campaignComplete": true,
+    "blockedTravelRejected": true,
+    "saveReloadMatches": true,
+    "completedSessions": 12,
+    "decisions": 13,
+    "notes": 68,
+    "games": [
+        {
+            "id": "attrape",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 10,
+            "actions": 236,
+            "simulatedSeconds": 31.198633193969728,
+            "realSeconds": 10.530698776245118
+        },
+        {
+            "id": "combat",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 15,
+            "actions": 30,
+            "simulatedSeconds": 1.4976640939712525,
+            "realSeconds": 0.5485724210739136
+        },
+        {
+            "id": "fuite",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 0,
+            "actions": 8,
+            "simulatedSeconds": 70.00096893310547,
+            "realSeconds": 23.403911590576173
+        },
+        {
+            "id": "budget",
+            "result": "Réussite",
+            "pass": true,
+            "health": 13,
+            "score": 5,
+            "actions": 8,
+            "simulatedSeconds": 19.39999008178711,
+            "realSeconds": 6.6700215339660648
+        },
+        {
+            "id": "festin",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 136,
+            "actions": 1200,
+            "simulatedSeconds": 60.0003547668457,
+            "realSeconds": 20.028629302978517
+        },
+        {
+            "id": "karaoke1",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 30,
+            "actions": 30,
+            "simulatedSeconds": 36.49420166015625,
+            "realSeconds": 12.199263572692871
+        },
+        {
+            "id": "karaoke2",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 30,
+            "actions": 30,
+            "simulatedSeconds": 36.43789291381836,
+            "realSeconds": 12.153136253356934
+        },
+        {
+            "id": "doc",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 17,
+            "actions": 34,
+            "simulatedSeconds": 1.699999451637268,
+            "realSeconds": 0.5823094248771668
+        },
+        {
+            "id": "parcours",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 6,
+            "actions": 205,
+            "simulatedSeconds": 10.271586418151856,
+            "realSeconds": 3.861952781677246
+        },
+        {
+            "id": "revue",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 21,
+            "actions": 42,
+            "simulatedSeconds": 2.099999189376831,
+            "realSeconds": 0.7147421836853027
+        },
+        {
+            "id": "operation",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 6,
+            "actions": 492,
+            "simulatedSeconds": 24.596752166748048,
+            "realSeconds": 8.254365921020508
+        },
+        {
+            "id": "jetski",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 8,
+            "actions": 17,
+            "simulatedSeconds": 67.11067962646485,
+            "realSeconds": 22.4575138092041
+        },
+        {
+            "id": "avions",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 3,
+            "actions": 3,
+            "simulatedSeconds": 4.699999809265137,
+            "realSeconds": 1.5658397674560547
+        },
+        {
+            "id": "petanque",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 3,
+            "actions": 3,
+            "simulatedSeconds": 4.745391845703125,
+            "realSeconds": 1.590269684791565
+        },
+        {
+            "id": "lanternes",
+            "result": "Réussite",
+            "pass": true,
+            "health": 5,
+            "score": 3,
+            "actions": 3,
+            "simulatedSeconds": 10.70002269744873,
+            "realSeconds": 3.5661468505859377
+        }
+    ],
+    "error": ""
+}

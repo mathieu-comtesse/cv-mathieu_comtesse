@@ -1,0 +1,11 @@
+{
+    "font": "NoticiaText-Regular SDF MASTERFONT",
+    "sourceCanvas": "CanvasGameUI 1920x1080, match height 1",
+    "background": "GrittyPanelDoubleSided",
+    "glyphs": 237,
+    "characters": 237,
+    "atlasWidth": 1024,
+    "atlasHeight": 1024,
+    "missingFrenchCharacters": 0,
+    "scaleToTalas": 0.6666666865348816
+}

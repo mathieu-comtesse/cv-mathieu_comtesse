@@ -1,0 +1,43 @@
+{
+  "windows": {
+    "buildId": "build_8ff918ae893e",
+    "status": "completed",
+    "result": "Succeeded",
+    "platform": "StandaloneWindows64",
+    "outputPath": "E:/02 - Games/Talas/Versions-jouables/Windows/Talas.exe",
+    "totalSizeBytes": 164219644,
+    "buildTimeMs": 18104,
+    "totalErrors": 0,
+    "totalWarnings": 1,
+    "warnings": [
+      {
+        "message": "Pipeline: No RuntimePipelineConfig asset found (Project Settings > Pipeline > Runtime). Pipeline will be disabled in Player builds."
+      }
+    ]
+  },
+  "navigateur": {
+    "buildId": "build_8426a6b00e61",
+    "status": "completed",
+    "result": "Succeeded",
+    "platform": "WebGL",
+    "outputPath": "E:/02 - Games/Talas/Versions-jouables/Navigateur",
+    "totalSizeBytes": 31615675,
+    "buildTimeMs": 105684,
+    "totalErrors": 0,
+    "totalWarnings": 4,
+    "warnings": [
+      {
+        "message": "Pipeline: No RuntimePipelineConfig asset found (Project Settings > Pipeline > Runtime). Pipeline will be disabled in Player builds."
+      },
+      {
+        "message": "E:\\02 - Games\\Talas\\Talas-Quai-des-Brumes\\Library\\Bee\\artifacts\\WebGL\\il2cppOutput\\cpp: [Unity.TextMeshPro] - System.Void TMPro.TMP_TextParsingUtilities::.cctor() - Method was given it's own cpp file because it is large and costly to compile"
+      },
+      {
+        "message": "E:\\02 - Games\\Talas\\Talas-Quai-des-Brumes\\Library\\Bee\\artifacts\\WebGL\\il2cppOutput\\cpp: [Unity.TextMeshPro] - System.Void TMPro.TextMeshPro::GenerateTextMesh() - Method was given it's own cpp file because it is large and costly to compile"
+      },
+      {
+        "message": "E:\\02 - Games\\Talas\\Talas-Quai-des-Brumes\\Library\\Bee\\artifacts\\WebGL\\il2cppOutput\\cpp: [Unity.TextMeshPro] - System.Void TMPro.TextMeshProUGUI::GenerateTextMesh() - Method was given it's own cpp file because it is large and costly to compile"
+      }
+    ]
+  }
+}

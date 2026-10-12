@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3478055131223873356
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2242581175923678340}
+  m_Layer: 0
+  m_Name: fut-chimique
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2242581175923678340
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3478055131223873356}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.000000033113693, z: -0.008669562}
+  m_LocalScale: {x: 1.1111112, y: 1.1111112, z: 1.1111112}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5808788243881047201}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &6275290390920942410
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2242581175923678340}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.000000030908616
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.00000003090862
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071067
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8475976704043576591, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 68561e400dae65e479f14b7d9364919b, type: 2}
+    - target: {fileID: -5433951231181200905, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0a00ede11fdd313408304d380bf28c21, type: 2}
+    - target: {fileID: -2148525149088550295, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e906282916e0cd14db888b905a68fa19, type: 2}
+    - target: {fileID: -1648599483043101308, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d18e56191199d1b4cb6fae1ab92cc6da, type: 2}
+    - target: {fileID: 190101968208487023, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9e39e9f8d9c371c4987a761af96df4cb, type: 2}
+    - target: {fileID: 695538885505313398, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0d2b8a4e114efd844a1d493f020d835e, type: 2}
+    - target: {fileID: 919132149155446097, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: m_Name
+      value: fut-chimique
+      objectReference: {fileID: 0}
+    - target: {fileID: 3293813508200184287, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c41d4661fd6fccc45a0b0f4d92216ed0, type: 2}
+    - target: {fileID: 5243441019751745417, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 14378f27b47dc3e41b16a702a88c9dd4, type: 2}
+    - target: {fileID: 7629151994559135898, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 27628b38f2ce1bb44aed2ee521fe6b7c, type: 2}
+    - target: {fileID: 8600262452701332780, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: dcefbb36a026ff243875f3382ff80e8a, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+--- !u!4 &5808788243881047201 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 61104ebdcc4e9a740951acea1da1427a, type: 3}
+  m_PrefabInstance: {fileID: 6275290390920942410}
+  m_PrefabAsset: {fileID: 0}

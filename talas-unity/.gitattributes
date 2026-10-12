@@ -1,0 +1,11 @@
+* -text
+*.cs text eol=lf
+*.shader text eol=lf
+*.hlsl text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.meta text eol=lf

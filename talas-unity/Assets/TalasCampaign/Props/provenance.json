@@ -1,0 +1,146 @@
+[
+  {
+    "name": "avion-a320",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\avion-a320.glb",
+    "sourceSha256": "42f371f530529855350d8b2581e6a25109d7365d5a96fdc38020075beae6afc6",
+    "sourceUnchanged": true,
+    "triangles": 8984,
+    "vertices": 6766,
+    "outputSha256": "6bb686d2dab9098a7e835fce1f8636ff09e388e53dfb213b5afdf0a01ffd0245"
+  },
+  {
+    "name": "etabli",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\etabli.glb",
+    "sourceSha256": "14d497223dfeee21449720dc35dc19e6087c32c181debf6bd83cee6d7afdc6d5",
+    "sourceUnchanged": true,
+    "triangles": 3985,
+    "vertices": 9108,
+    "outputSha256": "e78583f54d927a7332d4f47af80fe9f3ca7c7a60b10bb1c98431bd1e2bee9036"
+  },
+  {
+    "name": "extincteur",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\extincteur.glb",
+    "sourceSha256": "9406e27c521c85a2e381aec06e9599e154683d7ee17378a8ecba038bad15bed8",
+    "sourceUnchanged": true,
+    "triangles": 1497,
+    "vertices": 1316,
+    "outputSha256": "eca9cc5fd776a9c11b094ed514d00175368b81d6d8b5966344713adb29ac1187"
+  },
+  {
+    "name": "fut-chimique",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\fut-chimique.glb",
+    "sourceSha256": "d319306ec910b6a8de1adcdc72e8a67baf5dd168a9758e17961666d35cc9f978",
+    "sourceUnchanged": true,
+    "triangles": 1493,
+    "vertices": 1940,
+    "outputSha256": "31ebac647afdd6a1796bbb735b8f82bd76b7d9ee503a5a5582f427dc07396660"
+  },
+  {
+    "name": "rayonnage",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\rayonnage.glb",
+    "sourceSha256": "f27ed98b3f6cf93ff3d8d0c4ea901c54ff5770f8a33d64a43899d1587cee6b08",
+    "sourceUnchanged": true,
+    "triangles": 3991,
+    "vertices": 6129,
+    "outputSha256": "d90d4d41ef7f839254d9f8660a2a004352bae691dbda888c61c509d78b827cbf"
+  },
+  {
+    "name": "chariot-elevateur",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\chariot-elevateur.glb",
+    "sourceSha256": "656c37c66bbb8342fb336fada0bf2da215b1a5bbc5530982c0734fb149b124eb",
+    "sourceUnchanged": true,
+    "triangles": 5981,
+    "vertices": 8431,
+    "outputSha256": "cbeeb578e4386b53517753df2c9b1143f7fb695aca0c0ec4cf44d3b9e89d9a68"
+  },
+  {
+    "name": "palette",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\palette.glb",
+    "sourceSha256": "6cf7bdc1427c5bba60231b5bdf3521a6ac5d2a5a280e16d34191eed5330586a5",
+    "sourceUnchanged": true,
+    "triangles": 1195,
+    "vertices": 2451,
+    "outputSha256": "f1fb2a7df7f5c69dc5da2a6687fda36762beac0ebe30d72c738f320621e188dc"
+  },
+  {
+    "name": "cone",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\cone.glb",
+    "sourceSha256": "f28ef3bd444670b9ddef62ca87de523c3edef1e0ad47606f214dd7725f9a1a56",
+    "sourceUnchanged": true,
+    "triangles": 789,
+    "vertices": 1502,
+    "outputSha256": "d014334713fe7e8aec24dff4b75323433327badd619e1c1302e58753e737fdd9"
+  },
+  {
+    "name": "chariot-infirmerie",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\chariot-infirmerie.glb",
+    "sourceSha256": "f0689607150899cdde4600b65b0218a7174c823dde7831492985e2217df9053a",
+    "sourceUnchanged": true,
+    "triangles": 2984,
+    "vertices": 7176,
+    "outputSha256": "541a9f2e2147dbf249cd346f8367e6c7b3b511fa5d81cc4748540dd368836d93"
+  },
+  {
+    "name": "armoire-electrique",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\armoire-electrique.glb",
+    "sourceSha256": "5af9d155a0f2f2fce1d3fb0d2457ad5be9f2862fe028bd1d6c6dc9500cb2c2c6",
+    "sourceUnchanged": true,
+    "triangles": 3985,
+    "vertices": 7971,
+    "outputSha256": "82a999723e210d46f914ec5a191ca6fbdccff1b3ddfb84e78c9a5aaae47f1e41"
+  },
+  {
+    "name": "poste-soudure",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\poste-soudure.glb",
+    "sourceSha256": "109aa7473697f90a03b5773bc8798824caf131caf034571f471573b21eff76b5",
+    "sourceUnchanged": true,
+    "triangles": 3986,
+    "vertices": 6945,
+    "outputSha256": "d04ab57966a55e7b222d339cef3943ba4708ed3ccba5e3e5203e921911e2bdcb"
+  },
+  {
+    "name": "palan",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\palan.glb",
+    "sourceSha256": "cb67df6fa65e8a07da9100713d84aed644fc4722992ff4ca1531510517a9fd47",
+    "sourceUnchanged": true,
+    "triangles": 2992,
+    "vertices": 5118,
+    "outputSha256": "db0830f638f2f103dd079b208b6c5454b07d14a03f92ead008cf1edf9b63ed70"
+  },
+  {
+    "name": "barque",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\barque.glb",
+    "sourceSha256": "afd994e6aaf6acf42a9f096f061214a69f554a20363fabfd7c6e6d76a4b6d694",
+    "sourceUnchanged": true,
+    "triangles": 3995,
+    "vertices": 2431,
+    "outputSha256": "85775ff9a5dcb1c26a6d77cc6a2f0a4814fb982c3df03ee33808d7850bc38000"
+  },
+  {
+    "name": "panneau-sortie",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\panneau-sortie.glb",
+    "sourceSha256": "1e88d08a52b6c1655a9734ac7caec135ca3bb9267e1546fef86bee10f27aea11",
+    "sourceUnchanged": true,
+    "triangles": 464,
+    "vertices": 664,
+    "outputSha256": "d674055bc329806f7e83de4c69069302b3c6ae134e1f8e8bf2c62aac805ca463"
+  },
+  {
+    "name": "vestiaire",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\vestiaire.glb",
+    "sourceSha256": "0ccd538f33d629bb9de707e00c7ee05402ae5ea262a1002d2507745002606b29",
+    "sourceUnchanged": true,
+    "triangles": 1994,
+    "vertices": 4520,
+    "outputSha256": "14271f0c9ee18b77832db807206d7c83aede5291f6c7e363d602eec0ade5ce6e"
+  },
+  {
+    "name": "banc",
+    "source": "C:\\Users\\pihan\\Documents\\cv-mathieu_comtesse\\assets\\talas\\props\\banc.glb",
+    "sourceSha256": "329868a9c1c5dfce2929a2cf65850e89215bc3cc9db0da8dfcc30881429ffc75",
+    "sourceUnchanged": true,
+    "triangles": 180,
+    "vertices": 336,
+    "outputSha256": "31b3ff6e729129e2d49d040cae3e129f71b6a015761e03a9ccb488d739f7bc24"
+  }
+]

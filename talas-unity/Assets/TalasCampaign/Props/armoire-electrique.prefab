@@ -1,0 +1,148 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5579180926906119355
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7200428840828786910}
+  m_Layer: 0
+  m_Name: armoire-electrique
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7200428840828786910
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5579180926906119355}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.000000029835007, y: -0.00054821826, z: 0.00013049832}
+  m_LocalScale: {x: 0.50054836, y: 0.50054836, z: 0.50054836}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 9162417204064364934}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &8695827021195005549
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7200428840828786910}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.000000030908616
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.00000003090862
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071067
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8475976704043576591, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 15e213a96b9d80e4098975475296cb44, type: 2}
+    - target: {fileID: -5857618602530395319, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1acd513a271e54a4fba90c1af18743e7, type: 2}
+    - target: {fileID: -5433951231181200905, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b482844cbdc12d444b042602870f2c37, type: 2}
+    - target: {fileID: -2496272437267321128, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c2f3322c8afd5de44b323888bcc6095f, type: 2}
+    - target: {fileID: 526520392362609742, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 46fe9ed2ced3ea24388064537ec3fefa, type: 2}
+    - target: {fileID: 682581387404236724, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c2f3322c8afd5de44b323888bcc6095f, type: 2}
+    - target: {fileID: 919132149155446097, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: m_Name
+      value: armoire-electrique
+      objectReference: {fileID: 0}
+    - target: {fileID: 1025512887768142698, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b482844cbdc12d444b042602870f2c37, type: 2}
+    - target: {fileID: 1349409053199502451, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 21658c02dce156347ad90288cbde11b9, type: 2}
+    - target: {fileID: 3293813508200184287, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d88d5647a40f9f54b90ef24f61648963, type: 2}
+    - target: {fileID: 4844376203879916265, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 46fe9ed2ced3ea24388064537ec3fefa, type: 2}
+    - target: {fileID: 7629151994559135898, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 34275c5f69ee36740a5fdcd0fe0011a1, type: 2}
+    - target: {fileID: 8216818256676530282, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e21d70a01434c1741b06db62f0c81bf0, type: 2}
+    - target: {fileID: 8600262452701332780, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ff171020482644240a2bb55730402aff, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+--- !u!4 &9162417204064364934 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a9d60dc73ecf7374285fcb43f5a7dbf3, type: 3}
+  m_PrefabInstance: {fileID: 8695827021195005549}
+  m_PrefabAsset: {fileID: 0}
