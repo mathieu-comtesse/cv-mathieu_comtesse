@@ -1,5 +1,5 @@
 import {THREE,group,tube,mat,box,canvasTexture} from './kit.js?v=cv-scene-v29';
-import {createPowerParts,insertPlug,yawToward} from './power-parts.js?v=cv-scene-v60';
+import {createPowerParts,insertPlug,yawToward} from './power-parts.js?v=cv-scene-v61';
 export function installDeskEquipment(desk,workstation,towerModel,stripModel,barModel,wallpaper,powerModel){
  const tower=towerModel.scene;tower.name='DreamComputerRTX4090';tower.position.set(.535,.742,-.03);tower.scale.setScalar(.95);tower.userData.batchRoot=true;tower.userData.noInk=true;desk.add(tower);
  const gpu=tower.getObjectByName('AsusROGRTX4090');gpu.userData.batchRoot=true;

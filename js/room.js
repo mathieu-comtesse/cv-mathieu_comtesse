@@ -6,11 +6,11 @@ import * as F from './furniture.js?v=cv-scene-v50';
 import { createCharacter } from './character.js?v=cv-scene-v49';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
-import { teaSet, updateSteam } from './tea.js?v=cv-scene-v29';
+import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
-import { createRetroSet } from './retro.js?v=cv-scene-v53';
-import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v60';
+import { createRetroSet } from './retro.js?v=cv-scene-v54';
+import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
 import { createDirector } from './director.js?v=cv-scene-v53';
 import { createThought } from './thought.js?v=cv-scene-v29';
@@ -19,7 +19,7 @@ import { createJukebox } from './jukebox.js?v=cv-scene-v48';
 import { TRACKS, COVER } from './music.js?v=bf01a16';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
-import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v53';
+import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v54';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
@@ -277,7 +277,8 @@ export async function createRoom(container, bubbleEl) {
   const outlet = wallParts.outlet(); outlet.position.set(OUT.x, OUT_Y, OUT.z);
   const wallPlug = wallParts.plug('white');
   const wallExit = insertPlug(wallPlug, new THREE.Vector3(OUT.x, OUT_Y - 0.0006, OUT.z), yawToward(-1, 0));
-  const cordPts = [[cs0.x, cs0.y, cs0.z], [cs0.x + 0.22, 0.03, cs0.z - 0.16], [cs0.x + 0.5, 0.03, cs0.z + 0.04], [cs0.x + 0.78, 0.03, cs0.z + 0.35], [1.25, 0.03, 2.4], [1.52, 0.026, 2.75], [1.75, 0.01, 3.0], [2.05, 0.008, 3.12], [2.4, 0.008, 2.98], [2.75, 0.008, 3.12], [3.1, 0.008, 2.98], [wallExit.x - 0.2, 0.01, wallExit.z + 0.03], [wallExit.x - 0.07, wallExit.y - 0.012, wallExit.z + 0.005], wallExit.toArray()];
+  const lead = retro.group.localToWorld(retro.cordStart.clone().add(new THREE.Vector3(0.05, 0, 0)));   // départ rectiligne dans l'axe du presse-étoupe
+  const cordPts = [[cs0.x, cs0.y, cs0.z], [lead.x, lead.y, lead.z], [cs0.x + 0.22, 0.03, cs0.z - 0.16], [cs0.x + 0.5, 0.03, cs0.z + 0.04], [cs0.x + 0.78, 0.03, cs0.z + 0.35], [1.25, 0.03, 2.4], [1.52, 0.026, 2.75], [1.75, 0.01, 3.0], [2.05, 0.008, 3.12], [2.4, 0.008, 2.98], [2.75, 0.008, 3.12], [3.1, 0.008, 2.98], [wallExit.x - 0.2, 0.01, wallExit.z + 0.03], [wallExit.x - 0.07, wallExit.y - 0.012, wallExit.z + 0.005], wallExit.toArray()];
   const cord = tube(cordPts, 0.0105, new THREE.MeshStandardMaterial({ color: '#e2e0d8', roughness: 0.6 }), { segs: 160, radial: 6 });
   add('strip', group(cord, wallPlug, outlet), 0, 0, 0, 0, 0.6, world, 0);
   const usmSet = group();
