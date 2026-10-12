@@ -30,9 +30,25 @@ function withSites(base,sites){
 
 export const REGION_IDS=['forest','crystal','shore'];
 
+// Bordure du monde : au-delà de ~365 unités le terrain se relève en massifs, assez raides pour bloquer la marche.
+// Le rendu s'étend jusqu'à HALF + EXTRA ; le brouillard fond le reste.
+export const EXTRA=190,RIM0=362,RIM1=445;
+export const rimE=(x,z)=>Math.pow(Math.pow(Math.abs(x)/HALF,4)+Math.pow(Math.abs(z)/HALF,4),.25)*HALF;
+const RIM_A={forest:64,crystal:72,shore:54};
+function rimHeight(R,x,z){
+  const e=rimE(x,z);if(e<RIM0)return 0;
+  const t=smooth(RIM0,RIM1,e),seed=R.seed||7;
+  const ridge=1-Math.abs(fbm(x*.011+5,z*.011,seed,3));
+  let h=RIM_A[R.id]*(.62+.7*ridge)*Math.pow(t,1.2)+9*t*fbm(x*.045,z*.045,seed+9,3);
+  if(R.id==='crystal'){const st=9,q=h/st;h=(Math.floor(q)+smooth(.82,1,q-Math.floor(q)))*st}   // gradins taillés comme le plateau
+  if(R.id==='shore'){const c=R.coast(x);h*=smooth(c+40,c-30,z)}                                  // la mer reste ouverte
+  return h;
+}
+
 export function makeRegion(id){
   const R=({forest,crystal,shore})[id]();
   R.id=id;R.half=HALF;
+  const inner=R.baseHeight;R.baseHeight=(x,z)=>inner(x,z)+rimHeight(R,x,z);
   const sites=[];
   for(const f of R.layout.foyers)sites.push({x:f.x,z:f.z,r:5});
   for(const s of R.layout.steles)sites.push({x:s.x,z:s.z,r:7});
@@ -145,7 +161,7 @@ function shore(){
 
 // ------------------------------------------------------------------ marche
 export function canStep(R,x,z,nx,nz,t){
-  if(Math.abs(nx)>HALF-6||Math.abs(nz)>HALF-6)return false;
+  if(Math.abs(nx)>HALF+60||Math.abs(nz)>HALF+60)return false;
   const d=Math.hypot(nx-x,nz-z)||1e-6,dh=Math.abs(R.height(nx,nz)-R.height(x,z));
   if(dh/d>WALK.maxSlope)return false;
   if(R.depthAt(nx,nz,t)>WALK.swim)return false;
@@ -181,14 +197,27 @@ export function genProps(R){
     // ruines monumentales sur chaque îlot et autour de la porte
     for(const i of R.layout.islets)for(let k=0;k<6;k++){const a=k/6*6.28+r(),d=i.r*.7+r()*4;P.slabs.push({x:i.x+Math.cos(a)*d,z:i.z+Math.sin(a)*d,w:3+r()*5,h:3+r()*6,d:2+r()*2.5,rot:a,tilt:(r()-.5)*.1,flat:true})}
   }
-  // colliders
+  // massifs de bordure : mêmes familles d'objets que la zone, en grand
+  const rimPlace=(arr,n,e0,e1,f)=>{let tries=0;const R2=HALF+EXTRA-12,goal=arr.length+n;while(arr.length<goal&&tries++<n*40){const x=(r()*2-1)*R2,z=(r()*2-1)*R2,e=rimE(x,z);if(e<e0||e>e1)continue;f(x,z,arr)}};
+  if(R.id==='forest'){
+    const rt=[];rimPlace(rt,3200,350,500,(x,z,a)=>{if(R.height(x,z)>34||fbm(x*.02,z*.02,5,2)<-.25)return;a.push({x,z,s:1.2+r()*1.3,rot:r()*6.28})});P.trees.push(...rt);
+    rimPlace(P.slabs,26,372,520,(x,z,a)=>{a.push({x,z,w:9+r()*10,h:22+r()*30,d:5+r()*4,rot:r()*6.28,tilt:(r()-.5)*.14})});
+  }else if(R.id==='crystal'){
+    rimPlace(P.crystals,110,352,500,(x,z,a)=>a.push({x,z,s:5+r()*12,rot:r()*6.28,n:1+Math.floor(r()*3)}));
+    rimPlace(P.slabs,22,372,520,(x,z,a)=>a.push({x,z,w:8+r()*9,h:24+r()*30,d:5,rot:r()*6.28,tilt:(r()-.5)*.2}));
+  }else{
+    rimPlace(P.slabs,56,360,520,(x,z,a)=>{if(R.height(x,z)<1.5)return;a.push({x,z,w:8+r()*14,h:16+r()*30,d:6+r()*6,rot:r()*6.28,tilt:(r()-.5)*.1,flat:true})});
+    // piliers marins et récifs au large
+    let tries=0;while(P.slabs.length<200&&tries++<4000){const x=(r()*2-1)*(HALF+EXTRA-20),z=R.coast(x)+60+r()*(HALF+EXTRA-R.coast(x)-80);if(z>HALF+EXTRA-20)continue;if(R.height(x,z)>-2.2)continue;P.slabs.push({x,z,w:3+r()*7,h:7+r()*24,d:3+r()*6,rot:r()*6.28,tilt:(r()-.5)*.08})}
+  }
+  // colliders : seulement dans la zone jouable
   const C=[];
   for(const t of P.trees)C.push({x:t.x,z:t.z,r:t.s>1.5?1.6:.45*t.s+.2});
   for(const t of P.rocks)C.push({x:t.x,z:t.z,r:t.s*.8});
   for(const t of P.slabs)C.push({x:t.x,z:t.z,r:Math.max(t.w,t.d)*.5});
   for(const t of P.crystals)C.push({x:t.x,z:t.z,r:t.s*.35+.4});
   for(const t of P.arches||[])C.push({x:t.x-1.8*Math.cos(t.rot),z:t.z-1.8*Math.sin(t.rot),r:.9},{x:t.x+1.8*Math.cos(t.rot),z:t.z+1.8*Math.sin(t.rot),r:.9});
-  P.colliders=C;
+  P.colliders=C.filter(c=>Math.abs(c.x)<HALF+10&&Math.abs(c.z)<HALF+10);
   return P;
 }
 
