@@ -74,11 +74,19 @@ export function eclairer(mat, ciel, carte, opts = {}) {
     ` + sh.fragmentShader
       .replace('#include <normal_fragment_begin>', 'vec3 normal = normalize(vNormal); vec3 nonPerturbedNormal = normal;')
       .replace('#include <color_fragment>', `#include <color_fragment>
-        float mid_ = floor(vMat + .5);
+        float mid_ = floor(vMat + .5); float sandM_ = 0.;
         float rocheW = (mid_ < .5 || mid_ > 5.5) ? 1. : 0.;
         float bumpM = rocheW + (mid_ > .5 && mid_ < 1.5 ? .28 : 0.) + (mid_ > 1.5 && mid_ < 2.5 ? .22 : 0.) + (mid_ > 2.5 && mid_ < 3.5 ? .1 : 0.) + (mid_ > 3.5 && mid_ < 4.5 ? .24 : 0.) + (mid_ > 4.5 && mid_ < 5.5 ? .12 : 0.);
         float fin = fbm3(vWp * 10.), gros = fbm3(vWp * 2.6 + 4.);
-        diffuseColor.rgb *= mix(.9 + .2 * fin, .78 + .44 * fin, rocheW) * (.9 + .2 * gros);`)
+        diffuseColor.rgb *= mix(.9 + .2 * fin, .78 + .44 * fin, rocheW) * (.9 + .2 * gros);
+        {
+          /* diorama : l'herbe du terrain vire au sable doré, avec de fines rides ; la roche et les chemins gardent leur teinte */
+          float verd = clamp((diffuseColor.g - max(diffuseColor.r, diffuseColor.b)) * 9., 0., 1.) * (1. - rocheW);
+          float lu = dot(diffuseColor.rgb, vec3(.3, .59, .11));
+          float ride = .5 + .5 * sin(dot(vWp.xz, vec2(.9, .55)) * 22. + fbm3(vWp * 1.7) * 9.);
+          vec3 sable = vec3(.94, .68, .44) * (.6 + .85 * lu) * (.9 + .12 * ride);
+          diffuseColor.rgb = mix(diffuseColor.rgb, sable, verd * .82); sandM_ = verd;
+        }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         ${opts.roche === false ? '' : `{
           float dist = length(vViewPosition), fadeB = 1. - smoothstep(30., 70., dist);
@@ -89,6 +97,12 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           /* facettes : la roche garde un peu de la normale de sa face (arêtes plus franches que la normale lissée) */
           vec3 fN = (viewMatrix * vec4(normalize(cross(dFdx(vWp), dFdy(vWp))), 0.)).xyz; if (dot(fN, normal) < 0.) fN = -fN;
           normal = normalize(mix(normal, fN, .5 * rocheW * fadeB));
+          /* rides de sable soufflées par le vent : crêtes parallèles qui accrochent la lumière rasante */
+          if (sandM_ > .02) {
+            float ph = dot(vWp.xz, vec2(.9, .55)) * 11. + fbm3(vWp * .9) * 5.;
+            float gr = cos(ph) * 11. * .016 + cos(ph * 2.1 + 1.3) * 22. * .006;
+            normal = normalize(normal - (viewMatrix * vec4(vec3(.9, 0., .55) * gr, 0.)).xyz * sandM_ * fadeB);
+          }
         }`}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         ${opts.caustiques === false ? '' : `{

@@ -14,7 +14,7 @@ export const PERSO = [
  },
  {
   "id": "atlas",
-  "img": "assets/screenshots/atlas-v52.webp",
+  "img": "assets/screenshots/atlas-v53.webp",
   "year": 2026,
   "n": "Atlas du parcours",
   "genre": "Exploration",

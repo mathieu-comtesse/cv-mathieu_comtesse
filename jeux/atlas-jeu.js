@@ -146,7 +146,7 @@ export function creerJeu(M, R, dom) {
   };
 
   /* ------------------------------------------------------------------------------------------------ caméra : orbite autour de l'île */
-  const cam = { spin: 0.25, pitch: 0.82, zoom: 40, but: null, cible: V3(0, -1, 0.4), vitesse: 0.1, pause: false, glisse: null };
+  const cam = { spin: 0.55, pitch: 0.55, zoom: 46, but: null, cible: V3(0, -1, 0.4), vitesse: 0.1, pause: false, glisse: null };
   J.camera.but = (zoom, pitch) => { cam.but = { zoom, pitch }; };
   J.vue = (spin, pitch, zoom) => { cam.spin = spin; cam.pitch = pitch; cam.zoom = zoom; cam.pause = true; };
   J.cam = cam;
@@ -156,7 +156,7 @@ export function creerJeu(M, R, dom) {
     const dessous = (1 - bornes((cam.pitch + 0.4) / 0.8, 0, 1)) * (1 - 0.0);                // regarde le socle quand on passe sous l'horizon
     const cibleY = -1 + dessous * -5.5;
     if (sail.on) { _t.set(bateauPos().x, 0, bateauPos().z); cam.cible.lerp(_t, Math.min(1, dt * 3)); } else cam.cible.lerp(_t.set(0, cibleY, 0.4), Math.min(1, dt * 1.6));
-    const d = cam.zoom * Math.max(1, 0.78 / camera.aspect), decal = innerWidth > 850 && !sail.on ? -4.4 * (cam.zoom / 40) : 0;
+    const d = cam.zoom * Math.max(1, 0.78 / camera.aspect), decal = 0;
     camera.position.set(cam.cible.x + Math.sin(cam.spin) * d * Math.cos(cam.pitch), cam.cible.y + Math.sin(cam.pitch) * d, cam.cible.z + Math.cos(cam.spin) * d * Math.cos(cam.pitch));
     camera.lookAt(cam.cible); camera.translateX(decal); camera.lookAt(camera.position.clone().add(camera.getWorldDirection(V3())));
   }
@@ -224,11 +224,11 @@ export function creerJeu(M, R, dom) {
   canvas.addEventListener('pointerdown', (e) => { appui = { x: e.clientX, y: e.clientY, spin: cam.spin }; glisse = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
   canvas.addEventListener('pointermove', (e) => {
     if (glisse && marche.on) { marche.yaw -= (e.clientX - glisse.x) * 0.004; marche.regard = bornes(marche.regard - (e.clientY - glisse.y) * 0.003, -1.1, 0.9); glisse.x = e.clientX; glisse.y = e.clientY; }
-    else if (glisse) { cam.spin = appui.spin - (e.clientX - appui.x) * 0.006; cam.pitch = bornes(cam.pitch + (e.clientY - glisse.y) * 0.003, -0.6, 1.38); glisse.y = e.clientY; }
+    else if (glisse) { cam.spin = appui.spin - (e.clientX - appui.x) * 0.006; cam.pitch = bornes(cam.pitch + (e.clientY - glisse.y) * 0.003, 0.12, 1.38); glisse.y = e.clientY; }
     else viser(e, false); });
   canvas.addEventListener('pointerup', (e) => { const bouge = appui && Math.hypot(e.clientX - appui.x, e.clientY - appui.y) > 5; glisse = null; if (!bouge) viser(e, true); });
   canvas.addEventListener('pointercancel', () => (glisse = null));
-  canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (marche.on) return; cam.zoom = bornes(cam.zoom + e.deltaY * 0.03, 10, 70); }, { passive: false });
+  canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (marche.on) return; cam.zoom = bornes(cam.zoom + e.deltaY * 0.03, 10, 80); }, { passive: false });
   canvas.addEventListener('touchmove', (e) => { if (e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (pincement) cam.zoom = bornes(cam.zoom * (pincement / d), 10, 70); pincement = d; e.preventDefault(); } }, { passive: false });
   canvas.addEventListener('touchend', () => (pincement = null));
   window.addEventListener('keyup', (e) => { touchesMarche(e, false); pecher.touche(e, false); });
@@ -240,7 +240,7 @@ export function creerJeu(M, R, dom) {
   $('world-zoom-in').onclick = (e) => { cam.zoom = Math.max(10, cam.zoom - 5); e.currentTarget.blur(); };
   $('world-zoom-out').onclick = (e) => { cam.zoom = Math.min(70, cam.zoom + 5); e.currentTarget.blur(); };
   $('world-pause').onclick = (e) => { cam.pause = !cam.pause; e.currentTarget.innerHTML = cam.pause ? '<svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg>' : 'Ⅱ'; e.currentTarget.setAttribute('aria-label', cam.pause ? 'Reprendre la rotation' : 'Mettre en pause'); };
-  $('world-reset').onclick = () => { sortirMarche(); pecher.sortir(); cam.spin = 0.25; cam.pitch = 0.82; cam.zoom = 40; J.fermerFiche(); reglerNuit(false); };
+  $('world-reset').onclick = () => { sortirMarche(); pecher.sortir(); cam.spin = 0.55; cam.pitch = 0.55; cam.zoom = 46; J.fermerFiche(); reglerNuit(false); };
   $('world-photo').onclick = () => { R.rendre(M.scene, M.sceneNuages, camera, performance.now() / 1000); const a = document.createElement('a'); a.download = 'atlas-du-parcours.png'; a.href = canvas.toDataURL('image/png'); a.click(); oeuf('photo', 'Une photo souvenir de l’île, enregistrée sur votre appareil.'); };
 
   /* ------------------------------------------------------------------------------------------------ boucle de jeu */

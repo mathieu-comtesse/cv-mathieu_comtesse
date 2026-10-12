@@ -40,6 +40,6 @@ if (/[?&]papier\b/.test(location.search)) {
     R.rendre(M.scene, M.sceneNuages, M.camera, t);
     requestAnimationFrame(image);
   }
-  canvas.dataset.ready = 'true'; window.AtlasMonde = M;
+  canvas.dataset.ready = 'true'; window.AtlasMonde = M; window.AtlasJeu = J;
   image();
 }

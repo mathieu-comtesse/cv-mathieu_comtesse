@@ -16,7 +16,7 @@ export function creerRendu(canvas, opts = {}) {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.NoToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-  const R = { renderer, reglages: { exposition: 1.0, eclat: 0.38, vignette: 0.22, saturation: 1.06, contraste: 1.06, nuit: 0 }, taille: new THREE.Vector2(1, 1) };
+  const R = { renderer, reglages: { exposition: 1.0, eclat: 0.46, vignette: 0.26, saturation: 1.03, contraste: 1.06, nuit: 0, maquette: 0.85, focus: 0.5 }, taille: new THREE.Vector2(1, 1) };
   const type = THREE.HalfFloatType;
   const profondeur = new THREE.DepthTexture(2, 2); profondeur.type = THREE.UnsignedIntType; profondeur.format = THREE.DepthFormat;
   let rtScene = new THREE.WebGLRenderTarget(2, 2, { type, samples: qualite >= 1 ? 4 : 0, depthTexture: profondeur, colorSpace: THREE.LinearSRGBColorSpace });
@@ -28,6 +28,7 @@ export function creerRendu(canvas, opts = {}) {
     bas.push(new THREE.WebGLRenderTarget(2, 2, o)); haut.push(new THREE.WebGLRenderTarget(2, 2, o));
   }
 
+  const flou = []; for (let i = 0; i < 3; i++) flou.push(new THREE.WebGLRenderTarget(2, 2, { type, colorSpace: THREE.LinearSRGBColorSpace, depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }));
   const ecran = new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3)).setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2)));
   ecran.frustumCulled = false;
   const sceneEcran = new THREE.Scene(); sceneEcran.add(ecran);
@@ -57,12 +58,14 @@ export function creerRendu(canvas, opts = {}) {
       vec3 c = s(vec2(-1,1)) + s(vec2(0,1)) * 2. + s(vec2(1,1)) + s(vec2(-1,0)) * 2. + s(vec2(0,0)) * 4. + s(vec2(1,0)) * 2. + s(vec2(-1,-1)) + s(vec2(0,-1)) * 2. + s(vec2(1,-1));
       gl_FragColor = vec4(c / 16. + texture2D(ajout, vUv).rgb * poids, 1.);
     }`, { t: { value: null }, ajout: { value: null }, px: { value: new THREE.Vector2() }, poids: { value: 1 } });
-  const final = mk(`uniform sampler2D tScene, tEclat; uniform float expo, eclat, vig, sat, contraste, nuit, temps; uniform vec2 res; varying vec2 vUv;
+  const final = mk(`uniform sampler2D tScene, tEclat, tFlou; uniform float expo, eclat, vig, sat, contraste, nuit, temps, maquette, focus; uniform vec2 res; varying vec2 vUv;
     vec3 aces(vec3 x){ const float a = 2.51, b = .03, c = 2.43, d = .59, e = .14; return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0., 1.); }
     vec3 versSRGB(vec3 c){ return mix(c * 12.92, 1.055 * pow(max(c, vec3(1e-6)), vec3(1. / 2.4)) - .055, step(.0031308, c)); }
     float bruit(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + temps) * 43758.5453); }
     void main(){
       vec3 c0 = texture2D(tScene, vUv).rgb; vec3 c1 = texture2D(tEclat, vUv).rgb;
+      /* effet maquette : le haut et le bas de l'image se floutent, la bande centrale reste nette */
+      float fl = smoothstep(.14, .5, abs(vUv.y - focus)) * maquette; c0 = mix(c0, texture2D(tFlou, vUv).rgb, fl);
       c0 = min(max(c0, vec3(0.)), vec3(64.)); c1 = min(max(c1, vec3(0.)), vec3(64.));
       vec3 c = c0 + c1 * eclat;
       c *= expo;
@@ -71,12 +74,12 @@ export function creerRendu(canvas, opts = {}) {
       c = mix(vec3(l), c, sat);
       c = (c - .5) * contraste + .5;
       // étalonnage : ombres un peu froides (turquoise), hautes lumières chaudes ; la nuit tire vers le bleu
-      c += (vec3(-.012, .006, .02) * (1. - l) + vec3(.014, .006, -.01) * l) * (1. - nuit);
+      c += (vec3(.026, .008, .014) * (1. - l) + vec3(.02, .008, -.012) * l) * (1. - nuit);
       vec2 q = vUv - .5; float v = 1. - dot(q, q) * vig * 2.2; c *= clamp(v, 0., 1.);
       c = versSRGB(clamp(c, 0., 1.));
       c += (bruit(gl_FragCoord.xy) - .5) / 255.;
       gl_FragColor = vec4(c, 1.);
-    }`, { tScene: { value: null }, tEclat: { value: null }, expo: { value: 1 }, eclat: { value: .4 }, vig: { value: .2 }, sat: { value: 1.1 }, contraste: { value: 1 }, nuit: { value: 0 }, temps: { value: 0 }, res: { value: new THREE.Vector2() } });
+    }`, { tScene: { value: null }, tEclat: { value: null }, expo: { value: 1 }, eclat: { value: .4 }, vig: { value: .2 }, sat: { value: 1.1 }, contraste: { value: 1 }, nuit: { value: 0 }, temps: { value: 0 }, maquette: { value: 0 }, focus: { value: .5 }, tFlou: { value: null }, res: { value: new THREE.Vector2() } });
 
   R.profondeur = profondeur;
   R.taille.set(2, 2);
@@ -85,6 +88,7 @@ export function creerRendu(canvas, opts = {}) {
     renderer.setPixelRatio(1); renderer.setSize(Math.round(w * densite), Math.round(h * densite), false);
     canvas.style.width = '100%'; canvas.style.height = '100%';
     rtScene.setSize(W, H); rtComp.setSize(W, H);
+    flou.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1))));
     bas.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1)))); haut.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1))));
     R.taille.set(W, H);
   };
@@ -93,12 +97,15 @@ export function creerRendu(canvas, opts = {}) {
     renderer.setRenderTarget(rtScene); renderer.clear(); renderer.render(scene, camera);
     copie.uniforms.t.value = rtScene.texture; passe(copie, rtComp);
     if (sceneNuages) { renderer.autoClear = false; renderer.setRenderTarget(rtComp); renderer.render(sceneNuages, camera); renderer.autoClear = true; }
+    // flou de maquette : trois descentes successives de la scène complète
+    desc.uniforms.t.value = rtComp.texture; desc.uniforms.px.value.set(1 / R.taille.x, 1 / R.taille.y); passe(desc, flou[0]);
+    for (let i = 1; i < 3; i++) { desc.uniforms.t.value = flou[i - 1].texture; desc.uniforms.px.value.set(1 / flou[i - 1].width, 1 / flou[i - 1].height); passe(desc, flou[i]); }
     // éclat
     seuil.uniforms.t.value = rtComp.texture; seuil.uniforms.px.value.set(1 / R.taille.x, 1 / R.taille.y); passe(seuil, bas[0]);
     for (let i = 1; i < NIV; i++) { desc.uniforms.t.value = bas[i - 1].texture; desc.uniforms.px.value.set(1 / bas[i - 1].width, 1 / bas[i - 1].height); passe(desc, bas[i]); }
     mont.uniforms.t.value = bas[NIV - 1].texture; mont.uniforms.ajout.value = bas[NIV - 2].texture; mont.uniforms.px.value.set(1 / bas[NIV - 1].width, 1 / bas[NIV - 1].height); mont.uniforms.poids.value = 1; passe(mont, haut[NIV - 2]);
     for (let i = NIV - 3; i >= 0; i--) { mont.uniforms.t.value = haut[i + 1].texture; mont.uniforms.ajout.value = bas[i].texture; mont.uniforms.px.value.set(1 / haut[i + 1].width, 1 / haut[i + 1].height); passe(mont, haut[i]); }
-    const u = final.uniforms; u.tScene.value = rtComp.texture; u.tEclat.value = haut[0].texture;
+    const u = final.uniforms; u.tScene.value = rtComp.texture; u.tEclat.value = haut[0].texture; u.tFlou.value = flou[2].texture; u.maquette.value = g.maquette; u.focus.value = g.focus;
     u.expo.value = g.exposition; u.eclat.value = g.eclat; u.vig.value = g.vignette; u.sat.value = g.saturation; u.contraste.value = g.contraste; u.nuit.value = g.nuit; u.temps.value = t % 7;
     passe(final, null);
   };

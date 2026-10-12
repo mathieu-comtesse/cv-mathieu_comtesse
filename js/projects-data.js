@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v13';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v14';
 import { BUILD } from './annual-gains.js?v=cv-scene-v58';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
