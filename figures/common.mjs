@@ -68,7 +68,7 @@ export const FIG_CSS = `<style>
 // Page autonome en français, thème clair.
 export function writeFigure(name, { title, plate, live, width = 680, css = "" }) {
   const page = k.pageHtml({ title, theme: "light", body: plate, script: kitScript() + live, width })
-    .replace('<html lang="en">', '<html lang="fr">').replace("</head>", FIG_CSS + css + "</head>");
+    .replace('<html lang="en">', '<html lang="fr">').replace("</head>", FIG_CSS + css + "</head>").replace(/<\/body>(?![\s\S]*<\/body>)/, '<script src="../js/figure-glow.js"></script></body>');
   writeFileSync(join(HERE, name + ".html"), page);
   console.log("wrote figures/" + name + ".html", (page.length / 1024).toFixed(0), "KB");
 }
