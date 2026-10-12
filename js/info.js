@@ -1,3 +1,4 @@
+import {createMarquee} from './marquee.js?v=cv-projects-v6';
 import { initTheme, initReveal } from './theme.js?v=bf01a16';
 
 initTheme();
@@ -146,3 +147,5 @@ if (portraitFrame) {
     ready();
   }, { once: true });
 }
+
+const infoRail=document.getElementById('info-rail');if(infoRail)createMarquee(infoRail);

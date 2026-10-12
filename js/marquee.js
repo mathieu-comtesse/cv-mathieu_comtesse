@@ -26,7 +26,7 @@ export function createMarquee(root,{repeat=5,friction=.975,maxThrow=60,speed=0}=
  const kick=()=>{if(!raf&&visible&&!document.hidden&&!mobile.matches&&(Math.abs(velocity)>.002||auto()))raf=requestAnimationFrame(tick);};
  root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')hover=true;});root.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){hover=false;kick();}});
  root.addEventListener('focusin',()=>{focused=true;});root.addEventListener('focusout',()=>{focused=root.contains(document.activeElement);kick();});reduced.addEventListener('change',kick);
- viewport.addEventListener('scroll',()=>{if(!mobile.matches)return;if(gesture&&Math.abs(viewport.scrollLeft-gesture.scroll)>7)suppressUntil=performance.now()+180;set();},{passive:true});
+ viewport.addEventListener('scroll',()=>{if(!mobile.matches)return;if(gesture&&Math.abs(viewport.scrollLeft-gesture.scroll)>7)suppressUntil=performance.now()+180;centre();set();},{passive:true});
  root.addEventListener('dragstart',e=>e.preventDefault());
  root.addEventListener('pointerdown',e=>{if(e.button!==0)return;stop();velocity=0;suppressUntil=0;gesture={id:e.pointerId,x:e.clientX,y:e.clientY,start:x,last:e.clientX,time:performance.now(),scroll:viewport.scrollLeft,dragging:false};});
  root.addEventListener('pointermove',e=>{const g=gesture;if(mobile.matches||!g||g.id!==e.pointerId)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;
