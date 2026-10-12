@@ -11,7 +11,7 @@ import { createRitual } from './ritual.js?v=cv-scene-v29';
 import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
 import { createRetroSet } from './retro.js?v=cv-scene-v52';
 import { createNav } from './nav.js?v=cv-scene-v29';
-import { createDirector } from './director.js?v=cv-scene-v52';
+import { createDirector } from './director.js?v=cv-scene-v53';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v48';
@@ -173,7 +173,7 @@ export async function createRoom(container, bubbleEl) {
   const loadNativeBridge = () => {
     bridgeStarted = true;
     container.dataset.native = 'loading';
-    import('./native-room.js?v=cv-scene-v51')
+    import('./native-room.js?v=cv-scene-v52')
       .then((m) => m.getNativeRoomBridge())
       .then((bridge) => {
         if (!bridge) return;
@@ -182,7 +182,6 @@ export async function createRoom(container, bubbleEl) {
         bridge.sceneApi.sound?.setMuted?.(sceneMuted);
         deskSet.getObjectByName('DeskMug')?.removeFromParent();
         world.add(bridge.coffeeMug);bridge.parkCoffeeMug(deskSet);
-        stations.coffee.think.obj=bridge.coffeeMug;
 
         // Le bureau personnalisé reste en place ; le pont fournit les gestes et les sons.
         if (bridge.book && !bridge.book.parent) {
@@ -647,8 +646,7 @@ export async function createRoom(container, bubbleEl) {
   let afterEnter = null, actSince = 0, actMode = '';
   const S = (o) => Object.assign({ face: 'neutral', y: 0 }, o);
   const stations = {
-    desk:     S({ enterDuration: 2.2, poseFade: 1.2, label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.48, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
-    coffee: S({label:'Boire dans la tasse bleue',clip:'Idle_Loop',nativeMode:'coffee',sourceTarget:'Ceramic coffee mug',maxMs:8500,pos:[-2.16,0,.87],yaw:-Math.PI/2,face:'happy',think:{obj:deskSet.getObjectByName('DeskMug'),scale:1.1}}),
+    desk:     S({ maxMs: 17000, enterDuration: 2.2, poseFade: 1.2, label: 'Travailler au bureau', clip: 'Sitting_Idle_Loop', nativeMode: 'work', sourceTarget: 'Standing desk', pose: 'bureau', seatId: 'chair', seatBack: 0.10, hipClearance: 0.09, y: 0, face: 'neutral', pos: seat(-2.15, 0.48, deskYaw, -0.03), yaw: deskYaw, approach: [-2.05, 1.05], noFace: true, think: { obj: deskSet, tiltDeg: 24, scale: 1.05, yaw: -52 } }),
     bike: S({label:'Regonfler les pneus du vélo',clip:'Idle_Loop',maxMs:14500,pos:[3.18,0,-4.15],yaw:-Math.PI/2,face:'happy',think:{obj:bicyclePump?.root,scale:1.2}}),
     ekstrem:  S({ label: 'Lire dans le fauteuil', clip: 'Sitting_Idle_Loop', nativeMode: 'read', sourceTarget: 'DYVLINGE lounge chair', pose: 'fauteuil', seatId: 'ekstrem', seatBack: -0.10, seatSupport: seat(2.3, -0.95, ekYaw, -0.02), hipClearance: 0.09, y: 0, face: 'happy', pos: seat(2.3, -0.95, ekYaw, 0), yaw: ekYaw, approach: [1.85, -0.05], noFace: true, think: { obj: ek, tiltDeg: 30 } }),
     usm:      S({ label: 'Écouter un vinyle', clip: 'Idle_Loop', face: 'happy', ov: { lean: 0.3, armR: -0.95, foreR: -0.35, armL: -0.2, head: 0.25 }, pos: [-1.0, 0, -1.7], yaw: Math.PI, music: true, think: { obj: tt, tiltDeg: 28, scale: 1.1 } }),
@@ -798,11 +796,11 @@ export async function createRoom(container, bubbleEl) {
   const puffs = [];
   const puffMat = new THREE.MeshBasicMaterial({ color: '#f4f6fb', transparent: true, depthWrite: false });
   for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), puffMat.clone()); m.visible = false; world.add(m); puffs.push({ m, t: 1, v: new THREE.Vector3() }); }
-  function poof(pos) {
+  function poof(pos, h = 0.9) {
     puffs.forEach((p, i) => {
       p.t = -i * 0.03;
       const a = Math.random() * 6.28, r = 0.15 + Math.random() * 0.35;
-      p.m.position.set(pos.x + Math.cos(a) * r, pos.y + 0.12 + Math.random() * 0.9, pos.z + Math.sin(a) * r);
+      p.m.position.set(pos.x + Math.cos(a) * r, pos.y + 0.12 + Math.random() * h, pos.z + Math.sin(a) * r);
       p.s = 0.14 + Math.random() * 0.14;
     });
   }
@@ -834,7 +832,7 @@ export async function createRoom(container, bubbleEl) {
     hero, ritual, nav, floorY,
     ui: {
       isLocked:()=>appOpen,
-      poof: (p) => poof(p),
+      poof: (p, h) => poof(p, h),
       activityEnd: (st, reason) => { pumpSound.stop();if(st.tv){retro.powerOff();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));} if (st.ritual && reason !== 'leave') cs.setPanels(0); },
       music: () => {},
       say: (st) => {
@@ -902,6 +900,50 @@ export async function createRoom(container, bubbleEl) {
   });
   const atSofa = () => director.current === stations.sofa && director.mode === 'activity';
   const atDesk = () => director.current === stations.desk && director.mode === 'activity';
+  /* Boire dans la tasse bleue : assis sur la Setu, la main droite prend la tasse du bureau, boit, puis la repose. */
+  const sip = { t: -1, wait: 0, ask: false };
+  const SIP_AFTER = 3.5, SIP_END = 6.9, SIP_GRIP = 0.065;
+  const sipEase = (a, b, t) => { const x = Math.min(1, Math.max(0, (t - a) / (b - a))); return x * x * (3 - 2 * x); };
+  // [instant, cible (0 = tasse sur le bureau, 1 = devant la bouche), inclinaison en degrés, poids du geste]
+  const SIP_KEYS = [[0, 0, 0, 0], [1.0, 0, 0, 1], [1.4, 0, 0, 1], [2.5, 1, 22, 1], [3.4, 1, 55, 1], [4.0, 1, 28, 1], [4.6, 1, 55, 1], [5.0, 1, 22, 1], [5.9, 0, 0, 1], [6.2, 0, 0, 1], [SIP_END, 0, 0, 0]];
+  const sipAt = (t) => { let i = 1; while (i < SIP_KEYS.length - 1 && SIP_KEYS[i][0] < t) i++; const a = SIP_KEYS[i - 1], b = SIP_KEYS[i], k = sipEase(a[0], b[0], t); return a.map((v, j) => (j ? v + (b[j] - v) * k : t)); };
+  const sipFrame = (dt) => {
+    const b = hero.bones;
+    const ok = nativeBridge && director.mode === 'activity' && director.current === stations.desk && !appOpen && b.upperarm_r && b.lowerarm_r && b.hand_r && b.Head && b.pelvis && b.upperarm_l;
+    if (!ok) { sip.t = -1; sip.wait = 0; sip.ask = false; return false; }
+    if (sip.t < 0) { sip.wait += dt; if (!sip.ask && sip.wait < SIP_AFTER) return false; sip.t = 0; sip.ask = false; }
+    sip.t += dt;
+    if (sip.t >= SIP_END) { sip.t = -1; sip.wait = -1e9; return false; }
+    const [, at, tilt, w] = sipAt(sip.t);
+    hero.group.updateMatrixWorld(true);
+    const qg = hero.group.getWorldQuaternion(new THREE.Quaternion());
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(qg); fwd.y = 0; fwd.normalize();
+    const side = new THREE.Vector3(1, 0, 0).applyQuaternion(qg); side.y = 0; side.normalize();
+    const pelvis = b.pelvis.getWorldPosition(new THREE.Vector3());
+    const leftSign = Math.sign(b.upperarm_l.getWorldPosition(new THREE.Vector3()).sub(pelvis).dot(side)) || 1;
+    const right = side.clone().multiplyScalar(-leftSign);
+    // la main tient l'anse, à droite de la tasse
+    const rest = deskSet.localToWorld(new THREE.Vector3(-0.61, 0.742 + 0.06, 0.29)).addScaledVector(right, 0.05);
+    const mouth = b.Head.getWorldPosition(new THREE.Vector3()).addScaledVector(fwd, 0.17).addScaledVector(right, 0.05); mouth.y -= 0.1;
+    // le poing déborde du poignet : on vise la prise (poing) et on en déduit la cible du poignet
+    const fore = b.hand_r.getWorldPosition(new THREE.Vector3()).sub(b.lowerarm_r.getWorldPosition(new THREE.Vector3())).normalize();
+    const target = rest.clone().lerp(mouth, at).addScaledVector(fore, -SIP_GRIP);
+    const pole = pelvis.clone().addScaledVector(right, 0.35).addScaledVector(fwd, 0.12); pole.y += 0.3;
+    const qU = b.upperarm_r.quaternion.clone(), qL = b.lowerarm_r.quaternion.clone();
+    hero.ik2(b.upperarm_r, b.lowerarm_r, b.hand_r, target, pole);
+    if (w < 1) { b.upperarm_r.quaternion.copy(qU).slerp(b.upperarm_r.quaternion.clone(), w); b.lowerarm_r.quaternion.copy(qL).slerp(b.lowerarm_r.quaternion.clone(), w); }
+    hero.group.updateMatrixWorld(true);
+    if (sip.t < 1.4 || sip.t > 6.2) return false;
+    // la tasse suit la main : l'anse vers la main, bec incliné vers la bouche pendant la gorgée
+    const wrist = b.hand_r.getWorldPosition(new THREE.Vector3());
+    const hand = wrist.clone().addScaledVector(wrist.clone().sub(b.lowerarm_r.getWorldPosition(new THREE.Vector3())).normalize(), SIP_GRIP);
+    const q = new THREE.Quaternion().setFromAxisAngle(right, THREE.MathUtils.degToRad(tilt)).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(-right.z, right.x)));
+    const mug = nativeBridge.coffeeMug;
+    mug.quaternion.copy(q);
+    mug.position.copy(hand).addScaledVector(right, -0.05).sub(new THREE.Vector3(0, 0.06 + nativeBridge.coffeeMugBottom, 0).applyQuaternion(q));
+    mug.visible = true;
+    return true;
+  };
   const poseGamepadHands = () => {
     const b = hero.bones;
     if (![b.upperarm_l,b.lowerarm_l,b.hand_l,b.upperarm_r,b.lowerarm_r,b.hand_r,b.pelvis].every(Boolean)) return;
@@ -943,6 +985,7 @@ export async function createRoom(container, bubbleEl) {
     }
     const openPc = () => {if(deskEquipment&&!deskEquipment.powered)return;openApp('xp', new THREE.Box3().setFromObject(uw).getCenter(new THREE.Vector3()), 5.2);};
     if (id === 'pc') { if(deskEquipment&&!deskEquipment.powered)return; if (atDesk()) openPc(); else goTo('desk', openPc); return; }
+    if (id === 'coffee') { if (atDesk()) sip.ask = true; else goTo('desk', () => { sip.ask = true; }); return; }
     if (/^shoji\d$/.test(id)) { cs.togglePanel(+id.slice(5)); return; }
     if (lamps[id]) { lamps[id].on = !lamps[id].on; lamps[id].manual = true; if(id==='screenbar')refreshScreenbar(); return; }
     if (stations[id]) goTo(id);
@@ -1130,6 +1173,7 @@ export async function createRoom(container, bubbleEl) {
             hero.model.position.y = modelBaseY - (lo - 0.04);
           }
         } }
+      const sipHeld = sipFrame(dt);
       if (nativeBridge) {
         try {
         if (exactMotion === 'read') nativeBridge.syncBook(hero);
@@ -1137,7 +1181,7 @@ export async function createRoom(container, bubbleEl) {
 
         if (exactMotion === 'water'&&director.current?.waterTarget) { nativeBridge.syncWateringCan(hero); nativeBridge.aimWateringCan(hero, director.current.waterTarget); }
         else if (nativeBridge.wateringCan) nativeBridge.wateringCan.visible = false;
-        nativeBridge.syncCoffeeMug(hero,deskSet);
+        nativeBridge.syncCoffeeMug(hero,deskSet,sipHeld);
         nativeBridge.syncEffects(hero);
         } catch (error) { restoreLocalDesk(error); }
       }

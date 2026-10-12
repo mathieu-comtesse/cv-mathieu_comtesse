@@ -218,10 +218,11 @@ async function build() {
   const coffeeMug = makeProp('Ceramic coffee mug');
   coffeeMug.name='DeskMug';coffeeMug.userData.dynamic=true;coffeeMug.userData.id='coffee';
   coffeeMug.traverse(o=>{if(o.isMesh){o.material=o.material.clone();if(/Mug_(ceramic|handle)/.test(o.name))o.material.color?.set('#7598d0');o.userData.id='coffee';}});
+  let mugBottom = 0;
   const parkCoffeeMug = desk => {
     coffeeMug.position.set(0,0,0);coffeeMug.quaternion.identity();coffeeMug.scale.setScalar(1);coffeeMug.updateMatrixWorld(true);
     const bb=new THREE.Box3().setFromObject(coffeeMug),height=bb.max.y-bb.min.y,scale=.12/height;
-    coffeeMug.scale.setScalar(scale);coffeeMug.position.copy(desk.localToWorld(new THREE.Vector3(-.61,.742-bb.min.y*scale,.29)));coffeeMug.visible=true;
+    mugBottom=bb.min.y*scale;coffeeMug.scale.setScalar(scale);coffeeMug.position.copy(desk.localToWorld(new THREE.Vector3(-.61,.742-bb.min.y*scale,.29)));coffeeMug.visible=true;
   };
   const wateringCan = makeProp('iso:can');
   const waterTarget = new THREE.Object3D();waterTarget.name='MathieuWaterTarget';sourceScene.add(waterTarget);
@@ -276,8 +277,12 @@ async function build() {
     if(drops.visible){wateringCan.updateMatrixWorld(true);const tip=wateringCan.userData.spout,start=new THREE.Vector3(tip.x,tip.y,tip.z).applyMatrix4(wateringCan.matrixWorld);
       for(const d of drops.children){const t=(waterClock/0.62+d.userData.phase)%1,a=d.userData.angle,r=waterRadius*.58*(.35+(d.userData.phase*.65));
         const end=currentWaterTarget.clone().add(new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r));const p=start.clone().lerp(end,t);p.y+=.035*Math.sin(Math.PI*t);d.position.copy(drops.worldToLocal(p));}}
+    // Les nuages de poussière suivent la simulation d'origine, qui bouge à son rythme : ils ne sont donc montrés
+    // que pendant la marche et la course, jamais pendant la mise en place sur un siège ni une fois assis.
+    const dustOn = mode === 'walk' || mode === 'run';
     for (const {source,clone} of effectPairs) {
       syncChildren(source,clone);
+      if (source.name === 'iso:dust' && !dustOn) clone.visible = false;
       parentInv.clone().multiply(map).multiply(source.matrixWorld).decompose(clone.position,clone.quaternion,clone.scale);
 
     }
@@ -460,7 +465,9 @@ async function build() {
     wateringCan,
     effects,
     coffeeMug,parkCoffeeMug,
-    syncCoffeeMug: (hero,desk) => {if(mode!=='coffee'||!syncProp(coffeeMug,'Held coffee mug',hero.model))parkCoffeeMug(desk);},
+    // Tenue en main par la routine de gorgée (room.js) ; sinon elle reste posée sur le bureau.
+    syncCoffeeMug: (hero,desk,held) => {if(!held)parkCoffeeMug(desk);},
+    get coffeeMugBottom() { return mugBottom; },
     syncEffects,
     syncBook: (targetRoot) => {
       const ok = syncProp(book, 'iso:book', targetRoot.model || targetRoot);

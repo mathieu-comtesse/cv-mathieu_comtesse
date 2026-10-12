@@ -103,7 +103,7 @@ export function createDirector({ hero, ritual, nav, floorY, ui, speed = 0.9 }) {
   };
   function enterSteps(st) {
     return [api.glide(st.pos[0], st.pos[2], st.y || 0, st.yaw, st.enterDuration ?? (st.ritual ? 0.5 : (st.noFace ? 0.9 : 0.6)), st.clip || 'Idle_Loop', st.poseFade ?? 0.2),
-      api.fn(() => { cur = st; mode = 'activity'; ui.say(null); st.enter && st.enter(); })];
+      api.fn(() => { cur = st; mode = 'activity'; ui.say(null); st.enter && st.enter(); if (st.seatId) ui.poof(pos, 0.3); })];
   }
   /** Pose directement le personnage dans l'activité (glisser-déposer). */
   api.placeInto = (st) => {

@@ -6,7 +6,7 @@ import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import { initWorkshopPreviews } from './project-previews.js?v=cv-projects-v4';
 import { initProcessMachines } from './process-machines.js?v=cv-projects-v4';
 import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
-import { createMarquee } from './marquee.js?v=cv-projects-v9';
+import { createMarquee } from './marquee.js?v=cv-projects-v10';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 function orbit(camera,canvas){
