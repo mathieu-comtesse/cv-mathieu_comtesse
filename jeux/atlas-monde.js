@@ -12,45 +12,48 @@ import { peupler } from './atlas-decor.js';
 import { chargerBatiments, ajusterPieds } from './atlas-batiments.js';
 import { ETAPES } from './atlas-etapes.js';
 import { creerRoches } from './atlas-roches.js';
+import { creerDiorama, creerIlot } from './atlas-diorama.js';
+import { creerPlage } from './atlas-plage.js';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+const ECH_BAT = 0.78;                                    // bâtiments plus petits : l'île respire
 const lisse = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
 
 export async function creerMonde(R, opts = {}) {
   const qualite = opts.qualite ?? 1;
   const scene = new THREE.Scene(), sceneNuages = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 2000);
-  const ciel = creerCiel(R.renderer, scene);
-  scene.environmentIntensity = 0.42;
+  const ciel = creerCiel(R.renderer, scene, { ocean: false });
+  scene.environmentIntensity = 0.72;
   /* soleil : lumière directionnelle à ombres portées sur toute l'île ; hémisphère : ciel en haut, rebond des nuages et de l'océan en bas */
-  const soleil = new THREE.DirectionalLight('#fff0d6', 2.7);
+  const soleil = new THREE.DirectionalLight('#ffc98f', 3.4);
   soleil.castShadow = true; soleil.shadow.mapSize.set(qualite >= 1 ? 4096 : 2048, qualite >= 1 ? 4096 : 2048); soleil.shadow.bias = -0.0004; soleil.shadow.normalBias = 0.05;
-  Object.assign(soleil.shadow.camera, { left: -17, right: 17, top: 17, bottom: -17, near: 5, far: 130 });
+  Object.assign(soleil.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 5, far: 140 });
   scene.add(soleil, soleil.target);
-  const hemi = new THREE.HemisphereLight('#c3d5e5', '#d9cfba', 0.55); scene.add(hemi);
+  const hemi = new THREE.HemisphereLight('#c9a0bc', '#f0c294', 0.95); scene.add(hemi);
 
   /* nuages : un anneau autour de l'île, de l'altitude des toits jusqu'au-dessous du socle */
   const PLAN = [
-    { x: -14, y: -2.2, z: 10.5, echelle: 1.7 }, { x: 16.5, y: -3.2, z: 8.5, echelle: 1.9 }, { x: -16, y: 0.8, z: -12, echelle: 2.0 }, { x: 14, y: -5, z: -15, echelle: 2.1 },
-    { x: -28, y: -14, z: 2, echelle: 2.4 }, { x: 26, y: -12.5, z: -6, echelle: 2.3 }, { x: 3, y: -19.5, z: 25, echelle: 2.4 }, { x: -8, y: -23.5, z: -12, echelle: 2.2 },
-    { x: 32, y: -9.5, z: 15, echelle: 2.0 }, { x: -26, y: -11, z: 20, echelle: 2.1 }, { x: 8, y: -15, z: -26, echelle: 2.2 }, { x: -2, y: -9, z: 30, echelle: 1.8 },
+    { x: -30, y: 0.9, z: 14, echelle: 1.3, alpha: 0.5 }, { x: 28, y: 1.2, z: -10, echelle: 1.4, alpha: 0.5 }, { x: -12, y: 11, z: -36, echelle: 2.2, alpha: 0.8 }, { x: 20, y: 8, z: 32, echelle: 1.5, alpha: 0.55 },
   ];
-  const nuages = creerNuages({ plan: qualite >= 1 ? PLAN : PLAN.slice(0, 8), qualite }); sceneNuages.add(nuages.groupe);
+  const nuages = creerNuages({ plan: qualite >= 1 ? PLAN : PLAN.slice(0, 4), qualite }); sceneNuages.add(nuages.groupe);
 
   const ile = await chargerIle(ciel); scene.add(ile.mesh);
   const carte = ile.carte, meta = carte.meta;
   ciel.uniformes.uIle.value.set(0, -3, 0);
   const eau = creerEau(ile, ciel); scene.add(eau);
-  const flore = creerFlore(ciel); const decor = peupler({ carte, flore, ciel, densite: qualite >= 1 ? 1 : 0.6 }); scene.add(decor.groupe);
+  const dio = creerDiorama(ciel, carte); scene.add(dio.groupe);
+  const flore = creerFlore(ciel); const decor = peupler({ carte, flore, ciel, densite: qualite >= 1 ? 0.62 : 0.4 }); scene.add(decor.groupe);
   const B = await chargerBatiments(ciel);
   const roches = await creerRoches({ M: { carte, ciel, scene }, decor, flore });
+  roches.fragments.forEach((g) => { g.visible = false; });             // pas de fragments flottants dans le diorama
 
   /* ------------------------------------------------------------------------------------------------ bâtiments */
   const sol = (x, z, r = 0.8) => { let y = carte.hauteur(x, z); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; y = Math.max(y, carte.hauteur(x + Math.cos(a) * r, z + Math.sin(a) * r)); } return y; };
   const bats = {};
   for (const e of ETAPES) {
     const b = meta.batiments[e.id], { groupe, ancres } = B.creer(e.glb);
-    const [x, z] = b.pos; groupe.position.set(x, sol(x, z, b.r * 0.55) - 0.02, z);
+    const [x, z] = b.pos; groupe.scale.setScalar(ECH_BAT); groupe.position.set(x, sol(x, z, b.r * 0.55) - 0.02, z);
     groupe.rotation.y = e.id === 'sncf' ? Math.PI : Math.atan2(e.vers[0] - x, e.vers[1] - z);
     groupe.userData.etape = e; groupe.traverse((o) => { if (o.isMesh) o.userData.batiment = groupe; });
     scene.add(groupe); groupe.updateMatrixWorld(true); ajusterPieds(groupe, carte, b.pos);
@@ -79,9 +82,9 @@ export async function creerMonde(R, opts = {}) {
   bateau.position.copy(amarrage.bateau.p); bateau.rotation.y = amarrage.bateau.yaw;
   voilier.position.copy(amarrage.voilier.p); voilier.rotation.y = amarrage.voilier.yaw;
 
-  /* phare : sur le bord avant-gauche de l'île */
-  const bk = meta.bord[Math.round(2.62 / (Math.PI * 2) * 120) % 120], px = bk[0] - bk[3] * 1.15, pz = bk[2] - bk[4] * 1.15;
-  const phare = poser('phare', px, carte.hauteur(px, pz) - 0.05, pz, 0); ajusterPieds(phare, carte, [0, 0.3]);
+  /* phare : sur un petit îlot au large, à gauche de la plage */
+  const ilot = creerIlot(); scene.add(ilot.groupe);
+  const phare = poser('phare', ilot.x, ilot.sommet - 0.04, ilot.z, 0.6); ajusterPieds(phare, { hauteur: () => ilot.sommet - 0.04 }, [ilot.x, ilot.z]);
 
   /* ------------------------------------------------------------------------------------------------ voie ferrée : boucle autour de la prairie de la gare */
   const voie = (() => {
@@ -170,6 +173,7 @@ export async function creerMonde(R, opts = {}) {
     }
     g.computeVertexNormals(); const m = new THREE.Mesh(g, matChute); m.frustumCulled = false; m.renderOrder = 5; scene.add(m); chutes.push({ mesh: m, base });
   }
+  chutes.forEach((c) => { c.mesh.visible = false; });                    // le diorama n'a plus de vide où tomber
   /* embruns : petits nuages de brume au pied de chaque chute */
   const brume = (() => {
     const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 1, 32, 32, 31);
@@ -197,16 +201,17 @@ export async function creerMonde(R, opts = {}) {
     } }
   /* le canard du lagon */
   const canard = (() => {
-    const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: '#ffd23f', roughness: 0.6 });
+    const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: '#a8917c', roughness: 0.7 }), mTete = new THREE.MeshStandardMaterial({ color: '#1f7d55', roughness: 0.5 });
     const corps = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), m); corps.scale.set(1.25, 0.85, 0.95); g.add(corps);
-    const tete = new THREE.Mesh(new THREE.SphereGeometry(0.058, 10, 8), m); tete.position.set(0.1, 0.1, 0); g.add(tete);
+    const tete = new THREE.Mesh(new THREE.SphereGeometry(0.058, 10, 8), mTete); tete.position.set(0.1, 0.1, 0); g.add(tete);
     const bec = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.025, 0.045), new THREE.MeshStandardMaterial({ color: '#ff8a3d' })); bec.position.set(0.17, 0.1, 0); g.add(bec);
     const queue = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.09, 6), m); queue.rotation.z = Math.PI / 2 + 0.5; queue.position.set(-0.13, 0.05, 0); g.add(queue);
     g.userData.home = V3(-3.4, 0, 5.2); g.position.copy(g.userData.home); g.traverse((o) => { if (o.isMesh) o.userData.canard = true; o.castShadow = true; }); scene.add(g); return g;
   })();
 
   /* ------------------------------------------------------------------------------------------------ animation d'ambiance */
-  const M = { scene, sceneNuages, camera, ciel, soleil, hemi, nuages, ile, carte, meta, eau, flore, decor, roches, B, bats, ETAPES,
+  const plage = creerPlage({ scene, carte, bats, niveau: dio.niveau });
+  const M = { scene, sceneNuages, camera, ciel, soleil, hemi, nuages, ile, ilot, carte, meta, eau, dio, plage, flore, decor, roches, B, bats, ETAPES,
     objets: { pont, ponton, yacht, bateau, voilier, voiles, phare, train, rames, voiture, canard, mouettes, poissons, chutes },
     voie, route, amarrage, sol };
   const couleurLune = new THREE.Color('#8fa9f0'), ciHemi = new THREE.Color('#4a6cb0'), solHemi = new THREE.Color('#3a4a6c');
@@ -218,10 +223,10 @@ export async function creerMonde(R, opts = {}) {
     ciel.tick(dt, t, camera);
     const k = ciel.uniformes.uNuit.value;
     soleil.position.copy(ciel.soleil).multiplyScalar(60); soleil.target.position.set(0, -2, 0); soleil.target.updateMatrixWorld();
-    soleil.intensity = 2.7 * (1 - k) + 1.6 * k; soleil.color.set('#fff0d6').lerp(couleurLune, k);
-    hemi.intensity = 0.55 * (1 - k) + 0.95 * k; hemi.color.set('#c3d5e5').lerp(ciHemi, k); hemi.groundColor.set('#d9cfba').lerp(solHemi, k); scene.environmentIntensity = 0.42 * (1 - k) + 0.3 * k;
-    ile.partage.uTemps.value = t; eau.userData.uniformes.uTemps.value = t; matChute.uniforms.uT.value = t; decor.tick(dt, t); roches.tick(dt, t);
-    R.reglages.exposition = 1 + 0.6 * k; R.reglages.eclat = 0.38 + 0.32 * k;
+    soleil.intensity = 3.4 * (1 - k) + 1.6 * k; soleil.color.set('#ffc98f').lerp(couleurLune, k);
+    hemi.intensity = 0.95 * (1 - k) + 0.95 * k; hemi.color.set('#c9a0bc').lerp(ciHemi, k); hemi.groundColor.set('#f0c294').lerp(solHemi, k); scene.environmentIntensity = 0.72 * (1 - k) + 0.3 * k;
+    ile.partage.uTemps.value = t; eau.userData.uniformes.uTemps.value = t; dio.tick(t); plage.tick(dt, t); matChute.uniforms.uT.value = t; decor.tick(dt, t); roches.tick(dt, t);
+    R.reglages.exposition = 0.94 + 0.6 * k; R.reglages.eclat = 0.46 + 0.3 * k;
     camera.updateMatrixWorld(); camera.updateProjectionMatrix();
     nuages.tick(dt, t, camera, ciel, R.profondeur, R.taille);
     // train

@@ -28,7 +28,7 @@ vec3 couleurCiel(vec3 d){
   c = mix(c, uZenith, smoothstep(.25, .95, h));
   c = mix(c, uHorizon * .85, smoothstep(0., -.3, d.y));
   float s = max(dot(d, uSunDir), 0.);
-  c += uSunCol * (pow(s, 6.) * .28 + pow(s, 64.) * .55 + smoothstep(.9992, .9997, s) * 9.);
+  c += uSunCol * (pow(s, 6.) * .14 + pow(s, 64.) * .4 + smoothstep(.9992, .9997, s) * 9.);
   return c;
 }`;
 
@@ -45,14 +45,15 @@ float ombreNuages(vec3 p){
   return clamp(s, 0., .8);
 }`;
 
-const JOUR = { zenith: '#1f64c8', milieu: '#4f9be6', horizon: '#bfe0f5', sol: '#fffaf0', soleilCol: '#fff0d2', ocean: ['#143f5e', '#23648a', '#3d8aa9'] };
+/* crépuscule prune : le même ciel sert au diorama (mer turquoise sur dalle, soleil bas et chaud) */
+const JOUR = { zenith: '#4a3341', milieu: '#5a3c4c', horizon: '#6e4854', sol: '#ffe6c8', soleilCol: '#ffc58a', ocean: ['#0b4f63', '#16808a', '#46b6ae'] };
 const NUIT = { zenith: '#02040f', milieu: '#0a1430', horizon: '#1d3050', sol: '#8aa4d0', soleilCol: '#9fb7e8', ocean: ['#010a1e', '#03204a', '#0b3a73'] };
 
 export function creerCiel(renderer, scene, opts = {}) {
   const C = (h) => new THREE.Color(h);
   const U = {
     uZenith: { value: C(JOUR.zenith) }, uMilieu: { value: C(JOUR.milieu) }, uHorizon: { value: C(JOUR.horizon) },
-    uSunDir: { value: new THREE.Vector3(-0.55, 0.78, 0.36).normalize() }, uSunCol: { value: C(JOUR.soleilCol) }, uNuit: { value: 0 },
+    uSunDir: { value: new THREE.Vector3(-0.66, 0.36, 0.52).normalize() }, uSunCol: { value: C(JOUR.soleilCol) }, uNuit: { value: 0 },
     uT: { value: 0 }, uCam: { value: new THREE.Vector3() },
     uOcDeep: { value: C(JOUR.ocean[0]) }, uOcMid: { value: C(JOUR.ocean[1]) }, uOcLight: { value: C(JOUR.ocean[2]) },
     uIle: { value: new THREE.Vector3(0, 0, 0) },                   // centre de l'île (ombre portée sur l'océan)
@@ -144,7 +145,7 @@ export function creerCiel(renderer, scene, opts = {}) {
       }`,
   });
   const ocean = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400, 1, 1).rotateX(-Math.PI / 2), oceanMat);
-  ocean.position.y = NIVEAU; ocean.frustumCulled = false; ocean.renderOrder = -5; scene.add(ocean);
+  ocean.position.y = NIVEAU; ocean.frustumCulled = false; ocean.renderOrder = -5; ocean.visible = opts.ocean !== false; scene.add(ocean);
   ciel.ocean = ocean; ciel.niveauOcean = NIVEAU;
 
   /* ------------------------------------------------------------------ jour / nuit (0 jour, 1 nuit) */

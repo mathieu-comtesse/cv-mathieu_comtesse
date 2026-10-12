@@ -113,7 +113,7 @@ export function creerNuages(opts = {}) {
     const rng = aleatoire(1000 + i * 77), forme = formeCumulus(rng, 5.6 + rng() * 2.4);
     const uni = {
       ...Object.fromEntries(Object.keys(commun).map((k) => [k, commun[k]])),
-      uSeed: { value: i * 3.7 + 1 }, uBase: { value: 0 }, uH: { value: forme.box.max[1] }, uAlpha: { value: 1 }, uEchelle: { value: c.echelle },
+      uSeed: { value: i * 3.7 + 1 }, uBase: { value: 0 }, uH: { value: forme.box.max[1] }, uAlpha: { value: c.alpha ?? 1 }, uEchelle: { value: c.echelle },
       uN: { value: forme.puffs.length }, uP: { value: Array.from({ length: NP }, (_, k) => new THREE.Vector4(...(forme.puffs[k] || [0, -9, 0, .01]))) },
       uCamL: { value: new THREE.Vector3() }, uBoxMin: { value: new THREE.Vector3(...forme.box.min) }, uBoxMax: { value: new THREE.Vector3(...forme.box.max) }, uCentre: { value: new THREE.Vector3() },
     };
@@ -138,7 +138,7 @@ export function creerNuages(opts = {}) {
       commun.uNuit.value = ciel.uniformes.uNuit.value;
       commun.uSunCol.value.copy(ciel.uniformes.uSunCol.value).multiplyScalar(1.0);
       const k = ciel.uniformes.uNuit.value;
-      commun.uAmbTop.value.set('#f3f8ff').lerp(new THREE.Color('#3a4f7a'), k); commun.uAmbBot.value.set('#9fb6d8').lerp(new THREE.Color('#141f3a'), k);
+      commun.uAmbTop.value.set('#f0cfd2').lerp(new THREE.Color('#3a4f7a'), k); commun.uAmbBot.value.set('#7f5f84').lerp(new THREE.Color('#141f3a'), k);
       for (const m of liste) {
         const u = m.userData;
         m.position.x += u.vx * dt; if (m.position.x > borne) m.position.x -= 2 * borne;
