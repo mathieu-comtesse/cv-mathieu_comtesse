@@ -1,7 +1,7 @@
 // Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
 // dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
-import { createMarquee } from './marquee.js?v=cv-projects-v8';
+import { createMarquee } from './marquee.js?v=cv-projects-v9';
 
 // Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
 const MACHINES = {
@@ -51,9 +51,36 @@ const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabe
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);
   host.className = 'marquee process-gallery';
-  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><img class="machine-light" src="assets/figures/${fig}-light.webp" alt="" width="840" height="600" loading="lazy"><img class="machine-dark" src="assets/figures/${fig}-dark.webp" alt="" width="840" height="600" loading="lazy"><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp" alt="" width="840" height="600" loading="lazy"><img class="machine-dark" src="assets/figures/${fig}-dark.webp" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
   createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
+
+  // Sur la page, chaque machine s'anime : la figure vit dans un cadre posé sur sa vignette tant que la carte est visible.
+  const CARD_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.iso-plate-corners,.iso-legend,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
+  const pageTheme = () => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+  const themeFrame = (f) => { const doc = f.contentDocument; if (doc?.body) { doc.body.dataset.theme = pageTheme(); doc.documentElement.style.colorScheme = pageTheme(); } };
+  function mountLive(wrap) {
+    if (wrap.querySelector('iframe')) return;
+    const f = document.createElement('iframe');
+    f.className = 'machine-live'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.src = 'figures/' + wrap.dataset.fig + '.html';
+    f.addEventListener('load', () => {
+      const doc = f.contentDocument; if (!doc?.body) return;
+      const s = doc.createElement('style'); s.textContent = CARD_CSS; doc.head.append(s); themeFrame(f);
+      const svg = doc.querySelector('.iso-stage svg');
+      if (svg) { const b = svg.getBBox(), pad = Math.max(b.width, b.height) * 0.03; svg.setAttribute('viewBox', [b.x - pad, b.y - pad, b.width + 2 * pad, b.height + 2 * pad].join(' ')); }
+      wrap.classList.add('live');
+    });
+    wrap.append(f);
+  }
+  const unmountLive = (wrap) => { wrap.classList.remove('live'); wrap.querySelector('iframe')?.remove(); };
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let paused = false;
+    const wraps = [...host.querySelectorAll('.machine-wrap')];
+    const watch = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting && !paused) mountLive(e.target); else if (!e.isIntersecting) unmountLive(e.target); }), { rootMargin: '0px 120px' });
+    wraps.forEach((w) => watch.observe(w));
+    document.addEventListener('project-workshop', (e) => { paused = e.detail.open; if (paused) wraps.forEach(unmountLive); else wraps.forEach((w) => { watch.unobserve(w); watch.observe(w); }); });
+    new MutationObserver(() => host.querySelectorAll('.machine-live').forEach(themeFrame)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
 
   const modal = document.createElement('dialog');
   modal.className = 'process-dialog figure-dialog'; modal.setAttribute('aria-labelledby', 'process-title');

@@ -321,3 +321,6 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .fs .f2,.fs .f3{-webkit-user-select:none;user-select:none}
 .figure-head{padding-top:6px}.figure-head .figure-why{margin-bottom:14px}
 .hero-proof{margin-top:14px;font-size:15px;color:var(--ink)}
+/* Cartes des projets : la figure vivante se pose sur la vignette */
+.process-card .machine-wrap{display:block;position:relative;margin:18px 0 24px;transition:transform .4s}.process-card .machine-wrap img{margin:0;transform:none!important}.process-card:hover .machine-wrap{transform:rotate(-2deg) scale(1.035)}.process-card:hover img{transform:none}
+.machine-live{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;pointer-events:none}.machine-wrap.live img{visibility:hidden}
