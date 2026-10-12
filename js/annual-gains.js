@@ -20,16 +20,17 @@ export const ANNUAL_ESTIMATED=sumOf(ANNUAL_GAINS.filter(r=>r.estimated));
 // Un poste à temps plein = 225 jours de 7 h.
 export const HOURS_PER_FTE=ANNUAL_DAYS*7;
 // Coût par outil, en jours de 7 h : construction, puis une amélioration d'une demi-journée par mois (true),
-// aucune maintenance (false) ou non précisé (null). Essais auprès des équipes inclus dans la construction.
+// une seule amélioration d'une demi-journée ("once"), aucune maintenance (false) ou non précisé (null).
+// halves : construction annoncée en demi-journées. Essais auprès des équipes inclus dans la construction.
 export const BUILD={
- finance:{days:1.5,upkeep:true},vmvre:{days:4,upkeep:true},moteur44:{days:1,upkeep:true},pa:{days:5,upkeep:false},
- cerfa:{days:0.5,upkeep:null},vre:{days:0.5,upkeep:true},studio:{days:7,upkeep:null},powerbi:{days:4,upkeep:true},
+ finance:{days:1.5,upkeep:'once'},vmvre:{days:1.5,upkeep:false,halves:true},moteur44:{days:1.5,upkeep:false,halves:true},pa:{days:5,upkeep:false},
+ cerfa:{days:0.5,upkeep:null},vre:{days:3,upkeep:false,halves:true},studio:{days:7,upkeep:null},powerbi:{days:4,upkeep:true},
  suivi:{days:0.5,upkeep:false},gares:{days:9,upkeep:false}
 };
 // Les outils qui produisent le total annuel (la chaîne des PP et Power BI MOSO portent la ligne PP & MOSO).
 const COUNTED=['finance','vmvre','moteur44','vre','pa','powerbi','gares'];
-export const ANNUAL_COST={tools:COUNTED.length,buildDays:COUNTED.reduce((t,id)=>t+BUILD[id].days,0),upkeepTools:COUNTED.filter(id=>BUILD[id].upkeep).length};
-ANNUAL_COST.build=ANNUAL_COST.buildDays*7;ANNUAL_COST.upkeep=ANNUAL_COST.upkeepTools*12*3.5;
+export const ANNUAL_COST={tools:COUNTED.length,buildDays:COUNTED.reduce((t,id)=>t+BUILD[id].days,0),upkeepTools:COUNTED.filter(id=>BUILD[id].upkeep===true).length,onceTools:COUNTED.filter(id=>BUILD[id].upkeep==='once').length};
+ANNUAL_COST.build=ANNUAL_COST.buildDays*7;ANNUAL_COST.upkeep=ANNUAL_COST.upkeepTools*12*3.5+ANNUAL_COST.onceTools*3.5;
 // Gain net de l'année 1 sur les volumes fournis.
 export const ANNUAL_NET={minHours:ANNUAL_DECLARED.minHours-ANNUAL_COST.build-ANNUAL_COST.upkeep,maxHours:ANNUAL_DECLARED.maxHours-ANNUAL_COST.build-ANNUAL_COST.upkeep};
 ANNUAL_NET.minMoney=ANNUAL_NET.minHours*ANNUAL_RATE;ANNUAL_NET.maxMoney=ANNUAL_NET.maxHours*ANNUAL_RATE;

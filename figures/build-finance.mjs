@@ -94,7 +94,7 @@ function envelopeSvg(over) {
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un tableau de cinq manomètres à contact sur un établi, pour les périmètres CS, Locatif, MEC, PPTM et GLOBAL. Chaque aiguille montre la consommation des fonds ; un index réglable marque le seuil. Quand une aiguille atteint l'index, le voyant s'allume et une enveloppe d'alerte sort de la fente pour tomber dans le bac ; au-delà de 100 %, une seconde enveloppe signale le dépassement.",
+  label: "Un tableau de cinq manomètres à contact sur un établi, pour les périmètres CS, Locatif, MEC, PPTM et GLOBAL. Chaque aiguille montre la consommation des fonds ; un index réglable marque le seuil. Chaque périmètre envoie environ six alertes par semaine, soit trente en tout : le voyant s'allume et une enveloppe sort de la fente pour tomber dans le bac, qui garde la semaine en cours ; une enveloppe barrée signale un dépassement au-delà de 100 %.",
   body: [
     bench(P, PLATE, { strip: { x: -120, y: PLATE.y + PLATE.d - 11, w: 120, d: 7, r: 1 }, label: { x: 40, y: PLATE.y + PLATE.d - 13, w: 46, d: 10, r: 1.2 } }),
     panelSvg(), ...GAUGES.map(gaugeSvg),
@@ -120,22 +120,25 @@ function ratios(day) {
 const angleOf = (r) => SWEEP.from + Math.min(r, SWEEP.max) / SWEEP.max * SWEEP.span;
 let day = 0, threshold = 0.8, shownT = 0.8, touring = true, idle = 0, hold = 0, sent = [], news = null;
 const mail = $("mail"), mark = $("knob-mark");
-// Contrôle du matin : chaque périmètre envoie au plus une alerte préventive et une de dépassement.
+// Rythme réel : 5 périmètres × 6 alertes par semaine = 30. Une semaine compte 5 matins ; chaque périmètre envoie
+// 1 alerte par matin, et un matin de plus (décalé d'un périmètre à l'autre) pour faire 6. Le bac garde la semaine en cours.
+const WEEK = 5, PER_WEEK = 6, SHOWN = 6;
 function check(d) {
-  const r = ratios(d);
+  const r = ratios(d), w = (d - 1) % WEEK;
   r.forEach((v, i) => {
-    if (v >= threshold && !sent.some((s) => s.i === i && s.level === 0)) { sent.push({ i, level: 0, day: d, ratio: v }); news = sent[sent.length - 1]; }
-    if (v >= 1 && !sent.some((s) => s.i === i && s.level === 1)) { sent.push({ i, level: 1, day: d, ratio: v }); news = sent[sent.length - 1]; }
+    const n = 1 + (w === i % WEEK ? 1 : 0);
+    for (let k = 0; k < n; k++) { sent.push({ i, level: v >= 1 ? 1 : 0, day: d + k * 0.35, ratio: v }); news = sent[sent.length - 1]; }
   });
 }
+const inTray = (d) => GAUGES.map((g, i) => sent.filter((s) => s.i === i && s.day <= d).slice(-SHOWN));
 function needle(g, r) { const a = angleOf(r), l = g.r - 3; return "M" + g.x + " " + (-GZ) + "L" + (g.x + Math.sin(a) * l).toFixed(2) + " " + (-(GZ + Math.cos(a) * l)).toFixed(2); }
 function index(g, t) {
   const a = angleOf(t), r0 = g.r - 0.4, r1 = g.r - 5, w = 0.07;
   const p = (ang, r) => (g.x + Math.sin(ang) * r).toFixed(2) + " " + (-(GZ + Math.cos(ang) * r)).toFixed(2);
   return "M" + p(a - w, r0) + "L" + p(a + w, r0) + "L" + p(a, r1) + "Z";
 }
-function envelopeAt(s, now) {
-  const g = GAUGES[s.i], age = (now - s.day) / 2.5, stack = sent.filter((q) => q.i === s.i).indexOf(s);
+function envelopeAt(s, now, stack) {
+  const g = GAUGES[s.i], age = (now - s.day) / 1.2;
   const restZ = 1.4 + stack * 1.1, y = Math.min(1, age / 0.5) * (TRAY.y + 12), drop = age < 0.5 ? 0 : Math.min(1, ((age - 0.5) / 0.4) ** 2);
   const z = SLOT_Z - 0.5 - (SLOT_Z - 0.5 - restZ) * drop, op = Math.min(1, age / 0.25);
   return '<g transform="' + translateAlong(P, [g.x + s.level * 3, y, z]) + '" opacity="' + op.toFixed(2) + '">' + ENV[s.level] + "</g>";
@@ -145,23 +148,22 @@ function draw() {
   GAUGES.forEach((g, i) => {
     $("needle-" + i).setAttribute("d", needle(g, r[i]));
     $("index-" + i).setAttribute("d", index(g, shownT));
-    $("lamp-" + i).dataset.on = String(r[i] >= threshold);
+    const last = sent.filter((s) => s.i === i && s.day <= day).pop();
+    $("lamp-" + i).dataset.on = String(r[i] >= threshold || (last && day - last.day < 0.6));
   });
-  mail.innerHTML = sent.filter((s) => s.day <= day).map((s) => envelopeAt(s, day)).join("");
+  mail.innerHTML = inTray(day).map((list) => list.map((s, k) => envelopeAt(s, day, k)).join("")).join("");
   const a = (shownT - 0.5) / 0.5 * Math.PI * 1.2 - Math.PI * 0.6, F = [KNOB.x, 6, KNOB.z];
   mark.innerHTML = lineSvg(segment([KNOB.x + Math.sin(a) * 1.4, 6, KNOB.z + Math.cos(a) * 1.4], [KNOB.x + Math.sin(a) * KNOB.r, 6, KNOB.z + Math.cos(a) * KNOB.r], P), { tone: "hi" }) + dotsSvg([iso([KNOB.x + Math.sin(a) * 1.4, 6, KNOB.z + Math.cos(a) * 1.4], P)], { size: 0.5 });
   const d = Math.floor(day), mins = d * MIN_PER_DAY, h = Math.floor(mins / 60), mm = mins % 60;
-  const pc = Math.round(threshold * 100), alerts = sent.filter((s) => s.day <= day).length;
-  if (news && day - news.day < 3) {
-    const v = Math.round(news.ratio * 100);
-    say("Jour " + Math.max(1, Math.floor(news.day)) + " · " + NAMES[news.i] + " " + v + " % " + (news.level ? "> 100 % : dépassement, TND négatif" : "≥ seuil " + pc + " % : alerte préventive"));
-  } else say("Jour " + Math.max(1, d) + " · seuil " + pc + " % · " + alerts + " alerte" + (alerts > 1 ? "s" : "") + " · " + h + " h" + (mm ? " " + String(mm).padStart(2, "0") : "") + " évitées · " + fr(mins / 60 * RATE) + " €");
+  const pc = Math.round(threshold * 100), total = sent.filter((s) => s.day <= day).length;
+  const wk = Math.floor((Math.max(1, d) - 1) / WEEK), inWeek = sent.filter((s) => s.day <= day && s.day >= wk * WEEK + 1).length;
+  say("Sem. " + (wk + 1) + " · " + inWeek + "/" + GAUGES.length * PER_WEEK + " alertes · " + total + " envoyées · " + h + " h" + (mm ? " " + String(mm).padStart(2, "0") : "") + " évitées");
 }
 const run = loop((dt, calm) => {
   shownT += (threshold - shownT) * Math.min(1, dt * 8);
   if (calm) { day = DAYS; check(day); }
   else if (touring) {
-    if (day < DAYS) { const before = Math.floor(day); day = Math.min(DAYS, day + dt * 5); for (let n = before + 1; n <= Math.floor(day); n++) check(n); }
+    if (day < DAYS) { const before = Math.floor(day); day = Math.min(DAYS, day + dt * 2); for (let n = before + 1; n <= Math.floor(day); n++) check(n); }
     else if ((hold += dt) > 4) { day = 0; hold = 0; sent = []; news = null; }
   }
   draw();
@@ -186,7 +188,7 @@ const plate = k.plateHtml({
     { mark: "lit", label: "L'index du seuil, réglable de 50 à 100 % comme la cellule Excel" },
     { mark: "raised", label: "Manomètres, de gauche à droite : CS, Locatif, MEC, PPTM, GLOBAL ; bac des alertes envoyées" },
   ],
-  caption: "Chaque matin, les quatre flux et la vue globale comparent les dépenses aux fonds du compte : au seuil, une alerte préventive part ; au-delà des fonds, une alerte de dépassement signale un TND négatif. Les enveloppes restent dans le bac pour éviter les doublons, sans bloquer les dépenses. Le pointage évité vaut 5 min par périmètre et par jour, soit 25 min : sur 225 jours, 93,75 h et environ 9 800 € par an à 104,74 €/h. Fonds et dépenses illustratifs.",
+  caption: "Chaque matin, les quatre flux et la vue globale comparent les dépenses aux fonds du compte : chaque périmètre envoie environ 6 alertes par semaine, soit 30 par semaine pour les cinq, préventives au seuil ou de dépassement (TND négatif) au-delà des fonds. Le bac montre la semaine en cours, sans bloquer les dépenses. Le pointage évité vaut 5 min par périmètre et par jour, soit 25 min : sur 225 jours, 93,75 h et environ 9 800 € par an à 104,74 €/h. Fonds et dépenses illustratifs.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Point financier : flèches gauche et droite pour régler le seuil" aria-valuemin="50" aria-valuemax="100" aria-valuenow="80">${svg}</div>`,
 });
 

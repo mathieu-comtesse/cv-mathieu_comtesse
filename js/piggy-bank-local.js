@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/GLTFLoader.js';
-import {ANNUAL_DECLARED,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v58';
+import {ANNUAL_DECLARED,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v59';
 export async function initPiggyBank(host){
  const fallback=[...host.querySelectorAll('svg')],canvas=document.createElement('canvas');
  canvas.className='piggy-3d';canvas.tabIndex=0;canvas.setAttribute('aria-label','Tirelire rose 3D : glissez pour pivoter, ou utilisez les flèches');
