@@ -53,16 +53,6 @@ export const PERSO = [
   "desc": "Un jeu de combat en arène en pixel art : six personnages, douze compétences, six ultimes et six arènes animées, contre l’IA, à deux ou en entraînement."
  },
  {
-  "id": "abysses",
-  "img": "assets/screenshots/abysses-v52.webp",
-  "year": 2026,
-  "n": "Abysses & babioles",
-  "genre": "Exploration 3D",
-  "color": "#1c7f95",
-  "url": "abysses-scene.html",
-  "desc": "Un scaphandrier, 2 047 poissons et 25 000 brins d’herbier : dégager au pinceau huit objets archéologiques… et absurdes."
- },
- {
   "id": "timber",
   "img": "assets/screenshots/timber-v52.webp",
   "year": 2026,

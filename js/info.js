@@ -1,4 +1,4 @@
-import {createMarquee} from './marquee.js?v=cv-projects-v12';
+import {createMarquee} from './marquee.js?v=cv-projects-v13';
 import { initTheme, initReveal } from './theme.js?v=bf01a16';
 
 initTheme();

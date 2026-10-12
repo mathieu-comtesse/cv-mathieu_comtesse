@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {makeRegion,genProps,HALF,traceBeam,mirrorAngle} from './terrain.js';
+import {makeRegion,genProps,HALF,EXTRA,rimE,traceBeam,mirrorAngle} from './terrain.js';
 import * as MD from './models.js';
 import {stipple,BAYER_GLSL} from './render.js';
 import {TINT} from './palettes.js';
@@ -8,7 +8,7 @@ import {fbm,smooth,lerp,clamp,vnoise} from './noise.js';
 const col=(t,b=1)=>new THREE.Color().setRGB(t[0]*b,t[1]*b,t[2]*b);
 const lumOf=c=>c[0]*.299+c[1]*.587+c[2]*.114;
 const withLum=(t,l)=>{const k=l/lumOf(t);return [t[0]*k,t[1]*k,t[2]*k]};
-const FOG={forest:[.27,'neutral'],crystal:[.2,'neutral'],shore:[.74,'accent']};
+const FOG={forest:[.34,'neutral'],crystal:[.27,'neutral'],shore:[.74,'accent']};
 const CLOUD={forest:.1,crystal:.18,shore:.42};
 
 // Construit tout ce qui compose une région : terrain, props instanciés, eau, lumières et objets interactifs.
@@ -53,10 +53,17 @@ export class World{
       t=mix(t,TINT.green,smooth(.3,.42,fbm(x*.015,z*.015,52,3))*smooth(1,2.4,h)*(1-smooth(.2,.5,slope)));
       if(h<-.3)b*=.82;if(h<-1.1)b*=.85;
     }
+    const rim=smooth(366,440,rimE(x,z));
+    if(rim>0){
+      const alt=smooth(4,70,h);
+      if(id==='forest'){t=mix(t,TINT.neutral,rim*.85);b=b*(1-.25*rim)+.3*alt}
+      else if(id==='crystal'){t=mix(t,TINT.accent,rim*(.35+.6*smooth(.2,.6,slope)));b=b*(1-.25*rim)+.28*alt}
+      else{t=mix(t,TINT.neutral,rim*.9);b=b*(1-.1*rim)+.3*alt}
+    }
     return [t[0]*b,t[1]*b,t[2]*b];
   }
   buildTerrain(detail){
-    const R=this.R,cell=2.5/detail,TILES=8,TS=2*HALF/TILES,seg=Math.round(TS/cell);
+    const R=this.R,cell=2.5/detail,TS=95,TILES=Math.round(2*(HALF+EXTRA)/TS),ORG=-(HALF+EXTRA),seg=Math.round(TS/cell);
     const m=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
     const cloud=CLOUD[this.id],tu=this.timeU;
     m.onBeforeCompile=sh=>{
@@ -72,15 +79,13 @@ diffuseColor.rgb*=mix(1.-uCloud,1.04,smoothstep(.32,.68,cl));`);
     };
     this.terrainMat=m;this.terrain=new THREE.Group();
     for(let ti=0;ti<TILES;ti++)for(let tj=0;tj<TILES;tj++){
-      const x0=-HALF+ti*TS,z0=-HALF+tj*TS;
+      const x0=ORG+ti*TS,z0=ORG+tj*TS;
       const g=new THREE.PlaneGeometry(TS,TS,seg,seg);g.rotateX(-Math.PI/2);g.translate(x0+TS/2,0,z0+TS/2);
       const p=g.getAttribute('position'),cols=new Float32Array(p.count*3);
-      for(let i=0;i<p.count;i++){
-        const x=p.getX(i),z=p.getZ(i),h=R.height(x,z);p.setY(i,h);
-        const gx=(R.height(x+1,z)-R.height(x-1,z))/2,gz=(R.height(x,z+1)-R.height(x,z-1))/2,ny=1/Math.sqrt(1+gx*gx+gz*gz);
-        const c=this.groundColor(x,z,h,ny);cols[i*3]=c[0];cols[i*3+1]=c[1];cols[i*3+2]=c[2];
-      }
-      g.setAttribute('color',new THREE.BufferAttribute(cols,3));g.computeVertexNormals();g.computeBoundingSphere();
+      for(let i=0;i<p.count;i++)p.setY(i,R.height(p.getX(i),p.getZ(i)));
+      g.computeVertexNormals();const nrm=g.getAttribute('normal');
+      for(let i=0;i<p.count;i++){const c=this.groundColor(p.getX(i),p.getZ(i),p.getY(i),nrm.getY(i));cols[i*3]=c[0];cols[i*3+1]=c[1];cols[i*3+2]=c[2]}
+      g.setAttribute('color',new THREE.BufferAttribute(cols,3));g.computeBoundingSphere();
       const mesh=new THREE.Mesh(g,m);mesh.castShadow=true;mesh.receiveShadow=true;this.terrain.add(mesh);
     }
     this.scene.add(this.terrain);
@@ -140,11 +145,11 @@ diffuseColor.rgb*=mix(1.-uCloud,1.04,smoothstep(.32,.68,cl));`);
   // ---------------------------------------------------------------- eau (marais ou estran) : lit la carte de hauteurs pour tracer la ligne d'écume
   buildWater(){
     const R=this.R;if(!R.waterLevelAt(0)&&R.waterLevelAt(0)!==0)return;
-    const S=380,data=new Uint16Array(S*S);
-    for(let j=0;j<S;j++)for(let i=0;i<S;i++)data[j*S+i]=THREE.DataUtils.toHalfFloat(R.height(-HALF+(i+.5)*2*HALF/S,-HALF+(j+.5)*2*HALF/S));
+    const S=380,EXT=HALF+EXTRA,data=new Uint16Array(S*S);
+    for(let j=0;j<S;j++)for(let i=0;i<S;i++)data[j*S+i]=THREE.DataUtils.toHalfFloat(R.height(-EXT+(i+.5)*2*EXT/S,-EXT+(j+.5)*2*EXT/S));
     const tex=new THREE.DataTexture(data,S,S,THREE.RedFormat,THREE.HalfFloatType);tex.minFilter=tex.magFilter=THREE.LinearFilter;tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;tex.needsUpdate=true;
     const kind=this.id==='shore'?1:0;
-    this.waterU={uH:{value:tex},uLevel:{value:R.waterLevelAt(0)},uTime:this.timeU,uKind:{value:kind},uHalf:{value:HALF},uCol:{value:new THREE.Vector3(...TINT.accent)}};
+    this.waterU={uH:{value:tex},uLevel:{value:R.waterLevelAt(0)},uTime:this.timeU,uKind:{value:kind},uHalf:{value:HALF+EXTRA},uCol:{value:new THREE.Vector3(...TINT.accent)}};
     const mat=new THREE.ShaderMaterial({uniforms:this.waterU,
       vertexShader:'varying vec3 vWp;void main(){vWp=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(vWp,1.);}',
       fragmentShader:`precision highp float;precision highp int;uniform sampler2D uH;uniform float uLevel,uTime,uKind,uHalf;uniform vec3 uCol;varying vec3 vWp;${BAYER_GLSL}
