@@ -339,3 +339,32 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .tv-films footer{flex-wrap:wrap;margin-top:14px}.tv-films footer button[aria-pressed="true"]{border-bottom-color:#f3eee2;color:#fff}
 .tv-films .tv-note{text-align:center;margin:8px 0 0;font:11px Georgia,serif;color:#b9b4a4}
 .film-album.tv-films header{justify-content:space-between;margin-bottom:12px}.film-album.tv-films h2{margin:0}
+/* Télé JVC : le film joue sur l'écran bombé du modèle 3D (js/jvc-screen.js colle ce tube sur le verre, image par image) */
+.jvc-tube{position:absolute;left:0;top:0;z-index:3;transform-origin:0 0;pointer-events:none;will-change:transform}
+.jvc-tube[hidden]{display:none}
+.jvc-crt{position:absolute;inset:0;border-radius:11% / 15%;overflow:hidden;background:#02060c;pointer-events:auto;box-shadow:0 0 0 5px #08080a,0 0 22px 4px rgba(150,200,255,.34),0 0 80px 26px rgba(110,170,255,.32)}
+.jvc-crt.on{animation:jvc-on .6s cubic-bezier(.2,.7,.2,1)}
+.jvc-tube.off .jvc-crt{animation:jvc-off .4s ease-in forwards}
+.jvc-video{position:absolute;inset:0;display:flex;align-items:center;background:#000}
+.jvc-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;filter:saturate(1.12) contrast(1.08) brightness(1.04)}
+.jvc-static{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;background-size:160px 160px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.jvc-crt.noise .jvc-static{opacity:.9;animation:jvc-noise .25s steps(4) infinite}
+.jvc-osd{position:absolute;left:7%;top:8%;font:700 clamp(18px,5.4%,42px)/1 "Courier New",monospace;letter-spacing:.08em;color:#7dff9b;text-shadow:0 0 8px #3dff72,2px 2px 0 #053;opacity:0;pointer-events:none}
+.jvc-osd.on{opacity:1}
+.jvc-glass{position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 120% at 50% 48%,transparent 50%,rgba(0,0,0,.52) 100%),linear-gradient(118deg,rgba(255,255,255,.22) 0,rgba(255,255,255,.06) 20%,transparent 36%),repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px);box-shadow:inset 0 0 40px 8px rgba(0,0,0,.55),inset 0 0 14px rgba(120,180,255,.28)}
+@keyframes jvc-noise{0%{background-position:0 0}25%{background-position:-37px 21px}50%{background-position:19px -43px}75%{background-position:-52px -9px}100%{background-position:0 0}}
+@keyframes jvc-on{0%{transform:scale(1,.012);filter:brightness(10) saturate(0)}38%{transform:scale(1,.012);filter:brightness(10) saturate(0)}70%{transform:scale(1,1);filter:brightness(2.2) saturate(.5)}100%{transform:none;filter:none}}
+@keyframes jvc-off{0%{transform:none;filter:none;opacity:1}55%{transform:scale(1,.012);filter:brightness(7);opacity:1}100%{transform:scale(.01,.004);filter:brightness(12);opacity:0}}
+.jvc-hud{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:7;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:4px 8px;align-items:center;width:min(740px,calc(100% - 24px));padding:9px 12px 7px;border-radius:18px;background:rgba(20,18,15,.88);color:#f1ede2;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 30px #0006;font:13px/1.25 Arial,sans-serif}
+.jvc-hud[hidden]{display:none}
+.jvc-hud button{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #5b554a;border-radius:50%;background:#2a2622;color:#f1ede2;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.jvc-hud button:hover{background:#3a3530;border-color:#8a8272}.jvc-hud button:focus-visible,.jvc-list:focus-visible{outline:2px solid #7dff9b;outline-offset:2px}
+.jvc-hud svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.jvc-info{min-width:0;display:flex;flex-direction:column;gap:1px}
+.jvc-ch{font:700 11px "Courier New",monospace;letter-spacing:.12em;color:#7dff9b}
+.jvc-title{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jvc-meta{font:12px Georgia,serif;font-style:normal;color:#cfc9b9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jvc-list{max-width:30vw;padding:8px 9px;border:1px solid #5b554a;border-radius:10px;background:#2a2622;color:#f1ede2;font:12px Arial,sans-serif}
+.jvc-note{grid-column:1/-1;margin:0;text-align:center;font:11px Georgia,serif;color:#b9b4a4}
+@media(max-width:640px){.jvc-hud{grid-template-columns:auto minmax(0,1fr) auto auto;bottom:10px;padding:8px 10px 8px}.jvc-list{grid-column:1/-1;grid-row:2;max-width:none;width:100%}.jvc-note{display:none}.jvc-hud button{width:36px;height:36px}}
+@media(prefers-reduced-motion:reduce){.jvc-crt.on,.jvc-tube.off .jvc-crt,.jvc-crt.noise .jvc-static{animation:none}.jvc-tube.off .jvc-crt{opacity:0}}
