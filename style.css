@@ -342,7 +342,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 /* Télé JVC : le film joue sur l'écran bombé du modèle 3D (js/jvc-screen.js colle ce tube sur le verre, image par image) */
 .jvc-tube{position:absolute;left:0;top:0;z-index:3;transform-origin:0 0;pointer-events:none;will-change:transform}
 .jvc-tube[hidden]{display:none}
-.jvc-crt{position:absolute;inset:0;border-radius:11% / 15%;overflow:hidden;background:#02060c;pointer-events:auto;box-shadow:0 0 0 5px #08080a,0 0 22px 4px rgba(150,200,255,.34),0 0 80px 26px rgba(110,170,255,.32)}
+.jvc-crt{position:absolute;inset:0;border-radius:12% / 11%;overflow:hidden;background:#02060c;pointer-events:auto;box-shadow:0 0 0 5px #08080a,0 0 22px 4px rgba(150,200,255,.34),0 0 80px 26px rgba(110,170,255,.32)}
 .jvc-crt.on{animation:jvc-on .6s cubic-bezier(.2,.7,.2,1)}
 .jvc-tube.off .jvc-crt{animation:jvc-off .4s ease-in forwards}
 .jvc-video{position:absolute;inset:0;display:flex;align-items:center;background:#000}
@@ -365,6 +365,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .jvc-title{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jvc-meta{font:12px Georgia,serif;font-style:normal;color:#cfc9b9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .jvc-list{max-width:30vw;padding:8px 9px;border:1px solid #5b554a;border-radius:10px;background:#2a2622;color:#f1ede2;font:12px Arial,sans-serif}
+.jvc-hint{grid-column:1/-1;margin:0 0 2px;text-align:center;font:11px Arial,sans-serif;letter-spacing:.02em;color:#7dff9b}
 .jvc-note{grid-column:1/-1;margin:0;text-align:center;font:11px Georgia,serif;color:#b9b4a4}
 @media(max-width:640px){.jvc-hud{grid-template-columns:auto minmax(0,1fr) auto auto;bottom:10px;padding:8px 10px 8px}.jvc-list{grid-column:1/-1;grid-row:2;max-width:none;width:100%}.jvc-note{display:none}.jvc-hud button{width:36px;height:36px}}
 @media(prefers-reduced-motion:reduce){.jvc-crt.on,.jvc-tube.off .jvc-crt,.jvc-crt.noise .jvc-static{animation:none}.jvc-tube.off .jvc-crt{opacity:0}}
