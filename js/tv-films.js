@@ -1,8 +1,17 @@
-/* Télé JVC Videosphere (orange, sur l'étagère blanche) : un clic ouvre les bandes-annonces officielles de deux films, lues depuis YouTube (rien n'est hébergé ici).
+/* Télé JVC Videosphere (orange, sur l'étagère blanche) : un clic ouvre les bandes-annonces de onze films (lecture sur l'écran de la télé, voir jvc-screen.js ; cette fenêtre sert de repli), lues depuis YouTube (rien n'est hébergé ici).
    Le lecteur n'existe que fenêtre ouverte : la fermer coupe le son. */
-const FILMS = [
+export const FILMS = [
   { id: '7xwWSOaoLUI', title: 'Requiem pour un massacre', meta: 'Elem Klimov · 1985', note: 'Bande-annonce de la reprise 2019, version originale sous-titrée' },
   { id: '11sMDQIgggA', title: 'Il est difficile d’être un dieu', meta: 'Aleksei German · 2013 · Hard to Be a God', note: 'Bande-annonce officielle, Kino Lorber' },
+  { id: 'Nm4WbapDzDQ', title: 'Good Luck, Have Fun, Don’t Die', meta: 'Gore Verbinski · 2026', note: 'Bande-annonce officielle, Briarcliff Entertainment' },
+  { id: 'jXdNc76aPVc', title: 'Série noire', meta: 'Alain Corneau · 1979', note: 'Bande-annonce de la reprise, Rialto Pictures' },
+  { id: 'JZ8NEwAgsjQ', title: 'Hundreds of Beavers', meta: 'Mike Cheslik · 2022', note: 'Bande-annonce officielle, Cineverse' },
+  { id: 'lPYuqwly9Os', title: 'Arion', meta: 'Yoshikazu Yasuhiko · 1986', note: 'Bande-annonce de l’édition Blu-ray, Unseen Trailers' },
+  { id: 'Oly0EY47Ht4', title: 'It’s a Mad, Mad, Mad, Mad World', meta: 'Stanley Kramer · 1963', note: 'Bande-annonce officielle, MGM' },
+  { id: 'cNBztAj006c', title: 'La Panthère rose', meta: 'Blake Edwards · 1963 · The Pink Panther', note: 'Bande-annonce officielle, MGM' },
+  { id: 'XKnaESDPsfQ', title: 'La Party', meta: 'Blake Edwards · 1968 · The Party', note: 'Bande-annonce de la reprise 2022, Splendor Films' },
+  { id: 'y6elEZvYS7w', title: 'Quand l’inspecteur s’en mêle', meta: 'Blake Edwards · 1964 · A Shot in the Dark', note: 'Bande-annonce officielle, MGM' },
+  { id: '44xT9LSrgJ4', title: 'Vampire Hunter D: Bloodlust', meta: 'Yoshiaki Kawajiri · 2000', note: 'Bande-annonce officielle, Anime Limited' },
 ];
 
 export function createTvFilms({ onChange = () => {} } = {}) {

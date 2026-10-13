@@ -24,7 +24,8 @@ import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
 import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
 import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
-import {createTvFilms} from './tv-films.js?v=tv2';
+import {createTvFilms} from './tv-films.js?v=tv3';
+import {createJvcScreen} from './jvc-screen.js?v=jvc1';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -338,13 +339,18 @@ export async function createRoom(container, bubbleEl) {
 
 
   // Secondary props load after the interactive room; batch their static surfaces.
+  let jvcRoot=null,jvcCorners=null,jvcGlass=null;               // télé JVC : écran 3D sur lequel joue le film (voir jvc-screen.js)
   const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb','geta-user-v52.glb','buddha-user-v52.glb','jvc-videosphere-recreation-v52.glb'].map(model)).then(([bagModel,polesModel,stoneModel,getaModel,buddhaModel,jvcModel])=>{
     const install=(model,name,parent,x,y,z,yaw=0)=>{const root=model.scene;root.name=name;root.userData.batchRoot=true;root.position.set(x,y,z);root.rotation.y=yaw;root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});parent.add(root);mergeStatic(root);return root;};
     install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38).userData.id='backpack';
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
     install(buddhaModel,'BuddhaFourFaces',world,2.63,0,4.55,.2);
-    install(jvcModel,'JVCVideosphere',whiteShelf,.41,.006,.018,Math.PI).userData.id='videosphere';
+    { // Repère l'écran bombé AVANT la fusion des maillages : son verre garde un matériau propre (lueur animée) et ses quatre coins servent de cadre au film.
+      let crt=null;jvcModel.scene.traverse(o=>{if(o.isMesh&&/curved[ _]?CRT/i.test(o.name))crt=o;});   // le chargeur remplace les espaces des noms par « _ »
+      if(crt&&crt.isMesh){jvcModel.scene.updateMatrixWorld(true);crt.material=crt.material.clone();crt.material.userData.unique=true;crt.geometry.computeBoundingBox();const b=crt.geometry.boundingBox,z=b.max.z-.004;
+        jvcGlass=crt.material;jvcCorners=[[b.min.x,b.max.y],[b.max.x,b.max.y],[b.max.x,b.min.y],[b.min.x,b.min.y]].map(([x,y])=>new THREE.Vector3(x,y,z).applyMatrix4(crt.matrixWorld));}
+      jvcRoot=install(jvcModel,'JVCVideosphere',whiteShelf,.41,.006,.018,Math.PI);jvcRoot.userData.id='videosphere'; }
     const stone=install(stoneModel,'SuisekiKamogawaishi',whiteShelf,-.535,.835,0,0);stone.scale.setScalar(.90);
     container.dataset.detailProps='ready';renderer.shadowMap.needsUpdate=true;
   }).catch(e=>{container.dataset.detailProps='error';console.warn('[Room props]',e);});
@@ -450,11 +456,11 @@ export async function createRoom(container, bubbleEl) {
     view.az = save.az; view.el = save.el;
     if(fitReady){target.copy(save.target);tgt.copy(save.tgt);}fitReady=true;items.forEach((i,n)=>i.obj.position.copy(save.positions[n]));
   }
-  let resScale = .85, renderBucket = -1;
+  let resScale = .85, renderBucket = -1, jvcZoomed = false;   // jvcZoomed : télé JVC allumée, gros plan sur son écran → définition de rendu relevée
   function renderResolution() {
     // Close-ups receive more real pixels, independently of page scale.
     const detail=mobile.matches?Math.min(3,Math.max(1,view.tZoom)):1;
-    const ih=Math.round(Math.min(H*(devicePixelRatio||1),mobile.matches?460*detail:720)*resScale);
+    const ih=Math.round(Math.min(H*(devicePixelRatio||1),mobile.matches?460*detail:(jvcZoomed?1080:720))*resScale);
     const iw=Math.round(W*ih/H);
     if(renderer.domElement.width!==iw||renderer.domElement.height!==ih){
       renderer.setPixelRatio(1);renderer.setSize(iw,ih,false);ink.res.value.set(iw,ih);
@@ -979,13 +985,37 @@ export async function createRoom(container, bubbleEl) {
   const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
   const phoneVideo=createPhoneVideo(open=>pauseAutonomy(open?3600000:3000));
   const tvFilms=createTvFilms({onChange:open=>pauseAutonomy(open?3600000:3000)});
+  const jvcV=[0,1,2,3].map(()=>new THREE.Vector3()),jvcN=new THREE.Vector3(),jvcLook=new THREE.Vector3(),jvcOut={pts:[[0,0],[0,0],[0,0],[0,0]],facing:0,aspect:1.43};
+  let jvcSaved=null;
+  function jvcQuad(){      // quadrilatère de l'écran en pixels du conteneur ; la caméra étant orthographique, c'est un parallélogramme exact
+    if(!jvcRoot||!jvcCorners)return null;
+    jvcRoot.updateWorldMatrix(true,false);
+    const rr=renderer.domElement.getBoundingClientRect(),cr=container.getBoundingClientRect(),ox=rr.left-cr.left,oy=rr.top-cr.top;
+    for(let i=0;i<4;i++)jvcV[i].copy(jvcCorners[i]).applyMatrix4(jvcRoot.matrixWorld);
+    jvcOut.aspect=jvcV[0].distanceTo(jvcV[1])/jvcV[0].distanceTo(jvcV[3]);
+    jvcN.set(0,0,1).transformDirection(jvcRoot.matrixWorld);camera.getWorldDirection(jvcLook);jvcOut.facing=-jvcN.dot(jvcLook);
+    for(let i=0;i<4;i++){jvcV[i].project(camera);jvcOut.pts[i][0]=(jvcV[i].x+1)/2*rr.width+ox;jvcOut.pts[i][1]=(1-jvcV[i].y)/2*rr.height+oy;}
+    return jvcOut;
+  }
+  function jvcFocus(){     // cadre la caméra de face sur l'écran, qui occupe ~42 % de la hauteur (ou ~74 % de la largeur sur un écran étroit)
+    if(!jvcRoot||!jvcCorners)return;
+    jvcRoot.updateWorldMatrix(true,false);
+    const P=jvcCorners.map(p=>p.clone().applyMatrix4(jvcRoot.matrixWorld)),c=P[0].clone().add(P[2]).multiplyScalar(.5),w=P[0].distanceTo(P[1]),h=P[0].distanceTo(P[3]);
+    const n=new THREE.Vector3(0,0,1).transformDirection(jvcRoot.matrixWorld);
+    jvcSaved={az:view.tAz,el:view.tEl};
+    setCameraMode('free');tgt.copy(c);view.tAz=Math.atan2(n.x,n.z);view.tEl=9*DEG;
+    view.tZoom=fit/Math.max(h/.84,w/(1.48*(W/H)));syncZoom();
+  }
+  function jvcRelease(){if(jvcSaved){view.tAz=jvcSaved.az;view.tEl=jvcSaved.el;jvcSaved=null;}resetFocus();}
+  const jvcScreen=createJvcScreen({container,getScreen:jvcQuad,focus:jvcFocus,release:jvcRelease,getGlass:()=>jvcGlass,fallback:()=>tvFilms.open(),onChange:open=>{jvcZoomed=open;renderResolution();pauseAutonomy(open?3600000:3000);}});
   function activate(id) {
     if(appOpen)return false;
     if(id==='ps1power'){if(retro.state==='off'||retro.state==='closing')retro.powerOn(true);else{retro.powerOff();ps1Sound.exit();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));}return;}
     if(id==='deskstrip'){deskEquipment?.setPower(!deskEquipment.powered);container.dataset.deskPower=deskEquipment?.powered?'on':'off';return;}
     if(id==='mamiya'){filmAlbum.open();return;}
     if(id==='backpack'){phoneVideo.open();return;}
-    if(id==='videosphere'){tvFilms.open();return;}
+    if(jvcScreen.isOpen&&id!=='videosphere')jvcScreen.close();
+    if(id==='videosphere'){jvcScreen.open();return;}
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
@@ -1081,7 +1111,7 @@ export async function createRoom(container, bubbleEl) {
     view.az += (view.tAz - view.az) * kv; view.el += (view.tEl - view.el) * kv; view.zoom += (view.tZoom - view.zoom) * kv;
     if(Math.abs(Number(zoomRange.value)-Math.log2(view.tZoom))>.005)syncZoom();
     const detailBucket=Math.round(view.tZoom*8);if(mobile.matches&&detailBucket!==renderBucket){renderBucket=detailBucket;renderResolution();}
-    scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
+    scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum(); jvcScreen.update();
     // personnage
     if (ritual.state.active) ritual.update(dt);
     wx.update(dt); sun.intensity = sunBase * (1 - 0.55 * wx.k.cloud); hemi.intensity = hemiBase * (1 + 0.15 * wx.k.cloud);
