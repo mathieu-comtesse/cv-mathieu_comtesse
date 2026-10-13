@@ -12,7 +12,12 @@ root.rotation.y=.17;
 const materials=Array.from({length:6},(_,i)=>new THREE.MeshStandardMaterial({color:0x302020+i*0x10203}));
 const painting=new THREE.Mesh(new THREE.BoxGeometry(.56,.642,.03),materials);painting.position.set(.03,.02,-.01);painting.rotation.z=.09;root.add(painting);
 const before=new THREE.Box3().setFromObject(holder);
-assert.equal(mergeStatic(root),6);
+// Six flat materials with the same surface settings share one vertex-coloured mesh; each material colour must survive as vertex colours.
+assert.equal(mergeStatic(root),1);
+const merged=[];holder.traverse(o=>{if(o.isMesh)merged.push(o);});
+assert.equal(merged.length,1);assert.ok(merged[0].material.vertexColors&&merged[0].material.color.getHex()===0xffffff,'Shared flat material colours come from vertex colours');
+const colours=new Set(),col=merged[0].geometry.attributes.color;for(let i=0;i<col.count;i++)colours.add([col.getX(i),col.getY(i),col.getZ(i)].map(v=>v.toFixed(4)).join());
+assert.equal(colours.size,6,'Each original material colour is preserved');
 const after=new THREE.Box3().setFromObject(holder);
 assert.ok(before.min.distanceTo(after.min)<1e-6 && before.max.distanceTo(after.max)<1e-6,'Material batching preserves world position, rotation, scale and dimensions');
 assert.ok(after.min.y>.9 && after.max.z<-2.8,'The suspended painting must remain above and behind its cabinet');
