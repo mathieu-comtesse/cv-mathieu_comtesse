@@ -13,6 +13,7 @@ import { chargerBatiments, ajusterPieds } from './atlas-batiments.js';
 import { ETAPES } from './atlas-etapes.js';
 import { creerRoches } from './atlas-roches.js';
 import { creerDiorama, creerIlot } from './atlas-diorama.js';
+import { ameliorerCanopes, creerFondReel } from './atlas-nature.js';
 import { creerPlage } from './atlas-plage.js';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -24,17 +25,17 @@ export async function creerMonde(R, opts = {}) {
   const scene = new THREE.Scene(), sceneNuages = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 2000);
   const ciel = creerCiel(R.renderer, scene, { ocean: false });
-  scene.environmentIntensity = 0.72;
+  scene.environmentIntensity = 0.65;
   /* soleil : lumière directionnelle à ombres portées sur toute l'île ; hémisphère : ciel en haut, rebond des nuages et de l'océan en bas */
-  const soleil = new THREE.DirectionalLight('#ffc98f', 3.4);
+  const soleil = new THREE.DirectionalLight('#fff0d4', 2.8);
   soleil.castShadow = true; soleil.shadow.mapSize.set(qualite >= 1 ? 4096 : 2048, qualite >= 1 ? 4096 : 2048); soleil.shadow.bias = -0.0004; soleil.shadow.normalBias = 0.05;
   Object.assign(soleil.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 5, far: 140 });
   scene.add(soleil, soleil.target);
-  const hemi = new THREE.HemisphereLight('#c9a0bc', '#f0c294', 0.95); scene.add(hemi);
+  const hemi = new THREE.HemisphereLight('#c4deea', '#e9d3a1', 1.15); scene.add(hemi);
 
   /* nuages : un anneau autour de l'île, de l'altitude des toits jusqu'au-dessous du socle */
   const PLAN = [
-    { x: -30, y: 0.9, z: 14, echelle: 1.3, alpha: 0.5 }, { x: 28, y: 1.2, z: -10, echelle: 1.4, alpha: 0.5 }, { x: -12, y: 11, z: -36, echelle: 2.2, alpha: 0.8 }, { x: 20, y: 8, z: 32, echelle: 1.5, alpha: 0.55 },
+    { x: -65, y: 18, z: 40, echelle: 1.3, alpha: 0.25 }, { x: 65, y: 16, z: -40, echelle: 1.4, alpha: 0.25 }, { x: -12, y: 11, z: -36, echelle: 2.2, alpha: 0.8 }, { x: 20, y: 8, z: 32, echelle: 1.5, alpha: 0.55 },
   ];
   const nuages = creerNuages({ plan: qualite >= 1 ? PLAN : PLAN.slice(0, 4), qualite }); sceneNuages.add(nuages.groupe);
 
@@ -42,8 +43,9 @@ export async function creerMonde(R, opts = {}) {
   const carte = ile.carte, meta = carte.meta;
   ciel.uniformes.uIle.value.set(0, -3, 0);
   const eau = creerEau(ile, ciel); scene.add(eau);
-  const dio = creerDiorama(ciel, carte); scene.add(dio.groupe);
-  const flore = creerFlore(ciel); const decor = peupler({ carte, flore, ciel, densite: qualite >= 1 ? 0.62 : 0.4 }); scene.add(decor.groupe);
+  const dio = creerDiorama(ciel, carte); scene.add(dio.groupe); R.eau = dio.surface;
+  const navigable = (x,z) => Math.abs(x)<58 && Math.abs(z-.6)<44 && carte.hauteur(x,z)<-.32 && Math.hypot(x-dio.ilotX,z-dio.ilotZ)>2.6;
+  const flore = creerFlore(ciel); await ameliorerCanopes(flore); const decor = peupler({ carte, flore, ciel, densite: qualite >= 1 ? 0.42 : 0.34 }); scene.add(decor.groupe);
   const B = await chargerBatiments(ciel);
   const roches = await creerRoches({ M: { carte, ciel, scene }, decor, flore });
   roches.fragments.forEach((g) => { g.visible = false; });             // pas de fragments flottants dans le diorama
@@ -66,13 +68,13 @@ export async function creerMonde(R, opts = {}) {
   const [pa, pb] = [meta.pont.a, meta.pont.b];
   const pont = poser('pont', pa[0], 0, pa[1], Math.atan2(pb[0] - pa[0], pb[1] - pa[1]));
   const [qa, qb] = [meta.ponton.a, meta.ponton.b];
-  const ponton = poser('ponton', qa[0], 0, qa[1], Math.atan2(qb[0] - qa[0], qb[1] - qa[1])); ajusterPieds(ponton, carte, qa);
+  const ponton = poser('ponton', qa[0], 0, qa[1], Math.atan2(qb[0] - qa[0], qb[1] - qa[1])); ajusterPieds(ponton, carte, qa); ponton.scale.set(1.4,1,1.4); pont.scale.set(1.4,1,1.4);
   const yawPonton = Math.atan2(qb[0] - qa[0], qb[1] - qa[1]), dirPonton = V3(Math.sin(yawPonton), 0, Math.cos(yawPonton)), latPonton = V3(Math.cos(yawPonton), 0, -Math.sin(yawPonton));
   const bout = V3(qa[0], 0, qa[1]).addScaledVector(dirPonton, 2.75);
   /* bateaux amarrés : le yacht d'un côté du ponton, le bateau de pêche et le voilier de l'autre */
   const yacht = poser('yacht', 0, 0, 0); const bateau = poser('bateau', 0, 0, 0); const voilier = poser('voilier', 0, 0, 0);
   const voiles = B.creer('voiles').groupe; voilier.add(voiles); voiles.position.set(0.12, 0.17, 0);
-  const cote = (s, t, lat) => V3(qa[0], 0, qa[1]).addScaledVector(dirPonton, t).addScaledVector(latPonton, lat * s);
+  const cote = (s, t, lat) => V3(qa[0], 0, qa[1]).addScaledVector(dirPonton, t * 1.4).addScaledVector(latPonton, lat * s * 1.4);
   const amarrage = {
     yacht: { p: cote(1, 1.45, 0.78), yaw: yawPonton - Math.PI / 2 },
     bateau: { p: cote(-1, 2.6, 0.62), yaw: yawPonton - Math.PI / 2 + 0.15 },
@@ -206,12 +208,12 @@ export async function creerMonde(R, opts = {}) {
     const tete = new THREE.Mesh(new THREE.SphereGeometry(0.058, 10, 8), mTete); tete.position.set(0.1, 0.1, 0); g.add(tete);
     const bec = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.025, 0.045), new THREE.MeshStandardMaterial({ color: '#ff8a3d' })); bec.position.set(0.17, 0.1, 0); g.add(bec);
     const queue = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.09, 6), m); queue.rotation.z = Math.PI / 2 + 0.5; queue.position.set(-0.13, 0.05, 0); g.add(queue);
-    g.userData.home = V3(-3.4, 0, 5.2); g.position.copy(g.userData.home); g.traverse((o) => { if (o.isMesh) o.userData.canard = true; o.castShadow = true; }); scene.add(g); return g;
+    g.userData.home = V3(-4.76, 0, 7.28); g.position.copy(g.userData.home); g.traverse((o) => { if (o.isMesh) o.userData.canard = true; o.castShadow = true; }); scene.add(g); return g;
   })();
 
   /* ------------------------------------------------------------------------------------------------ animation d'ambiance */
   const plage = creerPlage({ scene, carte, bats, niveau: dio.niveau });
-  const M = { scene, sceneNuages, camera, ciel, soleil, hemi, nuages, ile, ilot, carte, meta, eau, dio, plage, flore, decor, roches, B, bats, ETAPES,
+  const M = { scene, sceneNuages, camera, ciel, soleil, hemi, nuages, ile, ilot, carte, meta, eau, dio, plage, flore, decor, roches, B, bats, ETAPES, navigable,
     objets: { pont, ponton, yacht, bateau, voilier, voiles, phare, train, rames, voiture, canard, mouettes, poissons, chutes },
     voie, route, amarrage, sol };
   const couleurLune = new THREE.Color('#8fa9f0'), ciHemi = new THREE.Color('#4a6cb0'), solHemi = new THREE.Color('#3a4a6c');
@@ -223,10 +225,10 @@ export async function creerMonde(R, opts = {}) {
     ciel.tick(dt, t, camera);
     const k = ciel.uniformes.uNuit.value;
     soleil.position.copy(ciel.soleil).multiplyScalar(60); soleil.target.position.set(0, -2, 0); soleil.target.updateMatrixWorld();
-    soleil.intensity = 3.4 * (1 - k) + 1.6 * k; soleil.color.set('#ffc98f').lerp(couleurLune, k);
-    hemi.intensity = 0.95 * (1 - k) + 0.95 * k; hemi.color.set('#c9a0bc').lerp(ciHemi, k); hemi.groundColor.set('#f0c294').lerp(solHemi, k); scene.environmentIntensity = 0.72 * (1 - k) + 0.3 * k;
+    soleil.intensity = 2.8 * (1 - k) + 1.6 * k; soleil.color.set('#fff0d4').lerp(couleurLune, k);
+    hemi.intensity = 1.15 * (1 - k) + 0.95 * k; hemi.color.set('#c4deea').lerp(ciHemi, k); hemi.groundColor.set('#e9d3a1').lerp(solHemi, k); scene.environmentIntensity = 0.72 * (1 - k) + 0.3 * k;
     ile.partage.uTemps.value = t; eau.userData.uniformes.uTemps.value = t; dio.tick(t); plage.tick(dt, t); matChute.uniforms.uT.value = t; decor.tick(dt, t); roches.tick(dt, t);
-    R.reglages.exposition = 0.94 + 0.6 * k; R.reglages.eclat = 0.46 + 0.3 * k;
+    R.reglages.exposition = 0.92 + 0.6 * k; R.reglages.eclat = 0.18 + 0.3 * k;
     camera.updateMatrixWorld(); camera.updateProjectionMatrix();
     nuages.tick(dt, t, camera, ciel, R.profondeur, R.taille);
     // train
@@ -245,23 +247,32 @@ export async function creerMonde(R, opts = {}) {
     const bob = (g, a, ph) => { g.position.y = Math.sin(t * 1.3 + ph) * 0.012; g.rotation.z = Math.sin(t * 1.1 + ph) * 0.02; };
     bob(yacht, amarrage.yacht, 0); if (!M.barreSail) bob(bateau, amarrage.bateau, 1.7);
     // voilier : sort du ponton, tourne autour de l'îlot, revient ranger ses voiles
+    if(!M.voilierLibre){
     const e = M.etatVoilier; M.etatVoilier.t -= dt;
     if (e.etat === 'quai') { bob(voilier, amarrage.voilier, 3); e.mix = Math.max(0, e.mix - dt * 0.4); if (e.t < 0 || e.go) { e.go = 0; e.etat = 'hisse'; e.t = 2.6; } }
-    else if (e.etat === 'hisse') { e.mix = Math.min(1, e.mix + dt * 0.45); if (e.t < 0) { e.etat = 'nav'; e.t = 26 + Math.random() * 10; e.theta = Math.atan2(amarrage.voilier.p.z - meta.ilot.c[1], amarrage.voilier.p.x - meta.ilot.c[0]); } }
+    else if (e.etat === 'hisse') { e.mix = Math.min(1, e.mix + dt * 0.45); if (e.t < 0) { e.etat = 'nav'; e.t = 26 + Math.random() * 10; e.theta = 0; } }
     else if (e.etat === 'nav') {
-      e.mix = 1; e.theta += dt * 0.2; const [x, z] = rayVoile(e.theta), [x2, z2] = rayVoile(e.theta + 0.05);
+      e.mix = 1; e.theta += dt * .65;
+      const route = [amarrage.voilier.p, V3(3.4*1.4,0,5.5*1.4), V3(3.2*1.4,0,8*1.4), V3(3.2*1.4,0,12*1.4), V3(3.2*1.4,0,20*1.4)];
+      const distance = Math.min(e.theta, 40); let reste=distance, pt=route[0].clone(), pt2=pt.clone();
+      for(let i=1;i<route.length;i++){const L=route[i].distanceTo(route[i-1]); if(reste<=L){pt.lerpVectors(route[i-1],route[i],reste/L); pt2.lerpVectors(route[i-1],route[i],Math.min(1,(reste+.1)/L)); break;} reste-=L; pt.copy(route[i]); pt2.copy(pt); }
+      const x=pt.x,z=pt.z,x2=pt2.x,z2=pt2.z;
       tmp.set(x, Math.sin(t * 2) * 0.012, z); voilier.position.lerp(tmp, Math.min(1, dt * 3)); voilier.rotation.y += ((Math.atan2(-(z2 - z), x2 - x)) - voilier.rotation.y) * Math.min(1, dt * 4);
       voilier.rotation.z = Math.sin(t * 1.7) * 0.06;
       const ca = Math.atan2(amarrage.voilier.p.z - meta.ilot.c[1], amarrage.voilier.p.x - meta.ilot.c[0]);
-      if (e.t < 0 && Math.abs(Math.atan2(Math.sin(e.theta - ca), Math.cos(e.theta - ca))) < 0.25) { e.etat = 'retour'; e.t = 5; }
+      if (e.theta > 20) { e.etat = 'retour'; e.t = 5; }
     } else if (e.etat === 'retour') {
-      voilier.position.lerp(amarrage.voilier.p, Math.min(1, dt * 0.9)); voilier.rotation.y += (amarrage.voilier.yaw - voilier.rotation.y) * Math.min(1, dt * 1.5); e.mix = Math.max(0.0, e.mix - dt * 0.2);
-      if (e.t < 0) { e.etat = 'quai'; e.t = 30 + Math.random() * 20; }
+      e.theta = Math.max(0,e.theta-dt*.8);
+      const route=[amarrage.voilier.p,V3(4.76,0,7.7),V3(4.48,0,11.2),V3(4.48,0,16.8),V3(4.48,0,28)]; let reste=e.theta, pt=route[0].clone();
+      for(let i=1;i<route.length;i++){const L=route[i].distanceTo(route[i-1]);if(reste<=L){pt.lerpVectors(route[i-1],route[i],reste/L);break;}reste-=L;pt.copy(route[i]);} voilier.position.lerp(pt,Math.min(1,dt*3)); voilier.rotation.y += (amarrage.voilier.yaw - voilier.rotation.y) * Math.min(1, dt * 1.5); e.mix = Math.max(0.0, e.mix - dt * 0.2);
+      if (e.theta <= 0) { e.etat = 'quai'; e.t = 30 + Math.random() * 20; }
     }
     const lissage = e.mix * e.mix * (3 - 2 * e.mix); voiles.scale.set(0.3 + 0.7 * lissage, 0.05 + 0.95 * lissage, 1);
+    }
     // le canard flotte
     if (canard.userData.fuit) { canard.userData.fuit += dt; canard.position.x -= dt * 0.9; canard.position.z += dt * 0.4; if (canard.userData.fuit > 4) { canard.userData.fuit = 0; canard.position.copy(canard.userData.home); } }
     canard.position.y = Math.sin(t * 3) * 0.012 - 0.02; canard.rotation.y = Math.sin(t * 0.4) * 0.8 + 0.6;
   };
+  M.fondReel=creerFondReel(M);
   return M;
 }

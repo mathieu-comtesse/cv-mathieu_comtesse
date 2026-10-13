@@ -1,4 +1,4 @@
-/* ATLAS · ROCHES, RACINES ET FRAGMENTS FLOTTANTS. Les rochers (assets/atlas/rochers.bin, tools/atlas-ile/ile_petits.py) bordent le lagon, parsèment les rives et
+/* ATLAS · ROCHES, RACINES ET FRAGMENTS FLOTTANTS. Les rochers (assets/atlas/refonte/rochers.bin, tools/atlas-ile/ile_petits.py) bordent le lagon, parsèment les rives et
  * s'accrochent aux falaises pour casser la silhouette du socle ; des racines et des lianes pendent sous la lèvre de terre ; de petits fragments d'île flottent autour
  * de la grande (herbe dessus, roche conique dessous, un palmier ou un buisson) et tanguent doucement.
  *
@@ -16,9 +16,9 @@ const deriveCentre = (y) => { const t = Math.min(1, Math.max(0, (-y - 0.4) / (PR
 
 export async function creerRoches({ M, decor, flore }) {
   const { carte, ciel, scene } = M, meta = carte.meta, rng = aleatoire(777), groupe = new THREE.Group();
-  const mailles = await chargerMailles(new URL('assets/atlas/rochers.bin', import.meta.url).href);
+  const mailles = await chargerMailles(new URL('assets/atlas/refonte/rochers.bin', import.meta.url).href);
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, envMapIntensity: 0.3 });
-  eclairer(mat, ciel, carte, { bump: 0.45 });
+  eclairer(mat, ciel, carte, { bump: 0.16 });
   const C0 = [0, 0.3];
   const lots = Array.from({ length: 10 }, () => []);
   const poser = (k, x, y, z, s, enfoncement = 0.2) => {
@@ -94,6 +94,6 @@ export async function creerRoches({ M, decor, flore }) {
     scene.add(g); frags.push(g);
   });
   M.scene.add(groupe);
-  return { groupe, fragments: frags, comptes: { rives: n1, plateforme: n2, bord: n3, falaise: n4 },
+  return { groupe, geometries:Array.from({length:10},(_,i)=>mailles["r"+i].geo), fragments: frags, comptes: { rives: n1, plateforme: n2, bord: n3, falaise: n4 },
     tick(dt, t) { frags.forEach((g, i) => { const u = g.userData; g.position.y = u.y0 + Math.sin(t * 0.45 + u.ph) * 0.35; g.rotation.y += dt * 0.03 * (i % 2 ? 1 : -1); g.rotation.z = Math.sin(t * 0.3 + u.ph) * 0.03; }); } };
 }

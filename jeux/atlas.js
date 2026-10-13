@@ -21,6 +21,8 @@ if (/[?&]papier\b/.test(location.search)) {
   try {
     M = await creerMonde(R, { qualite: lite ? 0 : 1 });
     J = creerJeu(M, R, { canvas, hote });
+    const { creerAtelier } = await import('./atlas-atelier.js');
+    await creerAtelier(J);
   } catch (e) { if (chargement) chargement.textContent = 'Impossible d’afficher l’île sur cet appareil (WebGL 2 requis).'; console.error(e); throw e; }
   const q = new URLSearchParams(location.search);
   J.densite = lite ? 1 : 1.5;

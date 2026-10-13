@@ -9,16 +9,16 @@ import { GLSL_BRUIT, GLSL_CIEL, GLSL_OMBRES } from './atlas-ciel.js';
 import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js';
 import { GLSL_FOND_MARIN } from './atlas-fond-marin.js';
 
-export const DIO = { demiX: 36, demiZ: 28, cx: 0, cz: 0.6, niveau: -0.1, epaisseur: 2.6, ilot: { x: -21.5, z: 9, r: 3.0 } };
+export const DIO = { demiX: 64, demiZ: 50, cx: 0, cz: 0.6, niveau: 0, epaisseur: 2.6, ilot: { x: -21.5, z: 9, r: 3.0 } };
 
 /* distance (en mètres) à la terre émergée, par transformée en distances en deux passes (chanfrein 3-4) */
 function champDistance(carte) {
-  const pas = 0.25, W = Math.round(2 * DIO.demiX / pas), H = Math.round(2 * DIO.demiZ / pas), x0 = DIO.cx - DIO.demiX, z0 = DIO.cz - DIO.demiZ;
+  const pas = 0.4, W = Math.round(2 * DIO.demiX / pas), H = Math.round(2 * DIO.demiZ / pas), x0 = DIO.cx - DIO.demiX, z0 = DIO.cz - DIO.demiZ;
   const d = new Float32Array(W * H), INF = 1e6;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const x = x0 + (i + 0.5) * pas, z = z0 + (j + 0.5) * pas, h = carte.hauteur(x, z);
     const sur = Math.hypot(x - DIO.ilot.x, z - DIO.ilot.z) < DIO.ilot.r * 0.74;                 // l'îlot du phare compte comme de la terre
-    d[j * W + i] = (h > DIO.niveau + 0.03 || carte.eau(x, z) || sur) ? 0 : INF;
+    d[j * W + i] = (h > DIO.niveau + 0.03 || sur) ? 0 : INF;
   }
   const A = 1, B = 1.4142;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { let v = d[j * W + i]; if (v === 0) continue;
@@ -41,10 +41,11 @@ function textureTranche() {
 export function creerDiorama(ciel, carte) {
   const groupe = new THREE.Group(), niv = DIO.niveau, { tex, zone } = champDistance(carte), U = ciel.uniformes;
   const uni = {
+    uScene:{value:null},uDepth:{value:null},uResolution:{value:new THREE.Vector2(1,1)},uNear:{value:.3},uFar:{value:2000},
     uTemps: { value: 0 }, uSea: { value: niv }, uSDF: { value: tex }, uSDFZone: { value: zone },
     uHTex: { value: carte.texH }, uEauTex: { value: carte.texEau }, uZone: { value: carte.zone },
     uZenith: U.uZenith, uMilieu: U.uMilieu, uHorizon: U.uHorizon, uSunDir: U.uSunDir, uSunCol: U.uSunCol, uNuit: U.uNuit, uCam: U.uCam, uNu: U.uNu,
-    uShallow: { value: new THREE.Color('#8fdcc2') }, uMid: { value: new THREE.Color('#34b4a6') }, uDeep: { value: new THREE.Color('#237f9c') }, uAbyss: { value: new THREE.Color('#35317a') }, uSable: { value: new THREE.Color('#e6d5a3') },
+    uShallow: { value: new THREE.Color('#b0dfc9') }, uMid: { value: new THREE.Color('#55c2b5') }, uDeep: { value: new THREE.Color('#237f9c') }, uAbyss: { value: new THREE.Color('#145971') }, uSable: { value: new THREE.Color('#e6d5a3') },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms: uni,
@@ -55,6 +56,8 @@ export function creerDiorama(ciel, carte) {
         w.y += houleAtlas(w.xz, uTemps).x * smoothstep(.2, 3., d);
         vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
     fragmentShader: `${GLSL_BRUIT}${GLSL_CIEL}${GLSL_OMBRES}${GLSL_HOULE}${GLSL_CAUSTIQUES}${GLSL_FOND_MARIN}
+      uniform sampler2D uScene,uDepth; uniform vec2 uResolution; uniform float uNear,uFar;
+      float linearDepth(float d){return uNear*uFar/(uFar-(uFar-uNear)*d);}
       uniform float uTemps, uSea; uniform vec3 uCam, uShallow, uMid, uDeep, uAbyss, uSable; uniform vec4 uZone, uSDFZone; uniform sampler2D uSDF, uHTex, uEauTex;
       varying vec3 vW;
       float causti(vec2 p, float t){ vec2 i = p; float c = 1.; for (int n = 0; n < 4; n++){ float tt = t * (1. - 3.5 / float(n + 1)); i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x)); c += 1. / length(vec2(p.x / (sin(i.x + tt) / .005), p.y / (cos(i.y + tt) / .005))); } c /= 4.; return pow(clamp(1.17 - pow(c, 1.4), 0., 1.), 8.); }
@@ -62,13 +65,15 @@ export function creerDiorama(ciel, carte) {
       float haut(vec2 p){ vec2 u = uvIle(p); if (u.x < 0. || u.y < 0. || u.x > 1. || u.y > 1.) return -50.; return texture2D(uHTex, u).r; }
       void main(){
         vec2 p = vW.xz; vec2 u = uvIle(p);
-        if (u.x > 0. && u.y > 0. && u.x < 1. && u.y < 1.){ float h = texture2D(uHTex, u).r, lag = texture2D(uEauTex, u).r; if ((h > uSea + .02 && h > -20.) || lag > .05) discard; }
-        float d = texture2D(uSDF, (p - uSDFZone.xy) / uSDFZone.zw).r;
+        if (u.x > 0. && u.y > 0. && u.x < 1. && u.y < 1.){ float h = texture2D(uHTex, u).r, lag = texture2D(uEauTex, u).r; if ((h > uSea + .02 && h > -20.) ) discard; }
+        float distanceRive = texture2D(uSDF, (p - uSDFZone.xy) / uSDFZone.zw).r;
+        float hFond=haut(p); float profondeur = hFond>-20. ? clamp(uSea-hFond,0.,1.5) : .3+distanceRive*.32;
+        float d = distanceRive;
         float n1 = fbm2(p * .45 + 3.), n2v = fbm2(p * 1.6 - 7.);
         d += (n1 - .5) * 1.4;
         /* jusant et flux : la ligne d'eau avance et recule sur la plage */
         float swash = .5 + .5 * sin(uTemps * .85 + n1 * 6.);
-        float ds = d - (swash * .5 - .12);
+        float ds = min(d,profondeur*2.) - (swash * .25 - .06);
         /* houle clapotante : deux trains d'ondes dirigés plus un clapot fin ; plus l'eau est profonde, plus elle est agitée */
         float agit = .55 + .45 * smoothstep(1., 10., d);
         vec2 g = (vec2(n2(p * 1.3 + vec2(uTemps * .32, 0.)), n2(p * 1.3 + 9. - vec2(0., uTemps * .27))) - .5) * .9
@@ -79,11 +84,11 @@ export function creerDiorama(ciel, carte) {
         float fres = .02 + .98 * pow(1. - max(dot(N, V), 0.), 4.);
         vec3 R = reflect(-V, N);
         /* profondeur apparente : turquoise vert près de la plage, bleu-vert, puis violet au large */
-        vec3 col = mix(uShallow, uMid, smoothstep(.5, 2.8, d));
-        col = mix(col, uDeep, smoothstep(2.6, 8., d));
-        col = mix(col, uAbyss, smoothstep(8., 24., d));
+        vec3 col = mix(uShallow, uMid, smoothstep(.12, .7, profondeur));
+        col = mix(col, uDeep, smoothstep(.65, 2.4, profondeur));
+        col = mix(col, uAbyss, smoothstep(2.2, 7., profondeur));
         /* sable visible sous l'eau claire, rides comprises */
-        float fond = 1. - smoothstep(.2, 4.5, d);
+        float fond = 1. - smoothstep(.2, 2.2, profondeur);
         // Réfraction du fond procédural : approximation, sans capture de scène.
         p += N.xz * (.08 + .24 * smoothstep(.3, 4., d));
         n1 = fbm2(p * .45 + 3.);
@@ -101,26 +106,35 @@ export function creerDiorama(ciel, carte) {
         float ombreT = pres * (1. - smoothstep(.85, 1.3, dO)) * (1. - touffe);
         vec3 herbe = mix(vec3(.05, .07, .03), vec3(.2, .22, .08), smoothstep(.15, 1., n2(p * 8.) * .75 + (1. - dH) * .4)) * (.7 + .5 * (.5 - fH.y + oH.y)) * (1. - .6 * smoothstep(.6, .95, dH));
         col *= 1. - ombreT * .35;
-        col = mix(col, herbe, touffe * .95);
+        col = mix(col, herbe, touffe * .18);
         /* taches sombres d'algues et galets noirs éparpillés sur le fond */
         float zone = smoothstep(1.4, 3.2, d) * (1. - smoothstep(13., 26., d));
         float tache = smoothstep(.52, .62, fbm2(p * .3 + 11.)) * zone;
-        col = mix(col, col * vec3(.45, .6, .62), tache * .75);
+        col = mix(col, col * vec3(.45, .6, .62), tache * .12);
         vec2 cG = floor(p / .55), fG = fract(p / .55) - .5;
         float galet = step(.62, h21(cG + 21.)) * smoothstep(.9, 2.2, d) * (1. - smoothstep(18., 28., d));
         float rg = .06 + .07 * h21(cG + 33.); vec2 oG = (vec2(h21(cG + 4.), h21(cG + 8.)) - .5) * .6;
-        col = mix(col, vec3(.05, .08, .1), galet * (1. - smoothstep(rg * .8, rg, length(fG - oG))) * .9);
+        col = mix(col, vec3(.05, .08, .1), galet * (1. - smoothstep(rg * .8, rg, length(fG - oG))) * .22);
         /* Fond virtuel extérieur : profondeur visuelle issue de la distance à la rive. */
-        col = fondMarinAtlas(col, p, .15 + max(d, 0.) * .16, uTemps);
+        col = fondMarinAtlas(col, p, profondeur, uTemps);
+        // Capture de la scène opaque : le vrai terrain, les galets et la végétation sous l'eau restent visibles.
+        vec2 screenUV=gl_FragCoord.xy/uResolution;
+        vec2 refrUV=clamp(screenUV+N.xz*min(profondeur,2.)*.007,vec2(.001),vec2(.999));
+        float surfaceDepth=linearDepth(gl_FragCoord.z);
+        if(linearDepth(texture2D(uDepth,refrUV).r)<surfaceDepth)refrUV=screenUV;
+        float epaisseur=clamp(linearDepth(texture2D(uDepth,refrUV).r)-surfaceDepth,0.,min(8.,profondeur*1.6+.1));
+        vec3 transmission=exp(-vec3(.48,.16,.09)*epaisseur);
+        vec3 vraiFond=texture2D(uScene,refrUV).rgb*transmission+col*(1.-transmission);
+        col=mix(col,vraiFond,.90*(1.-smoothstep(3.,7.,profondeur)));
         /* caustiques */
-        float ca = caustiqueAtlas(p * 1.9, uTemps) * (1. - smoothstep(1., 6., d)) * (1. - uNuit * .8);
-        col += vec3(.72, .95, .84) * ca * .12;
+        float ca = caustiqueAtlas(p * 4.5, uTemps) * (1. - smoothstep(1., 6., d)) * (1. - uNuit * .8);
+        col += vec3(.72, .95, .84) * ca * .035;
         /* ombre portée de l'île : on remonte le rayon du soleil dans la carte de hauteurs */
         vec3 L = normalize(uSunDir); float om = 0.;
         for (int i = 1; i <= 20; i++){ vec3 s = vec3(p.x, uSea, p.y) + L * float(i) * .85; float hh = haut(s.xz); om = max(om, step(s.y, hh - .05) * step(-20., hh)); }
-        col *= 1. - om * .42;
+        col *= 1. - om * .22;
         float ombre = ombreNuages(vW);
-        col *= 1. - ombre * .4;
+        col *= 1. - ombre * .16;
         /* reflets du ciel prune (forts à grand angle) et éclats du soleil : mille petits points scintillants */
         vec3 ciel = couleurCiel(vec3(R.x, abs(R.y), R.z));
         col = mix(col, ciel * vec3(.95, .85, .95), fres * (.42 + .22 * smoothstep(4., 16., d)));
@@ -128,12 +142,12 @@ export function creerDiorama(ciel, carte) {
         col += uSunCol * spec * 3.2 * (1. - om);
         col += uSunCol * pow(max(dot(R, uSunDir), 0.), 16.) * .08;
         float scint = step(.965, n2(p * 11. + uTemps * 1.6)) * step(.55, n2(p * 1.2 + uTemps * .3)) * (1. - om) * (.4 + .6 * smoothstep(1., 8., d));
-        col += vec3(1., .95, .85) * scint * .55;
+        col += vec3(1., .95, .85) * scint * .12;
         /* écume : bulles blanches dans la zone de balayage, vaguelettes qui avancent vers la rive, sillage autour du ponton */
-        float bande = 1. - smoothstep(.0, .6, ds);
+        float bande = 1. - smoothstep(.02, .18, profondeur);
         float bulle = smoothstep(.5, .62, fbm2(p * 7.5 + uTemps * .25));
-        float rive = bande * (.3 + .7 * bulle) + (1. - smoothstep(.0, .12, ds)) * .6;
-        float train = smoothstep(.87, 1., sin(d * 5.2 + uTemps * 1.3 + n1 * 1.2)) * (1. - smoothstep(.25, 2.4, d)) * (.5 + .5 * bulle) * .75;
+        float rive = bande * (.3 + .7 * bulle) + (1. - smoothstep(.01, .06, profondeur)) * .35;
+        float train = smoothstep(.87, 1., sin(d * 5.2 + uTemps * 1.3 + n1 * 1.2)) * (1. - smoothstep(.08, .28, profondeur)) * (.5 + .5 * bulle) * .55;
         col = mix(col, vec3(1., .98, .93), clamp(max(rive, train) * .92, 0., 1.));
         col *= mix(1., .3, uNuit);
         /* voile prune sur les bords de la dalle : la mer se perd dans la brume */
@@ -142,7 +156,7 @@ export function creerDiorama(ciel, carte) {
         gl_FragColor = vec4(col, 1.);
       }`,
   });
-  const surface = new THREE.Mesh(new THREE.PlaneGeometry(2 * DIO.demiX, 2 * DIO.demiZ, 72, 56).rotateX(-Math.PI / 2), mat);
+  const surface = new THREE.Mesh(new THREE.PlaneGeometry(2 * DIO.demiX, 2 * DIO.demiZ, 180, 140).rotateX(-Math.PI / 2), mat);
   surface.position.set(DIO.cx, niv, DIO.cz); surface.frustumCulled = false; surface.renderOrder = -4; groupe.add(surface);
 
   const tr = textureTranche(); tr.repeat.set(6, 1);
@@ -150,9 +164,9 @@ export function creerDiorama(ciel, carte) {
   const dessous = new THREE.MeshStandardMaterial({ color: '#3a2630', roughness: 1 });
   const caisse = new THREE.Mesh(new THREE.BoxGeometry(2 * DIO.demiX, DIO.epaisseur, 2 * DIO.demiZ), [matTranche, matTranche, dessous, dessous, matTranche, matTranche]);
   /* Le couvercle reste sous le creux maximal de la houle (0.062 m). */
-  caisse.position.set(DIO.cx, niv - DIO.epaisseur / 2 - 0.09, DIO.cz); caisse.receiveShadow = true; groupe.add(caisse);
+  caisse.position.set(DIO.cx, niv - DIO.epaisseur / 2 - 5.5, DIO.cz); caisse.receiveShadow = true; caisse.visible=false; groupe.add(caisse);
 
-  return { groupe, niveau: niv, surface, tick(t) { uni.uTemps.value = t; } };
+  return { groupe, niveau: niv, surface, ilotX:DIO.ilot.x, ilotZ:DIO.ilot.z, tick(t) { uni.uTemps.value = t; } };
 }
 
 /* L'îlot du phare : un monticule de sable qui sort de la mer, quelques rochers et des touffes, assez large pour porter la tour. */

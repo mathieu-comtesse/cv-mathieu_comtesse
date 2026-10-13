@@ -1,32 +1,5 @@
 <!doctype html>
-<html lang="fr"><head><script>(() => {
-  const root = document.documentElement;
-  const preference = window.matchMedia('(prefers-color-scheme: dark)');
-  let mode = 'auto';
-  try { const saved = localStorage.getItem('cv-theme'); if (['auto', 'light', 'dark'].includes(saved)) mode = saved; } catch (_) {}
-  const labels = {auto: 'Auto', light: 'Clair', dark: 'Sombre'};
-  function apply() {
-    root.dataset.theme = mode === 'auto' ? (preference.matches ? 'dark' : 'light') : mode;
-    const button = document.getElementById('theme-toggle');
-    if (button) {
-      button.querySelector('span').textContent = 'Apparence : ' + labels[mode];
-      const next = {auto:'light', light:'dark', dark:'auto'}[mode];
-      button.setAttribute('aria-label', 'Apparence : ' + labels[mode] + '. Passer en mode ' + labels[next] + '.');
-      button.title = 'Auto suit le navigateur et le système. Cliquer pour changer.';
-    }
-  }
-  apply();
-  preference.addEventListener('change', apply);
-  document.addEventListener('DOMContentLoaded', () => {
-    apply();
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      mode = {auto:'light', light:'dark', dark:'auto'}[mode];
-      try { localStorage.setItem('cv-theme', mode); } catch (_) {}
-      apply();
-    });
-  });
-})();
-</script>
+<html lang="fr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Mathieu Comtesse - un profil associant M2 MQSE et développement numérique : prévention et co-activité, maintenance réglementaire, méthodes qualité, extraction de données, automatisation et Power BI au service des équipes.">
@@ -50,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@300;400;700&amp;family=VT323&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<script src="app.js?v=20260923-fluide" defer=""></script>
+
 <style>
 /* Mécanique des trains (gravures) et du curseur - inchangée. */
 .railway{margin-top:0}
@@ -80,16 +53,16 @@ html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
 
 /* Coins « ⌐ ¬ » : les blocs de bande gardent un peu d’air pour les marques d’angle. */
 .band>.wrap.corners{padding-block:26px}
-</style><link rel="stylesheet" href="pages.css?v=20261004-flottante"><link rel="stylesheet" href="fx.css?v=20261004"><link rel="stylesheet" href="atlas-diorama.css?v=20261012-diorama"><script src="pages.js?v=20260924-mobile" defer=""></script><script src="fx.js?v=20261004" defer=""></script></head>
+</style><link rel="stylesheet" href="pages.css?v=20261004-flottante"><link rel="stylesheet" href="fx.css?v=20261004"><link rel="stylesheet" href="atlas-diorama.css?v=20261012-diorama"><link rel="stylesheet" href="atlas-refonte.css?v=20261013"></head>
 <body data-page="monde"><svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs><pattern id="ts-dots" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" style="fill:var(--white)"></rect><rect x="1.25" y="1.25" width="1.1" height="1.1" style="fill:var(--ink)"></rect></pattern><pattern id="ts-dots-dense" patternUnits="userSpaceOnUse" width="3" height="3"><rect width="3" height="3" style="fill:var(--white)"></rect><rect x="0.5" y="0.5" width="1.6" height="1.6" style="fill:var(--ink)"></rect></pattern></defs></svg>
 <main id="contenu" class="world-page" tabindex="-1">
 <div class="world-stage" id="world-stage"><canvas id="world-canvas" aria-label="Atlas du parcours, île en maquette : chaque bâtiment est une étape. Glisser pour tourner, survoler un point lumineux pour lire l’étape, cliquer pour ouvrir sa fiche." tabindex="0"></canvas>
-<aside class="world-intro"><h1>Mathieu<br>Comtesse<span>.</span></h1><p class="world-role">M2 MQSE · Assistant Sécurité &amp; Production</p><p class="world-lead">Atlas du parcours : une île posée sur la mer, où chaque bâtiment est une étape. Tourner la maquette, approcher un point lumineux pour lire l’étape, ouvrir sa fiche, et repérer les détails cachés.</p><nav class="world-links" aria-label="Liens"><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a><a href="mailto:mathieu@comtesse.me">E-mail</a><a href="profil.html#parcours">Parcours détaillé</a></nav></aside>
+<aside class="world-intro"><h1>Atlas<br>du parcours<span>.</span></h1><p class="world-role">EXPLORER · NAVIGUER · CONSTRUIRE</p><p class="world-lead">Huit étapes sur une île ouverte. Explore le parcours, prends le large ou construis ton château sur la plage.</p><nav class="world-links" aria-label="Liens"><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a><a href="mailto:mathieu@comtesse.me">E-mail</a><a href="profil.html#parcours">Parcours détaillé</a></nav></aside>
 <div class="world-labels" id="world-labels"></div><div class="world-loading" id="world-loading" role="status">Chargement de l’île…</div><div class="world-card" id="world-card" hidden></div>
 <div class="world-bubble" id="world-bubble" hidden></div><div class="world-fish" id="world-fish" role="dialog" aria-live="polite" hidden></div>
 <div class="world-sailhud" id="world-sailhud" hidden><span class="for-keys">ZQSD / flèches pour naviguer · Espace pour s’arrêter · F pour pêcher près d’un banc · Échap pour quitter la barre</span><span class="for-touch">Flèches pour naviguer · F pour pêcher près d’un banc</span></div>
 <div class="world-sailhud" id="world-walkhud" hidden><span class="for-keys">ZQSD pour marcher · glisser pour regarder · ← → pour tourner · Maj pour courir · E pour ouvrir une fiche · Échap pour quitter</span><span class="for-touch">Flèches pour marcher · glisser pour regarder · F pour ouvrir une fiche</span></div>
 <div class="world-pad" id="world-pad" hidden aria-label="Barre du bateau"><button data-k="up" aria-label="Avancer"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><button data-k="left" aria-label="Bâbord"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button data-k="fish" aria-label="Pêcher">F</button><button data-k="right" aria-label="Tribord"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button><button data-k="down" aria-label="Reculer"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button></div>
-<div class="world-hud"><span id="world-eggs">Easter eggs : 0 / 21</span><span id="world-hint" role="status">Glisser pour tourner · survoler un point lumineux · molette pour zoomer · « Naviguer » pour pêcher dans le lagon</span></div>
+<div class="world-hud"><span id="world-eggs">Easter eggs : 0 / 21</span><span id="world-hint" role="status">Glisser pour tourner · survoler un point lumineux · molette pour zoomer · Construire sur la plage · naviguer vers le large</span></div>
 <div class="world-controls"><button id="world-zoom-out" aria-label="Dézoomer">−</button><button id="world-zoom-in" aria-label="Zoomer">+</button><button id="world-pause" aria-label="Mettre en pause">Ⅱ</button><button id="world-reset" aria-label="Recentrer"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M5 12a7 7 0 1 0 2-5M4 3v5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="world-walk" aria-pressed="false">Marcher</button><button id="world-sail" aria-pressed="false">Naviguer</button><button id="world-log" aria-label="Carnet de bord des poissons pêchés">Carnet</button><button id="world-photo" aria-label="Prendre une photo de l’île">Photo</button><button id="world-sound" aria-pressed="true">Son : oui</button></div></div>
 </main><script type="module" src="atlas.js?v=20261012-diorama"></script></body></html>

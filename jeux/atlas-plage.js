@@ -16,7 +16,7 @@ function spriteFlamme() {
 export function creerPlage({ scene, carte, bats, niveau }) {
   const rng = aleatoire(4242), groupe = new THREE.Group(), meta = carte.meta, bord = meta.bord;
   /* sites de plage : points de la lèvre, ramenés vers l'intérieur, loin des bâtiments, du ponton et du pont */
-  const loin = (x, z, m) => { for (const k in bats) { const b = bats[k]; if (Math.hypot(x - b.x, z - b.z) < b.rayon + m) return false; }
+  const loin = (x, z, m) => { const a=meta.refonte.atelier;if(Math.hypot((x-a.c[0])/5.6,(z-a.c[1])/4)<1)return false; for (const k in bats) { const b = bats[k]; if (Math.hypot(x - b.x, z - b.z) < b.rayon + m) return false; }
     const pa = meta.ponton.a, pb = meta.ponton.b; if (Math.hypot(x - pa[0], z - pa[1]) < 2.2 || Math.hypot(x - pb[0], z - pb[1]) < 2.2) return false;
     return true; };
   const sites = [];

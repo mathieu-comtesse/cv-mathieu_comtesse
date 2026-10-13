@@ -16,10 +16,12 @@ export function creerRendu(canvas, opts = {}) {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.NoToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-  const R = { renderer, reglages: { exposition: 1.0, eclat: 0.46, vignette: 0.26, saturation: 1.03, contraste: 1.06, nuit: 0, maquette: 0.85, focus: 0.5 }, taille: new THREE.Vector2(1, 1) };
+  const R = { renderer, reglages: { exposition: 1.0, eclat: 0.18, vignette: 0.10, saturation: 1.03, contraste: 1.06, nuit: 0, maquette: 0.08, focus: 0.5 }, taille: new THREE.Vector2(1, 1) };
   const type = THREE.HalfFloatType;
   const profondeur = new THREE.DepthTexture(2, 2); profondeur.type = THREE.UnsignedIntType; profondeur.format = THREE.DepthFormat;
   let rtScene = new THREE.WebGLRenderTarget(2, 2, { type, samples: qualite >= 1 ? 4 : 0, depthTexture: profondeur, colorSpace: THREE.LinearSRGBColorSpace });
+  const opaqueDepth = new THREE.DepthTexture(2,2); opaqueDepth.type=THREE.UnsignedIntType;
+  const rtOpaque = new THREE.WebGLRenderTarget(2,2,{type,depthTexture:opaqueDepth,colorSpace:THREE.LinearSRGBColorSpace});
   const rtComp = new THREE.WebGLRenderTarget(2, 2, { type, colorSpace: THREE.LinearSRGBColorSpace, depthBuffer: false });
   const NIV = qualite >= 1 ? 6 : 5;
   const bas = [], haut = [];
@@ -87,14 +89,21 @@ export function creerRendu(canvas, opts = {}) {
     const W = Math.max(2, Math.round(w * densite)), H = Math.max(2, Math.round(h * densite));
     renderer.setPixelRatio(1); renderer.setSize(Math.round(w * densite), Math.round(h * densite), false);
     canvas.style.width = '100%'; canvas.style.height = '100%';
-    rtScene.setSize(W, H); rtComp.setSize(W, H);
+    rtScene.setSize(W, H); rtComp.setSize(W, H); rtOpaque.setSize(Math.max(2,W>>1),Math.max(2,H>>1));
     flou.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1))));
     bas.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1)))); haut.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1))));
     R.taille.set(W, H);
   };
   R.rendre = (scene, sceneNuages, camera, t = 0) => {
     const g = R.reglages;
+    const shadowAuto=renderer.shadowMap.autoUpdate;
+    if(R.eau){
+      const was=R.eau.visible; R.eau.visible=false; renderer.setRenderTarget(rtOpaque); renderer.clear(); renderer.render(scene,camera); R.eau.visible=was;
+      const water=R.eau.material.uniforms; water.uScene.value=rtOpaque.texture; water.uDepth.value=opaqueDepth; water.uResolution.value.copy(R.taille); water.uNear.value=camera.near; water.uFar.value=camera.far;
+      renderer.shadowMap.autoUpdate=false;
+    }
     renderer.setRenderTarget(rtScene); renderer.clear(); renderer.render(scene, camera);
+    renderer.shadowMap.autoUpdate=shadowAuto;
     copie.uniforms.t.value = rtScene.texture; passe(copie, rtComp);
     if (sceneNuages) { renderer.autoClear = false; renderer.setRenderTarget(rtComp); renderer.render(sceneNuages, camera); renderer.autoClear = true; }
     // flou de maquette : trois descentes successives de la scène complète

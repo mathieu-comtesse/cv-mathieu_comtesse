@@ -46,14 +46,14 @@ float ombreNuages(vec3 p){
 }`;
 
 /* crépuscule prune : le même ciel sert au diorama (mer turquoise sur dalle, soleil bas et chaud) */
-const JOUR = { zenith: '#4a3341', milieu: '#5a3c4c', horizon: '#6e4854', sol: '#ffe6c8', soleilCol: '#ffc58a', ocean: ['#0b4f63', '#16808a', '#46b6ae'] };
+const JOUR = { zenith: '#81b6c7', milieu: '#b0d2cf', horizon: '#e4dfc9', sol: '#ffe6c8', soleilCol: '#ffc58a', ocean: ['#0b4f63', '#16808a', '#46b6ae'] };
 const NUIT = { zenith: '#02040f', milieu: '#0a1430', horizon: '#1d3050', sol: '#8aa4d0', soleilCol: '#9fb7e8', ocean: ['#010a1e', '#03204a', '#0b3a73'] };
 
 export function creerCiel(renderer, scene, opts = {}) {
   const C = (h) => new THREE.Color(h);
   const U = {
     uZenith: { value: C(JOUR.zenith) }, uMilieu: { value: C(JOUR.milieu) }, uHorizon: { value: C(JOUR.horizon) },
-    uSunDir: { value: new THREE.Vector3(-0.66, 0.36, 0.52).normalize() }, uSunCol: { value: C(JOUR.soleilCol) }, uNuit: { value: 0 },
+    uSunDir: { value: new THREE.Vector3(-0.66, 0.68, 0.52).normalize() }, uSunCol: { value: C(JOUR.soleilCol) }, uNuit: { value: 0 },
     uT: { value: 0 }, uCam: { value: new THREE.Vector3() },
     uOcDeep: { value: C(JOUR.ocean[0]) }, uOcMid: { value: C(JOUR.ocean[1]) }, uOcLight: { value: C(JOUR.ocean[2]) },
     uIle: { value: new THREE.Vector3(0, 0, 0) },                   // centre de l'île (ombre portée sur l'océan)

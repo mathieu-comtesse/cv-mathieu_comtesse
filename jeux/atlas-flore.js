@@ -147,7 +147,7 @@ export function creerFlore(ciel, textures) {
      feuillage : carte alpha, normale non retournée sur la face arrière (la normale sphérique reste cohérente), vent, ombres de nuages,
      et un peu de translucidité (le contre-jour éclaire les feuilles). */
   function matFeuille(carte, o = {}) {
-    const m = new THREE.MeshStandardMaterial({ map: carte, vertexColors: true, alphaTest: o.alpha ?? .46, side: THREE.DoubleSide, roughness: o.rugosite ?? .62, metalness: 0, envMapIntensity: o.env ?? .5, alphaToCoverage: true });
+    const m = new THREE.MeshStandardMaterial({ map: carte, vertexColors: true, color:'#d3ddc7', alphaTest: o.alpha ?? .46, side: THREE.DoubleSide, roughness: o.rugosite ?? .62, metalness: 0, envMapIntensity: o.env ?? .5, alphaToCoverage: true });
     m.onBeforeCompile = (sh) => {
       sh.uniforms.uTemps = vent.uTemps; sh.uniforms.uForce = vent.uForce; sh.uniforms.uNu = ciel.uniformes.uNu; sh.uniforms.uSunDir = ciel.uniformes.uSunDir; sh.uniforms.uNuit = ciel.uniformes.uNuit;
       sh.vertexShader = `attribute float vent; uniform float uTemps, uForce; varying vec3 vWp;\n` + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -172,7 +172,7 @@ export function creerFlore(ciel, textures) {
           reflectedLight.directDiffuse *= (1. - sd_ * .62);
           { vec3 vd = normalize(vViewPosition); vec3 Ls = normalize((viewMatrix * vec4(uSunDir, 0.)).xyz);
             float tr = pow(max(dot(vd, Ls), 0.), 2.5) * max(dot(-normal, Ls) * .5 + .5, 0.);
-            reflectedLight.directDiffuse += diffuseColor.rgb * vec3(1., .95, .55) * tr * ${o.trans ?? '.55'} * (1. - sd_ * .6) * (1. - uNuit); }`);
+            reflectedLight.directDiffuse += diffuseColor.rgb * vec3(.85, .95, .8) * tr * ${o.trans ?? '.55'} * (1. - sd_ * .6) * (1. - uNuit); }`);
     };
     m.customProgramCacheKey = () => 'feuille' + (o.souplesse || '') + (o.trans || '');
     return m;
@@ -192,8 +192,8 @@ export function creerFlore(ciel, textures) {
 
   const mats = {
     feuillu: matFeuille(T.feuillu, { trans: '.5' }), pin: matFeuille(T.pin, { trans: '.3' }), buisson: matFeuille(T.buisson, { trans: '.55' }),
-    sakura: matFeuille(T.sakura, { trans: '.7', alpha: .4 }), fronde: matFeuille(T.fronde, { rugosite: .38, env: .9, trans: '.45', alpha: .5, souplesse: '1.8' }),
-    banane: matFeuille(T.banane, { rugosite: .42, env: .8, trans: '.6', alpha: .5, souplesse: '1.4' }), herbe: matFeuille(T.herbe, { rugosite: .85, trans: '.35', alpha: .5, souplesse: '2.2' }),
+    sakura: matFeuille(T.sakura, { trans: '.7', alpha: .4 }), fronde: matFeuille(T.fronde, { rugosite: .72, env: .4, trans: '.45', alpha: .5, souplesse: '1.8' }),
+    banane: matFeuille(T.banane, { rugosite: .72, env: .4, trans: '.6', alpha: .5, souplesse: '1.4' }), herbe: matFeuille(T.herbe, { rugosite: .85, trans: '.35', alpha: .5, souplesse: '2.2' }),
     ecorce: matEcorce(),
   };
 

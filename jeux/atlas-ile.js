@@ -19,7 +19,7 @@ function half(h) {                                          // demi-flottant -> 
 
 const ICI = (p) => new URL(p, import.meta.url).href;
 
-export async function chargerCarte(url = ICI('assets/atlas/ile-carte')) {
+export async function chargerCarte(url = ICI('assets/atlas/refonte/ile-carte')) {
   const meta = await (await fetch(url + '.json')).json();
   const buf = await (await fetch(url + '.bin')).arrayBuffer();
   const { nx, nz, res, x0, z0 } = meta;
@@ -90,7 +90,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           sandM_ = max(verd, idSable);
           float grain = n2(vWp.xz * 85.);
           float grainVisible = 1. - smoothstep(.5, 1.5, length(fwidth(vWp.xz * 85.)));
-          vec3 sable = mix(vec3(.82, .72, .48), vec3(.92, .84, .63), gros) * (.68 + .65 * lu) * (.95 + .07 * ride);
+          vec3 sable = mix(vec3(.80, .70, .48), vec3(.96, .88, .68), gros) * (.92 + .15 * lu) * (.95 + .07 * ride);
           sable *= 1. + (grain - .5) * .09 * grainVisible;
           float humidite = 1. - smoothstep(-.12, .32, vWp.y + .025 * sin(uTemps * .85));
           sable = mix(sable, sable * vec3(.83, .79, .70), humidite * .65);
@@ -109,7 +109,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           normal = normalize(normal - (viewMatrix * vec4(gw, 0.)).xyz * uBump * bumpM * fadeB * .5);
           /* facettes : la roche garde un peu de la normale de sa face (arêtes plus franches que la normale lissée) */
           vec3 fN = (viewMatrix * vec4(normalize(cross(dFdx(vWp), dFdy(vWp))), 0.)).xyz; if (dot(fN, normal) < 0.) fN = -fN;
-          normal = normalize(mix(normal, fN, .5 * rocheW * fadeB));
+          normal = normalize(mix(normal, fN, .16 * rocheW * fadeB));
           /* rides de sable soufflées par le vent : crêtes parallèles qui accrochent la lumière rasante */
           if (sandM_ > .02) {
             float ph = dot(vWp.xz, vec2(.9, .55)) * 11. + fbm3(vWp * .9) * 5.;
@@ -125,8 +125,8 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           vec2 uvw = vec2((vWp.z - uZone.y) / uZone.w, (vWp.x - uZone.x) / uZone.z);
           float inLag = texture2D(uEauTex, uvw).r * step(vWp.y, -.02) * step(-1.6, vWp.y);
           if (inLag > .01) {
-            float c = caustiqueAtlas(vWp.xz * 1.3, uTemps) * inLag * (1. - uNuit * .75);
-            totalEmissiveRadiance += vec3(.9, 1., .95) * c * (1. - smoothstep(-1.5, -.25, vWp.y)) * .55;
+            float c = caustiqueAtlas(vWp.xz * 4.8, uTemps) * inLag * (1. - uNuit * .75);
+            totalEmissiveRadiance += vec3(.9, 1., .95) * c * (1. - smoothstep(-1.5, -.25, vWp.y)) * .10;
           }
         }`}`)
       .replace('#include <aomap_fragment>', `#include <aomap_fragment>
@@ -141,9 +141,9 @@ export function eclairer(mat, ciel, carte, opts = {}) {
 
 export async function chargerIle(ciel) {
   const carte = await chargerCarte();
-  const mailles = await chargerMailles(ICI('assets/atlas/ile.bin'));
+  const mailles = await chargerMailles(ICI('assets/atlas/refonte/ile.bin'));
   const materiau = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, envMapIntensity: 0.3, side: THREE.DoubleSide });
-  const partage = eclairer(materiau, ciel, carte, { bump: 0.5 });
+  const partage = eclairer(materiau, ciel, carte, { bump: 0.18 });
   const mesh = new THREE.Mesh(mailles.ile.geo, materiau);
   mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = false;
   return { mesh, carte, materiau, partage };
@@ -205,6 +205,6 @@ export function creerEau(ile, ciel) {
   });
   const eau = new THREE.Mesh(new THREE.PlaneGeometry(15, 12, 1, 1).rotateX(-Math.PI / 2), mat);
   eau.position.set(carte.meta.lagon.c[0], 0, 5.0); eau.renderOrder = 4; eau.frustumCulled = false;
-  eau.userData.uniformes = U;
+  eau.userData.uniformes = U; eau.visible = false; // Océan et lagon partagent désormais une surface et un niveau.
   return eau;
 }

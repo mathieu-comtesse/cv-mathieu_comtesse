@@ -22,11 +22,17 @@ function poissonSVG(sp, connu = true) {
 }
 
 export function creerPeche(J) {
-  const { M, ui } = J, { carte } = M, bateau = M.objets.bateau, canne0 = bateau.userData.canne;
+  const { M, ui } = J, { carte } = M;
+  let bateau = M.objets.bateau;
+  M.bateauActif = 'bateau';
   const ondes = (x, z, t) => Math.sin(x * 2.1 + t * 1.3) * 0.006 + Math.sin(z * 2.6 - t * 1.1) * 0.005;
   const sail = { on: false, vitesse: 0, cap: 0, roulis: 0, touches: new Set(), frein: false };
   const peche = { phase: null, t: 0, spot: null, tient: false, prise: 0, tension: 0, sp: null, cm: 0, de: new THREE.Vector3(), vers: new THREE.Vector3(), attente: 0, mord: 0, lutte: 0, tic: 0, ui: {} };
   const P = { sail, peche, ESPECES, poissonSVG };
+  const choix=document.createElement('select');choix.id='world-ship';choix.hidden=true;choix.setAttribute('aria-label','Bateau à piloter');
+  choix.innerHTML='<option value="bateau">Bateau de pêche</option><option value="voilier">Voilier</option><option value="yacht">Yacht</option>';
+  document.querySelector('.world-controls').append(choix);
+  choix.onchange=()=>{sortir();M.bateauActif=choix.value;bateau=M.objets[choix.value];bateau.add(canne);canne.position.set(-.45,.22,.12);if(choix.value==='voilier')M.voilierLibre=true;entrer();};
 
   /* ------------------------------------------------------------ bancs de poissons : sept zones d'eau profonde réparties autour de l'îlot */
   const spots = [];
@@ -128,14 +134,17 @@ export function creerPeche(J) {
   /* ------------------------------------------------------------ navigation */
   function entrer() {
     if (sail.on) return; J.sortirMarche(); sail.on = true; M.barreSail = true; bateau.userData.go = 0;
+    choix.hidden=false;
     sail.cap = -Math.atan2(bateau.position.z - carte.meta.lagon.c[1], bateau.position.x - carte.meta.lagon.c[0]) + Math.PI; sail.vitesse = 0;
     J.camera.but(14, 1.12); J.fermerFiche(); document.body.classList.add('is-sailing'); ui.hudBarre.hidden = false; ui.pad.hidden = false; ui.btnBarre.textContent = 'Quitter la barre'; ui.btnBarre.setAttribute('aria-pressed', 'true');
-    J.indice('Vous tenez la barre : approchez un banc de poissons pour pêcher.'); J.canvas.focus({ preventScroll: true });
+    J.indice('Suis le chenal entre les plages pour rejoindre le large. F pour pêcher près d’un banc.'); J.canvas.focus({ preventScroll: true });
   }
   function sortir() {
     if (!sail.on) return; arreterPeche(); sail.on = false; sail.touches.clear(); M.barreSail = false; J.camera.but(40, 0.82);
     document.body.classList.remove('is-sailing'); ui.hudBarre.hidden = true; ui.pad.hidden = true; ui.bulle.hidden = true; ui.btnBarre.textContent = 'Naviguer'; ui.btnBarre.setAttribute('aria-pressed', 'false');
-    bateau.userData.retour = 0.001;
+    // Le bateau reste au mouillage là où on quitte la barre.
+    bateau.userData.retour = 0;
+    choix.hidden=true;
   }
   ui.btnBarre.onclick = () => { sail.on ? sortir() : entrer(); ui.btnBarre.blur(); J.canvas.focus({ preventScroll: true }); };
   ui.pad.querySelectorAll('button').forEach((b) => { const k = b.dataset.k, on = (e) => { e.preventDefault(); if (J.marche.on) { k === 'fish' ? J.interagirMarche() : J.marche.touches.add(k); return; } k === 'fish' ? (bancProche() && lancer(bancProche())) : sail.touches.add(k); }, off = () => { sail.touches.delete(k); J.marche.touches.delete(k); }; b.addEventListener('pointerdown', on); ['pointerup', 'pointerleave', 'pointercancel'].forEach((e) => b.addEventListener(e, off)); });
@@ -145,14 +154,15 @@ export function creerPeche(J) {
     if (peche.phase) u.vitesse *= Math.pow(0.15, dt); else { u.vitesse += (poussee * 1.6 - u.vitesse * 1.05) * dt; if (u.frein) u.vitesse *= Math.pow(0.04, dt); }
     u.cap += tourne * dt * 1.5 * (0.3 + 0.7 * Math.min(1, Math.abs(u.vitesse) / 0.9)) * (u.vitesse < -0.05 ? -1 : 1);
     const fx = Math.cos(u.cap), fz = -Math.sin(u.cap), sens = u.vitesse < 0 ? -1 : 1, nx = bateau.position.x + fx * u.vitesse * dt, nz = bateau.position.z + fz * u.vitesse * dt;
-    const libre = (x, z) => carte.eau(x, z) && carte.hauteur(x, z) < -0.3 && Math.hypot(x - M.objets.ponton.position.x, z - M.objets.ponton.position.z) > 0.0;
-    if (!libre(nx + fx * 0.5 * sens, nz + fz * 0.5 * sens) || !libre(nx, nz)) { if (Math.abs(u.vitesse) > 0.5) J.son.tone([140, 95], 0.12); u.vitesse *= -0.3; } else { bateau.position.x = nx; bateau.position.z = nz; }
+    const libre = (x,z) => M.navigable(x,z) && ['bateau','voilier','yacht'].every(k=>M.objets[k]===bateau||Math.hypot(x-M.objets[k].position.x,z-M.objets[k].position.z)>.58);
+    const longueur=M.bateauActif==='yacht'?1.1:.5;
+    if (!libre(nx + fx * longueur * sens, nz + fz * longueur * sens) || !libre(nx, nz)) { if (Math.abs(u.vitesse) > 0.5) J.son.tone([140, 95], 0.12); u.vitesse *= -0.3; } else { bateau.position.x = nx; bateau.position.z = nz; }
     u.roulis += ((-tourne * u.vitesse * 0.1) - u.roulis) * Math.min(1, dt * 4);
     bateau.position.y = ondes(bateau.position.x, bateau.position.z, t) + 0.01; bateau.rotation.set(u.roulis + Math.sin(t * 1.3) * 0.03, u.cap, Math.sin(t * 1.1) * 0.035 + u.vitesse * 0.03);
   }
   const wakes = []; { const geo = new THREE.CircleGeometry(0.09, 10).rotateX(-Math.PI / 2); for (let i = 0; i < 60; i++) { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false })); m.visible = false; m.renderOrder = 6; M.scene.add(m); wakes.push({ m, vie: 0, vx: 0, vz: 0 }); } }
   let wakeNext = 0; const traine = (obj, dt) => { const u = obj.userData, p = obj.position; if (!u.dernier) { u.dernier = p.clone(); return; } const vx = (p.x - u.dernier.x) / dt, vz = (p.z - u.dernier.z) / dt, sp = Math.hypot(vx, vz); u.dernier.copy(p); u.wakeT = (u.wakeT || 0) - dt; if (sp < 0.15 || u.wakeT > 0) return; u.wakeT = 0.07; const fx = vx / sp, fz = vz / sp;
-    for (const s of [-1, 1]) { const w = wakes[wakeNext++ % wakes.length]; w.m.visible = true; w.vie = 1; w.m.position.set(p.x - fx * 0.5 + fz * s * 0.09, 0.012, p.z - fz * 0.5 - fx * s * 0.09); w.vx = fz * s * 0.2; w.vz = -fx * s * 0.2; } };
+    for (const s of [-1, 1]) { const w = wakes[wakeNext++ % wakes.length]; w.m.visible = true; w.vie = 1; w.m.position.set(p.x - fx * 0.5 + fz * s * 0.09, 0.065, p.z - fz * 0.5 - fx * s * 0.09); w.vx = fz * s * 0.2; w.vz = -fx * s * 0.2; } };
 
   P.tick = (dt, t) => {
     // poissons des bancs : tournent autour de leur zone, fuient devant la coque
@@ -174,7 +184,7 @@ export function creerPeche(J) {
   };
   P.touche = (e, bas) => {
     if (!sail.on || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return false;
-    const K = { KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right' }[e.code];
+    const K = { KeyZ: 'up', KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyQ: 'left', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right' }[e.code];
     if (peche.phase) {
       if (e.code === 'Space' || e.code === 'KeyF') { e.preventDefault(); if (peche.phase === 'ramene') peche.tient = bas; else if (bas && !e.repeat && /pris|perdu|log/.test(peche.phase)) lancer(peche.spot); return true; }
       if (e.code === 'Escape' && bas) { arreterPeche(); return true; }

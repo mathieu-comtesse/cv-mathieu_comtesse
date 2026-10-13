@@ -1,0 +1,64 @@
+/* Atlas : interface lisible, espace de création et commandes permanentes. */
+:root{--dio-ink:#183e43;--dio-mute:#446a6b;--dio-acc:#bd622c}
+.world-stage{height:100dvh;min-height:420px;background:#c1d9d4}
+.world-stage::after{background:radial-gradient(ellipse at 50% 46%,transparent 60%,rgba(38,82,85,.09))!important}
+.world-loading{background:#d8e6df;color:#274f52;letter-spacing:.05em}
+.world-intro{left:32px;top:30px;bottom:auto;max-width:280px;transform:none}
+.world-intro h1{font:500 clamp(32px,3.4vw,48px)/.96 'Host Grotesk',system-ui;letter-spacing:-.055em;color:#173e43!important;text-shadow:0 2px 22px rgba(240,245,223,.7)}
+.world-intro .world-role{font:500 10px/1.6 'Host Grotesk',system-ui;letter-spacing:.16em;color:#28565a;text-shadow:none;margin-top:12px}
+.world-intro .world-lead{opacity:1;max-height:none;transform:none;color:#31585a;font:13px/1.55 'Host Grotesk',system-ui;text-shadow:none;margin-top:12px;max-width:225px}
+.world-links{display:none}
+.world-controls{left:50%;right:auto;bottom:24px;transform:translateX(-50%);display:flex;flex-wrap:nowrap;align-items:center;gap:3px;opacity:1;width:max-content;max-width:calc(100% - 32px);padding:7px;background:rgba(252,249,232,.96);border:1px solid rgba(26,70,69,.18);border-radius:14px;box-shadow:0 7px 30px rgba(17,58,65,.16);overflow-x:auto;scrollbar-width:thin}
+.world-controls button{font:500 12px 'Host Grotesk',system-ui!important;letter-spacing:0;text-transform:none;color:#254f50!important;background:transparent!important;border-radius:9px;padding:11px 12px;min-height:42px;white-space:nowrap;text-shadow:none}
+.world-controls button::after{display:none}
+.world-controls button:hover,.world-controls button:focus-visible{background:#e1e9db!important;color:#163c3c!important;outline:2px solid #3b8c83;outline-offset:-2px}
+.world-controls #world-build,.world-controls button[aria-pressed="true"]{background:#235e5e!important;color:#fff6d9!important}
+#world-pause,#world-log,#world-photo,#world-sound{display:none}
+.atlas-options{position:absolute;right:26px;top:26px;z-index:6;font:12px 'Host Grotesk',system-ui;color:#254f50}
+.atlas-options summary{list-style:none;cursor:pointer;padding:12px 16px;border:1px solid #bdd0c2;border-radius:10px;background:rgba(250,248,229,.96)}
+.atlas-options div{position:absolute;right:0;top:50px;width:170px;padding:6px;background:#f9f6e6;border:1px solid #bed0c2;border-radius:12px;box-shadow:0 8px 25px #17434222;display:grid;gap:4px}
+.atlas-options button{display:block!important;text-align:left;cursor:pointer;background:transparent;border:0;border-radius:7px;padding:12px;color:#254f50;font:12px 'Host Grotesk',system-ui}
+.atlas-options button:hover,.atlas-options button:focus-visible{background:#dee8d8;outline:2px solid #387a70;outline-offset:-2px}
+#world-ship{max-width:140px;min-height:40px;border:1px solid #c1cebd;border-radius:8px;background:#eef0dc;color:#254f50;font:12px 'Host Grotesk',system-ui;padding:5px}
+#world-ship[hidden]{display:none}
+.world-hud{right:28px;bottom:98px;opacity:1;align-items:flex-end}
+.world-hud span{color:#264f52!important;font:11px/1.4 'Host Grotesk',system-ui;letter-spacing:0;text-shadow:0 1px 10px #e0e9de;text-align:right}
+#world-hint{max-height:48px;opacity:1;max-width:280px}
+.world-card,.world-fish{background:rgba(248,245,226,.97)!important;color:#254f50;box-shadow:0 20px 60px rgba(12,40,44,.25)!important}
+.world-card{bottom:105px!important}
+.world-card h2,.world-fish h2{color:#24484a!important}
+.world-card p{color:#456365!important}
+.world-card a{color:#286b67!important;border-color:#84a39c!important}
+.world-close{color:#254f50!important}
+.world-bubble,.world-sailhud{background:rgba(250,246,226,.95)!important;color:#254f50!important}
+.world-pin .pin-ico{background:#fff5d4;box-shadow:0 0 0 3px rgba(27,85,80,.35),0 0 12px rgba(255,246,210,.5);animation:none}
+.world-pin b,.world-pin small{color:#163c40;text-shadow:0 1px 5px #fff4da,0 0 12px #fff4da}
+.sand-tools{position:absolute;z-index:5;right:24px;bottom:102px;width:min(340px,calc(100% - 32px));padding:20px;border:1px solid #c9d4c4;border-radius:16px;background:rgba(251,247,228,.98);box-shadow:0 15px 60px rgba(19,65,64,.16);color:#254f50;font:13px/1.5 'Host Grotesk',system-ui}
+.sand-tools[hidden]{display:none}
+.sand-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sand-heading small{letter-spacing:.15em;font-size:9px;color:#597573}
+.sand-heading h2{font-size:22px;line-height:1.15;margin:7px 0 0;font-weight:500;letter-spacing:-.03em}
+.sand-tools p{color:#5a7069;margin:12px 0}
+.sand-tools button{border:1px solid #b7c8ba;border-radius:8px;background:#f1f0df;color:#315a55;font:500 12px 'Host Grotesk',system-ui;padding:9px 11px;min-height:40px;cursor:pointer}
+.sand-tools button:hover,.sand-tools button:focus-visible{background:#e0e7d7;outline:2px solid #448b7d;outline-offset:1px}
+.sand-tools button[aria-pressed="true"]{background:#286760;color:#fff8df;border-color:#286760}
+.sand-tool-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sand-tool-row [data-tool="retirer"]{grid-column:span 3}
+.sand-settings{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:13px}
+.sand-settings label{width:100%;display:flex;align-items:center;gap:12px;font-size:11px}
+.sand-settings input{flex:1;min-width:0;accent-color:#286760;cursor:ew-resize}
+.sand-status{display:block;color:#2e6960;padding:12px 0;min-height:40px}
+.sand-footer{display:flex;align-items:center;gap:10px;border-top:1px solid #d4dac8;padding-top:12px}
+.sand-footer span{font-size:10px;color:#6e7d6c}
+body.is-building .world-intro,body.is-building .world-hud,body.is-building .world-labels{display:none}
+body.is-night{--dio-ink:#e1e7d7;--dio-mute:#c2d2c9}
+body.is-night .world-intro h1,body.is-night .world-intro p,body.is-night .world-hud span{color:#e5eadc!important;text-shadow:0 1px 10px #123}
+@media(max-width:850px){
+ .atlas-options{top:20px;right:16px}.atlas-options summary{padding:10px}
+ .world-intro{left:20px;top:20px;bottom:auto;max-width:230px}.world-intro h1{font-size:32px}.world-intro .world-lead{display:none}.world-hud{display:none}
+ .world-controls{left:16px;right:16px;bottom:16px;transform:none;width:auto;max-width:none;justify-content:flex-start;padding:5px;gap:1px}.world-controls button{padding:10px 11px}
+ .sand-tools{right:16px;bottom:84px;width:calc(100% - 32px);max-height:45dvh;overflow-y:auto;padding:14px;box-sizing:border-box}
+ .sand-heading h2{font-size:19px}.sand-tools p{font-size:11px;margin:7px 0}.sand-tools button{min-height:36px;padding:7px 8px}.sand-footer{padding-top:6px}.sand-status{padding:7px 0;min-height:32px}
+ .world-sailhud{top:14px;font-size:10px}.world-pad{bottom:95px!important}
+}
+@media(prefers-reduced-motion:reduce){.world-stage *{transition:none!important}}

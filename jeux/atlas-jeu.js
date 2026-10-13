@@ -146,7 +146,7 @@ export function creerJeu(M, R, dom) {
   };
 
   /* ------------------------------------------------------------------------------------------------ caméra : orbite autour de l'île */
-  const cam = { spin: 0.55, pitch: 0.55, zoom: 46, but: null, cible: V3(0, -1, 0.4), vitesse: 0.1, pause: false, glisse: null };
+  const cam = { spin: 0.55, pitch: 0.72, zoom: 66, but: null, cible: V3(0, -1, 0.4), vitesse: 0.035, pause: true, glisse: null };
   J.camera.but = (zoom, pitch) => { cam.but = { zoom, pitch }; };
   J.vue = (spin, pitch, zoom) => { cam.spin = spin; cam.pitch = pitch; cam.zoom = zoom; cam.pause = true; };
   J.cam = cam;
@@ -155,12 +155,13 @@ export function creerJeu(M, R, dom) {
     if (cam.but) { const k = Math.min(1, dt * 2.2); cam.zoom += (cam.but.zoom - cam.zoom) * k; cam.pitch += (cam.but.pitch - cam.pitch) * k; if (Math.abs(cam.but.zoom - cam.zoom) < 0.05) cam.but = null; }
     const dessous = (1 - bornes((cam.pitch + 0.4) / 0.8, 0, 1)) * (1 - 0.0);                // regarde le socle quand on passe sous l'horizon
     const cibleY = -1 + dessous * -5.5;
-    if (sail.on) { _t.set(bateauPos().x, 0, bateauPos().z); cam.cible.lerp(_t, Math.min(1, dt * 3)); } else cam.cible.lerp(_t.set(0, cibleY, 0.4), Math.min(1, dt * 1.6));
+    if(J.atelier?.on){cam.cible.lerp(_t.set(M.meta.refonte.atelier.c[0],.3,M.meta.refonte.atelier.c[1]),Math.min(1,dt*4));}
+    else if (sail.on) { _t.set(bateauPos().x, 0, bateauPos().z); cam.cible.lerp(_t, Math.min(1, dt * 3)); } else cam.cible.lerp(_t.set(0, cibleY, 0.4), Math.min(1, dt * 1.6));
     const d = cam.zoom * Math.max(1, 0.78 / camera.aspect), decal = 0;
     camera.position.set(cam.cible.x + Math.sin(cam.spin) * d * Math.cos(cam.pitch), cam.cible.y + Math.sin(cam.pitch) * d, cam.cible.z + Math.cos(cam.spin) * d * Math.cos(cam.pitch));
     camera.lookAt(cam.cible); camera.translateX(decal); camera.lookAt(camera.position.clone().add(camera.getWorldDirection(V3())));
   }
-  const bateauPos = () => M.objets.bateau.position;
+  const bateauPos = () => M.objets[M.bateauActif || "bateau"].position;
 
   /* ------------------------------------------------------------------------------------------------ marche à la première personne */
   const marche = { on: false, pos: V3(), yaw: 0, regard: -0.08, touches: new Set(), court: false, pas: 0, proche: null, fov: 30 };
@@ -168,9 +169,9 @@ export function creerJeu(M, R, dom) {
   const pon = M.objets.ponton, yawPon = pon.rotation.y, pontY = M.objets.pont, yawPont = pontY.rotation.y;
   const surfaceMarche = (x, z) => { // hauteur du sol sous (x, z) : terrain, ponton ou pont ; null si on ne peut pas y aller
     const dx = x - pon.position.x, dz = z - pon.position.z, t = dx * Math.sin(yawPon) + dz * Math.cos(yawPon), l = dx * Math.cos(yawPon) - dz * Math.sin(yawPon);
-    if (t > -0.1 && t < 2.8 && Math.abs(l) < 0.26) return 0.24;
+    if (t > -0.1 && t < 3.92 && Math.abs(l) < 0.26) return 0.24;
     const px = x - pontY.position.x, pz = z - pontY.position.z, tp = px * Math.sin(yawPont) + pz * Math.cos(yawPont), lp = px * Math.cos(yawPont) - pz * Math.sin(yawPont);
-    if (tp > -0.05 && tp < 1.8 && Math.abs(lp) < 0.17) return 0.47 + 0.3 * Math.sin(Math.PI * Math.min(1, Math.max(0, tp / 1.75)));
+    if (tp > -0.05 && tp < 2.52 && Math.abs(lp) < 0.17) return 0.47 + 0.3 * Math.sin(Math.PI * Math.min(1, Math.max(0, tp / 2.45)));
     const h = carte.hauteur(x, z); if (h < -20) return null; if (h < -0.3) return null; return h;
   };
   const batiments = Object.values(M.bats);
@@ -221,26 +222,28 @@ export function creerJeu(M, R, dom) {
     if (o.userData.oeuf) { const e2 = J.oeufs.get(o.userData.oeuf); e2.action?.(); oeuf(o.userData.oeuf, e2.texte); return; }
     if (o.userData.batiment) montrerFiche(o.userData.batiment.userData.etape);
   }
-  canvas.addEventListener('pointerdown', (e) => { appui = { x: e.clientX, y: e.clientY, spin: cam.spin }; glisse = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointerdown', (e) => { if(J.atelier?.on)return; appui = { x: e.clientX, y: e.clientY, spin: cam.spin }; glisse = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
   canvas.addEventListener('pointermove', (e) => {
+    if(J.atelier?.on)return;
     if (glisse && marche.on) { marche.yaw -= (e.clientX - glisse.x) * 0.004; marche.regard = bornes(marche.regard - (e.clientY - glisse.y) * 0.003, -1.1, 0.9); glisse.x = e.clientX; glisse.y = e.clientY; }
     else if (glisse) { cam.spin = appui.spin - (e.clientX - appui.x) * 0.006; cam.pitch = bornes(cam.pitch + (e.clientY - glisse.y) * 0.003, 0.12, 1.38); glisse.y = e.clientY; }
     else viser(e, false); });
-  canvas.addEventListener('pointerup', (e) => { const bouge = appui && Math.hypot(e.clientX - appui.x, e.clientY - appui.y) > 5; glisse = null; if (!bouge) viser(e, true); });
+  canvas.addEventListener('pointerup', (e) => { if(J.atelier?.on)return; const bouge = appui && Math.hypot(e.clientX - appui.x, e.clientY - appui.y) > 5; glisse = null; if (!bouge) viser(e, true); });
   canvas.addEventListener('pointercancel', () => (glisse = null));
-  canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (marche.on) return; cam.zoom = bornes(cam.zoom + e.deltaY * 0.03, 10, 80); }, { passive: false });
+  canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (marche.on || J.atelier?.on) return; cam.zoom = bornes(cam.zoom + e.deltaY * 0.03, 10, 80); }, { passive: false });
   canvas.addEventListener('touchmove', (e) => { if (e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (pincement) cam.zoom = bornes(cam.zoom * (pincement / d), 10, 70); pincement = d; e.preventDefault(); } }, { passive: false });
   canvas.addEventListener('touchend', () => (pincement = null));
   window.addEventListener('keyup', (e) => { touchesMarche(e, false); pecher.touche(e, false); });
   window.addEventListener('blur', () => { marche.touches.clear(); marche.court = false; });
   window.addEventListener('keydown', (e) => {
+    if(J.atelier?.on && e.code==='Escape'){J.atelier.fermer();return;}
     if (touchesMarche(e, true) || pecher.touche(e, true)) return; if (/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return; if (/^Arrow/.test(e.code)) e.preventDefault();
     if (e.code === 'ArrowLeft') cam.spin += 0.08; if (e.code === 'ArrowRight') cam.spin -= 0.08; if (e.code === 'ArrowUp') cam.pitch = Math.min(1.38, cam.pitch + 0.05); if (e.code === 'ArrowDown') cam.pitch = Math.max(-0.6, cam.pitch - 0.05);
     if (e.key === '+' || e.key === '=') cam.zoom = Math.max(10, cam.zoom - 3); if (e.key === '-') cam.zoom = Math.min(70, cam.zoom + 3); if (e.code === 'Space') { e.preventDefault(); $('world-pause').click(); } });
   $('world-zoom-in').onclick = (e) => { cam.zoom = Math.max(10, cam.zoom - 5); e.currentTarget.blur(); };
   $('world-zoom-out').onclick = (e) => { cam.zoom = Math.min(70, cam.zoom + 5); e.currentTarget.blur(); };
   $('world-pause').onclick = (e) => { cam.pause = !cam.pause; e.currentTarget.innerHTML = cam.pause ? '<svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg>' : 'Ⅱ'; e.currentTarget.setAttribute('aria-label', cam.pause ? 'Reprendre la rotation' : 'Mettre en pause'); };
-  $('world-reset').onclick = () => { sortirMarche(); pecher.sortir(); cam.spin = 0.55; cam.pitch = 0.55; cam.zoom = 46; J.fermerFiche(); reglerNuit(false); };
+  $('world-reset').onclick = () => { sortirMarche(); pecher.sortir(); cam.spin = 0.55; cam.pitch = 0.72; cam.zoom = 66; J.fermerFiche(); reglerNuit(false); };
   $('world-photo').onclick = () => { R.rendre(M.scene, M.sceneNuages, camera, performance.now() / 1000); const a = document.createElement('a'); a.download = 'atlas-du-parcours.png'; a.href = canvas.toDataURL('image/png'); a.click(); oeuf('photo', 'Une photo souvenir de l’île, enregistrée sur votre appareil.'); };
 
   /* ------------------------------------------------------------------------------------------------ boucle de jeu */
@@ -250,10 +253,10 @@ export function creerJeu(M, R, dom) {
     const cible = nuit ? 1 : 0; nuitK += (cible - nuitK) * Math.min(1, dt * 1.6); if (Math.abs(cible - nuitK) < 0.002) nuitK = cible; M.ciel.nuit(nuitK); R.reglages.nuit = nuitK;
     faisceau.material.opacity = 0.3 * nuitK; M.objets.phare.userData.ancres.lampe.parent.traverse(() => {}); pharePivot.rotation.y = t * 0.6;
     ampoule.material.emissiveIntensity = 0.5 + 1.4 * nuitK;
-    if (!cam.pause && !glisse && !sail.on && !marche.on) cam.spin += cam.vitesse * dt;
+    if (!cam.pause && !glisse && !sail.on && !marche.on && !J.atelier?.on) cam.spin += cam.vitesse * dt;
     if (marche.on) tickMarche(dt, t); else placerCamera(dt);
     M.tick(dt, t);
-    pecher.tick(dt, t);
+    pecher.tick(dt, t); J.atelier?.tick(dt,t);
     // signal
     signal.t += dt; if (signal.t > signal.aspects[signal.aspect].d) signal.regler(signal.aspect + 1); signal.halo.intensity = 0.5 + nuitK * 1.2;
     // horloge de la gare et chat

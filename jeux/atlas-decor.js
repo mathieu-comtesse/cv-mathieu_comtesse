@@ -32,6 +32,7 @@ export function peupler({ carte, flore, ciel, densite = 1 }) {
   const voie = meta.voie, pont = meta.pont, ponton = meta.ponton;
   /* l'endroit est-il libre de bâtiment, de pont, de voie ferrée ? marge en unités */
   const libre = (x, z, marge = 0.5) => {
+    const a=meta.refonte.atelier;if(Math.hypot((x-a.c[0])/5.6,(z-a.c[1])/4)<1)return false;
     for (const b of bats) if (Math.hypot(x - b.pos[0], z - b.pos[1]) < b.r + marge) return false;
     if (distSegment(x, z, pont.a, pont.b) < 0.9 + marge) return false;
     if (distSegment(x, z, ponton.a, ponton.b) < 1.2 + marge) return false;
@@ -92,11 +93,11 @@ export function peupler({ carte, flore, ciel, densite = 1 }) {
   const matDepth = (map, alpha) => { const k = map.uuid; if (!depth.has(k)) depth.set(k, new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map, alphaTest: alpha, side: THREE.DoubleSide })); return depth.get(k); };
   for (const lot of lots.values()) {
     const A = flore.arbre(lot.type, lot.variante * 7 + 11);
-    const faire = (geo, mat, feuille) => { const im = new THREE.InstancedMesh(geo, mat, lot.m.length); lot.m.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; if (feuille) im.customDepthMaterial = matDepth(mat.map, mat.alphaTest); groupe.add(im); };
+    const faire = (geo, mat, feuille) => { const im = new THREE.InstancedMesh(geo, mat, lot.m.length); lot.m.forEach((m, i) => im.setMatrixAt(i, m)); im.instanceMatrix.needsUpdate = true; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; if (feuille && mat.map) im.customDepthMaterial = matDepth(mat.map, mat.alphaTest); groupe.add(im); };
     if (A.ecorce) faire(A.ecorce, A.matEcorce, false); faire(A.feuillage, A.matFeuille, true);
   }
   /* herbe : touffes semées sur les prairies (instancing dense) */
-  const nHerbe = Math.round(6500 * densite), gH = flore.herbes(), im = new THREE.InstancedMesh(gH, flore.mats.herbe, nHerbe), m4 = new THREE.Matrix4(); let ih = 0;
+  const nHerbe = Math.round(1400 * densite), gH = flore.herbes(), im = new THREE.InstancedMesh(gH, flore.mats.herbe, nHerbe), m4 = new THREE.Matrix4(); let ih = 0;
   for (let k = 0; k < nHerbe * 6 && ih < nHerbe; k++) { const [x, z, h] = aleaIle(); const de = distEau(x, z);
     if (h < 0.32 || de < 1.0 || !libre(x, z, 0.25) || carte.pente(x, z) > 0.7 || distChemin(x, z) < 0.42) continue;
     m4.compose(new THREE.Vector3(x, h - 0.02, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, rng() * 6.3, 0)), new THREE.Vector3(0.8 + rng() * 0.9, 0.7 + rng() * 0.9, 0.8 + rng() * 0.9)); im.setMatrixAt(ih++, m4); }
