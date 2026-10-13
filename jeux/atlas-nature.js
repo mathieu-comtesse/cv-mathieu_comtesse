@@ -1,8 +1,8 @@
 import * as THREE from './three.module.js';
-import { chargerMailles } from './atlas-maille.js';
-import { aleatoire } from './atlas-flore.js';
-import { GLSL_BRUIT } from './atlas-ciel.js';
-import { GLSL_CAUSTIQUES } from './atlas-eau-matiere.js';
+import { chargerMailles } from './atlas-maille.js?v=20261013-refonte';
+import { aleatoire } from './atlas-flore.js?v=20261013-refonte';
+import { GLSL_BRUIT } from './atlas-ciel.js?v=20261013-refonte';
+import { GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261013-refonte';
 
 export async function ameliorerCanopes(flore){
  const meshes=await chargerMailles(new URL('assets/atlas/refonte/vegetation.bin',import.meta.url));

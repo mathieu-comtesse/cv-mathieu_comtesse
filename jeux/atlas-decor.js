@@ -3,7 +3,7 @@
  *
  *   const decor = peupler({ carte, flore, ciel })   ->  { groupe, mises à jour: tick(dt, t) }                                          */
 import * as THREE from './three.module.js';
-import { aleatoire } from './atlas-flore.js';
+import { aleatoire } from './atlas-flore.js?v=20261013-refonte';
 
 /* distance (en unités) de chaque cellule de la carte à l'eau du lagon : deux passes de chanfrein */
 function champDistanceEau(carte) {

@@ -4,10 +4,10 @@
  *   carte.hauteur(x, z)   carte.eau(x, z)   carte.pente(x, z)   carte.normale(x, z)   carte.texH / carte.texEau (pour les shaders)
  *   eclairer(materiau, { ... })          injecte dans un MeshStandardMaterial : AO cuite, ombres des nuages, grain de matière */
 import * as THREE from './three.module.js';
-import { chargerMailles } from './atlas-maille.js';
-import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js';
-import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js';
-import { GLSL_FOND_MARIN } from './atlas-fond-marin.js';
+import { chargerMailles } from './atlas-maille.js?v=20261013-refonte';
+import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js?v=20261013-refonte';
+import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261013-refonte';
+import { GLSL_FOND_MARIN } from './atlas-fond-marin.js?v=20261013-refonte';
 
 const demi = new Float32Array(1), ent = new Uint32Array(demi.buffer);
 function half(h) {                                          // demi-flottant -> flottant

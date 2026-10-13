@@ -6,7 +6,7 @@
  *   const F = creerFlore(THREE, ciel, carte)         ->  F.arbre('palmier', graine) -> { geo, materiaux }
  *   F.herbes(n, ...)   F.materiauFeuille(texture, opts)  F.textures */
 import * as THREE from './three.module.js';
-import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js';
+import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js?v=20261013-refonte';
 
 export function aleatoire(graine) { let s = (graine * 2654435761) >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
 

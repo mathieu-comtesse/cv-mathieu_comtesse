@@ -5,7 +5,7 @@
  *
  *   const J = creerJeu(M, R, { canvas, hote, ... })      J.tick(dt, t)  J.redimensionner()  J.vue(spin, pitch, zoom)                                      */
 import * as THREE from './three.module.js';
-import { creerPeche } from './atlas-peche.js';
+import { creerPeche } from './atlas-peche.js?v=20261013-refonte';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const bornes = (v, a, b) => Math.min(b, Math.max(a, v));

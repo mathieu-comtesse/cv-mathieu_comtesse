@@ -3,7 +3,7 @@
  *
  *   const p = creerPlage({ scene, carte, bats, niveau })   ->  p.tick(dt, t)                                                                                  */
 import * as THREE from './three.module.js';
-import { aleatoire } from './atlas-flore.js';
+import { aleatoire } from './atlas-flore.js?v=20261013-refonte';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 

@@ -4,17 +4,17 @@
  *
  *   const M = await creerMonde(R, { qualite })   ->  M.scene, M.sceneNuages, M.camera, M.ciel, M.carte, M.bats, M.objets, M.tick(dt, t)             */
 import * as THREE from './three.module.js';
-import { creerCiel } from './atlas-ciel.js';
-import { creerNuages } from './atlas-nuages.js';
-import { chargerIle, creerEau } from './atlas-ile.js';
-import { creerFlore, aleatoire } from './atlas-flore.js';
-import { peupler } from './atlas-decor.js';
-import { chargerBatiments, ajusterPieds } from './atlas-batiments.js';
-import { ETAPES } from './atlas-etapes.js';
-import { creerRoches } from './atlas-roches.js';
-import { creerDiorama, creerIlot } from './atlas-diorama.js';
-import { ameliorerCanopes, creerFondReel } from './atlas-nature.js';
-import { creerPlage } from './atlas-plage.js';
+import { creerCiel } from './atlas-ciel.js?v=20261013-refonte';
+import { creerNuages } from './atlas-nuages.js?v=20261013-refonte';
+import { chargerIle, creerEau } from './atlas-ile.js?v=20261013-refonte';
+import { creerFlore, aleatoire } from './atlas-flore.js?v=20261013-refonte';
+import { peupler } from './atlas-decor.js?v=20261013-refonte';
+import { chargerBatiments, ajusterPieds } from './atlas-batiments.js?v=20261013-refonte';
+import { ETAPES } from './atlas-etapes.js?v=20261013-refonte';
+import { creerRoches } from './atlas-roches.js?v=20261013-refonte';
+import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261013-refonte';
+import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261013-refonte';
+import { creerPlage } from './atlas-plage.js?v=20261013-refonte';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const ECH_BAT = 0.78;                                    // bâtiments plus petits : l'île respire

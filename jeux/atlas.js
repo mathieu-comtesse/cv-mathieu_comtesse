@@ -9,11 +9,11 @@
 import * as THREE from './three.module.js';
 
 if (/[?&]papier\b/.test(location.search)) {
-  await import('./atlas-papier.js');
+  await import('./atlas-papier.js?v=20261013-refonte');
 } else {
-  const { creerRendu } = await import('./atlas-rendu.js');
-  const { creerMonde } = await import('./atlas-monde.js');
-  const { creerJeu } = await import('./atlas-jeu.js');
+  const { creerRendu } = await import('./atlas-rendu.js?v=20261013-refonte');
+  const { creerMonde } = await import('./atlas-monde.js?v=20261013-refonte');
+  const { creerJeu } = await import('./atlas-jeu.js?v=20261013-refonte');
   const canvas = document.getElementById('world-canvas'), hote = canvas.parentElement, chargement = document.getElementById('world-loading');
   const tactile = matchMedia('(pointer: coarse)').matches, lite = /[?&]lite\b/.test(location.search) || tactile;
   const R = creerRendu(canvas, { qualite: lite ? 0 : 1 });
@@ -21,7 +21,7 @@ if (/[?&]papier\b/.test(location.search)) {
   try {
     M = await creerMonde(R, { qualite: lite ? 0 : 1 });
     J = creerJeu(M, R, { canvas, hote });
-    const { creerAtelier } = await import('./atlas-atelier.js');
+    const { creerAtelier } = await import('./atlas-atelier.js?v=20261013-refonte');
     await creerAtelier(J);
   } catch (e) { if (chargement) chargement.textContent = 'Impossible d’afficher l’île sur cet appareil (WebGL 2 requis).'; console.error(e); throw e; }
   const q = new URLSearchParams(location.search);
