@@ -14,10 +14,11 @@ const pad = (n) => String(n).padStart(2, '0');
  * @param focus       () => void : cadre la caméra de face sur l'écran
  * @param release     () => void : rend la caméra
  * @param getGlass    () => matériau du verre (animé : lueur) ou null (le modèle charge après la pièce)
+ * @param isReady     () => boolean : l'écran est dégagé (ex. capot soulevé) ; le film n'apparaît qu'à ce moment
  * @param fallback    () => void : ouvre la fenêtre classique si l'écran n'est pas disponible
  * @param onChange    (ouvert: boolean) => void
  */
-export function createJvcScreen({ container, getScreen, focus, release, getGlass = () => null, fallback = () => {}, onChange = () => {} }) {
+export function createJvcScreen({ container, getScreen, focus, release, getGlass = () => null, isReady = () => true, fallback = () => {}, onChange = () => {} }) {
   const tube = document.createElement('div');
   tube.className = 'jvc-tube'; tube.hidden = true;
   tube.innerHTML = `<div class="jvc-crt"><div class="jvc-video"></div><div class="jvc-static"></div><div class="jvc-osd"></div><div class="jvc-glass"></div></div>`;
@@ -28,7 +29,7 @@ export function createJvcScreen({ container, getScreen, focus, release, getGlass
 <button type="button" class="jvc-next" aria-label="Film suivant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
 <select class="jvc-list" aria-label="Choisir un film">${FILMS.map((f, i) => `<option value="${i}">${pad(i + 1)} · ${f.title}</option>`).join('')}</select>
 <button type="button" class="jvc-close" aria-label="Éteindre la télé"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-<p class="jvc-note"></p>`;
+<p class="jvc-hint">Glissez dans la pièce pour faire pivoter la télé · +/− pour zoomer</p><p class="jvc-note"></p>`;
   container.append(tube, hud);
   for (const el of [tube, hud]) { el.addEventListener('pointerdown', (e) => e.stopPropagation()); el.addEventListener('click', (e) => e.stopPropagation()); el.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true }); }
 
@@ -93,8 +94,8 @@ export function createJvcScreen({ container, getScreen, focus, release, getGlass
       const [p0, p1, , p3] = s.pts, h = TUBE_W / s.aspect;
       if (Math.abs(s.aspect - lastAspect) > 0.005) { lastAspect = s.aspect; tube.style.width = TUBE_W + 'px'; tube.style.height = h + 'px'; }
       const m = `matrix(${((p1[0] - p0[0]) / TUBE_W).toFixed(5)},${((p1[1] - p0[1]) / TUBE_W).toFixed(5)},${((p3[0] - p0[0]) / h).toFixed(5)},${((p3[1] - p0[1]) / h).toFixed(5)},${p0[0].toFixed(2)},${p0[1].toFixed(2)})`;
-      const key = m + (s.facing > 0.18 ? '1' : '0');
-      if (key !== lastKey) { lastKey = key; tube.style.transform = m; tube.style.visibility = s.facing > 0.18 ? 'visible' : 'hidden'; }
+      const shown = isReady() && s.facing > 0.14, key = m + (shown ? '1' : '0');
+      if (key !== lastKey) { lastKey = key; tube.style.transform = m; tube.style.visibility = shown ? 'visible' : 'hidden'; }
     }
     const glass = getGlass();
     if (glass) {                                                                // lueur bleutée du tube, visible sur le verre quand on le regarde de biais

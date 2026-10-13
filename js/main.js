@@ -1,4 +1,4 @@
-import { createRoom } from './room.js?v=cv-scene-v66';
+import { createRoom } from './room.js?v=cv-scene-v67';
 import { initUI } from './ui.js?v=cv-projects-v15';
 import { initTheme } from './theme.js?v=cv-scene-v29';
 import { initHome } from './home.js?v=cv-projects-v15';
