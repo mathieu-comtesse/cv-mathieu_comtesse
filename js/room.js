@@ -1042,13 +1042,18 @@ export async function createRoom(container, bubbleEl) {
 
   const clock = new THREE.Clock();
   let running = true, roomVisible=true, workshopOpen=false, albumOpen=false;
-  document.addEventListener('film-album-change',e=>{albumOpen=e.detail.open;if(albumOpen){running=false;pumpSound.stop();ps1Sound.stop();}else if(roomVisible&&!document.hidden&&!workshopOpen&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
-  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!albumOpen&&!running){running=true;clock.getDelta();requestAnimationFrame(frame);}});
+  // Une seule boucle de rendu : sans ce garde-fou, chaque retour sur l'onglet / dans la zone visible relançait une boucle de plus
+  // alors que l'ancienne était encore en attente (rAF suspendu en arrière-plan), et la scène était rendue 2, 3… fois par image.
+  let rafPending = false;
+  const kick = () => { if (!rafPending) { rafPending = true; requestAnimationFrame(frame); } };
+  document.addEventListener('film-album-change',e=>{albumOpen=e.detail.open;if(albumOpen){running=false;pumpSound.stop();ps1Sound.stop();}else if(roomVisible&&!document.hidden&&!workshopOpen&&!running){running=true;clock.getDelta();kick();}});
+  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!albumOpen&&!running){running=true;clock.getDelta();kick();}});
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
   let lastMobileFrame=0;
   function frame(now=performance.now()) {
+    rafPending = false;
     if (!running) return;
     
     const rawDt = clock.getDelta(), dt = Math.min(rawDt, opts.dtCap);
@@ -1267,15 +1272,15 @@ export async function createRoom(container, bubbleEl) {
     container.dataset.sceneReady = String(spawned);
     // Load the optional iframe only after the local room and hero have appeared.
     if (!bridgeStarted && since > 2.5) loadNativeBridge();
-    requestAnimationFrame(frame);
+    kick();
   }
   resize();
-  requestAnimationFrame(frame);
+  kick();
 
   // économie : on arrête quand l'onglet est caché ou le composant hors écran
-  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen; if (vis && !running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } else if (!vis) {running = false;pumpSound.stop();ps1Sound.stop();} });
+  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen; if (vis && !running) { running = true; clock.getDelta(); kick(); } else if (!vis) {running = false;pumpSound.stop();ps1Sound.stop();} });
   io.observe(container);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) {running = false;pumpSound.stop();ps1Sound.stop();} else if (roomVisible&&!workshopOpen&&!albumOpen&&!running) { running = true; clock.getDelta(); requestAnimationFrame(frame); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) {running = false;pumpSound.stop();ps1Sound.stop();} else if (roomVisible&&!workshopOpen&&!albumOpen&&!running) { running = true; clock.getDelta(); kick(); } });
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
