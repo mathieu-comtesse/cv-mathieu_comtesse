@@ -6,6 +6,8 @@
 import * as THREE from './three.module.js';
 import { chargerMailles } from './atlas-maille.js';
 import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js';
+import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js';
+import { GLSL_FOND_MARIN } from './atlas-fond-marin.js';
 
 const demi = new Float32Array(1), ent = new Uint32Array(demi.buffer);
 function half(h) {                                          // demi-flottant -> flottant
@@ -68,7 +70,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
       vec4 wp4 = modelMatrix * mi_ * vec4(transformed, 1.); vWp = wp4.xyz; vNw = normalize(mat3(modelMatrix * mi_) * normal);`);
     sh.fragmentShader = `uniform float uT, uBump, uNuit, uTemps; uniform vec3 uSunDir; uniform vec4 uZone; uniform sampler2D uEauTex, uHTex;
       varying float vAo, vMat; varying vec3 vWp; varying vec3 vNw;
-      ${GLSL_BRUIT}${GLSL_OMBRES}
+      ${GLSL_BRUIT}${GLSL_OMBRES}${GLSL_CAUSTIQUES}${GLSL_FOND_MARIN}
       float hroche(vec3 q){ float a = n3(q), b = n3(q * 2.7 + 3.1), c = n3(q * 7.9 + 11.); return (1. - abs(a * 2. - 1.)) * .55 + b * .3 + (1. - abs(c * 2. - 1.)) * .22; }
       float causti(vec2 p, float t){ vec2 i = p; float c = 1.; for (int n = 0; n < 4; n++){ float tt = t * (1. - 3.5 / float(n + 1)); i = p + vec2(cos(tt - i.x) + sin(tt + i.y), sin(tt - i.y) + cos(tt + i.x)); c += 1. / length(vec2(p.x / (sin(i.x + tt) / .005), p.y / (cos(i.y + tt) / .005))); } c /= 4.; c = 1.17 - pow(c, 1.4); return pow(abs(c), 8.); }
     ` + sh.fragmentShader
@@ -84,8 +86,19 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           float verd = clamp((diffuseColor.g - max(diffuseColor.r, diffuseColor.b)) * 9., 0., 1.) * (1. - rocheW);
           float lu = dot(diffuseColor.rgb, vec3(.3, .59, .11));
           float ride = .5 + .5 * sin(dot(vWp.xz, vec2(.9, .55)) * 22. + fbm3(vWp * 1.7) * 9.);
-          vec3 sable = vec3(.94, .68, .44) * (.6 + .85 * lu) * (.9 + .12 * ride);
-          diffuseColor.rgb = mix(diffuseColor.rgb, sable, verd * .82); sandM_ = verd;
+          float idSable = step(1.5, mid_) * (1. - step(2.5, mid_)) + step(4.5, mid_) * (1. - step(5.5, mid_));
+          sandM_ = max(verd, idSable);
+          float grain = n2(vWp.xz * 85.);
+          float grainVisible = 1. - smoothstep(.5, 1.5, length(fwidth(vWp.xz * 85.)));
+          vec3 sable = mix(vec3(.82, .72, .48), vec3(.92, .84, .63), gros) * (.68 + .65 * lu) * (.95 + .07 * ride);
+          sable *= 1. + (grain - .5) * .09 * grainVisible;
+          float humidite = 1. - smoothstep(-.12, .32, vWp.y + .025 * sin(uTemps * .85));
+          sable = mix(sable, sable * vec3(.83, .79, .70), humidite * .65);
+          diffuseColor.rgb = mix(diffuseColor.rgb, sable, clamp(sandM_, 0., 1.) * .88);
+          vec2 uvFond = vec2((vWp.z - uZone.y) / uZone.w, (vWp.x - uZone.x) / uZone.z);
+          if (mid_ > 4.5 && mid_ < 5.5 && vWp.y < -.08 && texture2D(uEauTex, uvFond).r > .05) {
+            diffuseColor.rgb = fondMarinAtlas(diffuseColor.rgb, vWp.xz, -vWp.y, uTemps);
+          }
         }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         ${opts.roche === false ? '' : `{
@@ -104,12 +117,15 @@ export function eclairer(mat, ciel, carte, opts = {}) {
             normal = normalize(normal - (viewMatrix * vec4(vec3(.9, 0., .55) * gr, 0.)).xyz * sandM_ * fadeB);
           }
         }`}`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        float humideR = 1. - smoothstep(-.12, .32, vWp.y);
+        roughnessFactor = mix(roughnessFactor, .53, sandM_ * humideR * .7);`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         ${opts.caustiques === false ? '' : `{
           vec2 uvw = vec2((vWp.z - uZone.y) / uZone.w, (vWp.x - uZone.x) / uZone.z);
           float inLag = texture2D(uEauTex, uvw).r * step(vWp.y, -.02) * step(-1.6, vWp.y);
           if (inLag > .01) {
-            float c = min(causti(vWp.xz * .62, uTemps * .55), 1.5) * inLag * (1. - uNuit * .75);
+            float c = caustiqueAtlas(vWp.xz * 1.3, uTemps) * inLag * (1. - uNuit * .75);
             totalEmissiveRadiance += vec3(.9, 1., .95) * c * (1. - smoothstep(-1.5, -.25, vWp.y)) * .55;
           }
         }`}`)
@@ -148,7 +164,7 @@ export function creerEau(ile, ciel) {
   const mat = new THREE.ShaderMaterial({
     uniforms: U, transparent: true, depthWrite: false,
     vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
-    fragmentShader: `${GLSL_BRUIT}
+    fragmentShader: `${GLSL_BRUIT}${GLSL_HOULE}
       uniform vec3 uZenith, uMilieu, uHorizon, uSunDir, uSunCol, uCam, uC0, uC1, uC2, uC3; uniform float uNuit, uTemps; uniform vec4 uZone; uniform sampler2D uHTex, uEauTex;
       ${GLSL_OMBRES}
       varying vec3 vW;
@@ -162,7 +178,8 @@ export function creerEau(ile, ciel) {
         vec2 p = vW.xz;
         /* petites rides qui avancent dans deux sens */
         vec2 g = (vec2(n2(p * 2.3 + uTemps * .35), n2(p * 2.3 + 8. - uTemps * .3)) - .5) * .8 + (vec2(n2(p * 5.1 - uTemps * .5), n2(p * 5.1 + 3. + uTemps * .45)) - .5) * .4;
-        vec3 N = normalize(vec3(g.x * .25, 1., g.y * .25));
+        vec3 houle = houleAtlas(p, uTemps);
+        vec3 N = normalize(vec3(-houle.y + g.x * .20, 1., -houle.z + g.y * .20));
         vec3 V = normalize(uCam - vW);
         float fres = .02 + .98 * pow(1. - max(dot(N, V), 0.), 4.5);
         vec3 R = reflect(-V, N);
@@ -176,7 +193,7 @@ export function creerEau(ile, ciel) {
         /* écume : bande claire à la rive, ondulée, plus un liseré qui pulse */
         float nz = n2(p * 4.2 + uTemps * .35);
         float rive = (1. - smoothstep(.015, .09, depth + (nz - .5) * .05)) * .8;
-        float pulse = smoothstep(.82, 1., sin(depth * 14. - uTemps * 1.3 + nz * 2.4)) * (1. - smoothstep(.06, .32, depth)) * .5;
+        float pulse = smoothstep(.82, 1., sin(depth * 14. + uTemps * 1.3 + nz * 2.4)) * (1. - smoothstep(.06, .32, depth)) * .5;
         float ecume = max(rive, pulse * .75);
         col = mix(col, vec3(.97, 1., 1.), ecume);
         a = max(a, ecume * .95);

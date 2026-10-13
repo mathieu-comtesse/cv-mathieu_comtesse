@@ -158,7 +158,10 @@ export function creerFlore(ciel, textures) {
           #endif
           vec4 w0 = modelMatrix * mi * vec4(transformed, 1.);
           float ph = w0.x * .7 + w0.z * .9;
-          vec3 sw = vec3(sin(uTemps * 1.5 + ph) * .9 + sin(uTemps * 3.1 + ph * 2.3) * .35, sin(uTemps * 2.2 + ph * 1.7) * .2, cos(uTemps * 1.3 + ph * 1.1) * .8) * vent * vent * .1 * uForce * ${o.souplesse ?? '1.'};
+          // Rafale commune, pointes souples ; la base garde son ancrage.
+          float rafale = .62 + .38 * sin(uTemps * .42 + w0.x * .15 + w0.z * .12);
+          float frisson = sin(uTemps * 4.2 + ph * 3.1) * .10;
+          vec3 sw = vec3(sin(uTemps * 1.5 + ph) * .9 + sin(uTemps * 3.1 + ph * 2.3) * .35 + frisson, sin(uTemps * 2.2 + ph * 1.7) * .2, cos(uTemps * 1.3 + ph * 1.1) * .8) * vent * vent * .1 * uForce * rafale * ${o.souplesse ?? '1.'};
           transformed += (inverse(mat3(modelMatrix * mi)) * sw);
           vWp = (modelMatrix * mi * vec4(transformed, 1.)).xyz;
         }`);
