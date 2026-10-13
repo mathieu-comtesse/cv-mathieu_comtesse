@@ -196,9 +196,18 @@ export async function loadBuffer(url) {
  * (lampes, écran de la télé, interrupteur) ne sont pas dédoublonnés. Les matériaux identiques sont mutualisés pour réduire les changements d'état. */
 const matSig = (m) => [m.type, m.color && m.color.getHex(), m.emissive && m.emissive.getHex(), m.emissiveIntensity, m.roughness, m.metalness, m.map && m.map.uuid, m.bumpMap && m.bumpMap.uuid, m.bumpScale,
   m.side, m.vertexColors, m.flatShading, m.opacity, m.transparent, m.alphaTest, m.envMapIntensity, m.depthWrite, m.toneMapped, m.normalMap && m.normalMap.uuid, m.clearcoat].join('|');
+/* Matériaux « plats » (aucune texture, opaques) : la couleur est cuite dans les sommets et un seul matériau est partagé par jeu de paramètres de surface.
+ * Le rendu est identique (couleur matériau × couleur sommet) mais le moteur change beaucoup moins de matériau d'un dessin à l'autre, ce qui est le
+ * principal coût CPU de la pièce. Les matériaux marqués userData.unique (animés ou modifiés à l'exécution) en sont exclus. */
+const flatOk = (m, g) => m.type === 'MeshStandardMaterial' && !m.map && !m.alphaMap && !m.normalMap && !m.bumpMap && !m.emissiveMap && !m.roughnessMap && !m.metalnessMap
+  && !m.aoMap && !m.lightMap && !m.displacementMap && !m.envMap && !m.transparent && m.opacity === 1 && m.alphaTest === 0 && !m.wireframe && m.blending === THREE.NormalBlending
+  && !(g.attributes.color && g.attributes.color.itemSize !== 3);
+const flatSig = (m) => [m.emissive.getHex(), m.emissiveIntensity, m.roughness, m.metalness, m.side, m.flatShading, m.envMapIntensity, m.depthWrite, m.depthTest, m.toneMapped,
+  m.polygonOffset, m.polygonOffsetFactor, m.polygonOffsetUnits, m.dithering, m.fog, m.colorWrite, m.shadowSide].join('|');
 export function mergeStatic(root) {
   root.updateWorldMatrix(true, true);
   const sigs = mergeStatic.sigs || (mergeStatic.sigs = new Map());
+  const flats = mergeStatic.flats || (mergeStatic.flats = new Map());
   const buckets = new Map(), drop = [];
   const ownerOf = (o) => { for (let p = o.parent; p && p !== root.parent; p = p.parent) { if (p.userData && (p.userData.id || p.userData.batchRoot)) return p; if (p === root) return root; } return root; };
   const dynamic = (o) => { for (let p = o; p && p !== root.parent; p = p.parent) if (p.userData && p.userData.dynamic) return true; return false; };
@@ -211,14 +220,25 @@ export function mergeStatic(root) {
     if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || Array.isArray(o.material) || !o.visible) return;
     const m = o.material;
     if (m.transparent || dynamic(o)) return;
-    let mat = m;
-    if (!(m.userData && m.userData.unique)) { const s = matSig(m); if (sigs.has(s)) mat = sigs.get(s); else sigs.set(s, m); }
-    const owner = ownerOf(o);
+    let mat = m, flat = false;
+    const unique = !!(m.userData && m.userData.unique);
     const isInk = !!o.userData.isInk || m === ink.mat || m === ink.matInst;
-    const key = owner.uuid + '|' + mat.uuid + '|' + (o.castShadow && !isInk ? 1 : 0) + (o.receiveShadow && !isInk ? 1 : 0) + '|' + (isInk ? 'i' : '') + (o.geometry.attributes.color ? 'c' : '');
-    let b = buckets.get(key); if (!b) { b = { owner, mat, cast: o.castShadow && !isInk, recv: o.receiveShadow && !isInk, list: [], ink: isInk, col: !!o.geometry.attributes.color }; buckets.set(key, b); }
+    if (!unique && !isInk && flatOk(m, o.geometry)) {
+      const fs = flatSig(m); let fm = flats.get(fs);
+      if (!fm) { fm = m.clone(); fm.color.set(0xffffff); fm.vertexColors = true; flats.set(fs, fm); }
+      mat = fm; flat = true;
+    } else if (!unique) { const s = matSig(m); if (sigs.has(s)) mat = sigs.get(s); else sigs.set(s, m); }
+    const owner = ownerOf(o);
+    const key = owner.uuid + '|' + mat.uuid + '|' + (o.castShadow && !isInk ? 1 : 0) + (o.receiveShadow && !isInk ? 1 : 0) + '|' + (isInk ? 'i' : '') + (flat || o.geometry.attributes.color ? 'c' : '');
+    let b = buckets.get(key); if (!b) { b = { owner, mat, cast: o.castShadow && !isInk, recv: o.receiveShadow && !isInk, list: [], ink: isInk, col: flat || !!o.geometry.attributes.color }; buckets.set(key, b); }
     owner.updateWorldMatrix(true, false);
     const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    if (flat) {
+      // couleur effective = couleur du matériau × couleur de sommet (celle-ci n'est lue que si le matériau d'origine l'active)
+      const n = g.attributes.position.count, arr = new Float32Array(n * 3), src = m.vertexColors ? g.attributes.color : null, c = m.color;
+      for (let i = 0; i < n; i++) { arr[i * 3] = c.r * (src ? src.getX(i) : 1); arr[i * 3 + 1] = c.g * (src ? src.getY(i) : 1); arr[i * 3 + 2] = c.b * (src ? src.getZ(i) : 1); }
+      g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+    }
     for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv' && !(k === 'color' && b.col)) g.deleteAttribute(k);
     if (!g.attributes.normal) g.computeVertexNormals();
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
