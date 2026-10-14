@@ -1,5 +1,5 @@
-/* Télé JVC Videosphere : le film joue sur l'écran bombé du modèle 3D, dans la pièce.
-   La caméra de la pièce est orthographique : un écran rectangulaire se projette donc en parallélogramme, et une simple transformation CSS (matrix) colle
+/* Télé JVC Video Capsule : le film joue sur l'écran bombé du modèle 3D déployé (fenêtre js/jvc-tv.js).
+   La caméra est orthographique : un écran rectangulaire se projette donc en parallélogramme, et une simple transformation CSS (matrix) colle
    le lecteur YouTube sur le verre, à chaque image, quel que soit l'angle de vue. Rien n'est hébergé ici : la lecture est assurée par YouTube.
    Effet cathodique : allumage, balayage, vignette, reflet du verre, lueur bleutée, neige entre deux chaînes. Le lecteur n'existe que télé allumée. */
 import { FILMS } from './tv-films.js?v=tv3';
@@ -29,16 +29,22 @@ export function createJvcScreen({ container, getScreen, focus, release, getGlass
 <button type="button" class="jvc-next" aria-label="Film suivant"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
 <select class="jvc-list" aria-label="Choisir un film">${FILMS.map((f, i) => `<option value="${i}">${pad(i + 1)} · ${f.title}</option>`).join('')}</select>
 <button type="button" class="jvc-close" aria-label="Éteindre la télé"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-<p class="jvc-hint">Glissez dans la pièce pour faire pivoter la télé · +/− pour zoomer</p><p class="jvc-note"></p>`;
+<p class="jvc-hint">Glissez autour de la télé pour la faire pivoter · +/− pour zoomer</p><p class="jvc-note"></p>`;
   container.append(tube, hud);
   for (const el of [tube, hud]) { el.addEventListener('pointerdown', (e) => e.stopPropagation()); el.addEventListener('click', (e) => e.stopPropagation()); el.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true }); }
 
   const crt = tube.querySelector('.jvc-crt'), video = tube.querySelector('.jvc-video'), stat = tube.querySelector('.jvc-static'), osd = tube.querySelector('.jvc-osd');
   const q = (s) => hud.querySelector(s), list = q('.jvc-list');
-  let isOpen = false, current = 0, loadTimer = 0, staticTimer = 0, osdTimer = 0, offTimer = 0, lastKey = '', lastAspect = 0, startAt = 0;
+  let deck = [], past = [];                                              // les films passent dans un ordre aléatoire : une pioche mélangée, sans répétition tant qu'elle n'est pas vide
+  const draw = () => {
+    if (!deck.length) { deck = FILMS.map((_, i) => i).filter((i) => i !== current || FILMS.length < 2); for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
+    return deck.pop();
+  };
+  let isOpen = false, current = Math.floor(Math.random() * FILMS.length), loadTimer = 0, staticTimer = 0, osdTimer = 0, offTimer = 0, lastKey = '', lastAspect = 0, startAt = 0, lastShown = -1;
 
-  function show(i) {
-    current = (i + FILMS.length) % FILMS.length; const f = FILMS[current];
+  function show(i, remember = true) {
+    if (remember && isOpen && lastShown >= 0 && lastShown !== i) { past.push(lastShown); if (past.length > 30) past.shift(); }
+    current = (i + FILMS.length) % FILMS.length; lastShown = current; deck = deck.filter((k) => k !== current); const f = FILMS[current];
     q('.jvc-ch').textContent = 'CH ' + pad(current + 1); q('.jvc-title').textContent = f.title; q('.jvc-meta').textContent = f.meta;
     q('.jvc-note').textContent = f.note + ' · lecture assurée par YouTube'; list.value = String(current);
     clearTimeout(loadTimer); clearTimeout(staticTimer); clearTimeout(osdTimer);
@@ -56,8 +62,9 @@ export function createJvcScreen({ container, getScreen, focus, release, getGlass
     osdTimer = setTimeout(() => osd.classList.remove('on'), 2200);
   }
 
-  function open(i = current) {
-    if (isOpen) { show(i); return true; }
+  function open(i) {
+    if (isOpen) { if (i != null) show(i); return true; }
+    i = i ?? draw(); lastShown = -1; past = [];
     if (!getScreen()) { fallback(); return false; }                            // modèle pas encore chargé : fenêtre classique
     isOpen = true; clearTimeout(offTimer);
     tube.hidden = false; hud.hidden = false; tube.classList.remove('off'); lastKey = ''; startAt = performance.now();
@@ -68,7 +75,7 @@ export function createJvcScreen({ container, getScreen, focus, release, getGlass
 
   function close() {
     if (!isOpen) return;
-    isOpen = false; clearTimeout(loadTimer); clearTimeout(staticTimer); clearTimeout(osdTimer);
+    isOpen = false; lastShown = -1; clearTimeout(loadTimer); clearTimeout(staticTimer); clearTimeout(osdTimer);
     video.replaceChildren(); crt.classList.remove('noise'); osd.classList.remove('on');
     tube.classList.add('off'); hud.hidden = true;
     offTimer = setTimeout(() => { tube.hidden = true; tube.classList.remove('off'); }, reduced.matches ? 0 : 420);
@@ -76,14 +83,15 @@ export function createJvcScreen({ container, getScreen, focus, release, getGlass
     release(); onChange(false);
   }
 
-  q('.jvc-prev').onclick = () => show(current - 1);
-  q('.jvc-next').onclick = () => show(current + 1);
+  const next = () => show(draw()), prev = () => { if (past.length) show(past.pop(), false); else show(draw()); };
+  q('.jvc-prev').onclick = prev;
+  q('.jvc-next').onclick = next;
   q('.jvc-close').onclick = close;
   list.addEventListener('change', () => show(Number(list.value)));
   window.addEventListener('keydown', (e) => {
     if (!isOpen) return;
     if (e.key === 'Escape') { e.preventDefault(); close(); }
-    else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !e.target.closest?.('select,input,textarea,iframe')) { e.preventDefault(); show(current + (e.key === 'ArrowRight' ? 1 : -1)); }
+    else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !e.target.closest?.('select,input,textarea,iframe')) { e.preventDefault(); if (e.key === 'ArrowRight') next(); else prev(); }
   });
 
   /** Appelé à chaque image de la pièce : colle le tube sur l'écran et anime la lueur du verre. */
