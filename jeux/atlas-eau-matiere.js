@@ -1,7 +1,5 @@
-/* Effets originaux pour Atlas. Les ressources de Sandcastle ont guidé la
- * séparation sable sec/humide, eau, écume et caustiques ; aucun shader ou
- * bitmap du jeu n'est utilisé. La houle ci-dessous est une approximation
- * visuelle analytique, pas la simulation GPU hauteur/vitesse du jeu. */
+/* Houle analytique d’Atlas : approximation, distincte des calculs GPU natifs.
+ * Les caustiques utilisent maintenant le volume original Sandcastle #932. */
 export const GLSL_HOULE = `
 // x = hauteur ; yz = pente analytique, cohérente avec la géométrie.
 vec3 houleAtlas(vec2 p, float t) {
@@ -14,21 +12,16 @@ vec3 houleAtlas(vec2 p, float t) {
 }
 `;
 
+// Original Caustics #932 volume, packed losslessly into a bordered atlas.
+// Spatial/time mapping is a browser adaptation; full source lighting differs.
 export const GLSL_CAUSTIQUES = `
-// Réseau cellulaire animé, indépendant des 64 tranches de texture du jeu.
-float caustiqueAtlas(vec2 p, float t) {
-  p += vec2(sin(p.y * .65 + t * .4), cos(p.x * .7 - t * .32)) * .22;
-  vec2 cellule = floor(p), f = fract(p);
-  float premier = 9., second = 9.;
-  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
-    vec2 q = vec2(float(x), float(y));
-    vec2 h = vec2(h21(cellule + q), h21(cellule + q + 19.));
-    vec2 centre = q + .5 + .3 * sin(h * 6.283 + t * .38);
-    float d = length(centre - f);
-    if (d < premier) { second = premier; premier = d; }
-    else second = min(second, d);
-  }
-  float ecart = second - premier, aa = max(fwidth(ecart), .012);
-  return (1. - smoothstep(.015, .055 + aa, ecart)) * .65;
+uniform sampler2D uOriginalCaustics;
+float trancheCaustique(vec2 p,float frame){
+ float f=mod(frame+64.,64.);vec2 tile=vec2(mod(f,8.),floor(f/8.));
+ return texture2D(uOriginalCaustics,(tile*258.+1.+fract(p)*256.)/2064.).r;
+}
+float caustiqueAtlas(vec2 p,float t){
+ float z=fract(t*.2)*64.-.5,f=floor(z);
+ return mix(trancheCaustique(p*.25,f),trancheCaustique(p*.25,f+1.),fract(z));
 }
 `;

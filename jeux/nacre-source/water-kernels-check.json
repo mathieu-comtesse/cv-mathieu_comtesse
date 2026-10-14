@@ -1,0 +1,48 @@
+{
+  "device": "D3D11 WARP",
+  "featureLevel": "0xb000",
+  "dispatch": [
+    1,
+    1,
+    1
+  ],
+  "grid": [
+    32,
+    32
+  ],
+  "tests": [
+    {
+      "scenario": "flat",
+      "kernel": "HeightIntegration",
+      "equalWords": 4096,
+      "words": 4096,
+      "bitExact": true,
+      "examples": []
+    },
+    {
+      "scenario": "flat",
+      "kernel": "VelocityIntegration",
+      "equalWords": 4096,
+      "words": 4096,
+      "bitExact": true,
+      "examples": []
+    },
+    {
+      "scenario": "varying",
+      "kernel": "HeightIntegration",
+      "equalWords": 4096,
+      "words": 4096,
+      "bitExact": true,
+      "examples": []
+    },
+    {
+      "scenario": "varying",
+      "kernel": "VelocityIntegration",
+      "equalWords": 4096,
+      "words": 4096,
+      "bitExact": true,
+      "examples": []
+    }
+  ],
+  "scope": "Synthetic single-dispatch checks only; runtime constants and full coupled simulation parity remain unverified."
+}

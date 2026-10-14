@@ -4,9 +4,9 @@
  *
  *   const roches = await creerRoches({ M, decor, flore })   ->  roches.groupe, roches.tick(dt, t)                                                         */
 import * as THREE from './three.module.js';
-import { chargerMailles } from './atlas-maille.js?v=20261013-refonte';
-import { eclairer } from './atlas-ile.js?v=20261013-refonte';
-import { aleatoire } from './atlas-flore.js?v=20261013-refonte';
+import { chargerMailles } from './atlas-maille.js?v=20261014-mediterranee';
+import { eclairer } from './atlas-ile.js?v=20261014-mediterranee';
+import { aleatoire } from './atlas-flore.js?v=20261014-mediterranee';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const PROFONDEUR = 13.4;

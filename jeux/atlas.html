@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#fefefe">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Mathieu Comtesse">
-<meta property="og:title" content="Atlas du parcours">
+<meta property="og:title" content="Nacre — l’archipel des marées">
 <meta property="og:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils. Studio d’extracteurs PDF, extracteurs CERFA et VRE, chaîne Power Automate des plans de prévention, portail Power BI, méthode qualité et enquête terrain.">
 <meta property="og:url" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/atlas.html">
 <meta property="og:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
@@ -18,7 +18,7 @@
 <meta name="twitter:title" content="Parcours — Mathieu Comtesse">
 <meta name="twitter:description" content="CV interactif : compétences MQSE, projets et démonstrations des outils.">
 <meta name="twitter:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
-<title>Atlas du parcours — Mathieu Comtesse</title>
+<title>Nacre — l’archipel des marées — Mathieu Comtesse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@300;400;700&amp;family=VT323&amp;display=swap" rel="stylesheet">
@@ -53,11 +53,11 @@ html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
 
 /* Coins « ⌐ ¬ » : les blocs de bande gardent un peu d’air pour les marques d’angle. */
 .band>.wrap.corners{padding-block:26px}
-</style><link rel="stylesheet" href="pages.css?v=20261004-flottante"><link rel="stylesheet" href="fx.css?v=20261004"><link rel="stylesheet" href="atlas-diorama.css?v=20261012-diorama"><link rel="stylesheet" href="atlas-refonte.css?v=20261013-mobile"></head>
+</style><link rel="stylesheet" href="pages.css?v=20261004-flottante"><link rel="stylesheet" href="fx.css?v=20261004"><link rel="stylesheet" href="atlas-diorama.css?v=20261012-diorama"><link rel="stylesheet" href="atlas-refonte.css?v=20261014-mediterranee"><link rel="stylesheet" href="nacre-sandcastle-ui.css?v=20261014"></head>
 <body data-page="monde"><svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs><pattern id="ts-dots" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" style="fill:var(--white)"></rect><rect x="1.25" y="1.25" width="1.1" height="1.1" style="fill:var(--ink)"></rect></pattern><pattern id="ts-dots-dense" patternUnits="userSpaceOnUse" width="3" height="3"><rect width="3" height="3" style="fill:var(--white)"></rect><rect x="0.5" y="0.5" width="1.6" height="1.6" style="fill:var(--ink)"></rect></pattern></defs></svg>
 <main id="contenu" class="world-page" tabindex="-1">
-<div class="world-stage" id="world-stage"><canvas id="world-canvas" aria-label="Atlas du parcours, île en maquette : chaque bâtiment est une étape. Glisser pour tourner, survoler un point lumineux pour lire l’étape, cliquer pour ouvrir sa fiche." tabindex="0"></canvas>
-<aside class="world-intro"><h1>Atlas<br>du parcours<span>.</span></h1><p class="world-role">EXPLORER · NAVIGUER · CONSTRUIRE</p><p class="world-lead">Huit étapes sur une île ouverte. Explore le parcours, prends le large ou construis ton château sur la plage.</p><nav class="world-links" aria-label="Liens"><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a><a href="mailto:mathieu@comtesse.me">E-mail</a><a href="profil.html#parcours">Parcours détaillé</a></nav></aside>
+<div class="world-stage" id="world-stage"><canvas id="world-canvas" aria-label="Nacre — l’archipel des marées, île en maquette : chaque bâtiment est une étape. Glisser pour tourner, survoler un point lumineux pour lire l’étape, cliquer pour ouvrir sa fiche." tabindex="0"></canvas>
+<aside class="world-intro"><h1>Nacre<span>.</span><br><small style="font-size:.48em;letter-spacing:-.025em">Archipel des marées</small></h1><p class="world-role">EXPLORER · NAVIGUER · CONSTRUIRE</p><p class="world-lead">Huit étapes reliées, une île pour créer. Explore le parcours, prends le large et rejoins l’île des marées pour modeler ton château.</p><nav class="world-links" aria-label="Liens"><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a><a href="mailto:mathieu@comtesse.me">E-mail</a><a href="profil.html#parcours">Parcours détaillé</a></nav></aside>
 <div class="world-labels" id="world-labels"></div><div class="world-loading" id="world-loading" role="status">Chargement de l’île…</div><div class="world-card" id="world-card" hidden></div>
 <div class="world-bubble" id="world-bubble" hidden></div><div class="world-fish" id="world-fish" role="dialog" aria-live="polite" hidden></div>
 <div class="world-sailhud" id="world-sailhud" hidden><span class="for-keys">ZQSD / flèches pour naviguer · Espace pour s’arrêter · F pour pêcher près d’un banc · Échap pour quitter la barre</span><span class="for-touch">Flèches pour naviguer · F pour pêcher près d’un banc</span></div>
@@ -65,4 +65,4 @@ html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
 <div class="world-pad" id="world-pad" hidden aria-label="Barre du bateau"><button data-k="up" aria-label="Avancer"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M12 4 21 19H3z" fill="currentColor"/></svg></button><button data-k="left" aria-label="Bâbord"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M4 12 19 3v18z" fill="currentColor"/></svg></button><button data-k="fish" aria-label="Pêcher">F</button><button data-k="right" aria-label="Tribord"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg></button><button data-k="down" aria-label="Reculer"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M3 5h18l-9 15z" fill="currentColor"/></svg></button></div>
 <div class="world-hud"><span id="world-eggs">Easter eggs : 0 / 21</span><span id="world-hint" role="status">Glisser pour tourner · survoler un point lumineux · molette pour zoomer · Construire sur la plage · naviguer vers le large</span></div>
 <div class="world-controls"><button id="world-zoom-out" aria-label="Dézoomer">−</button><button id="world-zoom-in" aria-label="Zoomer">+</button><button id="world-pause" aria-label="Mettre en pause">Ⅱ</button><button id="world-reset" aria-label="Recentrer"><svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M5 12a7 7 0 1 0 2-5M4 3v5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="world-walk" aria-pressed="false">Marcher</button><button id="world-sail" aria-pressed="false">Naviguer</button><button id="world-log" aria-label="Carnet de bord des poissons pêchés">Carnet</button><button id="world-photo" aria-label="Prendre une photo de l’île">Photo</button><button id="world-sound" aria-pressed="true">Son : oui</button></div></div>
-</main><script type="module" src="atlas.js?v=20261013-refonte"></script></body></html>
+</main><script type="module" src="atlas.js?v=20261014-mediterranee"></script></body></html>

@@ -1,0 +1,18 @@
+/* Original Background sprite: #958, border 10/10/10/10.
+ * ColorBlock: normal 1, hover .9607843, pressed .7843137, fade .1 s. */
+@font-face{font-family:SandcastleMono;src:url('./assets/atlas/sandcastle/Sandcastle-RobotoMono.ttf') format('truetype');font-display:swap}
+body{--sc-ink:#393939;--sc-panel:rgba(255,255,255,.93)}
+.workbench,.ambience div,.world-controls,.atlas-options>div{background:var(--sc-panel);border:0;border-radius:8px;box-shadow:0 3px 12px #0002;color:var(--sc-ink)}
+button,.world-controls button,.atlas-options button,.ambience summary,.atlas-options summary{font-family:SandcastleMono,'Courier New',monospace;background:transparent;color:var(--sc-ink);border:10px solid transparent;border-image:url('./assets/atlas/sandcastle/ui-Background.png') 10 fill stretch;border-radius:0;box-shadow:none;transition:filter .1s ease,transform .1s ease;padding:3px 7px}
+button:hover,.world-controls button:hover,.ambience summary:hover,.atlas-options summary:hover{filter:brightness(.9607843)}
+button:active,button[aria-pressed=true],.world-controls button[aria-pressed=true]{background:transparent;color:#202020;filter:brightness(.7843137);transform:translateY(1px)}
+button[aria-pressed=true],.world-controls button[aria-pressed=true]{filter:brightness(.9607843);transform:none}
+button:focus-visible,summary:focus-visible{outline:2px solid #525252;outline-offset:3px}
+.tools button{padding:4px 6px}.tools button img{width:38px;height:38px;object-fit:contain}.tools button svg{display:none}.tools small{display:none}
+.workbench{width:min(730px,calc(100% - 24px));border-radius:8px}.receipt{color:#626262}.settings button{padding:2px 4px}.workbench,.ambience,#hint{font-family:SandcastleMono,'Courier New',monospace}#hint{background:#fffE;border-radius:5px;color:#393939}
+@media(max-width:600px){.tools button{padding:2px}.tools button img{width:25px;height:25px}.tools button span{font-size:10px}.workbench .settings button{font-size:9px}.settings{gap:1px}.world-controls button{border-width:8px;padding:2px 4px}}
+.world-controls #world-build{background:transparent;color:#393939;border:10px solid transparent;border-image:url('./assets/atlas/sandcastle/ui-Background.png') 10 fill stretch;border-radius:0;box-shadow:none;font-family:SandcastleMono,'Courier New',monospace}
+/* The earlier diorama theme declares these properties with !important. */
+.world-controls button{border:10px solid transparent!important;border-image:url('./assets/atlas/sandcastle/ui-Background.png') 10 fill stretch!important;background:transparent!important;color:#393939!important;font:500 11px SandcastleMono,monospace!important;padding:3px 6px;letter-spacing:0}
+.world-controls button:hover{color:#393939!important}
+@media(max-width:600px){.world-controls button{border-width:8px!important;padding:2px 4px;font-size:10px!important}}

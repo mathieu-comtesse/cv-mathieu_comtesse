@@ -152,6 +152,8 @@ function fabriquer(nomMat, ciel) {
 
 export async function chargerBatiments(ciel, url = new URL('assets/atlas/batiments.glb', import.meta.url).href) {
   const gltf = await new GLTFLoader().loadAsync(url);
+  const mediterranee=await new GLTFLoader().loadAsync(new URL('assets/atlas/nacre/mediterranee.glb',import.meta.url).href);
+  const maisons={};mediterranee.scene.traverse(o=>{if(o.name?.startsWith('bat_'))maisons[o.name.slice(4)]=o;});
   const sources = {};
   gltf.scene.traverse((o) => { if (o.name && o.name.startsWith('bat_')) sources[o.name.slice(4)] = o; });
   return {
@@ -166,6 +168,12 @@ export async function chargerBatiments(ciel, url = new URL('assets/atlas/batimen
       });
       copie.position.set(0, 0, 0); copie.rotation.set(0, 0, 0); copie.scale.set(1, 1, 1);
       groupe.add(copie); groupe.userData.ancres = ancres;
+      if(maisons[nom]){
+        copie.traverse(o=>{if(o.isMesh)o.visible=false;});
+        const maison=maisons[nom].clone(true);
+        maison.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>fabriquer(m.name,ciel)):fabriquer(o.material.name,ciel);o.castShadow=o.receiveShadow=true;}});
+        groupe.add(maison);groupe.userData.architecture='mediterranee';
+      }
       return { groupe, ancres };
     },
   };

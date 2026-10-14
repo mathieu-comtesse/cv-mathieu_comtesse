@@ -1,0 +1,66 @@
+[
+  {
+    "name": "TowerRoundPatternStencil_01",
+    "path_id": 75,
+    "format": "RGBAFloat",
+    "width": 256,
+    "height": 256,
+    "channels": 4
+  },
+  {
+    "name": "ShovelMediumPatternStencil",
+    "path_id": 100,
+    "format": "RGBAFloat",
+    "width": 128,
+    "height": 128,
+    "channels": 4
+  },
+  {
+    "name": "TowerRoundPatternStencil_02",
+    "path_id": 150,
+    "format": "RGBAFloat",
+    "width": 256,
+    "height": 256,
+    "channels": 4
+  },
+  {
+    "name": "ConnectingWallPatternStencil",
+    "path_id": 234,
+    "format": "RGBAFloat",
+    "width": 128,
+    "height": 128,
+    "channels": 4
+  },
+  {
+    "name": "RakeMediumPatternStencil",
+    "path_id": 246,
+    "format": "RGBAFloat",
+    "width": 128,
+    "height": 128,
+    "channels": 4
+  },
+  {
+    "name": "TowerRoundPatternStencil_03",
+    "path_id": 254,
+    "format": "RGBAFloat",
+    "width": 256,
+    "height": 256,
+    "channels": 4
+  },
+  {
+    "name": "TowerRoundPatternStencil_04",
+    "path_id": 269,
+    "format": "RGBAFloat",
+    "width": 256,
+    "height": 256,
+    "channels": 4
+  },
+  {
+    "name": "TowerRoundPatternStencil_05",
+    "path_id": 274,
+    "format": "RGBAFloat",
+    "width": 256,
+    "height": 256,
+    "channels": 4
+  }
+]

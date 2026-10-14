@@ -9,11 +9,11 @@
 import * as THREE from './three.module.js';
 
 if (/[?&]papier\b/.test(location.search)) {
-  await import('./atlas-papier.js?v=20261013-refonte');
+  await import('./atlas-papier.js?v=20261014-mediterranee');
 } else {
-  const { creerRendu } = await import('./atlas-rendu.js?v=20261013-refonte');
-  const { creerMonde } = await import('./atlas-monde.js?v=20261013-refonte');
-  const { creerJeu } = await import('./atlas-jeu.js?v=20261013-refonte');
+  const { creerRendu } = await import('./atlas-rendu.js?v=20261014-mediterranee');
+  const { creerMonde } = await import('./atlas-monde.js?v=20261014-mediterranee');
+  const { creerJeu } = await import('./atlas-jeu.js?v=20261014-mediterranee');
   const canvas = document.getElementById('world-canvas'), hote = canvas.parentElement, chargement = document.getElementById('world-loading');
   const tactile = matchMedia('(pointer: coarse)').matches, lite = /[?&]lite\b/.test(location.search) || tactile;
   const R = creerRendu(canvas, { qualite: lite ? 0 : 1 });
@@ -21,8 +21,8 @@ if (/[?&]papier\b/.test(location.search)) {
   try {
     M = await creerMonde(R, { qualite: lite ? 0 : 1 });
     J = creerJeu(M, R, { canvas, hote });
-    const { creerAtelier } = await import('./atlas-atelier.js?v=20261013-refonte');
-    await creerAtelier(J);
+    const { creerPassage } = await import('./atlas-archipel.js?v=20261014-mediterranee');
+    creerPassage(J);
   } catch (e) { if (chargement) chargement.textContent = 'Impossible d’afficher l’île sur cet appareil (WebGL 2 requis).'; console.error(e); throw e; }
   const q = new URLSearchParams(location.search);
   J.densite = lite ? 1 : 1.5;
@@ -38,6 +38,7 @@ if (/[?&]papier\b/.test(location.search)) {
     const brut = horloge.getDelta(), dt = Math.min(0.05, brut); t += dt;
     if (brut < 0.25) { perfT += brut; perfN++; }
     if (perfT > 2) { const moy = perfT / perfN; if (moy > 0.026 && densite > 0.7) { densite = Math.max(0.7, densite - 0.15); J.densite = densite; J.redimensionner(); } else if (moy < 0.014 && densite < (lite ? 1 : 1.5)) { densite = Math.min(lite ? 1 : 1.5, densite + 0.1); J.densite = densite; J.redimensionner(); } perfT = perfN = 0; }
+    if(J.atelier?.on){requestAnimationFrame(image);return;}
     J.tick(dt, t);
     R.rendre(M.scene, M.sceneNuages, M.camera, t);
     requestAnimationFrame(image);

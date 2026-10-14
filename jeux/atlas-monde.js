@@ -4,17 +4,21 @@
  *
  *   const M = await creerMonde(R, { qualite })   ->  M.scene, M.sceneNuages, M.camera, M.ciel, M.carte, M.bats, M.objets, M.tick(dt, t)             */
 import * as THREE from './three.module.js';
-import { creerCiel } from './atlas-ciel.js?v=20261013-refonte';
-import { creerNuages } from './atlas-nuages.js?v=20261013-refonte';
-import { chargerIle, creerEau } from './atlas-ile.js?v=20261013-refonte';
-import { creerFlore, aleatoire } from './atlas-flore.js?v=20261013-refonte';
-import { peupler } from './atlas-decor.js?v=20261013-refonte';
-import { chargerBatiments, ajusterPieds } from './atlas-batiments.js?v=20261013-refonte';
-import { ETAPES } from './atlas-etapes.js?v=20261013-refonte';
-import { creerRoches } from './atlas-roches.js?v=20261013-refonte';
-import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261013-refonte';
-import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261013-refonte';
-import { creerPlage } from './atlas-plage.js?v=20261013-refonte';
+import { creerCiel } from './atlas-ciel.js?v=20261014-mediterranee';
+import { creerNuages } from './atlas-nuages.js?v=20261014-mediterranee';
+import { chargerIle, creerEau } from './atlas-ile.js?v=20261014-mediterranee';
+import { creerFlore, aleatoire } from './atlas-flore.js?v=20261014-mediterranee';
+import { peupler } from './atlas-decor.js?v=20261014-mediterranee';
+import { chargerBatiments, ajusterPieds } from './atlas-batiments.js?v=20261014-mediterranee';
+import { ETAPES } from './atlas-etapes.js?v=20261014-mediterranee';
+import { creerRoches } from './atlas-roches.js?v=20261014-mediterranee';
+import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261014-mediterranee';
+import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261014-mediterranee';
+import { creerArchipel } from './atlas-archipel.js?v=20261014-mediterranee';
+import { creerLiaisons } from './atlas-liaisons.js?v=20261014-mediterranee';
+import { creerEcologie } from './atlas-ecologie.js?v=20261014-mediterranee';
+import { appliquerEcosystemeSource } from './atlas-sandcastle.js';
+import { creerPlage } from './atlas-plage.js?v=20261014-mediterranee';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const ECH_BAT = 0.78;                                    // bâtiments plus petits : l'île respire
@@ -225,12 +229,13 @@ export async function creerMonde(R, opts = {}) {
     ciel.tick(dt, t, camera);
     const k = ciel.uniformes.uNuit.value;
     soleil.position.copy(ciel.soleil).multiplyScalar(60); soleil.target.position.set(0, -2, 0); soleil.target.updateMatrixWorld();
-    soleil.intensity = 2.8 * (1 - k) + 1.6 * k; soleil.color.set('#fff0d4').lerp(couleurLune, k);
-    hemi.intensity = 1.15 * (1 - k) + 0.95 * k; hemi.color.set('#c4deea').lerp(ciHemi, k); hemi.groundColor.set('#e9d3a1').lerp(solHemi, k); scene.environmentIntensity = 0.72 * (1 - k) + 0.3 * k;
+    soleil.intensity = 1.85 * (1 - k) + 1.6 * k; soleil.color.set('#ffe2b0').lerp(couleurLune, k);
+    hemi.intensity = .85 * (1 - k) + 0.95 * k; hemi.color.set('#c4deea').lerp(ciHemi, k); hemi.groundColor.set('#e9d3a1').lerp(solHemi, k); scene.environmentIntensity = 0.52 * (1 - k) + 0.3 * k;
     ile.partage.uTemps.value = t; eau.userData.uniformes.uTemps.value = t; dio.tick(t); plage.tick(dt, t); matChute.uniforms.uT.value = t; decor.tick(dt, t); roches.tick(dt, t);
     R.reglages.exposition = 0.92 + 0.6 * k; R.reglages.eclat = 0.18 + 0.3 * k;
     camera.updateMatrixWorld(); camera.updateProjectionMatrix();
     nuages.tick(dt, t, camera, ciel, R.profondeur, R.taille);
+    M.ecologie?.tick(dt,t);M.sourceSandcastle?.tick(t);
     // train
     trainT = (trainT + M.vitesseTrain * dt) % 1; const tete = trainT * voie.longueur;
     for (const g of rames) poseRame(g, tete - g.userData.derriere, voie.courbe, voie.longueur);
@@ -244,7 +249,7 @@ export async function creerMonde(R, opts = {}) {
     // mouettes
     mouettes.forEach((g, i) => { const u = g.userData, a = t * u.v + u.ph; g.position.set(Math.cos(a) * u.r, u.h - 1 + Math.sin(t * 0.6 + i) * 0.5, Math.sin(a) * u.r * 0.85); g.rotation.y = -a - Math.PI / 2; g.rotation.x = -0.18; const f = Math.sin(t * 7 + u.ph * 3) * 0.55; u.aG.rotation.x = f; u.aD.rotation.x = -f; u.aG.position.z = 0.07; u.aD.position.z = -0.07; });
     // bateaux amarrés qui tanguent
-    const bob = (g, a, ph) => { g.position.y = Math.sin(t * 1.3 + ph) * 0.012; g.rotation.z = Math.sin(t * 1.1 + ph) * 0.02; };
+    const bob = (g, a, ph) => { g.position.y = dio.hauteurEau(g.position.x,g.position.z)+Math.sin(t * 1.3 + ph) * 0.008; g.rotation.z = Math.sin(t * 1.1 + ph) * 0.02; };
     bob(yacht, amarrage.yacht, 0); if (!M.barreSail) bob(bateau, amarrage.bateau, 1.7);
     // voilier : sort du ponton, tourne autour de l'îlot, revient ranger ses voiles
     if(!M.voilierLibre){
@@ -273,6 +278,11 @@ export async function creerMonde(R, opts = {}) {
     if (canard.userData.fuit) { canard.userData.fuit += dt; canard.position.x -= dt * 0.9; canard.position.z += dt * 0.4; if (canard.userData.fuit > 4) { canard.userData.fuit = 0; canard.position.copy(canard.userData.home); } }
     canard.position.y = Math.sin(t * 3) * 0.012 - 0.02; canard.rotation.y = Math.sin(t * 0.4) * 0.8 + 0.6;
   };
+  creerArchipel(M);
+  M.liaisons=creerLiaisons(M);
   M.fondReel=creerFondReel(M);
+  M.ecologie=await creerEcologie(M);
+  M.ecologie.habillerPoissons(M.objets.poissons);
+  M.sourceSandcastle=await appliquerEcosystemeSource(M);
   return M;
 }

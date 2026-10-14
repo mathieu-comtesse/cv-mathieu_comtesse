@@ -1,8 +1,8 @@
 import * as THREE from './three.module.js';
-import { chargerMailles } from './atlas-maille.js?v=20261013-refonte';
-import { aleatoire } from './atlas-flore.js?v=20261013-refonte';
-import { GLSL_BRUIT } from './atlas-ciel.js?v=20261013-refonte';
-import { GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261013-refonte';
+import { chargerMailles } from './atlas-maille.js?v=20261014-mediterranee';
+import { aleatoire } from './atlas-flore.js?v=20261014-mediterranee';
+import { GLSL_BRUIT } from './atlas-ciel.js?v=20261014-mediterranee';
+import { GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261014-mediterranee';
 
 export async function ameliorerCanopes(flore){
  const meshes=await chargerMailles(new URL('assets/atlas/refonte/vegetation.bin',import.meta.url));
@@ -28,20 +28,27 @@ export function creerFondReel(M){
  const {carte,ciel,dio,roches}=M,U=dio.surface.material.uniforms;
  const groupe=new THREE.Group();groupe.name='Fond marin : sable, galets et herbiers';M.scene.add(groupe);
  const H=U.uSDF.value.image,region=U.uSDFZone.value;
- function depth(x,z){const i=THREE.MathUtils.clamp(Math.floor((x-region.x)/region.z*H.width),0,H.width-1),j=THREE.MathUtils.clamp(Math.floor((z-region.y)/region.w*H.height),0,H.height-1);return .35+THREE.DataUtils.fromHalfFloat(H.data[j*H.width+i])*.28;}
+ function depth(x,z){
+  const h=carte.hauteur(x,z);
+  // Un fond continu reste sous les falaises immergées et ferme les anciennes
+  // découpes de la carte. La terre opaque le cache naturellement au-dessus.
+  if(h>-20)return -Math.min(-.25,h-.08);
+  const i=THREE.MathUtils.clamp(Math.floor((x-region.x)/region.z*H.width),0,H.width-1),j=THREE.MathUtils.clamp(Math.floor((z-region.y)/region.w*H.height),0,H.height-1);
+  return .35+THREE.DataUtils.fromHalfFloat(H.data[j*H.width+i])*.28;
+ }
  const g=new THREE.PlaneGeometry(region.z,region.w,160,120).rotateX(-Math.PI/2),p=g.attributes.position;
  for(let i=0;i<p.count;i++){const x=p.getX(i)+region.x+region.z/2,z=p.getZ(i)+region.y+region.w/2;p.setXYZ(i,x,-depth(x,z),z);}g.computeVertexNormals();
  const mat=new THREE.MeshStandardMaterial({color:'#ddd1a5',roughness:1,envMapIntensity:.2});
  mat.onBeforeCompile=sh=>{
-  Object.assign(sh.uniforms,{uZone:{value:carte.zone},uHTex:{value:carte.texH},uTemps:U.uTemps,uNuit:U.uNuit});
+  Object.assign(sh.uniforms,{uTemps:U.uTemps,uNuit:U.uNuit,uOriginalCaustics:U.uOriginalCaustics});
   sh.vertexShader='varying vec3 vBed;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBed=transformed;');
-  sh.fragmentShader=`uniform sampler2D uHTex;uniform vec4 uZone;uniform float uTemps,uNuit;varying vec3 vBed;${GLSL_BRUIT}${GLSL_CAUSTIQUES}\n`+sh.fragmentShader
+  sh.fragmentShader=`uniform float uTemps,uNuit;varying vec3 vBed;${GLSL_BRUIT}${GLSL_CAUSTIQUES}\n`+sh.fragmentShader
   .replace('#include <color_fragment>',`#include <color_fragment>
-    vec2 coord=vec2((vBed.z-uZone.y)/uZone.w,(vBed.x-uZone.x)/uZone.z);
-    if(all(greaterThan(coord,vec2(0.)))&&all(lessThan(coord,vec2(1.)))&&texture2D(uHTex,coord).r>-20.)discard;
-    float sand=.5+.5*sin(dot(vBed.xz,vec2(.6,.8))*18.+n2(vBed.xz*.6)*5.);diffuseColor.rgb*=.96+.04*sand;`)
+    float sand=.5+.5*sin(dot(vBed.xz,vec2(.6,.8))*12.+n2(vBed.xz*.35)*4.);
+    float grain=n2(vBed.xz*65.);float grainFade=1.-smoothstep(.5,1.6,length(fwidth(vBed.xz*65.)));
+    diffuseColor.rgb*=(.975+.025*sand)*(1.+(grain-.5)*.035*grainFade);`)
   .replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
-    totalEmissiveRadiance+=vec3(.8,.9,.65)*caustiqueAtlas(vBed.xz*4.5,uTemps)*.05*(1.-uNuit);`);
+    totalEmissiveRadiance+=vec3(.8,.9,.75)*caustiqueAtlas(vBed.xz,uTemps)*.025*(1.-uNuit);`);
  };
  const bed=new THREE.Mesh(g,mat);bed.receiveShadow=true;groupe.add(bed);
  const rng=aleatoire(125),rockGeo=roches.geometries;
@@ -59,7 +66,15 @@ export function creerFondReel(M){
  }
  blades.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));blades.setIndex(inds);blades.computeVertexNormals();
  const weedMat=new THREE.MeshStandardMaterial({color:'#657641',roughness:.9,side:THREE.DoubleSide});
- weedMat.onBeforeCompile=sh=>{sh.uniforms.uTemps=U.uTemps;sh.vertexShader='uniform float uTemps;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.x+=sin(uTemps*.7+transformed.y*4.)*transformed.y*transformed.y*.35;');};
+ weedMat.onBeforeCompile=sh=>{
+  Object.assign(sh.uniforms,{uTemps:U.uTemps,uHoule:U.uHoule,uSDFZone:U.uSDFZone});
+  sh.vertexShader='uniform float uTemps;uniform sampler2D uHoule;uniform vec4 uSDFZone;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+    vec4 rootWorld=modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.);
+    vec4 localWave=texture2D(uHoule,(rootWorld.xz-uSDFZone.xy)/uSDFZone.zw);
+    float flex=transformed.y*transformed.y;
+    transformed.x+=(sin(uTemps*.65+transformed.y*3.)*.22+localWave.g*2.)*flex;
+    transformed.z+=(cos(uTemps*.53+rootWorld.x*.4)*.11+localWave.b*2.)*flex;`);
+ };
  const weeds=new THREE.InstancedMesh(blades,weedMat,110),tmp=new THREE.Object3D();let n=0;
  for(let i=0;i<2500&&n<110;i++){const x=(rng()-.5)*65,z=(rng()-.5)*52;if(carte.hauteur(x,z)>-20||depth(x,z)>2.8)continue;tmp.position.set(x,-depth(x,z),z);tmp.rotation.y=rng()*6.28;tmp.scale.setScalar(.7+rng()*.6);tmp.updateMatrix();weeds.setMatrixAt(n++,tmp.matrix);}weeds.count=n;groupe.add(weeds);
  return {groupe,depth,herbiers:n};

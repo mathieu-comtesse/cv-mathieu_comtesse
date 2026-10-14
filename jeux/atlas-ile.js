@@ -4,10 +4,12 @@
  *   carte.hauteur(x, z)   carte.eau(x, z)   carte.pente(x, z)   carte.normale(x, z)   carte.texH / carte.texEau (pour les shaders)
  *   eclairer(materiau, { ... })          injecte dans un MeshStandardMaterial : AO cuite, ombres des nuages, grain de matière */
 import * as THREE from './three.module.js';
-import { chargerMailles } from './atlas-maille.js?v=20261013-refonte';
-import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js?v=20261013-refonte';
-import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261013-refonte';
-import { GLSL_FOND_MARIN } from './atlas-fond-marin.js?v=20261013-refonte';
+import { chargerMailles } from './atlas-maille.js?v=20261014-mediterranee';
+import { deformerLittoral } from './atlas-littoral.js?v=20261014-mediterranee';
+import { ressourcesSandcastle } from './atlas-sandcastle.js';
+import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js?v=20261014-mediterranee';
+import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261014-mediterranee';
+import { GLSL_FOND_MARIN } from './atlas-fond-marin.js?v=20261014-mediterranee';
 
 const demi = new Float32Array(1), ent = new Uint32Array(demi.buffer);
 function half(h) {                                          // demi-flottant -> flottant
@@ -59,6 +61,8 @@ export async function chargerCarte(url = ICI('assets/atlas/refonte/ile-carte')) 
 export function eclairer(mat, ciel, carte, opts = {}) {
   const partage = { uT: { value: 0 }, uNu: ciel.uniformes.uNu, uSunDir: ciel.uniformes.uSunDir, uNuit: ciel.uniformes.uNuit, uBump: { value: opts.bump ?? 0.6 }, uZone: { value: carte ? carte.zone : new THREE.Vector4() }, uEauTex: { value: carte ? carte.texEau : null }, uHTex: { value: carte ? carte.texH : null }, uTemps: { value: 0 } };
   mat.userData.partage = partage;
+  partage.uOriginalCaustics={value:carte?.sandcastle?.textures.CausticsAtlas??null};
+  partage.uSourceSand={value:carte?.sandcastle?.textures.Sand??null};
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, partage);
     sh.vertexShader = `attribute float ao, mat; varying float vAo, vMat; varying vec3 vWp; varying vec3 vNw;\n` + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
@@ -68,7 +72,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
         mi_ = instanceMatrix;
       #endif
       vec4 wp4 = modelMatrix * mi_ * vec4(transformed, 1.); vWp = wp4.xyz; vNw = normalize(mat3(modelMatrix * mi_) * normal);`);
-    sh.fragmentShader = `uniform float uT, uBump, uNuit, uTemps; uniform vec3 uSunDir; uniform vec4 uZone; uniform sampler2D uEauTex, uHTex;
+    sh.fragmentShader = `uniform float uT, uBump, uNuit, uTemps; uniform vec3 uSunDir; uniform vec4 uZone; uniform sampler2D uEauTex, uHTex,uSourceSand;
       varying float vAo, vMat; varying vec3 vWp; varying vec3 vNw;
       ${GLSL_BRUIT}${GLSL_OMBRES}${GLSL_CAUSTIQUES}${GLSL_FOND_MARIN}
       float hroche(vec3 q){ float a = n3(q), b = n3(q * 2.7 + 3.1), c = n3(q * 7.9 + 11.); return (1. - abs(a * 2. - 1.)) * .55 + b * .3 + (1. - abs(c * 2. - 1.)) * .22; }
@@ -90,10 +94,10 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           sandM_ = max(verd, idSable);
           float grain = n2(vWp.xz * 85.);
           float grainVisible = 1. - smoothstep(.5, 1.5, length(fwidth(vWp.xz * 85.)));
-          vec3 sable = mix(vec3(.80, .70, .48), vec3(.96, .88, .68), gros) * (.92 + .15 * lu) * (.95 + .07 * ride);
-          sable *= 1. + (grain - .5) * .09 * grainVisible;
+          vec3 detailSource=texture2D(uSourceSand,vWp.xz*.7).rgb;
+          vec3 sable = mix(vec3(.9254902,.8862745,.7254902),vec3(.9294118,.8980392,.7529412),detailSource.r);
           float humidite = 1. - smoothstep(-.12, .32, vWp.y + .025 * sin(uTemps * .85));
-          sable = mix(sable, sable * vec3(.83, .79, .70), humidite * .65);
+          sable = mix(sable,vec3(.906,.8103758,.633294),humidite);
           diffuseColor.rgb = mix(diffuseColor.rgb, sable, clamp(sandM_, 0., 1.) * .88);
           vec2 uvFond = vec2((vWp.z - uZone.y) / uZone.w, (vWp.x - uZone.x) / uZone.z);
           if (mid_ > 4.5 && mid_ < 5.5 && vWp.y < -.08 && texture2D(uEauTex, uvFond).r > .05) {
@@ -125,7 +129,7 @@ export function eclairer(mat, ciel, carte, opts = {}) {
           vec2 uvw = vec2((vWp.z - uZone.y) / uZone.w, (vWp.x - uZone.x) / uZone.z);
           float inLag = texture2D(uEauTex, uvw).r * step(vWp.y, -.02) * step(-1.6, vWp.y);
           if (inLag > .01) {
-            float c = caustiqueAtlas(vWp.xz * 4.8, uTemps) * inLag * (1. - uNuit * .75);
+            float c = caustiqueAtlas(vWp.xz, uTemps) * inLag * (1. - uNuit * .75);
             totalEmissiveRadiance += vec3(.9, 1., .95) * c * (1. - smoothstep(-1.5, -.25, vWp.y)) * .10;
           }
         }`}`)
@@ -141,7 +145,9 @@ export function eclairer(mat, ciel, carte, opts = {}) {
 
 export async function chargerIle(ciel) {
   const carte = await chargerCarte();
+  carte.sandcastle=await ressourcesSandcastle();
   const mailles = await chargerMailles(ICI('assets/atlas/refonte/ile.bin'));
+  deformerLittoral(carte,mailles.ile.geo);
   const materiau = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, envMapIntensity: 0.3, side: THREE.DoubleSide });
   const partage = eclairer(materiau, ciel, carte, { bump: 0.18 });
   const mesh = new THREE.Mesh(mailles.ile.geo, materiau);

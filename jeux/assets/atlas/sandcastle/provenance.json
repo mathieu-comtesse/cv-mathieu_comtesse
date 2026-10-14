@@ -1,0 +1,215 @@
+{
+  "source": "Sandcastle Demo, installation locale fournie par utilisateur",
+  "unity": "6000.4.10f1",
+  "textures": {
+    "Background": "61-Background.png",
+    "WaterNormal2D": "307-WaterNormal2D.png",
+    "sactx-0-2048x2048-DXT5|BC3-UiAtlas-970d3d26": "328-sactx-0-2048x2048-DXT5-BC3-UiAtlas-970d3d26.png"
+  },
+  "files": [
+    {
+      "file": "106-Switchgrass_01_ImposterAtlas.png",
+      "sha256": "1c0dd9842064c71af76a7916bf6d87729080542da8494e7f04ae17c56a09e955",
+      "source": "decoded installed texture",
+      "source_path_id": 106
+    },
+    {
+      "file": "137-WheatGrass_01_ImposterAtlas.png",
+      "sha256": "49a8f8bd560af3a37d4e03b1bf7046cdcf9f3dd2b528639a2ccd6c214fad21ec",
+      "source": "decoded installed texture",
+      "source_path_id": 137
+    },
+    {
+      "file": "161-GroovedBrainCoral_01_ImposterAtlas.png",
+      "sha256": "3fc85274a786d01ca9d1b3edd743a08a3bc1b05469879cb116ecc52cc7faa589",
+      "source": "decoded installed texture",
+      "source_path_id": 161
+    },
+    {
+      "file": "169-RedAlgae_01_ImposterAtlas.png",
+      "sha256": "20a4498566dff49af2aceb8f3371a61fe4eecdf45ed1c71f42606b207cdbd85b",
+      "source": "decoded installed texture",
+      "source_path_id": 169
+    },
+    {
+      "file": "171-Goldenrod_01_ImposterAtlas.png",
+      "sha256": "3f1af7daafb5a3e69511ded692d6db17ca3eff4f2935826a4e59ac9960caf92f",
+      "source": "decoded installed texture",
+      "source_path_id": 171
+    },
+    {
+      "file": "172-Kelp_01_ImposterAtlas.png",
+      "sha256": "e22ca46baa9c44bf616996e0bbb34a21fb9fa63ba8064f759be2a5e27c5ded23",
+      "source": "decoded installed texture",
+      "source_path_id": 172
+    },
+    {
+      "file": "193-LettuceCoral_01_ImposterAtlas.png",
+      "sha256": "57cbd62e63b3da243726f7f8f16ea6af1a334edc79fbfcf62dbb1cc7cfdcb983",
+      "source": "decoded installed texture",
+      "source_path_id": 193
+    },
+    {
+      "file": "199-BuffaloGrass_01_ImposterAtlas.png",
+      "sha256": "7e40afd16ab29d467372c61631a6d1474b194a48d315291261e60134fce1d402",
+      "source": "decoded installed texture",
+      "source_path_id": 199
+    },
+    {
+      "file": "209-Patterns_01.png",
+      "sha256": "7f0db3a98d7a013812b1896fc2a81a50fa6361fc5c13aff8b8b36979a84469c2",
+      "source": "decoded installed texture",
+      "source_path_id": 209
+    },
+    {
+      "file": "232-Sand.png",
+      "sha256": "3d48e71622136b229a9470978ef9628be2a0661232ff4e6a75ca4b39c73c2ef1",
+      "source": "decoded installed texture",
+      "source_path_id": 232
+    },
+    {
+      "file": "293-Yarrow_01_ImposterAtlas.png",
+      "sha256": "9133c2b04a114dda3d0a473a2677c8ada8d32dae6cef1c669f5ea8d0f31de11d",
+      "source": "decoded installed texture",
+      "source_path_id": 293
+    },
+    {
+      "file": "296-Seagrass_01_ImposterAtlas.png",
+      "sha256": "08d916368e093c223af3e8d7f05a684c37bf578613ae33fd67b1e394fb8a5fdb",
+      "source": "decoded installed texture",
+      "source_path_id": 296
+    },
+    {
+      "file": "311-ElkhornCoral_01_ImposterAtlas.png",
+      "sha256": "bc90ad982d5b5f53eaf59605010e3f80981dfc1d817401b5a2248f76ada39113",
+      "source": "decoded installed texture",
+      "source_path_id": 311
+    },
+    {
+      "file": "98-CarnationCoral_01_ImposterAtlas.png",
+      "sha256": "60c90fc549ead576a8c2132283ec6deb03422752672b02f9dd33181b01444fb8",
+      "source": "decoded installed texture",
+      "source_path_id": 98
+    },
+    {
+      "file": "99-GreyTussock_01_ImposterAtlas.png",
+      "sha256": "7ec90f5b04f2e4bdaf2bcf01807fd4d965e25d2caba8b35ed7f7cee2f864213c",
+      "source": "decoded installed texture",
+      "source_path_id": 99
+    },
+    {
+      "file": "307-WaterNormal2D.png",
+      "sha256": "ceffa6aaf2330ca3452c2a391f29da7313c1ba4426a6892f7d04d614b6ed2af6",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "328-sactx-0-2048x2048-DXT5-BC3-UiAtlas-970d3d26.png",
+      "sha256": "9b51d0ca9c83c7729395fa5a4be5d0b6551d7f6073abaea7da6a6383bd73c92f",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "61-Background.png",
+      "sha256": "cc41c8095c32bf9cf67e7ff8b8a1e2fdb89c8d69033a1d29ceb510295ec06a2b",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-Background.png",
+      "sha256": "46e2a8c6759bf24681f9f3f6073973ca65ac95e8d1ed8b8e025137819857fb2d",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-CrenelationRoundedThumbnail.png",
+      "sha256": "62196b93ee4aa5a2e75b2fafa09edcfbc049a65a263ec4468f711ff832eff9f6",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-Panel.png",
+      "sha256": "5c489569a20a0706e41055d11802cd3652615899ff6ac21714a37f12ab41d085",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-RakeMediumThumbnail.png",
+      "sha256": "8d9979d804bb0b5041f709a2049d629db0e1b634b1f848e55567f30199775bcb",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-ShapeRoundThumbnail.png",
+      "sha256": "6484ced221e1df3cea2b423b16c99f68e7b4ce9fcf84e68a49a87e9c6d04328f",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-ShovelMediumThumbnail.png",
+      "sha256": "44d36016fc1616624374c96cecbd5a5b47cebc72e7630b48a6276c18d92c12ca",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-TowerRoundThumbnail.png",
+      "sha256": "118b14c5957351f07a0f681865c70ab36e2333599f60943698112fb2bd08992d",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "ui-WallSimpleThumbnail.png",
+      "sha256": "935915f65583f668ebaffcd8cf16f6a9b090f56c82f08c86475a2da1710b25a0",
+      "source": "decoded installed texture/sprite"
+    },
+    {
+      "file": "932-CausticsAtlas.png",
+      "sha256": "005c782b004af764eae0ee423483f1a59d635e777cc16211eccf708402ce5fa1",
+      "source_path_id": 932,
+      "source_format": "R8 256x256x64, base mip, unchanged texels",
+      "raw_base_sha256": "e5355399d7e4931291032ebd78d7b50dfe89cb7565dbda422f74e469769d3b0c",
+      "layout": "8x8 tiles; each tile 256x256 with one wrapped texel border; flipY=false"
+    }
+  ],
+  "sprites": [
+    {
+      "name": "Background",
+      "file": "ui-Background.png",
+      "path_id": 958,
+      "border": "Vector4f(10.0, 10.0, 10.0, 10.0)"
+    },
+    {
+      "name": "WallSimpleThumbnail",
+      "file": "ui-WallSimpleThumbnail.png",
+      "path_id": 969,
+      "border": "Vector4f(0.0, 0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "TowerRoundThumbnail",
+      "file": "ui-TowerRoundThumbnail.png",
+      "path_id": 1023,
+      "border": "Vector4f(0.0, 0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "ShovelMediumThumbnail",
+      "file": "ui-ShovelMediumThumbnail.png",
+      "path_id": 1037,
+      "border": "Vector4f(0.0, 0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "RakeMediumThumbnail",
+      "file": "ui-RakeMediumThumbnail.png",
+      "path_id": 1050,
+      "border": "Vector4f(0.0, 0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "ShapeRoundThumbnail",
+      "file": "ui-ShapeRoundThumbnail.png",
+      "path_id": 1076,
+      "border": "Vector4f(0.0, 0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "CrenelationRoundedThumbnail",
+      "file": "ui-CrenelationRoundedThumbnail.png",
+      "path_id": 1100,
+      "border": "Vector4f(0.0, 0.0, 0.0, 0.0)"
+    },
+    {
+      "name": "Panel",
+      "file": "ui-Panel.png",
+      "path_id": 1103,
+      "border": "Vector4f(64.0, 64.0, 64.0, 64.0)"
+    }
+  ],
+  "coverage": "Original decoded textures, mesh channels and serialized material values. Native GPU programs and game logic require a browser port; runtime equivalence is not established."
+}

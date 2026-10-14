@@ -1,6 +1,6 @@
 /* Atelier original : relief modifiable, modules authorés dans Blender et sauvegarde locale. */
 import * as THREE from './three.module.js';
-import { chargerMailles } from './atlas-maille.js?v=20261013-refonte';
+import { chargerMailles } from './atlas-maille.js?v=20261014-mediterranee';
 
 export async function creerAtelier(J) {
   const {M,canvas}=J, config=M.meta.refonte.atelier, [cx,cz]=config.c;

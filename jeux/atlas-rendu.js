@@ -89,7 +89,7 @@ export function creerRendu(canvas, opts = {}) {
     const W = Math.max(2, Math.round(w * densite)), H = Math.max(2, Math.round(h * densite));
     renderer.setPixelRatio(1); renderer.setSize(Math.round(w * densite), Math.round(h * densite), false);
     canvas.style.width = '100%'; canvas.style.height = '100%';
-    rtScene.setSize(W, H); rtComp.setSize(W, H); rtOpaque.setSize(Math.max(2,W>>1),Math.max(2,H>>1));
+    rtScene.setSize(W, H); rtComp.setSize(W, H); rtOpaque.setSize(Math.max(2,qualite>=1?W:W>>1),Math.max(2,qualite>=1?H:H>>1));
     flou.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1))));
     bas.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1)))); haut.forEach((r, i) => r.setSize(Math.max(2, W >> (i + 1)), Math.max(2, H >> (i + 1))));
     R.taille.set(W, H);
@@ -98,7 +98,7 @@ export function creerRendu(canvas, opts = {}) {
     const g = R.reglages;
     const shadowAuto=renderer.shadowMap.autoUpdate;
     if(R.eau){
-      const was=R.eau.visible; R.eau.visible=false; renderer.setRenderTarget(rtOpaque); renderer.clear(); renderer.render(scene,camera); R.eau.visible=was;
+      const waterGroup=R.eau.parent||R.eau,was=waterGroup.visible;waterGroup.visible=false;renderer.setRenderTarget(rtOpaque);renderer.clear();renderer.render(scene,camera);waterGroup.visible=was;
       const water=R.eau.material.uniforms; water.uScene.value=rtOpaque.texture; water.uDepth.value=opaqueDepth; water.uResolution.value.copy(R.taille); water.uNear.value=camera.near; water.uFar.value=camera.far;
       renderer.shadowMap.autoUpdate=false;
     }

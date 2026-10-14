@@ -158,10 +158,10 @@ export function creerPeche(J) {
     const longueur=M.bateauActif==='yacht'?1.1:.5;
     if (!libre(nx + fx * longueur * sens, nz + fz * longueur * sens) || !libre(nx, nz)) { if (Math.abs(u.vitesse) > 0.5) J.son.tone([140, 95], 0.12); u.vitesse *= -0.3; } else { bateau.position.x = nx; bateau.position.z = nz; }
     u.roulis += ((-tourne * u.vitesse * 0.1) - u.roulis) * Math.min(1, dt * 4);
-    bateau.position.y = ondes(bateau.position.x, bateau.position.z, t) + 0.01; bateau.rotation.set(u.roulis + Math.sin(t * 1.3) * 0.03, u.cap, Math.sin(t * 1.1) * 0.035 + u.vitesse * 0.03);
+    bateau.position.y = (M.dio.hauteurEau?.(bateau.position.x,bateau.position.z) ?? ondes(bateau.position.x, bateau.position.z, t)) + 0.01; bateau.rotation.set(u.roulis + Math.sin(t * 1.3) * 0.03, u.cap, Math.sin(t * 1.1) * 0.035 + u.vitesse * 0.03);
   }
   const wakes = []; { const geo = new THREE.CircleGeometry(0.09, 10).rotateX(-Math.PI / 2); for (let i = 0; i < 60; i++) { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false })); m.visible = false; m.renderOrder = 6; M.scene.add(m); wakes.push({ m, vie: 0, vx: 0, vz: 0 }); } }
-  let wakeNext = 0; const traine = (obj, dt) => { const u = obj.userData, p = obj.position; if (!u.dernier) { u.dernier = p.clone(); return; } const vx = (p.x - u.dernier.x) / dt, vz = (p.z - u.dernier.z) / dt, sp = Math.hypot(vx, vz); u.dernier.copy(p); u.wakeT = (u.wakeT || 0) - dt; if (sp < 0.15 || u.wakeT > 0) return; u.wakeT = 0.07; const fx = vx / sp, fz = vz / sp;
+  let wakeNext = 0; const traine = (obj, dt) => { const u = obj.userData, p = obj.position; if (!u.dernier) { u.dernier = p.clone(); return; } const vx = (p.x - u.dernier.x) / dt, vz = (p.z - u.dernier.z) / dt, sp = Math.hypot(vx, vz); u.dernier.copy(p); u.wakeT = (u.wakeT || 0) - dt; if (sp < 0.15 || u.wakeT > 0) return; u.wakeT = 0.07; M.dio.impulsionEau?.(p.x,p.z,Math.min(.035,sp*.012),.7); const fx = vx / sp, fz = vz / sp;
     for (const s of [-1, 1]) { const w = wakes[wakeNext++ % wakes.length]; w.m.visible = true; w.vie = 1; w.m.position.set(p.x - fx * 0.5 + fz * s * 0.09, 0.065, p.z - fz * 0.5 - fx * s * 0.09); w.vx = fz * s * 0.2; w.vz = -fx * s * 0.2; } };
 
   P.tick = (dt, t) => {
