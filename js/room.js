@@ -22,7 +22,7 @@ import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v54';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
-import {createFilmAlbum} from './film-album.js?v=book2';
+import {createFilmAlbum} from './film-album.js?v=book3';
 import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
@@ -342,7 +342,7 @@ export async function createRoom(container, bubbleEl) {
     install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38).userData.id='backpack';
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
-    install(buddhaModel,'BuddhaFourFaces',world,2.63,0,4.55,.2);
+    install(buddhaModel,'BuddhaFourFaces',world,-3.72,0,3.72,.6);   // à gauche de l'alocasia (alocasia en -3,1 ; 3,25)
     { // Télé JVC Video Capsule 3100R : sur l'étagère elle reste repliée en pyramide ; un clic l'ouvre dans une fenêtre dédiée (js/jvc-tv.js), comme le livre photo.
       const sc=jvcModel.scene,find=re=>{let r=null;sc.traverse(o=>{if(o.isMesh&&re.test(o.name))r=o;});return r;};
       const screen=find(/^Screen_low/),glassMesh=find(/^ScreenGlass/),body=find(/^Body_low/);
