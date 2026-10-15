@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=garden2';
+import { createChashitsu } from './chashitsu.js?v=garden3';
 import { createRetroSet } from './retro.js?v=cv-scene-v54';
 import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
@@ -265,10 +265,6 @@ export async function createRoom(container, bubbleEl) {
   const shoeAnchor={x:CS.x-.95,z:CS.z+cs.spec.RD/2+.4,y:cs.spec.DK.y+.02};
   const stool = F.stool(); add('stool', stool, STOOL_X, STOOL_Z, 0.2, 0, 0.55);
 
-  // lanterne du balcon : l'andon d'origine (papier lumineux la nuit)
-  mkLamp('andon', cs.lanternGlow, new THREE.PointLight('#ffd9a0', 0, 2.5, 2), '#ffe2a0', '#cfc8b4');
-  lamps.andon.light.position.set(CS.x + cs.spec.RW / 2 - 0.5, 0.4, CS.z + cs.spec.DK.z0 + 0.55);
-  world.add(lamps.andon.light);
   // télé cathodique + PS1 + manette sur le tapis, câbles au sol
   const retro = createRetroSet({consoleModel,controllerModel,tvModel,powerModel,sound:ps1Sound});
   add('tv', retro.group, -0.35, 2.2, 0, 0.018, 0.55, world, 0).scale.setScalar(1.3);

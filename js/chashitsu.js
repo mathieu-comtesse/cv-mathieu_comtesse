@@ -1,4 +1,4 @@
-import { makePond } from './pond.js?v=cv-scene-v44';
+import { makePond } from './pond.js?v=garden3';
 import { makeGarden } from './garden.js?v=cv-scene-v49';
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=cv-scene-v29';
 
@@ -147,12 +147,12 @@ export function createChashitsu() {
   for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) lantern.add(box(0.014, 0.34, 0.014, lf, x * 0.1, 0.2, z * 0.1));
   for (const y of [0.03, 0.37]) lantern.add(box(0.22, 0.02, 0.22, lf, 0, y, 0));
   lantern.position.set(RW / 2 - 0.5, DK.y, DK.z0 + 0.55); lantern.userData.id = 'andon';
-  vista.add(lantern);
+  // (la lanterne andon posée sur le plancher a été retirée : `lantern` reste exposée mais n'est plus ajoutée à la scène)
 
   const excl = (x, z) => (Math.abs(x) < 2.25 && z < 3.2) || (x > 2.25 && x < 3.5 && z < 2.6);      // pièce, balcon et sentier : pas de plantes
   /* étang : rive irrégulière qui passe sous le ponton, rochers ancrés sur la rive */
   const SEA = { w: 5.4, d: 3.3, z0: DK.z0 + DK.depth + 0.3, y: WL };
-  const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15, rainRect: { x0: -2.05, x1: 2.05, z0: ZB, z1: ZF + 0.1 }, rainH: 2.9, mistOutside: { count: 170, exclude: (x, z) => Math.abs(x) < 2.25 && z < 3.2 } }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
+  const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15, rainRect: { x0: -2.05, x1: 2.05, z0: ZB, z1: ZF + 0.1 }, rainH: 2.9, reedExclude: (x, z) => Math.abs(x) < 2.1 && z < DK.z0 + DK.depth + 0.15, mistOutside: { count: 170, exclude: (x, z) => Math.abs(x) < 2.25 && z < 3.2 } }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
 
   /* jardin : traits de mousse et d'herbe, sans limite ; couloir libre (pas japonais) le long du côté droit pour entrer par le balcon */
   const garden = makeGarden({ shape: sea.userData.shape, pc: [0.15, 2.95], uni: sea.userData.uni, exclude: excl }); vista.add(garden);

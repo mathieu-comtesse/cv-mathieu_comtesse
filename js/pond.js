@@ -332,7 +332,7 @@ export function rockGeo(seed, s) {
 }
 
 /** Étang. `cx, cz` : centre dans le repère du parent ; `posts` : pieux du ponton (repère du parent), entourés de ronds d'eau. */
-export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9, rainRect = null, rainH = 1.5, mistOutside = null } = {}) {
+export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9, rainRect = null, rainH = 1.5, mistOutside = null, reedExclude = null } = {}) {
   const g = group(), shape = makeShape(seed, { rx, rzBack, rzFront, floorZ: floorZ === null ? null : floorZ - cz });
   const uni = { uTime: { value: 0 }, uNight: { value: 0 }, uRain: { value: 0 }, uMist: { value: 0 }, uCloud: { value: 0 } };
   const inside = (x, z, m = 0.85) => shape.frac(x, z) < m;
@@ -384,10 +384,12 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
     if (back) { const n = 5 + ((pl() * 4) | 0); for (let k = 0; k < n; k++) { const x = bx + (pl() - 0.5) * 0.14, z = bz + (pl() - 0.5) * 0.14, h = 0.45 + pl() * 0.4; reedBlades.push({ x, y: 0.03, z, ry: pl() * 6, sy: h, sx: 1, tz: (pl() - 0.5) * 0.12 }); if (k < 2 && pl() > 0.5) cattail.push({ x: x + 0.004, y: 0.03 + h * 0.8, z, ry: 0, sx: 1, sy: 1 }); } }
     else if (pl() > 0.3) { for (let k = 0; k < 4; k++) { const x = bx + (pl() - 0.5) * 0.12, z = bz + (pl() - 0.5) * 0.1, h = 0.22 + pl() * 0.14; irisLeaves.push({ x, y: 0.03, z, ry: pl() * 6, sy: h, sx: 1.6, tz: (pl() - 0.5) * 0.3 }); if (k === 0 && pl() > 0.45) irisFlowers.push({ x, y: 0.03 + h * 0.95, z, ry: 0, sx: 1, sy: 1 }); } }
   }
-  g.add(scatter(bladeGeo(6, 0.03), plantMaterial(uni, '#6e8a3c', '#b9c767', 0.045), reedBlades));
-  g.add(scatter(bladeGeo(6, 0.04), plantMaterial(uni, '#3f7a3a', '#8fc561', 0.04), irisLeaves));
-  if (cattail.length) g.add(scatter(new THREE.CylinderGeometry(0.013, 0.013, 0.1, 8).translate(0, 0.05, 0), new THREE.MeshStandardMaterial({ color: '#5b3a22', roughness: 0.9 }), cattail));
-  if (irisFlowers.length) g.add(scatter(new THREE.IcosahedronGeometry(0.035, 1).translate(0, 0.02, 0), new THREE.MeshStandardMaterial({ color: '#7a55c4', roughness: 0.7, emissive: '#3a2370', emissiveIntensity: 0.2 }), irisFlowers));
+  // zone interdite aux plantes de rive (ex. le plancher du ponton : rien ne doit le traverser)
+  const keep = (it) => !(reedExclude && reedExclude(it.x + cx, it.z + cz));
+  g.add(scatter(bladeGeo(6, 0.03), plantMaterial(uni, '#6e8a3c', '#b9c767', 0.045), reedBlades.filter(keep)));
+  g.add(scatter(bladeGeo(6, 0.04), plantMaterial(uni, '#3f7a3a', '#8fc561', 0.04), irisLeaves.filter(keep)));
+  const cat = cattail.filter(keep); if (cat.length) g.add(scatter(new THREE.CylinderGeometry(0.013, 0.013, 0.1, 8).translate(0, 0.05, 0), new THREE.MeshStandardMaterial({ color: '#5b3a22', roughness: 0.9 }), cat));
+  const fl = irisFlowers.filter(keep); if (fl.length) g.add(scatter(new THREE.IcosahedronGeometry(0.035, 1).translate(0, 0.02, 0), new THREE.MeshStandardMaterial({ color: '#7a55c4', roughness: 0.7, emissive: '#3a2370', emissiveIntensity: 0.2 }), fl));
 
   /* rochers ancrés sur la rive (moitié immergée, mousse dessus) + ronds d'eau */
   const rings = [], ringM = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide });
