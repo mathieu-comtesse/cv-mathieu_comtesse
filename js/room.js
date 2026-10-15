@@ -68,7 +68,7 @@ export async function createRoom(container, bubbleEl) {
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, akariGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/akari.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-clean-v44.glb?v=cv-scene-v44').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-clean-v44.glb?v=cv-scene-v44').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
 
   const seatCalibration=await fetch('assets/seat-calibration-v26.json').then(r=>{if(!r.ok)throw Error('Seat calibration missing');return r.json();});
 
@@ -262,10 +262,8 @@ export async function createRoom(container, bubbleEl) {
   const shoeAnchor={x:CS.x-.95,z:CS.z+cs.spec.RD/2+.4,y:cs.spec.DK.y+.02};
   const stool = F.stool(); add('stool', stool, STOOL_X, STOOL_Z, 0.2, 0, 0.55);
 
-  // lanterne du balcon : l'andon d'origine est remplacé par la lampe Akari de Noguchi (modèle réel)
-  while (cs.lantern.children.length) cs.lantern.remove(cs.lantern.children[0]);
-  const akari = F.akariFromGltf(akariGltf); akari.rotation.y = -0.5; cs.lantern.add(akari);
-  mkLamp('andon', akari.userData.glow, new THREE.PointLight('#ffd9a0', 0, 2.5, 2), '#ffe2a0', '#cfc8b4');
+  // lanterne du balcon : l'andon d'origine (papier lumineux la nuit)
+  mkLamp('andon', cs.lanternGlow, new THREE.PointLight('#ffd9a0', 0, 2.5, 2), '#ffe2a0', '#cfc8b4');
   lamps.andon.light.position.set(CS.x + cs.spec.RW / 2 - 0.5, 0.4, CS.z + cs.spec.DK.z0 + 0.55);
   world.add(lamps.andon.light);
   // télé cathodique + PS1 + manette sur le tapis, câbles au sol
