@@ -1,6 +1,5 @@
-import { makePond, makeDeckReeds } from './pond.js?v=garden1';
-import { makeGarden } from './garden.js?v=garden1';
-import { loadGardenModels } from './garden-models.js?v=garden1';
+import { makePond } from './pond.js?v=cv-scene-v44';
+import { makeGarden } from './garden.js?v=cv-scene-v49';
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=cv-scene-v29';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
@@ -122,8 +121,7 @@ export function createChashitsu() {
   { const ridge = cyl(0.065, 0.065, RWD + 0.1, edgeM, 0, YB + 0.13, ZB + 0.06, 10); ridge.rotation.z = Math.PI / 2; roof.add(ridge); }
   roof.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   vista.add(roof);
-  const roofMats = new Set(), collectRoofMats = (r) => { roofMats.clear(); r.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => roofMats.add(m)); }); };
-  collectRoofMats(roof);
+  const roofMats = new Set(); roof.traverse((o) => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => roofMats.add(m)); });
   let roofOp = 1, roofTarget = 1;
   // chaîne de pluie (kusari-doi) à l'angle droit de l'avant-toit : descend jusqu'à l'eau
   { const links = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.011, 0.011, 0.075, 6), logD, 19), d = new THREE.Object3D();
@@ -156,30 +154,9 @@ export function createChashitsu() {
   const SEA = { w: 5.4, d: 3.3, z0: DK.z0 + DK.depth + 0.3, y: WL };
   const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15, rainRect: { x0: -2.05, x1: 2.05, z0: ZB, z1: ZF + 0.1 }, rainH: 2.9, mistOutside: { count: 170, exclude: (x, z) => Math.abs(x) < 2.25 && z < 3.2 } }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
 
-  /* roseaux de la cérémonie du thé : ils sortent de l'eau, traversent le plancher du ponton et dépassent de quelques décimètres (jamais devant la table ni le coussin) */
-  const deckTop = DK.y + 0.06, zEdge = DK.z0 + DK.depth - 0.1;
-  const reedSpots = [
-    { x: -2.1, z: zEdge, n: 11, top: deckTop + 1.15, spread: 0.2 }, { x: 2.15, z: zEdge, n: 11, top: deckTop + 1.1, spread: 0.2 },
-    { x: -1.12, z: zEdge + 0.02, n: 7, top: deckTop + 0.62, spread: 0.14 }, { x: 1.1, z: zEdge + 0.02, n: 7, top: deckTop + 0.6, spread: 0.14 },
-    { x: -2.28, z: DK.z0 + 0.5, n: 8, top: deckTop + 0.9, spread: 0.16 }, { x: 2.3, z: DK.z0 + 0.45, n: 8, top: deckTop + 0.85, spread: 0.16 },
-  ];
-  vista.add(makeDeckReeds(sea.userData.uni, reedSpots, WL - 0.3));
-
   /* jardin : traits de mousse et d'herbe, sans limite ; couloir libre (pas japonais) le long du côté droit pour entrer par le balcon */
   const garden = makeGarden({ shape: sea.userData.shape, pc: [0.15, 2.95], uni: sea.userData.uni, exclude: excl }); vista.add(garden);
 
-  /* modèles 3D du jardin, chargés à la première ouverture des shoji : toit de temple à un seul versant (le même qu'avant, poutres et poteaux inchangés), lanternes, rochers, cyprès, lotus */
-  let modelsAsked = false;
-  function useModels(M) {
-    const tileRoof = new THREE.Group(); tileRoof.userData.dynamic = true;
-    const rm = M.roof.clone(true);
-    const YT = YB + 0.12, YE = YF + 0.04, Z0 = ZB - 0.12, Z1 = ZF + 0.1;     // crête, bord de l'avant-toit, profondeur
-    const sx = (RWD + 0.1) / 16.7, sy = (YT - YE) / 6.51, sz = (Z1 - Z0) / 9.5;
-    rm.scale.set(sx, sy, sz); rm.position.set(-0.05 * sx, YT - 16.93 * sy, Z0);
-    rm.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.castShadow = o.receiveShadow = true; } });
-    tileRoof.add(rm); vista.add(tileRoof); roof.visible = false; collectRoofMats(tileRoof);
-    garden.userData.useModels?.(M); sea.userData.useModels?.(M);
-  }
   return {
     garden, group: g, lantern, lanternGlow: paperL, panels, vista,
     setRoofFade(v) { roofTarget = v; },
@@ -195,7 +172,6 @@ export function createChashitsu() {
       }
       const r = Math.min(1, reveal * 1.6), e = r * r * (3 - 2 * r);
       vista.visible = e > 0.01; vista.scale.set(1, Math.max(e, 0.001), 1);
-      if (vista.visible && !modelsAsked) { modelsAsked = true; loadGardenModels().then(useModels).catch((e) => console.warn('[jardin] modèles 3D indisponibles, formes procédurales conservées', e)); }
       if (vista.visible) { sea.userData.update(t, night, wx || { rain: 0, mist: 0, cloud: 0 }); garden.userData.update(night); roofOp += (roofTarget - roofOp) * (1 - Math.exp(-dt * 5)); for (const m of roofMats) { m.transparent = roofOp < 0.995; m.opacity = roofOp; m.depthWrite = roofOp > 0.6; } }
     },
     spec: { RW, RD, RH, DK, SEA },

@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=garden1';
+import { createChashitsu } from './chashitsu.js?v=garden2';
 import { createRetroSet } from './retro.js?v=cv-scene-v54';
 import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
@@ -238,7 +238,7 @@ export async function createRoom(container, bubbleEl) {
     add('pump',bicyclePump.root,2.65,-4.15,-Math.PI/2,0,.85);
   }
 
-  const STELE = { x: 1.25, z: 4.95, yaw: 0.45 };                   // stèle de Burdigala, au sol à droite du canapé
+  const STELE = { x: -3.45, z: 1.38, yaw: 0.5 };                     // stèle de Burdigala, au sol contre le bout du bureau, du côté du canapé
   const STOOL_X = 2.0, STOOL_Z = 4.55;           // tabouret à droite du canapé, portant le bonsaï
   const bonsai = F.bonsai(); inkify(bonsai, { skip: (o) => !['9b9a92'].includes(o.material.color.getHexString()) }); add('bonsai', bonsai, STOOL_X, STOOL_Z, 0.5, 0.372, 0.42);
   const alo = F.alocasia(); inkify(alo, { skip: (o) => !(o.material.map && o.material.map.image && o.material.map.image.width === 128 && o.material.side === THREE.DoubleSide) });

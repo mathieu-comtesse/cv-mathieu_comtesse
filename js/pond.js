@@ -392,13 +392,12 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
   /* rochers ancrés sur la rive (moitié immergée, mousse dessus) + ronds d'eau */
   const rings = [], ringM = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide });
   const addRing = (x, z, r) => { const m = new THREE.Mesh(new THREE.RingGeometry(r * 0.82, r, 28), ringM.clone()); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.006, z); m.renderOrder = 2; m.userData = { r, x, z }; g.add(m); rings.push(m); };
-  const rk = rng(seed + 31), rockSpots = [];
+  const rk = rng(seed + 31);
   for (const [th0, s, sd] of [[Math.PI * 0.95, 0.3, 3], [Math.PI * 1.15, 0.2, 4], [Math.PI * 1.55, 0.26, 5], [Math.PI * 0.05, 0.34, 6], [Math.PI * 1.9, 0.2, 8], [Math.PI * 0.55, 0.16, 9]]) {
     const th = th0 + (rk() - 0.5) * 0.2, [x, z0] = shape.at(th, 1.0 + (rk() - 0.5) * 0.04), z = clampZ(z0);
     const m = new THREE.Mesh(rockGeo(sd, s), new THREE.MeshStandardMaterial({ color: '#4a515c', roughness: 0.95 })); m.position.set(x, -0.015, z); m.rotation.y = sd; m.castShadow = m.receiveShadow = true; g.add(m);
     addRing(x, z, s * 1.55);
     const moss = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6, 0, TAU, 0, 1.0), new THREE.MeshStandardMaterial({ color: '#4f7a3c', roughness: 1 })); moss.scale.set(s * 0.9, s * 0.4, s * 0.8); moss.position.set(x + s * 0.05, s * 0.34, z - s * 0.05); g.add(moss);
-    rockSpots.push({ x, z, s, sd, parts: [m, moss] });
   }
   for (const [px, pz] of posts) addRing(px - cx, pz - cz, 0.11);
 
@@ -418,14 +417,14 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
   const school = fitPath({ cx: 0.2, cz: 0.2, rx: 0.9, rz: 0.3, sp: 0.19, ph: 0.5, y: 0 });
 
   /* nénuphars et tiges */
-  const flowers = [], pads = [], padMats = [padTexture(3), padTexture(9)].map((t) => new THREE.MeshStandardMaterial({ map: t, roughness: 0.7, side: THREE.DoubleSide }));
+  const pads = [], padMats = [padTexture(3), padTexture(9)].map((t) => new THREE.MeshStandardMaterial({ map: t, roughness: 0.7, side: THREE.DoubleSide }));
   const stems = [], pp = rng(seed + 60), taken = [];
   for (let n = 0, tries = 0; n < 10 && tries < 200; tries++) {
     const q = randIn(0.78, 0.15); if (q.z + cz < padMinZ) continue;
     const R0 = 0.1 + pp() * 0.09; if (taken.some(([x, z, r]) => Math.hypot(x - q.x, z - q.z) < r + R0 + 0.05)) continue;
     taken.push([q.x, q.z, R0]);
     const pg = new THREE.Group(), pm = new THREE.Mesh(padGeo(R0), padMats[n % 2]); pm.receiveShadow = true; pg.add(pm);
-    if (n % 3 === 0) { const fl = lotus(R0 * 3.6); fl.position.y = 0.004; pg.add(fl); flowers.push({ pg, fl, R0, n }); }
+    if (n % 3 === 0) { const fl = lotus(R0 * 3.6); fl.position.y = 0.004; pg.add(fl); }
     pg.position.set(q.x, 0.014, q.z); pg.userData = { seed: n + 1 }; g.add(pg); pads.push(pg);
     const fy = floorAt(q.x, q.z); stems.push({ x: q.x, y: fy, z: q.z, sx: 1, sy: -fy, ry: 0 }); n++;
   }
@@ -453,31 +452,5 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
     const mu = mist.userData.uni; mu.uTime.value = t; mu.uMist.value = k.mist; mu.uNight.value = nn; mist.visible = k.mist > 0.02;
     const ru = rain.userData.uni; ru.uTime.value = t; ru.uRain.value = k.rain; ru.uNight.value = nn; rain.visible = k.rain > 0.02;
   };
-  /* modèles 3D (js/garden-models.js) : rochers moussus sur la rive et fleurs de lotus sculptées, à la place des formes procédurales */
-  g.userData.useModels = (M) => {
-    rockSpots.forEach((r, i) => {
-      r.parts.forEach((p) => { p.visible = false; });
-      const rock = M.moss[i % 2].clone(true), w = r.s * 3.1;
-      rock.scale.setScalar(w); rock.position.set(r.x, -0.03 - w * 0.06, r.z); rock.rotation.y = r.sd * 1.9; g.add(rock);
-    });
-    flowers.forEach(({ pg, fl, R0, n }) => {
-      fl.visible = false;
-      const f = M.lotus.clone(true); f.scale.setScalar(R0 * 2.1); f.position.y = 0.004; f.rotation.y = n * 1.3; pg.add(f);
-    });
-  };
-  return g;
-}
-
-/** Roseaux de la cérémonie du thé : touffes qui sortent de l'eau, traversent le plancher du ponton et se balancent au vent.
- *  `spots` : [{ x, z, n, top, spread }], `top` = altitude du sommet des tiges (repère du parent) ; `y0` = altitude du pied (sous l'eau). */
-export function makeDeckReeds(uni, spots, y0) {
-  const g = group(), r = rng(77), blades = [], plumes = [];
-  for (const sp of spots) for (let k = 0; k < sp.n; k++) {
-    const a = r() * TAU, d = Math.sqrt(r()) * sp.spread, x = sp.x + Math.cos(a) * d, z = sp.z + Math.sin(a) * d, top = sp.top * (0.62 + r() * 0.38), h = top - y0, lean = (r() - 0.5) * 0.14;
-    blades.push({ x, y: y0, z, ry: r() * 6, sy: h, sx: 1, tz: lean, tx: (r() - 0.5) * 0.1 });
-    if (r() > 0.3) { const pl = 0.14 + r() * 0.1; plumes.push({ x: x + Math.sin(lean) * h * 0.55, y: top - pl * 0.9, z, ry: r() * 6, sy: pl, sx: 1.4, tz: lean }); }
-  }
-  g.add(scatter(bladeGeo(9, 0.028), plantMaterial(uni, '#5e7a34', '#b8c56a', 0.05), blades));
-  g.add(scatter(bladeGeo(6, 0.075), plantMaterial(uni, '#b9a37a', '#f0e6c8', 0.07), plumes));          // panicules plumeuses
   return g;
 }
