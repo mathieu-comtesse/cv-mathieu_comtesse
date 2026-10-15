@@ -38,6 +38,9 @@ function polarGrid(rings, segs, cb) {
   return g;
 }
 
+const BED_BLANK = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+BED_BLANK.needsUpdate = true;
+
 /* ─── eau ─── */
 function waterMaterial(uni) {
   return new THREE.ShaderMaterial({
@@ -51,7 +54,7 @@ function waterMaterial(uni) {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }`,
     fragmentShader: `
-      uniform float uTime, uNight, uRain, uMist, uCloud; varying float vH, vS; varying vec2 vP; varying vec3 vN;
+      uniform float uTime, uNight, uRain, uMist, uCloud, uClear; varying float vH, vS; varying vec2 vP; varying vec3 vN;
       ${GLSL_HASH}
       float rings(vec2 p, float t){
         vec2 q = p * 5.0, g = floor(q); float acc = 0.0;
@@ -67,6 +70,8 @@ function waterMaterial(uni) {
         float deep = smoothstep(0.0, 0.55, 1.0 - vS);
         vec3 cDeep = mix(vec3(0.04, 0.33, 0.42), vec3(0.02, 0.07, 0.17), uNight);
         vec3 cShal = mix(vec3(0.20, 0.62, 0.64), vec3(0.06, 0.2, 0.32), uNight);
+        cDeep = mix(cDeep, mix(vec3(0.02, 0.22, 0.27), vec3(0.015, 0.07, 0.14), uNight), uClear * 0.7);
+        cShal = mix(cShal, mix(vec3(0.10, 0.5, 0.52), vec3(0.04, 0.17, 0.27), uNight), uClear * 0.6);
         vec3 col = mix(cShal, cDeep, deep);
         float fres = pow(1.0 - clamp(vN.y, 0.0, 1.0), 0.6) * 6.0 + 0.12;
         vec3 sky = mix(vec3(0.82, 0.92, 1.0), vec3(0.18, 0.26, 0.5), uNight);
@@ -80,7 +85,7 @@ function waterMaterial(uni) {
         float rg = uRain > 0.02 ? rings(vP, uTime) * uRain : 0.0;
         col = mix(col, mix(vec3(0.95, 0.98, 1.0), vec3(0.45, 0.6, 0.85), uNight), clamp(foam * 0.8 + shore * 0.75 + rg * 0.55, 0.0, 1.0));
         col = mix(col, vec3(dot(col, vec3(0.33))) * vec3(0.95, 1.0, 1.04), uCloud * 0.35 + uMist * 0.2);
-        float a = mix(0.5, 0.78, deep) + fres * 0.12 + foam * 0.3 + shore * 0.35 + rg * 0.25 + uCloud * 0.06;
+        float a = (mix(0.5, 0.78, deep) + fres * 0.12 + foam * 0.3 + shore * 0.35 + rg * 0.25 + uCloud * 0.06) * mix(1.0, 0.7, uClear);
         gl_FragColor = vec4(col, clamp(a, 0.0, 0.94));
       }`,
   });
@@ -92,12 +97,15 @@ function sandMaterial(uni) {
     uniforms: uni,
     vertexShader: `attribute float aS; varying vec2 vP; varying float vS, vY; void main(){ vP = position.xz; vS = aS; vY = position.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: `
-      uniform float uTime, uNight, uCloud; varying vec2 vP; varying float vS, vY; ${GLSL_HASH}
+      uniform float uTime, uNight, uCloud, uBedMix; uniform sampler2D uBed, uBedN; varying vec2 vP; varying float vS, vY; ${GLSL_HASH}
       void main(){
         float rip = sin(vP.x * 9.0 + sin(vP.y * 5.0 + vP.x * 2.0) * 1.7 + vnoise(vP * 3.0) * 3.0) * 0.5 + 0.5;
         float grain = h21(floor(vP * 90.0));
         vec3 sand = mix(vec3(0.83, 0.73, 0.52), vec3(0.74, 0.63, 0.43), rip * 0.55 + grain * 0.25);
         sand = mix(sand, vec3(0.5, 0.5, 0.36), smoothstep(-0.35, -0.7, vY) * 0.5);
+        vec3 bed = texture2D(uBed, vP * 0.42).rgb * 1.18, bn = texture2D(uBedN, vP * 0.9).rgb * 2.0 - 1.0;
+        bed = mix(bed, mix(vec3(0.72, 0.62, 0.46), bed, 0.55), 0.35) * (0.86 + bn.x * 0.22);
+        sand = mix(sand, bed, uBedMix);
         float c1 = sin(vP.x * 7.0 + uTime * 0.7 + sin(vP.y * 6.0 + uTime * 0.5) * 1.6) * sin(vP.y * 8.0 - uTime * 0.6 + sin(vP.x * 5.0 + uTime * 0.9) * 1.3);
         float caus = pow(clamp(1.0 - abs(c1) * 1.6, 0.0, 1.0), 4.0);
         sand += vec3(0.6, 0.85, 0.75) * caus * 0.2 * (1.0 - uCloud * 0.6) * (1.0 - uNight * 0.6);
@@ -334,7 +342,7 @@ export function rockGeo(seed, s) {
 /** Étang. `cx, cz` : centre dans le repère du parent ; `posts` : pieux du ponton (repère du parent), entourés de ronds d'eau. */
 export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, rzBack = 1.0, rzFront = 2.3, posts = [], padMinZ = -9, rainRect = null, rainH = 1.5, mistOutside = null, reedExclude = null } = {}) {
   const g = group(), shape = makeShape(seed, { rx, rzBack, rzFront, floorZ: floorZ === null ? null : floorZ - cz });
-  const uni = { uTime: { value: 0 }, uNight: { value: 0 }, uRain: { value: 0 }, uMist: { value: 0 }, uCloud: { value: 0 } };
+  const uni = { uTime: { value: 0 }, uNight: { value: 0 }, uRain: { value: 0 }, uMist: { value: 0 }, uCloud: { value: 0 }, uBed: { value: BED_BLANK }, uBedN: { value: BED_BLANK }, uBedMix: { value: 0 }, uClear: { value: 0 } };
   const inside = (x, z, m = 0.85) => shape.frac(x, z) < m;
   const rand = rng(seed * 7 + 3);
   const randIn = (fMax = 0.85, fMin = 0) => { for (let k = 0; k < 60; k++) { const th = rand() * TAU, f = fMin + Math.sqrt(rand()) * (fMax - fMin), [x, z] = shape.at(th, f); if (shape.frac(x, z) <= fMax + 0.01) return { x, z, th, f }; } return { x: 0, z: 0, th: 0, f: 0 }; };
@@ -394,12 +402,13 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
   /* rochers ancrés sur la rive (moitié immergée, mousse dessus) + ronds d'eau */
   const rings = [], ringM = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide });
   const addRing = (x, z, r) => { const m = new THREE.Mesh(new THREE.RingGeometry(r * 0.82, r, 28), ringM.clone()); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.006, z); m.renderOrder = 2; m.userData = { r, x, z }; g.add(m); rings.push(m); };
-  const rk = rng(seed + 31);
+  const rk = rng(seed + 31), rockSpots = [];
   for (const [th0, s, sd] of [[Math.PI * 0.95, 0.3, 3], [Math.PI * 1.15, 0.2, 4], [Math.PI * 1.55, 0.26, 5], [Math.PI * 0.05, 0.34, 6], [Math.PI * 1.9, 0.2, 8], [Math.PI * 0.55, 0.16, 9]]) {
     const th = th0 + (rk() - 0.5) * 0.2, [x, z0] = shape.at(th, 1.0 + (rk() - 0.5) * 0.04), z = clampZ(z0);
     const m = new THREE.Mesh(rockGeo(sd, s), new THREE.MeshStandardMaterial({ color: '#4a515c', roughness: 0.95 })); m.position.set(x, -0.015, z); m.rotation.y = sd; m.castShadow = m.receiveShadow = true; g.add(m);
     addRing(x, z, s * 1.55);
     const moss = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6, 0, TAU, 0, 1.0), new THREE.MeshStandardMaterial({ color: '#4f7a3c', roughness: 1 })); moss.scale.set(s * 0.9, s * 0.4, s * 0.8); moss.position.set(x + s * 0.05, s * 0.34, z - s * 0.05); g.add(moss);
+    rockSpots.push({ x, z, s, sd, parts: [m, moss] });
   }
   for (const [px, pz] of posts) addRing(px - cx, pz - cz, 0.11);
 
@@ -419,14 +428,14 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
   const school = fitPath({ cx: 0.2, cz: 0.2, rx: 0.9, rz: 0.3, sp: 0.19, ph: 0.5, y: 0 });
 
   /* nénuphars et tiges */
-  const pads = [], padMats = [padTexture(3), padTexture(9)].map((t) => new THREE.MeshStandardMaterial({ map: t, roughness: 0.7, side: THREE.DoubleSide }));
+  const flowers = [], padMeshes = [], pads = [], padMats = [padTexture(3), padTexture(9)].map((t) => new THREE.MeshStandardMaterial({ map: t, roughness: 0.7, side: THREE.DoubleSide }));
   const stems = [], pp = rng(seed + 60), taken = [];
   for (let n = 0, tries = 0; n < 10 && tries < 200; tries++) {
     const q = randIn(0.78, 0.15); if (q.z + cz < padMinZ) continue;
     const R0 = 0.1 + pp() * 0.09; if (taken.some(([x, z, r]) => Math.hypot(x - q.x, z - q.z) < r + R0 + 0.05)) continue;
     taken.push([q.x, q.z, R0]);
     const pg = new THREE.Group(), pm = new THREE.Mesh(padGeo(R0), padMats[n % 2]); pm.receiveShadow = true; pg.add(pm);
-    if (n % 3 === 0) { const fl = lotus(R0 * 3.6); fl.position.y = 0.004; pg.add(fl); }
+    padMeshes.push({ pg, pm, R0, n }); if (n % 3 === 0) { const fl = lotus(R0 * 3.6); fl.position.y = 0.004; pg.add(fl); flowers.push({ pg, fl, R0, n }); }
     pg.position.set(q.x, 0.014, q.z); pg.userData = { seed: n + 1 }; g.add(pg); pads.push(pg);
     const fy = floorAt(q.x, q.z); stems.push({ x: q.x, y: fy, z: q.z, sx: 1, sy: -fy, ry: 0 }); n++;
   }
@@ -453,6 +462,14 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
     for (const r of rings) { const ph = (t * 0.45 + r.userData.x * 3) % 1; r.scale.setScalar(0.92 + ph * 0.28); r.material.opacity = (1 - ph) * 0.5 * (1 - nn * 0.5); }
     const mu = mist.userData.uni; mu.uTime.value = t; mu.uMist.value = k.mist; mu.uNight.value = nn; mist.visible = k.mist > 0.02;
     const ru = rain.userData.uni; ru.uTime.value = t; ru.uRain.value = k.rain; ru.uNight.value = nn; rain.visible = k.rain > 0.02;
+  };
+  /* modèles 3D (js/garden-models2.js) : fond texturé et eau plus claire, nénuphars et fleurs sculptés, rochers de rive */
+  g.userData.useModels = (M) => {
+    uni.uBed.value = M.bed; uni.uBedN.value = M.bedN; uni.uBedMix.value = 0.8; uni.uClear.value = 1;
+    padMeshes.forEach(({ pg, pm, R0, n }) => { pm.visible = false; const p = M.lilyPad.clone(true); p.scale.setScalar(R0 * 2.25); p.position.y = 0.002; p.rotation.y = n * 2.1; pg.add(p); });
+    flowers.forEach(({ pg, fl, R0, n }) => { fl.visible = false; const f = M.lilyFlower.clone(true); f.scale.setScalar(R0 * 1.5); f.position.y = 0.012; f.rotation.y = n * 1.3; pg.add(f); });
+    const pool = [M.rocks[0], M.mossy[0], M.rocks[1], M.mossy[1]];
+    rockSpots.forEach((r, i) => { r.parts.forEach((p) => { p.visible = false; }); const rock = pool[i % pool.length].clone(true), w = r.s * 3.3; rock.scale.setScalar(w); rock.position.set(r.x, -0.03 - w * 0.05, r.z); rock.rotation.y = r.sd * 1.7; g.add(rock); });
   };
   return g;
 }

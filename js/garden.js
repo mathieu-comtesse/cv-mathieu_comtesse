@@ -1,6 +1,7 @@
 import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v29';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
+import { instanced } from './garden-models2.js?v=jardin2';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité
@@ -114,12 +115,14 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const fadeBack = (z) => { const t = Math.min(1, Math.max(0, (z + 2.2) / 1.2)); return t * t * (3 - 2 * t); };     // la mousse se dissout vers la pièce principale
 
   /* mousse et herbe : des traits dont la densité décroît, sans bord */
-  const mossI = [], grassI = [];
+  const proc = (o) => { o.userData.proc = true; g.add(o); return o; };                    // formes procédurales : masquées quand les modèles 3D arrivent
+  const mossI = [], grassI = [], tufts = [];
   const mossB = [], carpetI = [];
   for (let tries = 0; (mossI.length + mossB.length < 9000 || grassI.length < 3300) && tries < 90000; tries++) {
     const th = r() * TAU, f = 1.05 + -Math.log(1 - r()) * 1.1, [cx0, cz0] = at(th, f);
     if (!ok(cx0, cz0, 1.05)) continue;
     const p = Math.exp(-(f - 1.05) * 0.7) * fadeBack(cz0); if (r() > p) continue;
+    tufts.push({ x: cx0, z: cz0, f });
     const n = 7 + ((r() * 10) | 0), rad = 0.08 + r() * 0.2, herb = r() < 0.3;               // une touffe : lames serrées autour d'un point
     for (let k = 0; k < n; k++) {
       const a = r() * TAU, d = Math.sqrt(r()) * rad, x = cx0 + Math.cos(a) * d, z = cz0 + Math.sin(a) * d;
@@ -129,10 +132,10 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
       if (!herb && r() < 0.22) carpetI.push({ x, y: -0.047, z, ry: r() * 6.28, sy: 0.018 + r() * 0.026, sx: 2.6, tz: (r() - 0.5) * 0.9 });
     }
   }
-  g.add(scatter(bladeGeo(4, 0.05), plantMaterial(uni, '#4f7d36', '#a9cf63', 0.025), mossI));
-  g.add(scatter(bladeGeo(4, 0.05), plantMaterial(uni, '#2f5e2c', '#7fb04c', 0.02), mossB));                // seconde teinte : mousse plus sombre
-  g.add(scatter(bladeGeo(3, 0.09), plantMaterial(uni, '#37652f', '#86b55a', 0.01), carpetI));           // tapis de mousse très bas
-  g.add(scatter(bladeGeo(5, 0.022), plantMaterial(uni, '#4d7a38', '#c5d36b', 0.05), grassI));
+  proc(scatter(bladeGeo(4, 0.05), plantMaterial(uni, '#4f7d36', '#a9cf63', 0.025), mossI));
+  proc(scatter(bladeGeo(4, 0.05), plantMaterial(uni, '#2f5e2c', '#7fb04c', 0.02), mossB));                // seconde teinte : mousse plus sombre
+  proc(scatter(bladeGeo(3, 0.09), plantMaterial(uni, '#37652f', '#86b55a', 0.01), carpetI));           // tapis de mousse très bas
+  proc(scatter(bladeGeo(5, 0.022), plantMaterial(uni, '#4d7a38', '#c5d36b', 0.05), grassI));
   // taches de mousse : disques à bord flou posés au sol, teintes variées
   {
     const tex = canvasTexture(64, 64, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(0.55, 'rgba(255,255,255,.7)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
@@ -140,7 +143,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
     for (let i = 0, t = 0; i < 120 && t < 4000; t++) { const th = pr() * TAU, f = 1.06 + pr() * 1.6, [x, z] = at(th, f); if (!ok(x, z, 1.06) || pr() > fadeBack(z)) continue; patches.push({ x, y: -0.043, z, ry: pr() * 6, sx: 0.22 + pr() * 0.5, sy: 1 }); i++; }
     const pm = scatter(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, color: '#ffffff', transparent: true, depthWrite: false, roughness: 1 }), patches);
     patches.forEach((_, i) => pm.setColorAt(i, new THREE.Color().setHSL(0.24 + pr() * 0.07, 0.42 + pr() * 0.12, 0.2 + pr() * 0.14)));
-    pm.renderOrder = 1; g.add(pm);
+    pm.renderOrder = 1; proc(pm);
   }
 
   /* pas japonais : de la porte du balcon (côté droit) vers la pièce principale, puis un sentier qui longe la rive */
@@ -155,20 +158,20 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   /* arbustes arrondis (karikomi) et fougères */
   const shrubs = [], ferns = [], sr = rng(seed + 5);
   for (let i = 0, t = 0; shrubs.length < 11 && t < 400; t++) { const th = sr() * TAU, f = 1.18 + sr() * 0.55, [x, z] = at(th, f); if (!ok(x, z, 1.15) || Math.sin(th) > 0.55 && f < 1.4) continue; const s = 0.17 + sr() * 0.17; shrubs.push({ x, y: -0.02 + s * 0.15, z, ry: sr() * 6, sx: s, sy: s * 0.72 }); i++; }
-  const shrubM = scatter(cloudGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, vertexColors: true }), shrubs); shrubs.forEach((_, i) => shrubM.setColorAt(i, new THREE.Color().setHSL(0.26 + sr() * 0.05, 0.5, 0.3 + sr() * 0.1))); shrubM.castShadow = true; g.add(shrubM);
+  const shrubM = scatter(cloudGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, vertexColors: true }), shrubs); shrubs.forEach((_, i) => shrubM.setColorAt(i, new THREE.Color().setHSL(0.26 + sr() * 0.05, 0.5, 0.3 + sr() * 0.1))); shrubM.castShadow = true; proc(shrubM);
   { // azalées : une partie des arbustes porte de petites fleurs roses ou blanches
     const fl = [], fc = rng(seed + 31);
     for (const sh of shrubs) if (fc() < 0.45) for (let k = 0; k < 16; k++) { const sz = 0.012 + fc() * 0.012, a = fc() * TAU, e = Math.acos(0.25 + fc() * 0.75), rx = Math.sin(e) * Math.cos(a), rz = Math.sin(e) * Math.sin(a), ry = Math.cos(e); fl.push({ x: sh.x + rx * sh.sx * 0.98, y: sh.y + ry * sh.sy * 0.98, z: sh.z + rz * sh.sx * 0.98, ry: fc() * 6, sx: sz, sy: sz * 0.85 }); }
-    if (fl.length) { const fm = scatter(new THREE.IcosahedronGeometry(1, 0), stone('#ffffff'), fl), cols = ['#ee7aa5', '#f6b7cf', '#fdf1f4', '#d9508a']; fl.forEach((_, i) => fm.setColorAt(i, new THREE.Color(cols[(fc() * cols.length) | 0]))); g.add(fm); }
+    if (fl.length) { const fm = scatter(new THREE.IcosahedronGeometry(1, 0), stone('#ffffff'), fl), cols = ['#ee7aa5', '#f6b7cf', '#fdf1f4', '#d9508a']; fl.forEach((_, i) => fm.setColorAt(i, new THREE.Color(cols[(fc() * cols.length) | 0]))); proc(fm); }
   }
   for (const s of shrubs) for (let k = 0; k < 5; k++) { const a = sr() * TAU; ferns.push({ x: s.x + Math.cos(a) * s.sx * 1.25, y: -0.04, z: s.z + Math.sin(a) * s.sx * 1.25, ry: a, sy: 0.16 + sr() * 0.12, sx: 0.9 + sr() * 0.5 }); }
-  g.add(scatter(fernGeo(), plantMaterial(uni, '#2f6e38', '#8fcb6a', 0.035), ferns));
+  proc(scatter(fernGeo(), plantMaterial(uni, '#2f6e38', '#8fcb6a', 0.035), ferns));
 
   /* rochers moussus */
-  const rockParts = [], mossParts = [], rr = rng(seed + 8);
-  for (let i = 0, t = 0; i < 6 && t < 200; t++) { const th = rr() * TAU, f = 1.3 + rr() * 0.7, [x, z] = at(th, f); if (!ok(x, z, 1.25) || z > 3.9 && Math.abs(x) < 3) continue; const s = 0.2 + rr() * 0.22; const rg = rockGeo(i + 20, s); rg.rotateY(rr() * 6); rg.translate(x, -0.02, z); rockParts.push(rg); const mg = new THREE.SphereGeometry(1, 9, 6, 0, TAU, 0, 1.0); mg.scale(s * 1.0, s * 0.42, s * 0.9); mg.translate(x, s * 0.36, z); mossParts.push(mg); i++; }
-  const rockMesh = new THREE.Mesh(mergeGeometries(rockParts), stone('#555b63')); rockMesh.castShadow = rockMesh.receiveShadow = true; g.add(rockMesh);
-  g.add(new THREE.Mesh(mergeGeometries(mossParts), stone('#5a7f42')));
+  const rockParts = [], mossParts = [], rr = rng(seed + 8), rockSpots = [];
+  for (let i = 0, t = 0; i < 6 && t < 200; t++) { const th = rr() * TAU, f = 1.3 + rr() * 0.7, [x, z] = at(th, f); if (!ok(x, z, 1.25) || z > 3.9 && Math.abs(x) < 3) continue; const s = 0.2 + rr() * 0.22; const rg = rockGeo(i + 20, s); rg.rotateY(rr() * 6); rg.translate(x, -0.02, z); rockParts.push(rg); rockSpots.push({ x, z, s, ry: rr() * 6 }); const mg = new THREE.SphereGeometry(1, 9, 6, 0, TAU, 0, 1.0); mg.scale(s * 1.0, s * 0.42, s * 0.9); mg.translate(x, s * 0.36, z); mossParts.push(mg); i++; }
+  const rockMesh = new THREE.Mesh(mergeGeometries(rockParts), stone('#555b63')); rockMesh.castShadow = rockMesh.receiveShadow = true; proc(rockMesh);
+  proc(new THREE.Mesh(mergeGeometries(mossParts), stone('#5a7f42')));
 
   /* lanternes, pins, érable */
   const lanterns = [];
@@ -181,6 +184,33 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const mp = erable(3); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
   const mp2 = erable(6); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
   void place;
+
+  /* modèles 3D (js/garden-models2.js) : arbres, herbes, buissons, fougères et rochers remplacent les formes procédurales */
+  g.userData.useModels2 = (M) => {
+    g.traverse((o) => { if (o.userData.proc) o.visible = false; });
+    const rn = rng(seed + 77);
+    // arbres : les groupes existants gardent leur identité (feuilles qui tombent, ombres), seul leur contenu change
+    const kinds = ['pine', 'juniper', 'jeffrey', 'pine', 'jeffrey', 'juniper'], H = { willow: 2.5, pine: 2.3, juniper: 2.6, jeffrey: 2.4 };
+    let ip = 0;
+    g.children.forEach((c) => {
+      if (!c.userData.tree) return;
+      const k = c.name === 'GardenMaple' ? 'willow' : kinds[ip++ % kinds.length];
+      for (const ch of [...c.children]) c.remove(ch);
+      const m = M.trees[k].clone(true); m.scale.setScalar(H[k] * (0.9 + rn() * 0.2)); m.rotation.y = rn() * 6.28; c.add(m);
+    });
+    // buissons (fleurs violettes, couvre-sol) à la place des arbustes taillés ; fougères
+    const flo = [], cov = [];
+    shrubs.forEach((s, i) => (i % 5 < 3 ? flo : cov).push({ x: s.x, y: -0.03, z: s.z, ry: rn() * 6.28, s: s.sx * (i % 5 < 3 ? 4.4 : 4.8) }));
+    g.add(instanced(M.purpleflower, flo)); g.add(instanced(M.groundcover, cov));
+    g.add(instanced(M.fern, ferns.map((f) => ({ x: f.x, y: -0.035, z: f.z, ry: f.ry, s: f.sy * 3.2 }))));
+    // herbes : cercles de gazon et touffes
+    const patches = [], tuftsI = [];
+    tufts.forEach((t, i) => { if (i % 14 === 0) patches.push({ x: t.x, y: -0.045, z: t.z, ry: rn() * 6.28, s: 0.7 + rn() * 0.7 }); else if (i % 3 === 0) tuftsI.push({ x: t.x, y: -0.04, z: t.z, ry: rn() * 6.28, s: 0.4 + rn() * 0.5 }); });
+    g.add(instanced(M.grasspatch, patches)); g.add(instanced(M.grasstuft, tuftsI));
+    // rochers du jardin
+    const pool = [M.rocks[0], M.mossy[0], M.rocks[1], M.mossy[1]];
+    rockSpots.forEach((r, i) => { const rock = pool[i % 4].clone(true), w = r.s * 3.6; rock.scale.setScalar(w); rock.position.set(r.x, -0.05, r.z); rock.rotation.y = r.ry; g.add(rock); });
+  };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
   g.userData.update = (night) => { for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
