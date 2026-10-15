@@ -53,7 +53,8 @@ export function createFilmAlbum(onChange=()=>{}){
   leftDeck.rotation.y=leftBlock.rotation.y;leftDeck.position.z=THREE.MathUtils.lerp(.025,.004,form);
   backCover.rotation.set(0,-Math.PI*backFold,0);backCover.position.z=THREE.MathUtils.lerp(-.072,.077,backFold);
   rightBlock.rotation.set(0,-Math.PI*backFold,0);rightDeck.rotation.y=rightBlock.rotation.y;rightDeck.position.z=THREE.MathUtils.lerp(.004,.043,backFold);
-  binding.scale.z=THREE.MathUtils.lerp(1,.43,form*(1-backFold));
+  // la tranche reste collée au dos : elle s'étire entre les deux plats (fermé : 0,146 d'épaisseur ; ouvert : presque plate) et suit leur milieu, au lieu de rester centrée sur l'axe pendant que les plats glissent
+  { const fz=frontCover.position.z,bz=backCover.position.z; binding.scale.z=Math.max(.25,Math.abs(fz-bz)/.146); binding.position.z=(fz+bz)/2; }
   // Inspect around the physical centre, including a closed book on either side.
   book.position.x=-.5*(1-form)+.5*backFold;
   pivot.rotation.set(view.pitch,view.yaw,0,'YXZ');

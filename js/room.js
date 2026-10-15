@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=garden3';
+import { createChashitsu } from './chashitsu.js?v=garden4';
 import { createRetroSet } from './retro.js?v=cv-scene-v54';
 import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
@@ -22,7 +22,7 @@ import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v54';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
 
-import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
+import {createFilmAlbum} from './film-album.js?v=book2';
 import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
