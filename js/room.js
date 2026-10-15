@@ -238,7 +238,7 @@ export async function createRoom(container, bubbleEl) {
     add('pump',bicyclePump.root,2.65,-4.15,-Math.PI/2,0,.85);
   }
 
-  const STELE = { x: -3.45, z: 1.38, yaw: 0.5 };                     // stèle de Burdigala, au sol contre le bout du bureau, du côté du canapé
+  const STELE = { x: 2.55, z: 3.15, yaw: 0.6 };                     // stèle de Burdigala, au sol devant le bout de la bibliothèque, près du câble
   const STOOL_X = 2.0, STOOL_Z = 4.55;           // tabouret à droite du canapé, portant le bonsaï
   const bonsai = F.bonsai(); inkify(bonsai, { skip: (o) => !['9b9a92'].includes(o.material.color.getHexString()) }); add('bonsai', bonsai, STOOL_X, STOOL_Z, 0.5, 0.372, 0.42);
   const alo = F.alocasia(); inkify(alo, { skip: (o) => !(o.material.map && o.material.map.image && o.material.map.image.width === 128 && o.material.side === THREE.DoubleSide) });
