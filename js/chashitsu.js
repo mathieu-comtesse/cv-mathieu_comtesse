@@ -1,5 +1,4 @@
 import { makePond } from './pond.js?v=zen2';
-import { loadGardenModels2 } from './garden-models2.js?v=jardin3';
 import { makeGarden } from './garden.js?v=zen2';
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=cv-scene-v29';
 
@@ -158,8 +157,6 @@ export function createChashitsu() {
   /* jardin : traits de mousse et d'herbe, sans limite ; couloir libre (pas japonais) le long du côté droit pour entrer par le balcon */
   const garden = makeGarden({ shape: sea.userData.shape, pc: [0.15, 2.95], uni: sea.userData.uni, exclude: excl }); vista.add(garden);
 
-  let modelsAsked = false;
-  const useModels = (M) => { garden.userData.useModels2?.(M); sea.userData.useModels?.(M); };
   return {
     garden, group: g, lantern, lanternGlow: paperL, panels, vista,
     setRoofFade(v) { roofTarget = v; },
@@ -175,7 +172,6 @@ export function createChashitsu() {
       }
       const r = Math.min(1, reveal * 1.6), e = r * r * (3 - 2 * r);
       vista.visible = e > 0.01; vista.scale.set(1, Math.max(e, 0.001), 1);
-      if (vista.visible && !modelsAsked) { modelsAsked = true; loadGardenModels2().then(useModels).catch((e) => console.warn('[jardin] modèles 3D indisponibles, formes procédurales conservées', e)); }
       if (vista.visible) { sea.userData.update(t, night, wx || { rain: 0, mist: 0, cloud: 0 }); garden.userData.update(night); roofOp += (roofTarget - roofOp) * (1 - Math.exp(-dt * 5)); for (const m of roofMats) { m.transparent = roofOp < 0.995; m.opacity = roofOp; m.depthWrite = roofOp > 0.6; } }
     },
     spec: { RW, RD, RH, DK, SEA },
