@@ -468,7 +468,7 @@ export function makePond({ cx = 0, cz = 0, seed = 11, floorZ = null, rx = 2.6, r
     uni.uBed.value = M.bed; uni.uBedN.value = M.bedN; uni.uBedMix.value = 0.8; uni.uClear.value = 1;
     padMeshes.forEach(({ pg, pm, R0, n }) => { pm.visible = false; const p = M.lilyPad.clone(true); p.scale.setScalar(R0 * 2.25); p.position.y = 0.002; p.rotation.y = n * 2.1; pg.add(p); });
     flowers.forEach(({ pg, fl, R0, n }) => { fl.visible = false; const f = M.lilyFlower.clone(true); f.scale.setScalar(R0 * 1.5); f.position.y = 0.012; f.rotation.y = n * 1.3; pg.add(f); });
-    const pool = [M.rocks[0], M.mossy[0], M.rocks[1], M.mossy[1]];
+    const pool = M.rocks.flatMap((rk, q) => (M.mossy[q] ? [rk, M.mossy[q]] : [rk])).concat(M.mossy.slice(M.rocks.length));
     rockSpots.forEach((r, i) => { r.parts.forEach((p) => { p.visible = false; }); const rock = pool[i % pool.length].clone(true), w = r.s * 3.3; rock.scale.setScalar(w); rock.position.set(r.x, -0.03 - w * 0.05, r.z); rock.rotation.y = r.sd * 1.7; g.add(rock); });
   };
   return g;

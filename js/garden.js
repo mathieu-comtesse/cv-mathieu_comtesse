@@ -153,7 +153,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   for (let k = 0; k < 14; k++) { const th = Math.PI * (0.05 + k * 0.075) , [x, z] = at(th, 1.32 + Math.sin(k * 1.3) * 0.06); if (ok(x, z, 1.2)) stones.push({ x, y: -0.035, z, ry: sg() * 6, sx: 0.12 + sg() * 0.05, sy: 1 }); }
   const stoneM = scatter(new THREE.CylinderGeometry(1, 1.05, 0.05, 9), stone('#ffffff'), stones);
   stones.forEach((_, i) => stoneM.setColorAt(i, new THREE.Color().setHSL(0.1, 0.04, 0.42 + sg() * 0.2)));
-  g.add(stoneM);
+  proc(stoneM);
 
   /* arbustes arrondis (karikomi) et fougères */
   const shrubs = [], ferns = [], sr = rng(seed + 5);
@@ -207,9 +207,43 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
     const patches = [], tuftsI = [];
     tufts.forEach((t, i) => { if (i % 14 === 0) patches.push({ x: t.x, y: -0.045, z: t.z, ry: rn() * 6.28, s: 0.7 + rn() * 0.7 }); else if (i % 3 === 0) tuftsI.push({ x: t.x, y: -0.04, z: t.z, ry: rn() * 6.28, s: 0.4 + rn() * 0.5 }); });
     g.add(instanced(M.grasspatch, patches)); g.add(instanced(M.grasstuft, tuftsI));
-    // rochers du jardin
-    const pool = [M.rocks[0], M.mossy[0], M.rocks[1], M.mossy[1]];
-    rockSpots.forEach((r, i) => { const rock = pool[i % 4].clone(true), w = r.s * 3.6; rock.scale.setScalar(w); rock.position.set(r.x, -0.05, r.z); rock.rotation.y = r.ry; g.add(rock); });
+    // sol de terre : maillage en cases autour du bassin (texture de sol de « Realistic Water and Plants », relief fin), qui se fond dans la page ; il évite l'eau, la pièce et le fond
+    {
+      const X0 = cx - 11, X1 = cx + 11, Z0 = -2.0, Z1 = cz + 9.5, CS = 0.4, nx = Math.round((X1 - X0) / CS), nz = Math.round((Z1 - Z0) / CS);
+      const alphaAt = (x, z) => { const f = fracOf(x, z), a = 1 - Math.min(1, Math.max(0, (f - 1.25) / 3.0)); return a * fadeBack(z) * Math.min(1, Math.max(0, (11 - Math.abs(x - cx)) / 3)) * Math.min(1, Math.max(0, (Z1 - z) / 2.5)); };
+      const pos = [], col = [], uv = [], idx = [], id = (i, j) => j * (nx + 1) + i;
+      for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) { const x = X0 + i * CS, z = Z0 + j * CS; pos.push(x, -0.042, z); const a = alphaAt(x, z); col.push(1, 1, 1, a); uv.push(x / 9, z / 9); }
+      for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+        const x = X0 + (i + 0.5) * CS, z = Z0 + (j + 0.5) * CS;
+        if (exclude(x, z) || fracOf(x, z) < 1.06 || z < Z0 + 0.1) continue;
+        idx.push(id(i, j), id(i, j + 1), id(i + 1, j), id(i + 1, j), id(i, j + 1), id(i + 1, j + 1));
+      }
+      const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('color', new THREE.Float32BufferAttribute(col, 4)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gg.setIndex(idx); gg.computeVertexNormals();
+      const nrm = M.bedN.clone(); nrm.repeat.set(10, 10); nrm.needsUpdate = true;
+      const gm = new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ map: M.soil, normalMap: nrm, normalScale: new THREE.Vector2(0.7, 0.7), roughness: 1, vertexColors: true, transparent: true, depthWrite: false }));
+      gm.receiveShadow = true; gm.renderOrder = -1; g.add(gm);
+    }
+    // herbes de « Realistic Water and Plants » : hautes herbes, herbe, trèfle, plantain, laitue, pissenlit, quelques buissons
+    {
+      const W = M.wp, kinds = [['tall_grass', 0.6, 0.35], ['grass', 0.5, 0.3], ['clover', 0.5, 0.3], ['tall_grass', 0.55, 0.3], ['plantain', 0.4, 0.2], ['grass', 0.45, 0.3], ['lactuc', 0.5, 0.2], ['dandelion', 0.3, 0.15], ['clover', 0.45, 0.3]], by = {};
+      tufts.forEach((t, i) => {
+        for (let k = 0; k < 2; k++) {
+          const [name, base, spread] = kinds[(i * 2 + k) % kinds.length]; if (!W[name]) continue;
+          (by[name] = by[name] || []).push({ x: t.x + (rn() - 0.5) * 0.3, y: -0.04, z: t.z + (rn() - 0.5) * 0.3, ry: rn() * 6.28, s: base * (1 - spread * 0.5 + rn() * spread) });
+        }
+        if (i % 45 === 0 && W.bush) (by.bush = by.bush || []).push({ x: t.x, y: -0.04, z: t.z, ry: rn() * 6.28, s: 0.55 + rn() * 0.45 });
+      });
+      for (const [name, items] of Object.entries(by)) g.add(instanced(W[name], items));
+    }
+    // pas japonais : des rochers aplatis (rochers fournis) à la place des galets blancs
+    {
+      const pool = [...M.rocks, ...M.mossy];
+      g.add(instanced(pool[0], stones.filter((_, i) => i % 5 === 0).map((s) => ({ x: s.x, y: -0.04, z: s.z, ry: s.ry, s: s.sx * 2.4, k: 0.3 }))));
+      for (let q = 1; q < 5; q++) g.add(instanced(pool[q % pool.length], stones.filter((_, i) => i % 5 === q).map((s) => ({ x: s.x, y: -0.04, z: s.z, ry: s.ry, s: s.sx * 2.4, k: 0.3 }))));
+    }
+    // rochers du jardin : tous les rochers fournis (Rocks, rocher moussu, rochers de la scène d'eau)
+    const pool = M.rocks.flatMap((rk, q) => (M.mossy[q] ? [rk, M.mossy[q]] : [rk])).concat(M.mossy.slice(M.rocks.length));
+    rockSpots.forEach((r, i) => { const rock = pool[i % pool.length].clone(true), w = r.s * 3.6; rock.scale.setScalar(w); rock.position.set(r.x, -0.05, r.z); rock.rotation.y = r.ry; g.add(rock); });
   };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
