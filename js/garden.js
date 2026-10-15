@@ -1,6 +1,6 @@
 import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v29';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
-import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
+import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=garden1';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité
@@ -110,10 +110,10 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   g.add(scatter(bladeGeo(5, 0.1), plantMaterial(uni, '#3b7a40', '#86c065', 0.03), ferns));
 
   /* rochers moussus */
-  const rockParts = [], mossParts = [], rr = rng(seed + 8);
-  for (let i = 0, t = 0; i < 6 && t < 200; t++) { const th = rr() * TAU, f = 1.3 + rr() * 0.7, [x, z] = at(th, f); if (!ok(x, z, 1.25) || z > 3.9 && Math.abs(x) < 3) continue; const s = 0.2 + rr() * 0.22; const rg = rockGeo(i + 20, s); rg.rotateY(rr() * 6); rg.translate(x, -0.02, z); rockParts.push(rg); const mg = new THREE.SphereGeometry(1, 9, 6, 0, TAU, 0, 1.0); mg.scale(s * 1.0, s * 0.42, s * 0.9); mg.translate(x, s * 0.36, z); mossParts.push(mg); i++; }
+  const rockParts = [], mossParts = [], rr = rng(seed + 8), rockSpots = [];
+  for (let i = 0, t = 0; i < 6 && t < 200; t++) { const th = rr() * TAU, f = 1.3 + rr() * 0.7, [x, z] = at(th, f); if (!ok(x, z, 1.25) || z > 3.9 && Math.abs(x) < 3) continue; const s = 0.2 + rr() * 0.22; const rg = rockGeo(i + 20, s); rg.rotateY(rr() * 6); rg.translate(x, -0.02, z); rockParts.push(rg); rockSpots.push({ x, z, s, ry: rr() * 6 }); const mg = new THREE.SphereGeometry(1, 9, 6, 0, TAU, 0, 1.0); mg.scale(s * 1.0, s * 0.42, s * 0.9); mg.translate(x, s * 0.36, z); mossParts.push(mg); i++; }
   const rockMesh = new THREE.Mesh(mergeGeometries(rockParts), stone('#555b63')); rockMesh.castShadow = rockMesh.receiveShadow = true; g.add(rockMesh);
-  g.add(new THREE.Mesh(mergeGeometries(mossParts), stone('#5a7f42')));
+  const mossMesh = new THREE.Mesh(mergeGeometries(mossParts), stone('#5a7f42')); g.add(mossMesh);
 
   /* lanternes, pins, érable */
   const lanterns = [];
@@ -126,6 +126,33 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const mp = erable(3); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
   const mp2 = erable(6); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
   void place;
+
+  /* modèles 3D (js/garden-models.js) : lanternes de pierre de tailles variées, rochers moussus, cyprès chauves ; ils remplacent les formes procédurales */
+  g.userData.useModels = (M) => {
+    for (const l of lanterns) l.removeFromParent();
+    lanterns.length = 0;
+    const lanternAt = (th, f, h, tries = 6) => {                         // hauteur h en mètres ; on s'éloigne de la rive tant que l'emplacement est interdit
+      for (let k = 0; k < tries; k++) { const [x, z] = at(th, f + k * 0.12); if (ok(x, z, 1.12)) return place(M.lantern.clone(true), h, x, z, th * 3); }
+      return null;
+    };
+    const place = (obj, h, x, z, ry) => { obj.scale.setScalar(h); obj.position.set(x, -0.02, z); obj.rotation.y = ry; obj.userData.glow = M.lantern.userData.glow; g.add(obj); lanterns.push(obj); return obj; };
+    lanternAt(Math.PI * 0.86, 1.26, 1.25);                                 // grande, à l'arrière gauche de l'étang
+    lanternAt(Math.PI * 0.12, 1.3, 0.82);                                  // moyenne, à droite
+    lanternAt(Math.PI * 0.47, 1.5, 0.52);                                  // petite, au bord du sentier
+    lanternAt(Math.PI * 1.08, 1.45, 0.36);                                 // minuscule, côté tatamis
+    const tall = [[2.35, 2.6, 0.7]];                                       // emplacement historique près du balcon
+    for (const [x, z, h] of tall) if (!exclude(x, z) && fracOf(x, z) > 1.1) place(M.lantern.clone(true), h, x, z, 0.4);
+    if (!lanterns.length) g.userData.glowFallback = true;
+    rockMesh.visible = mossMesh.visible = false;
+    rockSpots.forEach((r, i) => {
+      const w = r.s * 3.4, rock = M.moss[i % 2].clone(true);
+      rock.scale.setScalar(w); rock.position.set(r.x, -0.04, r.z); rock.rotation.y = r.ry; g.add(rock);
+    });
+    for (const [x, z, h, sd] of [[-3.5, 0.8, 3.4, 1], [4.7, 3.3, 3.0, 2], [-8.3, 2.4, 2.7, 3], [-5.4, 7.0, 2.3, 4]]) {      // cyprès chauves en retrait de l'étang
+      if (exclude(x, z) || fracOf(x, z) < 1.2) continue;
+      const t = M.cypress.clone(true); t.scale.setScalar(h); t.position.set(x, -0.02, z); t.rotation.y = sd * 2.1; g.add(t);
+    }
+  };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
   g.userData.update = (night) => { for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };

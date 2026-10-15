@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=cv-scene-v49';
+import { createChashitsu } from './chashitsu.js?v=garden1';
 import { createRetroSet } from './retro.js?v=cv-scene-v54';
 import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
@@ -26,6 +26,8 @@ import {createFilmAlbum} from './film-album.js?v=cv-scene-v51';
 import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
+import {createStele} from './stele.js?v=stele1';
+import {createBonsaiCare} from './bonsai-care.js?v=care3';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -236,6 +238,7 @@ export async function createRoom(container, bubbleEl) {
     add('pump',bicyclePump.root,2.65,-4.15,-Math.PI/2,0,.85);
   }
 
+  const STELE = { x: 1.25, z: 4.95, yaw: 0.45 };                   // stèle de Burdigala, au sol à droite du canapé
   const STOOL_X = 2.0, STOOL_Z = 4.55;           // tabouret à droite du canapé, portant le bonsaï
   const bonsai = F.bonsai(); inkify(bonsai, { skip: (o) => !['9b9a92'].includes(o.material.color.getHexString()) }); add('bonsai', bonsai, STOOL_X, STOOL_Z, 0.5, 0.372, 0.42);
   const alo = F.alocasia(); inkify(alo, { skip: (o) => !(o.material.map && o.material.map.image && o.material.map.image.width === 128 && o.material.side === THREE.DoubleSide) });
@@ -338,7 +341,7 @@ export async function createRoom(container, bubbleEl) {
 
   // Secondary props load after the interactive room; batch their static surfaces.
   let jvcRoot=null;               // télé JVC repliée sur l'étagère (la fenêtre qui l'ouvre est js/jvc-tv.js)
-  const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb','geta-user-v52.glb','buddha-user-v52.glb','jvc-video-capsule-3100r.glb'].map(model)).then(([bagModel,polesModel,stoneModel,getaModel,buddhaModel,jvcModel])=>{
+  const detailPropsReady=Promise.all(['backpack-user-v51.glb','hiking-poles-recreation-v51.glb','suiseki-recreation-v51.glb','geta-user-v52.glb','buddha-user-v52.glb','jvc-video-capsule-3100r.glb','stele-bordeaux.glb','bonsai-tree.glb'].map(model)).then(([bagModel,polesModel,stoneModel,getaModel,buddhaModel,jvcModel,steleModel,bonsaiModel])=>{
     const install=(model,name,parent,x,y,z,yaw=0)=>{const root=model.scene;root.name=name;root.userData.batchRoot=true;root.position.set(x,y,z);root.rotation.y=yaw;root.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;o.userData.noInk=true;}});parent.add(root);mergeStatic(root);return root;};
     install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38).userData.id='backpack';
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
@@ -359,6 +362,21 @@ export async function createRoom(container, bubbleEl) {
       }
       const S=.064;sc.scale.setScalar(S);                              // ~26 cm de large, comme l'ancienne télé
       jvcRoot=install(jvcModel,'JVCVideosphere',whiteShelf,.41,.006-baseY*S,.018,Math.PI);jvcRoot.userData.id='videosphere';
+    }
+    { // Bonsaï « Bonsai_Tree » (Mermaid, CC BY 4.0) : il prend la place du bonsaï procédural ; l'objet `bonsai` reste le même, seules ses pièces changent (stations, pensées et filet de navigation gardent leurs références)
+      const bt=bonsaiModel.scene;bt.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(bt,true),c=bb.getCenter(new THREE.Vector3());
+      bt.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;o.userData.noInk=true;o.frustumCulled=false;const m=o.material;
+        if(m.map){m.alphaTest=.45;m.transparent=false;m.depthWrite=true;m.side=THREE.DoubleSide;}              // feuilles : cartes découpées, sans tri de transparence
+        else if(m.name==='Wood'){o.geometry.computeBoundingBox();const flat=o.geometry.boundingBox.getSize(new THREE.Vector3()).y<.02;o.material=m.clone();o.material.color.set(flat?'#4b3a2e':'#5d4636');o.material.roughness=.95;}});   // terreau et tronc
+      bt.position.set(-c.x,-bb.min.y,-c.z);const wrap=new THREE.Group();wrap.add(bt);wrap.scale.setScalar(.5/(bb.max.y-bb.min.y));
+      for(const ch of [...bonsai.children])bonsai.remove(ch);bonsai.add(wrap);
+      bonsai.userData.waterTarget=new THREE.Vector3(0,.115,0);bonsai.userData.waterRadius=.11;
+    }
+    { // Stèle de Burdigala (un clic ouvre js/stele.js) : posée sur le sol, face à la pièce, elle fait ~65 cm de haut
+      const st=steleModel.scene;st.traverse(o=>{if(o.isMesh)o.material.side=THREE.DoubleSide;});
+      st.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(st,true),c=bb.getCenter(new THREE.Vector3());st.position.set(-c.x,-bb.min.y,-c.z);
+      const wrap=new THREE.Group();wrap.add(st);wrap.scale.setScalar(.65/(bb.max.y-bb.min.y));
+      const root=install({scene:wrap},'SteleBordeaux',world,STELE.x,0,STELE.z,STELE.yaw);root.userData.id='stele';
     }
     const stone=install(stoneModel,'SuisekiKamogawaishi',whiteShelf,-.535,.835,0,0);stone.scale.setScalar(.90);
     container.dataset.detailProps='ready';renderer.shadowMap.needsUpdate=true;
@@ -643,6 +661,7 @@ export async function createRoom(container, bubbleEl) {
     plant.traverse(o=>{if(!o.isMesh||o.userData.isInk)return;const a=o.geometry.attributes.position;if(!a)return;for(let i=0;i<a.count;i++){p.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);if(p.y<0.55)bb.expandByPoint(p);}});
     if(!bb.isEmpty())nav.block({x0:bb.min.x,x1:bb.max.x,z0:bb.min.z,z1:bb.max.z});
   }
+  nav.block({ x0: STELE.x - 0.3, x1: STELE.x + 0.3, z0: STELE.z - 0.22, z1: STELE.z + 0.22 });   // stèle de Burdigala
   nav.block({ x0: FK.x - 0.2, x1: FK.x + 0.2, z0: FK.z - 0.2, z1: FK.z + 0.2 });   // suspension : le fourreau descend à hauteur de tête
   nav.block({ x0: 0.55, x1: 1.15, z0: -2.45, z1: -1.85 });                      // pied du lampadaire (le bras passe au-dessus)
   nav.block({ x0: CS.x - 1.35, x1: CS.x + 1.35, z0: CS.z - 1.8, z1: CS.z + 1.8 });   // plate-forme du thé : on n'y entre que par la porte
@@ -691,6 +710,11 @@ export async function createRoom(container, bubbleEl) {
       return {from:to,steps:[{k:'face',yaw:Math.atan2(dx,dz)},...(to!==from?[{k:'walk',pts:[to]}]:[])]};
     };
   }
+  // le bonsaï : arrosage et taille se relaient à chaque visite (les propriétés de la station basculent selon la visite en cours)
+  let bonsaiCare=null,pruneNow=false,pruneNext=false;
+  { const bz=stations.bonsai,water={nativeMode:'water',can:true,ov:bz.ov,pose:bz.pose,maxMs:bz.maxMs},prune={nativeMode:undefined,can:false,ov:{lean:.14,head:.2},pose:null,maxMs:15500};
+    for(const k of Object.keys(water))Object.defineProperty(bz,k,{get:()=>(pruneNow?prune:water)[k],set(){},configurable:true,enumerable:true});
+    Object.defineProperty(bz,'label',{get:()=>((director.current===bz&&director.mode==='activity')?pruneNow:pruneNext)?'Tailler le bonsaï':'Arroser le bonsaï',set(){},configurable:true,enumerable:true}); }
   stations.chair = stations.desk; stations.stool = stations.bonsai; stations.shoes = stations.cha; stations.chashitsu = stations.cha;
   stations.pump=stations.bike;
   // Approach stays on the walking grid; the final stance steadies the pump base.
@@ -855,7 +879,7 @@ export async function createRoom(container, bubbleEl) {
     ui: {
       isLocked:()=>appOpen,
       poof: (p, h) => poof(p, h),
-      activityEnd: (st, reason) => { pumpSound.stop();if(st.tv){retro.powerOff();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));} if (st.ritual && reason !== 'leave') cs.setPanels(0); },
+      activityEnd: (st, reason) => { bonsaiCare?.stop();pumpSound.stop();if(st.tv){retro.powerOff();if(appOpen)window.dispatchEvent(new CustomEvent('room-request-close',{detail:{kind:'retro'}}));} if (st.ritual && reason !== 'leave') cs.setPanels(0); },
       music: () => {},
       say: (st) => {
         if (!st) { thoughtFor = null; thoughtEl.classList.remove('show'); return; }
@@ -879,6 +903,8 @@ export async function createRoom(container, bubbleEl) {
       if (afterEnter) { const f = afterEnter; afterEnter = null; setTimeout(() => { if (director.current === st && director.mode === 'activity') f(); }, st === stations.desk ? 2200 : 450); }
     };
   }
+  { const bz=stations.bonsai,e0=bz.enter;
+    bz.enter=()=>{pruneNow=pruneNext;pruneNext=!pruneNext;e0();if(pruneNow){bonsaiCare=bonsaiCare||createBonsaiCare({world,hero,bonsai});bonsaiCare.start();}}; }
   function setMusic(on) {
     if (!on) { jukebox.stop(); return; }
     if (chosen >= 0) { const c = chosen; chosen = -1; jukebox.play(c); } else if (!jukebox.isOn) jukebox.random();
@@ -994,6 +1020,7 @@ export async function createRoom(container, bubbleEl) {
   const filmAlbum=createFilmAlbum(open=>pauseAutonomy(open?3600000:3000));
   const phoneVideo=createPhoneVideo(open=>pauseAutonomy(open?3600000:3000));
   const tvFilms=createTvFilms({onChange:open=>pauseAutonomy(open?3600000:3000)});
+  const stele=createStele(open=>pauseAutonomy(open?3600000:3000));
   const jvcTv=createJvcTv({fallback:()=>tvFilms.open(),onChange:open=>pauseAutonomy(open?3600000:3000)});
   function activate(id) {
     if(appOpen)return false;
@@ -1002,6 +1029,7 @@ export async function createRoom(container, bubbleEl) {
     if(id==='mamiya'){filmAlbum.open();return;}
     if(id==='backpack'){phoneVideo.open();return;}
     if(id==='videosphere'){jvcTv.open();return;}
+    if(id==='stele'){stele.open();return;}
     if (id === 'drawer') { openCrate(!crate.isOpen); return; }
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
@@ -1119,6 +1147,7 @@ export async function createRoom(container, bubbleEl) {
       if(nativeBridge&&spawned&&!greeted&&director.mode==='idle'){greeted=true;greetingRemaining=2.75;greetingUntil=performance.now()+2750;autonomousNext=greetingUntil+3000;container.dataset.greeting='true';}
       if(greetingRemaining>0){greetingRemaining=Math.max(0,greetingRemaining-dt);greetingUntil=performance.now()+greetingRemaining*1000;autonomousNext=Math.max(autonomousNext,greetingUntil+3000);}
       if(greeted&&greetingRemaining===0)container.dataset.greeting='false';
+      bonsaiCare?.update(dt);
       let exactMotion = syncNativeMotionMode();
       if (exactMotion !== 'idle') {
         if (exactMotion === 'water' && nativeBridge?.wateringCan) hero.can.visible = false;
@@ -1300,5 +1329,5 @@ export async function createRoom(container, bubbleEl) {
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { get appOpen(){return appOpen;}, detailPropsReady, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
+  return { get appOpen(){return appOpen;}, detailPropsReady, bonsaiNext:(prune=true)=>{pruneNext=!!prune;}, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }
