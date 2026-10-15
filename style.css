@@ -374,3 +374,17 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .jvc-dialog .film-book{height:min(78svh,760px);cursor:grab}
 .jvc-dialog .film-book canvas:focus-visible{outline:none}
 @media(max-width:809px){.jvc-dialog .film-book{height:min(74svh,calc((100vw - 20px)*1.25))}}
+/* Stèle de Burdigala (js/stele.js) : la pierre en 3D à gauche, l'inscription qui se traduit à droite */
+.film-album.stele-dialog{width:min(1100px,calc(100vw - 24px));max-width:1100px}
+.stele-wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:28px;align-items:center;margin-top:6px}
+.stele-view{height:min(74svh,700px);margin:0;cursor:grab}
+.stele-text{color:#f3eee2;max-height:min(74svh,700px);overflow:auto;padding-right:10px;font:15px/1.5 Georgia,'Times New Roman',serif}
+.stele-kicker{margin:0 0 14px;font:11px/1.2 Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#bdb49a}
+.stele-row{margin:0 0 13px;min-height:1.5em;font-size:14px;letter-spacing:.13em;text-transform:uppercase;color:#e9dfc4;text-shadow:0 1px 0 #0008,0 0 1px #fff3;word-break:break-word}
+.stele-row.fr{font-size:15.5px;letter-spacing:.005em;text-transform:none;font-style:italic;color:#fff4d8;text-shadow:none}
+.stele-row.settling{color:#f2c16b}
+.stele-desc{margin:18px 0 0;padding-top:14px;border-top:1px solid #f3eee244;color:#d9d2bd;font-size:14px}
+.stele-translate{margin:16px 0 0;padding:9px 0;border:0;border-bottom:1px solid #a39e88a0;background:transparent;color:#f3eee2;font:13px Georgia,serif;cursor:pointer}
+.stele-translate:hover{border-bottom-color:#fff}.stele-translate:focus-visible{outline:1px solid #e0d7bc;outline-offset:4px}
+.stele-view canvas:focus-visible{outline:none}
+@media(max-width:809px){.stele-wrap{grid-template-columns:1fr;gap:10px}.stele-view{height:min(42svh,340px)}.stele-text{max-height:none;padding:0 6px}.stele-row{font-size:12px}.stele-row.fr{font-size:14px}}
