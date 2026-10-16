@@ -35,10 +35,12 @@
       return { x: x + Math.sin(3 + x) * courbe, z: z + Math.cos(2.4 + z) * courbe * .6 }
     }
     function arbre(x, z, sz, teinte, yOpt) {
+      const coupe = Q.sansArbres && Q.sansArbres(x, z), k0 = [FEU.P.length, FEU.N.length, FEU.C.length, FEU.I.length, TRONCS.P.length, TRONCS.N.length, TRONCS.U.length, TRONCS.I.length], f0 = foff, t0 = toff   // arbre dans un couloir de jeu : tiré (le hasard reste le même pour les autres) puis retiré
       const y = yOpt === undefined ? hauteur(x, z) - .15 : yOpt, h = (3.4 + r() * 1.6) * sz, top = tronc(x, y, z, h, .3 * sz, (r() - .5) * .9 * sz)
       const pal = teinte === 'violet' ? [['#4a2a70', '#a86ad0'], ['#5a2f7a', '#b980e0']] : teinte === 'ambre' ? [['#7a4a1c', '#e0a838'], ['#8a5a20', '#f0c04a']] : [['#2c6a3a', '#93cf4a'], ['#35773a', '#a6d955'], ['#2a5f3c', '#7fbf50']]
       const n = 6 + (r() * 3 | 0)
       for (let i = 0; i < n; i++) { const a = r() * 6.28, d = (i ? 1.0 + r() * 1.3 : 0) * sz, pp = pal[(r() * pal.length) | 0]; puff(top.x + Math.cos(a) * d, y + h + (r() - .2) * 1.2 * sz + (i ? 0 : .4 * sz), top.z + Math.sin(a) * d, (1.5 + r() * .9) * sz, (1.2 + r() * .6) * sz, (1.5 + r() * .9) * sz, pp[0], pp[1], (r() * 999) | 0) }
+      if (coupe) { FEU.P.length = k0[0]; FEU.N.length = k0[1]; FEU.C.length = k0[2]; FEU.I.length = k0[3]; TRONCS.P.length = k0[4]; TRONCS.N.length = k0[5]; TRONCS.U.length = k0[6]; TRONCS.I.length = k0[7]; foff = f0; toff = t0 }
     }
     function buisson(x, z, sz, y) { y = y === undefined ? hauteur(x, z) : y; for (let i = 0; i < 3; i++) puff(x + (r() - .5) * 1.1 * sz, y + .35 * sz, z + (r() - .5) * 1.1 * sz, (.7 + r() * .4) * sz, (.55 + r() * .25) * sz, (.7 + r() * .4) * sz, '#2a5f36', r() < .3 ? '#d86aa0' : '#82c24a', (r() * 999) | 0) }
 

@@ -73,6 +73,9 @@
   Q.loisirInviteAssis = (J) => J.assis && J.assis.hamac ? (sieste.on ? null : 'Faire la sieste (E) · ou se lever (direction)') : null
   Q.loisirClip = () => (clipT > 0 ? 'Interact' : null)
   let clipT = 0
+  /* couloirs de jeu sans arbre (lu par talas-quai-nature.js) : papier-avions (caméra derrière le belvédère, pupitre, trois ballons) et lanternes (caméra d'envol, jetée) */
+  const COULOIRS = [[[AVC.x, AVC.z - 16], [AVC.x, AVC.z], [-26, -26.5], [-17, -11], [-12, 2], [-12, 9]], [[28.4, -29.2], [19.6, -16.4], [LNC.x, LNC.z]]]
+  Q.sansArbres = (x, z) => COULOIRS.some((L) => { for (let i = 1; i < L.length; i++) { const [ax, az] = L[i - 1], [bx, bz] = L[i], dx = bx - ax, dz = bz - az, t = clamp(((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz), 0, 1); if (Math.hypot(x - ax - dx * t, z - az - dz * t) < 7) return true } return false })
 
   /* ====================================================================== construction */
   Q.loisirs = function (c) {
@@ -92,11 +95,17 @@
       Q.obstacles.push({ t: 'b', x: AV.x, z: AV.z, hw: .62, hd: .34, ry: 0, y: AV.y, h: 1.0 })
       // ligne de lancer peinte
       const lg = new THREE.Mesh(new THREE.PlaneBufferGeometry(2.2, .12), new THREE.MeshBasicMaterial({ color: '#fff3c8', transparent: true, opacity: .8 })); lg.rotation.x = -PI / 2; lg.position.set(AV.x, AV.y + .02, AV.z + 1.45); s.add(lg)
-      // manche à air : mât et manche tournante (animée dans loisirTick)
+      // manche à air : mât, cerceau et cinq tronçons articulés (large côté mât, étroit sous le vent), animés dans loisirTick
       const mx = AV.x + 3.0, mz = AV.z + .5; poteau(mx, AV.y, mz, 2.8, .06)
       const pivot = new THREE.Group(); pivot.position.set(mx, AV.y + 2.7, mz); s.add(pivot)
-      const tex = toile(64, 128, (x, w, h) => { for (let i = 0; i < 6; i++) { x.fillStyle = i % 2 ? '#fff3c8' : '#e8681c'; x.fillRect(0, i * 21.4, w, 22) } })
-      const manche = ombre(new THREE.Mesh(new THREE.CylinderBufferGeometry(.26, .09, 1.1, 10, 1, true), new THREE.MeshToonMaterial({ map: tex, side: THREE.DoubleSide }))); manche.rotation.z = -PI / 2; manche.position.x = .55; pivot.add(manche)
+      const cerceau = new THREE.Mesh(new THREE.TorusBufferGeometry(.27, .02, 6, 16), toon('#3a1c40')); cerceau.rotation.y = PI / 2; pivot.add(cerceau)
+      const rayons = [.27, .23, .19, .15, .11, .08], LT = .27, troncons = []; let parent = pivot
+      for (let i = 0; i < 5; i++) {
+        const t = new THREE.Group(); t.position.x = i ? LT : 0; parent.add(t)
+        const geo = new THREE.CylinderBufferGeometry(rayons[i + 1], rayons[i], LT, 10, 1, true); geo.rotateZ(-PI / 2); geo.translate(LT / 2, 0, 0)
+        t.add(ombre(new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color: i % 2 ? '#fff3c8' : '#e8681c', side: THREE.DoubleSide })))); troncons.push(t); parent = t
+      }
+      pivot.userData = { troncons, sx: 0, sz: 0 }
       AV.manche = pivot
       ST.push({ id: 'avions', x: AV.x, y: AV.y, z: AV.z + 1.0, r: 2.1, invite: 'Lancer des avions en papier', demarrer: (W, J) => avions.demarrer(W, J) })
     }
@@ -191,28 +200,28 @@
   }
 
   /* ====================================================================== JEU 1 : papier-avions */
-  const VENT = { x: 0 }
+  const VENT = { x: 0, base: 0 }                                              // base : le vent du moment ; x : base + rafales (lu par la physique, par la manche à air et par le panneau)
   const avions = {
     nom: 'Papier-avions', AIM: .31, lancers: 5,
     demarrer(W, J) {
       const AV = AVC
       this.AV = AV; this.etat = 'cap'; this.t = 0; this.n = 0; this.score = 0; this.f = .5; this.ang = 0; this.log = ''
       J.x = AV.x; J.y = AV.y; J.z = AV.z + 1.0; J.ang = 0; J.vit = 0
-      VENT.x = (Math.random() - .5) * 2.6
+      VENT.base = (Math.random() - .5) * 2.6
       if (!this.plane) this.plane = fabriquerAvion(W)
       this.plane.visible = false
       if (!this.guide) { this.guide = []; for (let i = 0; i < 14; i++) { const d = new THREE.Mesh(new THREE.SphereBufferGeometry(.07, 6, 4), new THREE.MeshBasicMaterial({ color: '#fff3c8' })); W.scene.add(d); this.guide.push(d) } }
       jeu = this; this.maj(W, 0)
     },
     maj(W) {
-      const sous = `Vent : ${VENT.x > 0 ? '→' : '←'} ${Math.abs(VENT.x).toFixed(1)} m/s · meilleur : ${mem.lire('avions-best', 0)}`
+      const sous = `Vent : ${VENT.x > 0 ? '←' : '→'} ${Math.abs(VENT.x).toFixed(1)} m/s · meilleur : ${mem.lire('avions-best', 0)}`
       if (this.etat === 'cap') panneau.montrer('Papier-avions · lancer ' + (this.n + 1) + '/' + this.lancers, 'Score ' + this.score + ' · <b>E</b> : fixer le cap', { barre: tri(this.t / 2.4), cap: true, sous })
       else if (this.etat === 'force') panneau.montrer('Papier-avions · lancer ' + (this.n + 1) + '/' + this.lancers, 'Score ' + this.score + ' · <b>E</b> : lancer (force)', { barre: tri(this.t / 1.9), sous })
       else if (this.etat === 'vol' || this.etat === 'fin') panneau.montrer('Papier-avions · lancer ' + (this.n + 1) + '/' + this.lancers, 'Score ' + this.score + ' · ' + (this.log || 'il plane…'), { sous })
       else panneau.montrer('Papier-avions : bilan', `Score <b>${this.score}</b> · meilleur ${mem.lire('avions-best', 0)}`, { sous: '<b>E</b> : rejouer · une direction : quitter' })
     },
     appui() {
-      if (this.etat === 'cap') { this.ang = lerp(-this.AIM, this.AIM, tri(this.t / 2.4)); this.etat = 'force'; this.t = 0; bip(520, .05) }
+      if (this.etat === 'cap') { this.ang = lerp(this.AIM, -this.AIM, tri(this.t / 2.4)); this.etat = 'force'; this.t = 0; bip(520, .05) }
       else if (this.etat === 'force') { this.f = tri(this.t / 1.9); this.lancer() }
       else if (this.etat === 'bilan') this.demarrer(W0, W0.joueur)
     },
@@ -227,7 +236,7 @@
       const cibles = Q._cibles || []
       // guide de visée
       const vis = this.etat === 'cap' || this.etat === 'force'
-      const a = this.etat === 'cap' ? lerp(-this.AIM, this.AIM, tri(this.t / 2.4)) : this.ang
+      const a = this.etat === 'cap' ? lerp(this.AIM, -this.AIM, tri(this.t / 2.4)) : this.ang
       this.guide.forEach((d, i) => { d.visible = vis; if (vis) d.position.set(this.AV.x + Math.sin(a) * (1.8 + i * .55), this.AV.y + 1.5 + i * .02, this.AV.z + 1.3 + Math.cos(a) * (1.8 + i * .55)) })
       if (this.etat === 'cap' || this.etat === 'force') this.maj(W)
       if (this.etat === 'vol') {
@@ -253,7 +262,7 @@
       if (this.etat === 'fin' && this.t > 1.2) {
         this.n++
         if (this.n >= this.lancers) { const b = mem.lire('avions-best', 0); if (this.score > b) mem.ecrire('avions-best', this.score); this.etat = 'bilan'; this.guide.forEach((d) => { d.visible = false }); if (this.score >= 8 && W.fx) W.fx.burst(W.dylan.position.clone().add(V3(0, 2, 0)), 20) }
-        else { this.etat = 'cap'; this.t = 0; VENT.x = clamp(VENT.x + (Math.random() - .5) * 2.4, -1.8, 1.8) }
+        else { this.etat = 'cap'; this.t = 0; VENT.base = clamp(VENT.base + (Math.random() - .5) * 2.4, -1.8, 1.8) }
         this.maj(W)
       }
     },
@@ -423,8 +432,18 @@
   Q.loisirTick = function (dt, T, J, W, veut) {
     W0 = W
     if (clipT > 0) clipT -= dt
-    // manche à air (tournée dans le sens du vent) et ballons-cibles (ils flottent, grossissent quand on les traverse)
-    if (Q._manche) { const m = Q._manche, but = VENT.x >= 0 ? 0 : PI; let d = but - m.rotation.y; while (d > PI) d -= TAU; while (d < -PI) d += TAU; m.rotation.y += d * Math.min(1, dt * 2); m.children[0].rotation.z = -PI / 2 + .9 * (1 - clamp(Math.abs(VENT.x) / 1.8, 0, 1)) + Math.sin(T * 5) * .04 }
+    // ballons-cibles (ils flottent, grossissent quand on les traverse)
+    // vent : un vent du moment (base) plus des rafales ; au repos le vent tourne lentement, pendant une partie la base est celle du lancer
+    if (jeu !== avions) VENT.base = 1.5 * Math.sin(T * .11 + 1)
+    VENT.x = clamp(VENT.base + .35 * Math.sin(T * .9) + .2 * Math.sin(T * 2.3 + 2), -1.9, 1.9)
+    // manche à air : s'oriente sous le vent, se gonfle avec sa force (elle pend quand il tombe) et ondule en cascade le long de ses tronçons
+    if (Q._manche) {
+      const m = Q._manche, u = m.userData, k2 = Math.min(1, dt * 2.5)
+      u.sx += (VENT.x - u.sx) * k2; u.sz += ((Math.sin(T * .6) * .25 + Math.sin(T * 1.7) * .12) * (.4 + Math.abs(VENT.x)) - u.sz) * k2
+      const f = clamp(Math.hypot(u.sx, u.sz) / 1.8, 0, 1)
+      if (Math.hypot(u.sx, u.sz) > .05) { let d = Math.atan2(-u.sz, u.sx) - m.rotation.y; while (d > PI) d -= TAU; while (d < -PI) d += TAU; m.rotation.y += d * Math.min(1, dt * 3) }
+      u.troncons.forEach((t, i) => { t.rotation.z = -(1 - f) * .32 + Math.sin(T * (5 + 3 * f) - i * .9) * .07 * (.3 + f) * (.4 + i * .3); t.rotation.y = Math.sin(T * 4.3 - i * 1.2 + 1) * .09 * (.3 + f) * (.3 + i * .3) })
+    }
     for (const t of (Q._cibles || [])) { t.g.position.y = t.h0 + Math.sin(T * .8 + t.ph) * .18; t.g.position.x = t.x + Math.sin(T * .3 + t.ph) * .25; t.flash = Math.max(0, t.flash - dt * 2); t.ring.scale.setScalar(1 + .3 * t.flash) }
     // lanternes du ciel des vœux
     const nuit = W.etat && W.etat.x ? W.etat.x.night : 0
