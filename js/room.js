@@ -585,7 +585,7 @@ export async function createRoom(container, bubbleEl) {
         lastHover = now;
         const near = heroNear(e.clientX, e.clientY);
         const id = crateHover >= 0 ? 'sleeve' : near ? 'hero' : pickIdAt(e.clientX, e.clientY);
-        if (id !== hovered) { hovered = id; el.style.cursor = near ? 'grab' : id ? 'pointer' : 'grab'; }
+        if (id !== hovered) { hovered = id; el.style.cursor = near ? 'grab' : id ? 'var(--cv-action)' : 'grab'; }
       }
     }
   });

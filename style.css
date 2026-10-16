@@ -388,3 +388,10 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .stele-translate:hover{border-bottom-color:#fff}.stele-translate:focus-visible{outline:1px solid #e0d7bc;outline-offset:4px}
 .stele-view canvas:focus-visible{outline:none}
 @media(max-width:809px){.stele-wrap{grid-template-columns:1fr;gap:10px}.stele-view{height:min(42svh,340px)}.stele-text{max-height:none;padding:0 6px}.stele-row{font-size:12px}.stele-row.fr{font-size:14px}}
+/* curseur : réticule de contrôle au repos, équerres de cadrage sur ce qui se clique ; grab (pièce 3D, frise) et text restent natifs */
+:root{--cv-cursor:url("assets/cursors/reticle.svg") 18 18,crosshair;--cv-action:url("assets/cursors/reticle-lock.svg") 18 18,pointer}
+html{cursor:var(--cv-cursor)}
+html :is(a[href],button,summary,label,select,[role=button]){cursor:var(--cv-action)!important}
+html .marquee :is(a,button,summary,.pc){cursor:inherit!important}
+html :is(button,select)[disabled],html [aria-disabled=true]{cursor:not-allowed!important}
+html :is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit]),textarea,[contenteditable=true]){cursor:text}
