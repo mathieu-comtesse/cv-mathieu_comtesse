@@ -388,7 +388,7 @@ footer .wrap{color:var(--band-ink-86)}
 
 /* Barre de nuances : fixe à gauche, centrée verticalement ; même mécanique que htmlcolorcodes.com (flex, base 1px, survol 48px, 300 ms cubic-bezier(.4,0,.2,1), code hex qui apparaît). */
 .shade-bar{position:fixed;left:18px;top:50%;transform:translateY(-50%);z-index:2147483000;display:flex;flex-direction:column;width:32px;height:352px;border-radius:9999px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.shade{position:relative;flex:1 1 1px;min-height:0;width:32px;border:0;padding:0;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s cubic-bezier(.4,0,.2,1);color:#000;font:500 11px var(--mono);letter-spacing:0}
+.shade{position:relative;flex:1 1 1px;min-height:0;width:32px;border:0;padding:0;margin:0;cursor:var(--cv-action);display:flex;align-items:center;justify-content:center;transition:all .3s cubic-bezier(.4,0,.2,1);color:#000;font:500 11px var(--mono);letter-spacing:0}
 .shade:hover{flex-basis:48px}
 .shade svg{position:absolute;width:20px;height:20px;fill:currentColor;stroke:none;opacity:0;transition:opacity .3s}
 .shade.is-current svg{opacity:1}

@@ -15,9 +15,9 @@
 .world-controls #world-build,.world-controls button[aria-pressed="true"]{background:transparent;color:#393939}
 #world-pause,#world-log,#world-photo,#world-sound{display:none}
 .atlas-options{position:absolute;right:26px;top:26px;z-index:6;font:12px 'Host Grotesk',system-ui;color:#254f50}
-.atlas-options summary{list-style:none;cursor:pointer;padding:12px 16px;border:1px solid #bdd0c2;border-radius:10px;background:rgba(250,248,229,.96)}
+.atlas-options summary{list-style:none;cursor:var(--cv-action);padding:12px 16px;border:1px solid #bdd0c2;border-radius:10px;background:rgba(250,248,229,.96)}
 .atlas-options div{position:absolute;right:0;top:50px;width:170px;padding:6px;background:#f9f6e6;border:1px solid #bed0c2;border-radius:12px;box-shadow:0 8px 25px #17434222;display:grid;gap:4px}
-.atlas-options button{display:block!important;text-align:left;cursor:pointer;background:transparent;border:0;border-radius:7px;padding:12px;color:#254f50;font:12px 'Host Grotesk',system-ui}
+.atlas-options button{display:block!important;text-align:left;cursor:var(--cv-action);background:transparent;border:0;border-radius:7px;padding:12px;color:#254f50;font:12px 'Host Grotesk',system-ui}
 .atlas-options button:hover,.atlas-options button:focus-visible{background:#dee8d8;outline:2px solid #387a70;outline-offset:-2px}
 #world-ship{max-width:140px;min-height:40px;border:1px solid #c1cebd;border-radius:8px;background:#eef0dc;color:#254f50;font:12px 'Host Grotesk',system-ui;padding:5px}
 #world-ship[hidden]{display:none}
@@ -39,14 +39,14 @@
 .sand-heading small{letter-spacing:.15em;font-size:9px;color:#597573}
 .sand-heading h2{font-size:22px;line-height:1.15;margin:7px 0 0;font-weight:500;letter-spacing:-.03em}
 .sand-tools p{color:#5a7069;margin:12px 0}
-.sand-tools button{border:1px solid #b7c8ba;border-radius:8px;background:#f1f0df;color:#315a55;font:500 12px 'Host Grotesk',system-ui;padding:9px 11px;min-height:40px;cursor:pointer}
+.sand-tools button{border:1px solid #b7c8ba;border-radius:8px;background:#f1f0df;color:#315a55;font:500 12px 'Host Grotesk',system-ui;padding:9px 11px;min-height:40px;cursor:var(--cv-action)}
 .sand-tools button:hover,.sand-tools button:focus-visible{background:#e0e7d7;outline:2px solid #448b7d;outline-offset:1px}
 .sand-tools button[aria-pressed="true"]{background:#286760;color:#fff8df;border-color:#286760}
 .sand-tool-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .sand-tool-row [data-tool="retirer"]{grid-column:span 3}
 .sand-settings{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:13px}
 .sand-settings label{width:100%;display:flex;align-items:center;gap:12px;font-size:11px}
-.sand-settings input{flex:1;min-width:0;accent-color:#286760;cursor:ew-resize}
+.sand-settings input{flex:1;min-width:0;accent-color:#286760;cursor:var(--cv-resize-x)}
 .sand-status{display:block;color:#2e6960;padding:12px 0;min-height:40px}
 .sand-footer{display:flex;align-items:center;gap:10px;border-top:1px solid #d4dac8;padding-top:12px}
 .sand-footer span{font-size:10px;color:#6e7d6c}

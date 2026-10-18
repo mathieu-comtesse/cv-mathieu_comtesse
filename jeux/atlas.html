@@ -40,20 +40,12 @@
 .tgv-sprite img{top:-156.626506%}
 html[data-theme="dark"] .rail-art{filter:invert(1) grayscale(1);mix-blend-mode:screen;opacity:.72}
 html[data-theme="dark"] .rail-art .steam-video{filter:none;mix-blend-mode:normal;opacity:1}
-/* Curseur : flèche croquis hachurée (49×62, inclinée de 22°, pointe en 1,0). Quand app.js active le calque « négatif » (.cursor-ghost), le curseur passe à la version « traits seuls » pour laisser voir l’inversion entre les hachures. */
-:root{--cv-cursor:url("assets/cursor-sketch-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto){:root{--cv-cursor:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-1x.png") 1x,url("assets/cursor-sketch-2x.png") 2x) 1 0,pointer}}
-html.has-ghost{--cv-cursor:url("assets/cursor-sketch-lines-1x.png") 1 0,auto;--cv-action:url("assets/cursor-sketch-lines-1x.png") 1 0,pointer}@supports (cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto){html.has-ghost{--cv-cursor:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,auto;--cv-action:image-set(url("assets/cursor-sketch-lines-1x.png") 1x,url("assets/cursor-sketch-lines-2x.png") 2x) 1 0,pointer}}
-@media (hover:hover) and (pointer:fine){
-body{cursor:var(--cv-cursor)}
-html body :is(a,button,summary,[role="button"],.scene-step,.scene-toggle,.theme-toggle),html body :is(a,button,summary,[role="button"]) *{cursor:var(--cv-action)}
-html body :is(input,textarea,[contenteditable="true"]){cursor:text}
-html body :is(button:disabled,[aria-disabled="true"]){cursor:not-allowed}
-}
 
 
 /* Coins « ⌐ ¬ » : les blocs de bande gardent un peu d’air pour les marques d’angle. */
 .band>.wrap.corners{padding-block:26px}
-</style><link rel="stylesheet" href="pages.css?v=20261004-flottante"><link rel="stylesheet" href="fx.css?v=20261004"><link rel="stylesheet" href="atlas-diorama.css?v=20261012-diorama"><link rel="stylesheet" href="atlas-refonte.css?v=20261014-mediterranee"><link rel="stylesheet" href="nacre-sandcastle-ui.css?v=20261014"></head>
+</style><link rel="stylesheet" href="pages.css?v=20261004-flottante-ring"><link rel="stylesheet" href="fx.css?v=20261004"><link rel="stylesheet" href="atlas-diorama.css?v=20261012-diorama"><link rel="stylesheet" href="atlas-refonte.css?v=20261014-mediterranee-ring"><link rel="stylesheet" href="nacre-sandcastle-ui.css?v=20261014"><link rel="stylesheet" href="../cursor.css?v=3">
+</head>
 <body data-page="monde"><svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true" focusable="false"><defs><pattern id="ts-dots" patternUnits="userSpaceOnUse" width="4" height="4"><rect width="4" height="4" style="fill:var(--white)"></rect><rect x="1.25" y="1.25" width="1.1" height="1.1" style="fill:var(--ink)"></rect></pattern><pattern id="ts-dots-dense" patternUnits="userSpaceOnUse" width="3" height="3"><rect width="3" height="3" style="fill:var(--white)"></rect><rect x="0.5" y="0.5" width="1.6" height="1.6" style="fill:var(--ink)"></rect></pattern></defs></svg>
 <main id="contenu" class="world-page" tabindex="-1">
 <div class="world-stage" id="world-stage"><canvas id="world-canvas" aria-label="Nacre — l’archipel des marées, île en maquette : chaque bâtiment est une étape. Glisser pour tourner, survoler un point lumineux pour lire l’étape, cliquer pour ouvrir sa fiche." tabindex="0"></canvas>

@@ -73,6 +73,6 @@ if(stage&&canvas&&reset){
     const resize=()=>{const r=stage.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(stage);resize();
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,clock=new THREE.Clock();
     const render=()=>{const t=clock.getElapsedTime();if(dirty){position.needsUpdate=true;geometry.computeVertexNormals();recolor();dirty=false;}if(!reduced){windPaint(t);palm.rotation.z=-.26+Math.sin(t*.55)*.045;palm.scale.x=1+Math.sin(t*.7)*.035;tool.rotation.z=Math.sin(t*2)*.08;}for(let i=0;i<particleCount;i++){if(particlePos[i*3+2]<-5)continue;if(particleRest[i]>0){if(++particleRest[i]>900)particlePos[i*3+2]=-20;continue;}particlePos[i*3]+=particleVel[i*3];particlePos[i*3+1]+=particleVel[i*3+1];particlePos[i*3+2]+=particleVel[i*3+2];particleVel[i*3+2]-=.0024;const ground=surfaceAt(particlePos[i*3],particlePos[i*3+1]);if(ground<-5)particlePos[i*3+2]=-20;else if(particleVel[i*3+2]<0&&particlePos[i*3+2]<=ground+.03){particlePos[i*3+2]=ground+.03;particleRest[i]=1+((Math.random()*300)|0);}}particleGeo.attributes.position.needsUpdate=true;renderer.render(scene,camera);requestAnimationFrame(render);};canvas.dataset.ready='true';render();
-  }catch(error){console.error(error);fallback.hidden=false;canvas.style.cursor='crosshair';}
+  }catch(error){console.error(error);fallback.hidden=false;canvas.style.cursor='var(--cv-cursor)';}
 }
 
