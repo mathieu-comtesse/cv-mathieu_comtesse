@@ -1,9 +1,7 @@
-import { createRoom } from './room.js?v=cv-cursor-v90';
+import { createRoom } from './room.js?v=cv-light-v91';
 import { initUI } from './ui.js?v=cv-cursor-v16';
-import { initTheme } from './theme.js?v=cv-blueprint-v30';
-import { initHome } from './home.js?v=cv-projects-v15';
+import { initHome } from './home.js?v=cv-light-v16';
 initUI();
-initTheme();
 
 const host = document.getElementById('room');
 const bubble = document.getElementById('bubble');

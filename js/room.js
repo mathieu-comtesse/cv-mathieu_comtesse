@@ -572,11 +572,11 @@ export async function createRoom(container, bubbleEl) {
       } else if (hdrag) {
         hdrag.moved += Math.abs(dx) + Math.abs(dy);
         if(!hdrag.ready&&hdrag.moved>8){clearTimeout(hdrag.timer);hdrag=null;return;}
-        if (!hdrag.lifted && hdrag.moved > 8) { hdrag.lifted = true; director.lift(); showZones(true); el.style.cursor = 'var(--cv-action)'; }
+        if (!hdrag.lifted && hdrag.moved > 8) { hdrag.lifted = true; director.lift(); showZones(true); el.style.cursor = 'var(--cv-grabbing)'; }
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if(drag.moved>6&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='var(--cv-action)';}
+        if(drag.moved>6&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='var(--cv-grabbing)';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -585,7 +585,7 @@ export async function createRoom(container, bubbleEl) {
         lastHover = now;
         const near = heroNear(e.clientX, e.clientY);
         const id = crateHover >= 0 ? 'sleeve' : near ? 'hero' : pickIdAt(e.clientX, e.clientY);
-        if (id !== hovered) { hovered = id; el.style.cursor = near ? 'var(--cv-cursor)' : id ? 'var(--cv-action)' : 'var(--cv-cursor)'; }
+        if (id !== hovered) { hovered = id; el.style.cursor = near ? 'var(--cv-grab)' : id ? 'var(--cv-action)' : 'var(--cv-grab)'; }
       }
     }
   });
@@ -600,14 +600,14 @@ export async function createRoom(container, bubbleEl) {
         showZones(false);
         if (z) director.placeInto(z); else if (g) director.drop(g.x, g.z);
       } else { hero.flash('happy', 0.9); if (director.mode === 'activity') director.stand(); }
-      hdrag = null; el.style.cursor = 'var(--cv-cursor)'; return;
+      hdrag = null; el.style.cursor = 'var(--cv-grab)'; return;
     }
     if (drag && drag.moved <= 6 && performance.now() - drag.t < 500) {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); const i = crate.indexAt(ray.ray); if (i >= 0) { crate.setSel(i); playTrack(i); drag = null; return; } }
       const id = pickIdAt(e.clientX, e.clientY);
       if (id) { pauseAutonomy(6000); activate(id); } else if (crate.isOpen && !jukebox.isOn) openCrate(false);      // tiroir laissé ouvert tant que la musique joue
     }
-    drag = null; el.style.cursor = hovered ? 'var(--cv-action)' : 'var(--cv-cursor)';
+    drag = null; el.style.cursor = hovered ? 'var(--cv-action)' : 'var(--cv-grab)';
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel',()=>{pointers.clear();pinch=0;drag=null;if(hdrag){clearTimeout(hdrag.timer);if(hdrag.lifted){showZones(false);director.drop(hero.group.position.x,hero.group.position.z);}hdrag=null;}hero.resetLook?.();});
@@ -639,7 +639,7 @@ export async function createRoom(container, bubbleEl) {
   // La molette garde le défilement natif de la page, même en caméra libre.
   el.addEventListener('dblclick',()=>{view.tAz=DEF.az;view.tEl=DEF.el;view.tZoom=1;selectNavigation('pan');setCameraMode('follow');});
   el.addEventListener('keydown',e=>{if(e.key==='Escape'){selectNavigation('pan');setCameraMode('follow');return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const move=navigationMode==='rotate'?rotateCamera:panCamera;move(e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0,e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0);}else if(['+','=','-'].includes(e.key)){e.preventDefault();changeZoom(view.tZoom*(e.key==='-'?.8:1.25));}});
-  el.style.cursor = 'var(--cv-cursor)';
+  el.style.cursor = 'var(--cv-grab)';
 
   /* ─── navigation ─── */
   world.updateMatrixWorld(true);
@@ -1026,7 +1026,7 @@ export async function createRoom(container, bubbleEl) {
     if(id==='backpack'){phoneVideo.open();return;}
     if(id==='videosphere'){jvcTv.open();return;}
     if(id==='stele'){stele.open();return;}
-    if (id === 'drawer') { openCrate(!crate.isOpen); return; }
+    if (id === 'drawer' || id === 'usm') { openCrate(!crate.isOpen); return; }                 // le meuble USM entier ouvre le tiroir ; le lecteur n'apparaît qu'une fois un disque choisi
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
       if (!atSofa()) { goTo('sofa'); return; }
@@ -1045,20 +1045,12 @@ export async function createRoom(container, bubbleEl) {
 
   /* gouttes d'arrosage */
 
-  /* ─── jour / nuit ─── */
-  let night = false, sunBase = 2.0, hemiBase = 0.85;
-  function applyTheme() {
-    const th = document.documentElement.dataset.theme;
-    night = th ? th === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    hemi.intensity = night ? 0.5 : 0.85; hemi.color.set(night ? '#9db4e0' : '#fff7e8'); hemi.groundColor.set(night ? '#2a3350' : '#cdbfa5');
-    sunBase = night ? 0.55 : 2.0; hemiBase = night ? 0.5 : 0.85; sun.intensity = sunBase; sun.color.set(night ? '#a9bde8' : '#fff0dc');
-    scene.environmentIntensity = night ? 0.12 : 0.22;
-    ground.material.opacity = night ? 0.35 : 0.22;
-    for (const k in lamps) if (!lamps[k].manual) lamps[k].on = night;
-  }
-  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-  applyTheme();
+  /* ─── lumière : toujours le jour, le site n'a plus de mode sombre ─── */
+  const night = false, sunBase = 2.0, hemiBase = 0.85;
+  hemi.intensity = hemiBase; hemi.color.set('#fff7e8'); hemi.groundColor.set('#cdbfa5');
+  sun.intensity = sunBase; sun.color.set('#fff0dc');
+  scene.environmentIntensity = 0.22; ground.material.opacity = 0.22;
+  for (const k in lamps) if (!lamps[k].manual) lamps[k].on = false;
 
   /* ─── boucle ─── */
   const opts = { dtCap: 0.05 };

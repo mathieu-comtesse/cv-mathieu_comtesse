@@ -51,21 +51,19 @@ const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabe
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);
   host.className = 'marquee process-gallery';
-  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp" alt="" width="840" height="600" loading="lazy"><img class="machine-dark" src="assets/figures/${fig}-dark.webp" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp2" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
   createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
 
   // Sur la page, chaque machine s'anime : la figure vit dans un cadre posé sur sa vignette tant que la carte est visible.
   const CARD_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.iso-plate-corners,.iso-legend,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
-  const pageTheme = () => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
-  const themeFrame = (f) => { const doc = f.contentDocument; if (doc?.body) { doc.body.dataset.theme = pageTheme(); doc.documentElement.style.colorScheme = pageTheme(); } };
   function mountLive(wrap) {
     if (wrap.querySelector('iframe')) return;
     const f = document.createElement('iframe');
     f.className = 'machine-live'; f.scrolling = 'no'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.src = 'figures/' + wrap.dataset.fig + '.html?v=glow1';
     f.addEventListener('load', () => {
       const doc = f.contentDocument; if (!doc?.body) return;
-      const s = doc.createElement('style'); s.textContent = CARD_CSS; doc.head.append(s); themeFrame(f);
+      const s = doc.createElement('style'); s.textContent = CARD_CSS; doc.head.append(s);
       const svg = doc.querySelector('.iso-stage svg');
       if (svg) { const b = svg.getBBox(), pad = Math.max(b.width, b.height) * 0.03; svg.setAttribute('viewBox', [b.x - pad, b.y - pad, b.width + 2 * pad, b.height + 2 * pad].join(' ')); }
       wrap.classList.add('live');
@@ -79,25 +77,22 @@ export function initProjectFigures(host, projects) {
     const watch = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting && !paused) mountLive(e.target); else if (!e.isIntersecting) unmountLive(e.target); }), { rootMargin: '0px 120px' });
     wraps.forEach((w) => watch.observe(w));
     document.addEventListener('project-workshop', (e) => { paused = e.detail.open; if (paused) wraps.forEach(unmountLive); else wraps.forEach((w) => { watch.unobserve(w); watch.observe(w); }); });
-    new MutationObserver(() => host.querySelectorAll('.machine-live').forEach(themeFrame)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   }
 
   const modal = document.createElement('dialog');
   modal.className = 'process-dialog figure-dialog'; modal.setAttribute('aria-labelledby', 'process-title');
-  modal.innerHTML = `<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Les machines des projets</span><button type="button" class="process-theme" aria-label="Changer le thème">Clair / sombre</button></div>
+  modal.innerHTML = `<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Les machines des projets</span></div>
 <div class="process-content"><div class="process-copy figure-head"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p></div><div class="figure-stage"></div><div class="process-copy"><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div><button type="button" class="figure-nav prev" aria-label="Projet précédent"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="figure-nav next" aria-label="Projet suivant"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`;
   document.body.append(modal);
   const stage = modal.querySelector('.figure-stage');
-  let opener = null, resize = null, dark = false, cur = 0;
-  const theme = () => (dark ? 'dark' : 'light');
-  const paint = () => { const doc = stage.querySelector('iframe')?.contentDocument; if (doc?.body) { doc.body.dataset.theme = theme(); doc.documentElement.style.colorScheme = theme(); } modal.classList.toggle('process-dark', dark); };
+  let opener = null, resize = null, cur = 0;
   function mount(fig, title) {
     resize?.disconnect();
     const frame = document.createElement('iframe');
-    frame.className = 'figure-frame'; frame.style.opacity = '0'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html?v=glow1';
+    frame.className = 'figure-frame'; frame.style.opacity = '0'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html?v=bp2';
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument; if (!doc?.body) return;
-      const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); paint(); frame.style.opacity = '';
+      const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); frame.style.opacity = '';
       const fit = () => { const page = doc.querySelector('.iso-page'); if (page) frame.style.height = Math.ceil(page.getBoundingClientRect().bottom + 8) + 'px'; };
       resize = new ResizeObserver(fit); resize.observe(doc.body); fit();
     });
@@ -107,7 +102,7 @@ export function initProjectFigures(host, projects) {
   function open(n, trigger) {
     const p = list[n], [fig, object, idea, action] = MACHINES[p.id];
     opener = trigger || opener; cur = n;
-    if (!modal.open) { dark = document.documentElement.dataset.theme === 'dark'; modal.showModal(); document.body.classList.add('lock'); document.dispatchEvent(new CustomEvent('project-workshop', { detail: { open: true } })); }
+    if (!modal.open) { modal.showModal(); document.body.classList.add('lock'); document.dispatchEvent(new CustomEvent('project-workshop', { detail: { open: true } })); }
     modal.scrollTop = 0; modal.dataset.project = p.id;
     modal.querySelector('.process-eyebrow').textContent = kindOf(p) + ' · ' + object;
     modal.querySelector('#process-title').textContent = p.title;
@@ -118,7 +113,7 @@ export function initProjectFigures(host, projects) {
     const mails = modal.querySelector('.finance-mail-host'); mails.hidden = p.id !== 'finance'; if (p.id === 'finance') showFinanceEmails(mails);
     modal.querySelector('.figure-full').href = 'figures/' + fig + '.html';
     modal.querySelector('.process-projects').innerHTML = list.map((q, i) => `<button type="button" data-project="${i}" aria-current="${i === n ? 'true' : 'false'}">${esc(q.title)}</button>`).join('');
-    mount(fig, object + ' · ' + p.title); paint();
+    mount(fig, object + ' · ' + p.title);
     modal.querySelector('.process-back').focus();
   }
   function step(d) {
@@ -131,6 +126,5 @@ export function initProjectFigures(host, projects) {
   host.addEventListener('click', (e) => { const b = e.target.closest('button[data-project]'); if (b) open(Number(b.dataset.project), b); });
   modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); });
   modal.querySelector('.process-back').onclick = close;
-  modal.querySelector('.process-theme').onclick = () => { dark = !dark; paint(); };
   modal.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
 }

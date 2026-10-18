@@ -25,21 +25,20 @@
 <script>{const u=new URL(location.href);if(/^cv-scene-v\d+[a-z]?$/.test(u.searchParams.get('v')||''))u.searchParams.delete('v');
 // The home page always opens at the top: no restored scroll, no #work jump onto the piggy bank.
 history.scrollRestoration='manual';history.replaceState(history.state,'',u.pathname+u.search)}</script>
-<script>{const n=new Date(),m=n.getHours()*60+n.getMinutes();document.documentElement.dataset.theme=(m>=1320||m<270)?'dark':'light';document.documentElement.classList.add('js')}</script>
+<script>document.documentElement.classList.add('js')</script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="cursor.css?v=2">
-<link rel="stylesheet" href="style.css?v=cv-blueprint-v73">
-<link rel="stylesheet" href="project-dioramas.css?v=cv-cursor-v5">
+<link rel="stylesheet" href="cursor.css?v=3">
+<link rel="stylesheet" href="style.css?v=cv-light-v74">
+<link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="js/main.js?v=cv-blueprint-v49"></script>
+<script type="module" src="js/main.js?v=cv-light-v51"></script>
 </head>
 <body class="page-home">
 <nav class="nav" aria-label="Navigation">
   <a class="dbtn dbtn--sm" href="#work"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Projets</span></a>
   <a class="dbtn dbtn--sm" href="info.html"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Info</span></a>
-  <button class="dbtn dbtn--icon dbtn--sm theme" id="theme" type="button" aria-label="Passer en mode sombre"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"></span></button>
 <button id="scene-mute" class="scene-mute" type="button" aria-pressed="false" aria-label="Couper les sons de la scène" title="Sons de la scène actifs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/><path class="mute-slash" d="m3 3 18 18"/></svg></button>
 </nav>
 <header class="shupi-header">

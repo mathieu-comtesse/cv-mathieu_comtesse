@@ -1,0 +1,5 @@
+/* figures sur plan bleu : les objets gardent leur palette claire (blanc), seuls le fond de la plaque et les textes de légende suivent le blueprint */
+.iso,.iso[data-theme="light"]{
+  --anatomy-page:transparent;--anatomy-card:rgb(8 32 78 / .38);
+  --anatomy-text:#bcd2f3;--anatomy-strong:#f2f7ff;--anatomy-muted:#9db9e6;
+}

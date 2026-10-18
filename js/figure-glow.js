@@ -17,12 +17,10 @@
 .iso-stage [data-part].glow .iso-top,.iso-stage [data-part].glow .iso-fill{fill:color-mix(in srgb,var(--g) 30%,var(--anatomy-top))}
 .iso-stage [data-part].glow .iso-shade{fill:color-mix(in srgb,var(--g) 16%,var(--anatomy-shade-1))}
 .iso-stage [data-part].glow .iso-edge,.iso-stage [data-part].glow .iso-line{stroke:color-mix(in srgb,var(--g) 75%,var(--anatomy-hi))}
-body[data-theme="dark"] .iso-stage [data-part].glow{filter:drop-shadow(0 0 1.5px var(--g)) drop-shadow(0 0 6px color-mix(in srgb,var(--g) 65%,transparent))}
-body:not([data-theme="dark"]) .iso-stage [data-part].glow{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--g) 55%,transparent))}
+.iso-stage [data-part].glow{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--g) 55%,transparent))}
 /* voyants allumés : émissifs en permanence */
 .iso-stage .fig-lamp[data-on="true"]{fill:var(--g);stroke:var(--g)}
-body[data-theme="dark"] .iso-stage .fig-lamp[data-on="true"]{filter:drop-shadow(0 0 2px var(--g)) drop-shadow(0 0 7px var(--g))}
-body:not([data-theme="dark"]) .iso-stage .fig-lamp[data-on="true"]{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--g) 70%,transparent))}
+.iso-stage .fig-lamp[data-on="true"]{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--g) 70%,transparent))}
 @media (prefers-reduced-motion:reduce){.iso-stage [data-part].glow{filter:none}}`;
   document.head.append(css);
 
