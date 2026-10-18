@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contrôle de ligne · Mathieu Comtesse</title>
+<meta name="description" content="Démonstration de vision par ordinateur : compter les pièces d'une ligne en temps réel et juger chacune conforme ou non conforme, directement dans le navigateur.">
+<meta name="theme-color" content="#1d4d94">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="cursor.css?v=3">
+<link rel="stylesheet" href="style.css?v=cv-light-v5">
+<link rel="stylesheet" href="ligne-controle.css?v=1">
+</head>
+<body class="page-ligne">
+<nav class="nav" aria-label="Navigation">
+  <a class="dbtn dbtn--sm" href="index.html"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Projets</span></a>
+  <a class="dbtn dbtn--sm" href="info.html"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Info</span></a>
+</nav>
+
+<main class="ly-main">
+  <header class="ly-head">
+    <p class="ly-kicker">Vision par ordinateur · temps réel</p>
+    <h1>Compter et juger chaque pièce d'une ligne</h1>
+    <p class="ly-lead">Une caméra regarde la ligne. Chaque pièce est repérée, suivie, comptée quand elle franchit une ligne virtuelle, puis jugée conforme ou non conforme. Tout se passe dans ton navigateur : aucune image n'est envoyée.</p>
+  </header>
+
+  <section class="ly-stage" aria-label="Analyse de la ligne">
+    <div class="ly-view">
+      <canvas id="vue" width="640" height="480" aria-label="Image de la ligne avec les pièces détectées"></canvas>
+      <p id="message" class="ly-message" role="status">Choisis une source puis lance l'analyse.</p>
+    </div>
+
+    <div class="ly-side">
+      <div class="ly-counters" role="group" aria-label="Compteurs">
+        <div class="ly-counter"><b id="n-total">0</b><span>Comptées</span></div>
+        <div class="ly-counter ok"><b id="n-ok">0</b><span>Conformes</span></div>
+        <div class="ly-counter nok"><b id="n-nok">0</b><span>Non conformes</span></div>
+        <div class="ly-counter"><b id="n-taux">&ndash;</b><span>Conformité</span></div>
+      </div>
+
+      <div class="ly-form">
+        <label for="source">Source</label>
+        <select id="source">
+          <option value="camera">Ma caméra (temps réel)</option>
+          <option value="flux">Flux d'une caméra réseau (adresse)</option>
+          <option value="fichier">Un fichier vidéo</option>
+        </select>
+        <div id="url-ligne" hidden><input id="url" type="url" inputmode="url" placeholder="https://… .m3u8, .mp4 ou flux d'images" aria-label="Adresse du flux"></div>
+        <div id="fichier-ligne" hidden><input id="fichier" type="file" accept="video/*" aria-label="Choisir une vidéo"></div>
+
+        <label for="mode">Analyse</label>
+        <select id="mode">
+          <option value="precis">Précise</option>
+          <option value="rapide">Rapide</option>
+        </select>
+
+        <label for="sens">Sens de passage</label>
+        <select id="sens">
+          <option value="droite">Vers la droite</option>
+          <option value="gauche">Vers la gauche</option>
+          <option value="les-deux">Les deux sens</option>
+        </select>
+
+        <label class="ly-check" for="sim"><span><input id="sim" type="checkbox"> Simuler des défauts</span><small>1 pièce sur 4, pour la démonstration</small></label>
+      </div>
+
+      <div class="ly-form">
+        <p class="ly-sub">Règles de conformité</p>
+        <label for="r-conf">Seuil de confiance <output id="v-conf"></output></label>
+        <input id="r-conf" type="range" min="0.1" max="0.8" step="0.05" value="0.25">
+        <label for="r-ratio">Rapport hauteur / largeur minimal <output id="v-ratio"></output></label>
+        <input id="r-ratio" type="range" min="1" max="4" step="0.1" value="2.2">
+        <label for="r-tol">Tolérance de hauteur <output id="v-tol"></output></label>
+        <input id="r-tol" type="range" min="0" max="60" step="5" value="30">
+      </div>
+
+      <div class="ly-actions">
+        <button id="btn-go" class="ly-btn ly-btn--main" type="button">Lancer l'analyse</button>
+        <button id="btn-csv" class="ly-btn" type="button">Exporter le journal (CSV)</button>
+      </div>
+      <p class="ly-meta">Inférence : <b id="n-ms">&ndash;</b> par image. Glisse la ligne bleue sur l'image pour la déplacer.</p>
+    </div>
+  </section>
+
+  <section class="ly-card" aria-labelledby="t-journal">
+    <h2 id="t-journal">Journal des pièces comptées</h2>
+    <div class="ly-table" id="journal"><table>
+      <thead><tr><th>N°</th><th>Instant</th><th>Verdict</th><th>H / L</th><th>Hauteur</th><th>Motif</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section class="ly-card ly-notes" aria-labelledby="t-notes">
+    <h2 id="t-notes">Comment ça marche</h2>
+    <div class="ly-cols">
+      <div>
+        <h3>Quatre étapes, à chaque image</h3>
+        <ol>
+          <li><b>Repérer</b> : un détecteur d'objets entoure chaque pièce visible.</li>
+          <li><b>Suivre</b> : chaque pièce garde un numéro, même si elle disparaît une image.</li>
+          <li><b>Compter</b> : une pièce est comptée une seule fois, quand son centre franchit la ligne dans le bon sens.</li>
+          <li><b>Juger</b> : la pièce est-elle debout ? Sa hauteur est-elle proche de celle des premières pièces ?</li>
+        </ol>
+      </div>
+      <div>
+        <h3>À savoir</h3>
+        <ul>
+          <li>Le détecteur est généraliste : il reconnaît des objets courants, pas des défauts. Le verdict repose donc sur des règles de forme que tu règles en direct.</li>
+          <li>Pour juger de vrais défauts (niveau de remplissage, bouchon, étiquette), il faut entraîner le détecteur sur des images de la ligne concernée.</li>
+          <li>Le mode « Simuler des défauts » dégrade volontairement 1 pièce sur 4 pour montrer le lien entre règle, verdict et compteurs.</li>
+          <li>Pour un flux réseau, la caméra doit autoriser la lecture depuis un site web.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="js/ligne-controle.js?v=1"></script>
+</body>
+</html>
