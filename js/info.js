@@ -1,5 +1,5 @@
 import {createMarquee} from './marquee.js?v=cv-projects-v15';
-import { initTheme, initReveal } from './theme.js?v=bf01a16';
+import { initTheme, initReveal } from './theme.js?v=cv-blueprint-v2';
 
 initTheme();
 initReveal();
