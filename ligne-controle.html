@@ -43,6 +43,7 @@
       <div class="ly-form">
         <label for="source">Source</label>
         <select id="source">
+          <option value="reel" selected>Démonstration : vraie ligne d'embouteillage</option>
           <option value="camera">Ma caméra (temps réel)</option>
           <option value="flux">Flux d'une caméra réseau (adresse)</option>
           <option value="fichier">Un fichier vidéo</option>
@@ -56,14 +57,15 @@
           <option value="rapide">Rapide</option>
         </select>
 
-        <label for="sens">Sens de passage</label>
+        <label for="sens">Ligne et sens de passage</label>
         <select id="sens">
-          <option value="droite">Vers la droite</option>
-          <option value="gauche">Vers la gauche</option>
-          <option value="les-deux">Les deux sens</option>
+          <option value="les-deux-x" selected>Verticale, les deux sens</option>
+          <option value="droite">Verticale, vers la droite</option>
+          <option value="gauche">Verticale, vers la gauche</option>
+          <option value="les-deux-y">Horizontale, les deux sens</option>
+          <option value="bas">Horizontale, vers le bas</option>
+          <option value="haut">Horizontale, vers le haut</option>
         </select>
-
-        <label class="ly-check" for="sim"><span><input id="sim" type="checkbox"> Simuler des défauts</span><small>1 pièce sur 4, pour la démonstration</small></label>
       </div>
 
       <div class="ly-form">
@@ -83,6 +85,7 @@
       <p class="ly-meta">Inférence : <b id="n-ms">&ndash;</b> par image. Glisse la ligne bleue sur l'image pour la déplacer.</p>
     </div>
   </section>
+  <p id="credit-ligne" class="ly-credit-ligne">Vidéo : « Chaîne d'embouteillage de vin effervescent », Olivier Lemoine, <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="noopener">CC BY-SA 4.0</a>, via <a href="https://commons.wikimedia.org/wiki/File:Cha%C3%AEne_embouteillage_effervescent.ogv" rel="noopener">Wikimedia Commons</a>. Lue depuis son hébergeur, rien n'est copié sur ce site.</p>
 
   <section class="ly-card" aria-labelledby="t-journal">
     <h2 id="t-journal">Journal des pièces comptées</h2>
@@ -109,7 +112,7 @@
         <ul>
           <li>Le détecteur est généraliste : il reconnaît des objets courants, pas des défauts. Le verdict repose donc sur des règles de forme que tu règles en direct.</li>
           <li>Pour juger de vrais défauts (niveau de remplissage, bouchon, étiquette), il faut entraîner le détecteur sur des images de la ligne concernée.</li>
-          <li>Le mode « Simuler des défauts » dégrade volontairement 1 pièce sur 4 pour montrer le lien entre règle, verdict et compteurs.</li>
+          <li>La démonstration lit la vidéo d'une vraie ligne : sans défaut visible dans cette séquence, le contrôle ne trouve rien de non conforme tant que les règles restent tolérantes. Resserre-les pour voir leur effet.</li>
           <li>Pour un flux réseau, la caméra doit autoriser la lecture depuis un site web.</li>
         </ul>
       </div>

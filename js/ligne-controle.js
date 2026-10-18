@@ -5,6 +5,8 @@
 const MODES = { precis: 'assets/vision/detecteur-precis.bin', rapide: 'assets/vision/detecteur-rapide.bin' };
 const TAILLE = 640;                              // côté de l'image donnée au détecteur
 const CLASSES = new Set([39, 40, 41, 75]);       // familles de contenants : bouteille, verre, tasse, vase
+const BASE_LIGNE = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/3/36/Cha%C3%AEne_embouteillage_effervescent.ogv/Cha%C3%AEne_embouteillage_effervescent.ogv';
+const LIGNE_REELLE = [BASE_LIGNE + '.720p.vp9.webm', BASE_LIGNE + '.480p.vp9.webm', BASE_LIGNE + '.360p.vp9.webm', 'https://upload.wikimedia.org/wikipedia/commons/3/36/Cha%C3%AEne_embouteillage_effervescent.ogv'];   // du plus net au plus léger, puis le fichier d'origine       // familles de contenants : bouteille, verre, tasse, vase
 
 const $ = (id) => document.getElementById(id);
 const vue = $('vue'), ctx = vue.getContext('2d');
@@ -13,9 +15,9 @@ const tctx = tampon.getContext('2d', { willReadFrequently: true });
 const video = document.createElement('video'); video.muted = true; video.playsInline = true; video.crossOrigin = 'anonymous';
 
 const etat = {
-  ort: null, session: null, mode: null, source: 'camera', actif: false, boucle: 0, flux: null, hls: null, img: null, urlFichier: null,
+  ort: null, session: null, mode: null, source: 'reel', axe: 'x', actif: false, boucle: 0, flux: null, hls: null, img: null, urlFichier: null,
   trame: 0, nbTotal: 0, nbOk: 0, nbNok: 0, evenements: [], references: [], recents: [],
-  pistes: [], prochainId: 1, ligne: 0.5, sens: 'droite', msInference: 0, t0: 0,
+  pistes: [], prochainId: 1, ligne: 0.5, sens: 'les-deux-x', msInference: 0, t0: 0,
 };
 
 /* ------------------------------------------------------------------ interface */
@@ -100,23 +102,19 @@ function juger(p) {
 }
 
 function compter(tempsVideo) {
-  const Lx = etat.ligne * vue.width;
+  const Lpos = etat.ligne * (etat.axe === 'x' ? vue.width : vue.height);
   for (const p of etat.pistes) {
-    const cote = Math.sign(p.x - Lx);
-    if (p.vu && p.touches >= 3 && p.cote && cote && cote !== p.cote && !p.compte) {
-      const sensOk = etat.sens === 'les-deux' || (etat.sens === 'droite' ? cote > 0 : cote < 0);
-      const doublon = etat.recents.some((e) => etat.trame - e.trame < 2 && Math.abs(e.y - p.y) < 0.3 * p.h);
-      if (sensOk && !doublon) {
+    const cote = Math.sign((etat.axe === 'x' ? p.x : p.y) - Lpos);
+    if (p.touches >= 3 && p.cote && cote && cote !== p.cote && !p.compte) {
+      const sensOk = etat.sens.startsWith('les-deux') || (etat.sens === 'droite' || etat.sens === 'bas' ? cote > 0 : cote < 0);
+      const voisinVisible = !p.vu && etat.pistes.some((q) => q !== p && q.vu && Math.abs(q.x - p.x) < 0.7 * Math.max(p.w, q.w) && Math.abs(q.y - p.y) < 0.5 * p.h);   // même pièce suivie sous un autre numéro
+      const doublon = etat.recents.some((e) => etat.trame - e.trame < 2 && Math.hypot(e.x - p.x, e.y - p.y) < 0.6 * Math.max(p.w, p.h));
+      if (sensOk && !voisinVisible && !doublon) {
         const v = juger(p);
-        if ($('sim').checked && (etat.nbTotal + 1) % 4 === 0) {          // simulation : une pièce sur quatre est dégradée pour montrer la chaîne règle -> verdict -> compteurs
-          const renversee = ((etat.nbTotal + 1) / 4) % 2 === 1;
-          if (renversee) v.ratio *= 0.45; else v.h *= 0.6;
-          v.ok = false; v.motif = 'défaut simulé : ' + (renversee ? 'renversée' : 'trop petite');
-        }
         p.compte = v.ok ? 'ok' : 'nok';
         if (etat.references.length < 3) etat.references.push(v.h);
         etat.nbTotal++; v.ok ? etat.nbOk++ : etat.nbNok++;
-        etat.recents.push({ trame: etat.trame, y: p.y });
+        etat.recents.push({ trame: etat.trame, x: p.x, y: p.y });
         const e = { n: etat.nbTotal, t: tempsVideo, ok: v.ok, ratio: v.ratio, h: v.h, motif: v.motif }; etat.evenements.push(e); ajouterLigne(e); majCompteurs();
       }
     }
@@ -126,11 +124,14 @@ function compter(tempsVideo) {
 
 /* ------------------------------------------------------------------ dessin */
 function dessiner(source, W, H) {
-  if (vue.width !== W || vue.height !== H) { vue.width = W; vue.height = H; }
+  if (vue.width !== W || vue.height !== H) { vue.width = W; vue.height = H; vue.parentElement.style.aspectRatio = W + ' / ' + H; vue.parentElement.style.setProperty('--ar', W / H); }
   ctx.drawImage(source, 0, 0, W, H);
-  const Lx = etat.ligne * W;
-  ctx.save(); ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.strokeStyle = '#8fe0ff'; ctx.beginPath(); ctx.moveTo(Lx, 0); ctx.lineTo(Lx, H); ctx.stroke(); ctx.restore();
-  ctx.font = '600 12px Arial'; ctx.fillStyle = '#8fe0ff'; ctx.fillText('ligne de comptage', Math.min(Lx + 6, W - 112), 16);
+  const Lp = etat.ligne * (etat.axe === 'x' ? W : H);
+  ctx.save(); ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.strokeStyle = '#8fe0ff'; ctx.beginPath();
+  if (etat.axe === 'x') { ctx.moveTo(Lp, 0); ctx.lineTo(Lp, H); } else { ctx.moveTo(0, Lp); ctx.lineTo(W, Lp); }
+  ctx.stroke(); ctx.restore();
+  ctx.font = '600 12px Arial'; ctx.fillStyle = '#8fe0ff';
+  if (etat.axe === 'x') ctx.fillText('ligne de comptage', Math.min(Lp + 6, W - 112), 16); else ctx.fillText('ligne de comptage', 8, Math.max(14, Lp - 6));
   for (const p of etat.pistes) {
     if (p.touches < 2) continue;
     const col = p.compte === 'ok' ? '#8cf5bf' : p.compte === 'nok' ? '#ff9a9a' : '#f2f7ff';
@@ -168,6 +169,13 @@ function arreter() {
 
 async function ouvrirSource() {                          // renvoie l'élément à lire (vidéo ou image de flux)
   video.srcObject = null; video.removeAttribute('src');
+  if (etat.source === 'reel') {                          // vidéo d'une vraie ligne, lue depuis son hébergeur : on essaie plusieurs définitions
+    for (const url of LIGNE_REELLE) {
+      video.src = url;
+      try { await video.play(); return video; } catch (e) { /* définition suivante */ }
+    }
+    throw new Error('la vidéo de la ligne n\u2019a pas pu être chargée (connexion ou blocage du site hébergeur)');
+  }
   if (etat.source === 'camera') {
     etat.flux = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' } });
     video.srcObject = etat.flux; await video.play(); return video;
@@ -197,7 +205,7 @@ async function lancer() {
     const tour = async () => {
       if (!etat.actif) return;
       if (src === video && video.ended) { arreter(); dire('Fin de la vidéo : ' + etat.nbTotal + ' pièces comptées.'); return; }
-      const W = src.videoWidth || src.naturalWidth, H = src.videoHeight || src.naturalHeight;
+      const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
       if (W && H) { etat.trame++; suivre(await detecter(src, W, H)); compter((performance.now() - etat.t0) / 1000); dessiner(src, W, H); }
       etat.boucle = requestAnimationFrame(tour);
     };
@@ -208,11 +216,11 @@ async function lancer() {
 $('btn-go').addEventListener('click', lancer);
 $('source').addEventListener('change', (e) => {
   arreter(); etat.source = e.target.value;
-  $('fichier-ligne').hidden = etat.source !== 'fichier'; $('url-ligne').hidden = etat.source !== 'flux';
-  dire(etat.source === 'camera' ? 'La caméra reste dans ton navigateur : aucune image n’est envoyée.' : etat.source === 'flux' ? 'Le flux doit autoriser sa lecture depuis un site web.' : '');
+  $('fichier-ligne').hidden = etat.source !== 'fichier'; $('url-ligne').hidden = etat.source !== 'flux'; $('credit-ligne').hidden = etat.source !== 'reel';
+  dire(etat.source === 'reel' ? 'Vidéo d’une vraie ligne d’embouteillage, lue depuis son hébergeur.' : etat.source === 'camera' ? 'La caméra reste dans ton navigateur : aucune image n’est envoyée.' : etat.source === 'flux' ? 'Le flux doit autoriser sa lecture depuis un site web.' : '');
 });
 $('fichier').addEventListener('change', (e) => { const f = e.target.files[0]; if (f) { if (etat.urlFichier) URL.revokeObjectURL(etat.urlFichier); etat.urlFichier = URL.createObjectURL(f); dire('Fichier prêt : ' + f.name); } });
-$('sens').addEventListener('change', (e) => { etat.sens = e.target.value; });
+$('sens').addEventListener('change', (e) => { etat.sens = e.target.value; etat.axe = e.target.value === 'haut' || e.target.value === 'bas' || e.target.value === 'les-deux-y' ? 'y' : 'x'; });
 $('btn-csv').addEventListener('click', () => {
   const lignes = ['n;temps_s;verdict;ratio_h_sur_l;hauteur_px;motif', ...etat.evenements.map((e) => [e.n, e.t.toFixed(2), e.ok ? 'conforme' : 'non conforme', e.ratio.toFixed(2), Math.round(e.h), e.motif].join(';'))];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lignes.join('\n')], { type: 'text/csv' })); a.download = 'comptage-ligne.csv'; a.click();
@@ -221,7 +229,7 @@ $('btn-csv').addEventListener('click', () => {
 
 /* ligne de comptage : glisser sur l'image */
 let glisse = false;
-const placer = (e) => { const r = vue.getBoundingClientRect(); etat.ligne = Math.min(0.95, Math.max(0.05, (e.clientX - r.left) / r.width)); };
+const placer = (e) => { const r = vue.getBoundingClientRect(); etat.ligne = Math.min(0.95, Math.max(0.05, etat.axe === 'x' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height)); };
 vue.addEventListener('pointerdown', (e) => { glisse = true; vue.setPointerCapture(e.pointerId); placer(e); });
 vue.addEventListener('pointermove', (e) => { if (glisse) placer(e); });
 vue.addEventListener('pointerup', () => { glisse = false; });
