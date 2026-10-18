@@ -1,7 +1,6 @@
 import {createMarquee} from './marquee.js?v=cv-projects-v15';
-import { initTheme, initReveal } from './theme.js?v=cv-blueprint-v2';
+import { initReveal } from './theme.js?v=cv-light-v3';
 
-initTheme();
 initReveal();
 
 /* titre : les lettres montent une à une, comme sur la page Info de la référence */

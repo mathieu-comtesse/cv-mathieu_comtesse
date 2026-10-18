@@ -1,5 +1,4 @@
 :root{--bg:#1d4d94;--ink:#f2f7ff;--mute:#aac6f0;--card:#173f7e;--line:#5c8ccf;--btn:#173f7e;--btn-hi:#2358a6;--btn-sh:#0a2958;--accent:#8fe0ff;--grid-1:rgb(205 226 255 / .07);--grid-2:rgb(205 226 255 / .17);--spring:cubic-bezier(.34,1.56,.64,1);color-scheme:dark}   /* plan bleu (cyanotype) : jour */
-:root[data-theme=dark]{--bg:#0d2b5e;--ink:#eaf2ff;--mute:#94b2e3;--card:#0a2250;--line:#4a78bd;--btn:#0a2250;--btn-hi:#163a78;--btn-sh:#05153a;--grid-1:rgb(170 205 255 / .06);--grid-2:rgb(170 205 255 / .14)}   /* plan bleu : nuit */
 *{box-sizing:border-box}html{scroll-behavior:auto}
 body{margin:0;background-color:var(--project-background,var(--bg));background-image:radial-gradient(ellipse 80% 55% at 50% 18%,rgb(255 255 255 / .07),transparent 70%),linear-gradient(var(--grid-2) 1px,transparent 1px),linear-gradient(90deg,var(--grid-2) 1px,transparent 1px),linear-gradient(var(--grid-1) 1px,transparent 1px),linear-gradient(90deg,var(--grid-1) 1px,transparent 1px);background-size:auto,120px 120px,120px 120px,24px 24px,24px 24px;background-position:0 0,-1px -1px,-1px -1px,-1px -1px,-1px -1px;color:var(--ink);font:15px/1.45 Arial,sans-serif;transition:background-color .6s ease}
 a{color:inherit}
@@ -301,7 +300,7 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .film-album header{justify-content:flex-end}.film-loading{width:1px;height:1px;inset:auto;overflow:hidden;clip-path:inset(50%)}
 
 .film-book canvas:focus-visible{outline:none}
-.machine-dark{display:none!important}:root[data-theme=dark] .process-card .machine-light{display:none!important}:root[data-theme=dark] .process-card .machine-dark{display:block!important}
+
 .figure-stage{width:min(960px,100%);margin:6px auto 0;padding:0 12px;box-sizing:border-box}.figure-frame{display:block;width:100%;height:560px;border:0;background:transparent}
 .figure-why{max-width:680px;margin:6px auto 20px;text-align:left;font-size:15px;line-height:1.6}.figure-why em{font-family:Georgia,"Times New Roman",serif;font-size:16.5px}
 .figure-dialog .process-foot a{color:inherit;text-underline-offset:3px}
@@ -388,3 +387,4 @@ footer{padding:28px;border-top:1px solid var(--line);color:var(--mute);font-size
 .stele-translate:hover{border-bottom-color:#fff}.stele-translate:focus-visible{outline:1px solid #e0d7bc;outline-offset:4px}
 .stele-view canvas:focus-visible{outline:none}
 @media(max-width:809px){.stele-wrap{grid-template-columns:1fr;gap:10px}.stele-view{height:min(42svh,340px)}.stele-text{max-height:none;padding:0 6px}.stele-row{font-size:12px}.stele-row.fr{font-size:14px}}
+.mpill:not(.on){display:none}

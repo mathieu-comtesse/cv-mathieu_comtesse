@@ -1026,7 +1026,7 @@ export async function createRoom(container, bubbleEl) {
     if(id==='backpack'){phoneVideo.open();return;}
     if(id==='videosphere'){jvcTv.open();return;}
     if(id==='stele'){stele.open();return;}
-    if (id === 'drawer') { openCrate(!crate.isOpen); return; }
+    if (id === 'drawer' || id === 'usm') { openCrate(!crate.isOpen); return; }                 // le meuble USM entier ouvre le tiroir ; le lecteur n'apparaît qu'une fois un disque choisi
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
       if (!atSofa()) { goTo('sofa'); return; }
@@ -1045,20 +1045,12 @@ export async function createRoom(container, bubbleEl) {
 
   /* gouttes d'arrosage */
 
-  /* ─── jour / nuit ─── */
-  let night = false, sunBase = 2.0, hemiBase = 0.85;
-  function applyTheme() {
-    const th = document.documentElement.dataset.theme;
-    night = th ? th === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    hemi.intensity = night ? 0.5 : 0.85; hemi.color.set(night ? '#9db4e0' : '#fff7e8'); hemi.groundColor.set(night ? '#2a3350' : '#cdbfa5');
-    sunBase = night ? 0.55 : 2.0; hemiBase = night ? 0.5 : 0.85; sun.intensity = sunBase; sun.color.set(night ? '#a9bde8' : '#fff0dc');
-    scene.environmentIntensity = night ? 0.12 : 0.22;
-    ground.material.opacity = night ? 0.35 : 0.22;
-    for (const k in lamps) if (!lamps[k].manual) lamps[k].on = night;
-  }
-  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-  applyTheme();
+  /* ─── lumière : toujours le jour, le site n'a plus de mode sombre ─── */
+  const night = false, sunBase = 2.0, hemiBase = 0.85;
+  hemi.intensity = hemiBase; hemi.color.set('#fff7e8'); hemi.groundColor.set('#cdbfa5');
+  sun.intensity = sunBase; sun.color.set('#fff0dc');
+  scene.environmentIntensity = 0.22; ground.material.opacity = 0.22;
+  for (const k in lamps) if (!lamps[k].manual) lamps[k].on = false;
 
   /* ─── boucle ─── */
   const opts = { dtCap: 0.05 };
