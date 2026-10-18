@@ -51,7 +51,7 @@ const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabe
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);
   host.className = 'marquee process-gallery';
-  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp1" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp2" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
   createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
 
@@ -89,7 +89,7 @@ export function initProjectFigures(host, projects) {
   function mount(fig, title) {
     resize?.disconnect();
     const frame = document.createElement('iframe');
-    frame.className = 'figure-frame'; frame.style.opacity = '0'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html?v=bp1';
+    frame.className = 'figure-frame'; frame.style.opacity = '0'; frame.scrolling = 'no'; frame.title = title; frame.src = 'figures/' + fig + '.html?v=bp2';
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument; if (!doc?.body) return;
       const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); frame.style.opacity = '';

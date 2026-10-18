@@ -1,11 +1,5 @@
-/* figures en plan bleu, toujours en clair : même vocabulaire que le site */
+/* figures sur plan bleu : les objets gardent leur palette claire (blanc), seuls le fond de la plaque et les textes de légende suivent le blueprint */
 .iso,.iso[data-theme="light"]{
-  --anatomy-page:#1d4d94;--anatomy-card:#173f7e;--anatomy-text:#bcd2f3;--anatomy-strong:#f2f7ff;--anatomy-muted:#8fb0e0;
-  --anatomy-paper:#1a4688;--anatomy-face:#285ea8;--anatomy-top:#3470b8;
-  --anatomy-shade-0:#143c78;--anatomy-shade-1:#17427f;--anatomy-shade-2:#1b4886;--anatomy-shade-3:#204f8e;
-  --anatomy-lit-top:#4a86cf;--anatomy-lit-shade:#2f66b0;
-  --anatomy-hi:#eef5ff;--anatomy-mid:#a9c6ef;--anatomy-lo:#6b97d6;--anatomy-faint:#3f6fb5;--anatomy-lit:#ffffff;
-  --anatomy-halo:#0a2a5e;--anatomy-halo-opacity:.55;--anatomy-dot:#eef5ff;
-  --anatomy-red:#ff9a9a;--anatomy-green:#8cf5bf;--anatomy-blue:#9fd8ff;
-  --anatomy-lift:inset 0 1px 0 0 #ffffff1a,0 0 0 1px #0a2a5e66,0 6px 6px -3px #0a2a5e55,0 12px 12px -6px #0a2a5e55;
+  --anatomy-page:transparent;--anatomy-card:rgb(8 32 78 / .38);
+  --anatomy-text:#bcd2f3;--anatomy-strong:#f2f7ff;--anatomy-muted:#9db9e6;
 }
