@@ -1,6 +1,6 @@
 import { createRoom } from './room.js?v=cv-light-v91';
-import { initUI } from './ui.js?v=cv-cursor-v16';
-import { initHome } from './home.js?v=cv-light-v16';
+import { initUI } from './ui.js?v=cv-cursor-v17';
+import { initHome } from './home.js?v=cv-light-v17';
 initUI();
 
 const host = document.getElementById('room');
