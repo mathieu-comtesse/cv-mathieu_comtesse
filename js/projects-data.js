@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v15';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v16';
 import { BUILD } from './annual-gains.js?v=cv-scene-v59';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
@@ -449,5 +449,5 @@ const TECH = {
 
 export const UNIV = { id: 'talas', title: 'Village Talas', sub: 'Jeu sérieux ISO 45001', img: 'assets/projets/talas.jpg?v=bf01a16', url: 'village-talas-scene.html', desc: 'Sept ateliers, un par chapitre de l’ISO 45001, et une dizaine de mini-jeux dans un village en 3D : on apprend la norme en agissant plutôt qu’en lisant.', diag: TECH.talas };
 
-export const PERSO_CARDS = PERSO.map((p) => ({ id: p.id, title: p.n, sub: p.genre, desc: p.desc, img: p.img, url: p.url, pixel: true, diag: TECH[p.id] || [] }));
+export const PERSO_CARDS = PERSO.map((p) => ({ id: p.id, title: p.n, sub: p.genre, desc: p.desc, img: p.img, url: p.url, cta: p.cta, pixel: p.pixel !== false, diag: TECH[p.id] || [] }));
 export { CV };

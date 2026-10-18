@@ -1,0 +1,7 @@
+# Description du jeu d'images de la ligne : adapter les chemins et les classes.
+path: donnees
+train: images/train
+val: images/val
+names:
+  0: conforme
+  1: non_conforme          # ajouter une classe par type de défaut utile (bouchon manquant, niveau bas, étiquette décalée…)

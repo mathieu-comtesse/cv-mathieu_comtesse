@@ -3,6 +3,18 @@ export const TALAS_URL = "village-talas-scene.html";
 export const CV = "jeux/";
 export const PERSO = [
  {
+  "id": "ligne",
+  "img": "assets/screenshots/ligne-controle-v1.webp",
+  "year": 2026,
+  "n": "Contrôle de ligne",
+  "genre": "Vision par ordinateur",
+  "color": "#8fe0ff",
+  "url": "../ligne-controle.html",
+  "cta": "Essayer",
+  "pixel": false,
+  "desc": "Une caméra regarde une ligne de production : chaque pièce est repérée, suivie, comptée quand elle franchit une ligne virtuelle, puis jugée conforme ou non conforme par des règles réglables en direct. La démonstration tourne sur la vidéo d’une vraie chaîne d’embouteillage, ou sur ta propre caméra, sans qu’aucune image ne quitte ton navigateur."
+ },
+ {
   "id": "limen",
   "img": "assets/screenshots/limen-v1.webp",
   "year": 2026,

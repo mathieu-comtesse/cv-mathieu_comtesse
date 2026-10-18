@@ -1,7 +1,7 @@
 import { initProjectFigures } from './project-figures.js?v=cv-light-v19';
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v58';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, ANNUAL_DECLARED, ANNUAL_ESTIMATED, ANNUAL_COST, ANNUAL_NET, HOURS_PER_FTE, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v59';
-import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v16';
+import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v17';
 import { playFullscreen } from './play.js?v=bf01a16';
 import { dbtn } from './dbtn.js?v=bf01a16';
 import { initHoverDiagrams } from './hoverdiag.js?v=bf01a16';
@@ -37,7 +37,7 @@ function initDetail() {
         <div class="g"><small>Gains</small><strong>${esc(p.time)}</strong><span>${esc(p.timeCtx)}</span><strong class="m">${esc(p.money)}</strong><span>${esc(p.moneyCtx)}</span></div>
         ${d && texteProjet(d.lead) ? `<p>${esc(texteProjet(d.lead))}</p>` : ''}${d && texteProjet(d.gain) ? `<p><b>Gain.</b> ${esc(texteProjet(d.gain))}</p>` : ''}${d && texteProjet(d.team) ? `<p><b>Pour l’équipe.</b> ${esc(texteProjet(d.team))}</p>` : ''}`;
     } else {
-      txt.innerHTML = `<p class="k">Projet personnel · ${esc(p.sub)}</p><h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p><p>${dbtn('Jouer', { tag: 'a', href: CV + p.url })}</p>`;
+      txt.innerHTML = `<p class="k">Projet personnel · ${esc(p.sub)}</p><h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p><p>${dbtn(p.cta || 'Jouer', { tag: 'a', href: CV + p.url })}</p>`;
     }
     ov.hidden = false; requestAnimationFrame(() => ov.classList.add('on')); document.body.classList.add('lock');
     ov.querySelector('.detail-x').focus();

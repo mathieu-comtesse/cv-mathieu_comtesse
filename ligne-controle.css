@@ -1,0 +1,51 @@
+/* page « Contrôle de ligne » : blueprint du site, une colonne de réglages à côté de l'image */
+.page-ligne{--ok:#8cf5bf;--nok:#ff9a9a}
+.ly-main{max-width:1120px;margin:0 auto;padding:96px 20px 64px;display:flex;flex-direction:column;gap:28px}
+.ly-head{display:flex;flex-direction:column;gap:10px;max-width:760px}
+.ly-kicker{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.ly-head h1{margin:0;font-size:clamp(30px,5vw,56px);line-height:1.02;letter-spacing:-.05em;text-wrap:balance}
+.ly-lead{margin:0;color:var(--mute);font-size:17px;line-height:1.5}
+.ly-stage{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:18px;align-items:start}
+.ly-view{width:min(100%,calc(78vh * var(--ar,1.3333)));justify-self:center;max-height:78vh;position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#06142f;aspect-ratio:4/3}
+.ly-view canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:none}
+.ly-message{position:absolute;left:12px;right:12px;bottom:12px;margin:0;padding:8px 12px;border-radius:12px;background:rgb(10 34 80 / .88);color:var(--ink);font-size:13px;pointer-events:none}
+.ly-message[hidden]{display:none}
+.ly-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ly-counters{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ly-counter{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.ly-counter b{font-size:34px;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.ly-counter span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.ly-counter.ok b{color:var(--ok)}.ly-counter.nok b{color:var(--nok)}
+.ly-form{display:grid;gap:6px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.ly-form label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mute);margin-top:4px}
+/* */
+.ly-form output{color:var(--ink);font-variant-numeric:tabular-nums}
+.ly-sub{margin:0;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.ly-form select,.ly-form input[type=file],.ly-form input[type=url]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
+.ly-form input[type=range]{width:100%;accent-color:var(--accent)}
+.ly-actions{display:flex;flex-wrap:wrap;gap:8px}
+.ly-btn{padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:600 13px Arial,sans-serif;transition:transform .25s var(--spring),background .2s}
+.ly-btn:hover{background:var(--btn-hi);transform:scale(.97)}
+.ly-btn--main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ly-btn--main:hover{background:var(--ink);opacity:.92}
+.ly-btn:focus-visible,.ly-form select:focus-visible,.ly-form input:focus-visible,.ly-view canvas:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.ly-meta{margin:0;font-size:12px;color:var(--mute)}
+.ly-card{padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--card);min-width:0}
+.ly-card h2{margin:0 0 12px;font-size:20px;letter-spacing:-.03em}
+.ly-card h3{margin:0 0 8px;font-size:14px;letter-spacing:-.01em}
+.ly-table{max-height:300px;overflow:auto}
+.ly-table table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.ly-table th{position:sticky;top:0;background:var(--card);text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);padding:6px 8px;border-bottom:1px solid var(--line)}
+.ly-table td{padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--line) 45%,transparent)}
+.ly-table tbody:empty::after{content:"Aucune pièce comptée pour l'instant.";display:block;padding:12px 8px;color:var(--mute)}
+.ly-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid currentColor}
+.ly-badge.ok{color:var(--ok)}.ly-badge.nok{color:var(--nok)}
+.ly-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:14px;line-height:1.55;color:var(--mute)}
+.ly-cols ol,.ly-cols ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.ly-cols b{color:var(--ink)}
+.ly-cols a{color:var(--accent)}
+.ly-cols code{color:var(--ink)}
+.ly-credit{margin:14px 0 0;font-size:12px}
+@media (max-width:860px){.ly-stage{grid-template-columns:1fr}.ly-cols{grid-template-columns:1fr}.ly-main{padding-top:84px}}
+
+.ly-credit-ligne{margin:-10px 0 0;font-size:12px;color:var(--mute)}.ly-credit-ligne[hidden]{display:none}.ly-credit-ligne a{color:var(--accent)}
