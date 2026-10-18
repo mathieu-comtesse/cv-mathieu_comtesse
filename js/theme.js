@@ -7,7 +7,7 @@ export function initTheme() {
   };
   const apply = (t) => {
     root.dataset.theme = t;
-    document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#15171b' : '#f5f7fb');
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', t === 'dark' ? '#0d2b5e' : '#1d4d94');
     if (btn) { const slot = btn.querySelector('.dbtn__icon'); if (slot) slot.innerHTML = t === 'dark' ? ICON.sun : ICON.moon; btn.setAttribute('aria-label', t === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'); }
   };
   let saved = null; try { saved = localStorage.getItem('cv3d-theme'); } catch (_) {}
