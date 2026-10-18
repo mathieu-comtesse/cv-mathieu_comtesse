@@ -1,7 +1,8 @@
-/* curseur du site : réticule de contrôle au repos, équerres de cadrage sur ce qui se clique ou se glisse ; texte et élément désactivé gardent le curseur natif.
+/* curseur du site : réticule de contrôle au repos, anneau plein sur ce qui se clique, anneau à pointes sur ce qui se saisit, anneau à chevrons pour redimensionner ; texte et élément désactivé gardent le curseur natif.
    Un seul fichier relié depuis chaque page ; chemins absolus, car une variable résout son url par rapport à la page qui l'utilise. */
-:root{--cv-cursor:url("/assets/cursors/reticle.svg") 18 18,crosshair;--cv-action:url("/assets/cursors/reticle-lock.svg") 18 18,pointer}
+:root{--cv-cursor:url("/assets/cursors/reticle.svg") 18 18,crosshair;--cv-action:url("/assets/cursors/ring-click.svg") 20 20,pointer;--cv-grabbing:var(--cv-action);--cv-grab:url("/assets/cursors/ring-grab.svg") 20 20,grab;--cv-resize-x:url("/assets/cursors/ring-resize-x.svg") 20 20,ew-resize;--cv-resize-y:url("/assets/cursors/ring-resize-y.svg") 20 20,ns-resize}
 html{cursor:var(--cv-cursor)}
-html :is(a[href],button,summary,label,select,[role=button],input[type=range],input[type=checkbox],input[type=radio]){cursor:var(--cv-action)!important}
+html :is(a[href],button,summary,label,select,[role=button],input[type=checkbox],input[type=radio]){cursor:var(--cv-action)!important}
+input[type=range]{cursor:var(--cv-resize-x)}
 html :is(button,select,input)[disabled],html [aria-disabled=true]{cursor:not-allowed!important}
 html :is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit]),textarea,[contenteditable=true]){cursor:text}
