@@ -21,7 +21,7 @@ const CSS = `
 #retro .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:2px solid #28418a;padding-bottom:14px}
 #retro .body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(12px,2.4vw,30px);padding:18px 0}
 #retro ul{list-style:none;margin:0;padding:0;overflow:auto;display:flex;flex-direction:column;gap:6px}
-#retro li{display:flex;gap:10px;align-items:center;padding:9px 10px;font-size:clamp(8px,1.15vw,12px);line-height:1.5;cursor:pointer;border:2px solid transparent;color:#a9c4ee}
+#retro li{display:flex;gap:10px;align-items:center;padding:9px 10px;font-size:clamp(8px,1.15vw,12px);line-height:1.5;cursor:var(--cv-action);border:2px solid transparent;color:#a9c4ee}
 #retro li i{font-style:normal;color:#5d79b8;min-width:2ch}
 #retro li.sel{background:#1a2f78;border-color:#5f86ff;color:#fff}
 #retro li.sel::before{content:"";border:6px solid transparent;border-left:10px solid #ffd34a;animation:blk 1s steps(2) infinite}
@@ -34,11 +34,11 @@ const CSS = `
 #retro .tag{font-size:clamp(7px,1vw,10px);color:#ffd34a}
 #retro .desc{font-family:"Courier New",monospace;font-size:clamp(12px,1.5vw,16px);line-height:1.5;color:#d6e4ff}
 #retro .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
-#retro button,#retro a.b{font:inherit;font-size:clamp(8px,1.1vw,11px);color:#fff;background:#2144c9;border:2px solid #7f9cff;padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-block;text-shadow:1px 1px 0 #000}
+#retro button,#retro a.b{font:inherit;font-size:clamp(8px,1.1vw,11px);color:#fff;background:#2144c9;border:2px solid #7f9cff;padding:10px 14px;cursor:var(--cv-action);text-decoration:none;display:inline-block;text-shadow:1px 1px 0 #000}
 #retro button:hover,#retro a.b:hover{background:#3558ea}
 #retro button.alt{background:#2b2f40;border-color:#6a728f}
 #retro .foot{display:flex;gap:clamp(12px,3vw,34px);align-items:center;border-top:2px solid #28418a;padding-top:12px;font-size:clamp(7px,1vw,10px);color:#9db6e2;flex-wrap:wrap}
-#retro .foot span{display:flex;align-items:center;gap:8px;cursor:pointer}
+#retro .foot span{display:flex;align-items:center;gap:8px;cursor:var(--cv-action)}
 #retro .foot svg{width:22px;height:22px}
 #retro .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center}
 #retro .bar{width:min(420px,70vw);height:22px;border:2px solid #7f9cff;padding:2px}
@@ -57,25 +57,25 @@ const CSS = `
 #xp .wall{position:absolute;inset:0 0 30px 0;overflow:hidden}
 #xp .wall svg{width:100%;height:100%;display:block}
 #xp .icons{position:absolute;left:14px;top:14px;display:flex;flex-direction:column;gap:14px}
-#xp .ico{width:76px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;text-shadow:1px 1px 1px #000;cursor:pointer;text-align:center;font-size:11.5px;padding:2px;line-height:1.2}
+#xp .ico{width:76px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;text-shadow:1px 1px 1px #000;cursor:var(--cv-action);text-align:center;font-size:11.5px;padding:2px;line-height:1.2}
 #xp .ico.sel span{background:#316ac5;outline:1px dotted #fff}
 #xp .ico svg{width:42px;height:42px;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.45))}
 #xp .bin{position:absolute;right:14px;bottom:44px}
 #xp .win{position:absolute;display:flex;flex-direction:column;background:#ece9d8;border:1px solid #0831d9;border-radius:8px 8px 0 0;box-shadow:3px 3px 12px rgba(0,0,0,.5);min-width:280px}
 #xp .win.max{inset:0 0 30px 0!important;width:auto!important;height:auto!important;border-radius:0}
-#xp .tb{height:30px;flex:none;border-radius:7px 7px 0 0;background:linear-gradient(#0997ff 0%,#0053ee 8%,#0050ee 40%,#06f 88%,#06f 93%,#005bff 95%,#003dd7 96%,#003dd7 100%);display:flex;align-items:center;gap:6px;padding:0 5px 0 7px;color:#fff;font-weight:700;font-size:13px;text-shadow:1px 1px 0 #0f1089;cursor:default}
+#xp .tb{height:30px;flex:none;border-radius:7px 7px 0 0;background:linear-gradient(#0997ff 0%,#0053ee 8%,#0050ee 40%,#06f 88%,#06f 93%,#005bff 95%,#003dd7 96%,#003dd7 100%);display:flex;align-items:center;gap:6px;padding:0 5px 0 7px;color:#fff;font-weight:700;font-size:13px;text-shadow:1px 1px 0 #0f1089;cursor:var(--cv-cursor)}
 #xp .win.blur .tb{background:linear-gradient(#7697e7 0%,#7e9ee3 8%,#7a9ae3 40%,#85a6ea 88%,#6b8fe0 100%)}
 #xp .tb svg{width:16px;height:16px;flex:none}
 #xp .tb em{font-style:normal;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#xp .tbb{width:21px;height:21px;border:1px solid #fff;border-radius:3px;background:linear-gradient(135deg,#6a97f5,#2a62e0);color:#fff;font:700 11px/17px Tahoma;text-align:center;cursor:pointer;padding:0}
+#xp .tbb{width:21px;height:21px;border:1px solid #fff;border-radius:3px;background:linear-gradient(135deg,#6a97f5,#2a62e0);color:#fff;font:700 11px/17px Tahoma;text-align:center;cursor:var(--cv-action);padding:0}
 #xp .tbb.x{background:linear-gradient(135deg,#e9886d,#c13c1c)}
 #xp .menu{display:flex;gap:2px;padding:2px 4px;border-bottom:1px solid #aca899;background:#ece9d8}
 #xp .menu span{padding:2px 7px}
 #xp .menu span:hover{background:#316ac5;color:#fff}
 #xp .tool{display:flex;gap:6px;align-items:center;padding:4px 6px;border-bottom:1px solid #aca899}
-#xp .tool button{font:inherit;display:flex;align-items:center;gap:4px;border:1px solid transparent;background:none;padding:2px 5px;border-radius:3px;cursor:pointer}
+#xp .tool button{font:inherit;display:flex;align-items:center;gap:4px;border:1px solid transparent;background:none;padding:2px 5px;border-radius:3px;cursor:var(--cv-action)}
 #xp .tool button:hover{border-color:#aca899;background:#f4f2e8}
-#xp .tool button:disabled{opacity:.4;cursor:default}
+#xp .tool button:disabled{opacity:.4;cursor:var(--cv-cursor)}
 #xp .addr{display:flex;align-items:center;gap:6px;padding:3px 6px;border-bottom:1px solid #aca899}
 #xp .addr div{flex:1;background:#fff;border:1px solid #7f9db9;padding:2px 5px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #xp .exp{flex:1;display:flex;min-height:0;background:#fff;border-top:1px solid #aca899}
@@ -83,15 +83,15 @@ const CSS = `
 #xp .pane{background:#d6dff7;border-radius:6px 6px 0 0;overflow:hidden}
 #xp .pane h4{margin:0;padding:5px 8px;font-size:12px;background:linear-gradient(90deg,#fff,#c6d3f7);color:#215dc6}
 #xp .pane div{padding:8px;font-size:11.5px;color:#215dc6;line-height:1.5}
-#xp .pane a{color:#215dc6;text-decoration:underline;cursor:pointer;display:block;margin-bottom:4px}
+#xp .pane a{color:#215dc6;text-decoration:underline;cursor:var(--cv-action);display:block;margin-bottom:4px}
 #xp .files{flex:1;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;align-content:start;overflow:auto}
-#xp .file{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:6px 4px;cursor:pointer;line-height:1.25;border:1px solid transparent}
+#xp .file{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:6px 4px;cursor:var(--cv-action);line-height:1.25;border:1px solid transparent}
 #xp .file:hover{background:#eaf1fd;border-color:#a8c3ea}
 #xp .file svg{width:46px;height:46px}
 #xp .st{display:flex;gap:16px;padding:3px 8px;border-top:1px solid #aca899;background:#ece9d8;font-size:11px}
 #xp .doc{padding:10px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
 #xp .tabs{display:flex;gap:1px;padding-left:6px}
-#xp .tabs button{font:inherit;padding:4px 12px;border:1px solid #919b9c;border-bottom:0;border-radius:3px 3px 0 0;background:#f5f4ea;cursor:pointer;position:relative;top:1px}
+#xp .tabs button{font:inherit;padding:4px 12px;border:1px solid #919b9c;border-bottom:0;border-radius:3px 3px 0 0;background:#f5f4ea;cursor:var(--cv-action);position:relative;top:1px}
 #xp .tabs button.on{background:#fcfcfe;border-top:2px solid #f8b330;top:1px;font-weight:700}
 #xp .sheet{background:#fcfcfe;border:1px solid #919b9c;padding:14px;flex:1;min-height:0;overflow:auto;line-height:1.55;font-size:12.5px;user-select:text}
 #xp .sheet h3{margin:0 0 4px;font-size:15px;color:#003399}
@@ -100,7 +100,7 @@ const CSS = `
 #xp .sheet legend{color:#0046d5;padding:0 4px}
 
 #xp .tool{display:flex;gap:6px;padding:3px 6px;border-bottom:1px solid #aca899;background:#ece9d8}
-#xp .tool button{font:inherit;padding:3px 10px;border:1px solid transparent;border-radius:3px;background:transparent;cursor:pointer}
+#xp .tool button{font:inherit;padding:3px 10px;border:1px solid transparent;border-radius:3px;background:transparent;cursor:var(--cv-action)}
 #xp .tool button:hover{border-color:#a8c3ea;background:#eaf1fd}
 #xp .pg{flex:1;min-height:0;overflow:auto;background:#fff;border-top:1px solid #7f9db9;user-select:text}
 #xp .pgin{padding:0 0 30px;font:12.5px/1.6 Verdana,Tahoma,sans-serif;color:#000;max-width:100%}
@@ -152,14 +152,14 @@ const CSS = `
 #xp .pgin .moso-note,#xp .pgin .pillar-callout,#xp .pgin aside{padding:8px 12px;border:1px solid #c9c291;background:#ffffe1;margin:12px 22px}
 #xp .pgin h3{margin:16px 22px 6px;font:700 15px Trebuchet MS,Tahoma;color:#003399;border-bottom:1px solid #aca899}
 #xp .btnrow{display:flex;gap:8px;justify-content:flex-end}
-#xp .xb{font:inherit;min-width:78px;padding:4px 12px;border:1px solid #003c74;border-radius:3px;background:linear-gradient(#fff,#ecebe5 86%,#d6d0c5);cursor:pointer}
+#xp .xb{font:inherit;min-width:78px;padding:4px 12px;border:1px solid #003c74;border-radius:3px;background:linear-gradient(#fff,#ecebe5 86%,#d6d0c5);cursor:var(--cv-action)}
 #xp .xb:hover{box-shadow:inset 0 0 0 2px #f8b330}
 #xp .xb.def{box-shadow:inset 0 0 0 2px #7ba2e7}
 #xp .task{position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(#245edb 0%,#3f8cf3 9%,#245edb 18%,#245edb 92%,#1941a5 100%);display:flex;align-items:center;z-index:5}
-#xp .start{height:30px;padding:0 20px 0 10px;border:0;border-radius:0 12px 12px 0;background:linear-gradient(#5aa84b 0%,#3c9a2c 12%,#3c9a2c 80%,#2e7d22 100%);color:#fff;font:italic 700 17px Tahoma,sans-serif;text-shadow:1px 1px 2px #1d4d15;display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:1px 0 3px rgba(0,0,0,.4)}
+#xp .start{height:30px;padding:0 20px 0 10px;border:0;border-radius:0 12px 12px 0;background:linear-gradient(#5aa84b 0%,#3c9a2c 12%,#3c9a2c 80%,#2e7d22 100%);color:#fff;font:italic 700 17px Tahoma,sans-serif;text-shadow:1px 1px 2px #1d4d15;display:flex;align-items:center;gap:6px;cursor:var(--cv-action);box-shadow:1px 0 3px rgba(0,0,0,.4)}
 #xp .start svg{width:20px;height:20px}
 #xp .tasks{flex:1;display:flex;gap:3px;padding:0 6px;min-width:0}
-#xp .tasks button{max-width:160px;flex:1;height:24px;display:flex;align-items:center;gap:5px;border:1px solid #1941a5;border-radius:3px;background:linear-gradient(#3c8ae6,#2f6fd6);color:#fff;font:12px Tahoma,Verdana,sans-serif;padding:0 6px;cursor:pointer;overflow:hidden;white-space:nowrap}
+#xp .tasks button{max-width:160px;flex:1;height:24px;display:flex;align-items:center;gap:5px;border:1px solid #1941a5;border-radius:3px;background:linear-gradient(#3c8ae6,#2f6fd6);color:#fff;font:12px Tahoma,Verdana,sans-serif;padding:0 6px;cursor:var(--cv-action);overflow:hidden;white-space:nowrap}
 #xp .tasks button.on{background:linear-gradient(#1c4fc0,#2a5fd0);box-shadow:inset 1px 1px 2px rgba(0,0,0,.5)}
 #xp .tasks svg{width:14px;height:14px;flex:none}
 #xp .tray{height:30px;display:flex;align-items:center;padding:0 12px;background:linear-gradient(#0f8ff0,#1299ea 10%,#0b81d6 90%);border-left:1px solid #1a50b8;color:#fff;font-size:12px}
@@ -170,11 +170,11 @@ const CSS = `
 #xp .sm-b{display:grid;grid-template-columns:1fr 1fr}
 #xp .sm-b div{padding:6px}
 #xp .sm-b .r{background:#d3e5fa;border-left:1px solid #95bdee}
-#xp .sm-b a{display:flex;gap:8px;align-items:center;padding:7px;cursor:pointer;border-radius:2px;color:#000;text-decoration:none}
+#xp .sm-b a{display:flex;gap:8px;align-items:center;padding:7px;cursor:var(--cv-action);border-radius:2px;color:#000;text-decoration:none}
 #xp .sm-b a:hover{background:#316ac5;color:#fff}
 #xp .sm-b a svg{width:26px;height:26px;flex:none}
 #xp .sm-f{background:linear-gradient(#3f8cf3,#1c63d9);padding:6px 10px;display:flex;justify-content:flex-end;gap:14px}
-#xp .sm-f a{color:#fff;display:flex;gap:6px;align-items:center;cursor:pointer;font-size:12px;text-decoration:none}
+#xp .sm-f a{color:#fff;display:flex;gap:6px;align-items:center;cursor:var(--cv-action);font-size:12px;text-decoration:none}
 #xp .shut{position:absolute;inset:0;background:#5a7edc;z-index:20;display:none;align-items:center;justify-content:center;color:#fff;font-size:20px;font-family:"Trebuchet MS",Tahoma,sans-serif}
 #xp .shut.on{display:flex}
 @media (max-width:640px){#xp .side{display:none}#xp .win{min-width:0}}
@@ -244,7 +244,7 @@ function retroApp(onClose) {
   }
   function title() {
     view = 'title';root.dataset.view=view;const g = PERSO[idx];
-    scr.innerHTML = `<div class="center"><div class="cover" style="background-image:url('${g.img}');width:min(300px,45vw);max-height:26vh"><span></span></div><div class="title" style="--c:${g.color}">${esc(g.n)}</div><div class="sub">Comt’Star Games · ${g.year}</div><div class="press" data-k="ok" style="cursor:pointer">PRESS START</div>
+    scr.innerHTML = `<div class="center"><div class="cover" style="background-image:url('${g.img}');width:min(300px,45vw);max-height:26vh"><span></span></div><div class="title" style="--c:${g.color}">${esc(g.n)}</div><div class="sub">Comt’Star Games · ${g.year}</div><div class="press" data-k="ok" style="cursor:var(--cv-action)">PRESS START</div>
       <div class="btns"><button data-k="ok">▶ START</button><a class="b alt" target="_blank" rel="noopener" href="${CV}${g.url}">↗ NOUVEL ONGLET</a></div></div>${foot([['x', 'START', 'ok'], ['o', 'RETOUR', 'back']])}`;
     bind();
   }

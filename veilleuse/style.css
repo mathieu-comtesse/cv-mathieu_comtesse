@@ -2,8 +2,8 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:#000;color:var(--c5);font-family:var(--font);overflow:hidden;-webkit-user-select:none;user-select:none}
-#view{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;cursor:grab}
-#view.drag{cursor:grabbing}
+#view{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;cursor:var(--cv-cursor)}
+#view.drag{cursor:var(--cv-action)}
 button,select,input{font:inherit;color:inherit}
 .small{font-size:12px;letter-spacing:.06em;opacity:.8}
 .panel{padding:0;text-transform:uppercase;letter-spacing:.1em;font-size:12px;text-shadow:2px 2px 0 var(--c0),-1px -1px 0 var(--c0)}
@@ -59,7 +59,7 @@ button,select,input{font:inherit;color:inherit}
 .kicker{margin:0;text-transform:uppercase;letter-spacing:.24em;color:var(--warm);font-size:12px}
 .lede{line-height:1.7;font-size:15px;margin:0 0 22px}
 .buttons{display:flex;flex-direction:column;gap:4px;margin:16px 0}
-button{background:none;border:0;padding:9px 16px;text-transform:uppercase;letter-spacing:.2em;cursor:pointer;font-size:14px;color:var(--c4);transition:color .1s}
+button{background:none;border:0;padding:9px 16px;text-transform:uppercase;letter-spacing:.2em;cursor:var(--cv-action);font-size:14px;color:var(--c4);transition:color .1s}
 button:hover,button:focus-visible{color:var(--warm);outline:none}
 button:hover::before,button:focus-visible::before{content:"\2022\00a0"}
 button[hidden]{display:none}
