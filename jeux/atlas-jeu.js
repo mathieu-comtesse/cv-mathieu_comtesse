@@ -214,7 +214,7 @@ export function creerJeu(M, R, dom) {
   function viser(e, clic) {
     const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height * 2 - 1)); ray.setFromCamera(ndc, camera);
     const hit = ray.intersectObjects(cibles(), true).find((h) => h.object.visible && !h.object.isLineSegments);
-    canvas.style.cursor = hit && (hit.object.userData.oeuf || hit.object.userData.batiment) ? 'pointer' : 'grab';
+    canvas.style.cursor = hit && (hit.object.userData.oeuf || hit.object.userData.batiment) ? 'var(--cv-action)' : 'var(--cv-grab)';
     if (!clic || !hit) return; const o = hit.object;
     if (o.userData.oeuf) { const e2 = J.oeufs.get(o.userData.oeuf); e2.action?.(); oeuf(o.userData.oeuf, e2.texte); return; }
     if (o.userData.batiment) montrerFiche(o.userData.batiment.userData.etape);

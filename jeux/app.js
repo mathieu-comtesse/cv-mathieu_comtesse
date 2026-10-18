@@ -114,32 +114,6 @@
   }, 3800);
 })();
 
-// Calque « négatif » : une silhouette du croquis suit le pointeur (sous le curseur système) et inverse ce qu'elle recouvre.
-(() => {
-  const fine = window.matchMedia('(hover:hover) and (pointer:fine)');
-  const supported = window.CSS && (CSS.supports('backdrop-filter', 'invert(1)') || CSS.supports('-webkit-backdrop-filter', 'invert(1)'));
-  if (!fine.matches || !supported) return;
-  const W = 49, H = 62, TIP_X = 1, TIP_Y = 0; // même géométrie et même point chaud que le curseur système
-  const ghost = document.createElement('div');
-  ghost.className = 'cursor-ghost';
-  ghost.setAttribute('aria-hidden', 'true');
-  ghost.hidden = true;
-  document.body.append(ghost);
-  document.documentElement.classList.add('has-ghost');
-  let x = -200, y = -200, raf = 0;
-  const paint = () => {
-    raf = 0;
-    ghost.style.transform = 'translate3d(' + (x - TIP_X) + 'px,' + (y - TIP_Y) + 'px,0)';
-  };
-  window.addEventListener('pointermove', (e) => {
-    if (e.pointerType && e.pointerType !== 'mouse') return;
-    x = e.clientX; y = e.clientY;
-    ghost.hidden = !!(e.target.closest && e.target.closest('canvas,video,iframe,.world-stage,.scene-embed'));
-    if (!raf) raf = requestAnimationFrame(paint);
-  }, {passive: true});
-  document.documentElement.addEventListener('mouseleave', () => { ghost.hidden = true; });
-})();
-
 // Schémas animés : chaque boîte reçoit une barre de titre « fenêtre » pour rejoindre la charte des panneaux.
 (() => {
   document.querySelectorAll('.scene-stage svg .scene-frame').forEach(frame => {

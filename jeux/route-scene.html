@@ -39,13 +39,13 @@
 .carte h3{margin:.2em 0 .5em;font:700 .74rem/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#8ea4d0}
 .touches{display:grid;grid-template-columns:auto 1fr;gap:.35em .8em;font-size:clamp(11px,1.1vw,14px);color:#dfe6f6;align-items:center}
 kbd{font:700 .85em var(--mono);background:#26324f;border:1px solid #42527c;border-bottom-width:2px;border-radius:4px;padding:.05em .45em;color:#fff}
-.btn{appearance:none;border:0;border-radius:8px;padding:.72em 1.3em;font:700 clamp(13px,1.3vw,16px) 'Host Grotesk',system-ui,sans-serif;background:#3f9cf3;color:#06101f;cursor:pointer;transition:transform .12s,background .12s}
+.btn{appearance:none;border:0;border-radius:8px;padding:.72em 1.3em;font:700 clamp(13px,1.3vw,16px) 'Host Grotesk',system-ui,sans-serif;background:#3f9cf3;color:#06101f;cursor:var(--cv-action);transition:transform .12s,background .12s}
 .btn:hover{background:#6ab4ff;transform:translateY(-1px)}.btn.second{background:#2a3858;color:#dbe6ff}.btn.second:hover{background:#34466e}
 .actions{display:flex;flex-wrap:wrap;gap:.6em;margin-top:1em}
 .carte label{display:flex;justify-content:space-between;align-items:center;gap:.8em;color:#cfd9ef;font-size:clamp(11px,1.1vw,14px);margin:.45em 0}
 .carte select,.carte input[type=range]{accent-color:#3f9cf3}.carte select{background:#22304e;color:#eef2fb;border:1px solid #42527c;border-radius:6px;padding:.3em .5em;font:inherit}
 .verres{display:grid;grid-template-columns:1fr auto auto auto;gap:.3em .5em;align-items:center;font-size:clamp(11px,1.05vw,13px)}
-.verres button{appearance:none;width:1.9em;height:1.9em;border-radius:50%;border:1px solid #42527c;background:#22304e;color:#fff;font:700 1em var(--mono);cursor:pointer}.verres output{min-width:1.5em;text-align:center;font-family:var(--mono)}
+.verres button{appearance:none;width:1.9em;height:1.9em;border-radius:50%;border:1px solid #42527c;background:#22304e;color:#fff;font:700 1em var(--mono);cursor:var(--cv-action)}.verres output{min-width:1.5em;text-align:center;font-family:var(--mono)}
 .bac{margin:.6em 0 .2em;padding:.6em .7em;border-radius:8px;background:#141d34;border:1px solid #2f3e63;font-size:clamp(11px,1.05vw,13px);line-height:1.45;color:#cdd8ef}
 .bac .jauge{position:relative;height:8px;border-radius:4px;background:#26324f;margin:.5em 0}.bac .jauge i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,#58d68d,#f0b429 40%,#e5484d);width:0}
 .bac .jauge b{position:absolute;top:-3px;bottom:-3px;width:2px;background:#e6edfb}
@@ -59,9 +59,10 @@ table.res{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:
 .tactile #tg{left:14px;display:flex}.tactile #td{left:calc(14px + clamp(64px,17vw,110px) + 12px);display:flex}.tactile #ta{right:14px;display:flex}.tactile #tf{right:calc(14px + clamp(64px,17vw,110px) + 12px);display:flex}
 .tactile #jauge{left:50%;right:auto;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom));width:min(27vh,32vw)}.tactile #vigil{top:13%;width:min(30vw,200px)}.tactile .tab{font-size:clamp(6px,1.7vw,10px);min-height:0}.tactile #menubtn{bottom:auto;top:9%}
 @media (max-height:480px){.tactile .tz{width:clamp(58px,22vh,96px);height:clamp(58px,22vh,96px)}.tactile #td{left:calc(14px + clamp(58px,22vh,96px) + 12px)}.tactile #tf{right:calc(14px + clamp(58px,22vh,96px) + 12px)}.tactile #bandeau{top:24%}.tactile #decompte{top:20%}}
-#menubtn{left:1.4%;bottom:2.6%;pointer-events:auto;display:flex;gap:.4em}#menubtn button{appearance:none;border:1px solid rgba(214,224,246,.45);background:rgba(14,18,30,.55);color:#e7edfa;border-radius:5px;padding:.25em .6em;font:400 clamp(9px,.9vw,12px) var(--mono);cursor:pointer}
+#menubtn{left:1.4%;bottom:2.6%;pointer-events:auto;display:flex;gap:.4em}#menubtn button{appearance:none;border:1px solid rgba(214,224,246,.45);background:rgba(14,18,30,.55);color:#e7edfa;border-radius:5px;padding:.25em .6em;font:400 clamp(9px,.9vw,12px) var(--mono);cursor:var(--cv-action)}
 @media (prefers-reduced-motion:reduce){#decompte.on,#trajet .lim.exces,#gyro.on{animation:none}}
-</style></head>
+</style><link rel="stylesheet" href="../cursor.css?v=3">
+</head>
 <body><canvas id="vue" tabindex="0" aria-label="Conduite en 3D sur une route de montagne avec circulation : voitures, camions, cyclistes, piétons, animaux. Flèches ou ZQSD pour conduire, Espace pour le frein à main, R pour repartir."></canvas>
 <div id="hud" aria-live="off">
  <div id="trajet"><div class="lim" id="lim" aria-label="Vitesse limite"><span id="limv">80</span></div><div class="zone"><b id="zone">Route de montagne</b><span id="kmrest">9,2 km à parcourir</span><span id="meteo"></span></div></div>

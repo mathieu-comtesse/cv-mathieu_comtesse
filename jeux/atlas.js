@@ -9,11 +9,11 @@
 import * as THREE from './three.module.js';
 
 if (/[?&]papier\b/.test(location.search)) {
-  await import('./atlas-papier.js?v=20261014-mediterranee');
+  await import('./atlas-papier.js?v=20261014-mediterranee-ring');
 } else {
   const { creerRendu } = await import('./atlas-rendu.js?v=20261014-mediterranee');
   const { creerMonde } = await import('./atlas-monde.js?v=20261014-mediterranee');
-  const { creerJeu } = await import('./atlas-jeu.js?v=20261014-mediterranee');
+  const { creerJeu } = await import('./atlas-jeu.js?v=20261014-mediterranee-ring');
   const canvas = document.getElementById('world-canvas'), hote = canvas.parentElement, chargement = document.getElementById('world-loading');
   const tactile = matchMedia('(pointer: coarse)').matches, lite = /[?&]lite\b/.test(location.search) || tactile;
   const R = creerRendu(canvas, { qualite: lite ? 0 : 1 });

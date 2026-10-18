@@ -1,4 +1,5 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Le Village Talas</title><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Le Village Talas</title><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="stylesheet" href="../cursor.css?v=3">
+</head><body>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -68,7 +69,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 .tbar span{opacity:.8;font-weight:400}
 
-.btn{font:inherit;font-size:13px;line-height:1.25;color:var(--ink);background:var(--yellow);border:3px solid;border-color:#fff7cc #b08900 #b08900 #fff7cc;box-shadow:0 0 0 2px var(--ink);padding:4px 9px;cursor:pointer;text-align:left}
+.btn{font:inherit;font-size:13px;line-height:1.25;color:var(--ink);background:var(--yellow);border:3px solid;border-color:#fff7cc #b08900 #b08900 #fff7cc;box-shadow:0 0 0 2px var(--ink);padding:4px 9px;cursor:var(--cv-action);text-align:left}
 
 .btn:hover{background:#fff3a0}
 
@@ -182,7 +183,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 #phud .win{padding:2px 6px;display:flex;gap:4px;align-items:center}
 
-#psave{pointer-events:auto;cursor:pointer;font:inherit;font-weight:700;color:inherit}
+#psave{pointer-events:auto;cursor:var(--cv-action);font:inherit;font-weight:700;color:inherit}
 
 @font-face{font-family:"Rye";src:url(assets/fonts/rye.woff2) format("woff2");font-display:swap}
 
@@ -212,7 +213,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 .toonui #frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at 50% 45%,transparent 58%,rgba(10,20,70,.32) 100%)}
 
-.pintro{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:pointer;font-family:"Luckiest Guy","Trebuchet MS",sans-serif;color:#fff}
+.pintro{position:absolute;inset:0;z-index:40;overflow:hidden;cursor:var(--cv-action);font-family:"Luckiest Guy","Trebuchet MS",sans-serif;color:#fff}
 
 .pintro .pblack{position:absolute;inset:0;background:#05070d;transition:opacity .6s}
 
@@ -304,7 +305,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 .arui .hd{display:flex;justify-content:space-between;gap:8px;color:#8fe6ff;font-size:13px;margin-bottom:3px}
 
-.arui button{display:grid;grid-template-columns:22px 1fr;gap:1px 6px;width:100%;text-align:left;font:inherit;color:#fff;background:transparent;border:0;border-top:1px solid rgba(127,166,224,.35);padding:5px 4px;cursor:pointer}
+.arui button{display:grid;grid-template-columns:22px 1fr;gap:1px 6px;width:100%;text-align:left;font:inherit;color:#fff;background:transparent;border:0;border-top:1px solid rgba(127,166,224,.35);padding:5px 4px;cursor:var(--cv-action)}
 
 .arui button b{grid-row:span 2;color:#ffd43b;font-size:17px}.arui button i{font-style:normal;color:#ffd8a8;font-size:12px}
 
@@ -390,7 +391,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 </style>
 
-<link rel="stylesheet" href="talas-mobile.css?v=20261003-combat-2">
+<link rel="stylesheet" href="talas-mobile.css?v=20261003-combat-2-ring">
 
 
 
@@ -505,7 +506,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 <script src="talas-compagnons.js?v=1"></script>
 
-<script src="talas-quai-vie.js?v=14"></script>
+<script src="talas-quai-vie.js?v=14-ring"></script>
 
 <script src="talas-fantome.js?v=1"></script>
 
@@ -1959,7 +1960,7 @@ cv.addEventListener('pointermove',e=>{
 
   if(down&&cur&&cur.hub&&(Math.abs(e.clientX-down.x)>6||Math.abs(e.clientY-down.y)>6)){dragging=true;cur.yaw=down.yaw-(e.clientX-down.x)*.006;cur.pitch=Math.max(.18,Math.min(1.45,down.pitch+(e.clientY-down.y)*.005))}
 
-  if(TOUCH)return;const o=pick(e);cv.style.cursor=o?'pointer':(cur&&cur.hub?'grab':'default');
+  if(TOUCH)return;const o=pick(e);cv.style.cursor=o?'var(--cv-action)':(cur&&cur.hub?'var(--cv-grab)':'var(--cv-cursor)');
 
   if(o!==hovered){if(hovered&&hovered.userData.hover)tweenScale(hovered,1);if(o&&o.userData.hover)tweenScale(o,1.08);hovered=o}
 
@@ -6465,7 +6466,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
 
   const paced=cfg.paced!==false,patience=cfg.patience||45;
 
-  const HAND=`url("data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M7 2c2 0 3 1 3 3v8l1-1c1-1 3-1 4 0l1 1 1-1c1-1 3-1 4 0l1 1c1-1 3-1 4 1v8c0 4-3 7-7 7h-5c-3 0-5-2-7-4l-5-6c-1-2 1-4 3-3l2 2V5c0-2 1-3 3-3z" fill="#ffd43b" stroke="#3b2412" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 14v5M20 14v5M11 15v4" stroke="#b8860b" stroke-width="1.2"/></svg>')}") 7 2, pointer`;
+  const HAND='var(--cv-grab)';
 
   const R=cur;R.clear();keyHelp('doc');
 
@@ -6603,7 +6604,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
 
   function paintFiche(){const v=fiche.v;if(!v)return;const can=(v.st==='wait'||v.st==='in')&&v.spot>=0,pq=Math.max(0,v.pat/(patience));
 
-    fiche.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;background:#2a3352;padding:2px 6px"><b>${v.nom}</b><button data-x style="font:inherit;color:#fff;background:#c92a2a;border:2px solid;border-color:#ff8787 #7a1010 #7a1010 #ff8787;cursor:pointer;padding:0 5px">X</button></div>
+    fiche.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;background:#2a3352;padding:2px 6px"><b>${v.nom}</b><button data-x style="font:inherit;color:#fff;background:#c92a2a;border:2px solid;border-color:#ff8787 #7a1010 #7a1010 #ff8787;cursor:var(--cv-action);padding:0 5px">X</button></div>
 
       <div style="display:flex;gap:6px;padding:5px"><span data-p></span><div style="flex:1;display:grid;gap:4px;align-content:start"><div>Maladie : <b style="color:#ffe066">${MAL[v.arch]}</b></div>
 
@@ -6611,7 +6612,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
 
       <div style="${LCD}color:#ffe066;font-size:11px;min-height:40px">« ${v.q.q} »</div></div></div>
 
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:0 5px 5px">${DOCR.map((r,k)=>`<button data-s="${k}" ${can?'':'disabled'} title="${r.n}" style="${BEV}padding:2px;cursor:pointer;opacity:${can?1:.5}"><svg width="100%" height="20" viewBox="0 0 24 24" style="background:${r.c}">${ICO[k]}</svg><div style="font:10px 'Pixelify Sans',monospace;color:#fff;white-space:normal;overflow-wrap:anywhere">${r.n}</div></button>`).join('')}</div>`;
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;padding:0 5px 5px">${DOCR.map((r,k)=>`<button data-s="${k}" ${can?'':'disabled'} title="${r.n}" style="${BEV}padding:2px;cursor:var(--cv-action);opacity:${can?1:.5}"><svg width="100%" height="20" viewBox="0 0 24 24" style="background:${r.c}">${ICO[k]}</svg><div style="font:10px 'Pixelify Sans',monospace;color:#fff;white-space:normal;overflow-wrap:anywhere">${r.n}</div></button>`).join('')}</div>`;
 
     fiche.querySelector('[data-p]').replaceWith(fcv);fiche.querySelector('[data-x]').onclick=closeFiche;fiche.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>send(+b.dataset.s,v))}
 
@@ -6623,7 +6624,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
 
   /* fax du jeu pour les retours pédagogiques */
 
-  const fax=document.createElement('div');fax.className='mobile-doc-feedback';fax.style.cssText="position:absolute;z-index:6;right:10px;top:46px;width:min(280px,55%);background:#fdf8e4;background-image:repeating-linear-gradient(#fdf8e4 0 15px,#e8e1c4 15px 16px);color:#2a2238;font:12px 'Pixelify Sans',monospace;border:2px solid #2a3352;box-shadow:4px 4px 0 rgba(0,0,0,.35);display:none;cursor:pointer";fr.append(fax);
+  const fax=document.createElement('div');fax.className='mobile-doc-feedback';fax.style.cssText="position:absolute;z-index:6;right:10px;top:46px;width:min(280px,55%);background:#fdf8e4;background-image:repeating-linear-gradient(#fdf8e4 0 15px,#e8e1c4 15px 16px);color:#2a2238;font:12px 'Pixelify Sans',monospace;border:2px solid #2a3352;box-shadow:4px 4px 0 rgba(0,0,0,.35);display:none;cursor:var(--cv-action)";fr.append(fax);
 
   const nextVisitor=()=>{fax.style.display='none';spawnT=0};
 
@@ -6643,7 +6644,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
 
       <div class="dialogue-copy" style="${LCD}flex:1;color:#ffe066;display:flex;align-items:center;min-height:34px">${v?`<span><b style="color:#8ce99a">${v.nom}</b> : « ${v.q.q} »<br><small>Choisis la ressource qui répond à cette question. ${paced?'Sans limite de temps.':''}</small></span>`:fax.style.display!=='none'?'Lis le retour, puis choisis Visiteur suivant.':spawned<qs.length?'Le prochain visiteur arrive…':'Tous les visiteurs ont été reçus.'}</div></div>
 
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">${DOCR.map((r,k)=>`<button data-r="${k}" ${v?'':'disabled'} style="display:flex;align-items:center;gap:5px;padding:3px 5px;font:inherit;font-size:12px;color:#fff;text-align:left;cursor:pointer;background:linear-gradient(#8e9cc4,#56648e);border:2px solid;border-color:#c8d4f0 #2a3352 #2a3352 #c8d4f0;opacity:${v?1:.55}"><svg width="22" height="22" viewBox="0 0 24 24" style="flex:none;background:${r.c};border:1px solid #2a3352">${ICO[k]}</svg><span style="line-height:1.1"><b>${TOUCH?'':r.k+' '}${r.n}</b><br><small style="color:#dde4f8">${r.s}</small></span></button>`).join('')}</div>`;
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">${DOCR.map((r,k)=>`<button data-r="${k}" ${v?'':'disabled'} style="display:flex;align-items:center;gap:5px;padding:3px 5px;font:inherit;font-size:12px;color:#fff;text-align:left;cursor:var(--cv-action);background:linear-gradient(#8e9cc4,#56648e);border:2px solid;border-color:#c8d4f0 #2a3352 #2a3352 #c8d4f0;opacity:${v?1:.55}"><svg width="22" height="22" viewBox="0 0 24 24" style="flex:none;background:${r.c};border:1px solid #2a3352">${ICO[k]}</svg><span style="line-height:1.1"><b>${TOUCH?'':r.k+' '}${r.n}</b><br><small style="color:#dde4f8">${r.s}</small></span></button>`).join('')}</div>`;
 
     card.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>send(+b.dataset.r))}
 
@@ -6653,7 +6654,7 @@ function docs2D(n,cfg){return new Promise(async res=>{
 
   let drag=null;
 
-  c.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y,moved:0};c.setPointerCapture(e.pointerId);c.style.cursor='grabbing'});
+  c.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,cx:cam.x,cy:cam.y,moved:0};c.setPointerCapture(e.pointerId);c.style.cursor='var(--cv-grabbing)'});
 
   c.addEventListener('pointermove',e=>{if(!drag)return;const rc=c.getBoundingClientRect(),k=W/rc.width,dx=(e.clientX-drag.x)*k,dy=(e.clientY-drag.y)*k;if(Math.hypot(dx,dy)>6)drag.moved=1;if(drag.moved){cam.x=drag.cx-dx;cam.y=drag.cy-dy;cam.man=5}});
 

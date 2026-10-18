@@ -39,7 +39,7 @@
     bar.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;padding:12px 18px;background:#071511dc;border:1px solid #ffffff25;border-radius:10px;color:#eee;font:13px system-ui;backdrop-filter:blur(16px);z-index:5;white-space:nowrap';
     document.body.append(bar);
     const style=document.createElement('style');
-    style.textContent='nav span{font-size:10px;letter-spacing:.17em;margin-right:12px}nav button,nav a{color:#f3f3ec;background:#ffffff10;border:1px solid #ffffff22;border-radius:5px;padding:8px 12px;text-decoration:none;font:inherit;cursor:pointer}nav button:hover,nav a:hover{background:#ffffff25}';
+    style.textContent='nav span{font-size:10px;letter-spacing:.17em;margin-right:12px}nav button,nav a{color:#f3f3ec;background:#ffffff10;border:1px solid #ffffff22;border-radius:5px;padding:8px 12px;text-decoration:none;font:inherit;cursor:var(--cv-action)}nav button:hover,nav a:hover{background:#ffffff25}';
     document.head.append(style);
     bar.querySelector('#feed').onclick=()=>window.habitatFeed?.();
     bar.querySelector('#pause').onclick=()=>{ config.pause=!config.pause; apply(); };
