@@ -19,7 +19,7 @@ export function creerArchipel(M){
 }
 
 export async function creerPassage(J){
- const {creerAtelierIle}=await import('./atlas-atelier-ile.js?v=20261019-nacre-tranche');
+ const {creerAtelierIle}=await import('./atlas-atelier-ile.js?v=20261019-nacre-tranche-2');
  const A=await creerAtelierIle(J);
  const options=document.createElement('details');options.className='atlas-options';options.innerHTML='<summary>Options</summary><div></div>';J.hote.append(options);
  for(const id of ['world-pause','world-log','world-photo','world-sound']){const b=document.getElementById(id);if(b)options.querySelector('div').append(b);}

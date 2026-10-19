@@ -2,7 +2,7 @@
  * le même champ. L'île de construction et le phare restent indépendants. */
 import * as THREE from './three.module.js';
 import { ajusterPieds } from './atlas-batiments.js';
-import { creerSableSource } from './atlas-sable-matiere.js?v=20261019-nacre-tranche';
+import { creerSableSource } from './atlas-sable-matiere.js?v=20261019-nacre-tranche-2';
 
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);

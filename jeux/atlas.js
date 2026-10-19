@@ -11,9 +11,9 @@ import * as THREE from './three.module.js';
 if (/[?&]papier\b/.test(location.search)) {
   await import('./atlas-papier.js?v=20261014-mediterranee-ring');
 } else {
-  const { creerRendu } = await import('./atlas-rendu.js?v=20261019-nacre-tranche');
-  const { creerMonde } = await import('./atlas-monde.js?v=20261019-nacre-tranche');
-  const { creerJeu } = await import('./atlas-jeu.js?v=20261019-nacre-tranche');
+  const { creerRendu } = await import('./atlas-rendu.js?v=20261019-nacre-tranche-2');
+  const { creerMonde } = await import('./atlas-monde.js?v=20261019-nacre-tranche-2');
+  const { creerJeu } = await import('./atlas-jeu.js?v=20261019-nacre-tranche-2');
   const canvas = document.getElementById('world-canvas'), hote = canvas.parentElement, chargement = document.getElementById('world-loading');
   const tactile = matchMedia('(pointer: coarse)').matches, lite = /[?&]lite\b/.test(location.search) || tactile;
   const R = creerRendu(canvas, { qualite: lite ? 0 : 1 });
@@ -21,10 +21,10 @@ if (/[?&]papier\b/.test(location.search)) {
   try {
     M = await creerMonde(R, { qualite: lite ? 0 : 1 });
     J = creerJeu(M, R, { canvas, hote });
-    const { creerPassage } = await import('./atlas-archipel.js?v=20261019-nacre-tranche');
+    const { creerPassage } = await import('./atlas-archipel.js?v=20261019-nacre-tranche-2');
     await creerPassage(J);
-    const {creerClimat}=await import('./atlas-climat.js?v=20261019-nacre-tranche');M.climat=creerClimat(M,R,J);
-    const {creerSableUI}=await import('./atlas-sable-ui.js?v=20261019-nacre-tranche');J.sableUI=creerSableUI(J);
+    const {creerClimat}=await import('./atlas-climat.js?v=20261019-nacre-tranche-2');M.climat=creerClimat(M,R,J);
+    const {creerSableUI}=await import('./atlas-sable-ui.js?v=20261019-nacre-tranche-2');J.sableUI=creerSableUI(J);
   } catch (e) { if (chargement) chargement.textContent = 'Impossible d’afficher l’île sur cet appareil (WebGL 2 requis).'; console.error(e); throw e; }
   const q = new URLSearchParams(location.search);
   J.densite = lite ? 1 : 1.5;

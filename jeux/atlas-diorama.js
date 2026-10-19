@@ -8,7 +8,7 @@ import * as THREE from './three.module.js';
 import { GLSL_BRUIT, GLSL_CIEL, GLSL_OMBRES } from './atlas-ciel.js?v=20261014-mediterranee';
 import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261014-mediterranee';
 import { GLSL_FOND_MARIN } from './atlas-fond-marin.js?v=20261014-mediterranee';
-import { GLSL_EAU_SOURCE } from './atlas-eau-rendu-source.js?v=20261019-nacre-tranche';
+import { GLSL_EAU_SOURCE } from './atlas-eau-rendu-source.js?v=20261019-nacre-tranche-2';
 
 export const DIO = { demiX: 64, demiZ: 50, cx: 0, cz: 0.6, niveau: 0, epaisseur: 2.6, ilot: { x: -21.5, z: 9, r: 3.0 } };
 
@@ -252,7 +252,7 @@ export function creerDiorama(ciel, carte) {
     },
     hauteurEau:(x,z)=>houle.hauteur(x,z),vitesseEau:(x,z)=>houle.vitesse(x,z),impulsionEau:(...args)=>houle.impulsion(...args),diagnosticHoule:()=>houle.diagnostic(),
     async activerEauNative(renderer,qualite,relief=carte){
-      const {creerEauNative}=await import('./atlas-eau-native.js?v=20261019-nacre-tranche');houle=await creerEauNative(renderer,relief,houle,zoneNative,qualite);uni.uHoule.value=houle.tex;uni.uHouleZone.value.copy(zoneNative);
+      const {creerEauNative}=await import('./atlas-eau-native.js?v=20261019-nacre-tranche-2');houle=await creerEauNative(renderer,relief,houle,zoneNative,qualite);uni.uHoule.value=houle.tex;uni.uHouleZone.value.copy(zoneNative);
       uni.uNativeWater.value=1;uni.uNativeFlow.value=houle.texFlux;
       const source=houle.parameters.waters.find(p=>p.type===houle.waterType).defaultParameters;
       for(const [target,color] of [[uni.uNativeColor,source.color],[uni.uNativeScattering,source.scatteringColor]])target.value.setRGB(color.r,color.g,color.b,THREE.SRGBColorSpace);

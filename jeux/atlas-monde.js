@@ -6,20 +6,20 @@
 import * as THREE from './three.module.js';
 import { creerCiel } from './atlas-ciel.js?v=20261014-mediterranee';
 import { creerNuages } from './atlas-nuages.js?v=20261014-mediterranee';
-import { chargerIle, creerEau } from './atlas-ile.js?v=20261019-nacre-tranche';
+import { chargerIle, creerEau } from './atlas-ile.js?v=20261019-nacre-tranche-2';
 import { creerFlore, aleatoire } from './atlas-flore.js?v=20261014-mediterranee';
 import { peupler } from './atlas-decor.js?v=20261014-mediterranee';
 import { chargerBatiments, ajusterPieds } from './atlas-batiments.js?v=20261014-mediterranee';
 import { ETAPES } from './atlas-etapes.js?v=20261014-mediterranee';
-import { creerRoches } from './atlas-roches.js?v=20261019-nacre-tranche';
-import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261019-nacre-tranche';
-import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261019-nacre-tranche';
-import { creerArchipel } from './atlas-archipel.js?v=20261019-nacre-tranche';
+import { creerRoches } from './atlas-roches.js?v=20261019-nacre-tranche-2';
+import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261019-nacre-tranche-2';
+import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261019-nacre-tranche-2';
+import { creerArchipel } from './atlas-archipel.js?v=20261019-nacre-tranche-2';
 import { creerLiaisons } from './atlas-liaisons.js?v=20261014-mediterranee';
 import { creerEcologie } from './atlas-ecologie.js?v=20261014-mediterranee';
-import { appliquerEcosystemeSource } from './atlas-sandcastle.js?v=20261019-nacre-tranche';
-import { transformerTerres } from './atlas-terres.js?v=20261019-nacre-tranche';
-import { creerCoupe } from './atlas-coupe.js?v=20261019-nacre-tranche';
+import { appliquerEcosystemeSource } from './atlas-sandcastle.js?v=20261019-nacre-tranche-2';
+import { transformerTerres } from './atlas-terres.js?v=20261019-nacre-tranche-2';
+import { creerCoupe } from './atlas-coupe.js?v=20261019-nacre-tranche-2';
 import { creerPlage } from './atlas-plage.js?v=20261014-mediterranee';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);

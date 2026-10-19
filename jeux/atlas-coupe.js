@@ -49,7 +49,9 @@ export async function creerCoupe(M){
  water.name='BordersWaterFront : absorption source';
  const waterSides=new THREE.Mesh(waterGeometry,water);waterSides.name='Eau en coupe : houle partagée';waterSides.frustumCulled=false;waterSides.renderOrder=-2;M.dio.groupe.add(waterSides);
  const backColor=Object.fromEntries(material('BordersBack').colors).backgroundColor;
- const back=new THREE.Mesh(waterGeometry,new THREE.MeshBasicMaterial({color:new THREE.Color().setRGB(backColor.r,backColor.g,backColor.b,THREE.SRGBColorSpace),side:THREE.BackSide}));back.name='Fond de coupe';group.add(back);
+ const backMat=new THREE.MeshBasicMaterial({color:new THREE.Color().setRGB(backColor.r,backColor.g,backColor.b,THREE.SRGBColorSpace),side:THREE.BackSide});
+ backMat.onBeforeCompile=shader=>{Object.assign(shader.uniforms,{uHoule:U.uHoule,uHouleZone:U.uHouleZone});shader.vertexShader='uniform sampler2D uHoule;uniform vec4 uHouleZone;attribute float waterTop;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed.y=mix(position.y,texture2D(uHoule,(position.xz-uHouleZone.xy)/uHouleZone.zw).r,waterTop);');};
+ const back=new THREE.Mesh(waterGeometry,backMat);back.frustumCulled=false;back.name='Fond de coupe : houle partagée';group.add(back);
  // Cull legacy underwater decorations outside the finite board.
  let outside=0;
  const contains=(x,z,margin=0)=>x>=bounds.x0+margin&&x<=bounds.x1-margin&&z>=bounds.z0+margin&&z<=bounds.z1-margin;

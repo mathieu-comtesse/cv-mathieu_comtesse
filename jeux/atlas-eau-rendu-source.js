@@ -28,7 +28,9 @@ vec4 couleurEauSource(vec3 world,vec4 field){
  vec2 screen=gl_FragCoord.xy/uResolution;
  vec2 refracted=clamp(screen+N.xz*uNativeRefraction*vec2(1.,uResolution.x/uResolution.y),vec2(.001),vec2(.999));
  float opaqueDepth=texture2D(uDepth,refracted).r;
- if(linearDepth(opaqueDepth)<linearDepth(gl_FragCoord.z)){refracted=screen;opaqueDepth=texture2D(uDepth,refracted).r;}
+ // The finite Atlas board has sky outside its silhouette. Keep the source
+ // depth fallback there too, so refraction cannot absorb an infinite sky ray.
+ if(opaqueDepth>.99999||linearDepth(opaqueDepth)<linearDepth(gl_FragCoord.z)){refracted=screen;opaqueDepth=texture2D(uDepth,refracted).r;}
  float facing=clamp(dot(V,N),0.,1.);
  float distanceInWater=length(positionOpaque(refracted,opaqueDepth)-world);
  vec3 transmission=exp2(-distanceInWater*uNativeScattering*8.656169891357422);

@@ -1,6 +1,6 @@
 {
   "date": "2026-10-19",
-  "version": "20261019-nacre-tranche",
+  "version": "20261019-nacre-tranche-2",
   "scope": "Local Chrome, Windows GPU, desktop and mobile emulation. Not full original-game parity.",
   "cutaway": [
     {
@@ -51,9 +51,9 @@
         "drops": 0,
         "carried": 0,
         "undo": 2,
-        "volume": -144.49868841039802,
+        "volume": -144.1994559620177,
         "min": -2.299999952316284,
-        "max": 1.584652066230774,
+        "max": 1.7130331993103027,
         "sourceStencils": 8,
         "sourceAnimations": 10,
         "iframe": false
@@ -125,9 +125,9 @@
         "drops": 0,
         "carried": 0,
         "undo": 2,
-        "volume": -144.38165296744558,
+        "volume": -144.26926431680786,
         "min": -2.299999952316284,
-        "max": 1.7226958274841309,
+        "max": 1.7144473791122437,
         "sourceStencils": 8,
         "sourceAnimations": 10,
         "iframe": false

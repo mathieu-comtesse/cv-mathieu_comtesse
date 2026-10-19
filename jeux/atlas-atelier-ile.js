@@ -1,5 +1,5 @@
 import * as THREE from './three.module.js';
-import { ressourcesSandcastle } from './atlas-sandcastle.js?v=20261019-nacre-tranche';
+import { ressourcesSandcastle } from './atlas-sandcastle.js?v=20261019-nacre-tranche-2';
 const ROOT=new URL('./assets/atlas/sandcastle/',import.meta.url),KEY='nacre-archipel-sable-v4';
 const clamp=THREE.MathUtils.clamp;
 
