@@ -8,6 +8,7 @@ import * as THREE from './three.module.js';
 import { GLSL_BRUIT, GLSL_CIEL, GLSL_OMBRES } from './atlas-ciel.js?v=20261014-mediterranee';
 import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261014-mediterranee';
 import { GLSL_FOND_MARIN } from './atlas-fond-marin.js?v=20261014-mediterranee';
+import { GLSL_EAU_SOURCE } from './atlas-eau-rendu-source.js?v=20261019-nacre-tranche';
 
 export const DIO = { demiX: 64, demiZ: 50, cx: 0, cz: 0.6, niveau: 0, epaisseur: 2.6, ilot: { x: -21.5, z: 9, r: 3.0 } };
 
@@ -108,37 +109,31 @@ function creerHouleCotiere(carte, distance, zone) {
     tick(dt){retard+=Math.min(Math.max(dt,0),.1);let n=0;while(retard>=1/30&&n<3){advance(1/30);retard-=1/30;n++;}if(n)upload();}};
 }
 
-const GLSL_CHAMP = `uniform sampler2D uHoule,uFondAjoute; uniform vec4 uSDFZone;
-vec4 ondeCotiere(vec2 p){return texture2D(uHoule,(p-uSDFZone.xy)/uSDFZone.zw);}`;
-
-function textureTranche() {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 128; const g = c.getContext('2d');
-  const bandes = [[0, .05, '#e6a574'], [.05, .45, '#bf7248'], [.45, .8, '#a45e40'], [.8, 1, '#6a3c46']];
-  for (const [a, b, col] of bandes) { g.fillStyle = col; g.fillRect(0, a * 128, 512, (b - a) * 128 + 1); }
-  for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '255,225,190' : '60,30,36'},${0.03 + Math.random() * 0.05})`; g.fillRect(Math.random() * 512, Math.random() * 128, 6 + Math.random() * 40, 1 + Math.random() * 2); }
-  const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
-}
+const GLSL_CHAMP = `uniform sampler2D uHoule,uFondAjoute; uniform vec4 uSDFZone,uHouleZone;
+vec4 ondeCotiere(vec2 p){return texture2D(uHoule,(p-uHouleZone.xy)/uHouleZone.zw);}`;
 
 export function creerDiorama(ciel, carte) {
   const groupe = new THREE.Group(), niv = DIO.niveau, { tex, zone } = champDistance(carte), U = ciel.uniformes;
-  const houle = creerHouleCotiere(carte, tex, zone);
+  let houle = creerHouleCotiere(carte, tex, zone);
   const uni = {
     uOriginalCaustics:{value:carte.sandcastle.textures.CausticsAtlas},
     uOriginalNormal:{value:carte.sandcastle.textures.WaterNormal2D},
     uHoule:{value:houle.tex},uFondAjoute:{value:houle.texFond},
+    uNativeWater:{value:0},uNativeTime:{value:0},uNativeRefraction:{value:.01209999993443489},
+    uNativeFlow:{value:houle.tex},uNativeColor:{value:new THREE.Color()},uNativeScattering:{value:new THREE.Color()},uInvVP:{value:new THREE.Matrix4()},
     uScene:{value:null},uDepth:{value:null},uResolution:{value:new THREE.Vector2(1,1)},uNear:{value:.3},uFar:{value:2000},
-    uTemps: { value: 0 }, uSea: { value: niv }, uSDF: { value: tex }, uSDFZone: { value: zone },
+    uTemps: { value: 0 }, uSea: { value: niv }, uSDF: { value: tex }, uSDFZone: { value: zone }, uHouleZone: {value:zone.clone()},
     uHTex: { value: carte.texH }, uEauTex: { value: carte.texEau }, uZone: { value: carte.zone },
     uZenith: U.uZenith, uMilieu: U.uMilieu, uHorizon: U.uHorizon, uSunDir: U.uSunDir, uSunCol: U.uSunCol, uNuit: U.uNuit, uCam: U.uCam, uNu: U.uNu,
     uShallow: { value: new THREE.Color('#b0dfc9') }, uMid: { value: new THREE.Color('#55c2b5') }, uDeep: { value: new THREE.Color('#237f9c') }, uAbyss: { value: new THREE.Color('#145971') }, uSable: { value: new THREE.Color('#e6d5a3') },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms: uni,
-    vertexShader: `uniform float uTemps; uniform sampler2D uSDF; ${GLSL_CHAMP}
+    vertexShader: `uniform float uTemps,uNativeWater; uniform sampler2D uSDF; ${GLSL_CHAMP}
       varying vec3 vW; ${GLSL_HOULE}
       void main(){ vec4 w = modelMatrix * vec4(position, 1.);
         float d = texture2D(uSDF, (w.xz - uSDFZone.xy) / uSDFZone.zw).r;
-        w.y += ondeCotiere(w.xz).r + houleAtlas(w.xz, uTemps).x * .22 * smoothstep(.8, 5., d);
+        w.y += ondeCotiere(w.xz).r + (1.-uNativeWater)*houleAtlas(w.xz, uTemps).x * .22 * smoothstep(.8, 5., d);
         vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
     fragmentShader: `${GLSL_BRUIT}${GLSL_CIEL}${GLSL_OMBRES}${GLSL_HOULE}${GLSL_CAUSTIQUES}${GLSL_FOND_MARIN}${GLSL_CHAMP}
       uniform sampler2D uScene,uDepth,uOriginalNormal; uniform vec2 uResolution; uniform float uNear,uFar;
@@ -149,7 +144,9 @@ export function creerDiorama(ciel, carte) {
       float haut(vec2 p){ vec2 u = uvIle(p);float ajoute=texture2D(uFondAjoute,(p-uSDFZone.xy)/uSDFZone.zw).r;
         if (u.x < 0. || u.y < 0. || u.x > 1. || u.y > 1.) return ajoute;
         return max(texture2D(uHTex, u).r,ajoute); }
+      ${GLSL_EAU_SOURCE}
       void main(){
+        if(uNativeWater>.5){gl_FragColor=couleurEauSource(vW,ondeCotiere(vW.xz));return;}
         vec2 p = vW.xz; vec2 u = uvIle(p);
         float hauteurSol=haut(p);
         // Le terrain opaque masque la mer par sa profondeur réelle. Découper
@@ -245,19 +242,26 @@ export function creerDiorama(ciel, carte) {
   const horizonGeo=new THREE.BufferGeometry();horizonGeo.setAttribute('position',new THREE.Float32BufferAttribute(horizonPos,3));horizonGeo.setIndex(horizonIx);horizonGeo.computeVertexNormals();
   const horizon=new THREE.Mesh(horizonGeo,mat);horizon.position.copy(surface.position);horizon.frustumCulled=false;horizon.renderOrder=-4;groupe.add(horizon);
 
-  const tr = textureTranche(); tr.repeat.set(6, 1);
-  const matTranche = new THREE.MeshStandardMaterial({ map: tr, roughness: 0.9, metalness: 0, envMapIntensity: 0.25 });
-  const dessous = new THREE.MeshStandardMaterial({ color: '#3a2630', roughness: 1 });
-  const caisse = new THREE.Mesh(new THREE.BoxGeometry(2 * DIO.demiX, DIO.epaisseur, 2 * DIO.demiZ), [matTranche, matTranche, dessous, dessous, matTranche, matTranche]);
-  /* Le couvercle reste sous le creux maximal de la houle (0.062 m). */
-  caisse.position.set(DIO.cx, niv - DIO.epaisseur / 2 - 5.5, DIO.cz); caisse.receiveShadow = true; caisse.visible=false; groupe.add(caisse);
 
-  let dernierTemps=null;const fondsAjoutes=[];
-  return { groupe, niveau: niv, surface, ilotX:DIO.ilot.x, ilotZ:DIO.ilot.z,
-    hauteurEau:houle.hauteur,vitesseEau:houle.vitesse,impulsionEau:houle.impulsion,diagnosticHoule:houle.diagnostic,
+  let dernierTemps=null,zoneNative=zone;const fondsAjoutes=[];
+  return { groupe, niveau: niv, surface, horizon, ilotX:DIO.ilot.x, ilotZ:DIO.ilot.z,
+    decouper(b){
+      surface.geometry.dispose();surface.geometry=new THREE.PlaneGeometry(b.x1-b.x0,b.z1-b.z0,240,240).rotateX(-Math.PI/2);
+      surface.position.set((b.x0+b.x1)/2,niv,(b.z0+b.z1)/2);horizon.visible=false;
+      zoneNative=new THREE.Vector4(b.x0,b.z0,b.x1-b.x0,b.z1-b.z0);
+    },
+    hauteurEau:(x,z)=>houle.hauteur(x,z),vitesseEau:(x,z)=>houle.vitesse(x,z),impulsionEau:(...args)=>houle.impulsion(...args),diagnosticHoule:()=>houle.diagnostic(),
+    async activerEauNative(renderer,qualite,relief=carte){
+      const {creerEauNative}=await import('./atlas-eau-native.js?v=20261019-nacre-tranche');houle=await creerEauNative(renderer,relief,houle,zoneNative,qualite);uni.uHoule.value=houle.tex;uni.uHouleZone.value.copy(zoneNative);
+      uni.uNativeWater.value=1;uni.uNativeFlow.value=houle.texFlux;
+      const source=houle.parameters.waters.find(p=>p.type===houle.waterType).defaultParameters;
+      for(const [target,color] of [[uni.uNativeColor,source.color],[uni.uNativeScattering,source.scatteringColor]])target.value.setRGB(color.r,color.g,color.b,THREE.SRGBColorSpace);
+      uni.uNativeRefraction.value=houle.parameters.material.floats.find(([key])=>key==='refractionFactor')[1];
+      return houle;
+    },
     ajouterFond(f){fondsAjoutes.push(f);houle.ajouterFond(f);const next=champDistance(carte,fondsAjoutes);uni.uSDF.value.dispose();uni.uSDF.value=next.tex;houle.actualiserFond(next.tex);},
-    actualiserFond(){houle.actualiserFond();},
-    tick(t) { uni.uTemps.value = t;houle.tick(dernierTemps===null?1/30:t-dernierTemps);dernierTemps=t; } };
+    actualiserFond(bounds){houle.actualiserFond(uni.uNativeWater.value?bounds:undefined);},
+    tick(t) { uni.uTemps.value = t;houle.tick(dernierTemps===null?1/30:t-dernierTemps);uni.uNativeTime.value=houle.temps||0;dernierTemps=t; } };
 }
 
 /* L'îlot du phare : un monticule de sable qui sort de la mer, quelques rochers et des touffes, assez large pour porter la tour. */

@@ -1,48 +1,226 @@
 {
-  "device": "D3D11 WARP",
-  "featureLevel": "0xb000",
-  "dispatch": [
-    1,
-    1,
-    1
-  ],
-  "grid": [
-    32,
-    32
-  ],
+  "renderer": "WebKit WebGL",
   "tests": [
     {
       "scenario": "flat",
       "kernel": "HeightIntegration",
+      "bitExact": true,
       "equalWords": 4096,
       "words": 4096,
-      "bitExact": true,
-      "examples": []
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
     },
     {
       "scenario": "flat",
       "kernel": "VelocityIntegration",
+      "bitExact": true,
       "equalWords": 4096,
       "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "Initialization",
       "bitExact": true,
-      "examples": []
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "Advection",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "BlurFloor",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "UpdateTangent",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "SubtractFloor",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "UpdateFloor",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "CopyGroundHeight",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "UpdateAmount",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "flat",
+      "kernel": "Paint",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
     },
     {
       "scenario": "varying",
       "kernel": "HeightIntegration",
+      "bitExact": true,
       "equalWords": 4096,
       "words": 4096,
-      "bitExact": true,
-      "examples": []
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
     },
     {
       "scenario": "varying",
       "kernel": "VelocityIntegration",
+      "bitExact": true,
       "equalWords": 4096,
       "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "Initialization",
       "bitExact": true,
-      "examples": []
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "Advection",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "BlurFloor",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "UpdateTangent",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "SubtractFloor",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "UpdateFloor",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "CopyGroundHeight",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "UpdateAmount",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
+    },
+    {
+      "scenario": "varying",
+      "kernel": "Paint",
+      "bitExact": true,
+      "equalWords": 4096,
+      "words": 4096,
+      "maxIntegerError": 0,
+      "examples": [],
+      "glError": 0
     }
   ],
-  "scope": "Synthetic single-dispatch checks only; runtime constants and full coupled simulation parity remain unverified."
+  "scope": "Synthetic isolated kernels; separate input/output textures, not full coupled game simulation."
 }

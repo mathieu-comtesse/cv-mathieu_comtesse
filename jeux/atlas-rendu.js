@@ -100,6 +100,7 @@ export function creerRendu(canvas, opts = {}) {
     if(R.eau){
       const waterGroup=R.eau.parent||R.eau,was=waterGroup.visible;waterGroup.visible=false;renderer.setRenderTarget(rtOpaque);renderer.clear();renderer.render(scene,camera);waterGroup.visible=was;
       const water=R.eau.material.uniforms; water.uScene.value=rtOpaque.texture; water.uDepth.value=opaqueDepth; water.uResolution.value.copy(R.taille); water.uNear.value=camera.near; water.uFar.value=camera.far;
+      if(water.uInvVP)water.uInvVP.value.multiplyMatrices(camera.matrixWorld,camera.projectionMatrixInverse);
       renderer.shadowMap.autoUpdate=false;
     }
     renderer.setRenderTarget(rtScene); renderer.clear(); renderer.render(scene, camera);

@@ -1,0 +1,758 @@
+{
+  "sourceFile": "sharedassets0.assets",
+  "sourceSHA256": "6dd7bb6bc7d926fd43c08d22c9c767b7edf531cf11a4a555fcd41830f2f9c721",
+  "sourceUnchanged": true,
+  "texture": {
+    "pathId": 212,
+    "name": "Strata",
+    "width": 512,
+    "height": 512,
+    "format": 10,
+    "colorSpace": 1,
+    "pngSHA256": "7fafac8f79b533e9f49d9c4641224838c42789e1c0a845c2469b58c3e51e6488",
+    "rawObjectSHA256": "b81225a987f400e6ce1201ac8a33d9ddbdd5db1d22ec8ee796dfe79187f3828e"
+  },
+  "materials": [
+    {
+      "material": {
+        "file": "sharedassets0.assets",
+        "path_id": 6,
+        "type": "Material",
+        "name": "BordersBack"
+      },
+      "shader": {
+        "file": "sharedassets0.assets",
+        "path_id": 581,
+        "type": "Shader",
+        "name": "Lit/BordersBack"
+      },
+      "keywords": [],
+      "floats": [
+        [
+          "_AlphaClip",
+          0.0
+        ],
+        [
+          "_AlphaToMask",
+          0.0
+        ],
+        [
+          "_Blend",
+          0.0
+        ],
+        [
+          "_BlendModePreserveSpecular",
+          1.0
+        ],
+        [
+          "_BumpScale",
+          1.0
+        ],
+        [
+          "_ClearCoatMask",
+          0.0
+        ],
+        [
+          "_ClearCoatSmoothness",
+          0.0
+        ],
+        [
+          "_Cull",
+          0.0
+        ],
+        [
+          "_Cutoff",
+          0.5
+        ],
+        [
+          "_DetailAlbedoMapScale",
+          1.0
+        ],
+        [
+          "_DetailNormalMapScale",
+          1.0
+        ],
+        [
+          "_DstBlend",
+          0.0
+        ],
+        [
+          "_DstBlendAlpha",
+          0.0
+        ],
+        [
+          "_EnvironmentReflections",
+          1.0
+        ],
+        [
+          "_GlossMapScale",
+          0.0
+        ],
+        [
+          "_Glossiness",
+          0.0
+        ],
+        [
+          "_GlossyReflections",
+          0.0
+        ],
+        [
+          "_Metallic",
+          0.0
+        ],
+        [
+          "_OcclusionStrength",
+          1.0
+        ],
+        [
+          "_Parallax",
+          0.004999999888241291
+        ],
+        [
+          "_QueueOffset",
+          0.0
+        ],
+        [
+          "_ReceiveShadows",
+          1.0
+        ],
+        [
+          "_Smoothness",
+          0.5
+        ],
+        [
+          "_SmoothnessTextureChannel",
+          0.0
+        ],
+        [
+          "_SpecularHighlights",
+          1.0
+        ],
+        [
+          "_SrcBlend",
+          1.0
+        ],
+        [
+          "_SrcBlendAlpha",
+          1.0
+        ],
+        [
+          "_StencilRef",
+          0.0
+        ],
+        [
+          "_Surface",
+          0.0
+        ],
+        [
+          "_WorkflowMode",
+          1.0
+        ],
+        [
+          "_ZWrite",
+          1.0
+        ],
+        [
+          "refractionFactor",
+          0.009999999776482582
+        ]
+      ],
+      "ints": [],
+      "colors": [
+        [
+          "_BaseColor",
+          {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_Color",
+          {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_EmissionColor",
+          {
+            "r": 0.0,
+            "g": 0.0,
+            "b": 0.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_SpecColor",
+          {
+            "r": 0.19999995827674866,
+            "g": 0.19999995827674866,
+            "b": 0.19999995827674866,
+            "a": 1.0
+          }
+        ],
+        [
+          "backgroundColor",
+          {
+            "r": 0.686274528503418,
+            "g": 0.6313725709915161,
+            "b": 0.545098066329956,
+            "a": 1.0
+          }
+        ],
+        [
+          "waterColor",
+          {
+            "r": 0.9647058844566345,
+            "g": 0.9882352948188782,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "waterScatteringColor",
+          {
+            "r": 1.0,
+            "g": 0.5215686559677124,
+            "b": 0.0,
+            "a": 1.0
+          }
+        ]
+      ],
+      "textures": []
+    },
+    {
+      "material": {
+        "file": "sharedassets0.assets",
+        "path_id": 7,
+        "type": "Material",
+        "name": "BordersGroundFront"
+      },
+      "shader": {
+        "file": "sharedassets0.assets",
+        "path_id": 584,
+        "type": "Shader",
+        "name": "Lit/BordersGroundFront"
+      },
+      "keywords": [],
+      "floats": [
+        [
+          "_AlphaClip",
+          0.0
+        ],
+        [
+          "_AlphaToMask",
+          0.0
+        ],
+        [
+          "_Blend",
+          0.0
+        ],
+        [
+          "_BlendModePreserveSpecular",
+          1.0
+        ],
+        [
+          "_BumpScale",
+          1.0
+        ],
+        [
+          "_ClearCoatMask",
+          0.0
+        ],
+        [
+          "_ClearCoatSmoothness",
+          0.0
+        ],
+        [
+          "_Cull",
+          0.0
+        ],
+        [
+          "_Cutoff",
+          0.5
+        ],
+        [
+          "_DetailAlbedoMapScale",
+          1.0
+        ],
+        [
+          "_DetailNormalMapScale",
+          1.0
+        ],
+        [
+          "_DstBlend",
+          0.0
+        ],
+        [
+          "_DstBlendAlpha",
+          0.0
+        ],
+        [
+          "_EnvironmentReflections",
+          1.0
+        ],
+        [
+          "_GlossMapScale",
+          0.0
+        ],
+        [
+          "_Glossiness",
+          0.0
+        ],
+        [
+          "_GlossyReflections",
+          0.0
+        ],
+        [
+          "_Metallic",
+          0.0
+        ],
+        [
+          "_OcclusionStrength",
+          1.0
+        ],
+        [
+          "_Parallax",
+          0.004999999888241291
+        ],
+        [
+          "_QueueOffset",
+          0.0
+        ],
+        [
+          "_ReceiveShadows",
+          1.0
+        ],
+        [
+          "_Smoothness",
+          0.5
+        ],
+        [
+          "_SmoothnessTextureChannel",
+          0.0
+        ],
+        [
+          "_SpecularHighlights",
+          1.0
+        ],
+        [
+          "_SrcBlend",
+          1.0
+        ],
+        [
+          "_SrcBlendAlpha",
+          1.0
+        ],
+        [
+          "_StencilRef",
+          0.0
+        ],
+        [
+          "_Surface",
+          0.0
+        ],
+        [
+          "_WorkflowMode",
+          1.0
+        ],
+        [
+          "_ZWrite",
+          1.0
+        ],
+        [
+          "refractionFactor",
+          0.009999999776482582
+        ]
+      ],
+      "ints": [],
+      "colors": [
+        [
+          "_BaseColor",
+          {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_Color",
+          {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_EmissionColor",
+          {
+            "r": 0.0,
+            "g": 0.0,
+            "b": 0.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_SpecColor",
+          {
+            "r": 0.19999995827674866,
+            "g": 0.19999995827674866,
+            "b": 0.19999995827674866,
+            "a": 1.0
+          }
+        ],
+        [
+          "rockColor",
+          {
+            "r": 0.501960813999176,
+            "g": 0.4117647409439087,
+            "b": 0.3490196168422699,
+            "a": 1.0
+          }
+        ],
+        [
+          "rockColor2",
+          {
+            "r": 0.40392160415649414,
+            "g": 0.3176470696926117,
+            "b": 0.250980406999588,
+            "a": 1.0
+          }
+        ],
+        [
+          "sandColor",
+          {
+            "r": 0.9200000166893005,
+            "g": 0.8462327718734741,
+            "b": 0.694599986076355,
+            "a": 1.0
+          }
+        ],
+        [
+          "sandColor2",
+          {
+            "r": 0.7610061764717102,
+            "g": 0.6384903788566589,
+            "b": 0.44750985503196716,
+            "a": 1.0
+          }
+        ],
+        [
+          "waterColor",
+          {
+            "r": 0.7686274647712708,
+            "g": 0.7686274647712708,
+            "b": 0.7686274647712708,
+            "a": 1.0
+          }
+        ],
+        [
+          "waterScatteringColor",
+          {
+            "r": 1.0,
+            "g": 0.5215686559677124,
+            "b": 0.0,
+            "a": 1.0
+          }
+        ]
+      ],
+      "textures": [
+        {
+          "slot": "strataMap",
+          "texture": {
+            "file": "sharedassets0.assets",
+            "path_id": 212,
+            "type": "Texture2D",
+            "name": "Strata",
+            "m_Width": 512,
+            "m_Height": 512,
+            "m_TextureFormat": 10,
+            "m_MipCount": 10,
+            "m_ColorSpace": 1
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "material": {
+        "file": "sharedassets0.assets",
+        "path_id": 8,
+        "type": "Material",
+        "name": "BordersWaterFront"
+      },
+      "shader": {
+        "file": "sharedassets0.assets",
+        "path_id": 577,
+        "type": "Shader",
+        "name": "Lit/BordersWaterFront"
+      },
+      "keywords": [],
+      "floats": [
+        [
+          "_AlphaClip",
+          0.0
+        ],
+        [
+          "_AlphaToMask",
+          0.0
+        ],
+        [
+          "_Blend",
+          0.0
+        ],
+        [
+          "_BlendModePreserveSpecular",
+          1.0
+        ],
+        [
+          "_BumpScale",
+          1.0
+        ],
+        [
+          "_ClearCoatMask",
+          0.0
+        ],
+        [
+          "_ClearCoatSmoothness",
+          0.0
+        ],
+        [
+          "_Cull",
+          0.0
+        ],
+        [
+          "_Cutoff",
+          0.5
+        ],
+        [
+          "_DetailAlbedoMapScale",
+          1.0
+        ],
+        [
+          "_DetailNormalMapScale",
+          1.0
+        ],
+        [
+          "_DstBlend",
+          0.0
+        ],
+        [
+          "_DstBlendAlpha",
+          0.0
+        ],
+        [
+          "_EnvironmentReflections",
+          1.0
+        ],
+        [
+          "_GlossMapScale",
+          0.0
+        ],
+        [
+          "_Glossiness",
+          0.0
+        ],
+        [
+          "_GlossyReflections",
+          0.0
+        ],
+        [
+          "_Metallic",
+          0.0
+        ],
+        [
+          "_OcclusionStrength",
+          1.0
+        ],
+        [
+          "_Parallax",
+          0.004999999888241291
+        ],
+        [
+          "_QueueOffset",
+          0.0
+        ],
+        [
+          "_ReceiveShadows",
+          1.0
+        ],
+        [
+          "_Smoothness",
+          0.5
+        ],
+        [
+          "_SmoothnessTextureChannel",
+          0.0
+        ],
+        [
+          "_SpecularHighlights",
+          1.0
+        ],
+        [
+          "_SrcBlend",
+          1.0
+        ],
+        [
+          "_SrcBlendAlpha",
+          1.0
+        ],
+        [
+          "_StencilRef",
+          0.0
+        ],
+        [
+          "_Surface",
+          0.0
+        ],
+        [
+          "_WorkflowMode",
+          1.0
+        ],
+        [
+          "_ZWrite",
+          1.0
+        ],
+        [
+          "refractionFactor",
+          0.009999999776482582
+        ]
+      ],
+      "ints": [],
+      "colors": [
+        [
+          "_BaseColor",
+          {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_Color",
+          {
+            "r": 1.0,
+            "g": 1.0,
+            "b": 1.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_EmissionColor",
+          {
+            "r": 0.0,
+            "g": 0.0,
+            "b": 0.0,
+            "a": 1.0
+          }
+        ],
+        [
+          "_SpecColor",
+          {
+            "r": 0.19999995827674866,
+            "g": 0.19999995827674866,
+            "b": 0.19999995827674866,
+            "a": 1.0
+          }
+        ],
+        [
+          "rockColor",
+          {
+            "r": 0.501960813999176,
+            "g": 0.4117647409439087,
+            "b": 0.3490196168422699,
+            "a": 1.0
+          }
+        ],
+        [
+          "rockColor2",
+          {
+            "r": 0.40392160415649414,
+            "g": 0.3176470696926117,
+            "b": 0.250980406999588,
+            "a": 1.0
+          }
+        ],
+        [
+          "sandColor",
+          {
+            "r": 0.9200000166893005,
+            "g": 0.8462327718734741,
+            "b": 0.694599986076355,
+            "a": 1.0
+          }
+        ],
+        [
+          "sandColor2",
+          {
+            "r": 0.7610061764717102,
+            "g": 0.6384903788566589,
+            "b": 0.44750985503196716,
+            "a": 1.0
+          }
+        ],
+        [
+          "waterColor",
+          {
+            "r": 0.7686274647712708,
+            "g": 0.7686274647712708,
+            "b": 0.7686274647712708,
+            "a": 1.0
+          }
+        ],
+        [
+          "waterScatteringColor",
+          {
+            "r": 1.0,
+            "g": 0.5215686559677124,
+            "b": 0.0,
+            "a": 1.0
+          }
+        ]
+      ],
+      "textures": [
+        {
+          "slot": "sandMap",
+          "texture": {
+            "file": "sharedassets0.assets",
+            "path_id": 212,
+            "type": "Texture2D",
+            "name": "Strata",
+            "m_Width": 512,
+            "m_Height": 512,
+            "m_TextureFormat": 10,
+            "m_MipCount": 10,
+            "m_ColorSpace": 1
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0
+          },
+          "offset": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        }
+      ]
+    }
+  ],
+  "shaderEvidence": {
+    "ground": "Lit/BordersGroundFront #584, DXBC subprogram 6",
+    "water": "Lit/BordersWaterFront #577",
+    "parityComplete": false
+  }
+}

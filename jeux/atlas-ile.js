@@ -6,7 +6,7 @@
 import * as THREE from './three.module.js';
 import { chargerMailles } from './atlas-maille.js?v=20261014-mediterranee';
 import { deformerLittoral } from './atlas-littoral.js?v=20261014-mediterranee';
-import { ressourcesSandcastle } from './atlas-sandcastle.js';
+import { ressourcesSandcastle } from './atlas-sandcastle.js?v=20261019-nacre-tranche';
 import { GLSL_BRUIT, GLSL_OMBRES } from './atlas-ciel.js?v=20261014-mediterranee';
 import { GLSL_HOULE, GLSL_CAUSTIQUES } from './atlas-eau-matiere.js?v=20261014-mediterranee';
 import { GLSL_FOND_MARIN } from './atlas-fond-marin.js?v=20261014-mediterranee';

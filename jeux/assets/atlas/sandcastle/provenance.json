@@ -159,6 +159,12 @@
       "source_format": "R8 256x256x64, base mip, unchanged texels",
       "raw_base_sha256": "e5355399d7e4931291032ebd78d7b50dfe89cb7565dbda422f74e469769d3b0c",
       "layout": "8x8 tiles; each tile 256x256 with one wrapped texel border; flipY=false"
+    },
+    {
+      "file": "212-Strata.png",
+      "sha256": "7fafac8f79b533e9f49d9c4641224838c42789e1c0a845c2469b58c3e51e6488",
+      "source": "decoded installed texture",
+      "source_path_id": 212
     }
   ],
   "sprites": [

@@ -18,18 +18,10 @@ export function creerArchipel(M){
  const archipel={groupe,mesh,hauteur,c:[cx,cz],rayons:[rx,rz],separation:Math.hypot(cx-M.ilot.x,cz-M.ilot.z)-rx-M.ilot.r};M.archipel=archipel;return archipel;
 }
 
-export function creerPassage(J){
- const A={on:false,engine:'Unity WebGL',frame:null};
- const btn=document.createElement('button');btn.id='world-build';btn.textContent='Construire';btn.title='Rejoindre l’île des marées';btn.setAttribute('aria-pressed','false');document.querySelector('.world-controls').prepend(btn);
+export async function creerPassage(J){
+ const {creerAtelierIle}=await import('./atlas-atelier-ile.js?v=20261019-nacre-tranche');
+ const A=await creerAtelierIle(J);
  const options=document.createElement('details');options.className='atlas-options';options.innerHTML='<summary>Options</summary><div></div>';J.hote.append(options);
  for(const id of ['world-pause','world-log','world-photo','world-sound']){const b=document.getElementById(id);if(b)options.querySelector('div').append(b);}
- const jour=document.createElement('button');jour.textContent='Jour / nuit';jour.onclick=()=>J.reglerNuit(!J.estNuit());options.querySelector('div').append(jour);
- let pause=false;
- A.ouvrir=()=>{if(A.on)return;J.sortirMarche();J.pecher.sortir();J.fermerFiche();pause=J.cam.pause;J.cam.pause=true;A.on=true;document.body.classList.add('is-building');btn.setAttribute('aria-pressed','true');
-  A.frame=document.createElement('iframe');A.frame.className='nacre-frame';A.frame.title='Nacre, île des marées : atelier de sable Unity';A.frame.src='./nacre.html?v=20261014-mediterranee';A.frame.allow='fullscreen';J.hote.append(A.frame);A.frame.addEventListener('load',()=>A.frame.contentWindow.focus());
- };
- A.fermer=()=>{if(!A.on)return;A.on=false;A.frame?.remove();A.frame=null;J.cam.pause=pause;document.body.classList.remove('is-building');btn.setAttribute('aria-pressed','false');btn.focus();};
- A.tick=()=>{};btn.onclick=A.ouvrir;
- window.addEventListener('message',e=>{if(e.source!==A.frame?.contentWindow)return;if(e.data?.type==='nacre-close')A.fermer();});
- J.atelier=A;return A;
+ return A;
 }

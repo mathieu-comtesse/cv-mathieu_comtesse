@@ -32,21 +32,25 @@ export function creerFondReel(M){
   const h=carte.hauteur(x,z);
   // Un fond continu reste sous les falaises immergées et ferme les anciennes
   // découpes de la carte. La terre opaque le cache naturellement au-dessus.
-  if(h>-20)return -Math.min(-.25,h-.08);
   const i=THREE.MathUtils.clamp(Math.floor((x-region.x)/region.z*H.width),0,H.width-1),j=THREE.MathUtils.clamp(Math.floor((z-region.y)/region.w*H.height),0,H.height-1);
-  return .35+THREE.DataUtils.fromHalfFloat(H.data[j*H.width+i])*.28;
+  const beach=.24+THREE.DataUtils.fromHalfFloat(H.data[j*H.width+i])*.035;
+  return h>-.20?-Math.min(-.25,h-.08):Math.min(h>-20?-h+.08:2,beach);
  }
  const g=new THREE.PlaneGeometry(region.z,region.w,160,120).rotateX(-Math.PI/2),p=g.attributes.position;
- for(let i=0;i<p.count;i++){const x=p.getX(i)+region.x+region.z/2,z=p.getZ(i)+region.y+region.w/2;p.setXYZ(i,x,-depth(x,z),z);}g.computeVertexNormals();
+ for(let i=0;i<p.count;i++){let x=p.getX(i)+region.x+region.z/2,z=p.getZ(i)+region.y+region.w/2;const y=-depth(x,z);
+  // Continue the seabed beyond the ocean camera; the last cells form a skirt.
+  if(i%161===0)x-=260;else if(i%161===160)x+=260;
+  if(i<161)z-=260;else if(i>=161*120)z+=260;
+  p.setXYZ(i,x,y,z);
+ }g.computeVertexNormals();
  const mat=new THREE.MeshStandardMaterial({color:'#ddd1a5',roughness:1,envMapIntensity:.2});
  mat.onBeforeCompile=sh=>{
-  Object.assign(sh.uniforms,{uTemps:U.uTemps,uNuit:U.uNuit,uOriginalCaustics:U.uOriginalCaustics});
+  Object.assign(sh.uniforms,{uTemps:U.uTemps,uNuit:U.uNuit,uOriginalCaustics:U.uOriginalCaustics,uSourceSand:{value:carte.sandcastle.textures.Sand}});
   sh.vertexShader='varying vec3 vBed;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvBed=transformed;');
-  sh.fragmentShader=`uniform float uTemps,uNuit;varying vec3 vBed;${GLSL_BRUIT}${GLSL_CAUSTIQUES}\n`+sh.fragmentShader
+  sh.fragmentShader=`uniform float uTemps,uNuit;uniform sampler2D uSourceSand;varying vec3 vBed;${GLSL_BRUIT}${GLSL_CAUSTIQUES}\n`+sh.fragmentShader
   .replace('#include <color_fragment>',`#include <color_fragment>
-    float sand=.5+.5*sin(dot(vBed.xz,vec2(.6,.8))*12.+n2(vBed.xz*.35)*4.);
-    float grain=n2(vBed.xz*65.);float grainFade=1.-smoothstep(.5,1.6,length(fwidth(vBed.xz*65.)));
-    diffuseColor.rgb*=(.975+.025*sand)*(1.+(grain-.5)*.035*grainFade);`)
+    float sand=texture2D(uSourceSand,vBed.xz*.7).r;
+    diffuseColor.rgb*=.86+.14*sand;`)
   .replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
     totalEmissiveRadiance+=vec3(.8,.9,.75)*caustiqueAtlas(vBed.xz,uTemps)*.025*(1.-uNuit);`);
  };

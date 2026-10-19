@@ -146,7 +146,7 @@ export function creerJeu(M, R, dom) {
   };
 
   /* ------------------------------------------------------------------------------------------------ caméra : orbite autour de l'île */
-  const cam = { spin: 0.55, pitch: 0.72, zoom: 94, but: null, cible: V3(0, -1, 0.4), vitesse: 0.035, pause: true, glisse: null };
+  const cam = { spin: 0.55, pitch: 0.55, zoom: 126, but: null, cible: V3(-9, -1, 3), vitesse: 0.035, pause: true, glisse: null };
   J.camera.but = (zoom, pitch) => { cam.but = { zoom, pitch }; };
   J.vue = (spin, pitch, zoom) => { cam.spin = spin; cam.pitch = pitch; cam.zoom = zoom; cam.pause = true; };
   J.cam = cam;
@@ -156,8 +156,8 @@ export function creerJeu(M, R, dom) {
     const dessous = (1 - bornes((cam.pitch + 0.4) / 0.8, 0, 1)) * (1 - 0.0);                // regarde le socle quand on passe sous l'horizon
     const cibleY = -1 + dessous * -5.5;
     if(J.atelier?.on){cam.cible.lerp(_t.set(-30,.3,15),Math.min(1,dt*4));}
-    else if (sail.on) { _t.set(bateauPos().x, 0, bateauPos().z); cam.cible.lerp(_t, Math.min(1, dt * 3)); } else cam.cible.lerp(_t.set(-6, cibleY, 3.4), Math.min(1, dt * 1.6));
-    const d = cam.zoom * Math.max(1, 0.78 / camera.aspect), decal = 0;
+    else if (sail.on) { _t.set(bateauPos().x, 0, bateauPos().z); cam.cible.lerp(_t, Math.min(1, dt * 3)); } else cam.cible.lerp(_t.set(-9, cibleY, 3), Math.min(1, dt * 1.6));
+    const d = cam.zoom * Math.max(1, ((J.atelier?.on||sail.on) ? .78 : .95) / camera.aspect), decal = 0;
     camera.position.set(cam.cible.x + Math.sin(cam.spin) * d * Math.cos(cam.pitch), cam.cible.y + Math.sin(cam.pitch) * d, cam.cible.z + Math.cos(cam.spin) * d * Math.cos(cam.pitch));
     camera.lookAt(cam.cible); camera.translateX(decal); camera.lookAt(camera.position.clone().add(camera.getWorldDirection(V3())));
   }
@@ -227,8 +227,8 @@ export function creerJeu(M, R, dom) {
     else viser(e, false); });
   canvas.addEventListener('pointerup', (e) => { if(J.atelier?.on)return; const bouge = appui && Math.hypot(e.clientX - appui.x, e.clientY - appui.y) > 5; glisse = null; if (!bouge) viser(e, true); });
   canvas.addEventListener('pointercancel', () => (glisse = null));
-  canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (marche.on || J.atelier?.on) return; cam.zoom = bornes(cam.zoom + e.deltaY * 0.03, 10, 120); }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => { if (e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (pincement) cam.zoom = bornes(cam.zoom * (pincement / d), 10, 70); pincement = d; e.preventDefault(); } }, { passive: false });
+  canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (marche.on || J.atelier?.on) return; cam.zoom = bornes(cam.zoom + e.deltaY * 0.03, 10, 150); }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => { if (e.touches.length === 2) { const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (pincement) cam.zoom = bornes(cam.zoom * (pincement / d), 10, 150); pincement = d; e.preventDefault(); } }, { passive: false });
   canvas.addEventListener('touchend', () => (pincement = null));
   window.addEventListener('keyup', (e) => { touchesMarche(e, false); pecher.touche(e, false); });
   window.addEventListener('blur', () => { marche.touches.clear(); marche.court = false; });
@@ -236,11 +236,11 @@ export function creerJeu(M, R, dom) {
     if(J.atelier?.on && e.code==='Escape'){J.atelier.fermer();return;}
     if (touchesMarche(e, true) || pecher.touche(e, true)) return; if (/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return; if (/^Arrow/.test(e.code)) e.preventDefault();
     if (e.code === 'ArrowLeft') cam.spin += 0.08; if (e.code === 'ArrowRight') cam.spin -= 0.08; if (e.code === 'ArrowUp') cam.pitch = Math.min(1.38, cam.pitch + 0.05); if (e.code === 'ArrowDown') cam.pitch = Math.max(-0.6, cam.pitch - 0.05);
-    if (e.key === '+' || e.key === '=') cam.zoom = Math.max(10, cam.zoom - 3); if (e.key === '-') cam.zoom = Math.min(120, cam.zoom + 3); if (e.code === 'Space') { e.preventDefault(); $('world-pause').click(); } });
+    if (e.key === '+' || e.key === '=') cam.zoom = Math.max(10, cam.zoom - 3); if (e.key === '-') cam.zoom = Math.min(150, cam.zoom + 3); if (e.code === 'Space') { e.preventDefault(); $('world-pause').click(); } });
   $('world-zoom-in').onclick = (e) => { cam.zoom = Math.max(10, cam.zoom - 5); e.currentTarget.blur(); };
-  $('world-zoom-out').onclick = (e) => { cam.zoom = Math.min(120, cam.zoom + 5); e.currentTarget.blur(); };
+  $('world-zoom-out').onclick = (e) => { cam.zoom = Math.min(150, cam.zoom + 5); e.currentTarget.blur(); };
   $('world-pause').onclick = (e) => { cam.pause = !cam.pause; e.currentTarget.innerHTML = cam.pause ? '<svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false"><path d="M20 12 5 21V3z" fill="currentColor"/></svg>' : 'Ⅱ'; e.currentTarget.setAttribute('aria-label', cam.pause ? 'Reprendre la rotation' : 'Mettre en pause'); };
-  $('world-reset').onclick = () => { sortirMarche(); pecher.sortir(); cam.spin = 0.55; cam.pitch = 0.72; cam.zoom = 94; J.fermerFiche(); reglerNuit(false); };
+  $('world-reset').onclick = () => { sortirMarche(); pecher.sortir(); cam.spin = 0.55; cam.pitch = 0.55; cam.zoom = 126; J.fermerFiche(); reglerNuit(false); };
   $('world-photo').onclick = () => { R.rendre(M.scene, M.sceneNuages, camera, performance.now() / 1000); const a = document.createElement('a'); a.download = 'atlas-du-parcours.png'; a.href = canvas.toDataURL('image/png'); a.click(); oeuf('photo', 'Une photo souvenir de l’île, enregistrée sur votre appareil.'); };
 
   /* ------------------------------------------------------------------------------------------------ boucle de jeu */
@@ -264,7 +264,7 @@ export function creerJeu(M, R, dom) {
     // poissons : nage et sauts
     M.objets.poissons.forEach((f, i) => { if (!f.visible) return; const u = f.userData; u.t += dt;
       if (u.saut > 0) { u.saut += dt * 1.6; const h = Math.sin(Math.min(Math.PI, u.saut * Math.PI)) * 0.55; f.position.set(u.x + u.dx * u.saut * 0.8, h - 0.05, u.z + u.dz * u.saut * 0.8); f.rotation.z = (0.5 - u.saut) * 1.6; if (u.saut >= 1) { u.saut = 0; u.x += u.dx * 0.8; u.z += u.dz * 0.8; u.a = Math.atan2(u.dz, u.dx); } }
-      else { u.a += Math.sin(u.t * 0.7 + i) * dt * 0.4; const nx = u.x + Math.cos(u.a) * dt * 0.4, nz = u.z + Math.sin(u.a) * dt * 0.4; if (!carte.eau(nx, nz) || carte.hauteur(nx, nz) > -0.45) u.a += Math.PI; else { u.x = nx; u.z = nz; } f.position.set(u.x, -0.28 + Math.sin(u.t * 3) * 0.02, u.z); f.rotation.z = 0; if (Math.random() < dt * 0.05) { u.saut = 0.001; u.dx = Math.cos(u.a); u.dz = Math.sin(u.a); } }
+      else { u.a += Math.sin(u.t * 0.7 + i) * dt * 0.4; const nx = u.x + Math.cos(u.a) * dt * 0.4, nz = u.z + Math.sin(u.a) * dt * 0.4; if (!carte.eau(nx, nz) || carte.hauteur(nx, nz) > -0.45) u.a += Math.PI; else { u.x = nx; u.z = nz; } f.position.set(u.x, Math.max(-.28,-M.fondReel.depth(u.x,u.z)+.12) + Math.sin(u.t * 3) * .02, u.z); f.rotation.z = 0; if (Math.random() < dt * 0.05) { u.saut = 0.001; u.dx = Math.cos(u.a); u.dz = Math.sin(u.a); } }
       f.rotation.y = -u.a; f.rotation.x = Math.sin(u.t * 9) * 0.15; });
     // feu d'artifice
     if (feux) { feux.age += dt; const p = feux.pts.geometry.attributes.position; for (let i = 0; i < feux.vit.length; i++) { const v = feux.vit[i]; v.y -= dt * 2.2; p.setXYZ(i, p.getX(i) + v.x * dt, p.getY(i) + v.y * dt, p.getZ(i) + v.z * dt); } p.needsUpdate = true; feux.pts.material.opacity = Math.max(0, 1 - feux.age / 4.5); if (feux.age > 4.5) { M.scene.remove(feux.pts); feux = null; } }

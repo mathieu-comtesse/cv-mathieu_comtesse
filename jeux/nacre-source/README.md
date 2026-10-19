@@ -1,6 +1,6 @@
 # Nacre : état de la refonte
 
-Version locale vérifiée le 14 octobre 2026. Ce dossier contient un instantané des scripts et shaders du module Unity compilé, pas un projet Unity autonome.
+Version du 19 octobre 2026. La construction se fait maintenant dans la scène Atlas : aucun chargement du précédent atelier Unity. Les scripts Unity conservés ici sont l'instantané historique de cet atelier.
 
 ## Ressources et mécanique retrouvées
 
@@ -12,9 +12,13 @@ Version locale vérifiée le 14 octobre 2026. Ce dossier contient un instantané
 
 ## Différences restantes
 
-Le solveur actuellement joué reste une adaptation CPU. Deux noyaux d’eau ont été traduits et comparés au bytecode original sur quatre scénarios isolés avec résultats identiques ; ils ne pilotent pas encore la simulation publique complète.
+La coupe de terrain utilise la texture originale Strata, Texture2D #212, et les couleurs des matériaux BordersGroundFront #7 et BordersWaterFront #8. Le plateau mesure 60 × 60 mètres. La surface et les côtés de l'eau lisent le même champ de hauteurs GPU. Les références et empreintes sont dans ../assets/atlas/sandcastle/cutaway-parameters.json.
 
-Le râteau utilise le masque original et suit le déplacement, mais le transport natif du sable n’est pas entièrement porté. Le mur conserve une construction simplifiée. Le vent, les déplacements des poissons, la profondeur des imposteurs végétaux et l’éclairage ne sont pas strictement identiques au moteur d’origine.
+Les onze noyaux du solveur d'eau Sandcastle sont traduits de son bytecode DXBC vers WebGL2 et pilotent le bassin. Les 22 comparaisons isolées (11 noyaux, deux états de grille 32 × 32) donnent les mêmes mots binaires que l'exécution D3D11 sur le GPU testé : water-kernels-check.json. Cela ne valide pas l'identité de la simulation complète : le raccord au terrain Atlas, la résolution, l'initialisation à l'équilibre et les passes en double tampon diffèrent du jeu natif.
+
+La texture WaterNormal2D #307, les phases d'advection des normales, les paramètres Refs d'eau et de houle, l'absorption, Fresnel et l'exposant spéculaire proviennent des ressources et shaders d'origine. La chaîne complète des particules d'écume native n'est pas portée. L'éclairage, le ciel, les ombres et le post-traitement restent ceux d'Atlas.
+
+Le râteau utilise le masque original, conserve le volume et suit le déplacement, mais le transport natif du sable n’est pas entièrement porté. Le mur utilise l'empreinte ConnectingWall et des poses successives. Le vent, les déplacements des poissons et la profondeur des imposteurs végétaux ne sont pas strictement identiques au moteur d’origine. Les ressources d'origine ne suffisent donc pas à établir une parité graphique ou mécanique complète.
 
 ## Vérification
 

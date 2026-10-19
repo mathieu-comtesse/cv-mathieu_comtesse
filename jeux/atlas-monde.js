@@ -6,18 +6,20 @@
 import * as THREE from './three.module.js';
 import { creerCiel } from './atlas-ciel.js?v=20261014-mediterranee';
 import { creerNuages } from './atlas-nuages.js?v=20261014-mediterranee';
-import { chargerIle, creerEau } from './atlas-ile.js?v=20261014-mediterranee';
+import { chargerIle, creerEau } from './atlas-ile.js?v=20261019-nacre-tranche';
 import { creerFlore, aleatoire } from './atlas-flore.js?v=20261014-mediterranee';
 import { peupler } from './atlas-decor.js?v=20261014-mediterranee';
 import { chargerBatiments, ajusterPieds } from './atlas-batiments.js?v=20261014-mediterranee';
 import { ETAPES } from './atlas-etapes.js?v=20261014-mediterranee';
-import { creerRoches } from './atlas-roches.js?v=20261014-mediterranee';
-import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261014-mediterranee';
-import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261014-mediterranee';
-import { creerArchipel } from './atlas-archipel.js?v=20261014-mediterranee';
+import { creerRoches } from './atlas-roches.js?v=20261019-nacre-tranche';
+import { creerDiorama, creerIlot } from './atlas-diorama.js?v=20261019-nacre-tranche';
+import { ameliorerCanopes, creerFondReel } from './atlas-nature.js?v=20261019-nacre-tranche';
+import { creerArchipel } from './atlas-archipel.js?v=20261019-nacre-tranche';
 import { creerLiaisons } from './atlas-liaisons.js?v=20261014-mediterranee';
 import { creerEcologie } from './atlas-ecologie.js?v=20261014-mediterranee';
-import { appliquerEcosystemeSource } from './atlas-sandcastle.js';
+import { appliquerEcosystemeSource } from './atlas-sandcastle.js?v=20261019-nacre-tranche';
+import { transformerTerres } from './atlas-terres.js?v=20261019-nacre-tranche';
+import { creerCoupe } from './atlas-coupe.js?v=20261019-nacre-tranche';
 import { creerPlage } from './atlas-plage.js?v=20261014-mediterranee';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -284,5 +286,12 @@ export async function creerMonde(R, opts = {}) {
   M.ecologie=await creerEcologie(M);
   M.ecologie.habillerPoissons(M.objets.poissons);
   M.sourceSandcastle=await appliquerEcosystemeSource(M);
+  M.terres=transformerTerres(M);
+  M.coupe=await creerCoupe(M);
+  if(new URLSearchParams(location.search).get('eau')!=='classique'&&R.renderer.extensions.has('EXT_color_buffer_float')){
+    const profil=[[0,.62],[.2,.58],[.42,.45],[.62,.2],[.8,-.1],[1,-.5],[1.12,-1.4]];
+    const relief={hauteur(x,z){let h=Math.max(carte.hauteur(x,z),-M.fondReel.depth(x,z));const r=Math.hypot(x-M.ilot.x,z-M.ilot.z)/M.ilot.r;if(r<1.12){for(let i=1;i<profil.length;i++)if(r<=profil[i][0]){h=Math.max(h,THREE.MathUtils.lerp(profil[i-1][1],profil[i][1],(r-profil[i-1][0])/(profil[i][0]-profil[i-1][0])));break;}}return h;}};
+    M.eauNative=await dio.activerEauNative(R.renderer,qualite,relief);
+  }
   return M;
 }
