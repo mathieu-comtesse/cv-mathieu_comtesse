@@ -194,24 +194,25 @@
 #frame #panel.has-choices .pact{gap:6px}
 #frame #panel.has-choices .pact .btn{flex:none;height:auto;min-width:0;white-space:normal;overflow-wrap:anywhere}
 #frame .arui{--arena-unit:1;--arena-font-size:8px;z-index:20}
-#frame .arui .ap,#frame .arui .ap *{font-family:Arial,Helvetica,sans-serif!important;font-size:var(--arena-font-size)!important;line-height:1.35!important;letter-spacing:0;text-shadow:none;-webkit-text-stroke:0}
-#frame .arui .ap{left:50%;right:auto;transform:translateX(-50%);width:min(460px,calc(100% - 32px));box-sizing:border-box;padding:8px 10px;border:2px solid #bba0dc;border-radius:8px;background:rgba(26,18,45,.96);color:#fff3d7;box-shadow:0 3px 0 #100e20}
+#frame .arui .ap,#frame .arui .ap *{font-family:"Jersey 15","Courier New",monospace!important;font-size:var(--arena-font-size)!important;line-height:1.35!important;letter-spacing:0;text-shadow:none;-webkit-text-stroke:0}
+#frame .arui .ap{left:50%;right:auto;transform:translateX(-50%);width:min(460px,calc(100% - 32px));box-sizing:border-box;padding:8px 10px;border:0;border-radius:0;background:#17294b;color:#fff3cf;box-shadow:var(--pxbox)}
 #frame .arui .ap.ask{display:flex;flex-direction:column;overflow:hidden}
-#frame .arui .arena-question{flex:none;padding-bottom:6px;border-bottom:1px solid #bba0dc60}
-#frame .arui .arena-question h4,#frame .arui h4{font-size:calc(9px * var(--arena-unit))!important;line-height:1.25!important;margin:0 0 4px;color:#ffd87c}
-#frame .arui .arena-question p{margin:0;color:#fff3d7}
-#frame .arui .arena-answers{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8f72b1 #241933;padding:0 2px 2px}
-#frame .arui .hd{margin:5px 0 3px;color:#c6f3ff}
-#frame .arui button{box-sizing:border-box;grid-template-columns:18px minmax(0,1fr);gap:2px 5px;white-space:normal;overflow-wrap:anywhere;color:#fff3d7;min-height:40px;padding:5px 6px;border:1px solid #8f72b160;border-radius:4px;margin-top:4px;background:#352443}
-#frame .arui button span,#frame .arui button b{color:#fff3d7}
-#frame .arui button i{color:#bcdde9}
-#frame .arui button.on,#frame .arui button.mobile-selected,#frame .arui button:focus-visible{background:#543363!important;outline-color:#54ddd8!important}
+#frame .arui .arena-question{flex:none;padding-bottom:6px;border-bottom:2px dotted #3a5a96}
+#frame .arui .arena-question h4,#frame .arui h4{font-size:calc(9px * var(--arena-unit))!important;line-height:1.25!important;margin:0 0 4px;color:#efd07c;text-shadow:2px 2px 0 #0e101c}
+#frame .arui .arena-question p{margin:0;color:#fff3cf}
+#frame .arui .arena-answers{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#3a5a96 #0e101c;padding:0 2px 2px}
+#frame .arui .hd{margin:5px 0 3px;color:#66a8ff}
+#frame .arui button{box-sizing:border-box;grid-template-columns:18px minmax(0,1fr);gap:2px 5px;white-space:normal;overflow-wrap:anywhere;color:#fff3cf;min-height:40px;padding:5px 6px;border:0;border-radius:0;margin-top:4px;background:#0e101c;box-shadow:inset 0 0 0 2px #3a5a96;clip-path:var(--pxn)}
+#frame .arui button span{color:#fff3cf}
+#frame .arui button b{color:#0e101c}
+#frame .arui button i{color:#a8bcea}
+#frame .arui button.on,#frame .arui button.mobile-selected,#frame .arui button:focus-visible{background:#2c4a86!important;box-shadow:inset 0 0 0 2px #efd07c!important;outline:0}
 #frame .arui button.on b::before{display:none}
 #frame .arui .arena-feedback{margin:0;overflow-wrap:anywhere}
 #frame .arui .go{display:none}
 #frame .arui .ap.top{top:58px;max-height:80px;overflow:auto}
 .touch #frame .arui{--arena-unit:var(--mobile-unit);--arena-font-size:calc(8px * var(--mobile-unit))}
-.touch #frame .arui .ap{width:min(calc(460px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)));padding:calc(6px * var(--mobile-unit)) calc(8px * var(--mobile-unit));border-radius:calc(6px * var(--mobile-unit))}
+.touch #frame .arui .ap{width:min(calc(460px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)));padding:calc(6px * var(--mobile-unit)) calc(8px * var(--mobile-unit));border-radius:0}
 .touch #frame .arui .ap.bot{bottom:calc((var(--touch-main) + 26px) * var(--mobile-unit) + var(--game-safe-bottom,0px));max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
 .touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
 .touch #frame .arui .arena-question{padding-bottom:calc(5px * var(--mobile-unit))}
@@ -229,7 +230,7 @@
 @media(max-height:280px){.touch #frame .arui .arena-answers .hd{display:none}}
 
 /* Combat quality pass: readable UI is independent of the retro scene raster. */
-#frame .arui{--arena-font-size:12px}
+#frame .arui{--arena-font-size:15px}
 #frame .arui .ap{width:min(620px,calc(100% - 32px));padding:9px 12px}
 #frame .arui h4,#frame .arui .arena-question h4{font-size:var(--arena-font-size)!important;line-height:1.3!important}
 #frame .arui .ap.ask{max-height:50%}
@@ -237,7 +238,7 @@
 #frame .arui .arena-answers button{min-height:44px;line-height:1.3!important}
 #frame .arui .arena-answers button i{display:none}
 #frame .arui .ap.bot:not(.ask){max-height:130px;overflow:auto}
-.touch #frame .arui{--arena-font-size:calc(12px * var(--mobile-unit))}
+.touch #frame .arui{--arena-font-size:calc(15px * var(--mobile-unit))}
 .touch #frame .arui .ap{width:min(calc(620px * var(--mobile-unit)),calc(100% - 32px * var(--mobile-unit)))}
 .touch #frame .arui .ap.ask{max-height:calc(100% - (var(--touch-main) + 82px) * var(--mobile-unit) - var(--game-safe-bottom,0px) - var(--game-safe-top,0px))}
 .touch #frame .arui .arena-question{max-height:calc(76px * var(--mobile-unit))}
@@ -249,6 +250,6 @@
 /* Brush letters contain black paper around the ink: screen blending reveals the arena. */
 .talas-retro-banner{mix-blend-mode:screen}
 /* Keep combat type and target widths constant in screen pixels on large displays too. */
-#frame .arui{--arena-unit:var(--mobile-unit,1);--arena-font-size:calc(12px * var(--arena-unit))}
+#frame .arui{--arena-unit:var(--mobile-unit,1);--arena-font-size:calc(15px * var(--arena-unit))}
 #frame .arui .ap{width:min(calc(620px * var(--arena-unit)),calc(100% - 32px * var(--arena-unit)));padding:calc(7px * var(--arena-unit)) calc(10px * var(--arena-unit))}
 #frame .arui .arena-answers button{min-height:calc(44px * var(--arena-unit));padding:calc(4px * var(--arena-unit)) calc(6px * var(--arena-unit));grid-template-columns:calc(18px * var(--arena-unit)) minmax(0,1fr)}

@@ -13,3 +13,7 @@ Les poids du détecteur (`assets/vision/*.bin`) sont ceux publiés par Ultralyti
 ## Vidéo de démonstration
 
 « Chaîne d'embouteillage de vin effervescent » (2019), Olivier Lemoine, CC BY-SA 4.0, <https://commons.wikimedia.org/wiki/File:Cha%C3%AEne_embouteillage_effervescent.ogv>. La vidéo est lue depuis Wikimedia Commons et n'est pas copiée dans ce dépôt.
+
+## Police du jeu Talas
+
+`jeux/assets/fonts/jersey-15.woff2` : Jersey 15 (Sarah Cadigan-Fried), licence SIL Open Font License 1.1, <https://fonts.google.com/specimen/Jersey+15>. Sous-ensemble latin distribué par Fontsource.

@@ -293,27 +293,44 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 #pmsg.corner{left:8px;top:56px;transform:none;text-align:left;font-size:12px;line-height:1.35;padding:3px 8px}
 
-.arui{position:absolute;inset:0;z-index:4;pointer-events:none;font:700 15px/1.3 'Pixelify Sans',monospace;color:#fff}
-
-.arui .ap{position:absolute;left:10px;right:10px;background:rgba(10,14,38,.86);border:2px solid #7fa6e0;box-shadow:0 0 0 2px rgba(10,14,38,.6);padding:6px 10px;pointer-events:auto}
-
-.arui .top{top:66px}.arui .bot{bottom:8px;max-height:60%;overflow:auto}
-
-.arui h4{margin:0 0 3px;font-size:18px;color:#ffd43b;text-shadow:2px 2px 0 #1a1030,-1px -1px 0 #1a1030;letter-spacing:.5px}
-
-.arui h4.good{color:#8ce99a}.arui h4.bad{color:#ff8787}.arui small{color:#b8c4e6;font-size:12px}
-
-.arui .hd{display:flex;justify-content:space-between;gap:8px;color:#8fe6ff;font-size:13px;margin-bottom:3px}
-
-.arui button{display:grid;grid-template-columns:22px 1fr;gap:1px 6px;width:100%;text-align:left;font:inherit;color:#fff;background:transparent;border:0;border-top:1px solid rgba(127,166,224,.35);padding:5px 4px;cursor:var(--cv-action)}
-
-.arui button b{grid-row:span 2;color:#ffd43b;font-size:17px}.arui button i{font-style:normal;color:#ffd8a8;font-size:12px}
-
-.arui button.on{background:rgba(255,214,70,.22)}.arui button.on b::before{content:'';position:absolute;margin-left:-14px;margin-top:4px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid currentColor;animation:blink 1s steps(2) infinite}
-
-.arui .go{float:right;color:#ffd43b;animation:blink 1s steps(2) infinite}
-
-.touch .arui{font-size:17px}.touch .arui h4{font-size:19px}.touch .arui button i{font-size:14px}
+/* ===== Cadre pixel : mêmes aplats, même police et même pas de 2 px que le raster du combat (TalasRetroCombat) ===== */
+@font-face{font-family:"Jersey 15";src:url(assets/fonts/jersey-15.woff2) format("woff2");font-weight:400;font-display:swap}
+#frame{--u:2px;--pxn:polygon(var(--u) 0,calc(100% - var(--u)) 0,calc(100% - var(--u)) var(--u),100% var(--u),100% calc(100% - var(--u)),calc(100% - var(--u)) calc(100% - var(--u)),calc(100% - var(--u)) 100%,var(--u) 100%,var(--u) calc(100% - var(--u)),0 calc(100% - var(--u)),0 var(--u),var(--u) var(--u));--pxbox:inset var(--u) var(--u) 0 0 #3a5a96,inset calc(var(--u)*-1) calc(var(--u)*-1) 0 0 #0e101c,0 calc(var(--u)*-1) 0 0 #efd07c,0 var(--u) 0 0 #efd07c,calc(var(--u)*-1) 0 0 0 #efd07c,var(--u) 0 0 0 #efd07c,0 calc(var(--u)*-2) 0 0 #0e101c,0 calc(var(--u)*2) 0 0 #0e101c,calc(var(--u)*-2) 0 0 0 #0e101c,calc(var(--u)*2) 0 0 0 #0e101c,0 calc(var(--u)*4) 0 0 rgba(14,16,28,.55)}
+.pxf,.arui .ap{position:absolute;background:#17294b;color:#fff3cf;border:0;border-radius:0;padding:8px 12px;font:400 15px/1.3 "Jersey 15","Courier New",monospace;box-shadow:var(--pxbox)}
+.arui{position:absolute;inset:0;z-index:4;pointer-events:none;font:400 15px/1.3 "Jersey 15","Courier New",monospace;color:#fff3cf}
+.arui .ap{left:12px;right:12px;pointer-events:auto;animation:pxin .24s steps(4) both}
+@keyframes pxin{from{translate:0 8px;opacity:0}to{translate:0 0;opacity:1}}
+.arui .top{top:66px}.arui .bot{bottom:12px;max-height:60%;overflow:auto;scrollbar-width:none}.arui .bot::-webkit-scrollbar{display:none}
+.arui h4,.pxf h4,.pxf h5{margin:0 0 4px;font-size:15px;color:#efd07c;text-shadow:2px 2px 0 #0e101c;letter-spacing:0;border-bottom:2px dotted #3a5a96;padding-bottom:3px}
+.arui h4.good,.pxf h4.good{color:#9ce6cf}.arui h4.bad,.pxf h4.bad{color:#ff9b7a}.arui small{color:#a8bcea;font-size:15px}
+.arui .hd{display:flex;justify-content:space-between;gap:8px;color:#66a8ff;font-size:15px;margin-bottom:4px}
+.arui button,.pxf button.px{display:grid;grid-template-columns:22px 1fr;gap:1px 8px;width:100%;text-align:left;font:inherit;color:#fff3cf;background:transparent;border:0;border-top:2px dotted #3a5a96;border-radius:0;padding:5px 4px;cursor:var(--cv-action)}
+.arui button b,.pxf button.px b{grid-row:span 2;display:grid;place-items:center;width:20px;height:20px;background:#efd07c;color:#0e101c;font-size:15px;clip-path:var(--pxn);position:static}
+.arui button i,.pxf button.px i{font-style:normal;color:#e8a05a;font-size:15px}.arui button i::before{content:"> "}
+.arui button.on,.pxf button.px.on,.pxf button.px:hover{background:#2c4a86}
+.arui button.on b{background:#ffd772;animation:blink 1s steps(2) infinite}
+.arui .go,.pxf .go{float:right;color:#efd07c;animation:blink 1s steps(2) infinite}.arui .go::before,.pxf .go::before{content:"";display:inline-block;width:8px;height:10px;margin-right:6px;background:currentColor;clip-path:polygon(0 0,25% 0,25% 20%,50% 20%,50% 40%,75% 40%,75% 60%,50% 60%,50% 80%,25% 80%,25% 100%,0 100%)}
+/* encart « information documentée » et jauge DOCS */
+.hv{left:50%;top:44px;width:430px;max-width:94%;transform:translateX(-50%);z-index:12;animation:pxin .24s steps(4) both;pointer-events:auto}
+.hv.blk{top:50%;transform:translate(-50%,-50%);width:460px}
+.hv .hvh{display:flex;align-items:center;gap:8px;color:#9ce6cf;font-size:15px;margin-bottom:4px}.hv .hvh span{flex:1}.hv .hvh b{color:#0e101c;background:#9ce6cf;padding:0 6px;clip-path:var(--pxn)}
+.hv .hvi{width:16px;height:14px;background:#efd07c;clip-path:polygon(0 0,45% 0,55% 20%,100% 20%,100% 100%,0 100%)}
+.hv p{margin:0;font-size:15px;color:#fff3cf}.hv .sec{color:#66a8ff}
+.hv.miss h4{color:#ff9b7a}
+.docpill b{color:#9ce6cf}.docpill.low b{color:#ba321b}
+/* échange en tête-à-tête (SWOT, parties intéressées) */
+.pxtalk{position:absolute;inset:0;z-index:7;pointer-events:none;font:400 15px/1.3 "Jersey 15","Courier New",monospace;color:#fff3cf}
+.pxtalk .pxf{pointer-events:auto}.pxtalk .who{left:12px;right:12px;top:38px;display:flex;gap:10px;align-items:flex-start}
+.pxtalk .who .tag{flex:none;min-width:54px;text-align:center;color:#0e101c;padding:2px 4px;font-size:15px;clip-path:var(--pxn)}
+.pxtalk .who p{margin:0;font-size:15px}.pxtalk .who q{display:block;color:#a8bcea;font-size:15px;quotes:none}
+.pxtalk .ans{left:12px;right:12px;bottom:12px;max-height:58%;overflow:auto;scrollbar-width:none}
+.pxtalk .ans h4{color:#66a8ff}
+.pxtalk .ans.q4{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.pxtalk .ans.q4 h4{grid-column:1/-1}
+.pxtalk .ans.q4 button.px{border:0;background:#0e101c;padding:6px 8px;grid-template-columns:20px 1fr}
+.pxtalk .ans.q4 button.px.on,.pxtalk .ans.q4 button.px:hover{background:#2c4a86}
+.pxtalk .ans.q4 button.px i{color:#a8bcea}
+.pxtalk .res{left:12px;right:12px;bottom:12px}.pxtalk .res.good h4{color:#9ce6cf}.pxtalk .res.bad h4{color:#ff9b7a}
+.pxtalk .who .sc{flex:none;color:#efd07c;font-size:15px;font-style:normal;white-space:nowrap}
 
 .mcard{max-height:calc(100dvh - 16px);overflow-y:auto}
 
@@ -391,7 +408,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 </style>
 
-<link rel="stylesheet" href="talas-mobile.css?v=20261003-combat-2-ring">
+<link rel="stylesheet" href="talas-mobile.css?v=20261019-cadre-pixel2">
 
 
 
@@ -408,6 +425,8 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
     <div class="win pill" title="Étoiles gagnées"><svg width="14" height="14" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z" fill="#ffcc33" stroke="#2b1d3a" stroke-width="2"/></svg><span id="starc">0 / 21</span></div>
 
     <div class="win pill" id="timer" title="Temps restant avant l’audit"><svg width="14" height="14" viewBox="0 0 24 24" shape-rendering="crispEdges" fill="none" stroke="#1a1214" stroke-width="2.5"><circle cx="12" cy="13" r="8" fill="#fff"/><path d="M12 13V9M9 2h6M12 5V2"/></svg><span id="timev">45:00</span></div>
+
+    <div class="win pill docpill" id="docp" title="Informations documentées récoltées (§7.5)">DOCS <b id="docv">0/0</b></div>
 
     <div class="win pill">CDI <span class="bar"><i id="cdib" style="width:50%"></i></span><span id="cdiv">50 %</span></div>
 
@@ -558,7 +577,7 @@ const INK='#1a1214';
 
 let S;
 
-function reset(){S={cdi:50,flags:{participation:false,leader:false,accueil:false,changement:false,prevention:false,accident:false},res:{},done:{},all:false,ch:-1}}
+function reset(){S={cdi:50,flags:{participation:false,leader:false,accueil:false,changement:false,prevention:false,accident:false},res:{},done:{},all:false,ch:-1,docs:{off:{},got:{},paid:{}}}}
 
 reset();
 
@@ -589,6 +608,7 @@ const stars=n=>{const r=ratio(n);return r===null||!S.done[n]?0:r>=.85?3:r>=.6?2:
 function hud(){
 
   $('#cdib').style.width=S.cdi+'%';$('#cdiv').textContent=S.cdi+' %';
+  {const d=docCount();$('#docv').textContent=d.g+'/'+d.o;$('#docp').classList.toggle('low',d.lost>=2)}
 
   let s=0;for(let i=0;i<7;i++)s+=stars(i);$('#starc').textContent=s+' / 21';
 
@@ -596,6 +616,69 @@ function hud(){
 
 function cdi(d){S.cdi=Math.max(0,Math.min(100,S.cdi+d));hud();const t=document.createElement('div');t.className='toast';t.style.background=d>0?'#b2f2bb':'#ffc9c9';t.textContent=(d>0?'+':'')+d+' CDI';t.classList.add('win');$('#frame').append(t);setTimeout(()=>t.remove(),1300)}
 
+
+
+/* ================= INFORMATIONS DOCUMENTÉES (§7.5) : chaque atelier en cache une à récolter =================
+   docOffer : le mini-jeu annonce ce qu'il peut donner. harvest : récolte + encart explicatif. docSettle : les manques coûtent du CDI,
+   et sous 60 % de récolte l'auditeur de certification relève une non-conformité (voir finale). */
+
+const DOCS={
+ swot:{sec:'§4.1',t:'Analyse du contexte (SWOT)',info:'Enjeux internes (forces, faiblesses) et externes (opportunités, menaces) qui influent sur les résultats attendus du système SST. L’auditeur veut la preuve qu’ils sont déterminés, puis revus.'},
+ pi:{sec:'§4.2',t:'Registre des parties intéressées',info:'Travailleurs, Airbus, autorités, riverains : leurs besoins et attentes, dont les exigences légales et autres exigences que Talas choisit de retenir.'},
+ legal:{sec:'§6.1.3',t:'Registre des exigences légales',info:'Les textes applicables (Code du travail, ICPE, FDS) et leur date de mise à jour. Il est tenu à jour et conservé.'},
+ pol:{sec:'§5.2',t:'Politique SST signée',info:'Engagements : conditions sûres, respect de la loi, éliminer les dangers, consulter les travailleurs, s’améliorer. Datée, signée par la direction, communiquée et disponible.'},
+ role:{sec:'§5.3',t:'Organigramme des rôles SST',info:'Qui est responsable de quoi en SST, à tous les niveaux. Attribué, communiqué et conservé : sinon « tout le monde » devient « personne ».'},
+ cse:{sec:'§5.4',t:'Comptes rendus de consultation',info:'La preuve que les travailleurs non cadres sont consultés avant les décisions : dangers, choix des mesures, enquêtes après incident.'},
+ pa:{sec:'§10.2',t:'Registre des presque-accidents',info:'Chaque signalement est tracé et analysé, sans sanction pour celui qui signale. Plus on signale, moins il y a d’accidents graves.'},
+ bud:{sec:'§7.1',t:'Budget SST validé',info:'Les moyens humains, financiers et techniques décidés par la direction. Sans moyens, la politique reste du papier.'},
+ obj:{sec:'§6.2',t:'Objectifs SST et plan d’actions',info:'Objectifs mesurables et datés, avec un responsable, des moyens et un indicateur. Conservés comme preuve et suivis.'},
+ mes:{sec:'§6.1.4',t:'Plan d’actions de prévention',info:'Les mesures classées par hiérarchie : éliminer, substituer, protéger collectivement, organiser, et les EPI en dernier recours.'},
+ urg:{sec:'§8.2',t:'Plan d’urgence et bilan d’exercice',info:'Procédure testée, fiches réflexes au poste, comptes rendus d’exercice et retour d’expérience.'},
+ form:{sec:'§7.2',t:'Preuves de compétence',info:'Formations, habilitations, émargements des sensibilisations : les preuves de compétence se conservent.'},
+ maitrise:{sec:'§7.5',t:'Maîtrise des informations documentées',info:'Création, mise à jour, diffusion, conservation : la bonne version est au poste, les anciennes sont retirées.'},
+ ops:{sec:'§8.1',t:'Procédures et permis de travail',info:'Consignes écrites, permis pour les travaux en hauteur, vérification des protections collectives avant de penser EPI.'},
+ rev:{sec:'§9.3',t:'Compte rendu de revue de direction',info:'Entrées, décisions, moyens alloués et actions : la direction pilote le système, et les travailleurs sont informés.'},
+ nc:{sec:'§10.2',t:'Rapport d’enquête et actions correctives',info:'Cause racine, action corrective, efficacité vérifiée. Tout est conservé comme preuve.'},
+ ameli:{sec:'§10.3',t:'Suivi de l’amélioration continue',info:'Les preuves du cycle PDCA : résultats des actions menées et nouvelles décisions.'}
+};
+
+const escH=t=>String(t).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+
+const docOffer=(...ks)=>{ks.flat().forEach(k=>{if(DOCS[k])S.docs.off[k]=1});hud()};
+
+const docCount=()=>{const o=Object.keys(S.docs.off);return {g:o.filter(k=>S.docs.got[k]).length,o:o.length,lost:o.filter(k=>S.docs.paid[k]&&!S.docs.got[k]).length}};
+
+function harvest(k,{block=false}={}){
+
+  const D=DOCS[k];if(!D||S.docs.got[k])return Promise.resolve(false);
+
+  S.docs.off[k]=1;S.docs.got[k]=1;hud();tsAdd('docs');
+
+  try{beep(660,.08,'square',.05);setTimeout(()=>beep(990,.12,'square',.05),90)}catch(e){}
+
+  const {g,o}=docCount(),fr=$('#frame');fr.querySelectorAll('.hv').forEach(e=>e.remove());
+
+  const el=document.createElement('div');el.className='pxf hv'+(block?' blk':'');
+
+  el.innerHTML=`<div class="hvh"><i class="hvi"></i><span>INFORMATION DOCUMENTÉE RÉCOLTÉE</span><b>DOC ${g}/${o}</b></div><h5><span class="sec">${D.sec}</span> ${D.t}</h5><p>${D.info}</p>${block?`<div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div>`:''}`;
+
+  fr.append(el);
+
+  return new Promise(res=>{let tm=0;const end=()=>{clearTimeout(tm);removeEventListener('keydown',kd,true);el.remove();res(true)};
+
+    const kd=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();e.stopPropagation();end()}};
+
+    if(block){addEventListener('keydown',kd,true);el.onclick=end}else tm=setTimeout(end,4800)})}
+
+async function docSettle(){
+
+  const miss=Object.keys(S.docs.off).filter(k=>!S.docs.got[k]&&!S.docs.paid[k]);if(!miss.length)return;
+
+  miss.forEach(k=>S.docs.paid[k]=1);const d=Math.min(9,miss.length*3);hud();cdi(-d);tsAdd('docsMiss',miss.length);
+
+  await say('boulon',`<b>Information documentée manquante</b> (−${d} CDI) : ${miss.map(k=>`${DOCS[k].sec} ${DOCS[k].t}`).join(' ; ')}.<br>Sans cette preuve, l’auditeur ne peut rien vérifier.`,{cls:'bad'});
+
+}
 
 
 /* ================= DONNÉES ================= */
@@ -1820,6 +1903,127 @@ const DECOR=[
 
 ];
 
+/* ===== décors des échanges (§4.1, §4.2) : la plage du DG et le cabinet de psy du vestiaire ===== */
+
+DECOR.plage={sky:['#3fb0ff','#ffe8b5'],open:1,
+
+ floor:()=>ctex(64,64,(x,w,h)=>{x.fillStyle='#f1d49b';x.fillRect(0,0,w,h);for(let i=0;i<90;i++){x.fillStyle=i%2?'#e2bd7c':'#fbe8bd';x.fillRect(Math.random()*w|0,Math.random()*h|0,2,2)}}),
+
+ wall:()=>null,
+
+ build(s,W){const up=[];
+
+  const sea=mk(new THREE.PlaneGeometry(130,60),'#19a0e3',0,.02,-40,s);sea.rotation.x=-Math.PI/2;sea.receiveShadow=false;
+
+  const wet=mk(new THREE.PlaneGeometry(70,3),'#cfa968',0,.015,-8.4,s);wet.rotation.x=-Math.PI/2;wet.receiveShadow=false;
+
+  const foam=[0,1,2].map(i=>mk(new THREE.BoxGeometry(60,.05,.35),'#ffffff',0,.06,-10-i*1.6,s));
+
+  up.push((dt,T)=>foam.forEach((f,i)=>{f.position.z=-10-i*1.6+Math.sin(T*.8+i*2)*.5}));
+
+  const sun=new THREE.Mesh(new THREE.CircleGeometry(3.2,28),new THREE.MeshBasicMaterial({color:'#fff3a0'}));sun.position.set(-15,11,-45);s.add(sun);
+
+  const halo=new THREE.Mesh(new THREE.CircleGeometry(6,28),new THREE.MeshBasicMaterial({color:'#fff3a0',transparent:true,opacity:.25}));halo.position.set(-15,11,-45.1);s.add(halo);
+
+  const palm=(x,z,lean)=>{const g=new THREE.Group();g.position.set(x,0,z);s.add(g);
+
+    for(let i=0;i<6;i++){const t=outline(mk(new THREE.CylinderGeometry(.3-i*.02,.34-i*.02,1,8),'#9c6b3a',lean*i*.18,.5+i*.95,0,g),1.06);t.rotation.z=-lean*.12}
+
+    const top=new THREE.Group();top.position.set(lean*1.05,6.1,0);g.add(top);
+
+    for(let i=0;i<7;i++){const a=i/7*Math.PI*2,l=outline(mk(new THREE.BoxGeometry(2.6,.08,.55),i%2?'#2f9e44':'#37b24d',Math.cos(a)*1.2,-.15,Math.sin(a)*1.2,top),1.05);l.rotation.y=-a;l.rotation.z=-.35}
+
+    [[.25,-.3,.2],[-.2,-.35,-.1]].forEach(([a,b,c])=>mk(new THREE.SphereGeometry(.22,8,6),'#5a3a1e',a,b,c,top));return g};
+
+  palm(-11,-6.5,1);palm(12,-7.5,-1);palm(-15,-2,.6);
+
+  [['#e03131','#ffffff',-4,2.4,.15],['#1c7ed6','#ffd43b',5.5,3.2,-.3]].forEach(([a,b,x,z,r])=>{const t=new THREE.Group();t.position.set(x,.04,z);t.rotation.y=r;s.add(t);for(let i=0;i<5;i++)mk(new THREE.BoxGeometry(.4,.04,2.2),i%2?b:a,(i-2)*.4,0,0,t);t.children.forEach(c=>c.castShadow=false)});
+
+  const ball=outline(mk(new THREE.SphereGeometry(.55,14,10),'#ff6b6b',3.4,.55,2.2,s),1.05);mk(new THREE.TorusGeometry(.55,.08,6,16),'#ffffff',0,0,0,ball);mk(new THREE.TorusGeometry(.55,.08,6,16),'#fcc419',0,0,0,ball).rotation.y=Math.PI/2;up.push((dt,T)=>{ball.rotation.y=T*.6});
+
+  /* le château de sable certifié */
+
+  const sc=new THREE.Group();sc.position.set(7.2,0,.4);s.add(sc);
+
+  [[-.9,0,.8,1.1],[.9,0,.8,1.1],[0,0,-.7,1.5]].forEach(([x,y,z,h])=>{outline(mk(new THREE.CylinderGeometry(.45,.55,h,10),'#e8c88a',x,h/2,z,sc),1.05);mk(new THREE.ConeGeometry(.55,.6,10),'#e8c88a',x,h+.3,z,sc)});
+
+  outline(mk(new THREE.BoxGeometry(2.4,.9,1.2),'#e8c88a',0,.45,.1,sc),1.05);mk(new THREE.CylinderGeometry(.02,.02,2.2,6),'#868e96',0,3,-.7,sc);
+
+  const fl=labelPlane('CERTIFIÉ ISO 45001',2.2,.5,{bg:'#fffaf0',border:'#2f9e44',fg:'#2f9e44',size:60});fl.position.set(.6,3.5,-.7);sc.add(fl);
+
+  const post=new THREE.Group();post.position.set(-8.6,0,1);post.rotation.y=.4;s.add(post);mk(new THREE.CylinderGeometry(.07,.07,3,6),'#8d5524',0,1.5,0,post);
+
+  const sg=labelPlane('PLAGE PRIVÉE · CADRES UNIQUEMENT',3.6,.7,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:56});sg.position.set(0,3,.1);post.add(sg);
+
+  const boat=new THREE.Group();boat.position.set(7,.3,-19);s.add(boat);outline(mk(new THREE.BoxGeometry(2.6,.6,.9),'#f8f9fa',0,0,0,boat),1.05);mk(new THREE.CylinderGeometry(.04,.04,3,6),'#868e96',0,1.7,0,boat);
+
+  const sail=mk(new THREE.ConeGeometry(1.2,3,3),'#ff922b',.5,1.9,0,boat);sail.scale.z=.05;up.push((dt,T)=>{boat.position.y=.3+Math.sin(T*1.1)*.12;boat.rotation.z=Math.sin(T*.9)*.04});
+
+  const fla=new THREE.Group();fla.position.set(-7,.25,-14);s.add(fla);outline(mk(new THREE.TorusGeometry(1.2,.45,8,18),'#ff8fb3',0,0,0,fla),1.04).rotation.x=Math.PI/2;mk(new THREE.CylinderGeometry(.18,.22,1.4,8),'#ff8fb3',1,1,0,fla);outline(mk(new THREE.SphereGeometry(.35,10,8),'#ff8fb3',1,1.8,0,fla),1.05);mk(new THREE.ConeGeometry(.12,.4,6),'#ffa94d',1.35,1.8,0,fla).rotation.z=-Math.PI/2;up.push((dt,T)=>{fla.position.y=.25+Math.sin(T*1.3+1)*.1;fla.rotation.y=T*.2});
+
+  const gl=[0,1].map(i=>{const g=new THREE.Group();s.add(g);[-1,1].forEach(q=>{const w=mk(new THREE.BoxGeometry(.7,.04,.2),'#ffffff',q*.35,0,0,g);w.castShadow=false});return g});
+
+  up.push((dt,T)=>gl.forEach((g,i)=>{const a=T*.5+i*3;g.position.set(Math.cos(a)*7-2+i*5,7.5+Math.sin(T*.7+i)*.6,-12+Math.sin(a)*3);g.rotation.y=-a;g.children.forEach((w,j)=>w.rotation.z=(j?-1:1)*Math.sin(T*9+i)*.5)}));
+
+  return up}};
+
+DECOR.psy={sky:['#1b2a2a','#2b3d3a'],
+
+ floor:()=>ctex(64,64,(x,w,h)=>{x.fillStyle='#f1f3f5';x.fillRect(0,0,w,h);x.fillStyle='#2b2b33';x.fillRect(0,0,w/2,h/2);x.fillRect(w/2,h/2,w/2,h/2);x.fillStyle='rgba(120,90,40,.3)';x.beginPath();x.arc(20,46,6,0,7);x.fill()}),
+
+ wall:()=>wallMat(ctex(64,64,(x,w,h)=>{x.fillStyle='#9fd8c8';x.fillRect(0,0,w,h);x.strokeStyle='#d6efe8';x.lineWidth=2;for(let i=0;i<=4;i++){x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16,h);x.stroke();x.beginPath();x.moveTo(0,i*16);x.lineTo(w,i*16);x.stroke()}x.fillStyle='rgba(100,70,30,.3)';x.fillRect(8,0,4,40);x.fillRect(44,10,3,50);x.fillStyle='#d0b48a';x.fillRect(20,22,10,9)}),12,4),
+
+ build(s,W){const up=[];
+
+  ['#c0392b','#2980b9','#7f8c8d','#27ae60','#8e44ad'].forEach((c,i)=>{const g=new THREE.Group();g.position.set(-9.4+i*1.15,0,-6);s.add(g);outline(mk(new THREE.BoxGeometry(1.05,3.4,.9),c,0,1.7,0,g),1.03);
+
+    [0,.35,.7].forEach(y=>mk(new THREE.BoxGeometry(.6,.06,.04),'#1a1a1a',0,2.8-y*.25,.48,g));mk(new THREE.BoxGeometry(.08,.3,.05),'#dee2e6',.3,1.7,.49,g);
+
+    if(i===1){const d=mk(new THREE.BoxGeometry(.9,3.1,.06),'#1f5f8b',-.9,1.7,.8,g);d.rotation.y=-1.1}
+
+    if(i===3){const sk=mk(new THREE.BoxGeometry(.25,.7,.12),'#e9ecef',.2,2.2,.52,g);mk(new THREE.BoxGeometry(.3,.15,.14),'#e03131',.2,2.45,.52,g);sk.rotation.z=.1}});
+
+  const du=new THREE.Group();du.position.set(-6.7,3.4,-6);s.add(du);outline(mk(new THREE.SphereGeometry(.55,12,10),'#ffd43b',0,.5,0,du),1.05);outline(mk(new THREE.SphereGeometry(.34,10,8),'#ffd43b',.45,1.05,0,du),1.05);mk(new THREE.BoxGeometry(.3,.1,.25),'#ff922b',.8,1,0,du);[.4,.55].forEach(x=>mk(new THREE.SphereGeometry(.05,6,5),'#111',x,1.15,.18,du));
+
+  const dl=labelPlane('CANARD D’ASTREINTE',2,.4,{bg:'#fffaf0',border:'#f08c00',fg:'#a85d00',size:56});dl.position.set(-6.7,4.9,-5.9);s.add(dl);
+
+  const dip=labelPlane('DIPLÔME DE PSY PAR CORRESPONDANCE',3.6,.85,{bg:'#fff7da',border:'#b8860b',fg:'#5a3b00',size:56});dip.position.set(.2,6.2,-6.15);dip.rotation.z=.04;s.add(dip);
+
+  const tar=labelPlane('TARIF : 1 CAFÉ · REMBOURSÉ PAR LE CSE',4.4,.6,{bg:'#17294b',border:'#efd07c',fg:'#fff3cf',size:50});tar.position.set(.2,5.2,-6.15);s.add(tar);
+
+  const sh=new THREE.Group();sh.position.set(8.6,0,-5.7);s.add(sh);mk(new THREE.CylinderGeometry(.08,.08,3,8),'#adb5bd',0,5,0,sh);outline(mk(new THREE.ConeGeometry(.5,.35,12),'#adb5bd',0,3.35,.35,sh),1.05).rotation.x=Math.PI;mk(new THREE.CylinderGeometry(1.5,1.5,.04,16),'#74c0fc',0,.03,1.3,sh).material.transparent=true;
+
+  const dr=[0,1,2,3,4].map(i=>mk(new THREE.SphereGeometry(.07,6,5),'#74c0fc',(i%2-.5)*.4,3,.35,sh));up.push((dt,T)=>dr.forEach((d,i)=>{const k=(T*1.2+i*.2)%1;d.position.y=3.2-k*3.1;d.position.z=.35+k*.9}));
+
+  const wl=labelPlane('DOUCHE RÉSERVÉE AUX IDÉES NOIRES',2.8,.55,{bg:'#fffaf0',border:'#1c7ed6',fg:'#1c7ed6',size:52});wl.position.set(0,5.4,.1);sh.add(wl);
+
+  const tb=new THREE.Group();tb.position.set(5.6,0,-4.3);s.add(tb);outline(mk(new THREE.BoxGeometry(2.4,.9,1.1),'#8d5524',0,.45,0,tb),1.04);
+
+  const tank=new THREE.Mesh(new THREE.BoxGeometry(2,1.2,.9),new THREE.MeshBasicMaterial({color:'#74c0fc',transparent:true,opacity:.4,depthWrite:false}));tank.position.set(0,1.5,0);tb.add(tank);
+
+  const boot=mk(new THREE.BoxGeometry(.4,.45,.25),'#3b2a1a',-.4,1.4,0,tb);const fish=outline(mk(new THREE.SphereGeometry(.14,8,6),'#ff922b',0,1.6,0,tb),1.1);fish.scale.set(1.5,1,.7);
+
+  up.push((dt,T)=>{fish.position.x=Math.sin(T*.9)*.7;fish.position.y=1.55+Math.sin(T*1.7)*.18;fish.rotation.y=Math.cos(T*.9)>0?0:Math.PI;boot.position.y=1.4+Math.sin(T*.8)*.12;boot.rotation.z=Math.sin(T*.6)*.4});
+
+  const lava=new THREE.Group();lava.position.set(5.8,2.15,-4.3);s.add(lava);mk(new THREE.CylinderGeometry(.22,.3,.3,10),'#495057',0,.15,0,lava);outline(mk(new THREE.CylinderGeometry(.16,.22,.9,10),'#ffa8c9',0,.75,0,lava),1.06);
+
+  const bl=[0,1,2].map(i=>mk(new THREE.SphereGeometry(.09,8,6),'#e03131',0,.6,0,lava));up.push((dt,T)=>bl.forEach((b,i)=>{b.position.y=.7+Math.sin(T*.8+i*2.1)*.28;b.position.x=Math.sin(T*.5+i)*.05}));
+
+  const ch=new THREE.Group();ch.position.set(-5.2,0,-2.9);ch.rotation.y=.5;s.add(ch);outline(mk(new THREE.BoxGeometry(1.1,.18,1),'#6b3a1e',0,.8,0,ch),1.04);outline(mk(new THREE.BoxGeometry(1.1,1.3,.16),'#6b3a1e',0,1.4,-.45,ch),1.04);[[-.45,-.4],[.45,-.4],[-.45,.4],[.45,.4]].forEach(([x,z])=>mk(new THREE.BoxGeometry(.1,.8,.1),'#6b3a1e',x,.4,z,ch));
+
+  const bone='#f1f3f5',sk=new THREE.Group();sk.position.set(0,.9,0);ch.add(sk);outline(mk(new THREE.SphereGeometry(.28,10,8),bone,0,1.6,-.1,sk),1.06);mk(new THREE.SphereGeometry(.06,6,5),'#111',-.1,1.65,.12,sk);mk(new THREE.SphereGeometry(.06,6,5),'#111',.1,1.65,.12,sk);
+
+  outline(mk(new THREE.SphereGeometry(.34,10,6,0,Math.PI*2,0,Math.PI/2),'#ffd43b',0,1.72,-.1,sk),1.05);[0,.16,.32].forEach(y=>mk(new THREE.BoxGeometry(.55-y*.4,.07,.2),bone,0,1.2-y,-.1,sk));mk(new THREE.BoxGeometry(.1,.5,.1),bone,0,.65,-.1,sk);[-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.09,.55,.09),bone,q*.28,.3,.4,sk).rotation.x=-1.2;mk(new THREE.BoxGeometry(.09,.6,.09),bone,q*.34,1.0,.05,sk).rotation.z=q*.4});
+
+  const pl=labelPlane('PATIENT PRÉCÉDENT · TOUJOURS EN ATTENTE',3.2,.5,{bg:'#fffaf0',border:'#868e96',fg:'#495057',size:50});pl.position.set(0,3.4,0);ch.add(pl);
+
+  const fo=new THREE.Group();fo.position.set(-2.8,0,-5);s.add(fo);[-.12,.12].forEach(x=>mk(new THREE.CylinderGeometry(.03,.03,1.3,5),'#ff8fb3',x,.65,0,fo));outline(mk(new THREE.SphereGeometry(.5,10,8),'#ff8fb3',0,1.5,0,fo),1.05).scale.set(1.2,.8,.8);const nk=mk(new THREE.CylinderGeometry(.06,.06,1.1,6),'#ff8fb3',.5,2.1,0,fo);nk.rotation.z=-.4;outline(mk(new THREE.SphereGeometry(.17,8,6),'#ff8fb3',.75,2.65,0,fo),1.06);mk(new THREE.ConeGeometry(.07,.3,5),'#222',1,2.62,0,fo).rotation.z=-Math.PI/2;
+
+  const disco=new THREE.Mesh(new THREE.IcosahedronGeometry(.75,1),new THREE.MeshToonMaterial({color:'#dee2e6',flatShading:true}));disco.position.set(0,8,-3);s.add(disco);mk(new THREE.CylinderGeometry(.02,.02,4,5),'#868e96',0,10,-3,s);up.push((dt,T)=>{disco.rotation.y=T*1.4});
+
+  return up}};
+
+
 function buildRoom(n){
 
   if(n===0&&window.TALAS_GRENIER&&TALAS_GRENIER.on&&TALAS_GRENIER.monde&&renderer.capabilities.isWebGL2)return TALAS_GRENIER.monde();
@@ -1828,7 +2032,7 @@ function buildRoom(n){
 
   const ft=D.floor();ft.repeat.set(20,17);const floor=new THREE.Mesh(new THREE.PlaneGeometry(70,60),new THREE.MeshToonMaterial({map:ft,gradientMap:grad}));floor.rotation.x=-Math.PI/2;floor.position.z=20;floor.receiveShadow=true;s.add(floor);
 
-  if(n!==1){
+  if(n!==1&&!D.open){
 
     mk(new THREE.BoxGeometry(34,12,.6),D.wall(),0,6,-6.5,s);
 
@@ -1836,7 +2040,7 @@ function buildRoom(n){
 
   }
 
-  const ban=labelPlane(`${CH[n].cl}  ${CH[n].t}`,9,1.6,{bg:'#fffaf0',border:PAL[n%8],size:110});ban.position.set(0,9.3,-6.15);s.add(ban);
+  if(CH[n]){const ban=labelPlane(`${CH[n].cl}  ${CH[n].t}`,9,1.6,{bg:'#fffaf0',border:PAL[n%8],size:110});ban.position.set(0,9.3,-6.15);s.add(ban)}
 
   const bo=makeBoulon();bo.scale.setScalar(.8);bo.position.set(-7.6,0,-4.6);bo.rotation.y=.5;s.add(bo);
 
@@ -2938,7 +3142,7 @@ function catch3D(n,cfg){return new Promise(res=>{
 
   const docs=cfg.docs.map(d=>({...d,doc:1})),seq=shuffle([...docs.slice(0,-1),...cfg.junk.map(j=>({...j}))]);seq.push(docs[docs.length-1]);
 
-  const ND=docs.length;let got=0,yuck=0,bonk=0,k=0,next=1.8,tx=0,dx=0,vx=0,stun=0,done=false,t=0,gulp=0,slipT=7,tele=0,wx=0,wy=GR?3.7:2.3;const air=[],slips=[];R.aide={air,slips,setTx:v=>{tx=Math.max(-XM,Math.min(XM,v))}};mobileControls.use('attrape',{actions:[{label:'CENTRER',icon:'net',down:()=>R.aide.setTx(0)}]});
+  docOffer(docs.filter(d=>d.h).map(d=>d.h));const ND=docs.length;let got=0,yuck=0,bonk=0,k=0,next=1.8,tx=0,dx=0,vx=0,stun=0,done=false,t=0,gulp=0,slipT=7,tele=0,wx=0,wy=GR?3.7:2.3;const air=[],slips=[];R.aide={air,slips,setTx:v=>{tx=Math.max(-XM,Math.min(XM,v))}};mobileControls.use('attrape',{actions:[{label:'CENTRER',icon:'net',down:()=>R.aide.setTx(0)}]});
 
   const status=()=>{pmsg(`Documents : <b>${got} / ${ND}</b><br>Beurk : <b>${yuck}</b><br>Pantoufles : <b>${bonk}</b>${TOUCH?'<br>Joystick en bas à gauche : déplacer Dylan':''}`);$('#pmsg').classList.add('corner')};
 
@@ -2958,7 +3162,7 @@ function catch3D(n,cfg){return new Promise(res=>{
 
   function caught(a){R.stage.remove(a.m);gulp=.3;R.fx.burst(net.position.clone(),8);
 
-    if(a.it.doc){got++;pts(n,true);beep(880,.1);say('boulon',`<b>Attrapé : ${a.it.t}.</b> ${a.it.info}`,{btns:[],cls:'good'})}
+    if(a.it.doc){got++;pts(n,true);beep(880,.1);if(a.it.h)harvest(a.it.h);say('boulon',`<b>Attrapé : ${a.it.t}.</b> ${a.it.info}`,{btns:[],cls:'good'})}
 
     else{yuck++;pts(n,false);stun=.9;beep(140,.25,'sawtooth');boulonShake();say('dylan',`<b>Beurk, ${a.it.t.toLowerCase()} !</b> ${a.it.why}`,{btns:[],cls:'bad'})}status()}
 
@@ -3460,13 +3664,15 @@ function deathModal(c){return new Promise(res=>{const m=modal(`<h1>GAME OVER</h1
 
   m.querySelector('.mcard').classList.add('dead');m.querySelector('#rt').onclick=()=>{closeModal();res('retry')};m.querySelector('#cn').onclick=()=>{closeModal();res('go')};m.querySelector('#rt').focus()})}
 
-async function trial(n,fn,cause){
+async function trial(n,fn,cause,doc){
+
+  if(doc)docOffer(doc);
 
   for(;;){
 
     const snap=JSON.stringify(S.res[n]||{o:0,t:0}),fl=JSON.stringify(S.flags),c0=S.cdi;
 
-    const ok=await fn();if(ok)return true;
+    const ok=await fn();if(ok){if(doc)for(const k of [].concat(doc))await harvest(k,{block:true});await docSettle();return true}
 
     hidePanel();const W=cur,C=typeof cause==='function'?cause():cause;
 
@@ -3474,7 +3680,7 @@ async function trial(n,fn,cause){
 
     if(ch==='retry'){S.res[n]=JSON.parse(snap);S.flags=JSON.parse(fl);S.cdi=c0;hud();continue}
 
-    cdi(-15);return false;
+    cdi(-15);await docSettle();return false;
 
   }
 
@@ -4752,13 +4958,13 @@ let shake=0,flash=0;
 
   function renderUI(){const U=A.ui;if(!U){ui.innerHTML='';return}
 
-    if(U.mode==='ask'){ui.innerHTML=`<div class="ap top"><h4>${esc(U.title)}</h4>${esc(U.line)}</div><div class="ap bot"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div>`;
+    if(U.mode==='ask'){ui.innerHTML=`<div class="ap top"><h4>${esc(U.title)}</h4>${esc(U.line)}</div><div class="ap bot ask"><div class="arena-answers"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>${esc(o.name)}</i></button>`).join('')}</div></div>`;
 
       ui.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>U.done(U.opts[+b.dataset.i]))}
 
     else if(U.mode==='cap')ui.innerHTML=`<div class="ap top"><h4 class="good">${esc(U.title)}</h4>${esc(U.text)}</div>`;
 
-    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4>${esc(U.text)}<div class="go">▶ ${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
+    else{ui.innerHTML=`<div class="ap bot"><h4 class="${U.good===false?'bad':U.good?'good':''}">${esc(U.title)}</h4><p class="arena-feedback">${esc(U.text)}</p><div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`;ui.querySelector('.ap').onclick=()=>U.done()}}
 
   function uiKey(e){const U=A.ui;if(!U||U.mode==='cap')return;
 
@@ -5876,7 +6082,7 @@ function arena2D(STAGE){
 
   function renderUI(){const U=A.ui;if(!U){ui.innerHTML='';return}
 
-    if(U.mode==='ask'){ui.innerHTML=`<div class="ap bot ask" role="region" aria-label="Question du PDG et réponses"><header class="arena-question"><h4>${esc(U.title)}</h4><p>${esc(U.line)}</p></header><div class="arena-answers"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>→ ${esc(o.name)}</i></button>`).join('')}</div></div>`;
+    if(U.mode==='ask'){ui.innerHTML=`<div class="ap bot ask" role="region" aria-label="Question du PDG et réponses"><header class="arena-question"><h4>${esc(U.title)}</h4><p>${esc(U.line)}</p></header><div class="arena-answers"><div class="hd"><span>TA RÉPONSE</span><small>${TOUCH?'touche une réponse':'1 à 4 ou flèches + Espace'}</small></div>${U.opts.map((o,i)=>`<button data-i="${i}" class="${i===U.sel?'on':''}"><b>${i+1}</b><span>« ${esc(o.ans)} »</span><i>${esc(o.name)}</i></button>`).join('')}</div></div>`;
 
       ui.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>U.done(U.opts[+b.dataset.i]))}
 
@@ -6268,6 +6474,8 @@ async function battle(n){
 
     const r1=shuffle(ATK.slice()).slice(0,5),r2=shuffle(ATK2.slice()).slice(0,3);
 
+    const DD={resp:'role',role:'role',cout:'bud',bird:'pa',cse:'cse',revue:'rev',obj:'obj'};docOffer([...r1,...r2].map(a=>DD[a.counter]));
+
     for(const a of [...r1,...r2]){
 
       let h=A.hp();if(h.c<=0||h.d<=0)break;
@@ -6286,7 +6494,7 @@ async function battle(n){
 
       if(sk)await A.skill(sk.id,ok,ok?Math.round(rand(25,30)):5);else await A.timeOver();
 
-      if(ok){await A.tell('C’EST SUPER EFFICACE !',a.fb||SK[a.counter].fb,true);continue}
+      if(ok){await A.tell('C’EST SUPER EFFICACE !',a.fb||SK[a.counter].fb,true);await harvest(DD[a.counter],{block:true});continue}
 
       await A.riposte(a.ps,35);
 
@@ -8328,7 +8536,7 @@ async function platformSection(n){
 
     return r;
 
-  },()=>{const c=cur.cause||{};return {drop:c.drop||null,why:c.why||'tombé du chemin de roulement.',moral:c.moral||'Travail en hauteur : protection collective d’abord (§8.1.2).'}});
+  },()=>{const c=cur.cause||{};return {drop:c.drop||null,why:c.why||'tombé du chemin de roulement.',moral:c.moral||'Travail en hauteur : protection collective d’abord (§8.1.2).'}},'ops');
 
   keyHelp();$('#hud .right').style.visibility='visible';$('#phud').hidden=true;$('#pmsg').hidden=true;cineOff();
 
@@ -8348,6 +8556,199 @@ async function platformSection(n){
 
 
 
+/* ================= MINI-JEU : L'ÉCOUTE ACTIVE (§4.1 le topo du DG en transat, §4.2 les parties intéressées sur le divan) =================
+   Un personnage parle, tu sélectionnes la bonne case ou la bonne note. Chaque série réussie à 60 % récolte l'information documentée. */
+
+function stageSwot(R){
+
+  const g=new THREE.Group();g.position.set(.8,0,-1.3);g.rotation.y=-1.15;R.stage.add(g);
+
+  outline(mk(new THREE.CylinderGeometry(2.7,2.7,.06,28),'#ff8787',0,.03,0,g),1.02);
+
+  const sl=new THREE.Group();sl.position.set(0,.72,0);sl.rotation.x=.45;g.add(sl);
+
+  for(let i=0;i<7;i++)mk(new THREE.BoxGeometry(1.7,.07,.42),i%2?'#ffffff':'#1c7ed6',0,0,(i-3)*.42,sl);
+
+  [-1,1].forEach(q=>mk(new THREE.BoxGeometry(.1,.1,3.1),'#8d5524',q*.93,-.02,0,sl));
+
+  [-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.1,1.5,.1),'#8d5524',q*.93,.62,-1.25,g);mk(new THREE.BoxGeometry(.1,.5,.1),'#8d5524',q*.93,.24,1.2,g)});
+
+  const ceo=makeCEO();ceo.position.set(0,.18,.1);sl.add(ceo);
+
+  const pole=mk(new THREE.CylinderGeometry(.05,.05,3.6,8),'#f1f3f5',1.7,1.8,-1.6,g);
+
+  for(let i=0;i<8;i++){const w=new THREE.Mesh(new THREE.ConeGeometry(2.3,.9,8,1,true,i*Math.PI/4,Math.PI/4),mat(i%2?'#ffffff':'#e03131'));w.material.side=THREE.DoubleSide;w.position.set(1.7,3.7,-1.6);w.castShadow=true;g.add(w)}
+
+  const tb=new THREE.Group();tb.position.set(-1.9,0,.9);g.add(tb);mk(new THREE.CylinderGeometry(.5,.5,.06,16),'#f1f3f5',0,.78,0,tb);mk(new THREE.CylinderGeometry(.06,.06,.78,8),'#868e96',0,.39,0,tb);mk(new THREE.CylinderGeometry(.3,.3,.04,14),'#868e96',0,.02,0,tb);
+
+  outline(mk(new THREE.CylinderGeometry(.2,.05,.42,12),'#d0ebff',0,1.02,0,tb),1.08);mk(new THREE.CylinderGeometry(.17,.06,.3,12),'#ff922b',0,1.0,0,tb);mk(new THREE.BoxGeometry(.03,.4,.03),'#e03131',.06,1.35,0,tb).rotation.z=-.25;mk(new THREE.TorusGeometry(.17,.03,6,14),'#fcc419',.02,1.26,0,tb).rotation.x=Math.PI/2;
+
+  /* tableau SWOT : les notes se collent à chaque bonne case */
+
+  const bd=new THREE.Group();bd.position.set(-5.3,0,-2.2);bd.rotation.y=.4;R.stage.add(bd);
+
+  outline(mk(new THREE.BoxGeometry(3.8,2.8,.14),'#f8f9fa',0,2.6,0,bd),1.03);[-1.5,1.5].forEach(x=>mk(new THREE.BoxGeometry(.12,1.2,.12),'#868e96',x,.6,0,bd));
+
+  mk(new THREE.BoxGeometry(3.6,.05,.02),'#495057',0,2.6,.08,bd);mk(new THREE.BoxGeometry(.05,2.6,.02),'#495057',0,2.6,.08,bd);
+
+  const Q={F:['FORCES','#2f9e44',-.95,3.3],W:['FAIBLESSES','#e03131',.95,3.3],O:['OPPORTUNITÉS','#1c7ed6',-.95,1.9],T:['MENACES','#f08c00',.95,1.9]},cnt={F:0,W:0,O:0,T:0};
+
+  Object.values(Q).forEach(([t,c,x,y])=>{const l=labelPlane(t,1.7,.4,{bg:'#fffaf0',border:c,fg:c,size:64});l.position.set(x,y+.45,.1);bd.add(l)});
+
+  const up=(dt,T)=>animPerson(ceo,'lie',T);
+
+  return {up,note(k){const q=Q[k],i=cnt[k]++,col=['#ffd43b','#ff8787','#74c0fc','#8ce99a'][i%4];const m=mk(new THREE.BoxGeometry(.5,.4,.03),col,q[2]-.45+(i%2)*.55,q[3]-.05-Math.floor(i/2)*.45,.1,bd);m.rotation.z=(i%3-1)*.08;m.castShadow=false},
+
+    off(){R.stage.remove(g);R.stage.remove(bd)}}}
+
+function stagePsy(R){
+
+  const g=new THREE.Group();g.position.set(1,0,-3);g.rotation.y=-.25;R.stage.add(g);
+
+  outline(mk(new THREE.BoxGeometry(3.6,.5,1.5),'#2f6f6a',0,.5,0,g),1.04);outline(mk(new THREE.BoxGeometry(3.3,.3,1.3),'#e8b86a',0,.9,0,g),1.04);
+
+  [[-1.6,.6],[1.6,.6],[-1.6,-.6],[1.6,-.6]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.09,.07,.3,8),'#6b3a1e',x,.15,z,g));
+
+  const rl=mk(new THREE.CylinderGeometry(.38,.38,1.5,14),'#2f6f6a',-1.8,1.05,0,g);rl.rotation.x=Math.PI/2;outline(rl,1.05);
+
+  const pil=mk(new THREE.CylinderGeometry(.28,.28,1.1,12),'#f1e4c3',-1.35,1.25,0,g);pil.rotation.x=Math.PI/2;
+
+  [[-.9,.2],[.4,-.3],[1.2,.3],[-.2,.35],[.9,-.1]].forEach(([x,z],k)=>{const sp=mk(new THREE.SphereGeometry(.13,6,5),'#5a3a1e',x,1.06,z,g);sp.scale.set(1.4,.25,1)});
+
+  outline(mk(new THREE.BoxGeometry(.9,.55,.6),'#f8f9fa',-1.2,1.2,.95,g),1.05);mk(new THREE.BoxGeometry(.4,.3,.05),'#ffffff',-1.2,1.6,.95,g);
+
+  const dy=R.dylan,dyPos=dy.position.clone(),dyRot=dy.rotation.y;dy.position.set(-1.9,0,-1.5);dy.rotation.y=Math.PI/2-.2;
+
+  const nb=mk(new THREE.BoxGeometry(.5,.7,.05),'#fff3bf',-1.25,1.6,-1.5,R.stage);nb.rotation.set(-.3,Math.PI/2-.2,0);
+
+  let who=null;
+
+  const lieOn=(p)=>{if(who)g.remove(who);who=p;p.rotation.y=Math.PI/2;g.add(p);animPerson(p,'lie',0);p.position.set(.1,.98,0)};
+
+  return {up:(dt,T)=>{if(who)animPerson(who,'lie',T)},lie:lieOn,off(){R.stage.remove(g);R.stage.remove(nb);dy.position.copy(dyPos);dy.rotation.y=dyRot}}}
+
+const SWOT_O=[{k:'F',t:'FORCE',i:'interne · positif'},{k:'W',t:'FAIBLESSE',i:'interne · négatif'},{k:'O',t:'OPPORTUNITÉ',i:'externe · positif'},{k:'T',t:'MENACE',i:'externe · négatif'}];
+
+const SWOT={doc:'swot',sec:'§4.1',decor:'plage',intro:[
+
+ {w:'nar',t:'Vendredi, 17 h. Aurelien Lefauconnier a décidé de faire le point sur la plage. Pour la santé mentale du comité de direction, paraît-il.'},
+
+ {w:'boulon',t:'Enjeux internes et externes (§4.1) : écoute le DG et range chaque propos dans la bonne case du SWOT. Série réussie à 60 % : information documentée récoltée.'},
+
+ {w:'ceo',t:'Dylan ! Assieds-toi, il y a du sable, des cocktails et de la stratégie. Je te fais le topo, tranquille. Note bien ce que je dis.'}],fixed:1,opts:SWOT_O,c:'#efd07c',name:'AURELIEN',role:'DG de Talas · en transat sur la plage, cocktail à la main',q:'Dans quelle case du SWOT ranges-tu ce qu’il vient de dire ?',stage:stageSwot,rounds:[
+
+ {a:'F',line:'« L’atelier peinture, c’est vingt-cinq ans de savoir-faire. Mes gars connaissent chaque fuselage par cœur. »',fb:'Interne et positif : une force. Le savoir-faire de l’atelier est un appui pour le système SST.'},
+
+ {a:'W',line:'« Le plan de circulation ? La jungle. Chariots et piétons se croisent devant le hangar 3, mais ça a toujours été comme ça. »',fb:'Interne et négatif : une faiblesse. Elle se traitera dans l’évaluation des risques (§6.1.2).'},
+
+ {a:'O',line:'« Airbus me parle d’un contrat sur cinq ans, à condition qu’on soit certifiés ISO 45001. Je dis ça, je dis rien. »',fb:'Externe et positif : une opportunité. Elle vient du client, pas de Talas.'},
+
+ {a:'T',line:'« Le nouveau règlement européen va bannir notre solvant principal d’ici deux ans. Mais pas de panique, on verra. »',fb:'Externe et négatif : une menace. Elle nourrit aussi les exigences légales à suivre (§6.1.3).'},
+
+ {a:'W',line:'« L’an prochain, quarante intérimaires. Pas le temps de les former, ils apprendront sur le tas comme nous à l’époque. »',fb:'Interne et négatif : une faiblesse. Le recours massif à l’intérim est un choix de Talas, et il pèse sur l’accueil (§7.3).'},
+
+ {a:'O',line:'« La région finance la moitié des cobots qui évitent les gestes répétitifs. Faudrait que quelqu’un monte le dossier… »',fb:'Externe et positif : une opportunité, à saisir en analysant le cobot avant sa mise en service (§6.1.2.3).'}]};
+
+const PIP=(o)=>{const p=makePerson(o.p);if(o.hair)addHair(p,o.hair,o.long,o.glasses);return p};
+
+const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',intro:[
+
+ {w:'nar',t:'Lundi, 7 h 40. Dans le vestiaire désaffecté, le Dr Dylan a ouvert son cabinet de psy QSE. Diplôme par correspondance, divan léopard, et un patient précédent toujours en salle d’attente.'},
+
+ {w:'boulon',t:'Parties intéressées (§4.2) : chacune va se confier. Note ce que tu retiens : besoins, attentes, et les exigences légales ou autres qui en découlent.'}],q:'Que notes-tu dans le registre des parties intéressées ?',stage:stagePsy,rounds:[
+
+ {name:'MATHILDE',role:'élue CSE · travailleurs',c:'#69db7c',person:{p:{shirt:'#69db7c',pants:'#2b8a3e',scale:.95},hair:'#5a3a22',long:1},
+
+  line:'« Docteur, je peins douze heures par semaine avec ce solvant, j’ai mal à la tête le soir, et personne ne me demande jamais mon avis… »',
+
+  opts:[{t:'Travailleurs : être protégés et consultés sur les dangers de leur poste.',ok:1},{t:'Travailleurs : une prime de risque supplémentaire.'},{t:'Aucune note : une plainte individuelle n’est pas une attente.'}],
+
+  fb:'Les travailleurs sont la partie intéressée centrale : protection et participation (§4.2, §5.4). Attente forte, consultation obligatoire.'},
+
+ {name:'AIRBUS',role:'donneur d’ordre · client',c:'#74c0fc',person:{p:{shirt:'#1c7ed6',pants:'#1a3a6a',tie:1,scale:1}},
+
+  line:'« Entre nous, docteur : sans certificat ISO 45001 d’ici douze mois, je confie mes commandes à un autre fournisseur. Je dors mal. »',
+
+  opts:[{t:'Airbus : exige la certification ISO 45001 sous douze mois (exigence contractuelle).',ok:1},{t:'Airbus : aucune exigence SST, c’est juste un client.'},{t:'Airbus : la certification est facultative, on verra à l’échéance.'}],
+
+  fb:'Une exigence contractuelle que Talas accepte devient une « autre exigence » à inscrire et à respecter (§4.2).'},
+
+ {name:'INSPECTION DU TRAVAIL',role:'autorité · contrôle',c:'#da77f2',person:{p:{shirt:'#862e9c',pants:'#343a40',scale:.95},hair:'#212529',long:0,glasses:1},
+
+  line:'« Ça me ronge, docteur : je dois contrôler votre registre des accidents et la cabine de peinture, et personne ne m’a envoyé le bilan. »',
+
+  opts:[{t:'Autorités : respect du Code du travail et du droit de contrôle (exigence légale, non négociable).',ok:1},{t:'Autorités : un simple conseil, à suivre si on a le temps.'},{t:'Autorités : sans lien avec le système SST.'}],
+
+  fb:'Une exigence légale est obligatoire : elle entre au registre des exigences (§6.1.3) et se contrôle.'},
+
+ {name:'RIVERAINS',role:'voisinage · lotissement',c:'#ffa94d',person:{p:{shirt:'#ffa94d',pants:'#6b4a2a',hat:'#74b816',scale:.95}},
+
+  line:'« Docteur, vos solvants sentent jusque dans notre lotissement. Nos enfants toussent, et on ne sait même pas à qui parler. »',
+
+  opts:[{t:'Riverains : émissions et odeurs maîtrisées (attente, avec une part légale via l’arrêté ICPE).',ok:1},{t:'Riverains : hors sujet, ils ne travaillent pas chez Talas.'},{t:'Riverains : une compensation financière annuelle.'}],
+
+  fb:'Une partie intéressée n’est pas toujours un travailleur : le périmètre dépend de l’impact de Talas. L’arrêté ICPE est une exigence légale.'},
+
+ {name:'AURELIEN',role:'direction · actionnaires',c:'#efd07c',person:{p:{shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:1.2}},
+
+  line:'« Entre nous : mes actionnaires veulent du résultat, et moi je ne veux pas finir au tribunal après un accident grave. Voilà. »',
+
+  opts:[{t:'Direction : performance et maîtrise de la responsabilité pénale (attente légitime à intégrer).',ok:1},{t:'Direction : la SST n’a aucun intérêt pour les actionnaires.'},{t:'Direction : tout déléguer à l’alternant.'}],
+
+  fb:'La direction est aussi une partie intéressée. Ses attentes se traitent dans le leadership (§5.1) : la responsabilité ne se délègue pas.'}]};
+
+async function talk(n,cfg){
+
+  const prev=cur,fr=$('#frame');hidePanel();keyHelp();
+
+  await fade(1);const R=buildRoom(cfg.decor);setWorld(R);await fade(0);
+
+  const st=cfg.stage(R);R.extra=(dt,T)=>st.up(dt,T);
+
+  if(cfg.intro)await runScript(n,cfg.intro);hidePanel();keyHelp();
+
+  const ov=document.createElement('div');ov.className='pxtalk';fr.append(ov);
+
+  docOffer(cfg.doc);
+
+  let good=0,kd=null;const onKey=e=>{if(kd&&kd(e)){e.preventDefault();e.stopPropagation()}};addEventListener('keydown',onKey,true);
+
+  for(let i=0;i<cfg.rounds.length;i++){
+
+    const r=cfg.rounds[i],opts=cfg.fixed?cfg.opts:shuffle(r.opts.slice());
+
+    if(r.person)st.lie(PIP(r.person));
+
+    ov.innerHTML=`<div class="pxf who"><span class="tag" style="background:${r.c||cfg.c}">${escH(r.name||cfg.name)}</span><p>${escH(r.line)}<q>${escH(r.role||cfg.role)}</q></p><em class="sc">${cfg.sec} · ${i+1}/${cfg.rounds.length}</em></div><div class="pxf ans${cfg.fixed?' q4':''}"><h4>${escH(cfg.q)}</h4>${opts.map((o,j)=>`<button class="px" data-j="${j}"><b>${j+1}</b><span>${escH(o.t)}</span>${o.i?`<i>${escH(o.i)}</i>`:''}</button>`).join('')}</div>`;
+
+    const o=await new Promise(done=>{const pick=j=>{if(opts[j])done(opts[j])};ov.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>pick(+b.dataset.j));kd=e=>{const d=+e.key;if(d>=1&&d<=opts.length){pick(d-1);return true}return false}});kd=null;
+
+    const ok=cfg.fixed?o.k===r.a:!!o.ok;pts(n,ok);if(ok)good++;cdi(ok?3:-3);try{beep(ok?880:150,.1,ok?'square':'sawtooth',.05)}catch(e){}
+
+    if(ok&&st.note)st.note(r.a);ok?boulonJump():boulonShake();
+
+    ov.querySelector('.ans').remove();
+
+    ov.insertAdjacentHTML('beforeend',`<div class="pxf res ${ok?'good':'bad'}"><h4 class="${ok?'good':'bad'}">${ok?'BIEN NOTÉ !':'À REVOIR'}</h4><p>${escH(r.fb)}</p><div class="go">${TOUCH?'TOUCHE':'ESPACE'}</div></div>`);
+
+    await new Promise(done=>{kd=e=>{if(e.key===' '||e.key==='Enter'){done();return true}return false};ov.querySelector('.res').onclick=done});kd=null;
+
+  }
+
+  removeEventListener('keydown',onKey,true);ov.remove();
+
+  const ratio=good/cfg.rounds.length;
+
+  if(ratio>=.6)await harvest(cfg.doc,{block:true});
+
+  await docSettle();
+
+  await fade(1);R.extra=null;st.off();setWorld(prev);await fade(0);
+
+  return ratio;
+
+}
+
 /* ================= LES ATELIERS ================= */
 
 const RUN=[];
@@ -8360,7 +8761,9 @@ RUN[0]=async()=>{
 
    {w:'ceo',t:'Dylan, tu as douze mois pour certifier Talas ISO 45001 et décrocher ton CDI. Retrouve la politique SST dans le bureau de ton prédécesseur.'},
 
-   {w:'boulon',t:'D’abord le contexte : enjeux, attentes des travailleurs et autres parties intéressées (§4.1–4.2), obligations légales (§6.1.3). Fouille les dossiers !'}
+   {w:'boulon',t:'D’abord le contexte : enjeux, attentes des travailleurs et autres parties intéressées (§4.1–4.2), obligations légales (§6.1.3). Fouille les dossiers !'},
+
+   {w:'boulon',t:'Chaque atelier cache des <b>informations documentées</b> (§7.5) : récolte-les, un encart t’explique à quoi elles servent. Compteur DOCS en haut. Trop de preuves manquantes : chaque manque coûte du CDI, et l’auditeur de certification s’en souviendra.'}
 
   ]);
 
@@ -8376,17 +8779,17 @@ RUN[0]=async()=>{
 
     {t:'Registre des accidents',info:'14 accidents avec arrêt en 2025, donnée d’entrée de l’évaluation des risques.'},
 
-    {t:'Arrêté ICPE',info:'Cabine peinture : exigence légale à suivre (§6.1.3).'},
+    {t:'Arrêté ICPE',h:'legal',info:'Cabine peinture : exigence légale à suivre (§6.1.3).'},
 
     {t:'Enquête CSE de nuit',info:'60 % des opérateurs de nuit signalent de la fatigue (§4.2).'},
 
     {t:'Contrat d’intérim',info:'40 intérimaires prévus en 2027. Enjeu interne (§4.1).'},
 
-    {t:'FDS du solvant',info:'Produit CMR, exigences légales associées (§6.1.3).'},
+    {t:'FDS du solvant',h:'legal',info:'Produit CMR, exigences légales associées (§6.1.3).'},
 
     {t:'Plan de circulation',info:'Piétons et chariots se croisent. Un enjeu à traiter (§4.1).'},
 
-    {t:'Politique SST 2019',info:'Le brouillon de la politique SST. La voilà enfin !'}],
+    {t:'Politique SST 2019',h:'pol',info:'Le brouillon de la politique SST. La voilà enfin !'}],
 
    junk:[
 
@@ -8401,6 +8804,10 @@ RUN[0]=async()=>{
     {t:'Chewing-gum',s:'blob',c:'#f783ac',why:'Mâché, remâché, collé.'},
 
     {t:'Vieux sandwich',s:'blob',c:'#fcc419',why:'Jambon-beurre, période préhistorique.'}]}))>=.5,CAUSES.bureau);
+
+  await talk(0,SWOT);
+
+  await talk(0,PARTIES);
 
   await runScript(0,[
 
@@ -8430,7 +8837,7 @@ RUN[1]=async()=>{
 
   await say('boulon','Aurelien a signé… puis il a filé au vestiaire. On entend un grand BOUM dans l’avenue de l’usine.');
 
-  await trial(1,async()=>(await run3D(1,{len:560,hint:'<b>Évacuation.</b> Aurelien joue le géant : suis les consignes devant les obstacles.',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac);
+  await trial(1,async()=>(await run3D(1,{len:560,hint:'<b>Évacuation.</b> Aurelien joue le géant : suis les consignes devant les obstacles.',after:'Le leadership, ça se voit dans l’urgence : un exercice se prépare, se joue et se débriefe (§5.1 et §8.2).'}))>=.5,CAUSES.evac,'urg');
 
   await runScript(1,[
 
@@ -8492,7 +8899,7 @@ RUN[2]=async()=>{
 
     {t:'Allée centrale',h:'Chariot et piétons',col:'#fab005',prop:'chariot-elevateur',sc:.45,ry:-.6,lv:['Supprimer le croisement','','Allées piétonnes séparées','Plan de circulation','Gilet haute visibilité']},
 
-    {t:'Réception',h:'Charges de 25 kg',col:'#339af0',prop:'palette',sc:1,lv:['Supprimer le port de charges','Pièces allégées','Palan de manutention','Formation gestes et postures','Gants et genouillères']}]}))>=.5,CAUSES.risques);
+    {t:'Réception',h:'Charges de 25 kg',col:'#339af0',prop:'palette',sc:1,lv:['Supprimer le port de charges','Pièces allégées','Palan de manutention','Formation gestes et postures','Gants et genouillères']}]}))>=.5,CAUSES.risques,'obj');
 
   await trial(2,async()=>(await feast3D(2,{time:60,spawn:[.7,1.1],hint:'<b>Le festin des mesures.</b> Défends ton plan d’actions face à tes voisins !',after:'À retenir : on commence par supprimer le danger, les EPI arrivent en dernier (§8.1.2).',
 
@@ -8504,7 +8911,7 @@ RUN[2]=async()=>{
 
     {t:'Casque',h:4},{t:'Bouchons d’oreille',h:4},{t:'Gants',h:4},{t:'Masque',h:4},
 
-    {t:'Affiche « Soyez prudents »',h:5},{t:'Prime zéro accident',h:5},{t:'Masque périmé',h:5}]}))>=.5,CAUSES.risques);
+    {t:'Affiche « Soyez prudents »',h:5},{t:'Prime zéro accident',h:5},{t:'Masque périmé',h:5}]}))>=.5,CAUSES.risques,'mes');
 
   await runScript(2,[{w:'karim',q:'Bon. Et ton objectif pour l’année ?',opts:[
 
@@ -8540,17 +8947,17 @@ RUN[3]=async()=>{
 
   await trial(3,async()=>(await karaoke3D(3,{beat:.62,hint:'<b>Karaoké sécurité.</b> Réveille l’atelier avec le bon rythme !',after:'Sensibilisation (§7.3) et communication (§7.4) : le message est passé.',
 
-   lines:['Casque vissé, chaussures fermées, on entre','Je connais les dangers de mon poste','Si ça craint, droit de retrait','Consignes traduites pour tout le monde','Allées piétonnes, on ne coupe pas']}))>=.5,CAUSES.support);
+   lines:['Casque vissé, chaussures fermées, on entre','Je connais les dangers de mon poste','Si ça craint, droit de retrait','Consignes traduites pour tout le monde','Allées piétonnes, on ne coupe pas']}))>=.5,CAUSES.support,'form');
 
   await say('sabrina','<b>Le refrain !</b> Plus vite : l’équipe de nuit vient d’arriver.');
 
   await trial(3,async()=>(await karaoke3D(3,{beat:.5,travel:2,hint:'<b>Le refrain :</b> mêmes pistes, tempo accéléré.',after:'Ressources, compétences, sensibilisation, communication, documents : le support du système est prêt.',
 
-   lines:['Accueil sécurité avant la prise de poste','Habilitation nacelle avant de monter','Presque-accident ? Je le remonte !','Fiche de poste à jour, version trois','Le quart d’heure, tout le monde chante']}))>=.5,CAUSES.support);
+   lines:['Accueil sécurité avant la prise de poste','Habilitation nacelle avant de monter','Presque-accident ? Je le remonte !','Fiche de poste à jour, version trois','Le quart d’heure, tout le monde chante']}))>=.5,CAUSES.support,'form');
 
   await say('sabrina','Et maintenant, le nouveau centre de documentation SST. Tout le monde a une question et personne ne sait où chercher.');
 
-  await trial(3,async()=>(await docs2D(3,{count:10,every:1,patience:45,paced:true,hint:'<b>Centre de documentation.</b> Oriente chaque visiteur vers la bonne ressource.',after:'Savoir où trouver l’information, c’est déjà la maîtriser : exigences légales (§6.1.3) et information documentée (§7.5).'}))>=.5,CAUSES.support);
+  await trial(3,async()=>(await docs2D(3,{count:10,every:1,patience:45,paced:true,hint:'<b>Centre de documentation.</b> Oriente chaque visiteur vers la bonne ressource.',after:'Savoir où trouver l’information, c’est déjà la maîtriser : exigences légales (§6.1.3) et information documentée (§7.5).'}))>=.5,CAUSES.support,'maitrise');
 
 };
 
@@ -8656,7 +9063,7 @@ RUN[5]=async()=>{
 
     {q:'Qui conduit la revue de direction ?',souffle:'Dylan, tu t’en occupes ?',opts:[{t:'La direction : c’est son rôle de leadership',ok:1},{t:'Le responsable HSE, seul',ok:0},{t:'L’auditeur externe',ok:0}],fb:'La direction en est responsable (§5.1, §9.3). Le HSE prépare, la direction décide.'},
 
-    {q:'Et une fois la réunion terminée ?',souffle:'On affiche seulement les bons chiffres ?',opts:[{t:'On conserve une trace écrite et on communique les résultats aux travailleurs',ok:1},{t:'On n’en parle plus jusqu’à l’an prochain',ok:0},{t:'On affiche les résultats seulement s’ils sont bons',ok:0}],fb:'Informations documentées conservées et résultats communiqués (§9.3, §7.4).'}]}))>=.5,CAUSES.audit);
+    {q:'Et une fois la réunion terminée ?',souffle:'On affiche seulement les bons chiffres ?',opts:[{t:'On conserve une trace écrite et on communique les résultats aux travailleurs',ok:1},{t:'On n’en parle plus jusqu’à l’an prochain',ok:0},{t:'On affiche les résultats seulement s’ils sont bons',ok:0}],fb:'Informations documentées conservées et résultats communiqués (§9.3, §7.4).'}]}))>=.5,CAUSES.audit,'rev');
 
   await runScript(5,[{w:'audit',q:'Pour le tableau de bord SST, tu retiens quels indicateurs ?',opts:[
 
@@ -8696,7 +9103,7 @@ RUN[6]=async()=>{
 
     {t:'Cadence doublée sans analyse',fb:'Un changement d’organisation se gère comme un changement technique (§8.1.3).'},
 
-    {t:'Zone dessous non balisée',fb:'On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2).'}]}))>=.5,CAUSES.correct);
+    {t:'Zone dessous non balisée',fb:'On balise sous un travail en hauteur : personne ne passe dessous (§8.1.2).'}]}))>=.5,CAUSES.correct,'nc');
 
   /* §10.3 : la régate de l'amélioration continue (talas-jetski.js), remplace le deuxième patient */
 
@@ -8704,7 +9111,7 @@ RUN[6]=async()=>{
 
   await trial(6,async()=>(await TALAS_JETSKI.course(6,{tours:3,hint:'<b>Régate PDCA (§10.2–10.3).</b> Trois tours contre Neila, Eliott et Mathieu.',
 
-   after:'Écart → cause → correction → vérification → amélioration : la boucle continue (§10.2–10.3).'}))>=.5,CAUSES.correct);
+   after:'Écart → cause → correction → vérification → amélioration : la boucle continue (§10.2–10.3).'}))>=.5,CAUSES.correct,'ameli');
 
   await runScript(6,[{w:'ceo',q:'Et ensuite ? On clôt le dossier ?',opts:[
 
@@ -8840,6 +9247,8 @@ async function finale(){
 
   busy=true;hidePanel();const F=S.flags;let o=0,t=0;Object.values(S.res).forEach(r=>{o+=r.o;t+=r.t});const pct=t?o/t:0;
 
+  const dc=docCount(),docOK=dc.o===0||dc.g/dc.o>=.6,docLost=Object.keys(S.docs.off).filter(k=>!S.docs.got[k]).map(k=>DOCS[k].sec+' '+DOCS[k].t);
+
   const D=[
 
    {k:F.leader,g:'Direction engagée (§5.1), budget débloqué (§7.1), aspiration de la cabine financée (§8.1.2).',b:'Direction peu convaincue (§5.1), budget formation gelé (§7.1), compétences fragiles (§7.2).'},
@@ -8850,7 +9259,9 @@ async function finale(){
 
    {k:F.changement,g:'Cobot analysé avant sa mise en service (§8.1.3) : l’opportunité SST est saisie (§6.1.2.3).',b:'Cobot sans analyse (§8.1.3) : une opportunité devient un nouveau risque, écart d’audit (§9.2).'},
 
-   {k:F.prevention,g:'Plan de prévention avec l’entreprise extérieure (§8.1.4.2).',b:'Entreprise extérieure sans plan de prévention (§8.1.4.2), écart d’audit (§9.2).'}];
+   {k:F.prevention,g:'Plan de prévention avec l’entreprise extérieure (§8.1.4.2).',b:'Entreprise extérieure sans plan de prévention (§8.1.4.2), écart d’audit (§9.2).'},
+
+   {k:docOK,g:`Preuves à jour et retrouvables (§7.5) : ${dc.g} informations documentées sur ${dc.o} récoltées.`,b:`Preuves introuvables (§7.5) : ${dc.g} informations documentées sur ${dc.o}. Manquent : ${docLost.join(' ; ')}. L’auditeur ne peut rien vérifier.`}];
 
   S.tStop=1;const bad=D.filter(d=>!d.k).length;const win=pct>=.65&&!F.accident&&bad<=1&&!S.timeout;tsEvent('end',{data:{win:win?1:0,pct:Math.round(pct*100),timeout:S.timeout?1:0,cdi:S.cdi}});
 
