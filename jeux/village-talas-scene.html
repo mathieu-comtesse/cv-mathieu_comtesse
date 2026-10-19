@@ -8629,7 +8629,7 @@ function stagePsy(R){
 
 const SWOT_O=[{k:'F',t:'FORCE',i:'interne · positif'},{k:'W',t:'FAIBLESSE',i:'interne · négatif'},{k:'O',t:'OPPORTUNITÉ',i:'externe · positif'},{k:'T',t:'MENACE',i:'externe · négatif'}];
 
-const SWOT={doc:'swot',sec:'§4.1',decor:'plage',intro:[
+const SWOT={doc:'swot',sec:'§4.1',decor:'plage',cam:[[0,2.4,14],[0,2.3,-3]],intro:[
 
  {w:'nar',t:'Vendredi, 17 h. Aurelien Lefauconnier a décidé de faire le point sur la plage. Pour la santé mentale du comité de direction, paraît-il.'},
 
@@ -8651,7 +8651,7 @@ const SWOT={doc:'swot',sec:'§4.1',decor:'plage',intro:[
 
 const PIP=(o)=>{const p=makePerson(o.p);if(o.hair)addHair(p,o.hair,o.long,o.glasses);return p};
 
-const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',intro:[
+const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',cam:[[0,3,13],[0,2.6,-3]],intro:[
 
  {w:'nar',t:'Lundi, 7 h 40. Dans le vestiaire désaffecté, le Dr Dylan a ouvert son cabinet de psy QSE. Diplôme par correspondance, divan léopard, et un patient précédent toujours en salle d’attente.'},
 
@@ -8701,7 +8701,7 @@ async function talk(n,cfg){
 
   const prev=cur,fr=$('#frame');hidePanel();keyHelp();
 
-  await fade(1);const R=buildRoom(cfg.decor);setWorld(R);await fade(0);
+  await fade(1);const R=buildRoom(cfg.decor);setWorld(R);R.cam=()=>{camera.position.set(...cfg.cam[0]);camera.lookAt(...cfg.cam[1])};await fade(0);
 
   const st=cfg.stage(R);R.extra=(dt,T)=>st.up(dt,T);
 
