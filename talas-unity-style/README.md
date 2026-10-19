@@ -19,6 +19,8 @@ Non vérifié : je n'ai pas d'éditeur Unity ici (licence à activer sur ta mach
 
 ## Brancher Blender et Unity (sur ta machine)
 
+Raccourci Windows : ferme le projet dans Unity, puis `Brancher-Unity.cmd "C:\chemin\vers\talas-unity"`. Il copie le kit, lance Unity en mode batch (étapes 1, 2, 3 sur la scène `Talas-Campagne`) et écrit `Talas-Peint.log`. Unity doit déjà être connecté à ton compte dans Unity Hub.
+
 1. Récupère le projet Unity : `git checkout feat/talas-unity-refonte -- talas-unity`, puis copie `talas-unity-style/Assets/TalasPainted` dans `talas-unity/Assets/`.
 2. Pour régénérer le kit directement dans le projet : `pip install bpy`, puis  
    `python tools/forge-unity/forge_kit.py "<projet>/Assets/TalasPainted" apercu.png`  
