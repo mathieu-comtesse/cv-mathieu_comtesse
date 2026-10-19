@@ -60,7 +60,7 @@ export const FIG_CSS = `<style>
 .fig-window{fill:var(--anatomy-paper)}
 .fig-digits{font-family:var(--anatomy-mono);font-variant-numeric:tabular-nums;fill:var(--anatomy-hi);letter-spacing:.06em}
 .fig-lamp{fill:var(--anatomy-lo);stroke:var(--anatomy-mid);stroke-width:.5}.fig-lamp[data-on="true"]{fill:var(--anatomy-lit)}
-.iso-stage{touch-action:pan-y;cursor:ew-resize;outline:none}
+.iso-stage{touch-action:pan-y;cursor:var(--cv-resize-x);outline:none}
 .iso-stage:focus-visible{outline:1px solid var(--anatomy-muted);outline-offset:6px}
 @media (max-width:560px){.iso-plate{padding-bottom:86px}.iso-plate-corner[data-corner="hint"]{bottom:34px}.iso-plate-corner[data-corner="readout"]{left:0;white-space:normal;text-align:right;line-height:1.4}}
 </style>`;
