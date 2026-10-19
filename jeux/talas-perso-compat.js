@@ -204,6 +204,11 @@
   }
 
   /* les mini-jeux ne doivent pas recouvrir les nouveaux personnages de coques d'encre (talas-panthere.js) */
+  /* un membre du casting (Pz.cast) en personnage compatible : palette et pièces à la carte (ex. C.cast('lorette', { pal: { shirt: '#7e57c2' }, scale: .95 })) */
+  C.cast = (nom, o) => {
+    o = o || {}; const def = Pz.cast[nom] || {}
+    return creerPerson({ nom, kh: KH_PERSON, pal: nettoie(Object.assign({}, def.pal, o.pal)), montre: o.montre || def.montre }, o.scale || 1)
+  }
   C.coiffure = (p, style, couleur) => { const R = p.userData.rig; if (R && R.nouveau) Pz.coiffure(R.model, style, couleur); return p }
   C.montre = (p, ...groupes) => { const R = p.userData.rig; if (R && R.nouveau) groupes.forEach((g) => Pz.porter(R.model, g, true, { sans: true })); return p }
   C.langue = (p) => {   // langue pendante (centre de doc)

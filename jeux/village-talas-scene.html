@@ -533,7 +533,7 @@ body{font-family:"Paragraphe","Pixelify Sans","Courier New",monospace;color:var(
 
 <script src="talas-perso.js?v=4"></script>
 
-<script src="talas-perso-compat.js?v=1"></script>
+<script src="talas-perso-compat.js?v=2"></script>
 
 <script src="talas-quai-pnj.js?v=2"></script>
 
@@ -8573,56 +8573,179 @@ async function platformSection(n){
 /* ================= MINI-JEU : L'ÉCOUTE ACTIVE (§4.1 le topo du DG en transat, §4.2 les parties intéressées sur le divan) =================
    Un personnage parle, tu sélectionnes la bonne case ou la bonne note. Chaque série réussie à 60 % récolte l'information documentée. */
 
-/* allonge un personnage sur le dos (tête vers -z) dans un repère parent ; ry le tourne autour de la verticale */
-function allonger(parent,p,x,y,z,ry){const w=new THREE.Group();w.position.set(x,y+.38*p.scale.x,z);w.rotation.y=ry||0;parent.add(w);p.rotation.set(-Math.PI/2,0,0);p.position.set(0,0,0);w.add(p);return w}
+/* ===== casting des échanges : vrais personnages du village, costumes et accessoires ===== */
 
-/* anime un personnage allongé qui parle (nouveau rig : clip « Idle_Talking_Loop » ; ancien : pose simple) */
-const parler=(p,T)=>animPerson(p,p.userData.rig&&p.userData.rig.nouveau?'talk':'idle',T);
+const accTete={
 
-/* assoit Dylan : clip assis, bassin à hauteur d'assise (0,5 pour une assise standard) */
-function asseoir(p,x,y,z,ry,talk){p.position.set(x,y,z);p.rotation.set(0,ry,0);const R=p.userData.rig;if(R&&R.nouveau&&window.TALAS_PERSO)TALAS_PERSO.jouer(R.model,talk?'Sitting_Talking_Loop':'Sitting_Idle_Loop',{fondu:0});else animPerson(p,'idle',0)}
+  lunettesSoleil:()=>{const g=new THREE.Group();[-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.36,.22,.06),'#111111',q*.27,.06,.66,g);mk(new THREE.BoxGeometry(.05,.05,.5),'#111111',q*.47,.06,.42,g)});mk(new THREE.BoxGeometry(.16,.05,.05),'#111111',0,.1,.67,g);return g},
 
-/* squelette articulé : bassin, colonne, côtes, crâne à mâchoire, bras et jambes à coudes et genoux ; assis, face à +z */
+  lunettesRondes:()=>{const g=new THREE.Group();[-1,1].forEach(q=>{const t=new THREE.Mesh(new THREE.TorusGeometry(.2,.035,6,16),mat('#2b2b2b'));t.position.set(q*.26,.06,.68);g.add(t)});mk(new THREE.BoxGeometry(.14,.04,.04),'#2b2b2b',0,.1,.7,g);return g},
+
+  pinceANez:()=>{const g=new THREE.Group();mk(new THREE.BoxGeometry(.12,.26,.1),'#e8590c',0,-.12,.82,g);mk(new THREE.BoxGeometry(.2,.05,.1),'#c2410c',0,-.2,.82,g);return g}
+
+};
+
+const accMain={
+
+  cocktail:()=>{const g=new THREE.Group();outline(mk(new THREE.CylinderGeometry(.2,.05,.4,10),'#d0ebff',0,.1,0,g),1.1);mk(new THREE.CylinderGeometry(.17,.06,.3,10),'#ff922b',0,.06,0,g);mk(new THREE.BoxGeometry(.04,.5,.04),'#e03131',.06,.35,0,g).rotation.z=-.25;mk(new THREE.TorusGeometry(.17,.03,6,12),'#fcc419',.02,.28,0,g).rotation.x=Math.PI/2;return g},
+
+  tasse:()=>{const g=new THREE.Group();outline(mk(new THREE.CylinderGeometry(.17,.14,.3,10),'#fffaf0',0,.1,0,g),1.1);mk(new THREE.TorusGeometry(.1,.03,5,10),'#fffaf0',.2,.1,0,g);const l=labelPlane('SOS',.26,.16,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:40});l.position.set(0,.1,.18);g.add(l);return g},
+
+  dossier:()=>{const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.5,.62,.06),'#1c5fb0',0,.1,0,g),1.08);const l=labelPlane('ISO 45001 ?',.46,.18,{bg:'#fffaf0',border:'#1c5fb0',fg:'#1c5fb0',size:34});l.position.set(0,.1,.05);g.add(l);return g},
+
+  planchette:()=>{const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.5,.66,.05),'#8d5524',0,.1,0,g),1.08);mk(new THREE.BoxGeometry(.42,.56,.03),'#ffffff',0,.1,.04,g);mk(new THREE.BoxGeometry(.16,.06,.05),'#868e96',0,.42,.05,g);[0,.1,.2].forEach(y=>mk(new THREE.BoxGeometry(.3,.02,.02),'#adb5bd',0,.2-y,.06,g));return g},
+
+  bloc:()=>{const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.4,.52,.05),'#fff3bf',0,.1,0,g),1.08);[0,.1,.2].forEach(y=>mk(new THREE.BoxGeometry(.28,.02,.02),'#868e96',0,.22-y,.04,g));return g},
+
+  revue:()=>{const g=new THREE.Group();outline(mk(new THREE.BoxGeometry(.5,.04,.4),'#e8590c',0,.05,.1,g),1.06);const l=labelPlane('PSYCHOLOGIES 1987',.5,.12,{bg:'#fff',border:'#e8590c',fg:'#e8590c',size:28});l.rotation.x=-Math.PI/2;l.position.set(0,.08,.1);g.add(l);return g},
+
+  crayon:()=>{const g=new THREE.Group();mk(new THREE.CylinderGeometry(.03,.03,.45,6),'#fcc419',0,.1,0,g);mk(new THREE.ConeGeometry(.03,.08,6),'#e8b88a',0,-.16,0,g).rotation.x=Math.PI;return g}
+
+};
+
+/* personnage du casting avec costume (nouveau rig) ; repli : un figurant générique si les modèles ne sont pas chargés */
+
+function castPerson(o){
+
+  const C=window.TALAS_COMPAT;let p=C&&C.pret&&C.cast?C.cast(o.nom,{pal:o.pal,montre:o.montre,scale:o.scale}):null;
+
+  if(!p)return makePerson({shirt:(o.pal&&(o.pal.shirt||o.pal.jacket))||'#74c0fc',pants:(o.pal&&o.pal.pants)||'#364fc7',scale:o.scale||1});
+
+  const R=p.userData.rig;(o.tete||[]).forEach(k=>R.head.add(accTete[k]()));
+
+  (o.main||[]).forEach(([k,i])=>{const a=accMain[k](),h=R['main'+i];if(h){a.position.set(0,-.95,0);h.add(a)}});
+
+  return p}
+
+const COSTUMES={
+
+  dg:{nom:'aurelien',scale:1.3,pal:{jacket:'#ff7a59',pants:'#f6c85f',collar:'#fff3cf',skin:'#e8896a'},montre:['cheveux:coiffe','barbe:moustache'],tete:['lunettesSoleil'],main:[['cocktail',0]],bras:{r:[-.95,-.25],l:[-.05,.12]}},
+
+  dylan:{nom:'dylan',scale:.9,pal:{shirt:'#b08968',pants:'#6b4f3a'},montre:['cheveux:courts','barbe:chaume'],tete:['lunettesRondes'],main:[['bloc',1],['crayon',0]]},
+
+  mathilde:{nom:'mathilde',scale:.95,pal:{shirt:'#69db7c',pants:'#2b3a67'},montre:['cheveux:chignon'],main:[['tasse',0]],bras:{r:[-.5,-.1],l:[0,.12]}},
+
+  airbus:{nom:'georges',scale:1.02,pal:{shirt:'#1c5fb0',pants:'#1b2433'},montre:['cheveux:courts','barbe:moustache','lunettes_vue','cravate'],main:[['dossier',0]],bras:{r:[-.55,-.1],l:[0,.1]}},
+
+  inspection:{nom:'lorette',scale:.92,pal:{shirt:'#7e57c2',pants:'#2f2f3a'},montre:['cheveux:carre','lunettes_vue'],main:[['planchette',0]],bras:{r:[-.5,-.1],l:[-.1,.1]}},
+
+  riverain:{nom:'bernard',scale:1,pal:{shirt:'#7fd0c8',pants:'#b39ddb'},montre:['cheveux:cotes','barbe:chaume'],tete:['pinceANez'],bras:{r:[0,-.12],l:[0,.12]}},
+
+  direction:{nom:'aurelien',scale:1.25,pal:{jacket:'#2c3470'},montre:['cheveux:coiffe','barbe:moustache','cravate'],bras:{r:[-.7,-.12],l:[0,.1]}}
+
+};
+
+/* le squelette forgé sous Blender (tools/forge-squelette) : même armature que les personnages, donc mêmes clips ; repli : la version en formes simples ci-dessous */
+const chargerSquelette=async()=>{try{await TALAS_PERSO.charger('squelette')}catch(e){console.warn('squelette',e)}};
+
+function skeletonModel(){const C=window.TALAS_COMPAT,Pz=window.TALAS_PERSO;if(!(C&&C.pret&&Pz&&Pz.modeles&&Pz.modeles.squelette))return null;
+
+  const p=C.cast('squelette',{scale:.9,montre:['casque','cravate']});if(!p)return null;const R=p.userData.rig;Pz.jouer(R.model,'Sitting_Idle_Loop',{fondu:0});
+
+  const a=accMain.revue(),h=R.main0;if(h){a.position.set(0,-.95,0);h.add(a)}return p}
+
+function skeletonModelLife(p,T){const jaw=p.userData.rig.perso.os.jaw;if(jaw)jaw.rotation.x=-Math.max(0,Math.sin(T*3.1))*.35*(Math.sin(T*.5)>.55?1:0)}
+
+/* squelette de bureau : vertèbres une à une, cage thoracique à côtes arquées et sternum, bassin à ailes iliaques, crâne à dents et orbites luisantes,
+   bras et jambes à articulations nouées, doigts. Assis, face à +z, pelvis à l'origine. */
 function makeSkeleton(){
 
-  const g=new THREE.Group(),J={},B='#f4f1e6',bone=(a,b,r=.05,par=g)=>{const A=new THREE.Vector3(...a),Bv=new THREE.Vector3(...b),L=A.distanceTo(Bv),m=outline(mk(new THREE.CylinderGeometry(r,r,L,6),B,0,0,0,par),1.12);m.position.copy(A).add(Bv).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),Bv.clone().sub(A).normalize());return m},ball=(x,y,z,r,par=g)=>outline(mk(new THREE.SphereGeometry(r,8,6),B,x,y,z,par),1.1);
+  const g=new THREE.Group(),J={},B='#f1ecda',D='#cfc7a8',K='#16121c';
 
-  outline(mk(new THREE.BoxGeometry(.5,.16,.3),B,0,0,0,g),1.06);bone([0,.05,0],[0,.9,0],.045);
+  const knob=(x,y,z,r,par=g,c=B)=>outline(mk(new THREE.SphereGeometry(r,8,6),c,x,y,z,par),1.12);
 
-  [.38,.5,.62,.74].forEach((y,i)=>{const t=new THREE.Mesh(new THREE.TorusGeometry(.22-i*.015,.028,5,14),mat(B));t.position.set(0,y,0);t.rotation.x=Math.PI/2;t.scale.y=.75;t.castShadow=true;g.add(t)});
+  const bone=(a,b,r,par=g)=>{const A=new THREE.Vector3(...a),Bv=new THREE.Vector3(...b),L=A.distanceTo(Bv),m=outline(mk(new THREE.CylinderGeometry(r*.78,r,L,7),B,0,0,0,par),1.14);m.position.copy(A).add(Bv).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),Bv.clone().sub(A).normalize());knob(...a,r*1.5,par);knob(...Bv.toArray(),r*1.5,par);return m};
 
-  bone([-.34,.92,0],[.34,.92,0],.04);
+  /* bassin : sacrum, deux ailes, ischions */
 
-  J.head=new THREE.Group();J.head.position.set(0,.98,0);g.add(J.head);
+  outline(mk(new THREE.BoxGeometry(.2,.2,.1),D,0,.02,-.1,g),1.1);[-1,1].forEach(q=>{const w=outline(mk(new THREE.SphereGeometry(.2,10,8),B,q*.2,.1,-.02,g),1.08);w.scale.set(.75,.8,.35);w.rotation.z=q*-.4;knob(q*.14,-.06,.04,.07,g)});
 
-  bone([0,-.02,0],[0,.14,0],.04,J.head);outline(mk(new THREE.SphereGeometry(.25,12,10),B,0,.4,0,J.head),1.06);
+  /* colonne : quatorze vertèbres qui se courbent, apophyses épineuses */
 
-  J.jaw=new THREE.Group();J.jaw.position.set(0,.28,.1);J.head.add(J.jaw);outline(mk(new THREE.BoxGeometry(.26,.09,.2),B,0,-.04,.05,J.jaw),1.08);
+  for(let i=0;i<14;i++){const y=.12+i*.062,z=-.09-Math.sin(i/13*Math.PI)*.045;outline(mk(new THREE.CylinderGeometry(.052,.058,.04,8),i%2?B:D,0,y,z,g),1.12);mk(new THREE.BoxGeometry(.03,.035,.07),B,0,y,z-.06,g)}
 
-  [-1,1].forEach(q=>mk(new THREE.SphereGeometry(.06,8,6),'#16121c',q*.1,.45,.2,J.head));mk(new THREE.ConeGeometry(.04,.1,4),'#16121c',0,.36,.24,J.head).rotation.x=Math.PI;
+  /* cage thoracique : sept paires de côtes en arc + sternum + clavicules + omoplates */
 
-  outline(mk(new THREE.SphereGeometry(.31,12,8,0,Math.PI*2,0,Math.PI/2),'#ffd43b',0,.5,0,J.head),1.05);
+  for(let i=0;i<7;i++){const R=[.15,.19,.215,.22,.21,.18,.15][i],y=.5+i*.065;[0,1].forEach(side=>{const t=new THREE.Mesh(new THREE.TorusGeometry(R,.016,5,14,Math.PI*1.02),mat(i%2?B:D));t.position.set(0,y,-.07+(0));t.rotation.x=Math.PI/2;t.scale.y=.8;t.rotation.z=side?Math.PI*.5-.04:-Math.PI/2.1;t.castShadow=true;g.add(t)})}
+
+  outline(mk(new THREE.BoxGeometry(.075,.4,.03),B,0,.76,.1,g),1.1);
+
+  [-1,1].forEach(q=>{const cl=mk(new THREE.CylinderGeometry(.018,.018,.34,6),B,q*.17,.98,.08,g);cl.rotation.z=Math.PI/2+q*.16;const sc=outline(mk(new THREE.SphereGeometry(.12,8,6),D,q*.14,.82,-.17,g),1.06);sc.scale.set(1,1.2,.25)});
+
+  /* tête : crâne, pommettes, orbites luisantes, nez, dents, mâchoire articulée, casque de chantier */
+
+  J.head=new THREE.Group();J.head.position.set(0,1.02,-.06);g.add(J.head);
+
+  bone([0,-.04,0],[0,.14,0],.03,J.head);const cr=outline(mk(new THREE.SphereGeometry(.26,14,10),B,0,.42,0,J.head),1.06);cr.scale.set(.95,1.06,1.08);
+
+  [-1,1].forEach(q=>{const ck=outline(mk(new THREE.SphereGeometry(.07,8,6),B,q*.15,.3,.2,J.head),1.1);ck.scale.set(1,.7,.8);mk(new THREE.SphereGeometry(.075,8,6),K,q*.1,.42,.2,J.head)});
+
+  J.eyes=[-1,1].map(q=>mk(new THREE.SphereGeometry(.028,6,5),new THREE.MeshBasicMaterial({color:'#ffd66b'}),q*.1,.42,.26,J.head));
+
+  mk(new THREE.ConeGeometry(.04,.1,3),K,0,.34,.27,J.head).rotation.x=Math.PI;
+
+  for(let i=0;i<8;i++)mk(new THREE.BoxGeometry(.035,.05,.02),'#ffffff',(i-3.5)*.04,.24,.255-Math.abs(i-3.5)*.008,J.head);
+
+  J.jaw=new THREE.Group();J.jaw.position.set(0,.22,.0);J.head.add(J.jaw);outline(mk(new THREE.BoxGeometry(.22,.06,.2),B,0,-.04,.1,J.jaw),1.1);for(let i=0;i<7;i++)mk(new THREE.BoxGeometry(.03,.04,.02),'#ffffff',(i-3)*.04,-.005,.2,J.jaw);
+
+  const hat=outline(mk(new THREE.SphereGeometry(.32,14,8,0,Math.PI*2,0,Math.PI/2),'#ffd43b',0,.5,0,J.head),1.05);hat.scale.set(1,.95,1.05);mk(new THREE.BoxGeometry(.5,.04,.2),'#f4b400',0,.52,.22,J.head).rotation.x=.1;mk(new THREE.BoxGeometry(.06,.08,.62),'#f4b400',0,.8,0,J.head);[-1,1].forEach(q=>mk(new THREE.BoxGeometry(.02,.22,.02),'#2b2b2b',q*.2,.28,.1,J.head));
+
+  /* cravate de stagiaire et badge */
+
+  mk(new THREE.BoxGeometry(.08,.34,.03),'#e03131',0,.76,.12,g);const bg=labelPlane('STAGIAIRE 2019',.3,.1,{bg:'#fffaf0',border:'#868e96',fg:'#495057',size:26});bg.position.set(.1,.66,.13);g.add(bg);
+
+  /* membres : épaule, coude, poignet, main à cinq doigts ; hanche, genou, cheville, pied */
 
   [-1,1].forEach(q=>{
 
-    const hip=new THREE.Group();hip.position.set(q*.14,0,0);g.add(hip);bone([0,0,0],[0,0,.6],.05,hip);
+    const hip=new THREE.Group();hip.position.set(q*.16,0,0);g.add(hip);bone([0,0,0],[0,0,.6],.05,hip);
 
-    J['kn'+q]=new THREE.Group();J['kn'+q].position.set(0,0,.6);hip.add(J['kn'+q]);ball(0,0,0,.065,J['kn'+q]);bone([0,0,0],[0,-.56,0],.045,J['kn'+q]);outline(mk(new THREE.BoxGeometry(.14,.07,.3),B,0,-.6,.1,J['kn'+q]),1.08);
+    const kn=new THREE.Group();kn.position.set(0,0,.6);hip.add(kn);J['kn'+q]=kn;bone([0,0,0],[0,-.54,0],.04,kn);
 
-    const sh=new THREE.Group();sh.position.set(q*.34,.92,0);g.add(sh);ball(0,0,0,.07,sh);
+    const ft=new THREE.Group();ft.position.set(0,-.56,0);kn.add(ft);outline(mk(new THREE.BoxGeometry(.13,.06,.26),B,0,-.02,.1,ft),1.1);for(let i=0;i<4;i++)mk(new THREE.BoxGeometry(.025,.025,.06),B,(i-1.5)*.03,-.02,.26,ft);
 
-    J['el'+q]=new THREE.Group();J['el'+q].position.set(0,-.42,0);sh.add(J['el'+q]);bone([0,0,0],[0,.42,0],.04,sh).position.y-=.21;
+    const sh=new THREE.Group();sh.position.set(q*.34,.98,-.02);g.add(sh);knob(0,0,0,.06,sh);bone([0,0,0],[0,-.42,0],.04,sh);
 
-    ball(0,0,0,.055,J['el'+q]);J['fa'+q]=bone([0,0,0],[0,0,.38],.036,J['el'+q]);J['ha'+q]=ball(0,0,.42,.07,J['el'+q]);J['sh'+q]=sh
+    const el=new THREE.Group();el.position.set(0,-.42,0);sh.add(el);J['el'+q]=el;knob(0,0,0,.05,el);[-.012,.012].forEach(o=>bone([o,0,0],[o,0,.4],.016,el));
+
+    const ha=new THREE.Group();ha.position.set(0,0,.42);el.add(ha);J['ha'+q]=ha;outline(mk(new THREE.BoxGeometry(.1,.025,.09),B,0,0,.04,ha),1.1);
+
+    J['fi'+q]=[0,1,2,3,4].map(i=>{const f=new THREE.Group();f.position.set((i-2)*.022*(i===4?1.6:1),0,.09);ha.add(f);mk(new THREE.CylinderGeometry(.009,.011,i===4?.05:.075,5),B,0,0,(i===4?.025:.038),f).rotation.x=Math.PI/2;return f})
 
   });
 
-  J.el1.rotation.x=-1.25;J.el1.parent.rotation.x=0;J['el-1'].rotation.x=-1.25;
+  J.el1.rotation.x=-1.35;J['el-1'].rotation.x=-1.35;g.userData.j=J;return g}
 
-  g.userData.j=J;return g}
+/* la vie du squelette : lit son magazine, soupire, mâchoire qui claque, pied qui tape, doigts qui pianotent, orbites qui scintillent */
+function skeletonLife(g,T){
 
-/* animation douce du squelette : tête qui penche, mâchoire qui claque, pied et doigts qui tapent */
-function skeletonLife(g,T){const J=g.userData.j;J.head.rotation.z=Math.sin(T*.7)*.12;J.head.rotation.x=Math.sin(T*.4)*.06;J.jaw.rotation.x=Math.max(0,Math.sin(T*3.1))*.35*(Math.sin(T*.5)>.6?1:0);J.kn1.rotation.x=Math.sin(T*5)*.18;J['ha-1'].position.y=Math.abs(Math.sin(T*7))*.03}
+  const J=g.userData.j;J.head.rotation.x=.18+Math.sin(T*.5)*.07;J.head.rotation.y=Math.sin(T*.3)*.22;J.head.rotation.z=Math.sin(T*.7)*.05;
+
+  J.jaw.rotation.x=Math.max(0,Math.sin(T*3.1))*.3*(Math.sin(T*.5)>.55?1:0);
+
+  J.kn1.rotation.x=Math.max(0,Math.sin(T*6))*.22;
+
+  J['fi-1'].forEach((f,i)=>{f.rotation.x=Math.max(0,Math.sin(T*7+i*.9))*.5});
+
+  J.eyes.forEach((e,i)=>e.material.color.setHSL(.12,1,.55+Math.sin(T*9+i*2)*.12))
+
+}
+
+/* allonge un personnage à plat sur le dos (tête vers -z). Nouveau rig : clip « A_TPose » (jambes droites), puis les bras sont visés à la main (bras = [avant, écart] : 0 le long du corps,
+   -1,5 tendu vers le ciel pour trinquer ou lire) ; ancien rig : pose simple. */
+function allonger(parent,p,x,y,z,ry,bras){
+
+  const R=p.userData.rig,nv=R&&R.nouveau&&window.TALAS_PERSO,w=new THREE.Group();w.position.set(x,y,z);w.rotation.y=ry||0;parent.add(w);
+
+  if(nv){TALAS_PERSO.fige(R.model,'A_TPose',0);const b=bras||{r:[0,-.12],l:[0,.12]};R.shs[0].rotation.set(b.r[0],0,b.r[1]);R.shs[1].rotation.set(b.l[0],0,b.l[1]);R.hips[0].rotation.z=-.04;R.hips[1].rotation.z=.04}
+
+  p.rotation.set(-Math.PI/2,0,0);p.position.set(0,.38*p.scale.x,0);w.add(p);return w}
+
+/* le personnage allongé parle : bouche qui s'ouvre et se ferme, clignements ; ancien rig : respiration */
+const parler=(p,T)=>{const R=p.userData.rig;if(R&&R.nouveau&&window.TALAS_PERSO){TALAS_PERSO.bouche(R.model,Math.sin(T*9)>.1?'cri':'sourire');if(Math.sin(T*1.7)>.985)TALAS_PERSO.cligner(R.model)}else animPerson(p,'idle',T)};
+
+/* assoit Dylan : clip assis, bassin à hauteur d'assise (0,5 pour une assise standard) */
+function asseoir(p,x,y,z,ry,talk){p.position.set(x,y,z);p.rotation.set(0,ry,0);const R=p.userData.rig;if(R&&R.nouveau&&window.TALAS_PERSO)TALAS_PERSO.jouer(R.model,talk?'Sitting_Talking_Loop':'Sitting_Idle_Loop',{fondu:0});else animPerson(p,'idle',0)}
 
 function stageSwot(R){
 
@@ -8632,7 +8755,7 @@ function stageSwot(R){
 
   const sl=new THREE.Group();sl.position.set(0,.8,-.1);sl.rotation.x=.42;g.add(sl);
 
-  for(let i=0;i<10;i++)mk(new THREE.BoxGeometry(1.7,.07,.41),i%2?'#ffffff':'#1c7ed6',0,0,(i-4.5)*.41,sl);
+  for(let i=0;i<9;i++)mk(new THREE.BoxGeometry(1.7,.07,.41),i%2?'#ffffff':'#1c7ed6',0,0,(i-4)*.41,sl);
 
   [-1,1].forEach(q=>mk(new THREE.BoxGeometry(.1,.1,3.8),'#8d5524',q*.93,-.02,0,sl));
 
@@ -8640,7 +8763,7 @@ function stageSwot(R){
 
   [-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.1,1.6,.1),'#8d5524',q*.93,.7,-1.65,g).rotation.x=.08;mk(new THREE.BoxGeometry(.1,.55,.1),'#8d5524',q*.93,.27,1.55,g)});
 
-  const ceo=makeCEO();allonger(sl,ceo,0,.05,1.55,0);
+  const ceo=castPerson(COSTUMES.dg);allonger(sl,ceo,0,.05,1.55,0,COSTUMES.dg.bras);
 
   mk(new THREE.CylinderGeometry(.05,.05,3.6,8),'#f1f3f5',1.9,1.8,-1.4,g);
 
@@ -8684,25 +8807,21 @@ function stagePsy(R){
 
   outline(mk(new THREE.BoxGeometry(1.5,.22,1.4),'#d9822b',0,.4,0,chair),1.04);outline(mk(new THREE.BoxGeometry(.2,1.5,1.4),'#d9822b',-.65,1.1,0,chair),1.04);[-1,1].forEach(q=>outline(mk(new THREE.BoxGeometry(1.5,.5,.2),'#d9822b',0,.7,q*.66,chair),1.04));[[-.6,-.6],[.6,-.6],[-.6,.6],[.6,.6]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.08,.05,.3,6),'#4a2a12',x,.15,z,chair));
 
-  const dy=R.dylan;asseoir(dy,-.85,.02,-2.4,Math.PI/2,1);
+  R.dylan.visible=false;const dy=castPerson(COSTUMES.dylan);R.stage.add(dy);asseoir(dy,-.85,.02,-2.4,Math.PI/2,1);
 
-  const nb=outline(mk(new THREE.BoxGeometry(.55,.04,.7),'#fff3bf',-.2,.95,-2.4,R.stage),1.06);nb.rotation.set(0,0,.35);
+  const skm=skeletonModel(),sk=skm||makeSkeleton(),H=skm?.5:.7;const stool=new THREE.Group();stool.position.set(-4.9,0,-2.7);stool.rotation.y=.35;R.stage.add(stool);
 
-  const gl=new THREE.Group();gl.position.set(-.55,2.05,-2.4);R.stage.add(gl);[-1,1].forEach(q=>mk(new THREE.TorusGeometry(.13,.025,6,14),'#222',0,0,q*.17,gl).rotation.y=Math.PI/2);
+  outline(mk(new THREE.CylinderGeometry(.55,.55,.1,12),'#8d5524',0,H,0,stool),1.05);[[-.35,-.25],[.35,-.25],[0,.4]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.05,.04,H,6),'#5a3a1e',x,H/2,z,stool));
 
-  const sk=makeSkeleton();const stool=new THREE.Group();stool.position.set(-4.9,0,-2.7);stool.rotation.y=.35;R.stage.add(stool);
+  if(skm){skm.position.set(0,H-.48,-.05);stool.add(skm)}else{sk.position.set(0,H+.06,-.05);stool.add(sk);
 
-  outline(mk(new THREE.CylinderGeometry(.55,.55,.1,12),'#8d5524',0,.7,0,stool),1.05);[[-.35,-.25],[.35,-.25],[0,.4]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.05,.04,.7,6),'#5a3a1e',x,.35,z,stool));
-
-  sk.position.set(0,.76,-.05);stool.add(sk);
-
-  const mag=mk(new THREE.BoxGeometry(.5,.04,.38),'#e8590c',0,0,0,sk.userData.j['ha1']);mag.position.set(.0,.05,.15);const ml=labelPlane('PSYCHOLOGIES 1987',.5,.12,{bg:'#fff',border:'#e8590c',fg:'#e8590c',size:28});ml.rotation.x=-Math.PI/2;ml.position.set(0,.07,.15);sk.userData.j['ha1'].add(ml);
+    const ha=sk.userData.j['ha1'];outline(mk(new THREE.BoxGeometry(.5,.03,.4),'#e8590c',0,.08,.2,ha),1.06);const ml=labelPlane('PSYCHOLOGIES 1987',.5,.12,{bg:'#fff',border:'#e8590c',fg:'#e8590c',size:28});ml.rotation.x=-Math.PI/2;ml.position.set(0,.1,.2);ha.add(ml)}
 
   const pl=labelPlane('PATIENT PRÉCÉDENT · TOUJOURS EN ATTENTE',3.2,.45,{bg:'#fffaf0',border:'#868e96',fg:'#495057',size:46});pl.position.set(0,2.8,0);stool.add(pl);
 
-  const wp=[];const lieOn=(p)=>{if(wp[0])wp[0].parent.remove(wp[0]);wp[0]=allonger(g,p,.95,.9,0,Math.PI/2);wp[1]=p};
+  const wp=[];const lieOn=(key)=>{if(wp[0])wp[0].parent.remove(wp[0]);const p=castPerson(COSTUMES[key]);wp[0]=allonger(g,p,.95,.9,0,Math.PI/2,COSTUMES[key].bras);wp[1]=p};
 
-  return {up:(dt,T)=>{if(wp[1])parler(wp[1],T);skeletonLife(sk,T)},lie:lieOn,off(){R.stage.remove(g);R.stage.remove(chair);R.stage.remove(nb);R.stage.remove(gl);R.stage.remove(stool)}}}
+  return {up:(dt,T)=>{if(wp[1])parler(wp[1],T);if(skm)skeletonModelLife(skm,T);else skeletonLife(sk,T)},lie:lieOn,off(){R.stage.remove(g);R.stage.remove(chair);R.stage.remove(dy);R.stage.remove(stool)}}}
 
 const SWOT_O=[{k:'F',t:'FORCE',i:'interne · positif'},{k:'W',t:'FAIBLESSE',i:'interne · négatif'},{k:'O',t:'OPPORTUNITÉ',i:'externe · positif'},{k:'T',t:'MENACE',i:'externe · négatif'}];
 
@@ -8726,15 +8845,13 @@ const SWOT={doc:'swot',sec:'§4.1',decor:'plage',cam:[[0,2.4,14],[0,2.3,-3]],int
 
  {a:'O',line:'« La région finance la moitié des cobots qui évitent les gestes répétitifs. Faudrait que quelqu’un monte le dossier… »',fb:'Externe et positif : une opportunité, à saisir en analysant le cobot avant sa mise en service (§6.1.2.3).'}]};
 
-const PIP=(o)=>{const p=makePerson(o.p);if(o.hair)addHair(p,o.hair,o.long,o.glasses);return p};
-
-const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',cam:[[0,3,13],[0,2.6,-3]],intro:[
+const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',preload:chargerSquelette,cam:[[0,3,13],[0,2.6,-3]],intro:[
 
  {w:'nar',t:'Lundi, 7 h 40. Dans le vestiaire désaffecté, le Dr Dylan a ouvert son cabinet de psy QSE. Diplôme par correspondance, divan léopard, et un patient précédent toujours en salle d’attente.'},
 
  {w:'boulon',t:'Parties intéressées (§4.2) : chacune va se confier. Note ce que tu retiens : besoins, attentes, et les exigences légales ou autres qui en découlent.'}],q:'Que notes-tu dans le registre des parties intéressées ?',stage:stagePsy,rounds:[
 
- {name:'MATHILDE',role:'élue CSE · travailleurs',c:'#69db7c',person:{p:{shirt:'#69db7c',pants:'#2b8a3e',scale:.95},hair:'#5a3a22',long:1},
+ {name:'MATHILDE',role:'élue CSE · travailleurs',c:'#69db7c',who:'mathilde',
 
   line:'« Docteur, je peins douze heures par semaine avec ce solvant, j’ai mal à la tête le soir, et personne ne me demande jamais mon avis… »',
 
@@ -8742,7 +8859,7 @@ const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',cam:[[0,3,13],[0,2.6,-3]],intro:
 
   fb:'Les travailleurs sont la partie intéressée centrale : protection et participation (§4.2, §5.4). Attente forte, consultation obligatoire.'},
 
- {name:'AIRBUS',role:'donneur d’ordre · client',c:'#74c0fc',person:{p:{shirt:'#1c7ed6',pants:'#1a3a6a',tie:1,scale:1}},
+ {name:'AIRBUS',role:'donneur d’ordre · client',c:'#74c0fc',who:'airbus',
 
   line:'« Entre nous, docteur : sans certificat ISO 45001 d’ici douze mois, je confie mes commandes à un autre fournisseur. Je dors mal. »',
 
@@ -8750,7 +8867,7 @@ const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',cam:[[0,3,13],[0,2.6,-3]],intro:
 
   fb:'Une exigence contractuelle que Talas accepte devient une « autre exigence » à inscrire et à respecter (§4.2).'},
 
- {name:'INSPECTION DU TRAVAIL',role:'autorité · contrôle',c:'#da77f2',person:{p:{shirt:'#862e9c',pants:'#343a40',scale:.95},hair:'#212529',long:0,glasses:1},
+ {name:'INSPECTION DU TRAVAIL',role:'autorité · contrôle',c:'#da77f2',who:'inspection',
 
   line:'« Ça me ronge, docteur : je dois contrôler votre registre des accidents et la cabine de peinture, et personne ne m’a envoyé le bilan. »',
 
@@ -8758,7 +8875,7 @@ const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',cam:[[0,3,13],[0,2.6,-3]],intro:
 
   fb:'Une exigence légale est obligatoire : elle entre au registre des exigences (§6.1.3) et se contrôle.'},
 
- {name:'RIVERAINS',role:'voisinage · lotissement',c:'#ffa94d',person:{p:{shirt:'#ffa94d',pants:'#6b4a2a',hat:'#74b816',scale:.95}},
+ {name:'RIVERAINS',role:'voisinage · lotissement',c:'#ffa94d',who:'riverain',
 
   line:'« Docteur, vos solvants sentent jusque dans notre lotissement. Nos enfants toussent, et on ne sait même pas à qui parler. »',
 
@@ -8766,7 +8883,7 @@ const PARTIES={doc:'pi',sec:'§4.2',decor:'psy',cam:[[0,3,13],[0,2.6,-3]],intro:
 
   fb:'Une partie intéressée n’est pas toujours un travailleur : le périmètre dépend de l’impact de Talas. L’arrêté ICPE est une exigence légale.'},
 
- {name:'AURELIEN',role:'direction · actionnaires',c:'#efd07c',person:{p:{shirt:'#343a70',pants:'#2b2f55',tie:1,skin:'#f4b183',face:'ceo',scale:1.2}},
+ {name:'AURELIEN',role:'direction · actionnaires',c:'#efd07c',who:'direction',
 
   line:'« Entre nous : mes actionnaires veulent du résultat, et moi je ne veux pas finir au tribunal après un accident grave. Voilà. »',
 
@@ -8779,6 +8896,8 @@ async function talk(n,cfg){
   const prev=cur,fr=$('#frame');hidePanel();keyHelp();
 
   await fade(1);const R=buildRoom(cfg.decor);setWorld(R);R.cam=()=>{camera.position.set(...cfg.cam[0]);camera.lookAt(...cfg.cam[1])};await fade(0);
+
+  if(cfg.preload)await cfg.preload();
 
   const st=cfg.stage(R);R.extra=(dt,T)=>st.up(dt,T);
 
@@ -8794,7 +8913,7 @@ async function talk(n,cfg){
 
     const r=cfg.rounds[i],opts=cfg.fixed?cfg.opts:shuffle(r.opts.slice());
 
-    if(r.person)st.lie(PIP(r.person));
+    if(r.who)st.lie(r.who);
 
     ov.innerHTML=`<div class="pxf who"><span class="tag" style="background:${r.c||cfg.c}">${escH(r.name||cfg.name)}</span><p>${escH(r.line)}<q>${escH(r.role||cfg.role)}</q></p><em class="sc">${cfg.sec} · ${i+1}/${cfg.rounds.length}</em></div><div class="pxf ans${cfg.fixed?' q4':''}"><h4>${escH(cfg.q)}</h4>${opts.map((o,j)=>`<button class="px" data-j="${j}"><b>${j+1}</b><span>${escH(o.t)}</span>${o.i?`<i>${escH(o.i)}</i>`:''}</button>`).join('')}</div>`;
 

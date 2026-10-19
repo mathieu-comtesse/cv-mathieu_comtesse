@@ -17,3 +17,5 @@ Les poids du détecteur (`assets/vision/*.bin`) sont ceux publiés par Ultralyti
 ## Police du jeu Talas
 
 `jeux/assets/fonts/jersey-15.woff2` : Jersey 15 (Sarah Cadigan-Fried), licence SIL Open Font License 1.1, <https://fonts.google.com/specimen/Jersey+15>. Sous-ensemble latin distribué par Fontsource.
+
+`jeux/assets/talas/persos/squelette.glb` : squelette de bureau modélisé en code sous Blender (`tools/forge-squelette/`, module `bpy`), monté sur l'armature des personnages du village.
