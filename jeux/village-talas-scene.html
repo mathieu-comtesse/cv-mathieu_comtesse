@@ -1967,59 +1967,73 @@ DECOR.plage={sky:['#3fb0ff','#ffe8b5'],open:1,
 
   return up}};
 
-DECOR.psy={sky:['#1b2a2a','#2b3d3a'],
+DECOR.psy={sky:['#2a2018','#4a3828'],
 
- floor:()=>ctex(64,64,(x,w,h)=>{x.fillStyle='#f1f3f5';x.fillRect(0,0,w,h);x.fillStyle='#2b2b33';x.fillRect(0,0,w/2,h/2);x.fillRect(w/2,h/2,w/2,h/2);x.fillStyle='rgba(120,90,40,.3)';x.beginPath();x.arc(20,46,6,0,7);x.fill()}),
+ floor:()=>planksTex('#b98a55','#a77a49'),
 
- wall:()=>wallMat(ctex(64,64,(x,w,h)=>{x.fillStyle='#9fd8c8';x.fillRect(0,0,w,h);x.strokeStyle='#d6efe8';x.lineWidth=2;for(let i=0;i<=4;i++){x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16,h);x.stroke();x.beginPath();x.moveTo(0,i*16);x.lineTo(w,i*16);x.stroke()}x.fillStyle='rgba(100,70,30,.3)';x.fillRect(8,0,4,40);x.fillRect(44,10,3,50);x.fillStyle='#d0b48a';x.fillRect(20,22,10,9)}),12,4),
+ wall:()=>wallMat(ctex(64,64,(x,w,h)=>{x.fillStyle='#e8d9a8';x.fillRect(0,0,w,h);x.fillStyle='#d4bd7c';for(let i=0;i<4;i++)x.fillRect(i*16+4,0,6,h);[[10,12],[42,30],[24,50],[54,8]].forEach(([a,b])=>{x.fillStyle='#c0572f';x.beginPath();x.arc(a,b,4,0,7);x.fill();x.fillStyle='#4f8a3a';x.fillRect(a-1,b+4,2,8)})}),10,4),
 
  build(s,W){const up=[];
 
-  ['#c0392b','#2980b9','#7f8c8d','#27ae60','#8e44ad'].forEach((c,i)=>{const g=new THREE.Group();g.position.set(-9.4+i*1.15,0,-6);s.add(g);outline(mk(new THREE.BoxGeometry(1.05,3.4,.9),c,0,1.7,0,g),1.03);
+  /* fenêtre sur le périphérique, rideaux orange */
 
-    [0,.35,.7].forEach(y=>mk(new THREE.BoxGeometry(.6,.06,.04),'#1a1a1a',0,2.8-y*.25,.48,g));mk(new THREE.BoxGeometry(.08,.3,.05),'#dee2e6',.3,1.7,.49,g);
+  const wi=new THREE.Group();wi.position.set(-3.4,3.5,-6.15);s.add(wi);outline(mk(new THREE.BoxGeometry(3.2,2.8,.14),'#f8f9fa',0,0,0,wi),1.03);
 
-    if(i===1){const d=mk(new THREE.BoxGeometry(.9,3.1,.06),'#1f5f8b',-.9,1.7,.8,g);d.rotation.y=-1.1}
+  const gl=new THREE.Mesh(new THREE.PlaneGeometry(2.7,2.3),new THREE.MeshBasicMaterial({map:skyTex('#7fc4ff','#fbe7b0')}));gl.position.z=.09;wi.add(gl);
 
-    if(i===3){const sk=mk(new THREE.BoxGeometry(.25,.7,.12),'#e9ecef',.2,2.2,.52,g);mk(new THREE.BoxGeometry(.3,.15,.14),'#e03131',.2,2.45,.52,g);sk.rotation.z=.1}});
+  [[-.8,.9],[-.1,1.2],[.7,.7]].forEach(([x,h])=>mk(new THREE.BoxGeometry(.5,h,.04),'#7a8896',x,-1.15+h/2,.1,wi));mk(new THREE.BoxGeometry(.05,2.3,.05),'#f8f9fa',0,0,.12,wi);mk(new THREE.BoxGeometry(2.7,.05,.05),'#f8f9fa',0,0,.12,wi);
 
-  const du=new THREE.Group();du.position.set(-6.7,3.4,-6);s.add(du);outline(mk(new THREE.SphereGeometry(.55,12,10),'#ffd43b',0,.5,0,du),1.05);outline(mk(new THREE.SphereGeometry(.34,10,8),'#ffd43b',.45,1.05,0,du),1.05);mk(new THREE.BoxGeometry(.3,.1,.25),'#ff922b',.8,1,0,du);[.4,.55].forEach(x=>mk(new THREE.SphereGeometry(.05,6,5),'#111',x,1.15,.18,du));
+  [-1,1].forEach(q=>outline(mk(new THREE.BoxGeometry(.75,2.9,.18),'#d9822b',q*1.45,-.05,.2,wi),1.03));mk(new THREE.BoxGeometry(3.8,.08,.1),'#6b3a1e',0,1.5,.25,wi);
 
-  const dl=labelPlane('CANARD D’ASTREINTE',2,.4,{bg:'#fffaf0',border:'#f08c00',fg:'#a85d00',size:56});dl.position.set(-6.7,4.9,-5.9);s.add(dl);
+  const wl=labelPlane('VUE IMPRENABLE SUR LE PÉRIPHÉRIQUE',3,.34,{bg:'#fffaf0',border:'#868e96',fg:'#495057',size:40});wl.position.set(0,-1.6,.2);wi.add(wl);
 
-  const dip=labelPlane('DIPLÔME DE PSY PAR CORRESPONDANCE',3.6,.85,{bg:'#fff7da',border:'#b8860b',fg:'#5a3b00',size:56});dip.position.set(.2,6.2,-6.15);dip.rotation.z=.04;s.add(dip);
+  /* bibliothèque et son chat */
 
-  const tar=labelPlane('TARIF : 1 CAFÉ · REMBOURSÉ PAR LE CSE',4.4,.6,{bg:'#17294b',border:'#efd07c',fg:'#fff3cf',size:50});tar.position.set(.2,5.2,-6.15);s.add(tar);
+  const bk=new THREE.Group();bk.position.set(-8.3,0,-6.05);s.add(bk);outline(mk(new THREE.BoxGeometry(2.5,4.6,.7),'#8d5524',0,2.3,0,bk),1.02);
 
-  const sh=new THREE.Group();sh.position.set(8.6,0,-5.7);s.add(sh);mk(new THREE.CylinderGeometry(.08,.08,3,8),'#adb5bd',0,5,0,sh);outline(mk(new THREE.ConeGeometry(.5,.35,12),'#adb5bd',0,3.35,.35,sh),1.05).rotation.x=Math.PI;mk(new THREE.CylinderGeometry(1.5,1.5,.04,16),'#74c0fc',0,.03,1.3,sh).material.transparent=true;
+  [0,1,2,3].forEach(r=>{mk(new THREE.BoxGeometry(2.3,.07,.62),'#6b3a1e',0,.5+r*1.05,.03,bk);let x=-1.05;const cs=['#c0392b','#2e86c1','#27ae60','#f1c40f','#8e44ad','#d35400','#ecf0f1'];for(let i=0;i<9;i++){const w=.15+((i*7+r*3)%4)*.05,h=.7+((i*5+r)%3)*.12;mk(new THREE.BoxGeometry(w,h,.45),cs[(i+r*2)%7],x+w/2,.54+r*1.05+h/2,.08,bk);x+=w+.04}});
 
-  const dr=[0,1,2,3,4].map(i=>mk(new THREE.SphereGeometry(.07,6,5),'#74c0fc',(i%2-.5)*.4,3,.35,sh));up.push((dt,T)=>dr.forEach((d,i)=>{const k=(T*1.2+i*.2)%1;d.position.y=3.2-k*3.1;d.position.z=.35+k*.9}));
+  [['FREUD POUR LES NULS',.5],['ISO 45001 EN BD',1.55],['MOI AUSSI J’AI DES SOUCIS',2.6]].forEach(([t,y])=>{const l=labelPlane(t,1.5,.2,{bg:'#fffaf0',border:'#8d5524',fg:'#5a3b00',size:30});l.position.set(0,y-.06,.4);bk.add(l)});
 
-  const wl=labelPlane('DOUCHE RÉSERVÉE AUX IDÉES NOIRES',2.8,.55,{bg:'#fffaf0',border:'#1c7ed6',fg:'#1c7ed6',size:52});wl.position.set(0,5.4,.1);sh.add(wl);
+  const cat=new THREE.Group();cat.position.set(.2,4.6,0);bk.add(cat);const ct='#e8923a';outline(mk(new THREE.SphereGeometry(.4,10,8),ct,0,.3,0,cat),1.06).scale.set(1.5,.9,.8);outline(mk(new THREE.SphereGeometry(.26,10,8),ct,.55,.55,.1,cat),1.06);[-1,1].forEach(q=>mk(new THREE.ConeGeometry(.08,.16,4),ct,.55,.8,.1+q*.14,cat));
 
-  const tb=new THREE.Group();tb.position.set(5.6,0,-4.3);s.add(tb);outline(mk(new THREE.BoxGeometry(2.4,.9,1.1),'#8d5524',0,.45,0,tb),1.04);
+  const tail=new THREE.Group();tail.position.set(-.6,.35,0);cat.add(tail);mk(new THREE.CylinderGeometry(.05,.07,.8,6),ct,-.1,.25,0,tail).rotation.z=.5;up.push((dt,T)=>{tail.rotation.z=Math.sin(T*2)*.35});
 
-  const tank=new THREE.Mesh(new THREE.BoxGeometry(2,1.2,.9),new THREE.MeshBasicMaterial({color:'#74c0fc',transparent:true,opacity:.4,depthWrite:false}));tank.position.set(0,1.5,0);tb.add(tank);
+  const cl=labelPlane('« JE JUGE EN SILENCE »',1.6,.26,{bg:'#fffaf0',border:'#e8923a',fg:'#a85d00',size:34});cl.position.set(.2,5.35,.4);bk.add(cl);
 
-  const boot=mk(new THREE.BoxGeometry(.4,.45,.25),'#3b2a1a',-.4,1.4,0,tb);const fish=outline(mk(new THREE.SphereGeometry(.14,8,6),'#ff922b',0,1.6,0,tb),1.1);fish.scale.set(1.5,1,.7);
+  /* le mur du Dr : diplôme, tarif, poster d’encouragement */
 
-  up.push((dt,T)=>{fish.position.x=Math.sin(T*.9)*.7;fish.position.y=1.55+Math.sin(T*1.7)*.18;fish.rotation.y=Math.cos(T*.9)>0?0:Math.PI;boot.position.y=1.4+Math.sin(T*.8)*.12;boot.rotation.z=Math.sin(T*.6)*.4});
+  const dip=labelPlane('DIPLÔME DE PSY PAR CORRESPONDANCE',3.4,.8,{bg:'#fff7da',border:'#b8860b',fg:'#5a3b00',size:52});dip.position.set(3.2,4.6,-6.15);dip.rotation.z=.04;s.add(dip);
 
-  const lava=new THREE.Group();lava.position.set(5.8,2.15,-4.3);s.add(lava);mk(new THREE.CylinderGeometry(.22,.3,.3,10),'#495057',0,.15,0,lava);outline(mk(new THREE.CylinderGeometry(.16,.22,.9,10),'#ffa8c9',0,.75,0,lava),1.06);
+  const tar=labelPlane('SÉANCE : 18 MIN · 1 CAFÉ · CHÈQUES REFUSÉS',4.2,.55,{bg:'#17294b',border:'#efd07c',fg:'#fff3cf',size:44});tar.position.set(3.2,3.7,-6.15);s.add(tar);
 
-  const bl=[0,1,2].map(i=>mk(new THREE.SphereGeometry(.09,8,6),'#e03131',0,.6,0,lava));up.push((dt,T)=>bl.forEach((b,i)=>{b.position.y=.7+Math.sin(T*.8+i*2.1)*.28;b.position.x=Math.sin(T*.5+i)*.05}));
+  const po=labelPlane('ACCROCHE-TOI, VENDREDI APPROCHE',2.2,1.5,{bg:'#bde0fe',border:'#1c7ed6',fg:'#1c4a7a',size:46});po.position.set(.1,3.4,-6.15);po.rotation.z=-.03;s.add(po);
 
-  const ch=new THREE.Group();ch.position.set(-5.2,0,-2.9);ch.rotation.y=.5;s.add(ch);outline(mk(new THREE.BoxGeometry(1.1,.18,1),'#6b3a1e',0,.8,0,ch),1.04);outline(mk(new THREE.BoxGeometry(1.1,1.3,.16),'#6b3a1e',0,1.4,-.45,ch),1.04);[[-.45,-.4],[.45,-.4],[-.45,.4],[.45,.4]].forEach(([x,z])=>mk(new THREE.BoxGeometry(.1,.8,.1),'#6b3a1e',x,.4,z,ch));
+  /* la porte de l’appartement */
 
-  const bone='#f1f3f5',sk=new THREE.Group();sk.position.set(0,.9,0);ch.add(sk);outline(mk(new THREE.SphereGeometry(.28,10,8),bone,0,1.6,-.1,sk),1.06);mk(new THREE.SphereGeometry(.06,6,5),'#111',-.1,1.65,.12,sk);mk(new THREE.SphereGeometry(.06,6,5),'#111',.1,1.65,.12,sk);
+  const dr=new THREE.Group();dr.position.set(8.2,0,-6.1);s.add(dr);outline(mk(new THREE.BoxGeometry(2.2,4.3,.2),'#f8f9fa',0,2.15,0,dr),1.02);outline(mk(new THREE.BoxGeometry(1.8,4,.14),'#6b3a1e',0,2,.1,dr),1.02);mk(new THREE.SphereGeometry(.1,8,6),'#fcc419',.65,2,.25,dr);mk(new THREE.CylinderGeometry(.06,.06,.06,8),'#222',0,3.2,.2,dr).rotation.x=Math.PI/2;
 
-  outline(mk(new THREE.SphereGeometry(.34,10,6,0,Math.PI*2,0,Math.PI/2),'#ffd43b',0,1.72,-.1,sk),1.05);[0,.16,.32].forEach(y=>mk(new THREE.BoxGeometry(.55-y*.4,.07,.2),bone,0,1.2-y,-.1,sk));mk(new THREE.BoxGeometry(.1,.5,.1),bone,0,.65,-.1,sk);[-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.09,.55,.09),bone,q*.28,.3,.4,sk).rotation.x=-1.2;mk(new THREE.BoxGeometry(.09,.6,.09),bone,q*.34,1.0,.05,sk).rotation.z=q*.4});
+  const nu=labelPlane('2B',.5,.4,{bg:'#fffaf0',border:'#6b3a1e',fg:'#6b3a1e',size:60});nu.position.set(0,2.7,.2);dr.add(nu);const ds=labelPlane('CABINET DU DR DYLAN · SONNEZ DEUX FOIS',2.6,.5,{bg:'#fffaf0',border:'#b8860b',fg:'#5a3b00',size:38});ds.position.set(0,4.75,.2);dr.add(ds);
 
-  const pl=labelPlane('PATIENT PRÉCÉDENT · TOUJOURS EN ATTENTE',3.2,.5,{bg:'#fffaf0',border:'#868e96',fg:'#495057',size:50});pl.position.set(0,3.4,0);ch.add(pl);
+  const mat0=mk(new THREE.BoxGeometry(1.6,.04,.9),'#c0392b',0,.02,1.1,dr);const ml=labelPlane('ESSUYEZ VOS SOUCIS',1.4,.3,{bg:'#c0392b',border:'#c0392b',fg:'#fff3cf',size:34});ml.rotation.x=-Math.PI/2;ml.position.set(0,.05,1.1);dr.add(ml);
 
-  const fo=new THREE.Group();fo.position.set(-2.8,0,-5);s.add(fo);[-.12,.12].forEach(x=>mk(new THREE.CylinderGeometry(.03,.03,1.3,5),'#ff8fb3',x,.65,0,fo));outline(mk(new THREE.SphereGeometry(.5,10,8),'#ff8fb3',0,1.5,0,fo),1.05).scale.set(1.2,.8,.8);const nk=mk(new THREE.CylinderGeometry(.06,.06,1.1,6),'#ff8fb3',.5,2.1,0,fo);nk.rotation.z=-.4;outline(mk(new THREE.SphereGeometry(.17,8,6),'#ff8fb3',.75,2.65,0,fo),1.06);mk(new THREE.ConeGeometry(.07,.3,5),'#222',1,2.62,0,fo).rotation.z=-Math.PI/2;
+  const hh=outline(mk(new THREE.SphereGeometry(.34,10,6,0,Math.PI*2,0,Math.PI/2),'#ffd43b',-1.5,3.1,.2,dr),1.06);mk(new THREE.BoxGeometry(.06,.3,.06),'#6b3a1e',-1.5,3.3,.1,dr);
 
-  const disco=new THREE.Mesh(new THREE.IcosahedronGeometry(.75,1),new THREE.MeshToonMaterial({color:'#dee2e6',flatShading:true}));disco.position.set(0,8,-3);s.add(disco);mk(new THREE.CylinderGeometry(.02,.02,4,5),'#868e96',0,10,-3,s);up.push((dt,T)=>{disco.rotation.y=T*1.4});
+  /* tapis, lampadaire à franges, monstera, guéridon à doléances */
+
+  const ru=new THREE.Group();ru.position.set(1.4,.03,-2.4);s.add(ru);[[4.2,'#a93226'],[3.5,'#f1c40f'],[2.8,'#a93226'],[2.1,'#e8d9a8']].forEach(([r,c],i)=>{const m=mk(new THREE.CylinderGeometry(r,r,.03+i*.004,32),c,0,0,0,ru);m.castShadow=false});
+
+  const lp=new THREE.Group();lp.position.set(5.6,0,-5);s.add(lp);mk(new THREE.CylinderGeometry(.35,.4,.1,10),'#333',0,.05,0,lp);mk(new THREE.CylinderGeometry(.04,.04,3.4,6),'#333',0,1.7,0,lp);outline(mk(new THREE.CylinderGeometry(.5,.8,.9,12,1,true),'#f5cba7',0,3.7,0,lp),1.03).material.side=THREE.DoubleSide;
+
+  for(let i=0;i<14;i++){const a=i/14*Math.PI*2;mk(new THREE.SphereGeometry(.05,5,4),'#c0572f',Math.cos(a)*.78,3.2,Math.sin(a)*.78,lp)}const lg=glowCone('#fff1b8',1.6,3,.18);lg.position.y=2;lg.rotation.x=Math.PI;lp.add(lg);up.push((dt,T)=>{lg.material.opacity=.16+Math.sin(T*23)*.01});lp.traverse(o=>{o.castShadow=false});
+
+  const mo=new THREE.Group();mo.position.set(6.9,0,-4.4);s.add(mo);outline(mk(new THREE.CylinderGeometry(.5,.38,.7,10),'#c2693a',0,.35,0,mo),1.05);[[0,1.6,0,.9],[.6,1.4,.2,.7],[-.6,1.5,-.1,.75],[.2,2.1,.3,.7],[-.3,2.0,-.3,.65]].forEach(([x,y,z,r],i)=>{const l=outline(mk(new THREE.SphereGeometry(r*.55,8,6),'#2f9e44',x,y,z,mo),1.05);l.scale.set(1.2,.2,1);l.rotation.set(.4+i*.1,i,.5-i*.2)});
+
+  const gu=new THREE.Group();gu.position.set(-2.4,0,-3.7);s.add(gu);outline(mk(new THREE.CylinderGeometry(.5,.5,.06,16),'#6b3a1e',0,.8,0,gu),1.04);mk(new THREE.CylinderGeometry(.07,.07,.8,6),'#4a2a12',0,.4,0,gu);mk(new THREE.CylinderGeometry(.32,.32,.05,12),'#4a2a12',0,.02,0,gu);
+
+  outline(mk(new THREE.BoxGeometry(.5,.3,.34),'#f8f9fa',-.15,1.0,0,gu),1.05);mk(new THREE.BoxGeometry(.3,.18,.03),'#ffffff',-.15,1.2,0,gu).rotation.z=.2;outline(mk(new THREE.CylinderGeometry(.1,.08,.16,8),'#ffffff',.25,.92,.1,gu),1.08);
+
+  const bo=outline(mk(new THREE.BoxGeometry(.5,.4,.4),'#e03131',.1,1.05,-.2,gu),1.05);mk(new THREE.BoxGeometry(.3,.04,.04),'#111',.1,1.26,-.2,gu);const bl=labelPlane('BOÎTE À DOLÉANCES',.9,.2,{bg:'#fffaf0',border:'#e03131',fg:'#e03131',size:28});bl.position.set(.1,1.05,.01);gu.add(bl);
 
   return up}};
 
@@ -8559,33 +8573,84 @@ async function platformSection(n){
 /* ================= MINI-JEU : L'ÉCOUTE ACTIVE (§4.1 le topo du DG en transat, §4.2 les parties intéressées sur le divan) =================
    Un personnage parle, tu sélectionnes la bonne case ou la bonne note. Chaque série réussie à 60 % récolte l'information documentée. */
 
+/* allonge un personnage sur le dos (tête vers -z) dans un repère parent ; ry le tourne autour de la verticale */
+function allonger(parent,p,x,y,z,ry){const w=new THREE.Group();w.position.set(x,y+.38*p.scale.x,z);w.rotation.y=ry||0;parent.add(w);p.rotation.set(-Math.PI/2,0,0);p.position.set(0,0,0);w.add(p);return w}
+
+/* anime un personnage allongé qui parle (nouveau rig : clip « Idle_Talking_Loop » ; ancien : pose simple) */
+const parler=(p,T)=>animPerson(p,p.userData.rig&&p.userData.rig.nouveau?'talk':'idle',T);
+
+/* assoit Dylan : clip assis, bassin à hauteur d'assise (0,5 pour une assise standard) */
+function asseoir(p,x,y,z,ry,talk){p.position.set(x,y,z);p.rotation.set(0,ry,0);const R=p.userData.rig;if(R&&R.nouveau&&window.TALAS_PERSO)TALAS_PERSO.jouer(R.model,talk?'Sitting_Talking_Loop':'Sitting_Idle_Loop',{fondu:0});else animPerson(p,'idle',0)}
+
+/* squelette articulé : bassin, colonne, côtes, crâne à mâchoire, bras et jambes à coudes et genoux ; assis, face à +z */
+function makeSkeleton(){
+
+  const g=new THREE.Group(),J={},B='#f4f1e6',bone=(a,b,r=.05,par=g)=>{const A=new THREE.Vector3(...a),Bv=new THREE.Vector3(...b),L=A.distanceTo(Bv),m=outline(mk(new THREE.CylinderGeometry(r,r,L,6),B,0,0,0,par),1.12);m.position.copy(A).add(Bv).multiplyScalar(.5);m.quaternion.setFromUnitVectors(V(0,1,0),Bv.clone().sub(A).normalize());return m},ball=(x,y,z,r,par=g)=>outline(mk(new THREE.SphereGeometry(r,8,6),B,x,y,z,par),1.1);
+
+  outline(mk(new THREE.BoxGeometry(.5,.16,.3),B,0,0,0,g),1.06);bone([0,.05,0],[0,.9,0],.045);
+
+  [.38,.5,.62,.74].forEach((y,i)=>{const t=new THREE.Mesh(new THREE.TorusGeometry(.22-i*.015,.028,5,14),mat(B));t.position.set(0,y,0);t.rotation.x=Math.PI/2;t.scale.y=.75;t.castShadow=true;g.add(t)});
+
+  bone([-.34,.92,0],[.34,.92,0],.04);
+
+  J.head=new THREE.Group();J.head.position.set(0,.98,0);g.add(J.head);
+
+  bone([0,-.02,0],[0,.14,0],.04,J.head);outline(mk(new THREE.SphereGeometry(.25,12,10),B,0,.4,0,J.head),1.06);
+
+  J.jaw=new THREE.Group();J.jaw.position.set(0,.28,.1);J.head.add(J.jaw);outline(mk(new THREE.BoxGeometry(.26,.09,.2),B,0,-.04,.05,J.jaw),1.08);
+
+  [-1,1].forEach(q=>mk(new THREE.SphereGeometry(.06,8,6),'#16121c',q*.1,.45,.2,J.head));mk(new THREE.ConeGeometry(.04,.1,4),'#16121c',0,.36,.24,J.head).rotation.x=Math.PI;
+
+  outline(mk(new THREE.SphereGeometry(.31,12,8,0,Math.PI*2,0,Math.PI/2),'#ffd43b',0,.5,0,J.head),1.05);
+
+  [-1,1].forEach(q=>{
+
+    const hip=new THREE.Group();hip.position.set(q*.14,0,0);g.add(hip);bone([0,0,0],[0,0,.6],.05,hip);
+
+    J['kn'+q]=new THREE.Group();J['kn'+q].position.set(0,0,.6);hip.add(J['kn'+q]);ball(0,0,0,.065,J['kn'+q]);bone([0,0,0],[0,-.56,0],.045,J['kn'+q]);outline(mk(new THREE.BoxGeometry(.14,.07,.3),B,0,-.6,.1,J['kn'+q]),1.08);
+
+    const sh=new THREE.Group();sh.position.set(q*.34,.92,0);g.add(sh);ball(0,0,0,.07,sh);
+
+    J['el'+q]=new THREE.Group();J['el'+q].position.set(0,-.42,0);sh.add(J['el'+q]);bone([0,0,0],[0,.42,0],.04,sh).position.y-=.21;
+
+    ball(0,0,0,.055,J['el'+q]);J['fa'+q]=bone([0,0,0],[0,0,.38],.036,J['el'+q]);J['ha'+q]=ball(0,0,.42,.07,J['el'+q]);J['sh'+q]=sh
+
+  });
+
+  J.el1.rotation.x=-1.25;J.el1.parent.rotation.x=0;J['el-1'].rotation.x=-1.25;
+
+  g.userData.j=J;return g}
+
+/* animation douce du squelette : tête qui penche, mâchoire qui claque, pied et doigts qui tapent */
+function skeletonLife(g,T){const J=g.userData.j;J.head.rotation.z=Math.sin(T*.7)*.12;J.head.rotation.x=Math.sin(T*.4)*.06;J.jaw.rotation.x=Math.max(0,Math.sin(T*3.1))*.35*(Math.sin(T*.5)>.6?1:0);J.kn1.rotation.x=Math.sin(T*5)*.18;J['ha-1'].position.y=Math.abs(Math.sin(T*7))*.03}
+
 function stageSwot(R){
 
   const g=new THREE.Group();g.position.set(.8,0,-1.3);g.rotation.y=-1.15;R.stage.add(g);
 
-  outline(mk(new THREE.CylinderGeometry(2.7,2.7,.06,28),'#ff8787',0,.03,0,g),1.02);
+  outline(mk(new THREE.CylinderGeometry(2.9,2.9,.05,28),'#ff8787',0,.03,0,g),1.02);
 
-  const sl=new THREE.Group();sl.position.set(0,.72,0);sl.rotation.x=.45;g.add(sl);
+  const sl=new THREE.Group();sl.position.set(0,.8,-.1);sl.rotation.x=.42;g.add(sl);
 
-  for(let i=0;i<7;i++)mk(new THREE.BoxGeometry(1.7,.07,.42),i%2?'#ffffff':'#1c7ed6',0,0,(i-3)*.42,sl);
+  for(let i=0;i<10;i++)mk(new THREE.BoxGeometry(1.7,.07,.41),i%2?'#ffffff':'#1c7ed6',0,0,(i-4.5)*.41,sl);
 
-  [-1,1].forEach(q=>mk(new THREE.BoxGeometry(.1,.1,3.1),'#8d5524',q*.93,-.02,0,sl));
+  [-1,1].forEach(q=>mk(new THREE.BoxGeometry(.1,.1,3.8),'#8d5524',q*.93,-.02,0,sl));
 
-  [-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.1,1.5,.1),'#8d5524',q*.93,.62,-1.25,g);mk(new THREE.BoxGeometry(.1,.5,.1),'#8d5524',q*.93,.24,1.2,g)});
+  const pil=outline(mk(new THREE.BoxGeometry(1.1,.2,.5),'#fff3bf',0,.14,-1.55,sl),1.06);pil.rotation.x=.1;
 
-  const ceo=makeCEO();ceo.position.set(0,.18,.1);sl.add(ceo);
+  [-1,1].forEach(q=>{mk(new THREE.BoxGeometry(.1,1.6,.1),'#8d5524',q*.93,.7,-1.65,g).rotation.x=.08;mk(new THREE.BoxGeometry(.1,.55,.1),'#8d5524',q*.93,.27,1.55,g)});
 
-  const pole=mk(new THREE.CylinderGeometry(.05,.05,3.6,8),'#f1f3f5',1.7,1.8,-1.6,g);
+  const ceo=makeCEO();allonger(sl,ceo,0,.05,1.55,0);
 
-  for(let i=0;i<8;i++){const w=new THREE.Mesh(new THREE.ConeGeometry(2.3,.9,8,1,true,i*Math.PI/4,Math.PI/4),mat(i%2?'#ffffff':'#e03131'));w.material.side=THREE.DoubleSide;w.position.set(1.7,3.7,-1.6);w.castShadow=true;g.add(w)}
+  mk(new THREE.CylinderGeometry(.05,.05,3.6,8),'#f1f3f5',1.9,1.8,-1.4,g);
 
-  const tb=new THREE.Group();tb.position.set(-1.9,0,.9);g.add(tb);mk(new THREE.CylinderGeometry(.5,.5,.06,16),'#f1f3f5',0,.78,0,tb);mk(new THREE.CylinderGeometry(.06,.06,.78,8),'#868e96',0,.39,0,tb);mk(new THREE.CylinderGeometry(.3,.3,.04,14),'#868e96',0,.02,0,tb);
+  for(let i=0;i<8;i++){const w=new THREE.Mesh(new THREE.ConeGeometry(2.3,.9,8,1,true,i*Math.PI/4,Math.PI/4),mat(i%2?'#ffffff':'#e03131'));w.material.side=THREE.DoubleSide;w.position.set(1.9,3.7,-1.4);w.castShadow=true;g.add(w)}
+
+  const tb=new THREE.Group();tb.position.set(-2.2,0,.6);g.add(tb);mk(new THREE.CylinderGeometry(.5,.5,.06,16),'#f1f3f5',0,.78,0,tb);mk(new THREE.CylinderGeometry(.06,.06,.78,8),'#868e96',0,.39,0,tb);mk(new THREE.CylinderGeometry(.3,.3,.04,14),'#868e96',0,.02,0,tb);
 
   outline(mk(new THREE.CylinderGeometry(.2,.05,.42,12),'#d0ebff',0,1.02,0,tb),1.08);mk(new THREE.CylinderGeometry(.17,.06,.3,12),'#ff922b',0,1.0,0,tb);mk(new THREE.BoxGeometry(.03,.4,.03),'#e03131',.06,1.35,0,tb).rotation.z=-.25;mk(new THREE.TorusGeometry(.17,.03,6,14),'#fcc419',.02,1.26,0,tb).rotation.x=Math.PI/2;
 
-  /* tableau SWOT : les notes se collent à chaque bonne case */
-
-  const bd=new THREE.Group();bd.position.set(-5.3,0,-2.2);bd.rotation.y=.4;R.stage.add(bd);
+  const bd=new THREE.Group();bd.position.set(-5.6,0,-2.4);bd.rotation.y=.4;R.stage.add(bd);
 
   outline(mk(new THREE.BoxGeometry(3.8,2.8,.14),'#f8f9fa',0,2.6,0,bd),1.03);[-1.5,1.5].forEach(x=>mk(new THREE.BoxGeometry(.12,1.2,.12),'#868e96',x,.6,0,bd));
 
@@ -8595,37 +8660,49 @@ function stageSwot(R){
 
   Object.values(Q).forEach(([t,c,x,y])=>{const l=labelPlane(t,1.7,.4,{bg:'#fffaf0',border:c,fg:c,size:64});l.position.set(x,y+.45,.1);bd.add(l)});
 
-  const up=(dt,T)=>animPerson(ceo,'lie',T);
-
-  return {up,note(k){const q=Q[k],i=cnt[k]++,col=['#ffd43b','#ff8787','#74c0fc','#8ce99a'][i%4];const m=mk(new THREE.BoxGeometry(.5,.4,.03),col,q[2]-.45+(i%2)*.55,q[3]-.05-Math.floor(i/2)*.45,.1,bd);m.rotation.z=(i%3-1)*.08;m.castShadow=false},
-
-    off(){R.stage.remove(g);R.stage.remove(bd)}}}
+  return {up:(dt,T)=>parler(ceo,T),note(k){const q=Q[k],i=cnt[k]++,col=['#ffd43b','#ff8787','#74c0fc','#8ce99a'][i%4];const m=mk(new THREE.BoxGeometry(.5,.4,.03),col,q[2]-.45+(i%2)*.55,q[3]-.05-Math.floor(i/2)*.45,.1,bd);m.rotation.z=(i%3-1)*.08;m.castShadow=false},off(){R.stage.remove(g);R.stage.remove(bd)}}}
 
 function stagePsy(R){
 
-  const g=new THREE.Group();g.position.set(1,0,-3);g.rotation.y=-.25;R.stage.add(g);
+  /* divan léopard, tête à gauche ; fauteuil du Dr à son chevet ; squelette en salle d'attente sur son tabouret */
 
-  outline(mk(new THREE.BoxGeometry(3.6,.5,1.5),'#2f6f6a',0,.5,0,g),1.04);outline(mk(new THREE.BoxGeometry(3.3,.3,1.3),'#e8b86a',0,.9,0,g),1.04);
+  const g=new THREE.Group();g.position.set(2.6,0,-3.2);g.rotation.y=-.12;R.stage.add(g);
 
-  [[-1.6,.6],[1.6,.6],[-1.6,-.6],[1.6,-.6]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.09,.07,.3,8),'#6b3a1e',x,.15,z,g));
+  outline(mk(new THREE.BoxGeometry(3.7,.46,1.5),'#7b3f1d',0,.45,0,g),1.04);outline(mk(new THREE.BoxGeometry(3.5,.22,1.3),'#e8b86a',0,.79,0,g),1.04);
 
-  const rl=mk(new THREE.CylinderGeometry(.38,.38,1.5,14),'#2f6f6a',-1.8,1.05,0,g);rl.rotation.x=Math.PI/2;outline(rl,1.05);
+  [[-1.7,.6],[1.7,.6],[-1.7,-.6],[1.7,-.6]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.09,.07,.22,8),'#4a2a12',x,.11,z,g));
 
-  const pil=mk(new THREE.CylinderGeometry(.28,.28,1.1,12),'#f1e4c3',-1.35,1.25,0,g);pil.rotation.x=Math.PI/2;
+  [[-.9,.2],[.3,-.3],[1.1,.3],[-.2,.35],[.7,-.1],[1.4,-.35]].forEach(([x,z])=>{const sp=mk(new THREE.SphereGeometry(.13,6,5),'#4a2a12',x,.91,z,g);sp.scale.set(1.4,.25,1);sp.castShadow=false});
 
-  [[-.9,.2],[.4,-.3],[1.2,.3],[-.2,.35],[.9,-.1]].forEach(([x,z],k)=>{const sp=mk(new THREE.SphereGeometry(.13,6,5),'#5a3a1e',x,1.06,z,g);sp.scale.set(1.4,.25,1)});
+  const rl=mk(new THREE.CylinderGeometry(.38,.38,1.5,14),'#7b3f1d',-1.85,1.0,0,g);rl.rotation.x=Math.PI/2;outline(rl,1.05);
 
-  outline(mk(new THREE.BoxGeometry(.9,.55,.6),'#f8f9fa',-1.2,1.2,.95,g),1.05);mk(new THREE.BoxGeometry(.4,.3,.05),'#ffffff',-1.2,1.6,.95,g);
+  const pil=mk(new THREE.CylinderGeometry(.27,.27,1.0,12),'#f1e4c3',-1.2,1.08,0,g);pil.rotation.x=Math.PI/2;outline(pil,1.05);
 
-  const dy=R.dylan,dyPos=dy.position.clone(),dyRot=dy.rotation.y;dy.position.set(-1.9,0,-1.5);dy.rotation.y=Math.PI/2-.2;
+  [['#c0392b',.9],['#2e86c1',1.1],['#27ae60',1.3]].forEach(([c,x],i)=>mk(new THREE.BoxGeometry(.18,.05,1.3),c,x+.3+i*.18-.3,.93,0,g));
 
-  const nb=mk(new THREE.BoxGeometry(.5,.7,.05),'#fff3bf',-1.25,1.6,-1.5,R.stage);nb.rotation.set(-.3,Math.PI/2-.2,0);
+  const chair=new THREE.Group();chair.position.set(-1.0,0,-2.4);R.stage.add(chair);
 
-  let who=null;
+  outline(mk(new THREE.BoxGeometry(1.5,.22,1.4),'#d9822b',0,.4,0,chair),1.04);outline(mk(new THREE.BoxGeometry(.2,1.5,1.4),'#d9822b',-.65,1.1,0,chair),1.04);[-1,1].forEach(q=>outline(mk(new THREE.BoxGeometry(1.5,.5,.2),'#d9822b',0,.7,q*.66,chair),1.04));[[-.6,-.6],[.6,-.6],[-.6,.6],[.6,.6]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.08,.05,.3,6),'#4a2a12',x,.15,z,chair));
 
-  const lieOn=(p)=>{if(who)g.remove(who);who=p;p.rotation.y=Math.PI/2;g.add(p);animPerson(p,'lie',0);p.position.set(.1,.98,0)};
+  const dy=R.dylan;asseoir(dy,-.85,.02,-2.4,Math.PI/2,1);
 
-  return {up:(dt,T)=>{if(who)animPerson(who,'lie',T)},lie:lieOn,off(){R.stage.remove(g);R.stage.remove(nb);dy.position.copy(dyPos);dy.rotation.y=dyRot}}}
+  const nb=outline(mk(new THREE.BoxGeometry(.55,.04,.7),'#fff3bf',-.2,.95,-2.4,R.stage),1.06);nb.rotation.set(0,0,.35);
+
+  const gl=new THREE.Group();gl.position.set(-.55,2.05,-2.4);R.stage.add(gl);[-1,1].forEach(q=>mk(new THREE.TorusGeometry(.13,.025,6,14),'#222',0,0,q*.17,gl).rotation.y=Math.PI/2);
+
+  const sk=makeSkeleton();const stool=new THREE.Group();stool.position.set(-4.9,0,-2.7);stool.rotation.y=.35;R.stage.add(stool);
+
+  outline(mk(new THREE.CylinderGeometry(.55,.55,.1,12),'#8d5524',0,.7,0,stool),1.05);[[-.35,-.25],[.35,-.25],[0,.4]].forEach(([x,z])=>mk(new THREE.CylinderGeometry(.05,.04,.7,6),'#5a3a1e',x,.35,z,stool));
+
+  sk.position.set(0,.76,-.05);stool.add(sk);
+
+  const mag=mk(new THREE.BoxGeometry(.5,.04,.38),'#e8590c',0,0,0,sk.userData.j['ha1']);mag.position.set(.0,.05,.15);const ml=labelPlane('PSYCHOLOGIES 1987',.5,.12,{bg:'#fff',border:'#e8590c',fg:'#e8590c',size:28});ml.rotation.x=-Math.PI/2;ml.position.set(0,.07,.15);sk.userData.j['ha1'].add(ml);
+
+  const pl=labelPlane('PATIENT PRÉCÉDENT · TOUJOURS EN ATTENTE',3.2,.45,{bg:'#fffaf0',border:'#868e96',fg:'#495057',size:46});pl.position.set(0,2.8,0);stool.add(pl);
+
+  const wp=[];const lieOn=(p)=>{if(wp[0])wp[0].parent.remove(wp[0]);wp[0]=allonger(g,p,.95,.9,0,Math.PI/2);wp[1]=p};
+
+  return {up:(dt,T)=>{if(wp[1])parler(wp[1],T);skeletonLife(sk,T)},lie:lieOn,off(){R.stage.remove(g);R.stage.remove(chair);R.stage.remove(nb);R.stage.remove(gl);R.stage.remove(stool)}}}
 
 const SWOT_O=[{k:'F',t:'FORCE',i:'interne · positif'},{k:'W',t:'FAIBLESSE',i:'interne · négatif'},{k:'O',t:'OPPORTUNITÉ',i:'externe · positif'},{k:'T',t:'MENACE',i:'externe · négatif'}];
 
