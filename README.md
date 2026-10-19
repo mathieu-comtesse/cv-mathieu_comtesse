@@ -13,3 +13,5 @@ Q/D ou flèches : marcher ; Maj : courir ; E : ouvrir l’atelier ; M : carnet. 
 La refonte contient sept chapitres, quinze activités, des personnages animés et les dialogues Talas. Son rendu reste en cours d’amélioration.
 
 [Consulter les sources Unity et les contrôles de la refonte](https://github.com/mathieu-comtesse/cv-mathieu_comtesse/tree/feat/talas-unity-refonte/talas-unity)
+
+[Pipeline Blender vers Unity et style peint](talas-unity-style/README.md)
