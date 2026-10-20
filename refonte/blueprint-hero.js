@@ -141,7 +141,7 @@ export function initBlueprint(canvas, host) {
   }
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const goal = { x: 0, y: 0 };
-  addEventListener('pointermove', (e) => { goal.x = (e.clientX / innerWidth - .5) * 2; goal.y = (e.clientY / innerHeight - .5) * 2; });
+  // la souris ne déplace plus le plan : seules les règles agissent sur la vue
   function loop() {
     raf = requestAnimationFrame(loop);
     if (!visible || document.hidden || host.style.opacity === '0.000') return;

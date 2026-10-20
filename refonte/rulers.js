@@ -5,7 +5,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function initRulers(onView) {
   let rot = 0, tilt = 0;
-  const LIM = 250, DEG_PER_PX = .36, EL_PER_PX = .16, EL0 = 26;
+  const LIM = 250, DEG_PER_PX = .36, EL0 = 26;
   let ac = null, lastTick = 0;
   const tick = (major) => {
     if (reduced) return;
@@ -36,7 +36,7 @@ export function initRulers(onView) {
     if (!moved) for (const k of ['r', 't']) lastIdx[k] = Math.floor(curVal(k) / 5);
     document.getElementById('rf-track').style.transform = 'translateY(' + tilt + 'px)';   // les graduations défilent sous le repère fixe
     document.getElementById('rf-track-h').style.transform = 'translateX(' + rot + 'px)';
-    onView({ rot, tilt, yaw: (36 + rot * DEG_PER_PX) * DEG, pitch: Math.min(82, Math.max(6, EL0 + tilt * EL_PER_PX)) * DEG });
+    onView({ rot, tilt, yaw: (36 + rot * DEG_PER_PX) * DEG, pitch: (tilt >= 0 ? EL0 + tilt * (82 - EL0) / LIM : EL0 + tilt * (EL0 - 6) / LIM) * DEG });
   }
   function buildTicks(track, horizontal) {
     const frag = document.createDocumentFragment();
