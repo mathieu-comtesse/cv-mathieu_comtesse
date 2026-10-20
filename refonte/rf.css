@@ -478,3 +478,17 @@ html body.rf-post-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-san
 @media (max-width:760px){.rf .rf-tirelire .annual-gains,.rf .rf-tirelire .automation-cascade{padding:18px 16px}}
 .rf .rf-tirelire .strip-head>.pro-gains-title{order:-1}
 .rf .rf-tirelire .annual-gains,.rf .rf-tirelire .automation-cascade{width:100%;max-width:none;box-sizing:border-box}
+
+/* ---- intro d'ouverture ---- */
+.rf-intro{position:fixed;inset:0;z-index:200;background:#02050c;display:grid;place-items:center;opacity:1;transition:opacity 1.5s cubic-bezier(.4,0,.2,1) .1s}
+.rf-intro-in{display:grid;gap:18px;justify-items:center}
+.rf-intro-name{font:500 12px/1 var(--rf-mono);letter-spacing:.34em;text-transform:uppercase;color:#a9bde4;animation:rf-intro-name 1.2s ease both}
+.rf-intro-bar{position:relative;display:block;width:min(240px,60vw);height:1px;background:rgb(169 189 228 / .18);overflow:hidden}
+.rf-intro-bar i{position:absolute;inset:0;background:linear-gradient(90deg,transparent,#fff 45%,#fff 55%,transparent);transform:translateX(-100%);animation:rf-intro-bar 1.4s cubic-bezier(.5,0,.2,1) infinite}
+@keyframes rf-intro-name{from{opacity:0;transform:translateY(6px);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes rf-intro-bar{to{transform:translateX(100%)}}
+.rf-intro.rf-intro-out{opacity:0;pointer-events:none}
+/* la pièce ne « pop » plus : elle se fond après le plan */
+.rf .rf-room{opacity:0;transition:opacity 1.8s cubic-bezier(.3,.6,.2,1) .7s}
+.rf .rf-room.rf-room-in{opacity:1}
+@media (prefers-reduced-motion:reduce){.rf-intro,.rf .rf-room{transition:none}.rf-intro-name,.rf-intro-bar i{animation:none}}

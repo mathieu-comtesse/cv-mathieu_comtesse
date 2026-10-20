@@ -15,7 +15,8 @@ const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const DEG = Math.PI / 180;
 initUI();
-initHome();                          // tirelire des gains (code réel du site) dans #work
+// la tirelire des gains (code réel du site) est lancée après l'intro : son rendu 3D ne doit pas figer l'ouverture
+const startHome = () => { try { initHome(); } catch (e) { console.error(e); } };
 
 /* ---------------------------------------------------------------- plan + pièce */
 let sceneMuted = false;
@@ -99,10 +100,35 @@ const refreshMute = () => { muteButton.setAttribute('aria-pressed', String(scene
 muteButton.addEventListener('click', () => { sceneMuted = !sceneMuted; try { localStorage.setItem('scene-muted', sceneMuted ? '1' : '0'); } catch {} refreshMute(); });
 refreshMute();
 document.addEventListener('project-workshop', (e) => { if (e.detail.open) room?.pauseAutonomy(3600000); else room?.pauseAutonomy(3000); });
-createRoom($('room'), $('bubble')).then((r) => { window.room = room = r; perspectivize(room.camera); bp.link(room.camera); refreshMute(); lockView(); onScroll(); }).catch((e) => {
-  console.error(e);
-  $('room').insertAdjacentHTML('beforeend', '<p class="hint">La pièce 3D ne peut pas s’afficher sur cet appareil.</p>');
-});
+/* ---------------------------------------------------------------- intro : voile, chargement de la pièce, dévoilement
+   Le voile est animé en CSS (il continue de bouger même si le navigateur est occupé). La pièce est chargée derrière lui, après
+   un premier affichage ; le plan blueprint n'est relié à sa caméra qu'une fois la pièce prête, pour éviter le saut de zoom.
+   Au dévoilement : le plan apparaît d'abord, la caméra recule puis avance (dolly), la pièce se fond ensuite, puis le titre. */
+const intro = $('rf-intro'), roomEl = $('room'), t0 = performance.now(), MIN_INTRO = reduced ? 0 : 1300;
+let revealed = false;
+function reveal() {
+  if (revealed) return; revealed = true;
+  const wait = Math.max(0, MIN_INTRO - (performance.now() - t0));
+  setTimeout(() => {
+    intro.classList.add('rf-intro-out');
+    document.body.classList.remove('rf-loading');
+    roomEl.classList.add('rf-room-in');
+    setTimeout(() => caption.classList.add('rf-in'), reduced ? 0 : 900);
+    setTimeout(() => { intro.remove(); startHome(); }, reduced ? 0 : 2200);
+  }, wait);
+}
+requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => {
+  createRoom(roomEl, $('bubble')).then((r) => {
+    window.room = room = r; perspectivize(room.camera); bp.link(room.camera); refreshMute(); lockView(); onScroll();
+    if (!reduced) { room.view.zoom = .55; room.view.az = room.view.tAz + .5; room.view.el = room.view.tEl + .12; }   // départ éloigné, la caméra se pose en douceur
+    setTimeout(reveal, 50);
+  }).catch((e) => {
+    console.error(e);
+    roomEl.insertAdjacentHTML('beforeend', '<p class="hint">La pièce 3D ne peut pas s’afficher sur cet appareil.</p>');
+    reveal();
+  });
+}, 60)));
+setTimeout(reveal, 9000);                  // filet de sécurité : l'intro ne bloque jamais la page
 
 /* ---------------------------------------------------------------- règles graduées (101 graduations, 11 repères, repère blanc fixe au centre) */
 function buildTicks(track, horizontal) {
@@ -180,7 +206,7 @@ fitAbout();
 onScroll();
 
 /* ---------------------------------------------------------------- titre : flou → net à l'arrivée */
-(document.fonts?.ready ?? Promise.resolve()).then(() => setTimeout(() => caption.classList.add('rf-in'), 150));
+
 
 /* ---------------------------------------------------------------- apparitions des autres sections */
 {
