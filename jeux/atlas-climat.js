@@ -93,13 +93,13 @@ export function creerClimat(M,R,J){
 
  const style=document.createElement('style');style.textContent=`
  [data-climat]{position:absolute;z-index:45;right:26px;top:82px;width:232px;color:#244b50;font:13px/1.4 system-ui,sans-serif;pointer-events:auto}
- [data-climat] summary{list-style:none;min-height:44px;box-sizing:border-box;padding:11px 13px;border:1px solid #46696b45;border-radius:13px;background:#faf6e7ed;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;box-shadow:0 3px 12px #153e4410}
+ [data-climat] summary{list-style:none;min-height:44px;box-sizing:border-box;padding:11px 13px;border:1px solid #46696b45;border-radius:13px;background:#faf6e7ed;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:var(--cv-action);box-shadow:0 3px 12px #153e4410}
  [data-climat] summary::-webkit-details-marker{display:none}[data-climat] summary:after{content:'+';font-size:18px}[data-climat][open] summary:after{content:'−'}
  [data-climat] time{font-variant-numeric:tabular-nums;font-size:14px;font-weight:650}[data-climat] .climat-choix{padding:12px;background:#faf6e7f5;border:1px solid #46696b35;border-top:0;border-radius:0 0 13px 13px;display:grid;gap:9px;box-shadow:0 8px 22px #153e4420}
  [data-climat][open] summary{border-radius:13px 13px 0 0}[data-climat] label{display:grid;gap:5px}[data-climat] input[type=range]{width:100%;height:30px;accent-color:#28666b;box-sizing:border-box;margin:0}
  [data-climat] select{width:100%;min-height:39px;color:#244b50;background:#fffdf3;border:1px solid #46696b55;border-radius:7px;font:inherit;padding:6px}
  [data-climat] .climat-avance{display:flex;gap:9px;align-items:center;min-height:35px}[data-climat] input[type=checkbox]{width:18px;height:18px;accent-color:#28666b}
- [data-climat] .climat-instants{display:flex;gap:7px}[data-climat] .climat-instants button{min-height:40px;flex:1;font:inherit;color:#493c2c;border:1px solid #bc9d70;border-radius:8px;background:#ead7b2;cursor:pointer;padding:7px}
+ [data-climat] .climat-instants{display:flex;gap:7px}[data-climat] .climat-instants button{min-height:40px;flex:1;font:inherit;color:#493c2c;border:1px solid #bc9d70;border-radius:8px;background:#ead7b2;cursor:var(--cv-action);padding:7px}
  [data-climat] :focus-visible{outline:2px solid #28666b;outline-offset:3px}
  @media(max-width:600px){[data-climat]{right:12px;top:79px;width:210px;font-size:12px}[data-climat] summary{min-height:44px}[data-climat] .climat-choix{max-height:calc(100dvh - 235px);overflow-y:auto}[data-climat] select{min-height:44px}}
  `;host.appendChild(style);
