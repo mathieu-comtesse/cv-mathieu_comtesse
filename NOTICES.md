@@ -13,3 +13,7 @@ Les poids du détecteur (`assets/vision/*.bin`) sont ceux publiés par Ultralyti
 ## Vidéo de démonstration
 
 « Chaîne d'embouteillage de vin effervescent » (2019), Olivier Lemoine, CC BY-SA 4.0, <https://commons.wikimedia.org/wiki/File:Cha%C3%AEne_embouteillage_effervescent.ogv>. La vidéo est lue depuis Wikimedia Commons et n'est pas copiée dans ce dépôt.
+
+## Lettres machines
+
+Les lettres de `jeux/lettres-machines-scene.html` (`jeux/lettres-machines.js`) sont dessinées par le code de ce dépôt, sans composant tiers. Le style (trait d'encre, hachures, lavis, alphabet fait de mécanismes) s'inspire des illustrations de David Macaulay dans « The Way Things Work » ; aucune image de l'ouvrage n'est reproduite.

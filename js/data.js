@@ -3,6 +3,17 @@ export const TALAS_URL = "village-talas-scene.html";
 export const CV = "jeux/";
 export const PERSO = [
  {
+  "id": "lettres",
+  "img": "assets/screenshots/lettres-v1.webp",
+  "year": 2026,
+  "n": "Lettres machines",
+  "genre": "Typographie animée",
+  "color": "#d0822a",
+  "url": "lettres-machines-scene.html",
+  "pixel": false,
+  "desc": "Un alphabet de machines dessiné à la manière des illustrations de David Macaulay : chaque lettre est un mécanisme (grue, engrenage, aimant, fermeture éclair, montgolfière…), avec plusieurs dessins par lettre. Saisir un mot, survoler ou toucher une lettre pour la mettre en marche, changer son dessin d’un maj + clic, puis exporter en SVG ou PNG."
+ },
+ {
   "id": "ligne",
   "img": "assets/screenshots/ligne-controle-v1.webp",
   "year": 2026,
