@@ -4,14 +4,14 @@ export const CV = "jeux/";
 export const PERSO = [
  {
   "id": "lettres",
-  "img": "assets/screenshots/lettres-v1.webp",
+  "img": "assets/screenshots/lettres-v2.webp",
   "year": 2026,
   "n": "Lettres machines",
-  "genre": "Typographie animée",
+  "genre": "Lettres-machines",
   "color": "#d0822a",
   "url": "lettres-machines-scene.html",
   "pixel": false,
-  "desc": "Un alphabet de machines dessiné à la manière des illustrations de David Macaulay : chaque lettre est un mécanisme (grue, engrenage, aimant, fermeture éclair, montgolfière…), avec plusieurs dessins par lettre. Saisir un mot, survoler ou toucher une lettre pour la mettre en marche, changer son dessin d’un maj + clic, puis exporter en SVG ou PNG."
+  "desc": "Un alphabet de machines dessiné à la manière des illustrations de David Macaulay : chaque lettre est un mécanisme (grue, engrenage, aimant, montgolfière, platine vinyle, fermeture éclair, trébuchet…), avec quatre à sept dessins par lettre. Saisir un mot, survoler ou toucher une lettre pour la mettre en marche, changer son dessin d’un maj + clic, puis exporter chaque lettre en PNG transparent, sans fond."
  },
  {
   "id": "ligne",
