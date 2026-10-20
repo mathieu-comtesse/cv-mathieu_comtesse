@@ -15,3 +15,21 @@ self.addEventListener('fetch', (e) => {
     return res;
   }));
 });
+
+// Préchauffage : depuis n'importe quelle page, les modèles du décor de l'accueil sont téléchargés en tâche de fond (3 à la fois),
+// pour que l'onglet Index s'affiche instantanément quand on y revient.
+const warm = async () => {
+  try {
+    const list = [...(await (await fetch('refonte/preload.json')).json()), 'assets/room-poster.webp?v=1'];
+    const c = await caches.open(CACHE);
+    let i = 0;
+    const worker = async () => {
+      while (i < list.length) {
+        const u = list[i++];
+        try { if (!(await c.match(u))) { const r = await fetch(u); if (r.ok && r.status === 200) await c.put(u, r); } } catch {}
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+  } catch {}
+};
+self.addEventListener('message', (e) => { if (e.data === 'warm') e.waitUntil(warm()); });

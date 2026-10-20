@@ -108,8 +108,6 @@ document.addEventListener('project-workshop', (e) => { if (e.detail.open) room?.
    Le plan blueprint n'est relié à la caméra de la pièce qu'une fois celle-ci prête (pas de saut de zoom) ; la tirelire, plus lourde, se charge un peu après. */
 const roomEl = $('room');
 /* L'image d'attente (la pièce réelle, déjà rendue) s'affiche aussitôt ; elle s'efface en fondu dès que la 3D est prête. */
-// les modèles et images du décor sont gardés en cache : dès la 2e visite, la pièce s'affiche sans attente
-if ('serviceWorker' in navigator && !/^(localhost|127.)/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
 function revealRoom() {
   const poster = $('rf-room-poster'); if (!poster) return;
   setTimeout(() => { poster.style.opacity = '0'; setTimeout(() => poster.remove(), 700); }, 200);
