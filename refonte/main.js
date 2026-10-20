@@ -242,27 +242,36 @@ onScroll();
 const CARD_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.iso-plate-corners,.iso-legend,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
 {
-  const live = (wrap) => {
-    if (wrap.querySelector('iframe')) return;
-    const f = document.createElement('iframe');
-    f.className = 'rf-live'; f.scrolling = 'no'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.src = 'figures/' + wrap.dataset.fig + '.html?v=glow1';
-    f.addEventListener('load', () => {
-      const doc = f.contentDocument; if (!doc?.body) return;
-      const s = doc.createElement('style'); s.textContent = CARD_CSS; doc.head.append(s);
-      const svg = doc.querySelector('.iso-stage svg');
-      if (svg) { const b = svg.getBBox(), pad = Math.max(b.width, b.height) * 0.03; svg.setAttribute('viewBox', [b.x - pad, b.y - pad, b.width + 2 * pad, b.height + 2 * pad].join(' ')); }
+  // tuiles : la machine 3D du projet sur le plan blueprint (comme sur les pages projet), animée tant que la tuile est visible
+  const active = new Map();
+  const mount = async (wrap) => {
+    if (active.has(wrap)) return;
+    active.set(wrap, null);
+    const canvas = document.createElement('canvas'); canvas.className = 'rf-tile-3d'; canvas.setAttribute('aria-hidden', 'true'); wrap.append(canvas);
+    try {
+      const { mountTile } = await import('./m3d/tile.js');
+      const t = await mountTile(wrap.dataset.fig, canvas);
+      if (!active.has(wrap)) { t.dispose(); canvas.remove(); return; }
+      const ro = new ResizeObserver(() => t.resize()); ro.observe(canvas);
+      const t0 = performance.now(); let raf = 0;
+      const loop = () => { raf = requestAnimationFrame(loop); if (!document.hidden) t.render((performance.now() - t0) / 1000); };
+      if (reduced) t.render(6); else loop();
       wrap.classList.add('rf-on');
-    });
-    wrap.append(f);
+      active.set(wrap, { t, ro, canvas, stop: () => cancelAnimationFrame(raf) });
+    } catch (e) { console.warn('tuile 3D indisponible', e); canvas.remove(); active.delete(wrap); }
   };
-  const dead = (wrap) => { wrap.classList.remove('rf-on'); wrap.querySelector('iframe')?.remove(); };
-  if (!reduced) {
+  const unmount = (wrap) => {
+    const a = active.get(wrap); active.delete(wrap); wrap.classList.remove('rf-on');
+    if (a) { a.stop(); a.ro.disconnect(); a.t.dispose(); a.canvas.remove(); }
+  };
+  {
     const wraps = [...document.querySelectorAll('.rf-tile-bg[data-fig]')];
-    const watch = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting && !document.getElementById('rf-dialog').open) live(e.target); else if (!e.isIntersecting) dead(e.target); }), { rootMargin: '120px 0px' });
-    wraps.forEach((w) => watch.observe(w));
     const dlg = document.getElementById('rf-dialog');
-    dlg.addEventListener('toggle', () => { if (dlg.open) wraps.forEach(dead); else wraps.forEach((w) => { watch.unobserve(w); watch.observe(w); }); });
-    new MutationObserver(() => { if (dlg.open) wraps.forEach(dead); else wraps.forEach((w) => { watch.unobserve(w); watch.observe(w); }); }).observe(dlg, { attributes: true, attributeFilter: ['open'] });
+    const watch = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting && !dlg.open) mount(e.target); else if (!e.isIntersecting) unmount(e.target); }), { rootMargin: '80px 0px' });
+    wraps.forEach((w) => watch.observe(w));
+    const refresh = () => { if (dlg.open) wraps.forEach(unmount); else wraps.forEach((w) => { watch.unobserve(w); watch.observe(w); }); };
+    dlg.addEventListener('toggle', refresh);
+    new MutationObserver(refresh).observe(dlg, { attributes: true, attributeFilter: ['open'] });
   }
   // fiche : la machine complète, en pleine animation
   window.rfMountFigure = (fig) => {
