@@ -21,7 +21,7 @@ const WEEK = 5, SHOWN = 6, THRESHOLD = .8, HOLD = 4;
 export function build() {
   const g = new THREE.Group();
   g.add(bench(PLATE, { strip: { x: -120, y: PLATE.y + PLATE.d - 11, w: 120, d: 7 }, label: { x: 40, y: PLATE.y + PLATE.d - 13, w: 46, d: 10 } }));
-  for (const x of [-120, 112]) g.add(slab(x - 6, -20, 20, 24, 0, 3, COL.lo, 2), slab(x, -14, 8, 6, 3, PANEL_Z[0] - 3, COL.mid, 1));
+  for (const x of [-120, 112]) g.add(slab(x - 6, PANEL.y - 8, 20, PANEL.d + 16, 0, 3, COL.lo, 2), slab(x, PANEL.y, 8, PANEL.d, 3, PANEL_Z[0] - 3 + 1, COL.mid, 1));
   g.add(slab(PANEL.x, PANEL.y, PANEL.w, PANEL.d, PANEL_Z[0], PANEL_Z[1] - PANEL_Z[0], COL.mid, 1.6));
   g.add(slab(PANEL.x - 2, PANEL.y - 1, PANEL.w + 4, PANEL.d + 4, PANEL_Z[1], 3, COL.mid, 1.4));
   // bac : un compartiment par périmètre
