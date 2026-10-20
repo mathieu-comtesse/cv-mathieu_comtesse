@@ -1,11 +1,11 @@
-// Règles graduées (mêmes que la page d'accueil) : horizontale = « Déplacer » (glisser dans tous les sens), verticale = « Tourner ».
-// Cliquet sonore à chaque graduation. onView({ offX, offY, rot, yaw, px, py }) est appelé à chaque changement.
+// Règles graduées (mêmes que la page d'accueil) : horizontale = « Tourner » (glisser à gauche / à droite), verticale = « Incliner » (angle de vue, de bas en haut).
+// Cliquet sonore à chaque graduation. onView({ rot, tilt, yaw, pitch }) est appelé à chaque changement.
 const DEG = Math.PI / 180, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function initRulers(onView) {
-  const off = { x: 0, y: 0 }; let rot = 0;
-  const K = .06, LIM = 250, DEG_PER_PX = .36;
+  let rot = 0, tilt = 0;
+  const LIM = 250, DEG_PER_PX = .36, EL0 = 26;
   let ac = null, lastTick = 0;
   const tick = (major) => {
     if (reduced) return;
@@ -25,18 +25,18 @@ export function initRulers(onView) {
       o.connect(og).connect(ac.destination); o.start(t); o.stop(t + .03);
     } catch {}
   };
-  const lastIdx = { x: 0, y: 0, r: 0 };
-  const curVal = (k) => (k === 'r' ? rot : off[k]);
+  const lastIdx = { r: 0, t: 0 };
+  const curVal = (k) => (k === 'r' ? rot : tilt);
   function apply(moved) {
     for (const k of moved || []) {
       const idx = Math.floor(curVal(k) / 5), n = Math.min(3, Math.abs(idx - lastIdx[k]));
       for (let i = 0; i < n; i++) tick((idx - i * Math.sign(idx - lastIdx[k])) % 10 === 0);
       lastIdx[k] = idx;
     }
-    if (!moved) for (const k of ['x', 'y', 'r']) lastIdx[k] = Math.floor(curVal(k) / 5);
-    document.getElementById('rf-track').style.transform = 'translateY(' + rot + 'px)';   // les graduations défilent sous le repère fixe
-    document.getElementById('rf-track-h').style.transform = 'translateX(' + off.x + 'px)';
-    onView({ offX: off.x, offY: off.y, rot, yaw: (36 + rot * DEG_PER_PX) * DEG, px: -off.x * K, py: off.y * K });
+    if (!moved) for (const k of ['r', 't']) lastIdx[k] = Math.floor(curVal(k) / 5);
+    document.getElementById('rf-track').style.transform = 'translateY(' + tilt + 'px)';   // les graduations défilent sous le repère fixe
+    document.getElementById('rf-track-h').style.transform = 'translateX(' + rot + 'px)';
+    onView({ rot, tilt, yaw: (36 + rot * DEG_PER_PX) * DEG, pitch: (tilt >= 0 ? EL0 + tilt * (82 - EL0) / LIM : EL0 + tilt * (EL0 - 6) / LIM) * DEG });
   }
   function buildTicks(track, horizontal) {
     const frag = document.createDocumentFragment();
@@ -51,24 +51,20 @@ export function initRulers(onView) {
   }
   function drag(el, mode) {
     let d = null;
-    el.addEventListener('pointerdown', (e) => { if (ac && ac.state === 'suspended') ac.resume(); d = { px: e.clientX, py: e.clientY, x: off.x, y: off.y, r: rot }; el.setPointerCapture(e.pointerId); e.preventDefault(); });
-    el.addEventListener('pointermove', (e) => {
-      if (!d) return;
-      if (mode === 'move') { off.x = clamp(d.x + e.clientX - d.px, -LIM, LIM); off.y = clamp(d.y + e.clientY - d.py, -LIM, LIM); apply(['x', 'y']); }
-      else { rot = clamp(d.r + e.clientY - d.py, -LIM, LIM); apply(['r']); }
-    });
+    const horiz = mode === 'turn', key = horiz ? 'r' : 't';
+    const get = () => (horiz ? rot : tilt), set = (v) => { v = clamp(v, -LIM, LIM); if (horiz) rot = v; else tilt = v; };
+    el.addEventListener('pointerdown', (e) => { if (ac && ac.state === 'suspended') ac.resume(); d = { px: e.clientX, py: e.clientY, v: get() }; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener('pointermove', (e) => { if (!d) return; set(d.v + (horiz ? e.clientX - d.px : e.clientY - d.py)); apply([key]); });
     const end = () => { d = null; };
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-    el.addEventListener('dblclick', () => { if (mode === 'move') { off.x = 0; off.y = 0; } else rot = 0; apply(); });
+    el.addEventListener('dblclick', () => { set(0); apply(); });
     el.addEventListener('keydown', (e) => {
-      const step = 20, kmap = mode === 'move'
-        ? { ArrowLeft: () => (off.x = clamp(off.x - step, -LIM, LIM), ['x']), ArrowRight: () => (off.x = clamp(off.x + step, -LIM, LIM), ['x']), ArrowUp: () => (off.y = clamp(off.y - step, -LIM, LIM), ['y']), ArrowDown: () => (off.y = clamp(off.y + step, -LIM, LIM), ['y']) }
-        : { ArrowUp: () => (rot = clamp(rot - step, -LIM, LIM), ['r']), ArrowDown: () => (rot = clamp(rot + step, -LIM, LIM), ['r']), ArrowLeft: () => (rot = clamp(rot - step, -LIM, LIM), ['r']), ArrowRight: () => (rot = clamp(rot + step, -LIM, LIM), ['r']) };
-      if (e.key in kmap) { apply(kmap[e.key]()); e.preventDefault(); } else if (e.key === 'Home') { if (mode === 'move') { off.x = 0; off.y = 0; } else rot = 0; apply(); }
+      const step = 20, dir = horiz ? { ArrowLeft: -1, ArrowRight: 1 } : { ArrowUp: -1, ArrowDown: 1 };
+      if (e.key in dir) { set(get() + dir[e.key] * step); apply([key]); e.preventDefault(); } else if (e.key === 'Home') { set(0); apply(); }
     });
   }
   const v = document.getElementById('rf-ruler'), h = document.getElementById('rf-ruler-h');
   buildTicks(document.getElementById('rf-track'), false); buildTicks(document.getElementById('rf-track-h'), true);
-  drag(h, 'move'); drag(v, 'turn');
+  drag(h, 'turn'); drag(v, 'tilt');
   apply();
 }

@@ -16,7 +16,7 @@ import { createDirector } from './director.js?v=cv-scene-v53';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v48';
-import { TRACKS, COVER } from './music.js?v=m121';
+import { TRACKS, COVER } from './music.js?v=m122';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v54';
@@ -410,7 +410,7 @@ export async function createRoom(container, bubbleEl) {
 
   let cameraMode='follow',fitReady=false;
   const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
-  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y':'none';};
+  const setCameraMode=mode=>{if(window.__rfFreeCam)mode='free';cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y':'none';};
   setCameraMode('follow');
   let navigationMode='pan';
   const navigationControls=document.createElement('div');navigationControls.className='room-navigation';navigationControls.setAttribute('role','group');navigationControls.setAttribute('aria-label','Manipulation du décor');
@@ -576,7 +576,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if(drag.moved>6&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='var(--cv-grabbing)';}
+        if(drag.moved>6&&!window.__rfFreeCam&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='var(--cv-grabbing)';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -930,7 +930,7 @@ export async function createRoom(container, bubbleEl) {
   const goTo = (id, cb) => { if(appOpen)return false;afterEnter = cb || null; director.go(stations[id]); };
 
   let appOpen = false;
-  function resetFocus(){view.tZoom=1;syncZoom();setCameraMode('follow');}
+  function resetFocus(){view.tZoom=1;syncZoom();setCameraMode('follow');if(window.__rfFreeCam)tgt.set(.1,.8,-.2);}   // accueil : la caméra ne suit jamais le personnage, elle revient au centre de la pièce
   function openApp(kind, pos, zoom) {
     if (appOpen) return; appOpen = true;container.dataset.activityLocked='true';if(hdrag)clearTimeout(hdrag.timer);hdrag=null;drag=null;pointers.clear();
     setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;

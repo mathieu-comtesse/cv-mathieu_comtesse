@@ -1,7 +1,7 @@
 // Fig 03 · Extracteur VRE : une trieuse de jetons à quatre tubes, en 3D (cotes de figures/build-vre.mjs).
 // La trémie lâche les équipements sur la goulotte ; chaque jeton tombe dans le premier trou à sa taille : BT31, BT33, BT21, BT11.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylX, group, bench, display, ease, hash } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, group, bench, display, ease, hash, finish } from './core.js';
 
 export const WIDTH = 280;
 const PLATE = { x: -168, y: -40, w: 280, d: 82, r: 8 };
@@ -20,9 +20,12 @@ export function build() {
   // montants et goulotte inclinée percée de quatre trous
   g.add(slab(-142, -4, 8, 8, 2, 96, COL.mid, 1), slab(72, -4, 8, 8, 2, 78, COL.mid, 1));
   const len = Math.hypot(CHUTE.x1 - CHUTE.x0, (CHUTE.z0 - ZR(CHUTE.x1)));
-  const chute = box((CHUTE.x0 + CHUTE.x1) / 2, 0, (CHUTE.z0 + ZR(CHUTE.x1)) / 2 - 1, len, CHUTE.half * 2, 2, COL.mid); chute.rotation.z = Math.atan2(ZR(CHUTE.x1) - CHUTE.z0, CHUTE.x1 - CHUTE.x0); g.add(chute);
+  const slopeA = Math.atan2(ZR(CHUTE.x1) - CHUTE.z0, CHUTE.x1 - CHUTE.x0);
+  const plate = new THREE.Shape(); plate.moveTo(-len / 2, -CHUTE.half); plate.lineTo(len / 2, -CHUTE.half); plate.lineTo(len / 2, CHUTE.half); plate.lineTo(-len / 2, CHUTE.half); plate.closePath();
+  TX.forEach((x, i) => { const hole = new THREE.Path(); hole.absarc((x - (CHUTE.x0 + CHUTE.x1) / 2) / Math.cos(slopeA), 0, R[i] + .5, 0, Math.PI * 2, true); plate.holes.push(hole); });
+  const pgeo = new THREE.ExtrudeGeometry(plate, { depth: 2, bevelEnabled: false, curveSegments: 40 }); pgeo.rotateX(-Math.PI / 2); pgeo.translate(0, -1, 0);
+  const chute = finish(pgeo, mat(COL.mid)); chute.position.set((CHUTE.x0 + CHUTE.x1) / 2, (CHUTE.z0 + ZR(CHUTE.x1)) / 2 - 1, 0); chute.rotation.z = slopeA; g.add(chute);
   for (const s of [-1, 1]) { const rail = box((CHUTE.x0 + CHUTE.x1) / 2, s * (CHUTE.half + 1), (CHUTE.z0 + ZR(CHUTE.x1)) / 2 + 1, len, 2, 4, COL.lo); rail.rotation.z = chute.rotation.z; g.add(rail); }
-  TX.forEach((x, i) => g.add(cyl(x, 0, R[i] + .4, ZR(x) - .6, .4, COL.dark, 24)));
   // trémie
   const hopper = new THREE.Mesh(new THREE.CylinderGeometry(14, 6, 18, 24, 1, true), mat(COL.glass, { side: THREE.DoubleSide, transparent: true, opacity: .55 })); hopper.position.set(-118, 99.6 + 11, 0); g.add(hopper);
   // sélecteur à gauche
