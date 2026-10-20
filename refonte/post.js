@@ -21,14 +21,16 @@ const stage = document.getElementById('stage');
 
 if (fig && bpCanvas && stage) {
   /* ---- caméra : azimut 36° comme la pièce de l'accueil, en perspective, liée au plan ---- */
-  const cam = new THREE.PerspectiveCamera(38, 1, 1, 400);
+  const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
+  const AIM_Y = 3.2;                       // la visée est un peu au-dessus du plan : la machine, au centre du plan, se place sous le titre
   const placeCam = (yaw, px, py) => {
-    const pitch = 46 * Math.PI / 180, dist = 30, cp = Math.cos(pitch);
+    const pitch = 26 * Math.PI / 180, dist = 40, cp = Math.cos(pitch);
     const tx = .1 + Math.cos(yaw) * px - Math.sin(yaw) * py, tz = -.2 - Math.sin(yaw) * px - Math.cos(yaw) * py;
-    cam.position.set(tx + Math.sin(yaw) * cp * dist, .8 + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
-    cam.lookAt(tx, .8, tz); cam.updateMatrixWorld(true);
+    cam.position.set(tx + Math.sin(yaw) * cp * dist, AIM_Y + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
+    cam.lookAt(tx, AIM_Y, tz); cam.updateMatrixWorld(true);
   };
   const bp = initBlueprint(bpCanvas, stage);
+  bp.plane.scale.setScalar(2.6);          // plan plus étendu : pas d'horizon noir à ce faible angle
 
   /* ---- la machine : modèle 3D posé sur le plan, rendu avec la même caméra (même perspective, même profondeur) ---- */
   const view = { yaw: 36 * Math.PI / 180 };
@@ -36,6 +38,7 @@ if (fig && bpCanvas && stage) {
   let machine = null;
   placeCam(view.yaw, 0, 0); bp.link(cam);
   aspect(); addEventListener('resize', aspect);
+  const rulers = document.querySelectorAll('.rf-ruler');   // les règles ne se voient que sur le blueprint, tant que la machine est visible
   const canvas = document.createElement('canvas'); canvas.className = 'rf-m3d'; canvas.setAttribute('aria-hidden', 'true'); document.body.append(canvas);
   import('./m3d/index.js').then(({ mountMachine }) => mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
     machine = m; machine.resize(); fig.querySelector('img')?.remove();
@@ -44,6 +47,7 @@ if (fig && bpCanvas && stage) {
       requestAnimationFrame(loop);
       const o = Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));
       canvas.style.opacity = o.toFixed(3);
+      rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (o < .01 || document.hidden) return;
       machine.render(reduced ? 6 : (performance.now() - t0) / 1000);
     };

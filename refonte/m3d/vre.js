@@ -34,32 +34,54 @@ export function build() {
     const tubeG = new THREE.Mesh(new THREE.CylinderGeometry(R[i] + 1.6, R[i] + 1.6, CAGE_TOP - CUP_Z, 32, 1, true), mat(COL.glass, { side: THREE.DoubleSide, transparent: true, opacity: .28 }));
     tubeG.position.set(x, (CAGE_TOP + CUP_Z) / 2, 0); g.add(tubeG);
     g.add(cyl(x, 0, R[i] + 2.4, CUP_Z, 1.2, COL.lo, 32));
-    const st = cyl(0, 0, R[i], 0, 1, i % 2 ? COL.accent : COL.hi, 32); st.position.set(x, CUP_Z + 1.2, 0); g.add(st); stacks.push(st);
+    const st = cyl(0, 0, R[i], 0, 1, i % 2 ? COL.accent : COL.hi, 32); st.geometry.translate(0, 0, 0); st.position.set(x, CUP_Z + 1.2, 0); g.add(st); stacks.push(st);
     const d = display(26, 8); d.mesh.position.set(x, 9, FACE_Y + .05); g.add(d.mesh); counters.push(d);
   });
   const lamp = cyl(60, FACE_Y, 2, 9.5, 1, COL.lo, 20); lamp.rotation.x = Math.PI / 2; lamp.position.set(60, 9.5, FACE_Y + .3); g.add(lamp);
-  const tokens = Array.from({ length: 3 }, () => { const m = cyl(0, 0, 5, 0, THICK, COL.accent, 28); m.rotation.x = Math.PI / 2; const w = group(m); g.add(w); return w; });
-  const kindOf = (i) => Math.floor(hash(i + 7) * 4);
-  const counts = (idx) => { const c = [0, 0, 0, 0], base = Math.floor(idx / CYCLE) * CYCLE; for (let i = base; i <= idx; i++) c[kindOf(i)]++; return c; };
-
+  // jetons : réserves par famille (4 tailles), empilés dans les tubes ou posés sur la goulotte
+  const STACK_Z = BASE_H + 3, KNOB = { x: -138, z: 43, r: 5.4 }, HOPPER = { x: -118, z: 99.6 }, HOP_TOP = HOPPER.z + 24;
+  const clip = new THREE.Plane(new THREE.Vector3(0, 1, 0), -STACK_Z);
+  stacks.forEach((st, i) => { st.children.forEach((c) => { c.visible = false; }); st.material = new THREE.MeshStandardMaterial({ color: i % 2 ? COL.accent : COL.hi, roughness: .8, clippingPlanes: [clip] }); });
+  const tokMat = TX.map((_, i) => new THREE.MeshStandardMaterial({ color: i % 2 ? COL.accent : COL.hi, roughness: .8 }));
+  const POOL = 12;
+  const pool = TX.map((_, f) => Array.from({ length: POOL }, () => { const m = new THREE.Mesh(new THREE.CylinderGeometry(R[f], R[f], THICK, 28), tokMat[f]); m.castShadow = true; m.visible = false; g.add(m); return m; }));
+  const heapMesh = Array.from({ length: 9 }, (_, j) => { const f = (j * 3) % 4, m = new THREE.Mesh(new THREE.CylinderGeometry(R[f], R[f], THICK, 28), tokMat[f]); m.castShadow = true; g.add(m); return m; });
+  const HEAP = [[0, 0], [8, 4], [-8, 3], [3, -9], [-5, -8], [10, -4], [-10, -3], [4, 10], [-3, 7]];
+  // — modèle de figures/build-vre.mjs : six bâtiments, chaque jeton part de la trémie, glisse (accélération), tombe dans son trou —
+  const BUILDINGS = [['A', [18, 9, 7, 3]], ['B', [12, 6, 4, 0]], ['C', [24, 11, 8, 5]], ['D', [9, 4, 6, 2]], ['E', [15, 7, 5, 4]], ['F', [21, 8, 9, 1]]];
+  const GAP = .3, V0 = 40, ACC = 60, GRAV = 420, VERIFY = 1.2, SINK = .9, TURN = .9;
+  const hash2 = (i) => { let h = Math.imul(i + 11, 2654435761) >>> 0; h ^= h >>> 15; return (Math.imul(h, 2246822519) >>> 0) / 4294967296; };
+  function report(b) {
+    const list = []; BUILDINGS[b][1].forEach((n, f) => { for (let j = 0; j < n; j++) list.push(f); });
+    list.forEach((_, j) => { const r = Math.floor(hash2(b * 97 + j) * (j + 1)); [list[j], list[r]] = [list[r], list[j]]; });
+    const seen = [0, 0, 0, 0];
+    const tokens = list.map((f, j) => { const d = TX[f] - HOPPER.x, ride = (-V0 + Math.sqrt(V0 * V0 + 2 * ACC * d)) / ACC, level = seen[f]++; const drop = ZR(TX[f]) - (STACK_Z + level * THICK), fall = Math.sqrt(2 * Math.max(drop, 0) / GRAV); return { f, level, t0: j * GAP, ride, fall, land: j * GAP + ride + fall }; });
+    const landed = Math.max(...tokens.map((t) => t.land));
+    return { tokens, landed, verify: landed + .3, sink: landed + .3 + VERIFY, end: landed + .3 + VERIFY + SINK + TURN };
+  }
+  const REPORTS = BUILDINGS.map((_, b) => report(b));
+  const lampOn = new THREE.MeshStandardMaterial({ color: COL.green, emissive: COL.green, emissiveIntensity: .9 }), lampOff = lamp.material;
+  const ease2 = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
+  const lens = REPORTS.map((r) => r.end), cycleLen = lens.reduce((a, c) => a + c, 0);
+  let lastB = -1;
   function update(time) {
-    const idx = Math.floor(time / PERIOD), base = Math.floor(idx / CYCLE) * CYCLE;
-    const c = [0, 0, 0, 0]; for (let i = base; i <= idx; i++) { const age = time - i * PERIOD; if (age > 2.1) c[kindOf(i)]++; }
-    const reset = (idx - base) >= CYCLE - 2 ? Math.min(1, (time - (base + CYCLE - 2) * PERIOD) / (2 * PERIOD)) : 0;
-    stacks.forEach((s, i) => { const n = Math.max(0, c[i] * (1 - ease(reset))); const h = Math.max(.01, n * THICK); s.scale.y = h; s.position.y = CUP_Z + 1.2 + h / 2; s.visible = n > .05; counters[i].set(NAMES[i] + ' ' + String(Math.round(n)).padStart(2, '0')); });
-    tokens.forEach((w, slot) => {
-      const i = idx - ((idx - slot) % 3 + 3) % 3, age = time - i * PERIOD, k = kindOf(i), x1 = TX[k];
-      w.visible = age >= 0 && age < 2.1; if (!w.visible) return;
-      w.scale.set(R[k] / 5, 1, R[k] / 5);
-      let x, z, y = 0;
-      if (age < 1.5) { const u = age / 1.5; x = -118 + (x1 + 118) * u * u * .6 + (x1 + 118) * u * .4; z = ZR(x) + R[k] + 1.2; }
-      else { const u = (age - 1.5) / .6; x = x1; const top = CUP_Z + 1.2 + (c[k] + 0) * THICK + THICK; z = ZR(x1) + R[k] + 1.2 - (ZR(x1) + R[k] + 1.2 - top) * u * u; }
-      w.position.set(x, z, y); w.rotation.set(0, 0, age < 1.5 ? -age * 4 : 0);
-      // à plat une fois tombé dans le tube
-      w.children[0].rotation.x = age < 1.5 ? Math.PI / 2 : 0;
-    });
-    lamp.material = reset > .1 ? new THREE.MeshStandardMaterial({ color: COL.green, emissive: COL.green, emissiveIntensity: .9 }) : new THREE.MeshStandardMaterial({ color: COL.lo });
-    kg.rotation.z = Math.sin(time * .4) * .9;
+    let u = time % cycleLen, b = 0; while (u >= lens[b]) { u -= lens[b]; b++; }
+    const t = u, rep = REPORTS[b], tk = rep.tokens, have = [0, 0, 0, 0], used = [0, 0, 0, 0];
+    for (const q of tk) {
+      if (t >= q.land) { have[q.f]++; continue; }
+      if (t < q.t0) continue;
+      const a = t - q.t0, m = pool[q.f][used[q.f]++ % POOL]; m.visible = true;
+      if (a < q.ride) { const x = HOPPER.x + V0 * a + ACC * a * a / 2; m.position.set(x, ZR(x) + THICK / 2 + 1, 0); m.rotation.set(0, 0, Math.atan(-CHUTE.slope)); }
+      else { const uu = a - q.ride, z = ZR(TX[q.f]) - GRAV * uu * uu / 2; m.position.set(TX[q.f], Math.max(z, STACK_Z + q.level * THICK) + THICK / 2, 0); m.rotation.set(0, 0, 0); }
+    }
+    pool.forEach((row, f) => { for (let k = used[f]; k < POOL; k++) row[k].visible = false; });
+    const sink = t > rep.sink ? Math.min(1, (t - rep.sink) / SINK) : 0;
+    stacks.forEach((st, i) => { const n = have[i], h = Math.max(.001, n * THICK), bottom = STACK_Z - n * THICK * sink * sink; st.visible = n > 0; st.scale.y = h; st.position.set(TX[i], bottom + h / 2, 0); counters[i].set(NAMES[i] + ' ' + String(n).padStart(2, '0')); });
+    const left = tk.filter((q) => t < q.t0).length, nHeap = Math.min(9, Math.ceil(left / 4));
+    heapMesh.forEach((m, j) => { m.visible = j < nHeap; m.position.set(HOPPER.x + HEAP[j][0] * .6, HOP_TOP - 14 + 1.2 + THICK / 2, HEAP[j][1] * .6); });
+    lamp.material = t >= rep.verify && t < rep.end - TURN ? lampOn : lampOff;
+    const turn = t > rep.end - TURN ? ease2((t - (rep.end - TURN)) / TURN) : 0, ang = (b + turn - 2.5) * 30 * Math.PI / 180;
+    kg.rotation.z = -ang;
   }
   update(0);
   return { group: g, update };

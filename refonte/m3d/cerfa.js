@@ -23,7 +23,7 @@ export function build() {
   g.add(slab(-138, -33, 220, 5, BED, 2, COL.lo, .8), slab(-138, -14, 220, 5, BED, 2, COL.lo, .8));
   for (const rx of [-94, -48, -2, 52, READ_X]) g.add(cylY(-33, -11.5, rx, BED + 5.8, 3, COL.mid, 24));
   g.add(slab(85, -36, 42, 3, BED, TOP - BED, COL.mid, .8), slab(124.2, -34, 3, 25, BED + 2, TOP - BED - 2, COL.mid, .8), slab(80.5, -33, 6, 23, BED + 3.6, 12, COL.mid, .8));
-  const stack = box(HOPPER_X, LANE_Y, BED + 2, CARD.l, CARD.w, 1, COL.hi); g.add(stack);
+  
   g.add(slab(READ_X - 6, -36, 12, 3.5, BED, 18, COL.mid, .8));
   const head = box(READ_X, LANE_Y, BED + 24, 16, 26, 4, COL.mid); g.add(head);
   g.add(slab(READ_X - 6, -12, 12, 3.5, BED, 18, COL.mid, .8));
@@ -34,43 +34,49 @@ export function build() {
   for (const cx of CENTRES) { g.add(slab(cx - 22, FRONT.y - 8, 44, 8, DECK - 3, 3, COL.lo, 1)); }
   g.add(slab(54, -6, 64, 26, DECK, 22, COL.mid, 2));
   const late = display(52, 9); late.mesh.position.set(86, DECK + 14, 20.05); g.add(late.mesh);
+  const knobDisp = display(18, 6.5); knobDisp.mesh.rotation.y = Math.PI / 2; knobDisp.mesh.position.set(130.05, 106, -22.5); g.add(knobDisp.mesh);
   const knob = new THREE.Group(); knob.position.set(130, 86, -22.5);
   const kc = cyl(0, 0, 8, 0, 8, COL.mid, 36); kc.rotation.z = Math.PI / 2; kc.position.set(4, 0, 0); knob.add(kc); g.add(knob);
-  // piles dans les cases
-  const piles = CENTRES.map((cx) => { const m = box(cx, 9, DECK, 33, 20, 1, COL.hi); g.add(m); return m; });
-  // fiches en transit
-  const flights = [0, 1, 2].map(() => { const m = card(0, 0, 0, CARD.l, 1, CARD.w, COL.hi); m.geometry.dispose(); m.geometry = new THREE.BoxGeometry(CARD.l, .6, CARD.w); g.add(m); return m; });
-  const kindOf = (i) => { const h = hash(i + 41); return h < .55 ? 0 : h < .72 ? 1 : h < .88 ? 2 : 3; };
-
+  // piles dans les cases (T = 0,085 par fiche) et butées avant
+  const T = .085, POCKET_Y = 5, HOPPER = { x: 87, w: 37 }, LOT = 300;
+  const piles = CENTRES.map((cx) => { const m = box(cx, POCKET_Y + CARD.w / 2, DECK, CARD.l, CARD.w, 1, COL.hi); g.add(m); g.add(slab(cx - 21, 23.5, 44, 2.5, DECK, 7, COL.mid, .6)); return m; });
+  // pile du chargeur et masse posée dessus
+  const hopStack = box(HOPPER.x + CARD.l / 2, LANE_Y, BED + 2, CARD.l, CARD.w, 1, COL.hi); g.add(hopStack);
+  const weight = group(slab(HOPPER.x + 8 - (HOPPER.x + CARD.l / 2), LANE_Y - 5 - LANE_Y, 21, 10, 0, 5, COL.mid, 1.4), cyl(HOPPER.x + 18.5 - (HOPPER.x + CARD.l / 2), 0, 3, 5, 4, COL.mid, 24)); g.add(weight);
+  // fiches en vol : plaques plates de 37 × 17 × 0,8 (comme sur le dessin)
+  const pool = Array.from({ length: 6 }, () => { const m = card(0, 0, 0, CARD.l, .8, CARD.w, COL.hi, 30); m.geometry.dispose(); m.geometry = new THREE.BoxGeometry(CARD.l, .8, CARD.w); m.visible = false; g.add(m); return m; });
+  // — animation : mêmes constantes et mêmes équations que figures/build-cerfa.mjs —
+  const INTERVAL = .42, SPEED = 240, PUSH = .2, FALL = .38, MACHINE_S = 80 / 300, WEIGHTS = [.72, .06, .1, .12];
+  const kindOf = (i) => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; const u = (h >>> 0) / 4294967296; let c = 0; for (let k = 0; k < 4; k++) { c += WEIGHTS[k]; if (u < c) return [3, 2, 1, 0][k]; } return 0; };
+  const kinds = Array.from({ length: LOT }, (_, i) => kindOf(i));
+  const travel = (i) => (HOPPER.x + CARD.l / 2 - CENTRES[kinds[i]]) / SPEED, duration = (i) => travel(i) + PUSH + FALL;
+  const ease2 = (u) => u * u * (3 - 2 * u);
+  // durée d'un lot : toutes les fiches tombées, puis 3 s de pause, puis reprise (départ à −0,6 s)
+  const total = (LOT - 1) * INTERVAL + duration(LOT - 1), CYCLE = total + 3 + .6;
   function update(time) {
-    const idx = Math.floor(time / PERIOD);
-    const counts = [0, 0, 0, 0]; const base = Math.floor(idx / PER_CYCLE) * PER_CYCLE;
-    for (let i = base; i <= idx; i++) { const age = time - i * PERIOD; if (age > 3.3) counts[kindOf(i)]++; }
-    // trois fiches au plus en vol
-    flights.forEach((m, slot) => {
-      let i = idx - ((idx - slot) % 3 + 3) % 3; const age = time - i * PERIOD, k = kindOf(i), tx = CENTRES[k];
-      m.visible = age >= 0 && age < 3.3;
-      if (!m.visible) return;
-      m.material = new THREE.MeshStandardMaterial({ color: KINDS[k] === COL.hi ? COL.hi : KINDS[k], roughness: .8 });
-      let x = HOPPER_X, y = LANE_Y, z = BED + 3;
-      if (age < .5) x = HOPPER_X + (READ_X - HOPPER_X) * ease(age / .5);
-      else if (age < .9) x = READ_X;
-      else if (age < 1.9) x = READ_X + (tx - READ_X) * ease((age - .9) / 1.0);
-      else { x = tx; const u = ease((age - 1.9) / .6); y = LANE_Y + 14 * u; if (age > 2.5) { const f = Math.min(1, (age - 2.5) / .8); z = BED + 3 - (BED + 3 - (DECK + 1 + counts[k] * .9)) * f * f; y = -7 + (9 - -7) * f; } }
-      m.position.set(x, z, y);
+    const t = (time % CYCLE) - .6;
+    let sent = 0; const landed = [0, 0, 0, 0], flying = [];
+    for (let i = 0; i < LOT; i++) { const age = t - i * INTERVAL; if (age < 0) break; sent++; if (age >= duration(i)) landed[kinds[i]]++; else flying.push([i, age]); }
+    const left = LOT - sent;
+    hopStack.visible = left > 0; hopStack.scale.y = Math.max(.01, left * T); hopStack.position.y = BED + 2 + (left ? .85 : 0) + left * T / 2;
+    weight.position.set(HOPPER.x + CARD.l / 2, BED + 2 + (left ? .85 : 0) + left * T, LANE_Y);
+    piles.forEach((p, k) => { const n = landed[k]; p.visible = n > 0; p.scale.y = Math.max(.01, n * T); p.position.y = DECK + n * T / 2; counters[k].set(String(n).padStart(4, '0')); });
+    late.set(landed[0] + (landed[0] > 1 ? ' retards' : ' retard'));
+    pool.forEach((m, n) => {
+      const f = flying[n]; if (!f) { m.visible = false; return; }
+      const [i, age] = f, k = kinds[i], cx = CENTRES[k], tA = travel(i), top = DECK + landed[k] * T;
+      let x, y = LANE_Y, z = BED + 2;
+      if (age < tA) x = HOPPER.x + CARD.l / 2 - age * SPEED;
+      else { x = cx; const push = Math.min(1, (age - tA) / PUSH), fall = Math.max(0, (age - tA - PUSH) / FALL); y = LANE_Y + 9 * ease2(push) + (POCKET_Y + CARD.w / 2 - LANE_Y - 9) * ease2(fall); z = BED + 2 + (top - BED - 2) * fall * fall; }
+      m.visible = true; m.position.set(x, z + .4, y);
     });
-    for (let k = 0; k < 4; k++) {
-      // poussoir : il sort au moment où la fiche de sa case arrive
-      let push = 0; for (let j = idx - 2; j <= idx; j++) { if (j < 0 || kindOf(j) !== k) continue; const age = time - j * PERIOD; if (age > 1.9 && age < 2.6) push = Math.max(push, Math.sin(Math.PI * (age - 1.9) / .7)); }
-      rams[k].position.z = -32.2 + 14 * push;
-      const h = Math.max(.8, counts[k] * .9); piles[k].scale.y = h; piles[k].position.y = DECK + h / 2;
-      counters[k].set(String(counts[k] + (k === 0 ? 4 : 0)).padStart(4, '0'));
-    }
-    late.set(counts[3] + ' retard' + (counts[3] > 1 ? 's' : ''));
-    const rem = Math.max(2, 300 - ((idx - base) * 9)); stack.scale.y = rem * .085; stack.position.y = BED + 2 + rem * .085 / 2;
-    knob.rotation.x = Math.sin(time * .5) * .6;
-    head.position.y = BED + 24 + (Math.sin(time * 6) > .98 ? .4 : 0);
+    const push = [0, 0, 0, 0]; let reading = false;
+    flying.forEach(([i, age]) => { const a = age - travel(i); if (a > 0 && a < PUSH + .25) push[kinds[i]] = Math.max(push[kinds[i]], Math.sin(Math.min(1, a / (PUSH + .25)) * Math.PI) * 9); const x = HOPPER.x + CARD.l / 2 - age * SPEED; if (age < travel(i) && Math.abs(x - READ_X) < CARD.l / 2) reading = true; });
+    rams.forEach((r, k) => { r.position.z = -32.2 + push[k]; });
+    head.material = reading ? litHead : plainHead;
+    knobDisp.set('300');
   }
+  const plainHead = head.material, litHead = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .6 });
   update(0);
   return { group: g, update };
 }

@@ -153,5 +153,5 @@ export function initBlueprint(canvas, host) {
   resize();
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) loop();
   if (document.fonts) document.fonts.ready.then(() => { const t = drawMat(); tex.image = t; tex.needsUpdate = true; draw(); });
-  return { link(cam) { linked = cam; cancelAnimationFrame(raf); (function again() { raf = requestAnimationFrame(again); if (visible && !document.hidden && host.style.opacity !== '0.000') draw(); })(); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
+  return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); (function again() { raf = requestAnimationFrame(again); if (visible && !document.hidden && host.style.opacity !== '0.000') draw(); })(); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
 }

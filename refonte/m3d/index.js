@@ -15,7 +15,7 @@ const MODULES = {
   studio: () => import('./studio.js')
 };
 
-export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(2.9, 0, 4.2)) {
+export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {
   const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
   const { build, WIDTH = 236 } = await load();
   const { renderer, scene } = makeStage(canvas);
