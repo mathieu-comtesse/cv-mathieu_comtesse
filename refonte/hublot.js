@@ -3,6 +3,7 @@
 const glass = document.querySelector('.rf-win-glass');
 const shutter = document.getElementById('rf-shutter');
 const grip = document.getElementById('rf-grip');
+const video = document.getElementById('rf-win-video');
 
 if (glass && shutter && grip) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -10,6 +11,18 @@ if (glass && shutter && grip) {
   sound.preload = 'none';
   sound.volume = .5;
   let travel = 0, y = 0, open = false, drag = null;
+
+  // Le paysage démarre à l'ouverture ; fermé, masqué ou en mouvement réduit,
+  // une image fixe évite de décoder une vidéo invisible.
+  const syncVideo = () => {
+    if (!video) return;
+    if (open && !reduced.matches && !document.hidden) {
+      video.muted = true;
+      video.play().catch(() => {});
+    } else video.pause();
+  };
+  reduced.addEventListener('change', syncVideo);
+  document.addEventListener('visibilitychange', syncVideo);
 
   const place = (position, animate = false) => {
     y = Math.max(-travel, Math.min(0, position));
@@ -23,6 +36,7 @@ if (glass && shutter && grip) {
   const action = (state, audible = true) => {
     open = state;
     place(open ? -travel : 0, true);
+    syncVideo();
     if (audible) {
       sound.currentTime = 0;
       sound.play().catch(() => {});
@@ -32,7 +46,7 @@ if (glass && shutter && grip) {
     if (!drag) return;
     const id = drag.id;
     drag = null;
-    if (grip.hasPointerCapture(id)) grip.releasePointerCapture(id);
+    if (shutter.hasPointerCapture(id)) shutter.releasePointerCapture(id);
   };
   const cancel = () => {
     if (!drag) return;
@@ -40,37 +54,38 @@ if (glass && shutter && grip) {
     action(open, false);
   };
 
-  grip.addEventListener('pointerdown', event => {
+  shutter.addEventListener('pointerdown', event => {
     if (event.button !== 0 || !event.isPrimary || drag) return;
     // Reprend la position affichée si on attrape un volet encore en mouvement.
     const transform = getComputedStyle(shutter).transform;
     const position = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m42;
     place(position);
-    drag = { id: event.pointerId, start: event.clientY, from: y, last: event.clientY, time: performance.now(), velocity: 0 };
-    grip.setPointerCapture(event.pointerId);
+    drag = { id: event.pointerId, start: event.clientY, from: y, last: event.clientY, time: performance.now(), velocity: 0, distance: 0 };
+    shutter.setPointerCapture(event.pointerId);
     grip.focus({ preventScroll: true });
     event.preventDefault();
   });
-  grip.addEventListener('pointermove', event => {
+  shutter.addEventListener('pointermove', event => {
     if (!drag || event.pointerId !== drag.id) return;
     const now = performance.now(), dt = now - drag.time;
     if (dt > 0) drag.velocity = (event.clientY - drag.last) / dt * 1000;
     drag.last = event.clientY;
     drag.time = now;
+    drag.distance = Math.max(drag.distance, Math.abs(event.clientY - drag.start));
     place(drag.from + event.clientY - drag.start);
   });
-  grip.addEventListener('pointerup', event => {
+  shutter.addEventListener('pointerup', event => {
     if (!drag || event.pointerId !== drag.id) return;
     const velocity = performance.now() - drag.time > 100 ? 0 : drag.velocity;
     const threshold = .4 * travel;
-    const next = open
+    const next = drag.distance < 5 ? !open : open
       ? !(y + travel >= threshold || velocity > 700)
       : Math.abs(y) >= threshold || velocity < -700;
     release();
     action(next);
   });
-  grip.addEventListener('pointercancel', cancel);
-  grip.addEventListener('lostpointercapture', cancel);
+  shutter.addEventListener('pointercancel', cancel);
+  shutter.addEventListener('lostpointercapture', cancel);
   grip.addEventListener('keydown', event => {
     let next;
     if (event.key === 'ArrowUp' || event.key === 'End') next = true;

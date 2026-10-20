@@ -1,7 +1,7 @@
 // Page Expériences : hublot (store à tirer), chronologie liée au défilement, apparitions, pied de page, barre.
 import './footer.js';
 import './navfx.js';
-import './hublot.js?v=sakthi-1';
+import './hublot.js?v=sakthi-video-3';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
