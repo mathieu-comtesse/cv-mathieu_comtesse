@@ -485,8 +485,8 @@ html body.rf-exp-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans
 .rf-exp-main{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:clamp(96px,14vh,128px)}
 .rf-exp-top{display:flex;flex-direction:column;align-items:center;width:100%;padding:40px 0}
 /* hublot */
-.rf-win{position:relative;width:240px;height:180px;flex:none;user-select:none;touch-action:pan-y}
-@media (min-width:768px){.rf-win{width:300px;height:240px}}
+.rf-win{--wf:240px;position:relative;width:240px;height:180px;flex:none;user-select:none;touch-action:pan-y}
+@media (min-width:768px){.rf-win{--wf:300px;width:300px;height:240px}}
 .rf-win-view{position:absolute;inset:4px;overflow:hidden;border-radius:5rem;background:#06102c;z-index:0}
 .rf-win-sky{position:absolute;inset:0;width:100%;height:100%}
 .rf-win-stars circle{animation:rf-tw 3.4s ease-in-out infinite}.rf-win-stars circle:nth-child(2n){animation-delay:-1.3s}.rf-win-stars circle:nth-child(3n){animation-delay:-2.1s}
@@ -555,3 +555,31 @@ html body.rf-exp-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans
 .rf-chipx:hover{background:rgb(224 235 253 / .05);border-color:rgb(224 235 253 / .2)}
 .rf-chipx .rf-exp-ico{color:rgb(224 235 253 / .95)}
 .rf-chipx-b{position:absolute;top:-4px;right:4px;z-index:1;display:block}.rf-chipx-b .rf-exp-ico{width:12px;height:12px}
+
+/* ---- hublot (suite) : fenêtre de train à cadre rectangulaire arrondi, comme celle de la page de référence ---- */
+.rf-win-view{inset:5%;border-radius:15%/19%;background:#0b1030}
+.rf-win-far{animation:rf-win-drift 90s linear infinite alternate;transform-origin:50% 60%}
+@keyframes rf-win-drift{from{transform:translateX(-6px)}to{transform:translateX(6px)}}
+.rf-win-trees{animation:rf-win-run 4.6s linear infinite}
+.rf-win-grass{animation:rf-win-run 2.1s linear infinite}
+.rf-win-layer.rf-win-l1,.rf-win-layer.rf-win-l2,.rf-win-layer.rf-win-l3{display:none}
+.rf-win-inner{inset:0;border-radius:15%/19%;box-shadow:inset 0 0 0 6% #6e7280,inset 0 0 0 calc(6% + 2px) #2b2e38,inset 0 3px 10px rgb(0 0 0 / .55);filter:none}
+.rf-win-inner{border:0;background:radial-gradient(ellipse at 50% 0,rgb(255 255 255 / .1),transparent 60%)}
+.rf-win-glass{inset:8%;border-radius:11%/14%}
+.rf-win-shutter{top:0}
+.rf-win-slats{border-radius:11%/14%;background:linear-gradient(180deg,#d4d7dd 0,#c3c7ce 55%,#b6bac2 100%);box-shadow:inset 0 0 0 2px rgb(255 255 255 / .55),inset 0 -14px 18px rgb(0 0 0 / .14),inset 0 10px 16px rgb(255 255 255 / .35);filter:brightness(.5)}
+.rf-win-recess{position:absolute;left:14%;width:72%;bottom:3%;height:15%;border-radius:50%/60%;background:linear-gradient(#aeb2ba,#cfd2d8);box-shadow:inset 0 3px 6px rgb(0 0 0 / .28),inset 0 -2px 0 rgb(255 255 255 / .5);filter:brightness(.5)}
+.rf-win-grip{left:24%;width:52%;bottom:5.6%;height:9%;border-radius:999px;background:linear-gradient(180deg,#eef0f4 0,#a9adb6 45%,#7c808a 100%);box-shadow:0 2px 4px rgb(0 0 0 / .45),inset 0 1px 0 rgb(255 255 255 / .7);filter:brightness(.6)}
+.rf-win-grip::after{display:none}
+.rf-win-outer{border-radius:17%/22%;box-shadow:inset 0 0 0 5.5% #c6c9d0,inset 0 0 0 calc(5.5% + 1.5px) #9a9ea8,inset 0 0 0 calc(5.5% + 4px) #d9dce2,0 18px 50px rgb(0 8 60 / .5);filter:brightness(.55)}
+.rf-win-outer::after{content:'';position:absolute;left:25%;width:50%;bottom:1.2%;height:4.2%;border-radius:999px 999px 40% 40%;background:linear-gradient(#eceef2,#bfc3ca);box-shadow:0 1px 2px rgb(0 0 0 / .35)}
+@media (prefers-reduced-motion:reduce){.rf-win-far,.rf-win-trees,.rf-win-grass{animation:none}}
+.rf-magic span{filter:blur(6.5px)}
+/* hublot : épaisseur de cadre cohérente (anneau extérieur 6,5 % + anneau intérieur 4,5 % = ouverture à 11 %) */
+.rf-win-view{inset:6%}
+.rf-win-inner{inset:6.5%;border-radius:10%/13%;border:calc(var(--wf,240px) * .045) solid #6e7280;box-sizing:border-box;box-shadow:inset 0 0 0 2px #2b2e38,inset 0 3px 10px rgb(0 0 0 / .55)}
+.rf-win-glass{inset:11%;border-radius:8%/11%}
+.rf-win-slats{border-radius:8%/11%}
+.rf-win-outer{border:calc(var(--wf,240px) * .065) solid #c6c9d0;box-sizing:border-box;box-shadow:inset 0 0 0 2px #9a9ea8,0 18px 50px rgb(0 8 60 / .5)}
+.rf-tl-logo--wide{height:38px;border-radius:9px;padding:0 9px}
+.rf-tl-logo--wide img{width:auto;height:100%;padding:4px 0}
