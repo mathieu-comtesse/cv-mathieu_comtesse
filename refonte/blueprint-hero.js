@@ -9,7 +9,7 @@ const DRAW = 110;                    // le tracé de la table est dessiné sur 1
 const TEX = 2048;
 
 /* ---------------------------------------------------------------- tracé de la table à dessin (texture) */
-function drawMat() {
+function drawMat(TEX = 2048) {
   const c = document.createElement('canvas'); c.width = c.height = TEX;
   const g = c.getContext('2d');
   const U = (v) => (v + DRAW / 2) / DRAW * TEX;        // unités du tracé → pixels
@@ -64,17 +64,9 @@ function drawMat() {
   return c;
 }
 
-export function initBlueprint(canvas, host) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
-  renderer.setClearColor(0x000000, 1);
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(24, 1, 1, 600);
-  let linked = null;               // caméra de la pièce : quand elle est liée, le plan est rendu exactement avec elle
-
-  const tex = new THREE.CanvasTexture(drawMat());
-  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
-  const mat = new THREE.ShaderMaterial({
+/* matériau du plan (shader : fond, grille, tracé de la table, lueur, vignette, grain) — partagé par l'accueil, les pages projet et les tuiles */
+function blueprintMaterial(tex) {
+  return new THREE.ShaderMaterial({
     uniforms: { uTex: { value: tex }, uSize: { value: SIZE }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 } },
     vertexShader: 'varying vec2 vUv;varying vec3 vW;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
     fragmentShader: `
@@ -102,6 +94,19 @@ export function initBlueprint(canvas, host) {
         gl_FragColor=vec4(col,1.);
       }`
   });
+}
+
+export function initBlueprint(canvas, host) {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
+  renderer.setClearColor(0x000000, 1);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(24, 1, 1, 600);
+  let linked = null;               // caméra de la pièce : quand elle est liée, le plan est rendu exactement avec elle
+
+  const tex = new THREE.CanvasTexture(drawMat());
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
+  const mat = blueprintMaterial(tex);
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE), mat);
   plane.rotation.x = -Math.PI / 2; scene.add(plane);
 
@@ -154,4 +159,14 @@ export function initBlueprint(canvas, host) {
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) loop();
   if (document.fonts) document.fonts.ready.then(() => { const t = drawMat(); tex.image = t; tex.needsUpdate = true; draw(); });
   return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); (function again() { raf = requestAnimationFrame(again); if (visible && !document.hidden && host.style.opacity !== '0.000') draw(); })(); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
+}
+
+/* plan blueprint pour une scène à part (tuiles de l'accueil) : même matériau, même tracé, texture plus légère */
+export function createBlueprintPlane(renderer, texSize = 1024) {
+  const tex = new THREE.CanvasTexture(drawMat(texSize));
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter;
+  const mat = blueprintMaterial(tex);
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE), mat);
+  plane.rotation.x = -Math.PI / 2;
+  return { plane, mat, dispose() { tex.dispose(); mat.dispose(); plane.geometry.dispose(); } };
 }

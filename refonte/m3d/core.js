@@ -14,7 +14,7 @@ export function mat(color, o = {}) {
 }
 const lineMat = new THREE.LineBasicMaterial({ color: 0x1d2230, transparent: true, opacity: .42 });
 
-function finish(geo, m, edges = 32) {
+export function finish(geo, m, edges = 32) {
   const mesh = new THREE.Mesh(geo, m);
   mesh.castShadow = true; mesh.receiveShadow = true;
   if (edges) mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, edges), lineMat));
