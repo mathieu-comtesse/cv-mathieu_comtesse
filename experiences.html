@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
-<link rel="stylesheet" href="refonte/rf.css?v=mvh3c3rb">
-<script type="module" src="refonte/experiences.js?v=mvh3c3rb"></script>
+<link rel="stylesheet" href="refonte/rf.css?v=sakthi-1">
+<script type="module" src="refonte/experiences.js?v=sakthi-1"></script>
 </head>
 <body class="rf-exp-page">
 <nav class="rf-bnav" aria-label="Navigation">
@@ -25,7 +25,7 @@
 
 <main class="rf-exp-main">
   <section class="rf-exp-top">
-    <!-- hublot : le store se tire au doigt ou à la souris ; il s'ouvre seul une fois pour montrer ce qu'il fait -->
+    <!-- Hublot du ZIP fourni : cadres et volet originaux, glissière à la souris, au doigt ou au clavier. -->
     <div class="rf-win" id="rf-win" aria-label="Hublot de train : tirer le store vers le haut ou vers le bas">
       <div class="rf-win-view" aria-hidden="true">
         <svg class="rf-win-sky" viewBox="0 0 300 240" preserveAspectRatio="xMidYMid slice">
@@ -51,9 +51,12 @@
         <svg class="rf-win-layer rf-win-trees" viewBox="0 0 1200 240" preserveAspectRatio="none"><defs><g id="rfw-t"><g filter="url(#rfw-blur)" fill="#f0b9cc" opacity=".92"><ellipse cx="90" cy="150" rx="70" ry="44"/><ellipse cx="40" cy="176" rx="44" ry="32"/><ellipse cx="140" cy="172" rx="52" ry="30"/></g><g filter="url(#rfw-blur)" fill="#f7d8e2" opacity=".95"><ellipse cx="410" cy="120" rx="80" ry="40"/><ellipse cx="450" cy="150" rx="54" ry="30"/></g><g filter="url(#rfw-blur)" fill="#e79dba" opacity=".9"><ellipse cx="820" cy="170" rx="90" ry="46"/><ellipse cx="760" cy="196" rx="46" ry="26"/></g></g></defs><use href="#rfw-t"/><use href="#rfw-t" x="600"/></svg>
         <svg class="rf-win-layer rf-win-grass" viewBox="0 0 1200 240" preserveAspectRatio="none"><defs><path id="rfw-g" fill="#3e7a2c" d="M0 232 Q60 222 130 231 T260 228 T400 233 T600 229 V240 H0Z"/></defs><use href="#rfw-g"/><use href="#rfw-g" x="600"/></svg>
       </div>
-      <div class="rf-win-inner" aria-hidden="true"></div>
-      <div class="rf-win-glass"><div class="rf-win-shutter" id="rf-shutter"><div class="rf-win-slats"></div><div class="rf-win-recess"></div><div class="rf-win-grip" id="rf-grip" role="slider" tabindex="0" aria-label="Poignée du store" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div>
-      <div class="rf-win-outer" aria-hidden="true"></div>
+      <img class="rf-win-inner" src="assets/hublot/window-inner-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
+      <div class="rf-win-glass"><div class="rf-win-shutter" id="rf-shutter">
+        <img class="rf-win-panel" src="assets/hublot/window-shutter.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
+        <div class="rf-win-grip" id="rf-grip" role="slider" tabindex="0" aria-label="Ouverture du volet du hublot" aria-description="Tire vers le haut pour ouvrir, vers le bas pour fermer. Au clavier : flèches haut et bas ; Entrée ou Espace pour basculer." aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Fermé" aria-controls="rf-shutter" title="Tirer vers le haut ou le bas"></div>
+      </div></div>
+      <img class="rf-win-outer" src="assets/hublot/window-outer-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
     </div>
     <div class="rf-exp-title">
       <h1>Mon parcours jusqu’à présent</h1>
