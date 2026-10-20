@@ -479,17 +479,6 @@ html body.rf-post-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-san
 .rf .rf-tirelire .strip-head>.pro-gains-title{order:-1}
 .rf .rf-tirelire .annual-gains,.rf .rf-tirelire .automation-cascade{width:100%;max-width:none;box-sizing:border-box}
 
-/* ---- intro d'ouverture : spirale tracée pendant le chargement, puis le voile se dissout ---- */
-.rf-intro{position:fixed;inset:0;z-index:200;background:#02050c;display:grid;place-items:center;overflow:hidden;opacity:1;transition:opacity 1.3s cubic-bezier(.4,0,.2,1) .35s}
-.rf-intro-spiral{position:absolute;left:50%;top:50%;width:120vmax;height:120vmax;transform:translate(-50%,-50%) scale(1);transition:transform 1.6s cubic-bezier(.5,0,.2,1)}
-.rf-intro-spiral path{stroke-dasharray:1;stroke-dashoffset:1;animation:rf-spiral 2.6s cubic-bezier(.65,0,.35,1) .1s forwards}
-@keyframes rf-spiral{to{stroke-dashoffset:0}}
-.rf-intro.rf-intro-out{opacity:0;pointer-events:none}
-.rf-intro.rf-intro-out .rf-intro-spiral{transform:translate(-50%,-50%) scale(1.9)}
-/* la pièce ne « pop » plus : elle se fond après le plan */
-.rf .rf-room{opacity:0;transition:opacity 1.8s cubic-bezier(.3,.6,.2,1) .7s}
-.rf .rf-room.rf-room-in{opacity:1}
-@media (prefers-reduced-motion:reduce){.rf-intro,.rf .rf-room,.rf-intro-spiral{transition:none}.rf-intro-spiral path{animation:none;stroke-dashoffset:0}}
 
 /* ---------------------------------------------------------------- page Expériences (mise en page et animations de la page de référence) */
 html body.rf-exp-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans);-webkit-font-smoothing:antialiased;margin:0;overflow-x:hidden;--exp-fg:#e0ebfd;--exp-mute:#8795ad}
