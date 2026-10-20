@@ -62,7 +62,8 @@ if (glass && shutter && grip) {
     place(position);
     drag = { id: event.pointerId, start: event.clientY, from: y, last: event.clientY, time: performance.now(), velocity: 0, distance: 0 };
     shutter.setPointerCapture(event.pointerId);
-    grip.focus({ preventScroll: true });
+    // Le clic et le glissement ne doivent pas afficher le repère de focus clavier.
+    grip.blur();
     event.preventDefault();
   });
   shutter.addEventListener('pointermove', event => {
