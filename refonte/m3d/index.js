@@ -20,7 +20,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   const { build, WIDTH = 236 } = await load();
   const { renderer, scene } = makeStage(canvas);
   const m = build();
-  const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(9.0 / WIDTH);
+  const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(12.6 / WIDTH);
   scene.add(g);
   // centrage sur l'origine du plan, socle posé à y = 0
   const box = new THREE.Box3().setFromObject(g);
