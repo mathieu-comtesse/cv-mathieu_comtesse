@@ -45,10 +45,11 @@ if (fig && bpCanvas && stage) {
     const t0 = performance.now();
     const loop = () => {
       requestAnimationFrame(loop);
-      const o = Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));
-      canvas.style.opacity = o.toFixed(3);
+      const o = Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));   // les règles s’effacent ; l’objet, lui, reste en arrière-plan
+      const bg = Math.max(.32, o);
+      canvas.style.opacity = bg.toFixed(3);
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
-      if (o < .01 || document.hidden) return;
+      if (document.hidden) return;
       machine.render(reduced ? 6 : (performance.now() - t0) / 1000);
     };
     loop();

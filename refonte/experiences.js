@@ -67,8 +67,8 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 {
   const tl = document.getElementById('rf-tl'), line = document.getElementById('rf-tl-line'), dot = document.getElementById('rf-tl-dot');
   let p = 0, v = 0, last = 0, raf = 0;
-  const target = () => { const top = tl.getBoundingClientRect().top + scrollY, h = tl.offsetHeight; return clamp((scrollY - top) / Math.max(1, h - innerHeight), 0, 1); };
-  const paint = () => { line.style.transform = `scaleY(${p.toFixed(4)})`; dot.style.top = (p * 100).toFixed(2) + '%'; dot.style.transform = `translateY(${(-p * 16).toFixed(2)}px)`; };
+  const target = () => clamp(scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight), 0, 1);   // progression de toute la page, comme sur la référence
+  const paint = () => { line.style.transform = `scaleY(${p.toFixed(4)})`; dot.style.top = (p * 100).toFixed(2) + '%'; };
   const frame = (now) => {
     const dt = Math.min(.032, last ? (now - last) / 1000 : .016); last = now;
     const to = target(), k = 45, c = 20;
