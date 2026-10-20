@@ -457,3 +457,24 @@ html body.rf-post-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-san
 .rf-fig-shadow{position:absolute;left:50%;top:86%;width:760px;height:150px;margin:-75px 0 0 -380px;border-radius:50%;background:radial-gradient(ellipse at center,rgb(0 12 90 / .55),rgb(0 12 90 / .25) 45%,transparent 70%);filter:blur(6px)}
 .rf-fig-shadow{top:var(--ground,80%)}.rf-fig-holder .rf-fig-frame{transform-origin:50% var(--ground,80%)}
 .rf-m3d{position:fixed;inset:0;z-index:1;width:100%;height:100%;pointer-events:none}
+
+/* tirelire : mêmes cadres que les tuiles des projets pro, police réduite pour alléger le visuel */
+.rf .rf-tirelire .strip-head{gap:20px}
+.rf .rf-tirelire .pro-gains-title h2{font:510 20px/1.25 var(--rf-sans);letter-spacing:-.4px;margin:0 0 6px}
+.rf .rf-tirelire .pro-gains-title p{font:400 14px/1.6 var(--rf-sans)}
+.rf .rf-tirelire .annual-gains,.rf .rf-tirelire .automation-cascade{border:1px solid var(--rf-line);border-radius:12px;background:var(--rf-card);padding:24px 26px;box-shadow:none}
+.rf .rf-tirelire .annual-gains{grid-template-columns:260px minmax(0,1fr);gap:6px 28px;overflow:hidden}
+.rf .rf-tirelire .annual-values strong{font:510 clamp(22px,2.4vw,30px)/1.08 var(--rf-sans)}
+.rf .rf-tirelire .annual-values b,.rf .rf-tirelire .annual-calendar>b{font:500 14px/1.5 var(--rf-sans)}
+.rf .rf-tirelire .annual-calendar>strong{font:510 clamp(20px,2vw,24px)/1.1 var(--rf-sans)}
+.rf .rf-tirelire .annual-kicker,.rf .rf-tirelire .annual-values small,.rf .rf-tirelire .annual-calendar>small,.rf .rf-tirelire .annual-calendar>span,.rf .rf-tirelire .annual-memory>small,.rf .rf-tirelire .cascade-kicker,.rf .rf-tirelire .cascade-note{font:400 12px/1.6 var(--rf-sans);letter-spacing:.2px}
+.rf .rf-tirelire .annual-memory,.rf .rf-tirelire .annual-breakdown,.rf .rf-tirelire .annual-memory p,.rf .rf-tirelire .annual-breakdown p{font:400 12.5px/1.6 var(--rf-sans)}
+.rf .rf-tirelire .annual-memory summary,.rf .rf-tirelire .annual-breakdown summary{font:560 13px/1.5 var(--rf-sans)}
+.rf .rf-tirelire .annual-breakdown table{font:400 12px/1.5 var(--rf-sans)}
+.rf .rf-tirelire .piggy-work-basis label,.rf .rf-tirelire .piggy-work-basis small,.rf .rf-tirelire .piggy-work-basis>b{font-size:12.5px}
+.rf .rf-tirelire .automation-cascade{margin:16px 0 0}
+.rf .rf-tirelire .cascade-copy h3{font:510 18px/1.3 var(--rf-sans);letter-spacing:-.3px;margin:6px 0 10px}
+.rf .rf-tirelire .cascade-copy p{font:400 14px/1.65 var(--rf-sans)}
+@media (max-width:760px){.rf .rf-tirelire .annual-gains,.rf .rf-tirelire .automation-cascade{padding:18px 16px}}
+.rf .rf-tirelire .strip-head>.pro-gains-title{order:-1}
+.rf .rf-tirelire .annual-gains,.rf .rf-tirelire .automation-cascade{width:100%;max-width:none;box-sizing:border-box}

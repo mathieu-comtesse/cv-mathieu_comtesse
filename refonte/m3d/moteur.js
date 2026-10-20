@@ -26,7 +26,7 @@ export function build() {
     g.add(slab(x - STAND_W / 2, -6, STAND_W, 12, 3, GANTRY_Z - 3, COL.mid, 1.2));
     g.add(cylX(x + (x < 0 ? -STAND_W / 2 - 1.6 : STAND_W / 2), x + (x < 0 ? -STAND_W / 2 : STAND_W / 2 + 1.6), 0, AX.z, 6.4, COL.mid));
   }
-  const crank = group(cylX(-STAND - STAND_W / 2 - 14, -STAND - STAND_W / 2 - 11.6, 0, AX.z, 12.4 * .5, COL.mid), cylX(-STAND - STAND_W / 2 - 11.6, -STAND - STAND_W / 2 - 4.6, 0, AX.z, 7, COL.lo));
+  const crank = group(cylX(-STAND - STAND_W / 2 - 14, -STAND - STAND_W / 2 - 11.6, 0, 0, 12.4 * .5, COL.mid), cylX(-STAND - STAND_W / 2 - 11.6, -STAND - STAND_W / 2 - 4.6, 0, 0, 7, COL.lo)); crank.position.set(0, AX.z, 0);
   g.add(crank);
   // moteur
   g.add(slab(MOTOR.x0 + 3, -10, MOTOR.x1 - MOTOR.x0 - 6, 20, 0, 4, COL.lo, 1.6));
