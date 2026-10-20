@@ -13,9 +13,50 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
-<link rel="stylesheet" href="refonte/rf.css?v=mvh5xudy">
+<link rel="stylesheet" href="refonte/rf.css?v=mvh6f6ww">
+<link rel="preload" as="image" href="assets/room-poster.webp?v=1" fetchpriority="high">
+<link rel="preload" as="fetch" crossorigin href="assets/reference-character.glb?v=cv-scene-v22">
+<link rel="preload" as="fetch" crossorigin href="assets/anims.glb?v=cv-scene-v13">
+<link rel="preload" as="fetch" crossorigin href="assets/rig.json?v=cv-scene-v13">
+<link rel="preload" as="fetch" crossorigin href="assets/ekstrem-v25.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/setu-v25.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/ds450-v25.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/borne-beton.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/falkland.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/road-bike-clean-v44.glb?v=cv-scene-v44">
+<link rel="preload" as="image" href="assets/tableau.jpg?v=cv-scene-v17">
+<link rel="preload" as="image" href="assets/tapis.webp?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/seat-calibration-v26.json">
+<link rel="preload" as="fetch" crossorigin href="assets/gaming-desk-user-v42.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/ps1-controller-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/ps1-console-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/olivetti-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/mamiya-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/usm-table-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/usm-mobile-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/mx-master-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/dream-pc-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/powerstrip-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/magnavox-tv-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/screenbar-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/power-plugs.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/books-user-v49.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/post-it-user-v49.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/yamaha-user-v49.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/bicycle-pump-v31.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/usm-haller-green-v31.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/jbl.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/backpack-user-v51.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/hiking-poles-recreation-v51.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/suiseki-recreation-v51.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/geta-user-v52.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/buddha-user-v52.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/jvc-video-capsule-3100r.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/stele-bordeaux.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/bonsai-tree.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/nb992-fitted-v27.glb">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="refonte/main.js?v=mvh5xudy"></script>
+<script type="module" src="refonte/main.js?v=mvh6f6ww"></script>
 </head>
 <body class="page-home rf">
 <nav class="nav" aria-label="Navigation">
@@ -32,6 +73,7 @@
 <div class="rf-stage" id="stage">
   <canvas class="rf-bp" id="rf-bp" aria-hidden="true"></canvas>
   <div class="room rf-room" id="room" aria-label="Appartement interactif de Mathieu">
+    <img class="rf-room-poster" id="rf-room-poster" src="assets/room-poster.webp?v=1" alt="" width="969" height="612" decoding="async" fetchpriority="high">
     <div class="bubble" id="bubble" aria-live="polite"></div>
   </div>
   <div class="rf-grain" aria-hidden="true"></div>
@@ -65,7 +107,7 @@
     <p class="rf-ap"><b>Salut ! Je suis Mathieu</b>, qualiticien et ingénieur MQSE en alternance chez SNCF Gares &amp; Connexions. Bienvenue dans mon coin d’Internet : mon travail, mes projets inachevés ou imparfaits, et tout ce que j’explore.</p>
     <p class="rf-ap">Depuis mes premières missions, je collabore avec des équipes de terrain et de maintenance pour rendre leurs processus plus fiables, plus rapides et plus lisibles. J’ai affûté mon regard d’auditeur au contact de celles et ceux qui font réellement le travail, tout en poursuivant mon M2 MQSE à Sorbonne Paris Nord, et en me formant sans relâche aux outils (Power Automate, Power BI, scripts Excel, machines virtuelles).</p>
     <p class="rf-ap">Mon appétit d’apprendre m’a mené vers l’avenir de mon métier : l’IA appliquée, les agents LLM et l’OCR.</p>
-    <p class="rf-ap">Quand je ne construis pas d’outils, je partage mes découvertes sur mon blog : machines manipulables, jeux et mondes en 3D. Retrouvez-moi aussi dans la pièce derrière ces lignes, entre un vinyle, une console et un bonsaï.</p>
+    <p class="rf-ap">Quand je ne construis pas d’outils, je partage mes découvertes sur mon blog : machines manipulables, jeux et mondes en 3D. Retrouvez-moi aussi dans la pièce derrière ces lignes, entre un vinyle, un bonsaï ou sur un cycle.</p>
     <div class="rf-sign" id="rf-sign">
       <svg viewBox="-1 -1 105 41" width="330" role="img" aria-label="Signature de Mathieu" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
 <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path data-letter="M" d="M54.4654 21.4922C4.35293 21.4922 -22.0342 23.1181 27.2931 2.53239C49.6904 -6.81462 22.1086 29.4696 22.5055 33.9449C23.5141 45.3182 30.7844 5.78781 43.0101 5.55587C45.4434 5.50971 33.7665 30.4629 33.6604 31.5812C32.4525 44.3133 45.0998 0.371964 58.765 1.22568C60.9304 1.36096 47.4396 27.6308 46.5885 29.7131" stroke-width="0.53" pathLength="1" style="--delay:0s;--duration:1.72s"/><path data-letter="a" d="M58.7859 20.9479C58.2711 19.8243 56.741 20.1783 55.9408 20.8431C55.4075 21.286 54.9298 22.023 54.6888 22.6678C53.3845 26.1582 58.2763 22.7488 58.9305 21.8497C59.3452 21.2797 59.9541 19.2229 59.6842 19.874C59.1809 21.0881 57.8133 23.3324 58.5267 24.6763C59.1411 25.8339 62.1559 21.3272 62.5 20.9479" stroke-width="0.54" pathLength="1" style="--delay:1.49s;--duration:0.39s"/><path data-letter="t" d="M62.42 20.96 C63.48 21.13 64.39 20.40 64.94 19.36 C65.98 17.42 66.59 15.80 67.12 15.63 C67.74 15.43 65.94 19.54 65.35 21.43 C64.70 23.50 65.05 24.83 65.99 24.64 C66.78 24.48 67.57 23.30 68.38 22.56" stroke-width="0.52" pathLength="1" style="--delay:1.87s;--duration:0.45s"/><path data-letter="t-bar" d="M63.28 19.58 C64.85 19.17 66.68 19.11 68.59 19.09" stroke-width="0.4" pathLength="1" style="--delay:2.17s;--duration:0.18s"/><path data-letter="h" d="M68.30 22.63 C69.45 20.48 70.45 16.75 71.38 14.61 C72.05 13.09 72.91 12.52 72.39 14.38 C71.70 17.02 69.42 21.42 68.82 24.57 C70.62 22.68 71.91 20.28 73.28 20.23 C75.02 20.17 73.27 23.34 73.99 24.19 C74.61 24.93 75.45 24.03 76.31 23.04" stroke-width="0.54" pathLength="1" style="--delay:2.3s;--duration:0.53s"/><path data-letter="i" d="M65.56 24.02C66.18 23.77 66.98 22.66 67.62 21.58C68.19 20.63 68.63 19.92 68.95 19.66C69.24 19.42 69.34 19.58 69.14 20C68.73 20.86 68 22.61 67.83 23.76C67.72 24.49 67.99 24.88 68.47 24.82C69.01 24.75 69.48 24.37 69.81 24.05" transform="translate(10.75 0)" stroke-width="0.55" pathLength="1" style="--delay:2.78s;--duration:0.34s"/><path data-letter="i-dot" d="M68.88 17.92C69.01 17.79 69.06 17.93 68.98 18.09" transform="translate(10.75 0)" stroke-width="0.9" pathLength="1" style="--delay:3.08s;--duration:0.08s"/><path data-letter="e" d="M77.62 24.12C78.21 23.85 79.01 23.07 79.54 22.63C80.62 21.74 81.47 20.16 82.94 19.56C84.08 19.09 84.95 19.66 84.89 20.61C84.82 21.56 83.74 22.15 82.75 22.29C81.85 22.42 80.9 22.26 80.53 22.71C80.12 23.2 80.67 24.18 81.28 24.59C83.02 25.75 85.52 23.46 86.58 21.97" transform="translate(2.55 0)" stroke-width="0.56" pathLength="1" style="--delay:3.12s;--duration:0.41s"/><path data-letter="u" d="M90.31 21.63 C90.00 22.18 89.42 23.36 89.68 24.30 C90.20 26.21 92.73 21.91 93.71 20.96 C94.39 20.30 94.63 20.26 94.18 21.30 C93.60 22.60 92.86 24.88 94.17 24.70 C95.74 24.50 97.91 21.51 99.15 20.63 C99.47 20.41 99.62 20.51 99.43 20.80" stroke-width="0.54" pathLength="1" style="--delay:3.49s;--duration:0.45s"/></g>
@@ -142,7 +184,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvh5xud">mvh5xud</dd></div>
+        <div><dt>Version</dt><dd data-t="mvh6f6w">mvh6f6w</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
