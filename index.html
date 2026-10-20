@@ -3,114 +3,165 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mathieu Comtesse · Qualiticien MQSE, automatisation et IA</title>
-<meta name="description" content="Qualiticien MQSE : audit des processus, automatisation (Power Platform, scripts Excel) et IA appliquée en autodidacte (agents LLM, OCR, décisions à score de confiance).">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Mathieu Comtesse">
-<meta property="og:locale" content="fr_FR">
-<meta property="og:title" content="Mathieu Comtesse · Qualiticien MQSE, automatisation et IA">
-<meta property="og:description" content="Qualiticien MQSE : audit des processus, automatisation (Power Platform, scripts Excel) et IA appliquée en autodidacte (agents LLM, OCR, décisions à score de confiance).">
-<meta property="og:url" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/">
-<meta property="og:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Mathieu Comtesse, qualiticien MQSE : ISO, Lean Six Sigma, Power Platform, IA et LLM">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Mathieu Comtesse · Qualiticien MQSE, automatisation et IA">
-<meta name="twitter:description" content="Qualiticien MQSE : audit des processus, automatisation (Power Platform, scripts Excel) et IA appliquée en autodidacte (agents LLM, OCR, décisions à score de confiance).">
-<meta name="twitter:image" content="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/assets/og-image.png">
-
-<meta name="theme-color" content="#1d4d94">
-<link rel="canonical" href="https://mathieu-comtesse.github.io/cv-mathieu_comtesse/">
-<script>{const u=new URL(location.href);if(/^cv-scene-v\d+[a-z]?$/.test(u.searchParams.get('v')||''))u.searchParams.delete('v');
-// The home page always opens at the top: no restored scroll, no #work jump onto the piggy bank.
-history.scrollRestoration='manual';history.replaceState(history.state,'',u.pathname+u.search)}</script>
-<script>document.documentElement.classList.add('js')</script>
+<title>Mathieu Comtesse · Les bons processus ne naissent pas. Ils se construisent.</title>
+<meta name="description" content="L’espace de Mathieu Comtesse : qualité, sécurité, méthodes Lean et outils numériques. Expériences, travaux aboutis, essais imparfaits et questions à explorer.">
+<meta name="theme-color" content="#07090c">
+<script>document.documentElement.classList.add('js');history.scrollRestoration='manual'</script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="48x48">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="cursor.css?v=5">
 <link rel="stylesheet" href="style.css?v=cv-light-v75">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
+<link rel="stylesheet" href="refonte/rf.css?v=mvgxmccp">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="js/main.js?v=cv-light-v55"></script>
+<script type="module" src="refonte/main.js?v=mvgxmccp"></script>
 </head>
-<body class="page-home">
+<body class="page-home rf">
 <nav class="nav" aria-label="Navigation">
-  <a class="dbtn dbtn--sm" href="#work"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Projets</span></a>
-  <a class="dbtn dbtn--sm" href="info.html"><span class="dbtn__fill" aria-hidden="true"></span><span class="dbtn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span><span class="dbtn__text">Info</span></a>
+  <a class="rf-nav-link" href="#hero">Index</a>
+  <a class="rf-nav-link" href="#projets">Projets</a>
+  <a class="rf-nav-link" href="#perso">Perso</a>
+  <a class="rf-nav-link" href="blog.html">Blog</a>
+  <a class="rf-nav-link" href="info.html">Info</a>
+  <a class="rf-nav-link" href="#contact">Contact</a>
 <button id="scene-mute" class="scene-mute" type="button" aria-pressed="false" aria-label="Couper les sons de la scène" title="Sons de la scène actifs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/><path class="mute-slash" d="m3 3 18 18"/></svg></button>
 </nav>
-<header class="shupi-header">
-  <section class="room" id="room" aria-label="Appartement interactif de Mathieu">
+
+<!-- Scène fixe : plan blueprint + pièce 3D + grain. Elle s'estompe au défilement, comme sur la page de référence. -->
+<div class="rf-stage" id="stage">
+  <canvas class="rf-bp" id="rf-bp" aria-hidden="true"></canvas>
+  <div class="room rf-room" id="room" aria-label="Appartement interactif de Mathieu">
     <div class="bubble" id="bubble" aria-live="polite"></div>
-    <p class="hint">Le personnage vit dans la pièce : laissez-le se déplacer, ou attrapez-le pour choisir une activité.</p>
-  </section>
-  <p class="room-tip">Cliquez sur les objets de la pièce pour découvrir Mathieu.</p>
-</header>
-<main>
-<section class="hero">
-  <p class="intro-line"><span>M2 MQSE · Sorbonne Paris Nord · n°1 Eduniversal 2026</span><span class="dots" aria-hidden="true"></span><span>Alternance · SNCF Gares &amp; Connexions</span></p>
-  <h1><span class="ft">Auditer, simplifier, outiller.</span><br><span class="ft">Des processus fiables</span><br><span class="ft">pour les</span> <em class="flip" data-a="équipes." data-b="agents.">équipes.</em></h1>
-  <p class="hero-pitch">Qualiticien MQSE. Il audite les processus, retire le superflu, puis automatise ce qui reste : Power Automate, Power BI, scripts Excel, machine virtuelle. Chaque outil est documenté et remis à l’équipe qui l’exploite.</p>
-  <p class="hero-pitch hero-proof">L’extracteur CERFA a permis un audit national sur les fluides frigorigènes. Il fait remonter les non-conformités et permet d’appliquer des pénalités.</p>
-  <p class="hero-pitch hero-proof"><a href="ligne-controle.html" style="color:var(--accent)">Essayer la démonstration : compter et juger les pièces d’une ligne par vision, en temps réel.</a></p>
-  <p class="hero-meta">Yellow Belt Lean Six Sigma · Green Belt en préparation · ISO 9001 / 45001 / 14001 / 22301 / 27001 / 19443 · Power Platform (Power BI, Power Automate) · Script Excel · Machine virtuelle · LLM : agents (compétences .md), connecteurs, mémoire Obsidian, orchestration multi-modèles · Décisions à score de confiance (choice, score, null) · Serveur interne et LLM open source · OCR · Extraction PDF · JSON · VRE</p>
+  </div>
+  <div class="rf-grain" aria-hidden="true"></div>
+</div>
+
+<!-- Titre : fixe en bas à gauche, entre en fondu net (flou → net) -->
+<div class="rf-caption" id="rf-caption">
+  <p class="rf-tag rf-mono">Conçu pour questionner l’évidence</p>
+  <h1 id="titre"><span class="rf-line">Les bons processus ne naissent pas.</span><span class="rf-line"><em>Ils se construisent.</em></span></h1>
+  <p class="rf-hint rf-mono">Le personnage vit dans la pièce : laissez-le se déplacer, ou attrapez-le pour choisir une activité. Cliquez sur les objets pour découvrir Mathieu.</p>
+</div>
+
+<!-- Règle graduée : fixe, à gauche du conteneur centré, centrée verticalement ; le repère reste au milieu -->
+<aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Tourner le décor (glisser, flèches, double clic pour revenir à l’angle d’origine)">
+  <i class="rf-ruler-mark" aria-hidden="true"></i>
+  <div class="rf-ruler-track" id="rf-track"></div>
+  <span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span>
+</aside>
+<aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Déplacer le décor (glisser dans tous les sens, flèches, double clic pour recentrer)">
+  <i class="rf-ruler-mark" aria-hidden="true"></i>
+  <div class="rf-ruler-track" id="rf-track-h"></div>
+  <span class="rf-ruler-label rf-mono" aria-hidden="true">Déplacer</span>
+</aside>
+
+<header class="rf-hero" id="hero"></header>
+
+<main class="rf-main">
+<!-- 02 · About : présentation et signature (le bloc se fige un moment, les paragraphes se révèlent au défilement) -->
+<section class="rf-about" id="bonjour" aria-label="Présentation">
+  <div class="rf-about-in">
+    <p class="rf-ap"><b>Salut ! Je suis Mathieu</b>, qualiticien MQSE en alternance chez SNCF Gares &amp; Connexions. Bienvenue dans mon coin d’Internet : mon travail, mes projets inachevés ou imparfaits, et tout ce que j’explore.</p>
+    <p class="rf-ap">Depuis mes premières missions, je collabore avec des équipes de terrain et de maintenance pour rendre leurs processus plus fiables, plus rapides et plus lisibles. J’ai affûté mon regard d’auditeur au contact de celles et ceux qui font réellement le travail, tout en poursuivant mon M2 MQSE à Sorbonne Paris Nord, et en me formant sans relâche aux outils (Power Automate, Power BI, scripts Excel, machines virtuelles).</p>
+    <p class="rf-ap">Mon appétit d’apprendre m’a mené vers l’avenir de mon métier : l’IA appliquée, les agents LLM et l’OCR.</p>
+    <p class="rf-ap">Quand je ne construis pas d’outils, je partage mes découvertes sur mon blog : machines manipulables, jeux et mondes en 3D. Retrouvez-moi aussi dans la pièce derrière ces lignes, entre un vinyle, une console et un bonsaï.</p>
+    <div class="rf-sign" id="rf-sign">
+      <svg viewBox="-1 -1 105 41" width="330" role="img" aria-label="Signature de Mathieu" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path data-letter="M" d="M54.4654 21.4922C4.35293 21.4922 -22.0342 23.1181 27.2931 2.53239C49.6904 -6.81462 22.1086 29.4696 22.5055 33.9449C23.5141 45.3182 30.7844 5.78781 43.0101 5.55587C45.4434 5.50971 33.7665 30.4629 33.6604 31.5812C32.4525 44.3133 45.0998 0.371964 58.765 1.22568C60.9304 1.36096 47.4396 27.6308 46.5885 29.7131" stroke-width="0.53" pathLength="1" style="--delay:0s;--duration:1.72s"/><path data-letter="a" d="M58.7859 20.9479C58.2711 19.8243 56.741 20.1783 55.9408 20.8431C55.4075 21.286 54.9298 22.023 54.6888 22.6678C53.3845 26.1582 58.2763 22.7488 58.9305 21.8497C59.3452 21.2797 59.9541 19.2229 59.6842 19.874C59.1809 21.0881 57.8133 23.3324 58.5267 24.6763C59.1411 25.8339 62.1559 21.3272 62.5 20.9479" stroke-width="0.54" pathLength="1" style="--delay:1.49s;--duration:0.39s"/><path data-letter="t" d="M62.42 20.96 C63.48 21.13 64.39 20.40 64.94 19.36 C65.98 17.42 66.59 15.80 67.12 15.63 C67.74 15.43 65.94 19.54 65.35 21.43 C64.70 23.50 65.05 24.83 65.99 24.64 C66.78 24.48 67.57 23.30 68.38 22.56" stroke-width="0.52" pathLength="1" style="--delay:1.87s;--duration:0.45s"/><path data-letter="t-bar" d="M63.28 19.58 C64.85 19.17 66.68 19.11 68.59 19.09" stroke-width="0.4" pathLength="1" style="--delay:2.17s;--duration:0.18s"/><path data-letter="h" d="M68.30 22.63 C69.45 20.48 70.45 16.75 71.38 14.61 C72.05 13.09 72.91 12.52 72.39 14.38 C71.70 17.02 69.42 21.42 68.82 24.57 C70.62 22.68 71.91 20.28 73.28 20.23 C75.02 20.17 73.27 23.34 73.99 24.19 C74.61 24.93 75.45 24.03 76.31 23.04" stroke-width="0.54" pathLength="1" style="--delay:2.3s;--duration:0.53s"/><path data-letter="i" d="M65.56 24.02C66.18 23.77 66.98 22.66 67.62 21.58C68.19 20.63 68.63 19.92 68.95 19.66C69.24 19.42 69.34 19.58 69.14 20C68.73 20.86 68 22.61 67.83 23.76C67.72 24.49 67.99 24.88 68.47 24.82C69.01 24.75 69.48 24.37 69.81 24.05" transform="translate(10.75 0)" stroke-width="0.55" pathLength="1" style="--delay:2.78s;--duration:0.34s"/><path data-letter="i-dot" d="M68.88 17.92C69.01 17.79 69.06 17.93 68.98 18.09" transform="translate(10.75 0)" stroke-width="0.9" pathLength="1" style="--delay:3.08s;--duration:0.08s"/><path data-letter="e" d="M77.62 24.12C78.21 23.85 79.01 23.07 79.54 22.63C80.62 21.74 81.47 20.16 82.94 19.56C84.08 19.09 84.95 19.66 84.89 20.61C84.82 21.56 83.74 22.15 82.75 22.29C81.85 22.42 80.9 22.26 80.53 22.71C80.12 23.2 80.67 24.18 81.28 24.59C83.02 25.75 85.52 23.46 86.58 21.97" transform="translate(2.55 0)" stroke-width="0.56" pathLength="1" style="--delay:3.12s;--duration:0.41s"/><path data-letter="u" d="M90.31 21.63 C90.00 22.18 89.42 23.36 89.68 24.30 C90.20 26.21 92.73 21.91 93.71 20.96 C94.39 20.30 94.63 20.26 94.18 21.30 C93.60 22.60 92.86 24.88 94.17 24.70 C95.74 24.50 97.91 21.51 99.15 20.63 C99.47 20.41 99.62 20.51 99.43 20.80" stroke-width="0.54" pathLength="1" style="--delay:3.49s;--duration:0.45s"/></g>
+      </svg>
+      <p class="rf-dateline rf-mono"><span>M2 MQSE · Sorbonne Paris Nord</span><span>Octobre 2026</span></p>
+      <p class="rf-meta rf-mono">Yellow Belt Lean Six Sigma · Green Belt en préparation · ISO 9001 / 45001 / 14001 / 22301 / 27001 / 19443 · Power Platform (Power BI, Power Automate) · Script Excel · Machine virtuelle · LLM : agents (compétences .md), connecteurs, mémoire Obsidian, orchestration multi-modèles · Décisions à score de confiance (choice, score, null) · Serveur interne et LLM open source · OCR · Extraction PDF · JSON · VRE</p>
+    </div>
+  </div>
 </section>
-<section class="strip" id="work">
-  <header class="strip-head"><h2>Projets professionnels</h2><p>Des processus à explorer et à faire fonctionner</p></header>
-  <p class="pro-rule"><b>L’objet est l’explication.</b> Pas de cases, pas de flèches, pas d’étiquettes flottant dans l’espace : chaque projet est une machine concrète dont le fonctionnement constitue le concept. Cliquez sur une machine pour la faire fonctionner et lire ce qu’elle explique.</p>
-  <div class="marquee" id="mq-pro" tabindex="0" aria-label="Projets professionnels : ateliers 3D. Glissez ou utilisez les flèches gauche et droite."></div>
+
+<!-- 03 · Tirelire des gains (code réel du site : js/home.js) -->
+<section class="strip rf-tirelire" id="work" aria-label="Tirelire des gains annuels">
+  <header class="strip-head"><h2>Tirelire des gains annuels</h2><p>Le temps libéré par les outils, valorisé au taux horaire de 104,74 €.</p></header>
 </section>
-<section class="strip">
-  <header class="strip-head"><h2>Projet universitaire</h2><p>Cliquez pour jouer</p></header>
-  <div class="univ" id="univ"></div>
+
+<!-- 04 · Projets professionnels -->
+<section class="rf-sec" id="projets" aria-labelledby="projets-t">
+  <div class="rf-chip rf-rv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>Projets professionnels</div>
+  <div class="rf-sec-head rf-rv">
+    <h2 id="projets-t">Des processus à explorer et à faire fonctionner</h2>
+    <p>Pour moi, <b>l’objet est l’explication</b> : pas de cases, pas de flèches, pas d’étiquettes flottant dans l’espace. Chaque projet est une <b>machine concrète</b> dont le fonctionnement constitue le concept. Cliquez sur une machine pour lire ce qu’elle explique. Les gains sont valorisés au <b>taux horaire de 104,74 €</b>.</p>
+  </div>
+  <div class="rf-mosaic">
+<div class="rf-row" style="--cols:1fr 2fr"><a class="rf-tile rf-tile--pro rf-rv" href="projet-finance.html" aria-label="Ouvrir : Point financier · Power Automate"><span class="rf-tile-bg" data-fig="finance"><img src="assets/figures/finance-light.webp?v=bp2" alt="Manomètres à contact" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Point financier · Power Automate</span><span class="rf-tile-meta">25 min / jour</span></a><a class="rf-tile rf-tile--pro rf-rv" href="projet-vmvre.html" aria-label="Ouvrir : VRE · traitement par VM"><span class="rf-tile-bg" data-fig="vm"><img src="assets/figures/vm-light.webp?v=bp2" alt="Pointeuses à clé partagée" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">VRE · traitement par VM</span><span class="rf-tile-meta">30 min / rapport</span></a></div>
+<div class="rf-sec-head rf-block rf-rv"><h2>Des fichiers qui <em>se retrouvent seuls</em></h2><p>Chaque outil part d’un constat de terrain : <b>un fichier qu’on cherche, qu’on classe ou qu’on relit à la main</b>. Le Reporteur Q18 retrouve la bonne ligne Excel, la chaîne Power Automate dépose, classe, alerte et relance, et CERFA v3 transforme des fiches et des attestations en données du parc.</p></div><div class="rf-row" style="--cols:1fr 1fr 1fr"><a class="rf-tile rf-tile--pro rf-rv" href="projet-moteur44.html" aria-label="Ouvrir : Reporteur Q18"><span class="rf-tile-bg" data-fig="moteur"><img src="assets/figures/moteur-light.webp?v=bp2" alt="Fichier rotatif motorisé" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Reporteur Q18</span><span class="rf-tile-meta">15 min / rapport</span></a><a class="rf-tile rf-tile--pro rf-rv" href="projet-pa.html" aria-label="Ouvrir : Power Automate · chaîne des PP"><span class="rf-tile-bg" data-fig="pp"><img src="assets/figures/pp-light.webp?v=bp2" alt="Classeur à échéances" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Power Automate · chaîne des PP</span><span class="rf-tile-meta">40 min</span></a><a class="rf-tile rf-tile--pro rf-rv" href="projet-cerfa.html" aria-label="Ouvrir : CERFA v3"><span class="rf-tile-bg" data-fig="cerfa"><img src="assets/figures/cerfa-light.webp?v=bp2" alt="Trieuse de fiches" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">CERFA v3</span><span class="rf-tile-meta">20–25 h → 1 min 20 s</span></a></div>
+<div class="rf-row" style="--cols:1fr"><a class="rf-tile rf-tile--pro rf-rv" href="projet-vre.html" aria-label="Ouvrir : Extracteur VRE"><span class="rf-tile-bg" data-fig="vre"><img src="assets/figures/vre-light.webp?v=bp2" alt="Trieuse à quatre tubes" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Extracteur VRE</span><span class="rf-tile-meta">1 667–2 083 h / an</span></a></div>
+<div class="rf-sec-head rf-block rf-rv"><h2>Construire <em>une seule fois</em></h2><p>Le Studio permet de créer un extracteur de PDF sans coder, et Power BI rassemble l’extraction, le rangement sur SharePoint et l’archivage automatique : <b>ce qui est construit une fois sert ensuite</b> à d’autres rapports, d’autres périmètres, d’autres équipes.</p></div><div class="rf-row" style="--cols:2fr 1fr"><a class="rf-tile rf-tile--pro rf-rv" href="projet-studio.html" aria-label="Ouvrir : Studio d’extracteurs PDF"><span class="rf-tile-bg" data-fig="studio"><img src="assets/figures/studio-light.webp?v=bp2" alt="Machine à reproduire les clés" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Studio d’extracteurs PDF</span><span class="rf-tile-meta">5–10 jours → 4 h</span></a><a class="rf-tile rf-tile--pro rf-rv" href="projet-powerbi.html" aria-label="Ouvrir : Power BI · PP &amp; MOSO"><span class="rf-tile-bg" data-fig="powerbi"><img src="assets/figures/powerbi-light.webp?v=bp2" alt="Carrousel de classeurs" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Power BI · PP &amp; MOSO</span><span class="rf-tile-meta">100–167 h / an</span></a></div>
+<div class="rf-sec-head rf-block rf-rv"><h2>Savoir <em>où regarder</em></h2><p>Retrouver tout le suivi d’un ordre de travail, d’un équipement ou d’un bâtiment, et repérer la vigilance et la criticité des gares : <b>rendre visible</b> ce qui demande de l’attention, avant que cela devienne un retard.</p></div><div class="rf-row" style="--cols:1fr 2fr"><a class="rf-tile rf-tile--pro rf-rv" href="projet-suivi.html" aria-label="Ouvrir : Retrouver tout le suivi"><span class="rf-tile-bg" data-fig="suivi"><img src="assets/figures/suivi-light.webp?v=bp2" alt="Standard à fiches" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Retrouver tout le suivi</span><span class="rf-tile-meta">10–15 min</span></a><a class="rf-tile rf-tile--pro rf-rv" href="projet-gares.html" aria-label="Ouvrir : Gares prioritaires"><span class="rf-tile-bg" data-fig="gares"><img src="assets/figures/gares-light.webp?v=bp2" alt="Tableau à palettes" width="840" height="600" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Gares prioritaires</span><span class="rf-tile-meta">750–1 687,5 h / an</span></a></div>
+  </div>
 </section>
-<section class="strip">
-  <header class="strip-head"><h2>Projets personnels</h2><p>Chaque aperçu devient jouable</p></header>
-  <div class="marquee" id="mq-perso" tabindex="0" aria-label="Projets personnels. Glissez ou utilisez les flèches gauche et droite."></div>
+
+<!-- 04 · Projet universitaire -->
+<section class="rf-sec" id="universitaire" aria-labelledby="univ-t">
+  <div class="rf-chip rf-rv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-5 9 5-9 5z"/><path d="M7 11.5V16c0 1.5 2.2 3 5 3s5-1.5 5-3v-4.5"/></svg>Projet universitaire</div>
+  <div class="rf-sec-head rf-rv">
+    <h2 id="univ-t">Apprendre une norme en jouant</h2>
+    <p>Réalisé dans le cadre de la formation : <b>sept chapitres de l’ISO 45001</b> deviennent sept ateliers et une dizaine de mini-jeux dans un village en 3D. On apprend la norme <b>en agissant plutôt qu’en lisant</b>.</p>
+  </div>
+  <div class="rf-mosaic">
+<div class="rf-row" style="--cols:1fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-talas.html" aria-label="Ouvrir : Village Talas"><span class="rf-tile-bg"><img src="assets/projets/talas.jpg?v=bf01a16" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Village Talas</span><span class="rf-tile-meta">Jeu sérieux ISO 45001</span></a></div>
+  </div>
+</section>
+
+<!-- 05 · Projets personnels -->
+<section class="rf-sec" id="perso" aria-labelledby="perso-t">
+  <div class="rf-chip rf-rv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/><path d="M17.3 6H6.7a4 4 0 0 0-4 3.4l-.7 5.2A3 3 0 0 0 7.6 16l1-1.5h6.8l1 1.5a3 3 0 0 0 5.6-1.4l-.7-5.2A4 4 0 0 0 17.3 6z"/></svg>Projets personnels</div>
+  <div class="rf-sec-head rf-rv">
+    <h2 id="perso-t">Là où je teste mes idées</h2>
+    <p>Certains sont terminés, d’autres franchement <b>imparfaits</b>, et c’est très bien comme ça. Chaque aperçu devient <b>jouable</b> : jeux, simulations et expériences, du labyrinthe à la pêche en passant par le sable en 3D.</p>
+  </div>
+  <div class="rf-mosaic">
+<div class="rf-row" style="--cols:1fr 2fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-lettres.html" aria-label="Ouvrir : Lettres machines"><span class="rf-tile-bg"><img src="assets/screenshots/lettres-v2.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Lettres machines</span><span class="rf-tile-meta">Lettres-machines · 2026</span></a><a class="rf-tile rf-tile--perso rf-rv" href="projet-ligne.html" aria-label="Ouvrir : Contrôle de ligne"><span class="rf-tile-bg"><img src="assets/screenshots/ligne-controle-v1.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Contrôle de ligne</span><span class="rf-tile-meta">Vision par ordinateur · 2026</span></a></div>
+<div class="rf-sec-head rf-block rf-rv"><h2>Des mondes <em>à traverser</em></h2><p>Une braise à porter à travers trois zones, un archipel des marées à explorer à pied ou en bateau, un labyrinthe révélé ligne de visée après ligne de visée : <b>explorer à son rythme</b>, en pixels ou en 3D.</p></div><div class="rf-row" style="--cols:1fr 1fr 1fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-limen.html" aria-label="Ouvrir : LIMEN"><span class="rf-tile-bg"><img src="assets/screenshots/limen-v1.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">LIMEN</span><span class="rf-tile-meta">Traversée · 2026</span></a><a class="rf-tile rf-tile--perso rf-rv" href="projet-atlas.html" aria-label="Ouvrir : Nacre"><span class="rf-tile-bg"><img src="assets/screenshots/nacre-v1.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Nacre</span><span class="rf-tile-meta">Archipel des marées · 2026</span></a><a class="rf-tile rf-tile--perso rf-rv" href="projet-labyrinthe.html" aria-label="Ouvrir : Labyrinthe"><span class="rf-tile-bg"><img src="assets/screenshots/labyrinthe-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Labyrinthe</span><span class="rf-tile-meta">Exploration · 2026</span></a></div>
+<div class="rf-row" style="--cols:1fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-route.html" aria-label="Ouvrir : Route &amp; vigilance"><span class="rf-tile-bg"><img src="assets/screenshots/route-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Route &amp; vigilance</span><span class="rf-tile-meta">Prévention · 2026</span></a></div>
+<div class="rf-sec-head rf-block rf-rv"><h2>Jouer, <em>manipuler</em>, observer</h2><p>Un combat en arène, des bûches à fendre, un Rubik’s Cube dont on regarde les permutations : des jeux courts où <b>le geste compte autant que la règle</b>.</p></div><div class="rf-row" style="--cols:1fr 1fr 1fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-arene.html" aria-label="Ouvrir : Arène des arcanes"><span class="rf-tile-bg"><img src="assets/screenshots/arene-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Arène des arcanes</span><span class="rf-tile-meta">Combat · 2026</span></a><a class="rf-tile rf-tile--perso rf-rv" href="projet-timber.html" aria-label="Ouvrir : Timber !"><span class="rf-tile-bg"><img src="assets/screenshots/timber-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Timber !</span><span class="rf-tile-meta">Jeu 3D · 2026</span></a><a class="rf-tile rf-tile--perso rf-rv" href="projet-rubik.html" aria-label="Ouvrir : Rubik’s Cube"><span class="rf-tile-bg"><img src="assets/screenshots/rubik-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Rubik’s Cube</span><span class="rf-tile-meta">Casse-tête · 2026</span></a></div>
+<div class="rf-sec-head rf-block rf-rv"><h2>De petits <em>jouets</em> tactiles</h2><p>Un relief de sable que l’on dessine, une chaleur qui naît sous le curseur : <b>de petites expériences</b> pour sentir ce que le navigateur sait faire.</p></div><div class="rf-row" style="--cols:2fr 1fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-sandboard.html" aria-label="Ouvrir : Sandboard"><span class="rf-tile-bg"><img src="assets/screenshots/sandboard-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Sandboard</span><span class="rf-tile-meta">Sable 3D · 2026</span></a><a class="rf-tile rf-tile--perso rf-rv" href="projet-pixels.html" aria-label="Ouvrir : Pixels"><span class="rf-tile-bg"><img src="assets/screenshots/pixels-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Pixels</span><span class="rf-tile-meta">Canvas · 2026</span></a></div>
+<div class="rf-row" style="--cols:1fr"><a class="rf-tile rf-tile--perso rf-rv" href="projet-gouache.html" aria-label="Ouvrir : Fond d’écran Gouache"><span class="rf-tile-bg"><img src="assets/screenshots/gouache-v52.webp" alt="" loading="lazy"></span><span class="rf-arrow view-action" aria-hidden="true"><span class="view-text">View</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span><span class="rf-tile-title">Fond d’écran Gouache</span><span class="rf-tile-meta">Fond d’écran · 2026</span></a></div>
+  </div>
+</section>
+
+<!-- 06 · Contact : centré tout en bas -->
+<section class="rf-contact" id="contact" aria-labelledby="contact-t">
+  <div class="rf-contact-in">
+    <h2 id="contact-t" class="rf-rv">Envie d’entrer en contact ? Ou simplement de dire bonjour ?</h2>
+    <p class="rf-cp rf-rv"><span class="rf-dim">Écrivez-moi à</span> <a class="rf-link" id="rf-mail" tabindex="0" role="button" data-copy="mathieu@comtesse.me" aria-label="Copier l’adresse mathieu@comtesse.me"><span class="rf-link-ic"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rf-ic-copy" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rf-ic-ok" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span> mathieu@comtesse.me</a><span class="rf-dim">.</span></p>
+    <p class="rf-cp rf-rv"><span class="rf-dim">Dites le mot magique pour que je sache que vous n’êtes pas un robot :</span> <span class="rf-magic rf-dim" tabindex="0" aria-label="mot magique masqué"><span>M</span><span>A</span><span>T</span><span>H</span><span>I</span><span>E</span><span>U</span><span>P</span><span>O</span><span>R</span><span>T</span><span>F</span><span>O</span><span>L</span><span>I</span><span>O</span><span>2</span><span>0</span><span>2</span><span>6</span></span></p>
+    <p class="rf-cp rf-rv"><span class="rf-dim">Retrouvez-moi sur</span> <a class="rf-link" href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener"><span class="rf-link-ic"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></span> LinkedIn</a><span class="rf-dim">.</span></p>
+    <p class="rf-cp rf-rv">Si vous passez par Paris, prenons un café.</p>
+  </div>
 </section>
 </main>
-<footer><p>Mathieu Comtesse © 2026</p><details class="credits">
-    <summary>Crédits</summary>
-    <ul>
-      <li>Pièce de 1 € : modèle 3D fourni par Mathieu Comtesse, dimensionné et orienté sous Blender.</li>
-      <li>Prises, fiches, multiprise et adaptateur : « Power Plug / Outlet / Adapter / Connector Strip », <a href="https://sketchfab.com/blackcube4">BlackCube</a>, <a href="https://sketchfab.com/3d-models/power-plug-outlet-adapter-connector-strip-69b6c77ec76b4ce7a4a79067b3f0e316">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, fichier fourni par Mathieu Comtesse. Échelle et repères d’insertion adaptés.</li>
-      <li>Clé « PSX Tower Key – Rusty Radio Tower Key » : <a href="https://sketchfab.com/ZwiebelGames">ZwiebelGames</a>, <a href="https://sketchfab.com/3d-models/psx-tower-key-rusty-radio-tower-key-a2ba7ef56ec04eaebf3acda251101442">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, fichier fourni par Mathieu Comtesse. Contour extrait du modèle et redessiné en figure isométrique (figure 10).</li>
-      <li>Tirelire « Piggy Bank » : <a href="https://sketchfab.com/mistour">mistour</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/piggy-bank-d4387ba82d8f4dda85826ee5815640b9">modèle original</a> fourni par Mathieu Comtesse. Taille et repère de la fente adaptés sous Blender.</li>
-      
-      <li>Sony Playstation One Controller : synthetic worlds, <a href="https://sketchfab.com/3d-models/sony-playstation-one-controller-972c17a0fdaa4760ad9a624b3f3e081e">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>. Fichier fourni par Mathieu Comtesse ; taille, placement et textures adaptés sous Blender.</li>
-      <li>PlayStation 1 - Assignment - GAP : Lars Maes, <a href="https://sketchfab.com/3d-models/playstation-1-assignment-gap-adb971118f094db3991eaf1906ed5d4d">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>. Fichier fourni par Mathieu Comtesse ; taille, placement et textures adaptés sous Blender.</li>
-      <li>Olivetti Underwood 280 : modeldump, <a href="https://sketchfab.com/3d-models/olivetti-underwood-280-5a942f9025b3481a9077840b690b0066">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>. Fichier fourni par Mathieu Comtesse ; taille, placement et textures adaptés sous Blender.</li>
-      <li>Mamiya 645 1000S : Forpinik, <a href="https://sketchfab.com/3d-models/mamiya-645-1000s-d258846216a14ea3893bb561d5ac7d6d">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>. Fichier fourni par Mathieu Comtesse ; taille, placement et textures adaptés sous Blender.</li>
-      <li>Gaming setup v2 (low-poly) : LagzDesign, <a href="https://sketchfab.com/3d-models/gaming-setup-v2-low-poly-c4aafe2ed67841b9b52e80e8e469dbb8">modèle original</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Écrans, bras articulés, enceintes et tapis extraits et dimensionnés sous Blender. Clavier Moonlander modélisé pour le CV.</li>
-      <li>Logitech MX Master 2S : danish_blends, <a href="https://sketchfab.com/3d-models/logitech-mx-master-2s-danish-blends-e8f3235951934a01aba4e0ee3de72e71">modèle original</a>, CC BY-NC 4.0.</li>
-      <li>Dream Computer Setup : Daniel Cardona, <a href="https://sketchfab.com/3d-models/dream-computer-setup-82f78bbaf2d34f01af854a52151dbf49">modèle original</a>, CC BY 4.0. RTX 4090 : MG990, <a href="https://sketchfab.com/3d-models/asus-rog-geforce-rtx-4090-v20-6f527569f14b4efc94c7072842bd41ac">modèle original</a>, CC BY 4.0.</li>
-      <li>Multiprise : niko300, <a href="https://sketchfab.com/3d-models/bloc-multiprise-multipower-block-d5266d365b1c4a959b4f652e32033113">modèle original</a>, CC BY 4.0. Magnavox CRT : amhyde, <a href="https://sketchfab.com/3d-models/magnavox-19-crt-tv-rr1938-w122-3aa886ec33294ddb9da3ce7bfe8ed9b6">modèle original</a>, CC BY 4.0.</li>
-      <li>Table USM Haller : fichier 3DS fourni ; caisson à trois tiroirs reconstruit sous Blender d’après le dessin DWG fourni (418 × 523 × 605 mm). Barre lumineuse modélisée d’après l’image fournie. Fond Windows 11 Bloom : Microsoft. Son de pompe : freesound_community, fichier fourni par Mathieu Comtesse.</li>
-      <li>Fauteuil Ekstrem (design Terje Ekstrøm, Varier) : modèle 3D de Marià V., <a href="https://3dwarehouse.sketchup.com/model/312c320b-f617-4a8a-8546-d7dd3b6124d9/Ekstrem-Chair">3D Warehouse</a>.</li>
-      <li>Siège Setu : modèle 3D de Herman Miller, <a href="https://www.hermanmiller.com/resources/3d-models-and-planning-tools/product-models/individual/setu-chair-with-arms/">hermanmiller.com</a>, via 3D Warehouse.</li>
-      <li>Canapé DS-450 (de Sede) : modèle 3D de Marije H., <a href="https://3dwarehouse.sketchup.com/model/05759fed-25c6-4b2b-8120-20a3cff98283">3D Warehouse</a>.</li>
-      <li>Enceintes JBL L100 MKII : modèle 3D de spencer smith, <a href="https://3dwarehouse.sketchup.com/model/1cd289cc-8b22-40b9-8e36-879f451d7a0b/JBL-L100-MKII">3D Warehouse</a>.</li>
-      <li>Suspension Falkland (Danese Milano, Bruno Munari) : modèle 3D de minkyoung K., <a href="https://3dwarehouse.sketchup.com/model/1f132676-ba62-4b68-9e82-82a4a32337a4/falkland-floor-lamp">3D Warehouse</a>.</li>
-      <li>Jean du personnage : modèle « JNCO Twin Cannon baggy jeans » (Sketchfab), fourni par Mathieu Comtesse et adapté au squelette sous Blender (bpy). T-shirt fourni : ajusté et lié au squelette sous Blender ; ancien modèle de référence de <a href="https://sketchfab.com/3d-models/t-shirt-81081c5803de49bf90f74e577fce4633">Lucas Soler</a> (CC BY 4.0).</li>
-      <li>Chaussures New Balance 992 : modèle 3D de SRUSH651, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/new-balance-992-made-in-usa-greymetallic-7a38e58c92d54de59faa0b30f071f0d9">Sketchfab</a> (réduit et recolorié pour la scène).</li>
-      <li>Lampe Borne Béton (Le Corbusier) : modèle 3D de Charles R., <a href="https://3dwarehouse.sketchup.com/model/78f07577-1796-46bb-85fa-de107f223701">3D Warehouse</a>.</li>
-      <li>Livres « Variety of Books », platine « Yamaha TT-300 » et bloc « Post-it Notes » : fichiers fournis par Mathieu Comtesse, dimensionnés et optimisés sous Blender.</li>
-      <li>Sons et vidéo PlayStation : « psx », « Push button PS1 », « Game Boot », « Browser To Menu », « Menu », « Red Screen of Death (Short) » et « Sony PlayStation SCEE - Boot screen », fichiers fournis par Mathieu Comtesse. Mixage discret pour la scène.</li>
-      <li>Sac de randonnée : fichier fourni par Mathieu Comtesse, optimisé sous Blender. Bâtons : recréation sous Blender d’après <a href="https://sketchfab.com/3d-models/hiking-poles-a3d3cfd1c26e4dbd8f168991f4a7e604">la référence de Chakkit PP</a>. Suiseki : recréation sous Blender d’après <a href="https://sketchfab.com/3d-models/suiseki-kamogawaishi-type-stone-82d3b58d8fdb48d09193fcd5a27ca84f">la référence du musée virtuel de Małopolska</a>. Ces deux recréations ne sont pas les modèles sources.</li>
-      <li>Télé JVC « Video Capsule 3100R » : « Video-capsule-jvc-3100r », <a href="https://sketchfab.com/mjsuiiiiii">mjsuiiiiii</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/video-capsule-jvc-3100r-f5b5bd859a2a4343b6c59ab3459ef3f3">modèle original</a>. Adapté pour le site : textures recompressées, échelle réduite, capot animé et écran relié à la lecture des bandes-annonces (lues depuis YouTube).</li>
-      <li>Lanterne de pierre « Japanese Stone Lantern » : <a href="https://sketchfab.com/duhovski">Kirill Duhovny</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/japanese-stone-lantern-9e10ab68ce244a9cb40a3cee02dd2b1e">modèle original</a>, textures allégées.</li>
-      <li>Cyprès chauve « Bald Cypress » : <a href="https://sketchfab.com/BaptisteBerard">BaptisteBerard</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/bald-cypress-feb56a05db3546d390d0957e03cf48a3">modèle original</a>, textures allégées.</li>
-      <li>Fleur de lotus « Stylized Lotus Flower » : <a href="https://sketchfab.com/Kigha">Kigha</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/stylized-lotus-flower-12768caa111f446b8796e70f9cc53a23">modèle original</a>, textures allégées.</li>
-      <li>Rochers moussus « Moss Rock 08 » et « Moss Rock 12 » (Rock Pack Vol.2) : <a href="https://sketchfab.com/klessgyzen">Kless Gyzen</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/moss-rock-08-rock-pack-vol2-ef41993f2c6e4358b4f08b6c36a20085">modèle original</a> (<a href="https://sketchfab.com/3d-models/moss-rock-12-rock-pack-vol2-e2c1bc5d42c44e0b93a5179077f223ee">Moss Rock 12</a>), textures allégées.</li>
-      <li>Toit de la pièce du thé « Japanese Temple Roof » : <a href="https://sketchfab.com/Fallout-Tokugawa">Fallout: Tokugawa</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/japanese-temple-roof-930bd96d9a674e2fb1c8f8d9db2746d2">modèle original</a>, réduit à un seul versant et allégé.</li>
-      <li>Bonsaï « Bonsai_Tree » : <a href="https://sketchfab.com/Crazy_Mermaid">Mermaid</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/bonsai-tree-5fbfd4b88409445894647e0532bd6617">modèle original</a>, textures allégées.</li>
-      <li>Stèle « Low Poly Bordeaux 2 Game Ready » : <a href="https://sketchfab.com/Arthur.Zim">Arthur.Zim</a>, licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, <a href="https://sketchfab.com/3d-models/low-poly-bordeaux-2-game-ready-bb5f2eb85ac346f494fa03041e3db99f">modèle original</a>, textures allégées.</li>
-      <li>Clichés argentiques : Mathieu Comtesse. Livre : déformation des pages et texture de papier adaptées de <a href="https://paper.design/mono">Paper Mono</a>, à partir de l’archive fournie.</li>
-      <li>Animations de personnage : bibliothèque d’animations de son dépôt GitHub. Rendu : <a href="https://threejs.org/">three.js</a>.</li>
-    </ul>
-  </details></footer>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvgxmcc">mvgxmcc</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="index.html">Accueil</a></li><li><a href="blog.html">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="info.html">Info</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+
+<dialog class="rf-dialog" id="rf-dialog" aria-label="Détail du projet"><button class="rf-close" type="button" aria-label="Fermer">×</button><div id="rf-dialog-body"></div></dialog>
+
 <noscript><p class="ns">Cette page demande JavaScript pour afficher la pièce en 3D.</p></noscript>
 </body>
 </html>

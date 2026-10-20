@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Power Automate · chaîne des PP · Mathieu Comtesse</title>
+<meta name="description" content="Power Automate · chaîne des PP : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvgxmccp">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvgxmccp"></script>
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="index.html">Index</a>
+  <a href="index.html#projets">Projets</a>
+  <a href="index.html#perso">Perso</a>
+  <a href="blog.html">Blog</a>
+  <a href="info.html">Info</a>
+  <a href="index.html#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Tourner la machine (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Déplacer la machine (glisser dans tous les sens, flèches, double clic pour recentrer)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Déplacer</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="blog.html">← Tous les projets</a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 04 / 10 · Processus métier</p>
+      <h1>Power Automate · chaîne des PP</h1>
+      <p class="rf-post-sub">Dépôt, classement, alerte, relance</p>
+      <div class="rf-post-meta"><div><span>Temps libéré</span><b>40 min</b></div><div><span>Valorisation financière</span><b>15 700 €</b></div><div><span>Objet</span><b>Classeur à échéances</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="pp"><img src="assets/figures/pp-light.webp?v=bp2" alt="Classeur à échéances" width="840" height="600"><figcaption>Classeur à échéances · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Une échéance de plan de prévention s’oublie quand elle dort dans un dossier parmi des centaines.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min ; avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.</p><h2>Le projet</h2><p>La VM extrait automatiquement les champs des plans de prévention, puis les range dans SharePoint avec archivage automatique. Le portail PP &amp; MOSO permet ensuite de consulter les plans, leurs échéances et les données des marchés.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré</small><b>40 min</b><i>de contrôles et de saisie rendues chaque jour</i></span><span><small>Valorisation financière</small><b>15 700 €</b><i>par an, soit ≈ 17 € et 10 min par plan de prévention</i></span></div><p>15 à 20 minutes économisées par plan de prévention × 400 à 500 plans/an : 100 à 166,67 heures, soit 10 474 à 17 456,67 € par an à 104,74 €/h. Le traitement va de l’extraction VM au rangement SharePoint et à l’archivage automatique.</p><p class="rf-post-note"><b>Base du calcul.</b> 40 min/jour × environ 225 jours/an × 104,74 €/h ≈ 15 700 €/an. Temps de contrôle et saisie des plans de prévention.</p><h2>Comment ça marche</h2><ol class="rf-post-steps"><li><h3>Dépôt SharePoint</h3><p>Le plan de prévention arrive dans la bibliothèque. Le bac d’entrée représente ce dépôt.</p></li><li><h3>Prise en charge</h3><p>Power Automate déclenche le flux : le plan quitte le bac, la première vanne tourne et le circuit rouge se met à circuler.</p></li><li><h3>Lecture des champs</h3><p>Les champs utiles du plan sont lus : le circuit jaune alimente le corps central, l’anneau de lecture le parcourt et la soupape lâche sa vapeur, sans intervention manuelle.</p></li><li><h3>Contrôle et échéance</h3><p>Les données et l’échéance sont vérifiées. Les manomètres représentent ces contrôles, avec des valeurs illustratives.</p></li><li><h3>Listing Excel</h3><p>Les données contrôlées alimentent le listing Excel : la vanne verte tourne et le circuit vert, le suivi structuré, se met à circuler.</p></li><li><h3>Classement SharePoint</h3><p>Le plan est rangé dans la bibliothèque et son lien reste associé au suivi : les deux régulateurs de la branche rouge tournent et son flux s’accélère.</p></li><li><h3>Archivage</h3><p>Le document traité sort du circuit et rejoint son rangement final : le bac de sortie représente le plan classé.</p></li><li><h3>Surveillance des échéances</h3><p>Les échéances sont surveillées pour repérer les plans nécessitant une alerte : l’aiguille du cadran de contrôle balaie les échéances.</p></li><li><h3>Alertes et relances</h3><p>Les échéances déclenchent les alertes et relances : la dernière vanne tourne, l’évent souffle et les mails de relance s’envolent, sans bloquer le processus métier.</p></li></ol><h2>Construction</h2><p>Temps de construction estimé : 5 jours de 7 heures, essais auprès des équipes compris.</p>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a href="projet-moteur44.html"><small>Précédent</small><b>Reporteur Q18</b></a><a href="projet-cerfa.html"><small>Suivant</small><b>CERFA v3</b></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvgxmcc">mvgxmcc</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="index.html">Accueil</a></li><li><a href="blog.html">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="info.html">Info</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>

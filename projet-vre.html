@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Extracteur VRE · Mathieu Comtesse</title>
+<meta name="description" content="Extracteur VRE : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvgxmccp">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvgxmccp"></script>
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="index.html">Index</a>
+  <a href="index.html#projets">Projets</a>
+  <a href="index.html#perso">Perso</a>
+  <a href="blog.html">Blog</a>
+  <a href="info.html">Info</a>
+  <a href="index.html#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Tourner la machine (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Déplacer la machine (glisser dans tous les sens, flèches, double clic pour recentrer)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Déplacer</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="blog.html">← Tous les projets</a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 06 / 10 · Processus métier</p>
+      <h1>Extracteur VRE</h1>
+      <p class="rf-post-sub">Rapports de vérification électrique</p>
+      <div class="rf-post-meta"><div><span>Temps libéré (estimé)</span><b>1 667–2 083 h / an</b></div><div><span>Valorisation estimée</span><b>174 566,67–218 208,33 € / an</b></div><div><span>Objet</span><b>Trieuse à quatre tubes</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="vre"><img src="assets/figures/vre-light.webp?v=bp2" alt="Trieuse à quatre tubes" width="840" height="600"><figcaption>Trieuse à quatre tubes · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport ; avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.</p><h2>Le projet</h2><p>Les rapports de vérification des installations électriques, produits par les organismes de contrôle, servent à tenir le plan annuel de maintenance (PAM SSI) : il faut compter, bâtiment par bâtiment et local par local, les disjoncteurs (BT31), les fusibles (BT33), les blocs autonomes d’éclairage de sécurité (BT21) et les candélabres (BT11).</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré (estimé)</small><b>1 667–2 083 h / an</b><i>25 min de comptage évitées par rapport × 4 000–5 000 rapports/an ; capacité théorique rendue disponible</i></span><span><small>Valorisation estimée</small><b>174 566,67–218 208,33 € / an</b><i>25 min × 4 000–5 000 rapports à 104,74 €/h ; ≈ 43,64 € par rapport</i></span></div><p>25 minutes de comptage évitées par rapport × 4 000 à 5 000 rapports/an : 1 666,67 à 2 083,33 heures, soit 174 566,67 à 218 208,33 € par an à 104,74 €/h. Il s’agit de capacité théorique : le comptage complet était auparavant trop long pour être réalisé.</p><p class="rf-post-note"><b>Base du calcul.</b> 25/60 h × 4 000–5 000 rapports/an = 1 666,67–2 083,33 h/an ; × 104,74 €/h = 174 566,67–218 208,33 €/an. Capacité théorique : le comptage manuel complet était auparavant trop long pour être réalisé. VM, Reporteur Q18 et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).</p><h2>Pour l’équipe</h2><p>Mettre à jour le plan annuel de maintenance à partir des rapports de contrôle sans les relire ligne à ligne, et garder la main sur chaque total.</p><h2>Comment ça marche</h2><ol class="rf-post-steps"><li><h3>Rapport électrique</h3><p>Le rapport PDF fournit les équipements, les départs et les écarts à examiner.</p></li><li><h3>Bâtiment et local</h3><p>Les résultats sont rattachés au bâtiment et au local concernés.</p></li><li><h3>BT31 · disjoncteurs</h3><p>Les disjoncteurs sont repérés dans le rapport et comptés par famille.</p></li><li><h3>BT33 · fusibles</h3><p>Les fusibles sont identifiés et leurs totaux restent distincts.</p></li><li><h3>BT21 · éclairage de sécurité</h3><p>Les équipements d’éclairage de sécurité font également partie du comptage.</p></li><li><h3>BT11 · candélabres</h3><p>Les candélabres constituent une autre famille, sans être confondus avec les coffrets.</p></li><li><h3>Totaux contrôlés</h3><p>Les quantités sont vérifiées avant de rejoindre le suivi.</p></li><li><h3>Structure Excel</h3><p>Chaque total retrouve sa place dans le classeur de suivi.</p></li><li><h3>Suivi et PAM SSI</h3><p>Les résultats alimentent le suivi, avec des repères bâtiment et local pour leur exploitation.</p></li></ol><h2>Construction</h2><p>Temps de construction estimé : 3 jours de 7 heures, essais auprès des équipes compris.</p>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a href="projet-cerfa.html"><small>Précédent</small><b>CERFA v3</b></a><a href="projet-studio.html"><small>Suivant</small><b>Studio d’extracteurs PDF</b></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvgxmcc">mvgxmcc</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="index.html">Accueil</a></li><li><a href="blog.html">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="info.html">Info</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>
