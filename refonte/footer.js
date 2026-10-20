@@ -5,6 +5,8 @@
   const local = /^(localhost|127\.|\[::1\])/.test(location.hostname);
   const tidy = () => { try { const c = clean(location.pathname) || '/'; if (!local && (c !== location.pathname || location.hash || location.search)) history.replaceState(null, '', c); } catch {} };
   tidy(); addEventListener('load', () => setTimeout(tidy, 60));
+  // cache + préchauffage du décor de l'accueil depuis toutes les pages
+  if ('serviceWorker' in navigator && !local) navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then((r) => { const go = () => r.active && r.active.postMessage('warm'); 'requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 4000 }) : setTimeout(go, 2500); }).catch(() => {});
   document.addEventListener('click', (e) => {
     const a = e.target.closest && e.target.closest('a[href]');
     if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || a.target) return;
