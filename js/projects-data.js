@@ -1,5 +1,5 @@
 // Projets de l'accueil : projets pro (image, gain chiffré, fiche synthétique tirée de data.js) et projets perso (aperçus pixélisés).
-import { CV, PERSO, PRO } from './data.js?v=cv-projects-v17';
+import { CV, PERSO, PRO } from './data.js?v=cv-projects-v18';
 import { BUILD } from './annual-gains.js?v=cv-scene-v59';
 
 const byId = Object.fromEntries(PRO.map((p) => [p.id, p]));
@@ -434,6 +434,7 @@ PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
 // « Construit avec » : langages, outils et méthodes réellement utilisés (relevés dans le code de chaque jeu). Talas : équipe et coproduction en plus.
 const T = (lang, outils, methode, dernier) => [['Langages', lang], ['Outils', outils], ['Méthode', methode], dernier];
 const TECH = {
+  lettres: T('HTML, JavaScript', 'SVG, filtres de bruit, animation image par image', 'Chaque lettre est construite par le code : pièces extrudées, hachures, mouvement', ['Export', 'SVG ou PNG, mot au choix']),
   talas: [['Langages', 'HTML, CSS et JavaScript, sans framework'], ['Outils', 'Three.js r128 (shaders de rendu peint), Canvas 2D, Web Audio'], ['Méthode', 'Un atelier par chapitre ISO 45001, choix qui se répercutent en effets domino'], ['Équipe', 'Scénario coproduit avec Eliott, Dylan, Mathilde, Georges, Neila et Lorette']],
   atlas: T('HTML, CSS, JavaScript', 'Three.js, modèles Blender, Canvas 2D', 'Un bâtiment par étape du parcours, sur un archipel 3D', ['Livraison', 'Navigateur, progression gardée en local']),
   labyrinthe: T('HTML, CSS, JavaScript', 'Canvas 2D', 'Lignes de visée : seul ce qui est vu se révèle', ['Modes', 'Exploration manuelle ou automatique']),
