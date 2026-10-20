@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gares prioritaires · Mathieu Comtesse</title>
+<meta name="description" content="Gares prioritaires : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvgxmccp">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvgxmccp"></script>
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="index.html">Index</a>
+  <a href="index.html#projets">Projets</a>
+  <a href="index.html#perso">Perso</a>
+  <a href="blog.html">Blog</a>
+  <a href="info.html">Info</a>
+  <a href="index.html#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Tourner la machine (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Déplacer la machine (glisser dans tous les sens, flèches, double clic pour recentrer)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Déplacer</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="blog.html">← Tous les projets</a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 10 / 10 · Processus métier</p>
+      <h1>Gares prioritaires</h1>
+      <p class="rf-post-sub">Vigilance et criticité des gares</p>
+      <div class="rf-post-meta"><div><span>Temps libéré (estimé)</span><b>750–1 687,5 h / an</b></div><div><span>Valorisation estimée</span><b>78 555–176 748,75 € / an</b></div><div><span>Objet</span><b>Tableau à palettes</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="gares"><img src="assets/figures/gares-light.webp?v=bp2" alt="Tableau à palettes" width="840" height="600"><figcaption>Tableau à palettes · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Savoir quelles gares surveiller en premier demandait de croiser plusieurs sources à chaque consultation.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min ; avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.</p><h2>Le projet</h2><p>Un nouveau rapport Power BI pour suivre les gares à surveiller : classement de criticité, conformité de la source normale, équipements sous vigilance, maintenance préventive et mises en conformité, dans une interface HTML/CSS générée par des mesures DAX.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré (estimé)</small><b>750–1 687,5 h / an</b><i>10–15 min × 20–30 consultations/jour × hypothèse de 225 jours/an</i></span><span><small>Valorisation estimée</small><b>78 555–176 748,75 € / an</b><i>4 500–6 750 consultations/an à 104,74 €/h ; valorisation estimative du temps</i></span></div><p>10 à 15 minutes économisées par consultation × 20 à 30 consultations/jour × hypothèse de 225 jours/an : 750 à 1 687,5 heures, soit 78 555 à 176 748,75 € par an à 104,74 €/h.</p><p class="rf-post-note"><b>Base du calcul.</b> 10–15/60 h × 20–30 consultations/jour × 225 jours/an (hypothèse) = 750–1 687,5 h/an ; × 104,74 €/h = 78 555–176 748,75 €/an. Fourchette estimative, non multipliée à nouveau par le parc des équipements.</p><h2>Pour l’équipe</h2><p>Repérer en quelques secondes les gares à traiter en priorité, ouvrir la fiche d’un équipement et vérifier d’un coup d’œil sa maintenance préventive et ses mises en conformité.</p><h2>Comment ça marche</h2><ol class="rf-post-steps"><li><h3>Sources du suivi</h3><p>Les sources GMAO, référentiel et SharePoint sont réunies.</p></li><li><h3>Préparation</h3><p>Les données sont préparées et contrôlées.</p></li><li><h3>Rapprochement</h3><p>Les données retrouvent les gares et équipements concernés.</p></li><li><h3>Modèle Power BI</h3><p>Le modèle comporte 19 tables et 159 mesures.</p></li><li><h3>Criticité</h3><p>Les mesures permettent de hiérarchiser les situations à surveiller.</p></li><li><h3>Conformité source normale</h3><p>La conformité et les équipements demandant de la vigilance deviennent visibles.</p></li><li><h3>Gares prioritaires</h3><p>Les priorités ressortent selon les mesures, sans dépendre de leur distance au centre du radar.</p></li><li><h3>Détail maintenance</h3><p>La vue gare ouvre le détail des équipements et de leur maintenance préventive.</p></li><li><h3>Suivi consolidé</h3><p>L’ensemble devient consultable pour orienter les actions. Le radar symbolise la vigilance, sans surveillance en temps réel.</p></li></ol><h2>Construction</h2><p>Temps de construction estimé : 9 jours de 7 heures, essais auprès des équipes compris.</p>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a href="projet-suivi.html"><small>Précédent</small><b>Retrouver tout le suivi</b></a><a href="projet-talas.html"><small>Suivant</small><b>Village Talas</b></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvgxmcc">mvgxmcc</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="index.html">Accueil</a></li><li><a href="blog.html">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="info.html">Info</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>

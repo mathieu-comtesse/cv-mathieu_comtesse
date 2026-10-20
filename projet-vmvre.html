@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VRE · traitement par VM · Mathieu Comtesse</title>
+<meta name="description" content="VRE · traitement par VM : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvgxmccp">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvgxmccp"></script>
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="index.html">Index</a>
+  <a href="index.html#projets">Projets</a>
+  <a href="index.html#perso">Perso</a>
+  <a href="blog.html">Blog</a>
+  <a href="info.html">Info</a>
+  <a href="index.html#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Tourner la machine (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Déplacer la machine (glisser dans tous les sens, flèches, double clic pour recentrer)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Déplacer</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="blog.html">← Tous les projets</a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 02 / 10 · Continuité de traitement</p>
+      <h1>VRE · traitement par VM</h1>
+      <p class="rf-post-sub">Rapports, OT, liens Excel et récapitulatif</p>
+      <div class="rf-post-meta"><div><span>Temps libéré</span><b>30 min / rapport</b></div><div><span>Valorisation financière</span><b>209 480–261 850 € / an</b></div><div><span>Objet</span><b>Pointeuses à clé partagée</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="vm"><img src="assets/figures/vm-light.webp?v=bp2" alt="Pointeuses à clé partagée" width="840" height="600"><figcaption>Pointeuses à clé partagée · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.</p><h2>L’objet en action</h2><p>Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons ; la reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.</p><h2>Le projet</h2><p>Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré</small><b>30 min / rapport</b><i>2 000–2 500 h par an pour 4 000–5 000 rapports VRE : rapprochement de l’OT, inscription du lien et vérification dans Excel</i></span><span><small>Valorisation financière</small><b>209 480–261 850 € / an</b><i>temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport</i></span></div><p>30 minutes de traitement économisées par rapport VRE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons ; le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.</p><p class="rf-post-note"><b>Base du calcul.</b> 0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu. VM, Reporteur Q18 et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).</p><h2>Pour l’équipe</h2><p>Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint.</p><h2>Comment ça marche</h2><ol class="rf-post-steps"><li><h3>Dépôt SharePoint</h3><p>Le PDF est déposé dans SharePoint. Une unité représente un rapport et sa demande.</p></li><li><h3>Demande de traitement</h3><p>Power Automate crée la demande de traitement.</p></li><li><h3>File d’attente</h3><p>Les demandes attendent leur prise en charge. Le portique se positionne sur l’unité.</p></li><li><h3>Relevé par la VM</h3><p>La VM Windows relève les demandes toutes les deux minutes.</p></li><li><h3>Contrôle R004 et OT</h3><p>Le code final R004 et le numéro OT à sept chiffres sont contrôlés.</p></li><li><h3>Recherche dans Excel</h3><p>Le classeur de suivi et l’OT correspondant sont retrouvés.</p></li><li><h3>Inscription vérifiée</h3><p>Le lien du rapport est écrit ; le classeur est enregistré puis vérifié.</p></li><li><h3>Historique confirmé</h3><p>Seuls les résultats confirmés rejoignent l’historique pour éviter les doublons.</p></li><li><h3>Récapitulatif de 17 h</h3><p>Le récapitulatif rassemble les nouvelles intégrations confirmées. La reprise entre deux VM reste un chantier à concevoir.</p></li></ol><h2>Construction</h2><p>Temps de construction estimé : 1,5 jours de 7 heures, essais auprès des équipes compris.</p>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a href="projet-finance.html"><small>Précédent</small><b>Point financier · Power Automate</b></a><a href="projet-moteur44.html"><small>Suivant</small><b>Reporteur Q18</b></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvgxmcc">mvgxmcc</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="index.html">Accueil</a></li><li><a href="blog.html">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="info.html">Info</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>

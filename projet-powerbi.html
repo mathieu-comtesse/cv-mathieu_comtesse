@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Power BI · PP &amp; MOSO · Mathieu Comtesse</title>
+<meta name="description" content="Power BI · PP &amp; MOSO : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvgxmccp">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvgxmccp"></script>
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="index.html">Index</a>
+  <a href="index.html#projets">Projets</a>
+  <a href="index.html#perso">Perso</a>
+  <a href="blog.html">Blog</a>
+  <a href="info.html">Info</a>
+  <a href="index.html#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Tourner la machine (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Déplacer la machine (glisser dans tous les sens, flèches, double clic pour recentrer)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Déplacer</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="blog.html">← Tous les projets</a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 08 / 10 · Processus métier</p>
+      <h1>Power BI · PP &amp; MOSO</h1>
+      <p class="rf-post-sub">VM · extraction, rangement SharePoint et archivage auto</p>
+      <div class="rf-post-meta"><div><span>Temps libéré</span><b>100–167 h / an</b></div><div><span>Valorisation financière</span><b>10 474–17 456,67 € / an</b></div><div><span>Objet</span><b>Carrousel de classeurs</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="powerbi"><img src="assets/figures/powerbi-light.webp?v=bp2" alt="Carrousel de classeurs" width="840" height="600"><figcaption>Carrousel de classeurs · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min ; avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.</p><h2>Le projet</h2><p>Concevoir des interfaces Power BI sur mesure en intégrant du HTML et du CSS dans les mesures DAX : tableaux de consultation, indicateurs et navigation adaptés aux besoins des équipes.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré</small><b>100–167 h / an</b><i>15–20 min × 400–500 PP/an : extraction VM, rangement SharePoint et archivage automatique</i></span><span><small>Valorisation financière</small><b>10 474–17 456,67 € / an</b><i>400–500 plans par an, valorisés à 104,74 €/h ; 26,19–34,91 € par PP</i></span></div><p>15 à 20 minutes de traitement par PP × 400 à 500 plans/an : 100 à 166,67 heures et 10 474 à 17 456,67 €/an. Consultation distincte : 10 minutes × environ 40 consultations/jour = 6 h 40 et 698,27 €/jour à 104,74 €/h.</p><p class="rf-post-note"><b>Base du calcul.</b> 15–20/60 h × 400–500 PP/an = 100–166,67 h/an ; × 104,74 €/h = 10 474–17 456,67 €/an. Extraction VM, rangement SharePoint et archivage auto. Consultation distincte : 10 min × 40 consultations/jour = 6 h 40 et 698,27 €/jour. Ces deux gains portent sur des actions différentes.</p><h2>Pour l’équipe</h2><p>Consulter les PP valides ou archivés, les échéances et les données marché dans une interface lisible et personnalisée.</p><h2>Comment ça marche</h2><ol class="rf-post-steps"><li><h3>Dépôt du PDF</h3><p>Le plan de prévention arrive dans le dossier de dépôt. C’est le document source du parcours.</p></li><li><h3>Extraction par VM</h3><p>La machine virtuelle extrait automatiquement les champs utiles du plan de prévention.</p></li><li><h3>Rangement SharePoint</h3><p>Le PDF est rangé automatiquement dans le bon dossier SharePoint. Son emplacement devient fiable.</p></li><li><h3>Archivage automatique</h3><p>Le plan de prévention est archivé automatiquement. Le document reste conservé et accessible.</p></li><li><h3>Alimentation Excel</h3><p>Les champs extraits alimentent le suivi Excel. Les données utiles remplacent la ressaisie du document.</p></li><li><h3>Préparation Power Query</h3><p>Power Query prépare les données du suivi pour le portail. Cette vue détaille la préparation déjà incluse dans le projet.</p></li><li><h3>Modèle Power BI</h3><p>Power BI et les mesures DAX rendent les plans, leurs échéances et les marchés MOSO exploitables.</p></li><li><h3>Portail HTML</h3><p>Les pages HTML présentent les informations du portail PP + MOSO. La chaîne devient une interface consultable.</p></li><li><h3>Consultation des équipes</h3><p>Le plan, son PDF et son échéance se retrouvent en quelques secondes. Les informations arrivent jusqu’aux agents.</p></li></ol><h2>Construction</h2><p>Temps de construction estimé : 4 jours de 7 heures, essais auprès des équipes compris.</p>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a href="projet-studio.html"><small>Précédent</small><b>Studio d’extracteurs PDF</b></a><a href="projet-suivi.html"><small>Suivant</small><b>Retrouver tout le suivi</b></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvgxmcc">mvgxmcc</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="index.html">Accueil</a></li><li><a href="blog.html">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="info.html">Info</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>
