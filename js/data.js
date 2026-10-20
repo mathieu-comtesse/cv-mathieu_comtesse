@@ -26,13 +26,14 @@ export const PERSO = [
  },
  {
   "id": "atlas",
-  "img": "assets/screenshots/atlas-v53.webp",
+  "img": "assets/screenshots/nacre-v1.webp",
   "year": 2026,
-  "n": "Atlas du parcours",
-  "genre": "Exploration",
-  "color": "#3b7fd8",
+  "n": "Nacre",
+  "genre": "Archipel des marées",
+  "color": "#2f93b0",
   "url": "atlas.html",
-  "desc": "Chaque étape du parcours (Sorbonne Paris Nord, SNCF Gares & Connexions, projets) devient un bâtiment modélisé dans Blender, sur une île flottante Three.js au-dessus des nuages et de l’océan, avec un lagon où naviguer et pêcher, et vingt et un easter eggs à trouver."
+  "pixel": false,
+  "desc": "Un archipel des marées où chaque étape du parcours (Sorbonne Paris Nord, SNCF Gares & Connexions, projets) est un bâtiment posé sur une île, à explorer à pied ou en bateau, avec la pêche et vingt et un easter eggs à trouver. Une île à part se modèle : pelle, râteau, murs et tours dans le sable, sous une houle et une marée réglables."
  },
  {
   "id": "labyrinthe",
