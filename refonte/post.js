@@ -1,5 +1,5 @@
 // Page de projet : barre, pied de page, apparitions ; pour les projets pro, la machine animée est posée sur le plan blueprint
-// de l'accueil (même caméra en perspective, mêmes règles « Tourner » / « Déplacer »).
+// de l'accueil (même caméra en perspective, mêmes règles « Tourner » / « Incliner »).
 import './footer.js';
 import './navfx.js';
 import * as THREE from 'three';
@@ -23,9 +23,9 @@ if (fig && bpCanvas && stage) {
   /* ---- caméra : azimut 36° comme la pièce de l'accueil, en perspective, liée au plan ---- */
   const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
   const AIM_Y = 3.2;                       // la visée est un peu au-dessus du plan : la machine, au centre du plan, se place sous le titre
-  const placeCam = (yaw, px, py) => {
-    const pitch = 26 * Math.PI / 180, dist = 40, cp = Math.cos(pitch);
-    const tx = .1 + Math.cos(yaw) * px - Math.sin(yaw) * py, tz = -.2 - Math.sin(yaw) * px - Math.cos(yaw) * py;
+  const placeCam = (yaw, pitch = 26 * Math.PI / 180) => {
+    const dist = 40, cp = Math.cos(pitch);
+    const tx = .1, tz = -.2;
     cam.position.set(tx + Math.sin(yaw) * cp * dist, AIM_Y + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
     cam.lookAt(tx, AIM_Y, tz); cam.updateMatrixWorld(true);
   };
@@ -36,7 +36,7 @@ if (fig && bpCanvas && stage) {
   const view = { yaw: 36 * Math.PI / 180 };
   const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); machine?.resize(); };
   let machine = null;
-  placeCam(view.yaw, 0, 0); bp.link(cam);
+  placeCam(view.yaw); bp.link(cam);
   aspect(); addEventListener('resize', aspect);
   const rulers = document.querySelectorAll('.rf-ruler');   // les règles ne se voient que sur le blueprint, tant que la machine est visible
   const canvas = document.createElement('canvas'); canvas.className = 'rf-m3d'; canvas.setAttribute('aria-hidden', 'true'); document.body.append(canvas);
@@ -55,5 +55,5 @@ if (fig && bpCanvas && stage) {
     loop();
   }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); });
 
-  initRulers((v) => { view.yaw = v.yaw; placeCam(v.yaw, v.px, v.py); });
+  initRulers((v) => { view.yaw = v.yaw; placeCam(v.yaw, v.pitch); });
 }

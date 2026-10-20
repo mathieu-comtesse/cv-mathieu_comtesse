@@ -1,6 +1,6 @@
 // Refonte : scène fixe (plan blueprint + vraie pièce 3D du site) qui s'estompe au défilement, titre et règles fixes,
 // puis présentation « About » qui se fige un moment (paragraphes révélés en suivant le défilement), signature, tirelire,
-// sections, contact. Le blog vit dans sa propre page (blog.html).
+// sections, contact. Le blog vit dans sa propre page (blog).
 import * as THREE from 'three';
 import { createRoom } from '../js/room.js?v=cv-light-v91';
 import { initUI } from '../js/ui.js?v=cv-cursor-v20';
@@ -22,18 +22,18 @@ const startHome = () => { try { initHome(); } catch (e) { console.error(e); } };
 let sceneMuted = false;
 const stage = $('stage'), caption = $('rf-caption');
 const bp = initBlueprint($('rf-bp'), stage);
+window.__rfFreeCam = true;           // la caméra ne suit jamais le personnage
 let room = null;
 const FOLLOW = 3.56;                 // la scène a disparu après 3,56 hauteurs d'écran de défilement (mesuré sur la page de référence)
 const HOME = [0.1, 0.8, -0.2];
 const follow = () => clamp(scrollY / (FOLLOW * innerHeight), 0, 1);
 
-/* Les deux règles reprennent les fonctions des boutons de la pièce :
-   - règle horizontale = « Déplacer » : glisser déplace le décor (gauche / droite, haut / bas) ;
-   - règle verticale = « Tourner » : glisser fait tourner le décor autour de lui-même.
-   Plan et pièce reçoivent exactement le même déplacement et la même rotation (axes du sol de la caméra). */
-const off = { x: 0, y: 0 };          // « Déplacer » : décalage en pixels de la règle
-let rot = 0;                         // « Tourner » : décalage en pixels de la règle
-const K = .06, LIM = 250, DEG_PER_PX = .36;   // unités de monde par pixel, limite en pixels, degrés par pixel
+/* Les deux règles agissent sur la vue (plan et pièce reçoivent exactement la même caméra) :
+   - règle horizontale = « Tourner » : glisser à gauche / à droite fait tourner le décor autour de lui-même ;
+   - règle verticale = « Incliner » : glisser vers le haut / le bas modifie l'angle de vue, de la vue basse à la vue plongeante. */
+let rot = 0;                         // « Tourner » : décalage en pixels de la règle horizontale
+let tilt = 0;                        // « Incliner » : décalage en pixels de la règle verticale
+const LIM = 250, DEG_PER_PX = .36, EL_PER_PX = .16;   // limite en pixels, degrés d'azimut et d'élévation par pixel
 const azimuth = () => (36 + rot * DEG_PER_PX) * DEG;
 /* Cliquet de la règle : un clic sec à chaque graduation franchie (son synthétisé, coupé par le bouton de son de la scène). */
 let ac = null, lastTick = 0;
@@ -55,24 +55,25 @@ function tick(major) {
     o.connect(og).connect(ac.destination); o.start(t); o.stop(t + .03);
   } catch {}
 }
-const lastIdx = { x: 0, y: 0, r: 0 };
-const curVal = (k) => (k === 'r' ? rot : off[k]);
+const lastIdx = { r: 0, t: 0 };
+const curVal = (k) => (k === 'r' ? rot : tilt);
 function applyView(moved) {
   for (const k of moved || []) {
     const idx = Math.floor(curVal(k) / 5), n = Math.min(3, Math.abs(idx - lastIdx[k]));
     for (let i = 0; i < n; i++) tick((idx - i * Math.sign(idx - lastIdx[k])) % 10 === 0);
     lastIdx[k] = idx;
   }
-  if (!moved) for (const k of ['x', 'y', 'r']) lastIdx[k] = Math.floor(curVal(k) / 5);
-  const a = azimuth(), px = -off.x * K, py = off.y * K;
-  bp.setYaw(a); bp.setPan(px, py);
+  if (!moved) for (const k of ['r', 't']) lastIdx[k] = Math.floor(curVal(k) / 5);
+  const a = azimuth();
+  bp.setYaw(a); bp.setPan(0, 0);
   if (room) {
     if (room.cameraMode !== 'free') room.setCameraMode('free');   // la pièce ne doit pas repasser en suivi du personnage
     room.view.tAz = a;
-    room.target.set(HOME[0] + Math.cos(a) * px - Math.sin(a) * py, HOME[1], HOME[2] - Math.sin(a) * px - Math.cos(a) * py);
+    room.view.tEl = elev() * DEG;
+    room.target.set(HOME[0], HOME[1], HOME[2]);
   }
-  $('rf-track').style.transform = `translateY(${rot}px)`;
-  $('rf-track-h').style.transform = `translateX(${off.x}px)`;
+  $('rf-track').style.transform = `translateY(${tilt}px)`;
+  $('rf-track-h').style.transform = `translateX(${rot}px)`;
 }
 /* La pièce (caméra orthographique) est posée sur le plan en perspective : on fige sa caméra sur l'angle du plan et on la remet en place après un geste. */
 /* La caméra orthographique de la pièce devient une perspective calée sur les mêmes étendues à la distance de la cible (40 u) :
@@ -90,7 +91,9 @@ function perspectivize(cam) {
   cam.updateProjectionMatrix();
 }
 const EL0 = 26;                      // élévation de départ (degrés), comme avant
-function lockView() { if (!room) return; room.setCameraMode('free'); room.view.tZoom = 1; room.view.tEl = (EL0 + 14 * follow()) * DEG; applyView(); }
+const elev = () => clamp(EL0 + 14 * follow() + tilt * EL_PER_PX, 6, 82);   // la règle verticale s'ajoute à l'inclinaison due au défilement
+function lockView() { if (!room || room.appOpen || room.crate?.isOpen) return;   // pas de retour de zoom pendant le bac à vinyles ou une application ouverte
+  room.setCameraMode('free'); room.view.tZoom = 1; room.view.tEl = elev() * DEG; applyView(); }
 let relock = 0;
 addEventListener('pointerup', () => { clearTimeout(relock); relock = setTimeout(lockView, 700); });
 
@@ -126,23 +129,19 @@ const rulerV = $('rf-ruler'), rulerH = $('rf-ruler-h');
 buildTicks($('rf-track'), false); buildTicks($('rf-track-h'), true);
 function dragRuler(el, mode) {
   let d = null;
-  el.addEventListener('pointerdown', (e) => { if (ac && ac.state === 'suspended') ac.resume(); d = { px: e.clientX, py: e.clientY, x: off.x, y: off.y, r: rot }; el.setPointerCapture(e.pointerId); e.preventDefault(); });
-  el.addEventListener('pointermove', (e) => {
-    if (!d) return;
-    if (mode === 'move') { off.x = clamp(d.x + e.clientX - d.px, -LIM, LIM); off.y = clamp(d.y + e.clientY - d.py, -LIM, LIM); applyView(['x', 'y']); }
-    else { rot = clamp(d.r + e.clientY - d.py, -LIM, LIM); applyView(['r']); }
-  });
+  const horiz = mode === 'turn', key = horiz ? 'r' : 't';
+  const get = () => (horiz ? rot : tilt), set = (v) => { v = clamp(v, -LIM, LIM); if (horiz) rot = v; else tilt = v; };
+  el.addEventListener('pointerdown', (e) => { if (ac && ac.state === 'suspended') ac.resume(); d = { px: e.clientX, py: e.clientY, v: get() }; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+  el.addEventListener('pointermove', (e) => { if (!d) return; set(d.v + (horiz ? e.clientX - d.px : e.clientY - d.py)); applyView([key]); });
   const end = () => { d = null; };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-  el.addEventListener('dblclick', () => { if (mode === 'move') { off.x = 0; off.y = 0; } else rot = 0; applyView(); });
+  el.addEventListener('dblclick', () => { set(0); applyView(); });
   el.addEventListener('keydown', (e) => {
-    const step = 20, kmap = mode === 'move'
-      ? { ArrowLeft: () => (off.x = clamp(off.x - step, -LIM, LIM), ['x']), ArrowRight: () => (off.x = clamp(off.x + step, -LIM, LIM), ['x']), ArrowUp: () => (off.y = clamp(off.y - step, -LIM, LIM), ['y']), ArrowDown: () => (off.y = clamp(off.y + step, -LIM, LIM), ['y']) }
-      : { ArrowUp: () => (rot = clamp(rot - step, -LIM, LIM), ['r']), ArrowDown: () => (rot = clamp(rot + step, -LIM, LIM), ['r']), ArrowLeft: () => (rot = clamp(rot - step, -LIM, LIM), ['r']), ArrowRight: () => (rot = clamp(rot + step, -LIM, LIM), ['r']) };
-    if (e.key in kmap) { applyView(kmap[e.key]()); e.preventDefault(); } else if (e.key === 'Home') { if (mode === 'move') { off.x = 0; off.y = 0; } else rot = 0; applyView(); }
+    const step = 20, dir = horiz ? { ArrowLeft: -1, ArrowRight: 1 } : { ArrowUp: -1, ArrowDown: 1 };
+    if (e.key in dir) { set(get() + dir[e.key] * step); applyView([key]); e.preventDefault(); } else if (e.key === 'Home') { set(0); applyView(); }
   });
 }
-dragRuler(rulerH, 'move'); dragRuler(rulerV, 'turn');
+dragRuler(rulerH, 'turn'); dragRuler(rulerV, 'tilt');
 
 /* la règle horizontale se place juste au-dessus du titre */
 function placeRuler() { document.documentElement.style.setProperty('--rf-cap-h', caption.offsetHeight + 'px'); }
@@ -167,7 +166,7 @@ function onScroll() {
   caption.style.opacity = Math.min(o, clamp(1 - (scrollY / vh - .6) / .7, 0, 1)).toFixed(3);   // le titre part avant l'arrivée du texte
   for (const r of [rulerV, rulerH]) { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .3 ? 'none' : ''; }
   bp.setScroll(p);                                              // plan et pièce descendent ensemble
-  if (room) room.view.tEl = (EL0 + 14 * p) * DEG;
+  if (room) room.view.tEl = elev() * DEG;
   // révélation des paragraphes : translation 16 → 0 px et opacité en suivant la position (début à 90 % de l'écran, fin à 60 %)
   for (const el of paras) {
     const r = el.getBoundingClientRect().top / vh, k = reduced ? 1 : clamp((.9 - r) / .3, 0, 1);

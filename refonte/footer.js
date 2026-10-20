@@ -1,4 +1,20 @@
 // Pied de page : valeurs vivantes (navigateur, heure, dimensions) saisies lettre par lettre à l'arrivée dans l'écran.
+// Adresse propre : seul « comtesse.me » (ou le nom de la page, sans « .html » ni ancre) reste affiché dans la barre d'adresse.
+{
+  const clean = (p) => p.replace(/index\.html$/, '').replace(/\.html$/, '');
+  const local = /^(localhost|127\.|\[::1\])/.test(location.hostname);
+  const tidy = () => { try { const c = clean(location.pathname) || '/'; if (!local && (c !== location.pathname || location.hash || location.search)) history.replaceState(null, '', c); } catch {} };
+  tidy(); addEventListener('load', () => setTimeout(tidy, 60));
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || a.target) return;
+    const u = new URL(a.href, location.href);
+    if (u.origin !== location.origin || !u.hash || clean(u.pathname).replace(/\/$/, '') !== clean(location.pathname).replace(/\/$/, '')) return;
+    const t = document.getElementById(decodeURIComponent(u.hash.slice(1)));
+    if (!t) return;
+    e.preventDefault(); t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  });
+}
 const el = (id) => document.getElementById(id);
 const browser = (() => {
   const u = navigator.userAgent;
