@@ -33,7 +33,7 @@ const follow = () => clamp(scrollY / (FOLLOW * innerHeight), 0, 1);
    - règle verticale = « Incliner » : glisser vers le haut / le bas modifie l'angle de vue, de la vue basse à la vue plongeante. */
 let rot = 0;                         // « Tourner » : décalage en pixels de la règle horizontale
 let tilt = 0;                        // « Incliner » : décalage en pixels de la règle verticale
-const LIM = 250, DEG_PER_PX = .36, EL_PER_PX = .16;   // limite en pixels, degrés d'azimut et d'élévation par pixel
+const LIM = 250, DEG_PER_PX = .36;   // limite en pixels, degrés d'azimut et d'élévation par pixel
 const azimuth = () => (36 + rot * DEG_PER_PX) * DEG;
 /* Cliquet de la règle : un clic sec à chaque graduation franchie (son synthétisé, coupé par le bouton de son de la scène). */
 let ac = null, lastTick = 0;
@@ -91,7 +91,8 @@ function perspectivize(cam) {
   cam.updateProjectionMatrix();
 }
 const EL0 = 26;                      // élévation de départ (degrés), comme avant
-const elev = () => clamp(EL0 + 14 * follow() + tilt * EL_PER_PX, 6, 82);   // la règle verticale s'ajoute à l'inclinaison due au défilement
+const tiltDeg = () => (tilt >= 0 ? tilt * (82 - EL0) / LIM : tilt * (EL0 - 6) / LIM);   // toute la course de la règle = toute la plage d'angles (6° à 82°)
+const elev = () => clamp(EL0 + 14 * follow() + tiltDeg(), 6, 82);   // la règle verticale s'ajoute à l'inclinaison due au défilement
 function lockView() { if (!room || room.appOpen || room.crate?.isOpen) return;   // pas de retour de zoom pendant le bac à vinyles ou une application ouverte
   room.setCameraMode('free'); room.view.tZoom = 1; room.view.tEl = elev() * DEG; applyView(); }
 let relock = 0;
@@ -106,7 +107,14 @@ document.addEventListener('project-workshop', (e) => { if (e.detail.open) room?.
 /* ---------------------------------------------------------------- pièce
    Le plan blueprint n'est relié à la caméra de la pièce qu'une fois celle-ci prête (pas de saut de zoom) ; la tirelire, plus lourde, se charge un peu après. */
 const roomEl = $('room');
-createRoom(roomEl, $('bubble')).then((r) => { window.room = room = r; perspectivize(room.camera); bp.link(room.camera); refreshMute(); lockView(); onScroll(); }).catch((e) => {
+/* L'image d'attente (la pièce réelle, déjà rendue) s'affiche aussitôt ; elle s'efface en fondu dès que la 3D est prête. */
+// les modèles et images du décor sont gardés en cache : dès la 2e visite, la pièce s'affiche sans attente
+if ('serviceWorker' in navigator && !/^(localhost|127.)/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
+function revealRoom() {
+  const poster = $('rf-room-poster'); if (!poster) return;
+  setTimeout(() => { poster.style.opacity = '0'; setTimeout(() => poster.remove(), 700); }, 200);
+}
+createRoom(roomEl, $('bubble')).then((r) => { window.room = room = r; perspectivize(room.camera); bp.link(room.camera); refreshMute(); lockView(); onScroll(); revealRoom(); }).catch((e) => {
   console.error(e);
   roomEl.insertAdjacentHTML('beforeend', '<p class="hint">La pièce 3D ne peut pas s’afficher sur cet appareil.</p>');
 });

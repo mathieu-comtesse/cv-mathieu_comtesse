@@ -13,9 +13,50 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
-<link rel="stylesheet" href="refonte/rf.css?v=mvh5xudy">
+<link rel="stylesheet" href="refonte/rf.css?v=mvh6dfg8">
+<link rel="preload" as="image" href="assets/room-poster.webp?v=1" fetchpriority="high">
+<link rel="preload" as="fetch" crossorigin href="assets/reference-character.glb?v=cv-scene-v22">
+<link rel="preload" as="fetch" crossorigin href="assets/anims.glb?v=cv-scene-v13">
+<link rel="preload" as="fetch" crossorigin href="assets/rig.json?v=cv-scene-v13">
+<link rel="preload" as="fetch" crossorigin href="assets/ekstrem-v25.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/setu-v25.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/ds450-v25.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/borne-beton.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/falkland.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/road-bike-clean-v44.glb?v=cv-scene-v44">
+<link rel="preload" as="image" href="assets/tableau.jpg?v=cv-scene-v17">
+<link rel="preload" as="image" href="assets/tapis.webp?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/seat-calibration-v26.json">
+<link rel="preload" as="fetch" crossorigin href="assets/gaming-desk-user-v42.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/ps1-controller-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/ps1-console-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/olivetti-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/mamiya-user-v41.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/usm-table-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/usm-mobile-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/mx-master-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/dream-pc-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/powerstrip-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/magnavox-tv-user-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/screenbar-v43.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/power-plugs.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/books-user-v49.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/post-it-user-v49.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/yamaha-user-v49.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/bicycle-pump-v31.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/usm-haller-green-v31.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/jbl.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/backpack-user-v51.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/hiking-poles-recreation-v51.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/suiseki-recreation-v51.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/geta-user-v52.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/buddha-user-v52.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/jvc-video-capsule-3100r.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/stele-bordeaux.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/bonsai-tree.glb?v=cv-scene-v17">
+<link rel="preload" as="fetch" crossorigin href="assets/nb992-fitted-v27.glb">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="refonte/main.js?v=mvh5xudy"></script>
+<script type="module" src="refonte/main.js?v=mvh6dfg8"></script>
 </head>
 <body class="page-home rf">
 <nav class="nav" aria-label="Navigation">
@@ -32,6 +73,7 @@
 <div class="rf-stage" id="stage">
   <canvas class="rf-bp" id="rf-bp" aria-hidden="true"></canvas>
   <div class="room rf-room" id="room" aria-label="Appartement interactif de Mathieu">
+    <img class="rf-room-poster" id="rf-room-poster" src="assets/room-poster.webp?v=1" alt="" width="969" height="612" decoding="async" fetchpriority="high">
     <div class="bubble" id="bubble" aria-live="polite"></div>
   </div>
   <div class="rf-grain" aria-hidden="true"></div>
@@ -142,7 +184,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvh5xud">mvh5xud</dd></div>
+        <div><dt>Version</dt><dd data-t="mvh6dfg">mvh6dfg</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
