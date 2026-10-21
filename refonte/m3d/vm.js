@@ -129,5 +129,5 @@ export function build() {
     key.position.set(VM[0].cx + 17, 44, FACE_Y + 1.2);
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Heure', min: START, max: END, step: 30, fmt: (v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(Math.round(v % 60)).padStart(2, '0'), get: (t) => Math.min(END, START + (t % ((RECAP + 6 - START) / SPEED + HOLD)) * SPEED), seek: (v) => (v - START) / SPEED } };
 }

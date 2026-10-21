@@ -33,6 +33,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   const glow = trackGlow(g, ACCENT[name]);
   return {
     resize: w,
+    controls: m.controls,
     render(time) { m.update(time); renderer.render(scene, cam); glow(); },
     dispose() { renderer.dispose(); }
   };

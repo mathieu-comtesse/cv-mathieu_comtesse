@@ -79,5 +79,5 @@ export function build() {
     query.set(u < .85 ? q.value : 'EN ATTENTE');
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Recherche', min: 1, max: QUERIES.length, step: 1, fmt: (v) => 'recherche ' + v + ' / ' + QUERIES.length, get: (t) => Math.floor(t / CYCLE) % QUERIES.length + 1, seek: (v) => (v - 1) * CYCLE } };
 }

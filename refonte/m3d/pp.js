@@ -106,5 +106,5 @@ export function build() {
     readLamp.material = shown !== '--/--' && u >= .3 && u < .6 ? lampOn : lampOff;
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Jour', min: 40, max: 225, step: 5, fmt: (v) => 'jour ' + v, get: (t) => Math.floor((40 * DAY_S + (t % (DAYS * DAY_S - 40 * DAY_S))) / DAY_S) + 1, seek: (v) => (v - 40) * DAY_S } };
 }

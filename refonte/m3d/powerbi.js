@@ -84,5 +84,5 @@ export function build() {
     ask.set(active ? 'PP ' + stock[active.tier][active.pocket] : 'PP ----'); askLamp.material = active ? lampOn : lampOff;
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Heure', min: START, max: END, step: 30, fmt: (v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(Math.round(v % 60)).padStart(2, '0'), get: (t) => Math.min(END, START + (t % ((END + 10 - START) / SPEED + HOLD)) * SPEED), seek: (v) => (v - START) / SPEED } };
 }

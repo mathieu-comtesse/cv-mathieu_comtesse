@@ -599,3 +599,13 @@ p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([
 .rf-post-back .rf-arrow.view-action{position:relative;top:auto;right:auto;display:grid}
 .rf-post-back .view-arrows{right:auto;left:4px}
 .rf-post-back .view-back .view-text{margin-left:40px}
+
+/* réglage de la machine : boutons − / +, règle, valeur (même verre dépoli que les cartes de la page) */
+.rf-post--bp .rf-post-fig{position:relative}
+.rf-ctl{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid rgb(255 255 255 / .24);border-radius:999px;background:rgb(10 20 90 / .38);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font:500 12px/1 var(--rf-mono);cursor:default}
+.rf-ctl-l{white-space:nowrap;opacity:.8;text-transform:uppercase;letter-spacing:.06em;font-size:10px}
+.rf-ctl-b{flex:none;width:28px;height:28px;border-radius:50%;border:1px solid rgb(255 255 255 / .34);background:rgb(255 255 255 / .1);color:#fff;font:500 16px/1 var(--rf-sans);cursor:pointer;transition:background .2s,transform .2s}
+.rf-ctl-b:hover{background:rgb(255 255 255 / .24);transform:scale(1.08)}.rf-ctl-b:active{transform:scale(.94)}
+.rf-ctl-r{width:clamp(90px,24vw,220px);accent-color:#fff;cursor:pointer}
+.rf-ctl-v{min-width:4.5ch;white-space:nowrap;text-align:left}
+@media (max-width:620px){.rf-ctl{gap:6px;padding:6px 8px}.rf-ctl-l{display:none}}
