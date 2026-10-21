@@ -816,3 +816,9 @@ html:has(body.rf-tabv){background:#05080d}
 
 /* études du blog : chapeau en tête d'article */
 .rf-post-body p.rf-lede{font:500 22px/1.5 var(--rf-sans);letter-spacing:-.25px;color:#e0ebfd;margin-bottom:24px}
+
+/* pages d'onglet : voile sombre sur le plan pour que le texte reste lisible, liste du blog plus claire */
+.rf-tabv .rf-stage::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:rgb(3 6 14 / .68)}
+.rf-tabv .rf-art{color:#d3def4}
+.rf-tabv .rf-art i{color:#9fb0d6}
+.rf-tabv .rf-year li,.rf-tabv .rf-year li:last-child{border-color:rgb(171 181 199 / .22)}
