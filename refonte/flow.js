@@ -37,8 +37,15 @@ const TECH = {
   excel: 'Excel', export: 'Export', field: 'Champs', inject: 'Injection', sharepoint: 'SharePoint', automate: 'Power Automate', vm: 'Machine virtuelle',
   outlook: 'Outlook', 'excel-script': 'Script Excel', powerbi: 'Power BI', design: 'Conception', archive: 'Archivage', query: 'Requête', q18: 'Reporteur Q18'
 };
+/* logos en couleur des quatre outils Microsoft du parcours (dessinés ici d'après les logos fournis) */
+const BRAND = {
+  powerbi: '<rect x="3.2" y="12" width="6.6" height="9.6" rx="1.3" fill="#F7E08A"/><rect x="8.4" y="6.6" width="6.6" height="15" rx="1.3" fill="#F3D24F"/><rect x="13.6" y="1.8" width="7" height="19.8" rx="1.3" fill="#E8AB12"/><rect x="8.4" y="12" width="1.4" height="9.6" fill="#F3D24F"/>',
+  automate: '<defs><linearGradient id="flpa1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2d63e4"/><stop offset="1" stop-color="#142a86"/></linearGradient><linearGradient id="flpa2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2865ea"/><stop offset="1" stop-color="#4f93ff"/></linearGradient><linearGradient id="flpa3" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#52a8ff"/><stop offset="1" stop-color="#6fd8ff"/></linearGradient></defs><path d="M3.9 6c0-1.600 1.100-2.800 2.800-2.800h7.200c.6 0 1.100.2 1.500.6L9.200 13.800 4.700 9.600C4.100 9 3.900 8.500 3.900 8z" fill="url(#flpa1)"/><path d="m14.300 3.400 3.900 3.700c1 .9 1 2.200.1 3.200L9 20c-.6.700-1.400.9-2.300.9h-.6c-1.300 0-2.200-1-2.200-2.200 0-.6.200-1.100.7-1.600z" fill="url(#flpa2)"/><path d="m17.600 7.200 2.800 2.800c.9.900.9 2.100.1 3l-8.400 7.600c-.5.400-1 .6-1.600.6H8.700c.9 0 1.600-.3 2.200-1l8.100-9.100c.4-.5.400-1.200-.1-1.700z" fill="url(#flpa3)"/>',
+  outlook: '<defs><linearGradient id="flol1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#37d0ff"/><stop offset="1" stop-color="#0f8dfa"/></linearGradient><linearGradient id="flol2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a6be0"/><stop offset="1" stop-color="#4a2fc6"/></linearGradient><linearGradient id="flol3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b8cf0"/><stop offset="1" stop-color="#1a3fae"/></linearGradient></defs><path d="M2.600 8.600C2.600 6.500 4 5 6 5h12c2 0 3.400 1.500 3.400 3.600V17c0 2.300-1.700 4-4 4H7.200c-2.700 0-4.600-1.800-4.600-4.200z" fill="url(#flol1)"/><path d="m3.200 8.700 8.200-5.500c.9-.6 2-.6 2.900 0l7.300 4.800c.5.300.8.800.8 1.400L12.600 14z" fill="url(#flol2)" opacity=".92"/><path d="M5.200 9.100 11 5.200c.6-.4 1.300-.4 1.900 0l5.500 3.600L12 12.600z" fill="url(#flol3)" opacity=".7"/><rect x="1" y="10.500" width="10" height="10" rx="2.600" fill="#1665d8"/><circle cx="6" cy="15.500" r="2.500" fill="none" stroke="#fff" stroke-width="1.800"/>',
+  sharepoint: '<defs><linearGradient id="flsp1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a9ca0"/><stop offset="1" stop-color="#056b70"/></linearGradient></defs><circle cx="13.200" cy="8" r="6.600" fill="#0b6f72"/><circle cx="16.800" cy="13.200" r="6.200" fill="#1c9ca2"/><circle cx="12.600" cy="17.400" r="4.500" fill="#38c8d0"/><rect x="1.100" y="6.200" width="11.600" height="11.600" rx="1.800" fill="url(#flsp1)"/><text x="6.900" y="15.200" font-size="9.500" font-weight="700" font-family="Arial,Helvetica,sans-serif" fill="#fff" text-anchor="middle">S</text>'
+};
 const glyph = (k) => ICONS[k] || ICONS.check;
-const svgIcon = (k, cls) => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${glyph(k)}</svg>`;
+const svgIcon = (k, cls) => (BRAND[k] ? `<svg class="${cls} fl-brand" viewBox="0 0 24 24" aria-hidden="true">${BRAND[k]}</svg>` : `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${glyph(k)}</svg>`);
 const cut = (t, n) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t);
 
 /* aspect de la case mobile selon l'avancement p (0 → 1) : esquisse → trait → plein → couleur, comme sur le schéma de référence */
@@ -88,7 +95,14 @@ function mountRail(root, items, steps) {
   return { layout, draw };
 }
 
-/* ================================================================ schéma en serpentin (vue « magie ») */
+/* ================================================================ vue « magie » : schéma en perspective (3D réelle, CSS)
+   Cases en serpentin sur le « sol » (contours en pointillés, liaisons, libellés) ; à mesure que la case mobile les atteint, chaque case se soulève au-dessus
+   de son contour et son voyant s'allume. Même transformation que la référence : translate3d(-20px,100px,50px) rotateY(20deg) rotateX(50deg) scale(1.5),
+   conteneur de 1100 px (90 vw), perspective 1450 px, ouverture 1,35 s en cubic-bezier(.22,1,.36,1). Parcours automatique : mêmes durées que la référence
+   (arrêt de 2,5 s sur chaque case, trajet de 2,4 s, case mobile esquisse → trait → plein → couleur). */
+const T = { lead: 800, dwell: 2500, travel: 2400, hold: 2600 };
+const easeInOut = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
 function layoutSnake(n, narrow) {
   const BOX = 59, cols = narrow ? 3 : 5, W = narrow ? 420 : 843, ROW = narrow ? 158 : 175, TOP = 28.5, M = 30;
   const px = (W - 2 * M - BOX) / (cols - 1), rows = Math.ceil(n / cols);
@@ -98,38 +112,49 @@ function layoutSnake(n, narrow) {
   });
   return { BOX, cols, W, H: TOP + (rows - 1) * ROW + BOX + 56, pos, rows };
 }
-function snakeLines(L) {
-  const { BOX, pos } = L, out = [];
-  for (let i = 0; i < pos.length - 1; i++) {
+
+function build3d(items, L) {
+  const { BOX, pos } = L, plane = document.createElement('div');
+  plane.className = 'fl3'; plane.style.width = L.W + 'px'; plane.style.height = L.H + 'px';
+  const put = (cls, css, html) => { const e = document.createElement('div'); e.className = cls; Object.assign(e.style, css); if (html) e.innerHTML = html; plane.append(e); return e; };
+  const dash = (x, y, w, h) => put('l3 ' + (h === 0 ? 'lh' : 'lv'), { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+  for (let i = 0; i < pos.length - 1; i++) {                       // liaisons en pointillés, au sol
     const a = pos[i], b = pos[i + 1], cy = a.y + BOX / 2;
-    if (a.r === b.r) {
-      const dir = b.x > a.x ? 1 : -1, x1 = dir > 0 ? a.x + BOX + 4 : a.x - 4, x2 = dir > 0 ? b.x - 4 : b.x + BOX + 4;
-      out.push(`<line x1="${x1}" y1="${cy}" x2="${x2}" y2="${cy}"/>`, `<circle cx="${x1}" cy="${cy}" r="2.2"/>`, `<circle cx="${x2}" cy="${cy}" r="2.2"/>`);
-    } else {
+    if (a.r === b.r) { const x1 = Math.min(a.x, b.x) + BOX + 4, x2 = Math.max(a.x, b.x) - 4; dash(x1, cy, x2 - x1, 0); }
+    else {
       const right = a.x > L.W / 2, ox = right ? a.x + BOX + 16 : a.x - 16, ex = right ? a.x + BOX + 4 : a.x - 4, cy2 = b.y + BOX / 2;
-      out.push(`<path d="M${ex} ${cy}H${ox}V${cy2}H${ex}"/>`, `<circle cx="${ex}" cy="${cy}" r="2.2"/>`, `<circle cx="${ex}" cy="${cy2}" r="2.2"/>`);
+      dash(Math.min(ex, ox), cy, Math.abs(ox - ex), 0); dash(ox, cy, 0, cy2 - cy); dash(Math.min(ex, ox), cy2, Math.abs(ox - ex), 0);
     }
   }
-  return out.join('');
+  const cells = pos.map((p, i) => {
+    const it = items[i];
+    put('b3', { left: p.x + 'px', top: p.y + 'px' });                                                   // contour au sol
+    put('t3', { left: (p.x - 20) + 'px', top: (p.y + BOX + 8) + 'px', width: (BOX + 40) + 'px' }, '<b>' + esc(cut(it.title, L.cols === 5 ? 24 : 18)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>');
+    const shadow = put('s3', { left: p.x + 'px', top: p.y + 'px' });
+    const tile = put('k3', { left: p.x + 'px', top: p.y + 'px' }, svgIcon(it.icon, 'k3-i'));
+    const led = put('d3', { left: (p.x + BOX - 8) + 'px', top: (p.y + 2) + 'px' });
+    return { tile, led, shadow };
+  });
+  const mv = put('m3', { left: '0px', top: '0px' }, '<i class="m3-h"></i><i class="m3-o"></i><i class="m3-s"></i><i class="m3-c"></i><span class="m3-i"></span>');
+  const parts = { h: mv.querySelector('.m3-h'), o: mv.querySelector('.m3-o'), s: mv.querySelector('.m3-s'), c: mv.querySelector('.m3-c'), i: mv.querySelector('.m3-i') };
+  return { plane, cells, mv, parts, icon: '' };
 }
-function snakeSvg(items, L) {
-  const { BOX, pos, W, H } = L, id = 'fl' + Math.random().toString(36).slice(2, 7);
-  let hatch = ''; for (let d = -BOX; d <= BOX; d += 7) hatch += `<line x1="${d}" y1="${BOX}" x2="${d + BOX}" y2="0"/>`;
-  const ico = (k, x, y, cls) => `<g class="${cls}" transform="translate(${x} ${y}) scale(${28 / 24})" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${glyph(k)}</g>`;
-  const boxes = pos.map((p, i) => `<g class="fl-box">` +
-    `<rect class="fl-rect" x="${p.x}" y="${p.y}" width="${BOX}" height="${BOX}" rx="9.5"/><circle class="fl-led2" cx="${p.x + 49.5}" cy="${p.y + 9.5}" r="3"/>` + ico(items[i].icon, p.x + 15.5, p.y + 15.5, 'fl-ico2') +
-    `<text class="fl-name" x="${p.x + BOX / 2}" y="${p.y + BOX + 17}" text-anchor="middle">${esc(cut(items[i].title, L.cols === 5 ? 26 : 19))}</text>` +
-    `<text class="fl-tech" x="${p.x + BOX / 2}" y="${p.y + BOX + 30}" text-anchor="middle">${esc(TECH[items[i].icon] || '')}</text></g>`).join('');
-  const mover = `<g class="fl-mover" transform="translate(${pos[0].x} ${pos[0].y})"><rect class="fl-m-base" width="${BOX}" height="${BOX}" rx="9.5"/>` +
-    `<g class="fl-m-hatch" clip-path="url(#${id}c)">${hatch}</g><rect class="fl-m-outline" x="3" y="3" width="${BOX - 6}" height="${BOX - 6}" rx="7"/>` +
-    `<rect class="fl-m-solid" x="3" y="3" width="${BOX - 6}" height="${BOX - 6}" rx="7"/><rect class="fl-m-color" x=".5" y=".5" width="${BOX - 1}" height="${BOX - 1}" rx="9" fill="url(#${id}g)"/>` +
-    `<g class="fl-m-icon">${ico(items[0].icon, 15.5, 15.5, 'fl-m-ico')}</g></g>`;
-  return `<svg class="fl-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Schéma des ${items.length} étapes du projet" xmlns="${NS}"><defs><clipPath id="${id}c"><rect width="${BOX}" height="${BOX}" rx="9.5"/></clipPath>` +
-    `<linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f3d1c"/><stop offset="1" stop-color="#0e1a0e"/></linearGradient></defs>` +
-    `<g class="fl-lines" fill="none" stroke-dasharray="4 4">${snakeLines(L)}</g>${boxes}${mover}</svg>`;
+
+/* instant t (ms) → état : position de la case mobile, case atteinte, avancement */
+function timeline(n) {
+  const unit = T.dwell + T.travel, run = T.lead + n * T.dwell + (n - 1) * T.travel;
+  return { run, total: run + T.hold, at(t) {
+    if (t < T.lead) return { s: 0, reach: -1, p: 0 };
+    const u = t - T.lead, i = Math.min(n - 1, Math.floor(u / unit)), within = u - i * unit;
+    let s = i;
+    if (i < n - 1 && within > T.dwell) s = i + easeInOut(clamp((within - T.dwell) / T.travel, 0, 1));
+    return { s, reach: i, p: clamp(t / run, 0, 1) };
+  } };
 }
-function snakeDraw(svg, items, L, p) {
-  const n = items.length, s = clamp(p, 0, 1) * (n - 1), i0 = Math.min(n - 2, Math.floor(s)), f = s - i0, g = dwell(f);
+
+function draw3d(st, items, L, tl, t) {
+  const n = items.length, { s, reach, p } = tl.at(t);
+  const i0 = Math.min(Math.max(0, n - 2), Math.floor(s)), g = n > 1 ? s - i0 : 0;
   const a = L.pos[i0], b = L.pos[Math.min(n - 1, i0 + 1)];
   let x, y;
   if (a.r === b.r) { x = a.x + (b.x - a.x) * g; y = a.y + (b.y - a.y) * g; }
@@ -139,14 +164,17 @@ function snakeDraw(svg, items, L, p) {
     else if (g < 2 / 3) { x = a.x + off; y = a.y + (b.y - a.y) * smooth(g * 3 - 1, 0, 1); }
     else { x = a.x + off + (b.x - a.x - off) * smooth(g * 3 - 2, 0, 1); y = b.y; }
   }
-  const mv = svg.querySelector('.fl-mover'); mv.setAttribute('transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+  st.mv.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,1px)';
   const lk = looks(p);
-  svg.querySelector('.fl-m-hatch').style.opacity = lk.hatch.toFixed(3); svg.querySelector('.fl-m-outline').style.opacity = lk.outline.toFixed(3);
-  svg.querySelector('.fl-m-solid').style.opacity = lk.solid.toFixed(3); svg.querySelector('.fl-m-color').style.opacity = lk.color.toFixed(3);
-  mv.classList.toggle('fl-done', lk.color > .5);
+  st.parts.h.style.opacity = lk.hatch.toFixed(3); st.parts.o.style.opacity = lk.outline.toFixed(3); st.parts.s.style.opacity = lk.solid.toFixed(3); st.parts.c.style.opacity = lk.color.toFixed(3);
+  const fade = t > tl.run - 900 ? clamp(1 - (t - (tl.run - 900)) / 900, 0, 1) : 1;   // la case mobile s'efface à la fin du parcours
+  st.mv.style.opacity = fade.toFixed(3); st.mv.classList.toggle('fl-done', lk.color > .5);
   const near = clamp(Math.round(s), 0, n - 1);
-  if (mv.dataset.icon !== items[near].icon) { mv.dataset.icon = items[near].icon; mv.querySelector('.fl-m-icon').innerHTML = `<g class="fl-m-ico" transform="translate(15.5 15.5) scale(${28 / 24})" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${glyph(items[near].icon)}</g>`; }
-  svg.querySelectorAll('.fl-box').forEach((bx, i) => { bx.classList.toggle('fl-on', s >= i - .02); bx.classList.toggle('fl-cur', i === near); });
+  if (st.icon !== items[near].icon) { st.icon = items[near].icon; st.parts.i.innerHTML = svgIcon(st.icon, 'm3-ico'); }
+  st.cells.forEach((c, i) => {
+    const up = reach >= 0 && i <= reach;
+    c.tile.classList.toggle('up', up); c.shadow.classList.toggle('up', up); c.led.classList.toggle('up', up); c.led.classList.toggle('cur', i === reach);
+  });
 }
 
 /* ================================================================ composant */
@@ -184,33 +212,39 @@ export function initFlow(root) {
   if ('IntersectionObserver' in window) { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 }); steps.forEach((li) => io.observe(li)); }
   else steps.forEach((li) => li.classList.add('rf-in'));
 
-  /* --- « Cliquez ici pour voir la magie » : schéma en serpentin, en perspective, parcours animé de 20 s --- */
+  /* --- « Cliquez ici pour voir la magie » : le schéma en perspective, parcours automatique, mêmes animations à l'ouverture et à la fermeture --- */
   const ov = document.createElement('div');
   ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true');
-  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer">×</button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><p class="fl-ov-cap"><button type="button" class="fl-ov-r">↻ Rejouer le parcours</button><span class="fl-ov-t"></span></p>';
+  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer le schéma en perspective">×</button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><p class="fl-ov-cap">VUE EN PERSPECTIVE · ÉCHAP POUR FERMER</p>';
   document.body.append(ov);
-  const wrap = ov.querySelector('.fl-ov-w'), tEl = ov.querySelector('.fl-ov-t');
-  let L = null, svg = null, ra = 0, t0 = 0;
-  const DURATION = 20000;
-  const play = () => {
-    cancelAnimationFrame(ra); t0 = performance.now();
-    const tick = (now) => {
-      const t = Math.min(performance.now() - t0, DURATION); snakeDraw(svg, items, L, t / DURATION); tEl.textContent = (t / 1000).toFixed(1) + ' s / 20.0 s';
-      if (t < DURATION) ra = requestAnimationFrame(tick);
-    };
-    ra = requestAnimationFrame(tick);
+  const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w');
+  let L = null, st = null, tl = null, ra = 0, t0 = 0, timer = 0;
+  const lower = () => st && st.cells.forEach((c) => { c.tile.classList.remove('up'); c.shadow.classList.remove('up'); c.led.classList.remove('up', 'cur'); });
+  const frame3 = () => {
+    let t = performance.now() - t0;
+    if (t >= tl.total) { t0 = performance.now(); t = 0; lower(); }                 // le parcours reprend depuis le début
+    draw3d(st, items, L, tl, t); ra = requestAnimationFrame(frame3);
   };
   const open = () => {
-    L = layoutSnake(items.length, matchMedia('(max-width: 640px)').matches);
-    wrap.innerHTML = snakeSvg(items, L); svg = wrap.querySelector('svg'); snakeDraw(svg, items, L, 0);
+    clearTimeout(timer); cancelAnimationFrame(ra);
+    L = layoutSnake(items.length, matchMedia('(max-width: 640px)').matches); tl = timeline(items.length);
+    st = build3d(items, L);
+    const k = center.clientWidth / L.W || 1;
+    st.plane.style.transform = 'scale(' + k + ')'; wrap.style.height = (L.H * k) + 'px';
+    wrap.replaceChildren(st.plane);
+    draw3d(st, items, L, tl, 0);
+    void ov.offsetWidth;
     ov.classList.add('is-open'); ov.setAttribute('aria-hidden', 'false'); document.body.classList.add('fl-lock');
-    play(); ov.querySelector('.fl-ov-x').focus();
+    t0 = performance.now(); ra = requestAnimationFrame(frame3); ov.querySelector('.fl-ov-x').focus();
   };
-  const close = () => { cancelAnimationFrame(ra); ov.classList.remove('is-open'); ov.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fl-lock'); setTimeout(() => { if (!ov.classList.contains('is-open')) wrap.replaceChildren(); }, 450); };
+  const close = () => {
+    cancelAnimationFrame(ra); lower();                                              // les cases redescendent pendant que la vue se redresse
+    ov.classList.remove('is-open'); ov.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fl-lock');
+    timer = setTimeout(() => { if (!ov.classList.contains('is-open')) wrap.replaceChildren(); }, 1450);
+  };
   root.querySelector('.rf-flow-magic')?.addEventListener('click', open);
-  ov.querySelector('.fl-ov-r').addEventListener('click', play);
   ov.querySelector('.fl-ov-x').addEventListener('click', close);
-  ov.addEventListener('click', (e) => { if (e.target === ov || e.target.classList.contains('fl-ov-c')) close(); });
+  ov.addEventListener('click', (e) => { if (e.target === ov || e.target === center) close(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && ov.classList.contains('is-open')) close(); });
   return { open, close };
 }
