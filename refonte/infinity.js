@@ -119,12 +119,12 @@ void main(){
   ogColor.rgb=saturateColor(ogColor.rgb,1.35);
   float transition=smoothstep(0.0,0.35,uv.y-pow(uv.x,2.0));
   vec3 outc=mix(asciiColor,vec4(ogColor.rgb,1.0),transition).rgb;
-  vec3 srgb=mix(pow(outc,vec3(0.41666))*1.055-vec3(0.055),outc*12.92,vec3(lessThanEqual(outc,vec3(0.0031308))));gl_FragColor=vec4(srgb,clamp(max(srgb.r,max(srgb.g,srgb.b))*1.4,0.0,1.0));
+  gl_FragColor=vec4(mix(pow(outc,vec3(0.41666))*1.055-vec3(0.055),outc*12.92,vec3(lessThanEqual(outc,vec3(0.0031308)))),1.0);
 }`;
 
 export function initInfinity(canvas) {
   const host = canvas.parentElement;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, premultipliedAlpha: false, powerPreference: 'low-power' });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'low-power' });
   renderer.setPixelRatio(1);                       // DPR 1 comme l'original : la pixellisation vaut 4 px d'écran
   renderer.toneMapping = THREE.NoToneMapping;
 
@@ -148,6 +148,7 @@ export function initInfinity(canvas) {
   camera.position.set(0, 0, 4); camera.lookAt(0, 0, 0);
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#000000');          // le noir disparaît sur le plan : le bloc est fondu en « screen » (rf.css)
   const spot = new THREE.SpotLight('#FFFFFF', 15, 0, .25, 1, .25);
   spot.position.set(35, 30, 20);
   const target = new THREE.Object3D(); target.position.set(-5, 5, -10); spot.target = target;
@@ -160,7 +161,7 @@ export function initInfinity(canvas) {
 
   const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
   const quadGeo = new THREE.PlaneGeometry(2, 2);
-  const postMat = new THREE.ShaderMaterial({ vertexShader: POST_VS, fragmentShader: POST_FS, transparent: true, depthTest: false, depthWrite: false, uniforms: { tScene: { value: rt.texture }, uRes: { value: new THREE.Vector2(1, 1) }, uPixel: { value: 4 } } });
+  const postMat = new THREE.ShaderMaterial({ vertexShader: POST_VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false, uniforms: { tScene: { value: rt.texture }, uRes: { value: new THREE.Vector2(1, 1) }, uPixel: { value: 4 } } });
   const post = new THREE.Mesh(quadGeo, postMat); post.frustumCulled = false;
   const postScene = new THREE.Scene(); postScene.add(post);
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);

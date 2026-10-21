@@ -811,3 +811,5 @@ html:has(body.rf-tabv){background:#05080d}
 .rf-tabv .rf-ruler{z-index:20}
 
 .rf-tabv .rf-win{will-change:transform}
+
+.rf-tabv .rf-bhero{mix-blend-mode:screen}
