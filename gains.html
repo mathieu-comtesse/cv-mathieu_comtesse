@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Gains · Mathieu Comtesse</title>
-<meta name="description" content="Explorateur des gains des outils de Mathieu Comtesse : heures libérées, valeur annuelle, postes équivalents, répartition par outil et seuil de rentabilité.">
+<meta name="description" content="La tirelire des gains annuels de Mathieu Comtesse : le temps libéré par les outils, valorisé au taux horaire de 104,74 €.">
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
 <link rel="stylesheet" href="style.css?v=cv-light-v75">
 <link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
-<link rel="stylesheet" href="refonte/rf.css?v=mvi56416">
+<link rel="stylesheet" href="refonte/rf.css?v=mvi5jnqr">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
-<script type="module" src="refonte/gains.js?v=mvi56416"></script>
+<script type="module" src="refonte/gains.js?v=mvi5jnqr"></script>
 </head>
 <body class="rf-gx-page rf">
 <nav class="rf-bnav" aria-label="Navigation">
@@ -28,94 +28,18 @@
 <div class="rf-ibg" aria-hidden="true"><div class="rf-bhero-blue"></div><div class="rf-bhero-grid"></div></div>
 
 <main class="gx-main">
-  <header class="gx-head">
-    <p class="gx-k">Gains</p>
-    <h1>Ce que les outils rendent, en heures et en euros</h1>
-    <p class="gx-sub">Volumes fournis, durées mesurées, taux horaire de <span id="gx-rate-lbl">104,74 €</span>.</p>
-  </header>
-
   <!-- Tirelire des gains annuels et son explicatif (code réel du site : js/home.js) -->
   <section class="strip rf-tirelire" id="work" aria-label="Tirelire des gains annuels">
     <header class="strip-head"><h2>Tirelire des gains annuels</h2><p>Le temps libéré par les outils, valorisé au taux horaire de 104,74 €.</p></header>
   </section>
-
-  <section class="gx-explorer" aria-label="Explorateur des gains">
-    <aside class="gx-panel" aria-label="Réglages">
-      <div class="gx-sec">
-        <h2>Mesuré en</h2>
-        <div class="gx-tiles" role="group" aria-label="Mesuré en" id="gx-measure">
-          <button type="button" data-v="hours" aria-pressed="true">Heures</button>
-          <button type="button" data-v="value" aria-pressed="false">Valeur</button>
-          <button type="button" data-v="fte" aria-pressed="false">Postes</button>
-          <button type="button" data-v="net" aria-pressed="false">Net année 1</button>
-        </div>
-      </div>
-      <div class="gx-sec">
-        <h2>Périmètre</h2>
-        <div class="gx-seg" role="group" aria-label="Périmètre" id="gx-scope">
-          <button type="button" data-v="declared" aria-pressed="true">Volumes fournis</button>
-          <button type="button" data-v="all" aria-pressed="false">+ estimations</button>
-        </div>
-      </div>
-      <div class="gx-sec">
-        <h2>Scénario</h2>
-        <div class="gx-seg" role="group" aria-label="Scénario" id="gx-scen">
-          <button type="button" data-v="min" aria-pressed="false">Bas</button>
-          <button type="button" data-v="mid" aria-pressed="true">Moyen</button>
-          <button type="button" data-v="max" aria-pressed="false">Haut</button>
-        </div>
-      </div>
-      <div class="gx-sec">
-        <h2><label for="gx-rate">Taux horaire</label></h2>
-        <div class="gx-rate"><input id="gx-rate" type="range" min="40" max="180" step=".5" value="104.74"><output id="gx-rate-out">104,74 €/h</output><button type="button" class="gx-reset" id="gx-reset" title="Revenir au taux de référence" aria-label="Revenir au taux de référence">↺</button></div>
-      </div>
-    </aside>
-
-    <div class="gx-main-col">
-      <div class="gx-toolbar">
-        <div class="gx-seg" role="group" aria-label="Type de graphique" id="gx-chart-types">
-          <button type="button" data-v="bars" aria-pressed="true">Barres</button>
-          <button type="button" data-v="area" aria-pressed="false">Aires empilées</button>
-          <button type="button" data-v="pie" aria-pressed="false">Anneau</button>
-        </div>
-        <div class="gx-seg" role="group" aria-label="Tri" id="gx-sort">
-          <button type="button" data-v="value" aria-pressed="true">Par valeur</button>
-          <button type="button" data-v="alpha" aria-pressed="false">Alphabétique</button>
-        </div>
-        <div class="gx-seg" role="group" aria-label="Pas du cumul" id="gx-step" hidden>
-          <button type="button" data-v="day" aria-pressed="false">Jour</button>
-          <button type="button" data-v="week" aria-pressed="false">Semaine</button>
-          <button type="button" data-v="month" aria-pressed="true">Mois</button>
-        </div>
-      </div>
-      <div class="gx-kpis" id="gx-kpis" aria-live="polite"></div>
-      <div class="gx-chart gx-card"><div id="gx-stage" class="gx-stage"></div><div id="gx-legend" class="gx-legend"></div></div>
-
-      <section class="gx-card gx-table-card">
-        <header><div><h2>Détail par outil</h2><p>Cochez ou décochez un outil pour l’ajouter au graphique et aux totaux.</p></div><button type="button" class="gx-csv" id="gx-csv">Exporter en CSV</button></header>
-        <div id="gx-table"></div>
-      </section>
-
-      <section class="gx-card">
-        <header><div><h2>Seuil de rentabilité</h2><p>Gain net cumulé : heures libérées moins le temps de construction et d’entretien.</p></div></header>
-        <div id="gx-be"></div>
-      </section>
-
-      <section class="gx-method">
-        <h2>Méthode</h2>
-        <p>Chaque ligne combine un volume annuel et une durée gagnée par occurrence, sans arrondir les étapes. La valeur est le nombre d’heures multiplié par le taux horaire. Une année compte <span id="gx-days">225</span> jours ouvrés de 7 heures, soit <span id="gx-fte">1 575</span> heures pour un poste à temps plein. Les barres hachurées sont des estimations (capacité théorique, consultations supposées) ; le périmètre « volumes fournis » les écarte.</p>
-      </section>
-    </div>
-  </section>
 </main>
 
-<script type="application/json" id="gx-data">{"rate":104.74,"days":225,"fte":1575,"rows":[{"id":"finance","title":"Point financier","minHours":93.75,"maxHours":93.75,"basis":"25 min/jour × 225 jours/an","estimated":false,"buildDays":1.5,"upkeepHours":3.5},{"id":"vmvre","title":"VRE · VM","minHours":2000,"maxHours":2500,"basis":"30 min × 4 000–5 000 rapports/an","estimated":false,"buildDays":1.5,"upkeepHours":0},{"id":"moteur44","title":"Reporteur Q18","minHours":1000,"maxHours":1250,"basis":"15 min × 4 000–5 000 rapports/an","estimated":false,"buildDays":1.5,"upkeepHours":0},{"id":"vre","title":"Extracteur VRE","minHours":1666.6666666666667,"maxHours":2083.3333333333335,"basis":"25 min × 4 000–5 000 rapports/an ; capacité théorique","estimated":true,"buildDays":3,"upkeepHours":0},{"id":"powerbi","title":"PP & MOSO · traitement","minHours":100,"maxHours":166.66666666666666,"basis":"15–20 min × 400–500 plans/an","estimated":false,"buildDays":9,"upkeepHours":42},{"id":"pp-consultation","title":"PP & MOSO · consultation","minHours":1500,"maxHours":1500,"basis":"10 min × 40 consultations/jour × 225 jours/an","estimated":true,"buildDays":0,"upkeepHours":0},{"id":"gares","title":"Gares prioritaires","minHours":750,"maxHours":1687.5,"basis":"10–15 min × 20–30 consultations/jour × 225 jours/an","estimated":true,"buildDays":9,"upkeepHours":0}]}</script>
 <footer class="rf-foot" aria-label="Pied de page">
   <div class="rf-foot-in">
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvi5641">mvi5641</dd></div>
+        <div><dt>Version</dt><dd data-t="mvi5jnq">mvi5jnq</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
