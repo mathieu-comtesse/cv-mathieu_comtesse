@@ -94,15 +94,33 @@ if (fig && bpCanvas && stage) {
   initRulers((v) => { view.yaw = v.yaw; placeCam(v.yaw, v.pitch); });
 }
 
-/* ---- étapes : trait qui s'allonge et point qui descend avec le défilement, comme sur la page Expériences ---- */
+/* ---- étapes : rail « serveur / machine » ----
+   Un trait relie les étapes ; chaque étape est un nœud (anneau en pointillés + cœur). Le trait se remplit avec le défilement (ressort 45 / 20), des paquets
+   de données descendent le long de la partie remplie, et quand le trait atteint une étape son nœud s'allume : l'anneau tourne, une onde part du nœud
+   et un paquet file depuis l'étape précédente. */
 {
   const tl = document.querySelector('.rf-post-tl');
   if (tl) {
-    const line = tl.querySelector('.rf-tl-line'), dot = tl.querySelector('.rf-tl-dot');
-    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    const rail = tl.querySelector('.rf-tl-rail'), line = tl.querySelector('.rf-tl-line'), head = tl.querySelector('.rf-tl-dot');
+    const cols = tl.querySelector('.rf-post-steps'), steps = [...tl.querySelectorAll('.rf-post-step')];
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const flow = document.createElement('div'); flow.className = 'rf-tl-flow';
+    flow.innerHTML = '<i></i><i></i><i></i>'; rail.append(flow);
+    const nodes = steps.map(() => { const n = document.createElement('i'); n.className = 'rf-tl-node'; n.innerHTML = '<b class="rf-tl-ring"></b><b class="rf-tl-core"></b><b class="rf-tl-ping"></b>'; rail.append(n); return { el: n, top: 0, on: false }; });
+    const layout = () => { steps.forEach((s, i) => { nodes[i].top = s.offsetTop + 14; nodes[i].el.style.top = nodes[i].top + 'px'; }); };
+    const fire = (i) => {
+      const n = nodes[i]; n.el.classList.remove('rf-ping'); void n.el.offsetWidth; n.el.classList.add('rf-ping');
+      if (reduced || i === 0) return;
+      const hop = document.createElement('i'); hop.className = 'rf-tl-hop'; hop.style.top = nodes[i - 1].top + 'px'; hop.style.setProperty('--dy', (n.top - nodes[i - 1].top) + 'px');
+      rail.append(hop); hop.addEventListener('animationend', () => hop.remove(), { once: true });
+    };
     let pr = 0, vel = 0, last = 0, raf = 0;
     const target = () => { const top = tl.getBoundingClientRect().top + scrollY, h = tl.offsetHeight; return clamp((scrollY + innerHeight * .55 - top) / Math.max(1, h), 0, 1); };
-    const paint = () => { line.style.transform = 'scaleY(' + pr.toFixed(4) + ')'; dot.style.top = (pr * 100).toFixed(2) + '%'; };
+    const paint = () => {
+      const h = rail.offsetHeight, px = pr * h;
+      line.style.transform = 'scaleY(' + pr.toFixed(4) + ')'; head.style.top = px.toFixed(1) + 'px'; flow.style.height = px.toFixed(1) + 'px';
+      nodes.forEach((n, i) => { const on = px >= n.top - 2; if (on !== n.on) { n.on = on; n.el.classList.toggle('rf-on', on); if (on) fire(i); } });
+    };
     const frame = (now) => {
       const dt = Math.min(.032, last ? (now - last) / 1000 : .016); last = now;
       const to = target(), k = 45, c = 20;
@@ -110,9 +128,10 @@ if (fig && bpCanvas && stage) {
       if (Math.abs(pr - to) > .0005 || Math.abs(vel) > .002) raf = requestAnimationFrame(frame); else { pr = to; vel = 0; paint(); raf = 0; last = 0; }
     };
     const kick = () => { if (reduced) { pr = target(); paint(); return; } if (!raf) raf = requestAnimationFrame(frame); };
-    addEventListener('scroll', kick, { passive: true }); addEventListener('resize', kick); kick();
-    const steps = tl.querySelectorAll('.rf-tl-rv');
-    if (reduced || !('IntersectionObserver' in window)) steps.forEach((e) => e.classList.add('rf-in'));
-    else { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 }); steps.forEach((e) => io.observe(e)); }
+    layout(); addEventListener('load', () => { layout(); kick(); });
+    new ResizeObserver(() => { layout(); kick(); }).observe(cols);
+    addEventListener('scroll', kick, { passive: true }); addEventListener('resize', () => { layout(); kick(); }); kick();
+    const io = !reduced && 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 }) : null;
+    steps.forEach((s) => io ? io.observe(s) : s.classList.add('rf-in'));
   }
 }
