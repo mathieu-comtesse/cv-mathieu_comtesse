@@ -3,8 +3,12 @@
 {
   const clean = (p) => p.replace(/index\.html$/, '').replace(/\.html$/, '');
   const local = /^(localhost|127\.|\[::1\])/.test(location.hostname);
-  const tidy = () => { try { const c = clean(location.pathname) || '/'; if (!local && (c !== location.pathname || location.hash || location.search)) history.replaceState(null, '', c); } catch {} };
-  tidy(); addEventListener('load', () => setTimeout(tidy, 60));
+  const wanted = location.hash ? decodeURIComponent(location.hash.slice(1)) : '';
+  const tidy = (keepHash) => { try { const c = clean(location.pathname) || '/'; if (!local && (c !== location.pathname || (!keepHash && (location.hash || location.search)))) history.replaceState(null, '', c + (keepHash ? location.hash : '')); } catch {} };
+  tidy(true);
+  // arrivée depuis une autre page avec une ancre (#projets, #contact…) : on se place sur la section une fois la page mise en place, puis on efface l'ancre
+  const land = () => { const t = wanted && document.getElementById(wanted); if (t) scrollTo({ top: t.getBoundingClientRect().top + scrollY - 20, behavior: 'instant' }); };
+  addEventListener('load', () => { land(); setTimeout(land, 250); setTimeout(() => { land(); tidy(false); }, 900); });
   // cache + préchauffage du décor de l'accueil depuis toutes les pages
   if ('serviceWorker' in navigator && !local) navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then((r) => { const go = () => r.active && r.active.postMessage('warm'); 'requestIdleCallback' in window ? requestIdleCallback(go, { timeout: 4000 }) : setTimeout(go, 2500); }).catch(() => {});
   document.addEventListener('click', (e) => {

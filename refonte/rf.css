@@ -401,9 +401,6 @@ html body.rf-post-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-san
 .rf-post-body p b{color:#e0ebfd;font-weight:600}
 .rf-post-note{padding:14px 16px;border:1px solid #1c2027;border-radius:12px;background:rgb(11 14 18 / .7);font-size:14px!important;line-height:1.6!important}
 .rf-post-gains{margin:0 0 20px}
-.rf-post-steps{list-style:none;margin:0;padding:0;counter-reset:s}
-.rf-post-steps li{counter-increment:s;position:relative;padding:0 0 26px 52px;border-left:1px solid #1c2027;margin-left:14px}
-.rf-post-steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:-15px;top:-2px;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:#0b0e12;border:1px solid #1c2027;font:500 11px/1 var(--rf-mono);color:#8795ad}
 .rf-post-steps h3{margin:0 0 6px;font:600 17px/1.3 var(--rf-sans);color:#e0ebfd}
 .rf-post-steps p{margin:0;font-size:16px;line-height:1.55}
 .rf-post-tech{display:grid;gap:0;margin:0 0 20px;border:1px solid #1c2027;border-radius:12px;overflow:hidden}
@@ -449,7 +446,6 @@ html body.rf-post-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-san
 .rf-post--bp .rf-post-body p,.rf-post--bp .rf-post-sub{color:#e6efff;text-shadow:0 1px 18px rgb(0 20 110 / .6)}
 .rf-post--bp .rf-post-body h2,.rf-post--bp .rf-post-steps h3,.rf-post--bp .rf-post-meta b{color:#fff;text-shadow:0 1px 20px rgb(0 20 110 / .6)}
 .rf-post--bp .rf-post-meta,.rf-post--bp .rf-post-steps li{border-color:rgb(255 255 255 / .22)}
-.rf-post--bp .rf-post-steps li::before{background:rgb(0 30 120 / .55);border-color:rgb(255 255 255 / .3);color:#cfe0ff}
 .rf-post--bp .rf-post-note,.rf-post--bp .rf-gains span,.rf-post--bp .rf-post-pn a{background:rgb(255 255 255 / .07);border-color:rgb(255 255 255 / .2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .rf-post--bp .rf-post-head .rf-kicker,.rf-post--bp .rf-post-back a,.rf-post--bp .rf-post-meta span,.rf-post--bp .rf-gains small,.rf-post--bp .rf-gains i{color:#bcd2f3}
 .rf-fig-holder{position:fixed;left:0;top:0;z-index:1;width:920px;transform-origin:0 0;pointer-events:none;will-change:transform,opacity}
@@ -611,3 +607,20 @@ p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([
 
 body.rf-over-machine,body.rf-over-machine *{cursor:grab}
 body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
+
+/* étapes d'un projet : même rail que la page Expériences, sans numéros ; le trait et le point avancent avec le défilement (ressort 45 / 20) */
+.rf-post-tl{position:relative;display:grid;grid-template-columns:auto 1fr;gap:28px;padding:36px 0 8px}
+@media (min-width:768px){.rf-post-tl{gap:40px}}
+.rf-post-tl .rf-tl-rail{color:#e0ebfd}
+.rf-post-tl .rf-tl-train{color:#e0ebfd}
+.rf-post-steps{display:flex;flex-direction:column;gap:32px;min-width:0}
+.rf-post-step h3{margin:0 0 6px;font:600 17px/1.3 var(--rf-sans);color:#e0ebfd}
+.rf-post-step p{margin:0;font-size:16px;line-height:1.55}
+.rf-post--bp .rf-post-step h3{color:#fff;text-shadow:0 1px 20px rgb(0 20 110 / .6)}
+.rf-post--bp .rf-post-tl .rf-tl-dash{border-left-color:rgb(255 255 255 / .34)}
+.rf-post--bp .rf-post-tl .rf-tl-line{background:rgb(255 255 255 / .85)}
+.rf-post--bp .rf-post-tl .rf-tl-dot{background:#fff}
+.rf-post--bp .rf-post-tl .rf-tl-train{color:#fff}
+.rf-post-tl .rf-tl-rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.rf-post-tl .rf-tl-rv.rf-in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rf-post-tl .rf-tl-rv{opacity:1;transform:none;transition:none}}
