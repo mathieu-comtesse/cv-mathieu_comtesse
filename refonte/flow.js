@@ -45,7 +45,8 @@ const BRAND = {
   sharepoint: '<defs><linearGradient id="flsp1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a9ca0"/><stop offset="1" stop-color="#056b70"/></linearGradient></defs><circle cx="13.200" cy="8" r="6.600" fill="#0b6f72"/><circle cx="16.800" cy="13.200" r="6.200" fill="#1c9ca2"/><circle cx="12.600" cy="17.400" r="4.500" fill="#38c8d0"/><rect x="1.100" y="6.200" width="11.600" height="11.600" rx="1.800" fill="url(#flsp1)"/><text x="6.900" y="15.200" font-size="9.500" font-weight="700" font-family="Arial,Helvetica,sans-serif" fill="#fff" text-anchor="middle">S</text>'
 };
 const glyph = (k) => ICONS[k] || ICONS.check;
-const svgIcon = (k, cls) => (BRAND[k] ? `<svg class="${cls} fl-brand" viewBox="0 0 24 24" aria-hidden="true">${BRAND[k]}</svg>` : `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${glyph(k)}</svg>`);
+const IMG = { excel: 'assets/icons/excel.png' };                      // logo fourni, détouré
+const svgIcon = (k, cls) => (IMG[k] ? `<img class="${cls} fl-brand fl-img" src="${IMG[k]}" alt="" width="28" height="28" draggable="false">` : BRAND[k] ? `<svg class="${cls} fl-brand" viewBox="0 0 24 24" aria-hidden="true">${BRAND[k]}</svg>` : `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${glyph(k)}</svg>`);
 const cut = (t, n) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t);
 
 /* aspect de la case mobile selon l'avancement p (0 → 1) : esquisse → trait → plein → couleur, comme sur le schéma de référence */

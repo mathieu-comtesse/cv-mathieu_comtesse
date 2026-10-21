@@ -729,3 +729,7 @@ body.fl-lock{overflow:hidden}
 .rf-ruler::before{content:'';position:absolute;pointer-events:auto!important;left:0;top:36px;width:58px;height:152px}
 .rf-ruler--h::before{left:34px;top:0;width:152px;height:58px}
 @media (max-width:760px){.rf-ruler::before{width:50px}.rf-ruler--h::before{height:50px}}
+
+.fl-img{object-fit:contain;display:block}
+.fl-b .fl-img,.fl-mv-ico.fl-img{width:calc(var(--bx) * .5);height:calc(var(--bx) * .5)}
+.k3 .fl-img,.m3-ico.fl-img{width:30px;height:30px}
