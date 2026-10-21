@@ -1,5 +1,5 @@
 import { initProjectFigures } from './project-figures.js?v=cv-light-v19';
-import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v62';
+import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v63';
 import { ANNUAL_GAINS, ANNUAL_TOTAL, ANNUAL_DECLARED, ANNUAL_ESTIMATED, ANNUAL_COST, ANNUAL_NET, HOURS_PER_FTE, calendarGainState, rollGainHistory } from './annual-gains.js?v=cv-scene-v59';
 import { PRO_CARDS, PERSO_CARDS, UNIV, CV } from './projects-data.js?v=cv-projects-v20';
 import { playFullscreen } from './play.js?v=bf01a16';
