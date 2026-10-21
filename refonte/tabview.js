@@ -27,9 +27,22 @@ placeCam(36 * Math.PI / 180); bp.link(cam);
 const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); };
 aspect(); addEventListener('resize', aspect);
 
-window.__rfTabView = { rot: 0, tilt: 0, yaw: 36 * Math.PI / 180, pitch: 26 * Math.PI / 180 };
+/* même effet de défilement que l'accueil : la vue plonge de 14° sur 3,56 hauteurs d'écran et le plan s'estompe (valeurs relevées sur la page de référence) */
+const DEG = Math.PI / 180, clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const FADE = [[0, 1], [1, 1], [1.11, .991], [1.78, .444], [2.67, .119], [3.56, 0]];
+const fade = (u) => { for (let i = 1; i < FADE.length; i++) if (u <= FADE[i][0]) { const [x0, y0] = FADE[i - 1], [x1, y1] = FADE[i]; return y0 + (y1 - y0) * (u - x0) / (x1 - x0); } return 0; };
+const rulers = [document.getElementById('rf-ruler'), document.getElementById('rf-ruler-h')];
+let view = { rot: 0, tilt: 0, yaw: 36 * DEG, pitch: 26 * DEG };
+window.__rfTabView = view;
+const paint = () => {
+  const u = scrollY / innerHeight, o = fade(u);
+  placeCam(view.yaw, clamp(view.pitch + 14 * DEG * clamp(scrollY / (3.56 * innerHeight), 0, 1), 6 * DEG, 82 * DEG));
+  stage.style.opacity = o.toFixed(3);
+  for (const r of rulers) { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .3 ? 'none' : ''; }
+};
+addEventListener('scroll', () => requestAnimationFrame(paint), { passive: true });
 initRulers((v) => {
-  placeCam(v.yaw, v.pitch);
-  window.__rfTabView = v;
+  view = v; window.__rfTabView = v; paint();
   window.dispatchEvent(new CustomEvent('rf-tabview', { detail: v }));
 });
+paint();
