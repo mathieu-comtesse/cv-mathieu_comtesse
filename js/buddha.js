@@ -1,9 +1,9 @@
 /* Bouddha aux quatre visages : un clic sur la statue ouvre le portrait 3D de Mathieu (shupi/), la tête qui suit le curseur et qu'on peut
  * attraper et déformer dans tous les sens, avec une courte phrase sur le lien avec son côté zen. Même fenêtre que le livre photo et la stèle. */
 const SRC = 'shupi/index.html?portrait&v=cv-scene-v51';
-const KICKER = 'Quatre visages · zéro dignité';
+const KICKER = 'Quatre visages · un seul calme';
 const LINE = 'Le Bouddha a quatre visages pour garder son calme dans toutes les directions. Moi, un seul, que vous pouvez étirer, tordre et pétrir jusqu’à l’obscène : c’est ça, le zen, rester parfaitement impassible pendant qu’on vous malaxe la tête.';
-const HINT = 'Maintenez la tête pour la déformer ; lâchez, elle reprend sa forme, mais pas sa dignité.';
+const HINT = 'Maintenez la tête pour la déformer, dans tous les sens ; lâchez, elle reprend sa forme.';
 
 export function createBuddha(onChange = () => {}) {
   const dialog = document.createElement('dialog');

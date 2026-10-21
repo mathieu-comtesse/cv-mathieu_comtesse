@@ -27,7 +27,7 @@ import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
 import {createStele} from './stele.js?v=stele1';
-import {createBuddha} from './buddha.js?v=bud2';
+import {createBuddha} from './buddha.js?v=bud3';
 import {createBonsaiCare} from './bonsai-care.js?v=care3';
 
 const DEG = Math.PI / 180;
