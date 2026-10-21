@@ -217,7 +217,7 @@ export function initFlow(root) {
   /* --- « Cliquez ici pour voir la magie » : le schéma en perspective, parcours automatique, mêmes animations à l'ouverture et à la fermeture --- */
   const ov = document.createElement('div');
   ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true');
-  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer le schéma en perspective">×</button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><p class="fl-ov-cap">VUE EN PERSPECTIVE · ÉCHAP POUR FERMER</p>';
+  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer le schéma en perspective"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><p class="fl-ov-cap">VUE EN PERSPECTIVE · ÉCHAP POUR FERMER</p>';
   document.body.append(ov);
   const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w');
   let L = null, st = null, tl = null, ra = 0, t0 = 0, timer = 0;
