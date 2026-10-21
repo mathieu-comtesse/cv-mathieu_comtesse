@@ -1,5 +1,5 @@
 // Pages d'onglet (Blog, Expériences, Gains) : plan blueprint fixe en fond, mêmes règles « Tourner » / « Incliner » que l'accueil.
-// Les règles font tourner et incliner le sujet de la page (tirelire, signe infini, hublot) : chacun écoute l'événement « rf-tabview ».
+// Les règles n'agissent que sur le plan (comme sur l'accueil) ; les sujets de la page ne bougent pas.
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';

@@ -35,9 +35,3 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   }
 }
 
-/* les règles « Tourner » / « Incliner » font pivoter le hublot */
-{
-  const win = document.getElementById('rf-win');
-  const turn = (v) => { if (win) win.style.transform = 'perspective(900px) rotateY(' + (v.rot * .18).toFixed(2) + 'deg) rotateX(' + (-v.tilt * .12).toFixed(2) + 'deg)'; };
-  window.addEventListener('rf-tabview', (ev) => turn(ev.detail));
-}

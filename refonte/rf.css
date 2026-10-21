@@ -809,7 +809,5 @@ html:has(body.rf-tabv){background:#05080d}
 .rf-tabv .rf-bhero{z-index:1}
 .rf-tabv .rf-bmain,.rf-tabv .rf-exp-main,.rf-tabv .gx-main{position:relative;z-index:2}
 .rf-tabv .rf-ruler{z-index:20}
-.rf-tabv .rf-ruler{top:var(--tv-cy,50%);left:calc(10vw + 52px)}
-.rf-tabv .rf-ruler--h{top:auto;bottom:clamp(24px,5vh,54px);left:50%;margin-left:-112px}
-@media (max-width:760px){.rf-tabv .rf-ruler{left:10px}.rf-tabv .rf-ruler--h{left:50%;bottom:20px}}
+
 .rf-tabv .rf-win{will-change:transform}
