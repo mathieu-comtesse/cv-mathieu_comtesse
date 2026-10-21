@@ -871,7 +871,7 @@ html body.rf-article{background:#080b0f}
 .rf-art-ol{list-style:none;padding-left:0;margin:0 0 22px;display:grid;gap:12px;counter-reset:num}
 .rf-art-ol li{position:relative;padding-left:32px;font:400 17px/1.65 var(--rf-sans);color:#c4cee2;counter-increment:num}
 .rf-art-ol li::before{content:counter(num) ".";position:absolute;left:0;top:0;color:#5b8cff;font-variant-numeric:tabular-nums}
-.rf-callout{margin:26px 0;padding:16px 20px;border:1px solid rgb(171 181 199 / .22);border-left:3px solid var(--cl,#5b8cff);border-radius:12px;background:rgb(255 255 255 / .02)}
+.rf-callout{margin:26px 0;padding:16px 20px;border:1px solid rgb(171 181 199 / .22);border-radius:12px;background:rgb(255 255 255 / .02)}
 .rf-callout--note{--cl:#5b8cff}.rf-callout--caution{--cl:#e8a33d}.rf-callout--docs{--cl:#8795ad}
 .rf-article .rf-post-body .rf-callout p{margin:0 0 8px;font-size:15.5px;line-height:1.65;color:#c4cee2}
 .rf-article .rf-post-body .rf-callout p.rf-callout-t{margin:0 0 6px;font:500 12px/1.3 var(--rf-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cl)}
@@ -880,7 +880,6 @@ html body.rf-article{background:#080b0f}
 .rf-callout a{color:#8db2ff;text-decoration:underline;text-underline-offset:3px}
 .rf-art-table{font-size:14.5px}
 /* encadrés : plus de barre de couleur, une icône SVG par type */
-.rf-callout{border-left:1px solid rgb(171 181 199 / .22)}
 .rf-article .rf-post-body .rf-callout p.rf-callout-t{display:flex;align-items:center;gap:8px}
 .rf-callout-ic{flex:none;display:block}
 
