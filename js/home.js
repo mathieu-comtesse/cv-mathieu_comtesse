@@ -56,7 +56,7 @@ function initUniv() {
 const numberFR=(n,digits=0)=>n.toLocaleString('fr-FR',{maximumFractionDigits:digits});
 const fteFR=(t)=>numberFR(t.minHours/HOURS_PER_FTE,1)+' à '+numberFR(t.maxHours/HOURS_PER_FTE,1)+' postes';
 const rangeFR=(min,max,digits=0)=>min===max?numberFR(min,digits):numberFR(min,digits)+'–'+numberFR(max,digits);
-function initAnnualGains(){
+export function initAnnualGains(){
  const head=document.querySelector('#work > .strip-head');
  if(!head||head.querySelector('.annual-gains'))return;
  head.classList.add('pro-gains-heading');
