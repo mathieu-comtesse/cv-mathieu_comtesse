@@ -65,7 +65,6 @@
     95%{transform:scaleY(.000018)}
     100%{transform:scaleY(0)}
   }
-  @media(prefers-reduced-motion:reduce){#th-intro-ring{animation:none}}
   `;
 
   const style = document.createElement('style');
@@ -74,7 +73,7 @@
   (document.head || document.documentElement).appendChild(style);
 
   let cover, spinner, cycle = 0, startedAt = 0, loadReady = false;
-  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const reduced = false;   // l'animation est toujours jouée, même si « réduire les animations » est activé
 
   function clear() {
     cover?.remove();spinner?.remove();cover=null;spinner=null;
