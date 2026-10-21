@@ -8,10 +8,13 @@
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
-<link rel="stylesheet" href="refonte/rf.css?v=mvi4agbp">
-<script type="module" src="refonte/gains.js?v=mvi4agbp"></script>
+<link rel="stylesheet" href="style.css?v=cv-light-v75">
+<link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
+<link rel="stylesheet" href="refonte/rf.css?v=mvi50vy1">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<script type="module" src="refonte/gains.js?v=mvi50vy1"></script>
 </head>
-<body class="rf-gx-page">
+<body class="rf-gx-page rf">
 <nav class="rf-bnav" aria-label="Navigation">
   <a href="./">Accueil</a>
   <a href="./#projets">Projets</a>
@@ -30,6 +33,11 @@
     <h1>Ce que les outils rendent, en heures et en euros</h1>
     <p class="gx-sub">Volumes fournis, durées mesurées, taux horaire de <span id="gx-rate-lbl">104,74 €</span>. Un tableau de bord pour lire, comparer et simuler les gains annuels de chaque outil.</p>
   </header>
+
+  <!-- Tirelire des gains annuels et son explicatif (code réel du site : js/home.js) -->
+  <section class="strip rf-tirelire" id="work" aria-label="Tirelire des gains annuels">
+    <header class="strip-head"><h2>Tirelire des gains annuels</h2><p>Le temps libéré par les outils, valorisé au taux horaire de 104,74 €.</p></header>
+  </section>
 
   <section class="gx-controls" aria-label="Réglages de l’analyse">
     <div class="gx-ctl">
@@ -92,7 +100,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvi4agb">mvi4agb</dd></div>
+        <div><dt>Version</dt><dd data-t="mvi50vy">mvi50vy</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>

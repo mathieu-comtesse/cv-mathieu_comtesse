@@ -170,3 +170,6 @@ render();
 // apparition en cascade des cartes
 const cards = document.querySelectorAll('.gx-kpi,.gx-card,.gx-method');
 cards.forEach((c, i) => { c.style.setProperty('--d', (i * 70) + 'ms'); c.classList.add('gx-in'); });
+
+// tirelire des gains annuels et explicatif « Effet cascade » (code d'origine du site), chargés à part : une erreur ici ne touche pas le tableau de bord
+import('../js/home.js?v=cv-light-v21').then((m) => m.initAnnualGains()).catch((e) => console.warn('tirelire indisponible', e));

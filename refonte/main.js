@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { createRoom } from '../js/room.js?v=cv-light-v96';
 import { initUI } from '../js/ui.js?v=cv-cursor-v20';
-import { initHome } from '../js/home.js?v=cv-light-v20';
+import { initHome } from '../js/home.js?v=cv-light-v21';
 import { initBlueprint } from './blueprint-hero.js';
 import './footer.js';
 import './navfx.js';
