@@ -777,3 +777,8 @@ html body .film-close:active,html body .jvc-close:active,html body .rf-close:act
 .buddha-line{margin:0 0 16px;font:italic 400 clamp(20px,2.3vw,27px)/1.4 Georgia,'Times New Roman',serif;letter-spacing:-.01em}
 .buddha-hint{margin:0;font:400 13px/1.5 var(--rf-sans,system-ui);color:#b9b5a6}
 @media (max-width:809px){.buddha-wrap{grid-template-columns:1fr;gap:16px}.buddha-view{height:min(52svh,460px)}}
+/* Bouddha : fond transparent, tête agrandie */
+.buddha-wrap{grid-template-columns:minmax(0,7fr) minmax(0,4fr)}
+.buddha-view{background:none!important;overflow:visible;height:min(78svh,760px)}
+.buddha-view iframe{background:transparent!important;transform:scale(1.42);transform-origin:50% 52%}
+@media (max-width:809px){.buddha-wrap{grid-template-columns:1fr}.buddha-view{height:min(56svh,500px)}.buddha-view iframe{transform:scale(1.3)}}
