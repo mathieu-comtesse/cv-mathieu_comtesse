@@ -805,7 +805,7 @@ html body.rf-gx-page{background:#080b0f;color:#e0ebfd;font-family:var(--rf-sans)
 
 /* ---------------------------------------------------------------- pages d'onglet : plan blueprint fixe + règles */
 html body.rf-tabv{background:transparent}
-html:has(body.rf-tabv){background:#000}
+html:has(body.rf-tabv){background:#05080d}
 .rf-tabv .rf-bhero{z-index:1}
 .rf-tabv .rf-bmain,.rf-tabv .rf-exp-main,.rf-tabv .gx-main{position:relative;z-index:2}
 .rf-tabv .rf-ruler{z-index:20}
