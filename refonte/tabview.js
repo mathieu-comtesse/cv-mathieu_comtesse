@@ -1,5 +1,6 @@
 // Pages d'onglet (Blog, Expériences, Gains) : plan blueprint fixe en fond, mêmes règles « Tourner » / « Incliner » que l'accueil.
-// Les règles n'agissent que sur le plan (comme sur l'accueil) ; les sujets de la page ne bougent pas.
+// Les règles n'agissent que sur la caméra du plan ; le sujet de la page (tirelire, signe infini, hublot) reste fixe SUR le plan :
+// il écoute « rf-tabview » et se présente sous le même angle que le plan (azimut et élévation relatifs à la vue d'origine : 36° et 26°).
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';
@@ -49,13 +50,15 @@ let view = { rot: 0, tilt: 0, yaw: 36 * DEG, pitch: 26 * DEG };
 window.__rfTabView = view;
 const paint = () => {
   const u = scrollY / innerHeight, o = fade(u);
-  placeCam(view.yaw, clamp(view.pitch + 14 * DEG * clamp(scrollY / (3.56 * innerHeight), 0, 1), 6 * DEG, 82 * DEG));
+  const pitch = clamp(view.pitch + 14 * DEG * clamp(scrollY / (3.56 * innerHeight), 0, 1), 6 * DEG, 82 * DEG);
+  placeCam(view.yaw, pitch);
+  const d = { yaw: view.yaw, pitch, dYaw: view.yaw - 36 * DEG, dPitch: pitch - 26 * DEG };
+  window.__rfTabView = d; window.dispatchEvent(new CustomEvent('rf-tabview', { detail: d }));
   stage.style.opacity = o.toFixed(3);
   for (const r of rulers) { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .3 ? 'none' : ''; }
 };
 addEventListener('scroll', () => requestAnimationFrame(paint), { passive: true });
 initRulers((v) => {
-  view = v; window.__rfTabView = v; paint();
-  window.dispatchEvent(new CustomEvent('rf-tabview', { detail: v }));
+  view = v; paint();
 });
 paint();

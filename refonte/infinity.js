@@ -185,6 +185,10 @@ export function initInfinity(canvas) {
     renderer.setRenderTarget(rt); renderer.clear(); renderer.render(scene, camera);
     renderer.setRenderTarget(null); renderer.render(postScene, postCam);
   }
+  // fixe sur le plan : il tourne avec la vue du plan quand les règles agissent
+  const turn = (v) => { group.rotation.y = -v.dYaw; group.rotation.x = v.dPitch; };
+  if (window.__rfTabView) turn(window.__rfTabView);
+  window.addEventListener('rf-tabview', (ev) => turn(ev.detail));
   new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { rootMargin: '120px' }).observe(host);
   new ResizeObserver(resize).observe(host);
   resize(); frame();

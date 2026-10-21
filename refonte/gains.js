@@ -3,4 +3,4 @@ import './footer.js';
 import './navfx.js';
 import './tabview.js';
 
-import('../js/home.js?v=cv-light-v25').then((m) => m.initAnnualGains()).catch((e) => console.warn('tirelire indisponible', e));
+import('../js/home.js?v=cv-light-v26').then((m) => m.initAnnualGains()).catch((e) => console.warn('tirelire indisponible', e));
