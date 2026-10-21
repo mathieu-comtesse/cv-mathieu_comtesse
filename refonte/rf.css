@@ -879,3 +879,11 @@ html body.rf-article{background:#080b0f}
 .rf-callout li{font:400 15px/1.5 var(--rf-sans);color:#c4cee2}
 .rf-callout a{color:#8db2ff;text-decoration:underline;text-underline-offset:3px}
 .rf-art-table{font-size:14.5px}
+/* encadrés : plus de barre de couleur, une icône SVG par type */
+.rf-callout{border-left:1px solid rgb(171 181 199 / .22)}
+.rf-article .rf-post-body .rf-callout p.rf-callout-t{display:flex;align-items:center;gap:8px}
+.rf-callout-ic{flex:none;display:block}
+
+/* études : l'objet animé sur le plan blueprint (comme les pages projet), voile sombre progressif pour la lecture */
+.rf-article .rf-stage::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:rgb(3 6 14 / var(--veil,0))}
+.rf-article .rf-post-fig{margin-bottom:0}
