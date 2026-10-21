@@ -799,3 +799,6 @@ html body.rf-gx-page{background:#080b0f;color:#e0ebfd;font-family:var(--rf-sans)
 /* Gains : mêmes polices que l'Accueil (Inter pour le texte, mono pour les repères), imposées sur celles de style.css */
 .rf-gx-page,.rf-gx-page *,.rf-gx-page *::before,.rf-gx-page *::after{font-family:var(--rf-sans)!important}
 .rf-gx-page .piggy-rotate-hint,.rf-gx-page .piggy-status,.rf-gx-page [data-coin-rate]{font-family:var(--rf-mono)!important}
+/* Gains : « Effet cascade » centré */
+.rf-gx-page .rf-tirelire .automation-cascade{text-align:center;width:min(724px,100%);margin-inline:auto}
+.rf-gx-page .rf-tirelire .cascade-copy p,.rf-gx-page .rf-tirelire .cascade-note{margin-inline:auto}
