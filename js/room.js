@@ -27,6 +27,7 @@ import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
 import {createStele} from './stele.js?v=stele1';
+import {createBuddha} from './buddha.js?v=bud1';
 import {createBonsaiCare} from './bonsai-care.js?v=care3';
 
 const DEG = Math.PI / 180;
@@ -342,7 +343,7 @@ export async function createRoom(container, bubbleEl) {
     install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38).userData.id='backpack';
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
-    install(buddhaModel,'BuddhaFourFaces',world,-3.72,0,3.72,.6);   // à gauche de l'alocasia (alocasia en -3,1 ; 3,25)
+    install(buddhaModel,'BuddhaFourFaces',world,-3.72,0,3.72,.6).userData.id='buddha';   // à gauche de l'alocasia (alocasia en -3,1 ; 3,25)
     { // Télé JVC Video Capsule 3100R : sur l'étagère elle reste repliée en pyramide ; un clic l'ouvre dans une fenêtre dédiée (js/jvc-tv.js), comme le livre photo.
       const sc=jvcModel.scene,find=re=>{let r=null;sc.traverse(o=>{if(o.isMesh&&re.test(o.name))r=o;});return r;};
       const screen=find(/^Screen_low/),glassMesh=find(/^ScreenGlass/),body=find(/^Body_low/);
@@ -1018,6 +1019,7 @@ export async function createRoom(container, bubbleEl) {
   const phoneVideo=createPhoneVideo(open=>pauseAutonomy(open?3600000:3000));
   const tvFilms=createTvFilms({onChange:open=>pauseAutonomy(open?3600000:3000)});
   const stele=createStele(open=>pauseAutonomy(open?3600000:3000));
+  const buddha=createBuddha(open=>pauseAutonomy(open?3600000:3000));
   const jvcTv=createJvcTv({fallback:()=>tvFilms.open(),onChange:open=>pauseAutonomy(open?3600000:3000)});
   function activate(id) {
     if(appOpen)return false;
@@ -1027,6 +1029,7 @@ export async function createRoom(container, bubbleEl) {
     if(id==='backpack'){phoneVideo.open();return;}
     if(id==='videosphere'){jvcTv.open();return;}
     if(id==='stele'){stele.open();return;}
+    if(id==='buddha'){buddha.open();return;}
     if (id === 'drawer' || id === 'usm') { openCrate(!crate.isOpen); return; }                 // le meuble USM entier ouvre le tiroir ; le lecteur n'apparaît qu'une fois un disque choisi
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {
