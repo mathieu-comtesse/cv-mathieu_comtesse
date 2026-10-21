@@ -751,3 +751,12 @@ body.fl-lock{overflow:hidden}
 .d3.cur{background:#f5c542;box-shadow:0 0 10px #f5c542}
 .d3.ok{background:rgb(147 192 34);box-shadow:0 0 10px rgb(147 192 34)}
 .d3.up.ok{background:rgb(147 192 34)}
+/* voyants : gris (toujours visible) → jaune franc à l'arrivée → vert franc, et il reste vert une fois la case dépassée */
+.d3{opacity:1;background:#4a4d50}
+.d3.up{transform:translateZ(62px)}
+.d3.cur{background:#ffd028;box-shadow:0 0 10px #ffd028}
+.d3.ok,.d3.up.ok{background:#2fe277;box-shadow:0 0 10px #2fe277}
+.fl-b .fl-led{background:#4a4d50}
+.fl-b.fl-on .fl-led{background:#4a4d50;box-shadow:none}
+.fl-b.fl-cur .fl-led{background:#ffd028;box-shadow:0 0 9px #ffd028}
+.fl-b.fl-ok .fl-led{background:#2fe277;box-shadow:0 0 9px #2fe277}
