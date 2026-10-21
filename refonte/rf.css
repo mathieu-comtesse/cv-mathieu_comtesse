@@ -813,3 +813,6 @@ html:has(body.rf-tabv){background:#05080d}
 .rf-tabv .rf-win{will-change:transform}
 
 .rf-tabv .rf-bhero{mix-blend-mode:screen}
+
+/* études du blog : chapeau en tête d'article */
+.rf-post-body p.rf-lede{font:500 22px/1.5 var(--rf-sans);letter-spacing:-.25px;color:#e0ebfd;margin-bottom:24px}
