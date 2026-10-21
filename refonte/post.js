@@ -110,7 +110,7 @@ if (fig && bpCanvas && stage) {
     const layout = () => { steps.forEach((s, i) => { nodes[i].top = s.offsetTop + 14; nodes[i].el.style.top = nodes[i].top + 'px'; }); };
     const fire = (i) => {
       const n = nodes[i]; n.el.classList.remove('rf-ping'); void n.el.offsetWidth; n.el.classList.add('rf-ping');
-      if (reduced || i === 0) return;
+      if (i === 0) return;
       const hop = document.createElement('i'); hop.className = 'rf-tl-hop'; hop.style.top = nodes[i - 1].top + 'px'; hop.style.setProperty('--dy', (n.top - nodes[i - 1].top) + 'px');
       rail.append(hop); hop.addEventListener('animationend', () => hop.remove(), { once: true });
     };

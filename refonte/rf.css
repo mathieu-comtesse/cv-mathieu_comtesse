@@ -650,5 +650,4 @@ body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
 @keyframes rf-ping{0%{opacity:.95;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}
 .rf-tl-hop{position:absolute;left:-3px;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--tl-c),0 0 20px var(--tl-c);pointer-events:none;z-index:4;animation:rf-hop .7s cubic-bezier(.5,0,.2,1) forwards}
 @keyframes rf-hop{from{transform:translateY(0);opacity:1}to{transform:translateY(var(--dy));opacity:0}}
-@media (prefers-reduced-motion:reduce){.rf-tl-ring,.rf-tl-flow i{animation:none}.rf-tl-flow{display:none}.rf-tl-node.rf-ping .rf-tl-ping{animation:none}}
 .rf-post-tl .rf-tl-train{display:none}
