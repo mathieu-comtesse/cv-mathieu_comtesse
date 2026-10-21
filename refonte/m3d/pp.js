@@ -30,8 +30,13 @@ export function build() {
   const due = display(20, 6); due.mesh.position.set(READER.x + READER.w / 2, BRIDGE_Z + 2.5, READER.y + READER.d + .05); g.add(due.mesh);
   const readLamp = cyl(0, 0, 1.4, 0, .8, COL.lo, 18); readLamp.rotation.x = Math.PI / 2; readLamp.position.set(READER.x + READER.w - 4, BRIDGE_Z + 2.5, READER.y + READER.d + .3); g.add(readLamp);
   // classeur : tiroir, graduation, affichage de la date du jour sur le flanc
-  g.add(slab(DRAWER.x, DRAWER.y, DRAWER.w, DRAWER.d, 0, DRAWER_H, COL.mid, 2));
-  g.add(slab(DRAWER.x + WALL, DRAWER.y + WALL, DRAWER.w - 2 * WALL, DRAWER.d - 2 * WALL, DRAWER_H - .6, .6, COL.dark, 1));
+  // bac ouvert (comme la figure d'origine) : fond, quatre parois, rails avant et arrière des dossiers suspendus ; l'intérieur reste visible
+  const D = DRAWER;
+  g.add(slab(D.x, D.y, D.w, D.d, 0, 2, COL.lo, 1));
+  g.add(slab(D.x, D.y, D.w, WALL, 2, DRAWER_H - 2, COL.mid, .5), slab(D.x, D.y, WALL, D.d, 2, DRAWER_H - 2, COL.mid, .5), slab(D.x + D.w - WALL, D.y, WALL, D.d, 2, DRAWER_H - 2, COL.mid, .5), slab(D.x, D.y + D.d - WALL, D.w, WALL, 2, DRAWER_H - 2, COL.mid, .5));
+  g.add(slab(D.x + 1, D.y + 2, D.w - 2, 1.4, RAIL_Z - 2, 2, COL.mid, .4), slab(D.x + 1, D.y + D.d - 3.4, D.w - 2, 1.4, RAIL_Z - 2, 2, COL.mid, .4));
+  // fond intérieur plus sombre : donne de la profondeur au bac
+  g.add(slab(D.x + WALL, D.y + WALL, D.w - 2 * WALL, D.d - 2 * WALL, 2, .3, COL.dark, .5));
   const today = display(20, 7); today.mesh.rotation.y = Math.PI / 2; today.mesh.position.set(DRAWER.x + DRAWER.w + .05, 8, DRAWER.y + DRAWER.d / 2); g.add(today.mesh);
   // sections : douze mois d'échéance, intercalaire + onglet + paquet de dossiers (largeur = nombre × 0,18)
   const secs = Array.from({ length: 12 }, (_, k) => {

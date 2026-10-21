@@ -2,6 +2,7 @@
 // de l'accueil (même caméra en perspective, mêmes règles « Tourner » / « Incliner »).
 import './footer.js';
 import './navfx.js';
+import './viewbtn.js';
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';
@@ -43,6 +44,18 @@ if (fig && bpCanvas && stage) {
   import('./m3d/index.js').then(({ mountMachine }) => mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
     machine = m; machine.resize(); fig.querySelector('img')?.remove();
     const t0 = performance.now();
+    /* Interaction comme sur la figure d'origine : on glisse sur la machine (ou flèches gauche / droite) pour avancer ou reculer dans le temps. */
+    let shift = 0, drag = null;
+    const clock = () => (performance.now() - t0) / 1000 + shift;
+    fig.tabIndex = 0; fig.setAttribute('role', 'slider'); fig.setAttribute('aria-label', 'Faire défiler le temps de la machine : glisser, ou flèches gauche et droite');
+    fig.classList.add('rf-fig-live');
+    const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += ' · glissez pour avancer ou reculer le temps';
+    const SECONDS_PER_WIDTH = 24;
+    fig.addEventListener('pointerdown', (e) => { if (e.button) return; drag = { x: e.clientX, at: clock() }; fig.setPointerCapture(e.pointerId); fig.classList.add('rf-grabbing'); });
+    fig.addEventListener('pointermove', (e) => { if (drag) shift = drag.at + (e.clientX - drag.x) / Math.max(320, innerWidth) * SECONDS_PER_WIDTH - (performance.now() - t0) / 1000; });
+    const drop = () => { drag = null; fig.classList.remove('rf-grabbing'); };
+    fig.addEventListener('pointerup', drop); fig.addEventListener('pointercancel', drop);
+    fig.addEventListener('keydown', (e) => { const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (k) { shift += k * 4; e.preventDefault(); } });
     const loop = () => {
       requestAnimationFrame(loop);
       const o = Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));   // les règles s’effacent ; l’objet, lui, reste en arrière-plan
@@ -50,7 +63,7 @@ if (fig && bpCanvas && stage) {
       canvas.style.opacity = bg.toFixed(3);
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
-      machine.render(reduced ? 6 : (performance.now() - t0) / 1000);
+      machine.render(reduced ? 6 + shift : clock());
     };
     loop();
   }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); });

@@ -580,3 +580,22 @@ html body.rf-exp-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans
 .rf-tile--pro .rf-tile-bg.rf-on img{visibility:hidden}
 .rf-tile--pro .rf-tile-title,.rf-tile--pro .rf-tile-meta{z-index:2;text-shadow:0 1px 10px rgb(0 10 90 / .85)}
 .rf-contact-in{text-align:center}.rf-contact-in .rf-cp{margin-inline:auto}
+
+/* ouverture de l'accueil : fond bleu immédiat, puis plan + pièce en un seul fondu quand tout est prêt */
+.rf-stage:not(.rf-stage--post){background:linear-gradient(#000 0,#000 16%,#0b3ce6 36%,#0a2fc4 70%,#06196a 100%)}
+.rf-stage:not(.rf-stage--post) .rf-bp,.rf-stage:not(.rf-stage--post) .room.rf-room{opacity:0;transition:opacity .9s cubic-bezier(.3,.7,.2,1)}
+.rf-stage.rf-ready:not(.rf-stage--post) .rf-bp,.rf-stage.rf-ready:not(.rf-stage--post) .room.rf-room{opacity:1}
+.rf-room-poster{display:none}
+@media (prefers-reduced-motion:reduce){.rf-stage:not(.rf-stage--post) .rf-bp,.rf-stage:not(.rf-stage--post) .room.rf-room{transition:none}}
+p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([class]),.rf-ap em{font-style:normal!important}
+
+/* machine des pages projet : zone de manipulation (glisser pour faire défiler le temps) */
+.rf-post--bp .rf-post-fig{min-height:56vh;cursor:grab;touch-action:pan-y;outline-offset:-4px;user-select:none}
+.rf-post--bp .rf-post-fig.rf-grabbing{cursor:grabbing}
+.rf-post--bp .rf-post-fig figcaption{pointer-events:none;position:relative}
+
+/* retour « Tous les projets » : même bouton que « View », en miroir, posé dans l'en-tête de la page projet */
+.rf-post-back a{display:inline-block;line-height:0;text-decoration:none}
+.rf-post-back .rf-arrow.view-action{position:relative;top:auto;right:auto;display:grid}
+.rf-post-back .view-arrows{right:auto;left:4px}
+.rf-post-back .view-back .view-text{margin-left:40px}
