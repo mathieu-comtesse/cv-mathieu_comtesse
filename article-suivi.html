@@ -8,12 +8,18 @@
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
-<link rel="stylesheet" href="refonte/rf.css?v=mvicect5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvicrtj4">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
-<script type="module" src="refonte/post.js?v=mvicect5"></script>
-
+<script type="module" src="refonte/post.js?v=mvicrtj4"></script>
+<link rel="modulepreload" href="vendor/three.module.min.js">
+<link rel="modulepreload" href="refonte/blueprint-hero.js">
+<link rel="modulepreload" href="refonte/m3d/index.js">
+<link rel="modulepreload" href="refonte/m3d/core.js">
+<link rel="modulepreload" href="refonte/m3d/glow.js">
+<link rel="modulepreload" href="refonte/m3d/suivi.js">
+<link rel="modulepreload" href="refonte/flow.js">
 </head>
-<body class="rf-post-page rf-article">
+<body class="rf-post-page rf-post--bp rf-article">
 <nav class="rf-bnav" aria-label="Navigation">
   <a href="./">Accueil</a>
   <a href="gains">Gains</a>
@@ -24,7 +30,7 @@
   <a href="./#contact">Contact</a>
 </nav>
 
-
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Incliner la vue de bas en haut (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Incliner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Tourner la machine (glisser à gauche ou à droite, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside>
 
 <main class="rf-pmain">
   <article class="rf-post">
@@ -35,7 +41,7 @@
       <p class="rf-post-sub">OT, équipement, bâtiment</p>
       <div class="rf-post-meta"><div><span>Temps libéré (estimé)</span><b>10–15 min</b></div><div><span>Valorisation estimée</span><b>118–589 k€</b></div><div><span>Objet</span><b>Standard à fiches</b></div></div>
     </header>
-    <figure class="rf-post-fig rf-post-fig--img"><img src="assets/figures/suivi-light.webp?v=bp2" alt="Standard à fiches" width="840" height="600"><figcaption>Standard à fiches · l’objet est l’explication</figcaption></figure>
+    <figure class="rf-post-fig" data-fig="suivi"><img src="assets/figures/suivi-light.webp?v=bp2" alt="Standard à fiches" width="840" height="600"><figcaption>Standard à fiches · l’objet est l’explication</figcaption></figure>
     <div class="rf-post-body">
 <p class="rf-lede">Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.</p><p>Voici l’interface qui rassemble, pour un OT, un équipement ou un bâtiment, les accès aux informations et au suivi répartis entre plusieurs outils internes SNCF. Un standard téléphonique à fiches m’a servi d’image : chaque fiche se branche sur la bonne source.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure ; avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.</p><h2>Le projet</h2><p>Pour un ordre de travail (OT), un équipement ou un bâtiment, une interface rassemble les accès aux informations et au suivi répartis entre plusieurs outils internes SNCF. Les liens directs, extraits depuis la console du navigateur, permettent de rediriger automatiquement vers les pages concernées.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré (estimé)</small><b>10–15 min</b><i>gagnées par recherche (≈ 1 h quand elle passe par d’autres outils)</i></span><span><small>Valorisation estimée</small><b>118–589 k€</b><i>par an, estimation à confirmer (14 utilisateurs, ≈ 26 € la recherche)</i></span></div><p class="rf-post-note">Base du calcul. Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.</p><h2>Pour l’équipe</h2><p>Accéder au bon dossier depuis une seule interface, sans rechercher manuellement dans chaque outil.</p><h2>Pas à pas</h2><p>Voici le parcours dans l’ordre, de l’entrée à la sortie.</p><ol class="rf-art-steps"><li><h3>Ordres de travail</h3><p>Les OT de la GMAO constituent le point de départ.</p></li><li><h3>Exports des sources</h3><p>Les autres logiciels et sites fournissent les informations utiles.</p></li><li><h3>Informations utiles</h3><p>Les éléments utiles sont isolés pour être retrouvés dans l’interface.</p></li><li><h3>Équipement</h3><p>Chaque ligne est rattachée à son équipement.</p></li><li><h3>Bâtiment</h3><p>Le bâtiment fournit un autre accès au même suivi.</p></li><li><h3>Interface commune</h3><p>Les différents accès se rassemblent dans un point d’entrée commun.</p></li><li><h3>Recherche OT</h3><p>Une recherche par OT retrouve le contexte et l’accès pertinent.</p></li><li><h3>Lien direct</h3><p>Le bon écran s’active et conduit vers la source concernée.</p></li><li><h3>Suivi retrouvé</h3><p>Les outils restent distincts ; l’interface facilite leur navigation sans répliquer toutes leurs données.</p></li></ol><h2>Construction</h2><p>Temps de construction mesuré : 0,5 jour de 7 heures, essais auprès des équipes compris.</p>
     </div>
@@ -48,7 +54,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvicect">mvicect</dd></div>
+        <div><dt>Version</dt><dd data-t="mvicrtj">mvicrtj</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>

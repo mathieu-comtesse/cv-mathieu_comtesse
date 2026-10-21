@@ -83,7 +83,9 @@ if (fig && bpCanvas && stage) {
     const loop = () => {
       requestAnimationFrame(loop);
       const o = Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));   // les règles s’effacent ; l’objet, lui, reste en arrière-plan
-      const bg = Math.max(.32, o);
+      const study = document.body.classList.contains('rf-article');   // étude : l'objet et le plan s'effacent presque entièrement, voile sombre progressif
+      const bg = Math.max(study ? .1 : .32, o);
+      if (study) document.documentElement.style.setProperty('--veil', ((1 - o) * .82).toFixed(3));
       canvas.style.opacity = bg.toFixed(3);
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
