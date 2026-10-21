@@ -507,17 +507,26 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── interaction ─── */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const OPENABLE = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
   const pickIdAt = (cx, cy) => {
     const r = renderer.domElement.getBoundingClientRect();
     ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObject(world, true);
+    // Les objets à ouvrir (stèle, bouddha, sac, télé, appareil photo, console, ordinateur…) sont prioritaires : si le rayon les traverse, ils gagnent,
+    // même quand une plante, une étagère ou un meuble se trouve devant sous cet angle. Sinon, c'est l'objet le plus proche qui est visé.
+    let nearest = null, priority = null;
     for (const h of hits) {
       let vis = true; for (let q = h.object; q; q = q.parent) if (!q.visible) { vis = false; break; }
       if (!vis) continue;
-      let o = h.object;
-      while (o && o !== world) { if (o.userData.id) return o.userData.id; o = o.parent; }
+      let o = h.object, id = null;
+      while (o && o !== world) { if (o.userData.id) { id = o.userData.id; break; } o = o.parent; }
+      if (!id) continue;
+      if (nearest === null) nearest = id;
+      if (priority === null && OPENABLE.has(id)) priority = id;
     }
+    if (priority !== null) return priority;
+    if (nearest !== null) return nearest;
     return null;
   };
 
