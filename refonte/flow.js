@@ -90,7 +90,7 @@ function mountRail(root, items, steps) {
     mv.classList.toggle('fl-done', L.color > .5);
     const near = clamp(Math.round(sc), 0, n - 1);
     if (shownIcon !== items[near].icon) { shownIcon = items[near].icon; parts.i.innerHTML = svgIcon(shownIcon, 'fl-mv-ico'); }
-    boxes.forEach((b, i) => { b.classList.toggle('fl-on', sc >= i - .02); b.classList.toggle('fl-cur', i === near); });
+    boxes.forEach((b, i) => { const here = Math.abs(sc - i) < .15, done = sc >= i + .15; b.classList.toggle('fl-on', here || done); b.classList.toggle('fl-cur', here); b.classList.toggle('fl-ok', done); });
     steps.forEach((li, i) => li.classList.toggle('fl-cur', i === near));
   };
   return { layout, draw };
@@ -145,16 +145,16 @@ function build3d(items, L) {
 function timeline(n) {
   const unit = T.dwell + T.travel, run = T.lead + n * T.dwell + (n - 1) * T.travel;
   return { run, total: run + T.hold, at(t) {
-    if (t < T.lead) return { s: 0, reach: -1, p: 0 };
+    if (t < T.lead) return { s: 0, reach: -1, moving: false, p: 0 };
     const u = t - T.lead, i = Math.min(n - 1, Math.floor(u / unit)), within = u - i * unit;
     let s = i;
     if (i < n - 1 && within > T.dwell) s = i + easeInOut(clamp((within - T.dwell) / T.travel, 0, 1));
-    return { s, reach: i, p: clamp(t / run, 0, 1) };
+    return { s, reach: i, moving: i < n - 1 && within > T.dwell, p: clamp(t / run, 0, 1) };
   } };
 }
 
 function draw3d(st, items, L, tl, t) {
-  const n = items.length, { s, reach, p } = tl.at(t);
+  const n = items.length, { s, reach, moving, p } = tl.at(t);
   const i0 = Math.min(Math.max(0, n - 2), Math.floor(s)), g = n > 1 ? s - i0 : 0;
   const a = L.pos[i0], b = L.pos[Math.min(n - 1, i0 + 1)];
   let x, y;
@@ -174,7 +174,8 @@ function draw3d(st, items, L, tl, t) {
   if (st.icon !== items[near].icon) { st.icon = items[near].icon; st.parts.i.innerHTML = svgIcon(st.icon, 'm3-ico'); }
   st.cells.forEach((c, i) => {
     const up = reach >= 0 && i <= reach;
-    c.tile.classList.toggle('up', up); c.shadow.classList.toggle('up', up); c.led.classList.toggle('up', up); c.led.classList.toggle('cur', i === reach);
+    const here = i === reach && !moving, done = up && !here;
+    c.tile.classList.toggle('up', up); c.shadow.classList.toggle('up', up); c.led.classList.toggle('up', up); c.led.classList.toggle('cur', here); c.led.classList.toggle('ok', done);
   });
 }
 
@@ -220,7 +221,7 @@ export function initFlow(root) {
   document.body.append(ov);
   const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w');
   let L = null, st = null, tl = null, ra = 0, t0 = 0, timer = 0;
-  const lower = () => st && st.cells.forEach((c) => { c.tile.classList.remove('up'); c.shadow.classList.remove('up'); c.led.classList.remove('up', 'cur'); });
+  const lower = () => st && st.cells.forEach((c) => { c.tile.classList.remove('up'); c.shadow.classList.remove('up'); c.led.classList.remove('up', 'cur', 'ok'); });
   const frame3 = () => {
     let t = performance.now() - t0;
     if (t >= tl.total) { t0 = performance.now(); t = 0; lower(); }                 // le parcours reprend depuis le début

@@ -742,3 +742,12 @@ body.fl-lock{overflow:hidden}
 
 /* case mobile : plus de hachures */
 .fl-mv-h,.m3-h{background:#0E0F10!important}
+
+/* voyants : éteint → jaune à l'arrivée de la case mobile → vert quand elle repart (comme sur le site de référence) */
+.fl-b.fl-on .fl-led{background:#38393B;box-shadow:none}
+.fl-b.fl-cur .fl-led{background:#f5c542;box-shadow:0 0 9px #f5c542}
+.fl-b.fl-ok .fl-led{background:rgb(147 192 34);box-shadow:0 0 8px rgb(147 192 34)}
+.fl-led{transition:background .5s,box-shadow .5s}
+.d3.cur{background:#f5c542;box-shadow:0 0 10px #f5c542}
+.d3.ok{background:rgb(147 192 34);box-shadow:0 0 10px rgb(147 192 34)}
+.d3.up.ok{background:rgb(147 192 34)}
