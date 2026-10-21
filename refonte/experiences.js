@@ -35,3 +35,10 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   }
 }
 
+
+/* le hublot reste fixe sur le plan : il se présente sous le même angle que lui quand les règles tournent ou inclinent la vue */
+{
+  const win = document.getElementById('rf-win');
+  const turn = (v) => { if (win) win.style.transform = 'perspective(1100px) rotateX(' + (v.dPitch * 180 / Math.PI).toFixed(2) + 'deg) rotateY(' + (-v.dYaw * 180 / Math.PI).toFixed(2) + 'deg)'; };
+  window.addEventListener('rf-tabview', (ev) => turn(ev.detail));
+}
