@@ -3,13 +3,12 @@
 import './footer.js';
 import './navfx.js';
 import './viewbtn.js';
-import { initFlow } from './flow.js';
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const els = document.querySelectorAll('.rf-post-body > *, .rf-post-pn');
+const els = document.querySelectorAll('.rf-post-body > *');
 els.forEach((e) => e.classList.add('rf-rv'));
 if (reduced || !('IntersectionObserver' in window)) els.forEach((e) => e.classList.add('rf-in'));
 else {
@@ -138,4 +137,4 @@ if (fig && bpCanvas && stage) {
 }
 
 /* ---- schéma des étapes (d'après la reconstitution fournie) ---- */
-document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } });
+if (document.querySelector('.rf-flow')) import('./flow.js').then(({ initFlow }) => document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } })).catch((e) => console.warn('schéma indisponible', e));
