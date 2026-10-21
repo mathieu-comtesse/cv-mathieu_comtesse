@@ -1,3 +1,4 @@
+import './theme.js';
 // Pied de page : valeurs vivantes (navigateur, heure, dimensions) saisies lettre par lettre à l'arrivée dans l'écran.
 // Adresse propre : seul « comtesse.me » (ou le nom de la page, sans « .html » ni ancre) reste affiché dans la barre d'adresse.
 {

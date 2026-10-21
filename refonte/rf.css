@@ -609,3 +609,24 @@ p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([
 .rf-ctl-r{width:clamp(90px,24vw,220px);accent-color:#fff;cursor:pointer}
 .rf-ctl-v{min-width:4.5ch;white-space:nowrap;text-align:left}
 @media (max-width:620px){.rf-ctl{gap:6px;padding:6px 8px}.rf-ctl-l{display:none}}
+
+/* ---- thème clair / sombre ---- */
+.rf-theme{position:relative;flex:none;width:26px;height:26px;min-width:0;padding:0;margin-left:4px;border:0;border-radius:50%;background:none;color:#e0ebfd;display:grid;place-items:center;cursor:pointer;transition:width .2s ease-out,height .2s ease-out,background-color .2s,transform .15s}
+.rf-theme:hover{width:32px;height:32px;background:rgb(255 255 255 / .1)}.rf-theme:active{transform:scale(.95)}
+.rf-theme svg{grid-area:1/1;width:18px;height:18px;transition:transform .3s,opacity .3s}
+.rf-theme:hover svg{transform:scale(1.25)}
+.rf-theme .rf-theme-moon{transform:rotate(90deg) scale(0);opacity:0;pointer-events:none}
+.rf-theme .rf-theme-sun{transform:none;opacity:1}
+html[data-theme="light"] .rf-theme .rf-theme-moon{transform:none;opacity:1}
+html[data-theme="light"] .rf-theme .rf-theme-sun{transform:rotate(-90deg) scale(0);opacity:0}
+html[data-theme="light"] .rf-theme:hover .rf-theme-moon{transform:scale(1.25)}
+/* le nouveau thème se dévoile en cercle (animé dans theme.js) : pas de fondu par défaut */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:1}::view-transition-new(root){z-index:2}
+/* thème clair : la page est inversée (fonds clairs, textes sombres, teintes conservées) ; le plan blueprint, la pièce 3D, les machines, les images,
+   les logos, le hublot et tout ce qui se lit sur le plan gardent leurs couleurs d'origine */
+html[data-theme="light"]{filter:invert(1) hue-rotate(180deg);background:#07090c}
+html[data-theme="light"] :is(.rf-stage,#rf-caption,.rf-ruler,.rf-m3d,.rf-win,.rf-tl-logo,.rf-tile,.rf-post--bp .rf-pmain,.rf-d-fig),
+html[data-theme="light"] body:not(.rf-post--bp) .rf-pn-vis,
+html[data-theme="light"] :is(img,video,canvas,iframe):not(:is(.rf-stage,#rf-caption,.rf-ruler,.rf-m3d,.rf-win,.rf-tl-logo,.rf-tile,.rf-pn-vis,.rf-post--bp .rf-pmain,.rf-d-fig) *){filter:invert(1) hue-rotate(180deg)}
+@media print{html[data-theme="light"]{filter:none}}
