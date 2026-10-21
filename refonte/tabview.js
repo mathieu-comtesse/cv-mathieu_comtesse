@@ -49,8 +49,10 @@ const rulers = [document.getElementById('rf-ruler'), document.getElementById('rf
 let view = { rot: 0, tilt: 0, yaw: 36 * DEG, pitch: 26 * DEG };
 window.__rfTabView = view;
 const paint = () => {
-  const u = scrollY / innerHeight, o = fade(u);
-  const pitch = clamp(view.pitch + 14 * DEG * clamp(scrollY / (3.56 * innerHeight), 0, 1), 6 * DEG, 82 * DEG);
+  // comme sur l'accueil : 3,56 hauteurs d'écran de défilement ; sur une page plus courte, la même courbe est étirée sur la longueur disponible
+  const span = Math.max(1, Math.min(3.56 * innerHeight, document.documentElement.scrollHeight - innerHeight)), s = clamp(scrollY / span, 0, 1);
+  const o = fade(s * 3.56);
+  const pitch = clamp(view.pitch + 14 * DEG * s, 6 * DEG, 82 * DEG);
   placeCam(view.yaw, pitch);
   const d = { yaw: view.yaw, pitch, dYaw: view.yaw - 36 * DEG, dPitch: pitch - 26 * DEG };
   window.__rfTabView = d; window.dispatchEvent(new CustomEvent('rf-tabview', { detail: d }));
@@ -58,6 +60,7 @@ const paint = () => {
   for (const r of rulers) { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .3 ? 'none' : ''; }
 };
 addEventListener('scroll', () => requestAnimationFrame(paint), { passive: true });
+addEventListener('resize', paint); addEventListener('load', paint); setTimeout(paint, 1500);
 initRulers((v) => {
   view = v; paint();
 });
