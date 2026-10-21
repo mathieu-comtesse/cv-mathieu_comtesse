@@ -684,7 +684,7 @@ body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
 .fl-mv{position:absolute;left:calc((76px - var(--bx)) / 2);top:0;width:var(--bx);height:var(--bx);will-change:transform;z-index:2}
 @media (max-width:640px){.fl-mv{left:calc((62px - var(--bx)) / 2)}}
 .fl-mv i{position:absolute;inset:0;border-radius:9.5px;box-sizing:border-box;opacity:0}
-.fl-mv-h{opacity:1;background:#0E0F10 repeating-linear-gradient(135deg,transparent 0 6px,#44484b 6px 6.8px);border:1px solid #2D2E2F}
+.fl-mv-h{opacity:1;background:#0E0F10;border:1px solid #2D2E2F}
 .fl-mv-o{inset:3px!important;border-radius:7px!important;border:1px dashed #39ff88}
 .fl-mv-s{inset:3px!important;border-radius:7px!important;background:rgb(57 255 136 / .1);border:1px solid rgb(57 255 136 / .7)}
 .fl-mv-c{background:linear-gradient(#1f3d1c,#0e1a0e);border:1.2px solid #39ff88;box-shadow:0 0 14px rgb(57 255 136 / .5)}
@@ -707,7 +707,7 @@ body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
 .d3.cur{background:rgb(147 192 34);box-shadow:0 0 10px rgb(147 192 34)}
 .m3{width:59px;height:59px;transform:translate3d(0,0,1px);will-change:transform}
 .m3 i{position:absolute;inset:0;border-radius:9.5px;box-sizing:border-box;opacity:0}
-.m3-h{opacity:1;background:#0E0F10 repeating-linear-gradient(135deg,transparent 0 6px,#44484b 6px 6.8px);border:1px solid #2D2E2F}
+.m3-h{opacity:1;background:#0E0F10;border:1px solid #2D2E2F}
 .m3-o{inset:3px!important;border-radius:7px!important;border:1px dashed rgb(147 192 34)}
 .m3-s{inset:3px!important;border-radius:7px!important;background:rgb(147 192 34 / .1);border:1px solid rgb(147 192 34 / .7)}
 .m3-c{background:linear-gradient(#26330f,#10170a);border:1.2px solid rgb(147 192 34);box-shadow:0 0 14px rgb(147 192 34 / .5)}
@@ -739,3 +739,6 @@ body.fl-lock{overflow:hidden}
 .rf-tile--pro .rf-tile-bg.rf-fallback img{visibility:visible}
 .rf-post--bp .rf-post-fig img{opacity:0;transition:none}
 .rf-post--bp .rf-post-fig.rf-fallback img{opacity:1}
+
+/* case mobile : plus de hachures */
+.fl-mv-h,.m3-h{background:#0E0F10!important}
