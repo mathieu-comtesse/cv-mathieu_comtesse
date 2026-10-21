@@ -822,3 +822,15 @@ html:has(body.rf-tabv){background:#05080d}
 .rf-tabv .rf-art{color:#d3def4}
 .rf-tabv .rf-art i{color:#9fb0d6}
 .rf-tabv .rf-year li,.rf-tabv .rf-year li:last-child{border-color:rgb(171 181 199 / .22)}
+
+/* études du blog : page de lecture, sans scène 3D derrière le texte */
+html body.rf-article{background:#080b0f}
+.rf-article .rf-post-body{width:min(660px,100%)}
+.rf-article .rf-post-body p{font-size:19px;line-height:1.7;color:#c4cee2}
+.rf-article .rf-post-body p.rf-lede{font:500 24px/1.45 var(--rf-sans);color:#e0ebfd}
+.rf-art-steps{list-style:none;margin:28px 0 0;padding:0;counter-reset:st;display:grid;gap:26px}
+.rf-art-steps li{counter-increment:st;position:relative;padding-left:46px}
+.rf-art-steps li::before{content:counter(st,decimal-leading-zero);position:absolute;left:0;top:3px;font:500 13px/1 var(--rf-mono);letter-spacing:.06em;color:#7fa0ff}
+.rf-art-steps h3{margin:0 0 6px;font:560 19px/1.3 var(--rf-sans);letter-spacing:-.01em;color:#e0ebfd}
+.rf-art-steps p{margin:0!important;font-size:17px!important}
+.rf-article .rf-post-fig--img img{aspect-ratio:auto;object-fit:contain;height:auto}
