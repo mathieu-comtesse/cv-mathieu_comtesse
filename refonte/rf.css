@@ -624,3 +624,30 @@ body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
 .rf-post-tl .rf-tl-rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
 .rf-post-tl .rf-tl-rv.rf-in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.rf-post-tl .rf-tl-rv{opacity:1;transform:none;transition:none}}
+
+/* rail des étapes « serveur / machine » : nœuds à anneau pointillé, trait qui se remplit, paquets de données, onde à l'arrivée */
+.rf-post-tl{--tl-c:#7fe3ff;--tl-d:rgb(224 235 253 / .42)}
+.rf-post-tl .rf-tl-rail{width:2px;color:var(--tl-c)}
+.rf-post-tl .rf-tl-dash{border-left:1px solid rgb(224 235 253 / .2)}
+.rf-post-tl .rf-tl-line{width:2px;background:var(--tl-c);box-shadow:0 0 8px rgb(127 227 255 / .55)}
+.rf-post-tl .rf-tl-dot{left:-4px;width:10px;height:10px;background:var(--tl-c);box-shadow:0 0 0 3px rgb(127 227 255 / .25),0 0 14px rgb(127 227 255 / .9);z-index:3}
+.rf-post--bp .rf-post-tl .rf-tl-dash{border-left-color:rgb(255 255 255 / .3)}
+.rf-post--bp .rf-post-tl .rf-tl-line{background:var(--tl-c)}
+.rf-post--bp .rf-post-tl .rf-tl-dot{background:var(--tl-c)}
+.rf-post-steps{position:relative}
+.rf-tl-flow{position:absolute;left:-2px;top:0;width:6px;overflow:hidden;pointer-events:none;z-index:2}
+.rf-tl-flow i{position:absolute;left:1px;top:-8px;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 6px var(--tl-c),0 0 12px var(--tl-c);animation:rf-flow 2.6s linear infinite}
+.rf-tl-flow i:nth-child(2){animation-delay:-.87s}.rf-tl-flow i:nth-child(3){animation-delay:-1.74s}
+@keyframes rf-flow{from{top:-8px}to{top:100%}}
+.rf-tl-node{position:absolute;left:-9px;width:20px;height:20px;margin-top:-10px;z-index:2;pointer-events:none}
+.rf-tl-ring{position:absolute;inset:0;border:1.5px dashed var(--tl-d);border-radius:50%;transition:border-color .4s;animation:rf-spin 12s linear infinite;animation-play-state:paused}
+.rf-tl-core{position:absolute;left:7px;top:7px;width:6px;height:6px;border-radius:50%;background:var(--tl-d);transition:background .4s,transform .4s,box-shadow .4s}
+.rf-tl-ping{position:absolute;inset:0;border:1.5px solid var(--tl-c);border-radius:50%;opacity:0}
+.rf-tl-node.rf-on .rf-tl-ring{border-color:var(--tl-c);animation-play-state:running}
+.rf-tl-node.rf-on .rf-tl-core{background:var(--tl-c);transform:scale(1.5);box-shadow:0 0 10px var(--tl-c)}
+.rf-tl-node.rf-ping .rf-tl-ping{animation:rf-ping .95s cubic-bezier(.2,.7,.2,1)}
+@keyframes rf-spin{to{transform:rotate(360deg)}}
+@keyframes rf-ping{0%{opacity:.95;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}
+.rf-tl-hop{position:absolute;left:-3px;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--tl-c),0 0 20px var(--tl-c);pointer-events:none;z-index:4;animation:rf-hop .7s cubic-bezier(.5,0,.2,1) forwards}
+@keyframes rf-hop{from{transform:translateY(0);opacity:1}to{transform:translateY(var(--dy));opacity:0}}
+.rf-post-tl .rf-tl-train{display:none}
