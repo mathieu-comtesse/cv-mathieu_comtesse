@@ -3,6 +3,7 @@
 import './footer.js';
 import './navfx.js';
 import './viewbtn.js';
+import { initFlow } from './flow.js';
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';
@@ -135,3 +136,6 @@ if (fig && bpCanvas && stage) {
     steps.forEach((s) => io ? io.observe(s) : s.classList.add('rf-in'));
   }
 }
+
+/* ---- schéma des étapes (d'après la reconstitution fournie) ---- */
+document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } });
