@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gains · Mathieu Comtesse</title>
+<meta name="description" content="Tableau de bord des gains des outils de Mathieu Comtesse : heures libérées, valeur annuelle, répartition, seuil de rentabilité et simulation du taux horaire.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=__V__">
+<script type="module" src="refonte/gains.js?v=__V__"></script>
+</head>
+<body class="rf-gx-page">
+<!--NAV-->
+
+<div class="rf-ibg" aria-hidden="true"><div class="rf-bhero-blue"></div><div class="rf-bhero-grid"></div></div>
+
+<main class="gx-main">
+  <header class="gx-head">
+    <p class="gx-k">Gains</p>
+    <h1>Ce que les outils rendent, en heures et en euros</h1>
+    <p class="gx-sub">Volumes fournis, durées mesurées, taux horaire de <span id="gx-rate-lbl">104,74 €</span>. Un tableau de bord pour lire, comparer et simuler les gains annuels de chaque outil.</p>
+  </header>
+
+  <section class="gx-controls" aria-label="Réglages de l’analyse">
+    <div class="gx-ctl">
+      <span class="gx-ctl-l">Périmètre</span>
+      <div class="gx-seg" role="group" aria-label="Périmètre" id="gx-scope">
+        <button type="button" data-v="declared" aria-pressed="true">Volumes fournis</button>
+        <button type="button" data-v="all" aria-pressed="false">+ estimations</button>
+      </div>
+    </div>
+    <div class="gx-ctl">
+      <span class="gx-ctl-l">Scénario</span>
+      <div class="gx-seg" role="group" aria-label="Scénario" id="gx-scen">
+        <button type="button" data-v="min" aria-pressed="false">Bas</button>
+        <button type="button" data-v="mid" aria-pressed="true">Moyen</button>
+        <button type="button" data-v="max" aria-pressed="false">Haut</button>
+      </div>
+    </div>
+    <div class="gx-ctl gx-ctl-rate">
+      <label class="gx-ctl-l" for="gx-rate">Taux horaire</label>
+      <div class="gx-rate"><input id="gx-rate" type="range" min="40" max="180" step=".5" value="104.74"><output id="gx-rate-out">104,74 €/h</output><button type="button" class="gx-reset" id="gx-reset" title="Revenir au taux de référence">↺</button></div>
+    </div>
+  </section>
+
+  <section class="gx-kpis" id="gx-kpis" aria-live="polite"></section>
+
+  <section class="gx-grid">
+    <article class="gx-card gx-wide">
+      <header><h2>Où se trouvent les gains</h2><p>Heures libérées par an, outil par outil. La barre suit le scénario choisi, le trait fin donne la fourchette basse – haute.</p></header>
+      <div id="gx-bars"></div>
+    </article>
+    <article class="gx-card">
+      <header><h2>Répartition</h2><p>Part de chaque outil dans le total.</p></header>
+      <div id="gx-donut"></div>
+    </article>
+    <article class="gx-card gx-wide">
+      <header><h2>Cumul sur l’année et seuil de rentabilité</h2><p>Gain net cumulé : heures libérées moins le temps de construction et d’entretien des outils. Survolez la courbe pour lire un jour précis.</p></header>
+      <div id="gx-curve"></div>
+    </article>
+    <article class="gx-card">
+      <header><h2>Délai de retour</h2><p>Jours ouvrés pour récupérer le temps de construction.</p></header>
+      <div id="gx-pay"></div>
+    </article>
+  </section>
+
+  <section class="gx-card gx-table-card">
+    <header><h2>Détail par outil</h2><p>Cliquez sur un titre de colonne pour trier, sur une ligne pour la mettre en évidence dans tous les graphiques.</p></header>
+    <div id="gx-table"></div>
+  </section>
+
+  <section class="gx-method">
+    <h2>Méthode</h2>
+    <p>Chaque ligne combine un volume annuel et une durée gagnée par occurrence, sans arrondir les étapes. La valeur est le nombre d’heures multiplié par le taux horaire. Une année compte <span id="gx-days">225</span> jours ouvrés de 7 heures, soit <span id="gx-fte">1 575</span> heures pour un poste à temps plein.</p>
+    <p>Deux niveaux de fiabilité : les volumes fournis, et les estimations (capacité théorique, consultations supposées), signalées par une bordure en pointillés. Le temps de construction et d’entretien des outils est déduit pour obtenir le gain net.</p>
+  </section>
+</main>
+
+<script type="application/json" id="gx-data"><!--DATA--></script>
+<!--FOOTER-->
+</body>
+</html>
