@@ -1,6 +1,7 @@
 // Page Expériences : hublot (store à tirer), chronologie liée au défilement, apparitions, pied de page, barre.
 import './footer.js';
 import './navfx.js';
+import './tabview.js';
 import './hublot.js?v=sakthi-pointer-4';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -32,4 +33,11 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 });
     els.forEach((e) => io.observe(e));
   }
+}
+
+/* les règles « Tourner » / « Incliner » font pivoter le hublot */
+{
+  const win = document.getElementById('rf-win');
+  const turn = (v) => { if (win) win.style.transform = 'perspective(900px) rotateY(' + (v.rot * .18).toFixed(2) + 'deg) rotateX(' + (-v.tilt * .12).toFixed(2) + 'deg)'; };
+  window.addEventListener('rf-tabview', (ev) => turn(ev.detail));
 }

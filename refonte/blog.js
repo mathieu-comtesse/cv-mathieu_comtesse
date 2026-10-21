@@ -2,6 +2,7 @@
 import { initInfinity } from './infinity.js';
 import './footer.js';
 import './navfx.js';
+import './tabview.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const els = document.querySelectorAll('.rf-rv');

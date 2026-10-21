@@ -186,6 +186,10 @@ export function initInfinity(canvas) {
     renderer.setRenderTarget(rt); renderer.clear(); renderer.render(scene, camera);
     renderer.setRenderTarget(null); renderer.render(postScene, postCam);
   }
+  // règles « Tourner » / « Incliner » : le signe pivote sur lui-même
+  const turn = (v) => { group.rotation.y = v.rot * .0048; group.rotation.x = v.tilt * .004; };
+  if (window.__rfTabView) turn(window.__rfTabView);
+  window.addEventListener('rf-tabview', (ev) => turn(ev.detail));
   new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { rootMargin: '120px' }).observe(host);
   new ResizeObserver(resize).observe(host);
   resize(); frame();
