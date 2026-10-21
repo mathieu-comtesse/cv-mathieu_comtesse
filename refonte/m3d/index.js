@@ -31,9 +31,16 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   const w = () => { renderer.setSize(innerWidth, innerHeight, false); };
   w();
   const glow = trackGlow(g, ACCENT[name]);
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   return {
     resize: w,
     controls: m.controls,
+    /** vrai si le point (clientX, clientY) est sur une pièce visible de la machine */
+    pick(cx, cy) {
+      ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+      const hit = (o) => { if (!o.visible || o.userData.glowShell) return false; if (o.isMesh && ray.intersectObject(o, false).length) return true; return o.children.some(hit); };
+      return hit(g);
+    },
     render(time) { m.update(time); renderer.render(scene, cam); glow(); },
     dispose() { renderer.dispose(); }
   };
