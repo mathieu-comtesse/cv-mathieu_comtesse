@@ -630,3 +630,6 @@ html[data-theme="light"] :is(.rf-stage,#rf-caption,.rf-ruler,.rf-m3d,.rf-win,.rf
 html[data-theme="light"] body:not(.rf-post--bp) .rf-pn-vis,
 html[data-theme="light"] :is(img,video,canvas,iframe):not(:is(.rf-stage,#rf-caption,.rf-ruler,.rf-m3d,.rf-win,.rf-tl-logo,.rf-tile,.rf-pn-vis,.rf-post--bp .rf-pmain,.rf-d-fig) *){filter:invert(1) hue-rotate(180deg)}
 @media print{html[data-theme="light"]{filter:none}}
+
+/* distinction affichée sur la tuile du projet récompensé */
+.rf-tile-prize{position:absolute;z-index:3;top:16px;left:16px;padding:6px 12px;border-radius:999px;background:rgb(255 255 255 / .92);color:#0a2fc8;font:600 11px/1 var(--rf-mono);letter-spacing:.04em;box-shadow:0 3px 10px rgb(0 10 90 / .3);pointer-events:none}
