@@ -93,3 +93,26 @@ if (fig && bpCanvas && stage) {
 
   initRulers((v) => { view.yaw = v.yaw; placeCam(v.yaw, v.pitch); });
 }
+
+/* ---- étapes : trait qui s'allonge et point qui descend avec le défilement, comme sur la page Expériences ---- */
+{
+  const tl = document.querySelector('.rf-post-tl');
+  if (tl) {
+    const line = tl.querySelector('.rf-tl-line'), dot = tl.querySelector('.rf-tl-dot');
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    let pr = 0, vel = 0, last = 0, raf = 0;
+    const target = () => { const top = tl.getBoundingClientRect().top + scrollY, h = tl.offsetHeight; return clamp((scrollY + innerHeight * .55 - top) / Math.max(1, h), 0, 1); };
+    const paint = () => { line.style.transform = 'scaleY(' + pr.toFixed(4) + ')'; dot.style.top = (pr * 100).toFixed(2) + '%'; };
+    const frame = (now) => {
+      const dt = Math.min(.032, last ? (now - last) / 1000 : .016); last = now;
+      const to = target(), k = 45, c = 20;
+      vel += (-k * (pr - to) - c * vel) * dt; pr += vel * dt; paint();
+      if (Math.abs(pr - to) > .0005 || Math.abs(vel) > .002) raf = requestAnimationFrame(frame); else { pr = to; vel = 0; paint(); raf = 0; last = 0; }
+    };
+    const kick = () => { if (reduced) { pr = target(); paint(); return; } if (!raf) raf = requestAnimationFrame(frame); };
+    addEventListener('scroll', kick, { passive: true }); addEventListener('resize', kick); kick();
+    const steps = tl.querySelectorAll('.rf-tl-rv');
+    if (reduced || !('IntersectionObserver' in window)) steps.forEach((e) => e.classList.add('rf-in'));
+    else { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 }); steps.forEach((e) => io.observe(e)); }
+  }
+}
