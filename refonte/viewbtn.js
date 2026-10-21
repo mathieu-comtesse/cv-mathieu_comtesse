@@ -10,6 +10,7 @@ const move = (s, target, stiffness, damping, dt) => {
 
 function setup(btn) {
   const label = btn.querySelector('.view-text'), arrows = btn.querySelector('.view-arrows');
+  const back = btn.classList.contains('view-back'), dir = back ? -1 : 1;   // « retour » : même mouvement, en miroir (la pastille s'étire vers la droite, la flèche part vers le haut-gauche)
   const width = spring(32), ax = spring(5), ay = spring(13), ty = spring(24), alpha = spring(0);
   let active = false, textStart = 0, prev = 0, raf = 0, labelWidth = 0;
   const measure = () => {
@@ -19,7 +20,7 @@ function setup(btn) {
   };
   const paint = () => {
     btn.style.width = width.value + 'px';
-    arrows.style.transform = `translate(${ax.value}px,${ay.value}px) rotate(-45deg)`;
+    arrows.style.transform = back ? `translate(${-ax.value}px,${ay.value}px) scaleX(-1) rotate(-45deg)` : `translate(${ax.value}px,${ay.value}px) rotate(-45deg)`;
     label.style.transform = `translateY(${ty.value}px)`;
     label.style.opacity = String(Math.max(0, Math.min(1, alpha.value)));
   };
@@ -27,7 +28,7 @@ function setup(btn) {
     raf = 0;
     const dt = Math.min(.032, prev ? (now - prev) / 1000 : .016); prev = now;
     if (!labelWidth) measure();
-    const wt = active ? labelWidth + 48 : 32;
+    const wt = active ? labelWidth + (back ? 56 : 48) : 32;
     if (reduced.matches) { width.value = wt; ax.value = active ? 29 : 5; ay.value = active ? -13 : 13; ty.value = active ? 0 : 24; alpha.value = active ? 1 : 0; paint(); return; }
     move(width, wt, 250, 27, dt); move(ax, active ? 29 : 5, 250, 33, dt); move(ay, active ? -13 : 13, 250, 33, dt);
     const textOn = active && now >= textStart + 150;

@@ -131,5 +131,5 @@ export function build() {
   const plain = card(0, 0, 0, 1, 1, 1, COL.hi).material, lit = new THREE.MeshStandardMaterial({ color: '#ffe3c2', roughness: .8 });
   const offLamp = lamp.material, litLamp = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .8 });
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Rapport', min: 1, max: QUEUE.length, step: 1, fmt: (v) => 'rapport ' + v + ' / ' + QUEUE.length, get: (t) => Math.floor(t / END) % QUEUE.length + 1, seek: (v) => (v - 1) * END } };
 }

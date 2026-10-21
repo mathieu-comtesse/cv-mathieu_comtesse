@@ -133,5 +133,5 @@ export function build() {
     const a = -Math.PI * .5 + f * Math.PI / 3; sel.position.set(BASE.x + BASE.w - 16 + Math.cos(a) * 2.1, BASE_H + 5, BASE.y + BASE.d - 12 + Math.sin(a) * 2.1); sel.rotation.y = -a;
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Famille', min: 1, max: FAMILIES.length, step: 1, fmt: (v) => FAMILIES[v - 1][0], get: (t) => Math.floor(t / AT.end) % FAMILIES.length + 1, seek: (v) => (v - 1) * AT.end } };
 }

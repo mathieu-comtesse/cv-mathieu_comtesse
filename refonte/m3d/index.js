@@ -1,6 +1,7 @@
 // Charge la machine 3D d'un projet et la pose sur le plan blueprint, avec la caméra de la page.
 import * as THREE from 'three';
 import { makeStage } from './core.js';
+import { trackGlow, ACCENT } from './glow.js';
 
 const MODULES = {
   moteur: () => import('./moteur.js'),
@@ -29,9 +30,11 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   scene.updateMatrixWorld(true);
   const w = () => { renderer.setSize(innerWidth, innerHeight, false); };
   w();
+  const glow = trackGlow(g, ACCENT[name]);
   return {
     resize: w,
-    render(time) { m.update(time); renderer.render(scene, cam); },
+    controls: m.controls,
+    render(time) { m.update(time); renderer.render(scene, cam); glow(); },
     dispose() { renderer.dispose(); }
   };
 }

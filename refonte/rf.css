@@ -580,3 +580,56 @@ html body.rf-exp-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans
 .rf-tile--pro .rf-tile-bg.rf-on img{visibility:hidden}
 .rf-tile--pro .rf-tile-title,.rf-tile--pro .rf-tile-meta{z-index:2;text-shadow:0 1px 10px rgb(0 10 90 / .85)}
 .rf-contact-in{text-align:center}.rf-contact-in .rf-cp{margin-inline:auto}
+
+/* ouverture de l'accueil : fond bleu immédiat, puis plan + pièce en un seul fondu quand tout est prêt */
+.rf-stage:not(.rf-stage--post){background:linear-gradient(#000 0,#000 16%,#0b3ce6 36%,#0a2fc4 70%,#06196a 100%)}
+.rf-stage:not(.rf-stage--post) .rf-bp,.rf-stage:not(.rf-stage--post) .room.rf-room{opacity:0;transition:opacity .9s cubic-bezier(.3,.7,.2,1)}
+.rf-stage.rf-ready:not(.rf-stage--post) .rf-bp,.rf-stage.rf-ready:not(.rf-stage--post) .room.rf-room{opacity:1}
+.rf-room-poster{display:none}
+@media (prefers-reduced-motion:reduce){.rf-stage:not(.rf-stage--post) .rf-bp,.rf-stage:not(.rf-stage--post) .room.rf-room{transition:none}}
+p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([class]),.rf-ap em{font-style:normal!important}
+
+/* machine des pages projet : zone de manipulation (glisser pour faire défiler le temps) */
+.rf-post--bp .rf-post-fig{min-height:56vh;cursor:grab;touch-action:pan-y;outline-offset:-4px;user-select:none}
+.rf-post--bp .rf-post-fig.rf-grabbing{cursor:grabbing}
+.rf-post--bp .rf-post-fig figcaption{pointer-events:none;position:relative}
+
+/* retour « Tous les projets » : même bouton que « View », en miroir, posé dans l'en-tête de la page projet */
+.rf-post-back a{display:inline-block;line-height:0;text-decoration:none}
+.rf-post-back .rf-arrow.view-action{position:relative;top:auto;right:auto;display:grid}
+.rf-post-back .view-arrows{right:auto;left:4px}
+.rf-post-back .view-back .view-text{margin-left:40px}
+
+/* réglage de la machine : boutons − / +, règle, valeur (même verre dépoli que les cartes de la page) */
+.rf-post--bp .rf-post-fig{position:relative}
+.rf-ctl{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid rgb(255 255 255 / .24);border-radius:999px;background:rgb(10 20 90 / .38);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font:500 12px/1 var(--rf-mono);cursor:default}
+.rf-ctl-l{white-space:nowrap;opacity:.8;text-transform:uppercase;letter-spacing:.06em;font-size:10px}
+.rf-ctl-b{flex:none;width:28px;height:28px;border-radius:50%;border:1px solid rgb(255 255 255 / .34);background:rgb(255 255 255 / .1);color:#fff;font:500 16px/1 var(--rf-sans);cursor:pointer;transition:background .2s,transform .2s}
+.rf-ctl-b:hover{background:rgb(255 255 255 / .24);transform:scale(1.08)}.rf-ctl-b:active{transform:scale(.94)}
+.rf-ctl-r{width:clamp(90px,24vw,220px);accent-color:#fff;cursor:pointer}
+.rf-ctl-v{min-width:4.5ch;white-space:nowrap;text-align:left}
+@media (max-width:620px){.rf-ctl{gap:6px;padding:6px 8px}.rf-ctl-l{display:none}}
+
+/* ---- thème clair / sombre ---- */
+.rf-theme{position:relative;flex:none;width:26px;height:26px;min-width:0;padding:0;margin-left:4px;border:0;border-radius:50%;background:none;color:#e0ebfd;display:grid;place-items:center;cursor:pointer;transition:width .2s ease-out,height .2s ease-out,background-color .2s,transform .15s}
+.rf-theme:hover{width:32px;height:32px;background:rgb(255 255 255 / .1)}.rf-theme:active{transform:scale(.95)}
+.rf-theme svg{grid-area:1/1;width:18px;height:18px;transition:transform .3s,opacity .3s}
+.rf-theme:hover svg{transform:scale(1.25)}
+.rf-theme .rf-theme-moon{transform:rotate(90deg) scale(0);opacity:0;pointer-events:none}
+.rf-theme .rf-theme-sun{transform:none;opacity:1}
+html[data-theme="light"] .rf-theme .rf-theme-moon{transform:none;opacity:1}
+html[data-theme="light"] .rf-theme .rf-theme-sun{transform:rotate(-90deg) scale(0);opacity:0}
+html[data-theme="light"] .rf-theme:hover .rf-theme-moon{transform:scale(1.25)}
+/* le nouveau thème se dévoile en cercle (animé dans theme.js) : pas de fondu par défaut */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:1}::view-transition-new(root){z-index:2}
+/* thème clair : la page est inversée (fonds clairs, textes sombres, teintes conservées) ; le plan blueprint, la pièce 3D, les machines, les images,
+   les logos, le hublot et tout ce qui se lit sur le plan gardent leurs couleurs d'origine */
+html[data-theme="light"]{filter:invert(1) hue-rotate(180deg);background:#07090c}
+html[data-theme="light"] :is(.rf-stage,#rf-caption,.rf-ruler,.rf-m3d,.rf-win,.rf-tl-logo,.rf-tile,.rf-post--bp .rf-pmain,.rf-d-fig),
+html[data-theme="light"] body:not(.rf-post--bp) .rf-pn-vis,
+html[data-theme="light"] :is(img,video,canvas,iframe):not(:is(.rf-stage,#rf-caption,.rf-ruler,.rf-m3d,.rf-win,.rf-tl-logo,.rf-tile,.rf-pn-vis,.rf-post--bp .rf-pmain,.rf-d-fig) *){filter:invert(1) hue-rotate(180deg)}
+@media print{html[data-theme="light"]{filter:none}}
+
+/* distinction affichée sur la tuile du projet récompensé */
+.rf-tile-prize{position:absolute;z-index:3;top:16px;left:16px;padding:6px 12px;border-radius:999px;background:rgb(255 255 255 / .92);color:#0a2fc8;font:600 11px/1 var(--rf-mono);letter-spacing:.04em;box-shadow:0 3px 10px rgb(0 10 90 / .3);pointer-events:none}

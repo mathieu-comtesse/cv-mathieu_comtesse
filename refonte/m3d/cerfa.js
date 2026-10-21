@@ -38,7 +38,8 @@ export function build() {
   const knob = new THREE.Group(); knob.position.set(130, 86, -22.5);
   const kc = cyl(0, 0, 8, 0, 8, COL.mid, 36); kc.rotation.z = Math.PI / 2; kc.position.set(4, 0, 0); knob.add(kc); g.add(knob);
   // piles dans les cases (T = 0,085 par fiche) et butées avant
-  const T = .085, POCKET_Y = 5, HOPPER = { x: 87, w: 37 }, LOT = 300;
+  const T = .085, POCKET_Y = 5, HOPPER = { x: 87, w: 37 };
+  let LOT = 300;
   const piles = CENTRES.map((cx) => { const m = box(cx, POCKET_Y + CARD.w / 2, DECK, CARD.l, CARD.w, 1, COL.hi); g.add(m); g.add(slab(cx - 21, 23.5, 44, 2.5, DECK, 7, COL.mid, .6)); return m; });
   // pile du chargeur et masse posée dessus
   const hopStack = box(HOPPER.x + CARD.l / 2, LANE_Y, BED + 2, CARD.l, CARD.w, 1, COL.hi); g.add(hopStack);
@@ -48,13 +49,13 @@ export function build() {
   // — animation : mêmes constantes et mêmes équations que figures/build-cerfa.mjs —
   const INTERVAL = .42, SPEED = 240, PUSH = .2, FALL = .38, MACHINE_S = 80 / 300, WEIGHTS = [.72, .06, .1, .12];
   const kindOf = (i) => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; const u = (h >>> 0) / 4294967296; let c = 0; for (let k = 0; k < 4; k++) { c += WEIGHTS[k]; if (u < c) return [3, 2, 1, 0][k]; } return 0; };
-  const kinds = Array.from({ length: LOT }, (_, i) => kindOf(i));
+  const kinds = Array.from({ length: 500 }, (_, i) => kindOf(i));
   const travel = (i) => (HOPPER.x + CARD.l / 2 - CENTRES[kinds[i]]) / SPEED, duration = (i) => travel(i) + PUSH + FALL;
   const ease2 = (u) => u * u * (3 - 2 * u);
   // durée d'un lot : toutes les fiches tombées, puis 3 s de pause, puis reprise (départ à −0,6 s)
-  const total = (LOT - 1) * INTERVAL + duration(LOT - 1), CYCLE = total + 3 + .6;
+  const cycleOf = () => (LOT - 1) * INTERVAL + duration(LOT - 1) + 3 + .6;
   function update(time) {
-    const t = (time % CYCLE) - .6;
+    const t = (time % cycleOf()) - .6;
     let sent = 0; const landed = [0, 0, 0, 0], flying = [];
     for (let i = 0; i < LOT; i++) { const age = t - i * INTERVAL; if (age < 0) break; sent++; if (age >= duration(i)) landed[kinds[i]]++; else flying.push([i, age]); }
     const left = LOT - sent;
@@ -78,5 +79,5 @@ export function build() {
   }
   const plainHead = head.material, litHead = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .6 });
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Taille du lot', min: 50, max: 500, step: 50, fmt: (v) => v + ' fiches', get: () => LOT, set: (v) => { LOT = v; return 0; } } };
 }

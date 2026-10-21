@@ -2,6 +2,7 @@
 // Même plan, même shader, même angle (azimut 36°) que la page d'arrivée et les pages projet ; la caméra est ajustée à la tuile.
 import * as THREE from 'three';
 import { makeStage } from './core.js';
+import { trackGlow, ACCENT } from './glow.js';
 import { createBlueprintPlane } from '../blueprint-hero.js';
 
 const MODULES = {
@@ -29,6 +30,7 @@ export async function mountTile(name, canvas) {
   const fitBox = new THREE.Box3().setFromObject(g);
   const mid = fitBox.getCenter(new THREE.Vector3());
 
+  const glow = trackGlow(g, ACCENT[name]);
   const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
   const yaw = 36 * DEG, pitch = 28 * DEG;
   const corners = [];
@@ -56,7 +58,7 @@ export async function mountTile(name, canvas) {
   size();
   return {
     resize: size,
-    render(time) { bp.mat.uniforms.uTime.value = time; m.update(time); renderer.render(scene, cam); },
+    render(time) { bp.mat.uniforms.uTime.value = time; m.update(time); renderer.render(scene, cam); glow(); },
     dispose() { bp.dispose(); renderer.dispose(); renderer.forceContextLoss?.(); }
   };
 }

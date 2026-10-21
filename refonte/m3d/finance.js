@@ -16,9 +16,11 @@ const angleOf = (r) => SWEEP.from + Math.min(r, SWEEP.max) / SWEEP.max * SWEEP.s
 const DAYS = 225, FUNDS = [420, 260, 180, 140], FINAL = [.93, .72, 1.12, .86];
 const curve = (u) => u - Math.sin(2 * Math.PI * u * 9) / (2 * Math.PI * 9) * .6;
 function ratios(day) { const u = Math.max(0, Math.min(1, day / DAYS)), spent = FUNDS.map((f, i) => f * FINAL[i] * curve(u)); return [...spent.map((s, i) => s / FUNDS[i]), spent.reduce((a, b) => a + b, 0) / FUNDS.reduce((a, b) => a + b, 0)]; }
-const WEEK = 5, SHOWN = 6, THRESHOLD = .8, HOLD = 4;
+const WEEK = 5, SHOWN = 6, HOLD = 4;
+let THRESHOLD = .8;
 
 export function build() {
+  THRESHOLD = .8;
   const g = new THREE.Group();
   g.add(bench(PLATE, { strip: { x: -120, y: PLATE.y + PLATE.d - 11, w: 120, d: 7 }, label: { x: 40, y: PLATE.y + PLATE.d - 13, w: 46, d: 10 } }));
   for (const x of [-120, 112]) g.add(slab(x - 6, PANEL.y - 8, 20, PANEL.d + 16, 0, 3, COL.lo, 2), slab(x, PANEL.y, 8, PANEL.d, 3, PANEL_Z[0] - 3 + 1, COL.mid, 1));
@@ -75,5 +77,5 @@ export function build() {
     const a = (THRESHOLD - .5) / .5 * Math.PI * 1.2 - Math.PI * .6; knob.rotation.z = -a;
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Seuil d\u2019alerte', min: 50, max: 100, step: 5, fmt: (v) => v + ' %', get: () => Math.round(THRESHOLD * 100), set: (v) => { THRESHOLD = v / 100; } } };
 }

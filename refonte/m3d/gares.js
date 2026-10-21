@@ -60,7 +60,7 @@ export function build() {
   g.add(pins);
 
   // — modèle : pondération w (conformité), classement, défilement des palettes —
-  let w = .5, shownW = .5, clock = 0, dir = 1, hold = 0, last = null;
+  let w = .5, shownW = .5, clock = 0, dir = 1, hold = 0, last = null, manualUntil = 0;
   const rank = (wt) => STATIONS.map(([n, c, m], i) => ({ n, i, s: Math.round(wt * c + (1 - wt) * m) })).sort((a, b) => b.s - a.s || a.i - b.i);
   let top = rank(w);
   function setTargets() {
@@ -86,7 +86,7 @@ export function build() {
   function update(time) {
     let dt = last === null ? 1 / 60 : time - last; last = time; if (dt < 0 || dt > .5) dt = 1 / 30;
     clock += dt;
-    if ((hold -= dt) <= 0) { w += dir * dt * .08; if (w > .8 || w < .2) { dir = -dir; w = Math.max(.2, Math.min(.8, w)); hold = 2.5; } }
+    if (clock >= manualUntil && (hold -= dt) <= 0) { w += dir * dt * .08; if (w > .8 || w < .2) { dir = -dir; w = Math.max(.2, Math.min(.8, w)); hold = 2.5; } }
     shownW += (w - shownW) * Math.min(1, dt * 8);
     const before = top.map((t) => t.n + t.s).join();
     if (rank(w).map((t) => t.n + t.s).join() !== before) setTargets();
@@ -95,5 +95,5 @@ export function build() {
     ptr.position.set(KNOB.x + Math.sin(a) * rm, DESK_H + 7.2, KNOB.y - Math.cos(a) * rm); ptr.rotation.y = Math.PI / 2 - a;
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Pondération conformité', min: 0, max: 100, step: 10, fmt: (v) => v + ' % conformité · ' + (100 - v) + ' % maintenance', get: () => Math.round(w * 100), set: (v) => { w = v / 100; manualUntil = clock + 5; } } };
 }

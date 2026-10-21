@@ -87,5 +87,5 @@ export function build() {
     kg.rotation.z = -ang;
   }
   update(0);
-  return { group: g, update };
+  return { group: g, update, controls: { label: 'Bâtiment', min: 1, max: lens.length, step: 1, fmt: (v) => 'bâtiment ' + v + ' / ' + lens.length, get: (t) => { let u = t % cycleLen, b = 0; while (u >= lens[b]) { u -= lens[b]; b++; } return b + 1; }, seek: (v) => lens.slice(0, v - 1).reduce((a, c) => a + c, 0) } };
 }
