@@ -590,8 +590,7 @@ html body.rf-exp-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans
 p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([class]),.rf-ap em{font-style:normal!important}
 
 /* machine des pages projet : zone de manipulation (glisser pour faire défiler le temps) */
-.rf-post--bp .rf-post-fig{min-height:56vh;cursor:grab;touch-action:pan-y;outline-offset:-4px;user-select:none}
-.rf-post--bp .rf-post-fig.rf-grabbing{cursor:grabbing}
+.rf-post--bp .rf-post-fig{min-height:56vh}
 .rf-post--bp .rf-post-fig figcaption{pointer-events:none;position:relative}
 
 /* retour « Tous les projets » : même bouton que « View », en miroir, posé dans l'en-tête de la page projet */
@@ -600,15 +599,6 @@ p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([
 .rf-post-back .view-arrows{right:auto;left:4px}
 .rf-post-back .view-back .view-text{margin-left:40px}
 
-/* réglage de la machine : boutons − / +, règle, valeur (même verre dépoli que les cartes de la page) */
-.rf-post--bp .rf-post-fig{position:relative}
-.rf-ctl{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:10px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid rgb(255 255 255 / .24);border-radius:999px;background:rgb(10 20 90 / .38);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font:500 12px/1 var(--rf-mono);cursor:default}
-.rf-ctl-l{white-space:nowrap;opacity:.8;text-transform:uppercase;letter-spacing:.06em;font-size:10px}
-.rf-ctl-b{flex:none;width:28px;height:28px;border-radius:50%;border:1px solid rgb(255 255 255 / .34);background:rgb(255 255 255 / .1);color:#fff;font:500 16px/1 var(--rf-sans);cursor:pointer;transition:background .2s,transform .2s}
-.rf-ctl-b:hover{background:rgb(255 255 255 / .24);transform:scale(1.08)}.rf-ctl-b:active{transform:scale(.94)}
-.rf-ctl-r{width:clamp(90px,24vw,220px);accent-color:#fff;cursor:pointer}
-.rf-ctl-v{min-width:4.5ch;white-space:nowrap;text-align:left}
-@media (max-width:620px){.rf-ctl{gap:6px;padding:6px 8px}.rf-ctl-l{display:none}}
 
 
 
@@ -618,3 +608,6 @@ p strong,p b,.rf-ap strong,.rf-ap b{font-weight:inherit!important}p em,p i:not([
 /* titres de section : pas d'italique (sauf le titre d'accueil) ; texte courant : pas de gras */
 .rf-sec em,.rf-sec h2 em,.rf-sec h3 em,.rf-prose em,.rf-blog em,h2 em,h3 em,h4 em,p em{font-style:normal!important}
 .rf-sec p b,.rf-sec p strong,.rf-prose p b,.rf-ap b,.rf-rv b,p b,p strong{font-weight:inherit!important}
+
+body.rf-over-machine,body.rf-over-machine *{cursor:grab}
+body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
