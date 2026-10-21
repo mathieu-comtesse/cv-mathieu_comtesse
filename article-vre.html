@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
-<link rel="stylesheet" href="refonte/rf.css?v=mvi9rc78">
+<link rel="stylesheet" href="refonte/rf.css?v=mvibkpxi">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
-<script type="module" src="refonte/post.js?v=mvi9rc78"></script>
+<script type="module" src="refonte/post.js?v=mvibkpxi"></script>
 
 </head>
 <body class="rf-post-page rf-article">
@@ -37,7 +37,106 @@
     </header>
     <figure class="rf-post-fig rf-post-fig--img"><img src="assets/figures/vre-light.webp?v=bp2" alt="Trieuse à quatre tubes" width="840" height="600"><figcaption>Trieuse à quatre tubes · l’objet est l’explication</figcaption></figure>
     <div class="rf-post-body">
-<p class="rf-lede">Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.</p><p>Les rapports de vérification des installations électriques servent à tenir le plan annuel de maintenance (PAM SSI). Voyons comment l’extracteur VRE compte, bâtiment par bâtiment et local par local, les disjoncteurs (BT31), les fusibles (BT33), les blocs autonomes d’éclairage de sécurité (BT21) et les candélabres (BT11).</p><h2>L’objet en action</h2><p>Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport ; avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.</p><h2>Le projet</h2><p>Les rapports de vérification des installations électriques, produits par les organismes de contrôle, servent à tenir le plan annuel de maintenance (PAM SSI) : il faut compter, bâtiment par bâtiment et local par local, les disjoncteurs (BT31), les fusibles (BT33), les blocs autonomes d’éclairage de sécurité (BT21) et les candélabres (BT11).</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré (estimé)</small><b>1 667–2 083 h / an</b><i>25 min de comptage évitées par rapport × 4 000–5 000 rapports/an ; capacité théorique rendue disponible</i></span><span><small>Valorisation estimée</small><b>174 566,67–218 208,33 € / an</b><i>25 min × 4 000–5 000 rapports à 104,74 €/h ; ≈ 43,64 € par rapport</i></span></div><p>25 minutes de comptage évitées par rapport × 4 000 à 5 000 rapports/an : 1 666,67 à 2 083,33 heures, soit 174 566,67 à 218 208,33 € par an à 104,74 €/h. Il s’agit de capacité théorique : le comptage complet était auparavant trop long pour être réalisé.</p><p class="rf-post-note">Base du calcul. 25/60 h × 4 000–5 000 rapports/an = 1 666,67–2 083,33 h/an ; × 104,74 €/h = 174 566,67–218 208,33 €/an. Capacité théorique : le comptage manuel complet était auparavant trop long pour être réalisé. VM, Reporteur Q18 et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).</p><h2>Pour l’équipe</h2><p>Mettre à jour le plan annuel de maintenance à partir des rapports de contrôle sans les relire ligne à ligne, et garder la main sur chaque total.</p><h2>Pas à pas</h2><p>Voici le parcours dans l’ordre, de l’entrée à la sortie.</p><ol class="rf-art-steps"><li><h3>Rapport électrique</h3><p>Le rapport PDF fournit les équipements, les départs et les écarts à examiner.</p></li><li><h3>Bâtiment et local</h3><p>Les résultats sont rattachés au bâtiment et au local concernés.</p></li><li><h3>BT31 · disjoncteurs</h3><p>Les disjoncteurs sont repérés dans le rapport et comptés par famille.</p></li><li><h3>BT33 · fusibles</h3><p>Les fusibles sont identifiés et leurs totaux restent distincts.</p></li><li><h3>BT21 · éclairage de sécurité</h3><p>Les équipements d’éclairage de sécurité font également partie du comptage.</p></li><li><h3>BT11 · candélabres</h3><p>Les candélabres constituent une autre famille, sans être confondus avec les coffrets.</p></li><li><h3>Totaux contrôlés</h3><p>Les quantités sont vérifiées avant de rejoindre le suivi.</p></li><li><h3>Structure Excel</h3><p>Chaque total retrouve sa place dans le classeur de suivi.</p></li><li><h3>Suivi et PAM SSI</h3><p>Les résultats alimentent le suivi, avec des repères bâtiment et local pour leur exploitation.</p></li></ol><h2>Construction</h2><p>Temps de construction mesuré : 3 jours de 7 heures, essais auprès des équipes compris.</p>
+<p class="rf-lede">Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.</p><nav class="rf-toc" aria-label="Dans cette étude"><p>Dans cette étude</p><ol><li><a href="#s1">Définir : quatre totaux à tenir de tête</a></li><li><a href="#s2">Mesurer : une capacité qui n’existait pas</a></li><li><a href="#s3">Analyser : un tableau découpé en bandes, deux mises en page</a></li><li><a href="#s4">Améliorer : reconstruire les lignes, puis compter</a></li><li><a href="#s5">Contrôler : le doublon, l’écart et la mention « Comptage complet »</a></li></ol></nav><h2 id="s1">Définir : quatre totaux à tenir de tête</h2><p>Les rapports de vérification des installations électriques, produits par les organismes de contrôle, servent à tenir le plan annuel de maintenance (PAM SSI). Pour cela, il faut compter, bâtiment par bâtiment et local par local, quatre familles d’équipements : les disjoncteurs (BT31), les fusibles (BT33), les blocs autonomes d’éclairage de sécurité (BT21) et les candélabres (BT11).</p><p>Compter à la main, c’est relire chaque ligne d’un tableau de plusieurs pages en gardant quatre totaux en mémoire, et recommencer au moindre doute. C’est le type de tâche où l’attention fatigue avant le rapport.</p><h2 id="s2">Mesurer : une capacité qui n’existait pas</h2><p>Le comptage complet demandait environ 25 minutes par rapport. Sur 4 000 à 5 000 rapports par an, cela représenterait 1 667 à 2 083 heures, soit 174 567 à 218 208 € à 104,74 € de l’heure. Ce chiffre est une estimation, et le dossier le précise : il s’agit d’une capacité théorique, parce que le comptage complet était auparavant trop long pour être réalisé.</p><p>Cette nuance est essentielle. Ce qui est libéré n’est pas du temps déjà dépensé, c’est du temps qu’on n’aurait jamais pu dépenser. La valeur n’est pas une économie, c’est une information devenue disponible : on peut désormais mettre à jour le plan de maintenance à partir de tous les rapports, pas seulement de ceux qu’on a eu le loisir de dépouiller.</p><h2 id="s3">Analyser : un tableau découpé en bandes, deux mises en page</h2><p>Un rapport électrique est un tableau, mais pas au sens d’un tableur. Dans le PDF, une ligne de tableau est éclatée en plusieurs bandes verticales, ses cellules s’étalent sur plusieurs lignes de texte, les mots sont coupés par des césures, et les colonnes ne sont pas toujours au même endroit d’un rapport à l’autre. De plus, deux organismes produisent des rapports dans deux mises en page différentes.</p><p>Reconnaître le bon type de document est donc la première décision, avant le moindre comptage. Certains rapports ne se comptent pas du tout : un rapport de type Q18, ou un rapport d’établissement recevant du public, n’apporte aucun comptage et doit être écarté explicitement, avec un motif.</p><h2 id="s4">Améliorer : reconstruire les lignes, puis compter</h2><p>Le premier outil est celui qui regroupe les fragments de texte en lignes. La tolérance de 6 points est un réglage fait pour ces tableaux, dont les lignes sont réparties sur plusieurs bandes verticales. Le second recolle le texte d’une cellule multiligne, césures comprises :</p><figure class="rf-code"><figcaption><span>regrouper les fragments, recoller les cellules</span><i>js</i></figcaption><pre><code data-lang="js">/* regroupe les jetons en lignes, tolérance 6 points : une ligne de tableau
+   est répartie sur plusieurs bandes verticales */
+function grouper(items, gap){
+  gap = gap || 6;
+  var ws = items.slice().sort(function(a,b){ return a.y - b.y; });
+  var out = [], cur = [], last = null;
+  ws.forEach(function(w){
+    if (last !== null &amp;&amp; w.y - last &gt; gap){ out.push(cur.sort(parX)); cur = []; }
+    cur.push(w); last = w.y;
+  });
+  if (cur.length) out.push(cur.sort(parX));
+  return out;
+}
+
+/* texte d'une cellule multiligne, ordre visuel, césures recollées */
+function libelle(r, xmax){
+  var toks = r.filter(function(w){ return w.x &lt; (xmax === undefined ? 1e9 : xmax); });
+  if (!toks.length) return '';
+  /* … tri par bande de 3 points, puis par abscisse */
+  var vider = function(){
+    var s = ligne.join(' ');
+    if (/-$/.test(out)) out = out.slice(0,-1) + s; else out = (out + ' ' + s).trim();
+    ligne = [];
+  };
+  /* … */
+  return out.replace(/\s+/g,' ').trim();
+}</code></pre></figure><p>La ligne qui recolle les césures est le détail qui compte : si une ligne se termine par un tiret, le mot est rattaché à la suivante sans espace. Sans elle, un « disjonc- » puis « teur » donnerait deux mots, et le local ne serait jamais reconnu.</p><p>Le comptage proprement dit parcourt les coffrets et armoires. Chaque repère rencontré est classé dans une famille. Ce qui n’est connu ni comme disjoncteur, ni comme fusible, ni comme repère à exclure n’est jamais deviné : il est compté à part, pour être signalé :</p><figure class="rf-code"><figcaption><span>compter les disjoncteurs et les fusibles, signaler l’inconnu</span><i>js</i></figcaption><pre><code data-lang="js">function lireArmoires(pages, pieces, inconnus){
+  var piece = '', batiment = '';
+  pages.forEach(function(pg){
+    // … on ne lit que les pages qui contiennent l'en-tête du tableau des armoires
+    rows.forEach(function(r){
+      var left = r.filter(function(w){ return w.x / W &lt; 0.295; });
+      /* … la colonne de gauche porte le libellé : un point en tête signale un départ,
+            sinon c'est le nom du local, mémorisé pour les lignes suivantes */
+      if (lt.charAt(0) === '.'){
+        var band = r.filter(function(w){ return w.x/W &gt;= 0.295 &amp;&amp; w.x/W &lt; 0.372; });
+        var m = /^([A-Za-z]{1,4})\b/.exec(band[0].t.trim());
+        var rep = maj(m[1]);
+        var d = fiche(pieces, piece || batiment || 'Pièce non identifiée');
+        if (DISJ.indexOf(rep) !== -1) d.BT31++;
+        else if (FUS.indexOf(rep) !== -1) d.BT33++;
+        else if (EXCL.indexOf(rep) === -1) inconnus[rep] = (inconnus[rep]||0) + 1;
+      }
+    });
+  });
+}</code></pre></figure><p>Les positions sont exprimées en fraction de la largeur de la page (0,295 ; 0,372) plutôt qu’en points, pour que le même découpage serve à des pages de formats différents. Et la dernière ligne est la plus importante : un repère inconnu incrémente un compteur d’inconnus au lieu d’être rangé dans la famille la plus proche. Cela évite un comptage qui a l’air juste et qui ne l’est pas.</p><p>Pour les récepteurs, les colonnes ne sont pas à des positions fixes. Le code les retrouve à partir des mots de l’en-tête, et il place les frontières à mi-chemin entre deux en-têtes voisins :</p><figure class="rf-code"><figcaption><span>retrouver les colonnes à partir de l’en-tête</span><i>js</i></figcaption><pre><code data-lang="js">function colonnes(r){
+  var a = {};
+  r.forEach(function(w){
+    var n = maj(w.t.trim());
+    var p = function(k){ if (a[k] === undefined || w.x &lt; a[k]) a[k] = w.x; };
+    if (n === 'P.C.' || n === 'ACCES.') p('PC');
+    if (n === 'A.E.' || n === 'EXIST') p('AE');
+    if (n === 'ECLAIRAGE' || n === 'SECURITE') p('ECS');
+    /* … */
+  });
+  if (a.PC === undefined || a.AE === undefined /* … */) return null;   // en-tête incomplet : on ne devine pas
+  var mid = function(p,q){ return (a[p] + a[q]) / 2; };
+  return { pc: mid('TYP','PC'), ae0: mid('PC','AE'), ae1: mid('AE','AMOV'),
+           ecs0: a.MACH !== undefined ? mid('MACH','ECS') : a.ECS - 15,
+           ecs1: mid('ECS','CONT') };
+}</code></pre></figure><p>Si un seul mot d’en-tête manque, la fonction renvoie null et la ligne n’est pas lue. Le code préfère ne rien compter que compter à côté.</p><p>Reste l’assemblage. Chaque rapport reçoit un diagnostic de contrôle en clair, qui dit ce qui s’est passé :</p><figure class="rf-code"><figcaption><span>le diagnostic de chaque rapport</span><i>js</i></figcaption><pre><code data-lang="js">function estQ18(pages){
+  var t = maj(pages.slice(0,2).map(function(pg){
+    return pg.rows.map(function(r){ return texteLigne(r); }).join(' ');
+  }).join(' '));
+  return t.indexOf('REFERENTIEL APSAD D18') !== -1 || t.indexOf('DOMAINE 18') !== -1
+      || (t.indexOf('Q18') !== -1 &amp;&amp; t.indexOf('SOURCE_A') === -1);   // SOURCE_A : repère de la première mise en page
+}
+// …
+if (estQ18(pages)){ l.Controle = 'Q18, pas de comptage'; return l; }
+// …
+repli = (bt21 === 0 &amp;&amp; nChap &gt; 0);          // BT21 absent des tableaux : lu dans le chapitre éclairage de sécurité
+// …
+var alerte = alertes.slice();
+if (repli) alerte.push('BT21 lu dans le chapitre éclairage de sécurité');
+for (k in inconnus) alerte.push('repère ' + k + ' non classé');
+l.Controle = (l.Total === 0 &amp;&amp; !l.Armoires &amp;&amp; !l.Departs) ? 'Aucun équipement relevé'
+           : (alerte.length ? alerte.join(', ') : 'Comptage complet');</code></pre></figure><h2 id="s5">Contrôler : le doublon, l’écart et la mention « Comptage complet »</h2><p>Le tableau de résultats a une colonne Contrôle, et chaque ligne y porte un des diagnostics ci-dessus : « Comptage complet », « Aucun équipement relevé », « Q18, pas de comptage », ou la liste des repères non classés. Un comptage n’est jamais présenté comme sûr s’il ne l’est pas, et c’est la lecture même du tableau qui dit où regarder. C’est la maîtrise des éléments de sortie non conformes de l’ISO 9001 (paragraphe 8.7) appliquée à la donnée : on identifie ce qui est douteux avant qu’il ne serve.</p><p>Deux rapports peuvent concerner le même ordre de travail et le même bâtiment, par exemple lorsqu’un rapport a été déposé deux fois. Le code garde le plus complet et marque l’autre, sans le supprimer :</p><figure class="rf-code"><figcaption><span>dédoublonner sans effacer</span><i>js</i></figcaption><pre><code data-lang="js">function dedoublonner(l){
+  if (l.Source !== 'SOURCE_A' &amp;&amp; l.Source !== 'SOURCE_B') return;      // les deux organismes, noms anonymisés
+  if (!l.OT || !l.Batiment) return;
+  var cle = l.OT + '|' + maj(l.Batiment), i;
+  for (i = 0; i &lt; LIGNES.length; i++){
+    var a = LIGNES[i];
+    if (a === l || a.Source !== l.Source || !a.OT || !a.Batiment) continue;
+    if (a.OT + '|' + maj(a.Batiment) !== cle) continue;
+    var perdant = (+a.Total || 0) &gt;= (+l.Total || 0) ? l : a;
+    var gagnant = perdant === l ? a : l;
+    perdant.BT11 = ''; perdant.BT21 = ''; perdant.BT31 = ''; perdant.BT33 = '';
+    perdant.Total = ''; perdant.Pieces = ''; perdant.Detail = [];
+    perdant.Controle = 'Doublon de ' + gagnant.Fichier;
+    return;
+  }
+}</code></pre></figure><p>La clé est l’OT combiné au bâtiment, normalisé en majuscules et sans accents. Le perdant garde sa ligne, mais ses totaux sont vidés, et son contrôle indique de quel fichier il est le doublon : le total n’est jamais gonflé, et l’historique de ce qui a été lu reste visible.</p><p>Dernier outil : une comparaison entre les deux organismes. Quand un même bâtiment a été vérifié par les deux, un onglet aligne les comptages côte à côte et calcule l’écart total. C’est une version minuscule d’une étude de répétabilité : deux instruments mesurent la même chose, et la différence dit si l’on peut leur faire confiance. La clé de rapprochement est construite à partir du code de site et du bâtiment :</p><figure class="rf-code"><figcaption><span>la clé du bâtiment</span><i>js</i></figcaption><pre><code data-lang="js">function cleBat(batiment, secours){
+  var RE = /(?:^|[^A-Z0-9])(X?)(BAT|IF|POS|PY|B|I)[\s._-]*0*(\d{1,4})(?![0-9])/;
+  var a = maj(batiment || ''), b = maj(secours || '');
+  var site = /(\d{6}[A-Z])(?![A-Z0-9])/.exec(a) || /(\d{6}[A-Z])(?![A-Z0-9])/.exec(b);
+  var m = RE.exec(a) || RE.exec(b);
+  if (!m || !site) return '';                              // pas de clé plutôt qu'une clé approximative
+  var ty = m[2] === 'B' ? 'BAT' : (m[2] === 'I' ? 'IF' : m[2]);
+  return site[1] + '-' + ty + ('00' + m[3]).slice(-3);
+}</code></pre></figure><p>Le code de site est cherché d’abord dans le nom du bâtiment, puis dans un texte de secours. Le numéro est complété à trois chiffres. Et si l’un des deux éléments manque, la fonction renvoie une chaîne vide : sans clé fiable, pas de comparaison. Le fil conducteur de toute l’étude tient là : à chaque étape, l’outil préfère renoncer plutôt qu’inventer.</p>
     </div>
     <nav class="rf-post-pn" aria-label="Autres études"><a class="rf-pn-prev" href="article-cerfa"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/cerfa-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Précédent</small><b>CERFA v3</b></span><i class="rf-pn-arr" aria-hidden="true">←</i></a><a class="rf-pn-next" href="article-powerbi"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/powerbi-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Suivant</small><b>Power BI · PP &amp; MOSO</b></span><i class="rf-pn-arr" aria-hidden="true">→</i></a></nav>
   </article>
@@ -48,7 +147,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvi9rc7">mvi9rc7</dd></div>
+        <div><dt>Version</dt><dd data-t="mvibkpx">mvibkpx</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>

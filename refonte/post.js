@@ -3,6 +3,7 @@
 import './footer.js';
 import './navfx.js';
 import './viewbtn.js';
+if (document.querySelector('.rf-code')) import('./hl.js').catch(() => {});   // coloration des extraits de code des études
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';

@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
-<link rel="stylesheet" href="refonte/rf.css?v=mvi9rc78">
+<link rel="stylesheet" href="refonte/rf.css?v=mvibkpxi">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
-<script type="module" src="refonte/post.js?v=mvi9rc78"></script>
+<script type="module" src="refonte/post.js?v=mvibkpxi"></script>
 
 </head>
 <body class="rf-post-page rf-article">
@@ -37,7 +37,91 @@
     </header>
     <figure class="rf-post-fig rf-post-fig--img"><img src="assets/figures/studio-light.webp?v=bp2" alt="Machine à reproduire les clés" width="840" height="600"><figcaption>Machine à reproduire les clés · l’objet est l’explication</figcaption></figure>
     <div class="rf-post-body">
-<p class="rf-lede">Créer un extracteur pour une nouvelle famille de PDF demandait des jours de développement.</p><p>Le Studio d’extracteurs PDF est l’application qui répond à ce problème : on trace des zones sur un PDF exemple, on définit les champs, on teste, on livre. Elle tourne entièrement en local, aucun document ne quitte le poste. Pour l’expliquer, une machine à reproduire les clés.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code ; avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.</p><h2>Le projet</h2><p>Chaque famille de documents (CERFA, plans de prévention, rapports de contrôle) mérite son extracteur, mais personne ne peut en développer un à la main à chaque fois. Le Studio d’extracteurs PDF est l’application qu’il a conçue pour ça : une page unique, livrée aussi en exécutable autonome, qui tourne entièrement en local, aucun document ne quitte le poste.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré</small><b>5–10 jours → 4 h</b><i>pour disposer d’un extracteur opérationnel</i></span><span><small>Valorisation financière</small><b>3 200–6 900 €</b><i>évités par famille de documents</i></span></div><p>Un extracteur opérationnel en quelques heures, contre plusieurs jours de développement et de recette pour un lecteur codé à la main. Valorisé au taux horaire de 104,74 € : 5 à 10 jours de 7 h moins ≈ 4 h de Studio, soit ≈ 3 200 à 6 900 € de temps évité par famille de documents (l’estimation ci-dessous, 2 500 à 6 500 € HT, part…</p><p class="rf-post-note">Base du calcul. Environ 31–66 h de développement évitées par famille de PDF (journées de 7 h, contre 4 h avec le studio) × 104,74 €/h.</p><h2>Pour l’équipe</h2><p>Un besoin d’extraction nouveau ne dépend plus d’un développement : on ouvre le Studio, on trace, on teste, on distribue.</p><h2>Pas à pas</h2><p>Voici le parcours dans l’ordre, de l’entrée à la sortie.</p><ol class="rf-art-steps"><li><h3>Exemple PDF</h3><p>Un exemple du document sert de modèle pour créer l’extracteur.</p></li><li><h3>Page de référence</h3><p>La page rendue sert de support à la configuration.</p></li><li><h3>Tracé des zones</h3><p>Les zones à lire sont tracées directement sur le document.</p></li><li><h3>Champs à extraire</h3><p>Les champs sont définis sans écrire le code de l’extracteur.</p></li><li><h3>Règles de lecture</h3><p>Les règles précisent comment lire et structurer chaque champ.</p></li><li><h3>Essai réel</h3><p>La configuration est testée sur des documents réels avant la livraison.</p></li><li><h3>Page autonome</h3><p>Une page HTML autonome porte l’extracteur et sa configuration.</p></li><li><h3>Export de l’outil</h3><p>Le fichier ou l’exécutable est livré. Le casier de la famille choisie s’ouvre.</p></li><li><h3>Utilisation locale</h3><p>L’outil traite les documents sur l’appareil. Aucun PDF ne quitte l’appareil pour être traité.</p></li></ol><h2>Construction</h2><p>Temps de construction mesuré : 7 jours de 7 heures, essais auprès des équipes compris.</p>
+<p class="rf-lede">Créer un extracteur pour une nouvelle famille de PDF demandait des jours de développement.</p><nav class="rf-toc" aria-label="Dans cette étude"><p>Dans cette étude</p><ol><li><a href="#s1">Définir : un extracteur par famille de documents</a></li><li><a href="#s2">Mesurer : de plusieurs jours à quelques heures</a></li><li><a href="#s3">Analyser : un document est un nuage de mots positionnés</a></li><li><a href="#s4">Améliorer : trois idées pour lire une zone</a></li><li><a href="#s5">Contrôler : des réglages que l’on voit</a></li></ol></nav><h2 id="s1">Définir : un extracteur par famille de documents</h2><p>Chaque famille de documents (fiches CERFA, plans de prévention, rapports de contrôle) mérite son extracteur. Le problème, c’est que personne ne peut en développer un à la main à chaque fois : il faut lire le format, écrire les règles, tester sur des documents réels, corriger. Résultat, 5 à 10 jours de développement avant de pouvoir dépouiller un seul lot.</p><p>Le Studio d’extracteurs PDF déplace le problème. Au lieu d’écrire du code, on trace des zones sur un PDF exemple, on dit quel champ chaque zone contient et de quel type est sa valeur, on teste sur un lot réel, puis on génère l’extracteur. Le tout tient dans une page HTML, livrée aussi en exécutable, et rien ne quitte le poste : aucun PDF n’est envoyé nulle part.</p><h2 id="s2">Mesurer : de plusieurs jours à quelques heures</h2><p>Un extracteur opérationnel passe de 5 à 10 journées de 7 heures à environ 4 heures avec le Studio. Cela représente 31 à 66 heures de développement évitées par famille de documents, soit à peu près 3 200 à 6 900 € à 104,74 € de l’heure.</p><p>Le chiffre qui compte vraiment est ailleurs : le délai avant de pouvoir répondre à un besoin d’extraction. Quand ce délai passe de plusieurs jours à une demi-journée, des besoins qui n’auraient jamais justifié un développement deviennent réalisables.</p><h2 id="s3">Analyser : un document est un nuage de mots positionnés</h2><p>Un PDF ne contient pas de tableau ni de formulaire au sens où on l’entend. Il contient des fragments de texte, chacun avec une position sur la page. Lire le champ « date de fin » revient à répondre à la question : quels fragments se trouvent dans ce rectangle ?</p><p>Cette formulation géométrique règle presque tout, et elle fait apparaître les vrais risques. Le premier : le même formulaire, scanné ou imprimé légèrement décalé, déplace les fragments de quelques points et la zone tombe à côté. Le deuxième : certaines valeurs sont des cases à cocher, donc pas du texte. Le troisième : certains PDF sont des images, sans couche de texte du tout. Chacun a sa réponse dans le code.</p><h2 id="s4">Améliorer : trois idées pour lire une zone</h2><p>La première idée est la plus simple. Une zone est un rectangle, et on rassemble les fragments qui tombent dedans, dans l’ordre de lecture :</p><figure class="rf-code"><figcaption><span>lecture d’une zone</span><i>js</i></figcaption><pre><code data-lang="js">function inRect(o, r){
+  var cx=o.x+o.w/2, cy=o.y-o.h*0.35;
+  return cx&gt;=r.x &amp;&amp; cx&lt;=r.x+r.w &amp;&amp; o.y&gt;=r.y &amp;&amp; o.y&lt;=r.y+r.h+2;
+}
+function zoneText(list, r, sep){
+  var a=[], i;
+  for(i=0;i&lt;list.length;i++) if(inRect(list[i], r)) a.push(list[i]);
+  a.sort(function(p,q){ return (Math.abs(p.y-q.y)&gt;3) ? p.y-q.y : p.x-q.x; });
+  var s='';
+  for(var j=0;j&lt;a.length;j++){
+    if(j&gt;0) s += (Math.abs(a[j].y-a[j-1].y)&gt;3) ? (sep||' ') : ' ';
+    s += a[j].s;
+  }
+  return s.replace(/[^\S\n]+/g,' ').replace(/ *\n */g,'\n').trim();
+}</code></pre></figure><p>Le nombre 3 de la fonction de tri est une tolérance : deux fragments dont les ordonnées diffèrent de moins de 3 points sont sur la même ligne. C’est un réglage de mesure, au sens où on le pratique dans une analyse de système de mesure (MSA) : un instrument trop strict casse une ligne en deux, un instrument trop lâche en fusionne deux.</p><p>La deuxième idée traite le décalage. Plutôt que de faire confiance à des coordonnées absolues, une zone peut être rattachée à une ancre : un libellé du document, que l’on retrouve dans la page. On calcule de combien l’ancre a bougé par rapport à l’exemple, et on décale la zone du même vecteur :</p><figure class="rf-code"><figcaption><span>recalage par ancre</span><i>js</i></figcaption><pre><code data-lang="js">/* recalage par ancre : on cherche la chaine d'ancre dans la page,
+   on decale la zone du meme vecteur que l'ancre */
+function anchorShift(list, anc){
+  if(!anc || !anc.s) return null;
+  var want = norm(anc.s);
+  if(!want) return null;
+  var best=null, bd=1e9, i;
+  for(i=0;i&lt;list.length;i++){
+    if(norm(list[i].s) !== want) continue;
+    var d = Math.abs(list[i].x-anc.x) + Math.abs(list[i].y-anc.y);
+    if(d&lt;bd){ bd=d; best=list[i]; }
+  }
+  if(!best){
+    /* seconde passe : concatenation de mots voisins sur une meme ligne */
+    /* … */
+  }
+  if(!best) return null;
+  return {dx: best.x-anc.x, dy: best.y-anc.y};
+}</code></pre></figure><p>Quand plusieurs fragments portent le même texte, on garde celui qui est le plus proche de la position attendue. Et si l’ancre est introuvable, la fonction renvoie null : la zone reste où elle était, au lieu de se déplacer au hasard. Ce mode s’appelle « hybrid » dans la configuration, parce qu’il combine position et ancre.</p><p>La troisième idée traite les cases à cocher. Il n’y a pas de texte à lire, donc on regarde l’image. La page est rendue sur un canvas, et on mesure la proportion de pixels sombres dans la case :</p><figure class="rf-code"><figcaption><span>cases à cocher et PDF scannés</span><i>js</i></figcaption><pre><code data-lang="js">function darkRatio(ctx, S, r, inset){
+  inset = inset==null ? 1.4 : inset;
+  var ix=Math.max(0,Math.round((r.x+inset)*S)), iy=Math.max(0,Math.round((r.y+inset)*S));
+  var iw=Math.max(2,Math.round((r.w-2*inset)*S)), ih=Math.max(2,Math.round((r.h-2*inset)*S));
+  var d=ctx.getImageData(ix,iy,iw,ih).data, n=0, tot=d.length/4;
+  for(var i=0;i&lt;d.length;i+=4){ if((d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11)&lt;140) n++; }
+  return tot ? n/tot : 0;
+}
+// …
+if(f.mode==='check'){
+  var ratio = ctxPage.ctx ? darkRatio(ctxPage.ctx, ctxPage.scale, r, Math.min(1.4, r.w/5)) : 0;
+  v = ratio &gt; (f.thr||0.06) ? (f.on||'Oui') : (f.off||'Non');
+}
+
+// Page sans couche de texte (moins de six fragments) : on bascule sur la reconnaissance de caractères.
+var scanned = raw.length &lt; 6;
+if(mode==='off' || (mode==='auto' &amp;&amp; !scanned)) return raw;
+return ocrPage(pg, onProgress).then(function(o){ return o.length ? o : raw; }).catch(function(){ return raw; });</code></pre></figure><p>Le seuil de 6 % de pixels sombres est un compromis. La bordure de la case ne doit pas compter (c’est le rôle du retrait, inset, qui rogne les bords), et une croix légère doit suffire. Quant au PDF scanné, le Studio le détecte tout seul : une page qui contient moins de six fragments de texte est considérée comme une image, et la reconnaissance de caractères prend le relais. Le résultat de l’OCR est converti au même format que la couche texte, avec une confiance minimale de 40, si bien que le reste du code ne voit pas la différence.</p><p>Il reste à transformer les valeurs lues en données exploitables. Un champ numérique, une date, ou une expression régulière que l’on applique au texte lu :</p><figure class="rf-code"><figcaption><span>typer une valeur</span><i>js</i></figcaption><pre><code data-lang="js">function applyType(v, f){
+  if(f.regex){
+    try{
+      var m = new RegExp(f.regex, 'i').exec(v);
+      v = m ? (m[1]!=null ? m[1] : m[0]) : '';
+    }catch(e){}
+  }
+  v = clean(v);
+  if(f.type==='num'){
+    var t=v.replace(/ |\s/g,'').replace(',','.').replace(/[^\d.\-]/g,'');
+    if(!t) return '';
+    var n=parseFloat(t); return isNaN(n)?'':n;
+  }
+  if(f.type==='date'){
+    var m2=v.match(/(\d{1,2})[\/\-. ](\d{1,2})[\/\-. ](\d{2,4})/);
+    if(m2){ var y=m2[3].length===2?('20'+m2[3]):m2[3]; return pad(+m2[1])+'/'+pad(+m2[2])+'/'+y; }
+    return v;
+  }
+  return v;
+}</code></pre></figure><p>Une valeur illisible devient une chaîne vide, jamais une valeur fausse. Une virgule décimale devient un point, un millésime sur deux chiffres devient un millésime sur quatre. Rien de spectaculaire, mais ces trois lignes de normalisation font la différence entre une extraction qu’on peut trier et une extraction qu’il faut relire.</p><h2 id="s5">Contrôler : des réglages que l’on voit</h2><p>Un extracteur n’a de valeur que si on peut vérifier ce qu’il lit. L’extracteur généré propose pour cela trois instruments, tous dans le code :</p><figure class="rf-code"><figcaption><span>mises en relief et indicateurs</span><i>js</i></figcaption><pre><code data-lang="js">var HL_OPS = {
+  filled:  function(v){ return v!=='' &amp;&amp; v!=null; },
+  empty:   function(v){ return v==='' || v==null; },
+  eq:      function(v,t){ return norm(v)===norm(t); },
+  ne:      function(v,t){ return norm(v)!==norm(t); },
+  has:     function(v,t){ return norm(t)!=='' &amp;&amp; norm(v).indexOf(norm(t))&gt;=0; },
+  gt:      function(v,t){ var a=parseFloat(String(v).replace(',','.')), b=parseFloat(String(t).replace(',','.')); return !isNaN(a)&amp;&amp;!isNaN(b)&amp;&amp;a&gt;b; },
+  lt:      function(v,t){ var a=parseFloat(String(v).replace(',','.')), b=parseFloat(String(t).replace(',','.')); return !isNaN(a)&amp;&amp;!isNaN(b)&amp;&amp;a&lt;b; }
+};
+// + « dup » : une valeur présente plus d'une fois dans la colonne
+function computeKpi(k, rows){
+  if(k.type==='count') return rows.length;
+  if(k.type==='filled'){ /* lignes où la colonne est renseignée */ }
+  if(k.type==='empty'){ /* lignes où elle est vide */ }
+  if(k.type==='dup'){ /* nombre de valeurs en doublon */ }
+  // …
+}</code></pre></figure><ul class="rf-art-list"><li>Les mises en relief colorent les lignes ou les cellules selon une règle (vide, égal à, supérieur à, doublon). C’est un contrôle visuel : l’anomalie saute aux yeux au lieu de se cacher dans 300 lignes.</li><li>Les indicateurs comptent les lignes, les cellules renseignées, les cellules vides, les doublons. Un extracteur qui laisse 40 % d’une colonne vide vous dit lui-même que sa zone est mal placée.</li><li>Le tiroir de chaque ligne affiche le texte brut lu dans chaque zone, avec le fichier et la page d’origine : on remonte de la valeur à la source en un clic. C’est la traçabilité, à l’échelle d’une cellule.</li></ul><p>L’export Excel mérite un dernier mot. Le Studio génère le fichier .xlsx sans aucune bibliothèque : il écrit lui-même l’archive ZIP (en mode stockage, avec le calcul des CRC32) et le XML de la feuille. Ce choix garde l’outil autonome, un seul fichier qui fonctionne hors connexion, et c’est aussi ce qui permet de promettre qu’aucun document ne quitte le poste.</p>
     </div>
     <nav class="rf-post-pn" aria-label="Autres études"><a class="rf-pn-prev" href="article-powerbi"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/powerbi-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Précédent</small><b>Power BI · PP &amp; MOSO</b></span><i class="rf-pn-arr" aria-hidden="true">←</i></a><a class="rf-pn-next" href="article-suivi"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/suivi-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Suivant</small><b>Retrouver tout le suivi</b></span><i class="rf-pn-arr" aria-hidden="true">→</i></a></nav>
   </article>
@@ -48,7 +132,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvi9rc7">mvi9rc7</dd></div>
+        <div><dt>Version</dt><dd data-t="mvibkpx">mvibkpx</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
