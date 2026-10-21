@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#05080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
-<link rel="stylesheet" href="refonte/rf.css?v=mvi9rc78">
+<link rel="stylesheet" href="refonte/rf.css?v=mvibkpxi">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
-<script type="module" src="refonte/post.js?v=mvi9rc78"></script>
+<script type="module" src="refonte/post.js?v=mvibkpxi"></script>
 
 </head>
 <body class="rf-post-page rf-article">
@@ -37,7 +37,93 @@
     </header>
     <figure class="rf-post-fig rf-post-fig--img"><img src="assets/figures/vm-light.webp?v=bp2" alt="Pointeuses à clé partagée" width="840" height="600"><figcaption>Pointeuses à clé partagée · l’objet est l’explication</figcaption></figure>
     <div class="rf-post-body">
-<p class="rf-lede">Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.</p><p>Voici le chemin d’un rapport VRE, du dépôt du PDF sur SharePoint jusqu’au récapitulatif de 17 h, en m’appuyant sur deux pointeuses qui se partagent une seule clé. Un point reste ouvert, et je préfère le dire d’emblée : la reprise entre deux VM est encore à concevoir.</p><h2>L’objet en action</h2><p>Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons ; la reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.</p><h2>Le projet</h2><p>Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré</small><b>30 min / rapport</b><i>2 000–2 500 h par an pour 4 000–5 000 rapports VRE : rapprochement de l’OT, inscription du lien et vérification dans Excel</i></span><span><small>Valorisation financière</small><b>209 480–261 850 € / an</b><i>temps de traitement libéré, valorisé à 104,74 €/h ; soit 52,37 € par rapport</i></span></div><p>30 minutes de traitement économisées par rapport VRE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons ; le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.</p><p class="rf-post-note">Base du calcul. 0,5 h × 4 000–5 000 rapports/an × 104,74 €/h. Volume et durée fournis par Mathieu. VM, Reporteur Q18 et extraction VRE portent sur les mêmes rapports : 70 min libérées par rapport au total (30 + 15 + 25).</p><h2>Pour l’équipe</h2><p>Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint.</p><h2>Pas à pas</h2><p>Voici le parcours dans l’ordre, de l’entrée à la sortie.</p><ol class="rf-art-steps"><li><h3>Dépôt SharePoint</h3><p>Le PDF est déposé dans SharePoint. Une unité représente un rapport et sa demande.</p></li><li><h3>Demande de traitement</h3><p>Power Automate crée la demande de traitement.</p></li><li><h3>File d’attente</h3><p>Les demandes attendent leur prise en charge. Le portique se positionne sur l’unité.</p></li><li><h3>Relevé par la VM</h3><p>La VM Windows relève les demandes toutes les deux minutes.</p></li><li><h3>Contrôle R004 et OT</h3><p>Le code final R004 et le numéro OT à sept chiffres sont contrôlés.</p></li><li><h3>Recherche dans Excel</h3><p>Le classeur de suivi et l’OT correspondant sont retrouvés.</p></li><li><h3>Inscription vérifiée</h3><p>Le lien du rapport est écrit ; le classeur est enregistré puis vérifié.</p></li><li><h3>Historique confirmé</h3><p>Seuls les résultats confirmés rejoignent l’historique pour éviter les doublons.</p></li><li><h3>Récapitulatif de 17 h</h3><p>Le récapitulatif rassemble les nouvelles intégrations confirmées. La reprise entre deux VM reste un chantier à concevoir.</p></li></ol><h2>Construction</h2><p>Temps de construction mesuré : 1,5 jours de 7 heures, essais auprès des équipes compris.</p>
+<p class="rf-lede">Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.</p><nav class="rf-toc" aria-label="Dans cette étude"><p>Dans cette étude</p><ol><li><a href="#s1">Définir : une clé, une seule pointeuse</a></li><li><a href="#s2">Mesurer : 30 minutes par rapport</a></li><li><a href="#s3">Analyser : ce qui peut mal tourner</a></li><li><a href="#s4">Améliorer : valider la demande, ranger la file, s’arrêter à temps</a></li><li><a href="#s5">Contrôler : un registre, une simulation, une copie</a></li></ol></nav><h2 id="s1">Définir : une clé, une seule pointeuse</h2><p>Un rapport de vérification électrique arrive en PDF sur SharePoint. Pour qu’il compte, il faut retrouver l’ordre de travail (OT) correspondant dans un grand classeur de suivi, y inscrire le lien du rapport, enregistrer, puis vérifier que l’inscription a bien eu lieu. Quatre gestes, répétés des milliers de fois par an.</p><p>L’automatisation passe par une machine virtuelle Windows qui pilote Excel. Et c’est précisément ce point qui impose la règle de tout le projet : un classeur ne se laisse pas écrire par deux machines à la fois. Une seule pointeuse doit tenir la clé.</p><h2 id="s2">Mesurer : 30 minutes par rapport</h2><p>Rapprocher l’OT, inscrire le lien et vérifier dans Excel représentait 30 minutes par rapport, sur 4 000 à 5 000 rapports par an. Cela fait 2 000 à 2 500 heures, soit 209 480 à 261 850 € de temps libéré au taux de 104,74 € de l’heure.</p><p>Un chiffre de cette taille appelle de la prudence : il ne vaut que si le processus automatisé est plus fiable que le geste manuel. Automatiser une erreur ne fait que la répéter plus vite. La suite de l’étude porte donc surtout sur ce qui empêche la machine de se tromper.</p><h2 id="s3">Analyser : ce qui peut mal tourner</h2><p>Avant d’écrire une ligne de code, on dresse la liste des défaillances possibles, comme dans une AMDEC. Pour chacune, on regarde ensuite ce que le code fait pour l’empêcher ou la détecter.</p><div class="rf-art-tablewrap"><table class="rf-art-table"><thead><tr><th>Ce qui peut arriver</th><th>Ce que fait le watcher</th></tr></thead><tbody><tr><td>Le PDF n’a pas de numéro d’OT à sept chiffres</td><td>Demande rejetée (NOM_SANS_OT_7_CHIFFRES), déplacée dans le dossier Rejets</td></tr><tr><td>Le lien pointe hors du dossier des rapports</td><td>Demande rejetée (LIEN_HORS_PERIMETRE)</td></tr><tr><td>Le rapport n’est pas un rapport final de type R</td><td>Archivé sans ouvrir Excel (ignore_type_rapport)</td></tr><tr><td>La même demande arrive deux fois</td><td>Même reçu rendu, sans nouvelle écriture</td></tr><tr><td>Un dépôt plus récent existe déjà pour cet OT</td><td>Demande marquée obsolète</td></tr><tr><td>Deux exécutions du watcher en même temps</td><td>Un verrou exclusif empêche la seconde</td></tr><tr><td>Excel plante ou ne se ferme pas</td><td>Le cycle s’arrête, nouvelle tentative après un délai</td></tr></tbody></table></div><h2 id="s4">Améliorer : valider la demande, ranger la file, s’arrêter à temps</h2><p>Tout commence par le nom du fichier. Le code n’a besoin de rien d’autre pour savoir de quel OT et de quel type de rapport il s’agit, à condition de lire ce nom avec rigueur :</p><figure class="rf-code"><figcaption><span>core.cjs, lecture du nom du fichier et validation de la demande</span><i>js</i></figcaption><pre><code data-lang="js">// Le nom du fichier PDF commence par l'OT, sur sept chiffres exactement.
+function otFromFilename(name) {
+  if (typeof name !== 'string' || /[\\/]/.test(name)) throw new Error('NOM_FICHIER_INVALIDE');
+  const match = /^([0-9]{7})(?![0-9])/.exec(name);
+  if (!match) throw new Error('NOM_SANS_OT_7_CHIFFRES');
+  return match[1];
+}
+
+// Type du dernier code numérique uniquement : le R de « VR » n'intervient pas.
+function reportTypeFromFilename(name) {
+  if (typeof name !== 'string' || /[\\/]/.test(name)) return '';
+  const match = /(?:^|_)[0-9]+([A-Za-z])[0-9]{3}(?:-N[0-9]+)?(?:\.pdf)?$/i.exec(name);
+  return match ? match[1].toUpperCase() : '';
+}
+
+function validateRequest(input) {
+  if (!input || input.schemaVersion !== 1 || !/^[a-zA-Z0-9_-]{1,100}$/.test(input.jobId))
+    throw new Error('DEMANDE_INVALIDE');
+  const ot = otFromFilename(input.fileName);
+  if (String(input.ot) !== ot) throw new Error('OT_INCOHERENT');
+  // … le lien doit rester dans le dossier des rapports du site, sans « .. » ni identifiants
+  if (url.origin !== SITE_ORIGIN || !decodedUrlPath.startsWith(allowedPath) || url.username || url.password)
+    throw new Error('LIEN_HORS_PERIMETRE');
+  if (decodedUrlPath.split('/').at(-1) !== input.fileName) throw new Error('LIEN_NOM_INCOHERENT');
+  return { ...input, ot, reportType: reportTypeFromFilename(input.fileName), reportUrl: url.href };
+}</code></pre></figure><p>Remarquez la deuxième expression régulière. Le commentaire le dit : seul le dernier code numérique compte, c’est-à-dire une lettre suivie de trois chiffres en fin de nom. La lettre R de « VR » plus haut dans le nom n’a aucune influence. Une règle qui paraît évidente à un humain doit être écrite explicitement pour une machine, sinon elle sera lue de travers un jour sur dix.</p><p>Le watcher prend ensuite le relais. Il ne fait confiance qu’à ce que la validation lui renvoie, et son premier réflexe est de s’assurer qu’il est seul :</p><figure class="rf-code"><figcaption><span>worker.cjs, verrou et écriture atomique</span><i>js</i></figcaption><pre><code data-lang="js">// Un seul exécutant à la fois : verrou posé avec l'indicateur « wx » (création exclusive).
+function acquireLock() {
+  try { lock = fs.openSync(lockPath, 'wx'); }
+  catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    const owner = readJson(lockPath, {});
+    if (owner.pid) {
+      try { process.kill(owner.pid, 0); log('Autre execution en cours.'); return false; }
+      catch (probe) { if (probe.code !== 'ESRCH') { log('Verrou a verifier manuellement.'); return false; } }
+    } else { log('Verrou incomplet a verifier manuellement.'); return false; }
+    fs.unlinkSync(lockPath);                  // le processus propriétaire n'existe plus
+    lock = fs.openSync(lockPath, 'wx');
+  }
+  fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, createdUtc: new Date().toISOString() }));
+  return true;
+}
+
+// Les écritures de l'état passent par un fichier temporaire puis un renommage : jamais de JSON à moitié écrit.
+function atomicJson(file, value) {
+  const temp = file + '.tmp';
+  fs.writeFileSync(temp, JSON.stringify(value, null, 2), 'utf8');
+  fs.renameSync(temp, file);
+}</code></pre></figure><p>Le verrou est un détrompeur au sens strict, un poka-yoke : il rend l’erreur impossible plutôt que de compter sur la vigilance de chacun. Si le fichier de verrou existe, le watcher vérifie que son propriétaire est encore vivant. Dans le doute, il ne fait rien et le dit dans le journal. Un système qui préfère s’abstenir plutôt que deviner est un système qu’on peut laisser tourner la nuit.</p><p>Reste la boucle de traitement elle-même. Les demandes sont triées par date, la plus ancienne d’abord, et le cycle en prend trois au plus :</p><figure class="rf-code"><figcaption><span>worker.cjs, file d’attente et arrêt sur anomalie</span><i>js</i></figcaption><pre><code data-lang="js">for (const name of fs.readdirSync(path.join(config.queueRoot, 'Demandes'))) {
+  if (!name.endsWith('.json')) continue;
+  const file = path.join(config.queueRoot, 'Demandes', name);
+  if (Date.now() - fs.statSync(file).mtimeMs &lt; 10000) continue;   // laisser SharePoint finir la synchronisation
+  let request;
+  try { request = validateRequest(readJson(file, null)); }
+  catch (error) { /* demande invalide : reçu « rejete », fichier déplacé dans Rejets */ }
+
+  // Seuls les rapports finaux « R » sont intégrés ; les autres sont archivés sans ouvrir Excel.
+  if (request.reportType !== 'R') { /* statut ignore_type_rapport → Archives */ continue; }
+
+  // Déjà traité ? On rend le même reçu, sans rejouer l'écriture.
+  const previous = ledger.jobs[request.jobId];
+  if (previous &amp;&amp; ['enregistre_excel', 'deja_identique'].includes(previous.status)) { /* → Archives */ continue; }
+  if (previous &amp;&amp; Date.parse(previous.retryAfterUtc) &gt; Date.now()) continue;
+  pending.push({ file, request });
+}
+
+// Premier arrivé, premier servi ; trois dossiers par cycle au plus.
+pending.sort((a, b) =&gt; Date.parse(a.request.requestedUtc) - Date.parse(b.request.requestedUtc));
+for (const { file, request } of pending.slice(0, config.maxJobsPerRun || 10)) {
+  // Un dépôt plus récent pour le même OT est déjà passé : celui-ci est obsolète.
+  if (isOlderRequest(request, latestRForOt(ledger, request.ot))) { /* statut obsolete → Archives */ continue; }
+  const run = spawnSync(powershell, ['-NoProfile', '-STA', '-File', 'Update-Excel.ps1',
+                         '-RequestPath', adapterInput, '-ResultPath', adapterOutput], { timeout: 480000 });
+  /* … reçu écrit dans Resultats et dans le registre local */
+  if (!finished) break;      // après une erreur Excel, on n'ouvre pas une seconde fois le classeur
+}</code></pre></figure><p>Trois idées Lean se lisent dans ces quelques lignes. Le premier arrivé, premier servi est un flux tiré en FIFO, sans file qui s’emmêle. La limite de trois dossiers par cycle lisse la charge, c’est du heijunka. Et le break final est du jidoka : à la première anomalie, la ligne s’arrête au lieu de produire des défauts en série.</p><p>Dernier détail, peu visible mais important. Le watcher ne ferme que l’instance d’Excel qu’il a lui-même ouverte, après avoir vérifié son nom de processus et sa session :</p><figure class="rf-code"><figcaption><span>Excel-Process.ps1, ne fermer que ce que l’on a ouvert</span><i>powershell</i></figcaption><pre><code data-lang="powershell">function Get-VreExcelProcess {
+    param([IntPtr]$WindowHandle, [int]$SessionId)
+    Initialize-VreProcessTracking
+    [uint32]$excelProcessId = 0
+    $thread = [Vre.NativeWindow]::GetWindowThreadProcessId($WindowHandle, [ref]$excelProcessId)
+    if ($thread -eq 0 -or $excelProcessId -eq 0) { throw 'PROCESSUS_INSTANCE_EXCEL_NON_IDENTIFIE' }
+    $process = [Diagnostics.Process]::GetProcessById([int]$excelProcessId)
+    if ($process.ProcessName -ne 'EXCEL' -or $process.SessionId -ne $SessionId) {
+        throw 'PROCESSUS_INSTANCE_EXCEL_INCOHERENT'
+    }
+    [void]$process.Handle    # garder le handle : Windows peut réutiliser le PID
+    return $process
+}</code></pre></figure><p>Fermer le mauvais Excel, ce serait fermer le classeur d’un collègue en pleine saisie. Le coût de cette erreur est sans commune mesure avec la ligne de code qui l’évite.</p><h2 id="s5">Contrôler : un registre, une simulation, une copie</h2><ul class="rf-art-list"><li>Le registre des traitements (ledger) garde un reçu pour chaque demande, avec son statut, sa date et le nombre de tentatives. C’est la traçabilité au sens de l’ISO 9001 (paragraphe 8.5.2) : pour chaque rapport inscrit, on sait quand et par quel passage.</li><li>Le watcher se lance aussi en mode simulation (l’option --dry-run) : il affiche ce qu’il ferait sans rien écrire. C’est la phase Plan puis Check du cycle PDCA, avant le Do.</li><li>Avant d’écrire, une copie de sauvegarde du classeur est conservée, 30 jours dans la configuration.</li></ul><p>Reste une limite, que le dossier d’origine dit sans détour : ce verrou protège une seule machine. Une architecture à deux VM, avec reprise automatique, est un chantier à concevoir (un seul droit d’écriture, un verrou partagé, une reprise de l’historique), et elle ne doit pas être supposée en service. Documenter ce qui n’existe pas encore fait partie du travail qualité.</p>
     </div>
     <nav class="rf-post-pn" aria-label="Autres études"><a class="rf-pn-prev" href="article-finance"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/finance-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Précédent</small><b>Point financier · Power Automate</b></span><i class="rf-pn-arr" aria-hidden="true">←</i></a><a class="rf-pn-next" href="article-moteur44"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/moteur-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Suivant</small><b>Reporteur Q18</b></span><i class="rf-pn-arr" aria-hidden="true">→</i></a></nav>
   </article>
@@ -48,7 +134,7 @@
     <div class="rf-foot-card">
       <p class="rf-fh">Métadonnées</p>
       <dl class="rf-fgrid">
-        <div><dt>Version</dt><dd data-t="mvi9rc7">mvi9rc7</dd></div>
+        <div><dt>Version</dt><dd data-t="mvibkpx">mvibkpx</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
