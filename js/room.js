@@ -916,6 +916,7 @@ export async function createRoom(container, bubbleEl) {
   }
   function playTrack(i) {
     jukebox.play(i);                                           // le tiroir reste ouvert pendant la diffusion ; seul un clic sur le tiroir, le bouton ou Échap le referme
+    if(window.__rfFreeCam){view.tZoom=1;syncZoom();tgt.set(.1,.8,-.2);}   // accueil : le disque choisi, la caméra revient à son zoom d'origine (dézoome)
     if (!(director.current === stations.usm && director.mode === 'activity')) goTo('usm');
   }
   const card = document.createElement('div'); card.className = 'sleeve-card'; container.appendChild(card);
