@@ -787,3 +787,10 @@ html body .film-close:active,html body .jvc-close:active,html body .rf-close:act
 html body.rf-gx-page{background:#05080d;color:#e0ebfd;font-family:var(--rf-sans);-webkit-font-smoothing:antialiased;margin:0;overflow-x:hidden}
 .gx-main{position:relative;z-index:2;width:min(1180px,calc(100% - 40px));margin:0 auto;padding:clamp(104px,15vh,140px) 0 80px;background:none}
 .rf-gx-page .rf-tirelire,.rf-gx-page .rf-tirelire .annual-gains,.rf-gx-page .rf-tirelire .strip-head,.rf-gx-page .rf-tirelire .automation-cascade{background:none!important;border-color:transparent;box-shadow:none}
+/* Gains : la tirelire 3D en tête de page, à la place du signe infini du blog, puis le titre et l'explicatif */
+.rf-gx-page .gx-main{padding-top:clamp(84px,12vh,110px)}
+.rf-gx-page .rf-tirelire .strip-head{display:flex;flex-direction:column;align-items:center;gap:20px}
+.rf-gx-page .rf-tirelire .annual-gains{display:contents}
+.rf-gx-page .rf-tirelire .annual-pig-wrap{order:-2;margin:0 auto clamp(8px,3vh,28px)}
+.rf-gx-page .rf-tirelire .pro-gains-title{order:-1;text-align:center;max-width:724px}
+.rf-gx-page .rf-tirelire .annual-values,.rf-gx-page .rf-tirelire .annual-calendar,.rf-gx-page .rf-tirelire .annual-memory,.rf-gx-page .rf-tirelire .annual-breakdown{width:min(724px,100%);align-self:center}
