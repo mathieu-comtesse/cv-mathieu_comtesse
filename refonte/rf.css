@@ -802,3 +802,12 @@ html body.rf-gx-page{background:#080b0f;color:#e0ebfd;font-family:var(--rf-sans)
 /* Gains : « Effet cascade » centré */
 .rf-gx-page .rf-tirelire .automation-cascade{text-align:center;width:min(724px,100%);margin-inline:auto}
 .rf-gx-page .rf-tirelire .cascade-copy p,.rf-gx-page .rf-tirelire .cascade-note{margin-inline:auto}
+
+/* ---------------------------------------------------------------- pages d'onglet : plan blueprint fixe + règles */
+html body.rf-tabv{background:transparent}
+html:has(body.rf-tabv){background:#000}
+.rf-tabv .rf-bhero{z-index:1}
+.rf-tabv .rf-bmain,.rf-tabv .rf-exp-main,.rf-tabv .gx-main{position:relative;z-index:2}
+.rf-tabv .rf-ruler{z-index:20}
+.rf-tabv .rf-ruler--h{bottom:clamp(24px,5vh,54px)}
+.rf-tabv .rf-win{will-change:transform}
