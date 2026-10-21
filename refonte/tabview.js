@@ -24,8 +24,21 @@ const placeCam = (yaw, pitch = 26 * Math.PI / 180) => {
 const bp = initBlueprint(document.getElementById('rf-bp'), stage);
 bp.plane.scale.setScalar(2.6);
 placeCam(36 * Math.PI / 180); bp.link(cam);
-const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); };
-aspect(); addEventListener('resize', aspect);
+/* le centre du plan blueprint est placé sur le sujet de la page (tirelire, signe infini, hublot) : on décale le point de fuite de la caméra,
+   et les règles se calent sur ce même centre */
+let cy = innerHeight / 2;
+const subject = () => document.querySelector('.annual-pig-wrap, #rf-inf, #rf-win');
+const aspect = () => {
+  const el = subject();
+  if (el) { const r = el.getBoundingClientRect(); cy = r.top + scrollY + r.height / 2; }
+  cy = Math.min(Math.max(cy, innerHeight * .3), innerHeight * .75);
+  cam.aspect = innerWidth / innerHeight;
+  cam.setViewOffset(innerWidth, innerHeight, 0, -(cy - innerHeight / 2), innerWidth, innerHeight);
+  document.documentElement.style.setProperty('--tv-cy', cy + 'px');
+  cam.updateProjectionMatrix();
+};
+aspect(); addEventListener('resize', aspect); addEventListener('load', aspect);
+for (const t of [300, 900, 2000, 4000]) setTimeout(aspect, t);
 
 /* même effet de défilement que l'accueil : la vue plonge de 14° sur 3,56 hauteurs d'écran et le plan s'estompe (valeurs relevées sur la page de référence) */
 const DEG = Math.PI / 180, clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
