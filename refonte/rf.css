@@ -626,11 +626,11 @@ body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
 @media (prefers-reduced-motion:reduce){.rf-post-tl .rf-tl-rv{opacity:1;transform:none;transition:none}}
 
 /* rail des étapes « serveur / machine » : nœuds à anneau pointillé, trait qui se remplit, paquets de données, onde à l'arrivée */
-.rf-post-tl{--tl-c:#7fe3ff;--tl-d:rgb(224 235 253 / .42)}
+.rf-post-tl{--tl-c:#39ff88;--tl-d:rgb(224 235 253 / .42)}
 .rf-post-tl .rf-tl-rail{width:2px;color:var(--tl-c)}
 .rf-post-tl .rf-tl-dash{border-left:1px solid rgb(224 235 253 / .2)}
-.rf-post-tl .rf-tl-line{width:2px;background:var(--tl-c);box-shadow:0 0 8px rgb(127 227 255 / .55)}
-.rf-post-tl .rf-tl-dot{left:-4px;width:10px;height:10px;background:var(--tl-c);box-shadow:0 0 0 3px rgb(127 227 255 / .25),0 0 14px rgb(127 227 255 / .9);z-index:3}
+.rf-post-tl .rf-tl-line{width:2px;background:var(--tl-c);box-shadow:0 0 8px rgb(57 255 136 / .55)}
+.rf-post-tl .rf-tl-dot{left:-4px;width:10px;height:10px;background:var(--tl-c);box-shadow:0 0 0 3px rgb(57 255 136 / .25),0 0 14px rgb(57 255 136 / .9);z-index:3}
 .rf-post--bp .rf-post-tl .rf-tl-dash{border-left-color:rgb(255 255 255 / .3)}
 .rf-post--bp .rf-post-tl .rf-tl-line{background:var(--tl-c)}
 .rf-post--bp .rf-post-tl .rf-tl-dot{background:var(--tl-c)}
