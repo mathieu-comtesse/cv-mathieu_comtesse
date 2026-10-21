@@ -89,7 +89,7 @@ if (fig && bpCanvas && stage) {
       machine.render(reduced ? 6 + shift : clock());
     };
     loop();
-  }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); });
+  }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); fig.classList.add('rf-fallback'); });
 
   initRulers((v) => { view.yaw = v.yaw; placeCam(v.yaw, v.pitch); });
 }

@@ -733,3 +733,9 @@ body.fl-lock{overflow:hidden}
 .fl-img{object-fit:contain;display:block}
 .fl-b .fl-img,.fl-mv-ico.fl-img{width:calc(var(--bx) * .5);height:calc(var(--bx) * .5)}
 .k3 .fl-img,.m3-ico.fl-img{width:30px;height:30px}
+
+/* modèle 3D direct : les anciennes images 2D ne s'affichent plus pendant le chargement, seulement si la 3D est impossible */
+.rf-tile--pro .rf-tile-bg img{visibility:hidden}
+.rf-tile--pro .rf-tile-bg.rf-fallback img{visibility:visible}
+.rf-post--bp .rf-post-fig img{opacity:0;transition:none}
+.rf-post--bp .rf-post-fig.rf-fallback img{opacity:1}

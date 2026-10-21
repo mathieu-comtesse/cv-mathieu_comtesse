@@ -257,7 +257,7 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
       if (reduced) t.render(6); else loop();
       wrap.classList.add('rf-on');
       active.set(wrap, { t, ro, canvas, stop: () => cancelAnimationFrame(raf) });
-    } catch (e) { console.warn('tuile 3D indisponible', e); canvas.remove(); active.delete(wrap); }
+    } catch (e) { console.warn('tuile 3D indisponible', e); canvas.remove(); active.delete(wrap); wrap.classList.add('rf-fallback'); }
   };
   const unmount = (wrap) => {
     const a = active.get(wrap); active.delete(wrap); wrap.classList.remove('rf-on');
