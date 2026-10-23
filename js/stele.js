@@ -10,15 +10,15 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 
 /** [latin gravé, traduction]. Les formules sont authentiques (D.M., Veni vidi, Graecum est non legitur, S.T.T.L., H.S.E.) ; l'humour est de la maison. */
 export const LINES = [
-  ['D · M · ET · MAGISTRIS · SVIS', 'Aux dieux Mânes et à ses professeurs (qui ne sont pas morts, mais ont beaucoup souffert).'],
-  ['MATTHAEO · COMITISSAE · VIRO · FORTISSIMO', 'À Mathieu Comtesse, homme très courageux. Son nom est féminin (comitissa, « la comtesse »), sa grammaire, impeccable : il a toujours accordé.'],
-  ['QVI · TRES · ANNOS · LINGVAM · LATINAM · ET · TRES · ALIOS · GRAECAM · DOMVIT', 'Qui dompta la langue latine pendant trois ans et la grecque pendant trois autres : six ans de déclinaisons, pas une seule remboursée.'],
-  ['VENI · VIDI · DECLINAVI', 'Je suis venu, j’ai vu, j’ai décliné. (Rosa, rosa, rosam… et toute la famille.)'],
-  ['GRAECVM · EST · NON · LEGITVR · SED · ILLE · LEGIT', '« C’est du grec, cela ne se lit pas », disaient les copistes du Moyen Âge. Lui, si.'],
-  ['VERSIONEM · SINE · LEXICO · NVNQVAM · RELIQVIT', 'Il n’a jamais quitté une version sans son dictionnaire. Le Gaffiot, lui, pèse encore sur sa conscience.'],
-  ['QVICQVID · LATINE · DICTVM · SIT · ALTVM · VIDETVR', 'Tout ce qui est dit en latin paraît profond. Y compris cette stèle.'],
-  ['SIT · EI · TERRA · LEVIS · ET · SVBIVNCTIVVS · FACILIS', 'Que la terre lui soit légère, et le subjonctif plus léger encore.'],
-  ['H · S · E', 'Hic situs est : « ci-gît ». Rassurez-vous, la stèle est honorifique : l’intéressé se porte très bien et s’est remis à la grammaire, par plaisir.'],
+  ['D · M · ET · MAGISTRIS · SVIS', 'Aux dieux Mânes et à ses professeurs. Les premiers réclament des offrandes ; les seconds, enfin des vacances.'],
+  ['MATTHAEO · COMITISSAE · VIRO · FORTISSIMO', 'À Mathieu Comtesse, survivant des versions sans dictionnaire. Le Sénat lui décerna cette pierre, faute de budget pour une médaille.'],
+  ['QVI · TRES · ANNOS · LINGVAM · LATINAM · ET · TRES · ALIOS · GRAECAM · DOMVIT', 'Trois ans de latin, trois ans de grec. Six ans à disséquer des phrases : les verbes ont demandé un avocat.'],
+  ['VENI · VIDI · DECLINAVI', 'Je suis venu, j’ai vu, j’ai décliné. Puis j’ai décliné l’invitation à recommencer.'],
+  ['GRAECVM · EST · NON · LEGITVR · SED · ILLE · LEGIT', '« C’est du grec, cela ne se lit pas. » Il l’a lu quand même. Les copistes ont porté plainte pour concurrence déloyale.'],
+  ['VERSIONEM · SINE · LEXICO · NVNQVAM · RELIQVIT', 'Il traînait son Gaffiot comme un boulet. L’ouvrage lui a fait les bras ; les versions, les cernes.'],
+  ['QVICQVID · LATINE · DICTVM · SIT · ALTVM · VIDETVR', 'Tout paraît profond en latin. Le marbrier a donc facturé cette banalité au tarif philosophie.'],
+  ['SIT · EI · TERRA · LEVIS · ET · SVBIVNCTIVVS · FACILIS', 'Que la terre lui soit légère. Pour le subjonctif, les dieux ont refusé de se prononcer.'],
+  ['H · S · E', 'Ci-gît ? Pas encore. L’intéressé respire, conteste la facture et demande si la stèle existe en format poche.'],
 ];
 const DESC = 'Trois ans de latin, trois ans de grec ancien : de quoi apprendre que toute règle a ses exceptions, que tout verbe a ses irrégularités, et que « ça se traduit facilement » est la phrase la plus dangereuse de l’Antiquité.';
 const GLYPHS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩABCDEFGHIJLMNOPQRSTVXY·';

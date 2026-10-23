@@ -8,7 +8,8 @@ export function initPiggyBank(host){
 }
 async function mountPiggyBank(host){
  const canvas=document.createElement('canvas'),status=host.querySelector('.piggy-status');
- canvas.className='piggy-3d';canvas.tabIndex=0;canvas.setAttribute('aria-label','Tirelire rose en céramique : glissez pour pivoter, ou utilisez les flèches');
+ const useRulers=document.body.classList.contains('rf-gx-page');
+ canvas.className='piggy-3d';canvas.tabIndex=useRulers?-1:0;canvas.setAttribute('aria-label',useRulers?'Tirelire rose en céramique : utilisez les règles Tourner et Incliner':'Tirelire rose en céramique : glissez pour pivoter, ou utilisez les flèches');
  host.append(canvas);
  let renderer,observer,raf=0,timer=0,suspended=false,dirty=true;
  try{
@@ -32,7 +33,7 @@ async function mountPiggyBank(host){
   const configure=()=>{
    const days=Number(daysInput.value),hours=Number(hoursInput.value);if(days<1||days>366||hours<1||hours>24)return;
    config={days,hours};rhythm=euroCoinRhythm(ANNUAL_DECLARED,days,hours);nextCoin=activeSeconds+rhythm.secondsPerEuro;
-   label.textContent='1 € toutes les '+rhythm.secondsPerEuro.toLocaleString('fr-FR',{maximumFractionDigits:2})+' s · moyenne annuelle '+Math.round(rhythm.meanMoney).toLocaleString('fr-FR')+' € ÷ '+rhythm.workingSeconds.toLocaleString('fr-FR')+' secondes travaillées/an';
+   if(!useRulers)label.textContent='1 € toutes les '+rhythm.secondsPerEuro.toLocaleString('fr-FR',{maximumFractionDigits:2})+' s · moyenne annuelle '+Math.round(rhythm.meanMoney).toLocaleString('fr-FR')+' € ÷ '+rhythm.workingSeconds.toLocaleString('fr-FR')+' secondes travaillées/an';
    host.dataset.coinInterval=String(rhythm.secondsPerEuro);try{localStorage.setItem('cv-piggy-work-basis-v1',JSON.stringify(config));}catch{}
   };
   configure();daysInput.addEventListener('change',()=>{configure();start();});hoursInput.addEventListener('change',()=>{configure();start();});
@@ -54,10 +55,14 @@ async function mountPiggyBank(host){
   const start=()=>{if(visible&&!document.hidden&&!suspended&&!raf){clearTimeout(timer);timer=0;dirty=true;raf=requestAnimationFrame(paint);}};
   observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;if(visible)start();else freeze();});
   observer.observe(host);document.addEventListener('visibilitychange',()=>{if(document.hidden)freeze();else start();});for(const event of ['film-album-change','project-workshop'])document.addEventListener(event,e=>{suspended=e.detail.open;if(suspended)freeze();else start();});reduced.addEventListener('change',start);
+  const turn=event=>{const v=event.detail;assembly.rotation.y=.35-v.dYaw;assembly.rotation.x=v.dPitch;host.dataset.rotation=String(assembly.rotation.y);host.dataset.tilt=String(assembly.rotation.x);dirty=true;start();};
+  if(useRulers){window.addEventListener('rf-tabview',turn);if(window.__rfTabView&&Number.isFinite(window.__rfTabView.dYaw))turn({detail:window.__rfTabView});}
+  if(!useRulers){
   canvas.addEventListener('pointerdown',e=>{pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);start();});
   canvas.addEventListener('pointermove',e=>{if(!pointer||pointer.id!==e.pointerId)return;if(e.pointerType==='touch'&&Math.abs(e.clientY-pointer.y)>Math.abs(e.clientX-pointer.x))return;assembly.rotation.y+=(e.clientX-pointer.x)*.016;assembly.rotation.x=Math.max(-.35,Math.min(.35,assembly.rotation.x+(e.clientY-pointer.y)*.009));pointer.x=e.clientX;pointer.y=e.clientY;host.dataset.rotation=String(assembly.rotation.y);dirty=true;start();});
   const release=()=>pointer=null;canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
   canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();if(e.key.includes('Left')||e.key.includes('Right'))assembly.rotation.y+=e.key==='ArrowLeft'?-.2:.2;else assembly.rotation.x=Math.max(-.35,Math.min(.35,assembly.rotation.x+(e.key==='ArrowUp'?-.1:.1)));host.dataset.rotation=String(assembly.rotation.y);dirty=true;start();});
-  addEventListener('pagehide',()=>{cancelAnimationFrame(raf);clearTimeout(timer);observer.disconnect();resize.disconnect();renderer.dispose();},{once:true});
+  }
+  addEventListener('pagehide',()=>{window.removeEventListener('rf-tabview',turn);cancelAnimationFrame(raf);clearTimeout(timer);observer.disconnect();resize.disconnect();renderer.dispose();},{once:true});
  }catch(e){canvas.remove();host.dataset.piggy='unavailable';if(status)status.textContent='Tirelire 3D indisponible';renderer?.dispose();console.warn('La tirelire 3D ne peut pas être affichée',e.message);}
 }
