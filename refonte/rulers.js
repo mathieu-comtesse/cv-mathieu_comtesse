@@ -36,6 +36,7 @@ export function initRulers(onView) {
     if (!moved) for (const k of ['r', 't']) lastIdx[k] = Math.floor(curVal(k) / 5);
     document.getElementById('rf-track').style.transform = 'translateY(' + tilt + 'px)';   // les graduations défilent sous le repère fixe
     document.getElementById('rf-track-h').style.transform = 'translateX(' + rot + 'px)';
+    for(const [id,value] of [['rf-ruler',tilt],['rf-ruler-h',rot]]){const el=document.getElementById(id);el.setAttribute('aria-valuemin',String(-LIM));el.setAttribute('aria-valuemax',String(LIM));el.setAttribute('aria-valuenow',String(Math.round(value)));el.setAttribute('aria-valuetext',Math.round(value)===0?'Angle d’origine':Math.round(value)+' graduations');}
     onView({ rot, tilt, yaw: (36 + rot * DEG_PER_PX) * DEG, pitch: (tilt >= 0 ? EL0 + tilt * (82 - EL0) / LIM : EL0 + tilt * (EL0 - 6) / LIM) * DEG });
   }
   function buildTicks(track, horizontal) {
