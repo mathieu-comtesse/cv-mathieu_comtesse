@@ -74,8 +74,9 @@ export function initGainsDashboard() {
     tip.innerHTML = `<span class="gains-tip-kicker">${item.title}${annual ? ' · mois ' + f(fraction * 12, 1) + ' / 12' : item.estimated ? ' · estimé' : ' · volumes fournis'}</span><strong>${f(mean(t) * fraction)} € <small>· ${f(mean(t, 'Hours') * fraction, 1)} h</small></strong><p>${annual ? 'Projection linéaire · moyenne de la fourchette annuelle.' : item.basis}</p><p>Fourchette annuelle : ${range(t, 'Hours')} h · ${range(t, 'Money')} €.</p><p>${detail}</p>${item.id === 'net' ? '<p>Le net retire ' + f(ANNUAL_COST.build + ANNUAL_COST.upkeep) + ' h aux volumes fournis dès le départ dans cette projection ; ce tracé ne décrit pas le calendrier réel des dépenses.</p>' : ''}${item.id === 'total' || item.id === 'gares' ? '<p>' + excludedNote + '</p>' : ''}`;
     // Le net soustrait le coût initial, plutôt que de l'étaler artificiellement dans la courbe.
     if (annual && item.id === 'net') tip.querySelector('strong').innerHTML = f(mean(ANNUAL_DECLARED) * fraction - (ANNUAL_COST.build + ANNUAL_COST.upkeep) * 104.74) + ' € <small>· ' + f(mean(ANNUAL_DECLARED, 'Hours') * fraction - ANNUAL_COST.build - ANNUAL_COST.upkeep, 1) + ' h</small>';
+    const close=document.createElement('button');close.type='button';close.className='gains-tip-close';close.setAttribute('aria-label','Fermer le détail');close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';close.addEventListener('click',()=>{pinned=false;hide();});tip.prepend(close);
     tip.hidden = false;
-    tip.style.left = (fraction > .5 ? 'auto' : '4%'); tip.style.right = (fraction > .5 ? '4%' : 'auto');
+    tip.style.left = (fraction > .5 ? '4%' : 'auto'); tip.style.right = (fraction > .5 ? 'auto' : '4%');
     tip.style.top = (view === 'projects' && index > 3 ? '0' : 'auto'); tip.style.bottom = (view === 'projects' && index > 3 ? 'auto' : '0');
   }
   function interactive(path, item, index) {
