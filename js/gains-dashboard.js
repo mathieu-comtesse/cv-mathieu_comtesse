@@ -47,17 +47,20 @@ export function initGainsDashboard() {
   const days = box.querySelector('[data-working-days]'), hours = box.querySelector('[data-working-hours]');
   days.value = config.days; hours.value = config.hours;
   function rhythm() {
-    if (!days.checkValidity() || !hours.checkValidity()) return;
+    if (!days.checkValidity() || !hours.checkValidity() || +days.value < 1 || +hours.value < 1) return;
     config = { days: +days.value, hours: +hours.value };
     const r = euroCoinRhythm(ANNUAL_DECLARED, config.days, config.hours);
     box.querySelector('[data-rhythm-short]').textContent = f(r.secondsPerEuro, 2) + ' s';
     box.querySelector('[data-coin-rate]').textContent = 'Rythme des pièces · 1 € / ' + f(r.secondsPerEuro, 2) + ' s';
     try { localStorage.setItem('cv-piggy-work-basis-v1', JSON.stringify(config)); } catch {}
   }
-  days.addEventListener('change', rhythm); hours.addEventListener('change', rhythm); rhythm();
+  for(const event of ['input','change']){days.addEventListener(event,rhythm);hours.addEventListener(event,rhythm);} rhythm();
   initPiggyBank(box.querySelector('.annual-pig-wrap'));
+  const subjectObserver=new IntersectionObserver(([entry])=>document.body.classList.toggle('gains-subject-visible',entry.isIntersecting));
+  subjectObserver.observe(box.querySelector('.annual-pig-wrap'));
+  addEventListener('pagehide',()=>subjectObserver.disconnect(),{once:true});
   const series = [
-    { id: 'declared', title: 'Volumes fournis', total: ANNUAL_DECLARED, color: '#a5c8ff', note: 'Le total en tête de page compte uniquement les volumes fournis. Heures cumulées entre tâches et équipes, et non temps de travail d’une seule personne. Un poste = 225 jours de 7 h. Les gains quotidiens reposent sur 225 jours/an. Les montants valorisent du temps libéré, sans encaissement.' },
+    { id: 'declared', title: 'Volumes fournis', total: ANNUAL_DECLARED, color: '#a5c8ff', note: 'Le total en tête de page compte uniquement les volumes fournis. Heures cumulées entre tâches et équipes, et non temps de travail d’une seule personne. Un poste = 225 jours de 7 h. Les gains quotidiens reposent sur 225 jours/an. Les montants valorisent du temps libéré, sans encaissement. L’effet cascade réduit aussi l’attente, les recherches et les ressaisies entre équipes ; aucun multiplicateur n’est appliqué.' },
     { id: 'total', title: 'Avec estimations', total: ANNUAL_TOTAL, color: '#ad9ce8', dashed: true, note: 'Ajoute la capacité théorique de l’extracteur VRE et les consultations supposées de PP & MOSO et Gares prioritaires. Ces estimations restent séparées des volumes fournis.' },
     { id: 'net', title: 'Net · année 1', total: ANNUAL_NET, color: '#83d8c3', note: costNote }
   ];

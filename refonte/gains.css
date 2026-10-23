@@ -1,4 +1,6 @@
 .rf-gx-page .gx-main{width:min(1000px,calc(100% - 64px));padding-bottom:64px}
+.rf-gx-page .rf-stage::after{background:rgb(3 6 14 / .9)}
+.rf-gx-page:not(.gains-subject-visible) .rf-ruler{visibility:hidden}
 .rf-gx-page .gains-heading{display:block!important}
 .rf-gx-page .gains-heading .annual-gains{display:flex;flex-direction:column;align-items:center;gap:0}
 .rf-gx-page .gains-heading .annual-pig-wrap{width:300px;height:280px;margin:0 auto 12px;order:0}
@@ -44,3 +46,4 @@
 .gains-method [data-coin-rate]{margin-left:auto;font-size:12px}
 @media(max-width:600px){.rf-gx-page .gx-main{width:calc(100% - 40px)}.gains-stats{margin:28px 0 36px;padding:20px 0;grid-template-columns:1fr 1fr}.gains-stats>div{padding:0 8px}.gains-stats>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid #a5c8ff30;margin-top:20px;padding-top:16px}.gains-stats strong{font-size:25px}.gains-chart-head{align-items:flex-start;flex-direction:column;gap:8px}.gains-svg{min-height:250px}.gains-tip{font-size:12px;max-height:300px;padding:14px}.gains-legend{gap:12px}.gains-method [data-coin-rate]{margin-left:0;width:100%}.gains-hint{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.gains-hit{transition:none}}
+@media(max-width:600px){.gains-svg text{font-size:14px}}

@@ -36,7 +36,7 @@ async function mountPiggyBank(host){
    if(!useRulers)label.textContent='1 € toutes les '+rhythm.secondsPerEuro.toLocaleString('fr-FR',{maximumFractionDigits:2})+' s · moyenne annuelle '+Math.round(rhythm.meanMoney).toLocaleString('fr-FR')+' € ÷ '+rhythm.workingSeconds.toLocaleString('fr-FR')+' secondes travaillées/an';
    host.dataset.coinInterval=String(rhythm.secondsPerEuro);try{localStorage.setItem('cv-piggy-work-basis-v1',JSON.stringify(config));}catch{}
   };
-  configure();daysInput.addEventListener('change',()=>{configure();start();});hoursInput.addEventListener('change',()=>{configure();start();});
+  configure();for(const event of ['input','change']){daysInput.addEventListener(event,()=>{configure();start();});hoursInput.addEventListener(event,()=>{configure();start();});}
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const paint=now=>{
    raf=0;timer=0;if(!visible||document.hidden||suspended)return;
