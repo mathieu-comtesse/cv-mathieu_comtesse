@@ -3,5 +3,5 @@ import './footer.js';
 import './navfx.js';
 import './tabview.js?v=gains-20261023';
 
-import { initGainsDashboard } from '../js/gains-dashboard.js?v=gains-20261023';
+import { initGainsDashboard } from '../js/gains-dashboard.js?v=gains-20261023b';
 initGainsDashboard();

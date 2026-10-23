@@ -31,7 +31,7 @@ async function mountPiggyBank(host){
   daysInput.value=config.days;hoursInput.value=config.hours;
   let rhythm,activeSeconds=0,nextCoin=0,dropStart=-10,visible=false,last=0,previousPaint=0,frames=0,pointer=null;
   const configure=()=>{
-   const days=Number(daysInput.value),hours=Number(hoursInput.value);if(days<1||days>366||hours<1||hours>24)return;
+   const days=Number(daysInput.value),hours=Number(hoursInput.value);if(!daysInput.checkValidity()||!hoursInput.checkValidity()||days<1||days>366||hours<1||hours>24)return;
    config={days,hours};rhythm=euroCoinRhythm(ANNUAL_DECLARED,days,hours);nextCoin=activeSeconds+rhythm.secondsPerEuro;
    if(!useRulers)label.textContent='1 € toutes les '+rhythm.secondsPerEuro.toLocaleString('fr-FR',{maximumFractionDigits:2})+' s · moyenne annuelle '+Math.round(rhythm.meanMoney).toLocaleString('fr-FR')+' € ÷ '+rhythm.workingSeconds.toLocaleString('fr-FR')+' secondes travaillées/an';
    host.dataset.coinInterval=String(rhythm.secondsPerEuro);try{localStorage.setItem('cv-piggy-work-basis-v1',JSON.stringify(config));}catch{}
