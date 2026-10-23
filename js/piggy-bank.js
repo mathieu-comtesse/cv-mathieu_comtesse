@@ -27,7 +27,7 @@ async function mountPiggyBank(host){
   host.dataset.piggy='ready';status?.remove();host.dataset.model='piggy-bank-user';host.dataset.slotLength=String(slot.userData.slotLength);host.dataset.slotWidth=String(slot.userData.slotWidth);host.dataset.coinDiameter=String(slot.userData.coinDiameter);host.dataset.coinThickness=String(.009254978*.50/.17);
   const resize=new ResizeObserver(()=>{const width=host.clientWidth,height=300;renderer.setSize(width,height,false);const horizontal=1.75;camera.left=-horizontal;camera.right=horizontal;camera.top=horizontal*height/width;camera.bottom=-camera.top;camera.updateProjectionMatrix();dirty=true;start();});resize.observe(host);host.dataset.coinAsset='one-euro-coin-user.glb';
   const box=host.closest('.annual-gains'),label=box.querySelector('[data-coin-rate]'),daysInput=box.querySelector('[data-working-days]'),hoursInput=box.querySelector('[data-working-hours]');
-  let config={days:225,hours:7};try{const stored=JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')||'null');if(stored&&stored.days>=1&&stored.days<=366&&stored.hours>=1&&stored.hours<=24)config=stored;}catch{}
+  let config={days:225,hours:7};try{const stored=JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')||'null');if(stored&&Number.isInteger(stored.days)&&Number.isInteger(stored.hours*2)&&stored.days>=1&&stored.days<=366&&stored.hours>=1&&stored.hours<=24)config=stored;}catch{}
   daysInput.value=config.days;hoursInput.value=config.hours;
   let rhythm,activeSeconds=0,nextCoin=0,dropStart=-10,visible=false,last=0,previousPaint=0,frames=0,pointer=null;
   const configure=()=>{

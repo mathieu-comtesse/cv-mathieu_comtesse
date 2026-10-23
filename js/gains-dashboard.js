@@ -43,7 +43,7 @@ export function initGainsDashboard() {
   const box = head.querySelector('.annual-gains'), svg = box.querySelector('svg'), tip = box.querySelector('.gains-tip');
   const legend = box.querySelector('.gains-legend');
   let config = { days: 225, hours: 7 };
-  try { const s = JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')); if (s?.days >= 1 && s.days <= 366 && s.hours >= 1 && s.hours <= 24) config = s; } catch {}
+  try { const s = JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')); if (s&&Number.isInteger(s.days)&&Number.isInteger(s.hours*2)&&s.days >= 1 && s.days <= 366 && s.hours >= 1 && s.hours <= 24) config = s; } catch {}
   const days = box.querySelector('[data-working-days]'), hours = box.querySelector('[data-working-hours]');
   days.value = config.days; hours.value = config.hours;
   function rhythm() {
