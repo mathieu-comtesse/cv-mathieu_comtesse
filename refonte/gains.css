@@ -46,4 +46,4 @@
 .gains-method [data-coin-rate]{margin-left:auto;font-size:12px}
 @media(max-width:600px){.rf-gx-page .gx-main{width:calc(100% - 40px)}.gains-stats{margin:28px 0 36px;padding:20px 0;grid-template-columns:1fr 1fr}.gains-stats>div{padding:0 8px}.gains-stats>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid #a5c8ff30;margin-top:20px;padding-top:16px}.gains-stats strong{font-size:25px}.gains-chart-head{align-items:flex-start;flex-direction:column;gap:8px}.gains-svg{min-height:250px}.gains-tip{font-size:12px;max-height:300px;padding:14px}.gains-legend{gap:12px}.gains-method [data-coin-rate]{margin-left:0;width:100%}.gains-hint{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.gains-hit{transition:none}}
-@media(max-width:600px){.gains-svg text{font-size:14px}}
+@media(max-width:600px){.gains-svg text{font-size:14px}.gains-hit,.gains-hit:focus-visible,.gains-hit.is-active{stroke-width:58}.gains-hit.is-active{stroke-opacity:.08}}

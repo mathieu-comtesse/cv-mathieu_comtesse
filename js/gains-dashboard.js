@@ -133,6 +133,21 @@ export function initGainsDashboard() {
   }
   box.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => { view = button.dataset.view; box.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b === button))); render(); }));
   box.querySelector('.gains-plot').addEventListener('pointerleave', hide);
+  // Choisir la courbe la plus proche, même lorsque les zones de survol du brut et du net se chevauchent.
+  function nearestCurve(event,pin=false){
+    if(view!=='year')return;
+    const point=new DOMPoint(event.clientX,event.clientY).matrixTransform(svg.getScreenCTM().inverse());
+    const mobile=svg.viewBox.baseVal.width===360,start=mobile?44:66,span=mobile?300:700;
+    const fraction=Math.max(0,Math.min(1,(point.x-start)/span));
+    const choices=series.map((item,index)=>{const cost=item.id==='net'?(ANNUAL_COST.build+ANNUAL_COST.upkeep)*104.74:0;
+      const total=item.id==='net'?mean(ANNUAL_DECLARED):mean(item.total),y=322-(total*fraction-cost)/1000000*282;
+      return {item,index,distance:Math.abs(point.y-y)/Math.hypot(1,total/1000000*282/span)};
+    }).sort((a,b)=>a.distance-b.distance);
+    if(choices[0].distance>20)return;
+    const {item,index}=choices[0];pinned=pin;show(item,fraction,index,svg.querySelector('[data-series="'+item.id+'"]'));
+  }
+  svg.addEventListener('pointermove',event=>nearestCurve(event));
+  svg.addEventListener('click',event=>nearestCurve(event,true));
   tip.addEventListener('pointerenter', () => { pinned = true; });
   document.addEventListener('pointerdown', e => { if (!e.target.closest('.gains-plot')) { pinned = false; hide(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { pinned = false; hide(); } });
