@@ -38,7 +38,7 @@
     font-family:'Google Sans Code', 'Courier New',monospace;font-size:11px;
     font-weight:500;line-height:1;}
   #th-intro-ring > span {position:absolute;top:50%;left:50%;display:block;white-space:pre;
-    transform:translate(-50%,-50%) rotate(calc(var(--i) * 6deg)) translateY(-76px);
+    transform:translate(-50%,-50%) rotate(calc(var(--i) * 360deg / var(--n,60))) translateY(-76px);
     transform-origin:center center;}
   @keyframes th-spin {from{rotate:0deg}to{rotate:-360deg}}
   /* These normalized intermediate scaleY values come from the supplied trace. */
@@ -94,7 +94,8 @@
     ring.id = 'th-intro-ring';
     ring.setAttribute('aria-hidden','true');
     // Six repetitions, sixty letters, exactly as observed in the DOM trace.
-    const letters = opts.text.repeat(Math.max(1, Math.round(60 / opts.text.length))).slice(0, 60);
+    const letters = opts.text.repeat(Math.max(1, Math.round(60 / opts.text.length)));   // le motif est répété en entier : les lettres se répartissent sur tout le cercle, sans trou
+    ring.style.setProperty('--n', letters.length);
     for (let i=0; i<letters.length; i++) {
       const span = document.createElement('span');
       span.style.setProperty('--i', i);

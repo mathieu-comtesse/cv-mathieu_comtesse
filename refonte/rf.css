@@ -872,7 +872,7 @@ html body.rf-article{background:#080b0f}
 .rf-art-ol li{position:relative;padding-left:32px;font:400 17px/1.65 var(--rf-sans);color:#c4cee2;counter-increment:num}
 .rf-art-ol li::before{content:counter(num) ".";position:absolute;left:0;top:0;color:#5b8cff;font-variant-numeric:tabular-nums}
 .rf-callout{margin:26px 0;padding:16px 20px;border:1px solid rgb(171 181 199 / .22);border-radius:12px;background:rgb(255 255 255 / .02)}
-.rf-callout--note{--cl:#5b8cff}.rf-callout--caution{--cl:#e8a33d}.rf-callout--docs{--cl:#8795ad}
+.rf-callout--note{--cl:#5b8cff}.rf-callout--docs{--cl:#8795ad}
 .rf-article .rf-post-body .rf-callout p{margin:0 0 8px;font-size:15.5px;line-height:1.65;color:#c4cee2}
 .rf-article .rf-post-body .rf-callout p.rf-callout-t{margin:0 0 6px;font:500 12px/1.3 var(--rf-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cl)}
 .rf-callout ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:6px}
@@ -886,3 +886,18 @@ html body.rf-article{background:#080b0f}
 /* études : l'objet animé sur le plan blueprint (comme les pages projet), voile sombre progressif pour la lecture */
 .rf-article .rf-stage::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:rgb(3 6 14 / var(--veil,0))}
 .rf-article .rf-post-fig{margin-bottom:0}
+
+/* téléphone : études, tirelire et pages d'onglet plus compacts */
+@media (max-width:640px){
+  .rf-article .rf-post-body p{font-size:16px;line-height:1.65}
+  .rf-article .rf-post-body p.rf-lede{font-size:19px}
+  .rf-article .rf-post-body h2{font-size:21px;margin-top:44px}
+  .rf-code code{font-size:11.5px}
+  .rf-code .ln{padding:0 12px 0 40px}
+  .rf-code .ln::before{width:28px}
+  .rf-toc{padding:14px 16px}
+  .rf-callout{padding:14px 16px}
+  .rf-art-table th,.rf-art-table td{padding:10px 12px}
+  .gx-main{width:calc(100% - 28px)}
+  .rf-gx-page .rf-tirelire .annual-pig-wrap{max-width:100%}
+}
