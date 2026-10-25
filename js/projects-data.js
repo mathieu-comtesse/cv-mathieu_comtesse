@@ -435,7 +435,7 @@ PRO_CARDS.find(p=>p.id==='powerbi').extraGains=[
 const T = (lang, outils, methode, dernier) => [['Langages', lang], ['Outils', outils], ['Méthode', methode], dernier];
 const TECH = {
   lettres: T('HTML, JavaScript', 'SVG, filtres de bruit, animation image par image', 'Chaque lettre est construite par le code : pièces extrudées, hachures, mouvement', ['Export', 'SVG ou PNG, mot au choix']),
-  talas: [['Langages', 'HTML, CSS et JavaScript, sans framework'], ['Outils', 'Three.js r128 (shaders de rendu peint), Canvas 2D, Web Audio'], ['Méthode', 'Un atelier par chapitre ISO 45001, choix qui se répercutent en effets domino'], ['Équipe', 'Scénario coproduit avec Eliott, Dylan, Mathilde, Georges, Neila et Lorette']],
+  talas: [['Moteur', 'Unity 6 · rendu WebGL 2 avec Universal Render Pipeline'], ['Interactions', 'Déplacements, dialogues, fabrication, missions et navigation partagent la même simulation sur ordinateur et en mode tactile'], ['Pédagogie', 'Observer, consulter, agir et vérifier : une mise en situation des principes de prévention et du cycle PDCA'], ['Personnages', 'Dylan, Mathieu, Aurélien, Georges, Eliott, Mathilde, Lorette, Neila, Alban et Milena']],
   atlas: T('HTML, CSS, JavaScript', 'Three.js, modèles Blender, Canvas 2D', 'Un bâtiment par étape du parcours, sur un archipel 3D', ['Livraison', 'Navigateur, progression gardée en local']),
   labyrinthe: T('HTML, CSS, JavaScript', 'Canvas 2D', 'Lignes de visée : seul ce qui est vu se révèle', ['Modes', 'Exploration manuelle ou automatique']),
   route: T('HTML, JavaScript, GLSL', 'Three.js, modèles GLB (Blender), Web Audio', 'Trafic simulé avec collisions, même trajet comparé', ['Livraison', '3D temps réel dans le navigateur']),
@@ -448,7 +448,7 @@ const TECH = {
   gouache: T('JavaScript, GLSL', 'Three.js, shaders, instanciation, Lively Wallpaper', 'Poissons, herbes et bulles animés, nourrissage au clic', ['Livraison', 'Fond d’écran animé pour Windows']),
 };
 
-export const UNIV = { id: 'talas', title: 'Village Talas', sub: 'Jeu sérieux ISO 45001', img: 'assets/projets/talas.jpg?v=bf01a16', url: 'village-talas-scene.html', desc: 'Sept ateliers, un par chapitre de l’ISO 45001, et une dizaine de mini-jeux dans un village en 3D : on apprend la norme en agissant plutôt qu’en lisant.', diag: TECH.talas };
+export const UNIV = { id: 'talas', title: 'UNGA BUNGA 45001', sub: 'Jeu ISO 45001', img: 'assets/projets/unga-bunga-45001.webp?v=8', url: 'unga-bunga-45001/', desc: 'Dylan découvre le village des Crânes Fendus, accompagné de Mathieu, son mentor. Dans cette aventure préhistorique en 3D, la prévention passe par des gestes concrets : observer un danger, consulter les habitants, préparer une intervention et vérifier les protections.', desc2: 'Six écrans (Peuple, Carte, Inventaire, Technologie, Quêtes et Codex) relient la gestion du village aux décisions de prévention. Les habitants reçoivent des tâches, rejoignent leur poste et réalisent leur travail, et les ateliers évoluent avec l’arbre de connaissances qui donne du sens aux principes de l’ISO 45001.', play: 'Le jeu propose des commandes au clavier et à la souris ainsi qu’une interface tactile en mode paysage. La sauvegarde reste dans le navigateur utilisé. La campagne est conçue pour une session de 45 minutes et peut être reprise.', diag: TECH.talas };
 
 export const PERSO_CARDS = PERSO.map((p) => ({ id: p.id, title: p.n, sub: p.genre, desc: p.desc, img: p.img, url: p.url, cta: p.cta, pixel: p.pixel !== false, diag: TECH[p.id] || [] }));
 export { CV };

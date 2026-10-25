@@ -4,7 +4,7 @@
 .rf-gx-page .gains-heading{display:block!important}
 .rf-gx-page .gains-heading .annual-gains{display:flex;flex-direction:column;align-items:center;gap:0}
 .rf-gx-page .gains-heading .annual-pig-wrap{width:300px;height:280px;margin:0 auto 12px;order:0}
-.rf-gx-page .gains-heading canvas.piggy-3d{cursor:default;touch-action:pan-y;height:280px!important}
+.rf-gx-page .gains-heading canvas.piggy-3d{cursor:default;touch-action:pan-y}
 .gains-intro{text-align:center}
 .gains-eyebrow{color:#a5b9d7;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
 .gains-intro h1{font-size:clamp(28px,4vw,42px);font-weight:550;letter-spacing:-1.3px;margin:12px 0 8px;line-height:1.15}
