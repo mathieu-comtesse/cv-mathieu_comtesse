@@ -53,7 +53,7 @@ function fanGeo() {
   const g = new THREE.ShapeGeometry(s, 4); g.translate(0, -0.5, 0); return g;
 }
 
-export function makeTree(species, seed = 1, H = 2, season = '') {
+function makeTreeProc(species, seed = 1, H = 2, season = '') {
   const sp = SPECIES[species], r = rng(seed), g = group(); g.name = 'GardenTree'; g.userData.tree = true; g.userData.generated = true;
   const geos = [], tips = [], V = (x, y, z) => new THREE.Vector3(x, y, z);
   const lod = typeof matchMedia === 'function' && matchMedia('(max-width:809px)').matches ? 0.6 : 1;
@@ -154,3 +154,70 @@ export function makeTree(species, seed = 1, H = 2, season = '') {
   g.scale.setScalar(Math.min(1.2, H / hh, (H * wide) / ww));
   return g;
 }
+
+/* ───────────── Arbres du moteur d'arbres (rendus à fond transparent) ─────────────
+ * Chaque espèce existe en quatre saisons : des images à fond transparent (assets/trees/*.webp) tirées du moteur d'arbres public
+ * de metalforge.xyz/tree (utilisé avec l'autorisation de Mathieu). L'arbre reste face à la caméra, ondule dans le vent et pose une ombre douce.
+ * Le vent est aléatoire (rafales d'intensité et de durée variables) et chaque arbre change de saison au hasard, en fondu.
+ * Si les images ne chargent pas, l'arbre procédural ci-dessus sert de secours. */
+const SPR = { cherry: [455, 317], weeping: [397, 397], ginkgo: [327, 445], maple: [362, 358], pine: [370, 417] };   // largeur × hauteur de l'image
+const SEASON_LIST = ['spring', 'summer', 'autumn', 'winter'];
+export const treeTint = new THREE.Color(1, 1, 1);   // atténué la nuit par le jardin
+const sprTex = new Map(), sprLoader = new THREE.TextureLoader();
+const sprTexture = (species, season) => {
+  const key = species + '_' + season;
+  if (!sprTex.has(key)) { const t = sprLoader.load(new URL('../assets/trees/' + key + '.webp', import.meta.url).href); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; sprTex.set(key, t); }
+  return sprTex.get(key);
+};
+let blob = null;
+const blobTexture = () => {
+  if (blob) return blob;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 2, 32, 32, 32);
+  g.addColorStop(0, 'rgba(10,20,10,.5)'); g.addColorStop(1, 'rgba(10,20,10,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  blob = new THREE.CanvasTexture(c); blob.colorSpace = THREE.SRGBColorSpace; return blob;
+};
+
+/** vent aléatoire commun au jardin : une intensité cible tirée au hasard toutes les quelques secondes, lissée, avec de brèves rafales */
+const wind = { v: 0.5, target: 0.5, next: 0, gust: 0, frame: -1 };
+const stepWind = (now) => {
+  if (wind.frame === now) return; const dt = Math.min(0.1, wind.frame < 0 ? 0.016 : now - wind.frame); wind.frame = now;
+  if (now > wind.next) { wind.target = Math.random() < 0.22 ? 1.1 + Math.random() * 0.9 : 0.08 + Math.random() * 0.75; wind.next = now + 3 + Math.random() * 11; }
+  wind.v += (wind.target - wind.v) * Math.min(1, dt * 0.6);
+};
+
+const SPR_VS = [
+  'uniform float uTime, uWind, uPhase;', 'varying vec2 vUv;',
+  'void main(){ vUv = uv; vec3 p = position; float up = clamp(uv.y, 0.0, 1.0);',
+  '  p.x += (sin(uTime * (1.1 + uWind * 1.3) + uPhase + up * 2.2) * 0.04 + sin(uTime * 2.7 + uPhase * 1.7 + up * 5.0) * 0.012 * uWind) * (0.35 + uWind) * up * up;',
+  '  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }'
+].join('\n');
+const SPR_FS = [
+  'uniform sampler2D mapA, mapB; uniform float uMix; uniform vec3 uTint; varying vec2 vUv;',
+  'void main(){ vec4 c = mix(texture2D(mapA, vUv), texture2D(mapB, vUv), uMix); if (c.a < 0.4) discard;',
+  '  gl_FragColor = vec4(c.rgb * uTint, 1.0);', '  #include <colorspace_fragment>', '}'
+].join('\n');
+
+export function makeTree(species, seed = 1, H = 2, season = '') {
+  const dim = SPR[species];
+  if (!dim) return makeTreeProc(species, seed, H, season);
+  const g = group(); g.name = 'GardenTree'; g.userData.tree = true;
+  const h = H * 1.12, w = h * dim[0] / dim[1], flip = Math.random() < 0.5 ? 1 : -1;
+  let cur = Math.max(0, SEASON_LIST.indexOf(season)); if (season === '' || cur < 0) cur = (Math.random() * 4) | 0;
+  let nxt = cur, mix = 0, fading = false, change = performance.now() / 1000 + 8 + Math.random() * 40;   // premier changement de saison au bout d'un temps aléatoire
+  const uni = { mapA: { value: sprTexture(species, SEASON_LIST[cur]) }, mapB: { value: sprTexture(species, SEASON_LIST[cur]) }, uMix: { value: 0 }, uTint: { value: treeTint }, uTime: treeTimeU, uWind: { value: 0.5 }, uPhase: { value: Math.random() * 6.28 } };
+  const mat = new THREE.ShaderMaterial({ uniforms: uni, vertexShader: SPR_VS, fragmentShader: SPR_FS, side: THREE.DoubleSide });
+  const geo = new THREE.PlaneGeometry(w, h, 1, 1); geo.translate(0, h / 2, 0);
+  const m = new THREE.Mesh(geo, mat); m.scale.x = flip; m.frustumCulled = true;
+  m.onBeforeRender = (r, sc, cam) => {
+    const now = performance.now() / 1000; stepWind(now);
+    uni.uWind.value = wind.v * (0.75 + 0.5 * Math.sin(now * 0.31 + uni.uPhase.value));   // chaque arbre réagit un peu différemment
+    m.parent.getWorldPosition(_p); m.rotation.y = Math.atan2(cam.position.x - _p.x, cam.position.z - _p.z) - m.parent.rotation.y;
+    if (!fading && now > change) { do { nxt = (Math.random() * 4) | 0; } while (nxt === cur); uni.mapB.value = sprTexture(species, SEASON_LIST[nxt]); fading = true; mix = 0; }
+    if (fading) { mix = Math.min(1, mix + 0.016 / 4.5); uni.uMix.value = mix; if (mix >= 1) { cur = nxt; uni.mapA.value = uni.mapB.value; uni.uMix.value = 0; fading = false; change = now + 15 + Math.random() * 60; } }
+  };
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.7, w * 0.42), new THREE.MeshBasicMaterial({ map: blobTexture(), transparent: true, depthWrite: false }));
+  sh.rotation.x = -Math.PI / 2; sh.position.y = 0.012; sh.renderOrder = -1;
+  g.add(sh, m);
+  return g;
+}
+const _p = new THREE.Vector3(), treeTimeU = treeTime;
