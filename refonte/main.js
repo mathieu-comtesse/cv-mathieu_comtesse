@@ -2,7 +2,7 @@
 // puis présentation « About » qui se fige un moment (paragraphes révélés en suivant le défilement), signature, tirelire,
 // sections, contact. Le blog vit dans sa propre page (blog).
 import * as THREE from 'three';
-import { createRoom } from '../js/room.js?v=monde-20261026';
+import { createRoom } from '../js/room.js?v=spr-20261028';
 import { initUI } from '../js/ui.js?v=cv-monde3d-23';
 import { initHome } from '../js/home.js?v=cv-light-v23';
 import { initBlueprint } from './blueprint-hero.js';
