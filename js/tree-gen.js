@@ -25,12 +25,27 @@ function tube(pts, r0, r1, rad) {
 
 /** réglages par espèce : tronc, charpente, feuillage */
 const SPECIES = {
-  cherry: { trunk: 0.36, trunkR: 0.05, prim: [4, 5], primAngle: [0.7, 1.0], primLen: [0.42, 0.56], kids: 3, kidAngle: 0.75, kidLen: 0.62, depth: 2, wob: 0.28, droop: 0.15, puffs: 5, puffR: 0.16, puff: 0.1, flat: 0.8, bark: '#4a3a33', colors: ['#f6b8cb', '#f9d3df', '#ee9db8', '#fbe4ec'] },
-  maple: { trunk: 0.3, trunkR: 0.045, prim: [3, 4], primAngle: [0.55, 0.85], primLen: [0.5, 0.62], kids: 3, kidAngle: 0.9, kidLen: 0.6, depth: 2, wob: 0.3, droop: 0.1, puffs: 9, puffR: 0.2, puff: 0.11, flat: 0.62, bark: '#5a4636', colors: ['#c9462b', '#e0713a', '#b8352a', '#d9822f'] },
-  weeping: { trunk: 0.3, trunkR: 0.05, prim: [5, 5], primAngle: [0.3, 0.55], primLen: [0.4, 0.5], kids: 3, kidAngle: 0.5, kidLen: 0.55, depth: 2, wob: 0.22, droop: 1.5, puffs: 3, puffR: 0.1, puff: 0.085, flat: 1, bark: '#43342d', colors: ['#f4b3c7', '#f8cfdc', '#e98fae', '#fbe0e9'], hang: 3 },
-  ginkgo: { trunk: 0.9, trunkR: 0.045, levels: 13, levelLen: [0.2, 0.34], kidAngle: 0.5, wob: 0.12, droop: 0.05, puffs: 14, puffR: 0.15, puff: 0.12, flat: 0.5, bark: '#6a5a45', colors: ['#e6c84a', '#f0d95c', '#c9a92f', '#d9b93b'], fan: true },
-  pine: { trunk: 0.9, trunkR: 0.06, whorls: 5, wob: 0.1, droop: 0.22, puffs: 9, puffR: 0.2, puff: 0.15, flat: 0.34, bark: '#5b4332', colors: ['#2f5a37', '#3a6a42', '#27503a', '#45774a'] },
+  cherry: { trunk: 0.36, trunkR: 0.05, prim: [4, 5], primAngle: [0.7, 1.0], primLen: [0.42, 0.56], kids: 3, kidAngle: 0.75, kidLen: 0.62, depth: 2, wob: 0.28, droop: 0.15, puffs: 5, puffR: 0.16, puff: 0.1, leaf: 0.095, flat: 0.8, bark: '#4a3a33', colors: ['#f6b8cb', '#f9d3df', '#ee9db8', '#fbe4ec'] },
+  maple: { trunk: 0.3, trunkR: 0.045, prim: [3, 4], primAngle: [0.55, 0.85], primLen: [0.5, 0.62], kids: 3, kidAngle: 0.9, kidLen: 0.6, depth: 2, wob: 0.3, droop: 0.1, puffs: 9, puffR: 0.2, puff: 0.11, leaf: 0.1, flat: 0.62, bark: '#5a4636', colors: ['#c9462b', '#e0713a', '#b8352a', '#d9822f'] },
+  weeping: { trunk: 0.3, trunkR: 0.05, prim: [5, 5], primAngle: [0.3, 0.55], primLen: [0.4, 0.5], kids: 3, kidAngle: 0.5, kidLen: 0.55, depth: 2, wob: 0.22, droop: 1.5, puffs: 2, puffR: 0.08, puff: 0.07, leaf: 0.07, flat: 1, bark: '#43342d', colors: ['#f4b3c7', '#f8cfdc', '#e98fae', '#fbe0e9'], hang: 7 },
+  ginkgo: { trunk: 0.9, trunkR: 0.045, levels: 13, levelLen: [0.2, 0.34], kidAngle: 0.5, wob: 0.12, droop: 0.05, puffs: 14, puffR: 0.15, puff: 0.12, leaf: 0.12, flat: 0.5, bark: '#6a5a45', colors: ['#e6c84a', '#f0d95c', '#c9a92f', '#d9b93b'], fan: true },
+  pine: { trunk: 0.9, trunkR: 0.06, whorls: 4, wob: 0.1, droop: 0.2, puffs: 6, puffR: 0.12, puff: 0.13, leaf: 0.085, flat: 0.2, bark: '#5b4332', colors: ['#2f5a37', '#3a6a42', '#27503a', '#45774a'] },
 };
+
+/** palettes par saison : le même arbre, quatre ambiances */
+const SEASONS = {
+  spring: { default: ['#9bd16a', '#7fc05a', '#b6e07f', '#8fcf6e'], cherry: ['#f6b8cb', '#f9d3df', '#ee9db8', '#e8a6c8'], weeping: ['#f4b3c7', '#f8cfdc', '#e98fae', '#e8a6c8'] },
+  summer: ['#2f7d4f', '#3f9a5c', '#58b070', '#2a6a45'],
+  autumn: { default: ['#e07b2a', '#f0a030', '#c9602a', '#f5c04a'], maple: ['#c9462b', '#e0713a', '#b8352a', '#d9822f'], ginkgo: ['#e6c84a', '#f0d95c', '#c9a92f', '#d9b93b'] },
+  winter: ['#f4f8ff', '#e2ecfb', '#ffffff', '#cfdcf2'],
+};
+const paletteOf = (sp, species, season) => { const S = SEASONS[season]; if (!S) return sp.colors; return Array.isArray(S) ? S : (S[species] || S.default); };
+
+/** petite feuille en losange (cerisier, érable, pin, saule) */
+function leafGeo() {
+  const g = new THREE.BufferGeometry();   // losange à deux triangles : le moins cher possible pour des milliers d'instances
+  g.setAttribute('position', new THREE.Float32BufferAttribute([0, -0.5, 0, 0.42, 0, 0, 0, 0.5, 0, -0.42, 0, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); g.computeVertexNormals(); return g;
+}
 
 /** feuille en éventail (ginkgo) */
 function fanGeo() {
@@ -38,7 +53,7 @@ function fanGeo() {
   const g = new THREE.ShapeGeometry(s, 4); g.translate(0, -0.5, 0); return g;
 }
 
-export function makeTree(species, seed = 1, H = 2) {
+export function makeTree(species, seed = 1, H = 2, season = '') {
   const sp = SPECIES[species], r = rng(seed), g = group(); g.name = 'GardenTree'; g.userData.tree = true; g.userData.generated = true;
   const geos = [], tips = [], V = (x, y, z) => new THREE.Vector3(x, y, z);
   const lod = typeof matchMedia === 'function' && matchMedia('(max-width:809px)').matches ? 0.6 : 1;
@@ -69,7 +84,7 @@ export function makeTree(species, seed = 1, H = 2) {
     // pin : tronc haut, étages de branches en verticilles (silhouette conique), un sommet
     const total = H - trunkH * 0.35;
     for (let w = 0; w < sp.whorls; w++) {
-      const t = w / (sp.whorls - 1), y = trunkH * 0.3 + total * (0.12 + 0.8 * t) * 0.92, len = (0.62 - 0.4 * t) * H * 0.42, nb = 5 - (w > 2 ? 1 : 0), off = r() * TAU;
+      const t = w / (sp.whorls - 1), y = trunkH * 0.3 + total * (0.12 + 0.8 * t) * 0.92, len = (0.78 - 0.5 * t) * H * 0.42, nb = 5 - (w > 1 ? 1 : 0), off = r() * TAU;
       for (let b = 0; b < nb; b++) { const a = off + (b / nb) * TAU + (r() - 0.5) * 0.4, base = V(0, y, 0); limb(base, V(Math.cos(a), 0.18, Math.sin(a)), len, 0.018 * (1 - 0.5 * t), 0, sp.droop); }
     }
     tips.push({ p: V(top.x, H * 0.97, top.z), d: V(0, 1, 0), w: 1.4 });
@@ -99,12 +114,12 @@ export function makeTree(species, seed = 1, H = 2) {
       const o = V((r() - 0.5) * 2, (r() - 0.5) * 1.4, (r() - 0.5) * 2).multiplyScalar(sp.puffR * (tip.w || 1));
       clusters.push({ p: tip.p.clone().add(o), s: sp.puff * (0.7 + 0.7 * r()) * (tip.w || 1) });
     }
-    for (let h = 0; h < (sp.hang || 0) && lod > 0.7; h++) for (let k = 1; k <= 5; k++) clusters.push({ p: tip.p.clone().add(V((r() - 0.5) * 0.08, -0.11 * k - r() * 0.04, (r() - 0.5) * 0.08)), s: sp.puff * (0.85 - 0.1 * k) });
+    for (let h = 0; h < (sp.hang || 0) && lod > 0.7; h++) for (let k = 1; k <= 7; k++) clusters.push({ p: tip.p.clone().add(V((r() - 0.5) * 0.16 + (h - 3) * 0.05, -0.12 * k - r() * 0.03, (r() - 0.5) * 0.16)), s: sp.puff * Math.max(0.3, 0.62 - 0.05 * k) });
   }
   const bark = new THREE.Mesh(mergeGeometries(geos), new THREE.MeshStandardMaterial({ color: sp.bark, roughness: 0.95 })); bark.castShadow = bark.receiveShadow = true; g.add(bark);
 
-  const geo = sp.fan ? fanGeo() : new THREE.IcosahedronGeometry(1, 0);
-  const mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, side: sp.fan ? THREE.DoubleSide : THREE.FrontSide });
+  const geo = sp.fan ? fanGeo() : leafGeo();
+  const mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, side: THREE.DoubleSide });
   mat.onBeforeCompile = (s) => {
     s.uniforms.treeTime = treeTime;
     s.vertexShader = 'uniform float treeTime;\n' + s.vertexShader.replace('#include <begin_vertex>',
@@ -117,16 +132,24 @@ export function makeTree(species, seed = 1, H = 2) {
       transformed.x += sin(treeTime * 1.35 + lw.x * 3.1 + lw.z * 2.2) * .02 * lh / lsc;
       transformed.z += cos(treeTime * 1.1 + lw.x * 2.0) * .008 * lh / lsc;`);
   };
-  const leaves = new THREE.InstancedMesh(geo, mat, clusters.length), d = new THREE.Object3D(), c = new THREE.Color();
-  clusters.forEach((cl, i) => {
-    d.position.copy(cl.p); d.rotation.set(sp.fan ? -0.9 + r() * 0.5 : r() * TAU, r() * TAU, sp.fan ? (r() - 0.5) * 0.6 : r() * TAU);
-    const s = cl.s * (sp.fan ? 1.5 : 1); d.scale.set(s, s * (sp.fan ? 1 : sp.flat), s); d.updateMatrix(); leaves.setMatrixAt(i, d.matrix);
-    c.set(sp.colors[(r() * sp.colors.length) | 0]).offsetHSL(0, 0, (r() - 0.5) * 0.06); leaves.setColorAt(i, c);
-  });
+  const palette = paletteOf(sp, species, season), budget = (sp.fan ? 1500 : 9000) * lod, per = Math.max(3, Math.round(budget / clusters.length)), total = clusters.length * per;
+  const leaves = new THREE.InstancedMesh(geo, mat, total), d = new THREE.Object3D(), c = new THREE.Color(), base = new THREE.Color();
+  let idx = 0;
+  for (const cl of clusters) {
+    base.set(palette[(r() * palette.length) | 0]);
+    const reach = cl.s * 1.5;
+    for (let k = 0; k < per; k++) {
+      const u = r() * 2 - 1, an = r() * TAU, q = Math.sqrt(1 - u * u), rad = Math.cbrt(r());
+      d.position.set(cl.p.x + q * Math.cos(an) * rad * reach, cl.p.y + u * rad * reach * sp.flat, cl.p.z + q * Math.sin(an) * rad * reach);
+      d.rotation.set(r() * TAU, r() * TAU, r() * TAU);
+      const sc = sp.leaf * (0.7 + 0.6 * r()); d.scale.set(sc, sc * (sp.fan ? 1 : 1.3), sc); d.updateMatrix(); leaves.setMatrixAt(idx, d.matrix);
+      c.copy(base).offsetHSL((r() - 0.5) * 0.02, 0, (r() - 0.5) * 0.1); leaves.setColorAt(idx, c); idx++;
+    }
+  }
   leaves.instanceMatrix.needsUpdate = true; leaves.castShadow = true; leaves.frustumCulled = false; g.add(leaves);
   // l'arbre est ramené à la taille demandée : hauteur H, couronne pas plus large que son espèce ne le permet
   const box = new THREE.Box3().setFromObject(bark);
-  for (const cl of clusters) box.expandByPoint(cl.p.clone().addScalar(cl.s)).expandByPoint(cl.p.clone().addScalar(-cl.s));
+  for (const cl of clusters) box.expandByPoint(cl.p.clone().addScalar(cl.s * 1.8)).expandByPoint(cl.p.clone().addScalar(-cl.s * 1.8));
   const hh = Math.max(0.1, box.max.y), ww = Math.max(box.max.x - box.min.x, box.max.z - box.min.z), wide = species === 'pine' ? 0.62 : species === 'ginkgo' ? 0.55 : 1.05;
   g.scale.setScalar(Math.min(1.2, H / hh, (H * wide) / ww));
   return g;

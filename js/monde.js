@@ -1,5 +1,5 @@
 import { THREE, rng } from './kit.js?v=cv-scene-v29';
-import { makeTree, treeTime } from './tree-gen.js?v=arb2';
+import { makeTree, treeTime } from './tree-gen.js?v=arb3';
 import { ANNUAL_DECLARED, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
 
 /* ───────────── L'atelier des processus ─────────────
@@ -68,7 +68,7 @@ const BLOCKS = [[-3.9, -1.6, 1.25], [-2.7, 2.6, 1.15], [0, -0.2, 0.7], [-2.4, -4
 
 /* ───────── végétation ───────── */
 const TREES = [['cherry', 5.0, 1.4, 2.3, 3], ['pine', -5.4, 0.6, 2.7, 5], ['maple', 5.2, 3.2, 1.9, 7], ['ginkgo', -4.9, 3.6, 2.2, 9], ['weeping', 2.7, 4.9, 2.2, 11], ['pine', -1.9, -5.4, 2.4, 13]];
-for (const [k, x, z, h, sd] of TREES) { const t = makeTree(k, sd, h); t.position.set(x, ISLAND_TOP, z); t.rotation.y = sd; world.add(t); BLOCKS.push([x, z, 0.4]); }
+for (const [k, x, z, h, sd] of TREES) { const t = makeTree(k, sd, h, ({ cherry: 'spring', weeping: 'spring', maple: 'autumn', ginkgo: 'autumn' })[k] || ''); t.position.set(x, ISLAND_TOP, z); t.rotation.y = sd; world.add(t); BLOCKS.push([x, z, 0.4]); }
 {
   const r = rng(21), tufts = [], cone = new THREE.ConeGeometry(0.05, 0.26, 4), dummy = new THREE.Object3D();
   for (let i = 0, t = 0; i < 320 && t < 4000; t++) {
