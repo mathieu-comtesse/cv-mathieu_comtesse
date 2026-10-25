@@ -1,0 +1,16 @@
+name: UNGA Web publication
+on:
+  pull_request:
+    paths: ['unga-bunga-45001/**', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', '.github/workflows/unga-web.yml']
+  push:
+    branches: [main]
+    paths: ['unga-bunga-45001/**', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', '.github/workflows/unga-web.yml']
+jobs:
+  publication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node tools/test-unga-publication.mjs

@@ -2,9 +2,8 @@ import {gunzipSync} from 'node:zlib';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const moduleURL=t=>'data:text/javascript;base64,'+Buffer.from(t).toString('base64');
-const data=await readFile(new URL('../js/data.js',import.meta.url),'utf8');
-const source=(await readFile(new URL('../js/projects-data.js',import.meta.url),'utf8')).replace(/from '\.\/data\.js\?[^']+'/g,"from '"+moduleURL(data)+"'");
-const {PRO_CARDS,HOURLY_RATE}=await import(moduleURL(source));
+// Import from its real URL so transitive relative imports keep their base directory.
+const {PRO_CARDS,HOURLY_RATE}=await import(new URL('../js/projects-data.js',import.meta.url));
 const {PAGES}=await import(moduleURL(await readFile(new URL('../js/pages.js',import.meta.url),'utf8')));
 assert.ok(!PRO_CARDS.some(p=>p.id==='charte'));
 assert.equal(PAGES['projet-charte'],undefined);

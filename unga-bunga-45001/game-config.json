@@ -1,0 +1,7 @@
+{
+  "loaderUrl": "Build/Web.loader.js?v=8d2bf65f2732",
+  "dataUrl": "Build/Web.data.unityweb?v=fcb85222e45c",
+  "frameworkUrl": "Build/Web.framework.js.unityweb?v=1fb62feef085",
+  "codeUrl": "Build/Web.wasm.unityweb?v=b9b478a1a310",
+  "streamingAssetsUrl": "StreamingAssets"
+}
