@@ -2,7 +2,7 @@ import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v29';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
 import { instanced } from './garden-models2.js?v=jardin2';
-import { makeTree, treeTime, treeTint } from './tree-gen.js?v=eng2';
+import { makeTree, treeTime, treeTint } from './tree-gen.js?v=eng3';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité

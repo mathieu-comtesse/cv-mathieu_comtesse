@@ -44,7 +44,7 @@ const paletteOf = (sp, species, season) => {
   if (species === 'pine') return season === 'winter' ? ['#dfeee9', '#c4dccf', '#f4faf7', '#9fc4b4'] : sp.colors;
   return Array.isArray(S) ? S : (S[species] || S.default);
 };
-const SEASON_LIST = ['spring', 'summer', 'autumn', 'winter'];
+const SEASON_LIST = ['spring', 'summer', 'autumn'];   // pas d'hiver : jamais de feuillage blanc
 export const treeTint = new THREE.Color(1, 1, 1);   // atténué la nuit par le jardin
 /** vent aléatoire commun au jardin : intensité cible retirée au hasard toutes les quelques secondes, avec de brèves rafales */
 export const treeWind = { value: 0.5 };
@@ -166,7 +166,7 @@ export function makeTree(species, seed = 1, H = 2, season = '') {
 
   /* saisons : le feuillage passe en fondu d'une saison à l'autre, à un moment tiré au hasard pour chaque arbre */
   let cur = Math.max(0, SEASON_LIST.indexOf(season));
-  if (!season) cur = (Math.random() * 4) | 0;
+  if (!season) cur = (Math.random() * 3) | 0;
   const colorsFor = (se) => { const pal = paletteOf(sp, species, se), out = new Float32Array(total * 3), cc = new THREE.Color(); for (let k = 0; k < total; k++) { cc.set(pal[Math.min(pal.length - 1, (pick[cidOf[k]] * pal.length) | 0)]).offsetHSL(jit[k * 2], 0, jit[k * 2 + 1]); out[k * 3] = cc.r; out[k * 3 + 1] = cc.g; out[k * 3 + 2] = cc.b; } return out; };
   let from = colorsFor(SEASON_LIST[cur]), to = from, fade = 1, nextChange = performance.now() / 1000 + 12 + Math.random() * 40;
   leaves.instanceColor.array.set(from); leaves.instanceColor.needsUpdate = true;
@@ -176,7 +176,7 @@ export function makeTree(species, seed = 1, H = 2, season = '') {
   const NF = sp.fan ? 10 : 20, fall = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true, side: THREE.DoubleSide }), NF);
   fall.frustumCulled = false; fall.castShadow = false; g.add(fall);
   const fl = Array.from({ length: NF }, () => ({ x: 0, y: -9, z: 0, vy: 0, ph: Math.random() * TAU, sp: 0.8 + Math.random() * 1.2, on: false, rot: Math.random() * TAU }));
-  const rate = () => [0.6, 0.12, 1, 0.1][cur] * (0.4 + treeWind.value * 0.6);
+  const rate = () => [0.6, 0.12, 1][cur] * (0.4 + treeWind.value * 0.6);
   const fd = new THREE.Object3D(), fc = new THREE.Color(), hide = (n) => { fd.position.set(0, -9, 0); fd.rotation.set(0, 0, 0); fd.scale.setScalar(0.0001); fd.updateMatrix(); fall.setMatrixAt(n, fd.matrix); };
   let last = performance.now() / 1000;
   const crown = clusters.map((cl) => cl.p);
@@ -186,7 +186,7 @@ export function makeTree(species, seed = 1, H = 2, season = '') {
       fade = Math.min(1, fade + dt / 5); const arr = leaves.instanceColor.array, k = fade * fade * (3 - 2 * fade);
       for (let n = 0; n < arr.length; n++) arr[n] = from[n] + (to[n] - from[n]) * k;
       leaves.instanceColor.needsUpdate = true;
-    } else if (now > nextChange) { let nx; do { nx = (Math.random() * 4) | 0; } while (nx === cur); setSeason(nx); nextChange = now + 20 + Math.random() * 60; }
+    } else if (now > nextChange) { let nx; do { nx = (Math.random() * 3) | 0; } while (nx === cur); setSeason(nx); nextChange = now + 20 + Math.random() * 60; }
     const pal = paletteOf(sp, species, SEASON_LIST[cur]);
     for (let n = 0; n < NF; n++) {
       const p = fl[n];
