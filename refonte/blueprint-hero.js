@@ -98,7 +98,7 @@ function blueprintMaterial(tex) {
 
 export function initBlueprint(canvas, host) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.75));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1 : 1.75));   // téléphone : pas de rendu à haute densité
   renderer.setClearColor(0x000000, 1);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(24, 1, 1, 600);
@@ -158,7 +158,7 @@ export function initBlueprint(canvas, host) {
   resize();
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) loop();
   if (document.fonts) document.fonts.ready.then(() => { const t = drawMat(); tex.image = t; tex.needsUpdate = true; draw(); });
-  return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); (function again() { raf = requestAnimationFrame(again); if (visible && !document.hidden && host.style.opacity !== '0.000') draw(); })(); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
+  return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); let lastT = 0; (function again(now) { raf = requestAnimationFrame(again); if (innerWidth < 760 && now - lastT < 33) return; lastT = now; if (visible && !document.hidden && host.style.opacity !== '0.000') draw(); })(0); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
 }
 
 /* plan blueprint pour une scène à part (tuiles de l'accueil) : même matériau, même tracé, texture plus légère */

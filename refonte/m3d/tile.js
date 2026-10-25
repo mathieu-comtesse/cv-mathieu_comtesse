@@ -16,7 +16,7 @@ export async function mountTile(name, canvas) {
   const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
   const { build, WIDTH = 236 } = await load();
   const { renderer, scene } = makeStage(canvas);
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1 : 1.5));
   renderer.setClearColor(0x0a2fc8, 1);
   scene.children.forEach((c) => { if (c.isDirectionalLight) c.shadow.mapSize.set(1024, 1024); });
   const bp = createBlueprintPlane(renderer, 1024);

@@ -3,7 +3,7 @@
 // il écoute « rf-tabview » et se présente sous le même angle que le plan (azimut et élévation relatifs à la vue d'origine : 36° et 26°).
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
-import { initRulers } from './rulers.js?v=gains-20261023';
+import { initRulers } from './rulers.js';
 
 const RULERS = '<aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Incliner la vue de bas en haut (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Incliner</span></aside>' +
   '<aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Tourner la vue (glisser à gauche ou à droite, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside>';

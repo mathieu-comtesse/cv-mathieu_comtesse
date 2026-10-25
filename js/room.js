@@ -26,7 +26,7 @@ import {createFilmAlbum} from './film-album.js?v=book3';
 import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
-import {createStele} from './stele.js?v=stele-20261023';
+import {createStele} from './stele.js?v=stele1';
 import {createBuddha} from './buddha.js?v=bud3';
 import {createBonsaiCare} from './bonsai-care.js?v=care3';
 

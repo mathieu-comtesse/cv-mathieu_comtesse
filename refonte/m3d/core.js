@@ -112,7 +112,7 @@ export const hash = (i) => { let h = Math.imul(i + 5, 2654435761) >>> 0; h ^= h 
 /* Scène d'une machine : lumières douces, ombre portée sur le plan (ShadowMaterial) et groupe mis à l'échelle. */
 export function makeStage(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2));
   renderer.setClearColor(0x000000, 0); renderer.localClippingEnabled = true;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
