@@ -1,4 +1,4 @@
-import { initPiggyBank } from './piggy-bank.js?v=gains-20261023b';
+import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v66';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
 
 const f = (n, digits = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits });

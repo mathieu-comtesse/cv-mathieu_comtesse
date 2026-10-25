@@ -1,40 +1,40 @@
 // Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
-// dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
+// dessinées (figures/*.html, compétence anatomy). Un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
 import { createMarquee } from './marquee.js?v=cv-projects-v15';
 
-// Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
+// Projet → [figure, objet, idée, l'objet en action]. L'objet est l'explication.
 const MACHINES = {
   cerfa: ['cerfa', 'Trieuse de fiches',
     'Vérifier un lot de fiches à la main, c’est relire chaque case de chaque fiche, et un retard passe facilement inaperçu.',
-    'Prenons l’exemple d’une trieuse de cartes : un chargeur, une tête de lecture et quatre cases. Sans elle, 300 fiches CERFA et attestations demandent 20 à 25 h de relecture ; avec elle, chaque fiche passe sous la tête et tombe dans sa case, conforme, doublon, non-conformité ou retard, et le lot est trié en 1 min 20 s.'],
+    'Prenons l’exemple d’une trieuse de cartes : un chargeur, une tête de lecture et quatre cases. Sans elle, 300 fiches CERFA et attestations demandent 20 à 25 h de relecture. Avec elle, chaque fiche passe sous la tête et tombe dans sa case, conforme, doublon, non-conformité ou retard, et le lot est trié en 1 min 20 s.'],
   vmvre: ['vm', 'Pointeuses à clé partagée',
     'Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.',
-    'Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons ; la reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.'],
+    'Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons. La reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.'],
   vre: ['vre', 'Trieuse à quatre tubes',
     'Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.',
-    'Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport ; avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.'],
+    'Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport. Avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.'],
   moteur44: ['moteur', 'Fichier rotatif motorisé',
     'Reporter un rapport dans un grand classeur, c’est d’abord retrouver la bonne ligne parmi des milliers.',
-    'Prenons l’exemple d’un fichier rotatif motorisé. Sans lui, on cherche la ligne de l’OT et on recopie les données depuis SharePoint, 15 min par rapport ; avec lui, on compose l’OT, le fichier tourne jusqu’à la bonne fiche, le tampon y reporte les données et un cavalier rend le Q18 visible dans le suivi qui alimente Power BI, pour les COSI et les clients de l’ABE SUD IdF.'],
+    'Prenons l’exemple d’un fichier rotatif motorisé. Sans lui, on cherche la ligne de l’OT et on recopie les données depuis SharePoint, 15 min par rapport. Avec lui, on compose l’OT, le fichier tourne jusqu’à la bonne fiche, le tampon y reporte les données et un cavalier rend le Q18 visible dans le suivi qui alimente Power BI, pour les COSI et les clients de l’ABE SUD IdF.'],
   gares: ['gares', 'Tableau à palettes',
     'Savoir quelles gares surveiller en premier demandait de croiser plusieurs sources à chaque consultation.',
-    'Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min ; avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.'],
+    'Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min. Avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.'],
   finance: ['finance', 'Manomètres à contact',
     'Un dépassement de budget se voit trop tard quand on pointe les comptes à la main, périmètre par périmètre.',
-    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour ; avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une alerte, et une de plus si les dépenses dépassent les fonds. En exploitation, chaque périmètre en envoie environ 6 par semaine : 5 × 6, soit 30 alertes par semaine, qui remplissent le bac.'],
+    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour. Avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une alerte, et une de plus si les dépenses dépassent les fonds. En exploitation, chaque périmètre en envoie environ 6 par semaine : 5 × 6, soit 30 alertes par semaine, qui remplissent le bac.'],
   pa: ['pp', 'Classeur à échéances',
     'Une échéance de plan de prévention s’oublie quand elle dort dans un dossier parmi des centaines.',
-    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min ; avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.'],
+    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min. Avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.'],
   powerbi: ['powerbi', 'Carrousel de classeurs',
     'Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.',
-    'Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min ; avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.'],
+    'Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min. Avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.'],
   suivi: ['suivi', 'Standard à fiches',
     'Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.',
-    'Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure ; avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.'],
+    'Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure. Avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.'],
   studio: ['studio', 'Machine à reproduire les clés',
     'Créer un extracteur pour une nouvelle famille de PDF demandait des jours de développement.',
-    'Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code ; avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.'],
+    'Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code. Avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.'],
 };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';

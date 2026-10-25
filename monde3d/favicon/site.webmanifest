@@ -1,0 +1,20 @@
+{
+  "name": "Expérience 3D interactive",
+  "short_name": "Expérience 3D",
+  "icons": [
+    {
+      "src": "./favicon/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "./favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#11182f",
+  "theme_color": "#11182f"
+}

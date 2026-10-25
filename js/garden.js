@@ -2,6 +2,7 @@ import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v29';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
 import { instanced } from './garden-models2.js?v=jardin2';
+import { makeTree, treeTime } from './tree-gen.js?v=arb3';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité
@@ -9,45 +10,6 @@ import { instanced } from './garden-models2.js?v=jardin2';
  * érable, arbustes arrondis, rochers moussus, pas japonais, fougères. */
 
 const stone = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95 });
-
-/** tronc effilé qui suit une courbe */
-function taperTube(pts, r0, r1, seg = 14, rad = 7) {
-  const curve = new THREE.CatmullRomCurve3(pts), pos = [], idx = [];
-  const fr = curve.computeFrenetFrames(seg, false);
-  for (let i = 0; i <= seg; i++) {
-    const t = i / seg, p = curve.getPoint(t), r = r0 + (r1 - r0) * t;
-    for (let j = 0; j <= rad; j++) { const a = (j / rad) * TAU, n = fr.normals[i].clone().multiplyScalar(Math.cos(a)).add(fr.binormals[i].clone().multiplyScalar(Math.sin(a))); pos.push(p.x + n.x * r, p.y + n.y * r, p.z + n.z * r); }
-  }
-  for (let i = 0; i < seg; i++) for (let j = 0; j < rad; j++) { const a = i * (rad + 1) + j, b = a + rad + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
-}
-
-/** pin taillé en nuages : tronc tortueux + coussins de feuillage aplatis */
-function pin(seed, H = 2.0) {
-  const r = rng(seed), g = group();g.name='GardenTree';g.userData.tree=true;
-  const lean = (r() - 0.5) * 0.5, pts = [0, 0.25, 0.5, 0.75, 1].map((t, i) => new THREE.Vector3(Math.sin(t * 3 + seed) * 0.12 + lean * t * t, H * t * 0.78, Math.cos(t * 2.4 + seed) * 0.1));
-  g.add(new THREE.Mesh(taperTube(pts, 0.075, 0.035), stone('#5b4332')));
-  const pads = [], tops = [];
-  const mk = (cx, cy, cz, sx, sy, sz) => { const a = new THREE.IcosahedronGeometry(1, 1); const p = a.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 + 0.12 * Math.sin(p.getX(i) * 5 + cy * 3 + seed) * Math.cos(p.getZ(i) * 4 + seed); p.setXYZ(i, p.getX(i) * k, p.getY(i) * (p.getY(i) > 0 ? 1 : 0.55), p.getZ(i) * k); } a.scale(sx, sy, sz); a.translate(cx, cy, cz); a.computeVertexNormals(); return a; };
-  const tp = pts[4], mid = pts[3], low = pts[2];
-  pads.push(mk(tp.x, tp.y + 0.1, tp.z, 0.42, 0.16, 0.38), mk(mid.x - 0.28, mid.y - 0.05, mid.z + 0.12, 0.5, 0.15, 0.42), mk(mid.x + 0.32, mid.y - 0.12, mid.z - 0.14, 0.4, 0.14, 0.36), mk(low.x - 0.38, low.y + 0.02, low.z - 0.1, 0.38, 0.13, 0.34), mk(low.x + 0.3, low.y - 0.08, low.z + 0.16, 0.34, 0.12, 0.3));
-  g.add(new THREE.Mesh(mergeGeometries(pads), stone('#2f5a37')));
-  for (const [a, b] of [[tp, 0.42], [mid, 0.5]]) tops.push(mk(a.x + (a === mid ? -0.28 : 0), a.y + (a === tp ? 0.18 : 0.06), a.z + (a === mid ? 0.12 : 0), b * 0.78, 0.07, b * 0.68));
-  g.add(new THREE.Mesh(mergeGeometries(tops), stone('#4d8143')));
-  g.traverse((o) => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
-  return g;
-}
-
-/** érable (momiji) : tronc fin, nuages rouges et orangés */
-function erable(seed) {
-  const r = rng(seed), g = group();g.name='GardenMaple';g.userData.tree=true;
-  const pts = [0, 0.4, 0.75, 1].map((t, i) => new THREE.Vector3(Math.sin(t * 2 + seed) * 0.1, 1.5 * t, Math.cos(t * 2 + seed) * 0.08));
-  g.add(new THREE.Mesh(taperTube(pts, 0.05, 0.025), stone('#5a4636')));
-  const cols = ['#c9462b', '#e0713a', '#b8352a'], parts = cols.map(() => []);
-  for (let i = 0; i < 9; i++) { const a = new THREE.IcosahedronGeometry(1, 1), k = i % 3, s = 0.2 + r() * 0.16; a.scale(s * 1.2, s * 0.8, s); a.translate((r() - 0.5) * 0.7, 1.15 + r() * 0.5, (r() - 0.5) * 0.6); parts[k].push(a); }
-  parts.forEach((ps, i) => { const m = new THREE.Mesh(mergeGeometries(ps), stone(cols[i])); m.castShadow = true; g.add(m); });
-  return g;
-}
 
 /** lanterne de pierre (ishi-doro) : socle, fût, plateau, boîte à feu qui s'allume la nuit, chapeau, boule */
 function toro(H = 0.95, kind = 'tall') {
@@ -179,10 +141,10 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const l1 = toro(0.95); const [lx, lz] = at(Math.PI * 0.82, 1.22); l1.position.set(lx, -0.02, lz); g.add(l1); lanterns.push(l1);
   const l2 = toro(0.62); l2.position.set(2.35, -0.02, 2.6 - 0.0); g.add(l2); lanterns.push(l2);
   if (exclude(l2.position.x, l2.position.z) || fracOf(l2.position.x, l2.position.z) < 1.1) { const [x, z] = at(Math.PI * 0.12, 1.25); l2.position.set(x, -0.02, z); }
-  const pines = [[-3.5, 0.6, 2.2, 5], [3.9, 1.0, 2.5, 7], [-4.4, 3.2, 1.7, 9], [-6.2, 1.2, 2.3, 11], [-7.4, 4.0, 1.9, 13], [-5.6, 6.0, 1.6, 15]];
-  for (const [x, z, h, sd] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = pin(sd, h); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
-  const mp = erable(3); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
-  const mp2 = erable(6); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
+  const pines = [[-3.5, 0.6, 2.5, 5, 'pine'], [3.9, 1.0, 2.3, 7, 'cherry', 'spring'], [-4.4, 3.2, 2.2, 9, 'weeping', 'spring'], [-6.2, 1.2, 2.7, 11, 'pine'], [-7.4, 4.0, 2.2, 13, 'ginkgo', 'autumn'], [-5.6, 6.0, 1.9, 15, 'maple', 'autumn']];
+  for (const [x, z, h, sd, kind, season] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = makeTree(kind, sd, h, season); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
+  const mp = makeTree('maple', 3, 1.9, 'autumn'); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
+  const mp2 = makeTree('ginkgo', 6, 2.0, 'autumn'); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
   void place;
 
   /* modèles 3D (js/garden-models2.js) : arbres, herbes, buissons, fougères et rochers remplacent les formes procédurales */
@@ -247,7 +209,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
-  g.userData.update = (night) => { for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
+  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
   void canvasTexture;
   return g;
 }
