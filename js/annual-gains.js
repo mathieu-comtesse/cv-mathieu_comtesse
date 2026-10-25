@@ -5,12 +5,12 @@ const hours=(minutes,volume)=>minutes*volume/60;
 const row=(id,title,min,max,basis,estimated=false)=>({id,title,minHours:min,maxHours:max,basis,estimated,minMoney:min*ANNUAL_RATE,maxMoney:max*ANNUAL_RATE});
 export const ANNUAL_GAINS=[
  row('finance','Point financier',hours(25,ANNUAL_DAYS),hours(25,ANNUAL_DAYS),'25 min/jour × 225 jours/an'),
- row('vmvre','VRE · VM',hours(30,4000),hours(30,5000),'30 min × 4 000–5 000 rapports/an'),
- row('moteur44','Reporteur Q18',hours(15,4000),hours(15,5000),'15 min × 4 000–5 000 rapports/an'),
- row('vre','Extracteur VRE',hours(25,4000),hours(25,5000),'25 min × 4 000–5 000 rapports/an ; capacité théorique',true),
- row('powerbi','PP & MOSO · traitement',hours(15,400),hours(20,500),'15–20 min × 400–500 plans/an'),
+ row('vmvre','VRE · VM',hours(30,4000),hours(30,5000),'30 min × 4 000 à 5 000 rapports/an'),
+ row('moteur44','Reporteur Q18',hours(15,4000),hours(15,5000),'15 min × 4 000 à 5 000 rapports/an'),
+ row('vre','Extracteur VRE',hours(25,4000),hours(25,5000),'25 min × 4 000 à 5 000 rapports/an. Capacité théorique',true),
+ row('powerbi','PP & MOSO · traitement',hours(15,400),hours(20,500),'15 à 20 min × 400 à 500 plans/an'),
  row('pp-consultation','PP & MOSO · consultation',hours(10,40*ANNUAL_DAYS),hours(10,40*ANNUAL_DAYS),'10 min × 40 consultations/jour × 225 jours/an',true),
- row('gares','Gares prioritaires',hours(10,20*ANNUAL_DAYS),hours(15,30*ANNUAL_DAYS),'10–15 min × 20–30 consultations/jour × 225 jours/an',true)
+ row('gares','Gares prioritaires',hours(10,20*ANNUAL_DAYS),hours(15,30*ANNUAL_DAYS),'10 à 15 min × 20 à 30 consultations/jour × 225 jours/an',true)
 ];
 const sumOf=(rows)=>rows.reduce((a,r)=>({minHours:a.minHours+r.minHours,maxHours:a.maxHours+r.maxHours,minMoney:a.minMoney+r.minMoney,maxMoney:a.maxMoney+r.maxMoney}),{minHours:0,maxHours:0,minMoney:0,maxMoney:0});
 export const ANNUAL_TOTAL=sumOf(ANNUAL_GAINS);
