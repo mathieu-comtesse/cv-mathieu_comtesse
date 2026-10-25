@@ -1,5 +1,5 @@
 import { createRoom } from './room.js?v=cv-light-v92';
-import { initUI } from './ui.js?v=cv-cursor-v21';
+import { initUI } from './ui.js?v=cv-cursor-v22';
 import { initHome } from './home.js?v=cv-light-v22';
 initUI();
 

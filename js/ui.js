@@ -3,7 +3,7 @@ import { PERSO, PRO, CV } from './data.js?v=cv-projects-v20';
 
 /* Deux interfaces plein écran ouvertes depuis la pièce 3D :
  *  - « retro » : la télé cathodique + PS1 → menu de jeux façon console (projets perso), écran de chargement, écran titre, jeu, bouton retour ;
- *  - « xp »    : le PC de bureau → « L’atelier des processus » (monde.html), île low poly à explorer. */
+ *  - « xp »    : le PC de bureau → « L’atelier des processus » (atelier.html), île 3D à explorer. */
 
 const CSS = `
 .ov{position:fixed;inset:0;z-index:100;display:none;opacity:0;transition:opacity .35s}
@@ -135,7 +135,7 @@ function retroApp(onClose) {
 function mondeApp(onClose) {
   const root = el('div', 'ov'); root.id = 'monde-ov';
   const frame = document.createElement('iframe');
-  frame.src = 'monde.html'; frame.title = 'L’atelier des processus de Mathieu Comtesse'; frame.setAttribute('allow', 'fullscreen');
+  frame.src = 'atelier.html'; frame.title = 'L’atelier des processus de Mathieu Comtesse'; frame.setAttribute('allow', 'fullscreen');
   frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b1330';
   root.append(frame); document.body.append(root);
   let closing = false;

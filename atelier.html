@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09111f">
+  <meta name="description" content="Une île 3D à explorer : les projets, le blog, les expériences, les gains et le contact de Mathieu Comtesse.">
+  <title>L'atelier des processus · Mathieu Comtesse</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="refonte/atelier.css">
+</head>
+<body>
+  <main id="experience" aria-label="Expérience interactive en trois dimensions">
+    <canvas id="world" aria-label="Monde 3D. Utilisez ZQSD ou les flèches pour vous déplacer."></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">✦</span><div><strong>MATHIEU COMTESSE</strong><small>L'ATELIER DES PROCESSUS</small></div></div>
+      <div class="status"><span class="status-dot"></span><span id="statusText">ÎLE OUVERTE</span><a id="closeBtn" class="close-btn" href="./" aria-label="Fermer et revenir à la pièce">FERMER</a></div>
+    </header>
+    <section class="mission-card" aria-live="polite">
+      <div class="eyebrow">VISITE <span></span> EXPLORATION</div>
+      <h1 id="missionTitle">Les portes du site</h1>
+      <p id="missionText">Parcourez l'île et approchez-vous d'un portail pour entrer dans une partie du site de Mathieu.</p>
+      <div class="mission-progress"><span id="progressFill"></span></div>
+      <div class="mission-foot"><span id="progressLabel">0 / 5 pages découvertes</span><span class="tiny-glyph">◇</span></div>
+    </section>
+    <div class="compass" aria-hidden="true"><span>N</span><div class="compass-ring"><i></i></div><small>ATELIER</small></div>
+    <div class="center-reticle" aria-hidden="true"><span></span></div>
+    <section class="portal-legend" aria-label="Pages à découvrir">
+      <div class="legend-card" data-portal="0"><span class="legend-icon cyan">◈</span><div><strong>Projets</strong><small>Dix outils manipulables</small></div><b>01</b></div>
+      <div class="legend-card" data-portal="1"><span class="legend-icon gold">◇</span><div><strong>Blog</strong><small>Études et code</small></div><b>02</b></div>
+      <div class="legend-card" data-portal="2"><span class="legend-icon violet">✧</span><div><strong>Expériences</strong><small>Le parcours</small></div><b>03</b></div>
+      <div class="legend-card" data-portal="3"><span class="legend-icon cyan">◈</span><div><strong>Gains</strong><small>Le temps libéré</small></div><b>04</b></div>
+      <div class="legend-card" data-portal="4"><span class="legend-icon gold">◇</span><div><strong>Contact</strong><small>Écrire à Mathieu</small></div><b>05</b></div>
+    </section>
+    <footer class="bottombar">
+      <div class="controls"><span class="key">Z</span><span class="key">Q</span><span class="key">S</span><span class="key">D</span><span class="control-label">SE DÉPLACER</span><span class="control-separator"></span><span class="key wide">E</span><span class="control-label">INTERAGIR</span><span class="control-separator"></span><span class="mouse-icon">↔</span><span class="control-label">ORIENTER LA CAMÉRA</span></div>
+      <div class="coordinates"><span class="coordinate-dot"></span><span id="coordinateText">SECTEUR A — 00.00 / 00.00</span></div>
+    </footer>
+    <div class="touch-controls" aria-label="Commandes tactiles">
+      <button data-move="forward" aria-label="Avancer">▲</button>
+      <div><button data-move="left" aria-label="Aller à gauche">◀</button><button data-move="back" aria-label="Reculer">▼</button><button data-move="right" aria-label="Aller à droite">▶</button></div>
+      <button class="touch-action" id="touchInteract">E · ACTIVER</button>
+    </div>
+    <div class="interaction-prompt" id="interactionPrompt" hidden><span class="key wide">E</span><span id="promptText">Activer le portail</span></div>
+    <section class="portal-panel" id="portalPanel" hidden role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+      <button class="panel-close" id="panelClose" aria-label="Fermer">×</button>
+      <div class="panel-symbol" id="panelSymbol">◈</div>
+      <div class="eyebrow">PAGE DÉCOUVERTE</div>
+      <h2 id="panelTitle">Projets</h2>
+      <p id="panelDescription">Un passage s'éveille dans la lumière.</p>
+      <div class="panel-rule"></div>
+      
+      <a class="primary-button" id="panelGo" href="./#projets">OUVRIR <span>↗</span></a>
+      <button class="ghost-button" id="panelContinue">CONTINUER À EXPLORER</button>
+    </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript>Cette expérience demande JavaScript et WebGL. Le site classique est sur <a href="./">la page d'accueil</a>.</noscript>
+  </main>
+  <script src="js/atelier.js?v=atelier-20261026"></script>
+</body>
+</html>
