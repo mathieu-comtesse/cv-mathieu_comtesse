@@ -1,0 +1,6 @@
+Result=Succeeded
+Renderer=URP (same scene as browser)
+Errors=0
+Warnings=26
+Seconds=54,7520467
+Bytes=557805279

@@ -1,0 +1,146 @@
+{
+  "footer": "ISO 45001",
+  "first": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 1.1293338537216187,
+    "frameMs": 11.817502975463867,
+    "paused": false,
+    "touch": false,
+    "film": true,
+    "position": {
+      "x": 351.8089904785156,
+      "y": 11.717090606689453,
+      "z": 279.6441345214844
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "ended": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 35.7836799621582,
+    "frameMs": 11.579059600830078,
+    "paused": false,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 350.9200134277344,
+      "y": 11.871883392333984,
+      "z": 278.4800109863281
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "recording": {
+    "mime": "video/webm;codecs=vp8,opus",
+    "audio": 1
+  },
+  "renderer": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "errors": [],
+  "gameplay": {
+    "before": {
+      "type": "state",
+      "player": "dylan",
+      "act": "ACTE_I",
+      "dialogue": "",
+      "quest": "",
+      "duel": "",
+      "elapsed": 35.7836799621582,
+      "frameMs": 11.579059600830078,
+      "paused": false,
+      "touch": false,
+      "film": false,
+      "position": {
+        "x": 350.9200134277344,
+        "y": 11.871883392333984,
+        "z": 278.4800109863281
+      },
+      "fires": 2,
+      "characters": 20,
+      "claimed": 0
+    },
+    "after": {
+      "type": "state",
+      "player": "dylan",
+      "act": "ACTE_I",
+      "dialogue": "",
+      "quest": "",
+      "duel": "",
+      "elapsed": 43.60478210449219,
+      "frameMs": 13.917489051818848,
+      "paused": false,
+      "touch": false,
+      "film": false,
+      "position": {
+        "x": 357.1361999511719,
+        "y": 11.803699493408203,
+        "z": 282.1662902832031
+      },
+      "fires": 2,
+      "characters": 20,
+      "claimed": 0
+    },
+    "moved": 7.227006984134943,
+    "resumed": {
+      "type": "state",
+      "player": "dylan",
+      "act": "ACTE_I",
+      "dialogue": "",
+      "quest": "",
+      "duel": "",
+      "elapsed": 45.284812927246094,
+      "frameMs": 62.437957763671875,
+      "paused": false,
+      "touch": false,
+      "film": false,
+      "position": {
+        "x": 357.1361999511719,
+        "y": 11.803699493408203,
+        "z": 282.1662902832031
+      },
+      "fires": 2,
+      "characters": 20,
+      "claimed": 0
+    }
+  },
+  "touch": {
+    "viewport": {
+      "width": 844,
+      "height": 390,
+      "coarse": true
+    },
+    "state": {
+      "type": "state",
+      "player": "dylan",
+      "act": "ACTE_I",
+      "dialogue": "",
+      "quest": "",
+      "duel": "",
+      "elapsed": 2.07200026512146,
+      "frameMs": 16.305419921875,
+      "paused": false,
+      "touch": true,
+      "film": false,
+      "position": {
+        "x": 350.9200134277344,
+        "y": 11.871883392333984,
+        "z": 278.4800109863281
+      },
+      "fires": 2,
+      "characters": 20,
+      "claimed": 0
+    }
+  },
+  "status": "passed"
+}
