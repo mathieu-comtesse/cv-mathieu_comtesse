@@ -1,0 +1,1 @@
+Original assemblies preserved=11; nested generated assemblies removed=11632

@@ -1,0 +1,55 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "before": {
+    "x": 350.9200134277344,
+    "y": 11.871883392333984,
+    "z": 278.4800109863281
+  },
+  "checkpoint": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 8.18366527557373,
+    "frameMs": 25.202075958251953,
+    "paused": false,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 351.97900390625,
+      "y": 11.817089080810547,
+      "z": 279.1080017089844
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "resumed": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 7.863664150238037,
+    "frameMs": 39.533756256103516,
+    "paused": false,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 351.97900390625,
+      "y": 11.817089080810547,
+      "z": 279.1080017089844
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "errors": [],
+  "version": true
+}
