@@ -2,7 +2,7 @@ import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v29';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
 import { instanced } from './garden-models2.js?v=jardin2';
-import { makeTree, treeTime } from './tree-gen.js?v=arb3';
+import { makeTree, treeTime, treeTint } from './tree-gen.js?v=eng3';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité
@@ -209,7 +209,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
-  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
+  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; treeTint.setScalar(night ? 0.5 : 1); for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
   void canvasTexture;
   return g;
 }
