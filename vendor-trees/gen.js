@@ -79,7 +79,7 @@ void main() {
   vAo = iMore.x;
   vWorld = wp;
   vAlpha = 1.0;
-  vShadow = uShadowMatrix * vec4(wp, 1.0);
+  vShadow = uShadowMatrix * (inverse(modelMatrix) * vec4(wp, 1.0));
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);
 }
 `,k=`
@@ -93,7 +93,7 @@ out vec4 fragColor;
 void main() {
   vec4 t = texture(uAtlas, vec2((vShapeSel + vUv.x) / 6.0, vUv.y));
   float a = (t.a - 0.5) / max(fwidth(t.a), 1e-4) + 0.5;
-  if (a < 0.02) discard;
+  if (a < 0.5) discard;
   float sh = shadowAt(vShadow);
   vec3 n = normalize(vN);
   float ndl = dot(n, uSunDir);
@@ -104,7 +104,7 @@ void main() {
   float k = clamp(light + (vRnd - 0.5) * uVary + (t.r - 0.9) * 0.6, 0.0, 1.0);
   vec3 col = k < 0.38 ? mix(uPal0, uPal1, smoothstep(0.0, 0.38, k)) : k < 0.74 ? mix(uPal1, uPal2, smoothstep(0.38, 0.74, k)) : mix(uPal2, uPal3, smoothstep(0.74, 1.0, k));
   col *= mix(vec3(1.0), uSun, 0.15 * k);
-  fragColor = vec4(col, clamp(a, 0.0, 1.0));
+  fragColor = vec4(col, 1.0);
 }
 `,A=`
 uniform sampler2D uAtlas;
@@ -130,7 +130,7 @@ void main() {
   vUv = uv;
   vWorld = p;
   vY = aCenter.y;
-  vShadow = uShadowMatrix * vec4(p + normal * 0.03, 1.0);
+  vShadow = uShadowMatrix * (inverse(modelMatrix) * vec4(p + normal * 0.03, 1.0));
   gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
 }
 `,T=`
@@ -163,7 +163,7 @@ out vec3 vWorld; out vec4 vShadow;
 void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vWorld = wp.xyz;
-  vShadow = uShadowMatrix * wp;
+  vShadow = uShadowMatrix * (inverse(modelMatrix) * wp);
   gl_Position = projectionMatrix * viewMatrix * wp;
 }
 `,W=`
@@ -207,7 +207,7 @@ void main() {
   vN = normalize(mat3(modelMatrix) * normal);
   vWorld = wp.xyz;
   vLocal = position;
-  vShadow = uShadowMatrix * vec4(wp.xyz + vN * 0.05, 1.0);
+  vShadow = uShadowMatrix * (inverse(modelMatrix) * vec4(wp.xyz + vN * 0.05, 1.0));
   gl_Position = projectionMatrix * viewMatrix * wp;
 }
 `,F=`
@@ -324,7 +324,7 @@ void main() {
   vLand = land;
   vFlip = abs(flip);
   vShapeSel = fract(aRnd * 7.31) < uMix ? 4.0 : uShape;
-  vShadow = uShadowMatrix * vec4(wp, 1.0);
+  vShadow = uShadowMatrix * (inverse(modelMatrix) * vec4(wp, 1.0));
   gl_Position = projectionMatrix * viewMatrix * vec4(wp, 1.0);
 }
 `,G=`

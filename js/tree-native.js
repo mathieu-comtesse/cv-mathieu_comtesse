@@ -10,7 +10,7 @@ let enginePromise = null;
 const loadScript = (src) => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
 function engine() {
   if (!enginePromise) enginePromise = (async () => {
-    if (!window.NativeTreeForest) for (const f of FILES) await loadScript(new URL(`../vendor-trees/${f}.js?v=nt1`, import.meta.url).href);
+    if (!window.NativeTreeForest) for (const f of FILES) await loadScript(new URL(`../vendor-trees/${f}.js?v=nt3`, import.meta.url).href);
     // les arbres sont rattachés au jardin : la scène et le rendu demandés par la forêt ne servent qu'à sa vérification
     return window.NativeTreeForest.create({ scene: new THREE.Scene(), renderer: { isWebGLRenderer: true }, tint: '#ffffff' });
   })();
