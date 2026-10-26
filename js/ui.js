@@ -135,7 +135,7 @@ function retroApp(onClose) {
 function mondeApp(onClose) {
   const root = el('div', 'ov'); root.id = 'monde-ov';
   const frame = document.createElement('iframe');
-  frame.src = 'monde3d/index.html?v=m7'; frame.title = 'L’atelier des processus de Mathieu Comtesse'; frame.setAttribute('allow', 'fullscreen');
+  frame.src = 'monde3d/index.html?v=m11'; frame.title = 'L’atelier des processus de Mathieu Comtesse'; frame.setAttribute('allow', 'fullscreen');
   frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b1330';
   root.append(frame); document.body.append(root);
   let closing = false;
