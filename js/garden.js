@@ -2,7 +2,8 @@ import { THREE, group, rng, canvasTexture } from './kit.js?v=cv-scene-v29';
 import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { bladeGeo, plantMaterial, scatter, rockGeo, TAU } from './pond.js?v=bf01a16';
 import { instanced } from './garden-models2.js?v=jardin2';
-import { makeTree, treeTime, treeTint } from './tree-gen.js?v=eng3';
+import { treeTime, treeTint } from './tree-gen.js?v=lp1';
+import { makeLivingTree, updateLivingTrees } from './tree-native.js?v=nt2';
 
 /* ───────────── Jardin japonais autour de l'étang ─────────────
  * Repère : celui de la pièce du thé (y = 0 : sol). Le jardin n'a pas de bord : la mousse et l'herbe sont des traits (lames) dont la densité
@@ -121,11 +122,6 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const shrubs = [], ferns = [], sr = rng(seed + 5);
   for (let i = 0, t = 0; shrubs.length < 11 && t < 400; t++) { const th = sr() * TAU, f = 1.18 + sr() * 0.55, [x, z] = at(th, f); if (!ok(x, z, 1.15) || Math.sin(th) > 0.55 && f < 1.4) continue; const s = 0.17 + sr() * 0.17; shrubs.push({ x, y: -0.02 + s * 0.15, z, ry: sr() * 6, sx: s, sy: s * 0.72 }); i++; }
   const shrubM = scatter(cloudGeo(), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.95, vertexColors: true }), shrubs); shrubs.forEach((_, i) => shrubM.setColorAt(i, new THREE.Color().setHSL(0.26 + sr() * 0.05, 0.5, 0.3 + sr() * 0.1))); shrubM.castShadow = true; proc(shrubM);
-  { // azalées : une partie des arbustes porte de petites fleurs roses ou blanches
-    const fl = [], fc = rng(seed + 31);
-    for (const sh of shrubs) if (fc() < 0.45) for (let k = 0; k < 16; k++) { const sz = 0.012 + fc() * 0.012, a = fc() * TAU, e = Math.acos(0.25 + fc() * 0.75), rx = Math.sin(e) * Math.cos(a), rz = Math.sin(e) * Math.sin(a), ry = Math.cos(e); fl.push({ x: sh.x + rx * sh.sx * 0.98, y: sh.y + ry * sh.sy * 0.98, z: sh.z + rz * sh.sx * 0.98, ry: fc() * 6, sx: sz, sy: sz * 0.85 }); }
-    if (fl.length) { const fm = scatter(new THREE.IcosahedronGeometry(1, 0), stone('#ffffff'), fl), cols = ['#ee7aa5', '#f6b7cf', '#fdf1f4', '#d9508a']; fl.forEach((_, i) => fm.setColorAt(i, new THREE.Color(cols[(fc() * cols.length) | 0]))); proc(fm); }
-  }
   for (const s of shrubs) for (let k = 0; k < 5; k++) { const a = sr() * TAU; ferns.push({ x: s.x + Math.cos(a) * s.sx * 1.25, y: -0.04, z: s.z + Math.sin(a) * s.sx * 1.25, ry: a, sy: 0.16 + sr() * 0.12, sx: 0.9 + sr() * 0.5 }); }
   proc(scatter(fernGeo(), plantMaterial(uni, '#2f6e38', '#8fcb6a', 0.035), ferns));
 
@@ -142,9 +138,9 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const l2 = toro(0.62); l2.position.set(2.35, -0.02, 2.6 - 0.0); g.add(l2); lanterns.push(l2);
   if (exclude(l2.position.x, l2.position.z) || fracOf(l2.position.x, l2.position.z) < 1.1) { const [x, z] = at(Math.PI * 0.12, 1.25); l2.position.set(x, -0.02, z); }
   const pines = [[-3.5, 0.6, 2.5, 5, 'pine'], [3.9, 1.0, 2.3, 7, 'cherry', 'spring'], [-4.4, 3.2, 2.2, 9, 'weeping', 'spring'], [-6.2, 1.2, 2.7, 11, 'pine'], [-7.4, 4.0, 2.2, 13, 'ginkgo', 'autumn'], [-5.6, 6.0, 1.9, 15, 'maple', 'autumn']];
-  for (const [x, z, h, sd, kind, season] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = makeTree(kind, sd, h, season); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
-  const mp = makeTree('maple', 3, 1.9, 'autumn'); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
-  const mp2 = makeTree('ginkgo', 6, 2.0, 'autumn'); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
+  for (const [x, z, h, sd, kind, season] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = makeLivingTree(kind, sd, h); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
+  const mp = makeLivingTree('maple', 3, 1.9); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
+  const mp2 = makeLivingTree('ginkgo', 6, 2.0); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
   void place;
 
   /* modèles 3D (js/garden-models2.js) : arbres, herbes, buissons, fougères et rochers remplacent les formes procédurales */
@@ -209,7 +205,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
-  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; treeTint.setScalar(night ? 0.5 : 1); for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
+  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; treeTint.setScalar(night ? 0.5 : 1); updateLivingTrees(night); for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
   void canvasTexture;
   return g;
 }
