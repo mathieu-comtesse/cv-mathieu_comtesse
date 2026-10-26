@@ -1,0 +1,53 @@
+{
+  "migrated": true,
+  "delta": 0,
+  "legacy": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 3.247666358947754,
+    "frameMs": 13.352543830871582,
+    "paused": true,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 352.4187927246094,
+      "y": 11.792645454406738,
+      "z": 279.66845703125
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "resumed": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 4.836665153503418,
+    "frameMs": 15.629429817199707,
+    "paused": false,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 352.4187927246094,
+      "y": 11.792645454406738,
+      "z": 279.66845703125
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "branding": {
+    "title": "THALEOLITHIC — L’âge de la prévention · Jouer",
+    "visibleOldName": false,
+    "product": true,
+    "version": true
+  },
+  "errors": []
+}

@@ -1,10 +1,10 @@
-name: UNGA Web publication
+name: THALEOLITHIC Web publication
 on:
   pull_request:
-    paths: ['unga-bunga-45001/**', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', '.github/workflows/unga-web.yml']
+    paths: ['thaleolithic/**', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', '.github/workflows/unga-web.yml']
   push:
     branches: [main]
-    paths: ['unga-bunga-45001/**', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', '.github/workflows/unga-web.yml']
+    paths: ['thaleolithic/**', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', '.github/workflows/unga-web.yml']
 jobs:
   publication:
     runs-on: ubuntu-latest

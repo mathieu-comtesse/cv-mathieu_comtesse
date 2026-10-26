@@ -1,0 +1,353 @@
+{
+    "label": "baseline-equivalent",
+    "unity": "6000.2.12f1",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "cpu": "AMD Ryzen 9 7900X 12-Core Processor ",
+    "platform": "WindowsEditor",
+    "scope": "Editor measurement; not physical phone certification",
+    "width": 1280,
+    "height": 720,
+    "phases": [
+        {
+            "name": "village-idle",
+            "frames": 956,
+            "seconds": 12.011117935180664,
+            "distance": 0.0,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 12.56118903119725,
+                    "p95": 23.160502314567567
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 12.555836087866102,
+                    "p95": 23.113999999999998
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "THALEOLITHIC.Interactions",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 1.714140271966529,
+                    "p95": 2.5946
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 705091.6025104603,
+                    "p95": 1091494.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1520912325.1485356,
+                    "p95": 1568682570.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1613.4246861924687,
+                    "p95": 1614.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1817379.1757322176,
+                    "p95": 1817870.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 147.0753138075314,
+                    "p95": 148.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.1244400627615062,
+                    "p95": 0.2862
+                }
+            ]
+        },
+        {
+            "name": "npc-interaction",
+            "frames": 1241,
+            "seconds": 12.002338409423829,
+            "distance": 0.0,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 9.670984423978256,
+                    "p95": 13.046697713434697
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 9.665471152296533,
+                    "p95": 12.7797
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "THALEOLITHIC.Interactions",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.0020427074939564895,
+                    "p95": 0.0028
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 73196.00080580177,
+                    "p95": 232838.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1511129624.458501,
+                    "p95": 1562311544.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1557.0942788074133,
+                    "p95": 1558.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1817057.8630136988,
+                    "p95": 1817216.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 97.12167606768735,
+                    "p95": 98.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.08287711522965344,
+                    "p95": 0.2435
+                }
+            ]
+        },
+        {
+            "name": "inventory",
+            "frames": 1390,
+            "seconds": 12.003284454345704,
+            "distance": 0.0,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 8.634733238840381,
+                    "p95": 10.868700221180916
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 8.629339496402878,
+                    "p95": 10.905299999999999
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "THALEOLITHIC.Interactions",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.0022658992805755495,
+                    "p95": 0.003
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 61272.329496402876,
+                    "p95": 72318.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1522143629.989928,
+                    "p95": 1577540819.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1618.7546762589927,
+                    "p95": 1622.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1817425.2848920865,
+                    "p95": 1822960.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 129.20071942446044,
+                    "p95": 132.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.05644482014388492,
+                    "p95": 0.1669
+                }
+            ]
+        },
+        {
+            "name": "opening-film",
+            "frames": 1132,
+            "seconds": 12.008537292480469,
+            "distance": 5.714556694030762,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 10.60718876826363,
+                    "p95": 14.46639746427536
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 10.601560865724365,
+                    "p95": 14.4458
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "THALEOLITHIC.Interactions",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.0026659893992932775,
+                    "p95": 0.0034
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 66072.01501766785,
+                    "p95": 190794.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1521808703.6581274,
+                    "p95": 1570182556.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 4725.159010600707,
+                    "p95": 8024.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 4340593.173144876,
+                    "p95": 6123156.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 131.9487632508834,
+                    "p95": 224.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.11070574204947001,
+                    "p95": 0.2743
+                }
+            ]
+        }
+    ],
+    "errors": []
+}

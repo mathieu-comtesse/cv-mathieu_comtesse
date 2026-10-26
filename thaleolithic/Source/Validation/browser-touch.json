@@ -1,0 +1,31 @@
+{
+  "viewport": {
+    "width": 844,
+    "height": 390,
+    "coarse": true,
+    "title": "THALEOLITHIC — L’âge de la prévention · Jouer"
+  },
+  "credits": true,
+  "runtime": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 1.5310001373291016,
+    "frameMs": 18.090526580810547,
+    "paused": false,
+    "touch": true,
+    "film": false,
+    "position": {
+      "x": 350.9200134277344,
+      "y": 11.871883392333984,
+      "z": 278.4800109863281
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "errors": []
+}

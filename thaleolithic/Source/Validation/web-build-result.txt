@@ -1,0 +1,11 @@
+Result=Succeeded
+Size=106243131
+Seconds=266,1862483
+Errors=0
+Warnings=27
+90207 E:/UNGA-BUNGA-45001/Builds/Web-V13/Build/Web-V13.framework.js.unityweb
+9013014 E:/UNGA-BUNGA-45001/Builds/Web-V13/Build/Web-V13.wasm.unityweb
+97089002 E:/UNGA-BUNGA-45001/Builds/Web-V13/Build/Web-V13.data.unityweb
+47338 E:/UNGA-BUNGA-45001/Builds/Web-V13/Build/Web-V13.loader.js
+1900 E:/UNGA-BUNGA-45001/Builds/Web-V13/index.html
+1670 E:/UNGA-BUNGA-45001/Builds/Web-V13/TemplateData/webmemd-icon.png
