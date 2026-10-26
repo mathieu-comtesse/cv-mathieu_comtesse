@@ -33,8 +33,17 @@ namespace UngaBunga45001
         private CursorLockMode previousCursorLock;
         private bool previousCursorVisible;
         // Native V2 rigs are already expressed in metres. FootGrounding handles slope contact.
-        public Transform Find(string id) => objects.FirstOrDefault(o => o.id == id)?.target ?? characters.FirstOrDefault(c => c.id == id)?.meshyActor?.transform ?? characters.FirstOrDefault(c => c.id == id)?.sourceActor?.transform;
-        public Animator AnimatorFor(string id) => characters.FirstOrDefault(c => c.id == id)?.animator;
+        readonly Dictionary<string,ObjectBinding> objectIndex=new Dictionary<string,ObjectBinding>();
+        readonly Dictionary<string,CharacterBinding> characterIndex=new Dictionary<string,CharacterBinding>();
+        ObjectBinding[] indexedObjects;CharacterBinding[] indexedCharacters;
+        public void InvalidateLookups(){indexedObjects=null;indexedCharacters=null;}
+        void Index()
+        {
+            if(!ReferenceEquals(indexedObjects,objects)){objectIndex.Clear();foreach(var b in objects)if(b!=null&&b.id!=null&&!objectIndex.ContainsKey(b.id))objectIndex.Add(b.id,b);indexedObjects=objects;}
+            if(!ReferenceEquals(indexedCharacters,characters)){characterIndex.Clear();foreach(var c in characters)if(c!=null&&c.id!=null&&!characterIndex.ContainsKey(c.id))characterIndex.Add(c.id,c);indexedCharacters=characters;}
+        }
+        public Transform Find(string id){if(id==null)return null;Index();if(objectIndex.TryGetValue(id,out var b)&&b.target!=null)return b.target;return characterIndex.TryGetValue(id,out var c)?c.meshyActor!=null?c.meshyActor.transform:c.sourceActor!=null?c.sourceActor.transform:null:null;}
+        public Animator AnimatorFor(string id){if(id==null)return null;Index();return characterIndex.TryGetValue(id,out var c)?c.animator:null;}
         public bool Validate(out string errors)
         {
             var issues = new List<string>();

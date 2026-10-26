@@ -32,7 +32,7 @@ namespace UngaBunga45001
         public void SetView(Rect view,float rotation){crop=view;heading=rotation;SetVerticesDirty();}
         protected override void OnPopulateMesh(UnityEngine.UI.VertexHelper vh)
         {
-            vh.Clear();if(geometry==null||projection==null)return;var r=rectTransform.rect;
+            vh.Clear();if(geometry==null||projection==null||crop.width<=.00001f||crop.height<=.00001f||projection.size.x<=.00001f||projection.size.y<=.00001f)return;var r=rectTransform.rect;
             foreach(var footprint in geometry.footprints)
             {
                 var b=footprint.bounds;var corners=new[]{new Vector3(b.min.x,0,b.min.z),new Vector3(b.max.x,0,b.min.z),new Vector3(b.max.x,0,b.max.z),new Vector3(b.min.x,0,b.max.z)};

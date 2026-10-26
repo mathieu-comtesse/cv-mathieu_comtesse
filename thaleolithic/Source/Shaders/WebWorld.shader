@@ -28,7 +28,7 @@ Shader "UngaBunga/WebWorld"
             float3 p=TransformObjectToWorld(input.positionOS.xyz);if(_WindStrength<.001)return p;float weight=saturate(input.positionOS.y*1.6);weight*=weight*_WindStrength;
             float wind=sin(p.x*.73+p.z*.59+_Time.y*1.8)*.055;p.xz+=float2(wind,wind*.53)*weight;
             p.y-=saturate(1-(_Time.y-_UngaLastFootstep.w)*1.6)*saturate(1-length(p.xz-_UngaLastFootstep.xz)/.7)*weight*.06;
-            for(int i=0;i<min(_UngaActorCount,24);i++){float2 d=p.xz-_UngaActors[i].xz;float distance=length(d);float bend=saturate(1-distance/max(.1,_UngaActors[i].w))*weight*.48;p.xz+=d/max(.08,distance)*bend;p.y-=bend*.4;}return p;
+            for(int i=0;i<min(_UngaActorCount,24);i++){float2 d=p.xz-_UngaActors[i].xz;float radius=max(.1,_UngaActors[i].w);float squared=dot(d,d);if(squared<radius*radius){float distance=sqrt(squared);float bend=(1-distance/radius)*weight*.48;p.xz+=d/max(.08,distance)*bend;p.y-=bend*.4;}}return p;
         }
         V Vert(A input){V o;UNITY_SETUP_INSTANCE_ID(input);UNITY_TRANSFER_INSTANCE_ID(input,o);UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);o.world=World(input);o.positionCS=TransformWorldToHClip(o.world);o.normal=TransformObjectToWorldNormal(input.normalOS);o.uv=TRANSFORM_TEX(input.uv,_BaseColorMap);o.fog=ComputeFogFactor(o.positionCS.z);return o;}
         half4 Albedo(float2 uv){half4 color=SAMPLE_TEXTURE2D(_BaseColorMap,sampler_BaseColorMap,uv)*_BaseColor;clip(color.a-_AlphaCutoff);float shade=max(color.r,max(color.g,color.b));float hide=step(color.g*1.04,color.r)*step(color.b*1.04,color.g)*(1-smoothstep(.13,.32,shade));color.rgb=lerp(color.rgb,float3(.28,.135,.058),hide*.82*_WarmHide);return color;}
