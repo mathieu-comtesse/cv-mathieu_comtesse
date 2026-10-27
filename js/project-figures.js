@@ -11,6 +11,9 @@ const MACHINES = {
   vmvre: ['vm', 'Pointeuses à clé partagée',
     'Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.',
     'Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons ; la reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.'],
+  vrestudio: ['vrestudio', 'Poste de relecture à tampon et calibre',
+    'Un modèle qui propose des zones sur un PDF ne vaut rien tant qu’il n’a pas été testé, et ce qu’il propose ne doit jamais passer pour validé.',
+    'Prenons l’exemple d’un poste de relecture à tampon. Chaque cadre d’un rapport est validé à la main, au tampon, et chaque rapport relu est classé dans un fichier de fiches. Les fiches font monter deux colonnes, le F1 et le rappel U1, que lit une fourche optique : tant qu’une fourche n’est pas coupée, une goupille bloque le levier de publication, qui exige au moins 10 rapports, un F1 d’au moins 0,75 et un rappel U1 d’au moins 0,90. Le levier tiré, la plaque du modèle est active ; ce qu’elle propose reste au crayon jusqu’au prochain coup de tampon.'],
   vre: ['vre', 'Trieuse à quatre tubes',
     'Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.',
     'Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport ; avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.'],
@@ -38,12 +41,12 @@ const MACHINES = {
 };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
-const kindOf = (p) => (p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
+const kindOf = (p) => (p.id === 'vrestudio' ? 'Modèle documentaire contrôlé' : p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
 const timeLabel = (p) => (p.gainStatus === 'estimated' ? 'Temps libéré (estimé)' : 'Temps libéré');
 const moneyLabel = (p, long) => (p.gainStatus === 'result' ? 'Résultat' : p.gainStatus === 'estimated' ? 'Valorisation estimée' : long ? 'Valorisation financière du temps' : 'Valorisation financière');
 const dayLabel = (d, halves) => (halves ? d * 2 + ' demi-journées' : d === 0.5 ? 'Une demi-journée' : d === 1 ? '1 jour' : String(d).replace('.', ',') + (d < 2 ? ' jour' : ' jours'));
 const buildHTML = (p) => (p.build ? `<span><small>Construction</small><b>${dayLabel(p.build.days, p.build.halves)}</b>${p.build.upkeep === true ? 'puis une amélioration d’une demi-journée par mois' : p.build.upkeep === 'once' ? 'puis une seule amélioration d’une demi-journée, deux mois après la mise en service' : p.build.upkeep === false ? (p.id === 'pa' ? 'auto-apprenante, sans maintenance' : 'puis autonome, sans maintenance') : 'essais auprès des équipes compris'}</span>` : '');
-const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` + buildHTML(p) +
+const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span>` + (p.money ? `<span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` : '') + buildHTML(p) +
   (p.extraGains || []).map((g) => `<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('') +
   (p.gainBasis ? `<p class="process-gain-basis">${esc(p.gainBasis)}</p>` : '');
 
@@ -51,7 +54,7 @@ const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabe
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);
   host.className = 'marquee process-gallery';
-  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp2" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp2" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span>${p.money ? `<span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span>` : ''}</small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
   createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
 
