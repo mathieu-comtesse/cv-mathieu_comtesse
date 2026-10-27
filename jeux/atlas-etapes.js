@@ -5,7 +5,7 @@ export const ETAPES = [
     texte: 'Campus Hannah Arendt, dans l’ancien Hôtel-Dieu. Cinq ans d’histoire : recherche documentaire, critique des sources et rédaction, la rigueur de méthode reprise ensuite dans l’enquête terrain MQSE.', lien: 'parcours.html', icone: 'AU' },
   { id: 'usp', glb: 'usp', vers: [0.3, 3.9], nom: 'Université Sorbonne Paris Nord', tag: 'M2 MQSE · M1 validé juin 2026', role: 'Master MQSE (M1 validé le 22 juin 2026, M2 en cours)',
     texte: 'Maintenance, Qualité, Sécurité, Environnement. Mémoire et soutenance sur l’amélioration du suivi des plans de prévention et de la coactivité (Power BI V0 → V4).', lien: 'parcours.html', icone: 'PN' },
-  { id: 'sncf', glb: 'sncf', vers: [7.5, -3], nom: 'SNCF Gares & Connexions', tag: 'Assistant Sécurité & Production', role: 'Alternance · Assistant Sécurité & Production, ABE Sud Île-de-France',
+  { id: 'sncf', glb: 'sncf', vers: [7.5, -3], nom: 'SNCF Gares & Connexions', tag: 'Ingénieur Maintenance & Qualité', role: 'Alternance · Ingénieur Maintenance & Qualité, ABE Sud Île-de-France',
     texte: 'Prévention terrain, plans de prévention et coactivité, maintenance réglementaire, accès et habilitations ; outils d’extraction, Power Automate et Power BI construits pour l’équipe.', lien: 'profil.html', icone: 'SN' },
   { id: 'reseau', glb: 'reseau', vers: [3.5, 3.2], nom: 'État des lieux EPM / EPTx', tag: 'Enquête terrain · rentrée 2026', role: 'Démarche MQSE · passage des travaux à la maintenance',
     texte: 'Entretiens (QQOQCP), gemba et groupe de travail transverse ; proposition d’un processus simplifié « EPM light » en cinq étapes, 16 arbitrages obtenus en réunion d’agence.', lien: 'projet-5.html', icone: 'EP' },
