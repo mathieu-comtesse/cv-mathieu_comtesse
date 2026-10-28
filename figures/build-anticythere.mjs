@@ -13,7 +13,7 @@ import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, writeFigure, LOOP } from "./common.mjs";
 import { readFileSync } from "node:fs";
 import * as MD from "../refonte/m3d/anticythere-model.js";
-const { CASE, MECH_Y, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, HATCH, BOARD, CORPUS_TOP, LID_Z, DESK } = MD;
+const { CASE, MECH_Y, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, HATCH, BOARD, CORPUS_TOP, LID_Z, DESK, ELBOW } = MD;
 const PH = MD.phases(false);
 
 const WIDTH = 900, HEIGHT = 660;
@@ -261,6 +261,9 @@ const toolsSvg = (() => {
   out.push(box(DESK.x0 + 1.6, DESK.x1 - 1.6, DESK.y0 + 1.6, DESK.y1 - 1.6, DESK.z - 1, 1, { tone: "lo", bevel: 0.2, cls: "mat-light" }));
   out.push(`<path class="ak-lightgrid" d="${[0.25, 0.5, 0.75].map((q) => k.pathOf([at([DESK.x0 + 1.6 + (DESK.x1 - DESK.x0 - 3.2) * q, DESK.y0 + 1.6, DESK.z]), at([DESK.x0 + 1.6 + (DESK.x1 - DESK.x0 - 3.2) * q, DESK.y1 - 1.6, DESK.z])]) + k.pathOf([at([DESK.x0 + 1.6, DESK.y0 + 1.6 + (DESK.y1 - DESK.y0 - 3.2) * q, DESK.z]), at([DESK.x1 - 1.6, DESK.y0 + 1.6 + (DESK.y1 - DESK.y0 - 3.2) * q, DESK.z])])).join("")}"/>`);
   out.push(`<g transform="${front(DESK.y1)}"><path class="ak-bridge" d="M${DESK.x0 + 4} -1H${DESK.x1 - 4}V-4H${DESK.x0 + 4}Z"/>${inscription(DESK.x0 + 5.5, -3.4, DESK.x1 - DESK.x0 - 11, 1, 51, 3)}</g>`);
+  // potence du bras automate : socle, colonne, rotule ; le bras de bronze en part vers la table lumineuse
+  { const [bx, by, bz] = ELBOW;
+    out.push(S(k.cylinder(bx, by, 5, 0, 1.6, P, 28), { tone: "mid", className: "mat-bronze" }), S(k.cylinder(bx, by, 1.6, 1.6, bz - 6, P, 18), { tone: "mid", className: "mat-bronze" }), S(k.cylinder(bx, by, 2.6, bz - 4.4, 2.4, P, 20), { tone: "mid", className: "mat-bronze" })); }
   // loupe d'horloger
   out.push(S(k.cylinder(36, 64, 5, 0, 2.4, P, 28), { tone: "mid", className: "mat-steel" }), S(k.cylinder(36, 64, 3.8, 2.4, 0.2, P, 28), { tone: "lo", crease: "none", className: "mat-glass" }));
   return out.join("");
@@ -282,9 +285,9 @@ const live = `
 const P = ${JSON.stringify(P)};
 const MODEL = (() => {
 ${MODEL_SRC}
-return { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf };
+return { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, HANDS };
 })();
-const { TAU, CASE, MECH_Y, FY, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf } = MODEL;
+const { TAU, CASE, MECH_Y, FY, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, HANDS } = MODEL;
 const PH = MODEL.phases(false), LAMPS = ${JSON.stringify(lampsXY)}, RW = GEARS.pin.r;
 ${LOOP}
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
@@ -344,20 +347,32 @@ function trailSvg(sh, s) {
 }
 const pinPeg = (u, z, a, h0) => raised(circPts(1.8, u + 10 * Math.cos(a), -z + 10 * Math.sin(a), 16), h0, 4.4, "ak-gear ak-hub");
 
-// ---- la main de l'agent : manche de chemise, poignet, poing et pouce serrés sur le tampon ; l'encre dit ce qu'elle fait ----
-function handSvg(s) {
-  const h = handAt(s); if (!h) return "";
-  const K = 1.25, [x, y, z] = h.tip, B = (a0, a1, b0, b1, c0, c1, cls, bev = 0.5, lit) => box(x + a0 * K, x + a1 * K, y + b0 * K, y + b1 * K, z + c0 * K, (c1 - c0) * K, { tone: "mid", bevel: bev, cls, lit });
-  const Cy = (r, c0, c1, cls) => solidSvg(cylinder(x, y, r * K, z + c0 * K, (c1 - c0) * K, P, 20), { tone: "mid", className: cls });
-  let out = B(-2.4, 2.4, -2.4, 2.4, 0, 0.7, "mat-ink-" + h.kind, 0.2, h.press > 0.6);                 // tampon : encre, semelle, manche, pommeau
-  out += B(-2.9, 2.9, -2.9, 2.9, 0.7, 2.6, "mat-wood", 0.6) + Cy(1, 2.6, 6.6, "mat-wood") + Cy(2.1, 6.6, 8.2, "mat-wood");
-  out += B(-3.3, 3.5, -3.6, 2.6, 7.4, 11.6, "mat-skin", 1.4);                                          // paume posée sur le pommeau
-  for (let i = 0; i < 4; i++) out += B(-2.8 + i * 1.6, -1.45 + i * 1.6, 2.2, 3.7, 5.4 + (i === 0 || i === 3 ? 0.5 : 0), 10.6, "mat-skin", 0.45);   // quatre doigts repliés devant
-  out += B(3.1, 4.6, -1.8, 1.2, 6.4, 9.8, "mat-skin", 0.55);                                           // pouce
-  out += '<path class="ak-skinline" d="' + [-1.6, 0, 1.6].map((dx) => "M" + pt(at([x + dx * K + 1.1, y + 2.6 * K, z + 11.6 * K])) + "L" + pt(at([x + dx * K + 1.1, y - 2.8 * K, z + 11.6 * K]))).join("") + '"/>';
-  out += B(-2.4, 2.6, -2.8, 2.0, 11.6, 13.8, "mat-skin", 0.6);                                         // poignet
-  out += B(-3.2, 3.4, -3.6, 2.8, 13.8, 15.6, "mat-cuff", 0.6) + B(-2.9, 3.1, -3.3, 2.5, 15.6, 42, "mat-sleeve", 1);
+// ---- « La Création d'Adam » : la main de bronze de la machine et la main de l'agent ; au contact des index, la page est validée ----
+function handPaint(H, tip, m) {
+  const P2 = (q) => pt([tip[0] + q[0], -(tip[2] + q[1])]);
+  const poly = (pts, c) => '<path class="' + c + '" d="M' + pts.map(P2).join("L") + 'Z"/>';
+  const line = (pts, c, w, dz = 0) => '<path class="' + c + '" stroke-width="' + f2(w) + '" d="M' + pts.map((q) => P2([q[0], q[1] + dz])).join("L") + '"/>';
+  let out = "";
+  if (H.sleeve) out += poly(H.sleeve, "hd-sleeve") + line(H.sleeve.slice(0, 2), "hd-hi-sleeve", 0.8, -0.6) + poly(H.cuff, "hd-cuff");
+  out += poly(H.arm, "hd-" + m) + line(H.arm.slice(0, 2), "hd-hi-" + m, 1.4, -0.9);
+  if (m === "bronze") { const K = 1.4; out += [-29, -34].map((u) => line([[u * K, 9.9 * K], [u * K, 0.9 * K]], "hd-ol-bronze", 0.5)).join(""); }
+  out += poly(H.palm, "hd-" + m) + line(H.palm.slice(0, 3), "hd-hi-" + m, 1.1, -0.7);
+  for (const f of H.fingers) {
+    out += line(f.pts, "hd-ol-" + m, f.w + 0.8) + line(f.pts, "hd-fill-" + m, f.w) + line(f.pts, "hd-hi-" + m, f.w * 0.32, f.w * 0.22);
+    if (m === "bronze") out += f.pts.slice(1, -1).map((q) => '<path class="hd-rivet" d="' + circ(0.42, tip[0] + q[0], -(tip[2] + q[1])) + '"/>').join("");
+  }
+  const ix = H.fingers.find((f) => f.pts[f.pts.length - 1][0] === 0), q1 = ix.pts[ix.pts.length - 2], d = Math.hypot(q1[0], q1[1]);
+  out += '<path class="hd-nail-' + m + '" d="' + circ(0.55, tip[0] + q1[0] / d * 0.9, -(tip[2] + q1[1] / d * 0.9 + 0.35)) + '"/>';
   return out;
+}
+function handsSvg(s) {
+  const h = handsAt(s); let out = handPaint(HANDS.machine, h.machine, "bronze");
+  if (h.human) {
+    out += handPaint(HANDS.human, h.human, "skin");
+    if (h.press > 0.35) { const cx = (h.machine[0] + h.human[0]) / 2, cz = h.machine[2] + 0.1, r = 0.8 + 2.2 * h.press;
+      out += '<g class="ak-spark ak-spark-' + h.kind + '" style="opacity:' + h.press.toFixed(2) + '"><path d="' + circ(r, cx, -cz) + '"/>' + [0, 1, 2, 3, 4, 5].map((i) => { const a = i * Math.PI / 3 + 0.3; return '<path d="M' + f2(cx + (r + 0.6) * Math.cos(a)) + ' ' + f2(-cz + (r + 0.6) * Math.sin(a)) + 'L' + f2(cx + (r + 2.6) * Math.cos(a)) + ' ' + f2(-cz + (r + 2.6) * Math.sin(a)) + '"/>'; }).join("") + '</g>'; }
+  }
+  return '<g transform="' + front(h.machine[1]) + '">' + out + '</g>';
 }
 
 function draw(o, s) {
@@ -425,7 +440,7 @@ function draw(o, s) {
   let bd = "";
   BOARD.slots.forEach(([u, z], i) => { if (i === 3 || (i === 2 && o.oldFly < 1)) return; bd += prism(lift(gearPts(RW, 24, g.pin.d, 24, i * 0.7, u, -z), 3), 3, { cls: "ak-gear" + (i === 2 ? " ak-lit" : ""), holes: [[u - OFF[0] * 3, -z - OFF[1] * 3, 1.8]] }); });
   parts.board.innerHTML = '<g transform="' + front(BOARD.y) + '">' + bd + '</g>';
-  parts.hand.innerHTML = handSvg(s);
+  parts.hand.innerHTML = handsSvg(s);
   // roues en vol : l'ancienne, dressée, vers le tableau ; la candidate, qui se redresse en montant vers la trappe
   let tr = "";
   const ol = oldInFlight(o);
@@ -513,6 +528,12 @@ const css = `<style>
 .ak-stamp-ok{fill:rgba(53,169,116,.28);stroke:#35a974;stroke-width:.55}.ak-stamp-bad{fill:rgba(210,69,47,.28);stroke:#d2452f;stroke-width:.55}.ak-stamp-fix{fill:rgba(224,163,58,.32);stroke:#e0a33a;stroke-width:.55}
 .ak-lightgrid{fill:none;stroke:#9db6ea;stroke-width:.3}
 .mat-light{--anatomy-face:#eef5ff;--anatomy-top:#f5f9ff;--anatomy-lit-top:#f5f9ff;--anatomy-shade-0:#c9d8ee;--anatomy-shade-1:#d6e2f3;--anatomy-shade-2:#e2ebf8;--anatomy-shade-3:#eef5ff}
+.hd-skin{fill:#e7b48f;stroke:#8c5a3c;stroke-width:.4;stroke-linejoin:round}.hd-bronze{fill:#d6b57a;stroke:#6e5228;stroke-width:.4;stroke-linejoin:round}
+.hd-sleeve{fill:#3f5f8f;stroke:#22324d;stroke-width:.4;stroke-linejoin:round}.hd-cuff{fill:#f4f3ee;stroke:#9a9890;stroke-width:.35}
+.hd-ol-skin,.hd-fill-skin,.hd-hi-skin,.hd-ol-bronze,.hd-fill-bronze,.hd-hi-bronze,.hd-hi-sleeve{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.hd-ol-skin{stroke:#8c5a3c}.hd-fill-skin{stroke:#e7b48f}.hd-hi-skin{stroke:#f6d3b8}.hd-ol-bronze{stroke:#6e5228}.hd-fill-bronze{stroke:#d6b57a}.hd-hi-bronze{stroke:#f1dcae}.hd-hi-sleeve{stroke:#5b7db0}
+.hd-nail-skin{fill:#f8dccb;stroke:#b98a6c;stroke-width:.2}.hd-nail-bronze{fill:#efdcb0;stroke:#8a6a36;stroke-width:.2}.hd-rivet{fill:#8a6a36}
+.ak-spark path{fill:none;stroke-width:.5;stroke-linecap:round}.ak-spark>path:first-child{fill:#fff8d8}.ak-spark-ok path{stroke:#35a974}.ak-spark-bad path{stroke:#d2452f}.ak-spark-fix path{stroke:#e0a33a}
 .ak-skinline{fill:none;stroke:#b07a5a;stroke-width:.35;stroke-linecap:round}
 .mat-paper{--anatomy-face:var(--pp);--anatomy-top:var(--pp);--anatomy-lit-top:var(--pp)}
 .mat-glass{--anatomy-face:var(--gl);--anatomy-top:var(--gl);--anatomy-lit-top:var(--gl)}
@@ -532,10 +553,10 @@ const css = `<style>
 const plate = k.plateHtml({
   fig: "Fig 11", title: "Lecteur VRE", hint: "Glisse ou ← → : étape", readout: "1 · Lecture · Document AI",
   keys: [
-    { mark: "lit", label: "Ce qui vient d'agir : roue, aiguille, couteau, feuille, levier, tampon de l'agent" },
+    { mark: "lit", label: "Ce qui vient d'agir : roue, aiguille, couteau, feuille, levier, contact des deux index" },
     { mark: "raised", label: "Case bleue : cadre proposé, jamais validé sans l'agent ; tout tourne en local" },
   ],
-  caption: "Un mécanisme d'Anticythère pour le Lecteur VRE. La fiche entre par la fente (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles métiers pour que l'aiguille avance (hybride neuro-symbolique). Au dos, le cadran à spirale propose les cadres de douze pages inédites : chaque case reste bleue, une proposition. Chaque page se pose sur la table lumineuse de Radiographie : la main de l'agent la tamponne, vert pour valider, rouge puis orange pour corriger, la case du cadran change au même instant, et la page part en feuille vers la boîte du corpus partagé. Le corpus est figé (sceau) : ses copies, image, texte et positions, volent sur l'axe de la machine à diviser et sont pressées en un flan, dont l'entraînement LayoutLMv3 taille les dents. Le banc d'essai juge la roue candidate sur deux rapports séparés : F1 au-delà de 0,75, rappel U1 au-delà de 0,90, le voyant passe au vert. Le levier publie explicitement : l'ancienne roue du modèle sort par la trappe et rejoint le tableau des versions, la nouvelle descend à sa place ; les règles ne changent pas. Au nouvel essai, les cadres restent des propositions : la main tamponne encore chaque page. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les pages, erreurs et scores sont des valeurs d'illustration.",
+  caption: "Un mécanisme d'Anticythère pour le Lecteur VRE. La fiche entre par la fente (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles métiers pour que l'aiguille avance (hybride neuro-symbolique). Au dos, le cadran à spirale propose les cadres de douze pages inédites : chaque case reste bleue, une proposition. Chaque page se pose sur la table lumineuse de Radiographie : comme dans La Création d'Adam, l'index de l'agent vient toucher celui de la main de bronze de la machine, vert pour valider, rouge puis orange pour corriger, la case du cadran change au même instant, et la page part en feuille vers la boîte du corpus partagé. Le corpus est figé (sceau) : ses copies, image, texte et positions, volent sur l'axe de la machine à diviser et sont pressées en un flan, dont l'entraînement LayoutLMv3 taille les dents. Le banc d'essai juge la roue candidate sur deux rapports séparés : F1 au-delà de 0,75, rappel U1 au-delà de 0,90, le voyant passe au vert. Le levier publie explicitement : l'ancienne roue du modèle sort par la trappe et rejoint le tableau des versions, la nouvelle descend à sa place ; les règles ne changent pas. Au nouvel essai, les cadres restent des propositions : les deux index se touchent encore pour chaque page. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les pages, erreurs et scores sont des valeurs d'illustration.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Lecteur VRE : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
 });
 writeFigure("vrestudio-anticythere", { title: "Lecteur VRE · le mécanisme d'Anticythère", plate, live, width: 900, css });

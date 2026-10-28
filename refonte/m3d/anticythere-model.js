@@ -73,18 +73,44 @@ export const EVENTS = (() => {
   return ev;
 })();
 const bump = (d) => (d < -0.14 || d > 0.16 ? 0 : d < 0 ? ease((d + 0.14) / 0.14) : 1 - ease(d / 0.16));
-/** La main de l'agent et son tampon : bas du tampon (x, y, z), pression (0 → 1), encre en cours ; null hors des validations. */
-export function handAt(s) {
+// Les deux mains de « La Création d'Adam » (dessinées pour la figure, d'après la pose de la fresque) : à gauche la main de la machine,
+// en bronze articulé, l'index tendu mollement ; à droite la main de l'agent, l'index pointé. Repère local de chaque main : u vers la droite,
+// z vers le haut, origine au bout de l'index ; elles vivent dans le plan vertical y = HANDS_Y, au-dessus de la table lumineuse.
+export const HANDS_Y = DESK_C[1];
+export const HANDS = {
+  machine: {
+    fingers: [{ w: 1.7, pts: [[-13.6, 4.2], [-12.6, 1.2], [-12.9, -1.6]] }, { w: 1.9, pts: [[-13, 5.4], [-10.9, 2], [-10.6, -1.6], [-11, -3.6]] },
+      { w: 2, pts: [[-12.4, 6.6], [-9.6, 3.2], [-8.2, -0.4], [-7.9, -2.8]] }, { w: 2, pts: [[-12, 7.8], [-8.4, 4.6], [-4.4, 1.8], [0, 0]] }, { w: 2.2, pts: [[-18.5, 7.2], [-15, 9.6], [-11.8, 10.4]] }],
+    palm: [[-11.6, 8.6], [-15, 10.2], [-20, 10.4], [-24, 7.4], [-23, 2.2], [-18, 1.6], [-14.5, 2.6], [-12.6, 5.4]],
+    arm: [[-21.6, 10.6], [-38, 9.4], [-38, 0.2], [-23.6, 2.4]],
+  },
+  human: {
+    fingers: [{ w: 1.7, pts: [[17.5, -0.6], [15.4, -3], [15.8, -5.6]] }, { w: 1.9, pts: [[16.6, 0.6], [13.6, -2.4], [13.6, -5.6], [14.8, -6.8]] },
+      { w: 2, pts: [[15.6, 1.6], [11.8, -0.8], [10.6, -4], [11.8, -5.8]] }, { w: 2.2, pts: [[18.5, -1.6], [14.4, -4.6], [10.4, -6.2], [8.2, -6.4]] }, { w: 2.1, pts: [[14.6, 2.4], [9.6, 1.5], [4.8, 0.7], [0, 0]] }],
+    palm: [[13.8, 3.4], [18, 4.4], [22.5, 4.6], [24.5, 0.8], [23, -3.6], [19.6, -3.4], [16.5, -2.2], [14, 0.2]],
+    arm: [[22, 4.6], [35.5, 12.6], [38, 4.4], [23.5, -3.6]], cuff: [[35, 13.2], [38.2, 15], [41, 6.4], [37.6, 4.2]], sleeve: [[38.2, 15], [50, 23.5], [54.5, 14.5], [41, 6.4]],
+  },
+};
+export const HANDS_K = 1.4;                                      // échelle des deux mains
+for (const H of Object.values(HANDS)) for (const [k, v] of Object.entries(H)) {
+  if (k === 'fingers') v.forEach((f) => { f.w *= HANDS_K; f.pts = f.pts.map(([u, z]) => [u * HANDS_K, z * HANDS_K]); });
+  else H[k] = v.map(([u, z]) => [u * HANDS_K, z * HANDS_K]);
+}
+export const MACHINE_TIP = [DESK_C[0] - 2.2, HANDS_Y, DESK.z + 19];
+export const ELBOW = [MACHINE_TIP[0] - 38 * HANDS_K, HANDS_Y, MACHINE_TIP[2] + 4.8 * HANDS_K];   // le bras de bronze repose sur sa potence
+/** Position des deux mains : bout de l'index de la machine (fixe) et de l'agent, contact (0 → 1), encre en cours ; agent absent : null. */
+export function handsAt(s) {
+  const machine = MACHINE_TIP;
   for (const pass of [1, 2]) {
     const ev = EVENTS.filter((e) => e.pass === pass), a = ev[0].t - 1.1, b = ev[ev.length - 1].t + 0.9;
     if (s < a || s > b) continue;
     const away = 1 - ease(seg(s, a, a + 0.6)) * (1 - ease(seg(s, b - 0.6, b)));
     let press = 0, kind = 'ok'; for (const e of ev) { const v = bump(s - e.t); if (v > press) { press = v; kind = e.kind; } }
     const next = ev.find((e) => e.t > s - 0.16) || ev[ev.length - 1];
-    const sway = 0.8 * Math.sin(s * 2.3);
-    return { tip: [DESK_C[0] + 1.5 + sway + 30 * away, DESK_C[1] + 1 + 22 * away, DESK_C[2] + 0.5 + 8 * (1 - press) + 40 * away], press, kind: press > 0 ? kind : next.kind };
+    const gap = 0.4 + 4.2 * (1 - press) + 0.4 * Math.sin(s * 2.1) * (1 - press) + 46 * away;
+    return { machine, human: [machine[0] + gap, HANDS_Y, machine[2] + 0.2 * Math.sin(s * 1.7) + 10 * away], press, kind: press > 0 ? kind : next.kind };
   }
-  return null;
+  return { machine, human: null, press: 0, kind: 'ok' };
 }
 
 // ---- les feuilles : pages du cadran vers la table puis vers le corpus, copies du corpus figé vers le flan, rapports de test vers le banc ----

@@ -5,7 +5,7 @@
 // le banc d'essai la juge sur deux rapports séparés ; le levier la publie : l'ancienne roue du modèle sort par la trappe, la nouvelle descend.
 import * as THREE from 'three';
 import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish } from './core.js';
-import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf, DESK } from './anticythere-model.js';
+import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, DESK, HANDS, HANDS_Y, ELBOW } from './anticythere-model.js';
 
 export const WIDTH = 318;
 const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
@@ -110,16 +110,23 @@ export function build() {
   // ---- table lumineuse « Radiographie » et main de l'agent (manche, poignet, paume, quatre doigts, pouce, tampon) ----
   add(slab(DESK.x0, DESK.y0, DESK.x1 - DESK.x0, DESK.y1 - DESK.y0, 0, DESK.z - 1, C.wood, 1.2));
   add(at(new THREE.Mesh(new THREE.BoxGeometry(DESK.x1 - DESK.x0 - 3.2, 1, DESK.y1 - DESK.y0 - 3.2), new THREE.MeshStandardMaterial({ color: '#eef5ff', emissive: '#cfe0ff', emissiveIntensity: .35, roughness: .6 })), (DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z - .5));
-  const agent = new THREE.Group(); add(agent);
-  const skin = mat('#eab894', { roughness: .7 }), K = 1.25, HB = (a0, a1, b0, b1, c0, c1, m) => { const o = finish(new THREE.BoxGeometry((a1 - a0) * K, (c1 - c0) * K, (b1 - b0) * K), m, 30); o.position.set((a0 + a1) / 2 * K, (c0 + c1) / 2 * K, (b0 + b1) / 2 * K); agent.add(o); return o; };
-  const inkM = { ok: mat(C.ok), bad: mat(C.bad), fix: mat(C.fixed) };
-  const pad = HB(-2.4, 2.4, -2.4, 2.4, 0, .7, inkM.ok);
-  HB(-2.9, 2.9, -2.9, 2.9, .7, 2.6, W(C.wood));
-  for (const [r, c0, c1] of [[1, 2.6, 6.6], [2.1, 6.6, 8.2]]) { const o = finish(new THREE.CylinderGeometry(r * K, r * K, (c1 - c0) * K, 18), W(C.woodDk), 40); o.position.y = (c0 + c1) / 2 * K; agent.add(o); }
-  HB(-3.3, 3.5, -3.6, 2.6, 7.4, 11.6, skin);
-  for (let i = 0; i < 4; i++) HB(-2.8 + i * 1.6, -1.45 + i * 1.6, 2.2, 3.7, 5.4 + (i === 0 || i === 3 ? .5 : 0), 10.6, skin);
-  HB(3.1, 4.6, -1.8, 1.2, 6.4, 9.8, skin); HB(-2.4, 2.6, -2.8, 2, 11.6, 13.8, skin);
-  HB(-3.2, 3.4, -3.6, 2.8, 13.8, 15.6, mat('#f4f3ee')); HB(-2.9, 3.1, -3.3, 2.5, 15.6, 42, mat('#3f5f8f'));
+  // « La Création d'Adam » : la main de bronze de l'automate (sur sa potence) et la main de l'agent ; elles vivent dans le plan y = HANDS_Y
+  const handGroup = (H, m, skinM) => {
+    const g2 = new THREE.Group(), slab2 = (pts, mm, depth) => { const sh = new THREE.Shape(); pts.forEach(([u, z], i) => (i ? sh.lineTo(u, z) : sh.moveTo(u, z))); sh.closePath(); const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: .5, bevelSize: .5, bevelSegments: 2 }); geo.translate(0, 0, -depth / 2); const o = finish(geo, mm, 40); g2.add(o); };
+    if (H.sleeve) { slab2(H.sleeve, mat('#3f5f8f', { roughness: .8 }), 6.4); slab2(H.cuff, mat('#f4f3ee'), 6.8); }
+    slab2(H.arm, skinM, 5); slab2(H.palm, skinM, 4.2);
+    for (const f of H.fingers) {
+      const r = f.w / 2;
+      f.pts.forEach(([u, z], i) => { const sp = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), skinM); sp.position.set(u, z, 0); g2.add(sp);
+        if (i) { const [u0, z0] = f.pts[i - 1], L = Math.hypot(u - u0, z - z0), c = finish(new THREE.CylinderGeometry(r, r, L, 14), skinM, 0); c.position.set((u + u0) / 2, (z + z0) / 2, 0); c.rotation.z = Math.atan2(z - z0, u - u0) - Math.PI / 2; g2.add(c); } });
+    }
+    g2.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    add(g2); return g2;
+  };
+  const bronzeHand = mat(C.bronze, { metalness: .35, roughness: .45 }), skinHand = mat('#e7b48f', { roughness: .75 });
+  const handM = handGroup(HANDS.machine, 'bronze', bronzeHand), handH = handGroup(HANDS.human, 'skin', skinHand);
+  add(cyl(ELBOW[0], ELBOW[1], 5, 0, 1.6, C.bronze, 28), cyl(ELBOW[0], ELBOW[1], 1.6, 1.6, ELBOW[2] - 6, C.bronze, 18), cyl(ELBOW[0], ELBOW[1], 2.6, ELBOW[2] - 4.4, 2.4, C.bronzeLo, 20));
+  const sparkM = new THREE.MeshBasicMaterial({ color: '#fff3b0', transparent: true }), spark = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), sparkM); add(spark);
   // ---- machine à diviser : plateau, axe, couteau ; banc d'essai ; levier de publication ----
   const RP = RW + 6;
   add(slab(DIV.x - 34, DIV.y - 24, 68, 50, 0, 2, C.steelLo, 1), slab(DIV.x - 32, DIV.y - 22, 64, 46, 2, 4, C.steel, 1.4));
@@ -246,8 +253,9 @@ export function build() {
     if (ol) { at(oldWheel, ol.c[0], ol.c[1] + 3, ol.c[2]); oldWheel.userData.spin.rotation.z = -o.pin + PH.pin + o.oldFly * 3; }
     boardGears[2].visible = o.oldFly >= 1; boardGears[3].visible = false;
     sheets.forEach((S) => placeSheet(S, s));
-    const hd = handAt(s); agent.visible = !!hd;
-    if (hd) { at(agent, ...hd.tip); pad.material = inkM[hd.kind] || inkM.ok; }
+    const hd = handsAt(s); at(handM, ...hd.machine); handH.visible = !!hd.human; spark.visible = !!hd.human && hd.press > 0.35;
+    if (hd.human) at(handH, ...hd.human);
+    if (spark.visible) { at(spark, (hd.machine[0] + hd.human[0]) / 2, HANDS_Y, hd.machine[2]); spark.scale.setScalar(.8 + 2 * hd.press); sparkM.color.set(hd.kind === 'ok' ? '#c9f5d6' : hd.kind === 'bad' ? '#ffc7bd' : '#ffe2a6'); sparkM.opacity = .5 + .5 * hd.press; }
   }
   update(0);
   return { group: g, update, controls: { label: 'Étape', min: 1, max: 9, step: 1, fmt: (v) => v + ' · ' + STATIONS[v - 1], get: (t) => stationAt(((t % LOOP_T) + LOOP_T) % LOOP_T) + 1, seek: (v) => TS[v - 1] + 1.5 } };
