@@ -1,4 +1,4 @@
-import { TRACKS } from './music.js?v=m121';
+import { TRACKS } from './music.js?v=m122';
 
 // Keep the visitor's pause intent separate from Spotify's end/buffering state.
 export function createJukebox({ onTrack, onState } = {}) {

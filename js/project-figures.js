@@ -1,53 +1,49 @@
 // Projets professionnels : le défilement des cartes (titres et gains) présente désormais les machines
-// dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
+// dessinées (figures/*.html, compétence anatomy). Un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
 import { createMarquee } from './marquee.js?v=cv-projects-v15';
-import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 
-// Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
+// Projet → [figure, objet, idée, l'objet en action]. L'objet est l'explication.
 const MACHINES = {
   cerfa: ['cerfa', 'Trieuse de fiches',
     'Vérifier un lot de fiches à la main, c’est relire chaque case de chaque fiche, et un retard passe facilement inaperçu.',
-    'Prenons l’exemple d’une trieuse de cartes : un chargeur, une tête de lecture et quatre cases. Sans elle, 300 fiches CERFA et attestations demandent 20 à 25 h de relecture ; avec elle, chaque fiche passe sous la tête et tombe dans sa case, conforme, doublon, non-conformité ou retard, et le lot est trié en 1 min 20 s.'],
+    'Prenons l’exemple d’une trieuse de cartes : un chargeur, une tête de lecture et quatre cases. Sans elle, 300 fiches CERFA et attestations demandent 20 à 25 h de relecture. Avec elle, chaque fiche passe sous la tête et tombe dans sa case, conforme, doublon, non-conformité ou retard, et le lot est trié en 1 min 20 s.'],
   vmvre: ['vm', 'Pointeuses à clé partagée',
     'Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.',
-    'Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons ; la reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.'],
-  vrestudio: ['vrestudio-anticythere', 'Mécanisme d’Anticythère',
-    'Un modèle qui lit des PDF doit montrer toute sa chaîne, de la page brute jusqu’aux cadres qu’il propose, sans boîte noire.',
-    'Prenons l’exemple du mécanisme d’Anticythère, une machine de bronze qui calcule par engrenages. Le rapport entre par la fente et se lit (Document AI) ; la manivelle fait tourner la grande roue, dont les quatre rayons allument chacun le voyant de leur champ (mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles métiers pour que l’aiguille avance (hybride neuro-symbolique). Au dos, le cadran à spirale propose les cadres BT et locaux de douze pages inédites (inférence) ; chaque erreur corrigée par un agent dans Radiographie taille une dent sur la roue de la machine à diviser (Human-in-the-Loop), et les trois anneaux du corpus, image, texte et position, avancent. La roue terminée (LayoutLMv3) entre dans le boîtier, l’ancienne rejoint le tableau des versions (MLOps local), et au nouvel essai les douze cases sont vertes. Sans lui, l’extracteur VRE ; avec lui, 46 dents mènent 20 dents : 2,3 fois plus de temps gagné.'],
+    'Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons. La reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.'],
   vre: ['vre', 'Trieuse à quatre tubes',
     'Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.',
-    'Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport ; avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.'],
+    'Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport. Avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.'],
   moteur44: ['moteur', 'Fichier rotatif motorisé',
     'Reporter un rapport dans un grand classeur, c’est d’abord retrouver la bonne ligne parmi des milliers.',
-    'Prenons l’exemple d’un fichier rotatif motorisé. Sans lui, on cherche la ligne de l’OT et on recopie les données depuis SharePoint, 15 min par rapport ; avec lui, on compose l’OT, le fichier tourne jusqu’à la bonne fiche, le tampon y reporte les données et un cavalier rend le Q18 visible dans le suivi qui alimente Power BI, pour les COSI et les clients de l’ABE SUD IdF.'],
+    'Prenons l’exemple d’un fichier rotatif motorisé. Sans lui, on cherche la ligne de l’OT et on recopie les données depuis SharePoint, 15 min par rapport. Avec lui, on compose l’OT, le fichier tourne jusqu’à la bonne fiche, le tampon y reporte les données et un cavalier rend le Q18 visible dans le suivi qui alimente Power BI, pour les COSI et les clients de l’ABE SUD IdF.'],
   gares: ['gares', 'Tableau à palettes',
     'Savoir quelles gares surveiller en premier demandait de croiser plusieurs sources à chaque consultation.',
-    'Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min ; avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.'],
+    'Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min. Avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.'],
   finance: ['finance', 'Manomètres à contact',
     'Un dépassement de budget se voit trop tard quand on pointe les comptes à la main, périmètre par périmètre.',
-    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour ; avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une alerte, et une de plus si les dépenses dépassent les fonds. En exploitation, chaque périmètre en envoie environ 6 par semaine : 5 × 6, soit 30 alertes par semaine, qui remplissent le bac.'],
+    'Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour. Avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une alerte, et une de plus si les dépenses dépassent les fonds. En exploitation, chaque périmètre en envoie environ 6 par semaine : 5 × 6, soit 30 alertes par semaine, qui remplissent le bac.'],
   pa: ['pp', 'Classeur à échéances',
     'Une échéance de plan de prévention s’oublie quand elle dort dans un dossier parmi des centaines.',
-    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min ; avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.'],
+    'Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min. Avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.'],
   powerbi: ['powerbi', 'Carrousel de classeurs',
     'Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.',
-    'Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min ; avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.'],
+    'Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min. Avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.'],
   suivi: ['suivi', 'Standard à fiches',
     'Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.',
-    'Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure ; avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.'],
+    'Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure. Avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.'],
   studio: ['studio', 'Machine à reproduire les clés',
     'Créer un extracteur pour une nouvelle famille de PDF demandait des jours de développement.',
-    'Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code ; avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.'],
+    'Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code. Avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.'],
 };
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
-const kindOf = (p) => (p.id === 'vrestudio' ? 'Modèle documentaire contrôlé' : p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
+const kindOf = (p) => (p.id === 'vmvre' ? 'Continuité de traitement' : p.id === 'finance' ? 'Pilotage financier' : 'Processus métier');
 const timeLabel = (p) => (p.gainStatus === 'estimated' ? 'Temps libéré (estimé)' : 'Temps libéré');
 const moneyLabel = (p, long) => (p.gainStatus === 'result' ? 'Résultat' : p.gainStatus === 'estimated' ? 'Valorisation estimée' : long ? 'Valorisation financière du temps' : 'Valorisation financière');
 const dayLabel = (d, halves) => (halves ? d * 2 + ' demi-journées' : d === 0.5 ? 'Une demi-journée' : d === 1 ? '1 jour' : String(d).replace('.', ',') + (d < 2 ? ' jour' : ' jours'));
 const buildHTML = (p) => (p.build ? `<span><small>Construction</small><b>${dayLabel(p.build.days, p.build.halves)}</b>${p.build.upkeep === true ? 'puis une amélioration d’une demi-journée par mois' : p.build.upkeep === 'once' ? 'puis une seule amélioration d’une demi-journée, deux mois après la mise en service' : p.build.upkeep === false ? (p.id === 'pa' ? 'auto-apprenante, sans maintenance' : 'puis autonome, sans maintenance') : 'essais auprès des équipes compris'}</span>` : '');
-const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span>` + (p.money ? `<span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` : '') + buildHTML(p) +
+const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabel(p)}</small><b>${esc(p.time)}</b>${esc(p.timeCtx)}</span><span><small>${moneyLabel(p, true)}</small><b>${esc(p.money)}</b>${esc(p.moneyCtx)}</span>` + buildHTML(p) +
   (p.extraGains || []).map((g) => `<span><small>Temps libéré</small><b>${esc(g.time)}</b>${esc(g.timeCtx)}</span><span><small>Valorisation du temps</small><b>${esc(g.money)}</b>${esc(g.moneyCtx)}</span>`).join('') +
   (p.gainBasis ? `<p class="process-gain-basis">${esc(p.gainBasis)}</p>` : '');
 
@@ -55,7 +51,7 @@ const gainsHTML = (p) => p.gainStatus === 'none' ? '' : `<span><small>${timeLabe
 export function initProjectFigures(host, projects) {
   const list = projects.filter((p) => MACHINES[p.id]);
   host.className = 'marquee process-gallery';
-  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp2" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span>${p.money ? `<span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span>` : ''}</small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
+  host.innerHTML = `<div class="mq-track process-track">${list.map((p, i) => { const [fig, object] = MACHINES[p.id]; return `<button class="process-card" type="button" data-project="${i}" aria-label="Faire fonctionner ${esc(object.toLowerCase())} : ${esc(p.title)}"><span class="process-kind">${kindOf(p)}</span><span class="machine-wrap" data-fig="${fig}"><img class="machine-light" src="assets/figures/${fig}-light.webp?v=bp2" alt="" width="840" height="600" loading="lazy"></span><b>${esc(p.title)}</b><span>${esc(object)}</span>${p.gainStatus !== 'none' ? `<small class="process-card-gains"><span><em>${timeLabel(p)}</em><strong>${esc(p.time)}</strong><i>${esc(p.timeCtx)}</i></span><span><em>${moneyLabel(p)}</em><strong>${esc(p.money)}</strong><i>${esc(p.moneyCtx)}</i></span></small>` : ''}</button>`; }).join('')}</div><p class="process-hint">Glissez pour parcourir · cliquez sur une machine pour la faire fonctionner</p>`;
   createMarquee(host, { loopEnd: -1, speed: 0.35 });
   host.querySelectorAll('img').forEach((img) => { img.draggable = false; });
 
@@ -86,15 +82,9 @@ export function initProjectFigures(host, projects) {
   const modal = document.createElement('dialog');
   modal.className = 'process-dialog figure-dialog'; modal.setAttribute('aria-labelledby', 'process-title');
   modal.innerHTML = `<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Les machines des projets</span></div>
-<div class="process-content"><div class="process-copy figure-head"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p></div><div class="figure-stage"></div><div class="process-copy"><div class="process-steps figure-steps" aria-label="Les étapes du process"></div><div class="process-explanation" aria-live="polite"><b></b><p></p></div><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div><button type="button" class="figure-nav prev" aria-label="Projet précédent"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="figure-nav next" aria-label="Projet suivant"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`;
+<div class="process-content"><div class="process-copy figure-head"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p></div><div class="figure-stage"></div><div class="process-copy"><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div><button type="button" class="figure-nav prev" aria-label="Projet précédent"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="figure-nav next" aria-label="Projet suivant"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`;
   document.body.append(modal);
   const stage = modal.querySelector('.figure-stage');
-  // le schéma du process : un carré par étape (numéro, symbole, nom) ; un clic affiche son explication
-  function showStep(p, i) {
-    modal.querySelectorAll('.figure-steps .process-step').forEach((b, j) => b.setAttribute('aria-pressed', String(i === j)));
-    modal.querySelector('.process-explanation b').textContent = p.diag.length ? `${i + 1}. ${p.diag[i][0]}` : '';
-    modal.querySelector('.process-explanation p').textContent = p.diag.length ? p.diag[i][1] : '';
-  }
   let opener = null, resize = null, cur = 0;
   function mount(fig, title) {
     resize?.disconnect();
@@ -117,9 +107,6 @@ export function initProjectFigures(host, projects) {
     modal.querySelector('.process-eyebrow').textContent = kindOf(p) + ' · ' + object;
     modal.querySelector('#process-title').textContent = p.title;
     modal.querySelector('.figure-why').innerHTML = `<em>${esc(idea)}</em> ${esc(action)}`;
-    modal.querySelector('.figure-steps').innerHTML = p.diag.map((d, i) => `<button type="button" class="process-step" data-step="${i}" aria-pressed="false"><small>${String(i + 1).padStart(2, '0')}</small><span class="process-tool">${processSymbol(d[2])}</span>${esc(d[0])}</button>`).join('');
-    modal.querySelector('.figure-steps').hidden = modal.querySelector('.process-explanation').hidden = !p.diag.length;
-    showStep(p, 0);
     modal.querySelector('.process-outcome').innerHTML = gainsHTML(p);
     const study = modal.querySelector('.process-study'); study.hidden = !p.pro; study.open = false;
     study.querySelector('div').innerHTML = p.pro ? [p.pro.lead, p.pro.gain, p.pro.team].filter(Boolean).map((t) => '<p>' + esc(t) + '</p>').join('') : '';
@@ -137,7 +124,7 @@ export function initProjectFigures(host, projects) {
   modal.querySelector('.figure-nav.next').onclick = () => step(1);
   modal.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); step(e.key === 'ArrowLeft' ? -1 : 1); } });
   host.addEventListener('click', (e) => { const b = e.target.closest('button[data-project]'); if (b) open(Number(b.dataset.project), b); });
-  modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); const st = e.target.closest('.figure-steps .process-step'); if (st) showStep(list[cur], Number(st.dataset.step)); });
+  modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); });
   modal.querySelector('.process-back').onclick = close;
   modal.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
 }

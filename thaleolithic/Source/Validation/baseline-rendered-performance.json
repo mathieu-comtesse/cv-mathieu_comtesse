@@ -1,0 +1,325 @@
+{
+    "label": "baseline-rendered",
+    "unity": "6000.2.12f1",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "cpu": "AMD Ryzen 9 7900X 12-Core Processor ",
+    "platform": "WindowsEditor",
+    "scope": "Editor measurement; not physical phone certification",
+    "width": 1280,
+    "height": 720,
+    "phases": [
+        {
+            "name": "village-idle",
+            "frames": 1103,
+            "seconds": 15.013456344604493,
+            "distance": 0.0,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 13.609092849782133,
+                    "p95": 24.826396256685258
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 13.604473798730734,
+                    "p95": 25.1696
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 587957.4922937444,
+                    "p95": 923046.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1496942008.9111515,
+                    "p95": 1542315848.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 3124.3753399818675,
+                    "p95": 3136.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 2002125.9981867634,
+                    "p95": 2007164.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 163.26745240253855,
+                    "p95": 168.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.19679102447869449,
+                    "p95": 0.4014
+                }
+            ]
+        },
+        {
+            "name": "npc-interaction",
+            "frames": 1355,
+            "seconds": 15.00558090209961,
+            "distance": 0.0,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 11.07406767215786,
+                    "p95": 25.188995525240899
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 11.069428634686352,
+                    "p95": 25.177
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 74956.11291512916,
+                    "p95": 233740.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1509741377.1726938,
+                    "p95": 1554671692.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 3048.60295202952,
+                    "p95": 3058.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1997513.6487084872,
+                    "p95": 2004244.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 105.57047970479705,
+                    "p95": 109.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.10173771217712169,
+                    "p95": 0.2622
+                }
+            ]
+        },
+        {
+            "name": "inventory",
+            "frames": 1550,
+            "seconds": 15.00278091430664,
+            "distance": 0.0,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 9.678728655581513,
+                    "p95": 12.330293655395508
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 9.674313354838706,
+                    "p95": 12.3462
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 62993.31612903226,
+                    "p95": 187328.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1512214421.1412905,
+                    "p95": 1559175894.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 3143.321935483871,
+                    "p95": 3146.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 1997996.2541935484,
+                    "p95": 2003662.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 162.64322580645163,
+                    "p95": 165.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.0661743870967742,
+                    "p95": 0.1736
+                }
+            ]
+        },
+        {
+            "name": "opening-film",
+            "frames": 1478,
+            "seconds": 15.008201599121094,
+            "distance": 3.822924852371216,
+            "metrics": [
+                {
+                    "name": "frame",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 10.153626256870643,
+                    "p95": 12.956200167536736
+                },
+                {
+                    "name": "Main Thread",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 10.149004262516908,
+                    "p95": 12.947999999999999
+                },
+                {
+                    "name": "Render Thread",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "GC Allocated In Frame",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 65718.6353179973,
+                    "p95": 190578.0
+                },
+                {
+                    "name": "Total Used Memory",
+                    "unit": "bytes",
+                    "available": true,
+                    "mean": 1509214248.1454669,
+                    "p95": 1555371233.0
+                },
+                {
+                    "name": "Draw Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 4551.0094722598105,
+                    "p95": 7146.0
+                },
+                {
+                    "name": "Triangles Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 3448436.453315291,
+                    "p95": 5285820.0
+                },
+                {
+                    "name": "SetPass Calls Count",
+                    "unit": "count",
+                    "available": true,
+                    "mean": 100.54668470906631,
+                    "p95": 166.0
+                },
+                {
+                    "name": "Animator.Update",
+                    "unit": "ms",
+                    "available": false,
+                    "mean": 0.0,
+                    "p95": 0.0
+                },
+                {
+                    "name": "Physics.Simulate",
+                    "unit": "ms",
+                    "available": true,
+                    "mean": 0.11845223274695539,
+                    "p95": 0.29769999999999999
+                }
+            ]
+        }
+    ],
+    "errors": []
+}

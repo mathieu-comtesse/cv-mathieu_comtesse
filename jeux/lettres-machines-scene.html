@@ -1,0 +1,75 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lettres machines — scène interactive</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&amp;family=JetBrains+Mono:wght@300;400;700&amp;family=VT323&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="pages.css?v=20260926-univ-ring"><style>
+/* Lettres machines : le papier et l’encre sont ceux du projet ; la barre de commandes reprend celle des autres scènes (mono 11 px, filet 1 px, ombre dure). */
+.lettres-stage{position:relative;height:100vh;background:#f4ecd7;overflow:hidden;--li:#2b2117;--lp:#f4ecd7}
+.lettres-stage::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .42  0 0 0 0 .36  0 0 0 0 .28  .14 0 0 0 0'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>")}
+#lettres-stage{position:absolute;inset:64px 18px 54px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;cursor:var(--cv-cursor)}
+#lettres-stage svg{display:block;width:100%;height:100%;max-width:1400px;user-select:none;-webkit-user-select:none}
+#lettres-stage .L{cursor:var(--cv-cursor,pointer)}
+.lettres-hud{position:absolute;left:14px;right:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:2}
+.lettres-hud>*{font:11px var(--mono);color:var(--li);background:var(--lp);border:1px solid var(--li);box-shadow:2px 2px 0 var(--li);padding:7px 10px;line-height:1;border-radius:0;letter-spacing:.02em}
+.lettres-hud button,.lettres-hud select{cursor:var(--cv-cursor,pointer)}
+.lettres-hud button:hover,.lettres-hud select:hover{background:#fff7e0}
+.lettres-hud button:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--li)}
+.lettres-hud button:focus-visible,.lettres-hud select:focus-visible,.lettres-hud input:focus-visible{outline:2px solid var(--li);outline-offset:3px}
+.lettres-hud label{display:flex;align-items:center;gap:8px;padding:0 0 0 10px}
+.lettres-hud label span{font:11px var(--mono);opacity:.7}
+.lettres-hud input[type=text]{font:11px var(--mono);color:var(--li);background:transparent;border:0;border-left:1px solid var(--li);padding:7px 10px;width:12ch;text-transform:uppercase;letter-spacing:.08em;outline-offset:-2px}
+.lettres-hud select{border:0;border-left:1px solid var(--li);background:transparent;color:var(--li);font:11px var(--mono);padding:7px 6px}
+.lettres-hud button[aria-pressed=true]{background:var(--li);color:var(--lp)}
+.lettres-sw{display:inline-flex;gap:6px;padding:5px 8px!important;align-items:center}
+.lettres-sw button{width:16px;height:16px;padding:0;border:1px solid var(--li);box-shadow:none;border-radius:50%}
+.lettres-sw button[aria-pressed=true]{outline:2px solid var(--li);outline-offset:2px;background-clip:padding-box}
+.lettres-hint{position:absolute;left:14px;right:14px;bottom:14px;font:11px var(--mono);color:var(--li);opacity:.72;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;pointer-events:none}
+.lettres-hint b{font-weight:400;font-family:"VT323",var(--mono);font-size:16px;letter-spacing:.04em}
+html.nohud .lettres-hud,html.nohud .lettres-hint{display:none}html.nohud #lettres-stage{inset:10px}
+@media (max-width:640px){#lettres-stage{inset:118px 6px 52px}.lettres-hud{gap:6px}.lettres-hud input[type=text]{width:12ch}.lettres-hint span:last-child{display:none}}
+</style><link rel="stylesheet" href="../cursor.css?v=5">
+</head><body class="scene-embed" data-page="lettres"><main id="contenu" class="lettres-stage">
+<div class="lettres-hud" role="group" aria-label="Commandes">
+ <label><span>Mot</span><input id="l-text" type="text" maxlength="24" spellcheck="false" autocomplete="off" aria-label="Mot à dessiner" value="JOUONS"></label>
+ <button id="l-all" type="button" aria-pressed="false">Tout lancer</button>
+ <button id="l-re" type="button">Autre composition</button>
+ <label><span>Dessins</span><select id="l-var" aria-label="Famille de dessins"><option value="mix">Mélange</option><option value="0">Série 1 (classique)</option><option value="1">Série 2</option><option value="2">Série 3</option><option value="3">Série 4</option><option value="4">Série 5</option><option value="5">Série 6</option></select></label>
+ <span class="lettres-sw" id="l-pal" role="group" aria-label="Couleurs"></span>
+ <button id="l-props" type="button" aria-pressed="false" title="Petites pièces, flèches et étincelles autour des lettres">Détails</button>
+ <button id="l-svg" type="button">SVG</button><button id="l-png" type="button" title="Le mot, fond transparent">PNG du mot</button><button id="l-zip" type="button" title="Une image PNG transparente par lettre, en archive zip">Lettres PNG</button>
+</div>
+<div id="lettres-stage" role="img" aria-label="Lettres dessinées comme des machines"></div>
+<div class="lettres-hint"><span>Survoler ou toucher une lettre : elle se met en marche</span><span><b>maj + clic</b> autre dessin · exports sans fond</span></div>
+</main><script src="lettres-machines.js?v=lm2"></script><script>
+(() => {
+  const ML = window.MachineLetters, q = new URLSearchParams(location.search);
+  if (q.get('hud') === '0') document.documentElement.classList.add('nohud');
+  const txt = document.getElementById('l-text'), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stageEl = document.getElementById('lettres-stage');
+  // Sur écran étroit, un mot long passe sur deux lignes pour que les lettres restent lisibles.
+  const fit = t => { if (innerWidth >= 700 || t.includes('\n') || t.replace(/ /g, '').length <= 4) return t; const m = Math.round(t.length / 2); let i = t.lastIndexOf(' ', m); if (i < 1) i = t.indexOf(' ', m); return i > 0 ? t.slice(0, i) + '\n' + t.slice(i + 1) : t.slice(0, m) + '\n' + t.slice(m); };
+  const app = ML.mount(stageEl, { chrome: false, text: fit(txt.value), wobble: 1.6, jitter: 1.3, palette: 'cover', paper: 'cream' });
+  const urlText = q.get('text'); txt.value = (urlText || txt.value).replace(/\n/g, ' ');
+  const label = () => stageEl.setAttribute('aria-label', 'Lettres dessinées comme des machines : ' + txt.value);
+  label();
+  txt.addEventListener('input', () => { app.set({ text: fit(txt.value.trim() ? txt.value : ' ') }); label(); });
+  const all = document.getElementById('l-all');
+  all.addEventListener('click', () => all.setAttribute('aria-pressed', String(app.runAll())));
+  document.getElementById('l-re').addEventListener('click', () => { app.reshuffle(); all.setAttribute('aria-pressed', 'false'); });
+  document.getElementById('l-var').addEventListener('change', e => app.set({ variant: e.target.value }));
+  const pal = document.getElementById('l-pal'), swatches = { cover: 'linear-gradient(120deg,#f4d654 25%,#58964c 25% 50%,#d3714b 50% 75%,#5588b7 75%)', warm: ML.MATS.orange.m, cool: ML.MATS.blue.m, earth: ML.MATS.brown.m };
+  const names = { cover: 'Couleurs de la couverture', warm: 'Couleurs chaudes', cool: 'Couleurs froides', earth: 'Couleurs terre' };
+  for (const [k, bg] of Object.entries(swatches)) {
+    const b = document.createElement('button'); b.type = 'button'; b.title = names[k]; b.setAttribute('aria-label', names[k]); b.style.background = bg; b.setAttribute('aria-pressed', String(k === 'cover'));
+    b.addEventListener('click', () => { [...pal.children].forEach(x => x.setAttribute('aria-pressed', String(x === b))); app.set({ palette: k }); });
+    pal.appendChild(b);
+  }
+  document.getElementById('l-svg').addEventListener('click', () => app.saveSVG());
+  document.getElementById('l-png').addEventListener('click', () => app.savePNG());
+  document.getElementById('l-zip').addEventListener('click', () => app.saveLettersZip());
+  const pr = document.getElementById('l-props');
+  pr.setAttribute('aria-pressed', String(!!app.st.props));
+  pr.addEventListener('click', () => { const on = !app.st.props; app.set({ props: on }); pr.setAttribute('aria-pressed', String(on)); });
+  // Au chargement, les lettres se mettent en marche un instant puis se calment : l’aperçu devient jouable.
+  if (!reduced && !q.has('on') && !q.has('t')) {
+    setTimeout(() => app.runAll(true), 500);
+    setTimeout(() => { app.runAll(false); all.setAttribute('aria-pressed', 'false'); }, 3200);
+  }
+})();
+</script></body></html>

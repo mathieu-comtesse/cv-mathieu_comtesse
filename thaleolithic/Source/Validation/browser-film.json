@@ -1,0 +1,67 @@
+{
+  "first": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 1.7730000019073486,
+    "frameMs": 11.710756301879883,
+    "paused": false,
+    "touch": false,
+    "film": true,
+    "position": {
+      "x": 352.3124084472656,
+      "y": 11.690180778503418,
+      "z": 280.3033752441406
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "ended": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 35.84664535522461,
+    "frameMs": 14.674142837524414,
+    "paused": false,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 350.9200134277344,
+      "y": 11.871883392333984,
+      "z": 278.4800109863281
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "afterLoad": {
+    "type": "state",
+    "player": "dylan",
+    "act": "ACTE_I",
+    "dialogue": "",
+    "quest": "",
+    "duel": "",
+    "elapsed": 36.994972229003906,
+    "frameMs": 20.474037170410156,
+    "paused": false,
+    "touch": false,
+    "film": false,
+    "position": {
+      "x": 350.9200134277344,
+      "y": 11.871883392333984,
+      "z": 278.4800109863281
+    },
+    "fires": 2,
+    "characters": 20,
+    "claimed": 0
+  },
+  "renderer": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "errors": []
+}

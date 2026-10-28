@@ -1,0 +1,6565 @@
+{
+  "schemaVersion": 1,
+  "id": "unga-bunga-45001-v1",
+  "title": "THALEOLITHIC",
+  "durationSeconds": 2700,
+  "characters": [
+    {
+      "id": "aurelien",
+      "name": "Aurélien",
+      "role": "chef de tribu, équivalent du directeur général."
+    },
+    {
+      "id": "mathieu",
+      "name": "Mathieu",
+      "role": "responsable de la prévention et personnage principal contrôlé par le joueur."
+    },
+    {
+      "id": "dylan",
+      "name": "Dylan",
+      "role": "apprenti préventeur, éclaireur et assistant du joueur."
+    },
+    {
+      "id": "georges",
+      "name": "Georges",
+      "role": "responsable des carrières, des matériaux et des constructions."
+    },
+    {
+      "id": "eliott",
+      "name": "Eliott",
+      "role": "chef des expéditions et responsable des activités extérieures."
+    },
+    {
+      "id": "mathilde",
+      "name": "Mathilde",
+      "role": "soigneuse, responsable de la santé et des premiers secours."
+    },
+    {
+      "id": "lorette",
+      "name": "Lorette",
+      "role": "représentante des habitants, responsable de l'organisation quotidienne du travail."
+    },
+    {
+      "id": "neila",
+      "name": "Neila",
+      "role": "responsable des approvisionnements, stocks, ressources et intervenants extérieurs."
+    },
+    {
+      "id": "brok",
+      "name": "Brok",
+      "role": "Tailleur de silex"
+    },
+    {
+      "id": "tarek",
+      "name": "Tarek",
+      "role": "Bûcheron"
+    },
+    {
+      "id": "orok",
+      "name": "Orok",
+      "role": "Préposé au foyer"
+    },
+    {
+      "id": "uma",
+      "name": "Uma",
+      "role": "Constructrice"
+    },
+    {
+      "id": "kora",
+      "name": "Kora",
+      "role": "Chasseuse débutante"
+    },
+    {
+      "id": "nork",
+      "name": "Nork",
+      "role": "Porteur de pierres"
+    },
+    {
+      "id": "sila",
+      "name": "Sila",
+      "role": "Cuisinière"
+    },
+    {
+      "id": "varg",
+      "name": "Varg",
+      "role": "Chef d'une tribu voisine"
+    },
+    {
+      "id": "grumb",
+      "name": "Le Sage Grumb",
+      "role": "Auditeur"
+    },
+    {
+      "id": "petit_os",
+      "name": "Le Petit Os",
+      "role": "Mascotte"
+    }
+  ],
+  "stats": [
+    {
+      "id": "life",
+      "value": 100,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "energy",
+      "value": 100,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "food",
+      "value": 100,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "fatigue",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "participation",
+      "value": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "morale",
+      "value": 30,
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "resources": [
+    {
+      "id": "wood",
+      "value": 18,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "stone",
+      "value": 14,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "fiber",
+      "value": 12,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "food",
+      "value": 10,
+      "min": 0,
+      "max": 999
+    }
+  ],
+  "acts": [
+    {
+      "id": "ACTE_I",
+      "title": "LE GRAND RÉVEIL",
+      "durationSeconds": 240,
+      "objectives": [
+        {
+          "id": "M_I_TUTORIEL",
+          "title": "Rejoindre Mathieu",
+          "required": true,
+          "actionIds": [
+            "M_I_TUTORIEL_1",
+            "M_I_TUTORIEL_2",
+            "M_I_TUTORIEL_3"
+          ],
+          "reference": "Scénario : Introduction et tutoriel"
+        },
+        {
+          "id": "M_I_ENQUETE",
+          "title": "Examiner les débris",
+          "required": true,
+          "actionIds": [
+            "M_I_ENQUETE_1",
+            "M_I_ENQUETE_2",
+            "M_I_ENQUETE_3"
+          ],
+          "reference": "Scénario : Comprendre l'effondrement"
+        }
+      ],
+      "introCinematicId": "C01"
+    },
+    {
+      "id": "ACTE_II",
+      "title": "UN CHEF QUI SAIT TOUT",
+      "durationSeconds": 300,
+      "objectives": [
+        {
+          "id": "M_II_CONSULTATION",
+          "title": "Écouter Lorette",
+          "required": true,
+          "actionIds": [
+            "M_II_CONSULTATION_1",
+            "M_II_CONSULTATION_2",
+            "M_II_CONSULTATION_3",
+            "M_II_CONSULTATION_4"
+          ],
+          "reference": "Scénario : Interroger les travailleurs"
+        },
+        {
+          "id": "M_II_ROLES",
+          "title": "Définir les fonctions et les moyens",
+          "required": true,
+          "actionIds": [
+            "M_II_ROLES_1",
+            "M_II_ROLES_2",
+            "M_II_ROLES_3"
+          ],
+          "reference": "Scénario : Attribuer des responsabilités"
+        }
+      ]
+    },
+    {
+      "id": "ACTE_III",
+      "title": "LA PROMENADE DES DANGERS",
+      "durationSeconds": 360,
+      "objectives": [
+        {
+          "id": "M_III_DIAGNOSTIC",
+          "title": "Analyser l'instabilité de la carrière",
+          "required": true,
+          "actionIds": [
+            "M_III_DIAGNOSTIC_1",
+            "M_III_DIAGNOSTIC_2",
+            "M_III_DIAGNOSTIC_3",
+            "M_III_DIAGNOSTIC_4"
+          ],
+          "reference": "Scénario : Observer et analyser les dangers"
+        },
+        {
+          "id": "M_III_CARRIERE",
+          "title": "Examiner le bloc instable et les personnes exposées",
+          "required": true,
+          "actionIds": [
+            "M_III_CARRIERE_1",
+            "M_III_CARRIERE_2",
+            "M_III_CARRIERE_3"
+          ],
+          "reference": "Scénario : Décider de l'extraction"
+        },
+        {
+          "id": "M_III_PRIORITES",
+          "title": "Prioriser carrière, foyer et circulation",
+          "required": true,
+          "actionIds": [
+            "M_III_PRIORITES_1",
+            "M_III_PRIORITES_2"
+          ],
+          "reference": "Scénario : Définir trois priorités de prévention"
+        }
+      ]
+    },
+    {
+      "id": "ACTE_IV",
+      "title": "LES ATELIERS DE LA SÉLECTION NATURELLE",
+      "durationSeconds": 420,
+      "objectives": [
+        {
+          "id": "M_IV_SILEX",
+          "title": "Observer les projections vers le passage",
+          "required": true,
+          "actionIds": [
+            "M_IV_SILEX_1",
+            "M_IV_SILEX_2",
+            "M_IV_SILEX_3"
+          ],
+          "reference": "Scénario : Le silex qui vole"
+        },
+        {
+          "id": "M_IV_FOYER",
+          "title": "Examiner fumées et combustibles",
+          "required": true,
+          "actionIds": [
+            "M_IV_FOYER_1",
+            "M_IV_FOYER_2",
+            "M_IV_FOYER_3"
+          ],
+          "reference": "Scénario : Le foyer des héros"
+        },
+        {
+          "id": "M_IV_BOIS",
+          "title": "Examiner outil, compétence et zone de chute",
+          "required": true,
+          "actionIds": [
+            "M_IV_BOIS_1",
+            "M_IV_BOIS_2",
+            "M_IV_BOIS_3"
+          ],
+          "reference": "Scénario : Le bûcheron et son arbre"
+        }
+      ]
+    },
+    {
+      "id": "ACTE_V",
+      "title": "LE VILLAGE QUI TIENT DEBOUT",
+      "durationSeconds": 420,
+      "objectives": [
+        {
+          "id": "M_V_PRIORITES",
+          "title": "Comparer les besoins et matériaux",
+          "required": true,
+          "actionIds": [
+            "M_V_PRIORITES_1",
+            "M_V_PRIORITES_2"
+          ],
+          "reference": "Scénario : Choisir les priorités"
+        },
+        {
+          "id": "M_V_CONSTRUIRE",
+          "title": "Vérifier la compétence de montage",
+          "required": true,
+          "actionIds": [
+            "M_V_CONSTRUIRE_1",
+            "M_V_CONSTRUIRE_2",
+            "M_V_CONSTRUIRE_3"
+          ],
+          "reference": "Scénario : Construire"
+        },
+        {
+          "id": "M_V_ABRI",
+          "title": "Contrôler la charpente avant toiture",
+          "required": true,
+          "actionIds": [
+            "M_V_ABRI_1",
+            "M_V_ABRI_2",
+            "M_V_ABRI_3"
+          ],
+          "reference": "Scénario : L'abri instable"
+        },
+        {
+          "id": "M_V_RESERVES",
+          "title": "Observer empilement et accès",
+          "required": true,
+          "actionIds": [
+            "M_V_RESERVES_1",
+            "M_V_RESERVES_2",
+            "M_V_RESERVES_3"
+          ],
+          "reference": "Scénario : Les réserves"
+        }
+      ]
+    },
+    {
+      "id": "ACTE_VI",
+      "title": "LE MAMMOUTH DE LA DISCORDE",
+      "durationSeconds": 360,
+      "objectives": [
+        {
+          "id": "M_VI_PREPARER",
+          "title": "Vérifier compétences et fatigue",
+          "required": true,
+          "actionIds": [
+            "M_VI_PREPARER_1",
+            "M_VI_PREPARER_2",
+            "M_VI_PREPARER_3"
+          ],
+          "reference": "Scénario : Préparer l'opération"
+        },
+        {
+          "id": "M_VI_DECIDER",
+          "title": "Examiner les alertes avant chasse",
+          "required": true,
+          "actionIds": [
+            "M_VI_DECIDER_1",
+            "M_VI_DECIDER_2",
+            "M_VI_DECIDER_3"
+          ],
+          "reference": "Scénario : Décider"
+        },
+        {
+          "id": "M_VI_URGENCE",
+          "title": "Déclencher l'alerte",
+          "required": true,
+          "actionIds": [
+            "M_VI_URGENCE_1",
+            "M_VI_URGENCE_2",
+            "M_VI_URGENCE_3"
+          ],
+          "reference": "Scénario : Gérer l'urgence"
+        }
+      ],
+      "introCinematicId": "C04"
+    },
+    {
+      "id": "ACTE_VII",
+      "title": "L'ACCIDENT QUI N'A PAS EU LIEU",
+      "durationSeconds": 300,
+      "objectives": [
+        {
+          "id": "M_VII_RECONSTITUER",
+          "title": "Examiner l'assemblage et les signalements",
+          "required": true,
+          "actionIds": [
+            "M_VII_RECONSTITUER_1",
+            "M_VII_RECONSTITUER_2",
+            "M_VII_RECONSTITUER_3"
+          ],
+          "reference": "Scénario : Reconstituer les faits"
+        },
+        {
+          "id": "M_VII_CORRIGER",
+          "title": "Analyser les causes organisationnelles",
+          "required": true,
+          "actionIds": [
+            "M_VII_CORRIGER_1",
+            "M_VII_CORRIGER_2",
+            "M_VII_CORRIGER_3"
+          ],
+          "reference": "Scénario : Choisir l'action corrective"
+        },
+        {
+          "id": "M_VII_AUDIT",
+          "title": "Présenter cinq preuves à Grumb",
+          "required": true,
+          "actionIds": [
+            "M_VII_AUDIT_1",
+            "M_VII_AUDIT_2"
+          ],
+          "reference": "Scénario : L'audit des Sages"
+        }
+      ]
+    },
+    {
+      "id": "ACTE_VIII",
+      "title": "L'INVENTION DE L'AMÉLIORATION CONTINUE",
+      "durationSeconds": 300,
+      "objectives": [
+        {
+          "id": "M_VIII_REVUE",
+          "title": "Présenter les indicateurs à la direction",
+          "required": true,
+          "actionIds": [
+            "M_VIII_REVUE_1",
+            "M_VIII_REVUE_2",
+            "M_VIII_REVUE_3"
+          ],
+          "reference": "Scénario : La revue de direction"
+        },
+        {
+          "id": "M_VIII_COMPARAISON",
+          "title": "Revenir au cadrage du village initial",
+          "required": true,
+          "actionIds": [
+            "M_VIII_COMPARAISON_1",
+            "M_VIII_COMPARAISON_2"
+          ],
+          "reference": "Scénario : Comparaison du village"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "M_I_TUTORIEL_1",
+      "title": "Rejoindre Mathieu",
+      "actId": "ACTE_I",
+      "targetBindingId": "mathieu",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_I_TUTORIEL_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_I_TUTORIEL_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Rejoindre Mathieu",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_I_TUTORIEL",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q011",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_I_TUTORIEL_2",
+      "title": "Examiner la charpente tombée",
+      "actId": "ACTE_I",
+      "targetBindingId": "charpente",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_I_TUTORIEL_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_I_TUTORIEL_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_I_TUTORIEL_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner la charpente tombée",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_I_TUTORIEL_3",
+      "title": "Consulter Mathilde",
+      "actId": "ACTE_I",
+      "targetBindingId": "mathilde",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_I_TUTORIEL_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_I_TUTORIEL_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_I_TUTORIEL_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Consulter Mathilde",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_I_TUTORIEL",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "TUTORIAL_MATHILDE",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_I_ENQUETE_1",
+      "title": "Examiner les débris",
+      "actId": "ACTE_I",
+      "targetBindingId": "charpente",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_I_TUTORIEL_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_I_ENQUETE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_I_ENQUETE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner les débris",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_I_ENQUETE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_I_ENQUETE_2",
+      "title": "Recueillir les signalements ignorés",
+      "actId": "ACTE_I",
+      "targetBindingId": "mathilde",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_I_ENQUETE_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_I_ENQUETE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_I_ENQUETE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Recueillir les signalements ignorés",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_I_ENQUETE_3",
+      "title": "Présenter les causes à Aurélien",
+      "actId": "ACTE_I",
+      "targetBindingId": "aurelien",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_I_ENQUETE_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_I_ENQUETE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_I_ENQUETE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Présenter les causes à Aurélien",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_I_ENQUETE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q027",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_CONSULTATION_1",
+      "title": "Écouter Lorette",
+      "actId": "ACTE_II",
+      "targetBindingId": "lorette",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_CONSULTATION_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_CONSULTATION_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Écouter Lorette",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_II_CONSULTATION",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_CONSULTATION_2",
+      "title": "Écouter Georges",
+      "actId": "ACTE_II",
+      "targetBindingId": "georges",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_II_CONSULTATION_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_CONSULTATION_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_CONSULTATION_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Écouter Georges",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_CONSULTATION_3",
+      "title": "Écouter Mathilde",
+      "actId": "ACTE_II",
+      "targetBindingId": "mathilde",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_II_CONSULTATION_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_CONSULTATION_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_CONSULTATION_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Écouter Mathilde",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_CONSULTATION",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_CONSULTATION_4",
+      "title": "Choisir la consultation",
+      "actId": "ACTE_II",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_II_CONSULTATION_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_CONSULTATION_4",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_CONSULTATION_4",
+          "value": 1,
+          "operation": "set",
+          "text": "Choisir la consultation",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_II_CONSULTATION",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_ROLES_1",
+      "title": "Définir les fonctions et les moyens",
+      "actId": "ACTE_II",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_II_CONSULTATION_4"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_ROLES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_ROLES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Définir les fonctions et les moyens",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_II_ROLES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q032",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_ROLES_2",
+      "title": "Attribuer huit responsabilités",
+      "actId": "ACTE_II",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_II_ROLES_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_ROLES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_ROLES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Attribuer huit responsabilités",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_II_ROLES_3",
+      "title": "Vérifier que chacun comprend sa mission",
+      "actId": "ACTE_II",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_II_ROLES_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_II_ROLES_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_II_ROLES_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier que chacun comprend sa mission",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_II_ROLES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "aurelien.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "chef de tribu, équivalent du directeur général.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "mathieu.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "responsable de la prévention et personnage principal contrôlé par le joueur.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "dylan.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "apprenti préventeur, éclaireur et assistant du joueur.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "georges.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "responsable des carrières, des matériaux et des constructions.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "eliott.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "chef des expéditions et responsable des activités extérieures.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "mathilde.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "soigneuse, responsable de la santé et des premiers secours.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "lorette.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "représentante des habitants, responsable de l'organisation quotidienne du travail.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "neila.assignment",
+          "value": 1,
+          "operation": "set",
+          "text": "responsable des approvisionnements, stocks, ressources et intervenants extérieurs.",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_DIAGNOSTIC_1",
+      "title": "Analyser l'instabilité de la carrière",
+      "actId": "ACTE_III",
+      "targetBindingId": "pierre_carriere",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_DIAGNOSTIC_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_DIAGNOSTIC_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Analyser l'instabilité de la carrière",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_III_DIAGNOSTIC",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "risk",
+          "target": "carriere",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:risk:carriere",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q033",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_DIAGNOSTIC_2",
+      "title": "Analyser les projections du silex",
+      "actId": "ACTE_III",
+      "targetBindingId": "atelier_silex",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_DIAGNOSTIC_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_DIAGNOSTIC_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_DIAGNOSTIC_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Analyser les projections du silex",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "risk",
+          "target": "silex",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:risk:silex",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_DIAGNOSTIC_3",
+      "title": "Analyser la fumée et les combustibles",
+      "actId": "ACTE_III",
+      "targetBindingId": "foyer",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_DIAGNOSTIC_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_DIAGNOSTIC_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_DIAGNOSTIC_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Analyser la fumée et les combustibles",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "risk",
+          "target": "fumees",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:risk:fumees",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_DIAGNOSTIC_4",
+      "title": "Analyser les charges du stockage",
+      "actId": "ACTE_III",
+      "targetBindingId": "stockage",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_DIAGNOSTIC_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_DIAGNOSTIC_4",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_DIAGNOSTIC_4",
+          "value": 1,
+          "operation": "set",
+          "text": "Analyser les charges du stockage",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_III_DIAGNOSTIC",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "risk",
+          "target": "stockage",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:risk:stockage",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_CARRIERE_1",
+      "title": "Examiner le bloc instable et les personnes exposées",
+      "actId": "ACTE_III",
+      "targetBindingId": "pierre_carriere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_DIAGNOSTIC_4"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_CARRIERE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_CARRIERE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner le bloc instable et les personnes exposées",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_III_CARRIERE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_CARRIERE_2",
+      "title": "Arbitrer l'extraction",
+      "actId": "ACTE_III",
+      "targetBindingId": "pierre_carriere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_CARRIERE_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_CARRIERE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_CARRIERE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Arbitrer l'extraction",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_CARRIERE",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_CARRIERE_3",
+      "title": "Vérifier les suites de l'intervention",
+      "actId": "ACTE_III",
+      "targetBindingId": "pierre_carriere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_CARRIERE_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_CARRIERE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_CARRIERE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier les suites de l'intervention",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_III_CARRIERE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_PRIORITES_1",
+      "title": "Prioriser carrière, foyer et circulation",
+      "actId": "ACTE_III",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_CARRIERE_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_PRIORITES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_PRIORITES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Prioriser carrière, foyer et circulation",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_III_PRIORITES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_III_PRIORITES_2",
+      "title": "Affecter les responsables des trois priorités",
+      "actId": "ACTE_III",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_III_PRIORITES_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_III_PRIORITES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_III_PRIORITES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Affecter les responsables des trois priorités",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_III_PRIORITES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "stockage",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "atelier_silex",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "foyer",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_SILEX_1",
+      "title": "Observer les projections vers le passage",
+      "actId": "ACTE_IV",
+      "targetBindingId": "atelier_silex",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_SILEX_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_SILEX_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Observer les projections vers le passage",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_IV_SILEX",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q035",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_SILEX_2",
+      "title": "Choisir une mesure pour le silex",
+      "actId": "ACTE_IV",
+      "targetBindingId": "atelier_silex",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_SILEX_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_SILEX_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_SILEX_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Choisir une mesure pour le silex",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_SILEX",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_SILEX_3",
+      "title": "Contrôler le poste et les circulations",
+      "actId": "ACTE_IV",
+      "targetBindingId": "atelier_silex",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_SILEX_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_SILEX_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_SILEX_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Contrôler le poste et les circulations",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_IV_SILEX",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "atelier_silex",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_IV_SILEX"
+          ],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [
+        {
+          "id": "wood",
+          "amount": 2
+        },
+        {
+          "id": "stone",
+          "amount": 2
+        }
+      ],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_FOYER_1",
+      "title": "Examiner fumées et combustibles",
+      "actId": "ACTE_IV",
+      "targetBindingId": "foyer",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_SILEX_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_FOYER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_FOYER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner fumées et combustibles",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_IV_FOYER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q036",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_FOYER_2",
+      "title": "Choisir l'organisation du foyer",
+      "actId": "ACTE_IV",
+      "targetBindingId": "foyer",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_FOYER_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_FOYER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_FOYER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Choisir l'organisation du foyer",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_FOYER",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_FOYER_3",
+      "title": "Vérifier ventilation et séparation",
+      "actId": "ACTE_IV",
+      "targetBindingId": "foyer",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_FOYER_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_FOYER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_FOYER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier ventilation et séparation",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_IV_FOYER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "foyer",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_IV_FOYER"
+          ],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [
+        {
+          "id": "wood",
+          "amount": 2
+        },
+        {
+          "id": "stone",
+          "amount": 2
+        }
+      ],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_BOIS_1",
+      "title": "Examiner outil, compétence et zone de chute",
+      "actId": "ACTE_IV",
+      "targetBindingId": "bois_construction",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_FOYER_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_BOIS_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_BOIS_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner outil, compétence et zone de chute",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_IV_BOIS",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q037",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_BOIS_2",
+      "title": "Décider de l'abattage",
+      "actId": "ACTE_IV",
+      "targetBindingId": "bois_construction",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_BOIS_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_BOIS_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_BOIS_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Décider de l'abattage",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_ABATTAGE",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_IV_BOIS_3",
+      "title": "Contrôler la zone après intervention",
+      "actId": "ACTE_IV",
+      "targetBindingId": "bois_construction",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_IV_BOIS_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_IV_BOIS_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_IV_BOIS_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Contrôler la zone après intervention",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_IV_BOIS",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "cinematicId": "C02",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_PRIORITES_1",
+      "title": "Comparer les besoins et matériaux",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_PRIORITES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_PRIORITES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Comparer les besoins et matériaux",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_V_PRIORITES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_PRIORITES_2",
+      "title": "Réserver les matériaux pour la structure",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_PRIORITES_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_PRIORITES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_PRIORITES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Réserver les matériaux pour la structure",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_V_PRIORITES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_CONSTRUIRE_1",
+      "title": "Vérifier la compétence de montage",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_PRIORITES_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_CONSTRUIRE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_CONSTRUIRE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier la compétence de montage",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_V_CONSTRUIRE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "competence_required",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_CONSTRUIRE_2",
+      "title": "Former Uma avec démonstration supervisée",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_CONSTRUIRE_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_CONSTRUIRE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_CONSTRUIRE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Former Uma avec démonstration supervisée",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_CONSTRUIRE_3",
+      "title": "Assembler la structure renforcée",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 15,
+      "requiredFlags": [
+        "done:M_V_CONSTRUIRE_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_CONSTRUIRE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_CONSTRUIRE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Assembler la structure renforcée",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_V_CONSTRUIRE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "competence_verified",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "character",
+          "target": "uma.competence",
+          "value": 50,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "habitations",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "stat",
+          "target": "energy",
+          "value": -10,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "stat",
+          "target": "fatigue",
+          "value": 10,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [
+        {
+          "id": "wood",
+          "amount": 6
+        },
+        {
+          "id": "fiber",
+          "amount": 4
+        }
+      ],
+      "dangerous": true,
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_ABRI_1",
+      "title": "Contrôler la charpente avant toiture",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_CONSTRUIRE_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_ABRI_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_ABRI_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Contrôler la charpente avant toiture",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_V_ABRI",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_ABRI_2",
+      "title": "Autoriser ou suspendre la toiture",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_ABRI_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_ABRI_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_ABRI_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Autoriser ou suspendre la toiture",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_ABRI",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_ABRI_3",
+      "title": "Vérifier la stabilité et l'humidité",
+      "actId": "ACTE_V",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_ABRI_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_ABRI_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_ABRI_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier la stabilité et l'humidité",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_V_ABRI",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "habitations",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_V_ABRI"
+          ],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [
+        {
+          "id": "wood",
+          "amount": 2
+        },
+        {
+          "id": "stone",
+          "amount": 2
+        }
+      ],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_RESERVES_1",
+      "title": "Observer empilement et accès",
+      "actId": "ACTE_V",
+      "targetBindingId": "stockage",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_ABRI_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_RESERVES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_RESERVES_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Observer empilement et accès",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_V_RESERVES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_RESERVES_2",
+      "title": "Décider de l'organisation des réserves",
+      "actId": "ACTE_V",
+      "targetBindingId": "stockage",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_RESERVES_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_RESERVES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_RESERVES_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Décider de l'organisation des réserves",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_RESERVES",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_V_RESERVES_3",
+      "title": "Vérifier supports et cheminements",
+      "actId": "ACTE_V",
+      "targetBindingId": "stockage",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_V_RESERVES_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_V_RESERVES_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_V_RESERVES_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier supports et cheminements",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_V_RESERVES",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "stockage",
+          "value": 2,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_V_RESERVES"
+          ],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [
+        {
+          "id": "wood",
+          "amount": 2
+        },
+        {
+          "id": "stone",
+          "amount": 2
+        }
+      ],
+      "cinematicId": "C03",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_PREPARER_1",
+      "title": "Vérifier compétences et fatigue",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_PREPARER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_PREPARER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier compétences et fatigue",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VI_PREPARER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_PREPARER_2",
+      "title": "Inspecter outils et itinéraire",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_PREPARER_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_PREPARER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_PREPARER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Inspecter outils et itinéraire",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_PREPARER_3",
+      "title": "Coordonner Varg, repli et alerte",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_PREPARER_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_PREPARER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_PREPARER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Coordonner Varg, repli et alerte",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VI_PREPARER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_DECIDER_1",
+      "title": "Examiner les alertes avant chasse",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_PREPARER_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_DECIDER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_DECIDER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner les alertes avant chasse",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VI_DECIDER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_DECIDER_2",
+      "title": "Arbitrer le départ de la chasse",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_DECIDER_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_DECIDER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_DECIDER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Arbitrer le départ de la chasse",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_CHASSE",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_DECIDER_3",
+      "title": "Contrôler les conséquences et les réserves",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_DECIDER_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_DECIDER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_DECIDER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Contrôler les conséquences et les réserves",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VI_DECIDER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "cinematicId": "C05",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_URGENCE_1",
+      "title": "Déclencher l'alerte",
+      "actId": "ACTE_VI",
+      "targetBindingId": "chasse_clairiere",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_DECIDER_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_URGENCE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_URGENCE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Déclencher l'alerte",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VI_URGENCE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_URGENCE_2",
+      "title": "Éloigner les exposés et rejoindre le rassemblement",
+      "actId": "ACTE_VI",
+      "targetBindingId": "rassemblement",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_URGENCE_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_URGENCE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_URGENCE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Éloigner les exposés et rejoindre le rassemblement",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VI_URGENCE_3",
+      "title": "Faire intervenir Mathilde et compter les présents",
+      "actId": "ACTE_VI",
+      "targetBindingId": "rassemblement",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VI_URGENCE_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VI_URGENCE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VI_URGENCE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Faire intervenir Mathilde et compter les présents",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VI_URGENCE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "emergency_tested",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "Comptage après évacuation",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_RECONSTITUER_1",
+      "title": "Examiner l'assemblage et les signalements",
+      "actId": "ACTE_VII",
+      "targetBindingId": "charpente",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_RECONSTITUER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_RECONSTITUER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Examiner l'assemblage et les signalements",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VII_RECONSTITUER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_RECONSTITUER_2",
+      "title": "Recueillir trois témoignages",
+      "actId": "ACTE_VII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_RECONSTITUER_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_RECONSTITUER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_RECONSTITUER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Recueillir trois témoignages",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_RECONSTITUER_3",
+      "title": "Distinguer rupture et causes organisationnelles",
+      "actId": "ACTE_VII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_RECONSTITUER_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_RECONSTITUER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_RECONSTITUER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Distinguer rupture et causes organisationnelles",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VII_RECONSTITUER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_CORRIGER_1",
+      "title": "Analyser les causes organisationnelles",
+      "actId": "ACTE_VII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_RECONSTITUER_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_CORRIGER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_CORRIGER_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Analyser les causes organisationnelles",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VII_CORRIGER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_CORRIGER_2",
+      "title": "Choisir l'action corrective",
+      "actId": "ACTE_VII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_CORRIGER_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_CORRIGER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_CORRIGER_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Choisir l'action corrective",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "D_CORRECTION",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_CORRIGER_3",
+      "title": "Vérifier l'efficacité de la correction",
+      "actId": "ACTE_VII",
+      "targetBindingId": "charpente",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_CORRIGER_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_CORRIGER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_CORRIGER_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier l'efficacité de la correction",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VII_CORRIGER",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_AUDIT_1",
+      "title": "Présenter cinq preuves à Grumb",
+      "actId": "ACTE_VII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_CORRIGER_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_AUDIT_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_AUDIT_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Présenter cinq preuves à Grumb",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VII_AUDIT",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "dialogueId": "SOURCE_Q046",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VII_AUDIT_2",
+      "title": "Vérifier une installation avec Grumb",
+      "actId": "ACTE_VII",
+      "targetBindingId": "habitations",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VII_AUDIT_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VII_AUDIT_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VII_AUDIT_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Vérifier une installation avec Grumb",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VII_AUDIT",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "audit_performed",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VIII_REVUE_1",
+      "title": "Présenter les indicateurs à la direction",
+      "actId": "ACTE_VIII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VIII_REVUE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VIII_REVUE_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Présenter les indicateurs à la direction",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VIII_REVUE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VIII_REVUE_2",
+      "title": "Retenir trois priorités pour la prochaine saison",
+      "actId": "ACTE_VIII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VIII_REVUE_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VIII_REVUE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VIII_REVUE_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Retenir trois priorités pour la prochaine saison",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VIII_REVUE_3",
+      "title": "Planifier les vérifications et l'entretien",
+      "actId": "ACTE_VIII",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VIII_REVUE_2"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VIII_REVUE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VIII_REVUE_3",
+          "value": 1,
+          "operation": "set",
+          "text": "Planifier les vérifications et l'entretien",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VIII_REVUE",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "maintenance_planned",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "review_performed",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "habitations",
+          "value": 3,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_V_ABRI",
+            "verified:M_V_ABRI"
+          ],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "stockage",
+          "value": 3,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_V_RESERVES",
+            "verified:M_V_RESERVES"
+          ],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "atelier_silex",
+          "value": 3,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_IV_SILEX",
+            "verified:M_IV_SILEX"
+          ],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "building",
+          "target": "foyer",
+          "value": 3,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [
+            "effective:M_IV_FOYER",
+            "verified:M_IV_FOYER"
+          ],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VIII_COMPARAISON_1",
+      "title": "Revenir au cadrage du village initial",
+      "actId": "ACTE_VIII",
+      "targetBindingId": "vue_village",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VIII_REVUE_3"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VIII_COMPARAISON_1",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VIII_COMPARAISON_1",
+          "value": 1,
+          "operation": "set",
+          "text": "Revenir au cadrage du village initial",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "observed:M_VIII_COMPARAISON",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "M_VIII_COMPARAISON_2",
+      "title": "Comparer les transformations et les actions ouvertes",
+      "actId": "ACTE_VIII",
+      "targetBindingId": "vue_village",
+      "durationSeconds": 2,
+      "requiredFlags": [
+        "done:M_VIII_COMPARAISON_1"
+      ],
+      "effects": [
+        {
+          "kind": "flag",
+          "target": "done:M_VIII_COMPARAISON_2",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "evidence",
+          "target": "M_VIII_COMPARAISON_2",
+          "value": 1,
+          "operation": "set",
+          "text": "Comparer les transformations et les actions ouvertes",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "verified:M_VIII_COMPARAISON",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "costs": [],
+      "cinematicId": "C06",
+      "forbiddenFlags": []
+    },
+    {
+      "id": "SUPPORT_REST",
+      "title": "Se reposer dans l'espace aménagé",
+      "actId": "*",
+      "targetBindingId": "repos",
+      "durationSeconds": 5,
+      "repeatable": true,
+      "effects": [
+        {
+          "kind": "stat",
+          "target": "energy",
+          "value": 30,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "stat",
+          "target": "fatigue",
+          "value": -25,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": []
+    },
+    {
+      "id": "SUPPORT_WOOD",
+      "title": "Collecter des matériaux légers disponibles",
+      "actId": "*",
+      "targetBindingId": "bois_construction",
+      "durationSeconds": 5,
+      "repeatable": true,
+      "effects": [
+        {
+          "kind": "resource",
+          "target": "wood",
+          "value": 4,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "resource",
+          "target": "fiber",
+          "value": 3,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "stat",
+          "target": "energy",
+          "value": -4,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "stat",
+          "target": "fatigue",
+          "value": 8,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": []
+    },
+    {
+      "id": "SUPPORT_STONE",
+      "title": "Récupérer les matériaux préparés hors carrière",
+      "actId": "*",
+      "targetBindingId": "stockage",
+      "durationSeconds": 5,
+      "repeatable": true,
+      "effects": [
+        {
+          "kind": "resource",
+          "target": "stone",
+          "value": 4,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": []
+    },
+    {
+      "id": "SUPPORT_FOOD",
+      "title": "Prendre une ration préparée",
+      "actId": "*",
+      "targetBindingId": "stockage",
+      "durationSeconds": 5,
+      "repeatable": true,
+      "effects": [
+        {
+          "kind": "stat",
+          "target": "food",
+          "value": 25,
+          "operation": "add",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": []
+    },
+    {
+      "id": "OPTION_AUVENT",
+      "title": "Construire l'auvent décoratif d'Aurélien",
+      "actId": "ACTE_V",
+      "targetBindingId": "grand_menhir",
+      "durationSeconds": 10,
+      "costs": [
+        {
+          "id": "wood",
+          "amount": 8
+        }
+      ],
+      "effects": [
+        {
+          "kind": "evidence",
+          "target": "Auvent décoratif : aucune réduction des risques",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        },
+        {
+          "kind": "flag",
+          "target": "decorative_spend",
+          "value": 1,
+          "operation": "set",
+          "text": "",
+          "requiredFlags": [],
+          "forbiddenFlags": []
+        }
+      ],
+      "requiredFlags": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "SOURCE_TALK_1",
+      "title": "Parler avec Aurélien",
+      "actId": "*",
+      "targetBindingId": "aurelien",
+      "dialogueId": "SOURCE_Q002",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_2",
+      "title": "Parler avec Dylan",
+      "actId": "*",
+      "targetBindingId": "mathieu",
+      "dialogueId": "SOURCE_Q003",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_3",
+      "title": "Parler avec Georges",
+      "actId": "*",
+      "targetBindingId": "georges",
+      "dialogueId": "SOURCE_Q004",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_4",
+      "title": "Parler avec Eliott",
+      "actId": "*",
+      "targetBindingId": "eliott",
+      "dialogueId": "SOURCE_Q005",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_5",
+      "title": "Parler avec Mathilde",
+      "actId": "*",
+      "targetBindingId": "mathilde",
+      "dialogueId": "SOURCE_Q006",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_6",
+      "title": "Parler avec Lorette",
+      "actId": "*",
+      "targetBindingId": "lorette",
+      "dialogueId": "SOURCE_Q007",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_7",
+      "title": "Parler avec Neila",
+      "actId": "*",
+      "targetBindingId": "neila",
+      "dialogueId": "SOURCE_Q008",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_8",
+      "title": "Parler avec Aurélien",
+      "actId": "*",
+      "targetBindingId": "aurelien",
+      "dialogueId": "SOURCE_Q031",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [
+        "entered:ACTE_II"
+      ],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_9",
+      "title": "Parler avec Aurélien",
+      "actId": "*",
+      "targetBindingId": "aurelien",
+      "dialogueId": "SOURCE_Q038",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [
+        "entered:ACTE_V"
+      ],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_10",
+      "title": "Parler avec Aurélien",
+      "actId": "*",
+      "targetBindingId": "aurelien",
+      "dialogueId": "SOURCE_Q045",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [
+        "entered:ACTE_VII"
+      ],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_11",
+      "title": "Écouter le récit du conseil",
+      "actId": "*",
+      "targetBindingId": "grand_menhir",
+      "dialogueId": "SOURCE_Q060",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_12",
+      "title": "Écouter le récit du conseil",
+      "actId": "*",
+      "targetBindingId": "grand_menhir",
+      "dialogueId": "SOURCE_Q062",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_13",
+      "title": "Écouter le récit du conseil",
+      "actId": "*",
+      "targetBindingId": "grand_menhir",
+      "dialogueId": "SOURCE_Q067",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_brok",
+      "title": "Rencontrer Brok",
+      "actId": "*",
+      "targetBindingId": "brok",
+      "dialogueId": "CONTACT_brok",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_tarek",
+      "title": "Rencontrer Tarek",
+      "actId": "*",
+      "targetBindingId": "tarek",
+      "dialogueId": "CONTACT_tarek",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_orok",
+      "title": "Rencontrer Orok",
+      "actId": "*",
+      "targetBindingId": "orok",
+      "dialogueId": "CONTACT_orok",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_uma",
+      "title": "Rencontrer Uma",
+      "actId": "*",
+      "targetBindingId": "uma",
+      "dialogueId": "CONTACT_uma",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_kora",
+      "title": "Rencontrer Kora",
+      "actId": "*",
+      "targetBindingId": "kora",
+      "dialogueId": "CONTACT_kora",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_nork",
+      "title": "Rencontrer Nork",
+      "actId": "*",
+      "targetBindingId": "nork",
+      "dialogueId": "CONTACT_nork",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_sila",
+      "title": "Rencontrer Sila",
+      "actId": "*",
+      "targetBindingId": "sila",
+      "dialogueId": "CONTACT_sila",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_varg",
+      "title": "Rencontrer Varg",
+      "actId": "*",
+      "targetBindingId": "varg",
+      "dialogueId": "CONTACT_varg",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_grumb",
+      "title": "Rencontrer Le Sage Grumb",
+      "actId": "*",
+      "targetBindingId": "grumb",
+      "dialogueId": "CONTACT_grumb",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    },
+    {
+      "id": "SOURCE_TALK_CONTACT_petit_os",
+      "title": "Rencontrer Le Petit Os",
+      "actId": "*",
+      "targetBindingId": "petit_os",
+      "dialogueId": "CONTACT_petit_os",
+      "durationSeconds": 0,
+      "repeatable": true,
+      "requiredFlags": [],
+      "forbiddenFlags": [],
+      "costs": [],
+      "effects": []
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "D_CONSULTATION",
+      "speaker": "Mathieu",
+      "text": "Méthode de consultation",
+      "choices": [
+        {
+          "id": "D_CONSULTATION_A",
+          "text": "Choix A : demander uniquement l'avis d'Aurélien.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CONSULTATION_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CONSULTATION_A",
+              "value": 1,
+              "operation": "set",
+              "text": "La politique reste inchangée.\n\nLa jauge de confiance baisse.\n\nPlusieurs dangers demeurent masqués sur la carte.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "stat",
+              "target": "participation",
+              "value": -10,
+              "operation": "add",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "workers_consulted",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CONSULTATION_B",
+          "text": "Choix B : demander à chaque responsable de parler pour son équipe.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CONSULTATION_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CONSULTATION_B",
+              "value": 1,
+              "operation": "set",
+              "text": "Une partie des problèmes apparaît.\n\nLes travailleurs les moins écoutés restent silencieux.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "stat",
+              "target": "participation",
+              "value": 10,
+              "operation": "add",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "workers_consulted",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CONSULTATION_C",
+          "text": "Choix C : consulter directement les travailleurs et organiser un échange collectif.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CONSULTATION_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CONSULTATION_C",
+              "value": 1,
+              "operation": "set",
+              "text": "Les problèmes prioritaires sont révélés.\n\nLorette débloque de nouvelles informations.\n\nLa jauge de participation augmente.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_II_CONSULTATION",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "stat",
+              "target": "participation",
+              "value": 35,
+              "operation": "add",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "workers_consulted",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_CARRIERE_A_ALERTE",
+      "speaker": "Alerte",
+      "text": "Danger critique signalé. L'intervention reste non maîtrisée.\n\nSi le danger est connu et que l'extraction est maintenue sans maîtrise, le bloc s'effondre.\n\nGeorges meurt dans cette branche du scénario.",
+      "choices": [
+        {
+          "id": "D_CARRIERE_A_ALERTE_STOP",
+          "text": "Suspendre et préparer une intervention maîtrisée",
+          "effects": [
+            {
+              "kind": "risk",
+              "target": "carriere",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_III_CARRIERE",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CARRIERE_A_ALERTE_MAINTENIR",
+          "text": "Maintenir l'intervention malgré l'alerte",
+          "effects": [
+            {
+              "kind": "character",
+              "target": "georges.alive",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [
+                "observed:M_III_CARRIERE"
+              ],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "catastrophe",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CARRIERE_A_ALERTE",
+              "value": 1,
+              "operation": "set",
+              "text": "Si le danger est connu et que l'extraction est maintenue sans maîtrise, le bloc s'effondre.\n\nGeorges meurt dans cette branche du scénario.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_CARRIERE",
+      "speaker": "Mathieu",
+      "text": "Extraction et instabilité",
+      "choices": [
+        {
+          "id": "D_CARRIERE_A",
+          "text": "A. Demander de poursuivre rapidement.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CARRIERE_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CARRIERE_A",
+              "value": 1,
+              "operation": "set",
+              "text": "Si le danger est connu et que l'extraction est maintenue sans maîtrise, le bloc s'effondre.\n\nGeorges meurt dans cette branche du scénario.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "carriere",
+              "value": 2,
+              "operation": "set",
+              "text": "Si le danger est connu et que l'extraction est maintenue sans maîtrise, le bloc s'effondre.\n\nGeorges meurt dans cette branche du scénario.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "nextDialogueId": "D_CARRIERE_A_ALERTE",
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CARRIERE_B",
+          "text": "B. Faire passer les porteurs sur le côté sans vérifier la stabilité du bloc.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CARRIERE_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CARRIERE_B",
+              "value": 1,
+              "operation": "set",
+              "text": "Un bloc tombe près du groupe.\n\nUn porteur est blessé.\n\nL'activité est suspendue.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "carriere",
+              "value": 2,
+              "operation": "set",
+              "text": "Un bloc tombe près du groupe.\n\nUn porteur est blessé.\n\nL'activité est suspendue.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CARRIERE_C",
+          "text": "C. Arrêter l'extraction, isoler la zone et organiser une intervention préparée.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CARRIERE_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CARRIERE_C",
+              "value": 1,
+              "operation": "set",
+              "text": "Aucune victime.\n\nLes matériaux seront récupérés après traitement de l'instabilité.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "carriere",
+              "value": 0,
+              "operation": "set",
+              "text": "Aucune victime.\n\nLes matériaux seront récupérés après traitement de l'instabilité.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_III_CARRIERE",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_SILEX",
+      "speaker": "Mathieu",
+      "text": "Maîtrise des projections",
+      "choices": [
+        {
+          "id": "D_SILEX_A",
+          "text": "A. Distribuer des protections rudimentaires et ne rien changer au poste.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_SILEX_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_SILEX_A",
+              "value": 1,
+              "operation": "set",
+              "text": "A réduit partiellement certaines expositions sans traiter la source. Un accident peut encore survenir.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "silex",
+              "value": 2,
+              "operation": "set",
+              "text": "A réduit partiellement certaines expositions sans traiter la source. Un accident peut encore survenir.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_SILEX_B",
+          "text": "B. Afficher une consigne de prudence.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_SILEX_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_SILEX_B",
+              "value": 1,
+              "operation": "set",
+              "text": "B ne suffit pas. Un PNJ subit une blessure grave.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "silex",
+              "value": 2,
+              "operation": "set",
+              "text": "B ne suffit pas. Un PNJ subit une blessure grave.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "character",
+              "target": "brok.life",
+              "value": -60,
+              "operation": "add",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "stat",
+              "target": "morale",
+              "value": -15,
+              "operation": "add",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_SILEX_C",
+          "text": "C. Déplacer le poste, contrôler les projections, organiser les circulations et former l'artisan.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_SILEX_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_SILEX_C",
+              "value": 1,
+              "operation": "set",
+              "text": "C permet de maîtriser les principales situations dangereuses identifiées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "silex",
+              "value": 0,
+              "operation": "set",
+              "text": "C permet de maîtriser les principales situations dangereuses identifiées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_IV_SILEX",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_FOYER_A_ALERTE",
+      "speaker": "Alerte",
+      "text": "Danger critique signalé. L'intervention reste non maîtrisée.\n\nA entraîne une intoxication mortelle simulée d'Orok si l'activité se poursuit malgré l'alerte.",
+      "choices": [
+        {
+          "id": "D_FOYER_A_ALERTE_STOP",
+          "text": "Suspendre et préparer une intervention maîtrisée",
+          "effects": [
+            {
+              "kind": "risk",
+              "target": "fumees",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_IV_FOYER",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_FOYER_A_ALERTE_MAINTENIR",
+          "text": "Maintenir l'intervention malgré l'alerte",
+          "effects": [
+            {
+              "kind": "character",
+              "target": "orok.alive",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [
+                "observed:M_IV_FOYER"
+              ],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "catastrophe",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_FOYER_A_ALERTE",
+              "value": 1,
+              "operation": "set",
+              "text": "A entraîne une intoxication mortelle simulée d'Orok si l'activité se poursuit malgré l'alerte.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_FOYER",
+      "speaker": "Mathieu",
+      "text": "Fumées et combustibles",
+      "choices": [
+        {
+          "id": "D_FOYER_A",
+          "text": "A. Fermer les ouvertures pour conserver la chaleur et maintenir l'activité.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_FOYER_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_FOYER_A",
+              "value": 1,
+              "operation": "set",
+              "text": "A entraîne une intoxication mortelle simulée d'Orok si l'activité se poursuit malgré l'alerte.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "fumees",
+              "value": 2,
+              "operation": "set",
+              "text": "A entraîne une intoxication mortelle simulée d'Orok si l'activité se poursuit malgré l'alerte.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "nextDialogueId": "D_FOYER_A_ALERTE",
+          "requiredFlags": []
+        },
+        {
+          "id": "D_FOYER_B",
+          "text": "B. Demander aux habitants de sortir périodiquement sans modifier l'installation.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_FOYER_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_FOYER_B",
+              "value": 1,
+              "operation": "set",
+              "text": "B améliore temporairement la situation, mais laisse subsister des expositions.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "fumees",
+              "value": 2,
+              "operation": "set",
+              "text": "B améliore temporairement la situation, mais laisse subsister des expositions.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_FOYER_C",
+          "text": "C. Arrêter le foyer dangereux, déplacer les combustibles, améliorer l'implantation et l'évacuation des fumées.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_FOYER_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_FOYER_C",
+              "value": 1,
+              "operation": "set",
+              "text": "C permet de créer une cuisine et un foyer mieux organisés.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "fumees",
+              "value": 0,
+              "operation": "set",
+              "text": "C permet de créer une cuisine et un foyer mieux organisés.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_IV_FOYER",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_ABATTAGE_A_ALERTE",
+      "speaker": "Alerte",
+      "text": "Danger critique signalé. L'intervention reste non maîtrisée.\n\nA peut provoquer la mort de Dylan si le joueur maintient l'intervention alors que les alertes sont affichées.",
+      "choices": [
+        {
+          "id": "D_ABATTAGE_A_ALERTE_STOP",
+          "text": "Suspendre et préparer une intervention maîtrisée",
+          "effects": [
+            {
+              "kind": "risk",
+              "target": "abattage",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_IV_BOIS",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_ABATTAGE_A_ALERTE_MAINTENIR",
+          "text": "Maintenir l'intervention malgré l'alerte",
+          "effects": [
+            {
+              "kind": "character",
+              "target": "dylan.alive",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [
+                "observed:M_IV_BOIS"
+              ],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "catastrophe",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABATTAGE_A_ALERTE",
+              "value": 1,
+              "operation": "set",
+              "text": "A peut provoquer la mort de Dylan si le joueur maintient l'intervention alors que les alertes sont affichées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_ABATTAGE",
+      "speaker": "Mathieu",
+      "text": "Compétence et zone de chute",
+      "choices": [
+        {
+          "id": "D_ABATTAGE_A",
+          "text": "A. Envoyer Dylan couper l'arbre pour accélérer le travail.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_ABATTAGE_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABATTAGE_A",
+              "value": 1,
+              "operation": "set",
+              "text": "A peut provoquer la mort de Dylan si le joueur maintient l'intervention alors que les alertes sont affichées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "abattage",
+              "value": 2,
+              "operation": "set",
+              "text": "A peut provoquer la mort de Dylan si le joueur maintient l'intervention alors que les alertes sont affichées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "nextDialogueId": "D_ABATTAGE_A_ALERTE",
+          "requiredFlags": []
+        },
+        {
+          "id": "D_ABATTAGE_B",
+          "text": "B. Demander aux passants de faire attention.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_ABATTAGE_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABATTAGE_B",
+              "value": 1,
+              "operation": "set",
+              "text": "B provoque un incident grave et impose de reprendre l'analyse.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "abattage",
+              "value": 2,
+              "operation": "set",
+              "text": "B provoque un incident grave et impose de reprendre l'analyse.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_ABATTAGE_C",
+          "text": "C. Suspendre l'abattage, sécuriser la zone, contrôler l'outil et affecter une personne compétente.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_ABATTAGE_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABATTAGE_C",
+              "value": 1,
+              "operation": "set",
+              "text": "C permet l'abattage dans des conditions maîtrisées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "abattage",
+              "value": 0,
+              "operation": "set",
+              "text": "C permet l'abattage dans des conditions maîtrisées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_IV_BOIS",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_ABRI_A_ALERTE",
+      "speaker": "Alerte",
+      "text": "Danger critique signalé. L'intervention reste non maîtrisée.\n\nDans la branche A, l'effondrement provoque la mort d'un bâtisseur PNJ.",
+      "choices": [
+        {
+          "id": "D_ABRI_A_ALERTE_STOP",
+          "text": "Suspendre et préparer une intervention maîtrisée",
+          "effects": [
+            {
+              "kind": "risk",
+              "target": "abri",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_V_ABRI",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_ABRI_A_ALERTE_MAINTENIR",
+          "text": "Maintenir l'intervention malgré l'alerte",
+          "effects": [
+            {
+              "kind": "character",
+              "target": "uma.alive",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [
+                "observed:M_V_ABRI"
+              ],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "catastrophe",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABRI_A_ALERTE",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche A, l'effondrement provoque la mort d'un bâtisseur PNJ.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_ABRI",
+      "speaker": "Mathieu",
+      "text": "Toiture lourde et structure",
+      "choices": [
+        {
+          "id": "D_ABRI_A",
+          "text": "Choix A : construire immédiatement sans contrôle.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_ABRI_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABRI_A",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche A, l'effondrement provoque la mort d'un bâtisseur PNJ.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "abri",
+              "value": 2,
+              "operation": "set",
+              "text": "Dans la branche A, l'effondrement provoque la mort d'un bâtisseur PNJ.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "nextDialogueId": "D_ABRI_A_ALERTE",
+          "requiredFlags": []
+        },
+        {
+          "id": "D_ABRI_B",
+          "text": "Choix B : ajouter une réparation provisoire non évaluée.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_ABRI_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABRI_B",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche B, un incident se produit et des travaux supplémentaires deviennent nécessaires.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "abri",
+              "value": 2,
+              "operation": "set",
+              "text": "Dans la branche B, un incident se produit et des travaux supplémentaires deviennent nécessaires.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_ABRI_C",
+          "text": "Choix C : contrôler la structure, adapter les matériaux et vérifier l'assemblage.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_ABRI_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_ABRI_C",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche C, l'habitation est améliorée et déclarée utilisable après vérification.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "abri",
+              "value": 0,
+              "operation": "set",
+              "text": "Dans la branche C, l'habitation est améliorée et déclarée utilisable après vérification.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_V_ABRI",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_RESERVES_A_ALERTE",
+      "speaker": "Alerte",
+      "text": "Danger critique signalé. L'intervention reste non maîtrisée.\n\nDans la branche A, Neila peut mourir lors de l'effondrement des matériaux.",
+      "choices": [
+        {
+          "id": "D_RESERVES_A_ALERTE_STOP",
+          "text": "Suspendre et préparer une intervention maîtrisée",
+          "effects": [
+            {
+              "kind": "risk",
+              "target": "stockage",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_V_RESERVES",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_RESERVES_A_ALERTE_MAINTENIR",
+          "text": "Maintenir l'intervention malgré l'alerte",
+          "effects": [
+            {
+              "kind": "character",
+              "target": "neila.alive",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [
+                "observed:M_V_RESERVES"
+              ],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "catastrophe",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_RESERVES_A_ALERTE",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche A, Neila peut mourir lors de l'effondrement des matériaux.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_RESERVES",
+      "speaker": "Mathieu",
+      "text": "Empilement et charges",
+      "choices": [
+        {
+          "id": "D_RESERVES_A",
+          "text": "A. Autoriser l'empilement instable.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_RESERVES_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_RESERVES_A",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche A, Neila peut mourir lors de l'effondrement des matériaux.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "stockage",
+              "value": 2,
+              "operation": "set",
+              "text": "Dans la branche A, Neila peut mourir lors de l'effondrement des matériaux.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "nextDialogueId": "D_RESERVES_A_ALERTE",
+          "requiredFlags": []
+        },
+        {
+          "id": "D_RESERVES_B",
+          "text": "B. Limiter l'accès sans modifier le stockage.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_RESERVES_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_RESERVES_B",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche B, l'espace est temporairement interdit et le danger demeure.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "stockage",
+              "value": 2,
+              "operation": "set",
+              "text": "Dans la branche B, l'espace est temporairement interdit et le danger demeure.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_RESERVES_C",
+          "text": "C. Réduire et stabiliser les charges, organiser les accès et contrôler les supports.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_RESERVES_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_RESERVES_C",
+              "value": 1,
+              "operation": "set",
+              "text": "Dans la branche C, le stockage devient fonctionnel et les voies de circulation sont dégagées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "stockage",
+              "value": 0,
+              "operation": "set",
+              "text": "Dans la branche C, le stockage devient fonctionnel et les voies de circulation sont dégagées.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_V_RESERVES",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_CHASSE_A_ALERTE",
+      "speaker": "Alerte",
+      "text": "Danger critique signalé. L'intervention reste non maîtrisée.\n\nSi les alertes critiques sont ignorées, le mammouth charge et Eliott meurt dans cette branche.\n\nUn autre chasseur est blessé.",
+      "choices": [
+        {
+          "id": "D_CHASSE_A_ALERTE_STOP",
+          "text": "Suspendre et préparer une intervention maîtrisée",
+          "effects": [
+            {
+              "kind": "risk",
+              "target": "chasse",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_VI_DECIDER",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CHASSE_A_ALERTE_MAINTENIR",
+          "text": "Maintenir l'intervention malgré l'alerte",
+          "effects": [
+            {
+              "kind": "character",
+              "target": "eliott.alive",
+              "value": 0,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [
+                "observed:M_VI_DECIDER"
+              ],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "catastrophe",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CHASSE_A_ALERTE",
+              "value": 1,
+              "operation": "set",
+              "text": "Si les alertes critiques sont ignorées, le mammouth charge et Eliott meurt dans cette branche.\n\nUn autre chasseur est blessé.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_CHASSE",
+      "speaker": "Mathieu",
+      "text": "Stratégie de chasse",
+      "choices": [
+        {
+          "id": "D_CHASSE_A",
+          "text": "A. Attaquer immédiatement.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CHASSE_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CHASSE_A",
+              "value": 1,
+              "operation": "set",
+              "text": "Si les alertes critiques sont ignorées, le mammouth charge et Eliott meurt dans cette branche.\n\nUn autre chasseur est blessé.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "chasse",
+              "value": 2,
+              "operation": "set",
+              "text": "Si les alertes critiques sont ignorées, le mammouth charge et Eliott meurt dans cette branche.\n\nUn autre chasseur est blessé.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "nextDialogueId": "D_CHASSE_A_ALERTE",
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CHASSE_B",
+          "text": "B. Maintenir la chasse avec seulement des consignes supplémentaires.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CHASSE_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CHASSE_B",
+              "value": 1,
+              "operation": "set",
+              "text": "Une situation dangereuse interrompt l'opération.\n\nLes chasseurs doivent battre en retraite.\n\nLe joueur doit organiser la réponse à l'urgence.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "chasse",
+              "value": 2,
+              "operation": "set",
+              "text": "Une situation dangereuse interrompt l'opération.\n\nLes chasseurs doivent battre en retraite.\n\nLe joueur doit organiser la réponse à l'urgence.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CHASSE_C",
+          "text": "C. Reporter l'opération, préparer les mesures adaptées et choisir une activité moins exposante si nécessaire.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CHASSE_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CHASSE_C",
+              "value": 1,
+              "operation": "set",
+              "text": "Le risque immédiat est maîtrisé.\n\nLes ressources alimentaires restent suffisantes grâce à une solution alternative préparée avec Neila.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "chasse",
+              "value": 0,
+              "operation": "set",
+              "text": "Le risque immédiat est maîtrisé.\n\nLes ressources alimentaires restent suffisantes grâce à une solution alternative préparée avec Neila.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_VI_DECIDER",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "D_CORRECTION",
+      "speaker": "Mathieu",
+      "text": "Action corrective",
+      "choices": [
+        {
+          "id": "D_CORRECTION_A",
+          "text": "A. Renvoyer le travailleur concerné.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CORRECTION_A",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CORRECTION_A",
+              "value": 1,
+              "operation": "set",
+              "text": "La réponse A détériore la confiance et les remontées d'informations.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "recurrence",
+              "value": 2,
+              "operation": "set",
+              "text": "La réponse A détériore la confiance et les remontées d'informations.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CORRECTION_B",
+          "text": "B. Remplacer uniquement la poutre.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CORRECTION_B",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CORRECTION_B",
+              "value": 1,
+              "operation": "set",
+              "text": "La réponse B traite le défaut immédiat mais ne garantit pas la suppression des causes organisationnelles.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "recurrence",
+              "value": 2,
+              "operation": "set",
+              "text": "La réponse B traite le défaut immédiat mais ne garantit pas la suppression des causes organisationnelles.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        },
+        {
+          "id": "D_CORRECTION_C",
+          "text": "C. Traiter l'installation, les pratiques de contrôle, les compétences et la gestion des signalements.",
+          "effects": [
+            {
+              "kind": "flag",
+              "target": "choice:D_CORRECTION_C",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "evidence",
+              "target": "D_CORRECTION_C",
+              "value": 1,
+              "operation": "set",
+              "text": "La réponse C permet de réduire le risque de réapparition d'événements similaires.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "risk",
+              "target": "recurrence",
+              "value": 0,
+              "operation": "set",
+              "text": "La réponse C permet de réduire le risque de réapparition d'événements similaires.",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "effective:M_VII_CORRIGER",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            },
+            {
+              "kind": "flag",
+              "target": "events_analyzed",
+              "value": 1,
+              "operation": "set",
+              "text": "",
+              "requiredFlags": [],
+              "forbiddenFlags": []
+            }
+          ],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q002",
+      "speaker": "Aurélien",
+      "text": "La sécurité est notre priorité absolue, juste après la chasse, les constructions, les réserves et la productivité.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q002",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q052"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q003",
+      "speaker": "Dylan",
+      "text": "Si quelqu'un tombe d'une falaise, on classe ça comme une chute ou comme une mauvaise orientation professionnelle ?",
+      "choices": [
+        {
+          "id": "CONTINUE_Q003",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q053"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q004",
+      "speaker": "Georges",
+      "text": "Cette poutre tient depuis trois saisons. Elle a même résisté à deux tempêtes. Enfin, presque.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q004",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q055"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q005",
+      "speaker": "Eliott",
+      "text": "Le mammouth est dangereux uniquement lorsqu'il est de mauvaise humeur.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q005",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q058"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q006",
+      "speaker": "Mathilde",
+      "text": "J'ai demandé des lits propres. Aurélien a répondu que les microbes n'avaient pas encore été inventés.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q006",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q057"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q007",
+      "speaker": "Lorette",
+      "text": "On nous demande notre avis après avoir décidé. C'est une tradition.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q007",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q056"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q008",
+      "speaker": "Neila",
+      "text": "On m'a demandé de stocker les pierres en hauteur pour gagner de la place. J'ai demandé où elles allaient tomber. Personne n'a répondu.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q008",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q054"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q011",
+      "speaker": "Dylan",
+      "text": "On m'a dit de vous accompagner. On m'a aussi dit de ne toucher à rien. J'ai déjà touché à trois choses.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q011",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q024",
+      "speaker": "Carnet des Crânes",
+      "text": "L'humanité venait de découvrir une invention extraordinaire : le travail collectif. Elle n'avait pas encore découvert ses conséquences.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q024",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q025",
+      "speaker": "Aurélien",
+      "text": "Excellent début de journée. Aucun accident mortel avant le petit-déjeuner. Nous progressons.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q025",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q026",
+      "speaker": "Aurélien",
+      "text": "Nous avions prévu de regarder ça demain.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q026",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q027",
+      "speaker": "Aurélien",
+      "text": "Tu as jusqu'à l'arrivée des Sages pour rendre notre village parfaitement sûr. Mais ne ralentis personne.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q027",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q031",
+      "speaker": "Aurélien",
+      "text": "Voilà. Nous avons désormais une politique. On peut reprendre le travail.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q031",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q032",
+      "speaker": "Aurélien",
+      "text": "Précise que chacun est responsable de sa propre sécurité. Ainsi, si quelque chose arrive, nous saurons immédiatement qui était responsable.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q032",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q033",
+      "speaker": "Dylan",
+      "text": "J'ai préparé un inventaire de tout ce qui peut nous tuer. Je n'ai pas eu assez d'écorce.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q033",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q035",
+      "speaker": "Brok",
+      "text": "Les éclats sont petits. Il suffit de ne pas être sur leur trajectoire.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q035",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q036",
+      "speaker": "Orok",
+      "text": "La fumée, c'est comme les conseils du chef. À force, on ne la remarque plus.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q036",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q037",
+      "speaker": "Tarek",
+      "text": "On n'a jamais eu d'accident. Enfin, jamais deux fois avec la même personne.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q037",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q038",
+      "speaker": "Aurélien",
+      "text": "Nous avons toujours dormi sous ces toits. S'ils n'étaient pas solides, ils seraient déjà tombés.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q038",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q039"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q039",
+      "speaker": "Aurélien",
+      "text": "Celui-là était probablement indépendant.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q039",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q041",
+      "speaker": "Aurélien",
+      "text": "Comme je l'avais toujours prévu...",
+      "choices": [
+        {
+          "id": "CONTINUE_Q041",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q042",
+      "speaker": "Lorette",
+      "text": "Vous aviez prévu l'auvent pour votre statue.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q042",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q043",
+      "speaker": "Aurélien",
+      "text": "La chasse commencera immédiatement. Nous ne pouvons pas nous permettre de retarder une opération qui pourrait tous nous tuer.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q043",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q045",
+      "speaker": "Aurélien",
+      "text": "Un accident avec zéro blessé, c'est surtout une excellente nouvelle pour les statistiques.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q045",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q046",
+      "speaker": "Le Sage Grumb",
+      "text": "On m'a dit que vous aviez inventé la prévention. Je suis venu vérifier si elle fonctionne.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q046",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q047",
+      "speaker": "Aurélien",
+      "text": "Une roue ? Excellent. Nous allons pouvoir produire davantage.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q047",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q048",
+      "speaker": "Dylan",
+      "text": "Donc après avoir amélioré quelque chose, il faut vérifier si ça marche, puis recommencer ?",
+      "choices": [
+        {
+          "id": "CONTINUE_Q048",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q049",
+      "speaker": "Aurélien",
+      "text": "C'est extrêmement contraignant comme invention.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q049",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q050",
+      "speaker": "Carnet des Crânes",
+      "text": "L'humanité avait inventé la roue. Elle venait aussi de découvrir qu'il ne suffisait pas de tourner en rond pour progresser.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q050",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q052",
+      "speaker": "Aurélien",
+      "text": "Pourquoi avons-nous encore des risques si nous avons nommé un responsable des risques ?",
+      "choices": [
+        {
+          "id": "CONTINUE_Q052",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q061"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q053",
+      "speaker": "Dylan",
+      "text": "J'ai fait la liste des dangers. Le premier danger m'a volé la liste.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q053",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q054",
+      "speaker": "Neila",
+      "text": "Je peux vous fournir six pierres, mais pas six pierres solides si vous les empilez n'importe comment.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q054",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q055",
+      "speaker": "Georges",
+      "text": "Une construction doit tenir debout avant d'être inaugurée. C'est mon opinion personnelle.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q055",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q056",
+      "speaker": "Lorette",
+      "text": "Nous avons consulté les travailleurs, et voilà qu'ils ont des choses à dire. Quelle imprudence.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q056",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q057",
+      "speaker": "Mathilde",
+      "text": "J'aimerais pratiquer un peu moins de médecine d'urgence et un peu plus de prévention.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q057",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q058",
+      "speaker": "Eliott",
+      "text": "Pour chasser correctement, il faut connaître le terrain. Je reconnais que c'est moins glorieux que de courir vers le mammouth.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q058",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q060",
+      "speaker": "Le Sage Grumb",
+      "text": "Combien de travailleurs ont été consultés ?",
+      "choices": [
+        {
+          "id": "CONTINUE_Q060",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q064"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q061",
+      "speaker": "Aurélien",
+      "text": "J'ai consulté ma propre expérience. Elle est excellente.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q061",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q063"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q062",
+      "speaker": "Carnet des Crânes",
+      "text": "La pierre est solide. C'est la méthode qui ne tient pas debout.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q062",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q063",
+      "speaker": "Aurélien",
+      "text": "Donc nous avons réussi ?",
+      "choices": [
+        {
+          "id": "CONTINUE_Q063",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q065"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q064",
+      "speaker": "Le Sage Grumb",
+      "text": "Vous avez commencé à travailler correctement. C'est une avancée considérable compte tenu du point de départ.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q064",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q065",
+      "speaker": "Aurélien",
+      "text": "Nous avons enfin compris comment travailler sans nous détruire nous-mêmes.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q065",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": [],
+          "nextDialogueId": "SOURCE_Q066"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q066",
+      "speaker": "Aurélien",
+      "text": "J'en déduis que nous pouvons désormais doubler les objectifs de production.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q066",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "SOURCE_Q067",
+      "speaker": "Carnet des Crânes",
+      "text": "L'amélioration continue venait de trouver sa première raison d'exister.",
+      "choices": [
+        {
+          "id": "CONTINUE_Q067",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "TUTORIAL_MATHILDE",
+      "speaker": "Mathilde",
+      "text": "Trois questions pour comprendre la situation. Choisis celle que tu veux poser.",
+      "choices": [
+        {
+          "id": "TUTORIAL_1",
+          "text": "Qu’est-ce qui s’est passé ?",
+          "effects": [],
+          "requiredFlags": []
+        },
+        {
+          "id": "TUTORIAL_2",
+          "text": "Qui est exposé ?",
+          "effects": [],
+          "requiredFlags": []
+        },
+        {
+          "id": "TUTORIAL_3",
+          "text": "Quelles protections existent ?",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_brok",
+      "speaker": "Brok",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_brok_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_tarek",
+      "speaker": "Tarek",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_tarek_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_orok",
+      "speaker": "Orok",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_orok_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_uma",
+      "speaker": "Uma",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_uma_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_kora",
+      "speaker": "Kora",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_kora_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_nork",
+      "speaker": "Nork",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_nork_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_sila",
+      "speaker": "Sila",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_sila_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_varg",
+      "speaker": "Varg",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_varg_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_grumb",
+      "speaker": "Le Sage Grumb",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_grumb_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    },
+    {
+      "id": "CONTACT_petit_os",
+      "speaker": "Le Petit Os",
+      "text": "Activité dans le village : .\n\n",
+      "choices": [
+        {
+          "id": "CONTACT_petit_os_CONTINUER",
+          "text": "Continuer",
+          "effects": [],
+          "requiredFlags": []
+        }
+      ]
+    }
+  ],
+  "cinematics": [
+    {
+      "id": "C01",
+      "title": "Le village catastrophe",
+      "summary": "Le village catastrophe — ### Cinématique C01, 35 secondes\n\nLa caméra traverse une forêt préhistorique au lever du soleil.\n\nDes oiseaux s'envolent.\n\nUn mammouth traverse lentement le paysage.\n\nLa musique devient solennelle.\n\nLe village apparaît au loin, perdu dans la fumée de ses foyers.\n\nUn narrateur déclare :\n\n« L'humanité venait de découvrir une invention extraordinaire : le travail collectif. Elle n'avait pas encore découvert ses conséquences. »\n\nLa caméra avance vers les premières huttes.\n\nUn porteur tombe dans la b",
+      "durationSeconds": 35,
+      "shots": [
+        {
+          "cameraBindingId": "camera:C01:1",
+          "lookAtBindingId": "look:C01",
+          "durationSeconds": 11.666666666666666,
+          "subtitle": "L'humanité venait de découvrir une invention extraordinaire : le travail collectif. Elle n'avait pas encore découvert ses conséquences.",
+          "speaker": "",
+          "actorBindingId": "narrateur",
+          "animationTrigger": ""
+        },
+        {
+          "cameraBindingId": "camera:C01:2",
+          "lookAtBindingId": "look:C01",
+          "durationSeconds": 11.666666666666666,
+          "subtitle": "Excellent début de journée. Aucun accident mortel avant le petit-déjeuner. Nous progressons.",
+          "speaker": "Aurélien",
+          "actorBindingId": "aurelien",
+          "animationTrigger": ""
+        },
+        {
+          "cameraBindingId": "camera:C01:3",
+          "lookAtBindingId": "look:C01",
+          "durationSeconds": 11.666666666666666,
+          "subtitle": "Nous avions prévu de regarder ça demain.",
+          "speaker": "Aurélien",
+          "actorBindingId": "aurelien",
+          "animationTrigger": ""
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "title": "Les premiers ateliers améliorés",
+      "summary": "Les premiers ateliers améliorés — ### Cinématique C02. Les premiers ateliers améliorés\n\nDurée : environ 25 secondes.\n\nLa caméra passe d'un atelier encombré à un atelier dégagé.\n\nLes travailleurs installent des séparations et déplacent les matériaux.\n\nBrok reprend son activité dans une zone adaptée.\n\nUn PNJ lit le panneau de consignes à l'envers.\n\nDylan lui montre le bon sens.",
+      "durationSeconds": 25,
+      "shots": [
+        {
+          "cameraBindingId": "camera:C02:1",
+          "lookAtBindingId": "look:C02",
+          "durationSeconds": 25.0,
+          "subtitle": "Les premiers ateliers améliorés",
+          "speaker": "",
+          "actorBindingId": "",
+          "animationTrigger": ""
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "title": "La métamorphose",
+      "summary": "La métamorphose — ### Cinématique C03. La métamorphose\n\nDurée : environ 40 secondes.\n\nLa caméra reprend exactement son angle de l'introduction.\n\nLes anciens abris apparaissent en transparence pendant quelques instants.\n\nLes nouvelles structures prennent progressivement leur place.\n\nLa pluie commence.\n\nCette fois, elle ne traverse pas les toitures améliorées.\n\nLes habitants se déplacent sur des cheminements dégagés.\n\nLe foyer fonctionne sans remplir la hutte de fumée.\n\nL'infirmerie dispose de lits secs.\n\nLa caméra",
+      "durationSeconds": 40,
+      "shots": [
+        {
+          "cameraBindingId": "camera:C03:1",
+          "lookAtBindingId": "look:C03",
+          "durationSeconds": 20.0,
+          "subtitle": "Comme je l'avais toujours prévu...",
+          "speaker": "Aurélien",
+          "actorBindingId": "aurelien",
+          "animationTrigger": ""
+        },
+        {
+          "cameraBindingId": "camera:C03:2",
+          "lookAtBindingId": "look:C03",
+          "durationSeconds": 20.0,
+          "subtitle": "Vous aviez prévu l'auvent pour votre statue.",
+          "speaker": "Lorette",
+          "actorBindingId": "lorette",
+          "animationTrigger": ""
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "title": "L'ordre du chef",
+      "summary": "L'ordre du chef — ### Cinématique C04. L'ordre du chef\n\nDurée : 25 secondes.\n\nUne meute d'animaux traverse la forêt.\n\nLes chasseurs se préparent.\n\nEliott explique que le terrain est humide et que plusieurs chasseurs sont épuisés.\n\nUne tribu voisine a également été sollicitée.\n\nLe plan initial consiste à poursuivre un mammouth vers une zone encaissée.\n\nAurélien prend la parole.\n\n**Aurélien :** « La chasse commencera immédiatement. Nous ne pouvons pas nous permettre de retarder une opération qui pourrait tous nous ",
+      "durationSeconds": 25,
+      "shots": [
+        {
+          "cameraBindingId": "camera:C04:1",
+          "lookAtBindingId": "look:C04",
+          "durationSeconds": 25.0,
+          "subtitle": "La chasse commencera immédiatement. Nous ne pouvons pas nous permettre de retarder une opération qui pourrait tous nous tuer.",
+          "speaker": "Aurélien",
+          "actorBindingId": "aurelien",
+          "animationTrigger": ""
+        }
+      ]
+    },
+    {
+      "id": "C05",
+      "title": "Le mammouth",
+      "summary": "Le mammouth — ### Cinématique C05. Le mammouth\n\nDurée : 30 secondes.\n\nSelon les choix :\n\n**Version favorable :** les chasseurs se retirent méthodiquement. Le mammouth traverse la clairière sans blessé.\n\n**Version intermédiaire :** un animal provoque une fuite désordonnée. Un chasseur est blessé et l'équipe se rassemble.\n\n**Version mortelle :** la caméra montre la charge à distance. Eliott disparaît derrière un nuage de poussière. La scène se termine sur le silence et le constat de Mathilde.\n\nAucune mort n'est",
+      "durationSeconds": 30,
+      "shots": [
+        {
+          "cameraBindingId": "camera:C05:1",
+          "lookAtBindingId": "look:C05",
+          "durationSeconds": 30.0,
+          "subtitle": "Le mammouth",
+          "speaker": "",
+          "actorBindingId": "",
+          "animationTrigger": ""
+        }
+      ]
+    },
+    {
+      "id": "C06",
+      "title": "La roue du progrès",
+      "summary": "La roue du progrès — ### Cinématique finale C06\n\nDurée : 45 secondes maximum.\n\nUne immense roue de pierre vient d'être installée devant le village.\n\nAurélien l'examine.\n\n**Aurélien :** « Une roue ? Excellent. Nous allons pouvoir produire davantage. »\n\nMathieu présente la logique du cycle d'amélioration.\n\nDylan ajoute :\n\n« Donc après avoir amélioré quelque chose, il faut vérifier si ça marche, puis recommencer ? »\n\nAurélien réfléchit.\n\n« C'est extrêmement contraignant comme invention. »\n\nLa caméra s'éloigne du villag",
+      "durationSeconds": 45,
+      "shots": [
+        {
+          "cameraBindingId": "camera:C06:1",
+          "lookAtBindingId": "look:C06",
+          "durationSeconds": 11.25,
+          "subtitle": "Une roue ? Excellent. Nous allons pouvoir produire davantage.",
+          "speaker": "Aurélien",
+          "actorBindingId": "aurelien",
+          "animationTrigger": ""
+        },
+        {
+          "cameraBindingId": "camera:C06:2",
+          "lookAtBindingId": "look:C06",
+          "durationSeconds": 11.25,
+          "subtitle": "Donc après avoir amélioré quelque chose, il faut vérifier si ça marche, puis recommencer ?",
+          "speaker": "Dylan",
+          "actorBindingId": "dylan",
+          "animationTrigger": ""
+        },
+        {
+          "cameraBindingId": "camera:C06:3",
+          "lookAtBindingId": "look:C06",
+          "durationSeconds": 11.25,
+          "subtitle": "C'est extrêmement contraignant comme invention.",
+          "speaker": "Aurélien",
+          "actorBindingId": "aurelien",
+          "animationTrigger": ""
+        },
+        {
+          "cameraBindingId": "camera:C06:4",
+          "lookAtBindingId": "look:C06",
+          "durationSeconds": 11.25,
+          "subtitle": "L'humanité avait inventé la roue. Elle venait aussi de découvrir qu'il ne suffisait pas de tourner en rond pour progresser.",
+          "speaker": "",
+          "actorBindingId": "narrateur",
+          "animationTrigger": ""
+        }
+      ]
+    }
+  ],
+  "endings": [
+    {
+      "id": "FIN_1",
+      "title": "LA CERTIFICATION EN PEAU DE MAMMOUTH",
+      "text": "## FIN 1. LA CERTIFICATION EN PEAU DE MAMMOUTH\n\n**Conditions indicatives :** risques critiques persistants, absence de preuves suffisantes ou défaillances graves du système.\n\nLa caméra montre le village.\n\nCertaines installations sont neuves, mais des travailleurs continuent à évoluer dans des conditions dangereuses.\n\nAurélien a fait construire un immense menhir portant l'inscription :\n\n« VILLAGE LE PLUS SÛR DU MONDE »\n\nLe Sage Grumb examine les résultats.\n\nIl demande :\n\n« Combien de travailleurs ont été consultés ? »\n\nAurélien répond :\n\n« J'ai consulté ma propre expérience. Elle est excellente. »\n\nGrumb constate que le système annoncé ne fonctionne pas.\n\nLe menhir décoratif tombe, sans faire de victime.\n\nDernière réplique :\n\n« La pierre est solide. C'est la méthode qui ne tient pas debout. »\n\n**Message pédagogique : une politique affichée ne démontre pas la maîtrise réelle des risques.**",
+      "priority": 0,
+      "requiredFlags": [],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "FIN_2",
+      "title": "LE VILLAGE RAISONNABLEMENT VIVANT",
+      "text": "## FIN 2. LE VILLAGE RAISONNABLEMENT VIVANT\n\n**Conditions indicatives :** progrès réels, mais actions importantes encore ouvertes.\n\nLe village s'est amélioré.\n\nPlusieurs dangers sont maîtrisés.\n\nLes travailleurs participent davantage.\n\nCependant, certaines installations restent à traiter ou des compétences doivent être consolidées.\n\nLe Sage Grumb reconnaît les progrès sans les confondre avec un système pleinement efficace.\n\nAurélien demande :\n\n« Donc nous avons réussi ? »\n\nGrumb répond :\n\n« Vous avez commencé à travailler correctement. C'est une avancée considérable compte tenu du point de départ. »\n\nDylan ouvre son carnet.\n\nIl constate qu'il reste beaucoup de choses à faire.\n\n**Message pédagogique : l'amélioration continue est un processus, pas une victoire définitive.**",
+      "priority": 1,
+      "requiredFlags": [
+        "criticalRisksControlled",
+        "audit_performed",
+        "noUntreatedCatastrophe"
+      ],
+      "forbiddenFlags": []
+    },
+    {
+      "id": "FIN_3",
+      "title": "L'INVENTION DU MANAGEMENT",
+      "text": "## FIN 3. L'INVENTION DU MANAGEMENT\n\n**Conditions indicatives :** risques critiques maîtrisés, actions vérifiées, travailleurs consultés, système de suivi opérationnel et aucune catastrophe majeure non traitée.\n\nLe village est organisé.\n\nLes habitations sont stables.\n\nLes ateliers fonctionnent dans des conditions mieux maîtrisées.\n\nLes responsables connaissent leurs rôles.\n\nLes risques sont réévalués lorsque les activités changent.\n\nLes habitants participent aux décisions.\n\nAurélien rassemble la tribu.\n\nIl déclare :\n\n« Nous avons enfin compris comment travailler sans nous détruire nous-mêmes. »\n\nLong silence.\n\nIl ajoute :\n\n« J'en déduis que nous pouvons désormais doubler les objectifs de production. »\n\nMathieu le regarde.\n\nLorette ferme les yeux.\n\nDylan ressort son carnet.\n\nLe narrateur conclut :\n\n« L'amélioration continue venait de trouver sa première raison d'exister. »\n\n**Message pédagogique : la prévention exige un engagement durable, même lorsque les premiers résultats sont bons.**",
+      "priority": 2,
+      "requiredFlags": [
+        "criticalRisksControlled",
+        "systemVerified",
+        "workers_consulted",
+        "competence_verified",
+        "maintenance_planned",
+        "audit_performed",
+        "noUntreatedCatastrophe"
+      ],
+      "forbiddenFlags": []
+    }
+  ],
+  "sourceQuotes": [
+    {
+      "id": "Q002",
+      "speakerId": "aurelien",
+      "text": "La sécurité est notre priorité absolue, juste après la chasse, les constructions, les réserves et la productivité.",
+      "sourceLine": 92,
+      "actId": null
+    },
+    {
+      "id": "Q003",
+      "speakerId": "dylan",
+      "text": "Si quelqu'un tombe d'une falaise, on classe ça comme une chute ou comme une mauvaise orientation professionnelle ?",
+      "sourceLine": 124,
+      "actId": null
+    },
+    {
+      "id": "Q004",
+      "speakerId": "georges",
+      "text": "Cette poutre tient depuis trois saisons. Elle a même résisté à deux tempêtes. Enfin, presque.",
+      "sourceLine": 138,
+      "actId": null
+    },
+    {
+      "id": "Q005",
+      "speakerId": "eliott",
+      "text": "Le mammouth est dangereux uniquement lorsqu'il est de mauvaise humeur.",
+      "sourceLine": 152,
+      "actId": null
+    },
+    {
+      "id": "Q006",
+      "speakerId": "mathilde",
+      "text": "J'ai demandé des lits propres. Aurélien a répondu que les microbes n'avaient pas encore été inventés.",
+      "sourceLine": 166,
+      "actId": null
+    },
+    {
+      "id": "Q007",
+      "speakerId": "lorette",
+      "text": "On nous demande notre avis après avoir décidé. C'est une tradition.",
+      "sourceLine": 180,
+      "actId": null
+    },
+    {
+      "id": "Q008",
+      "speakerId": "neila",
+      "text": "On m'a demandé de stocker les pierres en hauteur pour gagner de la place. J'ai demandé où elles allaient tomber. Personne n'a répondu.",
+      "sourceLine": 192,
+      "actId": null
+    },
+    {
+      "id": "Q011",
+      "speakerId": "dylan",
+      "text": "On m'a dit de vous accompagner. On m'a aussi dit de ne toucher à rien. J'ai déjà touché à trois choses.",
+      "sourceLine": 517,
+      "actId": null
+    },
+    {
+      "id": "Q024",
+      "speakerId": "narrateur",
+      "text": "L'humanité venait de découvrir une invention extraordinaire : le travail collectif. Elle n'avait pas encore découvert ses conséquences.",
+      "sourceLine": 697,
+      "actId": "ACTE_I"
+    },
+    {
+      "id": "Q025",
+      "speakerId": "aurelien",
+      "text": "Excellent début de journée. Aucun accident mortel avant le petit-déjeuner. Nous progressons.",
+      "sourceLine": 711,
+      "actId": "ACTE_I"
+    },
+    {
+      "id": "Q026",
+      "speakerId": "aurelien",
+      "text": "Nous avions prévu de regarder ça demain.",
+      "sourceLine": 719,
+      "actId": "ACTE_I"
+    },
+    {
+      "id": "Q027",
+      "speakerId": "aurelien",
+      "text": "Tu as jusqu'à l'arrivée des Sages pour rendre notre village parfaitement sûr. Mais ne ralentis personne.",
+      "sourceLine": 741,
+      "actId": "ACTE_I"
+    },
+    {
+      "id": "Q031",
+      "speakerId": "aurelien",
+      "text": "Voilà. Nous avons désormais une politique. On peut reprendre le travail.",
+      "sourceLine": 771,
+      "actId": "ACTE_II"
+    },
+    {
+      "id": "Q032",
+      "speakerId": "aurelien",
+      "text": "Précise que chacun est responsable de sa propre sécurité. Ainsi, si quelque chose arrive, nous saurons immédiatement qui était responsable.",
+      "sourceLine": 832,
+      "actId": "ACTE_II"
+    },
+    {
+      "id": "Q033",
+      "speakerId": "dylan",
+      "text": "J'ai préparé un inventaire de tout ce qui peut nous tuer. Je n'ai pas eu assez d'écorce.",
+      "sourceLine": 860,
+      "actId": "ACTE_III"
+    },
+    {
+      "id": "Q035",
+      "speakerId": "brok",
+      "text": "Les éclats sont petits. Il suffit de ne pas être sur leur trajectoire.",
+      "sourceLine": 967,
+      "actId": "ACTE_IV"
+    },
+    {
+      "id": "Q036",
+      "speakerId": "orok",
+      "text": "La fumée, c'est comme les conseils du chef. À force, on ne la remarque plus.",
+      "sourceLine": 999,
+      "actId": "ACTE_IV"
+    },
+    {
+      "id": "Q037",
+      "speakerId": "tarek",
+      "text": "On n'a jamais eu d'accident. Enfin, jamais deux fois avec la même personne.",
+      "sourceLine": 1029,
+      "actId": "ACTE_IV"
+    },
+    {
+      "id": "Q038",
+      "speakerId": "aurelien",
+      "text": "Nous avons toujours dormi sous ces toits. S'ils n'étaient pas solides, ils seraient déjà tombés.",
+      "sourceLine": 1093,
+      "actId": "ACTE_V"
+    },
+    {
+      "id": "Q039",
+      "speakerId": "aurelien",
+      "text": "Celui-là était probablement indépendant.",
+      "sourceLine": 1101,
+      "actId": "ACTE_V"
+    },
+    {
+      "id": "Q041",
+      "speakerId": "aurelien",
+      "text": "Comme je l'avais toujours prévu...",
+      "sourceLine": 1205,
+      "actId": "ACTE_V"
+    },
+    {
+      "id": "Q042",
+      "speakerId": "lorette",
+      "text": "Vous aviez prévu l'auvent pour votre statue.",
+      "sourceLine": 1209,
+      "actId": "ACTE_V"
+    },
+    {
+      "id": "Q043",
+      "speakerId": "aurelien",
+      "text": "La chasse commencera immédiatement. Nous ne pouvons pas nous permettre de retarder une opération qui pourrait tous nous tuer.",
+      "sourceLine": 1237,
+      "actId": "ACTE_VI"
+    },
+    {
+      "id": "Q045",
+      "speakerId": "aurelien",
+      "text": "Un accident avec zéro blessé, c'est surtout une excellente nouvelle pour les statistiques.",
+      "sourceLine": 1332,
+      "actId": "ACTE_VII"
+    },
+    {
+      "id": "Q046",
+      "speakerId": "grumb",
+      "text": "On m'a dit que vous aviez inventé la prévention. Je suis venu vérifier si elle fonctionne.",
+      "sourceLine": 1376,
+      "actId": "ACTE_VII"
+    },
+    {
+      "id": "Q047",
+      "speakerId": "aurelien",
+      "text": "Une roue ? Excellent. Nous allons pouvoir produire davantage.",
+      "sourceLine": 1461,
+      "actId": "ACTE_VIII"
+    },
+    {
+      "id": "Q048",
+      "speakerId": "dylan",
+      "text": "Donc après avoir amélioré quelque chose, il faut vérifier si ça marche, puis recommencer ?",
+      "sourceLine": 1467,
+      "actId": "ACTE_VIII"
+    },
+    {
+      "id": "Q049",
+      "speakerId": "aurelien",
+      "text": "C'est extrêmement contraignant comme invention.",
+      "sourceLine": 1471,
+      "actId": "ACTE_VIII"
+    },
+    {
+      "id": "Q050",
+      "speakerId": "narrateur",
+      "text": "L'humanité avait inventé la roue. Elle venait aussi de découvrir qu'il ne suffisait pas de tourner en rond pour progresser.",
+      "sourceLine": 1477,
+      "actId": "ACTE_VIII"
+    },
+    {
+      "id": "Q052",
+      "speakerId": "aurelien",
+      "text": "Pourquoi avons-nous encore des risques si nous avons nommé un responsable des risques ?",
+      "sourceLine": 1743,
+      "actId": null
+    },
+    {
+      "id": "Q053",
+      "speakerId": "dylan",
+      "text": "J'ai fait la liste des dangers. Le premier danger m'a volé la liste.",
+      "sourceLine": 1745,
+      "actId": null
+    },
+    {
+      "id": "Q054",
+      "speakerId": "neila",
+      "text": "Je peux vous fournir six pierres, mais pas six pierres solides si vous les empilez n'importe comment.",
+      "sourceLine": 1747,
+      "actId": null
+    },
+    {
+      "id": "Q055",
+      "speakerId": "georges",
+      "text": "Une construction doit tenir debout avant d'être inaugurée. C'est mon opinion personnelle.",
+      "sourceLine": 1749,
+      "actId": null
+    },
+    {
+      "id": "Q056",
+      "speakerId": "lorette",
+      "text": "Nous avons consulté les travailleurs, et voilà qu'ils ont des choses à dire. Quelle imprudence.",
+      "sourceLine": 1751,
+      "actId": null
+    },
+    {
+      "id": "Q057",
+      "speakerId": "mathilde",
+      "text": "J'aimerais pratiquer un peu moins de médecine d'urgence et un peu plus de prévention.",
+      "sourceLine": 1753,
+      "actId": null
+    },
+    {
+      "id": "Q058",
+      "speakerId": "eliott",
+      "text": "Pour chasser correctement, il faut connaître le terrain. Je reconnais que c'est moins glorieux que de courir vers le mammouth.",
+      "sourceLine": 1755,
+      "actId": null
+    },
+    {
+      "id": "Q060",
+      "speakerId": "grumb",
+      "text": "Combien de travailleurs ont été consultés ?",
+      "sourceLine": 1777,
+      "actId": null
+    },
+    {
+      "id": "Q061",
+      "speakerId": "aurelien",
+      "text": "J'ai consulté ma propre expérience. Elle est excellente.",
+      "sourceLine": 1781,
+      "actId": null
+    },
+    {
+      "id": "Q062",
+      "speakerId": null,
+      "text": "La pierre est solide. C'est la méthode qui ne tient pas debout.",
+      "sourceLine": 1789,
+      "actId": null
+    },
+    {
+      "id": "Q063",
+      "speakerId": "aurelien",
+      "text": "Donc nous avons réussi ?",
+      "sourceLine": 1809,
+      "actId": null
+    },
+    {
+      "id": "Q064",
+      "speakerId": "grumb",
+      "text": "Vous avez commencé à travailler correctement. C'est une avancée considérable compte tenu du point de départ.",
+      "sourceLine": 1813,
+      "actId": null
+    },
+    {
+      "id": "Q065",
+      "speakerId": "aurelien",
+      "text": "Nous avons enfin compris comment travailler sans nous détruire nous-mêmes.",
+      "sourceLine": 1841,
+      "actId": null
+    },
+    {
+      "id": "Q066",
+      "speakerId": "aurelien",
+      "text": "J'en déduis que nous pouvons désormais doubler les objectifs de production.",
+      "sourceLine": 1847,
+      "actId": null
+    },
+    {
+      "id": "Q067",
+      "speakerId": "narrateur",
+      "text": "L'amélioration continue venait de trouver sa première raison d'exister.",
+      "sourceLine": 1857,
+      "actId": null
+    }
+  ],
+  "playerCharacterId": "dylan"
+}

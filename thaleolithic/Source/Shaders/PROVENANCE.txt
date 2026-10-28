@@ -1,0 +1,1 @@
+Based on the installed HDRP 17.2.0 Lit.shader (Unity package source and license). Authored vertex deformation adds wind and proximity bending to all raster/depth/shadow passes. This is not a recovery of the original Polylithic compiled shader source. Native material colors, UV atlas and diffusion profiles remain in use.

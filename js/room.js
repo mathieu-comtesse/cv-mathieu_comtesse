@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=zen4';
+import { createChashitsu } from './chashitsu.js?v=zen18';
 import { createRetroSet } from './retro.js?v=cv-scene-v54';
 import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
@@ -16,7 +16,7 @@ import { createDirector } from './director.js?v=cv-scene-v53';
 import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v48';
-import { TRACKS, COVER } from './music.js?v=m121';
+import { TRACKS, COVER } from './music.js?v=m122';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v54';
@@ -26,7 +26,8 @@ import {createFilmAlbum} from './film-album.js?v=book3';
 import {createPhoneVideo} from './phone-video.js?v=cv-scene-v54';
 import {createTvFilms} from './tv-films.js?v=tv3';
 import {createJvcTv} from './jvc-tv.js?v=jvc3';
-import {createStele} from './stele.js?v=stele1';
+import {createStele} from './stele.js?v=stele-20261023';
+import {createBuddha} from './buddha.js?v=bud3';
 import {createBonsaiCare} from './bonsai-care.js?v=care3';
 
 const DEG = Math.PI / 180;
@@ -342,7 +343,7 @@ export async function createRoom(container, bubbleEl) {
     install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38).userData.id='backpack';
     const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0).userData.id='shoes';
-    install(buddhaModel,'BuddhaFourFaces',world,-3.72,0,3.72,.6);   // à gauche de l'alocasia (alocasia en -3,1 ; 3,25)
+    install(buddhaModel,'BuddhaFourFaces',world,-3.72,0,3.72,.6).userData.id='buddha';   // à gauche de l'alocasia (alocasia en -3,1 ; 3,25)
     { // Télé JVC Video Capsule 3100R : sur l'étagère elle reste repliée en pyramide ; un clic l'ouvre dans une fenêtre dédiée (js/jvc-tv.js), comme le livre photo.
       const sc=jvcModel.scene,find=re=>{let r=null;sc.traverse(o=>{if(o.isMesh&&re.test(o.name))r=o;});return r;};
       const screen=find(/^Screen_low/),glassMesh=find(/^ScreenGlass/),body=find(/^Body_low/);
@@ -410,7 +411,7 @@ export async function createRoom(container, bubbleEl) {
 
   let cameraMode='follow',fitReady=false;
   const cameraButton=document.createElement('button');cameraButton.type='button';cameraButton.className='room-camera';container.append(cameraButton);
-  const setCameraMode=mode=>{cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y':'none';};
+  const setCameraMode=mode=>{if(window.__rfFreeCam)mode='free';cameraMode=mode;container.dataset.cameraMode=mode;cameraButton.textContent=mode==='follow'?'Caméra libre':'Suivre le personnage';cameraButton.setAttribute('aria-pressed',String(mode==='follow'));renderer.domElement.style.touchAction=mobile.matches||mode==='follow'?'pan-y':'none';};
   setCameraMode('follow');
   let navigationMode='pan';
   const navigationControls=document.createElement('div');navigationControls.className='room-navigation';navigationControls.setAttribute('role','group');navigationControls.setAttribute('aria-label','Manipulation du décor');
@@ -506,17 +507,26 @@ export async function createRoom(container, bubbleEl) {
 
   /* ─── interaction ─── */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const OPENABLE = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
   const pickIdAt = (cx, cy) => {
     const r = renderer.domElement.getBoundingClientRect();
     ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObject(world, true);
+    // Les objets à ouvrir (stèle, bouddha, sac, télé, appareil photo, console, ordinateur…) sont prioritaires : si le rayon les traverse, ils gagnent,
+    // même quand une plante, une étagère ou un meuble se trouve devant sous cet angle. Sinon, c'est l'objet le plus proche qui est visé.
+    let nearest = null, priority = null;
     for (const h of hits) {
       let vis = true; for (let q = h.object; q; q = q.parent) if (!q.visible) { vis = false; break; }
       if (!vis) continue;
-      let o = h.object;
-      while (o && o !== world) { if (o.userData.id) return o.userData.id; o = o.parent; }
+      let o = h.object, id = null;
+      while (o && o !== world) { if (o.userData.id) { id = o.userData.id; break; } o = o.parent; }
+      if (!id) continue;
+      if (nearest === null) nearest = id;
+      if (priority === null && OPENABLE.has(id)) priority = id;
     }
+    if (priority !== null) return priority;
+    if (nearest !== null) return nearest;
     return null;
   };
 
@@ -576,7 +586,7 @@ export async function createRoom(container, bubbleEl) {
         if (hdrag.lifted) { const g = groundAt(e.clientX, e.clientY); if (g) director.carry(g.x, g.z); zoneHover(e.clientX, e.clientY); }
       } else if (drag) {
         drag.moved += Math.abs(dx) + Math.abs(dy);
-        if(drag.moved>6&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='var(--cv-grabbing)';}
+        if(drag.moved>6&&!window.__rfFreeCam&&!(mobile.matches&&e.pointerType==='touch')){if(drag.pan)panCamera(dx,dy);else rotateCamera(dx,dy);el.style.cursor='var(--cv-grabbing)';}
       }
     } else {
       if (crate.isOpen) { ndcOf(e.clientX, e.clientY); crateHover = crate.indexAt(ray.ray); crate.setSel(crateHover); }
@@ -916,6 +926,7 @@ export async function createRoom(container, bubbleEl) {
   }
   function playTrack(i) {
     jukebox.play(i);                                           // le tiroir reste ouvert pendant la diffusion ; seul un clic sur le tiroir, le bouton ou Échap le referme
+    if(window.__rfFreeCam){view.tZoom=1;syncZoom();tgt.set(.1,.8,-.2);}   // accueil : le disque choisi, la caméra revient à son zoom d'origine (dézoome)
     if (!(director.current === stations.usm && director.mode === 'activity')) goTo('usm');
   }
   const card = document.createElement('div'); card.className = 'sleeve-card'; container.appendChild(card);
@@ -930,7 +941,7 @@ export async function createRoom(container, bubbleEl) {
   const goTo = (id, cb) => { if(appOpen)return false;afterEnter = cb || null; director.go(stations[id]); };
 
   let appOpen = false;
-  function resetFocus(){view.tZoom=1;syncZoom();setCameraMode('follow');}
+  function resetFocus(){view.tZoom=1;syncZoom();setCameraMode('follow');if(window.__rfFreeCam)tgt.set(.1,.8,-.2);}   // accueil : la caméra ne suit jamais le personnage, elle revient au centre de la pièce
   function openApp(kind, pos, zoom) {
     if (appOpen) return; appOpen = true;container.dataset.activityLocked='true';if(hdrag)clearTimeout(hdrag.timer);hdrag=null;drag=null;pointers.clear();
     setCameraMode('free');tgt.copy(pos); view.tZoom = zoom;
@@ -1017,6 +1028,7 @@ export async function createRoom(container, bubbleEl) {
   const phoneVideo=createPhoneVideo(open=>pauseAutonomy(open?3600000:3000));
   const tvFilms=createTvFilms({onChange:open=>pauseAutonomy(open?3600000:3000)});
   const stele=createStele(open=>pauseAutonomy(open?3600000:3000));
+  const buddha=createBuddha(open=>pauseAutonomy(open?3600000:3000));
   const jvcTv=createJvcTv({fallback:()=>tvFilms.open(),onChange:open=>pauseAutonomy(open?3600000:3000)});
   function activate(id) {
     if(appOpen)return false;
@@ -1026,6 +1038,7 @@ export async function createRoom(container, bubbleEl) {
     if(id==='backpack'){phoneVideo.open();return;}
     if(id==='videosphere'){jvcTv.open();return;}
     if(id==='stele'){stele.open();return;}
+    if(id==='buddha'){buddha.open();return;}
     if (id === 'drawer' || id === 'usm') { openCrate(!crate.isOpen); return; }                 // le meuble USM entier ouvre le tiroir ; le lecteur n'apparaît qu'une fois un disque choisi
     if (id === 'strip') { retro.setStrip(!retro.stripOn); if (retro.stripOn && atSofa()) retro.powerOn(); return; }
     if (id === 'tv') {

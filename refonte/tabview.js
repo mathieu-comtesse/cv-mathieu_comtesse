@@ -1,0 +1,67 @@
+// Pages d'onglet (Blog, Expériences, Gains) : plan blueprint fixe en fond, mêmes règles « Tourner » / « Incliner » que l'accueil.
+// Les règles n'agissent que sur la caméra du plan ; le sujet de la page (tirelire, signe infini, hublot) reste fixe SUR le plan :
+// il écoute « rf-tabview » et se présente sous le même angle que le plan (azimut et élévation relatifs à la vue d'origine : 36° et 26°).
+import * as THREE from 'three';
+import { initBlueprint } from './blueprint-hero.js';
+import { initRulers } from './rulers.js?v=gains-20261023';
+
+const RULERS = '<aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Incliner la vue de bas en haut (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Incliner</span></aside>' +
+  '<aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Tourner la vue (glisser à gauche ou à droite, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside>';
+
+document.body.classList.add('rf-tabv');
+document.querySelector('.rf-ibg')?.remove();
+const stage = document.createElement('div');
+stage.className = 'rf-stage rf-stage--post'; stage.id = 'stage'; stage.setAttribute('aria-hidden', 'true');
+stage.innerHTML = '<canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div>';
+document.body.prepend(stage);
+document.body.insertAdjacentHTML('beforeend', RULERS);
+
+const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
+const placeCam = (yaw, pitch = 26 * Math.PI / 180) => {
+  const dist = 40, cp = Math.cos(pitch), tx = .1, tz = -.2, aimY = 3.2;
+  cam.position.set(tx + Math.sin(yaw) * cp * dist, aimY + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
+  cam.lookAt(tx, aimY, tz); cam.updateMatrixWorld(true);
+};
+const bp = initBlueprint(document.getElementById('rf-bp'), stage);
+bp.plane.scale.setScalar(2.6);
+placeCam(36 * Math.PI / 180); bp.link(cam);
+/* le centre du plan blueprint est placé sur le sujet de la page (tirelire, signe infini, hublot) : on décale le point de fuite de la caméra,
+   et les règles se calent sur ce même centre */
+let cy = innerHeight / 2;
+const subject = () => document.querySelector('.annual-pig-wrap, #rf-inf, #rf-win');
+const aspect = () => {
+  const el = subject();
+  if (el) { const r = el.getBoundingClientRect(); cy = r.top + scrollY + r.height / 2; }
+  cy = Math.min(Math.max(cy, innerHeight * .3), innerHeight * .75);
+  cam.aspect = innerWidth / innerHeight;
+  cam.setViewOffset(innerWidth, innerHeight, 0, -(cy - innerHeight / 2), innerWidth, innerHeight);
+  document.documentElement.style.setProperty('--tv-cy', cy + 'px');
+  cam.updateProjectionMatrix();
+};
+aspect(); addEventListener('resize', aspect); addEventListener('load', aspect);
+for (const t of [300, 900, 2000, 4000]) setTimeout(aspect, t);
+
+/* même effet de défilement que l'accueil : la vue plonge de 14° sur 3,56 hauteurs d'écran et le plan s'estompe (valeurs relevées sur la page de référence) */
+const DEG = Math.PI / 180, clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const FADE = [[0, 1], [1, 1], [1.11, .991], [1.78, .444], [2.67, .119], [3.56, 0]];
+const fade = (u) => { for (let i = 1; i < FADE.length; i++) if (u <= FADE[i][0]) { const [x0, y0] = FADE[i - 1], [x1, y1] = FADE[i]; return y0 + (y1 - y0) * (u - x0) / (x1 - x0); } return 0; };
+const rulers = [document.getElementById('rf-ruler'), document.getElementById('rf-ruler-h')];
+let view = { rot: 0, tilt: 0, yaw: 36 * DEG, pitch: 26 * DEG };
+window.__rfTabView = view;
+const paint = () => {
+  // comme sur l'accueil : 3,56 hauteurs d'écran de défilement ; sur une page plus courte, la même courbe est étirée sur la longueur disponible
+  const span = Math.max(1, Math.min(3.56 * innerHeight, document.documentElement.scrollHeight - innerHeight)), s = clamp(scrollY / span, 0, 1);
+  const o = fade(s * 3.56);
+  const pitch = clamp(view.pitch + 14 * DEG * s, 6 * DEG, 82 * DEG);
+  placeCam(view.yaw, pitch);
+  const d = { yaw: view.yaw, pitch, dYaw: view.yaw - 36 * DEG, dPitch: pitch - 26 * DEG };
+  window.__rfTabView = d; window.dispatchEvent(new CustomEvent('rf-tabview', { detail: d }));
+  stage.style.opacity = o.toFixed(3);
+  for (const r of rulers) { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .3 ? 'none' : ''; }
+};
+addEventListener('scroll', () => requestAnimationFrame(paint), { passive: true });
+addEventListener('resize', paint); addEventListener('load', paint); setTimeout(paint, 1500);
+initRulers((v) => {
+  view = v; paint();
+});
+paint();

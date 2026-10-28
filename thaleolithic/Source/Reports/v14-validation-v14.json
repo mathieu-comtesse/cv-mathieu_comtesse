@@ -1,0 +1,193 @@
+{
+    "status": "passed",
+    "checks": [
+        {
+            "name": "Public campaign title",
+            "detail": "THALEOLITHIC",
+            "passed": true
+        },
+        {
+            "name": "Opening skip commits one completion",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Opening returns gameplay camera",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Interaction arrays reused between changes",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Interaction cache invalidated on state change",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Legacy save imported",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Legacy source preserved",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Existing new save never overwritten",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Foreign campaign rejected",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Mathilde main quest classified from active frontier",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Mathilde social conversation separate",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Mathilde actual care register separate",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Main quest uses gold polygon row",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No old public menu title",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Register opens documentary reader",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Reading does not validate investigation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Social action opens its own conversation",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Social conversation does not complete main testimony",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Completed step leaves priority menu",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Touch category menu fits viewport",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C01 camera and live playback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C01 skip saved and controls restored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C02 camera and live playback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C02 skip saved and controls restored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C03 camera and live playback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C03 skip saved and controls restored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C04 camera and live playback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C04 skip saved and controls restored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C05 camera and live playback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C05 skip saved and controls restored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C06 camera and live playback",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "C06 skip saved and controls restored",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Completed films do not replay on load",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Pending film saved before playing",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Interrupted film resumes from saved state",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "No duplicate film completion receipts",
+            "detail": "",
+            "passed": true
+        },
+        {
+            "name": "Management header renamed",
+            "detail": "",
+            "passed": true
+        }
+    ],
+    "errors": [],
+    "frameStart": 795,
+    "frameEnd": 1072
+}

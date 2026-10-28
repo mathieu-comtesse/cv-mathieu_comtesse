@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retrouver tout le suivi · Mathieu Comtesse</title>
+<meta name="description" content="Retrouver tout le suivi : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvp040j2">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvp040j2"></script>
+<link rel="modulepreload" href="vendor/three.module.min.js">
+<link rel="modulepreload" href="refonte/blueprint-hero.js">
+<link rel="modulepreload" href="refonte/m3d/index.js">
+<link rel="modulepreload" href="refonte/m3d/core.js">
+<link rel="modulepreload" href="refonte/m3d/glow.js">
+<link rel="modulepreload" href="refonte/m3d/suivi.js">
+<link rel="modulepreload" href="refonte/flow.js">
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="./">Accueil</a>
+  <a href="gains">Gains</a>
+  <a href="./#projets">Projets</a>
+  <a href="./#perso">Perso</a>
+  <a href="experiences">Expériences</a>
+  <a href="blog">Blog</a>
+  <a href="./#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Incliner la vue de bas en haut (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Incliner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Tourner la machine (glisser à gauche ou à droite, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="./#projets" aria-label="Retour à tous les projets"><span class="rf-arrow view-action view-back" aria-hidden="true"><span class="view-text">Tous les projets</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span></a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 09 / 10 · Processus métier</p>
+      <h1>Retrouver tout le suivi</h1>
+      <p class="rf-post-sub">OT, équipement, bâtiment</p>
+      <div class="rf-post-meta"><div><span>Temps libéré (estimé)</span><b>10 à 15 min</b></div><div><span>Valorisation estimée</span><b>118 à 589 k€</b></div><div><span>Objet</span><b>Standard à fiches</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="suivi"><img src="assets/figures/suivi-light.webp?v=bp2" alt="Standard à fiches" width="840" height="600"><figcaption>Standard à fiches · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.</p><h2>L’objet en action</h2><p>Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure. Avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.</p><h2>Le projet</h2><p>Pour un ordre de travail (OT), un équipement ou un bâtiment, une interface rassemble les accès aux informations et au suivi répartis entre plusieurs outils internes SNCF. Les liens directs, extraits depuis la console du navigateur, permettent de rediriger automatiquement vers les pages concernées.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré (estimé)</small><b>10 à 15 min</b><i>gagnées par recherche (≈ 1 h quand elle passe par d’autres outils)</i></span><span><small>Valorisation estimée</small><b>118 à 589 k€</b><i>par an, estimation à confirmer (14 utilisateurs, ≈ 26 € la recherche)</i></span></div><p class="rf-post-note">Base du calcul. Valorisation estimative du temps de recherche : 14 utilisateurs, environ 26 €/recherche. Fréquence réelle et montant annuel à confirmer.</p><h2>Pour l’équipe</h2><p>Accéder au bon dossier depuis une seule interface, sans rechercher manuellement dans chaque outil.</p><h2>Comment ça marche</h2><div class="rf-flow" style="--n:9"><button type="button" class="rf-flow-magic">Cliquez ici pour voir la magie</button><div class="rf-flow-rail" aria-hidden="true"></div><ol class="rf-flow-steps"><li class="rf-flow-step rf-tl-rv" data-icon="queue"><p class="rf-flow-tech"></p><h3>Ordres de travail</h3><p>Les OT de la GMAO constituent le point de départ.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="export"><p class="rf-flow-tech"></p><h3>Exports des sources</h3><p>Les autres logiciels et sites fournissent les informations utiles.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="extract"><p class="rf-flow-tech"></p><h3>Informations utiles</h3><p>Les éléments utiles sont isolés pour être retrouvés dans l’interface.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="inject"><p class="rf-flow-tech"></p><h3>Équipement</h3><p>Chaque ligne est rattachée à son équipement.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="field"><p class="rf-flow-tech"></p><h3>Bâtiment</h3><p>Le bâtiment fournit un autre accès au même suivi.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="html"><p class="rf-flow-tech"></p><h3>Interface commune</h3><p>Les différents accès se rassemblent dans un point d’entrée commun.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="extract"><p class="rf-flow-tech"></p><h3>Recherche OT</h3><p>Une recherche par OT retrouve le contexte et l’accès pertinent.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="check"><p class="rf-flow-tech"></p><h3>Lien direct</h3><p>Le bon écran s’active et conduit vers la source concernée.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="chart"><p class="rf-flow-tech"></p><h3>Suivi retrouvé</h3><p>Les outils restent distincts. L’interface facilite leur navigation sans répliquer toutes leurs données.</p></li></ol></div><h2>Construction</h2><p>Temps de construction mesuré : 0,5 jour de 7 heures, essais auprès des équipes compris.</p>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a class="rf-pn-prev" href="projet-studio"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/studio-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Précédent</small><b>Studio d’extracteurs PDF</b></span><i class="rf-pn-arr" aria-hidden="true">←</i></a><a class="rf-pn-next" href="projet-gares"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/gares-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Suivant</small><b>Gares prioritaires</b></span><i class="rf-pn-arr" aria-hidden="true">→</i></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvp040j">mvp040j</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="./">Accueil</a></li><li><a href="blog">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="experiences">Expériences</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>

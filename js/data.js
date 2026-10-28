@@ -3,6 +3,17 @@ export const TALAS_URL = "village-talas-scene.html";
 export const CV = "jeux/";
 export const PERSO = [
  {
+  "id": "lettres",
+  "img": "assets/screenshots/lettres-v2.webp",
+  "year": 2026,
+  "n": "Lettres machines",
+  "genre": "Lettres-machines",
+  "color": "#d0822a",
+  "url": "lettres-machines-scene.html",
+  "pixel": false,
+  "desc": "Un alphabet de machines dessiné à la manière des illustrations de David Macaulay : chaque lettre est un mécanisme (grue, engrenage, aimant, montgolfière, platine vinyle, fermeture éclair, trébuchet…), avec quatre à sept dessins par lettre. Saisir un mot, survoler ou toucher une lettre pour la mettre en marche, changer son dessin d’un maj + clic, puis exporter chaque lettre en PNG transparent, sans fond."
+ },
+ {
   "id": "ligne",
   "img": "assets/screenshots/ligne-controle-v1.webp",
   "year": 2026,
@@ -132,14 +143,14 @@ export const PRO = [
   "sub": "SharePoint, ligne Excel et Q18 visibles",
   "lead": "Le Reporteur Q18 rend les Q18 visibles dans une colonne Excel. Le classeur alimente Power BI, qui apporte une nouvelle visibilité répondant aux besoins des COSI (Correspondants en Sécurité incendie) et des clients de l’ABE SUD IdF. Il remplace le copier-coller depuis SharePoint vers la bonne ligne du classeur Excel.",
   "gain": "15 minutes économisées par rapport sur le report SharePoint → Excel. Sur 4 000 à 5 000 rapports/an : 1 000 à 1 250 heures libérées, soit 104 740 à 130 925 € par an à 104,74 €/h. Les Q18 sont désormais visibles.",
-  "team": "Les données arrivent à la bonne ligne ; les Q18 deviennent visibles dans Excel puis dans Power BI, pour les COSI et les clients de l’ABE SUD IdF.",
+  "team": "Les données arrivent à la bonne ligne. Les Q18 deviennent visibles dans Excel puis dans Power BI, pour les COSI et les clients de l’ABE SUD IdF.",
   "url": "projet-moteur44.html"
 },
  {
   "id": "projet-1",
   "title": "CERFA v3",
   "sub": "Fiches et attestations → données du parc",
-  "lead": "Les fiches d’intervention sur les équipements contenant des fluides frigorigènes (formulaire CERFA) arrivent par centaines, en PDF. La première version de l’extracteur lisait une fiche à la fois ; la v2 lit, extrait et analyse un large panel de fiches en lot, sur une masse de documents que personne ne pouvait dépouiller page par page. La v3, dernière version, traite aussi plusieurs autres types d’attestations dans le même lot : chaque document est reconnu, lu et contrôlé avec ses propres règles.",
+  "lead": "Les fiches d’intervention sur les équipements contenant des fluides frigorigènes (formulaire CERFA) arrivent par centaines, en PDF. La première version de l’extracteur lisait une fiche à la fois. La v2 lit, extrait et analyse un large panel de fiches en lot, sur une masse de documents que personne ne pouvait dépouiller page par page. La v3, dernière version, traite aussi plusieurs autres types d’attestations dans le même lot : chaque document est reconnu, lu et contrôlé avec ses propres règles.",
   "gain": "Un lot de 300 fiches CERFA et attestations traité en 1 minute 20 secondes, contre 20 à 25 heures à la main. Le temps libéré par lot représente 2 092,47 à 2 616,17 € à 104,74 €/h. L’extracteur permet d’appliquer des pénalités, fait remonter les non-conformités et a permis de réaliser un audit national sur les CERFA fluides frigorigènes.",
   "team": "Ne plus dépouiller : superviser un lot entier, concentrer l’analyse sur les doublons, non-conformités et retards, et repartir avec un Excel déjà filtré et surligné.",
   "url": "projet-1.html"
@@ -215,7 +226,7 @@ PRO.unshift(...[
     "title": "VRE · traitement par VM",
     "sub": "SharePoint, demandes, Excel et récapitulatif",
     "lead": "Un dépôt sur SharePoint crée une demande. Une VM Windows relève les demandes toutes les deux minutes, contrôle le code final du rapport et le numéro d’OT, inscrit le lien dans le classeur, puis vérifie l’enregistrement.",
-    "gain": "30 minutes de traitement économisées par rapport VRE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons ; le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.",
+    "gain": "30 minutes de traitement économisées par rapport VRE, sur 4 000 à 5 000 rapports par an : 2 000 à 2 500 heures, valorisées à 104,74 €/h, soit 209 480 à 261 850 € par an de temps libéré. Un historique évite les doublons. Le récapitulatif de 17 h ne reprend que les nouvelles intégrations confirmées.",
     "team": "Une architecture de reprise entre deux VM est à concevoir avec un seul droit d’écriture, verrou partagé et reprise de l’historique. Le raccordement reste à valider dans l’environnement restreint."
   }
 ]);
