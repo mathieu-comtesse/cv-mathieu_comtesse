@@ -39,6 +39,8 @@ export const DIAL = { u: 21, z: 64, r0: 5, r1: 17, turns: 3 };
 export const CELLS = Array.from({ length: 12 }, (_, i) => 0.1 + i * 0.075);
 export const TRAY = { x: -98, y: 40 };
 export const CORPUS_TOP = 14;                                   // dessus de la boîte du corpus
+export const DESK = { x0: 38, x1: 60, y0: 12, y1: 38, z: 6 };     // table lumineuse « Radiographie » : l'agent y valide chaque page
+export const DESK_C = [(DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z + 0.3];
 export const DIV = { x: 128, y: 40, z: 9 };                       // la roue candidate se forme sur le plateau diviseur (z = 9)
 export const GAUGE = { x0: DIV.x - 32, x1: DIV.x - 14, y0: DIV.y + 17, y1: DIV.y + 23, z1: 24 };
 export const LEVER = { x: DIV.x + 26, y: DIV.y + 22, z: 18 };
@@ -46,10 +48,10 @@ export const HATCH = { x0: GEARS.pin.u - 17.5, x1: GEARS.pin.u + 17.5, y0: FY - 
 export const BOARD = { x0: 98, x1: 170, y: -46, z1: 86, slots: [[116, 64], [152, 64], [116, 24], [152, 24]] };
 export const LID_Z = CASE.h + 7, ABOVE = LID_Z + GEARS.pin.r + 18;
 
-export const T = { read: [0.5, 4.2], sort: [2, 6], accord: [6, 9.6], infer: [10, 15], valid: [15.4, 23.4], freeze: [23.8, 29.9], train: [30, 35], evaluate: [35.2, 39], publish: [39.2, 45], rerun: [45.2, 52], gain: [50, 55] };
+export const T = { read: [0.5, 4.2], sort: [2, 6], accord: [6, 9.6], infer: [10, 15], valid: [15.4, 25.2], freeze: [25.2, 30.2], train: [30.3, 35.3], evaluate: [35.2, 39], publish: [39.2, 45], rerun: [45.2, 52], gain: [50, 55] };
 export const LOOP_T = 56;
 export const ERR = [4, 9];
-export const TS = [0, 2, 6, 10, 15.4, 23.8, 30, 39.2, 45.2];
+export const TS = [0, 2, 6, 10, 15.4, 25.2, 30.3, 39.2, 45.2];
 export const STATIONS = ['Lecture · Document AI', 'Tri des champs · mini-BERT', 'Hybride · la cheville du modèle dans la coulisse des règles', 'Inférence · douze pages inédites, des cadres proposés',
   'Validation humaine · Radiographie, chaque page validée part au corpus', 'Corpus figé · les feuilles forment le flan de la roue', 'Entraînement LayoutLMv3 puis évaluation indépendante',
   'Publication explicite · la roue du modèle est remplacée', 'Nouvel essai · propositions validées une à une · 46 / 20 = × 2,3'];
@@ -58,21 +60,54 @@ export const stationAt = (s) => { let i = 0; TS.forEach((a, j) => { if (s >= a) 
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
 const seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
 const lerp = (a, b, u) => a + (b - a) * u;
-const VAL = (i) => T.valid[0] + 0.2 + i * 0.45;                    // instant où l'agent valide la page i dans Radiographie
 const REACH2 = (c) => 46.5 + 5 * (c - 0.04) / 0.92;              // instant où l'aiguille atteint la case c au nouvel essai
 
-// ---- les feuilles : pages validées vers le corpus, copies du corpus figé vers le flan, rapports de test vers le banc ----
+// ---- l'agent : chaque page proposée vient sur la table lumineuse, sa main la tamponne (vert : validée ; rouge puis orange :
+// corrigée), la case du cadran change au même instant, puis la page validée part au corpus (les validations enrichissent les exemples) ----
+export const spiralAt = (q) => { const a = q * DIAL.turns * TAU, r = DIAL.r0 + (DIAL.r1 - DIAL.r0) * q; return [DIAL.u + r * Math.cos(a - Math.PI / 2), -DIAL.z + r * Math.sin(a - Math.PI / 2)]; };
+export const cellWorld = (i) => { const [u, v] = spiralAt(CELLS[i]); return [CASE.x1, -u, -v]; };   // face droite : repère local (−y, −z)
+export const EVENTS = (() => {
+  const ev = []; let t = T.valid[0] + 0.5;
+  CELLS.forEach((c, i) => { const bad = ERR.includes(i); ev.push({ t, i, kind: bad ? 'bad' : 'ok', pass: 1 }); t += 0.6; if (bad) { ev.push({ t, i, kind: 'fix', pass: 1 }); t += 0.6; } });
+  let u = 0; CELLS.forEach((c, i) => { u = Math.max(REACH2(c) + 0.6, u + 0.55); ev.push({ t: u, i, kind: 'ok', pass: 2 }); });
+  return ev;
+})();
+const bump = (d) => (d < -0.14 || d > 0.16 ? 0 : d < 0 ? ease((d + 0.14) / 0.14) : 1 - ease(d / 0.16));
+/** La main de l'agent et son tampon : bas du tampon (x, y, z), pression (0 → 1), encre en cours ; null hors des validations. */
+export function handAt(s) {
+  for (const pass of [1, 2]) {
+    const ev = EVENTS.filter((e) => e.pass === pass), a = ev[0].t - 1.1, b = ev[ev.length - 1].t + 0.9;
+    if (s < a || s > b) continue;
+    const away = 1 - ease(seg(s, a, a + 0.6)) * (1 - ease(seg(s, b - 0.6, b)));
+    let press = 0, kind = 'ok'; for (const e of ev) { const v = bump(s - e.t); if (v > press) { press = v; kind = e.kind; } }
+    const next = ev.find((e) => e.t > s - 0.16) || ev[ev.length - 1];
+    const sway = 0.8 * Math.sin(s * 2.3);
+    return { tip: [DESK_C[0] + 1.5 + sway + 30 * away, DESK_C[1] + 1 + 22 * away, DESK_C[2] + 0.5 + 8 * (1 - press) + 40 * away], press, kind: press > 0 ? kind : next.kind };
+  }
+  return null;
+}
+
+// ---- les feuilles : pages du cadran vers la table puis vers le corpus, copies du corpus figé vers le flan, rapports de test vers le banc ----
 const V3 = (x, y, z) => [x, y, z];
 export const SHEETS = [];
-for (let j = 0; j < 6; j++) SHEETS.push({ kind: 'valid', mark: j === 1 || j === 3, t0: 16 + j * 1.0, dur: 2.6, L: 16, W: 12, ph: j * 1.7, stay: LOOP_T,
-  from: { c: V3(CASE.x1 + 0.6, -21, 27), d: V3(0, 0, -1), w: V3(0, 1, 0) }, to: { c: V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 0.3 + j * 0.45), d: V3(1, 0, 0), w: V3(0, 1, 0) },
-  c1: V3(CASE.x1 + 14, 28, 78), c2: V3(TRAY.x + 52, 64, 80) });
-for (let k = 0; k < 5; k++) { const a = k * 0.62; SHEETS.push({ kind: 'freeze', t0: 24.4 + k * 0.75, dur: 2.4, L: 16, W: 12, ph: 2 + k * 1.3, stay: 29.9,
-  from: { c: V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 3.2), d: V3(1, 0, 0), w: V3(0, 1, 0) }, to: { c: V3(DIV.x, DIV.y, DIV.z + 0.3 + k * 0.5), d: V3(Math.cos(a), Math.sin(a), 0), w: V3(-Math.sin(a), Math.cos(a), 0) },
+const flat = (c) => ({ c, d: V3(1, 0, 0), w: V3(0, 1, 0) });
+let stack = 0;
+for (const pass of [1, 2]) CELLS.forEach((c, i) => {
+  const ev = EVENTS.filter((e) => e.pass === pass && e.i === i), first = ev[0].t, last = ev[ev.length - 1].t, cw = cellWorld(i);
+  const stamps = ev.map((e) => ({ t: e.t, kind: e.kind })), depart = last + 0.25, ph = i * 1.3 + pass;
+  SHEETS.push({ kind: 'page', stamps, t0: first - 0.75, dur: 0.6, L: 16, W: 12, ph, stay: depart,
+    from: { c: V3(cw[0] + 0.6, cw[1], cw[2]), d: V3(0, 0, -1), w: V3(0, 1, 0) }, to: flat(V3(...DESK_C)), c1: V3(cw[0] + 14, cw[1] + 10, cw[2] + 4), c2: V3(DESK_C[0] + 8, DESK_C[1] + 4, DESK_C[2] + 22) });
+  SHEETS.push({ kind: 'valid', stamps, mark: ev.length > 1, t0: depart, dur: 1.6, L: 16, W: 12, ph: ph + 0.7, stay: LOOP_T,
+    from: flat(V3(...DESK_C)), to: flat(V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 0.3 + (stack++) * 0.22)), c1: V3(DESK_C[0] - 10, DESK_C[1] + 24, 46), c2: V3(TRAY.x + 46, 62, 52) });
+});
+for (let k = 0; k < 5; k++) { const a = k * 0.62; SHEETS.push({ kind: 'freeze', t0: 25.7 + k * 0.5, dur: 1.9, L: 16, W: 12, ph: 2 + k * 1.3, stay: 30.2,
+  from: flat(V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 3.2)), to: { c: V3(DIV.x, DIV.y, DIV.z + 0.3 + k * 0.5), d: V3(Math.cos(a), Math.sin(a), 0), w: V3(-Math.sin(a), Math.cos(a), 0) },
   c1: V3(TRAY.x + 46, 66, 62), c2: V3(DIV.x - 44, 66, 62) }); }
 for (let m = 0; m < 2; m++) { const gx = (GAUGE.x0 + GAUGE.x1) / 2, gy = (GAUGE.y0 + GAUGE.y1) / 2; SHEETS.push({ kind: 'test', t0: 35.4 + m * 0.9, dur: 2.2, L: 16, W: 11, ph: 5 + m, clipZ: GAUGE.z1,
-  from: { c: V3(TRAY.x - 10, TRAY.y, 11), d: V3(1, 0, 0), w: V3(0, 1, 0) }, to: { c: V3(gx, gy, GAUGE.z1 + 1), d: V3(0, 0, -1), w: V3(-1, 0, 0) },
+  from: flat(V3(TRAY.x - 10, TRAY.y, 11)), to: { c: V3(gx, gy, GAUGE.z1 + 1), d: V3(0, 0, -1), w: V3(-1, 0, 0) },
   c1: V3(TRAY.x + 20, 74, 66), c2: V3(gx, gy + 2, 70) }); }
+/** Le coup de tampon visible sur une page à l'instant s (dernier tampon reçu), ou null. */
+export const stampOf = (sh, s) => { let k = null; for (const q of sh.stamps || []) if (s >= q.t) k = q.kind; return k; };
 
 const add = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -138,7 +173,7 @@ export function stateAt(s) {
   o.accord = (s > 8.4 && s < 10.4) || (s > 46.8 && s < 54.5);
   o.p2 = -o.b1 * GEARS.b1.n / GEARS.p2.n;
   // anneaux du corpus : l'extérieur suit son pignon ; texte et position avancent à chaque page validée et pendant l'entraînement
-  const landed = SHEETS.filter((q) => q.kind === 'valid' && s >= q.t0 + q.dur).length;
+  const landed = Math.min(12, SHEETS.filter((q) => q.kind === 'valid' && s >= q.t0 + q.dur).length);
   o.corpus = [0, -0.9, 1.3].map((k2, i) => k2 * (0.35 * landed + 2.2 * ease(seg(s, T.train[0], T.train[1]))) + i * 0.4);
   o.corpus[0] = -o.p2 * GEARS.p2.n / GEARS.corpus.n;
   o.p3 = -o.b1 * GEARS.b1.n / GEARS.p3.n; o.d46 = o.p3; o.o20 = -o.d46 * GEARS.d46.n / GEARS.o20.n;
@@ -147,17 +182,17 @@ export function stateAt(s) {
   const p1 = seg(s, T.infer[0], T.infer[1]), p2 = seg(s, 46.5, 51.5), second = s >= T.rerun[0];
   o.spiral = second ? lerp(0.04, 0.96, p2) : lerp(0.04, 0.96, p1);
   o.cells = CELLS.map((c, i) => {
-    if (second) { const r = REACH2(c); return s < r ? 0 : s < r + 0.6 ? 4 : 1; }
+    if (second) { const e = EVENTS.find((q) => q.pass === 2 && q.i === i); return s < REACH2(c) ? 0 : s < e.t ? 4 : 1; }
     if (s < T.infer[0] || lerp(0.04, 0.96, p1) < c) return 0;
-    const v = VAL(i);
-    if (s < v) return 4;
-    if (ERR.includes(i)) return s < v + 1.0 ? 2 : 3;
+    const ev = EVENTS.filter((e) => e.pass === 1 && e.i === i);
+    if (s < ev[0].t) return 4;
+    if (ev.length > 1) return s < ev[1].t ? 2 : 3;
     return 1;
   });
   o.validated = o.cells.filter((x) => x === 1 || x === 3).length;
-  o.sealed = s >= T.freeze[0] + 0.2;
+  o.sealed = s >= 25.6;
   // flan : les copies du corpus figé s'empilent sur l'axe, la presse en fait un disque ; l'entraînement taille 24 dents
-  o.blank = ease(seg(s, 29.4, 29.9));
+  o.blank = ease(seg(s, 29.8, 30.2));
   o.cut = Math.floor(24 * ease(seg(s, T.train[0], T.train[1])));
   o.index = (o.cut / 24) * TAU;
   o.cutter = s > T.train[0] && s < T.train[1] ? Math.abs(Math.sin((s - T.train[0]) * 9)) : 0;
