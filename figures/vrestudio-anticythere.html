@@ -135,6 +135,11 @@ body{margin:0;background:var(--anatomy-page);color:var(--anatomy-text);font:14px
 .ak-f0{fill:#d2452f}.ak-f1{fill:#3f6fb0}.ak-f2{fill:#e0b23a}.ak-f3{fill:#3d8f8a}
 .ak-r0{fill:#c98a6a}.ak-r1{fill:#8aa3c4}.ak-r2{fill:#c9b26a}
 .ak-lamp{fill:var(--anatomy-faint);stroke:var(--anatomy-mid);stroke-width:.5}.ak-lamp.ak-on{stroke:var(--anatomy-hi)}
+.ak-sbk{fill:var(--ak-s3);stroke:var(--anatomy-hi);stroke-width:.35;stroke-linejoin:round}
+.ak-s0{fill:var(--ak-s0);stroke:var(--ak-s0);stroke-width:.25;stroke-linejoin:round}.ak-s1{fill:var(--ak-s1);stroke:var(--ak-s1);stroke-width:.25;stroke-linejoin:round}.ak-s2{fill:var(--ak-s2);stroke:var(--ak-s2);stroke-width:.25;stroke-linejoin:round}
+.ak-thru{fill:var(--pl-3)}
+.ak-web{fill:var(--ak-bronze-d);stroke:var(--anatomy-hi);stroke-width:.3}
+.ak-axle3{fill:var(--ak-bronze-l);stroke:var(--anatomy-hi);stroke-width:.3}
 .ak-root{fill:none;stroke:var(--ak-bronze-d);stroke-width:.3}
 .ak-rivet{fill:var(--ak-bronze-l);stroke:var(--ak-bronze-d);stroke-width:.2}
 .ak-hub{fill:var(--ak-bronze-l)}
@@ -160,11 +165,11 @@ body{margin:0;background:var(--anatomy-page);color:var(--anatomy-text);font:14px
 .mat-ak-r0{--anatomy-top:#c98a6a;--anatomy-face:#c98a6a;--anatomy-shade-0:#a86c4e;--anatomy-shade-1:#b4775a;--anatomy-shade-2:#bf8264;--anatomy-shade-3:#c98a6a}
 .mat-ak-r1{--anatomy-top:#8aa3c4;--anatomy-face:#8aa3c4;--anatomy-shade-0:#6c85a6;--anatomy-shade-1:#7690b0;--anatomy-shade-2:#809aba;--anatomy-shade-3:#8aa3c4}
 .mat-ak-r2{--anatomy-top:#c9b26a;--anatomy-face:#c9b26a;--anatomy-shade-0:#a8924e;--anatomy-shade-1:#b49c58;--anatomy-shade-2:#bfa862;--anatomy-shade-3:#c9b26a}
-.iso{--ak-bronze:#7a6a52;--ak-bronze-d:#4a4033;--ak-bronze-l:#a89272;--ak-hole:#1e1b17;--ak-engr:#2a241c;--ak-ink:#8a7a62;
+.iso{--ak-bronze:#7a6a52;--ak-bronze-d:#4a4033;--ak-bronze-l:#a89272;--ak-hole:#1e1b17;--ak-engr:#2a241c;--ak-ink:#8a7a62;--ak-s0:#6a5b45;--ak-s1:#56493a;--ak-s2:#41372b;--ak-s3:#2e271f;
   --wd-0:#4a3826;--wd-1:#3f3020;--wd-2:#36291b;--wd-3:#2e2317;--wd-4:#261d13;--wd-grain:#5a4630;
   --bz-0:#6a5a42;--bz-1:#5e4f3a;--bz-2:#544632;--bz-3:#4a3e2c;--bz-4:#403526;
   --st-0:#4a4d50;--st-1:#404346;--st-2:#383a3d;--st-3:#303235;--st-4:#28292b;--pp:#2a2722;--gl:#3a4a50;--pl-0:#3d4a3e;--pl-1:#344036;--pl-2:#2c372e;--pl-3:#252e27}
-[data-theme="light"]{--ak-bronze:#d9c39a;--ak-bronze-d:#a68e66;--ak-bronze-l:#f2e3c2;--ak-hole:#3a332a;--ak-engr:#6e5a3c;--ak-ink:#7a8aa0;
+[data-theme="light"]{--ak-bronze:#d9c39a;--ak-bronze-d:#a68e66;--ak-bronze-l:#f2e3c2;--ak-hole:#3a332a;--ak-engr:#6e5a3c;--ak-ink:#7a8aa0;--ak-s0:#c8ae80;--ak-s1:#b0956a;--ak-s2:#937a54;--ak-s3:#7a6444;
   --wd-0:#e9d3ae;--wd-1:#dfc59c;--wd-2:#d2b68b;--wd-3:#c4a67a;--wd-4:#b39469;--wd-grain:#c2a173;
   --bz-0:#e3cfa6;--bz-1:#d6bf92;--bz-2:#cab283;--bz-3:#bca274;--bz-4:#ab9165;
   --st-0:#eceeef;--st-1:#dfe2e4;--st-2:#d3d7da;--st-3:#c6cbcf;--st-4:#b8bec3;--pp:#fbf6e8;--gl:#d8eef2;--pl-0:#a9b29a;--pl-1:#9aa58b;--pl-2:#8c977d;--pl-3:#7e8970}
@@ -884,34 +889,54 @@ const TAU = Math.PI * 2;
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
 const seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
 const lerp = (a, b, u) => a + (b - a) * u;
-function gearD(r, n, depth = 2.2, cut = n) {
-  const pts = [];
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * TAU, w = TAU / n, has = i < cut;
-    const ro = has ? r : r - depth, ri = r - depth;
-    pts.push([ri, a], [ri, a + w * 0.18], [ro, a + w * 0.3], [ro, a + w * 0.62], [ri, a + w * 0.74]);
-  }
-  return "M" + pts.map(([rr, a]) => (rr * Math.cos(a)).toFixed(2) + " " + (rr * Math.sin(a)).toFixed(2)).join("L") + "Z";
-}
 const circ = (r, cx = 0, cy = 0) => `M${(cx + r).toFixed(2)} ${cy}A${r} ${r} 0 1 0 ${(cx - r).toFixed(2)} ${cy}A${r} ${r} 0 1 0 ${(cx + r).toFixed(2)} ${cy}Z`;
 const gearPlan = (cx, cy, r, n, a0 = 0, cut = n, depth = 1.6) => { const out = []; for (let i = 0; i < n; i++) { const a = a0 + (i / n) * TAU, w = TAU / n, ro = i < cut ? r : r - depth, ri = r - depth; for (const [rr, f] of [[ri, 0], [ri, 0.18], [ro, 0.3], [ro, 0.62], [ri, 0.74]]) out.push([cx + rr * Math.cos(a + w * f), cy + rr * Math.sin(a + w * f)]); } return out; };
-function wheelSvg(g, o = {}) {
-  const r = g.r, dep = o.depth ?? Math.max(1.6, r * 0.07), body = gearD(r, g.n, dep, o.cut ?? g.n), f = (v) => v.toFixed(2);
-  const dot = (x, y, rr) => `M${f(x + rr)} ${f(y)}A${rr} ${rr} 0 1 0 ${f(x - rr)} ${f(y)}A${rr} ${rr} 0 1 0 ${f(x + rr)} ${f(y)}Z`;
-  // épaisseur : copie sombre décalée vers le fond, puis la face ; cercle de pied de dent gravé
-  let s = `<path class="ak-back" d="${body}" transform="translate(1.1 0.9)"/><path class="ak-gear${o.lit ? " ak-lit" : ""}" d="${body}"/><path class="ak-root" d="${circ(r - dep - 0.5)}"/>`;
+const OFF = [1.6006,-1.0897];
+function gearPts(r, n, depth, cut, a0, cx, cy) { const pts = []; for (let i = 0; i < n; i++) { const w = TAU / n, a = a0 + i * w, ro = i < cut ? r : r - depth, ri = r - depth; for (const [rr, q] of [[ri, 0], [ri, 0.18], [ro, 0.3], [ro, 0.62], [ri, 0.74]]) pts.push([cx + rr * Math.cos(a + w * q), cy + rr * Math.sin(a + w * q)]); } return pts; }
+function circPts(r, cx, cy, steps = 40) { return Array.from({ length: steps }, (_, i) => { const a = (i / steps) * TAU; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }); }
+function prism(pts, T, o = {}) {
+  const f = (v) => v.toFixed(2), ox = OFF[0] * T, oy = OFF[1] * T, L = [-0.45, -0.89];
+  const poly = (ps, dx = 0, dy = 0) => "M" + ps.map((p) => f(p[0] + dx) + " " + f(p[1] + dy)).join("L") + "Z";
+  let area = 0; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  const sg = area > 0 ? 1 : -1, bk = ["", "", ""];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length], ex = b[0] - a[0], ey = b[1] - a[1], l = Math.hypot(ex, ey) || 1, nx = sg * ey / l, ny = -sg * ex / l;
+    if (nx * ox + ny * oy <= 0) continue;
+    const d = nx * L[0] + ny * L[1];
+    bk[d > 0.3 ? 0 : d > -0.4 ? 1 : 2] += "M" + f(a[0]) + " " + f(a[1]) + "L" + f(b[0]) + " " + f(b[1]) + "L" + f(b[0] + ox) + " " + f(b[1] + oy) + "L" + f(a[0] + ox) + " " + f(a[1] + oy) + "Z";
+  }
+  let out = '<path class="ak-sbk" d="' + poly(pts, ox, oy) + '"/>' + bk.map((d, i) => (d ? '<path class="ak-s' + i + '" d="' + d + '"/>' : "")).join(""), holes = "";
+  for (const [hx, hy, hr] of o.holes || []) {
+    const th = circPts(hr, hx + ox, hy + oy, 32).map(([x, y]) => { const dx = x - hx, dy = y - hy, dd = Math.hypot(dx, dy); return dd > hr ? [hx + dx / dd * hr, hy + dy / dd * hr] : [x, y]; });
+    out += '<path class="ak-s2" d="' + poly(circPts(hr, hx, hy, 32)) + '"/><path class="ak-thru" d="' + poly(th) + '"/>';
+    holes += poly(circPts(hr, hx, hy, 32));
+  }
+  return out + '<path class="' + (o.cls || "ak-gear") + '" d="' + poly(pts) + holes + '" fill-rule="evenodd"/>';
+}
+const lift = (pts, h) => pts.map((p) => [p[0] - OFF[0] * h, p[1] - OFF[1] * h]);
+const raised = (pts, h, T, cls) => prism(lift(pts, h + T), T, { cls });
+function wheel3d(g, ang, o = {}) {
+  const r = g.r, dep = o.depth ?? Math.max(1.6, r * 0.07), T = o.T ?? (r > 12 ? 3 : 2.2), h = o.h ?? 0, f = (v) => v.toFixed(2);
+  const c0 = lift([[g.u, -g.z]], h)[0], cx = c0[0], cy = c0[1];
+  const rot = (x, y) => [cx + x * Math.cos(ang) - y * Math.sin(ang), cy + x * Math.sin(ang) + y * Math.cos(ang)];
+  const top = (p, k) => lift([p], k)[0];
+  const holes = !o.spokes && r > 9 ? [0, 1, 2, 3].map((i) => { const a = (i / 4) * TAU + 0.4, p = rot(Math.cos(a) * r * 0.55, Math.sin(a) * r * 0.55); return [...top(p, T), r * 0.22]; }) : [];
+  let s = prism(lift(gearPts(r, g.n, dep, o.cut ?? g.n, ang, cx, cy), T), T, { holes, cls: "ak-gear" + (o.lit ? " ak-lit" : "") });
+  const [fx, fy] = top([cx, cy], T);
+  s += '<path class="ak-root" d="' + circ(r - dep - 0.5, fx, fy) + '"/>';
   if (o.spokes) {
-    s += `<path class="ak-back" d="${circ(r - 4.2)}"/>`;
-    o.spokes.forEach((cls, i) => { const a = (i / o.spokes.length) * TAU, c = Math.cos(a), sn = Math.sin(a), w = 3.2; s += `<path class="ak-gear ${cls}" d="M${f(-sn * w)} ${f(c * w)}L${f((r - 4) * c - sn * w)} ${f((r - 4) * sn + c * w)}L${f((r - 4) * c + sn * w)} ${f((r - 4) * sn - c * w)}L${f(sn * w)} ${f(-c * w)}Z"/><path class="ak-rivet" d="${dot((r - 9) * c, (r - 9) * sn, 0.75) + dot(r * 0.42 * c, r * 0.42 * sn, 0.75)}"/>`; });
-    s += `<path class="ak-gear" d="${circ(r - 4.2) + circ(r - 6.4)}" fill-rule="evenodd"/><path class="ak-root" d="${circ(r - 5.3)}"/>`;
-  } else if (r > 9) {
-    s += `<path class="ak-hole" d="${[0, 1, 2, 3].map((i) => { const a = (i / 4) * TAU + 0.4; return circ(r * 0.22, Math.cos(a) * r * 0.55, Math.sin(a) * r * 0.55); }).join("")}"/><path class="ak-root" d="${circ(r * 0.83)}"/>`;
-  } else s += `<path class="ak-root" d="${circ(r * 0.6)}"/>`;
-  // moyeu tourné : collet, trois vis, axe
+    s += '<path class="ak-web" d="' + circ(r - 5.6, fx, fy) + '"/>';
+    o.spokes.forEach((cls, i) => {
+      const a = ang + (i / o.spokes.length) * TAU, c = Math.cos(a), sn = Math.sin(a), w = 3.2, R = r - 5.8;
+      s += raised([[-sn * w, c * w], [R * c - sn * w, R * sn + c * w], [R * c + sn * w, R * sn - c * w], [sn * w, -c * w]].map(([x, y]) => [cx + x, cy + y]), T, 1.2, "ak-gear " + cls);
+      for (const k of [0.42, 0.78]) { const p = top([cx + r * k * c, cy + r * k * sn], T + 1.2); s += '<path class="ak-rivet" d="' + circ(0.75, p[0], p[1]) + '"/>'; }
+    });
+  }
   const hub = Math.max(2.4, r * 0.18);
-  s += `<path class="ak-gear ak-hub" d="${circ(hub + 0.9)}"/><path class="ak-gear" d="${circ(hub)}"/>`;
-  if (r > 9) s += `<path class="ak-rivet" d="${[0, 1, 2].map((i) => { const a = (i / 3) * TAU + 0.5; return dot(Math.cos(a) * hub * 0.62, Math.sin(a) * hub * 0.62, 0.45); }).join("")}"/>`;
-  s += `<path class="ak-axle" d="${circ(1.1)}"/>`;
+  s += raised(circPts(hub + 0.9, cx, cy, 28), T, 1.4, "ak-gear ak-hub");
+  const [hx, hy] = top([cx, cy], T + 1.4);
+  if (r > 9) s += [0, 1, 2].map((i) => { const a = (i / 3) * TAU + 0.5 + ang; return '<path class="ak-rivet" d="' + circ(0.45, hx + Math.cos(a) * hub * 0.62, hy + Math.sin(a) * hub * 0.62) + '"/>'; }).join("");
+  s += raised(circPts(1.3, cx, cy, 14), T + 1.4, 1, "ak-axle3");
   return s;
 }
 const at = (p) => iso(p, P);
@@ -967,19 +992,32 @@ function stateAt(s) {
 }
 
 function draw(o, s) {
-  const g = GEARS, rot = (gg, a, inner) => '<g transform="translate(' + gg.u + ' ' + (-gg.z) + ') rotate(' + (a * 180 / Math.PI).toFixed(2) + ')">' + inner + '</g>';
+  const g = GEARS;
   let fr = "";
-  fr += rot(g.b1, o.b1, wheelSvg(g.b1, { spokes: FIELDS }));
-  fr += rot(g.crank, o.crank, wheelSvg(g.crank));
-  fr += rot(g.idle, o.idle, wheelSvg(g.idle));
-  fr += rot(g.p2, o.p2, wheelSvg(g.p2));
-  fr += rot(g.pin, o.pin, wheelSvg(g.pin) + '<path class="ak-pin" d="' + circ(1.8, 10, 0) + '"/>');
-  fr += rot(g.slot, o.slot, wheelSvg(g.slot, { lit: o.accord }) + '<path class="ak-slot" d="M4 -1.6H13.5V1.6H4Z"/>');
-  fr += '<g transform="translate(' + g.corpus.u + ' ' + (-g.corpus.z) + ')">' + ['ak-r0', 'ak-r1', 'ak-r2'].map((cls, i) => { const r = 16 - i * 4.6; return '<g transform="rotate(' + (o.corpus[i] * 180 / Math.PI).toFixed(1) + ')"><path class="ak-gear ' + cls + '" d="' + gearD(r, 26 - i * 7, 1.4) + '"/><path class="ak-hole" d="' + circ(r - 2.6) + '"/><path class="ak-mark" d="M' + (r - 2.4) + ' -0.8H' + (r - 0.6) + 'V0.8H' + (r - 2.4) + 'Z"/></g>'; }).join("") + '<path class="ak-axle" d="' + circ(1.2) + '"/></g>';
-  fr += rot(g.d46, o.d46, wheelSvg(g.d46));
-  fr += rot(g.o20, o.o20, wheelSvg(g.o20, { lit: s > 36 }) + '<path class="ak-hand" d="M-1 0L0 -13L1 0Z"/>');
+  fr += wheel3d(g.b1, o.b1, { spokes: FIELDS });
+  fr += wheel3d(g.crank, o.crank);
+  fr += wheel3d(g.idle, o.idle);
+  fr += wheel3d(g.p2, o.p2);
+  // roue du modèle contre la platine, roue des règles levée devant elle ; la cheville traverse la coulisse
+  fr += wheel3d(g.pin, o.pin);
+  fr += wheel3d(g.slot, o.slot, { lit: o.accord, h: 3.4 });
+  { const T = 3, h = 3.4 + T, c = lift([[g.slot.u, -g.slot.z]], h)[0], rr = (x, y) => [c[0] + x * Math.cos(o.slot) - y * Math.sin(o.slot), c[1] + x * Math.sin(o.slot) + y * Math.cos(o.slot)];
+    fr += '<path class="ak-slot" d="M' + [rr(4, -1.6), rr(13.5, -1.6), rr(13.5, 1.6), rr(4, 1.6)].map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>';
+    const pc = [g.pin.u + 10 * Math.cos(o.pin), -g.pin.z + 10 * Math.sin(o.pin)];
+    fr += raised(circPts(1.8, pc[0], pc[1], 16), 3, 3.6, "ak-gear ak-hub"); }
+  // trois anneaux coaxiaux du corpus, empilés
+  ['ak-r0', 'ak-r1', 'ak-r2'].forEach((cls, i) => { const r = 16 - i * 4.6, T = 1.6, h = i * T, a = o.corpus[i], c = lift([[g.corpus.u, -g.corpus.z]], h + T)[0];
+    fr += prism(lift(gearPts(r, 26 - i * 7, 1.4, 99, a, g.corpus.u, -g.corpus.z), h + T), T, { cls: "ak-gear " + cls, holes: [[c[0], c[1], r - 2.6]] });
+    const m = [[r - 2.4, -0.8], [r - 0.6, -0.8], [r - 0.6, 0.8], [r - 2.4, 0.8]].map(([x, y]) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)]);
+    fr += '<path class="ak-mark" d="M' + m.map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>'; });
+  fr += raised(circPts(1.4, g.corpus.u, -g.corpus.z, 14), 4.8, 1.2, "ak-axle3");
+  fr += wheel3d(g.d46, o.d46);
+  fr += wheel3d(g.o20, o.o20, { lit: s > 36 });
+  { const c = lift([[g.o20.u, -g.o20.z]], 2.2 + 2.6)[0], a = o.o20, rr = (x, y) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)];
+    fr += '<path class="ak-hand" d="M' + [rr(-1, 0), rr(0, -13), rr(1, 0)].map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>'; }
   // peigne de lecture au-dessus de la grande roue, aiguille d'accord
-  fr += '<path class="ak-gear" d="M' + (g.b1.u - 10) + ' ' + (-(g.b1.z + 44)) + 'h20v-3h-20Z"/>' + [0, 1, 2, 3].map((i) => '<path class="ak-gear" d="M' + (g.b1.u - 7.5 + i * 5) + ' ' + (-(g.b1.z + 44)) + 'v5h1.4v-5Z"/>').join("");
+  { const u = g.b1.u, v = -(g.b1.z + 44), rect = (u0, v0, w, hh) => [[u0, v0], [u0 + w, v0], [u0 + w, v0 + hh], [u0, v0 + hh]];
+    fr += [0, 1, 2, 3].map((i) => raised(rect(u - 7.5 + i * 5, v, 1.4, 5), 0, 2.4, "ak-gear")).join("") + raised(rect(u - 10, v - 3, 20, 3), 0, 3.6, "ak-gear"); }
   fr += '<g transform="translate(' + (g.slot.u + 14) + ' ' + (-(g.slot.z + 14)) + ')"><path class="ak-face" d="' + circ(3.4) + '"/><path class="' + (o.accord ? 'ak-ok' : 'ak-off') + '" d="' + circ(2) + '"/></g>';
   parts.gears.innerHTML = fr;
   // voyants des champs
@@ -1009,7 +1047,7 @@ function draw(o, s) {
   dv += box(cx - 7, cx + 1, DIV.y - 3, DIV.y + 3, 24.4, 6, { tone: "mid", bevel: 0.6, cls: "mat-steel" });
   // fraise : disque denté vertical qui tourne pendant la coupe, sur son arbre
   const fa = s * 14 * (o.cutter > 0 ? 1 : 0), fz = DIV.z - 11.8;
-  dv += '<g transform="' + front(DIV.y + 0.6) + '"><g transform="translate(' + (cx + 3).toFixed(2) + ' ' + (-fz).toFixed(2) + ') rotate(' + (fa * 57.3 % 360).toFixed(1) + ')"><path class="ak-back" d="' + gearD(4.2, 12, 0.9) + '" transform="translate(0.5 0.4)"/><path class="ak-steel' + (o.cutter > 0.5 ? ' ak-lit' : '') + '" d="' + gearD(4.2, 12, 0.9) + '"/><path class="ak-axle" d="' + circ(0.9) + '"/></g></g>';
+  dv += '<g transform="' + front(DIV.y + 0.6) + '"><g transform="translate(' + (cx + 3).toFixed(2) + ' ' + (-fz).toFixed(2) + ') rotate(' + (fa * 57.3 % 360).toFixed(1) + ')">' + prism(lift(gearPts(4.2, 12, 0.9, 12, 0, 0, 0), 1.6), 1.6, { cls: "ak-steel" + (o.cutter > 0.5 ? " ak-lit" : "") }) + '<path class="ak-axle" d="' + circ(0.9, -OFF[0] * 1.6, -OFF[1] * 1.6) + '"/></g></g>';
   dv += box(cx - 0.8, cx + 1.2, DIV.y - 0.8, DIV.y + 0.8, fz, 24.4 - fz, { tone: "mid", bevel: 0.1, cls: "mat-steel" });
   const ha = (o.cut / 46) * TAU * 4, hx2 = DIV.x + 26 + 6 * Math.cos(ha), hy2 = DIV.y + 17 + 6 * Math.sin(ha);
   dv += '<path class="iso-line" data-tone="hi" d="M' + at([DIV.x + 26, DIV.y + 17, 18.5]).join(" ") + 'L' + at([hx2, hy2, 18.5]).join(" ") + '"/>' + box(hx2 - 1.5, hx2 + 1.5, hy2 - 1.5, hy2 + 1.5, 18.5, 5, { tone: "hi", bevel: 0.6, cls: "mat-wood" });
@@ -1017,10 +1055,10 @@ function draw(o, s) {
   // la roue neuve voyage du plateau vers le boîtier ; l'ancienne voyage du boîtier au tableau
   let tr = "";
   if (rise > 0 && rise < 1) { const x = lerp(DIV.x, -35, rise), y = lerp(DIV.y, -21, rise), z = lerp(DIV.z - 13, CASE.h + 9, rise) + 70 * Math.sin(rise * Math.PI * 0.85); tr += solidSvg(extrude(gearPlan(x, y, DIV.r, 46, s * 2), z, 2.4, P, { bevel: 0.2 }), { tone: "mid", crease: "none", className: "mat-bronze" }) + solidSvg(cylinder(x, y, 3, z + 2.4, 1.2, P, 16), { tone: "mid", className: "mat-steel" }); }
-  if (o.old > 0 && o.old < 1) { const x = lerp(CASE.x1 - 20, BOARD.x0 + 12 + 3 * 16, o.old), y = lerp(-10, BOARD.y + 3, o.old), z = lerp(30, 58, o.old) + 20 * Math.sin(o.old * Math.PI); tr += '<g transform="' + front(y) + '"><path class="ak-gear" d="' + gearD(10, 20, 1.2) + '" transform="translate(' + x.toFixed(1) + ' ' + (-z).toFixed(1) + ')"/></g>'; }
+  if (o.old > 0 && o.old < 1) { const x = lerp(CASE.x1 - 20, BOARD.x0 + 12 + 3 * 16, o.old), y = lerp(-10, BOARD.y + 3, o.old), z = lerp(30, 58, o.old) + 20 * Math.sin(o.old * Math.PI); tr += '<g transform="' + front(y) + '">' + prism(gearPts(10, 20, 1.2, 20, o.old * 3, x, -z), 2) + '</g>'; }
   parts.travel.innerHTML = tr;
   // tableau des versions : anciennes roues accrochées ; la dernière arrive à la publication
-  let bd = ""; for (let i = 0; i < 4; i++) { if (i === 3 && o.old < 1) continue; const u = BOARD.x0 + 12 + i * 16; bd += '<path class="ak-back" d="' + gearD(10, 20, 1.2) + '" transform="translate(' + (u + 0.8) + ' -57.2)"/><path class="ak-gear' + (i === 3 ? ' ak-lit' : '') + '" d="' + gearD(10, 20, 1.2) + '" transform="translate(' + u + ' -58)"/><path class="ak-axle" d="' + circ(1.6, u, -58) + '"/>'; }
+  let bd = ""; for (let i = 0; i < 4; i++) { if (i === 3 && o.old < 1) continue; const u = BOARD.x0 + 12 + i * 16; bd += prism(lift(gearPts(10, 20, 1.2, 20, i * 0.7, u, -58), 2), 2, { cls: "ak-gear" + (i === 3 ? " ak-lit" : ""), holes: [[u - OFF[0] * 2, -58 - OFF[1] * 2, 1.6]] }); }
   parts.board.innerHTML = '<g transform="' + front(BOARD.y + 1) + '">' + bd + '</g>';
 }
 function reading(s) { const i = stationAt(s); const fixed = (s > T.fix[0] + 1.2 ? 1 : 0) + (s > T.fix[0] + 4.4 ? 1 : 0); const ok = s < T.rerun[0] ? (s < T.infer[0] ? 0 : 10 + fixed) : 12; return (i + 1) + " · " + STATIONS[i] + (s >= T.infer[0] ? " · " + ok + "/12" : ""); }
