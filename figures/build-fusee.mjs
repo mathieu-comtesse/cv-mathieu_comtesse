@@ -3,12 +3,14 @@
 // le booster est mesuré puis publié sur le pas de tir ; il emporte un satellite qui balaie des pages inédites et propose des cadres ;
 // trois pupitres les corrigent, le booster se repose et revient au hangar, les corrections repartent dans le corpus.
 // node figures/build-fusee.mjs  →  figures/vrestudio-fusee.html
+import { readFileSync } from "node:fs";
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { bench, writeFigure, LOOP } from "./common.mjs";
 import { scene } from "./scene-kit.mjs";
 
 const WIDTH = 960, HEIGHT = 920;
+const BURN = readFileSync(new URL("./burn-layer.js", import.meta.url), "utf8");
 const PLATE = { x: -250, y: -190, w: 500, d: 390, r: 16 };
 const P = k.fitProjection(
   [[PLATE.x, PLATE.y, -22], [PLATE.x + PLATE.w, PLATE.y, -22], [PLATE.x + PLATE.w, PLATE.y + PLATE.d, -22], [PLATE.x, PLATE.y + PLATE.d, -22], [110, -60, 285], [-40, -80, 120]],
@@ -486,9 +488,30 @@ const EV = {
 const SEQ = (kk) => { const c = Math.floor(kk / 3), r = c % 2 ? 2 - (kk % 3) : kk % 3; return [c, r]; };
 const SCANT = (kk) => EV.scan[0] + kk * ((EV.scan[1] - EV.scan[0]) / 12);
 // ---- vol : du pas de tir au point de séparation, puis la descente du booster, l'orbite basse du satellite
-const ASC = [[PAD.x, PAD.y, 8], [PAD.x + 1, PAD.y + 3, 20], [PAD.x + 6, PAD.y + 10, 40], [PAD.x + 14, PAD.y + 22, 60]];
+const ASC = [[PAD.x, PAD.y, 8], [PAD.x + 1, PAD.y + 3, 34], [PAD.x + 6, PAD.y + 10, 76], [PAD.x + 14, PAD.y + 22, 124]];
 const TOUCH = [LAND.x, LAND.y, 1];
 const SEPP = ASC[3];
+${BURN}
+const burn = makeBurn(stage, svg, ${WIDTH}, ${HEIGHT}, pr);
+const WIND = [10, -5];
+const ascPos = (te) => { const u = seg(te, EV.lift, EV.sep); return polyAt(ASC, Math.pow(u, 1.9) * polyLen(ASC)); };
+const SMOKE = [
+  { seed: 1, kind: 'blast', t0: EV.ignite - 0.2, t1: EV.lift + 2.2, rate: 80, life: 5.6, o: [PAD.x, PAD.y, 9], v: [22, 82], r: [5, 15], rise: [6, 26], a: 0.5, warm: 1, warmT: 1.4, wind: WIND, r0: 6, axis: 0.8 },
+  { seed: 2, kind: 'trail', t0: EV.lift + 0.1, t1: EV.sep, rate: 90, life: 5.4, path: (te) => { const p = ascPos(te); return [p[0], p[1], Math.max(9, p[2] - 2.2 * RS)]; }, r: [3, 13], rise: [1, 3], a: 0.45, warm: 0.9, warmT: 0.45, wind: WIND },
+  { seed: 3, kind: 'column', t0: 60.4, t1: 64.4, rate: 40, life: 4, o: [PAD.x, PAD.y, 9], v: [10, 30], r: [4, 12], rise: [16, 40], a: 0.35, wind: WIND },
+  ...[0, 1, 2].map((i) => ({ seed: 4 + i, kind: 'blast', t0: EV.burn[i] + 0.15, t1: EV.burn[i] + 1.7, rate: 50, life: 3.6, o: [ST.x, ST.y, 3], v: [10, 40], r: [4, 12], rise: [8, 26], a: 0.45, warm: 1, warmT: 0.9, r0: 4 })),
+  { seed: 8, kind: 'blast', t0: EV.landBurn[0] + 1.2, t1: EV.touch + 0.5, rate: 60, life: 4.4, o: [LAND.x, LAND.y, 2], v: [18, 62], r: [5, 14], rise: [5, 16], a: 0.5, warm: 1, warmT: 1, wind: WIND, r0: 5 },
+];
+const RINGS = [{ x: PAD.x, y: PAD.y, z: 8.8, t: EV.ignite, r0: 8, r1: 46, dur: 1.2, a: 0.3 }, { x: PAD.x, y: PAD.y, z: 8.8, t: EV.lift - 0.1, r0: 12, r1: 110, dur: 2.4, a: 0.3 }, { x: LAND.x, y: LAND.y, z: 1, t: EV.touch - 0.5, r0: 8, r1: 80, dur: 1.9, a: 0.45 }];
+function flamesAt(o, s) {
+  const out = [], b = o.booster;
+  if (o.thrust > 0.02 && s < EV.roll[0]) out.push({ x: ST.x, y: ST.y, z: 1.8, dir: [0, 0, -1], len: 70, w: 12, p: Math.min(1, o.thrust * 1.35), seed: 1, ground: 0.8, sheet: 30 });
+  if (s >= EV.ignite && s < EV.lift) { const fq = ease(seg(s, EV.ignite, EV.lift)); out.push({ x: PAD.x, y: PAD.y, z: 9.3, dir: [0, 0, -1], len: 90, w: 13, p: 0.3 + 0.7 * fq, seed: 2, ground: 8.8, sheet: 22 + 18 * fq }); }
+  if (s >= EV.lift && s < EV.sep) out.push({ x: b.x, y: b.y, z: Math.max(9.3, b.z - 2.2 * RS), dir: [0, 0, -1], len: 110, w: 15, p: 1, seed: 3, ground: 8.8, sheet: 38 });
+  if (o.s2 && s >= EV.sep && s < EV.sep + 4.8) { const f2 = ease(seg(s, EV.sep + 0.2, EV.sep + 0.8)) * (1 - ease(seg(s, EV.sep + 3.8, EV.sep + 4.8))) * o.s2.a; out.push({ x: o.s2.x, y: o.s2.y, z: o.s2.z - 0.8 * RS, dir: [0, 0, -1], len: 34, w: 4.6, p: f2, seed: 5 }); }
+  if (s >= EV.landBurn[0] && s < EV.touch + 0.6) { const f = ease(seg(s, EV.landBurn[0], EV.landBurn[0] + 0.5)) * (1 - ease(seg(s, EV.touch, EV.touch + 0.6))); out.push({ x: b.x, y: b.y, z: Math.max(1.4, b.z - 2.2 * RS), dir: [0, 0, -1], len: 70, w: 12, p: f, seed: 6, ground: 0.8, sheet: 26 }); }
+  return out;
+}
 function stateAt(s) {
   const o = { s }, res = ease(seg(s, TD + 0.2, TD + 1.6)), per = (a, b) => ease(seg(s, a, b)) * (1 - res);
   // 0 · le chariot entre, le laser lit
@@ -632,27 +655,7 @@ function fxSvg(o, s) {
   o.hit.forEach((h) => { const u = h.age / 0.8; out += lineFx(pathOf(ringPts(-128, LYR + FY[h.n], 3 + u * 9, 5, 26), true), 1.3, 1 - u) + lineFx(pathOf(ringPts(-128, LYR + FY[h.n], 2 + u * 5, 5, 20), true), 0.8, (1 - u) * 0.7); });
   // 4 : onde de l'archive, éclair du scellement
   if (o.arch > 0.02) out += lineFx(pathOf(ringPts(ARC.x, ARC.y, 12 + 7 * o.arch, 12.2, 40), true), 1.3, o.arch) + lineFx(pathOf(ringPts(ARC.x, ARC.y, 9 + 4 * o.arch, 14, 32), true), 1, o.arch * 0.7);
-  // 5 : essais à feu au banc : panache dans la fosse, nappe de flamme le long du canal, fumées
-  if (o.thrust > 0.02 && s < EV.roll[0]) {
-    const th = o.thrust, bx0 = ST.x, by0 = ST.y;
-    out += flame(bx0, by0, 4.8 - 2.2 * RS, 22 * RS * th, 9 * RS * th, 1, s);
-    for (let i = 0; i < 3; i++) { const g = ((s * 1.4 + i / 3) % 1), yy = by0 - 8 - g * 30 * th; out += '<path class="fx-fo" style="opacity:' + ((1 - g) * 0.4 * th).toFixed(2) + '" d="' + pathOf([pr(bx0 - 8, by0 - 6, 1.6), pr(bx0 + 8, by0 - 6, 1.6), pr(bx0 + 10 + g * 4, yy - 10, 1.6), pr(bx0 - 10 - g * 4, yy - 10, 1.6)], true) + '"/>'; }
-    for (let i = 0; i < 8; i++) { const g = ((s * 0.8 + i / 8) % 1); out += puff(bx0 + (hash(i) - 0.5) * 16, by0 - 30 - g * 24, 4 + g * 26, 3 + g * 6, (1 - g) * 0.5 * th); }
-  }
-  // 7 : déluge, ignition, panache de montée, traînée de fumée
-  if (o.deluge > 0.02) for (let i = 0; i < 10; i++) { const g = ((s * 1.1 + i / 10) % 1); out += puff(PAD.x + (hash(i + 3) - 0.5) * 30, PAD.y - 8 - g * 30, 3 + g * 18, 4 + g * 8, (1 - g) * 0.55 * o.deluge); }
-  const lifting = s >= EV.ignite && s < EV.sep, b = o.booster;
-  if (s >= EV.ignite && s < EV.lift) { const fq = ease(seg(s, EV.ignite, EV.lift)); out += flame(PAD.x, PAD.y, 8 - 2.2 * RS, 22 * RS * fq, 9 * RS, 1, s) + dotFx(pr(PAD.x, PAD.y, 6), 22 * RS * fq, 0.45 * fq, 'fx-halo'); }
-  if (lifting && s >= EV.lift) {
-    out += flame(b.x, b.y, b.z - 2.2 * RS, 36 * RS, 8.4 * RS, 1, s);
-    for (let q = 1; q <= 14; q++) { const sq = s - q * 0.22; if (sq < EV.lift) break; const u = seg(sq, EV.lift, EV.sep), p = polyAt(ASC, Math.pow(u, 1.9) * polyLen(ASC)); out += puff(p[0], p[1], p[2] - 2, 2.4 + q * 0.75, 0.5 * (1 - q / 15)); }
-  }
-  if (s >= EV.lift && s < EV.lift + 3) for (let i = 0; i < 12; i++) { const g = clamp01((s - EV.lift) / 3 + i * 0.01), a2 = i / 12 * TAU; out += puff(PAD.x + Math.cos(a2) * (8 + g * 36), PAD.y + Math.sin(a2) * (8 + g * 36), 2 + g * 8, 4 + g * 8, (1 - g) * 0.5); }
   if (s >= EV.sep && s < EV.sep + 0.8) { const u = (s - EV.sep) / 0.8; out += lineFx(pathOf(ringPts(SEPP[0], SEPP[1], (6 + u * 14) * RS, SEPP[2] + BH, 28), true), 1.3, 1 - u); }
-  if (o.s2 && s >= EV.sep && s < EV.sep + 4.8) { const f2 = ease(seg(s, EV.sep + 0.2, EV.sep + 0.8)) * (1 - ease(seg(s, EV.sep + 3.8, EV.sep + 4.8))); out += flame(o.s2.x, o.s2.y, o.s2.z - 0.6 * RS, 18 * RS * f2, 4.6 * RS, f2 > 0 ? o.s2.a : 0, s * 1.2); }
-  // descente : relance au dernier moment, poussière à la pose
-  if (s >= EV.landBurn[0] && s < EV.touch + 0.6) { const f = ease(seg(s, EV.landBurn[0], EV.landBurn[0] + 0.5)) * (1 - ease(seg(s, EV.touch, EV.touch + 0.6))); out += flame(b.x, b.y, b.z - 2.2 * RS, 26 * RS * f, 7.4 * RS * f, f > 0 ? 1 : 0, s); }
-  if (s >= EV.touch && s < EV.touch + 2) { const u = (s - EV.touch) / 2; for (let i = 0; i < 10; i++) { const a2 = i / 10 * TAU; out += puff(LAND.x + Math.cos(a2) * (6 + u * 24), LAND.y + Math.sin(a2) * (6 + u * 24), 2 + u * 4, 3 + u * 7, (1 - u) * 0.55); } out += lineFx(pathOf(ringPts(LAND.x, LAND.y, 8 + u * 28, 1.2, 40), true), 1.2, 1 - u); }
   // satellite : nappe sur la page visitée, cadres BT (plein) et locaux (double trait)
   if (o.sat && o.sat.dist) {
     const sx = o.sat.x, sy = o.sat.y, sz = o.sat.z - 6.4, kk = Math.min(11, Math.floor((s - EV.scan[0]) / ((EV.scan[1] - EV.scan[0]) / 12))), c = SEQ(kk), tx = FIELD.cx[c[0]], ty = FIELD.cy[c[1]], hw = PW * FIELD.sc / 2, hh = PH * FIELD.sc / 2;
@@ -741,18 +744,26 @@ function draw(o, s) {
   const ga = (205 - o.gain * 230 / 3) * Math.PI / 180, gyy = 98, gzz = 26;
   parts["gain-needle"].innerHTML = '<path class="iso-line" data-tone="hi" d="' + pathOf([pr(MC.x1 + 1.7, gyy, gzz), pr(MC.x1 + 1.7, gyy + 8.8 * Math.cos(ga), gzz + 8.8 * Math.sin(ga))]) + '"/>' + dotsSvg([pr(MC.x1 + 1.7, gyy, gzz)], { size: 0.9, tone: "hi" });
   fxLayer.innerHTML = fxSvg(o, s);
+  burn.frame(s, SMOKE, flamesAt(o, s), RINGS);
 }
 function reading(s) { const i = stationAt(s), [name, status] = STATIONS[Math.min(i, STATIONS.length - 1)]; return (i + 1) + " · " + name + " · " + status; }
+// étapes : une carte par poste, la carte active est cerclée de l'accent, un clic saute au poste
+const stepsEl = document.createElement("div"); stepsEl.className = "vre-steps";
+stepsEl.innerHTML = STATIONS.map(([n, d], i) => '<button type="button" class="vre-step" data-i="' + i + '"><span class="vre-n">' + (i + 1) + '</span><span class="vre-t"><b>' + n + '</b><i>' + d + '</i></span></button>').join("");
+document.querySelector(".iso-plate").after(stepsEl);
+let lastSt = -1;
+const markSt = (s) => { const i = stationAt(s); if (i !== lastSt) { lastSt = i; stepsEl.querySelectorAll(".vre-step").forEach((el, j) => el.classList.toggle("on", j === i)); } };
 const run = loop((dt, calm) => {
   if (frozen) return;
   if (touring) { t = calm ? Ts[7] + 5 : t + dt; if (t >= TEND) t = 0; }
-  const o = stateAt(t); draw(o, t); say(reading(t));
+  const o = stateAt(t); draw(o, t); say(reading(t)); markSt(t);
 });
+stepsEl.addEventListener("click", (e) => { const b = e.target.closest(".vre-step"); if (b) jump(+b.dataset.i); });
 const jump = (i) => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; }, 9000); t = Ts[(i + 9) % 9] + 3.4; run(); };
 dragX(() => stationAt(t), (v, share) => { const n = (Math.round(v + share * 9) % 9 + 9) % 9; if (n !== stationAt(t)) jump(n); });
 stage.addEventListener("keydown", (e) => { const i = stationAt(t); if (e.key === "ArrowRight") { e.preventDefault(); jump(i + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); jump(i - 1); } });
-window.__fig = { at: (s) => { touring = false; frozen = true; t = s; const o = stateAt(s); draw(o, s); say(reading(s)); return reading(s); }, Ts, stateAt };
-draw(stateAt(0), 0); say(reading(0));
+window.__fig = { at: (s) => { touring = false; frozen = true; t = s; const o = stateAt(s); draw(o, s); say(reading(s)); markSt(s); return reading(s); }, Ts, stateAt };
+draw(stateAt(0), 0); say(reading(0)); markSt(0);
 `;
 
 const svg = k.figureSvg({
@@ -770,4 +781,4 @@ const plate = k.plateHtml({
   caption: "Un site de lancement local. Dans le hangar, une page roule sur un chariot : un laser la lit (Document AI), une tourelle trie ses quatre champs (mini-BERT), deux clés, celle du modèle et celle des règles, lèvent une barrière-levante (hybride neuro-symbolique), un tampon à main valide chaque cadre (Human-in-the-Loop), puis la fiche rejoint une archive à trois feuillets, image, texte et positions, et le lot est scellé (corpus multimodal). Au banc d'essai, le lot est chargé dans le booster, qui fait trois essais à feu (entraînement LayoutLMv3) ; deux colonnes de seuil le mesurent avec des pages inédites gardées dans un coffre, un levier le publie, la version précédente reste au registre (MLOps local). Le booster part du pas de tir et sépare un satellite qui balaie douze pages inédites et propose des cadres de deux sortes, BT et locaux (inférence), puis se repose sur son aire et revient au banc. Trois pupitres du centre de contrôle partagent les corrections, une cassette de verre les ramène au hangar, et un cadran compare le gain : ×1 pour l'extracteur VRE, ×2,3 pour VRE Studio. Les seuils et les cadres sont des valeurs d'illustration.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="VRE Studio : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
 });
-writeFigure("vrestudio-fusee", { title: "VRE Studio · la fusée", plate, live, width: 960, css: "<style>.fig-deck{fill:var(--anatomy-lo);opacity:.3}.fig-dark{fill:var(--anatomy-lo);opacity:.55}.fig-glow{fill:var(--g,#34d399);stroke:none;pointer-events:none}.fig-ink{fill:var(--anatomy-lit);opacity:.14}.fx{pointer-events:none}.fx-line{fill:none;stroke:var(--g,#34d399);stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2.5px var(--g,#34d399))}.fx-cone{fill:var(--g,#34d399);opacity:.28;stroke:none}.fx-dot{fill:var(--g,#34d399);stroke:none}.fx-halo{fill:var(--g,#34d399);stroke:none;filter:blur(2px)}.fx-core{fill:#fff;stroke:none}.fx-lit{fill:var(--g,#34d399);stroke:none}.fx-fo{fill:var(--g,#34d399);stroke:none;filter:blur(1.5px)}.fx-fm{fill:var(--g,#34d399);stroke:none}.fx-fc{fill:#fff;stroke:none}.fx-smoke{fill:var(--anatomy-lo);stroke:none;filter:blur(2px)}</style>" });
+writeFigure("vrestudio-fusee", { title: "VRE Studio · la fusée", plate, live, width: 960, css: "<style>.fig-deck{fill:var(--anatomy-lo);opacity:.3}.fig-dark{fill:var(--anatomy-lo);opacity:.55}.fig-glow{fill:var(--g,#34d399);stroke:none;pointer-events:none}.fig-ink{fill:var(--anatomy-lit);opacity:.14}.fx{pointer-events:none}.fx-line{fill:none;stroke:var(--g,#34d399);stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2.5px var(--g,#34d399))}.fx-cone{fill:var(--g,#34d399);opacity:.28;stroke:none}.fx-dot{fill:var(--g,#34d399);stroke:none}.fx-halo{fill:var(--g,#34d399);stroke:none;filter:blur(2px)}.fx-core{fill:#fff;stroke:none}.fx-lit{fill:var(--g,#34d399);stroke:none}.fx-fo{fill:var(--g,#34d399);stroke:none;filter:blur(1.5px)}.fx-fm{fill:var(--g,#34d399);stroke:none}.fx-fc{fill:#fff;stroke:none}.fx-smoke{fill:var(--anatomy-lo);stroke:none;filter:blur(2px)}.vre-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:14px auto 0;max-width:960px}.vre-step{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:11px;padding:12px 14px;border-radius:12px;background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-faint);transition:box-shadow .25s}.vre-step:hover{box-shadow:0 0 0 1px var(--anatomy-muted)}.vre-step:focus-visible{outline:2px solid var(--anatomy-muted);outline-offset:2px}.vre-step.on{box-shadow:0 0 0 2px #fb7185}.vre-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 11px/1 var(--anatomy-mono,monospace);background:var(--anatomy-faint);color:var(--anatomy-text)}.vre-step.on .vre-n{background:#fb7185;color:#fff}.vre-t b{display:block;font:600 13px/1.25 system-ui,sans-serif;color:var(--anatomy-strong)}.vre-t i{display:block;font:normal 12px/1.4 system-ui,sans-serif;color:var(--anatomy-text);margin-top:3px}</style>" });
