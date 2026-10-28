@@ -121,6 +121,7 @@ function boosterMarkup(sc = 1, full = true) {
   // corps : jupe moteur sombre, réservoir clair, bande de logo, ceinture d'interétage
   out += S(G.solidOf(boosterProfile(sc), F, P), { tone: "hi", inner: L(G.arcOf(F, 20 * sc, 6 * sc, P) + G.arcOf(F, 31 * sc, 6 * sc, P) + G.arcOf(F, 54 * sc, 6 * sc, P) + G.arcOf(F, 60 * sc, 6 * sc, P), { tone: "faint" }) + L(G.ribsOf(F, 11 * sc, 62 * sc, 6 * sc, 14, P, { phase: 0.3, seams: true }), { tone: "faint" }) });
   out += S(G.solidOf([[1 * sc, 4.95 * sc], [8.6 * sc, 5.95 * sc]], F, P), { tone: "lo" });
+  if (full) out += `<g data-part="soot" opacity="0">${S(G.solidOf([[8.6 * sc, 6.03 * sc], [27 * sc, 6.03 * sc]], F, P), { tone: "lo", crease: "none" })}</g>`;
   out += S(G.solidOf([[36 * sc, 6.04 * sc], [46 * sc, 6.04 * sc]], F, P), { tone: "lo", inner: L(G.arcOf(F, 41 * sc, 6.05 * sc, P), { tone: "faint" }) });
   out += S(G.solidOf([[64 * sc, 6.05 * sc], [72 * sc, 5.9 * sc]], F, P), { tone: "lo", inner: L(G.arcOf(F, 66 * sc, 6.05 * sc, P) + G.arcOf(F, 70 * sc, 5.95 * sc, P), { tone: "faint" }) });
   if (full) {
@@ -495,19 +496,33 @@ ${BURN}
 const burn = makeBurn(stage, svg, ${WIDTH}, ${HEIGHT}, pr);
 const WIND = [10, -5];
 const ascPos = (te) => { const u = seg(te, EV.lift, EV.sep); return polyAt(ASC, Math.pow(u, 1.9) * polyLen(ASC)); };
+const descPos = (te) => { const u = seg(te, EV.sep, EV.touch), e = ease(u); return [lerp(SEPP[0], TOUCH[0], e), lerp(SEPP[1], TOUCH[1], e), lerp(SEPP[2] + 6, TOUCH[2], Math.pow(u, 0.75)) + 18 * Math.sin(Math.PI * Math.min(1, u * 1.1)) * (1 - u)]; };
 const SMOKE = [
-  { seed: 1, kind: 'blast', t0: EV.ignite - 0.2, t1: EV.lift + 2.2, rate: 80, life: 5.6, o: [PAD.x, PAD.y, 9], v: [22, 82], r: [5, 15], rise: [6, 26], a: 0.5, warm: 1, warmT: 1.4, wind: WIND, r0: 6, axis: 0.8 },
-  { seed: 2, kind: 'trail', t0: EV.lift + 0.1, t1: EV.sep, rate: 90, life: 5.4, path: (te) => { const p = ascPos(te); return [p[0], p[1], Math.max(9, p[2] - 2.2 * RS)]; }, r: [3, 13], rise: [1, 3], a: 0.45, warm: 0.9, warmT: 0.45, wind: WIND },
-  { seed: 3, kind: 'column', t0: 60.4, t1: 64.4, rate: 40, life: 4, o: [PAD.x, PAD.y, 9], v: [10, 30], r: [4, 12], rise: [16, 40], a: 0.35, wind: WIND },
-  ...[0, 1, 2].map((i) => ({ seed: 4 + i, kind: 'blast', t0: EV.burn[i] + 0.15, t1: EV.burn[i] + 1.7, rate: 50, life: 3.6, o: [ST.x, ST.y, 3], v: [10, 40], r: [4, 12], rise: [8, 26], a: 0.45, warm: 1, warmT: 0.9, r0: 4 })),
-  { seed: 8, kind: 'blast', t0: EV.landBurn[0] + 1.2, t1: EV.touch + 0.5, rate: 60, life: 4.4, o: [LAND.x, LAND.y, 2], v: [18, 62], r: [5, 14], rise: [5, 16], a: 0.5, warm: 1, warmT: 1, wind: WIND, r0: 5 },
+  { seed: 1, kind: 'blast', t0: EV.ignite - 0.2, t1: EV.lift + 2.4, rate: 110, life: 5.8, o: [PAD.x, PAD.y, 9], v: [22, 86], r: [4, 13], rise: [6, 28], a: 0.5, warm: 1, warmT: 1.2, soot: 0.9, wind: WIND, r0: 6, axis: 0.8, zspan: 70 },
+  { seed: 2, kind: 'trail', t0: EV.lift + 0.1, t1: EV.sep, rate: 130, life: 5.6, ref: [PAD.x, PAD.y], path: (te) => { const p = ascPos(te); return [p[0], p[1], Math.max(9, p[2] - 2.2 * RS)]; }, r: [3, 12], rise: [1, 3], a: 0.46, warm: 0.9, warmT: 0.45, soot: 1.2, wind: WIND, zb: 9, zspan: 130 },
+  { seed: 3, kind: 'column', t0: 60.4, t1: 64.4, rate: 60, life: 4, o: [PAD.x, PAD.y, 9], v: [10, 30], r: [4, 11], rise: [16, 40], a: 0.34, wind: WIND, zspan: 60 },
+  { seed: 9, kind: 'column', t0: EV.roll[1], t1: EV.ignite + 0.6, rate: 22, life: 2.8, o: [PAD.x + 4, PAD.y - 3, 9 + BH * 0.8], ref: [PAD.x, PAD.y], v: [1, 5], r: [2, 6], rise: [4, 12], a: 0.32, wind: WIND, zspan: 24 },
+  { seed: 10, kind: 'ball', t0: EV.sep, t1: EV.sep + 0.3, rate: 200, life: 2.2, o: [SEPP[0], SEPP[1], SEPP[2] + BH + 4], ref: [SEPP[0] + 6, SEPP[1] + 10], v: [8, 44], r: [2, 7], rise: [3], a: 0.5, warm: 0.7, warmT: 0.4, zspan: 30 },
+  ...[0, 1, 2].map((i) => ({ seed: 4 + i, kind: 'blast', t0: EV.burn[i] + 0.15, t1: EV.burn[i] + 1.7, rate: 80, life: 3.8, o: [ST.x, ST.y, 3], v: [10, 42], r: [3, 11], rise: [8, 26], a: 0.42, warm: 1, warmT: 0.9, soot: 0.8, r0: 4, zspan: 50 })),
+  { seed: 8, kind: 'blast', t0: EV.landBurn[0] + 1.2, t1: EV.touch + 0.6, rate: 90, life: 4.6, o: [LAND.x, LAND.y, 2], v: [18, 66], r: [4, 13], rise: [5, 18], a: 0.46, warm: 1, warmT: 1, soot: 0.6, wind: WIND, r0: 5, zspan: 50 },
+  { seed: 11, kind: 'trail', t0: EV.landBurn[0], t1: EV.touch, rate: 70, life: 3.4, ref: [LAND.x, LAND.y], path: (te) => { const p = descPos(te); return [p[0], p[1], p[2] - 2.2 * RS]; }, r: [2.5, 9], rise: [1, 2], a: 0.3, warm: 0.8, warmT: 0.4, wind: WIND, zb: 2, zspan: 100 },
 ];
 const RINGS = [{ x: PAD.x, y: PAD.y, z: 8.8, t: EV.ignite, r0: 8, r1: 46, dur: 1.2, a: 0.3 }, { x: PAD.x, y: PAD.y, z: 8.8, t: EV.lift - 0.1, r0: 12, r1: 110, dur: 2.4, a: 0.3 }, { x: LAND.x, y: LAND.y, z: 1, t: EV.touch - 0.5, r0: 8, r1: 80, dur: 1.9, a: 0.45 }];
+const mistAt = (o, s) => { const b = o.booster, a = s >= EV.lift + 1.2 && s < EV.sep + 0.6 ? Math.sin(Math.PI * seg(s, EV.lift + 1.2, EV.sep + 0.6)) * 0.55 : 0; return [{ x: b.x, y: b.y, z: b.z + BH + STAGE2_H * RS * 0.62, r: 13, a }]; };
+const fadeEnd = (v, s) => v * (1 - ease(seg(s, TD, TEND)));
+function decalsAt(o, s) {
+  const b = o.booster, d = [];
+  d.push({ k: 'scorch', x: PAD.x, y: PAD.y, gz: 8.9, R: 26, a: fadeEnd(0.62 * ease(seg(s, EV.ignite, EV.lift + 3)), s) });
+  d.push({ k: 'scorch', x: ST.x, y: ST.y, gz: 1.3, R: 17, a: fadeEnd(0.4 * ease(seg(s, EV.burn[0], EV.burn[2] + 1.5)), s) });
+  d.push({ k: 'scorch', x: LAND.x, y: LAND.y, gz: 1.1, R: 20, a: fadeEnd(0.42 * ease(seg(s, EV.touch, EV.touch + 1.6)), s) });
+  if (s >= EV.roll[0] && s < EV.ret[0]) { const top = b.z + BH + (o.s2 ? STAGE2_H * RS : 0); d.push({ k: 'shadow', x: b.x, y: b.y, gz: 0.9, z0: b.z - 2, z1: top, r: 7, a: 0.7 * ease(seg(s, EV.roll[0], EV.roll[0] + 0.8)) * (1 - clamp01((b.z - 20) / 260)) * (1 - ease(seg(s, EV.ret[0] - 0.8, EV.ret[0]))) }); }
+  return d;
+}
 function flamesAt(o, s) {
   const out = [], b = o.booster;
   if (o.thrust > 0.02 && s < EV.roll[0]) out.push({ x: ST.x, y: ST.y, z: 1.8, dir: [0, 0, -1], len: 70, w: 12, p: Math.min(1, o.thrust * 1.35), seed: 1, ground: 0.8, sheet: 30 });
   if (s >= EV.ignite && s < EV.lift) { const fq = ease(seg(s, EV.ignite, EV.lift)); out.push({ x: PAD.x, y: PAD.y, z: 9.3, dir: [0, 0, -1], len: 90, w: 13, p: 0.3 + 0.7 * fq, seed: 2, ground: 8.8, sheet: 22 + 18 * fq }); }
-  if (s >= EV.lift && s < EV.sep) out.push({ x: b.x, y: b.y, z: Math.max(9.3, b.z - 2.2 * RS), dir: [0, 0, -1], len: 110, w: 15, p: 1, seed: 3, ground: 8.8, sheet: 38 });
+  if (s >= EV.lift && s < EV.sep) out.push({ x: b.x, y: b.y, z: Math.max(9.3, b.z - 2.2 * RS), dir: [0, 0, -1], len: 110, w: 15, p: 1, seed: 3, ground: 8.8, sheet: 38, light: 130 });
   if (o.s2 && s >= EV.sep && s < EV.sep + 4.8) { const f2 = ease(seg(s, EV.sep + 0.2, EV.sep + 0.8)) * (1 - ease(seg(s, EV.sep + 3.8, EV.sep + 4.8))) * o.s2.a; out.push({ x: o.s2.x, y: o.s2.y, z: o.s2.z - 0.8 * RS, dir: [0, 0, -1], len: 34, w: 4.6, p: f2, seed: 5 }); }
   if (s >= EV.landBurn[0] && s < EV.touch + 0.6) { const f = ease(seg(s, EV.landBurn[0], EV.landBurn[0] + 0.5)) * (1 - ease(seg(s, EV.touch, EV.touch + 0.6))); out.push({ x: b.x, y: b.y, z: Math.max(1.4, b.z - 2.2 * RS), dir: [0, 0, -1], len: 70, w: 12, p: f, seed: 6, ground: 0.8, sheet: 26 }); }
   return out;
@@ -623,7 +638,7 @@ function stateAt(s) {
 }
 
 const parts = {};
-for (const n of ["lhead", "tur", "chips", "boom", "key-n", "key-r", "shead", "splow", "wheel", "seal", "count", "cart", "capsule", "cardfly", "card-img", "card-txt", "card-pos", "booster", "legs", "stage2", "sat", "pan-l", "pan-r", "lift", "hatch", "arm-a", "arm-b", "deluge", "wall", "bus", "gain-needle", "rel-needle", "cols", "lever", "pin", "drawer", "lamp-read", "lamp-lock", "lamp-hitl", "lamp-pub", "lamp-cand", "lamp-cab", "vault-0"]) parts[n] = $(n);
+for (const n of ["lhead", "tur", "chips", "boom", "key-n", "key-r", "shead", "splow", "wheel", "seal", "count", "cart", "capsule", "cardfly", "card-img", "card-txt", "card-pos", "booster", "soot", "legs", "stage2", "sat", "pan-l", "pan-r", "lift", "hatch", "arm-a", "arm-b", "deluge", "wall", "bus", "gain-needle", "rel-needle", "cols", "lever", "pin", "drawer", "lamp-read", "lamp-lock", "lamp-hitl", "lamp-pub", "lamp-cand", "lamp-cab", "vault-0"]) parts[n] = $(n);
 const inks = [0, 1, 2, 3].map((i) => $("ink-" + i)), loads = [0, 1, 2, 3].map((i) => $("load-" + i)), slots = Array.from({ length: 12 }, (_, i) => $("slot-" + i));
 const sortLamps = [0, 1, 2, 3].map((i) => $("sort-lamp-" + i)), forkLamps = [0, 1].map((i) => $("fork-" + i)), vdesk = [0, 1, 2].map((i) => $("vdesk-" + i)), stamps = [0, 1, 2].map((i) => $("stamp-" + i));
 const fxLayer = svg.querySelector("#fx");
@@ -690,6 +705,7 @@ function draw(o, s) {
   const b = o.booster; parts.booster.setAttribute("transform", tW(b.x, b.y, b.z) + scl(RS)); parts.booster.setAttribute("opacity", "1");
   let lg = ''; if (o.legs > 0.02) { const e = o.legs; for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + 0.785, c = Math.cos(a), sn = Math.sin(a), top = pr(c * 6, sn * 6, 22), foot = pr(c * (6 + 13 * e), sn * (6 + 13 * e), 0.2 + 22 * (1 - e) * 0); lg += pathOf([top, foot]); } lg = '<path class="iso-line" data-tone="hi" data-free="" d="' + lg + '"/>' + dotsSvg(Array.from({ length: 4 }, (_, i) => { const a = i / 4 * TAU + 0.785; return pr(Math.cos(a) * (6 + 13 * o.legs), Math.sin(a) * (6 + 13 * o.legs), 0.2); }), { size: 0.9, tone: "hi" }); }
   parts.legs.innerHTML = lg;
+  parts.soot.setAttribute("opacity", fadeEnd(Math.max(0.4 * ease(seg(s, EV.burn[0], EV.burn[2] + 1.5)), 0.85 * ease(seg(s, EV.ignite, EV.lift + 2.5))), s).toFixed(2));
   if (o.s2) { parts.stage2.setAttribute("transform", tW(o.s2.x, o.s2.y, o.s2.z) + scl(RS)); parts.stage2.setAttribute("opacity", o.s2.a.toFixed(2)); } else parts.stage2.setAttribute("opacity", "0");
   if (o.sat && o.sat.a > 0.02 && s > EV.sep + 1) { parts.sat.setAttribute("transform", tW(o.sat.x, o.sat.y, o.sat.z) + scl(1.5)); parts.sat.setAttribute("opacity", o.sat.a.toFixed(2)); const pn = o.satPan || 0; parts["pan-l"].setAttribute("transform", tW(-9 * (1 - pn), 0, 0)); parts["pan-r"].setAttribute("transform", tW(9 * (1 - pn), 0, 0)); parts["pan-l"].setAttribute("opacity", pn.toFixed(2)); parts["pan-r"].setAttribute("opacity", pn.toFixed(2)); } else parts.sat.setAttribute("opacity", "0");
   // hangar : chariot, laser, tourelle
@@ -744,7 +760,7 @@ function draw(o, s) {
   const ga = (205 - o.gain * 230 / 3) * Math.PI / 180, gyy = 98, gzz = 26;
   parts["gain-needle"].innerHTML = '<path class="iso-line" data-tone="hi" d="' + pathOf([pr(MC.x1 + 1.7, gyy, gzz), pr(MC.x1 + 1.7, gyy + 8.8 * Math.cos(ga), gzz + 8.8 * Math.sin(ga))]) + '"/>' + dotsSvg([pr(MC.x1 + 1.7, gyy, gzz)], { size: 0.9, tone: "hi" });
   fxLayer.innerHTML = fxSvg(o, s);
-  burn.frame(s, SMOKE, flamesAt(o, s), RINGS);
+  burn.frame(s, SMOKE, flamesAt(o, s), RINGS, { decals: decalsAt(o, s), mists: mistAt(o, s), flash: Math.max(0.5 * ease(seg(s, EV.ignite, EV.lift)) * (1 - ease(seg(s, EV.lift + 1.5, EV.lift + 3.5))), 0.22 * ease(seg(s, EV.landBurn[0] + 1, EV.touch)) * (1 - ease(seg(s, EV.touch, EV.touch + 1.2)))) });
 }
 function reading(s) { const i = stationAt(s), [name, status] = STATIONS[Math.min(i, STATIONS.length - 1)]; return (i + 1) + " · " + name + " · " + status; }
 // étapes : une carte par poste, la carte active est cerclée de l'accent, un clic saute au poste
@@ -766,10 +782,29 @@ window.__fig = { at: (s) => { touring = false; frozen = true; t = s; const o = s
 draw(stateAt(0), 0); say(reading(0)); markSt(0);
 `;
 
+// ---------------------------------------------------------------- finition : ombres portées douces, occlusion aux pieds des murs, grain du béton
+const polish = (() => {
+  const o0 = at([0, 0, 0]), exv = [at([1, 0, 0])[0] - o0[0], at([1, 0, 0])[1] - o0[1]], eyv = [at([0, 1, 0])[0] - o0[0], at([0, 1, 0])[1] - o0[1]], dt = exv[0] * eyv[1] - exv[1] * eyv[0];
+  const wx = Math.SQRT1_2, wy = Math.SQRT1_2;
+  console.log("lumière (monde)", wx.toFixed(2), wy.toFixed(2));
+  const hull = (pts) => { const q = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]), cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); const lo = [], up = []; for (const p of q) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); } for (const p of [...q].reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); } return [...lo.slice(0, -1), ...up.slice(0, -1)]; };
+  const shadow = (x0, x1, y0, y1, h, a = 1, kk = 0.3) => { const L2 = h * kk, pts = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]; return `<path class="fig-shadow" style="--a:${a}" d="${pth(hull([...pts, ...pts.map(([x, y]) => [x + wx * L2, y + wy * L2])]).map(([x, y]) => at([x, y, 0.9])), true)}"/>`; };
+  const out = [];
+  // murs : ombre portée vers l'intérieur et occlusion aux pieds
+  out.push(shadow(HG.x0, HG.x1, HG.y0, HG.y0 + 2.4, HG.h, 1, 0.34), shadow(HG.x0, HG.x0 + 2.4, HG.y0, HG.y1, HG.h, 1, 0.34));
+  out.push(shadow(MC.x0, MC.x1, MC.y0, MC.y0 + 2.4, MC.h, 1, 0.34), shadow(MC.x0, MC.x0 + 2.4, MC.y0, MC.y1, MC.h, 1, 0.34), shadow(MC.x1 - 2.4, MC.x1, MC.y0 + 2.4, MC.y1, MC.h, 0.8, -0.2));
+  // tours et banc d'essai
+  out.push(shadow(PAD.x + 34, PAD.x + 46, PAD.y - 6, PAD.y + 6, 208, 0.9, 0.26), shadow(ST.x - 22, ST.x + 22, ST.y - 22, ST.y + 22, 136, 0.7, 0.2), shadow(PAD.x + 27, PAD.x + 45, PAD.y - 49, PAD.y - 31, 24, 1, 0.5));
+  // grain du béton sur toute la plaque
+  const g = k.corners(PLATE, 0).map(([x, y]) => at([x, y, 0.2]));
+  out.push(`<path class="fig-grain" d="${pth(g, true)}" filter="url(#fig-grain)"/>`);
+  return `<defs><filter id="fig-sh" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3.2"/></filter><filter id="fig-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.25" result="a"/><feComposite in="a" in2="SourceGraphic" operator="in"/></filter></defs><g filter="url(#fig-sh)">${out.slice(0, -1).join("")}</g>${out[out.length - 1]}`;
+})();
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Un site de lancement clos par une clôture. Dans le hangar, une page roule sur un chariot : un laser lit ses champs, une tourelle les trie, deux clés lèvent une barrière-levante, un tampon valide chaque cadre, la fiche rejoint une archive à trois feuillets et le lot est scellé. Au banc d'essai, le lot est chargé dans le booster, qui fait trois essais à feu ; deux colonnes de seuil le mesurent sur des pages inédites gardées dans un coffre, un levier le publie et la version précédente reste au registre. Le booster part du pas de tir, sépare un satellite qui balaie douze pages inédites et propose des cadres, puis se repose sur son aire et revient au banc. Trois pupitres corrigent les cadres, une cassette de verre les renvoie au hangar, et le cadran du centre de contrôle compare le gain : ×1, l'extracteur VRE, contre ×2,3.",
-  body: [...base, Sc.flush(), `<g id="veh">${veh}</g>`, afterB.sort((a, b) => a.d - b.d).map((i) => i.svg).join(""), `<g id="fx" class="fx"></g>`],
+  body: [...base, polish, Sc.flush(), `<foreignObject id="burn-back" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" style="pointer-events:none;overflow:visible"><canvas xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;display:block"></canvas></foreignObject>`, `<g id="veh">${veh}</g>`, afterB.sort((a, b) => a.d - b.d).map((i) => i.svg).join(""), `<g id="fx" class="fx"></g>`],
 });
 const plate = k.plateHtml({
   fig: "Fig 11", title: "VRE Studio", hint: "Glisse ou ← → : étape", readout: "1 · Lecture · Document AI",
@@ -781,4 +816,4 @@ const plate = k.plateHtml({
   caption: "Un site de lancement local. Dans le hangar, une page roule sur un chariot : un laser la lit (Document AI), une tourelle trie ses quatre champs (mini-BERT), deux clés, celle du modèle et celle des règles, lèvent une barrière-levante (hybride neuro-symbolique), un tampon à main valide chaque cadre (Human-in-the-Loop), puis la fiche rejoint une archive à trois feuillets, image, texte et positions, et le lot est scellé (corpus multimodal). Au banc d'essai, le lot est chargé dans le booster, qui fait trois essais à feu (entraînement LayoutLMv3) ; deux colonnes de seuil le mesurent avec des pages inédites gardées dans un coffre, un levier le publie, la version précédente reste au registre (MLOps local). Le booster part du pas de tir et sépare un satellite qui balaie douze pages inédites et propose des cadres de deux sortes, BT et locaux (inférence), puis se repose sur son aire et revient au banc. Trois pupitres du centre de contrôle partagent les corrections, une cassette de verre les ramène au hangar, et un cadran compare le gain : ×1 pour l'extracteur VRE, ×2,3 pour VRE Studio. Les seuils et les cadres sont des valeurs d'illustration.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="VRE Studio : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
 });
-writeFigure("vrestudio-fusee", { title: "VRE Studio · la fusée", plate, live, width: 960, css: "<style>.fig-deck{fill:var(--anatomy-lo);opacity:.3}.fig-dark{fill:var(--anatomy-lo);opacity:.55}.fig-glow{fill:var(--g,#34d399);stroke:none;pointer-events:none}.fig-ink{fill:var(--anatomy-lit);opacity:.14}.fx{pointer-events:none}.fx-line{fill:none;stroke:var(--g,#34d399);stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2.5px var(--g,#34d399))}.fx-cone{fill:var(--g,#34d399);opacity:.28;stroke:none}.fx-dot{fill:var(--g,#34d399);stroke:none}.fx-halo{fill:var(--g,#34d399);stroke:none;filter:blur(2px)}.fx-core{fill:#fff;stroke:none}.fx-lit{fill:var(--g,#34d399);stroke:none}.fx-fo{fill:var(--g,#34d399);stroke:none;filter:blur(1.5px)}.fx-fm{fill:var(--g,#34d399);stroke:none}.fx-fc{fill:#fff;stroke:none}.fx-smoke{fill:var(--anatomy-lo);stroke:none;filter:blur(2px)}.vre-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:14px auto 0;max-width:960px}.vre-step{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:11px;padding:12px 14px;border-radius:12px;background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-faint);transition:box-shadow .25s}.vre-step:hover{box-shadow:0 0 0 1px var(--anatomy-muted)}.vre-step:focus-visible{outline:2px solid var(--anatomy-muted);outline-offset:2px}.vre-step.on{box-shadow:0 0 0 2px #fb7185}.vre-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 11px/1 var(--anatomy-mono,monospace);background:var(--anatomy-faint);color:var(--anatomy-text)}.vre-step.on .vre-n{background:#fb7185;color:#fff}.vre-t b{display:block;font:600 13px/1.25 system-ui,sans-serif;color:var(--anatomy-strong)}.vre-t i{display:block;font:normal 12px/1.4 system-ui,sans-serif;color:var(--anatomy-text);margin-top:3px}</style>" });
+writeFigure("vrestudio-fusee", { title: "VRE Studio · la fusée", plate, live, width: 960, css: "<style>.fig-deck{fill:var(--anatomy-lo);opacity:.3}.fig-dark{fill:var(--anatomy-lo);opacity:.55}.fig-glow{fill:var(--g,#34d399);stroke:none;pointer-events:none}.fig-ink{fill:var(--anatomy-lit);opacity:.14}.fig-shadow{fill:#000;stroke:none;opacity:calc(var(--a,1) * .55)}[data-theme=light] .fig-shadow{fill:#1c2230;opacity:calc(var(--a,1) * .16)}.fig-grain{fill:#000;stroke:none;opacity:.07;pointer-events:none}[data-theme=light] .fig-grain{opacity:.045}.fx{pointer-events:none}.fx-line{fill:none;stroke:var(--g,#34d399);stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2.5px var(--g,#34d399))}.fx-cone{fill:var(--g,#34d399);opacity:.28;stroke:none}.fx-dot{fill:var(--g,#34d399);stroke:none}.fx-halo{fill:var(--g,#34d399);stroke:none;filter:blur(2px)}.fx-core{fill:#fff;stroke:none}.fx-lit{fill:var(--g,#34d399);stroke:none}.fx-fo{fill:var(--g,#34d399);stroke:none;filter:blur(1.5px)}.fx-fm{fill:var(--g,#34d399);stroke:none}.fx-fc{fill:#fff;stroke:none}.fx-smoke{fill:var(--anatomy-lo);stroke:none;filter:blur(2px)}.vre-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:14px auto 0;max-width:960px}.vre-step{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:11px;padding:12px 14px;border-radius:12px;background:var(--anatomy-card);box-shadow:0 0 0 1px var(--anatomy-faint);transition:box-shadow .25s}.vre-step:hover{box-shadow:0 0 0 1px var(--anatomy-muted)}.vre-step:focus-visible{outline:2px solid var(--anatomy-muted);outline-offset:2px}.vre-step.on{box-shadow:0 0 0 2px #fb7185}.vre-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 11px/1 var(--anatomy-mono,monospace);background:var(--anatomy-faint);color:var(--anatomy-text)}.vre-step.on .vre-n{background:#fb7185;color:#fff}.vre-t b{display:block;font:600 13px/1.25 system-ui,sans-serif;color:var(--anatomy-strong)}.vre-t i{display:block;font:normal 12px/1.4 system-ui,sans-serif;color:var(--anatomy-text);margin-top:3px}</style>" });
