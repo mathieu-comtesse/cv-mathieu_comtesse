@@ -13,7 +13,7 @@ const MODULES = {
   pp: () => import('./pp.js'),
   powerbi: () => import('./powerbi.js'),
   suivi: () => import('./suivi.js'),
-  studio: () => import('./studio.js')
+  studio: () => import('./studio.js'), 'vrestudio-anticythere': () => import('./vrestudio.js')
 };
 
 export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {

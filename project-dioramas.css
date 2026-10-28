@@ -120,3 +120,4 @@
 
 .process-poster{mix-blend-mode:multiply}
 .marquee,.pc,.pc-img{scrollbar-width:none}.marquee::-webkit-scrollbar,.pc::-webkit-scrollbar,.pc-img::-webkit-scrollbar{display:none}
+.figure-steps{--process-accent:#ffd27a;flex-wrap:wrap;justify-content:center;overflow:visible;margin:26px calc(50% - min(480px, 50vw - 16px)) 12px}.figure-steps .process-step{flex:0 1 86px;min-width:76px}.figure-steps[hidden],.process-explanation[hidden]{display:none}

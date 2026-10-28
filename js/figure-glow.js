@@ -2,7 +2,7 @@
 // ou s'allume prend la couleur d'accent de sa machine, avec un halo doux qui s'éteint quand elle s'arrête.
 // Script autonome : chargé par chaque figures/*.html, aucune dépendance.
 (() => {
-  const ACCENT = { cerfa: '#fb7185', vm: '#22d3ee', vre: '#a78bfa', moteur: '#ff9d3c', gares: '#a3e635', finance: '#fbbf24', pp: '#2dd4bf', powerbi: '#60a5fa', suivi: '#f472b6', studio: '#fb923c' };
+  const ACCENT = { cerfa: '#fb7185', vm: '#22d3ee', vre: '#a78bfa', moteur: '#ff9d3c', gares: '#a3e635', finance: '#fbbf24', pp: '#2dd4bf', powerbi: '#60a5fa', suivi: '#f472b6', studio: '#fb923c', vrestudio: '#34d399', 'vrestudio-anneau': '#38bdf8', 'vrestudio-fusee': '#fb7185', 'vrestudio-anticythere': '#34d399' };
   const name = (location.pathname.match(/([\w-]+)\.html$/) || [])[1];
   const svg = document.querySelector('.iso-stage svg');
   if (!svg) return;
