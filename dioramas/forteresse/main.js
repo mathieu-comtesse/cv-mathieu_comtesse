@@ -21,6 +21,7 @@ const M = {
   fire: mk(P.fire1, { glow: 1.8 }), fireCore: mk(P.fire0, { glow: 2.4 }), ember: mk(P.ember, { glow: 1.2 }), smoke: mk(P.smoke0, { opacity: 0.55 }), smokeD: mk(P.smoke1, { opacity: 0.5 }),
   ok: mk(P.ok, { glow: 1.0 }), bad: mk(P.rubric0, { glow: 1.0 }), off: mk(P.stone4), leaf: [mk(P.leaf0), mk(P.leaf1), mk(P.moss)], bark: mk(P.bark), rope: mk(P.rope), glass: mk(P.glass, { rough: 0.2 }), leather: mk(P.leather),
   flame: mk(P.fire1, { glow: 1.6 }), flameCore: mk(P.fire0, { glow: 2.2 }), brass: mk(P.gold1, { rough: 0.5, metal: 0.4 }), wax: mk(P.page2),
+  roofT: mk(P.rubric1, { opacity: 0.999 }), roofTD: mk(P.wood4, { opacity: 0.998 }),
   beam: new THREE.MeshBasicMaterial({ color: new THREE.Color(P.gold0), transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }),
 };
 const people = {
@@ -36,7 +37,7 @@ const GZ = -1.6, SZ = 4.0;                        // axe de la porte ; mur sud (
 const HERSE = [EW + 0.05, EW - 0.95];              // herse « modèle » (extérieure), herse « règles » (intérieure)
 const TRAP = EW - 0.45;                            // où le golem est pris
 const WATCH = { x: -1.7, z: -5.0, top: 4.2 }, BAL = { x: -1.7, z: 3.3, top: 3.0 };
-const KEEP = { x: -6.4, z: -3.3 }, FORGE = { x: -4.7, z: 1.6 }, ANVIL = { x: -4.4, z: 2.7 }, RACK = { x: -7.5, z: 2.4 }, ARCH = { x: -3.6, z: -4.6 };
+const KEEP = { x: -6.4, z: -3.3 }, FORGE = { x: -4.7, z: 1.6 }, ANVIL = { x: -4.4, z: 2.7 }, RACK = { x: -6.0, z: 2.9 }, ARCH = { x: -3.6, z: -4.6 };
 const HOIST = { x: -2.75, z: 3.3 };
 const WINCH = [{ x: -2.75, z: GZ - 1.05 }, { x: -2.75, z: GZ + 1.05 }];
 
@@ -85,14 +86,21 @@ function build(scene) {
   // porterie : deux tours carrées, arc, deux herses dans leurs rainures, treuils, pont-levis
   for (const s of [-1, 1]) { const z = GZ + s * 1.25, h = s < 0 ? 3.6 : 1.3; B(root, 1.5, h, 0.9, M.wallL, EW - 0.45, h / 2, z); crenel(EW - 1.15, z, EW + 0.25, z, h, 3); if (s < 0) B(root, 0.1, 0.5, 0.25, M.deep, EW + 0.31, 2.6, z); }
   B(root, 1.5, 0.5, 1.7, M.wallL, EW - 0.45, 3.35, GZ - 0.4); for (const s of [-1, 1]) B(root, 0.22, 0.22, 0.22, M.cap, EW + 0.3, 3.0, GZ + s * 0.5);
+  { const arch = T(root, 0.72, 0.13, M.cap, EW + 0.32, 2.45, GZ, { arc: PI, seg: 12, rot: [0, PI / 2, 0] }); void arch; for (let k = 0; k < 3; k++) B(root, 0.12, 0.12, 0.12, M.deep, EW + 0.32, 3.15, GZ - 0.4 + k * 0.4, { cast: false }); }
+  // deux herses : grille rivetée à pointes, poutre haute émaillée (or = modèle, bleu = règles), coulisses dans les jambages,
+  // chaîne qui monte à une poulie sur la porterie ; un voyant au-dessus de chaque coulisse
   const herses = HERSE.map((hx, i) => {
-    const g = G(root, hx, 0, GZ);
-    for (let k = 0; k < 6; k++) B(g, 0.07, 2.2, 0.07, i ? M.ironD : M.iron, 0, 1.1, -0.6 + k * 0.24, { ch: 0.01 });
-    for (let k = 0; k < 5; k++) B(g, 0.08, 0.07, 1.36, i ? M.ironD : M.iron, 0, 0.2 + k * 0.48, 0, { ch: 0.01 });
-    for (let k = 0; k < 6; k++) C(g, 0.0, 0.05, 0.14, M.ironL, 0, -0.04, -0.6 + k * 0.24, { seg: 4, rot: [PI, 0, 0] });
-    B(root, 0.12, 2.6, 0.08, M.deep, hx, 1.3, GZ - 0.74); B(root, 0.12, 2.6, 0.08, M.deep, hx, 1.3, GZ + 0.74);
-    B(g, 0.1, 0.1, 0.5, i ? M.lapis : M.gold, 0.02, 2.25, 0, { cast: false });                                      // couleur de la herse : or = modèle, bleu = règles
-    return g;
+    const g = G(root, hx, 0, GZ), metal = i ? M.ironD : M.iron;
+    for (let k = 0; k < 7; k++) { const z = -0.6 + k * 0.2; B(g, 0.07, 2.25, 0.06, metal, 0, 1.12, z, { ch: 0.01 }); C(g, 0.0, 0.045, 0.16, M.ironL, 0, -0.06, z, { seg: 4, rot: [PI, 0, 0] }); }
+    for (let k = 0; k < 6; k++) { const y = 0.18 + k * 0.4; B(g, 0.09, 0.06, 1.34, metal, 0, y, 0, { ch: 0.01 }); for (let j = 0; j < 7; j++) S(g, 0.028, M.ironL, 0.05, y, -0.6 + j * 0.2, [1, 1, 1], { cast: false, seg: 6 }); }
+    B(g, 0.18, 0.2, 1.5, M.woodD, 0, 2.32, 0); B(g, 0.2, 0.14, 0.9, i ? M.lapis : M.gold, 0.02, 2.32, 0, { cast: false });
+    for (const sz of [-0.3, 0.3]) T(g, 0.05, 0.015, M.ironL, 0, 2.47, sz, { seg: 8 });
+    for (const s2 of [-1, 1]) { B(root, 0.16, 2.7, 0.1, M.deep, hx, 1.35, GZ + s2 * 0.74); B(root, 0.3, 2.7, 0.06, M.cap, hx, 1.35, GZ + s2 * 0.8); }
+    B(root, 0.3, 0.06, 1.5, M.deep, hx, 0.03, GZ, { cast: false });                                                   // rainure au sol
+    const pul = G(root, hx, 3.72, GZ); C(pul, 0.16, 0.16, 0.08, M.ironL, 0, 0, 0, { rot: [PI / 2, 0, 0], seg: 12 }); for (const sz of [-0.1, 0.1]) B(pul, 0.08, 0.28, 0.04, M.ironD, 0, -0.08, sz);
+    const links = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => T(root, 0.035, 0.011, M.ironL, hx, 3, GZ, { seg: 6, rot: [0, k % 2 ? PI / 2 : 0, 0], cast: false }));
+    const lamp = S(root, 0.09, M.off, hx, 3.0, GZ + 0.86);
+    return { g, links, lamp, hx };
   });
   const winches = WINCH.map((w, i) => {
     const g = G(root, w.x, 0, w.z);
@@ -100,7 +108,7 @@ function build(scene) {
     const drum = G(g, 0, 0.75, 0); C(drum, 0.18, 0.18, 0.62, M.wood, 0, 0, 0, { rot: [PI / 2, 0, 0] }); for (let k = 0; k < 4; k++) T(drum, 0.185, 0.015, M.rope, 0, 0, -0.2 + k * 0.13, { seg: 12 });
     const crank = G(drum, 0, 0, 0.36); bar(crank, [0, 0, 0], [0, 0.42, 0], 0.03, M.iron); bar(crank, [0, 0.42, 0], [0, 0.42, 0.22], 0.03, M.woodK);
     bar(root, [w.x, 0.95, w.z], [HERSE[i] , 2.45, GZ + (i ? 0.3 : -0.3)], 0.014, M.rope);
-    const lamp = S(g, 0.07, M.off, 0, 1.0, 0.0);
+    const lamp = S(g, 0.07, M.off, 0, 1.0, 0.0); B(g, 0.06, 0.4, 0.06, M.ironD, 0, 1.2, -0.36);
     B(g, 0.12, 0.12, 0.12, i ? M.lapis : M.gold, 0.0, 0.94, -0.36, { cast: false });
     shadow(root, w.x, w.z, 1.0, 0.45);
     return { g, drum, lamp };
@@ -146,26 +154,48 @@ function build(scene) {
   for (let k = 0; k <= 13; k++) B(kp, 0.12, 0.012, 0.012, k === 10 ? M.rubric : M.ink, 0.66, 5.2 + k * 0.2, 0.6, { cast: false });
   const flag = G(kp, 0.64, 5.4, 0.6); const flagCloth = B(flag, 0.04, 0.5, 0.9, M.rubric, 0, 0, 0.45, { ch: 0.01 }); B(flag, 0.045, 0.12, 0.6, M.gold, 0.0, 0.0, 0.35, { cast: false });
 
-  // ---- forge : foyer, hotte, cheminée qui fume, soufflet, enclume, baquet de trempe, râtelier des anciens carreaux
+  // ---- forge en coupe : murs nord et ouest fixes ; murs sud et est et toit forment une coque qui s'efface quand on y travaille
+  const SM = { x0: -6.4, x1: -2.9, z0: 0.6, z1: 3.75, h: 2.3 };
+  B(root, SM.x1 - SM.x0, SM.h, 0.3, M.wall, (SM.x0 + SM.x1) / 2, SM.h / 2, SM.z0); B(root, 0.3, SM.h, SM.z1 - SM.z0, M.wall, SM.x0, SM.h / 2, (SM.z0 + SM.z1) / 2);
+  for (let y = 0.5; y < SM.h; y += 0.5) { B(root, SM.x1 - SM.x0, 0.03, 0.02, M.wallD, (SM.x0 + SM.x1) / 2, y, SM.z0 + 0.16, { cast: false }); B(root, 0.02, 0.03, SM.z1 - SM.z0, M.wallD, SM.x0 + 0.16, y, (SM.z0 + SM.z1) / 2, { cast: false }); }
+  { const geo = new THREE.PlaneGeometry(SM.x1 - SM.x0 - 0.3, SM.z1 - SM.z0 - 0.3); geo.rotateX(-PI / 2); const fl = new THREE.Mesh(geo, M.deep); fl.position.set((SM.x0 + SM.x1) / 2, 0.012, (SM.z0 + SM.z1) / 2); fl.receiveShadow = true; root.add(fl); }
+  const shell = G(root), roofG = G(root);
+  B(shell, SM.x1 - SM.x0, SM.h, 0.3, M.wallL, (SM.x0 + SM.x1) / 2, SM.h / 2, SM.z1);
+  for (const [z0, z1] of [[SM.z0, 1.7], [2.7, SM.z1]]) B(shell, 0.3, SM.h, z1 - z0, M.wallL, SM.x1, SM.h / 2, (z0 + z1) / 2);
+  B(shell, 0.3, SM.h - 1.9, 1.0, M.wallL, SM.x1, 1.9 + (SM.h - 1.9) / 2, 2.2); B(shell, 0.12, 0.6, 0.6, M.woodD, SM.x1 + 0.02, 1.3, SM.z1 - 0.9);
+  B(shell, 0.7, 0.6, 0.08, M.deep, -4.6, 1.4, SM.z1 + 0.12, { cast: false }); for (let k = 0; k < 3; k++) B(shell, 0.04, 0.6, 0.1, M.woodD, -4.85 + k * 0.25, 1.4, SM.z1 + 0.14, { cast: false });
+  for (const s2 of [-1, 1]) { const r = G(roofG, (SM.x0 + SM.x1) / 2, SM.h + 0.65, (SM.z0 + SM.z1) / 2 + s2 * 0.85); r.rotation.x = s2 * 0.62; B(r, SM.x1 - SM.x0 + 0.5, 0.12, 2.05, M.roofT, 0, 0, 0); for (let k = 0; k < 12; k++) C(r, 0.09, 0.09, 2.05, M.roofT, SM.x0 - (SM.x0 + SM.x1) / 2 + 0.1 + k * 0.32, 0.08, 0, { seg: 6, rot: [PI / 2, 0, 0], cast: false }); }
+  C(roofG, 0.1, 0.1, SM.x1 - SM.x0 + 0.5, M.roofTD, (SM.x0 + SM.x1) / 2, SM.h + 1.25, (SM.z0 + SM.z1) / 2, { rot: [0, 0, PI / 2], seg: 8 });
+  // foyer : massif de pierre, cuve de braise, hotte, conduit qui traverse le toit
   const fg = G(root, FORGE.x, 0, FORGE.z);
-  B(fg, 1.5, 0.8, 1.0, M.wallD, 0, 0.4, 0); B(fg, 1.2, 0.1, 0.7, M.deep, 0, 0.82, 0.05);
-  const coals = [0, 1, 2, 3, 4].map((k) => S(fg, 0.1, M.ember, -0.35 + k * 0.18, 0.88, 0.05 + (k % 2) * 0.12, [1, 0.5, 1]));
-  const forgeFlame = flame(fg, M, 0, 0.88, 0.05, 3.2);
-  B(fg, 1.6, 0.9, 1.1, M.wall, 0, 2.2, -0.15); C(fg, 0.3, 0.38, 1.4, M.wallL, 0, 3.3, -0.3, { seg: 10 }); B(fg, 0.9, 0.1, 0.9, M.cap, 0, 4.05, -0.3);
-  for (const sx of [-0.7, 0.7]) B(fg, 0.15, 1.0, 0.15, M.wallD, sx, 1.3, 0.35);
-  const bellows = G(fg, 1.1, 0.5, 0.0); B(bellows, 0.6, 0.08, 0.4, M.woodD, 0, 0.2, 0); const bTop = B(bellows, 0.6, 0.08, 0.4, M.woodD, 0, 0.42, 0); B(bellows, 0.55, 0.2, 0.36, M.leather, 0, 0.31, 0);
-  const anv = G(root, ANVIL.x, 0, ANVIL.z); B(anv, 0.4, 0.45, 0.4, M.woodD, 0, 0.22, 0); B(anv, 0.28, 0.14, 0.2, M.ironD, 0, 0.5, 0); B(anv, 0.6, 0.12, 0.24, M.ironD, 0.05, 0.62, 0); C(anv, 0.0, 0.1, 0.25, M.ironD, 0.42, 0.62, 0, { rot: [0, 0, -PI / 2], seg: 6 });
-  const hotBolt = G(anv, 0.0, 0.7, 0); bar(hotBolt, [-0.25, 0, 0], [0.25, 0, 0], 0.025, M.ember); hotBolt.visible = false;
-  const barrel = G(root, ANVIL.x + 1.0, 0, ANVIL.z + 0.2); C(barrel, 0.3, 0.27, 0.6, M.wood, 0, 0.3, 0, { seg: 12 }); for (const y of [0.12, 0.48]) T(barrel, 0.295, 0.02, M.iron, 0, y, 0, { rot: [PI / 2, 0, 0] }); C(barrel, 0.26, 0.26, 0.02, M.water, 0, 0.58, 0, { seg: 12 });
+  B(fg, 1.6, 0.85, 1.0, M.wallD, 0, 0.42, 0); B(fg, 1.25, 0.1, 0.7, M.deep, 0, 0.86, 0.05); for (let k = 0; k < 4; k++) B(fg, 0.42, 0.18, 0.06, M.wall, -0.6 + k * 0.4, 0.75, 0.52, { cast: false });
+  const coals = [0, 1, 2, 3, 4, 5, 6].map((k) => S(fg, 0.1, M.ember, -0.45 + k * 0.15, 0.9, 0.0 + (k % 2) * 0.14, [1, 0.5, 1]));
+  const forgeFlame = flame(fg, M, 0, 0.9, 0.05, 3.4);
+  const hood = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 1.0, 0.9, 4, 1, true), M.wallL); hood.rotation.y = PI / 4; hood.position.set(0, 1.85, -0.05); hood.castShadow = true; fg.add(hood);
+  B(fg, 0.62, 2.6, 0.62, M.wall, 0, 3.4, -0.15); B(fg, 0.8, 0.12, 0.8, M.cap, 0, 4.75, -0.15);
+  // soufflet de cuir à perche, chaîné au conduit
+  const bellows = G(fg, 1.25, 0.55, -0.05); B(bellows, 0.85, 0.08, 0.55, M.woodD, 0, 0.0, 0); const bTop = B(bellows, 0.85, 0.08, 0.55, M.woodD, 0, 0.32, 0);
+  const bLeather = B(bellows, 0.8, 0.26, 0.5, M.leather, 0, 0.16, 0); C(bellows, 0.0, 0.06, 0.4, M.ironD, -0.6, 0.12, 0, { rot: [0, 0, PI / 2], seg: 6 });
+  bar(fg, [1.25, 0.25, -0.05], [1.25, 0.0, -0.3], 0.04, M.woodD); bar(fg, [1.6, 0.25, -0.05], [1.6, 0.0, 0.2], 0.04, M.woodD);
+  const lever = G(fg, 1.4, 1.6, -0.1); bar(lever, [-0.6, 0, 0], [0.7, 0, 0], 0.035, M.woodD); const leverChain = bar(fg, [1.55, 0.95, -0.05], [1.55, 1.55, -0.1], 0.012, M.ironL);
+  // enclume sur billot, outils, auge de trempe, barres d'acier, meule à pédale, lanterne
+  const anv = G(root, ANVIL.x, 0, ANVIL.z); C(anv, 0.26, 0.3, 0.45, M.woodD, 0, 0.22, 0, { seg: 10 }); for (const y of [0.1, 0.38]) T(anv, 0.28, 0.015, M.ironD, 0, y, 0, { rot: [PI / 2, 0, 0], seg: 12 });
+  B(anv, 0.28, 0.12, 0.2, M.ironD, 0, 0.5, 0); B(anv, 0.62, 0.13, 0.24, M.ironD, 0.04, 0.62, 0); C(anv, 0.0, 0.11, 0.28, M.ironD, 0.47, 0.62, 0, { rot: [0, 0, -PI / 2], seg: 6 }); B(anv, 0.06, 0.03, 0.06, M.deep, -0.15, 0.69, 0, { cast: false });
+  const hotBolt = G(anv, 0.0, 0.71, 0); bar(hotBolt, [-0.25, 0, 0], [0.25, 0, 0], 0.025, M.ember); hotBolt.visible = false;
+  const trough = G(root, ANVIL.x + 1.0, 0, ANVIL.z + 0.25); B(trough, 0.9, 0.45, 0.45, M.woodD, 0, 0.22, 0); B(trough, 0.8, 0.02, 0.35, M.water, 0, 0.44, 0, { cast: false }); for (const sx of [-0.35, 0.35]) B(trough, 0.06, 0.5, 0.5, M.iron, sx, 0.24, 0);
+  const tools = G(root, SM.x0 + 0.17, 0, 1.5); B(tools, 0.06, 0.1, 1.2, M.woodD, 0, 1.75, 0);
+  for (let k = 0; k < 6; k++) { const z = -0.5 + k * 0.2; bar(tools, [0.05, 1.7, z], [0.05, 1.1 + (k % 3) * 0.1, z], 0.015, M.ironD); if (k % 2) B(tools, 0.08, 0.06, 0.16, M.ironD, 0.06, 1.12, z); else B(tools, 0.06, 0.12, 0.05, M.ironD, 0.06, 1.12 + (k % 3) * 0.1, z); }
+  for (let k = 0; k < 4; k++) bar(root, [SM.x0 + 0.35, 0.02, SM.z1 - 0.35 - k * 0.07], [SM.x0 + 0.5, 1.3, SM.z1 - 0.4 - k * 0.07], 0.02, M.ironL);
+  const grind = G(root, SM.x0 + 0.9, 0, SM.z1 - 0.55); B(grind, 0.5, 0.5, 0.08, M.woodD, 0, 0.25, -0.2); B(grind, 0.5, 0.5, 0.08, M.woodD, 0, 0.25, 0.2); const wheel = C(grind, 0.32, 0.32, 0.1, M.stone[1], 0, 0.58, 0, { rot: [PI / 2, 0, 0], seg: 14 });
+  const lantern = flame(root, M, -3.3, 1.9, 0.85, 1.2); bar(root, [-3.3, 2.3, 0.75], [-3.3, 2.0, 0.85], 0.01, M.ironD);
   shadow(root, FORGE.x, FORGE.z, 2.0, 0.5); shadow(root, ANVIL.x, ANVIL.z, 0.9, 0.45);
   const steam = [0, 1, 2, 3].map(() => S(root, 0.12, M.smoke, 0, -2, 0));
   const smoke = [0, 1, 2, 3, 4, 5].map(() => S(root, 0.22, M.smokeD, 0, -2, 0));
   const sparks = [0, 1, 2, 3, 4, 5, 6, 7].map(() => S(root, 0.025, M.fireCore, 0, -2, 0, [1, 1, 1], { cast: false }));
-  const rack = G(root, RACK.x, 0, RACK.z); for (const sz of [-0.55, 0.55]) B(rack, 0.1, 1.5, 0.1, M.woodD, 0, 0.75, sz); for (let r = 0; r < 3; r++) B(rack, 0.14, 0.06, 1.2, M.wood, 0.05, 0.4 + r * 0.45, 0);
+  const rack = G(root, RACK.x, 0, RACK.z, 0); for (const sz of [-0.55, 0.55]) B(rack, 0.1, 1.5, 0.1, M.woodD, 0, 0.75, sz); for (let r = 0; r < 3; r++) B(rack, 0.14, 0.06, 1.2, M.wood, 0.05, 0.4 + r * 0.45, 0);
   for (let k = 0; k < 6; k++) bar(rack, [0.1, 0.45 + (k % 3) * 0.45, -0.45 + (k >> 1) * 0.3], [0.1, 0.85 + (k % 3) * 0.45, -0.4 + (k >> 1) * 0.3], 0.02, [M.woodD, M.lapisD, M.rubricD][k % 3]);
   const oldBolt = G(rack, 0.1, 1.3, 0.45); bar(oldBolt, [0, 0, 0], [0, 0.42, 0.04], 0.022, M.woodD); oldBolt.visible = false;
-  const fl2 = flame(root, M, RACK.x + 0.5, 1.7, RACK.z - 0.8, 1.4);
-  C(root, 0.04, 0.05, 1.7, M.ironD, RACK.x + 0.5, 0.85, RACK.z - 0.8);
+  const fl2 = lantern;
 
   // ---- archives : piles de pages pliées (golems capturés), une par capture
   const arch = G(root, ARCH.x, 0, ARCH.z); B(arch, 1.6, 0.12, 1.0, M.woodD, 0, 0.06, 0);
@@ -246,9 +276,12 @@ function build(scene) {
     forgeFlame.flicker(t, 0); fl2.flicker(t, 2);
     coals.forEach((c, k) => { c.material = (Math.sin(t * 3 + k * 1.7) > 0.2) ? M.ember : M.fire; });
     ripples.forEach((r, k) => { const u = (t * 0.25 + k * 0.25) % 1; r.scale.set(0.4 + u * 1.6, 0.4 + u * 1.6, 1); r.visible = u < 0.9; });
-    smoke.forEach((s, k) => { const u = (t * 0.18 + k / 6) % 1; s.position.set(FORGE.x + 0.3 * Math.sin(u * 5 + k), 4.1 + u * 2.6, FORGE.z - 0.3 + u * 1.2); s.scale.setScalar(0.6 + u * 1.8); s.visible = u < 0.95; });
+    smoke.forEach((s, k) => { const u = (t * 0.18 + k / 6) % 1; s.position.set(FORGE.x + 0.3 * Math.sin(u * 5 + k), 4.9 + u * 2.6, FORGE.z - 0.15 + u * 1.2); s.scale.setScalar(0.6 + u * 1.8); s.visible = u < 0.95; });
     pennant.rotation.y = 0.4 * Math.sin(t * 1.3); flagCloth.rotation.y = 0.15 * Math.sin(t * 2.1);
-    const blow = 0.5 + 0.5 * Math.sin(t * 2.4); bTop.position.y = 0.36 + 0.06 * blow;
+    const working = t > 28.0 && t < 33.6, blow = working ? 0.5 + 0.5 * Math.sin(t * 6) : 0.5 + 0.5 * Math.sin(t * 1.2); bTop.position.y = 0.26 + 0.1 * blow; bLeather.scale.y = 0.6 + 0.6 * blow; bLeather.position.y = 0.06 + 0.1 * blow; lever.rotation.z = 0.15 * (blow - 0.5); wheel.rotation.y = working ? 0 : 0;
+    // la coque de la forge s'efface quand l'ingénieure y travaille : les murs descendent, le toit se lève et s'efface
+    const cut = smooth(seg01(t, 25.6, 26.8)) * (1 - smooth(seg01(t, 40.8, 42.0)));
+    shell.position.y = -2.45 * cut; roofG.position.y = 2.2 * cut; M.roofT.opacity = 1 - cut; M.roofTD.opacity = 1 - cut; roofG.visible = cut < 0.98;
     water.position.y = -0.12 + 0.005 * Math.sin(t * 1.5);
 
     // drapeau du gain : ×1 en bas, ×2,3 en haut ; il redescend dans la couture de la boucle
@@ -319,13 +352,13 @@ function build(scene) {
 
     // ---- porte : herses (or = modèle, bleu = règles), treuils, voyants, alarme
     const herseY = WAVES.map((w) => [0, 1].map((i) => { const a = w.drop[i]; return t > a && t < w.fold + 1.6 ? smooth(seg01(t, a, a + 0.5)) * (1 - smooth(seg01(t, w.fold + 1.0, w.fold + 1.6))) : 0; }));
-    herses.forEach((h, i) => { const d = Math.max(...herseY.map((v) => v[i])); h.position.y = 2.2 * (1 - d) - 0.0; winches[i].drum.rotation.z = -d * 6; winches[i].lamp.material = d > 0.95 ? M.ok : M.off; });
+    herses.forEach((h, i) => { const d = Math.max(...herseY.map((v) => v[i])); h.g.position.y = 2.2 * (1 - d); winches[i].drum.rotation.z = -d * 6; winches[i].lamp.material = d > 0.95 ? M.ok : M.off; h.lamp.material = d > 0.95 ? (i ? M.lapis : M.gold) : M.off; const y0 = h.g.position.y + 2.5, y1 = 3.62; h.links.forEach((l, k) => { l.position.y = lerp(y0, y1, (k + 0.5) / h.links.length); l.visible = y1 - y0 > 0.15; }); });
     lampGate.material = alarm ? (Math.sin(t * 12) > 0 ? M.bad : M.off) : (herseY.some((v) => v[0] > 0.95 && v[1] > 0.95) ? M.ok : M.off);
     [cast.gA, cast.gB].forEach((g, i) => { const w = WINCH[i], pull = WAVES.some((wv) => t > wv.drop[i] - 0.4 && t < wv.drop[i] + 0.6); put(g, w.x - 0.55, 0, w.z, PI / 2, pull ? POSE.crank(t * 10) : alarm && i === 1 ? { ...POSE.point, head: [0, -0.4, 0] } : { ...STAND, head: [0, 0.3 * Math.sin(t * 0.6 + i), 0] }); });
 
     // ---- ingénieur : forge au repos ; accourt à la porte, épingle les champs à la main, rapporte le gabarit, forge, envoie les carreaux neufs
     const eng = cast.eng, home = { x: ANVIL.x - 0.6, z: ANVIL.z }, gate = { x: TRAP - 0.55, z: GZ + 0.62 };
-    const R1 = [[home.x, home.z], [-3.3, 0.3], [gate.x, gate.z]];
+    const R1 = [[home.x, home.z], [-3.4, 2.2], [-2.5, 2.2], [-2.3, 0.6], [gate.x, gate.z]];
     hammer.visible = true;
     let hand = null;
     if (t >= 18.6 && t < 20.6) { walkTo(eng, R1, t, 18.6, 20.6); }
@@ -334,11 +367,11 @@ function build(scene) {
     else if (t >= 25.4 && t < 28.0) walkTo(eng, [...R1].reverse(), t, 25.4, 28.0, POSE.carry);
     else if (t >= 28.0 && t < 33.6) { put(eng, home.x, 0, home.z, PI / 2, POSE.strike((t - 28.0) / 0.55 * PI * 2)); }
     else if (t >= 33.6 && t < 34.6) put(eng, ANVIL.x + 0.5, 0, ANVIL.z - 0.4, PI / 2 + 0.6, POSE.lift);
-    else if (t >= 34.6 && t < 36.0) walkTo(eng, [[ANVIL.x + 0.5, ANVIL.z - 0.4], [RACK.x + 0.7, RACK.z + 0.3]], t, 34.6, 36.0, POSE.carry);
-    else if (t >= 36.0 && t < 36.6) put(eng, RACK.x + 0.7, 0, RACK.z + 0.3, -PI / 2, { ...STAND, shoulderR: [-1.9, 0, 0.1], elbowR: [-0.2, 0, 0] });
-    else if (t >= 36.6 && t < 38.0) walkTo(eng, [[RACK.x + 0.7, RACK.z + 0.3], [HOIST.x - 0.7, HOIST.z]], t, 36.6, 38.0, POSE.carry);
-    else if (t >= 38.0 && t < 39.2) put(eng, HOIST.x - 0.7, 0, HOIST.z, PI / 2, POSE.crank(t * 9));
-    else if (t >= 39.2 && t < 41.2) walkTo(eng, [[HOIST.x - 0.7, HOIST.z], [home.x, home.z]], t, 39.2, 41.2);
+    else if (t >= 34.6 && t < 36.0) walkTo(eng, [[ANVIL.x + 0.5, ANVIL.z - 0.4], [RACK.x + 0.7, RACK.z]], t, 34.6, 36.0, POSE.carry);
+    else if (t >= 36.0 && t < 36.6) put(eng, RACK.x + 0.7, 0, RACK.z, -PI / 2, { ...STAND, shoulderR: [-1.9, 0, 0.1], elbowR: [-0.2, 0, 0] });
+    else if (t >= 36.6 && t < 38.0) walkTo(eng, [[RACK.x + 0.7, RACK.z], [-3.4, 2.2], [-2.5, 2.2], [HOIST.x, HOIST.z - 0.75]], t, 36.6, 38.6, POSE.carry);
+    else if (t >= 38.6 && t < 39.4) put(eng, HOIST.x, 0, HOIST.z - 0.75, 0, POSE.crank(t * 9));
+    else if (t >= 39.4 && t < 41.6) walkTo(eng, [[HOIST.x, HOIST.z - 0.75], [-2.5, 2.2], [-3.4, 2.2], [home.x, home.z]], t, 39.4, 41.6);
     else put(eng, home.x, 0, home.z, PI / 2, { ...STAND, head: [0.2, 0.4 * Math.sin(t * 0.4), 0], shoulderR: [-0.4, 0, 0.1] });
     // le marteau suit la main droite
     { const v = new THREE.Vector3(), q = new THREE.Quaternion(); eng.joints.wristR.getWorldPosition(v); eng.joints.wristR.getWorldQuaternion(q); hammer.position.copy(v); hammer.quaternion.copy(q); hammer.rotateX(PI); }
@@ -348,7 +381,7 @@ function build(scene) {
     steam.forEach((s, k) => { const u = seg01(t, 33.6 + k * 0.15, 35.0 + k * 0.15); if (u > 0 && u < 1) { s.position.set(ANVIL.x + 1.0 + 0.1 * Math.sin(k * 2), 0.65 + u * 1.4, ANVIL.z + 0.2); s.scale.setScalar(0.6 + u * 1.6); } else s.position.y = -2; });
     oldBolt.visible = t > 36.2 && t < 46;
     // palan : le seau monte les carreaux neufs
-    const hu = smooth(seg01(t, 38.0, 39.2)); bucket.position.y = 0.4 + hu * (BAL.top + 0.05 - 0.4); bucketBolt.visible = t > 37.6 && t < 39.4;
+    const hu = smooth(seg01(t, 38.6, 39.4)); bucket.position.y = 0.4 + hu * (BAL.top + 0.05 - 0.4); bucketBolt.visible = t > 37.6 && t < 39.4;
     rope.position.set(HOIST.x - 0.15, (bucket.position.y + 0.5 + BAL.top + 0.55) / 2, HOIST.z); rope.scale.y = BAL.top + 0.55 - bucket.position.y - 0.5;
   };
 }

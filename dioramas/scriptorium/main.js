@@ -17,6 +17,7 @@ const M = {
   page: mk(P.page), vellum: mk(P.vellum2), inkLine: mk(P.inkLine), ink: mk(P.ink), soot: mk(P.soot),
   brass: mk(P.brass, { rough: 0.5, metal: 0.4 }), gold: mk(P.gold0, { rough: 0.45, metal: 0.4 }), iron: mk(P.iron1, { rough: 0.6, metal: 0.3 }), ironL: mk(P.iron0, { rough: 0.6, metal: 0.3 }),
   wax: mk(P.vellum), flame: mk(P.flame1, { glow: 1.6 }), flameCore: mk(P.flame0, { glow: 2.2 }), leather: mk(P.wood4), rope: mk(P.rope),
+  tile: mk(P.tile0), tileD: mk(P.tile1), tileL: mk(P.tile2), glassR: mk(P.rubric0, { glow: 0.35 }), glassB: mk(P.lapis0, { glow: 0.35 }), glassG: mk(P.gold0, { glow: 0.35 }),
   rubric: mk(P.rubric0), rubricD: mk(P.rubric1), lapis: mk(P.lapis0), lapisD: mk(P.lapis1), teal: mk(P.teal0), tealD: mk(P.teal1),
   ok: mk(P.ok, { glow: 0.9 }), bad: mk(P.rubric0, { glow: 0.9 }), off: mk(P.stone4), leaf: [mk(P.leaf0), mk(P.leaf1), mk(P.leaf2)], soil: mk(P.soil), water: mk(P.water, { rough: 0.2 }), glass: mk(P.glass, { rough: 0.2 }),
 };
@@ -44,7 +45,7 @@ function build(scene) {
   const inB = (x, z, m = 0) => Math.abs(x) < W / 2 + m && Math.abs(z) < D / 2 + m;
   const hn = (x, z) => 0.22 * Math.sin(x * 0.7 + 1.3) * Math.sin(z * 0.9) + 0.15 * Math.sin(x * 1.7 - z * 1.1);
   const isl = island(root, M, {
-    cx: 0.4, cz: 0.4, hx: W / 2 + 4.2, hz: D / 2 + 4.0, ne: 2.6, seed: 5, K: 8,
+    cx: 0.4, cz: 0.2, hx: W / 2 + 4.2, hz: D / 2 + 4.1, ne: 3.2, seed: 5, K: 8,
     hAt: (x, z) => { if (inB(x, z, 0.15)) return -0.08; const d = Math.min(Math.abs(Math.abs(x) - W / 2), Math.abs(Math.abs(z) - D / 2)); return Math.max(0, hn(x, z) * clamp(d / 1.2, 0, 1)) + 0.02; },
     paint: (x, z, n) => {
       const path = Math.abs(x - DOOR.x - 0.3 * Math.sin(z * 1.4)) < 0.55 && z < ZW;
@@ -82,6 +83,55 @@ function build(scene) {
   B(leaf, 1.5, 2.3, 0.08, M.woodD, 0.75, 1.15, 0); for (const y of [0.5, 1.8]) B(leaf, 1.2, 0.08, 0.04, M.iron, 0.65, y, 0.06);
   for (let k = 0; k < 5; k++) B(leaf, 0.02, 2.2, 0.01, M.woodK, 0.25 + k * 0.25, 1.15, 0.045, { cast: false });
   B(root, 1.6, 0.05, 0.8, M.sill, DOOR.x, 0.025, ZW + 0.1);                                                                     // seuil usé
+
+  // ---- le monastère : église derrière le mur nord (toit de tuiles, pignon, rosace), aile des moines derrière le mur ouest,
+  //      clocher à l'angle (baies, cloche, toit en pyramide, croix), vitraux, cloître à arcades devant le jardin
+  const roofSlope = (x0, x1, zEave, zRidge, yEave, yRidge, alongX) => {
+    const g = G(root), dz = zRidge - zEave, dy = yRidge - yEave, L = Math.hypot(dz, dy), a = Math.atan2(dy, dz), len = Math.abs(x1 - x0), mid = (x0 + x1) / 2;
+    const slab = G(g, 0, 0, 0); if (alongX) { slab.position.set(mid, (yEave + yRidge) / 2, (zEave + zRidge) / 2); slab.rotation.x = -a; } else { slab.position.set((zEave + zRidge) / 2, (yEave + yRidge) / 2, mid); slab.rotation.z = a; }
+    const sx = alongX ? len : L, sz = alongX ? L : len;
+    B(slab, sx, 0.16, sz, M.tileD, 0, 0, 0, { ch: 0.02 });
+    const n = Math.round(len / 0.32);
+    for (let k = 0; k < n; k++) { const u = -len / 2 + (k + 0.5) * len / n; const c = C(slab, 0.11, 0.11, L, k % 3 ? M.tile : M.tileL, alongX ? u : 0, 0.1, alongX ? 0 : u, { seg: 6, rot: alongX ? [PI / 2, 0, 0] : [0, 0, PI / 2], cast: false }); c.scale.x = 1; }
+    for (let k = 1; k < 5; k++) B(slab, alongX ? len : 0.04, 0.05, alongX ? 0.04 : len, M.tileD, alongX ? 0 : -L / 2 + k * L / 5, 0.2, alongX ? -L / 2 + k * L / 5 : 0, { cast: false });
+    return g;
+  };
+  const NAVE = { zr: ZW - 2.3, yr: wallH + 2.0 }, WING = { xr: XW - 2.3, yr: wallH + 1.6 };
+  roofSlope(-W / 2 - 0.3, W / 2 + 0.3, ZW + 0.3, NAVE.zr, wallH - 0.05, NAVE.yr, true);
+  roofSlope(-W / 2 - 0.3, W / 2 + 0.3, NAVE.zr - 1.0, NAVE.zr, NAVE.yr - 0.9, NAVE.yr, true);
+  C(root, 0.12, 0.12, W + 0.6, M.tileD, 0, NAVE.yr + 0.08, NAVE.zr, { rot: [0, 0, PI / 2], seg: 8 });
+  roofSlope(-D / 2 + 0.2, D / 2 + 0.3, XW + 0.3, WING.xr, wallH - 0.05, WING.yr, false);
+  C(root, 0.12, 0.12, D, M.tileD, WING.xr, WING.yr + 0.08, 0.2, { rot: [PI / 2, 0, 0], seg: 8 });
+  // pignon est de l'église : triangle de pierre, rosace, croix
+  { const tri = new THREE.Shape([new THREE.Vector2(ZW + 0.3, 0), new THREE.Vector2(NAVE.zr - 1.0, 0), new THREE.Vector2(NAVE.zr, NAVE.yr - wallH + 0.1)].map((v) => new THREE.Vector2(-v.x, v.y)));
+    const geo = new THREE.ExtrudeGeometry(tri, { depth: 0.4, bevelEnabled: false }); geo.rotateY(PI / 2); const m = new THREE.Mesh(geo, M.wall); m.position.set(W / 2 - 0.1, wallH, 0); m.castShadow = true; root.add(m);
+    B(root, 0.45, wallH, 2.6, M.wall, W / 2 + 0.1, wallH / 2, ZW - 1.0);
+    const rose = G(root, W / 2 + 0.33, wallH + 0.75, NAVE.zr + 0.6); T(rose, 0.42, 0.07, M.sill, 0, 0, 0, { rot: [0, PI / 2, 0], seg: 18 }); C(rose, 0.38, 0.38, 0.05, M.glassB, 0, 0, 0, { rot: [0, 0, PI / 2], seg: 16 });
+    for (let k = 0; k < 6; k++) { const a = k / 6 * PI * 2; B(rose, 0.06, 0.06, 0.06, [M.glassR, M.glassG][k % 2], 0.03, 0.22 * Math.cos(a), 0.22 * Math.sin(a), { cast: false }); bar(rose, [0.03, 0, 0], [0.03, 0.38 * Math.cos(a), 0.38 * Math.sin(a)], 0.018, M.sill); }
+    const cr = G(root, W / 2 + 0.1, NAVE.yr + 0.15, NAVE.zr); B(cr, 0.12, 0.9, 0.12, M.sill, 0, 0.45, 0); B(cr, 0.12, 0.12, 0.55, M.sill, 0, 0.62, 0); }
+  // contreforts du mur de l'église, côté extérieur visible au pignon
+  for (const x of [-4.2, 0.6, 5.0]) B(root, 0.5, 2.6, 0.7, M.wallDark, x, 1.3, ZW - 0.55);
+  // clocher : fût carré à chaînages, baies géminées, cloche, abat-sons, toit en pyramide, croix
+  const CT = { x: XW - 1.4, z: ZW - 1.4, h: 7.6 };
+  { const t = G(root, CT.x, 0, CT.z);
+    B(t, 2.3, CT.h, 2.3, M.wall, 0, CT.h / 2, 0, { ch: 0.04 }); for (let y = 1; y < CT.h; y += 1.1) { B(t, 2.36, 0.08, 2.36, M.wallDark, 0, y, 0, { cast: false }); }
+    for (const [sx, sz] of [[-1.15, -1.15], [1.15, -1.15], [-1.15, 1.15], [1.15, 1.15]]) B(t, 0.3, CT.h, 0.3, M.sill, sx, CT.h / 2, sz, { ch: 0.03 });
+    for (const [nx, nz] of [[1, 0], [0, 1]]) for (const k of [-0.45, 0.45]) { const x = nx ? 1.16 : k, z = nz ? 1.16 : k; B(t, nx ? 0.06 : 0.55, 1.5, nz ? 0.06 : 0.55, M.deep, x, CT.h - 1.2, z, { cast: false }); B(t, nx ? 0.07 : 0.62, 0.18, nz ? 0.07 : 0.62, M.sill, x, CT.h - 0.4, z, { cast: false }); for (let j = 0; j < 4; j++) B(t, nx ? 0.08 : 0.5, 0.05, nz ? 0.08 : 0.5, M.woodD, x, CT.h - 1.75 + j * 0.3, z, { cast: false }); }
+    for (const [nx, nz] of [[1, 0], [0, 1]]) B(t, nx ? 0.08 : 0.5, 1.0, nz ? 0.08 : 0.5, M.deep, nx ? 1.16 : 0, 3.2, nz ? 1.16 : 0, { cast: false });
+    B(t, 2.7, 0.2, 2.7, M.sill, 0, CT.h + 0.1, 0); const roofP = C(t, 0.0, 1.95, 2.4, M.tile, 0, CT.h + 1.4, 0, { seg: 4 }); roofP.rotation.y = PI / 4;
+    const cr = G(t, 0, CT.h + 2.6, 0); B(cr, 0.12, 1.0, 0.12, M.iron, 0, 0.5, 0); B(cr, 0.55, 0.12, 0.12, M.iron, 0, 0.7, 0); S(cr, 0.08, M.gold, 0, 1.05, 0);
+  }
+  const bellPivot = G(root, CT.x + 0.0, CT.h - 0.65, CT.z); const bell = G(bellPivot, 0, 0, 0);
+  bell.add(new THREE.Mesh(new THREE.LatheGeometry([[0.0, 0.0], [0.18, -0.02], [0.24, -0.25], [0.32, -0.62], [0.42, -0.74], [0.0, -0.74]].map(([r, h]) => new THREE.Vector2(r, h)), 16), M.brass)); B(bellPivot, 1.6, 0.14, 0.14, M.woodD, 0, 0.08, 0);
+  // vitraux en ogive dans les fenêtres du mur ouest
+  for (const zc of WIN) { for (let k = 0; k < 6; k++) B(root, 0.04, 0.42, 0.36, [M.glassB, M.glassR, M.glassG, M.glassR, M.glassB, M.glassG][k], XW + 0.02, 1.38 + (k >> 1) * 0.44, zc - 0.2 + (k % 2) * 0.4, { cast: false }); }
+  // cloître : arcades en plein cintre sur colonnettes, toit en appentis, devant le jardin des simples
+  { const z0 = D / 2 + 0.75, xs = []; for (let x = -4.4; x <= 7.7; x += 1.35) xs.push(x);
+    for (const x of xs) { C(root, 0.16, 0.2, 0.18, M.sill, x, 0.09, z0); C(root, 0.1, 0.11, 1.9, M.wall, x, 1.13, z0, { seg: 10 }); B(root, 0.32, 0.16, 0.32, M.sill, x, 2.14, z0); }
+    for (let k = 0; k < xs.length - 1; k++) { const a = T(root, 0.6, 0.1, M.wall, (xs[k] + xs[k + 1]) / 2, 2.2, z0, { arc: PI, seg: 12 }); a.scale.x = 0.98; }
+    B(root, xs[xs.length - 1] - xs[0] + 0.4, 0.5, 0.28, M.wall, (xs[0] + xs[xs.length - 1]) / 2, 3.05, z0);
+    const r = G(root, (xs[0] + xs[xs.length - 1]) / 2, 3.45, z0 - 0.55); r.rotation.x = 0.42; B(r, xs[xs.length - 1] - xs[0] + 0.9, 0.12, 1.6, M.tileD, 0, 0, 0); for (let k = 0; k < 38; k++) C(r, 0.09, 0.09, 1.6, k % 3 ? M.tile : M.tileL, -((xs[xs.length - 1] - xs[0]) / 2) - 0.3 + k * 0.33, 0.08, 0, { seg: 6, rot: [PI / 2, 0, 0], cast: false });
+  }
 
   // ---- lutrin : colonne tournée, pupitre incliné, livre ouvert, bougie
   const lect = G(root, LECT.x, 0, LECT.z);
@@ -263,6 +313,7 @@ function build(scene) {
     // flammes, chat, aiguille
     flames.forEach((f, i) => f.flicker(t, i));
     tail.rotation.y = 0.5 * Math.sin(t * 1.3) + 0.25 * Math.sin(t * 2.9);
+    { let sw = 0; for (const a of [11.6, 32.0, 45.6]) { const d = t - a + (t < 1 ? 46 : 0); if (d > 0 && d < 3) sw = Math.max(sw, Math.sin(d * 5) * Math.exp(-d * 0.9)); } bell.rotation.z = 0.6 * sw; }
     const gain = t < 1.6 ? lerp(2.3, 1, smooth(seg01(t, 0.2, 1.6))) : 1 + 1.3 * smooth(seg01(t, 44.0, 45.6));
     needle.rotation.x = -2.3 + (gain - 0.5) / 2.5 * 4.6;
 
@@ -396,6 +447,6 @@ function build(scene) {
 run({
   light(L) { L.sun.position.set(13, 20, 9); },
   palette: toRGB(HEX), slab: [W, D], loop: LOOP, stillT: 26,
-  px: 2, fit: [[-W / 2 - 4.0, 0, 0.4], [W / 2 + 4.6, 0, 0.4], [0.4, 0, -D / 2 - 3.8], [0.4, 0, D / 2 + 4.2], [0.4, -11.5, 0.4], [-W / 2, 3.9, -D / 2]].map((p) => new THREE.Vector3(...p)),
+  px: 2, fit: [[-W / 2 - 4.0, 0, 0.4], [W / 2 + 4.6, 0, 0.4], [0.4, 0, -D / 2 - 3.8], [0.4, 0, D / 2 + 4.2], [0.4, -11.5, 0.4], [XW - 1.4, 11.4, ZW - 1.4]].map((p) => new THREE.Vector3(...p)),
   build,
 });
