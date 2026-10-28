@@ -39,6 +39,8 @@ export const DIAL = { u: 21, z: 64, r0: 5, r1: 17, turns: 3 };
 export const CELLS = Array.from({ length: 12 }, (_, i) => 0.1 + i * 0.075);
 export const TRAY = { x: -98, y: 40 };
 export const CORPUS_TOP = 14;                                   // dessus de la boîte du corpus
+export const EXIT = [CASE.x1, -21, 38];                             // fente de sortie des pages, sous le cadran à spirale (flanc droit)
+export const READ_SLOT = [-35, -21, CASE.h + 8.2];                  // fente de lecture du couvercle
 export const DESK = { x0: 38, x1: 60, y0: 12, y1: 38, z: 6 };     // table lumineuse « Radiographie » : l'agent y valide chaque page
 export const DESK_C = [(DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z + 0.3];
 export const DIV = { x: 128, y: 40, z: 9 };                       // la roue candidate se forme sur le plateau diviseur (z = 9)
@@ -118,11 +120,16 @@ const V3 = (x, y, z) => [x, y, z];
 export const SHEETS = [];
 const flat = (c) => ({ c, d: V3(1, 0, 0), w: V3(0, 1, 0) });
 let stack = 0;
+// le rapport PDF quitte la pile des rapports à lire, monte et entre dans la fente de lecture (premier passage, puis nouvel essai)
+for (const [t0, dur, k] of [[0.3, 2.4, 0], [45, 2.2, 1]]) SHEETS.push({ kind: 'pdf', t0, dur, L: 16, W: 12, ph: 3 + k, clipZ: READ_SLOT[2],
+  from: flat(V3(TRAY.x - 10, TRAY.y, 11 - k * 1.1)), to: { c: V3(READ_SLOT[0], READ_SLOT[1], READ_SLOT[2] - 9), d: V3(0, 0, -1), w: V3(-1, 0, 0) },
+  c1: V3(TRAY.x + 6, TRAY.y - 10, 96), c2: V3(READ_SLOT[0] - 6, READ_SLOT[1] + 4, 156) });
+// chaque page proposée sort par la fente du flanc droit, se pose sur la table lumineuse, puis part au corpus une fois validée
 for (const pass of [1, 2]) CELLS.forEach((c, i) => {
-  const ev = EVENTS.filter((e) => e.pass === pass && e.i === i), first = ev[0].t, last = ev[ev.length - 1].t, cw = cellWorld(i);
+  const ev = EVENTS.filter((e) => e.pass === pass && e.i === i), first = ev[0].t, last = ev[ev.length - 1].t;
   const stamps = ev.map((e) => ({ t: e.t, kind: e.kind })), depart = last + 0.25, ph = i * 1.3 + pass;
-  SHEETS.push({ kind: 'page', stamps, t0: first - 0.75, dur: 0.6, L: 16, W: 12, ph, stay: depart,
-    from: { c: V3(cw[0] + 0.6, cw[1], cw[2]), d: V3(0, 0, -1), w: V3(0, 1, 0) }, to: flat(V3(...DESK_C)), c1: V3(cw[0] + 14, cw[1] + 10, cw[2] + 4), c2: V3(DESK_C[0] + 8, DESK_C[1] + 4, DESK_C[2] + 22) });
+  SHEETS.push({ kind: 'page', stamps, t0: first - 0.85, dur: 0.7, L: 16, W: 12, ph, stay: depart,
+    from: flat(V3(EXIT[0] + 8.5, EXIT[1], EXIT[2])), to: flat(V3(...DESK_C)), c1: V3(EXIT[0] + 22, EXIT[1] + 12, EXIT[2] + 6), c2: V3(DESK_C[0] + 8, DESK_C[1] + 4, DESK_C[2] + 22) });
   SHEETS.push({ kind: 'valid', stamps, mark: ev.length > 1, t0: depart, dur: 1.6, L: 16, W: 12, ph: ph + 0.7, stay: LOOP_T,
     from: flat(V3(...DESK_C)), to: flat(V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 0.3 + (stack++) * 0.22)), c1: V3(DESK_C[0] - 10, DESK_C[1] + 24, 46), c2: V3(TRAY.x + 46, 62, 52) });
 });
@@ -169,7 +176,7 @@ export function sheetRows(p, NT = 10) {
     rows.push([add(P, w, -W / 2), add(P, w, W / 2)]);
   }
   const z = p.sh.clipZ;
-  if (z === undefined) return rows;
+  if (z === undefined || p.u < 0.6) return rows;                     // la fente ne coupe la feuille qu'à l'arrivée
   const out = [];
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
@@ -233,7 +240,6 @@ export function stateAt(s) {
   o.newFly = glide(seg(s, 40.6, 43)); o.newDrop = ease(seg(s, 43, 44.6));
   o.swap = s >= 39.8 && s < 44.6;
   o.version = s >= 44.6 ? 4 : 3;
-  o.card = [ease(seg(s, 0.5, 2.6)), ease(seg(s, 45.2, 47))];
   return o;
 }
 /** Position (centre, z) de la roue du modèle dans le boîtier pendant l'échange, ou null si l'emplacement est vide. */

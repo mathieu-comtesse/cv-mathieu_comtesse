@@ -5,7 +5,7 @@
 // le banc d'essai la juge sur deux rapports séparés ; le levier la publie : l'ancienne roue du modèle sort par la trappe, la nouvelle descend.
 import * as THREE from 'three';
 import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish } from './core.js';
-import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, DESK, HANDS, HANDS_Y, ELBOW } from './anticythere-model.js';
+import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, DESK, HANDS, HANDS_Y, HANDS_K, ELBOW } from './anticythere-model.js';
 
 export const WIDTH = 318;
 const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
@@ -123,8 +123,17 @@ export function build() {
     g2.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     add(g2); return g2;
   };
-  const bronzeHand = mat(C.bronze, { metalness: .35, roughness: .45 }), skinHand = mat('#e7b48f', { roughness: .75 });
-  const handM = handGroup(HANDS.machine, 'bronze', bronzeHand), handH = handGroup(HANDS.human, 'skin', skinHand);
+  const bronzeHand = mat(C.bronze, { metalness: .35, roughness: .45 });
+  const handM = handGroup(HANDS.machine, 'bronze', bronzeHand);
+  // la main de l'agent : la main de la fresque, découpée et posée à plat, imprimée recto verso (une découpe vue de dos montre la main en miroir)
+  const handH = new THREE.Group(); add(handH);
+  { const tex = new THREE.TextureLoader().load('assets/figures/main-adam.webp'); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const PX = 509, PY = 227, TIP = [4, 92], k = 0.112 * HANDS_K, w = PX * k, hh = PY * k;
+    const geo = new THREE.PlaneGeometry(w, hh).translate(w / 2 - TIP[0] * k, -(hh / 2 - TIP[1] * k), 0);
+    const face = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: '#ffffff', emissiveIntensity: .32, roughness: 1, alphaTest: .45, side: THREE.DoubleSide }));
+    face.castShadow = true; face.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: .45 });
+    face.rotation.z = 0.36;                                        // le bras monte vers la droite, comme sur la fresque
+    handH.add(face); }
   add(cyl(ELBOW[0], ELBOW[1], 5, 0, 1.6, C.bronze, 28), cyl(ELBOW[0], ELBOW[1], 1.6, 1.6, ELBOW[2] - 6, C.bronze, 18), cyl(ELBOW[0], ELBOW[1], 2.6, ELBOW[2] - 4.4, 2.4, C.bronzeLo, 20));
   const sparkM = new THREE.MeshBasicMaterial({ color: '#fff3b0', transparent: true }), spark = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), sparkM); add(spark);
   // ---- machine à diviser : plateau, axe, couteau ; banc d'essai ; levier de publication ----
@@ -168,7 +177,6 @@ export function build() {
   add(slab(BOARD.x0 - 3, BOARD.y - 6, BOARD.x1 - BOARD.x0 + 6, 10, 0, 4, C.woodLo, 1), wbox((BOARD.x0 + BOARD.x1) / 2, BOARD.y - 1.5, BOARD.z1 + 1.5, BOARD.x1 - BOARD.x0 + 2, 5, 3, C.woodLo));
   const boardGears = BOARD.slots.map(([u, z], i) => { const w = wheel(RW, 24, 3, C.bronze, { depth: GEARS.pin.d }); at(w, u, BOARD.y + 3, z); w.userData.spin.rotation.z = i * .7; add(w, box(u, BOARD.y + .2, z + RW + 3.3, 10, .4, 4.2, C.paper), cylY(BOARD.y, BOARD.y + 3.4, u, z, 1.8, C.bronzeLo, 12)); return w; });
   // ---- pièces en voyage : la fiche, la roue neuve, l'ancienne roue ----
-  const card = box(-35, -21, 0, 22, 3.2, 30, C.paper); add(card);
   const newWheel = wheel(RW, 24, 3, C.bronzeHi, { depth: GEARS.pin.d }); add(newWheel);
   newWheel.userData.spin.add(finish(new THREE.CylinderGeometry(1.8, 1.8, 7.6, 14).rotateX(Math.PI / 2).translate(10, 0, 4.2), mat(C.bronzeHi), 40));
   const oldWheel = wheel(RW, 24, 3, C.bronze, { depth: GEARS.pin.d }); add(oldWheel);
@@ -232,7 +240,6 @@ export function build() {
     const key = o.cells.join('') + Math.round(o.spiral * 400); if (key !== lastDial) { lastDial = key; paintDial(o); }
     if (o.version !== lastVer) { lastVer = o.version; paintVer(o.version); }
     // fiche : descend dans la fente
-    const cu = o.card.find((u) => u > 0 && u < 1); card.visible = cu !== undefined; if (card.visible) card.position.y = CASE.h + 8 + 40 * (1 - cu) - 15;
     // la roue du modèle : à sa place, ou en train de sortir par la trappe (l'ancienne) ou d'y descendre (la candidate)
     const pc = pinInCase(o); wPin.visible = !!pc; if (pc) wPin.position.y = pc.z;
     seal.visible = o.sealed;

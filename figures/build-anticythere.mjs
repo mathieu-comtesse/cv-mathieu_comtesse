@@ -161,7 +161,7 @@ const dialSvg = (() => {
     <path class="iso-line" data-tone="lo" d="${ticks}"/><path class="iso-line" data-tone="mid" d="${sp}"/>${cells}
     <path class="ak-face" d="${circ(10.5, DIAL.u, -106)}"/><path class="iso-line" data-tone="mid" d="${ring48(10.5, DIAL.u, -106)}"/>${ver}<path class="iso-line" data-tone="lo" d="${ring48(4, DIAL.u, -106)}"/>
     <g data-part="ver-hand"></g><g data-part="spiral-hand"></g>
-    ${inscription(7, -37, 28, 6, 3, 3.6)}${inscription(7, -122, 28, 1, 5)}${inscription(5, -91, 6, 1, 9)}${inscription(31, -91, 6, 1, 13)}
+    ${inscription(7, -32.4, 28, 5, 3, 3.6)}<path class="ak-bridge" d="M12 -36.4H30V-39.6H12Z"/><path class="fig-dark" d="M13.6 -37.4H28.4V-38.6H13.6Z"/>${inscription(7, -122, 28, 1, 5)}${inscription(5, -91, 6, 1, 9)}${inscription(31, -91, 6, 1, 13)}
   </g>`;
 })();
 
@@ -275,7 +275,7 @@ const svg = k.figureSvg({
   body: [...base, toolsSvg, boardSvg, traySvg, caseSvg,
     `<g transform="${front(MECH_Y + 1)}" data-part="gears-back"></g><g transform="${front(MECH_Y + 4)}" data-part="gears"></g>`,
     caseFront, `<clipPath id="ak-lid" clipPathUnits="userSpaceOnUse"><rect x="-400" y="-1000" width="800" height="${1000 - LID_Z}"/></clipPath><g transform="${front(MECH_Y + 4)}" clip-path="url(#ak-lid)" data-part="lidtop"></g>`, dialSvg,
-    `<g data-part="lamps"></g><g data-part="card"></g><g data-part="crank"></g><g data-part="seal"></g>`,
+    `<g data-part="lamps"></g><g data-part="crank"></g><g data-part="seal"></g>`,
     divSvg, `<g data-part="div"></g><g data-part="board"></g><g data-part="travel"></g><g data-part="sheets"></g><g data-part="hand"></g>`],
 });
 
@@ -306,7 +306,7 @@ const at = (p) => iso(p, P);
 const front = (y) => sideMatrix([0, y], 0, P, "left");
 const box = (x0, x1, y0, y1, z, h, o = {}) => solidSvg(extrude([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], z, h, P, { bevel: o.bevel ?? 0.5 }), { tone: o.tone || "mid", lit: o.lit, crease: o.crease, className: o.cls });
 const f2 = (v) => v.toFixed(2), pt = (q) => f2(q[0]) + " " + f2(q[1]);
-const parts = {}; for (const n of ["gears", "lidtop", "lamps", "card", "crank", "seal", "div", "board", "hand", "travel", "sheets", "ver-hand", "spiral-hand"]) parts[n] = $(n);
+const parts = {}; for (const n of ["gears", "lidtop", "lamps", "crank", "seal", "div", "board", "hand", "travel", "sheets", "ver-hand", "spiral-hand"]) parts[n] = $(n);
 const cells = CELLS.map((_, i) => $("cell-" + i));
 const FIELDS = ["ak-f0", "ak-f1", "ak-f2", "ak-f3"];
 let t = 0, frozen = false, touring = true, idle = 0;
@@ -404,7 +404,6 @@ function draw(o, s) {
   fr += '<g transform="translate(' + (g.slot.u + 14) + ' ' + (-(g.slot.z + 14)) + ')"><path class="ak-face" d="' + circ(3.4) + '"/><path class="' + (o.accord ? 'ak-ok' : 'ak-off') + '" d="' + circ(2) + '"/></g>';
   parts.gears.innerHTML = fr; parts.lidtop.innerHTML = top;
   parts.lamps.innerHTML = LAMPS.map((p, i) => { const q = at(p); return '<circle class="ak-lamp ' + (o.lamps[i] ? FIELDS[i] + ' ak-on' : '') + '" cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="2.6"/>'; }).join("");
-  parts.card.innerHTML = o.card.map((u) => { if (u <= 0 || u >= 1) return ""; const z = CASE.h + 8 + 40 * (1 - u); return box(-46, -24, -22.6, -19.4, z - 30, 30, { tone: "hi", crease: "none", bevel: 0.2 }) + '<g transform="' + front(-19.4) + '">' + ["ak-f0s", "ak-f1s", "ak-f2s", "ak-f3s"].map((c, j) => '<path class="' + c + '" d="M-43 ' + (-(z - 4 - j * 5)).toFixed(1) + 'h' + [12, 8, 15, 10][j] + '"/>').join("") + '</g>'; }).join("");
   const ca = o.crank, cu = g.crank.u, cz = g.crank.z, hx = cu + 14 * Math.cos(ca), hz = cz + 14 * Math.sin(ca);
   parts.crank.innerHTML = '<path class="iso-line" data-tone="hi" d="M' + at([cu, MECH_Y + 6, cz]).join(" ") + 'L' + at([hx, MECH_Y + 6, hz]).join(" ") + '"/>' + dotsSvg([at([cu, MECH_Y + 6, cz])], { size: 1.3, tone: "hi" }) + box(hx - 2, hx + 2, MECH_Y + 6, MECH_Y + 16, hz - 2, 4, { tone: "hi", lit: true, bevel: 0.8, cls: "mat-wood" });
   // le corpus est figé : un sceau de cire sur la boîte, sa version
