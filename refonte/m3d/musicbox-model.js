@@ -1,62 +1,55 @@
-// Modèle du Lecteur VRE, partagé par la figure SVG (figures/build-anticythere.mjs) et la machine 3D (refonte/m3d/vrestudio.js).
+// Modèle du Lecteur VRE (boîte à musique), partagé par la figure SVG (figures/build-musicbox.mjs) et la machine 3D (refonte/m3d/vrestudio.js).
 // Repère de figure : x vers la droite, y vers l'avant, z vers le haut. Tout est une fonction pure du temps s (boucle de LOOP_T s).
-// Le parcours suit VRE Studio V4.1 : lecture, tri mini-BERT, accord modèle et règles, propositions sur des pages inédites,
-// validation humaine dans Radiographie, corpus figé (image, texte, positions), entraînement LayoutLMv3, évaluation indépendante
-// (F1 ≥ 0,75, rappel U1 ≥ 0,90), publication explicite du candidat accepté, nouvel essai dont les cadres restent des propositions.
+// Le modèle est un cylindre à picots : la position de chaque picot est ce que le modèle a appris. Une page du rapport entre dans le lecteur,
+// le cylindre tourne et pince les lamelles du peigne (un champ par lamelle) ; les règles métiers sont l'étouffoir qui coupe les notes
+// impossibles ; les pages inédites sortent par la fente du flanc, l'agent les valide une à une sur la table lumineuse (Radiographie) ;
+// le corpus figé sert à planter les picots d'un cylindre neuf (entraînement LayoutLMv3), le banc d'essai le joue sur deux rapports
+// séparés (F1 ≥ 0,75, rappel U1 ≥ 0,90), le levier publie : l'ancien cylindre rejoint l'étagère des versions, le nouveau descend.
+// Tout reste sur l'établi (rebord et cadenas : rien ne sort, tout tourne en local) ; chaque correction part aussi en copie dans la bannette
+// partagée, où arrivent celles des autres agents, et nourrit le corpus.
 export const TAU = Math.PI * 2;
-export const CASE = { x0: -72, x1: 82, y0: -42, y1: 0, h: 132, t: 6 };
-export const MECH_Y = -16, FY = MECH_Y + 4;                  // platine, puis plan avant des roues
-
-// Engrenages : deux pas de denture (module M pour le train principal, MF pour le train du gain), centres posés à la somme exacte
-// des rayons primitifs, pour que chaque roue touche celle qui l'entraîne. p3 (12 dents) est solidaire de d46 sur le même axe.
-const M = 3.79, MF = 2.39, DM = 2.4, DF = 1.5;
-const spec = (n, m, d) => ({ n, d, rp: +(n * m / TAU).toFixed(3), r: +(n * m / TAU + d / 2).toFixed(3) });
-export const GEARS = { b1: { u: -24, z: 62, ...spec(64, M, DM) } };
-const meshTo = (key, from, deg, s) => { const f = GEARS[from], dd = f.rp + s.rp, a = deg * Math.PI / 180; GEARS[key] = { ...s, u: +(f.u + dd * Math.cos(a)).toFixed(2), z: +(f.z + dd * Math.sin(a)).toFixed(2) }; };
-meshTo('crank', 'b1', 235, spec(16, M, DM));
-meshTo('idle', 'b1', 35.3, spec(14, M, DM));
-meshTo('pin', 'idle', 29.6, spec(24, M, DM));
-GEARS.slot = { ...GEARS.pin, u: +(GEARS.pin.u + 4).toFixed(2) };
-meshTo('p2', 'b1', -2.5, spec(12, M, DM));
-meshTo('corpus', 'p2', 0, spec(26, M, DM));
-meshTo('p3', 'b1', -40, spec(12, M, DM));
-GEARS.d46 = { ...spec(46, MF, DF), u: GEARS.p3.u, z: GEARS.p3.z };
-meshTo('o20', 'd46', 0, spec(20, MF, DF));
-// Phases : chaque dent tombe dans un creux de la roue qu'elle touche (centre de dent à 0,46 pas, centre de creux à 0,96).
-// flip : vrai quand l'axe vertical du dessin monte (scène 3D), faux quand il descend (face SVG).
-export const MESH = [['b1', 'crank'], ['b1', 'idle'], ['idle', 'pin'], ['b1', 'p2'], ['p2', 'corpus'], ['b1', 'p3'], ['d46', 'o20']];
-export function phases(flip) {
-  const ph = { b1: 0, d46: 0, slot: 0 };
-  for (const [a, b] of MESH) {
-    const A = GEARS[a], B = GEARS[b], pA = TAU / A.n, pB = TAU / B.n;
-    const th = Math.atan2(flip ? B.z - A.z : A.z - B.z, B.u - A.u), fA = ((((th - ph[a]) / pA - 0.46) % 1) + 1) % 1;
-    ph[b] = th + Math.PI - pB * (0.96 - fA);
-  }
-  return ph;
-}
-
-export const DIAL = { u: 21, z: 64, r0: 5, r1: 17, turns: 3 };
+export const CASE = { x0: -72, x1: 82, y0: -52, y1: 4, h: 84, t: 6 };
+export const CYL = { x0: -52, x1: 40, y: -26, z: 58, r: 16 };    // cylindre à picots (axe x) : le modèle
+CYL.xc = (CYL.x0 + CYL.x1) / 2;
+// Peigne : douze lamelles, une par champ (quatre champs, trois lamelles chacun), pointe au contact des picots à l'angle CONTACT.
+export const NT = 12;
+export const CONTACT = -0.35;                                    // angle (rad) du contact picot / lamelle, dans le plan (y, z)
+export const tx = (i) => CYL.x0 + 5 + i * 7.5;                    // abscisse de la lamelle i et de sa piste sur le cylindre
+export const TOOTH = { y0: -2, tip: CYL.y + CYL.r * Math.cos(CONTACT), z: CYL.z + CYL.r * Math.sin(CONTACT), w: 3.6 };
+export const IMPOSSIBLE = [3, 8];                                // lamelles que les règles métiers étouffent
+// Picots appris : version 3 (cylindre actuel) et version 4 (corrigée par l'agent : cinq picots déplacés ou ajoutés).
+const rnd = (() => { let r = 7; return () => (r = (r * 9301 + 49297) % 233280) / 233280; })();
+export const PINS3 = Array.from({ length: NT }, (_, i) => Array.from({ length: 4 + (i % 3) }, (_, j) => +(((j + 0.15 + 0.7 * rnd()) / (4 + (i % 3))) * TAU).toFixed(3)));
+export const NEWPINS = [[1, 0.9], [4, 2.2], [6, 4.1], [9, 5.4], [10, 3.3]];
+export const PINS4 = PINS3.map((a, i) => [...a, ...NEWPINS.filter(([t]) => t === i).map(([, an]) => an)]);
+export const PLANT = PINS4.flatMap((a, i) => a.map((an) => ({ i, an }))).sort((p, q) => p.an - q.an);   // ordre de pose sur la machine
 export const CELLS = Array.from({ length: 12 }, (_, i) => 0.1 + i * 0.075);
+export const FACIA = { z0: 8, z1: 17, y: CASE.y1 + 3 };                          // rampe des douze cases, au bas du devant du boîtier
+export const cellX = (i) => -56 + i * 10.6;
 export const TRAY = { x: -98, y: 40 };
-export const CORPUS_TOP = 14;                                   // dessus de la boîte du corpus
-export const EXIT = [CASE.x1, -21, 38];                             // fente de sortie des pages, sous le cadran à spirale (flanc droit)
-export const READ_SLOT = [-35, -21, CASE.h + 8.2];                  // fente de lecture du couvercle
+export const CORPUS_TOP = 14;
+export const SHARED = { x: -104, y: 4, w: 22, d: 18, h: 8, stack: 5 };             // bannette des corrections partagées (autres agents)
+export const SHARED_TOP = SHARED.h + SHARED.stack * 0.5;
+export const RIM = { h: 5, t: 3 };                                               // rebord de l'établi : tout reste en local                                   // dessus de la boîte du corpus
+export const EXIT = [CASE.x1 + 8, (CASE.y0 + CASE.y1) / 2, 66];  // bouche de sortie des pages, sur le flanc droit
+export const DECK = { x0: 46, x1: CASE.x1, z: CASE.h, h: 3 };                       // plateau du lecteur, au-dessus de la tête de lecture
+export const READER = { x0: 52, x1: 76, y0: CYL.y - 14, y1: CYL.y + 14, z0: CASE.h + 3, z1: CASE.h + 17 };   // lecteur : fente d'entrée des rapports
+export const READ_SLOT = [(READER.x0 + READER.x1) / 2, CYL.y, READER.z1 + 0.2];
 export const DESK = { x0: 38, x1: 60, y0: 12, y1: 38, z: 6 };     // table lumineuse « Radiographie » : l'agent y valide chaque page
 export const DESK_C = [(DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z + 0.3];
-export const DIV = { x: 128, y: 40, z: 9 };                       // la roue candidate se forme sur le plateau diviseur (z = 9)
+export const DIV = { x: 140, y: 40, z: 9 };                       // machine à planter les picots : le cylindre neuf y est posé
+export const BLANK = { x: DIV.x, y: DIV.y, z: DIV.z + CYL.r + 1 };       // axe du cylindre neuf
 export const GAUGE = { x0: DIV.x - 32, x1: DIV.x - 14, y0: DIV.y + 17, y1: DIV.y + 23, z1: 24 };
-export const LEVER = { x: DIV.x + 26, y: DIV.y + 22, z: 18 };
-export const HATCH = { x0: GEARS.pin.u - 17.5, x1: GEARS.pin.u + 17.5, y0: FY - 4, y1: FY + 4 };
-export const BOARD = { x0: 98, x1: 170, y: -46, z1: 86, slots: [[116, 64], [152, 64], [116, 24], [152, 24]] };
-export const LID_Z = CASE.h + 7, ABOVE = LID_Z + GEARS.pin.r + 18;
-
+export const LEVER = { x: DIV.x + 42, y: DIV.y + 22, z: 18 };
+export const BOARD = { x0: 92, x1: 198, y: -57, z1: 112, slots: [[142, 20], [142, 53], [142, 86]], cy: -36 };   // étagère des versions : v1, v2, puis l'ancien cylindre publié
+export const ABOVE = CASE.h + 44;
 export const T = { read: [0.5, 4.2], sort: [2, 6], accord: [6, 9.6], infer: [10, 15], valid: [15.4, 25.2], freeze: [25.2, 30.2], train: [30.3, 35.3], evaluate: [35.2, 39], publish: [39.2, 45], rerun: [45.2, 52], gain: [50, 55] };
 export const LOOP_T = 56;
 export const ERR = [4, 9];
 export const TS = [0, 2, 6, 10, 15.4, 25.2, 30.3, 39.2, 45.2];
-export const STATIONS = ['Lecture · Document AI', 'Tri des champs · mini-BERT', 'Hybride · la cheville du modèle dans la coulisse des règles', 'Inférence · douze pages inédites, des cadres proposés',
-  'Validation humaine · Radiographie, chaque page validée part au corpus', 'Corpus figé · les feuilles forment le flan de la roue', 'Entraînement LayoutLMv3 puis évaluation indépendante',
-  'Publication explicite · la roue du modèle est remplacée', 'Nouvel essai · propositions validées une à une · 46 / 20 = × 2,3'];
+export const STATIONS = ['Lecture · Document AI', 'Tri des champs · mini-BERT, le peigne', 'Hybride · l\'étouffoir des règles coupe les notes impossibles', 'Inférence · douze pages inédites, des cadres proposés',
+  'Validation humaine · Radiographie, chaque correction est partagée', 'Corpus figé · les copies servent à planter les picots', 'Entraînement LayoutLMv3 en local puis évaluation indépendante',
+  'Publication explicite · le cylindre du modèle est remplacé', 'Nouvel essai · propositions validées une à une · × 2,3'];
 export const stationAt = (s) => { let i = 0; TS.forEach((a, j) => { if (s >= a) i = j; }); return i; };
 
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
@@ -66,8 +59,6 @@ const REACH2 = (c) => 46.5 + 5 * (c - 0.04) / 0.92;              // instant où 
 
 // ---- l'agent : chaque page proposée vient sur la table lumineuse, sa main la tamponne (vert : validée ; rouge puis orange :
 // corrigée), la case du cadran change au même instant, puis la page validée part au corpus (les validations enrichissent les exemples) ----
-export const spiralAt = (q) => { const a = q * DIAL.turns * TAU, r = DIAL.r0 + (DIAL.r1 - DIAL.r0) * q; return [DIAL.u + r * Math.cos(a - Math.PI / 2), -DIAL.z + r * Math.sin(a - Math.PI / 2)]; };
-export const cellWorld = (i) => { const [u, v] = spiralAt(CELLS[i]); return [CASE.x1, -u, -v]; };   // face droite : repère local (−y, −z)
 export const EVENTS = (() => {
   const ev = []; let t = T.valid[0] + 0.5;
   CELLS.forEach((c, i) => { const bad = ERR.includes(i); ev.push({ t, i, kind: bad ? 'bad' : 'ok', pass: 1 }); t += 0.6; if (bad) { ev.push({ t, i, kind: 'fix', pass: 1 }); t += 0.6; } });
@@ -96,22 +87,24 @@ export function handAt(s) {
 const V3 = (x, y, z) => [x, y, z];
 export const SHEETS = [];
 const flat = (c) => ({ c, d: V3(1, 0, 0), w: V3(0, 1, 0) });
-let stack = 0;
+let stack = 0, shared = 0;
 // le rapport PDF quitte la pile des rapports à lire, monte et entre dans la fente de lecture (premier passage, puis nouvel essai)
-for (const [t0, dur, k] of [[0.3, 2.4, 0], [45, 2.2, 1]]) SHEETS.push({ kind: 'pdf', t0, dur, L: 16, W: 12, ph: 3 + k, clipZ: READ_SLOT[2],
-  from: flat(V3(TRAY.x - 10, TRAY.y, 11 - k * 1.1)), to: { c: V3(READ_SLOT[0], READ_SLOT[1], READ_SLOT[2] - 9), d: V3(0, 0, -1), w: V3(-1, 0, 0) },
-  c1: V3(TRAY.x + 6, TRAY.y - 10, 96), c2: V3(READ_SLOT[0] - 6, READ_SLOT[1] + 4, 156) });
+for (const [t0, k] of [[0.2, 0], [0.75, 1], [1.3, 2], [44.9, 3], [45.4, 4], [45.9, 5]]) SHEETS.push({ kind: 'pdf', float: true, t0, dur: 3.2, L: 16, W: 12, ph: 3 + k * 1.7, clipZ: READ_SLOT[2],
+  from: flat(V3(TRAY.x - 10, TRAY.y, 11 - (k % 3) * 1.1)), to: { c: V3(READ_SLOT[0], READ_SLOT[1], READ_SLOT[2] - 9), d: V3(0, 0, -1), w: V3(-1, 0, 0) },
+  c1: V3(TRAY.x - 18 + (k % 3) * 6, 46 - (k % 3) * 8, 92 + (k % 3) * 8), c2: V3(READ_SLOT[0] - 34 + (k % 3) * 10, READ_SLOT[1] + 30, READ_SLOT[2] + 46 - (k % 3) * 6) });
 // chaque page proposée sort par la fente du flanc droit, se pose sur la table lumineuse, puis part au corpus une fois validée
 for (const pass of [1, 2]) CELLS.forEach((c, i) => {
   const ev = EVENTS.filter((e) => e.pass === pass && e.i === i), first = ev[0].t, last = ev[ev.length - 1].t;
   const stamps = ev.map((e) => ({ t: e.t, kind: e.kind })), depart = last + 0.25, ph = i * 1.3 + pass;
   SHEETS.push({ kind: 'page', stamps, t0: first - 0.85, dur: 0.7, L: 16, W: 12, ph, stay: depart,
-    from: flat(V3(EXIT[0] + 8.5, EXIT[1], EXIT[2])), to: flat(V3(...DESK_C)), c1: V3(EXIT[0] + 22, EXIT[1] + 12, EXIT[2] + 6), c2: V3(DESK_C[0] + 8, DESK_C[1] + 4, DESK_C[2] + 22) });
+    from: flat(V3(EXIT[0] + 6, EXIT[1], EXIT[2])), to: flat(V3(...DESK_C)), c1: V3(EXIT[0] + 22, EXIT[1] + 14, EXIT[2] + 6), c2: V3(DESK_C[0] + 8, DESK_C[1] + 4, DESK_C[2] + 22) });
+  if (ev.length > 1) SHEETS.push({ kind: 'share', stamps, mark: true, float: true, t0: depart + 0.35, dur: 2.4, L: 16, W: 12, ph: ph + 2.1, stay: LOOP_T,
+    from: flat(V3(...DESK_C)), to: flat(V3(SHARED.x, SHARED.y, SHARED_TOP + 0.3 + (shared++) * 0.22)), c1: V3(DESK_C[0] - 6, DESK_C[1] + 30, 64), c2: V3(SHARED.x + 40, SHARED.y + 34, 70) });
   SHEETS.push({ kind: 'valid', stamps, mark: ev.length > 1, t0: depart, dur: 1.6, L: 16, W: 12, ph: ph + 0.7, stay: LOOP_T,
     from: flat(V3(...DESK_C)), to: flat(V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 0.3 + (stack++) * 0.22)), c1: V3(DESK_C[0] - 10, DESK_C[1] + 24, 46), c2: V3(TRAY.x + 46, 62, 52) });
 });
-for (let k = 0; k < 5; k++) { const a = k * 0.62; SHEETS.push({ kind: 'freeze', t0: 25.7 + k * 0.5, dur: 1.9, L: 16, W: 12, ph: 2 + k * 1.3, stay: 30.2,
-  from: flat(V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 3.2)), to: { c: V3(DIV.x, DIV.y, DIV.z + 0.3 + k * 0.5), d: V3(Math.cos(a), Math.sin(a), 0), w: V3(-Math.sin(a), Math.cos(a), 0) },
+for (let k = 0; k < 5; k++) { const a = k * 0.5 - 1; SHEETS.push({ kind: 'freeze', t0: 25.7 + k * 0.5, dur: 1.9, L: 16, W: 12, ph: 2 + k * 1.3, stay: 30.2,
+  from: flat(k < 2 ? V3(SHARED.x, SHARED.y, SHARED_TOP + 1) : V3(TRAY.x + 12.5, TRAY.y, CORPUS_TOP + 3.2)), to: { c: V3(BLANK.x - 20 + k * 10, BLANK.y, BLANK.z + 12.3 + k * 0.3), d: V3(Math.cos(a), Math.sin(a), 0), w: V3(-Math.sin(a), Math.cos(a), 0) },
   c1: V3(TRAY.x + 46, 66, 62), c2: V3(DIV.x - 44, 66, 62) }); }
 for (let m = 0; m < 2; m++) { const gx = (GAUGE.x0 + GAUGE.x1) / 2, gy = (GAUGE.y0 + GAUGE.y1) / 2; SHEETS.push({ kind: 'test', t0: 35.4 + m * 0.9, dur: 2.2, L: 16, W: 11, ph: 5 + m, clipZ: GAUGE.z1,
   from: flat(V3(TRAY.x - 10, TRAY.y, 11)), to: { c: V3(gx, gy, GAUGE.z1 + 1), d: V3(0, 0, -1), w: V3(-1, 0, 0) },
@@ -137,7 +130,8 @@ export function sheetPose(sh, s) {
   let d = norm(mix(sh.from.d, sh.to.d, e)), w = norm(mix(sh.from.w, sh.to.w, e));
   w = norm(add(w, d, -dot(w, d))); let n = cross(d, w);
   // la feuille ondule : tangage autour de sa largeur, roulis autour de sa longueur
-  const b = env * 0.5 * Math.sin(TAU * 1.05 * tt + sh.ph), g = env * 0.28 * Math.sin(TAU * 0.8 * tt + sh.ph * 1.7);
+  const fl = sh.float ? 1 : 0, b = env * (0.5 + 0.35 * fl) * Math.sin(TAU * (1.05 - 0.4 * fl) * tt + sh.ph), g = env * (0.28 + 0.3 * fl) * Math.sin(TAU * (0.8 - 0.3 * fl) * tt + sh.ph * 1.7);
+  if (fl) { const side = norm(cross(d, [0, 0, 1])), sw = env * 7 * Math.sin(TAU * 0.45 * tt + sh.ph), lift = env * 3.5 * Math.sin(TAU * 0.9 * tt + sh.ph * 0.6); c[0] += side[0] * sw; c[1] += side[1] * sw; c[2] += lift; }
   [d, n] = [norm(add(d.map((x) => x * Math.cos(b)), n, Math.sin(b))), norm(add(n.map((x) => x * Math.cos(b)), d, -Math.sin(b)))];
   [w, n] = [norm(add(w.map((x) => x * Math.cos(g)), n, Math.sin(g))), norm(add(n.map((x) => x * Math.cos(g)), w, -Math.sin(g)))];
   const kappa = env * (1.5 + 0.7 * Math.sin(TAU * 1.35 * tt + sh.ph)) / sh.L;
@@ -175,20 +169,16 @@ export function sheetTrail(sh, s, n = 9) {
 /** État de toute la machine à l'instant s. */
 export function stateAt(s) {
   const o = {};
-  const crankTurns = 2.0 * ease(seg(s, 0.5, 9.6)) + 3.0 * ease(seg(s, 10, 15)) + 3.0 * ease(seg(s, 46, 54));
-  o.crank = crankTurns * TAU; o.b1 = -o.crank * GEARS.crank.n / GEARS.b1.n;
-  o.idle = -o.b1 * GEARS.b1.n / GEARS.idle.n; o.pin = -o.idle * GEARS.idle.n / GEARS.pin.n;
+  const turns = 2.3 * ease(seg(s, 0.5, 9.6)) + 3.2 * ease(seg(s, 10, 15)) + 3.45 * ease(seg(s, 46, 54));
+  o.cyl = turns * TAU + 0.3;                                                 // angle de rotation du cylindre à picots
   const ac = ease(seg(s, T.accord[0], T.accord[1]));
-  o.slot = o.pin + (1 - ac) * 0.5 * Math.sin(s * 3);
-  o.accord = (s > 8.4 && s < 10.4) || (s > 46.8 && s < 54.5);
-  o.p2 = -o.b1 * GEARS.b1.n / GEARS.p2.n;
-  // anneaux du corpus : l'extérieur suit son pignon ; texte et position avancent à chaque page validée et pendant l'entraînement
-  const landed = Math.min(12, SHEETS.filter((q) => q.kind === 'valid' && s >= q.t0 + q.dur).length);
-  o.corpus = [0, -0.9, 1.3].map((k2, i) => k2 * (0.35 * landed + 2.2 * ease(seg(s, T.train[0], T.train[1]))) + i * 0.4);
-  o.corpus[0] = -o.p2 * GEARS.p2.n / GEARS.corpus.n;
-  o.p3 = -o.b1 * GEARS.b1.n / GEARS.p3.n; o.d46 = o.p3; o.o20 = -o.d46 * GEARS.d46.n / GEARS.o20.n;
-  o.lamps = [0, 1, 2, 3].map((i) => { const a = ((o.b1 + i * TAU / 4) % TAU + TAU) % TAU, d = Math.abs(((a + Math.PI / 2) % TAU + TAU) % TAU - Math.PI); return (s > 2 && s < 9.6) || (s > 46 && s < 54) ? (d > Math.PI - 0.5 || s % 56 > 6 ? 1 : 0) : 0; });
-  // cadran à spirale : propositions (bleu) ; l'agent valide (vert) ou corrige (rouge puis orange) ; au nouvel essai, tout se valide
+  o.damp = (s < T.rerun[0] ? ac : ac) * (s > 8.2 && s < 10.6 || s > 46.4 && s < 54.6 ? 1 : 0);   // l'étouffoir descend sur les notes impossibles
+  o.accord = o.damp > 0.5;
+  o.version = s >= 44.6 ? 4 : 3;
+  const pins = s < 44.6 ? PINS3 : PINS4;
+  // lamelles : chaque picot qui vient de passer au contact pince la lamelle, la vibration s'éteint ensuite
+  o.pluck = pins.map((a, i) => { let amp = 0; for (const an of a) { const d = ((CONTACT + o.cyl - an) % TAU + TAU) % TAU; amp = Math.max(amp, Math.exp(-d * 5)); } return IMPOSSIBLE.includes(i) && o.damp > 0.5 ? 0 : (turns === 0 ? 0 : amp); });
+  // douze cases : propositions (bleu) ; l'agent valide (vert) ou corrige (rouge puis orange) ; au nouvel essai, tout se valide
   const p1 = seg(s, T.infer[0], T.infer[1]), p2 = seg(s, 46.5, 51.5), second = s >= T.rerun[0];
   o.spiral = second ? lerp(0.04, 0.96, p2) : lerp(0.04, 0.96, p1);
   o.cells = CELLS.map((c, i) => {
@@ -201,42 +191,42 @@ export function stateAt(s) {
   });
   o.validated = o.cells.filter((x) => x === 1 || x === 3).length;
   o.sealed = s >= 25.6;
-  // flan : les copies du corpus figé s'empilent sur l'axe, la presse en fait un disque ; l'entraînement taille 24 dents
-  o.blank = ease(seg(s, 29.8, 30.2));
-  o.cut = Math.floor(24 * ease(seg(s, T.train[0], T.train[1])));
-  o.index = (o.cut / 24) * TAU;
-  o.cutter = s > T.train[0] && s < T.train[1] ? Math.abs(Math.sin((s - T.train[0]) * 9)) : 0;
-  o.peg = s >= T.train[1];
+  // machine à planter : le cylindre neuf, nu, puis un picot après l'autre selon l'ordre du corpus, l'aiguille descend à chaque pose
+  const tp = ease(seg(s, T.train[0], T.train[1]));
+  o.blank = s >= 29.8 && !(s >= 40.6) ? 1 : 0;
+  const k = tp * PLANT.length;
+  o.planted = Math.min(PLANT.length, Math.floor(k));
+  const cur = PLANT[Math.min(PLANT.length - 1, o.planted)], prev = PLANT[Math.max(0, o.planted - 1)];
+  o.divRot = s < T.train[0] ? 0 : s >= T.train[1] ? PLANT[PLANT.length - 1].an : lerp(prev.an, cur.an, ease(Math.min(1, (k - o.planted) * 2.2)));
+  o.carriage = s < T.train[0] ? tx(0) : s >= T.train[1] ? tx(PLANT[PLANT.length - 1].i) : lerp(tx(prev.i), tx(cur.i), ease(Math.min(1, (k - o.planted) * 2.2)));
+  o.needle = s > T.train[0] && s < T.train[1] ? Math.abs(Math.sin(k * TAU * 1.0 + 0.2)) ** 3 : 0;
   // banc d'essai : deux rapports de test séparés, F1 puis rappel U1 franchissent leur seuil, le voyant passe au vert
   o.f1 = 0.82 * ease(seg(s, 37.4, 38.6)) * (s < T.rerun[0] ? 1 : 0);
   o.u1 = 0.93 * ease(seg(s, 37.8, 39)) * (s < T.rerun[0] ? 1 : 0);
   o.pass = s >= 39 && s < T.rerun[0];
   o.lever = ease(seg(s, 39.2, 39.7)) * (1 - ease(seg(s, 44.8, 45.3)));
-  // remplacement : l'ancienne roue du modèle sort par la trappe et rejoint le tableau ; la candidate monte, pivote et descend
+  // remplacement : l'ancien cylindre sort par le dessus et rejoint l'étagère ; le nouveau monte, passe au-dessus du boîtier et descend
   o.oldRise = ease(seg(s, 39.8, 41.2)); o.oldFly = glide(seg(s, 41.2, 42.8));
   o.newFly = glide(seg(s, 40.6, 43)); o.newDrop = ease(seg(s, 43, 44.6));
   o.swap = s >= 39.8 && s < 44.6;
-  o.version = s >= 44.6 ? 4 : 3;
   return o;
 }
-/** Position (centre, z) de la roue du modèle dans le boîtier pendant l'échange, ou null si l'emplacement est vide. */
-export function pinInCase(o) {
-  const g = GEARS.pin;
-  if (!o.swap) return { z: g.z, which: 'cur' };
-  if (o.oldRise < 1) return { z: lerp(g.z, ABOVE, o.oldRise), which: 'old' };
-  if (o.newFly >= 1) return { z: lerp(ABOVE, g.z, o.newDrop), which: 'new' };
+const CYC = [CYL.xc, CYL.y, CYL.z];
+/** Centre du cylindre dans le boîtier pendant l'échange (null si l'emplacement est vide). */
+export function cylInCase(o) {
+  if (!o.swap) return { c: CYC, which: 'cur' };
+  if (o.oldRise < 1) return { c: [CYC[0], CYC[1], lerp(CYC[2], ABOVE, o.oldRise)], which: 'old' };
+  if (o.newFly >= 1) return { c: [CYC[0], CYC[1], lerp(ABOVE, CYC[2], o.newDrop)], which: 'new' };
   return null;
 }
-/** Roue candidate en vol : centre de sa face arrière, angle de bascule (0 couchée, -90° dressée face à l'avant). */
+/** Cylindre neuf en vol (axe x gardé) : centre, depuis la machine à planter jusqu'au-dessus du boîtier. */
 export function newInFlight(o) {
   if (!(o.newFly > 0 && o.newFly < 1)) return null;
-  const e = o.newFly, g = GEARS.pin;
-  const c = bez([DIV.x, DIV.y, DIV.z], [DIV.x - 10, DIV.y - 4, ABOVE + 60], [g.u + 30, FY + 20, ABOVE + 40], [g.u, FY, ABOVE], e);
-  return { c, alpha: -Math.PI / 2 * ease(seg(e, 0.15, 0.8)) };
+  return { c: bez([BLANK.x, BLANK.y, BLANK.z], [BLANK.x - 6, BLANK.y - 4, ABOVE + 60], [CYC[0] + 40, CYC[1] + 24, ABOVE + 36], [CYC[0], CYC[1], ABOVE], o.newFly) };
 }
-/** Ancienne roue en vol vers son crochet du tableau (troisième emplacement). */
+/** Ancien cylindre en vol vers son emplacement de l'étagère (troisième). */
 export function oldInFlight(o) {
   if (!(o.oldFly > 0 && o.oldFly < 1)) return null;
-  const e = o.oldFly, g = GEARS.pin, [bu, bz] = BOARD.slots[2];
-  return { c: bez([g.u, FY, ABOVE], [g.u + 30, FY + 4, ABOVE + 30], [bu - 10, BOARD.y + 6, bz + 70], [bu, BOARD.y, bz], e) };
+  const [bu, bz] = BOARD.slots[2];
+  return { c: bez([CYC[0], CYC[1], ABOVE], [CYC[0] + 30, CYC[1] + 6, ABOVE + 30], [bu - 10, BOARD.cy + 10, bz + 70], [bu, BOARD.cy, bz], o.oldFly) };
 }
