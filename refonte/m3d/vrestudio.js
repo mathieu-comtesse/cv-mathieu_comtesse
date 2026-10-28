@@ -5,7 +5,7 @@
 // le banc d'essai la juge sur deux rapports séparés ; le levier la publie : l'ancienne roue du modèle sort par la trappe, la nouvelle descend.
 import * as THREE from 'three';
 import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish } from './core.js';
-import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, DESK, HANDS, HANDS_Y, HANDS_K, ELBOW } from './anticythere-model.js';
+import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, DESK, HANDS, HANDS_Y, AGENT, ELBOW } from './anticythere-model.js';
 
 export const WIDTH = 318;
 const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
@@ -113,7 +113,6 @@ export function build() {
   // « La Création d'Adam » : la main de bronze de l'automate (sur sa potence) et la main de l'agent ; elles vivent dans le plan y = HANDS_Y
   const handGroup = (H, m, skinM) => {
     const g2 = new THREE.Group(), slab2 = (pts, mm, depth) => { const sh = new THREE.Shape(); pts.forEach(([u, z], i) => (i ? sh.lineTo(u, z) : sh.moveTo(u, z))); sh.closePath(); const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: .5, bevelSize: .5, bevelSegments: 2 }); geo.translate(0, 0, -depth / 2); const o = finish(geo, mm, 40); g2.add(o); };
-    if (H.sleeve) { slab2(H.sleeve, mat('#3f5f8f', { roughness: .8 }), 6.4); slab2(H.cuff, mat('#f4f3ee'), 6.8); }
     slab2(H.arm, skinM, 5); slab2(H.palm, skinM, 4.2);
     for (const f of H.fingers) {
       const r = f.w / 2;
@@ -125,15 +124,11 @@ export function build() {
   };
   const bronzeHand = mat(C.bronze, { metalness: .35, roughness: .45 });
   const handM = handGroup(HANDS.machine, 'bronze', bronzeHand);
-  // la main de l'agent : la main de la fresque, découpée et posée à plat, imprimée recto verso (une découpe vue de dos montre la main en miroir)
+  // la main de l'agent : la main détourée de la fresque, à plat et toujours face au spectateur, ancrée au bout de l'index
   const handH = new THREE.Group(); add(handH);
-  { const tex = new THREE.TextureLoader().load('assets/figures/main-adam.webp'); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-    const PX = 509, PY = 227, TIP = [4, 92], k = 0.112 * HANDS_K, w = PX * k, hh = PY * k;
-    const geo = new THREE.PlaneGeometry(w, hh).translate(w / 2 - TIP[0] * k, -(hh / 2 - TIP[1] * k), 0);
-    const face = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: '#ffffff', emissiveIntensity: .32, roughness: 1, alphaTest: .45, side: THREE.DoubleSide }));
-    face.castShadow = true; face.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: .45 });
-    face.rotation.z = 0.36;                                        // le bras monte vers la droite, comme sur la fresque
-    handH.add(face); }
+  { const tex = new THREE.TextureLoader().load('assets/figures/main-agent.webp'); tex.colorSpace = THREE.SRGBColorSpace;
+    const { w, h: hh, tip, k } = AGENT, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, alphaTest: .4 }));
+    sp.center.set(tip[0] / w, 1 - tip[1] / hh); sp.scale.set(w * k, hh * k, 1); handH.add(sp); }
   add(cyl(ELBOW[0], ELBOW[1], 5, 0, 1.6, C.bronze, 28), cyl(ELBOW[0], ELBOW[1], 1.6, 1.6, ELBOW[2] - 6, C.bronze, 18), cyl(ELBOW[0], ELBOW[1], 2.6, ELBOW[2] - 4.4, 2.4, C.bronzeLo, 20));
   const sparkM = new THREE.MeshBasicMaterial({ color: '#fff3b0', transparent: true }), spark = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), sparkM); add(spark);
   // ---- machine à diviser : plateau, axe, couteau ; banc d'essai ; levier de publication ----
@@ -199,6 +194,7 @@ export function build() {
   function placeSheet(S, s) {
     const p = sheetPose(S.q, s); S.grp.visible = !!p; if (!p) return;
     const rows = sheetRows(p, NT), pos = S.geo.attributes.position.array, opos = S.og.attributes.position.array;
+    if (rows.length < 2) { S.grp.visible = false; return; }                // entièrement entrée dans une fente
     for (let i = 0; i <= NT; i++) { const r = rows[Math.min(i, rows.length - 1)]; pos.set(V(r[0]), i * 6); pos.set(V(r[1]), i * 6 + 3); }
     const ring = rows.map((r) => r[0]).concat(rows.map((r) => r[1]).reverse(), [rows[0][0]]);
     for (let i = 0; i < 2 * (NT + 1) + 1; i++) opos.set(V(ring[Math.min(i, ring.length - 1)]), i * 3);

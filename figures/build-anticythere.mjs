@@ -285,9 +285,9 @@ const live = `
 const P = ${JSON.stringify(P)};
 const MODEL = (() => {
 ${MODEL_SRC}
-return { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, HANDS };
+return { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, HANDS, AGENT };
 })();
-const { TAU, CASE, MECH_Y, FY, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, HANDS } = MODEL;
+const { TAU, CASE, MECH_Y, FY, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, HANDS, AGENT } = MODEL;
 const PH = MODEL.phases(false), LAMPS = ${JSON.stringify(lampsXY)}, RW = GEARS.pin.r;
 ${LOOP}
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
@@ -353,7 +353,6 @@ function handPaint(H, tip, m) {
   const poly = (pts, c) => '<path class="' + c + '" d="M' + pts.map(P2).join("L") + 'Z"/>';
   const line = (pts, c, w, dz = 0) => '<path class="' + c + '" stroke-width="' + f2(w) + '" d="M' + pts.map((q) => P2([q[0], q[1] + dz])).join("L") + '"/>';
   let out = "";
-  if (H.sleeve) out += poly(H.sleeve, "hd-sleeve") + line(H.sleeve.slice(0, 2), "hd-hi-sleeve", 0.8, -0.6) + poly(H.cuff, "hd-cuff");
   out += poly(H.arm, "hd-" + m) + line(H.arm.slice(0, 2), "hd-hi-" + m, 1.4, -0.9);
   if (m === "bronze") { const K = 1.4; out += [-29, -34].map((u) => line([[u * K, 9.9 * K], [u * K, 0.9 * K]], "hd-ol-bronze", 0.5)).join(""); }
   out += poly(H.palm, "hd-" + m) + line(H.palm.slice(0, 3), "hd-hi-" + m, 1.1, -0.7);
@@ -366,13 +365,17 @@ function handPaint(H, tip, m) {
   return out;
 }
 function handsSvg(s) {
-  const h = handsAt(s); let out = handPaint(HANDS.machine, h.machine, "bronze");
+  const h = handsAt(s); let out = handPaint(HANDS.machine, h.machine, "bronze"), agent = null;
   if (h.human) {
-    out += handPaint(HANDS.human, h.human, "skin");
+    // la main de l'agent : la main détourée de la fresque, posée à plat face au spectateur, l'index au point de contact (calque d'écran)
+    agent = h.human;
     if (h.press > 0.35) { const cx = (h.machine[0] + h.human[0]) / 2, cz = h.machine[2] + 0.1, r = 0.8 + 2.2 * h.press;
       out += '<g class="ak-spark ak-spark-' + h.kind + '" style="opacity:' + h.press.toFixed(2) + '"><path d="' + circ(r, cx, -cz) + '"/>' + [0, 1, 2, 3, 4, 5].map((i) => { const a = i * Math.PI / 3 + 0.3; return '<path d="M' + f2(cx + (r + 0.6) * Math.cos(a)) + ' ' + f2(-cz + (r + 0.6) * Math.sin(a)) + 'L' + f2(cx + (r + 2.6) * Math.cos(a)) + ' ' + f2(-cz + (r + 2.6) * Math.sin(a)) + '"/>'; }).join("") + '</g>'; }
   }
-  return '<g transform="' + front(h.machine[1]) + '">' + out + '</g>';
+  let img = "";
+  if (agent) { const q = at(agent), sv = Math.hypot(...[0, 1].map((i) => at([agent[0], agent[1], agent[2] + 10])[i] - q[i])) / 10, k = AGENT.k * sv;
+    img = '<image href="../assets/figures/main-agent.webp" x="' + f2(q[0] - AGENT.tip[0] * k) + '" y="' + f2(q[1] - AGENT.tip[1] * k) + '" width="' + f2(AGENT.w * k) + '" height="' + f2(AGENT.h * k) + '"/>'; }
+  return '<g transform="' + front(h.machine[1]) + '">' + out + '</g>' + img;
 }
 
 function draw(o, s) {
@@ -527,8 +530,7 @@ const css = `<style>
 .ak-stamp-ok{fill:rgba(53,169,116,.28);stroke:#35a974;stroke-width:.55}.ak-stamp-bad{fill:rgba(210,69,47,.28);stroke:#d2452f;stroke-width:.55}.ak-stamp-fix{fill:rgba(224,163,58,.32);stroke:#e0a33a;stroke-width:.55}
 .ak-lightgrid{fill:none;stroke:#9db6ea;stroke-width:.3}
 .mat-light{--anatomy-face:#eef5ff;--anatomy-top:#f5f9ff;--anatomy-lit-top:#f5f9ff;--anatomy-shade-0:#c9d8ee;--anatomy-shade-1:#d6e2f3;--anatomy-shade-2:#e2ebf8;--anatomy-shade-3:#eef5ff}
-.hd-skin{fill:#e7b48f;stroke:#8c5a3c;stroke-width:.4;stroke-linejoin:round}.hd-bronze{fill:#d6b57a;stroke:#6e5228;stroke-width:.4;stroke-linejoin:round}
-.hd-sleeve{fill:#3f5f8f;stroke:#22324d;stroke-width:.4;stroke-linejoin:round}.hd-cuff{fill:#f4f3ee;stroke:#9a9890;stroke-width:.35}
+.hd-bronze{fill:#d6b57a;stroke:#6e5228;stroke-width:.4;stroke-linejoin:round}
 .hd-ol-skin,.hd-fill-skin,.hd-hi-skin,.hd-ol-bronze,.hd-fill-bronze,.hd-hi-bronze,.hd-hi-sleeve{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .hd-ol-skin{stroke:#8c5a3c}.hd-fill-skin{stroke:#e7b48f}.hd-hi-skin{stroke:#f6d3b8}.hd-ol-bronze{stroke:#6e5228}.hd-fill-bronze{stroke:#d6b57a}.hd-hi-bronze{stroke:#f1dcae}.hd-hi-sleeve{stroke:#5b7db0}
 .hd-nail-skin{fill:#f8dccb;stroke:#b98a6c;stroke-width:.2}.hd-nail-bronze{fill:#efdcb0;stroke:#8a6a36;stroke-width:.2}.hd-rivet{fill:#8a6a36}
