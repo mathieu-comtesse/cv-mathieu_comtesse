@@ -110,11 +110,15 @@ export function build() {
   // ---- table lumineuse « Radiographie » et main de l'agent (manche, poignet, paume, quatre doigts, pouce, tampon) ----
   add(slab(DESK.x0, DESK.y0, DESK.x1 - DESK.x0, DESK.y1 - DESK.y0, 0, DESK.z - 1, C.wood, 1.2));
   add(at(new THREE.Mesh(new THREE.BoxGeometry(DESK.x1 - DESK.x0 - 3.2, 1, DESK.y1 - DESK.y0 - 3.2), new THREE.MeshStandardMaterial({ color: '#eef5ff', emissive: '#ffffff', emissiveIntensity: .15, roughness: .6 })), (DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z - .5));
-  // la main de l'agent : la main détourée de la fresque, à plat et toujours face au spectateur, ancrée au bout de l'index
+  // la main de l'agent : la main détourée de la fresque, un vrai plan à plat dans l'espace 3D (recto verso), le bout de l'index à l'origine
   const handH = new THREE.Group(); add(handH);
   { const tex = new THREE.TextureLoader().load('assets/figures/main-agent.webp'); tex.colorSpace = THREE.SRGBColorSpace;
-    const { w, h: hh, tip, k } = AGENT, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, alphaTest: .4 }));
-    sp.center.set(tip[0] / w, 1 - tip[1] / hh); sp.scale.set(w * k, hh * k, 1); sp.material.rotation = AGENT.tilt; handH.add(sp); }
+    const { w, h: hh, tip, k } = AGENT, g = new THREE.PlaneGeometry(w * k, hh * k);
+    g.translate((w / 2 - tip[0]) * k, (tip[1] - hh / 2) * k, 0);
+    const ex = new THREE.Vector3(.7, .7, .15).normalize(), ez = new THREE.Vector3(.45, .5, .7), ey = new THREE.Vector3();
+    ez.sub(ex.clone().multiplyScalar(ez.dot(ex))).normalize(); ey.crossVectors(ez, ex);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: .4, side: THREE.DoubleSide }));
+    m.matrixAutoUpdate = false; m.matrix.makeBasis(ex, ey, ez); handH.add(m); }
   const sparkM = new THREE.MeshBasicMaterial({ color: '#fff3b0', transparent: true }), spark = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), sparkM); add(spark);
   // ---- machine à diviser : plateau, axe, couteau ; banc d'essai ; levier de publication ----
   const RP = RW + 6;
