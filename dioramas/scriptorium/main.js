@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { run, materials, toRGB } from '../core/runtime.js';
 import { P, HEX } from './palette.js';
 import { chamferBoxGeometry } from '../core/geometry.js';
+import { island } from '../core/island.js';
 import { B, C, S, T, bar, G, shadow, pool, candle, book, openBook, monk, put, walkAlong, seg01, STAND, walkPose, mixPose, smooth, clamp, lerp } from '../core/kit.js';
 
 const LOOP = 46, PI = Math.PI;
@@ -39,12 +40,28 @@ const CORR = { x: -1.7, z: 0.9 }, CORRSEAT = { x: -0.95, z: 0.9 };
 function build(scene) {
   const root = G(scene);
   // ---- dalle : dallage de pierre, joints, usure devant les postes
-  B(root, W, 0.42, D, M.joint, 0, -0.21, 0, { ch: 0.05 });
+  // île flottante : prairie, sentier vers la porte, massifs ; le monastère est posé dessus
+  const inB = (x, z, m = 0) => Math.abs(x) < W / 2 + m && Math.abs(z) < D / 2 + m;
+  const hn = (x, z) => 0.22 * Math.sin(x * 0.7 + 1.3) * Math.sin(z * 0.9) + 0.15 * Math.sin(x * 1.7 - z * 1.1);
+  const isl = island(root, M, {
+    cx: 0.4, cz: 0.4, hx: W / 2 + 4.2, hz: D / 2 + 4.0, ne: 2.6, seed: 5, K: 8,
+    hAt: (x, z) => { if (inB(x, z, 0.15)) return -0.08; const d = Math.min(Math.abs(Math.abs(x) - W / 2), Math.abs(Math.abs(z) - D / 2)); return Math.max(0, hn(x, z) * clamp(d / 1.2, 0, 1)) + 0.02; },
+    paint: (x, z, n) => {
+      const path = Math.abs(x - DOOR.x - 0.3 * Math.sin(z * 1.4)) < 0.55 && z < ZW;
+      if (path) return n < 0.5 ? P.stone2 : n < 0.85 ? P.stone3 : P.stone1;
+      const blot = Math.sin(x * 1.3 + z * 0.4) + Math.sin(z * 1.9 - x * 0.6);
+      if (n < 0.012) return [P.rubric0, P.gold0, P.paper][(n * 1000 | 0) % 3];
+      return blot > 1.0 ? (n < 0.5 ? P.leaf0 : P.leaf1) : blot < -1.2 ? (n < 0.5 ? P.leaf1 : P.leaf2) : n < 0.7 ? P.leaf1 : P.leaf0;
+    },
+    turf: P.leaf1, earth: P.wood4, rock: [P.stone5, P.stone4, P.stone6, P.stone5, P.stone6], root: P.wood3,
+  });
+  // soubassement du monastère : une assise de pierre sous le dallage
+  B(root, W + 0.3, 0.3, D + 0.3, M.wallDark, 0, -0.17, 0, { ch: 0.04 });
   {
     const tiles = [[], [], [], []], geo = chamferBoxGeometry(1, 0.06, 1, { top: 0.02 }), m4 = new THREE.Matrix4();
     for (let j = 0; j < D / 0.62; j++) { const z = -D / 2 + 0.31 + j * 0.62, off = (j % 2) * 0.35; let x = -W / 2 + 0.02 - off;
       for (let n = 0; x < W / 2; n++) { const h = Math.abs(Math.sin(n * 12.9898 + j * 78.233) * 43758.5453) % 1, w = 0.62 + 0.42 * ((h * 7) % 1); const x0 = Math.max(x, -W / 2 + 0.02), x1 = Math.min(x + w - 0.04, W / 2 - 0.02); if (x1 > x0) tiles[h < 0.7 ? 0 : h < 0.92 ? 1 : h < 0.985 ? 2 : 3].push([(x0 + x1) / 2, z, x1 - x0]); x += w; } }
-    tiles.forEach((list, k) => { const im = new THREE.InstancedMesh(geo, [M.stone[0], M.stone[2], M.stone[1], M.stone[3]][k], list.length); list.forEach(([x, z, w], i) => im.setMatrixAt(i, m4.compose(new THREE.Vector3(x, -0.02, z), new THREE.Quaternion(), new THREE.Vector3(w, 1, 0.58)))); im.receiveShadow = true; root.add(im); });
+    tiles.forEach((list, k) => { const im = new THREE.InstancedMesh(geo, [M.stone[0], M.stone[2], M.stone[1], M.stone[3]][k], list.length); list.forEach(([x, z, w], i) => im.setMatrixAt(i, m4.compose(new THREE.Vector3(x, -0.02, z), new THREE.Quaternion(), new THREE.Vector3(w, 1, 0.58)))); im.receiveShadow = true; im.castShadow = false; root.add(im); });
   }
   // ---- murs du fond : nord (z) avec porte et passe-plat, ouest (x) avec deux fenêtres
   const wallH = 3.6;
@@ -180,11 +197,16 @@ function build(scene) {
 
   // ---- cloître : plates-bandes, simples, puits (fond de décor vivant)
   const gar = G(root, 0, 0, 0);
-  B(gar, 5.6, 0.3, 0.2, M.wallDark, 5.2, 0.15, 3.7); B(gar, 0.2, 0.3, 1.9, M.wallDark, 2.4, 0.15, 4.6);
-  B(gar, 5.4, 0.12, 1.7, M.soil, 5.25, 0.06, 4.65, { cast: false });
-  for (let i = 0; i < 22; i++) { const x = 2.85 + (i % 11) * 0.42, z = 4.2 + Math.floor(i / 11) * 0.8, h = 0.2 + 0.15 * Math.abs(Math.sin(i * 2.3)); S(gar, 0.17, M.leaf[i % 3], x, 0.12 + h / 2, z, [1, h / 0.17 * 0.6, 1]); }
-  const well = G(gar, 7.1, 0, 4.6); C(well, 0.55, 0.6, 0.7, M.stone[2], 0, 0.35, 0, { seg: 18 }); C(well, 0.42, 0.42, 0.02, M.water, 0, 0.66, 0, { seg: 18 });
+  const GZ0 = D / 2 + 1.4; for (const [x0, z0] of [[1.2, GZ0], [4.4, GZ0]]) { B(gar, 2.9, 0.22, 1.9, M.woodD, x0 + 1.45, 0.11, z0 + 0.95); B(gar, 2.7, 0.06, 1.7, M.soil, x0 + 1.45, 0.24, z0 + 0.95, { cast: false }); }
+  for (let i = 0; i < 28; i++) { const x = 1.5 + (i % 7) * 0.4 + (i % 14 >= 7 ? 3.2 : 0), z = GZ0 + 0.45 + Math.floor(i / 14) * 0.9, h = 0.2 + 0.15 * Math.abs(Math.sin(i * 2.3)); S(gar, 0.17, M.leaf[i % 3], x, 0.3 + h / 2, z, [1, h / 0.17 * 0.6, 1]); }
+  const well = G(gar, -2.2, 0, D / 2 + 2.3); C(well, 0.55, 0.6, 0.7, M.stone[2], 0, 0.35, 0, { seg: 18 }); C(well, 0.42, 0.42, 0.02, M.water, 0, 0.66, 0, { seg: 18 });
   for (const sz of [-0.5, 0.5]) B(well, 0.08, 1.4, 0.08, M.woodD, 0, 1.05, sz); B(well, 0.12, 0.12, 1.2, M.woodD, 0, 1.75, 0); C(well, 0.12, 0.12, 0.3, M.wood, 0, 1.5, 0, { rot: [PI / 2, 0, 0] });
+  // dehors : vergers, ruches, charrette, meule ; tout est posé sur la prairie de l'île
+  const tree = (x, z, s, k) => { C(root, 0.1 * s, 0.16 * s, 1.2 * s, M.woodD, x, 0.6 * s, z, { seg: 7 }); S(root, 0.75 * s, M.leaf[k % 3], x, 1.55 * s, z, [1, 0.85, 1], { seg: 9 }); S(root, 0.5 * s, M.leaf[(k + 1) % 3], x + 0.35 * s, 1.85 * s, z + 0.2 * s, [1, 0.85, 1], { seg: 8 }); for (let f = 0; f < 4; f++) S(root, 0.06, M.rubric, x + Math.cos(f * 1.7) * 0.6 * s, 1.35 * s + (f % 2) * 0.3, z + Math.sin(f * 1.7) * 0.6 * s); shadow(root, x, z, 1.6 * s, 0.4); };
+  [[-W / 2 - 1.8, 2.5, 1.0, 0], [-W / 2 - 1.6, -2.4, 1.2, 1], [W / 2 + 1.9, -3.4, 1.1, 2], [W / 2 + 2.0, 1.8, 0.9, 0], [-5.6, D / 2 + 2.2, 1.0, 1], [W / 2 - 0.4, D / 2 + 2.6, 1.15, 2], [-1.0, -D / 2 - 2.2, 0.9, 0], [3.8, -D / 2 - 2.0, 1.0, 1]].forEach(([x, z, s, k]) => tree(x, z, s, k));
+  for (let k = 0; k < 3; k++) { const x = -W / 2 - 1.3, z = -0.6 + k * 0.9; B(root, 0.6, 0.12, 0.6, M.woodD, x, 0.3, z); for (let r = 0; r < 4; r++) C(root, 0.26 - r * 0.05, 0.28 - r * 0.05, 0.16, M.rope, x, 0.44 + r * 0.14, z, { seg: 10 }); bar(root, [x - 0.2, 0, z - 0.2], [x - 0.2, 0.3, z - 0.2], 0.03, M.woodD); bar(root, [x + 0.2, 0, z + 0.2], [x + 0.2, 0.3, z + 0.2], 0.03, M.woodD); }
+  const cart = G(root, W / 2 + 1.7, 0, D / 2 + 0.6, 0.5); B(cart, 1.6, 0.12, 0.9, M.wood, 0, 0.6, 0); for (const sz of [-0.48, 0.48]) { B(cart, 1.6, 0.3, 0.06, M.woodD, 0, 0.78, sz); T(cart, 0.38, 0.05, M.woodD, -0.1, 0.4, sz * 1.1, { seg: 12 }); } bar(cart, [0.8, 0.6, -0.3], [2.0, 0.3, -0.25], 0.04, M.woodD); bar(cart, [0.8, 0.6, 0.3], [2.0, 0.3, 0.25], 0.04, M.woodD); for (let k = 0; k < 3; k++) { const bk = book(cart, M, [M.lapis, M.rubric, M.teal][k]); bk.position.set(-0.4 + k * 0.35, 0.66, 0); }
+  S(root, 0.9, M.wood ? mk(P.gold1) : M.wood, -W / 2 - 1.2, 0.4, -4.6, [1, 0.75, 1]);
   // grand chandelier sur pied près du lutrin et du pupitre à clés
   const fl4 = [[-6.5, -1.0], [1.1, -1.8], [-3.0, 1.8]].map(([x, z], i) => { C(root, 0.22, 0.26, 0.05, M.iron, x, 0.025, z); C(root, 0.035, 0.05, 1.6, M.iron, x, 0.8, z); C(root, 0.15, 0.1, 0.05, M.iron, x, 1.6, z); return candle(root, M, x, 1.58, z, 0.18); });
   const flames = [fl1, fl2, fl3, ...fl4];
@@ -372,8 +394,8 @@ function build(scene) {
 }
 
 run({
-  light(L) { L.sun.position.set(13, 17, 11); L.sun.color.set(0xfff8f0); L.fill.color.set(0xf4ece0); L.fill.intensity = 0.5; L.fill.position.set(-14, 10, 12); L.hemi.color.set(0xfff0dc); },
+  light(L) { L.sun.position.set(13, 20, 9); },
   palette: toRGB(HEX), slab: [W, D], loop: LOOP, stillT: 26,
-  fit: [[-W / 2, 0, -D / 2], [W / 2, 0, -D / 2], [W / 2, 0, D / 2], [-W / 2, 0, D / 2], [-W / 2, -0.42, D / 2], [W / 2, -0.42, D / 2], [W / 2, -0.42, -D / 2], [-W / 2, 3.8, -D / 2], [W / 2, 3.8, -D / 2], [-W / 2, 3.8, D / 2]].map((p) => new THREE.Vector3(...p)),
+  px: 2, fit: [[-W / 2 - 4.0, 0, 0.4], [W / 2 + 4.6, 0, 0.4], [0.4, 0, -D / 2 - 3.8], [0.4, 0, D / 2 + 4.2], [0.4, -11.5, 0.4], [-W / 2, 3.9, -D / 2]].map((p) => new THREE.Vector3(...p)),
   build,
 });

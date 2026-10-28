@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { run, materials, toRGB } from '../core/runtime.js';
 import { chamferBoxGeometry } from '../core/geometry.js';
 import { P, HEX } from './palette.js';
+import { island } from '../core/island.js';
 import { B, C, S, T, bar, G, shadow, pool, flame, person, put, walkAlong, seg01, STAND, walkPose, mixPose, smooth, clamp, lerp } from '../core/kit.js';
 
 const LOOP = 46, PI = Math.PI;
@@ -49,24 +50,28 @@ const WAVES = [
 function build(scene) {
   const root = G(scene);
   // ---- dalle : prairie en touffes, route de terre, douves
-  B(root, W, 0.42, D, mk(P.dirt2), 0, -0.21, 0, { ch: 0.05 });
-  {
-    const geo = chamferBoxGeometry(1, 0.06, 1, { top: 0.02 }), m4 = new THREE.Matrix4(), bins = [[], [], [], [], [], [], []];
-    const mats = [M.grass[0], M.grass[1], M.grass[2], M.grass[3], M.dirt[0], M.dirt[1], M.stone[0]];
-    for (let i = 0; i < W * 2; i++) for (let j = 0; j < D * 2; j++) {
-      const x = -W / 2 + 0.25 + i * 0.5, z = -D / 2 + 0.25 + j * 0.5, h = Math.abs(Math.sin(i * 12.9898 + j * 78.233) * 43758.5453) % 1;
-      if (x > EW + 0.2 && x < EW + 1.62 && z < SZ + 0.3) continue;                                       // douves
-      let k;
-      if (x < EW && z < SZ) k = h < 0.75 ? 6 : 4;                                                                            // cour pavée
-      else { const road = Math.abs(z - GZ - 0.35 * Math.sin(x * 0.6)) < 0.75; k = road ? (h < 0.6 ? 4 : 5) : h < 0.45 ? 1 : h < 0.75 ? 0 : h < 0.9 ? 3 : 2; }
-      bins[k].push([x, z]);
-    }
-    bins.forEach((list, k) => { const im = new THREE.InstancedMesh(geo, mats[k], list.length); list.forEach(([x, z], i) => im.setMatrixAt(i, m4.makeTranslation(x, -0.02, z).multiply(new THREE.Matrix4().makeScale(0.5, 1, 0.5)))); im.receiveShadow = true; root.add(im); });
-  }
-  // douves : eau, berges de pierre
+  // île flottante : prairie bosselée, route de terre qui serpente jusqu'au bord, cour pavée, lit des douves
   const MX0 = EW + 0.15, MX1 = EW + 1.65;
+  const inCourt = (x, z) => x < EW + 0.1 && z < SZ + 0.3 && x > -W / 2 - 0.2 && z > -D / 2 - 0.2;
+  const roadZ = (x) => GZ + 0.35 * Math.sin(x * 0.6) + (x > 6 ? (x - 6) * 0.35 : 0);
+  const inMoat = (x, z) => x > MX0 && x < MX1 && z < SZ + 0.3 && z > -D / 2 - 0.6;
+  const hn = (x, z) => 0.35 * Math.sin(x * 0.55 + 0.7) * Math.sin(z * 0.7 + 0.3) + 0.2 * Math.sin(x * 1.3 - z * 0.9);
+  island(root, M, {
+    cx: 0.2, cz: -0.6, hx: W / 2 + 2.4, hz: D / 2 + 2.6, ne: 2.7, seed: 11, K: 8,
+    hAt: (x, z) => { if (inCourt(x, z)) return -0.04; if (inMoat(x, z)) return -0.35; const road = Math.abs(z - roadZ(x)); const d = Math.min(Math.abs(x - MX1), 3) / 3; return Math.max(-0.02, hn(x, z) * clamp(road - 0.6, 0, 1.2) / 1.2 * d); },
+    paint: (x, z, n) => {
+      if (inCourt(x, z)) { const j = (Math.floor(x * 2) + Math.floor(z * 2 + (Math.floor(x * 2) % 2) * 0.5)) % 7; return (x * 2 % 1 < 0.08 || (z * 2 + 0.3 * Math.floor(x * 2)) % 1 < 0.08) ? P.stone3 : j === 0 ? P.stone2 : n < 0.2 ? P.stone1 : P.stone0; }
+      if (inMoat(x, z)) return P.dirt2;
+      if (Math.abs(z - roadZ(x)) < 0.7 && x > MX1 - 0.1) return n < 0.5 ? P.dirt0 : n < 0.85 ? P.dirt1 : P.dirt2;
+      const blot = Math.sin(x * 1.1 + z * 0.5) + Math.sin(z * 1.6 - x * 0.7);
+      if (n < 0.01) return [P.gold0, P.paper, P.rubric0][(n * 1000 | 0) % 3];
+      return blot > 1.0 ? (n < 0.5 ? P.grass0 : P.grass1) : blot < -1.1 ? (n < 0.5 ? P.grass2 : P.grass3) : n < 0.6 ? P.grass1 : P.grass2;
+    },
+    turf: P.grass2, earth: P.wood4, rock: [P.stone4, P.stone3, P.stone5, P.stone4, P.stone5], root: P.wood3,
+  });
+  // douves : eau, berges de pierre
   const ML = SZ + 0.3 + D / 2, MZ = (SZ + 0.3 - D / 2) / 2;
-  const water = B(root, MX1 - MX0 - 0.1, 0.04, ML - 0.1, M.water, (MX0 + MX1) / 2, 0.01, MZ, { cast: false });
+  const water = B(root, MX1 - MX0 + 0.1, 0.04, ML + 0.4, M.water, (MX0 + MX1) / 2, -0.12, MZ - 0.2, { cast: false });
   B(root, 0.12, 0.16, ML, M.wallD, MX1, 0.08, MZ); B(root, MX1 - MX0 + 0.1, 0.16, 0.12, M.wallD, (MX0 + MX1) / 2, 0.08, SZ + 0.3);
   const ripples = [0, 1, 2, 3].map((k) => { const m = T(root, 0.2, 0.012, M.waterL, (MX0 + MX1) / 2, 0.05, -4.5 + k * 2.4, { rot: [PI / 2, 0, 0], cast: false }); return m; });
 
@@ -225,13 +230,13 @@ function build(scene) {
   const golemAt = (gm, t) => {
     const w = gm.w;
     if (t < w.t0 || t > w.fold + 1.4) return null;
-    const xs = 9.8, xb = EW + 1.75;
+    const xs = 11.2, xb = EW + 1.75;
     let x, walking = false;
     if (t < w.t0 + w.walk) { const u = seg01(t, w.t0, w.t0 + w.walk); x = lerp(xs, xb, u); walking = true; }
     else if (t < w.gate) { const u = smooth(seg01(t, w.t0 + w.walk, w.gate)); x = lerp(xb, TRAP, u); walking = true; }
     else x = TRAP;
-    const z = GZ + 0.35 * Math.sin(x * 0.6) * (x > EW + 1.7 ? 1 : 0);
-    return { x, z, walking };
+    const z = x > MX1 ? roadZ(x) : GZ, y = -1.6 * (1 - smooth(seg01(t, w.t0, w.t0 + 0.9)));
+    return { x, z, y, walking };
   };
   const fieldWorld = (gm, k) => { const v = new THREE.Vector3(); gm.frames[k].getWorldPosition(v); return v; };
 
@@ -244,7 +249,7 @@ function build(scene) {
     smoke.forEach((s, k) => { const u = (t * 0.18 + k / 6) % 1; s.position.set(FORGE.x + 0.3 * Math.sin(u * 5 + k), 4.1 + u * 2.6, FORGE.z - 0.3 + u * 1.2); s.scale.setScalar(0.6 + u * 1.8); s.visible = u < 0.95; });
     pennant.rotation.y = 0.4 * Math.sin(t * 1.3); flagCloth.rotation.y = 0.15 * Math.sin(t * 2.1);
     const blow = 0.5 + 0.5 * Math.sin(t * 2.4); bTop.position.y = 0.36 + 0.06 * blow;
-    water.position.y = 0.01 + 0.005 * Math.sin(t * 1.5);
+    water.position.y = -0.12 + 0.005 * Math.sin(t * 1.5);
 
     // drapeau du gain : ×1 en bas, ×2,3 en haut ; il redescend dans la couture de la boucle
     const gain = t < 1.6 ? lerp(2.3, 1, smooth(seg01(t, 0.2, 1.6))) : 1 + 1.3 * smooth(seg01(t, 44.6, 45.8));
@@ -256,7 +261,7 @@ function build(scene) {
       const w = gm.w, p = golemAt(gm, t);
       gm.g.visible = !!p; gm.sh.visible = !!p;
       if (!p) return;
-      gm.g.position.set(p.x, 0, p.z); gm.g.rotation.y = 0;
+      gm.g.position.set(p.x, p.y, p.z); gm.g.rotation.y = Math.atan2(-(roadZ(p.x + 0.3) - roadZ(p.x - 0.3)), 0.6) * (p.x > MX1 ? 1 : 0);
       gm.sh.position.set(p.x, 0.02, p.z);
       const ph = (9.8 - p.x) * 3.2;
       gm.legs.forEach((l, i) => { l.rotation.z = p.walking ? 0.45 * Math.sin(ph + i * PI) : 0; });
@@ -349,8 +354,8 @@ function build(scene) {
 }
 
 run({
-  light(L) { L.sun.position.set(14, 19, 9); L.fill.position.set(-10, 12, 16); },
+  light(L) { L.sun.position.set(13, 20, 9); },
   palette: toRGB(HEX), slab: [W, D], loop: LOOP, stillT: 22,
-  fit: [[-W / 2, 0, -D / 2], [W / 2, 0, -D / 2], [W / 2, 0, D / 2], [-W / 2, 0, D / 2], [-W / 2, -0.42, D / 2], [W / 2, -0.42, D / 2], [W / 2, -0.42, -D / 2], [-1.7, 6.6, -5.0], [-6.4, 6.0, -3.3], [-W / 2, 3.4, -D / 2]].map((p) => new THREE.Vector3(...p)),
+  px: 2, fit: [[-W / 2 - 2.2, 0, -0.6], [W / 2 + 2.6, 0, -0.6], [0.2, 0, -D / 2 - 3.2], [0.2, 0, D / 2 + 2.0], [0.2, -11.5, -0.6], [-1.7, 6.6, -5.0], [-6.4, 7.6, -3.3]].map((p) => new THREE.Vector3(...p)),
   build,
 });
