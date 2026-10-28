@@ -2,39 +2,16 @@
 // Un boîtier de bois ouvert à l'avant, couvercle dressé. Le modèle est un cylindre à picots : il tourne, ses picots pincent les lamelles du peigne
 // (une couleur par champ) et l'étouffoir, c'est-à-dire les règles métiers, coupe les notes impossibles. Douze cases proposent les pages inédites,
 // l'agent valide chacune sur la table lumineuse, le corpus figé sert à planter les picots d'un cylindre neuf, le banc d'essai le juge,
-// le levier le publie : l'ancien cylindre rejoint l'étagère des versions, le nouveau descend dans le boîtier. 46 dents mènent 20 dents : × 2,3.
+// le levier le publie : l'ancien cylindre rejoint l'étagère des versions, le nouveau descend dans le boîtier. Un rebord cadenassé fait le tour
+// de l'établi : tout reste en local ; chaque correction part aussi en copie dans la bannette partagée, avec celles des autres agents.
 import * as THREE from 'three';
 import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish } from './core.js';
-import { TAU, CASE, CYL, GEARS, GEAR_X, phases, NT as NTEETH, tx, TOOTH, IMPOSSIBLE, PINS3, PINS4, PLANT, NEWPINS, CELLS, FACIA, cellX, TRAY, DECK, READER, READ_SLOT, EXIT, DIV, BLANK, GAUGE, LEVER, BOARD, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, cylInCase, newInFlight, oldInFlight, handAt, stampOf, DESK, AGENT } from './musicbox-model.js';
+import { TAU, CASE, CYL, SHARED, SHARED_TOP, RIM, NT as NTEETH, tx, TOOTH, IMPOSSIBLE, PINS3, PINS4, PLANT, NEWPINS, CELLS, FACIA, cellX, TRAY, DECK, READER, READ_SLOT, EXIT, DIV, BLANK, GAUGE, LEVER, BOARD, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, cylInCase, newInFlight, oldInFlight, handAt, stampOf, DESK, AGENT } from './musicbox-model.js';
 
 export const WIDTH = 340;
 const PLATE = { x: -128, y: -64, w: 340, d: 150, r: 12 };
-const PH = phases(true);
 const C = { wood: COL.hi, woodLo: COL.mid, woodDk: COL.lo, bronze: COL.mid, bronzeLo: COL.lo, bronzeHi: COL.hi, patina: '#e6e4dc', steel: COL.hi, steelLo: COL.mid, paper: '#ffffff', f: ['#d2452f', '#3f6fb0', '#e0b23a', '#3d8f8a'], r: ['#c98a6a', '#8aa3c4', '#c9b26a'], ok: '#35a974', bad: '#e5484d', fixed: '#e0a33a', prop: '#3e63dd' };
 const lerp = (a, b, u) => a + (b - a) * u;
-/* contour d'une roue dentée dans son plan (dents trapézoïdales), trous d'allègement en option */
-function gearShape(r, n, depth, cut = n, holes = []) {
-  const s = new THREE.Shape();
-  for (let i = 0; i < n; i++) {
-    const w = TAU / n, a = i * w, ro = i < cut ? r : r - depth, ri = r - depth;
-    [[ri, 0], [ri, 0.18], [ro, 0.3], [ro, 0.62], [ri, 0.74]].forEach(([rr, q], k) => { const x = rr * Math.cos(a + w * q), y = rr * Math.sin(a + w * q); if (i === 0 && k === 0) s.moveTo(x, y); else s.lineTo(x, y); });
-  }
-  s.closePath();
-  for (const [x, y, hr] of holes) { const h = new THREE.Path(); h.absarc(x, y, hr, 0, TAU, true); s.holes.push(h); }
-  return s;
-}
-/* roue dressée face à l'avant (+y de figure) : face avant à y = 0 du groupe, épaisseur T vers l'arrière */
-function wheel(r, n, T, color, o = {}) {
-  const depth = o.depth ?? Math.max(1.6, r * 0.07);
-  const holes = o.holes ?? (r > 9 && !o.web ? [0, 1, 2, 3].map((i) => { const a = (i / 4) * TAU + 0.4; return [Math.cos(a) * r * 0.55, Math.sin(a) * r * 0.55, r * 0.22]; }) : []);
-  const geo = new THREE.ExtrudeGeometry(gearShape(r, n, depth, o.cut ?? n, holes), { depth: T, bevelEnabled: false, curveSegments: 18 }); geo.translate(0, 0, -T);
-  const spin = new THREE.Group(); spin.add(finish(geo, mat(color, { roughness: .55, metalness: 0 }), 28));
-  const hub = Math.max(2.4, r * 0.18);
-  const hb = finish(new THREE.CylinderGeometry(hub + .9, hub + .9, 1.4, 24).rotateX(Math.PI / 2).translate(0, 0, .7), mat(C.bronzeHi, { roughness: .5, metalness: 0 }), 40); spin.add(hb);
-  const ax = finish(new THREE.CylinderGeometry(1.2, 1.2, 2.6, 14).rotateX(Math.PI / 2).translate(0, 0, 1.3), mat(C.bronzeLo), 40); spin.add(ax);
-  if (r > 9) for (let i = 0; i < 3; i++) { const a = (i / 3) * TAU + .5, sc = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, .3, 8).rotateX(Math.PI / 2), mat(C.bronzeLo)); sc.position.set(Math.cos(a) * hub * .62, Math.sin(a) * hub * .62, 1.5); spin.add(sc); }
-  const g = new THREE.Group(); g.add(spin); g.userData.spin = spin; return g;
-}
 const at = (o, x, y, z) => { o.position.set(x, z, y); return o; };
 
 /* un cylindre à picots (axe x, centré sur l'origine du groupe) : corps, flasques, tourillons, picots qui tournent avec lui */
@@ -82,7 +59,6 @@ export function build() {
   const okOn = new THREE.MeshStandardMaterial({ color: C.ok, emissive: C.ok, emissiveIntensity: .9 }), okOff = lens.material;
   // paliers du cylindre ; arbre d'entraînement qui vient de la roue du flanc gauche ; peigne : pieds, socle d'acier, lamelles ; montants de l'étouffoir
   add(box(CYL.x0 - 3.5, CYL.y, (7 + CYL.z - 1.6) / 2, 5, 8, CYL.z - 8.6, C.steel), box(CYL.x1 + 2.5, CYL.y, (7 + CYL.z - 1.6) / 2, 4, 8, CYL.z - 8.6, C.steel));
-  add(cylX(GEAR_X, CYL.x0 - 3.5, CYL.y, CYL.z, 1.8, C.bronzeLo, 14));
   const bz = TOOTH.z - 4;
   for (const xx of [CYL.x0 - .25, CYL.x1 + .25]) add(box(xx, TOOTH.y0 + 2.25, (7 + bz) / 2, 3.5, 4.5, bz - 7, C.steel));
   add(box(CYL.xc, TOOTH.y0 + 2.25, bz + 2.9, CYL.x1 - CYL.x0 + 4, 4.5, 5.8, C.steel));
@@ -93,21 +69,12 @@ export function build() {
   });
   const felt = mat('#c9b26a', { roughness: .9 }), grey = '#7a7a76';
   const damper = new THREE.Group(); add(damper);
-  damper.add(box(CYL.xc, -11.5, 1, CYL.x1 - CYL.x0 + 2, 3, 2, C.steel), box(CYL.x0 - 1.6, -8.5, 1, 1.8, 9, 2, C.steel), box(CYL.x1 + 1.9, -8.5, 1, 1.8, 9, 2, C.steel));
-  for (const i of IMPOSSIBLE) damper.add(at(finish(new THREE.BoxGeometry(3, 1.1, 3), felt, 10), tx(i), -11.5, -.1));
+  damper.add(box(CYL.xc, TOOTH.y0 - 5.5, 1, CYL.x1 - CYL.x0 + 2, 3, 2, C.steel), box(CYL.x0 - 1.6, TOOTH.y0 - 2.5, 1, 1.8, 9, 2, C.steel), box(CYL.x1 + 1.9, TOOTH.y0 - 2.5, 1, 1.8, 9, 2, C.steel));
+  for (const i of IMPOSSIBLE) damper.add(at(finish(new THREE.BoxGeometry(3, 1.1, 3), felt, 10), tx(i), TOOTH.y0 - 5.5, -.1));
   // douze cases au bas du devant du boîtier : une par page inédite ; flanc droit : bouche de sortie des pages et plaque du gain
   add(wbox((x0 + x1) / 2, y1 + 1, (FACIA.z0 + FACIA.z1) / 2, x1 - x0 + 6, 4, FACIA.z1 - FACIA.z0, C.wood));
   const cells = CELLS.map((_, i) => { const m = new THREE.MeshStandardMaterial({ color: '#fbfaf6', roughness: .6 }), c = new THREE.Mesh(new THREE.BoxGeometry(6, 4.4, .4), m); at(c, cellX(i), FACIA.y + .15, FACIA.z0 + 4.4); add(c); return m; });
   add(box(x1 + 4, EXIT[1], EXIT[2], 8, 22, 12, C.steel), box(EXIT[0] + .08, EXIT[1], EXIT[2], .2, 18, 7, dark));
-  { const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d'); x.fillStyle = '#fbfaf6'; x.fillRect(0, 0, 256, 128); x.strokeStyle = '#8a8a8f'; x.lineWidth = 4; x.strokeRect(4, 4, 248, 120);
-    x.fillStyle = '#26262a'; x.font = 'bold 54px ui-monospace,Menlo,Consolas,monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('46 : 20', 128, 68);
-    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; const pl = new THREE.Mesh(new THREE.PlaneGeometry(22, 12), new THREE.MeshStandardMaterial({ map: tex, roughness: .7 })); pl.rotation.y = Math.PI / 2; at(pl, x1 + .1, -25, 24); add(pl); }
-  // train du gain, sur la face intérieure du flanc gauche : la roue de 46 dents mène la roue de 20 dents du cylindre ; la manivelle suit
-  const gearAt = (key, o = {}) => { const q = GEARS[key], w = wheel(q.r, q.n, o.T ?? (q.r > 12 ? 3 : 2.2), C.bronze, { depth: q.d, ...o }), p = new THREE.Group(); p.add(w); p.rotation.y = Math.PI / 2; at(p, GEAR_X, -q.u, q.z); add(p); return w; };
-  const wD46 = gearAt('d46'), wO20 = gearAt('o20');
-  wD46.userData.spin.add(finish(new THREE.BoxGeometry(12, 2.2, 1.2).translate(6, 0, 5), mat(C.bronzeLo), 30), finish(new THREE.CylinderGeometry(2.2, 2.2, 3.4, 16).rotateX(Math.PI / 2).translate(12, 0, 5.4), W(C.woodDk), 40));
-  const hand = finish(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 7, 0), new THREE.Vector3(1, 0, 0)]).setIndex([0, 2, 1]), mat('#1d2230', { side: THREE.DoubleSide }), 0);
-  hand.position.z = 2.8; wO20.userData.spin.add(hand);
   // ---- les cylindres : le courant (v3), le neuf (v4), deux de l'étagère ----
   const L3 = PINS3.flatMap((a, i) => a.map((an) => ({ i, an }))), cylA = makeCylinder(L3), cylB = makeCylinder(PLANT, { marks: true }), rack = [0, 1].map((k) => { const c = makeCylinder(L3); c.userData.spin.rotation.x = .5 + k * 1.1; return c; });
   add(cylA, cylB, ...rack);
@@ -118,7 +85,20 @@ export function build() {
   add(slab(TRAY.x + 3, TRAY.y - 14, 19, 28, 3, 11, C.wood, 1));
   C.r.forEach((c, i) => add(box(TRAY.x + 6.2 + i * 5.6, TRAY.y, 15.5 + i * .3, 2.4, 22, 3 + i * .6, c)));
   const seal = cylY(TRAY.y + 14, TRAY.y + 14.8, TRAY.x + 12.5, 8.5, 2.6, '#a8392b', 20); add(seal);
-  add(slab(-122, -10, 40, 28, 0, .4, C.paper, .6));
+  // bannette des corrections partagées : corrections des autres agents (onglets de couleur) ; les copies de l'agent s'y posent
+  add(slab(SHARED.x - SHARED.w / 2, SHARED.y - SHARED.d / 2, SHARED.w, SHARED.d, 0, SHARED.h, C.wood, 1));
+  for (let i = 0; i < SHARED.stack; i++) add(box(SHARED.x + (i % 2) * .4, SHARED.y, SHARED.h + .25 + i * .5, 16, 12, .5, C.paper), box(SHARED.x + 8.9 + (i % 2) * .4, SHARED.y - 3.8 + (i % 3) * 3.4, SHARED.h + .25 + i * .5, 1.8, 2.4, .5, ['#8e7cc3', '#4fa3a5', '#d77fa1'][i % 3]));
+  // tout en local : un rebord fait le tour de l'établi, un cadenas de laiton le ferme
+  { const { x, y, w, d } = PLATE, R = RIM, rc = 12 - .5 - R.t / 2;
+    add(box(x + w / 2, y + .5 + R.t / 2, R.h / 2, w - 24, R.t, R.h, C.woodLo), box(x + w / 2, y + d - .5 - R.t / 2, R.h / 2, w - 24, R.t, R.h, C.woodLo));
+    add(box(x + .5 + R.t / 2, y + d / 2, R.h / 2, R.t, d - 24, R.h, C.woodLo), box(x + w - .5 - R.t / 2, y + d / 2, R.h / 2, R.t, d - 24, R.h, C.woodLo));
+    for (const [cx, cy, a0] of [[x + 12, y + 12, Math.PI], [x + w - 12, y + 12, -Math.PI / 2], [x + w - 12, y + d - 12, 0], [x + 12, y + d - 12, Math.PI / 2]]) {
+      const shape = new THREE.Shape(); shape.absarc(0, 0, rc + R.t / 2, a0, a0 + Math.PI / 2, false); shape.absarc(0, 0, rc - R.t / 2, a0 + Math.PI / 2, a0, true);
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: R.h, bevelEnabled: false, curveSegments: 10 }); geo.rotateX(-Math.PI / 2); geo.scale(1, 1, -1);
+      add(at(finish(geo, mat(C.woodLo, { roughness: .78 }), 30), cx, cy, 0)); }
+    const lx = x + w / 2 - 40, fy = y + d - .5;
+    add(box(lx, fy + 1.3, 1.6, 8, 2.6, 6.5, C.bronze), box(lx, fy + 2.65, 0, 1.2, .1, 2, '#3a332a'));
+    const sh = finish(new THREE.TorusGeometry(2.4, .45, 8, 16, Math.PI), mat(C.steelLo), 30); at(sh, lx, fy + 1.3, 4.85); add(sh); }
   add(box(-45, 57, 1.2, 22, 14, 2.4, C.woodLo));
   for (let i = 0; i < 14; i++) add(cyl(-53 + (i % 5) * 4.2, 53 + Math.floor(i / 5) * 4, .35, 2.4, 1.6, '#2a2a2e', 6));
   add(cyl(-70, 66, 5, 0, 5, C.bronze, 24), cyl(-70, 66, 3.2, 5, 2, C.bronze, 20), cyl(36, 64, 5, 0, 2.4, C.steelLo, 28), cyl(36, 64, 3.8, 2.4, .2, '#d8eef2', 28));
@@ -179,7 +159,7 @@ export function build() {
     const og = new THREE.BufferGeometry(); og.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array((2 * (NT + 1) + 1) * 3), 3)); const ol = new THREE.Line(og, lineM);
     const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(10 * 3), 3)); const tl = new THREE.Line(tg, trailM);
     const stampM = q.stamps ? new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: C.ok, side: THREE.DoubleSide, transparent: true, opacity: .55 })) : null;
-    const mark = q.mark || q.kind === 'test' ? new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: q.mark ? C.fixed : '#8fb0ee', side: THREE.DoubleSide })) : null;
+    const mark = q.mark || q.kind === 'test' || q.kind === 'pdf' ? new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: q.mark ? C.fixed : q.kind === 'pdf' ? C.f[0] : '#8fb0ee', side: THREE.DoubleSide })) : null;
     const grp = group(fm, bm, ol, tl, mark, stampM); add(grp);
     return { q, grp, geo, og, tg, tl, mark, stampM };
   });
@@ -203,9 +183,6 @@ export function build() {
   const setPins = (c, n) => c.userData.pins.forEach((p, i) => { p.visible = i < n; });
   function update(time) {
     const s = ((time % LOOP_T) + LOOP_T) % LOOP_T, o = stateAt(s), cc = cylInCase(o), ol = oldInFlight(o), nw = newInFlight(o);
-    // engrenages et manivelle : un tour de manivelle, 2,3 tours de cylindre
-    const sp = (w, a, k) => { w.userData.spin.rotation.z = -a + (PH[k] ?? 0); };
-    sp(wD46, o.d46, 'd46'); sp(wO20, o.o20, 'o20');
     // cylindre courant (v3) : dans le boîtier, puis il monte, vole et se pose sur l'étagère ; cylindre neuf (v4) : sur la machine, en vol, puis dans le boîtier
     const slot = BOARD.slots[2];
     cylA.visible = true;
