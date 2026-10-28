@@ -11,11 +11,13 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, writeFigure, LOOP } from "./common.mjs";
+import { readFileSync } from "node:fs";
+import * as MD from "../refonte/m3d/anticythere-model.js";
+const { CASE, MECH_Y, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, HATCH, BOARD, CORPUS_TOP, LID_Z, DESK } = MD;
+const PH = MD.phases(false);
 
 const WIDTH = 900, HEIGHT = 660;
 const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
-const CASE = { x0: -72, x1: 82, y0: -42, y1: 0, h: 132, t: 6 };
-const MECH_Y = -16;                                         // plan de la platine de bronze
 const P = k.fitProjection(
   [...k.boxCorners(PLATE, -21, 0), [CASE.x0, CASE.y0, CASE.h + 18], [CASE.x1, CASE.y0, CASE.h + 18], [CASE.x0, CASE.y1, CASE.h + 18]],
   WIDTH, HEIGHT, { pad: 18, azimuth: 32 },
@@ -36,35 +38,6 @@ function inscription(u0, v0, w, rows, seed = 1, gap = 3.2) {
   return `<path class="ak-engr" d="${d}"/>`;
 }
 
-// ---------------------------------------------------------------- engrenages (coordonnées de la face : u vers la droite, v vers le bas = -z)
-// Engrenages : deux pas de denture (module M pour le train principal, MF pour le train du gain), centres posés à la somme exacte
-// des rayons primitifs, pour que chaque roue touche celle qui l'entraîne. p3 (12 dents) est solidaire de d46 sur le même axe.
-const M = 3.79, MF = 2.39, DM = 2.4, DF = 1.5;
-const spec = (n, m, d) => ({ n, d, rp: +(n * m / (2 * Math.PI)).toFixed(3), r: +(n * m / (2 * Math.PI) + d / 2).toFixed(3) });
-const GEARS = { b1: { u: -24, z: 62, ...spec(64, M, DM) } };
-const meshTo = (key, from, deg, s) => { const f = GEARS[from], dd = f.rp + s.rp, a = deg * Math.PI / 180; GEARS[key] = { ...s, u: +(f.u + dd * Math.cos(a)).toFixed(2), z: +(f.z + dd * Math.sin(a)).toFixed(2) }; };
-meshTo('crank', 'b1', 235, spec(16, M, DM));
-meshTo('idle', 'b1', 35.3, spec(14, M, DM));
-meshTo('pin', 'idle', 29.6, spec(24, M, DM));
-GEARS.slot = { ...GEARS.pin, u: +(GEARS.pin.u + 4).toFixed(2) };
-meshTo('p2', 'b1', -2.5, spec(12, M, DM));
-meshTo('corpus', 'p2', 0, spec(26, M, DM));
-meshTo('p3', 'b1', -40, spec(12, M, DM));
-GEARS.d46 = { ...spec(46, MF, DF), u: GEARS.p3.u, z: GEARS.p3.z };
-meshTo('o20', 'd46', 0, spec(20, MF, DF));
-// Phases : chaque dent d'une roue tombe dans un creux de la roue qu'elle touche (centre de dent à 0,46 pas, centre de creux à 0,96).
-// flip : vrai quand l'axe vertical du dessin monte (scène 3D), faux quand il descend (face SVG).
-const MESH = [['b1', 'crank'], ['b1', 'idle'], ['idle', 'pin'], ['b1', 'p2'], ['p2', 'corpus'], ['b1', 'p3'], ['d46', 'o20']];
-function phases(flip) {
-  const ph = { b1: 0, d46: 0, slot: 0 };
-  for (const [a, b] of MESH) {
-    const A = GEARS[a], B = GEARS[b], pA = 2 * Math.PI / A.n, pB = 2 * Math.PI / B.n;
-    const th = Math.atan2(flip ? B.z - A.z : A.z - B.z, B.u - A.u), fA = ((((th - ph[a]) / pA - 0.46) % 1) + 1) % 1;
-    ph[b] = th + Math.PI - pB * (0.96 - fA);
-  }
-  return ph;
-}
-const PH = phases(false);
 const ring48 = (r, cx = 0, cy = 0) => "M" + Array.from({ length: 49 }, (_, i) => { const a = (i / 48) * TAU; return (cx + r * Math.cos(a)).toFixed(2) + " " + (cy + r * Math.sin(a)).toFixed(2); }).join("L");
 const circ = (r, cx = 0, cy = 0) => `M${(cx + r).toFixed(2)} ${cy}A${r} ${r} 0 1 0 ${(cx - r).toFixed(2)} ${cy}A${r} ${r} 0 1 0 ${(cx + r).toFixed(2)} ${cy}Z`;
 // une roue sur la face : épaisseur (copie sombre décalée vers le fond), moyeu, rayons ou trous d'allègement, axe
@@ -74,8 +47,9 @@ const circ = (r, cx = 0, cy = 0) => `M${(cx + r).toFixed(2)} ${cy}A${r} ${r} 0 1
 const OFF = (() => { const m = front(0).match(/[-\d.e]+/g).map(Number), o = at([0, 0, 0]), q = at([0, -1, 0]), dx = q[0] - o[0], dy = q[1] - o[1], u = dx / m[0]; return [+u.toFixed(4), +((dy - m[1] * u) / m[3]).toFixed(4)]; })();
 function gearPts(r, n, depth, cut, a0, cx, cy) { const pts = []; for (let i = 0; i < n; i++) { const w = TAU / n, a = a0 + i * w, ro = i < cut ? r : r - depth, ri = r - depth; for (const [rr, q] of [[ri, 0], [ri, 0.18], [ro, 0.3], [ro, 0.62], [ri, 0.74]]) pts.push([cx + rr * Math.cos(a + w * q), cy + rr * Math.sin(a + w * q)]); } return pts; }
 function circPts(r, cx, cy, steps = 40) { return Array.from({ length: steps }, (_, i) => { const a = (i / steps) * TAU; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }); }
-function prism(pts, T, o = {}) {
-  const f = (v) => v.toFixed(2), ox = OFF[0] * T, oy = OFF[1] * T, L = [-0.45, -0.89];
+function prism(pts, T, o = {}) { return prismS(pts, OFF[0] * T, OFF[1] * T, o); }
+function prismS(pts, ox, oy, o = {}) {
+  const f = (v) => v.toFixed(2), L = [-0.45, -0.89];
   const poly = (ps, dx = 0, dy = 0) => "M" + ps.map((p) => f(p[0] + dx) + " " + f(p[1] + dy)).join("L") + "Z";
   let area = 0; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; area += a[0] * b[1] - b[0] * a[1]; }
   const sg = area > 0 ? 1 : -1, bk = ["", "", ""];
@@ -160,6 +134,10 @@ const caseFront = (() => {
   out.push(box(-50, -20, -26, -16, h + 7, 1.2, { tone: "mid", bevel: 0.4, ...BRONZE }));
   out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([-46, -23, h + 8.2]), at([-24, -23, h + 8.2]), at([-24, -19, h + 8.2]), at([-46, -19, h + 8.2])], true)}"/>`);
   out.push(dots([[-48.5, -21, h + 8.2], [-21.5, -21, h + 8.2]], 0.5, "hi"));
+  // trappe de la roue du modèle : lèvres de laiton et ouverture, par où l'on échange la roue à la publication
+  out.push(box(HATCH.x0 - 2.5, HATCH.x1 + 2.5, HATCH.y0 - 2.5, HATCH.y1 + 2.5, h + 7, 1.2, { tone: "mid", bevel: 0.4, ...BRONZE }));
+  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([HATCH.x0, HATCH.y0, h + 8.2]), at([HATCH.x1, HATCH.y0, h + 8.2]), at([HATCH.x1, HATCH.y1, h + 8.2]), at([HATCH.x0, HATCH.y1, h + 8.2])], true)}"/>`);
+  out.push(dots([[HATCH.x0 - 1.3, (HATCH.y0 + HATCH.y1) / 2, h + 8.2], [HATCH.x1 + 1.3, (HATCH.y0 + HATCH.y1) / 2, h + 8.2]], 0.5, "hi"));
   // rampe des voyants des quatre champs sur le chant avant du dessus
   out.push(box(-6, 46, y1 - 1, y1 + 3, h + 1, 5, { tone: "lo", bevel: 0.4, ...BRONZE }));
   // flanc droit : plaque de bronze, équerres d'angle rivetées
@@ -171,9 +149,7 @@ const caseFront = (() => {
 const lampsXY = [0, 1, 2, 3].map((i) => [2 + i * 12, CASE.y1 + 3.1, CASE.h + 3.5]);
 
 // ---------------------------------------------------------------- le cadran à spirale du dos (flanc droit) : douze pages inédites
-const DIAL = { u: 21, z: 64, r0: 5, r1: 17, turns: 3 };
 const spiralAt = (s) => { const a = s * DIAL.turns * TAU, r = DIAL.r0 + (DIAL.r1 - DIAL.r0) * s; return [DIAL.u + r * Math.cos(a - Math.PI / 2), -DIAL.z + r * Math.sin(a - Math.PI / 2)]; };
-const CELLS = Array.from({ length: 12 }, (_, i) => 0.1 + i * 0.075);
 const dialSvg = (() => {
   let sp = ""; for (let i = 0; i <= 160; i++) { const [u, v] = spiralAt(i / 160); sp += (i ? "L" : "M") + u.toFixed(2) + " " + v.toFixed(2); } { const [u, v] = spiralAt(1), dx = u - DIAL.u, dy = v + DIAL.z, l = Math.hypot(dx, dy); sp += "L" + (DIAL.u + dx / l * 22.5).toFixed(2) + " " + (-DIAL.z + dy / l * 22.5).toFixed(2); } sp += ring48(DIAL.r0, DIAL.u, -DIAL.z);
   let ticks = ""; for (let i = 0; i < 36; i++) { const a = (i / 36) * TAU, r0 = i % 3 ? 20.6 : 19.2, r1 = 22.5; ticks += `M${(DIAL.u + r0 * Math.cos(a)).toFixed(2)} ${(-DIAL.z + r0 * Math.sin(a)).toFixed(2)}L${(DIAL.u + r1 * Math.cos(a)).toFixed(2)} ${(-DIAL.z + r1 * Math.sin(a)).toFixed(2)}`; }
@@ -185,12 +161,12 @@ const dialSvg = (() => {
     <path class="iso-line" data-tone="lo" d="${ticks}"/><path class="iso-line" data-tone="mid" d="${sp}"/>${cells}
     <path class="ak-face" d="${circ(10.5, DIAL.u, -106)}"/><path class="iso-line" data-tone="mid" d="${ring48(10.5, DIAL.u, -106)}"/>${ver}<path class="iso-line" data-tone="lo" d="${ring48(4, DIAL.u, -106)}"/>
     <g data-part="ver-hand"></g><g data-part="spiral-hand"></g>
-    ${inscription(7, -37, 28, 6, 3, 3.6)}${inscription(7, -122, 28, 1, 5)}${inscription(5, -91, 6, 1, 9)}${inscription(31, -91, 6, 1, 13)}
+    ${inscription(7, -32.4, 28, 5, 3, 3.6)}<path class="ak-bridge" d="M12 -36.4H30V-39.6H12Z"/><path class="fig-dark" d="M13.6 -37.4H28.4V-38.6H13.6Z"/>${inscription(7, -122, 28, 1, 5)}${inscription(5, -91, 6, 1, 9)}${inscription(31, -91, 6, 1, 13)}
   </g>`;
 })();
 
 // ---------------------------------------------------------------- machine à diviser (établi, devant à droite) et tableau des versions
-const DIV = { x: 128, y: 40, r: 20, z: 22 };
+const RW = GEARS.pin.r, RP = RW + 6;                          // roue du modèle, plateau diviseur
 const divSvg = (() => {
   const out = [];
   // socle de fonte sur patins, vis d'angle, plaque signalétique
@@ -201,47 +177,50 @@ const divSvg = (() => {
   out.push(`<g transform="${front(DIV.y + 24.6)}">${inscription(DIV.x - 10, -4.9, 20, 1, 21)}</g>`);
   // colonne du diviseur, collet moleté, plateau diviseur à deux rangées de trous (20 et 46)
   out.push(S(k.cylinder(DIV.x, DIV.y, 8, 6, 2, P, 24), { tone: "mid", className: "mat-steel" }));
-  out.push(S(k.cylinder(DIV.x, DIV.y, 6, 8, DIV.z - 10, P, 18), { tone: "mid", className: "mat-steel" }));
-  out.push(S(k.cylinder(DIV.x, DIV.y, DIV.r + 6, 6, 3, P, 48), { tone: "mid", className: "mat-bronze" }));
+  out.push(S(k.cylinder(DIV.x, DIV.y, RP, 6, 3, P, 48), { tone: "mid", className: "mat-bronze" }));
   out.push(L(k.knurl(DIV.x, DIV.y, 8, 6.2, 7.8, 28, P), { tone: "lo" }));
-  const holes = []; for (let ring = 0; ring < 2; ring++) for (let i = 0; i < (ring ? 46 : 20); i++) { const a = (i / (ring ? 46 : 20)) * TAU, rr = ring ? DIV.r + 3.8 : DIV.r - 1; holes.push(at([DIV.x + rr * Math.cos(a), DIV.y + rr * Math.sin(a), 9])); }
+  const holes = []; for (let ring = 0; ring < 2; ring++) for (let i = 0; i < (ring ? 48 : 24); i++) { const a = (i / (ring ? 48 : 24)) * TAU, rr = ring ? RP - 2.2 : RP - 4.6; holes.push(at([DIV.x + rr * Math.cos(a), DIV.y + rr * Math.sin(a), 9])); }
   out.push(D(holes, { size: 0.35, tone: "lo" }));
   // index à ressort : potence, lame et doigt dans un trou de la rangée de 46
   const ix = DIV.x + 18, iy = DIV.y - 20;
   out.push(box(ix - 2.5, ix + 2.5, iy - 2.5, iy + 2.5, 6, 6, { tone: "mid", bevel: 0.5, ...STEEL }));
-  const tipA = Math.atan2(iy + 6 - DIV.y, ix - 4 - DIV.x), tip = [DIV.x + (DIV.r + 3.8) * Math.cos(tipA), DIV.y + (DIV.r + 3.8) * Math.sin(tipA)];
+  const tipA = Math.atan2(iy + 6 - DIV.y, ix - 4 - DIV.x), tip = [DIV.x + (RP - 2.2) * Math.cos(tipA), DIV.y + (RP - 2.2) * Math.sin(tipA)];
   out.push(L(k.pathOf([at([ix, iy, 12]), at([tip[0], tip[1], 10.2])]), { tone: "hi" }));
   out.push(D([at([ix, iy, 12]), at([tip[0], tip[1], 10.2])], { size: 1.2, tone: "hi" }));
   // glissière du couteau : bâti, coulisse, volant moleté
   out.push(box(DIV.x - 31, DIV.x - 21, DIV.y - 9, DIV.y + 9, 6, 16, { tone: "mid", bevel: 0.8, ...STEEL }));
   out.push(box(DIV.x - 31, DIV.x + 2, DIV.y - 3.5, DIV.y + 3.5, 22, 2.4, { tone: "mid", bevel: 0.4, ...STEEL }));
-  out.push(S(k.cylinder(DIV.x - 26, DIV.y + 13, 4.5, 6, 2.4, P, 24), { tone: "mid", className: "mat-steel" }));
-  out.push(L(k.knurl(DIV.x - 26, DIV.y + 13, 4.5, 6.2, 8.2, 22, P), { tone: "lo" }));
+  out.push(S(k.cylinder(DIV.x - 26, DIV.y - 13, 4.5, 6, 2.4, P, 24), { tone: "mid", className: "mat-steel" }));
+  out.push(L(k.knurl(DIV.x - 26, DIV.y - 13, 4.5, 6.2, 8.2, 22, P), { tone: "lo" }));
   // copeaux de bronze
-  const chips = []; for (let i = 0; i < 26; i++) { const a = i * 2.39, rr = DIV.r + 8 + (i * 7 % 9); chips.push(at([DIV.x - 6 + rr * 0.5 * Math.cos(a), DIV.y + rr * 0.45 * Math.sin(a) + 2, 6.1])); }
+  const chips = []; for (let i = 0; i < 26; i++) { const a = i * 2.39, rr = RP + 2 + (i * 7 % 9); chips.push(at([DIV.x - 6 + rr * 0.5 * Math.cos(a), DIV.y + rr * 0.45 * Math.sin(a) + 2, 6.1])); }
   out.push(`<g class="ak-chips">${D(chips, { size: 0.5, tone: "mid" })}</g>`);
-  // manivelle de l'opérateur
-  out.push(box(DIV.x + 22, DIV.x + 30, DIV.y + 12, DIV.y + 22, 6, 12, { tone: "mid", ...STEEL }));
+  // levier de publication : son boîtier ; le bras est dessiné vivant
+  out.push(box(LEVER.x - 4, LEVER.x + 4, LEVER.y - 10, LEVER.y, 6, LEVER.z - 6, { tone: "mid", ...STEEL }));
+  out.push(`<g transform="${front(LEVER.y)}"><path class="ak-bridge" d="M${LEVER.x - 3} ${-(LEVER.z - 4)}H${LEVER.x + 3}V${-(LEVER.z - 8)}H${LEVER.x - 3}Z"/>${inscription(LEVER.x - 2.4, -(LEVER.z - 4.6), 4.8, 1, 31)}</g>`);
+  // banc d'essai : fente des rapports de test sur le dessus, deux cadrans (F1, rappel U1) et leur seuil, voyant
+  const G = GAUGE, gx = (G.x0 + G.x1) / 2, gy = (G.y0 + G.y1) / 2;
+  out.push(box(G.x0, G.x1, G.y0, G.y1, 6, G.z1 - 6, { tone: "mid", bevel: 0.6, ...STEEL }));
+  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([gx - 6.5, gy - 0.8, G.z1]), at([gx + 6.5, gy - 0.8, G.z1]), at([gx + 6.5, gy + 0.8, G.z1]), at([gx - 6.5, gy + 0.8, G.z1])], true)}"/>`);
+  let meters = "";
+  for (const [cu, th] of [[G.x0 + 4.8, 0.75], [G.x1 - 4.8, 0.9]]) {
+    const cv = -11, r = 3.6, arc = Array.from({ length: 25 }, (_, i) => { const a = Math.PI - (i / 24) * Math.PI; return (i ? "L" : "M") + (cu + r * Math.cos(a)).toFixed(2) + " " + (cv - r * Math.sin(a)).toFixed(2); }).join("");
+    const ta = Math.PI - th * Math.PI;
+    meters += `<path class="ak-face" d="M${cu - r - 0.8} ${cv + 0.8}H${cu + r + 0.8}V${cv - r - 0.8}H${cu - r - 0.8}Z"/><path class="ak-meter" d="${arc}"/><path class="ak-thr" d="M${(cu + (r - 1.2) * Math.cos(ta)).toFixed(2)} ${(cv - (r - 1.2) * Math.sin(ta)).toFixed(2)}L${(cu + (r + 0.4) * Math.cos(ta)).toFixed(2)} ${(cv - (r + 0.4) * Math.sin(ta)).toFixed(2)}"/>`;
+  }
+  out.push(`<g transform="${front(G.y1)}">${meters}${inscription(G.x0 + 1.5, -21.5, G.x1 - G.x0 - 3, 1, 41)}</g>`);
   return out.join("");
 })();
-const BOARD = { x0: 98, x1: 170, y: -46, z0: 6, z1: 70 };
 const boardSvg = (() => {
   const out = [box(BOARD.x0, BOARD.x1, BOARD.y - 3, BOARD.y, 4, BOARD.z1 - 4, { tone: "lo", ...WOOD })];
   out.push(box(BOARD.x0 - 3, BOARD.x1 + 3, BOARD.y - 6, BOARD.y + 4, 0, 4, { tone: "mid", bevel: 0.8, ...WOOD }));
   out.push(box(BOARD.x0 - 1, BOARD.x1 + 1, BOARD.y - 4, BOARD.y + 1, BOARD.z1, 3, { tone: "mid", bevel: 0.6, ...WOOD }));
-  const f = front(BOARD.y);
-  let s = "";
-  for (const z of [24, 46]) s += `<path class="ak-grain" d="M${BOARD.x0} ${-z}H${BOARD.x1}"/>`;
-  s += `<path class="ak-grain" d="M${BOARD.x0} -36C${BOARD.x0 + 26} -38 ${BOARD.x0 + 50} -34 ${BOARD.x1} -37M${BOARD.x0} -60C${BOARD.x0 + 30} -58 ${BOARD.x0 + 44} -62 ${BOARD.x1} -59"/>`;
-  // plaque de titre et quatre étiquettes de version
-  s += `<path class="ak-bridge" d="M${BOARD.x0 + 18} -19H${BOARD.x1 - 18}V-13H${BOARD.x0 + 18}Z"/>${inscription(BOARD.x0 + 21, -17.6, BOARD.x1 - BOARD.x0 - 42, 1, 17)}`;
-  for (let i = 0; i < 4; i++) { const u = BOARD.x0 + 12 + i * 16; s += `<path class="ak-bridge" d="M${u - 5} -44H${u + 5}V-39.5H${u - 5}Z"/><text class="ak-tag" x="${u}" y="-40.6" text-anchor="middle">v${i + 1}</text><path class="ak-gear" d="${circ(1.6, u, -58)}"/>`; }
-  out.push(`<g transform="${f}">${s}</g>`);
-  out.push(dots([[BOARD.x0 + 20, BOARD.y, 16], [BOARD.x1 - 20, BOARD.y, 16]], 0.45, "hi"));
+  let s = `<path class="ak-grain" d="M${BOARD.x0} -15C${BOARD.x0 + 26} -17 ${BOARD.x0 + 50} -13 ${BOARD.x1} -16M${BOARD.x0} -52C${BOARD.x0 + 30} -50 ${BOARD.x0 + 44} -54 ${BOARD.x1} -51"/><path class="ak-grain" d="M${BOARD.x0} -44H${BOARD.x1}"/>`;
+  BOARD.slots.forEach(([u, z], i) => { const tz = z + RW + 1.2; s += `<path class="ak-bridge" d="M${u - 5} ${-(tz + 4.2)}H${u + 5}V${-tz}H${u - 5}Z"/><text class="ak-tag" x="${u}" y="${-(tz + 1.1)}" text-anchor="middle">v${i + 1}</text><path class="ak-gear" d="${circ(1.8, u, -z)}"/>`; });
+  out.push(`<g transform="${front(BOARD.y)}">${s}</g>`);
   return out.join("");
 })();
 // plateau des fiches (gauche) : pile d'entrée, boîte du corpus à trois intercalaires
-const TRAY = { x: -98, y: 40 };
 const traySvg = (() => {
   const out = [box(TRAY.x - 24, TRAY.x + 24, TRAY.y - 18, TRAY.y + 18, 0, 3, { tone: "lo", bevel: 0.8, ...WOOD })];
   out.push(box(TRAY.x - 24, TRAY.x - 22, TRAY.y - 18, TRAY.y + 18, 3, 3, { tone: "lo", bevel: 0.2, ...WOOD }), box(TRAY.x - 24, TRAY.x + 24, TRAY.y - 18, TRAY.y - 16, 3, 3, { tone: "lo", bevel: 0.2, ...WOOD }));
@@ -277,6 +256,11 @@ const toolsSvg = (() => {
   // burette d'huile
   out.push(S(k.cylinder(-70, 66, 5, 0, 5, P, 24), { tone: "mid", className: "mat-bronze" }), S(k.cylinder(-70, 66, 3.2, 5, 2, P, 20), { tone: "mid", className: "mat-bronze" }));
   out.push(L(k.pathOf([at([-70, 66, 7]), at([-61, 61, 14])]), { tone: "hi" }), D([at([-70, 66, 7]), at([-61, 61, 14])], { size: 0.6, tone: "hi" }));
+  // table lumineuse « Radiographie » : cadre de bois, verre dépoli quadrillé, plaque gravée
+  out.push(box(DESK.x0, DESK.x1, DESK.y0, DESK.y1, 0, DESK.z - 1, { tone: "mid", bevel: 0.8, ...WOOD }));
+  out.push(box(DESK.x0 + 1.6, DESK.x1 - 1.6, DESK.y0 + 1.6, DESK.y1 - 1.6, DESK.z - 1, 1, { tone: "lo", bevel: 0.2, cls: "mat-light" }));
+  out.push(`<path class="ak-lightgrid" d="${[0.25, 0.5, 0.75].map((q) => k.pathOf([at([DESK.x0 + 1.6 + (DESK.x1 - DESK.x0 - 3.2) * q, DESK.y0 + 1.6, DESK.z]), at([DESK.x0 + 1.6 + (DESK.x1 - DESK.x0 - 3.2) * q, DESK.y1 - 1.6, DESK.z])]) + k.pathOf([at([DESK.x0 + 1.6, DESK.y0 + 1.6 + (DESK.y1 - DESK.y0 - 3.2) * q, DESK.z]), at([DESK.x1 - 1.6, DESK.y0 + 1.6 + (DESK.y1 - DESK.y0 - 3.2) * q, DESK.z])])).join("")}"/>`);
+  out.push(`<g transform="${front(DESK.y1)}"><path class="ak-bridge" d="M${DESK.x0 + 4} -1H${DESK.x1 - 4}V-4H${DESK.x0 + 4}Z"/>${inscription(DESK.x0 + 5.5, -3.4, DESK.x1 - DESK.x0 - 11, 1, 51, 3)}</g>`);
   // loupe d'horloger
   out.push(S(k.cylinder(36, 64, 5, 0, 2.4, P, 28), { tone: "mid", className: "mat-steel" }), S(k.cylinder(36, 64, 3.8, 2.4, 0.2, P, 28), { tone: "lo", crease: "none", className: "mat-glass" }));
   return out.join("");
@@ -284,23 +268,26 @@ const toolsSvg = (() => {
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un mécanisme d'Anticythère sur un établi : une fiche entre par la fente, une manivelle fait tourner une grande roue à quatre rayons, deux roues à cheville et coulisse s'accordent, un cadran à spirale prédit douze pages inédites, une machine à diviser taille une dent par correction, la roue neuve entre dans le boîtier et l'ancienne rejoint le tableau des versions ; une roue de 46 dents mène une roue de 20 dents : gain ×2,3.",
+  label: "Un mécanisme d'Anticythère sur un établi : la fiche entre par la fente, la grande roue allume les champs, la cheville du modèle tombe dans la coulisse des règles, le cadran à spirale propose les cadres de douze pages ; chaque page validée part en feuille vers le corpus ; les copies du corpus figé forment un flan sur la machine à diviser, qui devient une roue taillée ; le banc d'essai la juge sur deux rapports séparés ; le levier la publie : l'ancienne roue sort par la trappe vers le tableau des versions et la nouvelle descend ; une roue de 46 dents mène une roue de 20 dents : gain ×2,3.",
   body: [...base, toolsSvg, boardSvg, traySvg, caseSvg,
     `<g transform="${front(MECH_Y + 1)}" data-part="gears-back"></g><g transform="${front(MECH_Y + 4)}" data-part="gears"></g>`,
-    caseFront, dialSvg,
-    `<g data-part="lamps"></g><g data-part="card"></g><g data-part="crank"></g>`,
-    divSvg, `<g data-part="div"></g><g data-part="board"></g><g data-part="travel"></g>`],
+    caseFront, `<clipPath id="ak-lid" clipPathUnits="userSpaceOnUse"><rect x="-400" y="-1000" width="800" height="${1000 - LID_Z}"/></clipPath><g transform="${front(MECH_Y + 4)}" clip-path="url(#ak-lid)" data-part="lidtop"></g>`, dialSvg,
+    `<g data-part="lamps"></g><g data-part="crank"></g><g data-part="seal"></g>`,
+    divSvg, `<g data-part="div"></g><g data-part="board"></g><g data-part="travel"></g><g data-part="sheets"></g><g data-part="hand"></g>`],
 });
 
 // ---------------------------------------------------------------- vivant
+const MODEL_SRC = readFileSync(new URL("../refonte/m3d/anticythere-model.js", import.meta.url), "utf8").replace(/^export /gm, "");
 const live = `
 const P = ${JSON.stringify(P)};
-const GEARS = ${JSON.stringify(GEARS)}, CASE = ${JSON.stringify(CASE)}, DIAL = ${JSON.stringify(DIAL)}, CELLS = ${JSON.stringify(CELLS)}, DIV = ${JSON.stringify(DIV)}, BOARD = ${JSON.stringify(BOARD)};
-const PH = ${JSON.stringify(PH)}, LAMPS = ${JSON.stringify(lampsXY)}, MECH_Y = ${MECH_Y};
+const MODEL = (() => {
+${MODEL_SRC}
+return { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf, AGENT };
+})();
+const { TAU, CASE, MECH_Y, FY, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf, AGENT } = MODEL;
+const PH = MODEL.phases(false), LAMPS = ${JSON.stringify(lampsXY)}, RW = GEARS.pin.r;
 ${LOOP}
-const TAU = Math.PI * 2;
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
-const seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
 const lerp = (a, b, u) => a + (b - a) * u;
 const circ = ${circ.toString()};
 const gearPlan = ${gearPlan.toString()};
@@ -308,136 +295,150 @@ const OFF = ${JSON.stringify(OFF)};
 ${gearPts.toString()}
 ${circPts.toString()}
 ${prism.toString()}
+${prismS.toString()}
 const lift = ${lift.toString()};
 const raised = ${raised.toString()};
 ${wheel3d.toString()}
 const at = (p) => iso(p, P);
 const front = (y) => sideMatrix([0, y], 0, P, "left");
 const box = (x0, x1, y0, y1, z, h, o = {}) => solidSvg(extrude([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], z, h, P, { bevel: o.bevel ?? 0.5 }), { tone: o.tone || "mid", lit: o.lit, crease: o.crease, className: o.cls });
-const T = { read: [0.5, 4.2], sort: [2.0, 6.0], accord: [6.0, 9.6], infer: [10.0, 15.6], fix: [16.0, 23.0], train: [23.0, 28.0], ship: [28.4, 32.0], rerun: [32.4, 38.0], gain: [36.0, 40.0] }, LOOP_T = 42;
-const ERR = [4, 9];
-const STATIONS = ["Lecture · Document AI", "Tri des quatre champs · mini-BERT", "Hybride · cheville du modèle dans la coulisse des règles", "Inférence · douze pages inédites au cadran à spirale", "Correction humaine · une dent taillée par erreur", "Corpus et entraînement · la roue neuve se termine", "Publication · la roue neuve entre, l'ancienne passe au tableau des versions", "Nouvel essai · douze pages, douze cases vertes", "Gain · 46 dents mènent 20 dents : ×2,3"];
-const TS = [0, 2.0, 6.0, 10.0, 16.0, 23.0, 28.4, 32.4, 36.0];
-const stationAt = (s) => { let i = 0; TS.forEach((a, j) => { if (s >= a) i = j; }); return i; };
-const parts = {}; for (const n of ["gears", "gears-back", "lamps", "card", "crank", "div", "board", "travel", "ver-hand", "spiral-hand"]) parts[n] = $(n);
+const f2 = (v) => v.toFixed(2), pt = (q) => f2(q[0]) + " " + f2(q[1]);
+const parts = {}; for (const n of ["gears", "lidtop", "lamps", "crank", "seal", "div", "board", "hand", "travel", "sheets", "ver-hand", "spiral-hand"]) parts[n] = $(n);
 const cells = CELLS.map((_, i) => $("cell-" + i));
 const FIELDS = ["ak-f0", "ak-f1", "ak-f2", "ak-f3"];
 let t = 0, frozen = false, touring = true, idle = 0;
 
-function stateAt(s) {
-  const o = {};
-  // la manivelle : tourne pendant la lecture, l'inférence et le nouvel essai ; la grande roue suit (16 / 64)
-  const crankTurns = 2.0 * ease(seg(s, 0.5, 9.6)) + 3.0 * ease(seg(s, 10.0, 15.6)) + 3.0 * ease(seg(s, 32.4, 40.0));
-  o.crank = crankTurns * TAU; o.b1 = -o.crank * GEARS.crank.n / GEARS.b1.n;
-  o.idle = -o.b1 * GEARS.b1.n / GEARS.idle.n; o.pin = -o.idle * GEARS.idle.n / GEARS.pin.n;
-  // la coulisse suit la cheville quand l'accord est fait ; avant, elle hésite (décalage qui se résorbe)
-  const ac = ease(seg(s, T.accord[0], T.accord[1]));
-  o.slot = o.pin + (1 - ac) * 0.5 * Math.sin(s * 3);
-  o.accord = s > T.accord[0] + 2.4 && s < T.accord[1] + 0.6 || s > T.rerun[0] + 0.8 && s < T.gain[1];
-  o.p2 = -o.b1 * GEARS.b1.n / GEARS.p2.n;
-  // anneaux du corpus : chaque correction les fait avancer d'un cran ; ils tournent pendant l'entraînement
-  const fixes = ERR.map((_, i) => ease(seg(s, T.fix[0] + i * 3.2, T.fix[0] + i * 3.2 + 1.2)));
-  o.corpus = [0.6, -0.9, 1.3].map((k2, i) => k2 * (fixes[0] + fixes[1]) * 0.8 + k2 * 2.2 * ease(seg(s, T.train[0], T.train[1])) + i * 0.4);
-  o.corpus[0] = -o.p2 * GEARS.p2.n / GEARS.corpus.n;                // l'anneau extérieur est mené par son pignon
-  // gain : la menante tourne, la menée tourne 46 / 20 fois plus vite
-  o.p3 = -o.b1 * GEARS.b1.n / GEARS.p3.n; o.d46 = o.p3; o.o20 = -o.d46 * GEARS.d46.n / GEARS.o20.n;
-  // voyants des champs : allumés quand un rayon passe sous le peigne (en haut de la grande roue)
-  o.lamps = [0, 1, 2, 3].map((i) => { const a = ((o.b1 + i * TAU / 4) % TAU + TAU) % TAU, d = Math.abs(((a + Math.PI / 2) % TAU + TAU) % TAU - Math.PI); return (s > 2.0 && s < 9.6) || (s > 32.4 && s < 40) ? (d > Math.PI - 0.5 || s % 46 > 6 ? 1 : 0) : 0; });
-  // cadran à spirale : l'aiguille parcourt les douze cases ; premier passage : deux erreurs ; second : tout vert
-  const p1 = seg(s, T.infer[0], T.infer[1]), p2 = seg(s, T.rerun[0], T.rerun[1]);
-  o.spiral = s < T.rerun[0] ? lerp(0.04, 0.96, p1) : lerp(0.04, 0.96, p2);
-  o.cells = CELLS.map((c, i) => {
-    const second = s >= T.rerun[0], u = second ? p2 : p1, reached = lerp(0.04, 0.96, u) >= c && (second || s >= T.infer[0]);
-    if (!reached) return second || s < T.infer[0] ? 0 : 0;
-    if (!second && ERR.includes(i)) { const k2 = ERR.indexOf(i), fixed = s > T.fix[0] + k2 * 3.2 + 1.2; return fixed ? 3 : 2; }
-    return 1;
-  });
-  // machine à diviser : une dent par correction, puis la roue se termine pendant l'entraînement
-  const cutTeeth = Math.floor(fixes[0] * 6 + fixes[1] * 6 + 34 * ease(seg(s, T.train[0], T.train[1])));
-  o.cut = Math.min(46, cutTeeth); o.index = (o.cut / 46) * TAU;
-  o.cutter = (() => { const strokes = []; ERR.forEach((_, i) => strokes.push([T.fix[0] + i * 3.2, T.fix[0] + i * 3.2 + 1.2])); strokes.push([T.train[0], T.train[1]]); let v = 0; for (const [a, b] of strokes) if (s > a && s < b) v = Math.abs(Math.sin((s - a) * 9)); return v; })();
-  // publication : la roue neuve monte du plateau jusqu'au boîtier ; l'ancienne roue de gain part au tableau
-  o.ship = ease(seg(s, T.ship[0], T.ship[0] + 1.8)); o.old = ease(seg(s, T.ship[0] + 1.2, T.ship[1]));
-  o.version = s < T.ship[0] + 2.4 ? 2 : 3;
-  // fiche : descend dans la fente au début, une seconde au nouvel essai
-  o.card = [ease(seg(s, 0.5, 2.6)), ease(seg(s, 32.4, 34.2))];
-  return o;
+// ---- feuilles de papier : bandes cintrées, recto blanc et verso teinté, lignes de texte, sillage ondulé ----
+const area = (q) => { let a = 0; for (let i = 0; i < q.length; i++) { const p0 = q[i], p1 = q[(i + 1) % q.length]; a += p0[0] * p1[1] - p1[0] * p0[1]; } return a; };
+const REF = Math.sign(area([at([0, 0, 0]), at([1, 0, 0]), at([1, 1, 0]), at([0, 1, 0])]));
+const LW = (() => { const l = [-0.35, 0.45, 0.82], n = Math.hypot(...l); return l.map((x) => x / n); })();
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const cr = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const mixP = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+function sheetSvg(pose, s) {
+  const rows = sheetRows(pose); if (rows.length < 2) return "";
+  const sp = rows.map(([l, r]) => [at(l), at(r)]), sh = pose.sh;
+  let out = "", text = "";
+  for (let i = 0; i < rows.length - 1; i++) {
+    const q = [sp[i][0], sp[i + 1][0], sp[i + 1][1], sp[i][1]], fr = Math.sign(area(q)) === REF;
+    const nn = cr(sub(rows[i + 1][0], rows[i][0]), sub(rows[i][1], rows[i][0])), nl = Math.hypot(...nn) || 1, k = (fr ? 1 : -1) * (nn[0] * LW[0] + nn[1] * LW[1] + nn[2] * LW[2]) / nl;
+    out += '<path class="' + (fr ? (k > 0.72 ? "ak-pp0" : k > 0.4 ? "ak-pp1" : "ak-pp2") : "ak-ppb") + '" d="M' + q.map(pt).join("L") + 'Z"/>';
+    if (!fr) continue;
+    const L0 = mixP(rows[i][0], rows[i + 1][0], 0.5), R0 = mixP(rows[i][1], rows[i + 1][1], 0.5);
+    if (i === 0 && (sh.mark || sh.kind === "test")) { const a0 = rows[i][0], a1 = rows[i + 1][0], b0 = mixP(rows[i][0], rows[i][1], 0.32), b1 = mixP(rows[i + 1][0], rows[i + 1][1], 0.32); out += '<path class="' + (sh.mark ? "ak-shmark" : "ak-shtest") + '" d="M' + [a0, a1, b1, b0].map((v) => pt(at(v))).join("L") + 'Z"/>'; }
+    if (i >= 2 && i <= 7) { const len = [0.62, 0.48, 0.66, 0.4, 0.58, 0.5][i - 2], cls = sh.kind === "freeze" && i <= 4 ? "ak-tx" + (i - 2) : "ak-shtext"; text += '<path class="' + cls + '" d="M' + pt(at(mixP(L0, R0, 0.16))) + "L" + pt(at(mixP(L0, R0, 0.16 + len))) + '"/>'; }
+  }
+  const st = stampOf(sh, s);
+  if (st && rows.length > 7) {
+    const q = [[4, 0.3], [4, 0.72], [7, 0.72], [7, 0.3]].map(([i, k]) => at(mixP(rows[i][0], rows[i][1], k)));
+    if (Math.sign(area(q)) === -REF) text += '<path class="ak-stamp-' + st + '" d="M' + q.map(pt).join("L") + 'Z"/>';
+  }
+  const outline = sp.map((r) => r[0]).concat(sp.map((r) => r[1]).reverse());
+  return out + text + '<path class="ak-shline" d="M' + outline.map(pt).join("L") + 'Z"/>';
+}
+function trailSvg(sh, s) {
+  const tr = sheetTrail(sh, s); if (!tr) return "";
+  const sp = tr.pts.map(at), n = sp.length - 1;
+  const d = sp.map((q, i) => { const a = sp[Math.max(0, i - 1)], b = sp[Math.min(n, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1, w = 1.3 * Math.sin(i * 1.9 - s * 11) * Math.sin(Math.PI * i / n); return f2(q[0] - ty / l * w) + " " + f2(q[1] + tx / l * w); });
+  return '<path class="ak-trail" style="opacity:' + (0.55 * tr.fade).toFixed(2) + '" d="M' + d.join("L") + '"/>';
+}
+const pinPeg = (u, z, a, h0) => raised(circPts(1.8, u + 10 * Math.cos(a), -z + 10 * Math.sin(a), 16), h0, 4.4, "ak-gear ak-hub");
+
+// ---- la main de l'agent (Human-in-the-Loop) : la main détourée de « La Création d'Adam », à plat face au spectateur ;
+// elle descend vers la page posée sur la table lumineuse et la valide du bout de l'index (une étincelle à la couleur de la décision) ----
+function handsSvg(s) {
+  const h = handAt(s); if (!h) return "";
+  const q = at(h.tip), sv = Math.hypot(...[0, 1].map((i) => at([h.tip[0], h.tip[1], h.tip[2] + 10])[i] - q[i])) / 10, k = AGENT.k * sv;
+  let out = '<image href="../assets/figures/main-agent.webp" transform="rotate(' + (-AGENT.tilt * 57.2958).toFixed(1) + ' ' + f2(q[0]) + ' ' + f2(q[1]) + ')" x="' + f2(q[0] - AGENT.tip[0] * k) + '" y="' + f2(q[1] - AGENT.tip[1] * k) + '" width="' + f2(AGENT.w * k) + '" height="' + f2(AGENT.h * k) + '"/>';
+  if (h.press > 0.35) { const r = (0.8 + 2.2 * h.press) * sv;
+    out = '<g class="ak-spark ak-spark-' + h.kind + '" style="opacity:' + h.press.toFixed(2) + '"><path d="' + circ(r, q[0], q[1]) + '"/>' + [0, 1, 2, 3, 4, 5].map((i) => { const a = i * Math.PI / 3 + 0.3; return '<path d="M' + f2(q[0] + (r + 0.6 * sv) * Math.cos(a)) + ' ' + f2(q[1] + (r + 0.6 * sv) * Math.sin(a)) + 'L' + f2(q[0] + (r + 2.6 * sv) * Math.cos(a)) + ' ' + f2(q[1] + (r + 2.6 * sv) * Math.sin(a)) + '"/>'; }).join("") + '</g>' + out; }
+  return out;
 }
 
 function draw(o, s) {
   const g = GEARS;
-  let fr = "";
+  let fr = "", top = "";
   fr += wheel3d(g.b1, o.b1 + PH.b1, { spokes: FIELDS });
   fr += wheel3d(g.crank, o.crank + PH.crank);
   fr += wheel3d(g.idle, o.idle + PH.idle);
   fr += wheel3d(g.p2, o.p2 + PH.p2);
-  // roue du modèle contre la platine, roue des règles levée devant elle ; la cheville traverse la coulisse
-  fr += wheel3d(g.pin, o.pin + PH.pin);
+  // roue du modèle contre la platine (elle sort par la trappe à la publication), roue des règles levée devant elle
+  const pc = pinInCase(o), pa = o.pin + PH.pin;
+  if (pc) { const w = wheel3d({ ...g.pin, z: pc.z }, pa); fr += w; if (pc.z + RW > LID_Z) top += w + pinPeg(g.pin.u, pc.z, pa, 3); }
   fr += wheel3d(g.slot, o.slot + PH.pin, { lit: o.accord, h: 4.2 });
   { const T = 3, h = 4.2 + T, c = lift([[g.slot.u, -g.slot.z]], h)[0], sa = o.slot + PH.pin, rr = (x, y) => [c[0] + x * Math.cos(sa) - y * Math.sin(sa), c[1] + x * Math.sin(sa) + y * Math.cos(sa)];
-    fr += '<path class="ak-slot" d="M' + [rr(4, -1.6), rr(13.5, -1.6), rr(13.5, 1.6), rr(4, 1.6)].map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>';
-    const pc = [g.pin.u + 10 * Math.cos(o.pin + PH.pin), -g.pin.z + 10 * Math.sin(o.pin + PH.pin)];
-    fr += raised(circPts(1.8, pc[0], pc[1], 16), 3, 4.4, "ak-gear ak-hub"); }
-  // trois anneaux coaxiaux du corpus, empilés
+    fr += '<path class="ak-slot" d="M' + [rr(4, -1.6), rr(13.5, -1.6), rr(13.5, 1.6), rr(4, 1.6)].map(pt).join("L") + 'Z"/>'; }
+  if (pc) fr += pinPeg(g.pin.u, pc.z, pa, 3);
   ['ak-r0', 'ak-r1', 'ak-r2'].forEach((cls, i) => { const r = g.corpus.r - i * 4.6, T = 1.6, h = i * T, a = o.corpus[i] + (i ? 0 : PH.corpus), c = lift([[g.corpus.u, -g.corpus.z]], h + T)[0];
     fr += prism(lift(gearPts(r, 26 - i * 7, i ? 1.4 : g.corpus.d, 99, a, g.corpus.u, -g.corpus.z), h + T), T, { cls: "ak-gear " + cls, holes: [[c[0], c[1], r - 2.6]] });
     const m = [[r - 2.4, -0.8], [r - 0.6, -0.8], [r - 0.6, 0.8], [r - 2.4, 0.8]].map(([x, y]) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)]);
-    fr += '<path class="ak-mark" d="M' + m.map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>'; });
+    fr += '<path class="ak-mark" d="M' + m.map(pt).join("L") + 'Z"/>'; });
   fr += raised(circPts(1.4, g.corpus.u, -g.corpus.z, 14), 4.8, 1.2, "ak-axle3");
-  // pignon de 12 dents contre la platine, mené par la grande roue ; la roue de 46 dents, sur le même axe, tourne un plan devant
   fr += wheel3d(g.p3, o.p3 + PH.p3);
   fr += wheel3d(g.d46, o.d46, { h: 3.2 });
-  fr += wheel3d(g.o20, o.o20 + PH.o20, { lit: s > 36, h: 3.2 });
+  fr += wheel3d(g.o20, o.o20 + PH.o20, { lit: s > T.gain[0], h: 3.2 });
   { const c = lift([[g.o20.u, -g.o20.z]], 3.2 + 2.2 + 2.6)[0], a = o.o20 + PH.o20, rr = (x, y) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)];
-    fr += '<path class="ak-hand" d="M' + [rr(-1, 0), rr(0, -13), rr(1, 0)].map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>'; }
-  // peigne de lecture au-dessus de la grande roue, aiguille d'accord
+    fr += '<path class="ak-hand" d="M' + [rr(-1, 0), rr(0, -13), rr(1, 0)].map(pt).join("L") + 'Z"/>'; }
   { const u = g.b1.u, v = -(g.b1.z + 44), rect = (u0, v0, w, hh) => [[u0, v0], [u0 + w, v0], [u0 + w, v0 + hh], [u0, v0 + hh]];
     fr += [0, 1, 2, 3].map((i) => raised(rect(u - 7.5 + i * 5, v, 1.4, 5), 0, 2.4, "ak-gear")).join("") + raised(rect(u - 10, v - 3, 20, 3), 0, 3.6, "ak-gear"); }
   fr += '<g transform="translate(' + (g.slot.u + 14) + ' ' + (-(g.slot.z + 14)) + ')"><path class="ak-face" d="' + circ(3.4) + '"/><path class="' + (o.accord ? 'ak-ok' : 'ak-off') + '" d="' + circ(2) + '"/></g>';
-  parts.gears.innerHTML = fr;
-  // voyants des champs
+  parts.gears.innerHTML = fr; parts.lidtop.innerHTML = top;
   parts.lamps.innerHTML = LAMPS.map((p, i) => { const q = at(p); return '<circle class="ak-lamp ' + (o.lamps[i] ? FIELDS[i] + ' ak-on' : '') + '" cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="2.6"/>'; }).join("");
-  // fiche qui descend dans la fente, avec ses quatre lignes de champs
-  parts.card.innerHTML = o.card.map((u, i) => { if (u <= 0 || u >= 1) return ""; const z = CASE.h + 8 + 40 * (1 - u); return box(-46, -24, -22.6, -19.4, z - 30, 30, { tone: "hi", crease: "none", bevel: 0.2 }) + '<g transform="' + front(-19.4) + '">' + ["ak-f0s", "ak-f1s", "ak-f2s", "ak-f3s"].map((c, j) => '<path class="' + c + '" d="M-43 ' + (-(z - 4 - j * 5)).toFixed(1) + 'h' + [12, 8, 15, 10][j] + '"/>').join("") + '</g>'; }).join("");
-  // manivelle : bras et poignée qui sortent vers le spectateur
   const ca = o.crank, cu = g.crank.u, cz = g.crank.z, hx = cu + 14 * Math.cos(ca), hz = cz + 14 * Math.sin(ca);
-  parts.crank.innerHTML = '<path class="iso-line" data-tone="hi" d="M' + at([cu, MECH_Y + 6, cz]).join(" ") + 'L' + at([hx, MECH_Y + 6, hz]).join(" ") + '"/>' + dotsSvg([at([cu, MECH_Y + 6, cz])], { size: 1.3, tone: "hi" }) + solidSvg(cylinder(hx, MECH_Y + 6, 2.2, 0, 0.01, P, 4), { tone: "hi" }).slice(0, 0) + box(hx - 2, hx + 2, MECH_Y + 6, MECH_Y + 16, hz - 2, 4, { tone: "hi", lit: true, bevel: 0.8, cls: "mat-wood" });
+  parts.crank.innerHTML = '<path class="iso-line" data-tone="hi" d="M' + at([cu, MECH_Y + 6, cz]).join(" ") + 'L' + at([hx, MECH_Y + 6, hz]).join(" ") + '"/>' + dotsSvg([at([cu, MECH_Y + 6, cz])], { size: 1.3, tone: "hi" }) + box(hx - 2, hx + 2, MECH_Y + 6, MECH_Y + 16, hz - 2, 4, { tone: "hi", lit: true, bevel: 0.8, cls: "mat-wood" });
+  // le corpus est figé : un sceau de cire sur la boîte, sa version
+  parts.seal.innerHTML = o.sealed ? '<g transform="' + front(TRAY.y + 14) + '"><path class="ak-seal" d="' + circ(2.6, TRAY.x + 12.5, -8.5) + '"/><path class="ak-sealin" d="' + circ(1.5, TRAY.x + 12.5, -8.5) + '"/></g>' : "";
   // cadran à spirale : aiguille, cases ; cadran des versions
   const [su, sv] = (() => { const a = o.spiral * DIAL.turns * TAU, r = DIAL.r0 + (DIAL.r1 - DIAL.r0) * o.spiral; return [DIAL.u + r * Math.cos(a - Math.PI / 2), -DIAL.z + r * Math.sin(a - Math.PI / 2)]; })();
-  parts["spiral-hand"].innerHTML = '<path class="ak-hand" d="M' + DIAL.u + ' ' + (-DIAL.z) + 'L' + su.toFixed(2) + ' ' + sv.toFixed(2) + '"/><path class="ak-gear" d="' + circ(1.6, su, sv) + '"/><path class="ak-axle" d="' + circ(1.1, DIAL.u, -DIAL.z) + '"/>';
-  cells.forEach((c, i) => c.setAttribute("class", "ak-cell" + [" ", " ak-ok", " ak-bad", " ak-fixed"][o.cells[i]]));
+  parts["spiral-hand"].innerHTML = '<path class="ak-hand" d="M' + DIAL.u + ' ' + (-DIAL.z) + 'L' + f2(su) + ' ' + f2(sv) + '"/><path class="ak-gear" d="' + circ(1.6, su, sv) + '"/><path class="ak-axle" d="' + circ(1.1, DIAL.u, -DIAL.z) + '"/>';
+  cells.forEach((c, i) => c.setAttribute("class", "ak-cell" + [" ", " ak-ok", " ak-bad", " ak-fixed", " ak-prop"][o.cells[i]]));
   const va = -Math.PI / 2 + (o.version - 2.5) * 0.55;
-  parts["ver-hand"].innerHTML = '<path class="ak-hand" d="M' + DIAL.u + ' -106L' + (DIAL.u + 8 * Math.cos(va)).toFixed(2) + ' ' + (-106 + 8 * Math.sin(va)).toFixed(2) + '"/><path class="ak-axle" d="' + circ(1, DIAL.u, -106) + '"/>';
-  // machine à diviser : roue en cours de taille (horizontale), couteau qui frappe
-  const R = DIV.r, wheelPlan = [];
-  for (let i = 0; i < 46; i++) { const a = o.index + (i / 46) * TAU, w = TAU / 46, has = i < o.cut, ro = has ? R : R - 1.6, ri = R - 1.6; for (const [rr, f2] of [[ri, 0], [ri, 0.18], [ro, 0.3], [ro, 0.62], [ri, 0.74]]) wheelPlan.push([DIV.x + rr * Math.cos(a + w * f2), DIV.y + rr * Math.sin(a + w * f2)]); }
-  const rise = o.ship;
+  parts["ver-hand"].innerHTML = '<path class="ak-hand" d="M' + DIAL.u + ' -106L' + f2(DIAL.u + 8 * Math.cos(va)) + ' ' + f2(-106 + 8 * Math.sin(va)) + '"/><path class="ak-axle" d="' + circ(1, DIAL.u, -106) + '"/>';
+  // machine à diviser : axe nu, puis flan pressé, puis roue taillée ; couteau, banc d'essai, levier de publication
   let dv = "";
-  if (rise < 1) {
-    const z = DIV.z - 13 + rise * 0;
-    dv += solidSvg(extrude(wheelPlan, z, 2.4, P, { bevel: 0.2 }), { tone: "hi", lit: o.cutter > 0, crease: "none", className: "mat-bronze" });
-    dv += solidSvg(cylinder(DIV.x, DIV.y, 3, z + 2.4, 3, P, 16), { tone: "mid", className: "mat-steel" }) + solidSvg(cylinder(DIV.x, DIV.y, 1.6, z + 5.4, 1.2, P, 12), { tone: "hi", className: "mat-steel" });
-  }
-  const cx = DIV.x - R - 6 + o.cutter * 4.5;
+  const onDiv = o.blank > 0 && !(o.newFly > 0);
+  if (onDiv) {
+    const plan = o.blank < 1 ? circPts((RW - g.pin.d) * (0.55 + 0.45 * o.blank), DIV.x, DIV.y, 40) : gearPlan(DIV.x, DIV.y, RW, 24, o.index, o.cut, g.pin.d);
+    dv += solidSvg(extrude(plan, DIV.z, 3, P, { bevel: 0.2 }), { tone: "hi", lit: o.cutter > 0 || o.blank < 1, crease: "none", className: "mat-bronze" });
+    dv += solidSvg(cylinder(DIV.x, DIV.y, 2.6, DIV.z + 3, 2, P, 16), { tone: "mid", className: "mat-steel" });
+    if (o.peg) dv += solidSvg(cylinder(DIV.x + 10 * Math.cos(o.index), DIV.y + 10 * Math.sin(o.index), 1.8, DIV.z + 3, 3.6, P, 14), { tone: "mid", className: "mat-bronze" });
+  } else dv += solidSvg(cylinder(DIV.x, DIV.y, 2.6, DIV.z, 5, P, 16), { tone: "mid", className: "mat-steel" });
+  const cx = DIV.x - RW - 6 + o.cutter * 4.5, fz = DIV.z + 1.5;
   dv += box(cx - 7, cx + 1, DIV.y - 3, DIV.y + 3, 24.4, 6, { tone: "mid", bevel: 0.6, cls: "mat-steel" });
-  // fraise : disque denté vertical qui tourne pendant la coupe, sur son arbre
-  const fa = s * 14 * (o.cutter > 0 ? 1 : 0), fz = DIV.z - 11.8;
-  dv += '<g transform="' + front(DIV.y + 0.6) + '"><g transform="translate(' + (cx + 3).toFixed(2) + ' ' + (-fz).toFixed(2) + ') rotate(' + (fa * 57.3 % 360).toFixed(1) + ')">' + prism(lift(gearPts(4.2, 12, 0.9, 12, 0, 0, 0), 1.6), 1.6, { cls: "ak-steel" + (o.cutter > 0.5 ? " ak-lit" : "") }) + '<path class="ak-axle" d="' + circ(0.9, -OFF[0] * 1.6, -OFF[1] * 1.6) + '"/></g></g>';
+  const fa = s * 14 * (o.cutter > 0 ? 1 : 0);
+  dv += '<g transform="' + front(DIV.y + 0.6) + '"><g transform="translate(' + f2(cx + 3) + ' ' + f2(-fz) + ') rotate(' + (fa * 57.3 % 360).toFixed(1) + ')">' + prism(lift(gearPts(4.2, 12, 0.9, 12, 0, 0, 0), 1.6), 1.6, { cls: "ak-steel" + (o.cutter > 0.5 ? " ak-lit" : "") }) + '<path class="ak-axle" d="' + circ(0.9, -OFF[0] * 1.6, -OFF[1] * 1.6) + '"/></g></g>';
   dv += box(cx - 0.8, cx + 1.2, DIV.y - 0.8, DIV.y + 0.8, fz, 24.4 - fz, { tone: "mid", bevel: 0.1, cls: "mat-steel" });
-  const ha = (o.cut / 46) * TAU * 4, hx2 = DIV.x + 26 + 6 * Math.cos(ha), hy2 = DIV.y + 17 + 6 * Math.sin(ha);
-  dv += '<path class="iso-line" data-tone="hi" d="M' + at([DIV.x + 26, DIV.y + 17, 18.5]).join(" ") + 'L' + at([hx2, hy2, 18.5]).join(" ") + '"/>' + box(hx2 - 1.5, hx2 + 1.5, hy2 - 1.5, hy2 + 1.5, 18.5, 5, { tone: "hi", bevel: 0.6, cls: "mat-wood" });
+  { const G = GAUGE; let gs = "";
+    [[G.x0 + 4.8, o.f1], [G.x1 - 4.8, o.u1]].forEach(([u, v]) => { const a = Math.PI - v * Math.PI; gs += '<path class="ak-needle" d="M' + u + ' -11L' + f2(u + 3.1 * Math.cos(a)) + ' ' + f2(-11 - 3.1 * Math.sin(a)) + '"/><path class="ak-axle" d="' + circ(0.55, u, -11) + '"/>'; });
+    gs += '<path class="' + (o.pass ? "ak-ok" : "ak-off") + '" d="' + circ(1.3, (G.x0 + G.x1) / 2, -18) + '"/>';
+    dv += '<g transform="' + front(G.y1) + '">' + gs + '</g>'; }
+  { const th = o.lever * 1.2, tip = [LEVER.x, LEVER.y - 5 + 11 * Math.sin(th), LEVER.z + 11 * Math.cos(th)];
+    dv += '<path class="iso-line" data-tone="hi" d="M' + at([LEVER.x, LEVER.y - 5, LEVER.z]).join(" ") + 'L' + at(tip).join(" ") + '"/>' + dotsSvg([at([LEVER.x, LEVER.y - 5, LEVER.z])], { size: 1.3, tone: "hi" }) + box(tip[0] - 1.6, tip[0] + 1.6, tip[1] - 1.6, tip[1] + 1.6, tip[2] - 1, 3.4, { tone: "hi", lit: o.lever > 0.05, bevel: 0.6, cls: "mat-wood" }); }
   parts.div.innerHTML = dv;
-  // la roue neuve voyage du plateau vers le boîtier ; l'ancienne voyage du boîtier au tableau
+  // tableau des versions : v1 et v2 accrochées, v3 arrive à la publication, v4 attend la prochaine
+  let bd = "";
+  BOARD.slots.forEach(([u, z], i) => { if (i === 3 || (i === 2 && o.oldFly < 1)) return; bd += prism(lift(gearPts(RW, 24, g.pin.d, 24, i * 0.7, u, -z), 3), 3, { cls: "ak-gear" + (i === 2 ? " ak-lit" : ""), holes: [[u - OFF[0] * 3, -z - OFF[1] * 3, 1.8]] }); });
+  parts.board.innerHTML = '<g transform="' + front(BOARD.y) + '">' + bd + '</g>';
+  parts.hand.innerHTML = handsSvg(s);
+  // roues en vol : l'ancienne, dressée, vers le tableau ; la candidate, qui se redresse en montant vers la trappe
   let tr = "";
-  if (rise > 0 && rise < 1) { const x = lerp(DIV.x, -35, rise), y = lerp(DIV.y, -21, rise), z = lerp(DIV.z - 13, CASE.h + 9, rise) + 70 * Math.sin(rise * Math.PI * 0.85); tr += solidSvg(extrude(gearPlan(x, y, DIV.r, 46, s * 2), z, 2.4, P, { bevel: 0.2 }), { tone: "mid", crease: "none", className: "mat-bronze" }) + solidSvg(cylinder(x, y, 3, z + 2.4, 1.2, P, 16), { tone: "mid", className: "mat-steel" }); }
-  if (o.old > 0 && o.old < 1) { const x = lerp(CASE.x1 - 20, BOARD.x0 + 12 + 3 * 16, o.old), y = lerp(-10, BOARD.y + 3, o.old), z = lerp(30, 58, o.old) + 20 * Math.sin(o.old * Math.PI); tr += '<g transform="' + front(y) + '">' + prism(gearPts(10, 20, 1.2, 20, o.old * 3, x, -z), 2) + '</g>'; }
+  const ol = oldInFlight(o);
+  if (ol) { const [x, y, z] = ol.c, a = pa + o.oldFly * 3; tr += '<g transform="' + front(y) + '">' + prism(lift(gearPts(RW, 24, g.pin.d, 24, a, x, -z), 3), 3, { cls: "ak-gear" }) + pinPeg(x, z, a, 3) + '</g>'; }
+  const nw = newInFlight(o);
+  if (nw) {
+    const ca2 = Math.cos(nw.alpha), sa2 = Math.sin(nw.alpha), e2 = [0, ca2, sa2], n = [0, -sa2, ca2], c = nw.c, spin = s * 1.6;
+    const W = (a, b, k) => [c[0] + a, c[1] + e2[1] * b + n[1] * k, c[2] + e2[2] * b + n[2] * k];
+    const pts = gearPts(RW, 24, g.pin.d, 24, spin, 0, 0).map(([a, b]) => at(W(a, b, 3))), q0 = at(W(0, 0, 3)), q1 = at(W(0, 0, 0));
+    tr += prismS(pts, q1[0] - q0[0], q1[1] - q0[1], { cls: "ak-gear ak-lit" });
+  }
   parts.travel.innerHTML = tr;
-  // tableau des versions : anciennes roues accrochées ; la dernière arrive à la publication
-  let bd = ""; for (let i = 0; i < 4; i++) { if (i === 3 && o.old < 1) continue; const u = BOARD.x0 + 12 + i * 16; bd += prism(lift(gearPts(10, 20, 1.2, 20, i * 0.7, u, -58), 2), 2, { cls: "ak-gear" + (i === 3 ? " ak-lit" : ""), holes: [[u - OFF[0] * 2, -58 - OFF[1] * 2, 1.6]] }); }
-  parts.board.innerHTML = '<g transform="' + front(BOARD.y + 1) + '">' + bd + '</g>';
+  // feuilles : posées d'abord, puis celles qui volent
+  let sh = "", fly = "";
+  for (const q of SHEETS) { const p = sheetPose(q, s); if (!p) continue; if (p.u >= 1) sh += sheetSvg(p, s); else fly += trailSvg(q, s) + sheetSvg(p, s); }
+  parts.sheets.innerHTML = sh + fly;
 }
-function reading(s) { const i = stationAt(s); const fixed = (s > T.fix[0] + 1.2 ? 1 : 0) + (s > T.fix[0] + 4.4 ? 1 : 0); const ok = s < T.rerun[0] ? (s < T.infer[0] ? 0 : 10 + fixed) : 12; return (i + 1) + " · " + STATIONS[i] + (s >= T.infer[0] ? " · " + ok + "/12" : ""); }
-const run = loop((dt, calm) => { if (frozen) return; if (touring) { t = calm ? 38.5 : t + dt; if (t >= LOOP_T) t = 0; } draw(stateAt(t), t); say(reading(t)); });
+function reading(s) { const i = stationAt(s), o = stateAt(s); return (i + 1) + " · " + STATIONS[i] + (s >= T.infer[0] ? " · " + o.validated + "/12 validées" : ""); }
+const run = loop((dt, calm) => { if (frozen) return; if (touring) { t = calm ? 53 : t + dt; if (t >= LOOP_T) t = 0; } draw(stateAt(t), t); say(reading(t)); });
 const jump = (i) => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; }, 9000); t = TS[(i + TS.length) % TS.length] + 1.5; run(); };
 dragX(() => stationAt(t), (v, share) => { const n = (Math.round(v + share * 9) % 9 + 9) % 9; if (n !== stationAt(t)) jump(n); });
 stage.addEventListener("keydown", (e) => { const i = stationAt(t); if (e.key === "ArrowRight") { e.preventDefault(); jump(i + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); jump(i - 1); } });
@@ -458,7 +459,7 @@ const css = `<style>
 .ak-slot{fill:var(--ak-hole);stroke:var(--anatomy-hi);stroke-width:.3}
 .ak-mark{fill:var(--anatomy-lit)}
 .ak-cell{fill:var(--anatomy-paper);stroke:var(--anatomy-mid);stroke-width:.3}
-.ak-cell.ak-ok,.ak-ok{fill:#5fae6e}.ak-cell.ak-bad{fill:#d2452f}.ak-cell.ak-fixed{fill:#e0a33a}.ak-off{fill:var(--anatomy-faint)}
+.ak-cell.ak-prop{fill:#dbe6fb;stroke:#3e63dd}.ak-cell.ak-ok,.ak-ok{fill:#5fae6e}.ak-cell.ak-bad{fill:#d2452f}.ak-cell.ak-fixed{fill:#e0a33a}.ak-off{fill:var(--anatomy-faint)}
 .ak-f0{fill:#d2452f}.ak-f1{fill:#3f6fb0}.ak-f2{fill:#e0b23a}.ak-f3{fill:#3d8f8a}
 .ak-r0{fill:#c98a6a}.ak-r1{fill:#8aa3c4}.ak-r2{fill:#c9b26a}
 .ak-lamp{fill:var(--anatomy-faint);stroke:var(--anatomy-mid);stroke-width:.5}.ak-lamp.ak-on{stroke:var(--anatomy-hi)}
@@ -482,33 +483,54 @@ const css = `<style>
 .ak-tag{font:600 2.6px var(--anatomy-mono);fill:var(--ak-engr)}
 .ak-f0s,.ak-f1s,.ak-f2s,.ak-f3s{fill:none;stroke-width:1.1;stroke-linecap:round}.ak-f0s{stroke:#d2452f}.ak-f1s{stroke:#3f6fb0}.ak-f2s{stroke:#e0b23a}.ak-f3s{stroke:#3d8f8a}
 .fig-dark{fill:var(--ak-hole)}
+.ak-pp0{fill:var(--pp0)}.ak-pp1{fill:var(--pp1)}.ak-pp2{fill:var(--pp2)}.ak-ppb{fill:var(--ppb)}
+.ak-pp0,.ak-pp1,.ak-pp2,.ak-ppb{stroke-width:.25;stroke-linejoin:round}.ak-pp0{stroke:var(--pp0)}.ak-pp1{stroke:var(--pp1)}.ak-pp2{stroke:var(--pp2)}.ak-ppb{stroke:var(--ppb)}
+.ak-shline{fill:none;stroke:var(--ppl);stroke-width:.4;stroke-linejoin:round}
+.ak-shtext{fill:none;stroke:var(--anatomy-mid);stroke-width:.45;stroke-linecap:round}
+.ak-tx0,.ak-tx1,.ak-tx2{fill:none;stroke-width:.7;stroke-linecap:round}.ak-tx0{stroke:#c98a6a}.ak-tx1{stroke:#8aa3c4}.ak-tx2{stroke:#c9b26a}
+.ak-shmark{fill:#e0a33a}.ak-shtest{fill:#8fb0ee}
+.ak-trail{fill:none;stroke:var(--ppl);stroke-width:.45;stroke-linecap:round;stroke-linejoin:round}
+.ak-seal{fill:#a8392b;stroke:#6e1f17;stroke-width:.3}.ak-sealin{fill:none;stroke:#d36a55;stroke-width:.3}
+.ak-meter{fill:none;stroke:var(--anatomy-mid);stroke-width:.35}.ak-thr{fill:none;stroke:#d2452f;stroke-width:.5}
+.ak-needle{fill:none;stroke:var(--anatomy-lit);stroke-width:.45;stroke-linecap:round}
 .mat-wood{--anatomy-face:var(--wd-1);--anatomy-top:var(--wd-0);--anatomy-lit-top:var(--wd-0);--anatomy-lit-shade:var(--wd-2);--anatomy-shade-0:var(--wd-4);--anatomy-shade-1:var(--wd-3);--anatomy-shade-2:var(--wd-2);--anatomy-shade-3:var(--wd-1)}
 .mat-bronze{--anatomy-face:var(--bz-1);--anatomy-top:var(--bz-0);--anatomy-lit-top:var(--bz-0);--anatomy-lit-shade:var(--bz-2);--anatomy-shade-0:var(--bz-4);--anatomy-shade-1:var(--bz-3);--anatomy-shade-2:var(--bz-2);--anatomy-shade-3:var(--bz-1)}
 .mat-steel{--anatomy-face:var(--st-1);--anatomy-top:var(--st-0);--anatomy-lit-top:var(--st-0);--anatomy-lit-shade:var(--st-2);--anatomy-shade-0:var(--st-4);--anatomy-shade-1:var(--st-3);--anatomy-shade-2:var(--st-2);--anatomy-shade-3:var(--st-1)}
 .mat-plate{--anatomy-face:var(--pl-1);--anatomy-top:var(--pl-0);--anatomy-lit-top:var(--pl-0);--anatomy-lit-shade:var(--pl-2);--anatomy-shade-0:var(--pl-3);--anatomy-shade-1:var(--pl-2);--anatomy-shade-2:var(--pl-2);--anatomy-shade-3:var(--pl-1)}
 .ak-leg{fill:none;stroke:var(--anatomy-hi);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.ak-legc{fill:none;stroke:var(--st-0);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.mat-skin{--anatomy-face:#eab894;--anatomy-top:#f3c8a6;--anatomy-lit-top:#f3c8a6;--anatomy-lit-shade:#e0a886;--anatomy-shade-0:#c98b69;--anatomy-shade-1:#d69a77;--anatomy-shade-2:#e0a886;--anatomy-shade-3:#eab894}
+.mat-sleeve{--anatomy-face:#3f5f8f;--anatomy-top:#4d6da0;--anatomy-lit-top:#4d6da0;--anatomy-lit-shade:#3a5785;--anatomy-shade-0:#2b4269;--anatomy-shade-1:#324c77;--anatomy-shade-2:#3a5785;--anatomy-shade-3:#3f5f8f}
+.mat-cuff{--anatomy-face:#f4f3ee;--anatomy-top:#ffffff;--anatomy-lit-top:#ffffff;--anatomy-lit-shade:#e6e5df;--anatomy-shade-0:#cfcec7;--anatomy-shade-1:#dad9d2;--anatomy-shade-2:#e6e5df;--anatomy-shade-3:#f4f3ee}
+.mat-ink-ok{--anatomy-face:#4f9e5f;--anatomy-top:#5fae6e;--anatomy-lit-top:#5fae6e;--anatomy-shade-0:#3c7c49;--anatomy-shade-1:#448a52;--anatomy-shade-2:#4a955a;--anatomy-shade-3:#4f9e5f}
+.mat-ink-bad{--anatomy-face:#c23e2a;--anatomy-top:#d2452f;--anatomy-lit-top:#d2452f;--anatomy-shade-0:#963021;--anatomy-shade-1:#a83525;--anatomy-shade-2:#b53a28;--anatomy-shade-3:#c23e2a}
+.mat-ink-fix{--anatomy-face:#d4952f;--anatomy-top:#e0a33a;--anatomy-lit-top:#e0a33a;--anatomy-shade-0:#a57224;--anatomy-shade-1:#b67e28;--anatomy-shade-2:#c5892b;--anatomy-shade-3:#d4952f}
+.ak-stamp-ok{fill:rgba(53,169,116,.28);stroke:#35a974;stroke-width:.55}.ak-stamp-bad{fill:rgba(210,69,47,.28);stroke:#d2452f;stroke-width:.55}.ak-stamp-fix{fill:rgba(224,163,58,.32);stroke:#e0a33a;stroke-width:.55}
+.ak-lightgrid{fill:none;stroke:#9db6ea;stroke-width:.3}
+.mat-light{--anatomy-face:var(--gl);--anatomy-top:var(--gl);--anatomy-lit-top:var(--gl)}
+.ak-spark path{fill:none;stroke-width:.5;stroke-linecap:round}.ak-spark>path:first-child{fill:#fff8d8}.ak-spark-ok path{stroke:#35a974}.ak-spark-bad path{stroke:#d2452f}.ak-spark-fix path{stroke:#e0a33a}
+.ak-skinline{fill:none;stroke:#b07a5a;stroke-width:.35;stroke-linecap:round}
 .mat-paper{--anatomy-face:var(--pp);--anatomy-top:var(--pp);--anatomy-lit-top:var(--pp)}
 .mat-glass{--anatomy-face:var(--gl);--anatomy-top:var(--gl);--anatomy-lit-top:var(--gl)}
 .mat-ak-r0{--anatomy-top:#c98a6a;--anatomy-face:#c98a6a;--anatomy-shade-0:#a86c4e;--anatomy-shade-1:#b4775a;--anatomy-shade-2:#bf8264;--anatomy-shade-3:#c98a6a}
 .mat-ak-r1{--anatomy-top:#8aa3c4;--anatomy-face:#8aa3c4;--anatomy-shade-0:#6c85a6;--anatomy-shade-1:#7690b0;--anatomy-shade-2:#809aba;--anatomy-shade-3:#8aa3c4}
 .mat-ak-r2{--anatomy-top:#c9b26a;--anatomy-face:#c9b26a;--anatomy-shade-0:#a8924e;--anatomy-shade-1:#b49c58;--anatomy-shade-2:#bfa862;--anatomy-shade-3:#c9b26a}
-.iso{--ak-bronze:#7a6a52;--ak-bronze-d:#4a4033;--ak-bronze-l:#a89272;--ak-hole:#1e1b17;--ak-engr:#2a241c;--ak-ink:#8a7a62;--ak-s0:#6a5b45;--ak-s1:#56493a;--ak-s2:#41372b;--ak-s3:#2e271f;
-  --wd-0:#4a3826;--wd-1:#3f3020;--wd-2:#36291b;--wd-3:#2e2317;--wd-4:#261d13;--wd-grain:#5a4630;
-  --bz-0:#6a5a42;--bz-1:#5e4f3a;--bz-2:#544632;--bz-3:#4a3e2c;--bz-4:#403526;
-  --st-0:#4a4d50;--st-1:#404346;--st-2:#383a3d;--st-3:#303235;--st-4:#28292b;--pp:#2a2722;--gl:#3a4a50;--pl-0:#3d4a3e;--pl-1:#344036;--pl-2:#2c372e;--pl-3:#252e27}
-[data-theme="light"]{--ak-bronze:#d9c39a;--ak-bronze-d:#a68e66;--ak-bronze-l:#f2e3c2;--ak-hole:#3a332a;--ak-engr:#6e5a3c;--ak-ink:#7a8aa0;--ak-s0:#c8ae80;--ak-s1:#b0956a;--ak-s2:#937a54;--ak-s3:#7a6444;
-  --wd-0:#e9d3ae;--wd-1:#dfc59c;--wd-2:#d2b68b;--wd-3:#c4a67a;--wd-4:#b39469;--wd-grain:#c2a173;
-  --bz-0:#e3cfa6;--bz-1:#d6bf92;--bz-2:#cab283;--bz-3:#bca274;--bz-4:#ab9165;
-  --st-0:#eceeef;--st-1:#dfe2e4;--st-2:#d3d7da;--st-3:#c6cbcf;--st-4:#b8bec3;--pp:#fbf6e8;--gl:#d8eef2;--pl-0:#a9b29a;--pl-1:#9aa58b;--pl-2:#8c977d;--pl-3:#7e8970}
+.iso{--ak-bronze:#2a2a2a;--ak-bronze-d:#1b1b1b;--ak-bronze-l:#343434;--ak-hole:#0f0f0f;--ak-engr:#5a5a5a;--ak-ink:#6a6a6a;--ak-s0:#262626;--ak-s1:#202020;--ak-s2:#1a1a1a;--ak-s3:#151515;
+  --wd-0:#262626;--wd-1:#1b1b1b;--wd-2:#151515;--wd-3:#121212;--wd-4:#0f0f0f;--wd-grain:#2c2c2c;
+  --bz-0:#262626;--bz-1:#1b1b1b;--bz-2:#151515;--bz-3:#121212;--bz-4:#0f0f0f;
+  --st-0:#262626;--st-1:#1b1b1b;--st-2:#151515;--st-3:#121212;--st-4:#0f0f0f;--pp:#1b1b1b;--gl:#1d2430;--pp0:#e9eef7;--pp1:#cfd8e8;--pp2:#b4c0d6;--ppb:#6f8fd0;--ppl:#9db6ea;--pl-0:#202020;--pl-1:#191919;--pl-2:#141414;--pl-3:#101010}
+[data-theme="light"]{--ak-bronze:#ffffff;--ak-bronze-d:#dcdcd9;--ak-bronze-l:#ffffff;--ak-hole:#8a8a8f;--ak-engr:#b4b4b8;--ak-ink:#b4b4b8;--ak-s0:#f4f4f1;--ak-s1:#ededea;--ak-s2:#e5e5e2;--ak-s3:#dcdcd9;
+  --wd-0:#ffffff;--wd-1:#ffffff;--wd-2:#ededea;--wd-3:#e5e5e2;--wd-4:#dcdcd9;--wd-grain:#e5e5e2;
+  --bz-0:#ffffff;--bz-1:#ffffff;--bz-2:#ededea;--bz-3:#e5e5e2;--bz-4:#dcdcd9;
+  --st-0:#ffffff;--st-1:#ffffff;--st-2:#ededea;--st-3:#e5e5e2;--st-4:#dcdcd9;--pp:#ffffff;--gl:#eef3fb;--pp0:#ffffff;--pp1:#f1f4fa;--pp2:#dfe6f3;--ppb:#bcd0f4;--ppl:#3e63dd;--pl-0:#f7f7f5;--pl-1:#f1f1ee;--pl-2:#e8e8e5;--pl-3:#dededa}
 </style>`;
 
 const plate = k.plateHtml({
   fig: "Fig 11", title: "Lecteur VRE", hint: "Glisse ou ← → : étape", readout: "1 · Lecture · Document AI",
   keys: [
-    { mark: "lit", label: "Ce qui vient d'agir : roue, aiguille, couteau, case du cadran" },
-    { mark: "raised", label: "Le boîtier fermé sur trois côtés : tout tourne en local" },
+    { mark: "lit", label: "Ce qui vient d'agir : roue, aiguille, couteau, feuille, levier, index de l'agent sur la page" },
+    { mark: "raised", label: "Case bleue : cadre proposé, jamais validé sans l'agent ; tout tourne en local" },
   ],
-  caption: "Un mécanisme d'Anticythère pour Lecteur VRE. La fiche entre par la fente (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles pour que l'aiguille avance (hybride neuro-symbolique). Au dos, le cadran à spirale prédit douze pages inédites : deux cases rouges sont des erreurs (inférence). Chaque erreur corrigée à la main taille des dents sur la roue de la machine à diviser (Human-in-the-Loop) ; les trois anneaux du corpus, image, texte et position, avancent ; la roue se termine (entraînement LayoutLMv3), entre dans le boîtier, et l'ancienne rejoint le tableau des versions (MLOps local). Au nouvel essai, les douze cases sont vertes. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les erreurs et les cases sont des valeurs d'illustration.",
+  caption: "Un mécanisme d'Anticythère pour le Lecteur VRE. Le rapport PDF quitte la pile des rapports à lire et entre par la fente du couvercle (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles métiers pour que l'aiguille avance (hybride neuro-symbolique). Sur le flanc, le cadran à spirale propose les cadres de douze pages inédites : chaque case reste bleue, une proposition, et chaque page sort par la fente placée sous le cadran. Chaque page se pose sur la table lumineuse de Radiographie : la main de l'agent, celle de La Création d'Adam, descend et la touche du bout de l'index, vert pour valider, rouge puis orange pour corriger, la case du cadran change au même instant, et la page part en feuille vers la boîte du corpus partagé. Le corpus est figé (sceau) : ses copies, image, texte et positions, volent sur l'axe de la machine à diviser et sont pressées en un flan, dont l'entraînement LayoutLMv3 taille les dents. Le banc d'essai juge la roue candidate sur deux rapports séparés : F1 au-delà de 0,75, rappel U1 au-delà de 0,90, le voyant passe au vert. Le levier publie explicitement : l'ancienne roue du modèle sort par la trappe et rejoint le tableau des versions, la nouvelle descend à sa place ; les règles ne changent pas. Au nouvel essai, les cadres restent des propositions : la main de l'agent touche encore chaque page. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les pages, erreurs et scores sont des valeurs d'illustration.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Lecteur VRE : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
 });
 writeFigure("vrestudio-anticythere", { title: "Lecteur VRE · le mécanisme d'Anticythère", plate, live, width: 900, css });
