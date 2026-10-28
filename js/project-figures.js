@@ -2,6 +2,7 @@
 // dessinées (figures/*.html, compétence anatomy) ; un clic ouvre la machine animée et ses explications.
 import { showFinanceEmails } from './finance-emails.js?v=cv-scene-v49';
 import { createMarquee } from './marquee.js?v=cv-projects-v15';
+import { processSymbol } from './process-symbols.js?v=cv-scene-v29';
 
 // Projet → [figure, objet, idée, l'objet en action] ; l'objet est l'explication.
 const MACHINES = {
@@ -85,9 +86,15 @@ export function initProjectFigures(host, projects) {
   const modal = document.createElement('dialog');
   modal.className = 'process-dialog figure-dialog'; modal.setAttribute('aria-labelledby', 'process-title');
   modal.innerHTML = `<div class="process-toolbar"><button type="button" class="process-back">Retour aux projets</button><span>Les machines des projets</span></div>
-<div class="process-content"><div class="process-copy figure-head"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p></div><div class="figure-stage"></div><div class="process-copy"><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div><button type="button" class="figure-nav prev" aria-label="Projet précédent"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="figure-nav next" aria-label="Projet suivant"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`;
+<div class="process-content"><div class="process-copy figure-head"><p class="process-eyebrow"></p><h2 id="process-title"></h2><p class="figure-why"></p></div><div class="figure-stage"></div><div class="process-copy"><div class="process-steps figure-steps" aria-label="Les étapes du process"></div><div class="process-explanation" aria-live="polite"><b></b><p></p></div><div class="process-outcome"></div><details class="process-study" hidden><summary>Lire la fiche complète</summary><div></div></details><div class="finance-mail-host" hidden></div><p class="process-foot"><a class="figure-full" target="_blank" rel="noopener">Ouvrir la machine en plein écran</a> · les quantités montrées par les machines sont illustratives, les gains sont ceux des projets</p></div><div class="process-projects" aria-label="Choisir un autre projet"></div></div><button type="button" class="figure-nav prev" aria-label="Projet précédent"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" class="figure-nav next" aria-label="Projet suivant"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>`;
   document.body.append(modal);
   const stage = modal.querySelector('.figure-stage');
+  // le schéma du process : un carré par étape (numéro, symbole, nom) ; un clic affiche son explication
+  function showStep(p, i) {
+    modal.querySelectorAll('.figure-steps .process-step').forEach((b, j) => b.setAttribute('aria-pressed', String(i === j)));
+    modal.querySelector('.process-explanation b').textContent = p.diag.length ? `${i + 1}. ${p.diag[i][0]}` : '';
+    modal.querySelector('.process-explanation p').textContent = p.diag.length ? p.diag[i][1] : '';
+  }
   let opener = null, resize = null, cur = 0;
   function mount(fig, title) {
     resize?.disconnect();
@@ -110,6 +117,9 @@ export function initProjectFigures(host, projects) {
     modal.querySelector('.process-eyebrow').textContent = kindOf(p) + ' · ' + object;
     modal.querySelector('#process-title').textContent = p.title;
     modal.querySelector('.figure-why').innerHTML = `<em>${esc(idea)}</em> ${esc(action)}`;
+    modal.querySelector('.figure-steps').innerHTML = p.diag.map((d, i) => `<button type="button" class="process-step" data-step="${i}" aria-pressed="false"><small>${String(i + 1).padStart(2, '0')}</small><span class="process-tool">${processSymbol(d[2])}</span>${esc(d[0])}</button>`).join('');
+    modal.querySelector('.figure-steps').hidden = modal.querySelector('.process-explanation').hidden = !p.diag.length;
+    showStep(p, 0);
     modal.querySelector('.process-outcome').innerHTML = gainsHTML(p);
     const study = modal.querySelector('.process-study'); study.hidden = !p.pro; study.open = false;
     study.querySelector('div').innerHTML = p.pro ? [p.pro.lead, p.pro.gain, p.pro.team].filter(Boolean).map((t) => '<p>' + esc(t) + '</p>').join('') : '';
@@ -127,7 +137,7 @@ export function initProjectFigures(host, projects) {
   modal.querySelector('.figure-nav.next').onclick = () => step(1);
   modal.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); step(e.key === 'ArrowLeft' ? -1 : 1); } });
   host.addEventListener('click', (e) => { const b = e.target.closest('button[data-project]'); if (b) open(Number(b.dataset.project), b); });
-  modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); });
+  modal.addEventListener('click', (e) => { const b = e.target.closest('.process-projects button[data-project]'); if (b) open(Number(b.dataset.project)); const st = e.target.closest('.figure-steps .process-step'); if (st) showStep(list[cur], Number(st.dataset.step)); });
   modal.querySelector('.process-back').onclick = close;
   modal.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
 }
