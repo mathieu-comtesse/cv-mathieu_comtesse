@@ -5,12 +5,12 @@
 // le banc d'essai la juge sur deux rapports séparés ; le levier la publie : l'ancienne roue du modèle sort par la trappe, la nouvelle descend.
 import * as THREE from 'three';
 import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish } from './core.js';
-import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handsAt, stampOf, DESK, HANDS, HANDS_Y, AGENT, ELBOW } from './anticythere-model.js';
+import { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf, DESK, AGENT } from './anticythere-model.js';
 
 export const WIDTH = 318;
 const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
 const PH = phases(true), RW = GEARS.pin.r;
-const C = { wood: '#e8d2ab', woodLo: '#d4b689', woodDk: '#bf9d6c', bronze: '#dcc08a', bronzeLo: '#bf9f66', bronzeHi: '#efdcb0', patina: '#a9b89f', steel: '#e3e6e8', steelLo: '#c9ced2', paper: '#fbf6e8', f: ['#d2452f', '#3f6fb0', '#e0b23a', '#3d8f8a'], r: ['#c98a6a', '#8aa3c4', '#c9b26a'], ok: '#35a974', bad: '#e5484d', fixed: '#e0a33a', prop: '#3e63dd' };
+const C = { wood: COL.hi, woodLo: COL.mid, woodDk: COL.lo, bronze: COL.mid, bronzeLo: COL.lo, bronzeHi: COL.hi, patina: '#e6e4dc', steel: COL.hi, steelLo: COL.mid, paper: '#ffffff', f: ['#d2452f', '#3f6fb0', '#e0b23a', '#3d8f8a'], r: ['#c98a6a', '#8aa3c4', '#c9b26a'], ok: '#35a974', bad: '#e5484d', fixed: '#e0a33a', prop: '#3e63dd' };
 const lerp = (a, b, u) => a + (b - a) * u;
 
 /* contour d'une roue dentée dans son plan (dents trapézoïdales), trous d'allègement en option */
@@ -29,9 +29,9 @@ function wheel(r, n, T, color, o = {}) {
   const depth = o.depth ?? Math.max(1.6, r * 0.07);
   const holes = o.holes ?? (r > 9 && !o.web ? [0, 1, 2, 3].map((i) => { const a = (i / 4) * TAU + 0.4; return [Math.cos(a) * r * 0.55, Math.sin(a) * r * 0.55, r * 0.22]; }) : []);
   const geo = new THREE.ExtrudeGeometry(gearShape(r, n, depth, o.cut ?? n, holes), { depth: T, bevelEnabled: false, curveSegments: 18 }); geo.translate(0, 0, -T);
-  const spin = new THREE.Group(); spin.add(finish(geo, mat(color, { roughness: .55, metalness: .25 }), 28));
+  const spin = new THREE.Group(); spin.add(finish(geo, mat(color, { roughness: .55, metalness: 0 }), 28));
   const hub = Math.max(2.4, r * 0.18);
-  const hb = finish(new THREE.CylinderGeometry(hub + .9, hub + .9, 1.4, 24).rotateX(Math.PI / 2).translate(0, 0, .7), mat(C.bronzeHi, { roughness: .5, metalness: .25 }), 40); spin.add(hb);
+  const hb = finish(new THREE.CylinderGeometry(hub + .9, hub + .9, 1.4, 24).rotateX(Math.PI / 2).translate(0, 0, .7), mat(C.bronzeHi, { roughness: .5, metalness: 0 }), 40); spin.add(hb);
   const ax = finish(new THREE.CylinderGeometry(1.2, 1.2, 2.6, 14).rotateX(Math.PI / 2).translate(0, 0, 1.3), mat(C.bronzeLo), 40); spin.add(ax);
   if (r > 9) for (let i = 0; i < 3; i++) { const a = (i / 3) * TAU + .5, sc = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, .3, 8).rotateX(Math.PI / 2), mat(C.bronzeLo)); sc.position.set(Math.cos(a) * hub * .62, Math.sin(a) * hub * .62, 1.5); spin.add(sc); }
   const g = new THREE.Group(); g.add(spin); g.userData.spin = spin; return g;
@@ -104,32 +104,17 @@ export function build() {
   C.r.forEach((c, i) => add(box(TRAY.x + 6.2 + i * 5.6, TRAY.y, 15.5 + i * .3, 2.4, 22, 3 + i * .6, c)));
   const seal = cylY(TRAY.y + 14, TRAY.y + 14.8, TRAY.x + 12.5, 8.5, 2.6, '#a8392b', 20); add(seal);
   add(slab(-122, -10, 40, 28, 0, .4, C.paper, .6));
-  for (const [x, y, r, n] of [[-48, 52, 7, 14], [-30, 62, 5, 10]]) { const sg = new THREE.ExtrudeGeometry(gearShape(r, n, 1.4), { depth: 1.6, bevelEnabled: false }); sg.rotateX(-Math.PI / 2); add(at(finish(sg, mat(C.bronze, { metalness: .25, roughness: .55 }), 28), x, y, 0)); }
+  for (const [x, y, r, n] of [[-48, 52, 7, 14], [-30, 62, 5, 10]]) { const sg = new THREE.ExtrudeGeometry(gearShape(r, n, 1.4), { depth: 1.6, bevelEnabled: false }); sg.rotateX(-Math.PI / 2); add(at(finish(sg, mat(C.bronze, { metalness: 0, roughness: .55 }), 28), x, y, 0)); }
   add(cyl(-70, 66, 5, 0, 5, C.bronze, 24), cyl(-70, 66, 3.2, 5, 2, C.bronze, 20), cyl(36, 64, 5, 0, 2.4, C.steelLo, 28), cyl(36, 64, 3.8, 2.4, .2, '#d8eef2', 28));
   add(box(-1, 53.5, .7, 22, 3, 1.4, C.steelLo), box(16, 53.5, 1.1, 12, 3.8, 2.2, C.woodDk));
   // ---- table lumineuse « Radiographie » et main de l'agent (manche, poignet, paume, quatre doigts, pouce, tampon) ----
   add(slab(DESK.x0, DESK.y0, DESK.x1 - DESK.x0, DESK.y1 - DESK.y0, 0, DESK.z - 1, C.wood, 1.2));
-  add(at(new THREE.Mesh(new THREE.BoxGeometry(DESK.x1 - DESK.x0 - 3.2, 1, DESK.y1 - DESK.y0 - 3.2), new THREE.MeshStandardMaterial({ color: '#eef5ff', emissive: '#cfe0ff', emissiveIntensity: .35, roughness: .6 })), (DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z - .5));
-  // « La Création d'Adam » : la main de bronze de l'automate (sur sa potence) et la main de l'agent ; elles vivent dans le plan y = HANDS_Y
-  const handGroup = (H, m, skinM) => {
-    const g2 = new THREE.Group(), slab2 = (pts, mm, depth) => { const sh = new THREE.Shape(); pts.forEach(([u, z], i) => (i ? sh.lineTo(u, z) : sh.moveTo(u, z))); sh.closePath(); const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: .5, bevelSize: .5, bevelSegments: 2 }); geo.translate(0, 0, -depth / 2); const o = finish(geo, mm, 40); g2.add(o); };
-    slab2(H.arm, skinM, 5); slab2(H.palm, skinM, 4.2);
-    for (const f of H.fingers) {
-      const r = f.w / 2;
-      f.pts.forEach(([u, z], i) => { const sp = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), skinM); sp.position.set(u, z, 0); g2.add(sp);
-        if (i) { const [u0, z0] = f.pts[i - 1], L = Math.hypot(u - u0, z - z0), c = finish(new THREE.CylinderGeometry(r, r, L, 14), skinM, 0); c.position.set((u + u0) / 2, (z + z0) / 2, 0); c.rotation.z = Math.atan2(z - z0, u - u0) - Math.PI / 2; g2.add(c); } });
-    }
-    g2.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-    add(g2); return g2;
-  };
-  const bronzeHand = mat(C.bronze, { metalness: .35, roughness: .45 });
-  const handM = handGroup(HANDS.machine, 'bronze', bronzeHand);
+  add(at(new THREE.Mesh(new THREE.BoxGeometry(DESK.x1 - DESK.x0 - 3.2, 1, DESK.y1 - DESK.y0 - 3.2), new THREE.MeshStandardMaterial({ color: '#eef5ff', emissive: '#ffffff', emissiveIntensity: .15, roughness: .6 })), (DESK.x0 + DESK.x1) / 2, (DESK.y0 + DESK.y1) / 2, DESK.z - .5));
   // la main de l'agent : la main détourée de la fresque, à plat et toujours face au spectateur, ancrée au bout de l'index
   const handH = new THREE.Group(); add(handH);
   { const tex = new THREE.TextureLoader().load('assets/figures/main-agent.webp'); tex.colorSpace = THREE.SRGBColorSpace;
     const { w, h: hh, tip, k } = AGENT, sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, alphaTest: .4 }));
-    sp.center.set(tip[0] / w, 1 - tip[1] / hh); sp.scale.set(w * k, hh * k, 1); handH.add(sp); }
-  add(cyl(ELBOW[0], ELBOW[1], 5, 0, 1.6, C.bronze, 28), cyl(ELBOW[0], ELBOW[1], 1.6, 1.6, ELBOW[2] - 6, C.bronze, 18), cyl(ELBOW[0], ELBOW[1], 2.6, ELBOW[2] - 4.4, 2.4, C.bronzeLo, 20));
+    sp.center.set(tip[0] / w, 1 - tip[1] / hh); sp.scale.set(w * k, hh * k, 1); sp.material.rotation = AGENT.tilt; handH.add(sp); }
   const sparkM = new THREE.MeshBasicMaterial({ color: '#fff3b0', transparent: true }), spark = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), sparkM); add(spark);
   // ---- machine à diviser : plateau, axe, couteau ; banc d'essai ; levier de publication ----
   const RP = RW + 6;
@@ -139,14 +124,14 @@ export function build() {
   const arbor = cyl(DIV.x, DIV.y, 2.6, DIV.z, 5, C.steel, 16); add(arbor);
   const blankGeo = new THREE.CylinderGeometry(RW - GEARS.pin.d, RW - GEARS.pin.d, 3, 48).translate(0, 1.5, 0);
   const wheelGeo = Array.from({ length: 25 }, (_, cut) => { const geo = new THREE.ExtrudeGeometry(gearShape(RW, 24, GEARS.pin.d, cut), { depth: 3, bevelEnabled: false, curveSegments: 18 }); geo.rotateX(-Math.PI / 2); return geo; });
-  const bronzeM = mat(C.bronze, { metalness: .25, roughness: .55 });
+  const bronzeM = mat(C.bronze, { metalness: 0, roughness: .55 });
   const cutWheel = finish(wheelGeo[0], bronzeM, 0); at(cutWheel, DIV.x, DIV.y, DIV.z); add(cutWheel);
   const cutEdges = new THREE.LineSegments(new THREE.EdgesGeometry(wheelGeo[0], 28), new THREE.LineBasicMaterial({ color: 0x1d2230, transparent: true, opacity: .42 })); cutWheel.add(cutEdges);
   const blank = finish(blankGeo, bronzeM, 40); at(blank, DIV.x, DIV.y, DIV.z); add(blank);
   const candPeg = finish(new THREE.CylinderGeometry(1.8, 1.8, 3.6, 14).translate(10, 4.8, 0), mat(C.bronzeHi), 40); cutWheel.add(candPeg);
   const carriage = new THREE.Group(); add(carriage);
   carriage.add(at(finish(new THREE.BoxGeometry(8, 6, 6), mat(C.steel), 30), -3, DIV.y, 27.4));
-  const cutter = finish(gearShapeGeo(4.2, 12, .9, 1.6), mat(C.steelLo, { metalness: .4, roughness: .4 }), 28); at(cutter, 3, DIV.y + 1.4, DIV.z + 1.5); carriage.add(cutter);
+  const cutter = finish(gearShapeGeo(4.2, 12, .9, 1.6), mat(C.steelLo, { metalness: 0, roughness: .4 }), 28); at(cutter, 3, DIV.y + 1.4, DIV.z + 1.5); carriage.add(cutter);
   carriage.add(at(finish(new THREE.BoxGeometry(2, 24.4 - (DIV.z + 1.5), 1.6), mat(C.steel), 30), .2, DIV.y, (24.4 + DIV.z + 1.5) / 2));
   // banc d'essai : boîtier, fente des rapports de test, cadrans F1 et rappel U1 peints, voyant
   const gx = (GAUGE.x0 + GAUGE.x1) / 2, gy = (GAUGE.y0 + GAUGE.y1) / 2;
@@ -256,9 +241,9 @@ export function build() {
     if (ol) { at(oldWheel, ol.c[0], ol.c[1] + 3, ol.c[2]); oldWheel.userData.spin.rotation.z = -o.pin + PH.pin + o.oldFly * 3; }
     boardGears[2].visible = o.oldFly >= 1; boardGears[3].visible = false;
     sheets.forEach((S) => placeSheet(S, s));
-    const hd = handsAt(s); at(handM, ...hd.machine); handH.visible = !!hd.human; spark.visible = !!hd.human && hd.press > 0.35;
-    if (hd.human) at(handH, ...hd.human);
-    if (spark.visible) { at(spark, (hd.machine[0] + hd.human[0]) / 2, HANDS_Y, hd.machine[2]); spark.scale.setScalar(.8 + 2 * hd.press); sparkM.color.set(hd.kind === 'ok' ? '#c9f5d6' : hd.kind === 'bad' ? '#ffc7bd' : '#ffe2a6'); sparkM.opacity = .5 + .5 * hd.press; }
+    const hd = handAt(s); handH.visible = !!hd; spark.visible = !!hd && hd.press > 0.35;
+    if (hd) at(handH, ...hd.tip);
+    if (spark.visible) { at(spark, ...hd.tip); spark.scale.setScalar(.8 + 2 * hd.press); sparkM.color.set(hd.kind === 'ok' ? '#c9f5d6' : hd.kind === 'bad' ? '#ffc7bd' : '#ffe2a6'); sparkM.opacity = .5 + .5 * hd.press; }
   }
   update(0);
   return { group: g, update, controls: { label: 'Étape', min: 1, max: 9, step: 1, fmt: (v) => v + ' · ' + STATIONS[v - 1], get: (t) => stationAt(((t % LOOP_T) + LOOP_T) % LOOP_T) + 1, seek: (v) => TS[v - 1] + 1.5 } };
