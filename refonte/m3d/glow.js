@@ -2,7 +2,7 @@
 // apparaît ou disparaît prend la couleur d'accent de sa machine, avec une lueur douce qui s'éteint quand elle s'arrête.
 import * as THREE from 'three';
 
-export const ACCENT = { cerfa: '#fb7185', vm: '#22d3ee', vre: '#a78bfa', moteur: '#ff9d3c', gares: '#a3e635', finance: '#fbbf24', pp: '#2dd4bf', powerbi: '#60a5fa', suivi: '#f472b6', studio: '#fb923c' };
+export const ACCENT = { cerfa: '#fb7185', vm: '#22d3ee', vre: '#a78bfa', moteur: '#ff9d3c', gares: '#a3e635', finance: '#fbbf24', pp: '#2dd4bf', powerbi: '#60a5fa', suivi: '#f472b6', studio: '#fb923c', 'vrestudio-anticythere': '#f2c14e' };
 const HOLD = 420;                                    // ms de lueur après le dernier mouvement
 
 export function trackGlow(root, accent = '#ff9d3c') {

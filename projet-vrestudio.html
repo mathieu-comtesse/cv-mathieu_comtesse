@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VRE Studio · Mathieu Comtesse</title>
+<meta name="description" content="VRE Studio : étude détaillée d’un projet de Mathieu Comtesse.">
+<meta name="theme-color" content="#05080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="refonte/rf.css?v=mvp040j2">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="refonte/post.js?v=mvp040j2"></script>
+<link rel="modulepreload" href="vendor/three.module.min.js">
+<link rel="modulepreload" href="refonte/blueprint-hero.js">
+<link rel="modulepreload" href="refonte/m3d/index.js">
+<link rel="modulepreload" href="refonte/m3d/core.js">
+<link rel="modulepreload" href="refonte/m3d/glow.js">
+<link rel="modulepreload" href="refonte/m3d/vrestudio.js">
+<link rel="modulepreload" href="refonte/flow.js">
+</head>
+<body class="rf-post-page rf-post--bp">
+<nav class="rf-bnav" aria-label="Navigation">
+  <a href="./">Accueil</a>
+  <a href="gains">Gains</a>
+  <a href="./#projets">Projets</a>
+  <a href="./#perso">Perso</a>
+  <a href="experiences">Expériences</a>
+  <a href="blog">Blog</a>
+  <a href="./#contact">Contact</a>
+</nav>
+
+<div class="rf-stage rf-stage--post" id="stage" aria-hidden="true"><canvas class="rf-bp" id="rf-bp"></canvas><div class="rf-grain"></div></div><aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Incliner la vue de bas en haut (glisser, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Incliner</span></aside><aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Tourner la machine (glisser à gauche ou à droite, flèches, double clic pour revenir à l’angle d’origine)"><i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span></aside>
+
+<main class="rf-pmain">
+  <article class="rf-post">
+    <header class="rf-post-head">
+      <p class="rf-post-back"><a href="./#projets" aria-label="Retour à tous les projets"><span class="rf-arrow view-action view-back" aria-hidden="true"><span class="view-text">Tous les projets</span><span class="view-arrows"><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg><svg viewBox="0 0 24 24"><path d="M18.5 12L5 12"/><path d="M13 18C13 18 19 13.5811 19 12C19 10.4188 13 6 13 6"/></svg></span></span></a></p>
+      <p class="rf-mono rf-kicker">Projet professionnel · 07 / 11 · Modèle documentaire contrôlé</p>
+      <h1>VRE Studio · modèle multimodal</h1>
+      <p class="rf-post-sub">Intelligent Document Processing : mini-BERT et LayoutLMv3</p>
+      <div class="rf-post-meta"><div><span>Temps libéré</span><b>× 2,3</b></div><div><span>Par rapport à</span><b>l’extracteur VRE</b></div><div><span>Objet</span><b>Mécanisme d’Anticythère</b></div></div>
+    </header>
+    <figure class="rf-post-fig" data-fig="vrestudio-anticythere"><img src="assets/figures/vrestudio-anticythere-light.webp?v=bp2" alt="Mécanisme d’Anticythère" width="840" height="600"><figcaption>Mécanisme d’Anticythère · l’objet est l’explication</figcaption></figure>
+    <div class="rf-post-body">
+<h2>L’idée</h2><p>Un modèle qui lit des PDF doit montrer toute sa chaîne, de la page brute jusqu’aux cadres qu’il propose, sans boîte noire.</p><h2>L’objet en action</h2><p>Prenons l’exemple du mécanisme d’Anticythère, une machine de bronze qui calcule par engrenages. Sans lui, l’extracteur VRE comptait les équipements avec des règles fixes. Avec lui, le rapport entre par la fente et se lit, la grande roue allume le voyant de chaque champ, et la cheville du modèle doit tomber dans la coulisse des règles métiers pour que l’aiguille avance. Au dos, le cadran à spirale propose les cadres de douze pages inédites. Chaque erreur corrigée par un agent taille une dent sur la roue de la machine à diviser, la roue terminée entre dans le boîtier et l’ancienne rejoint le tableau des versions. Une roue de 46 dents mène une roue de 20 dents : l’aiguille tourne 2,3 fois plus vite.</p><h2>Le projet</h2><p>VRE Studio est une plateforme d’intelligence documentaire spécialisée dans les rapports de vérification électrique : extraction structurée, traitement du langage naturel, classification sémantique et apprentissage supervisé par intervention humaine. Son architecture hybride associe un modèle Transformer léger (mini-BERT), des règles métiers et des validations, avec une chaîne d’entraînement multimodale LayoutLMv3 (texte, positions et image). Corpus versionné, entraînement, évaluation et contrôle des modèles candidats se font en local.</p><h2>Ce que ça change</h2><div class="rf-gains rf-post-gains"><span><small>Temps libéré</small><b>× 2,3</b><i>de temps gagné par rapport à l’extracteur VRE, dont il est l’évolution</i></span></div><p>Évolution de l’extracteur VRE : 2,3 fois plus de temps gagné que l’outil précédent. Toute la chaîne fonctionne : extraction structurée, classification mini-BERT, reconnaissance des BT et des locaux, corrections partagées, corpus multimodal, entraînement et évaluation LayoutLMv3, publication des modèles et inférence multimodale.</p><p class="rf-post-note">Base du calcul. Gain déclaré : 2,3 fois le temps gagné par l’extracteur VRE précédent (25 min de comptage évitées par rapport). Volumes non chiffrés ici : non compté dans les gains annuels.</p><h2>Pour l’équipe</h2><p>Ce que propose le modèle reste une proposition : chaque zone est vérifiée et validée par un agent dans Radiographie, jamais confirmée sur la seule décision du modèle, et chaque correction enrichit les exemples suivants.</p><h2>Comment ça marche</h2><div class="rf-flow" style="--n:9"><button type="button" class="rf-flow-magic">Cliquez ici pour voir la magie</button><div class="rf-flow-rail" aria-hidden="true"></div><ol class="rf-flow-steps"><li class="rf-flow-step rf-tl-rv" data-icon="pdf" data-tech="Document AI"><p class="rf-flow-tech"></p><h3>Rapport PDF</h3><p>Le rapport de vérification électrique entre par la fente : texte, positions et image de chaque page sont lus (Document AI).</p></li><li class="rf-flow-step rf-tl-rv" data-icon="extract" data-tech="Classification · mini-BERT"><p class="rf-flow-tech"></p><h3>Tri mini-BERT</h3><p>La grande roue tourne : chacun de ses quatre rayons allume le voyant de son champ. Le modèle Transformer léger classe les zones du rapport.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="script" data-tech="Hybride neuro-symbolique"><p class="rf-flow-tech"></p><h3>Modèle et règles</h3><p>La cheville du modèle doit tomber dans la coulisse des règles métiers pour que l’aiguille avance : l’architecture hybride neuro-symbolique valide chaque proposition.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="field" data-tech="Inférence"><p class="rf-flow-tech"></p><h3>Pages inédites</h3><p>Au dos, le cadran à spirale parcourt douze pages jamais vues et propose les cadres BT et locaux. Deux cases rouges sont des erreurs, valeurs d’illustration.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="check" data-tech="Human-in-the-Loop"><p class="rf-flow-tech"></p><h3>Validation humaine</h3><p>Chaque cadre est vérifié par un agent dans Radiographie. Chaque erreur corrigée taille une dent sur la roue de la machine à diviser (Human-in-the-Loop).</p></li><li class="rf-flow-step rf-tl-rv" data-icon="inject" data-tech="Corpus versionné"><p class="rf-flow-tech"></p><h3>Corpus multimodal</h3><p>Les trois anneaux du corpus, image, texte et position, avancent à chaque correction : le corpus versionné s’enrichit.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="vm" data-tech="Entraînement local"><p class="rf-flow-tech"></p><h3>Entraînement LayoutLMv3</h3><p>La roue se termine sur la machine à diviser : entraînement et évaluation du modèle candidat, en local.</p></li><li class="rf-flow-step rf-tl-rv" data-icon="export" data-tech="MLOps local"><p class="rf-flow-tech"></p><h3>Publication</h3><p>La roue neuve entre dans le boîtier et l’ancienne rejoint le tableau des versions : le modèle publié reste traçable (MLOps local).</p></li><li class="rf-flow-step rf-tl-rv" data-icon="chart" data-tech="Rapport d’engrenage 46 / 20"><p class="rf-flow-tech"></p><h3>Gain × 2,3</h3><p>Au nouvel essai, les douze cases sont vertes. Une roue de 46 dents mène une roue de 20 dents : 2,3 fois plus de temps gagné que l’extracteur VRE.</p></li></ol></div>
+    </div>
+    <nav class="rf-post-pn" aria-label="Autres projets"><a class="rf-pn-prev" href="projet-vre"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/vre-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Précédent</small><b>Extracteur VRE</b></span><i class="rf-pn-arr" aria-hidden="true">←</i></a><a class="rf-pn-next" href="projet-powerbi"><span class="rf-pn-vis" aria-hidden="true"><img src="assets/figures/powerbi-light.webp?v=bp2" alt="" width="120" height="86" loading="lazy"></span><span class="rf-pn-txt"><small>Suivant</small><b>Power BI · PP &amp; MOSO</b></span><i class="rf-pn-arr" aria-hidden="true">→</i></a></nav>
+  </article>
+</main>
+
+<footer class="rf-foot" aria-label="Pied de page">
+  <div class="rf-foot-in">
+    <div class="rf-foot-card">
+      <p class="rf-fh">Métadonnées</p>
+      <dl class="rf-fgrid">
+        <div><dt>Version</dt><dd data-t="mvp040j">mvp040j</dd></div>
+        <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
+        <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
+        <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
+        <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
+      </dl>
+      <div class="rf-fsep" aria-hidden="true"></div>
+      <div class="rf-flinks">
+        <p class="rf-fh">Liens</p>
+        <ul><li><a href="./">Accueil</a></li><li><a href="blog">Blog</a></li><li><a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a></li></ul>
+        <ul><li><a href="https://www.linkedin.com/in/mathieu-comtesse-a226a1433/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://github.com/mathieu-comtesse" target="_blank" rel="noopener">GitHub</a></li><li><a href="experiences">Expériences</a></li></ul>
+      </div>
+    </div>
+    <p class="rf-built">Conçu et construit par Mathieu</p>
+  </div>
+</footer>
+</body>
+</html>

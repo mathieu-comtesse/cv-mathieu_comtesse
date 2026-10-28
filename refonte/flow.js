@@ -182,9 +182,9 @@ function draw3d(st, items, L, tl, t) {
 /* ================================================================ composant */
 export function initFlow(root) {
   const steps = [...root.querySelectorAll('.rf-flow-step')];
-  const items = steps.map((li) => ({ title: li.querySelector('h3').textContent.trim(), text: li.querySelector('p:not(.rf-flow-tech)').textContent.trim(), icon: li.dataset.icon || 'check' }));
+  const items = steps.map((li) => ({ title: li.querySelector('h3').textContent.trim(), text: li.querySelector('p:not(.rf-flow-tech)').textContent.trim(), icon: li.dataset.icon || 'check', tech: li.dataset.tech || TECH[li.dataset.icon || 'check'] || '' }));
   if (!items.length) return;
-  steps.forEach((li, i) => { const t = li.querySelector('.rf-flow-tech'); if (t) t.textContent = TECH[items[i].icon] || ''; });
+  steps.forEach((li, i) => { const t = li.querySelector('.rf-flow-tech'); if (t) t.textContent = items[i].tech; });
   root.classList.add('rf-flow-on');
 
   /* --- barre latérale : la case mobile suit le défilement (ressort 45 / 20) --- */
