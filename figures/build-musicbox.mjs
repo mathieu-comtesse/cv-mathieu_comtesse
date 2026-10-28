@@ -1,25 +1,25 @@
-// Fig 11 (variante D) · Lecteur VRE : le mécanisme d'Anticythère.
-// Un boîtier de bois ouvert sur un établi. Une fiche (le rapport) descend par la fente du dessus : la lecture (Document AI).
-// La manivelle fait tourner la grande roue à quatre rayons de couleur : chaque rayon qui passe sous le peigne allume le voyant
-// de son champ (tri, mini-BERT). Deux roues empilées sur des axes décalés, la cheville du modèle dans la coulisse des règles,
-// ne laissent avancer l'aiguille que si elles s'accordent (hybride neuro-symbolique). Au dos, le cadran à spirale prédit
-// douze pages inédites (inférence) ; une case rouge est une erreur. Chaque erreur corrigée à la main taille une dent sur la roue
-// de la machine à diviser (Human-in-the-Loop) ; les trois anneaux coaxiaux du corpus (image, texte, position) avancent ;
-// la roue finie entre dans le boîtier et l'ancienne rejoint le tableau des versions (MLOps local). Le gain est littéral :
-// une roue de 46 dents mène une roue de 20 dents, l'aiguille tourne 46 / 20 = 2,3 fois plus vite.
-// node figures/build-anticythere.mjs  →  figures/vrestudio-anticythere.html
+// Fig 11 (variante E) · Lecteur VRE : la boîte à musique.
+// Le modèle est un cylindre à picots : la position de chaque picot est ce que le modèle a appris. Un rapport PDF entre dans le lecteur,
+// la manivelle fait tourner le cylindre (une roue de 46 dents mène une roue de 20 : 2,3 fois plus vite) et chaque picot pince la lamelle de
+// son champ (tri, mini-BERT). L'étouffoir, c'est les règles métiers : il coupe les notes impossibles (hybride neuro-symbolique). Les douze
+// cases du devant sont les pages inédites proposées ; chaque page sort par la bouche du flanc, l'agent la valide ou la corrige sur la table
+// lumineuse (Radiographie, Human-in-the-Loop) puis elle part au corpus. Le corpus figé sert à planter les picots d'un cylindre neuf
+// (entraînement LayoutLMv3), le banc d'essai le juge sur deux rapports séparés, le levier le publie : l'ancien cylindre rejoint l'étagère
+// des versions, le nouveau descend dans le boîtier (MLOps local).
+// node figures/build-musicbox.mjs  →  figures/vrestudio-musicbox.html
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, writeFigure, LOOP } from "./common.mjs";
 import { readFileSync } from "node:fs";
-import * as MD from "../refonte/m3d/anticythere-model.js";
-const { CASE, MECH_Y, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, HATCH, BOARD, CORPUS_TOP, LID_Z, DESK } = MD;
+import * as MD from "../refonte/m3d/musicbox-model.js";
+const { CASE, CYL, GEARS, GEAR_X, NT, CONTACT, tx, TOOTH, IMPOSSIBLE, PINS3, PINS4, PLANT, CELLS, FACIA, cellX, TRAY, CORPUS_TOP, EXIT, DECK, READER, READ_SLOT, DIV, BLANK, GAUGE, LEVER, BOARD, DESK, ABOVE } = MD;
 const PH = MD.phases(false);
+const CYC = [CYL.xc, CYL.y, CYL.z];
 
 const WIDTH = 900, HEIGHT = 660;
-const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
+const PLATE = { x: -128, y: -64, w: 340, d: 150, r: 12 };
 const P = k.fitProjection(
-  [...k.boxCorners(PLATE, -21, 0), [CASE.x0, CASE.y0, CASE.h + 18], [CASE.x1, CASE.y0, CASE.h + 18], [CASE.x0, CASE.y1, CASE.h + 18]],
+  [...k.boxCorners(PLATE, -21, 0), [CASE.x0, CASE.y0 - 6, CASE.h + 58], [CASE.x1, CASE.y0 - 6, CASE.h + 58], [CASE.x0, CASE.y1, CASE.h + 18], [BOARD.x1, BOARD.y, BOARD.z1 + 4]],
   WIDTH, HEIGHT, { pad: 18, azimuth: 32 },
 );
 const { at, S, L, D, slab, front, right } = tools(P);
@@ -44,7 +44,8 @@ const circ = (r, cx = 0, cy = 0) => `M${(cx + r).toFixed(2)} ${cy}A${r} ${r} 0 1
 // Roues en volume. Dans le plan d'une face, reculer d'une unité de profondeur (vers -y) décale le dessin d'un vecteur fixe OFF :
 // une roue est un prisme, face arrière décalée, flancs des dents (seuls ceux tournés vers OFF se voient) ombrés selon leur
 // orientation, parois des trous d'allègement, puis face avant. Une pièce « levée » (rayons, moyeu, cheville) avance vers le spectateur.
-const OFF = (() => { const m = front(0).match(/[-\d.e]+/g).map(Number), o = at([0, 0, 0]), q = at([0, -1, 0]), dx = q[0] - o[0], dy = q[1] - o[1], u = dx / m[0]; return [+u.toFixed(4), +((dy - m[1] * u) / m[3]).toFixed(4)]; })();
+const OFF = (() => { const m = right(GEAR_X).match(/[-\d.e]+/g).map(Number), o = at([GEAR_X, 0, 0]), q = at([GEAR_X - 1, 0, 0]), dx = q[0] - o[0], dy = q[1] - o[1], det = m[0] * m[3] - m[2] * m[1];
+  return [+((dx * m[3] - m[2] * dy) / det).toFixed(4), +((m[0] * dy - m[1] * dx) / det).toFixed(4)]; })();
 function gearPts(r, n, depth, cut, a0, cx, cy) { const pts = []; for (let i = 0; i < n; i++) { const w = TAU / n, a = a0 + i * w, ro = i < cut ? r : r - depth, ri = r - depth; for (const [rr, q] of [[ri, 0], [ri, 0.18], [ro, 0.3], [ro, 0.62], [ri, 0.74]]) pts.push([cx + rr * Math.cos(a + w * q), cy + rr * Math.sin(a + w * q)]); } return pts; }
 function circPts(r, cx, cy, steps = 40) { return Array.from({ length: steps }, (_, i) => { const a = (i / steps) * TAU; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }); }
 function prism(pts, T, o = {}) { return prismS(pts, OFF[0] * T, OFF[1] * T, o); }
@@ -95,132 +96,123 @@ function wheel3d(g, ang, o = {}) {
   return s;
 }
 
+
 // ---------------------------------------------------------------- l'établi
 const base = [bench(P, PLATE, { plateH: 14, footH: 7, strip: { x: -112, y: PLATE.y + PLATE.d - 12, w: 120, d: 7, r: 1 }, label: { x: 30, y: PLATE.y + PLATE.d - 14, w: 50, d: 10, r: 1.2 } })];
+const X = [1, 0, 0];
+const axisX = (c, prof, tone = "mid", cls = "mat-steel") => S(G.solidOf(prof, G.frameAlong(c, X), P), { tone, className: cls });
 
-// ---------------------------------------------------------------- le boîtier : fond, flancs, dessus, platine de bronze ; face avant ouverte
+// le cylindre à picots : le corps est dessiné une fois, au centre CYC, puis déplacé (la projection est affine)
+const CYL_BODY = (() => {
+  const h = (CYL.x1 - CYL.x0) / 2, r = CYL.r;
+  return S(G.solidOf([[-h - 4, 1.6], [-h, 1.6], [-h, r - 1.5], [-h + 1.2, r], [h - 1.2, r], [h, r - 1.5], [h, 1.6], [h + 4, 1.6]], G.frameAlong(CYC, X), P), { tone: "hi", className: "mat-bronze" });
+})();
+
+// ---------------------------------------------------------------- le boîtier ouvert : couvercle dressé derrière, fond, flancs, tête de lecture, peigne
+const { x0, x1, y0, y1, h, t } = CASE;
 const caseSvg = (() => {
-  const { x0, x1, y0, y1, h, t } = CASE, out = [];
+  const out = [];
+  // couvercle dressé sur deux charnières : face intérieure feutrée, cadre de marqueterie, plaque gravée
+  out.push(box(x0 - 3, x1 + 3, y0 - 6, y0 - 2, h, 56, { tone: "lo", bevel: 1, ...WOOD }));
+  const lid = front(y0 - 2);
+  out.push(`<g transform="${lid}"><path class="iso-line" data-tone="faint" d="M${x0 + 4} ${-(h + 6)}H${x1 - 4}V${-(h + 50)}H${x0 + 4}Z"/><path class="iso-line" data-tone="faint" d="M${x0 + 8} ${-(h + 10)}H${x1 - 8}V${-(h + 46)}H${x0 + 8}Z"/>`
+    + `<path class="ak-bridge" d="M-22 ${-(h + 29)}H22V${-(h + 38)}H-22Z"/>${inscription(-19, -(h + 36.6), 38, 2, 61, 3)}${inscription(x0 + 12, -(h + 14), 40, 1, 63)}${inscription(x1 - 52, -(h + 14), 40, 1, 67)}</g>`);
+  for (const x of [-50, 56]) out.push(axisX([x - 6, y0 - 2, h], [[0, 1.6], [12, 1.6]]));
   // socle mouluré sur quatre pieds en boule
   for (const [x, y] of [[x0 - 1, y0 - 1], [x1 + 1, y0 - 1], [x0 - 1, y1 + 1], [x1 + 1, y1 + 1]]) out.push(S(k.cylinder(x, y, 2.6, 0, 2, P, 16), { tone: "mid", className: "mat-bronze" }));
   out.push(box(x0 - 5, x1 + 5, y0 - 5, y1 + 5, 2, 3, { tone: "lo", bevel: 0.8, ...WOOD }));
   out.push(box(x0 - 3.5, x1 + 3.5, y0 - 3.5, y1 + 3.5, 5, 2, { tone: "lo", bevel: 0.6, ...WOOD }));
+  out.push(box(x0 + t, x1 - t, y0 + t, y1, 7, 1.2, { tone: "lo", bevel: 0.2, ...WOOD }));                               // plancher
   out.push(box(x0, x1, y0, y0 + t, 7, h - 7, { tone: "lo", ...WOOD }));                                                  // fond
   out.push(box(x0, x0 + t, y0, y1, 7, h - 7, { tone: "mid", ...WOOD }));                                                 // flanc gauche
-  // face intérieure du flanc gauche : veinage et deux planches
   out.push(`<g transform="${right(x0 + t)}">${[0.22, 0.47, 0.71].map((q, i) => `<path class="ak-grain" d="M${-y1} ${-(7 + (h - 7) * q).toFixed(1)}C${(-y1 + 14).toFixed(1)} ${-(9 + (h - 7) * q + i).toFixed(1)} ${(-y0 - 16).toFixed(1)} ${-(5 + (h - 7) * q).toFixed(1)} ${-y0 - t} ${-(8 + (h - 7) * q).toFixed(1)}"/>`).join("")}</g>`);
-  // platine de bronze : portée par quatre entretoises, gravures de tracé et vis
-  out.push(box(x0 + t + 2, x1 - t - 2, MECH_Y - 3, MECH_Y, 10, h - 20, { tone: "mid", bevel: 0.8, cls: "mat-plate" }));
-  const f = front(MECH_Y), pu0 = x0 + t + 2, pu1 = x1 - t - 2, g = GEARS;
-  let guides = "";
-  for (const key of ["b1", "pin", "corpus", "d46"]) guides += ring48(g[key].r + 2.6, g[key].u, -g[key].z);
-  out.push(`<g transform="${f}"><path class="ak-guide" d="${guides}"/>${inscription(pu0 + 3, -(h - 15), 30, 2, 7, 3)}${inscription(pu1 - 10, -86, 8, 6, 11, 3)}</g>`);
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="faint" d="M${pu0} -14H${pu1}M${pu0} ${-(h - 14)}H${pu1}"/></g>`);
-  out.push(dots([[x0 + t + 6, MECH_Y, 16], [x1 - t - 6, MECH_Y, 16], [x0 + t + 6, MECH_Y, h - 16], [x1 - t - 6, MECH_Y, h - 16]], 0.7, "mid"));
+  // face intérieure du fond : cadre, gravure des six champs à plat
+  const bk = front(y0 + t);
+  out.push(`<g transform="${bk}"><path class="iso-line" data-tone="faint" d="M${x0 + t + 4} -11H${x1 - t - 4}V${-(h - 5)}H${x0 + t + 4}Z"/>${inscription(x0 + t + 8, -(h - 12), 36, 2, 7, 3)}${inscription(x1 - t - 46, -(h - 12), 36, 2, 11, 3)}${inscription(-8, -16, 60, 1, 15)}</g>`);
+  out.push(dots([[x0 + t + 6, y0 + t, 14], [x1 - t - 6, y0 + t, 14], [x0 + t + 6, y0 + t, h - 8], [x1 - t - 6, y0 + t, h - 8]], 0.7, "mid"));
+  // tête de lecture : bloc d'acier, vitre sombre, objectif (le voyant s'allume pendant la lecture)
+  out.push(box(54, 76, y0 + t + 1, -30, 8, 50, { tone: "mid", bevel: 0.8, ...STEEL }));
+  out.push(`<g transform="${front(-30)}"><path class="iso-fill fig-dark" d="M57 -44H73V-30H57Z"/><path class="iso-line" data-tone="mid" d="${ring48(4.2, 65, -37)}"/><path class="iso-line" data-tone="lo" d="${ring48(2.4, 65, -37)}"/><g data-part="lamp"></g>${inscription(55, -20, 20, 1, 71)}</g>`);
+  // paliers du cylindre : tourillon gauche, tourillon droit contre le flanc ; arbre d'entraînement qui traverse le flanc
+  out.push(box(CYL.x0 - 6, CYL.x0 - 1, CYL.y - 4, CYL.y + 4, 7, CYL.z - 1.6 - 7, { tone: "mid", bevel: 0.4, ...STEEL }));
+  out.push(box(CYL.x1 + 0.5, CYL.x1 + 4.5, CYL.y - 4, CYL.y + 4, 7, CYL.z - 1.6 - 7, { tone: "mid", bevel: 0.4, ...STEEL }));
+  out.push(axisX([GEAR_X, CYL.y, CYL.z], [[0, 1.8], [CYL.x0 - 3.5 - GEAR_X, 1.8]], "mid", "mat-bronze"));
+  // peigne : deux pieds, socle d'acier à vis ; les lamelles sont vivantes
+  const bz = TOOTH.z - 4;
+  for (const xx of [CYL.x0 - 2, CYL.x1 - 1.5]) out.push(box(xx, xx + 3.5, TOOTH.y0, TOOTH.y0 + 4.5, 7, bz - 7, { tone: "mid", bevel: 0.3, ...STEEL }));
+  out.push(box(CYL.x0 - 2, CYL.x1 + 2, TOOTH.y0, TOOTH.y0 + 4.5, bz, 5.8, { tone: "mid", bevel: 0.5, ...STEEL }));
+  out.push(dots(Array.from({ length: 5 }, (_, i) => [CYL.x0 + 2 + i * ((CYL.x1 - CYL.x0 - 4) / 4), TOOTH.y0 + 4.5, bz + 3]), 0.5, "hi"));
+  // montants de l'étouffoir, avec leur rainure
+  for (const xx of [CYL.x0 - 2.5, CYL.x1 + 1]) { out.push(box(xx, xx + 1.8, TOOTH.y0, TOOTH.y0 + 2, bz + 5.8, 12, { tone: "mid", bevel: 0.2, ...STEEL })); }
   return out.join("");
 })();
 const caseFront = (() => {
-  const { x0, x1, y0, y1, h, t } = CASE, out = [];
-  out.push(box(x1 - t, x1, y0, y1, 7, h - 7, { tone: "mid", ...WOOD }));                                                // flanc droit (porte le cadran)
-  out.push(box(x0 - 3, x1 + 3, y0 - 3, y1 + 3, h, 7, { tone: "mid", bevel: 1.2, ...WOOD }));                            // dessus
-  // dessus : trois planches, veinage, équerres de bronze aux coins
-  out.push(L([-28, -14].map((y) => k.lineOnTop([x0 - 3, y], [x1 + 3, y], h + 7, P)).join(""), { tone: "lo" }));
-  out.push(`<path class="ak-grain" d="${[[-37, 0.2], [-33, 0.7], [-23, 0.35], [-9, 0.55], [-5, 0.15]].map(([y, q]) => k.pathOf([at([x0 - 3 + (x1 - x0 + 6) * q, y, h + 7]), at([x0 - 3 + (x1 - x0 + 6) * (q + 0.22), y + 0.8, h + 7]), at([x0 - 3 + (x1 - x0 + 6) * (q + 0.4), y - 0.4, h + 7])])).join("")}"/>`);
-  for (const [x, y, sx, sy] of [[x0 - 3, y1 + 3, 1, -1], [x1 + 3, y1 + 3, -1, -1], [x1 + 3, y0 - 3, -1, 1]]) {
-    out.push(`<path class="ak-bracket" d="${k.pathOf([at([x, y, h + 7]), at([x + 12 * sx, y, h + 7]), at([x + 12 * sx, y + 3 * sy, h + 7]), at([x + 3 * sx, y + 3 * sy, h + 7]), at([x + 3 * sx, y + 12 * sy, h + 7]), at([x, y + 12 * sy, h + 7])], true)}"/>`);
-    out.push(dots([[x + 1.6 * sx, y + 1.6 * sy, h + 7], [x + 9 * sx, y + 1.6 * sy, h + 7], [x + 1.6 * sx, y + 9 * sy, h + 7]], 0.5, "hi"));
-  }
-  // fente de lecture et ses lèvres de laiton
-  out.push(box(-50, -20, -26, -16, h + 7, 1.2, { tone: "mid", bevel: 0.4, ...BRONZE }));
-  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([-46, -23, h + 8.2]), at([-24, -23, h + 8.2]), at([-24, -19, h + 8.2]), at([-46, -19, h + 8.2])], true)}"/>`);
-  out.push(dots([[-48.5, -21, h + 8.2], [-21.5, -21, h + 8.2]], 0.5, "hi"));
-  // trappe de la roue du modèle : lèvres de laiton et ouverture, par où l'on échange la roue à la publication
-  out.push(box(HATCH.x0 - 2.5, HATCH.x1 + 2.5, HATCH.y0 - 2.5, HATCH.y1 + 2.5, h + 7, 1.2, { tone: "mid", bevel: 0.4, ...BRONZE }));
-  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([HATCH.x0, HATCH.y0, h + 8.2]), at([HATCH.x1, HATCH.y0, h + 8.2]), at([HATCH.x1, HATCH.y1, h + 8.2]), at([HATCH.x0, HATCH.y1, h + 8.2])], true)}"/>`);
-  out.push(dots([[HATCH.x0 - 1.3, (HATCH.y0 + HATCH.y1) / 2, h + 8.2], [HATCH.x1 + 1.3, (HATCH.y0 + HATCH.y1) / 2, h + 8.2]], 0.5, "hi"));
-  // rampe des voyants des quatre champs sur le chant avant du dessus
-  out.push(box(-6, 46, y1 - 1, y1 + 3, h + 1, 5, { tone: "lo", bevel: 0.4, ...BRONZE }));
-  // flanc droit : plaque de bronze, équerres d'angle rivetées
-  const r = right(x1);
-  out.push(`<g transform="${r}">${[[0, -7, 1, -1], [42, -7, -1, -1], [0, -h, 1, 1], [42, -h, -1, 1]].map(([u, v, su, sv]) => `<path class="ak-bracket" d="M${u} ${v}H${u + 9 * su}V${v + 2.4 * sv}H${u + 2.4 * su}V${v + 9 * sv}H${u}Z"/>`).join("")}</g>`);
-  out.push(dots([[x1, -1.4, 8.4], [x1, -40.6, 8.4], [x1, -1.4, h - 1.4], [x1, -40.6, h - 1.4], [x1, -6, 8.4], [x1, -36, 8.4]], 0.45, "hi"));
+  const out = [];
+  out.push(box(x1 - t, x1, y0, y1, 7, h - 7, { tone: "mid", ...WOOD }));                                                // flanc droit (porte le train du gain)
+  out.push(box(DECK.x0, DECK.x1, y0 - 3, y1 + 3, DECK.z, DECK.h, { tone: "mid", bevel: 0.8, ...WOOD }));               // plateau du lecteur
+  out.push(dots([[DECK.x0 + 3, y1 + 3, DECK.z + 1.5], [DECK.x1 - 3, y1 + 3, DECK.z + 1.5]], 0.5, "hi"));
+  // lecteur : bloc d'acier, fente d'entrée entre deux lèvres de laiton
+  out.push(box(READER.x0, READER.x1, READER.y0, READER.y1, READER.z0, READER.z1 - READER.z0, { tone: "mid", bevel: 0.8, ...STEEL }));
+  const rx = READ_SLOT[0], ry = READ_SLOT[1];
+  out.push(box(rx - 8.5, rx + 8.5, ry - 2.6, ry + 2.6, READER.z1, 1.2, { tone: "mid", bevel: 0.4, ...BRONZE }));
+  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([rx - 6.6, ry - 0.9, READER.z1 + 1.2]), at([rx + 6.6, ry - 0.9, READER.z1 + 1.2]), at([rx + 6.6, ry + 0.9, READER.z1 + 1.2]), at([rx - 6.6, ry + 0.9, READER.z1 + 1.2])], true)}"/>`);
+  out.push(dots([[rx - 7.4, ry + 2.6, READER.z1 + 1.2], [rx + 7.4, ry + 2.6, READER.z1 + 1.2]], 0.5, "hi"));
+  out.push(`<g transform="${front(READER.y1)}">${inscription(READER.x0 + 3, -(READER.z0 + 9), READER.x1 - READER.x0 - 6, 2, 81, 3)}</g>`);
+  // rampe des douze cases : une case par page inédite
+  out.push(box(x0 - 3, x1 + 3, y1 - 1, y1 + 3, FACIA.z0, FACIA.z1 - FACIA.z0, { tone: "mid", bevel: 0.8, ...WOOD }));
+  out.push(`<g transform="${front(FACIA.y)}">${CELLS.map((_, i) => `<rect class="ak-cell" data-part="cell-${i}" x="${(cellX(i) - 3).toFixed(2)}" y="${-(FACIA.z0 + 6.6).toFixed(2)}" width="6" height="4.4" rx="0.7"/>`).join("")}${inscription(x0 + 2, -(FACIA.z0 + 1.2), 20, 1, 91)}</g>`);
+  // bouche de sortie des pages, sur le flanc : lèvres, ouverture sombre
+  out.push(box(x1, EXIT[0], EXIT[1] - 11, EXIT[1] + 11, EXIT[2] - 6, 12, { tone: "mid", bevel: 0.8, ...STEEL }));
+  out.push(`<g transform="${right(EXIT[0])}"><path class="iso-fill fig-dark" d="M${-(EXIT[1] + 9)} ${-(EXIT[2] + 3.5)}H${-(EXIT[1] - 9)}V${-(EXIT[2] - 3.5)}H${-(EXIT[1] + 9)}Z"/><path class="iso-line" data-tone="mid" d="M${-(EXIT[1] + 10)} ${-(EXIT[2] + 4.5)}H${-(EXIT[1] - 10)}V${-(EXIT[2] - 4.5)}H${-(EXIT[1] + 10)}Z"/></g>`);
+  out.push(dots([[x1, y0 + 3, 9], [x1, y1 - 3, 9], [x1, y0 + 3, h - 3], [x1, y1 - 3, h - 3]], 0.5, "hi"));
+  out.push(`<g transform="${right(x1)}"><path class="ak-bridge" d="M14 -30H36V-18H14Z"/><text class="ak-tag" x="25" y="-22.2" text-anchor="middle" style="font-size:4.2px">46 : 20</text>${inscription(12, -42, 26, 2, 97, 3)}</g>`);
   return out.join("");
 })();
-const lampsXY = [0, 1, 2, 3].map((i) => [2 + i * 12, CASE.y1 + 3.1, CASE.h + 3.5]);
 
-// ---------------------------------------------------------------- le cadran à spirale du dos (flanc droit) : douze pages inédites
-const spiralAt = (s) => { const a = s * DIAL.turns * TAU, r = DIAL.r0 + (DIAL.r1 - DIAL.r0) * s; return [DIAL.u + r * Math.cos(a - Math.PI / 2), -DIAL.z + r * Math.sin(a - Math.PI / 2)]; };
-const dialSvg = (() => {
-  let sp = ""; for (let i = 0; i <= 160; i++) { const [u, v] = spiralAt(i / 160); sp += (i ? "L" : "M") + u.toFixed(2) + " " + v.toFixed(2); } { const [u, v] = spiralAt(1), dx = u - DIAL.u, dy = v + DIAL.z, l = Math.hypot(dx, dy); sp += "L" + (DIAL.u + dx / l * 22.5).toFixed(2) + " " + (-DIAL.z + dy / l * 22.5).toFixed(2); } sp += ring48(DIAL.r0, DIAL.u, -DIAL.z);
-  let ticks = ""; for (let i = 0; i < 36; i++) { const a = (i / 36) * TAU, r0 = i % 3 ? 20.6 : 19.2, r1 = 22.5; ticks += `M${(DIAL.u + r0 * Math.cos(a)).toFixed(2)} ${(-DIAL.z + r0 * Math.sin(a)).toFixed(2)}L${(DIAL.u + r1 * Math.cos(a)).toFixed(2)} ${(-DIAL.z + r1 * Math.sin(a)).toFixed(2)}`; }
-  const cells = CELLS.map((s, i) => { const [u, v] = spiralAt(s); return `<rect class="ak-cell" data-part="cell-${i}" x="${(u - 1.5).toFixed(2)}" y="${(v - 1.5).toFixed(2)}" width="3" height="3" rx="0.5"/>`; }).join("");
-  const ver = Array.from({ length: 4 }, (_, i) => { const a = -Math.PI / 2 + (i - 1.5) * 0.55; return `<path class="iso-line" data-tone="lo" d="M${(DIAL.u + 4 * Math.cos(a)).toFixed(2)} ${(-106 + 4 * Math.sin(a)).toFixed(2)}L${(DIAL.u + 10.5 * Math.cos(a)).toFixed(2)} ${(-106 + 10.5 * Math.sin(a)).toFixed(2)}"/>`; }).join("");
-  return `<g transform="${right(CASE.x1)}">
-    <path class="ak-plate" d="M2 -8H40V-124H2Z"/><path class="iso-line" data-tone="faint" d="M4 -10H38V-122H4Z"/>
-    <path class="ak-face" d="${circ(22.5, DIAL.u, -DIAL.z)}"/><path class="iso-line" data-tone="mid" d="${ring48(22.5, DIAL.u, -DIAL.z)}"/>
-    <path class="iso-line" data-tone="lo" d="${ticks}"/><path class="iso-line" data-tone="mid" d="${sp}"/>${cells}
-    <path class="ak-face" d="${circ(10.5, DIAL.u, -106)}"/><path class="iso-line" data-tone="mid" d="${ring48(10.5, DIAL.u, -106)}"/>${ver}<path class="iso-line" data-tone="lo" d="${ring48(4, DIAL.u, -106)}"/>
-    <g data-part="ver-hand"></g><g data-part="spiral-hand"></g>
-    ${inscription(7, -32.4, 28, 5, 3, 3.6)}<path class="ak-bridge" d="M12 -36.4H30V-39.6H12Z"/><path class="fig-dark" d="M13.6 -37.4H28.4V-38.6H13.6Z"/>${inscription(7, -122, 28, 1, 5)}${inscription(5, -91, 6, 1, 9)}${inscription(31, -91, 6, 1, 13)}
-  </g>`;
-})();
-
-// ---------------------------------------------------------------- machine à diviser (établi, devant à droite) et tableau des versions
-const RW = GEARS.pin.r, RP = RW + 6;                          // roue du modèle, plateau diviseur
+// ---------------------------------------------------------------- la machine à planter les picots (établi, devant à droite)
+const RB = CYL.r + 2;
 const divSvg = (() => {
   const out = [];
-  // socle de fonte sur patins, vis d'angle, plaque signalétique
-  out.push(box(DIV.x - 34, DIV.x + 34, DIV.y - 24, DIV.y + 26, 0, 2, { tone: "lo", bevel: 0.6, ...STEEL }));
-  out.push(box(DIV.x - 32, DIV.x + 32, DIV.y - 22, DIV.y + 24, 2, 4, { tone: "lo", bevel: 1, ...STEEL }));
-  out.push(dots([[DIV.x - 29, DIV.y - 19, 6], [DIV.x + 29, DIV.y - 19, 6], [DIV.x - 29, DIV.y + 21, 6], [DIV.x + 29, DIV.y + 21, 6]], 0.55, "hi"));
+  out.push(box(DIV.x - 54, DIV.x + 54, DIV.y - 24, DIV.y + 26, 0, 2, { tone: "lo", bevel: 0.6, ...STEEL }));
+  out.push(box(DIV.x - 52, DIV.x + 52, DIV.y - 22, DIV.y + 24, 2, 4, { tone: "lo", bevel: 1, ...STEEL }));
+  out.push(dots([[DIV.x - 49, DIV.y - 19, 6], [DIV.x + 49, DIV.y - 19, 6], [DIV.x - 49, DIV.y + 21, 6], [DIV.x + 49, DIV.y + 21, 6]], 0.55, "hi"));
   out.push(box(DIV.x - 12, DIV.x + 12, DIV.y + 24, DIV.y + 24.6, 2.6, 2.8, { tone: "mid", bevel: 0.1, ...BRONZE }));
   out.push(`<g transform="${front(DIV.y + 24.6)}">${inscription(DIV.x - 10, -4.9, 20, 1, 21)}</g>`);
-  // colonne du diviseur, collet moleté, plateau diviseur à deux rangées de trous (20 et 46)
-  out.push(S(k.cylinder(DIV.x, DIV.y, 8, 6, 2, P, 24), { tone: "mid", className: "mat-steel" }));
-  out.push(S(k.cylinder(DIV.x, DIV.y, RP, 6, 3, P, 48), { tone: "mid", className: "mat-bronze" }));
-  out.push(L(k.knurl(DIV.x, DIV.y, 8, 6.2, 7.8, 28, P), { tone: "lo" }));
-  const holes = []; for (let ring = 0; ring < 2; ring++) for (let i = 0; i < (ring ? 48 : 24); i++) { const a = (i / (ring ? 48 : 24)) * TAU, rr = ring ? RP - 2.2 : RP - 4.6; holes.push(at([DIV.x + rr * Math.cos(a), DIV.y + rr * Math.sin(a), 9])); }
-  out.push(D(holes, { size: 0.35, tone: "lo" }));
-  // index à ressort : potence, lame et doigt dans un trou de la rangée de 46
-  const ix = DIV.x + 18, iy = DIV.y - 20;
-  out.push(box(ix - 2.5, ix + 2.5, iy - 2.5, iy + 2.5, 6, 6, { tone: "mid", bevel: 0.5, ...STEEL }));
-  const tipA = Math.atan2(iy + 6 - DIV.y, ix - 4 - DIV.x), tip = [DIV.x + (RP - 2.2) * Math.cos(tipA), DIV.y + (RP - 2.2) * Math.sin(tipA)];
-  out.push(L(k.pathOf([at([ix, iy, 12]), at([tip[0], tip[1], 10.2])]), { tone: "hi" }));
-  out.push(D([at([ix, iy, 12]), at([tip[0], tip[1], 10.2])], { size: 1.2, tone: "hi" }));
-  // glissière du couteau : bâti, coulisse, volant moleté
-  out.push(box(DIV.x - 31, DIV.x - 21, DIV.y - 9, DIV.y + 9, 6, 16, { tone: "mid", bevel: 0.8, ...STEEL }));
-  out.push(box(DIV.x - 31, DIV.x + 2, DIV.y - 3.5, DIV.y + 3.5, 22, 2.4, { tone: "mid", bevel: 0.4, ...STEEL }));
-  out.push(S(k.cylinder(DIV.x - 26, DIV.y - 13, 4.5, 6, 2.4, P, 24), { tone: "mid", className: "mat-steel" }));
-  out.push(L(k.knurl(DIV.x - 26, DIV.y - 13, 4.5, 6.2, 8.2, 22, P), { tone: "lo" }));
-  // copeaux de bronze
-  const chips = []; for (let i = 0; i < 26; i++) { const a = i * 2.39, rr = RP + 2 + (i * 7 % 9); chips.push(at([DIV.x - 6 + rr * 0.5 * Math.cos(a), DIV.y + rr * 0.45 * Math.sin(a) + 2, 6.1])); }
-  out.push(`<g class="ak-chips">${D(chips, { size: 0.5, tone: "mid" })}</g>`);
-  // levier de publication : son boîtier ; le bras est dessiné vivant
-  out.push(box(LEVER.x - 4, LEVER.x + 4, LEVER.y - 10, LEVER.y, 6, LEVER.z - 6, { tone: "mid", ...STEEL }));
-  out.push(`<g transform="${front(LEVER.y)}"><path class="ak-bridge" d="M${LEVER.x - 3} ${-(LEVER.z - 4)}H${LEVER.x + 3}V${-(LEVER.z - 8)}H${LEVER.x - 3}Z"/>${inscription(LEVER.x - 2.4, -(LEVER.z - 4.6), 4.8, 1, 31)}</g>`);
+  // deux berceaux : le cylindre neuf y repose par ses tourillons
+  for (const dx of [-36, 36]) out.push(box(DIV.x + dx - 4, DIV.x + dx + 4, DIV.y - 9, DIV.y + 9, 6, BLANK.z - CYL.r - 6, { tone: "mid", bevel: 0.6, ...STEEL }));
+  // rail du chariot, au fond, sur deux montants ; l'aiguille est vivante
+  for (const dx of [-52, 49]) out.push(box(DIV.x + dx, DIV.x + dx + 3, DIV.y - 21, DIV.y - 17, 6, BLANK.z + CYL.r - 8, { tone: "mid", bevel: 0.4, ...STEEL }));
+  out.push(box(DIV.x - 52, DIV.x + 52, DIV.y - 21, DIV.y - 17, BLANK.z + CYL.r + 6, 3, { tone: "mid", bevel: 0.5, ...STEEL }));
   // banc d'essai : fente des rapports de test sur le dessus, deux cadrans (F1, rappel U1) et leur seuil, voyant
-  const G = GAUGE, gx = (G.x0 + G.x1) / 2, gy = (G.y0 + G.y1) / 2;
-  out.push(box(G.x0, G.x1, G.y0, G.y1, 6, G.z1 - 6, { tone: "mid", bevel: 0.6, ...STEEL }));
-  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([gx - 6.5, gy - 0.8, G.z1]), at([gx + 6.5, gy - 0.8, G.z1]), at([gx + 6.5, gy + 0.8, G.z1]), at([gx - 6.5, gy + 0.8, G.z1])], true)}"/>`);
+  const Gg = GAUGE, gx = (Gg.x0 + Gg.x1) / 2, gy = (Gg.y0 + Gg.y1) / 2;
+  out.push(box(Gg.x0, Gg.x1, Gg.y0, Gg.y1, 6, Gg.z1 - 6, { tone: "mid", bevel: 0.6, ...STEEL }));
+  out.push(`<path class="iso-fill fig-dark" d="${k.pathOf([at([gx - 6.5, gy - 0.8, Gg.z1]), at([gx + 6.5, gy - 0.8, Gg.z1]), at([gx + 6.5, gy + 0.8, Gg.z1]), at([gx - 6.5, gy + 0.8, Gg.z1])], true)}"/>`);
   let meters = "";
-  for (const [cu, th] of [[G.x0 + 4.8, 0.75], [G.x1 - 4.8, 0.9]]) {
+  for (const [cu, th] of [[Gg.x0 + 4.8, 0.75], [Gg.x1 - 4.8, 0.9]]) {
     const cv = -11, r = 3.6, arc = Array.from({ length: 25 }, (_, i) => { const a = Math.PI - (i / 24) * Math.PI; return (i ? "L" : "M") + (cu + r * Math.cos(a)).toFixed(2) + " " + (cv - r * Math.sin(a)).toFixed(2); }).join("");
     const ta = Math.PI - th * Math.PI;
     meters += `<path class="ak-face" d="M${cu - r - 0.8} ${cv + 0.8}H${cu + r + 0.8}V${cv - r - 0.8}H${cu - r - 0.8}Z"/><path class="ak-meter" d="${arc}"/><path class="ak-thr" d="M${(cu + (r - 1.2) * Math.cos(ta)).toFixed(2)} ${(cv - (r - 1.2) * Math.sin(ta)).toFixed(2)}L${(cu + (r + 0.4) * Math.cos(ta)).toFixed(2)} ${(cv - (r + 0.4) * Math.sin(ta)).toFixed(2)}"/>`;
   }
-  out.push(`<g transform="${front(G.y1)}">${meters}${inscription(G.x0 + 1.5, -21.5, G.x1 - G.x0 - 3, 1, 41)}</g>`);
+  out.push(`<g transform="${front(Gg.y1)}">${meters}${inscription(Gg.x0 + 1.5, -21.5, Gg.x1 - Gg.x0 - 3, 1, 41)}</g>`);
+  // levier de publication : son boîtier ; le bras est dessiné vivant
+  out.push(box(LEVER.x - 4, LEVER.x + 4, LEVER.y - 10, LEVER.y, 6, LEVER.z - 6, { tone: "mid", ...STEEL }));
+  out.push(`<g transform="${front(LEVER.y)}"><path class="ak-bridge" d="M${LEVER.x - 3} ${-(LEVER.z - 4)}H${LEVER.x + 3}V${-(LEVER.z - 8)}H${LEVER.x - 3}Z"/>${inscription(LEVER.x - 2.4, -(LEVER.z - 4.6), 4.8, 1, 31)}</g>`);
   return out.join("");
 })();
+
+// étagère des versions : planche, socle, un berceau par cylindre, une étiquette par emplacement
 const boardSvg = (() => {
-  const out = [box(BOARD.x0, BOARD.x1, BOARD.y - 3, BOARD.y, 4, BOARD.z1 - 4, { tone: "lo", ...WOOD })];
-  out.push(box(BOARD.x0 - 3, BOARD.x1 + 3, BOARD.y - 6, BOARD.y + 4, 0, 4, { tone: "mid", bevel: 0.8, ...WOOD }));
-  out.push(box(BOARD.x0 - 1, BOARD.x1 + 1, BOARD.y - 4, BOARD.y + 1, BOARD.z1, 3, { tone: "mid", bevel: 0.6, ...WOOD }));
-  let s = `<path class="ak-grain" d="M${BOARD.x0} -15C${BOARD.x0 + 26} -17 ${BOARD.x0 + 50} -13 ${BOARD.x1} -16M${BOARD.x0} -52C${BOARD.x0 + 30} -50 ${BOARD.x0 + 44} -54 ${BOARD.x1} -51"/><path class="ak-grain" d="M${BOARD.x0} -44H${BOARD.x1}"/>`;
-  BOARD.slots.forEach(([u, z], i) => { const tz = z + RW + 1.2; s += `<path class="ak-bridge" d="M${u - 5} ${-(tz + 4.2)}H${u + 5}V${-tz}H${u - 5}Z"/><text class="ak-tag" x="${u}" y="${-(tz + 1.1)}" text-anchor="middle">v${i + 1}</text><path class="ak-gear" d="${circ(1.8, u, -z)}"/>`; });
-  out.push(`<g transform="${front(BOARD.y)}">${s}</g>`);
+  const out = [box(BOARD.x0, BOARD.x1, BOARD.y, BOARD.y + 3, 4, BOARD.z1 - 4, { tone: "lo", ...WOOD })];
+  out.push(box(BOARD.x0 - 3, BOARD.x1 + 3, BOARD.y - 3, BOARD.y + 12, 0, 4, { tone: "mid", bevel: 0.8, ...WOOD }));
+  out.push(box(BOARD.x0 - 1, BOARD.x1 + 1, BOARD.y - 2, BOARD.y + 5, BOARD.z1, 3, { tone: "mid", bevel: 0.6, ...WOOD }));
+  let s = `<path class="ak-grain" d="M${BOARD.x0} -30C${BOARD.x0 + 26} -32 ${BOARD.x0 + 50} -28 ${BOARD.x1} -31M${BOARD.x0} -76C${BOARD.x0 + 30} -74 ${BOARD.x0 + 44} -78 ${BOARD.x1} -75"/>`;
+  BOARD.slots.forEach(([u, z], i) => {
+    for (const dx of [-42, 36]) out.push(box(u + dx, u + dx + 6, BOARD.y + 3, BOARD.cy + 5, z - CYL.r - 2, 2, { tone: "mid", bevel: 0.3, ...WOOD }));
+    s += `<path class="ak-bridge" d="M${BOARD.x1 - 8} ${-(z + 2.6)}H${BOARD.x1 - 2}V${-(z - 1.4)}H${BOARD.x1 - 8}Z"/><text class="ak-tag" x="${BOARD.x1 - 5}" y="${-(z - 0.2)}" text-anchor="middle">v${i + 1}</text>`;
+  });
+  out.push(`<g transform="${front(BOARD.y + 3)}">${s}</g>`);
   return out.join("");
 })();
-// plateau des fiches (gauche) : pile d'entrée, boîte du corpus à trois intercalaires
 const traySvg = (() => {
   const out = [box(TRAY.x - 24, TRAY.x + 24, TRAY.y - 18, TRAY.y + 18, 0, 3, { tone: "lo", bevel: 0.8, ...WOOD })];
   out.push(box(TRAY.x - 24, TRAY.x - 22, TRAY.y - 18, TRAY.y + 18, 3, 3, { tone: "lo", bevel: 0.2, ...WOOD }), box(TRAY.x - 24, TRAY.x + 24, TRAY.y - 18, TRAY.y - 16, 3, 3, { tone: "lo", bevel: 0.2, ...WOOD }));
@@ -249,10 +241,9 @@ const toolsSvg = (() => {
   // lime : manche de bois, taille croisée
   out.push(box(-12, 10, 52, 55, 0, 1.4, { tone: "mid", bevel: 0.2, ...STEEL }), box(10, 22, 51.6, 55.4, 0, 2.2, { tone: "mid", bevel: 0.6, ...WOOD }));
   out.push(`<path class="ak-hatch" d="${Array.from({ length: 10 }, (_, i) => k.pathOf([at([-10 + i * 2, 52, 1.4]), at([-9 + i * 2, 55, 1.4])])).join("")}"/>`);
-  // deux pignons de rechange posés à plat
-  out.push(S(k.extrude(gearPlan(-48, 52, 7, 14, 0.2), 0, 1.6, P, { bevel: 0.15 }), { tone: "mid", crease: "none", className: "mat-bronze" }));
-  out.push(S(k.extrude(gearPlan(-30, 62, 5, 10, 0.5), 0, 1.6, P, { bevel: 0.15 }), { tone: "mid", crease: "none", className: "mat-bronze" }));
-  out.push(D([at([-48, 52, 1.6]), at([-30, 62, 1.6])], { size: 0.9, tone: "hi" }));
+  // boîte de picots de rechange et pince
+  out.push(box(-56, -34, 50, 64, 0, 2.4, { tone: "mid", bevel: 0.5, ...WOOD }));
+  out.push(D(Array.from({ length: 14 }, (_, i) => at([-53 + (i % 5) * 4.2, 53 + Math.floor(i / 5) * 4, 2.4])), { size: 0.7, tone: "hi" }));
   // burette d'huile
   out.push(S(k.cylinder(-70, 66, 5, 0, 5, P, 24), { tone: "mid", className: "mat-bronze" }), S(k.cylinder(-70, 66, 3.2, 5, 2, P, 20), { tone: "mid", className: "mat-bronze" }));
   out.push(L(k.pathOf([at([-70, 66, 7]), at([-61, 61, 14])]), { tone: "hi" }), D([at([-70, 66, 7]), at([-61, 61, 14])], { size: 0.6, tone: "hi" }));
@@ -266,31 +257,29 @@ const toolsSvg = (() => {
   return out.join("");
 })();
 
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un mécanisme d'Anticythère sur un établi : la fiche entre par la fente, la grande roue allume les champs, la cheville du modèle tombe dans la coulisse des règles, le cadran à spirale propose les cadres de douze pages ; chaque page validée part en feuille vers le corpus ; les copies du corpus figé forment un flan sur la machine à diviser, qui devient une roue taillée ; le banc d'essai la juge sur deux rapports séparés ; le levier la publie : l'ancienne roue sort par la trappe vers le tableau des versions et la nouvelle descend ; une roue de 46 dents mène une roue de 20 dents : gain ×2,3.",
-  body: [...base, toolsSvg, boardSvg, traySvg, caseSvg,
-    `<g transform="${front(MECH_Y + 1)}" data-part="gears-back"></g><g transform="${front(MECH_Y + 4)}" data-part="gears"></g>`,
-    caseFront, `<clipPath id="ak-lid" clipPathUnits="userSpaceOnUse"><rect x="-400" y="-1000" width="800" height="${1000 - LID_Z}"/></clipPath><g transform="${front(MECH_Y + 4)}" clip-path="url(#ak-lid)" data-part="lidtop"></g>`, dialSvg,
-    `<g data-part="lamps"></g><g data-part="crank"></g><g data-part="seal"></g>`,
-    divSvg, `<g data-part="div"></g><g data-part="board"></g><g data-part="travel"></g><g data-part="sheets"></g><g data-part="hand"></g>`],
+  label: "Une boîte à musique sur un établi : le rapport entre dans le lecteur, le cylindre à picots, qui est le modèle, pince les lamelles du peigne, l'étouffoir des règles coupe les notes impossibles, douze cases proposent les pages inédites ; l'agent valide chaque page sur la table lumineuse ; le corpus figé sert à planter les picots d'un cylindre neuf, le banc d'essai le juge sur deux rapports séparés ; le levier le publie : l'ancien cylindre rejoint l'étagère des versions et le nouveau descend dans le boîtier ; une roue de 46 dents mène une roue de 20 dents : gain ×2,3.",
+  body: [...base, toolsSvg, boardSvg, `<g data-part="board"></g>`, traySvg, caseSvg,
+    `<g data-part="inside"></g><g data-part="teeth"></g>`, caseFront, `<g transform="${right(GEAR_X)}" data-part="gears"></g>`,
+    `<g data-part="seal"></g>`, divSvg, `<g data-part="div"></g><g data-part="travel"></g><g data-part="sheets"></g><g data-part="hand"></g>`],
 });
 
 // ---------------------------------------------------------------- vivant
-const MODEL_SRC = readFileSync(new URL("../refonte/m3d/anticythere-model.js", import.meta.url), "utf8").replace(/^export /gm, "");
+const MODEL_SRC = readFileSync(new URL("../refonte/m3d/musicbox-model.js", import.meta.url), "utf8").replace(/^export /gm, "");
 const live = `
 const P = ${JSON.stringify(P)};
 const MODEL = (() => {
 ${MODEL_SRC}
-return { TAU, CASE, MECH_Y, FY, GEARS, phases, DIAL, CELLS, TRAY, CORPUS_TOP, DIV, GAUGE, LEVER, HATCH, BOARD, LID_Z, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf, AGENT };
+return { TAU, CASE, CYL, GEARS, GEAR_X, phases, NT, CONTACT, tx, TOOTH, IMPOSSIBLE, PINS3, PINS4, PLANT, NEWPINS, CELLS, FACIA, cellX, TRAY, DIV, BLANK, GAUGE, LEVER, BOARD, ABOVE, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, cylInCase, newInFlight, oldInFlight, handAt, stampOf, AGENT };
 })();
-const { TAU, CASE, MECH_Y, FY, GEARS, DIAL, CELLS, TRAY, DIV, GAUGE, LEVER, BOARD, LID_Z, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, pinInCase, newInFlight, oldInFlight, handAt, stampOf, AGENT } = MODEL;
-const PH = MODEL.phases(false), LAMPS = ${JSON.stringify(lampsXY)}, RW = GEARS.pin.r;
+const { TAU, CASE, CYL, GEARS, TRAY, NT, CONTACT, tx, TOOTH, IMPOSSIBLE, PINS3, PINS4, PLANT, NEWPINS, CELLS, DIV, BLANK, GAUGE, LEVER, BOARD, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, cylInCase, newInFlight, oldInFlight, handAt, stampOf, AGENT } = MODEL;
+const PH = MODEL.phases(false), CYC = ${JSON.stringify(CYC)}, CYL_BODY = ${JSON.stringify(CYL_BODY)};
 ${LOOP}
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
 const lerp = (a, b, u) => a + (b - a) * u;
 const circ = ${circ.toString()};
-const gearPlan = ${gearPlan.toString()};
 const OFF = ${JSON.stringify(OFF)};
 ${gearPts.toString()}
 ${circPts.toString()}
@@ -303,11 +292,9 @@ const at = (p) => iso(p, P);
 const front = (y) => sideMatrix([0, y], 0, P, "left");
 const box = (x0, x1, y0, y1, z, h, o = {}) => solidSvg(extrude([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], z, h, P, { bevel: o.bevel ?? 0.5 }), { tone: o.tone || "mid", lit: o.lit, crease: o.crease, className: o.cls });
 const f2 = (v) => v.toFixed(2), pt = (q) => f2(q[0]) + " " + f2(q[1]);
-const parts = {}; for (const n of ["gears", "lidtop", "lamps", "crank", "seal", "div", "board", "hand", "travel", "sheets", "ver-hand", "spiral-hand"]) parts[n] = $(n);
+const parts = {}; for (const n of ["inside", "teeth", "gears", "lamp", "seal", "div", "board", "hand", "travel", "sheets"]) parts[n] = $(n);
 const cells = CELLS.map((_, i) => $("cell-" + i));
-const FIELDS = ["ak-f0", "ak-f1", "ak-f2", "ak-f3"];
 let t = 0, frozen = false, touring = true, idle = 0;
-
 // ---- feuilles de papier : bandes cintrées, recto blanc et verso teinté, lignes de texte, sillage ondulé ----
 const area = (q) => { let a = 0; for (let i = 0; i < q.length; i++) { const p0 = q[i], p1 = q[(i + 1) % q.length]; a += p0[0] * p1[1] - p1[0] * p0[1]; } return a; };
 const REF = Math.sign(area([at([0, 0, 0]), at([1, 0, 0]), at([1, 1, 0]), at([0, 1, 0])]));
@@ -355,88 +342,83 @@ function handsSvg(s) {
   return out;
 }
 
+
+// ---- le cylindre : corps dessiné une fois puis déplacé (projection affine), picots recalculés à chaque image ----
+const body = (c) => { const a0 = at(CYC), a1 = at(c); return '<g transform="translate(' + f2(a1[0] - a0[0]) + ' ' + f2(a1[1] - a0[1]) + ')">' + CYL_BODY + '</g>'; };
+const NEWSET = new Set(NEWPINS.map(([i, a]) => i + ":" + a));
+function pinList(c, rot, list, mark) {
+  let ln = "", hd = "", nw = "";
+  for (const { i, an } of list) {
+    const a = an - rot, ca = Math.cos(a), sa = Math.sin(a);
+    if (0.73 * ca + 0.5 * sa < 0.08) continue;
+    const x = c[0] + (tx(i) - CYL.xc), p0 = at([x, c[1] + CYL.r * ca, c[2] + CYL.r * sa]), p1 = at([x, c[1] + (CYL.r + 1.7) * ca, c[2] + (CYL.r + 1.7) * sa]);
+    ln += "M" + pt(p0) + "L" + pt(p1);
+    const d = "M" + f2(p1[0] + 0.95) + " " + f2(p1[1]) + "a0.95 0.95 0 1 0 -1.9 0a0.95 0.95 0 1 0 1.9 0";
+    if (mark && NEWSET.has(i + ":" + an)) nw += d; else hd += d;
+  }
+  return '<path class="ak-pinl" d="' + ln + '"/><path class="ak-pinh" d="' + hd + '"/><path class="ak-pinn" d="' + nw + '"/>';
+}
+const listOf = (sets) => sets.flatMap((arr, i) => arr.map((an) => ({ i, an })));
+const L3 = listOf(PINS3), L4 = listOf(PINS4);
+const ROT_NEW = PLANT[PLANT.length - 1].an - Math.PI / 2;
+
 function draw(o, s) {
-  const g = GEARS;
-  let fr = "", top = "";
-  fr += wheel3d(g.b1, o.b1 + PH.b1, { spokes: FIELDS });
-  fr += wheel3d(g.crank, o.crank + PH.crank);
-  fr += wheel3d(g.idle, o.idle + PH.idle);
-  fr += wheel3d(g.p2, o.p2 + PH.p2);
-  // roue du modèle contre la platine (elle sort par la trappe à la publication), roue des règles levée devant elle
-  const pc = pinInCase(o), pa = o.pin + PH.pin;
-  if (pc) { const w = wheel3d({ ...g.pin, z: pc.z }, pa); fr += w; if (pc.z + RW > LID_Z) top += w + pinPeg(g.pin.u, pc.z, pa, 3); }
-  fr += wheel3d(g.slot, o.slot + PH.pin, { lit: o.accord, h: 4.2 });
-  { const T = 3, h = 4.2 + T, c = lift([[g.slot.u, -g.slot.z]], h)[0], sa = o.slot + PH.pin, rr = (x, y) => [c[0] + x * Math.cos(sa) - y * Math.sin(sa), c[1] + x * Math.sin(sa) + y * Math.cos(sa)];
-    fr += '<path class="ak-slot" d="M' + [rr(4, -1.6), rr(13.5, -1.6), rr(13.5, 1.6), rr(4, 1.6)].map(pt).join("L") + 'Z"/>'; }
-  if (pc) fr += pinPeg(g.pin.u, pc.z, pa, 3);
-  ['ak-r0', 'ak-r1', 'ak-r2'].forEach((cls, i) => { const r = g.corpus.r - i * 4.6, T = 1.6, h = i * T, a = o.corpus[i] + (i ? 0 : PH.corpus), c = lift([[g.corpus.u, -g.corpus.z]], h + T)[0];
-    fr += prism(lift(gearPts(r, 26 - i * 7, i ? 1.4 : g.corpus.d, 99, a, g.corpus.u, -g.corpus.z), h + T), T, { cls: "ak-gear " + cls, holes: [[c[0], c[1], r - 2.6]] });
-    const m = [[r - 2.4, -0.8], [r - 0.6, -0.8], [r - 0.6, 0.8], [r - 2.4, 0.8]].map(([x, y]) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)]);
-    fr += '<path class="ak-mark" d="M' + m.map(pt).join("L") + 'Z"/>'; });
-  fr += raised(circPts(1.4, g.corpus.u, -g.corpus.z, 14), 4.8, 1.2, "ak-axle3");
-  fr += wheel3d(g.p3, o.p3 + PH.p3);
-  fr += wheel3d(g.d46, o.d46, { h: 3.2 });
-  fr += wheel3d(g.o20, o.o20 + PH.o20, { lit: s > T.gain[0], h: 3.2 });
-  { const c = lift([[g.o20.u, -g.o20.z]], 3.2 + 2.2 + 2.6)[0], a = o.o20 + PH.o20, rr = (x, y) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)];
-    fr += '<path class="ak-hand" d="M' + [rr(-1, 0), rr(0, -13), rr(1, 0)].map(pt).join("L") + 'Z"/>'; }
-  { const u = g.b1.u, v = -(g.b1.z + 44), rect = (u0, v0, w, hh) => [[u0, v0], [u0 + w, v0], [u0 + w, v0 + hh], [u0, v0 + hh]];
-    fr += [0, 1, 2, 3].map((i) => raised(rect(u - 7.5 + i * 5, v, 1.4, 5), 0, 2.4, "ak-gear")).join("") + raised(rect(u - 10, v - 3, 20, 3), 0, 3.6, "ak-gear"); }
-  fr += '<g transform="translate(' + (g.slot.u + 14) + ' ' + (-(g.slot.z + 14)) + ')"><path class="ak-face" d="' + circ(3.4) + '"/><path class="' + (o.accord ? 'ak-ok' : 'ak-off') + '" d="' + circ(2) + '"/></g>';
-  parts.gears.innerHTML = fr; parts.lidtop.innerHTML = top;
-  parts.lamps.innerHTML = LAMPS.map((p, i) => { const q = at(p); return '<circle class="ak-lamp ' + (o.lamps[i] ? FIELDS[i] + ' ak-on' : '') + '" cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="2.6"/>'; }).join("");
-  const ca = o.crank, cu = g.crank.u, cz = g.crank.z, hx = cu + 14 * Math.cos(ca), hz = cz + 14 * Math.sin(ca);
-  parts.crank.innerHTML = '<path class="iso-line" data-tone="hi" d="M' + at([cu, MECH_Y + 6, cz]).join(" ") + 'L' + at([hx, MECH_Y + 6, hz]).join(" ") + '"/>' + dotsSvg([at([cu, MECH_Y + 6, cz])], { size: 1.3, tone: "hi" }) + box(hx - 2, hx + 2, MECH_Y + 6, MECH_Y + 16, hz - 2, 4, { tone: "hi", lit: true, bevel: 0.8, cls: "mat-wood" });
+  const g = GEARS, cc = cylInCase(o), live3 = o.version === 4;
+  // cylindre dans le boîtier (actuel, ou ancien qui monte, ou neuf qui descend), lamelles, étouffoir
+  let ins = "";
+  if (cc) ins += body(cc.c) + pinList(cc.c, cc.which === "new" ? ROT_NEW * (1 - o.newDrop) + 0.3 * o.newDrop : o.cyl, cc.which === "cur" && !live3 || cc.which === "old" ? L3 : L4, cc.which !== "old" && (live3 || cc.which === "new"));
+  parts.inside.innerHTML = ins;
+  let th = "";
+  for (let i = 0; i < NT; i++) {
+    const amp = o.pluck[i], x = tx(i), mute = IMPOSSIBLE.includes(i) && o.damp > 0.5;
+    th += box(x - TOOTH.w / 2, x + TOOTH.w / 2, TOOTH.tip, TOOTH.y0, TOOTH.z, 0.8, { tone: "mid", lit: amp > 0.15, bevel: 0.15, cls: mute ? "mat-ak-off" : "mat-ak-f" + ((i / 3) | 0) });
+    if (amp > 0.12) { const q = at([x, TOOTH.tip - 1.4, TOOTH.z + 0.9]); th += '<path class="ak-vib" style="opacity:' + Math.min(1, amp * 1.4).toFixed(2) + '" d="M' + f2(q[0] - 2.2) + " " + f2(q[1] - 0.6) + "Q" + f2(q[0]) + " " + f2(q[1] - 3.2) + " " + f2(q[0] + 2.2) + " " + f2(q[1] - 0.6) + 'M' + f2(q[0] - 3.4) + " " + f2(q[1] - 2) + "Q" + f2(q[0]) + " " + f2(q[1] - 5.6) + " " + f2(q[0] + 3.4) + " " + f2(q[1] - 2) + '"/>'; }
+  }
+  const zb = lerp(53, TOOTH.z + 1.3, o.damp), xa = CYL.x0 - 2.5, xb = CYL.x1 + 1;
+  th += box(xa, xa + 1.8, -13, TOOTH.y0 + 2, zb, 2, { tone: "mid", bevel: 0.2, lit: o.accord, cls: "mat-steel" }) + box(xb, xb + 1.8, -13, TOOTH.y0 + 2, zb, 2, { tone: "mid", bevel: 0.2, lit: o.accord, cls: "mat-steel" });
+  th += box(CYL.x0 - 1, CYL.x1 + 1, -13, -10, zb, 2, { tone: "mid", bevel: 0.3, lit: o.accord, cls: "mat-steel" });
+  for (const i of IMPOSSIBLE) th += box(tx(i) - 1.5, tx(i) + 1.5, -13, -10, zb - 1.1, 1.1, { tone: "lo", bevel: 0.1, cls: "mat-ak-felt" });
+  parts.teeth.innerHTML = th;
+  parts.lamp.innerHTML = (s > T.read[0] && s < T.read[1] + 1) || (s > 45 && s < 48) ? '<path class="ak-ok" d="' + circ(1.7, 65, -37) + '"/>' : "";
+  // train du gain, sur le flanc : la roue de 46 dents mène la roue de 20 dents du cylindre ; la manivelle suit la grande roue
+  let fr = wheel3d(g.d46, o.d46 + PH.d46) + wheel3d(g.o20, o.o20 + PH.o20, { lit: s > T.gain[0] });
+  { const a = o.d46 + PH.d46, c = g.d46, rot = ([x, y]) => [c.u + x * Math.cos(a) - y * Math.sin(a), -c.z + x * Math.sin(a) + y * Math.cos(a)];
+    fr += raised([[0, -1.3], [12, -1.3], [12, 1.3], [0, 1.3]].map(rot), 4.4, 1.2, "ak-gear");
+    const e = rot([12, 0]); fr += raised(circPts(2.4, e[0], e[1], 18), 5.6, 3.4, "ak-gear ak-hub"); }
+  parts.gears.innerHTML = fr;
+  cells.forEach((c, i) => c.setAttribute("class", "ak-cell" + [" ", " ak-ok", " ak-bad", " ak-fixed", " ak-prop"][o.cells[i]]));
   // le corpus est figé : un sceau de cire sur la boîte, sa version
   parts.seal.innerHTML = o.sealed ? '<g transform="' + front(TRAY.y + 14) + '"><path class="ak-seal" d="' + circ(2.6, TRAY.x + 12.5, -8.5) + '"/><path class="ak-sealin" d="' + circ(1.5, TRAY.x + 12.5, -8.5) + '"/></g>' : "";
-  // cadran à spirale : aiguille, cases ; cadran des versions
-  const [su, sv] = (() => { const a = o.spiral * DIAL.turns * TAU, r = DIAL.r0 + (DIAL.r1 - DIAL.r0) * o.spiral; return [DIAL.u + r * Math.cos(a - Math.PI / 2), -DIAL.z + r * Math.sin(a - Math.PI / 2)]; })();
-  parts["spiral-hand"].innerHTML = '<path class="ak-hand" d="M' + DIAL.u + ' ' + (-DIAL.z) + 'L' + f2(su) + ' ' + f2(sv) + '"/><path class="ak-gear" d="' + circ(1.6, su, sv) + '"/><path class="ak-axle" d="' + circ(1.1, DIAL.u, -DIAL.z) + '"/>';
-  cells.forEach((c, i) => c.setAttribute("class", "ak-cell" + [" ", " ak-ok", " ak-bad", " ak-fixed", " ak-prop"][o.cells[i]]));
-  const va = -Math.PI / 2 + (o.version - 2.5) * 0.55;
-  parts["ver-hand"].innerHTML = '<path class="ak-hand" d="M' + DIAL.u + ' -106L' + f2(DIAL.u + 8 * Math.cos(va)) + ' ' + f2(-106 + 8 * Math.sin(va)) + '"/><path class="ak-axle" d="' + circ(1, DIAL.u, -106) + '"/>';
-  // machine à diviser : axe nu, puis flan pressé, puis roue taillée ; couteau, banc d'essai, levier de publication
+  // machine à planter : le cylindre neuf, nu, puis un picot après l'autre ; l'aiguille du chariot descend à chaque pose
   let dv = "";
-  const onDiv = o.blank > 0 && !(o.newFly > 0);
-  if (onDiv) {
-    const plan = o.blank < 1 ? circPts((RW - g.pin.d) * (0.55 + 0.45 * o.blank), DIV.x, DIV.y, 40) : gearPlan(DIV.x, DIV.y, RW, 24, o.index, o.cut, g.pin.d);
-    dv += solidSvg(extrude(plan, DIV.z, 3, P, { bevel: 0.2 }), { tone: "hi", lit: o.cutter > 0 || o.blank < 1, crease: "none", className: "mat-bronze" });
-    dv += solidSvg(cylinder(DIV.x, DIV.y, 2.6, DIV.z + 3, 2, P, 16), { tone: "mid", className: "mat-steel" });
-    if (o.peg) dv += solidSvg(cylinder(DIV.x + 10 * Math.cos(o.index), DIV.y + 10 * Math.sin(o.index), 1.8, DIV.z + 3, 3.6, P, 14), { tone: "mid", className: "mat-bronze" });
-  } else dv += solidSvg(cylinder(DIV.x, DIV.y, 2.6, DIV.z, 5, P, 16), { tone: "mid", className: "mat-steel" });
-  const cx = DIV.x - RW - 6 + o.cutter * 4.5, fz = DIV.z + 1.5;
-  dv += box(cx - 7, cx + 1, DIV.y - 3, DIV.y + 3, 24.4, 6, { tone: "mid", bevel: 0.6, cls: "mat-steel" });
-  const fa = s * 14 * (o.cutter > 0 ? 1 : 0);
-  dv += '<g transform="' + front(DIV.y + 0.6) + '"><g transform="translate(' + f2(cx + 3) + ' ' + f2(-fz) + ') rotate(' + (fa * 57.3 % 360).toFixed(1) + ')">' + prism(lift(gearPts(4.2, 12, 0.9, 12, 0, 0, 0), 1.6), 1.6, { cls: "ak-steel" + (o.cutter > 0.5 ? " ak-lit" : "") }) + '<path class="ak-axle" d="' + circ(0.9, -OFF[0] * 1.6, -OFF[1] * 1.6) + '"/></g></g>';
-  dv += box(cx - 0.8, cx + 1.2, DIV.y - 0.8, DIV.y + 0.8, fz, 24.4 - fz, { tone: "mid", bevel: 0.1, cls: "mat-steel" });
-  { const G = GAUGE; let gs = "";
-    [[G.x0 + 4.8, o.f1], [G.x1 - 4.8, o.u1]].forEach(([u, v]) => { const a = Math.PI - v * Math.PI; gs += '<path class="ak-needle" d="M' + u + ' -11L' + f2(u + 3.1 * Math.cos(a)) + ' ' + f2(-11 - 3.1 * Math.sin(a)) + '"/><path class="ak-axle" d="' + circ(0.55, u, -11) + '"/>'; });
-    gs += '<path class="' + (o.pass ? "ak-ok" : "ak-off") + '" d="' + circ(1.3, (G.x0 + G.x1) / 2, -18) + '"/>';
-    dv += '<g transform="' + front(G.y1) + '">' + gs + '</g>'; }
-  { const th = o.lever * 1.2, tip = [LEVER.x, LEVER.y - 5 + 11 * Math.sin(th), LEVER.z + 11 * Math.cos(th)];
+  const BC = [BLANK.x, BLANK.y, BLANK.z], rotB = o.divRot - Math.PI / 2;
+  if (o.blank && !(o.newFly > 0)) dv += body(BC) + pinList(BC, rotB, PLANT.slice(0, o.planted), true);
+  { const cx = BLANK.x + (o.carriage - CYL.xc), tip = lerp(BLANK.z + CYL.r + 7, BLANK.z + CYL.r + 0.4, o.needle);
+    dv += box(cx - 3.5, cx + 3.5, DIV.y - 22, DIV.y - 16, BLANK.z + CYL.r + 9, 4, { tone: "mid", bevel: 0.5, lit: o.needle > 0.3, cls: "mat-steel" }) + box(cx - 1.5, cx + 1.5, DIV.y - 16, DIV.y + 0.8, BLANK.z + CYL.r + 10.6, 2.2, { tone: "mid", bevel: 0.3, cls: "mat-steel" }) + box(cx - 0.5, cx + 0.5, DIV.y - 0.5, DIV.y + 0.5, tip, BLANK.z + CYL.r + 10.6 - tip, { tone: "hi", bevel: 0.1, lit: o.needle > 0.3, cls: "mat-steel" }); }
+  { const Gg = GAUGE; let gs = "";
+    [[Gg.x0 + 4.8, o.f1], [Gg.x1 - 4.8, o.u1]].forEach(([u, v]) => { const a = Math.PI - v * Math.PI; gs += '<path class="ak-needle" d="M' + u + ' -11L' + f2(u + 3.1 * Math.cos(a)) + ' ' + f2(-11 - 3.1 * Math.sin(a)) + '"/><path class="ak-axle" d="' + circ(0.55, u, -11) + '"/>'; });
+    gs += '<path class="' + (o.pass ? "ak-ok" : "ak-off") + '" d="' + circ(1.3, (Gg.x0 + Gg.x1) / 2, -18) + '"/>';
+    dv += '<g transform="' + front(Gg.y1) + '">' + gs + '</g>'; }
+  { const th2 = o.lever * 1.2, tip = [LEVER.x, LEVER.y - 5 + 11 * Math.sin(th2), LEVER.z + 11 * Math.cos(th2)];
     dv += '<path class="iso-line" data-tone="hi" d="M' + at([LEVER.x, LEVER.y - 5, LEVER.z]).join(" ") + 'L' + at(tip).join(" ") + '"/>' + dotsSvg([at([LEVER.x, LEVER.y - 5, LEVER.z])], { size: 1.3, tone: "hi" }) + box(tip[0] - 1.6, tip[0] + 1.6, tip[1] - 1.6, tip[1] + 1.6, tip[2] - 1, 3.4, { tone: "hi", lit: o.lever > 0.05, bevel: 0.6, cls: "mat-wood" }); }
   parts.div.innerHTML = dv;
-  // tableau des versions : v1 et v2 accrochées, v3 arrive à la publication, v4 attend la prochaine
+  // étagère des versions : v1 et v2 posés, v3 arrive à la publication, v4 attend le prochain
   let bd = "";
-  BOARD.slots.forEach(([u, z], i) => { if (i === 3 || (i === 2 && o.oldFly < 1)) return; bd += prism(lift(gearPts(RW, 24, g.pin.d, 24, i * 0.7, u, -z), 3), 3, { cls: "ak-gear" + (i === 2 ? " ak-lit" : ""), holes: [[u - OFF[0] * 3, -z - OFF[1] * 3, 1.8]] }); });
-  parts.board.innerHTML = '<g transform="' + front(BOARD.y) + '">' + bd + '</g>';
+  BOARD.slots.forEach(([u, z], i) => { if (i === 3 || (i === 2 && o.oldFly < 1)) return; const c = [u, BOARD.cy, z]; bd += body(c) + pinList(c, 0.6 + i * 1.1, L3, false); });
+  parts.board.innerHTML = bd;
   parts.hand.innerHTML = handsSvg(s);
-  // roues en vol : l'ancienne, dressée, vers le tableau ; la candidate, qui se redresse en montant vers la trappe
+  // cylindres en vol : l'ancien vers l'étagère, le neuf vers le dessus du boîtier
   let tr = "";
-  const ol = oldInFlight(o);
-  if (ol) { const [x, y, z] = ol.c, a = pa + o.oldFly * 3; tr += '<g transform="' + front(y) + '">' + prism(lift(gearPts(RW, 24, g.pin.d, 24, a, x, -z), 3), 3, { cls: "ak-gear" }) + pinPeg(x, z, a, 3) + '</g>'; }
-  const nw = newInFlight(o);
-  if (nw) {
-    const ca2 = Math.cos(nw.alpha), sa2 = Math.sin(nw.alpha), e2 = [0, ca2, sa2], n = [0, -sa2, ca2], c = nw.c, spin = s * 1.6;
-    const W = (a, b, k) => [c[0] + a, c[1] + e2[1] * b + n[1] * k, c[2] + e2[2] * b + n[2] * k];
-    const pts = gearPts(RW, 24, g.pin.d, 24, spin, 0, 0).map(([a, b]) => at(W(a, b, 3))), q0 = at(W(0, 0, 3)), q1 = at(W(0, 0, 0));
-    tr += prismS(pts, q1[0] - q0[0], q1[1] - q0[1], { cls: "ak-gear ak-lit" });
-  }
+  const ol = oldInFlight(o), nw = newInFlight(o);
+  if (ol) tr += body(ol.c) + pinList(ol.c, o.cyl + o.oldFly * 2, L3, false);
+  if (nw) tr += body(nw.c) + pinList(nw.c, ROT_NEW * (1 - o.newFly) + 0.3 * o.newFly, L4, true);
   parts.travel.innerHTML = tr;
   // feuilles : posées d'abord, puis celles qui volent
   let sh = "", fly = "";
   for (const q of SHEETS) { const p = sheetPose(q, s); if (!p) continue; if (p.u >= 1) sh += sheetSvg(p, s); else fly += trailSvg(q, s) + sheetSvg(p, s); }
   parts.sheets.innerHTML = sh + fly;
 }
+
 function reading(s) { const i = stationAt(s), o = stateAt(s); return (i + 1) + " · " + STATIONS[i] + (s >= T.infer[0] ? " · " + o.validated + "/12 validées" : ""); }
 const run = loop((dt, calm) => { if (frozen) return; if (touring) { t = calm ? 53 : t + dt; if (t >= LOOP_T) t = 0; } draw(stateAt(t), t); say(reading(t)); });
 const jump = (i) => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; }, 9000); t = TS[(i + TS.length) % TS.length] + 1.5; run(); };
@@ -447,6 +429,16 @@ draw(stateAt(0), 0); say(reading(0));
 `;
 
 const css = `<style>
+.ak-pinl{fill:none;stroke:var(--anatomy-hi);stroke-width:.5;stroke-linecap:round}
+.ak-pinh{fill:var(--anatomy-lit);stroke:var(--anatomy-hi);stroke-width:.3}
+.ak-pinn{fill:#e0a33a;stroke:#a57224;stroke-width:.3}
+.ak-vib{fill:none;stroke:var(--anatomy-lit);stroke-width:.45;stroke-linecap:round}
+.mat-ak-f0{--anatomy-top:#e07a66;--anatomy-face:#d2452f;--anatomy-shade-0:#a83525;--anatomy-shade-1:#b53a28;--anatomy-shade-2:#c23e2a;--anatomy-shade-3:#d2452f;--anatomy-lit-top:#f19a88;--anatomy-lit-shade:#e07a66}
+.mat-ak-f1{--anatomy-top:#7fa3d6;--anatomy-face:#3f6fb0;--anatomy-shade-0:#2f5388;--anatomy-shade-1:#35609b;--anatomy-shade-2:#3a68a8;--anatomy-shade-3:#3f6fb0;--anatomy-lit-top:#a6c2e8;--anatomy-lit-shade:#7fa3d6}
+.mat-ak-f2{--anatomy-top:#f0d070;--anatomy-face:#e0b23a;--anatomy-shade-0:#b08a24;--anatomy-shade-1:#c49a2c;--anatomy-shade-2:#d4a834;--anatomy-shade-3:#e0b23a;--anatomy-lit-top:#f7e29a;--anatomy-lit-shade:#f0d070}
+.mat-ak-f3{--anatomy-top:#6fbab5;--anatomy-face:#3d8f8a;--anatomy-shade-0:#2c6b67;--anatomy-shade-1:#327874;--anatomy-shade-2:#388580;--anatomy-shade-3:#3d8f8a;--anatomy-lit-top:#9bd2ce;--anatomy-lit-shade:#6fbab5}
+.mat-ak-off{--anatomy-top:#8c8c88;--anatomy-face:#7a7a76;--anatomy-shade-0:#5e5e5a;--anatomy-shade-1:#686864;--anatomy-shade-2:#72726e;--anatomy-shade-3:#7a7a76}
+.mat-ak-felt{--anatomy-top:#c9b26a;--anatomy-face:#b49c58;--anatomy-shade-0:#8c7a42;--anatomy-shade-1:#9c8848;--anatomy-shade-2:#a8924e;--anatomy-shade-3:#b49c58}
 .ak-gear{fill:var(--ak-bronze);stroke:var(--anatomy-hi);stroke-width:.35;stroke-linejoin:round}
 .ak-back{fill:var(--ak-bronze-d);stroke:none}
 .ak-lit{fill:var(--ak-bronze-l)}
@@ -527,10 +519,10 @@ const css = `<style>
 const plate = k.plateHtml({
   fig: "Fig 11", title: "Lecteur VRE", hint: "Glisse ou ← → : étape", readout: "1 · Lecture · Document AI",
   keys: [
-    { mark: "lit", label: "Ce qui vient d'agir : roue, aiguille, couteau, feuille, levier, index de l'agent sur la page" },
+    { mark: "lit", label: "Ce qui vient d'agir : lamelle pincée, étouffoir, aiguille, feuille, levier, index de l'agent sur la page" },
     { mark: "raised", label: "Case bleue : cadre proposé, jamais validé sans l'agent ; tout tourne en local" },
   ],
-  caption: "Un mécanisme d'Anticythère pour le Lecteur VRE. Le rapport PDF quitte la pile des rapports à lire et entre par la fente du couvercle (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles métiers pour que l'aiguille avance (hybride neuro-symbolique). Sur le flanc, le cadran à spirale propose les cadres de douze pages inédites : chaque case reste bleue, une proposition, et chaque page sort par la fente placée sous le cadran. Chaque page se pose sur la table lumineuse de Radiographie : la main de l'agent, celle de La Création d'Adam, descend et la touche du bout de l'index, vert pour valider, rouge puis orange pour corriger, la case du cadran change au même instant, et la page part en feuille vers la boîte du corpus partagé. Le corpus est figé (sceau) : ses copies, image, texte et positions, volent sur l'axe de la machine à diviser et sont pressées en un flan, dont l'entraînement LayoutLMv3 taille les dents. Le banc d'essai juge la roue candidate sur deux rapports séparés : F1 au-delà de 0,75, rappel U1 au-delà de 0,90, le voyant passe au vert. Le levier publie explicitement : l'ancienne roue du modèle sort par la trappe et rejoint le tableau des versions, la nouvelle descend à sa place ; les règles ne changent pas. Au nouvel essai, les cadres restent des propositions : la main de l'agent touche encore chaque page. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les pages, erreurs et scores sont des valeurs d'illustration.",
+  caption: "Une boîte à musique pour le Lecteur VRE. Le cylindre à picots est le modèle : la place de chaque picot est ce qu'il a appris. Le rapport PDF quitte la pile et entre dans le lecteur (Document AI) ; la manivelle fait tourner le cylindre, et chaque picot pince la lamelle de son champ, une couleur par champ (tri, mini-BERT). L'étouffoir, ce sont les règles métiers : il coupe les notes impossibles, le modèle et les règles jouent ensemble (hybride neuro-symbolique). Les douze cases du devant sont les pages inédites : le cylindre propose des cadres, jamais des certitudes. Chaque page sort par la bouche du flanc ; l'agent, la main de La Création d'Adam, la touche du bout de l'index sur la table lumineuse (Radiographie) : vert, validée ; rouge puis orange, corrigée. Elle part au corpus partagé, qui est ensuite scellé. Les copies du corpus figé servent à planter, un à un, les picots d'un cylindre neuf (entraînement LayoutLMv3, en local). Le banc d'essai le joue sur deux rapports séparés : il doit passer F1 0,75 et rappel U1 0,90. Seul un candidat accepté est publié, d'un coup de levier : l'ancien cylindre rejoint l'étagère des versions et le nouveau descend dans le boîtier. Le gain est littéral : une roue de 46 dents mène une roue de 20 dents, le cylindre tourne 46 / 20 = 2,3 fois plus vite.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Lecteur VRE : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
 });
-writeFigure("vrestudio-anticythere", { title: "Lecteur VRE · le mécanisme d'Anticythère", plate, live, width: 900, css });
+writeFigure("vrestudio-musicbox", { title: "Lecteur VRE · la boîte à musique", plate, live, width: 900, css });
