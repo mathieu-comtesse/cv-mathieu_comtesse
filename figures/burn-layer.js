@@ -27,7 +27,7 @@ function makeBurn(stage, svg, VBW, VBH, pr) {
   let dark = false, themeAt = -1e9;
 
   function fit() {
-    const r = svg.getBoundingClientRect(), rs = stage.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const r = svg.getBoundingClientRect(), rs = stage.getBoundingClientRect(), dpr = Math.min(1.5, window.devicePixelRatio || 1);
     const W = Math.max(1, Math.round(rs.width * dpr)), H = Math.max(1, Math.round(rs.height * dpr));
     if (front.width !== W || front.height !== H) { front.width = W; front.height = H; }
     layers[0].k = r.width / VBW * dpr; layers[0].ox = (r.left - rs.left) * dpr; layers[0].oy = (r.top - rs.top) * dpr;
@@ -253,7 +253,12 @@ function makeBurn(stage, svg, VBW, VBH, pr) {
   }
 
   // ---- image : tout ce qui brûle, fume, jette une ombre ou éclaire à l'instant s
+  let wasActive = true;
+  const alive = (s, emitters, flames, ex2) => flames.some((F) => F.p > 0.02) || emitters.some((E) => s >= E.t0 && s <= E.t1 + E.life) || (ex2.decals || []).some((d) => d.a > 0.01) || (ex2.mists || []).some((m) => m.a > 0.01) || (ex2.flash || 0) > 0.01;
   function frame(s, emitters, flames, rings, extras) {
+    const act = alive(s, emitters, flames, extras || {});
+    if (!act && !wasActive) return;                    // rien à tracer : on ne touche plus aux canvas
+    wasActive = act;
     fit(); theme(performance.now());
     const S = sprites(), items = [[], []], ex2 = extras || {};
     LIGHTS = flames.filter((F) => F.p > 0.05);
