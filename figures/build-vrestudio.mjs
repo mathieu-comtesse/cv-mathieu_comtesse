@@ -2,12 +2,12 @@
 // node figures/build-vrestudio.mjs  →  figures/vrestudio.html
 // 0 lecture · 1 tri · 2 serrure à deux clés · 3 relecture au tampon · 4 fichier du corpus · 5 presse d'entraînement
 // 6 évaluation et publication · 7 lanterne : la lentille publiée balaie la mer et propose des cadres sur les pages qui flottent.
-// À côté, la petite tour de l'extracteur VRE : le phare est 2,3 fois plus haut.
+// Dans la lanterne, un cadran : l'aiguille grise est l'extracteur VRE (×1), l'aiguille d'accent monte à ×2,3.
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, display, writeFigure, LOOP } from "./common.mjs";
 
-const WIDTH = 720, HEIGHT = 1040;
+const WIDTH = 640, HEIGHT = 1040;
 const PITCH = 46, NF = 8, HWN = 12.5, BN = 12.5, RISL = 124;                       // étages, demi-côté du puits, rayon de la mer
 const Z0 = 7;                                                         // dessus de l'îlot : plancher du rez-de-chaussée
 const ZF = (f) => Z0 + f * PITCH;                                     // dessus du plancher de l'étage f
@@ -17,10 +17,9 @@ const A = 100 * Math.PI / 180;                                        // demi-ou
 const T0 = Math.PI / 2 - A, T1 = Math.PI / 2 + A;                     // angle (dans le repère latéral, arrière) de chaque bras de mur
 const LANT_Z = ZF(7), KNEE = 9, GLASS = 34, DOME_Z = LANT_Z + KNEE + GLASS;
 const TOP_Z = DOME_Z + 46;
-const OLD = { x: -50, y: 84, r: 19, h: TOP_Z / 2.3 };                // la petite tour : 1 / 2,3 de la grande
 
 const P = k.fitProjection(
-  [[-80, 80, -16], [80, -80, -16], [88, 88, -16], [0, 0, TOP_Z + 6], [-92, 50, TOP_Z + 4], [OLD.x, OLD.y, OLD.h + 10]],
+  [[-72, 72, -16], [72, -72, -16], [88, 88, -16], [0, 0, TOP_Z + 6]],
   WIDTH, HEIGHT, { pad: 12, azimuth: 45 },
 );
 const { at, S, L, D, slab, front, right, flat } = tools(P);
@@ -251,28 +250,6 @@ function roofSvg() {
   return out.join("");
 }
 function RGL_R() { return 37; }
-// ---------------------------------------------------------------- petite tour (l'extracteur VRE) et règle de hauteur
-function oldTower() {
-  const out = [], { x, y, r, h } = OLD, F = G.frameAlong([x, y, 0], [0, 0, 1]);
-  out.push(`<path class="iso-halo" d="${k.haloOf({ x: x - r - 4, y: y - r - 4, w: 2 * r + 8, d: 2 * r + 8, r: r + 4 }, 0, 3, P)}" style="filter:blur(3px)"/>`);
-  out.push(S(k.cylinder(x, y, r + 5, 0, 4, P, 40, 0.5), { tone: "lo" }));
-  out.push(S(G.solidOf([[0, r], [h - 22, r - 6]], F, P), { tone: "mid", inner: L(G.arcOf(F, 36, r - 1, P), { tone: "faint" }) + L(G.arcOf(F, 80, r - 3, P), { tone: "faint" }) }));
-  out.push(S(k.cylinder(x, y, r - 3, h - 22, 3, P, 32, 0.3), { tone: "lo" }));
-  out.push(S(k.cylinder(x, y, 7, h - 19, 10, P, 24), { tone: "hi", lit: true }));
-  out.push(S(G.solidOf([[h - 9, 11], [h - 7, 10], [h + 6, 3.6], [h + 8, 2.4]], G.frameAlong([x, y, 0], [0, 0, 1]), P), { tone: "mid" }));
-  return out.join("");
-}
-function rulerSvg() {
-  const x = -92, y = 50, out = [], zt = TOP_Z;
-  out.push(S(k.cylinder(x, y, 5, 0, 2, P, 20), { tone: "lo" }));
-  out.push(S(slab({ x: x - 1.6, y: y - 1.6, w: 3.2, d: 3.2, r: 0.6 }, 2, zt - 2, 2, 0.3), { tone: "mid", crease: "none" }));
-  const f = front(y + 1.6), minor = [], major = [];
-  for (let z = 10; z < zt - 4; z += 10) (z % 50 === 0 ? major : minor).push(`M${x - 1.6} ${-z}L${x - 1.6 + (z % 50 === 0 ? 3.2 : 1.8)} ${-z}`);
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${minor.join("")}"/><path class="iso-line" data-tone="mid" d="${major.join("")}"/></g>`);
-  out.push(S(slab({ x: x - 1.6, y: y - 5, w: 3.2, d: 10, r: 0.5 }, OLD.h - 1, 2, 2, 0.2), { tone: "hi", lit: true }));
-  out.push(S(slab({ x: x - 1.6, y: y - 5, w: 3.2, d: 10, r: 0.5 }, zt - 4, 2, 2, 0.2), { tone: "hi", lit: true }));
-  return out.join("");
-}
 function platformSvg() {
   const under = [], over = [], C = 8.4, ch = 6.2;
   under.push(boxUB(-9.5, 9.5, -9.5, 9.5, 0, 2.4, { bevel: 0.5 }));
@@ -560,7 +537,31 @@ function floor6() {
 // ---------------------------------------------------------------- étage 7 · lanterne : la lentille publiée tourne
 const bigLens = () => `<g data-part="biglens" opacity="0">${lensSvg(13, 30, PZ, true)}<g data-part="lens-spin"></g></g>`;
 
-const FL = [floor0(), floor1(), floor2(), floor3(), floor4(), floor5(), floor6(), { back: "", front: "" }];
+// ---------------------------------------------------------------- étage 7 · cadran du gain : l'aiguille grise est l'extracteur VRE (×1), l'aiguille d'accent monte à ×2,3
+const GAIN = { u: 31, b: 12, z: ZF(7) + 17, r: 7.4 };
+const gainAng = (v) => (205 - v * (230 / 3)) * Math.PI / 180;
+function floor7() {
+  const { u, b, z, r } = GAIN, back = [], bf = b - 1.8;
+  back.push(turned(frZ(u, b, ZF(7)), [[0, 4.6], [1.2, 4.6], [2, 2.6], [z - ZF(7) - r + 0.4, 2.2], [z - ZF(7) - r + 1.4, 3.6]], { tone: "mid" }));
+  const F = frB(u, b, z);
+  back.push(S(G.disc(-1.8, 0, r, F, P), { tone: "mid" }));
+  const face = (rr) => circUB(u, bf - 0.02, rr, z, 40);
+  back.push(`<path class="iso-fill fig-window" d="${face(r - 1.1)}"/>` + L(face(r - 1.1), { tone: "lo" }) + L(face(r - 2.3), { tone: "faint" }));
+  const tk = [], tm = [];
+  for (let q = 0; q <= 12; q++) {
+    const v = q * 0.25, a = gainAng(v), r0 = q % 4 === 0 ? r - 2.8 : r - 2.3, r1 = r - 1.1;
+    (q % 4 === 0 ? tm : tk).push(pth([pUB(u + r0 * Math.cos(a), bf - 0.02, z + r0 * Math.sin(a)), pUB(u + r1 * Math.cos(a), bf - 0.02, z + r1 * Math.sin(a))]));
+  }
+  back.push(L(tk.join(""), { tone: "lo" }) + L(tm.join(""), { tone: "mid" }));
+  // l'index à 2,3 : un repère plein ; l'aiguille grise, fixe, à 1
+  const a23 = gainAng(2.3), ax = (rr) => pUB(u + rr * Math.cos(a23), bf - 0.02, z + rr * Math.sin(a23));
+  back.push(L(pth([ax(r - 3.6), ax(r - 1.1)]), { tone: "hi" }) + D([ax(r - 3.6)], { size: 0.6, tone: "hi" }));
+  const a1 = gainAng(1);
+  back.push(L(pth([pUB(u, bf - 0.02, z), pUB(u + (r - 2.3) * Math.cos(a1), bf - 0.02, z + (r - 2.3) * Math.sin(a1))]), { tone: "mid" }));
+  const front = `<g data-part="gain-needle"></g>`;
+  return { back: back.join(""), front };
+}
+const FL = [floor0(), floor1(), floor2(), floor3(), floor4(), floor5(), floor6(), floor7()];
 FL[2].front += gateSvg(ZF(2));
 FL[2].back += `<g data-part="keys-slot"></g>`;
 const payload = `<g data-part="page">${pageSvg()}${[0, 1, 2, 3].map(inkSvg).join("")}</g><g data-part="chips"></g><g data-part="card" opacity="0">${cardSvg()}</g><g data-part="crate" opacity="0">${crateSvg()}</g><g data-part="lens" opacity="0">${lensSvg(7, 13, PZ, true)}</g>${bigLens()}`;
@@ -569,15 +570,15 @@ function crateFlightSvg() { const z0 = 0; return boxUB(-7, 7, -7, 7, 0, 9, { ton
 
 const lant = lanternParts();
 const keysMarkup = keyN() + keyR();
-const bodyParts = [seaSvg(), `<g id="seapages"></g><g id="beam-back" class="fx"></g>`, rulerSvg(), oldTower(), islet(), pierSvg()];
+const bodyParts = [seaSvg(), `<g id="seapages"></g><g id="beam-back" class="fx"></g>`, islet(), pierSvg()];
 for (let f = 0; f < NF - 1; f++) {
   bodyParts.push(wallSvg(f), bandSvg(f), beltSvg(f), wallOuter(f), slabSvg(f), shaftPosts(true, f), FL[f].back);
   if (f === 2) bodyParts.push(keysMarkup);
 }
-bodyParts.push(slabSvg(NF - 1), lant.back);
+bodyParts.push(slabSvg(NF - 1), lant.back, FL[7].back);
 const plat = platformSvg();
 bodyParts.push(`<g id="mast"></g><g data-part="platform">${plat.under}${payload}${plat.over}</g>`);
-for (let f = 0; f < NF - 1; f++) bodyParts.push(FL[f].front);
+for (let f = 0; f < NF; f++) bodyParts.push(FL[f].front);
 bodyParts.push(worldBits, lant.front, lant.top, roofSvg(), `<g id="fx" class="fx"></g>`);
 bodyParts.push(`<defs><linearGradient id="scan-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--g,#34d399);stop-opacity:.6"/><stop offset="1" style="stop-color:var(--g,#34d399);stop-opacity:.05"/></linearGradient></defs>`);
 
@@ -591,13 +592,14 @@ const STATIONS = [
   ["Corpus multimodal", "la fiche garde l'image, le texte et les positions"],
   ["Entraînement · LayoutLMv3", "la presse tire du lot une lentille"],
   ["Évaluation et publication", "deux seuils tenus, le levier publie"],
-  ["Inférence · le faisceau", "la lentille balaie la mer et propose des cadres"],
+  ["Inférence · le faisceau", "la lentille balaie l'horizon, l'aiguille monte à ×2,3 l'extracteur VRE"],
 ];
 const live = `
 const P = ${JSON.stringify(P)};
 const UDv = ${JSON.stringify(Ud)}, BDv = ${JSON.stringify(Bd)};
 const Z0 = ${Z0}, PITCH = ${PITCH}, PZ = ${PZ}, FU = ${JSON.stringify(FU)}, FB = ${JSON.stringify(FB)};
 const HOLES = ${JSON.stringify(HOLES)}, HB = ${HB}, TRAY_H = ${TRAY_H}, SLOTS = ${SLOTS}, SU0 = ${SU0}, SDU = ${SDU};
+const GAIN = ${JSON.stringify(GAIN)}, GA = [205, 230];
 const COLS = ${JSON.stringify(COLS)}, LENSC = ${PZ + 5 + 10.5}, TOPLANT = ${LANT_Z};
 const STATIONS = ${JSON.stringify(STATIONS)};
 const CHIPS = ${JSON.stringify([0, 1, 2, 3].map(chipSvg))};
@@ -640,7 +642,7 @@ const bar = (u0, b0, u1, b1, w, z, h, tone) => {
   return solidSvg(extrude(ringp, z, h, P, { bevel: 0.2 }), { tone: tone || "mid" });
 };
 const parts = {}; parts.mast = svg.querySelector("#mast"); parts.seapages = svg.querySelector("#seapages");
-for (const n of ["platform", "page", "chips", "card", "card-img", "card-txt", "card-pos", "crate", "lens", "biglens", "lens-spin", "cardfly", "crateflight", "head", "key-n", "key-r", "gate", "shead", "splow", "sspring", "lid", "count", "tally", "ram", "needle", "forks", "lever", "pin", "lamp-read", "lamp-lock", "lamp-press", "lamp-pub"]) parts[n] = $(n);
+for (const n of ["platform", "page", "chips", "card", "card-img", "card-txt", "card-pos", "crate", "lens", "biglens", "lens-spin", "cardfly", "crateflight", "head", "key-n", "key-r", "gate", "shead", "splow", "sspring", "lid", "count", "tally", "gain-needle", "ram", "needle", "forks", "lever", "pin", "lamp-read", "lamp-lock", "lamp-press", "lamp-pub"]) parts[n] = $(n);
 const inks = [0, 1, 2, 3].map((i) => $("ink-" + i)), cardEls = Array.from({ length: SLOTS }, (_, i) => $("card-" + i));
 const sortLamps = [0, 1, 2, 3].map((i) => $("sort-lamp-" + i)), forkLamps = [0, 1].map((i) => $("fork-" + i));
 const fxLayer = svg.querySelector("#fx"), beamBack = svg.querySelector("#beam-back");
@@ -750,13 +752,27 @@ function seaMarkup(s, o) {
 }
 function beamFx(o, s) {
   if (o.beamA <= 0.01 || o.phi === null) return { back: "", front: "" };
-  const phi = o.phi, d = 0.24, zc = TOPLANT + LENSC;
+  const phi = o.phi, zc = TOPLANT + LENSC, d = 0.085, D = 420, fr = Math.max(0, -Math.sin(o.phi)), A = o.beamA * (1 - 0.72 * fr * fr);
   const ptAt = (r, a, z) => iso(w3(r * Math.cos(a), r * Math.sin(a), z), P);
-  const origin = ptAt(36, phi, zc), a = ptAt(112, phi - d, 0.8), b = ptAt(112, phi + d, 0.8), a2 = ptAt(64, phi - d * 0.7, 0.8), b2 = ptAt(64, phi + d * 0.7, 0.8);
-  const cone = '<path class="fx-cone" style="opacity:' + o.beamA.toFixed(2) + '" d="' + pathOf([origin, a, b], true) + '"/>';
-  const sector = '<path class="fx-lit" style="opacity:' + (0.5 * o.beamA).toFixed(2) + '" d="' + pathOf([a2, a, b, b2], true) + '"/>';
-  const edges = lineFx(pathOf([origin, a]), 0.9, 0.5 * o.beamA) + lineFx(pathOf([origin, b]), 0.9, 0.5 * o.beamA);
-  const s1 = cone + sector + edges, back = Math.sin(phi) > 0;
+  const o0 = ptAt(36, phi, zc), a1 = ptAt(D, phi - d, zc - 6), b1 = ptAt(D, phi + d, zc - 6), mid = ptAt(D, phi, zc - 6);
+  const gr = '<defs><linearGradient id="bm" gradientUnits="userSpaceOnUse" x1="' + o0[0].toFixed(1) + '" y1="' + o0[1].toFixed(1) + '" x2="' + mid[0].toFixed(1) + '" y2="' + mid[1].toFixed(1) + '"><stop offset="0" style="stop-color:var(--g,#34d399);stop-opacity:.8"/><stop offset=".55" style="stop-color:var(--g,#34d399);stop-opacity:.22"/><stop offset="1" style="stop-color:var(--g,#34d399);stop-opacity:0"/></linearGradient></defs>';
+  let s1 = gr + '<path d="' + pathOf([o0, a1, b1], true) + '" style="fill:url(#bm);stroke:none;opacity:' + A.toFixed(2) + '"/>';
+  s1 += lineFx(pathOf([o0, mid]), 0.8, 0.55 * A);
+  // la tache lumineuse sur la mer, là où flottent les pages
+  const patch = Array.from({ length: 24 }, (_, i) => { const a = i / 24 * TAU; return iso(w3(98 * Math.cos(phi) + 17 * Math.cos(a), 98 * Math.sin(phi) + 8 * Math.sin(a) + 0, 0.9), P); });
+  s1 += '<path class="fx-lit" style="opacity:' + (0.55 * A).toFixed(2) + '" d="' + pathOf(patch, true) + '"/>';
+  // éclair à l'horizon : un éclat en croix au bout du faisceau, sur le bord de la mer
+  const hz = iso(w3(124 * Math.cos(phi), 124 * Math.sin(phi), 1.5), P), pulse = 0.6 + 0.4 * Math.abs(Math.sin(s * 3.1)), A0 = o.beamA;
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI, r1 = (i % 5 === 0 ? 30 : i % 5 === 2 ? 20 : 11) * pulse; s1 += lineFx(pathOf([[hz[0] - r1 * Math.cos(a), hz[1] - r1 * Math.sin(a) * 0.55], [hz[0] + r1 * Math.cos(a), hz[1] + r1 * Math.sin(a) * 0.55]]), 1.2, A0 * pulse); }
+  s1 += '<circle class="fx-lit" style="opacity:' + (0.7 * A0 * pulse).toFixed(2) + '" cx="' + hz[0].toFixed(1) + '" cy="' + hz[1].toFixed(1) + '" r="' + (3 + 3 * pulse).toFixed(1) + '"/>';
+  // quand le faisceau passe vers nous : le grand éclair de la lanterne
+  const face = Math.cos(angDiff(phi, -Math.PI / 2));
+  if (face > 0.82) {
+    const f = (face - 0.82) / 0.18, c = ptAt(0, 0, zc);
+    for (let i = 0; i < 16; i++) { const a = i / 16 * TAU, r0 = 14, r1 = 14 + (i % 2 ? 22 : 46) * f; s1 += lineFx(pathOf([[c[0] + r0 * Math.cos(a), c[1] + r0 * Math.sin(a)], [c[0] + r1 * Math.cos(a), c[1] + r1 * Math.sin(a)]]), 1.2, f * A); }
+    s1 += '<circle class="fx-lit" style="opacity:' + (0.5 * f * A).toFixed(2) + '" cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + (16 + 10 * f).toFixed(1) + '"/>';
+  }
+  const back = Math.sin(phi) > 0;
   return { back: back ? s1 : "", front: back ? "" : s1 };
 }
 function fxSvg(o, s) {
@@ -783,6 +799,8 @@ function fxSvg(o, s) {
 }
 function draw(o, s) {
   const zf = o.lift;
+  const gv = o.beamA > 0 ? lerp(1, 2.3, ease(seg(s, Ts[7] + 3, Ts[7] + 9))) : 1, ga = (GA[0] - gv * GA[1] / 3) * Math.PI / 180;
+  parts["gain-needle"].innerHTML = o.bigA > 0.05 ? '<path class="iso-line" data-tone="hi" d="' + pathOf([pr(GAIN.u, GAIN.b - 1.84, GAIN.z), pr(GAIN.u + (GAIN.r - 2.3) * Math.cos(ga), GAIN.b - 1.84, GAIN.z + (GAIN.r - 2.3) * Math.sin(ga))]) + '"/>' + dotsSvg([pr(GAIN.u, GAIN.b - 1.84, GAIN.z)], { size: 0.7, tone: "hi" }) : "";
   parts.platform.setAttribute("transform", dUB(0, 0, zf));
   parts.mast.innerHTML = mastMarkup(zf);
   // la page, les jetons, la fiche, le lot, la lentille
@@ -874,7 +892,7 @@ draw(stateAt(0), 0); say(reading(0));
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un phare en coupe : huit étages autour d'un monte-charge central. Une page monte d'étage en étage : lecture par une tête optique, tri en quatre catégories, serrure à deux clés, tampon à main, fichier du corpus, presse d'entraînement qui en tire une lentille, mesure et publication, puis la lentille tourne dans la lanterne et balaie la mer. À gauche, une tour plus petite : l'extracteur VRE, 2,3 fois moins haut que VRE Studio.",
+  label: "Un phare en coupe : huit étages autour d'un monte-charge central. Une page monte d'étage en étage : lecture par une tête optique, tri en quatre catégories, serrure à deux clés, tampon à main, fichier du corpus, presse d'entraînement qui en tire une lentille, mesure et publication. Puis la lentille tourne dans la lanterne : son faisceau balaie l'horizon, propose des cadres sur les pages qui flottent, et l'aiguille d'un cadran monte de ×1, l'extracteur VRE, à ×2,3.",
   body: bodyParts,
 });
 const plate = k.plateHtml({
@@ -884,7 +902,7 @@ const plate = k.plateHtml({
     { mark: "flat", label: "Chaque étage est une brique de la chaîne, tout fonctionne" },
     { mark: "lit", label: "Ce qui vient d'agir : tête, clé, tampon, presse, faisceau" },
   ],
-  caption: "Un phare en coupe, huit étages autour d'un monte-charge. Une page sort de la trémie : une tête optique lit ses quatre champs (Document AI), un plateau à empreintes les trie par catégorie (mini-BERT), deux clés, celle du modèle et celle des règles métiers, ouvrent ensemble le verrou (hybride neuro-symbolique), un tampon à main valide chaque cadre (Human-in-the-Loop), puis la page devient une fiche à trois feuillets, image, texte et positions, rangée dans le classeur du corpus multimodal. Le lot scellé entre sous la presse : trois frappes d'entraînement (LayoutLMv3) en font sortir une lentille, deux colonnes la mesurent et un levier la publie. Dans la lanterne, la lentille tourne : son faisceau balaie la mer et propose des cadres sur les pages qui flottent (inférence). À gauche, la tour de l'extracteur VRE : VRE Studio en est l'évolution et fait gagner 2,3 fois plus de temps. Les seuils de mesure et les cadres sont des valeurs d'illustration.",
+  caption: "Un phare en coupe, huit étages autour d'un monte-charge. Une page sort de la trémie : une tête optique lit ses quatre champs (Document AI), un plateau à empreintes les trie par catégorie (mini-BERT), deux clés, celle du modèle et celle des règles métiers, ouvrent ensemble le verrou (hybride neuro-symbolique), un tampon à main valide chaque cadre (Human-in-the-Loop), puis la page devient une fiche à trois feuillets, image, texte et positions, rangée dans le classeur du corpus multimodal. Le lot scellé entre sous la presse : trois frappes d'entraînement (LayoutLMv3) en font sortir une lentille, deux colonnes la mesurent et un levier la publie. Dans la lanterne, la lentille tourne : son faisceau balaie l'horizon, lance un éclair vers nous à chaque tour et propose des cadres sur les pages qui flottent (inférence). Le cadran de la lanterne compare : l'aiguille grise est l'extracteur VRE (×1), VRE Studio monte à ×2,3 de temps gagné. Les seuils de mesure et les cadres sont des valeurs d'illustration.",
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="VRE Studio : flèches gauche et droite pour passer d'un étage à l'autre" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0">${svg}</div>`,
 });
 writeFigure("vrestudio", { title: "VRE Studio · le phare", plate, live, width: 760, css: "<style>.fig-band{fill:var(--anatomy-lo);opacity:.7}.fig-deck{fill:var(--anatomy-lo);opacity:.3}.fig-slot{fill:var(--anatomy-lo)}.fig-dark{fill:var(--anatomy-lo);opacity:.55}.fig-ink{fill:var(--anatomy-lit);opacity:.14}.fx{pointer-events:none}.fx-line{fill:none;stroke:var(--g,#34d399);stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 2.5px var(--g,#34d399))}.fx-cone{fill:url(#scan-grad);stroke:none}.fx-lit{fill:var(--g,#34d399);stroke:none}</style>" });
