@@ -14,7 +14,8 @@ export function trackGlow(root, accent = '#ff9d3c') {
   });
   const shellOf = (it) => {
     if (it.shell) return it.shell;
-    const m = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const src = it.o.material, cut = src && src.map && src.alphaTest > 0;   // une image détourée : le halo suit sa découpe, pas le plan entier
+    const m = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, ...(cut ? { map: src.map, alphaTest: src.alphaTest, side: src.side } : {}) });
     const s = new THREE.Mesh(it.o.geometry, m);
     s.userData.glowShell = true; s.castShadow = false; s.receiveShadow = false; s.visible = false; s.raycast = () => {};
     it.o.add(s); it.shell = s; return s;
