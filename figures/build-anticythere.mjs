@@ -1,4 +1,4 @@
-// Fig 11 (variante D) · VRE Studio : le mécanisme d'Anticythère.
+// Fig 11 (variante D) · Lecteur VRE : le mécanisme d'Anticythère.
 // Un boîtier de bois ouvert sur un établi. Une fiche (le rapport) descend par la fente du dessus : la lecture (Document AI).
 // La manivelle fait tourner la grande roue à quatre rayons de couleur : chaque rayon qui passe sous le peigne allume le voyant
 // de son champ (tri, mini-BERT). Deux roues empilées sur des axes décalés, la cheville du modèle dans la coulisse des règles,
@@ -37,17 +37,34 @@ function inscription(u0, v0, w, rows, seed = 1, gap = 3.2) {
 }
 
 // ---------------------------------------------------------------- engrenages (coordonnées de la face : u vers la droite, v vers le bas = -z)
-const GEARS = {
-  b1: { u: -25, z: 62, r: 40, n: 64 },        // grande roue motrice, quatre rayons = quatre champs
-  crank: { u: -57, z: 26, r: 10.5, n: 16 },   // pignon de la manivelle
-  idle: { u: 16, z: 91, r: 9.5, n: 14 },      // renvoi vers le couple cheville-coulisse
-  pin: { u: 39, z: 104, r: 15, n: 24 },       // roue du modèle (cheville)
-  slot: { u: 43, z: 104, r: 15, n: 24 },      // roue des règles (coulisse), axe décalé de 4
-  p2: { u: 22, z: 60, r: 8, n: 12 },          // pignon vers les anneaux du corpus
-  corpus: { u: 46, z: 60, r: 16, n: 26 },     // trois anneaux coaxiaux : image, texte, position
-  d46: { u: 21, z: 26, r: 18.4, n: 46 },      // menante du gain : 46 dents
-  o20: { u: 47.4, z: 26, r: 8, n: 20 },       // menée : 20 dents → ×2,3
-};
+// Engrenages : deux pas de denture (module M pour le train principal, MF pour le train du gain), centres posés à la somme exacte
+// des rayons primitifs, pour que chaque roue touche celle qui l'entraîne. p3 (12 dents) est solidaire de d46 sur le même axe.
+const M = 3.79, MF = 2.39, DM = 2.4, DF = 1.5;
+const spec = (n, m, d) => ({ n, d, rp: +(n * m / (2 * Math.PI)).toFixed(3), r: +(n * m / (2 * Math.PI) + d / 2).toFixed(3) });
+const GEARS = { b1: { u: -24, z: 62, ...spec(64, M, DM) } };
+const meshTo = (key, from, deg, s) => { const f = GEARS[from], dd = f.rp + s.rp, a = deg * Math.PI / 180; GEARS[key] = { ...s, u: +(f.u + dd * Math.cos(a)).toFixed(2), z: +(f.z + dd * Math.sin(a)).toFixed(2) }; };
+meshTo('crank', 'b1', 235, spec(16, M, DM));
+meshTo('idle', 'b1', 35.3, spec(14, M, DM));
+meshTo('pin', 'idle', 29.6, spec(24, M, DM));
+GEARS.slot = { ...GEARS.pin, u: +(GEARS.pin.u + 4).toFixed(2) };
+meshTo('p2', 'b1', -2.5, spec(12, M, DM));
+meshTo('corpus', 'p2', 0, spec(26, M, DM));
+meshTo('p3', 'b1', -40, spec(12, M, DM));
+GEARS.d46 = { ...spec(46, MF, DF), u: GEARS.p3.u, z: GEARS.p3.z };
+meshTo('o20', 'd46', 0, spec(20, MF, DF));
+// Phases : chaque dent d'une roue tombe dans un creux de la roue qu'elle touche (centre de dent à 0,46 pas, centre de creux à 0,96).
+// flip : vrai quand l'axe vertical du dessin monte (scène 3D), faux quand il descend (face SVG).
+const MESH = [['b1', 'crank'], ['b1', 'idle'], ['idle', 'pin'], ['b1', 'p2'], ['p2', 'corpus'], ['b1', 'p3'], ['d46', 'o20']];
+function phases(flip) {
+  const ph = { b1: 0, d46: 0, slot: 0 };
+  for (const [a, b] of MESH) {
+    const A = GEARS[a], B = GEARS[b], pA = 2 * Math.PI / A.n, pB = 2 * Math.PI / B.n;
+    const th = Math.atan2(flip ? B.z - A.z : A.z - B.z, B.u - A.u), fA = ((((th - ph[a]) / pA - 0.46) % 1) + 1) % 1;
+    ph[b] = th + Math.PI - pB * (0.96 - fA);
+  }
+  return ph;
+}
+const PH = phases(false);
 const ring48 = (r, cx = 0, cy = 0) => "M" + Array.from({ length: 49 }, (_, i) => { const a = (i / 48) * TAU; return (cx + r * Math.cos(a)).toFixed(2) + " " + (cy + r * Math.sin(a)).toFixed(2); }).join("L");
 const circ = (r, cx = 0, cy = 0) => `M${(cx + r).toFixed(2)} ${cy}A${r} ${r} 0 1 0 ${(cx - r).toFixed(2)} ${cy}A${r} ${r} 0 1 0 ${(cx + r).toFixed(2)} ${cy}Z`;
 // une roue sur la face : épaisseur (copie sombre décalée vers le fond), moyeu, rayons ou trous d'allègement, axe
@@ -80,7 +97,7 @@ const lift = (pts, h) => pts.map((p) => [p[0] - OFF[0] * h, p[1] - OFF[1] * h]);
 const raised = (pts, h, T, cls) => prism(lift(pts, h + T), T, { cls });
 // une roue complète : jante dentée, trous d'allègement ou rayons levés, moyeu levé, vis et axe ; h = hauteur au-dessus de la platine
 function wheel3d(g, ang, o = {}) {
-  const r = g.r, dep = o.depth ?? Math.max(1.6, r * 0.07), T = o.T ?? (r > 12 ? 3 : 2.2), h = o.h ?? 0, f = (v) => v.toFixed(2);
+  const r = g.r, dep = o.depth ?? g.d ?? Math.max(1.6, r * 0.07), T = o.T ?? (r > 12 ? 3 : 2.2), h = o.h ?? 0, f = (v) => v.toFixed(2);
   const c0 = lift([[g.u, -g.z]], h)[0], cx = c0[0], cy = c0[1];
   const rot = (x, y) => [cx + x * Math.cos(ang) - y * Math.sin(ang), cy + x * Math.sin(ang) + y * Math.cos(ang)];
   const top = (p, k) => lift([p], k)[0];
@@ -279,7 +296,7 @@ const svg = k.figureSvg({
 const live = `
 const P = ${JSON.stringify(P)};
 const GEARS = ${JSON.stringify(GEARS)}, CASE = ${JSON.stringify(CASE)}, DIAL = ${JSON.stringify(DIAL)}, CELLS = ${JSON.stringify(CELLS)}, DIV = ${JSON.stringify(DIV)}, BOARD = ${JSON.stringify(BOARD)};
-const LAMPS = ${JSON.stringify(lampsXY)}, MECH_Y = ${MECH_Y};
+const PH = ${JSON.stringify(PH)}, LAMPS = ${JSON.stringify(lampsXY)}, MECH_Y = ${MECH_Y};
 ${LOOP}
 const TAU = Math.PI * 2;
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
@@ -321,8 +338,9 @@ function stateAt(s) {
   // anneaux du corpus : chaque correction les fait avancer d'un cran ; ils tournent pendant l'entraînement
   const fixes = ERR.map((_, i) => ease(seg(s, T.fix[0] + i * 3.2, T.fix[0] + i * 3.2 + 1.2)));
   o.corpus = [0.6, -0.9, 1.3].map((k2, i) => k2 * (fixes[0] + fixes[1]) * 0.8 + k2 * 2.2 * ease(seg(s, T.train[0], T.train[1])) + i * 0.4);
+  o.corpus[0] = -o.p2 * GEARS.p2.n / GEARS.corpus.n;                // l'anneau extérieur est mené par son pignon
   // gain : la menante tourne, la menée tourne 46 / 20 fois plus vite
-  o.d46 = -0.9 * TAU * ease(seg(s, T.gain[0], T.gain[1])) * 2; o.o20 = -o.d46 * 46 / 20;
+  o.p3 = -o.b1 * GEARS.b1.n / GEARS.p3.n; o.d46 = o.p3; o.o20 = -o.d46 * GEARS.d46.n / GEARS.o20.n;
   // voyants des champs : allumés quand un rayon passe sous le peigne (en haut de la grande roue)
   o.lamps = [0, 1, 2, 3].map((i) => { const a = ((o.b1 + i * TAU / 4) % TAU + TAU) % TAU, d = Math.abs(((a + Math.PI / 2) % TAU + TAU) % TAU - Math.PI); return (s > 2.0 && s < 9.6) || (s > 32.4 && s < 40) ? (d > Math.PI - 0.5 || s % 46 > 6 ? 1 : 0) : 0; });
   // cadran à spirale : l'aiguille parcourt les douze cases ; premier passage : deux erreurs ; second : tout vert
@@ -349,26 +367,28 @@ function stateAt(s) {
 function draw(o, s) {
   const g = GEARS;
   let fr = "";
-  fr += wheel3d(g.b1, o.b1, { spokes: FIELDS });
-  fr += wheel3d(g.crank, o.crank);
-  fr += wheel3d(g.idle, o.idle);
-  fr += wheel3d(g.p2, o.p2);
+  fr += wheel3d(g.b1, o.b1 + PH.b1, { spokes: FIELDS });
+  fr += wheel3d(g.crank, o.crank + PH.crank);
+  fr += wheel3d(g.idle, o.idle + PH.idle);
+  fr += wheel3d(g.p2, o.p2 + PH.p2);
   // roue du modèle contre la platine, roue des règles levée devant elle ; la cheville traverse la coulisse
-  fr += wheel3d(g.pin, o.pin);
-  fr += wheel3d(g.slot, o.slot, { lit: o.accord, h: 3.4 });
-  { const T = 3, h = 3.4 + T, c = lift([[g.slot.u, -g.slot.z]], h)[0], rr = (x, y) => [c[0] + x * Math.cos(o.slot) - y * Math.sin(o.slot), c[1] + x * Math.sin(o.slot) + y * Math.cos(o.slot)];
+  fr += wheel3d(g.pin, o.pin + PH.pin);
+  fr += wheel3d(g.slot, o.slot + PH.pin, { lit: o.accord, h: 4.2 });
+  { const T = 3, h = 4.2 + T, c = lift([[g.slot.u, -g.slot.z]], h)[0], sa = o.slot + PH.pin, rr = (x, y) => [c[0] + x * Math.cos(sa) - y * Math.sin(sa), c[1] + x * Math.sin(sa) + y * Math.cos(sa)];
     fr += '<path class="ak-slot" d="M' + [rr(4, -1.6), rr(13.5, -1.6), rr(13.5, 1.6), rr(4, 1.6)].map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>';
-    const pc = [g.pin.u + 10 * Math.cos(o.pin), -g.pin.z + 10 * Math.sin(o.pin)];
-    fr += raised(circPts(1.8, pc[0], pc[1], 16), 3, 3.6, "ak-gear ak-hub"); }
+    const pc = [g.pin.u + 10 * Math.cos(o.pin + PH.pin), -g.pin.z + 10 * Math.sin(o.pin + PH.pin)];
+    fr += raised(circPts(1.8, pc[0], pc[1], 16), 3, 4.4, "ak-gear ak-hub"); }
   // trois anneaux coaxiaux du corpus, empilés
-  ['ak-r0', 'ak-r1', 'ak-r2'].forEach((cls, i) => { const r = 16 - i * 4.6, T = 1.6, h = i * T, a = o.corpus[i], c = lift([[g.corpus.u, -g.corpus.z]], h + T)[0];
-    fr += prism(lift(gearPts(r, 26 - i * 7, 1.4, 99, a, g.corpus.u, -g.corpus.z), h + T), T, { cls: "ak-gear " + cls, holes: [[c[0], c[1], r - 2.6]] });
+  ['ak-r0', 'ak-r1', 'ak-r2'].forEach((cls, i) => { const r = g.corpus.r - i * 4.6, T = 1.6, h = i * T, a = o.corpus[i] + (i ? 0 : PH.corpus), c = lift([[g.corpus.u, -g.corpus.z]], h + T)[0];
+    fr += prism(lift(gearPts(r, 26 - i * 7, i ? 1.4 : g.corpus.d, 99, a, g.corpus.u, -g.corpus.z), h + T), T, { cls: "ak-gear " + cls, holes: [[c[0], c[1], r - 2.6]] });
     const m = [[r - 2.4, -0.8], [r - 0.6, -0.8], [r - 0.6, 0.8], [r - 2.4, 0.8]].map(([x, y]) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)]);
     fr += '<path class="ak-mark" d="M' + m.map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>'; });
   fr += raised(circPts(1.4, g.corpus.u, -g.corpus.z, 14), 4.8, 1.2, "ak-axle3");
-  fr += wheel3d(g.d46, o.d46);
-  fr += wheel3d(g.o20, o.o20, { lit: s > 36 });
-  { const c = lift([[g.o20.u, -g.o20.z]], 2.2 + 2.6)[0], a = o.o20, rr = (x, y) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)];
+  // pignon de 12 dents contre la platine, mené par la grande roue ; la roue de 46 dents, sur le même axe, tourne un plan devant
+  fr += wheel3d(g.p3, o.p3 + PH.p3);
+  fr += wheel3d(g.d46, o.d46, { h: 3.2 });
+  fr += wheel3d(g.o20, o.o20 + PH.o20, { lit: s > 36, h: 3.2 });
+  { const c = lift([[g.o20.u, -g.o20.z]], 3.2 + 2.2 + 2.6)[0], a = o.o20 + PH.o20, rr = (x, y) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)];
     fr += '<path class="ak-hand" d="M' + [rr(-1, 0), rr(0, -13), rr(1, 0)].map((p) => p[0].toFixed(2) + " " + p[1].toFixed(2)).join("L") + 'Z"/>'; }
   // peigne de lecture au-dessus de la grande roue, aiguille d'accord
   { const u = g.b1.u, v = -(g.b1.z + 44), rect = (u0, v0, w, hh) => [[u0, v0], [u0 + w, v0], [u0 + w, v0 + hh], [u0, v0 + hh]];
@@ -483,12 +503,12 @@ const css = `<style>
 </style>`;
 
 const plate = k.plateHtml({
-  fig: "Fig 11", title: "VRE Studio", hint: "Glisse ou ← → : étape", readout: "1 · Lecture · Document AI",
+  fig: "Fig 11", title: "Lecteur VRE", hint: "Glisse ou ← → : étape", readout: "1 · Lecture · Document AI",
   keys: [
     { mark: "lit", label: "Ce qui vient d'agir : roue, aiguille, couteau, case du cadran" },
     { mark: "raised", label: "Le boîtier fermé sur trois côtés : tout tourne en local" },
   ],
-  caption: "Un mécanisme d'Anticythère pour VRE Studio. La fiche entre par la fente (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles pour que l'aiguille avance (hybride neuro-symbolique). Au dos, le cadran à spirale prédit douze pages inédites : deux cases rouges sont des erreurs (inférence). Chaque erreur corrigée à la main taille des dents sur la roue de la machine à diviser (Human-in-the-Loop) ; les trois anneaux du corpus, image, texte et position, avancent ; la roue se termine (entraînement LayoutLMv3), entre dans le boîtier, et l'ancienne rejoint le tableau des versions (MLOps local). Au nouvel essai, les douze cases sont vertes. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les erreurs et les cases sont des valeurs d'illustration.",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="VRE Studio : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
+  caption: "Un mécanisme d'Anticythère pour Lecteur VRE. La fiche entre par la fente (lecture, Document AI). La grande roue porte quatre rayons de couleur : chacun allume le voyant de son champ en passant sous le peigne (tri, mini-BERT). La cheville du modèle doit tomber dans la coulisse des règles pour que l'aiguille avance (hybride neuro-symbolique). Au dos, le cadran à spirale prédit douze pages inédites : deux cases rouges sont des erreurs (inférence). Chaque erreur corrigée à la main taille des dents sur la roue de la machine à diviser (Human-in-the-Loop) ; les trois anneaux du corpus, image, texte et position, avancent ; la roue se termine (entraînement LayoutLMv3), entre dans le boîtier, et l'ancienne rejoint le tableau des versions (MLOps local). Au nouvel essai, les douze cases sont vertes. Le gain est un vrai rapport d'engrenage : 46 dents mènent 20 dents, 46 / 20 = 2,3. Les erreurs et les cases sont des valeurs d'illustration.",
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Lecteur VRE : flèches gauche et droite pour passer d'une étape à l'autre" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0">${svg}</div>`,
 });
-writeFigure("vrestudio-anticythere", { title: "VRE Studio · le mécanisme d'Anticythère", plate, live, width: 900, css });
+writeFigure("vrestudio-anticythere", { title: "Lecteur VRE · le mécanisme d'Anticythère", plate, live, width: 900, css });

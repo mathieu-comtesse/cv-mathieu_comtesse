@@ -1,4 +1,4 @@
-// Fig 11 · VRE Studio : le mécanisme d'Anticythère, en 3D (cotes de figures/build-anticythere.mjs).
+// Fig 11 · Lecteur VRE : le mécanisme d'Anticythère, en 3D (cotes de figures/build-anticythere.mjs).
 // Boîtier de bois ouvert à l'avant, platine patinée, roues de bronze extrudées (vraies dents, vraie épaisseur) ; la fiche entre par la fente,
 // la grande roue allume les champs, la cheville du modèle tombe dans la coulisse des règles, le cadran à spirale prédit douze pages,
 // chaque correction taille une dent sur la machine à diviser, la roue neuve entre dans le boîtier et l'ancienne rejoint le tableau des versions.
@@ -10,7 +10,34 @@ const TAU = Math.PI * 2;
 const PLATE = { x: -128, y: -64, w: 318, d: 150, r: 12 };
 const CASE = { x0: -72, x1: 82, y0: -42, y1: 0, h: 132, t: 6 };
 const MECH_Y = -16;
-const GEARS = { b1: { u: -25, z: 62, r: 40, n: 64 }, crank: { u: -57, z: 26, r: 10.5, n: 16 }, idle: { u: 16, z: 91, r: 9.5, n: 14 }, pin: { u: 39, z: 104, r: 15, n: 24 }, slot: { u: 43, z: 104, r: 15, n: 24 }, p2: { u: 22, z: 60, r: 8, n: 12 }, corpus: { u: 46, z: 60, r: 16, n: 26 }, d46: { u: 21, z: 26, r: 18.4, n: 46 }, o20: { u: 47.4, z: 26, r: 8, n: 20 } };
+// Engrenages : deux pas de denture (module M pour le train principal, MF pour le train du gain), centres posés à la somme exacte
+// des rayons primitifs, pour que chaque roue touche celle qui l'entraîne. p3 (12 dents) est solidaire de d46 sur le même axe.
+const M = 3.79, MF = 2.39, DM = 2.4, DF = 1.5;
+const spec = (n, m, d) => ({ n, d, rp: +(n * m / (2 * Math.PI)).toFixed(3), r: +(n * m / (2 * Math.PI) + d / 2).toFixed(3) });
+const GEARS = { b1: { u: -24, z: 62, ...spec(64, M, DM) } };
+const meshTo = (key, from, deg, s) => { const f = GEARS[from], dd = f.rp + s.rp, a = deg * Math.PI / 180; GEARS[key] = { ...s, u: +(f.u + dd * Math.cos(a)).toFixed(2), z: +(f.z + dd * Math.sin(a)).toFixed(2) }; };
+meshTo('crank', 'b1', 235, spec(16, M, DM));
+meshTo('idle', 'b1', 35.3, spec(14, M, DM));
+meshTo('pin', 'idle', 29.6, spec(24, M, DM));
+GEARS.slot = { ...GEARS.pin, u: +(GEARS.pin.u + 4).toFixed(2) };
+meshTo('p2', 'b1', -2.5, spec(12, M, DM));
+meshTo('corpus', 'p2', 0, spec(26, M, DM));
+meshTo('p3', 'b1', -40, spec(12, M, DM));
+GEARS.d46 = { ...spec(46, MF, DF), u: GEARS.p3.u, z: GEARS.p3.z };
+meshTo('o20', 'd46', 0, spec(20, MF, DF));
+// Phases : chaque dent d'une roue tombe dans un creux de la roue qu'elle touche (centre de dent à 0,46 pas, centre de creux à 0,96).
+// flip : vrai quand l'axe vertical du dessin monte (scène 3D), faux quand il descend (face SVG).
+const MESH = [['b1', 'crank'], ['b1', 'idle'], ['idle', 'pin'], ['b1', 'p2'], ['p2', 'corpus'], ['b1', 'p3'], ['d46', 'o20']];
+function phases(flip) {
+  const ph = { b1: 0, d46: 0, slot: 0 };
+  for (const [a, b] of MESH) {
+    const A = GEARS[a], B = GEARS[b], pA = 2 * Math.PI / A.n, pB = 2 * Math.PI / B.n;
+    const th = Math.atan2(flip ? B.z - A.z : A.z - B.z, B.u - A.u), fA = ((((th - ph[a]) / pA - 0.46) % 1) + 1) % 1;
+    ph[b] = th + Math.PI - pB * (0.96 - fA);
+  }
+  return ph;
+}
+const PH = phases(true);
 const DIAL = { u: 21, z: 64, r0: 5, r1: 17, turns: 3 };
 const CELLS = Array.from({ length: 12 }, (_, i) => 0.1 + i * 0.075);
 const DIV = { x: 128, y: 40, r: 20, z: 22 };
@@ -72,8 +99,9 @@ function stateAt(s) {
   // anneaux du corpus : chaque correction les fait avancer d'un cran ; ils tournent pendant l'entraînement
   const fixes = ERR.map((_, i) => ease(seg(s, T.fix[0] + i * 3.2, T.fix[0] + i * 3.2 + 1.2)));
   o.corpus = [0.6, -0.9, 1.3].map((k2, i) => k2 * (fixes[0] + fixes[1]) * 0.8 + k2 * 2.2 * ease(seg(s, T.train[0], T.train[1])) + i * 0.4);
+  o.corpus[0] = -o.p2 * GEARS.p2.n / GEARS.corpus.n;                // l'anneau extérieur est mené par son pignon
   // gain : la menante tourne, la menée tourne 46 / 20 fois plus vite
-  o.d46 = -0.9 * TAU * ease(seg(s, T.gain[0], T.gain[1])) * 2; o.o20 = -o.d46 * 46 / 20;
+  o.p3 = -o.b1 * GEARS.b1.n / GEARS.p3.n; o.d46 = o.p3; o.o20 = -o.d46 * GEARS.d46.n / GEARS.o20.n;
   // voyants des champs : allumés quand un rayon passe sous le peigne (en haut de la grande roue)
   o.lamps = [0, 1, 2, 3].map((i) => { const a = ((o.b1 + i * TAU / 4) % TAU + TAU) % TAU, d = Math.abs(((a + Math.PI / 2) % TAU + TAU) % TAU - Math.PI); return (s > 2.0 && s < 9.6) || (s > 32.4 && s < 40) ? (d > Math.PI - 0.5 || s % 46 > 6 ? 1 : 0) : 0; });
   // cadran à spirale : l'aiguille parcourt les douze cases ; premier passage : deux erreurs ; second : tout vert
@@ -119,15 +147,16 @@ export function build() {
   add(box((x0 + x1) / 2, MECH_Y - 1.5, h / 2, x1 - x0 - 16, 3, h - 20, C.patina));
   for (const [x, z] of [[x0 + 12, 16], [x1 - 12, 16], [x0 + 12, h - 16], [x1 - 12, h - 16]]) add(cylY(MECH_Y, MECH_Y + 1, x, z, 1.4, C.bronze, 12));
   // ---- les roues (vraies roues dentées extrudées) ----
-  const FY = MECH_Y + 4, mk = (key, o = {}) => { const q = GEARS[key], w = wheel(q.r, q.n, o.T ?? (q.r > 12 ? 3 : 2.2), o.color ?? C.bronze, o); at(w, q.u, FY + (o.lift ?? 0), q.z); add(w); return w; };
+  const FY = MECH_Y + 4, mk = (key, o = {}) => { const q = GEARS[key], w = wheel(q.r, q.n, o.T ?? (q.r > 12 ? 3 : 2.2), o.color ?? C.bronze, { depth: q.d, ...o }); at(w, q.u, FY + (o.lift ?? 0), q.z); add(w); return w; };
   const wB1 = mk('b1', { web: true, holes: [] });
   C.f.forEach((c, i) => { const a = (i / 4) * TAU, R = GEARS.b1.r - 6; const sp = finish(new THREE.BoxGeometry(R, 6.4, 1.2).translate(R / 2, 0, .6), mat(c, { roughness: .6 }), 30); sp.rotation.z = a; wB1.userData.spin.add(sp); });
-  const wCrank = mk('crank'), wIdle = mk('idle'), wP2 = mk('p2'), wPin = mk('pin'), wSlot = mk('slot', { lift: 3.4 }), wD46 = mk('d46'), wO20 = mk('o20');
-  { const peg = finish(new THREE.CylinderGeometry(1.8, 1.8, 7.6, 14).rotateX(Math.PI / 2).translate(10, 0, 3.8), mat(C.bronzeHi), 40); wPin.userData.spin.add(peg); }
+  const wCrank = mk('crank'), wIdle = mk('idle'), wP2 = mk('p2'), wPin = mk('pin'), wSlot = mk('slot', { lift: 4.2 }), wP3 = mk('p3'), wD46 = mk('d46', { lift: 3.2 }), wO20 = mk('o20', { lift: 3.2 });
+  add(cylY(FY - 2.2, FY + 3.2, GEARS.p3.u, GEARS.p3.z, 1.3, C.bronzeLo, 14));
+  { const peg = finish(new THREE.CylinderGeometry(1.8, 1.8, 7.6, 14).rotateX(Math.PI / 2).translate(10, 0, 4.2), mat(C.bronzeHi), 40); wPin.userData.spin.add(peg); }
   { const sl = new THREE.Mesh(new THREE.BoxGeometry(9.5, 3.2, .4).translate(8.75, 0, .2), mat('#3a332a')); wSlot.userData.spin.add(sl); }
   const hand = finish(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 13, 0), new THREE.Vector3(1, 0, 0)]).setIndex([0, 2, 1]), mat('#1d2230', { side: THREE.DoubleSide }), 0);
   hand.position.z = 2.8; wO20.userData.spin.add(hand);
-  const rings = C.r.map((c, i) => { const r = 16 - i * 4.6, w = wheel(r, 26 - i * 7, 1.6, c, { depth: 1.4, holes: [[0, 0, r - 2.6]] }); w.userData.spin.children.slice(1).forEach((m) => { m.visible = false; }); at(w, GEARS.corpus.u, FY + i * 1.6, GEARS.corpus.z); add(w); return w; });
+  const rings = C.r.map((c, i) => { const r = GEARS.corpus.r - i * 4.6, w = wheel(r, 26 - i * 7, 1.6, c, { depth: i ? 1.4 : GEARS.corpus.d, holes: [[0, 0, r - 2.6]] }); w.userData.spin.children.slice(1).forEach((m) => { m.visible = false; }); at(w, GEARS.corpus.u, FY + i * 1.6, GEARS.corpus.z); add(w); return w; });
   add(cylY(FY, FY + 6, GEARS.corpus.u, GEARS.corpus.z, 1.4, C.bronzeLo, 14));
   // peigne de lecture au-dessus de la grande roue ; voyant d'accord
   add(box(GEARS.b1.u, FY, GEARS.b1.z + 45.5, 20, 3.6, 3, C.bronze));
@@ -197,10 +226,10 @@ export function build() {
   }
   let lastDial = '', lastVer = -1, lastCut = -1;
   function update(time) {
-    const s = ((time % LOOP_T) + LOOP_T) % LOOP_T, o = stateAt(s), sp = (w, a) => { w.userData.spin.rotation.z = -a; };
-    sp(wB1, o.b1); sp(wCrank, o.crank); sp(wIdle, o.idle); sp(wP2, o.p2); sp(wPin, o.pin); sp(wSlot, o.slot); sp(wD46, o.d46); sp(wO20, o.o20);
-    rings.forEach((w, i) => sp(w, o.corpus[i]));
-    crank.rotation.z = -o.crank;
+    const s = ((time % LOOP_T) + LOOP_T) % LOOP_T, o = stateAt(s), sp = (w, a, k) => { w.userData.spin.rotation.z = -a + (PH[k] ?? 0); };
+    sp(wB1, o.b1, 'b1'); sp(wCrank, o.crank, 'crank'); sp(wIdle, o.idle, 'idle'); sp(wP2, o.p2, 'p2'); sp(wPin, o.pin, 'pin'); sp(wSlot, o.slot, 'pin'); sp(wP3, o.p3, 'p3'); sp(wD46, o.d46, 'd46'); sp(wO20, o.o20, 'o20');
+    rings.forEach((w, i) => sp(w, o.corpus[i], i ? '' : 'corpus'));
+    crank.rotation.z = -o.crank + PH.crank;
     lamps.forEach((m, i) => { m.material = o.lamps[i] ? lampOn[i] : lampOff; });
     okLamp.material = o.accord ? okOn : okOff;
     const key = o.cells.join('') + Math.round(o.spiral * 400); if (key !== lastDial) { lastDial = key; paintDial(o); }
