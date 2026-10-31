@@ -3833,7 +3833,7 @@
     {
       "id": "EXPOSURE_D07",
       "title": "Examiner l’exposition : ÉTUDE GÉOTECHNIQUE RÉALISÉE PAR IMMERSION",
-      "targetBindingId": "habitations",
+      "targetBindingId": "berge_observation",
       "actId": "*",
       "durationSeconds": 0,
       "requiredFlags": [
@@ -5864,7 +5864,7 @@
     {
       "id": "D07",
       "kind": "river",
-      "site": "habitations",
+      "site": "berge_observation",
       "riskId": "berges",
       "title": "ÉTUDE GÉOTECHNIQUE RÉALISÉE PAR IMMERSION.",
       "victimId": "dylan",
@@ -6023,7 +6023,7 @@
     {
       "id": "NPC_milena",
       "kind": "river",
-      "site": "habitations",
+      "site": "berge_observation",
       "riskId": "berges",
       "title": "RISQUE CONNU. DÉCISION INCHANGÉE.",
       "victimId": "milena",

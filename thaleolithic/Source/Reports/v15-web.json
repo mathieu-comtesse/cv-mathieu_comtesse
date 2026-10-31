@@ -1,0 +1,160 @@
+{
+  "status": "passed",
+  "scope": "Real Chromium WebAssembly runs, including emulated touch. Not physical Radeon 610M, Android or iPhone certification.",
+  "url": "http://127.0.0.1:8774/thaleolithic-v15/",
+  "results": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "overflow": false,
+        "canvasWidth": 1280,
+        "canvasHeight": 720
+      },
+      "first": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 0,
+        "frameMs": 75.2469482421875,
+        "paused": false,
+        "touch": false,
+        "film": true,
+        "position": {
+          "x": 350.9200134277344,
+          "y": 11.963103294372559,
+          "z": 278.4800109863281
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "ended": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 43.621299743652344,
+        "frameMs": 10.249333381652832,
+        "paused": false,
+        "touch": false,
+        "film": false,
+        "position": {
+          "x": 351.9200134277344,
+          "y": 11.818836212158203,
+          "z": 278.4800109863281
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "final": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 49.646881103515625,
+        "frameMs": 10.290441513061523,
+        "paused": false,
+        "touch": false,
+        "film": false,
+        "position": {
+          "x": 349.08673095703125,
+          "y": 13.022377014160156,
+          "z": 276.7998352050781
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "errors": [],
+      "consoleErrors": []
+    },
+    {
+      "name": "touch",
+      "viewport": {
+        "width": 393,
+        "height": 852,
+        "overflow": false,
+        "canvasWidth": 590,
+        "canvasHeight": 1278
+      },
+      "first": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 0,
+        "frameMs": 77.62923431396484,
+        "paused": false,
+        "touch": false,
+        "film": true,
+        "position": {
+          "x": 350.9200134277344,
+          "y": 11.963103294372559,
+          "z": 278.4800109863281
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "ended": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 43.85188674926758,
+        "frameMs": 11.626850128173828,
+        "paused": false,
+        "touch": true,
+        "film": false,
+        "position": {
+          "x": 351.9200134277344,
+          "y": 11.818836212158203,
+          "z": 278.4800109863281
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "final": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 49.887428283691406,
+        "frameMs": 9.896428108215332,
+        "paused": false,
+        "touch": true,
+        "film": false,
+        "position": {
+          "x": 346.0892639160156,
+          "y": 12.351840019226074,
+          "z": 275.0223083496094
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "renderer": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "errors": [],
+      "consoleErrors": []
+    }
+  ],
+  "transport": "Actual local build bytes delivered through browser interception in fragments; loopback HTTP unavailable. Public HTTPS checked separately."
+}

@@ -46,6 +46,9 @@ namespace UngaBunga45001
             catch (Exception e) { enabled = false; Debug.LogError("Campagne invalide : " + e.Message, this); return; }
             if (!bindings.Validate(out string issues)) { enabled = false; Debug.LogError("Bindings incomplets : " + issues, this); return; }
             CampaignSaveMigration.Ensure(this);
+            CinematicWorldResetV15.For(this);
+            if(GetComponent<CinematicTriggersV15>()==null)gameObject.AddComponent<CinematicTriggersV15>();
+            CinematicWorldPropsV15.For(this);
             #if UNITY_WEBGL && !UNITY_EDITOR
             bindings.SetGameplayBlocked(true);
             return;
@@ -56,7 +59,7 @@ namespace UngaBunga45001
         {
             if(Data==null)return;
             if (fresh || !resumeOnStart || !Load(SavePath)) NewCampaign();
-            else { InitializeQuests(); ResolveEnding(); SyncWorld(); Notify(); if(!string.IsNullOrEmpty(State.activeCinematicId)) cinematicDirector.Play(State.activeCinematicId); }
+            else { InitializeQuests(); ResolveEnding(); SyncWorld(); CinematicSpawnSafetyV15.Repair(this);Notify(); if(!string.IsNullOrEmpty(State.activeCinematicId)) cinematicDirector.Play(State.activeCinematicId); }
         }
         private void ValidateData()
         {
@@ -69,18 +72,20 @@ namespace UngaBunga45001
         }
         public void NewCampaign()
         {
+            if(cinematicDirector.IsPlaying){bool active=cinematicDirector.enabled;cinematicDirector.enabled=false;cinematicDirector.enabled=active;}
+            if(State!=null){var duel=GetComponent<MenhirDuel>();if(duel!=null&&duel.Active)duel.Leave();GetComponent<AccidentDirector>()?.ResetPresentation();}
             State = new CampaignSave { campaignId = Data.id };
             foreach (var v in Data.stats) State.stats.Add(new NamedValue(v.id, v.value));
             foreach (var v in Data.resources) State.resources.Add(new NamedValue(v.id, v.value));
             foreach (var c in Data.characters) State.characters.Add(new CharacterState { id = c.id,competence=c.id=="dylan"?15:c.id=="petit_os"?10:70 });
             Ending = null; Dialogue = null; UserPaused = false; pendingAction = null; QuestPanel="";PresentedQuestId="";ConversationActorId="";InitializeQuests(true);
-            EnterAct();
+            CinematicWorldResetV15.For(this).Restore();CinematicWorldPropsV15.For(this);CinematicSpawnSafetyV15.Repair(this);EnterAct();
         }
         private void Update()
         {
             if (State == null || Ending != null) return;
             // Reading and important decisions pause the clock; cinematics are included in 45 min.
-            if (!UserPaused && Dialogue == null && !QuestOverlay && !IncidentModal) State.elapsedSeconds += Time.deltaTime;
+            if (!UserPaused && Dialogue == null && !QuestOverlay && !IncidentModal && !(cinematicDirector!=null&&cinematicDirector.IsPlaying&&cinematicDirector.SequenceState=="LOADING")) State.elapsedSeconds += Time.deltaTime;
             if (RemainingSeconds <= 0 && !IsModal && !IsBusy) FinishCampaign();
             notifyTimer += Time.unscaledDeltaTime; autosaveTimer += Time.unscaledDeltaTime;
             if (notifyTimer >= .25f) { notifyTimer = 0; Notify(); }
@@ -291,6 +296,8 @@ namespace UngaBunga45001
             try
             {
                 GetComponent<VillageLife>()?.Capture();
+                GetComponent<CinematicWildlifeV15>()?.Capture();
+                GetComponent<CinematicStage>()?.Production?.CaptureActors();
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 string temporary = path + ".tmp"; File.WriteAllText(temporary, JsonUtility.ToJson(State, true));
                 if (File.Exists(path)) File.Replace(temporary,path,path+".bak",true); else File.Move(temporary, path);
@@ -317,4 +324,3 @@ namespace UngaBunga45001
         private void OnDisable() { if (bindings != null) bindings.SetGameplayBlocked(false); }
     }
 }
-

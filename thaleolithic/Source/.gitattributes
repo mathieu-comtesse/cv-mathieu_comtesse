@@ -1,0 +1,2 @@
+# Generated Unity animation snapshots: preserve the serialized bytes.
+*.anim -diff -text

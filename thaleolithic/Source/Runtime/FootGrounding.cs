@@ -11,7 +11,7 @@ namespace UngaBunga45001
         private void Awake(){animator=GetComponent<Animator>();controller=GetComponentInParent<CharacterController>();var agent=GetComponentInParent<UnityEngine.AI.NavMeshAgent>();actorRoot=controller!=null?controller.transform:agent!=null?agent.transform:transform;}
         private void OnAnimatorIK(int layer)
         {
-            if(!animator.isHuman||controller!=null&&controller.enabled&&!controller.isGrounded)return;
+            if(!enabled||!animator.isHuman||controller!=null&&controller.enabled&&!controller.isGrounded)return;
             float lift=Mathf.Max(NeededLift(AvatarIKGoal.LeftFoot,animator.leftFeetBottomHeight),NeededLift(AvatarIKGoal.RightFoot,animator.rightFeetBottomHeight));
             if(lift>0)animator.bodyPosition+=Vector3.up*Mathf.Clamp(lift,0,.32f);
             Plant(AvatarIKGoal.LeftFoot,HumanBodyBones.LeftFoot,animator.leftFeetBottomHeight);

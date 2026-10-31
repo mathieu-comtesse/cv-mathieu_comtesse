@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "scope": "Explicit upstream action/flag fixtures; real trigger queue, actors, save reload and cinematic world consequences. Not a complete campaign run.",
+  "checks": [
+    {
+      "name": "Tutorial completion queues the collapse while paused",
+      "passed": true
+    },
+    {
+      "name": "Collapse starts after the tutorial, not at awakening",
+      "passed": true
+    },
+    {
+      "name": "Pending cinematic survives save reload",
+      "passed": true
+    },
+    {
+      "name": "A living native actor replaces the deceased role",
+      "passed": true
+    },
+    {
+      "name": "Construction does not grant the formal verification",
+      "passed": true
+    },
+    {
+      "name": "Construction keeps unverified housing closed",
+      "passed": true
+    },
+    {
+      "name": "Cinematic has not issued quest rewards",
+      "passed": true
+    },
+    {
+      "name": "Verified construction repairs the actual assembly",
+      "passed": true
+    },
+    {
+      "name": "Canonical ending FIN_3",
+      "passed": true
+    },
+    {
+      "name": "Canonical ending FIN_2",
+      "passed": true
+    },
+    {
+      "name": "Canonical ending FIN_1",
+      "passed": true
+    }
+  ]
+}

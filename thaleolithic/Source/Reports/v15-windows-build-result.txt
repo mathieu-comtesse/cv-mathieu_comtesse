@@ -1,0 +1,5 @@
+Result=Succeeded
+Errors=0
+Warnings=2
+Seconds=9,7468039
+Bytes=560324601

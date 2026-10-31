@@ -92,6 +92,7 @@ namespace UngaBunga45001
             subtitle.gameObject.SetActive(GetComponent<UISettingsController>().preferences.subtitles);
             subtitle.rectTransform.anchorMin=filming?new Vector2(.12f,.035f):new Vector2(.15f,.14f);subtitle.rectTransform.anchorMax=filming?new Vector2(.88f,.16f):new Vector2(.85f,.3f);
             subtitle.text=campaign.Subtitle;
+            if(filming){modal.gameObject.SetActive(false);wasPaused=campaign.UserPaused;return;}
             if(campaign.Dialogue!=null||campaign.QuestOverlay||campaign.IncidentModal){modal.gameObject.SetActive(false);wasPaused=false;return;}
             if(GetComponent<CampaignMap>().IsOpen||GetComponent<AdventureMenus>().IsOpen){modal.gameObject.SetActive(false);wasPaused=false;return;}
             if(MobileControls.TouchActive&&campaign.UserPaused&&campaign.Ending==null){modal.gameObject.SetActive(false);wasPaused=false;return;}

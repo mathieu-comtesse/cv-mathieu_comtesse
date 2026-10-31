@@ -90,6 +90,11 @@ namespace UngaBunga45001
         public int version = 1, actIndex;
         public MenhirProgress menhir=new MenhirProgress();
         public string campaignId, endingId; public string activeCinematicId="";
+        public float cinematicTimeV15;public System.Collections.Generic.List<string> cinematicCueReceiptsV15=new System.Collections.Generic.List<string>();
+        public System.Collections.Generic.List<string> pendingCinematicsV15=new System.Collections.Generic.List<string>();
+        public System.Collections.Generic.List<CinematicAnimalV15> cinematicAnimalsV15=new System.Collections.Generic.List<CinematicAnimalV15>();
+        public System.Collections.Generic.List<FilmActorStateV15> cinematicActorsV15=new System.Collections.Generic.List<FilmActorStateV15>();
+        public System.Collections.Generic.List<CinematicWorldPropV15> cinematicWorldPropsV15=new System.Collections.Generic.List<CinematicWorldPropV15>();
         public string trackedActionId="",equippedItem="";public int inventorySlot;public int trackedActionHistoryIndex=-1;
         public bool playerPositionSaved,playerCrouching;public Vector3 playerPosition;public float playerYaw;
         public System.Collections.Generic.List<string> viewedCinematics=new System.Collections.Generic.List<string>();

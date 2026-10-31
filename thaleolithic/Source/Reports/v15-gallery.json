@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "films": [
+    {
+      "src": "media/C01-THALEOLITHIC-v15.mp4?v=5e05ee41be68",
+      "duration": 42.41,
+      "decoded": 11,
+      "controls": true
+    },
+    {
+      "src": "media/C08-THALEOLITHIC-v15.mp4?v=6508582ce071",
+      "duration": 28.48,
+      "decoded": 9,
+      "controls": true
+    },
+    {
+      "src": "media/Gameplay-THALEOLITHIC-v15.mp4?v=35e32abd5d94",
+      "duration": 12,
+      "decoded": 9,
+      "controls": true
+    }
+  ],
+  "desktop": {
+    "width": 1280,
+    "overflow": false
+  },
+  "mobile": {
+    "width": 393,
+    "overflow": false,
+    "videos": [
+      {
+        "width": 361,
+        "controls": true
+      },
+      {
+        "width": 361,
+        "controls": true
+      },
+      {
+        "width": 361,
+        "controls": true
+      }
+    ]
+  },
+  "errors": []
+}
