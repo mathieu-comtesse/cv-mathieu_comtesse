@@ -45,6 +45,7 @@ namespace UngaBunga45001
         private readonly Vector4[] positions=new Vector4[24];
         private float nextRipple;
         private Vector3 previous;
+        CinematicWildlifeV15 cinematicHerd;
         private readonly System.Collections.Generic.Dictionary<MeshRenderer,(Vector3[] vertices,int[] triangles)> footprints=new System.Collections.Generic.Dictionary<MeshRenderer,(Vector3[],int[])>();
         #if !UNGA_WEB_RENDERER
         private bool OverSurface(WaterSurface surface,Vector3 p)
@@ -72,6 +73,7 @@ namespace UngaBunga45001
         private void Update()
         {
             int count=0;foreach(var actor in bindings.characters.Where(c=>c.meshyActor!=null&&c.meshyActor.activeInHierarchy).Take(24)){var p=bindings.Find(actor.id).position;positions[count++]=new Vector4(p.x,p.y,p.z,1.1f);}
+            if(cinematicHerd==null)cinematicHerd=GetComponent<CinematicWildlifeV15>();if(cinematicHerd!=null)count=cinematicHerd.AppendGrassActors(positions,count);
             Shader.SetGlobalInt("_UngaActorCount",count);Shader.SetGlobalVectorArray("_UngaActors",positions);
             var player=bindings.player.position;SampleDepth(player,out float depth);WaterDepth=depth;
             bool moving=(player-previous).sqrMagnitude>.00001f;previous=player;

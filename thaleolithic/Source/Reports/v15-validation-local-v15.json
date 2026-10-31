@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "scope": "Local functional checks and rendered captures; artistic acceptance and physical Radeon 610M/mobile validation remain open.",
+  "counts": {
+    "matrix": 39,
+    "movement": 15,
+    "duel": 47,
+    "accidents": 8,
+    "state": 11,
+    "resume": 0,
+    "gallery": 0,
+    "windows": 0,
+    "web": 0
+  },
+  "reports": {
+    "matrix": "Matrix/validation.json",
+    "movement": "RegressionMovement/movement-validation.json",
+    "duel": "RegressionMenhir/menhir-validation.json",
+    "accidents": "Accidents/validation.json",
+    "state": "state-validation.json",
+    "resume": "resume-validation.json",
+    "gallery": "review-browser-validation.json",
+    "windows": "NativeSmoke/validation.json",
+    "web": "web-local-validation.json"
+  },
+  "poseRevision": "v15-native-foot-goals-pelvis-25mm-20261031"
+}

@@ -26,6 +26,7 @@ namespace UngaBunga45001
   readonly Dictionary<Animator,AnimatorCullingMode> culling=new Dictionary<Animator,AnimatorCullingMode>();
   readonly List<GameObject> props=new List<GameObject>();
   float x=-2,bx=2,vertical,height,combatTime,cooldown,bossAt,attackUntil,guardUntil,shakeUntil;
+  string filmFocus="";
   float impact;int combo;string comboKeys="";float comboAt;bool completing,observedPause;
   Vector3 axis=>Progress.arenaAxis;Vector3 center=>Progress.arena;Vector3 side=>Vector3.Cross(Vector3.up,axis).normalized;
   bool Reduced=>GetComponent<UISettingsController>()?.preferences.reducedMotion??false;
@@ -96,24 +97,36 @@ namespace UngaBunga45001
   void PlaceFighters(){Place("dylan",center+axis*x,axis);Place("aurelien",center+axis*bx,-axis);}
   void PlaceAudience()
   {int n=0;foreach(var actor in c.bindings.characters.Where(a=>a.id!="dylan"&&a.id!="aurelien"&&c.State.characters.First(s=>s.id==a.id).alive)){bool placed=false;for(int i=0;i<16;i++){float along=(n%7-3)*1.2f,back=3.2f+n/7*1.1f+i*.4f;var p=center+axis*along-side*back;if(!Clear(p))continue;Place(actor.id,p,center-p);Pose(actor.id,actor.id=="mathieu"?"Inspect":"Clap");placed=true;break;}if(placed)n++;}}
-  void Pose(string id,string state,float speed=0){var animator=c.bindings.AnimatorFor(id);if(animator==null)return;animator.speed=1;VillageLife.Play(animator,state);animator.SetFloat("Speed",speed);}
+  void Pose(string id,string state,float speed=0){var animator=c.bindings.AnimatorFor(id);if(animator==null)return;animator.speed=1;if(state=="Locomotion")CinematicPerformanceV15.For(c).Stop(id);
+   if(state=="Talk"){string clip=id=="aurelien"?"F15_C04_Aurelien_BeginGrandSpeech":id=="mathieu"?"F15_C01_Mathieu_ObserveThenCallDylan":id=="alban"?"F15_C09_Alban_ContinueWithCeremonialDignity":"F15_C04_Dylan_PresentFieldObservations";CinematicPerformanceV15.For(c).Play(id,clip,id=="aurelien"?"dylan":"aurelien",true);return;}CinematicPerformanceV15.For(c).Stop(id);VillageLife.Play(animator,state);animator.SetFloat("Speed",speed);}
   void ReactAudience(bool success){foreach(var actor in c.bindings.characters.Where(a=>a.id!="dylan"&&a.id!="aurelien"))Pose(actor.id,success?"Clap":"React");}
   void CreateArenaMarks(){for(int i=0;i<2;i++)Prop("Limite de l’arène",center+axis*(i==0?-4.3f:4.3f),new Vector3(.18f,.18f,.18f),false);}
   GameObject Prop(string name,Vector3 p,Vector3 scale,bool wood=true)
   {var go=GameObject.CreatePrimitive(wood?PrimitiveType.Cube:PrimitiveType.Sphere);go.name=name;go.AddComponent<MenhirProp>();Destroy(go.GetComponent<Collider>());go.transform.position=p;go.transform.localScale=scale;var mats=GetComponent<VillageLife>();if(mats.carriedMaterial!=null)go.GetComponent<Renderer>().sharedMaterial=mats.carriedMaterial;props.Add(go);return go;}
   IEnumerator Wait(float seconds){float t=0;while(t<seconds&&Active){if(!c.UserPaused)t+=Time.deltaTime;yield return null;}}
+  void Act(string actor,string clip,string look="",bool hold=true)=>CinematicPerformanceV15.For(c).Play(actor,clip,look,hold);
+  GameObject HandBoard(string actor,string title)
+  {
+   var hand=c.bindings.AnimatorFor(actor).GetBoneTransform(HumanBodyBones.LeftHand);var board=Prop(title,hand.position,new Vector3(.25f,.025f,.18f));board.transform.SetParent(hand,false);board.transform.localPosition=new Vector3(.06f,0,.04f);board.transform.localRotation=Quaternion.Euler(0,0,-15);return board;
+  }
   IEnumerator Introduction(bool resume)
   {
-   if(resume){Caption="Mathieu : « Reprenons la décision qui reste à comprendre. »";Pose("mathieu","Talk");yield return Wait(4);BeginRound();yield break;}
-   Banner="LE CHEF A UN PLAN. SURTOUT POUR SA STATUE.";Caption="Aurélien : « Avec un chef aussi solide que ce menhir, rien ne peut tomber ! »";Pose("aurelien","Talk");Pose("dylan","Listen");yield return Wait(10);
-   var beam=Prop("Support mal attaché de la pancarte",center+axis*3+Vector3.up*1.5f,new Vector3(.12f,2,.12f));Pose("uma","Work");Caption="Un support de pancarte se déboîte. Les artisans reculent ; le grand discours continue.";
-   float t=0;while(t<4){t+=Dt;beam.transform.rotation=Quaternion.AngleAxis(Mathf.SmoothStep(0,75,t/4),side);beam.transform.position=center+axis*3+Vector3.up*Mathf.Lerp(1.5f,.5f,t/4);yield return null;}Pose("aurelien","React");ReactAudience(false);yield return Wait(5);beam.SetActive(false);
-   Caption="Dylan : « Le menhir ne vérifie pas les assemblages. Qui décide, avec quels moyens et avec les travailleurs ? »";Pose("dylan","Talk");Pose("aurelien","Listen");yield return Wait(9);
-   Caption="Alban : « Il avait pourtant signé avec un très gros caillou. »\nMilena : « Ça explique le poids de ses engagements. »";Pose("alban","Talk");Pose("milena","Laugh");yield return Wait(7);
-   Caption="Mathieu : « Cinq décisions. Tu frappes avec ce que tu comprends. Un slogan ne protège personne. »";Pose("mathieu","Talk");yield return Wait(5);BeginRound();
+   CinematicLightRigV15.Set(camera,"leadership",true);var score=GetComponent<CinematicScoreV15>()??gameObject.AddComponent<CinematicScoreV15>();yield return score.Prepare("leadership");score.Begin("leadership");
+   if(resume){filmFocus="mathieu";Caption="Mathieu : « Reprenons la décision qui reste à comprendre. »";Act("mathieu","F15_C01_Mathieu_ObserveThenCallDylan","dylan");yield return Wait(4);BeginRound();yield break;}
+   Banner="LE CHEF A UN PLAN. SURTOUT POUR SA STATUE.";filmFocus="aurelien";Caption="Aurélien : « Un chef aussi solide que mon menhir ne craint aucune question. »";
+   var chief=c.bindings.AnimatorFor("aurelien");var hand=chief.GetBoneTransform(HumanBodyBones.RightHand);var sceptre=Prop("Sceptre du chef",c.bindings.Find("aurelien").position+Vector3.up*.75f+side*.35f,new Vector3(.08f,1.3f,.08f));
+   var chiefRoot=c.bindings.Find("aurelien");var arrival=chiefRoot.position;var entrance=center+axis*5.3f;entrance.y=VillageLife.Ground(entrance);bool platformClear=Clear(entrance)&&Clear(entrance+axis*.65f)&&Clear(entrance-axis*.65f)&&Clear(entrance+side*.45f)&&Clear(entrance-side*.45f);
+   if(platformClear){var plinth=GameObject.CreatePrimitive(PrimitiveType.Cube);plinth.name="Estrade du chef";plinth.AddComponent<MenhirProp>();plinth.transform.position=entrance+Vector3.up*.175f;plinth.transform.rotation=Quaternion.FromToRotation(Vector3.right,axis);plinth.transform.localScale=new Vector3(1.3f,.35f,.9f);plinth.GetComponent<Renderer>().sharedMaterial=GetComponent<AccidentDirector>().stoneMaterial;props.Add(plinth);entrance.y+=.35f;}else entrance=arrival;
+   chiefRoot.position=entrance;var walk=chief.runtimeAnimatorController.animationClips.FirstOrDefault(clip=>clip.name=="Basic_Walk");Act("aurelien","F15_C05_Aurelien_DescendAndClaimTheArena","dylan");float approach=0;var performing=CinematicPerformanceV15.For(c);
+   while(approach<3&&Active){approach+=Dt;float u=Mathf.SmoothStep(0,1,approach/3);chiefRoot.position=Vector3.Lerp(entrance,arrival,u);performing.TravelLegs("aurelien",walk,u*Vector3.Distance(entrance,arrival)/1.8f,platformClear?1:0);yield return null;}chiefRoot.position=arrival;performing.TravelLegs("aurelien",null,0,0);
+   Act("aurelien","F15_C05_Aurelien_LiftScepterAndStrikeHeroicPose","dylan");var from=sceptre.transform.position;float t=0;while(t<.8f){t+=Dt;sceptre.transform.position=Vector3.Lerp(from,hand.position+Vector3.up*.48f,Mathf.SmoothStep(0,1,t/.8f));yield return null;}sceptre.transform.SetParent(hand,true);
+   Act("alban","F15_C05_Alban_CelebrateChiefWithCeremonialClap","aurelien");yield return Wait(3.2f);
+   filmFocus="dylan";Caption="Dylan : « Les inscriptions ne vérifient pas les assemblages. »";Act("dylan","F15_C05_Dylan_HesitateThenRaiseGuard","aurelien");var notebook=HandBoard("mathieu","Carnet de Mathieu");Act("mathieu","F15_C05_Mathieu_CloseNotebookAndStepBack","dylan");yield return Wait(5);notebook.SetActive(false);
+   filmFocus="milena";Caption="Milena : « Voyons maintenant le poids de ses engagements. »";Act("milena","F15_C05_Milena_ReadTheArenaWithScepticism","aurelien");yield return Wait(3);
+   filmFocus="";Caption="Mathieu : « Cinq décisions. Les coups seuls ne valident aucune épreuve. »";yield return Wait(3);BeginRound();
   }
   public void SkipFilm(){if(Phase!=MenhirPhase.Intro&&Phase!=MenhirPhase.Finale)return;StopAllCoroutines();if(Phase==MenhirPhase.Finale)FinishVictory();else BeginRound();}
-  void BeginRound(){Phase=MenhirPhase.Combat;combatTime=0;cooldown=0;bossAt=Time.time+5;Progress.epoch++;height=vertical=0;Banner="ÉPREUVE "+(Progress.question+1)+" / 5 · "+Question.title;Caption="A/D ou flèches : bouger · Espace : sauter · J/K : coups · L : garde · E : décision";PlaceFighters();Pose("dylan","Locomotion");Pose("aurelien","Locomotion");Signal();c.Save();}
+  void BeginRound(){filmFocus="";CinematicPerformanceV15.For(c).StopAll();Phase=MenhirPhase.Combat;combatTime=0;cooldown=0;bossAt=Time.time+5;Progress.epoch++;height=vertical=0;Banner="ÉPREUVE "+(Progress.question+1)+" / 5 · "+Question.title;Caption="A/D ou flèches : bouger · Espace : sauter · J/K : coups · L : garde · E : décision";PlaceFighters();Pose("dylan","Locomotion");Pose("aurelien","Locomotion");Signal();c.Save();}
   public void Jump(){if(Phase!=MenhirPhase.Combat||height>.01f)return;vertical=6.8f;height=.01f;Pose("dylan","JumpStart");attackUntil=Time.time+.22f;}
   public void Attack(bool heavy)
   {
@@ -140,6 +153,7 @@ namespace UngaBunga45001
   {
    int oldStage=Stage;Banner=answer.quality==2?"DÉCISION VÉRIFIÉE":answer.quality==1?"PARTIEL · LA PRÉVENTION RESTE À ORGANISER":"CONTRE DU CHEF · CORRIGE TA DÉCISION";Caption=answer.reply;
    x=-1.15f;bx=1.15f;PlaceFighters();Pose(answer.quality==0?"aurelien":"dylan",answer.attack=="chain"?"DuelKick":answer.attack=="plan"?"Throw":"DuelPunch");
+   CinematicPerformanceV15.For(c).DuelDecision(Progress.question,answer.quality==2);yield return Wait(.55f);
    var start=center+axis*(answer.quality==0?bx:x)+Vector3.up*1.1f;var end=center+axis*(answer.quality==0?x:bx)+Vector3.up*1.1f;
    var prop=Prop(answer.attack,start,answer.attack=="plan"?new Vector3(.9f,.08f,.65f):answer.attack=="micro"?new Vector3(.15f,.7f,.15f):new Vector3(.5f,.35f,.4f),answer.attack!="authority");float t=0;while(t<1.2f){t+=Dt;prop.transform.position=Vector3.Lerp(start,end,t/1.2f)+Vector3.up*Mathf.Sin(Mathf.PI*t/1.2f)*.65f;prop.transform.Rotate(side,Dt*160);yield return null;}prop.SetActive(false);Impact();
    if(answer.quality==2){Progress.aurelienLife=Mathf.Min(Progress.aurelienLife,100-Progress.cleared.Count(v=>v)*20);Progress.dylanLife=Mathf.Min(100,Progress.dylanLife+12);Progress.energy=Mathf.Min(100,Progress.energy+30);Pose("aurelien",Progress.question==4?"DuelFall":"React");ChiefState=DuelFighterState.Impact;ReactAudience(true);Caption=answer.reply+(Progress.streak>=3?"\nCOMBO PÉDAGOGIQUE x"+Progress.streak:"");}
@@ -154,15 +168,17 @@ namespace UngaBunga45001
   public void Retry(){if(Phase!=MenhirPhase.Defeat)return;Progress.dylanLife=Progress.energy=100;Pose("dylan","StandUp");BeginRound();}
   IEnumerator Finale()
   {
-   Banner="LE MENHIR SERT ENFIN À QUELQUE CHOSE";Caption="Aurélien : « Je peux au moins garder mon menhir ? »";Pose("aurelien","Sit");Pose("dylan","Talk");ReactAudience(true);Signal();yield return Wait(8);
-   Caption="Dylan : « Oui. Pour afficher nos engagements, les moyens, les responsabilités et le suivi. Et cette fois, on demande l’avis de ceux qui travaillent. »";Pose("dylan","Talk");Pose("aurelien","StandUp");yield return Wait(10);
-   Caption="Mathieu : « Comprendre ces principes est un début. Il reste à les appliquer et à vérifier leur efficacité sur le terrain. »";Pose("mathieu","Talk");Pose("aurelien","Listen");yield return Wait(9);
-   Caption="Alban : « C’est la première fois que son poids administratif est utile. »\nMilena : « Attendons de voir qui porte le panneau. »";Pose("alban","Laugh");Pose("milena","Talk");yield return Wait(8);FinishVictory();
+   var score=GetComponent<CinematicScoreV15>()??gameObject.AddComponent<CinematicScoreV15>();yield return score.Prepare("success");score.Begin("success");
+   Banner="LE MENHIR SERT ENFIN À QUELQUE CHOSE";filmFocus="aurelien";Caption="Aurélien : « Je peux au moins garder mon menhir ? »";Act("aurelien","F15_C05_OUTRO_Aurelien_AcceptTheLimitsOfHisAuthority","dylan");Signal();yield return Wait(5);
+   filmFocus="dylan";Caption="Dylan : « Oui. Pour afficher les engagements, les moyens, les responsabilités et le suivi. »";var commitments=HandBoard("dylan","Engagements de la tribu");Act("dylan","F15_C05_OUTRO_Dylan_ShowCommitmentsAndAssignedResources","aurelien");yield return Wait(7);commitments.SetActive(false);
+   filmFocus="mathieu";Caption="Mathieu : « Il reste à appliquer ces principes et à vérifier leur efficacité sur le terrain. »";Act("mathieu","F15_C05_OUTRO_Mathieu_PointToTheFirstFieldVerification","dylan");yield return Wait(5);
+   filmFocus="milena";Caption="Milena : « Attendons de voir qui porte le panneau. »";Act("alban","F15_C05_OUTRO_Alban_RecoverCeremonialDignityAfterTheDuel","milena");Act("milena","F15_C05_OUTRO_Milena_CheckWhoWillCarryTheCommitments","aurelien");yield return Wait(3);FinishVictory();
   }
   void FinishVictory(){if(completing)return;completing=true;RestoreWorld();c.CompleteMenhirDuel();completing=false;}
   public void Leave(){if(!Active)return;StopAllCoroutines();RestoreWorld();c.Save();c.Inform("Duel suspendu. Les épreuves comprises sont sauvegardées ; reparle à Aurélien pour reprendre.");}
   void RestoreWorld()
   {
+   filmFocus="";CinematicPerformanceV15.For(c).StopAll();GetComponent<CinematicScoreV15>()?.End();CinematicLightRigV15.Set(camera,"leadership",false);
    foreach(var saved in Progress.returnActors){var root=c.bindings.Find(saved.id);if(root==null)continue;root.position=saved.position;root.rotation=saved.rotation;var actor=c.bindings.characters.FirstOrDefault(a=>a.id==saved.id);if(actor?.meshyActor!=null)actor.meshyActor.transform.localRotation=saved.visualRotation;}
    foreach(var pair in suspended)if(pair.Key!=null)pair.Key.enabled=pair.Value;foreach(var actor in c.bindings.characters){var root=c.bindings.Find(actor.id);if(root==null)continue;var agent=root.GetComponent<NavMeshAgent>();var cc=root.GetComponent<CharacterController>();if(cc!=null)cc.enabled=actor.id=="dylan";if(agent!=null&&agent.enabled){var saved=Progress.returnActors.FirstOrDefault(a=>a.id==actor.id);if(saved!=null)agent.Warp(saved.position);}Pose(actor.id,"Locomotion");}
    foreach(var p in props)if(p!=null)Destroy(p);props.Clear();GetComponent<VillageLife>().enabled=lifeWas;camera.enabled=false;c.bindings.gameplayCamera.enabled=originalCamera;Phase=MenhirPhase.Inactive;TouchMove=0;TouchGuard=false;foreach(var pair in culling)if(pair.Key!=null)pair.Key.cullingMode=pair.Value;culling.Clear();animatorSpeeds.Clear();c.SetPause(false);c.bindings.SetGameplayBlocked(false);Signal();
@@ -170,6 +186,8 @@ namespace UngaBunga45001
   public void Pause(){if(!Active)return;c.SetPause(!c.UserPaused);foreach(var actor in c.bindings.characters)if(actor.animator!=null)actor.animator.speed=c.UserPaused?0:1;Signal();}
   void UpdateCamera()
   {
+   if((Phase==MenhirPhase.Intro||Phase==MenhirPhase.Finale)&&!string.IsNullOrEmpty(filmFocus))
+   {var actor=c.bindings.Find(filmFocus);var point=actor.position+Vector3.up*1.4f;var portraitOffset=actor.forward*3.7f+actor.right*2+Vector3.up*.35f;camera.fieldOfView=43;camera.transform.position=point+portraitOffset;camera.transform.LookAt(point);c.bindings.gameplayCamera.transform.SetPositionAndRotation(camera.transform.position,camera.transform.rotation);return;}
    var focus=center+Vector3.up*1.1f;float distance=Phase==MenhirPhase.Question?11.8f:10.5f;
    if(Phase==MenhirPhase.Question)focus+=axis*2.5f;
    camera.fieldOfView=42;var offset=side*distance+Vector3.up*3.4f;camera.transform.position=focus+offset;if(Time.time<shakeUntil)camera.transform.position+=Vector3.up*Mathf.Sin(Time.time*94)*.035f;camera.transform.LookAt(focus);c.bindings.gameplayCamera.transform.SetPositionAndRotation(camera.transform.position,camera.transform.rotation);impact=Mathf.MoveTowards(impact,0,Time.deltaTime*5);

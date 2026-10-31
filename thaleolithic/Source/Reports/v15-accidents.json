@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "scope": "Actual accident directors in an isolated save, including anticipation, body, persistence and actor release.",
+  "takes": [
+    {
+      "kind": "tree",
+      "id": "D01",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.8213353157043457,
+      "errors": []
+    },
+    {
+      "kind": "rock",
+      "id": "D02",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.7158302068710327,
+      "errors": []
+    },
+    {
+      "kind": "hut",
+      "id": "D04",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.7605562210083008,
+      "errors": []
+    },
+    {
+      "kind": "stock",
+      "id": "D06",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.6997143030166626,
+      "errors": []
+    },
+    {
+      "kind": "river",
+      "id": "D07",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 4.794866561889648,
+      "errors": []
+    },
+    {
+      "kind": "workshop",
+      "id": "D08",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.8805980086326599,
+      "errors": []
+    },
+    {
+      "kind": "fire",
+      "id": "D05",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.7195146083831787,
+      "errors": []
+    },
+    {
+      "kind": "mammoth",
+      "id": "D03",
+      "status": "passed",
+      "began": true,
+      "body": true,
+      "recorded": true,
+      "released": true,
+      "reacted": true,
+      "anticipationTravel": 0.7863603830337524,
+      "errors": []
+    }
+  ]
+}

@@ -24,6 +24,16 @@ namespace UngaBunga45001
             if(HDRP){var hd=camera.gameObject.AddComponent<HDAdditionalCameraData>();hd.clearColorMode=HDAdditionalCameraData.ClearColorMode.Color;hd.backgroundColorHDR=new Color(0,0,0,0);}
             #endif
         }
+        public static void CinematicCamera(Camera camera,Camera gameplay)
+        {
+            #if UNGA_WEB_RENDERER
+            var data=camera.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+            if(data==null)data=camera.gameObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+            var source=gameplay.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+            data.renderShadows=source==null||source.renderShadows;
+            if(source!=null){data.renderPostProcessing=source.renderPostProcessing;data.antialiasing=source.antialiasing;data.antialiasingQuality=source.antialiasingQuality;data.volumeLayerMask=source.volumeLayerMask;data.volumeTrigger=source.volumeTrigger;}
+            #endif
+        }
         public static void PortraitLight(Light light)
         {
             #if !UNGA_WEB_RENDERER

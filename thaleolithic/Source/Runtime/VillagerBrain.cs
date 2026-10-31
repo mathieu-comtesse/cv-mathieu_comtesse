@@ -16,6 +16,7 @@ namespace UngaBunga45001
         void Awake(){agent=GetComponent<NavMeshAgent>();previous=transform.position;life=FindFirstObjectByType<VillageLife>();}
         public void Bind(CampaignRuntime runtime,VillagerRoutine job,Animator controller)
         {campaign=runtime;routine=job;id=job.id;animator=controller;}
+        public void ResumeAfterCinematic(){phase=0;timer=0;decisionAt=0;stuckTime=0;moving=false;previous=transform.position;}
         void Restore()
         {
             save=campaign.State;state=save.characters.FirstOrDefault(c=>c.id==id);if(state==null)return;

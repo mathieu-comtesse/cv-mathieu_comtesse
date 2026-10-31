@@ -35,22 +35,32 @@ namespace UngaBunga45001
         {
             for(int i=1;i<path.corners.Length;i++)
             {
-                var from=path.corners[i-1];var delta=path.corners[i]-from;float length=delta.magnitude;
-                for(float p=0;p<=length;p+=.3f)if(!HearthSafe(from+delta.normalized*p))return false;
-                foreach(var hit in Physics.CapsuleCastAll(from+Vector3.up*.36f,from+Vector3.up*1.4f,.28f,delta.normalized,length,~0,QueryTriggerInteraction.Ignore))
-                    if(!(hit.collider is TerrainCollider)&&!(hit.collider is CharacterController)&&hit.collider.GetComponentInParent<NavMeshAgent>()==null&&(actor==null||!hit.transform.IsChildOf(actor))&&hit.distance>.06f)return false;
+                if(!SegmentClear(path.corners[i-1],path.corners[i],actor))return false;
             }return true;
         }
-        public static bool Plan(Vector3 start,Vector3 desired,Transform actor,out NavMeshPath path,float search=3,int agentType=0)
+        public static bool SegmentClear(Vector3 from,Vector3 to,Transform actor)
+        {
+            var delta=to-from;float length=delta.magnitude;if(length<.02f)return true;
+            float prior=GroundAt(from);for(float p=0;p<=length;p+=.3f){var point=from+delta.normalized*p;float ground=GroundAt(point);if(!HearthSafe(point)||Mathf.Abs(ground-prior)>.45f)return false;prior=ground;}
+            foreach(var hit in Physics.CapsuleCastAll(from+Vector3.up*.38f,from+Vector3.up*1.5f,.3f,delta.normalized,length,~0,QueryTriggerInteraction.Ignore))
+                if(!(hit.collider is TerrainCollider)&&!(hit.collider is CharacterController)&&hit.collider.GetComponentInParent<NavMeshAgent>()==null&&(actor==null||!hit.transform.IsChildOf(actor))&&hit.distance>.06f)return false;
+            return true;
+        }
+        static float GroundAt(Vector3 p)=>HutCollapse.TerrainFloor(p);
+        public static bool Plan(Vector3 start,Vector3 desired,Transform actor,out NavMeshPath path,float search=3,int agentType=0,float startSearch=1)
         {
             path=new NavMeshPath();var filter=Filter(agentType);
-            if(!NavMesh.SamplePosition(start,out var from,1,filter))return false;
+            var departures=new System.Collections.Generic.List<Vector3>();
+            if(NavMesh.SamplePosition(start,out var from,startSearch,filter)&&SegmentClear(start,from.position,actor))departures.Add(from.position);
+            if(startSearch>1)for(float radius=1;radius<=startSearch;radius+=1)for(int angle=0;angle<12;angle++)
+            {var point=start+Quaternion.Euler(0,angle*30,0)*Vector3.forward*radius;point.y=GroundAt(point);if(NavMesh.SamplePosition(point,out var entry,.65f,filter)&&Mathf.Abs(entry.position.y-point.y)<.5f&&SegmentClear(start,entry.position,actor)&&!departures.Any(p=>(p-entry.position).sqrMagnitude<.25f))departures.Add(entry.position);}
+            if(departures.Count==0)return false;
             for(float radius=0;radius<=search;radius+=.55f)
                 for(int angle=0;angle<(radius==0?1:12);angle++)
                 {
                     var p=desired+Quaternion.Euler(0,angle*30,0)*Vector3.forward*radius;float ground=VillageLife.Ground(p);p.y=ground;
                     if(!NavMesh.SamplePosition(p,out var end,.6f,filter)||Mathf.Abs(end.position.y-ground)>.5f||!Clear(end.position,actor))continue;
-                    if(NavMesh.CalculatePath(from.position,end.position,filter,path)&&path.status==NavMeshPathStatus.PathComplete&&PathClear(path,actor))return true;
+                    foreach(var departure in departures)if(NavMesh.CalculatePath(departure,end.position,filter,path)&&path.status==NavMeshPathStatus.PathComplete&&PathClear(path,actor))return true;
                 }
             return false;
         }

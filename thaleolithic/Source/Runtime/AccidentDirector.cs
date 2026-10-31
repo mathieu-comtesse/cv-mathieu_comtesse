@@ -12,6 +12,7 @@ namespace UngaBunga45001
         public bool Blocking=>Playing||DeathScreen;public AccidentDefinition Current{get;private set;}public AccidentRagdoll LastBody{get;private set;}
         public int LastGoreLevel{get;private set;}public int LastBloodCount{get;private set;}public bool LastWarningChecked{get;private set;}
         readonly Dictionary<string,GameObject> corpses=new Dictionary<string,GameObject>();readonly List<GameObject> transient=new List<GameObject>();CampaignSave restored;
+        CinematicWitnessesV15 activeWitnesses;
         public bool RequestFatal(string victim)
         {
             if(Blocking||campaign.QuestCatalog==null)return Blocking;
@@ -46,18 +47,28 @@ namespace UngaBunga45001
             var camera=campaign.cinematicDirector.cinematicCamera;bool oldCamera=campaign.bindings.gameplayCamera.enabled;campaign.bindings.gameplayCamera.enabled=false;camera.enabled=true;float oldFov=camera.fieldOfView;camera.fieldOfView=48;
             campaign.bindings.SetGameplayBlocked(true);var victimAgent=root.GetComponent<UnityEngine.AI.NavMeshAgent>();if(victimAgent!=null&&victimAgent.enabled&&victimAgent.isOnNavMesh)victimAgent.isStopped=true;
             var originalRotation=binding.meshyActor.transform.localRotation;
-            VillageLife.Play(binding.animator,"Gather");campaign.Subtitle="Mathieu : "+spec.warning;var props=CreateProps(spec,origin);
-            Vector3 side=(campaign.bindings.gameplayCamera.transform.position-origin).normalized;side.y=.38f;side.Normalize();
+            var performance=CinematicPerformanceV15.For(campaign);var witnesses=new CinematicWitnessesV15();activeWitnesses=witnesses;witnesses.Begin(campaign,spec.victimId);campaign.Subtitle="Mathieu : "+spec.warning;Vector3 riverFlow=Vector3.forward;
+            if(spec.kind=="river"&&CinematicRiverBankV15.Find(campaign,root,out var edge,out riverFlow,out var approach))
+            {
+                var walk=binding.animator.runtimeAnimatorController.animationClips.FirstOrDefault(clip=>clip.name=="Basic_Walk");var actor=binding.animator.GetComponent<CinematicActorV15>();if(actor==null)actor=binding.animator.gameObject.AddComponent<CinematicActorV15>();actor.Acquire(binding.animator);if(victimAgent!=null)victimAgent.enabled=false;float distance=0;
+                foreach(var point in approach)
+                {
+                    while(Vector3.Distance(root.position,point)>.025f){var before=root.position;root.position=Vector3.MoveTowards(before,point,Time.deltaTime*1.8f);var direction=root.position-before;direction.y=0;if(direction.sqrMagnitude>.00001f)root.rotation=Quaternion.RotateTowards(root.rotation,Quaternion.LookRotation(direction),180*Time.deltaTime);distance+=Vector3.Distance(before,root.position);if(walk!=null)actor.Sample(walk,distance/1.8f%walk.length,1);var look=root.position+Vector3.up;camera.transform.position=look-riverFlow*4+Vector3.up*1.7f;camera.transform.LookAt(look);yield return null;}
+                }
+                actor.Release();origin=root.position;root.rotation=Quaternion.LookRotation(riverFlow);yaw=root.eulerAngles.y;
+            }
+            performance.Accident(spec.victimId,spec.kind);var props=CreateProps(spec,origin);
+            Vector3 side=spec.kind=="river"?-riverFlow:(campaign.bindings.gameplayCamera.transform.position-origin).normalized;side.y=.38f;side.Normalize();
             Vector3 overview=structure!=null?structure.OverviewOffset():Vector3.zero;float t=0;bool hit=false;Vector3 start=props.Length>0?props[0].position:origin;
             while(t<10)
             {
                 t+=Time.deltaTime;
                 if(t>2.7f&&t<4)campaign.Subtitle=spec.victimId==campaign.Data.playerCharacterId?"Dylan : Ah.":"";
                 if(structure!=null&&t>=2&&!structure.Broken)structure.BeginFailure(spec.exposure);
-                if(t>=4&&!hit)
+                if(t>=5.35f&&!hit)
                 {
-                    hit=true;LastBody=CreateBody(binding,origin,yaw,LastGoreLevel);binding.meshyActor.SetActive(false);
-                    Vector3 impulse=spec.kind=="mammoth"?new Vector3(3,6,1):spec.kind=="river"?new Vector3(1,2,2):spec.kind=="fire"?new Vector3(1,3,0):new Vector3(.4f,-1,.7f);
+                    hit=true;LastBody=CreateBody(binding,root.position,yaw,LastGoreLevel);performance.Stop(spec.victimId);binding.meshyActor.SetActive(false);
+                    Vector3 impulse=spec.kind=="mammoth"?new Vector3(3,6,1):spec.kind=="river"?riverFlow*4+Vector3.up*1.5f:spec.kind=="fire"?new Vector3(1,3,0):new Vector3(.4f,-1,.7f);
                     LastBody.Impulse(impulse);Blood(origin+Vector3.up*.8f,LastGoreLevel);PlayImpact(origin,spec.kind=="tree"?crack:impact);
                     campaign.RegisterAccident(spec,origin,yaw);if(spec.victimId==campaign.Data.playerCharacterId)transient.Add(LastBody.gameObject);else corpses[spec.victimId]=LastBody.gameObject;
                 }
@@ -71,7 +82,7 @@ namespace UngaBunga45001
                 yield return null;
             }
             if(structure!=null&&structure.Running)structure.Settle();LastBody?.Freeze();foreach(var obj in props)if(obj!=null)foreach(var rb in obj.GetComponentsInChildren<Rigidbody>()){rb.linearVelocity=Vector3.zero;rb.angularVelocity=Vector3.zero;rb.isKinematic=true;}
-            camera.enabled=false;camera.fieldOfView=oldFov;campaign.bindings.gameplayCamera.enabled=oldCamera;campaign.Subtitle="";Playing=false;binding.meshyActor.transform.localRotation=originalRotation;
+            witnesses.End();activeWitnesses=null;camera.enabled=false;camera.fieldOfView=oldFov;campaign.bindings.gameplayCamera.enabled=oldCamera;campaign.Subtitle="";Playing=false;binding.meshyActor.transform.localRotation=originalRotation;
             if(spec.victimId==campaign.Data.playerCharacterId)DeathScreen=true;else{campaign.FinishIncident();campaign.Inform("ÉVÉNEMENT GRAVE · "+campaign.CharacterName(spec.victimId)+" est décédé. Une enquête est ouverte auprès de Mathieu.");}
         }
         Transform[] CreateProps(AccidentDefinition spec,Vector3 origin)
@@ -120,7 +131,7 @@ namespace UngaBunga45001
         public bool Retry(){if(!DeathScreen)return false;return campaign.RestoreDecisionCheckpoint();}
         public void ResetPresentation()
         {
-            StopAllCoroutines();Playing=DeathScreen=Analysis=false;Current=null;
+            StopAllCoroutines();activeWitnesses?.End();activeWitnesses=null;GetComponent<CinematicPerformanceV15>()?.StopAll();Playing=DeathScreen=Analysis=false;Current=null;
             foreach(var obj in transient)if(obj!=null)Destroy(obj);transient.Clear();foreach(var obj in corpses.Values)if(obj!=null)Destroy(obj);corpses.Clear();restored=null;
             foreach(var binding in campaign.bindings.characters)if(binding.meshyActor!=null)binding.meshyActor.SetActive(campaign.State.characters.FirstOrDefault(c=>c.id==binding.id)?.alive??false);
             campaign.cinematicDirector.cinematicCamera.enabled=false;campaign.bindings.gameplayCamera.enabled=true;campaign.bindings.SetGameplayBlocked(false);
