@@ -33,17 +33,18 @@ export function roomPose(room, out = {}) {
 
 export class RoomBridge {
   constructor(room) { this.room = room; this.sync = true; this.visible = true; this.pose = { pos: [0, 0, 0], look: [0, 0, 0], fov: 24 }; }
-  /** Intercepte le rendu de la pièce : la caméra du monde (déjà calculée pour cette image) remplace celle de la pièce. */
+  /** La caméra du monde (déjà calculée pour cette image) remplace celle de la pièce à chaque mise à jour de sa matrice et de sa projection :
+      les éléments que la pièce positionne elle-même en suivant sa caméra (bulle de pensée, repères) restent alignés avec le rendu. */
   attach(world, ensureTick) {
     const r = this.room.renderer, orig = r.render.bind(r), cam = this.room.camera, w = world.camera;
-    r.render = (scene, camera) => {
-      if (camera === cam && this.sync) {
-        ensureTick();
-        cam.position.copy(w.position); cam.quaternion.copy(w.quaternion);
-        cam.projectionMatrix.copy(w.projectionMatrix); cam.projectionMatrixInverse.copy(w.projectionMatrixInverse); cam.updateMatrixWorld(true);
-      }
-      return orig(scene, camera);
+    const copy = () => {
+      cam.position.copy(w.position); cam.quaternion.copy(w.quaternion);
+      cam.projectionMatrix.copy(w.projectionMatrix); cam.projectionMatrixInverse.copy(w.projectionMatrixInverse);
     };
+    const umw = cam.updateMatrixWorld.bind(cam), upm = cam.updateProjectionMatrix.bind(cam);
+    cam.updateMatrixWorld = (force) => { if (this.sync) { ensureTick(); copy(); } umw(force); };
+    cam.updateProjectionMatrix = () => { upm(); if (this.sync) { ensureTick(); cam.projectionMatrix.copy(w.projectionMatrix); cam.projectionMatrixInverse.copy(w.projectionMatrixInverse); } };
+    r.render = (scene, camera) => { if (camera === cam && this.sync) { ensureTick(); copy(); cam.updateMatrixWorld(true); } return orig(scene, camera); };
   }
   current() { return roomPose(this.room, this.pose); }
   /** Distance entre la caméra du monde et la cible de la pièce. */
