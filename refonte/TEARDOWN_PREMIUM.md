@@ -1,71 +1,67 @@
-# Teardown premium des projets professionnels — V1
+# Reconstruction intégrale des machines professionnelles · Teardown Premium V3
 
-## Périmètre intégré
-La couche d'inspection est branchée sur les 11 machines Three.js de refonte/m3d :
-cerfa, vm, vre, moteur, gares, finance, pp, powerbi, suivi, studio et vrestudio-musicbox.
+## Principe
+Cette version remplace intégralement le rendu des onze anciennes machines. Les anciennes
+constructions restent dans le dépôt comme historique et comme référence, mais ne sont
+plus importées par \`refonte/m3d/index.js\`. Le nouveau rendu utilise exclusivement
+\`premium-core.js\` et les trois familles de machines \`premium-*-machines.js\`.
 
-Elle conserve les machines existantes, leur caméra, leur décor blueprint,
-leurs commandes métiers et leurs animations. Aucun processus réel n'est lancé.
+Chaque scène comprend 5 sous-assemblages dédiés, avec positions, axes de dépose
+et contenus mécaniques propres. Les modes Éclaté, Coupe, Rayons X et Isoler
+agissent sur ces vrais groupes, pas sur des morceaux triés selon leur abscisse.
 
-## Fonctions disponibles
-- Assemblé : visualisation originale et affichage de la valeur pilotée par la machine.
-- Éclaté : répartition des sous-ensembles en cinq zones, sans modifier définitivement les poses.
-- Coupe : plan de coupe global, permettant de voir les surfaces intérieures existantes.
-- Rayons X : composants non sélectionnés semi-transparents.
-- Isoler : composants hors de la zone choisie atténués.
-- Cliquer sur une pièce : sélectionner la zone approximative et l'isoler.
-- Visite automatique : parcourir alternativement les zones et les modes.
-- Pause / reprise : contrôler l'horloge de la scène.
-- Raccourcis clavier : E (éclaté), C (coupe), X (rayons X), I (isoler).
-- Mode mouvement réduit : vue statique, commandes manuelles conservées.
+## Onze machines créées
+| Projet | Nouveau dispositif et mécanismes principaux |
+|---|---|
+| CERFA | Chargeur, double scanner OCR, contrôles, quatre aiguillages, bacs |
+| VM VRE | FIFO, cabinet principal et secours conceptuel, verrou exclusif à deux engrenages, registre rotatif, écriture Excel et imprimante |
+| Extraction VRE | Ascenseur PDF, couronnes de scan, bâtiment/local 3D, quatre compteurs BT et pupitre PAM |
+| Reporteur Q18 | Chargeur OT, barillet de 18 fiches, mors de comparaison, tampon Q18, console Excel/BI |
+| Gares | Dix-neuf cartouches de sources, filtres, différentiel pondéré, tableau de rangs, extracteur de priorités |
+| Finances | Coffre, quatre réservoirs, collecteur et vannes, cinq relais à contact, ratchet d’alertes |
+| Plans de prévention | Dépôt, scanner, roue à douze échéances, tiroirs d’archives, relances |
+| Power BI | Deux magasins PP/MOSO, nettoyage, réseau relationnel, moteur DAX, portail |
+| Suivi | Clavier de recherche, sélecteur OT/équipement/bâtiment, vingt prises, patchs, restitution |
+| Studio d’extracteurs | PDF de référence, traceur XY, fraiseuse, banc de recette, bibliothèque des extracteurs |
+| Lecteur VRE | Scanner spatial, 48 neurones et synapses courbes, fusion, validation humaine, modèles candidats et mémoire |
 
-## VM VRE : premières situations métier
-- Cycle normal sur 20 dépôts fictifs, avec suivi de la quantité de dossiers intégrés.
-- Doublon : repositionnement de l'animation autour du document répété.
-- Incident : arrêt de la machine principale dans le scénario, sans bascule de la VM secondaire.
-- Le panneau distingue explicitement la reprise cible de la fonction déjà opérationnelle.
+## Commandes
+- Menu latéral pour changer de machine
+- Glisser pour tourner, molette pour zoomer
+- Clic sur une pièce ou sélection d'un sous-système pour l'isoler
+- Assemblé, Éclaté, Coupe, Rayons X, Isoler
+- Visite automatique, pause, reprise, paramètre métier propre à la machine
+- Raccourcis E, C, X et I
+- Scénarios normaux, doublons et arrêt VM pour la centrale VRE
+- Parcours conceptuel Lecteur VRE → Extracteur → VM → Q18 → Power BI
 
-## Ajouts de la deuxième itération
-- Laboratoire unique : `teardown-lab.html`, onze sélections, caméra orbitale,
-  zoom, panneau d'inspection et contrôle paramétrique natif par machine.
-- Adresse de test sur la branche publique `teardown-premium-preview`,
-  servie via RawGitHack. Aucun déploiement sur comtesse.me n'est nécessaire.
-- Centrale VM : ajout d'une serrure mécanique à deux roues dentées et d'un
-  coulisseau visible, raccordés à l'état de traitement, doublon ou panne.
-- Centrale financière : ajout d'une rangée de relais mécaniques suivant les
-  niveaux de consommation, et recalcul déterministe des alertes lors du passage
-  de seuil. La simulation n'envoie plus une enveloppe tous les jours sans raison.
-- Navigation entre les onze projets, affichage des paramètres et textes d'aide.
-- Les lourdes pièces du châssis restent ancrées lors d'un éclaté, ce qui évite
-  la désagrégation de la plateforme.
+## Réalisme et limites
+Les modèles 3D représentent des projets informatiques par analogies mécaniques
+**nouvelles**. Les scénarios sont déterministes et utilisent des données fictives.
+Ils n'exécutent pas les véritables flux Power Automate, Excel, SharePoint, modèles
+d'inférence ou processus d'entraînement. Les tableaux et compteurs ne sont pas
+des mesures de production. La bascule VM secondaire est une cible, pas une
+fonction attestée opérationnelle. Les états validés dans le modèle documentaire
+illustrent une intervention humaine et non une publication automatique réelle.
 
-## Limites explicites de cette première itération
-- Les cinq zones sont issues de la répartition spatiale des meshes actuels. Ce ne sont
-  pas encore des assemblages cinématiques conçus pièce par pièce. La vue éclatée
-  est une première étude interactive de composition, pas un démontage industriel exact.
-- Les modes coupe et rayons X montrent la géométrie existante, sans générer de
-  nouvelles pièces internes ni de surfaces de coupe bouchées.
-- Les scénarios métier détaillés, en dehors de la VM VRE, restent à construire.
-- Les chiffres sur le panneau proviennent des commandes internes des démonstrations,
-  et non de SharePoint, Excel, Power Automate ou d'un système en production.
-- Les vues et les scénarios doivent encore être validés visuellement dans le navigateur,
-  notamment sur mobile et GPU intégré, avant fusion sur main.
+Les pièces et les axes de démontage ont été définis pour chaque concept fictif.
+Ils ne correspondent pas à la mécanique d’une machine industrielle préexistante.
+Une vraie validation visuelle WebGL sur ordinateur et téléphone reste nécessaire.
 
-## Pour la version de production
-1. Définir des groupes mécaniques réels pour chaque machine, avec axes de dépose.
-2. Reconstituer les mécanismes documentaires de bout en bout, cas nominaux et exceptions.
-3. Modéliser d'abord la centrale VM VRE, le lecteur VRE et la centrale financière.
-4. Évaluer le rendu avec captures de chaque phase et contrôles de performance.
-5. Relier ensuite les machines dans une carte Process Nexus sans prétendre que tous
-   les processus sont connectés au sein d'un même système de production.
+## Architecture
+- \`refonte/m3d/premium-core.js\` : primitives, engrenages extrudés, transmissions, libellés, courbes, cartons et plateformes
+- \`refonte/m3d/premium-doc-machines.js\` : CERFA, VM, VRE, Q18
+- \`refonte/m3d/premium-pilot-machines.js\` : gares, finances, PP, Power BI
+- \`refonte/m3d/premium-intelligence-machines.js\` : suivi, Studio, Lecteur VRE
+- \`refonte/m3d/index.js\` : branchement exclusif des 11 nouveaux constructeurs
+- \`refonte/m3d/teardown.js\` : démontage par assemblages explicitement construits
+- \`refonte/teardown-ui.js\`, \`refonte/teardown.css\` : interface
+- \`teardown-lab.html\` : test comparatif, navigation et commandes
+- \`projet-*.html\` : notices adaptées à la nouvelle machine
 
-## Fichiers
-- refonte/m3d/teardown.js : moteur d'inspection et description des zones
-- refonte/teardown-ui.js : interface utilisateur accessible
-- refonte/teardown.css : mise en forme et adaptation mobile
-- refonte/m3d/index.js : raccordement au moteur Three.js
-- refonte/m3d/vm.js : scénarios VM VRE
-- refonte/post.js : interactions et chargement de l'interface
+## Vérifications
+Tests de construction avec un environnement Three.js simulé pour les 11 nouvelles
+machines, avec états d'animation et contrôles. Vérifications de syntaxe des
+modules. Les tests sur rendu WebGL réel et matériel mobile doivent suivre.
 
-Cette branche est destinée à une revue avant fusion. Elle ne modifie pas la version
-actuellement publiée sur comtesse.me.
+Cette branche est distincte de la production de comtesse.me.
