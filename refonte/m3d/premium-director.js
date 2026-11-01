@@ -282,11 +282,11 @@ export function directMachine(name,machine){
  // The previous factory plinth, five linear machine locations and associated
  // straight documentary stream are removed. Modules retain their real internals.
  const root=machine.group;
+ for(const child of [...root.children])if(!machine.zones.includes(child))root.remove(child);
  const backstage=new THREE.Group();backstage.name='Backstage_Mechanical_Stations';root.add(backstage);
  const hero=new THREE.Group();hero.name='Hero_Sculptural_Envelope';root.add(hero);
  root.userData.backstage=backstage;
  root.userData.hero=hero;
- for(const child of [...root.children])if(!machine.zones.includes(child))root.remove(child);
  const animations=[],particles=[];
  const animate=fn=>animations.push(fn);
  machine.zones.forEach((group,i)=>{
