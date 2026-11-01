@@ -229,6 +229,54 @@ async function start() {
     }).catch((e) => console.warn('pièce indisponible', e));
   }
 
+  /* tirelire des gains : le modèle du site, une pièce de 1 € tombe régulièrement dans la fente */
+  const pigSpot = $('[data-pig]'), pigs = [];
+  if (pigSpot) {
+    const pr = W(rectOf(pigSpot));
+    import('three/addons/GLTFLoader.js').then(async ({ GLTFLoader }) => {
+      const [pig, coin] = await Promise.all(['piggy-bank-user', 'one-euro-coin-user'].map((n) => new GLTFLoader().loadAsync('assets/' + n + '.glb?v=cv-scene-v40')));
+      const asm = new THREE.Group(); asm.add(pig.scene);
+      const falling = coin.scene; falling.scale.setScalar(0.5 / 0.17); falling.visible = false; asm.add(falling);
+      const slot = pig.scene.getObjectByName('CoinSlotAnchor');
+      const box = new THREE.Box3().setFromObject(asm), size = box.getSize(new THREE.Vector3()), k = 2.6 / Math.max(size.x, size.y, size.z);
+      const g = new THREE.Group(); g.add(asm); asm.scale.setScalar(k); asm.position.y = -box.min.y * k;
+      g.position.set(pr.cx, 0, pr.cz); g.rotation.y = 0.5; scene.add(g); patchTree(g);
+      const anchor = slot ? asm.worldToLocal(slot.getWorldPosition(new THREE.Vector3())) : new THREE.Vector3(0, size.y, 0);
+      falling.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+      pigs.push({ falling, anchor, z: pr.cz });
+    }).catch((e) => console.warn('tirelire indisponible', e));
+  }
+
+  /* éléments vivants (hublot et sa vidéo, symbole infini) : le vrai DOM, posé dans la 3D par CSS3D, toujours interactif */
+  const lives = [];
+  const liveEls = $$('[data-live]').filter((el) => el.dataset.live !== 'infini');
+  // symbole infini : son canvas tourne dans un hôte invisible mais à l'écran (il se met en pause hors écran),
+  // et son image est recopiée sur la feuille à chaque image, courbure comprise
+  const infEl = $('[data-live="infini"]'), infs = [];
+  if (infEl && !reduce) {
+    const r = rectOf(infEl), g = W(r);
+    const ph = document.createElement('div'); ph.style.cssText = `width:${r.w}px;height:${r.h}px;margin:${getComputedStyle(infEl).margin}`; infEl.before(ph);
+    infEl.classList.add('pc-inf-host'); infEl.style.width = r.w + 'px'; infEl.style.height = r.h + 'px'; infEl.style.margin = '0'; document.body.append(infEl);
+    const cv = infEl.querySelector('canvas'), t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0.006, g.cz); m.renderOrder = 1; scene.add(m);
+    infs.push({ t, z: g.cz });
+    import('./infinity.js').then((mod) => mod.initInfinity(cv)).catch((e) => console.warn('symbole infini indisponible', e));
+  }
+  let css = null; const cssScene = new THREE.Scene();
+  if (liveEls.length) {
+    const { CSS3DRenderer, CSS3DObject } = await import('../vendor/three-r187/CSS3DRenderer.js');
+    css = new CSS3DRenderer(); css.domElement.id = 'live3d'; document.body.append(css.domElement);
+    for (const el of liveEls) {
+      const r = rectOf(el), g = W(r);
+      const ph = document.createElement('div'); ph.style.cssText = `width:${r.w}px;height:${r.h}px;margin:${getComputedStyle(el).margin}`; el.before(ph); // la mise en page ne bouge pas
+      el.style.width = r.w + 'px'; el.style.height = r.h + 'px'; el.style.margin = '0';
+      const o = new CSS3DObject(el); o.scale.setScalar(1 / PXM); cssScene.add(o);
+      lives.push({ el, o, g, tilt: el.dataset.live === 'hublot' ? 0.75 : 0.45 });
+    }
+    if ($('#rf-win')) import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
+  }
+
   /* superpositions : légendes, « voir la magie », menu, traits courbes, repères d'échelle (relevés avant de déplacer les éléments) */
   const svg = $('#leaders'), NS = 'http://www.w3.org/2000/svg';
   const mkp = () => { const p = document.createElementNS(NS, 'path'); svg.append(p); return p; };
@@ -331,6 +379,7 @@ async function start() {
       }`, depthTest: false, depthWrite: false });
   postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
   function resize() {
+    if (css) css.setSize(innerWidth, innerHeight);
     renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
     const d = renderer.getPixelRatio(); rt.setSize(Math.round(innerWidth * d), Math.round(innerHeight * d)); postMat.uniforms.px.value.set(1 / (innerWidth * d), 1 / (innerHeight * d));
     page.style.height = Math.round(PAGE_H + innerHeight * 0.5) + 'px'; // la fin de la page peut venir au centre
@@ -371,6 +420,22 @@ async function start() {
     }
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
     for (const k of machines) if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
+    for (const p of pigs) { // une pièce toutes les 2,4 s
+      const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
+      p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
+    }
+    for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
+    if (css) {
+      const d0 = CURL.k * camera.position.y - CURL.off;
+      for (const L of lives) {
+        const a = L.tilt * e, far = L.g.cz - L.g.d / 2 * Math.cos(a);
+        L.o.rotation.set(-Math.PI / 2 + a, 0, 0); L.o.position.set(L.g.cx, 0.03 + L.g.d / 2 * Math.sin(a), L.g.cz + (L.g.d / 2) * (1 - Math.cos(a)));
+        const t = camera.position.z - far - d0, near = L.g.cz + L.g.d / 2 - camera.position.z;
+        L.el.style.opacity = Math.max(0, Math.min(1, 1 - t / 2, 1 - near / 3)).toFixed(3);
+        L.el.style.visibility = L.el.style.opacity === '0.000' ? 'hidden' : '';
+      }
+      css.render(cssScene, camera);
+    }
     postMat.uniforms.amt.value = e;
     if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);

@@ -78,6 +78,50 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-step b{display:block;font:500 11px var(--mono);color:rgba(255,255,255,.7)}
 .pc-step strong{display:block;margin:2px 0 3px;font:700 16px/1.25 var(--sans)}
 .pc-step span{display:block;color:rgba(255,255,255,.88)}
+.pc-gainsrow{display:grid;grid-template-columns:400px 1fr;gap:40px;align-items:center;margin:0 0 60px}
+.pc-pig{height:380px}
+.pc-stat{display:flex;flex-direction:column;margin:0 0 18px!important}
+.pc-stat b{font:700 44px/1.05 var(--sans);letter-spacing:-1px}
+.pc-stat span{font:13px var(--mono);color:rgba(255,255,255,.75)}
+.pc-table{padding:20px 22px}
+.pc-table table{width:100%;border-collapse:collapse;font:14px/1.4 var(--sans);color:#fff}
+.pc-table caption{text-align:left;margin:0 0 10px;font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.75)}
+.pc-table th,.pc-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.2);text-align:left;font-weight:400}
+.pc-table thead th{font:500 11px var(--mono);text-transform:uppercase;color:rgba(255,255,255,.7)}
+.pc-table tbody th{font-weight:700}
+.pc-exp-top{display:grid;grid-template-columns:330px 1fr;gap:50px;align-items:center;margin:0 0 70px}
+.pc-hublot{width:330px;height:264px}
+.pc-exp-title .pc-h{margin-bottom:24px}
+.pc-lead{margin:0;font:400 19px/1.5 var(--sans);color:rgba(255,255,255,.9)}
+.pc-skill h3{margin:0 0 12px;font:700 19px/1.2 var(--sans)}
+.pc-chips{display:flex;flex-wrap:wrap;gap:7px;margin:0!important}
+.pc-chips span{padding:5px 10px;border:1px solid rgba(255,255,255,.55);border-radius:14px;font:13px/1.2 var(--sans)}
+.pc-chips .pc-learning{border-style:dashed;color:rgba(255,255,255,.8)}
+.pc-legend{margin:-40px 0 40px}
+.pc-inf{position:relative;height:520px;margin:-130px -60px 40px;overflow:hidden}
+.pc-inf canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pc-notes2{grid-template-columns:1fr 1fr}
+.pc-blogcol ul{margin:0;padding:0;list-style:none}
+.pc-blogcol li{display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.2)}
+.pc-blogcol a{color:#fff;text-decoration:none;font:600 15px/1.3 var(--sans)}
+.pc-blogcol i{font:12px var(--mono);font-style:normal;color:rgba(255,255,255,.7)}
+/* hublot (repris de refonte/rf.css) */
+.rf-win{position:relative;width:330px;height:auto;aspect-ratio:5/4;isolation:isolate;user-select:none;touch-action:pan-y}
+.rf-win-view{position:absolute;inset:4px;overflow:hidden;border-radius:5rem;background:#5fa4ec;z-index:0}
+.rf-win-video{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.rf-win-inner,.rf-win-outer,.rf-win-panel{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
+.rf-win-inner{z-index:1;transform:scale(.9)}
+.rf-win-glass{position:absolute;inset:6.666667% 5.333333%;overflow:hidden;border-radius:1rem;z-index:2}
+.rf-win-shutter{position:absolute;inset:0;transform:translate3d(0,0,0);cursor:grab;touch-action:none;will-change:transform}
+.rf-win-grip{position:absolute;left:5%;width:90%;bottom:4px;height:24px;cursor:grab;touch-action:none;border-radius:0 0 6rem 6rem}
+.rf-win-grip:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+.rf-win-outer{z-index:3}
+/* hôte du symbole infini : à l'écran pour ne pas se mettre en pause, mais invisible (son image est reprise dans la 3D) */
+.pc-inf-host{position:fixed!important;left:0;top:0;opacity:0;pointer-events:none;z-index:-1}
+/* éléments vivants : posés dans la 3D par CSS3D, ils restent interactifs */
+#live3d{position:fixed;inset:0;z-index:2;pointer-events:none;display:none}
+html.expo #live3d{display:block}
+#live3d .pc-live{pointer-events:auto}
 .pc-end{margin:40px 0 0;font:12px var(--mono);color:#8a8e98;text-align:center}
 
 /* la pièce du site anime ses objets depuis un conteneur hors écran ; ils sont dessinés dans la scène du parcours */
