@@ -6,7 +6,7 @@
 // Touche P : panne du chariot 1, la clé passe au chariot 2 (reprise à concevoir).
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
-import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
+import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
 
 const WIDTH = 640, HEIGHT = 420;
 // ---------------------------------------------------------------- monde (1 unité ≈ 5 mm)
@@ -234,7 +234,7 @@ ${LOOP}
 const P = ${JSON.stringify(P)};
 const CARD = ${JSON.stringify(CARD)}, IN = ${JSON.stringify(IN)}, OUT = ${JSON.stringify(OUT)}, BIN = ${JSON.stringify(BIN)}, PAD = ${JSON.stringify(PAD)};
 const TH = ${TH}, PAD_H = ${PAD_H}, BZ = ${BZ}, BY = ${BY}, BEAM_Y = ${BEAM_Y}, HOME = ${JSON.stringify(HOME)};
-const CARD_SVG = ${JSON.stringify(cardSvg(false))}, CARD_LIT = ${JSON.stringify(cardSvg(true))};
+${PAPER}
 // Vrais chiffres : 4 000 à 5 000 rapports par an sur 225 jours, soit 18 à 22 par jour ;
 // 30 min épargnées par rapport, valorisées à 104,74 €/h (52,37 €). Relevé toutes les 2 min.
 const PER_REPORT = { min: 30, eur: 52.37 }, POLL = 2, WORK = 8, START = 480, END = 1020, RECAP = 1028;
@@ -279,7 +279,9 @@ const trolleys = [$("trolley-0"), $("trolley-1")], ot = $("ot"), r004 = $("r004"
 const flyer = document.createElementNS("http://www.w3.org/2000/svg", "g"), rope = document.createElementNS("http://www.w3.org/2000/svg", "g");
 const holder = document.createElementNS("http://www.w3.org/2000/svg", "g");
 holder.append(rope, flyer); air.append(holder);
-const card = (p) => '<g transform="' + translateAlong(P, p) + '">' + CARD_SVG + '</g>';
+const sheet = (p, o = {}) => paperSvg(paperRows({ c: [p[0], p[1], p[2] + 0.5], d: [1, 0, 0], w: [0, 1, 0], L: CARD.w, W: CARD.d, curl: o.curl ?? 0.022, wave: o.wave || 0, roll: o.roll || 0, ph: o.ph || 0, t: o.t || 0 }), { head: true, lit: o.lit });
+const depth = (p) => iso([p[0], p[1], 0], P)[1];
+const stackOf = (list) => list.slice().sort((a, b) => depth(a.p) - depth(b.p) || a.p[2] - b.p[2]).map((c) => sheet(c.p, { ph: c.i, curl: (c.i % 2 ? 1 : -1) * 0.02 })).join("");
 let m = START, hold = 0, touring = true, idle = 0, drawn = "";
 function clockText(min) { const h = Math.floor(min / 60), mm = Math.floor(min % 60); return String(h).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); }
 // Position d'un chariot : sur la carte pendant un travail, puis il reste où il l'a posée.
@@ -300,9 +302,9 @@ function draw() {
   const done = day.filter((c) => t >= c.end && !c.rejected), rejected = day.filter((c) => t >= c.end && c.rejected);
   const sig = pending.map((c) => c.i).join() + "|" + done.length + "|" + rejected.length;
   if (sig !== drawn) {
-    inCards.innerHTML = pending.map((c) => card([...inPos(c.i), TH + 1.6])).join("");
-    outCards.innerHTML = done.map((c) => card([...outPos(c.slot), TH + 1.6 + Math.floor(c.slot / 12) * 1.2])).join("");
-    binCards.innerHTML = rejected.map((_, n) => card([...binPos(), TH + 1.6 + n * 1.2])).join("");
+    html(inCards, stackOf(pending.map((c) => ({ i: c.i, p: [...inPos(c.i), TH + 1.6] }))));
+    html(outCards, stackOf(done.map((c) => ({ i: c.i, p: [...outPos(c.slot), TH + 1.6 + Math.floor(c.slot / 12) * 1.2] }))));
+    html(binCards, stackOf(rejected.map((c, n) => ({ i: c.i, p: [...binPos(), TH + 1.6 + n * 1.2] }))));
     drawn = sig;
   }
   const fail = failAt !== null && t >= failAt;
@@ -312,7 +314,7 @@ function draw() {
   trolleys.forEach((el, n) => put(el, translateAlong(P, [xs[n], 0, 0])));
   // Carte portée : une corde tendue du chariot à la carte quand elle est accrochée.
   if (busy) {
-    html(flyer, '<g transform="' + translateAlong(P, q.p) + '">' + CARD_LIT + "</g>");
+    html(flyer, sheet(q.p, { lit: true, curl: q.hook ? -0.07 : 0.02, wave: q.hook ? 1.3 : 0.15, roll: q.hook ? 0.7 : 0, ph: busy.i, t: performance.now() / 1000 }));
     const [px, py, pz] = q.p;
     html(rope, q.hook ? lineSvg(segment([xs[busy.vm], BY, BZ + 6], [px, py, pz + 0.8], P), { tone: "hi" }) : "");
     attr(holder, "style", "");

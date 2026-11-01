@@ -8,14 +8,14 @@ import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
 
 const WIDTH = 640, HEIGHT = 420;
+const RAIL_Y = -8;                                                                    // axe du rail, des chargeurs et des stations
 const PLATE = { x: -128, y: -46, w: 256, d: 104, r: 8 };
 const DESK = { x: -120, y: -30, w: 70, d: 54, r: 3 }, DESK_H = 22;                  // pupitre des chargeurs
-const SOCKETS = [-110, -96, -82].map((x) => x + 0), SOCKET_Y = -4;                    // OT, équipement, bâtiment (axes x)
+const SOCKETS = [-104, -84, -64], SOCKET_Y = RAIL_Y;                    // OT, équipement, bâtiment (axes x)
 const BLOCK = { x: -36, y: -22, w: 150, d: 30, r: 3 }, BLOCK_H = 26;                  // socle des stations
 const COLS = [-18, 12, 42, 72, 102];                                                  // axes des cinq stations
 const POD = { r: 8.4, h: 10 };                                                        // station : cuvette d'accueil
 const TRUNK = 112, CAPH = 12, CR = 3;                                                 // rail : hauteur du dessous, capsule
-const RAIL_Y = -8;                                                                    // axe du rail et des stations
 const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -120, y: -40, w: 240, d: 60 }, 0, TRUNK + 14)], WIDTH, HEIGHT, { pad: 22, azimuth: 60 });
 const { at, S, L, D, slab, front, right, flat, byDepth } = tools(P);
 const HANG = TRUNK - 4 - CAPH;                                                        // z du pied de la capsule en transport
@@ -63,14 +63,11 @@ function stationSvg(c) {
   return out.join("");
 }
 // ---------------------------------------------------------------- rail
-const POSTS = [-108, -38, 34, 106];
+// Montants posés dans les intervalles entre chargeurs et stations, sous l'axe du rail : la poutre repose sur leur tête.
+const POSTS = [-114, -43, 27, 87], postBase = (x) => (x < -52 ? DESK_H : x < -36 ? 0 : BLOCK_H);
 function railSvg() {
   const out = [], beam = { x: -112, y: RAIL_Y - 3.5, w: 226, d: 7, r: 1 };
-  for (const x of POSTS) {
-    const base = x < -50 ? DESK_H + 3 : BLOCK_H;                 // les montants arrière partent du pupitre ou du socle
-    out.push(S(slab({ x: x - 2.4, y: RAIL_Y - 12, w: 4.8, d: 4.8, r: 0.8 }, x < -50 ? DESK_H : BLOCK_H, TRUNK - (x < -50 ? DESK_H : BLOCK_H), 3, 0.5), { tone: "mid" }));
-    void base;
-  }
+  for (const x of POSTS) out.push(S(slab({ x: x - 2.4, y: RAIL_Y - 2.4, w: 4.8, d: 4.8, r: 0.8 }, postBase(x), TRUNK - postBase(x), 3, 0.5), { tone: "mid" }));
   out.push(S(slab(beam, TRUNK, 6, 3, 0.7), { tone: "mid", inner: L(k.sideSeam(beam, TRUNK + 3, P, 3), { tone: "faint" }) }));
   out.push(S(slab({ x: -110, y: RAIL_Y - 1, w: 222, d: 2, r: 0.3 }, TRUNK + 6, 1.2, 2, 0.2), { tone: "lo" }));
   const dots = []; for (let x = -104; x <= 104; x += 16) dots.push(at([x, RAIL_Y + 3.5, TRUNK + 3]));
@@ -144,8 +141,8 @@ function railDetail() {
   const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 6, 5, strip.y + 0.2, TRUNK + 6.5, [0.7, 1.2], P);
   out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
   // Colliers et semelles des montants.
-  for (const x of POSTS) { const b = x < -50 ? DESK_H : BLOCK_H; out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 13.2, w: 7.2, d: 7.2, r: 0.8 }, b, 2.2, 2, 0.3), { tone: "lo" })); out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 13.2, w: 7.2, d: 7.2, r: 0.8 }, TRUNK - 14, 2.2, 2, 0.3), { tone: "mid" })); }
-  out.push(D(POSTS.map((x) => at([x, RAIL_Y - 7.6, TRUNK])), { size: 0.36 }));
+  for (const x of POSTS) { const b = postBase(x); out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 3.6, w: 7.2, d: 7.2, r: 0.8 }, b, 2.2, 2, 0.3), { tone: "lo" })); out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 3.6, w: 7.2, d: 7.2, r: 0.8 }, TRUNK - 14, 2.2, 2, 0.3), { tone: "mid" })); }
+  out.push(D(POSTS.map((x) => at([x, RAIL_Y + 2.4, TRUNK - 14 + 2.2])), { size: 0.36 }));
   return out.join("");
 }
 

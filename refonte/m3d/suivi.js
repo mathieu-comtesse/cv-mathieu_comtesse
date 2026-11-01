@@ -6,7 +6,7 @@ import { COL, mat, slab, box, cyl, cylY, ball, bench, display, ease } from './co
 
 export const WIDTH = 256;
 const PLATE = { x: -128, y: -46, w: 256, d: 104, r: 8 };
-const DESK = { x: -120, y: -30, w: 70, d: 54 }, DESK_H = 22, SOCKETS = [-110, -96, -82], SOCKET_Y = -4;
+const DESK = { x: -120, y: -30, w: 70, d: 54 }, DESK_H = 22, SOCKETS = [-104, -84, -64], SOCKET_Y = -8;
 const BLOCK = { x: -36, y: -22, w: 150, d: 30 }, BLOCK_H = 26, COLS = [-18, 12, 42, 72, 102], POD = { r: 8.4, h: 10 };
 const TRUNK = 112, CAPH = 12, CR = 3, RAIL_Y = -8, HANG = TRUNK - 4 - CAPH, PODZ = BLOCK_H + POD.h;
 const SOURCES = ["GMAO", "exports", "SharePoint", "Excel", "Power BI"], KINDS = ["OT", "équipement", "bâtiment"];
@@ -47,7 +47,7 @@ export function build() {
     return l;
   });
   const off = lamps[0].material;
-  for (const x of [-108, -38, 34, 106]) { const b = x < -50 ? DESK_H : BLOCK_H; g.add(slab(x - 2.4, RAIL_Y - 12, 4.8, 4.8, b, TRUNK - b, COL.mid, .8)); }
+  for (const x of [-114, -43, 27, 87]) { const b = x < -52 ? DESK_H : x < -36 ? 0 : BLOCK_H; g.add(slab(x - 2.4, RAIL_Y - 2.4, 4.8, 4.8, b, TRUNK - b, COL.mid, .8)); }
   g.add(slab(-112, RAIL_Y - 3.5, 226, 7, TRUNK, 6, COL.mid, 1), slab(-110, RAIL_Y - 1, 222, 2, TRUNK + 6, 1.2, COL.lo, .3));
   const carrier = new THREE.Group(); carrier.add(slab(-7, RAIL_Y - 5, 14, 10, TRUNK + 7.2, 5, COL.mid, 1), slab(-1.2, RAIL_Y - 5, 2.4, 10, TRUNK - 4, 4, COL.mid, .2)); g.add(carrier);
   const loaders = SOCKETS.map((x) => { const c = capsule(COL.hi); c.position.set(x, DESK_H + 1.2, SOCKET_Y); g.add(c); return c; });

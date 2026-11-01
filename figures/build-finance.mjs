@@ -6,7 +6,7 @@
 // Les enveloppes restent dans le bac : pas d'alerte en double.
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
-import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
+import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
 
 const WIDTH = 640, HEIGHT = 440;
 const PLATE = { x: -154, y: -44, w: 308, d: 100, r: 8 };
@@ -159,7 +159,7 @@ const live = `
 ${LOOP}
 const P = ${JSON.stringify(P)};
 const TANKS = ${JSON.stringify(TANKS)}, TY = ${TY}, TD = ${TD}, FY = ${FY}, FLOOR = ${FLOOR}, SCALE = ${SCALE}, SWEEP = ${JSON.stringify(SWEEP)}, TRAY = ${JSON.stringify(TRAY)}, KNOB = ${JSON.stringify(KNOB)}, CON_Y = ${CONSOLE.y + CONSOLE.d};
-const ENV = [${JSON.stringify(envelopeSvg(false))}, ${JSON.stringify(envelopeSvg(true))}];
+${PAPER}
 // Vrais chiffres : 5 périmètres × 5 min de pointage par jour évitées, 225 jours, 104,74 €/h.
 // Les fonds et les dépenses sont illustratifs.
 const NAMES = ["CS", "Locatif", "MEC", "PPTM", "GLOBAL"], DAYS = 225, MIN_PER_DAY = 25, RATE = 104.74;
@@ -202,7 +202,9 @@ function envelopeAt(s, now, stack) {
   const g = TANKS[s.i], age = (now - s.day) / 1.2;
   const out = Math.min(1, age / 0.5), drop = age < 0.5 ? 0 : Math.min(1, ((age - 0.5) / 0.4) ** 2);
   const restZ = 1.4 + stack * 1.1, z = 4 - (4 - restZ) * drop, y = FY - 4 + out * (TRAY.y + 12 - FY + 4), op = Math.min(1, age / 0.25);
-  return '<g transform="' + translateAlong(P, [g.cx + s.level * 3, y, z]) + '" opacity="' + op.toFixed(2) + '">' + ENV[s.level] + "</g>";
+  const move = age < 1 ? Math.sin(Math.PI * Math.max(0, Math.min(1, age))) : 0;
+  const o = { c: [g.cx + s.level * 3, y, z + 0.5], d: [1, 0, 0], w: [0, 1, 0], L: 16, W: 10, curl: move > 0.02 ? -0.05 * move : (stack % 2 ? 0.03 : -0.025), wave: 1.2 * move, roll: 0.9 * move, ph: s.i * 1.3 + stack, t: now * 0.9, NT: 8 };
+  return { depth: iso([o.c[0], o.c[1], 0], P)[1], z, svg: '<g opacity="' + op.toFixed(2) + '">' + paperSvg(paperRows(o), { flap: true, band: s.level === 1, lines: false }) + "</g>" };
 }
 function draw() {
   const r = ratios(day);
@@ -215,7 +217,7 @@ function draw() {
     attr(lamps[i], "data-on", r[i] >= shownT || (last && day - last.day < 0.6));
     text(pcs[i], String(Math.round(r[i] * 100)).padStart(3, " ") + " %");
   });
-  html(mail, inTray(day).map((list) => list.map((s, q) => envelopeAt(s, day, q)).join("")).join(""));
+  html(mail, inTray(day).flatMap((list) => list.map((s, q) => envelopeAt(s, day, q))).sort((a, b) => a.depth - b.depth || a.z - b.z).map((e) => e.svg).join(""));
   const a = (shownT - 0.5) / 0.5 * Math.PI * 1.2 - Math.PI * 0.6;
   html(mark, lineSvg(segment([KNOB.x + Math.sin(a) * 1.4, CON_Y + 6, KNOB.z + Math.cos(a) * 1.4], [KNOB.x + Math.sin(a) * KNOB.r, CON_Y + 6, KNOB.z + Math.cos(a) * KNOB.r], P), { tone: "hi" }) + dotsSvg([iso([KNOB.x + Math.sin(a) * 1.4, CON_Y + 6, KNOB.z + Math.cos(a) * 1.4], P)], { size: 0.5 }));
   const d = Math.floor(day), mins = d * MIN_PER_DAY, h = Math.floor(mins / 60), mm = mins % 60;

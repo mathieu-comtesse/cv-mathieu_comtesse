@@ -1,253 +1,228 @@
-// Fig 04 · Reporteur Q18 : un fichier rotatif motorisé.
+// Fig 04 · Reporteur Q18 : un registre à rouleau motorisé.
 // node figures/build-moteur.mjs  →  figures/moteur.html
-// Le rapport SharePoint donne son OT ; on le compose au cadran, le moteur fait tourner le fichier
-// jusqu'à la fiche de la bonne ligne Excel, qui s'écarte et se lève ; le tampon y reporte les données
-// et, si le rapport en contient, un cavalier Q18 se clipse sur la tranche : les Q18 restent visibles.
+// Le registre Excel est une longue bande de papier qui passe d'une bobine à l'autre devant une fenêtre de lecture. Le rapport SharePoint donne
+// son OT ; on le compose au cadran, le moteur déroule la bande jusqu'à la ligne voulue, le tampon y reporte les données et, si le rapport en
+// contient, un cavalier Q18 se clipse sur le bord de la bande : les Q18 restent visibles.
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
-import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
+import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
 
-const WIDTH = 600, HEIGHT = 400;
-const PLATE = { x: -128, y: -36, w: 236, d: 88, r: 8 };
-const AX = { z: 62, r0: 11, r1: 36, half: 26, rows: 36 };      // axe du fichier, rayon des fiches
-const STAND = 33, STAND_W = 6, GANTRY_Z = 118;
-const MOTOR = { x0: 44, x1: 70, r: 12 };
-const STAMP = { w: 20, rest: 24, z0: 96, z1: 106 };
-const CONSOLE = { x: -112, y: 14, w: 46, d: 32, r: 2.4 }, CONSOLE_H = 14;
-const DIAL = { x: -89, y: 28, r: 11 };
-const HOLDER = { x: -60, y: 20, w: 24, d: 8, r: 1.4 };
+const WIDTH = 640, HEIGHT = 440;
+const PLATE = { x: -128, y: -46, w: 256, d: 100, r: 8 };
+const BASE = { x: -54, y: -14, w: 108, d: 30, r: 3 }, BASE_H = 16;
+const POSTS = [-47, 41], POST_Z = 128, SW = 32;                    // montants et demi-largeur de la bande
+const TOP_Z = 108, BOT_Z = 34, READ_Z = (TOP_Z + BOT_Z) / 2;       // axes des bobines, ligne de lecture
+const ROWS_N = 36, NV = 10, ROW_H = (TOP_Z - BOT_Z) / NV;
+const CONS = { x: -112, y: 8, w: 52, d: 36, r: 3 }, CONS_H = 18, DIAL = { x: -96, y: 26, r: 11 };
+const MOTOR = { x0: 46, x1: 70, r: 9 };
+const STAMP = { x: 12, rest: 46, hit: 20 };
 
-const P = k.fitProjection(
-  [...k.boxCorners(PLATE, -15, 0), [-STAND - 12, -10, GANTRY_Z + 6], [STAND + 12, 10, GANTRY_Z + 6], [MOTOR.x1, 0, AX.z + MOTOR.r + 4], [0, 0, AX.z + AX.r1 + 12]],
-  WIDTH, HEIGHT, { pad: 22, azimuth: 70 },
-);
+const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -52, y: -14, w: 104, d: 30 }, 0, POST_Z + 6), [STAMP.x, 56, 90]], WIDTH, HEIGHT, { pad: 22, azimuth: 58 });
 const { at, S, L, D, slab, front, right, flat } = tools(P);
-const X = [1, 0, 0], up = [0, 0, 1];
-const axis = (x) => G.frameOf([x, 0, AX.z], X, [0, 1, 0], up);
+const FX = (x, y, z) => G.frameAlong([x, y, z], [1, 0, 0]);
 
-// ---------------------------------------------------------------- bâti, manivelle, moteur
-function standSvg(x) {
-  const out = [], plan = { x: x - STAND_W / 2, y: -18, w: STAND_W, d: 36, r: 1.2 };
-  out.push(S(slab(k.insetPlan(plan, -2), 0, 3, 3, 0.5), { tone: "lo" }));
-  out.push(D(k.corners(k.insetPlan(plan, -2), 2).map(([px, py]) => at([px, py, 3])), { size: 0.42 }));
-  out.push(S(slab({ x: plan.x, y: -6, w: STAND_W, d: 12, r: 1.2 }, 3, GANTRY_Z - 3, 3, 0.5), { tone: "mid", inner: L(k.sideSeam({ x: plan.x, y: -6, w: STAND_W, d: 12, r: 1.2 }, AX.z - 8, P, 3), { tone: "faint" }) }));
-  // Gousset et palier de l'axe.
-  out.push(S(slab({ x: plan.x + 0.6, y: -16, w: STAND_W - 1.2, d: 32, r: 1 }, 3, 8, 2, 0.4), { tone: "mid" }));
-  const F = axis(x + (x < 0 ? -STAND_W / 2 - 1.6 : STAND_W / 2));
-  out.push(S(G.disc(0, 1.6, 6.4, F, P), { tone: "mid" }));
-  out.push(D(G.dotsOf(F, 1.6, 4.6, 4, P, { phase: Math.PI / 4 }), { size: 0.4 }));
+// ---------------------------------------------------------------- socle, montants, bobines
+function baseSvg() {
+  const out = [], f = front(BASE.y + BASE.d), r = right(BASE.x + BASE.w);
+  out.push(`<path class="iso-halo" d="${k.haloOf(BASE, 0, 2, P)}" style="filter:blur(3px)"/>`);
+  out.push(S(slab(k.insetPlan(BASE, 3), 0, 3, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab(BASE, 3, BASE_H - 3, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(BASE, 8, P, 4), { tone: "faint" }) }));
+  out.push(D(k.corners(BASE, 4).map(([x, y]) => at([x, y, BASE_H])), { size: 0.42 }));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${flat(BASE.x + 6, 4, BASE.x + 40, 12, 1.2, 3)}${flat(BASE.x + 50, 4, BASE.x + BASE.w - 6, 12, 1.2, 3)}"/></g>`);
+  out.push(D([BASE.x + 8, BASE.x + 38, BASE.x + 52, BASE.x + BASE.w - 8].map((x) => at([x, BASE.y + BASE.d, 8])), { size: 0.34 }));
+  const vents = []; for (let i = 0; i < 5; i++) vents.push(flat(-(BASE.y + 5 + i * 5) - 1, 3.6, -(BASE.y + 5 + i * 5) + 1, 12, 1, 3));
+  out.push(`<g transform="${r}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
   return out.join("");
 }
-function crankSvg() {
-  const F = axis(-STAND - STAND_W / 2 - 14);
-  return [
-    S(G.disc(0, 12.4, 2.4, F, P), { tone: "mid" }),
-    S(G.disc(0, 3, 7, F, P), { tone: "mid", inner: L(G.ribsOf(F, 0.4, 2.6, 7, 30, P), { tone: "faint" }) }),
-  ].join("");
+function postsSvg(side) {
+  const out = [];
+  for (const x of POSTS) {
+    const pl = { x, y: -9, w: 6, d: 18, r: 1 };
+    if (side === "back") {
+      out.push(S(slab({ x: x - 2, y: -11, w: 10, d: 22, r: 1.4 }, BASE_H, 2.4, 3, 0.4), { tone: "lo" }));
+      out.push(S(slab(pl, BASE_H + 2.4, POST_Z - BASE_H - 2.4, 3, 0.5), { tone: "mid", inner: L(k.sideSeam(pl, 60, P, 3), { tone: "faint" }) }));
+      out.push(D([at([x + 3, 9, BASE_H + 6]), at([x + 3, 9, POST_Z - 6])], { size: 0.38 }));
+      out.push(S(slab({ x: x - 1, y: -10, w: 8, d: 20, r: 1 }, POST_Z, 3, 3, 0.4), { tone: "mid" }));
+    }
+  }
+  return out.join("");
+}
+function spoolSvg(part, z, big) {
+  // Bobine d'axe x : flasques aux deux bouts, âme, bande enroulée (dynamique).
+  const out = [], x0 = -40, x1 = 40;
+  out.push(S(G.disc(x0 - 6, x0, 11, FX(0, 0, z), P), { tone: "lo" }).replace('class="iso-solid"', 'class="iso-solid"'));
+  out.push(S(G.disc(x0, x1, 2.4, FX(0, 0, z), P), { tone: "mid" }));
+  out.push(`<g data-part="${part}"></g>`);
+  out.push(S(G.disc(x1, x1 + 6, 11, FX(0, 0, z), P), { tone: "lo" }));
+  void big;
+  return out.join("");
+}
+
+// ---------------------------------------------------------------- fenêtre de lecture, tampon, console, moteur
+function windowSvg() {
+  const out = [], y = 17, z0 = READ_Z - 9, z1 = READ_Z + 9;
+  for (const sx of [-SW - 3, SW + 1]) {
+    out.push(S(slab({ x: sx, y, w: 2, d: 3, r: 0.4 }, z0 - 4, z1 - z0 + 8, 2, 0.2), { tone: "mid" }));
+    out.push(S(slab({ x: sx > 0 ? sx + 2 : sx - 4, y: -7, w: 4, d: y - -7, r: 0.5 }, z0 - 2, 3.4, 2, 0.2), { tone: "mid" }));
+  }
+  out.push(S(slab({ x: -SW - 3, y, w: 2 * SW + 6, d: 3, r: 0.4 }, z1, 3.4, 2, 0.2), { tone: "mid" }));
+  out.push(S(slab({ x: -SW - 3, y, w: 2 * SW + 6, d: 3, r: 0.4 }, z0 - 3.4, 3.4, 2, 0.2), { tone: "mid" }));
+  out.push(D([at([-SW - 2, y + 3, z1 + 1.7]), at([SW + 2, y + 3, z1 + 1.7]), at([-SW - 2, y + 3, z0 - 1.7]), at([SW + 2, y + 3, z0 - 1.7])], { size: 0.36 }));
+  const [lx, ly] = at([0, y + 3, z1 + 3.4 + 1.4]);
+  out.push(S(k.cylinder(0, y + 1.5, 2.2, z1 + 3.4, 1.4, P, 18), { tone: "mid" }));
+  out.push(`<circle class="fig-lamp" data-part="lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1"/>`);
+  return out.join("");
+}
+function stampSvg() {
+  const out = [], h = { x: STAMP.x - 9, w: 18 }, F = G.frameAlong([STAMP.x, STAMP.rest, READ_Z], [0, -1, 0]);
+  // Colonne, corps du vérin et ressort de rappel (fixes), puis tête (mobile).
+  out.push(S(slab({ x: STAMP.x - 6, y: 44, w: 12, d: 12, r: 1.2 }, 0, 6, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab({ x: STAMP.x - 3, y: 47, w: 6, d: 6, r: 0.8 }, 6, READ_Z + 10 - 6, 3, 0.4), { tone: "mid" }));
+  out.push(S(slab({ x: STAMP.x - 8, y: 43, w: 16, d: 14, r: 1.4 }, READ_Z + 4, 14, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: STAMP.x - 8, y: 43, w: 16, d: 14, r: 1.4 }, READ_Z + 10, P, 3), { tone: "faint" }) }));
+  out.push(D([at([STAMP.x - 6, 57, READ_Z + 14]), at([STAMP.x + 6, 57, READ_Z + 14])], { size: 0.36 }));
+  out.push(`<g data-part="stamp">`);
+  out.push(S(G.disc(0, STAMP.rest - 43 + 2, 2.2, G.frameAlong([STAMP.x, 43, READ_Z + 11], [0, -1, 0]), P), { tone: "hi" }));
+  out.push(S(slab({ x: h.x, y: STAMP.rest - 12, w: h.w, d: 4, r: 0.6 }, READ_Z - 6.4, 12.8, 2, 0.3), { tone: "hi", lit: true }));
+  out.push(`</g>`);
+  void F;
+  return out.join("");
+}
+function consoleSvg() {
+  const out = [], c = CONS, f = front(c.y + c.d), r = right(c.x + c.w);
+  out.push(`<path class="iso-halo" d="${k.haloOf(c, 0, 2, P)}" style="filter:blur(3px)"/>`);
+  out.push(S(slab(c, 0, CONS_H, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(c, 5, P, 4), { tone: "faint" }) }));
+  out.push(D(k.corners(c, 3.4).map(([x, y]) => at([x, y, CONS_H])), { size: 0.42 }));
+  out.push(display(f, flat(c.x + 6, 6, c.x + 46, 13, 1.2), { part: "ot", x: c.x + 26, y: -9.2, size: 5.4, text: "_______" }));
+  out.push(D([c.x + 4, c.x + 48].map((x) => at([x, c.y + c.d, 9.5])), { size: 0.34 }));
+  const vents = []; for (let i = 0; i < 5; i++) vents.push(flat(-(c.y + 6 + i * 6) - 1, 4, -(c.y + 6 + i * 6) + 1, 14, 1, 3));
+  out.push(`<g transform="${r}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  // Plaque du cadran : repères de 1 à 0 sur la couronne.
+  out.push(S(k.cylinder(DIAL.x, DIAL.y, DIAL.r + 2.4, CONS_H, 1, P, 40), { tone: "lo" }));
+  const marks = []; for (let i = 0; i < 10; i++) { const a = (60 + 30 + i * 28) * Math.PI / 180; marks.push(k.segment([DIAL.x + Math.cos(a) * (DIAL.r + 0.4), DIAL.y + Math.sin(a) * (DIAL.r + 0.4), CONS_H + 1], [DIAL.x + Math.cos(a) * (DIAL.r + 2.2), DIAL.y + Math.sin(a) * (DIAL.r + 2.2), CONS_H + 1], P)); }
+  out.push(L(marks.join(""), { tone: "mid" }));
+  out.push(`<g data-part="dial"></g>`);
+  out.push(S(k.cylinder(DIAL.x, DIAL.y, 2.6, CONS_H + 1.8, 1, P, 20), { tone: "hi" }));
+  return out.join("");
 }
 function motorSvg() {
-  const out = [], len = MOTOR.x1 - MOTOR.x0;
-  out.push(S(slab({ x: MOTOR.x0 + 3, y: -10, w: len - 6, d: 20, r: 1.6 }, 0, 4, 3, 0.5), { tone: "lo" }));
-  out.push(S(slab({ x: MOTOR.x0 + 7, y: -4, w: len - 14, d: 8, r: 1 }, 4, AX.z - MOTOR.r - 2, 3, 0.4), { tone: "mid" }));
-  const F = axis(MOTOR.x0);
-  out.push(S(G.disc(-(MOTOR.x0 - STAND - STAND_W / 2), 0, 3.4, F, P), { tone: "mid" }));
-  out.push(S(G.disc(0, 2.4, MOTOR.r + 1, F, P), { tone: "mid" }));
-  out.push(S(G.disc(2.4, len - 2.4, MOTOR.r, F, P), { tone: "mid", inner: L(G.ribsOf(F, 2.4, len - 2.4, MOTOR.r, 24, P), { tone: "faint" }) }));
-  out.push(S(G.disc(len - 2.4, len, MOTOR.r + 1, F, P), { tone: "mid" }));
-  out.push(D(G.dotsOf(F, len, MOTOR.r - 2, 4, P, { phase: Math.PI / 4 }), { size: 0.45 }));
-  // Repère d'arbre sur le flasque : il tourne avec le fichier.
+  const out = [], F = FX(0, 0, BOT_Z);
+  out.push(S(slab({ x: MOTOR.x0 - 2, y: -8, w: 6, d: 16, r: 1 }, BASE_H, BOT_Z - 11 - BASE_H + 4, 3, 0.4), { tone: "mid" }));
+  out.push(S(G.disc(MOTOR.x0, MOTOR.x1 - 6, MOTOR.r, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, MOTOR.x0, MOTOR.x1 - 6, MOTOR.r, 20, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  out.push(S(G.disc(MOTOR.x1 - 6, MOTOR.x1, MOTOR.r - 1.6, F, P), { tone: "mid" }));
   out.push(`<g data-part="shaft-mark"></g>`);
-  // Boîte à bornes et câble vers le bâti.
-  out.push(S(slab({ x: MOTOR.x0 + 8, y: -5, w: 10, d: 10, r: 1 }, AX.z + MOTOR.r - 1, 5, 2, 0.4), { tone: "mid" }));
-  out.push(D([at([MOTOR.x0 + 10, -3, AX.z + MOTOR.r + 4]), at([MOTOR.x0 + 16, 3, AX.z + MOTOR.r + 4])], { size: 0.4 }));
+  out.push(S(G.disc(MOTOR.x1, MOTOR.x1 + 1.2, 2.4, F, P), { tone: "hi" }));
   return out.join("");
 }
-// Moyeu entre les fiches de l'arrière et celles de l'avant.
-function hubSvg(side) {
-  const F = axis(-AX.half - 1);
-  const gap = STAND - STAND_W / 2 - AX.half - 1;
-  if (side === "left") return S(G.disc(-1.6 - gap, -1.6, 2.4, F, P), { tone: "mid" }) + S(G.disc(-1.6, 0, AX.r0 + 2.4, F, P), { tone: "mid" });
-  if (side === "right") return S(G.disc(AX.half * 2 + 2, AX.half * 2 + 3.6, AX.r0 + 2.4, F, P), { tone: "mid" }) + D(G.dotsOf(F, AX.half * 2 + 3.6, AX.r0, 6, P), { size: 0.4 }) + S(G.disc(AX.half * 2 + 3.6, AX.half * 2 + 2 + gap, 2.4, F, P), { tone: "mid" });
-  return S(G.disc(0, AX.half * 2 + 2, AX.r0, F, P), { tone: "mid", inner: L([0.25, 0.5, 0.75].map((u) => G.arcOf(F, u * (AX.half * 2 + 2), AX.r0, P)).join(""), { tone: "faint" }) });
-}
-
-// ---------------------------------------------------------------- portique et tampon
-function gantrySvg() {
-  const out = [];
-  out.push(S(slab({ x: -STAND - 4, y: -4, w: STAND * 2 + 8, d: 8, r: 1.2 }, GANTRY_Z, 5, 3, 0.5), { tone: "mid", inner: L(k.sideSeam({ x: -STAND - 4, y: -4, w: STAND * 2 + 8, d: 8, r: 1.2 }, GANTRY_Z + 2.5, P, 3), { tone: "faint" }) }));
-  out.push(D([-STAND, STAND].flatMap((x) => [at([x - 1.6, 2, GANTRY_Z + 5]), at([x + 1.6, -2, GANTRY_Z + 5])]), { size: 0.42 }));
-  // Glissière du tampon, vers l'avant.
-  out.push(S(slab({ x: -5, y: -2, w: 10, d: STAMP.rest + 14, r: 1 }, GANTRY_Z - 4, 4, 3, 0.4), { tone: "mid" }));
-  out.push(L(k.lineOnTop([-2.4, -2], [-2.4, STAMP.rest + 12], GANTRY_Z, P) + k.lineOnTop([2.4, -2], [2.4, STAMP.rest + 12], GANTRY_Z, P), { tone: "faint" }));
-  return out.join("");
-}
-// Tampon dessiné au repos ; il glisse vers −y jusqu'à la fiche.
-function stampSvg() {
-  const y = STAMP.rest, out = [];
-  out.push(S(slab({ x: -7, y: y - 1, w: 14, d: 10, r: 1.2 }, GANTRY_Z - 9, 5, 3, 0.4), { tone: "mid" }));
-  out.push(S(k.cylinder(0, y + 4, 2.2, STAMP.z1, GANTRY_Z - 9 - STAMP.z1, P, 18), { tone: "mid" }));
-  out.push(S(slab({ x: -STAMP.w / 2, y, w: STAMP.w, d: 8, r: 1.2 }, STAMP.z0, STAMP.z1 - STAMP.z0, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: -STAMP.w / 2, y, w: STAMP.w, d: 8, r: 1.2 }, STAMP.z0 + 4, P, 3), { tone: "faint" }) }));
-  out.push(S(slab({ x: -STAMP.w / 2 + 1, y: y - 1.4, w: STAMP.w - 2, d: 1.4, r: 0.4 }, STAMP.z0 + 1, STAMP.z1 - STAMP.z0 - 2, 2, 0), { tone: "lo" }));
-  return out.join("");
-}
-
-// ---------------------------------------------------------------- pupitre : cadran et afficheur
-function consoleSvg() {
-  const out = [], f = front(CONSOLE.y + CONSOLE.d);
-  out.push(`<path class="iso-halo" d="${k.haloOf(CONSOLE, 0, 2, P)}" style="filter:blur(3px)"/>`);
-  out.push(S(slab(CONSOLE, 0, CONSOLE_H, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(CONSOLE, 3, P, 4), { tone: "faint" }) }));
-  out.push(D(k.corners(CONSOLE, 3).map(([x, y]) => at([x, y, CONSOLE_H])), { size: 0.42 }));
-  const cx = CONSOLE.x + CONSOLE.w / 2;
-  out.push(display(f, flat(cx - 19, 4, cx + 19, 11, 1), { part: "ot", x: cx, y: -5.6, size: 5.4, text: "_______" }));
-  // Cadran : couronne fixe, disque à dix trous qui tourne, butée.
-  out.push(S(k.cylinder(DIAL.x, DIAL.y, DIAL.r + 1.6, CONSOLE_H, 1, P, 40), { tone: "mid" }));
-  out.push(L(k.ring(DIAL.x, DIAL.y, DIAL.r - 6, CONSOLE_H + 1, P, 32), { tone: "faint" }));
-  out.push(`<g data-part="dial"></g>`);
-  const sa = (Math.PI / 180) * 60;
-  out.push(S(k.cylinder(DIAL.x + Math.cos(sa) * (DIAL.r + 0.4), DIAL.y + Math.sin(sa) * (DIAL.r + 0.4), 0.9, CONSOLE_H + 1, 2.4, P, 12), { tone: "mid" }));
-  out.push(S(k.cylinder(DIAL.x, DIAL.y, 3.2, CONSOLE_H + 1, 1.2, P, 20), { tone: "lo" }));
-  // Voyant moteur.
-  const [lx, ly] = at([cx + 15, CONSOLE.y + 8, CONSOLE_H]);
-  out.push(L(k.ring(cx + 15, CONSOLE.y + 8, 2.6, CONSOLE_H, P, 24), { tone: "lo" }), `<circle class="fig-lamp" data-part="lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.4"/>`);
-  return out.join("");
-}
-// Pupitre du rapport : la fiche SharePoint en cours, debout dans sa pince.
-function holderSvg() {
-  const out = [];
-  out.push(S(slab(HOLDER, 0, 4, 3, 0.5), { tone: "mid" }));
-  out.push(L(k.planOutline({ x: HOLDER.x + 2, y: HOLDER.y + 3.2, w: HOLDER.w - 4, d: 1.4, r: 0.5 }, 4, P, 2), { tone: "lo" }));
-  out.push(`<g data-part="report"></g>`);
-  out.push(S(slab({ x: HOLDER.x + 8, y: HOLDER.y + 4.8, w: 8, d: 1.6, r: 0.5 }, 4, 6, 2, 0.3), { tone: "mid" }));
-  out.push(D([at([HOLDER.x + 12, HOLDER.y + 6.4, 8.4])], { size: 0.45 }));
-  return out.join("");
-}
-const reportSvg = () => {
-  const x = HOLDER.x + 2, y = HOLDER.y + 3.6;
-  return k.solidSvg(k.extrude([[x, y], [x + 20, y], [x + 20, y + 0.8], [x, y + 0.8]], 4, 28, P, { bevel: 0 }), { tone: "hi" }) +
-    `<g transform="${front(y + 0.8)}">${k.lineSvg(`M${x + 3} -27.5h9M${x + 3} -25h13M${x + 3} -22.5h7M${x + 3} -14h14M${x + 3} -11.5h10`, { tone: "lo", free: true })}<path class="iso-line" data-tone="faint" d="${flat(x + 2.4, 17.6, x + 17.6, 21.6, 0.5, 2)}"/></g>`;
-};
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un fichier rotatif motorisé sur un établi, sous un portique qui porte un tampon. À gauche, un pupitre à cadran rotatif et une pince tenant le rapport SharePoint. On compose l'OT, le moteur fait tourner le fichier jusqu'à la fiche de la bonne ligne, qui s'écarte et se lève ; le tampon y reporte les données et un cavalier Q18 se clipse sur sa tranche quand le rapport en contient.",
+  label: "Un registre à rouleau motorisé. Une longue bande de papier, le registre Excel, passe d'une bobine à l'autre devant une fenêtre de lecture. Un cadran compose l'OT à sept chiffres, le moteur déroule la bande jusqu'à la bonne ligne, un tampon y reporte les données, et un cavalier Q18 se clipse sur le bord de la bande quand le rapport en contient.",
   body: [
-    bench(P, PLATE, { strip: { x: -40, y: PLATE.y + PLATE.d - 12, w: 120, d: 7, r: 1 }, label: { x: 48, y: PLATE.y + PLATE.d - 26, w: 46, d: 11, r: 1.2 } }),
-    crankSvg(), standSvg(-STAND), hubSvg("left"),
-    `<g data-part="back"></g>`, hubSvg("hub"), `<g data-part="front"></g>`,
-    hubSvg("right"), standSvg(STAND), motorSvg(), gantrySvg(),
-    `<g data-part="stamp">${stampSvg()}</g>`,
-    consoleSvg(), holderSvg(),
+    bench(P, PLATE, { strip: { x: -118, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 60, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
+    baseSvg(), consoleSvg(), postsSvg("back"), motorSvg(), spoolSvg("spool-top", TOP_Z), spoolSvg("spool-bot", BOT_Z),
+    `<g data-part="strip"></g>`, `<g data-part="clips"></g>`, windowSvg(), `<g data-part="report"></g>`, stampSvg(),
   ],
 });
 
 // ---------------------------------------------------------------- modèle
 const live = `
-const P = ${JSON.stringify(P)};
-const AX = ${JSON.stringify(AX)}, STAMP = ${JSON.stringify(STAMP)}, DIAL = ${JSON.stringify(DIAL)}, CONSOLE_H = ${CONSOLE_H}, MOTOR = ${JSON.stringify(MOTOR)};
-const REPORT = ${JSON.stringify(reportSvg())};
 ${LOOP}
+const P = ${JSON.stringify(P)};
+${PAPER}
+const SW = ${SW}, TOP_Z = ${TOP_Z}, BOT_Z = ${BOT_Z}, READ_Z = ${READ_Z}, ROWS_N = ${ROWS_N}, NV = ${NV}, DIAL = ${JSON.stringify(DIAL)}, CONS_H = ${CONS_H}, MOTOR = ${JSON.stringify(MOTOR)}, STAMP = ${JSON.stringify(STAMP)};
 // Vrais chiffres : 15 min de report évitées par rapport, valorisées à 104,74 €/h (26,19 €).
 // Les OT, les lignes et la part de rapports avec Q18 sont illustratifs.
-const SAVED_MIN = 15, EUR = 15 / 60 * 104.74, STEP = 360 / AX.rows, READ = 90;
+const SAVED_MIN = 15, EUR = 15 / 60 * 104.74;
 const hash = (i) => { let h = Math.imul(i + 5, 2654435761) >>> 0; h ^= h >>> 15; return (Math.imul(h, 2246822519) >>> 0) / 4294967296; };
-const ROWS = Array.from({ length: AX.rows }, (_, r) => ({ ot: String(4102000 + r * 24117 + Math.floor(hash(r) * 900)), q18: hash(r + 300) < 0.18 }));
+const ROWS = Array.from({ length: ROWS_N }, (_, r) => ({ ot: String(4102000 + r * 24117 + Math.floor(hash(r) * 900)), q18: hash(r + 300) < 0.18 }));
 const START_Q18 = ROWS.map((r) => r.q18);
-const QUEUE = Array.from({ length: 8 }, (_, i) => ({ row: Math.floor(hash(i + 900) * AX.rows), q18: hash(i + 700) < 0.45 }));
-// Une prise en charge : arrivée, sept chiffres composés, rotation, écartement, tampon, cavalier.
+const QUEUE = Array.from({ length: 8 }, (_, i) => ({ row: Math.floor(hash(i + 900) * ROWS_N), q18: hash(i + 700) < 0.45 }));
 const T = { arrive: 0.8, digit: 0.5, spin: 1.8, open: 0.5, stamp: 0.8, tab: 0.6, rest: 1.4 };
 const DIALED = 0.8, SPUN = DIALED + 7 * T.digit, OPENED = SPUN + T.spin, STAMPED = OPENED + T.open, TABBED = STAMPED + T.stamp, CLOSED = TABBED + T.tab, END = CLOSED + T.open + T.rest;
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
-let job = 0, t = 0, angle = READ, from = READ, touring = true, idle = 0, manual = false, done = 0;
-const target = (row) => READ - row * STEP;
-const short = (a, b) => b + ((((a - b) % 360) + 540) % 360) - 180;
-const V = [depthOf([1, 0, 0], P), depthOf([0, 1, 0], P), depthOf([0, 0, 1], P)];
-// Fiche r à l'angle a (degrés), décalée de lift vers l'extérieur.
-function cardPaths(a, lift) {
-  const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180), r0 = AX.r0 + 1 + lift, r1 = AX.r1 + lift;
-  const pt = (x, r) => iso([x, r * c, AX.z + r * s], P);
-  const q = [pt(-AX.half, r0), pt(AX.half, r0), pt(AX.half, r1), pt(-AX.half, r1)];
-  const d = "M" + q.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z";
-  const n = [0, -s, c], facing = n[1] * V[1] + n[2] * V[2], up = facing > 0 ? c : -c;
-  return { d, up, facing, c, s, r1, r0, pt };
-}
-function cardSvg(r, a, lift, lit, printed, tabDrop) {
-  const k = cardPaths(a, lift), fill = { fill: k.d, outline: k.d, shades: ["", k.up > 0.2 ? "" : k.d, "", ""], top: k.up > 0.2 ? k.d : "" };
-  let lines = "";
-  // Ligne d'en-tête de la fiche (l'OT) et, une fois reportées, les données du rapport.
-  const rr = (u) => k.r0 + (k.r1 - k.r0) * u;
-  const seg = (x0, x1, u) => { const p = k.pt(x0, rr(u)), q = k.pt(x1, rr(u)); return "M" + p[0].toFixed(1) + " " + p[1].toFixed(1) + "L" + q[0].toFixed(1) + " " + q[1].toFixed(1); };
-  lines += seg(-AX.half + 3, -AX.half + 18, 0.84);
-  if (printed) lines += [0.64, 0.5, 0.36, 0.22].map((u, i) => seg(-AX.half + 5, -AX.half + 5 + [30, 22, 36, 16][i] * printed, u)).join("");
-  let svg = solidSvg(fill, { tone: "hi", lit, crease: "none", inner: k.facing > 0 || lit ? lineSvg(lines, { tone: "lo", free: true }) : "" });
-  // Cavalier Q18 : une pince sur la tranche extérieure, près du bord droit.
-  if (ROWS[r].q18 || tabDrop !== null) {
-    const drop = tabDrop === null ? 0 : (1 - tabDrop) * 14, x0 = AX.half - 12, x1 = AX.half - 4, R1 = k.r1 + drop;
-    const cc = k.c, ss = k.s, p = (x, r, t) => [x, r * cc - ss * t, AX.z + r * ss + cc * t];
-    const box = [[x0, R1 - 3, -1.2], [x1, R1 - 3, -1.2], [x1, R1 + 3, -1.2], [x0, R1 + 3, -1.2], [x0, R1 - 3, 1.2], [x1, R1 - 3, 1.2], [x1, R1 + 3, 1.2], [x0, R1 + 3, 1.2]].map(([x, r, t]) => iso(p(x, r, t), P));
-    const hull = hullPath(box);
-    svg += solidSvg({ fill: hull, outline: hull, shades: [hull, "", "", ""], top: "" }, { tone: "hi", crease: "none" });
+let job = 0, t = 0, offset = 0, from = 0, touring = true, idle = 0, manual = false;
+const parts = { strip: $("strip"), clips: $("clips"), spoolT: $("spool-top"), spoolB: $("spool-bot"), stamp: $("stamp"), dial: $("dial"), ot: $("ot"), lamp: $("lamp"), mark: $("shaft-mark"), report: $("report") };
+const FXs = (x, y, z) => ({ o: [x, y, z], a: [1, 0, 0] });
+// La bande : seize rangées de la bobine du haut à celle du bas, avec une flèche vers nous qui danse quand elle défile.
+function stripRows(speed, now, rt, rb) {
+  const rows = [], N = 16;
+  for (let i = 0; i <= N; i++) {
+    const u = i / N, z = TOP_Z - u * (TOP_Z - BOT_Z), y0 = rt + (rb - rt) * u;
+    const bow = 2.6 * Math.sin(Math.PI * u), wave = speed * 1.6 * Math.sin(6.283 * (u * 1.3 - now * 1.1)) * Math.sin(Math.PI * u), roll = speed * 0.9 * Math.sin(6.283 * (u * 0.8 + now * 0.7));
+    rows.push([[SW, y0 + bow + wave - roll, z], [-SW, y0 + bow + wave + roll, z]]);
   }
-  return svg;
+  return rows;
 }
-function hullPath(pts) {
-  const s = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]), cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const lo = [], hi = [];
-  for (const p of s) { while (lo.length > 1 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
-  for (const p of s.reverse()) { while (hi.length > 1 && cross(hi[hi.length - 2], hi[hi.length - 1], p) <= 0) hi.pop(); hi.push(p); }
-  const h = lo.slice(0, -1).concat(hi.slice(0, -1));
-  return "M" + h.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z";
+const rowV = (r, off) => 0.5 + (r - off) / NV;
+function stripSvg(rows, off, sel, hl) {
+  let svg = paperSvg(rows, { lines: false });
+  // Lignes du registre : séparateurs, numéro d'OT (trait court) et, une fois reportées, les données.
+  let seps = "", ots = "", data = "", mark = "";
+  const pt = (v, kk) => pPt(iso(paperPoint(rows, v, kk), P));
+  for (let r = Math.floor(off - NV / 2) - 1; r <= Math.ceil(off + NV / 2) + 1; r++) {
+    if (r < 0 || r >= ROWS_N) continue;
+    const vc = rowV(r, off), vt = vc - 0.5 / NV, vb = vc + 0.5 / NV;
+    if (vc < 0.06 || vc > 0.94) continue;
+    if (vb < 0.97) seps += "M" + pt(vb, 0.03) + "L" + pt(vb, 0.97);
+    ots += "M" + pt(vc, 0.08) + "L" + pt(vc, 0.34);
+    if (ROWS[r].printed) for (const [a, b, dv] of [[0.4, 0.66, -0.16], [0.4, 0.58, 0.16]]) data += "M" + pt(vc + dv / NV, a) + "L" + pt(vc + dv / NV, b);
+    if (r === sel && hl > 0) mark += '<path class="fg-hl" style="opacity:' + hl.toFixed(2) + '" d="M' + [pt(vt, 0), pt(vt, 1), pt(vb, 1), pt(vb, 0)].join("L") + 'Z"/>';
+  }
+  return mark + svg + '<path class="fg-sp" d="' + seps + '"/><path class="fg-tx" d="' + ots + '"/><path class="fg-tx fg-dn" d="' + data + '"/>';
 }
-const back = $("back"), frontG = $("front"), stamp = $("stamp"), dial = $("dial"), ot = $("ot"), lamp = $("lamp"), report = $("report"), mark = $("shaft-mark");
-const axisDepth = depthOf([0, 0, AX.z], P);
-function holes(rot) {
+function spoolWrap(z, r, left) {
+  // Papier enroulé : un cylindre dont le rayon suit la quantité de bande restant sur la bobine.
+  return solidSvg(G_disc(-40, 40, r, z), { tone: "hi" });
+}
+function G_disc(x0, x1, r, z) { const N = 28, ring = Array.from({ length: N }, (_, i) => [Math.cos(i / N * 6.283) * r, Math.sin(i / N * 6.283) * r]); const a = ring.map(([y, zz]) => iso([x0, y, z + zz], P)), b = ring.map(([y, zz]) => iso([x1, y, z + zz], P)); const hull = convexHull([...a, ...b]), d = (pts) => "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z"; return { fill: d(hull), outline: d(hull), shades: ["", "", "", ""], top: d(b) }; }
+const target = (row) => row;
+function dialHoles(rot) {
   const out = [];
-  for (let i = 0; i < 10; i++) { const a = (60 + 30 + i * 28 + rot) * Math.PI / 180; out.push(ring(DIAL.x + Math.cos(a) * (DIAL.r - 3), DIAL.y + Math.sin(a) * (DIAL.r - 3), 2, CONSOLE_H + 1, P, 16)); }
-  return solidSvg(cylinder(DIAL.x, DIAL.y, DIAL.r, CONSOLE_H + 1, 0.8, P, 40), { tone: "mid", inner: lineSvg(out.join(""), { tone: "lo" }) });
+  for (let i = 0; i < 10; i++) { const a = (60 + 30 + i * 28 + rot) * Math.PI / 180; out.push(ring(DIAL.x + Math.cos(a) * (DIAL.r - 3), DIAL.y + Math.sin(a) * (DIAL.r - 3), 2, CONS_H + 1, P, 16)); }
+  return solidSvg(cylinder(DIAL.x, DIAL.y, DIAL.r, CONS_H + 1, 0.8, P, 40), { tone: "mid", inner: lineSvg(out.join(""), { tone: "lo" }) });
 }
-function draw() {
+function draw(now) {
   const q = QUEUE[job], row = manual ? null : q.row;
-  // Angle du fichier : rotation motorisée vers la ligne demandée.
-  if (!manual) { const u = ease((t - SPUN) / T.spin); angle = t < SPUN ? from : from + (short(target(row), from) - from) * u; }
+  let speed = 0;
+  if (!manual) { const u = ease((t - SPUN) / T.spin); const prev = offset; offset = t < SPUN ? from : from + (target(row) - from) * u; speed = Math.min(1, Math.abs(offset - prev) * 40); }
   const open = manual ? 0 : ease((t - OPENED) / T.open) * (1 - ease((t - CLOSED) / T.open));
-  const sel = manual ? Math.round(((READ - angle) / STEP % AX.rows + AX.rows) % AX.rows) % AX.rows : row;
-  const printed = !manual && t > STAMPED + T.stamp * 0.5 ? 1 : 0;
+  const sel = manual ? Math.round(offset) : row;
+  const printed = !manual && t > STAMPED + T.stamp * 0.5;
   if (printed) ROWS[row].printed = true;
   const tabbing = !manual && q.q18 && t > TABBED && t < CLOSED + 0.05 ? ease((t - TABBED) / T.tab) : null;
   if (!manual && q.q18 && t >= CLOSED) ROWS[row].q18 = true;
-  const list = [];
-  for (let r = 0; r < AX.rows; r++) {
-    let a = angle + r * STEP, d = ((a - READ) % 360 + 540) % 360 - 180;
-    a = READ + d + Math.sign(d) * 16 * open * Math.max(0, 1 - Math.abs(d) / 60);
-    const lift = r === sel ? 10 * open : 0, mid = AX.r0 + 1 + lift + (AX.r1 - AX.r0) / 2;
-    const depth = depthOf([0, mid * Math.cos(a * Math.PI / 180), AX.z + mid * Math.sin(a * Math.PI / 180)], P);
-    list.push({ r, a, lift, depth });
+  const p = Math.max(0, Math.min(1, offset / ROWS_N)), rt = 6 + 6 * (1 - p), rb = 6 + 6 * p;
+  const rows = stripRows(Math.max(speed, manual ? 0.2 : 0), now, rt, rb);
+  html(parts.strip, stripSvg(rows, offset, sel, open > 0 || manual ? 1 : 0));
+  html(parts.spoolT, spoolWrap(TOP_Z, rt - 0.4, true)); html(parts.spoolB, spoolWrap(BOT_Z, rb - 0.4, false));
+  // Cavaliers Q18 : posés sur le bord droit de la bande ; le nouveau descend d'en haut avant de se clipser.
+  let clips = "";
+  for (let r = Math.floor(offset - NV / 2) - 1; r <= Math.ceil(offset + NV / 2) + 1; r++) {
+    if (r < 0 || r >= ROWS_N) continue;
+    const drop = r === sel && tabbing !== null ? (1 - tabbing) * 12 : 0;
+    if (!ROWS[r].q18 && !(r === sel && tabbing !== null)) continue;
+    const vc = rowV(r, offset); if (vc < 0.06 || vc > 0.94) continue;
+    const c = paperPoint(rows, vc, 0);
+    clips += '<g transform="' + translateAlong(P, [c[0] - 4, c[1] - 1.8, c[2] + drop]) + '">' + CLIP + "</g>";
   }
-  list.sort((p, q) => p.depth - q.depth);
-  let b = "", f = "";
-  for (const c of list) {
-    const s = cardSvg(c.r, c.a, c.lift, c.r === sel && (open > 0 || manual), ROWS[c.r].printed ? 1 : 0, c.r === sel ? tabbing : null);
-    if (c.depth < axisDepth) b += s; else f += s;
-  }
-  back.innerHTML = b; frontG.innerHTML = f;
-  // Tampon : il avance jusqu'à la fiche levée, presse, revient.
+  html(parts.clips, clips);
   const press = manual ? 0 : Math.sin(Math.PI * Math.max(0, Math.min(1, (t - STAMPED) / T.stamp)));
-  stamp.setAttribute("transform", translateAlong(P, [0, -(STAMP.rest - 1.8) * press, 0]));
-  // Cadran : chaque chiffre fait tourner le disque jusqu'à la butée, puis il revient.
+  attr(parts.stamp, "transform", translateAlong(P, [0, -(STAMP.rest - STAMP.hit) * press, (sel >= 0 ? 0 : 0)]));
   const digits = q.row === undefined ? "" : ROWS[q.row].ot;
   let rot = 0, shown = "_______";
   if (!manual) {
-    const k = Math.floor((t - DIALED) / T.digit), u = (t - DIALED) / T.digit - k;
-    if (t >= DIALED && k < 7) { const n = +digits[k] || 10; rot = (u < 0.45 ? ease(u / 0.45) : 1 - ease((u - 0.45) / 0.55)) * n * 28; }
-    const typed = Math.max(0, Math.min(7, t < DIALED ? 0 : k + (u > 0.45 ? 1 : 0)));
+    const kk = Math.floor((t - DIALED) / T.digit), u = (t - DIALED) / T.digit - kk;
+    if (t >= DIALED && kk < 7) { const n = +digits[kk] || 10; rot = (u < 0.45 ? ease(u / 0.45) : 1 - ease((u - 0.45) / 0.55)) * n * 28; }
+    const typed = Math.max(0, Math.min(7, t < DIALED ? 0 : kk + (u > 0.45 ? 1 : 0)));
     shown = digits.slice(0, typed).padEnd(7, "_");
   } else shown = ROWS[sel].ot;
-  dial.innerHTML = holes(-rot);
-  if (ot.textContent !== shown) ot.textContent = shown;
-  lamp.dataset.on = String(!manual && t >= SPUN && t < OPENED);
-  const sa = angle * Math.PI / 180, F = [MOTOR.x1, 0, AX.z];
-  mark.innerHTML = lineSvg(segment([MOTOR.x1, Math.cos(sa) * 2, AX.z + Math.sin(sa) * 2], [MOTOR.x1, Math.cos(sa) * (MOTOR.r - 2.4), AX.z + Math.sin(sa) * (MOTOR.r - 2.4)], P), { tone: "mid" }) + dotsSvg([iso([MOTOR.x1, Math.cos(sa) * 2, AX.z + Math.sin(sa) * 2], P), iso([MOTOR.x1, Math.cos(sa) * (MOTOR.r - 2.4), AX.z + Math.sin(sa) * (MOTOR.r - 2.4)], P)], { size: 0.5 });
+  html(parts.dial, dialHoles(-rot));
+  if (parts.ot.textContent !== shown) parts.ot.textContent = shown;
+  attr(parts.lamp, "data-on", !manual && t >= SPUN && t < OPENED);
+  const sa = offset * 0.9;
+  html(parts.mark, lineSvg(segment([MOTOR.x1, Math.cos(sa) * 2, BOT_Z + Math.sin(sa) * 2], [MOTOR.x1, Math.cos(sa) * (MOTOR.r - 2.4), BOT_Z + Math.sin(sa) * (MOTOR.r - 2.4)], P), { tone: "mid" }));
   const rise = manual ? 0 : (1 - ease(t / T.arrive)) * 30 + ease((t - END + 0.6) / 0.6) * 30;
-  report.innerHTML = '<g transform="' + translateAlong(P, [0, 0, rise]) + '" opacity="' + (1 - rise / 30).toFixed(2) + '">' + REPORT + "</g>";
+  html(parts.report, rise >= 29.9 ? "" : '<g opacity="' + (1 - rise / 30).toFixed(2) + '">' + paperSvg(paperRows({ c: [-84, 42, 40 + rise], d: [1, 0, 0], w: [0, 1, 0], L: 26, W: 20, curl: 0.05, wave: 0.9, roll: 0.5, ph: job, t: now, NT: 10 }), { head: true, lit: true }) + "</g>");
   const line = "ligne " + (sel + 1);
   if (manual) say(line + " · OT " + ROWS[sel].ot + " · " + (ROWS[sel].q18 ? "Q18 visible" : "sans Q18"));
   else if (t < DIALED + 7 * T.digit) say("Rapport " + (job + 1) + " · OT composé " + shown);
@@ -256,37 +231,34 @@ function draw() {
   else say("OT " + digits + " → " + line + " · " + (q.q18 ? "Q18 visible" : "sans Q18") + " · " + SAVED_MIN + " min · " + fr(EUR, 2) + " €");
 }
 function next(step) {
-  from = ((angle % 360) + 360) % 360; job = (job + step + QUEUE.length) % QUEUE.length; t = 0; manual = false;
+  from = offset; job = (job + step + QUEUE.length) % QUEUE.length; t = 0; manual = false;
   if (job === 0) ROWS.forEach((r, i) => { r.q18 = START_Q18[i]; r.printed = false; });
 }
 const run = loop((dt, calm) => {
-  if (manual) { draw(); return; }
+  if (manual) { draw(performance.now() / 1000); return; }
   if (calm) t = CLOSED + T.open + 0.1;
-  else { t += dt; if (t >= END && touring) { done++; next(1); } else if (t >= END) t = END - 0.01; }
-  draw();
+  else { t += dt; if (t >= END && touring) next(1); else if (t >= END) t = END - 0.01; }
+  draw(performance.now() / 1000);
 });
 const steer = () => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; next(1); }, 6000); };
-dragX(() => { steer(); manual = true; return angle; }, (v, share) => { angle = v - share * 240; run(); });
-stage.addEventListener("keydown", (e) => {
-  const to = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
-  if (to !== undefined) { e.preventDefault(); steer(); next(to); run(); }
-});
-// Accès de vérification (captures).
-window.__fig = { at: (j, tt) => { touring = false; manual = false; job = j; t = tt; draw(); return readout.textContent; }, T: { SPUN, OPENED, STAMPED, TABBED, CLOSED, END }, QUEUE };
-draw();
+dragX(() => { steer(); manual = true; return offset; }, (v, share) => { offset = Math.max(0, Math.min(ROWS_N - 1, v - share * 40)); run(); });
+stage.addEventListener("keydown", (e) => { const to = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (to !== undefined) { e.preventDefault(); steer(); next(to); run(); } });
+window.__fig = { at: (j, tt) => { touring = false; manual = false; job = j; t = tt; draw(1); return readout.textContent; }, T: { SPUN, OPENED, STAMPED, TABBED, CLOSED, END }, QUEUE };
+draw(1);
 `;
+const CLIPSVG = k.solidSvg(k.slabOf({ x: -0.5, y: -2, w: 8, d: 4, r: 0.6 }, -2.4, 4.8, P, 2, 0.3), { tone: "hi", lit: true });
 
 const plate = k.plateHtml({
   fig: "Fig 04",
   title: "Reporteur Q18",
-  hint: "Glisse : fichier · ← → : rapport",
+  hint: "Glisse : registre · ← → : rapport",
   readout: "Rapport 1 · OT composé _______",
   keys: [
-    { mark: "lit", label: "La fiche de la bonne ligne du suivi Excel" },
-    { mark: "raised", label: "Cavaliers Q18 sur la tranche des fiches, tampon de report sous le portique" },
+    { mark: "lit", label: "La ligne en cours, le tampon et le cavalier Q18" },
+    { mark: "raised", label: "Registre Excel : les cavaliers marquent les rapports avec Q18" },
   ],
-  caption: "Chaque rapport SharePoint donne son OT ; le moteur amène la fiche de la bonne ligne, le tampon y reporte les données et le cavalier rend les Q18 visibles pour Power BI, les COSI et les clients de l'ABE SUD IdF. Le report manuel prenait 15 min par rapport : sur 4 000 à 5 000 rapports par an, 1 000 à 1 250 h et 104 740 à 130 925 € à 104,74 €/h. Les OT et les lignes affichés sont illustratifs.",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Fichier rotatif : glisser pour tourner les fiches, flèches pour changer de rapport" aria-valuemin="1" aria-valuemax="36" aria-valuenow="1">${svg}</div>`,
+  caption: "Chaque rapport SharePoint donne son OT ; le moteur amène la ligne du registre devant la fenêtre, le tampon y reporte les données et le cavalier rend les Q18 visibles pour Power BI, les COSI et les clients de l'ABE SUD IdF. Le report manuel prenait 15 min par rapport : sur 4 000 à 5 000 rapports par an, 1 000 à 1 250 h et 104 740 à 130 925 € à 104,74 €/h. Les OT et les lignes affichés sont illustratifs.",
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Reporteur Q18 : flèches gauche et droite pour changer de rapport, glisser pour dérouler le registre" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0">${svg}</div>`,
 });
 
-writeFigure("moteur", { title: "Reporteur Q18 · fichier rotatif", plate, live });
+writeFigure("moteur", { title: "Reporteur Q18 · registre à rouleau", plate, live: live.replace("CLIP + ", JSON.stringify(CLIPSVG) + " + "), css: `<style>.fg-hl{fill:#cfe0ff;stroke:none}.fg-sp{fill:none;stroke:#b4c0d6;stroke-width:.35}</style>` });

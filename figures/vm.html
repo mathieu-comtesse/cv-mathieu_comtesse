@@ -112,6 +112,10 @@ body[data-theme="light"]{color-scheme:light}
 body{margin:0;background:var(--anatomy-page);color:var(--anatomy-text);font:14px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 .iso-page{width:min(680px,100% - 32px);margin:64px auto 96px}
 </style><style>
+.fg-p0{fill:#fff;stroke:#fff}.fg-p1{fill:#f1f4fa;stroke:#f1f4fa}.fg-p2{fill:#dfe6f3;stroke:#dfe6f3}.fg-pb{fill:#bcd0f4;stroke:#bcd0f4}
+.fg-p0,.fg-p1,.fg-p2,.fg-pb{stroke-width:.25;stroke-linejoin:round}
+.fg-pl{fill:none;stroke:#3e63dd;stroke-width:.4;stroke-linejoin:round}.fg-pl.fg-lit{stroke-width:.55}
+.fg-tx{fill:none;stroke:#8da2cf;stroke-width:.55;stroke-linecap:round}.fg-hd{fill:#9db6ea}.fg-fl{fill:none;stroke:#3e63dd;stroke-width:.35;stroke-linejoin:round;opacity:.75}.fg-bd{fill:none;stroke:#3e63dd;stroke-width:.9;stroke-linecap:round}
 .fig-window{fill:var(--anatomy-paper)}
 .fig-digits{font-family:var(--anatomy-mono);font-variant-numeric:tabular-nums;fill:var(--anatomy-hi);letter-spacing:.06em}
 .fig-lamp{fill:var(--anatomy-lo);stroke:var(--anatomy-mid);stroke-width:.5}.fig-lamp[data-on="true"]{fill:var(--anatomy-lit)}
@@ -827,7 +831,48 @@ function dragX(onStart, onMove) {
 const P = {"origin":[320,276.30497271577076],"scale":1.2649806954005232,"azimuth":58,"elevation":30};
 const CARD = {"w":13,"d":9}, IN = {"x":-132,"y":-26,"cols":6,"rows":2,"px":11,"py":12}, OUT = {"x":38,"y":-26,"cols":6,"rows":2,"px":11,"py":12}, BIN = {"x":18,"y":4,"w":24,"d":16,"r":1.2}, PAD = {"x":-8,"y":-12,"w":30,"d":20,"r":1.4};
 const TH = 20, PAD_H = 12, BZ = 98, BY = -4, BEAM_Y = -8, HOME = [-124,124];
-const CARD_SVG = "<g class=\"iso-solid\"><path class=\"iso-fill\" d=\"M307.9 275.4L308 275L314.3 269.9L315.1 269.6L316.1 269.7L331.6 274.6L332.1 275L332.1 276.1L332 276.6L325.7 281.6L324.9 281.9L323.9 281.8L308.4 276.9L307.9 276.5Z\"/><path class=\"iso-shade\" data-shade=\"0\" d=\"M332.1 276.1L332 276.6L332 275.4L332.1 275ZM332 276.6L325.7 281.6L325.7 280.5L332 275.4ZM325.7 281.6L324.9 281.9L324.9 280.7L325.7 280.5Z\"/><path class=\"iso-shade\" data-shade=\"2\" d=\"M324.9 281.9L323.9 281.8L323.9 280.7L324.9 280.7Z\"/><path class=\"iso-shade\" data-shade=\"3\" d=\"M323.9 281.8L308.4 276.9L308.4 275.8L323.9 280.7ZM308.4 276.9L307.9 276.5L307.9 275.4L308.4 275.8Z\"/><path class=\"iso-top\" d=\"M331.6 274.6L332.1 275L332 275.4L325.7 280.5L324.9 280.7L323.9 280.7L308.4 275.8L307.9 275.4L308 275L314.3 269.9L315.1 269.6L316.1 269.7Z\"/><path class=\"iso-line iso-crease\" data-tone=\"faint\" d=\"M332.1 275L332 275.4L325.7 280.5L324.9 280.7L323.9 280.7L308.4 275.8L307.9 275.4\"/><path class=\"iso-line iso-bevel\" data-tone=\"faint\" d=\"M332.1 275L331.6 275.4L325.4 280.3L324.8 280.6L324.1 280.5L308.7 275.7L307.9 275.4\"/><path class=\"iso-line iso-edge\" data-tone=\"hi\" d=\"M307.9 275.4L308 275L314.3 269.9L315.1 269.6L316.1 269.7L331.6 274.6L332.1 275M332.1 276.1L332 276.6L325.7 281.6L324.9 281.9L323.9 281.8L308.4 276.9L307.9 276.5M332.1 275L332.1 276.1M307.9 275.4L307.9 276.5\"/></g><path class=\"iso-line\" data-tone=\"lo\" data-free=\"\" d=\"M315.3 271.4L320.7 273.1M313.4 272.9L321.5 275.5M311.5 274.4L315.6 275.7\"/>", CARD_LIT = "<g class=\"iso-solid\" data-lit=\"\"><path class=\"iso-fill\" d=\"M307.9 275.4L308 275L314.3 269.9L315.1 269.6L316.1 269.7L331.6 274.6L332.1 275L332.1 276.1L332 276.6L325.7 281.6L324.9 281.9L323.9 281.8L308.4 276.9L307.9 276.5Z\"/><path class=\"iso-shade\" data-shade=\"0\" d=\"M332.1 276.1L332 276.6L332 275.4L332.1 275ZM332 276.6L325.7 281.6L325.7 280.5L332 275.4ZM325.7 281.6L324.9 281.9L324.9 280.7L325.7 280.5Z\"/><path class=\"iso-shade\" data-shade=\"2\" d=\"M324.9 281.9L323.9 281.8L323.9 280.7L324.9 280.7Z\"/><path class=\"iso-shade\" data-shade=\"3\" d=\"M323.9 281.8L308.4 276.9L308.4 275.8L323.9 280.7ZM308.4 276.9L307.9 276.5L307.9 275.4L308.4 275.8Z\"/><path class=\"iso-top\" d=\"M331.6 274.6L332.1 275L332 275.4L325.7 280.5L324.9 280.7L323.9 280.7L308.4 275.8L307.9 275.4L308 275L314.3 269.9L315.1 269.6L316.1 269.7Z\"/><path class=\"iso-line iso-crease\" data-tone=\"faint\" d=\"M332.1 275L332 275.4L325.7 280.5L324.9 280.7L323.9 280.7L308.4 275.8L307.9 275.4\"/><path class=\"iso-line iso-bevel\" data-tone=\"faint\" d=\"M332.1 275L331.6 275.4L325.4 280.3L324.8 280.6L324.1 280.5L308.7 275.7L307.9 275.4\"/><path class=\"iso-line iso-edge\" data-tone=\"hi\" d=\"M307.9 275.4L308 275L314.3 269.9L315.1 269.6L316.1 269.7L331.6 274.6L332.1 275M332.1 276.1L332 276.6L325.7 281.6L324.9 281.9L323.9 281.8L308.4 276.9L307.9 276.5M332.1 275L332.1 276.1M307.9 275.4L307.9 276.5\"/></g><path class=\"iso-line\" data-tone=\"lo\" data-free=\"\" d=\"M315.3 271.4L320.7 273.1M313.4 272.9L321.5 275.5M311.5 274.4L315.6 275.7\"/>";
+
+const v3 = { add: (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k], sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], mix: (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k], cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] };
+const quadArea = (q) => { let a = 0; for (let i = 0; i < q.length; i++) { const p0 = q[i], p1 = q[(i + 1) % q.length]; a += p0[0] * p1[1] - p1[0] * p0[1]; } return a; };
+const PAPER_REF = Math.sign(quadArea([iso([0, 0, 0], P), iso([1, 0, 0], P), iso([1, 1, 0], P), iso([0, 1, 0], P)]));
+const PAPER_LW = (() => { const l = [-0.35, 0.45, 0.82], n = Math.hypot(...l); return l.map((x) => x / n); })();
+const pPt = (q) => q[0].toFixed(1) + " " + q[1].toFixed(1);
+// Rangées de la feuille : c centre, d sens de la longueur L, w sens de la largeur W ; curl courbure (1/unité, négative : les bouts tombent),
+// wave et roll : houle et roulis qui parcourent la feuille quand elle bouge, t le temps.
+function paperRows(o) {
+  const { c, d, w, L, W, curl = 0, wave = 0, roll = 0, ph = 0, t = 0, NT = 10 } = o, n = v3.cross(d, w), rows = [];
+  for (let i = 0; i <= NT; i++) {
+    const u = i / NT, s = (u - 0.5) * L;
+    let a = s, h = 0;
+    if (Math.abs(curl) > 1e-5) { a = Math.sin(curl * s) / curl; h = (1 - Math.cos(curl * s)) / curl; }
+    h += wave * Math.sin(6.283 * (u * 0.9 - t * 0.7) + ph) * (0.35 + 0.65 * u);
+    const r = roll * Math.sin(6.283 * (u * 0.6 + t * 0.5) + ph * 1.7), P0 = v3.add(v3.add(c, d, a), n, h);
+    rows.push([v3.add(v3.add(P0, w, -W / 2), n, r), v3.add(v3.add(P0, w, W / 2), n, -r)]);
+  }
+  return rows;
+}
+function paperSvg(rows, o = {}) {
+  const sp = rows.map(([l, r]) => [iso(l, P), iso(r, P)]);
+  let out = "", text = "";
+  for (let i = 0; i < rows.length - 1; i++) {
+    const q = [sp[i][0], sp[i + 1][0], sp[i + 1][1], sp[i][1]], fr = Math.sign(quadArea(q)) === PAPER_REF;
+    const nn = v3.cross(v3.sub(rows[i + 1][0], rows[i][0]), v3.sub(rows[i][1], rows[i][0])), nl = Math.hypot(...nn) || 1, k = (fr ? 1 : -1) * (nn[0] * PAPER_LW[0] + nn[1] * PAPER_LW[1] + nn[2] * PAPER_LW[2]) / nl;
+    out += '<path class="' + (fr ? (k > 0.72 ? "fg-p0" : k > 0.4 ? "fg-p1" : "fg-p2") : "fg-pb") + '" d="M' + q.map(pPt).join("L") + 'Z"/>';
+    if (!fr || o.blank) continue;
+    const L0 = v3.mix(rows[i][0], rows[i + 1][0], 0.5), R0 = v3.mix(rows[i][1], rows[i + 1][1], 0.5), last = rows.length - 2;
+    if (o.lines !== false && i >= 1 && i <= last - 1) { const len = [0.62, 0.48, 0.66, 0.4, 0.58, 0.5, 0.44, 0.6][(i - 1) % 8]; text += '<path class="fg-tx" d="M' + pPt(iso(v3.mix(L0, R0, 0.14), P)) + "L" + pPt(iso(v3.mix(L0, R0, 0.14 + len), P)) + '"/>'; }
+    if (o.head && i === 0) { const b0 = v3.mix(rows[i][0], rows[i][1], 0.34), b1 = v3.mix(rows[i + 1][0], rows[i + 1][1], 0.34); out += '<path class="fg-hd" d="M' + [rows[i][0], rows[i + 1][0], b1, b0].map((v) => pPt(iso(v, P))).join("L") + 'Z"/>'; }
+  }
+  // Enveloppe : rabat en V depuis les coins du haut, adresse en bas, bande de dépassement.
+  if (o.flap) {
+    const mid = Math.floor((rows.length - 1) * 0.55), tip = v3.mix(rows[mid][0], rows[mid][1], 0.5);
+    text += '<path class="fg-fl" d="M' + [rows[0][0], tip, rows[0][1]].map((v) => pPt(iso(v, P))).join("L") + '"/>';
+    if (o.band) for (const k of [0.74, 0.84]) { const i = Math.floor((rows.length - 1) * k); text += '<path class="fg-bd" d="M' + pPt(iso(v3.mix(rows[i][0], rows[i][1], 0.1), P)) + "L" + pPt(iso(v3.mix(rows[i][0], rows[i][1], 0.9), P)) + '"/>'; }
+  }
+  const outline = sp.map((r) => r[0]).concat(sp.map((r) => r[1]).reverse());
+  return out + text + '<path class="fg-pl' + (o.lit ? " fg-lit" : "") + '" d="M' + outline.map(pPt).join("L") + 'Z"/>';
+}
+
 // Vrais chiffres : 4 000 à 5 000 rapports par an sur 225 jours, soit 18 à 22 par jour ;
 // 30 min épargnées par rapport, valorisées à 104,74 €/h (52,37 €). Relevé toutes les 2 min.
 const PER_REPORT = { min: 30, eur: 52.37 }, POLL = 2, WORK = 8, START = 480, END = 1020, RECAP = 1028;
@@ -872,7 +917,9 @@ const trolleys = [$("trolley-0"), $("trolley-1")], ot = $("ot"), r004 = $("r004"
 const flyer = document.createElementNS("http://www.w3.org/2000/svg", "g"), rope = document.createElementNS("http://www.w3.org/2000/svg", "g");
 const holder = document.createElementNS("http://www.w3.org/2000/svg", "g");
 holder.append(rope, flyer); air.append(holder);
-const card = (p) => '<g transform="' + translateAlong(P, p) + '">' + CARD_SVG + '</g>';
+const sheet = (p, o = {}) => paperSvg(paperRows({ c: [p[0], p[1], p[2] + 0.5], d: [1, 0, 0], w: [0, 1, 0], L: CARD.w, W: CARD.d, curl: o.curl ?? 0.022, wave: o.wave || 0, roll: o.roll || 0, ph: o.ph || 0, t: o.t || 0 }), { head: true, lit: o.lit });
+const depth = (p) => iso([p[0], p[1], 0], P)[1];
+const stackOf = (list) => list.slice().sort((a, b) => depth(a.p) - depth(b.p) || a.p[2] - b.p[2]).map((c) => sheet(c.p, { ph: c.i, curl: (c.i % 2 ? 1 : -1) * 0.02 })).join("");
 let m = START, hold = 0, touring = true, idle = 0, drawn = "";
 function clockText(min) { const h = Math.floor(min / 60), mm = Math.floor(min % 60); return String(h).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); }
 // Position d'un chariot : sur la carte pendant un travail, puis il reste où il l'a posée.
@@ -893,9 +940,9 @@ function draw() {
   const done = day.filter((c) => t >= c.end && !c.rejected), rejected = day.filter((c) => t >= c.end && c.rejected);
   const sig = pending.map((c) => c.i).join() + "|" + done.length + "|" + rejected.length;
   if (sig !== drawn) {
-    inCards.innerHTML = pending.map((c) => card([...inPos(c.i), TH + 1.6])).join("");
-    outCards.innerHTML = done.map((c) => card([...outPos(c.slot), TH + 1.6 + Math.floor(c.slot / 12) * 1.2])).join("");
-    binCards.innerHTML = rejected.map((_, n) => card([...binPos(), TH + 1.6 + n * 1.2])).join("");
+    html(inCards, stackOf(pending.map((c) => ({ i: c.i, p: [...inPos(c.i), TH + 1.6] }))));
+    html(outCards, stackOf(done.map((c) => ({ i: c.i, p: [...outPos(c.slot), TH + 1.6 + Math.floor(c.slot / 12) * 1.2] }))));
+    html(binCards, stackOf(rejected.map((c, n) => ({ i: c.i, p: [...binPos(), TH + 1.6 + n * 1.2] }))));
     drawn = sig;
   }
   const fail = failAt !== null && t >= failAt;
@@ -905,7 +952,7 @@ function draw() {
   trolleys.forEach((el, n) => put(el, translateAlong(P, [xs[n], 0, 0])));
   // Carte portée : une corde tendue du chariot à la carte quand elle est accrochée.
   if (busy) {
-    html(flyer, '<g transform="' + translateAlong(P, q.p) + '">' + CARD_LIT + "</g>");
+    html(flyer, sheet(q.p, { lit: true, curl: q.hook ? -0.07 : 0.02, wave: q.hook ? 1.3 : 0.15, roll: q.hook ? 0.7 : 0, ph: busy.i, t: performance.now() / 1000 }));
     const [px, py, pz] = q.p;
     html(rope, q.hook ? lineSvg(segment([xs[busy.vm], BY, BZ + 6], [px, py, pz + 0.8], P), { tone: "hi" }) : "");
     attr(holder, "style", "");

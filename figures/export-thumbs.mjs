@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, "..");
 // Pose choisie pour chaque machine : une action en cours, jamais la scène vide.
-const POSES = { cerfa: "window.__fig.at(3.4)", vm: "window.__fig.at(546.6)", gares: "window.__fig.at(0.6)", finance: "window.__fig.at(205, 0.8)", suivi: "window.__fig.at(0.4)" };
+const POSES = { cerfa: "window.__fig.at(3.4)", vm: "window.__fig.at(546.6)", gares: "window.__fig.at(0.6)", finance: "window.__fig.at(205, 0.8)", suivi: "window.__fig.at(0.4)", vre: "window.__fig.at(2, 4)", moteur: "window.__fig.at(1, 9)", pp: "window.__fig.at(60, 0.45)", powerbi: "window.__fig.at(619)" };
 const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(POSES);
 const browser = await chromium.launch();
 for (const name of names) {
