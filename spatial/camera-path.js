@@ -1,41 +1,55 @@
-// CameraPathController : trajectoire de caméra déterministe. À une progression p ∈ [0, 1] correspond une position et un point de regard connus.
-// Deux courbes de Catmull-Rom centripètes (position et regard) passent exactement par les cadrages de chaque point d'intérêt.
+// CameraTimeline : caméra de film pilotée par le défilement. La position, le point de regard, le champ de vision et le roulis sont des
+// fonctions de la distance de défilement `u` (en pixels de molette). Interpolation de Hermite à tangentes de Catmull-Rom non uniformes :
+// position, orientation et vitesse sont continues. L'écart entre deux clés (en pixels) fixe la vitesse : un grand espace parcouru en peu de
+// défilement donne un survol rapide, un petit espace sur une longue course donne une approche lente.
 import * as THREE from 'three';
 
 const DEG = Math.PI / 180;
 
-/** Cadrage d'un point d'intérêt : position de la caméra et point regardé, calculés à partir de l'objet et du cadrage `cam`. */
-export function frameOf(stop) {
-  const c = stop.cam;
-  if (c.pos) return { pos: new THREE.Vector3(...c.pos), look: new THREE.Vector3(...c.look) };
-  const [x, y, z] = stop.pos, az = c.az * DEG;
-  const dist = c.dist * (.9 + .2 * (stop.scale || 1)) * 1.12;           // l'objet occupe environ la moitié de la largeur, quelle que soit son échelle
-  const pos = new THREE.Vector3(x + Math.sin(az) * dist, y + c.h * .88, z + Math.cos(az) * dist);
-  const look = new THREE.Vector3(x, y + 3.2, z);
-  const right = new THREE.Vector3(Math.cos(az), 0, -Math.sin(az));       // vers la droite de l'écran
-  look.addScaledVector(right, c.shift || 0);                               // regard décalé : l'objet sort du centre
-  return { pos, look };
+export class CameraTimeline {
+  /** keys : { u, pos:[x,y,z], look:[x,y,z], fov, roll, tag? } triées par u croissant. */
+  constructor(keys) {
+    this.keys = keys; this.n = keys.length;
+    for (let i = 1; i < this.n; i++) if (!(keys[i].u > keys[i - 1].u)) throw new Error('clés non croissantes : ' + keys[i].tag);
+    this.length = keys[this.n - 1].u;
+    this.tags = Object.fromEntries(keys.filter((k) => k.tag).map((k) => [k.tag, k.u]));
+    // tangentes : différences finies sur grille non uniforme (extrémités : différence à sens unique)
+    const tan = (get) => keys.map((_, i) => { const a = Math.max(0, i - 1), b = Math.min(this.n - 1, i + 1); return get(b) .map((v, c) => (v - get(a)[c]) / (keys[b].u - keys[a].u)); });
+    this.P = keys.map((k) => k.pos); this.L = keys.map((k) => k.look); this.S = keys.map((k) => [k.fov, k.roll || 0]);
+    this.mP = tan((i) => this.P[i]); this.mL = tan((i) => this.L[i]); this.mS = tan((i) => this.S[i]);
+    this._i = 0; this.pos = new THREE.Vector3(); this.look = new THREE.Vector3();
+  }
+  _seg(u) {
+    let i = this._i; u = Math.min(this.length, Math.max(0, u));
+    if (u < this.keys[i].u || u >= this.keys[Math.min(i + 1, this.n - 1)].u) { i = 0; while (i < this.n - 2 && u >= this.keys[i + 1].u) i++; this._i = i; }
+    return i;
+  }
+  _h(v, m, i, t, out) {
+    const d = this.keys[i + 1].u - this.keys[i].u, t2 = t * t, t3 = t2 * t, h00 = 2 * t3 - 3 * t2 + 1, h10 = t3 - 2 * t2 + t, h01 = -2 * t3 + 3 * t2, h11 = t3 - t2;
+    for (let c = 0; c < out.length; c++) out[c] = h00 * v[i][c] + h10 * d * m[i][c] + h01 * v[i + 1][c] + h11 * d * m[i + 1][c];
+    return out;
+  }
+  /** Pose de la caméra à la distance de défilement u. */
+  at(u, out = {}) {
+    u = Math.min(this.length, Math.max(0, u));
+    const i = this._seg(u), t = (u - this.keys[i].u) / (this.keys[i + 1].u - this.keys[i].u);
+    const p = this._h(this.P, this.mP, i, t, [0, 0, 0]), l = this._h(this.L, this.mL, i, t, [0, 0, 0]), s = this._h(this.S, this.mS, i, t, [0, 0]);
+    out.pos = (out.pos || this.pos).set(p[0], p[1], p[2]); out.look = (out.look || this.look).set(l[0], l[1], l[2]);
+    out.fov = Math.min(70, Math.max(24, s[0])); out.roll = s[1] * DEG;
+    return out;
+  }
+  uOf(tag) { if (!(tag in this.tags)) throw new Error('étiquette inconnue : ' + tag); return this.tags[tag]; }
+  /** Vitesse apparente (unités du monde par pixel de défilement), estimée par différence finie. */
+  speed(u) { const a = this.at(u - 2, {}).pos.clone(), b = this.at(u + 2, {}).pos; return a.distanceTo(b) / 4; }
+  /** Étiquette de projet la plus proche d'une position de défilement. */
+  nearestTag(u, tags) { let best = null, bd = Infinity; for (const t of tags) { const d = Math.abs(this.tags[t] - u); if (d < bd) { bd = d; best = t; } } return { tag: best, delta: bd }; }
 }
 
-export class CameraPathController {
-  constructor(stops) {
-    this.stops = stops;
-    const frames = stops.map(frameOf);
-    this.posCurve = new THREE.CatmullRomCurve3(frames.map((f) => f.pos), false, 'centripetal');
-    this.lookCurve = new THREE.CatmullRomCurve3(frames.map((f) => f.look), false, 'centripetal');
-    // paramètre de la courbe (longueur d'arc approchée) de chaque point d'intérêt : p = i / (n - 1) correspond au i-ème cadrage
-    this.n = stops.length;
-    this._p = new THREE.Vector3(); this._l = new THREE.Vector3();
-  }
-  /** t de la courbe pour une progression p : interpolation par point d'intérêt, donc les cadrages sont atteints exactement. */
-  _t(p) { return Math.min(1, Math.max(0, p)); }
-  at(p, outPos = this._p, outLook = this._l) {
-    const t = this._t(p);
-    this.posCurve.getPoint(t, outPos); this.lookCurve.getPoint(t, outLook);
-    return { pos: outPos, look: outLook };
-  }
-  /** Progression du point d'intérêt i : la courbe de Catmull-Rom est paramétrée par point de contrôle (getPoint uniforme en index). */
-  progressOf(i) { return i / (this.n - 1); }
-  /** Index du point d'intérêt le plus proche d'une progression et distance (en progression) à celui-ci. */
-  nearest(p) { const f = p * (this.n - 1), i = Math.round(f); return { index: Math.min(this.n - 1, Math.max(0, i)), delta: f - i }; }
+/** Pose d'inspection d'un projet : cadrage resserré autour de l'objet, décalé pour libérer la place des textes. */
+export function inspectPose(stop, out = {}) {
+  const c = stop.cam, az = c.az * DEG, [x, y, z] = stop.pos, dist = c.dist * (.9 + .2 * (stop.scale || 1)) * .72;
+  const pos = new THREE.Vector3(x + Math.sin(az) * dist, y + c.h, z + Math.cos(az) * dist);
+  const look = new THREE.Vector3(x, y + 3.2 * (stop.scale || 1), z), right = new THREE.Vector3(Math.cos(az), 0, -Math.sin(az));
+  look.addScaledVector(right, c.shift || 0);
+  out.pos = pos; out.look = look; out.fov = 34; out.roll = 0; return out;
 }

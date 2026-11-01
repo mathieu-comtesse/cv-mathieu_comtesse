@@ -42,28 +42,46 @@ try {
   for (let i = 0; i < 12; i++) { await page.mouse.wheel(0, 100); await page.waitForTimeout(20); }
   await settle(page);
   const p1 = await S(page, () => window.__spatial.scroll.current);
-  assert.ok(p1 > .03, 'la molette avance : p=' + p1);
+  assert.ok(p1 > 300, 'la molette avance : u=' + p1);
   const cam1 = await S(page, () => window.__spatial.world.camera.position.toArray());
   assert.ok(Math.hypot(...cam1.map((v, i) => v - cam0[i])) > 3, 'la caméra se déplace');
-  assert.equal(await page.locator('#sp-intro.sp-away').count() > 0 || p1 < .035, true);
+  assert.equal(await page.locator('#sp-intro.sp-away').count() > 0 || p1 < 380, true);
   // un événement géant ne peut pas dépasser plusieurs projets
   await page.mouse.wheel(0, 100000); await page.waitForTimeout(100);
-  assert.ok(await S(page, () => window.__spatial.scroll.target) - p1 < .2, 'inertie bornée');
+  assert.ok(await S(page, () => window.__spatial.scroll.target) - p1 < 1500, 'inertie bornée');
   // unités de molette : lignes et pages
   const lineDelta = await S(page, () => { const e = new WheelEvent('wheel', { deltaY: 3, deltaMode: 1 }); return e.deltaY * (e.deltaMode === 1 ? 16 : 1); });
   assert.equal(lineDelta, 48);
   // retour : même progression, même position
-  await S(page, () => window.__spatial.scroll.goTo(.3, 0)); await page.waitForTimeout(300);
+  await S(page, () => window.__spatial.scroll.goTo(4000, 0)); await page.waitForTimeout(300);
   const a = await S(page, () => window.__spatial.world.camera.position.toArray());
-  await S(page, () => window.__spatial.scroll.goTo(.6, 0)); await page.waitForTimeout(100);
-  await S(page, () => window.__spatial.scroll.goTo(.3, 0)); await page.waitForTimeout(300);
+  await S(page, () => window.__spatial.scroll.goTo(9000, 0)); await page.waitForTimeout(100);
+  await S(page, () => window.__spatial.scroll.goTo(4000, 0)); await page.waitForTimeout(300);
   const b = await S(page, () => window.__spatial.world.camera.position.toArray());
   assert.ok(Math.hypot(...a.map((v, i) => v - b[i])) < 1e-6, 'trajectoire réversible et déterministe');
   ok('défilement : avance, inertie bornée, unités de molette, réversible');
 
+  /* profondeur et parallaxe : deux points de profondeurs différentes sur la même ligne de visée se déplacent différemment quand la caméra avance */
+  const par = await S(page, () => {
+    const W = window.__spatial.world, tl = window.__spatial.timeline, out = [];
+    for (const u of [1500, 2400, 6000, 12000]) {
+      W.frame(u, 0, performance.now(), null, 0); const c = W.camera.position.clone(), d = new c.constructor(); W.camera.getWorldDirection(d);
+      const near = c.clone().addScaledVector(d, 14).add(new c.constructor(6, 0, 0)), far = c.clone().addScaledVector(d, 160).add(new c.constructor(6, 0, 0));
+      const a0 = W.project(near, {}), b0 = W.project(far, {}); W.frame(u + 40, 0, performance.now(), null, 0);
+      const a1 = W.project(near, {}), b1 = W.project(far, {}); out.push([Math.hypot(a1.x - a0.x, a1.y - a0.y), Math.hypot(b1.x - b0.x, b1.y - b0.y)]);
+    }
+    W.frame(0, 0, performance.now(), null, 0); return out;
+  });
+  for (const [n, f] of par) assert.ok(n > 2.5 * f && n > 8, `parallaxe : proche ${n.toFixed(1)} px, loin ${f.toFixed(1)} px`);
+  const fovs = await S(page, () => [0, 1500, 4275, 6275, 12000, 19875, 23000].map((u) => { window.__spatial.world.frame(u, 0, performance.now(), null, 0); return window.__spatial.world.baseFov; }));
+  assert.ok(Math.max(...fovs) - Math.min(...fovs) > 10, 'champ de vision variable : ' + fovs.map((f) => f.toFixed(0)));
+  ok('profondeur : parallaxe proche/loin, champ de vision ' + fovs.map((f) => f.toFixed(0)).join(', ') + ' degrés');
+
   /* 3 : inspection, règles, animations indépendantes */
   await S(page, () => window.__spatial.select('vre', { instant: true })); await page.waitForFunction(() => window.__spatial.world.machines.get('vre').ready, null, { timeout: 90000 });
   assert.equal(await S(page, () => window.__spatial.state.state), 'inspection');
+  await page.waitForFunction(() => window.__spatial.world.machines.get('vre').root.visible, null, { timeout: 60000 });
+  assert.ok(await S(page, () => [...window.__spatial.world.machines.values()].every((m) => m.root.scale.y === 1)), 'aucune extrusion : les machines gardent leur échelle');
   assert.ok(await page.locator('#rf-ruler-h').isVisible() && await page.locator('#rf-ruler').isVisible(), 'deux règles visibles');
   const before = await S(page, () => { const m = window.__spatial.world.machines.get('vre'); return [m.spin.rotation.y, m.tiltG.rotation.x, m.lift]; });
   await page.locator('#rf-ruler-h').focus(); for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
@@ -102,13 +120,13 @@ try {
   const hash = new URL(page.url()).hash; assert.equal(hash, '#/vre');
   await page.reload(); await page.waitForFunction(() => window.__spatial);
   assert.equal(await S(page, () => window.__spatial.selected), 'vre');
-  assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current) - 1 / 14) < 1e-6);
+  assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current - window.__spatial.timeline.uOf('vre'))) < 1);
   await page.goBack(); await page.waitForTimeout(500);
   ok('lien profond : #/vre restaure projet et position, historique utilisable');
 
   /* navigation directe + HTML-in-Canvas ou repli */
   await page.locator('[data-goto="parcours"]').first().click(); await page.waitForTimeout(300); await settle(page);
-  assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current) - 1) < 1e-3, 'navigation directe vers le parcours');
+  assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current - window.__spatial.timeline.uOf('parcours'))) < 1, 'navigation directe vers le parcours');
   await page.locator('.sp-hubcard[data-hub="parcours"] a[href$="cv-ats-mathieu-comtesse.pdf"]').waitFor({ state: 'visible', timeout: 15000 });
   await page.waitForTimeout(process.env.HIC ? 4000 : 0);
   const hic = await S(page, () => window.__spatial.hic.status);
@@ -139,7 +157,7 @@ try {
   /* mouvement réduit : navigation directe, pas de déplacement animé */
   ({ ctx, page } = await open('/spatial.html?reset', { reduced: true }));
   await S(page, () => window.__spatial.select('pa', { instant: false })); await page.waitForTimeout(200);
-  assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current) - 4 / 14) < 1e-6, 'saut direct sans trajectoire animée');
+  assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current - window.__spatial.timeline.uOf('pa'))) < 1, 'saut direct sans trajectoire animée');
   ok('prefers-reduced-motion : cadrage direct'); await ctx.close();
 
   assert.deepEqual(errors, [], 'erreurs JavaScript : ' + errors.join('\n'));

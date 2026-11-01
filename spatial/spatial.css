@@ -160,3 +160,9 @@ body.sp-list .sp-index,body.sp-nogl .sp-index{background:#03060f;-webkit-backdro
 .sp-ns{background:var(--sp-glass-deep);border-radius:12px}
 @media (max-width:760px){.sp-panel{top:auto}}
 @supports not (backdrop-filter:blur(1px)){.sp-panel,.sp-index,.sp-b3,.sp-hubcard,.sp-stat,.sp-menu,.sp-inspect{background:rgb(6 10 24 / .94)}}
+
+/* repères du monde : textes accrochés à l'espace */
+.sp-wtag{position:absolute;left:0;top:0;white-space:nowrap;pointer-events:none;text-shadow:0 1px 3px #02061a,0 0 12px #02061a;will-change:transform}
+.sp-wtag-domain{font:400 11px/1 var(--rf-mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;padding-left:14px}
+.sp-wtag-domain::before{content:'';position:absolute;left:0;top:50%;width:8px;height:8px;margin-top:-4px;background:#fff}
+.sp-wtag-mono{font:400 10px/1 var(--rf-mono);letter-spacing:.06em;color:#cfe1ff}

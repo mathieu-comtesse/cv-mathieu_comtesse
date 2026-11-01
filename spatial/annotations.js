@@ -16,6 +16,7 @@ export class FloatingAnnotationManager {
     this.root = root; this.world = world; this.registry = registry; this.onSelect = onSelect; this.onDeepen = onDeepen;
     this.svg = document.createElementNS(NS, 'svg'); this.svg.setAttribute('class', 'sp-leaders'); this.svg.setAttribute('aria-hidden', 'true'); root.append(this.svg);
     this.notes = new Map(); this.avoid = []; this.frame = 0; this.v3 = { x: 0, y: 0, z: 0, on: false };
+    this.wtags = [];
     for (const e of registry.items) if (e.kind !== 'hub') this.add(e, domains);      // les zones sans objet ont leur propre carte (main.js)
   }
   add(e, domains) {
@@ -36,17 +37,41 @@ export class FloatingAnnotationManager {
     this.root.append(el);
     this.notes.set(e.id, { e, el, lines, b: [el.querySelector('.sp-b1'), el.querySelector('.sp-b2'), el.querySelector('.sp-b3')], size: null, shown: false, offs: [0, 0, 0] });
   }
+  /** Repères du monde (noms de domaine, cotes, coordonnées) : de petits textes accrochés à un point de l'espace, visibles à bonne distance. */
+  addTags(tags) {
+    for (const t of tags) {
+      const el = document.createElement('span'); el.className = 'sp-wtag sp-wtag-' + t.kind; el.textContent = t.text; el.hidden = true; el.setAttribute('aria-hidden', 'true'); this.root.append(el);
+      this.wtags.push({ ...t, el, v: new (this.world.cam.constructor)(...t.pos), shown: false });
+    }
+  }
+  updateTags(camPos, lecture) {
+    const W = innerWidth, H = innerHeight, cand = [];
+    for (const t of this.wtags) {
+      const d = camPos.distanceTo(t.v);
+      if (lecture || d > t.range || d < 14) { if (t.shown) { t.el.hidden = true; t.shown = false; } continue; }
+      const a = this.world.project(t.v, this.v3);
+      if (!a.on || a.x < 10 || a.x > W - 120 || a.y < 70 || a.y > H - 30) { if (t.shown) { t.el.hidden = true; t.shown = false; } continue; }
+      cand.push([d, t, a.x, a.y]);
+    }
+    cand.sort((x, y) => x[0] - y[0]);
+    cand.slice(0, 7).forEach(([d, t, x, y]) => {
+      if (!t.shown) { t.el.hidden = false; t.shown = true; }
+      t.el.style.opacity = (smooth(t.range, t.range * .72, d) * (t.kind === 'domain' ? 1 : .8)).toFixed(3);
+      t.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+    });
+    cand.slice(7).forEach(([, t]) => { if (t.shown) { t.el.hidden = true; t.shown = false; } });
+  }
   measure(n) { n.size = n.b.map((b) => (b ? [b.offsetWidth, b.offsetHeight] : [0, 0])); }
   refreshAvoid() { this.avoid = [...document.querySelectorAll('[data-sp-avoid]')].filter((x) => !x.hidden && x.offsetParent !== null).map((x) => { const r = x.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; }); }
 
   /** Placement d'une image : écran, distance, sélection. */
-  update(camPos, selectedId, lecture) {
+  update(camPos, selectedId, lecture, inspectE = 0) {
     if (this.frame++ % 20 === 0) this.refreshAvoid();
     const W = innerWidth, H = innerHeight, S = Math.min(W, 1500), placed = [], small = W < 760, maxNotes = small ? 3 : 6;
     const cand = [];
     for (const n of this.notes.values()) {
       const e = n.e, d = Math.hypot(camPos.x - e.pos[0], camPos.z - e.pos[2]);
-      const sel = e.id === selectedId, vis = (sel || d < (e.kind === 'hub' ? 95 : 78)) && !(lecture && !sel);
+      const sel = e.id === selectedId, vis = (sel || d < 118) && !(lecture && !sel);
       n.d = d; n.sel = sel; n.vis = vis;
       if (vis) cand.push(n); else if (n.shown) { n.el.hidden = true; n.shown = false; n.lines.forEach((l) => l.setAttribute('visibility', 'hidden')); }
     }
@@ -63,7 +88,7 @@ export class FloatingAnnotationManager {
       if (!n.shown) { n.el.hidden = false; n.shown = true; this.measure(n); }
       if (!n.size || n.sel !== n.wasSel) { n.b[2].hidden = !n.sel; this.measure(n); n.wasSel = n.sel; }
       const shift = e.cam?.shift ?? 0, side = shift >= 0 ? 1 : -1, L = LAYOUTS[e.layout || 'A'];
-      const fade = n.sel ? 1 : smooth(78, 46, n.d);
+      const fade = n.sel ? 1 : smooth(118, 80, n.d);
       n.el.style.opacity = fade.toFixed(3); n.el.style.pointerEvents = fade < .35 ? 'none' : '';
       const blocks = [[L.title, 0], [L.stat, 1], [[.27, 0], 2]];
       blocks.forEach(([off, bi]) => {

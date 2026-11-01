@@ -7,7 +7,7 @@ export function trackGlowLocal(root, accent = '#ff9d3c') {
   root.updateWorldMatrix(true, true);
   inv.copy(root.matrixWorld).invert();
   root.traverse((o) => {
-    if (!o.isMesh || o.userData.glowShell) return;
+    if (!o.isMesh || o.userData.glowShell || o.userData.merged || o.userData.mergedStatic) return;
     items.push({ o, prev: rel.multiplyMatrices(inv, o.matrixWorld).elements.slice(), vis: o.visible, until: 0, shell: null });
   });
   const shellOf = (it) => {

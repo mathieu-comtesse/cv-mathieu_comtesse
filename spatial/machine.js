@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { ACCENT } from '../refonte/m3d/glow.js';
 import { trackGlowLocal } from './glow-local.js';
+import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 
 const DEG = Math.PI / 180;
 export const ROT = { LIM: 250, YAW_PER_PX: .36, TILT_UP: 45, TILT_DOWN: 25 };   // mêmes limites que les règles d'origine (±250 graduations)
@@ -34,7 +35,7 @@ export class MachineController {
     this.controls = null;
   }
   /** Charge le module et construit le modèle (une seule fois). */
-  load() {
+  load(optimize = true) {
     if (this.loading) return this.loading;
     this.loading = MODULES[this.entry.machine]().then(({ build, WIDTH = 236 }) => {
       const m = build();
@@ -45,11 +46,63 @@ export class MachineController {
       this.box.setFromObject(g); this.box.getCenter(this.center); this.box.getSize(this.size);
       g.position.set(-this.center.x, -this.center.y, -this.center.z);       // pivot au centre du volume : la machine s'incline sur elle-même
       this.body = g; this.ready = true;
+      if (optimize) { try { this.optimizeStats = this.optimize(g); } catch (e) { console.warn('fusion des maillages ignorée', this.id, e); } }
       this.glowStep = trackGlowLocal(g, ACCENT[this.entry.machine]);
       this.applyOrientation();
       return this;
     });
     return this.loading;
+  }
+  /** Regroupe les maillages qui ne bougent jamais (socle, cadres, pièces fixes) et leurs arêtes en quelques objets : moins d'appels de rendu, rendu identique.
+      Les pièces mobiles restent des objets séparés, donc animées comme à l'origine. Un maillage est « fixe » si, sur 13 instants échelonnés de 0 à 610 s,
+      sa matrice dans le repère de la machine et sa visibilité ne changent jamais. */
+  optimize(root) {
+    const inv = new THREE.Matrix4(), rel = (o) => new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
+    const all = []; root.traverse((o) => { if ((o.isMesh || o.isLine) && !o.userData.glowShell) all.push(o); });
+    const vis = (o) => { for (let n = o; n; n = n.parent) if (!n.visible) return false; return true; };
+    const times = [0, 1.7, 4.3, 7.9, 13.1, 21.7, 34.9, 55.3, 89.1, 143.7, 233, 377, 610];
+    const first = new Map(), moving = new Set();
+    for (const t of times) {
+      this.model.update(t); root.updateWorldMatrix(true, true); inv.copy(root.matrixWorld).invert();
+      for (const o of all) {
+        const m = rel(o).elements, v = vis(o), f = first.get(o);
+        if (!f) { first.set(o, { m: m.slice(), v }); continue; }
+        if (f.v !== v) moving.add(o); else for (let i = 0; i < 16; i++) if (Math.abs(f.m[i] - m[i]) > 1e-4) { moving.add(o); break; }
+      }
+    }
+    this.model.update(0); root.updateWorldMatrix(true, true);
+    const isStatic = (o) => !moving.has(o) && first.get(o).v && !o.isInstancedMesh && !o.isSkinnedMesh && !Array.isArray(o.material) && !o.userData.noMerge;
+    const groups = new Map(), lgroups = new Map(); let nMesh = 0, nLine = 0;
+    for (const o of all) {
+      if (!isStatic(o)) continue;
+      const g = o.geometry.clone(); g.applyMatrix4(new THREE.Matrix4().fromArray(first.get(o).m));
+      if (o.isMesh) {
+        nMesh++; const key = o.material.uuid + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : '');
+        if (!groups.has(key)) groups.set(key, { material: o.material, cast: o.castShadow, recv: o.receiveShadow, geos: [], src: [] });
+        const e = groups.get(key); e.geos.push(g); e.src.push(o);
+      } else if (o.isLineSegments) {
+        nLine++; const key = o.material.uuid; if (!lgroups.has(key)) lgroups.set(key, { material: o.material, geos: [], src: [] });
+        const e = lgroups.get(key); e.geos.push(g); e.src.push(o);
+      } else g.dispose();
+    }
+    const prep = (geos) => {                                          // attributs homogènes : position, normale et uv présents partout ou nulle part
+      const hasUv = geos.every((g) => g.attributes.uv); const hasNormal = geos.every((g) => g.attributes.normal);
+      return geos.map((g) => { const c = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(c.attributes)) if (k !== 'position' && !(k === 'uv' && hasUv) && !(k === 'normal' && hasNormal)) c.deleteAttribute(k); return c; });
+    };
+    let after = 0;
+    for (const e of groups.values()) {
+      if (e.geos.length < 2) { e.geos.forEach((g) => g.dispose()); continue; }
+      const merged = mergeGeometries(prep(e.geos), false); if (!merged) continue;
+      const m = new THREE.Mesh(merged, e.material); m.castShadow = e.cast; m.receiveShadow = e.recv; m.userData.mergedStatic = true; root.add(m);
+      for (const o of e.src) { o.layers.set(1); o.userData.merged = true; } after++;
+    }
+    for (const e of lgroups.values()) {
+      if (e.geos.length < 2) continue;
+      const merged = mergeGeometries(prep(e.geos), false); if (!merged) continue;
+      const l = new THREE.LineSegments(merged, e.material); l.userData.mergedStatic = true; root.add(l);
+      for (const o of e.src) { o.layers.set(1); o.userData.merged = true; } after++;
+    }
+    return { meshes: nMesh, lines: nLine, mergedObjects: after, total: all.length, moving: moving.size };
   }
   /** Rayon englobant en unités du monde (sert aux niveaux de détail et à la sélection). */
   get radius() { return this.ready ? this.size.length() / 2 : 8 * (this.entry.scale || 1); }
