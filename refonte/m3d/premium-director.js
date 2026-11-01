@@ -82,6 +82,15 @@ function sculpture(name,root,profile,animate,center){
    part(root,new THREE.CylinderGeometry(26,26,90,8,1,true),GLASS,x,80,0);
    for(let h=32;h<127;h+=27)arc(root,24,.65,x,h,0,'y',0,TAU,mat);
    const signal=ball(root,7,x,129,0,mat);
+   part(root,new THREE.CylinderGeometry(31,34,7,12),DARK,x,12,0);
+   part(root,new THREE.CylinderGeometry(26,26,55,24,1,true),GLASS,x,71,0);
+   const cartridge=part(root,new THREE.CylinderGeometry(7,9,65,16),x<0?THIN:mat,x,66,0);
+   for(let i=0;i<5;i++){
+    const y=31+i*18;
+    arc(root,27,.65,x,y,0,'y',0,TAU,THIN);
+    for(let side of [-1,1])stick(root,[x+side*26,y-7,0],[x+side*26,y+7,0],1.0,DARK);
+   }
+   const status=readout(root,30,7,x,103,30);status.set(x<0?'VM · ACTIVE':'VM · REPRISE');
   }
   const vault=arc(root,93,2.1,0,101,0,'z',.1,Math.PI-.2,mat);
   const pin=part(root,new THREE.OctahedronGeometry(11,0),mat,0,147,0);
@@ -107,7 +116,20 @@ function sculpture(name,root,profile,animate,center){
     ribbon(orb,[p,...q,neurons[(i+13)%neurons.length]||p],.24,mat);
    }
   }
-  const beam=part(root,new THREE.CylinderGeometry(2,2,88,16),mat,0,44,0);
+  // The data enters through two grounded docks and rises into the semantic orb.
+  const capsuleA=part(root,new THREE.CylinderGeometry(24,27,36,12),DARK,-66,27,0);
+  const capsuleB=part(root,new THREE.CylinderGeometry(24,27,36,12),DARK,66,27,0);
+  const entry=readout(root,37,8,-66,55,25);entry.set('DOCUMENTS / PDF');
+  const output=readout(root,38,8,66,55,25);output.set('CADRES / REGLES');
+  for(const sign of [-1,1]){
+   const x=sign*66;
+   for(let j=0;j<5;j++){
+    const p=[x+(j-2)*6,46,5];
+    ribbon(root,[p,[p[0]*.6,71,4],[p[0]*.4,92,0],[0,111,0]],.48,j%2?mat:THIN);
+   }
+  }
+  const beam=part(root,new THREE.CylinderGeometry(2,2,68,16),mat,0,64,0);
+  part(root,new THREE.CylinderGeometry(30,34,5,12),DARK,0,7,0);
   animate(t=>{orb.rotation.y=t*.075;shells[2].rotation.z=t*.12;globe.rotation.z=t*.025;});
  } else if(kind==='hydro'){
   // Central elevated hydraulic ring with four independent input reservoirs.
