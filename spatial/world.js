@@ -2,7 +2,6 @@
 // portiques et anneaux traversés par la caméra, constellations de domaine, titres couchés sur le plan, machines d'origine à leur échelle réelle.
 // La caméra est celle d'un film : position, regard, champ de vision et roulis viennent de CameraTimeline ; le mode inspection s'y superpose.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { drawMat } from '../refonte/blueprint-hero.js';
 import { MachineController } from './machine.js';
 import { buildSetPieces } from './setpieces.js';
@@ -110,7 +109,8 @@ export class SceneManager {
   }
   /** Champ vertical : les valeurs du storyboard sont données pour 16:9, le champ horizontal reste constant sur écran plus étroit. */
   applyFov(fov) {
-    const a = this.camera.aspect, fv = a >= 1.6 ? fov : Math.min(84, 2 * Math.atan(Math.tan(fov * DEG / 2) * 1.6 / a) / DEG);
+    // la pièce impose sa propre projection (déjà adaptée à l'écran) : on s'y accorde exactement au repos, puis le champ s'élargit sur écran étroit
+    const a = this.camera.aspect, wide = a >= 1.6 ? fov : Math.min(84, 2 * Math.atan(Math.tan(fov * DEG / 2) * 1.6 / a) / DEG), fv = wide + (fov - wide) * (this.roomW || 0);
     if (Math.abs(this.camera.fov - fv) > 1e-4) { this.camera.fov = fv; this.camera.updateProjectionMatrix(); }
   }
 
@@ -120,7 +120,6 @@ export class SceneManager {
       else if (e.kind === 'plate') this.addPlate(e);
     }
     for (const p of this.registry.plates) this.addPlate(p);
-    this.loadStele();
   }
   decorate(e, r) {
     const g = new THREE.Group(); g.position.set(e.pos[0], 0, e.pos[2]); g.add(ring(r * 1.1), ring(r * 1.38, 48));
@@ -143,15 +142,6 @@ export class SceneManager {
       const ratio = t.image.width / t.image.height, w = p.mesh.scale.x; p.mesh.scale.y = w / ratio; p.frame.scale.copy(p.mesh.scale); p.face.position.y = p.entry.pos[1] + p.mesh.scale.y / 2 + 1.4;
       p.stand.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, p.face.position.y - p.mesh.scale.y / 2, 0)]); p.loaded = true;
     }, undefined, () => { p.loading = false; });
-  }
-  loadStele() {
-    new GLTFLoader().load('assets/stele-bordeaux.glb?v=stele1', (gltf) => {
-      const o = gltf.scene, box = new THREE.Box3().setFromObject(o), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
-      const k = 15 / size.y; o.scale.setScalar(k); o.position.set(-c.x * k, -box.min.y * k, -c.z * k);
-      o.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
-      const g = new THREE.Group(); g.add(o); const home = this.registry.byId.accueil; g.position.set(home.pos[0], 0, home.pos[2]); g.rotation.y = 24 * DEG;
-      this.scene.add(g); this.stele = g; this.decorate({ pos: [g.position.x, 0, g.position.z] }, 6);
-    }, undefined, () => {});
   }
   buildLinks() {
     const pts = (id) => { const e = this.registry.byId[id]; return new THREE.Vector3(e.pos[0], e.pos[1] + 3, e.pos[2]); };

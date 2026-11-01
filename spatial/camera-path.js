@@ -38,6 +38,14 @@ export class CameraTimeline {
     out.fov = Math.min(70, Math.max(24, s[0])); out.roll = s[1] * DEG;
     return out;
   }
+  /** Met à jour une clé en direct (la clé 0 suit la caméra réelle de la pièce) et recalcule les tangentes voisines. */
+  updateKey(i, pos, look, fov) {
+    const k = this.keys[i]; k.pos = pos; k.look = look; k.fov = fov; this.P[i] = pos; this.L[i] = look; this.S[i] = [fov, k.roll || 0];
+    for (let j = Math.max(0, i - 1); j <= Math.min(this.n - 1, i + 1); j++) {
+      const a = Math.max(0, j - 1), b = Math.min(this.n - 1, j + 1), d = this.keys[b].u - this.keys[a].u;
+      this.mP[j] = this.P[b].map((v, c) => (v - this.P[a][c]) / d); this.mL[j] = this.L[b].map((v, c) => (v - this.L[a][c]) / d); this.mS[j] = this.S[b].map((v, c) => (v - this.S[a][c]) / d);
+    }
+  }
   uOf(tag) { if (!(tag in this.tags)) throw new Error('étiquette inconnue : ' + tag); return this.tags[tag]; }
   /** Vitesse apparente (unités du monde par pixel de défilement), estimée par différence finie. */
   speed(u) { const a = this.at(u - 2, {}).pos.clone(), b = this.at(u + 2, {}).pos; return a.distanceTo(b) / 4; }

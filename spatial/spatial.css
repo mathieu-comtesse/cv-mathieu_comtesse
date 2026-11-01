@@ -166,3 +166,11 @@ body.sp-list .sp-index,body.sp-nogl .sp-index{background:#03060f;-webkit-backdro
 .sp-wtag-domain{font:400 11px/1 var(--rf-mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;padding-left:14px}
 .sp-wtag-domain::before{content:'';position:absolute;left:0;top:50%;width:8px;height:8px;margin-top:-4px;background:#fff}
 .sp-wtag-mono{font:400 10px/1 var(--rf-mono);letter-spacing:.06em;color:#cfe1ff}
+
+/* la vraie pièce : au-dessus du plan du monde, transparente, même caméra */
+.sp-roomstage{position:fixed;inset:0;z-index:1;background:none!important;pointer-events:none;overflow:visible}
+.sp-roomstage .room.rf-room{pointer-events:auto}
+.sp-roomstage.sp-room-off .room.rf-room{pointer-events:none}
+.sp-roomstage.sp-room-hidden{display:none}
+body.sp-list .sp-roomstage,body.sp-nogl .sp-roomstage{display:none}
+.sp-intro{pointer-events:none}.sp-intro .sp-actions,.sp-intro .sp-actions *{pointer-events:auto}

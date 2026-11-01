@@ -66,7 +66,7 @@ export function buildSetPieces({ scene, registry, timeline, fontsReady }) {
   const out = { update() {}, tags: [], titles: [], silhouettes: new Map(), hubs: [] };
   const L = { near: new Lines(), far: new Lines(), faint: new Lines() };
   const proj = registry.items.filter((s) => s.kind === 'machine' || s.kind === 'plate');
-  const farFromProjects = (x, z, r) => proj.every((s) => Math.hypot(x - s.pos[0], z - s.pos[2]) > r);
+  const farFromProjects = (x, z, r) => Math.hypot(x, z) > 44 && proj.every((s) => Math.hypot(x - s.pos[0], z - s.pos[2]) > r);
 
   /* ---- 1. tours filaires de part et d'autre de la trajectoire : rangées proches (parallaxe) et rangées lointaines (échelle) ---- */
   const step = 13, total = timeline.length, P = new THREE.Vector3(), Q = new THREE.Vector3();
@@ -164,7 +164,7 @@ export function buildSetPieces({ scene, registry, timeline, fontsReady }) {
   /* ---- 8. murs de plan : grands dessins verticaux derrière certaines scènes, pour l'occlusion et l'échelle ---- */
   const wallTex = new THREE.CanvasTexture(drawMat(1024)); wallTex.colorSpace = THREE.SRGBColorSpace; wallTex.anisotropy = 4;
   const wallMat = new THREE.MeshBasicMaterial({ map: wallTex, transparent: true, opacity: .5, depthWrite: false, side: THREE.DoubleSide });
-  const walls = [[-6, 24, -300, 90, 48, 24], [-96, 20, -520, 80, 40, 80], [76, 20, -700, 84, 42, -60], [-60, 18, -940, 76, 38, 70], [60, 24, -1060, 90, 46, -30]];
+  const walls = [[-6, 24, -300, 90, 48, 24], [-96, 20, -470, 80, 40, 80], [76, 20, -700, 84, 42, -60], [-60, 18, -940, 76, 38, 70], [60, 24, -1060, 90, 46, -30]];
   for (const [x, y, z, w, h, yaw] of walls) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), wallMat); m.position.set(x, y, z); m.rotation.y = yaw * DEG; m.frustumCulled = false; scene.add(m);
     const l = new Lines(); l.seg([-w / 2, -h / 2, 0], [w / 2, -h / 2, 0]); l.seg([w / 2, -h / 2, 0], [w / 2, h / 2, 0]); l.seg([w / 2, h / 2, 0], [-w / 2, h / 2, 0]); l.seg([-w / 2, h / 2, 0], [-w / 2, -h / 2, 0]);
@@ -173,7 +173,7 @@ export function buildSetPieces({ scene, registry, timeline, fontsReady }) {
   }
 
   /* ---- 9. constellations : un point de repère par domaine, visible de très loin, avec son étiquette ---- */
-  const HUBS = [['01 · Maintenance et exploitation', -4, 7, -112], ['02 · Qualité, sécurité, environnement', 22, 12, -306], ['03 · Pilotage par la donnée', -26, 10, -520], ['04 · Automatisation', 8, 9, -716], ['05 · Données et intelligence artificielle', 4, 9, -905], ['06 · Expérimentations', -2, 9, -1062], ['07 · Parcours et contact', -6, 9, -1262]];
+  const HUBS = [['01 · Maintenance', -4, 7, -112], ['02 · Qualité et sécurité', 22, 12, -484], ['03 · Automatisation', 8, 9, -716], ['04 · Données et IA', 4, 9, -905], ['05 · Expérimentations', -2, 9, -1062], ['06 · Parcours et contact', -6, 9, -1262]];
   const pts = [], conn = new Lines();
   HUBS.forEach(([label, x, y, z], hi) => {
     const hub = [x, y, z]; for (let i = 0; i < 70; i++) { const a = rnd() * 6.283, b = (rnd() - .5) * 2.2, r = 5 + Math.pow(rnd(), .6) * 22, p = [x + Math.cos(a) * r, y + b * r * .45, z + Math.sin(a) * r]; pts.push(...p); if (i % 3 === 0) conn.seg(hub, p); }
@@ -185,7 +185,7 @@ export function buildSetPieces({ scene, registry, timeline, fontsReady }) {
   const pm = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffffff, size: 4, sizeAttenuation: false, map: new THREE.CanvasTexture(dot), alphaTest: .4, transparent: true, opacity: .9, depthWrite: false })); pm.frustumCulled = false; scene.add(pm, conn.build(.35, 0xdbe6ff));
 
   /* ---- 10. grands titres de domaine, couchés sur le plan comme dans le voyage de référence, lus depuis la caméra en approche ---- */
-  const TITLES = [[['MAINTENANCE'], -6, -92, 118, 0], [['QUALITÉ', 'SÉCURITÉ'], 28, -270, 94, 8], [['PILOTAGE'], -34, -498, 112, -6], [['AUTOMATISATION'], 14, -690, 132, 4], [['DONNÉES', 'ET IA'], 8, -880, 86, -4], [['EXPÉRIMENTATIONS'], 0, -1042, 150, 0], [['PARCOURS'], -6, -1238, 106, 0]];
+  const TITLES = [[['MAINTENANCE'], -6, -92, 118, 0], [['QUALITÉ', 'SÉCURITÉ'], 28, -486, 94, 8], [['AUTOMATISATION'], 14, -690, 132, 4], [['DONNÉES', 'ET IA'], 8, -880, 86, -4], [['EXPÉRIMENTATIONS'], 0, -1042, 150, 0], [['PARCOURS'], -6, -1238, 106, 0]];
   fontsReady.then(() => {
     for (const [lines, x, z, w, yaw] of TITLES) {
       const { tex, aspect } = titleTexture(lines, '"Instrument Serif", Georgia, serif');

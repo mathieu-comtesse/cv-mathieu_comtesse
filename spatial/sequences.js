@@ -4,6 +4,9 @@ import { inspectPose } from './camera-path.js';
 
 const DEG = Math.PI / 180;
 
+/** Pose par défaut de la pièce d'accueil (azimut 36°, élévation 26°, distance 40 autour de la cible de la pièce) : remplacée en direct par la caméra réelle de la pièce. */
+export const ROOM_POSE = { pos: [21.2, 18.3, 28.9], look: [.1, .8, -.2], fov: 24 };
+
 export function buildKeys(reg) {
   const keys = []; let u = 0;
   const RHYTHM = .5;                                                          // pixels de molette par unité de durée du storyboard : parcours complet d'environ 23 000 px
@@ -15,38 +18,38 @@ export function buildKeys(reg) {
   const rest = (id, fov = 36, extra = 0) => { const e = reg.byId[id], ip = inspectPose(e); at(extra, ip.pos.toArray(), ip.look.toArray(), fov, 0, id); };
   const restDur = (id, dur, fov = 36) => { const e = reg.byId[id], ip = inspectPose(e); at(dur, ip.pos.toArray(), ip.look.toArray(), fov, 0, id); };
 
-  /* ---- A. Ouverture : vue immense, descente en grue, arrivée à la stèle ---- */
-  at(0, [44, 132, 78], [-8, 0, -230], 58, 0);                                // l'espace entier, les premiers volumes au loin
-  at(1100, [26, 46, 70], [-14, 2, -140], 52, -2);                              // dolly avant + crane vers le bas
-  at(1200, [6, 17, 26], [-20, 6, -40], 44, 0, 'accueil');                      // arrivée : stèle au premier plan
-  /* ---- B. Traversée : survol de la stèle, truck, grue, révélation de VM ---- */
-  at(1000, [-38, 26, -64], [-30, 2, -150], 50, 4);                             // truck latéral, la stèle passe sur le côté
-  at(1250, [-30, 30, -100], aim('vm', 3, -4), 52, 3);                          // grue : VM apparaît à gauche, plus bas
+  /* ---- A. Ouverture : la vraie pièce, puis recul le long de l'axe de vue, grue, plongée. La clé 0 est la caméra de la pièce (mise à jour en direct). ---- */
+  at(0, ROOM_POSE.pos, ROOM_POSE.look, ROOM_POSE.fov, 0, 'accueil');
+  at(700, [43, 37, 58], [-2, 0, -28], 36, 0);                                  // recul sur l'axe de vue : la pièce rapetisse, l'espace apparaît autour
+  at(900, [46, 84, 52], [-8, 0, -170], 52, -2);                                // grue : le plan s'ouvre vers la profondeur
+  at(900, [26, 50, -22], [-14, 2, -140], 50, 2);                               // plongée vers la première zone
+  /* ---- B. Maintenance : VM, Reporteur Q18, VRE (moment majeur) ---- */
+  at(1000, [-38, 28, -78], [-34, 2, -150], 50, 4);                             // truck latéral
+  at(1250, [-30, 30, -104], aim('vm', 3, -4), 52, 3);                          // grue : VM apparaît à gauche, plus bas
   at(1100, around('vm', -34, 30, 12), aim('vm', 3), 42, 0, 'vm');              // survol de VM (pas d'arrêt)
-  at(800, [6, 26, -136], aim('moteur44', 3, 4), 47, -3);                      // truck à droite à travers la composition
+  at(800, [6, 26, -136], aim('moteur44', 3, 4), 47, -3);                       // truck à droite à travers la composition
   restDur('moteur44', 1000, 38);                                               // approche de Q18
-  /* ---- C. VRE : moment majeur. Pull-back, approche lente, orbite partielle, départ ---- */
   at(1500, [68, 32, -208], aim('vre', 6, 6), 46, 2);                           // pull-back par la droite puis virage : VRE entre dans le champ
   at(1500, around('vre', 40, 42, 15), aim('vre', 7), 40, 1);                   // dolly avant lent
   restDur('vre', 1800, 36);                                                    // pose d'inspection
   at(950, around('vre', 100, 36, 16), aim('vre', 8), 38, 3);                   // orbite partielle : le volume se dévoile
-  at(600, [30, 34, -284], aim('pa', 8, -6), 44, 0);                          // départ : la caméra passe derrière VRE en regardant déjà vers la suite
+  at(600, [30, 34, -284], aim('gares', 6, 8), 46, 0);                          // départ par la droite de VRE
+  /* ---- C. Maintenance, suite : pilotage par la donnée (Gares prioritaires, Suivi) ---- */
+  at(1300, [-6, 46, -318], aim('gares', 2, 8), 54, 3);                         // pull-back très ample avant Gares
+  restDur('gares', 1100, 36);
+  at(1000, [-34, 38, -392], aim('suivi', 6), 46, -3);                          // survol vers Suivi, suspendu plus haut
+  restDur('suivi', 800, 36);
   /* ---- D. Qualité, sécurité, environnement : plans de prévention, Power BI, CERFA ---- */
-  at(1300, [40, 34, -312], aim('pa', 8, -6), 50, -3);                          // grue : PA surgit à droite
+  at(1300, [48, 46, -468], aim('pa', 8, -6), 50, -3);                          // grue : PA surgit à droite
   restDur('pa', 1700, 36);
   at(800, around('pa', 80, 32, 14), aim('pa', 8), 38, 2);                      // orbite partielle de PA
-  at(800, [24, 40, -392], aim('powerbi', 4, 4), 48, 4);                       // truck gauche et montée vers Power BI suspendu
+  at(800, [24, 40, -576], aim('powerbi', 4, 4), 48, 4);                        // truck gauche et montée vers Power BI suspendu
   restDur('powerbi', 1800, 36);
   at(800, around('powerbi', 78, 34, 6), aim('powerbi', 4), 38, -3);            // contournement par la droite
-  at(1200, [14, 26, -456], aim('cerfa', 4, -2), 44, 2);                        // traversée du portique vers CERFA
+  at(1200, [14, 26, -640], aim('cerfa', 4, -2), 44, 2);                        // traversée du portique vers CERFA
   restDur('cerfa', 800, 36);
-  /* ---- E. Pilotage : très grand écart, vue ouverte puis approche ---- */
-  at(1200, [-8, 44, -552], aim('gares', 2, 10), 54, 3);                        // pull-back : on voit l'ensemble avant Gares
-  restDur('gares', 1100, 36);
-  at(700, [-56, 30, -628], aim('suivi', 6), 46, -3);                         // survol vers Suivi, suspendu plus haut
-  restDur('suivi', 800, 36);
   /* ---- F. Automatisation : espace confiné, traversée de colonnes ---- */
-  at(900, [30, 26, -722], aim('finance', 3, 4), 48, 3);                      // fly-through entre les structures
+  at(1300, [30, 26, -722], aim('finance', 3, 4), 48, 3);                      // fly-through entre les structures
   restDur('finance', 800, 36);
   at(1300, [30, 38, -792], aim('studio', 5, 6), 46, -3);                       // grue : on passe au-dessus de Finance
   restDur('studio', 800, 36);

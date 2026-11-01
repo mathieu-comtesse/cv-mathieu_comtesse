@@ -8,6 +8,9 @@
 <meta name="robots" content="noindex,follow">
 <meta name="theme-color" content="#07090c">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="cursor.css?v=5">
+<link rel="stylesheet" href="style.css?v=cv-light-v75">
+<link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
 <link rel="stylesheet" href="refonte/rf.css?v=mvp040j2">
 <link rel="stylesheet" href="spatial/spatial.css?v=sp1">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="refonte/fonts/InstrumentSerif-Regular.woff2">
@@ -15,6 +18,8 @@
 <script type="module" src="spatial/main.js?v=sp1"></script>
 </head>
 <body class="rf sp">
+<script>window.ToddhamIntroOptions={background:'#07090c',color:'#1254fa',manual:true,minDuration:700,duration:500,text:'COMTESSE • '}</script>
+<script src="refonte/toddham-intro.js?v=mvp040j2"></script>
 <a class="sp-skip" href="#sp-index">Aller à l’index des réalisations</a>
 <header class="sp-top" data-sp-avoid>
   <a class="sp-brand rf-mono" href="index.html" aria-label="Retour à la pièce d’accueil">Comtesse · plan</a>
@@ -29,6 +34,8 @@
 </header>
 
 <canvas id="sp-canvas" aria-hidden="true"></canvas>
+<!-- La vraie pièce d'accueil (js/room.js), rendue avec la caméra du voyage : même composant que sur index.html -->
+<div class="rf-stage sp-roomstage" id="stage"><div class="room rf-room" id="room" aria-label="Appartement interactif de Mathieu"><div class="bubble" id="bubble" aria-live="polite"></div></div></div>
 <div id="sp-notes" class="sp-notes"></div>
 
 <section class="sp-intro" id="sp-intro" aria-labelledby="sp-h1">

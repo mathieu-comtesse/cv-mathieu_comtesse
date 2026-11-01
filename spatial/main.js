@@ -2,6 +2,7 @@
 import { buildRegistry, DOMAINS } from './registry.js';
 import { CameraTimeline } from './camera-path.js';
 import { buildKeys } from './sequences.js';
+import { loadRoom, RoomBridge } from './room-bridge.js';
 import { SpatialScrollController, normalizeWheel } from './scroll.js';
 import { InteractionStateManager, STATE } from './state.js';
 import { PerformanceManager, detectGpu } from './perf.js';
@@ -70,7 +71,7 @@ function init() {
   const canvas = $('sp-canvas');
   const gl = canvas.getContext('webgl2');
   const perf = new PerformanceManager({ gpu: detectGpu(gl), onProfile: () => world.setProfile() });
-  let world, annotations, rulers, hic, panelC;
+  let world, annotations, rulers, hic, panelC, room = null, bridge = null;
   Promise.all([import('./world.js'), import('./annotations.js'), import('./panel.js'), import('./html-canvas.js')]).then(([W, A, P, H]) => {
     world = new W.SceneManager(canvas, registry, timeline, perf);
     try { world.init(); } catch (e) { console.warn(e); document.body.classList.add('sp-nogl'); setList(true, false); modeBtn.hidden = true; return; }
@@ -81,7 +82,16 @@ function init() {
     hic = new H.HTMLCanvasAdapter(world); let hicOn = hic.init();
     // garde d'exécution : si l'API détectée refuse l'envoi de la texture (signature différente selon la version du navigateur), on retombe sur le DOM
     world.onRenderError = (e) => { if (hic.active) { hic.disable(String(e.message).slice(0, 140)); hicOn = false; } else console.error(e); };
-    rulers = new RotationRulerController((rot, tilt) => { const m = world.machines.get(selectedId); if (m) { m.setRulers(rot, tilt); saveState(); } });
+    const roomRulers = { rot: 0, tilt: 0 };
+    const DEG2 = Math.PI / 180, EL0 = 26, LIMR = 250;
+    rulers = new RotationRulerController((rot, tilt) => {
+      const m = world.machines.get(selectedId);
+      if (m) { m.setRulers(rot, tilt); saveState(); return; }
+      if (selectedId || !room) return;                                    // règles de l'accueil : mêmes réglages que sur index.html
+      roomRulers.rot = rot; roomRulers.tilt = tilt;
+      const td = tilt >= 0 ? tilt * (82 - EL0) / LIMR : tilt * (EL0 - 6) / LIMR;
+      room.view.tAz = (36 + rot * .36) * DEG2; room.view.tEl = Math.min(82, Math.max(6, EL0 + td)) * DEG2;
+    });
     annotations = new A.FloatingAnnotationManager($('sp-notes'), world, registry, { onSelect: (id) => select(id, { push: true }), onDeepen: (id, opener) => openFiche(id, opener), domains: DOMAINS }); annotations.addTags(world.pieces.tags);
 
     /* ---------- sélection, inspection, lecture ---------- */
@@ -128,7 +138,7 @@ function init() {
     /* ---------- entrées : molette, glisser, clavier ---------- */
     addEventListener('wheel', (e) => {
       if (e.ctrlKey) return;                                              // zoom du navigateur : intact
-      if (listMode || e.target.closest?.('.sp-index,.sp-panel,.sp-hubcard,.rf-ruler')) return;
+      if (listMode || e.target.closest?.('.sp-index,.sp-panel,.sp-hubcard,.rf-ruler') || room?.appOpen || room?.crate?.isOpen) return;
       e.preventDefault();
       if (!state.cameraFree) return;
       if (selectedId && state.is(STATE.INSPECTION)) exitInspect(false);     // la molette rend la main à la caméra, qui revient exactement sur sa trajectoire
@@ -143,7 +153,7 @@ function init() {
       if (next) select(next.id, { push: true });
     }
     let drag = null;
-    const UI = 'button,a,input,select,textarea,summary,.sp-panel,.sp-index,.rf-ruler,.sp-hubcard,.sp-inspect,.sp-top,.sp-rail,.sp-blk';
+    const UI = '#room,button,a,input,select,textarea,summary,.sp-panel,.sp-index,.rf-ruler,.sp-hubcard,.sp-inspect,.sp-top,.sp-rail,.sp-blk';
     document.addEventListener('pointerdown', (e) => {
       if (e.button || listMode || e.target.closest?.(UI)) return;
       const hit = world.pick(e.clientX, e.clientY), m = hit && world.machines.get(hit);
@@ -197,10 +207,26 @@ function init() {
     if (!route(true) && saved && typeof saved.p === 'number' && !qs.has('reset')) { scroll.current = scroll.target = Math.min(timeline.length, Math.max(0, saved.p)); for (const [id, [r, t]] of Object.entries(saved.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } } }
     else for (const [id, [r, t]] of Object.entries(saved?.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } }
     world.resize(); document.body.classList.add('sp-ready');
+    /* ---------- la vraie pièce d'accueil, rendue avec la caméra du voyage ---------- */
+    const stage = $('stage'), roomEl = $('room'); let lastMode = null, roomHidden = false;
+    const doneIntro = () => { try { window.ToddhamIntro?.done(); } catch {} };
+    loadRoom(roomEl).then((r) => {
+      room = r; bridge = new RoomBridge(r); bridge.attach(world, ensureTick); window.room = r;
+      stage.classList.add('rf-ready'); setTimeout(doneIntro, 80);
+    }).catch((e) => { console.warn('pièce 3D indisponible', e); stage.classList.add('sp-room-hidden'); doneIntro(); });
     let inspectE = 0, blendId = null;
+    let tickedFrame = -1, lastTickAt = performance.now();
+    /** Une seule mise à jour par image d'animation, qu'elle soit demandée par la boucle du monde ou par le rendu de la pièce (selon l'ordre des rappels). */
+    function ensureTick() {
+      if (listMode || paused || document.hidden) return;
+      const fid = document.timeline?.currentTime ?? performance.now(); if (fid === tickedFrame) return; tickedFrame = fid;
+      const now = performance.now(), raw = Math.max(0, now - lastTickAt); lastTickAt = now; tick(now, raw, Math.min(.05, raw / 1000));
+    }
     function tick(now, raw, dt) {
       perf.frame(raw);
+      if (bridge && roomVisibleNow) { const rp = bridge.current(); timeline.updateKey(0, rp.pos.slice(), rp.look.slice(), rp.fov); }
       const u = scroll.update(dt, now);
+      world.roomW = bridge ? Math.min(1, Math.max(0, 1 - u / 900)) : 0;
       if (state.is(STATE.NAVIGATION) && !scroll.moving) state.to(selectedId ? STATE.INSPECTION : STATE.EXPLORATION);
       // inspection : la pose d'inspection se superpose à la trajectoire, sans saut ; à la sortie la caméra revient sur la trajectoire au même u
       // la pose d'inspection est mélangée au projet `blendId` : quand la sélection change, l'ancien mélange se résorbe avant que le nouveau commence (aucun saut)
@@ -209,6 +235,16 @@ function init() {
       inspectE += (want - inspectE) * (1 - Math.exp(-dt * 4.2)); if (Math.abs(want - inspectE) < .002) inspectE = want;
       world.frame(u, dt, now, selectedId, inspectE, blendId);
       if (selectedId && state.is(STATE.INSPECTION) && !scroll.tween && Math.abs(u - pOf(selectedId)) > 700) exitInspect(true);
+      // la pièce : visible et interactive près de l'origine, estompée puis suspendue quand la caméra s'éloigne
+      if (bridge) {
+        const d = bridge.distance(world.camera.position), fade = Math.min(1, Math.max(0, (235 - d) / 85)), hide = d >= 240;
+        if (hide !== roomHidden) { roomHidden = hide; stage.classList.toggle('sp-room-hidden', hide); }
+        roomVisibleNow = !hide; if (!hide) roomEl.style.opacity = fade.toFixed(3);
+        stage.classList.toggle('sp-room-off', u > 350 || !!selectedId);
+      }
+      // règles : accueil (vue de la pièce), machine sélectionnée, ou aucune
+      const mode = selectedId ? (world.machines.get(selectedId) ? 'machine' : 'none') : (bridge && roomVisibleNow && u < 350 ? 'room' : 'none');
+      if (mode !== lastMode) { lastMode = mode; rulers.show(mode !== 'none'); if (mode === 'room') rulers.set(roomRulers.rot, roomRulers.tilt); else if (mode === 'machine') { const m = world.machines.get(selectedId); rulers.set(m.rot, m.tilt); } }
       annotations.update(world.camera.position, selectedId, state.is(STATE.LECTURE), inspectE); annotations.updateTags(world.camera.position, state.is(STATE.LECTURE));
       if (hicOn) hic.show(selectedId ? registry.byId[selectedId] : null);
       intro.classList.toggle('sp-away', u > 380);
@@ -219,15 +255,15 @@ function init() {
       if (now - lastSave > 1500 && scroll.moving === false) { lastSave = now; saveState(); }
       if (qs.has('debug')) { const s = perf.stats; $('sp-debug').hidden = false; $('sp-debug').textContent = `u ${u.toFixed(0)} / ${timeline.length.toFixed(0)} · état ${state.state} · fov ${world.camera.fov.toFixed(1)}\nprofil ${s.profile} · ${s.fps} i/s mesurées · ${s.frameMs} ms (moy.) · pire ${s.worstMs} ms · ${s.frames} images\nWebGL init ${world.stats.webglInitMs} ms · modèles ${JSON.stringify(world.stats.modelMs)}\nHTML-in-Canvas : ${hic.status}\nGPU : ${s.gpu || 'inconnu'}\ndraw calls ${world.renderer.info.render.calls} · triangles ${world.renderer.info.render.triangles}`; }
     }
-    let paused = false, vnow = 0;
+    let paused = false, vnow = 0, roomVisibleNow = true;
     function loop(now) {
       requestAnimationFrame(loop);
       const raw = Math.max(0, now - last), dt = Math.min(.05, raw / 1000); last = now;
       if (document.hidden || listMode || paused) { perf.winT = performance.now(); perf.win = 0; return; }
-      tick(now, raw, dt);
+      ensureTick();
     }
     requestAnimationFrame(loop);
-    window.__spatial = { state, scroll, world, perf, registry, timeline, rulers, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, panel: panelC,
+    window.__spatial = { state, scroll, world, perf, registry, timeline, rulers, get room() { return room; }, get bridge() { return bridge; }, roomRulers, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, panel: panelC,
       /** Capture déterministe (vidéo, comparaisons) : suspend la boucle puis rend une image avec un pas de temps fixe. */
       pause(v = true) { paused = v; vnow = performance.now(); scroll.now = v ? () => vnow : () => performance.now(); },
       step(dt = 1 / 24) { vnow += dt * 1000; last = performance.now(); tick(vnow, dt * 1000, dt); } };
