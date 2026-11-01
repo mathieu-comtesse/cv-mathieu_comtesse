@@ -2,7 +2,7 @@
 // Chaque cuve se remplit avec la consommation d'un périmètre ; au seuil, une enveloppe d'alerte sort du socle vers le bac ;
 // au-delà de 100 %, le trop-plein déverse et une seconde enveloppe signale le dépassement.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylX, bench, display } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, bench, display, paper } from './core.js';
 
 export const WIDTH = 308;
 const PLATE = { x: -154, y: -44, w: 308, d: 100, r: 8 };
@@ -35,7 +35,7 @@ export function build() {
     const d = display(16, 4); d.mesh.position.set(t.cx - 3, 3.6, FY + .05); g.add(d.mesh); pcs.push(d);
   });
   g.add(slab(TRAY.x, TRAY.y, TRAY.w, TRAY.d, 0, 1.4, COL.lo, 2), slab(TRAY.x, TRAY.y + TRAY.d - 1.4, TRAY.w, 1.4, 0, 7, COL.mid, .5));
-  const envs = Array.from({ length: 5 * SHOWN }, () => { const m = box(0, 0, 0, 16, 10, .9, COL.hi, 0); m.visible = false; g.add(m); return m; });
+  const envs = Array.from({ length: 5 * SHOWN }, () => { const o = new THREE.Group(), pp = paper(10, 16, '#f4f7fd', 6); pp.rotation.z = -Math.PI / 2; o.rotation.x = -Math.PI / 2; o.add(pp); o.userData.p = pp; o.visible = false; g.add(o); return o; });
   const overMat = mat(COL.accent);
   let THRESHOLD = .8, shownT = .8, sent = [], last = null, day = 0, lastCheck = 0;
   function check(d) {
@@ -43,6 +43,7 @@ export function build() {
     r.forEach((v, i) => { const n = 1 + (w === i % WEEK ? 1 : 0); for (let q = 0; q < n; q++) sent.push({ i, level: v >= 1 ? 1 : 0, day: d + q * .35 }); });
   }
   function update(time) {
+    const now = time * .9;
     const dt = last === null ? 0 : Math.max(0, Math.min(.05, time - last)); last = time;
     const cycle = DAYS / SPEED + 4, u = time % cycle; day = Math.min(DAYS, u * SPEED);
     if (day < lastCheck) { sent = []; lastCheck = 0; }
@@ -57,9 +58,9 @@ export function build() {
     });
     let n = 0;
     TANKS.forEach((t, i) => sent.filter((s) => s.i === i && s.day <= day).slice(-SHOWN).forEach((s, q) => {
-      const m = envs[n++]; m.visible = true; m.material = s.level ? overMat : mat(COL.hi);
+      const m = envs[n++]; m.visible = true; m.userData.p.material = s.level ? overMat : mat('#f4f7fd');
       const age = (day - s.day) / 1.2, out = Math.min(1, age / .5), drop = age < .5 ? 0 : Math.min(1, ((age - .5) / .4) ** 2), restZ = 1.4 + q * 1.1;
-      m.position.set(t.cx + s.level * 3, 4 - (4 - restZ) * drop + .45, FY - 4 + out * (TRAY.y + 12 - FY + 4));
+      m.position.set(t.cx + s.level * 3, 4 - (4 - restZ) * drop + .5, FY - 4 + out * (TRAY.y + 12 - FY + 4)); const mv = age < 1 ? Math.sin(Math.PI * Math.max(0, Math.min(1, age))) : 0; m.userData.p.userData.flex(mv > .02 ? -.05 * mv : (q % 2 ? .03 : -.025), 1.2 * mv, .9 * mv, s.i * 1.3 + q, now);
     }));
     for (; n < envs.length; n++) envs[n].visible = false;
     knob.rotation.z = -((shownT - .5) / .5 * Math.PI * 1.2 - Math.PI * .6);

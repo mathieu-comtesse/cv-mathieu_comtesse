@@ -3,7 +3,7 @@
 // (relevé toutes les 2 min) et même trajet de carte : le chariot qui tient la clé la saisit dans la file, la porte au pupitre de
 // lecture (R004 et OT), puis la pose dans l'historique ; un doublon part aux rebuts.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylY, display, bench, ease, hash as _h } from './core.js';
+import { COL, mat, slab, box, cyl, cylY, display, bench, ease, paper, hash as _h } from './core.js';
 
 export const WIDTH = 316;
 const PLATE = { x: -158, y: -50, w: 316, d: 100, r: 8 };
@@ -65,8 +65,8 @@ export function build() {
   const rope = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, 1, 6), mat(COL.dark)); g.add(rope);
   // cartes : une par dépôt du jour
   const cardMat = mat(COL.hi), lit = new THREE.MeshStandardMaterial({ color: '#ffe3c2', roughness: .8 });
-  const cards = DAYPLAN.map(() => { const m = box(0, 0, 0, CARD.w, CARD.d, .8, COL.hi); m.visible = false; g.add(m); return m; });
-  const place = (m, p) => m.position.set(p[0], p[2] + .4, p[1]);
+  const cards = DAYPLAN.map(() => { const o = new THREE.Group(), pp = paper(CARD.d, CARD.w, '#ffffff', 8); pp.rotation.z = -Math.PI / 2; o.rotation.x = -Math.PI / 2; o.add(pp); o.userData.p = pp; o.visible = false; g.add(o); return o; });
+  const place = (m, p) => m.position.set(p[0], p[2] + .5, p[1]);
   function update(time) {
     const cycle = (RECAP + 6 - START) / SPEED + HOLD, u = time % cycle, t = Math.min(START + u * SPEED, RECAP + 6);
     const xs = [HOME[0], HOME[1]]; let nb = 0, busyQ = null, busy = null;
@@ -74,9 +74,9 @@ export function build() {
       const m = cards[i];
       if (t < c.arrive) { m.visible = false; return; }
       m.visible = true;
-      if (t < c.start) { m.material = cardMat; place(m, [...inPos(c.i), TH + 1.6]); return; }
-      if (t < c.end) { const q = path(c, t - c.start, xs[0]); m.material = lit; place(m, q.p); busy = c; busyQ = q; xs[0] = q.tx; return; }
-      m.material = cardMat; xs[0] = c.rejected ? binPos()[0] : outPos(c.slot)[0];
+      if (t < c.start) { m.userData.p.material = cardMat; m.userData.p.userData.flex((i % 2 ? 1 : -1) * .02, 0, 0, i, 0); place(m, [...inPos(c.i), TH + 1.6]); return; }
+      if (t < c.end) { const q = path(c, t - c.start, xs[0]); m.userData.p.material = lit; m.userData.p.userData.flex(q.hook === false ? .02 : -.07, q.reading ? .2 : 1.3, q.reading ? 0 : .7, i, time); place(m, q.p); busy = c; busyQ = q; xs[0] = q.tx; return; }
+      m.userData.p.material = cardMat; m.userData.p.userData.flex((i % 2 ? 1 : -1) * .02, 0, 0, i, 0); xs[0] = c.rejected ? binPos()[0] : outPos(c.slot)[0];
       if (c.rejected) { place(m, [...binPos(), TH + 1.6 + nb++ * 1.2]); } else place(m, [...outPos(c.slot), TH + 1.6 + Math.floor(c.slot / 12) * 1.2]);
     });
     trolleys.forEach((tr, n) => { tr.position.x = xs[n]; });

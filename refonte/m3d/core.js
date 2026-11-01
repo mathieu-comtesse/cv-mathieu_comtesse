@@ -89,6 +89,24 @@ export function ball(cx, cy, cz, r, color = COL.hi) {
   return m;
 }
 
+/* Feuille souple : un plan subdivisé dont les sommets ondulent. Longueur le long de y local, largeur le long de x local, normale +z local.
+   flex(curl, wave, roll, ph, t) : courbure (négative : les bouts tombent), houle qui parcourt la feuille, roulis, phase, temps. */
+export function paper(w, l, color = '#ffffff', seg = 8) {
+  const geo = new THREE.PlaneGeometry(w, l, 4, seg), base = geo.attributes.position.array.slice();
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: .9, side: THREE.DoubleSide }));
+  m.castShadow = true; m.receiveShadow = true;
+  m.userData.flex = (curl = 0, wave = 0, roll = 0, ph = 0, t = 0) => {
+    const pos = geo.attributes.position.array;
+    for (let i = 0; i < pos.length; i += 3) {
+      const x = base[i], y = base[i + 1], u = y / l + .5;
+      pos[i + 2] = .5 * curl * y * y + wave * Math.sin(6.283 * (u * .9 - t * .7) + ph) * (.35 + .65 * u) + roll * Math.sin(6.283 * (u * .6 + t * .5) + ph * 1.7) * (x / w * 2);
+    }
+    geo.attributes.position.needsUpdate = true; geo.computeVertexNormals();
+  };
+  m.userData.flex(0, 0, 0, 0, 0);
+  return m;
+}
+
 export function group(...children) { const g = new THREE.Group(); children.flat().forEach((c) => c && g.add(c)); return g; }
 
 /* Établi commun : plaque sur quatre pieds, vis d'angle, règle graduée à l'avant et plaque signalétique. */
