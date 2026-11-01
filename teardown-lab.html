@@ -108,7 +108,7 @@ const stage=$('#stage'), list=$('#projects'), value=$('#param'), reading=$('#par
 list.innerHTML=items.map((p,i)=>'<button data-i="'+i+'" type="button"><span>'+String(i+1).padStart(2,'0')+'</span>'+p.name+'</button>').join('');
 $('#flowroute').innerHTML=flowIds.map((id,i)=>'<button type="button" data-flow="'+id+'">'+String(i+1)+' · '+flowLabels[i]+'</button>').join('');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:40},canvas=null,pointer=null;
+let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:35},canvas=null,pointer=null;
 const rawTime=()=> (performance.now()-clockStart)/1000+shift;
 const activeTime=()=>paused?pauseAt:(reduced?shift:rawTime());
 function seek(t){if(paused)pauseAt=t;else if(reduced)shift=t;else shift+=t-activeTime();}
@@ -144,7 +144,7 @@ async function choose(i){
  canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');stage.append(canvas);
  shift=0;paused=false;clockStart=performance.now();
  try{
-   const loaded=await mountMachine(p.id,canvas,cam);
+   const loaded=await mountMachine(p.id,canvas,cam,undefined,{width:18});
    if(version!==loadingVersion){loaded.dispose();return;}
    current=loaded;
    ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause});
