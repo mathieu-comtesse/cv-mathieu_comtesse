@@ -25,8 +25,7 @@
   <a class="sp-brand rf-mono" href="index.html" aria-label="Retour à la pièce d’accueil">Comtesse · plan</a>
   <nav class="sp-menu" aria-label="Navigation directe">
     <button type="button" id="sp-open-index" aria-controls="sp-index" aria-expanded="false">Index</button>
-    <button type="button" data-goto="experiences">Explorations</button>
-    <button type="button" data-goto="parcours">Parcours</button>
+    <button type="button" id="sp-open-chap" class="sp-only-mobile" aria-controls="sp-chap" aria-expanded="false">Chapitres</button>
     <a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a>
     <button type="button" data-goto="parcours" data-contact>Contact</button>
     <button type="button" id="sp-mode" aria-pressed="false">Vue liste</button>
@@ -65,7 +64,7 @@
   <button type="button" id="sp-close-inspect">Quitter l’inspection</button>
 </div>
 
-<ol class="sp-rail" id="sp-rail" aria-label="Position dans le plan" data-sp-avoid></ol>
+<nav class="sp-chap" id="sp-chap" aria-label="Chapitres du voyage" data-sp-avoid></nav>
 
 <main id="sp-index" class="sp-index" aria-label="Index des réalisations" hidden>
   <div class="sp-index-in">

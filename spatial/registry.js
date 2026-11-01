@@ -48,14 +48,24 @@ export const PLATES = PERSO_PLATES.map((id, i) => {
     pos: PLATE_POS(i), yaw: Math.atan2(36 - PLATE_POS(i)[0], -1190 - PLATE_POS(i)[2]) * 180 / Math.PI, scale: 1 };
 });
 
-/* Liens entre projets : flux d'information ou même périmètre. Servent au tracé des liaisons du blueprint. */
+/* Liens entre projets : uniquement des relations documentées dans les fiches existantes (mêmes rapports, même chaîne, même outil). */
 export const LINKS = [
-  { from: 'vre', to: 'vm', label: 'mêmes rapports VRE' },
-  { from: 'vm', to: 'moteur44', label: 'mêmes rapports VRE' },
-  { from: 'pa', to: 'powerbi', label: 'plans de prévention' },
-  { from: 'powerbi', to: 'cerfa', label: 'conformité' },
-  { from: 'studio', to: 'lecteur-vre', label: 'extraction de PDF' },
-  { from: 'studio', to: 'cerfa', label: 'extracteur CERFA' }
+  { from: 'vre', to: 'vm', label: 'mêmes rapports de vérification électrique' },
+  { from: 'vm', to: 'moteur44', label: 'mêmes rapports de vérification électrique' },
+  { from: 'vre', to: 'moteur44', label: 'mêmes rapports de vérification électrique' },
+  { from: 'pa', to: 'powerbi', label: 'chaîne des plans de prévention et portail PP & MOSO' },
+  { from: 'studio', to: 'cerfa', label: 'extracteur créé avec le Studio' }
+];
+
+/* Chapitres du menu : regroupements fonctionnels. Les projets de chaque chapitre viennent du champ `domain` des points d'intérêt (aucune liste ressaisie). */
+export const CHAPTER_DEFS = [
+  { id: 'accueil', label: 'Accueil', domain: 'accueil' },
+  { id: 'maintenance', label: 'Maintenance', domain: 'maintenance' },
+  { id: 'qse', label: 'Qualité et sécurité', domain: 'qse' },
+  { id: 'automatisation', label: 'Automatisation', domain: 'automatisation' },
+  { id: 'donnees', label: 'Données et IA', domain: 'donnees' },
+  { id: 'experimentation', label: 'Expérimentations', domain: 'experimentation' },
+  { id: 'parcours', label: 'Parcours et contact', domain: 'parcours' }
 ];
 
 const cardById = Object.fromEntries(PRO_CARDS.map((c) => [c.id, c]));
@@ -75,5 +85,6 @@ export function buildRegistry() {
     };
   });
   const byId = Object.fromEntries(items.map((x) => [x.id, x]));
-  return { items, byId, plates: PLATES, links: LINKS, count: items.length };
+  const chapters = CHAPTER_DEFS.map((c) => ({ ...c, members: items.filter((e) => e.domain === c.domain && e.kind !== 'hub').map((e) => e.id), hub: items.find((e) => e.domain === c.domain && e.kind === 'hub')?.id || null }));
+  return { items, byId, plates: PLATES, links: LINKS, chapters, count: items.length };
 }

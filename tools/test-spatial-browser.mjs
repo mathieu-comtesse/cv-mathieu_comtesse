@@ -31,7 +31,7 @@ const settle = (page) => page.waitForFunction(() => !window.__spatial.scroll.mov
 
 try {
   /* 1 et 2 : arrivée, molette, réversibilité, déterminisme */
-  let { ctx, page } = await open('/spatial.html?reset');
+  let { ctx, page } = await open('/spatial.html?reset&noroom');
   assert.equal(await S(page, () => window.__spatial.state.state), 'exploration');
   assert.ok(await page.locator('#sp-intro').isVisible(), 'présentation visible à l’arrivée');
   assert.ok(await page.locator('#sp-intro a[href$="cv-ats-mathieu-comtesse.pdf"]').count(), 'accès direct au CV');
@@ -137,7 +137,7 @@ try {
   await ctx.close();
 
   /* 7 : mobile tactile */
-  ({ ctx, page } = await open('/spatial.html?reset', { viewport: { width: 390, height: 844 }, touch: true }));
+  ({ ctx, page } = await open('/spatial.html?reset&noroom', { viewport: { width: 390, height: 844 }, touch: true }));
   const cdp = await ctx.newCDPSession(page);
   const swipe = async (x, y0, y1) => { await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: y0 }] }); for (let i = 1; i <= 12; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y0 + (y1 - y0) * i / 12 }] }); await page.waitForTimeout(16); } await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); };
   const m0 = await S(page, () => window.__spatial.scroll.target); await swipe(300, 520, 160); await page.waitForTimeout(300);
@@ -155,10 +155,66 @@ try {
   ok('vue liste : ' + links + ' réalisations accessibles sans rendu 3D'); await ctx.close();
 
   /* mouvement réduit : navigation directe, pas de déplacement animé */
-  ({ ctx, page } = await open('/spatial.html?reset', { reduced: true }));
+  ({ ctx, page } = await open('/spatial.html?reset&noroom', { reduced: true }));
   await S(page, () => window.__spatial.select('pa', { instant: false })); await page.waitForTimeout(200);
   assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current - window.__spatial.timeline.uOf('pa'))) < 1, 'saut direct sans trajectoire animée');
   ok('prefers-reduced-motion : cadrage direct'); await ctx.close();
+
+
+  /* menu de chapitres : mêmes positions que la molette, synchronisé dans les deux sens */
+  ({ ctx, page } = await open('/spatial.html?reset&noroom'));
+  assert.equal(await page.locator('.sp-ch').count(), 7, 'sept chapitres');
+  const names = await page.locator('.sp-ch-t').allTextContents(); assert.deepEqual(names, ['Accueil', 'Maintenance', 'Qualité et sécurité', 'Automatisation', 'Données et IA', 'Expérimentations', 'Parcours et contact']);
+  const members = await S(page, () => window.__spatial.registry.chapters.flatMap((c) => c.members));
+  const allProjects = await S(page, () => window.__spatial.registry.items.filter((e) => e.kind !== 'hub').map((e) => e.id));
+  assert.deepEqual([...members].sort(), [...allProjects].sort(), 'chaque projet appartient à un chapitre, sans doublon');
+  for (const id of allProjects) assert.ok(await page.locator(`.sp-sub-b[data-id="${id}"]`).count() === 1, 'lien de menu pour ' + id);
+  // la molette actualise le menu
+  await S(page, () => { const S2 = window.__spatial; S2.scroll.current = S2.scroll.target = S2.nav.chapters[3].u + 300; });
+  await page.waitForFunction(() => window.__spatial.nav.active === 3, null, { timeout: 60000 });
+  assert.equal(await page.locator('.sp-ch.sp-active .sp-ch-t').textContent(), 'Automatisation');
+  assert.ok(await page.locator('.sp-ch.sp-active .sp-sub-b').first().isVisible(), 'sous-rubriques du chapitre actif visibles');
+  assert.equal(await page.locator('.sp-ch:not(.sp-active) .sp-sub-b >> visible=true').count(), 0, 'sous-rubriques des autres chapitres repliées');
+  // un clic de menu pilote la caméra par un vol continu (pas de téléportation)
+  const u0 = await S(page, () => window.__spatial.scroll.current);
+  await page.locator('.sp-ch-b[data-ch="qse"]').click();
+  await page.waitForTimeout(250); const uMid = await S(page, () => window.__spatial.scroll.current);
+  assert.ok(await S(page, () => !!window.__spatial.scroll.tween), 'vol en cours');
+  await settle(page);
+  const uEnd = await S(page, () => window.__spatial.scroll.current), uq = await S(page, () => window.__spatial.nav.chapters[2].u);
+  assert.ok(Math.abs(uEnd - uq) < 1 && uMid !== uEnd && uMid !== u0, 'vol continu vers le chapitre');
+  await page.waitForFunction(() => window.__spatial.nav.active === 2); assert.match(page.url(), /#\/qse$/);
+  await page.locator('.sp-sub-b[data-id="powerbi"]').click(); await settle(page);
+  assert.equal(await S(page, () => window.__spatial.selected), 'powerbi'); assert.match(page.url(), /#\/powerbi$/);
+  await page.goBack(); await page.waitForTimeout(600); await settle(page);
+  assert.equal(await S(page, () => window.__spatial.selected), null, 'précédent restitue l’état antérieur');
+  // connexions contextuelles : jamais toutes à la fois
+  await S(page, () => window.__spatial.select('vre', { instant: true })); await page.waitForTimeout(400);
+  const vis = await S(page, () => window.__spatial.world.links.filter((l) => l.line.visible).map((l) => l.spec.from + '-' + l.spec.to));
+  assert.ok(vis.length >= 1 && vis.length < (await S(page, () => window.__spatial.world.links.length)), 'connexions contextuelles : ' + vis.join(', '));
+  ok('menu : 7 chapitres, ' + allProjects.length + ' projets reliés, molette vers menu, menu vers caméra, liens profonds, connexions contextuelles (' + vis.length + ' visibles)');
+  await ctx.close();
+
+  /* la vraie pièce : même composant que l'accueil, rendue avec la caméra du voyage */
+  ({ ctx, page } = await open('/spatial.html?reset'));
+  await page.waitForFunction(() => window.__spatial.room && document.querySelector('#room canvas') && +document.getElementById('room').dataset.sceneFrames > 2, null, { timeout: 280000, polling: 1000 });
+  const roomInfo = await S(page, () => { const R = window.__spatial.room; return { hero: !!R.hero, items: R.bbox ? true : false, frames: +document.getElementById('room').dataset.sceneFrames }; });
+  assert.ok(roomInfo.hero, 'le personnage de la pièce est présent');
+  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 0, 'la pièce est visible à l’arrivée');
+  const same = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) < 1e-3;
+  await page.waitForTimeout(1500);
+  assert.ok(await S(page, () => { const w = window.__spatial.world.camera.position, r = window.__spatial.room.camera.position; return Math.hypot(w.x - r.x, w.y - r.y, w.z - r.z) < 1e-3; }), 'à u = 0 la caméra du monde est celle de la pièce');
+  await S(page, () => window.__spatial.scroll.goTo(700, 0)); await page.waitForTimeout(2500);
+  assert.ok(await S(page, () => { const w = window.__spatial.world.camera.position, r = window.__spatial.room.camera.position; return Math.hypot(w.x - r.x, w.y - r.y, w.z - r.z) < 1e-3 && window.__spatial.world.camera.position.distanceTo(window.__spatial.room.target) > 30; }), 'pendant la transition les deux moteurs partagent la même caméra');
+  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 0, 'la pièce reste visible pendant le recul');
+  await page.screenshot({ path: out + '/05-transition-piece.png', timeout: 150000 });
+  await S(page, () => window.__spatial.scroll.goTo(6000, 0)); await page.waitForTimeout(2500);
+  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 1, 'la pièce est suspendue loin de l’origine');
+  await S(page, () => window.__spatial.select('accueil', { instant: true })); await page.waitForTimeout(3000);
+  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 0, 'retour à l’accueil : la pièce revient'); assert.equal(await S(page, () => window.__spatial.scroll.current), 0);
+  await page.locator('#rf-ruler-h').focus(); const az0 = await S(page, () => window.__spatial.room.view.tAz); for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
+  assert.notEqual(await S(page, () => window.__spatial.room.view.tAz), az0, 'la règle de l’accueil tourne la vraie pièce');
+  ok('pièce : personnage présent, caméra commune pendant la transition, suspension lointaine, retour à l’accueil, règles de la pièce'); await ctx.close();
 
   assert.deepEqual(errors, [], 'erreurs JavaScript : ' + errors.join('\n'));
   console.log('PASS: scénarios de la vue spatiale');

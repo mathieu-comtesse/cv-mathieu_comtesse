@@ -3,6 +3,7 @@ import { buildRegistry, DOMAINS } from './registry.js';
 import { CameraTimeline } from './camera-path.js';
 import { buildKeys } from './sequences.js';
 import { loadRoom, RoomBridge } from './room-bridge.js';
+import { ChapterNav } from './chapters.js';
 import { SpatialScrollController, normalizeWheel } from './scroll.js';
 import { InteractionStateManager, STATE } from './state.js';
 import { PerformanceManager, detectGpu } from './perf.js';
@@ -34,10 +35,6 @@ function buildIndex() {
   }).join('')}</ul></section>`).join('');
 }
 buildIndex();
-
-/* ---------------------------------------------------------------- rail de position (navigation directe) */
-const rail = $('sp-rail');
-rail.innerHTML = items.map((e) => `<li><button type="button" data-id="${e.id}" aria-label="${e.title}" title="${e.title}"></button></li>`).join('');
 
 /* ---------------------------------------------------------------- cartes des zones sans objet : accueil, explorations, parcours */
 const hub = $('sp-hubcards');
@@ -126,7 +123,9 @@ function init() {
     function route(instant) {
       const m = location.hash.match(/^#\/([a-z0-9-]+)(\/fiche)?$/), saved = store.get();
       if (!m) { if (panelC.isOpen) closeFiche(false); if (selectedId) exitInspect(false); return false; }
-      const id = m[1]; if (!registry.byId[id]) return false;
+      const id = m[1]; const chap = nav.chapters.find((c) => c.id === id);
+      if (chap && !registry.byId[id]) { if (panelC.isOpen) closeFiche(false); goChapter(chap, false, instant); return true; }
+      if (!registry.byId[id]) return false;
       if (panelC.isOpen && (!m[2] || selectedId !== id)) closeFiche(false);
       select(id, { instant });
       if (m[2]) { if (!panelC.isOpen || panelC.entry?.id !== id) openFiche(id); }
@@ -153,7 +152,7 @@ function init() {
       if (next) select(next.id, { push: true });
     }
     let drag = null;
-    const UI = '#room,button,a,input,select,textarea,summary,.sp-panel,.sp-index,.rf-ruler,.sp-hubcard,.sp-inspect,.sp-top,.sp-rail,.sp-blk';
+    const UI = '#room,button,a,input,select,textarea,summary,.sp-panel,.sp-index,.rf-ruler,.sp-hubcard,.sp-inspect,.sp-top,.sp-chap,.sp-blk';
     document.addEventListener('pointerdown', (e) => {
       if (e.button || listMode || e.target.closest?.(UI)) return;
       const hit = world.pick(e.clientX, e.clientY), m = hit && world.machines.get(hit);
@@ -192,7 +191,7 @@ function init() {
     document.addEventListener('click', (ev) => {
       const g = ev.target.closest?.('[data-goto]');
       if (g) { ev.preventDefault(); if (listMode) setList(false); const id = g.dataset.goto; select(id, { push: true }); if (g.hasAttribute('data-contact')) say('Contact : adresse e-mail et profils en bas à droite.'); return; }
-      const r = ev.target.closest?.('#sp-rail button, a[data-id]');
+      const r = ev.target.closest?.('a[data-id]');
       if (r) { ev.preventDefault(); if (listMode) setList(false); if (indexOpen) $('sp-open-index').click(); select(r.dataset.id, { push: true }); }
     });
     modeBtn.addEventListener('click', () => { setList(!listMode); if (!listMode) route(true); });
@@ -201,21 +200,34 @@ function init() {
 
     /* ---------- boucle ---------- */
     const hint = $('sp-hint'); let hintGone = false; function hideHint() { if (!hintGone) { hintGone = true; hint.classList.add('sp-gone'); } }
-    const intro = $('sp-intro'), cards = [...document.querySelectorAll('.sp-hubcard')], dots = [...rail.querySelectorAll('button')];
+    const intro = $('sp-intro'), cards = [...document.querySelectorAll('.sp-hubcard')];
     let last = performance.now(), lastCur = -1, lastSave = 0;
     const saved = store.get();
     if (!route(true) && saved && typeof saved.p === 'number' && !qs.has('reset')) { scroll.current = scroll.target = Math.min(timeline.length, Math.max(0, saved.p)); for (const [id, [r, t]] of Object.entries(saved.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } } }
     else for (const [id, [r, t]] of Object.entries(saved?.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } }
     world.resize(); document.body.classList.add('sp-ready');
+    /* ---------- menu de chapitres : mêmes positions de défilement que la molette ---------- */
+    let hoverSet = null;
+    const nav = new ChapterNav($('sp-chap'), registry, timeline, {
+      onChapter: (c) => goChapter(c, true), onProject: (id) => { $('sp-chap').classList.remove('sp-open'); select(id, { push: true }); },
+      onHover: (c) => { hoverSet = c ? new Set(c.members.length ? c.members : []) : null; }
+    });
+    function goChapter(c, push, instant) {
+      if (panelC.isOpen) closeFiche(false);
+      if (c.id === 'accueil') { select('accueil', { push, instant }); return; }
+      selectedId = null; rulers.show(false); $('sp-inspect').hidden = true; state.to(STATE.EXPLORATION);
+      scroll.goTo(c.u, instant ? 0 : undefined); if (push) setHash('#/' + c.id); say(c.label);
+    }
+    $('sp-open-chap').addEventListener('click', () => { const o = $('sp-chap').classList.toggle('sp-open'); $('sp-open-chap').setAttribute('aria-expanded', String(o)); });
     /* ---------- la vraie pièce d'accueil, rendue avec la caméra du voyage ---------- */
     const stage = $('stage'), roomEl = $('room'); let lastMode = null, roomHidden = false;
     const doneIntro = () => { try { window.ToddhamIntro?.done(); } catch {} };
-    loadRoom(roomEl).then((r) => {
+    (qs.has('noroom') ? Promise.reject(new Error('noroom')) : loadRoom(roomEl)).then((r) => {
       room = r; bridge = new RoomBridge(r); bridge.attach(world, ensureTick); window.room = r;
       stage.classList.add('rf-ready'); setTimeout(doneIntro, 80);
-    }).catch((e) => { console.warn('pièce 3D indisponible', e); stage.classList.add('sp-room-hidden'); doneIntro(); });
+    }).catch((e) => { if (e.message !== 'noroom') console.warn('pièce 3D indisponible', e); stage.classList.add('sp-room-hidden'); doneIntro(); });
     let inspectE = 0, blendId = null;
-    let tickedFrame = -1, lastTickAt = performance.now();
+    let tickedFrame = -1, lastTickAt = performance.now(), lastChapter = null;
     /** Une seule mise à jour par image d'animation, qu'elle soit demandée par la boucle du monde ou par le rendu de la pièce (selon l'ordre des rappels). */
     function ensureTick() {
       if (listMode || paused || document.hidden) return;
@@ -250,8 +262,10 @@ function init() {
       intro.classList.toggle('sp-away', u > 380);
       let nearCard = null, nd = 750; for (const c of cards) { const d = Math.abs(u - registry.byId[c.dataset.hub].u); if (d < nd) { nd = d; nearCard = c; } }
       for (const c of cards) { const on = c === nearCard && !state.is(STATE.LECTURE); if (c.hidden === on) c.hidden = !on; }
-      let near = 0, bd = Infinity; items.forEach((e, i) => { const d = Math.abs(e.u - u); if (d < bd) { bd = d; near = i; } });
-      if (near !== lastCur) { lastCur = near; dots.forEach((d, i) => { d.classList.toggle('sp-cur', i === near); if (i === near) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); }); }
+      nav.update(u, dt, selectedId);
+      const act = nav.chapters[nav.active];
+      if (act && act.id !== lastChapter && !selectedId && !scroll.tween) { lastChapter = act.id; setHash(act.id === 'accueil' ? '' : '#/' + act.id, true); }
+      world.linkFocus = hoverSet || (selectedId ? new Set([selectedId]) : new Set(act?.members || []));
       if (now - lastSave > 1500 && scroll.moving === false) { lastSave = now; saveState(); }
       if (qs.has('debug')) { const s = perf.stats; $('sp-debug').hidden = false; $('sp-debug').textContent = `u ${u.toFixed(0)} / ${timeline.length.toFixed(0)} · état ${state.state} · fov ${world.camera.fov.toFixed(1)}\nprofil ${s.profile} · ${s.fps} i/s mesurées · ${s.frameMs} ms (moy.) · pire ${s.worstMs} ms · ${s.frames} images\nWebGL init ${world.stats.webglInitMs} ms · modèles ${JSON.stringify(world.stats.modelMs)}\nHTML-in-Canvas : ${hic.status}\nGPU : ${s.gpu || 'inconnu'}\ndraw calls ${world.renderer.info.render.calls} · triangles ${world.renderer.info.render.triangles}`; }
     }
@@ -263,7 +277,7 @@ function init() {
       ensureTick();
     }
     requestAnimationFrame(loop);
-    window.__spatial = { state, scroll, world, perf, registry, timeline, rulers, get room() { return room; }, get bridge() { return bridge; }, roomRulers, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, panel: panelC,
+    window.__spatial = { state, scroll, world, perf, registry, timeline, rulers, nav, get room() { return room; }, get bridge() { return bridge; }, roomRulers, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, panel: panelC,
       /** Capture déterministe (vidéo, comparaisons) : suspend la boucle puis rend une image avec un pas de temps fixe. */
       pause(v = true) { paused = v; vnow = performance.now(); scroll.now = v ? () => vnow : () => performance.now(); },
       step(dt = 1 / 24) { vnow += dt * 1000; last = performance.now(); tick(vnow, dt * 1000, dt); } };

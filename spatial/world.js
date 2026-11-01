@@ -199,7 +199,7 @@ export class SceneManager {
     const lead = this.machines.get(selectedId) || list[0];
     if (lead && lead.ready) { const c = lead.worldCenter(this.cam); this.sun.target.position.set(c.x, c.y - 4, c.z); this.sun.position.set(c.x - 14, c.y + 28, c.z + 12); this.sun.target.updateMatrixWorld(); }
     for (const p2 of this.plates.values()) { const d = Math.hypot(cp.x - p2.entry.pos[0], cp.z - p2.entry.pos[2]); p2.group.visible = d < 330; if (d < 260) this.loadPlateTexture(p2); }
-    for (const l of this.links) { const d = Math.hypot(cp.x - l.mid.x, cp.z - l.mid.z), on = d < 260; l.line.visible = on; l.dot.visible = on; if (!on) continue; l.line.material.dashOffset = -this.t * 1.6; l.curve.getPoint((this.t * .12 + l.spec.from.length * .13) % 1, l.dot.position); }
+    const focus = this.linkFocus; for (const l of this.links) { const d = Math.hypot(cp.x - l.mid.x, cp.z - l.mid.z), on = d < 420 && !!focus && (focus.has(l.spec.from) || focus.has(l.spec.to)); l.line.visible = on; l.dot.visible = on; if (!on) continue; l.line.material.dashOffset = -this.t * 1.6; l.curve.getPoint((this.t * .12 + l.spec.from.length * .13) % 1, l.dot.position); }
     try { this.renderer.render(this.scene, cam); } catch (e) { if (this.onRenderError) this.onRenderError(e); else throw e; }
   }
 
