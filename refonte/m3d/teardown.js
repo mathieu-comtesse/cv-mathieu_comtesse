@@ -87,7 +87,7 @@ export function createTeardown(name, machine, holder, camera) {
     machine.setScenario?.(id);
     return machine.scenarioStart?.(id) ?? null;
   }
-  function beforeFrame(){if(!disposed)restore();}
+  function beforeFrame(){if(!disposed && (offsets.size||originals.size))restore();}
   function afterFrame(t){
     if(disposed)return;
     if(state.tour){
@@ -100,6 +100,7 @@ export function createTeardown(name, machine, holder, camera) {
     lastTime=t;
     amount=smooth(amount,target,clamp(dt*4.8,0,1));
     if(Math.abs(amount-target)<.003)amount=target;
+    if(state.mode==='assembled' && amount===0){state.progress=(t%40)/40;return;}
     // Le déplacement est appliqué après la cinématique d'origine, puis retiré
     // avant l'image suivante. Aucune position du modèle source n'est altérée.
     for(const mesh of meshes) {
