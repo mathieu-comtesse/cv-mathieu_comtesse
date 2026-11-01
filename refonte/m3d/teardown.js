@@ -39,7 +39,7 @@ export function createTeardown(name, machine, holder, camera) {
   });
   const state = {mode:'assembled', selected:1, tour:false, scenario:'normal', progress:0};
   let amount = 0, lastTime = null, disposed = false;
-  let cachedClipping = null;
+  const cachedClipping = new THREE.Plane(new THREE.Vector3(1,0,0),-extent.getCenter(new THREE.Vector3()).x);
   const modes = new Set(['assembled','exploded','section','xray','isolate']);
   const scenarios = name === 'vm' ? [
     {id:'normal',label:'Cycle normal',note:'20 dépôts fictifs, dont un doublon, sur une journée simulée.'},
@@ -100,10 +100,6 @@ export function createTeardown(name, machine, holder, camera) {
     lastTime=t;
     amount=smooth(amount,target,clamp(dt*4.8,0,1));
     if(Math.abs(amount-target)<.003)amount=target;
-    holder.updateWorldMatrix(true,true);
-    const worldExtent = new THREE.Box3().setFromObject(holder);
-    const worldCenter = worldExtent.getCenter(new THREE.Vector3());
-    cachedClipping = new THREE.Plane(new THREE.Vector3(1,0,0),-worldCenter.x);
     // Le déplacement est appliqué après la cinématique d'origine, puis retiré
     // avant l'image suivante. Aucune position du modèle source n'est altérée.
     for(const mesh of meshes) {
