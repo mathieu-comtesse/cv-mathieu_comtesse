@@ -31,7 +31,14 @@ export async function mountMachine(name,canvas,cam,origin=new THREE.Vector3(),op
  const bounds=new THREE.Box3().setFromObject(holder);
  const center=bounds.getCenter(new THREE.Vector3());
  holder.position.set(origin.x-center.x,origin.y-bounds.min.y,origin.z-center.z);
- const rim=new THREE.DirectionalLight(0xb9d0ed,.42);
+ holder.updateMatrixWorld(true);
+ const frameBounds=new THREE.Box3().setFromObject(holder),frameSize=frameBounds.getSize(new THREE.Vector3());
+ const frameInfo={centerY:frameBounds.getCenter(new THREE.Vector3()).y,height:frameSize.y,width:Math.max(frameSize.x,frameSize.z),radius:frameSize.length()*.5};
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=1.12;
+ const sun=scene.children.find(o=>o.isDirectionalLight&&o.castShadow);
+ if(sun){ const extent=Math.max(14,frameInfo.width*.8); sun.shadow.camera.left=-extent;sun.shadow.camera.right=extent;sun.shadow.camera.top=extent;sun.shadow.camera.bottom=-extent;sun.shadow.camera.updateProjectionMatrix(); }
+ const rim=new THREE.DirectionalLight(0xe4b88c,.75);
  rim.position.set(10,12,-8);scene.add(rim);
  const teardown=createTeardown(name,machine,holder,cam);
  const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();
@@ -69,5 +76,5 @@ export async function mountMachine(name,canvas,cam,origin=new THREE.Vector3(),op
   for(const m of materials)if(m.map&&!m.userData?.shared){m.map.dispose();m.dispose();}
   renderer.dispose();
  }
- return {resize,controls:machine.controls,teardown,pick,render,dispose,machine};
+ return {resize,controls:machine.controls,teardown,pick,render,dispose,machine,frameInfo};
 }
