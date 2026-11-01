@@ -20,7 +20,7 @@ for (const mode of ['noopt', 'opt']) {
     await page.evaluate(() => { const S = window.__spatial; for (let i = 0; i < 90; i++) S.step(1 / 24); S.world.t = 9.958; S.step(1 / 24); });   // inspection établie, horloge à 10 s
     await page.waitForTimeout(900); await page.evaluate(() => window.__spatial.step(0));
     const info = await page.evaluate((id) => ({ calls: window.__spatial.world.renderer.info.render.calls, tri: window.__spatial.world.renderer.info.render.triangles, opt: window.__spatial.world.stats.optimize[id] || null }), id);
-    await page.screenshot({ path: `${out}/${id}-${mode}.png`, timeout: 120000 });
+    await page.screenshot({ path: `${out}/${id}-${mode}.png`, timeout: 120000 }); console.error(mode, id, info.calls);
     (result[id] ??= {})[mode] = info;
   }
   await ctx.close();
