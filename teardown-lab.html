@@ -61,11 +61,45 @@ a:hover{text-decoration:underline}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
+<style>
+/* Mechanical Lab V4. The art gets the space, controls become an editorial rail. */
+:root{--studio:#f2eee7;--studio-ink:#242b31;--accent:#987455}
+body{background:radial-gradient(circle at 57% 40%,#f9f8f4 0,#e8e6e0 48%,#d8d7d2 100%)}
+.grid{opacity:.13;background-size:62px 62px}
+.header{padding:19px 29px;z-index:20}
+.brand{font-size:11px;letter-spacing:.16em}
+.headmeta{font-size:9px}
+.left{width:238px;top:90px;bottom:24px;left:26px}
+.left h1{font-size:clamp(30px,3vw,43px);letter-spacing:-.06em;margin-bottom:12px}
+.description{font-size:11px;max-width:235px;line-height:1.6}
+.list{background:#ffffffe0;border:1px solid #c9c8c2;border-radius:9px;padding:4px;box-shadow:none}
+.list button{font-size:10px;padding:6px 9px;min-height:29px}
+.list button span{font-size:9px}
+.flowbar{padding:7px 9px;background:#ffffffe3;border-radius:8px}
+.flowbar summary{font-size:9px}
+.flowroute button{font-size:9px;padding:5px}
+.sliderline{padding:10px}
+.left .small{font-size:9px}
+#stage{cursor:grab}
+#stage canvas{filter:saturate(.83) contrast(1.03)}
+.rf-td{width:294px;right:24px;top:92px;bottom:auto;max-height:calc(100dvh - 114px);border-radius:9px}
+.rf-td .rf-td-title{font-size:16px}
+.rf-td .rf-td-inner{max-height:calc(100dvh - 198px)}
+.rf-td .rf-td-modes button{font-size:9px}
+.bottom{bottom:12px;opacity:.65;font-size:9px}
+.status{left:52%;top:80px;background:#fffdf9}
+@media(max-width:840px){
+ .left{left:12px;top:62px;width:min(255px,calc(100vw - 24px));max-height:48vh}
+ .left h1{font-size:26px}
+ .rf-td{top:auto;right:10px;bottom:10px;width:calc(100vw - 20px);max-height:43vh}
+ .rf-td .rf-td-inner{max-height:calc(43vh - 78px)}
+}
+</style>
 </head>
 <body>
 <div class="grid" aria-hidden="true"></div>
 <div id="stage" aria-label="Simulateur 3D rotatif. Glissez pour tourner, utilisez la molette pour zoomer."></div>
-<header class="header"><a class="brand" href="./index.html">MATHIEU COMTESSE / LAB</a><span class="headmeta">RECONSTRUCTION V3 · 11 MACHINES NOUVELLES · DEMONSTRATION</span></header>
+<header class="header"><a class="brand" href="./index.html">MATHIEU COMTESSE / LAB</a><span class="headmeta">ATELIER V4 · 11 ARCHITECTURES UNIQUES · DÉMONSTRATION</span></header>
 <button type="button" class="mobile-toggle" id="mobile-toggle" aria-controls="sidebar" aria-expanded="true">Projets</button>
 <aside class="left" id="sidebar">
  <span class="eyebrow">EXPLORATION / 01—11</span>
@@ -115,7 +149,7 @@ window.__teardownDebug=()=>({
   geometry:current?.machine?(()=>{let n=0;current.machine.group.traverse(o=>{if(o.isMesh)n++;});return n;})():0,
   mode:current?.teardown?.state?.mode??null
 });
-let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:35},canvas=null,pointer=null;
+let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:25*Math.PI/180,dist:34},canvas=null,pointer=null;
 const rawTime=()=> (performance.now()-clockStart)/1000+shift;
 const activeTime=()=>paused?pauseAt:(reduced?shift:rawTime());
 function seek(t){if(paused)pauseAt=t;else if(reduced)shift=t;else shift+=t-activeTime();}
@@ -151,7 +185,7 @@ async function choose(i){
  canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');stage.append(canvas);
  shift=0;paused=false;clockStart=performance.now();
  try{
-   const loaded=await mountMachine(p.id,canvas,cam,undefined,{width:18});
+   const loaded=await mountMachine(p.id,canvas,cam,undefined,{width:24});
    if(version!==loadingVersion){loaded.dispose();return;}
    current=loaded;
    ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause});
