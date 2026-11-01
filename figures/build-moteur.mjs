@@ -114,13 +114,90 @@ function motorSvg() {
   return out.join("");
 }
 
+
+// ---------------------------------------------------------------- finitions
+function detailSvg() {
+  const out = [], x0 = -40, x1 = 40;
+  // Flasques : couronne de vis, bague d'arrêt sur l'axe, manivelle moletée à gauche, rouleaux de guidage et tendeur.
+  for (const z of [TOP_Z, BOT_Z]) {
+    const FL = FX(x0 - 6, 0, z), FR = FX(x1 + 6, 0, z);
+    out.push(D(G.dotsOf(FL, 0, 8.4, 8, P, { phase: Math.PI / 8, all: true }), { size: 0.36 }), D(G.dotsOf(FR, 0, 8.4, 8, P, { phase: Math.PI / 8, all: true }), { size: 0.36 }));
+    out.push(L(G.circleOf(FR, 0, 5.4, P), { tone: "faint" }));
+  }
+  const crank = FX(x0 - 6, 0, TOP_Z);
+  out.push(S(G.disc(-1.2, 2, 3.2, crank, P), { tone: "mid" }));
+  out.push(S(slab({ x: x0 - 14, y: -1.2, w: 8, d: 2.4, r: 0.4 }, TOP_Z - 9, 11, 2, 0.2), { tone: "mid" }));
+  out.push(S(G.disc(-3.4, -1.2, 2.2, FX(x0 - 11, 0, TOP_Z - 9), P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(FX(x0 - 11, 0, TOP_Z - 9), -3.4, -1.2, 2.2, 14, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  for (const z of [TOP_Z - 14, BOT_Z + 14]) out.push(S(G.disc(x0 + 2, x1 - 2, 1.6, FX(0, 11, z), P), { tone: "mid" }));
+  out.push(S(slab({ x: x0 - 1, y: 9.4, w: 3, d: 3, r: 0.5 }, BOT_Z + 6, TOP_Z - BOT_Z - 12, 2, 0.2), { tone: "lo" }).slice(0, 0));
+  for (const x of [x0 - 1, x1 - 2]) out.push(S(slab({ x, y: 9.4, w: 3, d: 3.4, r: 0.5 }, BOT_Z + 12, 3, 2, 0.2), { tone: "lo" }), S(slab({ x, y: 9.4, w: 3, d: 3.4, r: 0.5 }, TOP_Z - 15, 3, 2, 0.2), { tone: "lo" }));
+  // Socle : platine d'indication, évents sur le dessus, règle de course à l'avant.
+  out.push(L(k.planOutline({ x: BASE.x + 8, y: BASE.y + 5, w: 30, d: 8, r: 1.4 }, BASE_H, P, 3), { tone: "faint" }));
+  out.push(L(k.planOutline({ x: BASE.x + 60, y: BASE.y + 5, w: 30, d: 8, r: 1.4 }, BASE_H, P, 3), { tone: "faint" }));
+  const t = k.topTicks(BASE.x + 8, BASE.x + BASE.w - 10, 6, 5, BASE.y + BASE.d - 5.8, BASE_H + 0.5, [1, 1.8], P);
+  out.push(S(slab({ x: BASE.x + 6, y: BASE.y + BASE.d - 6, w: BASE.w - 12, d: 3.2, r: 0 }, BASE_H, 0.5, 2, 0), { tone: "lo", crease: "none" }), L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
+  return out.join("");
+}
+function postDetail() {
+  const out = [];
+  for (const x of POSTS) {
+    out.push(`<g transform="${x > 0 ? right(x + 6) : right(x + 6)}"><path class="iso-line" data-tone="faint" d="${flat(-7.5, BASE_H + 6, 7.5, POST_Z - 8, 1, 3)}"/></g>`);
+    out.push(S(slab({ x: x - 0.6, y: -9.6, w: 7.2, d: 19.2, r: 0.8 }, 50, 2.2, 2, 0.25), { tone: "mid" }));
+    out.push(S(slab({ x: x - 0.6, y: -9.6, w: 7.2, d: 19.2, r: 0.8 }, 96, 2.2, 2, 0.25), { tone: "mid" }));
+  }
+  // Tirant entre les deux montants, derrière la bande ; plaque de série sur le montant droit.
+  out.push(S(slab({ x: POSTS[0] + 6, y: -8, w: POSTS[1] - POSTS[0] - 6, d: 1.8, r: 0.3 }, 20, 2.4, 2, 0.15), { tone: "mid" }));
+  out.push(S(slab({ x: POSTS[1] + 6, y: -4, w: 0.5, d: 8, r: 0 }, 64, 14, 2, 0), { tone: "lo", crease: "none" }));
+  return out.join("");
+}
+function windowDetail() {
+  const out = [], y = 17, z0 = READ_Z - 9, z1 = READ_Z + 9;
+  // Règle graduée sur le montant gauche de la fenêtre, molettes de réglage et index de lecture.
+  const strip = { x: -SW - 3, y: y + 3, w: 2, d: 0.01, r: 0 };
+  void strip;
+  const ticks = []; for (let n = 0; n <= 8; n++) ticks.push(k.segment([-SW - 3, y + 3, z0 + n * 2.25], [-SW - 3 + (n % 4 ? 1 : 1.8), y + 3, z0 + n * 2.25], P));
+  out.push(L(ticks.join(""), { tone: "lo", free: "end" }));
+  for (const sx of [-SW - 1, SW + 2]) { const F = G.frameAlong([sx, y + 3, READ_Z], [0, 1, 0]); out.push(S(G.disc(0, 1.2, 2, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, 0, 1.2, 2, 12, P, { fade: [0.1, 0.55] }), { tone: "lo" }) })); }
+  return out.join("");
+}
+function stampDetail() {
+  const out = [];
+  // Tampon encreur sur la table (à l'aplomb du repos), compteur de frappes sur le corps du vérin, jauge de pression.
+  out.push(S(slab({ x: STAMP.x - 11, y: 26, w: 22, d: 10, r: 1.2 }, 0, 4, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab({ x: STAMP.x - 9, y: 28, w: 18, d: 6, r: 0.8 }, 4, 1.2, 2, 0.2), { tone: "hi" }));
+  const f = front(57), win = flat(STAMP.x - 5, READ_Z + 7.4, STAMP.x + 5, READ_Z + 12, 0.8);
+  out.push(`<g transform="${f}"><path class="iso-fill fig-window" d="${win}"/><path class="iso-line" data-tone="lo" d="${win}"/></g>`);
+  const Fg = G.frameAlong([STAMP.x, 57, READ_Z + 20], [0, 1, 0]);
+  out.push(S(G.disc(0, 1.4, 3.2, Fg, P), { tone: "lo" }));
+  out.push(L(G.circleOf(Fg, 1.4, 2.2, P) + k.segment([STAMP.x, 58.4, READ_Z + 20], [STAMP.x + 1.4, 58.4, READ_Z + 21.6], P), { tone: "mid" }));
+  return out.join("");
+}
+function consoleDetail() {
+  const out = [], c = CONS;
+  // Butée du cadran, rangée de trois boutons, plaque de série et pieds.
+  out.push(S(slab({ x: DIAL.x + 8, y: DIAL.y + 6, w: 5, d: 2, r: 0.4 }, CONS_H, 3.4, 2, 0.2), { tone: "mid" }));
+  for (let i = 0; i < 3; i++) out.push(S(k.cylinder(c.x + 36 + i * 5.6, c.y + 6, 1.6, CONS_H, 1.4, P, 14), { tone: i === 0 ? "hi" : "mid" }));
+  out.push(L(k.planOutline({ x: c.x + 32, y: c.y + 2.4, w: 18, d: 7, r: 1 }, CONS_H, P, 3), { tone: "faint" }));
+  out.push(D(k.corners({ x: c.x + 32, y: c.y + 2.4, w: 18, d: 7 }, 1).map(([x, y]) => at([x, y, CONS_H])), { size: 0.3 }));
+  return out.join("");
+}
+function motorDetail() {
+  const out = [];
+  // Boîte à bornes, presse-étoupe, bride de fixation et ailettes.
+  out.push(S(slab({ x: MOTOR.x0 + 6, y: -4, w: 10, d: 8, r: 1 }, BOT_Z + MOTOR.r, 5, 3, 0.5), { tone: "mid" }));
+  out.push(S(k.cylinder(MOTOR.x0 + 14, 0, 1.6, BOT_Z + MOTOR.r + 5, 3, P, 14), { tone: "hi" }));
+  out.push(S(slab({ x: MOTOR.x0 - 2, y: -10, w: 3, d: 20, r: 0.6 }, BASE_H, BOT_Z - BASE_H - 3, 2, 0.2), { tone: "lo" }));
+  out.push(D([at([MOTOR.x0 - 0.5, 9, BASE_H + 4]), at([MOTOR.x0 - 0.5, -9, BASE_H + 4])], { size: 0.34 }));
+  return out.join("");
+}
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Un registre à rouleau motorisé. Une longue bande de papier, le registre Excel, passe d'une bobine à l'autre devant une fenêtre de lecture. Un cadran compose l'OT à sept chiffres, le moteur déroule la bande jusqu'à la bonne ligne, un tampon y reporte les données, et un cavalier Q18 se clipse sur le bord de la bande quand le rapport en contient.",
   body: [
     bench(P, PLATE, { strip: { x: -118, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 60, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
-    baseSvg(), consoleSvg(), postsSvg("back"), motorSvg(), spoolSvg("spool-top", TOP_Z), spoolSvg("spool-bot", BOT_Z),
-    `<g data-part="strip"></g>`, `<g data-part="clips"></g>`, windowSvg(), `<g data-part="report"></g>`, stampSvg(),
+    baseSvg(), consoleSvg(), consoleDetail(), postsSvg("back"), postDetail(), motorSvg(), motorDetail(), spoolSvg("spool-top", TOP_Z), spoolSvg("spool-bot", BOT_Z), detailSvg(),
+    `<g data-part="strip"></g>`, `<g data-part="clips"></g>`, windowSvg(), windowDetail(), `<g data-part="report"></g>`, stampDetail(), stampSvg(),
   ],
 });
 
@@ -168,6 +245,8 @@ function stripSvg(rows, off, sel, hl) {
     if (ROWS[r].printed) for (const [a, b, dv] of [[0.4, 0.66, -0.16], [0.4, 0.58, 0.16]]) data += "M" + pt(vc + dv / NV, a) + "L" + pt(vc + dv / NV, b);
     if (r === sel && hl > 0) mark += '<path class="fg-hl" style="opacity:' + hl.toFixed(2) + '" d="M' + [pt(vt, 0), pt(vt, 1), pt(vb, 1), pt(vb, 0)].join("L") + 'Z"/>';
   }
+  let perf = []; for (let r = Math.floor(off - NV / 2) - 1; r <= Math.ceil(off + NV / 2) + 1; r++) { if (r < 0 || r >= ROWS_N) continue; const vc = rowV(r, off); if (vc < 0.08 || vc > 0.92) continue; for (const dv of [-0.25, 0.25]) for (const kk of [0.03, 0.97]) perf.push(iso(paperPoint(rows, vc + dv / NV, kk), P)); }
+  svg += dotsSvg(perf, { size: 0.4 });
   return mark + svg + '<path class="fg-sp" d="' + seps + '"/><path class="fg-tx" d="' + ots + '"/><path class="fg-tx fg-dn" d="' + data + '"/>';
 }
 function spoolWrap(z, r, left) {

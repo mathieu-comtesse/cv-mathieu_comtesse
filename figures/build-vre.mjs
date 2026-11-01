@@ -127,13 +127,66 @@ function selectorSvg() {
 // Boule : un disque épais d'axe z, à l'origine, au diamètre de sa famille.
 const tokenSvg = (i, lit) => k.solidSvg(k.cylinder(0, 0, R[i], 0, THICK, P, 24, 0.3), lit ? { tone: "hi", lit: true } : { tone: "hi" });
 
+
+// ---------------------------------------------------------------- finitions
+function baseDetail() {
+  const out = [], b = BASE, f = front(FACE_Y);
+  // Pieds réglables, tiroir à poignée, plaque gravée et lettres des bâtiments autour du sélecteur.
+  ["A", "B", "C", "D", "E", "F"].forEach((c, i) => { const a = ((i - 2.5) * 30 * Math.PI) / 180, r = KNOB.r + 6.4; out.push(k.faceTextSvg(`${f} translate(${(KNOB.x + Math.sin(a) * r).toFixed(2)} ${(-(KNOB.z + Math.cos(a) * r) + 1).toFixed(2)})`, c, { size: 2.4, tone: "lo", anchor: "middle" })); });
+  // Bouches d'aération sur le dessus du socle, entre les tiges.
+  for (let i = 0; i < 3; i++) { const x = (TX[i] + TX[i + 1]) / 2; out.push(L(k.planOutline({ x: x - 5, y: BASE.y + 5, w: 10, d: 4, r: 1.2 }, BASE_H, P, 3), { tone: "faint" })); }
+  return out.join("");
+}
+function rodDetail(i) {
+  const out = [], x = TX[i], F = G.frameAlong([x, 0, BASE_H], [0, 0, 1]), top = ROD_TOP - BASE_H;
+  // Écrou à la base, bague d'arrêt au-dessus de la pile maximale, pastille de famille sur l'entonnoir.
+  out.push(S(G.disc(2, 4.4, 2.6, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, 2, 4.4, 2.6, 12, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  out.push(S(G.disc(top - 18, top - 16.4, 2.2, F, P), { tone: "hi" }));
+  out.push(L(G.circleOf(F, top - 6, R[i] + 1.2, P), { tone: "faint" }));
+  out.push(D(G.dotsOf(F, top - 4.4, R[i] + 0.6, 4, P, { phase: Math.PI / 4, all: true }), { size: 0.3 }));
+  return out.join("");
+}
+function frameDetail() {
+  const out = [];
+  // Tirant arrière entre les trois montants, équerres, chapeaux boulonnés.
+  out.push(S(slab({ x: POSTS[0], y: -18, w: POSTS[2] - POSTS[0], d: 1.6, r: 0.3 }, 30, 2.2, 2, 0.15), { tone: "mid" }));
+  for (const x of POSTS) {
+    out.push(S(slab({ x: x - 3.8, y: -19.4, w: 7.6, d: 7.6, r: 0.8 }, 20, 2.2, 2, 0.3), { tone: "lo" }));
+    out.push(S(slab({ x: x - 3.8, y: -19.4, w: 7.6, d: 7.6, r: 0.8 }, ZR(x) - 14, 2.2, 2, 0.3), { tone: "mid" }));
+    out.push(S(slab({ x: x - 1.2, y: -12.2, w: 2.4, d: 6, r: 0.3 }, ZR(x) - 11, 5, 2, 0.15), { tone: "mid" }));
+  }
+  return out.join("");
+}
+function chuteDetail() {
+  const out = [], hs = CHUTE.half;
+  // Entonnoir d'entrée avec volet, butée de fin, consoles sous la gouttière.
+  out.push(S(slab({ x: CHUTE.x0 - 8, y: -hs - 2, w: 8, d: 2 * hs + 4, r: 1 }, ZR(CHUTE.x0) - 2.2, 2.2, 3, 0.3), { tone: "mid" }));
+  out.push(S(slab({ x: CHUTE.x0 - 8, y: -hs - 2, w: 1.6, d: 2 * hs + 4, r: 0.3 }, ZR(CHUTE.x0), 8, 2, 0.15), { tone: "mid" }));
+  out.push(S(slab({ x: CHUTE.x1, y: -hs, w: 2.4, d: 2 * hs, r: 0.4 }, ZR(CHUTE.x1) - 2.2, 7, 2, 0.2), { tone: "mid" }));
+  for (let x = CHUTE.x0 + 14; x < CHUTE.x1 - 6; x += 30) if (!TX.some((tx, i) => Math.abs(x - tx) < R[i] + 5)) out.push(S(slab({ x: x - 1.2, y: -hs + 2, w: 2.4, d: 2 * hs - 4, r: 0.3 }, ZR(x) - 8, 5.8, 2, 0.15), { tone: "mid" }));
+  return out.join("");
+}
+function deskDetail() {
+  const out = [], d = DESK;
+  // Sous-main avec pince, godet à stylos, lampe articulée.
+  out.push(S(slab({ x: d.x + 2, y: d.y + 2, w: 34, d: 30, r: 1.2 }, DESK_H, 0.8, 2, 0.2), { tone: "lo", crease: "none" }));
+  out.push(S(slab({ x: d.x + 12, y: d.y + 0.6, w: 14, d: 3.4, r: 0.6 }, DESK_H + 0.8, 2.2, 2, 0.3), { tone: "mid" }));
+  out.push(S(k.cylinder(d.x + 40, d.y + 6, 2.6, DESK_H, 6, P, 16), { tone: "mid" }));
+  out.push(D([at([d.x + 39, d.y + 6, DESK_H + 6]), at([d.x + 41, d.y + 5.4, DESK_H + 6])], { size: 0.3 }));
+  out.push(S(k.cylinder(d.x + 40, d.y + 38, 3, DESK_H, 1.4, P, 18), { tone: "lo" }));
+  out.push(S(k.cylinder(d.x + 40, d.y + 38, 0.9, DESK_H + 1.4, 12, P, 10), { tone: "mid" }));
+  out.push(S(slab({ x: d.x + 36, y: d.y + 37, w: 10, d: 2, r: 0.5 }, DESK_H + 12, 1.8, 2, 0.2), { tone: "mid" }));
+  out.push(S(k.cylinder(d.x + 45, d.y + 38, 2, DESK_H + 10.4, 3.4, P, 14), { tone: "hi" }));
+  return out.join("");
+}
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Un abaque à quatre tiges devant un pupitre de lecture. Le rapport, une feuille souple, est lu ligne à ligne ; chaque équipement devient une boule qui roule sur une gouttière et tombe sur la tige de sa famille, BT31, BT33, BT21 ou BT11. Les boules s'empilent, la hauteur de chaque pile donne le total du bâtiment ; quatre compteurs et un voyant confirment, un sélecteur choisit le bâtiment.",
   body: [
     bench(P, PLATE, { strip: { x: -150, y: PLATE.y + PLATE.d - 13, w: 150, d: 7, r: 1 }, label: { x: 66, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
-    frameSvg(), deskSvg(), baseSvg(), selectorSvg(), chuteSvg("back"),
-    ...TX.map((_, i) => rodSvg(i)), rulerSvg(),
+    frameSvg(), frameDetail(), deskSvg(), baseSvg(), baseDetail(), selectorSvg(), chuteSvg("back"), chuteDetail(),
+    ...TX.map((_, i) => rodSvg(i) + rodDetail(i)), rulerSvg(),
     `<g data-part="ride"></g>`, ...TX.map((_, i) => `<g data-part="fall-${i}"></g>`), chuteSvg("front"),
   ],
 });
