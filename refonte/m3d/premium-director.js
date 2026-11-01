@@ -269,6 +269,7 @@ export function directMachine(name,machine){
  }
  sculpture(name,root,profile,animate);
  const signature=new THREE.Group();signature.name='ArtDirection_'+profile.type;
+ machine.title=profile.title;
  root.userData.themeName=profile.title;
  root.userData.themeType=profile.type;
  const original=machine.update.bind(machine);
