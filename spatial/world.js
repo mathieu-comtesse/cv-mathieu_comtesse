@@ -178,12 +178,12 @@ export class SceneManager {
 
   /* ---------------------------------------------------------------- image */
   /** u : position de défilement. inspectE : mélange avec la pose d'inspection du projet sélectionné (0 à 1). */
-  frame(u, dt, nowMs, selectedId, inspectE = 0) {
+  frame(u, dt, nowMs, selectedId, inspectE = 0, blendId = selectedId) {
     this.t += dt;
     const pose = this.timeline.at(u, this.pose); let { fov } = pose, roll = pose.roll;
     const cam = this.camera;
-    if (inspectE > 0 && selectedId) {
-      const ip = inspectPose(this.registry.byId[selectedId]), e = ease(Math.min(1, inspectE));
+    if (inspectE > 0 && blendId) {
+      const ip = inspectPose(this.registry.byId[blendId]), e = ease(Math.min(1, inspectE));
       this.tmp.copy(pose.pos).lerp(ip.pos, e); this.tmp2.copy(pose.look).lerp(ip.look, e); fov += (ip.fov - fov) * e; roll += (0 - roll) * e;
       cam.position.copy(this.tmp); cam.up.set(0, 1, 0); cam.lookAt(this.tmp2);
     } else { cam.position.copy(pose.pos); cam.up.set(0, 1, 0); cam.lookAt(pose.look); }

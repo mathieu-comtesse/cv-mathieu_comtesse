@@ -197,15 +197,17 @@ function init() {
     if (!route(true) && saved && typeof saved.p === 'number' && !qs.has('reset')) { scroll.current = scroll.target = Math.min(timeline.length, Math.max(0, saved.p)); for (const [id, [r, t]] of Object.entries(saved.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } } }
     else for (const [id, [r, t]] of Object.entries(saved?.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } }
     world.resize(); document.body.classList.add('sp-ready');
-    let inspectE = 0;
+    let inspectE = 0, blendId = null;
     function tick(now, raw, dt) {
       perf.frame(raw);
       const u = scroll.update(dt, now);
       if (state.is(STATE.NAVIGATION) && !scroll.moving) state.to(selectedId ? STATE.INSPECTION : STATE.EXPLORATION);
       // inspection : la pose d'inspection se superpose à la trajectoire, sans saut ; à la sortie la caméra revient sur la trajectoire au même u
-      const want = selectedId && !scroll.tween && Math.abs(u - pOf(selectedId)) < 90 && (state.is(STATE.INSPECTION) || state.is(STATE.LECTURE)) ? 1 : 0;
+      // la pose d'inspection est mélangée au projet `blendId` : quand la sélection change, l'ancien mélange se résorbe avant que le nouveau commence (aucun saut)
+      if (blendId !== selectedId && inspectE < .01) blendId = selectedId;
+      const want = blendId && blendId === selectedId && !scroll.tween && Math.abs(u - pOf(selectedId)) < 90 && (state.is(STATE.INSPECTION) || state.is(STATE.LECTURE)) ? 1 : 0;
       inspectE += (want - inspectE) * (1 - Math.exp(-dt * 4.2)); if (Math.abs(want - inspectE) < .002) inspectE = want;
-      world.frame(u, dt, now, selectedId, inspectE);
+      world.frame(u, dt, now, selectedId, inspectE, blendId);
       if (selectedId && state.is(STATE.INSPECTION) && !scroll.tween && Math.abs(u - pOf(selectedId)) > 700) exitInspect(true);
       annotations.update(world.camera.position, selectedId, state.is(STATE.LECTURE), inspectE); annotations.updateTags(world.camera.position, state.is(STATE.LECTURE));
       if (hicOn) hic.show(selectedId ? registry.byId[selectedId] : null);
@@ -217,7 +219,7 @@ function init() {
       if (now - lastSave > 1500 && scroll.moving === false) { lastSave = now; saveState(); }
       if (qs.has('debug')) { const s = perf.stats; $('sp-debug').hidden = false; $('sp-debug').textContent = `u ${u.toFixed(0)} / ${timeline.length.toFixed(0)} · état ${state.state} · fov ${world.camera.fov.toFixed(1)}\nprofil ${s.profile} · ${s.fps} i/s mesurées · ${s.frameMs} ms (moy.) · pire ${s.worstMs} ms · ${s.frames} images\nWebGL init ${world.stats.webglInitMs} ms · modèles ${JSON.stringify(world.stats.modelMs)}\nHTML-in-Canvas : ${hic.status}\nGPU : ${s.gpu || 'inconnu'}\ndraw calls ${world.renderer.info.render.calls} · triangles ${world.renderer.info.render.triangles}`; }
     }
-    let paused = false;
+    let paused = false, vnow = 0;
     function loop(now) {
       requestAnimationFrame(loop);
       const raw = Math.max(0, now - last), dt = Math.min(.05, raw / 1000); last = now;
@@ -225,9 +227,10 @@ function init() {
       tick(now, raw, dt);
     }
     requestAnimationFrame(loop);
-    window.__spatial = { state, scroll, world, perf, registry, timeline, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, panel: panelC,
+    window.__spatial = { state, scroll, world, perf, registry, timeline, rulers, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, panel: panelC,
       /** Capture déterministe (vidéo, comparaisons) : suspend la boucle puis rend une image avec un pas de temps fixe. */
-      pause(v = true) { paused = v; }, step(dt = 1 / 24) { last = performance.now(); tick(performance.now(), dt * 1000, dt); } };
+      pause(v = true) { paused = v; vnow = performance.now(); scroll.now = v ? () => vnow : () => performance.now(); },
+      step(dt = 1 / 24) { vnow += dt * 1000; last = performance.now(); tick(vnow, dt * 1000, dt); } };
     document.dispatchEvent(new CustomEvent('spatial-ready'));
   }).catch((e) => { console.error(e); document.body.classList.add('sp-nogl'); setList(true, false); modeBtn.hidden = true; });
 }

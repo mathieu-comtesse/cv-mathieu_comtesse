@@ -14,6 +14,7 @@ export class SpatialScrollController {
   constructor({ length, onChange = () => {}, reduced = false, rate = 11, maxSpeed = 5200 }) {
     this.length = length; this.onChange = onChange; this.reduced = reduced; this.rate = rate; this.maxSpeed = maxSpeed;
     this.target = 0; this.current = 0; this.tween = null; this.locked = false; this.speed = 0;
+    this.now = () => performance.now();                                      // horloge injectable : la capture vidéo utilise une horloge virtuelle
   }
   /** Progression normalisée [0, 1]. */
   get norm() { return this.current / this.length; }
@@ -28,7 +29,7 @@ export class SpatialScrollController {
     u = clamp(u, 0, this.length);
     const dist = Math.abs(u - this.current);
     if (this.reduced || ms === 0 || dist < 1) { this.target = this.current = u; this.tween = null; this.onChange(u); return; }
-    this.tween = { from: this.current, to: u, t0: performance.now(), ms: ms ?? clamp(700 + dist * .2, 900, 3800) };
+    this.tween = { from: this.current, to: u, t0: this.now(), ms: ms ?? clamp(700 + dist * .2, 900, 3800) };
     this.target = u;
   }
   hold() { this.tween = null; this.target = this.current; }
