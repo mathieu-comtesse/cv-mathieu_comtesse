@@ -174,7 +174,7 @@ export function buildFinance(){
    });previous=next;
   }eventCache.set(key,events);return events;
  }
- const state=t=>{const day=clamp(t/2,0,FIN_DAYS),ratios=expenditure(day);return {day,ratios,events:crossings(day)};};
+ const state=t=>{const day=clamp(t*2,0,FIN_DAYS),ratios=expenditure(day);return {day,ratios,events:crossings(day)};};
  a.animate(t=>{
   const s=state(t);
   reservoirs.forEach((f,i)=>{
