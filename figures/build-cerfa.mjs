@@ -88,7 +88,15 @@ const DIV_X = [-66, -35, -5, 25, 55];                                   // clois
 function divider(x) {
   return S(slab({ x: x - 0.8, y: -9.5, w: 1.6, d: 24.5, r: 0.4 }, TRAY_Z, 30, 2, 0.3), { tone: "mid" });
 }
-function wall(x) { return S(slab({ x: x - 0.6, y: Y0 - 0.2, w: 1.2, d: Y1 - Y0 + 0.2, r: 0.2 }, TRAY_Z + 31, zs(x) - 3 - TRAY_Z - 31, 2, 0.3), { tone: "mid" }); }
+function chuteBack(hx) {
+  // Fond de goulotte : plaque vissée au panneau entre les deux parois, avec ses quatre vis et une nervure centrale.
+  const z0 = TRAY_Z + 31, z1 = zs(hx) - 3, out = [];
+  out.push(S(slab({ x: hx - CH, y: Y0 - 0.2, w: 2 * CH, d: 0.9, r: 0.2 }, z0, z1 - z0, 2, 0.1), { tone: "lo" }));
+  out.push(S(slab({ x: hx - 0.5, y: Y0 + 0.6, w: 1, d: 0.7, r: 0.1 }, z0 + 1, z1 - z0 - 2, 2, 0.05), { tone: "mid" }));
+  out.push(D([at([hx - CH + 1.2, Y0 + 0.7, z0 + 2]), at([hx + CH - 1.2, Y0 + 0.7, z0 + 2]), at([hx - CH + 1.2, Y0 + 0.7, z1 - 2]), at([hx + CH - 1.2, Y0 + 0.7, z1 - 2])], { size: 0.3 }));
+  return out.join("");
+}
+function wall(x) { return S(slab({ x: x - 0.9, y: Y0 - 0.2, w: 1.8, d: Y1 - Y0 + 0.2, r: 0.3 }, TRAY_Z + 31, zs(x) - 3 - TRAY_Z - 31, 2, 0.3), { tone: "mid" }); }
 function backPanel() {
   const out = [], pan = { x: -64, y: -10, w: 128, d: 4.4, r: 0.8 };
   out.push(S(slab(pan, TRAY_Z, BTOP - 6 - TRAY_Z, 3, 0.6), { tone: "lo", inner: L(k.sideSeam(pan, 70, P, 3), { tone: "faint" }) }));
@@ -110,6 +118,7 @@ function structure() {
     out.push(divider(DIV_X[kk]));
     out.push(`<g data-part="pile-${kk}"></g>`);
     // Goulotte : paroi gauche, chute, paroi droite.
+    out.push(chuteBack(HX[kk]));
     if (kk === 0) {
       out.push(wall(HX[0] - CH), `<g data-part="fall-0"></g>`, wall(HX[0] + CH));
     } else {
@@ -169,14 +178,12 @@ function panelDetail() {
   out.push(L([0, 1].map((i) => k.segment([-49 + i * 0, yf, BTOP - 21 - i * 2.4].map((v) => v), [-49 + (i ? 14 : 20), yf, BTOP - 21 - i * 2.4], P)).join(""), { tone: "lo", free: true }));
   out.push(D([at([-50.6, yf, BTOP - 24]), at([-21.4, yf, BTOP - 24])], { size: 0.36 }));
   // Consoles sous la rampe : une patte entre le panneau et chaque tronçon.
-  for (const [a, b] of SEG) { const x = (a + b) / 2; out.push(S(slab({ x: x - 1.2, y: -5.6, w: 2.4, d: 3.2, r: 0.3 }, zs(x) - 9, 6, 2, 0.2), { tone: "mid" })); }
   return out.join("");
 }
 function chuteDetail() {
   const out = [];
   // Entretoises basses entre les parois de chaque goulotte et rivets de lèvre.
   for (const hx of HX) {
-    out.push(S(slab({ x: hx - CH, y: Y0 - 0.2, w: 2 * CH, d: 1, r: 0.2 }, TRAY_Z + 31, 1.4, 2, 0.1), { tone: "mid" }));
     out.push(D([at([hx - CH + 0.6, Y1, TRAY_Z + 38]), at([hx + CH - 0.6, Y1, TRAY_Z + 38])].slice(0, 0), { size: 0.3 }));
   }
   SEG.forEach(([a, b]) => { const dots = []; for (let x = a + 3; x < b - 2; x += 6) dots.push(at([x, Y1 + 2.6, zs(x) + 1.3])); out.push(D(dots, { size: 0.3 })); });
