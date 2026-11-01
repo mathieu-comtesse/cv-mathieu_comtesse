@@ -9,7 +9,7 @@ const DRAW = 110;                    // le tracé de la table est dessiné sur 1
 const TEX = 2048;
 
 /* ---------------------------------------------------------------- tracé de la table à dessin (texture) */
-function drawMat(TEX = 2048) {
+export function drawMat(TEX = 2048) {
   const c = document.createElement('canvas'); c.width = c.height = TEX;
   const g = c.getContext('2d');
   const U = (v) => (v + DRAW / 2) / DRAW * TEX;        // unités du tracé → pixels

@@ -1,69 +1,96 @@
-@font-face{font-family:"Inter";src:url("fonts/Inter-latin.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Inter";src:url("fonts/Inter-latin.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Inter";src:url("fonts/Inter-italic-latin.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap}
 @font-face{font-family:"iAWriterQuattroV";src:url("fonts/iAWriterQuattroV.ttf") format("truetype");font-weight:100 900;font-display:swap}
 :root{--mono:"iAWriterQuattroV",ui-monospace,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#050505;color:#fff;overflow:hidden;font-family:var(--sans);overscroll-behavior:none}
-#scene{touch-action:none}
-#scene{position:fixed;inset:0;width:100%;height:100%;display:block}
-#leaders{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
-#leaders path{fill:none;stroke:#fff;stroke-width:1;opacity:.75}
-#leaders circle{fill:#fff}
-#callouts{position:fixed;inset:0;pointer-events:none}
-.co{position:absolute;top:0;left:0;width:230px;font:700 19px/1.2 var(--sans);color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.6);pointer-events:auto;text-decoration:none;will-change:transform;padding-bottom:7px}
-.co small{display:block;margin-top:4px;font:400 11px/1.3 var(--mono);color:#e4e6ea;letter-spacing:.02em}
-a.co:hover,a.co:focus-visible{text-decoration:underline;outline:none}
-.co.r{text-align:left}.co.l{text-align:right}
+html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 
-#nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:4}
+/* ---------- la page (lisible telle quelle ; en 3D, chaque élément marqué devient une boîte ou un plan) ----------
+   Règle : l'apparence d'un élément ne dépend que de ses propres classes (il est sorti de la page pour être dessiné). */
+.pc-page{width:1000px;margin:0 auto;color:#fff}
+.pc-sec{position:relative;padding:130px 60px 110px;background:#111}
+.pc-intro{min-height:1150px;padding-top:150px}
+.pc-intro-in{width:560px;margin:0 auto}
+.pc-ap{margin:0 0 30px;font:500 22px/33px var(--sans);letter-spacing:-.25px;color:#abb5c7}
+.pc-ap1{color:#e0ebfd;font-weight:600}
+.pc-sign{width:560px;padding-top:24px}
+.pc-sign svg{display:block;width:330px;height:126px;overflow:visible}
+.pc-dateline{display:flex;justify-content:space-between;margin:28px 0 0;font:12px var(--mono);color:#8795ad;letter-spacing:.04em}
+
+.pc-home{height:1200px;padding:0}
+.pc-title{position:absolute;left:30px;top:110px;height:960px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);font:700 150px/1 var(--sans);letter-spacing:-7px;color:#fff;white-space:nowrap}
+.pc-home-col{position:absolute;left:230px;top:150px;width:290px;display:flex;flex-direction:column;gap:28px}
+.pc-graph{position:absolute;left:560px;top:110px;width:410px;height:880px}
+.pc-graph-list{margin:0;padding:0;list-style:none;font:11px/1.4 var(--mono);color:#dfe6ff}
+.pc-graph-list ul{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 10px;padding:0;list-style:none}
+.pc-graph-list a{color:inherit;text-decoration:none;display:flex;gap:4px;align-items:center;font-size:9px}
+.pc-graph-list img{width:28px;height:20px;object-fit:cover;border:1px solid #fff}
+.pc-scroll{position:absolute;left:470px;bottom:40px;margin:0;font:32px/1 var(--sans);color:rgba(255,255,255,.6)}
+
+.pc-box{display:block;padding:22px 24px;border:1.5px solid rgba(255,255,255,.6);background:rgba(255,255,255,.08);color:#fff;text-decoration:none}
+.pc-kicker{margin:0 0 10px;font:500 12px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.72)}
+.pc-big{margin:0 0 6px;font:700 24px/1.15 var(--sans)}
+.pc-box p{margin:0 0 8px;font:400 15px/1.45 var(--sans)}
+.pc-index ol{margin:0;padding:0;list-style:none;font:13px/1.9 var(--mono)}
+.pc-index li{display:flex;gap:12px}
+.pc-index li span{color:rgba(255,255,255,.55)}
+
+.pc-h{margin:0 0 70px;font:700 68px/1 var(--sans);letter-spacing:-2px;color:#fff;text-shadow:0 6px 18px rgba(0,0,0,.35)}
+.pc-notes{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin:0 0 80px}
+.pc-note{position:relative;margin:0;padding:0 0 0 16px;font:italic 400 15px/1.45 var(--sans);color:rgba(255,255,255,.92)}
+.pc-note::before{content:"";position:absolute;left:0;top:6px;width:7px;height:7px;border-radius:50%;background:#fff}
+.pc-cards{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin:0 0 90px}
+.pc-cards3{grid-template-columns:repeat(3,1fr)}
+.pc-card{padding:28px 30px}
+.pc-card h3{margin:0 0 12px;font:700 28px/1.12 var(--sans);letter-spacing:-.5px}
+.pc-card p{font:italic 400 16px/1.5 var(--sans);color:rgba(255,255,255,.9)}
+.pc-card .pc-kicker{font-style:normal}
+.pc-card .pc-sub{font-style:normal;color:rgba(255,255,255,.75)}
+.pc-gains{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin:14px 0 16px;padding:14px 16px;background:#fff;color:#0d0d0d;border-radius:8px}
+.pc-gains div{min-width:0}
+.pc-gains dt{font:500 10px/1.3 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:#555}
+.pc-gains dd{margin:3px 0 0;font:700 17px/1.2 var(--sans)}
+.pc-more{display:inline-block;margin-top:6px;padding:8px 16px;border-radius:18px;background:rgba(0,0,0,.35);color:#fff;text-decoration:none;font:13px var(--mono)}
+
+.pc-proj{display:grid;grid-template-columns:540px 1fr;gap:20px 40px;margin:0 0 110px}
+.pc-proj:nth-of-type(even){grid-template-columns:1fr 540px}
+.pc-proj:nth-of-type(even) .pc-pcard{grid-column:2;grid-row:1}
+.pc-proj:nth-of-type(even) .pc-float{grid-column:1;grid-row:1}
+.pc-float{align-self:center;font:italic 400 18px/1.5 var(--sans);color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+.pc-float p{margin:0}
+.pc-float .pc-kicker{margin-bottom:10px;font-style:normal}
+.pc-how{grid-column:1/-1;margin:26px 0 0;font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.75)}
+.pc-steps{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:18px 30px;margin:0;padding:0;list-style:none}
+.pc-step{padding:4px 0 4px 14px;border-left:1.5px solid rgba(255,255,255,.7);color:#fff;font:14px/1.45 var(--sans)}
+.pc-step b{display:block;font:500 11px var(--mono);color:rgba(255,255,255,.7)}
+.pc-step strong{display:block;margin:2px 0 3px;font:700 16px/1.25 var(--sans)}
+.pc-step span{display:block;color:rgba(255,255,255,.88)}
+.pc-end{margin:40px 0 0;font:12px var(--mono);color:#8a8e98;text-align:center}
+
+/* ---------- mode 3D (classe posée par parcours.js quand WebGL est là) ---------- */
+#scene,#leaders,#ticks,#callouts,#nav,#back,.pc-magic{display:none}
+html.expo body{overscroll-behavior:none}
+html.expo #page{position:absolute;left:50%;top:0;margin:0 0 0 -500px;visibility:hidden;pointer-events:none}
+/* sans HTML-in-Canvas, la page réelle reste par-dessus tant qu'elle est vue de face (même cadrage 1:1), puis la 3D prend le relais */
+html.expo.flat #page.pc-fallback{visibility:visible;pointer-events:auto;z-index:3}
+html.expo #scene{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:1}
+html.expo #leaders,html.expo #ticks,html.expo #callouts{display:block;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+html.expo #nav,html.expo #back{display:flex;z-index:4}
+#leaders path{fill:none;stroke:#fff;stroke-width:1;opacity:.8}
+#leaders circle{fill:#fff}
+.co{position:absolute;top:0;left:0;width:230px;padding-bottom:7px;font:700 19px/1.2 var(--sans);color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.6);pointer-events:auto;text-decoration:none;will-change:transform}
+.co small{display:block;margin-top:4px;font:400 11px/1.3 var(--mono);color:#e4e6ea}
+a.co:hover,a.co:focus-visible{text-decoration:underline;outline:none}
+.co.l{text-align:right}
+.tick{position:absolute;top:0;left:0;padding:0 4px;font:11px/1 var(--mono);color:#8a8e98;white-space:nowrap}
+html.expo .pc-magic{display:block;position:fixed;left:0;top:0;z-index:3;padding:9px 16px;border:0;border-radius:20px;background:#fff;color:#000;font:13px var(--mono);cursor:pointer;will-change:transform;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.pc-magic:hover,.pc-magic:focus-visible{outline:2px solid #fff;outline-offset:3px}
+#nav{position:fixed;left:14px;top:50%;transform:translateY(-50%)}
 #nav ul{list-style:none;margin:0;padding:0}
-#nav li{margin:0}
 #nav button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:center;font:11px/1 var(--mono);color:#7c808a;padding:7px 4px;min-height:24px}
 #nav button::after{content:"";width:4px;height:4px;border-radius:50%;background:currentColor}
-#nav button:hover,#nav button:focus-visible{color:#fff}
-#nav li.on button{color:#fff}
+#nav button:hover,#nav button:focus-visible,#nav li.on button{color:#fff}
 #nav li.on button::after{width:6px;height:6px}
-
-#back{position:fixed;left:14px;bottom:14px;z-index:4;display:flex;gap:7px;align-items:center;color:#cfd3da;text-decoration:none;font:11px var(--mono);padding:10px 6px}
+#back{position:fixed;left:14px;bottom:14px;gap:7px;align-items:center;color:#cfd3da;text-decoration:none;font:11px var(--mono);padding:10px 6px}
 #back:hover{color:#fff}
-
-#start{position:fixed;inset:0;z-index:3;display:none;align-items:center;justify-content:center;pointer-events:none;padding-top:50vh}
-#start button{pointer-events:auto;font:400 17px var(--sans);width:230px;height:56px;border:1px solid #fff;background:#d4d4d4;color:#000;cursor:pointer;transition:background .15s}
-#start button:hover{background:#fff}
-body.near-end #start{display:flex}
-
-#hud{position:fixed;left:50%;bottom:6vh;transform:translateX(-50%) perspective(900px) rotateX(14deg);z-index:3;display:none;grid-template-columns:repeat(6,auto);border:1px solid #6d7178;background:rgba(5,5,5,.55);backdrop-filter:blur(2px);font-family:var(--mono)}
-#hud div{padding:7px 12px;border-left:1px solid #6d7178;min-width:84px}
-#hud div:first-child{border-left:0}
-#hud b{display:block;font-weight:400;font-size:10px;color:#8b8f99;margin-bottom:5px}
-#hud span{font-size:12px;color:#e8eaee;white-space:nowrap}
-body.near-end #hud{display:grid}
-body.game #hud{display:grid;bottom:12px;transform:translateX(-50%) perspective(900px) rotateX(14deg) scale(.9);transform-origin:bottom center}
-
-#end{position:fixed;inset:0;z-index:6;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:rgba(5,5,5,.82);text-align:center}
-#end[hidden]{display:none}
-#end h2{font:400 clamp(40px,8vw,88px)/1 var(--sans);letter-spacing:-.03em;margin:0}
-#end p{margin:0;font:13px var(--mono);color:#aeb2bb}
-#end a,#end button{font:14px var(--sans);color:#000;background:#d4d4d4;border:1px solid #fff;padding:12px 22px;text-decoration:none;cursor:pointer;min-width:220px}
-#end a:hover,#end button:hover{background:#fff}
-.ns{position:fixed;inset:0;display:grid;place-content:center;text-align:center;font:14px var(--sans)}
-.ns a{color:#fff}
-
-@media (max-width:760px){
-  #hud{grid-template-columns:repeat(3,auto);bottom:2vh}
-  #hud div:nth-child(4){border-left:0}
-  #hud div{min-width:0;padding:5px 8px}
-  #nav{display:none}
-  .co{width:150px;font-size:13px}
-}
-@media (prefers-reduced-motion:reduce){#start button{transition:none}}
-
-#ticks{position:fixed;inset:0;pointer-events:none}
-.tick{position:absolute;top:0;left:0;font:11px/1 var(--mono);color:#8a8e98;white-space:nowrap;padding:0 4px}
-/* cartes rendues par HTML-in-Canvas : même disposition que la texture de repli */
-#scene .card{box-sizing:border-box;position:relative;overflow:hidden;padding:34px;background:var(--bg,#2a2a8c);border:2px solid rgba(255,255,255,.55);color:#fff;font:italic 400 25px/33px var(--sans)}
-#scene .card p{margin:0}
-#scene .card .k{font:500 20px/26px var(--mono);color:rgba(255,255,255,.75);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#scene .card .t{margin:14px 0 0;font:700 40px/46px var(--sans);color:#fff;font-style:normal}
-#scene .card .b{margin:18px 0 0;width:56%}
-#scene .card .panel{position:absolute;right:30px;bottom:78px;width:36%;height:30%;display:flex;align-items:center;justify-content:center;text-align:center;background:#fff;color:#0d0d0d;border-radius:12px;font:700 30px/36px var(--sans);font-style:normal;padding:12px}
-#scene .card .btn{position:absolute;left:34px;bottom:24px;background:rgba(0,0,0,.4);color:#fff;font:500 20px/38px var(--mono);font-style:normal;padding:0 22px;border-radius:19px}
+@media (max-width:760px){#nav{display:none!important}.co{width:150px;font-size:13px}}

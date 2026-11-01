@@ -4,50 +4,262 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mathieu Comtesse · CV en parcours 3D</title>
-<meta name="description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité, à parcourir comme une piste en 3D : profil, réalisations, expérience, compétences, formation, contact.">
+<meta name="description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D.">
 <meta name="theme-color" content="#050505">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="refonte/parcours.css">
 <script type="importmap">{"imports":{"three":"./vendor/three-r187/three.module.js"}}</script>
 </head>
 <body>
-<canvas id="scene" aria-label="Parcours 3D du CV"></canvas>
+<!-- La page ci-dessous est le CV complet, lisible tel quel. Avec WebGL, parcours.js la relève boîte par boîte et la reconstruit en 3D
+     (HTML-in-Canvas quand le navigateur le permet, sinon rendu des mêmes éléments en image). -->
+<div id="page" class="pc-page">
+
+<section class="pc-sec pc-intro" data-section="Bonjour" data-color="#07090c" aria-label="Présentation">
+  <div class="pc-intro-in">
+    <p class="pc-ap pc-ap1" data-plane>Salut ! Je suis Mathieu, ingénieur maintenance et qualité en alternance chez SNCF Gares &amp; Connexions. Bienvenue dans mon coin d’Internet : mon travail, mes projets inachevés ou imparfaits, et tout ce que j’explore.</p>
+    <p class="pc-ap" data-plane>Depuis mes premières missions, je collabore avec des équipes de terrain et de maintenance pour rendre leurs processus plus fiables, plus rapides et plus lisibles. J’ai affûté mon regard d’auditeur au contact de celles et ceux qui font réellement le travail, tout en poursuivant mon M2 MQSE à Sorbonne Paris Nord, et en me formant sans relâche aux outils (Power Automate, Power BI, scripts Excel, machines virtuelles).</p>
+    <p class="pc-ap" data-plane>Mon appétit d’apprendre m’a mené vers l’avenir de mon métier : l’IA appliquée, les agents LLM et l’OCR.</p>
+    <p class="pc-ap" data-plane>Quand je ne construis pas d’outils, je partage mes découvertes sur mon blog : machines manipulables, jeux et mondes en 3D. Retrouvez-moi aussi dans la pièce derrière ces lignes, entre un vinyle, un bonsaï ou sur un cycle.</p>
+    <div class="pc-sign" id="pc-sign" data-plane data-live>
+      <svg viewBox="-1 -1 105 41" width="330" height="126" role="img" aria-label="Signature de Mathieu" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="#e0ebfd" stroke-linecap="round" stroke-linejoin="round"><path d="M54.4654 21.4922C4.35293 21.4922 -22.0342 23.1181 27.2931 2.53239C49.6904 -6.81462 22.1086 29.4696 22.5055 33.9449C23.5141 45.3182 30.7844 5.78781 43.0101 5.55587C45.4434 5.50971 33.7665 30.4629 33.6604 31.5812C32.4525 44.3133 45.0998 0.371964 58.765 1.22568C60.9304 1.36096 47.4396 27.6308 46.5885 29.7131" stroke-width="0.53" pathLength="1" data-d="0" data-t="1.72"/><path d="M58.7859 20.9479C58.2711 19.8243 56.741 20.1783 55.9408 20.8431C55.4075 21.286 54.9298 22.023 54.6888 22.6678C53.3845 26.1582 58.2763 22.7488 58.9305 21.8497C59.3452 21.2797 59.9541 19.2229 59.6842 19.874C59.1809 21.0881 57.8133 23.3324 58.5267 24.6763C59.1411 25.8339 62.1559 21.3272 62.5 20.9479" stroke-width="0.54" pathLength="1" data-d="1.49" data-t="0.39"/><path d="M62.42 20.96 C63.48 21.13 64.39 20.40 64.94 19.36 C65.98 17.42 66.59 15.80 67.12 15.63 C67.74 15.43 65.94 19.54 65.35 21.43 C64.70 23.50 65.05 24.83 65.99 24.64 C66.78 24.48 67.57 23.30 68.38 22.56" stroke-width="0.52" pathLength="1" data-d="1.87" data-t="0.45"/><path d="M63.28 19.58 C64.85 19.17 66.68 19.11 68.59 19.09" stroke-width="0.4" pathLength="1" data-d="2.17" data-t="0.18"/><path d="M68.30 22.63 C69.45 20.48 70.45 16.75 71.38 14.61 C72.05 13.09 72.91 12.52 72.39 14.38 C71.70 17.02 69.42 21.42 68.82 24.57 C70.62 22.68 71.91 20.28 73.28 20.23 C75.02 20.17 73.27 23.34 73.99 24.19 C74.61 24.93 75.45 24.03 76.31 23.04" stroke-width="0.54" pathLength="1" data-d="2.3" data-t="0.53"/><path d="M65.56 24.02C66.18 23.77 66.98 22.66 67.62 21.58C68.19 20.63 68.63 19.92 68.95 19.66C69.24 19.42 69.34 19.58 69.14 20C68.73 20.86 68 22.61 67.83 23.76C67.72 24.49 67.99 24.88 68.47 24.82C69.01 24.75 69.48 24.37 69.81 24.05" transform="translate(10.75 0)" stroke-width="0.55" pathLength="1" data-d="2.78" data-t="0.34"/><path d="M68.88 17.92C69.01 17.79 69.06 17.93 68.98 18.09" transform="translate(10.75 0)" stroke-width="0.9" pathLength="1" data-d="3.08" data-t="0.08"/><path d="M77.62 24.12C78.21 23.85 79.01 23.07 79.54 22.63C80.62 21.74 81.47 20.16 82.94 19.56C84.08 19.09 84.95 19.66 84.89 20.61C84.82 21.56 83.74 22.15 82.75 22.29C81.85 22.42 80.9 22.26 80.53 22.71C80.12 23.2 80.67 24.18 81.28 24.59C83.02 25.75 85.52 23.46 86.58 21.97" transform="translate(2.55 0)" stroke-width="0.56" pathLength="1" data-d="3.12" data-t="0.41"/><path d="M90.31 21.63 C90.00 22.18 89.42 23.36 89.68 24.30 C90.20 26.21 92.73 21.91 93.71 20.96 C94.39 20.30 94.63 20.26 94.18 21.30 C93.60 22.60 92.86 24.88 94.17 24.70 C95.74 24.50 97.91 21.51 99.15 20.63 C99.47 20.41 99.62 20.51 99.43 20.80" stroke-width="0.54" pathLength="1" data-d="3.49" data-t="0.45"/></g>
+      </svg>
+      <p class="pc-dateline"><span>M2 MQSE · Sorbonne Paris Nord</span><span>Octobre 2026</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="pc-sec pc-home" data-section="Accueil" data-color="#1c1cb4" data-blueprint aria-label="Accueil">
+  <h1 class="pc-title" data-plane data-extrude="14">Mathieu Comtesse</h1>
+  <div class="pc-home-col">
+    <nav class="pc-box pc-index" data-box="0.25" aria-label="Sommaire">
+      <p class="pc-kicker">Sommaire</p>
+      <ol><!-- sommaire:start --><li><span>01</span>Faire fonctionner</li><li><span>02</span>Fichiers retrouvés</li><li><span>03</span>Construire une fois</li><li><span>04</span>Savoir où regarder</li><li><span>05</span>Expérience</li><li><span>06</span>Compétences</li><li><span>07</span>Formation</li><li><span>08</span>Contact</li><!-- sommaire:end --></ol>
+    </nav>
+    <div class="pc-box pc-tag" data-box="0.5"><p class="pc-kicker">Poste</p><p class="pc-big">Ingénieur Maintenance et Qualité</p><p>Alternance · SNCF Gares &amp; Connexions · M2 MQSE</p></div>
+    <a class="pc-box pc-tag" href="gains.html" data-box="0.35"><p class="pc-kicker">Gains sur les volumes fournis</p><p class="pc-big">3 200 à 4 000 h par an</p><p>libérées pour les équipes, soit 2 à 2,5 postes. Détail et méthode →</p></a>
+  </div>
+  <div class="pc-graph" data-graph aria-label="Les thématiques du site">
+    <!-- graphe:start --><ul class="pc-graph-list"><li data-hub="01 Des processus à explorer et à faire fonctionner"><span>01 Des processus à explorer et à faire fonctionner</span><ul><li><a href="projet-finance.html"><img src="assets/figures/finance-light.webp" alt="" width="84" height="60" loading="lazy">Point financier · Power Automate</a></li><li><a href="projet-vmvre.html"><img src="assets/figures/vm-light.webp" alt="" width="84" height="60" loading="lazy">VRE · traitement par VM</a></li></ul></li><li data-hub="02 Des fichiers qui se retrouvent seuls"><span>02 Des fichiers qui se retrouvent seuls</span><ul><li><a href="projet-moteur44.html"><img src="assets/figures/moteur-light.webp" alt="" width="84" height="60" loading="lazy">Reporteur Q18</a></li><li><a href="projet-pa.html"><img src="assets/figures/pp-light.webp" alt="" width="84" height="60" loading="lazy">Power Automate · chaîne des PP</a></li><li><a href="projet-cerfa.html"><img src="assets/figures/cerfa-light.webp" alt="" width="84" height="60" loading="lazy">CERFA v3</a></li><li><a href="projet-vre.html"><img src="assets/figures/vre-light.webp" alt="" width="84" height="60" loading="lazy">Extracteur VRE</a></li><li><a href="projet-lecteur-vre.html"><img src="assets/figures/vrestudio-musicbox-light.webp" alt="" width="84" height="60" loading="lazy">Lecteur VRE · modèle multimodal</a></li></ul></li><li data-hub="03 Construire une seule fois"><span>03 Construire une seule fois</span><ul><li><a href="projet-powerbi.html"><img src="assets/figures/powerbi-light.webp" alt="" width="84" height="60" loading="lazy">Power BI · PP &amp; MOSO</a></li><li><a href="projet-studio.html"><img src="assets/figures/studio-light.webp" alt="" width="84" height="60" loading="lazy">Studio d’extracteurs PDF</a></li></ul></li><li data-hub="04 Savoir où regarder"><span>04 Savoir où regarder</span><ul><li><a href="projet-suivi.html"><img src="assets/figures/suivi-light.webp" alt="" width="84" height="60" loading="lazy">Retrouver tout le suivi</a></li><li><a href="projet-gares.html"><img src="assets/figures/gares-light.webp" alt="" width="84" height="60" loading="lazy">Gares prioritaires</a></li></ul></li><li data-hub="05 THALEOLITHIC"><span>05 THALEOLITHIC</span><ul><li><a href="projet-talas.html"><img src="thaleolithic/thaleolithic-accueil.webp" alt="" width="84" height="60" loading="lazy">THALEOLITHIC</a></li></ul></li><li data-hub="06 Là où je teste mes idées"><span>06 Là où je teste mes idées</span><ul><li><a href="projet-lettres.html"><img src="assets/screenshots/lettres-v2.webp" alt="" width="84" height="60" loading="lazy">Lettres machines</a></li><li><a href="projet-ligne.html"><img src="assets/screenshots/ligne-controle-v1.webp" alt="" width="84" height="60" loading="lazy">Contrôle de ligne</a></li></ul></li><li data-hub="07 Des mondes à traverser"><span>07 Des mondes à traverser</span><ul><li><a href="projet-limen.html"><img src="assets/screenshots/limen-v1.webp" alt="" width="84" height="60" loading="lazy">LIMEN</a></li><li><a href="projet-atlas.html"><img src="assets/screenshots/nacre-v1.webp" alt="" width="84" height="60" loading="lazy">Nacre</a></li><li><a href="projet-labyrinthe.html"><img src="assets/screenshots/labyrinthe-v52.webp" alt="" width="84" height="60" loading="lazy">Labyrinthe</a></li><li><a href="projet-route.html"><img src="assets/screenshots/route-v52.webp" alt="" width="84" height="60" loading="lazy">Route &amp; vigilance</a></li></ul></li><li data-hub="08 Jouer, manipuler, observer"><span>08 Jouer, manipuler, observer</span><ul><li><a href="projet-arene.html"><img src="assets/screenshots/arene-v52.webp" alt="" width="84" height="60" loading="lazy">Arène des arcanes</a></li><li><a href="projet-timber.html"><img src="assets/screenshots/timber-v52.webp" alt="" width="84" height="60" loading="lazy">Timber !</a></li><li><a href="projet-rubik.html"><img src="assets/screenshots/rubik-v52.webp" alt="" width="84" height="60" loading="lazy">Rubik’s Cube</a></li></ul></li><li data-hub="09 De petits jouets tactiles"><span>09 De petits jouets tactiles</span><ul><li><a href="projet-sandboard.html"><img src="assets/screenshots/sandboard-v52.webp" alt="" width="84" height="60" loading="lazy">Sandboard</a></li><li><a href="projet-pixels.html"><img src="assets/screenshots/pixels-v52.webp" alt="" width="84" height="60" loading="lazy">Pixels</a></li><li><a href="projet-gouache.html"><img src="assets/screenshots/gouache-v52.webp" alt="" width="84" height="60" loading="lazy">Fond d’écran Gouache</a></li></ul></li></ul><!-- graphe:end -->
+  </div>
+  <p class="pc-scroll" data-plane aria-hidden="true">⌄</p>
+</section>
+
+<!-- projets:start -->
+<section class="pc-sec" data-section="Faire fonctionner" data-color="#5b21b6" aria-labelledby="s-p0">
+  <h2 class="pc-h" id="s-p0" data-plane>Des processus à explorer et à faire fonctionner</h2>
+  <div class="pc-notes"><p class="pc-note" data-plane data-note>Pour moi, l’objet est l’explication : pas de cases, pas de flèches, pas d’étiquettes flottant dans l’espace.</p><p class="pc-note" data-plane data-note>Chaque projet est une machine concrète dont le fonctionnement constitue le concept.</p><p class="pc-note" data-plane data-note>Cliquez sur une machine pour lire ce qu’elle explique.</p><p class="pc-note" data-plane data-note>Les gains sont valorisés au taux horaire de 104,74 €.</p></div>
+  <article class="pc-proj" data-fig="finance">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Point financier · Power Automate" data-callout-sub="25 min / jour" data-href="projet-finance.html">
+    <p class="pc-kicker">Projet professionnel · 01 / 11 · Pilotage financier</p><h3>Point financier · Power Automate</h3><p class="pc-sub">CS, Locatif, MEC et PPTM</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>25 min / jour</dd></div><div><dt>Valorisation financière</dt><dd>≈ 9 800 € / an</dd></div></dl>
+    <p>Un dépassement de budget se voit trop tard quand on pointe les comptes à la main, périmètre par périmètre.</p><a class="pc-more" href="projet-finance.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Manomètres à contact</p><p>Prenons l’exemple de cinq manomètres à contact, un par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Sans eux, le pointage prenait 5 min par périmètre et par jour. Avec eux, l’aiguille monte avec les dépenses et, quand elle touche l’index du seuil, le contact envoie une alerte, et une de plus si les dépenses dépassent les fonds. En exploitation, chaque périmètre en envoie environ 6 par semaine : 5 × 6, soit 30 alertes par semaine, qui remplissent le bac.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Suivi Excel</strong><span>Les fonds, dépenses et seuils configurés sont lus dans le classeur.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Déclenchement</strong><span>Les flux CS, Locatif, MEC et PPTM déclenchent le contrôle financier.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Lecture structurée</strong><span>Les données Excel deviennent une table exploitable par les règles.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>PRG · PSE · GLOBAL</strong><span>Les périmètres sont appliqués et les lignes KO sont exclues.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Seuil modulable</strong><span>Le repère rouge de la jauge règle le seuil, ici calé à 80 % des fonds du compte. Le volant de la vanne attend qu’il soit atteint.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Consommation du compte</strong><span>La jauge montre le ratio entre dépenses et fonds. Les valeurs de cette démonstration sont illustratives.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Alerte préventive</strong><span>Le seuil atteint, le volant fait tourner la vis : l’opercule monte à mi-course et le mail d’alerte préventive sort vers son panneau.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Dépassement des fonds</strong><span>La vis ouvre complètement la vanne et un second mail signale des dépenses supérieures aux fonds disponibles : le TND devient négatif.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Historique des alertes</strong><span>Les mails envoyés restent affichés dans l’historique pour éviter les doublons. La vis referme la vanne. Elle ne signifie pas que les dépenses sont bloquées.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="vm">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="VRE · traitement par VM" data-callout-sub="30 min / rapport" data-href="projet-vmvre.html">
+    <p class="pc-kicker">Projet professionnel · 02 / 11 · Continuité de traitement</p><h3>VRE · traitement par VM</h3><p class="pc-sub">Rapports, OT, liens Excel et récapitulatif</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>30 min / rapport</dd></div><div><dt>Valorisation financière</dt><dd>209 480 à 261 850 € / an</dd></div></dl>
+    <p>Une seule machine doit inscrire les rapports à la fois, sinon le même rapport peut être inscrit deux fois.</p><a class="pc-more" href="projet-vmvre.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Pointeuses à clé partagée</p><p>Prenons l’exemple de deux pointeuses et d’une seule clé. Seule celle qui tient la clé relève la plus ancienne demande toutes les deux minutes, contrôle le code R004 et l’OT, puis range la carte dans l’historique, qui écarte les doublons. La reprise par la seconde pointeuse reste à concevoir. Chaque rapport inscrit ainsi rend 30 min.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Dépôt SharePoint</strong><span>Le PDF est déposé dans SharePoint. Une unité représente un rapport et sa demande.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Demande de traitement</strong><span>Power Automate crée la demande de traitement.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>File d’attente</strong><span>Les demandes attendent leur prise en charge. Le portique se positionne sur l’unité.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Relevé par la VM</strong><span>La VM Windows relève les demandes toutes les deux minutes.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Contrôle R004 et OT</strong><span>Le code final R004 et le numéro OT à sept chiffres sont contrôlés.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Recherche dans Excel</strong><span>Le classeur de suivi et l’OT correspondant sont retrouvés.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Inscription vérifiée</strong><span>Le lien du rapport est écrit. Le classeur est enregistré puis vérifié.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Historique confirmé</strong><span>Seuls les résultats confirmés rejoignent l’historique pour éviter les doublons.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Récapitulatif de 17 h</strong><span>Le récapitulatif rassemble les nouvelles intégrations confirmées. La reprise entre deux VM reste un chantier à concevoir.</span></li></ol>
+</article>
+</section>
+
+<section class="pc-sec" data-section="Fichiers retrouvés" data-color="#a00e5c" aria-labelledby="s-p1">
+  <h2 class="pc-h" id="s-p1" data-plane>Des fichiers qui se retrouvent seuls</h2>
+  <div class="pc-notes"><p class="pc-note" data-plane data-note>Chaque outil part d’un constat de terrain : un fichier qu’on cherche, qu’on classe ou qu’on relit à la main.</p><p class="pc-note" data-plane data-note>Le Reporteur Q18 retrouve la bonne ligne Excel, la chaîne Power Automate dépose, classe, alerte et relance, et CERFA v3 transforme des fiches et des attestations en données du parc.</p></div>
+  <article class="pc-proj" data-fig="moteur">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Reporteur Q18" data-callout-sub="15 min / rapport" data-href="projet-moteur44.html">
+    <p class="pc-kicker">Projet professionnel · 03 / 11 · Processus métier</p><h3>Reporteur Q18</h3><p class="pc-sub">SharePoint → bonne ligne Excel · Q18 visibles</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>15 min / rapport</dd></div><div><dt>Valorisation financière</dt><dd>104 740 à 130 925 € / an</dd></div></dl>
+    <p>Reporter un rapport dans un grand classeur, c’est d’abord retrouver la bonne ligne parmi des milliers.</p><a class="pc-more" href="projet-moteur44.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Fichier rotatif motorisé</p><p>Prenons l’exemple d’un fichier rotatif motorisé. Sans lui, on cherche la ligne de l’OT et on recopie les données depuis SharePoint, 15 min par rapport. Avec lui, on compose l’OT, le fichier tourne jusqu’à la bonne fiche, le tampon y reporte les données et un cavalier rend le Q18 visible dans le suivi qui alimente Power BI, pour les COSI et les clients de l’ABE SUD IdF.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Rapports SharePoint</strong><span>Les rapports sont pris en charge depuis SharePoint. C’est la source du suivi.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Prise en charge</strong><span>Le rapport entre dans le parcours du Reporteur Q18. Les vues suivantes détaillent son rapprochement avec le suivi.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Reporteur Q18</strong><span>Le moteur rapproche les données du rapport de la bonne ligne Excel. La transformation reste liée à ce document.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>La bonne ligne</strong><span>L’information doit rejoindre la ligne correspondante du classeur. Le report remplace le copier-coller manuel depuis SharePoint.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Report dans Excel</strong><span>Les données du rapport sont reportées dans le suivi Excel. Elles restent organisées au bon emplacement.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Q18 visibles</strong><span>Une colonne Excel rend les Q18 visibles. Cette information devient consultable dans le suivi. Le classeur nourrit Power BI et cette visibilité répond aux COSI ainsi qu’aux clients de l’ABE SUD IdF.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Suivi consolidé</strong><span>Le classeur regroupe les données du rapport et les Q18. Ce suivi nourrit le rapport Power BI.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Visibilité Power BI</strong><span>Power BI exploite le classeur Excel et apporte une nouvelle visibilité aux équipes.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>COSI et équipes</strong><span>Cette visibilité répond aux besoins des COSI, Correspondants en Sécurité incendie, et des clients de l’ABE SUD IdF.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="pp">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Power Automate · chaîne des PP" data-callout-sub="40 min" data-href="projet-pa.html">
+    <p class="pc-kicker">Projet professionnel · 04 / 11 · Processus métier</p><h3>Power Automate · chaîne des PP</h3><p class="pc-sub">Dépôt, classement, alerte, relance</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>40 min</dd></div><div><dt>Valorisation financière</dt><dd>15 700 €</dd></div></dl>
+    <p>Une échéance de plan de prévention s’oublie quand elle dort dans un dossier parmi des centaines.</p><a class="pc-more" href="projet-pa.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Classeur à échéances</p><p>Prenons l’exemple d’un classeur à dossiers suspendus rangés par mois d’échéance. Sans lui, contrôler et saisir chaque plan prenait 10 min. Avec lui, chaque PP lu rejoint la section de son mois, et le curseur qui avance devant aujourd’hui déclenche la relance de chaque dossier qu’il atteint. La machine est auto-apprenante : corriger ou compléter une cellule Excel suffit, un script Excel la met à jour.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Dépôt SharePoint</strong><span>Le plan de prévention arrive dans la bibliothèque. Le bac d’entrée représente ce dépôt.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Prise en charge</strong><span>Power Automate déclenche le flux : le plan quitte le bac, la première vanne tourne et le circuit rouge se met à circuler.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Lecture des champs</strong><span>Les champs utiles du plan sont lus : le circuit jaune alimente le corps central, l’anneau de lecture le parcourt et la soupape lâche sa vapeur, sans intervention manuelle.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Contrôle et échéance</strong><span>Les données et l’échéance sont vérifiées. Les manomètres représentent ces contrôles, avec des valeurs illustratives.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Listing Excel</strong><span>Les données contrôlées alimentent le listing Excel : la vanne verte tourne et le circuit vert, le suivi structuré, se met à circuler.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Classement SharePoint</strong><span>Le plan est rangé dans la bibliothèque et son lien reste associé au suivi : les deux régulateurs de la branche rouge tournent et son flux s’accélère.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Archivage</strong><span>Le document traité sort du circuit et rejoint son rangement final : le bac de sortie représente le plan classé.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Surveillance des échéances</strong><span>Les échéances sont surveillées pour repérer les plans nécessitant une alerte : l’aiguille du cadran de contrôle balaie les échéances.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Alertes et relances</strong><span>Les échéances déclenchent les alertes et relances : la dernière vanne tourne, l’évent souffle et les mails de relance s’envolent, sans bloquer le processus métier.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="cerfa">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="CERFA v3" data-callout-sub="20 à 25 h → 1 min 20 s" data-href="projet-cerfa.html">
+    <p class="pc-kicker">Projet professionnel · 05 / 11 · Processus métier</p><h3>CERFA v3</h3><p class="pc-sub">Fiches et attestations devenues données du parc</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>20 à 25 h → 1 min 20 s</dd></div><div><dt>Résultat</dt><dd>Audit national</dd></div></dl>
+    <p>Vérifier un lot de fiches à la main, c’est relire chaque case de chaque fiche, et un retard passe facilement inaperçu.</p><a class="pc-more" href="projet-cerfa.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Trieuse de fiches</p><p>Prenons l’exemple d’une trieuse de cartes : un chargeur, une tête de lecture et quatre cases. Sans elle, 300 fiches CERFA et attestations demandent 20 à 25 h de relecture. Avec elle, chaque fiche passe sous la tête et tombe dans sa case, conforme, doublon, non-conformité ou retard, et le lot est trié en 1 min 20 s.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Lot de PDF</strong><span>Les fiches CERFA et attestations arrivent en lot. La trémie représente cette entrée documentaire.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Fiches et attestations</strong><span>Les catégories documentaires sont identifiées avant la lecture.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Lecture des pages</strong><span>Les pages 1 et 2 sont rendues pour être lues. Le tambour représente le traitement du lot.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Lecture des cases</strong><span>Les cases utiles sont repérées et leurs valeurs deviennent des données structurées.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Contrôles</strong><span>Doublons, non-conformités et retards ressortent. Tous restent consultables.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Consultation HTML</strong><span>L’interface permet de consulter les documents et leurs résultats.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>KPI et filtres</strong><span>Les indicateurs et filtres permettent de retrouver les anomalies du lot.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Excel préparé</strong><span>Le tableau filtré est préparé avec les surlignages utiles.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Export sélectionné</strong><span>Le lot choisi est exporté pour être exploité. Le cycle suivant reprend à l’entrée.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="vre">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Extracteur VRE" data-callout-sub="1 667 à 2 083 h / an" data-href="projet-vre.html">
+    <p class="pc-kicker">Projet professionnel · 06 / 11 · Processus métier</p><h3>Extracteur VRE</h3><p class="pc-sub">Rapports de vérification électrique</p>
+    <dl class="pc-gains"><div><dt>Temps libéré (estimé)</dt><dd>1 667 à 2 083 h / an</dd></div><div><dt>Valorisation estimée</dt><dd>174 566,67 à 218 208,33 € / an</dd></div></dl>
+    <p>Compter à la main les équipements d’un rapport électrique, c’est relire chaque ligne en tenant quatre totaux de tête.</p><a class="pc-more" href="projet-vre.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Trieuse à quatre tubes</p><p>Prenons l’exemple d’une trieuse de pièces à quatre tubes. Sans elle, le comptage complet demandait environ 25 min par rapport. Avec elle, chaque équipement glisse sur la goulotte et tombe dans le tube de sa famille, BT31, BT33, BT21 ou BT11, et la hauteur des piles donne les totaux du bâtiment.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Rapport électrique</strong><span>Le rapport PDF fournit les équipements, les départs et les écarts à examiner.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Bâtiment et local</strong><span>Les résultats sont rattachés au bâtiment et au local concernés.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>BT31 · disjoncteurs</strong><span>Les disjoncteurs sont repérés dans le rapport et comptés par famille.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>BT33 · fusibles</strong><span>Les fusibles sont identifiés et leurs totaux restent distincts.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>BT21 · éclairage de sécurité</strong><span>Les équipements d’éclairage de sécurité font également partie du comptage.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>BT11 · candélabres</strong><span>Les candélabres constituent une autre famille, sans être confondus avec les coffrets.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Totaux contrôlés</strong><span>Les quantités sont vérifiées avant de rejoindre le suivi.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Structure Excel</strong><span>Chaque total retrouve sa place dans le classeur de suivi.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Suivi et PAM SSI</strong><span>Les résultats alimentent le suivi, avec des repères bâtiment et local pour leur exploitation.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="vrestudio-musicbox">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Lecteur VRE · modèle multimodal" data-callout-sub="× 2,3 de temps gagné" data-href="projet-lecteur-vre.html">
+    <p class="pc-kicker">Projet professionnel · 07 / 11 · Modèle documentaire contrôlé</p><h3>Lecteur VRE · modèle multimodal</h3><p class="pc-sub">Intelligent Document Processing : mini-BERT et LayoutLMv3</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>× 2,3</dd></div></dl>
+    <p>Un modèle qui lit des PDF doit montrer toute sa chaîne, de la page brute jusqu’aux cadres qu’il propose, sans boîte noire.</p><a class="pc-more" href="projet-lecteur-vre.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Boîte à musique</p><p>Prenons une boîte à musique. Son cylindre à picots est le modèle : la place de chaque picot est ce que le modèle a appris. Les pages du rapport s’envolent de la pile et entrent dans le lecteur ; le cylindre tourne, et chaque picot pince la lamelle de son champ, une couleur par champ. L’étouffoir, ce sont les règles métiers : il coupe les notes impossibles, le modèle et les règles jouent ensemble. Les douze cases du devant sont les pages inédites : des propositions, jamais des certitudes. Chaque page sort par la bouche du flanc et passe sur la table lumineuse où la main de l’agent, celle de La Création d’Adam, la touche du bout de l’index : la page est validée ou corrigée, puis part en feuille vers la boîte du corpus. Chaque correction part aussi, en copie, dans la bannette partagée où arrivent celles des autres agents. Le corpus figé, pages validées et corrections partagées, sert à planter, un à un, les picots d’un cylindre neuf, et le banc d’essai le joue sur des rapports qu’il n’a jamais vus. Seul un cylindre accepté est publié, d’un coup de levier : l’ancien rejoint l’étagère des versions, le nouveau descend dans le boîtier. Un rebord fait le tour de l’établi et un cadenas le ferme : rien ne sort, tout tourne en local.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Rapport PDF</strong><span>Les pages du rapport de vérification électrique s’envolent de la pile et flottent jusqu’à la fente du lecteur : texte, positions et image de chaque page sont lus.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Tri mini-BERT</strong><span>Le cylindre à picots tourne et pince les lamelles du peigne : une couleur par champ. Le modèle Transformer léger classe les zones du rapport.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Modèle et règles</strong><span>L’étouffoir descend sur les notes impossibles : les règles métiers coupent ce que le modèle ne doit pas jouer. Sans candidat publié, mini-BERT et les règles continuent seuls.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Pages inédites</strong><span>Sur le devant, douze cases s’allument : le modèle propose les cadres BT, locaux et priorités de douze pages jamais vues. Chaque case reste bleue, une proposition, et chaque page sort par la bouche du flanc.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Validation humaine</strong><span>Chaque page proposée se pose sur la table lumineuse. La main de l’agent, celle de La Création d’Adam, descend et la touche du bout de l’index : vert, la page est validée ; rouge puis orange, elle est corrigée. La case change au même instant, puis la page part vers la boîte du corpus ; chaque correction part aussi, en copie, dans la bannette partagée avec les autres agents.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Corpus figé</strong><span>Le corpus est scellé dans une version. Ses copies, pages validées et corrections partagées, image, texte et positions, viennent se poser sur le cylindre neuf de la machine à planter.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Entraînement et évaluation</strong><span>Le chariot plante les picots du cylindre candidat, un à un, sur l’établi fermé par son rebord et son cadenas : tout reste en local. Le banc d’essai le joue sur deux rapports séparés : F1 au-delà de 0,75, rappel U1 au-delà de 0,90.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Publication explicite</strong><span>Le levier n’agit que sur un candidat accepté. L’ancien cylindre sort par le dessus vers l’étagère des versions ; le nouveau descend à sa place, les règles restent.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Nouvel essai · × 2,3</strong><span>Au rapport suivant, les cadres restent des propositions : la main de l’agent touche encore chaque page, et chaque validation enrichit le corpus. Résultat : 2,3 fois plus de temps gagné que l’extracteur VRE.</span></li></ol>
+</article>
+</section>
+
+<section class="pc-sec" data-section="Construire une fois" data-color="#0f8f30" aria-labelledby="s-p2">
+  <h2 class="pc-h" id="s-p2" data-plane>Construire une seule fois</h2>
+  <div class="pc-notes"><p class="pc-note" data-plane data-note>Le Studio permet de créer un extracteur de PDF sans coder, et Power BI rassemble l’extraction, le rangement sur SharePoint et l’archivage automatique : ce qui est construit une fois sert ensuite à d’autres rapports, d’autres périmètres, d’autres équipes.</p></div>
+  <article class="pc-proj" data-fig="powerbi">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Power BI · PP &amp; MOSO" data-callout-sub="100 à 167 h / an" data-href="projet-powerbi.html">
+    <p class="pc-kicker">Projet professionnel · 08 / 11 · Processus métier</p><h3>Power BI · PP &amp; MOSO</h3><p class="pc-sub">VM · extraction, rangement SharePoint et archivage auto</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>100 à 167 h / an</dd></div><div><dt>Valorisation financière</dt><dd>10 474 à 17 456,67 € / an</dd></div></dl>
+    <p>Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.</p><a class="pc-more" href="projet-powerbi.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Carrousel de classeurs</p><p>Prenons l’exemple d’un carrousel de classeurs. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min. Avec lui, la VM range chaque nouveau PP et archive l’ancien, et le carrousel amène le dossier demandé devant le comptoir, 40 fois par jour.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Dépôt du PDF</strong><span>Le plan de prévention arrive dans le dossier de dépôt. C’est le document source du parcours.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Extraction par VM</strong><span>La machine virtuelle extrait automatiquement les champs utiles du plan de prévention.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Rangement SharePoint</strong><span>Le PDF est rangé automatiquement dans le bon dossier SharePoint. Son emplacement devient fiable.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Archivage automatique</strong><span>Le plan de prévention est archivé automatiquement. Le document reste conservé et accessible.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Alimentation Excel</strong><span>Les champs extraits alimentent le suivi Excel. Les données utiles remplacent la ressaisie du document.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Préparation Power Query</strong><span>Power Query prépare les données du suivi pour le portail. Cette vue détaille la préparation déjà incluse dans le projet.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Modèle Power BI</strong><span>Power BI et les mesures DAX rendent les plans, leurs échéances et les marchés MOSO exploitables.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Portail HTML</strong><span>Les pages HTML présentent les informations du portail PP + MOSO. La chaîne devient une interface consultable.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Consultation des équipes</strong><span>Le plan, son PDF et son échéance se retrouvent en quelques secondes. Les informations arrivent jusqu’aux agents.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="studio">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Studio d’extracteurs PDF" data-callout-sub="5 à 10 jours → 4 h" data-href="projet-studio.html">
+    <p class="pc-kicker">Projet professionnel · 09 / 11 · Processus métier</p><h3>Studio d’extracteurs PDF</h3><p class="pc-sub">Un extracteur sans coder</p>
+    <dl class="pc-gains"><div><dt>Temps libéré</dt><dd>5 à 10 jours → 4 h</dd></div><div><dt>Valorisation financière</dt><dd>3 200 à 6 900 €</dd></div></dl>
+    <p>Créer un extracteur pour une nouvelle famille de PDF demandait des jours de développement.</p><a class="pc-more" href="projet-studio.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Machine à reproduire les clés</p><p>Prenons l’exemple d’une machine à reproduire les clés. Sans elle, il fallait 5 à 10 jours de code. Avec elle, le palpeur suit les zones tracées sur un PDF exemple et la fraise taille la même clé en 4 h, une clé qui ouvre le casier de sa famille et travaille sur l’appareil, sans qu’aucun PDF ne le quitte.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Exemple PDF</strong><span>Un exemple du document sert de modèle pour créer l’extracteur.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Page de référence</strong><span>La page rendue sert de support à la configuration.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Tracé des zones</strong><span>Les zones à lire sont tracées directement sur le document.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Champs à extraire</strong><span>Les champs sont définis sans écrire le code de l’extracteur.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Règles de lecture</strong><span>Les règles précisent comment lire et structurer chaque champ.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Essai réel</strong><span>La configuration est testée sur des documents réels avant la livraison.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Page autonome</strong><span>Une page HTML autonome porte l’extracteur et sa configuration.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Export de l’outil</strong><span>Le fichier ou l’exécutable est livré. Le casier de la famille choisie s’ouvre.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Utilisation locale</strong><span>L’outil traite les documents sur l’appareil. Aucun PDF ne quitte l’appareil pour être traité.</span></li></ol>
+</article>
+</section>
+
+<section class="pc-sec" data-section="Savoir où regarder" data-color="#1d4ed8" aria-labelledby="s-p3">
+  <h2 class="pc-h" id="s-p3" data-plane>Savoir où regarder</h2>
+  <div class="pc-notes"><p class="pc-note" data-plane data-note>Retrouver tout le suivi d’un ordre de travail, d’un équipement ou d’un bâtiment, et repérer la vigilance et la criticité des gares : rendre visible ce qui demande de l’attention, avant que cela devienne un retard.</p></div>
+  <article class="pc-proj" data-fig="suivi">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Retrouver tout le suivi" data-callout-sub="10 à 15 min" data-href="projet-suivi.html">
+    <p class="pc-kicker">Projet professionnel · 10 / 11 · Processus métier</p><h3>Retrouver tout le suivi</h3><p class="pc-sub">OT, équipement, bâtiment</p>
+    <dl class="pc-gains"><div><dt>Temps libéré (estimé)</dt><dd>10 à 15 min</dd></div><div><dt>Valorisation estimée</dt><dd>118 à 589 k€</dd></div></dl>
+    <p>Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.</p><a class="pc-more" href="projet-suivi.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Standard à fiches</p><p>Prenons l’exemple d’un standard téléphonique à fiches. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure. Avec lui, la fiche de l’OT, de l’équipement ou du bâtiment se branche sur la bonne source et le lien direct s’établit, sans recopier les données.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Ordres de travail</strong><span>Les OT de la GMAO constituent le point de départ.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Exports des sources</strong><span>Les autres logiciels et sites fournissent les informations utiles.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Informations utiles</strong><span>Les éléments utiles sont isolés pour être retrouvés dans l’interface.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Équipement</strong><span>Chaque ligne est rattachée à son équipement.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Bâtiment</strong><span>Le bâtiment fournit un autre accès au même suivi.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Interface commune</strong><span>Les différents accès se rassemblent dans un point d’entrée commun.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Recherche OT</strong><span>Une recherche par OT retrouve le contexte et l’accès pertinent.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Lien direct</strong><span>Le bon écran s’active et conduit vers la source concernée.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Suivi retrouvé</strong><span>Les outils restent distincts. L’interface facilite leur navigation sans répliquer toutes leurs données.</span></li></ol>
+</article>
+  <article class="pc-proj" data-fig="gares">
+  <div class="pc-box pc-card pc-pcard" data-box="0.45" data-callout="Gares prioritaires" data-callout-sub="750 à 1 687,5 h / an" data-href="projet-gares.html">
+    <p class="pc-kicker">Projet professionnel · 11 / 11 · Processus métier</p><h3>Gares prioritaires</h3><p class="pc-sub">Vigilance et criticité des gares</p>
+    <dl class="pc-gains"><div><dt>Temps libéré (estimé)</dt><dd>750 à 1 687,5 h / an</dd></div><div><dt>Valorisation estimée</dt><dd>78 555 à 176 748,75 € / an</dd></div></dl>
+    <p>Savoir quelles gares surveiller en premier demandait de croiser plusieurs sources à chaque consultation.</p><a class="pc-more" href="projet-gares.html">Lire la fiche →</a>
+  </div>
+  <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action · Tableau à palettes</p><p>Prenons l’exemple d’un tableau des départs. Sans lui, chaque consultation prenait 10 à 15 min. Avec lui, un bouton dose conformité et maintenance, les palettes se retournent et les gares prioritaires s’affichent, classées par un modèle de 19 tables et 159 mesures.</p></div>
+  <h4 class="pc-how" data-plane>Comment ça marche</h4>
+  <ol class="pc-steps" data-steps><li class="pc-step" data-plane data-step><b>01</b><strong>Sources du suivi</strong><span>Les sources GMAO, référentiel et SharePoint sont réunies.</span></li><li class="pc-step" data-plane data-step><b>02</b><strong>Préparation</strong><span>Les données sont préparées et contrôlées.</span></li><li class="pc-step" data-plane data-step><b>03</b><strong>Rapprochement</strong><span>Les données retrouvent les gares et équipements concernés.</span></li><li class="pc-step" data-plane data-step><b>04</b><strong>Modèle Power BI</strong><span>Le modèle comporte 19 tables et 159 mesures.</span></li><li class="pc-step" data-plane data-step><b>05</b><strong>Criticité</strong><span>Les mesures permettent de hiérarchiser les situations à surveiller.</span></li><li class="pc-step" data-plane data-step><b>06</b><strong>Conformité source normale</strong><span>La conformité et les équipements demandant de la vigilance deviennent visibles.</span></li><li class="pc-step" data-plane data-step><b>07</b><strong>Gares prioritaires</strong><span>Les priorités ressortent selon les mesures, sans dépendre de leur distance au centre du radar.</span></li><li class="pc-step" data-plane data-step><b>08</b><strong>Détail maintenance</strong><span>La vue gare ouvre le détail des équipements et de leur maintenance préventive.</span></li><li class="pc-step" data-plane data-step><b>09</b><strong>Suivi consolidé</strong><span>L’ensemble devient consultable pour orienter les actions. Le radar symbolise la vigilance, sans surveillance en temps réel.</span></li></ol>
+</article>
+</section>
+<!-- projets:end -->
+
+<section class="pc-sec" data-section="Expérience" data-color="#4b22b8" aria-labelledby="s-exp">
+  <h2 class="pc-h" id="s-exp" data-plane>Expérience</h2>
+  <div class="pc-cards">
+    <article class="pc-box pc-card" data-box="0.4" data-callout="SNCF Gares &amp; Connexions" data-callout-sub="ABE Sud Île-de-France, depuis juin 2025">
+      <p class="pc-kicker">Juin 2025 · présent</p><h3>Ingénieur Maintenance et Qualité (alternance)</h3>
+      <p>Plans de prévention et co-activité, PAM SSI, accès et habilitations. Rapports de vérification électrique, studio d’extracteurs PDF, contrôle des fiches CERFA. Recherche unique par OT, équipement et bâtiment pour 14 utilisateurs. Rapport Power BI Gares prioritaires (13 pages, 159 mesures DAX). Point financier : 4 flux Power Automate.</p>
+    </article>
+    <article class="pc-box pc-card" data-box="0.4" data-callout="SNCF Réseau" data-callout-sub="2022 · janvier 2025">
+      <p class="pc-kicker">2022 · janvier 2025</p><h3>Technicien supérieur de la circulation ferroviaire</h3>
+      <p>Poste d’aiguillage : sécurité des circulations, commande des itinéraires et des signaux, réglementation de sécurité. Protection des équipes de maintenance et de travaux sur les voies, gestion des incidents, liaison continue avec conducteurs et régulateurs, service continu en 3x8.</p>
+    </article>
+  </div>
+  <div class="pc-notes">
+    <p class="pc-note" data-plane data-note>Enquête terrain EPM / EPTx : gemba, entretiens, RACI.</p>
+    <p class="pc-note" data-plane data-note>16 arbitrages obtenus en réunion d’agence et un processus « EPM light ».</p>
+    <p class="pc-note" data-plane data-note>Formations ACDV et TTMV (2022 · 2023).</p>
+    <p class="pc-note" data-plane data-note>Première expérience de la co-activité : la protection des chantiers.</p>
+  </div>
+</section>
+
+<section class="pc-sec" data-section="Compétences" data-color="#b83a10" aria-labelledby="s-comp">
+  <h2 class="pc-h" id="s-comp" data-plane>Compétences</h2>
+  <div class="pc-cards pc-cards3">
+    <article class="pc-box pc-card" data-box="0.4" data-callout="Qualité, sécurité, méthodes" data-callout-sub="Lean Six Sigma Yellow Belt">
+      <p class="pc-kicker">Compétences métier</p><h3>Management QSE et prévention</h3>
+      <p>Approche processus, amélioration continue, audit, évaluation des risques professionnels. Plans de prévention, co-activité, PAM SSI, fluides frigorigènes, vérifications électriques.</p>
+    </article>
+    <article class="pc-box pc-card" data-box="0.4" data-callout="Données et développement" data-callout-sub="Power BI, Python, JavaScript">
+      <p class="pc-kicker">Données et automatisation</p><h3>Power BI, DAX, Power Automate</h3>
+      <p>Power Query, Excel avancé, SharePoint, machine virtuelle Windows d’extraction de PDF, GMAO. HTML, CSS, JavaScript (Three.js, Node.js), Python, VBA, SQL, Git.</p>
+    </article>
+    <article class="pc-box pc-card" data-box="0.4" data-callout="Intelligence artificielle" data-callout-sub="Formé seul depuis trois ans">
+      <p class="pc-kicker">Intelligence artificielle</p><h3>Agents LLM, OCR, MCP</h3>
+      <p>Connecteurs MCP, OCR et PDF vers JSON, décisions à score de confiance, serveur interne et LLM open source.</p>
+    </article>
+  </div>
+  <div class="pc-notes">
+    <p class="pc-note" data-plane data-note>ISO 9001, 45001, 14001, 22301, 27001, 19443 étudiés ou pratiqués.</p>
+    <p class="pc-note" data-plane data-note>DMAIC, PDCA, Pareto, Ishikawa, Gemba, SIPOC, RACI, QQOQCP.</p>
+    <p class="pc-note" data-plane data-note>Exploitation ferroviaire : communication en situation critique.</p>
+    <p class="pc-note" data-plane data-note>Animation de groupes de travail.</p>
+  </div>
+</section>
+
+<section class="pc-sec" data-section="Formation" data-color="#0f8f30" aria-labelledby="s-form">
+  <h2 class="pc-h" id="s-form" data-plane>Formation</h2>
+  <div class="pc-cards pc-cards3">
+    <article class="pc-box pc-card" data-box="0.4" data-callout="Université Sorbonne Paris Nord" data-callout-sub="Master 2 MQSE en cours">
+      <p class="pc-kicker">2026 · 2027</p><h3>Master 2 MQSE</h3>
+      <p>Maintenance, Qualité, Sécurité, Environnement. Master 1 MQSE validé en 2025 · 2026.</p>
+    </article>
+    <article class="pc-box pc-card" data-box="0.4" data-callout="Avignon Université" data-callout-sub="Master d’histoire">
+      <p class="pc-kicker">2016 · 2022</p><h3>Histoire puis classe préparatoire</h3>
+      <p>Master d’histoire, Avignon Université (2017 · 2022). Classe préparatoire ECE puis baccalauréat ES, Lycée Jean Calvin, Noyon.</p>
+    </article>
+    <article class="pc-box pc-card" data-box="0.4" data-callout="Certifications" data-callout-sub="Green Belt et NEBOSH IGC en préparation">
+      <p class="pc-kicker">Certifications · langues</p><h3>Yellow Belt Lean Six Sigma</h3>
+      <p>En préparation : Green Belt Lean Six Sigma, NEBOSH IGC. Français niveau soutenu, anglais niveau courant.</p>
+    </article>
+  </div>
+</section>
+
+<section class="pc-sec pc-contact" data-section="Contact" data-color="#141414" aria-labelledby="s-contact">
+  <h2 class="pc-h" id="s-contact" data-plane>Contact</h2>
+  <div class="pc-cards">
+    <a class="pc-box pc-card" href="mailto:mathieu@comtesse.me" data-box="0.4" data-callout="Écrire" data-callout-sub="mathieu@comtesse.me">
+      <p class="pc-kicker">Me joindre</p><h3>mathieu@comtesse.me</h3><p>Île-de-France. Portfolio : comtesse.me. LinkedIn : mathieu-comtesse-a226a1433.</p>
+    </a>
+    <a class="pc-box pc-card" href="assets/cv-ats-mathieu-comtesse.pdf" data-box="0.4" data-callout="CV en PDF" data-callout-sub="Version texte, 2 pages">
+      <p class="pc-kicker">Version texte</p><h3>CV en PDF</h3><p>Lisible par les outils de recrutement : noir et blanc, texte dans l’ordre de lecture, liens cliquables.</p>
+    </a>
+  </div>
+  <p class="pc-end" data-plane>Fin du parcours · page W = 1 000 px</p>
+</section>
+</div>
+
+<canvas id="scene" aria-hidden="true"></canvas>
 <svg id="leaders" aria-hidden="true"></svg>
 <div id="ticks" aria-hidden="true"></div>
 <div id="callouts"></div>
-
-<nav id="nav" aria-label="Sections du CV"><ul></ul></nav>
-
-<a id="back" href="index.html">
-  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1.5 14 5v6l-6 3.5L2 11V5z M2 5l6 3.5L14 5 M8 8.5v6" fill="none" stroke="currentColor" stroke-width="1"/></svg>
-  Retour
-</a>
-
-<div id="start">
-  <button id="go" type="button">démarrer ↑</button>
-</div>
-
-<div id="hud" role="group" aria-label="Commandes">
-  <div><b>saut</b><span>espace</span></div>
-  <div><b>direction</b><span>← → A D</span></div>
-  <div><b>accélérer</b><span>↑ W molette haut</span></div>
-  <div><b>freiner</b><span>↓ S molette bas</span></div>
-  <div><b>vitesse</b><span id="spd">v ≈ 0 m/s</span></div>
-  <div><b>avant l'arrivée</b><span id="left">↑ 0 m</span></div>
-</div>
-
-<div id="end" hidden>
-  <h2>Arrivée</h2>
-  <p>Mathieu Comtesse · Ingénieur Maintenance et Qualité</p>
-  <a href="mailto:mathieu@comtesse.me">mathieu@comtesse.me</a>
-  <a href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a>
-  <button id="again" type="button">recommencer</button>
-</div>
-
-<noscript>
-  <div class="ns"><p>Cette page demande JavaScript.</p>
-  <p><a href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a> · <a href="index.html">Accueil</a></p></div>
-</noscript>
+<nav id="nav" aria-label="Sections"><ul></ul></nav>
+<a id="back" href="index.html"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1.5 14 5v6l-6 3.5L2 11V5z M2 5l6 3.5L14 5 M8 8.5v6" fill="none" stroke="currentColor" stroke-width="1"/></svg>Retour</a>
 <script type="module" src="refonte/parcours.js"></script>
 </body>
 </html>
