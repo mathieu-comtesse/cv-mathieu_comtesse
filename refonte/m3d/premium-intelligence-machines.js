@@ -212,7 +212,7 @@ export function buildCognitive(){
   }
  }
  const synapses=[];
- for(let k=0;k<neurons.length-8;k++){
+ for(let k=0;k<neurons.length-11;k++){
   if(k%2!==0)continue;
   const p=neurons[k].p,q=neurons[k+8+(k%4)].p;
   const bend=(k%4-1.5)*3;
