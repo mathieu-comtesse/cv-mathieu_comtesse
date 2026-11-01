@@ -72,6 +72,7 @@ for(let i=0;i<ids.length;i++){
 for(let i of [1,5,10]){
  await page.locator('#projects button').nth(i).click();
  await page.waitForFunction(id=>window.__teardownDebug?.().selected===id&&window.__teardownDebug?.().ready,ids[i]);
+ await page.locator('.rf-td button[data-td=collapse]').click();
  await page.locator('.rf-td button[data-mode=exploded]').click();
  await page.waitForTimeout(450);
  assert.equal(await page.evaluate(()=>window.__teardownDebug().mode),'exploded');
