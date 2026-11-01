@@ -29,7 +29,7 @@ const MACHINES = {
   powerbi: ['powerbi', 'Téléphérique de dossiers',
     'Un plan de prévention bien rangé ne sert que si on le retrouve en quelques secondes.',
     'Prenons l’exemple d’un téléphérique de dossiers, avec les archives au sommet et le comptoir dans la vallée. Sans lui, extraire, ranger et archiver un PP prenait 15 à 20 min, et le retrouver 10 min. Avec lui, la VM envoie chaque nouveau PP au sommet, où il remplace l’ancien qui part aux archives, et une cabine descend le dossier demandé jusqu’au comptoir, 40 fois par jour.'],
-  suivi: ['suivi', 'Tableau d'enquête',
+  suivi: ['suivi', 'Tableau d’enquête',
     'Les informations d’un OT sont réparties entre plusieurs outils, et les chercher une à une prend du temps.',
     'Prenons l’exemple d’un tableau d’enquête, avec ses fiches de recherche à gauche et ses fiches de source à droite. Sans lui, une recherche passait d’un outil à l’autre, jusqu’à près d’une heure. Avec lui, la fiche de l’OT, de l’équipement ou du bâtiment s’épingle à sa ligne, un fil se tend jusqu’à la bonne source et le lien direct s’établit, sans recopier les données.'],
   studio: ['studio', 'Machine à reproduire les clés',

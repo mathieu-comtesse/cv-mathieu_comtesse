@@ -16,9 +16,9 @@ export async function mountTile(name, canvas) {
   const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
   const { build, WIDTH = 236 } = await load();
   const { renderer, scene } = makeStage(canvas);
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1 : 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2));
   renderer.setClearColor(0x0a2fc8, 1);
-  scene.children.forEach((c) => { if (c.isDirectionalLight) c.shadow.mapSize.set(1024, 1024); });
+  scene.children.forEach((c) => { if (c.isDirectionalLight) c.shadow.mapSize.set(2048, 2048); });
   const bp = createBlueprintPlane(renderer, 1024);
   bp.plane.scale.setScalar(4); bp.plane.position.y = -.002; scene.add(bp.plane);
 
@@ -39,13 +39,13 @@ export async function mountTile(name, canvas) {
     cam.position.set(mid.x + Math.sin(yaw) * Math.cos(pitch) * dist, mid.y + Math.sin(pitch) * dist, mid.z + Math.cos(yaw) * Math.cos(pitch) * dist);
     cam.lookAt(mid); cam.updateMatrixWorld(true);
   };
-  const fit = () => {                                  // recule jusqu'à ce que la machine tienne dans 80 % de la tuile
+  const fit = () => {                                  // recule jusqu'à ce que la machine tienne dans 86 % de la tuile
     let d = 30;
     for (let i = 0; i < 4; i++) {
       place(d);
       let k = 0;
       for (const p of corners) { const v = p.clone().project(cam); k = Math.max(k, Math.abs(v.x), Math.abs(v.y)); }
-      d *= k / .8;
+      d *= k / .86;
     }
     place(d);
   };
