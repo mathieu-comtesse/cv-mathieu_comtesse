@@ -38,10 +38,24 @@ const names=['CERFA','VM VRE','VRE BT','Q18','GARES','FINANCE','PP','POWERBI','S
 await page.goto('http://lab.test/teardown-lab.html');
 for(let i=0;i<ids.length;i++){
  if(i!==1)await page.locator('#projects button').nth(i).click();
- await page.waitForFunction((id)=>{
-   const x=window.__teardownDebug?.();
-   return x?.ready===true&&x.selected===id&&document.querySelector('#status')?.hidden===true;
- },ids[i]);
+ try {
+  await page.waitForFunction((id)=>{
+    const x=window.__teardownDebug?.();
+    return x?.ready===true&&x.selected===id&&document.querySelector('#status')?.hidden===true;
+  },ids[i],{timeout:25000});
+ } catch(error) {
+  const state=await page.evaluate(()=>({
+   debug:window.__teardownDebug?.()??null,
+   status:document.querySelector('#status')?.textContent,
+   project:document.querySelector('#name')?.textContent,
+   canvas:!!document.querySelector('#stage canvas'),
+   pageUrl:location.href
+  }));
+  console.error('TEARDOWN_DIAGNOSTIC',JSON.stringify({id:ids[i],state,problems},null,2));
+  await page.screenshot({path:path.join(output,'failure-'+ids[i]+'.png')});
+  await writeFile(path.join(output,'error.json'),JSON.stringify({id:ids[i],state,problems},null,2));
+  throw error;
+ }
  await page.waitForTimeout(170);
  const state=await page.evaluate(()=>{
   const x=window.__teardownDebug();
