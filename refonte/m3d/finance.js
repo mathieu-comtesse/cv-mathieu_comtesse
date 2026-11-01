@@ -48,14 +48,43 @@ export function build() {
   const envMat = [mat(COL.hi), new THREE.MeshStandardMaterial({ color: '#f4c7c7', roughness: .8 })];
   const pool = Array.from({ length: GAUGES.length * (SHOWN + 2) }, () => { const m = new THREE.Mesh(new THREE.BoxGeometry(16, .9, 10), envMat[0]); m.castShadow = true; m.visible = false; g.add(m); return m; });
 
-  let sent = [], lastCheck = 0, lastCycle = -1;
-  const check = (d) => { const r = ratios(d), w = (d - 1) % WEEK; r.forEach((v, i) => { const n = 1 + (w === i % WEEK ? 1 : 0); for (let k = 0; k < n; k++) sent.push({ i, level: v >= 1 ? 1 : 0, day: d + k * .35 }); }); };
   const CYC = DAYS / 2 + HOLD;
+  let lastKey='', lastAlerts=[];
+  function dayFromTime(time) {
+    const u=((time%CYC)+CYC)%CYC;
+    return Math.min(DAYS,u*2);
+  }
+  // Un contact n'envoie une alerte qu'au premier franchissement de son seuil.
+  // Le calcul est déterministe : un retour en arrière ou un changement de seuil
+  // ne peut ni ajouter un doublon, ni conserver un envoi du parcours précédent.
+  function alertsUntil(day) {
+    const key=Math.floor(day)+'|'+THRESHOLD.toFixed(3);
+    if(key===lastKey)return lastAlerts;
+    const alerts=[];
+    let prev=ratios(0);
+    for(let d=1;d<=Math.floor(day);d++){
+      const r=ratios(d);
+      r.forEach((v,i)=>{
+        if(prev[i]<THRESHOLD&&v>=THRESHOLD)alerts.push({i,level:0,day:d});
+        if(prev[i]<1&&v>=1&&THRESHOLD<1)alerts.push({i,level:1,day:d});
+      });
+      prev=r;
+    }
+    lastKey=key;lastAlerts=alerts;return alerts;
+  }
+  function getMechanicalState(time) {
+    const day=dayFromTime(time),r=ratios(day);
+    const alerts=alertsUntil(day);
+    return {day,ratios:r,threshold:THRESHOLD,alerts:alerts.length,
+      exceeded:r.filter(v=>v>=1).length};
+  }
+  function readout(time) {
+    const s=getMechanicalState(time);
+    return 'Jour '+Math.floor(s.day)+' / '+DAYS+' · seuil '+Math.round(THRESHOLD*100)+' % · '+s.alerts+' alerte(s) · '+s.exceeded+' dépassement(s)';
+  }
   function update(time) {
-    const cycle = Math.floor(time / CYC), u = time - cycle * CYC, day = Math.min(DAYS, u * 2);
-    if (cycle !== lastCycle) { sent = []; lastCheck = 0; lastCycle = cycle; }
-    for (let n = lastCheck + 1; n <= Math.floor(day); n++) check(n); lastCheck = Math.max(lastCheck, Math.floor(day));
-    const r = ratios(day);
+    const day=dayFromTime(time),sent=alertsUntil(day);
+    const r=ratios(day);
     GAUGES.forEach((gg, i) => {
       needles[i].rotation.z = -angleOf(r[i]);
       const a = angleOf(THRESHOLD); idx[i].position.set(gg.x + Math.sin(a) * (gg.r - 2.4), GZ + Math.cos(a) * (gg.r - 2.4), FACE + 1.8); idx[i].rotation.z = -a + Math.PI;
@@ -77,5 +106,5 @@ export function build() {
     const a = (THRESHOLD - .5) / .5 * Math.PI * 1.2 - Math.PI * .6; knob.rotation.z = -a;
   }
   update(0);
-  return { group: g, update, controls: { label: 'Seuil d\u2019alerte', min: 50, max: 100, step: 5, fmt: (v) => v + ' %', get: () => Math.round(THRESHOLD * 100), set: (v) => { THRESHOLD = v / 100; } } };
+  return { group: g, update, readout, getMechanicalState, controls: { label: 'Seuil d\u2019alerte', min: 50, max: 100, step: 5, fmt: (v) => v + ' %', get: () => Math.round(THRESHOLD * 100), set: (v) => { THRESHOLD = v / 100; } } };
 }
