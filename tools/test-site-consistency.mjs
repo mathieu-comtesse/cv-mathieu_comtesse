@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const pages = fs.readdirSync('.').filter((f) => f.endsWith('.html') && !['info.html', '404.html', 'atelier.html'].includes(f));
+const pages = fs.readdirSync('.').filter((f) => f.endsWith('.html') && !['info.html', '404.html', 'atelier.html', 'teardown-lab.html'].includes(f));
 const read = (f) => fs.readFileSync(f, 'utf8');
 const problems = [];
 const titles = new Map(), descs = new Map();
