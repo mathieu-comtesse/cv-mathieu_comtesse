@@ -16,7 +16,8 @@ for (const mode of ['noopt', 'opt']) {
     await page.goto(base + '/spatial.html?reset' + (mode === 'noopt' ? '&noopt' : '')); await page.waitForFunction(() => window.__spatial, null, { timeout: 90000 });
     await page.evaluate(() => { window.__spatial.pause(true); document.querySelectorAll('.sp-notes,.sp-top,.sp-intro,.sp-rail,.sp-hubcards').forEach((e) => { e.style.visibility = 'hidden'; }); });
     await page.evaluate((id) => { const S = window.__spatial; S.scroll.current = S.scroll.target = S.timeline.uOf(id); S.scroll.tween = null; S.select(id, { instant: true }); S.world.want(id); }, id);
-    await page.waitForFunction((id) => { window.__spatial.step(1 / 24); const m = window.__spatial.world.machines.get(id); return m.ready && m.root.visible; }, id, { timeout: 90000, polling: 400 });
+    try { await page.waitForFunction((id) => { window.__spatial.step(1 / 24); const m = window.__spatial.world.machines.get(id); return m.ready && m.root.visible; }, id, { timeout: 60000, polling: 400 }); }
+    catch { console.error(mode, id, 'ignorée :', JSON.stringify(await page.evaluate((id) => { const m = window.__spatial.world.machines.get(id); return { ready: m.ready, vis: m.root.visible, failed: m.failed, dist: m.dist }; }, id).catch(() => null))); await ctx.close(); continue; }
     await page.evaluate(() => { const S = window.__spatial; for (let i = 0; i < 90; i++) S.step(1 / 24); S.world.t = 9.958; S.step(1 / 24); });   // inspection établie, horloge à 10 s
     await page.waitForTimeout(900); await page.evaluate(() => window.__spatial.step(0));
     const info = await page.evaluate((id) => ({ calls: window.__spatial.world.renderer.info.render.calls, tri: window.__spatial.world.renderer.info.render.triangles, opt: window.__spatial.world.stats.optimize[id] || null }), id);
@@ -29,6 +30,6 @@ await browser.close(); server.close();
 const diff = (a, b) => JSON.parse(execFileSync('python3', ['-c', `import sys,json\nfrom PIL import Image,ImageChops\na=Image.open(sys.argv[1]).convert('RGB');b=Image.open(sys.argv[2]).convert('RGB')\nd=ImageChops.difference(a,b).convert('L');px=d.getdata();n=sum(1 for v in px if v>12)\nprint(json.dumps({'pct':100*n/len(px),'max':max(px)}))`, a, b]));
 console.log('| Machine | Appels de rendu sans fusion | avec fusion | Maillages et arêtes fusionnés | Écart de pixels (> 12/255) |\n|---|---|---|---|---|');
 let tn = 0, to = 0;
-for (const id of ids) { const r = result[id], d = diff(`${out}/${id}-noopt.png`, `${out}/${id}-opt.png`); tn += r.noopt.calls; to += r.opt.calls; const o = r.opt.opt;
+for (const id of ids) { const r = result[id]; if (!r?.noopt || !r?.opt) { console.log(`| ${id} | non mesuré | non mesuré | | |`); continue; } const d = diff(`${out}/${id}-noopt.png`, `${out}/${id}-opt.png`); tn += r.noopt.calls; to += r.opt.calls; const o = r.opt.opt;
   console.log(`| ${id} | ${r.noopt.calls} | ${r.opt.calls} | ${o ? o.mergedObjects + ' objets pour ' + (o.meshes + o.lines) + ' éléments (' + o.moving + ' mobiles)' : 'aucune'} | ${d.pct.toFixed(3)} % (max ${d.max}) |`); }
 console.log(`| total | ${tn} | ${to} | | |`);
