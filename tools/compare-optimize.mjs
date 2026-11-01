@@ -10,26 +10,32 @@ const base = 'http://localhost:' + server.address().port, out = path.resolve(pro
 const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const ids = ['vm', 'moteur44', 'vre', 'pa', 'powerbi', 'cerfa', 'gares', 'suivi', 'finance', 'studio', 'lecteur-vre'];
 const result = {};
-for (const mode of ['noopt', 'opt']) {
-  for (const id of ids) {                                  // une page neuve par machine : mémoire et temps de rendu logiciel restent comparables
-    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } }), page = await ctx.newPage();
-    await page.goto(base + '/spatial.html?reset' + (mode === 'noopt' ? '&noopt' : '')); await page.waitForFunction(() => window.__spatial, null, { timeout: 90000 });
-    await page.evaluate(() => { window.__spatial.pause(true); document.querySelectorAll('.sp-notes,.sp-top,.sp-intro,.sp-rail,.sp-hubcards').forEach((e) => { e.style.visibility = 'hidden'; }); });
-    await page.evaluate((id) => { const S = window.__spatial; S.scroll.current = S.scroll.target = S.timeline.uOf(id); S.scroll.tween = null; S.select(id, { instant: true }); S.world.want(id); }, id);
-    try { await page.waitForFunction((id) => { window.__spatial.step(1 / 24); const m = window.__spatial.world.machines.get(id); return m.ready && m.root.visible; }, id, { timeout: 60000, polling: 400 }); }
-    catch { console.error(mode, id, 'ignorée :', JSON.stringify(await page.evaluate((id) => { const m = window.__spatial.world.machines.get(id); return { ready: m.ready, vis: m.root.visible, failed: m.failed, dist: m.dist }; }, id).catch(() => null))); await ctx.close(); continue; }
-    await page.evaluate(() => { const S = window.__spatial; for (let i = 0; i < 90; i++) S.step(1 / 24); S.world.t = 9.958; S.step(1 / 24); });   // inspection établie, horloge à 10 s
-    await page.waitForTimeout(900); await page.evaluate(() => window.__spatial.step(0));
-    const info = await page.evaluate((id) => ({ calls: window.__spatial.world.renderer.info.render.calls, tri: window.__spatial.world.renderer.info.render.triangles, opt: window.__spatial.world.stats.optimize[id] || null }), id);
-    await page.screenshot({ path: `${out}/${id}-${mode}.png`, timeout: 120000 }); console.error(mode, id, info.calls);
-    (result[id] ??= {})[mode] = info;
-    await ctx.close();
-  }
+const warn = [];
+for (const id of ids) {                                  // une page neuve par machine ; la comparaison se fait dans la même image : seul l'état « fusionné / d'origine » change
+  const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } }), page = await ctx.newPage();
+  page.on('console', (m) => { if (m.type() === 'warning' && /fusion|indisponible/.test(m.text())) warn.push(id + ' : ' + m.text().slice(0, 160)); });
+  await page.goto(base + '/spatial.html?reset&noroom'); await page.waitForFunction(() => window.__spatial, null, { timeout: 90000 });
+  await page.evaluate(() => { window.__spatial.pause(true); document.querySelectorAll('.sp-notes,.sp-top,.sp-intro,.sp-chap,.sp-hubcards').forEach((e) => { e.style.visibility = 'hidden'; }); });
+  await page.evaluate((id) => { const S = window.__spatial; S.scroll.current = S.scroll.target = S.timeline.uOf(id); S.scroll.tween = null; S.select(id, { instant: true }); }, id);
+  try { await page.waitForFunction((id) => { window.__spatial.step(1 / 24); const m = window.__spatial.world.machines.get(id); return m.ready && m.root.visible; }, id, { timeout: 90000, polling: 400 }); }
+  catch { console.error(id, 'ignorée'); await ctx.close(); continue; }
+  await page.evaluate(() => { const S = window.__spatial; for (let i = 0; i < 90; i++) S.step(1 / 24); S.world.t = 9.958; S.step(1 / 24); });
+  await page.waitForTimeout(900); await page.evaluate(() => window.__spatial.step(0));
+  const stats = await page.evaluate((id) => window.__spatial.world.stats.optimize[id] || null, id);
+  const one = async (merged, name) => {
+    const calls = await page.evaluate(({ id, merged }) => { const S = window.__spatial; S.world.machines.get(id).showMerged(merged); S.world.renderer.render(S.world.scene, S.world.camera); return S.world.renderer.info.render.calls; }, { id, merged });
+    await page.screenshot({ path: `${out}/${id}-${name}.png`, timeout: 120000 }); return calls;
+  };
+  const withMerge = await one(true, 'fusionne'), without = await one(false, 'origine');
+  await page.evaluate((id) => window.__spatial.world.machines.get(id).showMerged(true), id);
+  result[id] = { withMerge, without, stats }; console.error(id, without, '->', withMerge, JSON.stringify(stats));
+  await ctx.close();
 }
 await browser.close(); server.close();
-const diff = (a, b) => JSON.parse(execFileSync('python3', ['-c', `import sys,json\nfrom PIL import Image,ImageChops\na=Image.open(sys.argv[1]).convert('RGB');b=Image.open(sys.argv[2]).convert('RGB')\nd=ImageChops.difference(a,b).convert('L');px=d.getdata();n=sum(1 for v in px if v>12)\nprint(json.dumps({'pct':100*n/len(px),'max':max(px)}))`, a, b]));
-console.log('| Machine | Appels de rendu sans fusion | avec fusion | Maillages et arêtes fusionnés | Écart de pixels (> 12/255) |\n|---|---|---|---|---|');
-let tn = 0, to = 0;
-for (const id of ids) { const r = result[id]; if (!r?.noopt || !r?.opt) { console.log(`| ${id} | non mesuré | non mesuré | | |`); continue; } const d = diff(`${out}/${id}-noopt.png`, `${out}/${id}-opt.png`); tn += r.noopt.calls; to += r.opt.calls; const o = r.opt.opt;
-  console.log(`| ${id} | ${r.noopt.calls} | ${r.opt.calls} | ${o ? o.mergedObjects + ' objets pour ' + (o.meshes + o.lines) + ' éléments (' + o.moving + ' mobiles)' : 'aucune'} | ${d.pct.toFixed(3)} % (max ${d.max}) |`); }
+const diff = (a, b) => JSON.parse(execFileSync('python3', ['-W', 'ignore', '-c', `import sys,json\nfrom PIL import Image,ImageChops\na=Image.open(sys.argv[1]).convert('RGB');b=Image.open(sys.argv[2]).convert('RGB')\nd=ImageChops.difference(a,b).convert('L');px=list(d.getdata());n=sum(1 for v in px if v>0)\nprint(json.dumps({'pct':100*n/len(px),'max':max(px)}))`, a, b]));
+console.log('| Machine | Appels de rendu, maillages d\'origine | avec fusion | Maillages et arêtes regroupés | Pixels différents (même image) |\n|---|---|---|---|---|');
+
+for (const id of ids) { const r = result[id]; if (!r) { console.log(`| ${id} | non mesuré | non mesuré | | |`); continue; } const d = diff(`${out}/${id}-origine.png`, `${out}/${id}-fusionne.png`); tn += r.without; to += r.withMerge; const o = r.stats;
+  console.log(`| ${id} | ${r.without} | ${r.withMerge} | ${o ? o.mergedObjects + ' objets pour ' + (o.meshes + o.lines) + ' éléments fixes, ' + o.moving + ' mobiles' : 'aucun'} | ${d.pct.toFixed(4)} % (max ${d.max}/255) |`); }
 console.log(`| total | ${tn} | ${to} | | |`);
+console.log(warn.length ? 'Avertissements :\n' + warn.join('\n') : 'Aucun avertissement');

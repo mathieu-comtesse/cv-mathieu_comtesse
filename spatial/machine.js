@@ -59,7 +59,7 @@ export class MachineController {
   optimize(root) {
     const inv = new THREE.Matrix4(), rel = (o) => new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
     const all = []; root.traverse((o) => { if ((o.isMesh || o.isLine) && !o.userData.glowShell) all.push(o); });
-    const vis = (o) => { for (let n = o; n; n = n.parent) if (!n.visible) return false; return true; };
+    const vis = (o) => { for (let n = o; n && n !== root.parent; n = n.parent) if (!n.visible) return false; return true; };   // visibilité propre au modèle : le conteneur de la scène peut être masqué
     const times = [0, 1.7, 4.3, 7.9, 13.1, 21.7, 34.9, 55.3, 89.1, 143.7, 233, 377, 610];
     const first = new Map(), moving = new Set();
     for (const t of times) {
@@ -103,6 +103,10 @@ export class MachineController {
       for (const o of e.src) { o.layers.set(1); o.userData.merged = true; } after++;
     }
     return { meshes: nMesh, lines: nLine, mergedObjects: after, total: all.length, moving: moving.size };
+  }
+  /** Contrôle de fidélité : affiche soit les objets fusionnés (true), soit les maillages d'origine (false). Aucun effet sur l'animation. */
+  showMerged(on) {
+    this.body?.traverse((o) => { if (o.userData.mergedStatic) o.visible = on; if (o.userData.merged) { o.layers.set(on ? 1 : 0); } });
   }
   /** Rayon englobant en unités du monde (sert aux niveaux de détail et à la sélection). */
   get radius() { return this.ready ? this.size.length() / 2 : 8 * (this.entry.scale || 1); }
