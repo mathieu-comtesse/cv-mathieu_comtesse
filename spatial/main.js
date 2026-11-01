@@ -198,14 +198,6 @@ function init() {
     $('sp-reset-view').addEventListener('click', () => { rulers.reset(); });
     $('sp-close-inspect').addEventListener('click', () => exitInspect(true));
 
-    /* ---------- boucle ---------- */
-    const hint = $('sp-hint'); let hintGone = false; function hideHint() { if (!hintGone) { hintGone = true; hint.classList.add('sp-gone'); } }
-    const intro = $('sp-intro'), cards = [...document.querySelectorAll('.sp-hubcard')];
-    let last = performance.now(), lastCur = -1, lastSave = 0;
-    const saved = store.get();
-    if (!route(true) && saved && typeof saved.p === 'number' && !qs.has('reset')) { scroll.current = scroll.target = Math.min(timeline.length, Math.max(0, saved.p)); for (const [id, [r, t]] of Object.entries(saved.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } } }
-    else for (const [id, [r, t]] of Object.entries(saved?.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } }
-    world.resize(); document.body.classList.add('sp-ready');
     /* ---------- menu de chapitres : mêmes positions de défilement que la molette ---------- */
     let hoverSet = null;
     const nav = new ChapterNav($('sp-chap'), registry, timeline, {
@@ -219,6 +211,14 @@ function init() {
       scroll.goTo(c.u, instant ? 0 : undefined); if (push) setHash('#/' + c.id); say(c.label);
     }
     $('sp-open-chap').addEventListener('click', () => { const o = $('sp-chap').classList.toggle('sp-open'); $('sp-open-chap').setAttribute('aria-expanded', String(o)); });
+    /* ---------- boucle ---------- */
+    const hint = $('sp-hint'); let hintGone = false; function hideHint() { if (!hintGone) { hintGone = true; hint.classList.add('sp-gone'); } }
+    const intro = $('sp-intro'), cards = [...document.querySelectorAll('.sp-hubcard')];
+    let last = performance.now(), lastCur = -1, lastSave = 0;
+    const saved = store.get();
+    if (!route(true) && saved && typeof saved.p === 'number' && !qs.has('reset')) { scroll.current = scroll.target = Math.min(timeline.length, Math.max(0, saved.p)); for (const [id, [r, t]] of Object.entries(saved.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } } }
+    else for (const [id, [r, t]] of Object.entries(saved?.rots || {})) { const m = world.machines.get(id); if (m) { m.rot = r; m.tilt = t; } }
+    world.resize(); document.body.classList.add('sp-ready');
     /* ---------- la vraie pièce d'accueil, rendue avec la caméra du voyage ---------- */
     const stage = $('stage'), roomEl = $('room'); let lastMode = null, roomHidden = false;
     const doneIntro = () => { try { window.ToddhamIntro?.done(); } catch {} };
