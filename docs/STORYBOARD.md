@@ -31,13 +31,13 @@ Références : la vidéo Shopify Editions Fall 2026 fournie, et la page https://
 
 La caméra est une fonction de la distance de défilement `u` (pixels). Parcours complet : 23 225 px. Les durées ci-dessous sont celles de `spatial/sequences.js` (déjà réduites de moitié dans le code).
 
-### A. Ouverture et première immersion (u de 0 à 1 650)
-- Sujet : accueil, stèle, première vue de l'immensité.
-- Composition : vue aérienne depuis (44, 132, 78) vers (-8, 0, -230), champ 58°. Silhouettes filaires des premières machines et constellation au loin.
-- Mouvement : grue vers le bas et dolly avant, roulis léger, arrivée à (6, 17, 26) avec la stèle au premier plan.
-- Au loin : constellation Maintenance, dalles et volumes filaires.
+### A. Ouverture : la vraie pièce, puis le blueprint (u de 0 à 2 650)
+- Sujet : la pièce d'accueil existante (personnage animé, mobilier, vélo, canapé, plantes, cloison japonaise), sur son plan d'origine.
+- Départ : la caméra du voyage EST la caméra de la pièce (clé 0 recalculée en direct depuis la vue réelle de la pièce, champ d'environ 12 degrés).
+- Mouvement : recul le long de l'axe de vue pendant 750 px (la pièce rapetisse, le champ s'élargit de 12 à 36 degrés), puis grue (champ 52 degrés) qui ouvre le plan vers la profondeur, puis plongée vers la première zone. Aucun écran noir : les deux moteurs partagent la même caméra à chaque image.
+- Au loin : constellation Maintenance, dalles, volumes filaires.
 - Texte : accroche, poste, accès directs. Disparaît après 380 px.
-- Retour arrière : la caméra remonte exactement sur le même chemin, le texte réapparaît.
+- Retour arrière : la caméra remonte exactement sur le même chemin, la pièce revient avec ses interactions.
 
 ### B. Traversée spatiale entre plusieurs machines (u de 1 650 à 5 500)
 - Sujet : VM, Reporteur Q18, premiers titres de domaine.
@@ -69,3 +69,6 @@ I. Parcours : élévation, arrivée, pull-back vers l'horizon.
 
 ## 5. Limites de ce storyboard
 Le voyage a été composé et réglé à la main dans le navigateur avec rendu logiciel. Les valeurs de caméra sont des points de départ calibrés sur captures, pas sur la sensation à 60 images par seconde.
+
+## 6. Mise à jour : chapitres et menu
+Les chapitres suivent les domaines du registre : Accueil, Maintenance (VM, Reporteur Q18, VRE, Gares prioritaires, Suivi), Qualité et sécurité (plans de prévention, Power BI, CERFA), Automatisation (Point financier, Studio), Données et IA (Lecteur VRE), Expérimentations (THALEOLITHIC et 12 projets personnels), Parcours et contact. L'ordre spatial a été réorganisé pour que chaque chapitre soit contigu. Le menu vertical et la molette utilisent la même position de défilement `u`.
