@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { makeStage } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 import { createTeardown } from './teardown.js';
+import { enhanceMachine } from './mechanical-details.js';
 
 const MODULES = {
   moteur: () => import('./moteur.js'),
@@ -22,6 +23,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   const { build, WIDTH = 236 } = await load();
   const { renderer, scene } = makeStage(canvas);
   const m = build();
+  const details=enhanceMachine(name,m);
   const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(12.6 / WIDTH);
   scene.add(g);
   // centrage sur l'origine du plan, socle posé à y = 0
@@ -45,7 +47,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
       return hit(g);
     },
     render(time) {
-      teardown.beforeFrame(); m.update(time); teardown.afterFrame(time);
+      teardown.beforeFrame(); m.update(time); details.update(time); teardown.afterFrame(time);
       g.updateMatrixWorld(true); glow();
       if (teardown.state.mode !== 'assembled') g.traverse(o => { if (o.userData.glowShell) o.visible = false; });
       renderer.render(scene,cam);
