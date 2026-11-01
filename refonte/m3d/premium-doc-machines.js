@@ -85,7 +85,10 @@ export function buildCerfa(){
  const display=readout(out,27,8,0,50,0);
  const packets=documentStream(a.group,[[-82,21,0],[-46,35,0],[-8,24,0],[48,25,0],[100,21,0]],5,14);
  const controls={label:'Taille du lot',min:50,max:500,step:50,fmt:v=>v+' fiches',value:300,get(){return this.value;},set(v){this.value=v;},seek(){return null;}};
- const cases=[.73,.09,.11,.07];
+ const classify=(i)=>i%29===0?3:i%17===0?1:i%13===0?2:0;
+ const sums=Array.from({length:501},()=>[0,0,0,0]);
+ for(let i=0;i<500;i++){sums[i+1]=sums[i].slice();sums[i+1][classify(i)]++;}
+ const analysed=t=>Math.floor(controls.value*Math.min(1,phase(t,50)*1.35));
  a.animate(t=>{
   const step=phase(t,7);
   feedGear.rotation.z=t*.9;drive.rotation.z=-t*1.3;
@@ -94,16 +97,16 @@ export function buildCerfa(){
   c1.update(t);belt.update(t);r1.update(t);
   beam.position.x=17*Math.sin(t*2.4);beam.material=M.light;
   filters.forEach((b,i)=>b.position.y=27+5*Math.sin(t*2+i));
-  diverters.forEach((d,i)=>{d.rotation.y=i===Math.floor(step*4)?-.55:0;lamp[i].material=i===Math.floor(step*4)?M.light:M.off;});
-  const done=Math.floor(controls.value*Math.min(1,phase(t,50)*1.35));
+  const done=analysed(t),family=classify(Math.min(499,done));
+  diverters.forEach((d,i)=>{d.rotation.y=i===family?-.55:0;lamp[i].material=i===family?M.light:M.off;});
   display.set(done+' / '+controls.value);
   trays.forEach((p,i)=>p.position.y=9+Math.sin(t*.7+i)*.45);
   gauge1.update(done/Math.max(1,controls.value));
   packets.update(t);
  });
  a.controls=controls;
- a.readout=t=>{let n=Math.round(controls.value*Math.min(1,phase(t,50)*1.35));
-  return n+' fiches analysées · '+Math.round(n*cases[1])+' doublons · '+Math.round(n*cases[2])+' anomalies · '+Math.round(n*cases[3])+' retards (fictif)';};
+ a.readout=t=>{const n=analysed(t),counts=sums[n];
+  return n+' fiches analysées · '+counts[1]+' doublons · '+counts[2]+' anomalies · '+counts[3]+' retards (fictif)';};
  a.areas=areas.cerfa;return a;
 }
 
@@ -224,7 +227,8 @@ export function buildVRE(){
  block(location,45,3,30,0,13,0,'graphite');
  const buildingGauge=readout(location,34,8,0,79,17);label(location,'BAT / LOCAL',0,88,16,36,6);
  // Four real measurement cylinders with visible rising fill
- const names=['BT31','BT33','BT21','BT11'],values=[18,9,13,6];
+ const names=['BT31','BT33','BT21','BT11'];
+ const buildingCounts=Array.from({length:9},(_,b)=>[9+(b*7)%19,4+(b*3)%11,8+(b*5)%15,3+(b*2)%8]);
  const counters=[];
  names.forEach((name,i)=>{
   const x=(i-1.5)*24;
@@ -249,11 +253,11 @@ export function buildVRE(){
   page.rotation.y=Math.sin(t*.4)*.3;
   const b=Math.floor(phase(t,21)*9)+1;buildingGauge.set('BAT '+b+' / 03');
   counters.forEach((c,i)=>{
-   const count=Math.round(values[i]*(.45+.5*Math.sin(t*.2+i*.3)**2));
+   const count=buildingCounts[b-1][i];
    c.fill.scale.y=Math.max(.5,count*2.1);c.fill.position.y=13+Math.max(.5,count*2.1)*.5;
-   c.disp.set(names[i]+' '+count);needles[i].update(count/values[i]);
+   c.disp.set(names[i]+' '+count);needles[i].update(count/30);
   });
-  screen.set('BT : '+values.reduce((u,v)=>u+v,0));
+  screen.set('BT : '+buildingCounts[b-1].reduce((u,v)=>u+v,0));
   stream.update(t);
  });
  a.controls={label:'Bâtiment',min:1,max:9,step:1,fmt:v=>'Bâtiment '+v,get:t=>Math.floor(phase(t,21)*9)+1,seek:v=>(v-1)*21/9};
