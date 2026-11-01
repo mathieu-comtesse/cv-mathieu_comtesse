@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import {makeStage} from './core.js';
 import {createTeardown} from './teardown.js';
+import {directMachine} from './premium-director.js';
 import {buildCerfa,buildVM,buildVRE,buildQ18} from './premium-doc-machines.js';
 import {buildGares,buildFinance,buildPP,buildPowerBI} from './premium-pilot-machines.js';
 import {buildSuivi,buildStudio,buildCognitive} from './premium-intelligence-machines.js';
@@ -18,6 +19,7 @@ export async function mountMachine(name,canvas,cam,origin=new THREE.Vector3(),op
  const build=CONSTRUCTORS[name];
  if(!build)throw new Error('Machine non répertoriée : '+name);
  const machine=build();
+ directMachine(name,machine);
  if(!machine.group||!Array.isArray(machine.zones)||machine.zones.length!==5)
   throw new Error('Assemblage incomplet : '+name+' (5 modules attendus)');
  const {renderer,scene}=makeStage(canvas);
