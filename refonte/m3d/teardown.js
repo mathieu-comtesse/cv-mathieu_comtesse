@@ -6,6 +6,7 @@ import {clamp,ease} from './premium-core.js';
 
 export function createTeardown(name,machine,holder,camera){
  const root=machine.group,zones=machine.zones;
+ const hero=root.userData.hero||null,backstage=root.userData.backstage||null;
  const spec={title:machine.title,areas:machine.areas};
  const scenarios=machine.scenarios||[];
  if(zones.length!==5||!zones.every(z=>z?.userData?.explode))
@@ -62,6 +63,10 @@ export function createTeardown(name,machine,holder,camera){
    const beat=Math.floor(Math.max(0,time)/9),sequence=['assembled','section','exploded','isolate','xray'];
    state.mode=sequence[beat%sequence.length];state.selected=beat%5;
   }
+  const opened=state.mode!=='assembled';
+  zones.forEach(zone=>zone.visible=opened);
+  if(hero)hero.visible=!opened;
+  if(backstage)backstage.visible=opened;
   const now=performance.now()/1000;
   const dt=lastWall==null?.016:clamp(now-lastWall,0,.08);
   lastWall=now;
@@ -92,7 +97,13 @@ export function createTeardown(name,machine,holder,camera){
   pointer.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);
   raycaster.setFromCamera(pointer,camera);
   const hit=raycaster.intersectObject(holder,true).find(h=>h.object.isMesh&&moduleOf(h.object)!==null);
-  if(!hit)return null;
+  if(!hit){
+   if(!hero)return null;
+   const shell=raycaster.intersectObject(hero,true).find(h=>h.object.isMesh);
+   if(!shell)return null;
+   select(2);
+   return {index:2,label:spec.areas[2][0],description:spec.areas[2][1]};
+  }
   const index=moduleOf(hit.object);select(index);
   return {index,label:spec.areas[index][0],description:spec.areas[index][1]};
  }
@@ -104,6 +115,9 @@ export function createTeardown(name,machine,holder,camera){
  function dispose(){
   if(disposed)return;
   restore();disposed=true;
+  zones.forEach(z=>z.visible=true);
+  if(hero)hero.visible=true;
+  if(backstage)backstage.visible=true;
   variants.forEach(m=>m.dispose?.());variants.clear();
  }
  return {state,name,spec,scenarios,setMode,select,scenario,beforeFrame,afterFrame,inspect,snapshot,dispose};
