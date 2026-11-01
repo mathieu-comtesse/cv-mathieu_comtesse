@@ -95,10 +95,11 @@ const $=s=>document.querySelector(s);
 const stage=$('#stage'), list=$('#projects'), value=$('#param'), reading=$('#param-output');
 list.innerHTML=items.map((p,i)=>'<button data-i="'+i+'" type="button"><span>'+String(i+1).padStart(2,'0')+'</span>'+p.name+'</button>').join('');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let current=null,ui=null,selected=-1,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:40},canvas=null,pointer=null;
-const activeTime=()=>paused?pauseAt:(reduced?shift:(performance.now()-clockStart)/1000+shift);
+let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:40},canvas=null,pointer=null;
+const rawTime=()=> (performance.now()-clockStart)/1000+shift;
+const activeTime=()=>paused?pauseAt:(reduced?shift:rawTime());
 function seek(t){if(paused)pauseAt=t;else if(reduced)shift=t;else shift+=t-activeTime();}
-function pause(on){if(on&&!paused){pauseAt=activeTime();paused=true;}else if(!on&&paused){if(reduced)shift=pauseAt;else shift+=pauseAt-activeTime();paused=false;}}
+function pause(on){if(on&&!paused){pauseAt=activeTime();paused=true;}else if(!on&&paused){if(reduced)shift=pauseAt;else shift+=pauseAt-rawTime();paused=false;}}
 function pose(){if(!cam)return;const {yaw,pitch,dist}=rotation,cy=Math.cos(pitch);
  cam.position.set(Math.sin(yaw)*cy*dist,2.5+Math.sin(pitch)*dist,Math.cos(yaw)*cy*dist);
  cam.lookAt(0,2.5,0);cam.updateMatrixWorld(true);}
@@ -121,6 +122,7 @@ value.addEventListener('input',()=>{
 });
 async function choose(i){
  const p=items[i];if(!p)return;
+ const version=++loadingVersion;
  selected=i;list.querySelectorAll('button').forEach((b,k)=>b.setAttribute('aria-current',String(k===i)));
  $('#name').textContent=p.name;$('#desc').textContent=p.desc;$('#fullproject').href='./'+p.page;
  $('#status').hidden=false;$('#status').textContent='Chargement de '+p.name+'…';
@@ -128,12 +130,14 @@ async function choose(i){
  canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');stage.append(canvas);
  shift=0;paused=false;clockStart=performance.now();
  try{
-   current=await mountMachine(p.id,canvas,cam);
+   const loaded=await mountMachine(p.id,canvas,cam);
+   if(version!==loadingVersion){loaded.dispose();return;}
+   current=loaded;
    ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause});
    syncSlider();
    $('#status').hidden=true;
    history.replaceState(null,'','#'+encodeURIComponent(p.id));
- }catch(err){console.error(err);$('#status').textContent='Erreur de chargement : '+String(err.message||err);}
+ }catch(err){console.error(err);if(version===loadingVersion)$('#status').textContent='Erreur de chargement : '+String(err.message||err);}
 }
 list.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)choose(Number(b.dataset.i));});
 const mobile=$('#mobile-toggle');
