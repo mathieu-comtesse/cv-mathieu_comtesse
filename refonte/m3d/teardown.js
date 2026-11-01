@@ -25,6 +25,7 @@ export function createTeardown(name, machine, holder, camera) {
   const extent = new THREE.Box3().setFromObject(root);
   const meshes = [];
   const parts = new WeakMap();
+  const fixedParts = new WeakSet();
   const offsets = new Map();
   const originals = new Map();
   const variants = new WeakMap();
@@ -34,11 +35,14 @@ export function createTeardown(name, machine, holder, camera) {
     if (!mesh.isMesh || mesh.userData.glowShell) return;
     const wp = mesh.getWorldPosition(new THREE.Vector3());
     const zone = clamp(Math.floor((wp.x - extent.min.x) / Math.max(size.x,1) * 5),0,4);
+    const bounds=new THREE.Box3().setFromObject(mesh),extentSize=bounds.getSize(new THREE.Vector3());
+    if(extentSize.x>size.x*.55 && bounds.max.y < extent.min.y+size.y*.15) fixedParts.add(mesh);
     meshes.push(mesh);
     parts.set(mesh,zone);
   });
   const state = {mode:'assembled', selected:1, tour:false, scenario:'normal', progress:0};
-  let amount = 0, lastTime = null, disposed = false;
+  let amount = 0, lastWallTime = null, disposed = false;
+  const reducedMotion = typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cachedClipping = new THREE.Plane(new THREE.Vector3(1,0,0),-extent.getCenter(new THREE.Vector3()).x);
   const modes = new Set(['assembled','exploded','section','xray','isolate']);
   const scenarios = name === 'vm' ? [
@@ -96,16 +100,17 @@ export function createTeardown(name, machine, holder, camera) {
       state.mode=['assembled','section','exploded','xray','isolate'][beat%5];
     }
     const target=state.mode==='exploded'?1:0;
-    const dt=lastTime === null ? 0.016 : clamp(Math.abs(t-lastTime),0,.055);
-    lastTime=t;
-    amount=smooth(amount,target,clamp(dt*4.8,0,1));
+    const wall=performance.now()/1000;
+    const dt=lastWallTime===null?.016:clamp(wall-lastWallTime,0,.055);
+    lastWallTime=wall;
+    amount=reducedMotion?target:smooth(amount,target,clamp(dt*4.8,0,1));
     if(Math.abs(amount-target)<.003)amount=target;
     if(state.mode==='assembled' && amount===0){state.progress=(t%40)/40;return;}
     // Le déplacement est appliqué après la cinématique d'origine, puis retiré
     // avant l'image suivante. Aucune position du modèle source n'est altérée.
     for(const mesh of meshes) {
       const zone=parts.get(mesh)??2;
-      if(amount>0.002){
+      if(amount>0.002 && !fixedParts.has(mesh)){
         const lateral=(zone-2)*Math.max(size.x / Math.max(holder.scale.x,0.001),1)*.075*amount;
         const vertical=(zone%2?.032:.014)*Math.max(size.x / Math.max(holder.scale.x,0.001),1)*amount;
         const depth=(zone%2?1:-1)*Math.max(size.z / Math.max(holder.scale.z,0.001),1)*.11*amount;
