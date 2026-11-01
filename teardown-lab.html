@@ -190,7 +190,7 @@ async function choose(i){
    if(version!==loadingVersion){loaded.dispose();return;}
    current=loaded;
    if(loaded.frameInfo){aimY=Math.max(2.5,loaded.frameInfo.centerY);rotation.dist=Math.max(34,loaded.frameInfo.radius*1.95);pose();}
-   ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause});
+   ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause,initiallyCollapsed:true});
    syncSlider();
    $('#status').hidden=true;
    history.replaceState(null,'','#'+encodeURIComponent(p.id));
