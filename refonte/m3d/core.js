@@ -75,6 +75,20 @@ export function tube(points, r = .6, color = COL.dark) {
   const curve = new THREE.CatmullRomCurve3(points.map(([x, y, z]) => new THREE.Vector3(x, z, y)));
   const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, r, 8, false), mat(color)); m.castShadow = true; return m;
 }
+/* Prisme à base polygonale dans le plan x-z de la figure (rampes inclinées), étendu de y0 à y1. */
+export function prismXZ(poly, y0, y1, color = COL.mid, edges = 30) {
+  const shape = new THREE.Shape(poly.map(([x, z]) => new THREE.Vector2(x, z)));
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: y1 - y0, bevelEnabled: false });
+  geo.translate(0, 0, y0);
+  return finish(geo, mat(color), edges);
+}
+/* Bille : centre (x, y, z) de figure, rayon r. */
+export function ball(cx, cy, cz, r, color = COL.hi) {
+  const m = finish(new THREE.SphereGeometry(r, 28, 18), mat(color), 0);
+  m.position.set(cx, cz, cy);
+  return m;
+}
+
 export function group(...children) { const g = new THREE.Group(); children.flat().forEach((c) => c && g.add(c)); return g; }
 
 /* Établi commun : plaque sur quatre pieds, vis d'angle, règle graduée à l'avant et plaque signalétique. */
