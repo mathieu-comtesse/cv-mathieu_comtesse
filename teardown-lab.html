@@ -108,6 +108,13 @@ const stage=$('#stage'), list=$('#projects'), value=$('#param'), reading=$('#par
 list.innerHTML=items.map((p,i)=>'<button data-i="'+i+'" type="button"><span>'+String(i+1).padStart(2,'0')+'</span>'+p.name+'</button>').join('');
 $('#flowroute').innerHTML=flowIds.map((id,i)=>'<button type="button" data-flow="'+id+'">'+String(i+1)+' · '+flowLabels[i]+'</button>').join('');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+window.__teardownDebug=()=>({
+  selected:items[selected]?.id??null,
+  ready:!!current,
+  modules:current?.machine?.zones?.length??0,
+  geometry:current?.machine?(()=>{let n=0;current.machine.group.traverse(o=>{if(o.isMesh)n++;});return n;})():0,
+  mode:current?.teardown?.state?.mode??null
+});
 let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:35},canvas=null,pointer=null;
 const rawTime=()=> (performance.now()-clockStart)/1000+shift;
 const activeTime=()=>paused?pauseAt:(reduced?shift:rawTime());
