@@ -103,11 +103,57 @@ function gaugeFront(cx, wid, y, z0, key, lamp = false) {
   return out.join("");
 }
 
+
+// ---------------------------------------------------------------- finitions
+function wallDetail() {
+  const out = [], f = right(WALL.x + WALL.w), yf = WALL.y + WALL.d;
+  out.push(S(slab({ x: WALL.x - 1.4, y: WALL.y - 1, w: WALL.w + 2.8, d: WALL.d + 2, r: 1.2 }, WALL_H - 3, 3, 3, 0.5), { tone: "mid" }));
+  out.push(S(slab({ x: WALL.x - 1.4, y: WALL.y - 1, w: WALL.w + 2.8, d: WALL.d + 2, r: 1.2 }, 0, 4, 3, 0.5), { tone: "lo" }));
+  out.push(D([[WALL.x + 6, 50], [WALL.x + WALL.w - 6, 50], [WALL.x + 6, 94], [WALL.x + WALL.w - 6, 94]].map(([x, z]) => at([x, yf, z])), { size: 0.4 }));
+  // Fentes d'aération sur le flanc droit et plaque de série.
+  const vents = []; for (let i = 0; i < 5; i++) vents.push(flat(-(WALL.y + 2.4 + i * 1.5) - 0.4, 40, -(WALL.y + 2.4 + i * 1.5) + 0.4, 70, 0.4, 2));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  // Règle de score sur le chant du fond : un trait tous les 10 points.
+  const ticks = k.topTicks(WALL.x + 6, WALL.x + WALL.w - 6, 7.1, 5, WALL.y + 0.8, WALL_H + 0.8, [0.8, 1.4], P);
+  void ticks;
+  // Rangée de tiroirs : étiquettes de table, un trait sous chaque poignée.
+  const tabs = []; for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) if (r * 5 + c < 19) tabs.push(flat(WALL.x + 6 + c * 25.6 + 9, 56 + r * 9 + 1.2, WALL.x + 6 + c * 25.6 + 17, 56 + r * 9 + 2.4, 0.2, 2));
+  out.push(`<g transform="${front(yf)}"><path class="iso-line" data-tone="faint" d="${tabs.join("")}"/></g>`);
+  return out.join("");
+}
+function blockDetail() {
+  const out = [], f = right(BLOCK.x + BLOCK.w);
+  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(BLOCK.y + 5 + i * 4.8) - 0.9, 5, -(BLOCK.y + 5 + i * 4.8) + 0.9, 16, 0.9, 3));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  for (const [x, y] of k.corners(BLOCK, 7)) out.push(S(k.cylinder(x, y + 0, 2.4, BLOCK_H, 0.6, P, 14), { tone: "mid" }));
+  // Robinets de purge au pied de chaque colonne : un corps moleté et un levier.
+  GX.forEach((cx) => {
+    const F = G.frameAlong([cx + 11, GAUGE.y + 1.7, BLOCK_H], [0, 0, 1]);
+    out.push(S(G.disc(0, 2.4, 1.8, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, 0, 2.4, 1.8, 10, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+    out.push(S(G.disc(2.4, 3.2, 1.1, F, P), { tone: "hi" }));
+  });
+  return out.join("");
+}
+function deskDetail() {
+  const out = [], d = DESK, f = right(d.x + d.w);
+  const vents = []; for (let i = 0; i < 7; i++) vents.push(flat(-(d.y + 8 + i * 6.5) - 1, 3, -(d.y + 8 + i * 6.5) + 1, 11, 1, 3));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  // Pont de transfert sous les deux jauges, deux robinets et un voyant de mélange.
+  out.push(S(slab({ x: JARS[0] - 14, y: JAR_Y - 3, w: JARS[1] - JARS[0] + 28, d: 9, r: 1.2 }, DESK_H, 3, 3, 0.5), { tone: "lo" }));
+  for (const cx of JARS) {
+    const F = G.frameAlong([cx, JAR_Y + 8, DESK_H + 1.6], [0, 1, 0]);
+    out.push(S(G.disc(0, 4, 1.8, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, 0, 4, 1.8, 10, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  }
+  out.push(L(k.planOutline({ x: -122, y: -28, w: 96, d: 4, r: 1 }, DESK_H, P, 2), { tone: "faint" }));
+  out.push(D(k.corners({ x: -122, y: -28, w: 96, d: 4 }, 1).map(([x, y]) => at([x, y, DESK_H])), { size: 0.32 }));
+  return out.join("");
+}
+
 const body = [
   bench(P, PLATE, { strip: { x: -128, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 40, y: PLATE.y + PLATE.d - 15, w: 46, d: 11, r: 1.2 } }),
-  wallSvg(), blockSvg(),
+  wallSvg(), wallDetail(), blockSvg(), blockDetail(),
   ...GX.flatMap((cx, r) => [gaugeBack(cx, GAUGE.w, GAUGE.y, G0, "col-" + r), gaugeFront(cx, GAUGE.w, GAUGE.y, G0, "col-" + r, r === 0)]),
-  deskSvg(),
+  deskSvg(), deskDetail(),
   ...JARS.flatMap((cx, i) => [gaugeBack(cx, JW, JAR_Y, DESK_H + 3, "jar-" + i), gaugeFront(cx, JW, JAR_Y, DESK_H + 3, "jar-" + i)]),
 ];
 const svg = k.figureSvg({

@@ -17,7 +17,7 @@ const POD = { r: 8.4, h: 10 };                                                  
 const TRUNK = 112, CAPH = 12, CR = 3;                                                 // rail : hauteur du dessous, capsule
 const RAIL_Y = -8;                                                                    // axe du rail et des stations
 const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -120, y: -40, w: 240, d: 60 }, 0, TRUNK + 14)], WIDTH, HEIGHT, { pad: 22, azimuth: 60 });
-const { at, S, L, D, slab, front, flat, byDepth } = tools(P);
+const { at, S, L, D, slab, front, right, flat, byDepth } = tools(P);
 const HANG = TRUNK - 4 - CAPH;                                                        // z du pied de la capsule en transport
 const PODZ = BLOCK_H + POD.h;                                                         // z du siège de la capsule en station
 
@@ -90,6 +90,62 @@ function carrierSvg() {
   out.push(S(slab({ x: -7, y: RAIL_Y - 5, w: 14, d: 10, r: 1 }, TRUNK + 7.2, 5, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: -7, y: RAIL_Y - 5, w: 14, d: 10, r: 1 }, TRUNK + 9.5, P, 3), { tone: "faint" }) }));
   for (const sx of [-4, 4]) out.push(S(G.disc(-4.4, -2.8, 2.2, G.frameAlong([sx, RAIL_Y, TRUNK + 7], [0, 1, 0]), P), { tone: "lo" }));
   out.push(S(slab({ x: -1.2, y: RAIL_Y - 5, w: 2.4, d: 10, r: 0.2 }, TRUNK - 4, 4, 2, 0), { tone: "mid" }));
+  for (const sx of [-4, 4]) out.push(S(G.disc(5.2, 6.8, 2.2, G.frameAlong([sx, RAIL_Y, TRUNK + 7], [0, 1, 0]), P), { tone: "lo" }));
+  const M = G.frameAlong([0, RAIL_Y, TRUNK + 12.2], [0, 0, 1]);
+  out.push(S(G.disc(0, 3.4, 2.6, M, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(M, 0, 3.4, 2.6, 14, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  out.push(S(G.disc(3.4, 4.2, 1.6, M, P), { tone: "hi" }));
+  out.push(D([at([-5.6, RAIL_Y + 5, TRUNK + 9]), at([5.6, RAIL_Y + 5, TRUNK + 9])], { size: 0.32 }));
+  return out.join("");
+}
+
+
+// ---------------------------------------------------------------- finitions
+function deskDetail() {
+  const out = [], d = DESK, f = right(d.x + d.w);
+  // Pieds, évents du flanc, repères de chargeur et règle graduée sur la tablette.
+  for (const [x, y] of k.corners(d, 6)) out.push(S(k.cylinder(x, y, 2.4, DESK_H, 0.6, P, 14), { tone: "mid" }));
+  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(d.y + 8 + i * 6.8) - 1, 4, -(d.y + 8 + i * 6.8) + 1, 14, 1, 3));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  SOCKETS.forEach((x, i) => out.push(L(k.ring(x, SOCKET_Y, 7.4, DESK_H, P, 20), { tone: i === 0 ? "mid" : "lo" })));
+  const strip = { x: -116, y: 12, w: 62, d: 4, r: 0.6 };
+  out.push(S(slab(strip, DESK_H, 0.5, 2, 0), { tone: "lo", crease: "none" }));
+  const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 4, 5, strip.y + 0.3, DESK_H + 0.5, [1, 1.9], P);
+  out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
+  // Voyants de chargeur : un voyant par type de recherche.
+  SOCKETS.forEach((x) => out.push(S(k.cylinder(x, 8, 1.1, DESK_H, 0.9, P, 10), { tone: "mid" })));
+  return out.join("");
+}
+function blockDetail() {
+  const out = [], b = BLOCK, f = right(b.x + b.w);
+  const vents = []; for (let i = 0; i < 5; i++) vents.push(flat(-(b.y + 5 + i * 5) - 1, 5, -(b.y + 5 + i * 5) + 1, 19, 1, 3));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  // Prises de service sur le dessus entre les stations, cache-câbles arrière.
+  out.push(S(slab({ x: b.x + 4, y: b.y + 2, w: b.w - 8, d: 3, r: 0.6 }, BLOCK_H, 3.2, 2, 0.3), { tone: "mid", inner: L(k.sideSeam({ x: b.x + 4, y: b.y + 2, w: b.w - 8, d: 3, r: 0.6 }, BLOCK_H + 1.6, P, 2), { tone: "faint" }) }));
+  COLS.slice(0, 4).forEach((x) => { const xm = x + 15; out.push(S(k.cylinder(xm, RAIL_Y + 10, 1.4, BLOCK_H, 0.8, P, 12), { tone: "mid" })); });
+  // Ruban de repère sous chaque nom : une pastille de couleur-ton par source.
+  out.push(D(COLS.map((x) => at([x, b.y + b.d, 4.6])), { size: 0.5 }));
+  return out.join("");
+}
+function podDetail(c) {
+  const out = [], x = COLS[c], F = G.frameAlong([x, RAIL_Y, BLOCK_H + POD.h], [0, 0, 1]);
+  // Bague de sertissage, quatre vis sur le bord, repère de pose en croix au fond.
+  out.push(L(G.circleOf(F, 0, POD.r - 3, P), { tone: "faint" }));
+  out.push(D(G.dotsOf(F, 0, POD.r - 0.8, 6, P, { phase: Math.PI / 6, all: true }), { size: 0.34 }));
+  return out.join("");
+}
+function railDetail() {
+  const out = [], yf = RAIL_Y + 3.5;
+  // Raidisseurs, rivets, plaque et règle de course sur le rail.
+  for (let x = -100; x <= 100; x += 20) out.push(S(slab({ x: x - 0.8, y: yf, w: 1.6, d: 1.3, r: 0.2 }, TRUNK + 0.8, 4.4, 2, 0.15), { tone: "mid" }));
+  const rows = []; for (let x = -108; x <= 108; x += 8) rows.push(at([x, yf, TRUNK + 0.9]), at([x, yf, TRUNK + 5.1]));
+  out.push(D(rows, { size: 0.3 }));
+  const strip = { x: -108, y: RAIL_Y - 3.1, w: 216, d: 1.5, r: 0 };
+  out.push(S(slab(strip, TRUNK + 6, 0.5, 2, 0), { tone: "lo", crease: "none" }));
+  const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 6, 5, strip.y + 0.2, TRUNK + 6.5, [0.7, 1.2], P);
+  out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
+  // Colliers et semelles des montants.
+  for (const x of POSTS) { const b = x < -50 ? DESK_H : BLOCK_H; out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 13.2, w: 7.2, d: 7.2, r: 0.8 }, b, 2.2, 2, 0.3), { tone: "lo" })); out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 13.2, w: 7.2, d: 7.2, r: 0.8 }, TRUNK - 14, 2.2, 2, 0.3), { tone: "mid" })); }
+  out.push(D(POSTS.map((x) => at([x, RAIL_Y - 7.6, TRUNK])), { size: 0.36 }));
   return out.join("");
 }
 
@@ -98,7 +154,7 @@ const svg = k.figureSvg({
   label: "Un monorail de capsules. Le pupitre porte trois chargeurs : OT, équipement, bâtiment. Une recherche arrive ; le chariot du rail saisit la capsule de sa ligne, la mène à la station de la bonne source (GMAO, exports, SharePoint, Excel ou Power BI) et la pose dans sa cuvette ; le voyant de la station s'allume : le lien direct est établi, sans recopier les données.",
   body: [
     bench(P, PLATE, { strip: { x: -48, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 80, y: PLATE.y + PLATE.d - 15, w: 40, d: 11, r: 1.2 } }),
-    deskSvg(), blockSvg(), ...COLS.map((_, c) => stationSvg(c)), railSvg(),
+    deskSvg(), deskDetail(), blockSvg(), blockDetail(), ...COLS.map((_, c) => stationSvg(c) + podDetail(c)), railSvg(), railDetail(),
     `<g data-part="loaders"></g>`,
     `<g data-part="carrier">${carrierSvg()}</g>`, `<g data-part="fly"></g>`,
   ],

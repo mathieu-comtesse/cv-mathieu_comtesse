@@ -103,14 +103,54 @@ function envelopeSvg(over) {
   return k.solidSvg(k.slabOf(plan, 0, h, P, 2, 0.2), { tone: "hi", inner: k.lineSvg(flap + band, { tone: "lo" }) });
 }
 
+
+// ---------------------------------------------------------------- finitions
+function tankDetail(t, i) {
+  const out = [], f = front(FY);
+  // Liseré de tête sur les parois, tirants arrière, vis, robinet de vidange sur le socle.
+  out.push(S(slab({ x: t.x + 0.4, y: TY + 0.4, w: t.w - 0.8, d: 2.8, r: 0.4 }, WALL_TOP - 1.6, 1.6, 2, 0.2), { tone: "mid" }));
+  out.push(S(slab({ x: t.x + 0.4, y: TY + 0.4, w: 2.8, d: TD - 0.8, r: 0.4 }, WALL_TOP - 1.6, 1.6, 2, 0.2), { tone: "mid" }));
+  out.push(S(slab({ x: t.x + t.w - 3.2, y: TY + 0.4, w: 2.8, d: TD - 0.8, r: 0.4 }, WALL_TOP - 1.6, 1.6, 2, 0.2), { tone: "mid" }));
+  out.push(D([at([t.x + 2, TY + 2, WALL_TOP]), at([t.x + t.w - 2, TY + 2, WALL_TOP]), at([t.x + t.w - 2, FY - 3, WALL_TOP])], { size: 0.34 }));
+  const F = G.frameAlong([t.x + t.w - 8, FY, 3.6], [0, 1, 0]);
+  out.push(S(G.disc(0, 2.6, 1.7, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, 0, 2.6, 1.7, 10, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  out.push(S(G.disc(2.6, 3.4, 2.6, F, P), { tone: "hi" }));
+  void f; void i;
+  return out.join("");
+}
+function consoleDetail() {
+  const out = [], c = CONSOLE, f = right(c.x + c.w);
+  // Échelle du seuil autour du bouton (50 à 100 %), évents sur le flanc, plaque de série.
+  const from = -Math.PI * 0.6, span = Math.PI * 1.2, yf = c.y + c.d;
+  const pts = []; for (let n = 0; n <= 5; n++) { const a = from + n / 5 * span; pts.push([a, n]); }
+  const minor = [], major = [];
+  for (let n = 0; n <= 10; n++) { const a = from + n / 10 * span, r0 = KNOB.r + 2, r1 = KNOB.r + (n % 2 ? 3.4 : 4.6); (n % 2 ? minor : major).push(k.segment([KNOB.x + Math.sin(a) * r0, yf, KNOB.z + Math.cos(a) * r0], [KNOB.x + Math.sin(a) * r1, yf, KNOB.z + Math.cos(a) * r1], P)); }
+  out.push(L(minor.join(""), { tone: "lo" }), L(major.join(""), { tone: "mid" }));
+  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(c.y + 6 + i * 4.8) - 0.9, 6, -(c.y + 6 + i * 4.8) + 0.9, 22, 0.9, 3));
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  void pts;
+  return out.join("");
+}
+function trayDetail() {
+  const out = [], f = front(TRAY.y + TRAY.d);
+  // Une fenêtre par périmètre sur la lèvre du bac, vissée.
+  ["CS", "Locatif", "MEC", "PPTM", "GLOBAL"].forEach((name, i) => {
+    const cx = TANKS[i].cx, win = flat(cx - 9, 2, cx + 9, 6.2, 0.8);
+    out.push(`<g transform="${f}"><path class="iso-fill fig-window" d="${win}"/><path class="iso-line" data-tone="lo" d="${win}"/></g>`);
+    out.push(k.faceTextSvg(`${f} translate(${cx} -2.9)`, name, { size: 3, tone: "hi", anchor: "middle" }));
+    out.push(D([at([cx - 11, TRAY.y + TRAY.d, 4]), at([cx + 11, TRAY.y + TRAY.d, 4])], { size: 0.32 }));
+  });
+  return out.join("");
+}
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Cinq cuves jaugées sur un établi, une par périmètre : CS, Locatif, MEC, PPTM et GLOBAL. Chaque cuve se remplit avec la consommation des fonds, graduée en pourcentage ; un repère réglable marque le seuil. Quand le niveau l'atteint, le voyant s'allume et une enveloppe d'alerte sort du socle vers le bac ; au-delà de 100 %, le trop-plein déverse et une seconde enveloppe signale le dépassement.",
   body: [
     bench(P, PLATE, { strip: { x: -140, y: PLATE.y + PLATE.d - 13, w: 150, d: 7, r: 1 }, label: { x: 50, y: PLATE.y + PLATE.d - 15, w: 46, d: 11, r: 1.2 } }),
-    consoleSvg(),
-    ...TANKS.flatMap((t, i) => [tankBack(t, i), tankFront(t, i)]),
-    traySvg("back"), `<g data-part="mail"></g>`, traySvg("front"),
+    consoleSvg(), consoleDetail(),
+    ...TANKS.flatMap((t, i) => [tankBack(t, i), tankFront(t, i), tankDetail(t, i)]),
+    traySvg("back"), `<g data-part="mail"></g>`, traySvg("front"), trayDetail(),
   ],
 });
 

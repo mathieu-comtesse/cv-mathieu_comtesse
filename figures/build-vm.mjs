@@ -68,7 +68,7 @@ function padLamp() {
 const LEGS = [[-148, -30], [-148, 16], [148, -30], [148, 16]];
 function legsBack() {
   const out = [];
-  for (const [x, y] of byDepth(LEGS).slice(0, 2)) out.push(S(slab({ x: x - 3, y: y - 3, w: 6, d: 6, r: 0.8 }, 0, BZ - 6, 3, 0.5), { tone: "mid" }));
+  for (const [x, y] of LEGS.filter(([, ly]) => ly < 0)) out.push(S(slab({ x: x - 3, y: y - 3, w: 6, d: 6, r: 0.8 }, 0, BZ - 6, 3, 0.5), { tone: "mid" }));
   return out.join("");
 }
 function frameSvg() {
@@ -106,7 +106,13 @@ function trolleySvg(n) {
   out.push(S(G.disc(0, 5, 3.6, M, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(M, 0, 5, 3.6, 18, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
   out.push(S(G.disc(5, 6, 2.4, M, P), { tone: "hi" }));
   out.push(`<path class="iso-line" data-tone="lo" d="${k.segment([-w / 2 + 3, BEAM_Y + 9.9, BZ + 12], [w / 2 - 3, BEAM_Y + 9.9, BZ + 12], P)}"/>`);
-  return S(slab({ x: -w / 2, y: BEAM_Y - 2, w, d: 12, r: 1.2 }, BZ + 8.2, 0, 1, 0), { tone: "mid" }).slice(0, 0) + out.join("");
+  // Galets avant, boîte de jonction, presse-étoupe, frein du moteur, poulie et crochet.
+  for (const sx of [-7, 7]) { out.push(S(G.disc(5.6, 7.4, 2.6, G.frameAlong([sx, BY, BZ + 8.2], [0, 1, 0]), P), { tone: "lo" })); }
+  out.push(S(slab({ x: -9, y: BEAM_Y + 0.5, w: 7, d: 5, r: 0.6 }, BZ + 13.2, 4, 2, 0.3), { tone: "mid", inner: L(k.planOutline({ x: -8, y: BEAM_Y + 1.5, w: 5, d: 3, r: 0.4 }, BZ + 17.2, P, 2), { tone: "faint" }) }));
+  out.push(S(G.disc(0, 2, 1.1, G.frameAlong([-5.5, BY, BZ + 17.2], [0, 0, 1]), P), { tone: "lo" }));
+  out.push(D([at([-9.4, BEAM_Y + 10, BZ + 10]), at([9.4, BEAM_Y + 10, BZ + 10]), at([-9.4, BEAM_Y + 10, BZ + 14]), at([9.4, BEAM_Y + 10, BZ + 14])], { size: 0.32 }));
+  out.push(S(G.disc(0, 1.6, 2.2, G.frameAlong([0, BY, BZ + 3], [0, 1, 0]), P), { tone: "mid" }));
+  return out.join("");
 }
 function lampOf(n) { const [lx, ly] = at([0, BEAM_Y + 10, BZ + 13]); return `<circle class="fig-lamp" data-part="lamp-${n}" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`; }
 
@@ -127,12 +133,96 @@ function cardSvg(lit) {
   return S(slab(plan, 0, 0.8, 2, 0.25), lit ? { tone: "hi", lit: true } : { tone: "hi" }) + L(rules, { tone: "lo", free: true });
 }
 
+
+// ---------------------------------------------------------------- finitions : pieds, entretoises, nervures, plaques, évents
+function feetSvg() {
+  const out = [];
+  for (const [x, y] of byDepth(LEGS)) {
+    out.push(S(slab({ x: x - 6, y: y - 6, w: 12, d: 12, r: 1.4 }, 0, 2.4, 3, 0.5), { tone: "lo" }));
+    out.push(D(k.corners({ x: x - 6, y: y - 6, w: 12, d: 12 }, 1.8).map(([bx, by]) => at([bx, by, 2.4])), { size: 0.38 }));
+    out.push(L(k.ring(x, y, 4.4, 2.4, P, 16), { tone: "faint" }));
+  }
+  return out.join("");
+}
+function bracesSvg() {
+  const out = [];
+  for (const x of [-148, 148]) {
+    // Entretoise basse et collier de chaque montant, platine d'accrochage en tête.
+    out.push(S(slab({ x: x - 1.4, y: -27, w: 2.8, d: 41, r: 0.4 }, 34, 3, 2, 0.3), { tone: "mid" }));
+    out.push(D([at([x, 12, 37]), at([x, -24, 37])], { size: 0.36 }));
+    for (const y of [-30, 16]) {
+      out.push(S(slab({ x: x - 3.8, y: y - 3.8, w: 7.6, d: 7.6, r: 0.8 }, 12, 2.4, 2, 0.3), { tone: "lo" }));
+      out.push(S(slab({ x: x - 3.8, y: y - 3.8, w: 7.6, d: 7.6, r: 0.8 }, BZ - 20, 2.4, 2, 0.3), { tone: "lo" }));
+    }
+    // Platine de tête : quatre boulons sur la traverse.
+    out.push(D(k.corners({ x: x - 3, y: -30, w: 6, d: 52 }, 1.4).slice(0, 4).map(([bx, by]) => at([bx, by, BZ])), { size: 0.38 }));
+  }
+  return out.join("");
+}
+function beamDetail() {
+  const out = [], yf = BEAM_Y + 8;
+  // Raidisseurs soudés sur l'âme de la poutre, rivets haut et bas, plaque signalétique.
+  for (let x = -130; x <= 130; x += 20) out.push(S(slab({ x: x - 0.8, y: yf, w: 1.6, d: 1.4, r: 0.2 }, BZ + 0.8, 5.4, 2, 0.15), { tone: "mid" }));
+  const rows = [];
+  for (let x = -138; x <= 138; x += 10) rows.push(at([x, yf, BZ + 0.9]), at([x, yf, BZ + 6.1]));
+  out.push(D(rows, { size: 0.3 }));
+  const plate = { x: 112, y: yf, w: 20, d: 0.6, r: 0 };
+  out.push(S(slab(plate, BZ + 1.2, 4.6, 2, 0), { tone: "lo", crease: "none" }));
+  out.push(L([0.7, 0.5].map((w, i) => k.segment([116, yf + 0.6, BZ + 2.4 + i * 1.6], [116 + 14 * w, yf + 0.6, BZ + 2.4 + i * 1.6], P)).join(""), { tone: "lo", free: true }));
+  out.push(D([at([113.2, yf + 0.6, BZ + 3.5]), at([130.8, yf + 0.6, BZ + 3.5])], { size: 0.3 }));
+  // Règle de course sur le dessus : un trait tous les 10, un majeur tous les 50.
+  const strip = { x: -138, y: BEAM_Y + 0.8, w: 276, d: 1.6, r: 0 };
+  out.push(S(slab(strip, BZ + 7, 0.5, 2, 0), { tone: "lo", crease: "none" }));
+  const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 10, 5, strip.y + 0.2, BZ + 7.5, [0.8, 1.3], P);
+  out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
+  return out.join("");
+}
+function tableDetail() {
+  const out = [], d = TAB, f = front(d.y + d.d), r = right(d.x + d.w);
+  // Pieds réglables sous la table, évents et prise sur le flanc droit.
+  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(d.y + 8 + i * 5) - 1, 5, -(d.y + 8 + i * 5) + 1, 15, 1, 4));
+  out.push(`<g transform="${r}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  const sock = flat(-d.y - d.d + 9, 5, -d.y - d.d + 19, 13, 1.2);
+  out.push(`<g transform="${r}"><path class="iso-fill" d="${sock}"/><path class="iso-line" data-tone="lo" d="${sock}"/><path class="iso-line" data-tone="lo" d="M${(-d.y - d.d + 12).toFixed(1)} -9.2h1.2M${(-d.y - d.d + 16).toFixed(1)} -9.2h1.2"/></g>`);
+  // Poignées des tiroirs, charnières et rivets de la face avant.
+  out.push(D([-128, -62, -50, 14].flatMap((x) => [at([x, d.y + d.d, 6]), at([x, d.y + d.d, 14])]), { size: 0.34 }));
+  // Règle graduée sur le chant arrière de la table.
+  const strip = { x: -136, y: d.y + 2, w: 272, d: 3, r: 0 };
+  out.push(S(slab(strip, TH, 0.4, 2, 0), { tone: "lo", crease: "none" }));
+  const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 8, 5, strip.y + 0.4, TH + 0.4, [1, 1.8], P);
+  out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
+  void f;
+  return out.join("");
+}
+function trayDetail() {
+  const out = [];
+  for (const tray of [IN, OUT]) {
+    const w = tray.cols * tray.px + 6, dd = tray.rows * tray.py + 6, yf = tray.y + dd;
+    // Numéros de case : un trait par case sur la lèvre avant, deux rivets de fixation et deux pattes de maintien.
+    for (let c = 0; c < tray.cols; c++) out.push(S(slab({ x: tray.x + 3 + c * tray.px, y: yf - 0.6, w: 7, d: 0.6, r: 0 }, TH + 1, 2.4, 2, 0), { tone: "lo", crease: "none" }));
+    for (const x of [tray.x + 4, tray.x + w - 4]) out.push(S(slab({ x: x - 2, y: yf - 0.4, w: 4, d: 1.6, r: 0.4 }, TH + 4.4, 1.2, 2, 0.2), { tone: "mid" }));
+    out.push(D([at([tray.x + 2.2, tray.y + 0.8, TH + 1.6]), at([tray.x + w - 2.2, tray.y + 0.8, TH + 1.6])], { size: 0.32 }));
+  }
+  return out.join("");
+}
+function padDetail() {
+  const out = [], top = TH + PAD_H;
+  // Fente de lecture, trois boutons et lentille du lecteur sur le dessus du pupitre.
+  out.push(L(k.planOutline({ x: PAD.x + 4, y: PAD.y + 4, w: 14, d: 10, r: 1 }, top, P, 3), { tone: "lo" }));
+  for (let i = 0; i < 3; i++) {
+    const bx = PAD.x + 21 + i * 2.6;
+    out.push(S(k.cylinder(bx, PAD.y + 14.4, 0.9, top, 0.9, P, 10), { tone: "mid" }));
+  }
+  out.push(L(k.ring(PAD.x + 11, PAD.y + 9, 2.2, top, P, 16), { tone: "faint" }));
+  return out.join("");
+}
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Un pont roulant à deux chariots sur une seule poutre, avec une seule clé. Les demandes attendent dans le bac de gauche. Seul le chariot qui tient la clé roule : il relève la plus ancienne demande, la porte sur le pupitre de lecture, puis la pose dans l'historique ; un doublon part au bac des rebuts. Si le chariot 1 tombe en panne, la clé passe au chariot 2.",
   body: [
     bench(P, PLATE, { strip: { x: -150, y: PLATE.y + PLATE.d - 15, w: 200, d: 7, r: 1 }, label: { x: 76, y: PLATE.y + PLATE.d - 19, w: 46, d: 11, r: 1.2 } }),
-    tableSvg(), padSvg(), padLamp(), legsBack(), beamSvg(), frameSvg(),
+    tableSvg(), tableDetail(), trayDetail(), padSvg(), padDetail(), padLamp(), feetSvg(), legsBack(), beamSvg(), beamDetail(), frameSvg(), bracesSvg(),
     `<g data-part="trolley-0">${trolleySvg(0)}${lampOf(0)}</g>`, `<g data-part="trolley-1">${trolleySvg(1)}${lampOf(1)}</g>`,
     `<g data-part="key">${keySvg()}</g>`, `<g data-part="air"></g>`,
   ],

@@ -99,12 +99,12 @@ function backPanel() {
 }
 function gatesSvg() {
   // Trois tiroirs-trappes, un par verdict : fermés ils portent la bille, ouverts ils sortent vers l'avant.
-  return [1, 2, 3].map((kk) => `<g data-part="gate-${kk}">${S(prism(rampPoly(HX[kk] - GATE - 0.2, HX[kk] + GATE + 0.2, 2), Y0 + 0.4, Y1 - 0.4), { tone: "hi" })}</g>`).join("");
+  return [1, 2, 3].map((kk) => `<g data-part="gate-${kk}">${S(prism(rampPoly(HX[kk] - GATE - 0.2, HX[kk] + GATE + 0.2, 2), Y0 + 0.4, Y1 - 0.4), { tone: "hi" }) + S(G.disc(0, 3.2, 1.3, G.frameAlong([HX[kk], Y1 - 0.4, zs(HX[kk]) - 1.2], [0, 1, 0]), P), { tone: "mid" })}</g>`).join("");
 }
 function structure() {
   // Peint de gauche à droite : plus x est grand, plus l'objet est proche.
   const out = [];
-  out.push(backPanel());
+  out.push(backPanel(), panelDetail());
   for (let kk = 0; kk < 4; kk++) {
     out.push(divider(DIV_X[kk]));
     out.push(`<g data-part="pile-${kk}"></g>`);
@@ -156,10 +156,63 @@ function frontSvg() {
 const BALL = k.solidSvg(G.sphereOf([0, 0, 0], R, P), { tone: "hi", lit: true });
 const BALL_HI = k.solidSvg(G.sphereOf([0, 0, 0], R, P), { tone: "hi" });
 
+
+// ---------------------------------------------------------------- finitions
+function panelDetail() {
+  const out = [], yf = -5.6, f = front(yf);
+  // Rainure d'encadrement, vis d'angle, plaque de légende gravée et consoles de rampe.
+  out.push(`<g transform="${f}"><path class="iso-line" data-tone="faint" d="${flat(-58, TRAY_Z + 4, 58, BTOP - 12, 1.6, 4)}"/></g>`);
+  out.push(D([[-58, TRAY_Z + 4], [58, TRAY_Z + 4], [-58, BTOP - 12], [58, BTOP - 12]].map(([x, z]) => at([x, yf, z])), { size: 0.42 }));
+  const plate = flat(-52, BTOP - 30, -20, BTOP - 18, 1);
+  out.push(`<g transform="${f}"><path class="iso-fill" d="${plate}"/><path class="iso-line" data-tone="lo" d="${plate}"/></g>`);
+  out.push(k.faceTextSvg(`${f} translate(-36 ${-(BTOP - 26.4)})`, "CERFA v3", { size: 3.6, tone: "mid", anchor: "middle" }));
+  out.push(L([0, 1].map((i) => k.segment([-49 + i * 0, yf, BTOP - 21 - i * 2.4].map((v) => v), [-49 + (i ? 14 : 20), yf, BTOP - 21 - i * 2.4], P)).join(""), { tone: "lo", free: true }));
+  out.push(D([at([-50.6, yf, BTOP - 24]), at([-21.4, yf, BTOP - 24])], { size: 0.36 }));
+  // Consoles sous la rampe : une patte entre le panneau et chaque tronçon.
+  for (const [a, b] of SEG) { const x = (a + b) / 2; out.push(S(slab({ x: x - 1.2, y: -5.6, w: 2.4, d: 3.2, r: 0.3 }, zs(x) - 9, 6, 2, 0.2), { tone: "mid" })); }
+  return out.join("");
+}
+function chuteDetail() {
+  const out = [];
+  // Entretoises basses entre les parois de chaque goulotte et rivets de lèvre.
+  for (const hx of HX) {
+    out.push(S(slab({ x: hx - CH, y: Y0 - 0.2, w: 2 * CH, d: 1, r: 0.2 }, TRAY_Z + 31, 1.4, 2, 0.1), { tone: "mid" }));
+    out.push(D([at([hx - CH + 0.6, Y1, TRAY_Z + 38]), at([hx + CH - 0.6, Y1, TRAY_Z + 38])].slice(0, 0), { size: 0.3 }));
+  }
+  SEG.forEach(([a, b]) => { const dots = []; for (let x = a + 3; x < b - 2; x += 6) dots.push(at([x, Y1 + 2.6, zs(x) + 1.3])); out.push(D(dots, { size: 0.3 })); });
+  return out.join("");
+}
+function postDetail() {
+  const out = [];
+  for (const px of [-66.8, 63.2]) {
+    const xf = px + 3.6, f = right(xf);
+    out.push(`<g transform="${f}"><path class="iso-line" data-tone="faint" d="${flat(-11.5, TRAY_Z + 4, 9.5, BTOP - 14, 1, 3)}"/></g>`);
+    for (const z of [TRAY_Z + 12, BTOP - 24]) out.push(S(slab({ x: px - 0.5, y: -10.5, w: 4.6, d: 23, r: 0.6 }, z, 2.2, 2, 0.3), { tone: "mid" }));
+    out.push(D([at([px + 1.8, 12, TRAY_Z + 3]), at([px + 1.8, -8, TRAY_Z + 3])], { size: 0.38 }));
+  }
+  return out.join("");
+}
+function hopperDetail() {
+  const out = [], x1 = XR + 5.4;
+  // Bague de tête du chargeur, règle de niveau (un trait par tranche de 50 billes) sur sa paroi.
+  out.push(S(slab({ x: XR - 8.4, y: Y0 - 1, w: 16.6, d: Y1 - Y0 + 2, r: 0.6 }, TOP, 2.2, 2, 0.3), { tone: "mid" }));
+  const strip = { x: x1 + 1.8, y: Y0 - 0.4, w: 0.6, d: Y1 - Y0 + 0.4, r: 0 };
+  void strip;
+  const ticks = [];
+  for (let n = 1; n <= 8; n++) ticks.push(k.segment([x1 + 1.8, Y1 - 0.2, zs(XR) + n * 3.6], [x1 + 1.8, Y1 - 0.2 - (n % 4 ? 1.6 : 2.8), zs(XR) + n * 3.6], P));
+  out.push(L(ticks.join(""), { tone: "lo", free: true }));
+  return out.join("");
+}
+function cabinetDetail() {
+  const out = [], f = front(CAB.y + CAB.d);
+  void f;
+  return out.join("");
+}
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Un trieur à billes. Le chargeur en haut à droite tient le lot de fiches CERFA, une bille par fiche. Chaque bille roule sur une rampe inclinée sous une lampe de lecture ; la trappe de son verdict s'ouvre et elle tombe dans sa goulotte : conforme, doublon, non-conformité. Les retards roulent jusqu'au bout. Quatre bacs et quatre compteurs.",
-  body: [baseSvg(), cabinet(), sidePanel(), ...structure(), gatesSvg(), `<g data-part="roll"></g>`, hopper(), frontSvg()],
+  body: [baseSvg(), cabinet(), cabinetDetail(), sidePanel(), ...structure(), chuteDetail(), gatesSvg(), `<g data-part="roll"></g>`, hopper(), hopperDetail(), frontSvg(), postDetail()],
 });
 
 // ---------------------------------------------------------------- modèle et animation
