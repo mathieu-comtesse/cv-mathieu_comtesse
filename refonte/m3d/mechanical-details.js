@@ -103,7 +103,6 @@ function stationMusicbox(machine){
 export function enhanceMachine(name,machine) {
  if(name==='vm')return stationVM(machine);
  if(name==='finance')return stationFinance(machine);
- // La boîte à musique étant déjà dense, son banc d'essai complémentaire est
- // reporté à la prochaine passe de composition et d'optimisation.
+ if(name==='vrestudio-musicbox')return stationMusicbox(machine);
  return {update(){}};
 }
