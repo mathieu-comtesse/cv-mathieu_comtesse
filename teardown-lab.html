@@ -147,7 +147,9 @@ window.__teardownDebug=()=>({
   ready:!!current,
   modules:current?.machine?.zones?.length??0,
   geometry:current?.machine?(()=>{let n=0;current.machine.group.traverse(o=>{if(o.isMesh)n++;});return n;})():0,
-  mode:current?.teardown?.state?.mode??null
+  mode:current?.teardown?.state?.mode??null,
+  heroVisible:current?.machine?.group?.userData?.hero?.visible??null,
+  internalsVisible:current?.machine?.zones?.every(z=>z.visible)??null
 });
 let aimY=2.5;
 let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:25*Math.PI/180,dist:34},canvas=null,pointer=null;
