@@ -10,7 +10,7 @@ const NAME = 'Mathieu Comtesse';
 const JOB = 'Ingénieur Maintenance et Qualité';
 const SAME_AS = ['https://www.linkedin.com/in/mathieu-comtesse-a226a1433/', 'https://github.com/mathieu-comtesse'];
 const DEFAULT_IMG = `${SITE}/assets/og-home-blueprint.png`;
-const SKIP = new Set(['info.html', '404.html', 'atelier.html']); // info : redirection ; atelier : page technique
+const SKIP = new Set(['info.html', '404.html', 'atelier.html', 'teardown-lab.html']); // info : redirection ; atelier : page technique
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const unesc = (s) => s.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
