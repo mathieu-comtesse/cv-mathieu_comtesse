@@ -148,5 +148,16 @@ export function build() {
     const clock=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(Math.floor(minute%60)).padStart(2,'0');
     return clock+' · '+ok+' inscrits · '+dup+' doublon(s)'+(failed?' · VM arrêtée, reprise non activée':'');
   }
-  return { group: g, update, readout, scenarioStart, setScenario(id){activeScenario=['normal','duplicate','incident'].includes(id)?id:'normal';}, controls: { label: 'Heure', min: START, max: END, step: 30, fmt: (v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(Math.round(v % 60)).padStart(2, '0'), get: (t) => Math.min(END, START + (t % ((RECAP + 6 - START) / SPEED + HOLD)) * SPEED), seek: (v) => (v - START) / SPEED } };
+  function getMechanicalState(time) {
+    const cycle=(RECAP+6-START)/SPEED+HOLD;
+    const u=((time%cycle)+cycle)%cycle;
+    const raw=Math.min(START+u*SPEED,RECAP+6);
+    const failed=activeScenario==='incident'&&raw>=FAILURE_MINUTE;
+    const minute=failed?FAILURE_MINUTE:raw;
+    const current=DAYPLAN.find(c=>minute>=c.start&&minute<c.end);
+    return {failed,minute,duplicate:!!current?.rejected,busy:!!current,
+      accepted:DAYPLAN.filter(c=>!c.rejected&&c.end<=minute).length,
+      rejected:DAYPLAN.filter(c=>c.rejected&&c.end<=minute).length};
+  }
+  return { group: g, update, getMechanicalState, readout, scenarioStart, setScenario(id){activeScenario=['normal','duplicate','incident'].includes(id)?id:'normal';}, controls: { label: 'Heure', min: START, max: END, step: 30, fmt: (v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(Math.round(v % 60)).padStart(2, '0'), get: (t) => Math.min(END, START + (t % ((RECAP + 6 - START) / SPEED + HOLD)) * SPEED), seek: (v) => (v - START) / SPEED } };
 }
