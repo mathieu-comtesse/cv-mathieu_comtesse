@@ -19,33 +19,41 @@ const page = $('#page');
 $$('[data-section]').forEach((s) => { s.style.background = s.dataset.color; });
 
 /* ---------- courbure : le fond du chemin se relève comme une rampe, les côtés remontent (même calcul en GLSL et en JS) ---------- */
-const CURL = { k: 2.4, off: -3, R: 14, side: 0.03 }; // le relèvement commence à k·hauteur − off mètres devant la caméra
-THREE.ShaderChunk.common += `
+// La feuille ne se plie pas : elle se cintre de façon continue. Au-delà de d0 devant la caméra, la hauteur croît en t²/2R
+// (la pente augmente doucement jusqu'à presque la verticale au loin) ; les côtés remontent aussi, comme une gouttière.
+const CURL = { k: 2.4, off: 12, R: 20, side: 0.035 };
+const CURL_GLSL = `
 vec4 curlW( vec4 w ) {
-  float sx = max( abs( w.x ) - ${(HALF + 1).toFixed(1)}, 0.0 ); w.y += ${CURL.side} * sx * sx;
+  float sx = max( abs( w.x ) - ${(HALF + 0.6).toFixed(2)}, 0.0 ); w.y += ${CURL.side} * sx * sx;
   float d0 = ${CURL.k.toFixed(2)} * cameraPosition.y - ${CURL.off.toFixed(1)};
-  float d = cameraPosition.z - w.z - d0;
-  if ( d > 0.0 ) {
-    float th = min( d / ${CURL.R.toFixed(1)}, 1.5708 ), rest = max( d - ${CURL.R.toFixed(1)} * 1.5708, 0.0 ), h = w.y;
-    w.z = cameraPosition.z - d0 - ${CURL.R.toFixed(1)} * sin( th ) + h * sin( th );
-    w.y = ${CURL.R.toFixed(1)} * ( 1.0 - cos( th ) ) + rest + h * cos( th );
-  }
+  float t = max( cameraPosition.z - w.z - d0, 0.0 ), h = w.y, s = t / ${CURL.R.toFixed(1)}, c = inversesqrt( 1.0 + s * s );
+  w.y = t * t / ${(2 * CURL.R).toFixed(1)} + h * c;
+  w.z += h * s * c;
   return w;
-}
-`;
-THREE.ShaderChunk.project_vertex = THREE.ShaderChunk.project_vertex.replace('mvPosition = modelViewMatrix * mvPosition;', 'mvPosition = viewMatrix * curlW( modelMatrix * mvPosition );');
-THREE.ShaderChunk.sprite_vert = THREE.ShaderChunk.sprite_vert.replace('vec4 mvPosition = modelViewMatrix[ 3 ];', 'vec4 mvPosition = viewMatrix * curlW( modelMatrix[ 3 ] );');
-THREE.ShaderLib.sprite.vertexShader = THREE.ShaderChunk.sprite_vert;
+}`;
 function curlJS(v, cam) {
-  const sx = Math.max(Math.abs(v.x) - (HALF + 1), 0); v.y += CURL.side * sx * sx;
-  const d0 = CURL.k * cam.y - CURL.off, d = cam.z - v.z - d0;
-  if (d > 0) {
-    const th = Math.min(d / CURL.R, 1.5708), rest = Math.max(d - CURL.R * 1.5708, 0), h = v.y;
-    v.z = cam.z - d0 - CURL.R * Math.sin(th) + h * Math.sin(th);
-    v.y = CURL.R * (1 - Math.cos(th)) + rest + h * Math.cos(th);
-  }
+  const sx = Math.max(Math.abs(v.x) - (HALF + 0.6), 0); v.y += CURL.side * sx * sx;
+  const d0 = CURL.k * cam.y - CURL.off, t = Math.max(cam.z - v.z - d0, 0), h = v.y, sl = t / CURL.R, c = 1 / Math.sqrt(1 + sl * sl);
+  v.y = t * t / (2 * CURL.R) + h * c; v.z += h * sl * c;
   return v;
 }
+const PROJECT = THREE.ShaderChunk.project_vertex.replace('mvPosition = modelViewMatrix * mvPosition;', 'mvPosition = viewMatrix * curlW( modelMatrix * mvPosition );');
+// un seul onBeforeCompile par matériau : courbure + options (linéarisation HTML-in-Canvas, découpe du plan blueprint)
+function patch(mat) {
+  if (mat.userData.pc) return; mat.userData.pc = true;
+  mat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + CURL_GLSL)
+      .replace('#include <project_vertex>', PROJECT)
+      .replace('vec4 mvPosition = modelViewMatrix[ 3 ];', 'vec4 mvPosition = viewMatrix * curlW( modelMatrix[ 3 ] );');
+    let f = '';
+    if (mat.userData.lin) f += '\n diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));';
+    if (mat.userData.clip) f += '\n' + mat.userData.clip;
+    if (f) sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>' + f);
+  };
+  mat.customProgramCacheKey = () => 'pc' + (mat.userData.lin ? 'L' : '') + (mat.userData.clip ? 'C' + mat.userData.clip.length : '');
+  mat.needsUpdate = true;
+}
+function patchTree(root) { root.traverse((o) => { const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach(patch); }); }
 
 /* ---------- sans WebGL, la page reste une page ---------- */
 let renderer = null;
@@ -54,7 +62,7 @@ if (renderer) await start();
 
 async function start() {
   const canvas = renderer.domElement;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   const HIC = 'texElementImage2D' in renderer.getContext() && 'requestPaint' in canvas;
   document.documentElement.dataset.htmlInCanvas = HIC;
   await Promise.all(['500 22px Inter', 'italic 400 16px Inter', '700 68px Inter', '500 12px iAWriterQuattroV'].map((f) => document.fonts.load(f))).catch(() => {});
@@ -74,22 +82,25 @@ async function start() {
   const white = (o = 0.4) => new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: o });
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
+  // toute surface est découpée tous les 40 cm pour suivre la courbure
+  const N = (d) => Math.max(1, Math.ceil(d / 0.4));
+  const plane = (w, d) => new THREE.PlaneGeometry(w, d, 1, N(d));
   /* sections : bandes de couleur */
   const sections = $$('[data-section]').map((el) => ({ el, name: el.dataset.section, color: el.dataset.color, r: rectOf(el) }));
   for (const s of sections) {
-    const g = W(s.r), m = new THREE.Mesh(new THREE.PlaneGeometry(g.w, g.d), new THREE.MeshBasicMaterial({ color: s.color }));
+    const g = W(s.r), m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ color: s.color }));
     m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0, g.cz); scene.add(m);
   }
   const endZ = PAGE_H / PXM; // le haut de la page est au loin (z = 0), la suite arrive vers la caméra
-  { const tail = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, 60), new THREE.MeshBasicMaterial({ color: 0x141414 })); tail.rotation.x = -Math.PI / 2; tail.position.set(0, 0, endZ + 30); scene.add(tail); }
-  for (const sx of [-HALF, HALF]) scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(sx, 0.01, -60), new THREE.Vector3(sx, 0.01, endZ + 60)]), white(0.7)));
+  { const tail = new THREE.Mesh(plane(HALF * 2, 60), new THREE.MeshBasicMaterial({ color: 0x141414 })); tail.rotation.x = -Math.PI / 2; tail.position.set(0, 0, endZ + 30); scene.add(tail); }
+  for (const sx of [-HALF, HALF]) { const pts = []; for (let z = -60; z <= endZ + 60; z += 0.5) pts.push(new THREE.Vector3(sx, 0.01, z)); scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), white(0.7))); }
 
   // plan blueprint (cercles, axes, règle) de l'accueil du site, posé sur la page d'accueil
   for (const el of $$('[data-blueprint]')) {
     const g = W(rectOf(el)), t = new THREE.CanvasTexture(drawMat(2048)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-    const s = Math.max(g.w, g.d), m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, depthWrite: false }));
+    const s = Math.max(g.w, g.d), m = new THREE.Mesh(new THREE.PlaneGeometry(s, s, 1, N(s)), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, depthWrite: false }));
     m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0.005, g.cz); scene.add(m);
-    m.material.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>\n if (abs(vMapUv.x - 0.5) * ${s.toFixed(2)} > ${(g.w / 2).toFixed(2)} || abs(vMapUv.y - 0.5) * ${s.toFixed(2)} > ${(g.d / 2).toFixed(2)}) discard;`); };
+    m.material.userData.clip = `if (abs(vMapUv.x - 0.5) * ${s.toFixed(2)} > ${(g.w / 2).toFixed(2)} || abs(vMapUv.y - 0.5) * ${s.toFixed(2)} > ${(g.d / 2).toFixed(2)}) discard;`;
   }
 
   /* décor : arcs, bâtiments filaires, cotes, formules */
@@ -99,7 +110,13 @@ async function start() {
     for (let j = 0; j <= 64; j++) { const a = a0 + sp * j / 64; pts.push(new THREE.Vector3(cx + Math.cos(a) * r, 0.02, cz + Math.sin(a) * r)); }
     scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), white(0.28)));
   }
-  const grid = new THREE.GridHelper(400, 100, 0x262626, 0x161616); grid.position.set(0, -0.02, (Z0 + Z1) / 2); grid.scale.set(1, 1, (Z1 - Z0 + 100) / 400); scene.add(grid);
+  { // grille du sol, en segments courts pour se courber avec la feuille
+    const v = [], A = Z0 - 40, B = Z1 + 40;
+    for (let x = -60; x <= 60; x += 4) for (let z = A; z < B; z += 1) v.push(x, -0.02, z, x, -0.02, z + 1);
+    for (let z = Math.ceil(A / 4) * 4; z < B; z += 4) for (let x = -60; x < 60; x += 1) v.push(x, -0.02, z, x + 1, -0.02, z);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+    scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x1d1d1d })));
+  }
   const label = (text, { w = 3, h = 0.6, font = '400 26px iAWriterQuattroV, monospace', color = '#cfd3da', bg = null, op = 0.85 } = {}) => {
     const c = document.createElement('canvas'); c.width = Math.round(w * 90); c.height = Math.round(h * 90); const g = c.getContext('2d');
     if (bg) { g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); }
@@ -107,19 +124,9 @@ async function start() {
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, opacity: op, depthWrite: false, fog: false })); sp.scale.set(w, h, 1); return sp;
   };
-  const edgeW = white(0.5), blackM = new THREE.MeshBasicMaterial({ color: 0x050505 });
   const FORM = ['y = sin(2πx + φ)', 'x = cos φ', 'eᵗ = Σ tⁿ / n!', 'dx/dt = x', 'y = e^(1 − (x − μ)²)', 'φ = 0,86', 'θ = 54,6°', 'd/dx eˣ = eˣ'];
-  for (let z = Z0; z < Z1; z += 8) for (const side of [-1, 1]) {
-    if (rnd() < 0.7) {
-      const x = side * (HALF + 3 + rnd() * 9), n = 2 + Math.floor(rnd() * 4);
-      for (let i = 0; i < n; i++) {
-        const w = 0.8 + rnd() * 1.8, h = 1 + rnd() * 4, d = 0.8 + rnd() * 1.8, geo = new THREE.BoxGeometry(w, h, d), m = new THREE.Mesh(geo, blackM);
-        m.position.set(x + (rnd() - 0.5) * 3, h / 2, z + (rnd() - 0.5) * 3); scene.add(m);
-        const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeW); e.position.copy(m.position); scene.add(e);
-      }
-      if (rnd() < 0.6) { const t = label((0.2 + Math.floor(rnd() * 15) / 10).toFixed(1).replace('.', ',') + ' m', { w: 1.4, h: 0.4 }); t.position.set(x, 0.2, z + 2); scene.add(t); }
-    }
-    if (rnd() < 0.2) { const f = label(FORM[Math.floor(rnd() * FORM.length)], { w: 4.2, h: 0.55 }); f.position.set(side * (HALF + 4 + rnd() * 8), 0.2, z); scene.add(f); }
+  for (let z = Z0; z < Z1; z += 9) for (const side of [-1, 1]) if (rnd() < 0.3) {
+    const f = label(FORM[Math.floor(rnd() * FORM.length)], { w: 4.2, h: 0.55 }); f.position.set(side * (HALF + 3 + rnd() * 7), 0.2, z); scene.add(f);
   }
 
   /* éléments de la page → objets 3D */
@@ -129,7 +136,7 @@ async function start() {
   const topMat = () => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, color: 0xffffff, opacity: 1 });
   for (const el of $$('[data-box]')) {
     const r = rectOf(el), g = W(r), h = parseFloat(el.dataset.box) || 0.4, mat = topMat();
-    const m = new THREE.Mesh(new THREE.BoxGeometry(g.w, h, g.d), [glassSide, glassSide, mat, glassSide, glassSide, glassSide]);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(g.w, h, g.d, 1, 1, N(g.d)), [glassSide, glassSide, mat, glassSide, glassSide, glassSide]);
     m.position.set(g.cx, h / 2, g.cz); m.renderOrder = 2; scene.add(m);
     const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), edgeMat); e.position.copy(m.position); scene.add(e);
     items.push({ el, r, mats: [mat], top: h, art: el.closest('.pc-proj') });
@@ -140,7 +147,7 @@ async function start() {
     const group = new THREE.Group(); group.position.set(g.cx, 0, g.cz); scene.add(group);
     for (let k = 0; k < layers; k++) {
       const mat = topMat(); if (layers > 1 && k < layers - 1) mat.color.setScalar(0.45 + 0.4 * k / layers);
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(g.w, g.d), mat); m.rotation.x = -Math.PI / 2; m.position.y = 0.012 + k * 0.045; m.renderOrder = 3 + k;
+      const m = new THREE.Mesh(plane(g.w, g.d), mat); m.rotation.x = -Math.PI / 2; m.position.y = 0.012 + k * 0.045; m.renderOrder = 3 + k;
       group.add(m); mats.push(mat);
     }
     const it = { el, r, mats, group, top: 0, art: el.closest('.pc-proj'), float: 'float' in el.dataset, step: 'step' in el.dataset };
@@ -193,12 +200,12 @@ async function start() {
   const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-9, 16, 8); scene.add(sun);
   const machines = [];
   for (const art of $$('[data-fig]')) {
-    const r = rectOf(art), side = rnd() < 0.5 ? -1 : 1, x = side * (HALF + 3.5 + rnd() * 8), z = (r.y + rnd() * r.h) / PXM, rot = (rnd() - 0.5) * 1.6, sc = 9 + rnd() * 6;
+    const r = rectOf(art), side = rnd() < 0.5 ? -1 : 1, sc = 3.2 + rnd() * 1.6, x = side * (HALF + 0.9 + sc / 2 + rnd() * 1.8), z = (r.y + (0.15 + rnd() * 0.5) * r.h) / PXM, rot = side * (0.5 + rnd() * 0.5);
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); g.rotation.y = rot; scene.add(g);
       const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
-      g.position.set(x - c.x, -box.min.y, z - c.z); machines.push({ m, z });
+      g.position.set(x - c.x, -box.min.y, z - c.z); patchTree(g); machines.push({ m, z });
     }).catch((e) => console.warn('machine indisponible', mod, e));
   }
 
@@ -239,7 +246,7 @@ async function start() {
   const ticks = []; for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'tick'; $('#ticks').append(d); ticks.push(d); }
 
   /* textures : HTML-in-Canvas (l'élément vivant) ou image de la section */
-  const linearize = (mat) => { mat.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));'); }; mat.customProgramCacheKey = () => 'hic'; };
+  const linearize = (mat) => { mat.userData.lin = true; mat.needsUpdate = true; };
   if (HIC) {
     canvas.setAttribute('layoutsubtree', 'true');
     const byEl = new Map();
@@ -321,9 +328,12 @@ async function start() {
   /* boucle */
   const ease = (u) => u * u * (3 - 2 * u);
   const flatPos = new THREE.Vector3(), runPos = new THREE.Vector3(), flatLook = new THREE.Vector3(), runLook = new THREE.Vector3(), look = new THREE.Vector3();
+  let frameN = 0, sSm = scrollY, last = performance.now(), dtS = 0;
   function frame(now) {
     requestAnimationFrame(frame);
-    const s = scrollY, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
+    dtS = Math.min(0.05, (now - last) / 1000); last = now;
+    sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * 7)); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
+    const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
     const H = innerHeight, focusZ = (s + H / 2) / PXM;
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
     const fovFlat = 30, dist = (H / PXM / 2) / Math.tan(fovFlat / 2 * Math.PI / 180);
@@ -332,6 +342,7 @@ async function start() {
     camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
     camera.fov = fovFlat + (62 - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
+    if (!HIC) page.style.transform = `translateY(${(scrollY - s).toFixed(2)}px)`;
     // étapes de « Comment ça marche » : elles s'élèvent et se tournent vers le lecteur
     for (const it of items) if (it.step && it.dir) {
       const u = Math.max(0, Math.min(1, (now - it.t0) / 600)), v = it.dir > 0 ? ease(u) : 1 - ease(u);
@@ -341,6 +352,7 @@ async function start() {
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
     for (const k of machines) if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
     postMat.uniforms.amt.value = e;
+    if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
     overlay(e, focusZ, s);
   }
