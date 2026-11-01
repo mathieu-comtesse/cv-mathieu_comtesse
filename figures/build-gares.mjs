@@ -104,7 +104,9 @@ function gaugeFront(cx, wid, y, z0, key, lamp = false) {
     out.push(S(k.cylinder(cx, yc, 2.2, z0 + 2 + H + 5, 1.8, P, 18), { tone: "mid" }));
     out.push(`<circle class="fig-lamp" data-part="${key}-lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`);
   }
-  if (key.startsWith("col")) out.push(display(front(yf + 0.6), flat(cx - 5.6, z0 + SL + 8.4, cx + 5.6, z0 + SL + 12.8, 0.8), { part: key.replace("col", "score"), x: cx, y: -(z0 + SL + 9.4), size: 3.6, text: "000" }));
+  // Étiquette collée sur le verre, centrée sur le tube : le score reste à l'intérieur de son éprouvette.
+  if (key.startsWith("col")) out.push(display(front(yf + 0.35), flat(cx - 4.6, z0 + SL * 0.56, cx + 4.6, z0 + SL * 0.56 + 5, 0.7), { part: key.replace("col", "score"), x: cx, y: -(z0 + SL * 0.56 + 1.4), size: 3.4, text: "000" }));
+  if (key.startsWith("jar")) out.push(display(front(yf + 0.35), flat(cx - 5.4, z0 + SL * 0.56, cx + 5.4, z0 + SL * 0.56 + 5, 0.7), { part: "pct-" + key.slice(4), x: cx, y: -(z0 + SL * 0.56 + 1.4), size: 3.2, text: "50 %" }));
   return out.join("");
 }
 function wallDetail() {
@@ -178,7 +180,7 @@ const rank = (wt) => STATIONS.map(([n, c, m], i) => ({ n, i, s: Math.round(wt * 
 let top = rank(w);
 const level = Array.from({ length: ROWS }, (_, r) => top[r].s), jars = [w, 1 - w];
 const cols = Array.from({ length: ROWS }, (_, r) => $("col-" + r)), jarGroups = [$("jar-0"), $("jar-1")];
-const names = Array.from({ length: ROWS }, (_, r) => $("name-" + r)), scores = Array.from({ length: ROWS }, (_, r) => $("score-" + r)), lamp = $("col-0-lamp");
+const pcts = [$("pct-0"), $("pct-1")], names = Array.from({ length: ROWS }, (_, r) => $("name-" + r)), scores = Array.from({ length: ROWS }, (_, r) => $("score-" + r)), lamp = $("col-0-lamp");
 // Le liquide : une plaque fine qui monte dans la colonne (la première en accent).
 const liquid = (cx, wid, y, z0, frac, lit) => frac < 0.004 ? "" : solidSvg(cylinder(cx, y + GAUGE.d / 2, wid / 2 - 2, z0 + 2, Math.max(0.6, frac * SL), P, 28), { tone: "hi", className: "fig-liquid" });
 function pointer() {
@@ -199,6 +201,7 @@ function draw(dt) {
     text(names[r], top[r].n); text(scores[r], String(top[r].s).padStart(3, " "));
   }
   html(ptr, pointer());
+  text(pcts[0], Math.round(jars[0] * 100) + " %"); text(pcts[1], Math.round(jars[1] * 100) + " %");
   attr(lamp, "data-on", true);
   const pc = Math.round(w * 100);
   say(pc + " % conformité · " + (100 - pc) + " % maintenance · 1re " + top[0].n + " · " + top[0].s + " pts");
