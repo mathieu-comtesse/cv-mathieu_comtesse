@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vue spatiale (version de test) · Mathieu Comtesse</title>
+<meta name="description" content="Version de test : les réalisations de Mathieu Comtesse, ingénieur maintenance et qualité, explorées dans un blueprint en trois dimensions.">
+<meta name="robots" content="noindex,follow">
+<meta name="theme-color" content="#07090c">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="refonte/rf.css?v=mvp040j2">
+<link rel="stylesheet" href="spatial/spatial.css?v=sp1">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="refonte/fonts/InstrumentSerif-Regular.woff2">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<script type="module" src="spatial/main.js?v=sp1"></script>
+</head>
+<body class="rf sp">
+<a class="sp-skip" href="#sp-index">Aller à l’index des réalisations</a>
+<header class="sp-top" data-sp-avoid>
+  <a class="sp-brand rf-mono" href="index.html" aria-label="Retour à la pièce d’accueil">Comtesse · plan</a>
+  <nav class="sp-menu" aria-label="Navigation directe">
+    <button type="button" id="sp-open-index" aria-controls="sp-index" aria-expanded="false">Index</button>
+    <button type="button" data-goto="experiences">Explorations</button>
+    <button type="button" data-goto="parcours">Parcours</button>
+    <a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">CV</a>
+    <button type="button" data-goto="parcours" data-contact>Contact</button>
+    <button type="button" id="sp-mode" aria-pressed="false">Vue liste</button>
+  </nav>
+</header>
+
+<canvas id="sp-canvas" aria-hidden="true"></canvas>
+<div id="sp-notes" class="sp-notes"></div>
+
+<section class="sp-intro" id="sp-intro" aria-labelledby="sp-h1">
+  <p class="rf-mono sp-tag">Conçu pour questionner l’évidence</p>
+  <h1 id="sp-h1"><span>Les bons processus ne naissent pas.</span> <em>Ils se construisent.</em></h1>
+  <p class="sp-role">Ingénieur Maintenance et Qualité <span>· alternance, Master 2 MQSE</span></p>
+  <p class="sp-lead">Amélioration continue, prévention des risques, automatisation et intelligence artificielle appliquée aux processus métier.</p>
+  <p class="sp-lead sp-lead2">Je conçois des solutions qui simplifient le travail des équipes, fiabilisent les données et produisent des résultats mesurables.</p>
+  <nav class="sp-actions" aria-label="Accès directs">
+    <button type="button" data-goto="vre">Explorer mes réalisations</button>
+    <a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">Consulter mon CV (PDF)</a>
+    <a href="experiences.html">Découvrir mon parcours</a>
+    <button type="button" data-goto="parcours" data-contact>Me contacter</button>
+  </nav>
+  <p class="rf-mono sp-hint" id="sp-hint">Molette ou glissement : avancer dans le plan · cliquer une machine : l’inspecter</p>
+</section>
+
+<aside class="rf-ruler" id="rf-ruler" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Incliner la machine sélectionnée (glisser, flèches haut et bas, double clic ou Origine pour revenir à l’orientation d’origine)" hidden>
+  <i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Incliner</span>
+</aside>
+<aside class="rf-ruler rf-ruler--h" id="rf-ruler-h" role="slider" tabindex="0" aria-orientation="horizontal" aria-label="Tourner la machine sélectionnée (glisser, flèches gauche et droite, double clic ou Origine pour revenir à l’orientation d’origine)" hidden>
+  <i class="rf-ruler-mark" aria-hidden="true"></i><div class="rf-ruler-track" id="rf-track-h"></div><span class="rf-ruler-label rf-mono" aria-hidden="true">Tourner</span>
+</aside>
+
+<div class="sp-inspect" id="sp-inspect" data-sp-avoid hidden>
+  <button type="button" id="sp-reset-view">Orientation d’origine</button>
+  <button type="button" id="sp-close-inspect">Quitter l’inspection</button>
+</div>
+
+<ol class="sp-rail" id="sp-rail" aria-label="Position dans le plan" data-sp-avoid></ol>
+
+<main id="sp-index" class="sp-index" aria-label="Index des réalisations" hidden>
+  <div class="sp-index-in">
+    <h2>Index des réalisations</h2>
+    <p class="sp-index-lead">Toutes les réalisations, accessibles sans le rendu 3D. Chaque entrée ouvre la page détaillée.</p>
+    <div id="sp-index-list"></div>
+  </div>
+</main>
+
+<aside class="sp-panel" id="sp-panel" role="dialog" aria-modal="false" aria-label="Fiche du projet" data-sp-avoid hidden></aside>
+<div class="sp-hubcards" id="sp-hubcards"></div>
+<pre class="sp-debug rf-mono" id="sp-debug" hidden></pre>
+<div class="sp-live" id="sp-live" role="status" aria-live="polite"></div>
+<noscript><p class="sp-ns">La vue spatiale demande JavaScript. L’essentiel reste accessible : <a href="experiences.html">parcours et expériences</a>, <a href="gains.html">gains</a>, <a href="blog.html">projets détaillés</a> et <a href="assets/cv-ats-mathieu-comtesse.pdf">CV (PDF)</a>.</p></noscript>
+</body>
+</html>
