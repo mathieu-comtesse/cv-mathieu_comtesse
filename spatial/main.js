@@ -253,6 +253,10 @@ function init() {
         if (hide !== roomHidden) { roomHidden = hide; stage.classList.toggle('sp-room-hidden', hide); }
         roomVisibleNow = !hide; if (!hide) roomEl.style.opacity = fade.toFixed(3);
         stage.classList.toggle('sp-room-off', u > 350 || !!selectedId);
+        // la bulle de pensée est un élément DOM suivi par la pièce : on la masque quand la pièce sort du cadre
+        const rt = room.target; roomTargetV ??= new (world.cam.constructor)(); roomTargetV.set(rt.x, rt.y, rt.z); const pa = world.project(roomTargetV, roomProj);
+        const onScreen = pa.on && pa.x > -80 && pa.x < innerWidth + 80 && pa.y > -80 && pa.y < innerHeight + 80;
+        stage.classList.toggle('sp-room-offscreen', !onScreen);
       }
       // règles : accueil (vue de la pièce), machine sélectionnée, ou aucune
       const mode = selectedId ? (world.machines.get(selectedId) ? 'machine' : 'none') : (bridge && roomVisibleNow && u < 350 ? 'room' : 'none');
@@ -269,7 +273,7 @@ function init() {
       if (now - lastSave > 1500 && scroll.moving === false) { lastSave = now; saveState(); }
       if (qs.has('debug')) { const s = perf.stats; $('sp-debug').hidden = false; $('sp-debug').textContent = `u ${u.toFixed(0)} / ${timeline.length.toFixed(0)} · état ${state.state} · fov ${world.camera.fov.toFixed(1)}\nprofil ${s.profile} · ${s.fps} i/s mesurées · ${s.frameMs} ms (moy.) · pire ${s.worstMs} ms · ${s.frames} images\nWebGL init ${world.stats.webglInitMs} ms · modèles ${JSON.stringify(world.stats.modelMs)}\nHTML-in-Canvas : ${hic.status}\nGPU : ${s.gpu || 'inconnu'}\ndraw calls ${world.renderer.info.render.calls} · triangles ${world.renderer.info.render.triangles}`; }
     }
-    let paused = false, vnow = 0, roomVisibleNow = true;
+    let paused = false, vnow = 0, roomVisibleNow = true, roomTargetV = null; const roomProj = { x: 0, y: 0, z: 0, on: false };
     function loop(now) {
       requestAnimationFrame(loop);
       const raw = Math.max(0, now - last), dt = Math.min(.05, raw / 1000); last = now;
