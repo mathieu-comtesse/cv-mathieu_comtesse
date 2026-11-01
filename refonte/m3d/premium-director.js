@@ -282,6 +282,10 @@ export function directMachine(name,machine){
  // The previous factory plinth, five linear machine locations and associated
  // straight documentary stream are removed. Modules retain their real internals.
  const root=machine.group;
+ const backstage=new THREE.Group();backstage.name='Backstage_Mechanical_Stations';root.add(backstage);
+ const hero=new THREE.Group();hero.name='Hero_Sculptural_Envelope';root.add(hero);
+ root.userData.backstage=backstage;
+ root.userData.hero=hero;
  for(const child of [...root.children])if(!machine.zones.includes(child))root.remove(child);
  const animations=[],particles=[];
  const animate=fn=>animations.push(fn);
@@ -291,16 +295,18 @@ export function directMachine(name,machine){
   group.position.set(...position);
   const d=new THREE.Vector3(position[0]*.14,24+i*4,position[2]*.2);
   group.userData.explode=d;
-  ringIsland(root,position[0],position[1],position[2],i,name);
+  ringIsland(backstage,position[0],position[1],position[2],i,name);
  });
  // A floating, curved choreography instead of the previous straight pipe.
  for(let i=0;i<4;i++){
   const p=profile.layout[i],q=profile.layout[i+1];
-  floatingRoute(root,[p[0],p[1]+56,p[2]],[q[0],q[1]+56,q[2]],name,i,particles);
+  floatingRoute(backstage,[p[0],p[1]+56,p[2]],[q[0],q[1]+56,q[2]],name,i,particles);
  }
- sculpture(name,root,profile,animate);
+ sculpture(name,hero,profile,animate);
  const signature=new THREE.Group();signature.name='ArtDirection_'+profile.type;
  machine.title=profile.title;
+ hero.userData.presentation='assembled';
+ backstage.userData.presentation='opened';
  root.userData.themeName=profile.title;
  root.userData.themeType=profile.type;
  const original=machine.update.bind(machine);
