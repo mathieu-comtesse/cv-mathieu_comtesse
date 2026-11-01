@@ -28,8 +28,8 @@ export function mountTeardownUI(machine,{onSeekTime=()=>{},onPause=()=>{}}={}) {
       '<div class="rf-td-scenarios" role="group" aria-label="Scénarios de traitement">',
       ...scenarioButtons.map(s=>'<button type="button" data-scenario="'+s.id+'" aria-pressed="'+String(s.id==='normal')+'">'+esc(s.label)+'</button>'),
       '</div><p class="rf-td-note" data-note></p>',
-      '<div class="rf-td-readout" aria-live="off"><span data-reading></span></div>'
     ]:[]),
+    '<div class="rf-td-readout" aria-live="off"><span data-reading></span></div>',
     '<div class="rf-td-bottom"><button type="button" data-td="tour" aria-pressed="false">Visite automatique</button><button type="button" data-td="pause" aria-pressed="false">Pause</button><button type="button" data-td="reset">Réinitialiser</button></div>',
     '<p class="rf-td-disclaimer">La visualisation décrit le fonctionnement du projet. Elle n’exécute pas les traitements métier ni les connexions SharePoint.</p>',
     '</div>'
