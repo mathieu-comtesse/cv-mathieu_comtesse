@@ -190,9 +190,11 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   /* --- barre latérale : la case mobile suit le défilement (ressort 45 / 20) --- */
   const rail = mountRail(root, items, steps);
   let pos = [];
-  const measure = () => { rail.layout(); pos = (opt.tops?.() || steps.map((li) => li.getBoundingClientRect().top + scrollY)).map((t) => t - innerHeight * .55); };
+  // dans un cadre relevé du parcours 3D, c'est le défilement du cadre qui fait avancer la case
+  const view = () => { const S = root.closest('.pc-lift-sc'); return S ? { S, y: S.scrollTop, h: S.clientHeight, top: S.getBoundingClientRect().top - S.scrollTop } : null; };
+  const measure = () => { rail.layout(); const v = view(); pos = (v ? steps.map((li) => li.getBoundingClientRect().top - v.top) : (opt.tops?.() || steps.map((li) => li.getBoundingClientRect().top + scrollY))).map((t) => t - (v ? v.h : innerHeight) * .55); };
   const target = () => {
-    const y = scrollY, n = pos.length;
+    const v = view(), y = v ? v.y : scrollY, n = pos.length;
     if (y <= pos[0]) return 0; if (y >= pos[n - 1]) return n - 1;
     let i = 0; while (i < n - 2 && y >= pos[i + 1]) i++;
     return i + (y - pos[i]) / Math.max(1, pos[i + 1] - pos[i]);
@@ -248,5 +250,5 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   ov.querySelector('.fl-ov-x').addEventListener('click', close);
   ov.addEventListener('click', (e) => { if (e.target === ov || e.target === center) close(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && ov.classList.contains('is-open')) close(); });
-  return { open, close };
+  return { open, close, remeasure, kick };
 }

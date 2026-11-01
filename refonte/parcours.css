@@ -38,9 +38,18 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-home-col{position:absolute;left:calc(var(--hh) * .118 + 34px);top:8px;bottom:8px;width:210px;display:flex;flex-direction:column;gap:6px}
 .pc-home-col .pc-box{padding:7px 9px;border:1px solid rgba(160,190,255,.55);background:rgba(10,20,120,.35)}
 .pc-index ol{margin:0;padding:0;list-style:none;font:10px/1.32 var(--mono)}
-.pc-index li{display:flex;justify-content:space-between}
-.pc-index li:nth-child(odd) span{margin-right:30px}
-.pc-index li span{color:rgba(255,255,255,.85)}
+.pc-index{position:relative}
+.pc-index ol{position:relative;z-index:1}
+.pc-index li{position:relative}
+.pc-index li span{position:absolute;top:0;color:#fff}
+/* les numéros suivent un arc, comme le sommaire de référence ; le premier chapitre est souligné jusqu'à un point */
+.pc-index li:nth-child(1) span{left:44%}.pc-index li:nth-child(2) span{left:61%}.pc-index li:nth-child(3) span{left:93%}.pc-index li:nth-child(4) span{left:86%}
+.pc-index li:nth-child(5) span{left:89%}.pc-index li:nth-child(6) span{left:84%}.pc-index li:nth-child(7) span{left:79%}.pc-index li:nth-child(8) span{left:73%}
+.pc-index li:nth-child(9) span{left:66%}.pc-index li:nth-child(10) span{left:57%}.pc-index li:nth-child(11) span{left:38%}
+.pc-index li:first-child{text-decoration:underline;text-underline-offset:3px}
+.pc-index li:first-child::after{content:'';position:absolute;left:54%;right:0;top:50%;border-top:1px solid rgba(255,255,255,.75)}
+.pc-index li:first-child::before{content:'';position:absolute;right:-2px;top:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#fff}
+.pc-index-arc{position:absolute;inset:6px 4px;width:calc(100% - 8px);height:calc(100% - 12px);pointer-events:none;z-index:0}
 .pc-mini{flex:1;display:flex!important;flex-direction:column;min-height:0}
 .pc-mini p{margin:0 0 4px!important;font:10px/1.35 var(--mono)!important;color:#fff}
 .pc-mini-slot{flex:1;position:relative;display:flex;align-items:center;justify-content:space-between}
@@ -192,3 +201,22 @@ html.expo .pc-magic{display:block;position:fixed;left:0;top:0;z-index:3;padding:
 /* le bouton « voir la magie » est l'incrustation cliquable ; celui de la fiche n'est pas repris dans l'image */
 .pc-flowwrap .rf-flow-magic{visibility:hidden}
 #nav{transition:opacity .4s}html.expo.flat #nav{opacity:0;pointer-events:none} /* la page d’entrée a son propre sommaire */
+
+/* ---------- cadre relevé : le bloc vivant du site, devant le parcours ---------- */
+.pc-lift{position:fixed;inset:0;z-index:60;perspective:1400px}
+.pc-lift[hidden]{display:none}
+.pc-lift-bg{position:absolute;inset:0;background:rgba(3,5,10,.55);backdrop-filter:blur(3px)}
+.pc-lift-card{position:absolute;left:50%;top:50%;width:var(--lw,900px);max-width:94vw;height:min(88vh,1100px);transform:translate(-50%,-50%);transform-origin:50% 50%;border:1.5px solid rgba(255,255,255,.75);box-shadow:0 40px 120px rgba(0,0,0,.55);display:flex;flex-direction:column;color:#fff}
+.pc-lift-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.3);font:12px var(--mono)}
+.pc-lift-bar button{background:none;border:1px solid rgba(255,255,255,.6);border-radius:20px;color:#fff;font:12px var(--mono);padding:5px 12px;cursor:pointer}
+.pc-lift-bar button:hover{background:#fff;color:#000}
+.pc-lift-x{margin-left:auto}
+.pc-lift-sc{flex:1;overflow:auto;overscroll-behavior:contain;padding:24px 28px 60px}
+.pc-lift-page{width:100%;height:100%;min-height:80vh;border:0;background:#05080d}
+.pc-lift-sc:has(.pc-lift-page:not([hidden])){padding:0}
+html.pc-lifted body{overflow:hidden}
+.pc-lift .pc-flowwrap .rf-flow-magic{visibility:visible}
+.pc-lift .pc-hublot{position:relative!important;opacity:1!important;pointer-events:auto!important;z-index:auto!important;margin:0 auto!important}
+.pc-lift-hot{cursor:pointer}
+.pc-lift-hot:hover{outline:1.5px solid rgba(255,255,255,.8);outline-offset:2px}
+html.expo.flat #leaders{opacity:0}

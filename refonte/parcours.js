@@ -111,6 +111,12 @@ async function start() {
     if (a.getAttribute('href')) { h.href = a.getAttribute('href'); h.target = '_blank'; h.rel = 'noopener'; } else { h.href = '#'; h.addEventListener('click', (e) => { e.preventDefault(); a.click(); }); }
     h.addEventListener('pointerenter', () => { a.classList.add('hov'); box?.classList.add('hov-in'); }); h.addEventListener('pointerleave', () => { a.classList.remove('hov'); box?.classList.remove('hov-in'); });
     document.body.append(h); return { h, r }; });
+  /* cadres relevables : au clic, le bloc du site monte devant le lecteur, vivant (ses scripts, ses survols, ses sons), et défile à la molette */
+  const LIFT_SEL = '.pc-card, [data-flow], .pc-blogcol, .gains-stats, .gains-chart, .gx-table, [data-tl], .pc-hublot, .pc-exp-title, .pc-float';
+  const lifts = $$(LIFT_SEL).filter((el) => !el.parentElement.closest(LIFT_SEL)).map((el) => {
+    const h = document.createElement('button'); h.type = 'button'; h.className = 'pc-hot pc-lift-hot'; h.setAttribute('aria-label', 'Relever ce cadre');
+    const L = { el, r: rectOf(el), h }; h.addEventListener('click', () => openLift(L)); document.body.append(h); hots.push(L); return L;
+  });
   flows.forEach((f, i) => { flowTops[i] = $$('.rf-flow-step', f.w).map((li) => rectOf(li).y); });
   const sigSvg0 = $('#pc-sign svg'), sigRect = sigSvg0 && rectOf(sigSvg0); // relevé avant tout déplacement d'élément
 
@@ -279,8 +285,8 @@ async function start() {
     if (kind === 'machine') import('./m3d/finance.js').then(({ build, WIDTH = 236 }) => {
       const m = build(), grp = new THREE.Group(); grp.add(m.group); const k = g.w * 0.42 / WIDTH; grp.scale.setScalar(k);
       const box = new THREE.Box3().setFromObject(grp), c = box.getCenter(new THREE.Vector3()); m.group.position.sub(c.divideScalar(k)); m.group.position.y += (box.max.y - box.min.y) / 2 / k;
-      const piv = new THREE.Group(); piv.add(grp); piv.position.set(g.cx, top, g.cz); scene.add(piv); patchTree(piv);
-      minis.push({ kind, piv, m });
+      const piv = new THREE.Group(); piv.add(grp); piv.position.set(g.cx, top + 0.05, g.cz); piv.rotation.x = -1.1; scene.add(piv); patchTree(piv); // couchée vers le lecteur, elle tourne sur elle-même
+      minis.push({ kind, piv, grp, m });
     }).catch((e) => console.warn('vignette machine', e));
     else if (kind === 'room') {
       const rt2 = new THREE.WebGLRenderTarget(640, Math.round(640 * g.d / g.w), { samples: 4 }); rt2.texture.colorSpace = THREE.SRGBColorSpace;
@@ -290,14 +296,14 @@ async function start() {
     } else if (kind === 'flux') {
       const cv = document.createElement('canvas'); cv.width = 420; cv.height = Math.round(420 * g.d / g.w); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
       const pm = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false })); pm.rotation.x = -Math.PI / 2; pm.position.set(g.cx, top + 0.005, g.cz); pm.renderOrder = 6; scene.add(pm);
-      const P = Array.from({ length: 260 }, () => ({ x: Math.random(), y: Math.random(), l: Math.floor(Math.random() * 5), v: 0.12 + Math.random() * 0.2 }));
+      const P = Array.from({ length: 320 }, () => ({ x: Math.random(), y: Math.random(), l: Math.floor(Math.random() * 7), v: 0.12 + Math.random() * 0.2 }));
       minis.push({ kind, cv, t, P, z: g.cz });
     }
   }
   function animMinis(now, focusZ) {
     const tt = now / 1000;
     for (const M of minis) {
-      if (M.kind === 'machine') { M.piv.rotation.y = tt * 0.35; M.m.update?.(tt); continue; }
+      if (M.kind === 'machine') { M.grp.rotation.y = tt * 0.45; M.m.update?.(tt); continue; }
       if (Math.abs(focusZ - M.z) > 25) continue;
       if (M.kind === 'room') {
         const rg = roomRul?.g; if (!rg) continue;
@@ -306,14 +312,22 @@ async function start() {
         M.cam2.position.set(c.x + 9, 30, c.z + 9); M.cam2.up.set(0, 1, 0); M.cam2.lookAt(c.x, c.y, c.z);
         renderer.setRenderTarget(M.rt2); renderer.setClearColor(0x14249a, 1); renderer.clear(); renderer.render(rg, M.cam2); renderer.setRenderTarget(null); renderer.setClearColor(0x000000, 1);
       } else {
-        const c = M.cv.getContext('2d'), w = M.cv.width, h = M.cv.height; c.clearRect(0, 0, w, h);
-        c.strokeStyle = 'rgba(200,215,255,.55)'; c.lineWidth = 1;
-        for (let l = 0; l < 5; l++) { const y = h * (0.2 + l * 0.15); c.beginPath(); c.moveTo(w * 0.55, h / 2); c.bezierCurveTo(w * 0.7, h / 2, w * 0.7, y, w, y); c.stroke(); }
+        // comme la vignette de référence : un nuage de points qui dérive à gauche, une ligne de tri lumineuse, puis quatre conduits où le flux file
+        const c = M.cv.getContext('2d'), w = M.cv.width, h = M.cv.height, mx = w * 0.5, L4 = [0.2, 0.42, 0.64, 0.86].map((v) => h * (0.12 + v * 0.8)); c.clearRect(0, 0, w, h);
+        c.lineWidth = 1;
+        for (let i = 0; i < 4; i++) { const g2 = c.createLinearGradient(0, L4[i] - 9, 0, L4[i] + 9); g2.addColorStop(0, 'rgba(255,255,255,0)'); g2.addColorStop(.5, 'rgba(255,255,255,.28)'); g2.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g2; c.fillRect(w * 0.78, L4[i] - 9, w * 0.22, 18); }
+        for (let k = 0; k < 28; k++) { const y0 = h * (0.12 + 0.8 * ((k * 0.37) % 1)), y1 = L4[k % 4]; c.strokeStyle = `rgba(220,230,255,${0.1 + (k % 5) * 0.04})`; c.beginPath(); c.moveTo(mx, y0); c.bezierCurveTo(w * 0.66, y0, w * 0.64, y1, w * 0.8, y1); c.lineTo(w, y1 + ((k % 3) - 1) * 2); c.stroke(); }
+        const gl = c.createLinearGradient(mx - 3, 0, mx + 3, 0); gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(.5, 'rgba(255,255,255,.95)'); gl.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gl; c.fillRect(mx - 3, h * 0.08, 6, h * 0.88);
         c.fillStyle = '#fff';
         for (const p of M.P) {
-          p.x += p.v / 60; if (p.x > 1) { p.x = 0; p.y = Math.random(); }
-          const yy = p.x < 0.5 ? p.y : p.x < 0.6 ? p.y + (0.5 - p.y) * (p.x - 0.5) / 0.1 : 0.5 + ((0.2 + p.l * 0.15) - 0.5) * Math.min(1, (p.x - 0.6) / 0.15);
-          c.fillRect(p.x * w, yy * h, 2, 2);
+          if (p.x < 0.5) { p.x += p.v / 900 + Math.sin(tt * 1.3 + p.l + p.y * 9) / 2400; p.y += Math.cos(tt * 0.9 + p.x * 11) / 2600; }
+          else p.x += p.v / 110;
+          if (p.x > 1) { p.x = Math.random() * 0.45; p.y = Math.random(); }
+          let yy;
+          if (p.x < 0.5) yy = h * (0.12 + 0.8 * p.y);
+          else { const u = Math.min(1, (p.x - 0.5) / 0.3), e2 = u * u * (3 - 2 * u), y0 = h * (0.12 + 0.8 * p.y); yy = y0 + (L4[p.l % 4] - y0) * e2; }
+          const r0 = p.x < 0.5 ? (p.l === 0 ? 2.4 : 1.6) : 1.6; c.beginPath(); c.arc(p.x * w, yy, r0, 0, 6.283); c.fill();
+          if (p.l === 0 && p.x < 0.5) { c.strokeStyle = 'rgba(255,255,255,.7)'; c.beginPath(); c.arc(p.x * w, yy, 4, 0, 6.283); c.stroke(); }
         }
         M.t.needsUpdate = true;
       }
@@ -445,9 +459,7 @@ async function start() {
     m.rotation.x = -Math.PI / 2 + A; m.position.set(g.cx, 0.01 + g.d / 2 * Math.sin(A), g.cz + g.d / 2 * (1 - Math.cos(A))); m.renderOrder = 2; scene.add(m);
     m.updateMatrixWorld(); const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => new THREE.Vector3(a * g.w / 2, b * g.d / 2, 0).applyMatrix4(m.matrixWorld));
     const poster = new Image(); poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
-    const hot = document.createElement('button'); hot.type = 'button'; hot.className = 'pc-hot pc-hot-win'; hot.setAttribute('aria-label', 'Ouvrir ou fermer le store du hublot');
-    hot.addEventListener('click', () => $('#rf-grip')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
-    document.body.append(hot); hots.push({ h: hot, r, pts: corners });
+    const LH = lifts.find((L) => L.el === huEl); if (LH) LH.pts = corners; // le hublot relevé se manipule comme sur le site
     hublots.push({ t, z: g.cz, cv, win, poster });
     import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
   }
@@ -512,6 +524,7 @@ async function start() {
   const ticks = []; for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'tick'; $('#ticks').append(d); ticks.push(d); }
 
   /* textures : HTML-in-Canvas (l'élément vivant) ou image de la section */
+  let cssP = null; // feuilles de style embarquées, préparées une fois
   let introReady = false; // la signature attend que la feuille soit peinte, sinon elle s'écrit pendant le chargement
   const linearize = (mat) => { mat.userData.lin = true; mat.needsUpdate = true; };
   if (HIC) {
@@ -528,8 +541,16 @@ async function start() {
     canvas.requestPaint();
   } else rasterAll().catch((e) => console.warn('rendu des textures impossible', e));
 
+  async function redraw(s) {
+    const css = await (cssP ??= inlineCss()), mine = items.filter((it) => s.el.contains(it.el)); if (!mine.length) return;
+    const c = await rasterize(s.el, s.r, css), base = new THREE.CanvasTexture(c); base.colorSpace = THREE.SRGBColorSpace; base.anisotropy = 8;
+    for (const it of mine) {
+      const t = base.clone(); t.repeat.set(it.r.w / s.r.w, it.r.h / s.r.h); t.offset.set((it.r.x - s.r.x) / s.r.w, 1 - (it.r.y - s.r.y + it.r.h) / s.r.h); t.needsUpdate = true;
+      it.mats.forEach((m) => { m.map = t; m.visible = true; m.needsUpdate = true; });
+    }
+  }
   async function rasterAll() {
-    const css = await inlineCss();
+    const css = await (cssP ??= inlineCss());
     for (const s of [...sections].sort((a, b) => Math.abs(a.r.y - scrollY) - Math.abs(b.r.y - scrollY))) { // la section à l'écran d'abord
       const mine = items.filter((it) => s.el.contains(it.el)); if (!mine.length) continue;
       const draw = async () => {
@@ -572,6 +593,49 @@ async function start() {
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c;
   }
 
+  let lifted = null;
+  const lift = document.createElement('div'); lift.className = 'pc-lift'; lift.setAttribute('role', 'dialog'); lift.setAttribute('aria-modal', 'true'); lift.hidden = true;
+  lift.innerHTML = '<div class="pc-lift-bg"></div><div class="pc-lift-card"><div class="pc-lift-bar"><button type="button" class="pc-lift-back" hidden>← Revenir au cadre</button><button type="button" class="pc-lift-x" aria-label="Rabaisser le cadre">Rabaisser</button></div><div class="pc-lift-sc"><div class="pc-lift-in"></div><iframe class="pc-lift-page" title="Page détaillée" hidden></iframe></div></div>';
+  document.body.append(lift);
+  const lcard = lift.querySelector('.pc-lift-card'), lsc = lift.querySelector('.pc-lift-sc'), lin = lift.querySelector('.pc-lift-in'), lframe = lift.querySelector('iframe'), lback = lift.querySelector('.pc-lift-back');
+  const showPage = (href) => { lframe.src = href; lframe.hidden = false; lin.hidden = true; lback.hidden = false; lsc.scrollTop = 0; };
+  const hidePage = () => { lframe.hidden = true; lframe.removeAttribute('src'); lin.hidden = false; lback.hidden = true; };
+  lback.onclick = hidePage;
+  lin.addEventListener('click', (ev) => { const a = ev.target.closest('a[href]'); if (!a) return; const href = a.getAttribute('href'); if (/^(https?:|mailto:|#)/.test(href) || !/\.html|^[\w-]+$/.test(href)) return; ev.preventDefault(); showPage(href); });
+  function openLift(L) {
+    if (lifted) return; lifted = L;
+    const sec = L.el.closest('[data-section]'), bgc = sec?.dataset.color || '#0b0e12';
+    L.home = { parent: L.el.parentElement, next: L.el.nextSibling, width: L.el.style.width, host: L.el.classList.contains('pc-inf-host') };
+    if (!L.home.host) { L.ph = document.createElement('div'); L.ph.style.cssText = `width:${L.r.w}px;height:${L.r.h}px`; L.el.before(L.ph); }
+    // le contexte du site (classes des parents) est recréé sans boîte, pour que ses styles s'appliquent à l'identique
+    let inner = lin; inner.replaceChildren();
+    for (const a of (L.home.host ? [] : (() => { const o = []; for (let q = L.el.parentElement; q && q !== document.body; q = q.parentElement) o.unshift(q); return o; })())) { const d = document.createElement('div'); d.className = a.className; d.style.display = 'contents'; inner.append(d); inner = d; }
+    L.el.classList.remove('pc-inf-host'); L.el.style.width = L.r.w + 'px'; inner.append(L.el);
+    lcard.style.setProperty('--lw', Math.min(L.r.w + 56, innerWidth * 0.94) + 'px'); lcard.style.background = bgc;
+    lift.hidden = false; document.documentElement.classList.add('pc-lifted');
+    const hr = L.h.getBoundingClientRect(), cr = lcard.getBoundingClientRect();
+    const from = `translate(-50%,-50%) translate(${hr.left + hr.width / 2 - innerWidth / 2}px,${hr.top + hr.height / 2 - innerHeight / 2}px) scale(${Math.max(0.15, hr.width / cr.width)}) rotateX(58deg)`;
+    lcard.animate([{ transform: from, opacity: 0.4 }, { transform: 'translate(-50%,-50%)', opacity: 1 }], { duration: reduce ? 1 : 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    lift.querySelector('.pc-lift-bg').animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduce ? 1 : 500, fill: 'forwards' });
+    lsc.scrollTop = 0; lsc.focus?.({ preventScroll: true });
+    for (const f of flows) if (L.el.contains(f.w)) { lsc.onscroll = () => f.api?.kick(); requestAnimationFrame(() => f.api?.remeasure()); }
+  }
+  async function closeLift() {
+    const L = lifted; if (!L) return;
+    const hr = L.h.getBoundingClientRect(), cr = lcard.getBoundingClientRect();
+    const to = `translate(-50%,-50%) translate(${hr.left + hr.width / 2 - innerWidth / 2}px,${hr.top + hr.height / 2 - innerHeight / 2}px) scale(${Math.max(0.15, (hr.width || 200) / cr.width)}) rotateX(58deg)`;
+    lift.querySelector('.pc-lift-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 450, fill: 'forwards' });
+    await lcard.animate([{ transform: 'translate(-50%,-50%)', opacity: 1 }, { transform: to, opacity: 0.3 }], { duration: reduce ? 1 : 600, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
+    lift.hidden = true; document.documentElement.classList.remove('pc-lifted'); hidePage(); lsc.onscroll = null;
+    L.el.style.width = L.home.width;
+    if (L.home.host) { L.el.classList.add('pc-inf-host'); document.body.append(L.el); } else { L.ph.replaceWith(L.el); }
+    lin.replaceChildren(); lifted = null;
+    for (const f of flows) if (L.el.contains(f.w)) f.api?.remeasure();
+    if (!HIC) { const s = sections.find((q) => q.el.contains(L.el)); if (s) redraw(s); } // l'image de la feuille reprend l'état laissé par le lecteur
+  }
+  lift.querySelector('.pc-lift-x').onclick = closeLift; lift.querySelector('.pc-lift-bg').onclick = closeLift;
+  addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && lifted && !document.querySelector('.fl-ov.is-open')) closeLift(); });
+
   /* rendu dans une cible, puis flou de profondeur sur le lointain et les bords */
   const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), postScene = new THREE.Scene();
@@ -607,7 +671,7 @@ async function start() {
   function animGraph(G, t) {
     const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
     G.nodes.forEach((o, i) => {
-      const a = o.kind === 'hub' ? 0.03 : 0.06;
+      const a = o.kind === 'hub' ? 0.04 : o.kind === 'dot' ? 0.1 : 0.08;
       o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
       G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
       if (o.sp) {
@@ -620,7 +684,7 @@ async function start() {
     G.edges.forEach(([a, b, k], e) => {
       const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
       G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
-      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.4 : 0.12, c = hot ? [1, 1, 1] : EC[k];
+      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? (k === 2 ? 0 : EW[k]) : hot ? 1.4 : (k === 2 ? 0 : 0.12), c = hot ? [1, 1, 1] : EC[k]; // liens entre thématiques : visibles seulement au survol
       for (const q of [0, 3]) { G.col[j + q] = c[0] * f; G.col[j + q + 1] = c[1] * f; G.col[j + q + 2] = c[2] * f; }
     });
     G.lg.attributes.position.needsUpdate = G.lg.attributes.color.needsUpdate = G.pg.attributes.position.needsUpdate = true;
@@ -705,10 +769,12 @@ async function start() {
       c.path.setAttribute('d', `M${c.side < 0 ? lx : lx + bw},${ey} L${c.side < 0 ? lx + bw : lx},${ey} L${px},${py}`); c.path.style.opacity = a * 0.8;
       c.dot.setAttribute('cx', px); c.dot.setAttribute('cy', py); c.dot.style.opacity = a;
     }
-    for (const o of hots) { // rectangle à l'écran = enveloppe des quatre coins projetés
-      const c = o.pts ? o.pts.map((v) => toScreen(v)) : [[o.r.x, o.r.y], [o.r.x + o.r.w, o.r.y], [o.r.x, o.r.y + o.r.h], [o.r.x + o.r.w, o.r.y + o.r.h]].map(([x, y]) => toScreen(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)));
-      const ok = e > 0.5 && c.every((q) => q[2] < 1), xs = c.map((q) => q[0]), ys = c.map((q) => q[1]);
-      o.h.style.display = ok ? '' : 'none'; if (ok) { const x0 = Math.min(...xs), y0 = Math.min(...ys); o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = (Math.max(...xs) - x0) + 'px'; o.h.style.height = (Math.max(...ys) - y0) + 'px'; }
+    for (const o of hots) { // rectangle à l'écran = enveloppe des points visibles du bord du cadre
+      let pts = o.pts;
+      if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
+      const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
+      const x0 = Math.min(...xs), y0 = Math.min(...ys), ww = Math.max(...xs) - x0, hh = Math.max(...ys) - y0, ok = !lifted && e > 0.5 && c.length >= 2 && ww > 20 && hh > 12;
+      o.h.style.display = ok ? '' : 'none'; if (ok) { o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = ww + 'px'; o.h.style.height = hh + 'px'; }
     }
     for (const m of magics) {
       const [px, py, pz] = toScreen(m.p), vis = e > 0.5 && pz < 1 && py > 40 && py < h - 30 && px > 0 && px < w;
