@@ -7,6 +7,7 @@ if (document.querySelector('.rf-code')) import('./hl.js').catch(() => {});   // 
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';
+import { mountTeardownUI } from './teardown-ui.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const els = document.querySelectorAll('.rf-post-body > *');
@@ -22,6 +23,9 @@ const bpCanvas = document.getElementById('rf-bp');
 const stage = document.getElementById('stage');
 
 if (fig && bpCanvas && stage) {
+  const teardownStyle=document.createElement('link');
+  teardownStyle.rel='stylesheet'; teardownStyle.href=new URL('./teardown.css',import.meta.url).href;
+  document.head.append(teardownStyle);
   /* ---- caméra : azimut 36° comme la pièce de l'accueil, en perspective, liée au plan ---- */
   const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
   const AIM_Y = 3.2;                       // la visée est un peu au-dessus du plan : la machine, au centre du plan, se place sous le titre
@@ -47,19 +51,26 @@ if (fig && bpCanvas && stage) {
     const t0 = performance.now();
     /* Interaction directement sur la machine 3D, comme sur la figure d'origine : on attrape la machine et on glisse (ou flèches gauche / droite)
        pour changer son réglage propre (seuil en %, pondération, lot, jour, heure, rapport…) ; un clic sur la machine avance d'un cran. */
-    let shift = 0, drag = null;
-    const clock = () => (performance.now() - t0) / 1000 + shift;
+    let shift = 0, drag = null, paused = false, pauseAt = 0;
+    const liveClock = () => (performance.now() - t0) / 1000 + shift;
+    const clock = () => paused ? pauseAt : liveClock();
+    const seekTime = (t) => { if (paused) pauseAt = t; else shift += t - liveClock(); };
+    const togglePause = (value) => {
+      if (value && !paused) { pauseAt = liveClock(); paused = true; }
+      else if (!value && paused) { shift += pauseAt - liveClock(); paused = false; }
+    };
+    const hud = mountTeardownUI(machine,{onSeekTime:seekTime,onPause:togglePause});
     const ctl = machine.controls || { label: 'temps', min: 0, max: 100, step: 5, fmt: (v) => v + ' %', get: (t) => ((t % 60) / 60) * 100, seek: (v) => v / 100 * 60 };
     const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     const apply = (v) => {
       v = clamp(Math.round(v / ctl.step) * ctl.step, ctl.min, ctl.max);
       const r = ctl.set ? ctl.set(v) : undefined;
       const to = ctl.seek ? ctl.seek(v) : (typeof r === 'number' ? r : null);
-      if (to !== null) shift += to - clock();
+      if (to !== null) seekTime(to);
     };
     const cur = (t) => ctl.get(t);
     const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += ' · attrapez la machine et glissez : ' + ctl.label.toLowerCase();
-    const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
+    const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-td,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
     let over = false;
     document.addEventListener('pointermove', (e) => {
       if (drag) { drag.moved += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0); apply(drag.v + (e.clientX - drag.x) / Math.max(320, innerWidth * .6) * (ctl.max - ctl.min)); return; }
@@ -68,11 +79,15 @@ if (fig && bpCanvas && stage) {
     });
     document.addEventListener('pointerdown', (e) => {
       if (e.button || isUI(e.target) || !machine.pick(e.clientX, e.clientY)) return;
-      drag = { x: e.clientX, v: cur(clock()), moved: 0 }; document.body.classList.add('rf-grabbing'); e.preventDefault();
+      drag = { x: e.clientX, y: e.clientY, v: cur(clock()), moved: 0 }; document.body.classList.add('rf-grabbing'); e.preventDefault();
     });
     const drop = () => {
       if (!drag) return;
-      if (drag.moved < 5) { const n = cur(clock()) + ctl.step; apply(n > ctl.max ? ctl.min : n); }   // simple clic : un cran de plus
+      if (drag.moved < 5) {
+        const selected = machine.teardown?.inspect(drag.x,drag.y);
+        if (selected) { machine.teardown.setMode('isolate'); hud.update(clock()); }
+        else { const n = cur(clock()) + ctl.step; apply(n > ctl.max ? ctl.min : n); }
+      }
       drag = null; document.body.classList.remove('rf-grabbing');
     };
     document.addEventListener('pointerup', drop); document.addEventListener('pointercancel', () => { drag = null; document.body.classList.remove('rf-grabbing'); });
@@ -89,7 +104,10 @@ if (fig && bpCanvas && stage) {
       canvas.style.opacity = bg.toFixed(3);
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
-      machine.render(reduced ? 6 + shift : clock());
+      const renderTime = reduced ? (paused ? pauseAt : 6 + shift) : clock();
+      machine.render(renderTime);
+      hud.update(renderTime);
+      hud.visibility(o);
     };
     loop();
   }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); fig.classList.add('rf-fallback'); });
