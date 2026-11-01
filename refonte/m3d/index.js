@@ -18,13 +18,13 @@ const MODULES = {
   studio: () => import('./studio.js'), 'vrestudio-musicbox': () => import('./vrestudio.js')
 };
 
-export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {
+export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0), options = {}) {
   const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
   const { build, WIDTH = 236 } = await load();
   const { renderer, scene } = makeStage(canvas);
   const m = build();
   const details=enhanceMachine(name,m);
-  const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(12.6 / WIDTH);
+  const g = new THREE.Group(); g.add(m.group); g.scale.setScalar((options.width ?? 12.6) / WIDTH);
   scene.add(g);
   // centrage sur l'origine du plan, socle posé à y = 0
   const box = new THREE.Box3().setFromObject(g);
