@@ -20,7 +20,7 @@ const garesData=Array.from({length:10},(_,i)=>({
  preventive:[.39,.91,.56,.23,.77,.63,.83,.27,.95,.51][i]
 }));
 export function buildGares(){
- const a=createAssembly('RAILWAY_CRITICALITY_CALCULATOR',286,124);
+ const a=createAssembly('Calculateur de criticité des gares',286,124);
  const rack=a.zone(0,'Sources',[coords[0],0,0],directions[0]),
  prep=a.zone(1,'Filters',[coords[1],0,0],directions[1]),
  mixer=a.zone(2,'Weighted differential',[coords[2],0,0],directions[2]),
@@ -112,7 +112,7 @@ function expenditure(day){const u=clamp(day/FIN_DAYS),w=u-.6*Math.sin(TAU*u*9)/(
  return [...amounts.map((v,i)=>v/financeFunds[i]),amounts.reduce((a,b)=>a+b,0)/financeFunds.reduce((a,b)=>a+b,0)];
 }
 export function buildFinance(){
- const a=createAssembly('FINANCIAL_THRESHOLD_REACTOR',280,119);
+ const a=createAssembly('Centrale financière à seuils',280,119);
  const money=a.zone(0,'Budget source',[coords[0],0,0],directions[0]),
  perimeter=a.zone(1,'Four networks',[coords[1],0,0],directions[1]),
  guards=a.zone(2,'Budget valves',[coords[2],0,0],directions[2]),
@@ -208,7 +208,7 @@ export function buildFinance(){
  ];return a;
 }
 export function buildPP(){
- const a=createAssembly('PREVENTION_DOCUMENT_LOGISTICS',278,114);
+ const a=createAssembly('Centre logistique des plans de prévention',278,114);
  const doc=a.zone(0,'Incoming PP',[coords[0],0,0],directions[0]),
  scanner=a.zone(1,'Validation scanner',[coords[1],0,0],directions[1]),
  calendar=a.zone(2,'Expiry mechanism',[coords[2],0,0],directions[2]),
@@ -283,7 +283,7 @@ export function buildPP(){
  ];return a;
 }
 export function buildPowerBI(){
- const a=createAssembly('RELATIONAL_REPORTING_ENGINE',285,124);
+ const a=createAssembly('Usine relationnelle Power BI',285,124);
  const intake=a.zone(0,'Inputs',[coords[0],0,0],directions[0]),
  etl=a.zone(1,'Transform',[coords[1],0,0],directions[1]),
  join=a.zone(2,'Relations',[coords[2],0,0],directions[2]),
