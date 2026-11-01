@@ -141,7 +141,9 @@ export function createTeardown(name, machine, holder, camera) {
   }
   function snapshot(time){
     const i=clamp(state.selected??0,0,4);
-    return {...state,title:spec.title,area:spec.areas[i],scenarios,reading:machine.readout?.(time)??null};
+    const ctl=machine.controls;
+    const reading=machine.readout?.(time) ?? (ctl?.get && ctl?.fmt ? ctl.label+' : '+ctl.fmt(ctl.get(time)) : null);
+    return {...state,title:spec.title,area:spec.areas[i],scenarios,reading};
   }
   function dispose(){
     if(disposed)return;
