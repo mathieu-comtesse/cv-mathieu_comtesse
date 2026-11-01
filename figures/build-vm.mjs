@@ -7,7 +7,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
-import { column, ibeam } from "./parts.mjs";
+import { column, ibeam, channelPost, bogie } from "./parts.mjs";
 
 const WIDTH = 640, HEIGHT = 420;
 // ---------------------------------------------------------------- monde (1 unité ≈ 5 mm)
@@ -69,13 +69,14 @@ function padLamp() {
 const LEGS = [[-148, -30], [-148, 16], [148, -30], [148, 16]];
 const CTX = () => ({ k, G, P, S, L, D, at });
 function legsBack() {
-  return LEGS.filter(([, ly]) => ly < 0).map(([x, y]) => column(CTX(), { x, y, z0: 2.4, z1: BZ - 6, r: 3.2, base: false })).join("");
+  return LEGS.filter(([, ly]) => ly < 0).map(([x, y]) => channelPost(CTX(), { x, y, z0: 2.4, z1: BZ - 6, w: 6, d: 6.4 })).join("");
 }
 function frameSvg() {
   const out = [];
-  // Montants avant (turned), traverse de tête sous la poutre, platine d'accrochage.
+  // Portique : jambes en U sur boggies, traverse de tête à platine boulonnée sous la poutre.
   for (const x of [-148, 148]) {
-    out.push(column(CTX(), { x, y: 16, z0: 2.4, z1: BZ - 6, r: 3.2, base: false }));
+    out.push(bogie(CTX(), { x, y: 16, z: 0 }));
+    out.push(channelPost(CTX(), { x, y: 16, z0: 6, z1: BZ - 6, w: 6, d: 6.4 }));
     const bar = { x: x - 3.4, y: -30, w: 6.8, d: 52, r: 1 };
     out.push(S(slab(bar, BZ - 6, 6, 3, 0.6), { tone: "mid", inner: L(k.sideSeam(bar, BZ - 3, P, 3), { tone: "faint" }) }));
     out.push(L(k.planOutline(k.insetPlan(bar, 1.4), BZ, P, 3), { tone: "faint" }));

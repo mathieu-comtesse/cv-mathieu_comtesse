@@ -6,7 +6,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, writeFigure, LOOP } from "./common.mjs";
-import { column } from "./parts.mjs";
+import { channelPost } from "./parts.mjs";
 
 const WIDTH = 560, HEIGHT = 520;
 // ---------------------------------------------------------------- monde (1 unité ≈ 5 mm)
@@ -146,8 +146,7 @@ function frontSvg() {
   { const [lx, ly] = at([bx, -1, bz + 21.4]); out.push(`<circle class="fig-lamp" data-part="lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.2"/>`); }
   // Poteaux avant du bâti et chapeau du panneau.
   for (const px of [-66.8, 63.2]) {
-    for (const py of [-7, 9]) out.push(column({ k, G, P, S, L, D, at }, { x: px + 1.8, y: py, z0: TRAY_Z, z1: BTOP - 4, r: 1.8, base: false, flutes: 8, collars: [0.2, 0.5, 0.8] }));
-    out.push(S(slab({ x: px + 0.6, y: -6, w: 2.4, d: 14, r: 0.3 }, TRAY_Z + 20, 2, 2, 0.1), { tone: "mid" }));
+    out.push(channelPost({ k, G, P, S, L, D, at }, { x: px + 1.8, y: 1, z0: TRAY_Z, z1: BTOP - 4, w: 5, d: 20 }));
   }
   out.push(S(slab({ x: -66.8, y: -10, w: 133.6, d: 6.5, r: 1.2 }, BTOP - 4, 3.5, 3, 0.7), { tone: "mid", inner: L(k.sideSeam({ x: -66.8, y: -10, w: 133.6, d: 6.5, r: 1.2 }, BTOP - 2.5, P, 3), { tone: "faint" }) }));
   return out.join("");

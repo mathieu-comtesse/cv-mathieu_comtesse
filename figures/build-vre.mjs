@@ -6,7 +6,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
-import { column } from "./parts.mjs";
+import { aframe } from "./parts.mjs";
 
 const WIDTH = 640, HEIGHT = 420;
 const PLATE = { x: -164, y: -46, w: 320, d: 96, r: 8 };
@@ -71,7 +71,7 @@ function frameSvg() {
   const out = [];
   for (const x of POSTS) {
     const top = ZR(x) - 3;
-    out.push(column({ k, G, P, S, L, D, at }, { x, y: -16, z0: 0, z1: top, r: 3, flutes: 10, collars: [0.28, 0.62] }));
+    out.push(aframe({ k, G, P, S, L, D, at }, { x, y: -16, z0: 0, z1: top, span: 20, t: 3.4, depth: 6 }));
     out.push(S(slab({ x: x - 3, y: -14, w: 6, d: 12, r: 0.8 }, top - 3, 3, 2, 0.4), { tone: "mid" }));       // console vers la gouttière
     out.push(D([at([x, -2.2, top - 1.5]), at([x, -13.4, top - 1.5])], { size: 0.34 }));
   }

@@ -6,6 +6,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
+import { easelPost } from "./parts.mjs";
 import { column } from "./parts.mjs";
 
 const WIDTH = 640, HEIGHT = 480;
@@ -53,7 +54,7 @@ function easelSvg() {
   const out = [];
   // Montants tournés, traverses du haut et du bas, pieds en équerre, étais arrière.
   for (const x of [BOARD.x - 4, BOARD.x + BOARD.w + 4]) {
-    out.push(column(CTX, { x, y: 0, z0: CAB_H + 2, z1: BOARD.z1 + 12, r: 2.8, base: true, flutes: 10, collars: [0.2, 0.5, 0.8] }));
+    out.push(easelPost(CTX, { x, y: 0, z0: CAB_H + 2, z1: BOARD.z1 + 12, s: 5.4, rear: 24 }));
     out.push(S(slab({ x: x - 2.4, y: -12, w: 4.8, d: 12, r: 0.8 }, CAB_H + 1.6, 2, 2, 0.3), { tone: "lo" }));
   }
   out.push(S(slab({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8, r: 1 }, BOARD.z1 + 10, 4, 3, 0.7), { tone: "mid", inner: L(k.sideSeam({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8, r: 1 }, BOARD.z1 + 12, P, 3), { tone: "faint" }) }));
