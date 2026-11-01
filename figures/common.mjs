@@ -81,6 +81,10 @@ const readout = document.querySelector("[data-readout]");
 const still = matchMedia("(prefers-reduced-motion: reduce)");
 const fr = (n, d = 0) => n.toLocaleString("fr-FR", { maximumFractionDigits: d, minimumFractionDigits: d });
 const say = (text) => { if (readout.textContent !== text) readout.textContent = text; };
+// N'écrit dans le DOM que ce qui change : une pièce réécrite à l'identique s'allumerait à chaque image (figure-glow.js).
+const attr = (el, name, v) => { v = String(v); if (el.getAttribute(name) !== v) el.setAttribute(name, v); };
+const put = (el, v) => attr(el, "transform", v);
+const html = (el, s) => { if (el.__h !== s) { el.__h = s; el.innerHTML = s; } };
 let frame = 0, last = 0, visible = false;
 function loop(step) {
   const tick = (now) => {
