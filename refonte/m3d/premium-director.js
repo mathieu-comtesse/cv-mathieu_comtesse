@@ -246,6 +246,36 @@ function sculpture(name,root,profile,animate,center){
   animate(t=>{iris.rotation.z=t*.16;rings[0].rotation.y=t*.08;rings[1].rotation.z=-t*.05;core.rotation.y=t*.12;});
  }
 }
+
+function replaceHeavyHousing(zone){
+ const casings=[];
+ zone.traverse(o=>{
+  if(!o.isMesh||!o.userData.shell||o.geometry?.type!=='BoxGeometry')return;
+  const p=o.geometry.parameters||{};
+  const wide=p.width>=24&&p.height>=28;
+  const opaque=o.material===M.graphite||o.material===M.steel;
+  if(wide&&opaque)casings.push(o);
+ });
+ for(const original of casings){
+  const parent=original.parent,p=original.geometry.parameters;
+  const w=p.width,h=p.height,d=p.depth,c=original.position;
+  original.visible=false;
+  const frame=new THREE.Group();frame.position.copy(c);frame.name='CageStructurelleOuverte';
+  parent.add(frame);
+  const edge=THIN,bar=1.15;
+  for(const x of [-w/2,w/2])for(const z of [-d/2,d/2]){
+   stick(frame,[x,-h/2,z],[x,h/2,z],bar,edge);
+   ball(frame,1.8,x,h/2,z,COLORS.vm);
+  }
+  for(const y of [-h/2,h/2]){
+   for(const z of [-d/2,d/2])stick(frame,[-w/2,y,z],[w/2,y,z],bar,edge);
+   for(const x of [-w/2,w/2])stick(frame,[x,y,-d/2],[x,y,d/2],bar,edge);
+  }
+  // a single curved ribbon tells the viewer which chamber is active
+  ribbon(frame,[[-w*.39,-h*.43,d/2+.6],[-w*.28,0,d/2+2],[w*.1,h*.12,d/2+2],[w*.38,h*.36,d/2+.6]],.6,THIN);
+ }
+}
+
 export function directMachine(name,machine){
  const profile=THEMES[name];
  if(!profile)return {update(){}};
@@ -256,7 +286,8 @@ export function directMachine(name,machine){
  const animations=[],particles=[];
  const animate=fn=>animations.push(fn);
  machine.zones.forEach((group,i)=>{
-  const position=profile.layout[i],previous=group.position.clone();
+  const position=profile.layout[i];
+  replaceHeavyHousing(group);
   group.position.set(...position);
   const d=new THREE.Vector3(position[0]*.14,24+i*4,position[2]*.2);
   group.userData.explode=d;
