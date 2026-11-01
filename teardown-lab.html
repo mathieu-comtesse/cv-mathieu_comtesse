@@ -29,6 +29,12 @@ body{background:radial-gradient(ellipse at 55% 28%,#fff 0%,#f2f1ec 45%,#e5e4df 1
 .list button span{font:10px ui-monospace,Consolas,monospace;min-width:24px;opacity:.55}
 .list button[aria-current="true"]{color:#fff;background:#252d34}
 .list button:hover:not([aria-current="true"]){background:#e4e4df}
+.flowbar{border:1px solid #bfc1ba77;border-radius:10px;background:#fafaf6df;padding:9px 11px;margin-top:10px}
+.flowbar summary{cursor:pointer;font:600 10px ui-monospace,Consolas,monospace;letter-spacing:.09em;color:#535b64}
+.flowroute{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.flowroute button{border:1px solid #b8bbb9;border-radius:5px;padding:6px 8px;font:10px Arial,sans-serif;cursor:pointer;background:white;color:#474f55}
+.flowroute button[aria-pressed="true"]{background:#252d34;color:#fff;border-color:#252d34}
+.flowbar small{display:block;margin-top:7px;font-size:9px;color:#626a70;line-height:1.4}
 .footer-left{margin-top:auto;padding-top:12px}
 .sliderline{background:#f7f6f2e8;border:1px solid #c4c4be99;border-radius:11px;padding:12px;box-shadow:0 8px 25px #25252508}
 .sliderline label{font:600 10px ui-monospace,Consolas,monospace;letter-spacing:.09em}
@@ -66,6 +72,10 @@ a:hover{text-decoration:underline}
  <h1 id="name">Machines en fonctionnement.</h1>
  <p class="description" id="desc">Chaque installation traduit le fonctionnement d'un projet professionnel en mécanisme interactif.</p>
  <nav class="list" id="projects" aria-label="Choisir un projet"></nav>
+ <details class="flowbar" open><summary>PARCOURS VRE · VUE CONCEPTUELLE</summary>
+ <div class="flowroute" id="flowroute" aria-label="Naviguer entre les étapes conceptuelles"></div>
+ <small>Les machines sont reliées par une logique métier, sans prétendre à une intégration automatique déjà déployée.</small>
+ </details>
  <div class="footer-left">
   <div class="sliderline"><label id="param-label" for="param">PARAMÈTRE</label><output id="param-output" for="param"></output><input type="range" id="param" min="0" max="100" step="5" value="50"></div>
   <p class="small">Tourner : glisser · Zoomer : molette · Inspecter : clic sur une pièce · E, C, X, I : changer de vue</p>
@@ -92,8 +102,11 @@ const items=[
  {id:'vrestudio-musicbox',name:'Lecteur VRE intelligent',desc:'Boîte à musique de classification, validation et entraînement candidat.',page:'projet-lecteur-vre.html'}
 ];
 const $=s=>document.querySelector(s);
+const flowIds=['vrestudio-musicbox','vre','vm','moteur','powerbi'];
+const flowLabels=['Lecture IA','Extraction','Traitement VM','Report Q18','Restitution'];
 const stage=$('#stage'), list=$('#projects'), value=$('#param'), reading=$('#param-output');
 list.innerHTML=items.map((p,i)=>'<button data-i="'+i+'" type="button"><span>'+String(i+1).padStart(2,'0')+'</span>'+p.name+'</button>').join('');
+$('#flowroute').innerHTML=flowIds.map((id,i)=>'<button type="button" data-flow="'+id+'">'+String(i+1)+' · '+flowLabels[i]+'</button>').join('');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:40},canvas=null,pointer=null;
 const rawTime=()=> (performance.now()-clockStart)/1000+shift;
@@ -124,6 +137,7 @@ async function choose(i){
  const p=items[i];if(!p)return;
  const version=++loadingVersion;
  selected=i;list.querySelectorAll('button').forEach((b,k)=>b.setAttribute('aria-current',String(k===i)));
+ $('#flowroute').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flow===p.id)));
  $('#name').textContent=p.name;$('#desc').textContent=p.desc;$('#fullproject').href='./'+p.page;
  $('#status').hidden=false;$('#status').textContent='Chargement de '+p.name+'…';
  ui?.dispose();ui=null;current?.dispose();current=null;canvas?.remove();
@@ -140,6 +154,7 @@ async function choose(i){
  }catch(err){console.error(err);if(version===loadingVersion)$('#status').textContent='Erreur de chargement : '+String(err.message||err);}
 }
 list.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)choose(Number(b.dataset.i));});
+$('#flowroute').addEventListener('click',e=>{const b=e.target.closest('[data-flow]');if(!b)return;const i=items.findIndex(p=>p.id===b.dataset.flow);if(i>=0)choose(i);});
 const mobile=$('#mobile-toggle');
 mobile.addEventListener('click',()=>{let hide=$('#sidebar').classList.toggle('is-hidden');mobile.setAttribute('aria-expanded',String(!hide));});
 stage.addEventListener('pointerdown',e=>{if(e.button!==0)return;pointer={x:e.clientX,y:e.clientY,yaw:rotation.yaw,pitch:rotation.pitch};stage.setPointerCapture(e.pointerId);});
