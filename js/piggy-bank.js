@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/GLTFLoader.js';
 import {ANNUAL_DECLARED,euroCoinRhythm} from './annual-gains.js?v=cv-scene-v60';
 export function initPiggyBank(host){
+ if(host.closest('[data-no-piggy]'))return;   // le parcours 3D pose son propre modèle à cet endroit
  host.dataset.piggy='loading';
  const status=document.createElement('span');status.className='piggy-status';status.setAttribute('role','status');status.textContent='Chargement de la tirelire 3D…';host.append(status);
  const lazy=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){lazy.disconnect();mountPiggyBank(host);}}, {rootMargin:'200px'});lazy.observe(host);

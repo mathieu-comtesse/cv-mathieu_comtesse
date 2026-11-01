@@ -81,6 +81,13 @@ async function start() {
   const HIC = 'texElementImage2D' in renderer.getContext() && 'requestPaint' in canvas;
   document.documentElement.dataset.htmlInCanvas = HIC;
   await Promise.all(['500 22px Inter', 'italic 400 16px Inter', '700 68px Inter', '500 12px iAWriterQuattroV'].map((f) => document.fonts.load(f))).catch(() => {});
+  // page Gains : construite par les scripts du site (tableau de bord, graphique, tableau) ; la tirelire 3D du parcours prend la place de la sienne
+  if ($('#work')) {
+    try {
+      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([import('../js/gains-dashboard.js?v=monde-20261025'), import('../js/gains-table.js?v=ind-20261101')]);
+      initGainsDashboard(); initGainsTable(); $('.annual-pig-wrap')?.setAttribute('data-pig', '');
+    } catch (e) { console.warn('page Gains indisponible', e); }
+  }
   const flowTops = [], flows = [];
   if ($('[data-flow]')) {
     const { initFlow } = await import('./flow.js');
@@ -301,7 +308,7 @@ async function start() {
       const asm = new THREE.Group(); asm.add(pig.scene);
       const falling = coin.scene; falling.scale.setScalar(0.5 / 0.17); falling.visible = false; asm.add(falling);
       const slot = pig.scene.getObjectByName('CoinSlotAnchor');
-      const box = new THREE.Box3().setFromObject(asm), size = box.getSize(new THREE.Vector3()), k = 2.6 / Math.max(size.x, size.y, size.z);
+      const box = new THREE.Box3().setFromObject(asm), size = box.getSize(new THREE.Vector3()), k = Math.min(2.6, Math.max(pr.w, pr.d) * 0.9) / Math.max(size.x, size.y, size.z);
       const g = new THREE.Group(); g.add(asm); asm.scale.setScalar(k); asm.position.y = -box.min.y * k;
       g.position.set(pr.cx, 0, pr.cz); g.rotation.y = 0.5; scene.add(g); patchTree(g);
       const anchor = slot ? asm.worldToLocal(slot.getWorldPosition(new THREE.Vector3())) : new THREE.Vector3(0, size.y, 0);

@@ -77,25 +77,11 @@ const projets = PRO.map((t, i) => `<section class="pc-sec" data-section="${NAV[i
   ${t.tiles.map((x) => proj(x.href)).join('\n  ')}
 </section>`).join('\n\n');
 
-/* gains : les mêmes données que la page Gains (js/annual-gains.js, js/indicators.js) */
-const G = await import(new URL('js/annual-gains.js', ROOT).href), I = await import(new URL('js/indicators.js', ROOT).href);
-const fr = (n, d = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: d }).replace(/\u202f/g, ' ');
-const span = (a, b, d = 0) => fr(a, d) + (a === b ? '' : ' à ' + fr(b, d));
-const D = G.ANNUAL_DECLARED, mean = (k) => (D['min' + k] + D['max' + k]) / 2;
-const rows = G.ANNUAL_GAINS.map((r) => { const n = I.INDICATORS.find((x) => x.id === r.id + '.heures');
-  return `<tr><th scope="row">${esc(r.title)}</th><td>${esc(I.NATURES[n.nature].label)}${r.estimated ? ' (estimation)' : ''}</td><td>${span(r.minHours, r.maxHours)} h</td><td>${span(r.minMoney, r.maxMoney)} €</td></tr>`; }).join('');
-const gains = `<section class="pc-sec" data-section="Gains" data-color="#7a1f4f" aria-labelledby="s-gains">
-  <h2 class="pc-h" id="s-gains" data-plane>Les gains, en clair.</h2>
-  <div class="pc-gainsrow">
-    <div class="pc-pig" data-pig aria-hidden="true"></div>
-    <div class="pc-box pc-card pc-stats" data-box="0.5" data-callout="Tirelire des gains annuels" data-callout-sub="Une pièce de 1 € par tranche de temps libéré" data-href="gains.html">
-      <p class="pc-kicker">Du temps rendu aux équipes · volumes fournis</p>
-      <p class="pc-stat"><b>${fr(mean('Money'))} €</b><span>par an, valorisés à ${fr(G.ANNUAL_RATE, 2)} €/h</span></p>
-      <p class="pc-stat"><b>${fr(mean('Hours'))} h</b><span>${fr(mean('Hours') / G.HOURS_PER_FTE, 1)} postes équivalents</span></p>
-      <p>Du temps libéré, pas une dépense évitée. Les estimations sont comptées à part.</p>
-    </div>
+// la page Gains du site : son tableau de bord (tirelire, chiffres, graphique, méthode) et son tableau sont construits par ses propres scripts
+const gains = `<section class="pc-sec pc-gx" data-section="Gains" data-color="#05080d" aria-label="Gains">
+  <div class="rf rf-gx-page pc-gxwrap" data-plane data-no-piggy>
+    <main class="gx-main"><section class="strip rf-tirelire" id="work" aria-label="Tirelire des gains annuels"><header class="strip-head"><h2>Tirelire des gains annuels</h2><p>Le temps libéré par les outils, valorisé au taux horaire de 104,74 €.</p></header></section></main>
   </div>
-  <div class="pc-box pc-table" data-box="0.3"><table><caption>Gains annuels par outil</caption><thead><tr><th>Outil</th><th>Nature</th><th>Temps libéré</th><th>Valorisation</th></tr></thead><tbody>${rows}</tbody></table></div>
 </section>`;
 
 /* parcours et compétences : la page Expériences */
