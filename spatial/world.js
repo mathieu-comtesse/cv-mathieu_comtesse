@@ -89,6 +89,9 @@ export class SceneManager {
     this.ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), this.groundMat); this.ground.rotation.x = -Math.PI / 2; this.ground.frustumCulled = false;
     this.shadowGround = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({ opacity: .38, color: 0x000a50 })); this.shadowGround.rotation.x = -Math.PI / 2; this.shadowGround.position.y = .004; this.shadowGround.receiveShadow = true; this.shadowGround.frustumCulled = false;
     this.scene.add(this.ground, this.shadowGround);
+    // table à dessin de l'accueil : le plan de 30 × 30 u de l'accueil actuel (cercles de repérage, axes, règle, annotations), centré sur la pièce
+    this.homePlane = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
+    this.homePlane.rotation.x = -Math.PI / 2; this.homePlane.position.y = .02; this.homePlane.renderOrder = 1; this.scene.add(this.homePlane);
     const fontsReady = (document.fonts?.load ? document.fonts.load('400 120px "Instrument Serif"') : Promise.resolve()).then(() => document.fonts?.ready).catch(() => {}).then(() => { this.tex.image = drawMat(1024); this.tex.needsUpdate = true; });
     this.pieces = buildSetPieces({ scene: this.scene, registry: this.registry, timeline: this.timeline, fontsReady });
     this.buildObjects(); this.buildLinks(); this.resize();
