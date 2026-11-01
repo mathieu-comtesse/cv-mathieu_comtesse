@@ -1,0 +1,46 @@
+name: Teardown premium WebGL validation
+
+on:
+  pull_request:
+    paths:
+      - "teardown-lab.html"
+      - "refonte/m3d/**"
+      - "refonte/teardown-*.js"
+      - "refonte/teardown.css"
+      - "tools/test-teardown-browser.mjs"
+      - ".github/workflows/teardown-premium-webgl.yml"
+  workflow_dispatch:
+
+jobs:
+  render-eleven-machines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Vérifier les modules et la page de test
+        run: |
+          node --check refonte/m3d/premium-core.js
+          node --check refonte/m3d/premium-doc-machines.js
+          node --check refonte/m3d/premium-pilot-machines.js
+          node --check refonte/m3d/premium-intelligence-machines.js
+          node --check refonte/m3d/teardown.js
+          node --check refonte/m3d/index.js
+          node --check refonte/teardown-ui.js
+          node --check tools/test-teardown-browser.mjs
+      - name: Installer Chromium de test
+        run: |
+          npm install --prefix /tmp/teardown-browser --no-audit --no-fund playwright@1.56.0
+          /tmp/teardown-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Captures et tests WebGL des 11 machines
+        env:
+          PLAYWRIGHT_PACKAGE: /tmp/teardown-browser/node_modules/playwright/index.mjs
+        run: node tools/test-teardown-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: teardown-premium-11-machines
+          path: test-results/teardown-premium/
+          if-no-files-found: warn

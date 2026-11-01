@@ -15,7 +15,7 @@ const BODY = { y: -22, d: 34 }, FACE_Y = BODY.y + BODY.d, TOPZ = 92, DIAL = { z:
 const BIN = { x: 104, y: 14, w: 32, d: 20 }, BIN_H = 13;
 const PRINTER = { x: 144, y: 10, w: 32, d: 26 }, PRINTER_H = 16;
 const PER_REPORT = { min: 30, eur: 52.37 }, POLL = 2, WORK = 8, START = 480, END = 1020, RECAP = 1028;
-const SPEED = 3.6, HOLD = 4;
+const SPEED = 3.6, HOLD = 4, FAILURE_MINUTE = 13 * 60 + 10;
 
 const pocketX = (rack, i) => rack.x + 4 + i * rack.pitch + (rack.pitch - CARD.w) / 2;
 // journée de 20 dépôts ; le 12e redépose le 5e (doublon écarté par l'historique)
@@ -48,6 +48,7 @@ function path(c, a) {
 }
 
 export function build() {
+  let activeScenario = 'normal';
   const g = new THREE.Group();
   g.add(bench(PLATE, { strip: { x: -150, y: PLATE.y + PLATE.d - 15, w: 180, d: 7 }, label: { x: 36, y: PLATE.y + PLATE.d - 19, w: 46, d: 11 } }));
   // casiers : planche de fond, pieds, porte-étiquettes, lèvres de poche
@@ -85,6 +86,8 @@ export function build() {
     for (let i = 0; i < 6; i++) g.add(box(v.cx - 17 + i * 7, FACE_Y + .05, 14.5, 2, .1, 11, COL.dark, 0));
     const pg = group(cyl(0, 0, 3, 0, 4, COL.mid, 20), box(0, 0, 2, 3, 1.2, 2, COL.mid, 0)); pg.children[1].position.set(0, 3, -3); pg.position.set(v.x + v.w + 3, 66, 4); g.add(pg); punches.push(pg);
   });
+  const failureLight = new THREE.Mesh(new THREE.SphereGeometry(2.6,18,12), new THREE.MeshStandardMaterial({color:'#ca363d',emissive:'#b41d27',emissiveIntensity:1.1}));
+  failureLight.position.set(VM[0].cx,TOPZ+8,-5); failureLight.visible=false; g.add(failureLight);
   const key = group(cyl(0, 0, .9, 0, 5, COL.accent, 16), cyl(0, 0, 3, 5, 1.4, COL.accent, 24)); key.children.forEach((c) => { c.rotation.x = Math.PI / 2; }); key.children[0].position.set(0, 0, 2.5); key.children[1].position.set(0, 0, 5.7);
   key.position.set(VM[0].cx + 17, 44, FACE_Y + 1.2); g.add(key);
   // corbeille, imprimante, ticket
@@ -100,7 +103,11 @@ export function build() {
   const binCount = () => DAYPLAN.filter((c) => c.rejected).length;
 
   function update(time) {
-    const cycle = (RECAP + 6 - START) / SPEED + HOLD, u = time % cycle, t = Math.min(START + u * SPEED, RECAP + 6);
+    const cycle = (RECAP + 6 - START) / SPEED + HOLD, u = ((time % cycle) + cycle) % cycle;
+    const raw = Math.min(START + u * SPEED, RECAP + 6);
+    const failed = activeScenario === 'incident' && raw >= FAILURE_MINUTE;
+    const t = failed ? FAILURE_MINUTE : raw;
+    failureLight.visible = failed;
     // état du jour à l'instant t
     let nb = 0;
     DAYPLAN.forEach((c, i) => {
@@ -129,5 +136,28 @@ export function build() {
     key.position.set(VM[0].cx + 17, 44, FACE_Y + 1.2);
   }
   update(0);
-  return { group: g, update, controls: { label: 'Heure', min: START, max: END, step: 30, fmt: (v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(Math.round(v % 60)).padStart(2, '0'), get: (t) => Math.min(END, START + (t % ((RECAP + 6 - START) / SPEED + HOLD)) * SPEED), seek: (v) => (v - START) / SPEED } };
+  const scenarioStart = (id) => id === 'duplicate' ? Math.max(0,(DAYPLAN[11].start - START)/SPEED - 7) : id === 'incident' ? Math.max(0,(FAILURE_MINUTE - START)/SPEED - 7) : 0;
+  function readout(time) {
+    const cycle=(RECAP+6-START)/SPEED+HOLD;
+    const raw=Math.min(START+(((time%cycle)+cycle)%cycle)*SPEED,RECAP+6);
+    const failed=activeScenario==='incident'&&raw>=FAILURE_MINUTE;
+    const minute=failed?FAILURE_MINUTE:raw;
+    const done=DAYPLAN.filter(c=>c.end<=minute);
+    const ok=done.filter(c=>!c.rejected).length;
+    const dup=done.length-ok;
+    const clock=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(Math.floor(minute%60)).padStart(2,'0');
+    return clock+' · '+ok+' inscrits · '+dup+' doublon(s)'+(failed?' · VM arrêtée, reprise non activée':'');
+  }
+  function getMechanicalState(time) {
+    const cycle=(RECAP+6-START)/SPEED+HOLD;
+    const u=((time%cycle)+cycle)%cycle;
+    const raw=Math.min(START+u*SPEED,RECAP+6);
+    const failed=activeScenario==='incident'&&raw>=FAILURE_MINUTE;
+    const minute=failed?FAILURE_MINUTE:raw;
+    const current=DAYPLAN.find(c=>minute>=c.start&&minute<c.end);
+    return {failed,minute,duplicate:!!current?.rejected,busy:!!current,
+      accepted:DAYPLAN.filter(c=>!c.rejected&&c.end<=minute).length,
+      rejected:DAYPLAN.filter(c=>c.rejected&&c.end<=minute).length};
+  }
+  return { group: g, update, getMechanicalState, readout, scenarioStart, setScenario(id){activeScenario=['normal','duplicate','incident'].includes(id)?id:'normal';}, controls: { label: 'Heure', min: START, max: END, step: 30, fmt: (v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(Math.round(v % 60)).padStart(2, '0'), get: (t) => Math.min(END, START + (t % ((RECAP + 6 - START) / SPEED + HOLD)) * SPEED), seek: (v) => (v - START) / SPEED } };
 }
