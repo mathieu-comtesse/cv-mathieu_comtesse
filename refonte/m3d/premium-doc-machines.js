@@ -11,7 +11,6 @@ function chainFrame(g,x,y,z,w=30,d=30,h=38){
  block(g,w+3,2,d+3,x,y+h,z,'silver');
 }
 function bar(g,x,y,z,w=26){const b=block(g,w,2,5,x,y,z,'bronze');return b;}
-function status(g,x,y,z){return cyl(g,2,1,x,y,z,'green',14);}
 function conveyor(g,len=38,w=17,y=8){
  const bed=block(g,len,3,w,0,y,0,'graphite');const rollers=[];
  for(let x=-len/2+4;x<len/2-2;x+=7){
