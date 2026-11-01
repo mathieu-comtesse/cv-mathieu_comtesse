@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eceae4">
+<meta name="description" content="Laboratoire de démonstration des onze machines interactives du portfolio professionnel de Mathieu Comtesse.">
+<title>Mechanical Lab | Machines des projets professionnels</title>
+<link rel="stylesheet" href="./refonte/teardown.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#222a32;background:#eceae4;color-scheme:light}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;overflow:hidden}
+body{background:radial-gradient(ellipse at 55% 28%,#fff 0%,#f2f1ec 45%,#e5e4df 100%)}
+#stage{position:fixed;inset:0;touch-action:none;cursor:grab}#stage:active{cursor:grabbing}
+#stage canvas{width:100%;height:100%;display:block}
+.grid{position:fixed;inset:0;pointer-events:none;opacity:.3;background-image:linear-gradient(#a4a8ac33 1px,transparent 1px),linear-gradient(90deg,#a4a8ac33 1px,transparent 1px);background-size:52px 52px;mask-image:radial-gradient(ellipse at center,#000,transparent 67%)}
+.header{position:fixed;z-index:8;top:0;left:0;right:0;padding:22px 3.2vw;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.header a,.header button{pointer-events:auto}
+.brand{font-size:11px;text-decoration:none;letter-spacing:.17em;font-weight:700;color:#222a32;white-space:nowrap}
+.headmeta{font:10px ui-monospace,Consolas,monospace;letter-spacing:.09em;color:#626a72}
+.left{position:fixed;z-index:9;left:clamp(12px,2.6vw,38px);top:88px;bottom:clamp(12px,2.8vh,34px);width:min(320px,calc(100vw - 24px));display:flex;flex-direction:column;pointer-events:none}
+.left>*{pointer-events:auto}
+.eyebrow{font:600 10px ui-monospace,Consolas,monospace;color:#7a4a2c;letter-spacing:.15em}
+.left h1{font-size:clamp(29px,3.2vw,48px);font-weight:600;line-height:1.04;letter-spacing:-.055em;margin:12px 0 15px}
+.description{font-size:12px;line-height:1.65;max-width:290px;color:#5d646a;margin:0 0 16px}
+.list{max-height:calc(100vh - 430px);min-height:160px;overflow:auto;padding:8px;border:1px solid #bfc1ba77;border-radius:12px;background:#f9f9f6e0;box-shadow:0 9px 25px #383a3e0c;backdrop-filter:blur(12px);scrollbar-width:thin}
+.list button{width:100%;display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer;border:0;border-radius:6px;background:transparent;color:#52565b;font:12px Arial,sans-serif;min-height:33px;padding:7px 9px}
+.list button span{font:10px ui-monospace,Consolas,monospace;min-width:24px;opacity:.55}
+.list button[aria-current="true"]{color:#fff;background:#252d34}
+.list button:hover:not([aria-current="true"]){background:#e4e4df}
+.footer-left{margin-top:auto;padding-top:12px}
+.sliderline{background:#f7f6f2e8;border:1px solid #c4c4be99;border-radius:11px;padding:12px;box-shadow:0 8px 25px #25252508}
+.sliderline label{font:600 10px ui-monospace,Consolas,monospace;letter-spacing:.09em}
+.sliderline output{font:11px ui-monospace,Consolas,monospace;float:right}
+input[type="range"]{display:block;width:100%;margin:12px 0 3px;accent-color:#252d34}
+.small{font-size:10px;color:#606970;line-height:1.45;margin:10px 2px}
+.bottom{position:fixed;z-index:5;bottom:20px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;font:10px ui-monospace,Consolas,monospace;letter-spacing:.07em;color:#737980}
+.status{position:fixed;top:74px;left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;background:#fafaf6dc;border:1px solid #ccc9c3;border-radius:8px;padding:8px 12px;font:11px ui-monospace,Consolas,monospace;color:#555}
+.mobile-toggle{display:none}
+a{text-decoration:none;color:inherit}
+a:hover{text-decoration:underline}
+@media(max-width:840px){
+ .header{padding:14px 18px}.headmeta{display:none}
+ .left{top:64px;bottom:auto;left:12px;width:min(300px,calc(100vw - 24px));max-height:45vh}
+ .left h1{font-size:26px;margin:7px 0}.description{display:none}
+ .list{max-height:26vh;min-height:0}
+ .footer-left{margin-top:8px}
+ .small{display:none}
+ .bottom{display:none}
+ .mobile-toggle{display:inline-flex;align-items:center;justify-content:center;position:fixed;z-index:11;top:12px;right:14px;background:#282e36;color:#fff;border:0;border-radius:8px;padding:9px 12px;font:12px Arial,sans-serif}
+ .left.is-hidden{display:none}
+ body .rf-td{max-height:37vh;bottom:10px}
+ body .rf-td .rf-td-inner{max-height:calc(37vh - 80px)}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="grid" aria-hidden="true"></div>
+<div id="stage" aria-label="Simulateur 3D rotatif. Glissez pour tourner, utilisez la molette pour zoomer."></div>
+<header class="header"><a class="brand" href="./index.html">MATHIEU COMTESSE / LAB</a><span class="headmeta">COLLECTION MÉCANIQUE · 11 SYSTÈMES · VERSION DE DÉMONSTRATION</span></header>
+<button type="button" class="mobile-toggle" id="mobile-toggle" aria-controls="sidebar" aria-expanded="true">Projets</button>
+<aside class="left" id="sidebar">
+ <span class="eyebrow">EXPLORATION / 01—11</span>
+ <h1 id="name">Machines en fonctionnement.</h1>
+ <p class="description" id="desc">Chaque installation traduit le fonctionnement d'un projet professionnel en mécanisme interactif.</p>
+ <nav class="list" id="projects" aria-label="Choisir un projet"></nav>
+ <div class="footer-left">
+  <div class="sliderline"><label id="param-label" for="param">PARAMÈTRE</label><output id="param-output" for="param"></output><input type="range" id="param" min="0" max="100" step="5" value="50"></div>
+  <p class="small">Tourner : glisser · Zoomer : molette · Inspecter : clic sur une pièce · E, C, X, I : changer de vue</p>
+  <p class="small"><a id="fullproject" href="./projet-vmvre.html">Lire l'étude complète du projet</a></p>
+ </div>
+</aside>
+<div id="status" class="status" role="status">Initialisation du laboratoire 3D…</div>
+<div class="bottom">DÉMONSTRATION SUR DONNÉES FICTIVES · AUCUN ACCÈS AUX SYSTÈMES MÉTIER</div>
+<script type="module">
+import * as THREE from 'three';
+import {mountMachine} from './refonte/m3d/index.js';
+import {mountTeardownUI} from './refonte/teardown-ui.js';
+const items=[
+ {id:'cerfa',name:'Extracteur CERFA',desc:'Trieuse de conformité, détection des doublons et retards.',page:'projet-cerfa.html'},
+ {id:'vm',name:'VM VRE',desc:'Deux pointeuses, une clé, un historique et une reprise à concevoir.',page:'projet-vmvre.html'},
+ {id:'vre',name:'Extracteur VRE',desc:'Quatre familles BT, comptage et association aux bâtiments.',page:'projet-vre.html'},
+ {id:'moteur',name:'Reporteur Q18',desc:'Fichier rotatif motorisé, recherche OT et report vers Excel.',page:'projet-moteur44.html'},
+ {id:'gares',name:'Gares prioritaires',desc:'Calculateur de criticité avec pondération conformité et maintenance.',page:'projet-gares.html'},
+ {id:'finance',name:'Point financier',desc:'Manomètres budgétaires, seuils de surveillance et alertes.',page:'projet-finance.html'},
+ {id:'pp',name:'Plans de prévention',desc:'Classement automatique, échéances et relances.',page:'projet-pa.html'},
+ {id:'powerbi',name:'Power BI PP & MOSO',desc:'Carrousel documentaire et restitution interactive.',page:'projet-powerbi.html'},
+ {id:'suivi',name:'Suivi des OT',desc:'Standard téléphonique de recherche des informations techniques.',page:'projet-suivi.html'},
+ {id:'studio',name:'Studio d’extracteurs',desc:'Machine à reproduire les clés documentaires.',page:'projet-studio.html'},
+ {id:'vrestudio-musicbox',name:'Lecteur VRE intelligent',desc:'Boîte à musique de classification, validation et entraînement candidat.',page:'projet-lecteur-vre.html'}
+];
+const $=s=>document.querySelector(s);
+const stage=$('#stage'), list=$('#projects'), value=$('#param'), reading=$('#param-output');
+list.innerHTML=items.map((p,i)=>'<button data-i="'+i+'" type="button"><span>'+String(i+1).padStart(2,'0')+'</span>'+p.name+'</button>').join('');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let current=null,ui=null,selected=-1,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:28*Math.PI/180,dist:40},canvas=null,pointer=null;
+const activeTime=()=>paused?pauseAt:(reduced?shift:(performance.now()-clockStart)/1000+shift);
+function seek(t){if(paused)pauseAt=t;else if(reduced)shift=t;else shift+=t-activeTime();}
+function pause(on){if(on&&!paused){pauseAt=activeTime();paused=true;}else if(!on&&paused){if(reduced)shift=pauseAt;else shift+=pauseAt-activeTime();paused=false;}}
+function pose(){if(!cam)return;const {yaw,pitch,dist}=rotation,cy=Math.cos(pitch);
+ cam.position.set(Math.sin(yaw)*cy*dist,2.5+Math.sin(pitch)*dist,Math.cos(yaw)*cy*dist);
+ cam.lookAt(0,2.5,0);cam.updateMatrixWorld(true);}
+function onResize(){if(!cam)return;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();pose();current?.resize();}
+window.addEventListener('resize',onResize);
+cam=new THREE.PerspectiveCamera(30,innerWidth/innerHeight,1,400);
+pose();
+function syncSlider(){
+ const ctl=current?.controls;if(!ctl)return;
+ value.min=ctl.min;value.max=ctl.max;value.step=ctl.step;value.value=Math.max(ctl.min,Math.min(ctl.max,ctl.get(activeTime())));
+ $('#param-label').textContent=ctl.label.toUpperCase();
+ reading.textContent=ctl.fmt(ctl.get(activeTime()));
+}
+value.addEventListener('input',()=>{
+ const ctl=current?.controls;if(!ctl)return;const n=Number(value.value);
+ const out=ctl.set?.(n);
+ const target=ctl.seek?.(n)??(typeof out==='number'?out:null);
+ if(target!=null)seek(target);
+ reading.textContent=ctl.fmt(n);
+});
+async function choose(i){
+ const p=items[i];if(!p)return;
+ selected=i;list.querySelectorAll('button').forEach((b,k)=>b.setAttribute('aria-current',String(k===i)));
+ $('#name').textContent=p.name;$('#desc').textContent=p.desc;$('#fullproject').href='./'+p.page;
+ $('#status').hidden=false;$('#status').textContent='Chargement de '+p.name+'…';
+ ui?.dispose();ui=null;current?.dispose();current=null;canvas?.remove();
+ canvas=document.createElement('canvas');canvas.setAttribute('aria-hidden','true');stage.append(canvas);
+ shift=0;paused=false;clockStart=performance.now();
+ try{
+   current=await mountMachine(p.id,canvas,cam);
+   ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause});
+   syncSlider();
+   $('#status').hidden=true;
+   history.replaceState(null,'','#'+encodeURIComponent(p.id));
+ }catch(err){console.error(err);$('#status').textContent='Erreur de chargement : '+String(err.message||err);}
+}
+list.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)choose(Number(b.dataset.i));});
+const mobile=$('#mobile-toggle');
+mobile.addEventListener('click',()=>{let hide=$('#sidebar').classList.toggle('is-hidden');mobile.setAttribute('aria-expanded',String(!hide));});
+stage.addEventListener('pointerdown',e=>{if(e.button!==0)return;pointer={x:e.clientX,y:e.clientY,yaw:rotation.yaw,pitch:rotation.pitch};stage.setPointerCapture(e.pointerId);});
+stage.addEventListener('pointermove',e=>{
+ if(!pointer)return;rotation.yaw=pointer.yaw+(e.clientX-pointer.x)*.008;
+ rotation.pitch=THREE.MathUtils.clamp(pointer.pitch+(e.clientY-pointer.y)*.004,.07,1.34);pose();
+});
+stage.addEventListener('pointerup',e=>{
+ if(!pointer)return;const d=Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y);
+ if(d<5){const part=current?.teardown?.inspect(e.clientX,e.clientY);if(part){current.teardown.setMode('isolate');ui?.update(activeTime());}}
+ pointer=null;
+});
+stage.addEventListener('pointercancel',()=>{pointer=null;});
+stage.addEventListener('wheel',e=>{e.preventDefault();rotation.dist=THREE.MathUtils.clamp(rotation.dist+e.deltaY*.03,22,64);pose();},{passive:false});
+let frame=0,lastRead=-1;
+function animate(){
+ frame=requestAnimationFrame(animate);
+ if(!current||document.hidden)return;
+ const t=activeTime();
+ current.render(t);
+ ui?.update(t);
+ if(!value.matches(':active')&&performance.now()-lastRead>350){syncSlider();lastRead=performance.now();}
+}
+animate();
+const param=new URLSearchParams(location.search);
+const initial=items.findIndex(p=>p.id===decodeURIComponent(location.hash.slice(1)));
+choose(initial<0?1:initial);
+</script>
+</body>
+</html>
