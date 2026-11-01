@@ -265,7 +265,7 @@ async function start() {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
     host.className = 'pc-room-host'; host.setAttribute('aria-hidden', 'true'); bubble.className = 'bubble'; host.append(bubble); document.body.append(host);
     Promise.all([import('../js/room.js?v=nt6-20261026'), import('three/addons/RoomEnvironment.js')]).then(async ([{ createRoom }, { RoomEnvironment }]) => {
-      const room = await createRoom(host, bubble);
+      const room = await createRoom(host, bubble, { noTea: true }); // sans la pièce du thé, ni les déplacements et pensées qui s'y rapportent
       room.setSceneMuted?.(true);
       const g = new THREE.Group();
       for (const o of [...room.scene.children]) if (!(o.material && o.material.isShadowMaterial)) g.add(o);

@@ -39,7 +39,7 @@ const easeOutBounce = (x) => {
   return n * (x -= 2.625 / d) * x + 0.984375;
 };
 
-export async function createRoom(container, bubbleEl) {
+export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé (parcours 3D du CV)
   const mobile=matchMedia('(max-width:809px)');
   container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
@@ -448,6 +448,7 @@ export async function createRoom(container, bubbleEl) {
   /* cadrage : mêmes proportions que la scène de référence (pièce principale sur ~75 % de la hauteur, ~78 % de la largeur au plus).
    * La pièce du thé et son jardin sont à gauche, hors cadre sur écran moyen : la caméra glisse vers eux quand le personnage y va. Sur téléphone la scène dépasse de l'écran. */
   const TEAGROUP = new Set(['chashitsu', 'cha', 'shoes']);
+  if (options.noTea) { for (const it of items) if (TEAGROUP.has(it.id)) (it.holder || it.obj).visible = false; world.traverse((o) => { if (TEAGROUP.has(o.userData.id)) o.visible = false; }); cs.group.visible = false; tea.visible = false; }
   let csX = 0, csHalf = 1, tableX0 = 0, tableX1 = 0, roomCx = 0, roomCy = 0;
   function computeFit() {
     const save = { az:view.az,el:view.el,target:target.clone(),tgt:tgt.clone(),positions:items.map(i=>i.obj.position.clone()) };
@@ -751,7 +752,7 @@ export async function createRoom(container, bubbleEl) {
 
   // Déplacements autonomes, comme sur le site de référence : le personnage se lève et va d'une activité à l'autre.
   // La musique reste manuelle ; un tiroir ouvert ne fige pas la vie de la pièce.
-  const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, stations.cha,...(bicyclePump?[stations.bike]:[])];
+  const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, ...(options.noTea ? [] : [stations.cha]),...(bicyclePump?[stations.bike]:[])];
   const autonomousReadyAt = performance.now() + 8000;
   let autonomousNext = performance.now() + 4500 + Math.random() * 3500;
   let autonomousActivitySince = 0, autonomousLast = null, autonomousPrevMode = '';
