@@ -65,12 +65,12 @@ a:hover{text-decoration:underline}
 <body>
 <div class="grid" aria-hidden="true"></div>
 <div id="stage" aria-label="Simulateur 3D rotatif. Glissez pour tourner, utilisez la molette pour zoomer."></div>
-<header class="header"><a class="brand" href="./index.html">MATHIEU COMTESSE / LAB</a><span class="headmeta">COLLECTION MÉCANIQUE · 11 SYSTÈMES · VERSION DE DÉMONSTRATION</span></header>
+<header class="header"><a class="brand" href="./index.html">MATHIEU COMTESSE / LAB</a><span class="headmeta">RECONSTRUCTION V3 · 11 MACHINES NOUVELLES · DEMONSTRATION</span></header>
 <button type="button" class="mobile-toggle" id="mobile-toggle" aria-controls="sidebar" aria-expanded="true">Projets</button>
 <aside class="left" id="sidebar">
  <span class="eyebrow">EXPLORATION / 01—11</span>
  <h1 id="name">Machines en fonctionnement.</h1>
- <p class="description" id="desc">Chaque installation traduit le fonctionnement d'un projet professionnel en mécanisme interactif.</p>
+ <p class="description" id="desc">Onze machines entièrement redessinées, chacune avec cinq sous-systèmes mécaniques propres et des états simulés.</p>
  <nav class="list" id="projects" aria-label="Choisir un projet"></nav>
  <details class="flowbar" open><summary>PARCOURS VRE · VUE CONCEPTUELLE</summary>
  <div class="flowroute" id="flowroute" aria-label="Naviguer entre les étapes conceptuelles"></div>
@@ -83,23 +83,23 @@ a:hover{text-decoration:underline}
  </div>
 </aside>
 <div id="status" class="status" role="status">Initialisation du laboratoire 3D…</div>
-<div class="bottom">DÉMONSTRATION SUR DONNÉES FICTIVES · AUCUN ACCÈS AUX SYSTÈMES MÉTIER</div>
+<div class="bottom">MACHINES RECONSTRUITES · SCÉNARIOS PÉDAGOGIQUES · AUCUNE CONNEXION MÉTIER</div>
 <script type="module">
 import * as THREE from 'three';
 import {mountMachine} from './refonte/m3d/index.js';
 import {mountTeardownUI} from './refonte/teardown-ui.js';
 const items=[
- {id:'cerfa',name:'Extracteur CERFA',desc:'Trieuse de conformité, détection des doublons et retards.',page:'projet-cerfa.html'},
- {id:'vm',name:'VM VRE',desc:'Deux pointeuses, une clé, un historique et une reprise à concevoir.',page:'projet-vmvre.html'},
- {id:'vre',name:'Extracteur VRE',desc:'Quatre familles BT, comptage et association aux bâtiments.',page:'projet-vre.html'},
- {id:'moteur',name:'Reporteur Q18',desc:'Fichier rotatif motorisé, recherche OT et report vers Excel.',page:'projet-moteur44.html'},
- {id:'gares',name:'Gares prioritaires',desc:'Calculateur de criticité avec pondération conformité et maintenance.',page:'projet-gares.html'},
- {id:'finance',name:'Point financier',desc:'Manomètres budgétaires, seuils de surveillance et alertes.',page:'projet-finance.html'},
- {id:'pp',name:'Plans de prévention',desc:'Classement automatique, échéances et relances.',page:'projet-pa.html'},
- {id:'powerbi',name:'Power BI PP & MOSO',desc:'Carrousel documentaire et restitution interactive.',page:'projet-powerbi.html'},
- {id:'suivi',name:'Suivi des OT',desc:'Standard téléphonique de recherche des informations techniques.',page:'projet-suivi.html'},
- {id:'studio',name:'Studio d’extracteurs',desc:'Machine à reproduire les clés documentaires.',page:'projet-studio.html'},
- {id:'vrestudio-musicbox',name:'Lecteur VRE intelligent',desc:'Boîte à musique de classification, validation et entraînement candidat.',page:'projet-lecteur-vre.html'}
+ {id:'cerfa',name:'Extracteur CERFA',desc:'Nouvelle chaîne CERFA : chargeur, scanner, contrôles, aiguillages et 4 bacs.',page:'projet-cerfa.html'},
+ {id:'vm',name:'VM VRE',desc:'Nouvelle centrale à deux VM, verrou exclusif, historique et contrôle d’écriture.',page:'projet-vmvre.html'},
+ {id:'vre',name:'Extracteur VRE',desc:'Nouvelle tour de lecture et 4 colonnes BT raccordées aux bâtiments.',page:'projet-vre.html'},
+ {id:'moteur',name:'Reporteur Q18',desc:'Nouveau carrousel Q18 avec indexeur, comparateur OT et tampon.',page:'projet-moteur44.html'},
+ {id:'gares',name:'Gares prioritaires',desc:'Nouveau différentiel de pondération et classement mécanique.',page:'projet-gares.html'},
+ {id:'finance',name:'Point financier',desc:'Nouvelle centrale à 4 réservoirs, collecteur, 5 relais et anti-doublons.',page:'projet-finance.html'},
+ {id:'pp',name:'Plans de prévention',desc:'Nouveau centre documentaire avec calendrier, archivage et relais.',page:'projet-pa.html'},
+ {id:'powerbi',name:'Power BI PP & MOSO',desc:'Nouvelle usine relationnelle Power Query, DAX et portail HTML.',page:'projet-powerbi.html'},
+ {id:'suivi',name:'Suivi des OT',desc:'Nouveau standard avec sélecteurs, 20 prises, raccordement et terminal.',page:'projet-suivi.html'},
+ {id:'studio',name:'Studio d’extracteurs',desc:'Nouvelle fabrique avec traçage XY, fraiseuse, recette et livraison.',page:'projet-studio.html'},
+ {id:'vrestudio-musicbox',name:'Lecteur VRE intelligent',desc:'Nouveau moteur cognitif : neurones, fusion, validation et banc d’essai.',page:'projet-lecteur-vre.html'}
 ];
 const $=s=>document.querySelector(s);
 const flowIds=['vrestudio-musicbox','vre','vm','moteur','powerbi'];
