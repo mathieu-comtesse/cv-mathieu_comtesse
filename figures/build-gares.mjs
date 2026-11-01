@@ -73,38 +73,40 @@ function deskSvg() {
 }
 
 // ---------------------------------------------------------------- une colonne de niveau : plaque, liquide (dynamique), montants et graduations
+// Éprouvette de verre : socle à bouchon-pied, tube transparent à parois visibles, graduations sur le verre, bouchon de tête à col et collier de serrage sur le montant.
 function gaugeBack(cx, wid, y, z0, key) {
-  const out = [], plan = { x: cx - wid / 2, y, w: wid, d: GAUGE.d, r: 0.8 };
-  out.push(S(slab({ x: cx - wid / 2 - 1.5, y: y - 1.4, w: wid + 3, d: GAUGE.d + 2.8, r: 1.2 }, z0 - 3, 3, 3, 0.5), { tone: "lo" }));
-  out.push(S(slab(plan, z0, SL + 4, 3, 0.4), { tone: "lo" }));
+  const out = [], yc = y + GAUGE.d / 2, r = wid / 2 - 1.2, F = G.frameAlong([cx, yc, z0 - 3], [0, 0, 1]);
+  out.push(S(G.disc(0, 3, r + 3.4, F, P), { tone: "lo", inner: k.fadedSvg(G.ribsOf(F, 0, 3, r + 3.4, 28, P, { fade: [0.1, 0.55] }), { tone: "faint" }) }));
+  out.push(S(G.disc(3, 5, r + 1.8, F, P), { tone: "mid" }));
+  out.push(D(G.dotsOf(F, 3, r + 2.6, 4, P, { phase: 0.78, all: true }), { size: 0.34 }));
+  // Fond du verre : un disque clair qui reçoit le liquide.
   out.push(`<g data-part="${key}"></g>`);
   return out.join("");
 }
 function gaugeFront(cx, wid, y, z0, key, lamp = false) {
-  const out = [], yf = y + GAUGE.d, hw = wid / 2;
-  // Deux montants et un chapeau gradué : les graduations naissent du montant de droite.
-  out.push(S(slab({ x: cx - hw, y: y - 0.4, w: 1.6, d: GAUGE.d + 1.4, r: 0.3 }, z0, SL + 4, 2, 0.2), { tone: "mid" }));
-  out.push(S(slab({ x: cx + hw - 1.6, y: y - 0.4, w: 1.6, d: GAUGE.d + 1.4, r: 0.3 }, z0, SL + 4, 2, 0.2), { tone: "mid" }));
+  const out = [], yc = y + GAUGE.d / 2, r = wid / 2 - 1.2, yf = yc + r, F = G.frameAlong([cx, yc, z0 + 2], [0, 0, 1]), H = SL + 4;
+  // Tube : paroi de verre à contour fin, bord supérieur meulé ; deux montants-guides pour le montage.
+  const wall = G.lathe([[0, r], [H, r]], F, P, { fill: "surface" });
+  out.push(`<g class="iso-solid fig-glass2">${k.solidSvg(wall, { tone: "hi", className: "fig-glass" })}</g>`);
+  out.push(L(G.circleOf(F, H, r, P) + G.circleOf(F, H - 1.6, r - 0.5, P), { tone: "faint" }));
+  // Graduations sur le verre : un trait tous les 10 %, un majeur tous les 50 %.
   const minor = [], major = [];
-  for (let s = 0; s <= 10; s++) {
-    const z = z0 + 1 + s * (SL / 10), len = s % 5 ? 2.2 : 3.8;
-    (s % 5 ? minor : major).push(k.segment([cx + hw - 1.6, yf, z], [cx + hw - 1.6 - len, yf, z], P));
-  }
+  for (let s = 0; s <= 10; s++) { const z = z0 + 3 + s * (SL / 10), len = s % 5 ? 2.2 : 3.8; (s % 5 ? minor : major).push(k.segment([cx + r - 0.2 - len, yf, z], [cx + r - 0.2, yf, z], P)); }
   out.push(L(minor.join(""), { tone: "lo", free: true }), L(major.join(""), { tone: "mid", free: true }));
-  const head = { x: cx - hw - 0.6, y: y - 0.8, w: wid + 1.2, d: GAUGE.d + 1.6, r: 0.8 };
-  out.push(S(slab(head, z0 + SL + 4, 6, 3, 0.5), { tone: "mid" }));
-  out.push(D([at([cx - hw + 0.8, yf + 0.8, z0 + SL + 8]), at([cx + hw - 0.8, yf + 0.8, z0 + SL + 8])], { size: 0.36 }));
+  // Collier de serrage sur le tube, deux vis, et bouchon de tête à col.
+  const zc = z0 + 2 + H * 0.78;
+  out.push(S(G.disc(zc - z0 - 1, zc - z0 + 0.4, r + 0.9, F, P), { tone: "lo" }));
+  out.push(D(G.dotsOf(F, zc - z0 - 2, r + 1.4, 3, P, { phase: 0.4, all: true }), { size: 0.32 }));
+  out.push(S(G.disc(H, H + 2.4, r + 1.4, F, P), { tone: "mid" }));
+  out.push(S(G.disc(H + 2.4, H + 5, r * 0.55, F, P), { tone: "hi" }));
   if (lamp) {
-    out.push(S(k.cylinder(cx, y + GAUGE.d / 2, 2.2, z0 + SL + 10, 1.8, P, 18), { tone: "mid" }));
-    const [lx, ly] = at([cx, y + GAUGE.d / 2, z0 + SL + 11.8]);
+    const [lx, ly] = at([cx, yc, z0 + 2 + H + 7.4]);
+    out.push(S(k.cylinder(cx, yc, 2.2, z0 + 2 + H + 5, 1.8, P, 18), { tone: "mid" }));
     out.push(`<circle class="fig-lamp" data-part="${key}-lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`);
   }
-  if (key.startsWith("col")) out.push(display(front(yf + 0.8), flat(cx - 5.6, z0 + SL + 5.2, cx + 5.6, z0 + SL + 9.6, 0.8), { part: key.replace("col", "score"), x: cx, y: -(z0 + SL + 6.2), size: 3.6, text: "000" }));
+  if (key.startsWith("col")) out.push(display(front(yf + 0.6), flat(cx - 5.6, z0 + SL + 8.4, cx + 5.6, z0 + SL + 12.8, 0.8), { part: key.replace("col", "score"), x: cx, y: -(z0 + SL + 9.4), size: 3.6, text: "000" }));
   return out.join("");
 }
-
-
-// ---------------------------------------------------------------- finitions
 function wallDetail() {
   const out = [], f = right(WALL.x + WALL.w), yf = WALL.y + WALL.d;
   out.push(S(slab({ x: WALL.x - 1.4, y: WALL.y - 1, w: WALL.w + 2.8, d: WALL.d + 2, r: 1.2 }, WALL_H - 3, 3, 3, 0.5), { tone: "mid" }));
@@ -178,7 +180,7 @@ const level = Array.from({ length: ROWS }, (_, r) => top[r].s), jars = [w, 1 - w
 const cols = Array.from({ length: ROWS }, (_, r) => $("col-" + r)), jarGroups = [$("jar-0"), $("jar-1")];
 const names = Array.from({ length: ROWS }, (_, r) => $("name-" + r)), scores = Array.from({ length: ROWS }, (_, r) => $("score-" + r)), lamp = $("col-0-lamp");
 // Le liquide : une plaque fine qui monte dans la colonne (la première en accent).
-const liquid = (cx, wid, y, z0, frac, lit) => frac < 0.004 ? "" : solidSvg(slabOf({ x: cx - wid / 2 + 2.4, y: y + 0.6, w: wid - 4.8, d: 2.2, r: 0.6 }, z0 + 1, Math.max(0.6, frac * SL), P, 2, 0.2), { tone: "hi", className: "fig-liquid" });
+const liquid = (cx, wid, y, z0, frac, lit) => frac < 0.004 ? "" : solidSvg(cylinder(cx, y + GAUGE.d / 2, wid / 2 - 2, z0 + 2, Math.max(0.6, frac * SL), P, 28), { tone: "hi", className: "fig-liquid" });
 function pointer() {
   const a = -Math.PI * 0.75 + shownW * Math.PI * 1.5, r0 = 2.4, r1 = KNOB.r - 1;
   const p0 = [KNOB.x + Math.sin(a) * r0, KNOB.y - Math.cos(a) * r0, DESK_H + 7], p1 = [KNOB.x + Math.sin(a) * r1, KNOB.y - Math.cos(a) * r1, DESK_H + 7];
@@ -233,4 +235,4 @@ const plate = k.plateHtml({
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Gares prioritaires : flèches gauche et droite pour changer la pondération" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">${svg}</div>`,
 });
 
-writeFigure("gares", { title: "Gares prioritaires · colonnes de niveau", plate, live, css: `<style>.fig-liquid .iso-fill,.fig-liquid .iso-top{fill:color-mix(in srgb,var(--g) 34%,var(--anatomy-top))}.fig-liquid .iso-shade{fill:color-mix(in srgb,var(--g) 20%,var(--anatomy-shade-1))}.fig-liquid .iso-edge,.fig-liquid .iso-line{stroke:color-mix(in srgb,var(--g) 70%,var(--anatomy-hi))}</style>` });
+writeFigure("gares", { title: "Gares prioritaires · colonnes de niveau", plate, live, css: `<style>.fig-glass .iso-fill{fill:color-mix(in srgb,var(--anatomy-paper) 55%,transparent)}.fig-glass .iso-shade,.fig-glass .iso-top{fill:color-mix(in srgb,var(--anatomy-shade-1) 30%,transparent)}.fig-liquid .iso-fill,.fig-liquid .iso-top{fill:color-mix(in srgb,var(--g) 34%,var(--anatomy-top))}.fig-liquid .iso-shade{fill:color-mix(in srgb,var(--g) 20%,var(--anatomy-shade-1))}.fig-liquid .iso-edge,.fig-liquid .iso-line{stroke:color-mix(in srgb,var(--g) 70%,var(--anatomy-hi))}</style>` });
