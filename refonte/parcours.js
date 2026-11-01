@@ -145,7 +145,8 @@ async function start() {
     mat.fragmentShader = 'uniform vec4 uClip;uniform float uK;uniform vec2 uC;\n' + mat.fragmentShader
       .replace('const float K=3.6667;', 'float K=uK;').replace('vec2 p=vW.xz*K;', 'if(vW.x<uClip.x||vW.x>uClip.y||vW.z<uClip.z||vW.z>uClip.w)discard;vec2 p=(vW.xz-uC)*K;');
     mat.userData.pc = true; // déjà courbé
-    mat.depthWrite = false; const m = new THREE.Mesh(new THREE.PlaneGeometry(S, S, N(S), N(S)), mat); // découpé dans les deux sens : il suit la courbure jusqu'aux bords m.rotation.x = -Math.PI / 2; m.position.set(c.cx, 0, c.cz); m.renderOrder = -2; scene.add(m);
+    mat.depthWrite = false; const m = new THREE.Mesh(new THREE.PlaneGeometry(S, S, N(S), N(S)), mat); // découpé dans les deux sens : il suit la courbure jusqu'aux bords
+    m.rotation.x = -Math.PI / 2; m.position.set(c.cx, 0, c.cz); m.renderOrder = -2; scene.add(m);
     bps.push(mat);
   }
 
@@ -179,7 +180,7 @@ async function start() {
   const items = [];
   const glassSide = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07, depthWrite: false });
   const edgeMat = white(0.6);
-  const topMat = () => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, color: 0xffffff, opacity: 1 });
+  const topMat = () => new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, color: 0xffffff, opacity: 1, visible: false }); // visible dès que l'image de la section est prête
   for (const el of $$('[data-box]')) {
     const r = rectOf(el), g = W(r), h = parseFloat(el.dataset.box) || 0.4, mat = topMat();
     const m = new THREE.Mesh(new THREE.BoxGeometry(g.w, h, g.d, 1, 1, N(g.d)), [glassSide, glassSide, mat, glassSide, glassSide, glassSide]);
@@ -260,29 +261,33 @@ async function start() {
     const xl = label('x = 4,00', { w: 1.6, h: 0.35, font: '500 24px iAWriterQuattroV, monospace', color: '#fff' }); xl.position.set(2.6, 0.05, axZ + 0.6); scene.add(xl);
   }
 
-  /* règles d'une machine : une horizontale (Tourner) et une verticale (Incliner), graduées ; glisser ne bouge que cette machine */
+  /* règles d'une machine : celles du site (graduations, repère, « Tourner » / « Incliner »), une paire par machine ; glisser ne bouge que cette machine */
   function makeRulers() {
     const el = document.createElement('div'); el.className = 'pc-rul'; el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = '<div class="pc-rul-h" title="Tourner"><i></i><span>Tourner</span></div><div class="pc-rul-v" title="Incliner"><i></i><span>Incliner</span></div>';
-    document.body.append(el);
-    const R = { el, onturn: null, ontilt: null };
-    const drag = (node, axis) => node.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); node.setPointerCapture(e.pointerId); let last = axis === 'x' ? e.clientX : e.clientY; node.classList.add('on');
-      const mv = (ev) => { const v = axis === 'x' ? ev.clientX : ev.clientY, d = v - last; last = v; if (axis === 'x') R.onturn?.(d * 0.012); else R.ontilt?.(-d * 0.01); node.querySelector('i').style.transform = axis === 'x' ? `translateX(${(parseFloat(node.dataset.o || 0) + d)}px)` : `translateY(${(parseFloat(node.dataset.o || 0) + d)}px)`; node.dataset.o = (parseFloat(node.dataset.o || 0) + d) % 12; };
-      const up = () => { node.classList.remove('on'); node.removeEventListener('pointermove', mv); node.removeEventListener('pointerup', up); };
-      node.addEventListener('pointermove', mv); node.addEventListener('pointerup', up);
-    });
-    drag(el.firstChild, 'x'); drag(el.lastChild, 'y');
+    const ruler = (h) => `<aside class="rf-ruler${h ? ' rf-ruler--h' : ''}" tabindex="-1"><i class="rf-ruler-mark"></i><div class="rf-ruler-track"></div><span class="rf-ruler-label rf-mono">${h ? 'Tourner' : 'Incliner'}</span></aside>`;
+    el.innerHTML = ruler(false) + ruler(true); document.body.append(el);
+    const [v, hz] = el.children, LIM = 250, R = { el, rot: 0, tilt: 0, onview: null };
+    for (const [ru, horiz] of [[v, false], [hz, true]]) {
+      const tr = ru.querySelector('.rf-ruler-track'), f = document.createDocumentFragment();
+      for (let i = 0; i <= 100; i++) { const t = document.createElement('div'); t.className = 'rf-tick' + (i % 10 === 0 ? ' rf-maj' : ''); t.style[horiz ? 'left' : 'top'] = i * 5 + 'px'; if (i % 10 === 0) t.innerHTML = `<span>${(i / 100).toFixed(2)}</span>`; f.append(t); }
+      tr.append(f);
+      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); if (horiz) R.rot = x; else R.tilt = x; tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      let d = null;
+      ru.addEventListener('pointerdown', (e) => { d = { p: horiz ? e.clientX : e.clientY, v: horiz ? R.rot : R.tilt }; ru.setPointerCapture(e.pointerId); e.preventDefault(); });
+      ru.addEventListener('pointermove', (e) => { if (d) set(d.v + (horiz ? e.clientX : e.clientY) - d.p); });
+      ru.addEventListener('pointerup', () => { d = null; }); ru.addEventListener('pointercancel', () => { d = null; });
+      ru.addEventListener('dblclick', () => set(0));
+    }
     return R;
   }
 
   /* machines 3D des projets, en longueur sur les côtés */
   scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
   const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-9, 16, 8); scene.add(sun);
-  const machines = []; let pendingM = 0;
+  const machines = []; let pendingM = 0; const T0 = -1.25; // couchée à plat, la face vers le haut
   for (const art of $$('[data-fig]')) {
     // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
-    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = 4.2, x = side * (HALF + 0.6 + sc / 2), z = (r.y + 0.35 * r.h) / PXM, rot = -side * 0.55;
+    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = 4.2, x = side * (HALF + sc * 0.24), z = (r.y + 0.12 * r.h) / PXM, rot = -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
@@ -291,9 +296,8 @@ async function start() {
       m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
       g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
       pivot.position.set(x, 0, z); pivot.rotation.y = rot; patchTree(pivot);
-      const M = { m, z, pivot, rot, yaw: 0, tilt: 0, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
-      M.rul.onturn = (d) => { M.yaw = Math.max(-Math.PI, Math.min(Math.PI, M.yaw + d)); };
-      M.rul.ontilt = (d) => { M.tilt = Math.max(-0.6, Math.min(0.9, M.tilt + d)); };
+      const M = { m, z, pivot, rot, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
+      M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
     }).catch((e) => console.warn('machine indisponible', mod, e));
   }
@@ -309,6 +313,8 @@ async function start() {
       room.setSceneMuted?.(true);
       const g = new THREE.Group();
       for (const o of [...room.scene.children]) if (!(o.material && o.material.isShadowMaterial)) g.add(o);
+      // ombres de contact : plans à 4 sommets, qui décrochent de la feuille courbée pendant le défilement ; on les subdivise
+      g.traverse((o) => { const p = o.geometry?.parameters; if (o.isMesh && o.geometry.type === 'PlaneGeometry' && p.widthSegments === 1) { const n = (v) => Math.max(2, Math.ceil(v * ROOM_K / 0.15)); o.geometry = new THREE.PlaneGeometry(p.width, p.height, n(p.width), n(p.height)); o.material.polygonOffset = true; o.material.polygonOffsetFactor = -2; } });
       g.scale.setScalar(ROOM_K); g.rotation.y = -36 * Math.PI / 180; g.position.set(rr.cx, 0, rr.cz);
       // les arbres de la pièce (vendor-trees) embarquent leur propre Three.js, plus ancien : on complète leurs matrices
       g.traverse((o) => { const P = Object.getPrototypeOf(o.matrixWorld); if (!P.determinantAffine) P.determinantAffine = THREE.Matrix4.prototype.determinantAffine; });
@@ -337,8 +343,6 @@ async function start() {
   }
 
   /* éléments vivants (hublot et sa vidéo, symbole infini) : le vrai DOM, posé dans la 3D par CSS3D, toujours interactif */
-  const lives = [];
-  const liveEls = $$('[data-live]').filter((el) => el.dataset.live !== 'infini');
   // symbole infini : son canvas tourne dans un hôte invisible mais à l'écran (il se met en pause hors écran),
   // et son image est recopiée sur la feuille à chaque image, courbure comprise
   const infEl = $('[data-live="infini"]'), infs = [];
@@ -352,18 +356,38 @@ async function start() {
     infs.push({ t, z: g.cz });
     import('./infinity.js').then((mod) => mod.initInfinity(cv)).catch((e) => console.warn('symbole infini indisponible', e));
   }
-  let css = null; const cssScene = new THREE.Scene();
-  if (liveEls.length) {
-    const { CSS3DRenderer, CSS3DObject } = await import('../vendor/three-r187/CSS3DRenderer.js');
-    css = new CSS3DRenderer(); css.domElement.id = 'live3d'; document.body.append(css.domElement);
-    for (const el of liveEls) {
-      const r = rectOf(el), g = W(r);
-      const ph = document.createElement('div'); ph.style.cssText = `width:${r.w}px;height:${r.h}px;margin:${getComputedStyle(el).margin}`; el.before(ph); // la mise en page ne bouge pas
-      el.style.width = r.w + 'px'; el.style.height = r.h + 'px'; el.style.margin = '0';
-      const o = new CSS3DObject(el); o.scale.setScalar(1 / PXM); cssScene.add(o);
-      lives.push({ el, o, g, tilt: el.dataset.live === 'hublot' ? 0.75 : 0 });
-    }
-    if ($('#rf-win')) import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
+  // hublot : le vrai DOM tourne dans un hôte invisible (mécanique du site), son image est peinte sur la feuille à chaque image
+  const huEl = $('[data-live="hublot"]'), hublots = [];
+  if (huEl) {
+    const r = rectOf(huEl), g = W(r), win = huEl.querySelector('.rf-win');
+    const ph = document.createElement('div'); ph.style.cssText = `width:${r.w}px;height:${r.h}px;margin:${getComputedStyle(huEl).margin}`; huEl.before(ph);
+    huEl.classList.add('pc-inf-host'); huEl.style.width = r.w + 'px'; huEl.style.height = r.h + 'px'; huEl.style.margin = '0'; document.body.append(huEl);
+    const Q = 2, cv = document.createElement('canvas'); cv.width = Math.round(r.w * Q); cv.height = Math.round(r.h * Q);
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+    const m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0.008, g.cz); m.renderOrder = 2; scene.add(m);
+    const poster = new Image(); poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
+    const hot = document.createElement('button'); hot.type = 'button'; hot.className = 'pc-hot pc-hot-win'; hot.setAttribute('aria-label', 'Ouvrir ou fermer le store du hublot');
+    hot.addEventListener('click', () => $('#rf-grip')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
+    document.body.append(hot); hots.push({ h: hot, r });
+    hublots.push({ t, z: g.cz, cv, win, poster });
+    import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
+  }
+  const rr = (c, x, y, w, h, rad) => { c.beginPath(); c.roundRect(x, y, w, h, rad); };
+  function paintHublot(H) {
+    const c = H.cv.getContext('2d'), wr = H.win.getBoundingClientRect(), hr = H.win.parentElement.getBoundingClientRect(), Q = H.cv.width / hr.width;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, H.cv.width, H.cv.height);
+    c.setTransform(Q, 0, 0, Q, (wr.left - hr.left) * Q, (wr.top - hr.top) * Q);
+    const w = wr.width, h = wr.height, img = (sel) => H.win.querySelector(sel);
+    c.save(); rr(c, 4, 4, w - 8, h - 8, 80); c.clip(); c.fillStyle = '#5fa4ec'; c.fillRect(0, 0, w, h);
+    const v = img('video'), src = v && v.readyState >= 2 ? v : H.poster.complete ? H.poster : null;
+    if (src) { const sw = src.videoWidth || src.naturalWidth, sh = src.videoHeight || src.naturalHeight, k = Math.max((w - 8) / sw, (h - 8) / sh); c.drawImage(src, w / 2 - sw * k / 2, h / 2 - sh * k / 2, sw * k, sh * k); }
+    c.restore();
+    const inn = img('.rf-win-inner'); if (inn?.complete) c.drawImage(inn, w * 0.05, h * 0.05, w * 0.9, h * 0.9);
+    const gx = w * 0.05333, gy = h * 0.06667, gw = w - 2 * gx, gh = h - 2 * gy, sh = img('.rf-win-shutter'), tf = getComputedStyle(sh).transform, dy = tf === 'none' ? 0 : new DOMMatrixReadOnly(tf).m42;
+    c.save(); rr(c, gx, gy, gw, gh, 16); c.clip(); const pan = img('.rf-win-panel'); if (pan?.complete) c.drawImage(pan, gx, gy + dy, gw, gh); c.restore();
+    const out = img('.rf-win-outer'); if (out?.complete) c.drawImage(out, 0, 0, w, h);
+    H.t.needsUpdate = true;
   }
 
   // contact : l'adresse se copie au clic (comme sur le site), icône « copié » un instant
@@ -410,6 +434,7 @@ async function start() {
   const ticks = []; for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'tick'; $('#ticks').append(d); ticks.push(d); }
 
   /* textures : HTML-in-Canvas (l'élément vivant) ou image de la section */
+  let introReady = false; // la signature attend que la feuille soit peinte, sinon elle s'écrit pendant le chargement
   const linearize = (mat) => { mat.userData.lin = true; mat.needsUpdate = true; };
   if (HIC) {
     canvas.setAttribute('layoutsubtree', 'true');
@@ -417,7 +442,7 @@ async function start() {
     canvas.addEventListener('paint', (e) => {
       for (const el of e.changedElements) {
         const it = byEl.get(el); if (!it) continue;
-        if (!it.tex) { it.tex = new THREE.HTMLTexture(el); canvas.onpaint = null; it.mats.forEach((m) => { linearize(m); m.map = it.tex; m.needsUpdate = true; }); }
+        if (!it.tex) { it.tex = new THREE.HTMLTexture(el); canvas.onpaint = null; it.mats.forEach((m) => { linearize(m); m.map = it.tex; m.visible = true; m.needsUpdate = true; }); introReady = true; }
         else it.tex.needsUpdate = true;
       }
     });
@@ -427,30 +452,40 @@ async function start() {
 
   async function rasterAll() {
     const css = await inlineCss();
-    for (const s of sections) {
+    for (const s of [...sections].sort((a, b) => Math.abs(a.r.y - scrollY) - Math.abs(b.r.y - scrollY))) { // la section à l'écran d'abord
       const mine = items.filter((it) => s.el.contains(it.el)); if (!mine.length) continue;
       const draw = async () => {
         const c = await rasterize(s.el, s.r, css), base = new THREE.CanvasTexture(c); base.colorSpace = THREE.SRGBColorSpace; base.anisotropy = 8;
         for (const it of mine) {
           const t = base.clone(); t.repeat.set(it.r.w / s.r.w, it.r.h / s.r.h); t.offset.set((it.r.x - s.r.x) / s.r.w, 1 - (it.r.y - s.r.y + it.r.h) / s.r.h); t.needsUpdate = true;
-          it.mats.forEach((m) => { m.map = t; m.needsUpdate = true; });
+          it.mats.forEach((m) => { m.map = t; m.visible = true; m.needsUpdate = true; });
         }
       };
-      await draw();
+      await draw(); introReady = true;
     }
   }
   async function inlineCss() {
-    const b64 = async (u) => { const b = await (await fetch(u)).blob(); return await new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); }); };
-    let css = await (await fetch(new URL('parcours.css', import.meta.url))).text();
-    css = css.replace(/@font-face\{[^}]*\}/g, '');
-    const fonts = [['Inter', 'normal', 'fonts/Inter-latin.woff2'], ['Inter', 'italic', 'fonts/Inter-italic-latin.woff2'], ['iAWriterQuattroV', 'normal', 'fonts/iAWriterQuattroV.ttf']];
-    const faces = await Promise.all(fonts.map(async ([f, st, u]) => `@font-face{font-family:"${f}";font-style:${st};font-weight:100 900;src:url(${await b64(new URL(u, import.meta.url))})}`));
-    return faces.join('') + css;
+    // toutes les feuilles de la page (rf.css, gains.css, project-dioramas.css, parcours.css), url() embarquées en data:
+    const cache = new Map();
+    const b64 = (u) => { if (!cache.has(u)) cache.set(u, fetch(u).then((r) => (r.ok ? r.blob() : null)).then((b) => b && new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); })).catch(() => null)); return cache.get(u); };
+    const out = [];
+    for (const sh of document.styleSheets) {
+      let rules; try { rules = sh.cssRules; } catch { continue; }
+      const base = sh.href || location.href;
+      for (const r of rules) {
+        let t = r.cssText;
+        if (r instanceof CSSFontFaceRule) { const m = t.match(/url\(["']?([^"')]+\.(?:woff2|ttf|otf|woff))["']?\)/); if (!m) continue; t = t.replace(/src:[^;]+;/, `src: url("${m[1]}");`); }
+        const urls = [...t.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map((m) => m[1]).filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
+        for (const u of new Set(urls)) { const d = await b64(new URL(u, base).href); t = t.split(u).join(d || ''); }
+        out.push(t);
+      }
+    }
+    return out.join('\n');
   }
   async function rasterize(el, r, css) {
     const S = Math.min(1.5, 8000 / r.h);
     const clone = el.cloneNode(true); clone.style.background = 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
-    clone.querySelectorAll('[data-graph]').forEach((n) => n.remove());
+    clone.querySelectorAll('[data-graph], [data-sign] svg').forEach((n) => n.remove()); // la signature a son propre calque animé
     await Promise.all([...clone.querySelectorAll('img')].map(async (im) => { try { const b = await (await fetch(im.getAttribute('src'))).blob(); im.setAttribute('src', await new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); })); } catch { im.remove(); } }));
     const xml = new XMLSerializer().serializeToString(clone);
     const svgDoc = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.w}" height="${r.h}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/</g, '\\3c ')}</style>${xml}</div></foreignObject></svg>`;
@@ -475,7 +510,6 @@ async function start() {
       }`, depthTest: false, depthWrite: false });
   postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
   function resize() {
-    if (css) css.setSize(innerWidth, innerHeight);
     renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
     const d = renderer.getPixelRatio(); rt.setSize(Math.round(innerWidth * d), Math.round(innerHeight * d)); postMat.uniforms.px.value.set(1 / (innerWidth * d), 1 / (innerHeight * d));
     page.style.height = Math.round(PAGE_H + innerHeight * 1.3) + 'px'; // la fin de la page peut venir au centre
@@ -555,7 +589,7 @@ async function start() {
     for (const G of graphs) if (Math.abs(focusZ - G.z) < 45) animGraph(G, now / 1000);
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
     for (const k of machines) {
-      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ');
+      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ'); k.pivot.position.y = k.half * Math.abs(Math.sin(k.tilt));
       if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
     }
     for (const p of pigs) { // une pièce toutes les 2,4 s
@@ -563,17 +597,7 @@ async function start() {
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
-    if (css) {
-      const d0 = CURL.k * camera.position.y - CURL.off;
-      for (const L of lives) {
-        const a = L.tilt * e, far = L.g.cz - L.g.d / 2 * Math.cos(a);
-        L.o.rotation.set(-Math.PI / 2 + a, 0, 0); L.o.position.set(L.g.cx, 0.03 + L.g.d / 2 * Math.sin(a), L.g.cz + (L.g.d / 2) * (1 - Math.cos(a)));
-        const t = camera.position.z - far - d0, near = L.g.cz + L.g.d / 2 - camera.position.z;
-        L.el.style.opacity = Math.max(0, Math.min(1, 1 - t / 2)).toFixed(3); void near;
-        L.el.style.visibility = L.el.style.opacity === '0.000' ? 'hidden' : '';
-      }
-      css.render(cssScene, camera);
-    }
+    for (const H of hublots) if (Math.abs(focusZ - H.z) < 30) paintHublot(H);
     for (const b of bps) { b.uniforms.uTime.value = now / 1000; b.uniforms.uRes.value.set(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
     if (tlLine) { // ressort raideur 45 / amortissement 20, comme sur la page Expériences
       const to = Math.max(0, Math.min(1, (s + innerHeight * 0.6 - tlRect.y) / tlRect.h));
@@ -657,9 +681,9 @@ async function start() {
     };
     if (!reduce) strokes.forEach((st) => { st.el.style.strokeDasharray = '1 1'; st.el.style.strokeDashoffset = '1'; });
     const tick = (now) => {
-      if (t0 === null && scrollY + innerHeight > r.y + 100) { // entrée dans l'écran (marge 100 px, comme le site)
-        t0 = now + 300;
-        if (!reduce) strokes.forEach((st) => st.el.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: st.t * 1000, delay: 300 + st.d * 1000, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'forwards' }).finished.then(() => { st.el.style.strokeDashoffset = '0'; }).catch(() => {}));
+      if (t0 === null && introReady && scrollY + innerHeight > r.y + 100) { // entrée dans l'écran (marge 100 px, comme le site)
+        t0 = now + 700;
+        if (!reduce) strokes.forEach((st) => st.el.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: st.t * 1000, delay: 700 + st.d * 1000, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'forwards' }).finished.then(() => { st.el.style.strokeDashoffset = '0'; }).catch(() => {}));
       }
       if (!draw(now) || t0 === null) requestAnimationFrame(tick);
     };
