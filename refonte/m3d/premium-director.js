@@ -80,12 +80,12 @@ function sculpture(name,root,profile,animate,center){
   for(const x of [-53,53]){
    for(const z of [-31,31])stick(root,[x,5,z],[x,135,z],1.9,DARK);
    part(root,new THREE.CylinderGeometry(26,26,90,8,1,true),GLASS,x,80,0);
-   for(let h=32;h<127;h+=16)arc(root,24,.85,x,h,0,'y',0,TAU,mat);
+   for(let h=32;h<127;h+=27)arc(root,24,.65,x,h,0,'y',0,TAU,mat);
    const signal=ball(root,7,x,129,0,mat);
   }
-  const vault=arc(root,93,4,0,101,0,'z',.1,Math.PI-.2,mat);
-  const pin=part(root,new THREE.OctahedronGeometry(16,0),mat,0,147,0);
-  const key=part(root,new THREE.TorusKnotGeometry(17,3,100,8,2,3),THIN,0,106,6);
+  const vault=arc(root,93,2.1,0,101,0,'z',.1,Math.PI-.2,mat);
+  const pin=part(root,new THREE.OctahedronGeometry(11,0),mat,0,147,0);
+  const key=part(root,new THREE.TorusKnotGeometry(13,1.6,100,8,2,3),THIN,0,106,6);
   animate(t=>{pin.rotation.y=t*.14;key.rotation.z=Math.sin(t*.3)*.13;});
  } else if(kind==='brain'){
   // A suspended neuro-lantern; spatial and semantic rings at two pitches.
@@ -119,7 +119,7 @@ function sculpture(name,root,profile,animate,center){
    ribbon(root,[[x,51,z],[x*.7,46,z*.7],[x*.45,75,z*.45],[0,89,0]],2.4,mat);
    arc(root,18,.9,x,77,z,'y',0,TAU,THIN);
   }
-  const turbine=part(root,new THREE.TorusKnotGeometry(30,2.5,150,12,2,5),mat,0,117,0);
+  const turbine=part(root,new THREE.TorusKnotGeometry(24,1.7,150,12,2,5),mat,0,117,0);
   const lid=arc(root,42,3.1,0,121,0,'y',0,TAU,DARK);
   animate(t=>{turbine.rotation.y=t*.16;lid.rotation.z=t*.03;});
  } else if(kind==='spire'){
