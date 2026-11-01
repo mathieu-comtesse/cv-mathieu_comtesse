@@ -4,15 +4,18 @@ import * as THREE from 'three';
    un menu à gauche relié par des traits courbes aux notes de la section, des repères d'échelle sur les bords.
    Tout le texte vient de cv/cv.html ; rien n'est inventé. */
 
-/* ---------- monde courbé : le sol s'éloigne vers le fond (patch global avant toute compilation de matériau) ---------- */
+/* ---------- monde en tunnel : les côtés remontent vers la caméra, le fond s'éloigne (patch global, avant toute compilation) ---------- */
+const KX = 0.005, KZ = 0.0011, XCAP = 1000;
+THREE.ShaderChunk.common += `\nvec4 bendMV( vec4 p ) { p.z += ${KX} * min( p.x * p.x, ${XCAP}.0 ); p.y -= ${KZ} * p.z * p.z; return p; }\n`;
 THREE.ShaderChunk.project_vertex = THREE.ShaderChunk.project_vertex.replace(
-  'gl_Position = projectionMatrix * mvPosition;',
-  'mvPosition.y -= 0.0011 * mvPosition.z * mvPosition.z;\n\tgl_Position = projectionMatrix * mvPosition;');
+  'gl_Position = projectionMatrix * mvPosition;', 'mvPosition = bendMV( mvPosition );\n\tgl_Position = projectionMatrix * mvPosition;');
+THREE.ShaderChunk.sprite_vert = THREE.ShaderChunk.sprite_vert.replace('vec4 mvPosition = modelViewMatrix[ 3 ];', 'vec4 mvPosition = bendMV( modelViewMatrix[ 3 ] );');
+THREE.ShaderLib.sprite.vertexShader = THREE.ShaderChunk.sprite_vert;
 
 const HALF = 6.4;          // demi-largeur de la piste
 const CD = 4.2, SH = 0.7;  // profondeur et hauteur des blocs
 const PX = 100;            // 1 m = 100 px (affichage vitesse et distance)
-const PRO = 46;            // longueur du prologue (l'affiche)
+const PRO = 34;            // longueur du prologue (l'affiche)
 
 const SECTIONS = [
   { name: 'Profil', color: 0x1c1cb4, notes: ["Plans de prévention et co-activité", "PAM SSI, accès et habilitations", "Ancien technicien supérieur de la circulation, SNCF Réseau", "Formé seul à l'IA depuis trois ans"], cards: [
@@ -189,8 +192,25 @@ document.documentElement.dataset.htmlInCanvas = htmlInCanvas;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050505);
 scene.fog = new THREE.Fog(0x050505, 40, 150);
-const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 300);
-function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 300); camera.up.set(0, 0, -1);
+const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
+const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), postScene = new THREE.Scene();
+const postMat = new THREE.ShaderMaterial({
+  uniforms: { t: { value: rt.texture }, px: { value: new THREE.Vector2() }, amt: { value: 1 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: `uniform sampler2D t; uniform vec2 px; uniform float amt; varying vec2 vUv;
+    void main(){
+      float r = amt * (smoothstep(0.52, 1.0, vUv.y) * 5.0 + smoothstep(0.36, 0.5, abs(vUv.x - 0.5)) * 2.0);
+      vec4 c = texture2D(t, vUv);
+      if (r > 0.25) { vec4 acc = c; for (int i = 0; i < 16; i++) { float a = float(i) * 2.39996, rr = r * sqrt((float(i) + 0.5) / 16.0); acc += texture2D(t, vUv + vec2(cos(a), sin(a)) * rr * px); } c = acc / 17.0; }
+      gl_FragColor = c;
+      #include <colorspace_fragment>
+    }`, depthTest: false, depthWrite: false });
+postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  const d = renderer.getPixelRatio(); rt.setSize(Math.round(innerWidth * d), Math.round(innerHeight * d)); postMat.uniforms.px.value.set(1 / (innerWidth * d), 1 / (innerHeight * d));
+}
 addEventListener('resize', resize); resize();
 const white = (o = 0.4) => new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: o });
 let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -228,9 +248,9 @@ for (let z = 12; z > END - 20; z -= 9) for (const side of [-1, 1]) {
 
 // grappes de points aux frontières, étiquette bleue, anneau et nom de section au sol de chaque côté
 const nodeMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, sizeAttenuation: true });
-function cluster(x, z, label, sideTags) {
+function cluster(x, z, label, sideTags, k0 = 1) {
   const pts = [], seg = [], hub = new THREE.Vector3(x, 2.5, z);
-  for (let k = 0; k < 22; k++) { const a = rnd() * 6.283, r = 1 + rnd() * 3, p = new THREE.Vector3(x + Math.cos(a) * r, 2.5 + (rnd() - 0.5) * 2.4, z + Math.sin(a) * r); pts.push(p); seg.push(hub, p); }
+  for (let k = 0; k < 22; k++) { const a = rnd() * 6.283, r = (1 + rnd() * 3) * k0, p = new THREE.Vector3(x + Math.cos(a) * r, 2.5 + (rnd() - 0.5) * 2.4 * k0, z + Math.sin(a) * r); pts.push(p); seg.push(hub, p); }
   scene.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints([hub, ...pts]), nodeMat));
   scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg), white(0.6)));
   if (label) { const sp = labelSprite(label, { w: 3, h: 0.7, font: '600 30px iAWriterQuattroV, monospace', bg: '#1736ff' }); sp.position.set(x - 1, 2.5, z); scene.add(sp); }
@@ -278,14 +298,14 @@ function slabBlock(d, sec, withCallout = true) {
 }
 
 /* prologue : l'affiche (titre extrudé, sommaire en bloc, graphe de nœuds) */
-extruded('Comtesse', 150, 14, 3.5, -5, -31, 12, 0.1, Math.PI / 2);
-extruded('Mathieu', 150, 14, 3.5, -1.9, -28, 12, 0.1, Math.PI / 2);
+extruded('Comtesse', 150, 11, 2.75, -4.6, -14.5, 10, 0.09, Math.PI / 2);
+extruded('Mathieu', 150, 11, 2.75, -2.2, -12.6, 10, 0.09, Math.PI / 2);
 {
-  slabBlock({ k: 'Sommaire', t: 'Un CV à parcourir', m: '01 à 06', b: SECTIONS.map((s, i) => `0${i + 1} ${s.name}`).join(' · '), w: 4.4, x: 1.6, z: -22 }, SECTIONS[0], false);
-  SECTIONS.forEach((s, i) => { const x = 3.6 + (i % 2) * 1.4, z = -30 - i * 2.6; cluster(x, z, null, false); ring(x, z, 1.9, `0${i + 1} ${s.name}`); });
-  const curve = []; for (let i = 0; i <= 40; i++) { const u = i / 40; curve.push(new THREE.Vector3(-5 + u * 11, 0.05, -44 + 5 * (1 - Math.exp(-3.2 * u * u)))); }
+  slabBlock({ k: 'Sommaire', t: 'Un CV à parcourir', m: '01 à 06', b: SECTIONS.map((s, i) => `0${i + 1} ${s.name}`).join(' · '), w: 4.4, x: 2.9, z: -8.6 }, SECTIONS[0], false);
+  SECTIONS.forEach((s, i) => { const x = 2.2 + (i % 2) * 2.6, z = -13.2 - i * 1.7; cluster(x, z, null, false, 0.35); ring(x, z, 1.2, `0${i + 1} ${s.name}`); });
+  const curve = []; for (let i = 0; i <= 40; i++) { const u = i / 40; curve.push(new THREE.Vector3(-5.6 + u * 11.2, 0.05, -24.5 + 3 * (1 - Math.exp(-3.2 * u * u)))); }
   scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve), white(0.7)));
-  const xl = labelSprite('x = 4,00', { w: 2, h: 0.5, font: '400 24px iAWriterQuattroV, monospace', op: 0.9 }); xl.position.set(4, 0.1, -43); scene.add(xl);
+  const xl = labelSprite('x = 4,00', { w: 2, h: 0.5, font: '400 24px iAWriterQuattroV, monospace', op: 0.9 }); xl.position.set(4.2, 0.1, -23.2); scene.add(xl);
 }
 
 SECTIONS.forEach((s) => {
@@ -299,7 +319,8 @@ SECTIONS.forEach((s) => {
   np.rotation.x = -Math.PI / 2; np.position.set(0, 0.05, s.zNotes - 1.3); scene.add(np);
   s.dots = s.notes.map((_, j) => new THREE.Vector3(-W / 2 + (18 + j * 310) / 100, 0.06, s.zNotes - 0.18));
 });
-cluster(0, END + 2, 'Arrivée', false);
+cluster(0, END - 9, 'Arrivée', false);
+{ const tail = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, 40), bandMat(0x141414)); tail.rotation.x = -Math.PI / 2; tail.position.set(0, 0, zc - 20); scene.add(tail); }
 const finish = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, 0.5), new THREE.MeshBasicMaterial({ color: 0xffffff }));
 finish.rotation.x = -Math.PI / 2; finish.position.set(0, 0.05, END); scene.add(finish);
 startHtmlCards();
@@ -325,24 +346,43 @@ const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.5, 20), new THREE.MeshB
 shadow.rotation.x = -Math.PI / 2; scene.add(shadow); scene.add(player);
 
 /* ---------- état et commandes ---------- */
-const S = { x: 0, y: 0, z: 2, vy: 0, v: 0, running: false, done: false, keys: new Set(), tz: null, blend: 0, lean: 0 };
+const S = { x: 0, y: 0, z: 2, target: 2, vy: 0, v: 0, vis: 0, mode: 'scroll', running: false, done: false, keys: new Set(), lean: 0 };
+const TOP = 2, FOLD = 16; // la première page se rabat sur les 20 premiers mètres de défilement
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const groundAt = (x, z) => { let h = 0; for (const p of platforms) if (Math.abs(x - p.x) < p.hw + 0.35 && Math.abs(z - p.z) < p.hd + 0.35) h = SH; return h; };
 const $ = (id) => document.getElementById(id);
 const hop = () => { if (S.running && S.y <= groundAt(S.x, S.z) + 0.01) S.vy = 11; };
 const VMAX = 22;
+const scrollBy = (m) => { S.target = Math.max(END, Math.min(TOP, S.target - m)); };
 addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
+  if (S.mode === 'scroll') {
+    const step = { arrowdown: 3, arrowup: -3, pagedown: 14, pageup: -14, ' ': e.shiftKey ? -14 : 14, home: 1e4 * -1, end: 1e4 }[k];
+    if (step !== undefined) { e.preventDefault(); if (k === 'home') S.target = TOP; else if (k === 'end') S.target = END; else scrollBy(step); }
+    return;
+  }
   if (e.key === ' ') { e.preventDefault(); hop(); return; }
-  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 's', 'a', 'd', 'z', 'q'].includes(k)) { if (S.running) e.preventDefault(); S.keys.add(k); }
+  if (k === 'escape') { leaveGame(); return; }
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 's', 'a', 'd', 'z', 'q'].includes(k)) { e.preventDefault(); S.keys.add(k); }
 });
 addEventListener('keyup', (e) => S.keys.delete(e.key.toLowerCase()));
-addEventListener('wheel', (e) => { if (S.running) S.v = Math.min(VMAX, Math.max(0, S.v - Math.sign(e.deltaY) * 1.4)); }, { passive: true });
+// la molette fait avancer sur le chemin ; en mode jeu elle accélère et freine
+addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+  if (S.mode === 'scroll') scrollBy(dy * 0.012);
+  else S.v = Math.min(VMAX, Math.max(0, S.v - Math.sign(dy) * 1.4));
+}, { passive: false });
 let drag = null;
-canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, sx: S.x }; });
-canvas.addEventListener('pointermove', (e) => { if (drag && e.pointerType !== 'mouse') S.x = Math.max(-HALF + 0.5, Math.min(HALF - 0.5, drag.sx + (e.clientX - drag.x) / innerWidth * 18)); });
+canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, sx: S.x, moved: false }; });
+canvas.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 6) drag.moved = true;
+  if (S.mode === 'scroll') { if (e.buttons || e.pointerType !== 'mouse') { scrollBy(-(e.clientY - drag.y) * 0.05); drag.y = e.clientY; } }
+  else if (e.pointerType !== 'mouse') S.x = Math.max(-HALF + 0.5, Math.min(HALF - 0.5, drag.sx + (e.clientX - drag.x) / innerWidth * 18));
+});
 canvas.addEventListener('pointerup', (e) => {
-  if (!drag) return; const moved = Math.abs(e.clientX - drag.x) > 6; drag = null; if (moved) return;
+  if (!drag) return; const moved = drag.moved; drag = null; if (moved) return;
   const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
   const hit = r.intersectObjects(links.map((l) => l.mesh))[0];
   if (hit) location.href = links.find((l) => l.mesh === hit.object).href; else hop();
@@ -351,13 +391,18 @@ canvas.addEventListener('pointerup', (e) => {
 const ul = document.querySelector('#nav ul');
 SECTIONS.forEach((s) => {
   const li = document.createElement('li'), b = document.createElement('button');
-  b.type = 'button'; b.textContent = s.name; b.onclick = () => { S.tz = s.z0 - 6; start(); };
+  b.type = 'button'; b.textContent = s.name; b.onclick = () => { leaveGame(); S.target = s.z0 - 6; };
   li.append(b); ul.append(li);
 });
 const navItems = [...ul.children];
-function start() { if (!S.running) { S.running = true; S.v = reduce ? 2 : 3.5; document.body.classList.add('run'); $('start').classList.add('off'); } }
+// mode jeu (comme dans la vidéo, le bouton attend en fin de parcours) : on repart du début de la piste, au clavier
+function start() {
+  Object.assign(S, { mode: 'game', running: true, done: false, x: 0, y: 0, vy: 0, v: reduce ? 2 : 3.5, z: SECTIONS[0].z0 + 4 });
+  S.target = S.z; document.body.classList.add('game'); $('end').hidden = true;
+}
+function leaveGame() { if (S.mode !== 'game') return; Object.assign(S, { mode: 'scroll', running: false, target: S.z, x: 0, y: 0, lean: 0 }); S.keys.clear(); document.body.classList.remove('game'); }
 $('go').onclick = start;
-$('again').onclick = () => { Object.assign(S, { x: 0, y: 0, z: -4, vy: 0, v: 3.5, done: false, tz: null }); $('end').hidden = true; };
+$('again').onclick = () => { $('end').hidden = true; leaveGame(); S.z = S.target = TOP; };
 
 /* légendes, traits courbes du menu vers les notes, repères d'échelle */
 const layer = $('callouts'), svg = $('leaders'), NS = 'http://www.w3.org/2000/svg';
@@ -373,7 +418,12 @@ const navPaths = [0, 1, 2, 3].map(() => ({ path: mkp(), dot: mkc() }));
 const tickEls = []; const tl = $('ticks');
 for (let i = 0; i < 36; i++) { const d = document.createElement('div'); d.className = 'tick'; tl.append(d); tickEls.push(d); }
 const tmp = new THREE.Vector3();
-const toScreen = (v) => { tmp.copy(v).project(camera); return [(tmp.x * 0.5 + 0.5) * innerWidth, (-tmp.y * 0.5 + 0.5) * innerHeight, tmp.z]; };
+const toScreen = (v) => {
+  tmp.copy(v).applyMatrix4(camera.matrixWorldInverse);
+  tmp.z += KX * Math.min(tmp.x * tmp.x, XCAP); tmp.y -= KZ * tmp.z * tmp.z;
+  const behind = tmp.z > -0.1; tmp.applyMatrix4(camera.projectionMatrix);
+  return [(tmp.x * 0.5 + 0.5) * innerWidth, (-tmp.y * 0.5 + 0.5) * innerHeight, behind ? 2 : tmp.z];
+};
 let activeIdx = 0;
 function updateOverlay() {
   const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
@@ -403,7 +453,7 @@ function updateOverlay() {
   } else navPaths.forEach((n) => { n.path.style.display = n.dot.style.display = 'none'; });
   // repères d'échelle (px) le long des deux bords, tous les 5 m
   const zStart = Math.ceil((S.z + 12) / 5) * 5; let n = 0;
-  for (let zt = zStart; zt > S.z - 80 && n < tickEls.length - 1; zt -= 5) for (const sx of [-1, 1]) {
+  for (let zt = zStart; zt > Math.max(S.z - 55, END - 1) && n < tickEls.length - 1; zt -= 5) for (const sx of [-1, 1]) {
     const [px, py, pz] = toScreen(new THREE.Vector3(sx * (HALF + 0.9), 0, zt));
     const el = tickEls[n++]; const ok = pz < 1 && py > 0 && py < h && px > 0 && px < w;
     el.style.display = ok ? '' : 'none'; if (ok) { el.textContent = Math.max(0, Math.round(-zt * PX)).toLocaleString('fr-FR'); el.style.transform = `translate(${px}px,${py}px) translate(${sx < 0 ? '-100%' : '0'},-50%)`; }
@@ -417,31 +467,38 @@ const ease = (u) => u * u * (3 - 2 * u);
 const posePos = new THREE.Vector3(), poseLook = new THREE.Vector3(), runPos = new THREE.Vector3(), runLook = new THREE.Vector3(), lk = new THREE.Vector3();
 function frame() {
   timer.update(); const dt = Math.min(timer.getDelta(), 0.05), K = S.keys;
-  if (S.running && !S.done) {
+  const z0 = S.z;
+  if (S.mode === 'scroll') S.z += (S.target - S.z) * Math.min(1, dt * 5);
+  if (S.mode === 'game' && S.running && !S.done) {
     if (K.has('arrowup') || K.has('w') || K.has('z')) S.v = Math.min(VMAX, S.v + 9 * dt);
     if (K.has('arrowdown') || K.has('s')) S.v = Math.max(0, S.v - 16 * dt);
     const dir = (K.has('arrowright') || K.has('d') ? 1 : 0) - (K.has('arrowleft') || K.has('a') || K.has('q') ? 1 : 0);
     S.x = Math.max(-HALF + 0.5, Math.min(HALF - 0.5, S.x + dir * 9 * dt)); S.lean += (dir - S.lean) * Math.min(1, dt * 6);
-    if (S.tz !== null) { const d = S.tz - S.z; S.z += Math.sign(d) * Math.min(Math.abs(d), 100 * dt); if (Math.abs(S.tz - S.z) < 0.5) { S.tz = null; if (S.v === 0) S.v = 3; } }
-    else S.z -= S.v * dt;
+    S.z -= S.v * dt;
     const g = groundAt(S.x, S.z); S.vy -= 30 * dt; S.y += S.vy * dt; if (S.y <= g) { S.y = g; S.vy = 0; }
-    if (S.z <= END) { S.done = true; S.z = END; $('end').hidden = false; }
+    if (S.z <= END) { S.done = true; S.running = false; S.z = END; $('end').hidden = false; }
   }
-  S.blend = Math.min(1, S.blend + (S.running ? dt / 1.8 : 0)); const e = ease(S.blend);
+  S.vis += (Math.abs(S.z - z0) / Math.max(dt, 1e-3) - S.vis) * Math.min(1, dt * 4);
+  // la première page, vue de face, se rabat au fil des 20 premiers mètres pour devenir le début du chemin
+  const e = S.mode === 'game' ? 1 : ease(Math.max(0, Math.min(1, (TOP - S.z) / FOLD)));
+  player.visible = shadow.visible = S.mode === 'game';
   player.position.set(S.x, S.y, S.z); shadow.position.set(S.x, 0.06 + groundAt(S.x, S.z), S.z); cube.rotation.y += dt * S.v * 0.05;
   // caméra : affiche vue de haut au départ, puis suivi quasi vertical ; elle se rapproche quand on freine pour lire
-  const slow = 1 - Math.min(1, S.v / 5);
-  posePos.set(0, 30, -10); poseLook.set(0, 0, -29);
+  const slow = S.mode === 'game' ? 1 - Math.min(1, S.v / 5) : 0;
+  posePos.set(0, 19, -13.2); poseLook.set(0, 0, -13.201);
   runPos.set(S.x * 0.45, 15.5 - slow * 3.5 + S.y * 0.3, S.z + 6.5 - slow * 1.5); runLook.set(S.x * 0.4, 0, S.z - 8);
   camera.position.lerpVectors(posePos, runPos, e);
   lk.lerpVectors(poseLook, runLook, e); camera.lookAt(lk); camera.rotateZ(-S.lean * 0.035 * e);
-  const fov = 60 + (S.v / VMAX) * 9 - slow * 4; if (Math.abs(camera.fov - fov) > 0.01) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
+  const sp = S.mode === 'game' ? S.v : S.vis;
+  const fov = (60 + Math.min(1, sp / VMAX) * 9 - slow * 4) * e + 50 * (1 - e); if (Math.abs(camera.fov - fov) > 0.01) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
   activeIdx = 0; for (let i = 0; i < SECTIONS.length; i++) if (S.z <= SECTIONS[i].z0 + 1) activeIdx = i;
   navItems.forEach((li, i) => li.classList.toggle('on', i === activeIdx));
-  $('spd').textContent = `v ≈ ${Math.round(S.v * PX)} px/s`;
+  $('spd').textContent = `v ≈ ${Math.round(sp * PX)} px/s`;
+  document.body.classList.toggle('near-end', S.mode === 'scroll' && S.z < END + 22);
   $('left').textContent = `↑ ${Math.max(0, Math.round((S.z - END) * PX)).toLocaleString('fr-FR')} px`;
   const now = timer.getElapsed(); for (const k of machines) if (Math.abs(S.z - k.z) < 70) k.m.update(now);
-  try { renderer.render(scene, camera); } catch (err) { console.warn('HTML-in-Canvas indisponible, repli canvas 2D', err); dropHtmlCards(); }
+  postMat.uniforms.amt.value = e;
+  try { renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam); } catch (err) { console.warn('HTML-in-Canvas indisponible, repli canvas 2D', err); dropHtmlCards(); }
   updateOverlay();
   requestAnimationFrame(frame);
 }
