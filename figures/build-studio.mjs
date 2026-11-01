@@ -36,7 +36,7 @@ function baseSvg() {
   // Rail arrière du pont, avec ses butées, et règle graduée le long de la denture.
   const CT = { k, G, P, S, L, D, at };
   out.push(S(slab({ x: b.x + 4, y: RAIL.y - 3.6, w: b.w - 8, d: 7.2, r: 1 }, BASE_H, 3, 3, 0.4), { tone: "lo" }));
-  for (let x = b.x + 14; x < b.x + b.w - 10; x += 28) out.push(column(CT, { x, y: RAIL.y, z0: BASE_H + 3, z1: RAIL.z - 7, r: 1.8, base: false, flutes: 8, collars: [0.5], cap: false }));
+  out.push(S(slab({ x: b.x + 4, y: RAIL.y - 2.6, w: b.w - 8, d: 5.2, r: 0.6 }, BASE_H + 3, RAIL.z - 7 - BASE_H - 3, 3, 0.3), { tone: "mid" }));
   out.push(ibeam(CT, { x0: b.x + 4, x1: b.x + b.w - 4, y: RAIL.y - 4, z: RAIL.z - 7, h: 7, d: 8 }));
   out.push(D(k.corners({ x: b.x + 4, y: RAIL.y - 3.6, w: b.w - 8, d: 7.2 }, 1.2).map(([x, y]) => at([x, y, BASE_H + 3])), { size: 0.34 }));
   out.push(L(k.lineOnTop([b.x + 6, RAIL.y], [b.x + b.w - 6, RAIL.y], RAIL.z, P), { tone: "lo" }));
@@ -72,13 +72,15 @@ function bridgeSvg() {
   out.push(S(slab({ x: -7, y: RAIL.y - 6, w: 14, d: 12, r: 1.4 }, RAIL.z, 6, 3, 0.5), { tone: "mid", inner: L(k.sideSeam({ x: -7, y: RAIL.y - 6, w: 14, d: 12, r: 1.4 }, RAIL.z + 3, P, 3), { tone: "faint" }) }));
   for (const sx of [-4.4, 4.4]) { out.push(S(G.disc(5.6, 7.4, 2.6, G.frameAlong([sx, RAIL.y, RAIL.z + 3.4], [0, 1, 0]), P), { tone: "lo" })); out.push(S(G.disc(-7.4, -5.6, 2.6, G.frameAlong([sx, RAIL.y, RAIL.z + 3.4], [0, 1, 0]), P), { tone: "lo" })); }
   out.push(D(k.corners({ x: -7, y: RAIL.y - 6, w: 14, d: 12 }, 1.4).map(([x, y]) => at([x, y, RAIL.z + 6])), { size: 0.34 }));
-  out.push(column(CT, { x: 0, y: RAIL.y, z0: RAIL.z + 6, z1: BRIDGE_Z, r: 2.6, base: false, flutes: 8, collars: [0.4, 0.75] }));
+  out.push(S(slab({ x: -3.2, y: RAIL.y - 3.2, w: 6.4, d: 6.4, r: 0.8 }, RAIL.z + 6, BRIDGE_Z - 1.6 - RAIL.z - 6, 3, 0.4), { tone: "mid", inner: L(k.sideSeam({ x: -3.2, y: RAIL.y - 3.2, w: 6.4, d: 6.4, r: 0.8 }, (RAIL.z + BRIDGE_Z) / 2, P, 3), { tone: "faint" }) }));
+  out.push(D([at([0, RAIL.y + 3.2, RAIL.z + 10]), at([0, RAIL.y + 3.2, BRIDGE_Z - 6])], { size: 0.34 }));
   out.push(S(slab(beam, BRIDGE_Z, 5, 3, 0.5), { tone: "mid", inner: L(k.sideSeam(beam, BRIDGE_Z + 2.5, P, 3), { tone: "faint" }) }));
   out.push(D([at([0, RAIL.y, BRIDGE_Z + 5]), at([0, beam.y + beam.d - 3, BRIDGE_Z + 5])], { size: 0.45 }));
-  // Raidisseurs soudés, rivets et règle de course sur la poutre du pont.
-  for (let y = RAIL.y + 12; y < beam.y + beam.d - 6; y += 16) out.push(S(slab({ x: -4.8, y: y - 0.7, w: 9.6, d: 1.4, r: 0.15 }, BRIDGE_Z + 0.6, 4, 2, 0.1), { tone: "lo" }));
-  const rv = []; for (let y = RAIL.y + 4; y < beam.y + beam.d - 3; y += 6) rv.push(at([-4, y, BRIDGE_Z + 1.2]), at([-4, y, BRIDGE_Z + 3.8]));
-  out.push(D(rv, { size: 0.28 }));
+  // Poutre en caisson : joue haute vissée, deux rangées de boulons, repères gravés ; la poutre repose sur un sabot au-dessus de la colonne.
+  out.push(S(slab({ x: -5.4, y: RAIL.y - 4, w: 10.8, d: 9, r: 1 }, BRIDGE_Z - 1.6, 1.6, 2, 0.3), { tone: "lo" }));
+  out.push(L(k.planOutline({ x: -3.2, y: beam.y + 2, w: 6.4, d: beam.d - 4, r: 0.8 }, BRIDGE_Z + 5, P, 3), { tone: "faint" }));
+  const bolts = []; for (let y = beam.y + 5; y < beam.y + beam.d - 3; y += 8) bolts.push(at([-2.2, y, BRIDGE_Z + 5]), at([2.2, y, BRIDGE_Z + 5]));
+  out.push(D(bolts, { size: 0.32 }));
   return out.join("");
 }
 

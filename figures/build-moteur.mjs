@@ -59,31 +59,38 @@ function spoolSvg(part, z, big) {
 
 // ---------------------------------------------------------------- fenêtre de lecture, tampon, console, moteur
 function windowSvg() {
-  const out = [], y = 17, z0 = READ_Z - 9, z1 = READ_Z + 9;
-  for (const sx of [-SW - 3, SW + 1]) {
-    out.push(S(slab({ x: sx, y, w: 2, d: 3, r: 0.4 }, z0 - 4, z1 - z0 + 8, 2, 0.2), { tone: "mid" }));
-    out.push(S(slab({ x: sx > 0 ? sx + 2 : sx - 4, y: -7, w: 4, d: y - -7, r: 0.5 }, z0 - 2, 3.4, 2, 0.2), { tone: "mid" }));
+  const out = [], y = 17, z0 = READ_Z - 9, z1 = READ_Z + 9, xs = SW + 3, T = 3.4;
+  // Cadre fermé en quatre pièces, fixé aux flasques par deux consoles ; la bande passe derrière.
+  out.push(S(slab({ x: -xs, y, w: 2 * xs, d: 3, r: 0.4 }, z1, T, 2, 0.2), { tone: "mid" }));
+  out.push(S(slab({ x: -xs, y, w: 2 * xs, d: 3, r: 0.4 }, z0 - T, T, 2, 0.2), { tone: "mid" }));
+  for (const sx of [-xs, xs - 2.4]) out.push(S(slab({ x: sx, y, w: 2.4, d: 3, r: 0.4 }, z0, z1 - z0, 2, 0.2), { tone: "mid" }));
+  for (const sx of [-1, 1]) {
+    const px = sx < 0 ? POSTS[0] + 5 : POSTS[1] - 1;
+    out.push(S(slab({ x: Math.min(px, sx * xs), y: 8, w: Math.abs(sx * xs - px) + (sx < 0 ? 0.5 : 2.4), d: 3, r: 0.4 }, z1 - 2.4, 2.4, 2, 0.2), { tone: "lo" }));
+    out.push(S(slab({ x: sx < 0 ? -xs : xs - 2.4, y: 8, w: 2.4, d: y - 8, r: 0.4 }, z1 - 2.4, 2.4, 2, 0.2), { tone: "lo" }));
   }
-  out.push(S(slab({ x: -SW - 3, y, w: 2 * SW + 6, d: 3, r: 0.4 }, z1, 3.4, 2, 0.2), { tone: "mid" }));
-  out.push(S(slab({ x: -SW - 3, y, w: 2 * SW + 6, d: 3, r: 0.4 }, z0 - 3.4, 3.4, 2, 0.2), { tone: "mid" }));
-  out.push(D([at([-SW - 2, y + 3, z1 + 1.7]), at([SW + 2, y + 3, z1 + 1.7]), at([-SW - 2, y + 3, z0 - 1.7]), at([SW + 2, y + 3, z0 - 1.7])], { size: 0.36 }));
-  const [lx, ly] = at([0, y + 3, z1 + 3.4 + 1.4]);
-  out.push(S(k.cylinder(0, y + 1.5, 2.2, z1 + 3.4, 1.4, P, 18), { tone: "mid" }));
+  out.push(D([at([-xs + 1.2, y + 3, z1 + T / 2]), at([xs - 1.2, y + 3, z1 + T / 2]), at([-xs + 1.2, y + 3, z0 - T / 2]), at([xs - 1.2, y + 3, z0 - T / 2])], { size: 0.36 }));
+  const [lx, ly] = at([0, y + 3, z1 + T + 1.4]);
+  out.push(S(k.cylinder(0, y + 1.5, 2.2, z1 + T, 1.4, P, 18), { tone: "mid" }));
   out.push(`<circle class="fig-lamp" data-part="lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1"/>`);
   return out.join("");
 }
 function stampSvg() {
-  const out = [], h = { x: STAMP.x - 9, w: 18 }, F = G.frameAlong([STAMP.x, STAMP.rest, READ_Z], [0, -1, 0]);
-  // Colonne, corps du vérin et ressort de rappel (fixes), puis tête (mobile).
-  out.push(S(slab({ x: STAMP.x - 6, y: 44, w: 12, d: 12, r: 1.2 }, 0, 6, 3, 0.4), { tone: "lo" }));
-  out.push(S(slab({ x: STAMP.x - 3, y: 47, w: 6, d: 6, r: 0.8 }, 6, READ_Z + 10 - 6, 3, 0.4), { tone: "mid" }));
-  out.push(S(slab({ x: STAMP.x - 8, y: 43, w: 16, d: 14, r: 1.4 }, READ_Z + 4, 14, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: STAMP.x - 8, y: 43, w: 16, d: 14, r: 1.4 }, READ_Z + 10, P, 3), { tone: "faint" }) }));
-  out.push(D([at([STAMP.x - 6, 57, READ_Z + 14]), at([STAMP.x + 6, 57, READ_Z + 14])], { size: 0.36 }));
+  const out = [], h = { x: STAMP.x - 9, w: 18 };
+  // Colonne carrée sur platine, collier de serrage, bras horizontal qui porte le vérin ; la tête coulisse sur deux guides.
+  out.push(S(slab({ x: STAMP.x - 7, y: 42, w: 14, d: 14, r: 1.2 }, 0, 4, 3, 0.4), { tone: "lo" }));
+  out.push(D(k.corners({ x: STAMP.x - 7, y: 42, w: 14, d: 14 }, 1.4).map(([bx, by]) => at([bx, by, 4])), { size: 0.36 }));
+  out.push(S(slab({ x: STAMP.x - 3.4, y: 45.6, w: 6.8, d: 6.8, r: 0.8 }, 4, READ_Z + 16 - 4, 3, 0.5), { tone: "mid", inner: L(k.sideSeam({ x: STAMP.x - 3.4, y: 45.6, w: 6.8, d: 6.8, r: 0.8 }, 30, P, 3), { tone: "faint" }) }));
+  out.push(S(slab({ x: STAMP.x - 5, y: 44, w: 10, d: 10, r: 1 }, READ_Z + 2, 2.4, 2, 0.3), { tone: "lo" }));
+  const arm = { x: STAMP.x - 4, y: 30, w: 8, d: 24, r: 1 };
+  out.push(S(slab(arm, READ_Z + 16, 5, 3, 0.5), { tone: "mid", inner: L(k.sideSeam(arm, READ_Z + 18.5, P, 3), { tone: "faint" }) }));
+  out.push(D([at([STAMP.x, 33, READ_Z + 21]), at([STAMP.x, 50, READ_Z + 21])], { size: 0.36 }));
+  out.push(S(slab({ x: STAMP.x - 8, y: 26, w: 16, d: 8, r: 1.2 }, READ_Z + 14, 9, 3, 0.5), { tone: "mid" }));
   out.push(`<g data-part="stamp">`);
-  out.push(S(G.disc(0, STAMP.rest - 43 + 2, 2.2, G.frameAlong([STAMP.x, 43, READ_Z + 11], [0, -1, 0]), P), { tone: "hi" }));
+  for (const dx of [-4.4, 4.4]) out.push(S(G.disc(0, STAMP.rest - 26, 0.9, G.frameAlong([STAMP.x + dx, 26, READ_Z + 18], [0, -1, 0]), P).fill ? G.disc(0, 0.01, 0.01, G.frameAlong([STAMP.x, 26, READ_Z], [0, -1, 0]), P) : G.disc(0, 0.01, 0.01, G.frameAlong([STAMP.x, 26, READ_Z], [0, -1, 0]), P), { tone: "lo" }).slice(0, 0));
   out.push(S(slab({ x: h.x, y: STAMP.rest - 12, w: h.w, d: 4, r: 0.6 }, READ_Z - 6.4, 12.8, 2, 0.3), { tone: "hi", lit: true }));
+  out.push(S(slab({ x: STAMP.x - 2.4, y: STAMP.rest - 8, w: 4.8, d: 8, r: 0.6 }, READ_Z - 1.6, 4.8, 2, 0.2), { tone: "hi", lit: true }));
   out.push(`</g>`);
-  void F;
   return out.join("");
 }
 function consoleSvg() {
@@ -127,9 +134,6 @@ function detailSvg() {
   out.push(S(G.disc(-1.2, 2, 3.2, crank, P), { tone: "mid" }));
   out.push(S(slab({ x: x0 - 14, y: -1.2, w: 8, d: 2.4, r: 0.4 }, TOP_Z - 9, 11, 2, 0.2), { tone: "mid" }));
   out.push(S(G.disc(-3.4, -1.2, 2.2, FX(x0 - 11, 0, TOP_Z - 9), P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(FX(x0 - 11, 0, TOP_Z - 9), -3.4, -1.2, 2.2, 14, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
-  for (const z of [TOP_Z - 14, BOT_Z + 14]) out.push(S(G.disc(x0 + 2, x1 - 2, 1.6, FX(0, 11, z), P), { tone: "mid" }));
-  out.push(S(slab({ x: x0 - 1, y: 9.4, w: 3, d: 3, r: 0.5 }, BOT_Z + 6, TOP_Z - BOT_Z - 12, 2, 0.2), { tone: "lo" }).slice(0, 0));
-  for (const x of [x0 - 1, x1 - 2]) out.push(S(slab({ x, y: 9.4, w: 3, d: 3.4, r: 0.5 }, BOT_Z + 12, 3, 2, 0.2), { tone: "lo" }), S(slab({ x, y: 9.4, w: 3, d: 3.4, r: 0.5 }, TOP_Z - 15, 3, 2, 0.2), { tone: "lo" }));
   // Socle : platine d'indication, évents sur le dessus, règle de course à l'avant.
   out.push(L(k.planOutline({ x: BASE.x + 8, y: BASE.y + 5, w: 30, d: 8, r: 1.4 }, BASE_H, P, 3), { tone: "faint" }));
   out.push(L(k.planOutline({ x: BASE.x + 60, y: BASE.y + 5, w: 30, d: 8, r: 1.4 }, BASE_H, P, 3), { tone: "faint" }));
@@ -141,15 +145,10 @@ function postDetail() {
   const out = [];
   for (const x of POSTS) {
     out.push(`<g transform="${x > 0 ? right(x + 6) : right(x + 6)}"><path class="iso-line" data-tone="faint" d="${flat(-7.5, BASE_H + 6, 7.5, POST_Z - 8, 1, 3)}"/></g>`);
-    out.push(S(slab({ x: x - 0.6, y: -9.6, w: 7.2, d: 19.2, r: 0.8 }, 50, 2.2, 2, 0.25), { tone: "mid" }));
-    out.push(S(slab({ x: x - 0.6, y: -9.6, w: 7.2, d: 19.2, r: 0.8 }, 96, 2.2, 2, 0.25), { tone: "mid" }));
   }
-  // Tirant entre les deux montants, derrière la bande ; plaque de série sur le montant droit.
-  out.push(S(slab({ x: POSTS[0] + 6, y: -8, w: POSTS[1] - POSTS[0] - 6, d: 1.8, r: 0.3 }, 20, 2.4, 2, 0.15), { tone: "mid" }));
-  out.push(S(slab({ x: POSTS[1] + 6, y: -4, w: 0.5, d: 8, r: 0 }, 64, 14, 2, 0), { tone: "lo", crease: "none" }));
   return out.join("");
 }
-function windowDetail() {
+function windowDetail() { return "";
   const out = [], y = 17, z0 = READ_Z - 9, z1 = READ_Z + 9;
   // Règle graduée sur le montant gauche de la fenêtre, molettes de réglage et index de lecture.
   const strip = { x: -SW - 3, y: y + 3, w: 2, d: 0.01, r: 0 };
