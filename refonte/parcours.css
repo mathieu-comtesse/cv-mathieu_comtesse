@@ -30,23 +30,27 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-role{font-weight:700}
 .pc-role span{font-weight:400;opacity:.85}
 .pc-hint{margin:22px 0 0;font:11px/1.5 var(--mono);color:rgba(255,255,255,.85)}
-.pc-home{height:1320px;padding:0}
-.pc-title{position:absolute;left:30px;top:120px;height:980px;width:270px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);font:700 132px/.95 var(--sans);letter-spacing:-5px;color:#fff;white-space:nowrap}
-.pc-home-col{position:absolute;left:330px;top:150px;width:270px;display:flex;flex-direction:column;gap:28px}
-.pc-graph{position:absolute;left:630px;top:110px;width:340px;height:880px}
-.pc-graph-list{margin:0;padding:0;list-style:none;font:11px/1.4 var(--mono);color:#dfe6ff}
-.pc-graph-list ul{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 10px;padding:0;list-style:none}
-.pc-graph-list a{color:inherit;text-decoration:none;display:flex;gap:4px;align-items:center;font-size:9px}
-.pc-graph-list img{width:28px;height:20px;object-fit:cover;border:1px solid #fff}
-.pc-scroll{position:absolute;left:470px;bottom:40px;margin:0;font:32px/1 var(--sans);color:rgba(255,255,255,.6)}
 
+/* accueil : premier écran, plein cadre (hauteur = écran, fixée par parcours.js via --hh), comme la page d'entrée de référence */
+.pc-home{--hh:620px;height:var(--hh);padding:0;position:relative}
+.pc-title{position:absolute;left:10px;top:8px;height:calc(var(--hh) - 16px);width:calc(var(--hh) * .118);margin:0;writing-mode:vertical-rl;transform:rotate(180deg);font:600 calc(var(--hh) * .118)/.86 var(--sans);letter-spacing:-.04em;color:#fff;white-space:nowrap;text-align:left}
+.pc-title-k{position:absolute;left:calc(var(--hh) * .118 + 14px);bottom:8px;height:calc(var(--hh) * .55);margin:0;writing-mode:vertical-rl;transform:rotate(180deg);font:9px var(--mono);color:rgba(255,255,255,.8);letter-spacing:.04em;white-space:nowrap}
+.pc-home-col{position:absolute;left:calc(var(--hh) * .118 + 34px);top:8px;bottom:8px;width:210px;display:flex;flex-direction:column;gap:6px}
+.pc-home-col .pc-box{padding:7px 9px;border:1px solid rgba(160,190,255,.55);background:rgba(10,20,120,.35)}
+.pc-index ol{margin:0;padding:0;list-style:none;font:10px/1.32 var(--mono)}
+.pc-index li{display:flex;justify-content:space-between}
+.pc-index li:nth-child(odd) span{margin-right:30px}
+.pc-index li span{color:rgba(255,255,255,.85)}
+.pc-mini{flex:1;display:flex!important;flex-direction:column;min-height:0}
+.pc-mini p{margin:0 0 4px!important;font:10px/1.35 var(--mono)!important;color:#fff}
+.pc-mini-slot{flex:1;position:relative;display:flex;align-items:center;justify-content:space-between}
+.pc-pill{font:8px var(--mono);border:1px solid rgba(255,255,255,.7);border-radius:20px;padding:2px 7px;color:#fff}
+.pc-graph{position:absolute;left:calc(var(--hh) * .118 + 254px);right:8px;top:8px;bottom:8px;background:#060a2e;border:1px solid rgba(160,190,255,.35)}
+.pc-graph-list{display:none}
 .pc-box{display:block;padding:22px 24px;border:1.5px solid rgba(255,255,255,.6);background:rgba(255,255,255,.08);color:#fff;text-decoration:none}
 .pc-kicker{margin:0 0 10px;font:500 12px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.72)}
 .pc-big{margin:0 0 6px;font:700 24px/1.15 var(--sans)}
 .pc-box p{margin:0 0 8px;font:400 15px/1.45 var(--sans)}
-.pc-index ol{margin:0;padding:0;list-style:none;font:13px/1.9 var(--mono)}
-.pc-index li{display:flex;gap:12px}
-.pc-index li span{color:rgba(255,255,255,.55)}
 
 .pc-h{margin:0 0 70px;font:700 68px/1 var(--sans);letter-spacing:-2px;color:#fff;text-shadow:0 6px 18px rgba(0,0,0,.35)}
 .pc-notes{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin:0 0 80px}
@@ -163,7 +167,6 @@ html.expo .pc-gtip{display:block}
 html.expo body{overscroll-behavior:none}
 html.expo #page{position:absolute;left:50%;top:0;margin:0 0 0 -500px;visibility:hidden;pointer-events:none}
 /* sans HTML-in-Canvas, la page réelle reste par-dessus tant qu'elle est vue de face (même cadrage 1:1), puis la 3D prend le relais */
-html.expo.flat #page.pc-fallback{visibility:visible;pointer-events:auto;z-index:3}
 html.expo #scene{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:1}
 html.expo #leaders,html.expo #ticks,html.expo #callouts{display:block;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 html.expo #nav,html.expo #back{display:flex;z-index:4}
@@ -188,3 +191,4 @@ html.expo .pc-magic{display:block;position:fixed;left:0;top:0;z-index:3;padding:
 
 /* le bouton « voir la magie » est l'incrustation cliquable ; celui de la fiche n'est pas repris dans l'image */
 .pc-flowwrap .rf-flow-magic{visibility:hidden}
+#nav{transition:opacity .4s}html.expo.flat #nav{opacity:0;pointer-events:none} /* la page d’entrée a son propre sommaire */

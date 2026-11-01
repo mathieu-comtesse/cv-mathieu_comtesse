@@ -97,6 +97,8 @@ async function start() {
   if (!HIC) page.classList.add('pc-fallback');
 
   /* relevé de la mise en page */
+  // premier écran plein cadre : la page (1000 px) occupe toute la largeur, et l'accueil toute la hauteur visible
+  const KF = Math.max(1, innerWidth / PAGE_W); $('.pc-home')?.style.setProperty('--hh', Math.round(innerHeight / KF) + 'px');
   const P = page.getBoundingClientRect();
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
@@ -174,12 +176,14 @@ async function start() {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
     scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x1d1d1d })));
   }
+  // étiquette : la toile prend la largeur du texte (jamais tronqué), en double résolution
   const label = (text, { w = 3, h = 0.6, font = '400 26px iAWriterQuattroV, monospace', color = '#cfd3da', bg = null, op = 0.85 } = {}) => {
-    const c = document.createElement('canvas'); c.width = Math.round(w * 90); c.height = Math.round(h * 90); const g = c.getContext('2d');
+    const c = document.createElement('canvas'), g = c.getContext('2d'), F = font.replace(/(\d+)px/, (m, n) => n * 2 + 'px');
+    g.font = F; const tw = g.measureText(text).width + 16; c.width = Math.max(Math.round(w * 180), Math.ceil(tw)); c.height = Math.round(h * 180);
     if (bg) { g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); }
-    g.fillStyle = color; g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, c.width / 2, c.height / 2 + 1);
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, opacity: op, depthWrite: false, fog: false })); sp.scale.set(w, h, 1); return sp;
+    g.fillStyle = color; g.font = F; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, c.width / 2, c.height / 2 + 1);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, opacity: op, depthWrite: false, fog: false })); sp.scale.set(c.width / 180, h, 1); return sp;
   };
   const FORM = ['y = sin(2πx + φ)', 'x = cos φ', 'eᵗ = Σ tⁿ / n!', 'dx/dt = x', 'y = e^(1 − (x − μ)²)', 'φ = 0,86', 'θ = 54,6°', 'd/dx eˣ = eˣ'];
   for (let z = Z0; z < Z1; z += 9) for (const side of [-1, 1]) if (rnd() < 0.3) {
@@ -217,39 +221,44 @@ async function start() {
      qui partagent des outils ou des sujets. Il ondule doucement ; au survol, la page et ses voisines s'éclairent, le reste s'efface. */
   const loader = new THREE.TextureLoader(), graphs = [];
   for (const el of $$('[data-graph]')) {
-    const r = rectOf(el), hubs = $$(':scope > ul > li', el);
-    const cols = 3, rows = Math.ceil(hubs.length / cols), nodes = [], edges = [];
-    const P3 = (x, y, z) => new THREE.Vector3(x, y, z);
+    // 11 thématiques-phares réparties dans le cadre ; chacune rayonne vers ses compétences, projets, étapes ou articles,
+    // et les feuilles qui partagent une étiquette d'une thématique à l'autre sont reliées (cerveau Obsidian)
+    const r = rectOf(el), hubs = $$(':scope > ul > li', el), nodes = [], edges = [];
+    const P3 = (x, y, z) => new THREE.Vector3(x, y, z), X = (px) => (px - PAGE_W / 2) / PXM, Z = (py) => py / PXM;
     const add = (o) => { o.ph = rnd() * 6.283; o.ph2 = rnd() * 6.283; o.cur = o.base.clone(); nodes.push(o); return nodes.length - 1; };
-    const c0 = add({ kind: 'center', base: P3((r.x + r.w / 2 - PAGE_W / 2) / PXM, 2.2, (r.y + r.h * 0.42) / PXM) });
+    const SL = [[.16, .17], [.47, .12], [.8, .2], [.3, .4], [.63, .36], [.9, .5], [.12, .6], [.45, .66], [.76, .74], [.25, .88], [.58, .9]]; // emplacements des phares
+    const rad = Math.min(r.w, r.h) * 0.16;
+    { const g0 = W(r), bg = new THREE.Mesh(plane(g0.w, g0.d), new THREE.MeshBasicMaterial({ color: 0x060a2e })); bg.rotation.x = -Math.PI / 2; bg.position.set(g0.cx, 0.004, g0.cz); bg.renderOrder = 1; scene.add(bg); }
+    const inX = (x) => Math.max(X(r.x + 6), Math.min(X(r.x + r.w - 6), x)), inZ = (z) => Math.max(Z(r.y + 6), Math.min(Z(r.y + r.h - 6), z));
     hubs.forEach((li, i) => {
-      const cx = r.x + (i % cols + 0.5) / cols * r.w + (rnd() - 0.5) * 60, cy = r.y + (Math.floor(i / cols) + 0.5) / rows * r.h * 0.82 + (rnd() - 0.5) * 60;
-      const hp = P3((cx - PAGE_W / 2) / PXM, 0.8 + rnd() * 1.2, cy / PXM), h = add({ kind: 'hub', base: hp, label: li.dataset.hub });
-      edges.push([c0, h, 0]);
-      const ring = []; for (let j = 0; j <= 48; j++) ring.push(P3(hp.x + Math.cos(j / 48 * 6.283) * 0.95, 0.02, hp.z + Math.sin(j / 48 * 6.283) * 0.95));
-      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring), white(0.45)));
-      const name = li.dataset.hub, lb = label(name.length > 18 ? name.slice(0, 19).replace(/\s+\S*$/, '') : name, { w: 2.2, h: 0.3, font: '400 15px iAWriterQuattroV, monospace', color: '#e6ecff', op: 0.95 });
-      lb.position.set(hp.x, 0.05, hp.z + 1.25); scene.add(lb);
-      const leaves = $$('a', li), n = leaves.length + 8;
+      const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
+      const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
+      const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens' });
+      const lb = label(`${li.dataset.hub}  ${leaves.length}`, { w: 1.5, h: 0.16, font: '400 13px iAWriterQuattroV, monospace', color: '#e6ecff', op: 0.95 });
+      lb.position.set(hp.x + 0.1, 0.06, hp.z + 0.14); scene.add(lb);
+      const n = leaves.length + 16;
       for (let k = 0; k < n; k++) {
-        const a = k / n * 6.283 + rnd() * 0.4, rr = 0.5 + rnd() * 0.9, p = P3(hp.x + Math.cos(a) * rr, Math.max(0.15, hp.y + (rnd() - 0.5) * 1.6), hp.z + Math.sin(a) * rr);
+        const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
+        const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.05 + rnd() * 0.35, inZ(hp.z + Math.sin(ang) * rr));
         const L = leaves[k], img = L && L.querySelector('img');
-        const id = add(L ? { kind: 'leaf', base: p, label: L.textContent.trim(), meta: L.dataset.meta || '', href: L.getAttribute('href'), tags: new Set((L.dataset.tags || '').split(' ').filter(Boolean)), hub: h } : { kind: 'dot', base: p, hub: h });
+        const id = add(L ? { kind: 'leaf', base: p, label: L.textContent.trim(), meta: L.dataset.meta || '', href: L.getAttribute('href'), k: L.dataset.k, tags: new Set((L.dataset.tags || '').split(' ').filter(Boolean)), hub: h } : { kind: 'dot', base: p, hub: h });
         edges.push([h, id, L ? 1 : 3]);
-        if (!img) continue;
-        const fr = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false, transparent: true })); fr.scale.set(0.4, 0.3, 1); scene.add(fr);
-        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false, depthTest: false, transparent: true })); sp.scale.set(0.35, 0.25, 1); sp.renderOrder = 5; scene.add(sp);
-        loader.load(img.getAttribute('src'), (t) => { t.colorSpace = THREE.SRGBColorSpace; sp.material.map = t; sp.material.needsUpdate = true; });
-        Object.assign(nodes[id], { sp, fr });
+        if (!L || L.dataset.k === 'skill') continue;
+        const fr = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false, transparent: true })); fr.scale.set(0.2, 0.15, 1); scene.add(fr);
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ color: img ? 0xffffff : 0x8fa6ff, fog: false, depthTest: false, transparent: true })); sp.renderOrder = 5; scene.add(sp);
+        if (img) loader.load(img.getAttribute('src'), (t) => { t.colorSpace = THREE.SRGBColorSpace; sp.material.map = t; sp.material.needsUpdate = true; });
+        Object.assign(nodes[id], { sp, fr, small: true });
       }
     });
-    // liens entre pages : au moins deux étiquettes communes, trois liens au plus par page
+    // liens entre feuilles de thématiques différentes : une étiquette commune suffit si l'une est une compétence, deux sinon ; quatre liens au plus
     const leafIds = nodes.map((o, i) => (o.kind === 'leaf' ? i : -1)).filter((i) => i >= 0), deg = new Map(), seen = new Set();
     for (const i of leafIds) {
-      const cand = leafIds.filter((j) => j !== i && nodes[j].hub !== nodes[i].hub || (j !== i && nodes[j].hub === nodes[i].hub && false))
-        .map((j) => [j, [...nodes[i].tags].filter((t) => nodes[j].tags.has(t)).length]).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]);
+      const cand = leafIds.filter((j) => j !== i && nodes[j].hub !== nodes[i].hub).map((j) => {
+        const common = [...nodes[i].tags].filter((t) => nodes[j].tags.has(t) && t !== 'soft').length + (nodes[i].tags.has('soft') && nodes[j].tags.has('soft') && (nodes[i].k === 'exp' || nodes[j].k === 'exp') ? 1 : 0);
+        return [j, common, (nodes[i].k === 'skill' || nodes[j].k === 'skill') ? 1 : 2];
+      }).filter(([, c, need]) => c >= need).sort((a, b) => b[1] - a[1] || rnd() - .5);
       for (const [j] of cand) {
-        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 3 || (deg.get(j) || 0) >= 3) continue;
+        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 2 || (deg.get(j) || 0) >= 2) continue;
         seen.add(key); edges.push([i, j, 2]); deg.set(i, (deg.get(i) || 0) + 1); deg.set(j, (deg.get(j) || 0) + 1);
       }
     }
@@ -257,21 +266,60 @@ async function start() {
     lg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(col, 3));
     const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
     const pp = new Float32Array(nodes.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07 })); dots.frustumCulled = false; scene.add(dots);
+    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.045 })); dots.frustumCulled = false; scene.add(dots);
     const nb = nodes.map(() => new Set()); for (const [a, b] of edges) { nb[a].add(b); nb[b].add(a); }
     graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1 });
-    // courbe exponentielle numérotée sous le graphe
-    const y0 = r.y + r.h + 50, pts = [], X0 = 340, X1 = 960; // à droite du titre en volume, sans le chevaucher
-    for (let i = 0; i <= 60; i++) { const u = i / 60; pts.push(new THREE.Vector3((X0 + u * (X1 - X0) - PAGE_W / 2) / PXM, 0.02, (y0 + 70 - 70 * (Math.exp(3 * u) - 1) / (Math.exp(3) - 1)) / PXM)); }
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), white(0.75)));
-    const axZ = (y0 + 80) / PXM;
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3((X0 - PAGE_W / 2) / PXM, 0.02, axZ), new THREE.Vector3((X1 - PAGE_W / 2) / PXM, 0.02, axZ)]), white(0.5)));
-    hubs.forEach((_, i) => { const p = pts[Math.round((i + 1) / (hubs.length + 1) * 60)], t = label(String(i + 1).padStart(2, '0'), { w: 0.6, h: 0.3, font: '400 22px iAWriterQuattroV, monospace', color: '#fff' }); t.position.set(p.x, 0.05, p.z - 0.28); scene.add(t); });
-    for (let i = 0; i <= 5; i++) { const t = label(String(i), { w: 0.4, h: 0.3, font: '400 22px iAWriterQuattroV, monospace' }); t.position.set((X0 + i * (X1 - X0) / 5 - PAGE_W / 2) / PXM, 0.05, axZ + 0.3); scene.add(t); }
-    const xl = label('x = 4,00', { w: 1.6, h: 0.35, font: '500 24px iAWriterQuattroV, monospace', color: '#fff' }); xl.position.set((X1 - 120 - PAGE_W / 2) / PXM, 0.05, axZ + 0.75); scene.add(xl);
   }
 
   /* règles d'une machine : celles du site (graduations, repère, « Tourner » / « Incliner »), une paire par machine ; glisser ne bouge que cette machine */
+  /* vignettes de l'accueil : une machine 3D qui tourne, la pièce avec Mathieu dedans (rendue en direct), un flux de particules */
+  const minis = [];
+  for (const card of $$('[data-mini]')) {
+    const slot = card.querySelector('.pc-mini-slot'), r = rectOf(slot), g = W(r), top = parseFloat(card.dataset.box) || 0.12, kind = card.dataset.mini;
+    if (kind === 'machine') import('./m3d/finance.js').then(({ build, WIDTH = 236 }) => {
+      const m = build(), grp = new THREE.Group(); grp.add(m.group); const k = g.w * 0.42 / WIDTH; grp.scale.setScalar(k);
+      const box = new THREE.Box3().setFromObject(grp), c = box.getCenter(new THREE.Vector3()); m.group.position.sub(c.divideScalar(k)); m.group.position.y += (box.max.y - box.min.y) / 2 / k;
+      const piv = new THREE.Group(); piv.add(grp); piv.position.set(g.cx, top, g.cz); scene.add(piv); patchTree(piv);
+      minis.push({ kind, piv, m });
+    }).catch((e) => console.warn('vignette machine', e));
+    else if (kind === 'room') {
+      const rt2 = new THREE.WebGLRenderTarget(640, Math.round(640 * g.d / g.w), { samples: 4 }); rt2.texture.colorSpace = THREE.SRGBColorSpace;
+      const cam2 = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
+      const pm = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: rt2.texture, transparent: true })); pm.rotation.x = -Math.PI / 2; pm.position.set(g.cx, top + 0.005, g.cz); pm.renderOrder = 6; scene.add(pm);
+      minis.push({ kind, rt2, cam2, z: g.cz, asp: g.w / g.d });
+    } else if (kind === 'flux') {
+      const cv = document.createElement('canvas'); cv.width = 420; cv.height = Math.round(420 * g.d / g.w); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+      const pm = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false })); pm.rotation.x = -Math.PI / 2; pm.position.set(g.cx, top + 0.005, g.cz); pm.renderOrder = 6; scene.add(pm);
+      const P = Array.from({ length: 260 }, () => ({ x: Math.random(), y: Math.random(), l: Math.floor(Math.random() * 5), v: 0.12 + Math.random() * 0.2 }));
+      minis.push({ kind, cv, t, P, z: g.cz });
+    }
+  }
+  function animMinis(now, focusZ) {
+    const tt = now / 1000;
+    for (const M of minis) {
+      if (M.kind === 'machine') { M.piv.rotation.y = tt * 0.35; M.m.update?.(tt); continue; }
+      if (Math.abs(focusZ - M.z) > 25) continue;
+      if (M.kind === 'room') {
+        const rg = roomRul?.g; if (!rg) continue;
+        const c = new THREE.Box3().setFromObject(rg).getCenter(new THREE.Vector3()), hh = 2.2 * rg.scale.x / ROOM_K;
+        M.cam2.left = -hh * M.asp; M.cam2.right = hh * M.asp; M.cam2.top = hh; M.cam2.bottom = -hh; M.cam2.updateProjectionMatrix();
+        M.cam2.position.set(c.x + 9, 30, c.z + 9); M.cam2.up.set(0, 1, 0); M.cam2.lookAt(c.x, c.y, c.z);
+        renderer.setRenderTarget(M.rt2); renderer.setClearColor(0x14249a, 1); renderer.clear(); renderer.render(rg, M.cam2); renderer.setRenderTarget(null); renderer.setClearColor(0x000000, 1);
+      } else {
+        const c = M.cv.getContext('2d'), w = M.cv.width, h = M.cv.height; c.clearRect(0, 0, w, h);
+        c.strokeStyle = 'rgba(200,215,255,.55)'; c.lineWidth = 1;
+        for (let l = 0; l < 5; l++) { const y = h * (0.2 + l * 0.15); c.beginPath(); c.moveTo(w * 0.55, h / 2); c.bezierCurveTo(w * 0.7, h / 2, w * 0.7, y, w, y); c.stroke(); }
+        c.fillStyle = '#fff';
+        for (const p of M.P) {
+          p.x += p.v / 60; if (p.x > 1) { p.x = 0; p.y = Math.random(); }
+          const yy = p.x < 0.5 ? p.y : p.x < 0.6 ? p.y + (0.5 - p.y) * (p.x - 0.5) / 0.1 : 0.5 + ((0.2 + p.l * 0.15) - 0.5) * Math.min(1, (p.x - 0.6) / 0.15);
+          c.fillRect(p.x * w, yy * h, 2, 2);
+        }
+        M.t.needsUpdate = true;
+      }
+    }
+  }
+
   // cliquet des règles, le même son synthétisé que sur le site, à chaque graduation franchie
   let ac = null, lastTick = 0;
   function tick(major) {
@@ -306,8 +354,8 @@ async function start() {
   }
 
   /* machines 3D des projets, en longueur sur les côtés */
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
-  const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-9, 16, 8); scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a96c0, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.25); sun.position.set(-9, 16, 8); scene.add(sun);
   const machines = []; let pendingM = 0; const T0 = 0; // posée sur sa base
   for (const art of $$('[data-fig]')) {
     // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
@@ -319,7 +367,7 @@ async function start() {
       // pivot au centre de la machine, posé au sol : les règles la tournent et l'inclinent sur place
       m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
       g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
-      pivot.position.set(x, 0, z); pivot.rotation.y = rot; patchTree(pivot);
+      pivot.position.set(side * (HALF + 0.35 + box.getSize(new THREE.Vector3()).z / 2), 0, z); void x; // même écart au bord de la page pour toutes les machines pivot.rotation.y = rot; patchTree(pivot);
       const M = { m, z, pivot, rot, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
       M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
@@ -348,7 +396,7 @@ async function start() {
       // règles du décor : « Tourner » fait pivoter la pièce, « Incliner » sert de zoom (pièce et plan ensemble)
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
       R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
-      roomRul = { rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
+      roomRul = { g, rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
     }).catch((e) => console.warn('pièce indisponible', e));
   }
 
@@ -555,17 +603,17 @@ async function start() {
   };
 
   /* graphe : ondulation, couleurs des liens, mise en avant au survol */
-  const EC = [[0.45, 0.55, 1], [0.55, 0.68, 1], [0.35, 0.95, 0.65], [0.4, 0.5, 0.9]], EW = [0.55, 0.5, 0.42, 0.3];
+  const EC = [[0.45, 0.55, 1], [0.55, 0.68, 1], [0.35, 0.95, 0.65], [0.4, 0.5, 0.9]], EW = [0.55, 0.55, 0.2, 0.32];
   function animGraph(G, t) {
     const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
     G.nodes.forEach((o, i) => {
-      const a = o.kind === 'center' ? 0.04 : o.kind === 'hub' ? 0.07 : 0.12;
+      const a = o.kind === 'hub' ? 0.03 : 0.06;
       o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
       G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
       if (o.sp) {
         const on = h < 0 || i === h || rel.has(i), k = i === h ? 1.9 : (h >= 0 && on ? 1.35 : 1);
         o.sc = (o.sc || 1) + (k - (o.sc || 1)) * 0.18;
-        o.sp.position.copy(o.cur); o.fr.position.copy(o.cur); o.sp.scale.set(0.35 * o.sc, 0.25 * o.sc, 1); o.fr.scale.set(0.4 * o.sc, 0.3 * o.sc, 1);
+        const q = o.small ? 0.5 : 1; o.sp.position.copy(o.cur); o.fr.position.copy(o.cur); o.sp.scale.set(0.35 * o.sc * q, 0.25 * o.sc * q, 1); o.fr.scale.set(0.4 * o.sc * q, 0.3 * o.sc * q, 1);
         const op = on ? 1 : 0.25; o.sp.material.opacity += (op - o.sp.material.opacity) * 0.2; o.fr.material.opacity = o.sp.material.opacity;
       }
     });
@@ -583,7 +631,7 @@ async function start() {
   function hoverGraphs(e) {
     let any = false;
     for (const G of graphs) {
-      G.hover = -1; if (e < 0.5) continue;
+      G.hover = -1;
       let best = 24 * 24;
       G.nodes.forEach((o, i) => { if (o.kind !== 'leaf' && o.kind !== 'hub') return; const [px, py, pz] = toScreen(o.cur); if (pz >= 1) return; const d = (px - mouse.x) ** 2 + (py - mouse.y) ** 2; if (d < best) { best = d; G.hover = i; } });
       const o = G.nodes[G.hover];
@@ -601,9 +649,9 @@ async function start() {
     dtS = Math.min(0.1, (now - last) / 1000); last = now;
     sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * 7)); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
     const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
-    const H = innerHeight, focusZ = (s + H / 2) / PXM;
+    const H = innerHeight, kf = KF + (1 - KF) * e, focusZ = (s + H / kf / 2) / PXM;
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
-    const fovFlat = 30, dist = (H / PXM / 2) / Math.tan(fovFlat / 2 * Math.PI / 180);
+    const fovFlat = 30, dist = (H / kf / PXM / 2) / Math.tan(fovFlat / 2 * Math.PI / 180);
     flatPos.set(0, dist, focusZ); flatLook.set(0, 0, focusZ - 0.0001);
     runPos.set(0, 8.6, focusZ + 5.2); runLook.set(0, 0, focusZ - 6);
     camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
@@ -626,6 +674,7 @@ async function start() {
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
+    animMinis(now, focusZ);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
     for (const H of hublots) if (Math.abs(focusZ - H.z) < 30) paintHublot(H);
     for (const b of bps) { b.uniforms.uTime.value = now / 1000; b.uniforms.uRes.value.set(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }

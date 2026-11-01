@@ -55,7 +55,7 @@ const COLORS = ['#5b21b6', '#a00e5c', '#0f8f30', '#1d4ed8'];
 const sentences = (t) => (t.match(/[^.!?]+[.!?]+/g) || [t]).map((x) => x.trim()).filter(Boolean);
 const two = (n) => String(n).padStart(2, '0');
 
-const sommaire = [...NAV, 'Gains', 'Parcours', 'Blog', 'Contact'].map((n, i) => `<li><span>${two(i + 1)}</span>${esc(n)}</li>`).join('');
+const sommaire = ['Accueil', 'Bonjour', 'Décor', ...NAV, 'Gains', 'Parcours', 'Blog', 'Contact'].map((n, i) => `<li>${esc(n)}<span>${two(i + 1)}</span></li>`).join(''); // les 11 chapitres
 // étiquettes de chaque page (pour relier les projets qui partagent un outil ou un sujet, comme un graphe de notes)
 const TAGS = { 'power-automate': /power automate/i, 'power-bi': /power bi|dax/i, sharepoint: /sharepoint/i, excel: /excel/i, pdf: /\bpdf\b/i, vre: /\bvre\b|vérification électrique/i,
   ocr: /\bocr\b|extraction|extracteur/i, ia: /\bia\b|llm|modèle|intelligence artificielle|vision/i, 'jeu': /\bjeu\b|jouer|joueur/i, '3d': /\b3d\b|three\.js|monde/i,
@@ -63,8 +63,28 @@ const TAGS = { 'power-automate': /power automate/i, 'power-bi': /power bi|dax/i,
 const tagsOf = (href) => { let h = ''; try { h = read(href + '.html'); } catch { return ''; }
   const t = text((/<title>([\s\S]*?)<\/title>/.exec(h) || ['', ''])[1] + ' ' + (/<meta name="description" content="([^"]*)"/.exec(h) || ['', ''])[1] + ' ' + (/<div class="rf-post-body">([\s\S]{0,4000})/.exec(h) || ['', ''])[1]);
   return Object.keys(TAGS).filter((k) => TAGS[k].test(t)).join(' '); };
-const graphe = '<ul class="pc-graph-list">' + themes.map((t, i) => `<li data-hub="${two(i + 1)} ${esc(t.title)}"><span>${two(i + 1)} ${esc(t.title)}</span><ul>` +
-  t.tiles.map((x) => `<li><a href="${esc(x.href)}.html" data-tags="${tagsOf(x.href)}" data-meta="${esc(x.meta)}"><img src="${esc(x.img)}" alt="" width="84" height="60" loading="lazy">${esc(x.title)}</a></li>`).join('') + '</ul></li>').join('') + '</ul>';
+/* graphe de l'accueil : 11 thématiques-phares (les 7 familles de compétences, puis projets, parcours, mondes et jeux, blog) ;
+   chaque feuille porte des étiquettes, et les feuilles de thématiques différentes qui partagent une étiquette sont reliées (cerveau Obsidian) */
+TAGS.qualite = /qualité|amélioration continue|contrôle|écart|conformité|audit/i;
+const SKTAG = [[/power bi/i, 'power-bi'], [/power automate/i, 'power-automate'], [/excel|fiabilisation/i, 'excel'], [/pdf/i, 'pdf'], [/ocr/i, 'ocr'],
+  [/html|javascript/i, 'canvas 3d jeu'], [/json/i, 'ocr ia'], [/llm|agents|modèles|orchestration|serveur|mcp|markdown|obsidian/i, 'ia'],
+  [/risques|prévention|coactivité|écarts|correctives|nebosh|45001|14001|22301/i, 'prevention'], [/réglementaire|équipements|échéances|19443/i, 'maintenance'],
+  [/9001|amélioration|dmaic|pdca|sipoc|six sigma|green belt|audit|27001/i, 'qualite'], [/./, 'soft']];
+const expH0 = read("experiences.html");
+const skillHubs = [...expH0.matchAll(/<div class="rf-sk-grp[^"]*">[\s\S]*?<h3>([\s\S]*?)<\/h3>[\s\S]*?<div class="rf-sk-chips">([\s\S]*?)<\/div><\/div>/g)].map((m) => ({
+  title: text(m[1]), leaves: [...m[2].matchAll(/<span>([^<]*)<\/span><\/span>/g)].map((c) => { const n = text(c[1]); const t = (SKTAG.find(([re]) => re.test(n)) || [, 'soft'])[1]; return { k: 'skill', title: n, tags: t, meta: text(m[1]) }; }) }));
+const tile = (x, k) => ({ k, title: x.title, href: x.href + '.html', img: x.img, meta: x.meta, tags: tagsOf(x.href) });
+const games = themes.filter((t) => t.section !== 'Projets professionnels').flatMap((t) => t.tiles.map((x) => tile(x, 'game')));
+const exps = [...expH0.matchAll(/<article class="rf-tl-entry[^"]*">([\s\S]*?)<\/article>/g)].map((m) => { const t = text(m[1]);
+  return { k: 'exp', title: first(/<p class="rf-tl-role">([\s\S]*?)<\/p>/, m[1]), meta: first(/<p class="rf-tl-date">([\s\S]*?)<\/p>/, m[1]), img: (/<img src="([^"]+)"/.exec(m[1]) || [])[1], href: 'experiences.html',
+    tags: [...Object.keys(TAGS).filter((k) => TAGS[k].test(t)), 'soft'].join(' ') }; });
+const arts = [...new Set([...read("blog.html").matchAll(/<a class="rf-art" href="(article-[^"]+)"/g)].map((m) => m[1]))].map((h0) => [, h0]).map((m) => { const h = read(m[1] + '.html');
+  return { k: 'blog', title: text((/<h1[^>]*>([\s\S]*?)<\/h1>/.exec(h) || ['', m[1]])[1]), href: m[1] + '.html', meta: 'Étude', tags: tagsOf(m[1]) }; });
+const HUBS = [...skillHubs, { title: 'Projets professionnels', leaves: PRO.flatMap((t) => t.tiles.map((x) => tile(x, 'proj'))) },
+  { title: 'Parcours', leaves: exps }, { title: 'Mondes & jeux', leaves: games }, { title: 'Blog & études', leaves: arts }];
+if (HUBS.length !== 11) throw new Error('11 thématiques attendues, ' + HUBS.length + ' trouvées');
+const leaf = (x) => `<li><a${x.href ? ` href="${esc(x.href)}"` : ''} data-k="${x.k}" data-tags="${esc(x.tags)}" data-meta="${esc(x.meta || '')}">${x.img ? `<img src="${esc(x.img)}" alt="" width="84" height="60">` : ''}${esc(x.title)}</a></li>`;
+const graphe = '<ul class="pc-graph-list">' + HUBS.map((h, i) => `<li data-hub="${esc(h.title)}" data-n="${two(i + 1)}"><span>${two(i + 1)} ${esc(h.title)}</span><ul>` + h.leaves.map(leaf).join('') + '</ul></li>').join('') + '</ul>';
 
 const proj = (slug) => {
   const p = projects[slug], tile = PRO.flatMap((t) => t.tiles).find((x) => x.href === slug);
