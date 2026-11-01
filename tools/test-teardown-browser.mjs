@@ -65,6 +65,8 @@ for(let i=0;i<ids.length;i++){
  });
  assert.equal(state.modules,5,ids[i]+' doit avoir cinq assemblages modélisés');
  assert.ok(state.geometry>=80,ids[i]+' ne contient pas assez de pièces inédites');
+ assert.equal(state.heroVisible,true,ids[i]+' doit montrer sa silhouette iconique');
+ assert.equal(state.internalsVisible,false,ids[i]+' doit dissimuler les organes internes en vue assemblée');
  assert.ok(state.hasWebGL,ids[i]+' n’a pas de contexte WebGL');
  await page.screenshot({path:path.join(output,String(i+1).padStart(2,'0')+'-'+ids[i]+'.png')});
  results.push(state);
@@ -75,7 +77,10 @@ for(let i of [1,5,10]){
  await page.locator('.rf-td button[data-td=collapse]').click();
  await page.locator('.rf-td button[data-mode=exploded]').click();
  await page.waitForTimeout(450);
- assert.equal(await page.evaluate(()=>window.__teardownDebug().mode),'exploded');
+ const opened=await page.evaluate(()=>window.__teardownDebug());
+ assert.equal(opened.mode,'exploded');
+ assert.equal(opened.heroVisible,false,'En éclaté, retirer l’enveloppe');
+ assert.equal(opened.internalsVisible,true,'En éclaté, exposer les modules fonctionnels');
  await page.screenshot({path:path.join(output,'exploded-'+ids[i]+'.png')});
  await page.locator('.rf-td button[data-mode=section]').click();
  await page.waitForTimeout(180);
