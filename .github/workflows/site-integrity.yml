@@ -22,3 +22,36 @@ jobs:
           node tools/test-indicators.mjs
           node tools/test-annual-gains.mjs
           node tools/test-project-metadata.mjs
+
+  render-premium-machines:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Vérifier la syntaxe des machines reconstruites
+        run: |
+          node --check refonte/m3d/premium-core.js
+          node --check refonte/m3d/premium-doc-machines.js
+          node --check refonte/m3d/premium-pilot-machines.js
+          node --check refonte/m3d/premium-intelligence-machines.js
+          node --check refonte/m3d/teardown.js
+          node --check refonte/m3d/index.js
+          node --check tools/test-teardown-browser.mjs
+      - name: Préparer Chromium
+        run: |
+          npm install --prefix /tmp/teardown-browser --no-audit --no-fund playwright@1.56.0
+          /tmp/teardown-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Tester et capturer les 11 machines WebGL
+        env:
+          PLAYWRIGHT_PACKAGE: /tmp/teardown-browser/node_modules/playwright/index.mjs
+        run: node tools/test-teardown-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: teardown-premium-captures
+          path: test-results/teardown-premium/
+          if-no-files-found: warn
