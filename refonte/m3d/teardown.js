@@ -59,7 +59,7 @@ export function createTeardown(name, machine, holder, camera) {
       mat.side=THREE.DoubleSide;
     } else if(variant==='ghost' || variant==='xray') {
       mat.transparent=true;
-      mat.opacity=variant==='ghost'?.095:.24;
+      mat.opacity=variant==='ghost' ? .095 : .24;
       mat.depthWrite=false;
       mat.side=THREE.DoubleSide;
       mat.emissiveIntensity=0;
@@ -96,7 +96,7 @@ export function createTeardown(name, machine, holder, camera) {
       state.mode=['assembled','section','exploded','xray','isolate'][beat%5];
     }
     const target=state.mode==='exploded'?1:0;
-    const dt=lastTime==null?.016:clamp(Math.abs(t-lastTime),0,.055);
+    const dt=lastTime === null ? 0.016 : clamp(Math.abs(t-lastTime),0,.055);
     lastTime=t;
     amount=smooth(amount,target,clamp(dt*4.8,0,1));
     if(Math.abs(amount-target)<.003)amount=target;
@@ -109,9 +109,9 @@ export function createTeardown(name, machine, holder, camera) {
     for(const mesh of meshes) {
       const zone=parts.get(mesh)??2;
       if(amount>0.002){
-        const lateral=(zone-2)*Math.max(size.x,1)*.075*amount;
-        const vertical=(zone%2?.032:.014)*Math.max(size.x,1)*amount;
-        const depth=(zone%2?1:-1)*Math.max(size.z,1)*.11*amount;
+        const lateral=(zone-2)*Math.max(size.x / Math.max(holder.scale.x,0.001),1)*.075*amount;
+        const vertical=(zone%2?.032:.014)*Math.max(size.x / Math.max(holder.scale.x,0.001),1)*amount;
+        const depth=(zone%2?1:-1)*Math.max(size.z / Math.max(holder.scale.z,0.001),1)*.11*amount;
         const off=new THREE.Vector3(lateral,vertical,depth);
         mesh.position.add(off); offsets.set(mesh,off);
       }
