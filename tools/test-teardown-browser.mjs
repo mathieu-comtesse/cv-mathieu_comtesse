@@ -37,7 +37,7 @@ const ids=['cerfa','vm','vre','moteur','gares','finance','pp','powerbi','suivi',
 const names=['CERFA','VM VRE','VRE BT','Q18','GARES','FINANCE','PP','POWERBI','SUIVI','STUDIO','LECTEUR VRE'];
 await page.goto('http://lab.test/teardown-lab.html');
 for(let i=0;i<ids.length;i++){
- if(i!==1)await page.locator('#projects button').nth(i).click();
+ await page.locator('#projects button').nth(i).click();
  try {
   await page.waitForFunction((id)=>{
     const x=window.__teardownDebug?.();
