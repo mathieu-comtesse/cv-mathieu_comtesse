@@ -41,7 +41,9 @@ for (const [slug, fig] of Object.entries(FIG)) {
     idea: first(/<p>([\s\S]*?)<\/p>/, part(body, 'L’idée')),
     action: first(/<p>([\s\S]*?)<\/p>/, part(body, 'L’objet en action')),
     team: first(/<p>([\s\S]*?)<\/p>/, part(body, 'Pour l’équipe')),
-    gains, steps
+    gains, steps,
+    // le composant « Comment ça marche » de la fiche, tel quel (barre de cases, bouton « voir la magie ») ; sans apparition au défilement
+    flow: (/<div class="rf-flow"[\s\S]*?<\/ol><\/div>/.exec(body) || [''])[0].replace(/ rf-tl-rv/g, '')
   };
   if (!projects[slug].title || steps.length < 3) throw new Error('fiche incomplète : ' + slug);
 }
@@ -66,8 +68,7 @@ const proj = (slug) => {
     <p>${esc(p.idea)}</p><a class="pc-more" href="${p.href}">Lire la fiche →</a>
   </div>
   <div class="pc-float" data-plane data-float><p class="pc-kicker">L’objet en action${p.object ? ' · ' + esc(p.object) : ''}</p><p>${esc(p.action)}</p></div>
-  <h4 class="pc-how" data-plane>Comment ça marche</h4>
-  <ol class="pc-steps" data-steps>${p.steps.map((s, i) => `<li class="pc-step" data-plane data-step><b>${two(i + 1)}</b><strong>${esc(s.t)}</strong><span>${esc(s.p)}</span></li>`).join('')}</ol>
+  <div class="rf-post-body pc-flowwrap" data-plane data-flow><h2>Comment ça marche</h2>${p.flow}</div>
 </article>`;
 };
 const projets = PRO.map((t, i) => `<section class="pc-sec" data-section="${NAV[i]}" data-color="${COLORS[i]}" aria-labelledby="s-p${i}">

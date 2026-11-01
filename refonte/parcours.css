@@ -133,6 +133,10 @@ html.expo .pc-rul{display:block}
 #live3d{position:fixed;inset:0;z-index:2;pointer-events:none;display:none}
 html.expo #live3d{display:block}
 #live3d .pc-live{pointer-events:auto}
+.pc-flowwrap{grid-column:1/-1;margin-top:20px;color:rgba(255,255,255,.9);font:16px/1.55 var(--sans)}
+.pc-flowwrap h2{margin:0;font:600 24px/1.2 var(--sans);color:#fff}
+.pc-flowwrap .rf-flow-step p{margin:0;color:rgba(255,255,255,.88)}
+.pc-flowwrap .rf-flow-magic{color:#fff}
 .pc-end{margin:40px 0 0;font:12px var(--mono);color:#8a8e98;text-align:center}
 
 /* la pièce du site anime ses objets depuis un conteneur hors écran ; ils sont dessinés dans la scène du parcours */

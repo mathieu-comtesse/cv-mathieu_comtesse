@@ -180,7 +180,7 @@ function draw3d(st, items, L, tl, t) {
 }
 
 /* ================================================================ composant */
-export function initFlow(root) {
+export function initFlow(root, opt = {}) {   // opt.tops() : position des étapes dans la page, quand la page n'est pas affichée telle quelle (parcours 3D)
   const steps = [...root.querySelectorAll('.rf-flow-step')];
   const items = steps.map((li) => ({ title: li.querySelector('h3').textContent.trim(), text: li.querySelector('p:not(.rf-flow-tech)').textContent.trim(), icon: li.dataset.icon || 'check', tech: li.dataset.tech || TECH[li.dataset.icon || 'check'] || '' }));
   if (!items.length) return;
@@ -190,7 +190,7 @@ export function initFlow(root) {
   /* --- barre latérale : la case mobile suit le défilement (ressort 45 / 20) --- */
   const rail = mountRail(root, items, steps);
   let pos = [];
-  const measure = () => { rail.layout(); pos = steps.map((li) => li.getBoundingClientRect().top + scrollY - innerHeight * .55); };
+  const measure = () => { rail.layout(); pos = (opt.tops?.() || steps.map((li) => li.getBoundingClientRect().top + scrollY)).map((t) => t - innerHeight * .55); };
   const target = () => {
     const y = scrollY, n = pos.length;
     if (y <= pos[0]) return 0; if (y >= pos[n - 1]) return n - 1;

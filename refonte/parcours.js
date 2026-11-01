@@ -81,6 +81,11 @@ async function start() {
   const HIC = 'texElementImage2D' in renderer.getContext() && 'requestPaint' in canvas;
   document.documentElement.dataset.htmlInCanvas = HIC;
   await Promise.all(['500 22px Inter', 'italic 400 16px Inter', '700 68px Inter', '500 12px iAWriterQuattroV'].map((f) => document.fonts.load(f))).catch(() => {});
+  const flowTops = [], flows = [];
+  if ($('[data-flow]')) {
+    const { initFlow } = await import('./flow.js');
+    $$('[data-flow]').forEach((w, i) => { const api = initFlow(w.querySelector('.rf-flow'), { tops: () => flowTops[i] }); flows.push({ w, api }); });
+  }
   document.documentElement.classList.add('expo');
   if (!HIC) page.classList.add('pc-fallback');
 
@@ -89,6 +94,7 @@ async function start() {
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
   const PAGE_H = P.height;
+  flows.forEach((f, i) => { flowTops[i] = $$('.rf-flow-step', f.w).map((li) => rectOf(li).y); });
   const sigSvg0 = $('#pc-sign svg'), sigRect = sigSvg0 && rectOf(sigSvg0); // relevé avant tout déplacement d'élément
 
   const scene = new THREE.Scene();
@@ -124,7 +130,7 @@ async function start() {
     mat.fragmentShader = 'uniform vec4 uClip;uniform float uK;uniform vec2 uC;\n' + mat.fragmentShader
       .replace('const float K=3.6667;', 'float K=uK;').replace('vec2 p=vW.xz*K;', 'if(vW.x<uClip.x||vW.x>uClip.y||vW.z<uClip.z||vW.z>uClip.w)discard;vec2 p=(vW.xz-uC)*K;');
     mat.userData.pc = true; // déjà courbé
-    mat.depthWrite = false; const m = new THREE.Mesh(new THREE.PlaneGeometry(S, S, 1, N(S)), mat); m.rotation.x = -Math.PI / 2; m.position.set(c.cx, 0, c.cz); m.renderOrder = -2; scene.add(m);
+    mat.depthWrite = false; const m = new THREE.Mesh(new THREE.PlaneGeometry(S, S, N(S), N(S)), mat); // découpé dans les deux sens : il suit la courbure jusqu'aux bords m.rotation.x = -Math.PI / 2; m.position.set(c.cx, 0, c.cz); m.renderOrder = -2; scene.add(m);
     bps.push(mat);
   }
 
@@ -338,18 +344,12 @@ async function start() {
     const p = new THREE.Vector3(((side < 0 ? it.r.x : it.r.x + it.r.w) - PAGE_W / 2) / PXM, it.top, it.r.y / PXM);
     return { el, side, p, path: mkp(), dot: mkc() };
   });
-  const magics = $$('[data-steps]').map((ol) => {
-    const art = ol.closest('.pc-proj'), card = items.find((x) => x.art === art && x.el.matches('[data-box]'));
-    const steps = items.filter((x) => x.step && x.art === art);
+  const magics = flows.map(({ w, api }) => {
+    const r = rectOf(w), card = items.find((x) => x.art === w.closest('.pc-proj') && x.el.matches('[data-box]'));
     const b = document.createElement('button'); b.type = 'button'; b.className = 'pc-magic'; b.textContent = 'Cliquez ici pour voir la magie';
-    b.setAttribute('aria-label', 'Voir comment fonctionne : ' + (card.el.dataset.callout || 'ce projet'));
-    document.body.append(b);
-    const m = { b, steps, on: false, p: new THREE.Vector3((card.r.x - PAGE_W / 2) / PXM + 0.25, card.top, (card.r.y + card.r.h) / PXM) };
-    b.onclick = () => {
-      m.on = !m.on; b.textContent = m.on ? 'Masquer la magie' : 'Cliquez ici pour voir la magie';
-      steps.forEach((s, i) => { s.t0 = performance.now() + (m.on ? i * 90 : 0); s.dir = m.on ? 1 : -1; s.group.visible = true; });
-    };
-    return m;
+    b.setAttribute('aria-label', 'Voir comment fonctionne : ' + (card?.el.dataset.callout || 'ce projet'));
+    document.body.append(b); b.onclick = () => api?.open();
+    return { b, p: new THREE.Vector3((r.x + r.w - 260 - PAGE_W / 2) / PXM, 0.05, (r.y + 40) / PXM) };
   });
   // ancres des traits du menu : les notes et le coin haut gauche de chaque cadre de la section, comme sur la page de référence
   const anchors = sections.map((s) => [
