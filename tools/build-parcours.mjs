@@ -56,8 +56,15 @@ const sentences = (t) => (t.match(/[^.!?]+[.!?]+/g) || [t]).map((x) => x.trim())
 const two = (n) => String(n).padStart(2, '0');
 
 const sommaire = [...NAV, 'Gains', 'Parcours', 'Blog', 'Contact'].map((n, i) => `<li><span>${two(i + 1)}</span>${esc(n)}</li>`).join('');
+// étiquettes de chaque page (pour relier les projets qui partagent un outil ou un sujet, comme un graphe de notes)
+const TAGS = { 'power-automate': /power automate/i, 'power-bi': /power bi|dax/i, sharepoint: /sharepoint/i, excel: /excel/i, pdf: /\bpdf\b/i, vre: /\bvre\b|vérification électrique/i,
+  ocr: /\bocr\b|extraction|extracteur/i, ia: /\bia\b|llm|modèle|intelligence artificielle|vision/i, 'jeu': /\bjeu\b|jouer|joueur/i, '3d': /\b3d\b|three\.js|monde/i,
+  prevention: /prévention|sécurité|risque|iso 45001/i, maintenance: /maintenance|équipement|gare/i, canvas: /canvas|pixel|dessin|gouache/i };
+const tagsOf = (href) => { let h = ''; try { h = read(href + '.html'); } catch { return ''; }
+  const t = text((/<title>([\s\S]*?)<\/title>/.exec(h) || ['', ''])[1] + ' ' + (/<meta name="description" content="([^"]*)"/.exec(h) || ['', ''])[1] + ' ' + (/<div class="rf-post-body">([\s\S]{0,4000})/.exec(h) || ['', ''])[1]);
+  return Object.keys(TAGS).filter((k) => TAGS[k].test(t)).join(' '); };
 const graphe = '<ul class="pc-graph-list">' + themes.map((t, i) => `<li data-hub="${two(i + 1)} ${esc(t.title)}"><span>${two(i + 1)} ${esc(t.title)}</span><ul>` +
-  t.tiles.map((x) => `<li><a href="${esc(x.href)}.html"><img src="${esc(x.img)}" alt="" width="84" height="60" loading="lazy">${esc(x.title)}</a></li>`).join('') + '</ul></li>').join('') + '</ul>';
+  t.tiles.map((x) => `<li><a href="${esc(x.href)}.html" data-tags="${tagsOf(x.href)}" data-meta="${esc(x.meta)}"><img src="${esc(x.img)}" alt="" width="84" height="60" loading="lazy">${esc(x.title)}</a></li>`).join('') + '</ul></li>').join('') + '</ul>';
 
 const proj = (slug) => {
   const p = projects[slug], tile = PRO.flatMap((t) => t.tiles).find((x) => x.href === slug);

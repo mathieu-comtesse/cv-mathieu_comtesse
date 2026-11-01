@@ -152,6 +152,12 @@ html.expo .pc-hot{display:block}
 .pc-exp-title h2{margin:28px 0 12px;font:600 34px/1.15 var(--sans);color:#e0ebfd}
 .pc-exp-title p{margin:0;font:16px/1.6 var(--sans);color:#8795ad}
 .pc-exp-tl{--exp-fg:#e0ebfd;--exp-mute:#8795ad;color:#e0ebfd;font-family:var(--sans)}
+.pc-gtip{position:fixed;left:0;top:0;z-index:5;display:none;max-width:260px;padding:9px 12px;border:1px solid rgba(255,255,255,.35);background:rgba(8,12,30,.88);backdrop-filter:blur(4px);color:#fff;font:12px/1.4 var(--mono);pointer-events:none;opacity:0;transition:opacity .2s}
+html.expo .pc-gtip{display:block}
+.pc-gtip.on{opacity:1}
+.pc-gtip b{display:block;font:600 14px/1.25 var(--sans)}
+.pc-gtip span{display:block;color:#b9c4e6;margin-top:2px}
+.pc-gtip i{display:block;margin-top:6px;font-style:normal;color:#39ff88}
 .pc-end{margin:40px 0 0;font:12px var(--mono);color:#8a8e98;text-align:center}
 
 /* la pièce du site anime ses objets depuis un conteneur hors écran ; ils sont dessinés dans la scène du parcours */

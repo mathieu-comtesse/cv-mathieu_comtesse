@@ -202,34 +202,53 @@ async function start() {
     items.push(it);
   }
 
-  /* graphe des thématiques : une étoile par thème, reliée aux illustrations de ses pages */
-  const loader = new THREE.TextureLoader();
+  /* graphe des thématiques, façon cerveau de notes : une étoile par thème, une vignette par page, et des liens entre les pages
+     qui partagent des outils ou des sujets. Il ondule doucement ; au survol, la page et ses voisines s'éclairent, le reste s'efface. */
+  const loader = new THREE.TextureLoader(), graphs = [];
   for (const el of $$('[data-graph]')) {
     const r = rectOf(el), hubs = $$(':scope > ul > li', el);
-    const cols = 3, rows = Math.ceil(hubs.length / cols), all = [], seg = [];
-    const hubPos = hubs.map((li, i) => {
-      const cx = r.x + (i % cols + 0.5) / cols * r.w + (rnd() - 0.5) * 60, cy = r.y + (Math.floor(i / cols) + 0.5) / rows * r.h * 0.82 + (rnd() - 0.5) * 60;
-      return new THREE.Vector3((cx - PAGE_W / 2) / PXM, 0.8 + rnd() * 1.2, cy / PXM);
-    });
-    const center = hubPos.reduce((a, b) => a.add(b), new THREE.Vector3()).multiplyScalar(1 / hubPos.length);
+    const cols = 3, rows = Math.ceil(hubs.length / cols), nodes = [], edges = [];
+    const P3 = (x, y, z) => new THREE.Vector3(x, y, z);
+    const add = (o) => { o.ph = rnd() * 6.283; o.ph2 = rnd() * 6.283; o.cur = o.base.clone(); nodes.push(o); return nodes.length - 1; };
+    const c0 = add({ kind: 'center', base: P3((r.x + r.w / 2 - PAGE_W / 2) / PXM, 2.2, (r.y + r.h * 0.42) / PXM) });
     hubs.forEach((li, i) => {
-      const hp = hubPos[i]; all.push(hp); seg.push(center, hp);
-      const ring = []; for (let j = 0; j <= 48; j++) ring.push(new THREE.Vector3(hp.x + Math.cos(j / 48 * 6.283) * 0.95, 0.02, hp.z + Math.sin(j / 48 * 6.283) * 0.95));
+      const cx = r.x + (i % cols + 0.5) / cols * r.w + (rnd() - 0.5) * 60, cy = r.y + (Math.floor(i / cols) + 0.5) / rows * r.h * 0.82 + (rnd() - 0.5) * 60;
+      const hp = P3((cx - PAGE_W / 2) / PXM, 0.8 + rnd() * 1.2, cy / PXM), h = add({ kind: 'hub', base: hp, label: li.dataset.hub });
+      edges.push([c0, h, 0]);
+      const ring = []; for (let j = 0; j <= 48; j++) ring.push(P3(hp.x + Math.cos(j / 48 * 6.283) * 0.95, 0.02, hp.z + Math.sin(j / 48 * 6.283) * 0.95));
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring), white(0.45)));
       const name = li.dataset.hub, lb = label(name.length > 24 ? name.slice(0, 23) + '…' : name, { w: 2.6, h: 0.3, font: '400 16px iAWriterQuattroV, monospace', color: '#e6ecff', op: 0.95 });
       lb.position.set(hp.x, 0.05, hp.z + 1.25); scene.add(lb);
-      const leaves = $$('a', li), n = leaves.length + 10;
+      const leaves = $$('a', li), n = leaves.length + 8;
       for (let k = 0; k < n; k++) {
-        const a = k / n * 6.283 + rnd() * 0.4, rr = 0.5 + rnd() * 0.9, p = new THREE.Vector3(hp.x + Math.cos(a) * rr, Math.max(0.1, hp.y + (rnd() - 0.5) * 1.6), hp.z + Math.sin(a) * rr);
-        seg.push(hp, p); all.push(p);
-        const img = leaves[k] && leaves[k].querySelector('img'); if (!img) continue;
-        const fr = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false })); fr.scale.set(0.4, 0.3, 1); fr.position.copy(p); scene.add(fr);
-        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false, depthTest: false })); sp.scale.set(0.35, 0.25, 1); sp.position.copy(p); sp.renderOrder = 5; scene.add(sp);
+        const a = k / n * 6.283 + rnd() * 0.4, rr = 0.5 + rnd() * 0.9, p = P3(hp.x + Math.cos(a) * rr, Math.max(0.15, hp.y + (rnd() - 0.5) * 1.6), hp.z + Math.sin(a) * rr);
+        const L = leaves[k], img = L && L.querySelector('img');
+        const id = add(L ? { kind: 'leaf', base: p, label: L.textContent.trim(), meta: L.dataset.meta || '', href: L.getAttribute('href'), tags: new Set((L.dataset.tags || '').split(' ').filter(Boolean)), hub: h } : { kind: 'dot', base: p, hub: h });
+        edges.push([h, id, L ? 1 : 3]);
+        if (!img) continue;
+        const fr = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false, transparent: true })); fr.scale.set(0.4, 0.3, 1); scene.add(fr);
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffffff, fog: false, depthTest: false, transparent: true })); sp.scale.set(0.35, 0.25, 1); sp.renderOrder = 5; scene.add(sp);
         loader.load(img.getAttribute('src'), (t) => { t.colorSpace = THREE.SRGBColorSpace; sp.material.map = t; sp.material.needsUpdate = true; });
+        Object.assign(nodes[id], { sp, fr });
       }
     });
-    scene.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(all), new THREE.PointsMaterial({ color: 0xffffff, size: 0.06 })));
-    scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg), new THREE.LineBasicMaterial({ color: 0x9fb4ff, transparent: true, opacity: 0.55 })));
+    // liens entre pages : au moins deux étiquettes communes, trois liens au plus par page
+    const leafIds = nodes.map((o, i) => (o.kind === 'leaf' ? i : -1)).filter((i) => i >= 0), deg = new Map(), seen = new Set();
+    for (const i of leafIds) {
+      const cand = leafIds.filter((j) => j !== i && nodes[j].hub !== nodes[i].hub || (j !== i && nodes[j].hub === nodes[i].hub && false))
+        .map((j) => [j, [...nodes[i].tags].filter((t) => nodes[j].tags.has(t)).length]).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]);
+      for (const [j] of cand) {
+        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 3 || (deg.get(j) || 0) >= 3) continue;
+        seen.add(key); edges.push([i, j, 2]); deg.set(i, (deg.get(i) || 0) + 1); deg.set(j, (deg.get(j) || 0) + 1);
+      }
+    }
+    const pos = new Float32Array(edges.length * 6), col = new Float32Array(edges.length * 6), lg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
+    const pp = new Float32Array(nodes.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.07 })); dots.frustumCulled = false; scene.add(dots);
+    const nb = nodes.map(() => new Set()); for (const [a, b] of edges) { nb[a].add(b); nb[b].add(a); }
+    graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1 });
     // courbe exponentielle numérotée sous le graphe
     const y0 = r.y + r.h + 40, pts = [];
     for (let i = 0; i <= 60; i++) { const u = i / 60; pts.push(new THREE.Vector3((60 + u * 880 - PAGE_W / 2) / PXM, 0.02, (y0 + 60 - 55 * (Math.exp(3 * u) - 1) / (Math.exp(3) - 1)) / PXM)); }
@@ -471,6 +490,44 @@ async function start() {
     return [(tmp.x * 0.5 + 0.5) * innerWidth, (-tmp.y * 0.5 + 0.5) * innerHeight, behind ? 2 : tmp.z];
   };
 
+  /* graphe : ondulation, couleurs des liens, mise en avant au survol */
+  const EC = [[0.45, 0.55, 1], [0.55, 0.68, 1], [0.35, 0.95, 0.65], [0.4, 0.5, 0.9]], EW = [0.55, 0.5, 0.42, 0.3];
+  function animGraph(G, t) {
+    const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
+    G.nodes.forEach((o, i) => {
+      const a = o.kind === 'center' ? 0.04 : o.kind === 'hub' ? 0.07 : 0.12;
+      o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
+      G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
+      if (o.sp) {
+        const on = h < 0 || i === h || rel.has(i), k = i === h ? 1.9 : (h >= 0 && on ? 1.35 : 1);
+        o.sc = (o.sc || 1) + (k - (o.sc || 1)) * 0.18;
+        o.sp.position.copy(o.cur); o.fr.position.copy(o.cur); o.sp.scale.set(0.35 * o.sc, 0.25 * o.sc, 1); o.fr.scale.set(0.4 * o.sc, 0.3 * o.sc, 1);
+        const op = on ? 1 : 0.25; o.sp.material.opacity += (op - o.sp.material.opacity) * 0.2; o.fr.material.opacity = o.sp.material.opacity;
+      }
+    });
+    G.edges.forEach(([a, b, k], e) => {
+      const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
+      G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
+      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.4 : 0.12, c = hot ? [1, 1, 1] : EC[k];
+      for (const q of [0, 3]) { G.col[j + q] = c[0] * f; G.col[j + q + 1] = c[1] * f; G.col[j + q + 2] = c[2] * f; }
+    });
+    G.lg.attributes.position.needsUpdate = G.lg.attributes.color.needsUpdate = G.pg.attributes.position.needsUpdate = true;
+  }
+  const mouse = { x: -1, y: -1 }, gtip = document.createElement('div'); gtip.className = 'pc-gtip'; gtip.setAttribute('aria-hidden', 'true'); document.body.append(gtip);
+  addEventListener('pointermove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+  addEventListener('click', (e) => { if (e.target !== canvas) return; for (const G of graphs) { const o = G.nodes[G.hover]; if (o && o.href) { location.href = o.href; return; } } });
+  function hoverGraphs(e) {
+    let any = false;
+    for (const G of graphs) {
+      G.hover = -1; if (e < 0.5) continue;
+      let best = 24 * 24;
+      G.nodes.forEach((o, i) => { if (o.kind !== 'leaf' && o.kind !== 'hub') return; const [px, py, pz] = toScreen(o.cur); if (pz >= 1) return; const d = (px - mouse.x) ** 2 + (py - mouse.y) ** 2; if (d < best) { best = d; G.hover = i; } });
+      const o = G.nodes[G.hover];
+      if (o) { any = true; gtip.innerHTML = `<b>${o.label}</b>${o.meta ? `<span>${o.meta}</span>` : ''}${o.href ? '<i>Ouvrir →</i>' : ''}`; gtip.style.transform = `translate(${mouse.x + 16}px,${mouse.y + 12}px)`; canvas.style.cursor = o.href ? 'pointer' : 'default'; }
+    }
+    gtip.classList.toggle('on', any); if (!any) canvas.style.cursor = '';
+  }
+
   /* boucle */
   const ease = (u) => u * u * (3 - 2 * u);
   const flatPos = new THREE.Vector3(), runPos = new THREE.Vector3(), flatLook = new THREE.Vector3(), runLook = new THREE.Vector3(), look = new THREE.Vector3();
@@ -495,6 +552,7 @@ async function start() {
       it.group.position.y = 0.02 + v * 1.1; it.group.rotation.x = v * 0.45; it.mats.forEach((m) => { m.opacity = v; });
       if (u >= 1) { if (it.dir < 0) it.group.visible = false; it.dir = 0; }
     }
+    for (const G of graphs) if (Math.abs(focusZ - G.z) < 45) animGraph(G, now / 1000);
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
     for (const k of machines) {
       k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ');
@@ -528,6 +586,7 @@ async function start() {
     overlay(e, focusZ, s);
   }
   function overlay(e, focusZ, s) {
+    hoverGraphs(e);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
     let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
     navItems.forEach((li, i) => li.classList.toggle('on', i === active));
