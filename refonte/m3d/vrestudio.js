@@ -5,7 +5,7 @@
 // le levier le publie : l'ancien cylindre rejoint l'étagère des versions, le nouveau descend dans le boîtier. Un rebord cadenassé fait le tour
 // de l'établi : tout reste en local ; chaque correction part aussi en copie dans la bannette partagée, avec celles des autres agents.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, cylY, group, bench, finish, bolts } from './core.js';
 import { TAU, CASE, CYL, SHARED, SHARED_TOP, RIM, NT as NTEETH, tx, TOOTH, IMPOSSIBLE, PINS3, PINS4, PLANT, NEWPINS, CELLS, FACIA, cellX, TRAY, DECK, READER, READ_SLOT, EXIT, DIV, BLANK, GAUGE, LEVER, BOARD, T, LOOP_T, TS, STATIONS, stationAt, SHEETS, sheetPose, sheetRows, sheetTrail, stateAt, cylInCase, newInFlight, oldInFlight, handAt, stampOf, DESK, AGENT } from './musicbox-model.js';
 
 export const WIDTH = 340;
@@ -75,6 +75,29 @@ export function build() {
   add(wbox((x0 + x1) / 2, y1 + 1, (FACIA.z0 + FACIA.z1) / 2, x1 - x0 + 6, 4, FACIA.z1 - FACIA.z0, C.wood));
   const cells = CELLS.map((_, i) => { const m = new THREE.MeshStandardMaterial({ color: '#fbfaf6', roughness: .6 }), c = new THREE.Mesh(new THREE.BoxGeometry(6, 4.4, .4), m); at(c, cellX(i), FACIA.y + .15, FACIA.z0 + 4.4); add(c); return m; });
   add(box(x1 + 4, EXIT[1], EXIT[2], 8, 22, 12, C.steel), box(EXIT[0] + .08, EXIT[1], EXIT[2], .2, 18, 7, dark));
+  // ---- densification : ferrures de laiton, vis, pilastres, outils, machine à planter (mêmes pièces que la figure 2D) ----
+  add(box((x0 + x1) / 2, y0 + .6, h + .7, x1 - x0, 1.2, 1.4, C.bronze), box(x0 + .6, (y0 + y1) / 2, h + .7, 1.2, y1 - y0, 1.4, C.bronze), box(x1 - .6, (y0 + y1) / 2, h + .7, 1.2, y1 - y0, 1.4, C.bronze));
+  for (const [cx, cy] of [[x0 + 3, y0 + 3], [x1 - 3, y0 + 3], [x0 + 3, y1 - 3], [x1 - 3, y1 - 3]]) add(box(cx, cy, h + 1.9, 6, 6, 1, C.bronze));
+  add(bolts([[x0 + 3, y0 + 3, h + 2.5], [x1 - 3, y0 + 3, h + 2.5], [x0 + 3, y1 - 3, h + 2.5], [x1 - 3, y1 - 3, h + 2.5]], .45, '#7a7a76'));
+  for (const x of [-50, 56]) add(box(x, y0 - 3, h + 2.9, 6, 4, 3, C.bronze));
+  add(box(x1 + .1, -24, h - 21.6, .3, 4.8, 7, C.bronze), cyl(x1 + .2, -24, .8, h - 21.5, .3, dark, 10).rotateZ(Math.PI / 2));
+  add(box((DECK.x0 + DECK.x1) / 2, y1 + 3.6, DECK.z + DECK.h / 2, DECK.x1 - DECK.x0, 1.2, DECK.h + .8, C.bronze));
+  add(box(READ_SLOT[0] - 9.6, READ_SLOT[1] - 3, READER.z1 + .9, 1.7, 12, 1.8, C.bronze), box(READ_SLOT[0] + 9.6, READ_SLOT[1] - 3, READER.z1 + .9, 1.7, 12, 1.8, C.bronze));
+  for (const xx of [CYL.x0 - 3.5, CYL.x1 + 2.5]) add(box(xx, CYL.y, CYL.z - 1.6, 7.6, 10, 1.6, C.steelLo), box(xx, CYL.y, 7.8, 8, 10, 1.6, C.steelLo));
+  // étagère des versions : pilastres, tablettes, corniche
+  add(box(BOARD.x0 + .5, BOARD.y, 4 + (BOARD.z1 - 4) / 2, 3, 6, BOARD.z1 - 4, C.wood), box(BOARD.x1 - .5, BOARD.y, 4 + (BOARD.z1 - 4) / 2, 3, 6, BOARD.z1 - 4, C.wood), box((BOARD.x0 + BOARD.x1) / 2, BOARD.y + 3.5, BOARD.z1 + 4, BOARD.x1 - BOARD.x0 - 20, 1, 2, C.bronze));
+  for (const [, z] of BOARD.slots) add(box((BOARD.x0 + BOARD.x1) / 2, BOARD.y + 4.2, z - CYL.r - 2.7, BOARD.x1 - BOARD.x0 - 4, 2.4, 1.4, C.wood));
+  // machine à planter : équerres d'angle, rail, bornes ; levier : embase
+  for (const [dx, dy] of [[-52, -22], [52, -22], [-52, 24], [52, 24]]) add(box(DIV.x + dx, DIV.y + dy, 8, 6, 6, 4, C.steelLo));
+  for (const sx of [-44, 44]) add(cyl(DIV.x + sx, DIV.y + 18, 2.2, 6, 4, C.bronze, 16), cyl(DIV.x + sx, DIV.y + 18, 1.2, 10, 1.2, C.bronzeHi, 12));
+  add(box(LEVER.x, LEVER.y - 5, 3, 12, 14, 6, C.steelLo));
+  // bac des rapports : cales d'angle ; établi : tournevis, brucelles, bobine de fil, râtelier, calque
+  for (const [cx, cy] of [[TRAY.x - 22.5, TRAY.y - 16.5], [TRAY.x + 22.5, TRAY.y - 16.5], [TRAY.x - 22.5, TRAY.y + 16.5], [TRAY.x + 22.5, TRAY.y + 16.5]]) add(box(cx, cy, 4.8, 3, 3, 3.6, C.bronze));
+  add(box(-24, 79.5, 1.3, 12, 3, 2.6, C.wood), box(-8, 79.5, 1.2, 20, 1.4, 1.2, C.steelLo));
+  add(box(0, 66.8, .4, 24, 1.6, .8, C.steelLo), box(0, 70, .4, 24, 1.6, .8, C.steelLo), box(13, 68.4, .4, 2.4, 4.8, .8, C.steelLo));
+  add(cyl(56, 56, 5, 0, 1.2, C.bronzeLo, 24), cyl(56, 56, 3.4, 1.2, 4.4, C.bronze, 24), cyl(56, 56, 5, 5.6, 1.2, C.bronzeLo, 24));
+  add(box(81, 79, 1, 22, 6, 2, C.wood)); for (let i = 0; i < 3; i++) add(cyl(74 + i * 7, 79, 1, 2, 5 + i * .8, C.steelLo, 12));
+  add(box(-80, 39, .25, 20, 18, .5, C.paper));
   // ---- les cylindres : le courant (v3), le neuf (v4), deux de l'étagère ----
   const L3 = PINS3.flatMap((a, i) => a.map((an) => ({ i, an }))), cylA = makeCylinder(L3), cylB = makeCylinder(PLANT, { marks: true }), rack = [0, 1].map((k) => { const c = makeCylinder(L3); c.userData.spin.rotation.x = .5 + k * 1.1; return c; });
   add(cylA, cylB, ...rack);
