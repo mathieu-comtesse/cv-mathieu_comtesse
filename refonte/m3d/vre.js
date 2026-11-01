@@ -1,7 +1,7 @@
 // Fig 03 · Extracteur VRE : un abaque à quatre tiges devant un rapport lu ligne à ligne, en 3D (cotes de figures/build-vre.mjs).
 // Chaque équipement du rapport devient une boule qui roule sur la gouttière et tombe sur la tige de sa famille : BT31, BT33, BT21, BT11.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, prismXZ, display, bench, paper, ease } from './core.js';
+import { COL, mat, slab, box, cyl, prismXZ, display, bench, paper, ease, aframe } from './core.js';
 
 export const WIDTH = 320;
 const PLATE = { x: -164, y: -46, w: 320, d: 96, r: 8 };
@@ -27,7 +27,7 @@ export function build() {
   const g = new THREE.Group();
   g.add(bench(PLATE, { strip: { x: -150, y: PLATE.y + PLATE.d - 13, w: 150, d: 7 }, label: { x: 66, y: PLATE.y + PLATE.d - 17, w: 46, d: 11 } }));
   g.add(slab(BASE.x, BASE.y, BASE.w, BASE.d, 0, BASE_H, COL.mid, 3), slab(DESK.x, DESK.y, DESK.w, DESK.d, 0, DESK_H, COL.mid, 2.4));
-  for (const x of POSTS) g.add(slab(x - 3, -18.6, 6, 6, 0, ZR(x) - 3, COL.mid, .8), slab(x - 3, -14, 6, 12, ZR(x) - 3, 3, COL.mid, .8));
+  for (const x of POSTS) g.add(aframe(x, -16, 0, ZR(x) - 3, 20, 3.4, 6), slab(x - 3, -14, 6, 12, ZR(x) - 3, 3, COL.mid, .8));
   const holes = TX.map((x, i) => [x - R[i] - 1.4, x + R[i] + 1.4]); const segs = []; let a = CHUTE.x0; for (const [h0, h1] of holes) { segs.push([a, h0]); a = h1; } segs.push([a, CHUTE.x1]);
   for (const [s0, s1] of segs) { g.add(prismXZ([[s0, ZR(s0)], [s1, ZR(s1)], [s1, ZR(s1) - 2.2], [s0, ZR(s0) - 2.2]], -CHUTE.half, CHUTE.half)); g.add(prismXZ([[s0, ZR(s0)], [s1, ZR(s1)], [s1, ZR(s1) + 2.4], [s0, ZR(s0) + 2.4]], CHUTE.half - 1.6, CHUTE.half)); }
   g.add(prismXZ([[CHUTE.x0, ZR(CHUTE.x0)], [CHUTE.x1, ZR(CHUTE.x1)], [CHUTE.x1, ZR(CHUTE.x1) + 4], [CHUTE.x0, ZR(CHUTE.x0) + 4]], -CHUTE.half, -CHUTE.half + 1.6));

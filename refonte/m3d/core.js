@@ -107,6 +107,34 @@ export function paper(w, l, color = '#ffffff', seg = 8) {
   return m;
 }
 
+/* Tube de verre : cylindre creux translucide (axe z de la figure), centré en (x, y), de z à z + h. */
+export function glassTube(x, y, r, z, h, seg = 28) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg, 1, true), new THREE.MeshPhysicalMaterial({ color: '#dfe9f6', transparent: true, opacity: .28, roughness: .08, metalness: 0, side: THREE.DoubleSide, depthWrite: false }));
+  m.position.set(x, z + h / 2, y); m.renderOrder = 2; return m;
+}
+/* Vis : petits cylindres instanciés posés sur une face (normale +z de figure par défaut). pts : [[x, y, z], ...] */
+export function bolts(pts, r = .5, color = COL.dark, face = 'z') {
+  const im = new THREE.InstancedMesh(new THREE.CylinderGeometry(r, r, .5, 8), mat(color), pts.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
+  if (face === 'y') q.setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)); if (face === 'x') q.setFromEuler(new THREE.Euler(0, 0, Math.PI / 2));
+  pts.forEach(([x, y, z], i) => { m4.compose(new THREE.Vector3(x, z, y), q, new THREE.Vector3(1, 1, 1)); im.setMatrixAt(i, m4); });
+  return im;
+}
+/* Profilé en U : âme et deux ailes, pied boulonné. */
+export function channel(x, y, z0, z1, w = 5, d = 6, color = COL.mid) {
+  const g = new THREE.Group(), t = Math.max(1, w * .22);
+  g.add(slab(x - w / 2 - 2.4, y - d / 2 - 2.4, w + 4.8, d + 4.8, z0, 2, COL.lo, .8), slab(x - w / 2, y - d / 2, w, d - 1.4, z0 + 2, z1 - z0 - 2, color, .5), slab(x - w / 2, y + d / 2 - 1.4, t, 1.4, z0 + 2, z1 - z0 - 2, COL.hi, .1), slab(x + w / 2 - t, y + d / 2 - 1.4, t, 1.4, z0 + 2, z1 - z0 - 2, COL.hi, .1));
+  const hs = []; for (let z = z0 + 8; z < z1 - 4; z += 7) hs.push([x, y + d / 2 - .65, z]);
+  g.add(bolts(hs, 1.1, COL.dark, 'y'));
+  return g;
+}
+/* Chevalet en A : deux jambes inclinées, entretoise, sabots (plan x-z de la figure). */
+export function aframe(x, y, z0, z1, span = 20, t = 3.4, depth = 6, color = COL.mid) {
+  const g = new THREE.Group(), len = Math.hypot(span / 2, z1 - z0), ang = Math.atan2(span / 2, z1 - z0);
+  for (const sx of [-1, 1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(t, len, depth), mat(color)); leg.position.set(x + sx * span / 4, (z0 + z1) / 2, y); leg.rotation.z = -sx * ang; leg.castShadow = true; g.add(leg); g.add(slab(x + sx * span / 2 - t, y - depth / 2 - .8, 2 * t, depth + 1.6, z0, 1.6, COL.lo, .5)); }
+  g.add(slab(x - span * .34, y - depth / 2 + .6, span * .68, depth - 1.2, z0 + (z1 - z0) * .32, 1.8, COL.lo, .3));
+  return g;
+}
+
 export function group(...children) { const g = new THREE.Group(); children.flat().forEach((c) => c && g.add(c)); return g; }
 
 /* Établi commun : plaque sur quatre pieds, vis d'angle, règle graduée à l'avant et plaque signalétique. */

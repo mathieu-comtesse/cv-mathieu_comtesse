@@ -2,7 +2,7 @@
 // Chaque bille roule sur la rampe sous la lampe de lecture ; la trappe de son verdict s'ouvre, elle tombe dans sa goulotte
 // et s'empile dans son bac : conforme, doublon, non-conformité ou, au bout de la rampe, retard.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylX, ball, prismXZ, display, bench } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, ball, prismXZ, display, bench, channel } from './core.js';
 
 export const WIDTH = 168;
 const PLATE = { x: -84, y: -40, w: 168, d: 80, r: 8 };
@@ -21,7 +21,7 @@ export function build() {
   g.add(slab(CAB.x, CAB.y, CAB.w, CAB.d, 0, CAB_H, COL.mid, 3));
   // bâti : panneau, deux montants, chapeau arrière
   g.add(slab(-64, -10, 128, 4.4, TRAY_Z, BTOP - 6 - TRAY_Z, COL.lo, .8));
-  for (const px of [-66.8, 63.2]) g.add(slab(px, -10, 3.6, 22, TRAY_Z, BTOP - 6 - TRAY_Z, COL.mid, .8));
+  for (const px of [-66.8, 63.2]) g.add(channel(px + 1.8, 1, TRAY_Z, BTOP - 4, 5, 20));
   g.add(slab(-66.8, -10, 133.6, 6.5, BTOP - 4, 3.5, COL.mid, 1.2));
   // bacs : séparateurs, lèvres avant, goulottes et rampe
   DIV_X.forEach((x) => g.add(slab(x - .8, -9.5, 1.6, 24.5, TRAY_Z, 30, COL.mid, .4)));

@@ -27,7 +27,13 @@ export function build() {
   const g = new THREE.Group();
   g.add(bench(PLATE, { strip: { x: -118, y: PLATE.y + PLATE.d - 13, w: 120, d: 7 }, label: { x: 60, y: PLATE.y + PLATE.d - 17, w: 46, d: 11 } }));
   g.add(slab(BASE.x, BASE.y, BASE.w, BASE.d, 0, BASE_H, COL.mid, 3), slab(CONS.x, CONS.y, CONS.w, CONS.d, 0, CONS_H, COL.mid, 3));
-  for (const x of POSTS) g.add(slab(x, -9, 6, 18, BASE_H, POST_Z - BASE_H, COL.mid, 1), slab(x - 1, -10, 8, 20, POST_Z, 3, COL.mid, 1));
+  for (const x of POSTS) {
+    const sh = new THREE.Shape(); sh.moveTo(-9, 0); sh.lineTo(9, 0); sh.lineTo(9, POST_Z - BASE_H - 2.4); sh.lineTo(-9, POST_Z - BASE_H - 2.4); sh.closePath();
+    for (const [hy, hz, r] of [[0, 14, 3.2], [0, POST_Z - BASE_H - 14, 3.2], [-6, 60, 2], [6, 48, 2]]) { const h = new THREE.Path(); h.absarc(hy, hz, r, 0, Math.PI * 2, true); sh.holes.push(h); }
+    const geo = new THREE.ExtrudeGeometry(sh, { depth: 4, bevelEnabled: false }); geo.rotateY(Math.PI / 2);
+    const pl = new THREE.Mesh(geo, mat(COL.mid)); pl.position.set(x + 1, BASE_H + 2.4, 0); pl.castShadow = true; g.add(pl);
+    g.add(slab(x - 1, -10, 8, 20, POST_Z, 3, COL.mid, 1), slab(x - 2, -11, 10, 22, BASE_H, 2.4, COL.lo, 1.4));
+  }
   const spools = [TOP_Z, BOT_Z].map((z) => { const w = cylX(-40, 40, 0, z, 1, COL.hi, 32); g.add(w, cylX(-46, -40, 0, z, 11, COL.lo, 32), cylX(40, 46, 0, z, 11, COL.lo, 32)); return w; });
   g.add(cylX(MOTOR.x0, MOTOR.x1 - 6, 0, BOT_Z, MOTOR.r, COL.mid, 28), cylX(MOTOR.x1 - 6, MOTOR.x1, 0, BOT_Z, MOTOR.r - 1.6, COL.mid, 28));
   const tex = rowsTexture(), strip = paper(2 * SW, TOP_Z - BOT_Z, '#ffffff', 16); strip.material.map = tex; strip.position.set(0, READ_Z, 10); g.add(strip);

@@ -3,7 +3,7 @@
 // (relevé toutes les 2 min) et même trajet de carte : le chariot qui tient la clé la saisit dans la file, la porte au pupitre de
 // lecture (R004 et OT), puis la pose dans l'historique ; un doublon part aux rebuts.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylY, display, bench, ease, paper, hash as _h } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, cylY, display, bench, ease, paper, channel, bolts, hash as _h } from './core.js';
 
 export const WIDTH = 316;
 const PLATE = { x: -158, y: -50, w: 316, d: 100, r: 8 };
@@ -56,9 +56,10 @@ export function build() {
   const r004 = cyl(PAD.x + PAD.w - 5, PAD.y + 4, 2.4, TH + PAD_H, 1.6, COL.mid, 20); g.add(r004);
   const lampOn = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .8 }), lampOff = r004.material;
   // portique : quatre montants, deux traverses, poutre et rail
-  for (const [x, y] of [[-148, -30], [-148, 16], [148, -30], [148, 16]]) g.add(slab(x - 3, y - 3, 6, 6, 0, BZ - 6, COL.mid, .8));
+  for (const [x, y] of [[-148, -30], [-148, 16], [148, -30], [148, 16]]) { g.add(channel(x, y, 2.4, BZ - 6, 6, 6.4)); if (y > 0) for (const sx of [-.32, .32]) for (const sy of [-1, 1]) { const w = cylX(x - 1, x + 1, y + sy * 3.9, 2.6, 2.6, COL.lo, 20); w.position.x = x + sx * 12; g.add(w); } }
   for (const x of [-148, 148]) g.add(slab(x - 3, -30, 6, 52, BZ - 6, 6, COL.mid, .8));
-  g.add(slab(-148, BEAM_Y, 296, 8, BZ, 7, COL.mid, 1), slab(-146, BY - 1, 292, 2, BZ + 7, 1.2, COL.lo, .3));
+  g.add(slab(-148, BEAM_Y, 296, 8, BZ, 1.6, COL.mid, 1), slab(-148, BEAM_Y + 2.2, 296, 3.6, BZ + 1.6, 3.8, COL.lo, .3), slab(-148, BEAM_Y, 296, 8, BZ + 5.4, 1.6, COL.mid, 1), slab(-146, BY - 1, 292, 2, BZ + 7, 1.2, COL.lo, .3));
+  { const rv = []; for (let x = -140; x <= 140; x += 8) rv.push([x, BEAM_Y + 8.05, BZ + .8], [x, BEAM_Y + 8.05, BZ + 6.2]); g.add(bolts(rv, .4, COL.dark, 'y')); }
   // chariots et clé
   const trolleys = [0, 1].map(() => { const t = new THREE.Group(); t.add(slab(-11, BEAM_Y - 2, 22, 12, BZ + 8.2, 7, COL.mid, 1.2)); const m = cyl(0, BY, 3.6, BZ + 15.2, 6, COL.mid, 20); t.add(m); g.add(t); return t; });
   const key = new THREE.Group(); key.add(cylY(BEAM_Y + 9.4, BEAM_Y + 10.6, 0, BZ + 4.6, 3.2, COL.accent, 24), slab(-.7, BEAM_Y + 10, 1.4, 1.2, BZ - 3, 7.6, COL.accent, .2)); g.add(key);

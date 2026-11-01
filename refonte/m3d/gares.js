@@ -2,7 +2,7 @@
 // Portage de figures/build-gares.mjs : mêmes cotes, mêmes dix gares et mêmes scores ; le bouton répartit un volume entre les jauges
 // conformité et maintenance, six colonnes montent au score des six premières gares, la plus haute allume son voyant.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, bench, display } from './core.js';
+import { COL, mat, slab, box, cyl, bench, display, glassTube, bolts } from './core.js';
 
 export const WIDTH = 272;
 const PLATE = { x: -136, y: -44, w: 272, d: 108, r: 8 };
@@ -12,9 +12,11 @@ const DESK = { x: -128, y: -32, w: 108, d: 66 }, DESK_H = 14, JARS = [-110, -86]
 const STATIONS = [['GARE 01', 82, 41], ['GARE 02', 35, 88], ['GARE 03', 64, 66], ['GARE 04', 91, 22], ['GARE 05', 48, 74], ['GARE 06', 27, 59], ['GARE 07', 73, 80], ['GARE 08', 56, 31], ['GARE 09', 40, 93], ['GARE 10', 69, 52]];
 
 function gauge(g, cx, wid, y, z0) {
-  g.add(slab(cx - wid / 2 - 1.5, y - 1.4, wid + 3, GAUGE.d + 2.8, z0 - 3, 3, COL.lo, 1.2), slab(cx - wid / 2, y, wid, GAUGE.d, z0, SL + 4, COL.lo, .8));
-  g.add(slab(cx - wid / 2, y - .4, 1.6, GAUGE.d + 1.4, z0, SL + 4, COL.mid, .3), slab(cx + wid / 2 - 1.6, y - .4, 1.6, GAUGE.d + 1.4, z0, SL + 4, COL.mid, .3), slab(cx - wid / 2 - .6, y - .8, wid + 1.2, GAUGE.d + 1.6, z0 + SL + 4, 6, COL.mid, .8));
-  const liq = box(cx, y + 1.7, z0 + 1, wid - 4.8, 2.2, 1, COL.green, 0); liq.geometry.translate(0, .5, 0); g.add(liq);
+  // Éprouvette : socle à collerette, tube de verre, collier, bouchon ; le liquide est un cylindre dans le tube.
+  const yc = y + GAUGE.d / 2, r = wid / 2 - 1.2;
+  g.add(cyl(cx, yc, r + 3.4, z0 - 3, 3, COL.lo, 32), cyl(cx, yc, r + 1.8, z0, 2, COL.mid, 32), glassTube(cx, yc, r, z0 + 2, SL + 4), cyl(cx, yc, r + .9, z0 + 2 + (SL + 4) * .78, 1.4, COL.lo, 28), cyl(cx, yc, r + 1.4, z0 + 2 + SL + 4, 2.4, COL.mid, 28), cyl(cx, yc, r * .55, z0 + 2 + SL + 6.4, 2.6, COL.hi, 20));
+  const liq = cyl(cx, yc, r - .8, z0 + 2, 1, COL.green, 28); liq.geometry.translate(0, .5, 0); liq.position.y = z0 + 2; g.add(liq);
+  for (let s = 0; s <= 10; s++) g.add(box(cx + r - .1, yc + .2, z0 + 3 + s * (SL / 10), s % 5 ? 2.2 : 3.8, .2, .25, COL.dark, 0).translateX(-(s % 5 ? 1.1 : 1.9)));
   return liq;
 }
 export function build() {
@@ -27,9 +29,9 @@ export function build() {
   for (let j = 0; j < 3; j++) for (let i = 0; i < 53; i++) { m4.setPosition(WALL.x + 8 + i * (WALL.w - 16) / 52, WALL_H + .3, WALL.y + 3 + j * 2); pins.setMatrixAt(n++, m4); }
   g.add(pins);
   const names = GX.map((cx) => { const d = display(20, 8); d.mesh.position.set(cx, 11, BLOCK.y + BLOCK.d + .05); g.add(d.mesh); return d; });
-  const scores = GX.map((cx) => { const d = display(11, 4.4); d.mesh.position.set(cx, G0 + SL + 7.4, GAUGE.y + GAUGE.d + .9); g.add(d.mesh); return d; });
+  const scores = GX.map((cx) => { const d = display(9.2, 5); d.mesh.position.set(cx, G0 + SL * .56 + 2.5, GAUGE.y + GAUGE.d / 2 + GAUGE.w / 2 - 1.2 + .5); g.add(d.mesh); return d; });
   const cols = GX.map((cx) => gauge(g, cx, GAUGE.w, GAUGE.y, G0));
-  const lamp = cyl(GX[0], GAUGE.y + 1.7, 2.2, G0 + SL + 10, 1.8, COL.accent, 18); g.add(lamp);
+  const lamp = cyl(GX[0], GAUGE.y + 1.7, 2.2, G0 + SL + 8.6, 1.8, COL.accent, 18); g.add(lamp);
   const jars = JARS.map((cx) => gauge(g, cx, JW, JAR_Y, DESK_H + 3));
   const knob = new THREE.Group(); knob.position.set(KNOB.x, DESK_H + 1, KNOB.y); knob.add(cyl(0, 0, KNOB.r, 0, 6, COL.mid, 40)); const ptr = box(0, -4, 6.4, .8, 6, .4, COL.ink, 0); knob.add(ptr); g.add(knob);
   const labs = [['CONFORM.', 0], ['MAINT.', 1]].map(([t, i]) => { const d = display(22, 7); d.mesh.position.set(JARS[i], 7, DESK.y + DESK.d + .05); d.set(t); g.add(d.mesh); return d; });

@@ -18,7 +18,10 @@ export function build() {
   const g = new THREE.Group();
   g.add(bench(PLATE, { strip: { x: -104, y: PLATE.y + PLATE.d - 13, w: 120, d: 7 }, label: { x: 40, y: PLATE.y + PLATE.d - 17, w: 46, d: 11 } }));
   g.add(slab(CAB.x, CAB.y, CAB.w, CAB.d, 0, CAB_H, COL.mid, 3));
-  for (const x of [BOARD.x - 4, BOARD.x + BOARD.w + 4]) g.add(cyl(x, 0, 2.8, CAB_H + 2, BOARD.z1 + 10 - CAB_H, COL.mid, 20));
+  for (const x of [BOARD.x - 4, BOARD.x + BOARD.w + 4]) {
+    g.add(slab(x - 2.7, -2.7, 5.4, 5.4, CAB_H + 2, BOARD.z1 + 10 - CAB_H, COL.mid, .5), slab(x - 3.5, -3.5, 7, 7, CAB_H + 2, 2, COL.lo, .6));
+    const stay = new THREE.Mesh(new THREE.BoxGeometry(2.4, 96, 4), mat(COL.lo)); stay.position.set(x, CAB_H + 48, -12); stay.rotation.x = -.24; stay.castShadow = true; g.add(stay);
+  }
   g.add(slab(BOARD.x - 8, -3.4, BOARD.w + 16, 6.8, BOARD.z1 + 10, 4, COL.mid, 1), slab(BOARD.x, -2.2, BOARD.w, 4.4, BOARD.z0, BOARD.z1 - BOARD.z0, COL.mid, 1.2));
   const cork = box(0, 2.3, 89, 116, .3, 78, '#e9e4d8', 0); g.add(cork);
   const query = display(68, 7.6); query.mesh.position.set(0, BOARD.z1 - 6.2, 2.4); g.add(query.mesh);
