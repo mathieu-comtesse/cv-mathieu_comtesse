@@ -46,7 +46,7 @@ const areas={cerfa:[
 };
 
 export function buildCerfa(){
- const a=createAssembly('CERFA_SCREENING_ENGINE',260,112);
+ const a=createAssembly('Trieuse documentaire CERFA',260,112);
  const f=a.zone(0,'Feeder',[-94,0,0],axis[0]),scan=a.zone(1,'Double scanner',[-46,0,0],axis[1]),
  ctrl=a.zone(2,'Quality gates',[5,0,0],axis[2]),sort=a.zone(3,'Diverter',[52,0,0],axis[3]),
  out=a.zone(4,'Four outputs',[99,0,0],axis[4]);
@@ -117,7 +117,7 @@ const vmEvents=Array.from({length:20},(_,i)=>({
 vmEvents[11].ot=vmEvents[4].ot;
 const vmDone=(minute)=>vmEvents.filter(x=>x.minute+7<=minute);
 export function buildVM(){
- const a=createAssembly('DUAL_VM_FAILSAFE',288,124);
+ const a=createAssembly('Centrale VM à verrou exclusif',288,124);
  const inlet=a.zone(0,'Document buffer',[-107,0,0],axis[0]),
  primary=a.zone(1,'VM controller',[-58,0,0],axis[1]),
  lock=a.zone(2,'Exclusive interlock',[-2,0,0],axis[2]),
@@ -203,7 +203,7 @@ export function buildVM(){
 }
 
 export function buildVRE(){
- const a=createAssembly('ELECTRICAL_VRE_SORTING_TOWER',270,118);
+ const a=createAssembly('Tour de classification VRE',270,118);
  const input=a.zone(0,'Pages',[-107,0,0],axis[0]),recognition=a.zone(1,'Document reading',[-56,0,0],axis[1]),
  location=a.zone(2,'Facility mapping',[0,0,0],axis[2]),classify=a.zone(3,'Four counters',[57,0,0],axis[3]),
  pam=a.zone(4,'PAM dashboard',[113,0,0],axis[4]);
@@ -265,7 +265,7 @@ export function buildVRE(){
  a.areas=areas.vre;return a;
 }
 export function buildQ18(){
- const a=createAssembly('Q18_ROTARY_INDEXING_REPORTER',266,112);
+ const a=createAssembly('Reporteur Q18 robotisé',266,112);
  const source=a.zone(0,'Intake',[-108,0,0],axis[0]),wheel=a.zone(1,'Rotary index',[-43,0,0],axis[1]),
  match=a.zone(2,'Match station',[12,0,0],axis[2]),stamp=a.zone(3,'Q18 reporter',[62,0,0],axis[3]),
  results=a.zone(4,'Export',[110,0,0],axis[4]);
