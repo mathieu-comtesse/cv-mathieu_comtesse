@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mathieu Comtesse · CV en parcours 3D</title>
+<meta name="description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité, à parcourir comme une piste en 3D : profil, réalisations, expérience, compétences, formation, contact.">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="refonte/parcours.css">
+<script type="importmap">{"imports":{"three":"./vendor/three-r187/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="scene" aria-label="Parcours 3D du CV"></canvas>
+<svg id="leaders" aria-hidden="true"></svg>
+<div id="callouts"></div>
+
+<nav id="nav" aria-label="Sections du CV"><ul></ul></nav>
+
+<a id="back" href="index.html">
+  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1.5 14 5v6l-6 3.5L2 11V5z M2 5l6 3.5L14 5 M8 8.5v6" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+  Retour
+</a>
+
+<div id="start">
+  <button id="go" type="button">démarrer</button>
+</div>
+
+<div id="hud" role="group" aria-label="Commandes">
+  <div><b>saut</b><span>espace</span></div>
+  <div><b>direction</b><span>← → A D</span></div>
+  <div><b>accélérer</b><span>↑ W molette haut</span></div>
+  <div><b>freiner</b><span>↓ S molette bas</span></div>
+  <div><b>vitesse</b><span id="spd">v ≈ 0 m/s</span></div>
+  <div><b>avant l'arrivée</b><span id="left">↑ 0 m</span></div>
+</div>
+
+<div id="end" hidden>
+  <h2>Arrivée</h2>
+  <p>Mathieu Comtesse · Ingénieur Maintenance et Qualité</p>
+  <a href="mailto:mathieu@comtesse.me">mathieu@comtesse.me</a>
+  <a href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a>
+  <button id="again" type="button">recommencer</button>
+</div>
+
+<noscript>
+  <div class="ns"><p>Cette page demande JavaScript.</p>
+  <p><a href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a> · <a href="index.html">Accueil</a></p></div>
+</noscript>
+<script type="module" src="refonte/parcours.js"></script>
+</body>
+</html>
