@@ -230,12 +230,90 @@ const toolsSvg = (() => {
 })();
 
 
+
+// ---------------------------------------------------------------- densification : ferrures, vis, moulures, outils
+const caseDetail = (() => {
+  const out = [], hh = CASE.h, tt = CASE.t;
+  // cornières de laiton sur les arêtes du boîtier, entrée de serrure sur le flanc droit, deux charnières du couvercle
+  out.push(box(x0, x1, y0, y0 + 1.2, hh, 1.4, { tone: "mid", bevel: 0.2, ...BRONZE }));
+  out.push(box(x0, x0 + 1.2, y0, y1, hh, 1.4, { tone: "mid", bevel: 0.2, ...BRONZE }));
+  out.push(box(x1 - 1.2, x1, y0, y1, hh, 1.4, { tone: "mid", bevel: 0.2, ...BRONZE }));
+  for (const [cx, cy] of [[x0, y0], [x1 - 6, y0], [x0, y1 - 6], [x1 - 6, y1 - 6]]) out.push(box(cx, cx + 6, cy, cy + 6, hh + 1.4, 1, { tone: "mid", bevel: 0.3, ...BRONZE }));
+  out.push(dots([[x0 + 3, y0 + 3, hh + 2.4], [x1 - 3, y0 + 3, hh + 2.4], [x0 + 3, y1 - 3, hh + 2.4], [x1 - 3, y1 - 3, hh + 2.4]], 0.45, "hi"));
+  const ks = (y) => `<g transform="${right(x1)}"><path class="iso-fill" d="M${-(y - 2.4)} ${-(hh - 18)}H${-(y + 2.4)}V${-(hh - 25)}H${-(y - 2.4)}Z"/><path class="iso-line" data-tone="mid" d="M${-(y - 2.4)} ${-(hh - 18)}H${-(y + 2.4)}V${-(hh - 25)}H${-(y - 2.4)}Z"/><circle class="iso-line" data-tone="lo" cx="${-y}" cy="${-(hh - 21.4)}" r="0.8" fill="none"/><path class="iso-line" data-tone="lo" d="M${-y} ${-(hh - 22.2)}V${-(hh - 24)}"/></g>`;
+  out.push(ks(-24));
+  // liseré de marqueterie : trois filets le long du flanc droit et du fond intérieur
+  out.push(`<g transform="${right(x1)}">${[0, 1, 2].map((i) => `<path class="iso-line" data-tone="faint" d="M${-(y1 - 3 - i * 1.2)} ${-(10 + i * 1.2)}H${-(y0 + 3 + i * 1.2)}V${-(hh - 10 - i * 1.2)}H${-(y1 - 3 - i * 1.2)}Z"/>`).join("")}</g>`);
+  // cales de couvercle : deux butées de laiton et bague de la tige de maintien
+  for (const x of [-50, 56]) out.push(box(x - 3, x + 3, y0 - 5, y0 - 1, hh + 1.4, 3, { tone: "mid", bevel: 0.3, ...BRONZE }));
+  return out.join("");
+})();
+const deckDetail = (() => {
+  const out = [];
+  out.push(box(DECK.x0, DECK.x1, y1 + 3, y1 + 4.2, DECK.z, DECK.h + 0.8, { tone: "mid", bevel: 0.2, ...BRONZE }));
+  out.push(dots(Array.from({ length: 5 }, (_, i) => [DECK.x0 + 4 + i * 7, y1 + 4.2, DECK.z + 1.6]), 0.4, "hi"));
+  // guides de page : deux lames de laiton de part et d'autre de la fente d'entrée, échelle gravée
+  const rx = READ_SLOT[0], ry = READ_SLOT[1];
+  out.push(box(rx - 10.5, rx - 8.8, ry - 9, ry + 3, READER.z1, 1.8, { tone: "mid", bevel: 0.2, ...BRONZE }));
+  out.push(box(rx + 8.8, rx + 10.5, ry - 9, ry + 3, READER.z1, 1.8, { tone: "mid", bevel: 0.2, ...BRONZE }));
+  out.push(L(Array.from({ length: 7 }, (_, i) => k.pathOf([at([rx - 8.8, ry - 8 + i * 1.6, READER.z1 + 1.8]), at([rx - 7.4, ry - 8 + i * 1.6, READER.z1 + 1.8])])).join(""), { tone: "lo", free: true }));
+  return out.join("");
+})();
+const shelfDetail = (() => {
+  const out = [], b = BOARD;
+  // montants de l'étagère : deux pilastres à base moulurée, crochets de suspension, filet de bois sur chaque tablette
+  for (const xx of [b.x0 - 1, b.x1 - 2]) { out.push(box(xx, xx + 3, b.y - 3, b.y + 3, 4, b.z1 - 4, { tone: "mid", bevel: 0.5, ...WOOD })); out.push(box(xx - 0.8, xx + 3.8, b.y - 3.8, b.y + 3.8, 4, 2, { tone: "lo", bevel: 0.3, ...WOOD })); out.push(box(xx - 0.8, xx + 3.8, b.y - 3.8, b.y + 3.8, b.z1 - 3, 2.4, { tone: "lo", bevel: 0.3, ...WOOD })); }
+  b.slots.forEach(([u, z]) => {
+    out.push(box(b.x0 + 2, b.x1 - 2, b.y + 3, b.y + 5.4, z - CYL.r - 3.4, 1.4, { tone: "mid", bevel: 0.3, ...WOOD }));
+    out.push(dots([[b.x0 + 4, b.y + 5.4, z - CYL.r - 2.7], [b.x1 - 4, b.y + 5.4, z - CYL.r - 2.7]], 0.4, "hi"));
+  });
+  out.push(box(b.x0 + 10, b.x1 - 10, b.y + 3, b.y + 4, b.z1 + 3, 2, { tone: "mid", bevel: 0.3, ...BRONZE }));
+  out.push(dots(Array.from({ length: 6 }, (_, i) => [b.x0 + 14 + i * 14, b.y + 4, b.z1 + 4]), 0.4, "hi"));
+  return out.join("");
+})();
+const benchDetail = (() => {
+  const out = [], { x: dx, y: dy } = DIV;
+  // machine à planter : équerres d'angle, rangée de vis le long du rail, règle graduée du chariot, deux bornes
+  for (const [cx, cy] of [[dx - 52, dy - 22], [dx + 52, dy - 22], [dx - 52, dy + 24], [dx + 52, dy + 24]]) out.push(box(cx - 3, cx + 3, cy - 3, cy + 3, 6, 4, { tone: "mid", bevel: 0.5, ...STEEL }));
+  out.push(dots(Array.from({ length: 11 }, (_, i) => [dx - 48 + i * 9.6, dy - 19, BLANK.z + CYL.r + 9]), 0.4, "hi"));
+  out.push(L(Array.from({ length: 21 }, (_, i) => k.pathOf([at([dx - 50 + i * 5, dy - 17, BLANK.z + CYL.r + 6.01]), at([dx - 50 + i * 5, dy - 16, BLANK.z + CYL.r + 6.01])])).join(""), { tone: "lo" }));
+  for (const sx of [-44, 44]) { out.push(S(k.cylinder(dx + sx, dy + 18, 2.2, 6, 4, P, 16), { tone: "mid", className: "mat-bronze" })); out.push(S(k.cylinder(dx + sx, dy + 18, 1.2, 10, 1.2, P, 12), { tone: "hi" })); }
+  // plaque du banc d'essai : pieds à vis et pastilles de seuil
+  out.push(dots([[GAUGE.x0 + 1.5, GAUGE.y1, 8], [GAUGE.x1 - 1.5, GAUGE.y1, 8], [GAUGE.x0 + 1.5, GAUGE.y1, GAUGE.z1 - 2], [GAUGE.x1 - 1.5, GAUGE.y1, GAUGE.z1 - 2]], 0.4, "hi"));
+  out.push(box(LEVER.x - 6, LEVER.x + 6, LEVER.y - 12, LEVER.y + 2, 0, 6, { tone: "lo", bevel: 0.5, ...STEEL }));
+  out.push(dots([[LEVER.x - 4.6, LEVER.y + 2, 3], [LEVER.x + 4.6, LEVER.y + 2, 3]], 0.45, "hi"));
+  return out.join("");
+})();
+const toolsDetail = (() => {
+  const out = [];
+  // tournevis (manche de bois, tige d'acier), brucelles, bobine de fil de cuivre, râtelier de trois poinçons
+  out.push(box(-30, -18, 78, 81, 0, 2.6, { tone: "mid", bevel: 0.6, ...WOOD }), box(-18, 2, 78.8, 80.2, 0.6, 1.2, { tone: "mid", bevel: 0.1, ...STEEL }));
+  out.push(`<path class="ak-hatch" d="${Array.from({ length: 5 }, (_, i) => k.pathOf([at([-29 + i * 2.2, 78, 2.6]), at([-29 + i * 2.2, 81, 2.6])])).join("")}"/>`);
+  out.push(box(-12, 12, 66, 67.6, 0, 0.8, { tone: "mid", bevel: 0.1, ...STEEL }), box(-12, 12, 69.2, 70.8, 0, 0.8, { tone: "mid", bevel: 0.1, ...STEEL }), box(12, 14.4, 66, 70.8, 0, 0.8, { tone: "mid", bevel: 0.1, ...STEEL }));
+  out.push(S(k.cylinder(56, 56, 5, 0, 1.2, P, 24), { tone: "lo", className: "mat-bronze" }), S(k.cylinder(56, 56, 3.4, 1.2, 4.4, P, 24), { tone: "mid", className: "mat-bronze", inner: L(k.knurl(56, 56, 3.4, 1.2, 5.6, 18, P), { tone: "faint" }) }), S(k.cylinder(56, 56, 5, 5.6, 1.2, P, 24), { tone: "lo", className: "mat-bronze" }));
+  out.push(box(70, 92, 76, 82, 0, 2, { tone: "mid", bevel: 0.5, ...WOOD }));
+  for (let i = 0; i < 3; i++) out.push(S(k.cylinder(74 + i * 7, 79, 1, 2, 5 + i * 0.8, P, 12), { tone: "mid", className: "mat-steel" }), D([at([74 + i * 7, 79, 7 + i * 0.8])], { size: 0.5, tone: "hi" }));
+  // plan de la roue : feuille de calque sous presse-papier, deux épingles
+  out.push(box(-90, -70, 30, 48, 0, 0.5, { tone: "hi", bevel: 0.1, crease: "none" }), dots([[-88, 32, 0.5], [-72, 46, 0.5]], 0.6, "hi"));
+  out.push(`<path class="ak-hatch" d="${[0, 1, 2, 3].map((i) => k.pathOf([at([-87, 34 + i * 3.4, 0.5]), at([-74 + (i % 2) * 3, 34 + i * 3.4, 0.5])])).join("")}"/>`);
+  return out.join("");
+})();
+const trayDetail = (() => {
+  const out = [];
+  // bac des rapports : cales de coin en laiton, poignée de saisie et cloison de la boîte du corpus
+  for (const [cx, cy] of [[TRAY.x - 24, TRAY.y - 18], [TRAY.x + 21, TRAY.y - 18], [TRAY.x - 24, TRAY.y + 15], [TRAY.x + 21, TRAY.y + 15]]) out.push(box(cx, cx + 3, cy, cy + 3, 3, 3.6, { tone: "mid", bevel: 0.3, ...BRONZE }));
+  out.push(box(TRAY.x - 8, TRAY.x + 8, TRAY.y + 18, TRAY.y + 19.4, 1, 1.4, { tone: "mid", bevel: 0.3, ...BRONZE }));
+  out.push(dots([[TRAY.x - 7, TRAY.y + 19.4, 1.8], [TRAY.x + 7, TRAY.y + 19.4, 1.8]], 0.4, "hi"));
+  out.push(box(TRAY.x + 3, TRAY.x + 22, TRAY.y - 14, TRAY.y - 13.2, 3, 12, { tone: "mid", bevel: 0.1, ...WOOD }));
+  return out.join("");
+})();
+
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "Une boîte à musique sur un établi fermé par un rebord cadenassé, tout en local : les pages du rapport flottent jusqu'au lecteur, le cylindre à picots, qui est le modèle, pince les lamelles du peigne, l'étouffoir des règles coupe les notes impossibles, douze cases proposent les pages inédites ; l'agent valide chaque page sur la table lumineuse, chaque correction part aussi dans la bannette partagée ; le corpus figé sert à planter les picots d'un cylindre neuf, le banc d'essai le juge sur deux rapports séparés ; le levier le publie : l'ancien cylindre rejoint l'étagère des versions et le nouveau descend dans le boîtier.",
-  body: [...base, rimPieces.back, toolsSvg, sharedSvg, boardSvg, `<g data-part="board"></g>`, traySvg, caseSvg,
-    `<g data-part="inside"></g><g data-part="teeth"></g>`, caseFront,
-    `<g data-part="seal"></g>`, divSvg, rimPieces.fore, `<g data-part="div"></g><g data-part="travel"></g><g data-part="sheets"></g><g data-part="hand"></g>`],
+  body: [...base, rimPieces.back, toolsSvg, toolsDetail, sharedSvg, boardSvg, shelfDetail, `<g data-part="board"></g>`, traySvg, trayDetail, caseSvg,
+    `<g data-part="inside"></g><g data-part="teeth"></g>`, caseFront, caseDetail, deckDetail,
+    `<g data-part="seal"></g>`, divSvg, benchDetail, rimPieces.fore, `<g data-part="div"></g><g data-part="travel"></g><g data-part="sheets"></g><g data-part="hand"></g>`],
 });
 
 // ---------------------------------------------------------------- vivant
