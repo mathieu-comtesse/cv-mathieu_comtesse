@@ -341,7 +341,7 @@ async function start() {
         }
       };
       await draw();
-      if (s.el.querySelector('[data-live]')) setTimeout(draw, reduce ? 0 : 4800); // la signature, une fois tracée
+      if (s.el.querySelector('[data-anim]')) setTimeout(draw, reduce ? 0 : 4800); // la signature, une fois tracée
     }
   }
   async function inlineCss() {
