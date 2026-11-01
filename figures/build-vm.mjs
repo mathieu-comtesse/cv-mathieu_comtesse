@@ -7,6 +7,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
+import { column, ibeam } from "./parts.mjs";
 
 const WIDTH = 640, HEIGHT = 420;
 // ---------------------------------------------------------------- monde (1 unité ≈ 5 mm)
@@ -66,25 +67,25 @@ function padLamp() {
 
 // ---------------------------------------------------------------- portique et poutre
 const LEGS = [[-148, -30], [-148, 16], [148, -30], [148, 16]];
+const CTX = () => ({ k, G, P, S, L, D, at });
 function legsBack() {
-  const out = [];
-  for (const [x, y] of LEGS.filter(([, ly]) => ly < 0)) out.push(S(slab({ x: x - 3, y: y - 3, w: 6, d: 6, r: 0.8 }, 0, BZ - 6, 3, 0.5), { tone: "mid" }));
-  return out.join("");
+  return LEGS.filter(([, ly]) => ly < 0).map(([x, y]) => column(CTX(), { x, y, z0: 2.4, z1: BZ - 6, r: 3.2, base: false })).join("");
 }
 function frameSvg() {
   const out = [];
-  // Montants (les deux avant), traverses de tête sous la poutre, entretoises basses.
+  // Montants avant (turned), traverse de tête sous la poutre, platine d'accrochage.
   for (const x of [-148, 148]) {
-    out.push(S(slab({ x: x - 3, y: -30, w: 6, d: 52, r: 0.8 }, BZ - 6, 6, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: x - 3, y: -30, w: 6, d: 52, r: 0.8 }, BZ - 3, P, 3), { tone: "faint" }) }));
-    out.push(S(slab({ x: x - 3, y: 13, w: 6, d: 6, r: 0.8 }, 0, BZ - 6, 3, 0.5), { tone: "mid" }));
-    out.push(S(slab({ x: x - 3.6, y: 12.4, w: 7.2, d: 7.2, r: 0.8 }, 0, 3, 2, 0.4), { tone: "lo" }));
-    out.push(D([at([x, 16, BZ - 6]), at([x, -26, BZ - 6])], { size: 0.45 }));
+    out.push(column(CTX(), { x, y: 16, z0: 2.4, z1: BZ - 6, r: 3.2, base: false }));
+    const bar = { x: x - 3.4, y: -30, w: 6.8, d: 52, r: 1 };
+    out.push(S(slab(bar, BZ - 6, 6, 3, 0.6), { tone: "mid", inner: L(k.sideSeam(bar, BZ - 3, P, 3), { tone: "faint" }) }));
+    out.push(L(k.planOutline(k.insetPlan(bar, 1.4), BZ, P, 3), { tone: "faint" }));
+    out.push(D(k.corners(bar, 1.4).map(([bx, by]) => at([bx, by, BZ])), { size: 0.38 }));
   }
   return out.join("");
 }
 function beamSvg() {
   const out = [], beam = { x: -148, y: BEAM_Y, w: 296, d: 8, r: 1 };
-  out.push(S(slab(beam, BZ, 7, 3, 0.8), { tone: "mid", inner: L(k.sideSeam(beam, BZ + 3.5, P, 3), { tone: "faint" }) }));
+  out.push(ibeam(CTX(), { x0: beam.x, x1: beam.x + beam.w, y: beam.y, z: BZ, h: 7, d: 8 }));
   // Rail de roulement posé sur la poutre et un semis de rivets.
   out.push(S(slab({ x: -146, y: BY - 1, w: 292, d: 2, r: 0.3 }, BZ + 7, 1.2, 2, 0.2), { tone: "lo" }));
   const dots = []; for (let x = -140; x <= 140; x += 14) dots.push(at([x, BEAM_Y + 8, BZ + 3.5]));
@@ -150,10 +151,6 @@ function bracesSvg() {
     // Entretoise basse et collier de chaque montant, platine d'accrochage en tête.
     out.push(S(slab({ x: x - 1.4, y: -27, w: 2.8, d: 41, r: 0.4 }, 34, 3, 2, 0.3), { tone: "mid" }));
     out.push(D([at([x, 12, 37]), at([x, -24, 37])], { size: 0.36 }));
-    for (const y of [-30, 16]) {
-      out.push(S(slab({ x: x - 3.8, y: y - 3.8, w: 7.6, d: 7.6, r: 0.8 }, 12, 2.4, 2, 0.3), { tone: "lo" }));
-      out.push(S(slab({ x: x - 3.8, y: y - 3.8, w: 7.6, d: 7.6, r: 0.8 }, BZ - 20, 2.4, 2, 0.3), { tone: "lo" }));
-    }
     // Platine de tête : quatre boulons sur la traverse.
     out.push(D(k.corners({ x: x - 3, y: -30, w: 6, d: 52 }, 1.4).slice(0, 4).map(([bx, by]) => at([bx, by, BZ])), { size: 0.38 }));
   }
@@ -161,11 +158,8 @@ function bracesSvg() {
 }
 function beamDetail() {
   const out = [], yf = BEAM_Y + 8;
-  // Raidisseurs soudés sur l'âme de la poutre, rivets haut et bas, plaque signalétique.
-  for (let x = -130; x <= 130; x += 20) out.push(S(slab({ x: x - 0.8, y: yf, w: 1.6, d: 1.4, r: 0.2 }, BZ + 0.8, 5.4, 2, 0.15), { tone: "mid" }));
-  const rows = [];
-  for (let x = -138; x <= 138; x += 10) rows.push(at([x, yf, BZ + 0.9]), at([x, yf, BZ + 6.1]));
-  out.push(D(rows, { size: 0.3 }));
+  const yf2 = yf;
+  void yf2;
   const plate = { x: 112, y: yf, w: 20, d: 0.6, r: 0 };
   out.push(S(slab(plate, BZ + 1.2, 4.6, 2, 0), { tone: "lo", crease: "none" }));
   out.push(L([0.7, 0.5].map((w, i) => k.segment([116, yf + 0.6, BZ + 2.4 + i * 1.6], [116 + 14 * w, yf + 0.6, BZ + 2.4 + i * 1.6], P)).join(""), { tone: "lo", free: true }));

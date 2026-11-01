@@ -6,6 +6,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
+import { column } from "./parts.mjs";
 
 const WIDTH = 640, HEIGHT = 420;
 const PLATE = { x: -164, y: -46, w: 320, d: 96, r: 8 };
@@ -70,10 +71,9 @@ function frameSvg() {
   const out = [];
   for (const x of POSTS) {
     const top = ZR(x) - 3;
-    out.push(S(slab({ x: x - 4.4, y: -20, w: 8.8, d: 8.8, r: 1 }, 0, 2.4, 3, 0.4), { tone: "lo" }));
-    out.push(S(slab({ x: x - 3, y: -18.6, w: 6, d: 6, r: 0.8 }, 2.4, top - 2.4, 3, 0.5), { tone: "mid", inner: L(k.sideSeam({ x: x - 3, y: -18.6, w: 6, d: 6, r: 0.8 }, 14, P, 3), { tone: "faint" }) }));
+    out.push(column({ k, G, P, S, L, D, at }, { x, y: -16, z0: 0, z1: top, r: 3, flutes: 10, collars: [0.28, 0.62] }));
     out.push(S(slab({ x: x - 3, y: -14, w: 6, d: 12, r: 0.8 }, top - 3, 3, 2, 0.4), { tone: "mid" }));       // console vers la gouttière
-    out.push(D([at([x, -17, 4.8]), at([x, -17, top - 6])], { size: 0.36 }));
+    out.push(D([at([x, -2.2, top - 1.5]), at([x, -13.4, top - 1.5])], { size: 0.34 }));
   }
   return out.join("");
 }
@@ -150,11 +150,7 @@ function frameDetail() {
   const out = [];
   // Tirant arrière entre les trois montants, équerres, chapeaux boulonnés.
   out.push(S(slab({ x: POSTS[0], y: -18, w: POSTS[2] - POSTS[0], d: 1.6, r: 0.3 }, 30, 2.2, 2, 0.15), { tone: "mid" }));
-  for (const x of POSTS) {
-    out.push(S(slab({ x: x - 3.8, y: -19.4, w: 7.6, d: 7.6, r: 0.8 }, 20, 2.2, 2, 0.3), { tone: "lo" }));
-    out.push(S(slab({ x: x - 3.8, y: -19.4, w: 7.6, d: 7.6, r: 0.8 }, ZR(x) - 14, 2.2, 2, 0.3), { tone: "mid" }));
-    out.push(S(slab({ x: x - 1.2, y: -12.2, w: 2.4, d: 6, r: 0.3 }, ZR(x) - 11, 5, 2, 0.15), { tone: "mid" }));
-  }
+  for (const x of POSTS) out.push(S(slab({ x: x - 1.2, y: -12.2, w: 2.4, d: 6, r: 0.3 }, ZR(x) - 11, 5, 2, 0.15), { tone: "mid" }));
   return out.join("");
 }
 function chuteDetail() {

@@ -6,6 +6,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
+import { column } from "./parts.mjs";
 
 const WIDTH = 640, HEIGHT = 440;
 const PLATE = { x: -128, y: -46, w: 256, d: 100, r: 8 };
@@ -36,14 +37,13 @@ function baseSvg() {
 }
 function postsSvg(side) {
   const out = [];
+  if (side !== "back") return "";
   for (const x of POSTS) {
-    const pl = { x, y: -9, w: 6, d: 18, r: 1 };
-    if (side === "back") {
-      out.push(S(slab({ x: x - 2, y: -11, w: 10, d: 22, r: 1.4 }, BASE_H, 2.4, 3, 0.4), { tone: "lo" }));
-      out.push(S(slab(pl, BASE_H + 2.4, POST_Z - BASE_H - 2.4, 3, 0.5), { tone: "mid", inner: L(k.sideSeam(pl, 60, P, 3), { tone: "faint" }) }));
-      out.push(D([at([x + 3, 9, BASE_H + 6]), at([x + 3, 9, POST_Z - 6])], { size: 0.38 }));
-      out.push(S(slab({ x: x - 1, y: -10, w: 8, d: 20, r: 1 }, POST_Z, 3, 3, 0.4), { tone: "mid" }));
-    }
+    out.push(S(slab({ x: x - 2, y: -11, w: 10, d: 22, r: 1.4 }, BASE_H, 2.4, 3, 0.4), { tone: "lo" }));
+    out.push(D(k.corners({ x: x - 2, y: -11, w: 10, d: 22 }, 1.6).map(([bx, by]) => at([bx, by, BASE_H + 2.4])), { size: 0.38 }));
+    for (const dy of [-6.4, 6.4]) out.push(column({ k, G, P, S, L, D, at }, { x: x + 3, y: dy, z0: BASE_H + 2.4, z1: POST_Z, r: 2.8, base: false, flutes: 9, collars: [0.22, 0.5, 0.78] }));
+    out.push(S(slab({ x: x + 2.2, y: -4, w: 1.6, d: 8, r: 0.3 }, BASE_H + 5, POST_Z - BASE_H - 10, 2, 0.15), { tone: "mid" }));   // âme entre les deux colonnes
+    out.push(S(slab({ x: x - 1, y: -10, w: 8, d: 20, r: 1 }, POST_Z, 3, 3, 0.4), { tone: "mid" }));
   }
   return out.join("");
 }

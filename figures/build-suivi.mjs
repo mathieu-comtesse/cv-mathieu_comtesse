@@ -1,159 +1,108 @@
-// Fig 09 · Retrouver tout le suivi : un monorail de capsules (poste pneumatique à rail).
+// Fig 09 · Retrouver tout le suivi : un tableau d'enquête sur chevalet.
 // node figures/build-suivi.mjs  →  figures/suivi.html
-// Trois chargeurs au pupitre : OT, équipement, bâtiment. Une recherche arrive, la capsule de sa ligne est saisie par le chariot
-// du rail, roule jusqu'à la station de la bonne source (GMAO, exports, SharePoint, Excel, Power BI) et s'y pose ;
-// le voyant de la station s'allume : le lien direct est établi. La capsule ne porte que l'adresse : le rail relie, il ne recopie pas.
+// Trois fiches de recherche, OT, équipement, bâtiment, s'épinglent à gauche du tableau de liège ; cinq fiches de source, GMAO, exports, SharePoint,
+// Excel et Power BI, sont épinglées à droite. Une recherche arrive dans le bac, sa fiche s'épingle à sa ligne, et un fil se tend jusqu'à la bonne
+// source dont le voyant s'allume : le lien direct est établi. Le fil relie, il ne recopie pas : aucune donnée ne passe de fiche en fiche.
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
-import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
+import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
+import { column } from "./parts.mjs";
 
-const WIDTH = 640, HEIGHT = 420;
-const RAIL_Y = -8;                                                                    // axe du rail, des chargeurs et des stations
-const PLATE = { x: -128, y: -46, w: 256, d: 104, r: 8 };
-const DESK = { x: -120, y: -30, w: 70, d: 54, r: 3 }, DESK_H = 22;                  // pupitre des chargeurs
-const SOCKETS = [-104, -84, -64], SOCKET_Y = RAIL_Y;                    // OT, équipement, bâtiment (axes x)
-const BLOCK = { x: -36, y: -22, w: 150, d: 30, r: 3 }, BLOCK_H = 26;                  // socle des stations
-const COLS = [-18, 12, 42, 72, 102];                                                  // axes des cinq stations
-const POD = { r: 8.4, h: 10 };                                                        // station : cuvette d'accueil
-const TRUNK = 112, CAPH = 12, CR = 3;                                                 // rail : hauteur du dessous, capsule
-const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -120, y: -40, w: 240, d: 60 }, 0, TRUNK + 14)], WIDTH, HEIGHT, { pad: 22, azimuth: 60 });
+const WIDTH = 640, HEIGHT = 480;
+const PLATE = { x: -112, y: -50, w: 224, d: 100, r: 8 };
+const CAB = { x: -66, y: -12, w: 132, d: 30, r: 3 }, CAB_H = 34;                    // classeur à tiroirs sous le tableau
+const BOARD = { x: -62, w: 124, z0: 46, z1: 140 }, CORK = { x0: -58, x1: 58, z0: 50, z1: 128 };
+const QROWS = [112, 90, 68], QX = -36, QW = 22, QH = 17;                              // fiches de recherche (OT, équipement, bâtiment)
+const SROWS = [116, 100, 84, 68, 52], SX = 12, SW = 24, SH = 12;                      // fiches de source
+const PINY = 2.6;                                                                    // les fils passent devant le liège
+const TRAY = { x: -26, y: 14, w: 52, d: 18, r: 2 }, TRAY_Z = CAB_H;
+
+const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -70, y: -14, w: 140, d: 50 }, 0, 160)], WIDTH, HEIGHT, { pad: 22, azimuth: 56 });
 const { at, S, L, D, slab, front, right, flat, byDepth } = tools(P);
-const HANG = TRUNK - 4 - CAPH;                                                        // z du pied de la capsule en transport
-const PODZ = BLOCK_H + POD.h;                                                         // z du siège de la capsule en station
+const CTX = { k, G, P, S, L, D, at };
 
-// ---------------------------------------------------------------- pupitre et socle
-function deskSvg() {
-  const out = [], d = DESK, f = front(d.y + d.d);
-  out.push(`<path class="iso-halo" d="${k.haloOf(d, 0, 2, P)}" style="filter:blur(3px)"/>`);
-  out.push(S(slab(d, 0, DESK_H, 4, 1), { tone: "mid", inner: L(k.sideSeam(d, 6, P, 4), { tone: "faint" }) }));
-  out.push(S(slab({ x: d.x - 2, y: d.y - 2, w: d.w + 4, d: d.d + 4, r: 3 }, DESK_H - 3, 3, 3, 0.6), { tone: "mid" }));
-  out.push(D(k.corners({ x: d.x - 2, y: d.y - 2, w: d.w + 4, d: d.d + 4 }, 3).map(([x, y]) => at([x, y, DESK_H])), { size: 0.42 }));
-  // Trois chargeurs : un cylindre creux par type de recherche, et leur plaque.
-  out.push(L(k.planOutline({ x: -116, y: SOCKET_Y - 9, w: 62, d: 18, r: 2 }, DESK_H, P, 3), { tone: "lo" }));
-  for (const x of SOCKETS) {
-    out.push(S(k.cylinder(x, SOCKET_Y, 5.6, DESK_H, 1.2, P, 28, 0.3), { tone: "mid" }));
-    out.push(L(k.ring(x, SOCKET_Y, 3.6, DESK_H + 1.2, P, 20), { tone: "lo" }));
+// ---------------------------------------------------------------- classeur à tiroirs
+function cabinetSvg() {
+  const out = [], c = CAB, f = front(c.y + c.d), r = right(c.x + c.w);
+  out.push(`<path class="iso-halo" d="${k.haloOf(c, 0, 2, P)}" style="filter:blur(3px)"/>`);
+  out.push(S(slab(k.insetPlan(c, 3), 0, 4, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab(c, 4, CAB_H - 4, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(c, 12, P, 4), { tone: "faint" }) }));
+  out.push(S(slab({ x: c.x - 1.6, y: c.y - 1.6, w: c.w + 3.2, d: c.d + 3.2, r: 3.4 }, CAB_H - 3, 3, 3, 0.7), { tone: "mid" }));
+  out.push(D(k.corners({ x: c.x - 1.6, y: c.y - 1.6, w: c.w + 3.2, d: c.d + 3.2 }, 2.4).map(([x, y]) => at([x, y, CAB_H])), { size: 0.42 }));
+  // Six tiroirs en deux rangées : cadre, poignée, étiquette, deux vis.
+  const dw = (c.w - 14) / 3, dh = 11;
+  for (let row = 0; row < 2; row++) for (let col = 0; col < 3; col++) {
+    const x0 = c.x + 7 + col * dw, z0 = 6 + row * (dh + 3.4);
+    out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${flat(x0 + 0.8, z0, x0 + dw - 0.8, z0 + dh, 1, 3)}"/><path class="iso-line" data-tone="mid" d="${flat(x0 + dw / 2 - 5, z0 + dh - 3.4, x0 + dw / 2 + 5, z0 + dh - 2.2, 0.5, 2)}"/><path class="iso-line" data-tone="faint" d="${flat(x0 + dw / 2 - 6, z0 + 2.2, x0 + dw / 2 + 6, z0 + 5.4, 0.5, 2)}"/></g>`);
+    out.push(D([at([x0 + 3, c.y + c.d, z0 + 2.2]), at([x0 + dw - 3, c.y + c.d, z0 + 2.2])], { size: 0.32 }));
   }
-  // Afficheur de la recherche en cours sur la face avant, deux tiroirs.
-  out.push(display(f, flat(-114, 12, -56, 19, 1.2), { part: "query", x: -85, y: -13.6, size: 4.4, text: "EN ATTENTE" }));
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${flat(-114, 3, -90, 9, 1, 3)}${flat(-80, 3, -56, 9, 1, 3)}"/></g>`);
-  out.push(D([-116, -54].map((x) => at([x, d.y + d.d, 7])), { size: 0.4 }));
+  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(c.y + 5 + i * 3.8) - 0.9, 6, -(c.y + 5 + i * 3.8) + 0.9, 24, 0.9, 3));
+  out.push(`<g transform="${r}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  // Bac des recherches : plateau en saillie sur le dessus, ruban gradué à son bord.
+  const t = TRAY;
+  out.push(S(slab(t, CAB_H, 1.6, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab({ x: t.x, y: t.y + t.d - 1.6, w: t.w, d: 1.6, r: 0.4 }, CAB_H + 1.6, 3.4, 2, 0.2), { tone: "mid" }), S(slab({ x: t.x, y: t.y, w: 1.6, d: t.d, r: 0.4 }, CAB_H + 1.6, 3.4, 2, 0.2), { tone: "mid" }), S(slab({ x: t.x + t.w - 1.6, y: t.y, w: 1.6, d: t.d, r: 0.4 }, CAB_H + 1.6, 3.4, 2, 0.2), { tone: "mid" }));
+  const tk = k.topTicks(t.x + 4, t.x + t.w - 4, 4, 5, t.y + t.d - 1.4, CAB_H + 5, [0.9, 1.6], P);
+  void tk;
+  out.push(`<g data-part="slip"></g>`);
   return out.join("");
 }
-function blockSvg() {
-  const out = [], b = BLOCK, f = front(b.y + b.d);
-  out.push(`<path class="iso-halo" d="${k.haloOf(b, 0, 2, P)}" style="filter:blur(3px)"/>`);
-  out.push(S(slab(k.insetPlan(b, 3), 0, 4, 3, 0.4), { tone: "lo" }));
-  out.push(S(slab(b, 4, BLOCK_H - 4, 3, 0.8), { tone: "mid", inner: L(k.sideSeam(b, 12, P, 3), { tone: "faint" }) }));
-  out.push(D(k.corners(b, 4).map(([x, y]) => at([x, y, BLOCK_H])), { size: 0.42 }));
-  // Fenêtres des noms de source, une par station.
-  ["GMAO", "exports", "SharePoint", "Excel", "Power BI"].forEach((name, c) => out.push(display(f, flat(COLS[c] - 12, 6, COLS[c] + 12, 14, 1.2), { part: "src-" + c, x: COLS[c], y: -8.4, size: 3.8, text: name })));
-  out.push(D(COLS.flatMap((x) => [at([x - 14, b.y + b.d, 10]), at([x + 14, b.y + b.d, 10])]), { size: 0.36 }));
-  return out.join("");
-}
-function stationSvg(c) {
-  // Station : embase, cuvette d'accueil à bord renforcé et voyant sur sa face avant.
-  const out = [], x = COLS[c], F = G.frameAlong([x, RAIL_Y, BLOCK_H], [0, 0, 1]);
-  out.push(S(G.disc(0, 3, POD.r + 2, F, P), { tone: "lo" }));
-  out.push(S(G.disc(3, POD.h, POD.r, F, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(F, 3, POD.h, POD.r, 20, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
-  out.push(L(G.circleOf(F, POD.h, POD.r - 1.4, P), { tone: "lo" }));
-  const [lx, ly] = at([x + POD.r + 5, RAIL_Y + 6, BLOCK_H + 1.2]);
-  out.push(S(k.cylinder(x + POD.r + 5, RAIL_Y + 6, 2.4, BLOCK_H, 1.2, P, 18), { tone: "mid" }));
-  out.push(`<circle class="fig-lamp" data-part="lamp-${c}" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`);
-  return out.join("");
-}
-// ---------------------------------------------------------------- rail
-// Montants posés dans les intervalles entre chargeurs et stations, sous l'axe du rail : la poutre repose sur leur tête.
-const POSTS = [-114, -43, 27, 87], postBase = (x) => (x < -52 ? DESK_H : x < -36 ? 0 : BLOCK_H);
-function railSvg() {
-  const out = [], beam = { x: -112, y: RAIL_Y - 3.5, w: 226, d: 7, r: 1 };
-  for (const x of POSTS) out.push(S(slab({ x: x - 2.4, y: RAIL_Y - 2.4, w: 4.8, d: 4.8, r: 0.8 }, postBase(x), TRUNK - postBase(x), 3, 0.5), { tone: "mid" }));
-  out.push(S(slab(beam, TRUNK, 6, 3, 0.7), { tone: "mid", inner: L(k.sideSeam(beam, TRUNK + 3, P, 3), { tone: "faint" }) }));
-  out.push(S(slab({ x: -110, y: RAIL_Y - 1, w: 222, d: 2, r: 0.3 }, TRUNK + 6, 1.2, 2, 0.2), { tone: "lo" }));
-  const dots = []; for (let x = -104; x <= 104; x += 16) dots.push(at([x, RAIL_Y + 3.5, TRUNK + 3]));
-  out.push(D(dots, { size: 0.36 }));
-  for (const x of [-112, 111]) out.push(S(slab({ x: x - 1, y: RAIL_Y - 4, w: 2, d: 8, r: 0.4 }, TRUNK, 8, 2, 0.2), { tone: "hi" }));
-  return out.join("");
-}
-// Capsule dessinée à l'origine (pied en z = 0) : corps cylindrique, deux bagues, nez arrondi.
-function capsuleSvg(lit) {
-  const st = lit ? { tone: "hi", lit: true } : { tone: "hi" };
-  const F = G.frameAlong([0, 0, 0], [0, 0, 1]);
-  return S(G.disc(0, CAPH - 2, CR, F, P), st) + S(G.sphereOf([0, 0, CAPH - 2], CR, P), st) + L(G.circleOf(F, 3, CR, P) + G.circleOf(F, CAPH - 4.4, CR, P), { tone: "lo" });
-}
-// Chariot du rail : châssis, deux galets et crochet, dessiné à l'origine sur le rail.
-function carrierSvg() {
+
+// ---------------------------------------------------------------- chevalet et tableau
+function easelSvg() {
   const out = [];
-  out.push(S(slab({ x: -7, y: RAIL_Y - 5, w: 14, d: 10, r: 1 }, TRUNK + 7.2, 5, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: -7, y: RAIL_Y - 5, w: 14, d: 10, r: 1 }, TRUNK + 9.5, P, 3), { tone: "faint" }) }));
-  for (const sx of [-4, 4]) out.push(S(G.disc(-4.4, -2.8, 2.2, G.frameAlong([sx, RAIL_Y, TRUNK + 7], [0, 1, 0]), P), { tone: "lo" }));
-  out.push(S(slab({ x: -1.2, y: RAIL_Y - 5, w: 2.4, d: 10, r: 0.2 }, TRUNK - 4, 4, 2, 0), { tone: "mid" }));
-  for (const sx of [-4, 4]) out.push(S(G.disc(5.2, 6.8, 2.2, G.frameAlong([sx, RAIL_Y, TRUNK + 7], [0, 1, 0]), P), { tone: "lo" }));
-  const M = G.frameAlong([0, RAIL_Y, TRUNK + 12.2], [0, 0, 1]);
-  out.push(S(G.disc(0, 3.4, 2.6, M, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(M, 0, 3.4, 2.6, 14, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
-  out.push(S(G.disc(3.4, 4.2, 1.6, M, P), { tone: "hi" }));
-  out.push(D([at([-5.6, RAIL_Y + 5, TRUNK + 9]), at([5.6, RAIL_Y + 5, TRUNK + 9])], { size: 0.32 }));
+  // Montants tournés, traverses du haut et du bas, pieds en équerre, étais arrière.
+  for (const x of [BOARD.x - 4, BOARD.x + BOARD.w + 4]) {
+    out.push(column(CTX, { x, y: 0, z0: CAB_H + 2, z1: BOARD.z1 + 12, r: 2.8, base: true, flutes: 10, collars: [0.2, 0.5, 0.8] }));
+    out.push(S(slab({ x: x - 2.4, y: -12, w: 4.8, d: 12, r: 0.8 }, CAB_H + 1.6, 2, 2, 0.3), { tone: "lo" }));
+  }
+  out.push(S(slab({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8, r: 1 }, BOARD.z1 + 10, 4, 3, 0.7), { tone: "mid", inner: L(k.sideSeam({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8, r: 1 }, BOARD.z1 + 12, P, 3), { tone: "faint" }) }));
+  out.push(D(k.corners({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8 }, 1.8).map(([x, y]) => at([x, y, BOARD.z1 + 14])), { size: 0.36 }));
+  out.push(S(slab({ x: BOARD.x - 6, y: -3, w: BOARD.w + 12, d: 6, r: 0.8 }, BOARD.z0 - 5, 3, 3, 0.5), { tone: "mid" }));
   return out.join("");
 }
-
-
-// ---------------------------------------------------------------- finitions
-function deskDetail() {
-  const out = [], d = DESK, f = right(d.x + d.w);
-  // Pieds, évents du flanc, repères de chargeur et règle graduée sur la tablette.
-  for (const [x, y] of k.corners(d, 6)) out.push(S(k.cylinder(x, y, 2.4, DESK_H, 0.6, P, 14), { tone: "mid" }));
-  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(d.y + 8 + i * 6.8) - 1, 4, -(d.y + 8 + i * 6.8) + 1, 14, 1, 3));
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
-  SOCKETS.forEach((x, i) => out.push(L(k.ring(x, SOCKET_Y, 7.4, DESK_H, P, 20), { tone: i === 0 ? "mid" : "lo" })));
-  const strip = { x: -116, y: 12, w: 62, d: 4, r: 0.6 };
-  out.push(S(slab(strip, DESK_H, 0.5, 2, 0), { tone: "lo", crease: "none" }));
-  const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 4, 5, strip.y + 0.3, DESK_H + 0.5, [1, 1.9], P);
-  out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
-  // Voyants de chargeur : un voyant par type de recherche.
-  SOCKETS.forEach((x) => out.push(S(k.cylinder(x, 8, 1.1, DESK_H, 0.9, P, 10), { tone: "mid" })));
+function boardSvg() {
+  const out = [], b = BOARD, yf = 2.2, f = front(yf);
+  // Cadre en onglet : quatre moulures, liège en retrait, 160 picots de liège (grille).
+  const frame = { x: b.x, y: -2.2, w: b.w, d: 4.4, r: 1.2 };
+  out.push(S(slab(frame, b.z0, b.z1 - b.z0, 3, 0.6), { tone: "mid", inner: L(k.sideSeam(frame, (b.z0 + b.z1) / 2, P, 3), { tone: "faint" }) }));
+  out.push(`<g transform="${f}"><path class="iso-fill" d="${flat(CORK.x0, CORK.z0, CORK.x1, CORK.z1, 1, 3)}"/><path class="iso-line" data-tone="lo" d="${flat(CORK.x0, CORK.z0, CORK.x1, CORK.z1, 1, 3)}"/><path class="iso-line" data-tone="faint" d="${flat(CORK.x0 + 2.4, CORK.z0 + 2.4, CORK.x1 - 2.4, CORK.z1 - 2.4, 1, 3)}"/></g>`);
+  const holes = []; for (let x = CORK.x0 + 6; x <= CORK.x1 - 5; x += 8) for (let z = CORK.z0 + 6; z <= CORK.z1 - 5; z += 8) holes.push(at([x, yf, z]));
+  out.push(D(holes, { size: 0.28 }));
+  out.push(D([[b.x + 2.4, b.z0 + 2.4], [b.x + b.w - 2.4, b.z0 + 2.4], [b.x + 2.4, b.z1 - 2.4], [b.x + b.w - 2.4, b.z1 - 2.4]].map(([x, z]) => at([x, yf, z])), { size: 0.5 }));
+  // Bandeau : fenêtre de la recherche en cours, deux vis ; au bord gauche, les lignes de recherche ; au bord droit, les plaques de source.
+  out.push(display(f, flat(-34, b.z1 - 10, 34, b.z1 - 2.4, 1.2), { part: "query", x: 0, y: -(b.z1 - 6.2), size: 4.6, text: "EN ATTENTE" }));
+  const KN = ["OT", "ÉQ.", "BÂT."];
+  QROWS.forEach((z, i) => out.push(display(f, flat(-57, z - 3, -48, z + 3, 0.8), { part: "kind-" + i, x: -52.5, y: -(z - 1), size: 2.6, text: KN[i] })));
+  ["GMAO", "exports", "SharePoint", "Excel", "Power BI"].forEach((n, i) => {
+    const z = SROWS[i];
+    out.push(display(f, flat(43, z - 3.4, 57, z + 3.4, 0.8), { part: "src-" + i, x: 50, y: -(z - 1.2), size: 2.6, text: n }));
+    const [lx, ly] = at([58.6, yf, z]);
+    out.push(`<circle class="fig-lamp" data-part="lamp-${i}" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="0.95"/>`);
+  });
+  // Crochets de fil sur le cadre : un oeillet par ligne, côtés gauche et droit.
+  for (const z of QROWS) out.push(S(k.cylinder(-30, yf + 0.4, 0.9, z - 0.8, 1.2, P, 10), { tone: "hi" }).slice(0, 0));
+  out.push(`<g data-part="cards"></g>`);
   return out.join("");
 }
-function blockDetail() {
-  const out = [], b = BLOCK, f = right(b.x + b.w);
-  const vents = []; for (let i = 0; i < 5; i++) vents.push(flat(-(b.y + 5 + i * 5) - 1, 5, -(b.y + 5 + i * 5) + 1, 19, 1, 3));
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
-  // Prises de service sur le dessus entre les stations, cache-câbles arrière.
-  out.push(S(slab({ x: b.x + 4, y: b.y + 2, w: b.w - 8, d: 3, r: 0.6 }, BLOCK_H, 3.2, 2, 0.3), { tone: "mid", inner: L(k.sideSeam({ x: b.x + 4, y: b.y + 2, w: b.w - 8, d: 3, r: 0.6 }, BLOCK_H + 1.6, P, 2), { tone: "faint" }) }));
-  COLS.slice(0, 4).forEach((x) => { const xm = x + 15; out.push(S(k.cylinder(xm, RAIL_Y + 10, 1.4, BLOCK_H, 0.8, P, 12), { tone: "mid" })); });
-  // Ruban de repère sous chaque nom : une pastille de couleur-ton par source.
-  out.push(D(COLS.map((x) => at([x, b.y + b.d, 4.6])), { size: 0.5 }));
-  return out.join("");
-}
-function podDetail(c) {
-  const out = [], x = COLS[c], F = G.frameAlong([x, RAIL_Y, BLOCK_H + POD.h], [0, 0, 1]);
-  // Bague de sertissage, quatre vis sur le bord, repère de pose en croix au fond.
-  out.push(L(G.circleOf(F, 0, POD.r - 3, P), { tone: "faint" }));
-  out.push(D(G.dotsOf(F, 0, POD.r - 0.8, 6, P, { phase: Math.PI / 6, all: true }), { size: 0.34 }));
-  return out.join("");
-}
-function railDetail() {
-  const out = [], yf = RAIL_Y + 3.5;
-  // Raidisseurs, rivets, plaque et règle de course sur le rail.
-  for (let x = -100; x <= 100; x += 20) out.push(S(slab({ x: x - 0.8, y: yf, w: 1.6, d: 1.3, r: 0.2 }, TRUNK + 0.8, 4.4, 2, 0.15), { tone: "mid" }));
-  const rows = []; for (let x = -108; x <= 108; x += 8) rows.push(at([x, yf, TRUNK + 0.9]), at([x, yf, TRUNK + 5.1]));
-  out.push(D(rows, { size: 0.3 }));
-  const strip = { x: -108, y: RAIL_Y - 3.1, w: 216, d: 1.5, r: 0 };
-  out.push(S(slab(strip, TRUNK + 6, 0.5, 2, 0), { tone: "lo", crease: "none" }));
-  const t = k.topTicks(strip.x + 2, strip.x + strip.w - 2, 6, 5, strip.y + 0.2, TRUNK + 6.5, [0.7, 1.2], P);
-  out.push(L(t.minor, { tone: "lo" }), L(t.major, { tone: "mid" }));
-  // Colliers et semelles des montants.
-  for (const x of POSTS) { const b = postBase(x); out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 3.6, w: 7.2, d: 7.2, r: 0.8 }, b, 2.2, 2, 0.3), { tone: "lo" })); out.push(S(slab({ x: x - 3.6, y: RAIL_Y - 3.6, w: 7.2, d: 7.2, r: 0.8 }, TRUNK - 14, 2.2, 2, 0.3), { tone: "mid" })); }
-  out.push(D(POSTS.map((x) => at([x, RAIL_Y + 2.4, TRUNK - 14 + 2.2])), { size: 0.36 }));
+// Poignées : pointes de repère des quatre coins du liège (ne s'ajoutent pas aux fils).
+function pinsSvg() {
+  const out = [];
+  // Épingles de laiton plantées en tête de chaque fiche : tête bombée et tige.
+  const pins = [...QROWS.map((z) => [QX, z + QH / 2 - 1.4]), ...SROWS.map((z) => [SX + SW / 2, z + SH / 2 - 1.2])];
+  for (const [x, z] of pins) {
+    const F = G.frameAlong([x, 1.4, z], [0, 1, 0]);
+    out.push(S(G.disc(0, 1.2, 1.5, F, P), { tone: "hi" }), S(G.disc(1.2, 2.2, 0.8, F, P), { tone: "mid" }));
+  }
   return out.join("");
 }
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un monorail de capsules. Le pupitre porte trois chargeurs : OT, équipement, bâtiment. Une recherche arrive ; le chariot du rail saisit la capsule de sa ligne, la mène à la station de la bonne source (GMAO, exports, SharePoint, Excel ou Power BI) et la pose dans sa cuvette ; le voyant de la station s'allume : le lien direct est établi, sans recopier les données.",
+  label: "Un tableau d'enquête sur chevalet, au-dessus d'un classeur à tiroirs. À gauche du liège, trois fiches de recherche : OT, équipement, bâtiment ; à droite, cinq fiches de source : GMAO, exports, SharePoint, Excel, Power BI. Une recherche arrive dans le bac, sa fiche s'épingle à sa ligne et un fil se tend jusqu'à la bonne source dont le voyant s'allume : le lien direct est établi, sans recopier les données.",
   body: [
-    bench(P, PLATE, { strip: { x: -48, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 80, y: PLATE.y + PLATE.d - 15, w: 40, d: 11, r: 1.2 } }),
-    deskSvg(), deskDetail(), blockSvg(), blockDetail(), ...COLS.map((_, c) => stationSvg(c) + podDetail(c)), railSvg(), railDetail(),
-    `<g data-part="loaders"></g>`,
-    `<g data-part="carrier">${carrierSvg()}</g>`, `<g data-part="fly"></g>`,
+    bench(P, PLATE, { strip: { x: -104, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 40, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
+    cabinetSvg(), easelSvg(), boardSvg(), pinsSvg(), `<g data-part="strings"></g>`, `<g data-part="air"></g>`,
   ],
 });
 
@@ -161,8 +110,8 @@ const svg = k.figureSvg({
 const live = `
 ${LOOP}
 const P = ${JSON.stringify(P)};
-const COLS = ${JSON.stringify(COLS)}, SOCKETS = ${JSON.stringify(SOCKETS)}, SOCKET_Y = ${SOCKET_Y}, DESK_H = ${DESK_H}, TRUNK = ${TRUNK}, RAIL_Y = ${RAIL_Y}, HANG = ${HANG}, PODZ = ${PODZ}, CAPH = ${CAPH};
-const CAPS = [${JSON.stringify(capsuleSvg(false))}, ${JSON.stringify(capsuleSvg(true))}];
+${PAPER}
+const QROWS = ${JSON.stringify(QROWS)}, QX = ${QX}, QW = ${QW}, QH = ${QH}, SROWS = ${JSON.stringify(SROWS)}, SX = ${SX}, SW = ${SW}, SH = ${SH}, PINY = ${PINY}, TRAY = ${JSON.stringify(TRAY)}, TRAY_Z = ${TRAY_Z};
 // Vrais chiffres : 10 à 15 min gagnées par recherche, ≈ 26 € la recherche (15 min à 104,74 €/h).
 // Les recherches affichées sont illustratives ; le montant annuel (118 à 589 k€) reste à confirmer.
 const SOURCES = ["GMAO", "exports", "SharePoint", "Excel", "Power BI"], KINDS = ["OT", "équipement", "bâtiment"];
@@ -172,52 +121,48 @@ const QUERIES = Array.from({ length: 12 }, (_, i) => {
   const value = kind === 0 ? "OT " + (4100000 + Math.floor(hash(i + 60) * 899999)) : kind === 1 ? "ÉQ " + ["TGBT", "CTA", "SSI", "ASC", "GE"][Math.floor(hash(i + 80) * 5)] + "-" + String(Math.floor(hash(i + 90) * 90) + 10) : "BÂT " + String.fromCharCode(65 + Math.floor(hash(i + 70) * 8));
   return { kind, src, value };
 });
-const CYCLE = 4.6, ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u)), lerp = (a, b, u) => a + (b - a) * u;
+const CYCLE = 4.8, ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u)), lerp = (a, b, u) => a + (b - a) * u;
 let clock = 0, touring = true, idle = 0;
-const loaders = $("loaders"), query = $("query"), fly = $("fly"), carrier = $("carrier");
-const seat = (kind) => [SOCKETS[kind], SOCKET_Y, DESK_H + 1.2];
-// Trajet : le chariot rejoint le chargeur, saisit, roule, descend dans la station, y reste, remonte et rapporte.
-function carry(q, u) {
-  const from = seat(q.kind), to = [COLS[q.src], RAIL_Y, PODZ + 0.4], home = -112 + 8;
-  let cx, z, holding = true;
-  const lift = (a, b) => lerp(a, b, 1);
-  if (u < 0.14) { cx = lerp(home + 0, from[0], ease(u / 0.14)); z = from[2]; holding = false; }
-  else if (u < 0.24) { cx = from[0]; z = lerp(from[2], HANG, ease((u - 0.14) / 0.1)); }
-  else if (u < 0.5) { cx = lerp(from[0], to[0], ease((u - 0.24) / 0.26)); z = HANG; }
-  else if (u < 0.6) { cx = to[0]; z = lerp(HANG, to[2], ease((u - 0.5) / 0.1)); }
-  else if (u < 0.8) { cx = to[0]; z = to[2]; }
-  else if (u < 0.86) { cx = to[0]; z = lerp(to[2], HANG, ease((u - 0.8) / 0.06)); }
-  else if (u < 0.96) { cx = lerp(to[0], from[0], ease((u - 0.86) / 0.1)); z = HANG; }
-  else { cx = from[0]; z = lerp(HANG, from[2], ease((u - 0.96) / 0.04)); }
-  void lift; void holding;
-  return { cx, z, atStation: u >= 0.6 && u < 0.8, plugged: u >= 0.58 && u < 0.82, away: u >= 0.14 && u < 0.96 };
+const parts = { cards: $("cards"), strings: $("strings"), air: $("air"), slip: $("slip"), query: $("query") };
+const vcard = (c, w, h, o = {}) => paperSvg(paperRows({ c, d: [0, 0, 1], w: [1, 0, 0], L: h, W: w, curl: o.curl ?? 0.03, wave: o.wave ?? 0.25, roll: o.roll ?? 0.2, ph: o.ph || 0, t: o.t || 0, NT: o.nt || 6 }), { head: true, lit: o.lit });
+// Fil : de la fiche de recherche à la fiche de source, qui se tend avec une flèche et un oeillet à chaque bout.
+function stringSvg(a, b, v, now) {
+  const n = 18, pts = [];
+  for (let i = 0; i <= n * v; i++) { const t = i / n, x = lerp(a[0], b[0], t), z = lerp(a[2], b[2], t) - 3.4 * Math.sin(Math.PI * t) * (1 - 0.35 * v), y = PINY + 0.8 + 0.5 * Math.sin(t * 9 - now * 6) * (1 - v) * 0.6; pts.push(iso([x, y, z], P)); }
+  if (pts.length < 2) return "";
+  return '<path class="fg-str" d="M' + pts.map(pPt).join("L") + '"/>';
 }
-function draw() {
+function draw(now) {
   const n = Math.floor(clock / CYCLE), u = clock / CYCLE - n, q = QUERIES[n % QUERIES.length];
-  const st = carry(q, u);
-  // Les trois chargeurs : la capsule de la recherche en cours part avec le chariot, les deux autres attendent.
-  html(loaders, SOCKETS.map((x, kind) => kind === q.kind && st.away ? "" : '<g transform="' + translateAlong(P, seat(kind)) + '">' + CAPS[0] + "</g>").join(""));
-  const carried = !(u < 0.14);
-  put(carrier, translateAlong(P, [st.cx, 0, 0]));
-  // Capsule portée : suspendue au chariot par une tige pendant le transport.
-  html(fly, carried && st.away || u >= 0.96 ? '<g transform="' + translateAlong(P, [st.cx, RAIL_Y, st.z]) + '">' + CAPS[1] + "</g>" + (st.z > PODZ + 4 && st.z > DESK_H + 8 ? lineSvg(segment([st.cx, RAIL_Y, TRUNK - 3], [st.cx, RAIL_Y, st.z + CAPH - 1], P), { tone: "hi" }) : "") : "");
-  COLS.forEach((_, c) => attr($("lamp-" + c), "data-on", st.plugged && c === q.src));
+  // Phases : 0–0,22 la fiche vole du bac à sa ligne ; 0,22–0,4 le fil se tend ; 0,4–0,8 lien établi ; 0,8–1 le fil se rend, la fiche repart.
+  const qz = QROWS[q.kind], sz = SROWS[q.src], pinQ = [QX + QW / 2 + 1, 0, qz + 3], pinS = [SX - 1, 0, sz + 1];
+  const tray = [TRAY.x + TRAY.w / 2, TRAY.y + TRAY.d / 2, TRAY_Z + 3 + QH / 2];
+  let air = "", cards = "", strings = "";
+  const fly = (v) => [lerp(tray[0], QX, ease(v)), lerp(tray[1], 1.2, ease(v)), lerp(tray[2], qz, ease(v)) + 12 * Math.sin(Math.PI * Math.max(0, Math.min(1, v)))];
+  if (u < 0.22) air = vcard(fly(u / 0.22), QW, QH, { lit: true, curl: -0.07 * Math.sin(Math.PI * u / 0.22), wave: 1.2 * Math.sin(Math.PI * u / 0.22), roll: 0.7, ph: n, t: now });
+  else if (u < 0.82) cards = vcard([QX, 1.4, qz], QW, QH, { lit: true, ph: n, t: now, curl: 0.02, wave: 0.2 });
+  else air = vcard(fly(1 - (u - 0.82) / 0.18), QW, QH, { lit: true, curl: -0.07 * Math.sin(Math.PI * (u - 0.82) / 0.18), wave: 1.2 * Math.sin(Math.PI * (u - 0.82) / 0.18), roll: 0.7, ph: n, t: now });
+  // Les cinq fiches de source et les deux autres fiches de recherche, toujours épinglées.
+  let fixed = "";
+  QROWS.forEach((z, i) => { if (!(i === q.kind && u >= 0.22 && u < 0.82)) fixed += vcard([QX, 1.4, z], QW, QH, { ph: i, t: now, curl: (i % 2 ? 1 : -1) * 0.025, wave: 0.18 }); });
+  SROWS.forEach((z, i) => { fixed += vcard([SX + SW / 2, 1.4, z], SW, SH, { ph: i + 5, t: now, curl: (i % 2 ? 1 : -1) * 0.03, wave: 0.22, lit: i === q.src && u >= 0.4 && u < 0.8 }); });
+  const v = u < 0.22 ? 0 : u < 0.4 ? ease((u - 0.22) / 0.18) : u < 0.8 ? 1 : 1 - ease((u - 0.8) / 0.18);
+  if (v > 0.001) strings = stringSvg(pinQ, pinS, v, now);
+  html(parts.cards, fixed + cards); html(parts.air, air); html(parts.strings, strings);
+  html(parts.slip, u < 0.02 || u > 0.98 ? "" : vcard(tray, QW, QH, { ph: n + 3, t: now, curl: 0.03 }));
+  for (let c = 0; c < 5; c++) attr($("lamp-" + c), "data-on", u >= 0.4 && u < 0.8 && c === q.src);
   const text = u < 0.9 ? q.value : "EN ATTENTE";
-  if (query.textContent !== text) query.textContent = text;
-  const done = n + (u >= 0.6 ? 1 : 0), lo = done * 10, hi = done * 15, hm = (m) => m >= 60 ? Math.floor(m / 60) + " h" + (m % 60 ? " " + String(m % 60).padStart(2, "0") : "") : m + " min";
+  if (parts.query.textContent !== text) parts.query.textContent = text;
+  const done = n + (u >= 0.4 ? 1 : 0), lo = done * 10, hi = done * 15, hm = (m) => m >= 60 ? Math.floor(m / 60) + " h" + (m % 60 ? " " + String(m % 60).padStart(2, "0") : "") : m + " min";
   const span = hi < 60 ? lo + " à " + hi + " min" : hm(lo) + " à " + hm(hi);
-  say(st.plugged ? q.value + " → " + SOURCES[q.src] + " · lien direct · 10–15 min gagnées" : done + " recherche" + (done > 1 ? "s" : "") + " · " + span + " · ≈ " + fr(done * 26.19) + " €");
+  say(u >= 0.4 && u < 0.8 ? q.value + " → " + SOURCES[q.src] + " · lien direct · 10–15 min gagnées" : done + " recherche" + (done > 1 ? "s" : "") + " · " + span + " · ≈ " + fr(done * 26.19) + " €");
 }
-const run = loop((dt, calm) => { if (calm) clock = 0.7 * CYCLE; else if (touring) clock += dt; draw(); });
+const run = loop((dt, calm) => { if (calm) clock = 0.6 * CYCLE; else if (touring) clock += dt; draw(performance.now() / 1000); });
 const steer = (next) => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; }, 5000); clock = Math.max(0, next); run(); };
 dragX(() => clock, (v, share) => steer(v + share * CYCLE * 6));
-stage.addEventListener("keydown", (e) => {
-  const to = { ArrowRight: (Math.floor(clock / CYCLE) + 1.7) * CYCLE, ArrowLeft: Math.max(0.7, Math.floor(clock / CYCLE) - 0.3) * CYCLE }[e.key];
-  if (to !== undefined) { e.preventDefault(); steer(to); }
-});
-// Accès de vérification (captures).
-window.__fig = { at: (c) => { touring = false; clock = c * CYCLE; draw(); return readout.textContent; }, QUERIES };
-draw();
+stage.addEventListener("keydown", (e) => { const to = { ArrowRight: (Math.floor(clock / CYCLE) + 1.6) * CYCLE, ArrowLeft: Math.max(0.6, Math.floor(clock / CYCLE) - 0.4) * CYCLE }[e.key]; if (to !== undefined) { e.preventDefault(); steer(to); } });
+window.__fig = { at: (c) => { touring = false; clock = c * CYCLE; draw(1); return readout.textContent; }, QUERIES };
+draw(1);
 `;
 
 const plate = k.plateHtml({
@@ -226,11 +171,11 @@ const plate = k.plateHtml({
   hint: "Glisse ou ← → : recherche",
   readout: "0 recherche",
   keys: [
-    { mark: "lit", label: "La capsule de la recherche en cours, posée dans sa station" },
-    { mark: "raised", label: "Chargeurs : OT, équipement, bâtiment ; stations : GMAO, exports, SharePoint, Excel, Power BI" },
+    { mark: "lit", label: "La fiche de la recherche en cours, le fil et la source atteinte" },
+    { mark: "raised", label: "À gauche, OT, équipement, bâtiment ; à droite, GMAO, exports, SharePoint, Excel, Power BI" },
   ],
-  caption: "Une recherche par OT, équipement ou bâtiment arrive au même pupitre ; la bonne source s'allume et le lien mène directement à l'écran concerné, sans recopier les données des outils. Chaque recherche fait gagner 10 à 15 min (près d'1 h quand elle passait par d'autres outils), soit ≈ 26 € à 104,74 €/h. Pour 14 utilisateurs, l'estimation annuelle de 118 à 589 k€ reste à confirmer. Recherches affichées illustratives.",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Monorail de recherche : flèches gauche et droite pour passer à la recherche suivante" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">${svg}</div>`,
+  caption: "Une recherche par OT, équipement ou bâtiment arrive au même tableau ; la bonne source s'allume et le lien mène directement à l'écran concerné, sans recopier les données des outils. Chaque recherche fait gagner 10 à 15 min (près d'1 h quand elle passait par d'autres outils), soit ≈ 26 € à 104,74 €/h. Pour 14 utilisateurs, l'estimation annuelle de 118 à 589 k€ reste à confirmer. Recherches affichées illustratives.",
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Tableau d'enquête : flèches gauche et droite pour passer à la recherche suivante" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">${svg}</div>`,
 });
 
-writeFigure("suivi", { title: "Retrouver tout le suivi · monorail de capsules", plate, live });
+writeFigure("suivi", { title: "Retrouver tout le suivi · tableau d'enquête", plate, live, css: `<style>.fg-str{fill:none;stroke:#3e63dd;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}</style>` });

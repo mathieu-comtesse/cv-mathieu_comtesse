@@ -1,14 +1,11 @@
-// Fig 09 · Retrouver tout le suivi : un monorail de capsules, en 3D (cotes de figures/build-suivi.mjs).
-// Le chariot du rail saisit la capsule du chargeur de la recherche (OT, équipement, bâtiment), la mène à la station de la bonne source
-// (GMAO, exports, SharePoint, Excel, Power BI) et la pose dans sa cuvette ; le voyant s'allume : lien direct, sans recopier les données.
+// Fig 09 · Retrouver tout le suivi : un tableau d'enquête sur chevalet, en 3D (cotes de figures/build-suivi.mjs).
+// La fiche de la recherche s'épingle à sa ligne, un fil se tend jusqu'à la bonne source dont le voyant s'allume : lien direct, sans recopier.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylY, ball, bench, display, ease } from './core.js';
+import { COL, mat, slab, box, cyl, display, bench, paper, ease } from './core.js';
 
-export const WIDTH = 256;
-const PLATE = { x: -128, y: -46, w: 256, d: 104, r: 8 };
-const DESK = { x: -120, y: -30, w: 70, d: 54 }, DESK_H = 22, SOCKETS = [-104, -84, -64], SOCKET_Y = -8;
-const BLOCK = { x: -36, y: -22, w: 150, d: 30 }, BLOCK_H = 26, COLS = [-18, 12, 42, 72, 102], POD = { r: 8.4, h: 10 };
-const TRUNK = 112, CAPH = 12, CR = 3, RAIL_Y = -8, HANG = TRUNK - 4 - CAPH, PODZ = BLOCK_H + POD.h;
+export const WIDTH = 224;
+const PLATE = { x: -112, y: -50, w: 224, d: 100, r: 8 }, CAB = { x: -66, y: -12, w: 132, d: 30 }, CAB_H = 34, BOARD = { x: -62, w: 124, z0: 46, z1: 140 };
+const QROWS = [112, 90, 68], QX = -36, QW = 22, QH = 17, SROWS = [116, 100, 84, 68, 52], SX = 12, SW = 24, SH = 12, TRAY = { x: -26, y: 14, w: 52, d: 18 }, TRAY_Z = CAB_H;
 const SOURCES = ["GMAO", "exports", "SharePoint", "Excel", "Power BI"], KINDS = ["OT", "équipement", "bâtiment"];
 const hash = (i) => { let h = Math.imul(i + 13, 2654435761) >>> 0; h ^= h >>> 15; return (Math.imul(h, 2246822519) >>> 0) / 4294967296; };
 const QUERIES = Array.from({ length: 12 }, (_, i) => {
@@ -16,52 +13,35 @@ const QUERIES = Array.from({ length: 12 }, (_, i) => {
   const value = kind === 0 ? "OT " + (4100000 + Math.floor(hash(i + 60) * 899999)) : kind === 1 ? "ÉQ " + ["TGBT", "CTA", "SSI", "ASC", "GE"][Math.floor(hash(i + 80) * 5)] + "-" + String(Math.floor(hash(i + 90) * 90) + 10) : "BÂT " + String.fromCharCode(65 + Math.floor(hash(i + 70) * 8));
   return { kind, src, value };
 });
-const CYCLE = 4.6, lerp = (a, b, u) => a + (b - a) * u;
-const seat = (kind) => [SOCKETS[kind], SOCKET_Y, DESK_H + 1.2];
-function carry(q, u) {
-  const from = seat(q.kind), to = [COLS[q.src], RAIL_Y, PODZ + .4], home = -104;
-  let cx, z;
-  if (u < .14) { cx = lerp(home, from[0], ease(u / .14)); z = from[2]; }
-  else if (u < .24) { cx = from[0]; z = lerp(from[2], HANG, ease((u - .14) / .1)); }
-  else if (u < .5) { cx = lerp(from[0], to[0], ease((u - .24) / .26)); z = HANG; }
-  else if (u < .6) { cx = to[0]; z = lerp(HANG, to[2], ease((u - .5) / .1)); }
-  else if (u < .8) { cx = to[0]; z = to[2]; }
-  else if (u < .86) { cx = to[0]; z = lerp(to[2], HANG, ease((u - .8) / .06)); }
-  else if (u < .96) { cx = lerp(to[0], from[0], ease((u - .86) / .1)); z = HANG; }
-  else { cx = from[0]; z = lerp(HANG, from[2], ease((u - .96) / .04)); }
-  return { cx, z, plugged: u >= .58 && u < .82, away: u >= .14 && u < .96 };
-}
-const capsule = (color) => { const c = new THREE.Group(); c.add(cyl(0, 0, CR, 0, CAPH - 2, color, 20), ball(0, 0, CAPH - 2, CR, color)); return c; };
-
+const CYCLE = 4.8, lerp = (a, b, u) => a + (b - a) * u;
 export function build() {
   const g = new THREE.Group();
-  g.add(bench(PLATE, { strip: { x: -48, y: PLATE.y + PLATE.d - 13, w: 120, d: 7 }, label: { x: 80, y: PLATE.y + PLATE.d - 15, w: 40, d: 11 } }));
-  g.add(slab(DESK.x, DESK.y, DESK.w, DESK.d, 0, DESK_H, COL.mid, 3), slab(BLOCK.x, BLOCK.y, BLOCK.w, BLOCK.d, 0, BLOCK_H, COL.mid, 3));
-  SOCKETS.forEach((x) => g.add(cyl(x, SOCKET_Y, 5.6, DESK_H, 1.2, COL.mid, 28)));
-  const query = display(58, 7); query.mesh.position.set(-85, 16, DESK.y + DESK.d + .05); g.add(query.mesh);
-  const lampOn = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .8 });
-  const lamps = COLS.map((x, c) => {
-    g.add(cyl(x, RAIL_Y, POD.r + 2, BLOCK_H, 3, COL.lo, 28), cyl(x, RAIL_Y, POD.r, BLOCK_H + 3, POD.h - 3, COL.mid, 28));
-    const l = cyl(x + POD.r + 5, RAIL_Y + 6, 2.4, BLOCK_H, 1.2, COL.mid, 18); g.add(l);
-    const d = display(24, 8); d.mesh.position.set(x, 10, BLOCK.y + BLOCK.d + .05); d.set(['GMAO', 'exports', 'SharePoint', 'Excel', 'Power BI'][c]); g.add(d.mesh);
-    return l;
-  });
+  g.add(bench(PLATE, { strip: { x: -104, y: PLATE.y + PLATE.d - 13, w: 120, d: 7 }, label: { x: 40, y: PLATE.y + PLATE.d - 17, w: 46, d: 11 } }));
+  g.add(slab(CAB.x, CAB.y, CAB.w, CAB.d, 0, CAB_H, COL.mid, 3));
+  for (const x of [BOARD.x - 4, BOARD.x + BOARD.w + 4]) g.add(cyl(x, 0, 2.8, CAB_H + 2, BOARD.z1 + 10 - CAB_H, COL.mid, 20));
+  g.add(slab(BOARD.x - 8, -3.4, BOARD.w + 16, 6.8, BOARD.z1 + 10, 4, COL.mid, 1), slab(BOARD.x, -2.2, BOARD.w, 4.4, BOARD.z0, BOARD.z1 - BOARD.z0, COL.mid, 1.2));
+  const cork = box(0, 2.3, 89, 116, .3, 78, '#e9e4d8', 0); g.add(cork);
+  const query = display(68, 7.6); query.mesh.position.set(0, BOARD.z1 - 6.2, 2.4); g.add(query.mesh);
+  const kinds = ['OT', 'ÉQ.', 'BÂT.'].map((t, i) => { const d = display(9, 6); d.mesh.position.set(-52.5, QROWS[i] - 0, 2.4); d.set(t); g.add(d.mesh); return d; });
+  const names = ['GMAO', 'exports', 'SharePoint', 'Excel', 'Power BI'], lampOn = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .8 }), lamps = SROWS.map((z, i) => { const d = display(14, 6.8); d.mesh.position.set(50, z, 2.4); d.set(names[i]); g.add(d.mesh); const l = cyl(58.6, 2.4, .95, z - .5, .6, COL.mid, 12); l.rotation.x = Math.PI / 2; l.position.set(58.6, z, 2.7); g.add(l); return l; });
   const off = lamps[0].material;
-  for (const x of [-114, -43, 27, 87]) { const b = x < -52 ? DESK_H : x < -36 ? 0 : BLOCK_H; g.add(slab(x - 2.4, RAIL_Y - 2.4, 4.8, 4.8, b, TRUNK - b, COL.mid, .8)); }
-  g.add(slab(-112, RAIL_Y - 3.5, 226, 7, TRUNK, 6, COL.mid, 1), slab(-110, RAIL_Y - 1, 222, 2, TRUNK + 6, 1.2, COL.lo, .3));
-  const carrier = new THREE.Group(); carrier.add(slab(-7, RAIL_Y - 5, 14, 10, TRUNK + 7.2, 5, COL.mid, 1), slab(-1.2, RAIL_Y - 5, 2.4, 10, TRUNK - 4, 4, COL.mid, .2)); g.add(carrier);
-  const loaders = SOCKETS.map((x) => { const c = capsule(COL.hi); c.position.set(x, DESK_H + 1.2, SOCKET_Y); g.add(c); return c; });
-  const fly = capsule(COL.accent); g.add(fly);
-  const rod = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, 1, 6), mat(COL.dark)); g.add(rod);
-  let last = null, manual = null;
+  g.add(slab(TRAY.x, TRAY.y, TRAY.w, TRAY.d, CAB_H, 1.6, COL.lo, 2));
+  const card = (w, h) => { const p = paper(w, h, '#ffffff', 5); p.userData.flexv = true; g.add(p); return p; };
+  const qc = QROWS.map(() => card(QW, QH)), sc = SROWS.map(() => card(SW, SH)), moving = card(QW, QH), slip = card(QW, QH);
+  const str = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(), new THREE.Vector3(1, 0, 0)), 2, .3, 6), new THREE.MeshBasicMaterial({ color: '#3e63dd' })); g.add(str);
+  let clock = 0, manual = null;
   function update(time) {
-    const clock = manual ?? time, n = Math.floor(clock / CYCLE), u = clock / CYCLE - n, q = QUERIES[n % QUERIES.length], st = carry(q, u);
-    loaders.forEach((c, kind) => { c.visible = !(kind === q.kind && st.away); });
-    carrier.position.x = st.cx;
-    const carried = u >= .14;
-    fly.visible = carried && (st.away || u >= .96); fly.position.set(st.cx, st.z, RAIL_Y);
-    rod.visible = fly.visible && st.z > PODZ + 4 && st.z > DESK_H + 8; if (rod.visible) { const h = TRUNK - 3 - (st.z + CAPH - 1); rod.scale.y = Math.max(.1, h); rod.position.set(st.cx, st.z + CAPH - 1 + h / 2, RAIL_Y); }
-    COLS.forEach((_, c) => { lamps[c].material = st.plugged && c === q.src ? lampOn : off; });
+    clock = manual ?? time;
+    const n = Math.floor(clock / CYCLE), u = clock / CYCLE - n, q = QUERIES[n % QUERIES.length], qz = QROWS[q.kind], sz = SROWS[q.src], tray = [TRAY.x + TRAY.w / 2, TRAY_Z + 3 + QH / 2, TRAY.y + TRAY.d / 2];
+    const pose = (p, c, curl, wave, ph) => { p.position.set(c[0], c[1], c[2]); p.userData.flex(curl, wave, wave * .6, ph, time); };
+    qc.forEach((p, i) => { p.visible = !(i === q.kind && (u < .22 || u >= .82)); pose(p, [QX, QROWS[i], 3.4], (i % 2 ? 1 : -1) * .025, .18, i); });
+    sc.forEach((p, i) => pose(p, [SX + SW / 2, SROWS[i], 3.4], (i % 2 ? 1 : -1) * .03, .22, i + 5));
+    moving.visible = u < .22 || u >= .82;
+    if (moving.visible) { const v = u < .22 ? u / .22 : 1 - (u - .82) / .18, e = ease(v); pose(moving, [lerp(tray[0], QX, e), lerp(tray[1], qz, e) + 12 * Math.sin(Math.PI * v), lerp(tray[2], 3.4, e)], -.07 * Math.sin(Math.PI * v), 1.2 * Math.sin(Math.PI * v), n); }
+    slip.visible = u > .02 && u < .98; pose(slip, [tray[0], tray[1] - 2, tray[2]], .03, .1, n + 3);
+    const v = u < .22 ? 0 : u < .4 ? ease((u - .22) / .18) : u < .8 ? 1 : 1 - ease((u - .8) / .18);
+    str.visible = v > .001; if (str.visible) { const a = new THREE.Vector3(QX + QW / 2 + 1, qz + 3, 3.6), b = new THREE.Vector3(SX - 1, sz + 1, 3.6), e = a.clone().lerp(b, v), d = e.clone().sub(a), len = d.length(); str.geometry.dispose(); str.geometry = new THREE.TubeGeometry(new THREE.LineCurve3(a, e), 2, .3, 6); void len; }
+    lamps.forEach((l, c) => { l.material = u >= .4 && u < .8 && c === q.src ? lampOn : off; });
     query.set(u < .9 ? q.value : 'EN ATTENTE');
   }
   update(0);

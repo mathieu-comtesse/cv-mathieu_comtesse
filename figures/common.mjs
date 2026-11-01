@@ -40,6 +40,8 @@ export function bench(P, PLATE, { strip, label, plateH = 10, footH = 5 } = {}) {
     out.push(S(slab(strip, 0, 0.6, 3, 0), { tone: "lo", crease: "none" }));
     const ticks = k.topTicks(strip.x + 4, strip.x + strip.w - 4, 4, 5, strip.y + 0.8, 0.6, [2, 3.6], P);
     out.push(L(ticks.minor, { tone: "lo" }), L(ticks.major, { tone: "mid" }));
+    // Chiffres de la règle sous chaque trait majeur, à plat sur l'établi.
+    for (let i = 0, x = strip.x + 4; x <= strip.x + strip.w - 4 + 0.01; i++, x += 20) out.push(k.faceTextSvg(k.topMatrix([x, strip.y + 5.6], 0.62, P, "x"), String(i * 5), { size: 2.2, tone: "lo", anchor: "middle" }));
     out.push(D([at([strip.x + 2, strip.y + 3.5, 0.6]), at([strip.x + strip.w - 2, strip.y + 3.5, 0.6])], { size: 0.45 }));
   }
   if (label) {
