@@ -1,7 +1,9 @@
 @font-face{font-family:"Inter";src:url("fonts/Inter-latin.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:"Inter";src:url("fonts/Inter-italic-latin.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap}
 @font-face{font-family:"iAWriterQuattroV";src:url("fonts/iAWriterQuattroV.ttf") format("truetype");font-weight:100 900;font-display:swap}
-:root{--mono:"iAWriterQuattroV",ui-monospace,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
+@font-face{font-family:"Instrument Serif";src:url("fonts/InstrumentSerif-Regular.woff2") format("woff2");font-style:normal;font-display:swap}
+@font-face{font-family:"Instrument Serif";src:url("fonts/InstrumentSerif-Italic.woff2") format("woff2");font-style:italic;font-display:swap}
+:root{--serif:"Instrument Serif",Georgia,serif;--mono:"iAWriterQuattroV",ui-monospace,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 
@@ -17,6 +19,17 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-sign svg{display:block;width:330px;height:126px;overflow:visible}
 .pc-dateline{display:flex;justify-content:space-between;margin:28px 0 0;font:12px var(--mono);color:#8795ad;letter-spacing:.04em}
 
+.pc-decor{height:1500px;padding:0}
+.pc-room{position:absolute;left:0;top:60px;width:1000px;height:900px}
+.pc-hero{position:absolute;left:150px;top:960px;width:640px}
+.pc-tag{margin:0 0 14px;font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:#fff}
+.pc-hero-t{margin:0 0 26px;font:400 64px/1 var(--serif);letter-spacing:-1px;color:#fff}
+.pc-hero-t em{font-style:italic}
+.pc-hero-pro{font:500 15px/1.5 var(--sans);color:#fff}
+.pc-hero-pro p{margin:0 0 4px}
+.pc-role{font-weight:700}
+.pc-role span{font-weight:400;opacity:.85}
+.pc-hint{margin:22px 0 0;font:11px/1.5 var(--mono);color:rgba(255,255,255,.85)}
 .pc-home{height:1200px;padding:0}
 .pc-title{position:absolute;left:30px;top:120px;height:980px;width:270px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);font:700 132px/.95 var(--sans);letter-spacing:-5px;color:#fff;white-space:nowrap}
 .pc-home-col{position:absolute;left:330px;top:150px;width:270px;display:flex;flex-direction:column;gap:28px}
@@ -66,6 +79,9 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-step strong{display:block;margin:2px 0 3px;font:700 16px/1.25 var(--sans)}
 .pc-step span{display:block;color:rgba(255,255,255,.88)}
 .pc-end{margin:40px 0 0;font:12px var(--mono);color:#8a8e98;text-align:center}
+
+/* la pièce du site anime ses objets depuis un conteneur hors écran ; ils sont dessinés dans la scène du parcours */
+.pc-room-host{position:fixed;left:-10000px;top:0;width:320px;height:240px;overflow:hidden}
 
 /* ---------- mode 3D (classe posée par parcours.js quand WebGL est là) ---------- */
 #scene,#leaders,#ticks,#callouts,#nav,#back,.pc-magic{display:none}

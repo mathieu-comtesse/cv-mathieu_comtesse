@@ -209,6 +209,26 @@ async function start() {
     }).catch((e) => console.warn('machine indisponible', mod, e));
   }
 
+  /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
+     Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
+  const roomSpot = $('[data-room]');
+  if (roomSpot && !reduce) {
+    const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
+    host.className = 'pc-room-host'; host.setAttribute('aria-hidden', 'true'); bubble.className = 'bubble'; host.append(bubble); document.body.append(host);
+    Promise.all([import('../js/room.js?v=nt6-20261026'), import('three/addons/RoomEnvironment.js')]).then(async ([{ createRoom }, { RoomEnvironment }]) => {
+      const room = await createRoom(host, bubble);
+      room.setSceneMuted?.(true);
+      const g = new THREE.Group();
+      for (const o of [...room.scene.children]) if (!(o.material && o.material.isShadowMaterial)) g.add(o);
+      g.scale.setScalar(0.62); g.rotation.y = -36 * Math.PI / 180; g.position.set(rr.cx, 0, rr.cz);
+      // les arbres de la pièce (vendor-trees) embarquent leur propre Three.js, plus ancien : on complète leurs matrices
+      g.traverse((o) => { const P = Object.getPrototypeOf(o.matrixWorld); if (!P.determinantAffine) P.determinantAffine = THREE.Matrix4.prototype.determinantAffine; });
+      scene.add(g); patchTree(g);
+      const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.22;
+      window.__room = room;
+    }).catch((e) => console.warn('pièce indisponible', e));
+  }
+
   /* superpositions : légendes, « voir la magie », menu, traits courbes, repères d'échelle (relevés avant de déplacer les éléments) */
   const svg = $('#leaders'), NS = 'http://www.w3.org/2000/svg';
   const mkp = () => { const p = document.createElementNS(NS, 'path'); svg.append(p); return p; };
