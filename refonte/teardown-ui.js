@@ -4,7 +4,7 @@ const MODES = [
   ['xray','Rayons X'],['isolate','Isoler']
 ];
 const esc = (s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function mountTeardownUI(machine,{onSeekTime=()=>{},onPause=()=>{}}={}) {
+export function mountTeardownUI(machine,{onSeekTime=()=>{},onPause=()=>{},initiallyCollapsed=false}={}) {
   const td=machine.teardown;
   if(!td)return {update(){},visibility(){},dispose(){}};
   const shell=document.createElement('aside');
@@ -36,7 +36,8 @@ export function mountTeardownUI(machine,{onSeekTime=()=>{},onPause=()=>{}}={}) {
   ].join('');
   document.body.append(shell);
   const $=s=>shell.querySelector(s);
-  let paused=false,collapsed=false,lastKey='';
+  let paused=false,collapsed=!!initiallyCollapsed,lastKey='';
+  if(collapsed){shell.classList.add('rf-td--collapsed');const toggle=shell.querySelector('[data-td="collapse"]');toggle.textContent='+';toggle.setAttribute('aria-expanded','false');}
   const cancelTour=()=>{td.state.tour=false;$('[data-td="tour"]').setAttribute('aria-pressed','false');};
   shell.addEventListener('click',e=>{
     const b=e.target.closest('button');if(!b)return;
