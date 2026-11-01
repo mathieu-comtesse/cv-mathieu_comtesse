@@ -6,7 +6,7 @@ const directions=[[-24,32,-10],[-12,33,-25],[0,46,14],[15,33,26],[31,27,3]];
 const xs=[-109,-56,0,57,113];
 const standby={update(){}};
 export function buildSuivi(){
- const a=createAssembly('UNIFIED_OT_SIGNAL_EXCHANGE',278,118);
+ const a=createAssembly('Standard de recherche des OT',278,118);
  const console=a.zone(0,'User inquiry',[xs[0],0,0],directions[0]),
  selector=a.zone(1,'Selector',[xs[1],0,0],directions[1]),
  rack=a.zone(2,'Switchboard',[xs[2],0,0],directions[2]),
@@ -97,7 +97,7 @@ export function buildSuivi(){
 }
 
 export function buildStudio(){
- const a=createAssembly('PDF_EXTRACTOR_TOOLMAKER',284,126);
+ const a=createAssembly('Fabrique CNC d’extracteurs PDF',284,126);
  const sample=a.zone(0,'Document sample',[xs[0],0,0],directions[0]),
  tracing=a.zone(1,'Coordinate tracing',[xs[1],0,0],directions[1]),
  foundry=a.zone(2,'Generator CNC',[xs[2],0,0],directions[2]),
@@ -184,7 +184,7 @@ export function buildStudio(){
 }
 
 export function buildCognitive(){
- const a=createAssembly('VRE_COGNITIVE_DOCUMENT_ENGINE',306,132);
+ const a=createAssembly('Moteur cognitif documentaire VRE',306,132);
  const intake=a.zone(0,'Acquisition & geometry',[xs[0],0,0],[-22,37,-8]),
  semantic=a.zone(1,'Neural meaning',[xs[1],0,0],[-8,39,-28]),
  fusion=a.zone(2,'Spatial semantic fusion',[xs[2],0,0],[0,56,18]),
