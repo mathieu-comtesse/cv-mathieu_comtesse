@@ -1,5 +1,19 @@
 import * as THREE from 'three';
-import { drawMat } from './blueprint-hero.js';
+import { drawMat, blueprintMaterial } from './blueprint-hero.js';
+
+// Hébergement sans .glb (page publiée) : si un modèle n'est pas servi, sa copie en base64 (.glb.b64.txt) prend le relais.
+// Sur le site, les .glb répondent et cette cale ne fait rien.
+{
+  const raw = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    const url = typeof input === 'string' ? input : input.url, r = await raw(input, init);
+    if (r.ok || !/\.glb(\?|$)/.test(url)) return r;
+    const alt = await raw(url.replace(/\.glb(\?.*)?$/, '.glb.b64.txt')).catch(() => null);
+    if (!alt || !alt.ok) return r;
+    const b = atob((await alt.text()).trim()), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+    return new Response(u, { status: 200, headers: { 'Content-Type': 'model/gltf-binary' } });
+  };
+}
 
 /* « Expo » du CV : la page HTML (#page) est mise en page normalement, puis chaque élément marqué devient un objet 3D
    à la même place (1 px de page = 1 cm). data-box : boîte de verre extrudée ; data-plane : texte posé au sol ;
@@ -7,6 +21,7 @@ import { drawMat } from './blueprint-hero.js';
    Texture : l'élément lui-même via HTML-in-Canvas quand le navigateur le permet, sinon une image de la section (SVG foreignObject).
    Le défilement natif pilote la caméra : vue de face à l'échelle 1:1 au départ, puis la page se rabat en chemin et se relève au loin. */
 
+const ROOM_K = 0.62;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
 const PXM = 100;                  // px de page par mètre
 const PAGE_W = 1000;
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
@@ -74,6 +89,7 @@ async function start() {
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
   const PAGE_H = P.height;
+  const sigSvg0 = $('#pc-sign svg'), sigRect = sigSvg0 && rectOf(sigSvg0); // relevé avant tout déplacement d'élément
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x050505);
@@ -88,6 +104,7 @@ async function start() {
   /* sections : bandes de couleur */
   const sections = $$('[data-section]').map((el) => ({ el, name: el.dataset.section, color: el.dataset.color, r: rectOf(el) }));
   for (const s of sections) {
+    if ('blueprint' in s.el.dataset) continue; // le plan blueprint du site tient lieu de fond
     const g = W(s.r), m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ color: s.color }));
     m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0, g.cz); scene.add(m);
   }
@@ -95,12 +112,20 @@ async function start() {
   { const tail = new THREE.Mesh(plane(HALF * 2, 60), new THREE.MeshBasicMaterial({ color: 0x141414 })); tail.rotation.x = -Math.PI / 2; tail.position.set(0, 0, endZ + 30); scene.add(tail); }
   for (const sx of [-HALF, HALF]) { const pts = []; for (let z = -60; z <= endZ + 60; z += 0.5) pts.push(new THREE.Vector3(sx, 0.01, z)); scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), white(0.7))); }
 
-  // plan blueprint (cercles, axes, règle) de l'accueil du site, posé sur la page d'accueil
+  // le vrai plan blueprint de l'accueil du site (même tracé, même shader : grille, lueur, vignettage, grain), à l'échelle de la pièce
+  const bps = [];
   for (const el of $$('[data-blueprint]')) {
-    const g = W(rectOf(el)), t = new THREE.CanvasTexture(drawMat(2048)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-    const s = Math.max(g.w, g.d), m = new THREE.Mesh(new THREE.PlaneGeometry(s, s, 1, N(s)), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, depthWrite: false }));
-    m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0.005, g.cz); scene.add(m);
-    m.material.userData.clip = `if (abs(vMapUv.x - 0.5) * ${s.toFixed(2)} > ${(g.w / 2).toFixed(2)} || abs(vMapUv.y - 0.5) * ${s.toFixed(2)} > ${(g.d / 2).toFixed(2)}) discard;`;
+    const sec = W(rectOf(el)), spot = el.querySelector('[data-room]'), c = spot ? W(rectOf(spot)) : sec, S = 30 * ROOM_K;
+    const t = new THREE.CanvasTexture(drawMat(2048)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+    const mat = blueprintMaterial(t);
+    mat.uniforms.uClip = { value: new THREE.Vector4(sec.cx - sec.w / 2, sec.cx + sec.w / 2, sec.cz - sec.d / 2, sec.cz + sec.d / 2) };
+    mat.uniforms.uK = { value: 3.6667 / ROOM_K }; mat.uniforms.uC = { value: new THREE.Vector2(c.cx, c.cz) };
+    mat.vertexShader = 'uniform vec2 uC;\n' + CURL_GLSL + '\n' + mat.vertexShader.replace('gl_Position=projectionMatrix*viewMatrix*w;', 'gl_Position=projectionMatrix*viewMatrix*curlW(w);');
+    mat.fragmentShader = 'uniform vec4 uClip;uniform float uK;uniform vec2 uC;\n' + mat.fragmentShader
+      .replace('const float K=3.6667;', 'float K=uK;').replace('vec2 p=vW.xz*K;', 'if(vW.x<uClip.x||vW.x>uClip.y||vW.z<uClip.z||vW.z>uClip.w)discard;vec2 p=(vW.xz-uC)*K;');
+    mat.userData.pc = true; // déjà courbé
+    mat.depthWrite = false; const m = new THREE.Mesh(new THREE.PlaneGeometry(S, S, 1, N(S)), mat); m.rotation.x = -Math.PI / 2; m.position.set(c.cx, 0, c.cz); m.renderOrder = -2; scene.add(m);
+    bps.push(mat);
   }
 
   /* décor : arcs, bâtiments filaires, cotes, formules */
@@ -112,8 +137,8 @@ async function start() {
   }
   { // grille du sol, en segments courts pour se courber avec la feuille
     const v = [], A = Z0 - 40, B = Z1 + 40;
-    for (let x = -60; x <= 60; x += 4) for (let z = A; z < B; z += 1) v.push(x, -0.02, z, x, -0.02, z + 1);
-    for (let z = Math.ceil(A / 4) * 4; z < B; z += 4) for (let x = -60; x < 60; x += 1) v.push(x, -0.02, z, x + 1, -0.02, z);
+    for (let x = -60; x <= 60; x += 4) if (Math.abs(x) > HALF) for (let z = A; z < B; z += 1) v.push(x, -0.02, z, x, -0.02, z + 1);
+    for (let z = Math.ceil(A / 4) * 4; z < B; z += 4) for (let x = -60; x < 60; x += 1) if (Math.abs(x + 0.5) > HALF) v.push(x, -0.02, z, x + 1, -0.02, z); // hors de la page
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
     scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x1d1d1d })));
   }
@@ -220,7 +245,7 @@ async function start() {
       room.setSceneMuted?.(true);
       const g = new THREE.Group();
       for (const o of [...room.scene.children]) if (!(o.material && o.material.isShadowMaterial)) g.add(o);
-      g.scale.setScalar(0.62); g.rotation.y = -36 * Math.PI / 180; g.position.set(rr.cx, 0, rr.cz);
+      g.scale.setScalar(ROOM_K); g.rotation.y = -36 * Math.PI / 180; g.position.set(rr.cx, 0, rr.cz);
       // les arbres de la pièce (vendor-trees) embarquent leur propre Three.js, plus ancien : on complète leurs matrices
       g.traverse((o) => { const P = Object.getPrototypeOf(o.matrixWorld); if (!P.determinantAffine) P.determinantAffine = THREE.Matrix4.prototype.determinantAffine; });
       scene.add(g); patchTree(g);
@@ -341,7 +366,6 @@ async function start() {
         }
       };
       await draw();
-      if (s.el.querySelector('[data-anim]')) setTimeout(draw, reduce ? 0 : 4800); // la signature, une fois tracée
     }
   }
   async function inlineCss() {
@@ -436,6 +460,7 @@ async function start() {
       }
       css.render(cssScene, camera);
     }
+    for (const b of bps) { b.uniforms.uTime.value = now / 1000; b.uniforms.uRes.value.set(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
     postMat.uniforms.amt.value = e;
     if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
@@ -480,11 +505,36 @@ async function start() {
     for (; n < ticks.length; n++) ticks[n].style.display = 'none';
   }
   requestAnimationFrame(frame);
-  // signature : tracé trait après trait au chargement
-  if (!reduce) $$('#pc-sign path').forEach((p) => {
-    p.style.strokeDasharray = '1 1'; p.style.strokeDashoffset = '1';
-    p.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: parseFloat(p.dataset.t) * 1000, delay: 600 + parseFloat(p.dataset.d) * 1000, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'forwards' })
-      .finished.then(() => { p.style.strokeDashoffset = '0'; }).catch(() => {});
-  });
+  // signature : trait après trait, comme sur le site (délais et durées de chaque trait, déclenchée quand elle entre dans l'écran),
+  // dessinée dans un canvas posé sur la feuille ; la page réelle (vue de face) joue la même animation au même instant
+  const sigEl = $('#pc-sign'), sigSvg = sigEl && sigEl.querySelector('svg');
+  if (sigSvg) {
+    const r = sigRect, g = W(r), K = 2, cv = document.createElement('canvas'); cv.width = r.w * K; cv.height = r.h * K;
+    const ctx = cv.getContext('2d'), tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    const pm = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })); pm.rotation.x = -Math.PI / 2; pm.position.set(g.cx, 0.02, g.cz); pm.renderOrder = 4; scene.add(pm);
+    const vb = sigSvg.viewBox.baseVal, k = r.w / vb.width;
+    const strokes = $$('path', sigSvg).map((p) => { const tr = /translate\(([-\d.]+)[ ,]+([-\d.]+)\)/.exec(p.getAttribute('transform') || ''); return { p2: new Path2D(p.getAttribute('d')), len: p.getTotalLength(), w: parseFloat(p.getAttribute('stroke-width')), d: parseFloat(p.dataset.d), t: parseFloat(p.dataset.t), tx: tr ? +tr[1] : 0, ty: tr ? +tr[2] : 0, el: p }; });
+    const bez = (t) => { let a = t; for (let i = 0; i < 6; i++) { const x = 3 * .25 * a * (1 - a) ** 2 + 3 * .25 * a * a * (1 - a) + a ** 3; a -= (x - t) / Math.max(1e-3, 3 * .25 * (1 - a) ** 2 + 6 * (.25 - .25) * a * (1 - a) + 3 * (1 - .25) * a * a); a = Math.min(1, Math.max(0, a)); } return 3 * .1 * a * (1 - a) ** 2 + 3 * a * a * (1 - a) + a ** 3; };
+    let t0 = null;
+    const draw = (now) => {
+      ctx.clearRect(0, 0, cv.width, cv.height); ctx.strokeStyle = '#e0ebfd'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      let done = true;
+      for (const st of strokes) {
+        const u = reduce ? 1 : t0 === null ? 0 : Math.min(1, Math.max(0, (now - t0 - st.d * 1000) / (st.t * 1000))); if (u < 1) done = false; if (u <= 0) continue;
+        ctx.setTransform(K * k, 0, 0, K * k, K * k * (-vb.x + st.tx), K * k * (-vb.y + st.ty)); ctx.lineWidth = st.w;
+        ctx.setLineDash([st.len * bez(u), st.len * 2]); ctx.stroke(st.p2);
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0); tex.needsUpdate = true; return done;
+    };
+    if (!reduce) strokes.forEach((st) => { st.el.style.strokeDasharray = '1 1'; st.el.style.strokeDashoffset = '1'; });
+    const tick = (now) => {
+      if (t0 === null && scrollY + innerHeight > r.y + 100) { // entrée dans l'écran (marge 100 px, comme le site)
+        t0 = now + 300;
+        if (!reduce) strokes.forEach((st) => st.el.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: st.t * 1000, delay: 300 + st.d * 1000, easing: 'cubic-bezier(.25,.1,.25,1)', fill: 'forwards' }).finished.then(() => { st.el.style.strokeDashoffset = '0'; }).catch(() => {}));
+      }
+      if (!draw(now) || t0 === null) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
   window.__expo = { camera, sections, items, HIC };
 }
