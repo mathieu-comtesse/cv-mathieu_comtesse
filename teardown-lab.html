@@ -149,14 +149,15 @@ window.__teardownDebug=()=>({
   geometry:current?.machine?(()=>{let n=0;current.machine.group.traverse(o=>{if(o.isMesh)n++;});return n;})():0,
   mode:current?.teardown?.state?.mode??null
 });
+let aimY=2.5;
 let current=null,ui=null,selected=-1,loadingVersion=0,clockStart=performance.now(),shift=0,paused=false,pauseAt=0,cam,rotation={yaw:36*Math.PI/180,pitch:25*Math.PI/180,dist:34},canvas=null,pointer=null;
 const rawTime=()=> (performance.now()-clockStart)/1000+shift;
 const activeTime=()=>paused?pauseAt:(reduced?shift:rawTime());
 function seek(t){if(paused)pauseAt=t;else if(reduced)shift=t;else shift+=t-activeTime();}
 function pause(on){if(on&&!paused){pauseAt=activeTime();paused=true;}else if(!on&&paused){if(reduced)shift=pauseAt;else shift+=pauseAt-rawTime();paused=false;}}
 function pose(){if(!cam)return;const {yaw,pitch,dist}=rotation,cy=Math.cos(pitch);
- cam.position.set(Math.sin(yaw)*cy*dist,2.5+Math.sin(pitch)*dist,Math.cos(yaw)*cy*dist);
- cam.lookAt(0,2.5,0);cam.updateMatrixWorld(true);}
+ cam.position.set(Math.sin(yaw)*cy*dist,aimY+Math.sin(pitch)*dist,Math.cos(yaw)*cy*dist);
+ cam.lookAt(0,aimY,0);cam.updateMatrixWorld(true);}
 function onResize(){if(!cam)return;cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();pose();current?.resize();}
 window.addEventListener('resize',onResize);
 cam=new THREE.PerspectiveCamera(30,innerWidth/innerHeight,1,400);
@@ -188,6 +189,7 @@ async function choose(i){
    const loaded=await mountMachine(p.id,canvas,cam,undefined,{width:24});
    if(version!==loadingVersion){loaded.dispose();return;}
    current=loaded;
+   if(loaded.frameInfo){aimY=Math.max(2.5,loaded.frameInfo.centerY);rotation.dist=Math.max(34,loaded.frameInfo.radius*1.95);pose();}
    ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause});
    syncSlider();
    $('#status').hidden=true;
