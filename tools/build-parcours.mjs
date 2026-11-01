@@ -55,7 +55,7 @@ const COLORS = ['#5b21b6', '#a00e5c', '#0f8f30', '#1d4ed8'];
 const sentences = (t) => (t.match(/[^.!?]+[.!?]+/g) || [t]).map((x) => x.trim()).filter(Boolean);
 const two = (n) => String(n).padStart(2, '0');
 
-const sommaire = [...NAV, 'Gains', 'Parcours', 'Compétences', 'Blog', 'Contact'].map((n, i) => `<li><span>${two(i + 1)}</span>${esc(n)}</li>`).join('');
+const sommaire = [...NAV, 'Gains', 'Parcours', 'Blog', 'Contact'].map((n, i) => `<li><span>${two(i + 1)}</span>${esc(n)}</li>`).join('');
 const graphe = '<ul class="pc-graph-list">' + themes.map((t, i) => `<li data-hub="${two(i + 1)} ${esc(t.title)}"><span>${two(i + 1)} ${esc(t.title)}</span><ul>` +
   t.tiles.map((x) => `<li><a href="${esc(x.href)}.html"><img src="${esc(x.img)}" alt="" width="84" height="60" loading="lazy">${esc(x.title)}</a></li>`).join('') + '</ul></li>').join('') + '</ul>';
 
@@ -100,30 +100,17 @@ const gains = `<section class="pc-sec" data-section="Gains" data-color="#7a1f4f"
 
 /* parcours et compétences : la page Expériences */
 const exp = read('experiences.html');
-const entries = [...exp.matchAll(/<article class="rf-tl-entry[^"]*">([\s\S]*?)<\/article>/g)].map((m) => ({
-  role: first(/rf-tl-role">([\s\S]*?)<\/p>/, m[1]), date: first(/rf-tl-date">([\s\S]*?)<\/p>/, m[1]),
-  org: first(/rf-tl-date">[\s\S]*?<\/p>\s*<p[^>]*>([\s\S]*?)<\/p>/, m[1]), desc: first(/rf-tl-desc">([\s\S]*?)<\/p>/, m[1]) }));
-const groups = [...exp.matchAll(/<div class="rf-sk-grp[\s\S]*?<h3>([\s\S]*?)<\/h3>[\s\S]*?<div class="rf-sk-chips">([\s\S]*?)<\/div><\/div>/g)].map((m) => ({
-  t: text(m[1]), chips: [...m[2].matchAll(/<span class="rf-chipx">([\s\S]*?)<span>([\s\S]*?)<\/span><\/span>/g)].map((c) => ({ t: text(c[2]), learning: /rf-chipx-b/.test(c[1]) })) }));
-const parcours = `<section class="pc-sec" data-section="Parcours" data-color="#4b22b8" aria-labelledby="s-parcours">
-  <div class="pc-exp-top">
-    <div class="pc-live pc-hublot" data-live="hublot" aria-label="Hublot de train : tirer le store vers le haut ou vers le bas">
-      <div class="rf-win" id="rf-win"><div class="rf-win-view" aria-hidden="true"><video class="rf-win-video" id="rf-win-video" loop muted playsinline preload="none" poster="assets/hublot/paysage-poster.webp" width="576" height="432"><source src="assets/hublot/paysage-redresse.mp4" type="video/mp4"></video></div><img class="rf-win-inner" src="assets/hublot/window-inner-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true"><div class="rf-win-glass"><div class="rf-win-shutter" id="rf-shutter"><img class="rf-win-panel" src="assets/hublot/window-shutter.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true"><div class="rf-win-grip" id="rf-grip" role="slider" tabindex="0" aria-label="Ouverture du volet du hublot" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Fermé" aria-controls="rf-shutter"></div></div></div><img class="rf-win-outer" src="assets/hublot/window-outer-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true"></div>
-    </div>
-    <div class="pc-exp-title"><h2 class="pc-h" id="s-parcours" data-plane>Mon parcours jusqu’à présent</h2>
-    <p class="pc-lead" data-plane>Quatre ans passés sur le rail, de la circulation à la sécurité en gare. À construire des outils, expérimenter et acquérir de nouvelles compétences à chaque étape.</p></div>
+// la page Expériences telle qu'elle est sur le site : hublot et titre, chronologie (rail, train, ligne, logos, cadres) et compétences
+const sec = (re) => (re.exec(exp) || [''])[0].replace(/ rf-tl-rv/g, '').replace(/ loading="lazy"/g, ''); // pas d'apparition ni de chargement différé : la page est dessinée hors écran
+const top = sec(/<section class="rf-exp-top">[\s\S]*?<\/section>/), tl = sec(/<section class="rf-exp-tl" id="rf-tl">[\s\S]*?<\/section>\s*(?=<\/main>)/);
+const hub = (/<div class="rf-win" id="rf-win"[\s\S]*?<img class="rf-win-outer"[^>]*>\s*<\/div>/.exec(top) || [''])[0];
+const ttl = (/<div class="rf-exp-title">[\s\S]*?<\/div>/.exec(top) || [''])[0].replace(/<h1>/, '<h2 id="s-parcours">').replace(/<\/h1>/, '</h2>');
+const parcours = `<section class="pc-sec pc-exp" data-section="Parcours" data-color="#05080d" aria-labelledby="s-parcours">
+  <div class="rf-exp-top pc-exp-top">
+    <div class="pc-live pc-hublot" data-live="hublot" aria-label="Hublot de train : tirer le store vers le haut ou vers le bas">${hub}</div>
+    ${ttl.replace('<div class="rf-exp-title">', '<div class="rf-exp-title pc-exp-title" data-plane>')}
   </div>
-  <div class="pc-cards">${entries.map((e) => `
-    <article class="pc-box pc-card" data-box="0.4" data-callout="${esc(e.org)}" data-callout-sub="${esc(e.date)}"><p class="pc-kicker">${esc(e.date)} · ${esc(e.org)}</p><h3>${esc(e.role)}</h3><p>${esc(e.desc)}</p></article>`).join('')}
-  </div>
-</section>
-
-<section class="pc-sec" data-section="Compétences" data-color="#b83a10" aria-labelledby="s-comp">
-  <h2 class="pc-h" id="s-comp" data-plane>Compétences</h2>
-  <p class="pc-note pc-legend" data-plane>Les compétences marquées ◐ sont en cours d’acquisition.</p>
-  <div class="pc-cards pc-cards3">${groups.map((g) => `
-    <div class="pc-box pc-skill" data-box="0.3"><h3>${esc(g.t)}</h3><p class="pc-chips">${g.chips.map((c) => `<span${c.learning ? ' class="pc-learning"' : ''}>${c.learning ? '◐ ' : ''}${esc(c.t)}</span>`).join('')}</p></div>`).join('')}
-  </div>
+  ${tl.replace('<section class="rf-exp-tl" id="rf-tl">', '<section class="rf-exp-tl pc-exp-tl" id="rf-tl" data-plane data-tl aria-label="Parcours et compétences">')}
 </section>`;
 
 /* blog : la page Blog (introduction, symbole infini, articles par rubrique) */

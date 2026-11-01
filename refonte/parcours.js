@@ -94,6 +94,8 @@ async function start() {
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
   const PAGE_H = P.height;
+  const tlEl = $('[data-tl]'), tlRect = tlEl && rectOf(tlEl), tlLine = tlEl?.querySelector('#rf-tl-line'), tlDot = tlEl?.querySelector('#rf-tl-dot');
+  const tlS = { p: 0, v: 0 };
   // liens d'un bloc dessiné sur la feuille (contact) : zones actives transparentes recalées sur l'image, mêmes survols que le site
   const hots = $$('[data-hot] .rf-link').map((a) => { const r = rectOf(a), box = a.closest('.rf-contact-in'), h = document.createElement('a');
     h.className = 'pc-hot'; h.setAttribute('aria-label', a.getAttribute('aria-label') || a.textContent.trim());
@@ -423,6 +425,7 @@ async function start() {
     const S = Math.min(1.5, 8000 / r.h);
     const clone = el.cloneNode(true); clone.style.background = 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
     clone.querySelectorAll('[data-graph]').forEach((n) => n.remove());
+    await Promise.all([...clone.querySelectorAll('img')].map(async (im) => { try { const b = await (await fetch(im.getAttribute('src'))).blob(); im.setAttribute('src', await new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); })); } catch { im.remove(); } }));
     const xml = new XMLSerializer().serializeToString(clone);
     const svgDoc = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.w}" height="${r.h}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/</g, '\\3c ')}</style>${xml}</div></foreignObject></svg>`;
     const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgDoc); await img.decode();
@@ -507,6 +510,11 @@ async function start() {
       css.render(cssScene, camera);
     }
     for (const b of bps) { b.uniforms.uTime.value = now / 1000; b.uniforms.uRes.value.set(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
+    if (tlLine) { // ressort raideur 45 / amortissement 20, comme sur la page Expériences
+      const to = Math.max(0, Math.min(1, (s + innerHeight * 0.6 - tlRect.y) / tlRect.h));
+      tlS.v += (-45 * (tlS.p - to) - 20 * tlS.v) * Math.min(0.032, dtS); tlS.p += tlS.v * Math.min(0.032, dtS);
+      if (Math.abs(tlS.p - (tlS.shown ?? -1)) > 0.0008) { tlS.shown = tlS.p; tlLine.style.transform = `scaleY(${tlS.p.toFixed(4)})`; tlDot.style.top = (tlS.p * 100).toFixed(2) + '%'; }
+    }
     postMat.uniforms.amt.value = e;
     if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
