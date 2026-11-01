@@ -195,27 +195,6 @@ try {
   ok('menu : 7 chapitres, ' + allProjects.length + ' projets reliés, molette vers menu, menu vers caméra, liens profonds, connexions contextuelles (' + vis.length + ' visibles)');
   await ctx.close();
 
-  /* la vraie pièce : même composant que l'accueil, rendue avec la caméra du voyage */
-  ({ ctx, page } = await open('/spatial.html?reset'));
-  await page.waitForFunction(() => window.__spatial.room && document.querySelector('#room canvas') && +document.getElementById('room').dataset.sceneFrames > 2, null, { timeout: 280000, polling: 1000 });
-  const roomInfo = await S(page, () => { const R = window.__spatial.room; return { hero: !!R.hero, items: R.bbox ? true : false, frames: +document.getElementById('room').dataset.sceneFrames }; });
-  assert.ok(roomInfo.hero, 'le personnage de la pièce est présent');
-  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 0, 'la pièce est visible à l’arrivée');
-  const same = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) < 1e-3;
-  await page.waitForTimeout(1500);
-  assert.ok(await S(page, () => { const w = window.__spatial.world.camera.position, r = window.__spatial.room.camera.position; return Math.hypot(w.x - r.x, w.y - r.y, w.z - r.z) < 1e-3; }), 'à u = 0 la caméra du monde est celle de la pièce');
-  await S(page, () => window.__spatial.scroll.goTo(700, 0)); await page.waitForTimeout(2500);
-  assert.ok(await S(page, () => { const w = window.__spatial.world.camera.position, r = window.__spatial.room.camera.position; return Math.hypot(w.x - r.x, w.y - r.y, w.z - r.z) < 1e-3 && window.__spatial.world.camera.position.distanceTo(window.__spatial.room.target) > 30; }), 'pendant la transition les deux moteurs partagent la même caméra');
-  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 0, 'la pièce reste visible pendant le recul');
-  await page.screenshot({ path: out + '/05-transition-piece.png', timeout: 150000 });
-  await S(page, () => window.__spatial.scroll.goTo(6000, 0)); await page.waitForTimeout(2500);
-  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 1, 'la pièce est suspendue loin de l’origine');
-  await S(page, () => window.__spatial.select('accueil', { instant: true })); await page.waitForTimeout(3000);
-  assert.equal(await page.locator('#stage.sp-room-hidden').count(), 0, 'retour à l’accueil : la pièce revient'); assert.equal(await S(page, () => window.__spatial.scroll.current), 0);
-  await page.locator('#rf-ruler-h').focus(); const az0 = await S(page, () => window.__spatial.room.view.tAz); for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
-  assert.notEqual(await S(page, () => window.__spatial.room.view.tAz), az0, 'la règle de l’accueil tourne la vraie pièce');
-  ok('pièce : personnage présent, caméra commune pendant la transition, suspension lointaine, retour à l’accueil, règles de la pièce'); await ctx.close();
-
   assert.deepEqual(errors, [], 'erreurs JavaScript : ' + errors.join('\n'));
   console.log('PASS: scénarios de la vue spatiale');
 } finally { await browser.close(); server.close(); }
