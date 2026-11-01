@@ -6,6 +6,7 @@
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
 import { tools, bench, writeFigure, LOOP } from "./common.mjs";
+import { column } from "./parts.mjs";
 
 const WIDTH = 560, HEIGHT = 520;
 // ---------------------------------------------------------------- monde (1 unité ≈ 5 mm)
@@ -145,8 +146,8 @@ function frontSvg() {
   { const [lx, ly] = at([bx, -1, bz + 21.4]); out.push(`<circle class="fig-lamp" data-part="lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.2"/>`); }
   // Poteaux avant du bâti et chapeau du panneau.
   for (const px of [-66.8, 63.2]) {
-    out.push(S(slab({ x: px, y: -10, w: 3.6, d: 22, r: 0.8 }, TRAY_Z, BTOP - 6 - TRAY_Z, 3, 0.5), { tone: "mid" }));
-    out.push(D([at([px + 1.8, 12, TRAY_Z + 8]), at([px + 1.8, 12, BTOP - 14])], { size: 0.4 }));
+    for (const py of [-7, 9]) out.push(column({ k, G, P, S, L, D, at }, { x: px + 1.8, y: py, z0: TRAY_Z, z1: BTOP - 4, r: 1.8, base: false, flutes: 8, collars: [0.2, 0.5, 0.8] }));
+    out.push(S(slab({ x: px + 0.6, y: -6, w: 2.4, d: 14, r: 0.3 }, TRAY_Z + 20, 2, 2, 0.1), { tone: "mid" }));
   }
   out.push(S(slab({ x: -66.8, y: -10, w: 133.6, d: 6.5, r: 1.2 }, BTOP - 4, 3.5, 3, 0.7), { tone: "mid", inner: L(k.sideSeam({ x: -66.8, y: -10, w: 133.6, d: 6.5, r: 1.2 }, BTOP - 2.5, P, 3), { tone: "faint" }) }));
   return out.join("");
@@ -182,16 +183,7 @@ function chuteDetail() {
   SEG.forEach(([a, b]) => { const dots = []; for (let x = a + 3; x < b - 2; x += 6) dots.push(at([x, Y1 + 2.6, zs(x) + 1.3])); out.push(D(dots, { size: 0.3 })); });
   return out.join("");
 }
-function postDetail() {
-  const out = [];
-  for (const px of [-66.8, 63.2]) {
-    const xf = px + 3.6, f = right(xf);
-    out.push(`<g transform="${f}"><path class="iso-line" data-tone="faint" d="${flat(-11.5, TRAY_Z + 4, 9.5, BTOP - 14, 1, 3)}"/></g>`);
-    for (const z of [TRAY_Z + 12, BTOP - 24]) out.push(S(slab({ x: px - 0.5, y: -10.5, w: 4.6, d: 23, r: 0.6 }, z, 2.2, 2, 0.3), { tone: "mid" }));
-    out.push(D([at([px + 1.8, 12, TRAY_Z + 3]), at([px + 1.8, -8, TRAY_Z + 3])], { size: 0.38 }));
-  }
-  return out.join("");
-}
+function postDetail() { return ""; }
 function hopperDetail() {
   const out = [], x1 = XR + 5.4;
   // Bague de tête du chargeur, règle de niveau (un trait par tranche de 50 billes) sur sa paroi.
