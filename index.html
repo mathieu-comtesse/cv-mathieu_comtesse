@@ -20,8 +20,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="cursor.css?v=5">
 <link rel="stylesheet" href="style.css?v=cv-light-v75">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="refonte/fonts/InstrumentSerif-Regular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="refonte/fonts/InstrumentSerif-Italic.woff2">
 <link rel="stylesheet" href="project-dioramas.css?v=cv-light-v6">
 <link rel="stylesheet" href="refonte/rf.css?v=mvp040j2">
 <link rel="preload" as="fetch" crossorigin href="assets/reference-character.glb?v=cv-scene-v22">
@@ -66,6 +66,13 @@
 <link rel="preload" as="fetch" crossorigin href="assets/nb992-fitted-v27.glb">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
 <script type="module" src="refonte/main.js?v=mvp040j2"></script>
+<!-- seo:start -->
+<link rel="canonical" href="https://comtesse.me/">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:title" content="Mathieu Comtesse · Les bons processus ne naissent pas. Ils se construisent.">
+<meta name="twitter:description" content="L’espace de Mathieu Comtesse : qualité, sécurité, méthodes Lean et outils numériques. Expériences, travaux aboutis, essais imparfaits et questions à explorer.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfilePage","@id":"https://comtesse.me/#profile","url":"https://comtesse.me/","name":"Mathieu Comtesse · Les bons processus ne naissent pas. Ils se construisent.","description":"L’espace de Mathieu Comtesse : qualité, sécurité, méthodes Lean et outils numériques. Expériences, travaux aboutis, essais imparfaits et questions à explorer.","inLanguage":"fr","mainEntity":{"@type":"Person","@id":"https://comtesse.me/#person","name":"Mathieu Comtesse","jobTitle":"Ingénieur Maintenance et Qualité","url":"https://comtesse.me/","sameAs":["https://www.linkedin.com/in/mathieu-comtesse-a226a1433/","https://github.com/mathieu-comtesse"],"worksFor":{"@type":"Organization","name":"SNCF Gares & Connexions"},"alumniOf":[{"@type":"CollegeOrUniversity","name":"Université Sorbonne Paris Nord"}],"knowsAbout":["Management de la qualité","Prévention des risques professionnels","Maintenance réglementaire","Amélioration continue","Automatisation des processus"]}}</script>
+<!-- seo:end -->
 </head>
 <body class="page-home rf">
 <script>window.ToddhamIntroOptions={background:'#07090c',color:'#1254fa',manual:true,minDuration:700,duration:500,text:'COMTESSE • '}</script>
@@ -94,6 +101,17 @@
 <div class="rf-caption" id="rf-caption">
   <p class="rf-tag rf-mono">Conçu pour questionner l’évidence</p>
   <h1 id="titre"><span class="rf-line">Les bons processus ne naissent pas.</span><span class="rf-line"><em>Ils se construisent.</em></span></h1>
+  <div class="rf-pro">
+    <p class="rf-pro-role">Ingénieur Maintenance et Qualité <span>· alternance, Master 2 MQSE</span></p>
+    <p class="rf-pro-lead">Amélioration continue, prévention des risques, automatisation et intelligence artificielle appliquée aux processus métier.</p>
+    <p class="rf-pro-lead rf-pro-more">Je conçois des solutions qui simplifient le travail des équipes, fiabilisent les données et produisent des résultats mesurables.</p>
+    <nav class="rf-pro-actions" aria-label="Accès directs">
+      <a href="#projets">Explorer mes réalisations</a>
+      <a href="assets/cv-ats-mathieu-comtesse.pdf" type="application/pdf" target="_blank" rel="noopener">Consulter mon CV (PDF)</a>
+      <a href="experiences">Découvrir mon parcours</a>
+      <a href="#contact">Me contacter</a>
+    </nav>
+  </div>
   <p class="rf-hint rf-mono">Le personnage vit dans la pièce : laissez-le se déplacer, ou attrapez-le pour choisir une activité. Cliquez sur les objets pour découvrir Mathieu.</p>
 </div>
 
@@ -188,14 +206,14 @@
 <footer class="rf-foot" aria-label="Pied de page">
   <div class="rf-foot-in">
     <div class="rf-foot-card">
-      <p class="rf-fh">Métadonnées</p>
+      <details class="rf-tech"><summary>Informations techniques</summary>
       <dl class="rf-fgrid">
         <div><dt>Version</dt><dd data-t="mvp040j">mvp040j</dd></div>
         <div><dt>Navigateur</dt><dd id="rf-f-browser">…</dd></div>
         <div><dt>Heure actuelle</dt><dd id="rf-f-time">…</dd></div>
         <div><dt>Dimensions</dt><dd id="rf-f-dim">…</dd></div>
         <div><dt>Dernière mise à jour</dt><dd data-t="oct. 2026">oct. 2026</dd></div>
-      </dl>
+      </dl></details>
       <div class="rf-fsep" aria-hidden="true"></div>
       <div class="rf-flinks">
         <p class="rf-fh">Liens</p>
@@ -209,6 +227,6 @@
 
 <dialog class="rf-dialog" id="rf-dialog" aria-label="Détail du projet"><button class="rf-close" type="button" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div id="rf-dialog-body"></div></dialog>
 
-<noscript><p class="ns">Cette page demande JavaScript pour afficher la pièce en 3D.</p></noscript>
+<noscript><p class="ns">La pièce en 3D demande JavaScript. L’essentiel reste accessible : <a href="experiences">parcours et expériences</a>, <a href="gains">gains</a>, <a href="blog">projets détaillés</a> et <a href="assets/cv-ats-mathieu-comtesse.pdf">CV (PDF)</a>.</p></noscript>
 </body>
 </html>

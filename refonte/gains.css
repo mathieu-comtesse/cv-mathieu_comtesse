@@ -50,3 +50,20 @@
 @media(max-width:600px){.rf-gx-page .gx-main{width:calc(100% - 40px)}.gains-stats{margin:28px 0 36px;padding:20px 0;grid-template-columns:1fr 1fr}.gains-stats>div{padding:0 8px}.gains-stats>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid #a5c8ff30;margin-top:20px;padding-top:16px}.gains-stats strong{font-size:25px}.gains-chart-head{align-items:flex-start;flex-direction:column;gap:8px}.gains-svg{min-height:250px}.gains-tip{font-size:12px;max-height:300px;padding:14px}.gains-legend{gap:12px}.gains-method [data-coin-rate]{margin-left:0;width:100%}.gains-hint{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.gains-hit{transition:none}}
 @media(max-width:600px){.gains-svg text{font-size:14px}.gains-hit,.gains-hit:focus-visible,.gains-hit.is-active{stroke-width:58}.gains-hit.is-active{stroke-opacity:.08}}
+
+/* Restitution HTML des gains : tableau et méthodologie */
+.gx-table{margin-top:56px}
+.gx-table h2{font-size:18px;font-weight:500;letter-spacing:-.4px;margin:0 0 8px}
+.gx-table .gx-lead,.gx-method p,.gx-method li{font-size:13px;line-height:1.6;color:#a9b8ce;margin:0 0 10px}
+.gx-scroll{overflow-x:auto;margin-top:16px}
+.gx-scroll:focus-visible,.gx-method summary:focus-visible,.gx-table a:focus-visible{outline:2px solid #a5c8ff;outline-offset:4px}
+.gx-table table{width:100%;min-width:720px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.gx-table caption{text-align:left;color:#a9b8ce;font-size:12px;padding-bottom:8px}
+.gx-table th,.gx-table td{padding:10px 12px 10px 0;text-align:left;vertical-align:top;border-bottom:1px solid #a5c8ff30;color:#c0cde0}
+.gx-table thead th{font-weight:560;color:#e0ebfd;font-size:12px}
+.gx-table tbody th a{color:#e0ebfd;text-underline-offset:4px}
+.gx-table tfoot th,.gx-table tfoot td{color:#e0ebfd;font-weight:560;border-bottom:0}
+.gx-method{margin-top:24px;border-top:1px solid #a5c8ff30;padding-top:12px}
+.gx-method summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;color:#e0ebfd}
+.gx-method h3{font-size:13px;font-weight:560;color:#e0ebfd;margin:18px 0 6px}
+.gx-method ul{margin:0;padding-left:18px}

@@ -1,2 +1,8 @@
 iA Writer Quattro (variable) — police libre sous SIL Open Font License 1.1 (Information Architects).
 Inter — chargée depuis Google Fonts, licence SIL OFL 1.1.
+
+
+Instrument Serif (InstrumentSerif-Regular.woff2, InstrumentSerif-Italic.woff2)
+Copyright 2022 The Instrument Serif Project Authors (https://github.com/Instrument/instrument-serif)
+SIL Open Font License, Version 1.1 : https://openfontlicense.org
+Fichiers convertis en WOFF2 à partir des TTF publiés par Google Fonts, sans modification des glyphes.

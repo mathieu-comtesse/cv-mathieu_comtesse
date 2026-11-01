@@ -1,0 +1,24 @@
+name: Site integrity
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: SEO (bloc de métadonnées, sitemap, robots) à jour
+        run: node tools/seo-build.mjs --check
+      - name: Cohérence du site
+        run: node tools/test-site-consistency.mjs
+      - name: Indicateurs et gains
+        run: |
+          node tools/test-indicators.mjs
+          node tools/test-annual-gains.mjs
+          node tools/test-project-metadata.mjs
