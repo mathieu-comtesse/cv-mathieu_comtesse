@@ -11,11 +11,11 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
    Règle : l'apparence d'un élément ne dépend que de ses propres classes (il est sorti de la page pour être dessiné). */
 .pc-page{width:1000px;margin:0 auto;color:#fff}
 .pc-sec{position:relative;padding:130px 60px 110px;background:#111}
-.pc-intro{min-height:1150px;padding-top:150px}
-.pc-intro-in{width:560px;margin:0 auto}
-.pc-ap{margin:0 0 30px;font:500 22px/33px var(--sans);letter-spacing:-.25px;color:#abb5c7}
+.pc-intro{min-height:880px;padding-top:56px} /* texte et signature tiennent ensemble dans le premier écran */
+.pc-intro-in{width:880px;margin:0 auto}
+.pc-ap{margin:0 0 20px;font:500 21px/31px var(--sans);letter-spacing:-.25px;color:#abb5c7}
 .pc-ap1{color:#e0ebfd;font-weight:600}
-.pc-sign{width:560px;padding-top:24px}
+.pc-sign{width:880px;padding-top:4px}
 .pc-sign svg{display:block;width:330px;height:126px;overflow:visible}
 .pc-dateline{display:flex;justify-content:space-between;margin:28px 0 0;font:12px var(--mono);color:#8795ad;letter-spacing:.04em}
 
@@ -30,7 +30,7 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-role{font-weight:700}
 .pc-role span{font-weight:400;opacity:.85}
 .pc-hint{margin:22px 0 0;font:11px/1.5 var(--mono);color:rgba(255,255,255,.85)}
-.pc-home{height:1200px;padding:0}
+.pc-home{height:1320px;padding:0}
 .pc-title{position:absolute;left:30px;top:120px;height:980px;width:270px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);font:700 132px/.95 var(--sans);letter-spacing:-5px;color:#fff;white-space:nowrap}
 .pc-home-col{position:absolute;left:330px;top:150px;width:270px;display:flex;flex-direction:column;gap:28px}
 .pc-graph{position:absolute;left:630px;top:110px;width:340px;height:880px}
@@ -185,3 +185,6 @@ html.expo .pc-magic{display:block;position:fixed;left:0;top:0;z-index:3;padding:
 #back{position:fixed;left:14px;bottom:14px;gap:7px;align-items:center;color:#cfd3da;text-decoration:none;font:11px var(--mono);padding:10px 6px}
 #back:hover{color:#fff}
 @media (max-width:760px){#nav{display:none!important}.co{width:150px;font-size:13px}}
+
+/* le bouton « voir la magie » est l'incrustation cliquable ; celui de la fiche n'est pas repris dans l'image */
+.pc-flowwrap .rf-flow-magic{visibility:hidden}

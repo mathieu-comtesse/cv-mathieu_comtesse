@@ -21,7 +21,7 @@ import { drawMat, blueprintMaterial } from './blueprint-hero.js';
    Texture : l'élément lui-même via HTML-in-Canvas quand le navigateur le permet, sinon une image de la section (SVG foreignObject).
    Le défilement natif pilote la caméra : vue de face à l'échelle 1:1 au départ, puis la page se rabat en chemin et se relève au loin. */
 
-const ROOM_K = 0.62;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
+const ROOM_K = 0.9;               // échelle de la pièce du site (et de son plan blueprint) dans le parcours
 const PXM = 100;                  // px de page par mètre
 const PAGE_W = 1000;
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
@@ -150,6 +150,16 @@ async function start() {
     bps.push(mat);
   }
 
+  /* frise du parcours (mode image) : le trait plein et le point descendent avec la molette, comme sur la page Expériences */
+  let tl3 = null;
+  if (tlEl && !HIC) {
+    const rr = rectOf(tlEl.querySelector('.rf-tl-rail')), x = (rr.x + 1 - PAGE_W / 2) / PXM, z0 = rr.y / PXM, len = rr.h / PXM;
+    const lm = new THREE.Mesh(plane(2 / PXM, len), new THREE.MeshBasicMaterial({ color: 0xe0ebfd, transparent: true, opacity: 0.85, depthWrite: false }));
+    lm.geometry.translate(0, -len / 2, 0); lm.rotation.x = -Math.PI / 2; lm.position.set(x, 0.03, z0); lm.renderOrder = 6; scene.add(lm);
+    const dm = new THREE.Mesh(new THREE.CircleGeometry(8 / PXM, 24), new THREE.MeshBasicMaterial({ color: 0xe0ebfd, depthWrite: false })); dm.rotation.x = -Math.PI / 2; dm.renderOrder = 7; scene.add(dm);
+    tl3 = { lm, dm, x, z0, len };
+  }
+
   /* décor : arcs, bâtiments filaires, cotes, formules */
   const Z0 = -40, Z1 = endZ + 40;
   for (let i = 0; i < 26; i++) {
@@ -218,7 +228,7 @@ async function start() {
       edges.push([c0, h, 0]);
       const ring = []; for (let j = 0; j <= 48; j++) ring.push(P3(hp.x + Math.cos(j / 48 * 6.283) * 0.95, 0.02, hp.z + Math.sin(j / 48 * 6.283) * 0.95));
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring), white(0.45)));
-      const name = li.dataset.hub, lb = label(name.length > 24 ? name.slice(0, 23) + '…' : name, { w: 2.6, h: 0.3, font: '400 16px iAWriterQuattroV, monospace', color: '#e6ecff', op: 0.95 });
+      const name = li.dataset.hub, lb = label(name.length > 18 ? name.slice(0, 19).replace(/\s+\S*$/, '') : name, { w: 2.2, h: 0.3, font: '400 15px iAWriterQuattroV, monospace', color: '#e6ecff', op: 0.95 });
       lb.position.set(hp.x, 0.05, hp.z + 1.25); scene.add(lb);
       const leaves = $$('a', li), n = leaves.length + 8;
       for (let k = 0; k < n; k++) {
@@ -251,17 +261,31 @@ async function start() {
     const nb = nodes.map(() => new Set()); for (const [a, b] of edges) { nb[a].add(b); nb[b].add(a); }
     graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1 });
     // courbe exponentielle numérotée sous le graphe
-    const y0 = r.y + r.h + 40, pts = [];
-    for (let i = 0; i <= 60; i++) { const u = i / 60; pts.push(new THREE.Vector3((60 + u * 880 - PAGE_W / 2) / PXM, 0.02, (y0 + 60 - 55 * (Math.exp(3 * u) - 1) / (Math.exp(3) - 1)) / PXM)); }
+    const y0 = r.y + r.h + 50, pts = [], X0 = 340, X1 = 960; // à droite du titre en volume, sans le chevaucher
+    for (let i = 0; i <= 60; i++) { const u = i / 60; pts.push(new THREE.Vector3((X0 + u * (X1 - X0) - PAGE_W / 2) / PXM, 0.02, (y0 + 70 - 70 * (Math.exp(3 * u) - 1) / (Math.exp(3) - 1)) / PXM)); }
     scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), white(0.75)));
-    const axZ = (y0 + 62) / PXM;
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-4.4, 0.02, axZ), new THREE.Vector3(4.4, 0.02, axZ)]), white(0.5)));
-    hubs.forEach((_, i) => { const p = pts[Math.round((i + 1) / (hubs.length + 1) * 60)], t = label(String(i + 1).padStart(2, '0'), { w: 0.6, h: 0.3, font: '400 22px iAWriterQuattroV, monospace', color: '#fff' }); t.position.set(p.x, 0.05, p.z + 0.25); scene.add(t); });
-    for (let i = 0; i <= 5; i++) { const t = label(String(i), { w: 0.4, h: 0.3, font: '400 22px iAWriterQuattroV, monospace' }); t.position.set(-4.4 + i * 1.76, 0.05, axZ + 0.3); scene.add(t); }
-    const xl = label('x = 4,00', { w: 1.6, h: 0.35, font: '500 24px iAWriterQuattroV, monospace', color: '#fff' }); xl.position.set(2.6, 0.05, axZ + 0.6); scene.add(xl);
+    const axZ = (y0 + 80) / PXM;
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3((X0 - PAGE_W / 2) / PXM, 0.02, axZ), new THREE.Vector3((X1 - PAGE_W / 2) / PXM, 0.02, axZ)]), white(0.5)));
+    hubs.forEach((_, i) => { const p = pts[Math.round((i + 1) / (hubs.length + 1) * 60)], t = label(String(i + 1).padStart(2, '0'), { w: 0.6, h: 0.3, font: '400 22px iAWriterQuattroV, monospace', color: '#fff' }); t.position.set(p.x, 0.05, p.z - 0.28); scene.add(t); });
+    for (let i = 0; i <= 5; i++) { const t = label(String(i), { w: 0.4, h: 0.3, font: '400 22px iAWriterQuattroV, monospace' }); t.position.set((X0 + i * (X1 - X0) / 5 - PAGE_W / 2) / PXM, 0.05, axZ + 0.3); scene.add(t); }
+    const xl = label('x = 4,00', { w: 1.6, h: 0.35, font: '500 24px iAWriterQuattroV, monospace', color: '#fff' }); xl.position.set((X1 - 120 - PAGE_W / 2) / PXM, 0.05, axZ + 0.75); scene.add(xl);
   }
 
   /* règles d'une machine : celles du site (graduations, repère, « Tourner » / « Incliner »), une paire par machine ; glisser ne bouge que cette machine */
+  // cliquet des règles, le même son synthétisé que sur le site, à chaque graduation franchie
+  let ac = null, lastTick = 0;
+  function tick(major) {
+    if (reduce) return; const now = performance.now(); if (now - lastTick < 16) return; lastTick = now;
+    try {
+      ac ??= new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume();
+      const t = ac.currentTime, f = 1 + (Math.random() - .5) * .1, len = Math.floor(ac.sampleRate * .018), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * .16));
+      const n = ac.createBufferSource(); n.buffer = buf; const bq = ac.createBiquadFilter(); bq.type = 'bandpass'; bq.frequency.value = (major ? 3900 : 3100) * f; bq.Q.value = 1.4;
+      const gn = ac.createGain(); gn.gain.value = major ? .55 : .32; n.connect(bq).connect(gn).connect(ac.destination); n.start(t);
+      const o = ac.createOscillator(), og = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime((major ? 2300 : 1750) * f, t); o.frequency.exponentialRampToValueAtTime(900, t + .02);
+      og.gain.setValueAtTime(major ? .07 : .045, t); og.gain.exponentialRampToValueAtTime(.0001, t + .022); o.connect(og).connect(ac.destination); o.start(t); o.stop(t + .03);
+    } catch {}
+  }
   function makeRulers() {
     const el = document.createElement('div'); el.className = 'pc-rul'; el.setAttribute('aria-hidden', 'true');
     const ruler = (h) => `<aside class="rf-ruler${h ? ' rf-ruler--h' : ''}" tabindex="-1"><i class="rf-ruler-mark"></i><div class="rf-ruler-track"></div><span class="rf-ruler-label rf-mono">${h ? 'Tourner' : 'Incliner'}</span></aside>`;
@@ -271,7 +295,7 @@ async function start() {
       const tr = ru.querySelector('.rf-ruler-track'), f = document.createDocumentFragment();
       for (let i = 0; i <= 100; i++) { const t = document.createElement('div'); t.className = 'rf-tick' + (i % 10 === 0 ? ' rf-maj' : ''); t.style[horiz ? 'left' : 'top'] = i * 5 + 'px'; if (i % 10 === 0) t.innerHTML = `<span>${(i / 100).toFixed(2)}</span>`; f.append(t); }
       tr.append(f);
-      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); if (horiz) R.rot = x; else R.tilt = x; tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); const i0 = Math.floor((horiz ? R.rot : R.tilt) / 5), i1 = Math.floor(x / 5); if (i0 !== i1) tick(i1 % 10 === 0); if (horiz) R.rot = x; else R.tilt = x; tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
       let d = null;
       ru.addEventListener('pointerdown', (e) => { d = { p: horiz ? e.clientX : e.clientY, v: horiz ? R.rot : R.tilt }; ru.setPointerCapture(e.pointerId); e.preventDefault(); });
       ru.addEventListener('pointermove', (e) => { if (d) set(d.v + (horiz ? e.clientX : e.clientY) - d.p); });
@@ -284,7 +308,7 @@ async function start() {
   /* machines 3D des projets, en longueur sur les côtés */
   scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
   const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-9, 16, 8); scene.add(sun);
-  const machines = []; let pendingM = 0; const T0 = -1.25; // couchée à plat, la face vers le haut
+  const machines = []; let pendingM = 0; const T0 = 0; // posée sur sa base
   for (const art of $$('[data-fig]')) {
     // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
     const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = 4.2, x = side * (HALF + sc * 0.24), z = (r.y + 0.12 * r.h) / PXM, rot = -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
@@ -304,23 +328,27 @@ async function start() {
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
-  const roomSpot = $('[data-room]');
+  const roomSpot = $('[data-room]'); let roomRul = null;
   if (roomSpot && !reduce) {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
     host.className = 'pc-room-host'; host.setAttribute('aria-hidden', 'true'); bubble.className = 'bubble'; host.append(bubble); document.body.append(host);
     Promise.all([import('../js/room.js?v=nt6-20261026'), import('three/addons/RoomEnvironment.js')]).then(async ([{ createRoom }, { RoomEnvironment }]) => {
       const room = await createRoom(host, bubble, { noTea: true }); // sans la pièce du thé, ni les déplacements et pensées qui s'y rapportent
-      room.setSceneMuted?.(true);
-      const g = new THREE.Group();
-      for (const o of [...room.scene.children]) if (!(o.material && o.material.isShadowMaterial)) g.add(o);
-      // ombres de contact : plans à 4 sommets, qui décrochent de la feuille courbée pendant le défilement ; on les subdivise
-      g.traverse((o) => { const p = o.geometry?.parameters; if (o.isMesh && o.geometry.type === 'PlaneGeometry' && p.widthSegments === 1) { const n = (v) => Math.max(2, Math.ceil(v * ROOM_K / 0.15)); o.geometry = new THREE.PlaneGeometry(p.width, p.height, n(p.width), n(p.height)); o.material.polygonOffset = true; o.material.polygonOffsetFactor = -2; } });
+      // la scène entière de la pièce est rattachée (le personnage et les objets ajoutés plus tard suivent) ;
+      // ni sol d'ombre ni ombres de contact : sur la feuille courbée elles glissaient pendant le défilement
+      const g = new THREE.Group(); g.add(room.scene);
+      const hideShadows = () => room.scene.traverse((o) => { if (o.material?.isShadowMaterial || (o.isMesh && o.renderOrder === -1 && o.geometry?.type === 'PlaneGeometry' && o.material?.map && o.material.transparent && !o.material.depthWrite)) o.visible = false; });
+      hideShadows(); setInterval(hideShadows, 2000);
       g.scale.setScalar(ROOM_K); g.rotation.y = -36 * Math.PI / 180; g.position.set(rr.cx, 0, rr.cz);
       // les arbres de la pièce (vendor-trees) embarquent leur propre Three.js, plus ancien : on complète leurs matrices
       g.traverse((o) => { const P = Object.getPrototypeOf(o.matrixWorld); if (!P.determinantAffine) P.determinantAffine = THREE.Matrix4.prototype.determinantAffine; });
       scene.add(g); patchTree(g);
       const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.22;
       window.__room = room;
+      // règles du décor : « Tourner » fait pivoter la pièce, « Incliner » sert de zoom (pièce et plan ensemble)
+      const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
+      R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
+      roomRul = { rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
     }).catch((e) => console.warn('pièce indisponible', e));
   }
 
@@ -365,11 +393,13 @@ async function start() {
     const Q = 2, cv = document.createElement('canvas'); cv.width = Math.round(r.w * Q); cv.height = Math.round(r.h * Q);
     const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     const m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
-    m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0.008, g.cz); m.renderOrder = 2; scene.add(m);
+    const A = 1.05; // relevé comme une vitre de train, posé sur son bord bas
+    m.rotation.x = -Math.PI / 2 + A; m.position.set(g.cx, 0.01 + g.d / 2 * Math.sin(A), g.cz + g.d / 2 * (1 - Math.cos(A))); m.renderOrder = 2; scene.add(m);
+    m.updateMatrixWorld(); const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => new THREE.Vector3(a * g.w / 2, b * g.d / 2, 0).applyMatrix4(m.matrixWorld));
     const poster = new Image(); poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
     const hot = document.createElement('button'); hot.type = 'button'; hot.className = 'pc-hot pc-hot-win'; hot.setAttribute('aria-label', 'Ouvrir ou fermer le store du hublot');
     hot.addEventListener('click', () => $('#rf-grip')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
-    document.body.append(hot); hots.push({ h: hot, r });
+    document.body.append(hot); hots.push({ h: hot, r, pts: corners });
     hublots.push({ t, z: g.cz, cv, win, poster });
     import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
   }
@@ -485,7 +515,7 @@ async function start() {
   async function rasterize(el, r, css) {
     const S = Math.min(1.5, 8000 / r.h);
     const clone = el.cloneNode(true); clone.style.background = 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
-    clone.querySelectorAll('[data-graph], [data-sign] svg').forEach((n) => n.remove()); // la signature a son propre calque animé
+    clone.querySelectorAll('[data-graph], [data-sign] svg, [data-tl] .rf-tl-line, [data-tl] .rf-tl-dot').forEach((n) => n.remove()); // la signature a son propre calque animé
     await Promise.all([...clone.querySelectorAll('img')].map(async (im) => { try { const b = await (await fetch(im.getAttribute('src'))).blob(); im.setAttribute('src', await new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); })); } catch { im.remove(); } }));
     const xml = new XMLSerializer().serializeToString(clone);
     const svgDoc = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.w}" height="${r.h}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/</g, '\\3c ')}</style>${xml}</div></foreignObject></svg>`;
@@ -602,6 +632,7 @@ async function start() {
     if (tlLine) { // ressort raideur 45 / amortissement 20, comme sur la page Expériences
       const to = Math.max(0, Math.min(1, (s + innerHeight * 0.6 - tlRect.y) / tlRect.h));
       tlS.v += (-45 * (tlS.p - to) - 20 * tlS.v) * Math.min(0.032, dtS); tlS.p += tlS.v * Math.min(0.032, dtS);
+      if (tl3) { const p = Math.max(0.0005, tlS.p); tl3.lm.scale.y = p; tl3.dm.position.set(tl3.x, 0.035, tl3.z0 + p * tl3.len); }
       if (Math.abs(tlS.p - (tlS.shown ?? -1)) > 0.0008) { tlS.shown = tlS.p; tlLine.style.transform = `scaleY(${tlS.p.toFixed(4)})`; tlDot.style.top = (tlS.p * 100).toFixed(2) + '%'; }
     }
     postMat.uniforms.amt.value = e;
@@ -626,13 +657,17 @@ async function start() {
       c.dot.setAttribute('cx', px); c.dot.setAttribute('cy', py); c.dot.style.opacity = a;
     }
     for (const o of hots) { // rectangle à l'écran = enveloppe des quatre coins projetés
-      const c = [[o.r.x, o.r.y], [o.r.x + o.r.w, o.r.y], [o.r.x, o.r.y + o.r.h], [o.r.x + o.r.w, o.r.y + o.r.h]].map(([x, y]) => toScreen(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)));
+      const c = o.pts ? o.pts.map((v) => toScreen(v)) : [[o.r.x, o.r.y], [o.r.x + o.r.w, o.r.y], [o.r.x, o.r.y + o.r.h], [o.r.x + o.r.w, o.r.y + o.r.h]].map(([x, y]) => toScreen(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)));
       const ok = e > 0.5 && c.every((q) => q[2] < 1), xs = c.map((q) => q[0]), ys = c.map((q) => q[1]);
       o.h.style.display = ok ? '' : 'none'; if (ok) { const x0 = Math.min(...xs), y0 = Math.min(...ys); o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = (Math.max(...xs) - x0) + 'px'; o.h.style.height = (Math.max(...ys) - y0) + 'px'; }
     }
     for (const m of magics) {
       const [px, py, pz] = toScreen(m.p), vis = e > 0.5 && pz < 1 && py > 40 && py < h - 30 && px > 0 && px < w;
       m.b.style.display = vis ? '' : 'none'; if (vis) m.b.style.transform = `translate(${px}px,${py + 10}px)`;
+    }
+    if (roomRul) {
+      const [px, py, pz] = toScreen(roomRul.p), vis = e > 0.5 && pz < 1 && py > 60 && py < h - 40 && Math.abs(focusZ - roomRul.z) < 14;
+      roomRul.rul.el.style.display = vis ? '' : 'none'; if (vis) roomRul.rul.el.style.transform = `translate(${Math.min(w - 260, Math.max(200, px + 330)).toFixed(1)}px,${Math.min(h - 140, py).toFixed(1)}px)`;
     }
     for (const k of machines) {
       const [px, py, pz] = toScreen(k.pivot.position), vis = e > 0.5 && pz < 1 && py > 60 && py < h - 40 && px > 40 && px < w - 40 && Math.abs(focusZ - k.z) < 12;
