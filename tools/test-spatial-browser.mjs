@@ -64,7 +64,7 @@ try {
   /* profondeur et parallaxe : deux points de profondeurs différentes sur la même ligne de visée se déplacent différemment quand la caméra avance */
   const par = await S(page, () => {
     const W = window.__spatial.world, tl = window.__spatial.timeline, out = [];
-    for (const u of [1500, 2400, 6000, 12000]) {
+    for (const u of [3300, 5000, 7500, 12000]) {
       W.frame(u, 0, performance.now(), null, 0); const c = W.camera.position.clone(), d = new c.constructor(); W.camera.getWorldDirection(d);
       const near = c.clone().addScaledVector(d, 14).add(new c.constructor(6, 0, 0)), far = c.clone().addScaledVector(d, 160).add(new c.constructor(6, 0, 0));
       const a0 = W.project(near, {}), b0 = W.project(far, {}); W.frame(u + 40, 0, performance.now(), null, 0);

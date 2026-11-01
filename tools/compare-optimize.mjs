@@ -33,6 +33,7 @@ for (const id of ids) {                                  // une page neuve par m
 }
 await browser.close(); server.close();
 const diff = (a, b) => JSON.parse(execFileSync('python3', ['-W', 'ignore', '-c', `import sys,json\nfrom PIL import Image,ImageChops\na=Image.open(sys.argv[1]).convert('RGB');b=Image.open(sys.argv[2]).convert('RGB')\nd=ImageChops.difference(a,b).convert('L');px=list(d.getdata());n=sum(1 for v in px if v>0)\nprint(json.dumps({'pct':100*n/len(px),'max':max(px)}))`, a, b]));
+let tn = 0, to = 0;
 console.log('| Machine | Appels de rendu, maillages d\'origine | avec fusion | Maillages et arêtes regroupés | Pixels différents (même image) |\n|---|---|---|---|---|');
 
 for (const id of ids) { const r = result[id]; if (!r) { console.log(`| ${id} | non mesuré | non mesuré | | |`); continue; } const d = diff(`${out}/${id}-origine.png`, `${out}/${id}-fusionne.png`); tn += r.without; to += r.withMerge; const o = r.stats;

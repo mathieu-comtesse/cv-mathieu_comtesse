@@ -210,3 +210,6 @@ body.sp .rf-ruler--h{left:auto;right:clamp(70px,7vw,120px);top:auto;bottom:clamp
 @media (max-width:760px){body.sp .rf-ruler{right:6px;left:auto}body.sp .rf-ruler--h{right:60px;left:auto;bottom:88px}}
 .sp-intro{left:max(260px,var(--rf-cx))}
 @media (max-width:760px){.sp-intro{left:16px}}
+
+/* lisibilité de l'introduction sur la vraie pièce : voile local bleu profond derrière le texte, sans masquer le décor */
+.sp-intro::before{content:'';position:absolute;z-index:-1;left:-60px;right:-40px;top:-50px;bottom:-30px;background:radial-gradient(ellipse 70% 62% at 34% 50%,rgb(2 14 84 / .62),rgb(2 14 84 / .32) 55%,transparent 80%);pointer-events:none}

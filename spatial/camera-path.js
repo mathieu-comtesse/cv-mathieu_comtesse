@@ -35,7 +35,7 @@ export class CameraTimeline {
     const i = this._seg(u), t = (u - this.keys[i].u) / (this.keys[i + 1].u - this.keys[i].u);
     const p = this._h(this.P, this.mP, i, t, [0, 0, 0]), l = this._h(this.L, this.mL, i, t, [0, 0, 0]), s = this._h(this.S, this.mS, i, t, [0, 0]);
     out.pos = (out.pos || this.pos).set(p[0], p[1], p[2]); out.look = (out.look || this.look).set(l[0], l[1], l[2]);
-    out.fov = Math.min(70, Math.max(24, s[0])); out.roll = s[1] * DEG;
+    out.fov = Math.min(70, Math.max(6, s[0]));                 // la pièce d'accueil a un champ étroit (environ 12 degrés) : pas de plancher de 24 out.roll = s[1] * DEG;
     return out;
   }
   /** Met à jour une clé en direct (la clé 0 suit la caméra réelle de la pièce) et recalcule les tangentes voisines. */
