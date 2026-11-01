@@ -3,7 +3,9 @@
 import * as THREE from 'three';
 import {P,M,clamp,ease,lerp,phase,createAssembly,block,cyl,cone,shaft,hoop,gear,cable,label,readout,paper,documentStream,drivePair,gauge,glassTower} from './premium-core.js';
 
+const TAU=Math.PI*2;
 const slide=(v,a,b)=>ease((v-a)/(b-a));
+const status=(g,x,y,z)=>cyl(g,2,1,x,y,z,'off',14);
 function chainFrame(g,x,y,z,w=30,d=30,h=38){
  for(const dx of [-w/2,w/2])for(const dz of [-d/2,d/2])shaft(g,[x+dx,y,z+dz],[x+dx,y+h,z+dz],1.25,'steel');
  block(g,w+3,2,d+3,x,y+h,z,'silver');
