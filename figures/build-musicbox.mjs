@@ -143,7 +143,7 @@ const caseFront = (() => {
   out.push(dots([[x1, y0 + 3, 9], [x1, y1 - 3, 9], [x1, y0 + 3, h - 3], [x1, y1 - 3, h - 3]], 0.5, "hi"));
   // finitions du plateau du lecteur : lèvres vissées, plaque de série, évents du flanc droit
   out.push(dots([[READER.x0 + 2, READER.y1, READER.z0 + 2], [READER.x1 - 2, READER.y1, READER.z0 + 2], [READER.x0 + 2, READER.y1, READER.z1 - 2], [READER.x1 - 2, READER.y1, READER.z1 - 2]], 0.4, "hi"));
-  out.push(`<g transform="${right(x1)}">${[0, 1, 2, 3, 4].map((i) => `<path class="iso-line" data-tone="faint" d="M${-(y1 - 8 - i * 3.2)} ${-(h - 14)}V${-(h - 26)}"/>`).join("")}</g>`);
+  out.push(`<g transform="${right(x1)}">${[0, 1, 2, 3, 4].map((i) => `<path class="iso-line" data-tone="faint" data-free="both" d="M${-(y1 - 8 - i * 3.2)} ${-(h - 14)}V${-(h - 26)}"/>`).join("")}</g>`);
   return out.join("");
 })();
 
