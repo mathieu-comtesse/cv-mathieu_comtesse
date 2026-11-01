@@ -110,10 +110,12 @@ try {
   await page.locator('[data-goto="parcours"]').first().click(); await page.waitForTimeout(300); await settle(page);
   assert.ok(Math.abs(await S(page, () => window.__spatial.scroll.current) - 1) < 1e-3, 'navigation directe vers le parcours');
   await page.locator('.sp-hubcard[data-hub="parcours"] a[href$="cv-ats-mathieu-comtesse.pdf"]').waitFor({ state: 'visible', timeout: 15000 });
-  const hic = await S(page, () => window.__spatial.hicOn);
-  console.log('INFO HTML-in-Canvas : ' + (hic ? 'actif' : 'indisponible, légendes DOM'));
-  if (process.env.HIC) assert.equal(hic, true, 'HTML-in-Canvas attendu avec le drapeau'); else assert.equal(hic, false);
-  ok('navigation directe et ' + (hic ? 'surface HTML-in-Canvas active' : 'repli DOM sans HTML-in-Canvas'));
+  await page.waitForTimeout(process.env.HIC ? 4000 : 0);
+  const hic = await S(page, () => window.__spatial.hic.status);
+  console.log('INFO HTML-in-Canvas : ' + hic);
+  if (!process.env.HIC) assert.equal(hic, 'indisponible'); else assert.ok(hic === 'actif' || hic.startsWith('repli'), 'état HTML-in-Canvas : ' + hic);
+  assert.ok(await page.locator('.sp-note .sp-title').count() > 5, 'légendes DOM toujours présentes');
+  ok('navigation directe, HTML-in-Canvas : ' + hic);
   await ctx.close();
 
   /* 7 : mobile tactile */

@@ -16,7 +16,7 @@ export class FloatingAnnotationManager {
     this.root = root; this.world = world; this.registry = registry; this.onSelect = onSelect; this.onDeepen = onDeepen;
     this.svg = document.createElementNS(NS, 'svg'); this.svg.setAttribute('class', 'sp-leaders'); this.svg.setAttribute('aria-hidden', 'true'); root.append(this.svg);
     this.notes = new Map(); this.avoid = []; this.frame = 0; this.v3 = { x: 0, y: 0, z: 0, on: false };
-    for (const e of registry.items) if (e.kind !== 'hub' || e.id === 'parcours' || e.id === 'experiences') this.add(e, domains);
+    for (const e of registry.items) if (e.kind !== 'hub') this.add(e, domains);      // les zones sans objet ont leur propre carte (main.js)
   }
   add(e, domains) {
     const el = document.createElement('div'); el.className = 'sp-note'; el.dataset.id = e.id; el.hidden = true;
@@ -70,7 +70,7 @@ export class FloatingAnnotationManager {
         const blk = n.b[bi]; if (!blk || blk.hidden) { return; }
         const [w, h] = n.size[bi] || [200, 40];
         const sc = bi === 2 ? 1 : 1;
-        const want = bi === 2 ? [a.x + side * (S * .27) , a.y - h * .5] : [a.x + side * off[0] * S - (side < 0 ? w : 0), a.y + off[1] * Math.min(H, 900) - h / 2];
+        const want = bi === 2 ? [a.x + side * (S * .22) - (side < 0 ? w : 0), a.y - h - 36] : [a.x + side * off[0] * S - (side < 0 ? w : 0), a.y + off[1] * Math.min(H, 900) - h / 2];
         let [x, y] = want;
         // essais de placement : décalages successifs jusqu'à ne plus rien recouvrir
         const tries = [[0, 0], [0, -1], [0, 1], [side * 1, 0], [0, -2], [0, 2], [-side * 1, 0], [side * 1, -1], [side * 1, 1]];

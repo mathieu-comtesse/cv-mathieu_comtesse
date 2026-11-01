@@ -25,6 +25,14 @@ export class HTMLCanvasAdapter {
       this.world.scene.add(this.mesh); this.active = true; return true;
     } catch (e) { console.warn('HTML-in-Canvas indisponible', e); this.active = false; return false; }
   }
+  /** Désactive la surface (API incompatible à l'exécution) : la légende DOM flottante continue d'afficher la même information. */
+  disable(reason = '') {
+    if (!this.active) return;
+    this.active = false; this.reason = reason;
+    try { this.world.scene.remove(this.mesh); this.tex.dispose(); this.mesh.material.dispose(); this.mesh.geometry.dispose(); this.el.remove(); this.world.canvas.removeAttribute('layoutsubtree'); this.world.canvas.onpaint = null; } catch {}
+    console.warn('HTML-in-Canvas désactivé, repli sur les légendes DOM :', reason);
+  }
+  get status() { return this.active ? 'actif' : this.reason ? 'repli : ' + this.reason : 'indisponible'; }
   /** Pose la légende au sol devant le projet actif. Le texte n'est repeint que s'il change. */
   show(entry) {
     if (!this.active) return;

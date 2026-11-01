@@ -76,7 +76,9 @@ function init() {
     const scroll = new SpatialScrollController({ gaps: LAST, reduced, onChange: () => {} });
     let selectedId = null;
     panelC = new P.ProjectDetailPanel($('sp-panel'), { onClose: () => closeFiche(true) }); panel = panelC;
-    hic = new H.HTMLCanvasAdapter(world); const hicOn = hic.init();
+    hic = new H.HTMLCanvasAdapter(world); let hicOn = hic.init();
+    // garde d'exécution : si l'API détectée refuse l'envoi de la texture (signature différente selon la version du navigateur), on retombe sur le DOM
+    world.onRenderError = (e) => { if (hic.active) { hic.disable(String(e.message).slice(0, 140)); hicOn = false; } else console.error(e); };
     rulers = new RotationRulerController((rot, tilt) => { const m = world.machines.get(selectedId); if (m) { m.setRulers(rot, tilt); saveState(); } });
     annotations = new A.FloatingAnnotationManager($('sp-notes'), world, registry, { onSelect: (id) => select(id, { push: true }), onDeepen: (id, opener) => openFiche(id, opener), domains: DOMAINS });
 
@@ -91,7 +93,7 @@ function init() {
       state.to(STATE.INSPECTION);
       const near = Math.abs(scroll.current - pOf(id)) < .4 / LAST;
       if (!near) scroll.goTo(pOf(id), instant ? 0 : 1100);
-      rulers.show(!!m); $('sp-inspect').hidden = false;
+      rulers.show(!!m); $('sp-inspect').hidden = false; $('sp-reset-view').hidden = !m;
       if (m) rulers.set(m.rot, m.tilt);
       if (push) setHash('#/' + id);
       say(e.title + '. ' + (e.sub || '') + (m ? ' Règles de rotation et d’inclinaison disponibles.' : ''));
@@ -195,7 +197,7 @@ function init() {
     function loop(now) {
       requestAnimationFrame(loop);
       const raw = Math.max(0, now - last), dt = Math.min(.05, raw / 1000); last = now;   // l'horodatage de rAF peut précéder `last` à la première image
-      if (document.hidden || listMode) return;                          // onglet inactif ou vue liste : aucun calcul de rendu
+      if (document.hidden || listMode) { perf.winT = performance.now(); perf.win = 0; return; }   // onglet inactif ou vue liste : aucun calcul de rendu
       perf.frame(raw);
       const p = scroll.update(dt, now);
       if (state.is(STATE.NAVIGATION) && !scroll.moving) state.to(selectedId ? STATE.INSPECTION : STATE.EXPLORATION);
@@ -211,10 +213,10 @@ function init() {
       const near = Math.round(f);
       if (near !== lastCur) { lastCur = near; dots.forEach((d, i) => { d.classList.toggle('sp-cur', i === near); if (i === near) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); }); }
       if (now - lastSave > 1500 && scroll.moving === false) { lastSave = now; saveState(); }
-      if (qs.has('debug')) { const s = perf.stats; $('sp-debug').hidden = false; $('sp-debug').textContent = `p ${p.toFixed(4)} · état ${state.state}\nprofil ${s.profile} · ${s.frameMs} ms (moy.) · pire ${s.worstMs} ms\nWebGL init ${world.stats.webglInitMs} ms · modèles ${JSON.stringify(world.stats.modelMs)}\nHTML-in-Canvas : ${hicOn ? 'actif' : 'indisponible, légendes DOM'}\nGPU : ${s.gpu || 'inconnu'}\ndraw calls ${world.renderer.info.render.calls} · triangles ${world.renderer.info.render.triangles}`; }
+      if (qs.has('debug')) { const s = perf.stats; $('sp-debug').hidden = false; $('sp-debug').textContent = `p ${p.toFixed(4)} · état ${state.state}\nprofil ${s.profile} · ${s.fps} i/s mesurées · ${s.frameMs} ms (moy.) · pire ${s.worstMs} ms · ${s.frames} images\nWebGL init ${world.stats.webglInitMs} ms · modèles ${JSON.stringify(world.stats.modelMs)}\nHTML-in-Canvas : ${hic.status}\nGPU : ${s.gpu || 'inconnu'}\ndraw calls ${world.renderer.info.render.calls} · triangles ${world.renderer.info.render.triangles}`; }
     }
     requestAnimationFrame(loop);
-    window.__spatial = { state, scroll, world, perf, registry, select, openFiche, closeFiche, hicOn, get selected() { return selectedId; }, path, panel: panelC };
+    window.__spatial = { state, scroll, world, perf, registry, select, openFiche, closeFiche, hic, get hicOn() { return hic.active; }, get selected() { return selectedId; }, path, panel: panelC };
     document.dispatchEvent(new CustomEvent('spatial-ready'));
   }).catch((e) => { console.error(e); document.body.classList.add('sp-nogl'); setList(true, false); modeBtn.hidden = true; });
 }

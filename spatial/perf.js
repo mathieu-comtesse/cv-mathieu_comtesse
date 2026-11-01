@@ -19,18 +19,19 @@ export class PerformanceManager {
     this.level = software ? 3 : small ? 1 : weak ? 1 : 0;
     this.floor = software ? 3 : 0;
     this.onProfile = onProfile; this.ema = 16.7; this.slowFor = 0; this.fastFor = 0; this.frames = 0; this.t0 = performance.now();
-    this.worst = 0; this.gpu = gpu; this.dprCap = devicePixelRatio || 1;
+    this.worst = 0; this.win = 0; this.winT = performance.now(); this.fps = 0; this.gpu = gpu; this.dprCap = devicePixelRatio || 1;
   }
   get profile() { return PROFILES[this.level]; }
   get pixelRatio() { return Math.min(this.dprCap, this.profile.pixelRatio); }
   /** À appeler à chaque image rendue, avec la durée de l'image en millisecondes. */
   frame(dt) {
-    if (dt > 250) return;                                   // onglet resté en arrière-plan : mesure ignorée
-    this.frames++; this.ema += (dt - this.ema) * .08; this.worst = Math.max(this.worst, dt);
+    if (dt > 2000) return;                                  // onglet resté en arrière-plan : mesure ignorée
+    this.frames++; this.win++; this.ema += (dt - this.ema) * .08; this.worst = Math.max(this.worst, dt);
+    const now = performance.now(); if (now - this.winT >= 1000) { this.fps = this.win * 1000 / (now - this.winT); this.win = 0; this.winT = now; }   // images réellement rendues par seconde
     if (this.ema > 38) { this.slowFor += dt; this.fastFor = 0; } else if (this.ema < 19) { this.fastFor += dt; this.slowFor = 0; } else { this.slowFor = this.fastFor = 0; }
     if (this.slowFor > 1500 && this.level < PROFILES.length - 1) this._set(this.level + 1);
     else if (this.fastFor > 8000 && this.level > this.floor) this._set(this.level - 1);
   }
   _set(l) { this.level = l; this.slowFor = this.fastFor = 0; this.onProfile(this.profile, l); }
-  get stats() { const s = (performance.now() - this.t0) / 1000; return { fps: this.ema ? Math.round(1000 / this.ema) : 0, frameMs: +this.ema.toFixed(1), worstMs: Math.round(this.worst), profile: this.profile.name, gpu: this.gpu, seconds: Math.round(s) }; }
+  get stats() { const s = (performance.now() - this.t0) / 1000; return { fps: +this.fps.toFixed(1), frames: this.frames, frameMs: +this.ema.toFixed(1), worstMs: Math.round(this.worst), profile: this.profile.name, gpu: this.gpu, seconds: Math.round(s) }; }
 }

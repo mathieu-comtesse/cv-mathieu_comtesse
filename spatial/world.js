@@ -36,7 +36,10 @@ function groundMaterial(tex) {
         vec4 tb=textureGrad(uTex,vec2(u.x,1.-u.y),dx*8.,dy*8.)*step(h,.58);col+=tb.rgb*tb.a*.55*smoothstep(520.,260.,dist*.27);
         // horizon : le plan se perd dans le noir, comme au-delà du bord du plan d'origine
         float horizon=smoothstep(180.,520.,length(vW.xz-cameraPosition.xz));
-        col=mix(col,vec3(.012,.02,.05),horizon);
+        float ax=abs(vW.x);
+        float lane=smoothstep(78.,104.,ax);
+        col+=vec3(.6,.75,1.)*smoothstep(1.2,0.,abs(ax-86.))*.38;           // liseré du couloir
+        col=mix(col,vec3(.012,.02,.05),max(horizon,lane));
         vec2 sp=gl_FragCoord.xy/uRes-.5;
         col*=1.-smoothstep(.25,.95,length(sp*vec2(1.25,1.)))*.42;
         col+=(hash(gl_FragCoord.xy+fract(uTime)*91.7)-.5)*.07;
@@ -85,7 +88,7 @@ export class SceneManager {
     shadowGround.rotation.x = -Math.PI / 2; shadowGround.position.y = .004; shadowGround.receiveShadow = true; shadowGround.frustumCulled = false;
     this.scene.add(this.ground, shadowGround); this.shadowGround = shadowGround;
     document.fonts?.ready.then(() => { this.tex.image = drawMat(1024); this.tex.needsUpdate = true; });
-    this.buildAxes(); this.buildObjects(); this.buildLinks();
+    this.buildAxes(); this.buildSides(); this.buildObjects(); this.buildLinks();
     this.resize();
     this.stats.webglInitMs = Math.round(performance.now() - t0);
   }
@@ -113,7 +116,7 @@ export class SceneManager {
       const g = new THREE.BufferGeometry().setFromPoints(pts.map((p) => new THREE.Vector3(...p)));
       const l = new THREE.Line(g, new THREE.LineDashedMaterial({ color: 0xdbe6ff, transparent: true, opacity: .42, dashSize: 2.4, gapSize: 1.1, ...o })); l.computeLineDistances(); l.position.y = .03; l.frustumCulled = false; return l;
     };
-    this.scene.add(dash([[0, 0, 70], [0, 0, -700]]), dash([[-52, 0, 70], [-52, 0, -700]], { opacity: .22 }), dash([[48, 0, 60], [48, 0, -700]], { opacity: .22 }));
+    this.scene.add(dash([[0, 0, 70], [0, 0, -780]]), dash([[-52, 0, 70], [-52, 0, -700]], { opacity: .22 }), dash([[48, 0, 60], [48, 0, -700]], { opacity: .22 }));
     for (let z = 40; z > -660; z -= 40) {                                   // repères de profondeur : traits transversaux, un sur trois plus long
       const long = Math.round(z / 40) % 3 === 0;
       const l = dash([[long ? -6 : -3, 0, z], [long ? 6 : 3, 0, z]], { dashSize: 100, gapSize: 0, opacity: .6 }); this.scene.add(l);
@@ -121,6 +124,27 @@ export class SceneManager {
     // courbes techniques : deux arcs de construction qui traversent le plan, loin des machines
     const arc = (cx, cz, r, a0, a1) => { const pts = []; for (let i = 0; i <= 48; i++) { const a = (a0 + (a1 - a0) * i / 48) * DEG; pts.push([cx + Math.cos(a) * r, 0, cz + Math.sin(a) * r]); } return dash(pts, { opacity: .3, dashSize: 100, gapSize: 0 }); };
     this.scene.add(arc(60, -150, 54, 100, 260), arc(-64, -330, 70, -80, 80), arc(40, -520, 46, 120, 300));
+  }
+
+  /* structures filaires de part et d'autre du couloir : volumes en fil de fer qui donnent la profondeur et le parallaxe, sans masquer les machines.
+     Générées par une suite déterministe : identiques à chaque visite. */
+  buildSides() {
+    const pos = []; let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const box = (cx, cz, w, d, h) => {
+      const x0 = cx - w / 2, x1 = cx + w / 2, z0 = cz - d / 2, z1 = cz + d / 2, v = (x, y, z) => [x, y, z];
+      const c = [v(x0, 0, z0), v(x1, 0, z0), v(x1, 0, z1), v(x0, 0, z1), v(x0, h, z0), v(x1, h, z0), v(x1, h, z1), v(x0, h, z1)];
+      for (const [a, b] of [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]) pos.push(...c[a], ...c[b]);
+    };
+    for (let z = 70; z > -760; z -= 9 + rnd() * 14) {
+      for (const side of [-1, 1]) {
+        if (rnd() < .22) continue;
+        const x = side * (96 + rnd() * 70), w = 4 + rnd() * 12, d = 4 + rnd() * 12, h = 3 + Math.pow(rnd(), 2) * 30;
+        box(x, z + rnd() * 6, w, d, h);
+        if (rnd() < .35) { const k = Math.floor(2 + rnd() * 3); for (let i = 1; i < k; i++) box(x + (rnd() - .5) * 3, z, w * .7, d * .7, h * i / k); }   // niveaux superposés
+      }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9fbaff, transparent: true, opacity: .34 })); l.frustumCulled = false; this.scene.add(l);
   }
 
   buildObjects() {
@@ -145,22 +169,22 @@ export class SceneManager {
 
   addPlate(e) {
     const w = 11 * (e.scale || 1), grp = new THREE.Group(); grp.position.set(e.pos[0], 0, e.pos[2]);
-    const face = new THREE.Group(); face.position.y = e.pos[1] + w * .3 + 3.2; face.rotation.y = (e.yaw || 0) * DEG; grp.add(face);
+    const face = new THREE.Group(); face.position.y = e.pos[1] + w / (e.ratio || 1.6) / 2 + 1.4; face.rotation.y = (e.yaw || 0) * DEG; grp.add(face);
     const mat = new THREE.MeshBasicMaterial({ color: 0x1a2a66 });
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); mesh.scale.set(w, w / (e.ratio || 1.6), 1); face.add(mesh);
     const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)), lineMat({ opacity: .9 })); frame.scale.copy(mesh.scale); frame.position.z = .01; face.add(frame);
     face.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(1, 1, .03), new THREE.MeshBasicMaterial({ color: 0xdbe6ff, transparent: true, opacity: .0 })), { visible: false }));
     // pied : fine ligne jusqu'au sol et empreinte
-    grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, face.position.y - mesh.scale.y / 2, 0)]), lineMat({ opacity: .6 })));
+    const stand = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, face.position.y - mesh.scale.y / 2, 0)]), lineMat({ opacity: .6 })); grp.add(stand);
     grp.add(ring(w * .35, 40));
     grp.visible = false; this.scene.add(grp);
-    this.plates.set(e.id, { entry: e, group: grp, face, mesh, frame, mat, loaded: false, loading: false });
+    this.plates.set(e.id, { entry: e, group: grp, face, mesh, frame, mat, stand, loaded: false, loading: false });
   }
   loadPlateTexture(p) {
     if (p.loaded || p.loading) return; p.loading = true;
     new THREE.TextureLoader().load(p.entry.image, (t) => {
       t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; p.mat.map = t; p.mat.color.set(0xffffff); p.mat.needsUpdate = true;
-      const ratio = t.image.width / t.image.height, w = p.mesh.scale.x; p.mesh.scale.y = w / ratio; p.frame.scale.copy(p.mesh.scale); p.loaded = true;
+      const ratio = t.image.width / t.image.height, w = p.mesh.scale.x; p.mesh.scale.y = w / ratio; p.frame.scale.copy(p.mesh.scale); p.face.position.y = p.entry.pos[1] + p.mesh.scale.y / 2 + 1.4; p.stand.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, p.face.position.y - p.mesh.scale.y / 2, 0)]); p.loaded = true;
     }, undefined, () => { p.loading = false; });
   }
 
@@ -241,7 +265,7 @@ export class SceneManager {
       l.line.material.dashOffset = -this.t * 1.6;
       l.curve.getPoint((this.t * .12 + l.spec.from.length * .13) % 1, l.dot.position);
     }
-    this.renderer.render(this.scene, this.camera);
+    try { this.renderer.render(this.scene, this.camera); } catch (e) { if (this.onRenderError) this.onRenderError(e); else throw e; }
   }
 
   /* ---------------------------------------------------------------- sélection et projection */

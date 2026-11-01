@@ -22,3 +22,5 @@ jobs:
           node tools/test-indicators.mjs
           node tools/test-annual-gains.mjs
           node tools/test-project-metadata.mjs
+      - name: Vue spatiale (trajectoire, composition)
+        run: node tools/test-spatial-path.mjs

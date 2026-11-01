@@ -10,7 +10,7 @@ export function frameOf(stop) {
   if (c.pos) return { pos: new THREE.Vector3(...c.pos), look: new THREE.Vector3(...c.look) };
   const [x, y, z] = stop.pos, az = c.az * DEG;
   const dist = c.dist * (.9 + .2 * (stop.scale || 1)) * 1.12;           // l'objet occupe environ la moitié de la largeur, quelle que soit son échelle
-  const pos = new THREE.Vector3(x + Math.sin(az) * dist, y + c.h * 1.1, z + Math.cos(az) * dist);
+  const pos = new THREE.Vector3(x + Math.sin(az) * dist, y + c.h * .88, z + Math.cos(az) * dist);
   const look = new THREE.Vector3(x, y + 3.2, z);
   const right = new THREE.Vector3(Math.cos(az), 0, -Math.sin(az));       // vers la droite de l'écran
   look.addScaledVector(right, c.shift || 0);                               // regard décalé : l'objet sort du centre

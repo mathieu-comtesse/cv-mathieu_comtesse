@@ -32,8 +32,8 @@ export const STOPS = [
   S({ id: 'studio', kind: 'machine', machine: 'studio', card: 'studio', slug: 'projet-studio', study: 'article-studio', domain: 'automatisation', pos: [-16, 6, -414], yaw: 30, scale: 1, cam: { az: -26, dist: 31, h: 14, shift: -4 }, layout: 'A' }),
   S({ id: 'lecteur-vre', kind: 'machine', machine: 'vrestudio-musicbox', slug: 'projet-lecteur-vre', study: null, domain: 'donnees', title: 'Lecteur VRE', sub: 'Modèle documentaire contrôlé', pos: [18, 0, -456], yaw: -15, scale: 1, cam: { az: 20, dist: 31, h: 13, shift: 4 }, layout: 'B' }),
   S({ id: 'thaleolithic', kind: 'plate', slug: 'projet-talas', study: null, domain: 'experimentation', priority: 4, title: 'THALEOLITHIC', sub: 'Jeu pédagogique ISO 45001', image: 'thaleolithic/thaleolithic-accueil.webp?v=13', ratio: 1672 / 941, pos: [-14, 0, -498], yaw: 25, scale: 1.6, cam: { az: -14, dist: 34, h: 12, shift: -5 }, layout: 'C' }),
-  S({ id: 'experiences', kind: 'hub', domain: 'experimentation', title: 'Explorations', sub: 'Jeux, simulations et interfaces expérimentales', pos: [16, 0, -540], cam: { az: 12, dist: 40, h: 17, shift: 0 } }),
-  S({ id: 'parcours', kind: 'hub', domain: 'parcours', title: 'Parcours et contact', sub: 'CV, expériences, compétences, contact', pos: [-6, 0, -590], cam: { az: 0, dist: 34, h: 13, shift: 0 } })
+  S({ id: 'experiences', kind: 'hub', domain: 'experimentation', title: 'Explorations', sub: 'Jeux, simulations et interfaces expérimentales', pos: [-30, 0, -556], cam: { az: 42, dist: 46, h: 19, shift: 4 } }),
+  S({ id: 'parcours', kind: 'hub', domain: 'parcours', title: 'Parcours et contact', sub: 'CV, expériences, compétences, contact', pos: [18, 0, -660], cam: { az: 0, dist: 30, h: 13, shift: 0 } })
 ];
 
 /* Plaques des projets personnels : captures d'écran existantes, regroupées dans la zone « Explorations ». */
@@ -42,7 +42,7 @@ export const PLATES = PERSO_PLATES.map((id, i) => {
   const p = PERSO.find((x) => x.id === id);
   const col = i % 4, row = Math.floor(i / 4);
   return { id: 'perso-' + id, persoId: id, slug: 'projet-' + (id === 'atlas' ? 'atlas' : id), title: p.n, sub: p.genre, image: p.img, desc: p.desc,
-    pos: [16 - 15 + col * 11 - row * 3, 1.2 + (row % 2) * 1.6, -540 - row * 9 - col * 2.5], yaw: -28 + col * 9, scale: 1 };
+    pos: [-70 + col * 17 + row * 5, (row % 2) * 2.4 + (col % 2) * .8, -540 - row * 15 - col * 3], yaw: -22 + col * 10 - row * 4, scale: 1 };
 });
 
 /* Liens entre projets : flux d'information ou même périmètre. Servent au tracé des liaisons du blueprint. */
