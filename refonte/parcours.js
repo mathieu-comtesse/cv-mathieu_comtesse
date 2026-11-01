@@ -244,7 +244,7 @@ SECTIONS.forEach((s, i) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(SW, SH, SD), [sideMat, sideMat, top, sideMat, sideMat, sideMat]);
     m.position.set(x, SH / 2, z); scene.add(m);
     const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), edgeMat); e.position.copy(m.position); scene.add(e);
-    platforms.push({ x, z, hw: SW / 2, hd: SD / 2 });
+    platforms.push({ x, z, hw: SW / 2, hd: SD / 2 }); d.z = z;
     callouts.push({ d, side: k % 2 ? 1 : -1, p: new THREE.Vector3(x + (k % 2 ? 1 : -1) * SW / 2, SH, z - SD / 2 + 0.6) });
     if (d.href) links.push({ mesh: m, href: d.href });
   });
@@ -252,6 +252,21 @@ SECTIONS.forEach((s, i) => {
 cluster(-TOTAL + 1, 'Arrivée');
 
 startHtmlCards();
+
+// Machines 3D du site (refonte/m3d), posées au sol de chaque côté de la piste, en face de la dalle du projet.
+scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
+const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-9, 16, 8); scene.add(sun);
+const machines = [];
+const MACH = [['vre', 1, 0, -1], ['pp', 1, 1, 1], ['studio', 1, 2, -1], ['finance', 2, 1, 1]]; // module, section, dalle, côté
+MACH.forEach(async ([mod, si, ki, side]) => {
+  try {
+    const { build, WIDTH = 236 } = await import(`./m3d/${mod}.js`);
+    const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(11 / WIDTH); scene.add(g);
+    const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
+    g.position.set(side * (HALF + 8) - c.x, -box.min.y, SECTIONS[si].slabs[ki].z - c.z);
+    machines.push({ m, z: SECTIONS[si].slabs[ki].z });
+  } catch (err) { console.warn('machine ' + mod + ' indisponible', err); }
+});
 
 // ligne d'arrivée
 const finish = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, 0.5), new THREE.MeshBasicMaterial({ color: 0xffffff }));
@@ -380,6 +395,8 @@ function frame() {
   navItems.forEach((li, i) => li.classList.toggle('on', i === idx));
   $('spd').textContent = `v ≈ ${S.v.toFixed(1).replace('.', ',')} m/s`;
   $('left').textContent = `↑ ${Math.max(0, Math.round(TOTAL - 4 + S.z)).toLocaleString('fr-FR')} m`;
+  const now = timer.getElapsed();
+  for (const k of machines) if (Math.abs(S.z - k.z) < 70) k.m.update(now);
   try { renderer.render(scene, camera); } catch (err) { console.warn('HTML-in-Canvas indisponible, repli canvas 2D', err); dropHtmlCards(); }
   updateCallouts();
   requestAnimationFrame(frame);
