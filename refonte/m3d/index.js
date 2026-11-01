@@ -44,7 +44,12 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
       const hit = (o) => { if (!o.visible || o.userData.glowShell) return false; if (o.isMesh && ray.intersectObject(o, false).length) return true; return o.children.some(hit); };
       return hit(g);
     },
-    render(time) { teardown.beforeFrame(); m.update(time); teardown.afterFrame(time); renderer.render(scene, cam); glow(); },
+    render(time) {
+      teardown.beforeFrame(); m.update(time); teardown.afterFrame(time);
+      g.updateMatrixWorld(true); glow();
+      if (teardown.state.mode !== 'assembled') g.traverse(o => { if (o.userData.glowShell) o.visible = false; });
+      renderer.render(scene,cam);
+    },
     dispose() { teardown.dispose(); renderer.dispose(); }
   };
 }
