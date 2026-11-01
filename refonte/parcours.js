@@ -220,17 +220,41 @@ async function start() {
     const xl = label('x = 4,00', { w: 1.6, h: 0.35, font: '500 24px iAWriterQuattroV, monospace', color: '#fff' }); xl.position.set(2.6, 0.05, axZ + 0.6); scene.add(xl);
   }
 
-  /* machines 3D des projets, dispersées sur les côtés */
+  /* règles d'une machine : une horizontale (Tourner) et une verticale (Incliner), graduées ; glisser ne bouge que cette machine */
+  function makeRulers() {
+    const el = document.createElement('div'); el.className = 'pc-rul'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<div class="pc-rul-h" title="Tourner"><i></i><span>Tourner</span></div><div class="pc-rul-v" title="Incliner"><i></i><span>Incliner</span></div>';
+    document.body.append(el);
+    const R = { el, onturn: null, ontilt: null };
+    const drag = (node, axis) => node.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); node.setPointerCapture(e.pointerId); let last = axis === 'x' ? e.clientX : e.clientY; node.classList.add('on');
+      const mv = (ev) => { const v = axis === 'x' ? ev.clientX : ev.clientY, d = v - last; last = v; if (axis === 'x') R.onturn?.(d * 0.012); else R.ontilt?.(-d * 0.01); node.querySelector('i').style.transform = axis === 'x' ? `translateX(${(parseFloat(node.dataset.o || 0) + d)}px)` : `translateY(${(parseFloat(node.dataset.o || 0) + d)}px)`; node.dataset.o = (parseFloat(node.dataset.o || 0) + d) % 12; };
+      const up = () => { node.classList.remove('on'); node.removeEventListener('pointermove', mv); node.removeEventListener('pointerup', up); };
+      node.addEventListener('pointermove', mv); node.addEventListener('pointerup', up);
+    });
+    drag(el.firstChild, 'x'); drag(el.lastChild, 'y');
+    return R;
+  }
+
+  /* machines 3D des projets, en longueur sur les côtés */
   scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
   const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-9, 16, 8); scene.add(sun);
-  const machines = [];
+  const machines = []; let pendingM = 0;
   for (const art of $$('[data-fig]')) {
-    const r = rectOf(art), side = rnd() < 0.5 ? -1 : 1, sc = 3.2 + rnd() * 1.6, x = side * (HALF + 0.9 + sc / 2 + rnd() * 1.8), z = (r.y + (0.15 + rnd() * 0.5) * r.h) / PXM, rot = side * (0.5 + rnd() * 0.5);
+    // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
+    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = 4.2, x = side * (HALF + 0.6 + sc / 2), z = (r.y + 0.35 * r.h) / PXM, rot = -side * 0.55;
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
-      const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); g.rotation.y = rot; scene.add(g);
+      const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
       const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
-      g.position.set(x - c.x, -box.min.y, z - c.z); patchTree(g); machines.push({ m, z });
+      // pivot au centre de la machine, posé au sol : les règles la tournent et l'inclinent sur place
+      m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
+      g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
+      pivot.position.set(x, 0, z); pivot.rotation.y = rot; patchTree(pivot);
+      const M = { m, z, pivot, rot, yaw: 0, tilt: 0, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
+      M.rul.onturn = (d) => { M.yaw = Math.max(-Math.PI, Math.min(Math.PI, M.yaw + d)); };
+      M.rul.ontilt = (d) => { M.tilt = Math.max(-0.6, Math.min(0.9, M.tilt + d)); };
+      machines.push(M);
     }).catch((e) => console.warn('machine indisponible', mod, e));
   }
 
@@ -327,7 +351,10 @@ async function start() {
     };
     return m;
   });
-  const notes = sections.map((s) => $$('[data-note]', s.el).map((n) => { const r = rectOf(n); return new THREE.Vector3((r.x + 3 - PAGE_W / 2) / PXM, 0.02, (r.y + 9) / PXM); }));
+  // ancres des traits du menu : les notes et le coin haut gauche de chaque cadre de la section, comme sur la page de référence
+  const anchors = sections.map((s) => [
+    ...$$('[data-note]', s.el).map((n) => { const r = rectOf(n); return new THREE.Vector3((r.x + 3 - PAGE_W / 2) / PXM, 0.02, (r.y + 9) / PXM); }),
+    ...items.filter((it) => it.el.matches('[data-box]') && it.r.y >= s.r.y && it.r.y < s.r.y + s.r.h).map((it) => new THREE.Vector3((it.r.x + 6 - PAGE_W / 2) / PXM, it.top, (it.r.y + 6) / PXM))]);
   const navPaths = [0, 1, 2, 3].map(() => ({ path: mkp(), dot: mkc() }));
   const ul = $('#nav ul');
   sections.forEach((s, i) => {
@@ -443,7 +470,10 @@ async function start() {
       if (u >= 1) { if (it.dir < 0) it.group.visible = false; it.dir = 0; }
     }
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
-    for (const k of machines) if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
+    for (const k of machines) {
+      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ');
+      if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
+    }
     for (const p of pigs) { // une pièce toutes les 2,4 s
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
@@ -485,7 +515,11 @@ async function start() {
       const [px, py, pz] = toScreen(m.p), vis = e > 0.5 && pz < 1 && py > 40 && py < h - 30 && px > 0 && px < w;
       m.b.style.display = vis ? '' : 'none'; if (vis) m.b.style.transform = `translate(${px}px,${py + 10}px)`;
     }
-    const btn = navItems[active] && navItems[active].firstChild, dots = notes[active] || [];
+    for (const k of machines) {
+      const [px, py, pz] = toScreen(k.pivot.position), vis = e > 0.5 && pz < 1 && py > 60 && py < h - 40 && px > 40 && px < w - 40 && Math.abs(focusZ - k.z) < 12;
+      k.rul.el.style.display = vis ? '' : 'none'; if (vis) k.rul.el.style.transform = `translate(${px.toFixed(1)}px,${(py + 18).toFixed(1)}px)`;
+    }
+    const btn = navItems[active] && navItems[active].firstChild, dots = (anchors[active] || []).map((v) => [v, toScreen(v)]).filter(([, q]) => q[2] < 1 && q[1] > 60 && q[1] < h * 0.92 && q[0] > 0 && q[0] < w).sort((a, b) => b[1][1] - a[1][1]).slice(0, 4).map(([v]) => v);
     if (btn && !narrow && e > 0.5) {
       const r = btn.getBoundingClientRect(), ox = r.right + 2, oy = r.top + r.height / 2;
       navPaths.forEach((n, j) => {

@@ -118,6 +118,17 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .rf-win-outer{z-index:3}
 /* hôte du symbole infini : à l'écran pour ne pas se mettre en pause, mais invisible (son image est reprise dans la 3D) */
 .pc-inf-host{position:fixed!important;left:0;top:0;opacity:0;pointer-events:none;z-index:-1}
+/* règles d'une machine (Tourner / Incliner), dessinées comme celles de l'accueil du site */
+.pc-rul{position:fixed;left:0;top:0;z-index:3;display:none;pointer-events:none}
+html.expo .pc-rul{display:block}
+.pc-rul-h,.pc-rul-v{position:absolute;pointer-events:auto;cursor:grab;overflow:hidden;border:1px solid rgba(255,255,255,.45);background:rgba(5,8,13,.55);backdrop-filter:blur(2px)}
+.pc-rul-h{left:-70px;top:0;width:140px;height:22px}
+.pc-rul-v{left:84px;top:-118px;width:22px;height:110px}
+.pc-rul-h i,.pc-rul-v i{position:absolute;inset:-12px;background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 1px,transparent 1px 6px),repeating-linear-gradient(90deg,#fff 0 1px,transparent 1px 30px);background-size:auto 7px,auto 12px;background-repeat:repeat-x;background-position:0 12px,0 12px}
+.pc-rul-v i{background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 1px,transparent 1px 6px),repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 30px);background-size:7px auto,12px auto;background-repeat:repeat-y;background-position:12px 0,12px 0}
+.pc-rul span{position:absolute;font:9px var(--mono);color:#cfd3da;letter-spacing:.06em;text-transform:uppercase;pointer-events:none}
+.pc-rul-h span{right:4px;top:5px}.pc-rul-v span{left:2px;bottom:4px;writing-mode:vertical-rl;transform:rotate(180deg)}
+.pc-rul-h.on,.pc-rul-v.on{cursor:grabbing;border-color:#fff}
 /* éléments vivants : posés dans la 3D par CSS3D, ils restent interactifs */
 #live3d{position:fixed;inset:0;z-index:2;pointer-events:none;display:none}
 html.expo #live3d{display:block}
