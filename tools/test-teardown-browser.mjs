@@ -76,7 +76,7 @@ for(let i of [1,5,10]){
  await page.waitForFunction(id=>window.__teardownDebug?.().selected===id&&window.__teardownDebug?.().ready,ids[i]);
  await page.locator('.rf-td button[data-td=collapse]').click();
  await page.locator('.rf-td button[data-mode=exploded]').click();
- await page.waitForTimeout(450);
+ await page.waitForFunction(()=>{const s=window.__teardownDebug?.();return s?.mode==='exploded'&&s?.heroVisible===false&&s?.internalsVisible===true;},null,{timeout:15000});
  const opened=await page.evaluate(()=>window.__teardownDebug());
  assert.equal(opened.mode,'exploded');
  assert.equal(opened.heroVisible,false,'En éclaté, retirer l’enveloppe');
