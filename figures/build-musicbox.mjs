@@ -105,6 +105,14 @@ const caseSvg = (() => {
   // paliers du cylindre : tourillon gauche, tourillon droit contre le flanc ; arbre d'entraînement qui traverse le flanc
   out.push(box(CYL.x0 - 6, CYL.x0 - 1, CYL.y - 4, CYL.y + 4, 7, CYL.z - 1.6 - 7, { tone: "mid", bevel: 0.4, ...STEEL }));
   out.push(box(CYL.x1 + 0.5, CYL.x1 + 4.5, CYL.y - 4, CYL.y + 4, 7, CYL.z - 1.6 - 7, { tone: "mid", bevel: 0.4, ...STEEL }));
+  // finitions : chapeaux de palier boulonnés, collerettes, grille d'aération et vis sur la tête de lecture
+  for (const [xa, xb] of [[CYL.x0 - 6, CYL.x0 - 1], [CYL.x1 + 0.5, CYL.x1 + 4.5]]) {
+    out.push(box(xa - 0.8, xb + 0.8, CYL.y - 5, CYL.y + 5, CYL.z - 2.4, 1.6, { tone: "lo", bevel: 0.3, ...STEEL }));
+    out.push(dots([[xa + 1, CYL.y - 3.6, CYL.z - 0.8], [xb - 1, CYL.y - 3.6, CYL.z - 0.8], [xa + 1, CYL.y + 3.6, CYL.z - 0.8], [xb - 1, CYL.y + 3.6, CYL.z - 0.8]], 0.4, "hi"));
+    out.push(box(xa - 1.4, xb + 1.4, CYL.y - 5.4, CYL.y + 5.4, 7, 1.6, { tone: "lo", bevel: 0.3, ...STEEL }));
+  }
+  out.push(dots([[56, -30, 12], [74, -30, 12], [56, -30, 54], [74, -30, 54]], 0.5, "hi"));
+  out.push(`<g transform="${front(-30)}">${[0, 1, 2, 3, 4].map((i) => `<path class="iso-line" data-tone="faint" d="M58 ${-(18 + i * 2.4)}H72"/>`).join("")}<path class="iso-line" data-tone="faint" d="M55.5 -9H74.5"/></g>`);
   // peigne : deux pieds, socle d'acier à vis ; les lamelles sont vivantes
   const bz = TOOTH.z - 4;
   for (const xx of [CYL.x0 - 2, CYL.x1 - 1.5]) out.push(box(xx, xx + 3.5, TOOTH.y0, TOOTH.y0 + 4.5, 7, bz - 7, { tone: "mid", bevel: 0.3, ...STEEL }));
@@ -133,6 +141,9 @@ const caseFront = (() => {
   out.push(box(x1, EXIT[0], EXIT[1] - 11, EXIT[1] + 11, EXIT[2] - 6, 12, { tone: "mid", bevel: 0.8, ...STEEL }));
   out.push(`<g transform="${right(EXIT[0])}"><path class="iso-fill fig-dark" d="M${-(EXIT[1] + 9)} ${-(EXIT[2] + 3.5)}H${-(EXIT[1] - 9)}V${-(EXIT[2] - 3.5)}H${-(EXIT[1] + 9)}Z"/><path class="iso-line" data-tone="mid" d="M${-(EXIT[1] + 10)} ${-(EXIT[2] + 4.5)}H${-(EXIT[1] - 10)}V${-(EXIT[2] - 4.5)}H${-(EXIT[1] + 10)}Z"/></g>`);
   out.push(dots([[x1, y0 + 3, 9], [x1, y1 - 3, 9], [x1, y0 + 3, h - 3], [x1, y1 - 3, h - 3]], 0.5, "hi"));
+  // finitions du plateau du lecteur : lèvres vissées, plaque de série, évents du flanc droit
+  out.push(dots([[READER.x0 + 2, READER.y1, READER.z0 + 2], [READER.x1 - 2, READER.y1, READER.z0 + 2], [READER.x0 + 2, READER.y1, READER.z1 - 2], [READER.x1 - 2, READER.y1, READER.z1 - 2]], 0.4, "hi"));
+  out.push(`<g transform="${right(x1)}">${[0, 1, 2, 3, 4].map((i) => `<path class="iso-line" data-tone="faint" d="M${-(y1 - 8 - i * 3.2)} ${-(h - 14)}V${-(h - 26)}"/>`).join("")}</g>`);
   return out.join("");
 })();
 
