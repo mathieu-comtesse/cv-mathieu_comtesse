@@ -25,6 +25,20 @@ leurs commandes métiers et leurs animations. Aucun processus réel n'est lancé
 - Incident : arrêt de la machine principale dans le scénario, sans bascule de la VM secondaire.
 - Le panneau distingue explicitement la reprise cible de la fonction déjà opérationnelle.
 
+## Ajouts de la deuxième itération
+- Laboratoire unique : `teardown-lab.html`, onze sélections, caméra orbitale,
+  zoom, panneau d'inspection et contrôle paramétrique natif par machine.
+- Adresse de test sur la branche publique `teardown-premium-preview`,
+  servie via RawGitHack. Aucun déploiement sur comtesse.me n'est nécessaire.
+- Centrale VM : ajout d'une serrure mécanique à deux roues dentées et d'un
+  coulisseau visible, raccordés à l'état de traitement, doublon ou panne.
+- Centrale financière : ajout d'une rangée de relais mécaniques suivant les
+  niveaux de consommation, et recalcul déterministe des alertes lors du passage
+  de seuil. La simulation n'envoie plus une enveloppe tous les jours sans raison.
+- Navigation entre les onze projets, affichage des paramètres et textes d'aide.
+- Les lourdes pièces du châssis restent ancrées lors d'un éclaté, ce qui évite
+  la désagrégation de la plateforme.
+
 ## Limites explicites de cette première itération
 - Les cinq zones sont issues de la répartition spatiale des meshes actuels. Ce ne sont
   pas encore des assemblages cinématiques conçus pièce par pièce. La vue éclatée
