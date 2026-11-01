@@ -189,7 +189,7 @@ async function choose(i){
    const loaded=await mountMachine(p.id,canvas,cam,undefined,{width:24});
    if(version!==loadingVersion){loaded.dispose();return;}
    current=loaded;
-   if(loaded.frameInfo){aimY=Math.max(2.5,loaded.frameInfo.centerY);rotation.dist=Math.max(34,loaded.frameInfo.radius*1.95);pose();}
+   if(loaded.frameInfo){aimY=Math.max(2.5,loaded.frameInfo.centerY);rotation.dist=Math.max(46,loaded.frameInfo.radius*2.6);pose();}
    ui=mountTeardownUI(current,{onSeekTime:seek,onPause:pause,initiallyCollapsed:true});
    syncSlider();
    $('#status').hidden=true;
