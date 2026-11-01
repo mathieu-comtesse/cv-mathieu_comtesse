@@ -137,6 +137,15 @@ html.expo #live3d{display:block}
 .pc-flowwrap h2{margin:0;font:600 24px/1.2 var(--sans);color:#fff}
 .pc-flowwrap .rf-flow-step p{margin:0;color:rgba(255,255,255,.88)}
 .pc-flowwrap .rf-flow-magic{color:#fff}
+.pc-contact-live.rf-contact{padding:30px 0 50px;margin:0 0 60px}
+.pc-contact-live .rf-contact-in{width:100%;text-align:center}
+.pc-contact-live .rf-cp{margin-inline:auto}
+.pc-cards1{grid-template-columns:1fr;max-width:560px;margin-inline:auto}
+.pc-contact-live .rf-link.hov{color:#e0ebfd}
+.pc-contact-live .rf-link.hov .rf-link-ic{width:16px;margin-left:0;opacity:1;transform:none}
+.pc-contact-live .rf-contact-in.hov-in .rf-dim,.pc-contact-live .rf-contact-in.hov-in .rf-cp:not(:has(.rf-link)){opacity:.33}
+.pc-hot{position:fixed;left:0;top:0;z-index:3;display:none;background:transparent;border:0;padding:0;cursor:pointer}
+html.expo .pc-hot{display:block}
 .pc-end{margin:40px 0 0;font:12px var(--mono);color:#8a8e98;text-align:center}
 
 /* la pièce du site anime ses objets depuis un conteneur hors écran ; ils sont dessinés dans la scène du parcours */

@@ -94,6 +94,12 @@ async function start() {
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
   const PAGE_H = P.height;
+  // liens d'un bloc dessiné sur la feuille (contact) : zones actives transparentes recalées sur l'image, mêmes survols que le site
+  const hots = $$('[data-hot] .rf-link').map((a) => { const r = rectOf(a), box = a.closest('.rf-contact-in'), h = document.createElement('a');
+    h.className = 'pc-hot'; h.setAttribute('aria-label', a.getAttribute('aria-label') || a.textContent.trim());
+    if (a.getAttribute('href')) { h.href = a.getAttribute('href'); h.target = '_blank'; h.rel = 'noopener'; } else { h.href = '#'; h.addEventListener('click', (e) => { e.preventDefault(); a.click(); }); }
+    h.addEventListener('pointerenter', () => { a.classList.add('hov'); box?.classList.add('hov-in'); }); h.addEventListener('pointerleave', () => { a.classList.remove('hov'); box?.classList.remove('hov-in'); });
+    document.body.append(h); return { h, r }; });
   flows.forEach((f, i) => { flowTops[i] = $$('.rf-flow-step', f.w).map((li) => rectOf(li).y); });
   const sigSvg0 = $('#pc-sign svg'), sigRect = sigSvg0 && rectOf(sigSvg0); // relevé avant tout déplacement d'élément
 
@@ -327,9 +333,19 @@ async function start() {
       const ph = document.createElement('div'); ph.style.cssText = `width:${r.w}px;height:${r.h}px;margin:${getComputedStyle(el).margin}`; el.before(ph); // la mise en page ne bouge pas
       el.style.width = r.w + 'px'; el.style.height = r.h + 'px'; el.style.margin = '0';
       const o = new CSS3DObject(el); o.scale.setScalar(1 / PXM); cssScene.add(o);
-      lives.push({ el, o, g, tilt: el.dataset.live === 'hublot' ? 0.75 : 0.45 });
+      lives.push({ el, o, g, tilt: el.dataset.live === 'hublot' ? 0.75 : 0 });
     }
     if ($('#rf-win')) import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
+  }
+
+  // contact : l'adresse se copie au clic (comme sur le site), icône « copié » un instant
+  const mail = $('#rf-mail');
+  if (mail) {
+    const copy = async () => {
+      try { await navigator.clipboard.writeText(mail.dataset.copy); } catch { /* presse-papiers indisponible */ }
+      mail.classList.add('rf-copied'); clearTimeout(copy.t); copy.t = setTimeout(() => mail.classList.remove('rf-copied'), 1800);
+    };
+    mail.addEventListener('click', copy); mail.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copy(); } });
   }
 
   /* superpositions : légendes, « voir la magie », menu, traits courbes, repères d'échelle (relevés avant de déplacer les éléments) */
@@ -433,7 +449,7 @@ async function start() {
     if (css) css.setSize(innerWidth, innerHeight);
     renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight;
     const d = renderer.getPixelRatio(); rt.setSize(Math.round(innerWidth * d), Math.round(innerHeight * d)); postMat.uniforms.px.value.set(1 / (innerWidth * d), 1 / (innerHeight * d));
-    page.style.height = Math.round(PAGE_H + innerHeight * 0.5) + 'px'; // la fin de la page peut venir au centre
+    page.style.height = Math.round(PAGE_H + innerHeight * 1.3) + 'px'; // la fin de la page peut venir au centre
   }
   addEventListener('resize', resize); resize();
 
@@ -451,7 +467,7 @@ async function start() {
   let frameN = 0, sSm = scrollY, last = performance.now(), dtS = 0;
   function frame(now) {
     requestAnimationFrame(frame);
-    dtS = Math.min(0.05, (now - last) / 1000); last = now;
+    dtS = Math.min(0.1, (now - last) / 1000); last = now;
     sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * 7)); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
     const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
     const H = innerHeight, focusZ = (s + H / 2) / PXM;
@@ -485,7 +501,7 @@ async function start() {
         const a = L.tilt * e, far = L.g.cz - L.g.d / 2 * Math.cos(a);
         L.o.rotation.set(-Math.PI / 2 + a, 0, 0); L.o.position.set(L.g.cx, 0.03 + L.g.d / 2 * Math.sin(a), L.g.cz + (L.g.d / 2) * (1 - Math.cos(a)));
         const t = camera.position.z - far - d0, near = L.g.cz + L.g.d / 2 - camera.position.z;
-        L.el.style.opacity = Math.max(0, Math.min(1, 1 - t / 2, 1 - near / 3)).toFixed(3);
+        L.el.style.opacity = Math.max(0, Math.min(1, 1 - t / 2)).toFixed(3); void near;
         L.el.style.visibility = L.el.style.opacity === '0.000' ? 'hidden' : '';
       }
       css.render(cssScene, camera);
@@ -510,6 +526,11 @@ async function start() {
       const ey = ly + c.el.offsetHeight;
       c.path.setAttribute('d', `M${c.side < 0 ? lx : lx + bw},${ey} L${c.side < 0 ? lx + bw : lx},${ey} L${px},${py}`); c.path.style.opacity = a * 0.8;
       c.dot.setAttribute('cx', px); c.dot.setAttribute('cy', py); c.dot.style.opacity = a;
+    }
+    for (const o of hots) { // rectangle à l'écran = enveloppe des quatre coins projetés
+      const c = [[o.r.x, o.r.y], [o.r.x + o.r.w, o.r.y], [o.r.x, o.r.y + o.r.h], [o.r.x + o.r.w, o.r.y + o.r.h]].map(([x, y]) => toScreen(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)));
+      const ok = e > 0.5 && c.every((q) => q[2] < 1), xs = c.map((q) => q[0]), ys = c.map((q) => q[1]);
+      o.h.style.display = ok ? '' : 'none'; if (ok) { const x0 = Math.min(...xs), y0 = Math.min(...ys); o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = (Math.max(...xs) - x0) + 'px'; o.h.style.height = (Math.max(...ys) - y0) + 'px'; }
     }
     for (const m of magics) {
       const [px, py, pz] = toScreen(m.p), vis = e > 0.5 && pz < 1 && py > 40 && py < h - 30 && px > 0 && px < w;
@@ -570,5 +591,5 @@ async function start() {
     };
     requestAnimationFrame(tick);
   }
-  window.__expo = { camera, sections, items, HIC };
+  window.__expo = { camera, sections, items, HIC, hots, toScreen, V: THREE.Vector3 };
 }
