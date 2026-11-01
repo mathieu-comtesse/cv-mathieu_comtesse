@@ -51,13 +51,13 @@ if (fig && bpCanvas && stage) {
     const t0 = performance.now();
     /* Interaction directement sur la machine 3D, comme sur la figure d'origine : on attrape la machine et on glisse (ou flèches gauche / droite)
        pour changer son réglage propre (seuil en %, pondération, lot, jour, heure, rapport…) ; un clic sur la machine avance d'un cran. */
-    let shift = 0, drag = null, paused = false, pauseAt = 0;
+    let shift = 0, drag = null, paused = false, pauseAt = 0, staticTime = 6;
     const liveClock = () => (performance.now() - t0) / 1000 + shift;
-    const clock = () => paused ? pauseAt : liveClock();
-    const seekTime = (t) => { if (paused) pauseAt = t; else shift += t - liveClock(); };
+    const clock = () => paused ? pauseAt : (reduced ? staticTime : liveClock());
+    const seekTime = (t) => { if (reduced) staticTime = t; if (paused) pauseAt = t; else if (!reduced) shift += t - liveClock(); };
     const togglePause = (value) => {
-      if (value && !paused) { pauseAt = liveClock(); paused = true; }
-      else if (!value && paused) { shift += pauseAt - liveClock(); paused = false; }
+      if (value && !paused) { pauseAt = clock(); paused = true; }
+      else if (!value && paused) { if (!reduced) shift += pauseAt - liveClock(); paused = false; }
     };
     const hud = mountTeardownUI(machine,{onSeekTime:seekTime,onPause:togglePause});
     const ctl = machine.controls || { label: 'temps', min: 0, max: 100, step: 5, fmt: (v) => v + ' %', get: (t) => ((t % 60) / 60) * 100, seek: (v) => v / 100 * 60 };
@@ -104,7 +104,7 @@ if (fig && bpCanvas && stage) {
       canvas.style.opacity = bg.toFixed(3);
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
-      const renderTime = reduced ? (paused ? pauseAt : 6 + shift) : clock();
+      const renderTime = clock();
       machine.render(renderTime);
       hud.update(renderTime);
       hud.visibility(o);
