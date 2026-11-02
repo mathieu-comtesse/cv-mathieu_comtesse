@@ -21,10 +21,11 @@ import { drawMat, blueprintMaterial } from './blueprint-hero.js';
    Texture : l'élément lui-même via HTML-in-Canvas quand le navigateur le permet, sinon une image de la section (SVG foreignObject).
    Le défilement natif pilote la caméra : vue de face à l'échelle 1:1 au départ, puis la page se rabat en chemin et se relève au loin. */
 
-const ROOM_K = 1.15;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
+const ROOM_K = innerWidth < 760 ? 0.5 : 1.15;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
 const PXM = 100;                  // px de page par mètre
 const MOBILE = innerWidth < 760;   // téléphone : page étroite, mise en page à une colonne (voir parcours.css, html.pc-m)
-const PAGE_W = MOBILE ? 420 : 1000;
+const PAGE_W = MOBILE ? Math.max(320, Math.min(560, Math.round(innerWidth))) : 1000;
+document.documentElement.style.setProperty('--pw', PAGE_W + 'px');
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
 const FOLD_A = 120, FOLD_B = 900; // la page se rabat entre ces deux positions de défilement (px)
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -241,9 +242,10 @@ async function start() {
       const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
       const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
       const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens' });
-      const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(0, 0.5);
-      lb.position.set(hp.x + 0.07, 0.06, hp.z + 0.02); scene.add(lb);
-      const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(0, 0.5); ct.position.set(hp.x + 0.07 + lb.scale.x + 0.04, 0.06, hp.z - 0.1); scene.add(ct);
+      const onLeft = u > 0.6; // les phares de droite écrivent leur nom vers la gauche pour rester dans le cadre
+      const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(onLeft ? 1 : 0, 0.5);
+      lb.position.set(hp.x + (onLeft ? -0.07 : 0.07), 0.06, hp.z + 0.02); scene.add(lb);
+      const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
       { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0x7ff6ff, fog: false, depthTest: false })); sq.scale.set(0.05, 0.05, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
       const n = leaves.length + 16;
       for (let k = 0; k < n; k++) {
@@ -284,7 +286,7 @@ async function start() {
   /* vignettes de l'accueil : une machine 3D qui tourne, la pièce avec Mathieu dedans (rendue en direct), un flux de particules */
   const minis = [];
   for (const card of $$('[data-mini]')) {
-    const slot = card.querySelector('.pc-mini-slot'), r = rectOf(slot), g = W(r), top = parseFloat(card.dataset.box) || 0.12, kind = card.dataset.mini;
+    const slot = card.querySelector('.pc-mini-slot'), r = rectOf(slot); if (r.w < 8) continue; const g = W(r), top = parseFloat(card.dataset.box) || 0.12, kind = card.dataset.mini;
     if (kind === 'machine') import('./m3d/finance.js').then(({ build, WIDTH = 236 }) => {
       const m = build(), grp = new THREE.Group(); grp.add(m.group); const k = g.w * 0.42 / WIDTH; grp.scale.setScalar(k);
       const box = new THREE.Box3().setFromObject(grp), c = box.getCenter(new THREE.Vector3()); m.group.position.sub(c.divideScalar(k)); m.group.position.y += (box.max.y - box.min.y) / 2 / k;
@@ -313,7 +315,7 @@ async function start() {
         const c = new THREE.Box3().setFromObject(rg).getCenter(new THREE.Vector3()), hh = 3.4 * rg.scale.x / ROOM_K;
         M.cam2.left = -hh * M.asp; M.cam2.right = hh * M.asp; M.cam2.top = hh; M.cam2.bottom = -hh; M.cam2.updateProjectionMatrix();
         M.cam2.position.set(c.x + 9, 30, c.z + 9); M.cam2.up.set(0, 1, 0); M.cam2.lookAt(c.x, c.y, c.z);
-        renderer.setRenderTarget(M.rt2); renderer.setClearColor(0x14249a, 1); renderer.clear(); renderer.render(rg, M.cam2); renderer.setRenderTarget(null); renderer.setClearColor(0x000000, 1);
+        try { renderer.setRenderTarget(M.rt2); renderer.setClearColor(0x14249a, 1); renderer.clear(); renderer.render(rg, M.cam2); } catch { /* vignette ignorée pour cette image */ } finally { renderer.setRenderTarget(null); renderer.setClearColor(0x000000, 1); }
       } else {
         // comme la vignette de référence : un nuage de points qui dérive à gauche, une ligne de tri lumineuse, puis quatre conduits où le flux file
         const c = M.cv.getContext('2d'), w = M.cv.width, h = M.cv.height, mx = w * 0.5, L4 = [0.2, 0.42, 0.64, 0.86].map((v) => h * (0.12 + v * 0.8)); c.clearRect(0, 0, w, h);
@@ -376,7 +378,7 @@ async function start() {
   const machines = []; let pendingM = 0; const T0 = 0; // posée sur sa base
   for (const art of $$('[data-fig]')) {
     // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
-    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = 4.2, x = side * (HALF + sc * 0.24), z = (r.y + 0.12 * r.h) / PXM, rot = -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
+    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = MOBILE ? 3.0 : 4.2, x = side * (HALF + sc * 0.24), z = MOBILE ? (r.y + 150) / PXM : (r.y + 0.12 * r.h) / PXM, rot = MOBILE ? 0 : -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
@@ -390,7 +392,7 @@ async function start() {
       // pivot au centre de la machine, posé au sol : les règles la tournent et l'inclinent sur place
       m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
       g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
-      pivot.position.set(side * (HALF + 0.35 + box.getSize(new THREE.Vector3()).z / 2), 0, z); void x; // même écart au bord de la page pour toutes les machines pivot.rotation.y = rot; patchTree(pivot);
+      pivot.position.set(MOBILE ? 0 : side * (HALF + 0.35 + box.getSize(new THREE.Vector3()).z / 2), 0, z); void x; // même écart au bord de la page pour toutes les machines pivot.rotation.y = rot; patchTree(pivot);
       const M = { m, z, pivot, rot, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
       M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
@@ -532,6 +534,18 @@ async function start() {
     li.append(b); ul.append(li);
   });
   const navItems = [...ul.children];
+  /* navigation mobile : barre en bas (chapitre précédent, chapitre courant qui ouvre la liste, chapitre suivant) */
+  let mnav = null;
+  if (MOBILE) {
+    const go = (i) => scrollTo({ top: i <= 0 ? 0 : Math.max(0, sections[i].r.y + 260 - innerHeight / 2), behavior: reduce ? 'auto' : 'smooth' });
+    mnav = document.createElement('nav'); mnav.id = 'mnav'; mnav.setAttribute('aria-label', 'Chapitres');
+    mnav.innerHTML = '<ul class="mn-l" hidden></ul><div class="mn-b"><button type="button" class="mn-p" aria-label="Chapitre précédent">‹</button><button type="button" class="mn-c" aria-expanded="false"><b></b><span></span></button><button type="button" class="mn-n" aria-label="Chapitre suivant">›</button></div>';
+    const ml = mnav.querySelector('.mn-l'), mc = mnav.querySelector('.mn-c');
+    sections.forEach((sec, i) => { const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button'; b.innerHTML = `<i>${String(i + 1).padStart(2, '0')}</i>${sec.name}`; b.onclick = () => { ml.hidden = true; mc.setAttribute('aria-expanded', 'false'); go(i); }; li.append(b); ml.append(li); });
+    mc.onclick = () => { ml.hidden = !ml.hidden; mc.setAttribute('aria-expanded', String(!ml.hidden)); };
+    mnav.querySelector('.mn-p').onclick = () => go(Math.max(0, (mnav.i ?? 0) - 1)); mnav.querySelector('.mn-n').onclick = () => go(Math.min(sections.length - 1, (mnav.i ?? 0) + 1));
+    document.body.append(mnav);
+  }
   const ticks = []; for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'tick'; $('#ticks').append(d); ticks.push(d); }
 
   /* textures : HTML-in-Canvas (l'élément vivant) ou image de la section */
@@ -592,8 +606,8 @@ async function start() {
     }
     return out.join('\n');
   }
-  async function rasterize(el, r, css, ctx = false) {
-    const S = Math.min(ctx ? 2 : 1.5, 8000 / r.h);
+  async function rasterize(el, r, css, ctx = false, sc = 0) {
+    const S = Math.min(sc || (ctx ? 2 : 1.5), 8000 / r.h);
     const clone = el.cloneNode(true); clone.style.background = el.classList.contains('pc-art') ? '#05080d' : 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
     if (el.style.position === 'fixed') { clone.style.position = 'static'; clone.style.left = 'auto'; clone.style.top = 'auto'; } // hôte hors écran : dans l'image, il doit être en place
     clone.querySelectorAll('[data-graph], [data-sign] svg, [data-tl] .rf-tl-line, [data-tl] .rf-tl-dot').forEach((n) => n.remove()); // la signature a son propre calque animé
@@ -699,28 +713,30 @@ async function start() {
   }
   /* lecteur 3D : une étude ou une fiche devient un panneau posé sur la feuille, qui se lève sur son bord (charnière) et se lit à la molette ou au doigt */
   const articlesP = fetch(new URL('articles.json', import.meta.url)).then((r) => r.json()).catch(() => ({}));
-  const ART_W = MOBILE ? 380 : 720, VIEW_H = MOBILE ? 560 : 700, ART_ANG = 0.95; let reader = null, readerK = 0;
+  const ART_W = MOBILE ? Math.min(400, PAGE_W) : 720, VIEW_H = MOBILE ? 760 : 700; let reader = null, readerK = 0;
   const bar = document.createElement('div'); bar.className = 'pc-reader-bar'; bar.hidden = true;
   bar.innerHTML = '<button type="button" class="pc-reader-x">← Rabaisser</button><span class="pc-reader-t"></span><span class="pc-reader-p"></span>'; document.body.append(bar);
   async function openReader(key, L) {
     if (reader) return; const A = await articlesP, art = A[key]; if (!art) return;
-    const host = document.createElement('div'); host.className = 'rf-post-page pc-art'; host.style.cssText = `position:fixed;left:-9999px;top:0;width:${ART_W}px;padding:34px 36px 60px;background:#05080d;color:#e0ebfd;font-family:Inter,system-ui,sans-serif`;
+    const host = document.createElement('div'); host.className = 'rf-post-page pc-art'; host.style.cssText = `position:fixed;left:-9999px;top:0;width:${ART_W}px;padding:${MOBILE ? '22px 20px 50px' : '34px 36px 60px'};background:#05080d;color:#e0ebfd;font-family:Inter,system-ui,sans-serif`;
     host.innerHTML = `<article class="rf-post">${art.html}</article>`; document.body.append(host);
     await Promise.all([...host.querySelectorAll('img')].map((im) => im.decode?.().catch(() => {})));
     const r = { x: 0, y: 0, w: ART_W, h: Math.ceil(host.scrollHeight) }; let cvs;
-    try { const css = await (cssP ??= inlineCss()); cssLite ??= css.replace(/@font-face\s*\{[^}]*\}/g, ''); cvs = await rasterize(host, r, cssLite, false); } catch (e) { console.warn('étude non dessinée', e); host.remove(); return; }
+    try { const css = await (cssP ??= inlineCss()); cssLite ??= css.replace(/@font-face\s*\{[^}]*\}/g, ''); cvs = await rasterize(host, r, cssLite, false, MOBILE ? 3 : 2.4); } catch (e) { console.warn('étude non dessinée', e); host.remove(); return; }
     host.remove();
     const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; tex.wrapT = THREE.ClampToEdgeWrapping;
     const w = ART_W / PXM, h = VIEW_H / PXM, rep = Math.min(1, VIEW_H / r.h);
     tex.repeat.set(1, rep); tex.offset.set(0, 1 - rep);
-    const geo = plane(w, h), mat = new THREE.MeshBasicMaterial({ map: tex, transparent: false, depthWrite: true, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(geo, mat); mesh.position.y = h / 2; mesh.renderOrder = 20; const SCL = MOBILE ? 1.0 : 1.3;
-    const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w, h)), white(0.85)); frame.position.copy(mesh.position); frame.renderOrder = 21;
-    const pivot = new THREE.Group(); pivot.add(mesh, frame); pivot.scale.setScalar(SCL);
-    const x0 = L ? (L.r.x + L.r.w / 2 - PAGE_W / 2) / PXM : 0, zn = L ? (L.r.y + L.r.h) / PXM : camera.position.z - 10, top = 0.05;
-    pivot.position.set(x0 * 0.4, top, zn); scene.add(pivot); patchTree(pivot);
-    const from = pivot.position.clone(), to = new THREE.Vector3(0, top, camera.position.z - (MOBILE ? 7.5 : 5.6)); // position de lecture : face à la caméra
-    reader = { k: SCL, from, to, key, pivot, mesh, tex, geo, mat, frame, u: 0, dir: 1, sc: 0, target: 0, max: Math.max(0, r.h - VIEW_H), total: r.h, rep, drag: null, title: art.title };
+    const geo = new THREE.PlaneGeometry(w, h), mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, depthTest: false, depthWrite: false, transparent: true }); // passe transparente : dessiné en dernier, par-dessus toute la page mat.userData.pc = true; // déjà placé face à la caméra : pas de courbure
+    const mesh = new THREE.Mesh(geo, mat); mesh.renderOrder = 20;
+    const frame = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false })); frame.material.userData.pc = true; frame.renderOrder = 21;
+    const pivot = new THREE.Group(); pivot.add(mesh, frame); scene.add(pivot);
+    // pose finale : devant la caméra, face à elle, à la taille qui remplit l'écran ; départ : à plat sur le cadre
+    const dist = 12, vh = 2 * dist * Math.tan(camera.fov * Math.PI / 360), vw = vh * camera.aspect, k = Math.min(vh * 0.8 / h, vw * 0.94 / w);
+    const dir = camera.getWorldDirection(new THREE.Vector3()), to = camera.position.clone().addScaledVector(dir, dist), qTo = camera.quaternion.clone();
+    const from = L ? new THREE.Vector3((L.r.x + L.r.w / 2 - PAGE_W / 2) / PXM, 0.4, (L.r.y + L.r.h / 2) / PXM) : to.clone().add(new THREE.Vector3(0, -3, 3)), qFrom = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+    pivot.position.copy(from); pivot.quaternion.copy(qFrom); pivot.scale.setScalar(0.45);
+    reader = { k, from, to, qFrom, qTo, key, pivot, mesh, tex, geo, mat, frame, u: 0, dir: 1, sc: 0, target: 0, max: Math.max(0, r.h - VIEW_H), total: r.h, rep, drag: null, title: art.title };
     bar.querySelector('.pc-reader-t').textContent = art.title; bar.hidden = false; document.documentElement.classList.add('pc-lifted');
   }
   function closeReader() { if (reader) reader.dir = -1; }
@@ -734,16 +750,16 @@ async function start() {
   function tickReader(now, dt) {
     if (!reader) { readerK = 0; return; }
     const R = reader; R.u = Math.max(0, Math.min(1, R.u + R.dir * dt / (reduce ? 0.01 : 1.05))); const e2 = R.u * R.u * (3 - 2 * R.u); readerK = e2;
-    R.pivot.rotation.x = -Math.PI / 2 + e2 * ART_ANG; R.pivot.scale.setScalar(R.k * (0.6 + 0.4 * e2)); R.pivot.position.lerpVectors(R.from, R.to, Math.min(1, e2 * 1.25));
+    const m1 = Math.min(1, e2 * 1.25), q1 = Math.max(0, (e2 - .15) / .85); R.pivot.position.lerpVectors(R.from, R.to, m1); R.pivot.quaternion.slerpQuaternions(R.qFrom, R.qTo, q1 * q1 * (3 - 2 * q1)); R.pivot.scale.setScalar(0.45 + (R.k - 0.45) * e2);
     R.sc += (R.target - R.sc) * (1 - Math.exp(-dt * 9)); R.tex.offset.y = 1 - R.rep - R.sc / R.total; R.tex.needsUpdate = false;
     bar.querySelector('.pc-reader-p').textContent = R.max ? Math.round(R.sc / R.max * 100) + ' %' : '';
     bar.style.opacity = String(e2);
-    if (R.dir < 0 && R.u <= 0) { scene.remove(R.pivot); R.geo.dispose(); R.mat.dispose(); R.tex.dispose(); R.frame.geometry.dispose(); bar.hidden = true; document.documentElement.classList.remove('pc-lifted'); reader = null; readerK = 0; }
+    if (R.dir < 0 && R.u <= 0) { scene.remove(R.pivot); R.geo.dispose(); R.mat.dispose(); R.tex.dispose(); R.frame.geometry.dispose(); R.frame.material.dispose(); bar.hidden = true; document.documentElement.classList.remove('pc-lifted'); reader = null; readerK = 0; }
   }
   const liftMats = (L, on) => items.filter((it) => L.el === it.el || L.el.contains(it.el)).forEach((it) => it.mats.forEach((m) => { if (m.map) m.visible = on; }));
 
   /* mini-jeu de fin de page : une toile 2D posée sur la feuille, juste après Contact ; il ne tourne que lorsqu'on est arrivé tout en bas */
-  const GW = 1150, GH = 750, GM = { w: 9.2, d: 6.0, cx: 0, cz: endZ + 4.5 };
+  const GW = MOBILE ? 600 : 1150, GH = MOBILE ? 780 : 750, GM = MOBILE ? { w: Math.min(HALF * 2 - 0.2, 4.0), d: 5.2, cx: 0, cz: endZ + 4.0 } : { w: 9.2, d: 6.0, cx: 0, cz: endZ + 4.5 };
   let game = null, gTex = null, gMesh = null;
   import('./pc-game.js').then(({ createGame }) => {
     game = createGame(GW, GH, reduce, { onTop: () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }) }); gTex = new THREE.CanvasTexture(game.cv); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
@@ -752,7 +768,7 @@ async function start() {
   const gRay = new THREE.Raycaster(), gPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03), gHit = new THREE.Vector3(), gNdc = new THREE.Vector2(), gP = { x: GW / 2, y: GH * 0.8, down: false, in: false };
   addEventListener('pointerdown', (e) => { if (e.button === 0 && !lifted && !reader && e.target === canvas) gP.down = true; }); addEventListener('pointerup', () => { gP.down = false; });
   function tickGame(now, focusZ) {
-    if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9;
+    if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9; canvas.style.touchAction = on ? 'none' : '';
     if (!on) { gP.down = false; return; }
     gNdc.set(mouse.x / innerWidth * 2 - 1, -(mouse.y / innerHeight) * 2 + 1); gRay.setFromCamera(gNdc, camera);
     if (gRay.ray.intersectPlane(gPlane, gHit)) { gP.x = (gHit.x - GM.cx) / GM.w * GW + GW / 2; gP.y = (gHit.z - GM.cz) / GM.d * GH + GH / 2; gP.in = gP.x > 0 && gP.x < GW && gP.y > 0 && gP.y < GH; } else gP.in = false;
@@ -817,7 +833,8 @@ async function start() {
   }
   const mouse = { x: -1, y: -1 }, gtip = document.createElement('div'); gtip.className = 'pc-gtip'; gtip.setAttribute('aria-hidden', 'true'); document.body.append(gtip);
   addEventListener('pointermove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
-  addEventListener('click', (e) => { if (e.target !== canvas) return; for (const G of graphs) { const o = G.nodes[G.hover]; if (o && o.href) { location.href = o.href; return; } } });
+  addEventListener('click', (e) => { if (e.target !== canvas) return; for (const G of graphs) { const o = G.nodes[G.hover]; if (o && o.href) { const k = o.href.replace(/\.html.*$/, ''); articlesP.then((A) => { if (A[k]) openReader(k, null); else location.href = o.href; }); return; } } });
+  addEventListener('pointerdown', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
   function hoverGraphs(e) {
     let any = false;
     for (const G of graphs) {
@@ -845,7 +862,7 @@ async function start() {
     flatPos.set(0, dist, focusZ); flatLook.set(0, 0, focusZ - 0.0001);
     runPos.set(0, 8.6, focusZ + 5.2); runLook.set(0, 0, focusZ - 6);
     camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
-    camera.fov = fovFlat + (62 - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
     if (!HIC) page.style.transform = `translateY(${(scrollY - s).toFixed(2)}px)`;
     // étapes de « Comment ça marche » : elles s'élèvent et se tournent vers le lecteur
@@ -886,6 +903,7 @@ async function start() {
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
     let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
     navItems.forEach((li, i) => li.classList.toggle('on', i === active));
+    if (mnav && mnav.i !== active) { mnav.i = active; mnav.querySelector('.mn-c b').textContent = String(active + 1).padStart(2, '0'); mnav.querySelector('.mn-c span').textContent = sections[active].name; }
     for (const c of callouts) {
       const dz = focusZ + 6 - c.p.z, [px, py, pz] = toScreen(c.p);
       const vis = e > 0.5 && dz > -2 && dz < 30 && pz < 1 && py > 30 && py < h * 0.95;

@@ -9,7 +9,8 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 
 /* ---------- la page (lisible telle quelle ; en 3D, chaque élément marqué devient une boîte ou un plan) ----------
    Règle : l'apparence d'un élément ne dépend que de ses propres classes (il est sorti de la page pour être dessiné). */
-.pc-page{width:1000px;margin:0 auto;color:#fff}
+.pc-page{width:var(--pw,1000px);margin:0 auto;color:#fff}
+@media (max-width:759px){:root{--pw:100vw}html,body{overflow-x:hidden}}
 .pc-sec{position:relative;padding:130px 60px 110px;background:#111}
 .pc-intro{min-height:880px;padding-top:56px} /* texte et signature tiennent ensemble dans le premier écran */
 .pc-intro-in{width:880px;margin:0 auto}
@@ -174,7 +175,7 @@ html.expo .pc-gtip{display:block}
 /* ---------- mode 3D (classe posée par parcours.js quand WebGL est là) ---------- */
 #scene,#leaders,#ticks,#callouts,#nav,#back,.pc-magic{display:none}
 html.expo body{overscroll-behavior:none}
-html.expo #page{position:absolute;left:50%;top:0;margin:0 0 0 -500px;visibility:hidden;pointer-events:none}
+html.expo #page{position:absolute;left:50%;top:0;margin:0 0 0 calc(var(--pw,1000px) / -2);visibility:hidden;pointer-events:none}
 /* sans HTML-in-Canvas, la page réelle reste par-dessus tant qu'elle est vue de face (même cadrage 1:1), puis la 3D prend le relais */
 html.expo #scene{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:1}
 html.expo #leaders,html.expo #ticks,html.expo #callouts{display:block;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
@@ -229,3 +230,64 @@ html.expo.flat #leaders{opacity:0}
 .pc-reader-x{background:#fff;color:#05080d;border:0;border-radius:20px;padding:7px 14px;font:500 12px var(--mono);cursor:pointer;white-space:nowrap}
 .pc-reader-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}
 .pc-reader-p{opacity:.7;min-width:32px;text-align:right;padding-right:8px}
+
+/* ---------- mobile : page étroite, une colonne ; la navigation passe dans une barre en bas ---------- */
+#mnav{display:none}
+@media (max-width:759px){
+  .pc-sec{padding:70px 18px 60px}
+  .pc-intro{min-height:0;padding-top:40px}
+  .pc-intro-in,.pc-sign{width:100%}
+  .pc-ap{font:500 15px/22px var(--sans);margin-bottom:14px}
+  .pc-sign svg{width:230px;height:auto}
+  .pc-dateline{flex-direction:column;gap:4px}
+  .pc-decor{height:1180px}
+  .pc-room{left:0;width:100%;top:20px;height:520px}
+  .pc-hero{left:18px;top:560px;width:calc(100% - 36px)}
+  .pc-hero-t{font-size:38px;margin-bottom:18px}
+  .pc-hero-pro{font-size:14px}
+  /* accueil : titre en haut, sommaire et vignettes en deux colonnes, graphe dessous */
+  .pc-title{writing-mode:horizontal-tb;transform:none;left:14px;top:12px;width:calc(100% - 28px);height:auto;font:600 44px/.92 var(--sans);letter-spacing:-.045em;white-space:normal}
+  .pc-title-k{writing-mode:horizontal-tb;transform:none;left:16px;top:66px;bottom:auto;height:auto;font:10px var(--mono)}
+  .pc-home-col{left:10px;right:10px;top:88px;bottom:auto;width:auto;height:236px;display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;gap:6px}
+  .pc-home-col .pc-index{grid-row:1/3}
+  .pc-home-col .pc-mini[data-mini="flux"]{display:none!important}
+  .pc-graph{left:8px;right:8px;top:334px;bottom:8px}
+  .pc-h{font:700 34px/1.05 var(--sans);letter-spacing:-1px;margin-bottom:36px}
+  .pc-notes,.pc-notes2{grid-template-columns:1fr;gap:14px;margin-bottom:40px}
+  .pc-cards,.pc-cards3{grid-template-columns:1fr;gap:24px;margin-bottom:50px}
+  .pc-card{padding:20px}
+  .pc-card h3{font-size:22px}
+  .pc-card p{font-size:15px}
+  .pc-proj,.pc-proj:nth-of-type(even){grid-template-columns:1fr;gap:16px;margin-bottom:80px;padding-top:300px}
+  .pc-proj:nth-of-type(even) .pc-pcard,.pc-proj:nth-of-type(even) .pc-float{grid-column:1;grid-row:auto}
+  .pc-float{font-size:16px}
+  .pc-steps{grid-template-columns:1fr}
+  .pc-gainsrow{grid-template-columns:1fr}
+  .pc-gxwrap{width:100%}
+  .pc-exp-top{grid-template-columns:1fr;gap:20px;margin-bottom:40px;justify-items:center}
+  .pc-hublot,.rf-win{width:250px}
+  .pc-hublot{height:200px}
+  .pc-exp-title h2{font-size:26px}
+  .pc-inf{height:320px;margin:-70px -18px 30px}
+  /* machines : une règle « Tourner » sous chaque machine, la règle verticale est masquée */
+  .pc-rul .rf-ruler:not(.rf-ruler--h){display:none}
+  .pc-rul .rf-ruler--h,.pc-rul.pc-rul-r .rf-ruler--h{left:-112px;top:36px}
+  /* les traits et légendes latéraux n'ont pas la place d'exister */
+  html.expo #leaders,html.expo #callouts,html.expo #ticks,html.expo #nav{display:none!important}
+  html.expo #back{bottom:74px;left:12px}
+  html.expo #mnav{display:block;position:fixed;left:0;right:0;bottom:0;z-index:55;padding:0 10px calc(10px + env(safe-area-inset-bottom))}
+  .mn-b{display:flex;gap:6px}
+  .mn-b button{height:44px;border:1px solid rgba(255,255,255,.6);background:rgba(5,8,13,.8);backdrop-filter:blur(6px);color:#fff;font:13px var(--mono);border-radius:22px}
+  .mn-p,.mn-n{width:48px;font-size:22px;line-height:1}
+  .mn-c{flex:1;display:flex;align-items:center;justify-content:center;gap:10px}
+  .mn-c b{opacity:.6;font-weight:400}
+  .mn-l{list-style:none;margin:0 0 8px;padding:6px;border:1px solid rgba(255,255,255,.6);border-radius:16px;background:rgba(5,8,13,.94);max-height:62vh;overflow:auto}
+  .mn-l[hidden]{display:none}
+  .mn-l button{width:100%;display:flex;gap:12px;text-align:left;padding:11px 10px;border:0;background:none;color:#fff;font:14px var(--mono)}
+  .mn-l i{font-style:normal;opacity:.55}
+  .pc-reader-bar{top:10px}
+  .pc-lift-card{max-width:96vw;height:86vh}
+  .pc-lift-sc{padding:16px 14px 60px}
+}
+@media (max-width:759px){.pc-gxwrap .gx-table table{min-width:0;font-size:11px}.pc-gxwrap .gx-table th,.pc-gxwrap .gx-table td{padding:6px 6px 6px 0}}
+@media (max-width:759px){.pc-gxwrap .gx-scroll{overflow:visible}.pc-gxwrap .gx-table table{width:100%;table-layout:fixed}.pc-gxwrap .gx-table th,.pc-gxwrap .gx-table td{overflow-wrap:anywhere}}

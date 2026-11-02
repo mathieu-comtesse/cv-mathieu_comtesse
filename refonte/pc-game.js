@@ -35,20 +35,21 @@ export function createGame(W, H, reduce, hooks = {}) {
   };
 
   /* texte en colonnes : chaque mot a sa boîte (survol, détachement) */
-  const COLS = 3, CW = 330, GAP = (W - 2 * 60 - COLS * CW) / (COLS - 1), LH = 21, TOP = 176;
+  const NARROW = W < 800, COLS = NARROW ? 1 : 3, CW = NARROW ? W - 90 : 330, GAP = NARROW ? 0 : (W - 2 * 60 - COLS * CW) / (COLS - 1), LH = 21, TOP = NARROW ? 150 : 176;
   c.font = `400 14px ${FONT}`;
-  const slots = [];
-  TEXT.forEach((para, k) => {
-    const col = k % COLS, row = Math.floor(k / COLS); let x = 60 + col * (CW + GAP), y = TOP + row * 150, x0 = x;
+  const slots = []; let yStack = TOP;
+  (NARROW ? TEXT.slice(0, 3) : TEXT).forEach((para, k) => {
+    const col = k % COLS, row = Math.floor(k / COLS); let x = (NARROW ? 45 : 60) + col * (CW + GAP), y = NARROW ? yStack : TOP + row * 150, x0 = x;
     for (const raw of para.split(' ')) {
       const w = c.measureText(raw + ' ').width; if (x - x0 + w > CW) { x = x0; y += LH; }
       const clean = raw.replace(/[.,;:()«»]/g, ''); slots.push({ t: raw, x, y, w: w - 4, h: 17, cx: x + (w - 4) / 2, cy: y + 8, grab: clean.length >= 5, state: 'rest', back: 0 }); x += w;
     }
+    yStack = y + LH + 16;
   });
-  const mail = { x: W - 130, y: 96, r: 58 };
+  const mail = { x: W - (W < 800 ? 90 : 130), y: 96, r: W < 800 ? 46 : 58 };
   const holes = [{ x: W * 0.17, y: H * 0.8, r: 90 }, { x: W * 0.55, y: H * 0.86, r: 66 }, { x: W * 0.88, y: H * 0.73, r: 97 }];
-  const pad = { x: W * 0.37, y: H * 0.66, w: 168, h: 64 };
-  const BTN = { again: { x: W / 2 - 150, y: H - 58, w: 130, h: 34, t: 'Rejouer' }, top: { x: W / 2 + 20, y: H - 58, w: 150, h: 34, t: 'Haut de page' } };
+  const pad = { x: W * (W < 800 ? 0.4 : 0.37), y: H * 0.66, w: W < 800 ? 140 : 168, h: 64 };
+  const BTN = { again: { x: W / 2 - 150, y: H - 58, w: 130, h: 34, t: 'Rejouer' }, top: { x: W / 2 + 10, y: H - 58, w: 150, h: 34, t: 'Haut de page' } };
 
   let flock = [], score = 0, state = 'play', t0 = 0, msg = '', cur = { x: W / 2, y: H * 0.5, down: false, in: false }, last = 0, fx = [], air = 0, airDir = 0, hub = [], hubT = 0, pressed = false;
   for (let i = 0; i < 22; i++) hub.push({ a: i / 22 * 6.283 + rnd(-.15, .15), r: rnd(26, 92), s: rnd(.6, 1.4), p: rnd(0, 6.28) });
@@ -74,7 +75,7 @@ export function createGame(W, H, reduce, hooks = {}) {
     c.save(); c.fillStyle = '#000'; c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 1; c.fillRect(pad.x - pad.w / 2, pad.y - pad.h / 2, pad.w, pad.h); c.strokeRect(pad.x - pad.w / 2, pad.y - pad.h / 2, pad.w, pad.h);
     c.beginPath(); c.rect(pad.x - pad.w / 2, pad.y - pad.h / 2, pad.w, pad.h); c.clip(); c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 1.5;
     const off = (now / 40) % 24; for (let i = -1; i < 9; i++) { const x = pad.x - pad.w / 2 + i * 24 + off; c.beginPath(); c.moveTo(x, pad.y - 16); c.lineTo(x + 12, pad.y); c.lineTo(x, pad.y + 16); c.stroke(); } c.restore();
-    c.fillStyle = 'rgba(207,211,218,.85)'; c.font = `10px ${MONO}`; c.textAlign = 'left'; c.fillText('boost  jump', pad.x + pad.w / 2 + 10, pad.y - 6); c.fillText('v = 200 px/s   x = 326 px', pad.x + pad.w / 2 + 10, pad.y + 8);
+    c.fillStyle = 'rgba(207,211,218,.85)'; c.font = `10px ${MONO}`; c.textAlign = 'left'; c.fillText('boost  jump', pad.x + pad.w / 2 + 8, pad.y - 6); c.fillText(W < 800 ? 'v = 200 px/s' : 'v = 200 px/s   x = 326 px', pad.x + pad.w / 2 + 8, pad.y + 8);
   };
   const pill = (b, hot) => { c.fillStyle = hot ? '#fff' : 'rgba(255,255,255,.1)'; c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 1; c.beginPath(); c.roundRect(b.x, b.y, b.w, b.h, 17); c.fill(); c.stroke(); c.fillStyle = hot ? '#05080d' : '#fff'; c.font = `500 13px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.t, b.x + b.w / 2, b.y + b.h / 2 + 1); };
   const inB = (b, p) => p.in && p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h;
@@ -109,8 +110,8 @@ export function createGame(W, H, reduce, hooks = {}) {
 
     // rendu : fond transparent, la feuille sombre reste visible comme dans la vidéo
     c.clearRect(0, 0, W, H);
-    c.fillStyle = '#fff'; c.font = `600 17px ${MONO}`; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(`${score} / ${GOAL} mots déposés`, 60, 36);
-    c.fillStyle = 'rgba(207,211,218,.78)'; c.font = `12px ${MONO}`; c.fillText('survole les mots · maintiens le clic pour les détacher · relâche sur l’anneau · évite les trous noirs', 60, 66); c.fillText('le tremplin « boost jump » fait sauter par-dessus les trous', 60, 84);
+    c.fillStyle = '#fff'; c.font = `600 17px ${MONO}`; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(`${score} / ${GOAL} mots déposés`, W < 800 ? 45 : 60, 30);
+    c.fillStyle = 'rgba(207,211,218,.78)'; c.font = `12px ${MONO}`; if (W < 800) { c.fillText('touche et glisse : les mots te suivent', 45, 62); c.fillText('lâche sur l’anneau · évite les trous', 45, 80); } else { c.fillText('survole les mots · maintiens le clic pour les détacher · relâche sur l’anneau · évite les trous noirs', 60, 66); c.fillText('le tremplin « boost jump » fait sauter par-dessus les trous', 60, 84); }
     // boîte aux lettres
     const br = mail.r + Math.sin(now / 500) * 3; c.strokeStyle = '#7ff6ff'; c.lineWidth = 2; c.beginPath(); c.arc(mail.x, mail.y, br, 0, 6.283); c.stroke(); c.fillStyle = '#7ff6ff'; c.font = `600 14px ${MONO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('déposer ici', mail.x, mail.y - 6); c.font = `10px ${MONO}`; c.fillText('relâcher sur l’anneau', mail.x, mail.y + 11);
     // texte : mots survolés surlignés en rose, mots détachés estompés
