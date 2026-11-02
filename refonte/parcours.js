@@ -174,20 +174,21 @@ async function start() {
   for (const sx of [-HALF, HALF]) { const pts = []; for (let z = -60; z <= endZ + 60; z += 0.5) pts.push(new THREE.Vector3(sx, 0.01, z)); scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), white(0.7))); }
 
   // le vrai plan blueprint de l'accueil du site (même tracé, même shader : grille, lueur, vignettage, grain), à l'échelle de la pièce
-  const bps = [];
+  const bps = [], bpGroups = [];
   for (const el of $$('[data-blueprint]')) {
     const sec = W(rectOf(el)), spot = el.querySelector('[data-room]'), c = spot ? W(rectOf(spot)) : sec, S = 30 * ROOM_K;
     const t = new THREE.CanvasTexture(drawMat(2048)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     const mat = blueprintMaterial(t);
     mat.uniforms.uClip = { value: new THREE.Vector4(sec.cx - sec.w / 2, sec.cx + sec.w / 2, sec.cz - sec.d / 2, sec.cz + sec.d / 2) };
-    mat.uniforms.uK = { value: 3.6667 / ROOM_K }; mat.uniforms.uC = { value: new THREE.Vector2(c.cx, c.cz) };
-    mat.vertexShader = 'uniform vec2 uC;\n' + CURL_GLSL + '\n' + mat.vertexShader.replace('gl_Position=projectionMatrix*viewMatrix*w;', 'gl_Position=projectionMatrix*viewMatrix*curlW(w);');
-    mat.fragmentShader = 'uniform vec4 uClip;uniform float uK;uniform vec2 uC;\n' + mat.fragmentShader
-      .replace('const float K=3.6667;', 'float K=uK;').replace('vec2 p=vW.xz*K;', 'if(vW.x<uClip.x||vW.x>uClip.y||vW.z<uClip.z||vW.z>uClip.w)discard;vec2 p=(vW.xz-uC)*K;');
+    mat.uniforms.uK = { value: 3.6667 / ROOM_K };
+    mat.vertexShader = 'varying vec2 vLoc;\n' + CURL_GLSL + '\n' + mat.vertexShader.replace('gl_Position=projectionMatrix*viewMatrix*w;', 'vLoc=position.xy;gl_Position=projectionMatrix*viewMatrix*curlW(w);');
+    mat.fragmentShader = 'uniform vec4 uClip;uniform float uK;varying vec2 vLoc;\n' + mat.fragmentShader
+      .replace('const float K=3.6667;', 'float K=uK;').replace('vec2 p=vW.xz*K;', 'if(vW.x<uClip.x||vW.x>uClip.y||vW.z<uClip.z||vW.z>uClip.w)discard;vec2 p=vLoc*K;');
     mat.userData.pc = true; // déjà courbé
     mat.depthWrite = false; const m = new THREE.Mesh(new THREE.PlaneGeometry(S, S, N(S), N(S)), mat); // découpé dans les deux sens : il suit la courbure jusqu'aux bords
-    m.rotation.x = -Math.PI / 2; m.position.set(c.cx, 0, c.cz); m.renderOrder = -2; scene.add(m);
-    bps.push(mat);
+    m.rotation.x = -Math.PI / 2; m.renderOrder = -2;
+    const bg = new THREE.Group(); bg.position.set(c.cx, 0, c.cz); bg.add(m); scene.add(bg); // groupe : zoom, rotation et décalage de la pièce s'appliquent aussi au plan
+    bps.push(mat); bpGroups.push({ bg, base: bg.position.clone() });
   }
 
   /* frise du parcours (mode image) : le trait plein et le point descendent avec la molette, comme sur la page Expériences */
@@ -467,7 +468,8 @@ async function start() {
       heroTag = label('Mathieu', { w: 0.7, h: 0.16, font: '600 14px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); heroTag.renderOrder = 9; heroTag.material.depthTest = false; scene.add(heroTag);
       // règles du décor : « Tourner » fait pivoter la pièce, « Incliner » sert de zoom (pièce et plan ensemble)
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
-      R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
+      const syncBp = () => { for (const q of bpGroups) { q.bg.scale.set(g.scale.x / ROOM_K, 1, g.scale.x / ROOM_K); q.bg.rotation.y = g.rotation.y + 36 * Math.PI / 180; q.bg.position.set(g.position.x, 0, g.position.z); } };
+      R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.6, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; syncBp(); };
       roomRul = { g, rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
       // boutons de caméra de la pièce : « Suivre » garde Mathieu au centre en zoomant, « Recentrer » rétablit la vue d'origine
       const cb = document.createElement('div'); cb.className = 'pc-rul-btns'; cb.innerHTML = '<button type="button" data-a="follow">Suivre Mathieu</button><button type="button" data-a="reset">Recentrer</button>'; R.el.append(cb);
@@ -475,7 +477,8 @@ async function start() {
       cb.addEventListener('click', (ev) => { const a = ev.target.dataset?.a; if (!a) return;
         if (a === 'follow') { follow = !follow; ev.target.classList.toggle('on', follow); if (follow) { R.sets[0](-120); } else { g.position.copy(base); R.sets[0](0); } }
         else { follow = false; cb.querySelector('[data-a="follow"]').classList.remove('on'); g.position.copy(base); R.reset(); } });
-      roomFollow = () => { if (!follow || !window.__room) return; const hp = g.localToWorld(window.__room.hero.group.position.clone()); g.position.x += (base.x - (hp.x - g.position.x) * 0 - hp.x) * 0.06; g.position.z += (base.z - hp.z) * 0.06; };
+      follow = true; cb.querySelector('[data-a="follow"]').classList.add('on'); R.sets[0](-170); // par défaut : on suit Mathieu, zoom 1,8 (le plan blueprint zoome avec lui)
+      roomFollow = () => { syncBp(); if (!follow || !window.__room) return; const hp = g.localToWorld(window.__room.hero.group.position.clone()); g.position.x += (base.x - (hp.x - g.position.x) * 0 - hp.x) * 0.06; g.position.z += (base.z - hp.z) * 0.06; };
       // — interactions du décor : les objets réagissent au clic comme sur le site (la pièce a perdu son propre canvas, on relaie) —
       import('../js/ui.js?v=cv-monde3d-32').then(({ initUI }) => initUI()).catch((e) => console.warn('applications du décor indisponibles', e)); // PC « atelier » et console PS1
       const OPEN = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
@@ -641,7 +644,7 @@ async function start() {
     // sans HTML-in-Canvas : tant qu'on est en vue de face, la vraie page est affichée ; les images des sections ne servent qu'au passage en 3D.
     // On charge donc la pièce d'abord, et on ne dessine les sections qu'une fois la pièce prête, au premier défilement ou après 14 s.
     setTimeout(() => { introReady = true; }, 900);
-    Promise.race([roomReadyP, new Promise((r) => addEventListener('scroll', r, { once: true, passive: true })), new Promise((r) => setTimeout(r, 14000))]).then(() => rasterAll()).catch((e) => console.warn('rendu des textures impossible', e));
+    rasterAll().catch((e) => console.warn('rendu des textures impossible', e)); // les deux sections à l'écran tout de suite, les autres après la pièce (voir rasterAll)
   }
 
   async function redraw(s) {
@@ -654,7 +657,9 @@ async function start() {
   }
   async function rasterAll() {
     const css = await (cssP ??= inlineCss());
+    const gate = Promise.race([roomReadyP, new Promise((r) => addEventListener('scroll', r, { once: true, passive: true })), new Promise((r) => setTimeout(r, 14000))]); let k = 0;
     for (const s of [...sections].sort((a, b) => Math.abs(a.r.y - scrollY) - Math.abs(b.r.y - scrollY))) { // la section à l'écran d'abord
+      if (k++ >= 2) await gate;
       const mine = items.filter((it) => s.el.contains(it.el)); if (!mine.length) continue;
       const draw = async () => {
         const c = await rasterize(s.el, s.r, css), base = new THREE.CanvasTexture(c); base.colorSpace = THREE.SRGBColorSpace; base.anisotropy = 8;
