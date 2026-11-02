@@ -660,7 +660,7 @@ async function start() {
     const A = 1.05; // relevé comme une vitre de train, posé sur son bord bas
     m.rotation.x = -Math.PI / 2 + A; m.position.set(g.cx, 0.01 + g.d / 2 * Math.sin(A), g.cz + g.d / 2 * (1 - Math.cos(A))); m.renderOrder = 2; scene.add(m);
     m.updateMatrixWorld(); const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => new THREE.Vector3(a * g.w / 2, b * g.d / 2, 0).applyMatrix4(m.matrixWorld));
-    const poster = new Image(); poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
+    const poster = new Image(); poster.crossOrigin='anonymous';poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
     const hot = document.createElement('button'); hot.type = 'button'; hot.className = 'pc-hot pc-hot-win'; hot.setAttribute('aria-label', 'Ouvrir ou fermer le store du hublot');
     hot.addEventListener('click', () => $('#rf-grip')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))); // le store se lève et se baisse comme sur le site
     document.body.append(hot); hots.push({ h: hot, r, pts: corners });
