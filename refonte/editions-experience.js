@@ -128,7 +128,7 @@
   }
   function goToProject(i){
     const p=projects[clamp(i|0,0,projects.length-1)];
-    if(p)goTo(p.y,'projet-'+slug(p.name));
+    if(p)goTo(positionOf(p.el),'projet-'+slug(p.name));
   }
   for(const sec of sections){
     const li=document.createElement('li'),b=document.createElement('button');
