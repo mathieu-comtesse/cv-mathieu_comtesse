@@ -805,22 +805,76 @@ async function start() {
   }
   const liftMats = (L, on) => items.filter((it) => L.el === it.el || L.el.contains(it.el)).forEach((it) => it.mats.forEach((m) => { if (m.map) m.visible = on; }));
 
-  /* mini-jeu de fin de page : une toile 2D posée sur la feuille, juste après Contact ; il ne tourne que lorsqu'on est arrivé tout en bas */
-  const GW = MOBILE ? 600 : 1150, GH = MOBILE ? 780 : 750, GM = MOBILE ? { w: Math.min(HALF * 2 - 0.2, 4.0), d: 5.2, cx: 0, cz: endZ + 4.0 } : { w: 9.2, d: 6.0, cx: 0, cz: endZ + 4.5 };
+  /* jeu de fin de page : tableau de commandes sur la feuille (juste après Contact) ; « start » sème des trous noirs sur tout le CV, la page défile
+     vers le haut à 350 px/s et le curseur doit les éviter jusqu'à l'arrivée (haut de page). */
+  const GW = MOBILE ? 600 : 1150, GH = MOBILE ? 660 : 520, GM = MOBILE ? { w: Math.min(HALF * 2 - 0.2, 4.0), cx: 0, cz: endZ + 4.0 } : { w: 9.2, cx: 0, cz: endZ + 3.4 };
+  GM.d = GM.w * GH / GW;
   let game = null, gTex = null, gMesh = null;
+  const run = { st: 'idle', mult: 1, holes: [], keys: new Set(), msg: '', speed: 0, t: 0 };
+  const ov = document.createElement('canvas'); ov.id = 'runfx'; ov.setAttribute('aria-hidden', 'true'); ov.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;display:none'; document.body.append(ov);
+  const octx = ov.getContext('2d');
+  const startRun = () => {
+    if (run.st === 'run') { run.st = 'pause'; return; } if (run.st === 'pause') { run.st = 'run'; return; }
+    const n = Math.round(PAGE_H / 800), rmin = MOBILE ? 0.32 : 0.45, rmax = MOBILE ? 0.75 : 1.1; run.holes = [];
+    for (let i = 0; i < n; i++) { const r = rmin + Math.random() * (rmax - rmin); run.holes.push({ x: (Math.random() * 2 - 1) * (HALF - r - 0.2), z: 6 + Math.random() * (endZ - 22), r, ph: Math.random() * 6.28 }); }
+    run.st = 'run'; run.msg = ''; run.mult = 1; run.t = 0;
+  };
   import('./pc-game.js').then(({ createGame }) => {
-    game = createGame(GW, GH, reduce, { onTop: () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }) }); gTex = new THREE.CanvasTexture(game.cv); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
+    game = createGame(GW, GH, reduce, { onStart: startRun, onTop: () => { run.st = 'idle'; run.holes = []; scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }); } }); gTex = new THREE.CanvasTexture(game.cv); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
     gMesh = new THREE.Mesh(plane(GM.w, GM.d), new THREE.MeshBasicMaterial({ map: gTex, transparent: true, depthWrite: false })); gMesh.rotation.x = -Math.PI / 2; gMesh.position.set(GM.cx, 0.03, GM.cz); gMesh.renderOrder = 9; scene.add(gMesh);
-  }).catch((e) => console.warn('mini-jeu indisponible', e));
+  }).catch((e) => console.warn('jeu indisponible', e));
   const gRay = new THREE.Raycaster(), gPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03), gHit = new THREE.Vector3(), gNdc = new THREE.Vector2(), gP = { x: GW / 2, y: GH * 0.8, down: false, in: false };
   addEventListener('pointerdown', (e) => { if (e.button === 0 && !lifted && !reader && e.target === canvas) gP.down = true; }); addEventListener('pointerup', () => { gP.down = false; });
+  const KEYMAP = { w: 'up', ArrowUp: 'up', s: 'down', ArrowDown: 'down', h: 'slow', ArrowLeft: 'slow', 5: 'slow' };
+  addEventListener('keydown', (e) => {
+    if (lifted || reader || e.metaKey || e.ctrlKey) return; const k = KEYMAP[e.key];
+    if (e.key === ' ' && (run.st !== 'idle' || (game && Math.abs((scrollY + innerHeight / 2) / PXM - GM.cz) < 9))) { e.preventDefault(); if (!e.repeat) startRun(); return; }
+    if (k && run.st !== 'idle') { e.preventDefault(); run.keys.add(k); }
+  });
+  addEventListener('keyup', (e) => { const k = KEYMAP[e.key]; if (k) run.keys.delete(k); });
+  const drawHole = (x, y, rx, ry, now, ph) => { // entonnoir vu du sol : disque noir, anneaux resserrés, rayons qui tournent
+    const g = octx.createRadialGradient(x, y, 0, x, y, rx * 1.1); g.addColorStop(0, '#000'); g.addColorStop(.6, 'rgba(0,0,0,.92)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    octx.save(); octx.translate(x, y); octx.scale(1, ry / rx); octx.translate(-x, -y); octx.fillStyle = g; octx.beginPath(); octx.arc(x, y, rx * 1.1, 0, 6.283); octx.fill();
+    octx.strokeStyle = 'rgba(205,210,220,.4)'; octx.lineWidth = 1;
+    for (let i = 1; i <= 8; i++) { const u = i / 8; octx.beginPath(); octx.arc(x, y, rx * (.08 + .92 * u * u), 0, 6.283); octx.stroke(); }
+    octx.strokeStyle = 'rgba(205,210,220,.28)'; for (let i = 0; i < 22; i++) { const a = i / 22 * 6.283 + now / 7000 + ph; octx.beginPath(); octx.moveTo(x + Math.cos(a) * rx * .1, y + Math.sin(a) * rx * .1); octx.lineTo(x + Math.cos(a) * rx, y + Math.sin(a) * rx); octx.stroke(); }
+    octx.restore();
+  };
+  const hv = new THREE.Vector3(), hubA = Array.from({ length: 18 }, (_, i) => ({ a: i / 18 * 6.283, r: 16 + (i * 37 % 40), p: i }));
+  function tickRun(now, dt, e, focusZ) {
+    const active = run.st !== 'idle' && !lifted && !reader;
+    if (ov.style.display !== (active ? 'block' : 'none')) ov.style.display = active ? 'block' : 'none';
+    if (run.st === 'run') { // défilement automatique vers le haut : 350 px/s, W / ↑ accélère, S / ↓ redescend, ← / H ralentit
+      run.mult = run.keys.has('up') ? 2.2 : run.keys.has('down') ? -1 : run.keys.has('slow') ? 0.35 : 1; run.speed = 350 * run.mult;
+      window.scrollBy(0, -run.speed * dt); run.t += dt;
+      if (scrollY <= 40) { run.st = 'win'; run.msg = 'Arrivée ! Merci d’avoir joué.'; game?.snd('win'); }
+    } else run.speed = 0;
+    if (!active) return;
+    const w = innerWidth, h = innerHeight, d = Math.min(2, devicePixelRatio || 1); if (ov.width !== Math.round(w * d)) { ov.width = Math.round(w * d); ov.height = Math.round(h * d); }
+    octx.setTransform(d, 0, 0, d, 0, 0); octx.clearRect(0, 0, w, h);
+    for (const H of run.holes) {
+      if (Math.abs(H.z - focusZ) > 28) continue;
+      const [px, py, pz] = toScreen(hv.set(H.x, 0.02, H.z)); if (pz >= 1) continue;
+      const [qx] = toScreen(hv.set(H.x + H.r, 0.02, H.z)), [, qy] = toScreen(hv.set(H.x, 0.02, H.z + H.r)), rx = Math.abs(qx - px), ry = Math.abs(qy - py);
+      if (rx < 3 || py < -ry * 2 || py > h + ry * 2) continue;
+      drawHole(px, py, rx, Math.max(ry, rx * .25), now, H.ph);
+      if (run.st === 'run' && e > 0.5 && ((mouse.x - px) / (rx * .5)) ** 2 + ((mouse.y - py) / (Math.max(ry, rx * .25) * .5)) ** 2 < 1) { run.st = 'over'; run.msg = 'Tombé dans un trou noir. Clique sur restart.'; game?.snd('over'); }
+    }
+    // essaim autour du curseur : carré blanc, rayons et points qui ondulent
+    octx.strokeStyle = 'rgba(255,255,255,.6)'; octx.fillStyle = '#fff'; octx.lineWidth = 1;
+    for (const q of hubA) { const r = q.r * (.8 + .2 * Math.sin(now / 900 + q.p)), a = q.a + Math.sin(now / 1400 + q.p) * .1, x = mouse.x + Math.cos(a) * r, y = mouse.y + Math.sin(a) * r * .8; octx.beginPath(); octx.moveTo(mouse.x, mouse.y); octx.lineTo(x, y); octx.stroke(); octx.beginPath(); octx.arc(x, y, 2, 0, 6.283); octx.fill(); }
+    octx.fillRect(mouse.x - 5, mouse.y - 5, 10, 10);
+    octx.font = '12px "iAWriterQuattroV", ui-monospace, monospace'; octx.textAlign = 'center'; octx.fillStyle = '#fff';
+    octx.fillText(`speed ≈ ${Math.round(run.speed)} px/s   to the finish ↑ ${Math.round(scrollY).toLocaleString('fr-FR')} px   ${run.st === 'pause' ? '[pause]' : ''}`, w / 2, MOBILE ? 24 : 30);
+    if (run.st === 'over' || run.st === 'win') { octx.fillStyle = 'rgba(3,5,10,.75)'; octx.fillRect(0, h / 2 - 44, w, 88); octx.fillStyle = '#fff'; octx.font = `600 ${MOBILE ? 16 : 24}px "iAWriterQuattroV", ui-monospace, monospace`; octx.textAlign = 'center'; octx.fillText(run.msg, w / 2, h / 2 + 6); }
+  }
   function tickGame(now, focusZ) {
-    if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9; canvas.style.touchAction = on ? 'none' : '';
+    if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9; canvas.style.touchAction = on || run.st === 'run' ? 'none' : '';
     if (!on) { gP.down = false; return; }
     gNdc.set(mouse.x / innerWidth * 2 - 1, -(mouse.y / innerHeight) * 2 + 1); gRay.setFromCamera(gNdc, camera);
     if (gRay.ray.intersectPlane(gPlane, gHit)) { gP.x = (gHit.x - GM.cx) / GM.w * GW + GW / 2; gP.y = (gHit.z - GM.cz) / GM.d * GH + GH / 2; gP.in = gP.x > 0 && gP.x < GW && gP.y > 0 && gP.y < GH; } else gP.in = false;
     if (!gP.in) gP.down = false;
-    game.update(now, gP); gTex.needsUpdate = true;
+    game.update(now, gP, { st: run.st, remaining: Math.round(scrollY), speed: Math.round(run.speed || 350), total: Math.round(PAGE_H), pageW: PAGE_W }); gTex.needsUpdate = true;
   }
 
   /* rendu dans une cible, puis flou de profondeur sur le lointain et les bords */
@@ -933,7 +987,7 @@ async function start() {
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
-    animMinis(now, focusZ); tickGame(now, focusZ); tickReader(now, dtS);
+    animMinis(now, focusZ); tickGame(now, focusZ); tickRun(now, dtS, e, focusZ); tickReader(now, dtS);
     if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
