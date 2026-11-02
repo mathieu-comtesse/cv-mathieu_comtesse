@@ -214,10 +214,16 @@
     }
   };
   paintResults();update(scrollY,0);
-  if(location.hash.startsWith('#chapitre-')||location.hash.startsWith('#projet-')){
+  if(location.hash){
     const value=location.hash.slice(1);
-    const i=sections.findIndex(s=>s.id===value),j=projects.findIndex(p=>'projet-'+slug(p.name)===value);
-    if(i>=0||j>=0)addEventListener('load',()=>setTimeout(()=>i>=0?goToChapter(i):goToProject(j),200),{once:true});
+    const legacy={hero:'Décor',titre:'Décor',bonjour:'Bonjour','rf-sign':'Bonjour',projets:'Faire fonctionner','projets-t':'Faire fonctionner',universitaire:'Parcours','univ-t':'Parcours',perso:'Blog','perso-t':'Blog',contact:'Contact','contact-t':'Contact'};
+    const i=sections.findIndex(s=>s.id===value||s.name===legacy[value]),j=projects.findIndex(p=>'projet-'+slug(p.name)===value);
+    if(i>=0||j>=0){
+      const intended=i>=0?sections[i].id:'projet-'+slug(projects[j].name);
+      const jump=()=>{if([value,intended].includes(location.hash.slice(1)))i>=0?goToChapter(i):goToProject(j);};
+      addEventListener('pc:ready',jump,{once:true});
+      addEventListener('load',()=>setTimeout(jump,200),{once:true});
+    }
   }
 })();
 

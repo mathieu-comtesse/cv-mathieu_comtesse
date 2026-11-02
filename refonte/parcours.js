@@ -156,6 +156,7 @@ async function startReading() {
     mail.addEventListener('click',copy);
     mail.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();copy();}});
   }
+  window.dispatchEvent(new Event('pc:ready'));
 }
 
 async function start() {
@@ -1317,6 +1318,7 @@ async function start() {
     requestAnimationFrame(tick);
   }
   window.__expo = { camera, sections, items, HIC, hots, machines, toScreen, pick: (x, y) => roomPick?.(x, y), V: THREE.Vector3 };
+  window.dispatchEvent(new Event('pc:ready'));
 }
 
 
