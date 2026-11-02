@@ -379,7 +379,13 @@ async function start() {
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
-      const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
+      g.updateMatrixWorld(true);
+      // boîte du corps de la machine : on ignore les éléments cachés ou démesurés (voiles, plans de fond) qui décalaient le centre
+      const box = new THREE.Box3(), tb = new THREE.Box3(), ts = new THREE.Vector3();
+      g.traverse((o) => { if (!o.isMesh || !o.geometry || !o.visible) return; let v = true; for (let q = o.parent; q; q = q.parent) if (!q.visible) v = false; if (!v) return;
+        o.geometry.computeBoundingBox(); tb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); tb.getSize(ts); if (ts.length() < sc * 1.6) box.union(tb); });
+      if (box.isEmpty()) box.setFromObject(g);
+      const c = box.getCenter(new THREE.Vector3());
       // pivot au centre de la machine, posé au sol : les règles la tournent et l'inclinent sur place
       m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
       g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
@@ -893,5 +899,5 @@ async function start() {
     };
     requestAnimationFrame(tick);
   }
-  window.__expo = { camera, sections, items, HIC, hots, toScreen, V: THREE.Vector3 };
+  window.__expo = { camera, sections, items, HIC, hots, machines, toScreen, V: THREE.Vector3 };
 }
