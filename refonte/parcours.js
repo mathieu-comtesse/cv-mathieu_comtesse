@@ -926,13 +926,21 @@ async function start() {
   const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), postScene = new THREE.Scene();
   const postMat = new THREE.ShaderMaterial({
-    uniforms: { t: { value: rt.texture }, px: { value: new THREE.Vector2() }, amt: { value: 0 } },
+    uniforms: { t: { value: rt.texture }, px: { value: new THREE.Vector2() }, amt: { value: 0 }, motion: { value: 0 }, tm: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `uniform sampler2D t; uniform vec2 px; uniform float amt; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D t; uniform vec2 px; uniform float amt; uniform float motion; uniform float tm; varying vec2 vUv;
       void main(){
         float r = amt * (smoothstep(0.55, 1.0, vUv.y) * 5.0 + smoothstep(0.38, 0.5, abs(vUv.x - 0.5)) * 2.0);
         vec4 c = texture2D(t, vUv);
         if (r > 0.25) { vec4 acc = c; for (int i = 0; i < 16; i++) { float a = float(i) * 2.39996, rr = r * sqrt((float(i) + 0.5) / 16.0); acc += texture2D(t, vUv + vec2(cos(a), sin(a)) * rr * px); } c = acc / 17.0; }
+        // Effet cinétique original, proportionnel à la vitesse de défilement (aucun traitement au repos).
+        if(motion > 0.015){
+          float shift = motion * (abs(vUv.x-.5) + abs(vUv.y-.5)) * px.x * 1.7;
+          c.r = mix(c.r, texture2D(t, vUv + vec2(shift, 0.)).r, motion*.28);
+          c.b = mix(c.b, texture2D(t, vUv - vec2(shift, 0.)).b, motion*.28);
+          float noise = fract(sin(dot(floor(vUv/px) + tm*7., vec2(12.9898,78.233))) * 43758.5453) - .5;
+          c.rgb += noise * .007 * motion;
+        }
         gl_FragColor = c;
         #include <colorspace_fragment>
       }`, depthTest: false, depthWrite: false });
@@ -1070,6 +1078,8 @@ async function start() {
       if (Math.abs(tlS.p - (tlS.shown ?? -1)) > 0.0008) { tlS.shown = tlS.p; tlLine.style.transform = `scaleY(${tlS.p.toFixed(4)})`; tlDot.style.top = (tlS.p * 100).toFixed(2) + '%'; }
     }
     postMat.uniforms.amt.value = e * (1 - readerK);
+    postMat.uniforms.motion.value = reduce || MOBILE || readerK > 0 ? 0 : e * Math.min(1, Math.abs(scrollY - s) / 220);
+    postMat.uniforms.tm.value = now / 1000;
     if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
     overlay(e, focusZ, s);
