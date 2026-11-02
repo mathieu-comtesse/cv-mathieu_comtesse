@@ -99,7 +99,7 @@
   }
   function goTo(y,hash){
     setOpen(false);
-    const top=Math.max(0,y+260-innerHeight/2);
+    const top=Math.max(0,y===0?0:y+innerHeight*.55);
     if(window.__exSmoothScroll&&!reduce.matches)window.__exSmoothScroll.goTo(top);
     else scrollTo({top,behavior:reduce.matches?'instant':'smooth'});
     if(hash)history.replaceState(null,'','#'+hash);
@@ -171,7 +171,8 @@
     if(opened&&tab==='chapters')paintResults();
   }
   function update(scroll,immersive=0){
-    let idx=0;for(const sec of sections)if(offsetFor(sec)<=scroll+innerHeight*.5)idx=sec.i;
+    const viewY=immersive>.5?scroll-innerHeight*.16:scroll+innerHeight*.5;
+    let idx=0;for(const sec of sections)if(offsetFor(sec)<=viewY)idx=sec.i;
     setActive(idx);
     const maxScroll=Math.max(1,document.documentElement.scrollHeight-innerHeight,page.offsetHeight-innerHeight);
     const p=clamp(scroll/maxScroll);

@@ -728,7 +728,7 @@ async function start() {
       for (const r of rules) {
         let t = r.cssText;
         if (r instanceof CSSFontFaceRule) { const m = t.match(/url\(["']?([^"')]+\.(?:woff2|ttf|otf|woff))["']?\)/); if (!m) continue; t = t.replace(/src:[^;]+;/, `src: url("${m[1]}");`); }
-        const urls = [...t.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map((m) => m[1]).filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
+        const urls = [...t.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^\)\s]+))\s*\)/g)].map((m) => m[1] ?? m[2] ?? m[3]).filter((u) => !u.startsWith('data:') && !u.startsWith('#') && !u.startsWith('%23'));
         for (const u of new Set(urls)) { const d = await b64(new URL(u, base).href); t = t.split(u).join(d || ''); }
         out.push(t);
       }
@@ -1117,7 +1117,7 @@ async function start() {
     }
     camera.lookAt(look);
     if (editionsPose?.roll) camera.rotateZ(editionsPose.roll);
-    camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    camera.fov = fovFlat + ((MOBILE ? 50 : 52) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
     if (!HIC) page.style.transform = `translateY(${(scrollY - s).toFixed(2)}px)`;
     // étapes de « Comment ça marche » : elles s'élèvent et se tournent vers le lecteur
@@ -1161,7 +1161,7 @@ async function start() {
     window.__editionsExperience?.frame?.({scroll:s,immersive:e,focusZ});
     hoverGraphs(e,focusZ);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
-    let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
+    let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= (e>.5?s-h*.16:s+h/2)) active = i; });
     navItems.forEach((li, i) => li.classList.toggle('on', i === active));
     if (mnav && mnav.i !== active) { mnav.i = active; mnav.querySelector('.mn-c b').textContent = String(active + 1).padStart(2, '0'); mnav.querySelector('.mn-c span').textContent = sections[active].name; }
     for (const c of callouts) {
