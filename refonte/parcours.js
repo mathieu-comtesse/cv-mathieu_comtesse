@@ -99,7 +99,7 @@ if (renderer) await start();
 
 async function start() {
   const canvas = renderer.domElement;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1 : 1.3));
   const HIC = 'texElementImage2D' in renderer.getContext() && 'requestPaint' in canvas;
   document.documentElement.dataset.htmlInCanvas = HIC;
   await Promise.all(['500 22px Inter', 'italic 400 16px Inter', '700 68px Inter', '500 12px iAWriterQuattroV'].map((f) => document.fonts.load(f))).catch(() => {});
@@ -168,6 +168,16 @@ async function start() {
     if ('blueprint' in s.el.dataset) continue; // le plan blueprint du site tient lieu de fond
     const g = W(s.r), m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ color: s.color }));
     m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0, g.cz); scene.add(m);
+  }
+  // Dix constellations de liaison, rendues dans la MEME scene que le parcours.
+  // Geometry et sprites natifs: aucun canvas 2D par chapitre ni seconde boucle de rendu.
+  let constellationPass = null;
+  if (page.querySelector('.pc-transit')) {
+    try {
+      const { createConstellationPass } = await import('./editions-constellations.js');
+      constellationPass = createConstellationPass(THREE, {scene, page, PXM, PAGE_W, rectOf, reduce});
+      document.documentElement.classList.add('ex-cosmos-ready');
+    } catch (error) { console.warn('Constellations interchapitres indisponibles', error); }
   }
   const endZ = PAGE_H / PXM; // le haut de la page est au loin (z = 0), la suite arrive vers la caméra
   { const tail = new THREE.Mesh(plane(HALF * 2, 60), new THREE.MeshBasicMaterial({ color: 0x141414 })); tail.rotation.x = -Math.PI / 2; tail.position.set(0, 0, endZ + 30); scene.add(tail); }
@@ -266,20 +276,23 @@ async function start() {
     const P3 = (x, y, z) => new THREE.Vector3(x, y, z), X = (px) => (px - PAGE_W / 2) / PXM, Z = (py) => py / PXM;
     const add = (o) => { o.ph = rnd() * 6.283; o.ph2 = rnd() * 6.283; o.cur = o.base.clone(); nodes.push(o); return nodes.length - 1; };
     const SL = [[.16, .17], [.47, .12], [.8, .2], [.3, .4], [.63, .36], [.9, .5], [.12, .6], [.45, .66], [.76, .74], [.25, .88], [.58, .9]]; // emplacements des phares
-    const rad = Math.min(r.w, r.h) * 0.16;
-    { const g0 = W(r), bg = new THREE.Mesh(plane(g0.w, g0.d), new THREE.MeshBasicMaterial({ color: 0x060a2e })); bg.rotation.x = -Math.PI / 2; bg.position.set(g0.cx, 0.004, g0.cz); bg.renderOrder = 1; scene.add(bg); }
+    const rad = Math.min(r.w, r.h) * 0.23;
+    { const g0 = W(r), bg = new THREE.Mesh(plane(g0.w, g0.d), new THREE.MeshBasicMaterial({ color: 0x000007 })); bg.rotation.x = -Math.PI / 2; bg.position.set(g0.cx, 0.004, g0.cz); bg.renderOrder = 1; scene.add(bg); }
     const inX = (x) => Math.max(X(r.x + 6), Math.min(X(r.x + r.w - 6), x)), inZ = (z) => Math.max(Z(r.y + 6), Math.min(Z(r.y + r.h - 6), z));
     hubs.forEach((li, i) => {
       const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
       const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
-      const tN = Math.min(1, Math.max(0, (leaves.length - 4) / 9)), hc = [0.3 + 0.1 * tN, 0.52 + 0.48 * tN, 1 - 0.32 * tN]; // bleu (peu de liens) → cyan → vert menthe (beaucoup), comme les étoiles de la référence
+      const tN = Math.min(1, Math.max(0, (leaves.length - 4) / 9));
+      // Alternance ultramarin / bleu electrique / cyan / vert menthe, proche du referentiel mesure.
+      const led = new THREE.Color(['#355bff','#196bff','#1aabff','#00ddc5','#2bef83','#3165ff','#80a1ff','#06c8d0','#26f29f','#4f70ff','#05b7f7'][i%11]);
+      const hc = [led.r,led.g,led.b];
       const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens', hc, hi: i }); (hubIdx ??= []).push(h);
       const onLeft = u > 0.6; // les phares de droite écrivent leur nom vers la gauche pour rester dans le cadre
       const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(onLeft ? 1 : 0, 0.5);
       lb.position.set(hp.x + (onLeft ? -0.07 : 0.07), 0.06, hp.z + 0.02); scene.add(lb);
       const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
       { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: new THREE.Color(hc[0], hc[1], hc[2]).offsetHSL(0, 0, 0.12), fog: false, depthTest: false })); sq.scale.set(0.05 + 0.025 * tN, 0.05 + 0.025 * tN, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
-      const n = 10 + leaves.length * 4; // étoile d'autant plus fournie que la thématique a de liens
+      const n = 18 + leaves.length * 5; // grappes plus denses et silhouettes rayonnantes
       for (let k = 0; k < n; k++) {
         const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
         const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.05 + rnd() * 0.35, inZ(hp.z + Math.sin(ang) * rr));
@@ -309,9 +322,21 @@ async function start() {
     lg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(col, 3));
     const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
     const pp = new Float32Array(nodes.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.045 })); dots.frustumCulled = false; scene.add(dots);
+    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xc9dcff, size: 0.052, transparent:true, opacity:.9 })); dots.frustumCulled = false; scene.add(dots);
+    // Impulsions qui suivent physiquement les liens; positions regroupees dans un seul buffer.
+    const fEdges=edges.filter(([, , k])=>k===1||k===3);
+    const streamPos=new Float32Array(fEdges.length*3),streamCol=new Float32Array(fEdges.length*3);
+    fEdges.forEach(([a,b,k],ix)=>{
+      const c=nodes[a]?.hc||[.3,.55,1];
+      streamCol.set([Math.min(1,c[0]*1.35),Math.min(1,c[1]*1.35),Math.min(1,c[2]*1.35)],ix*3);
+    });
+    const fg=new THREE.BufferGeometry();
+    fg.setAttribute('position',new THREE.BufferAttribute(streamPos,3).setUsage(THREE.DynamicDrawUsage));
+    fg.setAttribute('color',new THREE.BufferAttribute(streamCol,3));
+    const fs=new THREE.Points(fg,new THREE.PointsMaterial({size:.052,vertexColors:true,transparent:true,opacity:.84,depthWrite:false,blending:THREE.AdditiveBlending}));
+    fs.frustumCulled=false;fs.renderOrder=8;scene.add(fs);
     const nb = nodes.map(() => new Set()); for (const [a, b] of edges) { nb[a].add(b); nb[b].add(a); }
-    graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1, hubIdx, forced: null });
+    graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1, hubIdx, forced: null, flight:{edges:fEdges,pos:streamPos,geometry:fg} });
   }
 
   { const SEC = ['Parcours', 'Parcours', 'Parcours', 'Parcours', 'Parcours', 'Parcours', 'Parcours', 'Faire fonctionner', 'Parcours', 'Blog', 'Blog'], lis = $$('.pc-index li[data-i]');
@@ -923,7 +948,7 @@ async function start() {
   }
 
   /* rendu dans une cible, puis flou de profondeur sur le lointain et les bords */
-  const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
+  const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 2, type: THREE.HalfFloatType });
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), postScene = new THREE.Scene();
   const postMat = new THREE.ShaderMaterial({
     uniforms: { t: { value: rt.texture }, px: { value: new THREE.Vector2() }, amt: { value: 0 }, motion: { value: 0 }, tm: { value: 0 } },
@@ -932,7 +957,7 @@ async function start() {
       void main(){
         float r = amt * (smoothstep(0.55, 1.0, vUv.y) * 5.0 + smoothstep(0.38, 0.5, abs(vUv.x - 0.5)) * 2.0);
         vec4 c = texture2D(t, vUv);
-        if (r > 0.25) { vec4 acc = c; for (int i = 0; i < 16; i++) { float a = float(i) * 2.39996, rr = r * sqrt((float(i) + 0.5) / 16.0); acc += texture2D(t, vUv + vec2(cos(a), sin(a)) * rr * px); } c = acc / 17.0; }
+        if (r > 0.25) { vec4 acc = c; for (int i = 0; i < 8; i++) { float a = float(i) * 2.39996, rr = r * sqrt((float(i) + 0.5) / 8.0); acc += texture2D(t, vUv + vec2(cos(a), sin(a)) * rr * px); } c = acc / 9.0; }
         // Effet cinétique original, proportionnel à la vitesse de défilement (aucun traitement au repos).
         if(motion > 0.015){
           float shift = motion * (abs(vUv.x-.5) + abs(vUv.y-.5)) * px.x * 1.7;
@@ -977,7 +1002,7 @@ async function start() {
   function invRay(mx, my) { const a = invPlane(mx, my, 0.1), b = invPlane(mx, my, 1.4); if (a && b) return _ray.set(a, b.clone().sub(a).normalize()); _n.set(mx / innerWidth * 2 - 1, -(my / innerHeight) * 2 + 1); _r0.setFromCamera(_n, camera); return _ray.copy(_r0.ray); }
 
   /* graphe : ondulation, couleurs des liens, mise en avant au survol */
-  const EC = [[0.45, 0.55, 1], [0.55, 0.68, 1], [0.35, 0.95, 0.65], [0.4, 0.5, 0.9]], EW = [0.55, 0.55, 0.2, 0.32];
+  const EC = [[0.24, 0.37, 1], [0.27, 0.64, 1], [0.88, 0.93, 1], [0.15, 0.76, 0.95]], EW = [0.9, 0.84, 0.37, 0.63];
   function animGraph(G, t) {
     const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
     G.nodes.forEach((o, i) => {
@@ -995,12 +1020,22 @@ async function start() {
     G.edges.forEach(([a, b, k], e) => {
       const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
       G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
-      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? (k === 2 ? 0 : EW[k]) : hot ? 1.4 : (k === 2 ? 0 : 0.12), c = hot ? [1, 1, 1] : EC[k]; // liens entre thématiques : visibles seulement au survol
+      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.5 : (k === 2 ? 0.2 : 0.13), c = hot ? [1, 1, 1] : EC[k]; // liaisons blanches visibles en permanence, renforcees au survol
       const spoke = k === 1 || k === 3, hcA = spoke ? G.nodes[a].hc : null;
       const c0 = hot ? c : spoke ? hcA : c, c1 = hot ? c : spoke ? [hcA[0] * 0.35, hcA[1] * 0.42, Math.min(1, hcA[2] * 0.95)] : c; // rayons : couleur du phare, puis bleu nuit au bout
-      const pulse = spoke && !hot ? 0.8 + 0.2 * Math.sin(t * 1.1 + e * 0.73 + a) : 1, ff = f * pulse;
+      const pulse = spoke && !hot ? 0.76 + 0.24 * Math.sin(t * 1.65 + e * 0.73 + a) : 1, ff = f * pulse;
       G.col[j] = c0[0] * ff; G.col[j + 1] = c0[1] * ff; G.col[j + 2] = c0[2] * ff; G.col[j + 3] = c1[0] * ff * 0.7; G.col[j + 4] = c1[1] * ff * 0.7; G.col[j + 5] = c1[2] * ff * 0.7;
     });
+    if (G.flight) {
+      const flight=G.flight;
+      for(let i=0;i<flight.edges.length;i++){
+        const [a,b]=flight.edges[i], A=G.nodes[a].cur,B=G.nodes[b].cur;
+        const u=(t*(.2+(i%7)*.025)+(i*0.6180339))%1,j=i*3;
+        flight.pos[j]=A.x+(B.x-A.x)*u;flight.pos[j+1]=A.y+(B.y-A.y)*u;
+        flight.pos[j+2]=A.z+(B.z-A.z)*u;
+      }
+      flight.geometry.attributes.position.needsUpdate=true;
+    }
     G.lg.attributes.position.needsUpdate = G.lg.attributes.color.needsUpdate = G.pg.attributes.position.needsUpdate = true;
   }
   const mouse = { x: -1, y: -1 }, gtip = document.createElement('div'); gtip.className = 'pc-gtip'; gtip.setAttribute('aria-hidden', 'true'); document.body.append(gtip);
@@ -1065,7 +1100,7 @@ async function start() {
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
-    roomFollow?.(); animMinis(now, focusZ); tickGame(now, focusZ); tickRun(now, dtS, e, focusZ); tickReader(now, dtS);
+    roomFollow?.(); animMinis(now, focusZ); constellationPass?.frame(now,focusZ); tickGame(now, focusZ); tickRun(now, dtS, e, focusZ); tickReader(now, dtS);
     if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
@@ -1085,6 +1120,7 @@ async function start() {
     overlay(e, focusZ, s);
   }
   function overlay(e, focusZ, s) {
+    constellationPass?.project(toScreen,focusZ);
     window.__editionsExperience?.frame?.({scroll:s,immersive:e,focusZ});
     hoverGraphs(e);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
