@@ -15,7 +15,7 @@
 <script>if('scrollRestoration' in history)history.scrollRestoration='manual'; // la page repart toujours du haut (vue à plat), jamais de la position d'avant le rechargement
 </script>
 <link rel="stylesheet" href="refonte/editions-experience.css">
-<link rel="stylesheet" href="refonte/editions-cosmos.css">
+<link rel="stylesheet" href="refonte/editions-reference.css">
 <script type="importmap">{"imports":{"three":"./vendor/three-r187/three.module.js","three/addons/":"./vendor/"}}</script>
 <!-- seo:start -->
 <link rel="canonical" href="https://comtesse.me/parcours">
@@ -39,7 +39,7 @@
      (HTML-in-Canvas quand le navigateur le permet, sinon rendu des mêmes éléments en image). -->
 <div id="page" class="pc-page">
 
-<section class="pc-sec pc-home" data-section="Accueil" data-color="#02040a" aria-label="Accueil">
+<section class="pc-sec pc-home" data-section="Accueil" data-color="#1017a8" aria-label="Accueil">
   <h1 class="pc-title" data-plane data-extrude="6">Mathieu Comtesse</h1>
   <p class="pc-title-k" data-plane>Ingénieur maintenance et qualité · SNCF Gares &amp; Connexions</p>
   <div class="pc-home-col">
@@ -53,7 +53,7 @@
   </div>
 </section>
 
-<section class="pc-sec pc-intro" data-section="Bonjour" data-color="#07090c" aria-label="Présentation">
+<section class="pc-sec pc-intro" data-section="Bonjour" data-color="#1017a8" aria-label="Présentation">
   <div class="pc-intro-in">
     <p class="pc-ap pc-ap1" data-plane>Salut ! Je suis Mathieu, ingénieur maintenance et qualité en alternance chez SNCF Gares &amp; Connexions. Bienvenue dans mon coin d’Internet : mon travail, mes projets inachevés ou imparfaits, et tout ce que j’explore.</p>
     <p class="pc-ap" data-plane>Depuis mes premières missions, je collabore avec des équipes de terrain et de maintenance pour rendre leurs processus plus fiables, plus rapides et plus lisibles. J’ai affûté mon regard d’auditeur au contact de celles et ceux qui font réellement le travail, tout en poursuivant mon M2 MQSE à Sorbonne Paris Nord, et en me formant sans relâche aux outils (Power Automate, Power BI, scripts Excel, machines virtuelles).</p>
@@ -206,7 +206,7 @@
 <!-- projets:end -->
 
 <!-- gains:start -->
-<section class="pc-sec pc-gx" data-section="Gains" data-color="#05080d" aria-label="Gains">
+<section class="pc-sec pc-gx" data-section="Gains" data-color="#172788" aria-label="Gains">
   <div class="rf rf-gx-page pc-gxwrap" data-plane data-no-piggy>
     <main class="gx-main"><section class="strip rf-tirelire" id="work" aria-label="Tirelire des gains annuels"><header class="strip-head"><h2>Tirelire des gains annuels</h2><p>Le temps libéré par les outils, valorisé au taux horaire de 104,74 €.</p></header></section></main>
   </div>
@@ -214,20 +214,20 @@
 <!-- gains:end -->
 
 <!-- parcours:start -->
-<section class="pc-sec pc-exp" data-section="Parcours" data-color="#05080d" aria-labelledby="s-parcours">
+<section class="pc-sec pc-exp" data-section="Parcours" data-color="#283b8d" aria-labelledby="s-parcours">
   <div class="rf-exp-top pc-exp-top">
     <div class="pc-live pc-hublot" data-live="hublot" aria-label="Hublot de train : tirer le store vers le haut ou vers le bas"><div class="rf-win" id="rf-win" aria-label="Hublot de train : tirer le store vers le haut ou vers le bas">
       <div class="rf-win-view" aria-hidden="true">
-        <video class="rf-win-video" id="rf-win-video" loop muted playsinline preload="none" poster="assets/hublot/paysage-poster.webp" width="576" height="432">
+        <video class="rf-win-video" id="rf-win-video" crossorigin="anonymous" loop muted playsinline preload="none" poster="assets/hublot/paysage-poster.webp" width="576" height="432">
           <source src="assets/hublot/paysage-redresse.mp4" type="video/mp4">
         </video>
       </div>
-      <img class="rf-win-inner" src="assets/hublot/window-inner-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
+      <img class="rf-win-inner" crossorigin="anonymous" src="assets/hublot/window-inner-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
       <div class="rf-win-glass"><div class="rf-win-shutter" id="rf-shutter">
-        <img class="rf-win-panel" src="assets/hublot/window-shutter.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
+        <img class="rf-win-panel" crossorigin="anonymous" src="assets/hublot/window-shutter.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
         <div class="rf-win-grip" id="rf-grip" role="slider" tabindex="0" aria-label="Ouverture du volet du hublot" aria-description="Tire vers le haut pour ouvrir, vers le bas pour fermer. Au clavier : flèches haut et bas. Entrée ou Espace pour basculer." aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Fermé" aria-controls="rf-shutter" title="Tirer vers le haut ou le bas"></div>
       </div></div>
-      <img class="rf-win-outer" src="assets/hublot/window-outer-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
+      <img class="rf-win-outer" crossorigin="anonymous" src="assets/hublot/window-outer-frame.webp" width="300" height="240" alt="" draggable="false" aria-hidden="true">
     </div></div>
     <div class="rf-exp-title pc-exp-title" data-plane>
       <h2 id="s-parcours">Mon parcours jusqu’à présent</h2>
@@ -270,7 +270,7 @@
 </section>
 <!-- blog:end -->
 
-<section class="pc-sec pc-contact" data-section="Contact" data-color="#141414" aria-labelledby="contact-t">
+<section class="pc-sec pc-contact" data-section="Contact" data-color="#145b42" aria-labelledby="contact-t">
   <div class="pc-contact-live rf-contact" data-plane data-hot>
     <div class="rf-contact-in">
     <h2 id="contact-t">Envie d’entrer en contact ? Ou simplement de dire bonjour ?</h2>
@@ -299,3 +299,5 @@
 <script type="module" src="refonte/parcours.js"></script>
 </body>
 </html>
+
+

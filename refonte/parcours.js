@@ -51,7 +51,7 @@ const MOBILE = innerWidth < 760;   // téléphone : page étroite, mise en page 
 const PAGE_W = MOBILE ? Math.max(320, Math.min(560, Math.round(innerWidth))) : 1000;
 document.documentElement.style.setProperty('--pw', PAGE_W + 'px');
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
-const FOLD_A = 120, FOLD_B = 900; // la page se rabat entre ces deux positions de défilement (px)
+const FOLD_A = 45, FOLD_B = 740; // bascule continue depuis la feuille vue de face
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const page = $('#page');
@@ -97,9 +97,67 @@ function patch(mat) {
 function patchTree(root) { root.traverse((o) => { const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach(patch); }); }
 
 /* ---------- sans WebGL, la page reste une page ---------- */
+const readingRequested = reduce || new URLSearchParams(location.search).has('lecture');
 let renderer = null;
-try { renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true }); } catch { /* lecture 2D */ }
-if (renderer) await start();
+try { if (!readingRequested) renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true }); } catch { /* lecture 2D */ }
+if (renderer) {
+  try { await start(); }
+  catch (error) {
+    console.error('Le parcours revient à sa version lisible.', error);
+    renderer.dispose();
+    document.documentElement.classList.remove('expo', 'flat');
+    page.style.cssText = '';
+    document.body.style.height = '';
+    await startReading();
+  }
+} else await startReading();
+
+async function startReading() {
+  document.documentElement.classList.add('pc-reading');
+  if ($('#work')) {
+    try {
+      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([
+        import('../js/gains-dashboard.js?v=monde-20261025'),
+        import('../js/gains-table.js?v=ind-20261101')
+      ]);
+      initGainsDashboard(); initGainsTable();
+    } catch (error) { console.warn('Lecture du tableau Gains indisponible.', error); }
+  }
+  if ($('[data-flow]')) {
+    try {
+      const { initFlow } = await import('./flow.js');
+      $$('[data-flow]').forEach(w => initFlow(w.querySelector('.rf-flow'), {
+        tops: () => $$('.rf-flow-step',w).map(el => el.getBoundingClientRect().top + scrollY)
+      }));
+    } catch (error) { console.warn('Lecture des processus indisponible.', error); }
+  }
+  if ($('#rf-win')) import('./hublot.js').catch(error => console.warn('Hublot indisponible.',error));
+  for (const li of $$('.pc-graph-list > li')) {
+    const details=document.createElement('details'),summary=document.createElement('summary');
+    const heading=li.querySelector(':scope > span'),list=li.querySelector(':scope > ul');
+    summary.textContent=heading?.textContent || li.dataset.hub;
+    details.append(summary); if(list)details.append(list); heading?.remove(); li.append(details);
+  }
+  for(const art of $$('[data-fig]')){
+    const card=art.querySelector('.pc-pcard');if(!card)continue;
+    const image=document.createElement('img');image.className='pc-reading-machine';
+    image.src='assets/figures/'+art.dataset.fig+'-light.webp';image.loading='lazy';image.decoding='async';
+    image.alt='Machine du projet '+(card.querySelector('h3')?.textContent.trim()||'');
+    card.prepend(image);
+  }
+  const mail=$('#rf-mail');
+  if(mail){
+    const status=document.createElement('span');status.setAttribute('role','status');
+    status.className='pc-copy-status';mail.after(status);
+    const copy=async()=>{
+      try{await navigator.clipboard.writeText(mail.dataset.copy);status.textContent='Adresse copiée.';}
+      catch{status.textContent=mail.dataset.copy;}
+    };
+    mail.addEventListener('click',copy);
+    mail.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();copy();}});
+  }
+  window.dispatchEvent(new Event('pc:ready'));
+}
 
 async function start() {
   const canvas = renderer.domElement;
@@ -128,6 +186,7 @@ async function start() {
     if (ol && hl.length === SHORT.length) ol.innerHTML = SHORT.map((n, i) => `<li data-i="${i}" tabindex="0"><span>${String(i + 1).padStart(2, '0')}</span>${n}</li>`).join('').replace(/(<span>\d\d<\/span>)([^<]+)/g, '$2$1'); }
   // premier écran plein cadre : la page (1000 px) occupe toute la largeur, et l'accueil toute la hauteur visible
   const KF = Math.max(1, innerWidth / PAGE_W); $('.pc-home')?.style.setProperty('--hh', Math.round(innerHeight / KF) + 'px');
+  $('.pc-home')?.style.setProperty('--header-space', (48 / KF).toFixed(2) + 'px');
   const P = page.getBoundingClientRect();
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
@@ -216,6 +275,7 @@ async function start() {
   }
 
   /* décor : arcs, bâtiments filaires, cotes, formules */
+  const ambientStart = scene.children.length;
   const Z0 = -40, Z1 = endZ + 40;
   for (let i = 0; i < 26; i++) {
     const side = i % 2 ? 1 : -1, r = 20 + (i >> 1) * 6, cz = Z0 + (Z1 - Z0) * rnd(), cx = side * (HALF + 24 + (i >> 1) * 2.5), pts = [], a0 = rnd() * 6.28, sp = 1 + rnd();
@@ -243,6 +303,7 @@ async function start() {
     const f = label(FORM[Math.floor(rnd() * FORM.length)], { w: 4.2, h: 0.55 }); f.position.set(side * (HALF + 3 + rnd() * 7), 0.2, z); scene.add(f);
   }
 
+  const ambientObjects = scene.children.slice(ambientStart);
   /* éléments de la page → objets 3D */
   const items = [];
   const glassSide = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07, depthWrite: false });
@@ -264,7 +325,7 @@ async function start() {
       const m = new THREE.Mesh(plane(g.w, g.d), mat); m.rotation.x = -Math.PI / 2; m.position.y = 0.012 + k * 0.045; m.renderOrder = 3 + k;
       group.add(m); mats.push(mat);
     }
-    const it = { el, r, mats, group, top: 0, art: el.closest('.pc-proj'), float: 'float' in el.dataset, step: 'step' in el.dataset };
+    const it = { el, r, mats, group, top: 0, art: el.closest('.pc-proj'), float: 'float' in el.dataset && !el.classList.contains('pc-float'), step: 'step' in el.dataset };
     if (it.float) { group.position.y = 0.9; group.rotation.x = 0.32; }
     if (it.step) { group.visible = false; it.mats.forEach((m) => { m.opacity = 0; }); }
     items.push(it);
@@ -280,26 +341,26 @@ async function start() {
     const P3 = (x, y, z) => new THREE.Vector3(x, y, z), X = (px) => (px - PAGE_W / 2) / PXM, Z = (py) => py / PXM;
     const add = (o) => { o.ph = rnd() * 6.283; o.ph2 = rnd() * 6.283; o.cur = o.base.clone(); nodes.push(o); return nodes.length - 1; };
     const SL = [[.16, .17], [.47, .12], [.8, .2], [.3, .4], [.63, .36], [.9, .5], [.12, .6], [.45, .66], [.76, .74], [.25, .88], [.58, .9]]; // emplacements des phares
-    const rad = Math.min(r.w, r.h) * 0.23;
+    const rad = Math.min(r.w, r.h) * 0.16;
     { const g0 = W(r), bg = new THREE.Mesh(plane(g0.w, g0.d), new THREE.MeshBasicMaterial({ color: 0x000007 })); bg.rotation.x = -Math.PI / 2; bg.position.set(g0.cx, 0.004, g0.cz); bg.renderOrder = 1; scene.add(bg); }
     const inX = (x) => Math.max(X(r.x + 6), Math.min(X(r.x + r.w - 6), x)), inZ = (z) => Math.max(Z(r.y + 6), Math.min(Z(r.y + r.h - 6), z));
     hubs.forEach((li, i) => {
       const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
-      const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
+      const leaves = $$('a', li), hp = P3(X(cx), 0.035, Z(cy));
       const tN = Math.min(1, Math.max(0, (leaves.length - 4) / 9));
       // Alternance ultramarin / bleu electrique / cyan / vert menthe, proche du referentiel mesure.
       const led = new THREE.Color(['#355bff','#196bff','#1aabff','#00ddc5','#2bef83','#3165ff','#80a1ff','#06c8d0','#26f29f','#4f70ff','#05b7f7'][i%11]);
       const hc = [led.r,led.g,led.b];
       const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens', hc, hi: i }); (hubIdx ??= []).push(h);
       const onLeft = u > 0.6; // les phares de droite écrivent leur nom vers la gauche pour rester dans le cadre
-      const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(onLeft ? 1 : 0, 0.5);
+      const lb = label(li.dataset.hub, { w: 0.4, h: 0.10, font: '400 7px iAWriterQuattroV, monospace', color: '#c9d4f5', op: 0.9 }); lb.center.set(onLeft ? 1 : 0, 0.5);
       lb.position.set(hp.x + (onLeft ? -0.07 : 0.07), 0.06, hp.z + 0.02); scene.add(lb);
-      const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
+      const ct = label(String(leaves.length), { w: 0.12, h: 0.08, font: '400 5px iAWriterQuattroV, monospace', color: '#8da0c7', op: 0.8 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
       { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: new THREE.Color(hc[0], hc[1], hc[2]).offsetHSL(0, 0, 0.12), fog: false, depthTest: false })); sq.scale.set(0.05 + 0.025 * tN, 0.05 + 0.025 * tN, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
-      const n = 18 + leaves.length * 5; // grappes plus denses et silhouettes rayonnantes
+      const n = Math.max(leaves.length, 14 + leaves.length * 2);
       for (let k = 0; k < n; k++) {
-        const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
-        const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.05 + rnd() * 0.35, inZ(hp.z + Math.sin(ang) * rr));
+        const ang = (k < leaves.length ? k / leaves.length : (k - leaves.length) / Math.max(1,n - leaves.length)) * 6.283 + rnd() * 0.2, rr = (0.55 + rnd() * 0.55) * rad / PXM;
+        const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.015 + rnd() * 0.025, inZ(hp.z + Math.sin(ang) * rr));
         const L = leaves[k], img = L && L.querySelector('img');
         const id = add(L ? { kind: 'leaf', base: p, label: L.textContent.trim(), meta: L.dataset.meta || '', href: L.getAttribute('href'), k: L.dataset.k, tags: new Set((L.dataset.tags || '').split(' ').filter(Boolean)), hub: h } : { kind: 'dot', base: p, hub: h });
         edges.push([h, id, L ? 1 : 3]);
@@ -318,15 +379,15 @@ async function start() {
         return [j, common, (nodes[i].k === 'skill' || nodes[j].k === 'skill') ? 1 : 2];
       }).filter(([, c, need]) => c >= need).sort((a, b) => b[1] - a[1] || rnd() - .5);
       for (const [j] of cand) {
-        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 2 || (deg.get(j) || 0) >= 2) continue;
+        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 1 || (deg.get(j) || 0) >= 1) continue;
         seen.add(key); edges.push([i, j, 2]); deg.set(i, (deg.get(i) || 0) + 1); deg.set(j, (deg.get(j) || 0) + 1);
       }
     }
     const pos = new Float32Array(edges.length * 6), col = new Float32Array(edges.length * 6), lg = new THREE.BufferGeometry();
     lg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
+    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.48, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
     const pp = new Float32Array(nodes.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xc9dcff, size: 0.052, transparent:true, opacity:.9 })); dots.frustumCulled = false; scene.add(dots);
+    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x7191e8, size: 0.025, transparent:true, opacity:.62 })); dots.frustumCulled = false; scene.add(dots);
     // Impulsions qui suivent physiquement les liens; positions regroupees dans un seul buffer.
     const fEdges=edges.filter(([, , k])=>k===1||k===3);
     const streamPos=new Float32Array(fEdges.length*3),streamCol=new Float32Array(fEdges.length*3);
@@ -422,15 +483,24 @@ async function start() {
     } catch {}
   }
   function makeRulers() {
-    const el = document.createElement('div'); el.className = 'pc-rul'; el.setAttribute('aria-hidden', 'true');
+    const el = document.createElement('div'); el.className = 'pc-rul';
     const ruler = (h) => `<aside class="rf-ruler${h ? ' rf-ruler--h' : ''}" tabindex="-1"><i class="rf-ruler-mark"></i><div class="rf-ruler-track"></div><span class="rf-ruler-label rf-mono">${h ? 'Tourner' : 'Incliner'}</span></aside>`;
     el.innerHTML = ruler(false) + ruler(true); document.body.append(el);
     const [v, hz] = el.children, LIM = 250, R = { el, rot: 0, tilt: 0, onview: null };
     for (const [ru, horiz] of [[v, false], [hz, true]]) {
+      ru.tabIndex=0;ru.setAttribute('role','slider');
+      ru.setAttribute('aria-label',horiz?'Tourner la machine':'Incliner la machine');
+      ru.setAttribute('aria-orientation',horiz?'horizontal':'vertical');
+      ru.setAttribute('aria-valuemin',String(-LIM));ru.setAttribute('aria-valuemax',String(LIM));ru.setAttribute('aria-valuenow','0');
       const tr = ru.querySelector('.rf-ruler-track'), f = document.createDocumentFragment();
       for (let i = 0; i <= 100; i++) { const t = document.createElement('div'); t.className = 'rf-tick' + (i % 10 === 0 ? ' rf-maj' : ''); t.style[horiz ? 'left' : 'top'] = i * 5 + 'px'; if (i % 10 === 0) t.innerHTML = `<span>${(i / 100).toFixed(2)}</span>`; f.append(t); }
-      tr.append(f);
-      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); const i0 = Math.floor((horiz ? R.rot : R.tilt) / 5), i1 = Math.floor(x / 5); if (i0 !== i1) tick(i1 % 10 === 0); if (horiz) R.rot = x; else R.tilt = x; tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      tr.setAttribute('aria-hidden','true');tr.append(f);
+      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); const i0 = Math.floor((horiz ? R.rot : R.tilt) / 5), i1 = Math.floor(x / 5); if (i0 !== i1) tick(i1 % 10 === 0); if (horiz) R.rot = x; else R.tilt = x; ru.setAttribute('aria-valuenow',String(Math.round(x)));tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      ru.addEventListener('keydown',event=>{
+        const current=horiz?R.rot:R.tilt;
+        const values={ArrowLeft:current-5,ArrowDown:current-5,ArrowRight:current+5,ArrowUp:current+5,PageDown:current-25,PageUp:current+25,Home:0,End:LIM};
+        if(event.key in values){event.preventDefault();set(values[event.key]);}
+      });
       (R.sets ??= []).push(set); R.reset = () => R.sets.forEach((f) => f(0));
       let d = null;
       ru.addEventListener('pointerdown', (e) => { d = { p: horiz ? e.clientX : e.clientY, v: horiz ? R.rot : R.tilt }; ru.setPointerCapture(e.pointerId); e.preventDefault(); });
@@ -441,13 +511,16 @@ async function start() {
     return R;
   }
 
-  /* machines 3D des projets, en longueur sur les côtés */
+  /* Machines posées sur leurs plaques, dans un espace réservé à leur rendu. */
   scene.add(new THREE.HemisphereLight(0xffffff, 0x8a96c0, 0.75));
   const sun = new THREE.DirectionalLight(0xffffff, 1.25); sun.position.set(-9, 16, 8); scene.add(sun);
   const machines = []; let pendingM = 0; const T0 = 0; // posée sur sa base
   for (const art of $$('[data-fig]')) {
-    // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
-    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = MOBILE ? 3.0 : 4.2, x = side * (HALF + sc * 0.24), z = MOBILE ? (r.y + 150) / PXM : (r.y + 0.12 * r.h) / PXM, rot = MOBILE ? 0 : -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
+    const card=art.querySelector('.pc-pcard') || art;
+    const r=rectOf(card), sc=r.w/PXM*(MOBILE?.72:.62);
+    const x=(r.x+r.w/2-PAGE_W/2)/PXM;
+    const z=(r.y+r.h-(MOBILE?150:235))/PXM, rot=-.12;
+    const baseY=(parseFloat(card.dataset.box)||.4)+.035;
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
@@ -461,10 +534,19 @@ async function start() {
       // pivot au centre de la machine, posé au sol : les règles la tournent et l'inclinent sur place
       m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
       g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
-      pivot.position.set(MOBILE ? 0 : side * (HALF + 0.35 + box.getSize(new THREE.Vector3()).z / 2), 0, z); void x; // même écart au bord de la page pour toutes les machines pivot.rotation.y = rot; patchTree(pivot);
-      const M = { m, z, pivot, rot, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
+      pivot.position.set(x,baseY,z); pivot.rotation.y=rot; patchTree(pivot);
+      const M = { m, z, pivot, rot, baseY, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
       M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
+      const href=card.querySelector('.pc-more[href]')?.getAttribute('href');
+      if(href){
+        const hot=document.createElement('button');hot.type='button';hot.className='pc-hot pc-machine-hot';
+        hot.setAttribute('aria-label','Explorer la machine : '+(card.querySelector('h3')?.textContent.trim()||mod));
+        const size=box.getSize(new THREE.Vector3());
+        M.pickPoints=Array.from({length:8},(_,i)=>new THREE.Vector3((i&1?1:-1)*size.x/2,i&2?size.y:0,(i&4?1:-1)*size.z/2));
+        hot.addEventListener('click',()=>articlesP.then(A=>{const key=href.replace(/\.html.*$/,'');if(A[key])openReader(key,null);else location.href=href;}));
+        document.body.append(hot);hots.push({h:hot,r,machine:M});
+      }
     }).catch((e) => console.warn('machine indisponible', mod, e));
   }
 
@@ -579,7 +661,7 @@ async function start() {
     const A = 1.05; // relevé comme une vitre de train, posé sur son bord bas
     m.rotation.x = -Math.PI / 2 + A; m.position.set(g.cx, 0.01 + g.d / 2 * Math.sin(A), g.cz + g.d / 2 * (1 - Math.cos(A))); m.renderOrder = 2; scene.add(m);
     m.updateMatrixWorld(); const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => new THREE.Vector3(a * g.w / 2, b * g.d / 2, 0).applyMatrix4(m.matrixWorld));
-    const poster = new Image(); poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
+    const poster = new Image(); poster.crossOrigin='anonymous';poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
     const hot = document.createElement('button'); hot.type = 'button'; hot.className = 'pc-hot pc-hot-win'; hot.setAttribute('aria-label', 'Ouvrir ou fermer le store du hublot');
     hot.addEventListener('click', () => $('#rf-grip')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))); // le store se lève et se baisse comme sur le site
     document.body.append(hot); hots.push({ h: hot, r, pts: corners });
@@ -716,7 +798,7 @@ async function start() {
       for (const r of rules) {
         let t = r.cssText;
         if (r instanceof CSSFontFaceRule) { const m = t.match(/url\(["']?([^"')]+\.(?:woff2|ttf|otf|woff))["']?\)/); if (!m) continue; t = t.replace(/src:[^;]+;/, `src: url("${m[1]}");`); }
-        const urls = [...t.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map((m) => m[1]).filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
+        const urls = [...t.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^\)\s]+))\s*\)/g)].map((m) => m[1] ?? m[2] ?? m[3]).filter((u) => !u.startsWith('data:') && !u.startsWith('#') && !u.startsWith('%23'));
         for (const u of new Set(urls)) { const d = await b64(new URL(u, base).href); t = t.split(u).join(d || ''); }
         out.push(t);
       }
@@ -1011,11 +1093,11 @@ async function start() {
   function invRay(mx, my) { const a = invPlane(mx, my, 0.1), b = invPlane(mx, my, 1.4); if (a && b) return _ray.set(a, b.clone().sub(a).normalize()); _n.set(mx / innerWidth * 2 - 1, -(my / innerHeight) * 2 + 1); _r0.setFromCamera(_n, camera); return _ray.copy(_r0.ray); }
 
   /* graphe : ondulation, couleurs des liens, mise en avant au survol */
-  const EC = [[0.24, 0.37, 1], [0.27, 0.64, 1], [0.88, 0.93, 1], [0.15, 0.76, 0.95]], EW = [0.9, 0.84, 0.37, 0.63];
+  const EC = [[0.16, 0.24, 0.62], [0.12, 0.32, 0.7], [0.3, 0.35, 0.5], [0.1, 0.38, 0.62]], EW = [0.4, 0.56, 0.16, 0.4];
   function animGraph(G, t) {
     const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
     G.nodes.forEach((o, i) => {
-      const a = o.kind === 'hub' ? 0.04 : o.kind === 'dot' ? 0.1 : 0.08;
+      const a = o.kind === 'hub' ? 0.006 : o.kind === 'dot' ? 0.012 : 0.01;
       o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
       if (o.sq) o.sq.position.copy(o.cur);
       G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
@@ -1029,7 +1111,7 @@ async function start() {
     G.edges.forEach(([a, b, k], e) => {
       const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
       G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
-      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.5 : (k === 2 ? 0.2 : 0.13), c = hot ? [1, 1, 1] : EC[k]; // liaisons blanches visibles en permanence, renforcees au survol
+      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.25 : 0.07, c = hot ? [1, 1, 1] : EC[k];
       const spoke = k === 1 || k === 3, hcA = spoke ? G.nodes[a].hc : null;
       const c0 = hot ? c : spoke ? hcA : c, c1 = hot ? c : spoke ? [hcA[0] * 0.35, hcA[1] * 0.42, Math.min(1, hcA[2] * 0.95)] : c; // rayons : couleur du phare, puis bleu nuit au bout
       const pulse = spoke && !hot ? 0.76 + 0.24 * Math.sin(t * 1.65 + e * 0.73 + a) : 1, ff = f * pulse;
@@ -1088,6 +1170,7 @@ async function start() {
     sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * (smooth.on ? 16 : 7))); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
     const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
     const H = innerHeight, kf = KF + (1 - KF) * e, focusZ = (s + H / kf / 2) / PXM;
+    for (const object of ambientObjects) object.visible = e > 0.08;
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
     const fovFlat = 30, dist = (H / kf / PXM / 2) / Math.tan(fovFlat / 2 * Math.PI / 180);
     flatPos.set(0, dist, focusZ); flatLook.set(0, 0, focusZ - 0.0001);
@@ -1104,7 +1187,7 @@ async function start() {
     }
     camera.lookAt(look);
     if (editionsPose?.roll) camera.rotateZ(editionsPose.roll);
-    camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    camera.fov = fovFlat + ((MOBILE ? 50 : 52) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
     if (!HIC) page.style.transform = `translateY(${(scrollY - s).toFixed(2)}px)`;
     // étapes de « Comment ça marche » : elles s'élèvent et se tournent vers le lecteur
@@ -1116,7 +1199,7 @@ async function start() {
     for (const G of graphs) if (Math.abs(focusZ - G.z) < 45) animGraph(G, now / 1000);
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
     for (const k of machines) {
-      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ'); k.pivot.position.y = k.half * Math.abs(Math.sin(k.tilt));
+      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ'); k.pivot.position.y = k.baseY + k.half * Math.abs(Math.sin(k.tilt));
       if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
     }
     for (const p of pigs) { // une pièce toutes les 2,4 s
@@ -1148,7 +1231,7 @@ async function start() {
     window.__editionsExperience?.frame?.({scroll:s,immersive:e,focusZ});
     hoverGraphs(e,focusZ);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
-    let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
+    let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= (e>.5?s-h*.16:s+h/2)) active = i; });
     navItems.forEach((li, i) => li.classList.toggle('on', i === active));
     if (mnav && mnav.i !== active) { mnav.i = active; mnav.querySelector('.mn-c b').textContent = String(active + 1).padStart(2, '0'); mnav.querySelector('.mn-c span').textContent = sections[active].name; }
     for (const c of callouts) {
@@ -1165,6 +1248,7 @@ async function start() {
     for (const o of hots) { // rectangle à l'écran = enveloppe des points visibles du bord du cadre
       if(Math.abs(focusZ-(o.r.y+o.r.h*.5)/PXM)>26){o.h.style.display='none';continue;}
       let pts = o.pts;
+      if(o.machine){o.machine.pivot.updateMatrixWorld();pts=o.machine.pickPoints.map(v=>v.clone().applyMatrix4(o.machine.pivot.matrixWorld));}
       if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
       const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
       const PADX = 16, PADY = 12; let x0 = Math.min(...xs) - PADX, y0 = Math.min(...ys) - PADY, ww = Math.max(...xs) - x0 + PADX, hh = Math.max(...ys) - y0 + PADY; if (o.h.classList.contains('pc-lift-hot') && ww < 110) { x0 -= (110 - ww) / 2; ww = 110; } if (o.h.classList.contains('pc-lift-hot') && hh < 40) { y0 -= (40 - hh) / 2; hh = 40; } const ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 6 && hh > 4 && !o.hide;
@@ -1234,4 +1318,7 @@ async function start() {
     requestAnimationFrame(tick);
   }
   window.__expo = { camera, sections, items, HIC, hots, machines, toScreen, pick: (x, y) => roomPick?.(x, y), V: THREE.Vector3 };
+  window.dispatchEvent(new Event('pc:ready'));
 }
+
+

@@ -1,0 +1,95 @@
+/* Référence mesurée dans les vidéos : feuille verticale, colonne étroite,
+   graphe circonscrit, puis ruban spatial. Les contenus restent ceux du CV. */
+:root{--edition-blue:#1017a8}
+html,body{background:#050505}
+.pc-home{background:var(--edition-blue)!important}
+.pc-title{top:calc(var(--header-space,40px) + 8px);height:calc(var(--hh) - var(--header-space,40px) - 16px);font-size:calc((var(--hh) - var(--header-space,40px))* .118);left:7px}
+.pc-title-k{left:calc((var(--hh) - var(--header-space,40px)) * .118 + 9px)}
+.pc-home-col{top:calc(var(--header-space,40px) + 8px);left:calc((var(--hh) - var(--header-space,40px)) * .118 + 22px);bottom:8px;width:170px;gap:6px}
+.pc-home-col .pc-box{background:rgba(255,255,255,.025);border:1px solid rgba(174,187,255,.22);padding:7px}
+.pc-index ol{font:7px/1.35 var(--mono);color:#b6c2ff}
+.pc-index-arc{opacity:.22}
+.pc-mini p{font:7px/1.4 var(--mono)!important;color:#c9d4ff}
+.pc-graph{left:calc((var(--hh) - var(--header-space,40px)) * .118 + 198px);right:8px;top:calc(var(--header-space,40px) + 8px);bottom:8px;background:#000007;border:1px solid #18225b}
+.pc-box{border-width:1px;background:rgba(255,255,255,.035)}
+.pc-h{text-shadow:none;font-weight:550}
+.pc-card{background:rgba(255,255,255,.025)}
+.pc-card h3{font-weight:550}
+.pc-proj,.pc-proj:nth-of-type(even){grid-template-columns:1fr;gap:24px;margin-bottom:110px}
+.pc-proj .pc-pcard,.pc-proj:nth-of-type(even) .pc-pcard{grid-column:1;grid-row:1;padding-bottom:470px}
+.pc-proj .pc-float,.pc-proj:nth-of-type(even) .pc-float{grid-column:1;grid-row:2;max-width:760px;font-size:15px;line-height:1.55}
+.pc-proj .pc-how{margin-top:0}
+.pc-more{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.22)}
+#ex-shell{--ex-color:#1017a8}
+#ex-shell .ex-atmosphere,.ex-ghost,.ex-progress{display:none!important}
+.ex-topbar{height:48px;display:flex;gap:28px;padding:0 13px;background:transparent}
+.ex-brand{gap:9px}
+.ex-monogram{width:20px;height:25px;border:0;border-radius:0;font-size:10px;font-weight:700}
+.ex-brand-text{font-size:12px;font-weight:500;letter-spacing:-.02em}
+.ex-brand-text em{font-size:11px;letter-spacing:0;color:#b4bcec}
+.ex-top-actions{gap:24px;justify-content:flex-start}
+.ex-top-actions button{min-height:36px;padding:0;border:0;border-radius:0;background:none;backdrop-filter:none;font-size:12px}
+.ex-top-actions button:hover{background:none;transform:none}
+.ex-icon-menu{display:none}
+.ex-menu-button::after{content:"⌄";margin-left:1px}
+.ex-count{font-size:9px;margin-left:6px}
+.ex-now{display:none}
+.ex-pdf{margin-left:auto;padding:9px 15px;border-radius:30px;background:#f6f6f6;color:#101014;text-decoration:none;font:500 12px var(--sans);white-space:nowrap}
+.ex-waypoints{left:14px;max-height:calc(100vh - 130px);transition:opacity .25s;opacity:0;pointer-events:none}
+.ex-immersive .ex-waypoints{opacity:1;pointer-events:auto}
+.ex-waypoints button{width:145px;min-height:24px;gap:5px;color:#b2b5bd}
+.ex-wp-name{opacity:1;transform:none;max-width:120px;font:10px/1.2 var(--mono);text-shadow:none;white-space:normal}
+.ex-wp-n{width:auto;font-size:8px;margin-left:auto;opacity:.55}
+.ex-wp-line{width:3px;height:3px;flex:none;border-radius:50%;opacity:.45}
+.ex-waypoints button:hover .ex-wp-line,.ex-waypoints button.is-active .ex-wp-line{width:4px}
+.ex-waypoints button.is-active{color:#fff}
+.ex-drawer{background:#0b0e91}
+.ex-drawer::before,.ex-orbits i,.ex-orbits::before{display:none}
+.ex-drawer-head{height:66px}
+.ex-drawer-main h2{font-weight:450}
+.ex-tabs button[aria-selected=true]{border-color:#fff}
+.pc-hot:focus-visible{outline:2px solid #fff!important;outline-offset:3px}
+#ex-shell a:focus-visible,#ex-shell button:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.pc-page>.pc-transit{display:none}
+html:not(.expo) .pc-page{width:min(100%,1000px)}
+html:not(.expo) .pc-home{min-height:720px;--hh:720px}
+html:not(.expo) .pc-graph-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;list-style:none;padding:18px;margin:0;font:12px var(--mono)}
+html:not(.expo) .pc-graph-list details{min-width:0}
+html:not(.expo) .pc-graph-list summary{cursor:pointer;min-height:32px;padding:5px 0}
+html:not(.expo) .pc-graph-list details ul{margin:10px 0 0;padding-left:14px}
+html:not(.expo) .pc-graph-list details li{padding:4px 0;line-height:1.5}
+html:not(.expo) .pc-graph-list a{color:#d9e5ff;text-underline-offset:3px}
+html:not(.expo) .pc-graph{overflow:auto}
+.pc-copy-status{display:block;font:12px/1.5 var(--mono)}
+.pc-reading .rf-gx-page .gains-heading .annual-pig-wrap{display:none!important;height:0!important;min-height:0!important;margin:0!important}
+.pc-reading .pc-proj .pc-pcard{padding-bottom:28px}
+.pc-reading-machine{display:block;width:100%;height:300px;object-fit:contain;margin-bottom:24px}
+html:not(.expo) .pc-home .pc-mini-slot{min-height:60px}
+html:not(.expo) .pc-sec{max-width:100%}
+@media(max-width:759px){
+ .ex-topbar{height:52px;padding:0 14px;gap:12px;background:rgba(8,14,127,.86)}
+ .ex-brand-text{font-size:10px}
+ .ex-top-actions{margin-left:auto}
+ .ex-top-actions .ex-menu-button{padding:0;min-height:40px}
+ .ex-pdf{padding:7px 11px;font-size:10px;margin-left:0}
+ .pc-home{min-height:760px!important;height:var(--hh,760px)!important}
+ .pc-title{writing-mode:horizontal-tb;transform:none;top:70px;left:16px;width:calc(100% - 32px);height:auto;font:550 42px/.98 var(--sans);letter-spacing:-.065em;white-space:normal}
+ .pc-title-k{left:17px;top:161px;bottom:auto;height:auto;width:calc(100% - 34px);font:9px/1.5 var(--mono);white-space:normal;writing-mode:horizontal-tb;transform:none}
+ .pc-home-col{display:none}
+ .pc-graph{left:14px;right:14px;top:205px;bottom:14px}
+ .ex-mobile-nav{border-radius:0;bottom:0;left:0;right:0;background:rgba(5,5,12,.92);border-width:1px 0 0;min-height:48px}
+ .ex-mobile-nav button{min-height:48px}
+ .ex-mobile-title small{color:#bac5e4}
+ .pc-intro-in,.pc-sign{width:100%}
+ .pc-proj,.pc-proj:nth-of-type(even){padding-top:0}
+ .pc-proj .pc-pcard,.pc-proj:nth-of-type(even) .pc-pcard{padding-bottom:300px}
+ .pc-contact-live .rf-cp{overflow-wrap:anywhere}
+ html:not(.expo) .pc-graph-list{font-size:11px;gap:18px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pc-page{padding-top:52px}
+ .ex-mobile-nav{display:none}
+ #ex-shell *{animation:none!important;transition:none!important}
+ .pc-graph{overflow:auto}
+}
+

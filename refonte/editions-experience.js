@@ -6,25 +6,7 @@
   const page = document.getElementById('page');
   if (!page) return;
 
-  // Longs seuils noirs entre les chapitres : l'espace appartient au voyage.
-  // Insertion AVANT le relevé par Three.js, donc les coordonnées 3D restent cohérentes.
-  const originalChapters=[...page.querySelectorAll(':scope > section[data-section]')];
-  originalChapters.forEach((chapter,i)=>{
-    if(i===originalChapters.length-1)return;
-    const next=originalChapters[i+1];
-    if(chapter.nextElementSibling?.classList.contains('pc-transit'))return;
-    const trans=document.createElement('div');
-    trans.className='pc-transit';
-    trans.dataset.transit=String(i);
-    trans.dataset.from=chapter.dataset.section;
-    trans.dataset.to=next.dataset.section;
-    const label=document.createElement('div');label.className='pc-transit-placeholder';
-    const n=document.createElement('small');n.textContent=String(i+1).padStart(2,'0')+' / '+String(i+2).padStart(2,'0');
-    const title=document.createElement('p');title.textContent=next.dataset.section;
-    const note=document.createElement('span');note.textContent='Continuer le parcours';
-    label.append(n,title,note);trans.append(label);
-    chapter.after(trans);
-  });
+  // Les chapitres partagent un ruban continu, sans intercaler de sections noires.
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const clamp = (x,a=0,b=1) => Math.min(b,Math.max(a,x));
@@ -57,7 +39,7 @@
         '<button class="ex-menu-button" type="button" data-ex-open="chapters" aria-expanded="false" aria-controls="ex-drawer">',
           '<i class="ex-icon-menu" aria-hidden="true"><b></b><b></b><b></b><b></b></i> Sommaire</button>',
       '</div>',
-      '<div class="ex-now" aria-live="off"><b id="ex-number">01</b><i>/</i><span>'+String(sections.length).padStart(2,'0')+'</span><small id="ex-active-name"></small></div>',
+      '<div class="ex-now" aria-live="off"><b id="ex-number">01</b><i>/</i><span>'+String(sections.length).padStart(2,'0')+'</span><small id="ex-active-name"></small></div><a class="ex-pdf" href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a>',
     '</header>',
     '<div class="ex-progress" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>',
     '<nav class="ex-waypoints" aria-label="Navigation par chapitres"><ol id="ex-waypoints"></ol></nav>',
@@ -97,7 +79,7 @@
   const drawer=$('#ex-drawer'),search=$('#ex-search'),results=$('#ex-results');
   const waypointList=$('#ex-waypoints'),progress=$('.ex-progress');
   let active=-1,tab='chapters',opened=false,query='',lastFocus=null,lastProgress=-1,frames=0;
-  const offsetFor = sec => window.__expo?.sections?.[sec.i]?.r?.y ?? sec.y;
+  const offsetFor = sec => window.__expo?.sections?.[sec.i]?.r?.y ?? positionOf(sec.el);
   function setOpen(next,preferred){
     if(next===opened&&!preferred)return;
     if(next){
@@ -117,7 +99,7 @@
   }
   function goTo(y,hash){
     setOpen(false);
-    const top=Math.max(0,y+260-innerHeight/2);
+    const top=Math.max(0,y===0?0:window.__expo?y+innerHeight*.55:y-60);
     if(window.__exSmoothScroll&&!reduce.matches)window.__exSmoothScroll.goTo(top);
     else scrollTo({top,behavior:reduce.matches?'instant':'smooth'});
     if(hash)history.replaceState(null,'','#'+hash);
@@ -136,7 +118,7 @@
     const num=document.createElement('span');num.className='ex-wp-n';num.textContent=pad(sec.i);
     const line=document.createElement('span');line.className='ex-wp-line';
     const name=document.createElement('span');name.className='ex-wp-name';name.textContent=sec.name;
-    b.append(num,line,name);b.addEventListener('click',()=>goToChapter(sec.i));
+    b.append(name,line,num);b.addEventListener('click',()=>goToChapter(sec.i));
     li.append(b);waypointList.append(li);
   }
   function setTab(next){
@@ -189,7 +171,8 @@
     if(opened&&tab==='chapters')paintResults();
   }
   function update(scroll,immersive=0){
-    let idx=0;for(const sec of sections)if(offsetFor(sec)<=scroll+innerHeight*.5)idx=sec.i;
+    const viewY=immersive>.5?scroll-innerHeight*.16:scroll+innerHeight*.5;
+    let idx=0;for(const sec of sections)if(offsetFor(sec)<=viewY)idx=sec.i;
     setActive(idx);
     const maxScroll=Math.max(1,document.documentElement.scrollHeight-innerHeight,page.offsetHeight-innerHeight);
     const p=clamp(scroll/maxScroll);
@@ -227,15 +210,21 @@
     pose({focusZ,immersive,now,width}){
       if(width<760||reduce.matches||immersive<.3||opened)return null;
       const amp=clamp((immersive-.3)/.7),u=focusZ*.082;
-      const drift=(Math.sin(u*.73)*.46+Math.sin(u*.37+.6)*.28)*amp;
-      return {cameraX:drift,lookX:drift*.21,cameraY:Math.sin(u*.8)*.12*amp,
-        roll:clamp((Math.cos(u*.53+now*.00008)*.013+Math.sin(u*.19)*.008)*amp,-.026,.026)};
+      return {cameraX:0,lookX:0,cameraY:0,roll:0};
     }
   };
   paintResults();update(scrollY,0);
-  if(location.hash.startsWith('#chapitre-')||location.hash.startsWith('#projet-')){
+  if(location.hash){
     const value=location.hash.slice(1);
-    const i=sections.findIndex(s=>s.id===value),j=projects.findIndex(p=>'projet-'+slug(p.name)===value);
-    if(i>=0||j>=0)addEventListener('load',()=>setTimeout(()=>i>=0?goToChapter(i):goToProject(j),200),{once:true});
+    const legacy={hero:'Décor',titre:'Décor',bonjour:'Bonjour','rf-sign':'Bonjour',projets:'Faire fonctionner','projets-t':'Faire fonctionner',universitaire:'Parcours','univ-t':'Parcours',perso:'Blog','perso-t':'Blog',contact:'Contact','contact-t':'Contact'};
+    const i=sections.findIndex(s=>s.id===value||s.name===legacy[value]),j=projects.findIndex(p=>'projet-'+slug(p.name)===value);
+    if(i>=0||j>=0){
+      const intended=i>=0?sections[i].id:'projet-'+slug(projects[j].name);
+      const jump=()=>{if([value,intended].includes(location.hash.slice(1)))i>=0?goToChapter(i):goToProject(j);};
+      addEventListener('pc:ready',jump,{once:true});
+      addEventListener('load',()=>setTimeout(jump,200),{once:true});
+    }
   }
 })();
+
+
