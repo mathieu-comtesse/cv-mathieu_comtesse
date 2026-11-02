@@ -51,7 +51,7 @@ const MOBILE = innerWidth < 760;   // téléphone : page étroite, mise en page 
 const PAGE_W = MOBILE ? Math.max(320, Math.min(560, Math.round(innerWidth))) : 1000;
 document.documentElement.style.setProperty('--pw', PAGE_W + 'px');
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
-const FOLD_A = 120, FOLD_B = 900; // la page se rabat entre ces deux positions de défilement (px)
+const FOLD_A = 45, FOLD_B = 740; // bascule continue depuis la feuille vue de face
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const page = $('#page');
@@ -99,7 +99,16 @@ function patchTree(root) { root.traverse((o) => { const m = o.material; if (m) (
 /* ---------- sans WebGL, la page reste une page ---------- */
 let renderer = null;
 try { renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true }); } catch { /* lecture 2D */ }
-if (renderer) await start();
+if (renderer && !reduce && !new URLSearchParams(location.search).has('lecture')) {
+  try { await start(); }
+  catch (error) {
+    console.error('Le parcours revient à sa version lisible.', error);
+    renderer.dispose();
+    document.documentElement.classList.remove('expo', 'flat');
+    page.style.cssText = '';
+    document.body.style.height = '';
+  }
+}
 
 async function start() {
   const canvas = renderer.domElement;
@@ -128,6 +137,7 @@ async function start() {
     if (ol && hl.length === SHORT.length) ol.innerHTML = SHORT.map((n, i) => `<li data-i="${i}" tabindex="0"><span>${String(i + 1).padStart(2, '0')}</span>${n}</li>`).join('').replace(/(<span>\d\d<\/span>)([^<]+)/g, '$2$1'); }
   // premier écran plein cadre : la page (1000 px) occupe toute la largeur, et l'accueil toute la hauteur visible
   const KF = Math.max(1, innerWidth / PAGE_W); $('.pc-home')?.style.setProperty('--hh', Math.round(innerHeight / KF) + 'px');
+  $('.pc-home')?.style.setProperty('--header-space', (48 / KF).toFixed(2) + 'px');
   const P = page.getBoundingClientRect();
   const rectOf = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - P.left, y: r.top - P.top, w: r.width, h: r.height }; };
   const W = (r) => ({ cx: (r.x + r.w / 2 - PAGE_W / 2) / PXM, cz: (r.y + r.h / 2) / PXM, w: r.w / PXM, d: r.h / PXM });
@@ -280,7 +290,7 @@ async function start() {
     const P3 = (x, y, z) => new THREE.Vector3(x, y, z), X = (px) => (px - PAGE_W / 2) / PXM, Z = (py) => py / PXM;
     const add = (o) => { o.ph = rnd() * 6.283; o.ph2 = rnd() * 6.283; o.cur = o.base.clone(); nodes.push(o); return nodes.length - 1; };
     const SL = [[.16, .17], [.47, .12], [.8, .2], [.3, .4], [.63, .36], [.9, .5], [.12, .6], [.45, .66], [.76, .74], [.25, .88], [.58, .9]]; // emplacements des phares
-    const rad = Math.min(r.w, r.h) * 0.23;
+    const rad = Math.min(r.w, r.h) * 0.16;
     { const g0 = W(r), bg = new THREE.Mesh(plane(g0.w, g0.d), new THREE.MeshBasicMaterial({ color: 0x000007 })); bg.rotation.x = -Math.PI / 2; bg.position.set(g0.cx, 0.004, g0.cz); bg.renderOrder = 1; scene.add(bg); }
     const inX = (x) => Math.max(X(r.x + 6), Math.min(X(r.x + r.w - 6), x)), inZ = (z) => Math.max(Z(r.y + 6), Math.min(Z(r.y + r.h - 6), z));
     hubs.forEach((li, i) => {
@@ -296,10 +306,10 @@ async function start() {
       lb.position.set(hp.x + (onLeft ? -0.07 : 0.07), 0.06, hp.z + 0.02); scene.add(lb);
       const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
       { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: new THREE.Color(hc[0], hc[1], hc[2]).offsetHSL(0, 0, 0.12), fog: false, depthTest: false })); sq.scale.set(0.05 + 0.025 * tN, 0.05 + 0.025 * tN, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
-      const n = 18 + leaves.length * 5; // grappes plus denses et silhouettes rayonnantes
+      const n = Math.max(leaves.length, 14 + leaves.length * 2);
       for (let k = 0; k < n; k++) {
         const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
-        const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.05 + rnd() * 0.35, inZ(hp.z + Math.sin(ang) * rr));
+        const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.015 + rnd() * 0.025, inZ(hp.z + Math.sin(ang) * rr));
         const L = leaves[k], img = L && L.querySelector('img');
         const id = add(L ? { kind: 'leaf', base: p, label: L.textContent.trim(), meta: L.dataset.meta || '', href: L.getAttribute('href'), k: L.dataset.k, tags: new Set((L.dataset.tags || '').split(' ').filter(Boolean)), hub: h } : { kind: 'dot', base: p, hub: h });
         edges.push([h, id, L ? 1 : 3]);
@@ -324,9 +334,9 @@ async function start() {
     }
     const pos = new Float32Array(edges.length * 6), col = new Float32Array(edges.length * 6), lg = new THREE.BufferGeometry();
     lg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); lg.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
+    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.48, blending: THREE.AdditiveBlending, depthWrite: false })); lines.frustumCulled = false; scene.add(lines);
     const pp = new Float32Array(nodes.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xc9dcff, size: 0.052, transparent:true, opacity:.9 })); dots.frustumCulled = false; scene.add(dots);
+    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x7191e8, size: 0.025, transparent:true, opacity:.62 })); dots.frustumCulled = false; scene.add(dots);
     // Impulsions qui suivent physiquement les liens; positions regroupees dans un seul buffer.
     const fEdges=edges.filter(([, , k])=>k===1||k===3);
     const streamPos=new Float32Array(fEdges.length*3),streamCol=new Float32Array(fEdges.length*3);
@@ -1011,11 +1021,11 @@ async function start() {
   function invRay(mx, my) { const a = invPlane(mx, my, 0.1), b = invPlane(mx, my, 1.4); if (a && b) return _ray.set(a, b.clone().sub(a).normalize()); _n.set(mx / innerWidth * 2 - 1, -(my / innerHeight) * 2 + 1); _r0.setFromCamera(_n, camera); return _ray.copy(_r0.ray); }
 
   /* graphe : ondulation, couleurs des liens, mise en avant au survol */
-  const EC = [[0.24, 0.37, 1], [0.27, 0.64, 1], [0.88, 0.93, 1], [0.15, 0.76, 0.95]], EW = [0.9, 0.84, 0.37, 0.63];
+  const EC = [[0.16, 0.24, 0.62], [0.12, 0.32, 0.7], [0.3, 0.35, 0.5], [0.1, 0.38, 0.62]], EW = [0.4, 0.56, 0.16, 0.4];
   function animGraph(G, t) {
     const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
     G.nodes.forEach((o, i) => {
-      const a = o.kind === 'hub' ? 0.04 : o.kind === 'dot' ? 0.1 : 0.08;
+      const a = o.kind === 'hub' ? 0.012 : o.kind === 'dot' ? 0.025 : 0.02;
       o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
       if (o.sq) o.sq.position.copy(o.cur);
       G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
@@ -1029,7 +1039,7 @@ async function start() {
     G.edges.forEach(([a, b, k], e) => {
       const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
       G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
-      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.5 : (k === 2 ? 0.2 : 0.13), c = hot ? [1, 1, 1] : EC[k]; // liaisons blanches visibles en permanence, renforcees au survol
+      const hot = h >= 0 && (a === h || b === h), f = h < 0 ? EW[k] : hot ? 1.25 : 0.07, c = hot ? [1, 1, 1] : EC[k];
       const spoke = k === 1 || k === 3, hcA = spoke ? G.nodes[a].hc : null;
       const c0 = hot ? c : spoke ? hcA : c, c1 = hot ? c : spoke ? [hcA[0] * 0.35, hcA[1] * 0.42, Math.min(1, hcA[2] * 0.95)] : c; // rayons : couleur du phare, puis bleu nuit au bout
       const pulse = spoke && !hot ? 0.76 + 0.24 * Math.sin(t * 1.65 + e * 0.73 + a) : 1, ff = f * pulse;
@@ -1235,3 +1245,5 @@ async function start() {
   }
   window.__expo = { camera, sections, items, HIC, hots, machines, toScreen, pick: (x, y) => roomPick?.(x, y), V: THREE.Vector3 };
 }
+
+

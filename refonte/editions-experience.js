@@ -6,25 +6,7 @@
   const page = document.getElementById('page');
   if (!page) return;
 
-  // Longs seuils noirs entre les chapitres : l'espace appartient au voyage.
-  // Insertion AVANT le relevé par Three.js, donc les coordonnées 3D restent cohérentes.
-  const originalChapters=[...page.querySelectorAll(':scope > section[data-section]')];
-  originalChapters.forEach((chapter,i)=>{
-    if(i===originalChapters.length-1)return;
-    const next=originalChapters[i+1];
-    if(chapter.nextElementSibling?.classList.contains('pc-transit'))return;
-    const trans=document.createElement('div');
-    trans.className='pc-transit';
-    trans.dataset.transit=String(i);
-    trans.dataset.from=chapter.dataset.section;
-    trans.dataset.to=next.dataset.section;
-    const label=document.createElement('div');label.className='pc-transit-placeholder';
-    const n=document.createElement('small');n.textContent=String(i+1).padStart(2,'0')+' / '+String(i+2).padStart(2,'0');
-    const title=document.createElement('p');title.textContent=next.dataset.section;
-    const note=document.createElement('span');note.textContent='Continuer le parcours';
-    label.append(n,title,note);trans.append(label);
-    chapter.after(trans);
-  });
+  // Les chapitres partagent un ruban continu, sans intercaler de sections noires.
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const clamp = (x,a=0,b=1) => Math.min(b,Math.max(a,x));
@@ -57,7 +39,7 @@
         '<button class="ex-menu-button" type="button" data-ex-open="chapters" aria-expanded="false" aria-controls="ex-drawer">',
           '<i class="ex-icon-menu" aria-hidden="true"><b></b><b></b><b></b><b></b></i> Sommaire</button>',
       '</div>',
-      '<div class="ex-now" aria-live="off"><b id="ex-number">01</b><i>/</i><span>'+String(sections.length).padStart(2,'0')+'</span><small id="ex-active-name"></small></div>',
+      '<div class="ex-now" aria-live="off"><b id="ex-number">01</b><i>/</i><span>'+String(sections.length).padStart(2,'0')+'</span><small id="ex-active-name"></small></div><a class="ex-pdf" href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a>',
     '</header>',
     '<div class="ex-progress" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>',
     '<nav class="ex-waypoints" aria-label="Navigation par chapitres"><ol id="ex-waypoints"></ol></nav>',
@@ -136,7 +118,7 @@
     const num=document.createElement('span');num.className='ex-wp-n';num.textContent=pad(sec.i);
     const line=document.createElement('span');line.className='ex-wp-line';
     const name=document.createElement('span');name.className='ex-wp-name';name.textContent=sec.name;
-    b.append(num,line,name);b.addEventListener('click',()=>goToChapter(sec.i));
+    b.append(name,line,num);b.addEventListener('click',()=>goToChapter(sec.i));
     li.append(b);waypointList.append(li);
   }
   function setTab(next){
@@ -227,9 +209,7 @@
     pose({focusZ,immersive,now,width}){
       if(width<760||reduce.matches||immersive<.3||opened)return null;
       const amp=clamp((immersive-.3)/.7),u=focusZ*.082;
-      const drift=(Math.sin(u*.73)*.46+Math.sin(u*.37+.6)*.28)*amp;
-      return {cameraX:drift,lookX:drift*.21,cameraY:Math.sin(u*.8)*.12*amp,
-        roll:clamp((Math.cos(u*.53+now*.00008)*.013+Math.sin(u*.19)*.008)*amp,-.026,.026)};
+      return {cameraX:0,lookX:0,cameraY:0,roll:0};
     }
   };
   paintResults();update(scrollY,0);
@@ -239,3 +219,5 @@
     if(i>=0||j>=0)addEventListener('load',()=>setTimeout(()=>i>=0?goToChapter(i):goToProject(j),200),{once:true});
   }
 })();
+
+
