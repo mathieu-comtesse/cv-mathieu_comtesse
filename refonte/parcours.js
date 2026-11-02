@@ -240,8 +240,10 @@ async function start() {
       const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
       const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
       const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens' });
-      const lb = label(`${li.dataset.hub}  ${leaves.length}`, { w: 1.5, h: 0.16, font: '400 13px iAWriterQuattroV, monospace', color: '#e6ecff', op: 0.95 });
-      lb.position.set(hp.x + 0.1, 0.06, hp.z + 0.14); scene.add(lb);
+      const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(0, 0.5);
+      lb.position.set(hp.x + 0.07, 0.06, hp.z + 0.02); scene.add(lb);
+      const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(0, 0.5); ct.position.set(hp.x + 0.07 + lb.scale.x + 0.04, 0.06, hp.z - 0.1); scene.add(ct);
+      { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0x7ff6ff, fog: false, depthTest: false })); sq.scale.set(0.05, 0.05, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
       const n = leaves.length + 16;
       for (let k = 0; k < n; k++) {
         const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
@@ -581,12 +583,17 @@ async function start() {
     }
     return out.join('\n');
   }
-  async function rasterize(el, r, css) {
-    const S = Math.min(1.5, 8000 / r.h);
+  async function rasterize(el, r, css, ctx = false) {
+    const S = Math.min(ctx ? 2 : 1.5, 8000 / r.h);
     const clone = el.cloneNode(true); clone.style.background = 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
     clone.querySelectorAll('[data-graph], [data-sign] svg, [data-tl] .rf-tl-line, [data-tl] .rf-tl-dot').forEach((n) => n.remove()); // la signature a son propre calque animé
     await Promise.all([...clone.querySelectorAll('img')].map(async (im) => { try { const b = await (await fetch(im.getAttribute('src'))).blob(); im.setAttribute('src', await new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); })); } catch { im.remove(); } }));
-    const xml = new XMLSerializer().serializeToString(clone);
+    if (!ctx && !HIC) clone.querySelectorAll('[data-flow] .rf-flow-rail').forEach((n) => { n.style.visibility = 'hidden'; }); // la barre de cases a son propre calque, redessiné en direct
+    let xml = new XMLSerializer().serializeToString(clone);
+    if (ctx) { // classes et variables des parents, sans boîte, pour que les styles du site s'appliquent à l'élément seul
+      const anc = []; for (let q = el.parentElement; q && q !== document.body; q = q.parentElement) anc.unshift(q);
+      xml = anc.map((q) => `<div xmlns="http://www.w3.org/1999/xhtml" class="${q.className}" style="display:contents;${(q.getAttribute('style') || '').replace(/"/g, "'")}">`).join('') + xml + '</div>'.repeat(anc.length);
+    }
     const svgDoc = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.w}" height="${r.h}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/</g, '\\3c ')}</style>${xml}</div></foreignObject></svg>`;
     const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgDoc); await img.decode();
     const c = document.createElement('canvas'); c.width = Math.round(r.w * S); c.height = Math.round(r.h * S);
@@ -613,19 +620,16 @@ async function start() {
     L.el.classList.remove('pc-inf-host'); L.el.style.width = L.r.w + 'px'; inner.append(L.el);
     lcard.style.setProperty('--lw', Math.min(L.r.w + 56, innerWidth * 0.94) + 'px'); lcard.style.background = bgc;
     lift.hidden = false; document.documentElement.classList.add('pc-lifted');
-    const hr = L.h.getBoundingClientRect(), cr = lcard.getBoundingClientRect();
-    const from = `translate(-50%,-50%) translate(${hr.left + hr.width / 2 - innerWidth / 2}px,${hr.top + hr.height / 2 - innerHeight / 2}px) scale(${Math.max(0.15, hr.width / cr.width)}) rotateX(58deg)`;
-    lcard.animate([{ transform: from, opacity: 0.4 }, { transform: 'translate(-50%,-50%)', opacity: 1 }], { duration: reduce ? 1 : 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    lift.querySelector('.pc-lift-bg').animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduce ? 1 : 500, fill: 'forwards' });
+    liftMats(L, false); animLift(L, true);
+    lift.querySelector('.pc-lift-bg').animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduce ? 1 : 700, fill: 'forwards' });
     lsc.scrollTop = 0; lsc.focus?.({ preventScroll: true });
     for (const f of flows) if (L.el.contains(f.w)) { lsc.onscroll = () => f.api?.kick(); requestAnimationFrame(() => f.api?.remeasure()); }
   }
   async function closeLift() {
     const L = lifted; if (!L) return;
-    const hr = L.h.getBoundingClientRect(), cr = lcard.getBoundingClientRect();
-    const to = `translate(-50%,-50%) translate(${hr.left + hr.width / 2 - innerWidth / 2}px,${hr.top + hr.height / 2 - innerHeight / 2}px) scale(${Math.max(0.15, (hr.width || 200) / cr.width)}) rotateX(58deg)`;
-    lift.querySelector('.pc-lift-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 450, fill: 'forwards' });
-    await lcard.animate([{ transform: 'translate(-50%,-50%)', opacity: 1 }, { transform: to, opacity: 0.3 }], { duration: reduce ? 1 : 600, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
+    lsc.scrollTop = 0; hidePage();
+    lift.querySelector('.pc-lift-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 900, fill: 'forwards' });
+    await animLift(L, false); liftMats(L, true);
     lift.hidden = true; document.documentElement.classList.remove('pc-lifted'); hidePage(); lsc.onscroll = null;
     L.el.style.width = L.home.width;
     if (L.home.host) { L.el.classList.add('pc-inf-host'); document.body.append(L.el); } else { L.ph.replaceWith(L.el); }
@@ -635,6 +639,53 @@ async function start() {
   }
   lift.querySelector('.pc-lift-x').onclick = closeLift; lift.querySelector('.pc-lift-bg').onclick = closeLift;
   addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && lifted && !document.querySelector('.fl-ov.is-open')) closeLift(); });
+
+  /* « Comment ça marche » sur la feuille : la barre de cases du site (case mobile, diodes) est redessinée dès qu'elle change */
+  const rails = HIC ? [] : flows.map((f) => {
+    const el = f.w.querySelector('.rf-flow-rail'); if (!el) return null;
+    const r = rectOf(el), g = W(r), cv = document.createElement('canvas'), t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.Mesh(plane(g.w, g.d), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, visible: false })); m.rotation.x = -Math.PI / 2; m.position.set(g.cx, 0.022, g.cz); m.renderOrder = 8; scene.add(m);
+    const R = { el, r, t, m, dirty: true, busy: false, z: g.cz }; new MutationObserver(() => { R.dirty = true; }).observe(el, { subtree: true, attributes: true, childList: true }); return R;
+  }).filter(Boolean);
+  let cssLite = null;
+  async function paintRail(R) {
+    R.busy = true; R.dirty = false;
+    try { cssLite ??= (await (cssP ??= inlineCss())).replace(/@font-face\s*\{[^}]*\}/g, ''); const c = await rasterize(R.el, R.r, cssLite, true); R.t.image = c; R.t.needsUpdate = true; R.m.material.visible = true; } catch (e) { console.warn('barre de cases', e); }
+    R.busy = false;
+  }
+
+  /* le cadre se lève de sa base à plat (charnière sur son bord avant), puis vient se placer face au lecteur */
+  function quadMatrix(w, h, P) { // homographie du rectangle w × h vers les quatre points P (haut-gauche, haut-droit, bas-gauche, bas-droit)
+    const S = [[0, 0], [w, 0], [0, h], [w, h]], A = [], B = [];
+    for (let i = 0; i < 4; i++) { const [x, y] = S[i], [u, v] = P[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); B.push(u); A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(v); }
+    for (let c = 0; c < 8; c++) { let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r; [A[c], A[p]] = [A[p], A[c]]; [B[c], B[p]] = [B[p], B[c]];
+      for (let r = 0; r < 8; r++) if (r !== c) { const k = A[r][c] / A[c][c]; for (let q = c; q < 8; q++) A[r][q] -= k * A[c][q]; B[r] -= k * B[c]; } }
+    const x = B.map((b, i) => b / A[i][i]);
+    return `matrix3d(${x[0]},${x[3]},0,${x[6]},${x[1]},${x[4]},0,${x[7]},0,0,1,0,${x[2]},${x[5]},0,1)`;
+  }
+  function standQuad(L, a) { // coins à l'écran du cadre levé d'un angle a autour de son bord avant
+    if (L.pts) return [L.pts[2], L.pts[3], L.pts[0], L.pts[1]].map((v) => toScreen(v).slice(0, 2));
+    const top = items.find((it) => it.el === L.el)?.top || 0.02, x0 = (L.r.x - PAGE_W / 2) / PXM, x1 = x0 + L.r.w / PXM, zn = (L.r.y + L.r.h) / PXM, D = Math.min(L.r.h, innerHeight * 0.9) / PXM;
+    const far = (x) => new THREE.Vector3(x, top + D * Math.sin(a), zn - D * Math.cos(a)), near = (x) => new THREE.Vector3(x, top, zn);
+    return [far(x0), far(x1), near(x0), near(x1)].map((v) => toScreen(v).slice(0, 2));
+  }
+  function animLift(L, up) {
+    return new Promise((done) => {
+      const cw = lcard.offsetWidth, ch = lcard.offsetHeight, fx = (innerWidth - cw) / 2, fy = (innerHeight - ch) / 2, FIN = [[fx, fy], [fx + cw, fy], [fx, fy + ch], [fx + cw, fy + ch]];
+      lcard.style.left = '0'; lcard.style.top = '0'; lcard.style.transformOrigin = '0 0';
+      const T = reduce ? 1 : 1100, t0 = performance.now(), sm = (u) => u * u * (3 - 2 * u);
+      const step = (now) => {
+        let u = Math.min(1, (now - t0) / T); if (!up) u = 1 - u;
+        const a = sm(Math.min(1, u / 0.6)) * Math.PI / 2, b = sm(Math.max(0, (u - 0.45) / 0.55)), Q = standQuad(L, a);
+        const P = Q.map((q, i) => [q[0] + (FIN[i][0] - q[0]) * b, q[1] + (FIN[i][1] - q[1]) * b]);
+        lcard.style.transform = quadMatrix(cw, ch, P); lcard.style.opacity = String(Math.min(1, 0.35 + u * 1.5));
+        if ((up && u < 1) || (!up && u > 0)) requestAnimationFrame(step);
+        else { lcard.style.left = ''; lcard.style.top = ''; lcard.style.transformOrigin = ''; lcard.style.transform = ''; lcard.style.opacity = ''; done(); }
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  const liftMats = (L, on) => items.filter((it) => L.el === it.el || L.el.contains(it.el)).forEach((it) => it.mats.forEach((m) => { if (m.map) m.visible = on; }));
 
   /* rendu dans une cible, puis flou de profondeur sur le lointain et les bords */
   const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
@@ -673,6 +724,7 @@ async function start() {
     G.nodes.forEach((o, i) => {
       const a = o.kind === 'hub' ? 0.04 : o.kind === 'dot' ? 0.1 : 0.08;
       o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
+      if (o.sq) o.sq.position.copy(o.cur);
       G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
       if (o.sp) {
         const on = h < 0 || i === h || rel.has(i), k = i === h ? 1.9 : (h >= 0 && on ? 1.35 : 1);
@@ -685,7 +737,8 @@ async function start() {
       const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
       G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
       const hot = h >= 0 && (a === h || b === h), f = h < 0 ? (k === 2 ? 0 : EW[k]) : hot ? 1.4 : (k === 2 ? 0 : 0.12), c = hot ? [1, 1, 1] : EC[k]; // liens entre thématiques : visibles seulement au survol
-      for (const q of [0, 3]) { G.col[j + q] = c[0] * f; G.col[j + q + 1] = c[1] * f; G.col[j + q + 2] = c[2] * f; }
+      const spoke = k === 1 || k === 3, c0 = hot ? c : spoke ? [0.35, 1, 0.95] : c, c1 = hot ? c : spoke ? [0.28, 0.42, 1] : c; // rayons : cyan au phare, bleu au bout
+      G.col[j] = c0[0] * f; G.col[j + 1] = c0[1] * f; G.col[j + 2] = c0[2] * f; G.col[j + 3] = c1[0] * f * 0.8; G.col[j + 4] = c1[1] * f * 0.8; G.col[j + 5] = c1[2] * f * 0.8;
     });
     G.lg.attributes.position.needsUpdate = G.lg.attributes.color.needsUpdate = G.pg.attributes.position.needsUpdate = true;
   }
@@ -739,6 +792,7 @@ async function start() {
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
     animMinis(now, focusZ);
+    for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
     for (const H of hublots) if (Math.abs(focusZ - H.z) < 30) paintHublot(H);
     for (const b of bps) { b.uniforms.uTime.value = now / 1000; b.uniforms.uRes.value.set(innerWidth * renderer.getPixelRatio(), innerHeight * renderer.getPixelRatio()); }
@@ -786,7 +840,7 @@ async function start() {
     }
     for (const k of machines) {
       const [px, py, pz] = toScreen(k.pivot.position), vis = e > 0.5 && pz < 1 && py > 60 && py < h - 40 && px > 40 && px < w - 40 && Math.abs(focusZ - k.z) < 12;
-      k.rul.el.style.display = vis ? '' : 'none'; if (vis) k.rul.el.style.transform = `translate(${px.toFixed(1)}px,${(py + 18).toFixed(1)}px)`;
+      k.rul.el.classList.toggle('pc-rul-r', k.pivot.position.x > 0); k.rul.el.style.display = vis ? '' : 'none'; if (vis) k.rul.el.style.transform = `translate(${px.toFixed(1)}px,${(py + 18).toFixed(1)}px)`;
     }
     const btn = navItems[active] && navItems[active].firstChild, dots = (anchors[active] || []).map((v) => [v, toScreen(v)]).filter(([, q]) => q[2] < 1 && q[1] > 60 && q[1] < h * 0.92 && q[0] > 0 && q[0] < w).sort((a, b) => b[1][1] - a[1][1]).slice(0, 4).map(([v]) => v);
     if (btn && !narrow && e > 0.5) {

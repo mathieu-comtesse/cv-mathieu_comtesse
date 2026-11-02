@@ -203,7 +203,7 @@ html.expo .pc-magic{display:block;position:fixed;left:0;top:0;z-index:3;padding:
 #nav{transition:opacity .4s}html.expo.flat #nav{opacity:0;pointer-events:none} /* la page d’entrée a son propre sommaire */
 
 /* ---------- cadre relevé : le bloc vivant du site, devant le parcours ---------- */
-.pc-lift{position:fixed;inset:0;z-index:60;perspective:1400px}
+.pc-lift{position:fixed;inset:0;z-index:60}
 .pc-lift[hidden]{display:none}
 .pc-lift-bg{position:absolute;inset:0;background:rgba(3,5,10,.55);backdrop-filter:blur(3px)}
 .pc-lift-card{position:absolute;left:50%;top:50%;width:var(--lw,900px);max-width:94vw;height:min(88vh,1100px);transform:translate(-50%,-50%);transform-origin:50% 50%;border:1.5px solid rgba(255,255,255,.75);box-shadow:0 40px 120px rgba(0,0,0,.55);display:flex;flex-direction:column;color:#fff}
@@ -220,3 +220,5 @@ html.pc-lifted body{overflow:hidden}
 .pc-lift-hot{cursor:pointer}
 .pc-lift-hot:hover{outline:1.5px solid rgba(255,255,255,.8);outline-offset:2px}
 html.expo.flat #leaders{opacity:0}
+.pc-rul.pc-rul-r .rf-ruler{left:110px}
+.pc-rul.pc-rul-r .rf-ruler--h{left:-112px}
