@@ -39,7 +39,7 @@ const easeOutBounce = (x) => {
   return n * (x -= 2.625 / d) * x + 0.984375;
 };
 
-export async function createRoom(container, bubbleEl) {
+export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé ; options.noRender : sans rendu propre ; options.view : vue externe {ray, ground, pick, project} (parcours 3D du CV)
   const mobile=matchMedia('(max-width:809px)');
   container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
@@ -448,6 +448,7 @@ export async function createRoom(container, bubbleEl) {
   /* cadrage : mêmes proportions que la scène de référence (pièce principale sur ~75 % de la hauteur, ~78 % de la largeur au plus).
    * La pièce du thé et son jardin sont à gauche, hors cadre sur écran moyen : la caméra glisse vers eux quand le personnage y va. Sur téléphone la scène dépasse de l'écran. */
   const TEAGROUP = new Set(['chashitsu', 'cha', 'shoes']);
+  if (options.noTea) { for (const it of items) if (TEAGROUP.has(it.id)) (it.holder || it.obj).visible = false; world.traverse((o) => { if (TEAGROUP.has(o.userData.id)) o.visible = false; }); cs.group.visible = false; tea.visible = false; }
   let csX = 0, csHalf = 1, tableX0 = 0, tableX1 = 0, roomCx = 0, roomCy = 0;
   function computeFit() {
     const save = { az:view.az,el:view.el,target:target.clone(),tgt:tgt.clone(),positions:items.map(i=>i.obj.position.clone()) };
@@ -509,6 +510,7 @@ export async function createRoom(container, bubbleEl) {
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const OPENABLE = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
   const pickIdAt = (cx, cy) => {
+    if (options.view) return options.view.pick(cx, cy);   // options.view : vue externe (parcours 3D du CV), courbure de la page comprise
     const r = renderer.domElement.getBoundingClientRect();
     ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
@@ -543,15 +545,15 @@ export async function createRoom(container, bubbleEl) {
   };
   el.addEventListener('pointerleave', () => hero.resetLook?.());
   const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), gp = new THREE.Vector3();
-  const ndcOf = (cx, cy) => { const r = el.getBoundingClientRect(); ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); };
-  const groundAt = (cx, cy) => { ndcOf(cx, cy); return ray.ray.intersectPlane(groundPlane, gp) ? gp.clone() : null; };
+  const ndcOf = (cx, cy) => { if (options.view) { ray.ray.copy(options.view.ray(cx, cy)); return; } const r = el.getBoundingClientRect(); ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); };
+  const groundAt = (cx, cy) => { if (options.view) { const v = options.view.ground(cx, cy); return v ? v.clone() : null; } ndcOf(cx, cy); return ray.ray.intersectPlane(groundPlane, gp) ? gp.clone() : null; };
   // le personnage est saisi quand le pointeur est près de son corps (capsule pieds-tête projetée à l'écran)
   const _h = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3();
   const heroNear = (cx, cy) => {
     if (!hero.group.visible) return false;
     const r = el.getBoundingClientRect();
-    const scr = (v) => { const q = v.clone().project(camera); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-    hero.head.getWorldPosition(_h); _f.copy(hero.group.position); _f.y += 0.05;
+    const scr = (v) => { if (options.view) return options.view.project(v) || [-1e5, -1e5]; const q = v.clone().project(camera); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
+    hero.head.getWorldPosition(_h); if (options.view) scene.worldToLocal(_h); _f.copy(hero.group.position); _f.y += 0.05;   // vue externe : tout en repère local de la pièce
     _r.set(1, 0, 0).applyQuaternion(camera.quaternion).multiplyScalar(0.3).add(_h);
     const A = scr(_h), B = scr(_f), R = Math.abs(scr(_r)[0] - A[0]) * 1.1;
     const abx = B[0] - A[0], aby = B[1] - A[1], t = Math.max(0, Math.min(1, ((cx - A[0]) * abx + (cy - A[1]) * aby) / (abx * abx + aby * aby || 1)));
@@ -561,7 +563,7 @@ export async function createRoom(container, bubbleEl) {
     if(appOpen)return;
     if(e.pointerType==='touch'&&performance.now()<suppressTouchUntil)return;
     nativeBridge?.resumeSound?.();
-    if(e.pointerType!=='touch')el.setPointerCapture(e.pointerId);
+    if(e.pointerType!=='touch'){try{el.setPointerCapture(e.pointerId);}catch{}}
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
       if (!appOpen && navigationMode==='pan' && e.button===0 && !e.shiftKey && !e.altKey && heroNear(e.clientX, e.clientY)) { pauseAutonomy(6000); hdrag = { x: e.clientX, y: e.clientY, moved: 0, lifted: false, ready:e.pointerType!=='touch' }; if(!hdrag.ready)hdrag.timer=setTimeout(()=>{if(hdrag)hdrag.ready=true;},220); }
@@ -751,7 +753,7 @@ export async function createRoom(container, bubbleEl) {
 
   // Déplacements autonomes, comme sur le site de référence : le personnage se lève et va d'une activité à l'autre.
   // La musique reste manuelle ; un tiroir ouvert ne fige pas la vie de la pièce.
-  const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, stations.cha,...(bicyclePump?[stations.bike]:[])];
+  const autonomousStations = [stations.desk, stations.ekstrem, stations.alocasia, stations.bonsai, stations.dracaena, stations.sofa, ...(options.noTea ? [] : [stations.cha]),...(bicyclePump?[stations.bike]:[])];
   const autonomousReadyAt = performance.now() + 8000;
   let autonomousNext = performance.now() + 4500 + Math.random() * 3500;
   let autonomousActivitySince = 0, autonomousLast = null, autonomousPrevMode = '';
@@ -1307,12 +1309,14 @@ export async function createRoom(container, bubbleEl) {
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
-    try {
-      renderer.render(scene, camera);
-    } catch (error) {
-      if (!nativeBridge) throw error;
-      restoreLocalDesk(error);
-      renderer.render(scene, camera);
+    if (!options.noRender) {   // options.noRender : la scène est dessinée par un autre moteur (parcours 3D), inutile de la dessiner deux fois
+      try {
+        renderer.render(scene, camera);
+      } catch (error) {
+        if (!nativeBridge) throw error;
+        restoreLocalDesk(error);
+        renderer.render(scene, camera);
+      }
     }
     container.dataset.sceneFrames = String(frameNo);
     container.dataset.sceneReady = String(spawned);

@@ -7,7 +7,7 @@ const video = document.getElementById('rf-win-video');
 
 if (glass && shutter && grip) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const sound = new Audio(new URL('../assets/hublot/shutter-sound.m4a', import.meta.url));
+  const sound = new Audio(new URL('../assets/hublot/shutter-sound.mp3', import.meta.url));
   sound.preload = 'none';
   sound.volume = .5;
   let travel = 0, y = 0, open = false, drag = null;

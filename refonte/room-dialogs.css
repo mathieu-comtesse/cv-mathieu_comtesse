@@ -1,0 +1,109 @@
+:root{--cv-action:pointer;--cv-grab:grab;--cv-grabbing:grabbing}
+/* Fenêtres ouvertes depuis les objets du décor (extraites de style.css) */
+.bubble{position:absolute;z-index:5;opacity:0}
+.bubble.show{opacity:1;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+/* pensée : nuage + miniature 3D, traîne de deux cercles vers la tête */
+.bubble.thought{padding:0;width:176px;height:160px;border-radius:0;background:none;box-shadow:none;white-space:normal;filter:drop-shadow(0 6px 10px rgb(0 0 0 / .16));color:#1c1a17}
+.bubble.thought::after{display:none}
+.bubble.thought .cloud{position:absolute;inset:0;width:100%;height:100%}
+.bubble.thought canvas{position:absolute;left:50%;top:14px;width:120px;height:120px;transform:translateX(-50%);image-rendering:pixelated}
+.bubble.thought .cap{position:absolute;left:14px;right:14px;bottom:34px;text-align:center;font-size:12px;font-weight:600;line-height:1.1;color:#1c1a17}
+.bubble.thought i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgb(0 0 0 / .1)}
+.bubble.thought .t1{width:18px;height:18px;left:50%;bottom:-12px;margin-left:-4px}
+.bubble.thought .t2{width:10px;height:10px;left:50%;bottom:-26px;margin-left:-14px}
+/* fiche de la pochette survolée dans le tiroir du meuble vert */
+.sleeve-card{position:absolute;left:0;top:0;z-index:6;width:200px;padding:8px 10px 8px 70px;min-height:68px;border-radius:12px;background:#fff;color:#1c1a17;box-shadow:0 8px 20px rgb(0 0 0 / .18);pointer-events:none;opacity:0;transition:opacity .12s}
+.sleeve-card.show{opacity:1}
+.sleeve-card i{position:absolute;left:8px;top:8px;width:52px;height:52px;border-radius:4px;image-rendering:auto}
+.sleeve-card b{display:block;font-size:13px;line-height:1.2;font-weight:700}
+.sleeve-card span{display:block;font-size:12px;color:#6f695d;margin-top:2px}
+.sleeve-card em{display:block;font-style:normal;font-size:11px;color:#8a7f6a;margin-top:4px}
+.bubble.thought .cap{display:none}
+/* Film book: a compact, curved, two-page album. */
+.film-album{width:min(980px,calc(100vw - 24px));max-width:980px;max-height:none;padding:0;margin:auto;border:0;border-radius:0;background:transparent;color:#f3eee2;box-shadow:none;overflow:visible;font:14px/1.4 Georgia,'Times New Roman',serif}
+.film-album:not([open]){display:none}
+.film-album::backdrop{background:#151916bf;backdrop-filter:blur(3px)}
+.film-album header{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:0 22px}
+.film-kicker{font:10px/1.5 Georgia,serif;letter-spacing:.18em;text-transform:uppercase;color:#c7c4b7}
+.film-album h2{font:italic 25px/1.2 Georgia,serif;font-weight:400;letter-spacing:-.035em;margin:5px 0 0}
+.film-close{display:grid;place-items:center;color:#f3eee2;background:transparent;border:0;cursor:var(--cv-action);min-width:44px;min-height:44px;flex-shrink:0}
+.film-close svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.3}
+.film-album button:focus-visible{outline:1px solid #e0d7bc;outline-offset:4px}
+.film-book{position:relative;width:100%;height:min(62svh,600px);margin-top:8px;overflow:visible;touch-action:none;cursor:var(--cv-grab)}
+.film-book:active{cursor:var(--cv-grabbing)}
+.film-book canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.film-page{position:absolute;top:0;bottom:0;width:50%;padding:0;border:0;background:transparent;color:inherit;cursor:inherit;touch-action:none}
+.film-left{left:0}
+.film-right{right:0}
+.film-photo{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden;filter:none}
+.film-loading{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;background:transparent;font:italic 15px Georgia,serif}
+.film-loading[hidden]{display:none}
+.film-album footer{display:flex;flex-direction:row;border:0;justify-content:center;align-items:center;gap:24px;padding:0 16px;margin:8px 0 0;font:12px Georgia,serif;color:#dbd6c8}
+.film-album footer button{padding:9px 0;border:0;border-bottom:1px solid #a39e8870;background:transparent;color:inherit;font:inherit;cursor:var(--cv-action)}
+.film-album footer button:disabled{opacity:.5}
+.film-book-hint{text-align:center;font:italic 12px Georgia,serif;color:#bebbaa;margin:12px 0 0}
+@media(max-width:809px){.film-album{width:calc(100vw - 20px);padding:0;max-height:none}.film-album header{padding:0 8px}.film-album h2{font-size:20px}.film-kicker{font-size:9px}.film-book{height:min(51svh,calc((100vw - 20px)*1.05))}.film-album footer{gap:16px;font-size:10px;padding:0 4px}.film-book-hint{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.film-reveal{animation:none}}
+.bubble.thought{left:0;top:0;pointer-events:none}
+.bubble.thought .t1{left:calc(50% + var(--tail-offset,0px))}
+.bubble.thought .t2{left:calc(50% + var(--tail-offset,0px))}
+.film-album header{justify-content:flex-end}
+.film-loading{width:1px;height:1px;inset:auto;overflow:hidden;clip-path:inset(50%)}
+.film-book canvas:focus-visible{outline:none}
+/* iPhone vidéo (sac à dos) : même modale que le livre, objet vertical plus haut */
+.phone-video .film-book{height:min(82svh,780px)}
+.phone-video-source{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:809px){.phone-video .film-book{height:min(78svh,calc((100vw - 20px)*2.1))}}
+.film-album.tv-films header{justify-content:space-between;margin-bottom:12px}
+.film-album.tv-films h2{margin:0}
+/* Télé JVC : le film joue sur l'écran bombé du modèle 3D (js/jvc-screen.js colle ce tube sur le verre, image par image) */
+.jvc-tube{position:absolute;left:0;top:0;z-index:3;transform-origin:0 0;pointer-events:none;will-change:transform}
+.jvc-tube[hidden]{display:none}
+.jvc-crt{position:absolute;inset:0;border-radius:12% / 11%;overflow:hidden;background:#02060c;pointer-events:auto;box-shadow:0 0 0 5px #08080a,0 0 22px 4px rgba(150,200,255,.34),0 0 80px 26px rgba(110,170,255,.32)}
+.jvc-crt.on{animation:jvc-on .6s cubic-bezier(.2,.7,.2,1)}
+.jvc-tube.off .jvc-crt{animation:jvc-off .4s ease-in forwards}
+.jvc-video{position:absolute;inset:0;display:flex;align-items:center;background:#000}
+.jvc-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;filter:saturate(1.12) contrast(1.08) brightness(1.04)}
+.jvc-static{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;background-size:160px 160px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.jvc-crt.noise .jvc-static{opacity:.9;animation:jvc-noise .25s steps(4) infinite}
+.jvc-osd{position:absolute;left:7%;top:8%;font:700 clamp(18px,5.4%,42px)/1 "Courier New",monospace;letter-spacing:.08em;color:#7dff9b;text-shadow:0 0 8px #3dff72,2px 2px 0 #053;opacity:0;pointer-events:none}
+.jvc-osd.on{opacity:1}
+.jvc-glass{position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 120% at 50% 48%,transparent 50%,rgba(0,0,0,.52) 100%),linear-gradient(118deg,rgba(255,255,255,.22) 0,rgba(255,255,255,.06) 20%,transparent 36%),repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px);box-shadow:inset 0 0 40px 8px rgba(0,0,0,.55),inset 0 0 14px rgba(120,180,255,.28)}
+@keyframes jvc-noise{0%{background-position:0 0}25%{background-position:-37px 21px}50%{background-position:19px -43px}75%{background-position:-52px -9px}100%{background-position:0 0}}
+@keyframes jvc-on{0%{transform:scale(1,.012);filter:brightness(10) saturate(0)}38%{transform:scale(1,.012);filter:brightness(10) saturate(0)}70%{transform:scale(1,1);filter:brightness(2.2) saturate(.5)}100%{transform:none;filter:none}}
+@keyframes jvc-off{0%{transform:none;filter:none;opacity:1}55%{transform:scale(1,.012);filter:brightness(7);opacity:1}100%{transform:scale(.01,.004);filter:brightness(12);opacity:0}}
+.jvc-hud{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:7;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:4px 8px;align-items:center;width:min(740px,calc(100% - 24px));padding:9px 12px 7px;border-radius:18px;background:rgba(20,18,15,.88);color:#f1ede2;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 10px 30px #0006;font:13px/1.25 Arial,sans-serif}
+.jvc-hud[hidden]{display:none}
+.jvc-hud button{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #5b554a;border-radius:50%;background:#2a2622;color:#f1ede2;cursor:var(--cv-action);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.jvc-hud button:hover{background:#3a3530;border-color:#8a8272}
+.jvc-hud button:focus-visible,.jvc-list:focus-visible{outline:2px solid #7dff9b;outline-offset:2px}
+.jvc-hud svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.jvc-info{min-width:0;display:flex;flex-direction:column;gap:1px}
+.jvc-ch{font:700 11px "Courier New",monospace;letter-spacing:.12em;color:#7dff9b}
+.jvc-title{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jvc-meta{font:12px Georgia,serif;font-style:normal;color:#cfc9b9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jvc-list{max-width:30vw;padding:8px 9px;border:1px solid #5b554a;border-radius:10px;background:#2a2622;color:#f1ede2;font:12px Arial,sans-serif}
+.jvc-hint{grid-column:1/-1;margin:0 0 2px;text-align:center;font:11px Arial,sans-serif;letter-spacing:.02em;color:#7dff9b}
+.jvc-note{grid-column:1/-1;margin:0;text-align:center;font:11px Georgia,serif;color:#b9b4a4}
+@media(max-width:640px){.jvc-hud{grid-template-columns:auto minmax(0,1fr) auto auto;bottom:10px;padding:8px 10px 8px}.jvc-list{grid-column:1/-1;grid-row:2;max-width:none;width:100%}.jvc-note{display:none}.jvc-hud button{width:36px;height:36px}}
+@media(prefers-reduced-motion:reduce){.jvc-crt.on,.jvc-tube.off .jvc-crt,.jvc-crt.noise .jvc-static{animation:none}.jvc-tube.off .jvc-crt{opacity:0}}
+/* Fenêtre de la télé JVC (js/jvc-tv.js) : même présentation que le livre photo */
+.film-album.jvc-dialog{width:min(1100px,calc(100vw - 24px));max-width:1100px}
+.jvc-dialog .film-book{height:min(78svh,760px);cursor:var(--cv-grab)}
+.jvc-dialog .film-book canvas:focus-visible{outline:none}
+@media(max-width:809px){.jvc-dialog .film-book{height:min(74svh,calc((100vw - 20px)*1.25))}}
+/* Stèle de Burdigala (js/stele.js) : la pierre en 3D à gauche, l'inscription qui se traduit à droite */
+.film-album.stele-dialog{width:min(1100px,calc(100vw - 24px));max-width:1100px}
+.stele-wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:28px;align-items:center;margin-top:6px}
+.stele-view{height:min(74svh,700px);margin:0;cursor:var(--cv-grab)}
+.stele-text{color:#f3eee2;max-height:min(74svh,700px);overflow:auto;padding-right:10px;font:15px/1.5 Georgia,'Times New Roman',serif}
+.stele-kicker{margin:0 0 14px;font:11px/1.2 Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#bdb49a}
+.stele-row{margin:0 0 13px;min-height:1.5em;font-size:14px;letter-spacing:.13em;text-transform:uppercase;color:#e9dfc4;text-shadow:0 1px 0 #0008,0 0 1px #fff3;word-break:break-word}
+.stele-row.fr{font-size:15.5px;letter-spacing:.005em;text-transform:none;font-style:italic;color:#fff4d8;text-shadow:none}
+.stele-row.settling{color:#f2c16b}
+.stele-desc{margin:18px 0 0;padding-top:14px;border-top:1px solid #f3eee244;color:#d9d2bd;font-size:14px}
+.stele-translate{margin:16px 0 0;padding:9px 0;border:0;border-bottom:1px solid #a39e88a0;background:transparent;color:#f3eee2;font:13px Georgia,serif;cursor:var(--cv-action)}
+.stele-translate:hover{border-bottom-color:#fff}
+.stele-translate:focus-visible{outline:1px solid #e0d7bc;outline-offset:4px}
+.stele-view canvas:focus-visible{outline:none}
+@media(max-width:809px){.stele-wrap{grid-template-columns:1fr;gap:10px}.stele-view{height:min(42svh,340px)}.stele-text{max-height:none;padding:0 6px}.stele-row{font-size:12px}.stele-row.fr{font-size:14px}}

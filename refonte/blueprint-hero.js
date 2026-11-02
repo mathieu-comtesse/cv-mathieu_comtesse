@@ -9,7 +9,7 @@ const DRAW = 110;                    // le tracé de la table est dessiné sur 1
 const TEX = 2048;
 
 /* ---------------------------------------------------------------- tracé de la table à dessin (texture) */
-function drawMat(TEX = 2048) {
+export function drawMat(TEX = 2048) {
   const c = document.createElement('canvas'); c.width = c.height = TEX;
   const g = c.getContext('2d');
   const U = (v) => (v + DRAW / 2) / DRAW * TEX;        // unités du tracé → pixels
@@ -65,7 +65,7 @@ function drawMat(TEX = 2048) {
 }
 
 /* matériau du plan (shader : fond, grille, tracé de la table, lueur, vignette, grain) — partagé par l'accueil, les pages projet et les tuiles */
-function blueprintMaterial(tex) {
+export function blueprintMaterial(tex) {
   return new THREE.ShaderMaterial({
     uniforms: { uTex: { value: tex }, uSize: { value: SIZE }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 } },
     vertexShader: 'varying vec2 vUv;varying vec3 vW;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
