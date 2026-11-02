@@ -295,3 +295,7 @@ html.pc-lifted #leaders,html.pc-lifted #ticks,html.pc-lifted #callouts,html.pc-l
 
 .pc-hot:hover,.pc-hot:focus{outline:0}
 html.pc-lifted .pc-rul,html.pc-lifted .pc-magic,html.pc-lifted .pc-gtip,html.pc-lifted .pc-hot{display:none!important}
+
+.pc-rul-btns{position:absolute;left:-170px;top:112px;display:flex;gap:6px;pointer-events:auto}
+.pc-rul-btns button{background:rgba(5,8,13,.7);border:1px solid rgba(255,255,255,.55);border-radius:16px;color:#fff;font:10px var(--mono);padding:5px 10px;cursor:pointer;white-space:nowrap}
+.pc-rul-btns button.on,.pc-rul-btns button:hover{background:#fff;color:#05080d}

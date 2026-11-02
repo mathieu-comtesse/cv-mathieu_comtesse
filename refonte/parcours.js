@@ -401,6 +401,7 @@ async function start() {
       for (let i = 0; i <= 100; i++) { const t = document.createElement('div'); t.className = 'rf-tick' + (i % 10 === 0 ? ' rf-maj' : ''); t.style[horiz ? 'left' : 'top'] = i * 5 + 'px'; if (i % 10 === 0) t.innerHTML = `<span>${(i / 100).toFixed(2)}</span>`; f.append(t); }
       tr.append(f);
       const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); const i0 = Math.floor((horiz ? R.rot : R.tilt) / 5), i1 = Math.floor(x / 5); if (i0 !== i1) tick(i1 % 10 === 0); if (horiz) R.rot = x; else R.tilt = x; tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      (R.sets ??= []).push(set); R.reset = () => R.sets.forEach((f) => f(0));
       let d = null;
       ru.addEventListener('pointerdown', (e) => { d = { p: horiz ? e.clientX : e.clientY, v: horiz ? R.rot : R.tilt }; ru.setPointerCapture(e.pointerId); e.preventDefault(); });
       ru.addEventListener('pointermove', (e) => { if (d) set(d.v + (horiz ? e.clientX : e.clientY) - d.p); });
@@ -439,16 +440,20 @@ async function start() {
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
-  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null, roomPick = null; const heroP = new THREE.Vector3();
+  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null, roomPick = null, roomG = null, roomFollow = null;
+  const roomView = { // vue externe de la pièce : tout est calculé avec la courbure de la page (toScreen), en repère monde ou local selon l'attente de la pièce
+    pick: (x, y) => (roomPick ? roomPick(x, y) : null),
+    ray: (x, y) => invRay(x, y), ground: (x, y) => { const w = invPlane(x, y, 0); if (!w || !roomG) return null; roomG.updateMatrixWorld(true); return roomG.worldToLocal(w); },
+    project: (v) => { if (!roomG) return null; const q = toScreen(roomG.localToWorld(v.clone())); return q[2] < 1 ? [q[0], q[1]] : null; } }; const heroP = new THREE.Vector3();
   let roomDone; const roomReadyP = new Promise((r) => { roomDone = r; }); if (!roomSpot || reduce) roomDone(); // la pièce passe avant le dessin des sections
   if (roomSpot && !reduce) {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
     host.className = 'pc-room-host'; host.setAttribute('aria-hidden', 'true'); bubble.className = 'bubble'; host.append(bubble); document.body.append(host);
     Promise.all([import('../js/room.js?v=nt6-20261026'), import('three/addons/RoomEnvironment.js')]).then(async ([{ createRoom }, { RoomEnvironment }]) => {
-      const room = await createRoom(host, bubble, { noTea: true, noRender: true }); // sans la pièce du thé, ni les déplacements et pensées qui s'y rapportent
+      const room = await createRoom(host, bubble, { noTea: true, noRender: true, view: roomView }); // sans la pièce du thé, ni les déplacements et pensées qui s'y rapportent
       // la scène entière de la pièce est rattachée (le personnage et les objets ajoutés plus tard suivent) ;
       // ni sol d'ombre ni ombres de contact : sur la feuille courbée elles glissaient pendant le défilement
-      const g = new THREE.Group(); g.add(room.scene);
+      const g = new THREE.Group(); g.add(room.scene); roomG = g;
       const hideShadows = () => room.scene.traverse((o) => { if (o.material?.isShadowMaterial || (o.isMesh && o.renderOrder === -1 && o.geometry?.type === 'PlaneGeometry' && o.material?.map && o.material.transparent && !o.material.depthWrite)) o.visible = false; });
       hideShadows(); setInterval(hideShadows, 2000);
       g.scale.setScalar(ROOM_K); g.rotation.y = -36 * Math.PI / 180; g.position.set(rr.cx, 0, rr.cz);
@@ -464,6 +469,13 @@ async function start() {
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
       R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
       roomRul = { g, rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
+      // boutons de caméra de la pièce : « Suivre » garde Mathieu au centre en zoomant, « Recentrer » rétablit la vue d'origine
+      const cb = document.createElement('div'); cb.className = 'pc-rul-btns'; cb.innerHTML = '<button type="button" data-a="follow">Suivre Mathieu</button><button type="button" data-a="reset">Recentrer</button>'; R.el.append(cb);
+      const base = g.position.clone(); let follow = false;
+      cb.addEventListener('click', (ev) => { const a = ev.target.dataset?.a; if (!a) return;
+        if (a === 'follow') { follow = !follow; ev.target.classList.toggle('on', follow); if (follow) { R.sets[0](-120); } else { g.position.copy(base); R.sets[0](0); } }
+        else { follow = false; cb.querySelector('[data-a="follow"]').classList.remove('on'); g.position.copy(base); R.reset(); } });
+      roomFollow = () => { if (!follow || !window.__room) return; const hp = g.localToWorld(window.__room.hero.group.position.clone()); g.position.x += (base.x - (hp.x - g.position.x) * 0 - hp.x) * 0.06; g.position.z += (base.z - hp.z) * 0.06; };
       // — interactions du décor : les objets réagissent au clic comme sur le site (la pièce a perdu son propre canvas, on relaie) —
       import('../js/ui.js?v=cv-monde3d-32').then(({ initUI }) => initUI()).catch((e) => console.warn('applications du décor indisponibles', e)); // PC « atelier » et console PS1
       const OPEN = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
@@ -887,20 +899,15 @@ async function start() {
     octx.fillText(`speed ≈ ${Math.round(run.speed)} px/s   to the finish ↑ ${Math.round(scrollY).toLocaleString('fr-FR')} px   ${run.st === 'pause' ? '[pause]' : ''}`, w / 2, MOBILE ? 24 : 30);
     if (run.st === 'over' || run.st === 'win') { octx.fillStyle = 'rgba(3,5,10,.75)'; octx.fillRect(0, h / 2 - 44, w, 88); octx.fillStyle = '#fff'; octx.font = `600 ${MOBILE ? 16 : 24}px "iAWriterQuattroV", ui-monospace, monospace`; octx.textAlign = 'center'; octx.fillText(run.msg, w / 2, h / 2 + 6); }
   }
-  /* clic sur un objet du décor : tableau, TV, sac, stèle, Bouddha, appareil photo, PC, console, lampes… (même logique que le site) */
-  let roomDown = null, roomHover = 0;
-  addEventListener('pointerdown', (ev) => { roomDown = ev.target === canvas && ev.button === 0 ? { x: ev.clientX, y: ev.clientY, t: performance.now() } : null; });
-  addEventListener('pointerup', (ev) => {
-    const d = roomDown; roomDown = null; if (!d || !roomPick || !window.__room || lifted || reader || run.st !== 'idle') return;
-    if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) > 8 || performance.now() - d.t > 600) return;
-    if (Math.abs((scrollY + innerHeight / 2) / PXM - roomCz) > 12) return;
-    const hp = toScreen(heroP); if (Math.hypot(ev.clientX - hp[0], ev.clientY - hp[1] + 30) < 36) { window.__room.hero.flash?.('happy', 0.9); return; } // un clic sur Mathieu le fait sourire
-    const id = roomPick(ev.clientX, ev.clientY); if (id) { window.__room.pauseAutonomy?.(6000); window.__room.activate(id); }
-  });
-  addEventListener('pointermove', (ev) => { // curseur « main » au-dessus d'un objet cliquable
-    if (!roomPick || !window.__room || lifted || reader || run.st !== 'idle' || ev.target !== canvas || performance.now() - roomHover < 90) return; roomHover = performance.now();
-    canvas.style.cursor = Math.abs((scrollY + innerHeight / 2) / PXM - roomCz) < 12 && roomPick(ev.clientX, ev.clientY) ? 'pointer' : '';
-  }, { passive: true });
+  /* relais des événements du pointeur vers la pièce : clic sur les objets, saisie et dépôt de Mathieu, survol et choix d'un disque dans le tiroir */
+  const inRoom = () => roomPick && window.__room && !lifted && !reader && run.st === 'idle' && Math.abs((scrollY + innerHeight / 2) / PXM - roomCz) < 12;
+  const fwd = (type) => (ev) => {
+    if (ev.target !== canvas || !inRoom()) return;
+    const el = window.__room.renderer.domElement;
+    el.dispatchEvent(new PointerEvent(type, { clientX: ev.clientX, clientY: ev.clientY, pointerId: ev.pointerId, pointerType: ev.pointerType || 'mouse', button: ev.button, buttons: ev.buttons, shiftKey: ev.shiftKey, altKey: ev.altKey, isPrimary: true, bubbles: false, cancelable: true }));
+    const c = el.style.cursor; canvas.style.cursor = /action/.test(c) ? 'pointer' : /grabbing/.test(c) ? 'grabbing' : '';
+  };
+  for (const t of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) addEventListener(t, fwd(t), { passive: true });
   function tickGame(now, focusZ) {
     if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9; canvas.style.touchAction = on || run.st === 'run' ? 'none' : '';
     if (!on) { gP.down = false; return; }
@@ -939,6 +946,22 @@ async function start() {
     const behind = tmp.z > -0.1; tmp.applyMatrix4(camera.projectionMatrix);
     return [(tmp.x * 0.5 + 0.5) * innerWidth, (-tmp.y * 0.5 + 0.5) * innerHeight, behind ? 2 : tmp.z];
   };
+
+  /* inversion de toScreen : point du plan horizontal y = h (monde) qui se projette sous le pointeur, courbure de la page comprise */
+  const _p = new THREE.Vector3(), _r0 = new THREE.Raycaster(), _n = new THREE.Vector2(), _pl = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  function invPlane(mx, my, h) {
+    _n.set(mx / innerWidth * 2 - 1, -(my / innerHeight) * 2 + 1); _r0.setFromCamera(_n, camera); _pl.constant = -h;
+    if (!_r0.ray.intersectPlane(_pl, _p)) return null; const p = _p.clone();
+    for (let i = 0; i < 8; i++) {
+      const s0 = toScreen(p), ex = mx - s0[0], ey = my - s0[1]; if (Math.hypot(ex, ey) < 0.4) break;
+      const dx = 0.05, a = toScreen(_p.set(p.x + dx, p.y, p.z)), b = toScreen(_p.set(p.x, p.y, p.z + dx));
+      const j11 = (a[0] - s0[0]) / dx, j21 = (a[1] - s0[1]) / dx, j12 = (b[0] - s0[0]) / dx, j22 = (b[1] - s0[1]) / dx, det = j11 * j22 - j12 * j21; if (Math.abs(det) < 1e-6) break;
+      p.x += (ex * j22 - ey * j12) / det; p.z += (ey * j11 - ex * j21) / det;
+    }
+    return p;
+  }
+  const _ray = new THREE.Ray();
+  function invRay(mx, my) { const a = invPlane(mx, my, 0.1), b = invPlane(mx, my, 1.4); if (a && b) return _ray.set(a, b.clone().sub(a).normalize()); _n.set(mx / innerWidth * 2 - 1, -(my / innerHeight) * 2 + 1); _r0.setFromCamera(_n, camera); return _ray.copy(_r0.ray); }
 
   /* graphe : ondulation, couleurs des liens, mise en avant au survol */
   const EC = [[0.45, 0.55, 1], [0.55, 0.68, 1], [0.35, 0.95, 0.65], [0.4, 0.5, 0.9]], EW = [0.55, 0.55, 0.2, 0.32];
@@ -999,7 +1022,7 @@ async function start() {
     flatPos.set(0, dist, focusZ); flatLook.set(0, 0, focusZ - 0.0001);
     // près de la pièce, la caméra descend et recule : vue en trois-quarts (environ 24° d'élévation) au lieu d'une vue du dessus (37°)
     const wRoom = Math.max(0, 1 - Math.abs(focusZ - roomCz) / 9), wr = wRoom * wRoom * (3 - 2 * wRoom);
-    runPos.set(0, 8.6 - 2.6 * wr, focusZ + 5.2 + 1.3 * wr); runLook.set(0, 0.6 * wr, focusZ - 6);
+    runPos.set(0, 8.6 - 2.6 * wr, focusZ + 5.2 + 1.3 * wr); runLook.set(0, 0.5 * wr, focusZ - 6 + 3.6 * wr);
     camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
     camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
@@ -1020,7 +1043,7 @@ async function start() {
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
-    animMinis(now, focusZ); tickGame(now, focusZ); tickRun(now, dtS, e, focusZ); tickReader(now, dtS);
+    roomFollow?.(); animMinis(now, focusZ); tickGame(now, focusZ); tickRun(now, dtS, e, focusZ); tickReader(now, dtS);
     if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
