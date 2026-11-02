@@ -39,8 +39,8 @@ function dialSvg() {
   // Douze bornes de mois sur le socle, quatre plus hautes.
   for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, [x, y] = pos(a, 63.6), tall = i % 3 === 0; out.push(S(k.cylinder(x, y, tall ? 2.2 : 1.6, 3, tall ? 3.4 : 1.8, P, 14), { tone: tall ? "mid" : "lo" })); }
   // Centre : platine du style, quatre vis.
-  out.push(S(slab({ x: -9, y: -9, w: 18, d: 18, r: 2 }, DIAL.z, 1.6, 3, 0.4), { tone: "lo" }));
-  out.push(D(k.corners({ x: -9, y: -9, w: 18, d: 18 }, 2.2).map(([x, y]) => at([x, y, DIAL.z + 1.6])), { size: 0.36 }));
+  out.push(S(slab({ x: -GNOMON.t - 5, y: -GNOMON.half - 5, w: 2 * GNOMON.t + 10, d: 2 * GNOMON.half + 10, r: 2 }, DIAL.z, 1.6, 3, 0.4), { tone: "lo" }));
+  out.push(D(k.corners({ x: -GNOMON.t - 5, y: -GNOMON.half - 5, w: 2 * GNOMON.t + 10, d: 2 * GNOMON.half + 10 }, 2.2).map(([x, y]) => at([x, y, DIAL.z + 1.6])), { size: 0.36 }));
   return out.join("");
 }
 function gnomonSvg() {

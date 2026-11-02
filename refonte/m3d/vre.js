@@ -8,7 +8,7 @@ const PLATE = { x: -164, y: -46, w: 320, d: 96, r: 8 };
 const BASE = { x: -92, y: -20, w: 192, d: 40 }, BASE_H = 14, FACE_Y = BASE.y + BASE.d;
 const TX = [-62, -24, 14, 52], R = [4.4, 5.2, 6, 6.8], THICK = 1.9, STACK_Z = BASE_H + 2, ROD_TOP = 92;
 const CHUTE = { x0: -112, x1: 96, z0: 118, slope: .1, half: 6.6 }, ZR = (x) => CHUTE.z0 - (x - CHUTE.x0) * CHUTE.slope;
-const HOPPER = { x: -108 }, DESK = { x: -152, y: -24, w: 46, d: 44 }, DESK_H = 26, POSTS = [-100, 20, 100];
+const HOPPER = { x: -108 }, DESK = { x: -152, y: -24, w: 46, d: 44 }, DESK_H = 26, POSTS = [-96, 12, 84];
 const SAVED_MIN = 25, EUR_PER_REPORT = 25 / 60 * 104.74, FAMILY = ['BT31', 'BT33', 'BT21', 'BT11'];
 const BUILDINGS = [['A', [18, 9, 7, 3]], ['B', [12, 6, 4, 0]], ['C', [24, 11, 8, 5]], ['D', [9, 4, 6, 2]], ['E', [15, 7, 5, 4]], ['F', [21, 8, 9, 1]]];
 const GAP = .3, V0 = 40, ACC = 60, GRAV = 420, VERIFY = 1.2, SINK = .9, TURN = .9;
