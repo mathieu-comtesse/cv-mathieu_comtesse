@@ -97,9 +97,10 @@ function patch(mat) {
 function patchTree(root) { root.traverse((o) => { const m = o.material; if (m) (Array.isArray(m) ? m : [m]).forEach(patch); }); }
 
 /* ---------- sans WebGL, la page reste une page ---------- */
+const readingRequested = reduce || new URLSearchParams(location.search).has('lecture');
 let renderer = null;
-try { renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true }); } catch { /* lecture 2D */ }
-if (renderer && !reduce && !new URLSearchParams(location.search).has('lecture')) {
+try { if (!readingRequested) renderer = new THREE.WebGLRenderer({ canvas: $('#scene'), antialias: true }); } catch { /* lecture 2D */ }
+if (renderer) {
   try { await start(); }
   catch (error) {
     console.error('Le parcours revient à sa version lisible.', error);
@@ -107,6 +108,46 @@ if (renderer && !reduce && !new URLSearchParams(location.search).has('lecture'))
     document.documentElement.classList.remove('expo', 'flat');
     page.style.cssText = '';
     document.body.style.height = '';
+    await startReading();
+  }
+} else await startReading();
+
+async function startReading() {
+  document.documentElement.classList.add('pc-reading');
+  if ($('#work')) {
+    try {
+      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([
+        import('../js/gains-dashboard.js?v=monde-20261025'),
+        import('../js/gains-table.js?v=ind-20261101')
+      ]);
+      initGainsDashboard(); initGainsTable();
+    } catch (error) { console.warn('Lecture du tableau Gains indisponible.', error); }
+  }
+  if ($('[data-flow]')) {
+    try {
+      const { initFlow } = await import('./flow.js');
+      $$('[data-flow]').forEach(w => initFlow(w.querySelector('.rf-flow'), {
+        tops: () => $$('.rf-flow-step',w).map(el => el.getBoundingClientRect().top + scrollY)
+      }));
+    } catch (error) { console.warn('Lecture des processus indisponible.', error); }
+  }
+  if ($('#rf-win')) import('./hublot.js').catch(error => console.warn('Hublot indisponible.',error));
+  for (const li of $$('.pc-graph-list > li')) {
+    const details=document.createElement('details'),summary=document.createElement('summary');
+    const heading=li.querySelector(':scope > span'),list=li.querySelector(':scope > ul');
+    summary.textContent=heading?.textContent || li.dataset.hub;
+    details.append(summary); if(list)details.append(list); heading?.remove(); li.append(details);
+  }
+  const mail=$('#rf-mail');
+  if(mail){
+    const status=document.createElement('span');status.setAttribute('role','status');
+    status.className='pc-copy-status';mail.after(status);
+    const copy=async()=>{
+      try{await navigator.clipboard.writeText(mail.dataset.copy);status.textContent='Adresse copiée.';}
+      catch{status.textContent=mail.dataset.copy;}
+    };
+    mail.addEventListener('click',copy);
+    mail.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();copy();}});
   }
 }
 
@@ -276,7 +317,7 @@ async function start() {
       const m = new THREE.Mesh(plane(g.w, g.d), mat); m.rotation.x = -Math.PI / 2; m.position.y = 0.012 + k * 0.045; m.renderOrder = 3 + k;
       group.add(m); mats.push(mat);
     }
-    const it = { el, r, mats, group, top: 0, art: el.closest('.pc-proj'), float: 'float' in el.dataset, step: 'step' in el.dataset };
+    const it = { el, r, mats, group, top: 0, art: el.closest('.pc-proj'), float: 'float' in el.dataset && !el.classList.contains('pc-float'), step: 'step' in el.dataset };
     if (it.float) { group.position.y = 0.9; group.rotation.x = 0.32; }
     if (it.step) { group.visible = false; it.mats.forEach((m) => { m.opacity = 0; }); }
     items.push(it);
@@ -453,13 +494,16 @@ async function start() {
     return R;
   }
 
-  /* machines 3D des projets, en longueur sur les côtés */
+  /* Machines posées sur leurs plaques, dans un espace réservé à leur rendu. */
   scene.add(new THREE.HemisphereLight(0xffffff, 0x8a96c0, 0.75));
   const sun = new THREE.DirectionalLight(0xffffff, 1.25); sun.position.set(-9, 16, 8); scene.add(sun);
   const machines = []; let pendingM = 0; const T0 = 0; // posée sur sa base
   for (const art of $$('[data-fig]')) {
-    // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
-    const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = MOBILE ? 3.0 : 4.2, x = side * (HALF + sc * 0.24), z = MOBILE ? (r.y + 150) / PXM : (r.y + 0.12 * r.h) / PXM, rot = MOBILE ? 0 : -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
+    const card=art.querySelector('.pc-pcard') || art;
+    const r=rectOf(card), sc=r.w/PXM*(MOBILE?.72:.62);
+    const x=(r.x+r.w/2-PAGE_W/2)/PXM;
+    const z=(r.y+r.h-(MOBILE?150:235))/PXM, rot=-.12;
+    const baseY=(parseFloat(card.dataset.box)||.4)+.035;
     const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
@@ -473,8 +517,8 @@ async function start() {
       // pivot au centre de la machine, posé au sol : les règles la tournent et l'inclinent sur place
       m.group.position.sub(c.clone().divideScalar(sc / WIDTH)).add(new THREE.Vector3(0, (c.y - box.min.y) / (sc / WIDTH), 0));
       g.rotation.y = 0; const pivot = new THREE.Group(); pivot.add(g); g.position.set(0, 0, 0); scene.add(pivot);
-      pivot.position.set(MOBILE ? 0 : side * (HALF + 0.35 + box.getSize(new THREE.Vector3()).z / 2), 0, z); void x; // même écart au bord de la page pour toutes les machines pivot.rotation.y = rot; patchTree(pivot);
-      const M = { m, z, pivot, rot, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
+      pivot.position.set(x,baseY,z); pivot.rotation.y=rot; patchTree(pivot);
+      const M = { m, z, pivot, rot, baseY, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
       M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
     }).catch((e) => console.warn('machine indisponible', mod, e));
@@ -1129,7 +1173,7 @@ async function start() {
     for (const G of graphs) if (Math.abs(focusZ - G.z) < 45) animGraph(G, now / 1000);
     for (const it of items) if (it.float) it.group.position.y = 0.9 + Math.sin(now / 900 + it.r.y) * 0.06;
     for (const k of machines) {
-      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ'); k.pivot.position.y = k.half * Math.abs(Math.sin(k.tilt));
+      k.pivot.rotation.set(k.tilt, k.rot + k.yaw, 0, 'YXZ'); k.pivot.position.y = k.baseY + k.half * Math.abs(Math.sin(k.tilt));
       if (Math.abs(focusZ - k.z) < 40) k.m.update(now / 1000);
     }
     for (const p of pigs) { // une pièce toutes les 2,4 s

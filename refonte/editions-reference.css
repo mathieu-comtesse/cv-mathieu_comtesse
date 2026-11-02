@@ -15,6 +15,10 @@ html,body{background:#050505}
 .pc-h{text-shadow:none;font-weight:550}
 .pc-card{background:rgba(255,255,255,.025)}
 .pc-card h3{font-weight:550}
+.pc-proj,.pc-proj:nth-of-type(even){grid-template-columns:1fr;gap:24px;margin-bottom:110px}
+.pc-proj .pc-pcard,.pc-proj:nth-of-type(even) .pc-pcard{grid-column:1;grid-row:1;padding-bottom:470px}
+.pc-proj .pc-float,.pc-proj:nth-of-type(even) .pc-float{grid-column:1;grid-row:2;max-width:760px;font-size:15px;line-height:1.55}
+.pc-proj .pc-how{margin-top:0}
 .pc-more{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.22)}
 #ex-shell{--ex-color:#1017a8}
 #ex-shell .ex-atmosphere,.ex-ghost,.ex-progress{display:none!important}
@@ -50,7 +54,13 @@ html,body{background:#050505}
 html:not(.expo) .pc-page{width:min(100%,1000px)}
 html:not(.expo) .pc-home{min-height:720px;--hh:720px}
 html:not(.expo) .pc-graph-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;list-style:none;padding:18px;margin:0;font:12px var(--mono)}
-html:not(.expo) .pc-graph-list>li>ul{display:none}
+html:not(.expo) .pc-graph-list details{min-width:0}
+html:not(.expo) .pc-graph-list summary{cursor:pointer;min-height:32px;padding:5px 0}
+html:not(.expo) .pc-graph-list details ul{margin:10px 0 0;padding-left:14px}
+html:not(.expo) .pc-graph-list details li{padding:4px 0;line-height:1.5}
+html:not(.expo) .pc-graph-list a{color:#d9e5ff;text-underline-offset:3px}
+html:not(.expo) .pc-graph{overflow:auto}
+.pc-copy-status{display:block;font:12px/1.5 var(--mono)}
 html:not(.expo) .pc-home .pc-mini-slot{min-height:60px}
 html:not(.expo) .pc-sec{max-width:100%}
 @media(max-width:759px){
@@ -68,6 +78,8 @@ html:not(.expo) .pc-sec{max-width:100%}
  .ex-mobile-nav button{min-height:48px}
  .ex-mobile-title small{color:#bac5e4}
  .pc-intro-in,.pc-sign{width:100%}
+ .pc-proj,.pc-proj:nth-of-type(even){padding-top:0}
+ .pc-proj .pc-pcard,.pc-proj:nth-of-type(even) .pc-pcard{padding-bottom:300px}
  .pc-contact-live .rf-cp{overflow-wrap:anywhere}
  html:not(.expo) .pc-graph-list{font-size:11px;gap:18px}
 }

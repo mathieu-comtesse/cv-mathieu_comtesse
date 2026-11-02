@@ -79,7 +79,7 @@
   const drawer=$('#ex-drawer'),search=$('#ex-search'),results=$('#ex-results');
   const waypointList=$('#ex-waypoints'),progress=$('.ex-progress');
   let active=-1,tab='chapters',opened=false,query='',lastFocus=null,lastProgress=-1,frames=0;
-  const offsetFor = sec => window.__expo?.sections?.[sec.i]?.r?.y ?? sec.y;
+  const offsetFor = sec => window.__expo?.sections?.[sec.i]?.r?.y ?? positionOf(sec.el);
   function setOpen(next,preferred){
     if(next===opened&&!preferred)return;
     if(next){
@@ -99,7 +99,7 @@
   }
   function goTo(y,hash){
     setOpen(false);
-    const top=Math.max(0,y===0?0:y+innerHeight*.55);
+    const top=Math.max(0,y===0?0:window.__expo?y+innerHeight*.55:y-60);
     if(window.__exSmoothScroll&&!reduce.matches)window.__exSmoothScroll.goTo(top);
     else scrollTo({top,behavior:reduce.matches?'instant':'smooth'});
     if(hash)history.replaceState(null,'','#'+hash);
