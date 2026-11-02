@@ -1159,7 +1159,7 @@ async function start() {
       const [px, py, pz] = toScreen(k.pivot.position), vis = e > 0.5 && pz < 1 && py > 60 && py < h - 40 && px > 40 && px < w - 40 && Math.abs(focusZ - k.z) < 12;
       k.rul.el.classList.toggle('pc-rul-r', k.pivot.position.x > 0); k.rul.el.style.display = vis ? '' : 'none'; if (vis) k.rul.el.style.transform = `translate(${px.toFixed(1)}px,${(py + 18).toFixed(1)}px)`;
     }
-    const btn = navItems[active] && navItems[active].firstChild, dots = (anchors[active] || []).map((v) => [v, toScreen(v)]).filter(([, q]) => q[2] < 1 && q[1] > 60 && q[1] < h * 0.92 && q[0] > 0 && q[0] < w).sort((a, b) => b[1][1] - a[1][1]).slice(0, 4).map(([v]) => v);
+    const btn = document.querySelector(`#ex-waypoints button[data-index="${active}"]`) || (navItems[active] && navItems[active].firstChild), dots = (anchors[active] || []).map((v) => [v, toScreen(v)]).filter(([, q]) => q[2] < 1 && q[1] > 60 && q[1] < h * 0.92 && q[0] > 0 && q[0] < w).sort((a, b) => b[1][1] - a[1][1]).slice(0, 4).map(([v]) => v);
     if (btn && !narrow && e > 0.5) {
       const r = btn.getBoundingClientRect(), ox = r.right + 2, oy = r.top + r.height / 2;
       navPaths.forEach((n, j) => {
