@@ -21,7 +21,7 @@ import { drawMat, blueprintMaterial } from './blueprint-hero.js';
    Texture : l'élément lui-même via HTML-in-Canvas quand le navigateur le permet, sinon une image de la section (SVG foreignObject).
    Le défilement natif pilote la caméra : vue de face à l'échelle 1:1 au départ, puis la page se rabat en chemin et se relève au loin. */
 
-const ROOM_K = 0.9;               // échelle de la pièce du site (et de son plan blueprint) dans le parcours
+const ROOM_K = 1.15;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
 const PXM = 100;                  // px de page par mètre
 const PAGE_W = 1000;
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
@@ -309,7 +309,7 @@ async function start() {
       if (Math.abs(focusZ - M.z) > 25) continue;
       if (M.kind === 'room') {
         const rg = roomRul?.g; if (!rg) continue;
-        const c = new THREE.Box3().setFromObject(rg).getCenter(new THREE.Vector3()), hh = 2.2 * rg.scale.x / ROOM_K;
+        const c = new THREE.Box3().setFromObject(rg).getCenter(new THREE.Vector3()), hh = 3.4 * rg.scale.x / ROOM_K;
         M.cam2.left = -hh * M.asp; M.cam2.right = hh * M.asp; M.cam2.top = hh; M.cam2.bottom = -hh; M.cam2.updateProjectionMatrix();
         M.cam2.position.set(c.x + 9, 30, c.z + 9); M.cam2.up.set(0, 1, 0); M.cam2.lookAt(c.x, c.y, c.z);
         renderer.setRenderTarget(M.rt2); renderer.setClearColor(0x14249a, 1); renderer.clear(); renderer.render(rg, M.cam2); renderer.setRenderTarget(null); renderer.setClearColor(0x000000, 1);
@@ -398,7 +398,7 @@ async function start() {
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
-  const roomSpot = $('[data-room]'); let roomRul = null;
+  const roomSpot = $('[data-room]'); let roomRul = null, heroTag = null; const heroP = new THREE.Vector3();
   if (roomSpot && !reduce) {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
     host.className = 'pc-room-host'; host.setAttribute('aria-hidden', 'true'); bubble.className = 'bubble'; host.append(bubble); document.body.append(host);
@@ -415,6 +415,8 @@ async function start() {
       scene.add(g); patchTree(g);
       const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.22;
       window.__room = room;
+      // étiquette qui suit Mathieu dans la pièce, pour le repérer d'un coup d'œil
+      heroTag = label('Mathieu', { w: 0.7, h: 0.16, font: '600 14px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); heroTag.renderOrder = 9; heroTag.material.depthTest = false; scene.add(heroTag);
       // règles du décor : « Tourner » fait pivoter la pièce, « Incliner » sert de zoom (pièce et plan ensemble)
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
       R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
@@ -798,6 +800,7 @@ async function start() {
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
     animMinis(now, focusZ);
+    if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
     for (const H of hublots) if (Math.abs(focusZ - H.z) < 30) paintHublot(H);
