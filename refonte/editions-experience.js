@@ -5,6 +5,27 @@
   if (window.__editionsExperience) return;
   const page = document.getElementById('page');
   if (!page) return;
+
+  // Longs seuils noirs entre les chapitres : l'espace appartient au voyage.
+  // Insertion AVANT le relevé par Three.js, donc les coordonnées 3D restent cohérentes.
+  const originalChapters=[...page.querySelectorAll(':scope > section[data-section]')];
+  originalChapters.forEach((chapter,i)=>{
+    if(i===originalChapters.length-1)return;
+    const next=originalChapters[i+1];
+    if(chapter.nextElementSibling?.classList.contains('pc-transit'))return;
+    const trans=document.createElement('div');
+    trans.className='pc-transit';
+    trans.dataset.transit=String(i);
+    trans.dataset.from=chapter.dataset.section;
+    trans.dataset.to=next.dataset.section;
+    const label=document.createElement('div');label.className='pc-transit-placeholder';
+    const n=document.createElement('small');n.textContent=String(i+1).padStart(2,'0')+' / '+String(i+2).padStart(2,'0');
+    const title=document.createElement('p');title.textContent=next.dataset.section;
+    const note=document.createElement('span');note.textContent='Continuer le parcours';
+    label.append(n,title,note);trans.append(label);
+    chapter.after(trans);
+  });
+
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const clamp = (x,a=0,b=1) => Math.min(b,Math.max(a,x));
   const slug = text => String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
@@ -96,7 +117,9 @@
   }
   function goTo(y,hash){
     setOpen(false);
-    scrollTo({top:Math.max(0,y+260-innerHeight/2),behavior:reduce.matches?'instant':'smooth'});
+    const top=Math.max(0,y+260-innerHeight/2);
+    if(window.__exSmoothScroll&&!reduce.matches)window.__exSmoothScroll.goTo(top);
+    else scrollTo({top,behavior:reduce.matches?'instant':'smooth'});
     if(hash)history.replaceState(null,'','#'+hash);
   }
   function goToChapter(i){
@@ -105,7 +128,7 @@
   }
   function goToProject(i){
     const p=projects[clamp(i|0,0,projects.length-1)];
-    if(p)goTo(p.y,'projet-'+slug(p.name));
+    if(p)goTo(positionOf(p.el),'projet-'+slug(p.name));
   }
   for(const sec of sections){
     const li=document.createElement('li'),b=document.createElement('button');
