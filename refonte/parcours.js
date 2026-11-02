@@ -699,7 +699,7 @@ async function start() {
   const GW = 1150, GH = 750, GM = { w: 9.2, d: 6.0, cx: 0, cz: endZ + 4.5 };
   let game = null, gTex = null, gMesh = null;
   import('./pc-game.js').then(({ createGame }) => {
-    game = createGame(GW, GH, reduce); gTex = new THREE.CanvasTexture(game.cv); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
+    game = createGame(GW, GH, reduce, { onTop: () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }) }); gTex = new THREE.CanvasTexture(game.cv); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
     gMesh = new THREE.Mesh(plane(GM.w, GM.d), new THREE.MeshBasicMaterial({ map: gTex, transparent: true, depthWrite: false })); gMesh.rotation.x = -Math.PI / 2; gMesh.position.set(GM.cx, 0.03, GM.cz); gMesh.renderOrder = 9; scene.add(gMesh);
   }).catch((e) => console.warn('mini-jeu indisponible', e));
   const gRay = new THREE.Raycaster(), gPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03), gHit = new THREE.Vector3(), gNdc = new THREE.Vector2(), gP = { x: GW / 2, y: GH * 0.8, down: false, in: false };
