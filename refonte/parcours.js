@@ -1,17 +1,37 @@
 import * as THREE from 'three';
 import { drawMat, blueprintMaterial } from './blueprint-hero.js';
 
+// Modèles du décor : versions compressées (assets/opt : géométrie meshopt, textures WebP 1024 px, 17 Mo au lieu de 41) quand elles existent.
 // Hébergement sans .glb (page publiée) : si un modèle n'est pas servi, sa copie en base64 (.glb.b64.txt) prend le relais.
-// Sur le site, les .glb répondent et cette cale ne fait rien.
+import { GLTFLoader } from 'three/addons/GLTFLoader.js';
+import { MeshoptDecoder } from '../vendor/meshopt_decoder.module.js';
 {
-  const raw = window.fetch.bind(window);
+  const _parse = GLTFLoader.prototype.parse; // tous les chargeurs du décor (pièce, tirelire…) savent lire la géométrie compressée
+  // meshopt livre des attributs entiers et entrelacés ; le reste du décor (fusion des maillages…) attend des Float32 simples : on les convertit au chargement
+  const flatten = (g) => g?.scene?.traverse((o) => { const geo = o.geometry; if (!geo?.attributes) return;
+    for (const k of Object.keys(geo.attributes)) { const a = geo.attributes[k]; if (k === 'skinIndex' || k === 'skinWeight') continue; const arr = a.isInterleavedBufferAttribute ? a.data.array : a.array;
+      if (arr instanceof Float32Array && !a.isInterleavedBufferAttribute) continue; const n = a.count, sz = a.itemSize, f = new Float32Array(n * sz);
+      for (let i = 0; i < n; i++) for (let c = 0; c < sz; c++) f[i * sz + c] = a.getComponent(i, c); geo.setAttribute(k, new THREE.BufferAttribute(f, sz)); } });
+  GLTFLoader.prototype.parse = function (data, path, onLoad, onError) { if (!this.meshoptDecoder) this.setMeshoptDecoder(MeshoptDecoder); return _parse.call(this, data, path, (g) => { try { flatten(g); } catch (e) { console.warn('modèle compressé', e); } onLoad(g); }, onError); };
+  const raw = window.fetch.bind(window), idx = raw(new URL('../assets/opt/index.json', import.meta.url)).then((r) => (r.ok ? r.json() : [])).then((l) => new Set(l)).catch(() => new Set());
+  const b64buf = async (url) => { const alt = await raw(url.replace(/\.glb(\?.*)?$/, '.glb.b64.txt')).catch(() => null); if (!alt || !alt.ok) return null;
+    const b = atob((await alt.text()).trim()), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; };
+  const glbBuf = async (url) => { const r = await raw(url).catch(() => null); return r && r.ok ? r.arrayBuffer() : b64buf(url); };
+  // téléchargement anticipé : dès que la liste est connue, tous les modèles du décor partent en parallèle (la pièce les trouve prêts au lieu de les demander par vagues)
+  const pre = new Map();
+  idx.then((set) => { for (const n of set) pre.set(n, glbBuf(new URL('../assets/opt/' + n, import.meta.url).href)); });
+  const glbHeaders = { 'Content-Type': 'model/gltf-binary' };
   window.fetch = async (input, init) => {
-    const url = typeof input === 'string' ? input : input.url, r = await raw(input, init);
+    let url = typeof input === 'string' ? input : input.url, name = null;
+    if (/\.glb(\?|$)/.test(url) && !/assets\/opt\//.test(url)) {
+      const m = /^(.*?)assets\/([^/?]+\.glb)(\?.*)?$/.exec(url);
+      if (m && (await idx).has(m[2])) { name = m[2]; url = m[1] + 'assets/opt/' + m[2] + (m[3] || ''); input = url; }
+    }
+    if (name && pre.has(name)) { const buf = await pre.get(name); pre.delete(name); if (buf) return new Response(buf.slice(0), { status: 200, headers: glbHeaders }); }
+    const r = await raw(input, init);
     if (r.ok || !/\.glb(\?|$)/.test(url)) return r;
-    const alt = await raw(url.replace(/\.glb(\?.*)?$/, '.glb.b64.txt')).catch(() => null);
-    if (!alt || !alt.ok) return r;
-    const b = atob((await alt.text()).trim()), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
-    return new Response(u, { status: 200, headers: { 'Content-Type': 'model/gltf-binary' } });
+    const buf = await b64buf(url);
+    return buf ? new Response(buf, { status: 200, headers: glbHeaders }) : r;
   };
 }
 
@@ -402,11 +422,12 @@ async function start() {
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
   const roomSpot = $('[data-room]'); let roomRul = null, heroTag = null; const heroP = new THREE.Vector3();
+  let roomDone; const roomReadyP = new Promise((r) => { roomDone = r; }); if (!roomSpot || reduce) roomDone(); // la pièce passe avant le dessin des sections
   if (roomSpot && !reduce) {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
     host.className = 'pc-room-host'; host.setAttribute('aria-hidden', 'true'); bubble.className = 'bubble'; host.append(bubble); document.body.append(host);
     Promise.all([import('../js/room.js?v=nt6-20261026'), import('three/addons/RoomEnvironment.js')]).then(async ([{ createRoom }, { RoomEnvironment }]) => {
-      const room = await createRoom(host, bubble, { noTea: true }); // sans la pièce du thé, ni les déplacements et pensées qui s'y rapportent
+      const room = await createRoom(host, bubble, { noTea: true, noRender: true }); // sans la pièce du thé, ni les déplacements et pensées qui s'y rapportent
       // la scène entière de la pièce est rattachée (le personnage et les objets ajoutés plus tard suivent) ;
       // ni sol d'ombre ni ombres de contact : sur la feuille courbée elles glissaient pendant le défilement
       const g = new THREE.Group(); g.add(room.scene);
@@ -416,15 +437,16 @@ async function start() {
       // les arbres de la pièce (vendor-trees) embarquent leur propre Three.js, plus ancien : on complète leurs matrices
       g.traverse((o) => { const P = Object.getPrototypeOf(o.matrixWorld); if (!P.determinantAffine) P.determinantAffine = THREE.Matrix4.prototype.determinantAffine; });
       scene.add(g); patchTree(g);
+      try { await renderer.compileAsync(g, camera, scene); } catch { /* compilation à la première image */ } // shaders compilés en tâche de fond : pas d'arrêt à l'apparition de la pièce
       const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.22;
-      window.__room = room;
+      window.__room = room; roomDone();
       // étiquette qui suit Mathieu dans la pièce, pour le repérer d'un coup d'œil
       heroTag = label('Mathieu', { w: 0.7, h: 0.16, font: '600 14px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); heroTag.renderOrder = 9; heroTag.material.depthTest = false; scene.add(heroTag);
       // règles du décor : « Tourner » fait pivoter la pièce, « Incliner » sert de zoom (pièce et plan ensemble)
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
       R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
       roomRul = { g, rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
-    }).catch((e) => console.warn('pièce indisponible', e));
+    }).catch((e) => { console.warn('pièce indisponible', e); roomDone(); });
   }
 
   /* tirelire des gains : le modèle du site, une pièce de 1 € tombe régulièrement dans la fente */
@@ -564,7 +586,12 @@ async function start() {
     });
     for (const it of items) { it.el.style.width = it.r.w + 'px'; it.el.style.height = it.r.h + 'px'; it.el.style.margin = '0'; byEl.set(it.el, it); canvas.append(it.el); }
     canvas.requestPaint();
-  } else rasterAll().catch((e) => console.warn('rendu des textures impossible', e));
+  } else {
+    // sans HTML-in-Canvas : tant qu'on est en vue de face, la vraie page est affichée ; les images des sections ne servent qu'au passage en 3D.
+    // On charge donc la pièce d'abord, et on ne dessine les sections qu'une fois la pièce prête, au premier défilement ou après 14 s.
+    setTimeout(() => { introReady = true; }, 900);
+    Promise.race([roomReadyP, new Promise((r) => addEventListener('scroll', r, { once: true, passive: true })), new Promise((r) => setTimeout(r, 14000))]).then(() => rasterAll()).catch((e) => console.warn('rendu des textures impossible', e));
+  }
 
   async function redraw(s) {
     const css = await (cssP ??= inlineCss()), mine = items.filter((it) => s.el.contains(it.el)); if (!mine.length) return;

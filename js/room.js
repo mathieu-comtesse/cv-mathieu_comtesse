@@ -39,7 +39,7 @@ const easeOutBounce = (x) => {
   return n * (x -= 2.625 / d) * x + 0.984375;
 };
 
-export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé (parcours 3D du CV)
+export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé ; options.noRender : sans rendu propre (parcours 3D du CV)
   const mobile=matchMedia('(max-width:809px)');
   container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
@@ -1308,12 +1308,14 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
-    try {
-      renderer.render(scene, camera);
-    } catch (error) {
-      if (!nativeBridge) throw error;
-      restoreLocalDesk(error);
-      renderer.render(scene, camera);
+    if (!options.noRender) {   // options.noRender : la scène est dessinée par un autre moteur (parcours 3D), inutile de la dessiner deux fois
+      try {
+        renderer.render(scene, camera);
+      } catch (error) {
+        if (!nativeBridge) throw error;
+        restoreLocalDesk(error);
+        renderer.render(scene, camera);
+      }
     }
     container.dataset.sceneFrames = String(frameNo);
     container.dataset.sceneReady = String(spawned);
