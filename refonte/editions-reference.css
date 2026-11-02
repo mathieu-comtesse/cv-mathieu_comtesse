@@ -61,6 +61,9 @@ html:not(.expo) .pc-graph-list details li{padding:4px 0;line-height:1.5}
 html:not(.expo) .pc-graph-list a{color:#d9e5ff;text-underline-offset:3px}
 html:not(.expo) .pc-graph{overflow:auto}
 .pc-copy-status{display:block;font:12px/1.5 var(--mono)}
+.pc-reading .annual-pig-wrap{display:none}
+.pc-reading .pc-proj .pc-pcard{padding-bottom:28px}
+.pc-reading-machine{display:block;width:100%;max-height:360px;object-fit:contain;margin-bottom:24px}
 html:not(.expo) .pc-home .pc-mini-slot{min-height:60px}
 html:not(.expo) .pc-sec{max-width:100%}
 @media(max-width:759px){

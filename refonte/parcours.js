@@ -138,6 +138,13 @@ async function startReading() {
     summary.textContent=heading?.textContent || li.dataset.hub;
     details.append(summary); if(list)details.append(list); heading?.remove(); li.append(details);
   }
+  for(const art of $$('[data-fig]')){
+    const card=art.querySelector('.pc-pcard');if(!card)continue;
+    const image=document.createElement('img');image.className='pc-reading-machine';
+    image.src='assets/figures/'+art.dataset.fig+'-light.webp';image.loading='lazy';image.decoding='async';
+    image.alt='Machine du projet '+(card.querySelector('h3')?.textContent.trim()||'');
+    card.prepend(image);
+  }
   const mail=$('#rf-mail');
   if(mail){
     const status=document.createElement('span');status.setAttribute('role','status');
