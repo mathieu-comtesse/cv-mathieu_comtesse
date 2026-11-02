@@ -149,7 +149,7 @@ const svg = k.figureSvg({
   body: [
     bench(P, PLATE, { strip: { x: -140, y: PLATE.y + PLATE.d - 13, w: 150, d: 7, r: 1 }, label: { x: 50, y: PLATE.y + PLATE.d - 15, w: 46, d: 11, r: 1.2 } }),
     consoleSvg(), consoleDetail(),
-    ...TANKS.flatMap((t, i) => [tankBack(t, i), tankFront(t, i), tankDetail(t, i)]),
+    ...TANKS.flatMap((t, i) => [tankBack(t, i), tankFront(t, i), tankDetail(t, i), `<g data-part="alert-${i}"></g>`]),
     traySvg("back"), `<g data-part="mail"></g>`, traySvg("front"), trayDetail(),
   ],
 });
@@ -169,9 +169,10 @@ function ratios(day) {
   const u = Math.max(0, Math.min(1, day / DAYS)), spent = FUNDS.map((f, i) => f * FINAL[i] * curve(u));
   return [...spent.map((s, i) => s / FUNDS[i]), spent.reduce((a, b) => a + b, 0) / FUNDS.reduce((a, b) => a + b, 0)];
 }
+const WALL_TOP = ${WALL_TOP};
 const zOf = (r) => FLOOR + Math.min(r, SWEEP.max) * SCALE;
 let day = 0, threshold = 0.8, shownT = 0.8, touring = true, idle = 0, hold = 0, sent = [];
-const mail = $("mail"), mark = $("knob-mark");
+const mail = $("mail"), mark = $("knob-mark"), seenHit = [], crossAt = [-9, -9, -9, -9, -9];
 // Rythme réel : 5 périmètres × 6 alertes par semaine = 30. Une semaine compte 5 matins ; chaque périmètre envoie
 // 1 alerte par matin, et un matin de plus (décalé d'un périmètre à l'autre) pour faire 6. Le bac garde la semaine en cours.
 const WEEK = 5, SHOWN = 6;
@@ -214,6 +215,21 @@ function draw() {
     // Trop-plein : un filet qui descend du bec jusqu'au bac quand la consommation dépasse les fonds.
     html(drips[i], r[i] > 1 ? solidSvg(slabOf({ x: t.x + t.w - 1.2, y: TY + TD / 2 - 1, w: 1.6, d: 2, r: 0.4 }, 1.4, zOf(1) - 1.4, P, 2, 0.1), { tone: "hi", className: "fig-liquid" }) : "");
     const last = sent.filter((s) => s.i === i && s.day <= day).pop();
+    {
+      // Alerte : balise sur la paroi, onde qui s'étend à l'instant du seuil, nappe rouge au trop-plein et flaque au pied.
+      const hit = r[i] >= shownT, over = r[i] > 1, cx = t.cx, cy = TY + TD / 2, tp = performance.now() / 1000, pulse = 0.5 + 0.5 * Math.sin(tp * (over ? 14 : 7) + i);
+      if (hit && !seenHit[i]) crossAt[i] = tp; seenHit[i] = hit;
+      const age = tp - crossAt[i];
+      let a = "";
+      if (hit) a += solidSvg(cylinder(cx, cy, 3.4, WALL_TOP, 3.6, P, 20), { tone: "hi", className: over ? "fig-alarm-red" : "fig-alarm", lit: pulse > 0.5 }) + solidSvg(cylinder(cx, cy, 4.4, WALL_TOP - 0.6, 0.6, P, 20), { tone: "lo" });
+      if (age < 1.4) a += lineSvg(ring(cx, cy, t.w / 2 + 2 + age * 9, WALL_TOP + 1.2, P, 40), { tone: "hi", free: true });
+      if (over) {
+        const sheet = solidSvg(slabOf({ x: t.x + t.w - 0.4, y: cy - 4, w: 2, d: 8, r: 0.4 }, FLOOR, zOf(1) - FLOOR, P, 2, 0.1), { tone: "hi", className: "fig-alarm-red" });
+        const pud = solidSvg(cylinder(t.x + t.w + 3, cy, 3 + Math.min(1, (r[i] - 1) * 6) * 5, FLOOR, 0.5, P, 28), { tone: "hi", className: "fig-alarm-red" });
+        a += pud + sheet;
+      }
+      html($("alert-" + i), a);
+    }
     attr(lamps[i], "data-on", r[i] >= shownT || (last && day - last.day < 0.6));
     text(pcs[i], String(Math.round(r[i] * 100)).padStart(3, " ") + " %");
   });
@@ -258,4 +274,4 @@ const plate = k.plateHtml({
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Point financier : flèches gauche et droite pour régler le seuil" aria-valuemin="50" aria-valuemax="100" aria-valuenow="80">${svg}</div>`,
 });
 
-writeFigure("finance", { title: "Point financier · cuves à trop-plein", plate, live, css: `<style>.fig-liquid .iso-fill,.fig-liquid .iso-top{fill:color-mix(in srgb,var(--g) 34%,var(--anatomy-top))}.fig-liquid .iso-shade{fill:color-mix(in srgb,var(--g) 20%,var(--anatomy-shade-1))}.fig-liquid .iso-edge,.fig-liquid .iso-line{stroke:color-mix(in srgb,var(--g) 70%,var(--anatomy-hi))}</style>` });
+writeFigure("finance", { title: "Point financier · cuves à trop-plein", plate, live, css: `<style>.fig-alarm .iso-fill,.fig-alarm .iso-top{fill:color-mix(in srgb,#f59e0b 55%,var(--anatomy-top))}.fig-alarm-red .iso-fill,.fig-alarm-red .iso-top{fill:color-mix(in srgb,#ef4444 60%,var(--anatomy-top))}.fig-alarm-red .iso-shade{fill:color-mix(in srgb,#ef4444 40%,var(--anatomy-shade-1))}.fig-liquid .iso-fill,.fig-liquid .iso-top{fill:color-mix(in srgb,var(--g) 34%,var(--anatomy-top))}.fig-liquid .iso-shade{fill:color-mix(in srgb,var(--g) 20%,var(--anatomy-shade-1))}.fig-liquid .iso-edge,.fig-liquid .iso-line{stroke:color-mix(in srgb,var(--g) 70%,var(--anatomy-hi))}</style>` });
