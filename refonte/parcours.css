@@ -291,3 +291,4 @@ html.expo.flat #leaders{opacity:0}
 }
 @media (max-width:759px){.pc-gxwrap .gx-table table{min-width:0;font-size:11px}.pc-gxwrap .gx-table th,.pc-gxwrap .gx-table td{padding:6px 6px 6px 0}}
 @media (max-width:759px){.pc-gxwrap .gx-scroll{overflow:visible}.pc-gxwrap .gx-table table{width:100%;table-layout:fixed}.pc-gxwrap .gx-table th,.pc-gxwrap .gx-table td{overflow-wrap:anywhere}}
+html.pc-lifted #leaders,html.pc-lifted #ticks,html.pc-lifted #callouts,html.pc-lifted #nav{opacity:0;transition:opacity .3s}
