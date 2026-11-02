@@ -7,9 +7,9 @@ html,body{background:#050505}
 .pc-title-k{left:calc((var(--hh) - var(--header-space,40px)) * .118 + 9px)}
 .pc-home-col{top:calc(var(--header-space,40px) + 8px);left:calc((var(--hh) - var(--header-space,40px)) * .118 + 22px);bottom:8px;width:170px;gap:6px}
 .pc-home-col .pc-box{background:rgba(255,255,255,.025);border:1px solid rgba(174,187,255,.22);padding:7px}
-.pc-index ol{font:9px/1.28 var(--mono);color:#b6c2ff}
+.pc-index ol{font:7px/1.35 var(--mono);color:#b6c2ff}
 .pc-index-arc{opacity:.22}
-.pc-mini p{font:9px/1.4 var(--mono)!important;color:#c9d4ff}
+.pc-mini p{font:7px/1.4 var(--mono)!important;color:#c9d4ff}
 .pc-graph{left:calc((var(--hh) - var(--header-space,40px)) * .118 + 198px);right:8px;top:calc(var(--header-space,40px) + 8px);bottom:8px;background:#000007;border:1px solid #18225b}
 .pc-box{border-width:1px;background:rgba(255,255,255,.035)}
 .pc-h{text-shadow:none;font-weight:550}

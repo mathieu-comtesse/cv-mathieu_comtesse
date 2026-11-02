@@ -226,6 +226,7 @@ async function start() {
   }
 
   /* décor : arcs, bâtiments filaires, cotes, formules */
+  const ambientStart = scene.children.length;
   const Z0 = -40, Z1 = endZ + 40;
   for (let i = 0; i < 26; i++) {
     const side = i % 2 ? 1 : -1, r = 20 + (i >> 1) * 6, cz = Z0 + (Z1 - Z0) * rnd(), cx = side * (HALF + 24 + (i >> 1) * 2.5), pts = [], a0 = rnd() * 6.28, sp = 1 + rnd();
@@ -253,6 +254,7 @@ async function start() {
     const f = label(FORM[Math.floor(rnd() * FORM.length)], { w: 4.2, h: 0.55 }); f.position.set(side * (HALF + 3 + rnd() * 7), 0.2, z); scene.add(f);
   }
 
+  const ambientObjects = scene.children.slice(ambientStart);
   /* éléments de la page → objets 3D */
   const items = [];
   const glassSide = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.07, depthWrite: false });
@@ -295,20 +297,20 @@ async function start() {
     const inX = (x) => Math.max(X(r.x + 6), Math.min(X(r.x + r.w - 6), x)), inZ = (z) => Math.max(Z(r.y + 6), Math.min(Z(r.y + r.h - 6), z));
     hubs.forEach((li, i) => {
       const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
-      const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
+      const leaves = $$('a', li), hp = P3(X(cx), 0.035, Z(cy));
       const tN = Math.min(1, Math.max(0, (leaves.length - 4) / 9));
       // Alternance ultramarin / bleu electrique / cyan / vert menthe, proche du referentiel mesure.
       const led = new THREE.Color(['#355bff','#196bff','#1aabff','#00ddc5','#2bef83','#3165ff','#80a1ff','#06c8d0','#26f29f','#4f70ff','#05b7f7'][i%11]);
       const hc = [led.r,led.g,led.b];
       const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens', hc, hi: i }); (hubIdx ??= []).push(h);
       const onLeft = u > 0.6; // les phares de droite écrivent leur nom vers la gauche pour rester dans le cadre
-      const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(onLeft ? 1 : 0, 0.5);
+      const lb = label(li.dataset.hub, { w: 0.4, h: 0.10, font: '400 7px iAWriterQuattroV, monospace', color: '#c9d4f5', op: 0.9 }); lb.center.set(onLeft ? 1 : 0, 0.5);
       lb.position.set(hp.x + (onLeft ? -0.07 : 0.07), 0.06, hp.z + 0.02); scene.add(lb);
-      const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
+      const ct = label(String(leaves.length), { w: 0.12, h: 0.08, font: '400 5px iAWriterQuattroV, monospace', color: '#8da0c7', op: 0.8 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
       { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: new THREE.Color(hc[0], hc[1], hc[2]).offsetHSL(0, 0, 0.12), fog: false, depthTest: false })); sq.scale.set(0.05 + 0.025 * tN, 0.05 + 0.025 * tN, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
       const n = Math.max(leaves.length, 14 + leaves.length * 2);
       for (let k = 0; k < n; k++) {
-        const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
+        const ang = (k < leaves.length ? k / leaves.length : (k - leaves.length) / Math.max(1,n - leaves.length)) * 6.283 + rnd() * 0.2, rr = (0.55 + rnd() * 0.55) * rad / PXM;
         const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.015 + rnd() * 0.025, inZ(hp.z + Math.sin(ang) * rr));
         const L = leaves[k], img = L && L.querySelector('img');
         const id = add(L ? { kind: 'leaf', base: p, label: L.textContent.trim(), meta: L.dataset.meta || '', href: L.getAttribute('href'), k: L.dataset.k, tags: new Set((L.dataset.tags || '').split(' ').filter(Boolean)), hub: h } : { kind: 'dot', base: p, hub: h });
@@ -328,7 +330,7 @@ async function start() {
         return [j, common, (nodes[i].k === 'skill' || nodes[j].k === 'skill') ? 1 : 2];
       }).filter(([, c, need]) => c >= need).sort((a, b) => b[1] - a[1] || rnd() - .5);
       for (const [j] of cand) {
-        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 2 || (deg.get(j) || 0) >= 2) continue;
+        const key = Math.min(i, j) + ':' + Math.max(i, j); if (seen.has(key) || (deg.get(i) || 0) >= 1 || (deg.get(j) || 0) >= 1) continue;
         seen.add(key); edges.push([i, j, 2]); deg.set(i, (deg.get(i) || 0) + 1); deg.set(j, (deg.get(j) || 0) + 1);
       }
     }
@@ -1025,7 +1027,7 @@ async function start() {
   function animGraph(G, t) {
     const h = G.hover, rel = h >= 0 ? G.nb[h] : null;
     G.nodes.forEach((o, i) => {
-      const a = o.kind === 'hub' ? 0.012 : o.kind === 'dot' ? 0.025 : 0.02;
+      const a = o.kind === 'hub' ? 0.006 : o.kind === 'dot' ? 0.012 : 0.01;
       o.cur.set(o.base.x + Math.sin(t * 0.55 + o.ph) * a, o.base.y + Math.sin(t * 0.8 + o.ph2) * a * 1.4, o.base.z + Math.cos(t * 0.45 + o.ph) * a);
       if (o.sq) o.sq.position.copy(o.cur);
       G.pp[i * 3] = o.cur.x; G.pp[i * 3 + 1] = o.cur.y; G.pp[i * 3 + 2] = o.cur.z;
@@ -1098,6 +1100,7 @@ async function start() {
     sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * (smooth.on ? 16 : 7))); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
     const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
     const H = innerHeight, kf = KF + (1 - KF) * e, focusZ = (s + H / kf / 2) / PXM;
+    for (const object of ambientObjects) object.visible = e > 0.08;
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
     const fovFlat = 30, dist = (H / kf / PXM / 2) / Math.tan(fovFlat / 2 * Math.PI / 180);
     flatPos.set(0, dist, focusZ); flatLook.set(0, 0, focusZ - 0.0001);
