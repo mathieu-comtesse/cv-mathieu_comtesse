@@ -13,7 +13,7 @@ const PLATE = { x: -150, y: -78, w: 300, d: 160, r: 9 };
 const DIAL = { R: 60, plinth: 67, z: 6 };                                   // cadran et socle étagé
 const GNOMON = { h: 46, half: 16, t: 2.6 };
 const INBOX = { x: -136, y: 14, w: 32, d: 26, r: 1.6 }, INBOX_H = 6;
-const READER = { x: -96, y: 22, w: 24, d: 20, r: 1.6 }, READER_H = 24;
+const READER = { x: -96, y: 17, w: 24, d: 20, r: 1.6 }, READER_H = 14, YC = 27, SLOT_Z = 5.4;
 const POSTBOX = { x: 96, y: -8 };                                          // pied de la boîte aux lettres
 const STELE = { x: -26, y: 70, w: 52, d: 10, r: 1.4 }, STELE_H = 15;
 const LEAD_ANG = 31.6;
@@ -39,8 +39,8 @@ function dialSvg() {
   // Douze bornes de mois sur le socle, quatre plus hautes.
   for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, [x, y] = pos(a, 63.6), tall = i % 3 === 0; out.push(S(k.cylinder(x, y, tall ? 2.2 : 1.6, 3, tall ? 3.4 : 1.8, P, 14), { tone: tall ? "mid" : "lo" })); }
   // Centre : platine du style, quatre vis.
-  out.push(S(slab({ x: -9, y: -9, w: 18, d: 18, r: 2 }, DIAL.z, 1.6, 3, 0.4), { tone: "lo" }));
-  out.push(D(k.corners({ x: -9, y: -9, w: 18, d: 18 }, 2.2).map(([x, y]) => at([x, y, DIAL.z + 1.6])), { size: 0.36 }));
+  out.push(S(slab({ x: -GNOMON.t - 5, y: -GNOMON.half - 5, w: 2 * GNOMON.t + 10, d: 2 * GNOMON.half + 10, r: 2 }, DIAL.z, 1.6, 3, 0.4), { tone: "lo" }));
+  out.push(D(k.corners({ x: -GNOMON.t - 5, y: -GNOMON.half - 5, w: 2 * GNOMON.t + 10, d: 2 * GNOMON.half + 10 }, 2.2).map(([x, y]) => at([x, y, DIAL.z + 1.6])), { size: 0.36 }));
   return out.join("");
 }
 function gnomonSvg() {
@@ -58,16 +58,21 @@ function trayAndReader() {
   out.push(S(slab({ x: t.x, y: t.y + t.d - 1.6, w: t.w, d: 1.6, r: 0.4 }, 1.6, INBOX_H - 1.6, 2, 0.2), { tone: "mid" }));
   out.push(S(slab({ x: t.x, y: t.y, w: 1.6, d: t.d, r: 0.4 }, 1.6, INBOX_H - 1.6, 2, 0.2), { tone: "mid" }));
   out.push(`<g data-part="inbox"></g>`);
-  out.push(D([at([t.x + 3, t.y + t.d, INBOX_H - 2]), at([t.x + t.w - 3, t.y + t.d, INBOX_H - 2])], { size: 0.34 }));
-  out.push(S(slab(rd, 0, 6, 3, 0.8), { tone: "mid" }));
-  out.push(S(slab({ x: rd.x + 2, y: rd.y + 2, w: 3, d: 3, r: 0.5 }, 6, READER_H - 6, 2, 0.3), { tone: "mid" }));
-  out.push(S(slab({ x: rd.x + rd.w - 5, y: rd.y + 2, w: 3, d: 3, r: 0.5 }, 6, READER_H - 6, 2, 0.3), { tone: "mid" }));
+  out.push(S(slab({ x: t.x, y: t.y + 0, w: t.w, d: 1.6, r: 0.4 }, 1.6, INBOX_H + 2 - 1.6, 2, 0.2), { tone: "mid" }));
+  // fente de sortie du chargeur (face tournée vers le lecteur) : deux montants et un linteau autour d'une ouverture sombre
+  out.push(S(slab({ x: t.x + t.w - 1.6, y: t.y, w: 1.6, d: t.d / 2 - 12, r: 0.3 }, 1.6, INBOX_H + 2 - 1.6, 2, 0.1), { tone: "mid" }), S(slab({ x: t.x + t.w - 1.6, y: t.y + t.d / 2 + 12, w: 1.6, d: t.d / 2 - 12, r: 0.3 }, 1.6, INBOX_H + 2 - 1.6, 2, 0.1), { tone: "mid" }));
+  out.push(`<g transform="${k.sideMatrix([t.x + t.w, 0], 0, P, "right")}"><path class="iso-fill fig-dark" d="${flat(-(YC + 11.5), SLOT_Z - 1.3, -(YC - 11.5), SLOT_Z + 1.3, 0.4, 2)}"/></g>`);
   out.push(`<g data-part="reading"></g>`);
-  out.push(S(slab({ x: rd.x - 1, y: rd.y, w: rd.w + 2, d: rd.d - 2, r: 1.4 }, READER_H, 5, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: rd.x - 1, y: rd.y, w: rd.w + 2, d: rd.d - 2, r: 1.4 }, READER_H + 2.5, P, 3), { tone: "faint" }) }));
-  const [lx, ly] = at([rd.x + rd.w / 2, rd.y + rd.d / 2 - 1, READER_H + 6.4]);
-  out.push(S(k.cylinder(rd.x + rd.w / 2, rd.y + rd.d / 2 - 1, 2.6, READER_H + 5, 1.4, P, 18), { tone: "mid" }));
-  out.push(`<circle class="fig-lamp" data-part="read-lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`);
-  out.push(D([at([rd.x + 2, rd.y + rd.d, 3]), at([rd.x + rd.w - 2, rd.y + rd.d, 3])], { size: 0.34 }));
+  out.push(D([at([t.x + 3, t.y + t.d, INBOX_H - 2]), at([t.x + t.w - 3, t.y + t.d, INBOX_H - 2])], { size: 0.34 }));
+  out.push(k.faceTextSvg(`${front(t.y + t.d)} translate(${t.x + t.w / 2} ${-(INBOX_H - 3.6)})`, "ARRIVÉE", { size: 2.8, tone: "mid", anchor: "middle" }));
+  // lecteur : tunnel fermé, fente de sortie visible sur la face est, étiquette sur la face avant, voyant sur le dessus
+  out.push(S(slab(rd, 0, READER_H, 3, 0.8), { tone: "mid", inner: L(k.sideSeam(rd, 7, P, 3), { tone: "faint" }) }));
+  out.push(S(slab({ x: rd.x - 0.8, y: rd.y - 0.8, w: rd.w + 1.6, d: rd.d + 1.6, r: 1.4 }, READER_H, 2, 3, 0.5), { tone: "lo" }));
+  out.push(`<g transform="${k.sideMatrix([rd.x + rd.w, 0], 0, P, "right")}"><path class="iso-fill fig-dark" d="${flat(-(YC + 11.5), SLOT_Z - 1.3, -(YC - 11.5), SLOT_Z + 1.3, 0.4, 2)}"/><path class="iso-line" data-tone="mid" d="${flat(-(YC + 12.5), SLOT_Z - 2.3, -(YC - 12.5), SLOT_Z + 2.3, 0.8, 2)}"/></g>`);
+  out.push(k.faceTextSvg(`${front(rd.y + rd.d)} translate(${rd.x + rd.w / 2} ${-(READER_H - 4.4)})`, "LECTEUR", { size: 3, tone: "mid", anchor: "middle" }));
+  const [lx, ly] = at([rd.x + rd.w / 2, YC, READER_H + 5.8]);
+  out.push(S(k.cylinder(rd.x + rd.w / 2, YC, 2.2, READER_H + 2, 1.4, P, 18), { tone: "mid" }));
+  out.push(`<circle class="fig-lamp" data-part="read-lamp" cx="${lx.toFixed(1)}" cy="${(ly - 2.4).toFixed(1)}" r="1.1"/>`);
   return out.join("");
 }
 function steleSvg() {
@@ -110,7 +115,7 @@ const live = `
 ${LOOP}
 const P = ${JSON.stringify(P)};
 ${PAPER}
-const DIAL = ${JSON.stringify(DIAL)}, INBOX = ${JSON.stringify(INBOX)}, READER = ${JSON.stringify(READER)}, READER_H = ${READER_H}, POSTBOX = ${JSON.stringify(POSTBOX)}, LEAD_ANG = ${LEAD_ANG};
+const YC = ${YC}, SLOT_Z = ${SLOT_Z}, DIAL = ${JSON.stringify(DIAL)}, INBOX = ${JSON.stringify(INBOX)}, READER = ${JSON.stringify(READER)}, READER_H = ${READER_H}, POSTBOX = ${JSON.stringify(POSTBOX)}, LEAD_ANG = ${LEAD_ANG};
 // Vrais chiffres : 10 min de contrôle et de saisie évitées par PP, 4 PP par jour (40 min),
 // environ 225 jours par an à 104,74 €/h (≈ 15 700 €). Durées de validité et délai de relance illustratifs.
 const PER_DAY = 4, MIN_PER_PP = 10, RATE = 104.74, DAYS = 225, YEAR = 228, LEAD = 20, DAY_S = 3, TAU = Math.PI * 2, ANG = TAU / YEAR;
@@ -161,15 +166,17 @@ function draw(now) {
   const due = PP.filter((p) => p.e - LEAD === day), firing = frac >= 0.8 && due.length > 0;
   html(parts.flag, solidSvg(slabOf({ x: POSTBOX.x + 10, y: POSTBOX.y - 1, w: 1.4, d: 2, r: 0.3 }, firing ? 52 : 44, firing ? 14 : 6, P, 2, 0.1), firing ? { tone: "hi", lit: true } : { tone: "mid" }));
   const waiting = PER_DAY - Math.min(PER_DAY, Math.floor(Math.max(0, frac - 0.05) / 0.15));
-  html(parts.inbox, Array.from({ length: waiting }, (_, i) => paperSvg(paperRows({ c: [INBOX.x + 16, INBOX.y + 12, 2 + i * 1.1], d: [1, 0, 0], w: [0, 1, 0], L: 22, W: 16, curl: 0.05 * (i % 2 ? 1 : -1), wave: 0.3, ph: i * 2, t: now, NT: 6 }), { head: true })).join(""));
+  html(parts.inbox, Array.from({ length: waiting }, (_, i) => paperSvg(paperRows({ c: [INBOX.x + 14, YC, 2 + i * 1.1], d: [1, 0, 0], w: [0, 1, 0], L: 22, W: 16, curl: 0.05 * (i % 2 ? 1 : -1), wave: 0.3, ph: i * 2, t: now, NT: 6 }), { head: true })).join(""));
   const q = Math.floor((frac - 0.05) / 0.15), u = (frac - 0.05) / 0.15 - q;
   let reading = "", air = "", shown = "--/--";
   if (frac >= 0.05 && q < PER_DAY && day <= DAYS) {
-    const p = PP[(day - 1) * PER_DAY + q], start = [INBOX.x + 16, INBOX.y + 12, 2 + (PER_DAY - q - 1) * 1.1], read = [READER.x + READER.w / 2, READER.y + READER.d / 2, READER_H + 0.8];
-    const sheet = (c, curl, wave, lit) => paperSvg(paperRows({ c, d: [1, 0, 0], w: [0, 1, 0], L: 22, W: 16, curl, wave, roll: wave * 0.6, ph: p.j, t: now, NT: 8 }), { head: true, lit });
-    if (u < 0.3) { const v = ease(u / 0.3); reading = sheet(start.map((s, i) => s + (read[i] - s) * v), -0.06 * Math.sin(v * Math.PI) + 0.03, 1.1 * Math.sin(v * Math.PI), true); }
-    else if (u < 0.6) { reading = sheet(read, 0.02, 0.2, true); shown = dateOf(p.e); }
-    else { const v = ease((u - 0.6) / 0.4), to = pos(wrapA(p.e), 40, DIAL.z + 1); air = sheet([read[0] + (to[0] - read[0]) * v, read[1] + (to[1] - read[1]) * v, read[2] + (to[2] - read[2]) * v + 18 * Math.sin(v * Math.PI)], -0.08 * Math.sin(v * Math.PI), 1.4 * Math.sin(v * Math.PI), true); shown = dateOf(p.e); }
+    const p = PP[(day - 1) * PER_DAY + q], start = [INBOX.x + 14, YC, 2 + (PER_DAY - q - 1) * 1.1], mid = READER.x + READER.w / 2, slotIn = [INBOX.x + INBOX.w + 8, YC, SLOT_Z], out0 = [READER.x + READER.w + 9, YC, SLOT_Z];
+    const sheet = (c, curl, wave, lit) => paperSvg(paperRows({ c, d: [1, 0, 0], w: [0, 1, 0], L: 16, W: 22, curl, wave, roll: wave * 0.6, ph: p.j, t: now, NT: 8 }), { head: true, lit });
+    if (u < 0.12) { const v = ease(u / 0.12); reading = sheet(start.map((s0, i) => s0 + (slotIn[i] - s0) * v), -0.05 * Math.sin(v * Math.PI), 0.8 * Math.sin(v * Math.PI), true); }
+    else if (u < 0.3) { const v = ease((u - 0.12) / 0.18); if (v < 0.55) reading = sheet([slotIn[0] + (mid - slotIn[0]) * v, YC, SLOT_Z], 0.02, 0.2, true); }
+    else if (u < 0.6) { shown = dateOf(p.e); }
+    else if (u < 0.68) { const v = ease((u - 0.6) / 0.08); if (v > 0.45) air = sheet([mid + (out0[0] - mid) * v, YC, SLOT_Z], 0.02, 0.2, true); shown = dateOf(p.e); }
+    else { const v = ease((u - 0.68) / 0.32), to = pos(wrapA(p.e), 40, DIAL.z + 1); air = sheet([out0[0] + (to[0] - out0[0]) * v, out0[1] + (to[1] - out0[1]) * v, out0[2] + (to[2] - out0[2]) * v + 18 * Math.sin(v * Math.PI)], -0.08 * Math.sin(v * Math.PI), 1.4 * Math.sin(v * Math.PI), true); shown = dateOf(p.e); }
   }
   // Relances du jour : une lettre souple par plan atteint, du cadran vers la boîte.
   if (firing) {

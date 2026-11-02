@@ -88,8 +88,16 @@ function stampSvg() {
   out.push(S(slab({ x: STAMP.x - 8, y: 26, w: 16, d: 8, r: 1.2 }, READ_Z + 14, 9, 3, 0.5), { tone: "mid" }));
   out.push(`<g data-part="stamp">`);
   for (const dx of [-4.4, 4.4]) out.push(S(G.disc(0, STAMP.rest - 26, 0.9, G.frameAlong([STAMP.x + dx, 26, READ_Z + 18], [0, -1, 0]), P).fill ? G.disc(0, 0.01, 0.01, G.frameAlong([STAMP.x, 26, READ_Z], [0, -1, 0]), P) : G.disc(0, 0.01, 0.01, G.frameAlong([STAMP.x, 26, READ_Z], [0, -1, 0]), P), { tone: "lo" }).slice(0, 0));
-  out.push(S(slab({ x: h.x, y: STAMP.rest - 12, w: h.w, d: 4, r: 0.6 }, READ_Z - 6.4, 12.8, 2, 0.3), { tone: "hi", lit: true }));
-  out.push(S(slab({ x: STAMP.x - 2.4, y: STAMP.rest - 8, w: 4.8, d: 8, r: 0.6 }, READ_Z - 1.6, 4.8, 2, 0.2), { tone: "hi", lit: true }));
+  // tampon : pommeau sphérique, fût qui coulisse dans le manchon, bride vissée, corps de bois, patin de caoutchouc encré avec lettres en relief
+  const sy = STAMP.rest, sx = STAMP.x;
+  out.push(S(G.sphereOf([sx, sy + 12, READ_Z + 3], 4.4, P), { tone: "hi" }));
+  out.push(S(slab({ x: sx - 1.2, y: sy - 8, w: 2.4, d: 20, r: 0.4 }, READ_Z + 1.8, 2.4, 2, 0.15), { tone: "mid" }));
+  out.push(S(slab({ x: sx - 2.8, y: sy - 4, w: 5.6, d: 1.8, r: 0.3 }, READ_Z + 0.6, 4.8, 2, 0.15), { tone: "lo" }));
+  out.push(S(slab({ x: sx - 11, y: sy - 11, w: 22, d: 2.2, r: 0.8 }, READ_Z - 6, 17, 3, 0.4), { tone: "lo" }));
+  out.push(D([[-9, -6], [9, -6], [-9, 8], [9, 8]].map(([dx, dz]) => at([sx + dx, sy - 11, READ_Z - 6 + 8.5 + dz * 0.6])), { size: 0.34 }));
+  out.push(S(slab({ x: sx - 8.5, y: sy - 15.6, w: 17, d: 4.6, r: 0.6 }, READ_Z - 4.2, 12.4, 2, 0.4), { tone: "hi" }));
+  out.push(S(slab({ x: sx - 7.3, y: sy - 16.4, w: 14.6, d: 0.8, r: 0.3 }, READ_Z - 3.1, 10.2, 2, 0.1), { tone: "hi", lit: true }));
+  out.push(L([0, 1, 2].map((i) => k.segment([sx - 4.5 + i * 0.4, sy - 16.5, READ_Z + 4 - i * 2.8], [sx + 4.5 - i * 1.2, sy - 16.5, READ_Z + 4 - i * 2.8], P)).join(""), { tone: "lo", free: true }));
   out.push(`</g>`);
   return out.join("");
 }

@@ -2,7 +2,7 @@
 // La bande de papier (le registre Excel) passe d'une bobine à l'autre devant la fenêtre ; le moteur la déroule jusqu'à la ligne de l'OT,
 // le tampon y reporte les données, un cavalier Q18 se clipse sur le bord.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, cylX, cylY, display, bench, paper, ease } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, cylY, display, bench, paper, ease , ball, bolts} from './core.js';
 
 export const WIDTH = 256;
 const PLATE = { x: -128, y: -46, w: 256, d: 100, r: 8 };
@@ -45,7 +45,13 @@ export function build() {
   const hl = box(0, 14.2, READ_Z, 2 * SW, .4, ROW_H, COL.accent, 0); hl.material = new THREE.MeshBasicMaterial({ color: '#cfe0ff', transparent: true, opacity: .0 }); g.add(hl);
   // tampon
   g.add(slab(STAMP.x - 6, 44, 12, 12, 0, 6, COL.lo, 1), slab(STAMP.x - 3, 47, 6, 6, 6, READ_Z + 4, COL.mid, .8), slab(STAMP.x - 8, 43, 16, 14, READ_Z + 4, 14, COL.mid, 1.4));
-  const stamp = new THREE.Group(); stamp.add(cylY(43, STAMP.rest, STAMP.x, READ_Z + 11, 2.2, COL.hi, 16), box(STAMP.x, STAMP.rest - 10, READ_Z, 18, 4, 12.8, COL.accent)); g.add(stamp);
+  // tampon encreur : pommeau, fût moleté, bride, corps de bois, patin de caoutchouc encré et sa couronne de lettres en relief
+  const stamp = new THREE.Group(), sx = STAMP.x, sy = (y) => y;
+  stamp.add(ball(sx, 66, READ_Z, 4.4, COL.hi), cylY(38, 62, sx, READ_Z, 1.8, COL.mid, 18), cylY(39.5, 41.5, sx, READ_Z, 2.8, COL.lo, 20), box(sx, 36.6, READ_Z, 22, 2.2, 17, COL.lo), box(sx, 33.2, READ_Z, 17, 4.6, 12.4, COL.hi), box(sx, 30.7, READ_Z, 14.6, .8, 10.2, COL.accent));
+  for (let i = 0; i < 3; i++) stamp.add(box(sx, 30.2, READ_Z + 3 - i * 3, 9 - i * 1.4, .5, 1, COL.ink, 0));
+  stamp.add(bolts([[sx - 9, 36.6, READ_Z + 6], [sx + 9, 36.6, READ_Z + 6], [sx - 9, 36.6, READ_Z - 6], [sx + 9, 36.6, READ_Z - 6]], .6, COL.dark, 'y'));
+  g.add(stamp);
+  g.add(slab(sx - 10, 24, 20, 14, 0, 4, COL.lo, 1.4), slab(sx - 8, 26, 16, 10, 4, 1.4, '#2d3a66', .8));
   // console
   const ot = display(40, 7); ot.mesh.position.set(CONS.x + 26, 9.5, CONS.y + CONS.d + .05); g.add(ot.mesh);
   const dialG = new THREE.Group(); dialG.position.set(DIAL.x, CONS_H + 1.4, DIAL.y); dialG.add(cyl(0, 0, DIAL.r, 0, .8, COL.mid, 40)); for (let i = 0; i < 10; i++) { const a = (60 + 30 + i * 28) * Math.PI / 180; dialG.add(cyl(Math.cos(a) * (DIAL.r - 3), Math.sin(a) * (DIAL.r - 3), 1.6, .8, .3, COL.lo, 14)); } g.add(dialG);
@@ -76,7 +82,7 @@ export function build() {
       const c = clips[n++]; if (!c) break; c.visible = true; c.position.set(SW - 4, READ_Z - (r - offset) * ROW_H + drop, 10 + 2);
     }
     for (; n < clips.length; n++) clips[n].visible = false;
-    const press = manual === null ? Math.sin(Math.PI * Math.max(0, Math.min(1, (t - STAMPED) / T.stamp))) : 0; stamp.position.z = -(STAMP.rest - STAMP.hit) * press;
+    const press = manual === null ? Math.sin(Math.PI * Math.max(0, Math.min(1, (t - STAMPED) / T.stamp))) : 0; stamp.position.z = -(STAMP.rest - STAMP.hit) * press * .55;
     const digits = ROWS[q.row].ot; let rot = 0, shown = '_______';
     if (manual === null) { const kk = Math.floor((t - DIALED) / T.digit), u = (t - DIALED) / T.digit - kk; if (t >= DIALED && kk < 7) { const nn = +digits[kk] || 10; rot = (u < .45 ? ease(u / .45) : 1 - ease((u - .45) / .55)) * nn * 28; } const typed = Math.max(0, Math.min(7, t < DIALED ? 0 : kk + (u > .45 ? 1 : 0))); shown = digits.slice(0, typed).padEnd(7, '_'); } else shown = ROWS[sel].ot;
     dialG.rotation.y = rot * Math.PI / 180; ot.set(shown);

@@ -18,7 +18,7 @@ const ZR = (x) => CHUTE.z0 - (x - CHUTE.x0) * CHUTE.slope;
 const HOPPER = { x: -108 };
 const DESK = { x: -152, y: -24, w: 46, d: 44, r: 2.4 }, DESK_H = 26;
 const KNOB = { x: 84, z: 7, r: 4.6 };
-const POSTS = [-100, 20, 100];
+const POSTS = [-96, 12, 84];
 
 const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners(BASE, 0, ROD_TOP + 12), [HOPPER.x, 0, CHUTE.z0 + 30]], WIDTH, HEIGHT, { pad: 22, azimuth: 56 });
 const { at, S, L, D, slab, front, right, flat } = tools(P);

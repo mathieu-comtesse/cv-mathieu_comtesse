@@ -22,7 +22,7 @@ export function build() {
   g.add(bench(PLATE, { strip: { x: -140, y: PLATE.y + PLATE.d - 13, w: 150, d: 7 }, label: { x: 50, y: PLATE.y + PLATE.d - 15, w: 46, d: 11 } }));
   g.add(slab(CONSOLE.x, CONSOLE.y, CONSOLE.w, CONSOLE.d, 0, CON_H, COL.mid, 3));
   const knob = new THREE.Group(); knob.position.set(128, 26, CONSOLE.y + CONSOLE.d); const kc = cyl(0, 0, 7, 0, 6, COL.mid, 32); kc.rotation.x = Math.PI / 2; kc.position.z = 3; knob.add(kc); knob.add(box(0, 6.4, 4.2, .8, .6, 6, COL.ink, 0)); g.add(knob);
-  const pcs = [], liqs = [], floats = [], flags = [], drips = [];
+  const pcs = [], liqs = [], floats = [], flags = [], drips = [], fx = [];
   TANKS.forEach((t) => {
     g.add(slab(t.x, TY, t.w, TD, 0, FLOOR, COL.mid, 2));
     const h = WALL_TOP - FLOOR - 1;
@@ -33,6 +33,17 @@ export function build() {
     const flag = box(t.x + 3.6, FY - 1.1, 0, 3.6, 2.2, 1.6, COL.accent, 0); g.add(flag); flags.push(flag);
     const dr = box(t.x + t.w, TY + TD / 2, 0, 1.6, 2, 1, COL.accent, 0); dr.geometry.translate(0, .5, 0); g.add(dr); drips.push(dr);
     const d = display(16, 4); d.mesh.position.set(t.cx - 3, 3.6, FY + .05); g.add(d.mesh); pcs.push(d);
+    // effets d'alerte : balise tournante, onde de choc, nappe de trop-plein et flaque
+    const lm = new THREE.MeshStandardMaterial({ color: COL.accent, roughness: .5 }); liq.material = lm;
+    const beaconM = new THREE.MeshStandardMaterial({ color: '#ffb020', emissive: '#ffb020', emissiveIntensity: 0, roughness: .3 });
+    const beacon = new THREE.Group(); beacon.position.set(t.cx, WALL_TOP + 1, TY + TD / 2);
+    const bs = new THREE.Mesh(new THREE.SphereGeometry(3.4, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2), beaconM); bs.position.y = 1.4; beacon.add(cyl(0, 0, 4.2, 0, 1.4, COL.lo, 24).translateZ(0), bs); g.add(beacon);
+    const ringM = new THREE.MeshBasicMaterial({ color: '#ffb020', transparent: true, opacity: 0, depthWrite: false });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(t.w / 2 + 2, .7, 8, 48), ringM); ring.rotation.x = Math.PI / 2; ring.position.set(t.cx, WALL_TOP + 2, TY + TD / 2); g.add(ring);
+    const sheetM = new THREE.MeshStandardMaterial({ color: COL.red, transparent: true, opacity: .8, roughness: .2, emissive: COL.red, emissiveIntensity: .35 });
+    const sheet = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1, 9), sheetM); sheet.position.set(t.x + t.w + 2.4, zOf(1), TY + TD / 2); sheet.visible = false; g.add(sheet);
+    const puddle = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, .4, 28), sheetM); puddle.position.set(t.x + t.w + 3, FLOOR + .2, TY + TD / 2); puddle.visible = false; g.add(puddle);
+    fx.push({ lm, beaconM, ring, ringM, sheet, puddle, over: false, at: -9 });
   });
   g.add(slab(TRAY.x, TRAY.y, TRAY.w, TRAY.d, 0, 1.4, COL.lo, 2), slab(TRAY.x, TRAY.y + TRAY.d - 1.4, TRAY.w, 1.4, 0, 7, COL.mid, .5));
   const envs = Array.from({ length: 5 * SHOWN }, () => { const o = new THREE.Group(), pp = paper(10, 16, '#f4f7fd', 6); pp.rotation.z = -Math.PI / 2; o.rotation.x = -Math.PI / 2; o.add(pp); o.userData.p = pp; o.visible = false; g.add(o); return o; });
@@ -55,6 +66,13 @@ export function build() {
       const z = zOf(r[i]); liqs[i].scale.y = Math.max(.01, z - FLOOR - 1); floats[i].position.set(t.x + 5, z + .7 + 0, TY + 4);
       flags[i].position.y = zOf(shownT) + .4; drips[i].visible = r[i] > 1; drips[i].position.y = 1.4; drips[i].scale.y = zOf(1) - 1.4;
       pcs[i].set(String(Math.round(r[i] * 100)).padStart(3, ' ') + ' %');
+      const f = fx[i], hit = r[i] >= shownT, over = r[i] > 1;
+      if (hit && !f.over) f.at = time; f.over = hit;
+      const pulse = .5 + .5 * Math.sin(time * (over ? 14 : 7) + i), age = time - f.at;
+      f.beaconM.emissiveIntensity = hit ? 1.2 + 1.6 * pulse : 0; f.beaconM.color.set(over ? '#ff3b30' : '#ffb020'); f.beaconM.emissive.set(over ? '#ff3b30' : '#ffb020');
+      f.lm.color.set(over ? COL.red : hit ? '#f08a24' : COL.accent); f.lm.emissive.set(over ? COL.red : '#f08a24'); f.lm.emissiveIntensity = hit ? .25 + .3 * pulse : 0;
+      const k = age < 1.4 ? age / 1.4 : 1; f.ring.visible = age < 1.4; f.ring.scale.setScalar(1 + 1.6 * k); f.ringM.opacity = age < 1.4 ? .85 * (1 - k) : 0;
+      f.sheet.visible = over; f.puddle.visible = over; if (over) { f.sheet.scale.y = zOf(1) - FLOOR; f.sheet.position.y = (zOf(1) + FLOOR) / 2; f.sheet.material.opacity = .55 + .3 * pulse; f.puddle.scale.setScalar(4 + 5 * Math.min(1, (r[i] - 1) * 6)); }
     });
     let n = 0;
     TANKS.forEach((t, i) => sent.filter((s) => s.i === i && s.day <= day).slice(-SHOWN).forEach((s, q) => {

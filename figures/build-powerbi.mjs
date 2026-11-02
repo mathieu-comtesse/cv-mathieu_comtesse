@@ -14,8 +14,8 @@ const STEPS = [{ x: -146, y: -48, w: 112, d: 88, z: 0, h: 14 }, { x: -136, y: -4
 const SUMMIT_Z = 46, LIB = { x: -118, y: -26, w: 50, d: 40, r: 2 }, LIB_H = 34;
 const CELLS = { cols: 12, rows: 3, w: 2.9, h: 6.4, px: 3.6, py: 8.4 };
 const ARCH = { x: -146, y: 24, w: 26, d: 24, r: 2 };
-const TOPDOCK = { x: -58, z: 76 }, VALDOCK = { x: 64, z: 56 }, CY = [-7, 7];
-const cableZ = (x) => TOPDOCK.z + (VALDOCK.z - TOPDOCK.z) * (x - TOPDOCK.x) / (VALDOCK.x - TOPDOCK.x);
+const TOPDOCK = { x: -58, z: 76 }, VALDOCK = { x: 52, z: 58 }, CY = [-8, 8];
+const cableZ = (x) => TOPDOCK.z + 4 + (VALDOCK.z - TOPDOCK.z) * (x - (TOPDOCK.x + 14)) / (VALDOCK.x - TOPDOCK.x);   // brin porteur
 const PYL = [-14, 30];
 const SHOP = { x: 72, y: -14, w: 52, d: 36, r: 2 }, SHOP_H = 22, COUNTER = { x: 74, y: 22, w: 46, d: 16, r: 1.4 }, COUNTER_Z = 14;
 const VMK = { x: 108, y: -52, w: 34, d: 26, r: 2 }, VM_H = 32;
@@ -77,30 +77,44 @@ function archiveSvg() {
 }
 
 // ---------------------------------------------------------------- pylônes, câbles, cabines
-function pylonSvg(x) {
-  const out = [], zc = cableZ(x) + 6, base = { x: x - 5, y: -9, w: 10, d: 18, r: 1.4 };
-  out.push(S(slab(base, 0, 3, 3, 0.5), { tone: "lo" }));
-  for (const y of [-6.4, 5.2]) out.push(S(slab({ x: x - 1.4, y, w: 2.8, d: 1.2, r: 0.3 }, 3, zc - 3, 3, 0.2), { tone: "mid" }));
-  // Croisillons : traverses tous les 14, bras de poulies en tête.
-  for (let z = 14; z < zc - 4; z += 14) out.push(S(slab({ x: x - 1.2, y: -6.4, w: 2.4, d: 12, r: 0.3 }, z, 1.4, 2, 0.15), { tone: "mid" }));
-  out.push(S(slab({ x: x - 3, y: -12, w: 6, d: 24, r: 1 }, zc - 3, 3.2, 3, 0.5), { tone: "mid" }));
-  for (const y of CY) { out.push(S(G.disc(0, 4, 3.4, G.frameAlong([x - 2, y, cableZ(x) + 1.6], [1, 0, 0]), P), { tone: "lo" })); }
-  out.push(D([at([x, 5.8, 6]), at([x, 5.8, zc - 6]), at([x, 11.6, zc])], { size: 0.34 }));
+const post = (x, y, z0, z1, w = 5) => S(slab({ x: x - w / 2, y: y - w / 2, w, d: w, r: 0.6 }, z0, z1 - z0, 3, 0.4), { tone: "mid" }) + S(slab({ x: x - w / 2 - 2, y: y - w / 2 - 2, w: w + 4, d: w + 4, r: 0.8 }, z0, 2, 3, 0.3), { tone: "lo" }) + D(k.corners({ x: x - w / 2 - 2, y: y - w / 2 - 2, w: w + 4, d: w + 4 }, 1).map(([bx, by]) => at([bx, by, z0 + 2])), { size: 0.32 });
+const wheel = (x, y, z, r) => S(G.disc(-2.4, 2.4, r, G.frameAlong([x, y, z], [1, 0, 0]), P), { tone: "lo", inner: k.fadedSvg(G.ribsOf(G.frameAlong([x, y, z], [1, 0, 0]), -2.4, 2.4, r, 20, P, { fade: [0.1, 0.55] }), { tone: "faint" }) });
+// Pylône : deux jambes de part et d'autre des cabines (y = ±20), croisillon, traverse au-dessus des câbles et galets de maintien.
+function pylonBack(x) {
+  const zc = cableZ(x) + 7, out = [post(x, -20, 0, zc)];
+  out.push(S(slab({ x: x - 1, y: -20.6, w: 2, d: 41.2, r: 0.3 }, zc * 0.55, 1.6, 2, 0.1), { tone: "lo" }));
+  return out.join("");
+}
+function pylonFront(x) {
+  const zc = cableZ(x) + 7, out = [post(x, 20, 0, zc)];
+  out.push(S(slab({ x: x - 3, y: -23, w: 6, d: 46, r: 1 }, zc, 3.2, 3, 0.5), { tone: "mid", inner: L(k.sideSeam({ x: x - 3, y: -23, w: 6, d: 46, r: 1 }, zc + 1.6, P, 3), { tone: "faint" }) }));
+  for (const y of CY) out.push(wheel(x, y, zc - 2.6, 2.6), S(slab({ x: x - 1.2, y: y - 1.2, w: 2.4, d: 2.4, r: 0.3 }, zc - 2.4, 2.4, 2, 0.1), { tone: "lo" }));
+  out.push(D(k.corners({ x: x - 3, y: -23, w: 6, d: 46 }, 1.2).map(([bx, by]) => at([bx, by, zc + 3.2])), { size: 0.34 }));
   return out.join("");
 }
 function cableSvg(y) {
-  const pts = []; for (let i = 0; i <= 24; i++) { const x = TOPDOCK.x + (VALDOCK.x - TOPDOCK.x) * i / 24, sag = -2.4 * Math.sin(Math.PI * i / 24); pts.push(at([x, y, cableZ(x) + sag])); }
-  return `<path class="iso-line" data-tone="mid" data-free="both" d="M${pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L")}" style="stroke-width:1.1"/>`;
+  const x0 = TOPDOCK.x + 14, x1 = VALDOCK.x + 14, pts = [];
+  for (let i = 0; i <= 24; i++) { const x = x0 + (x1 - x0) * i / 24, sag = -1.2 * Math.sin(Math.PI * i / 24); pts.push(at([x, y, cableZ(x) + sag])); }
+  return `<path class="iso-line" data-tone="mid" data-free="both" d="M${pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L")}" style="stroke-width:1.2"/>` + S(slab({ x: x0 + 1.4, y: y - 1.5, w: 4, d: 3, r: 0.3 }, TOPDOCK.z + 4 - 1.5, 3, 2, 0.1), { tone: "mid" }) + S(slab({ x: x1 + 1.4, y: y - 1.5, w: 4, d: 3, r: 0.3 }, VALDOCK.z + 4 - 1.5, 3, 2, 0.1), { tone: "mid" });
 }
-function stationHigh() {
+// Gare : deux tours sur le palier, quai à garde-corps, traverse et poulies de renvoi ; le quai repose sur la montagne ou sur le sol.
+function station(x, zTop, zBase, px0, px1, side) {
   const out = [];
-  // Portique du sommet : deux montants et poulie motrice.
-  out.push(S(slab({ x: TOPDOCK.x - 4, y: -12, w: 6, d: 4, r: 0.8 }, SUMMIT_Z + 14, TOPDOCK.z - SUMMIT_Z - 14 + 8, 3, 0.4), { tone: "mid" }));
-  out.push(S(slab({ x: TOPDOCK.x - 4, y: 8, w: 6, d: 4, r: 0.8 }, SUMMIT_Z + 14, TOPDOCK.z - SUMMIT_Z - 14 + 8, 3, 0.4), { tone: "mid" }));
-  out.push(S(slab({ x: TOPDOCK.x - 6, y: -12, w: 10, d: 24, r: 1 }, TOPDOCK.z + 4, 3.6, 3, 0.5), { tone: "mid" }));
-  for (const y of CY) out.push(S(G.disc(0, 4, 5.6, G.frameAlong([TOPDOCK.x - 3, y, TOPDOCK.z - 1.6], [1, 0, 0]), P), { tone: "lo", inner: k.fadedSvg(G.ribsOf(G.frameAlong([TOPDOCK.x - 3, y, TOPDOCK.z - 1.6], [1, 0, 0]), 0, 4, 5.6, 28, P, { fade: [0.1, 0.55] }), { tone: "faint" }) }));
+  const legs = side === "back" ? [-14] : [14];
+  for (const y of legs) out.push(post(x, y, zBase, zTop + 8));
+  if (side === "back") {
+    out.push(S(slab({ x: px0, y: -10, w: px1 - px0, d: 20, r: 0.8 }, zTop - 14.6, 1.6, 3, 0.3), { tone: "lo" }));
+    for (const ppx of [px0 + 2, px1 - 2]) for (const y of [-8.5, 8.5]) out.push(S(slab({ x: ppx - 1, y: y - 1, w: 2, d: 2, r: 0.3 }, zBase, zTop - 14.6 - zBase, 2, 0.1), { tone: "mid" }));
+    out.push(S(slab({ x: px0, y: -10, w: px1 - px0, d: 1.2, r: 0.2 }, zTop - 13, 5, 2, 0.1), { tone: "mid" }));
+  } else {
+    out.push(S(slab({ x: px0, y: 8.8, w: px1 - px0, d: 1.2, r: 0.2 }, zTop - 13, 5, 2, 0.1), { tone: "mid" }));
+    out.push(S(slab({ x: x - 4, y: -18, w: 8, d: 36, r: 1 }, zTop + 8, 3.2, 3, 0.5), { tone: "mid" }));
+    for (const y of CY) out.push(wheel(x, y, zTop, 4.4));
+  }
   return out.join("");
 }
+const stationHighBack = () => station(TOPDOCK.x + 14, TOPDOCK.z, 30, TOPDOCK.x - 14, TOPDOCK.x + 8, "back"), stationHighFront = () => station(TOPDOCK.x + 14, TOPDOCK.z, 30, TOPDOCK.x - 14, TOPDOCK.x + 8, "front");
+const stationLowBack = () => station(VALDOCK.x + 14, VALDOCK.z, 0, VALDOCK.x - 8, VALDOCK.x + 8, "back"), stationLowFront = () => station(VALDOCK.x + 14, VALDOCK.z, 0, VALDOCK.x - 8, VALDOCK.x + 8, "front") + S(slab({ x: VALDOCK.x + 11, y: -3, w: 6, d: 6, r: 0.8 }, VALDOCK.z - 6, 12, 3, 0.3), { tone: "lo" }) + S(slab({ x: VALDOCK.x + 13.6, y: -0.4, w: 0.8, d: 0.8, r: 0 }, VALDOCK.z + 6, 8, 2, 0), { tone: "mid" });
 function shopSvg() {
   const out = [], b = SHOP, c = COUNTER, f = front(b.y + b.d);
   out.push(S(slab({ x: b.x - 3, y: b.y - 3, w: b.w + 6, d: b.d + 6, r: 3 }, 0, 3, 3, 0.5), { tone: "lo" }));
@@ -113,9 +127,6 @@ function shopSvg() {
   for (const [x, y] of k.corners(c, 3)) out.push(S(k.cylinder(x, y, 1.6, 0, COUNTER_Z - 2.4, P, 14), { tone: "lo" }));
   out.push(S(slab({ x: c.x, y: c.y + c.d - 1.6, w: c.w, d: 1.6, r: 0.4 }, COUNTER_Z, 2.8, 2, 0.2), { tone: "mid" }));
   out.push(`<g data-part="counter"></g>`);
-  // Quai de la gare basse.
-  out.push(S(slab({ x: VALDOCK.x - 8, y: -10, w: 12, d: 20, r: 1 }, VALDOCK.z - 6, 2, 3, 0.4), { tone: "lo" }));
-  out.push(S(slab({ x: VALDOCK.x - 6, y: -10, w: 4, d: 3, r: 0.6 }, 0, VALDOCK.z - 6, 3, 0.4), { tone: "mid" }), S(slab({ x: VALDOCK.x - 6, y: 7, w: 4, d: 3, r: 0.6 }, 0, VALDOCK.z - 6, 3, 0.4), { tone: "mid" }));
   return out.join("");
 }
 function vmSvg() {
@@ -135,8 +146,8 @@ const svg = k.figureSvg({
   label: "Un téléphérique de dossiers. Au sommet, une bibliothèque d'archives de trente-six cases et une caisse d'archives ; dans la vallée, le comptoir et le poste de la VM. Deux cabines vont et viennent sur deux câbles, l'une montant quand l'autre descend : à chaque consultation le dossier demandé sort de sa case, descend et glisse sur le comptoir ; à chaque nouveau PP, la VM l'envoie au sommet où il prend la place de l'ancien, qui part aux archives.",
   body: [
     bench(P, PLATE, { strip: { x: -148, y: PLATE.y + PLATE.d - 13, w: 150, d: 7, r: 1 }, label: { x: 70, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
-    terrainSvg(), archiveSvg(), libSvg(), stationHigh(), vmSvg(),
-    cableSvg(CY[0]), `<g data-part="cab-a"></g>`, pylonSvg(PYL[0]), pylonSvg(PYL[1]), cableSvg(CY[1]), `<g data-part="cab-b"></g>`, shopSvg(), `<g data-part="air"></g>`,
+    terrainSvg(), archiveSvg(), libSvg(), stationHighBack(), stationLowBack(), vmSvg(), pylonBack(PYL[0]), pylonBack(PYL[1]),
+    cableSvg(CY[0]), `<g data-part="cab-a"></g>`, cableSvg(CY[1]), `<g data-part="cab-b"></g>`, pylonFront(PYL[0]), pylonFront(PYL[1]), stationHighFront(), stationLowFront(), shopSvg(), `<g data-part="air"></g>`,
   ],
 });
 
@@ -146,7 +157,7 @@ ${LOOP}
 const P = ${JSON.stringify(P)};
 ${PAPER}
 const CELLS = ${JSON.stringify(CELLS)}, LIB = ${JSON.stringify(LIB)}, SUMMIT_Z = ${SUMMIT_Z}, TOPDOCK = ${JSON.stringify(TOPDOCK)}, VALDOCK = ${JSON.stringify(VALDOCK)}, CY = ${JSON.stringify(CY)}, ARCH = ${JSON.stringify(ARCH)}, COUNTER = ${JSON.stringify(COUNTER)}, COUNTER_Z = ${COUNTER_Z}, VMK = ${JSON.stringify(VMK)}, VM_H = ${VM_H}, TIERS = ${TIERS}, SHELVES = ${SHELVES}, FH = ${FH}, FW = ${FW};
-const cableZ = (x) => TOPDOCK.z + (VALDOCK.z - TOPDOCK.z) * (x - TOPDOCK.x) / (VALDOCK.x - TOPDOCK.x);
+const cableZ = (x) => TOPDOCK.z + 4 + (VALDOCK.z - TOPDOCK.z) * (x - (TOPDOCK.x + 14)) / (VALDOCK.x - TOPDOCK.x);
 // Vrais chiffres. Consultation : 10 min évitées × 40 consultations par jour = 6 h 40, 698,27 €.
 // Traitement : 15 à 20 min évitées par PP (extraction VM, rangement SharePoint, archivage), 400 à 500 PP par an.
 // Horaires des demandes et numéros de PP illustratifs.
@@ -164,15 +175,16 @@ const TRIPS = [...ASKS.map((q) => ({ at: q.at + 2, kind: "ask", q })), ...DEPOSI
 const TRIP_T = 6;
 function cabinS(t) { let c = 0; for (const tr of TRIPS) { if (t < tr.at) break; c += ease((t - tr.at) / TRIP_T); } const p = c % 2; return p <= 1 ? p : 2 - p; }   // 0 : cabine A au sommet
 const cellPos = (tier, pocket) => { const x0 = LIB.x + (LIB.w - (CELLS.cols * CELLS.px - (CELLS.px - CELLS.w))) / 2; return [x0 + pocket * CELLS.px + CELLS.w / 2, LIB.y + LIB.d, SUMMIT_Z + 5 + tier * CELLS.py + CELLS.h / 2]; };
-const cabinAt = (s, y) => { const x = lerp(TOPDOCK.x, VALDOCK.x, s); return [x, y, cableZ(x) - 9]; };
-function cabinSvg(c, docs, now, tilt) {
+const cabinAt = (s, y) => { const x = lerp(TOPDOCK.x, VALDOCK.x, s); return [x, y, cableZ(x) - 20]; };
+// Cabine ouverte suspendue au brin porteur : grippe, deux tiges, plancher et quatre bordures basses ; le dossier voyage à plat sur le plancher.
+function cabinSvg(c, load, now, tilt) {
   const [x, y, z] = c;
-  let out = '<path class="iso-line" data-tone="mid" data-free="both" d="' + "M" + iso([x, y, z + 9], P).map((v) => v.toFixed(1)).join(" ") + "L" + iso([x, y, z + 2], P).map((v) => v.toFixed(1)).join(" ") + '"/>';
-  out += solidSvg(slabOf({ x: x - 3, y: y - 1.2, w: 6, d: 2.4, r: 0.4 }, z + 7.6, 2, P, 2, 0.1), { tone: "lo" });
-  for (const dx of [-7, 7]) out += solidSvg(slabOf({ x: x + dx - 0.5, y: y - 0.4, w: 1, d: 0.8, r: 0.1 }, z - 0.2, 9.2, P, 2, 0), { tone: "mid" });
-  out += solidSvg(slabOf({ x: x - 10, y: y - 6.4, w: 20, d: 12.8, r: 1 }, z - 8, 1.8, P, 2, 0.2), { tone: "mid" });
-  for (let i = 0; i < docs; i++) out += paperSvg(paperRows({ c: [x + (i - (docs - 1) / 2) * 4.6, y, z - 6.4 + FH / 2], d: [0, 0, 1], w: [0, 1, 0], L: FH, W: FW - 2, curl: (i % 2 ? 1 : -1) * 0.05, wave: 0.5 + tilt, roll: 0.3, ph: i * 1.7 + x * 0.1, t: now, NT: 5 }), { head: true });
-  out += solidSvg(slabOf({ x: x - 10, y: y - 6.4, w: 20, d: 1.4, r: 0.2 }, z - 8, 6.4, P, 2, 0.1), { tone: "mid" }) + solidSvg(slabOf({ x: x - 10, y: y + 5, w: 20, d: 1.4, r: 0.2 }, z - 8, 6.4, P, 2, 0.1), { tone: "mid" }) + solidSvg(slabOf({ x: x - 10, y: y - 6.4, w: 1.4, d: 12.8, r: 0.2 }, z - 8, 6.4, P, 2, 0.1), { tone: "mid" }) + solidSvg(slabOf({ x: x + 8.6, y: y - 6.4, w: 1.4, d: 12.8, r: 0.2 }, z - 8, 6.4, P, 2, 0.1), { tone: "mid" });
+  let out = solidSvg(slabOf({ x: x - 10, y: y - 6, w: 20, d: 12, r: 1 }, z + 4, 1.6, P, 2, 0.2), { tone: "mid" });
+  out += solidSvg(slabOf({ x: x - 10, y: y - 6, w: 20, d: 1, r: 0.2 }, z + 5.6, 4.4, P, 2, 0.1), { tone: "mid" }) + solidSvg(slabOf({ x: x - 10, y: y - 6, w: 1, d: 12, r: 0.2 }, z + 5.6, 4.4, P, 2, 0.1), { tone: "mid" });
+  if (load) out += paperSvg(paperRows({ c: [x, y, z + 5.8], d: [1, 0, 0], w: [0, 1, 0], L: 11, W: 9, curl: 0.03, wave: 0.3 + tilt, roll: 0.3, ph: x * 0.1, t: now, NT: 5 }), { head: true, lit: true });
+  out += solidSvg(slabOf({ x: x - 10, y: y + 5, w: 20, d: 1, r: 0.2 }, z + 5.6, 4.4, P, 2, 0.1), { tone: "mid" }) + solidSvg(slabOf({ x: x + 9, y: y - 6, w: 1, d: 12, r: 0.2 }, z + 5.6, 4.4, P, 2, 0.1), { tone: "mid" });
+  for (const dx of [-7, 7]) out += solidSvg(slabOf({ x: x + dx - 0.45, y: y - 0.45, w: 0.9, d: 0.9, r: 0.1 }, z + 5.6, 14.4, P, 2, 0), { tone: "mid" });
+  out += solidSvg(slabOf({ x: x - 3, y: y - 1.6, w: 6, d: 3.2, r: 0.4 }, z + 18.4, 2.8, P, 2, 0.1), { tone: "lo" });
   return out;
 }
 const doc = (c, curl, wave, lit, ph = 0, now = 0) => paperSvg(paperRows({ c, d: [0, 0, 1], w: [0, 1, 0], L: FH, W: FW, curl, wave, roll: wave * 0.6, ph, t: now, NT: 6 }), { head: true, lit });
@@ -183,35 +195,30 @@ function draw(now) {
   stock.forEach((t, i) => t.forEach((_, p) => { t[p] = START_STOCK[i][p]; })); const archived = [];
   let nextId = 2400 + TIERS * SHELVES;
   for (const d of DEPOSITS) { if (m < d.at + 9) break; archived.push(stock[d.tier][d.pocket]); stock[d.tier][d.pocket] = nextId++; }
-  // Cabine A (câble du fond) : au sommet quand s = 0 ; cabine B : à l'opposé.
   const aPos = cabinAt(s, CY[0]), bPos = cabinAt(1 - s, CY[1]);
-  const aLoad = (active && m - active.at >= 2 && m - active.at < 8.6 && s <= 1) ? 1 : 0, bLoad = dep && m - dep.at >= 3 && m - dep.at < 9.4 ? 1 : 0;
-  // Qui descend : la consultation prend la cabine du sommet ; le dépôt, celle de la vallée. Les deux cabines se croisent.
-  const topIsA = (TRIPS.filter((tr) => m >= tr.at + TRIP_T).length % 2) === 0;
-  const askCab = active && m - active.at >= 2 && m - active.at < 8.6, depCab = dep && m - dep.at >= 3 && m - dep.at < 9.4;
-  const cargoA = (askCab && (topIsA ? m < active.at + 2 + TRIP_T : true)) || (depCab && !topIsA === false), cargoB = depCab;
-  html(parts.a, cabinSvg(aPos, askCab || depCab ? 1 : 0, now, moving)); html(parts.b, cabinSvg(bPos, askCab || depCab ? 1 : 0, now, moving));
-  void aLoad; void bLoad; void cargoA; void cargoB;
-  let air = "", counter = "", cellLit = "";
+  const cabDoc = (idx, atTop) => { const x = atTop ? TOPDOCK.x : VALDOCK.x; return [x, CY[idx], cableZ(x) - 20 + 7.6]; };
+  const nBefore = (t) => TRIPS.filter((tr) => tr.at < t).length;
+  let cargoCab = -1, cargoOn = false;
   const cellRect = (tier, pocket) => { const [cx, , cz] = cellPos(tier, pocket); return '<path class="iso-fill" style="fill:var(--anatomy-lit);opacity:.9" d="' + "M" + iso([cx - CELLS.w / 2, LIB.y + LIB.d + 0.05, cz - CELLS.h / 2], P).map((v) => v.toFixed(1)).join(" ") + "L" + iso([cx + CELLS.w / 2, LIB.y + LIB.d + 0.05, cz - CELLS.h / 2], P).map((v) => v.toFixed(1)).join(" ") + "L" + iso([cx + CELLS.w / 2, LIB.y + LIB.d + 0.05, cz + CELLS.h / 2], P).map((v) => v.toFixed(1)).join(" ") + "L" + iso([cx - CELLS.w / 2, LIB.y + LIB.d + 0.05, cz + CELLS.h / 2], P).map((v) => v.toFixed(1)).join(" ") + 'Z"/>'; };
+  const fly = (f, t, v, h) => f.map((x, j) => lerp(x, t[j], ease(Math.max(0, Math.min(1, v)))) + (j === 2 ? h * Math.sin(Math.PI * Math.max(0, Math.min(1, v))) : 0));
+  let air = "", counter = "", cellLit = "";
   if (active) {
-    const a = m - active.at, c0 = cellPos(active.tier, active.pocket), topCab = cabinAt(s <= 0.5 ? s : 0, s <= 0.5 ? CY[0] : CY[0]);
+    const a = m - active.at, c0 = cellPos(active.tier, active.pocket), cell = [c0[0], LIB.y + LIB.d, c0[2] - 1];
     cellLit += cellRect(active.tier, active.pocket);
-    // 0–2 : le dossier sort de sa case jusqu'au quai ; 2–8 : il descend dans la cabine ; 8–12 : il glisse sur le comptoir.
-    const dock = [TOPDOCK.x - 6, 0, TOPDOCK.z - 14];
-    if (a < 2) { const v = ease(a / 2); air += doc([c0[0] + (dock[0] - c0[0]) * v, c0[1] + 4 + (dock[1] - c0[1] - 4) * v, c0[2] + (dock[2] - c0[2]) * v + 8 * Math.sin(v * Math.PI)], -0.05, 0.9 * Math.sin(v * Math.PI), true, active.pocket, now); }
-    else if (a >= 8 && a < 12) { const v = ease((a - 8) / 4), from = [VALDOCK.x - 4, 0, VALDOCK.z - 14], to = [COUNTER.x + COUNTER.w / 2, COUNTER.y + COUNTER.d / 2, COUNTER_Z + 3.6 + FH / 2 - 3]; air += doc([from[0] + (to[0] - from[0]) * v, from[1] + (to[1] - from[1]) * v, from[2] + (to[2] - from[2]) * v + 14 * Math.sin(v * Math.PI)], -0.06 * Math.sin(v * Math.PI), 1.2 * Math.sin(v * Math.PI), true, active.pocket, now); }
+    const cab = nBefore(active.at + 2) % 2 === 0 ? 0 : 1; cargoCab = cab; cargoOn = a >= 2 && a < 8.6;
+    if (a < 2) air += doc(fly(cell, cabDoc(cab, true), a / 2, 8), -0.05, 0.9, true, active.pocket, now);
+    else if (a >= 8.6 && a < 12) air += doc(fly(cabDoc(cab, false), [COUNTER.x + COUNTER.w / 2, COUNTER.y + COUNTER.d / 2, COUNTER_Z + 3.6 + FH / 2 - 3], (a - 8.6) / 3.4, 14), -0.06, 1.2, true, active.pocket, now);
     if (a >= 12) counter = doc([COUNTER.x + COUNTER.w / 2, COUNTER.y + COUNTER.d / 2, COUNTER_Z + 3.6 + FH / 2 - 3], 0.05, 0.25, true, 1, now);
-    void topCab;
   }
   if (dep) {
-    const a = m - dep.at, c0 = cellPos(dep.tier, dep.pocket), vm = [VMK.x + VMK.w / 2, VMK.y + VMK.d / 2, VM_H + 8], valDock = [VALDOCK.x - 4, 0, VALDOCK.z - 14], topDock = [TOPDOCK.x - 6, 0, TOPDOCK.z - 14], arch = [ARCH.x + 14, ARCH.y + 12, SUMMIT_Z - 4];
+    const a = m - dep.at, c0 = cellPos(dep.tier, dep.pocket), cell = [c0[0], LIB.y + LIB.d, c0[2] - 1], vm = [VMK.x + VMK.w / 2, VMK.y + VMK.d / 2, VM_H + 8], arch = [ARCH.x + 14, ARCH.y + 12, SUMMIT_Z - 4];
     cellLit += cellRect(dep.tier, dep.pocket);
-    const fly = (f, t, v, h) => f.map((x, j) => lerp(x, t[j], ease(v)) + (j === 2 ? h * Math.sin(Math.PI * Math.max(0, Math.min(1, v))) : 0));
-    if (a < 3) air += doc(fly(vm, valDock, a / 3, 14), -0.07, 1.1, true, 3, now);
-    else if (a >= 9 && a < 11) air += doc(fly(topDock, c0.map((v, j) => j === 1 ? v + 4 : v), (a - 9) / 2, 6), -0.06, 1, true, 4, now);
-    if (a >= 9 && a < 12) air += doc(fly([c0[0], c0[1] + 4, c0[2]], arch, (a - 9) / 3, 16), -0.07, 1.1, false, 5, now);
+    const cab = nBefore(dep.at + 3) % 2 === 0 ? 1 : 0; cargoCab = cab; cargoOn = a >= 3 && a < 9.4;
+    if (a < 3) air += doc(fly(vm, cabDoc(cab, false), a / 3, 14), -0.07, 1.1, true, 3, now);
+    else if (a >= 9.4 && a < 11.4) air += doc(fly(cabDoc(cab, true), cell, (a - 9.4) / 2, 6), -0.06, 1, true, 4, now);
+    if (a >= 9.4 && a < 12.4) air += doc(fly(cell, arch, (a - 9.4) / 3, 16), -0.07, 1.1, false, 5, now);
   }
+  html(parts.a, cabinSvg(aPos, cargoOn && cargoCab === 0, now, moving)); html(parts.b, cabinSvg(bPos, cargoOn && cargoCab === 1, now, moving));
   html(parts.air, air); html(parts.counter, counter); html(parts.cell, cellLit);
   html(parts.archive, archived.map((_, i) => doc([ARCH.x + 6 + i * 6, ARCH.y + 12, SUMMIT_Z - 6 + FH / 2], 0.04, 0.2, false, i * 2, now)).join(""));
   const vmText = dep ? ((m - dep.at) < 5 ? "EXTRAIT" : "RANGÉ") : "PRÊTE";

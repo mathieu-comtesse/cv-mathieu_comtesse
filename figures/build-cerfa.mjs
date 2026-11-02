@@ -12,7 +12,7 @@ const WIDTH = 560, HEIGHT = 520;
 // ---------------------------------------------------------------- monde (1 unité ≈ 5 mm)
 const PLATE = { x: -84, y: -40, w: 168, d: 80, r: 8 };
 const CAB = { x: -66, y: -12, w: 132, d: 28, r: 3 }, CAB_H = 26;       // caisson des compteurs
-const TRAY_Z = CAB_H, R = 3.6, STEP = 7.2, CAP = 4;                       // bille : 18 mm, pile visible de 4
+const TRAY_Z = CAB_H, R = 3.6, STEP = 6.4, CAP = 12;                       // bille : 18 mm, pile de 12 en trois colonnes
 const HX = [-50, -20, 10, 40];                                           // goulottes : retard, NC, doublon, conforme
 const XR = 56, SL = 0.3, ZR = 108;                                      // départ de rampe et pente
 const zs = (x) => ZR - SL * (XR - x);                                    // surface de la rampe
@@ -21,6 +21,7 @@ const Y0 = -5.6, Y1 = 3.2, YB = -1.2;                                    // cana
 const TOP = ZR + 34, BTOP = ZR + 46;                                     // haut du chargeur, haut du bâti
 const READ = { x0: 44, x1: 54 };
 const LOT = { min: 50, max: 500, rest: 300 };
+const slotX = (q) => [-8, 0, 8][(q + Math.floor(q / 3)) % 3];
 const KNOB = { y: 1, z: 13, r: 5 };
 
 const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -66, y: -12, w: 132, d: 30 }, 0, TOP + 4)], WIDTH, HEIGHT, { pad: 24, azimuth: 76 });
@@ -218,6 +219,7 @@ const live = `
 ${LOOP}
 const P = ${JSON.stringify(P)};
 const BALL = ${JSON.stringify(BALL)}, BALL_HI = ${JSON.stringify(BALL_HI)};
+const slotX = ${slotX.toString()};
 const R = ${R}, STEP = ${STEP}, CAP = ${CAP}, TRAY_Z = ${TRAY_Z}, HX = ${JSON.stringify(HX)}, XR = ${XR}, SL = ${SL}, ZR = ${ZR}, YB = ${YB};
 const LOT = ${JSON.stringify(LOT)}, READ = ${JSON.stringify(READ)}, KNOB = ${JSON.stringify(KNOB)}, RIGHT_X = ${CAB.x + CAB.w}, GATE = ${GATE};
 const zs = (x) => ZR - SL * (XR - x), K = Math.sqrt(1 + SL * SL);
@@ -237,7 +239,7 @@ const drawn = { mag: null, piles: null };
 const reset = () => { kinds = Array.from({ length: lot }, (_, i) => kindOf(i)); t = still.matches ? 1e6 : -0.6; holdUntil = 0; drawn.mag = drawn.piles = null; };
 // Une bille : roule jusqu'à sa goulotte (ou au bout de la rampe), tombe, se pose sur la pile.
 const tRoll = (kk) => (XR - HX[kk]) / V;
-const landZ = (kk, n) => TRAY_Z + R + Math.min(n, CAP - 1) * STEP;
+const landZ = (kk, n) => TRAY_Z + R + Math.floor(Math.min(n, CAP - 1) / 3) * STEP;
 const fallTime = (kk, n) => Math.sqrt(2 * Math.max(1, zs(HX[kk]) + R * K - landZ(kk, n)) / G_);
 function state() {
   const landed = [0, 0, 0, 0], flying = [];
@@ -257,11 +259,12 @@ function ball(kk, age, n) {
   const tr = tRoll(kk);
   if (age < tr) { const x = XR - age * V; return { x, z: zs(x) + R * K, group: roll }; }
   const tau = age - tr, z0 = zs(HX[kk]) + R * K, z = Math.max(landZ(kk, n), z0 - 0.5 * G_ * tau * tau);
-  return { x: HX[kk], z, group: falls[kk] };
+  const f = Math.max(0, Math.min(1, (TRAY_Z + 31 - z) / 26));
+  return { x: HX[kk] + slotX(Math.min(n, CAP - 1)) * f, z, group: falls[kk] };
 }
 function drawPile(kk, n) {
   let s = "";
-  for (let q = 0; q < Math.min(n, CAP); q++) s += '<g transform="' + translateAlong(P, [HX[kk], YB, TRAY_Z + R + q * STEP]) + '">' + BALL_HI + "</g>";
+  for (let q = 0; q < Math.min(n, CAP); q++) s += '<g transform="' + translateAlong(P, [HX[kk] + slotX(q), YB, TRAY_Z + R + Math.floor(q / 3) * STEP]) + '">' + BALL_HI + "</g>";
   return s;
 }
 function draw() {

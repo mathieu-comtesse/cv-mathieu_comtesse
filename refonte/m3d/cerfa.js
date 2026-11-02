@@ -6,7 +6,7 @@ import { COL, mat, slab, box, cyl, cylX, ball, prismXZ, display, bench, channel 
 
 export const WIDTH = 168;
 const PLATE = { x: -84, y: -40, w: 168, d: 80, r: 8 };
-const CAB = { x: -66, y: -12, w: 132, d: 28 }, CAB_H = 26, TRAY_Z = CAB_H, R = 3.6, STEP = 7.2, CAP = 4;
+const CAB = { x: -66, y: -12, w: 132, d: 28 }, CAB_H = 26, TRAY_Z = CAB_H, R = 3.6, STEP = 6.4, CAP = 12;
 const HX = [-50, -20, 10, 40], XR = 56, SL = .3, ZR = 108, CH = 5.6, Y0 = -5.6, Y1 = 3.2, YB = -1.2, BTOP = ZR + 46, TOP = ZR + 34;
 const DIV_X = [-66, -35, -5, 25, 55], GATE = 5.4;
 const zs = (x) => ZR - SL * (XR - x), K = Math.sqrt(1 + SL * SL);
@@ -14,6 +14,7 @@ const rampPoly = (x0, x1, t = 3) => [[x0, zs(x0)], [x1, zs(x1)], [x1, zs(x1) - t
 const SEG = [[-44, HX[1] - GATE - .4], [HX[1] + GATE + .4, HX[2] - GATE - .4], [HX[2] + GATE + .4, HX[3] - GATE - .4], [HX[3] + GATE + .4, XR]];
 const READ = { x0: 44, x1: 54 };
 const LOT = { min: 50, max: 500 };
+const slotX = (q) => [-8, 0, 8][(q + Math.floor(q / 3)) % 3];
 
 export function build() {
   const g = new THREE.Group();
@@ -42,14 +43,14 @@ export function build() {
   const knob = new THREE.Group(); knob.position.set(CAB.x + CAB.w, 13, 1); const kc = cyl(0, 0, 5, 0, 6, COL.mid, 28); kc.rotation.z = Math.PI / 2; kc.position.set(3, 0, 0); knob.add(kc); g.add(knob);
   // billes : une colonne dans le chargeur, des piles dans les bacs, des billes en vol
   const mag = Array.from({ length: 8 }, (_, i) => { const b = ball(XR, YB, zs(XR) + R * K + .4 + i * STEP, R); g.add(b); return b; });
-  const piles = HX.map((hx) => Array.from({ length: CAP }, (_, q) => { const b = ball(hx, YB, TRAY_Z + R + q * STEP, R); b.visible = false; g.add(b); return b; }));
+  const piles = HX.map((hx) => Array.from({ length: CAP }, (_, q) => { const b = ball(hx + slotX(q), YB, TRAY_Z + R + Math.floor(q / 3) * STEP, R); b.visible = false; g.add(b); return b; }));
   const pool = Array.from({ length: 8 }, () => { const b = ball(0, YB, 0, R, COL.accent); b.visible = false; g.add(b); return b; });
   // — animation : mêmes constantes et mêmes équations que figures/build-cerfa.mjs —
   const INTERVAL = .42, V = 150, G_ = 900, WEIGHTS = [.72, .06, .1, .12];
   const kindOf = (i) => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; const u = (h >>> 0) / 4294967296; let c = 0; for (let q = 0; q < 4; q++) { c += WEIGHTS[q]; if (u < c) return [3, 2, 1, 0][q]; } return 3; };
   const kinds = Array.from({ length: 500 }, (_, i) => kindOf(i));
   let lot = 300;
-  const tRoll = (kk) => (XR - HX[kk]) / V, landZ = (n) => TRAY_Z + R + Math.min(n, CAP - 1) * STEP;
+  const tRoll = (kk) => (XR - HX[kk]) / V, landZ = (n) => TRAY_Z + R + Math.floor(Math.min(n, CAP - 1) / 3) * STEP;
   const fallTime = (kk, n) => Math.sqrt(2 * Math.max(1, zs(HX[kk]) + R * K - landZ(n)) / G_);
   const cycleOf = () => (lot - 1) * INTERVAL + tRoll(0) + fallTime(0, 0) + 3 + .6;
   function update(time) {
@@ -64,7 +65,7 @@ export function build() {
       const [i, age, n] = f, kk = kinds[i], tr = tRoll(kk);
       let x, z;
       if (age < tr) { x = XR - age * V; z = zs(x) + R * K; if (x < READ.x1 + R && x > READ.x0 - R) reading = true; }
-      else { const tau = age - tr, z0 = zs(HX[kk]) + R * K; x = HX[kk]; z = Math.max(landZ(n), z0 - .5 * G_ * tau * tau); }
+      else { const tau = age - tr, z0 = zs(HX[kk]) + R * K; z = Math.max(landZ(n), z0 - .5 * G_ * tau * tau); const f = Math.max(0, Math.min(1, (TRAY_Z + 31 - z) / 26)); x = HX[kk] + slotX(Math.min(n, CAP - 1)) * f; }
       b.visible = true; b.position.set(x, z, YB);
     });
     lamp.material = reading ? lampOn : lampOff;
