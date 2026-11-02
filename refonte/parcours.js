@@ -439,7 +439,7 @@ async function start() {
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
-  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null; const heroP = new THREE.Vector3();
+  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null, roomPick = null; const heroP = new THREE.Vector3();
   let roomDone; const roomReadyP = new Promise((r) => { roomDone = r; }); if (!roomSpot || reduce) roomDone(); // la pièce passe avant le dessin des sections
   if (roomSpot && !reduce) {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
@@ -464,6 +464,25 @@ async function start() {
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
       R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; for (const b of bps) b.uniforms.uK.value = 3.6667 / (ROOM_K * z); };
       roomRul = { g, rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
+      // — interactions du décor : les objets réagissent au clic comme sur le site (la pièce a perdu son propre canvas, on relaie) —
+      import('../js/ui.js?v=cv-monde3d-32').then(({ initUI }) => initUI()).catch((e) => console.warn('applications du décor indisponibles', e)); // PC « atelier » et console PS1
+      const OPEN = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
+      const inv = new THREE.Matrix4(), tb = new THREE.Box3(), cands = [];
+      const scan = () => { g.updateMatrixWorld(true); inv.copy(g.matrixWorld).invert(); cands.length = 0;
+        room.scene.traverse((o) => { if (!o.userData.id || o.userData.id === 'ground') return; tb.setFromObject(o); if (tb.isEmpty()) return; const sz = tb.getSize(new THREE.Vector3()); if (sz.length() > 20) return; cands.push({ id: o.userData.id, o, b: tb.clone().applyMatrix4(inv) }); }); };
+      scan(); setTimeout(scan, 6000); setTimeout(scan, 20000); // objets chargés plus tard
+      const corners = [], cv3 = new THREE.Vector3();
+      roomPick = (mx, my) => { // l'objet dont l'enveloppe projetée (avec la même courbure que le shader) contient le pointeur ; un objet à ouvrir passe avant le mobilier
+        g.updateMatrixWorld(true); let best = null, bestA = 1e12, bestOpen = null, bestOpenA = 1e12;
+        for (const c of cands) {
+          let vis = true; for (let q = c.o; q; q = q.parent) if (!q.visible) { vis = false; break; } if (!vis) continue;
+          let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, ok = false;
+          for (let i = 0; i < 8; i++) { cv3.set(i & 1 ? c.b.max.x : c.b.min.x, i & 2 ? c.b.max.y : c.b.min.y, i & 4 ? c.b.max.z : c.b.min.z).applyMatrix4(g.matrixWorld); const [px, py, pz] = toScreen(cv3); if (pz >= 1) continue; ok = true; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
+          const pad = 6; if (!ok || mx < x0 - pad || mx > x1 + pad || my < y0 - pad || my > y1 + pad) continue;
+          const a = (x1 - x0) * (y1 - y0); if (a < bestA) { bestA = a; best = c.id; } if (OPEN.has(c.id) && a < bestOpenA) { bestOpenA = a; bestOpen = c.id; }
+        }
+        return bestOpen || best;
+      };
     }).catch((e) => { console.warn('pièce indisponible', e); roomDone(); });
   }
 
@@ -868,6 +887,20 @@ async function start() {
     octx.fillText(`speed ≈ ${Math.round(run.speed)} px/s   to the finish ↑ ${Math.round(scrollY).toLocaleString('fr-FR')} px   ${run.st === 'pause' ? '[pause]' : ''}`, w / 2, MOBILE ? 24 : 30);
     if (run.st === 'over' || run.st === 'win') { octx.fillStyle = 'rgba(3,5,10,.75)'; octx.fillRect(0, h / 2 - 44, w, 88); octx.fillStyle = '#fff'; octx.font = `600 ${MOBILE ? 16 : 24}px "iAWriterQuattroV", ui-monospace, monospace`; octx.textAlign = 'center'; octx.fillText(run.msg, w / 2, h / 2 + 6); }
   }
+  /* clic sur un objet du décor : tableau, TV, sac, stèle, Bouddha, appareil photo, PC, console, lampes… (même logique que le site) */
+  let roomDown = null, roomHover = 0;
+  addEventListener('pointerdown', (ev) => { roomDown = ev.target === canvas && ev.button === 0 ? { x: ev.clientX, y: ev.clientY, t: performance.now() } : null; });
+  addEventListener('pointerup', (ev) => {
+    const d = roomDown; roomDown = null; if (!d || !roomPick || !window.__room || lifted || reader || run.st !== 'idle') return;
+    if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) > 8 || performance.now() - d.t > 600) return;
+    if (Math.abs((scrollY + innerHeight / 2) / PXM - roomCz) > 12) return;
+    const hp = toScreen(heroP); if (Math.hypot(ev.clientX - hp[0], ev.clientY - hp[1] + 30) < 36) { window.__room.hero.flash?.('happy', 0.9); return; } // un clic sur Mathieu le fait sourire
+    const id = roomPick(ev.clientX, ev.clientY); if (id) { window.__room.pauseAutonomy?.(6000); window.__room.activate(id); }
+  });
+  addEventListener('pointermove', (ev) => { // curseur « main » au-dessus d'un objet cliquable
+    if (!roomPick || !window.__room || lifted || reader || run.st !== 'idle' || ev.target !== canvas || performance.now() - roomHover < 90) return; roomHover = performance.now();
+    canvas.style.cursor = Math.abs((scrollY + innerHeight / 2) / PXM - roomCz) < 12 && roomPick(ev.clientX, ev.clientY) ? 'pointer' : '';
+  }, { passive: true });
   function tickGame(now, focusZ) {
     if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9; canvas.style.touchAction = on || run.st === 'run' ? 'none' : '';
     if (!on) { gP.down = false; return; }
@@ -1025,7 +1058,7 @@ async function start() {
       let pts = o.pts;
       if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
       const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
-      const x0 = Math.min(...xs), y0 = Math.min(...ys), ww = Math.max(...xs) - x0, hh = Math.max(...ys) - y0, ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 6 && hh > 4;
+      const PADX = 16, PADY = 12; let x0 = Math.min(...xs) - PADX, y0 = Math.min(...ys) - PADY, ww = Math.max(...xs) - x0 + PADX, hh = Math.max(...ys) - y0 + PADY; if (o.h.classList.contains('pc-lift-hot') && ww < 110) { x0 -= (110 - ww) / 2; ww = 110; } if (o.h.classList.contains('pc-lift-hot') && hh < 40) { y0 -= (40 - hh) / 2; hh = 40; } const ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 6 && hh > 4 && !o.hide;
       o.h.style.display = ok ? '' : 'none'; if (ok) { o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = ww + 'px'; o.h.style.height = hh + 'px'; }
     }
     for (const m of magics) {
@@ -1091,5 +1124,5 @@ async function start() {
     };
     requestAnimationFrame(tick);
   }
-  window.__expo = { camera, sections, items, HIC, hots, machines, toScreen, V: THREE.Vector3 };
+  window.__expo = { camera, sections, items, HIC, hots, machines, toScreen, pick: (x, y) => roomPick?.(x, y), V: THREE.Vector3 };
 }
