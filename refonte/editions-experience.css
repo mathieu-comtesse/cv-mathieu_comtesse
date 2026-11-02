@@ -50,7 +50,7 @@ html.pc-lifted #ex-shell{visibility:hidden;pointer-events:none}
 .ex-now i{font-style:normal;opacity:.34}
 .ex-now-label{max-width:150px;overflow:hidden;text-overflow:ellipsis;margin-left:10px;color:#c3ccdc;font-size:11px}
 .ex-progress{position:absolute;top:0;left:0;right:0;height:2px;background:rgba(208,218,245,.12)}
-.ex-progress i{display:block;height:100%;width:calc(var(--ex-progress)*100%);background:linear-gradient(90deg,#6b84e7,#f4f6ff);
+.ex-progress i{display:block;height:100%;width:100%;transform:scaleX(var(--ex-progress));transform-origin:left center;background:linear-gradient(90deg,#6b84e7,#f4f6ff);
  box-shadow:0 0 14px rgba(129,159,255,.65);will-change:width}
 .ex-waypoints{pointer-events:auto;position:absolute;z-index:2;left:clamp(17px,2.1vw,42px);top:50%;transform:translateY(-50%);
   max-height:calc(100vh - 210px);overflow:visible}
@@ -190,3 +190,15 @@ html.ex-menu-open #ex-shell .ex-waypoints,html.ex-menu-open #ex-shell .ex-ghost{
  #ex-shell *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
  #ex-shell .ex-halo{transform:none!important}
 }
+
+/* Vignettes des machines originales et accès direct à leur fiche */
+.ex-result-wrap{display:flex;align-items:stretch;gap:0;border-bottom:1px solid rgba(217,225,243,.13)}
+.ex-result-wrap .ex-result{border-bottom:0;min-width:0;flex:1}
+.ex-result-link{display:flex;align-items:center;justify-content:center;min-width:54px;padding:0 8px;
+ color:#bdcbea;text-underline-offset:4px;text-decoration-color:#53637d;font:11px var(--mono,ui-monospace,monospace)}
+.ex-result-link:hover{color:#fff;text-decoration-color:#fff}
+.ex-orbits .ex-project-art{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;
+ z-index:2;filter:drop-shadow(0 16px 35px rgba(0,0,0,.45));animation:ex-art-appear .35s ease both}
+.ex-orbits.is-preview i{opacity:.3}
+.ex-orbits.is-preview b{opacity:.08}
+@keyframes ex-art-appear{from{opacity:0;transform:translateY(9px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
