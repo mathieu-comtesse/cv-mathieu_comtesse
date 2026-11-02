@@ -117,7 +117,9 @@
   }
   function goTo(y,hash){
     setOpen(false);
-    scrollTo({top:Math.max(0,y+260-innerHeight/2),behavior:reduce.matches?'instant':'smooth'});
+    const top=Math.max(0,y+260-innerHeight/2);
+    if(window.__exSmoothScroll&&!reduce.matches)window.__exSmoothScroll.goTo(top);
+    else scrollTo({top,behavior:reduce.matches?'instant':'smooth'});
     if(hash)history.replaceState(null,'','#'+hash);
   }
   function goToChapter(i){
