@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { drawMat, blueprintMaterial } from './blueprint-hero.js';
 
+// Départ : toujours en haut, en vue de face. Le navigateur ne doit pas restaurer l'ancien défilement (sinon la page s'ouvre déjà en 3D après un rechargement).
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if (!location.hash && scrollY > 0) scrollTo(0, 0);
+addEventListener('pageshow', (e) => { if (e.persisted && !location.hash) scrollTo(0, 0); });
 // Modèles du décor : versions compressées (assets/opt : géométrie meshopt, textures WebP 1024 px, 17 Mo au lieu de 41) quand elles existent.
 // Hébergement sans .glb (page publiée) : si un modèle n'est pas servi, sa copie en base64 (.glb.b64.txt) prend le relais.
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
