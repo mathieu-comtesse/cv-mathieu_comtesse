@@ -1,83 +1,81 @@
-// Fig 01 · CERFA v3 : une trieuse de fiches, en 3D (cotes de figures/build-cerfa.mjs).
-// Le lot part du chargeur, passe sous la tête de lecture, puis le poussoir de sa case la fait tomber : conforme, doublon,
-// non-conformité ou retard.
+// Fig 01 · CERFA v3 : un trieur à billes à trois trappes, en 3D (cotes de figures/build-cerfa.mjs).
+// Chaque bille roule sur la rampe sous la lampe de lecture ; la trappe de son verdict s'ouvre, elle tombe dans sa goulotte
+// et s'empile dans son bac : conforme, doublon, non-conformité ou, au bout de la rampe, retard.
 import * as THREE from 'three';
-import { COL, slab, box, cyl, cylY, card, group, bench, display, ease, hash } from './core.js';
+import { COL, mat, slab, box, cyl, cylX, ball, prismXZ, display, bench, channel } from './core.js';
 
-export const WIDTH = 326;
-const PLATE = { x: -164, y: -60, w: 326, d: 120, r: 8 };
-const BACK = { x: -140, y: -36, w: 270, d: 27 }, FRONT = { x: -140, y: -9, w: 270, d: 35 };
-const BED = 112, DECK = 67, TOP = 160;
-const CENTRES = [-140, -94, -48, -2].map((x) => x + 23);
-const CARD = { l: 37, w: 17 }, LANE_Y = -21, READ_X = 72, HOPPER_X = 105;
-const PERIOD = 1.7, PER_CYCLE = 16;
-const KINDS = [COL.hi, COL.hi, COL.accent, COL.red];
+export const WIDTH = 168;
+const PLATE = { x: -84, y: -40, w: 168, d: 80, r: 8 };
+const CAB = { x: -66, y: -12, w: 132, d: 28 }, CAB_H = 26, TRAY_Z = CAB_H, R = 3.6, STEP = 7.2, CAP = 4;
+const HX = [-50, -20, 10, 40], XR = 56, SL = .3, ZR = 108, CH = 5.6, Y0 = -5.6, Y1 = 3.2, YB = -1.2, BTOP = ZR + 46, TOP = ZR + 34;
+const DIV_X = [-66, -35, -5, 25, 55], GATE = 5.4;
+const zs = (x) => ZR - SL * (XR - x), K = Math.sqrt(1 + SL * SL);
+const rampPoly = (x0, x1, t = 3) => [[x0, zs(x0)], [x1, zs(x1)], [x1, zs(x1) - t], [x0, zs(x0) - t]];
+const SEG = [[-44, HX[1] - GATE - .4], [HX[1] + GATE + .4, HX[2] - GATE - .4], [HX[2] + GATE + .4, HX[3] - GATE - .4], [HX[3] + GATE + .4, XR]];
+const READ = { x0: 44, x1: 54 };
+const LOT = { min: 50, max: 500 };
 
 export function build() {
   const g = new THREE.Group();
-  g.add(bench(PLATE, { strip: { x: -138, y: PLATE.y + PLATE.d - 16, w: 200, d: 7 }, label: { x: 84, y: PLATE.y + PLATE.d - 20, w: 46, d: 11 } }));
-  g.add(slab(BACK.x, BACK.y, BACK.w, BACK.d, 0, BED, COL.mid, 3));
-  g.add(slab(FRONT.x, FRONT.y, FRONT.w, FRONT.d, 0, DECK, COL.mid, 3));
-  g.add(slab(FRONT.x - 2, FRONT.y, FRONT.w + 4, FRONT.d + 2, DECK - 3, 3, COL.mid, 3));
-  // rails, rouleaux, chargeur, tête de lecture
-  g.add(slab(-138, -33, 220, 5, BED, 2, COL.lo, .8), slab(-138, -14, 220, 5, BED, 2, COL.lo, .8));
-  for (const rx of [-94, -48, -2, 52, READ_X]) g.add(cylY(-33, -11.5, rx, BED + 5.8, 3, COL.mid, 24));
-  g.add(slab(85, -36, 42, 3, BED, TOP - BED, COL.mid, .8), slab(124.2, -34, 3, 25, BED + 2, TOP - BED - 2, COL.mid, .8), slab(80.5, -33, 6, 23, BED + 3.6, 12, COL.mid, .8));
-  
-  g.add(slab(READ_X - 6, -36, 12, 3.5, BED, 18, COL.mid, .8));
-  const head = box(READ_X, LANE_Y, BED + 24, 16, 26, 4, COL.mid); g.add(head);
-  g.add(slab(READ_X - 6, -12, 12, 3.5, BED, 18, COL.mid, .8));
-  // poussoirs des quatre cases
-  const rams = CENTRES.map((cx) => { g.add(slab(cx - 6, -36, 12, 3, BED, 9, COL.mid, .8)); const r = box(cx, -32.2, BED + 5, 16, 1.6, 5.2, COL.mid); g.add(r); return r; });
-  // afficheurs des cases, bouton de lot, totalisateur des retards
-  const counters = CENTRES.map((cx) => { const d = display(26, 7.5); d.mesh.position.set(cx, 106, FRONT.y + .05); g.add(d.mesh); return d; });
-  for (const cx of CENTRES) { g.add(slab(cx - 22, FRONT.y - 8, 44, 8, DECK - 3, 3, COL.lo, 1)); }
-  g.add(slab(54, -6, 64, 26, DECK, 22, COL.mid, 2));
-  const late = display(52, 9); late.mesh.position.set(86, DECK + 14, 20.05); g.add(late.mesh);
-  const knobDisp = display(18, 6.5); knobDisp.mesh.rotation.y = Math.PI / 2; knobDisp.mesh.position.set(130.05, 106, -22.5); g.add(knobDisp.mesh);
-  const knob = new THREE.Group(); knob.position.set(130, 86, -22.5);
-  const kc = cyl(0, 0, 8, 0, 8, COL.mid, 36); kc.rotation.z = Math.PI / 2; kc.position.set(4, 0, 0); knob.add(kc); g.add(knob);
-  // piles dans les cases (T = 0,085 par fiche) et butées avant
-  const T = .085, POCKET_Y = 5, HOPPER = { x: 87, w: 37 };
-  let LOT = 300;
-  const piles = CENTRES.map((cx) => { const m = box(cx, POCKET_Y + CARD.w / 2, DECK, CARD.l, CARD.w, 1, COL.hi); g.add(m); g.add(slab(cx - 21, 23.5, 44, 2.5, DECK, 7, COL.mid, .6)); return m; });
-  // pile du chargeur et masse posée dessus
-  const hopStack = box(HOPPER.x + CARD.l / 2, LANE_Y, BED + 2, CARD.l, CARD.w, 1, COL.hi); g.add(hopStack);
-  const weight = group(slab(HOPPER.x + 8 - (HOPPER.x + CARD.l / 2), LANE_Y - 5 - LANE_Y, 21, 10, 0, 5, COL.mid, 1.4), cyl(HOPPER.x + 18.5 - (HOPPER.x + CARD.l / 2), 0, 3, 5, 4, COL.mid, 24)); g.add(weight);
-  // fiches en vol : plaques plates de 37 × 17 × 0,8 (comme sur le dessin)
-  const pool = Array.from({ length: 6 }, () => { const m = card(0, 0, 0, CARD.l, .8, CARD.w, COL.hi, 30); m.geometry.dispose(); m.geometry = new THREE.BoxGeometry(CARD.l, .8, CARD.w); m.visible = false; g.add(m); return m; });
+  g.add(bench(PLATE, { strip: { x: -80, y: PLATE.y + PLATE.d - 15, w: 120, d: 7 }, label: { x: 44, y: PLATE.y + PLATE.d - 19, w: 34, d: 11 } }));
+  g.add(slab(CAB.x, CAB.y, CAB.w, CAB.d, 0, CAB_H, COL.mid, 3));
+  // bâti : panneau, deux montants, chapeau arrière
+  g.add(slab(-64, -10, 128, 4.4, TRAY_Z, BTOP - 6 - TRAY_Z, COL.lo, .8));
+  for (const px of [-66.8, 63.2]) g.add(channel(px + 1.8, 1, TRAY_Z, BTOP - 4, 5, 20));
+  g.add(slab(-66.8, -10, 133.6, 6.5, BTOP - 4, 3.5, COL.mid, 1.2));
+  // bacs : séparateurs, lèvres avant, goulottes et rampe
+  DIV_X.forEach((x) => g.add(slab(x - .8, -9.5, 1.6, 24.5, TRAY_Z, 30, COL.mid, .4)));
+  for (let k = 0; k < 4; k++) g.add(slab(DIV_X[k] + 1, 13.4, DIV_X[k + 1] - DIV_X[k] - 2, 2.6, TRAY_Z, 7, COL.mid, .6));
+  SEG.forEach(([a, b]) => { g.add(prismXZ(rampPoly(a, b), Y0, Y1, COL.mid)); g.add(prismXZ([[a, zs(a)], [b, zs(b)], [b, zs(b) + 2.4], [a, zs(a) + 2.4]], Y1, Y1 + 2.6, COL.mid)); });
+  for (const hx of HX) for (const sx of [-CH, CH]) g.add(slab(hx + sx - .6, Y0 - .2, 1.2, Y1 - Y0 + .2, TRAY_Z + 31, zs(hx) - 3 - TRAY_Z - 31, COL.mid, .2));
+  // trappes (tiroirs) des trois verdicts
+  const gates = [null, 1, 2, 3].map((k) => { if (!k) return null; const m = prismXZ(rampPoly(HX[k] - GATE - .2, HX[k] + GATE + .2, 2), Y0 + .4, Y1 - .4, COL.hi); g.add(m); return m; });
+  // chargeur, pont de lecture et lampe
+  g.add(slab(XR - 7.2, Y0 - .4, 1.8, Y1 - Y0 + .4, zs(XR - 6) + .5, TOP - zs(XR - 6), COL.mid, .3), slab(XR + 5.4, Y0 - .4, 1.8, Y1 - Y0 + .4, zs(XR) - 2, TOP - zs(XR) + 2, COL.mid, .3));
+  const bx = (READ.x0 + READ.x1) / 2, bz = zs(bx);
+  g.add(slab(READ.x0 - 1.5, 4.2, 2.2, 2.2, bz, 14, COL.mid, .4), slab(READ.x1 - .7, 4.2, 2.2, 2.2, bz, 14, COL.mid, .4), slab(READ.x0 - 2.5, -7, READ.x1 - READ.x0 + 5, 12, bz + 14, 5, COL.mid, 1.4));
+  const lamp = cyl(bx, -1, 2.4, bz + 19, 2, COL.mid, 24); g.add(lamp);
+  const lampOn = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .8 }), lampOff = lamp.material;
+  // compteurs des bacs, bouton de lot
+  const counters = HX.map((cx) => { const d = display(20, 8); d.mesh.position.set(cx, 15, CAB.y + CAB.d + .05); g.add(d.mesh); return d; });
+  const lotDisp = display(18, 5); lotDisp.mesh.rotation.y = Math.PI / 2; lotDisp.mesh.position.set(CAB.x + CAB.w + .05, 22, 1); g.add(lotDisp.mesh);
+  const knob = new THREE.Group(); knob.position.set(CAB.x + CAB.w, 13, 1); const kc = cyl(0, 0, 5, 0, 6, COL.mid, 28); kc.rotation.z = Math.PI / 2; kc.position.set(3, 0, 0); knob.add(kc); g.add(knob);
+  // billes : une colonne dans le chargeur, des piles dans les bacs, des billes en vol
+  const mag = Array.from({ length: 8 }, (_, i) => { const b = ball(XR, YB, zs(XR) + R * K + .4 + i * STEP, R); g.add(b); return b; });
+  const piles = HX.map((hx) => Array.from({ length: CAP }, (_, q) => { const b = ball(hx, YB, TRAY_Z + R + q * STEP, R); b.visible = false; g.add(b); return b; }));
+  const pool = Array.from({ length: 8 }, () => { const b = ball(0, YB, 0, R, COL.accent); b.visible = false; g.add(b); return b; });
   // — animation : mêmes constantes et mêmes équations que figures/build-cerfa.mjs —
-  const INTERVAL = .42, SPEED = 240, PUSH = .2, FALL = .38, MACHINE_S = 80 / 300, WEIGHTS = [.72, .06, .1, .12];
-  const kindOf = (i) => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; const u = (h >>> 0) / 4294967296; let c = 0; for (let k = 0; k < 4; k++) { c += WEIGHTS[k]; if (u < c) return [3, 2, 1, 0][k]; } return 0; };
+  const INTERVAL = .42, V = 150, G_ = 900, WEIGHTS = [.72, .06, .1, .12];
+  const kindOf = (i) => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; const u = (h >>> 0) / 4294967296; let c = 0; for (let q = 0; q < 4; q++) { c += WEIGHTS[q]; if (u < c) return [3, 2, 1, 0][q]; } return 3; };
   const kinds = Array.from({ length: 500 }, (_, i) => kindOf(i));
-  const travel = (i) => (HOPPER.x + CARD.l / 2 - CENTRES[kinds[i]]) / SPEED, duration = (i) => travel(i) + PUSH + FALL;
-  const ease2 = (u) => u * u * (3 - 2 * u);
-  // durée d'un lot : toutes les fiches tombées, puis 3 s de pause, puis reprise (départ à −0,6 s)
-  const cycleOf = () => (LOT - 1) * INTERVAL + duration(LOT - 1) + 3 + .6;
+  let lot = 300;
+  const tRoll = (kk) => (XR - HX[kk]) / V, landZ = (n) => TRAY_Z + R + Math.min(n, CAP - 1) * STEP;
+  const fallTime = (kk, n) => Math.sqrt(2 * Math.max(1, zs(HX[kk]) + R * K - landZ(n)) / G_);
+  const cycleOf = () => (lot - 1) * INTERVAL + tRoll(0) + fallTime(0, 0) + 3 + .6;
   function update(time) {
     const t = (time % cycleOf()) - .6;
-    let sent = 0; const landed = [0, 0, 0, 0], flying = [];
-    for (let i = 0; i < LOT; i++) { const age = t - i * INTERVAL; if (age < 0) break; sent++; if (age >= duration(i)) landed[kinds[i]]++; else flying.push([i, age]); }
-    const left = LOT - sent;
-    hopStack.visible = left > 0; hopStack.scale.y = Math.max(.01, left * T); hopStack.position.y = BED + 2 + (left ? .85 : 0) + left * T / 2;
-    weight.position.set(HOPPER.x + CARD.l / 2, BED + 2 + (left ? .85 : 0) + left * T, LANE_Y);
-    piles.forEach((p, k) => { const n = landed[k]; p.visible = n > 0; p.scale.y = Math.max(.01, n * T); p.position.y = DECK + n * T / 2; counters[k].set(String(n).padStart(4, '0')); });
-    late.set(landed[0] + (landed[0] > 1 ? ' retards' : ' retard'));
-    pool.forEach((m, n) => {
-      const f = flying[n]; if (!f) { m.visible = false; return; }
-      const [i, age] = f, k = kinds[i], cx = CENTRES[k], tA = travel(i), top = DECK + landed[k] * T;
-      let x, y = LANE_Y, z = BED + 2;
-      if (age < tA) x = HOPPER.x + CARD.l / 2 - age * SPEED;
-      else { x = cx; const push = Math.min(1, (age - tA) / PUSH), fall = Math.max(0, (age - tA - PUSH) / FALL); y = LANE_Y + 9 * ease2(push) + (POCKET_Y + CARD.w / 2 - LANE_Y - 9) * ease2(fall); z = BED + 2 + (top - BED - 2) * fall * fall; }
-      m.visible = true; m.position.set(x, z + .4, y);
+    const landed = [0, 0, 0, 0], flying = []; let sent = 0;
+    for (let i = 0; i < lot; i++) { const age = t - i * INTERVAL; if (age < 0) break; sent++; const kk = kinds[i], n = landed[kk]; if (age >= tRoll(kk) + fallTime(kk, n)) landed[kk]++; else flying.push([i, age, n]); }
+    const col = Math.min(8, Math.ceil((lot - sent) / lot * 8)); mag.forEach((b, i) => { b.visible = i < col; });
+    piles.forEach((list, k) => { list.forEach((b, q) => { b.visible = q < Math.min(landed[k], CAP); }); counters[k].set(String(landed[k]).padStart(4, '0')); });
+    let reading = false;
+    pool.forEach((b, q) => {
+      const f = flying[q]; if (!f) { b.visible = false; return; }
+      const [i, age, n] = f, kk = kinds[i], tr = tRoll(kk);
+      let x, z;
+      if (age < tr) { x = XR - age * V; z = zs(x) + R * K; if (x < READ.x1 + R && x > READ.x0 - R) reading = true; }
+      else { const tau = age - tr, z0 = zs(HX[kk]) + R * K; x = HX[kk]; z = Math.max(landZ(n), z0 - .5 * G_ * tau * tau); }
+      b.visible = true; b.position.set(x, z, YB);
     });
-    const push = [0, 0, 0, 0]; let reading = false;
-    flying.forEach(([i, age]) => { const a = age - travel(i); if (a > 0 && a < PUSH + .25) push[kinds[i]] = Math.max(push[kinds[i]], Math.sin(Math.min(1, a / (PUSH + .25)) * Math.PI) * 9); const x = HOPPER.x + CARD.l / 2 - age * SPEED; if (age < travel(i) && Math.abs(x - READ_X) < CARD.l / 2) reading = true; });
-    rams.forEach((r, k) => { r.position.z = -32.2 + push[k]; });
-    head.material = reading ? litHead : plainHead;
-    knobDisp.set('300');
+    lamp.material = reading ? lampOn : lampOff;
+    for (let kk = 1; kk <= 3; kk++) {
+      let open = 0;
+      flying.forEach(([i, age]) => { if (kinds[i] !== kk) return; const a = age - tRoll(kk); open = Math.max(open, Math.min(1, Math.max(0, (a + .32) / .16)) * (a < .3 ? 1 : Math.max(0, 1 - (a - .3) / .2))); });
+      gates[kk].position.z = 10.5 * open;
+    }
+    knob.rotation.x = (-.75 + 1.5 * (lot - LOT.min) / (LOT.max - LOT.min)) * Math.PI;
+    lotDisp.set(String(lot));
   }
-  const plainHead = head.material, litHead = new THREE.MeshStandardMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: .6 });
   update(0);
-  return { group: g, update, controls: { label: 'Taille du lot', min: 50, max: 500, step: 50, fmt: (v) => v + ' fiches', get: () => LOT, set: (v) => { LOT = v; return 0; } } };
+  return { group: g, update, controls: { label: 'Taille du lot', min: 50, max: 500, step: 50, fmt: (v) => v + ' fiches', get: () => lot, set: (v) => { lot = v; return 0; } } };
 }

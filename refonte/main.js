@@ -276,7 +276,7 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
   window.rfMountFigure = (fig) => {
     if (!fig || !fig.dataset.fig) return;
     const frame = document.createElement('iframe');
-    frame.className = 'rf-fig-frame'; frame.scrolling = 'no'; frame.title = 'Machine animée'; frame.style.opacity = '0'; frame.src = 'figures/' + fig.dataset.fig + '.html?v=bp2';
+    frame.className = 'rf-fig-frame'; frame.scrolling = 'no'; frame.title = 'Machine animée'; frame.style.opacity = '0'; frame.src = 'figures/' + fig.dataset.fig + '.html?v=bp3';
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument; if (!doc?.body) return;
       const s = doc.createElement('style'); s.textContent = FRAME_CSS; doc.head.append(s); frame.style.opacity = '';

@@ -1,77 +1,118 @@
-// Fig 09 · Retrouver tout le suivi : un standard téléphonique à fiches.
+// Fig 09 · Retrouver tout le suivi : un tableau d'enquête sur chevalet.
 // node figures/build-suivi.mjs  →  figures/suivi.html
-// Trois prises d'appel sur le pupitre : OT, équipement, bâtiment. Une recherche arrive, la fiche de sa
-// ligne monte et se branche sur le jack de la bonne source (GMAO, exports, SharePoint, Excel, Power BI) ;
-// la lampe au-dessus s'allume : le lien direct est établi. Le standard relie, il ne recopie pas.
+// Trois fiches de recherche, OT, équipement, bâtiment, s'épinglent à gauche du tableau de liège ; cinq fiches de source, GMAO, exports, SharePoint,
+// Excel et Power BI, sont épinglées à droite. Une recherche arrive dans le bac, sa fiche s'épingle à sa ligne, et un fil se tend jusqu'à la bonne
+// source dont le voyant s'allume : le lien direct est établi. Le fil relie, il ne recopie pas : aucune donnée ne passe de fiche en fiche.
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
-import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
+import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
+import { easelPost } from "./parts.mjs";
+import { column } from "./parts.mjs";
 
-const WIDTH = 600, HEIGHT = 420;
-const PLATE = { x: -112, y: -46, w: 224, d: 104, r: 8 };
-const DESK = { x: -92, y: -34, w: 184, d: 62, r: 3 }, DESK_H = 30;
-const PANEL = { x: -86, y: -32, w: 172, d: 12, r: 2 }, PANEL_Z = [DESK_H, 118], FACE = PANEL.y + PANEL.d;
-const COLS = [-56, -28, 0, 28, 56], ROWS_Z = [96, 74, 52];        // sources × entrées
-const SOCKETS = [-40, 0, 40], SOCKET_Y = 12;                       // OT, équipement, bâtiment
-const PLUG = { r: 3, h: 13 };
+const WIDTH = 640, HEIGHT = 480;
+const PLATE = { x: -112, y: -50, w: 224, d: 100, r: 8 };
+const CAB = { x: -66, y: -12, w: 132, d: 30, r: 3 }, CAB_H = 34;                    // classeur à tiroirs sous le tableau
+const BOARD = { x: -62, w: 124, z0: 46, z1: 140 }, CORK = { x0: -58, x1: 58, z0: 50, z1: 128 };
+const QROWS = [112, 90, 68], QX = -36, QW = 22, QH = 17;                              // fiches de recherche (OT, équipement, bâtiment)
+const SROWS = [116, 100, 84, 68, 52], SX = 12, SW = 24, SH = 12;                      // fiches de source
+const PINY = 2.6;                                                                    // les fils passent devant le liège
+const TRAY = { x: -26, y: 14, w: 52, d: 18, r: 2 }, TRAY_Z = CAB_H;
 
-const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners(PANEL, PANEL_Z[0], PANEL_Z[1] + 6)], WIDTH, HEIGHT, { pad: 20, azimuth: 60, elevation: 30 });
-const { at, S, L, D, slab, front, flat } = tools(P);
-const Y = [0, 1, 0];
+const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), ...k.boxCorners({ x: -70, y: -14, w: 140, d: 50 }, 0, 160)], WIDTH, HEIGHT, { pad: 22, azimuth: 56 });
+const { at, S, L, D, slab, front, right, flat, byDepth } = tools(P);
+const CTX = { k, G, P, S, L, D, at };
 
-// ---------------------------------------------------------------- pupitre et tableau
-function deskSvg() {
-  const out = [], d = DESK;
-  out.push(`<path class="iso-halo" d="${k.haloOf(d, 0, 2, P)}" style="filter:blur(3px)"/>`);
-  out.push(S(slab(d, 0, DESK_H, 4, 1), { tone: "mid", inner: L(k.sideSeam(d, 6, P, 4), { tone: "faint" }) }));
-  out.push(S(slab({ x: d.x - 2, y: d.y - 2, w: d.w + 4, d: d.d + 4, r: 3 }, DESK_H - 3, 3, 3, 0.6), { tone: "mid" }));
-  out.push(D(k.corners({ x: d.x - 2, y: d.y - 2, w: d.w + 4, d: d.d + 4 }, 3).map(([x, y]) => at([x, y, DESK_H])), { size: 0.42 }));
-  // Tablette des fiches : trois douilles, une par type de recherche, et la règle du pupitre.
-  out.push(L(k.planOutline({ x: -60, y: SOCKET_Y - 8, w: 120, d: 16, r: 2 }, DESK_H, P, 3), { tone: "lo" }));
-  for (const x of SOCKETS) {
-    out.push(S(k.cylinder(x, SOCKET_Y, 5.6, DESK_H, 1.2, P, 28, 0.3), { tone: "mid" }));
-    out.push(L(k.ring(x, SOCKET_Y, 3.4, DESK_H + 1.2, P, 20), { tone: "lo" }));
+// ---------------------------------------------------------------- classeur à tiroirs
+function cabinetSvg() {
+  const out = [], c = CAB, f = front(c.y + c.d), r = right(c.x + c.w);
+  out.push(`<path class="iso-halo" d="${k.haloOf(c, 0, 2, P)}" style="filter:blur(3px)"/>`);
+  out.push(S(slab(k.insetPlan(c, 3), 0, 4, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab(c, 4, CAB_H - 4, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(c, 12, P, 4), { tone: "faint" }) }));
+  out.push(S(slab({ x: c.x - 1.6, y: c.y - 1.6, w: c.w + 3.2, d: c.d + 3.2, r: 3.4 }, CAB_H - 3, 3, 3, 0.7), { tone: "mid" }));
+  out.push(D(k.corners({ x: c.x - 1.6, y: c.y - 1.6, w: c.w + 3.2, d: c.d + 3.2 }, 2.4).map(([x, y]) => at([x, y, CAB_H])), { size: 0.42 }));
+  // Six tiroirs en deux rangées : cadre, poignée, étiquette, deux vis.
+  const dw = (c.w - 14) / 3, dh = 11;
+  for (let row = 0; row < 2; row++) for (let col = 0; col < 3; col++) {
+    const x0 = c.x + 7 + col * dw, z0 = 6 + row * (dh + 3.4);
+    out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${flat(x0 + 0.8, z0, x0 + dw - 0.8, z0 + dh, 1, 3)}"/><path class="iso-line" data-tone="mid" d="${flat(x0 + dw / 2 - 5, z0 + dh - 3.4, x0 + dw / 2 + 5, z0 + dh - 2.2, 0.5, 2)}"/><path class="iso-line" data-tone="faint" d="${flat(x0 + dw / 2 - 6, z0 + 2.2, x0 + dw / 2 + 6, z0 + 5.4, 0.5, 2)}"/></g>`);
+    out.push(D([at([x0 + 3, c.y + c.d, z0 + 2.2]), at([x0 + dw - 3, c.y + c.d, z0 + 2.2])], { size: 0.32 }));
   }
-  // Afficheur de la recherche en cours sur la face avant, et deux tiroirs.
-  const f = front(d.y + d.d);
-  out.push(display(f, flat(-44, 18, 44, 25, 1.2), { part: "query", x: 0, y: -19.6, size: 5.2, text: "EN ATTENTE" }));
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="${flat(-84, 4, -50, 14, 1, 3)}${flat(50, 4, 84, 14, 1, 3)}"/><path class="iso-line" data-tone="mid" d="${flat(-70, 8.4, -64, 9.6, 0.5, 2)}${flat(64, 8.4, 70, 9.6, 0.5, 2)}"/></g>`);
+  const vents = []; for (let i = 0; i < 6; i++) vents.push(flat(-(c.y + 5 + i * 3.8) - 0.9, 6, -(c.y + 5 + i * 3.8) + 0.9, 24, 0.9, 3));
+  out.push(`<g transform="${r}"><path class="iso-line" data-tone="lo" d="${vents.join("")}"/></g>`);
+  // Bac des recherches : plateau en saillie sur le dessus, ruban gradué à son bord.
+  const t = TRAY;
+  out.push(S(slab(t, CAB_H, 1.6, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab({ x: t.x, y: t.y + t.d - 1.6, w: t.w, d: 1.6, r: 0.4 }, CAB_H + 1.6, 3.4, 2, 0.2), { tone: "mid" }), S(slab({ x: t.x, y: t.y, w: 1.6, d: t.d, r: 0.4 }, CAB_H + 1.6, 3.4, 2, 0.2), { tone: "mid" }), S(slab({ x: t.x + t.w - 1.6, y: t.y, w: 1.6, d: t.d, r: 0.4 }, CAB_H + 1.6, 3.4, 2, 0.2), { tone: "mid" }));
+  const tk = k.topTicks(t.x + 4, t.x + t.w - 4, 4, 5, t.y + t.d - 1.4, CAB_H + 5, [0.9, 1.6], P);
+  void tk;
+  out.push(`<g data-part="slip"></g>`);
   return out.join("");
 }
-function panelSvg() {
-  const out = [], f = front(FACE);
-  out.push(S(slab(PANEL, PANEL_Z[0], PANEL_Z[1] - PANEL_Z[0], 4, 1), { tone: "mid", inner: L(k.sideSeam(PANEL, PANEL_Z[0] + 8, P, 4), { tone: "faint" }) }));
-  out.push(S(slab({ x: PANEL.x - 2, y: PANEL.y - 1, w: PANEL.w + 4, d: PANEL.d + 4, r: 2 }, PANEL_Z[1], 4, 3, 0.6), { tone: "mid" }));
-  out.push(D([[PANEL.x + 4, PANEL_Z[0] + 4], [PANEL.x + PANEL.w - 4, PANEL_Z[0] + 4], [PANEL.x + 4, PANEL_Z[1] - 4], [PANEL.x + PANEL.w - 4, PANEL_Z[1] - 4]].map(([x, z]) => at([x, FACE, z])), { size: 0.45 }));
-  // Cadres des colonnes de sources et des lignes d'entrées.
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="faint" d="${COLS.map((x) => flat(x - 11, 40, x + 11, 108, 2, 3)).join("")}"/></g>`);
-  COLS.forEach((x, c) => ROWS_Z.forEach((z, r) => {
-    const F = G.frameAlong([x, FACE, z], Y);
-    out.push(S(G.disc(0, 1.2, 4.4, F, P), { tone: "mid" }));
-    out.push(L(G.circleOf(F, 1.2, 2.2, P), { tone: "lo" }));
-    const [lx, ly] = at([x, FACE, z + 8]);
-    out.push(`<g transform="${f}"><circle class="iso-line" data-tone="lo" cx="${x}" cy="${-(z + 8)}" r="2.6" fill="none"/></g><circle class="fig-lamp" data-part="lamp-${r}-${c}" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.6"/>`);
-  }));
+
+// ---------------------------------------------------------------- chevalet et tableau
+function easelSvg() {
+  const out = [];
+  // Montants tournés, traverses du haut et du bas, pieds en équerre, étais arrière.
+  for (const x of [BOARD.x - 4, BOARD.x + BOARD.w + 4]) {
+    out.push(easelPost(CTX, { x, y: 0, z0: CAB_H + 2, z1: BOARD.z1 + 12, s: 5.4, rear: 24 }));
+    out.push(S(slab({ x: x - 2.4, y: -12, w: 4.8, d: 12, r: 0.8 }, CAB_H + 1.6, 2, 2, 0.3), { tone: "lo" }));
+  }
+  out.push(S(slab({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8, r: 1 }, BOARD.z1 + 10, 4, 3, 0.7), { tone: "mid", inner: L(k.sideSeam({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8, r: 1 }, BOARD.z1 + 12, P, 3), { tone: "faint" }) }));
+  out.push(D(k.corners({ x: BOARD.x - 8, y: -3.4, w: BOARD.w + 16, d: 6.8 }, 1.8).map(([x, y]) => at([x, y, BOARD.z1 + 14])), { size: 0.36 }));
+  out.push(S(slab({ x: BOARD.x - 6, y: -3, w: BOARD.w + 12, d: 6, r: 0.8 }, BOARD.z0 - 5, 3, 3, 0.5), { tone: "mid" }));
   return out.join("");
 }
-// Fiche (plug) debout dans sa douille, base à l'origine.
-const plugSvg = (lit) => k.solidSvg(k.cylinder(0, 0, 2, 0, 4, P, 16, 0.2), { tone: "hi", lit }) + k.solidSvg(k.cylinder(0, 0, PLUG.r, 4, PLUG.h - 4, P, 20, 0.4), { tone: "hi", lit, inner: k.lineSvg(k.knurl(0, 0, PLUG.r, 4, PLUG.h, 14, P), { tone: "faint" }) });
+function boardSvg() {
+  const out = [], b = BOARD, yf = 2.2, f = front(yf);
+  // Cadre en onglet : quatre moulures, liège en retrait, 160 picots de liège (grille).
+  const frame = { x: b.x, y: -2.2, w: b.w, d: 4.4, r: 1.2 };
+  out.push(S(slab(frame, b.z0, b.z1 - b.z0, 3, 0.6), { tone: "mid", inner: L(k.sideSeam(frame, (b.z0 + b.z1) / 2, P, 3), { tone: "faint" }) }));
+  out.push(`<g transform="${f}"><path class="iso-fill" d="${flat(CORK.x0, CORK.z0, CORK.x1, CORK.z1, 1, 3)}"/><path class="iso-line" data-tone="lo" d="${flat(CORK.x0, CORK.z0, CORK.x1, CORK.z1, 1, 3)}"/><path class="iso-line" data-tone="faint" d="${flat(CORK.x0 + 2.4, CORK.z0 + 2.4, CORK.x1 - 2.4, CORK.z1 - 2.4, 1, 3)}"/></g>`);
+  const holes = []; for (let x = CORK.x0 + 6; x <= CORK.x1 - 5; x += 8) for (let z = CORK.z0 + 6; z <= CORK.z1 - 5; z += 8) holes.push(at([x, yf, z]));
+  out.push(D(holes, { size: 0.28 }));
+  out.push(D([[b.x + 2.4, b.z0 + 2.4], [b.x + b.w - 2.4, b.z0 + 2.4], [b.x + 2.4, b.z1 - 2.4], [b.x + b.w - 2.4, b.z1 - 2.4]].map(([x, z]) => at([x, yf, z])), { size: 0.5 }));
+  // Bandeau : fenêtre de la recherche en cours, deux vis ; au bord gauche, les lignes de recherche ; au bord droit, les plaques de source.
+  out.push(display(f, flat(-34, b.z1 - 10, 34, b.z1 - 2.4, 1.2), { part: "query", x: 0, y: -(b.z1 - 6.2), size: 4.6, text: "EN ATTENTE" }));
+  const KN = ["OT", "ÉQ.", "BÂT."];
+  QROWS.forEach((z, i) => out.push(display(f, flat(-57, z - 3, -48, z + 3, 0.8), { part: "kind-" + i, x: -52.5, y: -(z - 1), size: 2.6, text: KN[i] })));
+  ["GMAO", "exports", "SharePoint", "Excel", "Power BI"].forEach((n, i) => {
+    const z = SROWS[i];
+    out.push(display(f, flat(43, z - 3.4, 57, z + 3.4, 0.8), { part: "src-" + i, x: 50, y: -(z - 1.2), size: 2.6, text: n }));
+    const [lx, ly] = at([58.6, yf, z]);
+    out.push(`<circle class="fig-lamp" data-part="lamp-${i}" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="0.95"/>`);
+  });
+  // Crochets de fil sur le cadre : un oeillet par ligne, côtés gauche et droit.
+  for (const z of QROWS) out.push(S(k.cylinder(-30, yf + 0.4, 0.9, z - 0.8, 1.2, P, 10), { tone: "hi" }).slice(0, 0));
+  out.push(`<g data-part="cards"></g>`);
+  return out.join("");
+}
+// Poignées : pointes de repère des quatre coins du liège (ne s'ajoutent pas aux fils).
+function pinsSvg() {
+  const out = [];
+  // Épingles de laiton plantées en tête de chaque fiche : tête bombée et tige.
+  const pins = [...QROWS.map((z) => [QX, z + QH / 2 - 1.4]), ...SROWS.map((z) => [SX + SW / 2, z + SH / 2 - 1.2])];
+  for (const [x, z] of pins) {
+    const F = G.frameAlong([x, 1.4, z], [0, 1, 0]);
+    out.push(S(G.disc(0, 1.2, 1.5, F, P), { tone: "hi" }), S(G.disc(1.2, 2.2, 0.8, F, P), { tone: "mid" }));
+  }
+  return out.join("");
+}
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Un standard téléphonique à fiches sur un établi. Le tableau porte cinq colonnes de jacks, une par source (GMAO, exports, SharePoint, Excel, Power BI), sur trois lignes : OT, équipement, bâtiment. Sur le pupitre, trois fiches attendent dans leurs douilles. À chaque recherche, la fiche de sa ligne se branche sur le jack de la bonne source et la lampe au-dessus s'allume.",
+  label: "Un tableau d'enquête sur chevalet, au-dessus d'un classeur à tiroirs. À gauche du liège, trois fiches de recherche : OT, équipement, bâtiment ; à droite, cinq fiches de source : GMAO, exports, SharePoint, Excel, Power BI. Une recherche arrive dans le bac, sa fiche s'épingle à sa ligne et un fil se tend jusqu'à la bonne source dont le voyant s'allume : le lien direct est établi, sans recopier les données.",
   body: [
-    bench(P, PLATE, { strip: { x: -90, y: PLATE.y + PLATE.d - 11, w: 90, d: 7, r: 1 }, label: { x: 40, y: PLATE.y + PLATE.d - 13, w: 46, d: 10, r: 1.2 } }),
-    deskSvg(), panelSvg(), `<g data-part="plugs"></g>`,
+    bench(P, PLATE, { strip: { x: -104, y: PLATE.y + PLATE.d - 13, w: 120, d: 7, r: 1 }, label: { x: 40, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
+    cabinetSvg(), easelSvg(), boardSvg(), pinsSvg(), `<g data-part="strings"></g>`, `<g data-part="air"></g>`,
   ],
 });
 
 // ---------------------------------------------------------------- modèle
 const live = `
-const P = ${JSON.stringify(P)};
-const COLS = ${JSON.stringify(COLS)}, ROWS_Z = ${JSON.stringify(ROWS_Z)}, SOCKETS = ${JSON.stringify(SOCKETS)}, SOCKET_Y = ${SOCKET_Y}, DESK_H = ${DESK_H}, FACE = ${FACE}, PLUG = ${JSON.stringify(PLUG)};
-const PLUGS = [${JSON.stringify(plugSvg(false))}, ${JSON.stringify(plugSvg(true))}];
 ${LOOP}
+const P = ${JSON.stringify(P)};
+${PAPER}
+const QROWS = ${JSON.stringify(QROWS)}, QX = ${QX}, QW = ${QW}, QH = ${QH}, SROWS = ${JSON.stringify(SROWS)}, SX = ${SX}, SW = ${SW}, SH = ${SH}, PINY = ${PINY}, TRAY = ${JSON.stringify(TRAY)}, TRAY_Z = ${TRAY_Z};
 // Vrais chiffres : 10 à 15 min gagnées par recherche, ≈ 26 € la recherche (15 min à 104,74 €/h).
 // Les recherches affichées sont illustratives ; le montant annuel (118 à 589 k€) reste à confirmer.
 const SOURCES = ["GMAO", "exports", "SharePoint", "Excel", "Power BI"], KINDS = ["OT", "équipement", "bâtiment"];
@@ -81,63 +122,48 @@ const QUERIES = Array.from({ length: 12 }, (_, i) => {
   const value = kind === 0 ? "OT " + (4100000 + Math.floor(hash(i + 60) * 899999)) : kind === 1 ? "ÉQ " + ["TGBT", "CTA", "SSI", "ASC", "GE"][Math.floor(hash(i + 80) * 5)] + "-" + String(Math.floor(hash(i + 90) * 90) + 10) : "BÂT " + String.fromCharCode(65 + Math.floor(hash(i + 70) * 8));
   return { kind, src, value };
 });
-const CYCLE = 4.2, ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
+const CYCLE = 4.8, ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u)), lerp = (a, b, u) => a + (b - a) * u;
 let clock = 0, touring = true, idle = 0;
-const plugs = $("plugs"), query = $("query");
-// Trajet de la fiche : sortie de la douille, vol jusqu'au jack, branchement, maintien, retour.
-function plugAt(q, u) {
-  const home = [SOCKETS[q.kind], SOCKET_Y, DESK_H + 1.2], jack = [COLS[q.src], FACE + 1.2 + PLUG.h, ROWS_Z[q.kind]];
-  const go = ease(u / 0.3), back = ease((u - 0.75) / 0.25), v = u < 0.75 ? go : 1 - back;
-  const p = home.map((h, i) => h + (jack[i] - h) * v);
-  p[2] += 22 * Math.sin(Math.PI * v) * (u < 0.3 || u > 0.75 ? 1 : 0);
-  return { p, plugged: u >= 0.3 && u < 0.75, v };
+const parts = { cards: $("cards"), strings: $("strings"), air: $("air"), slip: $("slip"), query: $("query") };
+const vcard = (c, w, h, o = {}) => paperSvg(paperRows({ c, d: [0, 0, 1], w: [1, 0, 0], L: h, W: w, curl: o.curl ?? 0.03, wave: o.wave ?? 0.25, roll: o.roll ?? 0.2, ph: o.ph || 0, t: o.t || 0, NT: o.nt || 6 }), { head: true, lit: o.lit });
+// Fil : de la fiche de recherche à la fiche de source, qui se tend avec une flèche et un oeillet à chaque bout.
+function stringSvg(a, b, v, now) {
+  const n = 18, pts = [];
+  for (let i = 0; i <= n * v; i++) { const t = i / n, x = lerp(a[0], b[0], t), z = lerp(a[2], b[2], t) - 3.4 * Math.sin(Math.PI * t) * (1 - 0.35 * v), y = PINY + 0.8 + 0.5 * Math.sin(t * 9 - now * 6) * (1 - v) * 0.6; pts.push(iso([x, y, z], P)); }
+  if (pts.length < 2) return "";
+  return '<path class="fg-str" d="M' + pts.map(pPt).join("L") + '"/>';
 }
-// Cordon : de la douille à la fiche, en chaînette.
-function cord(from, to) {
-  const pts = [];
-  for (let i = 0; i <= 14; i++) { const t = i / 14, sag = 8 * Math.sin(Math.PI * t) * Math.min(1, Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]) / 40); pts.push(iso([from[0] + (to[0] - from[0]) * t, from[1] + (to[1] - from[1]) * t, Math.max(DESK_H + 1.2, from[2] + (to[2] - from[2]) * t - sag)], P)); }
-  return wireSvg(pts[0], pts[pts.length - 1], { via: pts.slice(1, -1), tone: "hi", size: 1.4 });
-}
-function draw() {
+function draw(now) {
   const n = Math.floor(clock / CYCLE), u = clock / CYCLE - n, q = QUERIES[n % QUERIES.length];
-  const st = plugAt(q, u);
-  let svgPlugs = "";
-  SOCKETS.forEach((x, kind) => {
-    if (kind === q.kind && st.v > 0.001) {
-      // La fiche est couchée vers le tableau une fois branchée : sa tige entre dans le jack.
-      const base = st.plugged ? [st.p[0], st.p[1] - PLUG.h, st.p[2]] : st.p;
-      svgPlugs += cord([x, SOCKET_Y, DESK_H + 1.2], st.plugged ? [st.p[0], st.p[1], st.p[2]] : base);
-      svgPlugs += st.plugged
-        ? solidSvg(G_rod(base, 4), { tone: "hi", lit: true }) + solidSvg(G_cap(base), { tone: "hi", lit: true })
-        : '<g transform="' + translateAlong(P, base) + '">' + PLUGS[1] + "</g>";
-    } else svgPlugs += '<g transform="' + translateAlong(P, [x, SOCKET_Y, DESK_H + 1.2]) + '">' + PLUGS[0] + "</g>";
-  });
-  plugs.innerHTML = svgPlugs;
-  COLS.forEach((_, c) => ROWS_Z.forEach((_, r) => { $("lamp-" + r + "-" + c).dataset.on = String(st.plugged && r === q.kind && c === q.src); }));
-  const text = u < 0.85 ? q.value : "EN ATTENTE";
-  if (query.textContent !== text) query.textContent = text;
-  const done = n + (u >= 0.3 ? 1 : 0), lo = done * 10, hi = done * 15, hm = (m) => m >= 60 ? Math.floor(m / 60) + " h" + (m % 60 ? " " + String(m % 60).padStart(2, "0") : "") : m + " min";
+  // Phases : 0–0,22 la fiche vole du bac à sa ligne ; 0,22–0,4 le fil se tend ; 0,4–0,8 lien établi ; 0,8–1 le fil se rend, la fiche repart.
+  const qz = QROWS[q.kind], sz = SROWS[q.src], pinQ = [QX + QW / 2 + 1, 0, qz + 3], pinS = [SX - 1, 0, sz + 1];
+  const tray = [TRAY.x + TRAY.w / 2, TRAY.y + TRAY.d / 2, TRAY_Z + 3 + QH / 2];
+  let air = "", cards = "", strings = "";
+  const fly = (v) => [lerp(tray[0], QX, ease(v)), lerp(tray[1], 1.2, ease(v)), lerp(tray[2], qz, ease(v)) + 12 * Math.sin(Math.PI * Math.max(0, Math.min(1, v)))];
+  if (u < 0.22) air = vcard(fly(u / 0.22), QW, QH, { lit: true, curl: -0.07 * Math.sin(Math.PI * u / 0.22), wave: 1.2 * Math.sin(Math.PI * u / 0.22), roll: 0.7, ph: n, t: now });
+  else if (u < 0.82) cards = vcard([QX, 1.4, qz], QW, QH, { lit: true, ph: n, t: now, curl: 0.02, wave: 0.2 });
+  else air = vcard(fly(1 - (u - 0.82) / 0.18), QW, QH, { lit: true, curl: -0.07 * Math.sin(Math.PI * (u - 0.82) / 0.18), wave: 1.2 * Math.sin(Math.PI * (u - 0.82) / 0.18), roll: 0.7, ph: n, t: now });
+  // Les cinq fiches de source et les deux autres fiches de recherche, toujours épinglées.
+  let fixed = "";
+  QROWS.forEach((z, i) => { if (!(i === q.kind && u >= 0.22 && u < 0.82)) fixed += vcard([QX, 1.4, z], QW, QH, { ph: i, t: now, curl: (i % 2 ? 1 : -1) * 0.025, wave: 0.18 }); });
+  SROWS.forEach((z, i) => { fixed += vcard([SX + SW / 2, 1.4, z], SW, SH, { ph: i + 5, t: now, curl: (i % 2 ? 1 : -1) * 0.03, wave: 0.22, lit: i === q.src && u >= 0.4 && u < 0.8 }); });
+  const v = u < 0.22 ? 0 : u < 0.4 ? ease((u - 0.22) / 0.18) : u < 0.8 ? 1 : 1 - ease((u - 0.8) / 0.18);
+  if (v > 0.001) strings = stringSvg(pinQ, pinS, v, now);
+  html(parts.cards, fixed + cards); html(parts.air, air); html(parts.strings, strings);
+  html(parts.slip, u < 0.02 || u > 0.98 ? "" : vcard(tray, QW, QH, { ph: n + 3, t: now, curl: 0.03 }));
+  for (let c = 0; c < 5; c++) attr($("lamp-" + c), "data-on", u >= 0.4 && u < 0.8 && c === q.src);
+  const text = u < 0.9 ? q.value : "EN ATTENTE";
+  if (parts.query.textContent !== text) parts.query.textContent = text;
+  const done = n + (u >= 0.4 ? 1 : 0), lo = done * 10, hi = done * 15, hm = (m) => m >= 60 ? Math.floor(m / 60) + " h" + (m % 60 ? " " + String(m % 60).padStart(2, "0") : "") : m + " min";
   const span = hi < 60 ? lo + " à " + hi + " min" : hm(lo) + " à " + hm(hi);
-  say(st.plugged ? q.value + " → " + SOURCES[q.src] + " · lien direct · 10–15 min gagnées" : done + " recherche" + (done > 1 ? "s" : "") + " · " + span + " · ≈ " + fr(done * 26.19) + " €");
+  say(u >= 0.4 && u < 0.8 ? q.value + " → " + SOURCES[q.src] + " · lien direct · 10–15 min gagnées" : done + " recherche" + (done > 1 ? "s" : "") + " · " + span + " · ≈ " + fr(done * 26.19) + " €");
 }
-// Tige couchée le long de −y depuis la fiche (prisme rond le long de l'axe y).
-function G_rod(base, len) { const r = 2, ring = Array.from({ length: 16 }, (_, i) => [Math.cos(i / 16 * 6.283) * r, Math.sin(i / 16 * 6.283) * r]); return prismY(base, ring, 0, len); }
-function G_cap(base) { const r = PLUG.r, ring = Array.from({ length: 20 }, (_, i) => [Math.cos(i / 20 * 6.283) * r, Math.sin(i / 20 * 6.283) * r]); return prismY(base, ring, 4, PLUG.h); }
-function prismY(o, ring, s0, s1) {
-  const a = ring.map(([x, z]) => iso([o[0] + x, o[1] + s0, o[2] + z], P)), b = ring.map(([x, z]) => iso([o[0] + x, o[1] + s1, o[2] + z], P));
-  const hull = convexHull([...a, ...b]), d = (pts) => "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z";
-  return { fill: d(hull), outline: d(hull), shades: ["", "", "", ""], top: d(b) };
-}
-const run = loop((dt, calm) => { if (calm) clock = 0.5 * CYCLE; else if (touring) clock += dt; draw(); });
+const run = loop((dt, calm) => { if (calm) clock = 0.6 * CYCLE; else if (touring) clock += dt; draw(performance.now() / 1000); });
 const steer = (next) => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; }, 5000); clock = Math.max(0, next); run(); };
 dragX(() => clock, (v, share) => steer(v + share * CYCLE * 6));
-stage.addEventListener("keydown", (e) => {
-  const to = { ArrowRight: (Math.floor(clock / CYCLE) + 1.5) * CYCLE, ArrowLeft: Math.max(0.5, Math.floor(clock / CYCLE) - 0.5) * CYCLE }[e.key];
-  if (to !== undefined) { e.preventDefault(); steer(to); }
-});
-// Accès de vérification (captures).
-window.__fig = { at: (c) => { touring = false; clock = c * CYCLE; draw(); return readout.textContent; }, QUERIES };
-draw();
+stage.addEventListener("keydown", (e) => { const to = { ArrowRight: (Math.floor(clock / CYCLE) + 1.6) * CYCLE, ArrowLeft: Math.max(0.6, Math.floor(clock / CYCLE) - 0.4) * CYCLE }[e.key]; if (to !== undefined) { e.preventDefault(); steer(to); } });
+window.__fig = { at: (c) => { touring = false; clock = c * CYCLE; draw(1); return readout.textContent; }, QUERIES };
+draw(1);
 `;
 
 const plate = k.plateHtml({
@@ -146,11 +172,11 @@ const plate = k.plateHtml({
   hint: "Glisse ou ← → : recherche",
   readout: "0 recherche",
   keys: [
-    { mark: "lit", label: "La fiche de la recherche en cours, branchée sur sa source" },
-    { mark: "raised", label: "Lignes : OT, équipement, bâtiment ; colonnes : GMAO, exports, SharePoint, Excel, Power BI" },
+    { mark: "lit", label: "La fiche de la recherche en cours, le fil et la source atteinte" },
+    { mark: "raised", label: "À gauche, OT, équipement, bâtiment ; à droite, GMAO, exports, SharePoint, Excel, Power BI" },
   ],
-  caption: "Une recherche par OT, équipement ou bâtiment arrive au même pupitre ; la bonne source s'allume et le lien mène directement à l'écran concerné, sans recopier les données des outils. Chaque recherche fait gagner 10 à 15 min (près d'1 h quand elle passait par d'autres outils), soit ≈ 26 € à 104,74 €/h. Pour 14 utilisateurs, l'estimation annuelle de 118 à 589 k€ reste à confirmer. Recherches affichées illustratives.",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Standard de recherche : flèches gauche et droite pour passer à la recherche suivante" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">${svg}</div>`,
+  caption: "Une recherche par OT, équipement ou bâtiment arrive au même tableau ; la bonne source s'allume et le lien mène directement à l'écran concerné, sans recopier les données des outils. Chaque recherche fait gagner 10 à 15 min (près d'1 h quand elle passait par d'autres outils), soit ≈ 26 € à 104,74 €/h. Pour 14 utilisateurs, l'estimation annuelle de 118 à 589 k€ reste à confirmer. Recherches affichées illustratives.",
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Tableau d'enquête : flèches gauche et droite pour passer à la recherche suivante" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">${svg}</div>`,
 });
 
-writeFigure("suivi", { title: "Retrouver tout le suivi · standard à fiches", plate, live, css: `<style>.iso-wire .iso-line{stroke-width:1.5}</style>` });
+writeFigure("suivi", { title: "Retrouver tout le suivi · tableau d'enquête", plate, live, css: `<style>.fg-str{fill:none;stroke:#3e63dd;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}</style>` });
