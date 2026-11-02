@@ -41,7 +41,7 @@ import { MeshoptDecoder } from '../vendor/meshopt_decoder.module.js';
    Texture : l'élément lui-même via HTML-in-Canvas quand le navigateur le permet, sinon une image de la section (SVG foreignObject).
    Le défilement natif pilote la caméra : vue de face à l'échelle 1:1 au départ, puis la page se rabat en chemin et se relève au loin. */
 
-const ROOM_K = innerWidth < 760 ? 0.5 : 1.15;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
+const ROOM_K = innerWidth < 760 ? 0.5 : 0.85;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
 const PXM = 100;                  // px de page par mètre
 const MOBILE = innerWidth < 760;   // téléphone : page étroite, mise en page à une colonne (voir parcours.css, html.pc-m)
 const PAGE_W = MOBILE ? Math.max(320, Math.min(560, Math.round(innerWidth))) : 1000;
@@ -441,7 +441,7 @@ async function start() {
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
-  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null, roomPick = null, roomG = null, roomFollow = null;
+  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null, heroRing = null, roomPick = null, roomG = null, roomFollow = null;
   const roomView = { // vue externe de la pièce : tout est calculé avec la courbure de la page (toScreen), en repère monde ou local selon l'attente de la pièce
     pick: (x, y) => (roomPick ? roomPick(x, y) : null),
     ray: (x, y) => invRay(x, y), ground: (x, y) => { const w = invPlane(x, y, 0); if (!w || !roomG) return null; roomG.updateMatrixWorld(true); return roomG.worldToLocal(w); },
@@ -465,25 +465,30 @@ async function start() {
       const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.22;
       window.__room = room; roomDone();
       // étiquette qui suit Mathieu dans la pièce, pour le repérer d'un coup d'œil
-      heroTag = label('Mathieu', { w: 0.7, h: 0.16, font: '600 14px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); heroTag.renderOrder = 9; heroTag.material.depthTest = false; scene.add(heroTag);
+      heroRing = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.64, 56), new THREE.MeshBasicMaterial({ color: 0x7ff6ff, transparent: true, opacity: 0.9, depthTest: false, side: THREE.DoubleSide })); heroRing.rotation.x = -Math.PI / 2; heroRing.renderOrder = 8; scene.add(heroRing); patchTree(heroRing); // anneau pulsé sous Mathieu : on le repère d'un coup d'œil
+      heroTag = label('Mathieu', { w: 1.1, h: 0.26, font: '700 22px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); heroTag.renderOrder = 9; heroTag.material.depthTest = false; scene.add(heroTag);
       // règles du décor : « Tourner » fait pivoter la pièce, « Incliner » sert de zoom (pièce et plan ensemble)
       const R = makeRulers(); R.el.querySelector('.rf-ruler:not(.rf-ruler--h) .rf-ruler-label').textContent = 'Zoom';
-      const syncBp = () => { for (const q of bpGroups) { q.bg.scale.set(g.scale.x / ROOM_K, 1, g.scale.x / ROOM_K); q.bg.rotation.y = g.rotation.y + 36 * Math.PI / 180; q.bg.position.set(g.position.x, 0, g.position.z); } };
-      R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(2.6, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; syncBp(); };
+      // la pièce est centrée sur le blueprint : son centre réel (boîte des objets visibles, sans la zone de thé) se place sous le centre des cercles
+      const centerL = new THREE.Vector3(), Yax = new THREE.Vector3(0, 1, 0), c0 = new THREE.Vector3(rr.cx, 0, rr.cz), anchor = c0.clone(), _t = new THREE.Vector3();
+      const placeRoom = () => { g.position.copy(anchor).sub(_t.copy(centerL).multiplyScalar(g.scale.x).applyAxisAngle(Yax, g.rotation.y)); };
+      const syncBp = () => { placeRoom(); for (const q of bpGroups) { q.bg.scale.set(g.scale.x / ROOM_K, 1, g.scale.x / ROOM_K); q.bg.rotation.y = g.rotation.y + 36 * Math.PI / 180; q.bg.position.copy(anchor); } };
+      R.onview = ({ rot, tilt }) => { const z = Math.max(0.5, Math.min(3.2, 1 - tilt / 250 * 1.2)); g.scale.setScalar(ROOM_K * z); g.rotation.y = (-36 + rot * 0.36) * Math.PI / 180; syncBp(); };
       roomRul = { g, rul: R, p: new THREE.Vector3(rr.cx, 0, rr.cz + rr.d * 0.32), z: rr.cz };
       // boutons de caméra de la pièce : « Suivre » garde Mathieu au centre en zoomant, « Recentrer » rétablit la vue d'origine
       const cb = document.createElement('div'); cb.className = 'pc-rul-btns'; cb.innerHTML = '<button type="button" data-a="follow">Suivre Mathieu</button><button type="button" data-a="reset">Recentrer</button>'; R.el.append(cb);
-      const base = g.position.clone(); let follow = false;
+      let follow = false;
       cb.addEventListener('click', (ev) => { const a = ev.target.dataset?.a; if (!a) return;
-        if (a === 'follow') { follow = !follow; ev.target.classList.toggle('on', follow); if (follow) { R.sets[0](-120); } else { g.position.copy(base); R.sets[0](0); } }
-        else { follow = false; cb.querySelector('[data-a="follow"]').classList.remove('on'); g.position.copy(base); R.reset(); } });
-      follow = true; cb.querySelector('[data-a="follow"]').classList.add('on'); R.sets[0](-170); // par défaut : on suit Mathieu, zoom 1,8 (le plan blueprint zoome avec lui)
-      roomFollow = () => { syncBp(); if (!follow || !window.__room) return; const hp = g.localToWorld(window.__room.hero.group.position.clone()); g.position.x += (base.x - (hp.x - g.position.x) * 0 - hp.x) * 0.06; g.position.z += (base.z - hp.z) * 0.06; };
+        if (a === 'follow') { follow = !follow; ev.target.classList.toggle('on', follow); if (follow) R.sets[0](-150); else { anchor.copy(c0); R.sets[0](0); } }
+        else { follow = false; cb.querySelector('[data-a="follow"]').classList.remove('on'); anchor.copy(c0); R.reset(); } });
+      roomFollow = () => { if (follow && window.__room) { const hp = g.localToWorld(window.__room.hero.group.position.clone()); anchor.x += (c0.x - hp.x) * 0.06; anchor.z += (c0.z - hp.z) * 0.06; } syncBp(); };
       // — interactions du décor : les objets réagissent au clic comme sur le site (la pièce a perdu son propre canvas, on relaie) —
       import('../js/ui.js?v=cv-monde3d-32').then(({ initUI }) => initUI()).catch((e) => console.warn('applications du décor indisponibles', e)); // PC « atelier » et console PS1
       const OPEN = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
       const inv = new THREE.Matrix4(), tb = new THREE.Box3(), cands = [];
       const scan = () => { g.updateMatrixWorld(true); inv.copy(g.matrixWorld).invert(); cands.length = 0;
+        const ub = new THREE.Box3(); room.scene.traverse((o) => { if (!o.isMesh || !o.geometry || o.material?.isShadowMaterial) return; for (let q = o; q; q = q.parent) if (!q.visible) return; tb.setFromObject(o); if (tb.isEmpty()) return; const z = tb.getSize(new THREE.Vector3()); if (z.x > 20 || z.z > 20) return; ub.union(tb.clone().applyMatrix4(inv)); });
+        if (!ub.isEmpty()) { ub.getCenter(centerL); centerL.y = 0; }
         room.scene.traverse((o) => { if (!o.userData.id || o.userData.id === 'ground') return; tb.setFromObject(o); if (tb.isEmpty()) return; const sz = tb.getSize(new THREE.Vector3()); if (sz.length() > 20) return; cands.push({ id: o.userData.id, o, b: tb.clone().applyMatrix4(inv) }); }); };
       scan(); setTimeout(scan, 6000); setTimeout(scan, 20000); // objets chargés plus tard
       const corners = [], cv3 = new THREE.Vector3();
@@ -1014,12 +1019,24 @@ async function start() {
 
   /* boucle */
   const ease = (u) => u * u * (3 - 2 * u);
+  const Q = { pr: Math.min(devicePixelRatio, 1.5), max: Math.min(devicePixelRatio, 1.5), ema: 16, t: 0 };
+  const smooth = { on: !reduce && !MOBILE && matchMedia('(pointer:fine)').matches, active: false, target: 0, last: 0 };
+  addEventListener('wheel', (e) => {
+    if (!smooth.on || e.ctrlKey || lifted || reader || run.st === 'run' || e.target.closest?.('.pc-lift, .fl-ov, dialog, .ov, .pc-reader-bar')) return;
+    e.preventDefault(); const max = document.documentElement.scrollHeight - innerHeight, from = smooth.active ? smooth.target : scrollY;
+    smooth.target = Math.max(0, Math.min(max, from + e.deltaY * (e.deltaMode === 1 ? 32 : 1))); smooth.last = scrollY; smooth.active = true;
+  }, { passive: false });
   const flatPos = new THREE.Vector3(), runPos = new THREE.Vector3(), flatLook = new THREE.Vector3(), runLook = new THREE.Vector3(), look = new THREE.Vector3();
   let frameN = 0, sSm = scrollY, last = performance.now(), dtS = 0;
   function frame(now) {
     requestAnimationFrame(frame);
-    dtS = Math.min(0.1, (now - last) / 1000); last = now;
-    sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * 7)); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
+    const rawDt = now - last; dtS = Math.min(0.1, rawDt / 1000); last = now;
+    // qualité adaptative : si le rythme tombe sous ~30 images/s, la résolution de rendu baisse par paliers (jusqu'à 0,6) ; elle remonte quand la marge revient
+    if (rawDt < 250) Q.ema += (rawDt - Q.ema) * 0.06; Q.t += dtS;
+    if (Q.t > 2.5 && !reduce) { Q.t = 0; const was = Q.pr; if (Q.ema > 36 && Q.pr > 0.6) Q.pr = Math.max(0.6, Q.pr * 0.8); else if (Q.ema < 18 && Q.pr < Q.max) Q.pr = Math.min(Q.max, Q.pr * 1.15); if (Math.abs(Q.pr - was) > 0.01) { renderer.setPixelRatio(Q.pr); resize(); } }
+    // défilement inertiel : la molette fixe une cible, la page la rejoint en douceur (même principe que Lenis)
+    if (smooth.active) { const d = smooth.target - scrollY; if (Math.abs(scrollY - smooth.last) > 4) smooth.active = false; else if (Math.abs(d) < 0.6) { scrollTo(0, smooth.target); smooth.active = false; } else { scrollTo(0, scrollY + d * (1 - Math.exp(-dtS * 8))); smooth.last = scrollY; } }
+    sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * (smooth.on ? 16 : 7))); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
     const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
     const H = innerHeight, kf = KF + (1 - KF) * e, focusZ = (s + H / kf / 2) / PXM;
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
@@ -1049,6 +1066,7 @@ async function start() {
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
     roomFollow?.(); animMinis(now, focusZ); tickGame(now, focusZ); tickRun(now, dtS, e, focusZ); tickReader(now, dtS);
+    if (heroRing && window.__room) { window.__room.hero.group.getWorldPosition(heroP); const sc = (roomRul?.g?.scale.x || 1) / ROOM_K; heroRing.position.set(heroP.x, 0.04, heroP.z); heroRing.scale.setScalar(sc * (1 + 0.12 * Math.sin(now / 350))); heroRing.visible = Math.abs(focusZ - heroP.z) < 16; }
     if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
