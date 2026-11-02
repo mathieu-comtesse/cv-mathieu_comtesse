@@ -695,6 +695,24 @@ async function start() {
   }
   const liftMats = (L, on) => items.filter((it) => L.el === it.el || L.el.contains(it.el)).forEach((it) => it.mats.forEach((m) => { if (m.map) m.visible = on; }));
 
+  /* mini-jeu de fin de page : une toile 2D posée sur la feuille, juste après Contact ; il ne tourne que lorsqu'on est arrivé tout en bas */
+  const GW = 1150, GH = 750, GM = { w: 9.2, d: 6.0, cx: 0, cz: endZ + 4.5 };
+  let game = null, gTex = null, gMesh = null;
+  import('./pc-game.js').then(({ createGame }) => {
+    game = createGame(GW, GH, reduce); gTex = new THREE.CanvasTexture(game.cv); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 8;
+    gMesh = new THREE.Mesh(plane(GM.w, GM.d), new THREE.MeshBasicMaterial({ map: gTex, transparent: true, depthWrite: false })); gMesh.rotation.x = -Math.PI / 2; gMesh.position.set(GM.cx, 0.03, GM.cz); gMesh.renderOrder = 9; scene.add(gMesh);
+  }).catch((e) => console.warn('mini-jeu indisponible', e));
+  const gRay = new THREE.Raycaster(), gPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03), gHit = new THREE.Vector3(), gNdc = new THREE.Vector2(), gP = { x: GW / 2, y: GH * 0.8, down: false, in: false };
+  addEventListener('pointerdown', (e) => { if (e.button === 0 && !lifted && e.target === canvas) gP.down = true; }); addEventListener('pointerup', () => { gP.down = false; });
+  function tickGame(now, focusZ) {
+    if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9;
+    if (!on) { gP.down = false; return; }
+    gNdc.set(mouse.x / innerWidth * 2 - 1, -(mouse.y / innerHeight) * 2 + 1); gRay.setFromCamera(gNdc, camera);
+    if (gRay.ray.intersectPlane(gPlane, gHit)) { gP.x = (gHit.x - GM.cx) / GM.w * GW + GW / 2; gP.y = (gHit.z - GM.cz) / GM.d * GH + GH / 2; gP.in = gP.x > 0 && gP.x < GW && gP.y > 0 && gP.y < GH; } else gP.in = false;
+    if (!gP.in) gP.down = false;
+    game.update(now, gP); gTex.needsUpdate = true;
+  }
+
   /* rendu dans une cible, puis flou de profondeur sur le lointain et les bords */
   const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), postScene = new THREE.Scene();
@@ -799,7 +817,7 @@ async function start() {
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
-    animMinis(now, focusZ);
+    animMinis(now, focusZ); tickGame(now, focusZ);
     if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
