@@ -372,7 +372,7 @@ async function start() {
   function animMinis(now, focusZ) {
     const tt = now / 1000;
     for (const M of minis) {
-      if (M.kind === 'machine') { M.grp.rotation.y = tt * 0.45; M.m.update?.(tt); continue; }
+      if (M.kind === 'machine') { if(Math.abs(focusZ-M.piv.position.z)>24)continue;M.grp.rotation.y = tt * 0.45; M.m.update?.(tt); continue; }
       if (Math.abs(focusZ - M.z) > 25) continue;
       if (M.kind === 'room') {
         const rg = roomRul?.g; if (!rg) continue;
@@ -1042,10 +1042,11 @@ async function start() {
   addEventListener('pointermove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
   addEventListener('click', (e) => { if (e.target !== canvas) return; for (const G of graphs) { const o = G.nodes[G.hover]; if (o && o.href) { const k = o.href.replace(/\.html.*$/, ''); articlesP.then((A) => { if (A[k]) openReader(k, null); else location.href = o.href; }); return; } } });
   addEventListener('pointerdown', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
-  function hoverGraphs(e) {
+  function hoverGraphs(e,focusZ) {
     let any = false;
     for (const G of graphs) {
       G.hover = -1;
+      if(Math.abs(focusZ-G.z)>24)continue;
       let best = 24 * 24;
       G.nodes.forEach((o, i) => { if (o.kind !== 'leaf' && o.kind !== 'hub') return; const [px, py, pz] = toScreen(o.cur); if (pz >= 1) return; const d = (px - mouse.x) ** 2 + (py - mouse.y) ** 2; if (d < best) { best = d; G.hover = i; } });
       if (G.hover < 0 && G.forced != null && G.hubIdx) G.hover = G.hubIdx[G.forced]; // survol d'une ligne du sommaire : l'étoile correspondante s'allume
@@ -1115,14 +1116,14 @@ async function start() {
     postMat.uniforms.amt.value = e * (1 - readerK);
     postMat.uniforms.motion.value = reduce || MOBILE || readerK > 0 ? 0 : e * Math.min(1, Math.abs(scrollY - s) / 220);
     postMat.uniforms.tm.value = now / 1000;
-    if ((frameN++ & 31) === 0) patchTree(scene);
+    if ((frameN++ & 127) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
     overlay(e, focusZ, s);
   }
   function overlay(e, focusZ, s) {
     constellationPass?.project(toScreen,focusZ);
     window.__editionsExperience?.frame?.({scroll:s,immersive:e,focusZ});
-    hoverGraphs(e);
+    hoverGraphs(e,focusZ);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
     let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
     navItems.forEach((li, i) => li.classList.toggle('on', i === active));
@@ -1139,6 +1140,7 @@ async function start() {
       c.dot.setAttribute('cx', px); c.dot.setAttribute('cy', py); c.dot.style.opacity = a;
     }
     for (const o of hots) { // rectangle à l'écran = enveloppe des points visibles du bord du cadre
+      if(Math.abs(focusZ-(o.r.y+o.r.h*.5)/PXM)>26){o.h.style.display='none';continue;}
       let pts = o.pts;
       if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
       const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
