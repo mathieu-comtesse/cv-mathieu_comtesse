@@ -23,7 +23,8 @@ import { drawMat, blueprintMaterial } from './blueprint-hero.js';
 
 const ROOM_K = 1.15;              // échelle de la pièce du site (et de son plan blueprint) dans le parcours
 const PXM = 100;                  // px de page par mètre
-const PAGE_W = 1000;
+const MOBILE = innerWidth < 760;   // téléphone : page étroite, mise en page à une colonne (voir parcours.css, html.pc-m)
+const PAGE_W = MOBILE ? 420 : 1000;
 const HALF = PAGE_W / PXM / 2;    // demi-largeur de la piste (m)
 const FOLD_A = 120, FOLD_B = 900; // la page se rabat entre ces deux positions de défilement (px)
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -593,7 +594,8 @@ async function start() {
   }
   async function rasterize(el, r, css, ctx = false) {
     const S = Math.min(ctx ? 2 : 1.5, 8000 / r.h);
-    const clone = el.cloneNode(true); clone.style.background = 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
+    const clone = el.cloneNode(true); clone.style.background = el.classList.contains('pc-art') ? '#05080d' : 'transparent'; clone.style.margin = '0'; clone.style.width = r.w + 'px'; clone.style.height = r.h + 'px';
+    if (el.style.position === 'fixed') { clone.style.position = 'static'; clone.style.left = 'auto'; clone.style.top = 'auto'; } // hôte hors écran : dans l'image, il doit être en place
     clone.querySelectorAll('[data-graph], [data-sign] svg, [data-tl] .rf-tl-line, [data-tl] .rf-tl-dot').forEach((n) => n.remove()); // la signature a son propre calque animé
     await Promise.all([...clone.querySelectorAll('img')].map(async (im) => { try { const b = await (await fetch(im.getAttribute('src'))).blob(); im.setAttribute('src', await new Promise((ok) => { const f = new FileReader(); f.onload = () => ok(f.result); f.readAsDataURL(b); })); } catch { im.remove(); } }));
     if (!ctx && !HIC) clone.querySelectorAll('[data-flow] .rf-flow-rail').forEach((n) => { n.style.visibility = 'hidden'; }); // la barre de cases a son propre calque, redessiné en direct
@@ -616,7 +618,9 @@ async function start() {
   const showPage = (href) => { lframe.src = href; lframe.hidden = false; lin.hidden = true; lback.hidden = false; lsc.scrollTop = 0; };
   const hidePage = () => { lframe.hidden = true; lframe.removeAttribute('src'); lin.hidden = false; lback.hidden = true; };
   lback.onclick = hidePage;
-  lin.addEventListener('click', (ev) => { const a = ev.target.closest('a[href]'); if (!a) return; const href = a.getAttribute('href'); if (/^(https?:|mailto:|#)/.test(href) || !/\.html|^[\w-]+$/.test(href)) return; ev.preventDefault(); showPage(href); });
+  lin.addEventListener('click', (ev) => { const a = ev.target.closest('a[href]'); if (!a) return; const href = a.getAttribute('href'); if (/^(https?:|mailto:|#)/.test(href) || !/\.html|^[\w-]+$/.test(href)) return; ev.preventDefault();
+    const L = lifted; // l'étude s'ouvre en panneau 3D natif, levé depuis le cadre ; à défaut (page absente du recueil), la page s'affiche dans le cadre
+    articlesP.then((A) => { const k = href.replace(/\.html.*$/, ''); if (A[k]) closeLift(true).then(() => openReader(k, L)); else showPage(href); }); });
   function openLift(L) {
     if (lifted) return; lifted = L;
     const sec = L.el.closest('[data-section]'), bgc = sec?.dataset.color || '#0b0e12';
@@ -633,11 +637,11 @@ async function start() {
     lsc.scrollTop = 0; lsc.focus?.({ preventScroll: true });
     for (const f of flows) if (L.el.contains(f.w)) { lsc.onscroll = () => f.api?.kick(); requestAnimationFrame(() => f.api?.remeasure()); }
   }
-  async function closeLift() {
-    const L = lifted; if (!L) return;
+  async function closeLift(instant = false) {
+    const L = lifted; if (!L) return; instant = instant === true;
     lsc.scrollTop = 0; hidePage();
-    lift.querySelector('.pc-lift-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 900, fill: 'forwards' });
-    await animLift(L, false); liftMats(L, true);
+    if (!instant) { lift.querySelector('.pc-lift-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 1 : 900, fill: 'forwards' }); await animLift(L, false); }
+    liftMats(L, true);
     lift.hidden = true; document.documentElement.classList.remove('pc-lifted'); hidePage(); lsc.onscroll = null;
     L.el.style.width = L.home.width;
     if (L.home.host) { L.el.classList.add('pc-inf-host'); document.body.append(L.el); } else { L.ph.replaceWith(L.el); }
@@ -645,7 +649,7 @@ async function start() {
     for (const f of flows) if (L.el.contains(f.w)) f.api?.remeasure();
     if (!HIC) { const s = sections.find((q) => q.el.contains(L.el)); if (s) redraw(s); } // l'image de la feuille reprend l'état laissé par le lecteur
   }
-  lift.querySelector('.pc-lift-x').onclick = closeLift; lift.querySelector('.pc-lift-bg').onclick = closeLift;
+  lift.querySelector('.pc-lift-x').onclick = () => closeLift(); lift.querySelector('.pc-lift-bg').onclick = () => closeLift();
   addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && lifted && !document.querySelector('.fl-ov.is-open')) closeLift(); });
 
   /* « Comment ça marche » sur la feuille : la barre de cases du site (case mobile, diodes) est redessinée dès qu'elle change */
@@ -693,6 +697,49 @@ async function start() {
       requestAnimationFrame(step);
     });
   }
+  /* lecteur 3D : une étude ou une fiche devient un panneau posé sur la feuille, qui se lève sur son bord (charnière) et se lit à la molette ou au doigt */
+  const articlesP = fetch(new URL('articles.json', import.meta.url)).then((r) => r.json()).catch(() => ({}));
+  const ART_W = MOBILE ? 380 : 720, VIEW_H = MOBILE ? 560 : 700, ART_ANG = 0.95; let reader = null, readerK = 0;
+  const bar = document.createElement('div'); bar.className = 'pc-reader-bar'; bar.hidden = true;
+  bar.innerHTML = '<button type="button" class="pc-reader-x">← Rabaisser</button><span class="pc-reader-t"></span><span class="pc-reader-p"></span>'; document.body.append(bar);
+  async function openReader(key, L) {
+    if (reader) return; const A = await articlesP, art = A[key]; if (!art) return;
+    const host = document.createElement('div'); host.className = 'rf-post-page pc-art'; host.style.cssText = `position:fixed;left:-9999px;top:0;width:${ART_W}px;padding:34px 36px 60px;background:#05080d;color:#e0ebfd;font-family:Inter,system-ui,sans-serif`;
+    host.innerHTML = `<article class="rf-post">${art.html}</article>`; document.body.append(host);
+    await Promise.all([...host.querySelectorAll('img')].map((im) => im.decode?.().catch(() => {})));
+    const r = { x: 0, y: 0, w: ART_W, h: Math.ceil(host.scrollHeight) }; let cvs;
+    try { const css = await (cssP ??= inlineCss()); cssLite ??= css.replace(/@font-face\s*\{[^}]*\}/g, ''); cvs = await rasterize(host, r, cssLite, false); } catch (e) { console.warn('étude non dessinée', e); host.remove(); return; }
+    host.remove();
+    const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; tex.wrapT = THREE.ClampToEdgeWrapping;
+    const w = ART_W / PXM, h = VIEW_H / PXM, rep = Math.min(1, VIEW_H / r.h);
+    tex.repeat.set(1, rep); tex.offset.set(0, 1 - rep);
+    const geo = plane(w, h), mat = new THREE.MeshBasicMaterial({ map: tex, transparent: false, depthWrite: true, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geo, mat); mesh.position.y = h / 2; mesh.renderOrder = 20; const SCL = MOBILE ? 1.0 : 1.3;
+    const frame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w, h)), white(0.85)); frame.position.copy(mesh.position); frame.renderOrder = 21;
+    const pivot = new THREE.Group(); pivot.add(mesh, frame); pivot.scale.setScalar(SCL);
+    const x0 = L ? (L.r.x + L.r.w / 2 - PAGE_W / 2) / PXM : 0, zn = L ? (L.r.y + L.r.h) / PXM : camera.position.z - 10, top = 0.05;
+    pivot.position.set(x0 * 0.4, top, zn); scene.add(pivot); patchTree(pivot);
+    const from = pivot.position.clone(), to = new THREE.Vector3(0, top, camera.position.z - (MOBILE ? 7.5 : 5.6)); // position de lecture : face à la caméra
+    reader = { k: SCL, from, to, key, pivot, mesh, tex, geo, mat, frame, u: 0, dir: 1, sc: 0, target: 0, max: Math.max(0, r.h - VIEW_H), total: r.h, rep, drag: null, title: art.title };
+    bar.querySelector('.pc-reader-t').textContent = art.title; bar.hidden = false; document.documentElement.classList.add('pc-lifted');
+  }
+  function closeReader() { if (reader) reader.dir = -1; }
+  bar.querySelector('.pc-reader-x').onclick = closeReader;
+  addEventListener('keydown', (ev) => { if (!reader) return; if (ev.key === 'Escape') closeReader();
+    const st = { ArrowDown: 80, ArrowUp: -80, PageDown: 600, PageUp: -600, ' ': 600, Home: -1e5, End: 1e5 }[ev.key]; if (st !== undefined) { ev.preventDefault(); reader.target = Math.max(0, Math.min(reader.max, reader.target + st)); } });
+  addEventListener('wheel', (ev) => { if (!reader) return; ev.preventDefault(); reader.target = Math.max(0, Math.min(reader.max, reader.target + ev.deltaY)); }, { passive: false });
+  addEventListener('pointerdown', (ev) => { if (reader && ev.target === canvas) reader.drag = { y: ev.clientY, t: reader.target, moved: 0 }; });
+  addEventListener('pointermove', (ev) => { if (reader?.drag && ev.buttons !== 0 || reader?.drag && ev.pointerType === 'touch') { const d = reader.drag; d.moved = Math.max(d.moved, Math.abs(ev.clientY - d.y)); reader.target = Math.max(0, Math.min(reader.max, d.t - (ev.clientY - d.y) * (VIEW_H / innerHeight) * 1.1)); } });
+  addEventListener('pointerup', () => { if (reader?.drag) { const moved = reader.drag.moved; reader.drag = null; if (moved < 6 && reader.dir > 0 && reader.u > 0.95 && false) closeReader(); } });
+  function tickReader(now, dt) {
+    if (!reader) { readerK = 0; return; }
+    const R = reader; R.u = Math.max(0, Math.min(1, R.u + R.dir * dt / (reduce ? 0.01 : 1.05))); const e2 = R.u * R.u * (3 - 2 * R.u); readerK = e2;
+    R.pivot.rotation.x = -Math.PI / 2 + e2 * ART_ANG; R.pivot.scale.setScalar(R.k * (0.6 + 0.4 * e2)); R.pivot.position.lerpVectors(R.from, R.to, Math.min(1, e2 * 1.25));
+    R.sc += (R.target - R.sc) * (1 - Math.exp(-dt * 9)); R.tex.offset.y = 1 - R.rep - R.sc / R.total; R.tex.needsUpdate = false;
+    bar.querySelector('.pc-reader-p').textContent = R.max ? Math.round(R.sc / R.max * 100) + ' %' : '';
+    bar.style.opacity = String(e2);
+    if (R.dir < 0 && R.u <= 0) { scene.remove(R.pivot); R.geo.dispose(); R.mat.dispose(); R.tex.dispose(); R.frame.geometry.dispose(); bar.hidden = true; document.documentElement.classList.remove('pc-lifted'); reader = null; readerK = 0; }
+  }
   const liftMats = (L, on) => items.filter((it) => L.el === it.el || L.el.contains(it.el)).forEach((it) => it.mats.forEach((m) => { if (m.map) m.visible = on; }));
 
   /* mini-jeu de fin de page : une toile 2D posée sur la feuille, juste après Contact ; il ne tourne que lorsqu'on est arrivé tout en bas */
@@ -703,7 +750,7 @@ async function start() {
     gMesh = new THREE.Mesh(plane(GM.w, GM.d), new THREE.MeshBasicMaterial({ map: gTex, transparent: true, depthWrite: false })); gMesh.rotation.x = -Math.PI / 2; gMesh.position.set(GM.cx, 0.03, GM.cz); gMesh.renderOrder = 9; scene.add(gMesh);
   }).catch((e) => console.warn('mini-jeu indisponible', e));
   const gRay = new THREE.Raycaster(), gPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03), gHit = new THREE.Vector3(), gNdc = new THREE.Vector2(), gP = { x: GW / 2, y: GH * 0.8, down: false, in: false };
-  addEventListener('pointerdown', (e) => { if (e.button === 0 && !lifted && e.target === canvas) gP.down = true; }); addEventListener('pointerup', () => { gP.down = false; });
+  addEventListener('pointerdown', (e) => { if (e.button === 0 && !lifted && !reader && e.target === canvas) gP.down = true; }); addEventListener('pointerup', () => { gP.down = false; });
   function tickGame(now, focusZ) {
     if (!game || !gMesh) return; const on = Math.abs(focusZ - GM.cz) < 9;
     if (!on) { gP.down = false; return; }
@@ -817,7 +864,7 @@ async function start() {
       const u = (now / 2400) % 1, v = Math.min(1, u / 0.55); p.falling.visible = u < 0.6;
       p.falling.position.set(p.anchor.x, p.anchor.y + (1 - v * v) * 1.6, p.anchor.z); p.falling.rotation.y = u * 6;
     }
-    animMinis(now, focusZ); tickGame(now, focusZ);
+    animMinis(now, focusZ); tickGame(now, focusZ); tickReader(now, dtS);
     if (heroTag && window.__room) { window.__room.hero.group.getWorldPosition(heroP); heroTag.position.set(heroP.x, heroP.y + 0.95 * (roomRul?.g?.scale.x || 1), heroP.z); heroTag.visible = Math.abs(focusZ - heroP.z) < 16; }
     for (const R of rails) if (R.dirty && !R.busy && Math.abs(focusZ - R.z) < 30) paintRail(R);
     for (const f of infs) if (Math.abs(focusZ - f.z) < 30) f.t.needsUpdate = true;
@@ -829,7 +876,7 @@ async function start() {
       if (tl3) { const p = Math.max(0.0005, tlS.p); tl3.lm.scale.y = p; tl3.dm.position.set(tl3.x, 0.035, tl3.z0 + p * tl3.len); }
       if (Math.abs(tlS.p - (tlS.shown ?? -1)) > 0.0008) { tlS.shown = tlS.p; tlLine.style.transform = `scaleY(${tlS.p.toFixed(4)})`; tlDot.style.top = (tlS.p * 100).toFixed(2) + '%'; }
     }
-    postMat.uniforms.amt.value = e;
+    postMat.uniforms.amt.value = e * (1 - readerK);
     if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
     overlay(e, focusZ, s);
@@ -854,7 +901,7 @@ async function start() {
       let pts = o.pts;
       if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
       const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
-      const x0 = Math.min(...xs), y0 = Math.min(...ys), ww = Math.max(...xs) - x0, hh = Math.max(...ys) - y0, ok = !lifted && e > 0.5 && c.length >= 2 && ww > 20 && hh > 12;
+      const x0 = Math.min(...xs), y0 = Math.min(...ys), ww = Math.max(...xs) - x0, hh = Math.max(...ys) - y0, ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 20 && hh > 12;
       o.h.style.display = ok ? '' : 'none'; if (ok) { o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = ww + 'px'; o.h.style.height = hh + 'px'; }
     }
     for (const m of magics) {

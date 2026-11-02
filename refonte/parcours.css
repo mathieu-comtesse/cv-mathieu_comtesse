@@ -222,3 +222,10 @@ html.pc-lifted body{overflow:hidden}
 html.expo.flat #leaders{opacity:0}
 .pc-rul.pc-rul-r .rf-ruler{left:110px}
 .pc-rul.pc-rul-r .rf-ruler--h{left:-112px}
+
+/* ---------- lecteur 3D : barre de commande (le texte est dessiné sur le panneau, dans la scène) ---------- */
+.pc-reader-bar{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:70;display:flex;align-items:center;gap:12px;max-width:94vw;padding:6px 8px 6px 6px;border:1px solid rgba(255,255,255,.55);border-radius:30px;background:rgba(5,8,13,.72);backdrop-filter:blur(6px);color:#fff;font:12px var(--mono)}
+.pc-reader-bar[hidden]{display:none}
+.pc-reader-x{background:#fff;color:#05080d;border:0;border-radius:20px;padding:7px 14px;font:500 12px var(--mono);cursor:pointer;white-space:nowrap}
+.pc-reader-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}
+.pc-reader-p{opacity:.7;min-width:32px;text-align:right;padding-right:8px}
