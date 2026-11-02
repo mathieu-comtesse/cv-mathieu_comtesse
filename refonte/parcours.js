@@ -935,13 +935,21 @@ async function start() {
   const rt = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), postScene = new THREE.Scene();
   const postMat = new THREE.ShaderMaterial({
-    uniforms: { t: { value: rt.texture }, px: { value: new THREE.Vector2() }, amt: { value: 0 } },
+    uniforms: { t: { value: rt.texture }, px: { value: new THREE.Vector2() }, amt: { value: 0 }, motion: { value: 0 }, tm: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `uniform sampler2D t; uniform vec2 px; uniform float amt; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D t; uniform vec2 px; uniform float amt; uniform float motion; uniform float tm; varying vec2 vUv;
       void main(){
         float r = amt * (smoothstep(0.55, 1.0, vUv.y) * 5.0 + smoothstep(0.38, 0.5, abs(vUv.x - 0.5)) * 2.0);
         vec4 c = texture2D(t, vUv);
         if (r > 0.25) { vec4 acc = c; for (int i = 0; i < 16; i++) { float a = float(i) * 2.39996, rr = r * sqrt((float(i) + 0.5) / 16.0); acc += texture2D(t, vUv + vec2(cos(a), sin(a)) * rr * px); } c = acc / 17.0; }
+        // Effet cinétique original, proportionnel à la vitesse de défilement (aucun traitement au repos).
+        if(motion > 0.015){
+          float shift = motion * (abs(vUv.x-.5) + abs(vUv.y-.5)) * px.x * 1.7;
+          c.r = mix(c.r, texture2D(t, vUv + vec2(shift, 0.)).r, motion*.28);
+          c.b = mix(c.b, texture2D(t, vUv - vec2(shift, 0.)).b, motion*.28);
+          float noise = fract(sin(dot(floor(vUv/px) + tm*7., vec2(12.9898,78.233))) * 43758.5453) - .5;
+          c.rgb += noise * .007 * motion;
+        }
         gl_FragColor = c;
         #include <colorspace_fragment>
       }`, depthTest: false, depthWrite: false });
@@ -1049,7 +1057,16 @@ async function start() {
     // près de la pièce, la caméra descend et recule : vue en trois-quarts (environ 24° d'élévation) au lieu d'une vue du dessus (37°)
     const wRoom = Math.max(0, 1 - Math.abs(focusZ - roomCz) / 9), wr = wRoom * wRoom * (3 - 2 * wRoom);
     runPos.set(0, 8.6 - 2.6 * wr, focusZ + 5.2 + 1.3 * wr); runLook.set(0, 0.5 * wr, focusZ - 6 + 3.6 * wr);
-    camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
+    camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e);
+    // Trajectoire organique discrète. Les hotspots, les règles et le picking utilisent toujours cette caméra.
+    const editionsPose = window.__editionsExperience?.pose?.({scroll:s,focusZ,immersive:e,now,width:innerWidth});
+    if (editionsPose) {
+      camera.position.x += editionsPose.cameraX || 0;
+      camera.position.y += editionsPose.cameraY || 0;
+      look.x += editionsPose.lookX || 0;
+    }
+    camera.lookAt(look);
+    if (editionsPose?.roll) camera.rotateZ(editionsPose.roll);
     camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
     if (!HIC) page.style.transform = `translateY(${(scrollY - s).toFixed(2)}px)`;
@@ -1083,11 +1100,14 @@ async function start() {
       if (Math.abs(tlS.p - (tlS.shown ?? -1)) > 0.0008) { tlS.shown = tlS.p; tlLine.style.transform = `scaleY(${tlS.p.toFixed(4)})`; tlDot.style.top = (tlS.p * 100).toFixed(2) + '%'; }
     }
     postMat.uniforms.amt.value = e * (1 - readerK);
+    postMat.uniforms.motion.value = reduce || MOBILE || readerK > 0 ? 0 : e * Math.min(1, Math.abs(scrollY - s) / 220);
+    postMat.uniforms.tm.value = now / 1000;
     if ((frameN++ & 31) === 0) patchTree(scene);
     renderer.setRenderTarget(rt); renderer.render(scene, camera); renderer.setRenderTarget(null); renderer.render(postScene, postCam);
     overlay(e, focusZ, s);
   }
   function overlay(e, focusZ, s) {
+    window.__editionsExperience?.frame?.({scroll:s,immersive:e,focusZ});
     hoverGraphs(e);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
     let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
