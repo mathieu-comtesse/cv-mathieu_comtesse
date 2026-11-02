@@ -475,15 +475,24 @@ async function start() {
     } catch {}
   }
   function makeRulers() {
-    const el = document.createElement('div'); el.className = 'pc-rul'; el.setAttribute('aria-hidden', 'true');
+    const el = document.createElement('div'); el.className = 'pc-rul';
     const ruler = (h) => `<aside class="rf-ruler${h ? ' rf-ruler--h' : ''}" tabindex="-1"><i class="rf-ruler-mark"></i><div class="rf-ruler-track"></div><span class="rf-ruler-label rf-mono">${h ? 'Tourner' : 'Incliner'}</span></aside>`;
     el.innerHTML = ruler(false) + ruler(true); document.body.append(el);
     const [v, hz] = el.children, LIM = 250, R = { el, rot: 0, tilt: 0, onview: null };
     for (const [ru, horiz] of [[v, false], [hz, true]]) {
+      ru.tabIndex=0;ru.setAttribute('role','slider');
+      ru.setAttribute('aria-label',horiz?'Tourner la machine':'Incliner la machine');
+      ru.setAttribute('aria-orientation',horiz?'horizontal':'vertical');
+      ru.setAttribute('aria-valuemin',String(-LIM));ru.setAttribute('aria-valuemax',String(LIM));ru.setAttribute('aria-valuenow','0');
       const tr = ru.querySelector('.rf-ruler-track'), f = document.createDocumentFragment();
       for (let i = 0; i <= 100; i++) { const t = document.createElement('div'); t.className = 'rf-tick' + (i % 10 === 0 ? ' rf-maj' : ''); t.style[horiz ? 'left' : 'top'] = i * 5 + 'px'; if (i % 10 === 0) t.innerHTML = `<span>${(i / 100).toFixed(2)}</span>`; f.append(t); }
-      tr.append(f);
-      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); const i0 = Math.floor((horiz ? R.rot : R.tilt) / 5), i1 = Math.floor(x / 5); if (i0 !== i1) tick(i1 % 10 === 0); if (horiz) R.rot = x; else R.tilt = x; tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      tr.setAttribute('aria-hidden','true');tr.append(f);
+      const set = (x) => { x = Math.max(-LIM, Math.min(LIM, x)); const i0 = Math.floor((horiz ? R.rot : R.tilt) / 5), i1 = Math.floor(x / 5); if (i0 !== i1) tick(i1 % 10 === 0); if (horiz) R.rot = x; else R.tilt = x; ru.setAttribute('aria-valuenow',String(Math.round(x)));tr.style.transform = horiz ? `translateX(${x}px)` : `translateY(${x}px)`; R.onview?.(R); };
+      ru.addEventListener('keydown',event=>{
+        const current=horiz?R.rot:R.tilt;
+        const values={ArrowLeft:current-5,ArrowDown:current-5,ArrowRight:current+5,ArrowUp:current+5,PageDown:current-25,PageUp:current+25,Home:0,End:LIM};
+        if(event.key in values){event.preventDefault();set(values[event.key]);}
+      });
       (R.sets ??= []).push(set); R.reset = () => R.sets.forEach((f) => f(0));
       let d = null;
       ru.addEventListener('pointerdown', (e) => { d = { p: horiz ? e.clientX : e.clientY, v: horiz ? R.rot : R.tilt }; ru.setPointerCapture(e.pointerId); e.preventDefault(); });
@@ -521,6 +530,15 @@ async function start() {
       const M = { m, z, pivot, rot, baseY, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
       M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
+      const href=card.querySelector('.pc-more[href]')?.getAttribute('href');
+      if(href){
+        const hot=document.createElement('button');hot.type='button';hot.className='pc-hot pc-machine-hot';
+        hot.setAttribute('aria-label','Explorer la machine : '+(card.querySelector('h3')?.textContent.trim()||mod));
+        const size=box.getSize(new THREE.Vector3());
+        M.pickPoints=Array.from({length:8},(_,i)=>new THREE.Vector3((i&1?1:-1)*size.x/2,i&2?size.y:0,(i&4?1:-1)*size.z/2));
+        hot.addEventListener('click',()=>articlesP.then(A=>{const key=href.replace(/\.html.*$/,'');if(A[key])openReader(key,null);else location.href=href;}));
+        document.body.append(hot);hots.push({h:hot,r,machine:M});
+      }
     }).catch((e) => console.warn('machine indisponible', mod, e));
   }
 
@@ -1222,6 +1240,7 @@ async function start() {
     for (const o of hots) { // rectangle à l'écran = enveloppe des points visibles du bord du cadre
       if(Math.abs(focusZ-(o.r.y+o.r.h*.5)/PXM)>26){o.h.style.display='none';continue;}
       let pts = o.pts;
+      if(o.machine){o.machine.pivot.updateMatrixWorld();pts=o.machine.pickPoints.map(v=>v.clone().applyMatrix4(o.machine.pivot.matrixWorld));}
       if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
       const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
       const PADX = 16, PADY = 12; let x0 = Math.min(...xs) - PADX, y0 = Math.min(...ys) - PADY, ww = Math.max(...xs) - x0 + PADX, hh = Math.max(...ys) - y0 + PADY; if (o.h.classList.contains('pc-lift-hot') && ww < 110) { x0 -= (110 - ww) / 2; ww = 110; } if (o.h.classList.contains('pc-lift-hot') && hh < 40) { y0 -= (40 - hh) / 2; hh = 40; } const ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 6 && hh > 4 && !o.hide;
