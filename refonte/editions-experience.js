@@ -19,7 +19,7 @@
     const a=card?.querySelector('.pc-more[href]')||card?.querySelector('a[href]');
     return {el,i,name:card?.querySelector('h3')?.textContent.trim()||'Projet '+pad(i),
       title:card?.querySelector('.pc-sub')?.textContent.trim()||card?.dataset.calloutSub||'',
-      href:a?.getAttribute('href')||card?.dataset.href||'',y:positionOf(el),
+      href:a?.getAttribute('href')||card?.dataset.href||'',fig:el.dataset.fig||'',y:positionOf(el),
       color:el.closest('[data-section]')?.dataset.color||'#8caaff'};
   });
   if (!sections.length) return;
@@ -67,6 +67,12 @@
   ].join('');
   document.body.append(shell);
   const $ = s => shell.querySelector(s);
+  const orbit = $('.ex-orbits');
+  const projectPreview = document.createElement('img');
+  projectPreview.className='ex-project-art'; projectPreview.alt=''; projectPreview.loading='lazy'; projectPreview.decoding='async';
+  projectPreview.hidden=true; orbit.append(projectPreview);
+  projectPreview.addEventListener('load',()=>{projectPreview.hidden=false;orbit.classList.add('is-preview');});
+  projectPreview.addEventListener('error',()=>{projectPreview.hidden=true;orbit.classList.remove('is-preview');});
   const drawer=$('#ex-drawer'),search=$('#ex-search'),results=$('#ex-results');
   const waypointList=$('#ex-waypoints'),progress=$('.ex-progress');
   let active=-1,tab='chapters',opened=false,query='',lastFocus=null,lastProgress=-1,frames=0;
@@ -115,6 +121,12 @@
     shell.querySelectorAll('[data-ex-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.exTab===next)));
     paintResults();
   }
+  function showProject(item){
+    if(!item?.fig)return;
+    const src='assets/figures/'+encodeURIComponent(item.fig)+'-light.webp';
+    if(projectPreview.getAttribute('src')!==src){projectPreview.hidden=true;orbit.classList.remove('is-preview');projectPreview.src=src;}
+    const summary=$('.ex-drawer-aside > p'); if(summary)summary.textContent=item.name;
+  }
   function paintResults(){
     results.replaceChildren();
     const normalized=query.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -130,8 +142,15 @@
       const small=document.createElement('small');small.textContent=item.title;body.append(strong,small);
       const arrow=document.createElement('span');arrow.className='ex-result-arrow';arrow.textContent='↗';
       b.append(n,body,arrow);b.addEventListener('click',()=>tab==='chapters'?goToChapter(item.i):goToProject(item.i));
-      results.append(b);
+      if(tab==='projects'){
+        b.addEventListener('pointerenter',()=>showProject(item));b.addEventListener('focus',()=>showProject(item));
+        const wrap=document.createElement('div');wrap.className='ex-result-wrap';wrap.append(b);
+        if(item.href){const a=document.createElement('a');a.className='ex-result-link';a.href=item.href;a.textContent='Fiche';a.setAttribute('aria-label','Lire la fiche : '+item.name);wrap.append(a);}
+        results.append(wrap);
+      }else results.append(b);
     }
+    if(tab==='projects'&&items.length)showProject(items[0]);
+    else {orbit.classList.remove('is-preview');projectPreview.hidden=true;const summary=$('.ex-drawer-aside > p');if(summary)summary.textContent='Des machines à manipuler. Des processus à comprendre. Un parcours dans la matière.';}
   }
   function setActive(idx){
     idx=clamp(idx|0,0,sections.length-1);
