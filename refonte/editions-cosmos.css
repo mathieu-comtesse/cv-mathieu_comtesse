@@ -1,0 +1,63 @@
+/* Transitions stellaires originales : noir spatial, fibres bleues et vignettes.
+   Les champs d'etoiles WebGL sont fabriques par editions-constellations.js. */
+.pc-page>.pc-transit{
+  position:relative;height:clamp(560px,75vh,980px);min-height:560px;
+  overflow:hidden;isolation:isolate;
+  background:
+    radial-gradient(ellipse at 26% 46%,rgba(9,40,134,.17),transparent 57%),
+    radial-gradient(ellipse at 75% 68%,rgba(3,103,120,.11),transparent 44%),
+    #010208;
+}
+.pc-page>.pc-transit::before{
+  content:"";position:absolute;inset:0;opacity:.27;pointer-events:none;
+  background:radial-gradient(circle at 12% 37%,#366cff 0 1px,transparent 2px),
+             radial-gradient(circle at 84% 25%,#00e5c8 0 1px,transparent 2px),
+             radial-gradient(circle at 65% 68%,#96aaff 0 1px,transparent 2px);
+  background-size:73px 109px,121px 177px,151px 83px;
+}
+.pc-transit-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;text-align:center;color:rgba(236,242,255,.9);gap:11px;
+ background:linear-gradient(90deg,transparent 0,rgba(1,2,8,.52) 45%,transparent 100%);
+ transition:opacity .4s}
+.pc-transit-placeholder small{font:10px/1.2 ui-monospace,monospace;letter-spacing:.24em;color:#608bff}
+.pc-transit-placeholder p{font-size:clamp(32px,6vw,68px);font-weight:350;letter-spacing:-.06em;margin:0}
+.pc-transit-placeholder span{font:11px ui-monospace,monospace;color:#8e99b2;letter-spacing:.12em}
+html.expo.ex-cosmos-ready .pc-transit-placeholder{opacity:0;pointer-events:none}
+.ex-cosmos{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.ex-cosmos-card{
+ position:absolute;left:0;top:0;z-index:2;display:flex;align-items:center;gap:7px;
+ max-width:240px;min-width:135px;min-height:58px;padding:5px 8px 5px 5px;
+ border:1px solid rgba(239,247,255,.86);border-radius:1px;
+ background:rgba(4,6,16,.91);color:#fff;text-decoration:none;box-shadow:0 0 0 1px rgba(38,87,230,.23),0 12px 33px #01020870;
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto;
+ opacity:0;will-change:transform,opacity;
+ transition:box-shadow .22s ease,border-color .22s ease,background .22s ease;
+}
+.ex-cosmos-card[hidden]{display:none!important}
+.ex-cosmos-card:hover,.ex-cosmos-card:focus-visible{
+ border-color:#75ffcf;background:rgba(6,18,43,.99);box-shadow:0 0 21px #29c8fe50,0 8px 36px #01020890;
+ outline:none
+}
+.ex-cosmos-img{display:block;flex:0 0 44px;width:44px;height:44px;padding:2px;
+ background:#d9e3ff;border:1px solid #fff;overflow:hidden}
+.ex-cosmos-img img{width:100%;height:100%;object-fit:contain;display:block}
+.ex-cosmos-caption{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.ex-cosmos-caption strong{font:500 10px/1.15 Inter,Arial,sans-serif;letter-spacing:-.01em;
+ color:#f8faff;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.ex-cosmos-caption small{font:9px/1.25 ui-monospace,monospace;color:#8da3d8;
+ text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.ex-cosmos-card::after{content:"";position:absolute;right:-4px;top:-4px;width:6px;height:6px;
+ background:#89a7ff;border:1px solid #e6edff}
+html:not(.expo) .ex-cosmos{display:none}
+html.pc-lifted .ex-cosmos,html.ex-menu-open .ex-cosmos{display:none}
+@media(max-width:759px){
+ .pc-page>.pc-transit{height:420px;min-height:420px}
+ .ex-cosmos-card{max-width:170px;min-width:118px;min-height:48px;padding:4px}
+ .ex-cosmos-img{flex-basis:34px;width:34px;height:34px}
+ .ex-cosmos-caption strong{font-size:9px}
+ .ex-cosmos-caption small{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ex-cosmos-card{transition:none}
+ .pc-transit-placeholder{transition:none}
+}
