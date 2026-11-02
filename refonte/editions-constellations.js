@@ -105,7 +105,7 @@ export function createConstellationPass(THREE,{scene,page,PXM,PAGE_W,rectOf,redu
       const item=projects[(i+c*3)%Math.max(1,projects.length)];
       if(!item)continue;
       const link=document.createElement(item.href?'a':'div');
-      link.className='ex-cosmos-card';if(item.href)link.href=item.href;
+      link.className='ex-cosmos-card';link.hidden=true;if(item.href)link.href=item.href;
       const mini=document.createElement('span');mini.className='ex-cosmos-img';
       if(item.src){const img=document.createElement('img');img.src=item.src;img.alt='';img.loading='lazy';img.decoding='async';mini.append(img);}
       const caption=document.createElement('span');caption.className='ex-cosmos-caption';
