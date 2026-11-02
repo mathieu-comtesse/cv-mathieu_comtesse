@@ -1069,7 +1069,7 @@ async function start() {
   const ease = (u) => u * u * (3 - 2 * u);
   const Q = { pr: Math.min(devicePixelRatio, 1.3), max: Math.min(devicePixelRatio, 1.3), ema: 16, t: 0 };
   const smooth = { on: !reduce && !MOBILE && matchMedia('(pointer:fine)').matches, active: false, target: 0, last: 0 };
-  window.__exSmoothScroll = { goTo(y) { smooth.target = Math.max(0, Math.min(document.documentElement.scrollHeight-innerHeight, Number(y)||0)); smooth.last=scrollY; smooth.active=true; }, stop() { smooth.active=false; } };
+  window.__exSmoothScroll = { goTo(y) { const v=Math.max(0, Math.min(document.documentElement.scrollHeight-innerHeight, Number(y)||0)); if(!smooth.on){window.scrollTo({top:v,behavior:reduce?'instant':'smooth'});return;} smooth.target=v; smooth.last=scrollY; smooth.active=true; }, stop() { smooth.active=false; } };
   addEventListener('wheel', (e) => {
     if (!smooth.on || e.ctrlKey || lifted || reader || document.documentElement.classList.contains('ex-menu-open') || run.st === 'run' || e.target.closest?.('.ex-drawer, .pc-lift, .fl-ov, dialog, .ov, .pc-reader-bar')) return;
     e.preventDefault(); const max = document.documentElement.scrollHeight - innerHeight, from = smooth.active ? smooth.target : scrollY;
