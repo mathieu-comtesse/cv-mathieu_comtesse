@@ -47,9 +47,10 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-index li:nth-child(1) span{left:44%}.pc-index li:nth-child(2) span{left:61%}.pc-index li:nth-child(3) span{left:93%}.pc-index li:nth-child(4) span{left:86%}
 .pc-index li:nth-child(5) span{left:89%}.pc-index li:nth-child(6) span{left:84%}.pc-index li:nth-child(7) span{left:79%}.pc-index li:nth-child(8) span{left:73%}
 .pc-index li:nth-child(9) span{left:66%}.pc-index li:nth-child(10) span{left:57%}.pc-index li:nth-child(11) span{left:38%}
-.pc-index li:first-child{text-decoration:underline;text-underline-offset:3px}
-.pc-index li:first-child::after{content:'';position:absolute;left:54%;right:0;top:50%;border-top:1px solid rgba(255,255,255,.75)}
-.pc-index li:first-child::before{content:'';position:absolute;right:-2px;top:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#fff}
+.pc-index li{cursor:pointer;outline:0}
+.pc-index li.is-on{text-decoration:underline;text-underline-offset:3px}
+.pc-index li.is-on::after{content:'';position:absolute;left:54%;right:0;top:50%;border-top:1px solid rgba(255,255,255,.75)}
+.pc-index li.is-on::before{content:'';position:absolute;right:-2px;top:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#fff}
 .pc-index-arc{position:absolute;inset:6px 4px;width:calc(100% - 8px);height:calc(100% - 12px);pointer-events:none;z-index:0}
 .pc-mini{flex:1;display:flex!important;flex-direction:column;min-height:0}
 .pc-mini p{margin:0 0 4px!important;font:10px/1.35 var(--mono)!important;color:#fff}
@@ -219,7 +220,6 @@ html.pc-lifted body{overflow:hidden}
 .pc-lift .pc-flowwrap .rf-flow-magic{visibility:visible}
 .pc-lift .pc-hublot{position:relative!important;opacity:1!important;pointer-events:auto!important;z-index:auto!important;margin:0 auto!important}
 .pc-lift-hot{cursor:pointer}
-.pc-lift-hot:hover{outline:1.5px solid rgba(255,255,255,.8);outline-offset:2px}
 html.expo.flat #leaders{opacity:0}
 .pc-rul.pc-rul-r .rf-ruler{left:110px}
 .pc-rul.pc-rul-r .rf-ruler--h{left:-112px}
@@ -292,3 +292,6 @@ html.expo.flat #leaders{opacity:0}
 @media (max-width:759px){.pc-gxwrap .gx-table table{min-width:0;font-size:11px}.pc-gxwrap .gx-table th,.pc-gxwrap .gx-table td{padding:6px 6px 6px 0}}
 @media (max-width:759px){.pc-gxwrap .gx-scroll{overflow:visible}.pc-gxwrap .gx-table table{width:100%;table-layout:fixed}.pc-gxwrap .gx-table th,.pc-gxwrap .gx-table td{overflow-wrap:anywhere}}
 html.pc-lifted #leaders,html.pc-lifted #ticks,html.pc-lifted #callouts,html.pc-lifted #nav{opacity:0;transition:opacity .3s}
+
+.pc-hot:hover,.pc-hot:focus{outline:0}
+html.pc-lifted .pc-rul,html.pc-lifted .pc-magic,html.pc-lifted .pc-gtip,html.pc-lifted .pc-hot{display:none!important}

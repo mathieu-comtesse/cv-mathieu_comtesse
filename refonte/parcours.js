@@ -119,6 +119,9 @@ async function start() {
   if (!HIC) page.classList.add('pc-fallback');
 
   /* relevé de la mise en page */
+  // le sommaire de l'accueil liste les 11 thématiques du graphe (mêmes numéros, même ordre) : survol = l'étoile s'allume, clic = chapitre correspondant
+  { const SHORT = ['Prévention', 'Maintenance', 'Data', 'IA appliquée', 'Référentiels', 'Méthodes', 'Savoir-être', 'Projets pro', 'Parcours', 'Mondes & jeux', 'Blog'], ol = $('.pc-index ol'), hl = $$('[data-graph] > ul > li');
+    if (ol && hl.length === SHORT.length) ol.innerHTML = SHORT.map((n, i) => `<li data-i="${i}" tabindex="0"><span>${String(i + 1).padStart(2, '0')}</span>${n}</li>`).join('').replace(/(<span>\d\d<\/span>)([^<]+)/g, '$2$1'); }
   // premier écran plein cadre : la page (1000 px) occupe toute la largeur, et l'accueil toute la hauteur visible
   const KF = Math.max(1, innerWidth / PAGE_W); $('.pc-home')?.style.setProperty('--hh', Math.round(innerHeight / KF) + 'px');
   const P = page.getBoundingClientRect();
@@ -134,10 +137,17 @@ async function start() {
     h.addEventListener('pointerenter', () => { a.classList.add('hov'); box?.classList.add('hov-in'); }); h.addEventListener('pointerleave', () => { a.classList.remove('hov'); box?.classList.remove('hov-in'); });
     document.body.append(h); return { h, r }; });
   /* cadres relevables : au clic, le bloc du site monte devant le lecteur, vivant (ses scripts, ses survols, ses sons), et défile à la molette */
-  const LIFT_SEL = '.pc-card, [data-flow], .pc-blogcol, .gains-stats, .gains-chart, .gx-table, [data-tl], .pc-hublot, .pc-exp-title, .pc-float';
+  const LIFT_SEL = '.pc-blogcol, .gains-chart, .gx-table'; // seuls les cadres se lèvent ; le texte hors cadre reste à plat
   const lifts = $$(LIFT_SEL).filter((el) => !el.parentElement.closest(LIFT_SEL)).map((el) => {
     const h = document.createElement('button'); h.type = 'button'; h.className = 'pc-hot pc-lift-hot'; h.setAttribute('aria-label', 'Relever ce cadre');
     const L = { el, r: rectOf(el), h }; h.addEventListener('click', () => openLift(L)); document.body.append(h); hots.push(L); return L;
+  });
+  // « Lire la fiche » : la fiche se lève depuis sa carte et s'ouvre en panneau 3D ; seul ce bouton est actif, le reste de la carte ne réagit pas
+  $$('.pc-card .pc-more').forEach((a) => {
+    const card = a.closest('.pc-card'), h = document.createElement('button'); h.type = 'button'; h.className = 'pc-hot pc-lift-hot'; h.setAttribute('aria-label', 'Lire la fiche');
+    const L = { el: card, r: rectOf(card), h }, key = a.getAttribute('href').replace(/\.html.*$/, '');
+    h.addEventListener('click', () => articlesP.then((A) => { if (A[key]) openReader(key, L); else location.href = a.getAttribute('href'); }));
+    document.body.append(h); hots.push({ h, r: rectOf(a) });
   });
   flows.forEach((f, i) => { flowTops[i] = $$('.rf-flow-step', f.w).map((li) => rectOf(li).y); });
   const sigSvg0 = $('#pc-sign svg'), sigRect = sigSvg0 && rectOf(sigSvg0); // relevé avant tout déplacement d'élément
@@ -251,7 +261,7 @@ async function start() {
   for (const el of $$('[data-graph]')) {
     // 11 thématiques-phares réparties dans le cadre ; chacune rayonne vers ses compétences, projets, étapes ou articles,
     // et les feuilles qui partagent une étiquette d'une thématique à l'autre sont reliées (cerveau Obsidian)
-    const r = rectOf(el), hubs = $$(':scope > ul > li', el), nodes = [], edges = [];
+    const r = rectOf(el), hubs = $$(':scope > ul > li', el), nodes = [], edges = []; let hubIdx;
     const P3 = (x, y, z) => new THREE.Vector3(x, y, z), X = (px) => (px - PAGE_W / 2) / PXM, Z = (py) => py / PXM;
     const add = (o) => { o.ph = rnd() * 6.283; o.ph2 = rnd() * 6.283; o.cur = o.base.clone(); nodes.push(o); return nodes.length - 1; };
     const SL = [[.16, .17], [.47, .12], [.8, .2], [.3, .4], [.63, .36], [.9, .5], [.12, .6], [.45, .66], [.76, .74], [.25, .88], [.58, .9]]; // emplacements des phares
@@ -261,13 +271,14 @@ async function start() {
     hubs.forEach((li, i) => {
       const [u, v] = SL[i % SL.length], cx = r.x + u * r.w + (rnd() - .5) * 18, cy = r.y + v * r.h + (rnd() - .5) * 18;
       const leaves = $$('a', li), hp = P3(X(cx), 0.22, Z(cy));
-      const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens' });
+      const tN = Math.min(1, Math.max(0, (leaves.length - 4) / 9)), hc = [0.3 + 0.1 * tN, 0.52 + 0.48 * tN, 1 - 0.32 * tN]; // bleu (peu de liens) → cyan → vert menthe (beaucoup), comme les étoiles de la référence
+      const h = add({ kind: 'hub', base: hp, label: `${li.dataset.n} ${li.dataset.hub}`, meta: leaves.length + ' liens', hc, hi: i }); (hubIdx ??= []).push(h);
       const onLeft = u > 0.6; // les phares de droite écrivent leur nom vers la gauche pour rester dans le cadre
       const lb = label(li.dataset.hub, { w: 0.6, h: 0.12, font: '500 10px iAWriterQuattroV, monospace', color: '#ffffff', op: 1 }); lb.center.set(onLeft ? 1 : 0, 0.5);
       lb.position.set(hp.x + (onLeft ? -0.07 : 0.07), 0.06, hp.z + 0.02); scene.add(lb);
       const ct = label(String(leaves.length), { w: 0.2, h: 0.1, font: '400 8px iAWriterQuattroV, monospace', color: '#cfe0ff', op: 0.9 }); ct.center.set(onLeft ? 1 : 0, 0.5); ct.position.set(hp.x + (onLeft ? -0.07 - lb.scale.x - 0.04 : 0.07 + lb.scale.x + 0.04), 0.06, hp.z - 0.1); scene.add(ct);
-      { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0x7ff6ff, fog: false, depthTest: false })); sq.scale.set(0.05, 0.05, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
-      const n = leaves.length + 16;
+      { const sq = new THREE.Sprite(new THREE.SpriteMaterial({ color: new THREE.Color(hc[0], hc[1], hc[2]).offsetHSL(0, 0, 0.12), fog: false, depthTest: false })); sq.scale.set(0.05 + 0.025 * tN, 0.05 + 0.025 * tN, 1); sq.position.copy(hp); sq.renderOrder = 6; scene.add(sq); nodes[h].sq = sq; } // le phare : un carré lumineux
+      const n = 10 + leaves.length * 4; // étoile d'autant plus fournie que la thématique a de liens
       for (let k = 0; k < n; k++) {
         const ang = k / n * 6.283 + rnd() * 0.35, rr = (0.35 + rnd() * 0.75) * rad / PXM * (k < leaves.length ? 1 : 1.25);
         const p = P3(inX(hp.x + Math.cos(ang) * rr), 0.05 + rnd() * 0.35, inZ(hp.z + Math.sin(ang) * rr));
@@ -299,8 +310,15 @@ async function start() {
     const pp = new Float32Array(nodes.length * 3), pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
     const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.045 })); dots.frustumCulled = false; scene.add(dots);
     const nb = nodes.map(() => new Set()); for (const [a, b] of edges) { nb[a].add(b); nb[b].add(a); }
-    graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1 });
+    graphs.push({ nodes, edges, pos, col, lg, pp, pg, nb, z: (r.y + r.h / 2) / PXM, hover: -1, hubIdx, forced: null });
   }
+
+  { const SEC = ['Parcours', 'Parcours', 'Parcours', 'Parcours', 'Parcours', 'Parcours', 'Parcours', 'Faire fonctionner', 'Parcours', 'Blog', 'Blog'], lis = $$('.pc-index li[data-i]');
+    const on = (i) => { lis.forEach((l, k) => l.classList.toggle('is-on', k === i)); graphs.forEach((G) => { G.forced = i; }); };
+    lis.forEach((li, i) => { li.addEventListener('pointerenter', () => on(i)); li.addEventListener('focus', () => on(i)); li.addEventListener('pointerleave', () => on(null));
+      li.addEventListener('click', () => { const sec = sections.find((q) => q.name === SEC[i]); if (sec) scrollTo({ top: Math.max(0, sec.r.y + 260 - innerHeight / 2), behavior: reduce ? 'auto' : 'smooth' }); });
+      li.addEventListener('keydown', (e) => { if (e.key === 'Enter') li.click(); }); });
+    lis[0]?.classList.add('is-on'); }
 
   /* règles d'une machine : celles du site (graduations, repère, « Tourner » / « Incliner »), une paire par machine ; glisser ne bouge que cette machine */
   /* vignettes de l'accueil : une machine 3D qui tourne, la pièce avec Mathieu dedans (rendue en direct), un flux de particules */
@@ -421,7 +439,7 @@ async function start() {
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.
      Son propre moteur continue d'animer le personnage et les objets, il ne dessine plus rien lui-même. */
-  const roomSpot = $('[data-room]'); let roomRul = null, heroTag = null; const heroP = new THREE.Vector3();
+  const roomSpot = $('[data-room]'); const roomCz = roomSpot ? (rectOf(roomSpot).y + rectOf(roomSpot).h / 2) / PXM : -1e9; let roomRul = null, heroTag = null; const heroP = new THREE.Vector3();
   let roomDone; const roomReadyP = new Promise((r) => { roomDone = r; }); if (!roomSpot || reduce) roomDone(); // la pièce passe avant le dessin des sections
   if (roomSpot && !reduce) {
     const rr = W(rectOf(roomSpot)), host = document.createElement('div'), bubble = document.createElement('div');
@@ -494,7 +512,9 @@ async function start() {
     m.rotation.x = -Math.PI / 2 + A; m.position.set(g.cx, 0.01 + g.d / 2 * Math.sin(A), g.cz + g.d / 2 * (1 - Math.cos(A))); m.renderOrder = 2; scene.add(m);
     m.updateMatrixWorld(); const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => new THREE.Vector3(a * g.w / 2, b * g.d / 2, 0).applyMatrix4(m.matrixWorld));
     const poster = new Image(); poster.src = huEl.querySelector('video')?.getAttribute('poster') || '';
-    const LH = lifts.find((L) => L.el === huEl); if (LH) LH.pts = corners; // le hublot relevé se manipule comme sur le site
+    const hot = document.createElement('button'); hot.type = 'button'; hot.className = 'pc-hot pc-hot-win'; hot.setAttribute('aria-label', 'Ouvrir ou fermer le store du hublot');
+    hot.addEventListener('click', () => $('#rf-grip')?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))); // le store se lève et se baisse comme sur le site
+    document.body.append(hot); hots.push({ h: hot, r, pts: corners });
     hublots.push({ t, z: g.cz, cv, win, poster });
     import('./hublot.js').catch((e) => console.warn('hublot indisponible', e));
   }
@@ -853,8 +873,10 @@ async function start() {
       const A = G.nodes[a].cur, B = G.nodes[b].cur, j = e * 6;
       G.pos[j] = A.x; G.pos[j + 1] = A.y; G.pos[j + 2] = A.z; G.pos[j + 3] = B.x; G.pos[j + 4] = B.y; G.pos[j + 5] = B.z;
       const hot = h >= 0 && (a === h || b === h), f = h < 0 ? (k === 2 ? 0 : EW[k]) : hot ? 1.4 : (k === 2 ? 0 : 0.12), c = hot ? [1, 1, 1] : EC[k]; // liens entre thématiques : visibles seulement au survol
-      const spoke = k === 1 || k === 3, c0 = hot ? c : spoke ? [0.35, 1, 0.95] : c, c1 = hot ? c : spoke ? [0.28, 0.42, 1] : c; // rayons : cyan au phare, bleu au bout
-      G.col[j] = c0[0] * f; G.col[j + 1] = c0[1] * f; G.col[j + 2] = c0[2] * f; G.col[j + 3] = c1[0] * f * 0.8; G.col[j + 4] = c1[1] * f * 0.8; G.col[j + 5] = c1[2] * f * 0.8;
+      const spoke = k === 1 || k === 3, hcA = spoke ? G.nodes[a].hc : null;
+      const c0 = hot ? c : spoke ? hcA : c, c1 = hot ? c : spoke ? [hcA[0] * 0.35, hcA[1] * 0.42, Math.min(1, hcA[2] * 0.95)] : c; // rayons : couleur du phare, puis bleu nuit au bout
+      const pulse = spoke && !hot ? 0.8 + 0.2 * Math.sin(t * 1.1 + e * 0.73 + a) : 1, ff = f * pulse;
+      G.col[j] = c0[0] * ff; G.col[j + 1] = c0[1] * ff; G.col[j + 2] = c0[2] * ff; G.col[j + 3] = c1[0] * ff * 0.7; G.col[j + 4] = c1[1] * ff * 0.7; G.col[j + 5] = c1[2] * ff * 0.7;
     });
     G.lg.attributes.position.needsUpdate = G.lg.attributes.color.needsUpdate = G.pg.attributes.position.needsUpdate = true;
   }
@@ -868,8 +890,9 @@ async function start() {
       G.hover = -1;
       let best = 24 * 24;
       G.nodes.forEach((o, i) => { if (o.kind !== 'leaf' && o.kind !== 'hub') return; const [px, py, pz] = toScreen(o.cur); if (pz >= 1) return; const d = (px - mouse.x) ** 2 + (py - mouse.y) ** 2; if (d < best) { best = d; G.hover = i; } });
+      if (G.hover < 0 && G.forced != null && G.hubIdx) G.hover = G.hubIdx[G.forced]; // survol d'une ligne du sommaire : l'étoile correspondante s'allume
       const o = G.nodes[G.hover];
-      if (o) { any = true; gtip.innerHTML = `<b>${o.label}</b>${o.meta ? `<span>${o.meta}</span>` : ''}${o.href ? '<i>Ouvrir →</i>' : ''}`; gtip.style.transform = `translate(${mouse.x + 16}px,${mouse.y + 12}px)`; canvas.style.cursor = o.href ? 'pointer' : 'default'; }
+      if (o) { any = G.forced == null || G.hover !== G.hubIdx?.[G.forced] ? true : any; gtip.innerHTML = `<b>${o.label}</b>${o.meta ? `<span>${o.meta}</span>` : ''}${o.href ? '<i>Ouvrir →</i>' : ''}`; gtip.style.transform = `translate(${mouse.x + 16}px,${mouse.y + 12}px)`; canvas.style.cursor = o.href ? 'pointer' : 'default'; }
     }
     gtip.classList.toggle('on', any); if (!any) canvas.style.cursor = '';
   }
@@ -887,7 +910,9 @@ async function start() {
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
     const fovFlat = 30, dist = (H / kf / PXM / 2) / Math.tan(fovFlat / 2 * Math.PI / 180);
     flatPos.set(0, dist, focusZ); flatLook.set(0, 0, focusZ - 0.0001);
-    runPos.set(0, 8.6, focusZ + 5.2); runLook.set(0, 0, focusZ - 6);
+    // près de la pièce, la caméra descend et recule : vue en trois-quarts (environ 24° d'élévation) au lieu d'une vue du dessus (37°)
+    const wRoom = Math.max(0, 1 - Math.abs(focusZ - roomCz) / 9), wr = wRoom * wRoom * (3 - 2 * wRoom);
+    runPos.set(0, 8.6 - 2.6 * wr, focusZ + 5.2 + 1.3 * wr); runLook.set(0, 0.6 * wr, focusZ - 6);
     camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
     camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
@@ -946,7 +971,7 @@ async function start() {
       let pts = o.pts;
       if (!pts) { pts = []; const n = Math.max(1, Math.ceil(o.r.h / 140)); for (let i = 0; i <= n; i++) { const y = o.r.y + o.r.h * i / n; for (const x of [o.r.x, o.r.x + o.r.w]) pts.push(new THREE.Vector3((x - PAGE_W / 2) / PXM, 0.02, y / PXM)); } }
       const c = pts.map((v) => toScreen(v)).filter((q) => q[2] < 1 && q[1] > -h && q[1] < 2 * h), xs = c.map((q) => Math.max(0, Math.min(w, q[0]))), ys = c.map((q) => Math.max(0, Math.min(h, q[1])));
-      const x0 = Math.min(...xs), y0 = Math.min(...ys), ww = Math.max(...xs) - x0, hh = Math.max(...ys) - y0, ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 20 && hh > 12;
+      const x0 = Math.min(...xs), y0 = Math.min(...ys), ww = Math.max(...xs) - x0, hh = Math.max(...ys) - y0, ok = !lifted && !reader && e > 0.5 && c.length >= 2 && ww > 6 && hh > 4;
       o.h.style.display = ok ? '' : 'none'; if (ok) { o.h.style.transform = `translate(${x0}px,${y0}px)`; o.h.style.width = ww + 'px'; o.h.style.height = hh + 'px'; }
     }
     for (const m of magics) {
