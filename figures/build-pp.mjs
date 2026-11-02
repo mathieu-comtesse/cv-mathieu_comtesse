@@ -1,206 +1,199 @@
-// Fig 07 · Power Automate, chaîne des PP : un classeur à dossiers suspendus rangés par échéance.
+// Fig 07 · Power Automate, chaîne des PP : un cadran solaire des échéances.
 // node figures/build-pp.mjs  →  figures/pp.html
-// Chaque jour, quatre plans de prévention quittent la corbeille d'arrivée, passent sous le lecteur
-// qui relève leur échéance, puis rejoignent la section du mois où ils expirent. Le curseur de relance
-// glisse sur le rail un mois devant aujourd'hui : chaque dossier qu'il atteint envoie son mail.
+// Un cadran de pierre d'un tour pour une année. L'ombre du style (la lame au centre) avance d'un cran par jour : c'est aujourd'hui.
+// Chaque jour, quatre plans de prévention quittent la corbeille, passent sous le lecteur qui relève leur échéance, puis se posent sur le cadran,
+// à l'angle de leur date. Une seconde ombre, plus pâle, court un mois devant la première : chaque feuille qu'elle touche se redresse et envoie
+// sa lettre à la boîte aux lettres. Quand l'ombre du jour passe sur une feuille, le plan est échu et s'efface.
 import * as k from "../.claude/skills/anatomy/kit/iso-kit.mjs";
 import * as G from "../.claude/skills/anatomy/kit/lathe.mjs";
-import { tools, bench, display, writeFigure, LOOP } from "./common.mjs";
+import { tools, bench, display, writeFigure, LOOP, PAPER } from "./common.mjs";
 
-const WIDTH = 600, HEIGHT = 380;
-const PLATE = { x: -124, y: -42, w: 252, d: 100, r: 8 };
-const INBOX = { x: -114, y: 20, w: 30, d: 22, r: 1.4 }, INBOX_H = 6;
-const READER = { x: -110, y: -26, w: 30, d: 30, r: 2 }, READER_H = 12, BRIDGE_Z = 34;
-const DRAWER = { x: -60, y: -32, w: 140, d: 50, r: 2 }, DRAWER_H = 16, WALL = 1.6;
-const SEC = { x0: DRAWER.x + 4, y0: DRAWER.y + 5, d: DRAWER.d - 10, h: 15, per: 0.18, divider: 1.2 };
-const RAIL_Z = DRAWER_H + 1, MAILBOX = { x: 92, y: -38, w: 24, d: 18, r: 1.6 }, MAILBOX_H = 30;
+const WIDTH = 660, HEIGHT = 470;
+const PLATE = { x: -150, y: -78, w: 300, d: 160, r: 9 };
+const DIAL = { R: 60, plinth: 67, z: 6 };                                   // cadran et socle étagé
+const GNOMON = { h: 46, half: 16, t: 2.6 };
+const INBOX = { x: -136, y: 14, w: 32, d: 26, r: 1.6 }, INBOX_H = 6;
+const READER = { x: -96, y: 22, w: 24, d: 20, r: 1.6 }, READER_H = 24;
+const POSTBOX = { x: 96, y: -8 };                                          // pied de la boîte aux lettres
+const STELE = { x: -26, y: 70, w: 52, d: 10, r: 1.4 }, STELE_H = 15;
+const LEAD_ANG = 31.6;
 
-const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), [READER.x, READER.y, BRIDGE_Z + 8], [MAILBOX.x + MAILBOX.w, MAILBOX.y, MAILBOX_H + 4], [DRAWER.x, DRAWER.y, DRAWER_H + 12]], WIDTH, HEIGHT, { pad: 22, azimuth: 52, elevation: 38 });
-const { at, S, L, D, slab, front, right, flat } = tools(P);
+const P = k.fitProjection([...k.boxCorners(PLATE, -15, 0), [0, 0, 56], [POSTBOX.x, POSTBOX.y, 58], [-136, 14, 30]], WIDTH, HEIGHT, { pad: 22, azimuth: 56 });
+const { at, S, L, D, slab, front, right, flat, byDepth } = tools(P);
+const pos = (a, r, z = 0) => [Math.sin(a) * r, -Math.cos(a) * r, z];       // angle depuis le fond, dans le sens des aiguilles
 
-// ---------------------------------------------------------------- arrivée et lecteur
-function inboxSvg() {
-  const out = [], t = INBOX;
-  out.push(S(slab(t, 0, 1.4, 3, 0.3), { tone: "lo" }));
-  out.push(S(slab({ x: t.x, y: t.y, w: t.w, d: 1.4, r: 0.4 }, 1.4, INBOX_H - 1.4, 2, 0.2), { tone: "mid" }));
-  out.push(S(slab({ x: t.x, y: t.y, w: 1.4, d: t.d, r: 0.4 }, 1.4, INBOX_H - 1.4, 2, 0.2), { tone: "mid" }));
+// ---------------------------------------------------------------- cadran
+function dialSvg() {
+  const out = [], F0 = G.frameAlong([0, 0, 0], [0, 0, 1]), F1 = G.frameAlong([0, 0, DIAL.z], [0, 0, 1]), Fm = G.frameAlong([0, 0, 3], [0, 0, 1]);
+  out.push(`<path class="iso-halo" d="${k.haloOf({ x: -DIAL.plinth, y: -DIAL.plinth, w: 2 * DIAL.plinth, d: 2 * DIAL.plinth, r: DIAL.plinth }, 0, 2, P)}" style="filter:blur(4px)"/>`);
+  out.push(S(G.disc(0, 3, DIAL.plinth, F0, P), { tone: "lo", inner: k.fadedSvg(G.ribsOf(F0, 0.1, 2.9, DIAL.plinth, 96, P, { fade: [0.1, 0.55] }), { tone: "faint" }) }));
+  out.push(S(G.disc(0, 3, DIAL.R, Fm, P), { tone: "mid", inner: k.fadedSvg(G.ribsOf(Fm, 0.1, 2.9, DIAL.R, 84, P, { fade: [0.1, 0.55] }), { tone: "lo" }) }));
+  // Face du cadran : deux rainures, couronne des mois (un trait par mois, majeur par trimestre), croix des points cardinaux, vis.
+  out.push(L(G.circleOf(F1, 0, 54, P) + G.circleOf(F1, 0, 16, P), { tone: "faint" }));
+  const minor = [], major = [];
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, long = i % 3 === 0; (long ? major : minor).push(k.segment(pos(a, long ? 48 : 54, DIAL.z), pos(a, DIAL.R - 0.01, DIAL.z), P)); }
+  out.push(L(minor.join(""), { tone: "lo" }), L(major.join(""), { tone: "mid", free: "start" }));
+  const days = []; for (let i = 0; i < 228; i += 1) { const a = i / 228 * Math.PI * 2; if (i % 19) days.push(k.segment(pos(a, 57.6, DIAL.z), pos(a, DIAL.R - 0.01, DIAL.z), P)); }
+  out.push(L(days.join(""), { tone: "faint" }));
+  out.push(D(G.dotsOf(F1, 0, 58.4, 8, P, { phase: Math.PI / 8, all: true }), { size: 0.4 }));
+  // Douze bornes de mois sur le socle, quatre plus hautes.
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, [x, y] = pos(a, 63.6), tall = i % 3 === 0; out.push(S(k.cylinder(x, y, tall ? 2.2 : 1.6, 3, tall ? 3.4 : 1.8, P, 14), { tone: tall ? "mid" : "lo" })); }
+  // Centre : platine du style, quatre vis.
+  out.push(S(slab({ x: -9, y: -9, w: 18, d: 18, r: 2 }, DIAL.z, 1.6, 3, 0.4), { tone: "lo" }));
+  out.push(D(k.corners({ x: -9, y: -9, w: 18, d: 18 }, 2.2).map(([x, y]) => at([x, y, DIAL.z + 1.6])), { size: 0.36 }));
+  return out.join("");
+}
+function gnomonSvg() {
+  const out = [], F = G.frameOf([-GNOMON.t / 2, 0, DIAL.z + 1.6], [1, 0, 0], [0, 1, 0], [0, 0, 1]);
+  out.push(S(G.prismOf(F, [[-GNOMON.half, 0], [GNOMON.half, 0], [GNOMON.half, GNOMON.h]], 0, GNOMON.t, P), { tone: "mid" }));
+  out.push(S(G.prismOf(F, [[-GNOMON.half + 1.2, 0], [GNOMON.half - 1.2, 0], [GNOMON.half - 1.2, 3.4]], -0.6, GNOMON.t + 0.6, P), { tone: "hi" }));
+  out.push(D([at([GNOMON.t / 2 + 0.2, GNOMON.half - 3, DIAL.z + 1.6 + 6]), at([GNOMON.t / 2 + 0.2, GNOMON.half - 3, DIAL.z + 1.6 + GNOMON.h - 8])], { size: 0.38 }));
+  return out.join("");
+}
+
+// ---------------------------------------------------------------- corbeille, lecteur, stèle, boîte aux lettres
+function trayAndReader() {
+  const out = [], t = INBOX, rd = READER;
+  out.push(S(slab(t, 0, 1.6, 3, 0.4), { tone: "lo" }));
+  out.push(S(slab({ x: t.x, y: t.y + t.d - 1.6, w: t.w, d: 1.6, r: 0.4 }, 1.6, INBOX_H - 1.6, 2, 0.2), { tone: "mid" }));
+  out.push(S(slab({ x: t.x, y: t.y, w: 1.6, d: t.d, r: 0.4 }, 1.6, INBOX_H - 1.6, 2, 0.2), { tone: "mid" }));
   out.push(`<g data-part="inbox"></g>`);
-  out.push(S(slab({ x: t.x, y: t.y + t.d - 1.4, w: t.w, d: 1.4, r: 0.4 }, 1.4, INBOX_H - 1.4, 2, 0.2), { tone: "mid" }));
+  out.push(D([at([t.x + 3, t.y + t.d, INBOX_H - 2]), at([t.x + t.w - 3, t.y + t.d, INBOX_H - 2])], { size: 0.34 }));
+  out.push(S(slab(rd, 0, 6, 3, 0.8), { tone: "mid" }));
+  out.push(S(slab({ x: rd.x + 2, y: rd.y + 2, w: 3, d: 3, r: 0.5 }, 6, READER_H - 6, 2, 0.3), { tone: "mid" }));
+  out.push(S(slab({ x: rd.x + rd.w - 5, y: rd.y + 2, w: 3, d: 3, r: 0.5 }, 6, READER_H - 6, 2, 0.3), { tone: "mid" }));
+  out.push(`<g data-part="reading"></g>`);
+  out.push(S(slab({ x: rd.x - 1, y: rd.y, w: rd.w + 2, d: rd.d - 2, r: 1.4 }, READER_H, 5, 3, 0.6), { tone: "mid", inner: L(k.sideSeam({ x: rd.x - 1, y: rd.y, w: rd.w + 2, d: rd.d - 2, r: 1.4 }, READER_H + 2.5, P, 3), { tone: "faint" }) }));
+  const [lx, ly] = at([rd.x + rd.w / 2, rd.y + rd.d / 2 - 1, READER_H + 6.4]);
+  out.push(S(k.cylinder(rd.x + rd.w / 2, rd.y + rd.d / 2 - 1, 2.6, READER_H + 5, 1.4, P, 18), { tone: "mid" }));
+  out.push(`<circle class="fig-lamp" data-part="read-lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`);
+  out.push(D([at([rd.x + 2, rd.y + rd.d, 3]), at([rd.x + rd.w - 2, rd.y + rd.d, 3])], { size: 0.34 }));
   return out.join("");
 }
-function readerSvg(part) {
-  const out = [], r = READER;
-  if (part === "base") {
-    out.push(S(slab(r, 0, READER_H, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(r, 3, P, 4), { tone: "faint" }) }));
-    out.push(L(k.planOutline({ x: r.x + 4, y: r.y + 5, w: r.w - 8, d: r.d - 10, r: 1 }, READER_H, P, 3), { tone: "lo" }));
-    // Montants arrière de la passerelle de lecture.
-    for (const x of [r.x + 2, r.x + r.w - 6]) out.push(S(slab({ x, y: r.y + 1, w: 4, d: 4, r: 0.6 }, READER_H, BRIDGE_Z - READER_H, 2, 0.3), { tone: "mid" }));
-    return out.join("");
-  }
-  // Passerelle, tête de lecture et lampe ; afficheur de l'échéance sur la face avant.
-  for (const x of [r.x + 2, r.x + r.w - 6]) out.push(S(slab({ x, y: r.y + r.d - 5, w: 4, d: 4, r: 0.6 }, READER_H, BRIDGE_Z - READER_H, 2, 0.3), { tone: "mid" }));
-  out.push(S(slab({ x: r.x, y: r.y + 1, w: r.w, d: r.d - 2, r: 1.4 }, BRIDGE_Z, 4, 3, 0.5), { tone: "mid" }));
-  out.push(S(slab({ x: r.x + 9, y: r.y + 9, w: 12, d: 12, r: 1.4 }, BRIDGE_Z - 5, 5, 3, 0.4), { tone: "lo" }));
-  out.push(D(k.corners({ x: r.x, y: r.y + 1, w: r.w, d: r.d - 2 }, 2.2).map(([x, y]) => at([x, y, BRIDGE_Z + 4])), { size: 0.42 }));
-  out.push(display(front(r.y + r.d), flat(r.x + 3, 3, r.x + r.w - 3, 9.5, 1), { part: "due", x: r.x + r.w / 2, y: -4.4, size: 5, text: "--/--" }));
-  const [lx, ly] = at([r.x + r.w - 4, r.y + r.d - 4, BRIDGE_Z + 4]);
-  out.push(`<circle class="fig-lamp" data-part="read-lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.3"/>`);
+function steleSvg() {
+  const out = [], s = STELE, f = front(s.y + s.d);
+  out.push(S(slab({ x: s.x - 3, y: s.y - 2, w: s.w + 6, d: s.d + 4, r: 2 }, 0, 3, 3, 0.5), { tone: "lo" }));
+  out.push(S(slab(s, 3, STELE_H - 3, 3, 0.8), { tone: "mid", inner: L(k.sideSeam(s, 9, P, 3), { tone: "faint" }) }));
+  out.push(display(f, flat(s.x + 3, 6, s.x + 23, 12.4, 1), { part: "today", x: s.x + 13, y: -9.1, size: 4, text: "00/00" }));
+  out.push(display(f, flat(s.x + 29, 6, s.x + 49, 12.4, 1), { part: "due", x: s.x + 39, y: -9.1, size: 4, text: "--/--" }));
+  out.push(D([at([s.x + 1.6, s.y + s.d, 9]), at([s.x + 25.5, s.y + s.d, 9]), at([s.x + s.w - 1.6, s.y + s.d, 9])], { size: 0.32 }));
   return out.join("");
 }
-
-// ---------------------------------------------------------------- classeur
-function drawerSvg(part) {
-  const out = [], d = DRAWER;
-  if (part === "back") {
-    out.push(`<path class="iso-halo" d="${k.haloOf(d, 0, 2, P)}" style="filter:blur(3px)"/>`);
-    out.push(S(slab(d, 0, 2, 3, 0.4), { tone: "lo" }));
-    out.push(S(slab({ x: d.x, y: d.y, w: d.w, d: WALL, r: 0.5 }, 2, DRAWER_H - 2, 2, 0.3), { tone: "mid" }));
-    out.push(S(slab({ x: d.x, y: d.y, w: WALL, d: d.d, r: 0.5 }, 2, DRAWER_H - 2, 2, 0.3), { tone: "mid" }));
-    // Rail arrière des dossiers suspendus.
-    out.push(S(slab({ x: d.x + 1, y: d.y + 2, w: d.w - 2, d: 1.4, r: 0.4 }, RAIL_Z - 2, 2, 2, 0.2), { tone: "mid" }));
-    return out.join("");
-  }
-  out.push(S(slab({ x: d.x + d.w - WALL, y: d.y, w: WALL, d: d.d, r: 0.5 }, 2, DRAWER_H - 2, 2, 0.3), { tone: "mid" }));
-  out.push(S(slab({ x: d.x, y: d.y + d.d - WALL, w: d.w, d: WALL, r: 0.5 }, 2, DRAWER_H - 2, 2, 0.3), { tone: "mid" }));
-  out.push(S(slab({ x: d.x + 1, y: d.y + d.d - 3.4, w: d.w - 2, d: 1.4, r: 0.4 }, RAIL_Z - 2, 2, 2, 0.2), { tone: "mid" }));
-  // Règle des mois sur la face avant, porte-étiquette et poignée sur le flanc droit.
-  const f = front(d.y + d.d), ticks = [];
-  const n = Math.floor((d.w - 8) / 4.8);
-  for (let i = 0; i <= n; i++) ticks.push(`M${d.x + 4 + i * 4.8} ${-(DRAWER_H - 3)}v${i % 5 ? 2 : 3.4}`);
-  out.push(`<g transform="${f}"><path class="iso-line" data-tone="lo" d="M${d.x + 4} ${-(DRAWER_H - 3)}h${n * 4.8}${ticks.join("")}"/></g>`);
-  const side = right(d.x + d.w);
-  out.push(`<g transform="${side}"><path class="iso-line" data-tone="lo" d="${flat(-d.y - d.d + 10, 2.6, -d.y - 10, 13.4, 1.2, 3)}"/></g>`);
-  out.push(display(side, flat(-d.y - d.d + 12, 4.6, -d.y - 12, 11.4, 0.8), { part: "today", x: -d.y - d.d / 2, y: -6.2, size: 5.2, text: "02/01" }));
+function postboxSvg() {
+  const out = [], x = POSTBOX.x, y = POSTBOX.y;
+  out.push(S(slab({ x: x - 7, y: y - 7, w: 14, d: 14, r: 2 }, 0, 3, 3, 0.5), { tone: "lo" }));
+  out.push(S(slab({ x: x - 2, y: y - 2, w: 4, d: 4, r: 0.6 }, 3, 38, 3, 0.4), { tone: "mid" }));
+  out.push(D(k.corners({ x: x - 7, y: y - 7, w: 14, d: 14 }, 1.6).map(([bx, by]) => at([bx, by, 3])), { size: 0.34 }));
+  // Boîte : corps arrondi, bouche, fanion de relève sur le flanc (il se lève quand une lettre part).
+  const b = { x: x - 11, y: y - 8, w: 22, d: 16, r: 4 };
+  out.push(S(slab(b, 41, 14, 4, 1.6), { tone: "mid", inner: L(k.sideSeam(b, 47, P, 4), { tone: "faint" }) }));
+  out.push(`<g transform="${front(b.y + b.d)}"><path class="iso-line" data-tone="lo" d="${flat(b.x + 4, 47, b.x + b.w - 4, 51, 1.4, 3)}"/></g>`);
+  out.push(D([at([b.x + 3, b.y + b.d, 44]), at([b.x + b.w - 3, b.y + b.d, 44])], { size: 0.34 }));
+  out.push(`<g data-part="flag"></g>`);
+  const [lx, ly] = at([x, y + 8, 49]);
+  out.push(`<circle class="fig-lamp" data-part="mail-lamp" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.1"/>`);
   return out.join("");
 }
-// Boîte aux lettres des relances.
-function mailboxSvg() {
-  const out = [], m = MAILBOX;
-  out.push(S(slab({ x: m.x + m.w / 2 - 3, y: m.y + m.d / 2 - 3, w: 6, d: 6, r: 1 }, 0, 14, 2, 0.4), { tone: "mid" }));
-  out.push(S(slab({ x: m.x + m.w / 2 - 7, y: m.y + m.d / 2 - 7, w: 14, d: 14, r: 1.4 }, 0, 2, 2, 0.4), { tone: "lo" }));
-  out.push(S(slab(m, 14, MAILBOX_H - 14, 4, 0.8), { tone: "mid", inner: L(k.sideSeam(m, 18, P, 4), { tone: "faint" }) }));
-  out.push(L(k.planOutline({ x: m.x + 5, y: m.y + m.d / 2 - 1.2, w: m.w - 10, d: 2.4, r: 0.8 }, MAILBOX_H, P, 3), { tone: "lo" }));
-  out.push(D(k.corners(m, 2.4).map(([x, y]) => at([x, y, MAILBOX_H])), { size: 0.4 }));
-  out.push(`<g data-part="mailbox-count"></g>`);
-  return out.join("");
-}
-
-// Dossier couché (en transit), origine au coin bas.
-const folderFlat = () => k.solidSvg(k.slabOf({ x: 0, y: 0, w: 22, d: 16, r: 0.6 }, 0, 1, P, 2, 0.2), { tone: "hi", inner: k.lineSvg(k.lineOnTop([3, 4], [14, 4], 1, P) + k.lineOnTop([3, 7], [18, 7], 1, P) + k.lineOnTop([3, 10], [11, 10], 1, P), { tone: "lo", free: true }) });
-const envelope = () => k.solidSvg(k.slabOf({ x: -6, y: -4, w: 12, d: 8, r: 0.4 }, 0, 0.8, P, 2, 0.2), { tone: "hi", inner: k.lineSvg(k.onTop([[-5.6, -3.7], [0, 0.6], [5.6, -3.7]], 0.8, P), { tone: "lo" }) });
 
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
-  label: "Une corbeille d'arrivée, un lecteur à passerelle, un classeur ouvert à dossiers suspendus rangés par mois d'échéance, et une boîte aux lettres. Chaque plan de prévention passe sous le lecteur, qui affiche son échéance, puis rejoint la section de son mois. Un curseur glisse sur le rail un mois devant aujourd'hui ; chaque dossier qu'il atteint envoie un mail de relance.",
+  label: "Un cadran solaire de pierre, un tour pour une année d'échéances. L'ombre du style au centre avance d'un cran par jour. Les plans de prévention quittent la corbeille, passent sous le lecteur, puis se posent sur le cadran à l'angle de leur échéance, feuilles souples. Une seconde ombre pâle court un mois devant : chaque feuille qu'elle touche se redresse et envoie une lettre vers la boîte aux lettres. Quand l'ombre du jour passe sur une feuille, le plan est échu.",
   body: [
-    bench(P, PLATE, { strip: { x: -60, y: PLATE.y + PLATE.d - 11, w: 110, d: 7, r: 1 }, label: { x: 64, y: PLATE.y + PLATE.d - 14, w: 46, d: 10, r: 1.2 } }),
-    inboxSvg(), readerSvg("base"), `<g data-part="reading"></g>`, readerSvg("bridge"),
-    drawerSvg("back"), `<g data-part="sections"></g>`, `<g data-part="rider"></g>`, drawerSvg("front"),
-    mailboxSvg(), `<g data-part="air"></g>`,
+    bench(P, PLATE, { strip: { x: -140, y: PLATE.y + PLATE.d - 13, w: 140, d: 7, r: 1 }, label: { x: 74, y: PLATE.y + PLATE.d - 17, w: 46, d: 11, r: 1.2 } }),
+    dialSvg(), `<g data-part="shadow"></g>`, `<g data-part="fan-back"></g>`, gnomonSvg(), `<g data-part="fan-front"></g>`,
+    trayAndReader(), steleSvg(), postboxSvg(), `<g data-part="air"></g>`,
   ],
 });
 
 // ---------------------------------------------------------------- modèle
 const live = `
-const P = ${JSON.stringify(P)};
-const INBOX = ${JSON.stringify(INBOX)}, INBOX_H = ${INBOX_H}, READER = ${JSON.stringify(READER)}, READER_H = ${READER_H}, DRAWER = ${JSON.stringify(DRAWER)}, SEC = ${JSON.stringify(SEC)}, RAIL_Z = ${RAIL_Z}, MAILBOX = ${JSON.stringify(MAILBOX)}, MAILBOX_H = ${MAILBOX_H};
-const FOLDER = ${JSON.stringify(folderFlat())}, ENVELOPE = ${JSON.stringify(envelope())};
 ${LOOP}
+const P = ${JSON.stringify(P)};
+${PAPER}
+const DIAL = ${JSON.stringify(DIAL)}, INBOX = ${JSON.stringify(INBOX)}, READER = ${JSON.stringify(READER)}, READER_H = ${READER_H}, POSTBOX = ${JSON.stringify(POSTBOX)}, LEAD_ANG = ${LEAD_ANG};
 // Vrais chiffres : 10 min de contrôle et de saisie évitées par PP, 4 PP par jour (40 min),
 // environ 225 jours par an à 104,74 €/h (≈ 15 700 €). Durées de validité et délai de relance illustratifs.
-const PER_DAY = 4, MIN_PER_PP = 10, RATE = 104.74, DAYS = 225, MONTH = 19, LEAD = 20, DAY_S = 3;
+const PER_DAY = 4, MIN_PER_PP = 10, RATE = 104.74, DAYS = 225, YEAR = 228, LEAD = 20, DAY_S = 3, TAU = Math.PI * 2, ANG = TAU / YEAR;
 const hash = (i) => { let h = Math.imul(i + 3, 2654435761) >>> 0; h ^= h >>> 15; return (Math.imul(h, 2246822519) >>> 0) / 4294967296; };
-// Plans de prévention : arrivée (jour ouvré), échéance (jour ouvré), lu un par un.
 const PP = []; for (let a = 1; a <= DAYS; a++) for (let q = 0; q < PER_DAY; q++) { const j = PP.length; PP.push({ j, a, q, e: a + 30 + Math.floor(hash(j) * 200) }); }
-// Jour ouvré → date (cinq jours par semaine depuis le lundi 2 janvier).
 const dateOf = (n) => { const d = new Date(Date.UTC(2023, 0, 2 + (n - 1) + 2 * Math.floor((n - 1) / 5))); return String(d.getUTCDate()).padStart(2, "0") + "/" + String(d.getUTCMonth() + 1).padStart(2, "0"); };
-const monthOf = (n) => Math.floor((n - 1) / MONTH);
-let clock = 40 * DAY_S, touring = true, idle = 0, sig = "";
-const parts = { inbox: $("inbox"), reading: $("reading"), sections: $("sections"), rider: $("rider"), air: $("air"), due: $("due"), today: $("today"), lamp: $("read-lamp") };
+let clock = 40 * DAY_S, touring = true, idle = 0;
+const parts = { inbox: $("inbox"), reading: $("reading"), shadow: $("shadow"), back: $("fan-back"), front: $("fan-front"), air: $("air"), due: $("due"), today: $("today"), lamp: $("read-lamp"), mail: $("mail-lamp"), flag: $("flag") };
 const ease = (u) => (u = Math.max(0, Math.min(1, u)), u * u * (3 - 2 * u));
-// État d'un jour : dossiers classés et actifs, relances envoyées jusqu'ici.
+const pos = (a, r, z = 0) => [Math.sin(a) * r, -Math.cos(a) * r, z];
+const wrapA = (e) => ((e * ANG) % TAU + TAU) % TAU;
 function state(day, frac) {
   const filed = (p) => p.a < day || (p.a === day && frac >= (p.q + 1) * 0.15 + 0.05);
   const active = PP.filter((p) => filed(p) && p.e >= day);
   const relanced = PP.filter((p) => filed(p) && p.e - LEAD <= day - (frac < 0.8 ? 1 : 0)).length;
-  const done = PP.filter(filed).length;
-  return { active, relanced, done };
+  return { active, relanced, done: PP.filter(filed).length };
 }
-// Sections du classeur : douze mois d'échéance à partir du mois en cours.
-function layout(day, active) {
-  const m0 = monthOf(day), counts = Array(12).fill(0);
-  for (const p of active) { const k = monthOf(p.e) - m0; if (k >= 0 && k < 12) counts[k]++; }
-  let x = SEC.x0; const secs = counts.map((n, k) => { const s = { k, n, x, w: n * SEC.per }; x += s.w + SEC.divider + 1.2; return s; });
-  return secs;
+// Ombre : une lame fine du centre au bord, à l'angle du jour ; la seconde, plus pâle, un mois devant.
+function shadowSvg(a, pale) {
+  const [x1, y1] = pos(a, 56), t = [Math.cos(a) * 1.5, Math.sin(a) * 1.5], z = DIAL.z + 0.05, w = pale ? 0.9 : 1.6;
+  const q = [[-t[0] * w, -t[1] * w], [x1 - t[0] * w * 0.5, y1 - t[1] * w * 0.5], [x1 + t[0] * w * 0.5, y1 + t[1] * w * 0.5], [t[0] * w, t[1] * w]].map(([x, y]) => iso([x, y, z], P));
+  return '<path class="fg-shd' + (pale ? " fg-shp" : "") + '" d="M' + q.map(pPt).join("L") + 'Z"/>';
 }
-function sectionSvg(s, lit) {
-  let out = "";
-  // Intercalaire du mois : plaque et onglet qui dépasse au-dessus des dossiers.
-  out += solidSvg(slabOf({ x: s.x, y: SEC.y0, w: SEC.divider, d: SEC.d, r: 0.3 }, 3, SEC.h + 2, P, 2, 0.1), { tone: "mid" });
-  out += solidSvg(slabOf({ x: s.x, y: SEC.y0 + 2 + (s.k % 3) * 9, w: SEC.divider, d: 8, r: 0.4 }, SEC.h + 5, 4, P, 2, 0.1), { tone: lit ? "hi" : "mid", lit });
-  if (s.n) {
-    const x = s.x + SEC.divider + 0.6, seams = [];
-    for (let i = 5; i < s.n; i += 5) seams.push(lineOnTop([x + i * SEC.per, SEC.y0 + 1], [x + i * SEC.per, SEC.y0 + SEC.d - 1], 3 + SEC.h, P));
-    out += solidSvg(slabOf({ x, y: SEC.y0 + 1, w: s.w, d: SEC.d - 2, r: 0.2 }, 3, SEC.h, P, 2, 0.1), { tone: "hi", inner: lineSvg(seams.join(""), { tone: "faint" }) });
+// Un plan posé sur le cadran, à l'angle de son échéance : à plat, brise légère ; redressé et éclairé quand la relance l'a touché.
+function planSvg(p, now, up) {
+  const a = wrapA(p.e), r = 32 + (p.j % 4) * 7, d = [Math.sin(a), -Math.cos(a), 0], w = [Math.cos(a), Math.sin(a), 0], c = pos(a, r, DIAL.z + 0.7 + up * 4);
+  return paperSvg(paperRows({ c, d, w, L: 14, W: 9, curl: (p.j % 2 ? 1 : -1) * 0.04 + up * 0.09, wave: 0.18 + up * 1.1, roll: 0.15 + up * 0.5, ph: p.j * 1.9, t: now, NT: 5 }), { lines: false, head: true, lit: up > 0.3 });
+}
+function draw(now) {
+  const day = Math.min(DAYS, Math.floor(clock / DAY_S) + 1), frac = clock / DAY_S - (day - 1), dayf = day - 1 + frac;
+  const st = state(day, frac), psi = dayf * ANG, rel = psi + LEAD_ANG * Math.PI / 180;
+  html(parts.shadow, shadowSvg(rel, true) + shadowSvg(psi, false));
+  // Au plus quatre feuilles par secteur d'un mois, aux dates réelles ; peintes d'arrière en avant.
+  const sectors = Array.from({ length: 12 }, () => []);
+  for (const p of st.active) sectors[Math.floor(wrapA(p.e) / TAU * 12) % 12].push(p);
+  const list = [];
+  sectors.forEach((arr) => { arr.sort((x, y) => x.e - y.e); const n = Math.min(5, arr.length); for (let i = 0; i < n; i++) list.push(arr[Math.floor((i + 0.5) / n * arr.length)]); });
+  list.sort((x, y) => iso(pos(wrapA(x.e), 34), P)[1] - iso(pos(wrapA(y.e), 34), P)[1]);
+  const cy = iso([0, 0, DIAL.z], P)[1];
+  let back = "", frontS = "";
+  for (const p of list) {
+    const dd = ((wrapA(p.e) - ((rel % TAU + TAU) % TAU)) % TAU + TAU) % TAU, touched = dd > TAU - 0.5 || dd < 0.12 ? 1 : 0;   // la lame pâle vient de passer dessus
+    const upv = (p.e - LEAD <= dayf) ? Math.max(0, 1 - Math.abs(dayf - (p.e - LEAD)) / 6) : 0;
+    const s = planSvg(p, now, Math.max(upv, touched * 0.0));
+    if (iso(pos(wrapA(p.e), 34), P)[1] < cy) back += s; else frontS += s;
   }
-  return out;
-}
-function draw() {
-  const day = Math.min(DAYS, Math.floor(clock / DAY_S) + 1), frac = clock / DAY_S - (day - 1);
-  const st = state(day, frac), secs = layout(day, st.active);
-  // Curseur de relance : un mois devant aujourd'hui, à sa place dans la section correspondante.
-  const target = day + LEAD, k = monthOf(target) - monthOf(day), within = ((target - 1) % MONTH) / MONTH, sec = secs[Math.min(11, k)];
-  const rx = sec.x + SEC.divider + 0.6 + sec.w * within;
-  const due = PP.filter((p) => p.e - LEAD === day);
-  const firing = frac >= 0.8 && due.length > 0;
-  const s = day + "|" + Math.floor(frac / 0.05) + "|" + firing;
-  if (s !== sig) {
-    parts.sections.innerHTML = secs.map((x) => sectionSvg(x, false)).join("");
-    parts.rider.innerHTML = solidSvg(slabOf({ x: rx - 0.6, y: DRAWER.y + 2, w: 1.2, d: DRAWER.d - 4, r: 0.3 }, RAIL_Z + 1, 1.4, P, 2, 0), { tone: "hi", lit: true }) + solidSvg(slabOf({ x: rx - 3, y: DRAWER.y + DRAWER.d - 5, w: 6, d: 4.4, r: 0.8 }, RAIL_Z - 1, 5, P, 2, 0.4), { tone: "hi", lit: true }) + solidSvg(slabOf({ x: rx - 0.8, y: DRAWER.y + DRAWER.d - 3.6, w: 1.6, d: 1.6, r: 0.3 }, RAIL_Z + 4, 9, P, 2, 0.2), { tone: "hi", lit: true });
-    sig = s;
-  }
-  // Corbeille : les plans du jour encore à lire.
+  html(parts.back, back); html(parts.front, frontS);
+  const due = PP.filter((p) => p.e - LEAD === day), firing = frac >= 0.8 && due.length > 0;
+  html(parts.flag, solidSvg(slabOf({ x: POSTBOX.x + 10, y: POSTBOX.y - 1, w: 1.4, d: 2, r: 0.3 }, firing ? 52 : 44, firing ? 14 : 6, P, 2, 0.1), firing ? { tone: "hi", lit: true } : { tone: "mid" }));
   const waiting = PER_DAY - Math.min(PER_DAY, Math.floor(Math.max(0, frac - 0.05) / 0.15));
-  parts.inbox.innerHTML = Array.from({ length: waiting }, (_, i) => '<g transform="' + translateAlong(P, [INBOX.x + 4, INBOX.y + 3, 1.4 + i * 1.1]) + '">' + FOLDER + "</g>").join("");
-  // Le plan en cours : lecture sous la passerelle, puis vol jusqu'à sa section.
+  html(parts.inbox, Array.from({ length: waiting }, (_, i) => paperSvg(paperRows({ c: [INBOX.x + 16, INBOX.y + 12, 2 + i * 1.1], d: [1, 0, 0], w: [0, 1, 0], L: 22, W: 16, curl: 0.05 * (i % 2 ? 1 : -1), wave: 0.3, ph: i * 2, t: now, NT: 6 }), { head: true })).join(""));
   const q = Math.floor((frac - 0.05) / 0.15), u = (frac - 0.05) / 0.15 - q;
   let reading = "", air = "", shown = "--/--";
   if (frac >= 0.05 && q < PER_DAY && day <= DAYS) {
-    const p = PP[(day - 1) * PER_DAY + q], start = [INBOX.x + 4, INBOX.y + 3, 1.4 + (PER_DAY - q - 1) * 1.1], read = [READER.x + 4, READER.y + 7, READER_H];
-    if (u < 0.3) reading = '<g transform="' + translateAlong(P, start.map((v, i) => v + (read[i] - v) * ease(u / 0.3))) + '">' + FOLDER + "</g>";
-    else if (u < 0.6) { reading = '<g transform="' + translateAlong(P, read) + '">' + FOLDER + "</g>"; shown = dateOf(p.e); }
-    else {
-      const v = ease((u - 0.6) / 0.4), kk = monthOf(p.e) - monthOf(day), dest = secs[Math.min(11, Math.max(0, kk))], to = [dest.x + dest.w, SEC.y0 + 6, SEC.h + 6];
-      air = '<g transform="' + translateAlong(P, [read[0] + (to[0] - read[0]) * v, read[1] + (to[1] - read[1]) * v, read[2] + (to[2] - read[2]) * v + 24 * Math.sin(v * Math.PI)]) + '">' + FOLDER + "</g>";
-      shown = dateOf(p.e);
-    }
+    const p = PP[(day - 1) * PER_DAY + q], start = [INBOX.x + 16, INBOX.y + 12, 2 + (PER_DAY - q - 1) * 1.1], read = [READER.x + READER.w / 2, READER.y + READER.d / 2, READER_H + 0.8];
+    const sheet = (c, curl, wave, lit) => paperSvg(paperRows({ c, d: [1, 0, 0], w: [0, 1, 0], L: 22, W: 16, curl, wave, roll: wave * 0.6, ph: p.j, t: now, NT: 8 }), { head: true, lit });
+    if (u < 0.3) { const v = ease(u / 0.3); reading = sheet(start.map((s, i) => s + (read[i] - s) * v), -0.06 * Math.sin(v * Math.PI) + 0.03, 1.1 * Math.sin(v * Math.PI), true); }
+    else if (u < 0.6) { reading = sheet(read, 0.02, 0.2, true); shown = dateOf(p.e); }
+    else { const v = ease((u - 0.6) / 0.4), to = pos(wrapA(p.e), 40, DIAL.z + 1); air = sheet([read[0] + (to[0] - read[0]) * v, read[1] + (to[1] - read[1]) * v, read[2] + (to[2] - read[2]) * v + 18 * Math.sin(v * Math.PI)], -0.08 * Math.sin(v * Math.PI), 1.4 * Math.sin(v * Math.PI), true); shown = dateOf(p.e); }
   }
-  // Relances du jour : un mail par dossier atteint, qui monte vers la boîte aux lettres.
+  // Relances du jour : une lettre souple par plan atteint, du cadran vers la boîte.
   if (firing) {
-    const v = ease((frac - 0.8) / 0.2), from = [rx, DRAWER.y + DRAWER.d / 2, RAIL_Z + 3], to = [MAILBOX.x + MAILBOX.w / 2, MAILBOX.y + MAILBOX.d / 2, MAILBOX_H + 1];
-    air += due.slice(0, 3).map((_, i) => '<g transform="' + translateAlong(P, [from[0] + (to[0] - from[0]) * v + i * 3, from[1] + (to[1] - from[1]) * v, from[2] + (to[2] - from[2]) * v + 30 * Math.sin(v * Math.PI) + i * 2]) + '" opacity="' + (1 - Math.max(0, v - 0.85) / 0.15).toFixed(2) + '">' + ENVELOPE + "</g>").join("");
+    const v = ease((frac - 0.8) / 0.2), a = wrapA(due[0].e), from = pos(a, 40, DIAL.z + 4), to = [POSTBOX.x, POSTBOX.y + 6, 51];
+    air += due.slice(0, 3).map((_, i) => { const c = [from[0] + (to[0] - from[0]) * v + i * 3, from[1] + (to[1] - from[1]) * v, from[2] + (to[2] - from[2]) * v + 26 * Math.sin(v * Math.PI) + i * 2]; return '<g opacity="' + (1 - 0.5 * v).toFixed(2) + '">' + paperSvg(paperRows({ c, d: [1, 0, 0], w: [0, 1, 0], L: 14, W: 9, curl: -0.07 * Math.sin(v * Math.PI), wave: 1 * Math.sin(v * Math.PI), roll: 0.7, ph: i * 2, t: now, NT: 6 }), { flap: true, lines: false }) + "</g>"; }).join("");
   }
-  parts.reading.innerHTML = reading; parts.air.innerHTML = air;
+  html(parts.reading, reading); html(parts.air, air);
   if (parts.due.textContent !== shown) parts.due.textContent = shown;
   const today = dateOf(day); if (parts.today.textContent !== today) parts.today.textContent = today;
-  parts.lamp.dataset.on = String(shown !== "--/--" && u >= 0.3 && u < 0.6);
+  attr(parts.lamp, "data-on", shown !== "--/--" && u >= 0.3 && u < 0.6);
+  attr(parts.mail, "data-on", firing);
   const mins = st.done * MIN_PER_PP, h = Math.floor(mins / 60), mm = mins % 60;
   say("Jour " + day + " · " + st.done + " PP classés · " + st.relanced + " relance" + (st.relanced > 1 ? "s" : "") + " · " + h + " h" + (mm ? " " + String(mm).padStart(2, "0") : "") + " · " + fr(mins / 60 * RATE) + " €");
 }
 const run = loop((dt, calm) => {
   if (calm) clock = 120 * DAY_S;
   else if (touring) { clock += dt; if (clock >= DAYS * DAY_S) clock = 40 * DAY_S; }
-  draw();
+  draw(performance.now() / 1000);
 });
 const steer = (next) => { touring = false; clearTimeout(idle); idle = setTimeout(() => { touring = true; }, 5000); clock = Math.max(0, Math.min(DAYS * DAY_S - 0.01, next)); run(); };
 dragX(() => clock, (v, share) => steer(v + share * 150 * DAY_S));
-stage.addEventListener("keydown", (e) => {
-  const to = { ArrowRight: clock + 10 * DAY_S, ArrowLeft: clock - 10 * DAY_S, Home: 0, End: DAYS * DAY_S - 0.01 }[e.key];
-  if (to !== undefined) { e.preventDefault(); steer(to); }
-});
-// Accès de vérification (captures).
-window.__fig = { at: (day, frac) => { touring = false; clock = (day - 1 + frac) * DAY_S; draw(); return readout.textContent; }, due: (d) => PP.filter((p) => p.e - LEAD === d).length };
-draw();
+stage.addEventListener("keydown", (e) => { const to = { ArrowRight: clock + 10 * DAY_S, ArrowLeft: clock - 10 * DAY_S, Home: 0, End: DAYS * DAY_S - 0.01 }[e.key]; if (to !== undefined) { e.preventDefault(); steer(to); } });
+window.__fig = { at: (day, frac) => { touring = false; clock = (day - 1 + frac) * DAY_S; draw(1); return readout.textContent; }, due: (d) => PP.filter((p) => p.e - LEAD === d).length };
+draw(1);
 `;
 
 const plate = k.plateHtml({
@@ -209,11 +202,11 @@ const plate = k.plateHtml({
   hint: "Glisse ou ← → : jours",
   readout: "Jour 40",
   keys: [
-    { mark: "lit", label: "Le curseur de relance, un mois devant aujourd'hui" },
-    { mark: "raised", label: "Sections du classeur : un mois d'échéance chacune, épaisses du nombre de PP suivis" },
+    { mark: "lit", label: "Le plan lu, et les feuilles redressées par la relance" },
+    { mark: "raised", label: "Cadran : un tour pour une année ; ombre foncée : aujourd'hui, ombre pâle : un mois devant" },
   ],
   caption: "Chaque plan de prévention déposé est lu, son échéance contrôlée, puis il est classé avec son lien dans le suivi ; les échéances déclenchent les relances sans bloquer le processus. Le contrôle et la saisie évités valent 10 min par PP, soit 40 min par jour : sur environ 225 jours, ≈ 15 700 € par an à 104,74 €/h. Durées de validité et délai de relance illustratifs.",
-  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Chaîne des PP : flèches gauche et droite pour avancer de dix jours" aria-valuemin="1" aria-valuemax="225" aria-valuenow="40">${svg}</div>`,
+  body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="Chaîne des PP : flèches gauche et droite pour avancer dans les jours" aria-valuemin="1" aria-valuemax="225" aria-valuenow="40">${svg}</div>`,
 });
 
-writeFigure("pp", { title: "Chaîne des PP · classeur à échéances", plate, live });
+writeFigure("pp", { title: "Chaîne des PP · cadran solaire des échéances", plate, live, css: `<style>.fg-shd{fill:#1d2230;opacity:.22}.fg-shp{opacity:.1}</style>` });

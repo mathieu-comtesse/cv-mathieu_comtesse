@@ -3,7 +3,7 @@
 // figures/key-outline.mjs), mêmes quatre familles (CERFA, VRE, PP, FACTURES) et mêmes temps : le pont glisse (palpeur sur le modèle,
 // fraise sur l'ébauche), la clé taillée vole jusqu'à la serrure de sa famille, entre, fait un quart de tour et la porte s'ouvre.
 import * as THREE from 'three';
-import { COL, mat, slab, box, cyl, group, bench, display, ease } from './core.js';
+import { COL, mat, slab, box, cyl, group, bench, display, ease, bolts } from './core.js';
 import { FIXED, HOLE, BITTING, THICKNESS } from '../../figures/key-outline.mjs';
 
 export const WIDTH = 268;
@@ -67,9 +67,12 @@ export function build() {
   // lits des clés
   for (const y of [LANES.master, LANES.blank]) g.add(slab(KEY.x0 - 14, y - 9, 80, 18, BASE_H, 3, COL.lo, 1.2), slab(KEY.x0 - 14, y - 9, 6, 18, BASE_H + 3, 8, COL.mid, 1));
   // rails et pont (palpeur au-dessus du modèle, fraise au-dessus de l'ébauche)
-  for (const y of [-54, 38]) g.add(box(KEY.x0 + 20, y, 22, 110, 3, 3, COL.lo));
+  for (const y of [-54, 38]) {
+    g.add(box(KEY.x0 + 20, y, 14, 110, 5, 2, COL.lo), box(KEY.x0 + 20, y, 16.6, 110, 1.6, 3.4, COL.mid), box(KEY.x0 + 20, y, 20.4, 110, 5, 1.6, COL.mid), box(KEY.x0 + 20, y, 22.6, 110, 2, 1.2, COL.lo));
+    const rv = []; for (let x = KEY.x0 - 28; x <= KEY.x0 + 76; x += 8) rv.push([x, y + 2.6, 15], [x, y + 2.6, 20.6]); g.add(bolts(rv, .4, COL.dark, 'y'));
+  }
   const bridge = new THREE.Group();
-  bridge.add(box(0, -8, BRIDGE_Z, 10, 100, 6, COL.mid), box(0, -54, 34, 10, 6, 28, COL.mid), box(0, 38, 34, 10, 6, 28, COL.mid));
+  bridge.add(box(0, -8, BRIDGE_Z, 10, 100, 6, COL.mid), box(0, -54, 34, 10, 6, 28, COL.mid), box(0, 38, 34, 10, 6, 28, COL.mid), box(0, -54, 20.5, 12, 8, 2.6, COL.lo), box(0, 38, 20.5, 12, 8, 2.6, COL.lo));
   const stylus = cyl(0, 0, 1.2, 0, BRIDGE_Z - KEY.z + .5, COL.hi, 14), cutter = new THREE.Group();
   const cutTool = cyl(0, 0, 5.4, 0, 2, COL.mid, 32), cutShaft = cyl(0, 0, 1.4, 2, BRIDGE_Z - KEY.z - 2, COL.mid, 14), cutHead = cyl(0, 0, 4.6, BRIDGE_Z - KEY.z + 5, 9, COL.mid, 28);
   cutter.add(cutTool, cutShaft, cutHead);

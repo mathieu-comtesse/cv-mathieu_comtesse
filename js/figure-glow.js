@@ -32,7 +32,7 @@
     for (const r of records) {
       const part = partOf(r.target);
       if (!part || part.classList.contains('fig-lamp')) continue;
-      if (r.type === 'attributes') { if (r.target.getAttribute(r.attributeName) !== r.oldValue) wake(part); }
+      if (r.type === 'attributes') { if (r.attributeName !== 'class' && r.target.getAttribute(r.attributeName) !== r.oldValue) wake(part); }   // la classe .glow est posée par ce script : elle ne doit pas se rallumer elle-même
       else if (r.type === 'characterData') { if (r.target.data !== r.oldValue) wake(part); }
       else check.add(part);
     }
