@@ -44,12 +44,12 @@ html,body{margin:0;background:#050505;color:#fff;font-family:var(--sans)}
 .pc-index li{position:relative}
 .pc-index li span{position:absolute;top:0;color:#fff}
 /* les numéros suivent un arc, comme le sommaire de référence ; le premier chapitre est souligné jusqu'à un point */
-.pc-index li:nth-child(1) span{left:44%}.pc-index li:nth-child(2) span{left:61%}.pc-index li:nth-child(3) span{left:93%}.pc-index li:nth-child(4) span{left:86%}
-.pc-index li:nth-child(5) span{left:89%}.pc-index li:nth-child(6) span{left:84%}.pc-index li:nth-child(7) span{left:79%}.pc-index li:nth-child(8) span{left:73%}
-.pc-index li:nth-child(9) span{left:66%}.pc-index li:nth-child(10) span{left:57%}.pc-index li:nth-child(11) span{left:38%}
+.pc-index li:nth-child(1) span{left:34%}.pc-index li:nth-child(2) span{left:90%}.pc-index li:nth-child(3) span{left:94%}.pc-index li:nth-child(4) span{left:93%}
+.pc-index li:nth-child(5) span{left:90%}.pc-index li:nth-child(6) span{left:86%}.pc-index li:nth-child(7) span{left:81%}.pc-index li:nth-child(8) span{left:74%}
+.pc-index li:nth-child(9) span{left:65%}.pc-index li:nth-child(10) span{left:56%}.pc-index li:nth-child(11) span{left:40%}
 .pc-index li{cursor:pointer;outline:0}
 .pc-index li.is-on{text-decoration:underline;text-underline-offset:3px}
-.pc-index li.is-on::after{content:'';position:absolute;left:54%;right:0;top:50%;border-top:1px solid rgba(255,255,255,.75)}
+.pc-index li.is-on::after{content:'';position:absolute;left:46%;right:0;top:50%;border-top:1px solid rgba(255,255,255,.75)}
 .pc-index li.is-on::before{content:'';position:absolute;right:-2px;top:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:#fff}
 .pc-index-arc{position:absolute;inset:6px 4px;width:calc(100% - 8px);height:calc(100% - 12px);pointer-events:none;z-index:0}
 .pc-mini{flex:1;display:flex!important;flex-direction:column;min-height:0}
