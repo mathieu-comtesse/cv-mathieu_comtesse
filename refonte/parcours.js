@@ -1028,7 +1028,16 @@ async function start() {
     // près de la pièce, la caméra descend et recule : vue en trois-quarts (environ 24° d'élévation) au lieu d'une vue du dessus (37°)
     const wRoom = Math.max(0, 1 - Math.abs(focusZ - roomCz) / 9), wr = wRoom * wRoom * (3 - 2 * wRoom);
     runPos.set(0, 8.6 - 2.6 * wr, focusZ + 5.2 + 1.3 * wr); runLook.set(0, 0.5 * wr, focusZ - 6 + 3.6 * wr);
-    camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e); camera.lookAt(look);
+    camera.position.lerpVectors(flatPos, runPos, e); look.lerpVectors(flatLook, runLook, e);
+    // Trajectoire organique discrète. Les hotspots, les règles et le picking utilisent toujours cette caméra.
+    const editionsPose = window.__editionsExperience?.pose?.({scroll:s,focusZ,immersive:e,now,width:innerWidth});
+    if (editionsPose) {
+      camera.position.x += editionsPose.cameraX || 0;
+      camera.position.y += editionsPose.cameraY || 0;
+      look.x += editionsPose.lookX || 0;
+    }
+    camera.lookAt(look);
+    if (editionsPose?.roll) camera.rotateZ(editionsPose.roll);
     camera.fov = fovFlat + ((MOBILE ? 50 : 62) - fovFlat) * e; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     document.documentElement.classList.toggle('flat', e < 0.01);
     if (!HIC) page.style.transform = `translateY(${(scrollY - s).toFixed(2)}px)`;
@@ -1066,6 +1075,7 @@ async function start() {
     overlay(e, focusZ, s);
   }
   function overlay(e, focusZ, s) {
+    window.__editionsExperience?.frame?.({scroll:s,immersive:e,focusZ});
     hoverGraphs(e);
     const w = innerWidth, h = innerHeight, narrow = w < 760, bw = narrow ? 150 : 230;
     let active = 0; sections.forEach((sec, i) => { if (sec.r.y <= s + h / 2) active = i; });
