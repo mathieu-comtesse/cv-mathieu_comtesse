@@ -7,8 +7,8 @@ import { daLook } from '../../js/da-shader.js?v=da5';
 const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e', '#fed8ad': '#ffe3d2', '#fcc59a': '#e4f1dc', '#c94f68': '#563a92' };
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
-export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022, lift = 0 }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk45');
+export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022, lift = 0, status = false }) {
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk47');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -25,6 +25,10 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
       if (o.isMesh && /^anim_(puff|bubble)/.test(o.name)) { o.material.transparent = true; o.material.depthWrite = false; o.castShadow = false; }
       if (o.name.startsWith('anim_')) anims.push({ o, kind: o.name.split('_')[1], axis: ['x', 'y', 'z'].includes(o.name.split('_')[2]) ? o.name.split('_')[2] : 'z', base: o.position.clone(), phase: anims.length * 1.7, ang: 0 });
     });
+    /* témoin de marge (Fig 52.1) : la gaine d'air neuf et le vitrage passent du vert à l'ambre puis au rouge quand la marge disparaît */
+    const statusMats = [];
+    if (status) root.traverse((o) => { if (o.isMesh && /^(vert|vitre_vert)$/.test(o.material.name)) statusMats.push(o.material); });
+    const cOk = new THREE.Color('#3fae78'), cMid = new THREE.Color('#f0b13c'), cBad = new THREE.Color('#e0524c'), cTmp = new THREE.Color();
     const g = new THREE.Group(); g.add(root);
     /* flux d'air : des particules suivent des courbes de Bézier (coordonnées du modèle : x, y, z avec z vers le haut) */
     const parts = [];
@@ -64,6 +68,11 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
     function update2(time) {
       baseUpdate(time);
       const k = v / 100;
+      if (statusMats.length) {
+        const margin = 1 - k;                                   // 1 : marge large, 0 : plus de marge
+        if (margin > 0.5) cTmp.copy(cMid).lerp(cOk, (margin - 0.5) * 2); else cTmp.copy(cBad).lerp(cMid, margin * 2);
+        for (const m of statusMats) { m.color.copy(cTmp); m.emissive = m.emissive || new THREE.Color(); m.emissive.copy(cTmp).multiplyScalar(0.55); m.emissiveIntensity = 1; }
+      }
       for (const q of parts) {
         const t = (((time * (0.12 + k * 0.4) + q.off) % 1) + 1) % 1, p = P(q.c, t);
         q.m.position.set(p[0], p[1], p[2]); q.m.material.opacity = Math.sin(Math.PI * t) * (0.35 + 0.6 * k); q.m.scale.setScalar(0.6 + 0.8 * Math.sin(Math.PI * t));
