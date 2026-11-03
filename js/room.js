@@ -29,6 +29,7 @@ import {createJvcTv} from './jvc-tv.js?v=jvc3';
 import {createStele} from './stele.js?v=stele-20261023';
 import {createBuddha} from './buddha.js?v=bud3';
 import {createBonsaiCare} from './bonsai-care.js?v=care3';
+import {createLowpoly} from './lowpoly.js?v=lp1';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
@@ -55,16 +56,17 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.22;
 
-  const hemi = new THREE.HemisphereLight('#fff7e8', '#c9b99c', 0.85);
-  const sun = new THREE.DirectionalLight('#fff0dc', 2.0);
+  const hemi = new THREE.HemisphereLight('#ffe9d6', '#f2a68c', 0.95);
+  const sun = new THREE.DirectionalLight('#ffe3c4', 2.0);
   sun.position.set(3.5, 7.5, -2.2);
   sun.castShadow = true;
   sun.shadow.mapSize.set(mobile.matches?512:1024,mobile.matches?512:1024);
   Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 20 });
   sun.shadow.radius = 5; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   scene.add(hemi, sun);
+  const lowpoly = createLowpoly(scene);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.3, color: '#3b4a73', depthWrite: false }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.5, color: '#563a92', depthWrite: false }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
   scene.add(ground);
 
@@ -1061,10 +1063,10 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   /* gouttes d'arrosage */
 
   /* ─── lumière : toujours le jour, le site n'a plus de mode sombre ─── */
-  const night = false, sunBase = 2.0, hemiBase = 0.85;
-  hemi.intensity = hemiBase; hemi.color.set('#fff7e8'); hemi.groundColor.set('#cdbfa5');
-  sun.intensity = sunBase; sun.color.set('#fff0dc');
-  scene.environmentIntensity = 0.22; ground.material.opacity = 0.22;
+  const night = false, sunBase = 1.7, hemiBase = 1.0;
+  hemi.intensity = hemiBase; hemi.color.set('#ffe9d6'); hemi.groundColor.set('#f2a68c');
+  sun.intensity = sunBase; sun.color.set('#ffe3c4');
+  scene.environmentIntensity = 0.12; ground.material.opacity = 0.5;
   for (const k in lamps) if (!lamps[k].manual) lamps[k].on = false;
 
   /* ─── boucle ─── */
@@ -1308,6 +1310,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
+    if (frameNo < 4 || frameNo % 20 === 0) if (lowpoly.pass()) renderer.shadowMap.needsUpdate = true;   // DA aplats : applique le style à tout nouvel objet
     renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
     if (!options.noRender) {   // options.noRender : la scène est dessinée par un autre moteur (parcours 3D), inutile de la dessiner deux fois
       try {
