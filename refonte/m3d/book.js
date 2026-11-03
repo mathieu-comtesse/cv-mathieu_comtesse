@@ -8,7 +8,7 @@ const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e',
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk20');
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk21');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -31,7 +31,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
       const geo = new THREE.SphereGeometry(0.022, 8, 6), mt = daLook(new THREE.MeshStandardMaterial({ color: '#e4dcff', roughness: 1, transparent: true, opacity: 0.9 }));
       flows.forEach((c, ci) => { for (let k = 0; k < 6; k++) { const m = new THREE.Mesh(geo, mt.clone()); m.castShadow = false; g.add(m); parts.push({ m, c, off: k / 6 + ci * 0.13 }); } });
     }
-    const P = (c, t) => { const u = 1 - t, f = (i) => u * u * c[0][i] + 2 * u * t * c[1][i] + t * t * c[2][i]; return [f(0), f(2), -f(1)]; };
+    const P = (c, t) => { const u = 1 - t, q = c.length === 4, f = (i) => q ? u * u * u * c[0][i] + 3 * u * u * t * c[1][i] + 3 * u * t * t * c[2][i] + t * t * t * c[3][i] : u * u * c[0][i] + 2 * u * t * c[1][i] + t * t * c[2][i]; return [f(0), f(2), -f(1)]; };
     let v = 50, manual = -1e9, last = null;
     const controls = {
       label, min: 0, max: 100, step: 10, fmt,
