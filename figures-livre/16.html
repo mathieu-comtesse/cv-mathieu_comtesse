@@ -123,10 +123,21 @@ body.iso,body.iso[data-theme],.iso[data-theme="light"],.iso[data-theme="dark"]{
 html,body{background:transparent!important;overflow:hidden!important;margin:0!important}
 .iso-page{width:100%!important;max-width:none!important;height:100vh!important;margin:0!important;padding:0!important}
 .iso-plate,.iso-figure{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;width:100%!important;max-width:none!important;height:100%!important;margin:0!important}
-[class*="-ctl"],.iso-plate-corners,.iso-legend,.iso-caption,figcaption{display:none!important}
+.iso-legend,.iso-caption,figcaption{display:none!important}
 .iso-stage{height:100%!important}.iso-stage svg{width:100%!important;height:100%!important;display:block;filter:drop-shadow(0 14px 22px rgb(0 10 90 / .45))}
 .c52-water{--c52-w:#b7c9f2!important}
 ::-webkit-scrollbar{display:none}
+
+/* curseurs et lectures posés sur le blueprint (pas de plaque) */
+[class*="-ctl"]{display:grid!important;grid-template-columns:auto 1fr 15em!important;gap:6px 12px!important;align-items:center!important;position:absolute;left:0;right:0;bottom:0;margin:0!important;padding:10px 14px 12px;background:rgb(255 255 255 / .07);border:1px solid rgb(255 255 255 / .2);border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+[class*="-ctl"] label,[class*="-ctl"] .c69-flag{color:#bcd2f3!important;font:500 10.5px/1.4 ui-monospace,Menlo,monospace!important;letter-spacing:.06em;text-transform:uppercase}
+[class*="-ctl"] output,[class*="-state"],[data-c69-out="detail"]{color:#fff!important;font:500 12px/1.4 ui-monospace,Menlo,monospace!important}
+[class*="-ctl"] button{background:rgb(255 255 255 / .1)!important;color:#fff!important;border:1px solid rgb(255 255 255 / .3)!important;border-radius:8px}
+[class*="-ctl"] button[aria-pressed="true"]{background:#fff!important;color:#0a2fc8!important}
+[class*="-ctl"] input[type=range]{accent-color:#fed8ad}
+.iso-plate-corner[data-corner="readout"],.iso-plate-corner[data-corner="hint"]{display:block!important;color:#bcd2f3!important}
+.iso-plate-corners{display:block!important}.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{display:none!important}
+.iso-stage{height:calc(100% - 190px)!important}
 </style></head><body class="iso" data-theme="light"><main class="iso-page"><style>
 .c16-drop circle{fill:var(--anatomy-blue);stroke:none;opacity:.9}
 .c16-wet{fill:var(--anatomy-blue);stroke:none;opacity:.32}
@@ -1111,4 +1122,63 @@ stage.addEventListener("keydown", (event) => {
   steer(a === null ? tTe : a, b === null ? tPhi : Math.round(b * 100) / 100);
 });
 draw();
-</script><script>(function(){var s=function(){try{parent.postMessage({bpReady:location.pathname.split('/').pop()},'*')}catch(e){}};addEventListener('load',s)})()</script></body></html>
+</script><script>(function(){var s=function(){try{parent.postMessage({bpReady:location.pathname.split('/').pop()},'*')}catch(e){}};addEventListener('load',s)})()</script><script>/* Couche « allégorie » : réécrit les libellés, lectures et légendes d'une figure du livre pour décrire le projet qu'elle illustre.
+ * La figure (SVG et animations) n'est pas modifiée ; les lectures dynamiques sont réécrites à chaque mise à jour grâce à un MutationObserver. */
+(function () {
+  const NB = /[   ]/g;
+  const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
+  const nums = (s) => (String(s).replace(/−/g, '-').replace(NB, '').replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+  const fr = (v, d = 0) => v.toFixed(d).replace('.', ',').replace('-', '−');
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const warn = (what) => console.warn('allégorie : élément absent', what);
+  function setText(el, t) {
+    const nodes = [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim());
+    if (nodes.length) { nodes[nodes.length - 1].textContent = t; for (let i = 0; i < nodes.length - 1; i++) nodes[i].textContent = ''; }
+    else el.appendChild(document.createTextNode(t));
+  }
+  const api = {
+    $, $$, nums, fr, clamp,
+    /** remplace des textes exacts (libellés, boutons, cases à cocher) */
+    rep(pairs) {
+      const map = new Map(pairs);
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: (n) => n.parentElement && !n.parentElement.closest('svg,script,style') ? 1 : 2 });
+      const todo = []; while (w.nextNode()) todo.push(w.currentNode);
+      const seen = new Set();
+      for (const n of todo) { const k = n.textContent.trim(); if (map.has(k)) { n.textContent = n.textContent.replace(k, map.get(k)); seen.add(k); } }
+      for (const k of map.keys()) if (!seen.has(k)) warn('texte « ' + k + ' »');
+    },
+    text(sel, t) { const el = $(sel); if (el) el.textContent = t; else warn(sel); },
+    plural(n, one, many) { return n + ' ' + (n > 1 ? many : one); },
+    set(sel, t) { const el = $(sel); if (el) setText(el, t); else warn(sel); },
+    key(i, t) { api.set('.iso-keys .iso-key:nth-child(' + i + ')', t); },
+    caption(t) { const el = $('.iso-caption'); if (el) el.textContent = t; else warn('.iso-caption'); },
+    title(t) { api.set('[data-corner="title"]', t); },
+    options(sel, byValue) { for (const o of $$(sel + ' option')) if (byValue[o.value]) o.textContent = byValue[o.value]; },
+    /** lecture dynamique : fn(texte d'origine, élément) renvoie le texte du projet */
+    dyn(sel, fn) {
+      const el = $(sel); if (!el) return warn(sel);
+      let mine = null;
+      const run = () => { const cur = el.textContent; if (cur === mine) return; const out = fn(cur, el); mine = out; el.textContent = out; };
+      new MutationObserver(run).observe(el, { childList: true, characterData: true, subtree: true });
+      run();
+    },
+  };
+  window.ALLEGORY = api;
+})();
+
+(function(){const A=window.ALLEGORY;
+A.title('Banc de diffusion · allégorie du Reporteur Q18');
+A.text('label[for="c16-te"]','Lignes du classeur Excel');A.text('label[for="c16-phi"]','Rapports à reporter depuis SharePoint');A.text('label[for="c16-vb"]','Reporteur Q18');
+A.set('[data-corner="hint"]','Survol ↔ ↕ · clic : activer le reporteur Q18');
+A.dyn('[data-c16-out="te"]', (raw) => Math.round(3000 + A.nums(raw)[0] * 200).toLocaleString('fr-FR') + ' lignes');
+A.dyn('[data-c16-out="phi"]', (raw) => Math.round(2000 + (A.nums(raw)[0] - 30) * 60).toLocaleString('fr-FR') + ' rapports par an');
+A.dyn('[data-c16-out="vb"]', (raw) => /chaud/.test(raw) ? 'côté SharePoint' : /froid/.test(raw) ? 'côté classeur' : 'copier-coller manuel');
+A.dyn('[data-readout]', (raw) => { const g = A.nums(raw).pop(); return g > 0.05 ? Math.round(g) + ' rapports à la mauvaise ligne par jour' : 'chaque rapport sur la bonne ligne'; });
+A.dyn('[data-c16-out="etat"]', (raw) => /ondensation/.test(raw) ? "Des rapports s'accumulent à la mauvaise ligne, entre SharePoint et le classeur : le copier-coller se trompe" : 'Chaque rapport trouve sa ligne : le Q18 devient visible dans le suivi qui alimente Power BI');
+A.key(1,"Fil tendu : le trajet du rapport à travers le classeur, de SharePoint jusqu'à la ligne");
+A.key(2,"Courbe : les lignes du classeur ; gouttes là où le fil la touche, c'est-à-dire là où le rapport se pose");
+A.key(3,"Teinte : du bleu (SharePoint) à l'orangé (Power BI) ; bande bleue sur la face : les rapports mal placés, plus large quand le volume monte");
+A.key(4,"Voile bleu devant SharePoint : les rapports en attente de report, plus dense quand leur nombre monte");
+A.key(5,"Éprouvette : les couches du classeur (onglet, tableau, lignes, colonne Q18)");
+A.caption("Allégorie du Reporteur Q18 : la chambre chaude est SharePoint, d'où part le rapport ; l'éprouvette en couches est le grand classeur Excel que le rapport traverse ; la chambre froide est Power BI, qui alimente les COSI et les clients de l'ABE SUD IdF. Sans reporteur, le copier-coller laisse des rapports s'accumuler à la mauvaise ligne ; avec lui, chaque rapport se pose à la bonne ligne et le Q18 devient visible dans une colonne du suivi. Avant, 15 minutes par rapport ; maintenant, le report est automatique.");
+})()</script></body></html>

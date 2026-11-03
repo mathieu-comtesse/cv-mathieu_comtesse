@@ -47,7 +47,7 @@ if (fig && bpCanvas && stage) {
   if (BP_FIG[fig.dataset.fig]) {
     canvas.remove(); fig.classList.add('rf-bp-fig');
     const fr = document.createElement('iframe');
-    fr.className = 'rf-bp-frame'; fr.src = 'figures-livre/' + BP_FIG[fig.dataset.fig] + '.html?v=b3'; fr.scrolling = 'no'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure';
+    fr.className = 'rf-bp-frame'; fr.src = 'figures-livre/' + BP_FIG[fig.dataset.fig] + '.html?v=b5'; fr.scrolling = 'no'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure';
     fig.querySelector('img')?.replaceWith(fr);
     initRulers(() => {});
   } else
