@@ -1,7 +1,7 @@
 // Tuile de l'accueil : la machine 3D d'un projet posée sur le plan blueprint, dans son propre petit canvas.
 // Même plan, même shader, même angle (azimut 36°) que la page d'arrivée et les pages projet ; la caméra est ajustée à la tuile.
 import * as THREE from 'three';
-import { makeStage } from './core.js';
+import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 import { createBlueprintPlane } from '../blueprint-hero.js';
 
@@ -15,6 +15,7 @@ const DEG = Math.PI / 180;
 export async function mountTile(name, canvas) {
   const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
   const { build, WIDTH = 236 } = await load();
+  setDA(name);
   const { renderer, scene } = makeStage(canvas);
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2));
   renderer.setClearColor(0x0a2fc8, 1);

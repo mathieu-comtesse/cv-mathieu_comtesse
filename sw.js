@@ -1,6 +1,6 @@
 // Cache des modèles 3D et des images du décor : première visite normale, ensuite la pièce s'affiche sans attente.
 // Les fichiers du décor portent leur version dans l'adresse (?v=… ou dans le nom) : une nouvelle version est une nouvelle entrée.
-const CACHE = 'rf-decor-v2';
+const CACHE = 'rf-decor-v4';
 const WANTED = (p) => /\/assets\/.+\.(glb|webp|jpg|png|json|mp3)$/.test(p) && !/\/assets\/logos\//.test(p);
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));

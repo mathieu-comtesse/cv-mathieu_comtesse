@@ -152,7 +152,6 @@ function hullGeometry(geo) {
 }
 /** Ajoute un contour encre à chaque maillage (hors instances et matériaux transparents) du groupe. */
 export function inkify(root, { instanced = false, skip = null } = {}) {
-  return root;   // DA aplats : plus de contours encre (le code d'origine reste ci-dessous, inactif)
   const list = [];
   root.traverse((o) => { if (o.isMesh && !o.userData.isInk && (instanced || !o.isInstancedMesh) && !(o.material && (o.material.transparent || o.material.alphaTest > 0)) && !(skip && skip(o))) list.push(o); });
   for (const o of list) {

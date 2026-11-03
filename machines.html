@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Machines des projets · prévisualisation</title>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<style>
+:root{--sky:#70a6d1;--ink:#2b2147;--cream:#fff2d4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--sky);color:var(--ink);font:15px/1.4 Inter,system-ui,sans-serif}
+#view{position:fixed;inset:0}
+#view canvas{display:block;width:100%;height:100%}
+header{position:fixed;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;pointer-events:none}
+header h1{margin:0;font-size:18px;font-weight:600}
+header a{pointer-events:auto;color:var(--ink);background:var(--cream);padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:600}
+.tags{position:fixed;inset:0;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,0);background:var(--cream);border-radius:12px;padding:8px 12px;max-width:210px;text-align:center;box-shadow:0 4px 0 #563a92}
+.tag b{display:block;font-size:14px}.tag span{font-size:12px;opacity:.8}
+</style>
+</head>
+<body>
+<div id="view"></div>
+<div class="tags" id="tags"></div>
+<header><h1>Machines des projets</h1><a href="index.html">Retour au site</a></header>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/GLTFLoader.js';
+import {createLowpoly} from './js/lowpoly.js?v=lp11';
+
+const ITEMS=[
+ {f:'echangeur',t:'Échangeur à plaques (Fig 8.1)',p:'Gares'},
+ {f:'autoclave',t:'Autoclave de laboratoire (Fig 4.1)',p:'Point financier'},
+ {f:'diffusion',t:'Banc de diffusion (Fig 16.1)',p:'Moteur44'},
+ {f:'son',t:'Banc de niveau sonore (Fig 11.1)',p:'Cerfa'},
+ {f:'piscine',t:'Halle de piscine en coupe (Fig 52.1)',p:'Plans de prévention'},
+ {f:'air',t:'Chambre d’essai de qualité d’air (Fig 15.1)',p:'(non utilisée)'},
+ {f:'tube',t:'Tube chauffé en soufflerie (Fig 6.1)',p:'Studio'},
+ {f:'rayonnement',t:'Banc de rayonnement (Fig 7.1)',p:'Suivi OT'},
+ {f:'reception',t:'Banc de réception de la maison (Fig 69.1)',p:'VMVRE'},
+ {f:'circulateur',t:'Circulateur et clapet',p:'(non utilisé)'}
+];
+const only=new URLSearchParams(location.search).get('only'),figcam=new URLSearchParams(location.search).has('fig'),figel=parseFloat(new URLSearchParams(location.search).get('el')||'0.95'),figdir=new URLSearchParams(location.search).get('fig')==='-x'?-1.25:1.25;if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
+const host=document.getElementById('view'),tags=document.getElementById('tags');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+host.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#70a6d1');
+const hemi=new THREE.HemisphereLight('#ffe9d6','#f2a68c',1.0),sun=new THREE.DirectionalLight('#ffe3c4',1.7);
+sun.position.set(4,8,3);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:1,far:25});
+scene.add(hemi,sun);
+const sand=new THREE.Mesh(new THREE.CylinderGeometry(6.4,6.6,0.2,9),new THREE.MeshToonMaterial({color:'#fcc59a'}));
+sand.position.y=-0.1;sand.receiveShadow=true;scene.add(sand);if(figcam){sand.visible=false;scene.background=new THREE.Color('#f3f0e8');}
+const sea=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#563a92',opacity:.5}));sea.rotation.x=-Math.PI/2;sea.position.y=-0.21;sea.receiveShadow=true;scene.add(sea);
+const camera=new THREE.PerspectiveCamera(32,1,0.1,100);
+const lp=createLowpoly(scene);
+const holders=[];
+const loader=new GLTFLoader();
+await Promise.all(ITEMS.map(async(it,i)=>{
+  const g=await loader.loadAsync('assets/machines/'+it.f+'.glb');
+  const root=g.scene;root.rotation.y=Math.PI*0.15;
+  root.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
+  const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3());
+  const k=2.6/Math.max(size.x,size.z);root.scale.setScalar(k);
+  const b2=new THREE.Box3().setFromObject(root);root.position.y-=b2.min.y;
+  const holder=new THREE.Group();holder.add(root);
+  holder.userData.top=b2.max.y-b2.min.y;scene.add(holder);holders.push({holder,root});
+  const tag=document.createElement('div');tag.className='tag';tag.innerHTML='<b>'+it.t+'</b><span>'+it.p+'</span>';tags.appendChild(tag);holders[holders.length-1].tag=tag;
+}));
+scene.traverse(o=>{if(o.isMesh&&/^(eau|bleu|vitre_vert)$/.test(o.material.name)){o.material.emissive=o.material.color.clone().multiplyScalar(.55);o.material.userData.unique=true;}});
+lp.pass();
+function resize(){const w=innerWidth,h=innerHeight,narrow=w<700;renderer.setSize(w,h);camera.aspect=w/h;
+  const cols=narrow?2:3,rows=Math.ceil(holders.length/cols);
+  holders.forEach((o,i)=>o.holder.position.set((i%cols-(Math.min(cols,holders.length-Math.floor(i/cols)*cols)-1)/2)*(narrow?3.4:3.9),0,(Math.floor(i/cols)-(rows-1)/2)*(narrow?3.4:3.6)));
+  camera.userData.d=only?(narrow?9:6.5):narrow?25:13;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+const v=new THREE.Vector3();
+function frame(t){
+  if(figcam&&holders.length){const h=holders[0];h.root.rotation.y=0;const b=new THREE.Box3().setFromObject(h.holder),c=b.getCenter(new THREE.Vector3()),r=b.getBoundingSphere(new THREE.Sphere()).radius;
+    camera.fov=16;camera.updateProjectionMatrix();const dir=new THREE.Vector3(figdir,figel,1.0).normalize();camera.position.copy(c).addScaledVector(dir,r*5.2);camera.lookAt(c);h.tag.style.display='none';document.querySelector('header').style.display='none';
+    renderer.render(scene,camera);requestAnimationFrame(frame);return;}
+  const a=0.55+Math.sin(t/9000)*0.18;
+  camera.position.set(Math.sin(a)*camera.userData.d,camera.userData.d*0.62,Math.cos(a)*camera.userData.d);camera.lookAt(0,0.6,0);
+  for(const h of holders){h.root.rotation.y=Math.PI*0.15+Math.sin(t/4000)*0.25;
+    v.copy(h.holder.position);v.y=-0.05;v.project(camera);
+    h.tag.style.left=((v.x+1)/2*innerWidth)+'px';h.tag.style.top=((1-v.y)/2*innerHeight+26)+'px';}
+  renderer.render(scene,camera);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

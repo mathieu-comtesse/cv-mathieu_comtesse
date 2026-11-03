@@ -924,3 +924,5 @@ html body.rf-article{background:#080b0f}
 .rf-tech summary:focus-visible{outline:2px solid #b9c9ff;outline-offset:3px;border-radius:4px}
 .rf-tech[open] summary{margin-bottom:0}
 .rf-tech + .rf-fsep{margin-top:12px}
+
+.rf-legend{margin:14px 0 6px;padding:0;list-style:none;display:grid;gap:10px}.rf-legend li{padding:12px 14px;border-left:3px solid #f78a6e;background:rgb(7 9 12 / .78);backdrop-filter:blur(6px);border-radius:0 10px 10px 0;line-height:1.5}.rf-legend b{color:#fed8ad;font-weight:700}.rf-legend-note{font-size:.9em;opacity:.7;margin-top:8px}

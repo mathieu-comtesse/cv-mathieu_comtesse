@@ -1,6 +1,6 @@
 // Charge la machine 3D d'un projet et la pose sur le plan blueprint, avec la caméra de la page.
 import * as THREE from 'three';
-import { makeStage } from './core.js';
+import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 
 const MODULES = {
@@ -19,6 +19,7 @@ const MODULES = {
 export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {
   const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
   const { build, WIDTH = 236 } = await load();
+  setDA(name);
   const { renderer, scene } = makeStage(canvas);
   const m = build();
   const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(12.6 / WIDTH);

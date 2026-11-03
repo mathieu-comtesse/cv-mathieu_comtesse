@@ -9,12 +9,16 @@ const { chromium } = require("playwright");
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = join(HERE, "..");
 // Pose choisie pour chaque machine : une action en cours, jamais la scène vide.
 const POSES = { cerfa: "window.__fig.at(3.4)", vm: "window.__fig.at(546.6)", gares: "window.__fig.at(0.6)", finance: "window.__fig.at(205, 0.8)", suivi: "window.__fig.at(0.4)", vre: "window.__fig.at(2, 4)", moteur: "window.__fig.at(1, 9)", studio: "window.__fig.at(0, 6)", pp: "window.__fig.at(60, 0.45)", powerbi: "window.__fig.at(619)" };
+// DA du décor (aplats, palette chaude) : surcharge des variables de couleur des figures, sauf VRE et Power BI qui gardent leur style.
+import { readFileSync } from "node:fs";
+const DA = readFileSync(join(HERE, "da.css"), "utf8"), DA_SKIP = new Set(["vre", "powerbi"]);
 const names = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(POSES);
 const browser = await chromium.launch();
 for (const name of names) {
   const page = await browser.newPage({ viewport: { width: 1000, height: 900 }, deviceScaleFactor: 2 });
   await page.goto(pathToFileURL(join(HERE, name + ".html")).href);
   await page.waitForTimeout(800);
+  if (!DA_SKIP.has(name)) await page.addStyleTag({ content: DA });
   await page.addStyleTag({ content: "html,body,.iso-page,.iso-plate,.iso-figure{background:transparent!important;border:0!important;box-shadow:none!important}.iso-plate-corner,.iso-plate-title,.iso-keys,.iso-caption,figcaption{display:none!important}" });
   await page.evaluate(POSES[name]);
   await page.waitForTimeout(1400);
