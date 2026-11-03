@@ -8,7 +8,7 @@ const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e',
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk21');
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk28');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
