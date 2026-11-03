@@ -18,7 +18,7 @@ else {
 }
 
 /* Figures du livre de génie climatique : les figures d'origine (SVG et animations), habillées dans la palette de la DA, remplacent les machines 3D */
-const LIVRE = { gares: '08', finance: '04', moteur: '16', cerfa: '11', pp: '52', studio: '06', suivi: '07', vm: '69' };
+const LIVRE = {};
 const fig = document.querySelector('.rf-post-fig[data-fig]');
 const bpCanvas = document.getElementById('rf-bp');
 const stage = document.getElementById('stage');
@@ -47,7 +47,7 @@ if (fig && bpCanvas && stage) {
   const mountLive = (num) => {
     canvas.remove(); fig.classList.add('rf-live-fig');
     const fr = document.createElement('iframe');
-    fr.className = 'rf-live'; fr.src = 'figures-livre/' + num + '.html?v=l3'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure du livre'; fr.loading = 'lazy';
+    fr.className = 'rf-live'; fr.scrolling = 'no'; fr.src = 'figures-livre/' + num + '.html?v=l5'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure du livre'; fr.loading = 'lazy';
     fr.style.cssText = 'width:100%;border:0;display:block;height:820px;background:transparent;color-scheme:light';
     fig.querySelector('img')?.replaceWith(fr);
     addEventListener('message', (e) => { if (e.source === fr.contentWindow && e.data && e.data.livreHeight) fr.style.height = e.data.livreHeight + 'px'; });

@@ -7,14 +7,17 @@ import { snap, snapNeutral } from '../../js/lowpoly.js?v=lp11';
 
 /* DA du décor (aplats, palette chaude, facettes) : active pour toutes les machines sauf VRE, Power BI et le coffret VRE Studio. */
 export const DA = { on: false };
-const NO_DA = new Set(['vre', 'powerbi', 'vrestudio-musicbox']);
+const NO_DA = new Set();   // toutes les machines des projets sont dans la DA colorée
 export const setDA = (name) => { DA.on = !NO_DA.has(name); };
+/* rôles de gris des machines -> teintes de la palette (corail, sable, rose, violet), pour une DA colorée plutôt qu'un camaïeu de crème */
+const ROLE = { '#f7f6f1': '#fff2d4', '#eceae3': '#fcc59a', '#cfcdc4': '#f78a6e', '#9d9c94': '#8a72d6', '#1d2230': '#2b2147' };
 const sg = (n) => (DA.on ? Math.min(n, 12) : n);
 /* gris et blancs de la figure : étagés par clarté sur la palette chaude (crème, pêche, sable, corail, indigo), pour garder du relief entre les pièces */
 const NEUTRAL = [[.78, '#fff2d4'], [.55, '#fed8ad'], [.4, '#fcc59a'], [.28, '#f78a6e'], [.12, '#563a92'], [0, '#2b2147']];
 const MACH = ['#fff2d4', '#fff2d4', '#fed8ad', '#fed8ad', '#ffa68a', '#f78a6e', '#ec6a85', '#cc4b8c', '#8a72d6', '#6fb08c', '#f4d35e', '#fcc59a'];
 let daCount = 0;   // compteur de pièces : chaque pièce neutre prend une teinte de la famille, dans l'ordre de construction (reproductible)
 const daColor = (c, vary = false) => {
+  if (!vary && ROLE[String(c).toLowerCase()]) return new THREE.Color(ROLE[String(c).toLowerCase()]);
   const k = new THREE.Color(c), mx = Math.max(k.r, k.g, k.b), mn = Math.min(k.r, k.g, k.b);
   if (mx - mn < .06) {
     if (vary) { const l = (k.r + k.g + k.b) / 3, h = Math.imul(++daCount, 2654435761) >>> 24; return l > .12 ? new THREE.Color(MACH[h % MACH.length]) : snapNeutral(k.r, k.g, k.b, h); }
