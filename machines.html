@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Machines des projets · prévisualisation</title>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<style>
+:root{--sky:#70a6d1;--ink:#2b2147;--cream:#fff2d4}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--sky);color:var(--ink);font:15px/1.4 Inter,system-ui,sans-serif}
+#view{position:fixed;inset:0}
+#view canvas{display:block;width:100%;height:100%}
+header{position:fixed;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;pointer-events:none}
+header h1{margin:0;font-size:18px;font-weight:600}
+header a{pointer-events:auto;color:var(--ink);background:var(--cream);padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:600}
+.tags{position:fixed;inset:0;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,0);background:var(--cream);border-radius:12px;padding:8px 12px;max-width:210px;text-align:center;box-shadow:0 4px 0 #563a92}
+.tag b{display:block;font-size:14px}.tag span{font-size:12px;opacity:.8}
+</style>
+</head>
+<body>
+<div id="view"></div>
+<div class="tags" id="tags"></div>
+<header><h1>Machines des projets</h1><a href="index.html">Retour au site</a></header>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/GLTFLoader.js';
+import {createLowpoly} from './js/lowpoly.js?v=lp4';
+
+const ITEMS=[
+ {f:'echangeur',t:'Échangeur à plaques',p:'Gares, Suivi OT'},
+ {f:'cta',t:'Centrale d’air modulaire',p:'Studio, Moteur44'},
+ {f:'vanne_pid',t:'Vanne de régulation PID',p:'Finance, Plans de prévention'},
+ {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'},
+ {f:'pot_boue',t:'Pot à boue',p:'Cerfa'},
+ {f:'supervision',t:'Supervision GTB',p:'Power BI'}
+];
+const host=document.getElementById('view'),tags=document.getElementById('tags');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+host.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#70a6d1');
+const hemi=new THREE.HemisphereLight('#ffe9d6','#f2a68c',1.0),sun=new THREE.DirectionalLight('#ffe3c4',1.7);
+sun.position.set(4,8,3);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:1,far:25});
+scene.add(hemi,sun);
+const sand=new THREE.Mesh(new THREE.CylinderGeometry(6.4,6.6,0.2,9),new THREE.MeshToonMaterial({color:'#fcc59a'}));
+sand.position.y=-0.1;sand.receiveShadow=true;scene.add(sand);
+const sea=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#563a92',opacity:.5}));sea.rotation.x=-Math.PI/2;sea.position.y=-0.21;sea.receiveShadow=true;scene.add(sea);
+const camera=new THREE.PerspectiveCamera(32,1,0.1,100);
+const lp=createLowpoly(scene);
+const holders=[];
+const loader=new GLTFLoader();
+await Promise.all(ITEMS.map(async(it,i)=>{
+  const g=await loader.loadAsync('assets/machines/'+it.f+'.glb');
+  const root=g.scene;root.rotation.y=Math.PI*0.15;
+  root.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});
+  const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3());
+  const k=2.6/Math.max(size.x,size.z);root.scale.setScalar(k);
+  const b2=new THREE.Box3().setFromObject(root);root.position.y-=b2.min.y;
+  const holder=new THREE.Group();holder.add(root);
+  holder.userData.top=b2.max.y-b2.min.y;scene.add(holder);holders.push({holder,root});
+  const tag=document.createElement('div');tag.className='tag';tag.innerHTML='<b>'+it.t+'</b><span>'+it.p+'</span>';tags.appendChild(tag);holders[holders.length-1].tag=tag;
+}));
+lp.pass();
+function resize(){const w=innerWidth,h=innerHeight,narrow=w<700;renderer.setSize(w,h);camera.aspect=w/h;
+  const cols=narrow?2:3,rows=6/cols;
+  holders.forEach((o,i)=>o.holder.position.set((i%cols-(cols-1)/2)*(narrow?3.4:3.9),0,(Math.floor(i/cols)-(rows-1)/2)*(narrow?3.4:3.6)));
+  camera.userData.d=narrow?17:13;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+const v=new THREE.Vector3();
+function frame(t){
+  const a=0.55+Math.sin(t/9000)*0.18;
+  camera.position.set(Math.sin(a)*camera.userData.d,camera.userData.d*0.62,Math.cos(a)*camera.userData.d);camera.lookAt(0,0.6,0);
+  for(const h of holders){h.root.rotation.y=Math.PI*0.15+Math.sin(t/4000)*0.25;
+    v.copy(h.holder.position);v.y=-0.05;v.project(camera);
+    h.tag.style.left=((v.x+1)/2*innerWidth)+'px';h.tag.style.top=((1-v.y)/2*innerHeight+26)+'px';}
+  renderer.render(scene,camera);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
