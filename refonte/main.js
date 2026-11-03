@@ -249,7 +249,7 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
     active.set(wrap, null);
     if (BP_FIG[wrap.dataset.fig]) {   // tuile : le dessin d'origine sur le blueprint de la tuile
       const fr = document.createElement('iframe');
-      fr.className = 'rf-tile-3d rf-tile-bp'; fr.src = 'figures-livre/' + BP_FIG[wrap.dataset.fig] + '.html?v=b5'; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true'); fr.title = ''; fr.scrolling = 'no';
+      fr.className = 'rf-tile-3d rf-tile-bp'; fr.src = 'figures-livre/' + BP_FIG[wrap.dataset.fig] + '.html?v=b6'; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true'); fr.title = ''; fr.scrolling = 'no';
       fr.addEventListener('load', () => wrap.classList.add('rf-on'));
       wrap.append(fr);
       active.set(wrap, { t: { dispose() {} }, ro: { disconnect() {} }, canvas: fr, stop() {} });

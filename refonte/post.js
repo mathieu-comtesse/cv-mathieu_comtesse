@@ -45,11 +45,10 @@ if (fig && bpCanvas && stage) {
   const rulers = document.querySelectorAll('.rf-ruler');   // les règles ne se voient que sur le blueprint, tant que la machine est visible
   const canvas = document.createElement('canvas'); canvas.className = 'rf-m3d'; canvas.setAttribute('aria-hidden', 'true'); document.body.append(canvas);
   if (BP_FIG[fig.dataset.fig]) {
-    canvas.remove(); fig.classList.add('rf-bp-fig');
+    canvas.remove(); fig.classList.add('rf-bp-fig'); document.body.classList.add('rf-bp-page');
     const fr = document.createElement('iframe');
-    fr.className = 'rf-bp-frame'; fr.src = 'figures-livre/' + BP_FIG[fig.dataset.fig] + '.html?v=b5'; fr.scrolling = 'no'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure';
+    fr.className = 'rf-bp-frame'; fr.src = 'figures-livre/' + BP_FIG[fig.dataset.fig] + '.html?v=b6'; fr.scrolling = 'no'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure';
     fig.querySelector('img')?.replaceWith(fr);
-    initRulers(() => {});
   } else
   import('./m3d/index.js').then(({ mountMachine }) => mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
     machine = m; machine.resize(); fig.querySelector('img')?.remove();

@@ -111,7 +111,7 @@ html{color-scheme:dark}
 body[data-theme="light"]{color-scheme:light}
 body{margin:0;background:var(--anatomy-page);color:var(--anatomy-text);font:14px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 .iso-page{width:min(650px,100% - 32px);margin:64px auto 96px}
-</style><style id="da-bp">html{color-scheme:light!important}/* Figure d'origine posée sur le blueprint : sans plaque, sans commandes ni légende ; palette chaude de la DA ; survol et clavier toujours actifs */
+</style><style id="da-bp">[class*="-ctl"],.iso-plate-corners{display:none!important}.iso-stage{height:100%!important}html{color-scheme:light!important}/* Figure d'origine posée sur le blueprint : sans plaque, sans commandes ni légende ; palette chaude de la DA ; survol et clavier toujours actifs */
 body.iso,body.iso[data-theme],.iso[data-theme="light"],.iso[data-theme="dark"]{
   --anatomy-page:transparent;--anatomy-card:transparent;--anatomy-text:#fff2d4;--anatomy-strong:#fff2d4;--anatomy-muted:#bcd2f3;
   --anatomy-paper:#fed8ad;--anatomy-face:#fcc59a;--anatomy-top:#fff2d4;
@@ -128,16 +128,6 @@ html,body{background:transparent!important;overflow:hidden!important;margin:0!im
 .c52-water{--c52-w:#b7c9f2!important}
 ::-webkit-scrollbar{display:none}
 
-/* curseurs et lectures posés sur le blueprint (pas de plaque) */
-[class*="-ctl"]{display:grid!important;grid-template-columns:auto 1fr 15em!important;gap:6px 12px!important;align-items:center!important;position:absolute;left:0;right:0;bottom:0;margin:0!important;padding:10px 14px 12px;background:rgb(255 255 255 / .07);border:1px solid rgb(255 255 255 / .2);border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-[class*="-ctl"] label,[class*="-ctl"] .c69-flag{color:#bcd2f3!important;font:500 10.5px/1.4 ui-monospace,Menlo,monospace!important;letter-spacing:.06em;text-transform:uppercase}
-[class*="-ctl"] output,[class*="-state"],[data-c69-out="detail"]{color:#fff!important;font:500 12px/1.4 ui-monospace,Menlo,monospace!important}
-[class*="-ctl"] button{background:rgb(255 255 255 / .1)!important;color:#fff!important;border:1px solid rgb(255 255 255 / .3)!important;border-radius:8px}
-[class*="-ctl"] button[aria-pressed="true"]{background:#fff!important;color:#0a2fc8!important}
-[class*="-ctl"] input[type=range]{accent-color:#fed8ad}
-.iso-plate-corner[data-corner="readout"],.iso-plate-corner[data-corner="hint"]{display:block!important;color:#bcd2f3!important}
-.iso-plate-corners{display:block!important}.iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{display:none!important}
-.iso-stage{height:calc(100% - 190px)!important}
 </style></head><body class="iso" data-theme="light"><main class="iso-page"><style>
 .iso{--c69-ok:var(--anatomy-green);--c69-bad:var(--anatomy-red)}
 .c69-void{fill:var(--anatomy-shade-0);stroke:none}
@@ -1120,63 +1110,4 @@ inT.addEventListener("input", () => { const v = Number(inT.value); steer({ mode:
 inFlag.addEventListener("change", () => steer({ flag: inFlag.checked }));
 for (const [i, b] of modeBtns.entries()) b.addEventListener("click", () => steer({ mode: i }));
 settleNow();
-</script><script>(function(){var s=function(){try{parent.postMessage({bpReady:location.pathname.split('/').pop()},'*')}catch(e){}};addEventListener('load',s)})()</script><script>/* Couche « allégorie » : réécrit les libellés, lectures et légendes d'une figure du livre pour décrire le projet qu'elle illustre.
- * La figure (SVG et animations) n'est pas modifiée ; les lectures dynamiques sont réécrites à chaque mise à jour grâce à un MutationObserver. */
-(function () {
-  const NB = /[   ]/g;
-  const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
-  const nums = (s) => (String(s).replace(/−/g, '-').replace(NB, '').replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
-  const fr = (v, d = 0) => v.toFixed(d).replace('.', ',').replace('-', '−');
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const warn = (what) => console.warn('allégorie : élément absent', what);
-  function setText(el, t) {
-    const nodes = [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim());
-    if (nodes.length) { nodes[nodes.length - 1].textContent = t; for (let i = 0; i < nodes.length - 1; i++) nodes[i].textContent = ''; }
-    else el.appendChild(document.createTextNode(t));
-  }
-  const api = {
-    $, $$, nums, fr, clamp,
-    /** remplace des textes exacts (libellés, boutons, cases à cocher) */
-    rep(pairs) {
-      const map = new Map(pairs);
-      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: (n) => n.parentElement && !n.parentElement.closest('svg,script,style') ? 1 : 2 });
-      const todo = []; while (w.nextNode()) todo.push(w.currentNode);
-      const seen = new Set();
-      for (const n of todo) { const k = n.textContent.trim(); if (map.has(k)) { n.textContent = n.textContent.replace(k, map.get(k)); seen.add(k); } }
-      for (const k of map.keys()) if (!seen.has(k)) warn('texte « ' + k + ' »');
-    },
-    text(sel, t) { const el = $(sel); if (el) el.textContent = t; else warn(sel); },
-    plural(n, one, many) { return n + ' ' + (n > 1 ? many : one); },
-    set(sel, t) { const el = $(sel); if (el) setText(el, t); else warn(sel); },
-    key(i, t) { api.set('.iso-keys .iso-key:nth-child(' + i + ')', t); },
-    caption(t) { const el = $('.iso-caption'); if (el) el.textContent = t; else warn('.iso-caption'); },
-    title(t) { api.set('[data-corner="title"]', t); },
-    options(sel, byValue) { for (const o of $$(sel + ' option')) if (byValue[o.value]) o.textContent = byValue[o.value]; },
-    /** lecture dynamique : fn(texte d'origine, élément) renvoie le texte du projet */
-    dyn(sel, fn) {
-      const el = $(sel); if (!el) return warn(sel);
-      let mine = null;
-      const run = () => { const cur = el.textContent; if (cur === mine) return; const out = fn(cur, el); mine = out; el.textContent = out; };
-      new MutationObserver(run).observe(el, { childList: true, characterData: true, subtree: true });
-      run();
-    },
-  };
-  window.ALLEGORY = api;
-})();
-
-(function(){const A=window.ALLEGORY;
-A.title('Banc de réception de la maison · allégorie du traitement VRE par VM');
-A.rep([["Épreuve d'étanchéité",'Relever la demande'],['Rinçage','Contrôler R004 et OT'],['Mise en chauffe','Inscrire le lien'],['Contrôle des débits','Vérifier l’enregistrement'],['Fuite','Doublons dans la file'],['Écart de température','Retard de la relève'],["Température de l'eau",'Rapports dans la file']]);
-A.dyn('[data-c69-out="flag"]', () => 'Seconde VM connectée en même temps');
-A.set('[data-corner="hint"]','Survol ↔ réglage · ↑↓ étape');
-A.dyn('[data-c69-out="leak"]', (raw) => { return A.plural(Math.round(A.nums(raw)[0] / 2), 'doublon', 'doublons'); });
-A.dyn('[data-c69-out="dt"]', (raw) => { const v = A.nums(raw)[0]; return (v < 0 ? '−' : '+') + Math.abs(Math.round(v * 2)) + ' min'; });
-A.dyn('[data-c69-out="temp"]', (raw) => A.plural(1 + Math.round((A.nums(raw)[0] - 10) / 9), 'rapport', 'rapports'));
-A.dyn('[data-readout]', (raw) => 'Rapports R1 à R6 traités un par un · ' + (/décelée/.test(raw) ? 'doublon décelé et écarté' : 'aucun doublon'));
-A.dyn('[data-c69-out="key"]', () => 'du bleu (en attente) au rouge (traité)');
-const MODES = ["Demande relevée toutes les deux minutes par une seule VM : un rapport présenté deux fois est un doublon, écarté.","Le code final R004 et le numéro d'OT sont contrôlés avant toute inscription : un rapport incohérent est écarté.","Le lien du rapport est inscrit dans le classeur de suivi, sur la ligne de l'OT correspondant.","L'enregistrement est relu et vérifié ; le rapport est rangé dans l'historique, qui écarte les doublons."];
-A.dyn('[data-c69-out="detail"]', () => { const i = A.$$('[data-c69-mode]').findIndex((b) => b.getAttribute('aria-pressed') === 'true'); const leak = +A.$('#c69-l').value; return (MODES[Math.max(0, i)] || MODES[0]) + (i <= 0 && leak > 0 ? ' Le doublon est décelé.' : '') + (A.$('[data-c69="flag"]').checked ? " Une seconde VM connectée en même temps masque le doublon : c'est pourquoi une seule machine inscrit à la fois." : ''); });
-A.key(1,"Manomètre : le contrôle du code R004 et de l'OT ; l'aiguille suiveuse garde la valeur maximale atteinte");
-A.key(2,"Pastilles des radiateurs : l'état de chaque rapport de la file, du bleu (en attente) au rouge (traité)");
-A.caption("Allégorie du traitement VRE par VM : avant la remise des clés, une installation passe des essais dans un ordre fixe, puis un procès-verbal. La VM fait de même : elle relève la demande, contrôle le code R004 et l'OT, inscrit le lien dans le classeur, puis vérifie l'enregistrement. Une seule pompe met le circuit en pression, comme une seule VM traite à la fois ; les six radiateurs sont les rapports de la file, la flaque sous R3 est un doublon décelé, et la planchette du PV est le classeur de suivi. Chaque rapport inscrit rend 30 minutes.");
-})()</script></body></html>
+</script><script>(function(){var s=function(){try{parent.postMessage({bpReady:location.pathname.split('/').pop()},'*')}catch(e){}};addEventListener('load',s)})()</script></body></html>
