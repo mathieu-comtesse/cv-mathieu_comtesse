@@ -8,7 +8,7 @@ const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e',
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022, lift = 0, status = false }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk47');
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk48');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -27,7 +27,8 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
     });
     /* témoin de marge (Fig 52.1) : la gaine d'air neuf et le vitrage passent du vert à l'ambre puis au rouge quand la marge disparaît */
     const statusMats = [];
-    if (status) root.traverse((o) => { if (o.isMesh && /^(vert|vitre_vert)$/.test(o.material.name)) statusMats.push(o.material); });
+    const lamps = {};
+    if (status) root.traverse((o) => { if (!o.isMesh) return; const n = o.material.name; if (/^(vert|vitre_vert)$/.test(n)) statusMats.push(o.material); else if (/^lamp_[gar]$/.test(n)) { lamps[n] = o.material; o.material.emissive = o.material.color.clone(); } });
     const cOk = new THREE.Color('#3fae78'), cMid = new THREE.Color('#f0b13c'), cBad = new THREE.Color('#e0524c'), cTmp = new THREE.Color();
     const g = new THREE.Group(); g.add(root);
     /* flux d'air : des particules suivent des courbes de Bézier (coordonnées du modèle : x, y, z avec z vers le haut) */
@@ -71,6 +72,8 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
       if (statusMats.length) {
         const margin = 1 - k;                                   // 1 : marge large, 0 : plus de marge
         if (margin > 0.5) cTmp.copy(cMid).lerp(cOk, (margin - 0.5) * 2); else cTmp.copy(cBad).lerp(cMid, margin * 2);
+        const lv = margin > 0.5 ? 'lamp_g' : margin > 0.2 ? 'lamp_a' : 'lamp_r';
+        for (const n in lamps) lamps[n].emissiveIntensity = n === lv ? 1.6 : 0.04;
         for (const m of statusMats) { m.color.copy(cTmp); m.emissive = m.emissive || new THREE.Color(); m.emissive.copy(cTmp).multiplyScalar(0.55); m.emissiveIntensity = 1; }
       }
       for (const q of parts) {
