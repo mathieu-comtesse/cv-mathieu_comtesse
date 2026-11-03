@@ -7,8 +7,8 @@ import { daLook } from '../../js/da-shader.js?v=da5';
 const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e', '#fed8ad': '#ffe3d2', '#fcc59a': '#e4f1dc', '#c94f68': '#563a92' };
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
-export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022 }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk43');
+export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022, lift = 0 }) {
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk45');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -20,7 +20,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
         const m = o.material; m.flatShading = true; m.roughness = 1; m.metalness = 0;
         if (recolor) for (const [a, b] of swap) if (Math.abs(m.color.r - a.r) + Math.abs(m.color.g - a.g) + Math.abs(m.color.b - a.b) < 0.02) { m.color.copy(b); break; }
         if (/^(eau|bleu|vitre_vert)$/.test(m.name)) { m.emissive = m.color.clone().multiplyScalar(0.55); m.emissiveIntensity = 1; }   // eau et tuyaux : bleu clair conservé
-        else daLook(m);
+        else { daLook(m); if (lift) { m.emissive = m.color.clone().multiplyScalar(lift); m.emissiveIntensity = 1; } }
       }
       if (o.isMesh && /^anim_(puff|bubble)/.test(o.name)) { o.material.transparent = true; o.material.depthWrite = false; o.castShadow = false; }
       if (o.name.startsWith('anim_')) anims.push({ o, kind: o.name.split('_')[1], axis: ['x', 'y', 'z'].includes(o.name.split('_')[2]) ? o.name.split('_')[2] : 'z', base: o.position.clone(), phase: anims.length * 1.7, ang: 0 });
@@ -29,8 +29,8 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
     /* flux d'air : des particules suivent des courbes de Bézier (coordonnées du modèle : x, y, z avec z vers le haut) */
     const parts = [];
     if (flows) {
-      const geo = new THREE.SphereGeometry(flowSize, 8, 6), mt = new THREE.MeshBasicMaterial({ color: '#f6f2ff', transparent: true, opacity: 0.9, depthWrite: false });
-      flows.forEach((c, ci) => { for (let k = 0; k < 6; k++) { const m = new THREE.Mesh(geo, mt.clone()); m.castShadow = false; g.add(m); parts.push({ m, c, off: k / 6 + ci * 0.13 }); } });
+      const geo = new THREE.SphereGeometry(flowSize, 8, 6), mt = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false, fog: false });
+      flows.forEach((c, ci) => { for (let k = 0; k < 6; k++) { const m = new THREE.Mesh(geo, mt.clone()); m.castShadow = false; m.userData.glowShell = true; g.add(m); parts.push({ m, c, off: k / 6 + ci * 0.13 }); } });
     }
     const P = (c, t) => { const u = 1 - t, q = c.length === 4, f = (i) => q ? u * u * u * c[0][i] + 3 * u * u * t * c[1][i] + 3 * u * t * t * c[2][i] + t * t * t * c[3][i] : u * u * c[0][i] + 2 * u * t * c[1][i] + t * t * c[2][i]; return [f(0), f(2), -f(1)]; };
     let v = 50, manual = -1e9, last = null;
