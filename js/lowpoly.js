@@ -104,6 +104,9 @@ function facetGeometry(src, material) {
   return g;
 }
 
+/* objets qui gardent leurs couleurs d'origine (télés, enceintes, canapé, USM) ; tout matériau texturé (tapis, tableau, couvertures) est aussi conservé */
+const KEEP_IDS = /^(rug|tv|videosphere|jbl.*|ekstrem|usm.*|shelf.*|drawer|sofa)$/;
+const ownerKept = (o) => { for (let p = o; p; p = p.parent) { const id = p.userData && p.userData.id; if (id && KEEP_IDS.test(id)) return true; } return false; };
 const keep = (m) => !m || Array.isArray(m) || m.userData?.unique || m.userData?.lowpoly === 'keep' || !(m.isMeshStandardMaterial || m.isMeshPhongMaterial || m.isMeshLambertMaterial)
   || (m.emissive && m.emissive.getHex() !== 0 && (m.emissiveIntensity ?? 1) > 0) || m.emissiveMap || (m.transparent && !m.map) || m.isMeshPhysicalMaterial && m.transmission > 0 || m.opacity < 1;
 
@@ -140,7 +143,8 @@ export function createLowpoly(scene) {
       if (o.userData.isInk) { o.visible = false; done.add(o); return; }
       done.add(o);
       const m = o.material;
-      if (keep(m)) return;
+      if (keep(m) || ownerKept(o)) return;
+      if (m.map && !(m.transparent || m.alphaTest > 0)) return;
       if (m.transparent || m.alphaTest > 0) { cutout(m); changed++; return; }
       if (!o.geometry?.attributes?.position) return;
       o.geometry = facetGeometry(o.geometry, m);
