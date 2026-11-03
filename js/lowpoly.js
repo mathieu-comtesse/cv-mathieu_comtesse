@@ -3,6 +3,7 @@
  * calée sur la palette), les cartes de feuillage gardent leur silhouette mais perdent leur texture. Les matériaux animés ou lumineux
  * (écrans, lampes, verre, marqués unique) sont laissés tels quels. */
 import * as THREE from 'three';
+import { daLook } from './da-shader.js?v=da4';
 
 export const PALETTE = [
   '#fff2d4', '#fed8ad', '#fcc59a', '#ffa68a', '#f78a6e', '#ec6a85', '#d85777', '#c94f68', '#cc4b8c',
@@ -18,6 +19,19 @@ function lab(r, g, b) {   // r,g,b linéaires -> Lab
   return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
 }
 const swatches = PALETTE.map((h) => { const c = new THREE.Color(h); return { c, lab: lab(c.r, c.g, c.b) }; });
+/* surfaces neutres (blancs, gris, noirs des modèles) : une teinte de la palette par matériau, pour retrouver la variété des références */
+const FAMILIES = {
+  light: ['#fff2d4', '#ffe3d2', '#fff2d4', '#ffd6c7', '#fed8ad', '#ffe9a8'],
+  mid: ['#fed8ad', '#ffa68a', '#f78a6e', '#ec6a85', '#cc4b8c', '#6fb08c', '#8a72d6', '#fcc59a', '#f4d35e', '#4f9078'],
+  dark: ['#2b2147', '#563a92', '#004052', '#7a3a6a', '#2f6b5c', '#2b2147'],
+};
+const famColors = Object.fromEntries(Object.entries(FAMILIES).map(([k, v]) => [k, v.map((h) => new THREE.Color(h))]));
+export const hashStr = (str) => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); return (h >>> 0); };
+export function snapNeutral(r, g, b, seed) {
+  const l = (r + g + b) / 3, cls = l > 0.55 ? 'light' : l > 0.12 ? 'mid' : 'dark', list = famColors[cls];
+  return list[seed % list.length];
+}
+const isNeutral = (r, g, b) => Math.max(r, g, b) - Math.min(r, g, b) < 0.045;
 const memo = new Map();
 export function snap(r, g, b) {   // couleur linéaire -> couleur de palette la plus proche (linéaire)
   const key = (Math.round(srgb(r) * 31) << 10) | (Math.round(srgb(g) * 31) << 5) | Math.round(srgb(b) * 31);
@@ -74,7 +88,7 @@ function flatMaterial(side = THREE.FrontSide) {
     bands = new THREE.DataTexture(new Uint8Array([165, 165, 165, 255, 215, 215, 215, 255, 255, 255, 255, 255]), 3, 1, THREE.RGBAFormat);
     bands.minFilter = bands.magFilter = THREE.NearestFilter; bands.needsUpdate = true;
   }
-  if (!flatBySide.has(side)) flatBySide.set(side, new THREE.MeshToonMaterial({ color: 0xffffff, vertexColors: true, gradientMap: bands, flatShading: true, side }));
+  if (!flatBySide.has(side)) flatBySide.set(side, daLook(new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, metalness: 0, flatShading: true, side })));
   return flatBySide.get(side);
 }
 
@@ -86,7 +100,7 @@ function facetGeometry(src, material, key = material) {
   const g = src.index ? src.toNonIndexed() : src.clone();
   const pos = g.attributes.position, n = pos.count, uv = g.attributes.uv, vc = material.vertexColors ? g.attributes.color : null;
   const px = material.map ? pixels(material.map) : null;
-  const col = new Float32Array(n * 3), base = material.color;
+  const col = new Float32Array(n * 3), base = material.color, seed = hashStr(String(material.uuid || key.uuid || 'x'));
   for (let t = 0; t + 2 < n; t += 3) {
     let r = 0, gg = 0, b = 0, k = 0;
     for (let j = 0; j < 3; j++) {
@@ -96,7 +110,7 @@ function facetGeometry(src, material, key = material) {
       if (px && uv) tmpA.multiply(sample(px, uv.getX(i), uv.getY(i), tmpB));
       r += tmpA.r; gg += tmpA.g; b += tmpA.b; k++;
     }
-    const c = snap(r / k, gg / k, b / k);
+    const c = isNeutral(r / k, gg / k, b / k) ? snapNeutral(r / k, gg / k, b / k, seed) : snap(r / k, gg / k, b / k);
     for (let j = 0; j < 3; j++) { const o = (t + j) * 3; col[o] = c.r; col[o + 1] = c.g; col[o + 2] = c.b; }
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
@@ -131,7 +145,7 @@ function cutout(m) {   // carte de feuillage : silhouette conservée, couleur un
       }
     } catch (_) { /* la texture d'origine reste */ }
   }
-  m.color.copy(c); m.roughness = 1; m.metalness = 0; m.envMapIntensity = 0; m.normalMap = m.bumpMap = m.roughnessMap = m.metalnessMap = m.aoMap = null;
+  daLook(m); m.color.copy(c); m.roughness = 1; m.metalness = 0; m.envMapIntensity = 0; m.normalMap = m.bumpMap = m.roughnessMap = m.metalnessMap = m.aoMap = null;
   m.needsUpdate = true;
 }
 
@@ -153,7 +167,7 @@ function posterMaterial(m) {
     const t = new THREE.CanvasTexture(cv); t.flipY = m.map.flipY; t.wrapS = m.map.wrapS; t.wrapT = m.map.wrapT; t.colorSpace = THREE.SRGBColorSpace;
     t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapLinearFilter; t.generateMipmaps = true;
     flatMaterial();
-    out = new THREE.MeshToonMaterial({ map: t, color: m.color.clone(), gradientMap: bands, side: m.side, alphaTest: m.alphaTest, transparent: m.transparent, opacity: m.opacity });
+    out = daLook(new THREE.MeshStandardMaterial({ map: t, color: m.color.clone(), roughness: 1, metalness: 0, side: m.side, alphaTest: m.alphaTest, transparent: m.transparent, opacity: m.opacity }));
   }
   posterCache.set(m, out); return out;
 }

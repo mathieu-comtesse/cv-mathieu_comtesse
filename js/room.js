@@ -29,7 +29,7 @@ import {createJvcTv} from './jvc-tv.js?v=jvc3';
 import {createStele} from './stele.js?v=stele-20261023';
 import {createBuddha} from './buddha.js?v=bud3';
 import {createBonsaiCare} from './bonsai-care.js?v=care3';
-import {createLowpoly} from './lowpoly.js?v=lp7';
+import {createLowpoly} from './lowpoly.js?v=lp11';
 
 const DEG = Math.PI / 180;
 const easeOutBounce = (x) => {
