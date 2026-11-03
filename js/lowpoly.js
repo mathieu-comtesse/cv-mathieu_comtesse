@@ -68,12 +68,14 @@ function averageColor(tex) {
 
 /* matériau partagé : trois bandes de lumière, facettes plates, couleur portée par les sommets */
 let bands = null;
-function flatMaterial() {
-  if (flatMaterial.m) return flatMaterial.m;
-  bands = new THREE.DataTexture(new Uint8Array([165, 165, 165, 255, 215, 215, 215, 255, 255, 255, 255, 255]), 3, 1, THREE.RGBAFormat);
-  bands.minFilter = bands.magFilter = THREE.NearestFilter; bands.needsUpdate = true;
-  flatMaterial.m = new THREE.MeshToonMaterial({ color: 0xffffff, vertexColors: true, gradientMap: bands, flatShading: true });
-  return flatMaterial.m;
+const flatBySide = new Map();
+function flatMaterial(side = THREE.FrontSide) {
+  if (!bands) {
+    bands = new THREE.DataTexture(new Uint8Array([165, 165, 165, 255, 215, 215, 215, 255, 255, 255, 255, 255]), 3, 1, THREE.RGBAFormat);
+    bands.minFilter = bands.magFilter = THREE.NearestFilter; bands.needsUpdate = true;
+  }
+  if (!flatBySide.has(side)) flatBySide.set(side, new THREE.MeshToonMaterial({ color: 0xffffff, vertexColors: true, gradientMap: bands, flatShading: true, side }));
+  return flatBySide.get(side);
 }
 
 const geoCache = new WeakMap();   // géométrie source -> Map(matériau -> géométrie à facettes)
@@ -172,7 +174,7 @@ export function createLowpoly(scene) {
       if (m.map && triCount(o.geometry) <= 800) { const pm = posterMaterial(m); if (pm) { o.material = pm; o.userData.lowpolyFrom = m; changed++; return; } }
       if (m.transparent || m.alphaTest > 0) { cutout(m); changed++; return; }
       o.geometry = facetGeometry(o.geometry, m);
-      o.material = flatMaterial();
+      o.material = flatMaterial(THREE.DoubleSide);
       o.userData.lowpolyFrom = m;
       changed++;
     });
