@@ -9,6 +9,7 @@ const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
 const part = (body, title) => { const i = body.indexOf(`<h2>${title}</h2>`); if (i < 0) return ''; const rest = body.slice(i + title.length + 9); const j = rest.indexOf('<h2>'); return (j < 0 ? rest : rest.slice(0, j)).trim(); };
 const one = (re, s) => (re.exec(s) || ['', ''])[1].trim();
 
+const BP_FIG = { moteur: '16', pp: '52', vm: '69' };   // même table que refonte/post.js et refonte/main.js
 let html = read('parcours.html');
 const START = /<article id="cv-[^"]*"[^>]*data-cv-type="machine"[^>]*>/g;
 const out = [];
@@ -19,9 +20,14 @@ for (const m of html.matchAll(START)) {
   const [end, marker] = ends[0];
   const seg = html.slice(copy, end);
   const slug = one(/data-(?:href|fiche)="(?:https:\/\/comtesse\.me\/)?(projet-[a-z0-9-]+)/, seg);
-  const machine = (/<div class="cv-machine"[\s\S]*?<div class="cv-machine-controls"[^>]*><\/div><\/div>/.exec(seg) || [''])[0];
-  if (!slug || !machine) throw new Error('article incomplet à ' + m.index);
+  if (!slug) throw new Error('article incomplet à ' + m.index);
   const page = read(slug + '.html');
+  // la figure de la fiche : dessin d'origine du livre sur le blueprint (comme refonte/post.js) ou machine 3D
+  const fig = one(/<figure class="rf-post-fig[^"]*" data-fig="([^"]+)"/, page);
+  const figTitle = one(/<h1>([\s\S]*?)<\/h1>/, page);
+  const machine = BP_FIG[fig]
+    ? `<div class="cv-bpfig"><iframe class="rf-bp-frame" src="figures-livre/${BP_FIG[fig]}.html?v=b3" title="${figTitle}" scrolling="no" loading="lazy"></iframe></div>`
+    : `<div class="cv-machine" data-cv-machine="${fig}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-machine-controls" data-html-in-canvas-own-clicks=""></div></div>`;
   const from = page.indexOf('<div class="rf-post-body">'), to = page.slice(from).search(/<\/div>\s*(?:<nav class="rf-post-pn"|<\/article>)/);
   if (to < 0) throw new Error('fin du corps introuvable : ' + slug);
   const body = page.slice(from, from + to);
