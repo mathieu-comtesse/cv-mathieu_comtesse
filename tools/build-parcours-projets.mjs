@@ -22,7 +22,9 @@ for (const m of html.matchAll(START)) {
   const machine = (/<div class="cv-machine"[\s\S]*?<div class="cv-machine-controls"[^>]*><\/div><\/div>/.exec(seg) || [''])[0];
   if (!slug || !machine) throw new Error('article incomplet à ' + m.index);
   const page = read(slug + '.html');
-  const body = page.slice(page.indexOf('<div class="rf-post-body">'));
+  const from = page.indexOf('<div class="rf-post-body">'), to = page.slice(from).search(/<\/div>\s*(?:<nav class="rf-post-pn"|<\/article>)/);
+  if (to < 0) throw new Error('fin du corps introuvable : ' + slug);
+  const body = page.slice(from, from + to);
   const kicker = one(/rf-kicker">([\s\S]*?)<\/p>/, page), title = one(/<h1>([\s\S]*?)<\/h1>/, page), sub = one(/rf-post-sub">([\s\S]*?)<\/p>/, page);
   const action = part(body, 'L’objet en action').replace(/<ul class="rf-legend">/, '<ul class="cv-pf-legend">').replace(/class="rf-legend-note"/, 'class="cv-pf-note"');
   const gains = part(body, 'Ce que ça change')
