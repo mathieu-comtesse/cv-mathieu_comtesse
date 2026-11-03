@@ -34,9 +34,9 @@ const ITEMS=[
  {f:'cta',t:'Centrale d’air modulaire',p:'Studio, Moteur44'},
  {f:'vanne_pid',t:'Vanne de régulation PID',p:'Finance, Plans de prévention'},
  {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'},
- {f:'pot_boue',t:'Pot à boue',p:'Cerfa'},
- {f:'supervision',t:'Supervision GTB',p:'Power BI'}
+ {f:'pot_boue',t:'Pot à boue',p:'Cerfa'}
 ];
+const only=new URLSearchParams(location.search).get('only');if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
 const host=document.getElementById('view'),tags=document.getElementById('tags');
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
@@ -66,9 +66,9 @@ await Promise.all(ITEMS.map(async(it,i)=>{
 }));
 lp.pass();
 function resize(){const w=innerWidth,h=innerHeight,narrow=w<700;renderer.setSize(w,h);camera.aspect=w/h;
-  const cols=narrow?2:3,rows=6/cols;
-  holders.forEach((o,i)=>o.holder.position.set((i%cols-(cols-1)/2)*(narrow?3.4:3.9),0,(Math.floor(i/cols)-(rows-1)/2)*(narrow?3.4:3.6)));
-  camera.userData.d=narrow?17:13;camera.updateProjectionMatrix();}
+  const cols=narrow?2:3,rows=Math.ceil(holders.length/cols);
+  holders.forEach((o,i)=>o.holder.position.set((i%cols-(Math.min(cols,holders.length-Math.floor(i/cols)*cols)-1)/2)*(narrow?3.4:3.9),0,(Math.floor(i/cols)-(rows-1)/2)*(narrow?3.4:3.6)));
+  camera.userData.d=only?(narrow?9:6.5):narrow?25:13;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
 const v=new THREE.Vector3();
 function frame(t){
