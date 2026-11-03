@@ -19,7 +19,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
         o.material = o.material.clone();
         const m = o.material; m.flatShading = true; m.roughness = 1; m.metalness = 0;
         if (recolor) for (const [a, b] of swap) if (Math.abs(m.color.r - a.r) + Math.abs(m.color.g - a.g) + Math.abs(m.color.b - a.b) < 0.02) { m.color.copy(b); break; }
-        if (/^(eau|bleu|vitre_vert|gris_f)$/.test(m.name)) { m.emissive = m.color.clone().multiplyScalar(0.55); m.emissiveIntensity = 1; }   // eau et tuyaux : bleu clair conservé
+        if (/^(eau|bleu|vitre_vert|gris_f|gris_c)$/.test(m.name)) { m.emissive = m.color.clone().multiplyScalar(0.55); m.emissiveIntensity = 1; }   // eau et tuyaux : bleu clair conservé
         else { daLook(m); if (lift) { m.emissive = m.color.clone().multiplyScalar(lift); m.emissiveIntensity = 1; } }
       }
       if (o.isMesh && /^anim_(puff|bubble)/.test(o.name)) { o.material.transparent = true; o.material.depthWrite = false; o.castShadow = false; }
@@ -28,7 +28,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
     /* témoin de marge (Fig 52.1) : la gaine d'air neuf et le vitrage passent du vert à l'ambre puis au rouge quand la marge disparaît */
     const statusMats = [];
     const lamps = {};
-    if (status) root.traverse((o) => { if (!o.isMesh) return; const n = o.material.name; if (/^(vert|vitre_vert)$/.test(n)) statusMats.push(o.material); else if (/^lamp_[gar]$/.test(n)) { lamps[n] = o.material; o.material.emissive = o.material.color.clone(); } });
+    if (status) root.traverse((o) => { if (!o.isMesh) return; const n = o.material.name; if (n === 'vert') statusMats.push(o.material); else if (/^lamp_[gar]$/.test(n)) { lamps[n] = o.material; o.material.emissive = o.material.color.clone(); } });
     const cOk = new THREE.Color('#3fae78'), cMid = new THREE.Color('#f0b13c'), cBad = new THREE.Color('#e0524c'), cTmp = new THREE.Color();
     const g = new THREE.Group(); g.add(root);
     /* flux d'air : des particules suivent des courbes de Bézier (coordonnées du modèle : x, y, z avec z vers le haut) */
@@ -50,6 +50,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
       for (const a of anims) {
         if (a.kind === 'spin') { a.ang += dt * (0.6 + k * 9) * speed; a.o.rotation[a.axis] = a.ang; }
         else if (a.kind === 'swing') a.o.rotation[a.axis] = (k - 0.5) * (/cadran3/.test(a.o.name) ? 1.5708 : 2.1) + 0.04 * Math.sin(time * 1.9 + a.phase);
+        else if (a.kind === 'wave') a.o.position.x = a.base.x + (0.01 + 0.06 * k) * Math.sin(time * (1.5 + 3 * k) + (/_1$/.test(a.o.name) ? Math.PI : 0));
         else if (a.kind === 'lift') a.o.position.y = a.base.y + k * 0.14;
         else if (a.kind === 'slide') {            // chariot : course selon le réglage ; filets d'air : défilement continu
           if (/filet/.test(a.o.name)) a.o.position.x = a.base.x + (((time * (0.3 + k) + a.phase * 0.2) % 1 + 1) % 1) * 0.9 - 0.2;
