@@ -34,10 +34,12 @@ const ITEMS=[
  {f:'autoclave',t:'Autoclave de laboratoire (Fig 4.1)',p:'Point financier'},
  {f:'diffusion',t:'Banc de diffusion (Fig 16.1)',p:'Moteur44'},
  {f:'son',t:'Banc de niveau sonore (Fig 11.1)',p:'Cerfa'},
- {f:'air',t:'Chambre d’essai de qualité d’air (Fig 15.1)',p:'Plans de prévention'},
+ {f:'piscine',t:'Halle de piscine en coupe (Fig 52.1)',p:'Plans de prévention'},
+ {f:'air',t:'Chambre d’essai de qualité d’air (Fig 15.1)',p:'(non utilisée)'},
  {f:'tube',t:'Tube chauffé en soufflerie (Fig 6.1)',p:'Studio'},
  {f:'rayonnement',t:'Banc de rayonnement (Fig 7.1)',p:'Suivi OT'},
- {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'}
+ {f:'reception',t:'Banc de réception de la maison (Fig 69.1)',p:'VMVRE'},
+ {f:'circulateur',t:'Circulateur et clapet',p:'(non utilisé)'}
 ];
 const only=new URLSearchParams(location.search).get('only'),figcam=new URLSearchParams(location.search).has('fig'),figel=parseFloat(new URLSearchParams(location.search).get('el')||'0.95'),figdir=new URLSearchParams(location.search).get('fig')==='-x'?-1.25:1.25;if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
 const host=document.getElementById('view'),tags=document.getElementById('tags');
