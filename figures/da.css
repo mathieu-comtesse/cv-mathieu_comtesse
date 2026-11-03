@@ -1,0 +1,9 @@
+.iso,.iso[data-theme="light"]{
+  --anatomy-page:transparent;--anatomy-card:#fff2d4;--anatomy-text:#563a92;--anatomy-strong:#2b2147;--anatomy-muted:#8a72d6;
+  --anatomy-paper:#fed8ad;--anatomy-face:#fcc59a;--anatomy-top:#fff2d4;
+  --anatomy-shade-0:#c94f68;--anatomy-shade-1:#d85777;--anatomy-shade-2:#ec6a85;--anatomy-shade-3:#f78a6e;
+  --anatomy-lit-top:#fff2d4;--anatomy-lit-shade:#ffa68a;
+  --anatomy-hi:#2b2147;--anatomy-mid:#563a92;--anatomy-lo:#8a72d6;--anatomy-faint:#b7a6ee;--anatomy-lit:#2b2147;
+  --anatomy-halo:#563a92;--anatomy-halo-opacity:.38;--anatomy-dot:#2b2147;
+  --anatomy-red:#c94f68;--anatomy-green:#4f9078;--anatomy-blue:#8a72d6;
+}

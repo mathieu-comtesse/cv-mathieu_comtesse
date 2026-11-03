@@ -80,9 +80,9 @@ function flatMaterial(side = THREE.FrontSide) {
 
 const geoCache = new WeakMap();   // géométrie source -> Map(matériau -> géométrie à facettes)
 const tmpA = new THREE.Color(), tmpB = new THREE.Color();
-function facetGeometry(src, material) {
+function facetGeometry(src, material, key = material) {
   let per = geoCache.get(src); if (!per) geoCache.set(src, per = new Map());
-  if (per.has(material)) return per.get(material);
+  if (per.has(key)) return per.get(key);
   const g = src.index ? src.toNonIndexed() : src.clone();
   const pos = g.attributes.position, n = pos.count, uv = g.attributes.uv, vc = material.vertexColors ? g.attributes.color : null;
   const px = material.map ? pixels(material.map) : null;
@@ -102,7 +102,7 @@ function facetGeometry(src, material) {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.deleteAttribute('uv'); g.deleteAttribute('tangent');
   g.computeVertexNormals();
-  per.set(material, g);
+  per.set(key, g);
   return g;
 }
 
@@ -110,7 +110,7 @@ function facetGeometry(src, material) {
 const KEEP_IDS = /^(falk|tv|videosphere|jbl.*)$/;   // télés, enceintes et lampe : couleurs d'origine à la demande
 const ownerKept = (o) => { for (let p = o; p; p = p.parent) { const id = p.userData && p.userData.id; if (id && KEEP_IDS.test(id)) return true; } return false; };
 const keep = (m) => !m || Array.isArray(m) || m.userData?.unique || m.userData?.lowpoly === 'keep' || !(m.isMeshStandardMaterial || m.isMeshPhongMaterial || m.isMeshLambertMaterial)
-  || (m.emissive && m.emissive.getHex() !== 0 && (m.emissiveIntensity ?? 1) > 0) || m.emissiveMap || (m.transparent && !m.map) || m.isMeshPhysicalMaterial && m.transmission > 0 || m.opacity < 1;
+  || (m.emissive && m.emissive.getHex() !== 0 && (m.emissiveIntensity ?? 1) > 0) || m.emissiveMap || (m.transparent && !m.map) || m.isMeshPhysicalMaterial && m.transmission > 0 || m.opacity < 1 || (m.map && (m.map.isCanvasTexture || m.map.isVideoTexture));
 
 function cutout(m) {   // carte de feuillage : silhouette conservée, couleur unique
   if (m.userData.lowpoly) return;
@@ -159,18 +159,33 @@ function posterMaterial(m) {
 }
 const triCount = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3;
 
-export function createLowpoly(scene) {
+export function createLowpoly(scene, { inPlace = false } = {}) {
   const done = new WeakSet();
   const cutouts = [];
-  function pass() {
+  /* inPlace : le matériau d'origine est conservé et modifié sur place (les animations qui le pilotent continuent de fonctionner) */
+  function pass(root = scene) {
     let changed = 0;
-    scene.traverse((o) => {
+    root.traverse((o) => {
       if (!o.isMesh || done.has(o)) return;
       if (o.userData.isInk) { o.visible = false; done.add(o); return; }
       done.add(o);
       const m = o.material;
-      if (keep(m) || ownerKept(o)) return;
+      if (keep(m) || (!inPlace && ownerKept(o))) return;
       if (!o.geometry?.attributes?.position) return;
+      if (inPlace) {
+        if (m.map && triCount(o.geometry) <= 800) {
+          if (!m.userData.lowpoly) { const pm = posterMaterial(m); if (pm) { m.userData.lowpoly = 'poster'; m.map = pm.map; m.needsUpdate = true; } }
+          changed++; return;
+        }
+        if (m.transparent || m.alphaTest > 0) { cutout(m); changed++; return; }
+        const base = m.userData.lpBase || (m.userData.lpBase = { color: m.color.clone(), map: m.map, vertexColors: m.vertexColors });
+        o.geometry = facetGeometry(o.geometry, base, m);
+        if (m.userData.lowpoly !== 'flat') {
+          m.userData.lowpoly = 'flat'; m.vertexColors = true; m.color.set(0xffffff); m.map = null; m.flatShading = true; m.roughness = 1; m.metalness = 0;
+          m.normalMap = m.bumpMap = m.roughnessMap = m.metalnessMap = m.aoMap = null; m.envMapIntensity = 0.3; m.needsUpdate = true;
+        }
+        changed++; return;
+      }
       if (m.map && triCount(o.geometry) <= 800) { const pm = posterMaterial(m); if (pm) { o.material = pm; o.userData.lowpolyFrom = m; changed++; return; } }
       if (m.transparent || m.alphaTest > 0) { cutout(m); changed++; return; }
       o.geometry = facetGeometry(o.geometry, m);

@@ -2,14 +2,31 @@
 // le groupe de chaque machine est mis à l'échelle (S) pour tenir sur le plan blueprint. Repère de figure : x vers la droite,
 // y vers l'avant (profondeur), z vers le haut ; il devient (x, z, y) dans la scène.
 import * as THREE from 'three';
+import { snap } from '../../js/lowpoly.js?v=lp7';
+
+/* DA du décor (aplats, palette chaude, facettes) : active pour toutes les machines sauf VRE, Power BI et le coffret VRE Studio. */
+export const DA = { on: false };
+const NO_DA = new Set(['vre', 'powerbi', 'vrestudio-musicbox']);
+export const setDA = (name) => { DA.on = !NO_DA.has(name); };
+const sg = (n) => (DA.on ? Math.min(n, 12) : n);
+/* gris et blancs de la figure : étagés par clarté sur la palette chaude (crème, pêche, sable, corail, indigo), pour garder du relief entre les pièces */
+const NEUTRAL = [[.78, '#fff2d4'], [.55, '#fed8ad'], [.4, '#fcc59a'], [.28, '#f78a6e'], [.12, '#563a92'], [0, '#2b2147']];
+const daColor = (c) => {
+  const k = new THREE.Color(c), mx = Math.max(k.r, k.g, k.b), mn = Math.min(k.r, k.g, k.b);
+  if (mx - mn < .06) { const l = (k.r + k.g + k.b) / 3; for (const [t, h] of NEUTRAL) if (l >= t) return new THREE.Color(h); }
+  return snap(k.r, k.g, k.b);
+};
 
 export const S = 9.6 / 236;                 // la plaque de l'établi (236 unités de figure) fait 11 unités sur le plan
 export const COL = { hi: '#f7f6f1', mid: '#eceae3', lo: '#cfcdc4', dark: '#9d9c94', ink: '#1d2230', accent: '#f4a259', accentLo: '#e08a3c', glass: '#d6e2f2', screen: '#aab6cf', blue: '#3a5fb0', green: '#35a974', red: '#e5484d' };
 
 const mats = new Map();
 export function mat(color, o = {}) {
-  const key = color + JSON.stringify(o);
-  if (!mats.has(key)) mats.set(key, new THREE.MeshStandardMaterial({ color, roughness: .82, metalness: 0, ...o }));
+  const key = (DA.on ? 'da|' : '') + color + JSON.stringify(o);
+  if (!mats.has(key)) {
+    const flat = DA.on && !o.transparent && !o.emissive && !o.emissiveIntensity;
+    mats.set(key, new THREE.MeshStandardMaterial(flat ? { color: daColor(color), roughness: 1, metalness: 0, flatShading: true, ...o } : { color, roughness: .82, metalness: 0, ...o }));
+  }
   return mats.get(key);
 }
 const lineMat = new THREE.LineBasicMaterial({ color: 0x1d2230, transparent: true, opacity: .42 });
@@ -17,7 +34,7 @@ const lineMat = new THREE.LineBasicMaterial({ color: 0x1d2230, transparent: true
 export function finish(geo, m, edges = 32) {
   const mesh = new THREE.Mesh(geo, m);
   mesh.castShadow = true; mesh.receiveShadow = true;
-  if (edges) mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, edges), lineMat));
+  if (edges && !DA.on) mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, edges), lineMat));
   return mesh;
 }
 
@@ -46,20 +63,20 @@ export function box(cx, cy, cz, w, d, h, color = COL.mid, edges = 30) {
 }
 /* Cylindre vertical : centre (x, y), rayon r, de z à z + h. */
 export function cyl(x, y, r, z, h, color = COL.mid, seg = 32) {
-  const m = finish(new THREE.CylinderGeometry(r, r, h, seg), mat(color), 40);
+  const m = finish(new THREE.CylinderGeometry(r, r, h, sg(seg)), mat(color), 40);
   m.position.set(x, z + h / 2, y);
   return m;
 }
 /* Cylindre d'axe x : de x0 à x1, centre (y, z). */
 export function cylX(x0, x1, y, z, r, color = COL.mid, seg = 32) {
-  const g = new THREE.CylinderGeometry(r, r, x1 - x0, seg); g.rotateZ(Math.PI / 2);
+  const g = new THREE.CylinderGeometry(r, r, x1 - x0, sg(seg)); g.rotateZ(Math.PI / 2);
   const m = finish(g, mat(color), 40);
   m.position.set((x0 + x1) / 2, z, y);
   return m;
 }
 /* Cylindre d'axe y (profondeur) : de y0 à y1, centre (x, z). */
 export function cylY(y0, y1, x, z, r, color = COL.mid, seg = 32) {
-  const g = new THREE.CylinderGeometry(r, r, y1 - y0, seg); g.rotateX(Math.PI / 2);
+  const g = new THREE.CylinderGeometry(r, r, y1 - y0, sg(seg)); g.rotateX(Math.PI / 2);
   const m = finish(g, mat(color), 40);
   m.position.set(x, z, (y0 + y1) / 2);
   return m;
@@ -73,7 +90,7 @@ export function card(cx, cy, cz, w, h, t = .5, color = COL.hi, edges = 30) {
 /* Tube le long d'une courbe (câbles, fils de fiches). */
 export function tube(points, r = .6, color = COL.dark) {
   const curve = new THREE.CatmullRomCurve3(points.map(([x, y, z]) => new THREE.Vector3(x, z, y)));
-  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, r, 8, false), mat(color)); m.castShadow = true; return m;
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, DA.on ? 14 : 24, r, DA.on ? 5 : 8, false), mat(color)); m.castShadow = true; return m;
 }
 /* Prisme à base polygonale dans le plan x-z de la figure (rampes inclinées), étendu de y0 à y1. */
 export function prismXZ(poly, y0, y1, color = COL.mid, edges = 30) {
@@ -84,7 +101,7 @@ export function prismXZ(poly, y0, y1, color = COL.mid, edges = 30) {
 }
 /* Bille : centre (x, y, z) de figure, rayon r. */
 export function ball(cx, cy, cz, r, color = COL.hi) {
-  const m = finish(new THREE.SphereGeometry(r, 28, 18), mat(color), 0);
+  const m = finish(new THREE.SphereGeometry(r, DA.on ? 12 : 28, DA.on ? 8 : 18), mat(color), 0);
   m.position.set(cx, cz, cy);
   return m;
 }
@@ -93,7 +110,7 @@ export function ball(cx, cy, cz, r, color = COL.hi) {
    flex(curl, wave, roll, ph, t) : courbure (négative : les bouts tombent), houle qui parcourt la feuille, roulis, phase, temps. */
 export function paper(w, l, color = '#ffffff', seg = 8) {
   const geo = new THREE.PlaneGeometry(w, l, 4, seg), base = geo.attributes.position.array.slice();
-  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: .9, side: THREE.DoubleSide }));
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: DA.on ? daColor(color) : color, roughness: DA.on ? 1 : .9, flatShading: DA.on, side: THREE.DoubleSide }));
   m.castShadow = true; m.receiveShadow = true;
   m.userData.flex = (curl = 0, wave = 0, roll = 0, ph = 0, t = 0) => {
     const pos = geo.attributes.position.array;
@@ -176,13 +193,13 @@ export function makeStage(canvas) {
   renderer.setClearColor(0x000000, 0); renderer.localClippingEnabled = true;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
-  const sun = new THREE.DirectionalLight(0xffffff, 2.3);
+  scene.add(DA.on ? new THREE.HemisphereLight(0xffe9d6, 0xf2a68c, 1.15) : new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
+  const sun = new THREE.DirectionalLight(DA.on ? 0xffe3c4 : 0xffffff, DA.on ? 2.6 : 2.3);
   sun.position.set(-9, 16, 8); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048); sun.shadow.radius = 5; sun.shadow.bias = -.0005;
   Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 50 });
   scene.add(sun);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: .38, color: 0x000a50 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial(DA.on ? { opacity: .5, color: 0x563a92 } : { opacity: .38, color: 0x000a50 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; ground.position.y = .004;
   scene.add(ground);
   return { renderer, scene };
