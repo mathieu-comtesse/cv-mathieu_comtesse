@@ -104,8 +104,8 @@ function facetGeometry(src, material) {
   return g;
 }
 
-/* objets qui gardent leurs couleurs d'origine (télés, enceintes, canapé, USM) ; tout matériau texturé (tapis, tableau, couvertures) est aussi conservé */
-const KEEP_IDS = /^(rug|falk|tv|videosphere|jbl.*|ekstrem|usm.*|shelf.*|drawer|sofa)$/;
+/* objets qui gardent leurs couleurs d'origine */
+const KEEP_IDS = /^(falk|tv|videosphere|jbl.*)$/;   // télés, enceintes et lampe : couleurs d'origine à la demande
 const ownerKept = (o) => { for (let p = o; p; p = p.parent) { const id = p.userData && p.userData.id; if (id && KEEP_IDS.test(id)) return true; } return false; };
 const keep = (m) => !m || Array.isArray(m) || m.userData?.unique || m.userData?.lowpoly === 'keep' || !(m.isMeshStandardMaterial || m.isMeshPhongMaterial || m.isMeshLambertMaterial)
   || (m.emissive && m.emissive.getHex() !== 0 && (m.emissiveIntensity ?? 1) > 0) || m.emissiveMap || (m.transparent && !m.map) || m.isMeshPhysicalMaterial && m.transmission > 0 || m.opacity < 1;
@@ -133,6 +133,30 @@ function cutout(m) {   // carte de feuillage : silhouette conservée, couleur un
   m.needsUpdate = true;
 }
 
+/* surfaces planes texturées (tapis, tableau, couvertures) : même motif, couleurs calées sur la palette, texels francs */
+const posterCache = new WeakMap();
+function posterMaterial(m) {
+  if (posterCache.has(m)) return posterCache.get(m);
+  const px = pixels(m.map); let out = null;
+  if (px) {
+    const cv = document.createElement('canvas'); cv.width = px.w; cv.height = px.h;
+    const cx = cv.getContext('2d'), id = cx.createImageData(px.w, px.h), c = new THREE.Color();
+    for (let i = 0; i < px.data.length; i += 4) {
+      const r = px.data[i] / 255, g = px.data[i + 1] / 255, b = px.data[i + 2] / 255;
+      c.setRGB(px.srgb ? lin(r) : r, px.srgb ? lin(g) : g, px.srgb ? lin(b) : b);
+      const q = snap(c.r, c.g, c.b);
+      id.data[i] = Math.round(srgb(q.r) * 255); id.data[i + 1] = Math.round(srgb(q.g) * 255); id.data[i + 2] = Math.round(srgb(q.b) * 255); id.data[i + 3] = px.data[i + 3];
+    }
+    cx.putImageData(id, 0, 0);
+    const t = new THREE.CanvasTexture(cv); t.flipY = m.map.flipY; t.wrapS = m.map.wrapS; t.wrapT = m.map.wrapT; t.colorSpace = THREE.SRGBColorSpace;
+    t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestMipmapLinearFilter; t.generateMipmaps = true;
+    flatMaterial();
+    out = new THREE.MeshToonMaterial({ map: t, color: m.color.clone(), gradientMap: bands, side: m.side, alphaTest: m.alphaTest, transparent: m.transparent, opacity: m.opacity });
+  }
+  posterCache.set(m, out); return out;
+}
+const triCount = (g) => (g.index ? g.index.count : g.attributes.position.count) / 3;
+
 export function createLowpoly(scene) {
   const done = new WeakSet();
   const cutouts = [];
@@ -144,9 +168,9 @@ export function createLowpoly(scene) {
       done.add(o);
       const m = o.material;
       if (keep(m) || ownerKept(o)) return;
-      if (m.map && !(m.transparent || m.alphaTest > 0)) return;
-      if (m.transparent || m.alphaTest > 0) { cutout(m); changed++; return; }
       if (!o.geometry?.attributes?.position) return;
+      if (m.map && triCount(o.geometry) <= 800) { const pm = posterMaterial(m); if (pm) { o.material = pm; o.userData.lowpolyFrom = m; changed++; return; } }
+      if (m.transparent || m.alphaTest > 0) { cutout(m); changed++; return; }
       o.geometry = facetGeometry(o.geometry, m);
       o.material = flatMaterial();
       o.userData.lowpolyFrom = m;
