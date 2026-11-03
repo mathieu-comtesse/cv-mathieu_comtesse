@@ -47,7 +47,7 @@ if (fig && bpCanvas && stage) {
   const mountLive = (num) => {
     canvas.remove(); fig.classList.add('rf-live-fig');
     const fr = document.createElement('iframe');
-    fr.className = 'rf-live'; fr.src = 'figures-livre/' + num + '.html?v=l3'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure du livre'; fr.loading = 'lazy';
+    fr.className = 'rf-live'; fr.scrolling = 'no'; fr.src = 'figures-livre/' + num + '.html?v=l5'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure du livre'; fr.loading = 'lazy';
     fr.style.cssText = 'width:100%;border:0;display:block;height:820px;background:transparent;color-scheme:light';
     fig.querySelector('img')?.replaceWith(fr);
     addEventListener('message', (e) => { if (e.source === fr.contentWindow && e.data && e.data.livreHeight) fr.style.height = e.data.livreHeight + 'px'; });

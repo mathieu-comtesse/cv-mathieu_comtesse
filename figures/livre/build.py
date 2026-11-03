@@ -13,6 +13,7 @@ for f in sorted(os.listdir(SRC)):
     s=open(os.path.join(SRC,f),encoding='utf8').read()
     s=s.replace('<body class="iso" data-theme="dark">','<body class="iso" data-theme="light">',1)
     cfg='<script>'+lib+'\n(function(){const A=window.ALLEGORY;'+CONFIG[m.group(1)]+'})()</script>'
+    s=s.replace('<meta charset="utf-8">','<meta charset="utf-8"><meta name="color-scheme" content="light only">',1)
     s=s.replace('</head>','<style id="da-livre">'+css+'</style></head>',1)
     i=s.rfind('</body>'); s=s[:i]+cfg+RESIZE+s[i:]
     open(os.path.join(OUT,m.group(1)+'.html'),'w',encoding='utf8').write(s)
