@@ -30,12 +30,14 @@ import {GLTFLoader} from 'three/addons/GLTFLoader.js';
 import {createLowpoly} from './js/lowpoly.js?v=lp11';
 
 const ITEMS=[
- {f:'echangeur',t:'Échangeur à plaques',p:'Gares, Suivi OT'},
- {f:'cta',t:'Centrale d’air modulaire',p:'Studio, Moteur44'},
- {f:'vanne_pid',t:'Vanne de régulation PID',p:'Finance, Plans de prévention'},
- {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'},
- {f:'pot_boue',t:'Pot à boue',p:'Cerfa'},
- {f:'autoclave',t:'Autoclave de laboratoire',p:'Point financier'}
+ {f:'echangeur',t:'Échangeur à plaques (Fig 8.1)',p:'Gares'},
+ {f:'autoclave',t:'Autoclave de laboratoire (Fig 4.1)',p:'Point financier'},
+ {f:'diffusion',t:'Banc de diffusion (Fig 16.1)',p:'Moteur44'},
+ {f:'son',t:'Banc de niveau sonore (Fig 11.1)',p:'Cerfa'},
+ {f:'air',t:'Chambre d’essai de qualité d’air (Fig 15.1)',p:'Plans de prévention'},
+ {f:'tube',t:'Tube chauffé en soufflerie (Fig 6.1)',p:'Studio'},
+ {f:'rayonnement',t:'Banc de rayonnement (Fig 7.1)',p:'Suivi OT'},
+ {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'}
 ];
 const only=new URLSearchParams(location.search).get('only');if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
 const host=document.getElementById('view'),tags=document.getElementById('tags');

@@ -8,7 +8,7 @@ const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e',
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1 }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk8');
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk10');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -36,8 +36,12 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1 })
       const k = v / 100;
       for (const a of anims) {
         if (a.kind === 'spin') { a.ang += dt * (0.6 + k * 9) * speed; a.o.rotation[a.axis] = a.ang; }
-        else if (a.kind === 'swing') a.o.rotation.z = (k - 0.5) * 2.1 + 0.07 * Math.sin(time * 1.9 + a.phase);
+        else if (a.kind === 'swing') a.o.rotation[a.axis] = (k - 0.5) * 2.1 + 0.07 * Math.sin(time * 1.9 + a.phase);
         else if (a.kind === 'lift') a.o.position.y = a.base.y + k * 0.14;
+        else if (a.kind === 'slide') {            // chariot : course selon le réglage ; filets d'air : défilement continu
+          if (/filet/.test(a.o.name)) a.o.position.x = a.base.x + (((time * (0.3 + k) + a.phase * 0.2) % 1 + 1) % 1) * 0.9 - 0.2;
+          else a.o.position.x = a.base.x + (k - 0.5) * 1.5;
+        } else if (a.kind === 'pulse') a.o.scale.setScalar(1 + (0.05 + 0.1 * k) * Math.sin(time * (2 + 3 * k) + a.phase));
         else if (a.kind === 'puff') {            // panache : monte, grossit et s'efface ; plus dense quand la pression monte
           const ph = ((time * (0.25 + k * 0.5) + a.phase * 0.37) % 1 + 1) % 1;
           a.o.position.y = a.base.y + ph * (0.5 + k * 0.7); a.o.position.x = a.base.x + Math.sin(ph * 5 + a.phase) * 0.05 * ph;
