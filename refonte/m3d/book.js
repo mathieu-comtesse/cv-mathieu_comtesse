@@ -8,9 +8,9 @@ const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e',
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1 }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk5');
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk7');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
-  const width = Math.max(size.x, size.z, size.y * 1.45);   // une machine haute est réduite pour tenir dans le cadre
+  const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
     const root = gltf.scene.clone(true), anims = [];
     root.traverse((o) => {
@@ -22,7 +22,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1 })
         daLook(m);
       }
       if (o.isMesh && /^anim_(puff|bubble)/.test(o.name)) { o.material.transparent = true; o.material.depthWrite = false; o.castShadow = false; }
-      if (o.name.startsWith('anim_')) anims.push({ o, kind: o.name.split('_')[1], base: o.position.clone(), phase: anims.length * 1.7, ang: 0 });
+      if (o.name.startsWith('anim_')) anims.push({ o, kind: o.name.split('_')[1], axis: ['x', 'y', 'z'].includes(o.name.split('_')[2]) ? o.name.split('_')[2] : 'z', base: o.position.clone(), phase: anims.length * 1.7, ang: 0 });
     });
     const g = new THREE.Group(); g.add(root);
     let v = 50, manual = -1e9, last = null;
@@ -35,7 +35,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1 })
       if (time - manual > 8) v = 50 + 40 * Math.sin(time * 0.18);      // sans geste, le réglage dérive doucement
       const k = v / 100;
       for (const a of anims) {
-        if (a.kind === 'spin') { a.ang += dt * (0.6 + k * 9) * speed; a.o.rotation.z = a.ang; }
+        if (a.kind === 'spin') { a.ang += dt * (0.6 + k * 9) * speed; a.o.rotation[a.axis] = a.ang; }
         else if (a.kind === 'swing') a.o.rotation.z = (k - 0.5) * 2.1 + 0.07 * Math.sin(time * 1.9 + a.phase);
         else if (a.kind === 'lift') a.o.position.y = a.base.y + k * 0.14;
         else if (a.kind === 'puff') {            // panache : monte, grossit et s'efface ; plus dense quand la pression monte

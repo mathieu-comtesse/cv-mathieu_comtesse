@@ -34,7 +34,8 @@ const ITEMS=[
  {f:'cta',t:'Centrale d’air modulaire',p:'Studio, Moteur44'},
  {f:'vanne_pid',t:'Vanne de régulation PID',p:'Finance, Plans de prévention'},
  {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'},
- {f:'pot_boue',t:'Pot à boue',p:'Cerfa'}
+ {f:'pot_boue',t:'Pot à boue',p:'Cerfa'},
+ {f:'autoclave',t:'Autoclave de laboratoire',p:'Point financier'}
 ];
 const only=new URLSearchParams(location.search).get('only');if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
 const host=document.getElementById('view'),tags=document.getElementById('tags');
