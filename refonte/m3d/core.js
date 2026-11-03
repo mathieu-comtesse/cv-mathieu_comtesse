@@ -2,7 +2,7 @@
 // le groupe de chaque machine est mis à l'échelle (S) pour tenir sur le plan blueprint. Repère de figure : x vers la droite,
 // y vers l'avant (profondeur), z vers le haut ; il devient (x, z, y) dans la scène.
 import * as THREE from 'three';
-import { daLook } from '../../js/da-shader.js?v=da4';
+import { daLook } from '../../js/da-shader.js?v=da5';
 import { snap, snapNeutral } from '../../js/lowpoly.js?v=lp11';
 
 /* DA du décor (aplats, palette chaude, facettes) : active pour toutes les machines sauf VRE, Power BI et le coffret VRE Studio. */

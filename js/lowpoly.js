@@ -3,7 +3,7 @@
  * calée sur la palette), les cartes de feuillage gardent leur silhouette mais perdent leur texture. Les matériaux animés ou lumineux
  * (écrans, lampes, verre, marqués unique) sont laissés tels quels. */
 import * as THREE from 'three';
-import { daLook } from './da-shader.js?v=da4';
+import { daLook } from './da-shader.js?v=da5';
 
 export const PALETTE = [
   '#fff2d4', '#fed8ad', '#fcc59a', '#ffa68a', '#f78a6e', '#ec6a85', '#d85777', '#c94f68', '#cc4b8c',
