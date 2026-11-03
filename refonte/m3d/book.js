@@ -8,7 +8,7 @@ const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e',
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022, lift = 0, status = false }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk48');
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk50');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -19,7 +19,7 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
         o.material = o.material.clone();
         const m = o.material; m.flatShading = true; m.roughness = 1; m.metalness = 0;
         if (recolor) for (const [a, b] of swap) if (Math.abs(m.color.r - a.r) + Math.abs(m.color.g - a.g) + Math.abs(m.color.b - a.b) < 0.02) { m.color.copy(b); break; }
-        if (/^(eau|bleu|vitre_vert)$/.test(m.name)) { m.emissive = m.color.clone().multiplyScalar(0.55); m.emissiveIntensity = 1; }   // eau et tuyaux : bleu clair conservé
+        if (/^(eau|bleu|vitre_vert|gris_f)$/.test(m.name)) { m.emissive = m.color.clone().multiplyScalar(0.55); m.emissiveIntensity = 1; }   // eau et tuyaux : bleu clair conservé
         else { daLook(m); if (lift) { m.emissive = m.color.clone().multiplyScalar(lift); m.emissiveIntensity = 1; } }
       }
       if (o.isMesh && /^anim_(puff|bubble)/.test(o.name)) { o.material.transparent = true; o.material.depthWrite = false; o.castShadow = false; }
