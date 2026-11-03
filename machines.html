@@ -39,7 +39,7 @@ const ITEMS=[
  {f:'rayonnement',t:'Banc de rayonnement (Fig 7.1)',p:'Suivi OT'},
  {f:'circulateur',t:'Circulateur et clapet',p:'VMVRE'}
 ];
-const only=new URLSearchParams(location.search).get('only');if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
+const only=new URLSearchParams(location.search).get('only'),figcam=new URLSearchParams(location.search).has('fig'),figdir=new URLSearchParams(location.search).get('fig')==='-x'?-1.25:1.25;if(only){const k=ITEMS.filter(i=>i.f===only);if(k.length){ITEMS.length=0;ITEMS.push(...k);}}
 const host=document.getElementById('view'),tags=document.getElementById('tags');
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
@@ -50,7 +50,7 @@ sun.position.set(4,8,3);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:1,far:25});
 scene.add(hemi,sun);
 const sand=new THREE.Mesh(new THREE.CylinderGeometry(6.4,6.6,0.2,9),new THREE.MeshToonMaterial({color:'#fcc59a'}));
-sand.position.y=-0.1;sand.receiveShadow=true;scene.add(sand);
+sand.position.y=-0.1;sand.receiveShadow=true;scene.add(sand);if(figcam){sand.visible=false;scene.background=new THREE.Color('#f3f0e8');}
 const sea=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#563a92',opacity:.5}));sea.rotation.x=-Math.PI/2;sea.position.y=-0.21;sea.receiveShadow=true;scene.add(sea);
 const camera=new THREE.PerspectiveCamera(32,1,0.1,100);
 const lp=createLowpoly(scene);
@@ -75,6 +75,9 @@ function resize(){const w=innerWidth,h=innerHeight,narrow=w<700;renderer.setSize
 addEventListener('resize',resize);resize();
 const v=new THREE.Vector3();
 function frame(t){
+  if(figcam&&holders.length){const h=holders[0];h.root.rotation.y=0;const b=new THREE.Box3().setFromObject(h.holder),c=b.getCenter(new THREE.Vector3()),r=b.getBoundingSphere(new THREE.Sphere()).radius;
+    camera.fov=16;camera.updateProjectionMatrix();const dir=new THREE.Vector3(figdir,0.95,1.0).normalize();camera.position.copy(c).addScaledVector(dir,r*5.2);camera.lookAt(c);h.tag.style.display='none';document.querySelector('header').style.display='none';
+    renderer.render(scene,camera);requestAnimationFrame(frame);return;}
   const a=0.55+Math.sin(t/9000)*0.18;
   camera.position.set(Math.sin(a)*camera.userData.d,camera.userData.d*0.62,Math.cos(a)*camera.userData.d);camera.lookAt(0,0.6,0);
   for(const h of holders){h.root.rotation.y=Math.PI*0.15+Math.sin(t/4000)*0.25;
