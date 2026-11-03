@@ -239,9 +239,6 @@ onScroll();
 /* ---------------------------------------------------------------- machines animées des projets pro
    Comme sur l'index d'origine : la figure (figures/<nom>.html) s'anime dans la tuile tant qu'elle est visible, puis dans la fiche. */
 const CARD_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.iso-plate-corners,.iso-legend,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
-/* figures du livre (allégories des projets) : même figure dans la tuile (sans commandes, sur plaque crème) et dans la fiche */
-const LIVRE = {};
-const TILE_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important}.iso-plate{background:#fff2d4!important;border-radius:14px!important;box-shadow:none!important}[class*="-ctl"],.iso-plate-corners,.iso-legend,.iso-caption,figcaption,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
 {
   // tuiles : la machine 3D du projet sur le plan blueprint (comme sur les pages projet), animée tant que la tuile est visible
@@ -249,14 +246,6 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
   const mount = async (wrap) => {
     if (active.has(wrap)) return;
     active.set(wrap, null);
-    if (LIVRE[wrap.dataset.fig]) {
-      const fr = document.createElement('iframe');
-      fr.className = 'rf-tile-3d rf-tile-live'; fr.src = 'figures-livre/' + LIVRE[wrap.dataset.fig] + '.html?v=l5'; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true'); fr.title = '';
-      fr.addEventListener('load', () => { const d = fr.contentDocument; if (!d?.body) return; const st = d.createElement('style'); st.textContent = TILE_CSS; d.head.append(st); wrap.classList.add('rf-on'); });
-      wrap.append(fr);
-      active.set(wrap, { t: { dispose() {} }, ro: { disconnect() {} }, canvas: fr, stop() {} });
-      return;
-    }
     const canvas = document.createElement('canvas'); canvas.className = 'rf-tile-3d'; canvas.setAttribute('aria-hidden', 'true'); wrap.append(canvas);
     try {
       const { mountTile } = await import('./m3d/tile.js');
@@ -287,11 +276,6 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
   window.rfMountFigure = (fig) => {
     if (!fig || !fig.dataset.fig) return;
     const frame = document.createElement('iframe');
-    if (LIVRE[fig.dataset.fig]) {
-      frame.className = 'rf-fig-frame rf-fig-livre'; frame.scrolling = 'no'; frame.title = 'Figure animée du livre'; frame.src = 'figures-livre/' + LIVRE[fig.dataset.fig] + '.html?v=l5'; frame.style.cssText = 'width:100%;border:0;display:block;height:820px;background:transparent;color-scheme:light';
-      addEventListener('message', (e) => { if (e.source === frame.contentWindow && e.data && e.data.livreHeight) frame.style.height = e.data.livreHeight + 'px'; });
-      fig.querySelector('img')?.remove(); fig.append(frame); return;
-    }
     frame.className = 'rf-fig-frame'; frame.scrolling = 'no'; frame.title = 'Machine animée'; frame.style.opacity = '0'; frame.src = 'figures/' + fig.dataset.fig + '.html?v=bp3';
     frame.addEventListener('load', () => {
       const doc = frame.contentDocument; if (!doc?.body) return;
