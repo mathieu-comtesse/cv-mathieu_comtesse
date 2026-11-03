@@ -240,7 +240,7 @@ onScroll();
    Comme sur l'index d'origine : la figure (figures/<nom>.html) s'anime dans la tuile tant qu'elle est visible, puis dans la fiche. */
 const CARD_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.iso-plate-corners,.iso-legend,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
 /* figures du livre (allégories des projets) : même figure dans la tuile (sans commandes, sur plaque crème) et dans la fiche */
-const LIVRE = { gares: '08', finance: '04', moteur: '16', cerfa: '11', pp: '52', studio: '06', suivi: '07', vm: '69' };
+const LIVRE = { finance: '04', moteur: '16', cerfa: '11', pp: '52', studio: '06', vm: '69' };
 const TILE_CSS = 'html,body{height:100%;margin:0;background:transparent!important;overflow:hidden!important}.iso-page,.iso-figure,.iso-plate{width:100%!important;max-width:none!important;height:100%!important;margin:0!important;padding:0!important;border:0!important}.iso-plate{background:#fff2d4!important;border-radius:14px!important;box-shadow:none!important}[class*="-ctl"],.iso-plate-corners,.iso-legend,.iso-caption,figcaption,.iso-halo{display:none!important}.iso-stage{height:100%!important;pointer-events:none!important}.iso-stage svg{width:100%!important;height:100%!important;display:block}';
 const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!important}.iso-page{width:min(920px,100% - 4px);margin:4px auto 8px}';
 {
