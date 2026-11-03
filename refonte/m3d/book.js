@@ -26,9 +26,9 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
       if (o.name.startsWith('anim_')) anims.push({ o, kind: o.name.split('_')[1], axis: ['x', 'y', 'z'].includes(o.name.split('_')[2]) ? o.name.split('_')[2] : 'z', base: o.position.clone(), phase: anims.length * 1.7, ang: 0 });
     });
     /* témoin de marge (Fig 52.1) : la gaine d'air neuf et le vitrage passent du vert à l'ambre puis au rouge quand la marge disparaît */
-    const statusMats = [];
+    const statusMats = [], winMats = [];
     const lamps = {};
-    if (status) root.traverse((o) => { if (!o.isMesh) return; const n = o.material.name; if (n === 'vert') statusMats.push(o.material); else if (/^lamp_[gar]$/.test(n)) { lamps[n] = o.material; o.material.emissive = o.material.color.clone(); } });
+    if (status) root.traverse((o) => { if (!o.isMesh) return; const n = o.material.name; if (n === 'vert') statusMats.push(o.material); else if (n === 'vitre_vert') winMats.push(o.material); else if (/^lamp_[gar]$/.test(n)) { lamps[n] = o.material; o.material.emissive = o.material.color.clone(); } });
     const cOk = new THREE.Color('#3fae78'), cMid = new THREE.Color('#f0b13c'), cBad = new THREE.Color('#e0524c'), cTmp = new THREE.Color();
     const g = new THREE.Group(); g.add(root);
     /* flux d'air : des particules suivent des courbes de Bézier (coordonnées du modèle : x, y, z avec z vers le haut) */
@@ -51,7 +51,15 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
         if (a.kind === 'spin') { a.ang += dt * (0.6 + k * 9) * speed; a.o.rotation[a.axis] = a.ang; }
         else if (a.kind === 'swing') a.o.rotation[a.axis] = (k - 0.5) * (/cadran3/.test(a.o.name) ? 1.5708 : 2.1) + 0.04 * Math.sin(time * 1.9 + a.phase);
         else if (a.kind === 'wave') a.o.position.x = a.base.x + (0.01 + 0.06 * k) * Math.sin(time * (1.5 + 3 * k) + (/_1$/.test(a.o.name) ? Math.PI : 0));
-        else if (a.kind === 'lift') a.o.position.y = a.base.y + k * 0.14;
+        else if (a.kind === 'fizz') {              // bulles : plus nombreuses et plus vives quand les bassins sont agités
+          const idx = +a.o.name.split('_').pop(), on = idx / 18 < 0.15 + 0.85 * k, ph = Math.sin(time * (1.2 + 2.5 * k) + idx * 1.9);
+          a.o.scale.setScalar(on ? Math.max(0.05, ph * ph * (0.6 + 0.9 * k)) : 0.001);
+        } else if (a.kind === 'cover') {           // couverture : déroulée depuis le rouleau quand l'occupation est faible (nuit)
+          if (a.len === undefined) { const bb = new THREE.Box3().setFromObject(a.o); a.len = (bb.max.x - bb.min.x) / Math.max(1e-3, a.o.scale.x); }
+          const t = Math.min(1, Math.max(0, (0.3 - k) / 0.2)), s = t * t * (3 - 2 * t);
+          a.s = a.s === undefined ? s : a.s + (s - a.s) * Math.min(1, dt * 3);
+          a.o.scale.x = Math.max(0.001, a.s); a.o.position.x = a.base.x + (a.len / 2) * (1 - a.s); a.o.visible = a.s > 0.01;
+        } else if (a.kind === 'lift') a.o.position.y = a.base.y + k * 0.14;
         else if (a.kind === 'slide') {            // chariot : course selon le réglage ; filets d'air : défilement continu
           if (/filet/.test(a.o.name)) a.o.position.x = a.base.x + (((time * (0.3 + k) + a.phase * 0.2) % 1 + 1) % 1) * 0.9 - 0.2;
           else a.o.position.x = a.base.x + (k - 0.5) * 1.5;
@@ -70,11 +78,13 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1, f
     function update2(time) {
       baseUpdate(time);
       const k = v / 100;
-      if (statusMats.length) {
-        const margin = 1 - k;                                   // 1 : marge large, 0 : plus de marge
-        if (margin > 0.5) cTmp.copy(cMid).lerp(cOk, (margin - 0.5) * 2); else cTmp.copy(cBad).lerp(cMid, margin * 2);
-        const lv = margin > 0.5 ? 'lamp_g' : margin > 0.2 ? 'lamp_a' : 'lamp_r';
+      if (statusMats.length || winMats.length) {
+        const col = (margin, out) => { if (margin > 0.5) out.copy(cMid).lerp(cOk, (Math.min(1, margin) - 0.5) * 2); else out.copy(cBad).lerp(cMid, Math.max(0, margin) * 2); return out; };
+        const lv = (1 - k) > 0.5 ? 'lamp_g' : (1 - k) > 0.2 ? 'lamp_a' : 'lamp_r';
         for (const n in lamps) lamps[n].emissiveIntensity = n === lv ? 1.6 : 0.04;
+        col(1 - k * 1.25, cTmp);      // le vitrage perd sa marge en premier (surface froide face à la rosée)
+        for (const m of winMats) { m.color.copy(cTmp); m.emissive = m.emissive || new THREE.Color(); m.emissive.copy(cTmp).multiplyScalar(0.55); m.emissiveIntensity = 1; }
+        col(1 - k * 0.8, cTmp);       // la gaine d'air neuf garde une marge plus large
         for (const m of statusMats) { m.color.copy(cTmp); m.emissive = m.emissive || new THREE.Color(); m.emissive.copy(cTmp).multiplyScalar(0.55); m.emissiveIntensity = 1; }
       }
       for (const q of parts) {
