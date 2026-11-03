@@ -168,7 +168,7 @@ export function initInfinity(canvas) {
 
   let visible = false;
   function resize() {
-    const r = host.getBoundingClientRect(); const w = Math.max(2, Math.round(r.width)), h = Math.max(2, Math.round(r.height));
+    const w = host.offsetWidth, h = host.offsetHeight; if (!w || !h) return;   // taille de mise en page : la projection 3D ne la déforme pas
     renderer.setSize(w, h, false);
     rt.setSize(w, h);
     postMat.uniforms.uRes.value.set(w, h);
