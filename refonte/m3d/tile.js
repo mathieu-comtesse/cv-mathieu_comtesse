@@ -6,9 +6,9 @@ import { trackGlow, ACCENT } from './glow.js';
 import { createBlueprintPlane } from '../blueprint-hero.js';
 
 const MODULES = {
-  moteur: () => import('./moteur.js'), cerfa: () => import('./cerfa.js'), vm: () => import('./vm.js'), vre: () => import('./vre.js'),
-  gares: () => import('./gares.js'), finance: () => import('./finance.js'), pp: () => import('./pp.js'), powerbi: () => import('./powerbi.js'),
-  suivi: () => import('./suivi.js'), studio: () => import('./studio.js'), 'vrestudio-musicbox': () => import('./vrestudio.js')
+  moteur: () => import('./moteur.js'), cerfa: () => import('./cerfa.js'), vm: () => import('./vm.js'), vre: () => import('./vre-wattselse.js'),
+  gares: () => import('./gares.js'), finance: () => import('./finance.js'), pp: () => import('./pp.js'), powerbi: () => import('./powerbi-wattselse.js'),
+  suivi: () => import('./suivi.js'), studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./vrestudio.js')
 };
 const DEG = Math.PI / 180;
 

@@ -18,7 +18,7 @@ else {
 }
 
 /* Figures du livre de génie climatique : les figures d'origine (SVG et animations), habillées dans la palette de la DA, remplacent les machines 3D */
-const LIVRE = { finance: '04', moteur: '16', cerfa: '11', pp: '52', studio: '06', vm: '69' };
+const LIVRE = {};
 const fig = document.querySelector('.rf-post-fig[data-fig]');
 const bpCanvas = document.getElementById('rf-bp');
 const stage = document.getElementById('stage');
