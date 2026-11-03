@@ -69,6 +69,7 @@ await Promise.all(ITEMS.map(async(it,i)=>{
   holder.userData.top=b2.max.y-b2.min.y;scene.add(holder);holders.push({holder,root});
   const tag=document.createElement('div');tag.className='tag';tag.innerHTML='<b>'+it.t+'</b><span>'+it.p+'</span>';tags.appendChild(tag);holders[holders.length-1].tag=tag;
 }));
+scene.traverse(o=>{if(o.isMesh&&/^(eau|bleu|vitre_vert)$/.test(o.material.name)){o.material.emissive=o.material.color.clone().multiplyScalar(.55);o.material.userData.unique=true;}});
 lp.pass();
 function resize(){const w=innerWidth,h=innerHeight,narrow=w<700;renderer.setSize(w,h);camera.aspect=w/h;
   const cols=narrow?2:3,rows=Math.ceil(holders.length/cols);
