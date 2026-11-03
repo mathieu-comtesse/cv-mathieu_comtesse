@@ -105,7 +105,7 @@ function facetGeometry(src, material) {
 }
 
 /* objets qui gardent leurs couleurs d'origine (télés, enceintes, canapé, USM) ; tout matériau texturé (tapis, tableau, couvertures) est aussi conservé */
-const KEEP_IDS = /^(rug|tv|videosphere|jbl.*|ekstrem|usm.*|shelf.*|drawer|sofa)$/;
+const KEEP_IDS = /^(rug|falk|tv|videosphere|jbl.*|ekstrem|usm.*|shelf.*|drawer|sofa)$/;
 const ownerKept = (o) => { for (let p = o; p; p = p.parent) { const id = p.userData && p.userData.id; if (id && KEEP_IDS.test(id)) return true; } return false; };
 const keep = (m) => !m || Array.isArray(m) || m.userData?.unique || m.userData?.lowpoly === 'keep' || !(m.isMeshStandardMaterial || m.isMeshPhongMaterial || m.isMeshLambertMaterial)
   || (m.emissive && m.emissive.getHex() !== 0 && (m.emissiveIntensity ?? 1) > 0) || m.emissiveMap || (m.transparent && !m.map) || m.isMeshPhysicalMaterial && m.transmission > 0 || m.opacity < 1;
