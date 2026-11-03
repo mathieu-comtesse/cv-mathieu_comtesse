@@ -7,8 +7,8 @@ import { daLook } from '../../js/da-shader.js?v=da5';
 const SWAP = { '#f78a6e': '#8a72d6', '#ec6a85': '#6fb08c', '#8a72d6': '#f78a6e', '#fed8ad': '#ffe3d2', '#fcc59a': '#e4f1dc', '#c94f68': '#563a92' };
 const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), new THREE.Color(b)]));
 
-export async function makeBook(file, { label, fmt, recolor = false, speed = 1 }) {
-  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk14');
+export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null }) {
+  const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk16');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
   const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
   function build() {
@@ -25,6 +25,13 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1 })
       if (o.name.startsWith('anim_')) anims.push({ o, kind: o.name.split('_')[1], axis: ['x', 'y', 'z'].includes(o.name.split('_')[2]) ? o.name.split('_')[2] : 'z', base: o.position.clone(), phase: anims.length * 1.7, ang: 0 });
     });
     const g = new THREE.Group(); g.add(root);
+    /* flux d'air : des particules suivent des courbes de Bézier (coordonnées du modèle : x, y, z avec z vers le haut) */
+    const parts = [];
+    if (flows) {
+      const geo = new THREE.SphereGeometry(0.022, 8, 6), mt = daLook(new THREE.MeshStandardMaterial({ color: '#e4dcff', roughness: 1, transparent: true, opacity: 0.9 }));
+      flows.forEach((c, ci) => { for (let k = 0; k < 6; k++) { const m = new THREE.Mesh(geo, mt.clone()); m.castShadow = false; g.add(m); parts.push({ m, c, off: k / 6 + ci * 0.13 }); } });
+    }
+    const P = (c, t) => { const u = 1 - t, f = (i) => u * u * c[0][i] + 2 * u * t * c[1][i] + t * t * c[2][i]; return [f(0), f(2), -f(1)]; };
     let v = 50, manual = -1e9, last = null;
     const controls = {
       label, min: 0, max: 100, step: 10, fmt,
@@ -52,8 +59,17 @@ export async function makeBook(file, { label, fmt, recolor = false, speed = 1 })
         }
       }
     }
-    update(0);
-    return { group: g, update, controls };
+    const baseUpdate = update;
+    function update2(time) {
+      baseUpdate(time);
+      const k = v / 100;
+      for (const q of parts) {
+        const t = (((time * (0.12 + k * 0.4) + q.off) % 1) + 1) % 1, p = P(q.c, t);
+        q.m.position.set(p[0], p[1], p[2]); q.m.material.opacity = Math.sin(Math.PI * t) * 0.9; q.m.scale.setScalar(0.6 + 0.8 * Math.sin(Math.PI * t));
+      }
+    }
+    update2(0);
+    return { group: g, update: update2, controls };
   }
   return { build, width };
 }
