@@ -926,3 +926,8 @@ html body.rf-article{background:#080b0f}
 .rf-tech + .rf-fsep{margin-top:12px}
 
 .rf-legend{margin:14px 0 6px;padding:0;list-style:none;display:grid;gap:10px}.rf-legend li{padding:12px 14px;border-left:3px solid #f78a6e;background:rgb(7 9 12 / .78);backdrop-filter:blur(6px);border-radius:0 10px 10px 0;line-height:1.5}.rf-legend b{color:#fed8ad;font-weight:700}.rf-legend-note{font-size:.9em;opacity:.7;margin-top:8px}
+
+/* figures du livre (allégories des projets) : l'iframe remplace la machine 3D, pleine largeur du texte, avec sa légende */
+.rf-post--bp .rf-post-fig.rf-live-fig{display:block;min-height:0;margin:30px 0 40px;pointer-events:auto;will-change:auto;overflow:visible}
+.rf-post--bp .rf-post-fig.rf-live-fig figcaption{display:block;padding:12px 4px 0;color:#bcd2f3}
+iframe.rf-live{position:relative!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;width:100%;max-width:100%;border:0;border-radius:18px;background:transparent}
