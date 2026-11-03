@@ -243,9 +243,18 @@ const FRAME_CSS = 'html,body{background:transparent!important;overflow:hidden!im
 {
   // tuiles : la machine 3D du projet sur le plan blueprint (comme sur les pages projet), animée tant que la tuile est visible
   const active = new Map();
+  const BP_FIG = { moteur: '16', pp: '52', vm: '69' };
   const mount = async (wrap) => {
     if (active.has(wrap)) return;
     active.set(wrap, null);
+    if (BP_FIG[wrap.dataset.fig]) {   // tuile : le dessin d'origine sur le blueprint de la tuile
+      const fr = document.createElement('iframe');
+      fr.className = 'rf-tile-3d rf-tile-bp'; fr.src = 'figures-livre/' + BP_FIG[wrap.dataset.fig] + '.html?v=b6'; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true'); fr.title = ''; fr.scrolling = 'no';
+      fr.addEventListener('load', () => wrap.classList.add('rf-on'));
+      wrap.append(fr);
+      active.set(wrap, { t: { dispose() {} }, ro: { disconnect() {} }, canvas: fr, stop() {} });
+      return;
+    }
     const canvas = document.createElement('canvas'); canvas.className = 'rf-tile-3d'; canvas.setAttribute('aria-hidden', 'true'); wrap.append(canvas);
     try {
       const { mountTile } = await import('./m3d/tile.js');
