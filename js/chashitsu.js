@@ -49,9 +49,15 @@ function shojiPanel(W = 0.9, H = 1.75) {
   return bake(g);
 }
 
-export function createChashitsu() {
+export function createChashitsu({ lite = false } = {}) {
   const g = group();
   const { w: RW, d: RD, h: RH } = ROOM;
+  if (lite) {   // sans pièce du thé ni jardin : rien n'est construit, seule l'emprise (invisible) reste pour le cadrage de la caméra
+    const DK = { z0: RD / 2 + 0.05, depth: 1.1, y: RH - 0.015 };
+    const bound = new THREE.Mesh(new THREE.BoxGeometry(RW, RH, RD), new THREE.MeshBasicMaterial()); bound.visible = false; bound.position.y = RH / 2; g.add(bound);
+    const vista = group(), garden = group(); vista.visible = false; vista.add(garden); g.add(vista);
+    return { garden, group: g, lantern: group(), lanternGlow: null, panels: [], vista, setRoofFade() {}, togglePanel() {}, setPanels() {}, update() {}, spec: { RW, RD, RH, DK, SEA: {} } };
+  }
 
   /* plate-forme de tatamis */
   const floorM = [mat('#3a2a1e'), mat('#3a2a1e'), new THREE.MeshStandardMaterial({ map: floorTexture(), roughness: 1 }), mat('#3a2a1e'), mat('#3a2a1e'), mat('#3a2a1e')];

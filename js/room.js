@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
 import { teaSet, updateSteam } from './tea.js?v=cv-scene-v30';
 import { createRitual } from './ritual.js?v=cv-scene-v29';
-import { createChashitsu } from './chashitsu.js?v=zen18';
+import { createChashitsu } from './chashitsu.js?v=zen20';
 import { createRetroSet } from './retro.js?v=cv-scene-v54';
 import { createPowerParts, insertPlug, yawToward } from './power-parts.js?v=cv-scene-v61';
 import { createNav } from './nav.js?v=cv-scene-v29';
@@ -258,7 +258,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   const ek = F.ekstremFrom(ekGltf); add('ekstrem', ek, 2.3, -0.95, -0.45, 0, 0.35).scale.setScalar(EKS);
   // pièce du thé excentrée (plate-forme de tatamis, shoji coulissants, balcon en bois, mer) ; origine du thé = zabuton de l'invité
   const CS = { x: -5.5, z: 7.3 };
-  const cs = createChashitsu();
+  const cs = createChashitsu({ lite: !!options.noTea });
   add('chashitsu', cs.group, CS.x, CS.z, 0, 0, 0.5, world, 0);
   const TEA = { x: CS.x, z: CS.z - 0.45, y: cs.spec.RH - 0.055 };
   const tea = teaSet({ mat: false });
@@ -867,7 +867,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       zones.push({ id, ring, x, z });
     };
     mk('desk', -2.15, 0, 0.3); mk('ekstrem', 2.3, 0, -0.95); mk('usm', -0.8, 0, -1.9); mk('alocasia', -3.1, 0, 3.25);
-    mk('pump', 2.65, 0, -4.15); mk('bonsai', STOOL_X, 0, STOOL_Z); mk('dracaena', 2.85, 0, -2.45); mk('sofa', 0.35, 0, 4.4); mk('cha', TEA.x, TEA.y + 0.0, TEA.z);
+    mk('pump', 2.65, 0, -4.15); mk('bonsai', STOOL_X, 0, STOOL_Z); mk('dracaena', 2.85, 0, -2.45); mk('sofa', 0.35, 0, 4.4); if (!options.noTea) mk('cha', TEA.x, TEA.y + 0.0, TEA.z);
   }
   let zoneOn = false, zoneNear = null;
   function showZones(on) { zoneOn = on; for (const z of zones) z.ring.visible = on; zoneNear = null; }
