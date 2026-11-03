@@ -10,7 +10,7 @@ const swap = new Map(Object.entries(SWAP).map(([a, b]) => [new THREE.Color(a), n
 export async function makeBook(file, { label, fmt, recolor = false, speed = 1, flows = null, flowSize = 0.022, lift = 0, status = false }) {
   const gltf = await new GLTFLoader().loadAsync('assets/machines/' + file + '.glb?v=bk50');
   const size = new THREE.Box3().setFromObject(gltf.scene).getSize(new THREE.Vector3());
-  const width = Math.max(size.x, size.z, size.y * (file === "autoclave" ? 0.9 : 1.45));   // une machine haute est réduite pour tenir dans le cadre
+  const width = Math.max(size.x, size.z, size.y * 1.6);   // une machine haute est réduite pour tenir dans le cadre
   function build() {
     const root = gltf.scene.clone(true), anims = [];
     root.traverse((o) => {

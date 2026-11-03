@@ -17,8 +17,6 @@ else {
   els.forEach((e) => io.observe(e));
 }
 
-/* Figures du livre de génie climatique : les figures d'origine (SVG et animations), habillées dans la palette de la DA, remplacent les machines 3D */
-const LIVRE = {};
 const fig = document.querySelector('.rf-post-fig[data-fig]');
 const bpCanvas = document.getElementById('rf-bp');
 const stage = document.getElementById('stage');
@@ -44,16 +42,7 @@ if (fig && bpCanvas && stage) {
   aspect(); addEventListener('resize', aspect);
   const rulers = document.querySelectorAll('.rf-ruler');   // les règles ne se voient que sur le blueprint, tant que la machine est visible
   const canvas = document.createElement('canvas'); canvas.className = 'rf-m3d'; canvas.setAttribute('aria-hidden', 'true'); document.body.append(canvas);
-  const mountLive = (num) => {
-    canvas.remove(); fig.classList.add('rf-live-fig');
-    const fr = document.createElement('iframe');
-    fr.className = 'rf-live'; fr.scrolling = 'no'; fr.src = 'figures-livre/' + num + '.html?v=l5'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure du livre'; fr.loading = 'lazy';
-    fr.style.cssText = 'width:100%;border:0;display:block;height:820px;background:transparent;color-scheme:light';
-    fig.querySelector('img')?.replaceWith(fr);
-    addEventListener('message', (e) => { if (e.source === fr.contentWindow && e.data && e.data.livreHeight) fr.style.height = e.data.livreHeight + 'px'; });
-  };
-  import('./m3d/index.js').then(({ mountMachine }) => LIVRE[fig.dataset.fig] ? null : mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
-    if (!m) { mountLive(LIVRE[fig.dataset.fig]); return; }
+  import('./m3d/index.js').then(({ mountMachine }) => mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
     machine = m; machine.resize(); fig.querySelector('img')?.remove();
     const t0 = performance.now();
     /* Interaction directement sur la machine 3D, comme sur la figure d'origine : on attrape la machine et on glisse (ou flèches gauche / droite)
