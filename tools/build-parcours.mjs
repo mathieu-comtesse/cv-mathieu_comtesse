@@ -11,7 +11,7 @@ const text = (h) => h.replace(/<[^>]+>/g, '').replace(/&(#\d+|\w+);/g, (m, e) =>
 const first = (re, s) => { const m = re.exec(s); return m ? text(m[1]) : ''; };
 
 /* accueil : sections, thématiques (h2) et tuiles */
-const index = read('index.html');
+const index = read('accueil.html');
 const main = index.slice(index.indexOf('<main'));
 const themes = [];
 let section = '';
