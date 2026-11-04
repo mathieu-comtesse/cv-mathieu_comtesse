@@ -9,6 +9,7 @@ const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
 const part = (body, title) => { const i = body.indexOf(`<h2>${title}</h2>`); if (i < 0) return ''; const rest = body.slice(i + title.length + 9); const j = rest.indexOf('<h2>'); return (j < 0 ? rest : rest.slice(0, j)).trim(); };
 const one = (re, s) => (re.exec(s) || ['', ''])[1].trim();
 
+const BP_FIG = { moteur: '16', pp: '52', vm: '69' };   // même table que refonte/post.js
 let html = read('index.html');
 const START = /<article id="cv-[^"]*"[^>]*data-cv-type="machine"[^>]*>/g;
 const out = [];
@@ -24,7 +25,8 @@ for (const m of html.matchAll(START)) {
   // la machine 3D de la fiche
   const fig = one(/<figure class="rf-post-fig[^"]*" data-fig="([^"]+)"/, page);
   const figTitle = one(/<h1>([\s\S]*?)<\/h1>/, page);
-  const machine = `<div class="cv-machine" data-cv-machine="${fig}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-machine-controls" data-html-in-canvas-own-clicks=""></div></div>`;
+  // Q18, chaîne des PP et VRE · VM : figures du livre (archive importée), comme sur les pages projet ; les autres : machines 3D
+  const machine = BP_FIG[fig] ? `<div class="cv-bpfig"><iframe class="rf-bp-frame" src="figures-livre/${BP_FIG[fig]}.html?v=b6" title="${figTitle}" scrolling="no" loading="lazy"></iframe></div>` : `<div class="cv-machine" data-cv-machine="${fig}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-machine-controls" data-html-in-canvas-own-clicks=""></div></div>`;
   const from = page.indexOf('<div class="rf-post-body">'), to = page.slice(from).search(/<\/div>\s*(?:<nav class="rf-post-pn"|<\/article>)/);
   if (to < 0) throw new Error('fin du corps introuvable : ' + slug);
   const body = page.slice(from, from + to);
