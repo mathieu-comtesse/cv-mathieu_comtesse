@@ -67,6 +67,7 @@ import {
 } from 'three';
 import { toTrianglesDrawMode } from './BufferGeometryUtils.js';
 import { clone } from './SkeletonUtils.js';
+import { MeshoptDecoder } from './meshopt_decoder.module.js';   // modèles compressés (EXT_meshopt_compression) : décodeur branché par défaut
 
 /**
  * A loader for the glTF 2.0 format.
@@ -138,7 +139,7 @@ class GLTFLoader extends Loader {
 
 		this.dracoLoader = null;
 		this.ktx2Loader = null;
-		this.meshoptDecoder = null;
+		this.meshoptDecoder = MeshoptDecoder;
 
 		this.pluginCallbacks = [];
 
