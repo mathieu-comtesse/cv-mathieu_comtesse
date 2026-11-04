@@ -1,6 +1,6 @@
 // Reprend le contenu complet de chaque fiche projet (projet-*.html) dans parcours.html, mis en page comme les cartes Shopify Editions :
-// un cadre principal (idée, objet en action et légende à gauche, machine à droite), deux demi-cadres (le projet, ce que ça change),
-// puis, hors cadre, pour l'équipe, comment ça marche et construction.
+// à gauche un cadre (idée, objet en action et légende), à droite la machine 3D hors cadre, posée sur le chemin ; deux demi-cadres
+// (le projet, ce que ça change) ; pour l'équipe ; comment ça marche en cadre, avec son bouton « voir la magie » flottant ; construction.
 // Usage : node tools/build-parcours-projets.mjs   (relancer après toute modification d'une fiche)
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -9,7 +9,6 @@ const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
 const part = (body, title) => { const i = body.indexOf(`<h2>${title}</h2>`); if (i < 0) return ''; const rest = body.slice(i + title.length + 9); const j = rest.indexOf('<h2>'); return (j < 0 ? rest : rest.slice(0, j)).trim(); };
 const one = (re, s) => (re.exec(s) || ['', ''])[1].trim();
 
-const BP_FIG = { moteur: '16', pp: '52', vm: '69' };   // même table que refonte/post.js et refonte/main.js
 let html = read('parcours.html');
 const START = /<article id="cv-[^"]*"[^>]*data-cv-type="machine"[^>]*>/g;
 const out = [];
@@ -22,12 +21,10 @@ for (const m of html.matchAll(START)) {
   const slug = one(/data-(?:href|fiche)="(?:https:\/\/comtesse\.me\/)?(projet-[a-z0-9-]+)/, seg);
   if (!slug) throw new Error('article incomplet à ' + m.index);
   const page = read(slug + '.html');
-  // la figure de la fiche : dessin d'origine du livre sur le blueprint (comme refonte/post.js) ou machine 3D
+  // la machine 3D de la fiche
   const fig = one(/<figure class="rf-post-fig[^"]*" data-fig="([^"]+)"/, page);
   const figTitle = one(/<h1>([\s\S]*?)<\/h1>/, page);
-  const machine = BP_FIG[fig]
-    ? `<div class="cv-bpfig"><iframe class="rf-bp-frame" src="figures-livre/${BP_FIG[fig]}.html?v=b3" title="${figTitle}" scrolling="no" loading="lazy"></iframe></div>`
-    : `<div class="cv-machine" data-cv-machine="${fig}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-machine-controls" data-html-in-canvas-own-clicks=""></div></div>`;
+  const machine = `<div class="cv-machine" data-cv-machine="${fig}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-machine-controls" data-html-in-canvas-own-clicks=""></div></div>`;
   const from = page.indexOf('<div class="rf-post-body">'), to = page.slice(from).search(/<\/div>\s*(?:<nav class="rf-post-pn"|<\/article>)/);
   if (to < 0) throw new Error('fin du corps introuvable : ' + slug);
   const body = page.slice(from, from + to);
@@ -39,7 +36,7 @@ for (const m of html.matchAll(START)) {
   const flow = (/<div class="rf-flow"[\s\S]*?<\/ol><\/div>/.exec(body) || [''])[0].replace(/ rf-tl-rv/g, '');
   const opt = (t, cls) => { const c = part(body, t); return c ? `<div class="${cls}"><h4>${t}</h4>${c}</div>` : ''; };
   out.push(html.slice(at, copy) +
-`<div data-card-copy="" class="cv-card-content cv-pframe cv-pframe-main" data-fiche="${slug}" style="--html-in-canvas-rise:.45"><div class="cv-pf-text"><p class="cv-pf-kicker">${kicker}</p><h3 class="trim-cap font-sans font-medium">${title}</h3><p class="cv-pf-sub">${sub}</p><h4>L’idée</h4>${part(body, 'L’idée')}<h4>L’objet en action</h4>${action}</div>${machine}</div><div class="cv-card-body"><div class="cv-legacy cv-project" data-html-in-canvas-flat=""><div class="cv-pf-pair"><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Le projet</h4>${part(body, 'Le projet')}${part(body, 'Distinction') ? '<h4>Distinction</h4>' + part(body, 'Distinction') : ''}</section><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Ce que ça change</h4>${gains}</section></div>${opt('Pour l’équipe', 'cv-pf-more')}<div class="rf-post-body pc-flowwrap cv-pframe cv-pf-flow" data-flow="" style="--html-in-canvas-rise:.45"><h2>Comment ça marche</h2>${flow}</div>${opt('Construction', 'cv-pf-more')}</div></div><!-- /pf -->`);
+`<div data-card-copy="" class="cv-card-content cv-pf-main" data-fiche="${slug}"><div class="cv-pframe cv-pf-text" style="--html-in-canvas-rise:.45"><p class="cv-pf-kicker">${kicker}</p><h3 class="trim-cap font-sans font-medium">${title}</h3><p class="cv-pf-sub">${sub}</p><h4>L’idée</h4>${part(body, 'L’idée')}<h4>L’objet en action</h4>${action}</div>${machine}</div><div class="cv-card-body"><div class="cv-legacy cv-project" data-html-in-canvas-flat=""><div class="cv-pf-pair"><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Le projet</h4>${part(body, 'Le projet')}${part(body, 'Distinction') ? '<h4>Distinction</h4>' + part(body, 'Distinction') : ''}</section><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Ce que ça change</h4>${gains}</section></div>${opt('Pour l’équipe', 'cv-pf-more')}<div class="rf-post-body pc-flowwrap cv-pframe cv-pf-flow" data-flow="" style="--html-in-canvas-rise:.45"><h2>Comment ça marche</h2>${flow}</div><button type="button" class="cv-magic3d">Cliquez ici pour voir la magie</button>${opt('Construction', 'cv-pf-more')}</div></div><!-- /pf -->`);
   at = end + marker.length - '</article>'.length;
   count++;
 }
