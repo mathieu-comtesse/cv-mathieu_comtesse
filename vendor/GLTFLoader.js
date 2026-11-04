@@ -67,6 +67,26 @@ import {
 } from 'three';
 import { toTrianglesDrawMode } from './BufferGeometryUtils.js';
 import { clone } from './SkeletonUtils.js';
+import { MeshoptDecoder } from './meshopt_decoder.module.js';   // modèles compressés (EXT_meshopt_compression) : décodeur branché par défaut
+
+// Les vertex buffers meshopt arrivent entrelacés ; le reste du site (kit.js, mergeVertices…) attend des attributs simples : conversion à la sortie du chargeur.
+function deinterleave( gltf ) {
+	const seen = new Set();
+	gltf.scene.traverse( ( o ) => {
+		const g = o.geometry; if ( ! g || seen.has( g ) ) return; seen.add( g );
+		for ( const name of Object.keys( g.attributes ) ) {
+			const a = g.attributes[ name ];
+			const plain = /^(position|normal|tangent|color|uv\d*|texcoord_\d+)$/i.test( name );
+			if ( ! a.isInterleavedBufferAttribute && ( ! plain || a.array instanceof Float32Array ) ) continue;
+			// attributs quantifiés (Int16, Uint16 normalisés) : remis en Float32, comme avant la compression
+			const n = a.count, k = a.itemSize, G = [ 'getX', 'getY', 'getZ', 'getW' ];
+			const toFloat = plain && ! ( a.array instanceof Float32Array ) && ! ( a.isInterleavedBufferAttribute && a.array instanceof Float32Array );
+			const out = new ( toFloat ? Float32Array : a.array.constructor )( n * k );
+			for ( let i = 0; i < n; i ++ ) for ( let c = 0; c < k; c ++ ) out[ i * k + c ] = toFloat ? a[ G[ c ] ]( i ) : a.array[ i * a.data.stride + a.offset + c ];
+			g.setAttribute( name, new BufferAttribute( out, k, toFloat ? false : a.normalized ) );
+		}
+	} );
+}
 
 /**
  * A loader for the glTF 2.0 format.
@@ -138,7 +158,7 @@ class GLTFLoader extends Loader {
 
 		this.dracoLoader = null;
 		this.ktx2Loader = null;
-		this.meshoptDecoder = null;
+		this.meshoptDecoder = MeshoptDecoder;
 
 		this.pluginCallbacks = [];
 
@@ -545,7 +565,7 @@ class GLTFLoader extends Loader {
 
 		parser.setExtensions( extensions );
 		parser.setPlugins( plugins );
-		parser.parse( onLoad, onError );
+		parser.parse( ( gltf ) => { deinterleave( gltf ); onLoad( gltf ); }, onError );
 
 	}
 
