@@ -1,4 +1,4 @@
-// Reprend le contenu complet de chaque fiche projet (projet-*.html) dans parcours.html, mis en page comme les cartes Shopify Editions :
+// Reprend le contenu complet de chaque fiche projet (projet-*.html) dans index.html, mis en page comme les cartes Shopify Editions :
 // à gauche un cadre (idée, objet en action et légende), à droite la machine 3D hors cadre, posée sur le chemin ; deux demi-cadres
 // (le projet, ce que ça change) ; pour l'équipe ; comment ça marche en cadre, avec son bouton « voir la magie » flottant ; construction.
 // Usage : node tools/build-parcours-projets.mjs   (relancer après toute modification d'une fiche)
@@ -9,7 +9,7 @@ const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
 const part = (body, title) => { const i = body.indexOf(`<h2>${title}</h2>`); if (i < 0) return ''; const rest = body.slice(i + title.length + 9); const j = rest.indexOf('<h2>'); return (j < 0 ? rest : rest.slice(0, j)).trim(); };
 const one = (re, s) => (re.exec(s) || ['', ''])[1].trim();
 
-let html = read('parcours.html');
+let html = read('index.html');
 const START = /<article id="cv-[^"]*"[^>]*data-cv-type="machine"[^>]*>/g;
 const out = [];
 let at = 0, count = 0;
@@ -41,5 +41,5 @@ for (const m of html.matchAll(START)) {
   count++;
 }
 html = out.join('') + html.slice(at);
-writeFileSync(new URL('parcours.html', ROOT), html);
-console.log(count + ' projets repris des fiches → parcours.html');
+writeFileSync(new URL('index.html', ROOT), html);
+console.log(count + ' projets repris des fiches → index.html');
