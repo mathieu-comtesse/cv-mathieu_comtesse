@@ -23,7 +23,7 @@ Points à décider par le propriétaire du site :
 ## Corrigé dans cette branche
 
 1. `cvRegisterGeometry` ne fait plus échouer les machines et la tirelire si `mesh.wgsl` est injoignable : repli sur le rendu Three.js local (`publish()` renvoie `false`). L'avertissement « La tirelire 3D ne peut pas être affichée » a disparu dans le test CDN coupé.
-2. `refonte/base-fallback.css` : feuille de secours originale chargée si la feuille externe échoue. **Insuffisante** : le texte devient lisible mais la page reste largement cassée, car le balisage dépend de la feuille externe.
+2. `refonte/base-fallback.css` (supprimée) : première feuille de secours, insuffisante, remplacée par `refonte/site.css` (voir plus bas).
 
 ## Reste à faire (non commencé)
 
@@ -47,3 +47,24 @@ Vérifié (`node tools/perf/mesh-check.cjs <machine> sortie.png webgl`) : 11 mac
 **Non vérifié** : le chemin WebGPU natif. Dans ce conteneur, un périphérique WebGPU est détruit dès la première image, même avec du WebGPU brut (test `gpu3`), donc seul le backend WebGL2 a été exécuté. Sur un GPU réel, le module utilisera WebGPU ; son rendu n'a pas été observé.
 
 **Reste dépendant de Shopify** : `mesh.wgsl` est encore importé par le client HTML-in-canvas (345 Ko) lui-même chargé depuis le CDN ; la feuille Tailwind, les 22 autres modules et les polices sont inchangés. Le module original ne dessine que les canvas 2D des machines ; le canvas de la tirelire (contexte WebGL propre) garde son rendu.
+
+## Feuille de style originale (`refonte/site.css`, 29 Ko)
+
+Chaîne : `node tools/css/build.mjs` génère `refonte/site.css` avec Tailwind CSS v4 (licence MIT, utilitaires et base) à partir du balisage réel et de `tools/css/classes.txt` (478 classes relevées dans le DOM après exécution), plus `refonte/css/components.css` (jetons et composants écrits à la main). Les jetons sont des valeurs mesurées sur la page de référence (échelle d'espacement 1 px, point de rupture 58,75 rem, couleurs de section, tailles `clamp`, colonnes du héros déduites par calcul), pas du CSS recopié.
+
+Utilisation :
+- **Secours automatique** : si la feuille Shopify ne charge pas (`onerror`), `site.css` est chargée. Test CDN coupé : l'accueil affiche menu, cartes et graphe au lieu d'une page sans mise en page.
+- **Comparaison** : `?css=local` remplace la feuille Shopify par `site.css`.
+- Production inchangée : la feuille Shopify reste la feuille par défaut.
+
+Mesure (`node tools/css/diff.cjs 1440 900`, 3 212 éléments, 50 propriétés calculées chacun) :
+
+| État | Éléments différents | Propriétés différentes | Pixels différents (capture) |
+|---|---|---|---|
+| Tailwind seul | 94,7 % | 10 966 | non mesuré |
+| + jetons et premiers composants | 16,9 % | 1 183 (0,74 %) | 92 % |
+| + colonnes du héros | 27,1 % (structure alignée) | 1 569 | 33 % |
+
+Sur 1 569 écarts, 869 sont la police (Inter à la place de PP Neue Montreal, choix à confirmer). Les trois résolutions (1440, 1920, 390) donnent des taux voisins : 0,7 à 1,7 % des propriétés.
+
+**Reste à écrire** (non fait) : le système d'animations du héros pilotées par le défilement (`hero-expand-x/y`, `hero-chrome-exit`, `hero-entrance-*`, `hero-graph-*`, une quinzaine de classes avec leurs `@keyframes`), le remplissage de page par section (`f26-page-fill-*`, `animation-timeline`), `checkpoint-stage__*`, la bande blanche en haut du héros, les états de survol et les requêtes média restantes. Tant que ces animations manquent, `?css=local` ne rend pas le héros comme l'original (graphe plein cadre au chargement).

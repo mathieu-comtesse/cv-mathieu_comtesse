@@ -1,0 +1,68 @@
+/* Composants et jetons propres au site, écrits à la main (jetons mesurés sur la mise en page d'origine). */
+@custom-variant global-lg (@media (min-width: 58.75rem));
+@custom-variant global-md (@media (min-width: 40rem));
+
+@theme {
+  --spacing: 1px;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --spacing-grid-margin: 1rem;
+  --spacing-grid-gutter: 1rem;
+  --spacing-desktop-header-height: calc(50px + env(safe-area-inset-top));
+  --spacing-mobile-header-height: calc(60px + env(safe-area-inset-top));
+  --spacing-section: clamp(3rem, 36.7324px + 3.0047vw, 5rem);
+  --spacing-section-xl: clamp(4rem, 47.0986px + 4.50704vw, 7rem);
+  --spacing-block: clamp(1.5rem, 18.3662px + 1.50235vw, 2.5rem);
+  --spacing-card: clamp(1rem, 13.1831px + .751174vw, 1.5rem);
+  --color-section-blue: var(--f26-color-brand);
+  --color-section-pink: var(--f26-color-section-pink);
+  --color-section-green: var(--f26-color-section-green);
+  --color-section-orange: var(--f26-color-section-orange);
+  --color-section-purple: var(--f26-color-section-purple);
+  --color-section-slate: var(--f26-color-section-slate);
+  --color-graph-background: #010419;
+  --color-graph-ink: #324df1;
+  --text-mono: .75rem;            --text-mono--line-height: 1rem;
+  --text-mono-sm: .625rem;        --text-mono-sm--line-height: .75rem;
+  --text-mono-lg: 1.5rem;         --text-mono-lg--line-height: 1.75rem;
+  --text-hero-tagline: .6875rem;  --text-hero-tagline--line-height: .9375rem;
+  --text-body-lg: 1.125rem;       --text-body-lg--line-height: 1.375rem;  --text-body-lg--letter-spacing: .01em;
+  --text-display: 4rem;           --text-display--line-height: 1;
+  --text-section-title: clamp(2.4375rem, 13.8889vw - 5.44444px, 4rem);  --text-section-title--line-height: 1;
+  --aspect-exponential-logo: 144 / 740;
+  --ease-editions: cubic-bezier(.65, 0, .35, 1);
+}
+
+:root {
+  --f26-color-brand: #051daa;
+  --f26-color-section-pink: #b2005b;
+  --f26-color-section-green: #00632e;
+  --f26-color-section-orange: #b03400;
+  --f26-color-section-purple: #7000a9;
+  --f26-color-section-slate: #0f0f0f;
+}
+
+@layer base {
+  html { font-family: var(--font-sans); color-scheme: dark; }
+  body { font-size: 14px; font-weight: 500; line-height: 18px; letter-spacing: .01em; }
+}
+
+@layer components {
+  .f26-menu-chin { position: fixed; inset: auto 0 0 0; height: 32px; z-index: 50; pointer-events: none; visibility: hidden; background-color: rgba(0, 0, 0, .02); }
+  .f26-nav-underlay { position: fixed; inset: 0 0 auto 0; height: 50px; z-index: 31; pointer-events: none; background-color: var(--f26-color-brand); transition: opacity .6s cubic-bezier(.333, 0, .667, 1); }
+  .title-signal-wire { position: fixed; display: block; left: 0; top: -.6px; width: 1px; height: 1.2px; background-color: #fff; opacity: 0; font-size: 120px; line-height: 120px; letter-spacing: normal; }
+  .title-signal-node { position: absolute; display: block; left: 0; top: 0; width: 3px; height: 3px; background-color: #fff; opacity: 0; font-size: 120px; line-height: 120px; letter-spacing: normal; }
+  .checkpoint-stage__poster { position: absolute; inset: 0; z-index: 1; pointer-events: none; transition: opacity .22s; }
+  .checkpoint-stage__ruler { position: absolute; top: 16px; bottom: 10px; left: calc(50% - 6px); width: 13px; pointer-events: none; }
+  .hero { position: sticky; top: 50px; height: calc(100svh - 60px - env(safe-area-inset-top)); min-height: 25rem; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 58.75rem) {
+    .hero { height: calc(100svh - 50px); grid-template-rows: none;
+      grid-template-columns: calc(min((100svh - 70px) * (144 / 740), 25vw) + 1px) calc(clamp(12.8125rem, 17vw, 15.9375rem) + 20px) minmax(0, 1fr); }
+  }
+  .hero-logo { color: transparent; }
+  .hero-nav-point { position: absolute; opacity: 0; font-weight: 300; letter-spacing: normal; }
+  .grid-container { padding-inline: 1rem; }
+  .grid-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
+  @media (min-width: 58.75rem) { .grid-layout { grid-template-columns: repeat(16, minmax(0, 1fr)); } }
+  .underline-metrics { text-decoration-skip-ink: none; text-underline-offset: .08em; text-underline-position: from-font; text-decoration-style: solid; text-decoration-thickness: .05em; }
+}
