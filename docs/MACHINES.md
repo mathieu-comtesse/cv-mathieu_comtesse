@@ -17,7 +17,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 04 Power Automate PP | `pp` | `pp.js` (+ figure du livre 52) | `pp-clock.js` + `pp-timeline.js` | livrée (cette branche) |
 | 05 CERFA v3 | `cerfa` | `cerfa.js` (banc acoustique) | `cerfa-sorter.js` + `cerfa-timeline.js` | livrée (cette branche) |
 | 06 Extracteur VRE | `vre` | `vre-wattselse.js` | `vre-counter.js` + `vre-timeline.js` | livrée (cette branche) |
-| 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | inchangé (main conservée) | vague 3 |
+| 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | mêmes fichiers, mécanisme et main inchangés ; modes de lecture ajoutés dans `nisaru.js` | livrée (cette branche) |
 | 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | `powerbi-paternoster.js` + `powerbi-timeline.js` | livrée (cette branche) |
 | 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | `studio-pdf.js` + `studio-timeline.js` + `machine-kit.js` | livrée (cette branche) |
 | 10 Retrouver tout le suivi | `suivi` | `suivi.js` | `suivi-switchboard.js` + `suivi-timeline.js` | livrée (cette branche) |
@@ -231,3 +231,15 @@ Trois scénarios de 56 s : retrouver un OT (GMAO, SharePoint), un équipement (E
 **Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 160 solides contrôlés tous les 3 s sur 168 s (seule la touche enfoncée entre dans la tablette), 116 appels de rendu, 22 000 triangles, captures dans `docs/machines/suivi/`.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les cordons sont une courbe qui épouse la trajectoire, sans physique de corde (ils peuvent traverser l'écran) ; les contrepoids sous la tablette ne sont pas représentés ; pas de saisie réelle d'un OT : la demande suit le scénario ; l'écran n'affiche pas de liens cliquables ; « Afficher les liens et leurs destinations » est un écran schématique.
+
+## Machine 07 : Nisaru, perfectionnement
+
+La Manufacture et la main de La Création ne sont pas modifiées : la géométrie, les matériaux, la chronologie de 130 s, la main (`nisaru-hand.js`, `assets/figures/main-agent.webp`), la validation, la correction et le rejet sont identiques. Seul le temps lu par la chronologie peut maintenant être remappé.
+
+- **Cycle complet (130 s)** : mode par défaut (bouton « Auto »), la version détaillée.
+- **Séquence courte (environ 50 s)** : boutons « Court : validation », « Court : correction », « Court : rejet ». La même chronologie est lue en avance rapide (×2,6 à ×5) entre les temps forts et au rythme normal sur le cycle humain choisi (la main, son approche, le contact, l'impulsion). Les deux autres cycles humains passent en avance rapide. Aucun état n'est recalculé.
+- **Vue « Le registre »** ajoutée aux vues rapprochées (La main, La forge, Le registre) ; la barre d'étapes (9 étapes) suit le mode actif.
+
+Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreur, animation qui avance ; le mode par défaut lit `wrap(time)` comme avant.
+
+**Limites** : la séquence courte est un remappage du temps, pas une nouvelle mise en scène (les états transitoires se voient à vitesse élevée) ; l'inspection d'une zone reconnue, le suivi d'un document, la comparaison candidat contre modèle actif et l'exploration des versions ne sont pas des commandes séparées (elles restent portées par la barre d'étapes et les vues) ; pas de nouvel audit de géométrie pour Nisaru dans cette passe.
