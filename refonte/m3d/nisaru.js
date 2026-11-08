@@ -272,8 +272,17 @@ export function build() {
   at(anchors.hand, T.DESK_C[0] + 9, T.DESK_C[1] + 6, T.DESK_C[2] + 12); at(anchors.forge, FX, -40, 56); at(anchors.all, 35, 0, 40);
   for (const o of Object.values(anchors)) g.add(o);
   const go = (p, dx = 0, dy = 0, dz = 0) => at(p.root, p.o[0] + dx, p.o[1] + dy, p.o[2] + dz);
+  /* modes de lecture : le cycle détaillé de 130 s reste la référence ; la séquence courte (environ 50 s) rejoue la même chronologie en avance rapide entre les temps forts
+     et ralentit sur le cycle humain choisi (validation, correction ou rejet). Rien n'est recalculé : seul le temps lu par la chronologie change. */
+  anchors.register = new THREE.Object3D(); at(anchors.register, T.REG.x, 0, 58); g.add(anchors.register);
+  let shortJ = -1;
+  const segs = (j) => { const b = T.B[j], e = Math.min(b + 15, 80); return [[0, 14, 2.6], [14, 30, 2.6], [30, b, 3], [b, e, 1], [e, 80, 5], [80, 92, 3], [92, 112, 2.6], [112, 130, 2.6]].filter(([x, y]) => y > x); };
+  const SEGS = [0, 1, 2].map(segs), DUR = SEGS.map((sg) => sg.reduce((a, [x, y, v]) => a + (y - x) / v, 0));
+  const toS = (time, j) => { let t = ((time % DUR[j]) + DUR[j]) % DUR[j]; for (const [x, y, v] of SEGS[j]) { const d = (y - x) / v; if (t < d) return x + t * v; t -= d; } return 0; };
+  const toTime = (sv, j) => { let t = 0; for (const [x, y, v] of SEGS[j]) { if (sv < y) return t + Math.max(0, sv - x) / v; t += (y - x) / v; } return t; };
+  const sOf = (time) => (shortJ < 0 ? T.wrap(time) : toS(time, shortJ));
   function update(time) {
-    const s = T.wrap(time), u = run(s);
+    const s = sOf(time), u = run(s);
     { const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now; inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
       for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); } }
     rollerPool.forEach((r, i) => { r.rotation.z = -TAU * (i % 2 ? 6 : 8) * u; });          /* un nombre entier de tours par boucle */
@@ -325,7 +334,12 @@ export function build() {
   update(0);
   return {
     group: g, update, count,
-    api: { anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; } },
-    controls: { label: 'Étape', min: 1, max: 9, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => T.stationAt(T.wrap(t)) + 1, seek: (v) => T.TS[v - 1] + 1.5 }
+    api: {
+      anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
+      views: [{ label: 'La main', anchor: 'hand' }, { label: 'La forge', anchor: 'forge' }, { label: 'Le registre', anchor: 'register' }],
+      scenarios: [{ id: 'valid', short: 'Court : validation', label: 'Séquence courte, validation' }, { id: 'fix', short: 'Court : correction', label: 'Séquence courte, correction' }, { id: 'reject', short: 'Court : rejet', label: 'Séquence courte, rejet' }],
+      setScenario(i) { shortJ = i == null ? -1 : ((i % 3) + 3) % 3; }, get scenario() { return shortJ < 0 ? null : shortJ; }
+    },
+    controls: { label: 'Étape', min: 1, max: 9, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => T.stationAt(sOf(t)) + 1, seek: (v) => (shortJ < 0 ? T.TS[v - 1] + 1.5 : toTime(T.TS[v - 1] + 1.5, shortJ)) }
   };
 }

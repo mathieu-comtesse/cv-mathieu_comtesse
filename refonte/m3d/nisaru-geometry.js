@@ -41,11 +41,12 @@ export function mergeGeos(geos) {
 export class Part {
   /** origin : point de pivot en repère de figure ; toute la géométrie est construite en coordonnées de figure absolues */
   constructor(name, mats, origin = [0, 0, 0]) {
-    this.name = name; this.M = mats; this.o = origin; this.b = new Map(); this.count = 0; this.extra = [];
+    this.name = name; this.M = mats; this.o = origin; this.b = new Map(); this.count = 0; this.extra = []; this.solids = [];            // solids : boîte englobante de chaque pièce (repère local), pour les audits d'interférence
     this.root = new THREE.Group(); this.root.name = name; this.root.position.set(origin[0], origin[2], origin[1]);
   }
   _put(key, geo, x, y, z) {
     geo.translate(x - this.o[0], z - this.o[2], y - this.o[1]);
+    geo.computeBoundingBox(); this.solids.push({ k: key, b: geo.boundingBox.clone() });
     let l = this.b.get(key); if (!l) this.b.set(key, l = []); l.push(geo); this.count++;
   }
   /** boîte centrée en (x, y, z), largeur w (x), profondeur d (y), hauteur h (z), arêtes chanfreinées de c */
@@ -92,7 +93,7 @@ export class Part {
     for (let i = 0; i <= n; i++) { const u = i / n, a = u * turns * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, y0 + (y1 - y0) * u)); }
     const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), n * 2, wire, 5, false);
     g.translate(0, 0, 0); // axe three z = y de figure ; on place l'origine en (x, ., z)
-    g.translate(x - this.o[0], z - this.o[2], -this.o[1]); let l = this.b.get(key); if (!l) this.b.set(key, l = []); l.push(g); this.count++; return this;
+    g.translate(x - this.o[0], z - this.o[2], -this.o[1]); g.computeBoundingBox(); this.solids.push({ k: key, b: g.boundingBox.clone() }); let l = this.b.get(key); if (!l) this.b.set(key, l = []); l.push(g); this.count++; return this;
   }
   /** têtes de vis : petits cylindres posés sur une face ('z' dessus, 'y' devant, 'x' côté droit) */
   bolts(list, face = 'z', r = .9, key = 'steelDk') {

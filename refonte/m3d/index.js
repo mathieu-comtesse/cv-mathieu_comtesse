@@ -4,16 +4,17 @@ import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 
 const MODULES = {
-  moteur: () => import('./moteur.js'),
-  cerfa: () => import('./cerfa.js'),
-  vm: () => import('./vm.js'),
-  vre: () => import('./vre-wattselse.js'),
-  gares: () => import('./gares.js'),
-  finance: () => import('./finance.js'),
-  pp: () => import('./pp.js'),
-  powerbi: () => import('./powerbi-wattselse.js'),
-  suivi: () => import('./suivi.js'),
-  studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./nisaru.js')
+  /* Reporteur Q18 : nouvelle machine (q18.js). ?machines=old rend l'ancien modèle pour comparaison. */
+  moteur: () => (/[?&]machines=old\b/.test(location.search) ? import('./moteur.js') : import('./q18.js')),
+  cerfa: () => (/[?&]machines=old\b/.test(location.search) ? import('./cerfa.js') : import('./cerfa-sorter.js')),
+  vm: () => (/[?&]machines=old\b/.test(location.search) ? import('./vm.js') : import('./vm-sorting.js')),
+  vre: () => (/[?&]machines=old\b/.test(location.search) ? import('./vre-wattselse.js') : import('./vre-counter.js')),
+  gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),
+  finance: () => (/[?&]machines=old\b/.test(location.search) ? import('./finance.js') : import('./finance-reservoir.js')),
+  pp: () => (/[?&]machines=old\b/.test(location.search) ? import('./pp.js') : import('./pp-clock.js')),
+  powerbi: () => (/[?&]machines=old\b/.test(location.search) ? import('./powerbi-wattselse.js') : import('./powerbi-paternoster.js')),
+  suivi: () => (/[?&]machines=old\b/.test(location.search) ? import('./suivi.js') : import('./suivi-switchboard.js')),
+  studio: () => (/[?&]machines=old\b/.test(location.search) ? import('./studio-wattselse.js') : import('./studio-pdf.js')), 'vrestudio-musicbox': () => import('./nisaru.js')
 };
 
 export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {
@@ -36,7 +37,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   return {
     resize: w,
     controls: m.controls,
-    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; } } : null,
+    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; }, views: m.api.views, scenarios: m.api.scenarios, setScenario: m.api.setScenario } : null,
     /** vrai si le point (clientX, clientY) est sur une pièce visible de la machine */
     pick(cx, cy) {
       ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
