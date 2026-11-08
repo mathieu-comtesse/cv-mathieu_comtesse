@@ -42,7 +42,7 @@ import { MeshoptDecoder } from '../vendor/meshopt_decoder.module.js';
 
 /* « Expo » du CV : la page HTML (#page) est mise en page normalement, puis chaque élément marqué devient un objet 3D
    à la même place (1 px de page = 1 cm). data-box : boîte de verre extrudée ; data-plane : texte posé au sol ;
-   data-float : texte qui flotte ; data-step : étape révélée par « Cliquez ici pour voir la magie » ; data-extrude : titre en volume.
+   data-float : texte qui flotte ; data-step : étape révélée par « Voir la magie » ; data-extrude : titre en volume.
    Texture : l'élément lui-même via HTML-in-Canvas quand le navigateur le permet, sinon une image de la section (SVG foreignObject).
    Le défilement natif pilote la caméra : vue de face à l'échelle 1:1 au départ, puis la page se rabat en chemin et se relève au loin. */
 
@@ -627,7 +627,7 @@ async function start() {
   });
   const magics = flows.map(({ w, api }) => {
     const r = rectOf(w), card = items.find((x) => x.art === w.closest('.pc-proj') && x.el.matches('[data-box]'));
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'pc-magic'; b.textContent = 'Cliquez ici pour voir la magie';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'pc-magic'; b.textContent = 'Voir la magie';
     b.setAttribute('aria-label', 'Voir comment fonctionne : ' + (card?.el.dataset.callout || 'ce projet'));
     document.body.append(b); b.onclick = () => api?.open();
     return { b, p: new THREE.Vector3((r.x + r.w - 260 - PAGE_W / 2) / PXM, 0.05, (r.y + 40) / PXM) };
