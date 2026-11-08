@@ -376,3 +376,9 @@ Branche `claude/ux-immersive`. Les deux expériences coexistent, aucune n'est su
 - Intégrité : `Site integrity` (pages techniques accueil, machines, parcours en noindex hors du contrôle SEO ; kicker de Nisaru normalisé) et `Scene smoke check` (la garde cherchait `js/main.js` dans `index.html`, qui charge désormais `js/room.js`) corrigés ; déclencheurs complétés (modules de démarrage, `post.js`, feuilles de style, fiches).
 - Tests : `node tools/test-ux.mjs [slug]` (onze fiches, bureau et mobile : CTA, ouverture de la magie, légende, résultat, rejeu, fermeture et focus, Explorer, pause, panneau, sortie).
 - Limites : WebGPU et chemin 3D de l'accueil non vérifiables dans le bac à sable ; équivalence des matériaux du parcours GPU non vérifiée ; pas de mesure de FPS sur GPU réel (rendu logiciel seulement) ; le flou d'arrière-plan est décoratif, la lisibilité repose sur contraste et ombre portée.
+
+### Validation de cette passe (rendu logiciel, sans GPU)
+- `node tools/test-ux.mjs` : 22 combinaisons (onze fiches, bureau 1440 × 900 et mobile 390 × 844) toutes passées ; Q18 va jusqu'au résultat de la magie, au rejeu et à la fermeture. 1920 × 1080 non rejoué : seuls 1440 et 390 ont été testés.
+- Coût CPU mesuré (`PERF=1 node tools/test-machines.mjs`) : construction de 12 à 43 ms, mise à jour par image de 0,01 à 0,08 ms par machine. Ce sont des temps CPU, pas des images par seconde : aucune mesure de FPS sur GPU réel n'a été faite.
+- Captures : `docs/ux/` (avant / après de Q18, contacts des onze projets : état initial, magie, Explorer).
+- Non vérifié : chemin 3D de l'accueil (WebGPU indisponible ici ; seules les pages plates et la vue agrandie ont été testées avec les modules locaux), équivalence des matériaux du parcours GPU, gestion de la perte de contexte WebGL.
