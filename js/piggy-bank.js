@@ -22,7 +22,7 @@ async function mountPiggyBank(host){
   const assembly=new THREE.Group();assembly.rotation.y=.35;scene.add(assembly);assembly.add(pig.scene);
   const falling=coin.scene;assembly.add(falling);falling.visible=false;
   const coinOrientation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2),coinSpin=new THREE.Quaternion(),coinNormal=new THREE.Vector3(0,1,0);
-  pig.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});falling.traverse(o=>{if(o.isMesh)o.castShadow=true;});falling.scale.setScalar(.50/.17);
+  pig.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});falling.traverse(o=>{if(o.isMesh){o.castShadow=true;const m=o.material=o.material.clone();m.color.set('#ffd870');m.metalness=.15;m.roughness=.4;m.emissive.set('#ffbf3a');m.emissiveMap=m.map;m.emissiveIntensity=.55;}});falling.scale.setScalar(.50/.17);
   const orbit={tx:0,ty:1.35,tz:0,r:Math.hypot(3.8,1.75,5.6),az:Math.atan2(3.8,5.6),el:Math.atan2(1.75,Math.hypot(3.8,5.6))};
   const turnView=v=>{if(!fromTop)return;const az=orbit.az+v.dYaw,el=Math.max(.05,Math.min(1.45,orbit.el+v.dPitch)),c=Math.cos(el);camera.position.set(orbit.tx+Math.sin(az)*c*orbit.r,orbit.ty+Math.sin(el)*orbit.r,orbit.tz+Math.cos(az)*c*orbit.r);camera.lookAt(orbit.tx,orbit.ty,orbit.tz);dirty=true;start();};
   const slot=pig.scene.getObjectByName('CoinSlotAnchor');if(!slot)throw Error('Fente absente');const anchor=assembly.worldToLocal(slot.getWorldPosition(new THREE.Vector3()));
