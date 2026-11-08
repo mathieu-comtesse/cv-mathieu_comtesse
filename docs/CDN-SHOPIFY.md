@@ -82,3 +82,17 @@ Propriétés calculées différentes : 1 480 sur 160 600 (0,9 %), dont 869 pour 
 ### Mise à jour : infobulles, mobile, priorités
 
 Ajouts : infobulles (`shared-tooltip*`), `trim-cap`, jetons de lettrage des tailles mono, taille du grand titre desktop, règles de page placées hors couches (elles l'emportent sur les utilitaires). Pixels différents (capture, seuil 24/255) : 1440 de large 3,7 % (0) / 4,8 % (300) / 0,0 % (700) / 0,2 % (4000) ; 1920 : 3,0 % (0) / 0,9 % (4000) ; 390 : 9,3 % (0) / 0,0 % (1500). Propriétés calculées différentes à 1440 : 1 070 dont 869 de police (Inter). Reste : haut de page mobile, liste de navigation latérale, position du texte vertical `hero-tagline`. La feuille Shopify reste la feuille par défaut ; `?css=local` et le secours automatique utilisent `site.css`.
+
+## Modules JavaScript Shopify : ablation et remplacement partiel
+
+**Deux ensembles de modules** (mesure `tools/shopify/ablate.cjs` et inventaire réseau avec le réseau ouvert) :
+- **Chaîne A** : les imports statiques du client HTML-in-canvas embarqué (`refonte/boot-native.js`, 345 Ko, copie modifiée avec les fonctions `cv*` du site). Bloquer n'importe lequel des 22 modules de cette chaîne casse le chemin « parité » (30 à 55 % de pixels différents à 3000, chemin dégradé) : aucun n'est du poids mort, sauf `cardWire` (40 octets).
+- **Chaîne B** : l'application Shopify qui s'hydrate via `entry.browser` : 93 fichiers JavaScript, 665 Ko, plus la feuille Tailwind (174 Ko), les polices (PP Neue Montreal en glyphes, JetBrains Mono, Inter, 2 woff2) : 1,26 Mo au total en 101 fichiers. Bloquer `entry.browser` ne casse pas le chemin parité mais change visiblement la page (163 boutons contre 54, navigation latérale absente, panneaux différents) : c'est l'interface de l'accueil qui est dans ce lot.
+
+**Remplacé (17 modules par défaut, 2 en option)** dans `refonte/shop/`, réécrits à partir de leur comportement, mêmes noms exportés (vérifié par programme, y compris les 90 clés de réglage de la physique du graphe) et redirigés par `refonte/boot-shop.js` : clamp, easing, random, frame, frameLoop, sectionDot, rootMirror, htmlInCanvasTilt, cardWire, sectionHub, wire, residentSections, highlight, colorPalette, style, pack, preload-helper. `shader` et `surface` (WebGPU pur) sont écrits mais seulement actifs avec `?shop=all`, car le banc ne peut pas les exécuter.
+
+Parité mesurée (`?shop=cdn` contre défaut) : état de page identique, 0 erreur JavaScript, 1,6 % de pixels différents au chargement (bruit de référence : 1,8 à 2 %), 0,01 % à 3000. `?shop=cdn` rétablit les originaux.
+
+**Reste dépendant de Shopify** : `build-section-frame` (47 Ko), `smoothScroll` (21 Ko), `mesh.wgsl` (13 Ko, dont le shader de lumière), `HtmlInCanvasEntry` (7 Ko) pour la chaîne A ; toute l'application de la chaîne B (`entry.browser`, `reportError` 59 Ko, `controller` 49 Ko, `frame` 75 Ko, `HeroGraph` 31 Ko, le mini-jeu `index-DoKsIXi0` 81 Ko, navigation, boutons, etc.) ; la feuille Tailwind (remplaçable : `?css=local`) ; les polices.
+
+**Décision à prendre** : la chaîne B est l'interface de l'accueil elle-même. La supprimer signifie récrire ces composants (navigation, graphe du héros, boutons, infobulles, mini-jeu), donc redessiner une partie de l'interface, pas seulement déplacer du code. Je ne le fais pas sans accord.
