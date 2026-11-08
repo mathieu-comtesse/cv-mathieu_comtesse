@@ -67,4 +67,14 @@ Mesure (`node tools/css/diff.cjs 1440 900`, 3 212 éléments, 50 propriétés ca
 
 Sur 1 569 écarts, 869 sont la police (Inter à la place de PP Neue Montreal, choix à confirmer). Les trois résolutions (1440, 1920, 390) donnent des taux voisins : 0,7 à 1,7 % des propriétés.
 
-**Reste à écrire** (non fait) : le système d'animations du héros pilotées par le défilement (`hero-expand-x/y`, `hero-chrome-exit`, `hero-entrance-*`, `hero-graph-*`, une quinzaine de classes avec leurs `@keyframes`), le remplissage de page par section (`f26-page-fill-*`, `animation-timeline`), `checkpoint-stage__*`, la bande blanche en haut du héros, les états de survol et les requêtes média restantes. Tant que ces animations manquent, `?css=local` ne rend pas le héros comme l'original (graphe plein cadre au chargement).
+Après écriture du système d'animations du héros (variables `--hero-expand-x/y` pilotées par le défilement, découpes, glissement des colonnes) et du fond de page par section (propriétés `@property`, couleurs de section, chronologies de vue) :
+
+| Largeur, défilement | Pixels différents (capture, seuil 24/255) |
+|---|---|
+| 1440, 0 / 300 / 700 / 1500 / 4000 | 3,7 % / 5,4 % / 1,5 % / 0,2 % / 5,4 % (avant : 92 % / 77 % / 93 % / 94 % / n. m.) |
+| 1920, 0 / 1500 | 3,0 % / 0,0 % |
+| 390, 0 / 1500 | 9,3 % / 1,0 % |
+
+Propriétés calculées différentes : 1 480 sur 160 600 (0,9 %), dont 869 pour la police (Inter à la place de PP Neue Montreal).
+
+**Reste à écrire** : la liste de navigation latérale du bureau (`desktop-navigation`, absente de la capture locale à 4000), les infobulles (`shared-tooltip__bubble`), l'en-tête mobile, les états de survol hors héros, `checkpoint-stage__*` complet. Le défaut visible le plus net est le haut de page à 390 de large (9,3 %). Production inchangée : la feuille Shopify reste la feuille par défaut tant que ces points ne sont pas traités et que la police n'est pas validée.
