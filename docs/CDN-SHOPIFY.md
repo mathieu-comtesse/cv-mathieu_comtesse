@@ -96,3 +96,13 @@ Parité mesurée (`?shop=cdn` contre défaut) : état de page identique, 0 erreu
 **Reste dépendant de Shopify** : `build-section-frame` (47 Ko), `smoothScroll` (21 Ko), `mesh.wgsl` (13 Ko, dont le shader de lumière), `HtmlInCanvasEntry` (7 Ko) pour la chaîne A ; toute l'application de la chaîne B (`entry.browser`, `reportError` 59 Ko, `controller` 49 Ko, `frame` 75 Ko, `HeroGraph` 31 Ko, le mini-jeu `index-DoKsIXi0` 81 Ko, navigation, boutons, etc.) ; la feuille Tailwind (remplaçable : `?css=local`) ; les polices.
 
 **Décision à prendre** : la chaîne B est l'interface de l'accueil elle-même. La supprimer signifie récrire ces composants (navigation, graphe du héros, boutons, infobulles, mini-jeu), donc redessiner une partie de l'interface, pas seulement déplacer du code. Je ne le fais pas sans accord.
+
+### Suite : smoothScroll et htmlInCanvasEntry
+
+- `refonte/shop/smoothScroll.js` : habillage original autour de **Lenis 1.3.27 (licence MIT)**, vendu dans `vendor/lenis.js` avec sa licence (`vendor/LENIS-LICENSE.txt`). Reprend l'interface utilisée par le jeu (`wheelHook`, `limit`, `target`, `scrollTo`, `wheelTo`, `jump`, `step`, `resize`), la détection du pavé tactile (plus de 50 événements par seconde), le glissement des liens d'ancre et la désactivation en mouvement réduit.
+- `refonte/shop/htmlInCanvasEntry.js` : seuls `g` (libellés, nombres, chronomètre du jeu) et `u` (union de rectangles) sont utilisés par le client et le jeu ; le composant « New Dimension » du module d'origine n'est utilisé par aucune page et n'est pas repris.
+- Parité (banc `shopcheck`, défaut contre `?shop=cdn`) : état identique, 0 erreur, 3,2 % de pixels différents au chargement (bruit 1,6 à 3,2 %), 0,01 % à 3000 ; test de molette : trajectoire identique (222 contre 223 px, 1 200 px après deux molettes).
+
+Poids Shopify encore servi à l'accueil : 100 fichiers, 1,255 Mo (contre 104 fichiers, 1,265 Mo avec `?shop=cdn`). Les 21 modules remplacés pèsent peu ; la masse est dans la chaîne B.
+
+**Reste de la chaîne A** : `build-section-frame` (47 Ko, 25 exports : constantes de chronologie du héros, construction du graphe et des cadres de section ; dépend de `journey`), et `mesh.wgsl` (13 Ko, prélude WGSL d'éclairage et registre de rendu). Les deux se réécrivent en test différentiel (mêmes entrées, mêmes sorties) ; `mesh.wgsl` ne peut pas être validé ici faute de WebGPU.
