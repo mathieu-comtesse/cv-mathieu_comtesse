@@ -10,7 +10,7 @@ const MODULES = {
   vm: () => import('./vm.js'),
   vre: () => import('./vre-wattselse.js'),
   gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),
-  finance: () => import('./finance.js'),
+  finance: () => (/[?&]machines=old\b/.test(location.search) ? import('./finance.js') : import('./finance-reservoir.js')),
   pp: () => import('./pp.js'),
   powerbi: () => import('./powerbi-wattselse.js'),
   suivi: () => import('./suivi.js'),

@@ -11,7 +11,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 ## Table de correspondance
 | Machine | Id technique | Ancien module | Nouveau module | État |
 |---|---|---|---|---|
-| 01 Point financier | `finance` | `finance.js` | à faire | vague 2 |
+| 01 Point financier | `finance` | `finance.js` (autoclave) | `finance-reservoir.js` + `finance-timeline.js` | livrée (cette branche) |
 | 02 VRE, traitement par VM | `vm` | `vm.js` | à faire | vague 2 |
 | 03 Reporteur Q18 | `moteur` | `moteur.js` (livre « diffusion ») | `q18.js` + `q18-timeline.js` | livrée (cette branche) |
 | 04 Power Automate PP | `pp` | `pp.js` | à faire | vague 2 |
@@ -112,3 +112,23 @@ Deux scénarios de 64 s : « Lot courant » et « Contrôle F-Gas » (attestatio
 **Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 259 solides contrôlés tous les 2 s sur 128 s (restent des boîtes englobantes de rouleaux en rotation et le drapeau dans son caisson), 206 appels de rendu, 18 000 triangles, captures dans `docs/machines/cerfa/`. Un vrai défaut corrigé : la poulie d'entrée heurtait la base de la trémie.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; une seule texture de feuille (la famille documentaire n'est pas lisible sur la feuille elle-même) ; pas de reclassement manuel d'une feuille ; 206 appels de rendu à réduire par fusion.
+
+## Machine 01 : Point financier
+
+**Phrase de compréhension.** Le niveau d'un réservoir représente la consommation rapportée aux fonds disponibles ; un flotteur le lit, une aiguille l'affiche, et deux déclencheurs (seuil préventif réglable, dépassement à 100 %) font sonner une cloche, sortir un courrier et tomber un loquet qui mémorise l'alerte pour ne pas la répéter. Le réservoir est une métaphore de surveillance : aucune dépense n'est bloquée.
+
+| Opération | Organe |
+|---|---|
+| Flux de données par périmètre (CS, Locatif, MEC, PPTM) | quatre conduites à bague colorée, vannes à volant, perles de fluide coloré |
+| Sélection PRG, PSE ou GLOBAL | bouton à trois positions ; les volants ferment ou ouvrent les lignes concernées (PRG : CS et MEC) |
+| Écart des lignes KO | chambre de filtrage à crépines : une perle sur quatre tombe dans le bac d'égouttage |
+| Niveau | cuve émaillée, jauge de verre graduée de 0 à 120 %, flotteur, repère rouge à 100 % |
+| Lecture du niveau | câble du flotteur, poulie, levier, aiguille du cadran |
+| Seuil préventif | curseur sur règle graduée (50 à 100 %), repère ambre sur le cadran |
+| Alertes | cloche et marteau, courrier imprimé qui sort de sa fente, loquet de mémoire, ligne du registre des alertes émises, voyants |
+
+Deux scénarios de 64 s : « Seuil puis dépassement » (80 % puis 100 %, périmètre GLOBAL) et « Seuil abaissé » (périmètre PRG, le curseur passe de 80 à 60 % et l'alerte préventive part plus tôt). Valeurs fictives, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 40 s identique après t = 5 s), 244 solides contrôlés tous les 2 s sur 128 s (seul le loquet qui rentre dans son boîtier ressort), 150 appels de rendu, 31 000 triangles, captures dans `docs/machines/finance/`.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; le curseur de seuil et la consommation ne sont pas manipulables à la souris (scénarios seulement) ; le lien flotteur, poulie, levier est cinématique (pas de déclenchement mécanique réel du marteau) ; le texte central du cadran est chevauché par l'aiguille.
