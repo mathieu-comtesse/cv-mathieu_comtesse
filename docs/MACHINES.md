@@ -12,7 +12,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | Machine | Id technique | Ancien module | Nouveau module | État |
 |---|---|---|---|---|
 | 01 Point financier | `finance` | `finance.js` (autoclave) | `finance-reservoir.js` + `finance-timeline.js` | livrée (cette branche) |
-| 02 VRE, traitement par VM | `vm` | `vm.js` | à faire | vague 2 |
+| 02 VRE, traitement par VM | `vm` | `vm.js` (+ figure du livre 69) | `vm-sorting.js` + `vm-timeline.js` | livrée (cette branche) |
 | 03 Reporteur Q18 | `moteur` | `moteur.js` (livre « diffusion ») | `q18.js` + `q18-timeline.js` | livrée (cette branche) |
 | 04 Power Automate PP | `pp` | `pp.js` | à faire | vague 2 |
 | 05 CERFA v3 | `cerfa` | `cerfa.js` (banc acoustique) | `cerfa-sorter.js` + `cerfa-timeline.js` | livrée (cette branche) |
@@ -132,3 +132,24 @@ Deux scénarios de 64 s : « Seuil puis dépassement » (80 % puis 100 %, périm
 **Vérifications** : déterminisme (t = 40 s identique après t = 5 s), 244 solides contrôlés tous les 2 s sur 128 s (seul le loquet qui rentre dans son boîtier ressort), 150 appels de rendu, 31 000 triangles, captures dans `docs/machines/finance/`.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; le curseur de seuil et la consommation ne sont pas manipulables à la souris (scénarios seulement) ; le lien flotteur, poulie, levier est cinématique (pas de déclenchement mécanique réel du marteau) ; le texte central du cadran est chevauché par l'aiguille.
+
+## Machine 02 : VRE, traitement par VM
+
+**Phrase de compréhension.** Un rapport PDF (une enveloppe) entre sur un convoyeur, une demande est imprimée dans une file physique, la relève de la VM la libère, le lecteur vérifie le code R004 et l'OT, puis une pince range le lien dans le bon casier Excel, ou la voie des doublons ou le rejet l'écarte ; à 17 h le distributeur imprime un récapitulatif.
+
+| Opération | Organe |
+|---|---|
+| Dépôt du PDF | trémie, convoyeur à bande et rails |
+| Création de la demande, file | imprimante de cartes, râtelier à trois emplacements, la carte rejoint l'enveloppe à la relève |
+| Relève toutes les 2 minutes | horloge à aiguilles (temps accéléré, voyant à chaque échéance, voyant 17 h) |
+| Lecture | cabine VM 1 : lentille, barre de balayage, voyants R004 / OT / déjà intégré / écart |
+| Rangement | portique (chariot sur galets, bras en y, tige télescopique en z, mâchoires), 24 casiers numérotés, tiroir cible, tampon, voyant vert, journal imprimé |
+| Doublons, rejet | poussoirs à vérin et deux bacs à fenêtre vitrée : aucune seconde insertion |
+| Récapitulatif de 17 h | distributeur avec bordereau (scénario réussi seulement) |
+| Architecture cible | seconde cabine VM en volume translucide, verrou mécanique partagé, plaques « ARCHITECTURE CIBLE » et « NON ACTIVE » : aucune seconde VM n'est présentée comme opérationnelle |
+
+Trois scénarios de 48 s : traitement réussi, déjà intégré, non apparié. Rapports, OT, casier L14 et heures sont fictifs, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 182 solides contrôlés tous les 2 s sur 144 s (restent l'engagement du bras dans son coulisseau et de la tige dans son manchon), 156 appels de rendu, 13 000 triangles, captures dans `docs/machines/vm/`. Deux vrais défauts corrigés : la tige télescopique traversait le chariot, le plateau du poussoir traversait la bande.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; la bande ne tourne pas visuellement (rouleaux symétriques) ; l'interruption suivie d'une reprise n'est pas représentée ; l'horloge revient en arrière en fin de cycle pour reboucler ; la figure du livre « 69 » n'est plus affichée sur la page (`?machines=old` la rend).

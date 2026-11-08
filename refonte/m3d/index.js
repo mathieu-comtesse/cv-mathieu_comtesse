@@ -7,7 +7,7 @@ const MODULES = {
   /* Reporteur Q18 : nouvelle machine (q18.js). ?machines=old rend l'ancien modèle pour comparaison. */
   moteur: () => (/[?&]machines=old\b/.test(location.search) ? import('./moteur.js') : import('./q18.js')),
   cerfa: () => (/[?&]machines=old\b/.test(location.search) ? import('./cerfa.js') : import('./cerfa-sorter.js')),
-  vm: () => import('./vm.js'),
+  vm: () => (/[?&]machines=old\b/.test(location.search) ? import('./vm.js') : import('./vm-sorting.js')),
   vre: () => import('./vre-wattselse.js'),
   gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),
   finance: () => (/[?&]machines=old\b/.test(location.search) ? import('./finance.js') : import('./finance-reservoir.js')),
