@@ -20,7 +20,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | inchangé (main conservée) | vague 3 |
 | 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | `powerbi-paternoster.js` + `powerbi-timeline.js` | livrée (cette branche) |
 | 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | `studio-pdf.js` + `studio-timeline.js` + `machine-kit.js` | livrée (cette branche) |
-| 10 Retrouver tout le suivi | `suivi` | `suivi.js` | à faire | vague 3 |
+| 10 Retrouver tout le suivi | `suivi` | `suivi.js` | `suivi-switchboard.js` + `suivi-timeline.js` | livrée (cette branche) |
 | 11 Gares prioritaires | `gares` | `gares.js` (livre « échangeur ») | `gares-board.js` + `gares-timeline.js` | livrée (cette branche) |
 
 ## Machine 03 : Reporteur Q18
@@ -211,3 +211,23 @@ Trois scénarios de 64 s : bâtiment 1 local 2, bâtiment 3 local 7, erreur de c
 **Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 171 solides contrôlés tous les 3 s sur 192 s (restent le tambour devant sa plaque, le chenal sur son appui, boîtes englobantes en rotation), 158 appels de rendu, 24 000 triangles, captures dans `docs/machines/vre/`. Défaut corrigé : l'entonnoir pénétrait dans le tambour.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les billes ne se heurtent pas entre elles (empilement calculé) ; le recyclage des billes vers le tambour n'a pas d'élévateur visible (elles réapparaissent dans les alvéoles) ; le rapport est une feuille générique (les lignes ne portent pas de texte d'équipement lisible) ; le contrôle d'erreur ne corrige pas le total (il signale et écarte) ; les images de la fiche « Lecteur VRE » (Nisaru) sont inchangées.
+
+## Machine 10 : Retrouver tout le suivi
+
+**Phrase de compréhension.** On choisit une demande (OT, équipement ou bâtiment) au clavier et au cadran, des relais identifient les systèmes concernés, puis deux fiches à cordon sont branchées l'une dans la prise de la demande, l'autre dans la prise du système ; un écran central affiche les accès retrouvés.
+
+| Opération | Organe |
+|---|---|
+| Choix de la demande | trois touches, cadran à dix repères, neuf demandes en trois lignes (OT, équipement, bâtiment), voyant ambre de la demande |
+| Identification des systèmes | banc de six relais à armature mobile qui claquent, voyants verts des systèmes concernés |
+| Liaison | quatre fiches à cordon textile (rouge et bleu) : elles se soulèvent de leur alvéole, glissent devant la face, se couchent dans la prise ; chaque cordon repart vers l'alvéole de sa fiche |
+| Systèmes | cinq prises : GMAO, SHAREPOINT, EXCEL SUIVI, POWER BI, PORTAIL |
+| Accès retrouvés | écran du pupitre central, mention « ACCES SELON VOS PERMISSIONS APPLICATIVES » |
+| Source indisponible | scénario C : voyant rouge sur le portail, la fiche est retirée ; |
+| Débranchement | toutes les fiches reviennent à leur alvéole, les voyants s'éteignent |
+
+Trois scénarios de 56 s : retrouver un OT (GMAO, SharePoint), un équipement (Excel de suivi, Power BI), un bâtiment avec source indisponible (portail). L'outil retrouve des accès dans les applications existantes : il ne centralise pas les bases et ne garantit aucun accès. Valeurs fictives, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 160 solides contrôlés tous les 3 s sur 168 s (seule la touche enfoncée entre dans la tablette), 116 appels de rendu, 22 000 triangles, captures dans `docs/machines/suivi/`.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les cordons sont une courbe qui épouse la trajectoire, sans physique de corde (ils peuvent traverser l'écran) ; les contrepoids sous la tablette ne sont pas représentés ; pas de saisie réelle d'un OT : la demande suit le scénario ; l'écran n'affiche pas de liens cliquables ; « Afficher les liens et leurs destinations » est un écran schématique.

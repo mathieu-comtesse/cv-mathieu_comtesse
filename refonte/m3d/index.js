@@ -13,7 +13,7 @@ const MODULES = {
   finance: () => (/[?&]machines=old\b/.test(location.search) ? import('./finance.js') : import('./finance-reservoir.js')),
   pp: () => (/[?&]machines=old\b/.test(location.search) ? import('./pp.js') : import('./pp-clock.js')),
   powerbi: () => (/[?&]machines=old\b/.test(location.search) ? import('./powerbi-wattselse.js') : import('./powerbi-paternoster.js')),
-  suivi: () => import('./suivi.js'),
+  suivi: () => (/[?&]machines=old\b/.test(location.search) ? import('./suivi.js') : import('./suivi-switchboard.js')),
   studio: () => (/[?&]machines=old\b/.test(location.search) ? import('./studio-wattselse.js') : import('./studio-pdf.js')), 'vrestudio-musicbox': () => import('./nisaru.js')
 };
 
