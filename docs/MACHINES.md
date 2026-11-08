@@ -257,3 +257,9 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Q18 : le grand plateau noir est remplacé par une table émaillée sur patins réglables, chants et façade en aluminium brossé avec ouïes, poignées de manutention, trappes d'accès arrière, plis de rigidité ; le clavier repose sur une console inclinée, le lecteur et la bande Power BI sur des socles (ils flottaient auparavant) ; tour et flèche émaillées avec nervures.
 - Captures : `docs/machines/q18-pro-avant.png`, `q18-pro-apres.png`, `q18-pro-arriere.png`, `q18-pro-detail.png` (harnais isolé, SwiftShader).
 - Non fait sur Q18 : sélection libre d'un OT (les trois scénarios fixent chacun leur OT), commandes directes sur la machine (manette, touches), mesure de performance sur GPU réel, captures sur le site intégré aux trois résolutions.
+
+## Studio PDF, passe « objet industriel »
+
+- Même socle que Q18 : table émaillée sur patins réglables, chants et façade en aluminium brossé avec ouïes, poignées de manutention ; établi et caisse du lecteur en émail sombre ; matériaux de `pro-materials.js`.
+- Captures : `docs/machines/studio-pro-avant.png`, `studio-pro-apres.png`, `studio-pro-detail.png`.
+- Non fait : déplacement libre d'un cadre de lecture sur le PDF fictif (interaction essentielle du brief), presse avec crémaillère et paliers supplémentaires, table lumineuse plus présente, feuilles déplacées physiquement au lieu d'un fondu. Ces points demandent un travail sur la chronologie (`studio-timeline.js`) et restent à faire.

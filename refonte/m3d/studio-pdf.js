@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, springGeoZ, prismXZ, ringGeo, gearXGeo, TAU } from './machine-kit.js';
 import * as T from './studio-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 520;
 const FCOL = ['#c8372d', '#2f6fb3', '#d79a2b'], FZ = 33.8, FH = 1.2;
@@ -52,7 +53,7 @@ function slipTexture() {
 const plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' };
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   M.frost = new THREE.MeshStandardMaterial({ color: '#dfe7f2', roughness: .6, metalness: 0, emissive: '#ffffff', emissiveIntensity: 0 });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
@@ -64,14 +65,21 @@ export function build() {
 
   /* ================= bâti : plinthe, établi, plaque ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 0, 3, 520, 172, 6, 'cast', 1.4);
-  for (const [x, y] of [[-244, -70], [244, -70], [-244, 70], [244, 70]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
-  S.box(-85, 0, 18, 330, 150, 24, 'cast', 2);                                                  // établi (z 6 à 30) sous la table et la presse
+  /* soubassement noir en retrait, table émaillée sur patins réglables, chants et façade en aluminium brossé, ouïes, poignées */
+  S.box(0, 0, 2.2, 496, 156, 4.4, 'castDk', 1);
+  S.box(0, 0, 10, 520, 172, 11.2, 'enamel', 2.4);
+  S.box(0, 84.3, 10, 520, 3.4, 9, 'alu', .9); S.box(0, -84.3, 10, 520, 3.4, 9, 'alu', .9);
+  for (const x of [-260.8, 260.8]) S.box(x, 0, 10, 2.6, 172, 9, 'alu', .8);
+  for (const sx of [-1, 1]) for (let i = 0; i < 7; i++) S.box(sx * (100 + i * 20), 86.1, 10, 12, .8, 3.2, 'ink', .3);
+  for (const x of [-246, 246]) { S.cylX(x - 7, x + 7, 86.4, 10, 1.1, 'steel', 12); S.box(x - 7, 85.2, 10, 2, 2.4, 5, 'steelDk', .4); S.box(x + 7, 85.2, 10, 2, 2.4, 5, 'steelDk', .4); }
+  for (const [x, y] of [[-244, -70], [244, -70], [-244, 70], [244, 70], [0, -70], [0, 70]]) { S.cylZ(x, y, -4.4, 7, 2.2, 'steelDk', 18); S.cylZ(x, y, -2.2, 6.2, 2.2, 'rubber', 18); S.cylZ(x, y, 0, 3, 3, 'steel', 14); }
+  S.box(-85, 0, 22, 330, 150, 16, 'enamelDk', 2);                                              // établi (z 14 à 30) sous la table et la presse
+  for (let i = 0; i < 10; i++) S.bolts([[-245 + i * 55, 86.3, 13]], 'y', .9, 'steel');
   S.box(-85, 0, 29.7, 334, 154, 1.2, 'steelDk', .4);                                           // tôle de recouvrement
   S.bolts([[-240, -60, 30.2], [-240, 60, 30.2], [70, -60, 30.2], [70, 60, 30.2], [-85, -72, 30.2], [-85, 72, 30.2]], 'z', 1.3, 'steelDk');
-  S.box(0, 86.7, 3, 150, 1.2, 6, 'alu', .3);
-  put(label('STUDIO D\'EXTRACTEURS PDF', -22, 87.4, 3, 112, 5, 'y', plateLabel));
-  put(label('DEMO FICTIVE', 64, 87.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
+  S.box(0, 86.8, 10, 150, 1.2, 7, 'alu', .3);
+  put(label('STUDIO PDF', -22, 87.5, 10, 112, 5, 'y', plateLabel));
+  put(label('DEMO FICTIVE', 64, 87.5, 10, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
   /* ================= table lumineuse : cadre, deux dalles dépolies, magasin d'exemples, étagère des cadres ================= */
   Z('table'); S = stat('table');
@@ -145,7 +153,7 @@ export function build() {
 
   /* ================= lecteur : caisse, module de lecture, voûte, cadrans, voyants, rack de livraison, goulotte de rebut ================= */
   Z('lecteur'); S = stat('lecteur');
-  S.box(180, 0, 17, 116, 90, 22, 'cast', 1.6); S.box(180, 0, 28.3, 118, 92, 1, 'steelDk', .4);
+  S.box(180, 0, 22, 116, 90, 12, 'enamelDk', 1.6); S.box(180, 0, 28.3, 118, 92, 1, 'steelDk', .4);
   S.box(136, -23.5, 36, 28, 43, 16, 'iron', 1); S.box(150.2, -23.5, 31, .6, 36, 3, 'ink');       // module de lecture, fente noire
   S.box(175, -44, 34, 34, 2, 12, 'iron', .6); S.box(175, -3, 34, 34, 2, 12, 'iron', .6); S.box(175, -23.5, 41, 34, 43, 10, 'alu', 1);   // voûte
   S.cylY(-36, -10, 175, 36, 3, 'glass', 18); S.box(175, -23.5, 47, 16, 22, 3, 'brass', .5);
