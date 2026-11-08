@@ -27,11 +27,13 @@ if (fig && bpCanvas && stage) {
   /* ---- caméra : azimut 36° comme la pièce de l'accueil, en perspective, liée au plan ---- */
   const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
   const AIM_Y = 3.2;                       // la visée est un peu au-dessus du plan : la machine, au centre du plan, se place sous le titre
+  const focus = { f: 0, to: 0, p: null, yaw: 0, pitch: 26 * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
   const placeCam = (yaw, pitch = 26 * Math.PI / 180) => {
-    const dist = 40, cp = Math.cos(pitch);
-    const tx = .1, tz = -.2;
-    cam.position.set(tx + Math.sin(yaw) * cp * dist, AIM_Y + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
-    cam.lookAt(tx, AIM_Y, tz); cam.updateMatrixWorld(true);
+    focus.yaw = yaw; focus.pitch = pitch;
+    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), dist = 40 + (11 - 40) * F;
+    const tx = .1 + ((P ? P.x : .1) - .1) * F, ty = AIM_Y + ((P ? P.y : AIM_Y) - AIM_Y) * F, tz = -.2 + ((P ? P.z : -.2) + .2) * F;
+    cam.position.set(tx + Math.sin(yaw) * cp * dist, ty + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
+    cam.lookAt(tx, ty, tz); cam.updateMatrixWorld(true);
   };
   const bp = initBlueprint(bpCanvas, stage);
   bp.plane.scale.setScalar(2.6);          // plan plus étendu : pas d'horizon noir à ce faible angle
@@ -66,7 +68,20 @@ if (fig && bpCanvas && stage) {
       if (to !== null) shift += to - clock();
     };
     const cur = (t) => ctl.get(t);
-    const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += ' · attrapez la machine et glissez : ' + ctl.label.toLowerCase();
+    /* un clic sur une étape de « Comment ça marche » conduit la machine à cette séquence */
+    if (ctl.max === 9) document.querySelectorAll('.rf-flow-step').forEach((li, i) => { li.style.cursor = 'pointer'; li.addEventListener('click', () => apply(i + 1)); });
+    /* inspection (éclaté) et vues rapprochées, sans remplacer la caméra principale */
+    if (machine.api) {
+      const bar = document.createElement('div'); bar.className = 'rf-m3d-tools'; bar.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483000;display:flex;gap:8px;padding:6px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 24px rgba(0,0,0,.25)';
+      const mk = (txt, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.style.cssText = 'font:600 13px/1 system-ui,sans-serif;padding:9px 14px;border:0;border-radius:999px;background:transparent;color:#0b1020;cursor:pointer'; b.addEventListener('click', () => { fn(); [...bar.children].forEach((c) => { c.style.background = c.dataset.on === '1' ? '#0b1020' : 'transparent'; c.style.color = c.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bar.append(b); return b; };
+      const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
+      const bAll = mk('Ensemble', () => { setFocus(null); machine.api.inspect(false); bAll.dataset.on = '1'; bIns.dataset.on = bHand.dataset.on = bForge.dataset.on = '0'; });
+      const bIns = mk('Inspecter', () => { const on = bIns.dataset.on !== '1'; machine.api.inspect(on); setFocus(null); bIns.dataset.on = on ? '1' : '0'; bAll.dataset.on = on ? '0' : '1'; bHand.dataset.on = bForge.dataset.on = '0'; });
+      const bHand = mk('La main', () => { machine.api.inspect(false); setFocus('hand'); bHand.dataset.on = '1'; bAll.dataset.on = bIns.dataset.on = bForge.dataset.on = '0'; });
+      const bForge = mk('La forge', () => { machine.api.inspect(false); setFocus('forge'); bForge.dataset.on = '1'; bAll.dataset.on = bIns.dataset.on = bHand.dataset.on = '0'; });
+      bAll.dataset.on = '1'; bAll.style.background = '#0b1020'; bAll.style.color = '#fff'; document.body.append(bar); machine.bar = bar;
+    }
+    const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += (fig.dataset.fig === 'vrestudio-musicbox' ? ', attrapez la machine et glissez : ' : ' · attrapez la machine et glissez : ') + ctl.label.toLowerCase();
     const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
     let over = false;
     document.addEventListener('pointermove', (e) => {
@@ -95,8 +110,10 @@ if (fig && bpCanvas && stage) {
       const bg = Math.max(study ? .1 : .32, o);
       if (study) document.documentElement.style.setProperty('--veil', ((1 - o) * .82).toFixed(3));
       canvas.style.opacity = bg.toFixed(3);
+      if (machine.bar) { machine.bar.style.opacity = o.toFixed(3); machine.bar.style.pointerEvents = o < .05 ? 'none' : ''; }
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
+      if (Math.abs(focus.to - focus.f) > .001) { focus.f += (focus.to - focus.f) * .08; placeCam(focus.yaw, focus.pitch); }
       machine.render(reduced ? 6 + shift : clock());
     };
     loop();

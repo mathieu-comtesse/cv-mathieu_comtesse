@@ -448,7 +448,7 @@ async function start() {
   for (const art of $$('[data-fig]')) {
     // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
     const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = MOBILE ? 3.0 : 4.2, x = side * (HALF + sc * 0.24), z = MOBILE ? (r.y + 150) / PXM : (r.y + 0.12 * r.h) / PXM, rot = MOBILE ? 0 : -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
-    const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'vrestudio' : art.dataset.fig;
+    const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'nisaru' : art.dataset.fig;
     import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
       g.updateMatrixWorld(true);
