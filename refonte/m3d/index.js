@@ -6,7 +6,7 @@ import { trackGlow, ACCENT } from './glow.js';
 const MODULES = {
   /* Reporteur Q18 : nouvelle machine (q18.js). ?machines=old rend l'ancien modèle pour comparaison. */
   moteur: () => (/[?&]machines=old\b/.test(location.search) ? import('./moteur.js') : import('./q18.js')),
-  cerfa: () => import('./cerfa.js'),
+  cerfa: () => (/[?&]machines=old\b/.test(location.search) ? import('./cerfa.js') : import('./cerfa-sorter.js')),
   vm: () => import('./vm.js'),
   vre: () => import('./vre-wattselse.js'),
   gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),

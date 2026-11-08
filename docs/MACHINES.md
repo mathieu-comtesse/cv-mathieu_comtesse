@@ -15,7 +15,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 02 VRE, traitement par VM | `vm` | `vm.js` | à faire | vague 2 |
 | 03 Reporteur Q18 | `moteur` | `moteur.js` (livre « diffusion ») | `q18.js` + `q18-timeline.js` | livrée (cette branche) |
 | 04 Power Automate PP | `pp` | `pp.js` | à faire | vague 2 |
-| 05 CERFA v3 | `cerfa` | `cerfa.js` | à faire | vague 1 |
+| 05 CERFA v3 | `cerfa` | `cerfa.js` (banc acoustique) | `cerfa-sorter.js` + `cerfa-timeline.js` | livrée (cette branche) |
 | 06 Extracteur VRE | `vre` | `vre-wattselse.js` | à faire | vague 3 |
 | 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | inchangé (main conservée) | vague 3 |
 | 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | à faire | vague 2 |
@@ -92,3 +92,23 @@ Deux scénarios de 60 s : « Trois critères » (le classement tourne trois fois
 **Vérifications** : déterminisme (t = 14 s identique après t = 5 s), 339 solides contrôlés tous les 2 s sur 120 s (restent des engagements voulus : cadre sur rails, écrou sur vis, boîtes englobantes des roues dentées en rotation), 170 appels de rendu, 50 000 triangles, captures dans `docs/machines/gares/`.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les huit noms sont lisibles surtout de face (le texte est tourné de 90° sur la circonférence) ; pas de comparaison de deux situations côte à côte.
+
+## Machine 05 : CERFA v3
+
+**Phrase de compréhension.** Un lot de dix feuilles est séparé une à une, lu dans une chambre optique, contrôlé par un module F-Gas, puis rangé dans l'un des cinq bacs par le poussoir de ce bac, pendant qu'un registre affiche la table structurée qui se constitue.
+
+| Opération | Organe |
+|---|---|
+| Dépôt du lot | trémie à plateau élévateur, guides réglables, rouleau de prise ; clavier de lot et sélecteur de catégorie |
+| Séparation | feuille prise en tête de pile, séparateur, bande à rouleaux pinceurs (la rotation suit la distance parcourue) |
+| Lecture | chambre à capot vitré, barre lumineuse qui balaie, trois champs reconnus qui s'éclairent, voyant de famille |
+| Contrôle F-Gas | caisson vitré : voyants fluide, attestation, échéance ; drapeau rouge si écart (pour examen humain, pas une décision réglementaire) |
+| Aiguillage | la feuille s'arrête devant son bac, un poussoir à vérin la rentre ; elle tombe sur la pile visible à travers la vitre |
+| Répartition | cinq bacs (exploitable, incomplet, doublon, anomalie, non reconnu), un compteur à tambour par bac |
+| Table de données | écran du registre et ruban d'export qui avance à chaque feuille |
+
+Deux scénarios de 64 s : « Lot courant » et « Contrôle F-Gas » (attestations à échéance dépassée, trois anomalies). Les compteurs, piles et registre se vident en fin de lot, la trémie se recharge. Documents et valeurs fictifs, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 259 solides contrôlés tous les 2 s sur 128 s (restent des boîtes englobantes de rouleaux en rotation et le drapeau dans son caisson), 206 appels de rendu, 18 000 triangles, captures dans `docs/machines/cerfa/`. Un vrai défaut corrigé : la poulie d'entrée heurtait la base de la trémie.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; une seule texture de feuille (la famille documentaire n'est pas lisible sur la feuille elle-même) ; pas de reclassement manuel d'une feuille ; 206 appels de rendu à réduire par fusion.
