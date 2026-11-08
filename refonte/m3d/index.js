@@ -12,7 +12,7 @@ const MODULES = {
   gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),
   finance: () => (/[?&]machines=old\b/.test(location.search) ? import('./finance.js') : import('./finance-reservoir.js')),
   pp: () => (/[?&]machines=old\b/.test(location.search) ? import('./pp.js') : import('./pp-clock.js')),
-  powerbi: () => import('./powerbi-wattselse.js'),
+  powerbi: () => (/[?&]machines=old\b/.test(location.search) ? import('./powerbi-wattselse.js') : import('./powerbi-paternoster.js')),
   suivi: () => import('./suivi.js'),
   studio: () => (/[?&]machines=old\b/.test(location.search) ? import('./studio-wattselse.js') : import('./studio-pdf.js')), 'vrestudio-musicbox': () => import('./nisaru.js')
 };

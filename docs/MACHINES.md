@@ -18,7 +18,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 05 CERFA v3 | `cerfa` | `cerfa.js` (banc acoustique) | `cerfa-sorter.js` + `cerfa-timeline.js` | livrée (cette branche) |
 | 06 Extracteur VRE | `vre` | `vre-wattselse.js` | à faire | vague 3 |
 | 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | inchangé (main conservée) | vague 3 |
-| 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | à faire | vague 2 |
+| 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | `powerbi-paternoster.js` + `powerbi-timeline.js` | livrée (cette branche) |
 | 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | `studio-pdf.js` + `studio-timeline.js` + `machine-kit.js` | livrée (cette branche) |
 | 10 Retrouver tout le suivi | `suivi` | `suivi.js` | à faire | vague 3 |
 | 11 Gares prioritaires | `gares` | `gares.js` (livre « échangeur ») | `gares-board.js` + `gares-timeline.js` | livrée (cette branche) |
@@ -172,3 +172,21 @@ Deux scénarios de 60 s : « Dépôt et classement » (échéance au 25) et « �
 **Vérifications** : déterminisme (t = 40 s identique après t = 5 s), 133 solides contrôlés tous les 2 s sur 120 s (restent les roues dentées engrenées et la came, boîtes englobantes en rotation), 150 appels de rendu, 13 000 triangles, captures dans `docs/machines/pp/`. Défauts corrigés : une roue traversait la plaque du socle, le portique heurtait les aiguilles du cadran (rails reculés de 8 unités).
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; l'échappement n'est pas représenté (les roues sont entraînées par la date simulée, pas par un balancier) ; la came est solidaire d'une roue mais le témoin est piloté par la date, pas par la came ; la date revient en arrière en fin de cycle pour reboucler ; le calendrier ne gère pas de dates réelles ; la figure du livre « 52 » n'est plus affichée sur la page (`?machines=old` la rend).
+
+## Machine 08 : Power BI, plans de prévention et MOSO
+
+**Phrase de compréhension.** Deux chaînes en boucle portent huit casiers qui restent horizontaux ; la boucle amène le casier demandé devant la fenêtre latérale, un bras à ventouse sort le dossier sur le comptoir, et le lecteur de référence allume le portail de visualisation, qui est un moteur distinct du moteur d'archivage.
+
+| Opération | Organe |
+|---|---|
+| Entrée documentaire (VM, rangement SharePoint, archivage) | module « ENTREE DOCUMENTAIRE » à fente de dépôt et trois voyants : moteur d'archivage |
+| Stockage compact | armoire vitrée, deux chaînes à 64 maillons, deux paires de roues de chaîne à 22 dents, huit casiers suspendus par leurs axes (horizontaux sur tout le parcours, y compris aux arcs) |
+| Recherche du casier | rotation de la boucle jusqu'au casier cible, départ doux, arrivée très lente, verrou qui s'engage ; la boucle revient ensuite à sa disposition d'origine par un tour complet |
+| Consultation | fenêtre latérale à volet vitré, bras extracteur à ventouse le long de x, dossier sorti sur le comptoir puis remis |
+| Lecture et visualisation | lecteur de référence au-dessus du comptoir, liaison par câble, portail « POWER BI » à écran, voyants PP / MOSO et trois cadrans : moteur de visualisation, séparé |
+
+Trois scénarios de 60 s, chacun avec deux consultations : plans de prévention, marchés MOSO, comparaison de deux états du même plan (barres T1 en gris et T2 en couleur). Dossiers, marchés et valeurs sont fictifs, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 20 s identique après t = 5 s), 116 solides contrôlés tous les 3 s sur 180 s (restent des boîtes englobantes de roues et de verrou), 265 appels de rendu, 16 000 triangles, captures dans `docs/machines/powerbi/`. Défaut corrigé : le bras traversait la chaîne avant, la fenêtre est donc passée de la face avant au flanc droit.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les casiers de l'audit ne sont pas inclus (modèle cloné) ; 265 appels de rendu à réduire ; la comparaison de deux états est schématique (six barres fictives) ; le « comparer deux états de suivi » ne lit pas de vraies données ; la sélection d'un plan, d'un marché ou d'un secteur se fait par scénario et non par saisie.
