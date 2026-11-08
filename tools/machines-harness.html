@@ -36,6 +36,19 @@ window.runMachines = async (only) => {
         a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
         a.frames.reset(); a.setScenario(null);
       }
+      if (name === 'vrestudio-musicbox' && a) {   // quatre séquences naturelles : plans, coupes, une page et une fiche, issues distinctes, forge
+        const phases = {}; for (let sc = 0; sc < 4; sc++) {
+          a.setScenario(sc); let prev = null, cuts = 0; const seen = new Set();
+          for (let t = 0; t < 120; t += .25) { m.update(t); if (finite(m.group)) r.errors.push('non fini, séquence ' + sc + ' t=' + t + ' ' + window.__bad); const st = a.status(); seen.add(st); }
+          phases[sc] = [...seen]; if (seen.size < 5) r.errors.push('séquence ' + sc + ' : trop peu de phases (' + seen.size + ')');
+        }
+        const has = (sc, re) => phases[sc].some((x) => re.test(x));
+        if (!has(0, /Validation : appui franc/) || !has(0, /aucun réentraînement/)) r.errors.push('validation : phases absentes'); if (!has(1, /Correction : la tête corrige/) || !has(1, /poids du modèle ne changent pas/)) r.errors.push('correction : phases absentes');
+        if (!has(2, /Rejet : poussée/) || !has(2, /mémoire partagée n'est pas modifiée/)) r.errors.push('rejet : phases absentes'); if (has(2, /archivée/)) r.errors.push('un rejet ne doit pas être archivé');
+        for (const re of [/préparé/, /exemples/, /Entraînement du candidat \(valeurs fictives/, /sauvegardé/, /Évaluation/, /Validation humaine/, /Activation/, /Restauration/]) if (!has(3, re)) r.errors.push('forge : phase absente ' + re);
+        a.setScenario(null);
+        if (!a.views.some((v) => v.label === 'Modèle actif') || !a.views.some((v) => v.label === 'Candidat') || !a.views.some((v) => v.label === 'Versions précédentes')) r.errors.push('vues de la forge absentes');
+      }
       if (a?.params && name === 'suivi') {   // Ma demande : neuf demandes, systèmes concernés, source indisponible ; les cordons ne traversent ni l'écran ni les relais
         a.setScenario(3); const t0 = 1100; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to) => { for (let dt = from; dt <= to; dt += 2) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Ma demande +' + dt + ' ' + window.__bad); } };
         for (let gi = 0; gi < 3; gi++) for (let o = 0; o < 3; o++) { run(gi, o); step(1, 56); if (!/Demande /.test(a.status()) || !/systèmes concernés : \w/.test(a.status())) r.errors.push('état de la demande ' + gi + '/' + o + ' : ' + a.status()); }
@@ -95,7 +108,7 @@ window.runMachines = async (only) => {
         const ray = new THREE.Ray(new THREE.Vector3(-146, 200, 0), new THREE.Vector3(0, -1, 0)); m.group.updateMatrixWorld(true); const c0 = a.params.groups[0].get(); if (!a.drag.pick(ray) || a.params.groups[0].get() === c0) r.errors.push('clic sur le lot sans effet');
         a.setScenario(0); if (a.drag.pick(ray)) r.errors.push('clic actif hors de Ma feuille'); a.setScenario(null);
       } else
-      if (a?.params) {   // choix libres (Gares : critère et gare consultée) : l'état suit les choix, tout reste fini, le clic sur une rangée est saisi
+      if (a?.params && name === 'gares') {   // choix libres (Gares : critère et gare consultée) : l'état suit les choix, tout reste fini, le clic sur une rangée est saisi
         a.setScenario(2); const t0 = 100; m.update(t0); if (!a.params.visible()) r.errors.push('réglages non visibles dans Mon choix');
         a.params.groups[0].options[1].run(); a.params.groups[1].options[3].run(); const st1 = a.status();
         for (const dt of [1, 3, 6, 10, 14, 20, 30]) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Mon choix +' + dt); }

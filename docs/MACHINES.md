@@ -340,3 +340,17 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Base : bibliothèque de matériaux industriels (laiton satiné, acier) ; caisse en bois conservée.
 - Captures : `docs/machines/suivi-pro-avant.png`, `suivi-pro-cordons.png`, `suivi-ma-demande.png`.
 - Limites : les cordons ne sont pas simulés physiquement (courbe calculée) et peuvent passer devant les relais ; pas de contrepoids visibles sous la tablette ; systèmes et correspondances inventés ; rendu logiciel seulement.
+
+## Nisaru : séquences courtes réelles, forge inspectable
+
+La Manufacture et la main de La Création d'Adam sont inchangées (mêmes pièces, même trajectoire de main).
+
+- Fin de l'accélération du temps : les séquences courtes ne remappent plus la chronologie en avance rapide. Chaque séquence est un montage de plans lus à vitesse naturelle, séparés par des coupes de 0,8 s (les pages, fiches et feuilles de sortie se résorbent puis réapparaissent, la main se fond), avec un fondu aussi au bouclage. Une seule page et une seule fiche sont montrées.
+- Validation (environ 46 s) : lecture de la page, émission de la fiche, appui franc de l'index, fiche vers la corbeille, puis archivage dans la mémoire partagée comme référence (aucun réentraînement).
+- Correction (environ 47 s) : même début ; la tête de correction balaie les champs annotés pendant que l'index glisse ; la fiche corrigée rejoint la mémoire partagée ; les poids du modèle ne changent pas (seul un futur réentraînement utilisera la mémoire).
+- Rejet (environ 36 s) : poussée vers l'avant, la fiche part dans le bac de rejet ; rien n'est archivé, la mémoire n'est pas modifiée.
+- Forge (38 s, vitesse naturelle) : candidat préparé, exemples chargés depuis la mémoire, entraînement (valeurs fictives), sauvegarde (pas encore actif), évaluation sur le banc d'essai (deux cadrans : actif contre candidat), validation humaine, activation (l'ancien modèle devient version précédente), restitution, restauration possible. Plaques ajoutées : CANDIDAT, MODELE ACTIF, VERSIONS PRECEDENTES. Vues séparées : Modèle actif, Candidat, Versions précédentes.
+- L'état affiché décrit ce que fait la machine à chaque instant et rappelle que les valeurs sont fictives : aucune mesure réelle de précision ou d'entraînement.
+- Test : les quatre séquences sont rejouées sur 120 s : valeurs finies, au moins cinq phases chacune, mentions de non-réentraînement (validation, correction), de non-modification de la mémoire (rejet), un rejet jamais archivé, huit phases de la forge.
+- Captures : `docs/machines/nisaru-validation.png`, `nisaru-correction.png`, `nisaru-forge-candidat.png` (page réelle `projet-lecteur-vre.html`).
+- Limites : les plans sont des extraits de la chronologie existante (pas de nouvelle animation de pièces) ; la coupe est un fondu des objets mobiles, pas de mouvement de caméra ; pas de scénario libre ; la comparaison actif / candidat repose sur les deux cadrans existants ; rendu logiciel seulement.
