@@ -129,11 +129,10 @@ function build3d(items, L) {
   }
   const cells = pos.map((p, i) => {
     const it = items[i];
-    put('b3', { left: p.x + 'px', top: p.y + 'px' });                                                   // contour au sol
     put('t3', { left: (p.x - 20) + 'px', top: (p.y + BOX + 8) + 'px', width: (BOX + 40) + 'px' }, '<b>' + esc(cut(it.title, L.cols === 5 ? 24 : 18)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>');
     const shadow = put('s3', { left: p.x + 'px', top: p.y + 'px' });
-    const tile = put('k3', { left: p.x + 'px', top: p.y + 'px' }, svgIcon(it.icon, 'k3-i'));
-    const led = put('d3', { left: (p.x + BOX - 8) + 'px', top: (p.y + 2) + 'px' });
+    const tile = put('k3', { left: p.x + 'px', top: p.y + 'px' }, svgIcon(it.icon, 'k3-i')); tile.dataset.k = it.icon; tile.style.setProperty('--z', (46 + ((i * 7) % 4) * 12) + 'px'); tile.style.setProperty('--rz', (((i % 3) - 1) * 2.2).toFixed(1) + 'deg');
+    const led = put('d3', { left: (p.x + BOX - 6) + 'px', top: (p.y + 4) + 'px' });
     return { tile, led, shadow };
   });
   const mv = put('m3', { left: '0px', top: '0px' }, '<i class="m3-h"></i><i class="m3-o"></i><i class="m3-s"></i><i class="m3-c"></i><span class="m3-i"></span>');
@@ -175,8 +174,9 @@ function draw3d(st, items, L, tl, t) {
   st.cells.forEach((c, i) => {
     const up = reach >= 0 && i <= reach;
     const here = i === reach && !moving, done = up && !here;
-    c.tile.classList.toggle('up', up); c.shadow.classList.toggle('up', up); c.led.classList.toggle('up', up); c.led.classList.toggle('cur', here); c.led.classList.toggle('ok', done);
+    c.tile.classList.toggle('up', up); c.tile.classList.toggle('cur', here); c.tile.classList.toggle('done', done); c.shadow.classList.toggle('up', up); c.led.classList.toggle('up', up); c.led.classList.toggle('cur', here); c.led.classList.toggle('ok', done);
   });
+  return { near, finished: t >= tl.run };
 }
 
 /* ================================================================ composant */
@@ -219,18 +219,27 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   /* --- « Voir la magie » : le schéma en perspective, parcours automatique, mêmes animations à l'ouverture et à la fermeture --- */
   const ov = document.createElement('div');
   ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true');
-  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer le schéma en perspective"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><p class="fl-ov-cap">VUE EN PERSPECTIVE · ÉCHAP POUR FERMER</p>';
+  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><p class="fl-ov-cap">ÉCHAP POUR FERMER</p>';
   document.body.append(ov);
   const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w');
   let L = null, st = null, tl = null, ra = 0, t0 = 0, timer = 0;
   const lower = () => st && st.cells.forEach((c) => { c.tile.classList.remove('up'); c.shadow.classList.remove('up'); c.led.classList.remove('up', 'cur', 'ok'); });
+  const stepBox = ov.querySelector('.fl-ov-step'), endBox = ov.querySelector('.fl-ov-end');
+  let shown = -1;
+  const caption = (i) => { if (i === shown) return; shown = i; const it = items[i]; stepBox.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + items.length + '</small><b>' + esc(it.title) + '</b><span>' + esc(it.text) + '</span>'; };
   const frame3 = () => {
-    let t = performance.now() - t0;
-    if (t >= tl.total) { t0 = performance.now(); t = 0; lower(); }                 // le parcours reprend depuis le début
-    draw3d(st, items, L, tl, t); ra = requestAnimationFrame(frame3);
+    const t = Math.min(performance.now() - t0, tl.total), r = draw3d(st, items, L, tl, t);
+    caption(r.near);
+    if (r.finished && !endBox.hidden === false) { endBox.hidden = false; ov.classList.add('is-done'); }
+    if (t >= tl.total) { ra = 0; return; }                                           // le résultat reste lisible : plus de boucle
+    ra = requestAnimationFrame(frame3);
   };
+  const start = () => { cancelAnimationFrame(ra); lower(); shown = -1; endBox.hidden = true; ov.classList.remove('is-done'); t0 = performance.now(); ra = requestAnimationFrame(frame3); };
+  ov.querySelector('[data-act="replay"]').addEventListener('click', start);
+  ov.querySelector('[data-act="machine"]').addEventListener('click', () => { close(); document.dispatchEvent(new CustomEvent('rf-explore-machine', { detail: { root } })); });
+  let opener = null;
   const open = () => {
-    clearTimeout(timer); cancelAnimationFrame(ra);
+    opener = document.activeElement; clearTimeout(timer); cancelAnimationFrame(ra);
     L = layoutSnake(items.length, matchMedia('(max-width: 640px)').matches); tl = timeline(items.length);
     st = build3d(items, L);
     const k = center.clientWidth / L.W || 1;
@@ -239,10 +248,10 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
     draw3d(st, items, L, tl, 0);
     void ov.offsetWidth;
     ov.classList.add('is-open'); ov.setAttribute('aria-hidden', 'false'); document.body.classList.add('fl-lock');
-    t0 = performance.now(); ra = requestAnimationFrame(frame3); ov.querySelector('.fl-ov-x').focus();
+    start(); ov.querySelector('.fl-ov-x').focus();
   };
   const close = () => {
-    cancelAnimationFrame(ra); lower();                                              // les cases redescendent pendant que la vue se redresse
+    cancelAnimationFrame(ra); ra = 0; lower(); stepBox.textContent = ''; opener?.focus?.({ preventScroll: true });                                              // les cases redescendent pendant que la vue se redresse
     ov.classList.remove('is-open'); ov.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fl-lock');
     timer = setTimeout(() => { if (!ov.classList.contains('is-open')) wrap.replaceChildren(); }, 1450);
   };

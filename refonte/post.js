@@ -8,6 +8,7 @@ if (document.querySelector('.rf-code')) import('./hl.js').catch(() => {});   // 
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
 import { initRulers } from './rulers.js';
+import { framingOf } from './m3d/registry.js';
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const els = document.querySelectorAll('.rf-post-body > *');
@@ -28,12 +29,14 @@ const stage = document.getElementById('stage');
 if (fig && bpCanvas && stage) {
   /* ---- caméra : azimut 36° comme la pièce de l'accueil, en perspective, liée au plan ---- */
   const cam = new THREE.PerspectiveCamera(30, 1, 1, 400);
-  const AIM_Y = 3.2;                       // la visée est un peu au-dessus du plan : la machine, au centre du plan, se place sous le titre
-  const focus = { f: 0, to: 0, p: null, yaw: 0, pitch: 26 * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
-  const placeCam = (yaw, pitch = 26 * Math.PI / 180) => {
+  const FR = framingOf(fig.dataset.fig);   // cadrage propre à la machine (refonte/m3d/registry.js)
+  const mobile = () => innerWidth < 700;
+  const AIM_Y = () => (mobile() ? FR.aimYm : FR.aimY);   // la visée est au-dessus du plan : la machine se place sous le titre et les boutons
+  const focus = { f: 0, to: 0, d: 0, p: null, yaw: 0, pitch: FR.pitch * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
+  const placeCam = (yaw, pitch = FR.pitch * Math.PI / 180) => {
     focus.yaw = yaw; focus.pitch = pitch;
-    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), dist = 40 + (11 - 40) * F;
-    const tx = .1 + ((P ? P.x : .1) - .1) * F, ty = AIM_Y + ((P ? P.y : AIM_Y) - AIM_Y) * F, tz = -.2 + ((P ? P.z : -.2) + .2) * F;
+    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), fitK = cam.aspect < 1.1 ? Math.min(2.1, Math.max(1, 1.1 / Math.max(.4, cam.aspect) * .85)) : 1, dist = (FR.dist * fitK + (11 - FR.dist * fitK) * F) * (1 - .2 * focus.d);
+    const tx = .1 + ((P ? P.x : .1) - .1) * F, ty = AIM_Y() + ((P ? P.y : AIM_Y()) - AIM_Y()) * F, tz = -.2 + ((P ? P.z : -.2) + .2) * F;
     cam.position.set(tx + Math.sin(yaw) * cp * dist, ty + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
     cam.lookAt(tx, ty, tz); cam.updateMatrixWorld(true);
   };
@@ -41,8 +44,8 @@ if (fig && bpCanvas && stage) {
   bp.plane.scale.setScalar(2.6);          // plan plus étendu : pas d'horizon noir à ce faible angle
 
   /* ---- la machine : modèle 3D posé sur le plan, rendu avec la même caméra (même perspective, même profondeur) ---- */
-  const view = { yaw: 36 * Math.PI / 180 };
-  const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); machine?.resize(); };
+  const view = { yaw: FR.yaw * Math.PI / 180 };
+  const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); placeCam(focus.yaw, focus.pitch); machine?.resize(); };
   let machine = null;
   placeCam(view.yaw); bp.link(cam);
   aspect(); addEventListener('resize', aspect);
@@ -59,62 +62,66 @@ if (fig && bpCanvas && stage) {
     const t0 = performance.now();
     /* Interaction directement sur la machine 3D, comme sur la figure d'origine : on attrape la machine et on glisse (ou flèches gauche / droite)
        pour changer son réglage propre (seuil en %, pondération, lot, jour, heure, rapport…) ; un clic sur la machine avance d'un cran. */
-    let shift = 0, drag = null;
-    let hold = null;   // temps figé (scénario à cadres à placer : la machine attend « Lancer l'essai »)
-    const clock = () => (hold !== null ? hold : (performance.now() - t0) / 1000 + shift);
+    let drag = null, shift = 0, rate = 1;
+    let hold = null;   // temps figé : pause, ou scénario à cadres à placer (la machine attend « Lancer l'essai »)
+    const since = () => (performance.now() - t0) / 1000;
+    const clock = () => (hold !== null ? hold : shift + since() * rate);
+    const setClock = (t) => { if (hold !== null) hold = t; else shift = t - since() * rate; };
+    const setRate = (r) => { const t = clock(); rate = r; if (hold === null) shift = t - since() * rate; };
+    const pauseClock = () => { if (hold === null) hold = clock(); };
+    const resumeClock = () => { if (hold !== null) { const t = hold; hold = null; shift = t - since() * rate; } };
     const ctl = machine.controls || { label: 'temps', min: 0, max: 100, step: 5, fmt: (v) => v + ' %', get: (t) => ((t % 60) / 60) * 100, seek: (v) => v / 100 * 60 };
     const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
     const apply = (v) => {
       v = clamp(Math.round(v / ctl.step) * ctl.step, ctl.min, ctl.max);
       const r = ctl.set ? ctl.set(v) : undefined;
       const to = ctl.seek ? ctl.seek(v) : (typeof r === 'number' ? r : null);
-      if (to !== null) shift += to - clock();
+      if (to !== null) setClock(to);
     };
     const cur = (t) => ctl.get(t);
     /* un clic sur une étape de « Comment ça marche » conduit la machine à cette séquence */
-    if (ctl.max === 9) document.querySelectorAll('.rf-flow-step').forEach((li, i) => { li.style.cursor = 'pointer'; li.addEventListener('click', () => apply(i + 1)); });
-    /* inspection (éclaté) et vues rapprochées, sans remplacer la caméra principale */
-    if (machine.api) {
-      const bar = document.createElement('div'); bar.className = 'rf-m3d-tools'; bar.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483000;display:flex;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px);max-height:34vh;overflow-y:auto;gap:4px 6px;padding:6px;border-radius:22px;background:rgba(255,255,255,.92);box-shadow:0 6px 24px rgba(0,0,0,.25)';
-      const mk = (txt, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.style.cssText = 'font:600 '+(innerWidth<600?12:13)+'px/1 system-ui,sans-serif;white-space:nowrap;padding:'+(innerWidth<600?'7px 9px':'9px 12px')+';border:0;border-radius:999px;background:transparent;color:#0b1020;cursor:pointer'; b.addEventListener('click', () => { fn(); [...bar.children].forEach((c) => { if (c.dataset.sc || c.tagName === 'SPAN') return; c.style.background = c.dataset.on === '1' ? '#0b1020' : 'transparent'; c.style.color = c.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bar.append(b); return b; };
-      const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
-      const views = machine.api.views || [{ label: 'La main', anchor: 'hand' }, { label: 'La forge', anchor: 'forge' }];
-      const offAll = () => [...bar.children].forEach((c) => { c.dataset.on = '0'; });
-      const bAll = mk('Ensemble', () => { setFocus(null); machine.api.inspect(false); offAll(); bAll.dataset.on = '1'; });
-      const bIns = mk('Inspecter', () => { const on = bIns.dataset.on !== '1'; machine.api.inspect(on); setFocus(null); offAll(); (on ? bIns : bAll).dataset.on = '1'; });
-      views.forEach((v) => { const bv = mk(v.label, () => { machine.api.inspect(false); setFocus(v.anchor); offAll(); bv.dataset.on = '1'; }); });
-      /* scénarios de démonstration (machines qui en proposent) : Auto enchaîne les cas, un cas isolé boucle sur lui-même */
-      if (machine.api.scenarios) {
-        const sep = document.createElement('span'); sep.style.cssText = 'width:1px;background:#0b102033;margin:4px 2px'; bar.append(sep);
-        const sc = [{ short: 'Auto', i: null }, ...machine.api.scenarios.map((x, i) => ({ short: x.short, i }))];
-        const sbs = sc.map((x) => { const bs = mk(x.short, () => { machine.api.setScenario(x.i); const sd = x.i === null ? null : machine.api.scenarios[x.i]; if (sd?.edit && sd.hold !== false) { hold = sd.editT; } else if (hold !== null) { shift = -(performance.now() - t0) / 1000; hold = null; } editG?.refresh(); sbs.forEach((o) => { o.dataset.on = o === bs ? '1' : '0'; o.style.background = o.dataset.on === '1' ? '#0b1020' : 'transparent'; o.style.color = o.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bs.dataset.sc = '1'; return bs; });
-        sbs[0].dataset.on = '1';
+    document.querySelectorAll('.rf-marche-steps>li').forEach((li, i, all) => { li.style.cursor = 'pointer'; li.addEventListener('click', () => apply(ctl.min + (ctl.max - ctl.min) * (+li.dataset.at || i / all.length))); });
+    /* Commandes : une capsule silencieuse (refonte/m3d/control-bar.js, la même qu'à l'accueil) ; elle n'apparaît qu'avec la démonstration ou le mode Explorer. */
+    const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
+    const dock = document.createElement('div'); dock.className = 'rf-cb-dock'; document.body.append(dock); machine.bar = dock;
+    const how = document.querySelector('.rf-marche'), howSteps = how ? [...how.querySelectorAll('.rf-marche-steps>li')] : [];
+    const cap2 = document.createElement('div'); cap2.className = 'rf-demo-cap'; cap2.setAttribute('role', 'status'); cap2.setAttribute('aria-live', 'polite'); document.body.append(cap2);
+    const demo = { on: false, explore: false, finished: false, end: null, step: -1 };
+    let barUI = null;
+    const mountBar = () => {
+      if (barUI) return;
+      const mc = { ...machine, api: machine.api && { ...machine.api, setInspect: machine.api.inspect } };
+      const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
+      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo() }); if (demo.explore) barUI.open(true); });
+    };
+    const showStep = (i) => {
+      if (!howSteps.length || i === demo.step) return; demo.step = i;
+      howSteps.forEach((li, k) => { li.classList.toggle('is-active', k === i); li.classList.toggle('is-done', k < i); });
+      howSteps[0].parentElement.style.setProperty('--pf', ((i + .5) / howSteps.length).toFixed(3));
+      const li = howSteps[i]; if (li) cap2.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + howSteps.length + '</small><b>' + li.querySelector('h3').innerHTML + '</b><span>' + li.querySelector('p').innerHTML + '</span>';
+    };
+    const enter = (explore) => {
+      if (demo.on) { if (explore && barUI) barUI.open(true); return; }
+      demo.on = true; demo.explore = explore; demo.finished = false;
+      document.body.classList.remove('rf-demo-done'); document.body.classList.add(explore ? 'rf-explore' : 'rf-demo'); mountBar();
+      scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+      if (!explore) {
+        machine.api?.setScenario?.(null); const t1 = ctl.seek ? ctl.seek(ctl.max) : null; demo.end = Number.isFinite(t1) && t1 > 3 ? t1 : null;
+        setClock(ctl.seek ? ctl.seek(ctl.min) : 0); resumeClock();
       }
-      /* cadres à placer (Studio PDF, scénario « Mon cadrage ») : choisir, déplacer, lancer l'essai ; ou glisser directement sur la machine */
-      let editG = null;
-      if (machine.api.frames) {
-        const box = document.createElement('span'); box.style.cssText = 'display:none;gap:6px;align-items:center'; let cur = 0;
-        const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'font:600 12px/1 system-ui,sans-serif;color:#0b1020;white-space:nowrap';
-        const sel = machine.api.frames.names.map((n, i) => mk(n, () => { cur = i; sel.forEach((b, k) => { b.dataset.on = k === cur ? '1' : '0'; }); }));
-        sel.forEach((b, i) => { b.dataset.on = i === 0 ? '1' : '0'; });
-        const arrow = (t, dx, dy, aria) => { const b = mk(t, () => { machine.api.frames.nudge(cur, dx, dy); st.textContent = machine.api.status(); }); b.setAttribute('aria-label', aria); return b; };
-        const run = mk('Lancer l’essai', () => { shift = (hold ?? shift) - (performance.now() - t0) / 1000; hold = null; });
-        const rs = mk('Remettre', () => { machine.api.frames.reset(); st.textContent = machine.api.status(); });
-        box.append(...sel, arrow('←', -2, 0, 'Cadre vers la gauche'), arrow('→', 2, 0, 'Cadre vers la droite'), arrow('↑', 0, -2, 'Cadre vers le haut'), arrow('↓', 0, 2, 'Cadre vers le bas'), rs, run, st);
-        bar.append(box);
-        editG = { refresh() { const on = machine.api.frames.editing(); box.style.display = on ? 'inline-flex' : 'none'; st.textContent = on ? machine.api.status() : ''; } };
-        setInterval(() => { if (machine.api.frames.editing()) st.textContent = machine.api.status(); }, 400);
-      }
-      /* réglages libres (api.params) : critère, gare à consulter... visibles pendant le scénario concerné */
-      if (machine.api.params) {
-        const box = document.createElement('span'); box.style.cssText = 'display:none;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center'; const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'font:600 12px/1 system-ui,sans-serif;color:#0b1020';
-        const all = machine.api.params.groups.map((gd) => { const lab = document.createElement('span'); lab.textContent = gd.name; lab.style.cssText = 'font:600 12px/1 system-ui,sans-serif;color:#0b1020;opacity:.7'; const bs = gd.options.map((o) => mk(o.label, () => { o.run(); sync(); })); box.append(lab, ...bs); return { gd, bs }; });
-        const sync = () => all.forEach(({ gd, bs }) => bs.forEach((b, i) => { b.style.background = gd.get() === i ? '#0b1020' : 'transparent'; b.style.color = gd.get() === i ? '#fff' : '#0b1020'; }));
-        box.append(st); bar.append(box);
-        setInterval(() => { const on = machine.api.params.visible(); box.style.display = on ? 'inline-flex' : 'none'; if (on) { sync(); st.textContent = machine.api.status(); } }, 500);
-      }
-      bAll.dataset.on = '1'; bAll.style.background = '#0b1020'; bAll.style.color = '#fff'; document.body.append(bar); machine.bar = bar;
-    }
+      demo.to = 1; document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'true');
+    };
+    const exitDemo = () => {
+      demo.on = false; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
+      document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'false');
+    };
+    demo.f = 0; demo.to = 0;
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest?.('[data-demo]'); if (!b) return;
+      e.preventDefault(); if (b.dataset.demo === 'magic') document.querySelector('.rf-flow-magic')?.click(); else { if (demo.on && demo.finished) exitDemo(); enter(false); }
+    });
+    document.addEventListener('rf-explore-machine', () => { if (demo.on && demo.finished) exitDemo(); enter(false); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && demo.on) exitDemo(); });
     const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += (fig.dataset.fig === 'vrestudio-musicbox' ? ', attrapez la machine et glissez : ' : ' · attrapez la machine et glissez : ') + ctl.label.toLowerCase();
     const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
     let over = false;
@@ -144,7 +151,7 @@ if (fig && bpCanvas && stage) {
     });
     const loop = () => {
       requestAnimationFrame(loop);
-      const o = Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));   // les règles s’effacent ; l’objet, lui, reste en arrière-plan
+      const o = demo.on ? 1 : Math.min(1, Math.max(0, 1 - scrollY / (innerHeight * .75)));   // les règles s’effacent ; l’objet, lui, reste en arrière-plan
       const study = document.body.classList.contains('rf-article');   // étude : l'objet et le plan s'effacent presque entièrement, voile sombre progressif
       const bg = Math.max(study ? .1 : .32, o);
       if (study) document.documentElement.style.setProperty('--veil', ((1 - o) * .82).toFixed(3));
@@ -152,7 +159,11 @@ if (fig && bpCanvas && stage) {
       if (machine.bar) { machine.bar.style.opacity = o.toFixed(3); machine.bar.style.pointerEvents = o < .05 ? 'none' : ''; }
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
-      if (Math.abs(focus.to - focus.f) > .001) { focus.f += (focus.to - focus.f) * .08; placeCam(focus.yaw, focus.pitch); }
+      const dTo = demo.on ? 1 : 0;
+      if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; placeCam(focus.yaw, focus.pitch); }
+      if (howSteps.length) { const span = ctl.max - ctl.min || 1, pr = Math.min(.9999, Math.max(0, (cur(clock()) - ctl.min) / span)); showStep(Math.min(howSteps.length - 1, Math.floor(pr * howSteps.length))); }
+      if (demo.on && !demo.explore && !demo.finished && demo.end !== null && hold === null && clock() >= demo.end) { pauseClock(); setClock(demo.end); demo.finished = true; document.body.classList.add('rf-demo-done'); }
+      if (demo.finished && !demo.on) demo.finished = false;
       machine.render(reduced ? 6 + shift : clock());
     };
     loop();

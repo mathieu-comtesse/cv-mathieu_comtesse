@@ -31,7 +31,7 @@ for (const [slug, fig] of Object.entries(FIG)) {
   const h = read(slug + '.html');
   const body = h.slice(h.indexOf('<div class="rf-post-body">'));
   const gains = [...part(body, 'Ce que ça change').matchAll(/<span><small>([^<]+)<\/small><b>([^<]+)<\/b>/g)].map((m) => ({ k: text(m[1]), v: text(m[2]) }));
-  const steps = [...part(body, 'Comment ça marche').matchAll(/<li class="rf-flow-step[^>]*>[\s\S]*?<h3>([\s\S]*?)<\/h3><p>([\s\S]*?)<\/p><\/li>/g)].map((m) => ({ t: text(m[1]), p: text(m[2]) }));
+  const steps = [...part(body, 'Comment ça marche').matchAll(/<li data-at="[^"]*"><span class="rf-marche-n"[^>]*>\d+<\/span><h3>([\s\S]*?)<\/h3><p>([\s\S]*?)<\/p><\/li>/g)].map((m) => ({ t: text(m[1]), p: text(m[2]) }));
   projects[slug] = {
     href: slug + '.html', fig,
     kicker: first(/rf-kicker">([\s\S]*?)<\/p>/, h),
@@ -43,7 +43,7 @@ for (const [slug, fig] of Object.entries(FIG)) {
     team: first(/<p>([\s\S]*?)<\/p>/, part(body, 'Pour l’équipe')),
     gains, steps,
     // le composant « Comment ça marche » de la fiche, tel quel (barre de cases, bouton « voir la magie ») ; sans apparition au défilement
-    flow: (/<div class="rf-flow"[\s\S]*?<\/ol><\/div>/.exec(body) || [''])[0].replace(/ rf-tl-rv/g, '')
+    flow: ''
   };
   if (!projects[slug].title || steps.length < 3) throw new Error('fiche incomplète : ' + slug);
 }

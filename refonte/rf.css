@@ -696,8 +696,8 @@ body.rf-grabbing,body.rf-grabbing *{cursor:grabbing!important;user-select:none}
 /* vue inclinée : valeurs relevées sur le schéma de référence (translate3d(-20px,100px,50px) rotateY(20deg) rotateX(50deg) scale(1.5)) */
 .fl3{position:relative;transform-origin:0 0;transform-style:preserve-3d}
 .fl3>div{position:absolute;box-sizing:border-box}
-.l3{height:0;width:0}.lh{border-top:1px dashed #3a3d40}.lv{border-left:1px dashed #3a3d40}
-.b3{width:59px;height:59px;border:1px dashed #2D2E2F;border-radius:9.5px;background:rgb(14 15 16 / .55)}
+.l3{height:0;width:0}.lh{border-top:1px solid rgb(255 255 255 / .22)}.lv{border-left:1px solid rgb(255 255 255 / .22)}
+.b3{display:none}
 .t3{text-align:center;line-height:1.25;pointer-events:none}
 .t3 b{display:block;font:500 11px/1.25 var(--rf-sans);color:#6c6f73}.t3 i{display:block;font:500 9.5px/1.3 var(--rf-mono);color:#45484b;font-style:normal;letter-spacing:.04em}
 .s3{width:59px;height:59px;border-radius:9.5px;background:#000;filter:blur(10px);opacity:0;transition:opacity .9s}.s3.up{opacity:.45}

@@ -1,79 +1,141 @@
-// Barre de commandes commune à toutes les machines (accueil, vue agrandie, fiches) : un seul contrat, quel que soit le module.
-// Contrat machine : controls {label,min,max,step,fmt,get(t),seek(v)->t} ; api {views[{label,anchor}], scenarios[{short,label}], setScenario(i|null), setInspect(bool)}.
-// Contrat hôte (ctl) : { time(), seek(t), paused, setPaused(b), speed, setSpeed(v), focus(anchorName|null), scenario(i|null) }.
-const CSS = `.cv-cb{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;justify-content:center;font:500 12px/1.2 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.01em;color:#f4f7fb;max-width:100%;padding:5px;border:1px solid rgb(255 255 255 / .22);border-radius:22px;background:linear-gradient(180deg,rgb(18 24 44 / .46),rgb(10 14 28 / .34));-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);box-shadow:inset 0 1px 0 rgb(255 255 255 / .2),0 14px 34px -14px rgb(2 6 20 / .6)}
-.cv-cb button{font:inherit;color:rgb(244 247 251 / .72);background:transparent;border:0;border-radius:9999px;padding:7px 12px;cursor:pointer;min-height:30px;white-space:nowrap;transition:background .25s,color .25s,transform .15s}
-.cv-cb button:hover{background:rgb(255 255 255 / .1);color:#fff}.cv-cb button:active{transform:scale(.96)}
-.cv-cb button[aria-pressed="true"]{background:linear-gradient(180deg,rgb(255 255 255 / .94),rgb(255 255 255 / .8));color:#0b1020}
-.cv-cb button:focus-visible,.cv-cb input:focus-visible{outline:1.5px solid rgb(255 255 255 / .85);outline-offset:2px}
-.cv-cb .cv-cb-step{display:flex;align-items:center;gap:8px;padding:0 8px;color:rgb(244 247 251 / .66)}.cv-cb input[type=range]{width:min(200px,36vw);accent-color:#fff;height:2px}
-.cv-cb .cv-cb-grp{display:flex;gap:2px;flex-wrap:wrap;align-items:center;padding-left:10px;border-left:1px solid rgb(255 255 255 / .14)}.cv-cb .cv-cb-grp:first-child{padding-left:0;border-left:0}
-.cv-cb .cv-cb-grp>span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgb(244 247 251 / .5);margin:0 4px 0 2px}
-.cv-cb svg{display:block}
-.cv-cb output{white-space:nowrap;margin-right:6px;font-variant-numeric:tabular-nums}
-@media (max-width:600px){.cv-cb{gap:4px 6px;padding:4px;border-radius:18px}.cv-cb button{padding:6px 9px;min-height:28px;font-size:11.5px}.cv-cb .cv-cb-grp{padding-left:6px}.cv-cb .cv-cb-grp>span{display:none}.cv-cb .cv-cb-step{flex:1 1 100%;padding:2px 6px}.cv-cb input[type=range]{flex:1;width:auto}}`;
+// Barre de commandes commune des machines (accueil, vue agrandie, fiches).
+// Deux niveaux : une capsule silencieuse (lecture, progression, étape, réglages) et un panneau « Explorer » qui s'ouvre au-dessus,
+// organisé en sections (Démonstration, Scénarios, Vues, Inspection, Réglages métier). Rien d'autre n'est affiché au premier regard.
+// Contrat : buildControlBar(root, machine, ctl, { label, onClose }) ; ctl = { time, seek, paused, setPaused, speed, setSpeed, scenario, focus }.
+const CSS = `.cv-cb{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;font:500 13px/1.25 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.01em;color:#f4f7fb;max-width:100%}
+.cv-cb *{box-sizing:border-box}
+.cv-cb-cap{display:flex;align-items:center;max-width:100%;gap:6px;min-height:52px;padding:4px 6px 4px 4px;border-radius:9999px;border:1px solid rgb(255 255 255 / .2);background:linear-gradient(180deg,rgb(18 26 52 / .5),rgb(10 16 36 / .38));-webkit-backdrop-filter:blur(12px) saturate(1.4);backdrop-filter:blur(12px) saturate(1.4);box-shadow:inset 0 1px 0 rgb(255 255 255 / .22),0 16px 36px -16px rgb(2 6 24 / .7)}
+.cv-cb button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:44px;padding:0 14px;border-radius:9999px;white-space:nowrap;transition:background .25s,color .25s,transform .15s}
+.cv-cb button:hover{background:rgb(255 255 255 / .1)}.cv-cb button:active{transform:scale(.95)}
+.cv-cb button:focus-visible,.cv-cb input:focus-visible{outline:1.5px solid rgb(255 255 255 / .9);outline-offset:2px}
+.cv-cb button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.cv-cb .cv-cb-play{padding:0;width:44px;background:linear-gradient(180deg,rgb(255 255 255 / .96),rgb(255 255 255 / .8));color:#0b1020;box-shadow:0 6px 16px -8px rgb(2 6 24 / .8)}
+.cv-cb .cv-cb-play:hover{background:#fff}.cv-cb .cv-cb-play svg{fill:currentColor;stroke:none}
+.cv-cb .cv-cb-step{display:flex;align-items:center;gap:12px;padding:0 8px;min-width:0}
+.cv-cb .cv-cb-step input[type=range]{width:min(220px,34vw)}
+.cv-cb input[type=range]{-webkit-appearance:none;appearance:none;height:22px;background:transparent;cursor:pointer;margin:0}
+.cv-cb input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(90deg,#fff var(--p,0%),rgb(255 255 255 / .28) var(--p,0%))}
+.cv-cb input[type=range]::-moz-range-track{height:2px;border-radius:2px;background:rgb(255 255 255 / .28)}
+.cv-cb input[type=range]::-moz-range-progress{height:2px;background:#fff}
+.cv-cb input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#fff;border:0;box-shadow:0 2px 8px rgb(2 6 24 / .6)}
+.cv-cb input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0}
+.cv-cb output{font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgb(244 247 251 / .78);min-width:3.4em;max-width:16em;text-align:right}
+.cv-cb .cv-cb-more[aria-expanded="true"]{background:rgb(255 255 255 / .16)}
+.cv-cb .cv-cb-more i{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:#ffd028;display:none}.cv-cb .cv-cb-more.has-note i{display:block}.cv-cb .cv-cb-more{position:relative}
+.cv-cb-panel{position:absolute;left:50%;bottom:calc(100% + 10px);width:min(460px,calc(100vw - 24px));max-height:min(52vh,420px);overflow:auto;padding:6px 18px 14px;border-radius:24px;border:1px solid rgb(255 255 255 / .2);background:linear-gradient(180deg,rgb(18 26 52 / .62),rgb(10 16 36 / .5));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:inset 0 1px 0 rgb(255 255 255 / .2),0 24px 50px -20px rgb(2 6 24 / .8);transform:translate(-50%,8px) scale(.98);transform-origin:50% 100%;opacity:0;visibility:hidden;transition:opacity .3s,transform .4s cubic-bezier(.22,1,.36,1),visibility .3s}
+.cv-cb-panel.is-open{opacity:1;visibility:visible;transform:translate(-50%,0) scale(1)}
+.cv-cb-sec{padding:12px 0 2px}.cv-cb-sec+.cv-cb-sec{border-top:1px solid rgb(255 255 255 / .1)}
+.cv-cb-sec>h4{margin:0 0 8px;font:500 10.5px/1 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgb(244 247 251 / .55)}
+.cv-cb-row{display:flex;flex-wrap:wrap;gap:4px}
+.cv-cb-row button{padding:0 14px;min-height:40px;color:rgb(244 247 251 / .8)}
+.cv-cb-row button[aria-pressed="true"]{background:linear-gradient(180deg,rgb(255 255 255 / .95),rgb(255 255 255 / .8));color:#0b1020}
+.cv-cb-note{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:rgb(244 247 251 / .72);white-space:normal}
+.cv-cb-x{margin-left:2px}
+@media (max-width:600px){.cv-cb-cap{gap:2px;padding:3px}.cv-cb .cv-cb-step{gap:8px;padding:0 4px;flex:1 1 auto;min-width:0}.cv-cb .cv-cb-step input[type=range]{flex:1 1 60px;min-width:60px;width:auto}.cv-cb output{max-width:7.5em;min-width:0}.cv-cb .cv-cb-more span{display:none}.cv-cb .cv-cb-more{padding:0;width:44px}.cv-cb-panel{left:50%;width:calc(100vw - 20px);max-height:46vh}}
+@media (prefers-reduced-motion:reduce){.cv-cb-panel,.cv-cb button{transition:none}}`;
 let styled = false;
 const SPEEDS = [.5, 1, 2];
-export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) {
+const ICON = {
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.6.6 0 0 0 .9.5l10.5-6.8a.6.6 0 0 0 0-1L8.9 4.7a.6.6 0 0 0-.9.5z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.8" height="14" rx="1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1"/></svg>',
+  more: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>',
+  close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>'
+};
+export function buildControlBar(root, machine, ctl, { label = 'machine', onClose = null } = {}) {
   if (!styled) { styled = true; const s = document.createElement('style'); s.textContent = CSS; document.head.append(s); }
   const api = machine.api || {}, c = machine.controls && machine.controls.seek ? machine.controls : null;
   const bar = document.createElement('div'); bar.className = 'cv-cb'; bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', 'Commandes : ' + label);
-  const btn = (text, onclick, { pressed = null, aria } = {}) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; if (aria) b.setAttribute('aria-label', aria); if (pressed !== null) b.setAttribute('aria-pressed', String(pressed)); b.onclick = onclick; return b; };
-  const grp = (name) => { const g = document.createElement('div'); g.className = 'cv-cb-grp'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', name); const s = document.createElement('span'); s.textContent = name; s.setAttribute('aria-hidden', 'true'); g.append(s); return g; };
-  // lecture
-  const play = btn(ctl.paused ? 'Lecture' : 'Pause', () => { ctl.setPaused(!ctl.paused); play.textContent = ctl.paused ? 'Lecture' : 'Pause'; }, { aria: 'Mettre en pause ou reprendre la démonstration' });
-  const replay = btn('Rejouer', () => { ctl.scenario(null); ctl.seek(0); markScenario(null); refreshEdit(); }, { aria: 'Rejouer depuis le début' });
-  const speed = btn('1×', () => { const i = (SPEEDS.indexOf(ctl.speed) + 1) % SPEEDS.length; ctl.setSpeed(SPEEDS[i]); speed.textContent = SPEEDS[i] + '×'; }, { aria: 'Vitesse de lecture' });
-  const g0 = grp('Lecture'); g0.append(play, replay, speed); bar.append(g0);
-  // étape / tête de lecture
+  const cap = document.createElement('div'); cap.className = 'cv-cb-cap';
+  const panel = document.createElement('div'); panel.className = 'cv-cb-panel'; panel.id = 'cb-' + Math.random().toString(36).slice(2, 8); panel.setAttribute('role', 'region'); panel.setAttribute('aria-label', 'Explorer la machine');
+  const mkBtn = (html, onclick, aria, cls) => { const b = document.createElement('button'); b.type = 'button'; b.innerHTML = html; if (cls) b.className = cls; if (aria) b.setAttribute('aria-label', aria); b.onclick = onclick; return b; };
+  const choice = (text, onclick, { pressed = false, aria } = {}) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; if (aria) b.setAttribute('aria-label', aria); b.setAttribute('aria-pressed', String(pressed)); b.onclick = onclick; return b; };
+  const section = (name) => { const s = document.createElement('section'); s.className = 'cv-cb-sec'; const h = document.createElement('h4'); h.textContent = name; const r = document.createElement('div'); r.className = 'cv-cb-row'; s.append(h, r); panel.append(s); return { s, r, h }; };
+
+  /* niveau 1 : lecture, progression, réglages */
+  const play = mkBtn('', () => { ctl.setPaused(!ctl.paused); syncPlay(); }, 'Mettre en pause ou reprendre la démonstration', 'cv-cb-play');
+  const syncPlay = () => { play.innerHTML = ctl.paused ? ICON.play : ICON.pause; play.setAttribute('aria-label', ctl.paused ? 'Reprendre la démonstration' : 'Mettre en pause'); };
+  syncPlay(); cap.append(play);
   let slider = null, out = null;
   if (c) {
     const wrap = document.createElement('label'); wrap.className = 'cv-cb-step';
-    const name = document.createElement('span'); name.textContent = c.label || 'Étape';
     slider = document.createElement('input'); slider.type = 'range'; slider.min = c.min; slider.max = c.max; slider.step = c.step || 1; slider.setAttribute('aria-label', c.label || 'Étape');
-    out = document.createElement('output');
-    slider.oninput = () => { ctl.seek(c.seek(+slider.value)); out.textContent = c.fmt ? c.fmt(+slider.value) : slider.value; };
-    wrap.append(name, slider, out); bar.append(wrap);
+    out = document.createElement('output'); out.setAttribute('aria-live', 'off');
+    const fmt = (v) => (c.fmt ? c.fmt(v) : v);
+    const paint = () => slider.style.setProperty('--p', ((slider.value - c.min) / Math.max(1e-9, c.max - c.min) * 100).toFixed(1) + '%');
+    slider.oninput = () => { ctl.seek(c.seek(+slider.value)); out.textContent = fmt(+slider.value); paint(); };
+    wrap.append(slider, out); cap.append(wrap); slider.__paint = paint; out.__fmt = fmt;
   }
-  // scénarios
+  const more = mkBtn(ICON.more + '<span>Explorer</span><i></i>', () => setOpen(!panel.classList.contains('is-open')), 'Explorer la machine : scénarios, vues, inspection', 'cv-cb-more');
+  more.setAttribute('aria-expanded', 'false'); more.setAttribute('aria-controls', panel.id); cap.append(more);
+  if (onClose) cap.append(mkBtn(ICON.close, () => onClose(), 'Fermer la démonstration', 'cv-cb-x'));
+  const setOpen = (v) => { panel.classList.toggle('is-open', v); more.setAttribute('aria-expanded', String(v)); if (v) more.classList.remove('has-note'); };
+  bar.append(panel, cap);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.classList.contains('is-open') && bar.isConnected) { setOpen(false); e.stopPropagation(); } }, true);
+
+  /* section Démonstration */
+  const sd = section('Démonstration');
+  const replay = choice('Rejouer', () => { ctl.scenario(null); ctl.seek(0); ctl.setPaused(false); syncPlay(); markScenario(null); refreshEdit(); }, { aria: 'Rejouer depuis le début' });
+  const speed = choice('1×', () => { const i = (SPEEDS.indexOf(ctl.speed) + 1) % SPEEDS.length; ctl.setSpeed(SPEEDS[i]); speed.textContent = SPEEDS[i] + '×'; }, { aria: 'Vitesse de lecture' });
+  sd.r.append(replay, speed);
+
+  /* section Scénarios */
   let markScenario = () => {};
   if (api.scenarios?.length) {
-    const g = grp('Scénario'), bs = [];
-    const mk = (text, i, aria) => { const b = btn(text, () => { ctl.scenario(i); const sc = i === null ? null : api.scenarios[i]; if (sc?.edit && sc.hold !== false) { ctl.seek(sc.editT); ctl.setPaused(true); play.textContent = 'Lecture'; } else if (sc?.edit) { ctl.setPaused(false); play.textContent = 'Pause'; } else { ctl.seek(0); ctl.setPaused(false); play.textContent = 'Pause'; } markScenario(i); refreshEdit(); }, { pressed: i === null, aria }); bs.push([b, i]); g.append(b); };
+    const ss = section('Scénarios'), bs = [];
+    const mk = (text, i, aria) => { const b = choice(text, () => { ctl.scenario(i); const sc = i === null ? null : api.scenarios[i]; if (sc?.edit && sc.hold !== false) { ctl.seek(sc.editT); ctl.setPaused(true); } else if (sc?.edit) { ctl.setPaused(false); } else { ctl.seek(0); ctl.setPaused(false); } syncPlay(); markScenario(i); refreshEdit(); }, { pressed: i === null, aria }); bs.push([b, i]); ss.r.append(b); };
     mk('Auto', null, 'Scénarios en boucle'); api.scenarios.forEach((s, i) => mk(s.short, i, s.label));
-    markScenario = (k) => bs.forEach(([b, i]) => b.setAttribute('aria-pressed', String(i === k))); bar.append(g);
+    markScenario = (k) => bs.forEach(([b, i]) => b.setAttribute('aria-pressed', String(i === k)));
   }
-  // édition des cadres (machines qui l'exposent : api.frames) : choisir un cadre, le déplacer, lancer l'essai
-  let refreshEdit = () => {};
-  if (api.frames) {
-    const g = grp('Cadres'), st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'opacity:.9;white-space:nowrap';
-    let cur = 0; const sel = api.frames.names.map((n, i) => { const b = btn(n, () => { cur = i; sel.forEach((x, k) => x.setAttribute('aria-pressed', String(k === cur))); }, { pressed: i === 0, aria: 'Choisir le cadre ' + n }); g.append(b); return b; });
-    const arrow = (txt, dx, dy, aria) => { const b = btn(txt, () => { api.frames.nudge(cur, dx, dy); st.textContent = api.status(); }, { aria }); b.style.minWidth = '32px'; g.append(b); };
-    arrow('←', -2, 0, 'Déplacer le cadre vers la gauche'); arrow('→', 2, 0, 'Déplacer le cadre vers la droite'); arrow('↑', 0, -2, 'Déplacer le cadre vers le haut'); arrow('↓', 0, 2, 'Déplacer le cadre vers le bas');
-    const rs = btn('Remettre', () => { api.frames.reset(); st.textContent = api.status(); }, { aria: 'Remettre les cadres sur leurs champs' });
-    const run = btn('Lancer l’essai', () => { ctl.setPaused(false); play.textContent = 'Pause'; }, { aria: 'Lancer la fabrication de la cartouche et l’essai' });
-    g.append(rs, run, st); bar.append(g); g.hidden = true;
-    refreshEdit = () => { g.hidden = !api.frames.editing(); st.textContent = api.status(); }; setInterval(function t() { if (!root.isConnected) return clearInterval(t); st.textContent = api.frames.editing() ? api.status() : ''; }, 400);
-    bar.__edit = g;
-  }
-  // réglages libres (api.params : groupes de choix) : visibles seulement pendant le scénario qui les expose
-  if (api.params) {
-    const wrap = document.createElement('div'); wrap.className = 'cv-cb'; wrap.style.cssText = 'gap:6px 14px'; const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'white-space:normal;opacity:.9;flex:1 1 100%;max-width:100%';
-    const groups = api.params.groups.map((gd) => { const g = grp(gd.name), bs = gd.options.map((o, i) => { const b = btn(o.label, () => { o.run(); sync(); }, { pressed: false, aria: gd.name + ' : ' + o.label }); g.append(b); return b; }); wrap.append(g); return { gd, bs }; });
-    const sync = () => groups.forEach(({ gd, bs }) => { const cur = gd.get(); bs.forEach((b, i) => b.setAttribute('aria-pressed', String(i === cur))); });
-    wrap.append(st); wrap.hidden = true; bar.append(wrap);
-    const refresh = () => { wrap.hidden = !api.params.visible(); sync(); st.textContent = api.params.visible() && api.status ? api.status() : ''; };
-    const prevRefresh = refreshEdit; refreshEdit = () => { prevRefresh(); refresh(); }; setInterval(function t() { if (!root.isConnected) return clearInterval(t); refresh(); }, 500);
-  }
-  // vues et inspection
-  const views = api.views || [], gv = grp('Vue'), vb = [];
+
+  /* section Vues */
+  const views = api.views || [], vb = [];
   const setView = (name, b) => { ctl.focus(name); vb.forEach((x) => x.setAttribute('aria-pressed', String(x === b))); };
-  const over = btn('Ensemble', () => setView(null, over), { pressed: true, aria: 'Vue d’ensemble' }); vb.push(over); gv.append(over);
-  views.forEach((v) => { const b = btn(v.label, () => setView(v.anchor, b), { pressed: false, aria: 'Gros plan : ' + v.label }); vb.push(b); gv.append(b); });
-  if (views.length) bar.append(gv);
-  if (api.setInspect) { let on = false; const b = btn('Inspecter', () => { on = !on; api.setInspect(on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Refermer' : 'Inspecter'; }, { pressed: false, aria: 'Inspection : séparer ou rassembler les organes' }); bar.append(b); }
+  const sv = section('Vues');
+  const over = choice('Ensemble', () => setView(null, over), { pressed: true, aria: 'Vue d’ensemble' }); vb.push(over); sv.r.append(over);
+  views.forEach((v) => { const b = choice(v.label, () => setView(v.anchor, b), { aria: 'Gros plan : ' + v.label }); vb.push(b); sv.r.append(b); });
+  if (!views.length) sv.s.hidden = true;
+
+  /* section Inspection */
+  if (api.setInspect) {
+    const si = section('Inspection'); let on = false;
+    const b = choice('Séparer les organes', () => { on = !on; api.setInspect(on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Rassembler les organes' : 'Séparer les organes'; }, { aria: 'Inspection : séparer ou rassembler les organes' });
+    si.r.append(b);
+  }
+
+  /* section Réglages métier : cadres à placer (Studio PDF) et choix libres (api.params), visibles seulement quand le scénario les expose */
+  let refreshEdit = () => {};
+  const flag = () => { if (!panel.classList.contains('is-open')) more.classList.add('has-note'); };
+  if (api.frames || api.params) {
+    const sm = section('Réglages métier'); sm.s.hidden = true;
+    const st = document.createElement('p'); st.className = 'cv-cb-note'; st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite');
+    let wasShown = false; const parts = [];
+    if (api.frames) {
+      const g = document.createElement('div'); g.className = 'cv-cb-row'; let cur = 0;
+      const sel = api.frames.names.map((n, i) => { const b = choice(n, () => { cur = i; sel.forEach((x, k) => x.setAttribute('aria-pressed', String(k === cur))); }, { pressed: i === 0, aria: 'Choisir le cadre ' + n }); g.append(b); return b; });
+      const arrow = (txt, dx, dy, aria) => { const b = choice(txt, () => { api.frames.nudge(cur, dx, dy); st.textContent = api.status(); }, { aria }); g.append(b); };
+      arrow('←', -2, 0, 'Déplacer le cadre vers la gauche'); arrow('→', 2, 0, 'Déplacer le cadre vers la droite'); arrow('↑', 0, -2, 'Déplacer le cadre vers le haut'); arrow('↓', 0, 2, 'Déplacer le cadre vers le bas');
+      g.append(choice('Remettre', () => { api.frames.reset(); st.textContent = api.status(); }, { aria: 'Remettre les cadres sur leurs champs' }), choice('Lancer l’essai', () => { ctl.setPaused(false); syncPlay(); }, { aria: 'Lancer la fabrication de la cartouche et l’essai' }));
+      sm.s.insertBefore(g, null); parts.push(() => api.frames.editing());
+    }
+    let paramSync = () => {};
+    if (api.params) {
+      const groups = api.params.groups.map((gd) => { const h = document.createElement('div'); h.className = 'cv-cb-row'; h.style.marginTop = '6px'; const lab = document.createElement('span'); lab.textContent = gd.name; lab.style.cssText = 'flex:1 1 100%;font-size:12px;color:rgb(244 247 251 / .6)'; h.append(lab); const bs = gd.options.map((o) => { const b = choice(o.label, () => { o.run(); paramSync(); }, { aria: gd.name + ' : ' + o.label }); h.append(b); return b; }); sm.s.append(h); return { gd, bs }; });
+      paramSync = () => groups.forEach(({ gd, bs }) => { const cur = gd.get(); bs.forEach((b, i) => b.setAttribute('aria-pressed', String(i === cur))); });
+      parts.push(() => api.params.visible());
+    }
+    sm.s.append(st);
+    refreshEdit = () => { const on = parts.some((p) => p()); sm.s.hidden = !on; if (on && !wasShown) flag(); wasShown = on; paramSync(); st.textContent = on && api.status ? api.status() : ''; };
+    const t = setInterval(() => { if (!root.isConnected) return clearInterval(t); refreshEdit(); }, 450);
+    bar.__edit = sm.s;
+  }
+
   root.replaceChildren(bar);
-  // synchronisation de la tête de lecture avec le temps réel de la démonstration
-  const timer = setInterval(() => { if (!root.isConnected) { clearInterval(timer); return; } if (slider && document.activeElement !== slider) { const v = c.get(ctl.time()); slider.value = v; out.textContent = c.fmt ? c.fmt(v) : v; } }, 250);
-  return { bar, dispose() { clearInterval(timer); bar.remove(); } };
+  /* synchronisation de la tête de lecture avec le temps réel de la démonstration */
+  const timer = setInterval(() => {
+    if (!root.isConnected) { clearInterval(timer); return; }
+    syncPlay();
+    if (slider && document.activeElement !== slider) { const v = c.get(ctl.time()); slider.value = v; out.textContent = out.__fmt(v); slider.__paint(); }
+  }, 250);
+  if (slider) { slider.__paint(); out.textContent = out.__fmt(+slider.value); }
+  return { bar, open: setOpen, sync: syncPlay, dispose() { clearInterval(timer); bar.remove(); } };
 }
