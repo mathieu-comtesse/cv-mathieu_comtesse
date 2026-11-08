@@ -126,5 +126,15 @@ window.runMachines = async (only) => {
   }
   return out;
 };
+window.perfMachines = async () => {   // coût CPU de construction et de mise à jour (sans rendu GPU)
+  const out = {};
+  for (const name of Object.keys(MACHINES)) {
+    const mod = await loadMachine(name); setDA(name); const t0 = performance.now(), m = mod.build(), tb = performance.now() - t0; let n = 0, geos = new Set(), mats = new Set(); m.group.traverse((o) => { if (o.isMesh) { n++; geos.add(o.geometry); [].concat(o.material).forEach((x) => mats.add(x)); } });
+    const t1 = performance.now(); for (let i = 0; i < 300; i++) m.update(i * .1); const tu = (performance.now() - t1) / 300;
+    out[name] = { buildMs: +tb.toFixed(0), updateMs: +tu.toFixed(2), meshes: n, geometries: geos.size, materials: mats.size };
+    geos.forEach((g) => g.dispose()); mats.forEach((x) => x.dispose());
+  }
+  return out;
+};
 window.__ready = true;
 </script>
