@@ -2,7 +2,7 @@
 // Usage : node tools/perf/measure.cjs <url-chemin> <sortie.json> [largeur] [hauteur] [secondes] [scrollY]
 // Les requêtes vers https://comtesse.me/ sont servies depuis ce dépôt. Rendu logiciel (SwiftShader) : les images/s sont une mesure relative, pas un FPS GPU.
 const { chromium } = require('playwright'); const fs = require('fs'); const path = require('path');
-const root = path.resolve(__dirname, '../..');
+const root = process.env.ROOT || path.resolve(__dirname, '../..');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.glb': 'model/gltf-binary', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
 (async () => {
   const [, , route = '/', out = 'perf.json', W = '1440', H = '900', secs = '12', sy = '0'] = process.argv;

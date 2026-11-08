@@ -1073,7 +1073,7 @@ async function start() {
   addEventListener('wheel', (e) => {
     if (!smooth.on || e.ctrlKey || lifted || reader || document.documentElement.classList.contains('ex-menu-open') || run.st === 'run' || e.target.closest?.('.ex-drawer, .pc-lift, .fl-ov, dialog, .ov, .pc-reader-bar')) return;
     e.preventDefault(); const max = document.documentElement.scrollHeight - innerHeight, from = smooth.active ? smooth.target : scrollY;
-    smooth.target = Math.max(0, Math.min(max, from + e.deltaY * (e.deltaMode === 1 ? 32 : 1))); smooth.last = scrollY; smooth.active = true;
+    smooth.target = Math.max(0, Math.min(max, from + e.deltaY * (e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? innerHeight : 1))); smooth.last = scrollY; smooth.active = true;
   }, { passive: false });
   const flatPos = new THREE.Vector3(), runPos = new THREE.Vector3(), flatLook = new THREE.Vector3(), runLook = new THREE.Vector3(), look = new THREE.Vector3();
   let frameN = 0, sSm = scrollY, last = performance.now(), dtS = 0;
@@ -1084,8 +1084,8 @@ async function start() {
     if (rawDt < 250) Q.ema += (rawDt - Q.ema) * 0.06; Q.t += dtS;
     if (Q.t > 2.5 && !reduce) { Q.t = 0; const was = Q.pr; if (Q.ema > 36 && Q.pr > 0.6) Q.pr = Math.max(0.6, Q.pr * 0.8); else if (Q.ema < 18 && Q.pr < Q.max) Q.pr = Math.min(Q.max, Q.pr * 1.15); if (Math.abs(Q.pr - was) > 0.01) { renderer.setPixelRatio(Q.pr); resize(); } }
     // défilement inertiel : la molette fixe une cible, la page la rejoint en douceur (même principe que Lenis)
-    if (smooth.active) { const d = smooth.target - scrollY; if (Math.abs(scrollY - smooth.last) > 4) smooth.active = false; else if (Math.abs(d) < 0.6) { scrollTo(0, smooth.target); smooth.active = false; } else { scrollTo(0, scrollY + d * (1 - Math.exp(-dtS * 8))); smooth.last = scrollY; } }
-    sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * (smooth.on ? 16 : 7))); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
+    if (smooth.active) { const d = smooth.target - scrollY; if (Math.abs(scrollY - smooth.last) > 4) smooth.active = false; else if (Math.abs(d) < 0.6) { scrollTo(0, smooth.target); smooth.active = false; } else { scrollTo(0, scrollY + d * (1 - Math.exp(-dtS * 11))); smooth.last = scrollY; } }
+    sSm += (scrollY - sSm) * (reduce ? 1 : 1 - Math.exp(-dtS * (smooth.on ? 22 : 9))); if (Math.abs(scrollY - sSm) < 0.05) sSm = scrollY;
     const s = sSm, e = ease(Math.max(0, Math.min(1, (s - FOLD_A) / (FOLD_B - FOLD_A))));
     const H = innerHeight, kf = KF + (1 - KF) * e, focusZ = (s + H / kf / 2) / PXM;
     // vue de face : la page à l'échelle 1:1, comme un site normal (champ 30°)
