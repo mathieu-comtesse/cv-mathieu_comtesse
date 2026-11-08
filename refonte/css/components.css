@@ -140,6 +140,7 @@
     .hero { --hero-logo-column: calc(min(var(--hero-content-height) * (144 / 740), 25vw) + .0625rem); --hero-sidebar-column: calc(clamp(12.8125rem, 17vw, 15.9375rem) + 1.25rem);
       height: var(--hero-height); grid-template-rows: none; grid-template-columns: var(--hero-logo-column) var(--hero-sidebar-column) minmax(0, 1fr); }
   }
+  @media (min-width: 58.75rem) and (prefers-reduced-motion: no-preference) { .hero-entrance-hold { animation: 10s hero-enter-hold; } }
   .hero-chrome { --html-in-canvas-rise: 0; }
   [data-html-in-canvas-drawn] [data-title-stuck] { position: relative; bottom: auto; }
   [data-html-in-canvas-drawn] [data-html-in-canvas-type]:not([data-html-in-canvas-flat]), [data-html-in-canvas-drawn] .hero-logo { color: transparent; }
