@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, springGeoZ, TAU } from './machine-kit.js';
 import * as T from './finance-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 400;
 const R = 30, PIPE_Y = [-21, -7, 7, 21], PZ = 24, GY = 33.5, G0 = 38, GH = 90, GMAX = 1.2;
@@ -20,14 +21,14 @@ function dialTexture() {
   x.fillStyle = '#2a251d'; x.font = '700 18px ui-monospace,Menlo,Consolas,monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
   for (const v of [0, 20, 40, 60, 80, 100, 120]) { const a = ang(v / 100); x.fillText(String(v), 128 + Math.cos(a) * 76, 128 + Math.sin(a) * 76); }
   x.strokeStyle = '#c8372d'; x.lineWidth = 8; x.beginPath(); x.arc(128, 128, 120, ang(1), ang(1.2)); x.stroke();
-  x.fillStyle = '#6a6252'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.fillText('CONSOMMATION %', 128, 170); x.fillText('DEMO FICTIVE', 128, 190); return tex(c, 8);
+  x.fillStyle = '#6a6252'; x.font = '700 13px ui-monospace,Menlo,Consolas,monospace'; x.fillText('CONSOMMATION %', 128, 204); x.fillText('DEMO FICTIVE', 128, 222); return tex(c, 8);   // sous l'arc : l'aiguille ne passe jamais par le bas
 }
 function slipTexture(txt, col) { const c = cv(176, 80), x = c.getContext('2d'); x.fillStyle = '#f6efdc'; x.fillRect(0, 0, 176, 80); x.fillStyle = col; x.fillRect(0, 0, 176, 14); x.fillStyle = '#2a251d'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.fillText(txt, 8, 38); x.font = '700 10px ui-monospace,Menlo,Consolas,monospace'; x.fillText('ALERTE EMISE  DEMO FICTIVE', 8, 62); return tex(c); }
 function ledgerTexture(ctx, a1, a2) { ctx.fillStyle = '#f2ead3'; ctx.fillRect(0, 0, 160, 96); ctx.strokeStyle = '#8a8272'; ctx.lineWidth = 2; ctx.strokeRect(2, 2, 156, 92); ctx.fillStyle = '#6a6252'; ctx.font = '700 11px ui-monospace,Menlo,Consolas,monospace'; ctx.fillText('ALERTES EMISES', 10, 18); ctx.fillRect(10, 24, 140, 1);
   [['PREVENTIF', a1, '#d79a2b'], ['DEPASSEMENT', a2, '#c8372d']].forEach(([t, a, c], i) => { const y = 46 + i * 28; ctx.globalAlpha = 1; ctx.fillStyle = '#6a6252'; ctx.fillText(t, 10, y); ctx.globalAlpha = a; ctx.fillStyle = c; ctx.fillRect(100, y - 10, 46, 12); ctx.fillStyle = '#fff'; ctx.fillText('EMIS', 108, y); ctx.globalAlpha = 1; }); }
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   M.green = new THREE.MeshStandardMaterial({ color: '#2d7a4f', roughness: .45, metalness: .1 }); M.liquid = new THREE.MeshStandardMaterial({ color: '#3f8fd9', roughness: .15, metalness: 0, transparent: true, opacity: .85 });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
@@ -39,7 +40,11 @@ export function build() {
 
   /* ================= bâti : plinthe, disque de fonte, trois pieds boulonnés ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 10, 3, 380, 180, 6, 'cast', 1.4);
+  S.box(0, 10, 3, 380, 180, 6, 'enamel', 1.4);                                                  // table émaillée
+  S.box(0, 99.3, 3, 380, 1.4, 5, 'alu', .4); S.box(0, -79.3, 3, 380, 1.4, 5, 'alu', .4);
+  for (let i = 0; i < 10; i++) S.box(-150 + i * 33, 100.2, 3, 14, .5, 1.8, 'ink', .2);          // ouïes de ventilation en façade
+  PIPE_Y.forEach((y) => { for (const x of [-160, -70, -50]) S.box(x, y, 10, 2.4, 2.4, 8, 'steelDk', .3); });   // pieds des colliers de conduite
+  for (const x of [-136, -112]) for (const y of [-26, 26]) S.box(x, y, 8, 3, 3, 4, 'steelDk', .3);              // pieds de la chambre de filtrage
   for (const [x, y] of [[-176, -70], [176, -70], [-176, 90], [176, 90]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
   S.cylZ(0, 0, 6, 44, 4, 'cast', 40); S.cylZ(0, 0, 10, 40, 2, 'steelDk', 40);
   for (let i = 0; i < 3; i++) { const a = i * TAU / 3 + Math.PI / 2, x = Math.cos(a) * 28, y = Math.sin(a) * 28; S.cylZ(x, y, 12, 6.5, 12, 'cast', 20); S.cylZ(x, y, 24, 7.6, 2, 'steelDk', 20); }
@@ -134,11 +139,13 @@ export function build() {
   const anchors = { all: new THREE.Object3D(), tank: new THREE.Object3D(), dial: new THREE.Object3D(), pipes: new THREE.Object3D() };
   at(anchors.all, 0, 0, 70); at(anchors.tank, 0, 20, 80); at(anchors.dial, 116, 20, 90); at(anchors.pipes, -110, 10, 30);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null, lastK = 0;
+  let forced = null, lastK = 0, lastTime = 0;
   const zero = new THREE.Vector3(.001, .001, .001), m4 = new THREE.Matrix4(), unit = new THREE.Vector3(1, 1, 1), qI = new THREE.Quaternion();
   const ANG = (v) => 2.356 - 4.712 * clamp(v / 1.2, 0, 1);       // 0 % en bas à gauche, 120 % en bas à droite
 
+  const curU = () => Math.max(0, lastTime - T.CUSTOM.base), toLevel = (v) => { if (forced === 2) T.setCons(v / Math.max(.05, 1 - T.share(T.CUSTOM.now.sel, T.CUSTOM.now.excl)), curU()); };
   function update(time) {
+    lastTime = time; if (forced === 2 && !T.CUSTOM.started) T.startCustom(time);
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
     inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
     for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); }
@@ -171,8 +178,37 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'La cuve', anchor: 'tank' }, { label: 'Le cadran', anchor: 'dial' }, { label: 'Les lignes', anchor: 'pipes' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 2) + 2) % 2; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT, hold: s.hold })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; if (forced === 2) T.startCustom(lastTime); }, get scenario() { return forced; },
+      /* scénario C « Mon réservoir » : périmètre, consommation, seuil, lignes KO, réarmement. Métaphore de surveillance : aucune dépense n'est bloquée. */
+      params: {
+        visible: () => forced === 2,
+        groups: [
+          { name: 'Périmètre', options: T.SEL.map((s, i) => ({ label: s.id, run: () => { if (forced === 2) T.setScope(i, T.CUSTOM.now.excl, curU()); } })), get: () => T.CUSTOM.now.sel },
+          { name: 'Consommation', options: [{ label: '−10 pts', run: () => { if (forced === 2) T.setCons(T.CUSTOM.now.cons - .1, curU()); } }, { label: '+10 pts', run: () => { if (forced === 2) T.setCons(T.CUSTOM.now.cons + .1, curU()); } }, { label: 'Vers 70 %', run: () => toLevel(.7) }, { label: 'Vers 110 %', run: () => toLevel(1.1) }], get: () => -1 },
+          { name: 'Seuil préventif', options: [{ label: '−5 pts', run: () => { if (forced === 2) T.setThr(T.CUSTOM.now.thr - .05, curU()); } }, { label: '+5 pts', run: () => { if (forced === 2) T.setThr(T.CUSTOM.now.thr + .05, curU()); } }], get: () => -1 },
+          { name: 'Lignes KO', options: [{ label: 'Exclues', run: () => { if (forced === 2) T.setScope(T.CUSTOM.now.sel, true, curU()); } }, { label: 'Incluses', run: () => { if (forced === 2) T.setScope(T.CUSTOM.now.sel, false, curU()); } }], get: () => (T.CUSTOM.now.excl ? 0 : 1) },
+          { name: 'Alertes', options: [{ label: 'Réarmer', run: () => { if (forced === 2) T.rearm(curU()); } }], get: () => -1 }
+        ]
+      },
+      status() {
+        if (forced !== 2) return ''; const u = curU(), S = T.simulate(u), n = T.CUSTOM.now, pct = (v) => Math.round(v * 100) + ' %';
+        const hist = S.hist.slice(-4).map((h) => Math.round(h.t) + ' s ' + (h.kind ? 'dépassement des fonds' : 'seuil préventif') + ' à ' + pct(h.level)).join(' ; ');
+        return 'Niveau ' + pct(T.levelAt(u)) + ' · seuil ' + pct(n.thr) + ' · ' + T.SEL[n.sel].id + ' · lignes KO ' + (n.excl ? 'exclues (' + Math.round(T.share(n.sel, true) * 100) + ' pts en moins)' : 'incluses') + (hist ? ' · alertes : ' + hist : ' · aucune alerte') + ' · aucune dépense n’est bloquée';
+      },
+      /* clic sur le cadran : seuil +5 pts (retour à 50 % après 95 %) ; clic sur la cuve : consommation +10 pts (retour à 20 % après 130 %) */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3();
+        const onPlane = (ray, zs) => { inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); if (Math.abs(r.direction.z) < 1e-6) return null; const t = (zs - r.origin.z) / r.direction.z; if (t < 0) return null; r.at(t, hit); return { x: hit.x, z: hit.y }; };
+        return {
+          pick(ray) {
+            if (forced !== 2 || inspect.v > .05) return null;
+            const d = onPlane(ray, 12.1); if (d && Math.hypot(d.x - 116, d.z - 92) < 22) { T.setThr(T.CUSTOM.now.thr >= .95 ? .5 : T.CUSTOM.now.thr + .05, curU()); return { id: 'dial', name: 'seuil' }; }
+            const k = onPlane(ray, R); if (k && Math.abs(k.x) < R && k.z > 30 && k.z < 130) { T.setCons(T.CUSTOM.now.cons >= 1.3 ? .2 : T.CUSTOM.now.cons + .1, curU()); return { id: 'tank', name: 'consommation' }; }
+            return null;
+          }, move() {}, end() {}
+        };
+      })()
     },
-    controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + (lastK ? T.STEPS_B : T.STEPS_A)[v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.STEP_T[lastK][v - 1] + .4 }
+    controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + [T.STEPS_A, T.STEPS_B, T.STEPS_C][lastK][v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.STEP_T[lastK][v - 1] + .4 }
   };
 }

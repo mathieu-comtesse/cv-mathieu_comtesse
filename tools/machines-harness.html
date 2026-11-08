@@ -36,6 +36,16 @@ window.runMachines = async (only) => {
         a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
         a.frames.reset(); a.setScenario(null);
       }
+      if (a?.params && name === 'finance') {   // Mon réservoir : consommation, seuil, périmètre, lignes KO, alertes mémorisées puis réarmées
+        a.setScenario(2); const t0 = 400; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to) => { for (let dt = from; dt <= to; dt += 1) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Mon réservoir +' + dt + ' ' + window.__bad); } };
+        run(1, 2); step(1, 12); if (!/Niveau (6\d|7\d) %/.test(a.status())) r.errors.push('niveau vers 70 % : ' + a.status()); if (/dépassement/.test(a.status())) r.errors.push('dépassement à 70 %');
+        run(1, 3); step(13, 30); const st = a.status(); if (!/seuil préventif/.test(st) || !/dépassement des fonds/.test(st)) r.errors.push('alertes absentes à 110 % : ' + st); if (!/aucune dépense n’est bloquée/.test(st)) r.errors.push('mention de non-blocage absente');
+        run(4, 0); step(31, 36); run(1, 0); step(37, 52); run(4, 0); step(53, 60); if (/aucune alerte/.test(a.status())) r.errors.push('l\'historique doit survivre au réarmement');
+        run(3, 1); run(1, 0); run(1, 0); step(61, 80); const incl = a.status(); run(3, 0); step(81, 95); const excl = a.status(); const lv = (x) => +(x.match(/Niveau (\d+) %/) || [0, 0])[1]; if (!(lv(excl) < lv(incl))) r.errors.push('lignes KO exclues sans effet : ' + lv(incl) + ' / ' + lv(excl));
+        run(0, 0); step(96, 110); if (a.params.groups[0].get() !== 0) r.errors.push('périmètre PRG non retenu'); const th0 = a.status().match(/seuil (\d+) %/)[1]; run(2, 0); step(111, 114); if (!(+a.status().match(/seuil (\d+) %/)[1] < +th0)) r.errors.push('seuil non abaissé');
+        const ray = (x, z) => new THREE.Ray(new THREE.Vector3(x, z, 300), new THREE.Vector3(0, 0, -1)); m.group.updateMatrixWorld(true); const before = a.status().match(/seuil (\d+) %/)[1]; if (!a.drag.pick(ray(116, 92))) r.errors.push('clic cadran non saisi'); else if (a.status().match(/seuil (\d+) %/)[1] === before) r.errors.push('clic cadran sans effet');
+        a.setScenario(0); if (a.drag.pick(ray(116, 92))) r.errors.push('clic actif hors de Mon réservoir'); a.setScenario(null);
+      } else
       if (a?.params && name === 'cerfa') {   // Ma feuille : chaque document traité seul, champs lus, motif, correction supervisée
         a.setScenario(2); let t = 200; m.update(t);
         const labels = a.params.groups[0].options.map((o) => o.label); if (labels.length !== 9) r.errors.push('catalogue de documents : ' + labels.length);

@@ -19,7 +19,7 @@ const port = srv.address().port; let chromium; try { const { createRequire } = a
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] }); const p = await b.newPage();
 p.on('pageerror', (e) => fail.push('erreur de page : ' + e)); await p.goto(`http://localhost:${port}/tools/machines-harness.html`); await p.waitForFunction(() => window.__ready, null, { timeout: 30000 });
 const rep = await p.evaluate(() => window.runMachines());
-for (const [k, r] of Object.entries(rep)) { const ok = !r.errors.length && r.module === r.expected; log((ok ? 'ok     ' : 'ÉCHEC  ') + k.padEnd(20), r.module, JSON.stringify(r.notes)); if (r.module !== r.expected) fail.push(`${k} : module chargé ${r.module}, attendu ${r.expected}`); for (const e of r.errors) fail.push(`${k} : ${e}`); }
+for (const [k, r] of Object.entries(rep)) { const ok = !r.errors.length && r.module === r.expected; log((ok ? 'ok     ' : 'ÉCHEC  ') + k.padEnd(20), r.module, JSON.stringify(r.notes)); if (r.module !== r.expected) fail.push(`${k} : module chargé ${r.module}, attendu ${r.expected}`); for (const e of r.errors.slice(0, 6)) fail.push(`${k} : ${e}`); if (r.errors.length > 6) fail.push(`${k} : … ${r.errors.length - 6} autres erreurs`); }
 // ?machines=old doit rester explicite : sans le paramètre, aucun ancien module
 await b.close(); srv.close();
 if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); } log('\nles onze machines : modules corrects, construction et commandes valides');

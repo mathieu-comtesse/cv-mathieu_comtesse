@@ -290,3 +290,12 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Le test des onze machines a révélé un NaN (aiguille du sélecteur de catégorie pour k = 2) : corrigé.
 - Captures : `docs/machines/cerfa-pro-avant.png`, `cerfa-pro-lecture.png`, `cerfa-ma-feuille.png`.
 - Limites : valeurs et seuils fictifs ; pas de capots vitrés supplémentaires ni de courroies de transmission visibles ajoutés ; rendu logiciel, pas de mesure sur GPU ; mutualisation des géométries non traitée.
+
+## Point financier : scénario « Mon réservoir »
+
+- Scénario C : le visiteur règle le périmètre (PRG, PSE, GLOBAL : les vannes tournent), la consommation (±10 pts, vers 70 %, vers 110 % : le niveau, le flotteur, la poulie, l'aiguille et le levier suivent), le seuil préventif (±5 pts : le curseur et le repère du cadran suivent), les lignes KO (exclues ou incluses : la part exclue baisse le niveau, valeurs fictives) et peut réarmer les alertes. Les alertes (seuil préventif, dépassement des fonds à 100 %) sont déduites en rejouant la piste de réglages : cloche, loquet de mémoire, courrier sorti, ligne du registre ; elles ne se répètent pas avant réarmement ; l'historique des notifications reste affiché dans l'état. Clic direct sur le cadran (seuil +5 pts) ou sur la cuve (consommation +10 pts).
+- Le texte du cadran n'est plus croisé par l'aiguille (légende déplacée sous l'arc, hors de sa course).
+- Base : table émaillée, chants aluminium, ouïes, pieds sous les conduites et la chambre de filtrage (ils flottaient au-dessus de la table).
+- Le message d'état rappelle que la machine ne bloque aucune dépense (métaphore de surveillance).
+- Captures : `docs/machines/finance-pro-avant.png`, `finance-pro-cadran.png`, `finance-mon-reservoir.png`.
+- Limites : poids des lignes et part KO fictifs ; les alertes sont validées par le test (jamais vues se déclencher en navigateur à cause de la lenteur du rendu logiciel) ; rendu logiciel seulement.
