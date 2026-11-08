@@ -36,7 +36,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) 
   let markScenario = () => {};
   if (api.scenarios?.length) {
     const g = grp('Scénario'), bs = [];
-    const mk = (text, i, aria) => { const b = btn(text, () => { ctl.scenario(i); const sc = i === null ? null : api.scenarios[i]; if (sc?.edit) { ctl.seek(sc.editT); ctl.setPaused(true); play.textContent = 'Lecture'; } else { ctl.seek(0); ctl.setPaused(false); play.textContent = 'Pause'; } markScenario(i); refreshEdit(); }, { pressed: i === null, aria }); bs.push([b, i]); g.append(b); };
+    const mk = (text, i, aria) => { const b = btn(text, () => { ctl.scenario(i); const sc = i === null ? null : api.scenarios[i]; if (sc?.edit && sc.hold !== false) { ctl.seek(sc.editT); ctl.setPaused(true); play.textContent = 'Lecture'; } else if (sc?.edit) { ctl.setPaused(false); play.textContent = 'Pause'; } else { ctl.seek(0); ctl.setPaused(false); play.textContent = 'Pause'; } markScenario(i); refreshEdit(); }, { pressed: i === null, aria }); bs.push([b, i]); g.append(b); };
     mk('Auto', null, 'Scénarios en boucle'); api.scenarios.forEach((s, i) => mk(s.short, i, s.label));
     markScenario = (k) => bs.forEach(([b, i]) => b.setAttribute('aria-pressed', String(i === k))); bar.append(g);
   }
@@ -52,6 +52,15 @@ export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) 
     g.append(rs, run, st); bar.append(g); g.hidden = true;
     refreshEdit = () => { g.hidden = !api.frames.editing(); st.textContent = api.status(); }; setInterval(function t() { if (!root.isConnected) return clearInterval(t); st.textContent = api.frames.editing() ? api.status() : ''; }, 400);
     bar.__edit = g;
+  }
+  // réglages libres (api.params : groupes de choix) : visibles seulement pendant le scénario qui les expose
+  if (api.params) {
+    const wrap = document.createElement('div'); wrap.className = 'cv-cb'; wrap.style.cssText = 'gap:6px 14px'; const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'white-space:nowrap;opacity:.9';
+    const groups = api.params.groups.map((gd) => { const g = grp(gd.name), bs = gd.options.map((o, i) => { const b = btn(o.label, () => { o.run(); sync(); }, { pressed: false, aria: gd.name + ' : ' + o.label }); g.append(b); return b; }); wrap.append(g); return { gd, bs }; });
+    const sync = () => groups.forEach(({ gd, bs }) => { const cur = gd.get(); bs.forEach((b, i) => b.setAttribute('aria-pressed', String(i === cur))); });
+    wrap.append(st); wrap.hidden = true; bar.append(wrap);
+    const refresh = () => { wrap.hidden = !api.params.visible(); sync(); st.textContent = api.params.visible() && api.status ? api.status() : ''; };
+    const prevRefresh = refreshEdit; refreshEdit = () => { prevRefresh(); refresh(); }; setInterval(function t() { if (!root.isConnected) return clearInterval(t); refresh(); }, 500);
   }
   // vues et inspection
   const views = api.views || [], gv = grp('Vue'), vb = [];

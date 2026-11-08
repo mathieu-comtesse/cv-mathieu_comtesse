@@ -86,7 +86,7 @@ if (fig && bpCanvas && stage) {
       if (machine.api.scenarios) {
         const sep = document.createElement('span'); sep.style.cssText = 'width:1px;background:#0b102033;margin:4px 2px'; bar.append(sep);
         const sc = [{ short: 'Auto', i: null }, ...machine.api.scenarios.map((x, i) => ({ short: x.short, i }))];
-        const sbs = sc.map((x) => { const bs = mk(x.short, () => { machine.api.setScenario(x.i); const sd = x.i === null ? null : machine.api.scenarios[x.i]; if (sd?.edit) { hold = sd.editT; } else if (hold !== null) { shift = -(performance.now() - t0) / 1000; hold = null; } editG?.refresh(); sbs.forEach((o) => { o.dataset.on = o === bs ? '1' : '0'; o.style.background = o.dataset.on === '1' ? '#0b1020' : 'transparent'; o.style.color = o.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bs.dataset.sc = '1'; return bs; });
+        const sbs = sc.map((x) => { const bs = mk(x.short, () => { machine.api.setScenario(x.i); const sd = x.i === null ? null : machine.api.scenarios[x.i]; if (sd?.edit && sd.hold !== false) { hold = sd.editT; } else if (hold !== null) { shift = -(performance.now() - t0) / 1000; hold = null; } editG?.refresh(); sbs.forEach((o) => { o.dataset.on = o === bs ? '1' : '0'; o.style.background = o.dataset.on === '1' ? '#0b1020' : 'transparent'; o.style.color = o.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bs.dataset.sc = '1'; return bs; });
         sbs[0].dataset.on = '1';
       }
       /* cadres à placer (Studio PDF, scénario « Mon cadrage ») : choisir, déplacer, lancer l'essai ; ou glisser directement sur la machine */
@@ -103,6 +103,14 @@ if (fig && bpCanvas && stage) {
         bar.append(box);
         editG = { refresh() { const on = machine.api.frames.editing(); box.style.display = on ? 'inline-flex' : 'none'; st.textContent = on ? machine.api.status() : ''; } };
         setInterval(() => { if (machine.api.frames.editing()) st.textContent = machine.api.status(); }, 400);
+      }
+      /* réglages libres (api.params) : critère, gare à consulter... visibles pendant le scénario concerné */
+      if (machine.api.params) {
+        const box = document.createElement('span'); box.style.cssText = 'display:none;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center'; const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'font:600 12px/1 system-ui,sans-serif;color:#0b1020';
+        const all = machine.api.params.groups.map((gd) => { const lab = document.createElement('span'); lab.textContent = gd.name; lab.style.cssText = 'font:600 12px/1 system-ui,sans-serif;color:#0b1020;opacity:.7'; const bs = gd.options.map((o) => mk(o.label, () => { o.run(); sync(); })); box.append(lab, ...bs); return { gd, bs }; });
+        const sync = () => all.forEach(({ gd, bs }) => bs.forEach((b, i) => { b.style.background = gd.get() === i ? '#0b1020' : 'transparent'; b.style.color = gd.get() === i ? '#fff' : '#0b1020'; }));
+        box.append(st); bar.append(box);
+        setInterval(() => { const on = machine.api.params.visible(); box.style.display = on ? 'inline-flex' : 'none'; if (on) { sync(); st.textContent = machine.api.status(); } }, 500);
       }
       bAll.dataset.on = '1'; bAll.style.background = '#0b1020'; bAll.style.color = '#fff'; document.body.append(bar); machine.bar = bar;
     }

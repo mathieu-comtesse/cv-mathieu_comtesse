@@ -273,3 +273,11 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Test : `tools/machines-harness.html` vérifie couverture, conformité, valeurs finies et saisie/déplacement par rayon.
 - Captures : `docs/machines/studio-cadres-zoom.png`, `studio-cadres-fiche.png`.
 - Limites : la fiche et la vue agrandie ont été exercées au clavier et par boutons ; le glisser à la souris est validé par test de rayon mais pas par un geste réel sur GPU. Les trois champs et leur seuil de 80 % sont des valeurs de démonstration.
+
+## Gares prioritaires : palettes et scénario « Mon choix »
+
+- Les tambours octogonaux (noms illisibles, plusieurs gares superposées sur un cylindre) sont remplacés par un vrai afficheur à palettes : huit rangées de huit palettes articulées à mi-hauteur. La face avant porte la moitié haute du nom, le dos la moitié basse du nom suivant ; la palette qui tombe découvre la gare suivante et pose la moitié basse sous elle. Caractères blancs sur fond noir, hauteur d'environ 6 unités par demi-palette (lisibles à l'échelle normale). Les pignons, cliquets, moteurs, cadrans, sélecteur et tiroir sont conservés et pilotés par la même chronologie.
+- Scénario C « Mon choix » : le visiteur choisit le critère (Criticité, Conformité, Maintenance préventive) : le classement tourne rang par rang ; il choisit la gare d'un rang : le sélecteur ambre descend, la fiche sort du tiroir. Aussi par clic direct sur une rangée ou sur la couronne de critère (`api.drag`). Les événements sont espacés pour que chaque mécanisme termine avant le suivant.
+- Contrat générique ajouté : `api.params` (groupes de choix + visibilité) rendu par la barre commune et par `post.js` ; `scenario.hold === false` : le scénario n'est pas mis en pause.
+- Captures : `docs/machines/gares-pro-avant.png`, `gares-pro-palettes.png`, `gares-mon-choix.png`.
+- Limites : valeurs fictives ; rendu logiciel seulement (pas de mesure sur GPU) ; 64 palettes = 64 maillages de plus, non mesurés ; table et pupitre n'ont pas reçu la passe « table émaillée » des machines précédentes ; la fiche (texture) garde son format d'origine.

@@ -24,7 +24,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   return {
     resize: w,
     controls: m.controls,
-    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; }, views: m.api.views, scenarios: m.api.scenarios, setScenario: m.api.setScenario, frames: m.api.frames, status: m.api.status, drag: m.api.drag } : null,
+    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; }, views: m.api.views, scenarios: m.api.scenarios, setScenario: m.api.setScenario, frames: m.api.frames, params: m.api.params, status: m.api.status, drag: m.api.drag } : null,
     /** rayon monde sous le pointeur (pour api.drag : glisser des éléments de la machine) */
     rayAt(cx, cy) { ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); cam.updateMatrixWorld(); ray.setFromCamera(ndc, cam); return ray.ray; },
     /** vrai si le point (clientX, clientY) est sur une pièce visible de la machine */
