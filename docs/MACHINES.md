@@ -21,7 +21,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | à faire | vague 2 |
 | 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | `studio-pdf.js` + `studio-timeline.js` + `machine-kit.js` | livrée (cette branche) |
 | 10 Retrouver tout le suivi | `suivi` | `suivi.js` | à faire | vague 3 |
-| 11 Gares prioritaires | `gares` | `gares.js` | à faire | vague 1 |
+| 11 Gares prioritaires | `gares` | `gares.js` (livre « échangeur ») | `gares-board.js` + `gares-timeline.js` | livrée (cette branche) |
 
 ## Machine 03 : Reporteur Q18
 
@@ -72,3 +72,23 @@ Deux scénarios de 66 s : essai réussi (bordereau d'export), essai en écart (v
 **Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 218 solides contrôlés tous les 2 s sur 132 s (seuls restent des engagements voulus : dents du pignon sur la crémaillère, cartouche qui entre dans le rack ou la goulotte), 130 appels de rendu, 18 000 triangles, captures dans `docs/machines/studio/`.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce par pièce ; le lecteur et ses caissons sont encore sobres (peu de détails fins) ; le bac de feuilles et le gabarit sont retirés par fondu en fin de scénario.
+
+## Machine 11 : Gares prioritaires
+
+**Phrase de compréhension.** Huit tambours octogonaux (un par rang) portent chacun les huit gares ; quand on tourne la couronne de critère, un calculateur à cames détermine le nouvel ordre et chaque tambour avance du nombre de faces nécessaire, tandis que trois cadrans par rangée suivent les indicateurs de la gare affichée.
+
+| Opération | Organe |
+|---|---|
+| Choix du critère (criticité, conformité, maintenance préventive) | couronne de réglage, trois voyants |
+| Calcul du nouvel ordre | calculateur à tambour de cames derrière une fenêtre vitrée |
+| Reclassement | huit tambours à huit faces, moteur pas à pas, roue entraînée à 18 dents, cadence décalée de 0,22 s par rangée |
+| Arrêt exact sur une face | roue à étoile à huit dents, cliquet à ressort qui recule à chaque pas |
+| Indicateurs | 24 cadrans (criticité, conformité, maintenance) dont les aiguilles suivent la gare affichée |
+| Sélection d'une gare | cadre ambre sur deux chariots, vis-mère, couronne « LIGNE » liée à sa position |
+| Fiche de suivi | tiroir qui sort du pupitre avec la fiche de la gare désignée (équipements, échéance, opérations) |
+
+Deux scénarios de 60 s : « Trois critères » (le classement tourne trois fois puis revient) et « Ouvrir une fiche » (trois gares désignées, tiroir ouvert à chaque fois). Ce n'est pas un tableau d'horaires. Gares, noms et valeurs sont fictifs, la plaque porte « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 14 s identique après t = 5 s), 339 solides contrôlés tous les 2 s sur 120 s (restent des engagements voulus : cadre sur rails, écrou sur vis, boîtes englobantes des roues dentées en rotation), 170 appels de rendu, 50 000 triangles, captures dans `docs/machines/gares/`.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les huit noms sont lisibles surtout de face (le texte est tourné de 90° sur la circonférence) ; pas de comparaison de deux situations côte à côte.

@@ -9,7 +9,7 @@ const MODULES = {
   cerfa: () => import('./cerfa.js'),
   vm: () => import('./vm.js'),
   vre: () => import('./vre-wattselse.js'),
-  gares: () => import('./gares.js'),
+  gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),
   finance: () => import('./finance.js'),
   pp: () => import('./pp.js'),
   powerbi: () => import('./powerbi-wattselse.js'),
