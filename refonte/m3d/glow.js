@@ -9,7 +9,7 @@ export function trackGlow(root, accent = '#ff9d3c') {
   const items = [];
   root.updateMatrixWorld(true);
   root.traverse((o) => {
-    if (!o.isMesh || o.userData.glowShell) return;
+    if (!o.isMesh || o.userData.glowShell || o.userData.noGlow) return;
     items.push({ o, prev: o.matrixWorld.elements.slice(), vis: o.visible, until: 0, shell: null });
   });
   const shellOf = (it) => {

@@ -13,7 +13,7 @@ const MODULES = {
   pp: () => import('./pp.js'),
   powerbi: () => import('./powerbi-wattselse.js'),
   suivi: () => import('./suivi.js'),
-  studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./vrestudio.js')
+  studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./nisaru.js')
 };
 
 export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {
@@ -36,6 +36,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   return {
     resize: w,
     controls: m.controls,
+    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; } } : null,
     /** vrai si le point (clientX, clientY) est sur une pièce visible de la machine */
     pick(cx, cy) {
       ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);

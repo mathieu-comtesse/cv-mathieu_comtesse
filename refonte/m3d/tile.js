@@ -8,7 +8,7 @@ import { createBlueprintPlane } from '../blueprint-hero.js';
 const MODULES = {
   moteur: () => import('./moteur.js'), cerfa: () => import('./cerfa.js'), vm: () => import('./vm.js'), vre: () => import('./vre-wattselse.js'),
   gares: () => import('./gares.js'), finance: () => import('./finance.js'), pp: () => import('./pp.js'), powerbi: () => import('./powerbi-wattselse.js'),
-  suivi: () => import('./suivi.js'), studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./vrestudio.js')
+  suivi: () => import('./suivi.js'), studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./nisaru.js')
 };
 const DEG = Math.PI / 180;
 
