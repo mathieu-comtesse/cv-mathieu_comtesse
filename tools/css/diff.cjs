@@ -14,6 +14,6 @@ async function grab(b, mode, w, h, y) {
   for (let i = 0; i < n; i++) { if (A[i][0] !== B[i][0]) continue; let d = 0; PROPS.forEach((k, j) => { if (A[i][1][j] !== B[i][1][j]) { d++; byProp[k] = (byProp[k] || 0) + 1; } }); if (d) { diffEl++; diffProps += d; byEl[A[i][0].slice(0, 60)] = d; } }
   console.log(`éléments ${A.length} (réf) / ${B.length} (locale) ; éléments différents ${diffEl} (${(diffEl / n * 100).toFixed(1)} %) ; propriétés différentes ${diffProps} sur ${n * PROPS.length}`);
   console.log('par propriété', Object.entries(byProp).sort((a, c) => c[1] - a[1]).slice(0, 12).map(([k, v]) => k + ':' + v).join('  '));
-  console.log('éléments les plus écartés', Object.entries(byEl).sort((a, c) => c[1] - a[1]).slice(0, 6).map(([k, v]) => v + ' ' + k).join('\n'));
+  console.log('éléments les plus écartés', Object.entries(byEl).sort((a, c) => c[1] - a[1]).slice(0, 14).map(([k, v]) => v + ' ' + k).join('\n'));
   await b.close();
 })();

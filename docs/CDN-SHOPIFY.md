@@ -78,3 +78,7 @@ Après écriture du système d'animations du héros (variables `--hero-expand-x/
 Propriétés calculées différentes : 1 480 sur 160 600 (0,9 %), dont 869 pour la police (Inter à la place de PP Neue Montreal).
 
 **Reste à écrire** : la liste de navigation latérale du bureau (`desktop-navigation`, absente de la capture locale à 4000), les infobulles (`shared-tooltip__bubble`), l'en-tête mobile, les états de survol hors héros, `checkpoint-stage__*` complet. Le défaut visible le plus net est le haut de page à 390 de large (9,3 %). Production inchangée : la feuille Shopify reste la feuille par défaut tant que ces points ne sont pas traités et que la police n'est pas validée.
+
+### Mise à jour : infobulles, mobile, priorités
+
+Ajouts : infobulles (`shared-tooltip*`), `trim-cap`, jetons de lettrage des tailles mono, taille du grand titre desktop, règles de page placées hors couches (elles l'emportent sur les utilitaires). Pixels différents (capture, seuil 24/255) : 1440 de large 3,7 % (0) / 4,8 % (300) / 0,0 % (700) / 0,2 % (4000) ; 1920 : 3,0 % (0) / 0,9 % (4000) ; 390 : 9,3 % (0) / 0,0 % (1500). Propriétés calculées différentes à 1440 : 1 070 dont 869 de police (Inter). Reste : haut de page mobile, liste de navigation latérale, position du texte vertical `hero-tagline`. La feuille Shopify reste la feuille par défaut ; `?css=local` et le secours automatique utilisent `site.css`.

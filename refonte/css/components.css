@@ -56,13 +56,14 @@
   --color-section-slate: var(--f26-color-section-slate);
   --color-graph-background: #010419;
   --color-graph-ink: #324df1;
-  --text-mono: .75rem;            --text-mono--line-height: 1rem;
-  --text-mono-sm: .625rem;        --text-mono-sm--line-height: .75rem;
-  --text-mono-lg: 1.5rem;         --text-mono-lg--line-height: 1.75rem;
-  --text-hero-tagline: .6875rem;  --text-hero-tagline--line-height: .9375rem;
+  --text-mono: .75rem;            --text-mono--line-height: 1rem; --text-mono--letter-spacing: 0;
+  --text-mono-sm: .625rem;        --text-mono-sm--line-height: .75rem; --text-mono-sm--letter-spacing: 0;
+  --text-mono-lg: 1.5rem;         --text-mono-lg--line-height: 1.75rem; --text-mono-lg--letter-spacing: 0;
+  --text-hero-tagline: .6875rem;  --text-hero-tagline--line-height: .9375rem; --text-hero-tagline--letter-spacing: 0;
   --text-body-lg: 1.125rem;       --text-body-lg--line-height: 1.375rem;  --text-body-lg--letter-spacing: .01em;
-  --text-display: 4rem;           --text-display--line-height: 1;
-  --text-section-title: clamp(2.4375rem, 13.8889vw - 5.44444px, 4rem);  --text-section-title--line-height: 1;
+  --text-display: 4rem;           --text-display--line-height: 1; --text-display--letter-spacing: 0;
+  --text-section-title-desktop: clamp(4rem, 11.2vw - 41.28px, 7.5rem); --text-section-title-desktop--line-height: 1; --text-section-title-desktop--letter-spacing: 0;
+  --text-section-title: clamp(2.4375rem, 13.8889vw - 5.44444px, 4rem);  --text-section-title--line-height: 1; --text-section-title--letter-spacing: 0;
   --aspect-exponential-logo: 144 / 740;
   --ease-editions: cubic-bezier(.65, 0, .35, 1);
 }
@@ -152,12 +153,15 @@
   .section-hero-pin > header { align-content: center; min-height: 22.5rem; position: relative; }
   .section-hero-pin > header > :not(.title-graph) { position: relative; }
   .f26-section-layer { position: fixed; inset: 0 0 auto; height: calc(50px + env(safe-area-inset-top)); z-index: 30; pointer-events: none; background-color: var(--f26-section-background, transparent); opacity: 0; transition: none; }
-  .f26-nav-glass { display: block; position: fixed; inset: 0 0 auto; z-index: 41; height: calc(50px + env(safe-area-inset-top)); pointer-events: none; -webkit-backdrop-filter: opacity(); }
+  .f26-nav-glass { display: none; }
   [data-title-signal-fill]::before { content: attr(data-title-signal-fill); }
-  [data-f26-page] .fall-navigation { opacity: 0; visibility: hidden; transition: opacity .4s, visibility .4s; }
-  [data-f26-page] .desktop-navigation { visibility: visible; }
-  [data-f26-page] .desktop-navigation li > a { visibility: hidden; }
-  [data-f26-page] .f26-nav-underlay { filter: opacity(var(--html-in-canvas-flat, 0)); }
+  .font-mono { font-weight: 300; }
+  .trim-cap { text-box-trim: trim-both; text-box-edge: cap alphabetic; }
+  .shared-tooltip { opacity: 0; background-color: transparent; overflow: visible; pointer-events: auto; margin: 0; padding: 0; width: max-content; font-family: var(--font-mono); font-size: .625rem; line-height: .75rem; letter-spacing: 0; font-weight: 300; user-select: text; transition-property: left, top; transition-duration: 0s; transition-timing-function: ease-out; }
+  .shared-tooltip__bubble { position: relative; display: block; padding: 4px 8px; border-radius: .25rem; background-color: #fff; text-align: center; box-shadow: 0 0 10px 0 #0000000d, 0 0 40px 0 #0000001a; }
+  .shared-tooltip__bubble::after { content: ""; pointer-events: none; display: block; position: absolute; top: 100%; left: 50%; width: .875rem; height: .875rem; translate: -50% 0; background-color: #fff; clip-path: polygon(50% 50%, 0 0, 100% 0); margin-top: -1px; }
+  .shared-tooltip__track { display: block; position: relative; overflow: hidden; overflow-wrap: anywhere; text-align: center; }
+  .shared-tooltip__measure { display: block; position: absolute; top: 0; left: 0; visibility: hidden; width: max-content; max-width: min(20rem, 100vw - 3rem); overflow-wrap: anywhere; text-align: center; }
   .grid-container { padding-inline: 1rem; }
   .grid-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
   @media (min-width: 58.75rem) { .grid-layout { grid-template-columns: repeat(16, minmax(0, 1fr)); } }
@@ -218,3 +222,9 @@
   [data-f26-stand-in] [data-f26-page] .hero-graph-layer { opacity: 0; visibility: hidden; }
   @media (prefers-reduced-motion: no-preference) { [data-f26-stand-in] [data-f26-page] .hero-graph-layer { transition: opacity .24s ease-out, visibility 0s .24s; } }
 }
+
+/* Règles de page, hors couches : elles l'emportent sur les utilitaires comme dans la mise en page d'origine. */
+[data-f26-page] .fall-navigation { opacity: 0; visibility: hidden; transition: opacity .4s, visibility .4s; }
+[data-f26-page] .desktop-navigation { visibility: visible; }
+[data-f26-page] .desktop-navigation li > a { visibility: hidden; }
+[data-f26-page] .f26-nav-underlay { filter: opacity(var(--html-in-canvas-flat, 0)); }
