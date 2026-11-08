@@ -11,6 +11,10 @@ for (const f of [...scan(root, ['.html'], ['node_modules', 'vendor', 'tools']), 
   if (f.endsWith('/registry.js')) continue; const s = fs.readFileSync(f, 'utf8');
   for (const o of oldFiles) { const re = new RegExp(`m3d/${o.replace('.', '\\.')}|['"]\\./${o.replace('.', '\\.')}['"]`); if (re.test(s) && !/m3d\/(vre|powerbi|studio)-wattselse\.js/.test(path.basename(f))) fail.push(`${path.relative(root, f)} référence l'ancien module ${o}`); }
 }
+// 1 bis. modules natifs embarqués dans refonte/boot-native.js : chacun doit être analysable (une redéclaration dans un correctif coupe tout le chemin 3D)
+{ const { execSync } = await import('node:child_process'); const os = await import('node:os'); const src = fs.readFileSync(`${root}/refonte/boot-native.js`, 'utf8'), re = /new Blob\(\["((?:[^"\\]|\\.)*)"\]/g; let m, n = 0; const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'native-'));
+  while ((m = re.exec(src))) { let code; try { code = JSON.parse('"' + m[1] + '"'); } catch (e) { fail.push(`boot-native.js : module ${n} illisible (${e.message})`); n++; continue; } const f = path.join(dir, `m${n}.mjs`); fs.writeFileSync(f, code); try { execSync(`node --check ${f}`, { stdio: 'pipe' }); } catch (e) { fail.push(`boot-native.js : module embarqué ${n} invalide : ${String(e.stderr).split('\n').find((l) => /Error/.test(l))}`); } n++; }
+  if (!n) fail.push('boot-native.js : aucun module embarqué trouvé'); log('modules natifs analysés :', n); }
 log('registre statique :', fail.length ? 'ÉCHEC' : 'ok');
 // 2. navigateur
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
