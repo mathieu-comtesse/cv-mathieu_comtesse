@@ -19,7 +19,7 @@ else {
 
 /* Dessins d'origine du livre posés sur le blueprint (piscine, Reporteur Q18, VRE VM) : figures-livre/NN.html, sans plaque ni commandes */
 /* figures du livre (iframe) à la place de la machine 3D ; le Reporteur Q18 (moteur) a sa machine : ?machines=old rend l'ancienne figure pour comparaison */
-const BP_FIG = /[?&]machines=old\b/.test(location.search) ? { moteur: '16', pp: '52', vm: '69' } : { pp: '52' };
+const BP_FIG = /[?&]machines=old\b/.test(location.search) ? { moteur: '16', pp: '52', vm: '69' } : {};
 const fig = document.querySelector('.rf-post-fig[data-fig]');
 const bpCanvas = document.getElementById('rf-bp');
 const stage = document.getElementById('stage');
