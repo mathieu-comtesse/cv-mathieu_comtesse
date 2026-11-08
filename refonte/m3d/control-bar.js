@@ -7,7 +7,8 @@ const CSS = `.cv-cb{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;
 .cv-cb button:focus-visible,.cv-cb input:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .cv-cb .cv-cb-step{display:flex;align-items:center;gap:8px}.cv-cb input[type=range]{width:min(220px,40vw)}
 .cv-cb .cv-cb-grp{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.cv-cb .cv-cb-grp>span{opacity:.7;margin-right:2px}
-.cv-cb svg{display:block}`;
+.cv-cb svg{display:block}
+.cv-cb output{white-space:nowrap;margin-right:14px}`;
 let styled = false;
 const SPEEDS = [.5, 1, 2];
 export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) {

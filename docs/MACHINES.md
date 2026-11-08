@@ -243,3 +243,10 @@ La Manufacture et la main de La Création ne sont pas modifiées : la géométri
 Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreur, animation qui avance ; le mode par défaut lit `wrap(time)` comme avant.
 
 **Limites** : la séquence courte est un remappage du temps, pas une nouvelle mise en scène (les états transitoires se voient à vitesse élevée) ; l'inspection d'une zone reconnue, le suivi d'un document, la comparaison candidat contre modèle actif et l'exploration des versions ne sont pas des commandes séparées (elles restent portées par la barre d'étapes et les vues) ; pas de nouvel audit de géométrie pour Nisaru dans cette passe.
+
+## Registre unique et commandes communes (correctif de la refonte)
+
+- `refonte/m3d/registry.js` : seule table identifiant -> module. `loadMachine(name)` est utilisé par l'accueil, les tuiles (`tile.js`), les fiches (`index.js`) et le parcours (`parcours.js`). `?machines=old` reste un diagnostic explicite.
+- `refonte/m3d/control-bar.js` : barre de commandes unique (lecture/pause, rejouer, vitesse, étape via `controls.seek`, scénarios via `api.scenarios/setScenario`, vues via `api.views` + ancres, inspection via `api.setInspect`).
+- `tools/test-machines.mjs` + `tools/machines-harness.html` : test navigateur des onze machines (module chargé, construction, temps, `seek`, scénarios, vues, inspection, valeurs finies) et contrôle statique des références à d'anciens modules. Workflow `.github/workflows/machines.yml`.
+- Non traité à ce stade : reprise visuelle (matériaux, réalisme, vues éclatées), commandes directes sur la machine, contrôleur de caméra complet (orbite/zoom), mesures de performance, captures comparatives, workflows `Site integrity` (SEO de `machines.html`, `parcours.html`, `accueil.html` en échec avant ce chantier) et `Scene smoke check` (journaux non consultables depuis cet environnement).
