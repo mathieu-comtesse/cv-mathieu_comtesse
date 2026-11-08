@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { MACHINES, loadMachine, moduleName } from '../refonte/m3d/registry.js';
 import { setDA } from '../refonte/m3d/core.js';
-const finite = (g) => { let bad = 0; g.updateMatrixWorld(true); g.traverse((o) => { if (o.matrixWorld.elements.some((v) => !Number.isFinite(v))) bad++; if (o.geometry?.attributes?.position && !o.geometry.attributes.position.array.slice(0, 3000).every(Number.isFinite)) bad++; }); return bad; };
+const finite = (g) => { let bad = 0; g.updateMatrixWorld(true); g.traverse((o) => { if (o.matrixWorld.elements.some((v) => !Number.isFinite(v))) { bad++; window.__bad = (o.name || o.type) + ' / ' + (o.parent && o.parent.name) + ' ' + o.position.toArray().join(); } if (o.geometry?.attributes?.position && !o.geometry.attributes.position.array.slice(0, 3000).every(Number.isFinite)) bad++; }); return bad; };
 window.runMachines = async (only) => {
   const out = {};
   for (const name of Object.keys(MACHINES)) {
@@ -21,7 +21,7 @@ window.runMachines = async (only) => {
       if (a) {
         r.notes.views = a.views?.length || 0; r.notes.scenarios = a.scenarios?.length || 0;
         for (const v of a.views || []) if (!a.anchors?.[v.anchor]) r.errors.push('ancre de vue absente : ' + v.anchor);
-        for (let i = 0; i < (a.scenarios?.length || 0); i++) { a.setScenario(i); for (const t of [0, 5, 12, 20, 33]) { m.update(t); if (finite(m.group)) r.errors.push('non fini, scénario ' + i + ' t=' + t); } }
+        for (let i = 0; i < (a.scenarios?.length || 0); i++) { a.setScenario(i); for (const t of [0, 5, 12, 20, 33]) { m.update(t); if (finite(m.group)) r.errors.push('non fini, scénario ' + i + ' t=' + t + ' ' + window.__bad); } }
         a.setScenario?.(null);
         if (a.setInspect) { a.setInspect(true); for (let k = 0; k < 40; k++) m.update(3 + k * .05); if (finite(m.group)) r.errors.push('non fini en inspection'); a.setInspect(false); for (let k = 0; k < 40; k++) m.update(5 + k * .05); if (finite(m.group)) r.errors.push('non fini au retour'); }
       }
@@ -36,6 +36,15 @@ window.runMachines = async (only) => {
         a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
         a.frames.reset(); a.setScenario(null);
       }
+      if (a?.params && name === 'cerfa') {   // Ma feuille : chaque document traité seul, champs lus, motif, correction supervisée
+        a.setScenario(2); let t = 200; m.update(t);
+        const labels = a.params.groups[0].options.map((o) => o.label); if (labels.length !== 9) r.errors.push('catalogue de documents : ' + labels.length);
+        for (let i = 0; i < 9; i++) { a.params.groups[0].options[i].run(); t += .5; for (const dt of [0, 5, 8, 12, 20, 40, 63]) { m.update(t + dt); if (finite(m.group)) r.errors.push('non fini, document ' + i + ' +' + dt + ' ' + window.__bad); } t += 70; const st = a.status(); if (!st || !/bac :/.test(st)) r.errors.push('état vide, document ' + i); if (i === 6 && !/pas une décision réglementaire/.test(st)) r.errors.push('anomalie F-Gas sans mention de non-décision'); }
+        a.params.groups[0].options[3].run(); if (!/INCOMPLET/.test(a.status())) r.errors.push('feuille sans signature non classée incomplète'); a.params.groups[1].options[0].run(); if (!/EXPLOITABLE/.test(a.status())) r.errors.push('correction supervisée sans effet'); for (const dt of [3, 15, 30]) { m.update(t + 80 + dt); if (finite(m.group)) r.errors.push('non fini après correction'); }
+        a.params.groups[0].options[6].run(); a.params.groups[1].options[0].run(); if (!/ANOMALIE/.test(a.status())) r.errors.push('une anomalie F-Gas ne doit pas être corrigeable');
+        const ray = new THREE.Ray(new THREE.Vector3(-146, 200, 0), new THREE.Vector3(0, -1, 0)); m.group.updateMatrixWorld(true); const c0 = a.params.groups[0].get(); if (!a.drag.pick(ray) || a.params.groups[0].get() === c0) r.errors.push('clic sur le lot sans effet');
+        a.setScenario(0); if (a.drag.pick(ray)) r.errors.push('clic actif hors de Ma feuille'); a.setScenario(null);
+      } else
       if (a?.params) {   // choix libres (Gares : critère et gare consultée) : l'état suit les choix, tout reste fini, le clic sur une rangée est saisi
         a.setScenario(2); const t0 = 100; m.update(t0); if (!a.params.visible()) r.errors.push('réglages non visibles dans Mon choix');
         a.params.groups[0].options[1].run(); a.params.groups[1].options[3].run(); const st1 = a.status();

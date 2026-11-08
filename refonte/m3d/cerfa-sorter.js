@@ -7,18 +7,36 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, TAU } from './machine-kit.js';
 import * as T from './cerfa-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 440;
 const SW = 24, SD = 30, BZ = T.BELT.z, plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' };
 const DCOL = ['#2d7a4f', '#d79a2b', '#2f6fb3', '#c8372d', '#6b6b73'];
 
 /* ---------------- textures ---------------- */
-function sheetTexture() {
-  const c = cv(192, 240), x = c.getContext('2d'); x.fillStyle = '#f4efe0'; x.fillRect(0, 0, 192, 240); x.strokeStyle = '#6a6252'; x.lineWidth = 3; x.strokeRect(4, 4, 184, 232);
-  x.fillStyle = '#2a251d'; x.font = '700 15px ui-monospace,Menlo,Consolas,monospace'; x.fillText('CERFA', 14, 28); x.font = '700 10px ui-monospace,Menlo,Consolas,monospace'; x.fillText('ATTESTATION  DEMO FICTIVE', 14, 44);
-  x.fillStyle = '#c9c0a4'; x.fillRect(14, 54, 164, 3);
-  for (let i = 0; i < 4; i++) { x.strokeStyle = '#8a8272'; x.lineWidth = 1.5; x.strokeRect(14, 70 + i * 34, 164, 26); x.fillStyle = '#2a251d'; x.fillRect(22, 80 + i * 34, 40 + i * 14, 5); x.fillRect(22, 90 + i * 34, 90, 3); }
-  x.fillStyle = '#2f6fb3'; x.fillRect(14, 214, 50, 12); return tex(c, 8);
+const MONO = '700 11px ui-monospace,Menlo,Consolas,monospace';
+/** une feuille par type de document (fictif) : attestation, fiche d'intervention, facture, courrier manuscrit ; les champs lus sont imprimés, un champ manquant reste vide */
+function docTexture(doc, fixed) {
+  const c = cv(192, 240), x = c.getContext('2d'), kind = doc.kind, fields = doc.fields.map((f, j) => (fixed && doc.fix && doc.fix.field === j ? { ...f, ok: 1, v: doc.fix.v } : f));
+  const paper = { att: '#f4efe0', fiche: '#eef3ea', fact: '#f6efe2', lettre: '#f7f3e6' }[kind]; x.fillStyle = paper; x.fillRect(0, 0, 192, 240);
+  x.strokeStyle = '#6a6252'; x.lineWidth = 2; x.strokeRect(4, 4, 184, 232); x.textBaseline = 'alphabetic';
+  if (kind === 'lettre') {                                                                  // courrier manuscrit : lignes et écriture libre, aucun gabarit imprimé
+    x.strokeStyle = '#b9c4d6'; x.lineWidth = 1; for (let i = 0; i < 12; i++) { x.beginPath(); x.moveTo(10, 34 + i * 17); x.lineTo(182, 34 + i * 17); x.stroke(); }
+    x.strokeStyle = '#27344f'; x.lineWidth = 1.6; for (let i = 0; i < 9; i++) { x.beginPath(); let px = 16, py = 30 + i * 17; x.moveTo(px, py); for (let k = 0; k < 14; k++) { px += 6 + ((i * 7 + k * 5) % 5); py = 30 + i * 17 + Math.sin(k * 1.7 + i) * 3.2; x.lineTo(px, py); if (px > 170) break; } x.stroke(); }
+    if (fixed) { x.fillStyle = '#2f6fb3'; x.fillRect(120, 214, 52, 14); x.fillStyle = '#fff'; x.font = MONO; x.fillText('FICHE', 128, 225); }
+    return tex(c, 8);
+  }
+  const head = { att: '#2f6fb3', fiche: '#2d7a4f', fact: '#c77d1f' }[kind]; x.fillStyle = head; x.fillRect(4, 4, 184, 30); x.fillStyle = '#fff'; x.font = '700 12px ui-monospace,Menlo,Consolas,monospace'; x.fillText(doc.title, 12, 24);
+  x.fillStyle = '#2a251d'; x.font = '700 9px ui-monospace,Menlo,Consolas,monospace'; x.fillText('DEMO FICTIVE', 12, 46);
+  fields.forEach((f, j) => {
+    const y = 56 + j * 34; x.strokeStyle = '#8a8272'; x.lineWidth = 1.5; x.strokeRect(12, y, 168, 26); x.fillStyle = '#6a6252'; x.font = '700 8px ui-monospace,Menlo,Consolas,monospace'; x.fillText(f.n, 16, y + 9);
+    if (f.v) { x.fillStyle = fixed && doc.fix && doc.fix.field === j ? '#2f6fb3' : '#1d1a14'; x.font = '700 13px ui-monospace,Menlo,Consolas,monospace'; x.fillText(f.v, 18, y + 21); }
+  });
+  if (kind === 'fact') { x.strokeStyle = '#c9c0a4'; for (let i = 0; i < 4; i++) { x.beginPath(); x.moveTo(12, 170 + i * 11); x.lineTo(180, 170 + i * 11); x.stroke(); } x.fillStyle = '#c77d1f'; x.fillRect(112, 214, 68, 14); }
+  else if (kind === 'fiche') { for (let i = 0; i < 4; i++) { x.strokeStyle = '#2d7a4f'; x.strokeRect(14, 166 + i * 14, 8, 8); x.fillStyle = '#2d7a4f'; if (i < 3) { x.beginPath(); x.moveTo(15, 170 + i * 14); x.lineTo(18, 174 + i * 14); x.lineTo(22, 165 + i * 14); x.stroke(); } x.fillRect(30, 168 + i * 14, 60 + i * 12, 3); } }
+  else { x.strokeStyle = '#2f6fb3'; x.strokeRect(12, 170, 168, 36); x.fillStyle = '#6a6252'; x.font = '700 8px ui-monospace,Menlo,Consolas,monospace'; x.fillText('SIGNATURE', 16, 180); if (fields[2] && fields[2].n === 'SIGNATURE' ? fields[2].ok : 1) { x.strokeStyle = '#27344f'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(30, 198); x.bezierCurveTo(50, 176, 60, 210, 80, 190); x.bezierCurveTo(95, 178, 110, 206, 150, 188); x.stroke(); } x.fillStyle = '#2f6fb3'; x.beginPath(); x.arc(160, 222, 8, 0, TAU); x.fill(); }
+  if (doc.fgas) { x.strokeStyle = '#c8372d'; x.lineWidth = 1.5; x.strokeRect(120, 8, 60, 20); }
+  return tex(c, 8);
 }
 function digitDrum() {
   const c = cv(640, 64), x = c.getContext('2d'); x.fillStyle = '#efe6cf'; x.fillRect(0, 0, 640, 64); x.fillStyle = '#1d1a14'; x.font = '700 50px ui-monospace,Menlo,Consolas,monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
@@ -29,6 +47,16 @@ function beltTexture() {
   const c = cv(64, 64), x = c.getContext('2d'); x.fillStyle = '#1e1f24'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#2d2f36'; for (let i = 0; i < 4; i++) x.fillRect(i * 16 + 2, 0, 5, 64); x.fillStyle = '#3a3d46'; x.fillRect(0, 0, 64, 2);
   const t = tex(c); t.wrapS = THREE.RepeatWrapping; t.repeat.set(T.BELT.x1 / 6.2832 - T.BELT.x0 / 6.2832, 1); return t;
 }
+function detailTexture(ctx, d, fields, dest, reason, note) {
+  ctx.fillStyle = '#10161f'; ctx.fillRect(0, 0, 192, 256); ctx.fillStyle = '#8fb3d9'; ctx.font = '700 12px ui-monospace,Menlo,Consolas,monospace'; ctx.fillText('FEUILLE LUE', 10, 18); ctx.fillRect(10, 24, 172, 1);
+  ctx.fillStyle = '#d8e4f2'; ctx.font = '700 11px ui-monospace,Menlo,Consolas,monospace'; ctx.fillText(d.title.slice(0, 22), 10, 42);
+  fields.forEach((f, j) => { const y = 64 + j * 22; if (!f.n) return; ctx.fillStyle = f.ok ? '#5fd39a' : '#e5584b'; ctx.fillRect(10, y - 10, 8, 12); ctx.fillStyle = '#d8e4f2'; ctx.fillText(f.n + ' ' + (f.v || 'MANQUANT'), 24, y); });
+  ctx.fillStyle = DCOL[dest]; ctx.fillRect(10, 134, 172, 18); ctx.fillStyle = '#fff'; ctx.fillText('BAC ' + T.DESTS[dest], 14, 147);
+  ctx.fillStyle = '#8fb3d9'; ctx.font = '700 9px ui-monospace,Menlo,Consolas,monospace'; wrap(ctx, 'MOTIF : ' + reason, 10, 168, 172, 12);
+  if (d.fgas) { ctx.fillStyle = '#ffb347'; wrap(ctx, 'SIGNALEMENT POUR EXAMEN HUMAIN. PAS UNE DECISION REGLEMENTAIRE.', 10, 214, 172, 12); }
+  if (note) { ctx.fillStyle = '#5fd39a'; wrap(ctx, note, 10, 214, 172, 12); }
+}
+function wrap(ctx, text, x, y, w, lh) { let line = ''; for (const word of text.split(' ')) { const t = line ? line + ' ' + word : word; if (ctx.measureText(t).width > w && line) { ctx.fillText(line, x, y); y += lh; line = word; } else line = t; } ctx.fillText(line, x, y); }
 function registerTexture(ctx, rows, fade) {
   ctx.fillStyle = '#10161f'; ctx.fillRect(0, 0, 192, 256); ctx.fillStyle = '#8fb3d9'; ctx.font = '700 12px ui-monospace,Menlo,Consolas,monospace'; ctx.fillText('TABLE STRUCTUREE', 10, 18); ctx.fillRect(10, 24, 172, 1);
   ctx.font = '700 11px ui-monospace,Menlo,Consolas,monospace';
@@ -36,7 +64,7 @@ function registerTexture(ctx, rows, fade) {
 }
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   M.glass2 = new THREE.MeshStandardMaterial({ color: '#a9cfe3', roughness: .08, metalness: .05, transparent: true, opacity: .2, depthWrite: false });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
@@ -48,11 +76,14 @@ export function build() {
 
   /* ================= bâti : plinthe, châssis, pieds, plaque ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 12, 3, 420, 150, 6, 'cast', 1.4);
+  S.box(0, 12, 3, 420, 150, 6, 'enamel', 1.4);                                                    // table émaillée
+  S.box(0, 86.3, 3, 420, 1.4, 5, 'alu', .4); S.box(0, -61.3, 3, 420, 1.4, 5, 'alu', .4);        // chants en aluminium brossé
+  for (let i = 0; i < 12; i++) S.box(-176 + i * 32, 87.2, 3, 14, .5, 1.8, 'ink', .2);           // ouïes de ventilation en façade
   for (const [x, y] of [[-196, -56], [196, -56], [-196, 76], [196, 76]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
-  S.box(0, -12, 18, 380, 36, 24, 'cast', 2);                                                     // châssis (z 6 à 30), y -30 à 6
+  S.box(0, -12, 18, 380, 36, 24, 'enamelDk', 2);                                                     // châssis (z 6 à 30), y -30 à 6
   S.box(0, 6.2, 18, 380, 1, 24, 'steelDk', .3);
   for (const x of [-180, -90, 0, 90, 180]) S.bolts([[x, 6.8, 12], [x, 6.8, 26]], 'y', 1.2, 'brass');
+  for (const x of [-100, 100]) { S.box(x, -30.2, 18, 72, 1.4, 16, 'enamel', .6); S.bolts([[x - 32, -31.2, 12], [x + 32, -31.2, 12], [x - 32, -31.2, 24], [x + 32, -31.2, 24]], 'y', .9, 'steel'); S.cylX(x - 8, x + 8, -32.4, 18, 1, 'steel', 12); }   // trappes d'inspection arrière
   S.box(0, 86.7, 3, 150, 1.2, 6, 'alu', .3);
   put(label('CERFA V3  TRIEUSE', -20, 87.4, 3, 100, 5, 'y', plateLabel)); put(label('DEMO FICTIVE', 62, 87.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
@@ -141,8 +172,9 @@ export function build() {
   /* ================= finalisation ================= */
   for (const p of parts) { p.done(); if (!p.root.parent) zoneGroup(p.zone).add(p.root); }
   [...pulleys, ...lower, ...upper, feed, flag, dial].forEach((m) => { if (!m.root.parent) zoneGroup(m.zone).add(m.root); });
-  const sheetTex = sheetTexture(), sheetMeshes = [], sMat = new THREE.MeshStandardMaterial({ map: sheetTex, roughness: .9 });
-  for (let i = 0; i < T.N; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(SW, SD).rotateX(-Math.PI / 2), sMat); m.castShadow = true; m.userData.noGlow = true; put(m, 'transport'); sheetMeshes.push(m); }
+  const docMat = {}, getDocMat = (id, fixed) => { const key = id + (fixed && T.DOCS[id].fix ? 'f' : ''); return docMat[key] || (docMat[key] = new THREE.MeshStandardMaterial({ map: docTexture(T.DOCS[id], key.endsWith('f')), roughness: .9 })); };
+  const sheetMeshes = [];
+  for (let i = 0; i < T.N; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(SW, SD).rotateX(-Math.PI / 2), getDocMat(0, false)); m.castShadow = true; m.userData.noGlow = true; put(m, 'transport'); sheetMeshes.push(m); }
   for (const z of Object.values(zones)) g.add(z);
   const count = parts.reduce((a, p) => a + p.count, 0) + extra + 30;
   meshes.push(beltMesh, ...sheetMeshes, screen, ...drums);
@@ -152,9 +184,10 @@ export function build() {
   const anchors = { all: new THREE.Object3D(), reader: new THREE.Object3D(), bins: new THREE.Object3D(), hopper: new THREE.Object3D() };
   at(anchors.all, 20, 20, 40); at(anchors.reader, -25, 15, 70); at(anchors.bins, 78, 40, 40); at(anchors.hopper, -146, 10, 50);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null;
+  let forced = null, lastTime = 0;
 
   function update(time) {
+    lastTime = time;
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
     inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
     for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); }
@@ -165,10 +198,10 @@ export function build() {
     /* trémie */
     const hp = T.hopper(u, sc), hn = Math.max(.01, hp * T.N); hop.visible = hp > .02; hop.scale.y = hn * .4; at(hop, T.HOP_X, 0, 40 + hn * .2);
     /* feuilles */
-    for (let i = 0; i < T.N; i++) { const s = T.sheet(i, u, sc), m = sheetMeshes[i]; m.visible = s.vis; if (s.vis) at(m, s.x, s.y, s.z); }
+    for (let i = 0; i < T.N; i++) { if (i >= T.nOf(sc)) { sheetMeshes[i].visible = false; continue; } const s = T.sheet(i, u, sc), m = sheetMeshes[i]; m.visible = s.vis; if (s.vis) { at(m, s.x, s.y, s.z); const dm = getDocMat(sc.docs[i], sc.custom && T.CUSTOM.fixed); if (m.material !== dm) m.material = dm; } }
     /* chambre de lecture, F-Gas */
     const rd = T.reading(u, sc); scanBar.visible = rd.scanning; at(scanBar, T.CH_X - 10 + 20 * rd.bar, 0, 50); scanM.emissiveIntensity = rd.scanning ? 2.4 : 0;
-    fieldMs.forEach(([f, m], j) => { f.visible = rd.on && rd.fields[j] > .02; at(f, T.CH_X - 4 + (j - 1) * 0, -9 + j * 9, BZ + .75); m.emissiveIntensity = 2.2 * rd.fields[j]; });
+    fieldMs.forEach(([f, m], j) => { f.visible = rd.on && rd.fields[j] > .02; at(f, T.CH_X - 4 + (j - 1) * 0, -9 + j * 9, BZ + .75); m.emissiveIntensity = 2.2 * rd.fields[j]; m.emissive.set(rd.okf && rd.okf[j] === 0 ? '#e5584b' : '#5fd39a'); });
     setLamp(famLamp, rd.family && rd.on ? 1 : 0);
     fgL.forEach((l, j) => { l.userData.lamp = rd.flag > .3 && j === 1 ? '#e5584b' : '#5fd39a'; setLamp(l, rd.fgLamps[j]); }); flag.root.rotation.x = rd.flag * 2.3;
     /* poussoirs, bacs, compteurs */
@@ -177,8 +210,9 @@ export function build() {
     stacks.forEach((s, j) => { const h = Math.max(.02, bn[j].stack * 9 * .9); s.visible = bn[j].stack > .02; s.scale.y = h; at(s, T.BIN_X[j], 36, 7.6 + h / 2); setLamp(binLamps[j], bn[j].lit); });
     drums.forEach((dm, j) => { dm.rotation.x = (9.5 - bn[j].count) / 10 * TAU; });
     /* registre */
-    const rg = T.register(u, sc), key = rg.rows.map((r) => r.d).join('') + '|' + Math.round(rg.fade * 8);
-    if (key !== regKey) { regKey = key; registerTexture(rctx, rg.rows, rg.fade); rTex.needsUpdate = true; }
+    const rg = T.register(u, sc), detail = sc.custom && u >= T.times(0, sc).scan[1] && rg.fade > .5, fx = sc.custom && T.CUSTOM.fixed && T.DOCS[sc.docs[0]].fix;
+    const key = detail ? 'c|' + sc.docs[0] + '|' + !!fx : rg.rows.map((r) => r.d).join('') + '|' + Math.round(rg.fade * 8);
+    if (key !== regKey) { regKey = key; if (detail) { const d = T.DOCS[sc.docs[0]]; detailTexture(rctx, d, T.docFields(sc, 0), sc.dests[0], fx ? 'Feuille corrigée sous supervision.' : d.reason, fx ? d.fix.note : ''); } else registerTexture(rctx, rg.rows, rg.fade); rTex.needsUpdate = true; }
     const lastRows = rg.rows.length; tape.visible = lastRows > 0 && rg.fade > .02; at(tape, 183, 19 + 9 * (lastRows / T.N), 25.8);
     /* sélecteur de catégorie */
     dial.root.rotation.z = -T.dialAngle(u, k, forced);
@@ -189,7 +223,30 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'La lecture', anchor: 'reader' }, { label: 'Les bacs', anchor: 'bins' }, { label: 'La trémie', anchor: 'hopper' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 2) + 2) % 2; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT, hold: s.hold })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; if (forced === 2) T.startCustom(T.CUSTOM.doc, false, lastTime); }, get scenario() { return forced; },
+      /* scénario C « Ma feuille » : choisir un document, lire ses champs, voir la raison du bac, corriger sous supervision (jamais une décision réglementaire) */
+      params: {
+        visible: () => forced === 2,
+        groups: [
+          { name: 'Feuille', options: T.DOCS.map((d) => ({ label: d.short, run: () => { if (forced === 2) T.startCustom(d.id, false, lastTime); } })), get: () => T.CUSTOM.doc },
+          { name: 'Correction', options: [{ label: 'Corriger (opérateur)', run: () => { const d = T.DOCS[T.CUSTOM.doc]; if (forced === 2 && d.fix) T.startCustom(d.id, true, lastTime); } }, { label: 'Annuler la correction', run: () => { if (forced === 2) T.startCustom(T.CUSTOM.doc, false, lastTime); } }], get: () => (T.CUSTOM.fixed && T.DOCS[T.CUSTOM.doc].fix ? 0 : 1) }
+        ]
+      },
+      status() {
+        if (forced !== 2) return ''; const sc = T.SCEN[2], d = T.DOCS[T.CUSTOM.doc], fx = T.CUSTOM.fixed && d.fix, f = T.docFields(sc, 0);
+        return d.short + ' · lu : ' + f.map((x) => (x.n ? x.n + ' ' + (x.v || 'manquant') : '')).filter(Boolean).join(', ') + ' · bac : ' + T.DESTS[sc.dests[0]] + ' · ' + (fx ? d.fix.note : d.reason) + (d.fgas ? ' (signalement pour examen humain, pas une décision réglementaire)' : '') + (!d.fix ? '' : fx ? '' : ' · correction possible');
+      },
+      /* un clic sur le lot dans la trémie passe au document suivant (actif seulement dans « Ma feuille ») */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3();
+        return {
+          pick(ray) {
+            if (forced !== 2 || inspect.v > .05) return null; inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); if (Math.abs(r.direction.y) < 1e-6) return null;
+            const t = (44 - r.origin.y) / r.direction.y; if (t < 0) return null; r.at(t, hit);
+            if (hit.x > -164 && hit.x < -128 && Math.abs(hit.z) < 22) { T.startCustom((T.CUSTOM.doc + 1) % T.DOCS.length, false, lastTime); return { id: 'lot', name: 'document suivant' }; } return null;
+          }, move() {}, end() {}
+        };
+      })()
     },
     controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u) + 1; }, seek: (v) => T.STEP_T[v - 1] + .4 }
   };

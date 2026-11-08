@@ -281,3 +281,12 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Contrat générique ajouté : `api.params` (groupes de choix + visibilité) rendu par la barre commune et par `post.js` ; `scenario.hold === false` : le scénario n'est pas mis en pause.
 - Captures : `docs/machines/gares-pro-avant.png`, `gares-pro-palettes.png`, `gares-mon-choix.png`.
 - Limites : valeurs fictives ; rendu logiciel seulement (pas de mesure sur GPU) ; 64 palettes = 64 maillages de plus, non mesurés ; table et pupitre n'ont pas reçu la passe « table émaillée » des machines précédentes ; la fiche (texture) garde son format d'origine.
+
+## CERFA v3 : documents distincts et scénario « Ma feuille »
+
+- Catalogue de neuf documents fictifs de quatre types visuellement différents (attestation, fiche d'intervention, facture, courrier manuscrit sans gabarit), chacun avec ses champs lus, son bac et le motif de son classement. Les lots A et B n'utilisent plus une texture unique : chaque feuille prend un document correspondant à son bac.
+- Scénario C « Ma feuille » : le visiteur choisit un document ; il est traité seul de la trémie à son bac ; la chambre allume les champs lus (vert) ou manquants (rouge) ; l'écran du registre affiche la feuille lue, le bac et le motif. Correction supervisée pour les feuilles incomplètes (champ renseigné par l'opérateur) et le courrier manuscrit (famille désignée) : la feuille est reclassée. Une anomalie F-Gas n'est pas corrigeable et reste « signalement pour examen humain, pas une décision réglementaire ». Un clic sur le lot dans la trémie passe au document suivant.
+- Base : table émaillée mince (hauteur conservée pour les bacs), chants en aluminium brossé, ouïes, trappes d'inspection arrière, matériaux de `pro-materials.js`.
+- Le test des onze machines a révélé un NaN (aiguille du sélecteur de catégorie pour k = 2) : corrigé.
+- Captures : `docs/machines/cerfa-pro-avant.png`, `cerfa-pro-lecture.png`, `cerfa-ma-feuille.png`.
+- Limites : valeurs et seuils fictifs ; pas de capots vitrés supplémentaires ni de courroies de transmission visibles ajoutés ; rendu logiciel, pas de mesure sur GPU ; mutualisation des géométries non traitée.
