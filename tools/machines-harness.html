@@ -36,6 +36,14 @@ window.runMachines = async (only) => {
         a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
         a.frames.reset(); a.setScenario(null);
       }
+      if (a?.params && name === 'vre') {   // Mon rapport : bâtiment, local, équipement suivi, vérification, erreur injectée, vidange puis recharge visibles
+        a.setScenario(3); const t0 = 900; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to, ds = 1) => { for (let dt = from; dt <= to; dt += ds) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Mon rapport +' + dt + ' ' + window.__bad); } };
+        run(0, 2); run(1, 4); run(2, 3); step(1, 70); if (!/Bâtiment 3, local 5/.test(a.status())) r.errors.push('rapport choisi : ' + a.status()); if (!/équipement 4 suivi/.test(a.status())) r.errors.push('équipement suivi : ' + a.status());
+        const tt = a.status().match(/colonnes \(comptées\/attendues\) : (.*?)( ·|$)/); if (!tt) r.errors.push('totaux absents'); else { const nums = [...tt[1].matchAll(/(\d+)\/(\d+)/g)].map((x) => +x[2]).reduce((p, c) => p + c, 0); if (nums !== 10) r.errors.push('dix équipements attendus : ' + nums); }
+        run(3, 1); step(1, 70); if (!/erreur injectée sur l’équipement 4 : détectée/.test(a.status())) r.errors.push('erreur injectée : ' + a.status());
+        run(3, 0); const before = t0 + 80; step(71, 75); run(4, 0); step(76, 79); const ph = a.status(); if (!/contrôle des totaux|vidange et recharge/.test(ph)) r.errors.push('vérification immédiate : ' + ph);
+        step(80, 140, .5); a.setScenario(0); a.setScenario(null);
+      } else
       if (a?.params && name === 'powerbi') {   // Ma consultation : huit documents, file de demandes, comparaison simulée
         a.setScenario(3); const t0 = 700; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to) => { for (let dt = from; dt <= to; dt += 1) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Ma consultation +' + dt + ' ' + window.__bad); } };
         if (a.params.groups[0].options.length !== 8) r.errors.push('catalogue : ' + a.params.groups[0].options.length);

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, TAU } from './machine-kit.js';
 import * as T from './vre-timeline.js';
+import { industrial } from './pro-materials.js';
 const MAG = T.MAG;
 
 export const WIDTH = 430;
@@ -23,8 +24,8 @@ function ctrlDraw(x, sc, v) {
 function slipTexture() { const c = cv(176, 96), x = c.getContext('2d'); x.fillStyle = '#f6efdc'; x.fillRect(0, 0, 176, 96); x.fillStyle = '#2a251d'; x.font = '700 13px ui-monospace,Menlo,Consolas,monospace'; x.fillText('EXPORT VERS LE SUIVI', 8, 22); x.font = '700 10px ui-monospace,Menlo,Consolas,monospace'; ['BT31  BT33  BT21  BT11', 'TOTAUX PAR FAMILLE', 'DEMO FICTIVE'].forEach((t, i) => x.fillText(t, 8, 46 + i * 16)); return tex(c); }
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
-  M.green = new THREE.MeshStandardMaterial({ color: '#2d7a4f', roughness: .45, metalness: .1 }); M.ball = new THREE.MeshStandardMaterial({ color: '#d4d8de', roughness: .18, metalness: .85 });
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
+  M.green = new THREE.MeshStandardMaterial({ color: '#2d7a4f', roughness: .45, metalness: .1 }); M.ball = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: .18, metalness: .85, envMap: M.steel.envMap, envMapIntensity: 1.3 });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
   const Z = (n) => { cz = n; };
@@ -35,7 +36,9 @@ export function build() {
 
   /* ================= bâti ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 8, 3, 440, 160, 6, 'cast', 1.4); for (const [x, y] of [[-206, -64], [206, -64], [-206, 76], [206, 76]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
+  S.box(0, 8, 3, 440, 160, 6, 'enamel', 1.4); for (const [x, y] of [[-206, -64], [206, -64], [-206, 76], [206, 76]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);   // table émaillée
+  S.box(0, 87.3, 3, 440, 1.4, 5, 'alu', .4); S.box(0, -71.3, 3, 440, 1.4, 5, 'alu', .4);
+  for (let i = 0; i < 11; i++) S.box(-190 + i * 38, 88.2, 3, 14, .5, 1.8, 'ink', .2);                // ouïes de ventilation en façade
   S.box(0, 88.7, 3, 150, 1.2, 6, 'alu', .3);
   put(label('EXTRACTEUR VRE  BOULIER', -30, 89.4, 3, 110, 5, 'y', wide)); put(label('DEMO FICTIVE', 62, 89.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
@@ -78,6 +81,11 @@ export function build() {
     S.box(x, 33, 24, 24, 8, 36, 'cast', 1); S.box(x, 36.8, 31.4, 20, .6, 12, 'ink'); S.box(x, 37.4, 31.4, 20, .4, 12, 'glass'); put(label(T.FAM[c].id, x, 37.6, 18.4, 20, 3, 'y', wide)); put(label(T.FAM[c].name, x, 37.6, 12.6, 22, 2.6, 'y', wide));
     put(label(T.FAM[c].id, x, y - 6.4, 100, 14, 3, 'y', plateLabel)); put(label(T.FAM[c].name, x, y - 6.4, 104, 26, 2.6, 'y', wide));
   });
+  /* recyclage visible : bac de récupération derrière les colonnes, tube de retour fermé jusqu'à la trémie de recharge au-dessus du tambour */
+  S.box(92, T.TRAY_Y - 6, 15, 140, 14, 18, 'enamelDk', 1.2); S.box(92, T.TRAY_Y + 1.4, 13.6, 132, .6, 4.4, 'ink'); put(label('RECUPERATION', 92, T.TRAY_Y + 1.9, 18.6, 40, 3, 'y', plateLabel));
+  S.cylX(-30, 22, T.TRAY_Y - 6, 22, 3, 'steelDk', 16); S.cylZ(-30, T.TRAY_Y - 6, 22, 3, 164, 'steelDk', 16); S.cylY(T.TRAY_Y - 6, 0, -30, 186, 2.4, 'steelDk', 14);
+  for (const z of [60, 110, 160]) S.cylZ(-30, T.TRAY_Y - 6, z, 4, 3, 'steel', 16);                                                 // colliers du tube de retour
+  S.cylZ(MAG.x, 0, MAG.z + T.HOP_DZ - 8, 3, 8, 'glass', 24, 11); S.cylZ(MAG.x, 0, MAG.z + T.HOP_DZ, 11, 2, 'steel', 24); put(label('RECHARGE', MAG.x, 11.4, MAG.z + T.HOP_DZ - 3, 22, 3, 'y', plateLabel));
   /* volet de rejet (colonne BT33) et bac de rebut */
   S.box(75, -26, 24, 28, 22, 14, 'iron', 1); S.box(75, -26, 31.6, 24, 18, .6, 'ink'); put(label('REBUT', 75, -14.6, 22, 18, 3, 'y', plateLabel).rotateY(0));
   const door = mover('volet de rejet', [75, T.GY[1] - 5.2, T.WRONG_Z]); door.box(75, T.GY[1] - 5.8, T.WRONG_Z, 9, 1.4, 8, 'bronze', .4); put(door.root);
@@ -110,10 +118,12 @@ export function build() {
   const anchors = { all: new THREE.Object3D(), reader: new THREE.Object3D(), drum: new THREE.Object3D(), cols: new THREE.Object3D() };
   at(anchors.all, 10, 0, 70); at(anchors.reader, -85, 15, 50); at(anchors.drum, MAG.x, 10, 130); at(anchors.cols, 92, 20, 60);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null, ckey = '';
+  let forced = null, ckey = '', lastTime = 0; const cGold = new THREE.Color('#ffb347'), cWhite = new THREE.Color('#ffffff');
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), vS = new THREE.Vector3();
 
+  const curU = () => Math.max(0, lastTime - T.CUSTOM.base);
   function update(time) {
+    lastTime = time;
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
     inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
     for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); }
@@ -123,11 +133,11 @@ export function build() {
     fam.forEach((l, i) => setLamp(l, hdd.fam === i ? 1 : 0));
     /* tambour, aiguillage, billes */
     const mg = T.magazine(u, sc); drum.root.rotation.z = -mg.k * Math.PI / 5; sw.root.rotation.y = -T.switchAngle(u, sc);
-    for (let i = 0; i < T.N; i++) { const b = T.ball(i, u, sc), vis = b.vis && !(b.z < 13.4); q.identity(); vS.setScalar(vis ? (b.s ?? 1) : .001); m4.compose(new THREE.Vector3(b.x ?? 0, b.z ?? 0, b.y ?? 0), q, vS); balls.setMatrixAt(i, m4); }
-    balls.instanceMatrix.needsUpdate = true;
+    for (let i = 0; i < T.N; i++) { const b = T.ball(i, u, sc), vis = b.vis && !(b.z < 13.4); balls.setColorAt(i, i === T.CUSTOM.follow && forced === 3 ? cGold : cWhite); q.identity(); vS.setScalar(vis ? (b.s ?? 1) : .001); m4.compose(new THREE.Vector3(b.x ?? 0, b.z ?? 0, b.y ?? 0), q, vS); balls.setMatrixAt(i, m4); }
+    balls.instanceMatrix.needsUpdate = true; if (balls.instanceColor) balls.instanceColor.needsUpdate = true;
     /* compteurs, trappes, volet */
     const cs = T.counters(u, sc); drums.forEach((d, c) => { d.rotation.x = (9.5 - cs[c]) / 10 * TAU; });
-    const vf = T.verify(u, sc); traps.forEach((tp, c) => { tp.root.position.x = T.COLX[c] + 18 * vf.trap; }); door.root.position.z = T.GY[1] - 5.2 + 0; door.root.position.y = T.WRONG_Z + 9 * vf.door * (sc.wrong != null ? 1 : 0);
+    const vf = T.verify(u, sc); traps.forEach((tp, c) => { tp.root.position.x = T.COLX[c] + 18 * vf.trap; }); door.root.position.z = T.GY[1] - 5.2 + 0; door.root.position.y = T.wrongZ(sc) + 9 * vf.door * (sc.wrong != null ? 1 : 0);
     /* contrôle */
     const key = [k, Math.round(vf.rows.reduce((a, b) => a + b, 0) * 8), Math.round(vf.ok), Math.round(vf.ko)].join('|'); if (key !== ckey) { ckey = key; ctrlDraw(cctx, sc, vf); ccTex.needsUpdate = true; }
     setLamp(lampOK, vf.ok); setLamp(lampKO, vf.ko); slip.visible = vf.slip > .01; at(slip, 190, 12 + 18 * vf.slip, 8.4);
@@ -143,7 +153,23 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'Le lecteur', anchor: 'reader' }, { label: 'Le tambour', anchor: 'drum' }, { label: 'Les colonnes', anchor: 'cols' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT, hold: s.hold })), setScenario(i) { forced = i == null ? null : ((i % 4) + 4) % 4; if (forced === 3) T.startCustom(lastTime); }, get scenario() { return forced; },
+      /* scénario D « Mon rapport » : bâtiment, local, équipement suivi, vérification immédiate, erreur injectée (détectée au contrôle puis corrigée). Valeurs fictives. */
+      params: {
+        visible: () => forced === 3,
+        groups: [
+          { name: 'Bâtiment', options: [1, 2, 3, 4].map((b, i) => ({ label: String(b), run: () => { if (forced === 3) T.setReport({ bat: i, follow: T.CUSTOM.follow }, lastTime); } })), get: () => T.CUSTOM.bat },
+          { name: 'Local', options: [1, 2, 3, 4, 5, 6, 7, 8].map((l, i) => ({ label: String(l), run: () => { if (forced === 3) T.setReport({ loc: i }, lastTime); } })), get: () => T.CUSTOM.loc },
+          { name: 'Équipement suivi', options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((e, i) => ({ label: String(e), run: () => { if (forced === 3) T.CUSTOM.follow = i; } })), get: () => T.CUSTOM.follow },
+          { name: 'Erreur', options: [{ label: 'Aucune', run: () => { if (forced === 3) T.setReport({ err: -1 }, lastTime); } }, { label: 'Équipement 4', run: () => { if (forced === 3) T.setReport({ err: 3 }, lastTime); } }, { label: 'Équipement 9', run: () => { if (forced === 3) T.setReport({ err: 8 }, lastTime); } }], get: () => (T.CUSTOM.err < 0 ? 0 : T.CUSTOM.err === 3 ? 1 : 2) },
+          { name: 'Contrôle', options: [{ label: 'Vérifier maintenant', run: () => { if (forced === 3 && curU() < 49) T.CUSTOM.base = lastTime - 49; } }], get: () => -1 }
+        ]
+      },
+      status() {
+        if (forced !== 3) return ''; const sc = T.SCEN[3], u = curU(), seq = sc.seq, n = T.FAM.map((f, c) => seq.filter((x) => x === c).length), cs = T.counters(u, sc).map((x) => Math.round(x) % 10), fo = T.CUSTOM.follow;
+        const tot = T.FAM.map((f, c) => f.id + ' ' + cs[c] + '/' + n[c]).join(', '), ph = u < 49 ? 'lecture en cours' : u < 59 ? 'contrôle des totaux' : 'vidange et recharge';
+        return 'Bâtiment ' + (sc.bat + 1) + ', local ' + (sc.loc + 1) + ' · ' + ph + ' · colonnes (comptées/attendues) : ' + tot + (fo >= 0 ? ' · équipement ' + (fo + 1) + ' suivi : ' + T.FAM[seq[fo]].id + (sc.wrong === fo ? ' (mal classé par erreur injectée)' : '') : '') + (sc.wrong != null ? ' · erreur injectée sur l’équipement ' + (sc.wrong + 1) + ' : détectée au contrôle, bille éjectée' : '');
+      }
     },
     controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u) + 1; }, seek: (v) => T.STEP_T[v - 1] + .4 }
   };

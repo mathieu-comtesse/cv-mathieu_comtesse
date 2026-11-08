@@ -323,3 +323,11 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Base : table émaillée, chants aluminium, ouïes, matériaux de la bibliothèque commune.
 - Captures : `docs/machines/powerbi-pro-avant.png`, `powerbi-pro-detail.png`, `powerbi-ma-consultation.png`.
 - Limites : les huit casiers et leurs indicateurs sont fictifs ; pas de comptoir de consultation enrichi (le dossier n'est pas ouvert) ; chaînes, roues et paliers non redessinés ; rendu logiciel seulement.
+
+## Extracteur VRE : recyclage visible et scénario « Mon rapport »
+
+- Fin de cycle sans téléportation : la trappe de chaque colonne s'ouvre, les billes tombent, roulent derrière les colonnes jusqu'au bac de récupération, remontent dans un tube de retour fermé jusqu'à la trémie de recharge au-dessus du tambour, puis sortent de la trémie une à une et tombent dans leur alvéole (le tambour retrouve exactement sa position de départ). Une bille éjectée par le volet de rejet est remplacée par la recharge.
+- Scénario D « Mon rapport » : bâtiment (1 à 4) et local (1 à 8) déterminent, de façon reproductible, la séquence fictive des dix équipements ; équipement suivi (la bille correspondante devient dorée, son état est annoncé) ; erreur injectée sur l'équipement 4 ou 9 (la bille est mal classée, détectée au contrôle des totaux, puis éjectée par le volet et remplacée) ; « Vérifier maintenant » avance au contrôle. L'état affiche colonnes comptées / attendues (BT31, BT33, BT21, BT11).
+- Base : table émaillée, chants aluminium, ouïes ; billes d'acier avec reflets de l'environnement de studio.
+- Captures : `docs/machines/vre-pro-avant.png`, `vre-recyclage.png`, `vre-recharge.png`.
+- Limites : le transit dans le tube de retour n'est pas montré (le tube est opaque) ; colonnes et lecteur non agrandis ; séquences fictives ; rendu logiciel seulement.
