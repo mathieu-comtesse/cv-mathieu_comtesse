@@ -1,0 +1,37 @@
+<!doctype html><meta charset="utf-8"><title>Harnais machines</title>
+<script type="importmap">{"imports":{"three":"../vendor/three.module.min.js","three/addons/":"../vendor/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { MACHINES, loadMachine, moduleName } from '../refonte/m3d/registry.js';
+import { setDA } from '../refonte/m3d/core.js';
+const finite = (g) => { let bad = 0; g.updateMatrixWorld(true); g.traverse((o) => { if (o.matrixWorld.elements.some((v) => !Number.isFinite(v))) bad++; if (o.geometry?.attributes?.position && !o.geometry.attributes.position.array.slice(0, 3000).every(Number.isFinite)) bad++; }); return bad; };
+window.runMachines = async (only) => {
+  const out = {};
+  for (const name of Object.keys(MACHINES)) {
+    if (only && only !== name) continue;
+    const r = out[name] = { errors: [], notes: {} };
+    try {
+      const mod = await loadMachine(name); r.module = window.__cvMachineModules[name]; r.expected = MACHINES[name];
+      setDA(name); const m = mod.build();
+      const times = [0, 2.5, 6, 11.7, 19, 27, 36, 47, 61, 95, 130];
+      for (const t of times) { m.update(t); const bad = finite(m.group); if (bad) r.errors.push('valeurs non finies à t=' + t + ' (' + bad + ')'); }
+      const c = m.controls; r.notes.controls = c ? { seek: typeof c.seek, get: typeof c.get, set: typeof c.set } : null;
+      if (c?.seek) { for (const v of [c.min, c.min + (c.step || 1) * Math.round((c.max - c.min) / 2 / (c.step || 1)), c.max]) { const t = c.seek(v); if (!Number.isFinite(t)) r.errors.push('seek(' + v + ') non fini'); m.update(t); const g = c.get(t); if (!Number.isFinite(g)) r.errors.push('get(seek(' + v + ')) non fini'); } }
+      const a = m.api;
+      if (a) {
+        r.notes.views = a.views?.length || 0; r.notes.scenarios = a.scenarios?.length || 0;
+        for (const v of a.views || []) if (!a.anchors?.[v.anchor]) r.errors.push('ancre de vue absente : ' + v.anchor);
+        for (let i = 0; i < (a.scenarios?.length || 0); i++) { a.setScenario(i); for (const t of [0, 5, 12, 20, 33]) { m.update(t); if (finite(m.group)) r.errors.push('non fini, scénario ' + i + ' t=' + t); } }
+        a.setScenario?.(null);
+        if (a.setInspect) { a.setInspect(true); for (let k = 0; k < 40; k++) m.update(3 + k * .05); if (finite(m.group)) r.errors.push('non fini en inspection'); a.setInspect(false); for (let k = 0; k < 40; k++) m.update(5 + k * .05); if (finite(m.group)) r.errors.push('non fini au retour'); }
+      }
+      let meshes = 0, geos = new Set(), mats = new Set(); m.group.traverse((o) => { if (o.isMesh) { meshes++; geos.add(o.geometry); [].concat(o.material).forEach((x) => mats.add(x)); } });
+      r.notes.meshes = meshes; r.notes.geometries = geos.size; r.notes.materials = mats.size;
+      if (!meshes) r.errors.push('aucun maillage');
+      geos.forEach((g) => g.dispose()); mats.forEach((x) => x.dispose());
+    } catch (e) { r.errors.push('exception : ' + (e?.stack || e).toString().slice(0, 300)); }
+  }
+  return out;
+};
+window.__ready = true;
+</script>
