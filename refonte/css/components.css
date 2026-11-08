@@ -170,6 +170,25 @@
   .shared-tooltip__bubble::after { content: ""; pointer-events: none; display: block; position: absolute; top: 100%; left: 50%; width: .875rem; height: .875rem; translate: -50% 0; background-color: #fff; clip-path: polygon(50% 50%, 0 0, 100% 0); margin-top: -1px; }
   .shared-tooltip__track { display: block; position: relative; overflow: hidden; overflow-wrap: anywhere; text-align: center; }
   .shared-tooltip__measure { display: block; position: absolute; top: 0; left: 0; visibility: hidden; width: max-content; max-width: min(20rem, 100vw - 3rem); overflow-wrap: anywhere; text-align: center; }
+  /* Widget de simulation (« protect-widget ») : un canevas plein cadre sur fond blanc, ou transparent en thème mono ; l'affiche SVG s'efface dès que le canevas existe. */
+  .protect-widget { isolation: isolate; position: relative; overflow: hidden; width: 100%; min-width: 0; height: 100%; min-height: 0; container-type: size; color: #171716; background: #fff; user-select: none; -webkit-user-select: none; font-family: "Inter", system-ui, sans-serif; }
+  .protect-widget.protect-dark { color: #f0f0ef; background: #131312; }
+  .protect-widget.protect-mono { color: #fff; background: transparent; }
+  .protect-widget canvas { display: block; width: 100%; height: 100%; touch-action: pan-y pinch-zoom; outline: none; }
+  .protect-widget canvas:focus-visible { outline: 2px solid #0e1fa0b3; outline-offset: -3px; }
+  .protect-dark canvas:focus-visible { outline-color: #8293ffd1; }
+  .protect-sr { position: absolute; overflow: hidden; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; white-space: nowrap; clip: rect(0, 0, 0, 0); clip-path: inset(50%); }
+  .protect-widget .protect-metric.protect-legend { position: absolute; inset: auto 0 0; z-index: 2; display: block; max-width: none; margin: 0; padding: 5px 4px 4px; pointer-events: none; text-rendering: geometricPrecision; text-wrap: pretty; text-shadow: none; letter-spacing: normal;
+    color: #131312; background: #fff; font-family: var(--font-mono); font-size: 11px; font-weight: 300; line-height: 14px; }
+  .protect-dark .protect-metric.protect-legend { color: #f0f0ef; background: #131312; }
+  .protect-widget .protect-metric.protect-legend.protect-legend--mono, .protect-mono .protect-metric.protect-legend { color: #ffffffb3; background: transparent; }
+  .checkpoint-stage { isolation: isolate; }
+  .checkpoint-stage__flow { position: absolute; inset: 12px 6px 10px; width: calc(100% - 12px); height: calc(100% - 22px); overflow: visible; }
+  .checkpoint-stage__ruler { background: linear-gradient(90deg, transparent, var(--f26-color-brand) 35% 65%, transparent); }
+  .checkpoint-stage__ruler::before { content: ""; position: absolute; inset: 0 auto 0 6px; width: 1px; background: linear-gradient(#0000, #ffffffb8 20% 80%, #0000); }
+  .checkpoint-stage__ruler svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .checkpoint-stage:has(.protect-widget) .checkpoint-stage__poster { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) { .checkpoint-stage__poster { transition: none; } }
   .grid-container { padding-inline: 1rem; }
   .grid-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
   @media (min-width: 58.75rem) { .grid-layout { grid-template-columns: repeat(16, minmax(0, 1fr)); } }
