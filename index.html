@@ -482,6 +482,8 @@ canvas[data-cv-taken]{filter:opacity(0)}
 .cv-hero-3d{position:absolute;inset:0;display:block}
 .cv-hero-3d>img,.cv-hero-3d>canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .4s}
 .cv-parity-widget .cv-hero-3d[data-ready]>img,.cv-hero-3d[data-ready]>img{opacity:0!important}
+/* contact en chemin 3D : chaque ligne garde la pleine largeur de la page à plat (la colonne de 604 px la faisait passer à la ligne sur une hauteur fixe, d'où le chevauchement) */
+html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h2{max-width:none!important;text-align:center}
 .cv-standard-active .cv-hero-3d>canvas{opacity:1!important}
 .cv-hero-art:focus-visible{outline:2px solid #fff;outline-offset:-4px}
 .cv-zoom{position:fixed;inset:0;z-index:502;display:flex;align-items:center;justify-content:center;padding:64px 32px 96px 110px;background:#020817ee;backdrop-filter:blur(6px);touch-action:none;overscroll-behavior:contain;cursor:default}
@@ -970,7 +972,12 @@ async function startParityPath(){
  stage.append(gridCanvas,gridFallback,paper,renderer.domElement,annotations,paperTop);document.body.append(stage);
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(45,1,40,200000);scene.add(new T.HemisphereLight(0xffffff,0x76818f,.8));const machineScene=new T.Scene();machineScene.add(new T.HemisphereLight(0xffe9d6,0xf2a68c,.9));const machineSun=new T.DirectionalLight(0xffe3c4,2.6);machineSun.position.set(-9,16,8);machineScene.add(machineSun);   /* machines : même éclairage chaud que la page projet */const sun=new T.DirectionalLight(0xffffff,1.2);sun.position.set(-1000,2000,1000);scene.add(sun);
  const ctx=annotations.getContext('2d'),fallback=gridFallback.getContext('2d');let grid=null;
- try{grid=await N.cvGrid.create(gridCanvas,reduced,new AbortController().signal,()=>{});state.parityGrid='shopify';}catch{gridCanvas.hidden=true;state.parityGrid='canvas';}
+ /* quadrillage GPU : si le périphérique est perdu (ou la création échoue), le quadrillage 2D le remplace aussitôt, puis le GPU est recréé avec attente croissante (8 essais) */
+ let gridTry=0,gridTimer=0;
+ const gridFail=why=>{console.warn('Quadrillage GPU perdu',why);try{grid?.dispose?.();}catch{}grid=null;gridCanvas.hidden=true;state.parityGrid='canvas';scheduleGrid();};
+ const scheduleGrid=()=>{if(gridTimer||gridTry>=8)return;gridTimer=setTimeout(()=>{gridTimer=0;makeGrid();},Math.min(8000,500*2**gridTry++));};
+ const makeGrid=async()=>{try{const g=await N.cvGrid.create(gridCanvas,reduced,new AbortController().signal,gridFail);if(grid&&grid!==g){try{grid.dispose?.();}catch{}}grid=g;gridCanvas.hidden=false;state.parityGrid='shopify';g.resize(gridCanvas.width,gridCanvas.height);setTimeout(()=>{if(grid===g)gridTry=0;},60000);}catch(e){grid=null;gridCanvas.hidden=true;state.parityGrid='canvas';scheduleGrid();}};
+ await makeGrid();
  const rulers=makeCvOriginalRulers();rulers.el.hidden=true;rulers.el.classList.add('cv-parity-rulers');
  const nav=document.createElement('nav');nav.className='cv-parity-nav';nav.hidden=true;nav.setAttribute('aria-label','Chapitres');
  const chapters=qa('[data-f26-page-section]',source).map(s=>({el:s,id:s.id,name:q('.section-hero-pin h2',s)?.textContent.trim()||s.id}));
