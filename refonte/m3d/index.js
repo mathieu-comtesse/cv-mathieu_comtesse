@@ -14,7 +14,7 @@ const MODULES = {
   pp: () => import('./pp.js'),
   powerbi: () => import('./powerbi-wattselse.js'),
   suivi: () => import('./suivi.js'),
-  studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./nisaru.js')
+  studio: () => (/[?&]machines=old\b/.test(location.search) ? import('./studio-wattselse.js') : import('./studio-pdf.js')), 'vrestudio-musicbox': () => import('./nisaru.js')
 };
 
 export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {

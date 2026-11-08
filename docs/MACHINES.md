@@ -19,7 +19,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 06 Extracteur VRE | `vre` | `vre-wattselse.js` | à faire | vague 3 |
 | 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | inchangé (main conservée) | vague 3 |
 | 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | à faire | vague 2 |
-| 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | à faire | vague 1 |
+| 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | `studio-pdf.js` + `studio-timeline.js` + `machine-kit.js` | livrée (cette branche) |
 | 10 Retrouver tout le suivi | `suivi` | `suivi.js` | à faire | vague 3 |
 | 11 Gares prioritaires | `gares` | `gares.js` | à faire | vague 1 |
 
@@ -51,3 +51,24 @@ Le Q18 n'est pas inventé par la machine : il vient du rapport (scénario « Ave
 - Captures : `docs/machines/q18/general.png`, `eclate.png`, `cycle.png` (six instants).
 
 **Limites.** Pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les 341 appels de rendu peuvent être réduits par fusion des pièces statiques ; le fond d'écran est celui du plan blueprint (pas d'éclairage de studio dédié) ; l'audit Anatomy natif (SVG) n'est pas applicable aux solides Three.js.
+
+## Machine 09 : Studio d'extracteurs PDF
+
+**Phrase de compréhension.** Un exemple de PDF est posé sur une table lumineuse, un portique y place trois cadres de détection, une tête de découpe taille un gabarit à la même position, une presse à levier forme une cartouche de configuration, et un lecteur la reçoit puis compare un nouveau document aux valeurs attendues.
+
+| Opération | Organe |
+|---|---|
+| Exemple PDF | pile d'exemples, feuille glissée sur une dalle dépolie qui s'allume |
+| Cadres de détection | portique à poutre mobile (x), tête sur vis-mère (y), pince (z), molette ; trois cadres anodisés (rouge, bleu, ambre) pris sur l'étagère |
+| Association aux champs | étiquette de champ (OT, DATE, MONTANT) portée par chaque cadre |
+| Gabarit | carton taillé par la fraise de la tête aux mêmes positions (fenêtres éclairées par la table) |
+| Presse | manette en bakélite, pignon de 16 dents, crémaillère du coulisseau, ressort de rappel qui se comprime |
+| Cartouche de configuration | sort du lit de la presse, poussée par un vérin sur la rampe, glisse jusqu'au berceau du lecteur |
+| Essai | document lu sous la voûte, cadrans ATTENDU et OBTENU, voyants vert, ambre, rouge |
+| Livraison ou rebut | cartouche vers le rack de livraison (essai réussi) ou vers la goulotte de rebut (écart) |
+
+Deux scénarios de 66 s : essai réussi (bordereau d'export), essai en écart (voyant rouge, cartouche rejetée, cadre DATE corrigé à la molette). La cartouche matérialise la configuration d'un extracteur : elle n'est jamais présentée comme des poids d'IA. Valeurs fictives, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 218 solides contrôlés tous les 2 s sur 132 s (seuls restent des engagements voulus : dents du pignon sur la crémaillère, cartouche qui entre dans le rack ou la goulotte), 130 appels de rendu, 18 000 triangles, captures dans `docs/machines/studio/`.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce par pièce ; le lecteur et ses caissons sont encore sobres (peu de détails fins) ; le bac de feuilles et le gabarit sont retirés par fondu en fin de scénario.
