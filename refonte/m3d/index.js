@@ -4,7 +4,8 @@ import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 
 const MODULES = {
-  moteur: () => import('./moteur.js'),
+  /* Reporteur Q18 : nouvelle machine (q18.js). ?machines=old rend l'ancien modèle pour comparaison. */
+  moteur: () => (/[?&]machines=old\b/.test(location.search) ? import('./moteur.js') : import('./q18.js')),
   cerfa: () => import('./cerfa.js'),
   vm: () => import('./vm.js'),
   vre: () => import('./vre-wattselse.js'),
@@ -36,7 +37,7 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   return {
     resize: w,
     controls: m.controls,
-    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; } } : null,
+    api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; }, views: m.api.views, scenarios: m.api.scenarios, setScenario: m.api.setScenario } : null,
     /** vrai si le point (clientX, clientY) est sur une pièce visible de la machine */
     pick(cx, cy) {
       ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);

@@ -18,7 +18,8 @@ else {
 }
 
 /* Dessins d'origine du livre posés sur le blueprint (piscine, Reporteur Q18, VRE VM) : figures-livre/NN.html, sans plaque ni commandes */
-const BP_FIG = { moteur: '16', pp: '52', vm: '69' };
+/* figures du livre (iframe) à la place de la machine 3D ; le Reporteur Q18 (moteur) a sa machine : ?machines=old rend l'ancienne figure pour comparaison */
+const BP_FIG = /[?&]machines=old\b/.test(location.search) ? { moteur: '16', pp: '52', vm: '69' } : { pp: '52', vm: '69' };
 const fig = document.querySelector('.rf-post-fig[data-fig]');
 const bpCanvas = document.getElementById('rf-bp');
 const stage = document.getElementById('stage');
@@ -73,12 +74,20 @@ if (fig && bpCanvas && stage) {
     /* inspection (éclaté) et vues rapprochées, sans remplacer la caméra principale */
     if (machine.api) {
       const bar = document.createElement('div'); bar.className = 'rf-m3d-tools'; bar.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147483000;display:flex;gap:8px;padding:6px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 24px rgba(0,0,0,.25)';
-      const mk = (txt, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.style.cssText = 'font:600 13px/1 system-ui,sans-serif;padding:9px 14px;border:0;border-radius:999px;background:transparent;color:#0b1020;cursor:pointer'; b.addEventListener('click', () => { fn(); [...bar.children].forEach((c) => { c.style.background = c.dataset.on === '1' ? '#0b1020' : 'transparent'; c.style.color = c.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bar.append(b); return b; };
+      const mk = (txt, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.style.cssText = 'font:600 13px/1 system-ui,sans-serif;white-space:nowrap;padding:9px 12px;border:0;border-radius:999px;background:transparent;color:#0b1020;cursor:pointer'; b.addEventListener('click', () => { fn(); [...bar.children].forEach((c) => { if (c.dataset.sc || c.tagName === 'SPAN') return; c.style.background = c.dataset.on === '1' ? '#0b1020' : 'transparent'; c.style.color = c.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bar.append(b); return b; };
       const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
-      const bAll = mk('Ensemble', () => { setFocus(null); machine.api.inspect(false); bAll.dataset.on = '1'; bIns.dataset.on = bHand.dataset.on = bForge.dataset.on = '0'; });
-      const bIns = mk('Inspecter', () => { const on = bIns.dataset.on !== '1'; machine.api.inspect(on); setFocus(null); bIns.dataset.on = on ? '1' : '0'; bAll.dataset.on = on ? '0' : '1'; bHand.dataset.on = bForge.dataset.on = '0'; });
-      const bHand = mk('La main', () => { machine.api.inspect(false); setFocus('hand'); bHand.dataset.on = '1'; bAll.dataset.on = bIns.dataset.on = bForge.dataset.on = '0'; });
-      const bForge = mk('La forge', () => { machine.api.inspect(false); setFocus('forge'); bForge.dataset.on = '1'; bAll.dataset.on = bIns.dataset.on = bHand.dataset.on = '0'; });
+      const views = machine.api.views || [{ label: 'La main', anchor: 'hand' }, { label: 'La forge', anchor: 'forge' }];
+      const offAll = () => [...bar.children].forEach((c) => { c.dataset.on = '0'; });
+      const bAll = mk('Ensemble', () => { setFocus(null); machine.api.inspect(false); offAll(); bAll.dataset.on = '1'; });
+      const bIns = mk('Inspecter', () => { const on = bIns.dataset.on !== '1'; machine.api.inspect(on); setFocus(null); offAll(); (on ? bIns : bAll).dataset.on = '1'; });
+      views.forEach((v) => { const bv = mk(v.label, () => { machine.api.inspect(false); setFocus(v.anchor); offAll(); bv.dataset.on = '1'; }); });
+      /* scénarios de démonstration (machines qui en proposent) : Auto enchaîne les cas, un cas isolé boucle sur lui-même */
+      if (machine.api.scenarios) {
+        const sep = document.createElement('span'); sep.style.cssText = 'width:1px;background:#0b102033;margin:4px 2px'; bar.append(sep);
+        const sc = [{ short: 'Auto', i: null }, ...machine.api.scenarios.map((x, i) => ({ short: x.short, i }))];
+        const sbs = sc.map((x) => { const bs = mk(x.short, () => { machine.api.setScenario(x.i); sbs.forEach((o) => { o.dataset.on = o === bs ? '1' : '0'; o.style.background = o.dataset.on === '1' ? '#0b1020' : 'transparent'; o.style.color = o.dataset.on === '1' ? '#fff' : '#0b1020'; }); }); bs.dataset.sc = '1'; return bs; });
+        sbs[0].dataset.on = '1';
+      }
       bAll.dataset.on = '1'; bAll.style.background = '#0b1020'; bAll.style.color = '#fff'; document.body.append(bar); machine.bar = bar;
     }
     const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += (fig.dataset.fig === 'vrestudio-musicbox' ? ', attrapez la machine et glissez : ' : ' · attrapez la machine et glissez : ') + ctl.label.toLowerCase();
