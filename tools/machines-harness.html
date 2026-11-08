@@ -25,6 +25,17 @@ window.runMachines = async (only) => {
         a.setScenario?.(null);
         if (a.setInspect) { a.setInspect(true); for (let k = 0; k < 40; k++) m.update(3 + k * .05); if (finite(m.group)) r.errors.push('non fini en inspection'); a.setInspect(false); for (let k = 0; k < 40; k++) m.update(5 + k * .05); if (finite(m.group)) r.errors.push('non fini au retour'); }
       }
+      if (a?.frames) {   // machines à cadres déplaçables (Studio PDF) : positions, couverture, conformité, glisser
+        a.setScenario(2); a.frames.reset(); if (!a.frames.coverage().ok) r.errors.push('cadrage par défaut non conforme');
+        a.frames.move(1, a.frames.get(1).dx + 20, a.frames.get(1).dy + 10); const bad = a.frames.coverage(); if (bad.ok || bad.per[1] >= .8) r.errors.push('cadre déplacé mais couverture inchangée');
+        for (const t of [16.2, 30, 45, 55, 60, 100, 150]) { m.update(t); if (finite(m.group)) r.errors.push('non fini, cadrage perso t=' + t); }
+        a.frames.reset(); const f0 = a.frames.get(0), g0 = m.group; g0.updateMatrixWorld(true);
+        const ray = (x, z) => new THREE.Ray(new THREE.Vector3(x, 100, z), new THREE.Vector3(0, -1, 0)), cx = -165 + f0.dx, cz = f0.dy;
+        const hit = a.drag.pick(ray(cx, cz)); if (!hit || hit.id !== 0) r.errors.push('glisser : le cadre OT n\'est pas saisi (' + JSON.stringify(hit) + ')');
+        else { a.drag.move(ray(cx + 6, cz)); const d = a.frames.get(0); if (Math.abs(d.dx - f0.dx - 6) > .01) r.errors.push('glisser : déplacement de ' + (d.dx - f0.dx)); a.drag.end(); }
+        a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
+        a.frames.reset(); a.setScenario(null);
+      }
       let meshes = 0, geos = new Set(), mats = new Set(); m.group.traverse((o) => { if (o.isMesh) { meshes++; geos.add(o.geometry); [].concat(o.material).forEach((x) => mats.add(x)); } });
       r.notes.meshes = meshes; r.notes.geometries = geos.size; r.notes.materials = mats.size;
       if (!meshes) r.errors.push('aucun maillage');

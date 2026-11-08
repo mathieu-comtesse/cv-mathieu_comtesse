@@ -798,6 +798,11 @@ async function startMachines(){
     document.body.append(el);const stage=q('.cv-zoom-stage',el),canvas=q('canvas',stage);
     const view={yaw:0,pitch:0,radius:src.home?.radius||src.geometry.view.radius,center:(src.home?.center||src.geometry.view.center).clone()},item={host:stage,machine:src.machine,scene:src.scene,camera:new THREE.PerspectiveCamera(31,1,.1,src.camera.far),canvas,ctx:canvas.getContext('2d',{alpha:true}),renderer:src.renderer,zoom:true,fit:src.zfit||1,base:src.zbase,elapsed:src.elapsed||0,geometry:{view,publish:()=>false}};
     stage.__visible=true;active.push(item);if(src.machine.api||src.machine.controls?.seek){const bar=document.createElement('div');bar.className='cv-zoom-bar';el.append(bar);attachBar(item,bar).catch(()=>{});}
+    /* machines à éléments déplaçables (api.drag) : glisser un cadre directement sur la machine */
+    if(src.machine.api?.drag){const rc=new THREE.Raycaster(),nd=new THREE.Vector2();let held=false;const ray=e=>{const r=canvas.getBoundingClientRect();nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);item.camera.updateMatrixWorld();rc.setFromCamera(nd,item.camera);return rc.ray;};
+      canvas.addEventListener('pointerdown',e=>{if(src.machine.api.drag.pick(ray(e))){held=true;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';e.preventDefault();}});
+      canvas.addEventListener('pointermove',e=>{if(held)src.machine.api.drag.move(ray(e));else canvas.style.cursor=src.machine.api.drag.pick(ray(e))?'grab':'';if(!held)src.machine.api.drag.end();});
+      const up=()=>{held=false;src.machine.api.drag.end();canvas.style.cursor='';};canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);}
     zoomRulers??=makeCvOriginalRulers();zoomRulers.onview=({rot,tilt})=>{view.yaw=rot*.36*Math.PI/180;view.pitch=Math.max(-Math.PI/2,Math.min(.3,tilt/250*1.2));};zoomRulers.reset();zoomRulers.el.hidden=false;
     const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closeZoom();}};document.addEventListener('keydown',key,true);
     el.addEventListener('click',e=>{if(e.target===el||e.target.closest('.cv-zoom-close,.cv-zoom-link'))closeZoom();});

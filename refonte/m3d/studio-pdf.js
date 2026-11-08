@@ -26,11 +26,11 @@ function sheetTexture() {
   x.fillStyle = '#7a2b24'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.textBaseline = 'alphabetic'; x.fillText('DEMO FICTIVE', 14, c.height - 14);
   return tex(c, 8);
 }
-function drawCard(x, S, prog, fade) {
+function drawCard(x, S, prog, fade, sc = null) {
   x.fillStyle = '#c9b389'; x.fillRect(0, 0, T.SHEET.w * S, T.SHEET.d * S); x.strokeStyle = '#8a7650'; x.lineWidth = 3; x.strokeRect(2, 2, T.SHEET.w * S - 4, T.SHEET.d * S - 4);
   x.fillStyle = '#6c5b3a'; x.font = '700 16px ui-monospace,Menlo,Consolas,monospace'; x.fillText('GABARIT', 12, 24);
-  T.FRAMES.forEach((f, j) => {
-    const cx = (T.SHEET.w / 2 + f.dx) * S, cy = (T.SHEET.d / 2 + f.dy) * S, w = (f.w - 4) * S, d = (f.d - 4) * S, p = prog[j] * fade;
+  T.FRAMES.forEach((f0, j) => {
+    const f = { ...f0, ...T.pos(j, sc) }, cx = (T.SHEET.w / 2 + f.dx) * S, cy = (T.SHEET.d / 2 + f.dy) * S, w = (f.w - 4) * S, d = (f.d - 4) * S, p = prog[j] * fade;
     x.strokeStyle = '#8a7650'; x.setLineDash([6, 5]); x.lineWidth = 1.5; x.strokeRect(cx - w / 2, cy - d / 2, w, d); x.setLineDash([]);
     if (p > 0) { x.fillStyle = '#f4f8ff'; x.fillRect(cx - w / 2, cy - d / 2, w * p, d); x.strokeStyle = '#3d3320'; x.lineWidth = 2; x.strokeRect(cx - w / 2, cy - d / 2, w * p, d); }
   });
@@ -205,8 +205,8 @@ export function build() {
     M.frost.emissiveIntensity = .12 + .75 * T.lampTable(u);
     const sh = T.sheet(u); sheetMesh.visible = sh.vis; at(sheetMesh, sh.x, T.SHEET.y, sh.z); sheetMat.opacity = sh.alpha;
     const cd = T.card(u); at(cardMesh, cd.x, 0, cd.z); cardMat.opacity = cd.alpha;
-    const prog = [0, 1, 2].map((j) => T.cutProgress(j, u)), fd = T.cutFade(u), key = prog.map((p) => Math.round(p * 24)).join('|') + '|' + Math.round(fd * 12);
-    if (key !== cardKey) { cardKey = key; drawCard(cardCtx, CS, prog, fd); cardTex.needsUpdate = true; }
+    const prog = [0, 1, 2].map((j) => T.cutProgress(j, u)), fd = T.cutFade(u), key = prog.map((p) => Math.round(p * 24)).join('|') + '|' + Math.round(fd * 12) + (sc.custom ? '|' + T.LIVE.map((l) => l.dx.toFixed(1) + ',' + l.dy.toFixed(1)).join(';') : '');
+    if (key !== cardKey) { cardKey = key; drawCard(cardCtx, CS, prog, fd, sc); cardTex.needsUpdate = true; }
     /* portique : poutre (x), tête (y), pince et fraise (z), molette */
     const h = T.head(u, sc); beamG.position.x = h.x; headG.position.z = h.y; molette.root.rotation.z = h.mol; gripper.root.position.y = 44 - 9.6 * h.grip; cutter.root.position.y = 44 - 9.4 * h.cut; cutter.root.rotation.y = u * 40 * (h.cut > .1 ? 1 : 0);
     frames.forEach((f, i) => { const p = T.frame(i, u, sc); at(f, p.x, p.y, p.z - FH / 2); });
@@ -228,7 +228,25 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'La table', anchor: 'table' }, { label: 'La presse', anchor: 'press' }, { label: 'Le lecteur', anchor: 'reader' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 2) + 2) % 2; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; }, get scenario() { return forced; },
+      /* scénario C : les trois cadres de détection sont à déplacer (souris, doigt, flèches) ; la cartouche en dépend */
+      frames: { names: T.FRAMES.map((f) => f.name), get: (i) => ({ ...T.LIVE[i] }), move: (i, dx, dy) => T.setFrame(i, dx, dy), nudge: (i, ddx, ddy) => T.setFrame(i, T.LIVE[i].dx + ddx, T.LIVE[i].dy + ddy), reset: () => T.resetFrames(), coverage: T.coverage, editing: () => forced === 2 },
+      status() { const c = T.coverage(); return T.FRAMES.map((f, i) => f.name + ' ' + Math.round(c.per[i] * 100) + ' %').join(' · ') + (c.ok ? ' : conforme' : ' : écart'); },
+      /* glisser un cadre : le rayon est en repère monde ; le plan des cadres est horizontal (z = 34,6 en repère de figure) */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3(), PLANE = FZ + FH / 2 + .6;
+        const onPlane = (ray) => { inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); if (Math.abs(r.direction.y) < 1e-6) return null; const t = (PLANE - r.origin.y) / r.direction.y; if (t < 0) return null; r.at(t, hit); return { x: hit.x, y: hit.z }; };
+        let grab = null;
+        return {
+          pick(ray) {
+            if (forced !== 2 || inspect.v > .05) return null; const pt = onPlane(ray); if (!pt) return null; let best = -1, bd = 1e9;
+            T.FRAMES.forEach((f, i) => { const c = [T.SHEET.x + T.LIVE[i].dx, T.SHEET.y + T.LIVE[i].dy], ax = Math.abs(pt.x - c[0]) - f.w / 2, ay = Math.abs(pt.y - c[1]) - f.d / 2, d = Math.max(ax, ay); if (d < 2.5 && d < bd) { bd = d; best = i; } });
+            if (best < 0) return null; grab = { i: best, ox: pt.x - (T.SHEET.x + T.LIVE[best].dx), oy: pt.y - (T.SHEET.y + T.LIVE[best].dy) }; return { id: best, name: T.FRAMES[best].name };
+          },
+          move(ray) { if (!grab) return; const pt = onPlane(ray); if (pt) T.setFrame(grab.i, pt.x - T.SHEET.x - grab.ox, pt.y - T.SHEET.y - grab.oy); },
+          end() { grab = null; }
+        };
+      })()
     },
     controls: { label: 'Étape', min: 1, max: 7, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => T.stepAt(T.locate(t, forced).u) + 1, seek: (v) => T.STEP_T[v - 1] + .4 }
   };

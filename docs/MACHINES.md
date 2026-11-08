@@ -262,4 +262,14 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 
 - Même socle que Q18 : table émaillée sur patins réglables, chants et façade en aluminium brossé avec ouïes, poignées de manutention ; établi et caisse du lecteur en émail sombre ; matériaux de `pro-materials.js`.
 - Captures : `docs/machines/studio-pro-avant.png`, `studio-pro-apres.png`, `studio-pro-detail.png`.
-- Non fait : déplacement libre d'un cadre de lecture sur le PDF fictif (interaction essentielle du brief), presse avec crémaillère et paliers supplémentaires, table lumineuse plus présente, feuilles déplacées physiquement au lieu d'un fondu. Ces points demandent un travail sur la chronologie (`studio-timeline.js`) et restent à faire.
+- Fait ensuite (scénario C « Mon cadrage ») : voir ci-dessous.
+- Non fait : presse avec crémaillère et paliers supplémentaires, table lumineuse plus présente, feuilles déplacées physiquement au lieu d'un fondu. Ces points demandent un travail sur la chronologie (`studio-timeline.js`) et restent à faire.
+
+### Studio PDF, scénario C « Mon cadrage » (cadres déplaçables)
+
+- `studio-timeline.js` : les cadres du visiteur (`LIVE`) sont distincts des champs du PDF (`BASE`). `coverage()` donne la part de chaque champ couverte ; la cartouche est livrée si chacun couvre au moins 80 %, rejetée sinon (`SCEN[2].ok` est calculé). Le portique, la découpe du gabarit (fenêtres aux positions du visiteur) et les cadrans suivent le cadrage. A et B sont inchangés.
+- `studio-pdf.js` : `api.frames` (noms, déplacer, pousser, remettre, couverture), `api.status()`, `api.drag` (saisie d'un cadre par un rayon monde, actif seulement dans « Mon cadrage »).
+- Hôtes : vue agrandie de l'accueil (glisser sur la machine + groupe « Cadres » de la barre commune) et fiche (`post.js` : glisser sur la machine, flèches, « Remettre », « Lancer l'essai »). Choisir « Mon cadrage » place la machine à l'instant où les trois cadres sont posés et la met en attente.
+- Test : `tools/machines-harness.html` vérifie couverture, conformité, valeurs finies et saisie/déplacement par rayon.
+- Captures : `docs/machines/studio-cadres-zoom.png`, `studio-cadres-fiche.png`.
+- Limites : la fiche et la vue agrandie ont été exercées au clavier et par boutons ; le glisser à la souris est validé par test de rayon mais pas par un geste réel sur GPU. Les trois champs et leur seuil de 80 % sont des valeurs de démonstration.

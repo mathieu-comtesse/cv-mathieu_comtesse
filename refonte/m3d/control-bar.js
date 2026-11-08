@@ -19,7 +19,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) 
   const grp = (name) => { const g = document.createElement('div'); g.className = 'cv-cb-grp'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', name); const s = document.createElement('span'); s.textContent = name; s.setAttribute('aria-hidden', 'true'); g.append(s); return g; };
   // lecture
   const play = btn(ctl.paused ? 'Lecture' : 'Pause', () => { ctl.setPaused(!ctl.paused); play.textContent = ctl.paused ? 'Lecture' : 'Pause'; }, { aria: 'Mettre en pause ou reprendre la démonstration' });
-  const replay = btn('Rejouer', () => { ctl.scenario(null); ctl.seek(0); markScenario(null); }, { aria: 'Rejouer depuis le début' });
+  const replay = btn('Rejouer', () => { ctl.scenario(null); ctl.seek(0); markScenario(null); refreshEdit(); }, { aria: 'Rejouer depuis le début' });
   const speed = btn('1×', () => { const i = (SPEEDS.indexOf(ctl.speed) + 1) % SPEEDS.length; ctl.setSpeed(SPEEDS[i]); speed.textContent = SPEEDS[i] + '×'; }, { aria: 'Vitesse de lecture' });
   const g0 = grp('Lecture'); g0.append(play, replay, speed); bar.append(g0);
   // étape / tête de lecture
@@ -36,9 +36,22 @@ export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) 
   let markScenario = () => {};
   if (api.scenarios?.length) {
     const g = grp('Scénario'), bs = [];
-    const mk = (text, i, aria) => { const b = btn(text, () => { ctl.scenario(i); ctl.seek(0); markScenario(i); }, { pressed: i === null, aria }); bs.push([b, i]); g.append(b); };
+    const mk = (text, i, aria) => { const b = btn(text, () => { ctl.scenario(i); const sc = i === null ? null : api.scenarios[i]; if (sc?.edit) { ctl.seek(sc.editT); ctl.setPaused(true); play.textContent = 'Lecture'; } else { ctl.seek(0); ctl.setPaused(false); play.textContent = 'Pause'; } markScenario(i); refreshEdit(); }, { pressed: i === null, aria }); bs.push([b, i]); g.append(b); };
     mk('Auto', null, 'Scénarios en boucle'); api.scenarios.forEach((s, i) => mk(s.short, i, s.label));
     markScenario = (k) => bs.forEach(([b, i]) => b.setAttribute('aria-pressed', String(i === k))); bar.append(g);
+  }
+  // édition des cadres (machines qui l'exposent : api.frames) : choisir un cadre, le déplacer, lancer l'essai
+  let refreshEdit = () => {};
+  if (api.frames) {
+    const g = grp('Cadres'), st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'opacity:.9;white-space:nowrap';
+    let cur = 0; const sel = api.frames.names.map((n, i) => { const b = btn(n, () => { cur = i; sel.forEach((x, k) => x.setAttribute('aria-pressed', String(k === cur))); }, { pressed: i === 0, aria: 'Choisir le cadre ' + n }); g.append(b); return b; });
+    const arrow = (txt, dx, dy, aria) => { const b = btn(txt, () => { api.frames.nudge(cur, dx, dy); st.textContent = api.status(); }, { aria }); b.style.minWidth = '32px'; g.append(b); };
+    arrow('←', -2, 0, 'Déplacer le cadre vers la gauche'); arrow('→', 2, 0, 'Déplacer le cadre vers la droite'); arrow('↑', 0, -2, 'Déplacer le cadre vers le haut'); arrow('↓', 0, 2, 'Déplacer le cadre vers le bas');
+    const rs = btn('Remettre', () => { api.frames.reset(); st.textContent = api.status(); }, { aria: 'Remettre les cadres sur leurs champs' });
+    const run = btn('Lancer l’essai', () => { ctl.setPaused(false); play.textContent = 'Pause'; }, { aria: 'Lancer la fabrication de la cartouche et l’essai' });
+    g.append(rs, run, st); bar.append(g); g.hidden = true;
+    refreshEdit = () => { g.hidden = !api.frames.editing(); st.textContent = api.status(); }; setInterval(function t() { if (!root.isConnected) return clearInterval(t); st.textContent = api.frames.editing() ? api.status() : ''; }, 400);
+    bar.__edit = g;
   }
   // vues et inspection
   const views = api.views || [], gv = grp('Vue'), vb = [];
