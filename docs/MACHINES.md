@@ -299,3 +299,12 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Le message d'état rappelle que la machine ne bloque aucune dépense (métaphore de surveillance).
 - Captures : `docs/machines/finance-pro-avant.png`, `finance-pro-cadran.png`, `finance-mon-reservoir.png`.
 - Limites : poids des lignes et part KO fictifs ; les alertes sont validées par le test (jamais vues se déclencher en navigateur à cause de la lenteur du rendu logiciel) ; rendu logiciel seulement.
+
+## VRE par VM : interruption, reprise, horloge continue, bande entraînée
+
+- Scénarios D « Interruption » (la VM s'arrête pendant la lecture : voyant d'écart rouge, l'enveloppe reste sous la cabine, la demande retourne en file) et E « Reprise » (la demande conservée attend dans la file, la relève la reprend, le traitement se termine par le rangement au casier). Ils s'ajoutent à A (apparié), B (doublon), C (non apparié) : cinq scénarios, boucle de 240 s. La seconde cabine VM reste affichée comme architecture cible non active.
+- Horloge : plus de retour en arrière brutal en fin de scénario. L'horloge avance de douze heures en accéléré et retrouve exactement sa position de départ (aiguille des minutes et des heures continues).
+- Bande et rouleaux : la bande défile et les douze rouleaux tournent avec l'enveloppe qu'ils portent (déplacement perceptible).
+- Base : table émaillée, chants aluminium, ouïes, mur du fond avec plis de rigidité.
+- Captures : `docs/machines/vm-pro-apres.png`, `vm-interruption.png`.
+- Limites : pas de scénario libre ni de commande directe sur cette machine ; pinces, vérins et guidages non détaillés davantage ; rendu logiciel seulement.
