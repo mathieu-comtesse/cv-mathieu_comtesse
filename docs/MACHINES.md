@@ -362,3 +362,13 @@ La Manufacture et la main de La Création d'Adam sont inchangées (mêmes pièce
 - Coût CPU mesuré (SwiftShader, sans rendu GPU ; `PERF=1 node tools/test-machines.mjs`) : construction 17 à 58 ms, mise à jour 0,01 à 0,07 ms par image, 88 à 244 maillages par machine. Aucune mesure de fluidité GPU (60 FPS / 30 FPS) n'a pu être faite : à vérifier sur les appareils réels.
 - Captures d'intégration (page réelle `projet-vmvre.html` et accueil, 1920 x 1080, 1440 x 900, 390 x 844) : `docs/machines/integration/`. La barre d'outils des fiches a été compactée sur mobile (elle recouvrait la machine).
 - Non traité : contrôleur de caméra complet (orbite et zoom libres), mutualisation des géométries statiques, destruction explicite des ressources au changement de machine, récupération après perte de contexte GPU, mode WebGPU « chemin 3D » avec les nouveaux matériaux, vues éclatées reprises pièce par pièce, scénarios libres pour Q18 et Nisaru, `Site integrity` (pages `machines`, `parcours`, `accueil` sans métadonnées SEO : échec antérieur) et `Scene smoke check` (journaux illisibles depuis cet environnement).
+
+## Passe UI premium : CTA, « Comment ça marche », surcouche, barre de commandes
+
+- `refonte/ui-premium.css` (liée sur l'accueil et sur toutes les fiches à flow) : un seul langage, verre fin, filet clair, ombre douce.
+- CTA « Voir la magie » (`.cv-magic3d`, `.rf-flow-magic`) : pastille de verre avec icône, lévitation lente, parallaxe de ±3 px (`refonte/premium-cta.js`), soulèvement au survol, compression au clic, focus visible, `prefers-reduced-motion` respecté. Libellé raccourci partout (accueil, fiches, parcours, articles).
+- « Comment ça marche » : cases en verre au lieu de blocs noirs, filet vertical plein, textes calmes (hiérarchie par opacité, ombre portée plutôt que fond).
+- Surcouche (`.fl-ov`) : fond translucide flouté au lieu de `#0b0d0e` à 98 %, bouton de fermeture en verre, cadres pointillés des cases et du rail supprimés (`.b3`, `.lh`, `.lv`), cases soulevées en verre.
+- Dock d'accueil et barre `.rf-m3d-tools` des fiches : capsule de verre, boutons sans cadre, état actif en pastille claire.
+- `refonte/m3d/control-bar.js` : barre refaite en capsule, groupes Lecture / Scénario / Vue séparés par un filet, libellés de groupe masqués sur mobile, boutons condensés < 600 px, curseur pleine largeur.
+- Limites : 10 étapes restent affichées par fiche (contenu non réécrit) ; le backdrop-filter n'existe pas dans le rendu html-in-canvas du chemin 3D (la lisibilité y repose sur contraste et ombre) ; accueil WebGPU non vérifiable dans le bac à sable.

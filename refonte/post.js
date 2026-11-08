@@ -1,3 +1,4 @@
+import './premium-cta.js';
 // Page de projet : barre, pied de page, apparitions ; pour les projets pro, la machine animée est posée sur le plan blueprint
 // de l'accueil (même caméra en perspective, mêmes règles « Tourner » / « Incliner »).
 import './footer.js';

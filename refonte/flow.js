@@ -1,7 +1,7 @@
 // Barre des étapes d'un projet, d'après la reconstitution du schéma animé fournie (cases de 59 px, liaisons en pointillés, voyant vert,
 // case mobile qui passe de l'esquisse hachurée au trait, au plein puis à la couleur, vue inclinée « la magie »).
 // — Sur le côté : une barre verticale de cases, une par étape, alignées sur le texte de l'étape ; la case mobile descend avec le défilement.
-// — « Cliquez ici pour voir la magie » : le même schéma en serpentin, en perspective, avec le parcours animé de 20 secondes de la référence.
+// — « Voir la magie » : le même schéma en serpentin, en perspective, avec le parcours animé de 20 secondes de la référence.
 // Les étapes sont celles du projet (titre, texte, icône) ; les icônes et le tracé sont écrits pour ce site.
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const smooth = (x, a, b) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -216,7 +216,7 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   if ('IntersectionObserver' in window) { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 }); steps.forEach((li) => io.observe(li)); }
   else steps.forEach((li) => li.classList.add('rf-in'));
 
-  /* --- « Cliquez ici pour voir la magie » : le schéma en perspective, parcours automatique, mêmes animations à l'ouverture et à la fermeture --- */
+  /* --- « Voir la magie » : le schéma en perspective, parcours automatique, mêmes animations à l'ouverture et à la fermeture --- */
   const ov = document.createElement('div');
   ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true');
   ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer le schéma en perspective"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><p class="fl-ov-cap">VUE EN PERSPECTIVE · ÉCHAP POUR FERMER</p>';

@@ -1,14 +1,17 @@
 // Barre de commandes commune à toutes les machines (accueil, vue agrandie, fiches) : un seul contrat, quel que soit le module.
 // Contrat machine : controls {label,min,max,step,fmt,get(t),seek(v)->t} ; api {views[{label,anchor}], scenarios[{short,label}], setScenario(i|null), setInspect(bool)}.
 // Contrat hôte (ctl) : { time(), seek(t), paused, setPaused(b), speed, setSpeed(v), focus(anchorName|null), scenario(i|null) }.
-const CSS = `.cv-cb{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font:12px/1.2 "Sohne Mono",monospace;color:#fff;max-width:100%}
-.cv-cb button{font:inherit;color:#fff;background:#07142bef;border:1px solid #7398c9;padding:6px 10px;cursor:pointer;min-height:32px}
-.cv-cb button:hover{background:#12305f}.cv-cb button[aria-pressed="true"]{background:#fff;color:#051daa}
-.cv-cb button:focus-visible,.cv-cb input:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.cv-cb .cv-cb-step{display:flex;align-items:center;gap:8px}.cv-cb input[type=range]{width:min(220px,40vw)}
-.cv-cb .cv-cb-grp{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.cv-cb .cv-cb-grp>span{opacity:.7;margin-right:2px}
+const CSS = `.cv-cb{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;justify-content:center;font:500 12px/1.2 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.01em;color:#f4f7fb;max-width:100%;padding:5px;border:1px solid rgb(255 255 255 / .22);border-radius:22px;background:linear-gradient(180deg,rgb(18 24 44 / .46),rgb(10 14 28 / .34));-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);box-shadow:inset 0 1px 0 rgb(255 255 255 / .2),0 14px 34px -14px rgb(2 6 20 / .6)}
+.cv-cb button{font:inherit;color:rgb(244 247 251 / .72);background:transparent;border:0;border-radius:9999px;padding:7px 12px;cursor:pointer;min-height:30px;white-space:nowrap;transition:background .25s,color .25s,transform .15s}
+.cv-cb button:hover{background:rgb(255 255 255 / .1);color:#fff}.cv-cb button:active{transform:scale(.96)}
+.cv-cb button[aria-pressed="true"]{background:linear-gradient(180deg,rgb(255 255 255 / .94),rgb(255 255 255 / .8));color:#0b1020}
+.cv-cb button:focus-visible,.cv-cb input:focus-visible{outline:1.5px solid rgb(255 255 255 / .85);outline-offset:2px}
+.cv-cb .cv-cb-step{display:flex;align-items:center;gap:8px;padding:0 8px;color:rgb(244 247 251 / .66)}.cv-cb input[type=range]{width:min(200px,36vw);accent-color:#fff;height:2px}
+.cv-cb .cv-cb-grp{display:flex;gap:2px;flex-wrap:wrap;align-items:center;padding-left:10px;border-left:1px solid rgb(255 255 255 / .14)}.cv-cb .cv-cb-grp:first-child{padding-left:0;border-left:0}
+.cv-cb .cv-cb-grp>span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgb(244 247 251 / .5);margin:0 4px 0 2px}
 .cv-cb svg{display:block}
-.cv-cb output{white-space:nowrap;margin-right:14px}`;
+.cv-cb output{white-space:nowrap;margin-right:6px;font-variant-numeric:tabular-nums}
+@media (max-width:600px){.cv-cb{gap:4px 6px;padding:4px;border-radius:18px}.cv-cb button{padding:6px 9px;min-height:28px;font-size:11.5px}.cv-cb .cv-cb-grp{padding-left:6px}.cv-cb .cv-cb-grp>span{display:none}.cv-cb .cv-cb-step{flex:1 1 100%;padding:2px 6px}.cv-cb input[type=range]{flex:1;width:auto}}`;
 let styled = false;
 const SPEEDS = [.5, 1, 2];
 export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) {
