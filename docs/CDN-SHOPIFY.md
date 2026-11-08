@@ -31,3 +31,19 @@ Points à décider par le propriétaire du site :
 2. Remplacer, module par module, le client HTML-in-canvas : boucle d'images (déjà couverte par `frame-bus.js`), défilement fluide, sections résidentes, miroir racine, rendu de maillages (WebGL2 original).
 3. Polices : Inter et JetBrains Mono (licence OFL) auto-hébergées ; PP Neue Montreal et Söhne Mono à remplacer par des polices libres, ce qui change l'identité typographique et demande ton accord.
 4. Retirer les précharges et les images Shopify, puis imposer par test automatique l'absence de requête sortante.
+
+## Rendu de maillages original (`refonte/mesh-gpu.js`), écrit avec le skill WebGPU/TSL
+
+Le skill `webgpu-claude-skill` (Three.js `WebGPURenderer` + TSL, gestion de la perte de périphérique) a servi de guide. Le module remplace le registre et le shader de `mesh.wgsl` pour les canvas 2D des machines :
+
+- Contrat identique (`register(canvas, {frame, clear, redraw})` renvoie `publish/drop/unregister`) ; `cvRegisterGeometry` fournit en plus `view`, `projection` et l'opacité de chaque pièce.
+- Un seul `WebGPURenderer` partagé (WebGPU si disponible, WebGL2 sinon, automatiquement), un seul matériau opaque et un seul matériau translucide pour toutes les machines (couleur et facteurs portés par des attributs de sommet : 2 pipelines GPU au lieu d'un par couleur).
+- Perte de périphérique : repli immédiat sur le rendu Three.js local (`source.redraw()`), reconstruction en WebGL2, abandon après 3 échecs.
+- `?mesh=shopify` rétablit l'ancien module externe pour comparer.
+- Builds `three.webgpu.js` et `three.tsl.js` (r187, MIT) ajoutés à `vendor/three-r187/`, minifiés (459 Ko + 315 Ko, 217 Ko en gzip), chargés seulement quand une machine devient visible.
+
+Vérifié (`node tools/perf/mesh-check.cjs <machine> sortie.png webgl`) : 11 machines publiées (`taken: true`), silhouette identique au rendu historique (écart de pixels opaques inférieur à 0,4 % sauf matériaux translucides), luminosité moyenne à moins de 6 % ; translucidité conservée (ampoule de Finance, vitres de Nisaru). Les textures de la machine Suivi restent approchées par palette, comme dans les données de trame d'origine.
+
+**Non vérifié** : le chemin WebGPU natif. Dans ce conteneur, un périphérique WebGPU est détruit dès la première image, même avec du WebGPU brut (test `gpu3`), donc seul le backend WebGL2 a été exécuté. Sur un GPU réel, le module utilisera WebGPU ; son rendu n'a pas été observé.
+
+**Reste dépendant de Shopify** : `mesh.wgsl` est encore importé par le client HTML-in-canvas (345 Ko) lui-même chargé depuis le CDN ; la feuille Tailwind, les 22 autres modules et les polices sont inchangés. Le module original ne dessine que les canvas 2D des machines ; le canvas de la tirelire (contexte WebGL propre) garde son rendu.

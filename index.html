@@ -612,7 +612,7 @@ function cvSelectGeometry(){
  cvGeometryActive=nearest;
 }
 async function cvRegisterGeometry(canvas,scene,camera,options={}){
- if(!cvGeometryFactory)cvGeometryFactory=Promise.all([import('three'),import('https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/mesh.wgsl-CahI0rXV.js').catch(e=>{console.warn('Rendu GPU partagé indisponible : rendu Three.js local',e);return null;})]);
+ if(!cvGeometryFactory)cvGeometryFactory=Promise.all([import('three'),(/[?&]mesh=shopify\b/.test(location.search)?import('https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/mesh.wgsl-CahI0rXV.js'):import(base+'refonte/mesh-gpu.js')).catch(e=>{console.warn('Rendu GPU partagé indisponible : rendu Three.js local',e);return null;})]);   /* ?mesh=shopify : ancien rendu externe, pour comparaison */
  const [T,shared]=await cvGeometryFactory;
  /* Si le module GPU externe est injoignable (CDN coupé, WebGPU absent), la machine reste affichée par le rendu Three.js local : publish() renvoie false et l'appelant dessine lui-même. */
  if(!shared){const stub={canvas,scene,camera,taken:false,latest:null,view:{yaw:.566,pitch:.55},publish:()=>false,bridge:{publish(){}}};return stub;}
@@ -661,10 +661,10 @@ async function cvRegisterGeometry(canvas,scene,camera,options={}){
    const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material],groups=Array.isArray(mesh.material)?mesh.geometry.groups:[{start:0,count:Infinity,materialIndex:0}],count=mesh.isInstancedMesh?mesh.count:1;
    for(let i=0;i<count;i++){
     if(mesh.isInstancedMesh){mesh.getMatrixAt(i,instance);matrix.multiplyMatrices(mesh.matrixWorld,instance);}else matrix.copy(mesh.matrixWorld);
-    for(const group of groups){const m=materials[group.materialIndex||0];if(!m||m.visible===false||m.opacity<.1)continue;const draw=geometry(mesh,matrix,group);if(!draw)continue;for(const part of colorParts(draw.geometry,mesh.geometry,m))draws.push({geometry:part.geometry,world:draw.world,color:part.color,factors:[m.metalness||0,m.roughness??.65,m.clearcoat||0,m.clearcoatRoughness??.4]});}
+    for(const group of groups){const m=materials[group.materialIndex||0];if(!m||m.visible===false||m.opacity<.1)continue;const draw=geometry(mesh,matrix,group);if(!draw)continue;for(const part of colorParts(draw.geometry,mesh.geometry,m))draws.push({geometry:part.geometry,world:draw.world,color:part.color,opacity:m.transparent&&m.opacity<1?m.opacity:1,factors:[m.metalness||0,m.roughness??.65,m.clearcoat||0,m.clearcoatRoughness??.4]});}
    }
   });
-  return {viewProjection:new Float32Array(vp.elements),camera:camera.getWorldPosition(new T.Vector3()).toArray(),lighting:{light,environment},draws};
+  return {view:new Float32Array(camera.matrixWorldInverse.elements),projection:new Float32Array(camera.projectionMatrix.elements),viewProjection:new Float32Array(vp.elements),camera:camera.getWorldPosition(new T.Vector3()).toArray(),lighting:{light,environment},draws};
  }
  entry.bridge=register(canvas,{frame:()=>cvGeometryActive===entry?entry.latest:undefined,clear:()=>{entry.taken=true;options.clear?.();canvas.dataset.cvTaken='';},redraw:()=>{entry.taken=false;delete canvas.dataset.cvTaken;}});
  entry.publish=()=>{cvSelectGeometry();if(cvGeometryActive===entry){entry.latest=frame();state.geometry={active:canvas.getAttribute('aria-label')||canvas.className,draws:entry.latest.draws.length,taken:entry.taken};entry.bridge.publish();}return entry.taken&&cvGeometryActive===entry;};
