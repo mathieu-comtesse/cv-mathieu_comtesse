@@ -55,7 +55,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine' } = {}) 
   }
   // réglages libres (api.params : groupes de choix) : visibles seulement pendant le scénario qui les expose
   if (api.params) {
-    const wrap = document.createElement('div'); wrap.className = 'cv-cb'; wrap.style.cssText = 'gap:6px 14px'; const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'white-space:nowrap;opacity:.9';
+    const wrap = document.createElement('div'); wrap.className = 'cv-cb'; wrap.style.cssText = 'gap:6px 14px'; const st = document.createElement('span'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.style.cssText = 'white-space:normal;opacity:.9;flex:1 1 100%;max-width:100%';
     const groups = api.params.groups.map((gd) => { const g = grp(gd.name), bs = gd.options.map((o, i) => { const b = btn(o.label, () => { o.run(); sync(); }, { pressed: false, aria: gd.name + ' : ' + o.label }); g.append(b); return b; }); wrap.append(g); return { gd, bs }; });
     const sync = () => groups.forEach(({ gd, bs }) => { const cur = gd.get(); bs.forEach((b, i) => b.setAttribute('aria-pressed', String(i === cur))); });
     wrap.append(st); wrap.hidden = true; bar.append(wrap);

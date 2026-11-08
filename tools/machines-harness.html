@@ -36,6 +36,17 @@ window.runMachines = async (only) => {
         a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
         a.frames.reset(); a.setScenario(null);
       }
+      if (a?.params && name === 'suivi') {   // Ma demande : neuf demandes, systèmes concernés, source indisponible ; les cordons ne traversent ni l'écran ni les relais
+        a.setScenario(3); const t0 = 1100; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to) => { for (let dt = from; dt <= to; dt += 2) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Ma demande +' + dt + ' ' + window.__bad); } };
+        for (let gi = 0; gi < 3; gi++) for (let o = 0; o < 3; o++) { run(gi, o); step(1, 56); if (!/Demande /.test(a.status()) || !/systèmes concernés : \w/.test(a.status())) r.errors.push('état de la demande ' + gi + '/' + o + ' : ' + a.status()); }
+        run(3, 1); step(1, 56); if (!/source indisponible/.test(a.status())) r.errors.push('source indisponible : ' + a.status()); run(3, 0);
+        const ray = new THREE.Ray(new THREE.Vector3(T_X(1), T_Y(1), 300), new THREE.Vector3(0, 0, -1));
+        function T_X(c) { return [-82, -58, -34][c]; } function T_Y(row) { return [160, 144, 128][row]; } m.group.updateMatrixWorld(true); const i0 = a.params.groups[1].get(); if (!a.drag.pick(new THREE.Ray(new THREE.Vector3(-58, 144, 300), new THREE.Vector3(0, 0, -1)))) r.errors.push('clic sur une paire de prises non saisi'); else if (a.params.groups[1].get() === i0 && a.params.groups[1].get() !== 1) r.errors.push('clic sans effet');
+        /* cordons : jamais devant l'écran (x 0 à 80, z 165 à 190), jamais dans la face (z < 11), jamais sous la tablette */
+        const bad = []; for (const k of [0, 1, 2, 3]) { a.setScenario(k); for (let u = 0; u <= 56; u += 1) for (let p = 0; p < 4; p++) for (const q of m.audit.cords(p, u, k)) { if (q.x > -2 && q.x < 82 && q.y > 163 && q.y < 192 && q.z < 40) bad.push('écran k' + k + ' u' + u + ' p' + p); if (q.z < 10) bad.push('face k' + k + ' u' + u + ' p' + p); if (q.y < 52.5) bad.push('tablette k' + k + ' u' + u + ' p' + p); } }
+        if (bad.length) r.errors.push('cordons : ' + bad.length + ' points hors couloir (ex. ' + bad.slice(0, 3).join(', ') + ')');
+        a.setScenario(0); if (a.drag.pick(ray)) r.errors.push('clic actif hors de Ma demande'); a.setScenario(null);
+      } else
       if (a?.params && name === 'vre') {   // Mon rapport : bâtiment, local, équipement suivi, vérification, erreur injectée, vidange puis recharge visibles
         a.setScenario(3); const t0 = 900; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to, ds = 1) => { for (let dt = from; dt <= to; dt += ds) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Mon rapport +' + dt + ' ' + window.__bad); } };
         run(0, 2); run(1, 4); run(2, 3); step(1, 70); if (!/Bâtiment 3, local 5/.test(a.status())) r.errors.push('rapport choisi : ' + a.status()); if (!/équipement 4 suivi/.test(a.status())) r.errors.push('équipement suivi : ' + a.status());

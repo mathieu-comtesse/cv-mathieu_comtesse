@@ -331,3 +331,12 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Base : table émaillée, chants aluminium, ouïes ; billes d'acier avec reflets de l'environnement de studio.
 - Captures : `docs/machines/vre-pro-avant.png`, `vre-recyclage.png`, `vre-recharge.png`.
 - Limites : le transit dans le tube de retour n'est pas montré (le tube est opaque) ; colonnes et lecteur non agrandis ; séquences fictives ; rendu logiciel seulement.
+
+## Retrouver tout le suivi : cordons réalistes, écran dégagé, scénario « Ma demande »
+
+- Cordons : sortie droite d'un ressort anti-pliure à la queue de la fiche, courbe de Bézier cubique, affaissement sous le poids, arrivée verticale dans le trou de la tablette ; le cordon reste en avant de la face. L'écran des accès est déplacé en bandeau haut (aucun cordon ne le traverse plus) ; l'ancien emplacement devient un bornier de liaisons de démonstration. Le test échantillonne les quatre cordons pour les quatre scénarios à chaque seconde et échoue si un point passe devant l'écran, dans la face ou sous la tablette.
+- Écran : pour chaque système, état du lien et destination « lien de démonstration (système interne, non ouvrable depuis ce site) » ; aucun lien interne n'est inventé et aucun accès n'est garanti (permissions applicatives). Une source indisponible affiche « rien à ouvrir ».
+- Scénario D « Ma demande » : neuf demandes fictives (trois OT, trois équipements, trois bâtiments), une par paire de prises ; les deux fiches se branchent, les systèmes concernés sont déduits et affichés ; option « Une indisponible ». Clic direct sur une paire de prises.
+- Base : bibliothèque de matériaux industriels (laiton satiné, acier) ; caisse en bois conservée.
+- Captures : `docs/machines/suivi-pro-avant.png`, `suivi-pro-cordons.png`, `suivi-ma-demande.png`.
+- Limites : les cordons ne sont pas simulés physiquement (courbe calculée) et peuvent passer devant les relais ; pas de contrepoids visibles sous la tablette ; systèmes et correspondances inventés ; rendu logiciel seulement.
