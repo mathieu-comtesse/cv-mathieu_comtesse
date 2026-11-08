@@ -3,28 +3,63 @@
 // Scénario B : un dossier déjà classé arrive à échéance, une relance part, la pince le sort de son tiroir et le dépose dans le compartiment d'archives.
 import { clamp, seg, ease } from './nisaru-geometry.js';
 
-export const SC_T = 60, LOOP_T = SC_T * 2;
+export const SC_T = 60, LOOP_T = SC_T * 2;   // la boucle automatique n'enchaîne que A et B ; C (« Mon classement ») est piloté par le visiteur
+export const MONTH = 31;                      // jours du mois affiché : le calendrier avance toujours dans le même sens et se referme exactement
 export const SCEN = [
   { id: 'A', short: 'Dépôt et classement', label: 'Un plan arrive : lecture, tiroir, puis échéance et relance', due: 25, warn: 22 },
-  { id: 'B', short: 'Échéance et archivage', label: 'Échéance atteinte : relance puis archivage du dossier', due: 20, warn: 17 }
+  { id: 'B', short: 'Échéance et archivage', label: 'Échéance atteinte : relance puis archivage du dossier', due: 20, warn: 17 },
+  { id: 'C', short: 'Mon classement', label: 'Mon classement : je choisis un dossier, j\'avance la date, j\'observe la relance puis l\'archivage', custom: true, edit: true, hold: false, editT: 0, due: 25, warn: 22 }
 ];
+/* ---- scénario C : état construit par le visiteur (dossier déposé, jours avancés, archivage). Dates et échéances fictives. ---- */
+export const FOLDERS = [
+  { name: 'Plan secteur A', drawer: 0, warn: 22, due: 25 }, { name: 'Plan secteur B', drawer: 1, warn: 20, due: 23 },
+  { name: 'Entreprise X', drawer: 0, warn: 28, due: 31 }, { name: 'Mode opératoire', drawer: 1, warn: 16, due: 18 }
+];
+export const CUSTOM = { base: 0, started: false, phase: 'idle', t0: 0, folder: -1, filedAt: 0, ev: [], target: 10, now: 0 };
+export function startCustom(time) { Object.assign(CUSTOM, { base: time, started: true, phase: 'idle', t0: 0, folder: -1, filedAt: 0, ev: [], target: 10 }); }
+const dayTrack = (u) => { let v = 10; for (const c of CUSTOM.ev) { if (u < c.t0) break; v = c.from + (c.to - c.from) * sm(seg(u, c.t0, c.t0 + c.dur)); } return v; };
+export const dayAt = (u) => dayTrack(u);
+export const shownDay = (d) => ((Math.round(d) - 1) % MONTH + MONTH) % MONTH + 1;
+export function addDays(n, u) { const to = Math.min(10 + MONTH, CUSTOM.target + n); if (to <= CUSTOM.target) return false; CUSTOM.ev.push({ t0: u, from: dayTrack(u), to, dur: Math.max(1.2, (to - dayTrack(u)) * .45) }); CUSTOM.target = to; CUSTOM.sim = null; return true; }
+export const phaseAt = (u) => (CUSTOM.phase === 'deposit' && u - CUSTOM.t0 >= 24 ? 'stored' : CUSTOM.phase === 'archive' && u - CUSTOM.t0 >= 24 ? 'idle' : CUSTOM.phase);
+export function deposit(f, u) { if (phaseAt(u) !== 'idle') return false; CUSTOM.phase = 'deposit'; CUSTOM.t0 = u; CUSTOM.folder = f; CUSTOM.filedAt = u + 19; CUSTOM.sim = null; return true; }
+export function archive(u) { if (phaseAt(u) !== 'stored') return false; CUSTOM.phase = 'archive'; CUSTOM.t0 = u; CUSTOM.archAt = u; return true; }
+/** instants du témoin et de la relance du dossier classé (null tant que non atteints), réinitialisés par l'archivage */
+export function crossings(u) {
+  const f = FOLDERS[CUSTOM.folder]; if (!f || (CUSTOM.phase === 'deposit' && u < CUSTOM.filedAt) || CUSTOM.phase === 'idle' && CUSTOM.folder < 0) return { w: null, d: null };
+  let w = null, d = null; const end = CUSTOM.phase === 'archive' ? Math.min(u, CUSTOM.t0) : u;
+  for (let t = CUSTOM.filedAt; t <= end; t += .1) { const v = dayTrack(t); if (w === null && v >= f.warn) w = t; if (d === null && v >= f.due) d = t; if (w !== null && d !== null) break; }
+  return { w, d };
+}
+function alertsC(u) {
+  const { w, d } = crossings(u), arch = CUSTOM.phase === 'archive' ? CUSTOM.t0 + 6 : Infinity, reset = arch === Infinity ? 0 : sm(seg(u, arch, arch + 3));
+  return { warn: w !== null && u >= w && reset < .5 ? 1 : 0, due: d !== null && u >= d && reset < .5 ? 1 : 0, bell: d !== null && u >= d && u < d + 1.6 ? Math.sin((u - d) * 24) * Math.exp(-(u - d) * 1.5) : 0, tab: d !== null ? sm(seg(u, d + .5, d + 1.8)) * (1 - reset) : 0 };
+}
+/** correspondance du scénario C vers les séquences A (dépôt, rangement) et B (sortie du tiroir, archivage) */
+export function mapC(u) {
+  const ph = CUSTOM.phase, x = u - CUSTOM.t0;
+  if (ph === 'deposit') return { k: 0, u: Math.min(x, 24) < 24 ? x : 40 };
+  if (ph === 'archive') return { k: 1, u: x < 24 ? 22 + x : 60 };
+  return { k: 0, u: 0 };
+}
 export const PICK = [6, 20], HOUSE_X = -30, DRAW = [{ x: 80, z: 73 }, { x: 40, z: 47 }], ARCH_X = -131, RAIL_Z = 124, TIP_REST = 100;
-export const STEPS = [['Plan déposé', 'Lecture', 'Tiroir', 'Calendrier', 'Témoin', 'Relance'], ['Dossier classé', 'Calendrier', 'Témoin', 'Relance', 'Archivage', 'Fin']];
+export const STEPS = [['Plan déposé', 'Lecture', 'Tiroir', 'Calendrier', 'Témoin', 'Relance'], ['Dossier classé', 'Calendrier', 'Témoin', 'Relance', 'Archivage', 'Fin'], ['Libre', 'Libre', 'Libre', 'Libre', 'Libre', 'Libre']];
 export const wrap = (t) => ((t % LOOP_T) + LOOP_T) % LOOP_T;
-export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 2 : forced; return { k, u: w % SC_T, sc: SCEN[k] }; };
+export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 2 : forced; return k === 2 ? { k, u: Math.max(0, t - CUSTOM.base), sc: SCEN[2] } : { k, u: w % SC_T, sc: SCEN[k] }; };
 const sm = (x) => ease(clamp(x));
 const io = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
 const lerp = (a, b, f) => a + (b - a) * f;
 
 /** jour simulé du mois (10 = date de dépôt) ; retour rapide en fin de scénario pour reboucler */
-export function day(u, k) { return k === 0 ? 10 + 20 * sm(seg(u, 28, 46)) - 20 * sm(seg(u, 52, 58)) : 10 + 12 * sm(seg(u, 4, 20)) - 12 * sm(seg(u, 52, 58)); }
+export function day(u, k) { if (k === 2) return dayTrack(u); return k === 0 ? 10 + 20 * sm(seg(u, 28, 46)) + 11 * sm(seg(u, 52, 58)) : 10 + 12 * sm(seg(u, 4, 20)) + 19 * sm(seg(u, 52, 58)); }   // fin de scénario : le calendrier continue d'avancer jusqu'au même jour du mois suivant (jamais de retour en arrière)
 const cross = (k, d) => { for (let u = 0; u < 52; u += .02) if (day(u, k) >= d) return u; return Infinity; };
 export const TW = [0, 1].map((k) => cross(k, SCEN[k].warn)), TR = [0, 1].map((k) => cross(k, SCEN[k].due));
-export const STEP_T = [[.8, 3.5, 7, 28, TW[0], TR[0]], [.8, 4, TW[1], TR[1], 24, 50]];
+export const STEP_T = [[.8, 3.5, 7, 28, TW[0], TR[0]], [.8, 4, TW[1], TR[1], 24, 50], [0, 0, 0, 0, 0, 0]];
 export const stepAt = (u, k) => { let s = 0; STEP_T[k].forEach((t, i) => { if (u >= t - .01) s = i; }); return s; };
 
 /** témoin d'approche, relance (cloche, languette) */
 export function alerts(u, k) {
+  if (k === 2) return alertsC(u);
   const tw = TW[k], tr = TR[k], reset = sm(seg(u, 52, 55));
   return { warn: u >= tw && u < 55 ? 1 : 0, due: u >= tr && u < 55 ? 1 : 0, bell: u >= tr && u < tr + 1.6 ? Math.sin((u - tr) * 24) * Math.exp(-(u - tr) * 1.5) : 0, tab: sm(seg(u, tr + .5, tr + 1.8)) * (1 - reset) };
 }

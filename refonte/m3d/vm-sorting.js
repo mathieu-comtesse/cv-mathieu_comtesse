@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, TAU } from './machine-kit.js';
 import * as T from './vm-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 460;
 const plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' };
@@ -22,7 +23,7 @@ function clockTexture() { const c = cv(256, 256), x = c.getContext('2d'); x.fill
 function slipTexture(lines) { const c = cv(176, 112), x = c.getContext('2d'); x.fillStyle = '#f6efdc'; x.fillRect(0, 0, 176, 112); x.fillStyle = '#2a251d'; x.font = '700 13px ui-monospace,Menlo,Consolas,monospace'; lines.forEach((l, i) => x.fillText(l, 10, 24 + i * 22)); return tex(c); }
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   M.ghost = new THREE.MeshStandardMaterial({ color: '#9ec8ff', roughness: .3, metalness: .1, transparent: true, opacity: .28, depthWrite: false });
   M.green = new THREE.MeshStandardMaterial({ color: '#1f4d3a', roughness: .5, metalness: .15 });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
@@ -35,17 +36,20 @@ export function build() {
 
   /* ================= bâti : plinthe, mur du fond, plaque ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 0, 3, 440, 170, 6, 'cast', 1.4); for (const [x, y] of [[-208, -70], [208, -70], [-208, 70], [208, 70]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
-  S.box(0, -72, 68, 440, 6, 124, 'cast', 1.2);
+  S.box(0, 0, 3, 440, 170, 6, 'enamel', 1.4); for (const [x, y] of [[-208, -70], [208, -70], [-208, 70], [208, 70]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);   // table émaillée
+  S.box(0, 84.3, 3, 440, 1.4, 5, 'alu', .4); S.box(0, -84.3, 3, 440, 1.4, 5, 'alu', .4);
+  for (let i = 0; i < 12; i++) S.box(-165 + i * 30, 85.2, 3, 14, .5, 1.8, 'ink', .2);                 // ouïes de ventilation en façade
+  S.box(0, -72, 68, 440, 6, 124, 'enamelDk', 1.2);
+  for (const z of [30, 60, 90]) S.box(0, -75.4, z, 420, 1.2, 2.4, 'enamel', .5);                     // plis de rigidité du mur du fond
   S.box(0, 86.7, 3, 150, 1.2, 6, 'alu', .3);
   put(label('VRE  TRAITEMENT PAR VM', -22, 87.4, 3, 112, 5, 'y', plateLabel)); put(label('DEMO FICTIVE', 62, 87.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
   /* ================= convoyeur : table, bande, rails, rouleaux, trémie, file de demandes, imprimante de demandes ================= */
   Z('convoyeur'); S = stat('convoyeur');
   S.box(-70, 20, 18, 280, 44, 24, 'green', 2); S.box(-70, 20, 30.4, 284, 48, .8, 'steelDk', .3);
-  const beltM = new THREE.MeshStandardMaterial({ color: '#1d1e22', roughness: .9 }), belt = new THREE.Mesh(new THREE.BoxGeometry(260, 1, 22), beltM); belt.position.set(-60, 36.6, 20); belt.receiveShadow = true; belt.userData.noGlow = true; put(belt);
+  const beltTex = (() => { const c = cv(64, 64), x = c.getContext('2d'); x.fillStyle = '#1b1c20'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#2b2d34'; for (let i = 0; i < 4; i++) x.fillRect(i * 16 + 2, 0, 6, 64); x.fillStyle = '#33363f'; x.fillRect(0, 0, 64, 2); const t = tex(c); t.wrapS = THREE.RepeatWrapping; t.repeat.set(260 / 16, 1); return t; })(), beltM = new THREE.MeshStandardMaterial({ map: beltTex, roughness: .9 }), belt = new THREE.Mesh(new THREE.BoxGeometry(260, 1, 22), beltM); belt.position.set(-60, 36.6, 20); belt.receiveShadow = true; belt.userData.noGlow = true; put(belt);
   for (const y of [8, 32]) { S.box(-100, y, 37, 184, 2, 6, 'steel', .5); for (const x of [-185, -145, -105, -65, -25]) S.box(x, y, 32.5, 4, 3, 3.4, 'steelDk', .4); }
-  for (let i = 0; i < 12; i++) S.cylY(9.5, 30.5, -180 + i * 22, 35.2, 1.4, 'steel', 12);
+  const rollers = []; for (let i = 0; i < 12; i++) { const rl = mover('rouleau ' + (i + 1), [-180 + i * 22, 20, 35.2]); rl.cylY(9.5, 30.5, -180 + i * 22, 35.2, 1.4, 'steel', 12); rl.cylY(8.6, 9.5, -180 + i * 22, 35.2, .6, 'steelDk', 8); rl.cylY(30.5, 31.4, -180 + i * 22, 35.2, .6, 'steelDk', 8); put(rl.root); rollers.push(rl); }
   S.cylY(8, 32, -192, 34.4, 2.6, 'steelDk', 18); S.cylY(8, 32, 68, 34.4, 2.6, 'steelDk', 18);
   S.box(-194, 20, 41, 32, 28, 22, 'iron', 1); S.box(-194, 20, 53, 30, 26, 2, 'alu', .5); S.box(-178.2, 20, 38, .6, 24, 4, 'ink'); put(label('TREMIE', -194, 34.4, 46, 20, 3, 'y', plateLabel));
   /* imprimante de demandes et file physique à trois emplacements */
@@ -133,7 +137,7 @@ export function build() {
   const anchors = { all: new THREE.Object3D(), reader: new THREE.Object3D(), gantry: new THREE.Object3D(), cabinet: new THREE.Object3D() };
   at(anchors.all, 0, 0, 55); at(anchors.reader, -75, 20, 50); at(anchors.gantry, 40, 0, 90); at(anchors.cabinet, 100, -30, 50);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null, lastK = 0;
+  let forced = null, lastK = 0, bx = -190;
 
   function update(time) {
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
@@ -145,10 +149,12 @@ export function build() {
     /* pince */
     const gr = T.gripper(u, sc); car.position.x = gr.x; arm.root.position.z = gr.y - 22; rod.root.position.set(0, gr.z, gr.y); jaws.forEach((j, i) => { j.root.position.set((i ? 1 : -1) * (2.6 - 1.3 * gr.jaw), gr.z - 1, gr.y); });
     wheels.forEach((w) => { w.root.rotation.z = -gr.x / 2.6; });
+    /* bande et rouleaux : ils suivent l'enveloppe qu'ils portent (un tour de rouleau = 2π × 1,4) */
+    const evx = T.envelope(u, sc, gr); if (evx.vis && u < 14) bx = evx.x; beltM.map.offset.x = -bx / 16; rollers.forEach((rl) => { rl.root.rotation.z = -bx / 1.4; });
     /* enveloppe, demande */
     if (env.material !== envMats[k]) env.material = envMats[k];
     const ev = T.envelope(u, sc, gr); env.visible = !!ev.vis; if (ev.vis) at(env, ev.x, ev.y, ev.z); env.rotation.y = sc.out === 'ok' ? Math.PI / 2 * ease(seg(u, 19, 21.5)) : 0;
-    const rq = T.request(u); card.visible = rq.vis && !(ev.vis === false && rq.taken > .99);
+    const rq = T.request(u, sc); card.visible = rq.vis && !(ev.vis === false && rq.taken > .99);
     if (card.visible) { const rx = -150, ry = 66, rz = 40 - 26 * rq.drop; if (rq.taken < .01) at(card, rx, ry, rz); else { const tx = ev.vis ? ev.x : rx, ty = ev.vis ? ev.y : ry, tz = ev.vis ? ev.z + 1 : rz; at(card, rx + (tx - rx) * rq.taken, ry + (ty - ry) * rq.taken, rz + (tz - rz) * rq.taken); } }
     /* lecteur */
     const rd = T.reading(u, sc); scanBar.visible = rd.on; at(scanBar, -75 - 10 + 20 * rd.f, 20, 41.2); scanM.emissiveIntensity = rd.on ? 2.4 : 0; setLamp(lampR, rd.r004); setLamp(lampO, rd.ot); setLamp(lampD, rd.dup); setLamp(lampX, rd.bad);
@@ -164,7 +170,7 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'Le lecteur', anchor: 'reader' }, { label: 'Le portique', anchor: 'gantry' }, { label: 'Les casiers', anchor: 'cabinet' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 5) + 5) % 5; }, get scenario() { return forced; }
     },
     controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + T.STEPS[lastK][v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.STEP_T[lastK][v - 1] + .4 }
   };

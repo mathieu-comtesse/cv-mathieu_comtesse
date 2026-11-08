@@ -187,6 +187,7 @@ export function build() {
   const FX = T.FORGE.x, FR = 12, BASEH = (i) => 1 + .35 * T.cassettePattern(i + 100);
   const rail = (y) => { S.box(FX, y, 24, 70, 5, 3, 'steel', .5); };
   rail(T.FORGE.yCand); rail(T.FORGE.yServ); rail(T.FORGE.yMag);
+  S.add(label('CANDIDAT', FX, T.FORGE.yCand + 2.9, 24, 40, 2.6, 'y', { w: 256, h: 40 })); S.add(label('MODELE ACTIF', FX, T.FORGE.yServ + 2.9, 24, 40, 2.6, 'y', { w: 256, h: 40 })); S.add(label('VERSIONS PRECEDENTES', FX, T.FORGE.yMag + 2.9, 24, 52, 2.6, 'y', { w: 320, h: 40 }));
   S.box(FX, -48, 12, 120, 100, 12, 'iron', 1.2); S.box(FX, -48, 20, 108, 90, 4, 'graphite', .8);
   for (const x of [FX - 54, FX + 54]) { S.box(x, -46, 78, 6, 94, 4, 'iron', .6); for (const y of [-92, -4]) S.box(x, y, 62, 6, 6, 104, 'iron', .6); }
   S.box(FX, -92, 112, 114, 6, 4, 'iron', .6).box(FX, -4, 112, 114, 6, 4, 'iron', .6);
@@ -272,21 +273,52 @@ export function build() {
   at(anchors.hand, T.DESK_C[0] + 9, T.DESK_C[1] + 6, T.DESK_C[2] + 12); at(anchors.forge, FX, -40, 56); at(anchors.all, 35, 0, 40);
   for (const o of Object.values(anchors)) g.add(o);
   const go = (p, dx = 0, dy = 0, dz = 0) => at(p.root, p.o[0] + dx, p.o[1] + dy, p.o[2] + dz);
-  /* modes de lecture : le cycle détaillé de 130 s reste la référence ; la séquence courte (environ 50 s) rejoue la même chronologie en avance rapide entre les temps forts
-     et ralentit sur le cycle humain choisi (validation, correction ou rejet). Rien n'est recalculé : seul le temps lu par la chronologie change. */
+  /* Séquences courtes : de vraies séquences à la vitesse naturelle, montées par plans. Chaque plan rejoue un extrait de la chronologie à vitesse 1 ; entre deux plans, une coupe de 0,8 s
+     (les objets mobiles se résorbent puis réapparaissent). Une seule page et une seule fiche sont montrées ; l'issue (validation, correction, rejet) a sa propre conséquence mécanique.
+     Séquence 4 : la forge, du candidat à l'activation, à vitesse naturelle. Rien n'est recalculé : seul l'extrait de temps lu par la chronologie change. */
   anchors.register = new THREE.Object3D(); at(anchors.register, T.REG.x, 0, 58); g.add(anchors.register);
-  let shortJ = -1;
-  const segs = (j) => { const b = T.B[j], e = Math.min(b + 15, 80); return [[0, 14, 2.6], [14, 30, 2.6], [30, b, 3], [b, e, 1], [e, 80, 5], [80, 92, 3], [92, 112, 2.6], [112, 130, 2.6]].filter(([x, y]) => y > x); };
-  const SEGS = [0, 1, 2].map(segs), DUR = SEGS.map((sg) => sg.reduce((a, [x, y, v]) => a + (y - x) / v, 0));
-  const toS = (time, j) => { let t = ((time % DUR[j]) + DUR[j]) % DUR[j]; for (const [x, y, v] of SEGS[j]) { const d = (y - x) / v; if (t < d) return x + t * v; t -= d; } return 0; };
-  const toTime = (sv, j) => { let t = 0; for (const [x, y, v] of SEGS[j]) { if (sv < y) return t + Math.max(0, sv - x) / v; t += (y - x) / v; } return t; };
-  const sOf = (time) => (shortJ < 0 ? T.wrap(time) : toS(time, shortJ));
+  anchors.active = new THREE.Object3D(); at(anchors.active, FX, T.FORGE.yServ, 50); anchors.candidate = new THREE.Object3D(); at(anchors.candidate, FX, T.FORGE.yCand, 50); anchors.previous = new THREE.Object3D(); at(anchors.previous, FX, T.FORGE.yMag, 50);
+  for (const o of [anchors.active, anchors.candidate, anchors.previous]) g.add(o);
+  let shortJ = -1, curS = 0, curCut = 1;
+  const CUT = .8, PLANS = [
+    [[.8, 13.4], [tfOf(3) - .8, tfOf(3) + 3.3], [T.B[0] - 3.5, T.B[0] + 15.5], [80, 87.5]],
+    [[.8, 13.4], [tfOf(4) - .8, tfOf(4) + 3.3], [T.B[1] - 3.5, T.B[1] + 17.5], [86, 93.5]],
+    [[.8, 13.4], [tfOf(5) - .8, tfOf(5) + 3.3], [T.B[2] - 3.5, 80]],
+    [[92, 130]]
+  ];
+  function tfOf(i) { return T.tf(i); }
+  const PD = PLANS.map((pl) => pl.reduce((a, [x, y], i) => a + (y - x) + (i ? CUT : 0), 0));
+  /** temps de lecture -> { s : temps de la chronologie, cut : visibilité des objets mobiles (0 pendant la coupe) } */
+  const mapPlan = (time, j) => {
+    const pl = PLANS[j]; let t = ((time % PD[j]) + PD[j]) % PD[j];
+    for (let i = 0; i < pl.length; i++) {
+      const [x, y] = pl[i], len = y - x;
+      if (i > 0) { if (t < CUT) return { s: x, cut: 0 }; t -= CUT; }
+      if (t < len) return { s: x + t, cut: Math.min(ease(clamp(t / .4)), 1 - ease(clamp((t - (len - .4)) / .4))) };   // fondu aux coupes et au bouclage
+      t -= len;
+    }
+    return { s: pl[pl.length - 1][1], cut: 1 };
+  };
+  const toTime = (sv, j) => { let t = 0; const pl = PLANS[j]; for (let i = 0; i < pl.length; i++) { const [x, y] = pl[i]; if (sv < y) return t + Math.max(0, sv - x); t += (y - x) + CUT; } return t; };
+  const sOf = (time) => { if (shortJ < 0) { curCut = 1; return T.wrap(time); } const m = mapPlan(time, shortJ); curCut = m.cut; return m.s; };
+  const statusAt = (s, j) => {
+    const f = T.forge(s), jj = j >= 0 && j < 3 ? j : -1, k = T.OUTCOME;
+    if (j === 3 || (j < 0 && s >= 92)) return f.restore > .05 ? 'Restauration : retour à la version précédente, conservée dans le magasin' : s < 95 ? 'Forge : le candidat est préparé à côté du modèle actif' : s < 100.5 ? 'Forge : les exemples de la mémoire partagée sont chargés dans le candidat' : s < 107 ? 'Entraînement du candidat (valeurs fictives, aucune mesure réelle)' : s < 108.4 ? 'Le candidat est sauvegardé : il n\'est pas encore actif' : s < 111.8 ? 'Évaluation : le banc d\'essai compare le modèle actif et le candidat (deux cadrans, valeurs de démonstration)' : s < 114 ? 'Validation humaine du candidat avant toute activation' : s < 120 ? 'Activation : le candidat prend la place du modèle actif, l\'ancien passe en version précédente' : 'Restitution : le registre structuré sort de la presse';
+    const pick = (jj >= 0 ? jj : s < 50 ? 0 : s < 66 ? 1 : 2);
+    if (s < 14) return 'Lecture : mise en page, distillation et mini-modèle lisent la page';
+    if (s < T.TC[pick] - 3) return jj < 0 && s < 33 ? 'Une fiche de résultat est émise par l\'imprimerie inversée' : 'La fiche attend devant la chambre de contrôle';
+    if (s < T.TC[pick] + .2) return 'La main approche : l\'humain intervient';
+    if (s < T.TC[pick] + 3.4) return k[pick] === 'valid' ? 'Validation : appui franc, la fiche est confirmée' : k[pick] === 'fix' ? 'Correction : la tête corrige les champs annotés pendant que l\'index glisse' : 'Rejet : poussée vers l\'avant, la fiche est écartée';
+    if (k[pick] === 'reject') return 'Fiche écartée dans le bac de rejet : la mémoire partagée n\'est pas modifiée';
+    if (s < 80) return 'La fiche ' + (k[pick] === 'valid' ? 'validée' : 'corrigée') + ' sort vers la corbeille';
+    return k[pick] === 'valid' ? 'Mémoire partagée : la fiche validée est archivée comme référence (aucun réentraînement)' : 'Mémoire partagée : la fiche corrigée est archivée ; les poids du modèle ne changent pas, seul un futur réentraînement les utilisera';
+  };
   function update(time) {
     const s = sOf(time), u = run(s);
     { const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now; inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
       for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); } }
     rollerPool.forEach((r, i) => { r.rotation.z = -TAU * (i % 2 ? 6 : 8) * u; });          /* un nombre entier de tours par boucle */
-    for (let i = 0; i < T.NP; i++) place(pages[i], T.pageTracks[i](s));
+    for (let i = 0; i < T.NP; i++) { place(pages[i], T.pageTracks[i](s)); if (shortJ >= 0 && i !== 0) pages[i].visible = false; }
     /* organes de lecture : chacun s'active quand une page est sous lui */
     const aL = T.actAny('layout', s), aD = T.actAny('distil', s), aM = T.actAny('mini', s);
     drumL.root.rotation.z = -TAU * 2 * u - aL * 1.6; drumD.root.rotation.z = TAU * 3 * u + aD * 1.3;
@@ -296,7 +328,7 @@ export function build() {
     setLamp(layLamp, aL); setLamp(disLamp, aD); setLamp(miniLamp, aM);
     /* fiches émises par l'imprimerie, puis triées ou conduites à la chambre */
     setLamp(pressLamp, T.fichePoses.reduce((a, _, i) => Math.max(a, ease(seg(s, T.tf(i) - 1.1, T.tf(i) - .6)) * (1 - ease(seg(s, T.tf(i) + .6, T.tf(i) + 1.1)))), 0));
-    for (let i = 0; i < 6; i++) { place(fiches[i], T.fichePoses[i](s)); if (i >= 3) ficheMats[i].map = s >= T.TC[i - 3] ? ficheTex[T.OUTCOME[i - 3]] : ficheTex.plain[i]; }
+    for (let i = 0; i < 6; i++) { place(fiches[i], T.fichePoses[i](s)); if ((shortJ >= 0 && shortJ < 3 && i !== 3 + shortJ) || (shortJ === 3 && i < 3)) fiches[i].visible = false; if (i >= 3) ficheMats[i].map = s >= T.TC[i - 3] ? ficheTex[T.OUTCOME[i - 3]] : ficheTex.plain[i]; }
     /* trappes des bacs : ouvertes à l'arrivée de la fiche, puis refermées */
     for (let k = 0; k < 5; k++) {
       let v = 0; for (let i = 0; i < 3; i++) if (T.FDEST[i] === k) { const w = T.trapdoorWindow(i); v = Math.max(v, ease(seg(s, w[0], w[0] + .5)) * (1 - ease(seg(s, w[1] - .5, w[1])))); }
@@ -311,9 +343,9 @@ export function build() {
     go(head, 0, T.headSweep(s) * c.head, (1 - c.head) * 26);
     lightM.emissiveIntensity = .05 + 1.5 * c.deskLight; setLamp(deskLamp, c.deskLight);
     /* la main : approche lente, contact, geste propre à l'issue */
-    let hp = null; for (let j = 0; j < 3 && !hp; j++) hp = handPose(s, T.TC[j], T.OUTCOME[j], T.DESK_C);
+    let hp = null; for (let j = 0; j < 3 && !hp; j++) if (shortJ < 0 || shortJ === j) hp = handPose(s, T.TC[j], T.OUTCOME[j], T.DESK_C);
     hand.group.visible = !!hp;
-    if (hp) { hand.setTip(...hp.tip); hand.setAlpha(hp.alpha); hand.flash(hp.press, hp.kind); } else hand.spark.visible = false;
+    if (hp) { hand.setTip(...hp.tip); hand.setAlpha(hp.alpha * curCut); hand.flash(hp.press, hp.kind); } else hand.spark.visible = false;
     /* mémoire partagée */
     const r = T.register(s); reg.root.rotation.z = -r.ang; regLamps.forEach((l, i) => setLamp(l, r.count > i ? 1 : 0));
     /* forge */
@@ -329,6 +361,8 @@ export function build() {
     go(lock, 0, f.lockOpen * 8, 0);
     const pr = T.press(s); go(platen, 0, 0, -21.4 * pr.platen);
     for (let n = 0; n < 2; n++) place(outSheets[n], T.outTrack[n](s));
+    { const cs = Math.max(.001, curCut); pages.forEach((q) => q.scale.setScalar(cs)); fiches.forEach((q) => q.scale.setScalar(cs)); outSheets.forEach((q) => q.scale.setScalar(cs)); if (curCut < .5) hand.spark.visible = false; }
+    curS = s;
     if (inspect.v > .02) { pages.forEach((q) => { q.visible = false; }); fiches.forEach((q) => { q.visible = false; }); outSheets.forEach((q) => { q.visible = false; }); hand.group.visible = false; hand.spark.visible = false; }
   }
   update(0);
@@ -336,9 +370,12 @@ export function build() {
     group: g, update, count,
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
-      views: [{ label: 'La main', anchor: 'hand' }, { label: 'La forge', anchor: 'forge' }, { label: 'Le registre', anchor: 'register' }],
-      scenarios: [{ id: 'valid', short: 'Court : validation', label: 'Séquence courte, validation' }, { id: 'fix', short: 'Court : correction', label: 'Séquence courte, correction' }, { id: 'reject', short: 'Court : rejet', label: 'Séquence courte, rejet' }],
-      setScenario(i) { shortJ = i == null ? -1 : ((i % 3) + 3) % 3; }, get scenario() { return shortJ < 0 ? null : shortJ; }
+      views: [{ label: 'La main', anchor: 'hand' }, { label: 'Le registre', anchor: 'register' }, { label: 'La forge', anchor: 'forge' }, { label: 'Modèle actif', anchor: 'active' }, { label: 'Candidat', anchor: 'candidate' }, { label: 'Versions précédentes', anchor: 'previous' }],
+      scenarios: [{ id: 'valid', short: 'Validation', label: 'Validation : lecture, fiche, appui franc de l\'index, archivage dans la mémoire partagée' }, { id: 'fix', short: 'Correction', label: 'Correction : la tête corrige les champs, la fiche corrigée rejoint la mémoire partagée (pas de réentraînement)' }, { id: 'reject', short: 'Rejet', label: 'Rejet : la fiche est écartée, la mémoire n\'est pas modifiée' }, { id: 'forge', short: 'Forge', label: 'Forge : du candidat à l\'activation, la version précédente est conservée (valeurs fictives)' }],
+      setScenario(i) { shortJ = i == null ? -1 : ((i % 4) + 4) % 4; }, get scenario() { return shortJ < 0 ? null : shortJ; },
+      /* ce que fait la machine à cet instant (démonstration : aucune mesure, aucune validation réelle) */
+      params: { visible: () => true, groups: [] },
+      status() { return statusAt(curS, shortJ); }
     },
     controls: { label: 'Étape', min: 1, max: 9, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => T.stationAt(sOf(t)) + 1, seek: (v) => (shortJ < 0 ? T.TS[v - 1] + 1.5 : toTime(T.TS[v - 1] + 1.5, shortJ)) }
   };

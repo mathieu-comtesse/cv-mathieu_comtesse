@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, springGeoZ, prismXZ, ringGeo, gearXGeo, TAU } from './machine-kit.js';
 import * as T from './studio-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 520;
 const FCOL = ['#c8372d', '#2f6fb3', '#d79a2b'], FZ = 33.8, FH = 1.2;
@@ -25,11 +26,11 @@ function sheetTexture() {
   x.fillStyle = '#7a2b24'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.textBaseline = 'alphabetic'; x.fillText('DEMO FICTIVE', 14, c.height - 14);
   return tex(c, 8);
 }
-function drawCard(x, S, prog, fade) {
+function drawCard(x, S, prog, fade, sc = null) {
   x.fillStyle = '#c9b389'; x.fillRect(0, 0, T.SHEET.w * S, T.SHEET.d * S); x.strokeStyle = '#8a7650'; x.lineWidth = 3; x.strokeRect(2, 2, T.SHEET.w * S - 4, T.SHEET.d * S - 4);
   x.fillStyle = '#6c5b3a'; x.font = '700 16px ui-monospace,Menlo,Consolas,monospace'; x.fillText('GABARIT', 12, 24);
-  T.FRAMES.forEach((f, j) => {
-    const cx = (T.SHEET.w / 2 + f.dx) * S, cy = (T.SHEET.d / 2 + f.dy) * S, w = (f.w - 4) * S, d = (f.d - 4) * S, p = prog[j] * fade;
+  T.FRAMES.forEach((f0, j) => {
+    const f = { ...f0, ...T.pos(j, sc) }, cx = (T.SHEET.w / 2 + f.dx) * S, cy = (T.SHEET.d / 2 + f.dy) * S, w = (f.w - 4) * S, d = (f.d - 4) * S, p = prog[j] * fade;
     x.strokeStyle = '#8a7650'; x.setLineDash([6, 5]); x.lineWidth = 1.5; x.strokeRect(cx - w / 2, cy - d / 2, w, d); x.setLineDash([]);
     if (p > 0) { x.fillStyle = '#f4f8ff'; x.fillRect(cx - w / 2, cy - d / 2, w * p, d); x.strokeStyle = '#3d3320'; x.lineWidth = 2; x.strokeRect(cx - w / 2, cy - d / 2, w * p, d); }
   });
@@ -52,7 +53,7 @@ function slipTexture() {
 const plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' };
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   M.frost = new THREE.MeshStandardMaterial({ color: '#dfe7f2', roughness: .6, metalness: 0, emissive: '#ffffff', emissiveIntensity: 0 });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
@@ -64,14 +65,21 @@ export function build() {
 
   /* ================= bâti : plinthe, établi, plaque ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 0, 3, 520, 172, 6, 'cast', 1.4);
-  for (const [x, y] of [[-244, -70], [244, -70], [-244, 70], [244, 70]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
-  S.box(-85, 0, 18, 330, 150, 24, 'cast', 2);                                                  // établi (z 6 à 30) sous la table et la presse
+  /* soubassement noir en retrait, table émaillée sur patins réglables, chants et façade en aluminium brossé, ouïes, poignées */
+  S.box(0, 0, 2.2, 496, 156, 4.4, 'castDk', 1);
+  S.box(0, 0, 10, 520, 172, 11.2, 'enamel', 2.4);
+  S.box(0, 84.3, 10, 520, 3.4, 9, 'alu', .9); S.box(0, -84.3, 10, 520, 3.4, 9, 'alu', .9);
+  for (const x of [-260.8, 260.8]) S.box(x, 0, 10, 2.6, 172, 9, 'alu', .8);
+  for (const sx of [-1, 1]) for (let i = 0; i < 7; i++) S.box(sx * (100 + i * 20), 86.1, 10, 12, .8, 3.2, 'ink', .3);
+  for (const x of [-246, 246]) { S.cylX(x - 7, x + 7, 86.4, 10, 1.1, 'steel', 12); S.box(x - 7, 85.2, 10, 2, 2.4, 5, 'steelDk', .4); S.box(x + 7, 85.2, 10, 2, 2.4, 5, 'steelDk', .4); }
+  for (const [x, y] of [[-244, -70], [244, -70], [-244, 70], [244, 70], [0, -70], [0, 70]]) { S.cylZ(x, y, -4.4, 7, 2.2, 'steelDk', 18); S.cylZ(x, y, -2.2, 6.2, 2.2, 'rubber', 18); S.cylZ(x, y, 0, 3, 3, 'steel', 14); }
+  S.box(-85, 0, 22, 330, 150, 16, 'enamelDk', 2);                                              // établi (z 14 à 30) sous la table et la presse
+  for (let i = 0; i < 10; i++) S.bolts([[-245 + i * 55, 86.3, 13]], 'y', .9, 'steel');
   S.box(-85, 0, 29.7, 334, 154, 1.2, 'steelDk', .4);                                           // tôle de recouvrement
   S.bolts([[-240, -60, 30.2], [-240, 60, 30.2], [70, -60, 30.2], [70, 60, 30.2], [-85, -72, 30.2], [-85, 72, 30.2]], 'z', 1.3, 'steelDk');
-  S.box(0, 86.7, 3, 150, 1.2, 6, 'alu', .3);
-  put(label('STUDIO D\'EXTRACTEURS PDF', -22, 87.4, 3, 112, 5, 'y', plateLabel));
-  put(label('DEMO FICTIVE', 64, 87.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
+  S.box(0, 86.8, 10, 150, 1.2, 7, 'alu', .3);
+  put(label('STUDIO PDF', -22, 87.5, 10, 112, 5, 'y', plateLabel));
+  put(label('DEMO FICTIVE', 64, 87.5, 10, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
   /* ================= table lumineuse : cadre, deux dalles dépolies, magasin d'exemples, étagère des cadres ================= */
   Z('table'); S = stat('table');
@@ -145,7 +153,7 @@ export function build() {
 
   /* ================= lecteur : caisse, module de lecture, voûte, cadrans, voyants, rack de livraison, goulotte de rebut ================= */
   Z('lecteur'); S = stat('lecteur');
-  S.box(180, 0, 17, 116, 90, 22, 'cast', 1.6); S.box(180, 0, 28.3, 118, 92, 1, 'steelDk', .4);
+  S.box(180, 0, 22, 116, 90, 12, 'enamelDk', 1.6); S.box(180, 0, 28.3, 118, 92, 1, 'steelDk', .4);
   S.box(136, -23.5, 36, 28, 43, 16, 'iron', 1); S.box(150.2, -23.5, 31, .6, 36, 3, 'ink');       // module de lecture, fente noire
   S.box(175, -44, 34, 34, 2, 12, 'iron', .6); S.box(175, -3, 34, 34, 2, 12, 'iron', .6); S.box(175, -23.5, 41, 34, 43, 10, 'alu', 1);   // voûte
   S.cylY(-36, -10, 175, 36, 3, 'glass', 18); S.box(175, -23.5, 47, 16, 22, 3, 'brass', .5);
@@ -197,8 +205,8 @@ export function build() {
     M.frost.emissiveIntensity = .12 + .75 * T.lampTable(u);
     const sh = T.sheet(u); sheetMesh.visible = sh.vis; at(sheetMesh, sh.x, T.SHEET.y, sh.z); sheetMat.opacity = sh.alpha;
     const cd = T.card(u); at(cardMesh, cd.x, 0, cd.z); cardMat.opacity = cd.alpha;
-    const prog = [0, 1, 2].map((j) => T.cutProgress(j, u)), fd = T.cutFade(u), key = prog.map((p) => Math.round(p * 24)).join('|') + '|' + Math.round(fd * 12);
-    if (key !== cardKey) { cardKey = key; drawCard(cardCtx, CS, prog, fd); cardTex.needsUpdate = true; }
+    const prog = [0, 1, 2].map((j) => T.cutProgress(j, u)), fd = T.cutFade(u), key = prog.map((p) => Math.round(p * 24)).join('|') + '|' + Math.round(fd * 12) + (sc.custom ? '|' + T.LIVE.map((l) => l.dx.toFixed(1) + ',' + l.dy.toFixed(1)).join(';') : '');
+    if (key !== cardKey) { cardKey = key; drawCard(cardCtx, CS, prog, fd, sc); cardTex.needsUpdate = true; }
     /* portique : poutre (x), tête (y), pince et fraise (z), molette */
     const h = T.head(u, sc); beamG.position.x = h.x; headG.position.z = h.y; molette.root.rotation.z = h.mol; gripper.root.position.y = 44 - 9.6 * h.grip; cutter.root.position.y = 44 - 9.4 * h.cut; cutter.root.rotation.y = u * 40 * (h.cut > .1 ? 1 : 0);
     frames.forEach((f, i) => { const p = T.frame(i, u, sc); at(f, p.x, p.y, p.z - FH / 2); });
@@ -220,7 +228,25 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'La table', anchor: 'table' }, { label: 'La presse', anchor: 'press' }, { label: 'Le lecteur', anchor: 'reader' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 2) + 2) % 2; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; }, get scenario() { return forced; },
+      /* scénario C : les trois cadres de détection sont à déplacer (souris, doigt, flèches) ; la cartouche en dépend */
+      frames: { names: T.FRAMES.map((f) => f.name), get: (i) => ({ ...T.LIVE[i] }), move: (i, dx, dy) => T.setFrame(i, dx, dy), nudge: (i, ddx, ddy) => T.setFrame(i, T.LIVE[i].dx + ddx, T.LIVE[i].dy + ddy), reset: () => T.resetFrames(), coverage: T.coverage, editing: () => forced === 2 },
+      status() { const c = T.coverage(); return T.FRAMES.map((f, i) => f.name + ' ' + Math.round(c.per[i] * 100) + ' %').join(' · ') + (c.ok ? ' : conforme' : ' : écart'); },
+      /* glisser un cadre : le rayon est en repère monde ; le plan des cadres est horizontal (z = 34,6 en repère de figure) */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3(), PLANE = FZ + FH / 2 + .6;
+        const onPlane = (ray) => { inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); if (Math.abs(r.direction.y) < 1e-6) return null; const t = (PLANE - r.origin.y) / r.direction.y; if (t < 0) return null; r.at(t, hit); return { x: hit.x, y: hit.z }; };
+        let grab = null;
+        return {
+          pick(ray) {
+            if (forced !== 2 || inspect.v > .05) return null; const pt = onPlane(ray); if (!pt) return null; let best = -1, bd = 1e9;
+            T.FRAMES.forEach((f, i) => { const c = [T.SHEET.x + T.LIVE[i].dx, T.SHEET.y + T.LIVE[i].dy], ax = Math.abs(pt.x - c[0]) - f.w / 2, ay = Math.abs(pt.y - c[1]) - f.d / 2, d = Math.max(ax, ay); if (d < 2.5 && d < bd) { bd = d; best = i; } });
+            if (best < 0) return null; grab = { i: best, ox: pt.x - (T.SHEET.x + T.LIVE[best].dx), oy: pt.y - (T.SHEET.y + T.LIVE[best].dy) }; return { id: best, name: T.FRAMES[best].name };
+          },
+          move(ray) { if (!grab) return; const pt = onPlane(ray); if (pt) T.setFrame(grab.i, pt.x - T.SHEET.x - grab.ox, pt.y - T.SHEET.y - grab.oy); },
+          end() { grab = null; }
+        };
+      })()
     },
     controls: { label: 'Étape', min: 1, max: 7, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => T.stepAt(T.locate(t, forced).u) + 1, seek: (v) => T.STEP_T[v - 1] + .4 }
   };

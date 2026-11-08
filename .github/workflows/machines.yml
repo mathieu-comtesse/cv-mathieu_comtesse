@@ -1,0 +1,35 @@
+name: Machines 3D
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "refonte/m3d/**"
+      - "refonte/mesh-gpu.js"
+      - "refonte/post.js"
+      - "refonte/parcours.js"
+      - "refonte/main.js"
+      - "tools/test-machines.mjs"
+      - "tools/machines-harness.html"
+      - ".github/workflows/machines.yml"
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "refonte/m3d/**"
+      - "refonte/parcours.js"
+      - "tools/test-machines.mjs"
+  workflow_dispatch:
+
+jobs:
+  machines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Playwright (Chromium)
+        run: npm install --no-save playwright && npx playwright install --with-deps chromium
+      - name: Registre unique, construction, temps, scénarios, commandes, inspection
+        run: node tools/test-machines.mjs

@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import * as T from './q18-timeline.js';
+import { industrial, studioEnv } from './pro-materials.js';
 
 export const WIDTH = 470;
 const TAU = Math.PI * 2, TILT = .3;                                     // pente du clavier (tan)
@@ -91,12 +92,7 @@ const wedge = (poly, x0, x1) => { const s = new THREE.Shape(poly.map(([y, z]) =>
 
 export function build() {
   const g = new THREE.Group(), M = makeMats();
-  M.cast = new THREE.MeshStandardMaterial({ color: '#2c2e35', roughness: .55, metalness: .14 });
-  M.ivory = new THREE.MeshStandardMaterial({ color: '#efe6cf', roughness: .55, metalness: 0 });
-  M.bakelite = new THREE.MeshStandardMaterial({ color: '#2a211c', roughness: .4, metalness: .04 });
-  M.ink = new THREE.MeshStandardMaterial({ color: '#0f1013', roughness: .95, metalness: 0 });
-  M.red = new THREE.MeshStandardMaterial({ color: '#c8372d', roughness: .5, metalness: .05 });
-  M.alu = new THREE.MeshStandardMaterial({ color: '#c9ced6', roughness: .36, metalness: .3 });
+  industrial(M); M.ink = new THREE.MeshStandardMaterial({ color: '#0f1013', roughness: .95, metalness: 0 });
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
   const Z = (n) => { cz = n; };
@@ -107,12 +103,23 @@ export function build() {
 
   /* ================= bâti : plinthe, caisse en fonte, dosseret, rails, crémaillère, clavier ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 0, 3, 500, 158, 6, 'cast', 1.4);                                                   // plinthe
-  for (const [x, y] of [[-228, -64], [228, -64], [-228, 64], [228, 64]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);   // pieds
-  S.box(0, -14, 19, 470, 90, 26, 'cast', 2);                                                  // caisse en fonte
-  S.box(0, -56, 36, 470, 6, 60, 'cast', 1.2);                                                 // dosseret
-  for (const x of [-244, 244]) S.box(x, -10, 38, 8, 50, 70, 'cast', 1.2);                      // montants d'extrémité
-  for (const [x, y] of [[-160, 56], [160, 56], [-244, -30], [244, -30]]) S.bolts([[x, y, 6.4]], 'z', 1.5, 'steelDk');
+  /* soubassement noir en retrait (joint d'ombre), table émaillée, façade en aluminium brossé avec ouïes, pieds à patin */
+  S.box(0, 0, 2.2, 476, 144, 4.4, 'castDk', 1);
+  S.box(0, 0, 10, 500, 158, 11.2, 'enamel', 2.4);                                              // table : le plateau sur lequel tout est posé
+  S.box(0, 77.4, 10, 500, 3.4, 9, 'alu', .9); S.box(0, -77.4, 10, 500, 3.4, 9, 'alu', .9);    // chants avant et arrière
+  for (const x of [-250.8, 250.8]) S.box(x, 0, 10, 2.6, 158, 9, 'alu', .8);                   // flancs
+  for (const sx of [-1, 1]) for (let i = 0; i < 7; i++) S.box(sx * (100 + i * 20), 79.3, 10, 12, .8, 3.2, 'ink', .3);   // ouïes de ventilation en façade
+  for (const x of [-236, 236]) { S.cylX(x - 7, x + 7, 79.6, 10, 1.1, 'steel', 12); S.box(x - 7, 78.4, 10, 2, 2.4, 5, 'steelDk', .4); S.box(x + 7, 78.4, 10, 2, 2.4, 5, 'steelDk', .4); }   // poignées de manutention
+  for (const [x, y] of [[-224, -62], [224, -62], [-224, 62], [224, 62], [0, -62], [0, 62]]) { S.cylZ(x, y, -4.4, 7, 2.2, 'steelDk', 18); S.cylZ(x, y, -2.2, 6.2, 2.2, 'rubber', 18); S.cylZ(x, y, 0, 3, 3, 'steel', 14); }   // pieds : patin, tige, écrou de réglage
+  S.box(0, -14, 24, 470, 90, 22, 'enamelDk', 2);                                              // caisse des rails
+  S.box(0, -56, 41, 470, 6, 60, 'enamelDk', 1.4);                                             // dosseret
+  for (const x of [-244, 244]) S.box(x, -10, 43, 8, 50, 70, 'enamelDk', 1.4);                  // montants d'extrémité
+  for (const x of [-236, 236]) S.bolts([[x, -10, 78.4]], 'z', 1.6, 'steel');
+  for (let i = 0; i < 10; i++) S.bolts([[-225 + i * 50, 76.4, 15.7]], 'y', .9, 'steel');       // vis de la façade
+  for (const [x, y] of [[-160, 56], [160, 56], [-244, -30], [244, -30]]) S.bolts([[x, y, 15.8]], 'z', 1.5, 'steelDk');
+  for (const x of [-120, 120]) { S.box(x, -60.2, 40, 84, 1.6, 26, 'enamel', .6); S.bolts([[x - 38, -61.2, 30], [x + 38, -61.2, 30], [x - 38, -61.2, 50], [x + 38, -61.2, 50]], 'y', 1, 'steel'); S.cylX(x - 10, x + 10, -62.6, 40, 1, 'steel', 12); S.box(x - 9, -61.6, 40, 1.6, 2, 2.4, 'steelDk', .3); S.box(x + 9, -61.6, 40, 1.6, 2, 2.4, 'steelDk', .3); }   // trappes d'accès arrière : tôle, vis, poignée
+  for (const z of [26, 56]) S.box(0, -59.4, z, 440, 1.4, 2.4, 'enamel', .5);                    // plis de rigidité du dosseret
+  S.box(0, -56, 71.4, 472, 7, 1.6, 'alu', .5);                                                  // liseré de tête du dosseret
   /* rails : deux barres d'acier portées par des chandelles, butées de fin de course en bronze */
   for (const y of [-10, 2]) { S.cylX(-240, 240, y, 40, 2.4, 'steel', 14); for (const x of [-200, -100, 0, 100, 200]) S.box(x, y, 36, 6, 6, 8, 'steelDk', .5); }
   for (const x of [-237, 237]) for (const y of [-10, 2]) S.box(x, y, 44, 4, 5, 8, 'bronze', .5);
@@ -120,13 +127,17 @@ export function build() {
   S.box(0, -24, 34, 484, 4, 4, 'steelDk', .4);
   for (let i = 0; i < 116; i++) S.box(-236 + i * 4.08, -24, 37, 2.1, 4, 2.6, 'steel');
   S.bolts([-220, -110, 0, 110, 220].map((x) => [x, -24, 32.2]), 'z', 1, 'steelDk');
-  S.box(0, 79.7, 3, 150, 1.2, 6, 'alu', .3);                                                  // plaque constructeur
-  put(label('REPORTEUR Q18', -18, 80.4, 3, 100, 5, 'y', plateLabel));
-  put(label('DEMO FICTIVE', 60, 80.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
+  S.box(0, 79.7, 10, 150, 1.2, 7, 'alu', .3);                                                  // plaque constructeur
+  put(label('REPORTEUR Q18', -18, 80.4, 10, 100, 5, 'y', plateLabel));
+  put(label('DEMO FICTIVE', 60, 80.4, 10, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
   /* ================= clavier : touches ivoire (dix chiffres actionnés, vingt touches de lettres fixes), tambours de code ================= */
   Z('clavier'); S = stat('socle du clavier');                                                  // caisse inclinée et platine, solidaires des touches
   S.geo('cast', new THREE.BoxGeometry(206, 5, 64).rotateX(A), 0, 38, 34);
+  { const sh = new THREE.Shape([new THREE.Vector2(6, 15.4), new THREE.Vector2(72, 15.4), new THREE.Vector2(72, deckZ(72) - 3.2), new THREE.Vector2(6, deckZ(6) - 3.2)]);
+    const wg = new THREE.ExtrudeGeometry(sh, { depth: 200, bevelEnabled: false }); wg.rotateY(-Math.PI / 2).translate(100, 0, 0); S.geo('enamelDk', wg, 0, 0, 0); }   // console inclinée qui porte le clavier
+  S.box(0, 72.6, 20, 204, 1.4, 4, 'alu', .4);                                                   // liseré de façade de la console
+  S.box(-72, 21, 45.5, 64, 12, 7.5, 'castDk', .6);                                              // socle de la fenêtre des tambours
   S.geo('alu', new THREE.BoxGeometry(206, 1.2, 4).rotateX(A), 0, 69.4, 24.4);
   S.bolts([[-96, 14, deckZ(14) + 2.8], [96, 14, deckZ(14) + 2.8], [-96, 62, deckZ(62) + 2.8], [96, 62, deckZ(62) + 2.8]], 'z', 1.3, 'steelDk');
   const atlasMat = new THREE.MeshStandardMaterial({ map: keyAtlas(), roughness: .5 }), keyMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .5, metalness: .05 });
@@ -152,6 +163,7 @@ export function build() {
 
   /* ================= lecteur : magasin de rapports, voûte de lecture, boîte de sortie ================= */
   Z('lecteur'); S = stat('lecteur');
+  S.box(-212, 24, 24, 78, 40, 17.2, 'enamelDk', 1.4); S.box(-186, 64, 23.5, 46, 30, 16.4, 'enamelDk', 1.4);      // socles du magasin, de la voûte et de la boîte de sortie
   S.box(-232, 24, 38, 40, 34, 12, 'iron', 1); S.box(-232, 24, 45.5, 36, 30, 2, 'cast');        // magasin
   for (let i = 0; i < 4; i++) S.box(-232, 24, 46.8 + i * .4, 32, 24, .3, 'paperEdge');         // pile de rapports en attente
   for (const y of [6, 42]) S.box(-190, y, 46, 26, 3, 28, 'iron', .6);                           // montants de la voûte
@@ -168,6 +180,7 @@ export function build() {
 
   /* ================= bande Power BI : boîtier, roue à cliquet, cliquet, goulotte, bande perforée, bac ================= */
   Z('pbi'); S = stat('pbi');
+  S.box(205, 50, 25.3, 76, 28, 19.4, 'enamelDk', 1.4);                                           // socle du boîtier et de la goulotte
   S.box(165, 50, 40, 34, 24, 16, 'iron', 1); S.box(165, 50, 48.5, 30, 20, 2, 'cast');
   S.cylY(61.8, 64.4, 163, 44, 1.8, 'steel', 14); S.gearY(163, 44, 62, 64, 6.5, 14, 'steelDk', 1.4); S.bolts([[149, 62.2, 34], [181, 62.2, 34], [149, 62.2, 46], [181, 62.2, 46]], 'y', .8, 'steelDk');
   const pawl = mover('cliquet', [170, 63.5, 44]); pawl.box(170, 63.5, 44, 7, 1.4, 1.6, 'brass', .3); pawl.cylY(62.5, 64.8, 172, 44, 1.1, 'steelDk', 10); pawl.root.rotation.z = .1; put(pawl.root);
@@ -199,7 +212,9 @@ export function build() {
 
   /* ================= portique : tour, flèche, traverses, rouleaux de contre-frappe, vis de tête, postes ================= */
   Z('portique'); S = stat('portique');
-  S.box(0, -52, 76, 60, 8, 140, 'cast', 1.4); S.box(0, -13, 142, 14, 78, 10, 'cast', 1);        // tour et flèche
+  S.box(0, -52, 76, 60, 8, 140, 'enamelDk', 1.4); S.box(0, -13, 142, 14, 78, 10, 'enamelDk', 1);   // tour et flèche
+  for (const x of [-22, 0, 22]) S.box(x, -56.6, 76, 4, 2, 128, 'enamel', .5);                    // nervures de la tour
+  S.box(0, -56.8, 112, 40, 1, 18, 'alu', .3); put(label('PORTIQUE', 0, -57.4, 112, 34, 5, 'y', plateLabel));
   S.box(0, 22, 142, 96, 10, 10, 'alu', .8); S.box(0, -12, 142, 96, 10, 10, 'alu', .8);          // traverses haute avant et arrière
   S.box(0, 22, 61, 96, 10, 6, 'alu', .8); S.box(0, -12, 75, 96, 6, 4, 'steel', .6);             // traverses basses
   for (const x of [-47, 47]) S.box(x, -12, 109, 3, 3, 66, 'steelDk', .4);                       // montants du cadre arrière

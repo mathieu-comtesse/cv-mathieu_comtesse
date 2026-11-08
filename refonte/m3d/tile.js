@@ -5,16 +5,11 @@ import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 import { createBlueprintPlane } from '../blueprint-hero.js';
 
-const MODULES = {
-  moteur: () => import('./moteur.js'), cerfa: () => import('./cerfa.js'), vm: () => import('./vm.js'), vre: () => import('./vre-wattselse.js'),
-  gares: () => import('./gares.js'), finance: () => import('./finance.js'), pp: () => import('./pp.js'), powerbi: () => import('./powerbi-wattselse.js'),
-  suivi: () => import('./suivi.js'), studio: () => import('./studio-wattselse.js'), 'vrestudio-musicbox': () => import('./nisaru.js')
-};
+import { loadMachine } from './registry.js';
 const DEG = Math.PI / 180;
 
 export async function mountTile(name, canvas) {
-  const load = MODULES[name]; if (!load) throw new Error('machine inconnue : ' + name);
-  const { build, WIDTH = 236 } = await load();
+  const { build, WIDTH = 236 } = await loadMachine(name);
   setDA(name);
   const { renderer, scene } = makeStage(canvas);
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2));

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, TAU } from './machine-kit.js';
 import * as T from './pp-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 500;
 const CX = -72, FZ = 150, plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' };
@@ -19,7 +20,7 @@ function folderTexture() { const c = cv(144, 96), x = c.getContext('2d'); x.fill
 function slipTexture() { const c = cv(176, 72), x = c.getContext('2d'); x.fillStyle = '#f6efdc'; x.fillRect(0, 0, 176, 72); x.fillStyle = '#c8372d'; x.fillRect(0, 0, 176, 14); x.fillStyle = '#2a251d'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.fillText('RELANCE ECHEANCE', 8, 38); x.font = '700 10px ui-monospace,Menlo,Consolas,monospace'; x.fillText('DEMO FICTIVE', 8, 62); return tex(c); }
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
   const Z = (n) => { cz = n; };
@@ -30,7 +31,9 @@ export function build() {
 
   /* ================= bâti ================= */
   Z('bati'); let S = stat('bati');
-  S.box(-10, 8, 3, 390, 150, 6, 'cast', 1.4); for (const [x, y] of [[-184, -58], [164, -58], [-184, 70], [164, 70]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
+  S.box(-10, 8, 3, 390, 150, 6, 'enamel', 1.4);                                                  // table émaillée
+  S.box(-10, 82.3, 3, 390, 1.4, 5, 'alu', .4); S.box(-10, -66.3, 3, 390, 1.4, 5, 'alu', .4);
+  for (let i = 0; i < 9; i++) S.box(-170 + i * 36, 83.2, 3, 14, .5, 1.8, 'ink', .2);            // ouïes de ventilation en façade for (const [x, y] of [[-184, -58], [164, -58], [-184, 70], [164, 70]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
   S.box(-10, 83.7, 3, 150, 1.2, 6, 'alu', .3);
   put(label('PLANS DE PREVENTION', -34, 84.4, 3, 100, 5, 'y', plateLabel)); put(label('DEMO FICTIVE', 50, 84.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
@@ -116,29 +119,33 @@ export function build() {
   const anchors = { all: new THREE.Object3D(), clock: new THREE.Object3D(), cabinet: new THREE.Object3D(), notif: new THREE.Object3D() };
   at(anchors.all, -10, 10, 80); at(anchors.clock, CX, 10, 150); at(anchors.cabinet, 60, 10, 65); at(anchors.notif, 131, 20, 40);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null, lastK = 0;
+  let forced = null, lastK = 0, lastTime = 0;
 
+  const curU = () => Math.max(0, lastTime - T.CUSTOM.base);
   function update(time) {
+    lastTime = time;
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
     inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
     for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); }
     const { k, u, sc } = T.locate(time, forced); lastK = k;
     /* calendrier : toutes les roues suivent le jour simulé */
-    const d = T.day(u, k), th = (d - 10) * .9, tT = [16, 14, 24, 10];
+    const d = T.day(u, k), GK = TAU * 4 / T.MONTH, th = (d - 10) * GK, tT = [16, 14, 24, 10], dm = ((d - 1) % T.MONTH + T.MONTH) % T.MONTH + 1;   // 4 tours de roue par mois : le calendrier se referme exactement
     gears[0].root.rotation.z = th; gears[1].root.rotation.z = -th * tT[0] / tT[1]; gears[2].root.rotation.z = -th * tT[0] / tT[2]; gears[3].root.rotation.z = th * tT[0] / tT[3];
-    drums[0].rotation.x = (9.5 - (Math.floor(d / 10) + clamp((d % 10) - 9, 0, 1))) / 10 * TAU; drums[1].rotation.x = (9.5 - (d % 10)) / 10 * TAU;
-    mh.root.rotation.z = -d * .9 * 3; hh.root.rotation.z = -d * .9; dateHand.root.rotation.z = -(d / 31) * TAU;
-    const filed = k === 1 || u >= 19; dueFlag.root.visible = filed; dueFlag.root.rotation.z = -(sc.due / 31) * TAU;
+    drums[0].rotation.x = (9.5 - (Math.floor(dm / 10) + clamp((dm % 10) - 9, 0, 1))) / 10 * TAU; drums[1].rotation.x = (9.5 - (dm % 10)) / 10 * TAU;
+    mh.root.rotation.z = -d * GK * 3; hh.root.rotation.z = -d * GK; dateHand.root.rotation.z = -(d / T.MONTH) * TAU;
+    const ph = k === 2 ? T.phaseAt(u) : '', fol = T.FOLDERS[T.CUSTOM.folder], due = k === 2 ? (fol ? fol.due : sc.due) : sc.due;
+    const filed = k === 2 ? (ph === 'stored' || (T.CUSTOM.phase === 'archive' && u - T.CUSTOM.t0 < 6)) : (k === 1 || u >= 19); dueFlag.root.visible = filed; dueFlag.root.rotation.z = -(due / T.MONTH) * TAU;
     const al = T.alerts(u, k); setLamp(lampW, al.warn); setLamp(lampD, al.due); hammer.root.rotation.z = al.bell * .5;
     tab.visible = al.tab > .01; at(tab, 131, 12 + 22 * al.tab, 30.6);
     /* pince, dossier, tiroirs */
-    const gr = T.gripper(u, k); car.position.x = gr.x; wheels.forEach((w) => { w.root.rotation.z = -gr.x / 2.6; });
+    const mc = k === 2 ? T.mapC(u) : { k, u }, kk = mc.k, uu = mc.u;
+    const gr = T.gripper(uu, kk); car.position.x = gr.x; wheels.forEach((w) => { w.root.rotation.z = -gr.x / 2.6; });
     head.root.position.y = gr.tip; jaws.forEach((j, i) => { j.root.position.set((i ? 1 : -1) * (3 - 1.4 * gr.jaw), gr.tip - 2.6, 24); });
     const cl = 133 - (gr.tip + 3.6); cable.scale.y = Math.max(.1, cl); cable.position.set(0, gr.tip + 3.6 + cl / 2, 24);
     dwr.forEach((m, i) => { m.root.position.z = 38 * gr.draw[i]; });
-    const fo = T.folder(u, k, gr); folder.visible = !!fo.vis; if (fo.vis) at(folder, fo.x, fo.y, fo.z);
+    const fo = T.folder(uu, kk, gr); folder.visible = !!fo.vis; if (fo.vis) at(folder, fo.x, fo.y, fo.z);
     /* lecteur */
-    const rl = T.readLamps(u, k); lampsR.forEach((l, i) => setLamp(l, rl[i])); const sb = T.scanBar(u, k); scanBar.visible = sb.on; at(scanBar, 6 - 8 + 16 * sb.f, 20, 41);
+    const rl = T.readLamps(uu, kk); lampsR.forEach((l, i) => setLamp(l, rl[i])); const sb = T.scanBar(uu, kk); scanBar.visible = sb.on; at(scanBar, 6 - 8 + 16 * sb.f, 20, 41);
   }
   update(0);
   return {
@@ -146,7 +153,34 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'L\'horloge', anchor: 'clock' }, { label: 'L\'armoire', anchor: 'cabinet' }, { label: 'La relance', anchor: 'notif' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 2) + 2) % 2; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT, hold: s.hold })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; if (forced === 2) T.startCustom(lastTime); }, get scenario() { return forced; },
+      /* scénario C « Mon classement » : déposer un dossier, avancer la date, observer témoin et relance, archiver (dates et dossiers fictifs) */
+      params: {
+        visible: () => forced === 2,
+        groups: [
+          { name: 'Dossier', options: T.FOLDERS.map((f, i) => ({ label: f.name, run: () => { if (forced === 2) T.deposit(i, curU()); } })), get: () => (T.phaseAt(curU()) === 'idle' ? -1 : T.CUSTOM.folder) },
+          { name: 'Calendrier', options: [{ label: '+1 jour', run: () => forced === 2 && T.addDays(1, curU()) }, { label: '+5 jours', run: () => forced === 2 && T.addDays(5, curU()) }, { label: 'Jusqu’au témoin', run: () => { const f = T.FOLDERS[T.CUSTOM.folder]; if (forced === 2 && f) T.addDays(Math.max(1, f.warn - Math.round(T.dayAt(curU()))), curU()); } }, { label: 'Jusqu’à l’échéance', run: () => { const f = T.FOLDERS[T.CUSTOM.folder]; if (forced === 2 && f) T.addDays(Math.max(1, f.due - Math.round(T.dayAt(curU()))), curU()); } }], get: () => -1 },
+          { name: 'Classé', options: [{ label: 'Archiver', run: () => { if (forced === 2) T.archive(curU()); } }], get: () => -1 }
+        ]
+      },
+      status() {
+        if (forced !== 2) return ''; const u = curU(), ph = T.phaseAt(u), f = T.FOLDERS[T.CUSTOM.folder], al = T.alerts(u, 2), dd = T.shownDay(T.dayAt(u));
+        const dossier = ph === 'idle' ? (T.CUSTOM.phase === 'archive' ? 'dossier archivé' : 'aucun dossier') : f.name + (ph === 'stored' ? ' classé (tiroir ' + (f.drawer + 1) + ')' : ph === 'deposit' ? ' en cours de classement' : ' en cours d’archivage') + ' · témoin au jour ' + f.warn + ', échéance au jour ' + f.due;
+        return 'Jour ' + dd + ' · ' + dossier + (al.warn ? ' · témoin allumé' : '') + (al.due ? ' · relance envoyée' : '');
+      },
+      /* clic sur la boîte de dépôt : dossier suivant ; clic sur le cadran : +1 jour (actif seulement dans « Mon classement ») */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3();
+        const onPlane = (ray, axis, v) => { inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); const d = axis === 'z' ? r.direction.z : r.direction.y; if (Math.abs(d) < 1e-6) return null; const t = (v - (axis === 'z' ? r.origin.z : r.origin.y)) / d; if (t < 0) return null; r.at(t, hit); return { x: hit.x, y: hit.y, z: hit.z }; };
+        return {
+          pick(ray) {
+            if (forced !== 2 || inspect.v > .05) return null;
+            const c = onPlane(ray, 'z', 5.1); if (c && Math.hypot(c.x - CX, c.y - FZ) < 22) { T.addDays(1, curU()); return { id: 'clock', name: 'jour' }; }
+            const b = onPlane(ray, 'y', 38); if (b && Math.abs(b.x + 30) < 15 && Math.abs(b.z - 20) < 15 && T.phaseAt(curU()) === 'idle') { T.deposit((T.CUSTOM.folder + 1 + T.FOLDERS.length) % T.FOLDERS.length, curU()); return { id: 'depot', name: 'dossier' }; }
+            return null;
+          }, move() {}, end() {}
+        };
+      })()
     },
     controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + T.STEPS[lastK][v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.STEP_T[lastK][v - 1] + .4 }
   };

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { loadMachine } from './m3d/registry.js';
 import { drawMat, blueprintMaterial } from './blueprint-hero.js';
 
 // Départ : toujours en haut, en vue de face. Le navigateur ne doit pas restaurer l'ancien défilement (sinon la page s'ouvre déjà en 3D après un rechargement).
@@ -355,7 +356,7 @@ async function start() {
   const minis = [];
   for (const card of $$('[data-mini]')) {
     const slot = card.querySelector('.pc-mini-slot'), r = rectOf(slot); if (r.w < 8) continue; const g = W(r), top = parseFloat(card.dataset.box) || 0.12, kind = card.dataset.mini;
-    if (kind === 'machine') import('./m3d/finance.js').then(({ build, WIDTH = 236 }) => {
+    if (kind === 'machine') loadMachine('finance').then(({ build, WIDTH = 236 }) => {
       const m = build(), grp = new THREE.Group(); grp.add(m.group); const k = g.w * 0.42 / WIDTH; grp.scale.setScalar(k);
       const box = new THREE.Box3().setFromObject(grp), c = box.getCenter(new THREE.Vector3()); m.group.position.sub(c.divideScalar(k)); m.group.position.y += (box.max.y - box.min.y) / 2 / k;
       const piv = new THREE.Group(); piv.add(grp); piv.position.set(g.cx, top + 0.05, g.cz); piv.rotation.x = -1.1; scene.add(piv); patchTree(piv); // couchée vers le lecteur, elle tourne sur elle-même
@@ -448,8 +449,7 @@ async function start() {
   for (const art of $$('[data-fig]')) {
     // en longueur le long des deux bords, alternées, la face tournée vers le chemin (jamais de dos)
     const r = rectOf(art), k = machines.length + pendingM++, side = k % 2 ? 1 : -1, sc = MOBILE ? 3.0 : 4.2, x = side * (HALF + sc * 0.24), z = MOBILE ? (r.y + 150) / PXM : (r.y + 0.12 * r.h) / PXM, rot = MOBILE ? 0 : -side * Math.PI / 2; // la longueur suit le bord, la face vers le chemin
-    const mod = art.dataset.fig === 'vrestudio-musicbox' ? 'nisaru' : art.dataset.fig;
-    import(`./m3d/${mod}.js`).then(({ build, WIDTH = 236 }) => {
+    loadMachine(art.dataset.fig).then(({ build, WIDTH = 236 }) => {
       const m = build(), g = new THREE.Group(); g.add(m.group); g.scale.setScalar(sc / WIDTH); scene.add(g);
       g.updateMatrixWorld(true);
       // boîte du corps de la machine : on ignore les éléments cachés ou démesurés (voiles, plans de fond) qui décalaient le centre
@@ -465,7 +465,7 @@ async function start() {
       const M = { m, z, pivot, rot, yaw: 0, tilt: T0, half: box.getSize(new THREE.Vector3()).z / 2, name: art.querySelector('[data-callout]')?.dataset.callout || mod, rul: makeRulers() };
       M.rul.onview = ({ rot: r0, tilt: t0 }) => { M.yaw = r0 * 0.36 * Math.PI / 180; M.tilt = Math.max(-Math.PI / 2, Math.min(0.3, T0 + t0 / 250 * 1.2)); };
       machines.push(M);
-    }).catch((e) => console.warn('machine indisponible', mod, e));
+    }).catch((e) => console.warn('machine indisponible', art.dataset.fig, e));
   }
 
   /* décor : la vraie pièce du site (js/room.js) ; ses objets sont déplacés dans cette scène et posés sur la section Décor.

@@ -3,19 +3,21 @@
 // puis : rangement dans le casier Excel (réussite), voie des doublons (déjà intégré) ou module de rejet (non apparié). À 17 h le distributeur imprime le récapitulatif.
 import { clamp, seg, ease } from './nisaru-geometry.js';
 
-export const SC_T = 48, LOOP_T = SC_T * 3;
+export const SC_T = 48, LOOP_T = SC_T * 5;
 export const SCEN = [
   { id: 'A', short: 'Traitement réussi', label: 'Rapport apparié : lien inséré dans le bon casier', ot: '4417', out: 'ok' },
   { id: 'B', short: 'Déjà intégré', label: 'Rapport déjà intégré : voie des doublons, aucune seconde insertion', ot: '4417', out: 'dup' },
-  { id: 'C', short: 'Non apparié', label: 'Rapport non apparié : module de rejet', ot: '7710', out: 'rej' }
+  { id: 'C', short: 'Non apparié', label: 'Rapport non apparié : module de rejet', ot: '7710', out: 'rej' },
+  { id: 'D', short: 'Interruption', label: 'Interruption : la VM s\'arrête pendant la lecture, la demande reste en file', ot: '4417', out: 'int' },
+  { id: 'E', short: 'Reprise', label: 'Reprise après interruption : la relève reprend la demande conservée et termine le traitement', ot: '4417', out: 'ok', resume: true }
 ];
 export const ENV_Y = 20, ENV_Z = 37.4, PICK_X = -35, DUP_X = 10, REJ_X = 40, PARK = [PICK_X, 20];
 export const CAS = { c: 5, r: 1, x: 22 + 17 * 5, z: 22 + 22 * 1 }, CX = (c) => 22 + 17 * c, CZ = (r) => 22 + 22 * r;
-export const STEPS = [['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Rangement', 'Récapitulatif'], ['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Voie des doublons', 'Fin de cycle'], ['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Rejet', 'Fin de cycle']];
-export const STEP_T = [[.8, 3, 5.5, 9.5, 19.6, 38], [.8, 3, 5.5, 9.5, 14.5, 38], [.8, 3, 5.5, 9.5, 17, 38]];
+export const STEPS = [['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Rangement', 'Récapitulatif'], ['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Voie des doublons', 'Fin de cycle'], ['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Rejet', 'Fin de cycle'], ['PDF déposé', 'Demande en file', 'Relève', 'Lecture', 'Interruption', 'Demande conservée'], ['VM interrompue', 'Demande conservée', 'Relève (reprise)', 'Lecture', 'Rangement', 'Récapitulatif']];
+export const STEP_T = [[.8, 3, 5.5, 9.5, 19.6, 38], [.8, 3, 5.5, 9.5, 14.5, 38], [.8, 3, 5.5, 9.5, 17, 38], [.8, 3, 5.5, 9.5, 13, 30], [.5, 1, 5.5, 9.5, 19.6, 38]];
 
 export const wrap = (t) => ((t % LOOP_T) + LOOP_T) % LOOP_T;
-export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 3 : forced; return { k, u: w % SC_T, sc: SCEN[k] }; };
+export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 5 : forced; return { k, u: w % SC_T, sc: SCEN[k] }; };
 export const stepAt = (u, k) => { let s = 0; STEP_T[k].forEach((t, i) => { if (u >= t - .01) s = i; }); return s; };
 const sm = (x) => ease(clamp(x));
 const io = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
@@ -23,14 +25,17 @@ const lerp = (a, b, f) => a + (b - a) * f;
 
 /** horloge de l'atelier (minutes après 16 h), accélérée ; retour rapide en fin de cycle pour reboucler */
 export function clock(u) {
-  const rewind = sm(seg(u, 46.2, 47.9)), m = 46 + 14 * clamp(u / 38, 0, 1) + 4 * sm(seg(u, 38, 46));
-  return { min: m - (m - 46) * rewind, tick: [48, 50, 52, 54, 56, 58, 60].some((t) => { const uu = (t - 46) / 14 * 38; return u >= uu && u < uu + .7; }), five: u >= 38 && u < 46.2 };
+  const spin = io(seg(u, 46.2, 47.9)), m = 46 + 14 * clamp(u / 38, 0, 1) + 4 * sm(seg(u, 38, 46)) + 702 * spin;   // fin de cycle : l'horloge avance de 12 h en accéléré et retrouve sa position de départ (jamais de retour en arrière)
+  return { min: m, tick: [48, 50, 52, 54, 56, 58, 60].some((t) => { const uu = (t - 46) / 14 * 38; return u >= uu && u < uu + .7; }), five: u >= 38 && u < 46.2 };
 }
 /** enveloppe : position, visibilité ; suit la pince quand elle la porte */
 export function envelope(u, sc, grip) {
-  if (u < .5) return { vis: false };
+  if (sc.resume) { if (u < 12.5) return { vis: true, x: -75, y: ENV_Y, z: ENV_Z }; }
+  else if (sc.out === 'int' && u >= 12.5) return { vis: u < 46, x: -75, y: ENV_Y, z: ENV_Z };
+  if (u < .5 && !sc.resume) return { vis: false };
   let x = lerp(-190, -150, io(seg(u, .5, 2.5))), y = ENV_Y, z = ENV_Z;
   if (u >= 5.5) x = lerp(-150, -75, io(seg(u, 5.5, 8.5)));
+  if (sc.resume) x = -75;
   if (u >= 12.5) {
     if (sc.out === 'ok') x = lerp(-75, PICK_X, io(seg(u, 12.5, 15.5)));
     else { const xt = sc.out === 'dup' ? DUP_X : REJ_X, d = sc.out === 'dup' ? 17 : 19; x = lerp(-75, xt, io(seg(u, 12.5, d - 1)));
@@ -62,9 +67,11 @@ export function casier(u, sc) {
 /** poussoirs de voie : doublons (x 10) et rejet (x 40) */
 export function pusher(which, u, sc) { const want = which === 0 ? 'dup' : 'rej', d = which === 0 ? 17 : 19; return sc.out === want ? sm(seg(u, d, d + .6)) * (1 - sm(seg(u, d + .8, d + 1.5))) : 0; }
 /** demande (carte) : imprimée, tombe dans la file, accompagne l'enveloppe après la relève */
-export function request(u) { return { vis: u >= 2.5, drop: sm(seg(u, 2.6, 4.2)), taken: sm(seg(u, 5.5, 6.5)) }; }
+export function request(u, sc = null) { if (sc && sc.resume) return { vis: true, drop: 1, taken: sm(seg(u, 5.5, 6.5)) }; if (sc && sc.out === 'int') return { vis: u >= 2.5, drop: sm(seg(u, 2.6, 4.2)), taken: sm(seg(u, 5.5, 6.5)) * (1 - sm(seg(u, 12.6, 13.4))) }; return { vis: u >= 2.5, drop: sm(seg(u, 2.6, 4.2)), taken: sm(seg(u, 5.5, 6.5)) }; }
 /** lecteur : balayage, voyants R004 / OT / déjà intégré / rejet */
 export function reading(u, sc) {
+  if (sc.out === 'int') { const bar = seg(u, 9, 12), on = u >= 9 && u < 12; return { on, f: bar < .5 ? bar * 2 : 2 - bar * 2, r004: u >= 9.6 && u < 12.5 ? 1 : 0, ot: 0, bad: u >= 12.5 && u < 46 ? 1 : 0, dup: 0 }; }
+  if (sc.resume && u < 5.5) return { on: false, f: 0, r004: 0, ot: 0, bad: 1, dup: 0 };
   const bar = seg(u, 9, 12), on = u >= 9 && u < 12;
   return { on, f: bar < .5 ? bar * 2 : 2 - bar * 2, r004: u >= 9.6 && u < 15 ? 1 : 0, ot: sc.out === 'rej' ? 0 : (u >= 10.6 && u < 15 ? 1 : 0), bad: sc.out === 'rej' && u >= 10.6 && u < 20 ? 1 : 0, dup: sc.out === 'dup' && u >= 11.4 && u < 19 ? 1 : 0 };
 }

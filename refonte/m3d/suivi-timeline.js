@@ -3,16 +3,24 @@
 // ou refuser l'accès selon les permissions applicatives (scénario C).
 import { clamp, seg, ease } from './nisaru-geometry.js';
 
-export const SC_T = 56, LOOP_T = SC_T * 3;
+export const SC_T = 56, LOOP_T = SC_T * 3;   // la boucle automatique n'enchaîne que A, B et C ; D (« Ma demande ») est piloté par le visiteur
 export const SYS = ['GMAO', 'SHAREPOINT', 'EXCEL SUIVI', 'POWER BI', 'PORTAIL'];
 export const SCEN = [
   { id: 'A', short: 'Retrouver un OT', label: 'OT 4417 : deux systèmes concernés', row: 0, col: 0, req: 'OT 4417', sys: [0, 1] },
   { id: 'B', short: 'Retrouver un équipement', label: 'Équipement fictif : suivi Excel et Power BI', row: 1, col: 1, req: 'EQUIPEMENT 0205', sys: [2, 3] },
-  { id: 'C', short: 'Source indisponible', label: 'Bâtiment fictif : le portail est indisponible', row: 2, col: 2, req: 'BATIMENT B12', sys: [0, 4], down: 4 }
+  { id: 'C', short: 'Source indisponible', label: 'Bâtiment fictif : le portail est indisponible', row: 2, col: 2, req: 'BATIMENT B12', sys: [0, 4], down: 4 },
+  { id: 'D', short: 'Ma demande', label: 'Ma demande : je choisis un OT, un équipement ou un bâtiment fictif, les fiches se branchent, les systèmes concernés s\'affichent', custom: true, edit: true, hold: false, editT: 0,
+    get row() { return REQS[CUSTOM.i].row; }, get col() { return REQS[CUSTOM.i].col; }, get req() { return REQS[CUSTOM.i].req; }, get sys() { return REQS[CUSTOM.i].sys; }, get down() { return CUSTOM.down ? REQS[CUSTOM.i].sys[1] : undefined; } }
 ];
+/* catalogue fictif : neuf demandes (trois OT, trois équipements, trois bâtiments), une par paire de prises ; les systèmes concernés en sont déduits (valeurs inventées) */
+const pairFor = (i) => { const a = i % 5; let b = (i * 2 + 1) % 5; if (b === a) b = (a + 2) % 5; return [a, b]; };
+export const REQS = []; [['OT', ['4417', '5102', '6630']], ['EQUIPEMENT', ['0205', '0311', '0478']], ['BATIMENT', ['B12', 'B07', 'B31']]].forEach(([type, ids], row) => ids.forEach((id, col) => REQS.push({ row, col, type, id, req: type + ' ' + id, sys: pairFor(row * 3 + col) })));
+export const CUSTOM = { base: 0, started: false, i: 0, down: false };
+export function startCustom(time) { Object.assign(CUSTOM, { base: time, started: true, i: 0, down: false }); }
+export function setRequest(patch, time) { Object.assign(CUSTOM, patch, { base: time, started: true }); }
 export const STEPS = ['Demande', 'Identification', 'Première liaison', 'Seconde liaison', 'Accès retrouvés', 'Débranchement'], STEP_T = [.8, 2.6, 5, 14, 24, 44];
 export const wrap = (t) => ((t % LOOP_T) + LOOP_T) % LOOP_T;
-export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 3 : forced; return { k, u: w % SC_T, sc: SCEN[k] }; };
+export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 3 : forced; return k === 3 ? { k, u: Math.max(0, t - CUSTOM.base) % SC_T, sc: SCEN[3] } : { k, u: w % SC_T, sc: SCEN[k] }; };
 export const stepAt = (u) => { let s = 0; STEP_T.forEach((t, i) => { if (u >= t) s = i; }); return s; };
 const sm = (x) => ease(clamp(x));
 const lerp = (a, b, f) => a + (b - a) * f;

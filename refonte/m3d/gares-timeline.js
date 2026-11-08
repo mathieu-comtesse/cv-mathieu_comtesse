@@ -3,7 +3,7 @@
 // l'ordre de présentation, donc de combien de pas chaque tambour avance. Trois petits cadrans par rangée suivent la gare affichée.
 import { clamp, seg, ease } from './nisaru-geometry.js';
 
-export const SC_T = 60, LOOP_T = SC_T * 2, ROWS = 8;
+export const SC_T = 60, LOOP_T = SC_T * 2, ROWS = 8;   // la boucle automatique n'enchaîne que A et B ; C (« Mon choix ») est piloté par le visiteur
 export const STATIONS = [
   { name: 'VALMONT', crit: .82, conf: .58, maint: .40, equip: 14, ech: '12/12', ops: 3 }, { name: 'SAINTE-ORNE', crit: .35, conf: .91, maint: .72, equip: 9, ech: '03/01', ops: 5 },
   { name: 'PORT-ELMER', crit: .64, conf: .44, maint: .88, equip: 21, ech: '28/11', ops: 7 }, { name: 'HAUT-REVIN', crit: .91, conf: .67, maint: .31, equip: 17, ech: '19/12', ops: 2 },
@@ -17,15 +17,26 @@ export const CRITERIA = [
 export const ORDER = CRITERIA.map((c) => STATIONS.map((s, i) => [s, i]).sort((a, b) => c.sort(a[0], b[0])).map((x) => x[1]));
 export const SCEN = [
   { id: 'A', short: 'Trois critères', label: 'Changer de critère : le classement tourne', events: [{ t0: 6, from: 0, to: 1 }, { t0: 22, from: 1, to: 2 }, { t0: 40, from: 2, to: 0 }], picks: [] },
-  { id: 'B', short: 'Ouvrir une fiche', label: 'Sélectionner une gare : le tiroir s\'ouvre', events: [], picks: [{ t0: 2, row: 0 }, { t0: 17, row: 4 }, { t0: 34, row: 2 }] }
+  { id: 'B', short: 'Ouvrir une fiche', label: 'Sélectionner une gare : le tiroir s\'ouvre', events: [], picks: [{ t0: 2, row: 0 }, { t0: 17, row: 4 }, { t0: 34, row: 2 }] },
+  { id: 'C', short: 'Mon choix', label: 'Mon choix : je choisis le critère et la gare à consulter', custom: true, edit: true, editT: 0, hold: false, get events() { return CUSTOM.events; }, get picks() { return CUSTOM.picks; } }
 ];
+/* scénario C : état construit par le visiteur. Les événements sont espacés pour que chaque mécanisme termine avant le suivant. */
+export const CUSTOM = { base: 0, started: false, events: [], picks: [], cur: 0 };
+export function resetCustom() { Object.assign(CUSTOM, { base: 0, started: false, events: [], picks: [], cur: 0 }); }
+export function chooseCriterion(id, u) {
+  if (id === CUSTOM.cur) return false;
+  const last = CUSTOM.events[CUSTOM.events.length - 1]; CUSTOM.events.push({ t0: Math.max(u, last ? last.t0 + EV_LEN + 1 : u), from: CUSTOM.cur, to: id }); CUSTOM.cur = id; return true;
+}
+export function choosePick(row, u) {
+  const last = CUSTOM.picks[CUSTOM.picks.length - 1]; CUSTOM.picks.push({ t0: Math.max(u, last ? last.t0 + 16 : u), row }); return true;
+}
 export const EV_LEN = 6, ROW_LAG = .22, STEP_S = .3;
 export const SEL_PARK = 16, ROW_Z = (k) => 146 - 14.5 * k;
-export const STEPS_A = ['Criticité', 'Conformité', 'Maintenance', 'Retour criticité'], STEPS_B = ['Première gare', 'Cinquième gare', 'Troisième gare', 'Retour'];
-export const STEP_T = [[.5, 6, 22, 40], [2, 17, 34, 50]];
+export const STEPS_A = ['Criticité', 'Conformité', 'Maintenance', 'Retour criticité'], STEPS_B = ['Première gare', 'Cinquième gare', 'Troisième gare', 'Retour'], STEPS_C = ['Mon choix', 'Mon choix', 'Mon choix', 'Mon choix'];
+export const STEP_T = [[.5, 6, 22, 40], [2, 17, 34, 50], [0, 0, 0, 0]];
 
 export const wrap = (t) => ((t % LOOP_T) + LOOP_T) % LOOP_T;
-export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 2 : forced; return { k, u: w % SC_T, sc: SCEN[k] }; };
+export const locate = (t, forced = null) => { const w = wrap(t); const k = forced == null ? Math.floor(w / SC_T) % 2 : forced; return k === 2 ? { k, u: Math.max(0, t - CUSTOM.base), sc: SCEN[2] } : { k, u: w % SC_T, sc: SCEN[k] }; };
 export const stepAt = (u, k) => { let s = 0; STEP_T[k].forEach((t, i) => { if (u >= t - .01) s = i; }); return s; };
 
 const smooth = (x) => ease(clamp(x));
@@ -81,6 +92,6 @@ export function selector(u, sc) {
     if (u >= p.t0 + 14.3) prev = zr;
   }
   const last = sc.picks[sc.picks.length - 1];
-  if (last && u >= 50) z = ROW_Z(last.row) + (SEL_PARK - ROW_Z(last.row)) * smooth(seg(u, 50, 54));
+  if (last && u >= last.t0 + 16) z = ROW_Z(last.row) + (SEL_PARK - ROW_Z(last.row)) * smooth(seg(u, last.t0 + 16, last.t0 + 20));
   return { z, drawer, row };
 }

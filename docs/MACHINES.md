@@ -243,3 +243,122 @@ La Manufacture et la main de La Création ne sont pas modifiées : la géométri
 Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreur, animation qui avance ; le mode par défaut lit `wrap(time)` comme avant.
 
 **Limites** : la séquence courte est un remappage du temps, pas une nouvelle mise en scène (les états transitoires se voient à vitesse élevée) ; l'inspection d'une zone reconnue, le suivi d'un document, la comparaison candidat contre modèle actif et l'exploration des versions ne sont pas des commandes séparées (elles restent portées par la barre d'étapes et les vues) ; pas de nouvel audit de géométrie pour Nisaru dans cette passe.
+
+## Registre unique et commandes communes (correctif de la refonte)
+
+- `refonte/m3d/registry.js` : seule table identifiant -> module. `loadMachine(name)` est utilisé par l'accueil, les tuiles (`tile.js`), les fiches (`index.js`) et le parcours (`parcours.js`). `?machines=old` reste un diagnostic explicite.
+- `refonte/m3d/control-bar.js` : barre de commandes unique (lecture/pause, rejouer, vitesse, étape via `controls.seek`, scénarios via `api.scenarios/setScenario`, vues via `api.views` + ancres, inspection via `api.setInspect`).
+- `tools/test-machines.mjs` + `tools/machines-harness.html` : test navigateur des onze machines (module chargé, construction, temps, `seek`, scénarios, vues, inspection, valeurs finies) et contrôle statique des références à d'anciens modules. Workflow `.github/workflows/machines.yml`.
+- Non traité à ce stade : reprise visuelle (matériaux, réalisme, vues éclatées), commandes directes sur la machine, contrôleur de caméra complet (orbite/zoom), mesures de performance, captures comparatives, workflows `Site integrity` (SEO de `machines.html`, `parcours.html`, `accueil.html` en échec avant ce chantier) et `Scene smoke check` (journaux non consultables depuis cet environnement).
+
+## Q18, passe « objet industriel »
+
+- `refonte/m3d/pro-materials.js` : bibliothèque commune de matériaux (acier brossé, acier phosphaté, aluminium anodisé, laiton satiné, fonte grenée, émail peau d'orange, caoutchouc, bakélite, ivoire, verre). Grain calculé dans le shader (pas d'UV nécessaires sur les pièces fusionnées), estompé quand il devient plus fin qu'un pixel ; environnement de studio procédural pour les reflets métalliques.
+- Q18 : le grand plateau noir est remplacé par une table émaillée sur patins réglables, chants et façade en aluminium brossé avec ouïes, poignées de manutention, trappes d'accès arrière, plis de rigidité ; le clavier repose sur une console inclinée, le lecteur et la bande Power BI sur des socles (ils flottaient auparavant) ; tour et flèche émaillées avec nervures.
+- Captures : `docs/machines/q18-pro-avant.png`, `q18-pro-apres.png`, `q18-pro-arriere.png`, `q18-pro-detail.png` (harnais isolé, SwiftShader).
+- Non fait sur Q18 : sélection libre d'un OT (les trois scénarios fixent chacun leur OT), commandes directes sur la machine (manette, touches), mesure de performance sur GPU réel, captures sur le site intégré aux trois résolutions.
+
+## Studio PDF, passe « objet industriel »
+
+- Même socle que Q18 : table émaillée sur patins réglables, chants et façade en aluminium brossé avec ouïes, poignées de manutention ; établi et caisse du lecteur en émail sombre ; matériaux de `pro-materials.js`.
+- Captures : `docs/machines/studio-pro-avant.png`, `studio-pro-apres.png`, `studio-pro-detail.png`.
+- Fait ensuite (scénario C « Mon cadrage ») : voir ci-dessous.
+- Non fait : presse avec crémaillère et paliers supplémentaires, table lumineuse plus présente, feuilles déplacées physiquement au lieu d'un fondu. Ces points demandent un travail sur la chronologie (`studio-timeline.js`) et restent à faire.
+
+### Studio PDF, scénario C « Mon cadrage » (cadres déplaçables)
+
+- `studio-timeline.js` : les cadres du visiteur (`LIVE`) sont distincts des champs du PDF (`BASE`). `coverage()` donne la part de chaque champ couverte ; la cartouche est livrée si chacun couvre au moins 80 %, rejetée sinon (`SCEN[2].ok` est calculé). Le portique, la découpe du gabarit (fenêtres aux positions du visiteur) et les cadrans suivent le cadrage. A et B sont inchangés.
+- `studio-pdf.js` : `api.frames` (noms, déplacer, pousser, remettre, couverture), `api.status()`, `api.drag` (saisie d'un cadre par un rayon monde, actif seulement dans « Mon cadrage »).
+- Hôtes : vue agrandie de l'accueil (glisser sur la machine + groupe « Cadres » de la barre commune) et fiche (`post.js` : glisser sur la machine, flèches, « Remettre », « Lancer l'essai »). Choisir « Mon cadrage » place la machine à l'instant où les trois cadres sont posés et la met en attente.
+- Test : `tools/machines-harness.html` vérifie couverture, conformité, valeurs finies et saisie/déplacement par rayon.
+- Captures : `docs/machines/studio-cadres-zoom.png`, `studio-cadres-fiche.png`.
+- Limites : la fiche et la vue agrandie ont été exercées au clavier et par boutons ; le glisser à la souris est validé par test de rayon mais pas par un geste réel sur GPU. Les trois champs et leur seuil de 80 % sont des valeurs de démonstration.
+
+## Gares prioritaires : palettes et scénario « Mon choix »
+
+- Les tambours octogonaux (noms illisibles, plusieurs gares superposées sur un cylindre) sont remplacés par un vrai afficheur à palettes : huit rangées de huit palettes articulées à mi-hauteur. La face avant porte la moitié haute du nom, le dos la moitié basse du nom suivant ; la palette qui tombe découvre la gare suivante et pose la moitié basse sous elle. Caractères blancs sur fond noir, hauteur d'environ 6 unités par demi-palette (lisibles à l'échelle normale). Les pignons, cliquets, moteurs, cadrans, sélecteur et tiroir sont conservés et pilotés par la même chronologie.
+- Scénario C « Mon choix » : le visiteur choisit le critère (Criticité, Conformité, Maintenance préventive) : le classement tourne rang par rang ; il choisit la gare d'un rang : le sélecteur ambre descend, la fiche sort du tiroir. Aussi par clic direct sur une rangée ou sur la couronne de critère (`api.drag`). Les événements sont espacés pour que chaque mécanisme termine avant le suivant.
+- Contrat générique ajouté : `api.params` (groupes de choix + visibilité) rendu par la barre commune et par `post.js` ; `scenario.hold === false` : le scénario n'est pas mis en pause.
+- Captures : `docs/machines/gares-pro-avant.png`, `gares-pro-palettes.png`, `gares-mon-choix.png`.
+- Limites : valeurs fictives ; rendu logiciel seulement (pas de mesure sur GPU) ; 64 palettes = 64 maillages de plus, non mesurés ; table et pupitre n'ont pas reçu la passe « table émaillée » des machines précédentes ; la fiche (texture) garde son format d'origine.
+
+## CERFA v3 : documents distincts et scénario « Ma feuille »
+
+- Catalogue de neuf documents fictifs de quatre types visuellement différents (attestation, fiche d'intervention, facture, courrier manuscrit sans gabarit), chacun avec ses champs lus, son bac et le motif de son classement. Les lots A et B n'utilisent plus une texture unique : chaque feuille prend un document correspondant à son bac.
+- Scénario C « Ma feuille » : le visiteur choisit un document ; il est traité seul de la trémie à son bac ; la chambre allume les champs lus (vert) ou manquants (rouge) ; l'écran du registre affiche la feuille lue, le bac et le motif. Correction supervisée pour les feuilles incomplètes (champ renseigné par l'opérateur) et le courrier manuscrit (famille désignée) : la feuille est reclassée. Une anomalie F-Gas n'est pas corrigeable et reste « signalement pour examen humain, pas une décision réglementaire ». Un clic sur le lot dans la trémie passe au document suivant.
+- Base : table émaillée mince (hauteur conservée pour les bacs), chants en aluminium brossé, ouïes, trappes d'inspection arrière, matériaux de `pro-materials.js`.
+- Le test des onze machines a révélé un NaN (aiguille du sélecteur de catégorie pour k = 2) : corrigé.
+- Captures : `docs/machines/cerfa-pro-avant.png`, `cerfa-pro-lecture.png`, `cerfa-ma-feuille.png`.
+- Limites : valeurs et seuils fictifs ; pas de capots vitrés supplémentaires ni de courroies de transmission visibles ajoutés ; rendu logiciel, pas de mesure sur GPU ; mutualisation des géométries non traitée.
+
+## Point financier : scénario « Mon réservoir »
+
+- Scénario C : le visiteur règle le périmètre (PRG, PSE, GLOBAL : les vannes tournent), la consommation (±10 pts, vers 70 %, vers 110 % : le niveau, le flotteur, la poulie, l'aiguille et le levier suivent), le seuil préventif (±5 pts : le curseur et le repère du cadran suivent), les lignes KO (exclues ou incluses : la part exclue baisse le niveau, valeurs fictives) et peut réarmer les alertes. Les alertes (seuil préventif, dépassement des fonds à 100 %) sont déduites en rejouant la piste de réglages : cloche, loquet de mémoire, courrier sorti, ligne du registre ; elles ne se répètent pas avant réarmement ; l'historique des notifications reste affiché dans l'état. Clic direct sur le cadran (seuil +5 pts) ou sur la cuve (consommation +10 pts).
+- Le texte du cadran n'est plus croisé par l'aiguille (légende déplacée sous l'arc, hors de sa course).
+- Base : table émaillée, chants aluminium, ouïes, pieds sous les conduites et la chambre de filtrage (ils flottaient au-dessus de la table).
+- Le message d'état rappelle que la machine ne bloque aucune dépense (métaphore de surveillance).
+- Captures : `docs/machines/finance-pro-avant.png`, `finance-pro-cadran.png`, `finance-mon-reservoir.png`.
+- Limites : poids des lignes et part KO fictifs ; les alertes sont validées par le test (jamais vues se déclencher en navigateur à cause de la lenteur du rendu logiciel) ; rendu logiciel seulement.
+
+## VRE par VM : interruption, reprise, horloge continue, bande entraînée
+
+- Scénarios D « Interruption » (la VM s'arrête pendant la lecture : voyant d'écart rouge, l'enveloppe reste sous la cabine, la demande retourne en file) et E « Reprise » (la demande conservée attend dans la file, la relève la reprend, le traitement se termine par le rangement au casier). Ils s'ajoutent à A (apparié), B (doublon), C (non apparié) : cinq scénarios, boucle de 240 s. La seconde cabine VM reste affichée comme architecture cible non active.
+- Horloge : plus de retour en arrière brutal en fin de scénario. L'horloge avance de douze heures en accéléré et retrouve exactement sa position de départ (aiguille des minutes et des heures continues).
+- Bande et rouleaux : la bande défile et les douze rouleaux tournent avec l'enveloppe qu'ils portent (déplacement perceptible).
+- Base : table émaillée, chants aluminium, ouïes, mur du fond avec plis de rigidité.
+- Captures : `docs/machines/vm-pro-apres.png`, `vm-interruption.png`.
+- Limites : pas de scénario libre ni de commande directe sur cette machine ; pinces, vérins et guidages non détaillés davantage ; rendu logiciel seulement.
+
+## Power Automate, chaîne des PP : scénario « Mon classement », calendrier continu
+
+- Scénario C : le visiteur choisit un dossier (Plan secteur A, Plan secteur B, Entreprise X, Mode opératoire) : lecture, pince, tiroir (séquence de A) ; avance la date (+1 jour, +5 jours, jusqu'au témoin, jusqu'à l'échéance) : toutes les roues du calendrier, les tambours du jour et les aiguilles suivent ; le témoin s'allume à la date de pré-alerte du dossier, la cloche sonne et la languette de relance sort à l'échéance ; « Archiver » sort le dossier du tiroir et le dépose aux archives (séquence de B), ce qui remet les alertes à zéro. Un seul dossier est classé à la fois. Clic direct sur le cadran (+1 jour) ou sur la boîte de dépôt (dossier suivant).
+- Calendrier : plus de retour en arrière en fin de scénario. Le mois affiché fait 31 jours, les roues font quatre tours par mois ; le calendrier continue d'avancer jusqu'au même jour du mois suivant et se referme exactement (les rapports d'engrenages 16/14/24/10 sont des multiples entiers).
+- Base : table émaillée, chants aluminium, ouïes ; laiton satiné et acier brossé de la bibliothèque commune.
+- Captures : `docs/machines/pp-pro-avant.png`, `pp-pro-horloge.png`, `pp-mon-classement.png`.
+- Limites : seulement deux tiroirs actifs sur huit ; dates, dossiers et seuils fictifs ; pas de vrai cadran de quantième ni de cames supplémentaires ; rendu logiciel seulement.
+
+## Power BI, PP et MOSO : scénario « Ma consultation »
+
+- Scénario D : catalogue fictif de huit casiers (quatre plans de prévention, quatre marchés, avec secteur). Le visiteur choisit un document : le paternoster tourne (casiers toujours horizontaux) jusqu'à amener le casier à la fenêtre, le verrou se pose, le volet s'ouvre, le bras sort le dossier sur le comptoir, le lecteur de référence allume le portail (PP ou MOSO) et les indicateurs fictifs apparaissent sur l'écran et les trois aiguilles. Les demandes se mettent en file : une consultation commence quand la précédente est terminée, et la boucle part de la disposition où elle se trouve. « Deux états du dernier plan » compare deux états simulés (T1 en gris, T2 en couleur) ; l'écran porte en permanence « DONNEES FICTIVES » et, en comparaison, « ETATS SIMULES, PAS DES DONNEES REELLES ». Clic direct sur l'entrée documentaire : document suivant.
+- Base : table émaillée, chants aluminium, ouïes, matériaux de la bibliothèque commune.
+- Captures : `docs/machines/powerbi-pro-avant.png`, `powerbi-pro-detail.png`, `powerbi-ma-consultation.png`.
+- Limites : les huit casiers et leurs indicateurs sont fictifs ; pas de comptoir de consultation enrichi (le dossier n'est pas ouvert) ; chaînes, roues et paliers non redessinés ; rendu logiciel seulement.
+
+## Extracteur VRE : recyclage visible et scénario « Mon rapport »
+
+- Fin de cycle sans téléportation : la trappe de chaque colonne s'ouvre, les billes tombent, roulent derrière les colonnes jusqu'au bac de récupération, remontent dans un tube de retour fermé jusqu'à la trémie de recharge au-dessus du tambour, puis sortent de la trémie une à une et tombent dans leur alvéole (le tambour retrouve exactement sa position de départ). Une bille éjectée par le volet de rejet est remplacée par la recharge.
+- Scénario D « Mon rapport » : bâtiment (1 à 4) et local (1 à 8) déterminent, de façon reproductible, la séquence fictive des dix équipements ; équipement suivi (la bille correspondante devient dorée, son état est annoncé) ; erreur injectée sur l'équipement 4 ou 9 (la bille est mal classée, détectée au contrôle des totaux, puis éjectée par le volet et remplacée) ; « Vérifier maintenant » avance au contrôle. L'état affiche colonnes comptées / attendues (BT31, BT33, BT21, BT11).
+- Base : table émaillée, chants aluminium, ouïes ; billes d'acier avec reflets de l'environnement de studio.
+- Captures : `docs/machines/vre-pro-avant.png`, `vre-recyclage.png`, `vre-recharge.png`.
+- Limites : le transit dans le tube de retour n'est pas montré (le tube est opaque) ; colonnes et lecteur non agrandis ; séquences fictives ; rendu logiciel seulement.
+
+## Retrouver tout le suivi : cordons réalistes, écran dégagé, scénario « Ma demande »
+
+- Cordons : sortie droite d'un ressort anti-pliure à la queue de la fiche, courbe de Bézier cubique, affaissement sous le poids, arrivée verticale dans le trou de la tablette ; le cordon reste en avant de la face. L'écran des accès est déplacé en bandeau haut (aucun cordon ne le traverse plus) ; l'ancien emplacement devient un bornier de liaisons de démonstration. Le test échantillonne les quatre cordons pour les quatre scénarios à chaque seconde et échoue si un point passe devant l'écran, dans la face ou sous la tablette.
+- Écran : pour chaque système, état du lien et destination « lien de démonstration (système interne, non ouvrable depuis ce site) » ; aucun lien interne n'est inventé et aucun accès n'est garanti (permissions applicatives). Une source indisponible affiche « rien à ouvrir ».
+- Scénario D « Ma demande » : neuf demandes fictives (trois OT, trois équipements, trois bâtiments), une par paire de prises ; les deux fiches se branchent, les systèmes concernés sont déduits et affichés ; option « Une indisponible ». Clic direct sur une paire de prises.
+- Base : bibliothèque de matériaux industriels (laiton satiné, acier) ; caisse en bois conservée.
+- Captures : `docs/machines/suivi-pro-avant.png`, `suivi-pro-cordons.png`, `suivi-ma-demande.png`.
+- Limites : les cordons ne sont pas simulés physiquement (courbe calculée) et peuvent passer devant les relais ; pas de contrepoids visibles sous la tablette ; systèmes et correspondances inventés ; rendu logiciel seulement.
+
+## Nisaru : séquences courtes réelles, forge inspectable
+
+La Manufacture et la main de La Création d'Adam sont inchangées (mêmes pièces, même trajectoire de main).
+
+- Fin de l'accélération du temps : les séquences courtes ne remappent plus la chronologie en avance rapide. Chaque séquence est un montage de plans lus à vitesse naturelle, séparés par des coupes de 0,8 s (les pages, fiches et feuilles de sortie se résorbent puis réapparaissent, la main se fond), avec un fondu aussi au bouclage. Une seule page et une seule fiche sont montrées.
+- Validation (environ 46 s) : lecture de la page, émission de la fiche, appui franc de l'index, fiche vers la corbeille, puis archivage dans la mémoire partagée comme référence (aucun réentraînement).
+- Correction (environ 47 s) : même début ; la tête de correction balaie les champs annotés pendant que l'index glisse ; la fiche corrigée rejoint la mémoire partagée ; les poids du modèle ne changent pas (seul un futur réentraînement utilisera la mémoire).
+- Rejet (environ 36 s) : poussée vers l'avant, la fiche part dans le bac de rejet ; rien n'est archivé, la mémoire n'est pas modifiée.
+- Forge (38 s, vitesse naturelle) : candidat préparé, exemples chargés depuis la mémoire, entraînement (valeurs fictives), sauvegarde (pas encore actif), évaluation sur le banc d'essai (deux cadrans : actif contre candidat), validation humaine, activation (l'ancien modèle devient version précédente), restitution, restauration possible. Plaques ajoutées : CANDIDAT, MODELE ACTIF, VERSIONS PRECEDENTES. Vues séparées : Modèle actif, Candidat, Versions précédentes.
+- L'état affiché décrit ce que fait la machine à chaque instant et rappelle que les valeurs sont fictives : aucune mesure réelle de précision ou d'entraînement.
+- Test : les quatre séquences sont rejouées sur 120 s : valeurs finies, au moins cinq phases chacune, mentions de non-réentraînement (validation, correction), de non-modification de la mémoire (rejet), un rejet jamais archivé, huit phases de la forge.
+- Captures : `docs/machines/nisaru-validation.png`, `nisaru-correction.png`, `nisaru-forge-candidat.png` (page réelle `projet-lecteur-vre.html`).
+- Limites : les plans sont des extraits de la chronologie existante (pas de nouvelle animation de pièces) ; la coupe est un fondu des objets mobiles, pas de mouvement de caméra ; pas de scénario libre ; la comparaison actif / candidat repose sur les deux cadrans existants ; rendu logiciel seulement.
+
+## Intégration, tests et performances (bilan de la correction)
+
+- Registre unique `refonte/m3d/registry.js` ; barre de commandes commune `control-bar.js` ; matériaux industriels `pro-materials.js` ; test `tools/test-machines.mjs` (+ `tools/machines-harness.html`) et workflow `.github/workflows/machines.yml` (exécuté par la pull request).
+- Le test rejoue pour chaque machine : import du bon module, construction, temps sur 130 s, `seek`, scénarios, vues, inspection, valeurs finies ; et pour les scénarios libres : choix, files de demandes, alertes, correction supervisée, clics directs par rayon ; pour Suivi : couloir des cordons ; pour Nisaru : phases des quatre séquences.
+- Coût CPU mesuré (SwiftShader, sans rendu GPU ; `PERF=1 node tools/test-machines.mjs`) : construction 17 à 58 ms, mise à jour 0,01 à 0,07 ms par image, 88 à 244 maillages par machine. Aucune mesure de fluidité GPU (60 FPS / 30 FPS) n'a pu être faite : à vérifier sur les appareils réels.
+- Captures d'intégration (page réelle `projet-vmvre.html` et accueil, 1920 x 1080, 1440 x 900, 390 x 844) : `docs/machines/integration/`. La barre d'outils des fiches a été compactée sur mobile (elle recouvrait la machine).
+- Non traité : contrôleur de caméra complet (orbite et zoom libres), mutualisation des géométries statiques, destruction explicite des ressources au changement de machine, récupération après perte de contexte GPU, mode WebGPU « chemin 3D » avec les nouveaux matériaux, vues éclatées reprises pièce par pièce, scénarios libres pour Q18 et Nisaru, `Site integrity` (pages `machines`, `parcours`, `accueil` sans métadonnées SEO : échec antérieur) et `Scene smoke check` (journaux illisibles depuis cet environnement).

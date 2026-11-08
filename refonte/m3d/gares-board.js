@@ -13,16 +13,20 @@ const R = 6.8, DX0 = -126, DX1 = -28, DLEN = DX1 - DX0, DCX = (DX0 + DX1) / 2, G
 const DIAL_X = [20, 46, 72], plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' };
 
 /* ---------------- textures ---------------- */
-function drumTexture() {
-  // huit cellules sur la circonférence (u) ; le nom se lit le long de l'axe (v) : le haut du caractère suit la circonférence
-  const cw = 96, W = cw * 8, H = 560, c = cv(W, H), x = c.getContext('2d');
-  x.fillStyle = '#efe6cf'; x.fillRect(0, 0, W, H); x.textAlign = 'center'; x.textBaseline = 'middle';
-  T.STATIONS.forEach((s, i) => {
-    x.save(); x.translate(i * cw + cw / 2, H / 2); x.rotate(Math.PI / 2);
-    x.fillStyle = '#17150f'; x.font = '700 46px ui-monospace,Menlo,Consolas,monospace'; x.fillText('GARE ' + s.name, 0, 4); x.restore();
-    x.fillStyle = '#b7ab8c'; x.fillRect(i * cw, 0, 2, H);
-  });
-  return tex(c, 8);
+/** palettes : chaque gare est une palette articulée à mi-hauteur ; la face avant porte la moitié haute du nom, le dos la moitié basse du NOM SUIVANT
+ *  (la palette qui tombe laisse voir la moitié haute de la gare suivante et pose au-dessous la moitié basse de cette même gare). */
+function flapTextures() {
+  const W = 768, H = 192, halves = (name) => {
+    const c = cv(W, H), x = c.getContext('2d'); x.fillStyle = '#16171b'; x.fillRect(0, 0, W, H);
+    const fs = Math.min(150, Math.floor((W - 60) / (name.length * .62))); x.fillStyle = '#f3ead2'; x.font = '700 ' + fs + 'px ui-monospace,Menlo,Consolas,monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(name, W / 2, H / 2 + fs * .04);
+    const up = cv(W, H / 2), lo = cv(W, H / 2); up.getContext('2d').drawImage(c, 0, 0, W, H / 2, 0, 0, W, H / 2); lo.getContext('2d').drawImage(c, 0, H / 2, W, H / 2, 0, 0, W, H / 2);
+    return [up, lo];
+  };
+  const parts = T.STATIONS.map((s) => halves(s.name)), n = parts.length;
+  const front = parts.map(([up]) => tex(up, 8));
+  const back = parts.map((_, j) => { const lo = parts[(j + 1) % n][1], c = cv(W, H / 2), x = c.getContext('2d'); x.translate(W, H / 2); x.rotate(Math.PI); x.drawImage(lo, 0, 0); x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#000'; x.globalAlpha = .55; x.fillRect(0, H / 2 - 3, W, 3); return tex(c, 8); });
+  front.forEach((t, j) => { const c = t.image.getContext('2d'); c.fillStyle = '#000'; c.globalAlpha = .55; c.fillRect(0, 0, W, 3); });
+  return { front, back };
 }
 function dialTexture() {
   const c = cv(128, 128), x = c.getContext('2d'); x.fillStyle = '#efe6cf'; x.beginPath(); x.arc(64, 64, 62, 0, TAU); x.fill();
@@ -68,8 +72,10 @@ export function build() {
   const labels = [['STATION', DCX, 14], ['CRITICITE', DIAL_X[0], 8], ['CONFORMITE', DIAL_X[1], 8], ['MAINTENANCE', DIAL_X[2], 8]];
   labels.forEach(([t, x, w]) => put(label(t, x, 2.2, 160, t === 'STATION' ? 40 : 24, 3.6, 'y', plateLabel)));
   /* un tableau de huit rangées : axe, roue à étoile et cliquet à ressort (à gauche), roue entraînée et moteur pas à pas (à droite), trois cadrans */
-  const drumMat = new THREE.MeshStandardMaterial({ map: drumTexture(), roughness: .62, metalness: .05 });
-  const rowsP = [], drums = [], pawls = [], pinions = [];
+  const FT = flapTextures(), flapEdge = new THREE.MeshStandardMaterial({ color: '#0c0d10', roughness: .8 });
+  const flapMats = FT.front.map((f, j) => [flapEdge, flapEdge, flapEdge, flapEdge, new THREE.MeshStandardMaterial({ map: f, roughness: .5, metalness: .05 }), new THREE.MeshStandardMaterial({ map: FT.back[j], roughness: .5, metalness: .05 })]);
+  const FLAP_W = 96, FLAP_H = 5.8, flapGeo = new THREE.BoxGeometry(FLAP_W, FLAP_H, .5).translate(0, FLAP_H / 2, 0);
+  const rowsP = [], flaps = [], pawls = [], pinions = [];
   S = stat('rangées');
   for (let k = 0; k < T.ROWS; k++) {
     const zk = T.ROW_Z(k);
@@ -80,9 +86,11 @@ export function build() {
     S.springY(-132, zk, -17, -11, 1.8, 5, .3, 'steelDk');
     DIAL_X.forEach((dx) => S.cylY(0, 3.2, dx, zk, 5.9, 'brass', 24));                                                   // boîtiers de cadran
     const r = mover('rangée ' + (k + 1), [DCX, 0, zk]);
-    r.geo('steel', gearXGeo(7.6, 8, 3, 1.4), -132, 0, zk); r.geo('brass', gearXGeo(7.2, 18, 3, 1.4), GX, 0, zk); r.cylX(DX0 - 2, DX0, 0, zk, 2.4, 'steelDk', 14); r.cylX(DX1, DX1 + 3, 0, zk, 2.4, 'steelDk', 14); r.cylX(-148, -22, 0, zk, 1.1, 'steel', 10);
-    const dr = new THREE.Mesh(new THREE.CylinderGeometry(R, R, DLEN, 8, 1, false).rotateZ(Math.PI / 2), drumMat); dr.castShadow = true; dr.userData.noGlow = true; r.root.add(dr);
-    rowsP.push(r); drums.push(dr);
+    r.geo('steel', gearXGeo(7.6, 8, 3, 1.4), -132, 0, zk); r.geo('brass', gearXGeo(7.2, 18, 3, 1.4), GX, 0, zk); r.cylX(DX0 - 2, DX0, 0, zk, 2.4, 'steelDk', 14); r.cylX(DX1, DX1 + 3, 0, zk, 2.4, 'steelDk', 14); r.cylX(-148, -127, 0, zk, 1.1, 'steel', 10); r.cylX(-27, -22, 0, zk, 1.1, 'steel', 10);
+    S.box(-127.5, 0, zk, 1.4, 6, 12.6, 'cast', .3); S.box(-26.5, 0, zk, 1.4, 6, 12.6, 'cast', .3);                                // flasques qui portent l'axe de charnière
+    S.box(DCX, 1.4, zk - 7.25, 100, 4, 1.2, 'iron', .3);                                                                                    // séparation entre deux rangées
+    const fl = []; for (let j = 0; j < 8; j++) { const gr = new THREE.Group(), m = new THREE.Mesh(flapGeo, flapMats[j]); m.castShadow = true; m.userData.noGlow = true; gr.add(m); gr.position.set(DCX, zk, 0); put(gr, 'tableau'); fl.push({ gr, m }); }
+    flaps.push(fl); rowsP.push(r);
   }
   /* pignons des moteurs et cliquets (instanciés) */
   const pinGeo = gearXGeo(3.7, 9, 3, .8), pinMesh = new THREE.InstancedMesh(pinGeo, M.steel, T.ROWS); pinMesh.userData.noGlow = true; put(pinMesh, 'tableau');
@@ -139,25 +147,32 @@ export function build() {
   [...rowsP, screw, calc, ...crowns].forEach((m) => { if (!m.root.parent) zoneGroup(m.zone).add(m.root); });
   for (const z of Object.values(zones)) g.add(z);
   const count = parts.reduce((a, p) => a + p.count, 0) + extra + 3 * T.ROWS * 3 + 24;
-  meshes.push(...drums);
+  flaps.forEach((fl) => fl.forEach(({ m }) => meshes.push(m)));
 
   const ZOFF = { bati: [0, 0, 0], pupitre: [0, 40, 6], tiroir: [0, 40, 6], tableau: [0, 0, 70], selecteur: [0, 30, 70] };
   const inspect = { to: 0, v: 0, t: 0 };
   const anchors = { all: new THREE.Object3D(), board: new THREE.Object3D(), desk: new THREE.Object3D(), dials: new THREE.Object3D() };
   at(anchors.all, -18, 0, 90); at(anchors.board, -77, 0, 100); at(anchors.desk, -60, 55, 25); at(anchors.dials, 46, 0, 100);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null, lastK = 0;
+  let forced = null, lastK = 0, lastTime = 0;
   const unit = new THREE.Vector3(1, 1, 1), pivot = new THREE.Vector3();
 
+  const curU = () => Math.max(0, lastTime - T.CUSTOM.base);
   function update(time) {
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
     inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
     for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); }
+    lastTime = time; if (forced === 2 && !T.CUSTOM.started) { T.CUSTOM.started = true; T.CUSTOM.base = time; }
     const { k, u, sc } = T.locate(time, forced); lastK = k;
     /* rangées : tambour, cliquet, pignon du moteur, cadrans */
     for (let i = 0; i < T.ROWS; i++) {
       const rw = T.row(i, u, sc), zk = T.ROW_Z(i), a = (rw.face + .5) / 8 * TAU;
       rowsP[i].root.rotation.x = a;
+      for (let j = 0; j < 8; j++) {   // palette j : debout (devant ou en pile derrière), en train de tomber, ou tombée en pile devant
+        const e = (((rw.face - j) % 8) + 8) % 8, fl = flaps[i][j]; let th = 0, off = .6;
+        if (e < 1) { th = Math.PI * e; off = .6 + .45 * e; } else if (e < 4) { th = Math.PI; off = .6 + (4 - e) * .15; } else off = .6 + (8 - e) * .3;
+        fl.gr.rotation.x = th; fl.m.position.z = -off; fl.m.visible = e < 4 || e >= 4;
+      }
       q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -a * (7.2 / 3.7)); m4.compose(new THREE.Vector3(GX, zk, -10), q, unit); pinMesh.setMatrixAt(i, m4);
       m4.compose(new THREE.Vector3(-132, zk, -9.6 - 1.4 * rw.pulse), new THREE.Quaternion(), unit); pawlMesh.setMatrixAt(i, m4);
       rw.vals.forEach((v, j) => { q.setFromAxisAngle(ax, 2.356 - 4.712 * v); m4.compose(new THREE.Vector3(DIAL_X[j], zk, 3.55), q, unit); needles.setMatrixAt(i * 3 + j, m4); });
@@ -180,8 +195,33 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'Le tableau', anchor: 'board' }, { label: 'Le pupitre', anchor: 'desk' }, { label: 'Les cadrans', anchor: 'dials' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 2) + 2) % 2; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT, hold: s.hold })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; if (forced === 2) T.resetCustom(); }, get scenario() { return forced; },
+      /* scénario C « Mon choix » : choisir le critère (le classement tourne) et la gare à consulter (la fiche sort du tableau) */
+      params: {
+        visible: () => forced === 2,
+        groups: [
+          { name: 'Critère', options: T.CRITERIA.map((c, i) => ({ label: c.label, run: () => { if (forced === 2) T.chooseCriterion(i, curU()); } })), get: () => T.CUSTOM.cur },
+          { name: 'Gare du rang', options: Array.from({ length: T.ROWS }, (_, r) => ({ label: String(r + 1), run: () => { if (forced === 2) T.choosePick(r, curU()); } })), get: () => -1 }
+        ]
+      },
+      status() {
+        if (forced !== 2) return ''; const sc = T.SCEN[2], u = curU(), cr = T.criterion(u, sc).cur, last = T.CUSTOM.picks[T.CUSTOM.picks.length - 1];
+        const busy = T.CUSTOM.events.some((e) => u < e.t0 + 6.5); return 'Critère : ' + T.CRITERIA[cr].label + (busy ? ' (le classement tourne)' : '') + (last ? ' · fiche : rang ' + (last.row + 1) + ', gare ' + T.STATIONS[T.ORDER[cr][last.row]].name : '');
+      },
+      /* un clic sur une rangée consulte sa gare ; un clic sur la couronne de critère passe au critère suivant (actif seulement dans « Mon choix ») */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3();
+        const onPlane = (ray, zs) => { inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); if (Math.abs(r.direction.z) < 1e-6) return null; const t = (zs - r.origin.z) / r.direction.z; if (t < 0) return null; r.at(t, hit); return { x: hit.x, z: hit.y }; };
+        return {
+          pick(ray) {
+            if (forced !== 2 || inspect.v > .05) return null;
+            const c = onPlane(ray, 76); if (c && Math.hypot(c.x + 112, c.z - 25) < 9) { T.chooseCriterion((T.CUSTOM.cur + 1) % 3, curU()); return { id: 'crown', name: 'critère' }; }
+            const b = onPlane(ray, 3.5); if (b && b.x > -150 && b.x < 100) for (let k = 0; k < T.ROWS; k++) if (Math.abs(b.z - T.ROW_Z(k)) < 7.25) { T.choosePick(k, curU()); return { id: 'row' + k, name: 'rang ' + (k + 1) }; }
+            return null;
+          }, move() {}, end() {}
+        };
+      })()
     },
-    controls: { label: 'Séquence', min: 1, max: 4, step: 1, fmt: (v) => v + ' : ' + (lastK ? T.STEPS_B : T.STEPS_A)[v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.STEP_T[lastK][v - 1] + .4 }
+    controls: { label: 'Séquence', min: 1, max: 4, step: 1, fmt: (v) => v + ' : ' + [T.STEPS_A, T.STEPS_B, T.STEPS_C][lastK][v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.STEP_T[lastK][v - 1] + .4 }
   };
 }
