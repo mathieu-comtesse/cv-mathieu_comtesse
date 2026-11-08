@@ -250,3 +250,10 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - `refonte/m3d/control-bar.js` : barre de commandes unique (lecture/pause, rejouer, vitesse, étape via `controls.seek`, scénarios via `api.scenarios/setScenario`, vues via `api.views` + ancres, inspection via `api.setInspect`).
 - `tools/test-machines.mjs` + `tools/machines-harness.html` : test navigateur des onze machines (module chargé, construction, temps, `seek`, scénarios, vues, inspection, valeurs finies) et contrôle statique des références à d'anciens modules. Workflow `.github/workflows/machines.yml`.
 - Non traité à ce stade : reprise visuelle (matériaux, réalisme, vues éclatées), commandes directes sur la machine, contrôleur de caméra complet (orbite/zoom), mesures de performance, captures comparatives, workflows `Site integrity` (SEO de `machines.html`, `parcours.html`, `accueil.html` en échec avant ce chantier) et `Scene smoke check` (journaux non consultables depuis cet environnement).
+
+## Q18, passe « objet industriel »
+
+- `refonte/m3d/pro-materials.js` : bibliothèque commune de matériaux (acier brossé, acier phosphaté, aluminium anodisé, laiton satiné, fonte grenée, émail peau d'orange, caoutchouc, bakélite, ivoire, verre). Grain calculé dans le shader (pas d'UV nécessaires sur les pièces fusionnées), estompé quand il devient plus fin qu'un pixel ; environnement de studio procédural pour les reflets métalliques.
+- Q18 : le grand plateau noir est remplacé par une table émaillée sur patins réglables, chants et façade en aluminium brossé avec ouïes, poignées de manutention, trappes d'accès arrière, plis de rigidité ; le clavier repose sur une console inclinée, le lecteur et la bande Power BI sur des socles (ils flottaient auparavant) ; tour et flèche émaillées avec nervures.
+- Captures : `docs/machines/q18-pro-avant.png`, `q18-pro-apres.png`, `q18-pro-arriere.png`, `q18-pro-detail.png` (harnais isolé, SwiftShader).
+- Non fait sur Q18 : sélection libre d'un OT (les trois scénarios fixent chacun leur OT), commandes directes sur la machine (manette, touches), mesure de performance sur GPU réel, captures sur le site intégré aux trois résolutions.
