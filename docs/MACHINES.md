@@ -308,3 +308,11 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Base : table émaillée, chants aluminium, ouïes, mur du fond avec plis de rigidité.
 - Captures : `docs/machines/vm-pro-apres.png`, `vm-interruption.png`.
 - Limites : pas de scénario libre ni de commande directe sur cette machine ; pinces, vérins et guidages non détaillés davantage ; rendu logiciel seulement.
+
+## Power Automate, chaîne des PP : scénario « Mon classement », calendrier continu
+
+- Scénario C : le visiteur choisit un dossier (Plan secteur A, Plan secteur B, Entreprise X, Mode opératoire) : lecture, pince, tiroir (séquence de A) ; avance la date (+1 jour, +5 jours, jusqu'au témoin, jusqu'à l'échéance) : toutes les roues du calendrier, les tambours du jour et les aiguilles suivent ; le témoin s'allume à la date de pré-alerte du dossier, la cloche sonne et la languette de relance sort à l'échéance ; « Archiver » sort le dossier du tiroir et le dépose aux archives (séquence de B), ce qui remet les alertes à zéro. Un seul dossier est classé à la fois. Clic direct sur le cadran (+1 jour) ou sur la boîte de dépôt (dossier suivant).
+- Calendrier : plus de retour en arrière en fin de scénario. Le mois affiché fait 31 jours, les roues font quatre tours par mois ; le calendrier continue d'avancer jusqu'au même jour du mois suivant et se referme exactement (les rapports d'engrenages 16/14/24/10 sont des multiples entiers).
+- Base : table émaillée, chants aluminium, ouïes ; laiton satiné et acier brossé de la bibliothèque commune.
+- Captures : `docs/machines/pp-pro-avant.png`, `pp-pro-horloge.png`, `pp-mon-classement.png`.
+- Limites : seulement deux tiroirs actifs sur huit ; dates, dossiers et seuils fictifs ; pas de vrai cadran de quantième ni de cames supplémentaires ; rendu logiciel seulement.
