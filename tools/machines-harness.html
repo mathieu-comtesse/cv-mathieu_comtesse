@@ -36,6 +36,17 @@ window.runMachines = async (only) => {
         a.setScenario(0); if (a.drag.pick(ray(cx, cz))) r.errors.push('glisser actif hors du scénario Mon cadrage');
         a.frames.reset(); a.setScenario(null);
       }
+      if (a?.params && name === 'powerbi') {   // Ma consultation : huit documents, file de demandes, comparaison simulée
+        a.setScenario(3); const t0 = 700; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to) => { for (let dt = from; dt <= to; dt += 1) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Ma consultation +' + dt + ' ' + window.__bad); } };
+        if (a.params.groups[0].options.length !== 8) r.errors.push('catalogue : ' + a.params.groups[0].options.length);
+        run(0, 1); step(1, 12); if (!/En cours : PP 2025-014 \(casier P2, portail PP\)/.test(a.status())) r.errors.push('consultation en cours : ' + a.status());
+        run(0, 5); step(13, 14); if (!/1 demande\(s\) en attente/.test(a.status())) r.errors.push('file d\'attente : ' + a.status());
+        step(15, 60); if (!/Marché|MARCHE 204/.test(a.status())) r.errors.push('seconde consultation : ' + a.status());
+        run(0, 2); step(61, 90); run(1, 0); step(91, 130); if (!/comparaison de deux états simulés, pas des données réelles/.test(a.status())) r.errors.push('comparaison sans mention de simulation : ' + a.status());
+        run(0, 6); step(131, 140); run(1, 0); step(141, 160)
+        const ray = new THREE.Ray(new THREE.Vector3(150, 40, 300), new THREE.Vector3(0, 0, -1)); m.group.updateMatrixWorld(true); const l0 = a.params.groups[0].get(); if (!a.drag.pick(ray) || a.params.groups[0].get() === l0) r.errors.push('clic sur l\'entrée sans effet');
+        a.setScenario(0); if (a.drag.pick(ray)) r.errors.push('clic actif hors de Ma consultation'); a.setScenario(null);
+      } else
       if (a?.params && name === 'pp') {   // Mon classement : dépôt, calendrier, témoin et relance, archivage ; un seul dossier à la fois
         a.setScenario(2); const t0 = 500; m.update(t0); const run = (g, i) => a.params.groups[g].options[i].run(), step = (from, to) => { for (let dt = from; dt <= to; dt += 1) { m.update(t0 + dt); if (finite(m.group)) r.errors.push('non fini, Mon classement +' + dt + ' ' + window.__bad); } };
         run(0, 0); step(1, 30); if (!/classé \(tiroir 1\)/.test(a.status())) r.errors.push('dossier non classé : ' + a.status());

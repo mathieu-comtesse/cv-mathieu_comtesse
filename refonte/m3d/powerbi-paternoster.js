@@ -6,24 +6,26 @@ import * as THREE from 'three';
 import { Part, makeMats, label, lamp, setLamp, clamp, seg, ease, at } from './nisaru-geometry.js';
 import { cv, tex, workshopMats, gearXGeo, TAU } from './machine-kit.js';
 import * as T from './powerbi-timeline.js';
+import { industrial } from './pro-materials.js';
 
 export const WIDTH = 330;
 const plateLabel = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace' }, wide = { fg: '#1f1b14', bg: '#c9ced6', font: '700 28px ui-monospace,Menlo,Consolas,monospace', w: 512, h: 64 }, CY = 20, STX = T.RAD;
 
 function folderTexture(i) { const c = cv(128, 96), x = c.getContext('2d'); const col = ['#d8bb7c', '#b9d0e6', '#e2c3b5', '#c9deb8'][i % 4]; x.fillStyle = col; x.fillRect(0, 0, 128, 96); x.strokeStyle = '#6a6252'; x.lineWidth = 3; x.strokeRect(2, 2, 124, 92); x.fillStyle = '#f4efe0'; x.fillRect(8, 8, 70, 22); x.fillStyle = '#2a251d'; x.font = '700 13px ui-monospace,Menlo,Consolas,monospace'; x.fillText('DOSSIER ' + (i + 1), 12, 24); x.font = '700 9px ui-monospace,Menlo,Consolas,monospace'; x.fillText('DEMO FICTIVE', 10, 86); return tex(c); }
 const barVals = (name) => { let h = 7; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 997; return [0, 1, 2, 3, 4, 5].map((i) => .25 + .7 * (((h * (i + 3) * 13) % 97) / 97)); };
-function screenDraw(x, sc, v, ind, ghost) {
+function screenDraw(x, sc, v, ind, ghostName) {
   x.fillStyle = '#0f1722'; x.fillRect(0, 0, 352, 240); x.fillStyle = '#8fb3d9'; x.font = '700 14px ui-monospace,Menlo,Consolas,monospace'; x.fillText('PORTAIL ' + sc.kind + '  ' + (v >= 0 ? sc.docs[v] : 'EN ATTENTE'), 12, 24); x.fillRect(12, 32, 328, 1);
   for (let i = 0; i < 4; i++) { x.fillStyle = '#243247'; x.fillRect(12, 60 + i * 44, 328, 1); }
   if (v >= 0 && ind > .02) {
-    const cur = barVals(sc.docs[v]), old = ghost ? barVals(sc.docs[0]) : null;
+    const cur = barVals(sc.docs[v]), old = ghostName ? barVals(ghostName) : null;
     cur.forEach((b, i) => { const bx = 24 + i * 52, h = 150 * b * ind; if (old) { x.fillStyle = '#6b7b92'; x.fillRect(bx, 214 - 150 * old[i], 16, 150 * old[i]); } x.fillStyle = sc.kind === 'PP' ? '#d79a2b' : '#5aa0ff'; x.fillRect(bx + (old ? 18 : 6), 214 - h, old ? 16 : 28, h); });
     if (old) { x.fillStyle = '#6b7b92'; x.font = '700 11px ui-monospace,Menlo,Consolas,monospace'; x.fillText('T1', 252, 52); x.fillStyle = '#d79a2b'; x.fillText('T2', 290, 52); }
   }
+  x.fillStyle = '#c8372d'; x.font = '700 10px ui-monospace,Menlo,Consolas,monospace'; x.fillText('DONNEES FICTIVES' + (ghostName ? ' : ETATS SIMULES, PAS DES DONNEES REELLES' : ''), 12, 234);
 }
 
 export function build() {
-  const g = new THREE.Group(), M = workshopMats(makeMats());
+  const g = new THREE.Group(), M = industrial(workshopMats(makeMats()));
   const parts = [], zones = {}; let cz = 'bati', extra = 0;
   const zoneGroup = (n) => zones[n] || (zones[n] = Object.assign(new THREE.Group(), { name: 'zone:' + n }));
   const Z = (n) => { cz = n; };
@@ -34,7 +36,9 @@ export function build() {
 
   /* ================= bâti ================= */
   Z('bati'); let S = stat('bati');
-  S.box(0, 20, 3, 400, 170, 6, 'cast', 1.4); for (const [x, y] of [[-186, -56], [186, -56], [-186, 94], [186, 94]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
+  S.box(0, 20, 3, 400, 170, 6, 'enamel', 1.4);                                                   // table émaillée
+  S.box(0, 104.3, 3, 400, 1.4, 5, 'alu', .4); S.box(0, -64.3, 3, 400, 1.4, 5, 'alu', .4);
+  for (let i = 0; i < 10; i++) S.box(-170 + i * 36, 105.2, 3, 14, .5, 1.8, 'ink', .2);          // ouïes de ventilation en façade for (const [x, y] of [[-186, -56], [186, -56], [-186, 94], [186, 94]]) S.cylZ(x, y, -4, 5, 4.2, 'graphite', 16);
   S.box(-10, 103.7, 3, 150, 1.2, 6, 'alu', .3);
   put(label('ARCHIVES  PP ET MOSO', -40, 104.4, 3, 110, 5, 'y', wide)); put(label('DEMO FICTIVE', 56, 104.4, 3, 40, 3.4, 'y', { ...plateLabel, fg: '#7a2b24', font: '700 24px ui-monospace,Menlo,Consolas,monospace' }));
 
@@ -81,7 +85,7 @@ export function build() {
   Z('portail'); S = stat('portail');
   S.box(-102, 0, 56, 62, 40, 100, 'cast', 1.6); S.box(-102, 0, 110, 66, 44, 4, 'alu', .8); S.box(-102, 20.6, 100, 52, .8, 40, 'ink'); S.bolts([[-130, 20.6, 14], [-74, 20.6, 14], [-130, 20.6, 100], [-74, 20.6, 100]], 'y', 1.1, 'brass');
   put(label('PORTAIL DE VISUALISATION', -102, 20.9, 106.5, 56, 3.2, 'y', wide)); put(label('POWER BI', -102, 20.9, 12, 24, 3, 'y', plateLabel));
-  const sc = cv(352, 240), sctx = sc.getContext('2d'), scTex = tex(sc, 8); screenDraw(sctx, T.SCEN[0], -1, 0, false);
+  const sc = cv(352, 240), sctx = sc.getContext('2d'), scTex = tex(sc, 8); screenDraw(sctx, T.SCEN[0], -1, 0, null);
   const screen = new THREE.Mesh(new THREE.PlaneGeometry(50, 34), new THREE.MeshStandardMaterial({ map: scTex, roughness: .35, emissive: '#2a3a52', emissiveMap: scTex, emissiveIntensity: .55 })); screen.position.set(-102, 90, 21.1); screen.userData.noGlow = true; put(screen);
   const lampPP = lamp(-118, 21, 68, 2, '#d79a2b', 'y'), lampMO = lamp(-86, 21, 68, 2, '#5aa0ff', 'y'); put(lampPP); put(lampMO); put(label('PP', -118, 21, 62, 9, 2.8, 'y', plateLabel)); put(label('MOSO', -86, 21, 62, 12, 2.8, 'y', plateLabel));
   const dials = [-112, -102, -92].map((x) => { S.cylY(20.4, 21.4, x, 44, 5.2, 'brass', 24); const n = mover('aiguille', [x, 21.6, 44]); n.box(x, 21.8, 47.4, .7, .4, 6, 'red'); n.cylY(21.4, 22.6, x, 44, 1.1, 'steel', 10); put(n.root); return n; });
@@ -100,10 +104,12 @@ export function build() {
   const anchors = { all: new THREE.Object3D(), loop: new THREE.Object3D(), counter: new THREE.Object3D(), portal: new THREE.Object3D() };
   at(anchors.all, -10, 10, 90); at(anchors.loop, 0, 20, 100); at(anchors.counter, 18, 40, 55); at(anchors.portal, -102, 20, 80);
   for (const o of Object.values(anchors)) g.add(o);
-  let forced = null, lastK = 0, scKey = '';
+  let forced = null, lastK = 0, scKey = '', lastTime = 0;
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), ax = new THREE.Vector3(0, 0, 1), one = new THREE.Vector3(1, 1, 1);
 
+  const curU = () => Math.max(0, lastTime - T.CUSTOM.base);
   function update(time) {
+    lastTime = time;
     const now = performance.now(), dt = inspect.t ? Math.min(.1, (now - inspect.t) / 1000) : 0; inspect.t = now;
     inspect.v += (inspect.to - inspect.v) * (1 - Math.exp(-dt * 4.5)); if (Math.abs(inspect.to - inspect.v) < .002) inspect.v = inspect.to;
     for (const [n, z] of Object.entries(zones)) { const o = ZOFF[n] || [0, 0, 0]; at(z, o[0] * inspect.v, o[1] * inspect.v, o[2] * inspect.v); }
@@ -122,10 +128,10 @@ export function build() {
     const tgt = st.on ? sc.c[st.i] : -1;
     for (let i = 0; i < T.N; i++) { const p = T.path(i * T.SP + d), f = folderM[i]; if (i === tgt && st.out) at(f, st.tip + 8, 0, p.z - 15.6); else at(f, p.x, 0, p.z - 15.6); }
     /* portail de visualisation */
-    const key = [k, st.i, Math.round(st.ind * 12), st.i === 1 && sc.compare ? 1 : 0].join('|');
-    if (key !== scKey) { scKey = key; screenDraw(sctx, sc, st.on && st.ind > .01 ? st.i : -1, st.ind, sc.compare && st.i === 1); scTex.needsUpdate = true; }
+    const gh = st.on && sc.ghost ? sc.ghost(st.i) : null, key = [k, st.i, Math.round(st.ind * 12), gh || '', st.on ? sc.docs[st.i] : ''].join('|');
+    if (key !== scKey) { scKey = key; screenDraw(sctx, sc, st.on && st.ind > .01 ? st.i : -1, st.ind, gh); scTex.needsUpdate = true; }
     setLamp(lampPP, sc.kind === 'PP' && st.ind > .02 ? 1 : 0); setLamp(lampMO, sc.kind === 'MOSO' && st.ind > .02 ? 1 : 0);
-    const dv = st.on ? barVals(sc.docs[st.i]) : [0, 0, 0]; dials.forEach((n, i) => { n.root.rotation.z = 2.356 - 4.712 * dv[i] * st.ind; });
+    const dv = st.on ? barVals(sc.docs[st.i]) : [0, 0, 0];   // aiguilles : trois premiers indicateurs fictifs dials.forEach((n, i) => { n.root.rotation.z = 2.356 - 4.712 * dv[i] * st.ind; });
     lampsE.forEach((l, i) => setLamp(l, st.on && st.tv < 8 && i === Math.floor(u * 1.5) % 3 ? 1 : 0));
   }
   update(0);
@@ -134,8 +140,32 @@ export function build() {
     api: {
       anchors, setInspect(v) { inspect.to = v ? 1 : 0; }, get inspecting() { return inspect.to > 0; },
       views: [{ label: 'La boucle', anchor: 'loop' }, { label: 'Le comptoir', anchor: 'counter' }, { label: 'Le portail', anchor: 'portal' }],
-      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short })), setScenario(i) { forced = i == null ? null : ((i % 3) + 3) % 3; }, get scenario() { return forced; }
+      scenarios: T.SCEN.map((s) => ({ id: s.id, label: s.label, short: s.short, edit: !!s.edit, editT: s.editT, hold: s.hold })), setScenario(i) { forced = i == null ? null : ((i % 4) + 4) % 4; if (forced === 3) T.startCustom(lastTime); }, get scenario() { return forced; },
+      /* scénario D « Ma consultation » : choisir un document (plan de prévention ou marché), voir le casier venir à la fenêtre, consulter, comparer deux états simulés */
+      params: {
+        visible: () => forced === 3,
+        groups: [
+          { name: 'Document', options: T.CAT.map((e, i) => ({ label: e.label, run: () => { if (forced === 3) T.consult(i, curU()); } })), get: () => T.CUSTOM.last },
+          { name: 'Comparer', options: [{ label: 'Deux états du dernier plan', run: () => { if (forced === 3) T.compareLast(curU()); } }], get: () => -1 }
+        ]
+      },
+      status() {
+        if (forced !== 3) return ''; const u = curU(), st = T.state(u, 3), ev = T.CUSTOM.ev, n = ev.length, e = ev[st.on ? st.i : n - 1];
+        if (!e) return 'Aucune demande : choisissez un document.'; const queued = ev.filter((x) => x.t0 > u).length;
+        return (st.on ? 'En cours : ' : 'Dernière consultation : ') + e.doc + ' (casier P' + (e.c + 1) + ', portail ' + e.kind + ')' + (e.compare ? ' · comparaison de deux états simulés, pas des données réelles' : ' · indicateurs fictifs') + (queued ? ' · ' + queued + ' demande(s) en attente' : '');
+      },
+      /* un clic sur l'entrée documentaire passe au document suivant (actif seulement dans « Ma consultation ») */
+      drag: (() => {
+        const inv = new THREE.Matrix4(), r = new THREE.Ray(), hit = new THREE.Vector3();
+        return {
+          pick(ray) {
+            if (forced !== 3 || inspect.v > .05) return null; inv.copy(g.matrixWorld).invert(); r.copy(ray).applyMatrix4(inv); if (Math.abs(r.direction.z) < 1e-6) return null;
+            const t = (20.3 - r.origin.z) / r.direction.z; if (t < 0) return null; r.at(t, hit);
+            if (Math.abs(hit.x - 150) < 25 && hit.y > 6 && hit.y < 74) { T.consult((T.CUSTOM.last + 1 + T.CAT.length) % T.CAT.length, curU()); return { id: 'entree', name: 'document suivant' }; } return null;
+          }, move() {}, end() {}
+        };
+      })()
     },
-    controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u) + 1; }, seek: (v) => T.seekT(v) + .4 }
+    controls: { label: 'Étape', min: 1, max: 6, step: 1, fmt: (v) => v + ' : ' + T.STEPS[v - 1], get: (t) => { const l = T.locate(t, forced); return T.stepAt(l.u, l.k) + 1; }, seek: (v) => T.seekT(v) + .4 }
   };
 }

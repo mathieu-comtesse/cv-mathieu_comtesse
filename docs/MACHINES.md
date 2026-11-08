@@ -316,3 +316,10 @@ Vérification : chargement de `projet-lecteur-vre.html` en mode court sans erreu
 - Base : table émaillée, chants aluminium, ouïes ; laiton satiné et acier brossé de la bibliothèque commune.
 - Captures : `docs/machines/pp-pro-avant.png`, `pp-pro-horloge.png`, `pp-mon-classement.png`.
 - Limites : seulement deux tiroirs actifs sur huit ; dates, dossiers et seuils fictifs ; pas de vrai cadran de quantième ni de cames supplémentaires ; rendu logiciel seulement.
+
+## Power BI, PP et MOSO : scénario « Ma consultation »
+
+- Scénario D : catalogue fictif de huit casiers (quatre plans de prévention, quatre marchés, avec secteur). Le visiteur choisit un document : le paternoster tourne (casiers toujours horizontaux) jusqu'à amener le casier à la fenêtre, le verrou se pose, le volet s'ouvre, le bras sort le dossier sur le comptoir, le lecteur de référence allume le portail (PP ou MOSO) et les indicateurs fictifs apparaissent sur l'écran et les trois aiguilles. Les demandes se mettent en file : une consultation commence quand la précédente est terminée, et la boucle part de la disposition où elle se trouve. « Deux états du dernier plan » compare deux états simulés (T1 en gris, T2 en couleur) ; l'écran porte en permanence « DONNEES FICTIVES » et, en comparaison, « ETATS SIMULES, PAS DES DONNEES REELLES ». Clic direct sur l'entrée documentaire : document suivant.
+- Base : table émaillée, chants aluminium, ouïes, matériaux de la bibliothèque commune.
+- Captures : `docs/machines/powerbi-pro-avant.png`, `powerbi-pro-detail.png`, `powerbi-ma-consultation.png`.
+- Limites : les huit casiers et leurs indicateurs sont fictifs ; pas de comptoir de consultation enrichi (le dossier n'est pas ouvert) ; chaînes, roues et paliers non redessinés ; rendu logiciel seulement.
