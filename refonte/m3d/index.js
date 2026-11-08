@@ -8,7 +8,7 @@ const MODULES = {
   moteur: () => (/[?&]machines=old\b/.test(location.search) ? import('./moteur.js') : import('./q18.js')),
   cerfa: () => (/[?&]machines=old\b/.test(location.search) ? import('./cerfa.js') : import('./cerfa-sorter.js')),
   vm: () => (/[?&]machines=old\b/.test(location.search) ? import('./vm.js') : import('./vm-sorting.js')),
-  vre: () => import('./vre-wattselse.js'),
+  vre: () => (/[?&]machines=old\b/.test(location.search) ? import('./vre-wattselse.js') : import('./vre-counter.js')),
   gares: () => (/[?&]machines=old\b/.test(location.search) ? import('./gares.js') : import('./gares-board.js')),
   finance: () => (/[?&]machines=old\b/.test(location.search) ? import('./finance.js') : import('./finance-reservoir.js')),
   pp: () => (/[?&]machines=old\b/.test(location.search) ? import('./pp.js') : import('./pp-clock.js')),

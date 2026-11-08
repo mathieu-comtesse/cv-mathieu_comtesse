@@ -16,7 +16,7 @@ Branche de travail : `claude/machines-refonte`. Les anciens modèles restent en 
 | 03 Reporteur Q18 | `moteur` | `moteur.js` (livre « diffusion ») | `q18.js` + `q18-timeline.js` | livrée (cette branche) |
 | 04 Power Automate PP | `pp` | `pp.js` (+ figure du livre 52) | `pp-clock.js` + `pp-timeline.js` | livrée (cette branche) |
 | 05 CERFA v3 | `cerfa` | `cerfa.js` (banc acoustique) | `cerfa-sorter.js` + `cerfa-timeline.js` | livrée (cette branche) |
-| 06 Extracteur VRE | `vre` | `vre-wattselse.js` | à faire | vague 3 |
+| 06 Extracteur VRE | `vre` | `vre-wattselse.js` | `vre-counter.js` + `vre-timeline.js` | livrée (cette branche) |
 | 07 Nisaru | `vrestudio-musicbox` | `nisaru*.js` | inchangé (main conservée) | vague 3 |
 | 08 Power BI PP & MOSO | `powerbi` | `powerbi-wattselse.js` | `powerbi-paternoster.js` + `powerbi-timeline.js` | livrée (cette branche) |
 | 09 Studio d'extracteurs PDF | `studio` | `studio-wattselse.js` | `studio-pdf.js` + `studio-timeline.js` + `machine-kit.js` | livrée (cette branche) |
@@ -190,3 +190,24 @@ Trois scénarios de 60 s, chacun avec deux consultations : plans de prévention,
 **Vérifications** : déterminisme (t = 20 s identique après t = 5 s), 116 solides contrôlés tous les 3 s sur 180 s (restent des boîtes englobantes de roues et de verrou), 265 appels de rendu, 16 000 triangles, captures dans `docs/machines/powerbi/`. Défaut corrigé : le bras traversait la chaîne avant, la fenêtre est donc passée de la face avant au flanc droit.
 
 **Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les casiers de l'audit ne sont pas inclus (modèle cloné) ; 265 appels de rendu à réduire ; la comparaison de deux états est schématique (six barres fictives) ; le « comparer deux états de suivi » ne lit pas de vraies données ; la sélection d'un plan, d'un marché ou d'un secteur se fait par scénario et non par saisie.
+
+## Machine 06 : Extracteur VRE
+
+**Phrase de compréhension.** Une feuille de rapport est lue ligne à ligne ; chaque équipement reconnu fait pivoter un aiguillage vers sa famille, le tambour libère une bille qui roule dans la gouttière puis tombe dans la colonne de cette famille, et le compteur mécanique avance d'une unité.
+
+| Opération | Organe |
+|---|---|
+| Alimentation et lecture | plateau et pile de feuilles, rouleaux pinceurs, voûte à lentille, tête de lecture qui descend d'une ligne par équipement, voyants des quatre familles |
+| Famille reconnue | BT31 disjoncteurs, BT33 fusibles, BT21 blocs autonomes d'éclairage de sécurité, BT11 candélabres, chacune avec son collier coloré |
+| Distribution | tambour à dix alvéoles (un pas par bille), entonnoir, chenal pivotant (aiguillage), quatre gouttières inclinées |
+| Trajectoire de la bille | chute dans l'entonnoir, glissement dans le chenal, roulement à accélération constante selon la pente (plus lent vers les colonnes lointaines), chute libre, empilement : aucune téléportation |
+| Comptage | colonnes transparentes de 82 unités, compteur à tambour à chiffres sous chaque colonne |
+| Contrôle des totaux | écran qui compare attendu et obtenu, voyants conforme / écart ; scénario C : un volet latéral éjecte la bille mal classée dans le bac de rebut |
+| Remise à zéro, export | trappes des colonnes, billes recyclées vers le tambour, bordereau d'export vers le suivi |
+| Bâtiment, local | deux sélecteurs et un afficheur à trois tambours |
+
+Trois scénarios de 64 s : bâtiment 1 local 2, bâtiment 3 local 7, erreur de classement. Valeurs et comptages fictifs, plaque « DEMO FICTIVE ».
+
+**Vérifications** : déterminisme (t = 30 s identique après t = 5 s), 171 solides contrôlés tous les 3 s sur 192 s (restent le tambour devant sa plaque, le chenal sur son appui, boîtes englobantes en rotation), 158 appels de rendu, 24 000 triangles, captures dans `docs/machines/vre/`. Défaut corrigé : l'entonnoir pénétrait dans le tambour.
+
+**Limites** : pas de mesure GPU ni mobile réel ; la vue éclatée n'est pas auditée pièce à pièce ; les billes ne se heurtent pas entre elles (empilement calculé) ; le recyclage des billes vers le tambour n'a pas d'élévateur visible (elles réapparaissent dans les alvéoles) ; le rapport est une feuille générique (les lignes ne portent pas de texte d'équipement lisible) ; le contrôle d'erreur ne corrige pas le total (il signale et écarte) ; les images de la fiche « Lecteur VRE » (Nisaru) sont inchangées.
