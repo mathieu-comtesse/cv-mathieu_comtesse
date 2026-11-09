@@ -6,6 +6,11 @@ on:
     paths:
       - "index.html"
       - "js/**"
+      - "refonte/boot-*.js"
+      - "refonte/frame-bus.js"
+      - "refonte/post.js"
+      - "refonte/ui-premium.css"
+      - "refonte/m3d/**"
       - "tools/test-project-metadata.mjs"
       - "tools/test-jukebox-sequence.mjs"
       - "assets/dioramas/**"
@@ -122,7 +127,7 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/main.js?v=" index.html
+          grep -q "js/room.js?v=" index.html
           grep -q "character.js?v=" js/room.js
           grep -q "retro.js?v=" js/room.js
           grep -q "room.js?v=" js/main.js

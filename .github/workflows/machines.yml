@@ -7,6 +7,12 @@ on:
       - "refonte/m3d/**"
       - "refonte/mesh-gpu.js"
       - "refonte/post.js"
+      - "refonte/premium-cta.js"
+      - "refonte/ui-premium.css"
+      - "refonte/boot-native.js"
+      - "refonte/boot-graph.js"
+      - "projet-*.html"
+      - "tools/test-ux.mjs"
       - "refonte/parcours.js"
       - "refonte/main.js"
       - "tools/test-machines.mjs"
@@ -18,7 +24,13 @@ on:
       - "index.html"
       - "refonte/m3d/**"
       - "refonte/parcours.js"
+      - "refonte/boot-native.js"
+      - "refonte/boot-graph.js"
+      - "refonte/post.js"
+      - "refonte/ui-premium.css"
+      - "projet-*.html"
       - "tools/test-machines.mjs"
+      - "tools/test-ux.mjs"
   workflow_dispatch:
 
 jobs:
@@ -33,3 +45,15 @@ jobs:
         run: npm install --no-save playwright && npx playwright install --with-deps chromium
       - name: Registre unique, construction, temps, scénarios, commandes, inspection
         run: node tools/test-machines.mjs
+  ux:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Playwright (Chromium)
+        run: npm install --no-save playwright && npx playwright install --with-deps chromium
+      - name: "Onze fiches (bureau et mobile) : une seule démonstration, CTA, légende, pause, Explorer, sortie"
+        run: node tools/test-ux.mjs

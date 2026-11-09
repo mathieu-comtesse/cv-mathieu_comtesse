@@ -3,14 +3,14 @@ import * as THREE from 'three';
 import { makeStage, setDA } from './core.js';
 import { trackGlow, ACCENT } from './glow.js';
 
-import { loadMachine } from './registry.js';
+import { loadMachine, framingOf } from './registry.js';
 
 export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3(0, 0, 0)) {
   const { build, WIDTH = 236 } = await loadMachine(name);
   setDA(name);
   const { renderer, scene } = makeStage(canvas);
   const m = build();
-  const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(12.6 / WIDTH);
+  const g = new THREE.Group(); g.add(m.group); g.scale.setScalar(12.6 / WIDTH * framingOf(name).scale);
   scene.add(g);
   // centrage sur l'origine du plan, socle posé à y = 0
   const box = new THREE.Box3().setFromObject(g);

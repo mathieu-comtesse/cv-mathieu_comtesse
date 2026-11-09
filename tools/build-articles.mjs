@@ -6,7 +6,7 @@ const fiches = [...read('parcours.html').matchAll(/class="pc-more" href="([^".]+
 const hrefs = [...new Set([...blog, ...fiches])];
 const clean = (h) => h
   .replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '').replace(/<video[\s\S]*?<\/video>/g, '').replace(/<button[\s\S]*?<\/button>/g, '')
-  .replace(/<div class="rf-flow[\s\S]*?<\/ol><\/div>/g, '').replace(/ loading="lazy"| decoding="async"|<!--[\s\S]*?-->/g, '').replace(/ rf-tl-rv| rf-rv/g, '')
+  .replace(/<div class="rf-flow[\s\S]*?<\/ol><\/div>|<div class="rf-marche"[\s\S]*?<\/div>/g, '').replace(/ loading="lazy"| decoding="async"|<!--[\s\S]*?-->/g, '').replace(/ rf-tl-rv| rf-rv/g, '')
   .replace(/ (href|src|srcset)="(?!https?:|data:|#)([^"?]+)(\?[^"]*)?"/g, (m, a, u) => ` ${a}="${u}"`);
 const out = {};
 for (const h of hrefs) {
