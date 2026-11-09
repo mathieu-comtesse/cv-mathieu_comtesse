@@ -68,10 +68,10 @@ export function drawMat(TEX = 2048) {
 /* matériau du plan (shader : fond, grille, tracé de la table, lueur, vignette, grain) — partagé par l'accueil, les pages projet et les tuiles */
 export function blueprintMaterial(tex) {
   return new THREE.ShaderMaterial({
-    uniforms: { uTex: { value: tex }, uSize: { value: SIZE }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 } },
+    uniforms: { uTex: { value: tex }, uSize: { value: SIZE }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uDim: { value: 1 } },
     vertexShader: 'varying vec2 vUv;varying vec3 vW;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
     fragmentShader: `
-      varying vec2 vUv;varying vec3 vW;uniform sampler2D uTex;uniform float uSize;uniform vec2 uRes;uniform float uTime;
+      varying vec2 vUv;varying vec3 vW;uniform sampler2D uTex;uniform float uSize;uniform vec2 uRes;uniform float uTime;uniform float uDim;
       float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
       float lines(vec2 p,float s){vec2 q=p/s;vec2 d=fwidth(q);vec2 l=abs(fract(q-.5)-.5)/max(d,vec2(1e-5));return 1.-min(min(l.x,l.y),1.);}
       void main(){
@@ -92,7 +92,7 @@ export function blueprintMaterial(tex) {
         vec2 sp=gl_FragCoord.xy/uRes-.5;
         col*=1.-smoothstep(.25,.95,length(sp*vec2(1.25,1.)))*.42;
         col+=(hash(gl_FragCoord.xy+fract(uTime)*91.7)-.5)*.07;
-        gl_FragColor=vec4(col,1.);
+        gl_FragColor=vec4(col*uDim,1.);
       }`
   });
 }
@@ -159,7 +159,21 @@ export function initBlueprint(canvas, host) {
   resize();
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) loop();
   if (document.fonts) document.fonts.ready.then(() => { const t = drawMat(); tex.image = t; tex.needsUpdate = true; draw(); });
-  return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); let lastT = 0, lastK = ''; (function again(now) { raf = requestAnimationFrame(again); if (innerWidth < 760 && now - lastT < 33) return; lastT = now; if (visible && !document.hidden && host.style.opacity !== '0.000') { if (diagOn('bg', 'off')) return; if (diagOn('bg', 'static')) { const k = cam.matrixWorld.elements.join() + cam.projectionMatrix.elements.join(); if (k === lastK) return; lastK = k; } draw(); } })(0); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
+  return { plane, link(cam) {
+      linked = cam; cancelAnimationFrame(raf); let lastT = 0, lastK = '', lastG = -1e9;
+      /* Le plan ne change que si la caméra bouge ; seul le grain de film anime l'image fixe : il est rafraîchi à 12 Hz (cadence du grain argentique) au lieu de 60 Hz,
+         ce qui retire ~80 % des rendus plein écran du fond sans rien changer à la composition. */
+      (function again(now) {
+        raf = requestAnimationFrame(again);
+        if (innerWidth < 760 && now - lastT < 33) return; lastT = now;
+        if (!visible || document.hidden || host.style.opacity === '0.000' || diagOn('bg', 'off')) return;
+        const cl = document.body.classList, want = cl.contains('fl-lock') ? .8 : (cl.contains('rf-explore') || cl.contains('rf-demo')) ? .88 : 1;   // mêmes valeurs que l'ancien filtre CSS brightness
+        const du = mat.uniforms.uDim; let dimMoved = false; if (du.value !== want) { du.value = Math.abs(want - du.value) < .004 ? want : du.value + (want - du.value) * .1; dimMoved = true; }
+        const k = cam.matrixWorld.elements.join() + cam.projectionMatrix.elements.join(), moved = k !== lastK || dimMoved;
+        if (!moved && (diagOn('bg', 'static') || now - lastG < 83)) return;
+        lastK = k; lastG = now; draw();
+      })(0);
+    }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
 }
 
 /* plan blueprint pour une scène à part (tuiles de l'accueil) : même matériau, même tracé, texture plus légère */

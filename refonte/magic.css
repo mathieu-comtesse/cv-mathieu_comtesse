@@ -13,9 +13,7 @@ body.fl-lock{overflow:hidden}
 body.fl-lock .rf-post-head>:not(.rf-post-back),body.fl-lock .rf-post-body,body.fl-lock .rf-post-pn,body.fl-lock .rf-post-fig figcaption{opacity:.06!important;pointer-events:none;transition:opacity .6s}
 body.fl-lock canvas.rf-m3d{opacity:.16!important;transition:opacity .6s}
 body.fl-lock .rf-bnav{opacity:0!important;pointer-events:none!important;transition:opacity .4s}
-.rf-bp{transition:filter .6s}
-body.fl-lock .rf-bp{filter:brightness(.8) saturate(1.05)}
-body.rf-explore .rf-bp,body.rf-demo .rf-bp{filter:brightness(.88)}
+/* l'assombrissement du fond (magie .8, explorer/démo .88) est fait dans le shader du plan (uniform uDim, refonte/blueprint-hero.js) : un filtre CSS sur un canvas WebGL redessiné à chaque image ajoute une passe plein écran */
 
 /* perspective mesurée : le plan est incliné, jamais retourné */
 .fl-ov-c{width:min(1100px,90vw);position:relative;perspective:1450px;transform-style:preserve-3d}
@@ -149,5 +147,5 @@ body.rf-explore .rf-bp,body.rf-demo .rf-bp{filter:brightness(.88)}
 @media (prefers-reduced-motion:reduce){
   .fl3 .k3 .k3-i,.fl3 .k3 .k3-i path,.fl3 .k3 .k3-i circle,.fl3 .k3.final,.fl3 .m3.arrive .m3-orb{animation:none!important}
   .fl-ov-result b,.fl-ov-result p,.fl-ov-result small,.fl-ov-end{animation:none}
-  .fl-ov-list,.rf-bp{transition:none}
+  .fl-ov-list{transition:none}
 }

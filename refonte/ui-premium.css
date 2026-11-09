@@ -22,7 +22,7 @@
   text-shadow:0 1px 12px rgb(2 6 40 / .5);cursor:pointer;-webkit-tap-highlight-color:transparent;
   transform:perspective(700px) translate3d(calc(var(--mx) * 3px),calc(var(--my) * 2px),0) rotateX(calc(var(--my) * -2.5deg)) rotateY(calc(var(--mx) * 2.5deg));
   transition:transform .55s var(--up-ease),box-shadow .55s var(--up-ease),border-color .3s,background .3s;
-  animation:up-float 7.5s ease-in-out infinite;
+  animation:up-float 7.5s ease-in-out 3;   /* 3 cycles puis immobile : une animation infinie maintient une recomposition permanente au-dessus du canvas WebGL (mesuré : -15 % d'intervalle au repos en rendu logiciel) */
 }
 .rf-cta::before,html body .cv-magic3d,html body .cv-explore3d::before{content:"";width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:var(--up-icon) center/contain no-repeat;mask:var(--up-icon) center/contain no-repeat}
 .rf-cta[data-demo="explore"]::before{-webkit-mask-image:var(--up-icon-more);mask-image:var(--up-icon-more)}
