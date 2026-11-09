@@ -21,7 +21,7 @@ const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console'
 await context.addInitScript(()=>{window.audioEvidence=[];const original=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){if(this.buffer){const b=this.buffer.getChannelData(0);let peak=0;for(let i=0;i<b.length;i+=64)peak=Math.max(peak,Math.abs(b[i]));window.audioEvidence.push({peak,state:this.context.state});}return original.apply(this,args);};});
     await context.route('http://scene.test/**', async (route) => {
       const url = new URL(route.request().url());
-      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/accueil.html' : url.pathname));
       if (!filename.startsWith(root)) return route.fulfill({ status: 403 });
       try {
         const body = await readFile(filename);

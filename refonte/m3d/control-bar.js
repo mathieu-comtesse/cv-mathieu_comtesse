@@ -41,7 +41,7 @@ const ICON = {
   more: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>',
   close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>'
 };
-export function buildControlBar(root, machine, ctl, { label = 'machine', onClose = null } = {}) {
+export function buildControlBar(root, machine, ctl, { label = 'machine', onClose = null, onGuide = null } = {}) {
   if (!styled) { styled = true; const s = document.createElement('style'); s.textContent = CSS; document.head.append(s); }
   const api = machine.api || {}, c = machine.controls && machine.controls.seek ? machine.controls : null;
   const bar = document.createElement('div'); bar.className = 'cv-cb'; bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', 'Commandes : ' + label);
@@ -77,6 +77,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   const replay = choice('Rejouer', () => { ctl.scenario(null); ctl.seek(0); ctl.setPaused(false); syncPlay(); markScenario(null); refreshEdit(); }, { aria: 'Rejouer depuis le début' });
   const speed = choice('1×', () => { const i = (SPEEDS.indexOf(ctl.speed) + 1) % SPEEDS.length; ctl.setSpeed(SPEEDS[i]); speed.textContent = SPEEDS[i] + '×'; }, { aria: 'Vitesse de lecture' });
   sd.r.append(replay, speed);
+  if (onGuide) sd.r.prepend(choice('Démonstration guidée', () => { onGuide(); syncPlay(); }, { aria: 'Lancer la démonstration guidée depuis le début' }));
 
   /* section Scénarios */
   let markScenario = () => {};

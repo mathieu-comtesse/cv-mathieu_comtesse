@@ -101,46 +101,65 @@ function mountRail(root, items, steps) {
    de son contour et son voyant s'allume. Même transformation que la référence : translate3d(-20px,100px,50px) rotateY(20deg) rotateX(50deg) scale(1.5),
    conteneur de 1100 px (90 vw), perspective 1450 px, ouverture 1,35 s en cubic-bezier(.22,1,.36,1). Parcours automatique : mêmes durées que la référence
    (arrêt de 2,5 s sur chaque case, trajet de 2,4 s, case mobile esquisse → trait → plein → couleur). */
-const T = { lead: 800, dwell: 2500, travel: 2400, hold: 2600 };
+const T = { lead: 900, dwell: 2300, travel: 1700, hold: 2000 };
 const easeInOut = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
+/* Disposition : serpentin compact légèrement courbe sur ordinateur ; colonne qui défile sous la caméra sur mobile.
+   Le nombre d'étapes fixe le nombre de colonnes, l'ordre de lecture est toujours celui du parcours. */
 function layoutSnake(n, narrow) {
-  const BOX = 59, cols = narrow ? 3 : 5, W = narrow ? 420 : 843, ROW = narrow ? 158 : 175, TOP = 28.5, M = 30;
-  const px = (W - 2 * M - BOX) / (cols - 1), rows = Math.ceil(n / cols);
+  if (narrow) {
+    const BOX = 84, GAP = 132, W = 300, M = 50;
+    const pos = Array.from({ length: n }, (_, i) => ({ x: W / 2 - BOX / 2 + (i % 2 ? 1 : -1) * 44, y: M + i * GAP, r: i, c: i % 2, i }));
+    return { BOX, cols: 1, W, H: M * 2 + (n - 1) * GAP + BOX, pos, rows: n, mobile: true };
+  }
+  const BOX = 78, cols = clamp(Math.ceil(n / 2), 3, 5), W = 150 * cols - 20, ROW = 156, TOP = 40, M = 40;
+  const px = (W - 2 * M - BOX) / Math.max(1, cols - 1), rows = Math.ceil(n / cols);
   const pos = Array.from({ length: n }, (_, i) => {
     const r = Math.floor(i / cols); let c = i % cols; if (r % 2) c = cols - 1 - c;
-    return { x: M + c * px, y: TOP + r * ROW, r, c, i };
+    const bow = Math.sin((cols > 1 ? c / (cols - 1) : .5) * Math.PI) * 18 * (r % 2 ? 1 : -1);
+    return { x: M + c * px, y: TOP + r * ROW + bow, r, c, i };
   });
-  return { BOX, cols, W, H: TOP + (rows - 1) * ROW + BOX + 56, pos, rows };
+  return { BOX, cols, W, H: TOP + (rows - 1) * ROW + BOX + 80, pos, rows, mobile: false };
+}
+
+/* liaison entre deux icônes : courbe douce échantillonnée (position du signal à l'abscisse curviligne), tronquée aux bords des icônes pour le tracé */
+function linkOf(a, b, L) {
+  const h = L.BOX / 2, ca = { x: a.x + h, y: a.y + h }, cb = { x: b.x + h, y: b.y + h };
+  let p1, p2;
+  if (L.mobile) { p1 = { x: ca.x, y: ca.y + (cb.y - ca.y) * .55 }; p2 = { x: cb.x, y: cb.y - (cb.y - ca.y) * .55 }; }
+  else if (a.r === b.r) { const d = Math.abs(cb.x - ca.x) * .4, sg = Math.sign(cb.x - ca.x); p1 = { x: ca.x + sg * d, y: ca.y - 26 }; p2 = { x: cb.x - sg * d, y: cb.y - 26 }; }
+  else { const o = ca.x > L.W / 2 ? 1 : -1, d = 76; p1 = { x: ca.x + o * d, y: ca.y + (cb.y - ca.y) * .08 }; p2 = { x: cb.x + o * d, y: cb.y - (cb.y - ca.y) * .08 }; }
+  const N = 48, pts = [], cum = [0];
+  for (let k = 0; k <= N; k++) { const u = k / N, v = 1 - u; pts.push({ x: v * v * v * ca.x + 3 * v * v * u * p1.x + 3 * v * u * u * p2.x + u * u * u * cb.x, y: v * v * v * ca.y + 3 * v * v * u * p1.y + 3 * v * u * u * p2.y + u * u * u * cb.y }); if (k) cum.push(cum[k - 1] + Math.hypot(pts[k].x - pts[k - 1].x, pts[k].y - pts[k - 1].y)); }
+  const len = cum[N], R = L.BOX * .62, keep = pts.map((q, k) => Math.hypot(q.x - ca.x, q.y - ca.y) > R && Math.hypot(q.x - cb.x, q.y - cb.y) > R ? k : -1).filter((k) => k >= 0);
+  const k0 = keep[0] ?? 0, k1 = keep[keep.length - 1] ?? N, start = cum[k0], tlen = Math.max(1, cum[k1] - cum[k0]);
+  const d = pts.slice(k0, k1 + 1).map((q, k) => (k ? 'L' : 'M') + q.x.toFixed(1) + ' ' + q.y.toFixed(1)).join('');
+  const at = (u) => { const s = clamp(u, 0, 1) * len; let k = 1; while (k < N && cum[k] < s) k++; const f = (s - cum[k - 1]) / Math.max(1e-6, cum[k] - cum[k - 1]); return { x: pts[k - 1].x + (pts[k].x - pts[k - 1].x) * f, y: pts[k - 1].y + (pts[k].y - pts[k - 1].y) * f }; };
+  return { d, len, start, tlen, at };
 }
 
 function build3d(items, L) {
   const { BOX, pos } = L, plane = document.createElement('div');
-  plane.className = 'fl3'; plane.style.width = L.W + 'px'; plane.style.height = L.H + 'px';
+  plane.className = 'fl3'; plane.style.width = L.W + 'px'; plane.style.height = L.H + 'px'; plane.style.setProperty('--bx', BOX + 'px');
   const put = (cls, css, html) => { const e = document.createElement('div'); e.className = cls; Object.assign(e.style, css); if (html) e.innerHTML = html; plane.append(e); return e; };
-  const dash = (x, y, w, h) => put('l3 ' + (h === 0 ? 'lh' : 'lv'), { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
-  for (let i = 0; i < pos.length - 1; i++) {                       // liaisons en pointillés, au sol
-    const a = pos[i], b = pos[i + 1], cy = a.y + BOX / 2;
-    if (a.r === b.r) { const x1 = Math.min(a.x, b.x) + BOX + 4, x2 = Math.max(a.x, b.x) - 4; dash(x1, cy, x2 - x1, 0); }
-    else {
-      const right = a.x > L.W / 2, ox = right ? a.x + BOX + 16 : a.x - 16, ex = right ? a.x + BOX + 4 : a.x - 4, cy2 = b.y + BOX / 2;
-      dash(Math.min(ex, ox), cy, Math.abs(ox - ex), 0); dash(ox, cy, 0, cy2 - cy); dash(Math.min(ex, ox), cy2, Math.abs(ox - ex), 0);
-    }
-  }
+  const links = pos.slice(1).map((b, i) => linkOf(pos[i], b, L));
+  const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'l3-svg'); svg.setAttribute('width', L.W); svg.setAttribute('height', L.H); svg.setAttribute('viewBox', '0 0 ' + L.W + ' ' + L.H); svg.setAttribute('aria-hidden', 'true');
+  const mk = (cls, d) => { const e = document.createElementNS(NS, 'path'); e.setAttribute('class', cls); e.setAttribute('d', d); svg.append(e); return e; };
+  const wires = links.map((k) => ({ base: mk('l3-b', k.d), fill: mk('l3-f', k.d), glow: mk('l3-g', k.d) }));
+  plane.append(svg);
   const cells = pos.map((p, i) => {
     const it = items[i];
-    put('t3', { left: (p.x - 20) + 'px', top: (p.y + BOX + 8) + 'px', width: (BOX + 40) + 'px' }, '<b>' + esc(cut(it.title, L.cols === 5 ? 24 : 18)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>');
-    const shadow = put('s3', { left: p.x + 'px', top: p.y + 'px' });
-    const tile = put('k3', { left: p.x + 'px', top: p.y + 'px' }, svgIcon(it.icon, 'k3-i')); tile.dataset.k = it.icon; tile.style.setProperty('--z', (46 + ((i * 7) % 4) * 12) + 'px'); tile.style.setProperty('--rz', (((i % 3) - 1) * 2.2).toFixed(1) + 'deg');
-    const led = put('d3', { left: (p.x + BOX - 6) + 'px', top: (p.y + 4) + 'px' });
-    return { tile, led, shadow };
+    put('t3', { left: (p.x - 34) + 'px', top: (p.y + BOX + 10) + 'px', width: (BOX + 68) + 'px' }, '<b>' + esc(cut(it.title, L.mobile ? 26 : 24)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>');
+    const tile = put('k3', { left: p.x + 'px', top: p.y + 'px' }, svgIcon(it.icon, 'k3-i')); tile.dataset.k = it.icon;
+    tile.style.setProperty('--z', (40 + ((i * 7) % 4) * 10) + 'px'); tile.style.setProperty('--rz', (((i % 3) - 1) * 2).toFixed(1) + 'deg');
+    const lab = tile.previousElementSibling;
+    return { tile, lab };
   });
-  const mv = put('m3', { left: '0px', top: '0px' }, '<i class="m3-h"></i><i class="m3-o"></i><i class="m3-s"></i><i class="m3-c"></i><span class="m3-i"></span>');
-  const parts = { h: mv.querySelector('.m3-h'), o: mv.querySelector('.m3-o'), s: mv.querySelector('.m3-s'), c: mv.querySelector('.m3-c'), i: mv.querySelector('.m3-i') };
-  return { plane, cells, mv, parts, icon: '' };
+  const mv = put('m3', { left: '0px', top: '0px' }, '<i class="m3-orb"></i>');
+  return { plane, cells, mv, wires, links, cam: { x: L.W / 2, y: L.H / 2, z: 1 }, shown: [] };
 }
 
-/* instant t (ms) → état : position de la case mobile, case atteinte, avancement */
+/* instant t (ms) → état : position du signal (s : indice fractionnaire), icône atteinte, avancement */
 function timeline(n) {
   const unit = T.dwell + T.travel, run = T.lead + n * T.dwell + (n - 1) * T.travel;
   return { run, total: run + T.hold, at(t) {
@@ -152,31 +171,27 @@ function timeline(n) {
   } };
 }
 
+/* un seul état pilote tout : icônes (entrée, active, terminée), liaisons (tracé et traînée), tête du signal. Fonction pure de t. */
 function draw3d(st, items, L, tl, t) {
-  const n = items.length, { s, reach, moving, p } = tl.at(t);
-  const i0 = Math.min(Math.max(0, n - 2), Math.floor(s)), g = n > 1 ? s - i0 : 0;
-  const a = L.pos[i0], b = L.pos[Math.min(n - 1, i0 + 1)];
-  let x, y;
-  if (a.r === b.r) { x = a.x + (b.x - a.x) * g; y = a.y + (b.y - a.y) * g; }
-  else {
-    const off = a.x > L.W / 2 ? 40 : -40;
-    if (g < 1 / 3) { x = a.x + off * smooth(g * 3, 0, 1); y = a.y; }
-    else if (g < 2 / 3) { x = a.x + off; y = a.y + (b.y - a.y) * smooth(g * 3 - 1, 0, 1); }
-    else { x = a.x + off + (b.x - a.x - off) * smooth(g * 3 - 2, 0, 1); y = b.y; }
-  }
-  st.mv.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,1px)';
-  const lk = looks(p);
-  st.parts.h.style.opacity = lk.hatch.toFixed(3); st.parts.o.style.opacity = lk.outline.toFixed(3); st.parts.s.style.opacity = lk.solid.toFixed(3); st.parts.c.style.opacity = lk.color.toFixed(3);
-  const fade = t > tl.run - 900 ? clamp(1 - (t - (tl.run - 900)) / 900, 0, 1) : 1;   // la case mobile s'efface à la fin du parcours
-  st.mv.style.opacity = fade.toFixed(3); st.mv.classList.toggle('fl-done', lk.color > .5);
-  const near = clamp(Math.round(s), 0, n - 1);
-  if (st.icon !== items[near].icon) { st.icon = items[near].icon; st.parts.i.innerHTML = svgIcon(st.icon, 'm3-ico'); }
-  st.cells.forEach((c, i) => {
-    const up = reach >= 0 && i <= reach;
-    const here = i === reach && !moving, done = up && !here;
-    c.tile.classList.toggle('up', up); c.tile.classList.toggle('cur', here); c.tile.classList.toggle('done', done); c.shadow.classList.toggle('up', up); c.led.classList.toggle('up', up); c.led.classList.toggle('cur', here); c.led.classList.toggle('ok', done);
+  const n = items.length, { s, reach, moving, p } = tl.at(t), fin = t >= tl.run;
+  const i0 = Math.min(Math.max(0, n - 2), Math.floor(s)), g = n > 1 ? clamp(s - i0, 0, 1) : 0;
+  const head = n > 1 && st.links[i0] ? st.links[i0].at(g) : { x: L.pos[0].x + L.BOX / 2, y: L.pos[0].y + L.BOX / 2 };
+  st.mv.style.transform = 'translate3d(' + (head.x - 9).toFixed(1) + 'px,' + (head.y - 9).toFixed(1) + 'px,' + (fin ? 20 : 34) + 'px)';
+  st.mv.style.opacity = (t < T.lead * .6 ? 0 : fin ? clamp(1 - (t - tl.run) / 700, 0, 1) : 1).toFixed(2);
+  st.mv.classList.toggle('arrive', !moving && reach >= 0 && !fin);
+  st.wires.forEach((w, i) => {
+    const k = st.links[i], prog = fin || i < i0 ? 1 : i === i0 && moving ? g : 0, tr = k.tlen * .26, hh = clamp((prog * k.len - k.start), 0, k.tlen);
+    w.fill.style.strokeDasharray = k.tlen.toFixed(1); w.fill.style.strokeDashoffset = (k.tlen * (1 - (prog >= 1 ? 1 : hh / k.tlen))).toFixed(1); w.fill.style.opacity = prog > 0 ? 1 : 0;
+    w.glow.style.strokeDasharray = tr.toFixed(1) + ' ' + (k.tlen * 2).toFixed(1); w.glow.style.strokeDashoffset = (tr - hh).toFixed(1); w.glow.style.opacity = prog > 0 && prog < 1 ? 1 : 0;
   });
-  return { near, finished: t >= tl.run };
+  let cur = -1; if (fin) cur = -1; else if (!moving && reach >= 0) cur = reach; else if (moving && g > .82) cur = i0 + 1;
+  const dn = fin ? n : cur >= 0 ? cur : (moving ? i0 + 1 : Math.max(0, reach));
+  st.cells.forEach((c, i) => {
+    const on = t >= 120 + i * 110, here = i === cur, done = fin ? true : i < dn || (i === i0 && moving && cur !== i);
+    c.tile.classList.toggle('in', on); c.tile.classList.toggle('cur', here); c.tile.classList.toggle('done', done && !here);
+    c.lab.classList.toggle('on', here); c.lab.classList.toggle('dn', done && !here);
+  });
+  return { reach, moving, finished: fin, p, cur, head };
 }
 
 /* ================================================================ composant */
@@ -216,48 +231,92 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   if ('IntersectionObserver' in window) { const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('rf-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 }); steps.forEach((li) => io.observe(li)); }
   else steps.forEach((li) => li.classList.add('rf-in'));
 
-  /* --- « Voir la magie » : le schéma en perspective, parcours automatique, mêmes animations à l'ouverture et à la fermeture --- */
+  let open, close;
+  {
+  /* --- « Voir la magie » : le processus en perspective, au-dessus du décor. Une seule boucle, un seul temps actif (la page cachée ne le fait pas avancer),
+     arrêt sur le résultat, caméra qui suit le signal, sortie vers la machine sans rupture. --- */
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ov = document.createElement('div');
-  ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true');
-  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><p class="fl-ov-cap">ÉCHAP POUR FERMER</p>';
+  ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true'); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Voir la magie : le processus étape par étape');
+  const I = { pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.8" height="14" rx="1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1"/></svg>', play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.6.6 0 0 0 .9.5l10.5-6.8a.6.6 0 0 0 0-1L8.9 4.7a.6.6 0 0 0-.9.5z"/></svg>', replay: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"/></svg>' };
+  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><div class="fl-ov-ctl"><button type="button" class="fl-ov-b" data-act="pause" aria-label="Mettre en pause">' + I.pause + '</button><i class="fl-ov-prog" aria-hidden="true"><b></b></i><button type="button" class="fl-ov-b" data-act="again" aria-label="Rejouer depuis le début">' + I.replay + '</button></div><p class="fl-ov-cap">ÉCHAP POUR FERMER</p>';
   document.body.append(ov);
-  const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w');
-  let L = null, st = null, tl = null, ra = 0, t0 = 0, timer = 0;
-  const lower = () => st && st.cells.forEach((c) => { c.tile.classList.remove('up'); c.shadow.classList.remove('up'); c.led.classList.remove('up', 'cur', 'ok'); });
-  const stepBox = ov.querySelector('.fl-ov-step'), endBox = ov.querySelector('.fl-ov-end');
-  let shown = -1;
-  const caption = (i) => { if (i === shown) return; shown = i; const it = items[i]; stepBox.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + items.length + '</small><b>' + esc(it.title) + '</b><span>' + esc(it.text) + '</span>'; };
-  const frame3 = () => {
-    const t = Math.min(performance.now() - t0, tl.total), r = draw3d(st, items, L, tl, t);
-    caption(r.near);
-    if (r.finished && !endBox.hidden === false) { endBox.hidden = false; ov.classList.add('is-done'); }
-    if (t >= tl.total) { ra = 0; return; }                                           // le résultat reste lisible : plus de boucle
-    ra = requestAnimationFrame(frame3);
+  const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w'), stepBox = ov.querySelector('.fl-ov-step'), endBox = ov.querySelector('.fl-ov-end'), prog = ov.querySelector('.fl-ov-prog b'), pauseBtn = ov.querySelector('[data-act="pause"]');
+  let L = null, st = null, tl = null, ra = 0, last = 0, tAct = 0, playing = true, timer = 0, opener = null, isOpen = false, shown = -2, fit = 1, Hv = 0;
+  const fitOf = () => Math.min(center.clientWidth / L.W, L.mobile ? 9 : innerHeight * .5 / L.H) || 1;   // le processus tient dans la moitié de la hauteur : de l'air autour, légende et commandes dégagées
+  const caption = (i) => { if (i === shown) return; shown = i; if (i < 0) { stepBox.innerHTML = ''; return; } const it = items[i]; stepBox.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + items.length + '</small><b>' + esc(it.title) + '</b><span>' + esc(it.text) + '</span>'; };
+  /* caméra : vue d'ensemble au début et à la fin, rapprochement discret de l'icône active entre les deux (mobile : elle suit le signal) */
+  const camera = (r, dt, snap) => {
+    const cam = st.cam, Wv = center.clientWidth, overview = r.finished || tAct < T.lead || reduced;
+    const zFull = L.mobile ? Math.min(1, Hv / (L.H * fit)) : 1;
+    const tz = overview ? zFull : (L.mobile ? 1.18 : 1.08);
+    const cx = L.W / 2, cy = L.H / 2, hx = r.head.x, hy = r.head.y;
+    const tx = overview ? cx : L.mobile ? hx : cx + (hx - cx) * .3, ty = overview ? cy : L.mobile ? hy : cy + (hy - cy) * .3;
+    const k = snap ? 1 : 1 - Math.exp(-dt * 2.6);
+    cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; cam.z += (tz - cam.z) * k;
+    const sc = fit * cam.z;
+    if (L.mobile) st.cells.forEach((c, i) => { const d = clamp(1 - Math.abs(L.pos[i].y + L.BOX / 2 - cam.y) / 330, .1, 1).toFixed(2); if (c.d !== d) { c.d = d; c.tile.style.setProperty('--d', d); c.lab.style.setProperty('--d', d); } });   // mobile : les étapes lointaines s'estompent, le contexte reste lisible
+    st.plane.style.transform = 'translate3d(' + (Wv / 2 - cam.x * sc).toFixed(1) + 'px,' + (Hv / 2 - cam.y * sc).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
   };
-  const start = () => { cancelAnimationFrame(ra); lower(); shown = -1; endBox.hidden = true; ov.classList.remove('is-done'); t0 = performance.now(); ra = requestAnimationFrame(frame3); };
-  ov.querySelector('[data-act="replay"]').addEventListener('click', start);
-  ov.querySelector('[data-act="machine"]').addEventListener('click', () => { close(); document.dispatchEvent(new CustomEvent('rf-explore-machine', { detail: { root } })); });
-  let opener = null;
-  const open = () => {
-    opener = document.activeElement; clearTimeout(timer); cancelAnimationFrame(ra);
+  const showEnd = () => { endBox.hidden = false; ov.classList.add('is-done'); pauseBtn.disabled = true; };
+  const sync = (dt, snap) => {
+    const r = draw3d(st, items, L, tl, tAct);
+    if (r.finished) caption(items.length - 1); else if (!r.moving && r.reach >= 0) caption(r.reach);
+    ov.dataset.t = String(Math.round(tAct)); ov.dataset.playing = String(playing);
+    camera(r, dt, snap); prog.style.transform = 'scaleX(' + clamp(tAct / tl.total, 0, 1).toFixed(4) + ')';
+    if (r.finished && endBox.hidden) showEnd();
+    return r;
+  };
+  const frame = (now) => {
+    ra = 0; if (!isOpen) return;
+    const dt = last ? Math.min(250, now - last) : 16; last = now;              // le temps hors écran n'est jamais compté : rAF suspendu, last remis à zéro au retour, dt plafonné
+    if (playing) tAct = Math.min(tl.total, tAct + dt);
+    sync(dt / 1000, false);
+    if (playing && tAct < tl.total) ra = requestAnimationFrame(frame);          // arrêt sur le résultat, plus de boucle
+  };
+  const kick = () => { if (!ra && !reduced && isOpen && playing && tAct < tl.total && !document.hidden) { last = 0; ra = requestAnimationFrame(frame); } };
+  const onVis = () => { last = 0; if (!document.hidden) kick(); else if (ra) { cancelAnimationFrame(ra); ra = 0; } };
+  const setPlaying = (v) => { playing = v; pauseBtn.innerHTML = v ? I.pause : I.play; pauseBtn.setAttribute('aria-label', v ? 'Mettre en pause' : 'Reprendre'); if (v) kick(); else if (ra) { cancelAnimationFrame(ra); ra = 0; } };
+  const start = () => {
+    cancelAnimationFrame(ra); ra = 0; tAct = 0; last = 0; shown = -2; endBox.hidden = true; ov.classList.remove('is-done'); pauseBtn.disabled = false; setPlaying(true);
+    if (st) { st.cam.x = L.W / 2; st.cam.y = L.H / 2; st.cam.z = 1; }
+    if (reduced) { tAct = tl.total; stepBox.innerHTML = '<ol class="fl-ov-all">' + items.map((it, i) => '<li><b>' + esc(it.title) + '</b> ' + esc(it.text) + '</li>').join('') + '</ol>'; shown = -3; const r = draw3d(st, items, L, tl, tAct); camera(r, 0, true); showEnd(); prog.style.transform = 'scaleX(1)'; return; }
+    sync(0, true); kick();
+  };
+  open = () => {
+    if (isOpen) return;
+    clearTimeout(timer); opener = document.activeElement;
     L = layoutSnake(items.length, matchMedia('(max-width: 640px)').matches); tl = timeline(items.length);
     st = build3d(items, L);
-    const k = center.clientWidth / L.W || 1;
-    st.plane.style.transform = 'scale(' + k + ')'; wrap.style.height = (L.H * k) + 'px';
-    wrap.replaceChildren(st.plane);
-    draw3d(st, items, L, tl, 0);
+    fit = fitOf(); Hv = L.mobile ? Math.round(innerHeight * .6) : Math.round(L.H * fit);
+    wrap.style.height = Hv + 'px'; wrap.replaceChildren(st.plane);
+    isOpen = true; document.addEventListener('visibilitychange', onVis);
     void ov.offsetWidth;
     ov.classList.add('is-open'); ov.setAttribute('aria-hidden', 'false'); document.body.classList.add('fl-lock');
-    start(); ov.querySelector('.fl-ov-x').focus();
+    start(); ov.querySelector('.fl-ov-x').focus({ preventScroll: true });
   };
-  const close = () => {
-    cancelAnimationFrame(ra); ra = 0; lower(); stepBox.textContent = ''; opener?.focus?.({ preventScroll: true });                                              // les cases redescendent pendant que la vue se redresse
-    ov.classList.remove('is-open'); ov.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fl-lock');
-    timer = setTimeout(() => { if (!ov.classList.contains('is-open')) wrap.replaceChildren(); }, 1450);
+  close = (silent) => {
+    if (!isOpen) return;
+    isOpen = false; cancelAnimationFrame(ra); ra = 0; document.removeEventListener('visibilitychange', onVis);
+    ov.classList.remove('is-open', 'is-done', 'is-leaving'); ov.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fl-lock');
+    stepBox.textContent = ''; if (!silent) opener?.focus?.({ preventScroll: true });
+    timer = setTimeout(() => { if (!isOpen) { wrap.replaceChildren(); st = null; } }, 1450);   // plus aucune animation ni nœud actif après la fermeture
   };
+  /* sortie vers la machine : le processus se redresse et s'efface, la machine prend le relais sans second clic */
+  const toMachine = () => {
+    ov.classList.add('is-leaving');
+    setTimeout(() => document.dispatchEvent(new CustomEvent('rf-explore-machine', { detail: { root, fromMagic: true } })), 360);
+    setTimeout(() => close(true), 900);
+  };
+  ov.querySelector('[data-act="replay"]').addEventListener('click', start);
+  ov.querySelector('[data-act="again"]').addEventListener('click', start);
+  ov.querySelector('[data-act="machine"]').addEventListener('click', toMachine);
+  pauseBtn.addEventListener('click', () => setPlaying(!playing));
+  addEventListener('resize', () => { if (isOpen && !reduced) { fit = fitOf(); Hv = L.mobile ? Math.round(innerHeight * .6) : Math.round(L.H * fit); wrap.style.height = Hv + 'px'; if (!playing || tAct >= tl.total) sync(0, true); } });
   root.querySelector('.rf-flow-magic')?.addEventListener('click', open);
-  ov.querySelector('.fl-ov-x').addEventListener('click', close);
+  ov.querySelector('.fl-ov-x').addEventListener('click', () => close());
   ov.addEventListener('click', (e) => { if (e.target === ov || e.target === center) close(); });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && ov.classList.contains('is-open')) close(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) close(); });
+  }
   return { open, close, remeasure, kick };
 }

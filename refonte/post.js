@@ -83,16 +83,17 @@ if (fig && bpCanvas && stage) {
     document.querySelectorAll('.rf-marche-steps>li').forEach((li, i, all) => { li.style.cursor = 'pointer'; li.addEventListener('click', () => apply(ctl.min + (ctl.max - ctl.min) * (+li.dataset.at || i / all.length))); });
     /* Commandes : une capsule silencieuse (refonte/m3d/control-bar.js, la même qu'à l'accueil) ; elle n'apparaît qu'avec la démonstration ou le mode Explorer. */
     const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
+    let demoTick = 0;   // dernier relevé de l'état observable (200 ms)
     const dock = document.createElement('div'); dock.className = 'rf-cb-dock'; document.body.append(dock); machine.bar = dock;
     const how = document.querySelector('.rf-marche'), howSteps = how ? [...how.querySelectorAll('.rf-marche-steps>li')] : [];
     const cap2 = document.createElement('div'); cap2.className = 'rf-demo-cap'; cap2.setAttribute('role', 'status'); cap2.setAttribute('aria-live', 'polite'); document.body.append(cap2);
-    const demo = { on: false, explore: false, finished: false, end: null, step: -1 };
+    const demo = { on: false, explore: false, mode: 'idle', finished: false, end: null, step: -1 };
     let barUI = null;
     const mountBar = () => {
       if (barUI) return;
       const mc = { ...machine, api: machine.api && { ...machine.api, setInspect: machine.api.inspect } };
-      const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
-      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo() }); if (demo.explore) barUI.open(true); });
+      const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } dock.dataset.paused = String(hold !== null); dock.dataset.t = clock().toFixed(2); }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
+      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo(), onGuide: () => enter(false) }); if (demo.explore) barUI.open(true); });
     };
     const showStep = (i) => {
       if (!howSteps.length || i === demo.step) return; demo.step = i;
@@ -100,27 +101,37 @@ if (fig && bpCanvas && stage) {
       howSteps[0].parentElement.style.setProperty('--pf', ((i + .5) / howSteps.length).toFixed(3));
       const li = howSteps[i]; if (li) cap2.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + howSteps.length + '</small><b>' + li.querySelector('h3').innerHTML + '</b><span>' + li.querySelector('p').innerHTML + '</span>';
     };
-    const enter = (explore) => {
-      if (demo.on) { if (explore && barUI) barUI.open(true); return; }
-      demo.on = true; demo.explore = explore; demo.finished = false;
-      document.body.classList.remove('rf-demo-done'); document.body.classList.add(explore ? 'rf-explore' : 'rf-demo'); mountBar();
-      scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
-      if (!explore) {
-        machine.api?.setScenario?.(null); const t1 = ctl.seek ? ctl.seek(ctl.max) : null; demo.end = Number.isFinite(t1) && t1 > 3 ? t1 : null;
-        setClock(ctl.seek ? ctl.seek(ctl.min) : 0); resumeClock();
-      }
-      demo.to = 1; document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'true');
+    /* Deux entrées distinctes : « guidée » rejoue le scénario depuis le début et s'arrête sur son résultat (légende des étapes) ;
+       « explorer » ouvre tout de suite les commandes avancées et laisse la machine libre (aucune démonstration imposée). */
+    const guided = () => {
+      demo.explore = false; demo.finished = false; demo.mode = dock.dataset.mode = 'guided';
+      document.body.classList.remove('rf-explore', 'rf-demo-done'); document.body.classList.add('rf-demo');
+      machine.api?.setScenario?.(null); const t1 = ctl.seek ? ctl.seek(ctl.max) : null; demo.end = Number.isFinite(t1) && t1 > 3 ? t1 : null;
+      setClock(ctl.seek ? ctl.seek(ctl.min) : 0); resumeClock(); barUI?.open(false);
+    };
+    const explore = () => {
+      demo.explore = true; demo.finished = false; demo.mode = dock.dataset.mode = 'explore'; demo.end = null;
+      document.body.classList.remove('rf-demo', 'rf-demo-done'); document.body.classList.add('rf-explore'); resumeClock(); barUI?.open(true);
+    };
+    const enter = (wantExplore) => {
+      const first = !demo.on; demo.on = true; demo.to = 1;
+      if (first) { mountBar(); scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); }
+      if (wantExplore) explore(); else guided();
+      document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'true');
     };
     const exitDemo = () => {
-      demo.on = false; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
+      demo.on = false; demo.mode = dock.dataset.mode = 'idle'; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
       document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'false');
     };
     demo.f = 0; demo.to = 0;
     document.addEventListener('click', (e) => {
       const b = e.target.closest?.('[data-demo]'); if (!b) return;
-      e.preventDefault(); if (b.dataset.demo === 'magic') document.querySelector('.rf-flow-magic')?.click(); else { if (demo.on && demo.finished) exitDemo(); enter(false); }
+      e.preventDefault();
+      if (b.dataset.demo === 'magic') {   // le moteur d'icônes se charge à part : le bouton attend qu'il soit prêt au lieu de rester sans effet
+        b.setAttribute('aria-busy', 'true'); (window.__rfFlowReady || Promise.resolve()).then(() => { b.removeAttribute('aria-busy'); document.querySelector('.rf-flow-magic')?.click(); });
+      } else enter(b.dataset.demo === 'explore');
     });
-    document.addEventListener('rf-explore-machine', () => { if (demo.on && demo.finished) exitDemo(); enter(false); });
+    document.addEventListener('rf-explore-machine', (e) => { enter(true); if (e.detail?.fromMagic && FR.focus) setFocus(FR.focus); });   // depuis la magie : la caméra va droit au mécanisme principal
     addEventListener('keydown', (e) => { if (e.key === 'Escape' && demo.on) exitDemo(); });
     const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += (fig.dataset.fig === 'vrestudio-musicbox' ? ', attrapez la machine et glissez : ' : ' · attrapez la machine et glissez : ') + ctl.label.toLowerCase();
     const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
@@ -159,6 +170,7 @@ if (fig && bpCanvas && stage) {
       if (machine.bar) { machine.bar.style.opacity = o.toFixed(3); machine.bar.style.pointerEvents = o < .05 ? 'none' : ''; }
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
+      const nowMs = performance.now(); if (nowMs - demoTick > 200) { demoTick = nowMs; dock.dataset.mode = demo.mode; dock.dataset.t = clock().toFixed(2); dock.dataset.paused = String(hold !== null); }
       const dTo = demo.on ? 1 : 0;
       if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; placeCam(focus.yaw, focus.pitch); }
       if (howSteps.length) { const span = ctl.max - ctl.min || 1, pr = Math.min(.9999, Math.max(0, (cur(clock()) - ctl.min) / span)); showStep(Math.min(howSteps.length - 1, Math.floor(pr * howSteps.length))); }
@@ -215,4 +227,4 @@ if (fig && bpCanvas && stage) {
 }
 
 /* ---- schéma des étapes (d'après la reconstitution fournie) ---- */
-if (document.querySelector('.rf-flow')) import('./flow.js').then(({ initFlow }) => document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } })).catch((e) => console.warn('schéma indisponible', e));
+if (document.querySelector('.rf-flow')) window.__rfFlowReady = import('./flow.js').then(({ initFlow }) => document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } })).catch((e) => console.warn('schéma indisponible', e));

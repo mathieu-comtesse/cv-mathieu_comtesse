@@ -150,32 +150,46 @@ jobs:
           npm install --no-save playwright@1.62.1
           npx playwright install --with-deps chromium
       - name: Check screen activity locks, Japanese props and PS1 library
+        if: ${{ !cancelled() }}
         run: node tools/test-v52.mjs
       - name: Check mobile gestures and physical photo book
+        if: ${{ !cancelled() }}
         run: node tools/test-v49-mobile-book.mjs
       - name: Check desk chair axis and page turns
+        if: ${{ !cancelled() }}
         run: node tools/test-v49-seat-book.mjs
       - name: Check supplied props, power strip, foliage, PS1 sounds and financial emails
+        if: ${{ !cancelled() }}
         run: node tools/test-v49-features.mjs
       - name: Check mobile scroll, PS1 power, props and minimal album
+        if: ${{ !cancelled() }}
         run: node tools/test-v51-interactions.mjs
       - name: Check bound floating photo book
+        if: ${{ !cancelled() }}
         run: node tools/test-film-book-v50.mjs
       - name: Check PS1 video timing and menu sounds
+        if: ${{ !cancelled() }}
         run: node tools/test-ps1-v50.mjs
       - name: Check room rendering and interactions
+        if: ${{ !cancelled() }}
         run: node tools/test-scene-runtime.mjs
       - name: Check supplied workstation, shelf props and PS1 cables
+        if: ${{ !cancelled() }}
         run: node tools/test-user-room-props.mjs
       - name: Check greeting, autonomy, activity exits and particles
+        if: ${{ !cancelled() }}
         run: node tools/test-scene-lifecycle.mjs
       - name: Check project images stay attached while scrolling
+        if: ${{ !cancelled() }}
         run: node tools/test-project-scroll.mjs
       - name: Check piggy bank, calendar and saved years
+        if: ${{ !cancelled() }}
         run: node tools/test-annual-gains-browser.mjs
       - name: Check original activities, effects and sounds
+        if: ${{ !cancelled() }}
         run: node tools/test-motion-fit.mjs
       - name: Check customized furniture, props and motion
+        if: ${{ !cancelled() }}
         run: node tools/test-custom-scene.mjs
       - uses: actions/upload-artifact@v4
         if: always()

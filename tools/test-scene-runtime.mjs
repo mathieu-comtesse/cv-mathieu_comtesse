@@ -34,7 +34,7 @@ try {
     // live user profile, or network listener is needed for this regression test.
     await context.route('http://scene.test/**', async (route) => {
       const url = new URL(route.request().url());
-      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/accueil.html' : url.pathname));
       if (!filename.startsWith(root)) return route.fulfill({ status: 403 });
       try {
         const body = await readFile(filename);
