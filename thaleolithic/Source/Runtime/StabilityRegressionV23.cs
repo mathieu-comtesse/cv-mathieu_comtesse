@@ -121,6 +121,25 @@ namespace UngaBunga45001.Editor
             campaign.SetMobileInterruption(false, false);
             Check(campaign.ControlsAvailable, "Le paysage restaure Dylan et la caméra");
 
+            const string tutorial = "M_I_TUTORIEL", firstAction = "M_I_TUTORIEL_1";
+            Check(campaign.OpenQuest(tutorial, "Offer", true) && campaign.AcceptQuest(tutorial), "Mission de Mathieu acceptée");
+            campaign.CloseQuest();
+            campaign.Execute(firstAction);
+            Check(campaign.Dialogue != null && !campaign.ControlsAvailable, "Dialogue de Mathieu actif");
+            for (int i = 0; i < 6 && campaign.Dialogue != null; i++)
+            {
+                var available = campaign.Dialogue.choices.Where(campaign.CanChoose).ToArray();
+                var answer = available.FirstOrDefault(choice => choice.id == "V5_INTRO_OBSERVER") ?? available.First();
+                campaign.Choose(answer.id);
+                yield return null;
+            }
+            campaign.CloseQuest();
+            Check(campaign.Dialogue == null && campaign.ControlsAvailable && campaign.State.completedActions.Contains(firstAction),
+                "Réponse enregistrée, Dylan et caméra disponibles");
+            campaign.Save();
+            Check(campaign.ReloadSavedCampaign() && campaign.State.completedActions.Contains(firstAction),
+                "Réponse de Mathieu retrouvée après rechargement");
+
             var player = motor.transform;
             var savedPosition = player.position;
             var savedGravity = motor.gravity;

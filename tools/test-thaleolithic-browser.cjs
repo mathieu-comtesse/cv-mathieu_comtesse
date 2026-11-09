@@ -172,6 +172,14 @@ async function run() {
         if (mobile) await page.locator('#resume-game').click();
         await waitState(gameplay);
         record('Retour de visibilité et reprise des commandes');
+        if (process.argv.includes('--pointer') && !mobile) {
+          await page.mouse.click(625, 420);
+          await page.waitForFunction(() => document.pointerLockElement === document.getElementById('unity-canvas'));
+          await waitState({pointer: true, controls: true});
+          await page.evaluate(() => document.exitPointerLock());
+          await waitState({pointer: false, controls: true});
+          record('Pointer Lock obtenu par clic puis libéré');
+        }
         if (!mobile) {
           for (let i = 0; i < 20; i++) {
             await page.keyboard.press('Escape');

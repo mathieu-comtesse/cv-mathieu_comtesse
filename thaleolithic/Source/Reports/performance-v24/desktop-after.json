@@ -1,0 +1,184 @@
+{
+  "version": "V24",
+  "device": "bureau",
+  "delivery": "ressources locales interceptées par Playwright",
+  "wasmSampling": "HEAPU8 observable une fois l’instance Unity rendue au navigateur",
+  "files": {
+    "loaderUrl": 47338,
+    "dataUrl": 68135049,
+    "frameworkUrl": 90631,
+    "codeUrl": 9347485
+  },
+  "stages": [
+    {
+      "name": "Cinématique d’ouverture",
+      "browserFrames": 444,
+      "browserFps": 55.448017483609114,
+      "medianMs": 5.600000000002183,
+      "p95Ms": 11.200000000000728,
+      "p99Ms": 16.69999999999709,
+      "mainThreadMs": 7996.848000000002,
+      "scriptMs": 7928.353000000001,
+      "longTasks": 2,
+      "wasmPeakMiB": 382.375,
+      "jsPeakMiB": 341.6559867858887,
+      "runtime": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 3.355325222015381,
+        "frameMs": 6.8465986251831055,
+        "paused": false,
+        "touch": false,
+        "film": true,
+        "position": {
+          "x": 350.9826354980469,
+          "y": 11.832610130310059,
+          "z": 278.4556579589844
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "diagnostic": {
+        "type": "diagnostic",
+        "yaw": 59.33151626586914,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 146.05792236328125,
+        "touches": 0,
+        "allocatedMiB": 278,
+        "performance": {
+          "fps": 129.87014770507812,
+          "medianMs": 7.999992847442627,
+          "p95Ms": 9.000006675720215,
+          "p99Ms": 12,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 278,
+          "peakMiB": 281,
+          "reservedMiB": 297,
+          "gcBytes": -1,
+          "drawCalls": 990,
+          "setPassCalls": 41,
+          "triangles": 592672,
+          "frames": 180,
+          "profile": 1,
+          "animatedActors": 7
+        }
+      }
+    },
+    {
+      "name": "Village initial après la cinématique",
+      "browserFrames": 1677,
+      "browserFps": 139.52095310199093,
+      "medianMs": 5.599999999998545,
+      "p95Ms": 11.200000000004366,
+      "p99Ms": 16.69999999999709,
+      "mainThreadMs": 11986.607000000007,
+      "scriptMs": 11756.636,
+      "longTasks": 0,
+      "wasmPeakMiB": 382.375,
+      "jsPeakMiB": 334.80487155914307,
+      "runtime": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 54.86545944213867,
+        "frameMs": 7.1320295333862305,
+        "paused": false,
+        "touch": false,
+        "film": false,
+        "position": {
+          "x": 351.924072265625,
+          "y": 11.840607643127441,
+          "z": 278.20233154296875
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "diagnostic": {
+        "type": "diagnostic",
+        "yaw": 59.33151626586914,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 140.21253967285156,
+        "touches": 0,
+        "allocatedMiB": 280,
+        "performance": {
+          "fps": 140.9553680419922,
+          "medianMs": 7,
+          "p95Ms": 13,
+          "p99Ms": 15,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 280,
+          "peakMiB": 291,
+          "reservedMiB": 299,
+          "gcBytes": -1,
+          "drawCalls": 435,
+          "setPassCalls": 55,
+          "triangles": 448387,
+          "frames": 180,
+          "profile": 1,
+          "animatedActors": 20
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "browser": "156.0.8078.4",
+  "startup": {
+    "readyAt": 10060,
+    "playerAt": 11796.100000023842,
+    "events": [
+      {
+        "type": "ready",
+        "at": 10038.299999952316
+      },
+      {
+        "type": "BROWSER_ACK",
+        "at": 10050
+      },
+      {
+        "type": "GAME_STARTING",
+        "at": 10174.600000023842
+      },
+      {
+        "type": "GAME_STARTED",
+        "at": 10390.600000023842
+      }
+    ],
+    "wasmPeakMiB": 382.375,
+    "jsPeakMiB": 451.8348197937012,
+    "longTasks": [
+      {
+        "at": 23.799999952316284,
+        "ms": 69
+      },
+      {
+        "at": 5957.699999928474,
+        "ms": 1147
+      },
+      {
+        "at": 9129.399999976158,
+        "ms": 904
+      },
+      {
+        "at": 10171,
+        "ms": 220
+      }
+    ]
+  },
+  "renderer": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "status": "passed"
+}
