@@ -2,6 +2,7 @@
 // règle graduée, annotations, vide noir autour. Tracé et shader écrits pour ce site (aucun fichier de la page de référence).
 // La pièce 3D du site est posée par-dessus (son canvas est transparent) ; la caméra reprend son angle (az 36°, él 26°).
 import * as THREE from 'three';
+import { diagOn, dprCap } from './diag.js';
 
 const DEG = Math.PI / 180;
 const SIZE = 30;                     // côté du plan, en unités de la pièce (≈ 1 u = 1 m)
@@ -97,8 +98,8 @@ export function blueprintMaterial(tex) {
 }
 
 export function initBlueprint(canvas, host) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1 : 1.75));   // téléphone : pas de rendu à haute densité
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !diagOn('aa'), alpha: false, powerPreference: 'low-power' });
+  renderer.setPixelRatio(dprCap(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1 : 1.75)));   // téléphone : pas de rendu à haute densité
   renderer.setClearColor(0x000000, 1);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(24, 1, 1, 600);
@@ -158,7 +159,7 @@ export function initBlueprint(canvas, host) {
   resize();
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) loop();
   if (document.fonts) document.fonts.ready.then(() => { const t = drawMat(); tex.image = t; tex.needsUpdate = true; draw(); });
-  return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); let lastT = 0; (function again(now) { raf = requestAnimationFrame(again); if (innerWidth < 760 && now - lastT < 33) return; lastT = now; if (visible && !document.hidden && host.style.opacity !== '0.000') draw(); })(0); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
+  return { plane, link(cam) { linked = cam; cancelAnimationFrame(raf); let lastT = 0, lastK = ''; (function again(now) { raf = requestAnimationFrame(again); if (innerWidth < 760 && now - lastT < 33) return; lastT = now; if (visible && !document.hidden && host.style.opacity !== '0.000') { if (diagOn('bg', 'off')) return; if (diagOn('bg', 'static')) { const k = cam.matrixWorld.elements.join() + cam.projectionMatrix.elements.join(); if (k === lastK) return; lastK = k; } draw(); } })(0); }, setScroll(p) { state.scroll = p; draw(); }, setPan(x, y) { state.panX = x; state.panY = y; draw(); }, setYaw(a) { state.yaw = a; draw(); }, camera, render: draw };
 }
 
 /* plan blueprint pour une scène à part (tuiles de l'accueil) : même matériau, même tracé, texture plus légère */

@@ -7,6 +7,7 @@ import './viewbtn.js';
 if (document.querySelector('.rf-code')) import('./hl.js').catch(() => {});   // coloration des extraits de code des études
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
+import { diagOn, mark } from './diag.js';
 import { initRulers } from './rulers.js';
 import { framingOf } from './m3d/registry.js';
 
@@ -51,7 +52,7 @@ if (fig && bpCanvas && stage) {
   /* ---- la machine : modèle 3D posé sur le plan, rendu avec la même caméra (même perspective, même profondeur) ---- */
   const view = { yaw: FR.yaw * Math.PI / 180 };
   const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); placeCam(focus.yaw, focus.pitch); machine?.resize(); };
-  let machine = null;
+  let machine = null, firstR = 0;
   placeCam(view.yaw); bp.link(cam);
   aspect(); addEventListener('resize', aspect);
   const rulers = document.querySelectorAll('.rf-ruler');   // les règles ne se voient que sur le blueprint, tant que la machine est visible
@@ -62,8 +63,8 @@ if (fig && bpCanvas && stage) {
     fr.className = 'rf-bp-frame'; fr.src = 'figures-livre/' + BP_FIG[fig.dataset.fig] + '.html?v=b6'; fr.scrolling = 'no'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure';
     fig.querySelector('img')?.replaceWith(fr);
   } else
-  import('./m3d/index.js').then(({ mountMachine }) => mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
-    machine = m; machine.resize(); fig.querySelector('img')?.remove();
+  import('./m3d/index.js').then(({ mountMachine }) => (mark('machine-start'), mountMachine(fig.dataset.fig, canvas, cam))).then((m) => {
+    mark('machine-built'); machine = m; machine.resize(); fig.querySelector('img')?.remove();
     const t0 = performance.now();
     /* Interaction directement sur la machine 3D, comme sur la figure d'origine : on attrape la machine et on glisse (ou flèches gauche / droite)
        pour changer son réglage propre (seuil en %, pondération, lot, jour, heure, rapport…) ; un clic sur la machine avance d'un cran. */
@@ -192,7 +193,9 @@ if (fig && bpCanvas && stage) {
       if (demo.finished && !demo.on) demo.finished = false;
       /* pendant « Voir la magie » la machine n'est qu'un fond à 16 % d'opacité : elle ne se redessine plus qu'à 4 images par seconde (le temps reste celui de l'horloge, rien ne saute au retour) */
       const nowR = performance.now(); if (document.body.classList.contains('fl-lock') && nowR - lastRender < 250) return; lastRender = nowR;
+      if (diagOn('machine')) return;
       machine.render(reduced ? 6 + shift : clock());
+      if (!firstR) { firstR = 1; mark('first-render'); }
     };
     loop();
   }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); fig.classList.add('rf-fallback'); });
