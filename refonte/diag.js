@@ -6,7 +6,7 @@
      dpr:1           densité de pixels forcée à 1 sur tous les rendus WebGL (chemin « léger »)
      shadow:off      ombre portée de la machine désactivée
      aa:off          antialiasing désactivé
-     fx:off          animations, transitions, filtres et flous CSS coupés
+     fx:off          animations, transitions, filtres et flous CSS coupés ; fx:blur (flous d'arrière-plan seuls), fx:filter (filtres et ombres de texte), fx:anim (animations et transitions)
      copy:off        accueil : plus de copie WebGL vers Canvas2D (drawImage)
    Les marques de performance (performance.mark « rf:… ») sont toujours posées : coût nul. */
 const raw = new URLSearchParams(location.search).get('diag');
@@ -17,9 +17,9 @@ export const dprCap = (n) => (DIAG.dpr ? Math.min(n, +DIAG.dpr || 1) : n);
 export const mark = (n) => { try { performance.mark('rf:' + n); } catch (e) {} };
 if (raw) {
   window.__diag = DIAG;
-  if (DIAG.fx === 'off') {
-    const s = document.createElement('style');
-    s.textContent = '*,*::before,*::after{animation:none!important;transition:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}';
-    document.head.append(s);
-  }
+  const FX = { off: '*,*::before,*::after{animation:none!important;transition:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}',
+    blur: '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}',
+    filter: '*,*::before,*::after{filter:none!important;text-shadow:none!important}',
+    anim: '*,*::before,*::after{animation:none!important;transition:none!important}' }[DIAG.fx];
+  if (FX) { const s = document.createElement('style'); s.textContent = FX; document.head.append(s); }
 }
