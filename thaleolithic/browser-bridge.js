@@ -5,7 +5,7 @@ let canvas = select('unity-canvas');
 const welcome = select('welcome'), label = select('loading-label');
 const failure = select('error'), resumePointer = select('resume-pointer'), resumeGame = select('resume-game');
 const diagnosticMode = new URLSearchParams(location.search).get('diagnostic') === '1';
-const inputLog = [];
+const inputLog = [], performanceSamples = [];
 let instance, bootTask, ready = false, saved = false, customOptions = false;
 let phase = 'NOT_STARTED', step = 'WEBGL', build = 'inconnu', request = 0, sequence = 0;
 let startDeadline, inputState, lastFocus, lastError, engineFault, metrics, retrying = false;
@@ -23,7 +23,8 @@ function diagnostic() {
     viewport: {width: canvas.clientWidth, height: canvas.clientHeight, pixelRatio: renderRatio()},
     focus: document.hasFocus(), visible: !document.hidden, pointer: document.pointerLockElement === canvas,
     touchPoints: navigator.maxTouchPoints, jsHeapMiB: performance.memory?.usedJSHeapSize / 1048576 || null,
-    lastAck, input: inputState, metrics, transitions: inputLog.slice()};
+    wasmHeapMiB: (instance?.Module?.HEAPU8 ?? instance?.Module?.HEAP8)?.buffer.byteLength / 1048576 || null,
+    lastAck, input: inputState, metrics, transitions: inputLog.slice(), samples: performanceSamples.slice()};
 }
 
 function failureText(value) {
@@ -95,7 +96,7 @@ function refresh() {
     !document.pointerLockElement && !!canvas.requestPointerLock);
   resumeGame.hidden = !(running && canFocus() && inputState?.resumeRequired);
   select('retry').disabled = !!bootTask || retrying;
-  if (diagnosticMode) select('diagnostic-data').textContent = JSON.stringify(diagnostic(), null, 2);
+  if (diagnosticMode && select('dev-diagnostic').open) select('diagnostic-data').textContent = JSON.stringify(diagnostic(), null, 2);
 }
 
 function engineReady() {
@@ -158,6 +159,11 @@ window.addEventListener('unga-game', ({detail: event}) => {
       break;
     case 'diagnostic':
       metrics = event;
+      if (event.performance?.frames) {
+        performanceSamples.push({atMs: Math.round(performance.now()), act: window.ungaRuntime?.act ?? '',
+          phase: inputState?.phase ?? '', ...event.performance});
+        if (performanceSamples.length > 180) performanceSamples.shift();
+      }
       refresh();
       break;
   }
@@ -266,19 +272,31 @@ addEventListener('unga-save-error', () => {
   log('save-error');
 });
 
-function downloadDiagnostic() {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(diagnostic(), null, 2)], {type: 'application/json'}));
+function download(contents, type, filename) {
+  const url = URL.createObjectURL(new Blob([contents], {type}));
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'thaleolithic-diagnostic.json';
+  link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function downloadDiagnostic() {
+  download(JSON.stringify(diagnostic(), null, 2), 'application/json', 'thaleolithic-diagnostic.json');
+}
+function downloadMetrics() {
+  const fields = ['atMs', 'act', 'phase', 'frames', 'fps', 'medianMs', 'p95Ms', 'p99Ms', 'cpuMs', 'gpuMs',
+    'allocatedMiB', 'peakMiB', 'reservedMiB', 'gcBytes', 'drawCalls', 'setPassCalls', 'triangles', 'profile', 'renderScale', 'animatedActors'];
+  const escape = value => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+  const csv = [fields.join(','), ...performanceSamples.map(row => fields.map(field => escape(row[field])).join(','))].join('\n');
+  download(csv, 'text/csv;charset=utf-8', 'thaleolithic-performances.csv');
 }
 select('copy-diagnostic').onclick = async () => {
   try { await navigator.clipboard.writeText(JSON.stringify(diagnostic(), null, 2)); }
   catch { downloadDiagnostic(); }
 };
 select('download-diagnostic').onclick = downloadDiagnostic;
+select('download-metrics').onclick = downloadMetrics;
+select('dev-diagnostic').addEventListener('toggle', refresh);
 select('dev-diagnostic').hidden = !diagnosticMode;
 if (diagnosticMode) {
   window.thaleolithicInputLog = () => inputLog.map(entry => ({...entry}));
@@ -314,7 +332,7 @@ async function boot() {
       step = 'ENGINE';
       timeout = setTimeout(() => fail('ENGINE_TIMEOUT', 'Le moteur Unity n’a pas fini de charger.'), 120000);
       instance = await createUnityInstance(canvas, {...config, companyName: 'Talas', productName: 'THALEOLITHIC',
-        productVersion: config.productVersion ?? '0.23.1', autoSyncPersistentDataPath: true, devicePixelRatio: renderRatio(),
+        productVersion: config.productVersion ?? '0.24.0', autoSyncPersistentDataPath: true, devicePixelRatio: renderRatio(),
         showBanner: (message, type) => { if (type === 'error') lastEngineError = failureText(message); }
       }, progress => {
         select('progress').value = progress;

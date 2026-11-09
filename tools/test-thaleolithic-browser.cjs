@@ -27,7 +27,8 @@ async function run() {
     server.listen(0, '127.0.0.1', resolve);
   });
   const origin = baseline || (intercepted ? 'http://127.0.0.1:8793/' : `http://127.0.0.1:${server.address().port}/`);
-  const report = {mode: baseline ? 'public V22.1' : real ? 'WebAssembly V23.1' : 'pont JavaScript simulé', steps: [], errors: []};
+  const buildVersion = JSON.parse(fs.readFileSync(path.join(root, 'game-config.json'), 'utf8')).version;
+  const report = {mode: baseline ? 'public V22.1' : real ? 'WebAssembly ' + buildVersion : 'pont JavaScript simulé', steps: [], errors: []};
   const record = (name, value = true) => { report.steps.push({name, value}); console.log(name, value); };
   let browser, page;
   try {

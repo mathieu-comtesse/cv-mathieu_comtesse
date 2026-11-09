@@ -5,23 +5,35 @@ namespace UngaBunga45001
 {
  [DefaultExecutionOrder(140)]public sealed class ActivityActingV18:MonoBehaviour
  {
-  sealed class Owned {public CinematicActorV15 actor;public Animator animator;public string clip;public Transform handGoal;public GameObject prop;}
+  sealed class Owned {public CinematicActorV15 actor;public Animator animator;public AnimationClip clip;public Transform handGoal;public GameObject prop;}
   readonly Dictionary<string,Owned> owned=new Dictionary<string,Owned>();readonly HashSet<string> wanted=new HashSet<string>();
-  CampaignRuntime c;CampaignActivitiesV17 activity;float began;string old="";Vector3 briefingOrigin;readonly List<Transform> fruits=new List<Transform>();Mesh fruitMesh;Material fruitMaterial;float nextThrow;int serial;
+  readonly Dictionary<string,AnimationClip> clips=new Dictionary<string,AnimationClip>();
+  readonly List<string> released=new List<string>();
+  CampaignRuntime c;CampaignActivitiesV17 activity;VillageUpgradeV18 village;ConstructionFilmV19 construction;CinematicFireV18 fire;float began;string old="";Vector3 briefingOrigin;readonly List<Transform> fruits=new List<Transform>();Mesh fruitMesh;Material fruitMaterial;float nextThrow;int serial;
   public int FruitHits{get;private set;}
   void Start(){c=GetComponent<CampaignRuntime>();activity=GetComponent<CampaignActivitiesV17>();}
+  AnimationClip Clip(string id)
+  {
+   if(!clips.TryGetValue(id,out var clip))
+   {
+    clip=Resources.Load<AnimationClip>("CinematicsV18/Clips/"+id);
+    if(clip==null)Debug.LogError("Animation d’activité introuvable : "+id,this);
+    clips.Add(id,clip);
+   }
+   return clip;
+  }
   Owned Take(string id,string clip)
   {
-   var animation=Resources.Load<AnimationClip>("CinematicsV18/Clips/"+clip);if(animation==null)return null;
+   var animation=Clip(clip);if(animation==null)return null;
    if(!owned.TryGetValue(id,out var o))
    {
     var animator=c.bindings.AnimatorFor(id);if(animator==null)return null;var performer=animator.GetComponent<CinematicActorV15>()??animator.gameObject.AddComponent<CinematicActorV15>();if(performer.Owned)return null;
-    o=new Owned{actor=performer,animator=animator,clip=clip};performer.Acquire(animator);owned[id]=o;
+    o=new Owned{actor=performer,animator=animator,clip=animation};performer.Acquire(animator);owned[id]=o;
    }
-   o.clip=clip;wanted.Add(id);return o;
+   o.clip=animation;wanted.Add(id);return o;
   }
   void Pose(string id,string clip,float t,Vector3 look)
-  {var o=Take(id,clip);if(o==null)return;var animation=Resources.Load<AnimationClip>("CinematicsV18/Clips/"+clip);o.actor.Sample(animation,t,Mathf.Clamp01((Time.time-began)*4));o.actor.Look(look,.8f);}
+  {var o=Take(id,clip);if(o==null)return;o.actor.Sample(o.clip,t,Mathf.Clamp01((Time.time-began)*4));o.actor.Look(look,.8f);}
   void Release(string id)
   {if(!owned.TryGetValue(id,out var o))return;if(o.actor!=null)o.actor.Release();if(o.handGoal!=null)Destroy(o.handGoal.gameObject);if(o.prop!=null)Destroy(o.prop);owned.Remove(id);}
   void LateUpdate()
@@ -38,10 +50,11 @@ namespace UngaBunga45001
      Projectiles(elapsed);
     }
     if(a?.mode=="differences")Pose("nork","V18_Ouways_Peinture",Mathf.Repeat(elapsed,8),c.bindings.player.position+Vector3.up*1.2f);
-    var village=GetComponent<VillageUpgradeV18>();
-    if(village!=null)foreach(var s in c.State.villageV18.installations.Where(s=>s.phase==InstallationPhaseV18.Building&&village.WorkerOnSite(s)))
+    if(village==null)village=GetComponent<VillageUpgradeV18>();
+    if(construction==null)construction=GetComponent<ConstructionFilmV19>();
+    if(village!=null)foreach(var s in c.State.villageV18.installations)
     {
-     if(c.GetComponent<ConstructionFilmV19>()?.Owns(s.builder)??false)continue;
+     if(s.phase!=InstallationPhaseV18.Building||!village.WorkerOnSite(s)||(construction?.Owns(s.builder)??false))continue;
      string clip=s.builder=="tarek"?"V18_Tarek_Palissade":"V18_Georges_PoseTorchis";var o=Take(s.builder,clip);if(o==null)continue;
      var root=c.bindings.Find(s.builder);var point=village.Instances[s.id].transform.position+Vector3.up*1.15f;var forward=point-root.position;forward.y=0;if(forward.sqrMagnitude>.01f)root.rotation=Quaternion.LookRotation(forward);
      if(o.handGoal==null)
@@ -52,16 +65,19 @@ namespace UngaBunga45001
       o.handGoal=new GameObject("V18 · contact sur le panneau préparé").transform;o.handGoal.SetParent(o.prop.transform,true);float best=float.PositiveInfinity;var desired=root.position+root.forward*.55f+Vector3.up*.82f;
       foreach(var f in panel.GetComponentsInChildren<MeshFilter>()){var contact=CinematicContactGeometryV16.Nearest(f.sharedMesh,f.transform,desired);float d=Vector3.Distance(contact.point,desired);if(d<best){best=d;o.handGoal.position=contact.point;}}
      }
-     o.actor.Sample(Resources.Load<AnimationClip>("CinematicsV18/Clips/"+clip),Mathf.Repeat(s.workSeconds,8),1);o.actor.Contact(null,o.handGoal,Mathf.Clamp01(s.workSeconds*2));o.actor.Look(point,.7f);
+     o.actor.Sample(o.clip,Mathf.Repeat(s.workSeconds,8),1);o.actor.Contact(null,o.handGoal,Mathf.Clamp01(s.workSeconds*2));o.actor.Look(point,.7f);
     }
-    var fire=GetComponent<CinematicFireV18>();if(fire!=null&&fire.Playing)
+    if(fire==null)fire=GetComponent<CinematicFireV18>();
+    if(fire!=null&&fire.Playing)
     {
      var at=NativeFire.ActiveFires.OrderBy(f=>Vector3.Distance(f.transform.position,c.bindings.Find("foyer").position)).FirstOrDefault();
      var witness=at==null?null:c.bindings.characters.Where(b=>b.id!="dylan"&&c.bindings.Find(b.id)!=null&&Vector3.Distance(c.bindings.Find(b.id).position,at.transform.position)<5).OrderBy(b=>Vector3.Distance(c.bindings.Find(b.id).position,at.transform.position)).FirstOrDefault();
      if(witness!=null)Pose(witness.id,"V18_Ouways_Embrasement",fire.Elapsed,at.transform.position+Vector3.up*fire.Height*.55f);
     }
    }
-   foreach(var id in owned.Keys.ToArray())if(!wanted.Contains(id))Release(id);
+   released.Clear();
+   foreach(var id in owned.Keys)if(!wanted.Contains(id))released.Add(id);
+   foreach(var id in released)Release(id);
    if(activity.Current?.mode!="briefing")foreach(var fruit in fruits)if(fruit!=null)fruit.gameObject.SetActive(false);
   }
   void Projectiles(float elapsed)

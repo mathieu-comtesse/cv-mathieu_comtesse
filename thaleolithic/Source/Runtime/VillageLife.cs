@@ -38,7 +38,26 @@ namespace UngaBunga45001
             foreach(var brain in brains)if(brain!=null)brain.Capture();
             campaign.State.playerPosition=campaign.bindings.player.position;campaign.State.playerYaw=campaign.bindings.player.GetComponent<ThirdPersonMotor>().visual.eulerAngles.y;campaign.State.playerPositionSaved=true;campaign.State.playerCrouching=campaign.bindings.player.GetComponent<ThirdPersonMotor>().Crouching;
         }
-        public static float Ground(Vector3 p){foreach(var terrain in Terrain.activeTerrains){var a=terrain.transform.position;var s=terrain.terrainData.size;if(p.x>=a.x&&p.z>=a.z&&p.x<=a.x+s.x&&p.z<=a.z+s.z)return terrain.SampleHeight(p)+a.y;}return p.y;}
+        static readonly System.Collections.Generic.List<Terrain> activeTerrains = new System.Collections.Generic.List<Terrain>();
+        static int terrainFrame = -1;
+        public static float Ground(Vector3 p)
+        {
+            if (terrainFrame != Time.frameCount)
+            {
+                terrainFrame = Time.frameCount;
+                activeTerrains.Clear();
+                Terrain.GetActiveTerrains(activeTerrains);
+            }
+            foreach (var terrain in activeTerrains)
+            {
+                if (terrain == null || terrain.terrainData == null) continue;
+                var origin = terrain.transform.position;
+                var size = terrain.terrainData.size;
+                if (p.x >= origin.x && p.z >= origin.z && p.x <= origin.x + size.x && p.z <= origin.z + size.z)
+                    return terrain.SampleHeight(p) + origin.y;
+            }
+            return p.y;
+        }
         public static void Play(Animator animator,string state)
         {
             if(!animator.HasState(0,Animator.StringToHash(state)))return;

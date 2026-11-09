@@ -40,6 +40,7 @@ namespace UngaBunga45001
             public string type = "diagnostic";
             public float yaw, pitch, distance, fps;
             public int touches, allocatedMiB;
+            public WebFrameMetricsV24.Sample performance;
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -49,6 +50,7 @@ namespace UngaBunga45001
         CampaignRuntime campaign;
         bool started, initializing, resumeRequired;
         BrowserState browser = new BrowserState { focused = true, visible = true };
+        WebFrameMetricsV24 performance;
         string lastInputReceipt;
         float nextInputReceipt;
 
@@ -97,7 +99,7 @@ namespace UngaBunga45001
                         duel = campaign.MenhirActive ? campaign.GetComponent<MenhirDuel>().Phase.ToString() : "",
                         elapsed = campaign.State.elapsedSeconds, paused = campaign.UserPaused, touch = MobileControls.TouchActive,
                         film = campaign.cinematicDirector.IsPlaying, position = campaign.bindings.player.position,
-                        fires = FindObjectsByType<NativeFire>(FindObjectsSortMode.None).Length,
+                        fires = NativeFire.ActiveFires.Count,
                         characters = campaign.State.characters.Count, claimed = campaign.State.quests.Count(q => q.claimed),
                         frameMs = Time.smoothDeltaTime * 1000 });
                     if (browser.diagnostic)
@@ -105,7 +107,8 @@ namespace UngaBunga45001
                         var motor = campaign.bindings.player.GetComponent<ThirdPersonMotor>();
                         Emit(new Diagnostics { yaw = motor.Yaw, pitch = motor.Pitch, distance = motor.OrbitDistance,
                             fps = 1 / Mathf.Max(.0001f, Time.smoothDeltaTime), touches = MobileControls.ContactCount,
-                            allocatedMiB = (int)(UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / (1024 * 1024)) });
+                            allocatedMiB = (int)(UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / (1024 * 1024)),
+                            performance = performance?.Read(campaign) });
                     }
                 }
                 yield return new WaitForSecondsRealtime(1);
@@ -117,7 +120,14 @@ namespace UngaBunga45001
 
         void LateUpdate()
         {
-            if (!started || campaign == null || campaign.State == null || Time.unscaledTime < nextInputReceipt) return;
+            if (!started || campaign == null || campaign.State == null) return;
+            if (browser.diagnostic)
+            {
+                performance ??= new WebFrameMetricsV24();
+                if (browser.visible && browser.focused) performance.Tick(Time.unscaledDeltaTime);
+                else performance.ResetWindow();
+            }
+            if (Time.unscaledTime < nextInputReceipt) return;
             nextInputReceipt = Time.unscaledTime + .1f;
             var menus = campaign.GetComponent<AdventureMenus>();
             var activity = campaign.GetComponent<CampaignActivitiesV17>();
@@ -225,6 +235,8 @@ namespace UngaBunga45001
             campaign.SetBrowserInputSuspended(suspended);
             if (suspended) campaign.Save();
         }
+
+        void OnDestroy() => performance?.Dispose();
 
         public static void Flush()
         {
