@@ -90,3 +90,47 @@ Constats : presque tous les meshes ont une géométrie propre (peu de répétiti
 2. Mesurer le chemin WebGL vers Canvas2D de l'accueil (`copy:off`).
 3. Gares : comprendre les 482 appels.
 4. Chargement progressif de la machine, priorités du bus d'images, mémoire sur 30 cycles : à concevoir une fois les coûts GPU connus.
+
+
+---
+
+# V6 et V7 : ce qui est mesuré, implémenté, retiré, restant
+
+## Comparatif à environnement identique (SwiftShader, desktop, `moteur44`, 3 répétitions, médianes, intervalle entre images en ms)
+
+| scénario | V3 (avant tout) | V5 | V6 (tête de branche) | lecture |
+|---|---|---|---|---|
+| repos | 616,7 | 550,0 | 633,3 | V5 à V6 : +15 %, dans la dérive observée entre sessions pour un même code (550 à 633) : **aucun gain V6 démontré** |
+| défilement | 566,7 | 516,7 | 550,1 | idem |
+| magie | 833,3 | 583,3 | 683,3 | gain V3 vers V6 de 18 %, mais V6 moins bon que V5 sur cette mesure |
+| explorer | 683,3 | 616,6 | 633,3 | stable |
+| construction machine | 645 | 533 | 494 | stable |
+| magie vers machine | 2975 | 1709 | 2661 | non conclu (mesure unique par passe, forte variance) |
+
+Sources : `docs/profil/avant-logiciel`, `apres-logiciel`, `v6-logiciel`, `comparaison-v5-v6-logiciel.md`. **Il n'existe pas de colonne V7 de performance** : V7 n'a, à ce stade, apporté que des correctifs de tests et de CI, pas de changement de rendu. Tout le tableau est en rendu logiciel : aucune cadence GPU n'en est déduite.
+
+## Mesuré
+- Hiérarchie des coûts en logiciel (voir plus haut) ; le grain CSS et les flous d'arrière-plan sont écartés.
+- Gares : 482 appels de dessin dus à 64 palettes à matériaux multiples (6 groupes chacune). Après correction : 290 appels, 28 530 triangles identiques, rendu comparé visuellement (`docs/profil/gares-avant-apres.png`, écart moyen d'image 2,5 sur 255, dû à l'animation).
+- Bus d'images : banc `tools/test-frame-bus.mjs` (8 vérifications : 60 / 130 / 260 / 540 ms injectées comptées, reprise d'onglet non comptée, baisse de qualité sous charge, remontée lente sans oscillation, 4 s minimum entre changements, tâches différées).
+
+## Implémenté
+- Bus : plus aucun intervalle écarté ; P95 / P99 sur 240 images ; gouverneur à hystérésis ; `defer()`.
+- Palettes de Gares à 3 groupes.
+- Chemin WebGL vers Canvas2D de l'accueil : temps CPU de préparation, de `renderer.render()` et de `drawImage()` accumulés dans `window.__cvGpu` (ne sont pas des durées GPU) ; clé de matériau numérique (plus de chaîne par pièce et par image). **Aucune mesure sur l'accueil à ce jour** (les modules CDN sont bloqués ici).
+- Outil de profilage à trois états (matériel / logiciel / inconnu), variantes alternées, 5 répétitions par défaut en GPU, menu du lanceur.
+
+## Retiré
+- Ombre « à la demande » par signature des matrices (V6) : aucun gain mesuré, fragile (instances, géométries dynamiques, visibilité). Retour à une mise à jour déterministe une image sur deux.
+
+## Tests (état)
+- `test-custom-scene` (job `runtime`) : échec CI dû à un défaut du **test** (la première iframe de la page est devenue celle du lecteur de fiche, pas celle de shupi). Sélecteur corrigé, test réussi en local (exit 0). Verdict CI à lire.
+- `test-ux cerfa` : réussi en local (4 sur 4). L'échec CI de `cerfa mobile` (glissement du tiroir) n'a pas de cause de site identifiée : geste du test rendu plus proche d'un doigt (appui, 10 étapes, relâchement). **Pas de preuve que c'était une intermittence** ; verdict CI à lire.
+- `test-machines` : 11 machines OK. `test-frame-bus` : 8 sur 8.
+
+## Validations restantes
+GPU matériel (toutes mesures), accueil (copie Canvas2D, `copy:off`), WebKit, tactile réel, perte de contexte WebGL, mémoire sur 20 à 30 cycles, réactivité de la molette, préparation progressive des machines.
+
+## Prochaine passe
+1. Mesurer l'accueil en isolation (`?diag=copy:off`, `window.__cvGpu`) avant toute modification structurelle, dans le même environnement.
+2. Rendus redondants et ressources GPU conservées (cycle de vie des renderers à la fermeture des machines).
