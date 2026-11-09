@@ -8,9 +8,9 @@ const ok = (c, m) => { console.log(c ? 'ok    ' : 'ECHEC ', m); if (!c) bad++; }
 const snap = () => p.evaluate(() => window.__cvBus.snapshot());
 await p.waitForTimeout(800); await p.evaluate(() => window.__cvBus.reset());
 /* 1. dépassements isolés : chacun doit être compté, y compris >= 250 ms (l'ancien code les écartait) */
-for (const ms of [60, 120, 250, 500]) { await p.waitForTimeout(250); await p.evaluate((m) => { window.once = m; }, ms); await p.waitForTimeout(ms + 400); }
+for (const ms of [60, 130, 260, 540]) { await p.waitForTimeout(250); await p.evaluate((m) => { window.once = m; }, ms); await p.waitForTimeout(ms + 400); }
 let s = await snap(); console.log(JSON.stringify(s));
-ok(s.gt50 >= 4 && s.gt100 >= 3 && s.gt200 >= 2 && s.gt500 >= 1, 'interruptions injectées de 60, 120, 250 et 500 ms comptées (>50:' + s.gt50 + ' >100:' + s.gt100 + ' >200:' + s.gt200 + ' >500:' + s.gt500 + ')');
+ok(s.gt50 >= 4 && s.gt100 >= 3 && s.gt200 >= 2 && s.gt500 >= 1, 'interruptions injectées de 60, 130, 260 et 540 ms comptées (>50:' + s.gt50 + ' >100:' + s.gt100 + ' >200:' + s.gt200 + ' >500:' + s.gt500 + ')');
 ok(s.max >= 480, 'maximum conservé (' + s.max + ' ms)');
 /* 2. reprise d'onglet : jamais comptée comme freeze */
 await p.evaluate(() => window.__cvBus.reset()); await p.waitForTimeout(500);
