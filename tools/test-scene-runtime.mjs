@@ -52,7 +52,7 @@ try {
       await page.waitForFunction(() => document.getElementById('room')?.dataset.native === 'ready', null, { timeout: 60000 });
     } catch (error) {
       console.log(await page.evaluate(() => {
-        const api = document.querySelector('iframe')?.contentWindow.shupiHeader?.scene;
+        const api = document.querySelector('iframe[src*="shupi"]')?.contentWindow.shupiHeader?.scene;
         const scene = api?.shupi.scene;
         return { bridge: document.getElementById('room').dataset.native, api: Object.keys(api || {}),
           desk: ['Standing desk', 'Fractal North chalk white PC', 'Ceramic coffee mug', 'Apple Studio Display',
