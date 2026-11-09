@@ -32,13 +32,16 @@ if (fig && bpCanvas && stage) {
   const FR = framingOf(fig.dataset.fig);   // cadrage propre à la machine (refonte/m3d/registry.js)
   const mobile = () => innerWidth < 700;
   const AIM_Y = () => (mobile() ? FR.aimYm : FR.aimY);   // la visée est au-dessus du plan : la machine se place sous le titre et les boutons
-  const focus = { f: 0, to: 0, d: 0, p: null, yaw: 0, pitch: FR.pitch * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
+  const focus = { f: 0, to: 0, d: 0, pan: 0, p: null, yaw: 0, pitch: FR.pitch * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
   const placeCam = (yaw, pitch = FR.pitch * Math.PI / 180) => {
     focus.yaw = yaw; focus.pitch = pitch;
     const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), fitK = cam.aspect < 1.1 ? Math.min(2.1, Math.max(1, 1.1 / Math.max(.4, cam.aspect) * .85)) : 1, dist = (FR.dist * fitK + (11 - FR.dist * fitK) * F) * (1 - .2 * focus.d);
     const tx = .1 + ((P ? P.x : .1) - .1) * F, ty = AIM_Y() + ((P ? P.y : AIM_Y()) - AIM_Y()) * F, tz = -.2 + ((P ? P.z : -.2) + .2) * F;
-    cam.position.set(tx + Math.sin(yaw) * cp * dist, ty + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
-    cam.lookAt(tx, ty, tz); cam.updateMatrixWorld(true);
+    /* panneau Explorer ouvert : la composition se décale (bureau : vers la gauche, mobile : vers le haut) au lieu d'être recouverte */
+    const vis = 2 * dist * Math.tan(15 * Math.PI / 180), panX = innerWidth < 900 ? 0 : focus.pan * .11 * cam.aspect * vis, liftY = innerWidth < 900 ? focus.pan * .62 * vis : 0;
+    const tx2 = tx + Math.cos(yaw) * panX, tz2 = tz - Math.sin(yaw) * panX, ty2 = ty - liftY;
+    cam.position.set(tx2 + Math.sin(yaw) * cp * dist, ty2 + Math.sin(pitch) * dist, tz2 + Math.cos(yaw) * cp * dist);
+    cam.lookAt(tx2, ty2, tz2); cam.updateMatrixWorld(true);
   };
   const bp = initBlueprint(bpCanvas, stage);
   bp.plane.scale.setScalar(2.6);          // plan plus étendu : pas d'horizon noir à ce faible angle
@@ -88,12 +91,14 @@ if (fig && bpCanvas && stage) {
     const how = document.querySelector('.rf-marche'), howSteps = how ? [...how.querySelectorAll('.rf-marche-steps>li')] : [];
     const cap2 = document.createElement('div'); cap2.className = 'rf-demo-cap'; cap2.setAttribute('role', 'status'); cap2.setAttribute('aria-live', 'polite'); document.body.append(cap2);
     const demo = { on: false, explore: false, mode: 'idle', finished: false, end: null, step: -1 };
-    let barUI = null;
+    let barUI = null, panelOpen = false;
+    /* API de test, activée seulement par ?uxtest (jamais en production) : positionne la machine à un instant donné */
+    if (/[?&]uxtest\b/.test(location.search)) window.__rfTest = { seek: (t) => setClock(t), time: clock, end: () => demo.end, min: () => (ctl.seek ? ctl.seek(ctl.min) : 0), max: () => (ctl.seek ? ctl.seek(ctl.max) : 0) };
     const mountBar = () => {
       if (barUI) return;
       const mc = { ...machine, api: machine.api && { ...machine.api, setInspect: machine.api.inspect } };
       const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } dock.dataset.paused = String(hold !== null); dock.dataset.t = clock().toFixed(2); }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
-      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo(), onGuide: () => enter(false) }); if (demo.explore) barUI.open(true); });
+      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo(), onGuide: () => enter(false), onToggle: (v) => { panelOpen = v; } }); if (demo.explore) barUI.open(true); });
     };
     const showStep = (i) => {
       if (!howSteps.length || i === demo.step) return; demo.step = i;
@@ -171,8 +176,8 @@ if (fig && bpCanvas && stage) {
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
       const nowMs = performance.now(); if (nowMs - demoTick > 200) { demoTick = nowMs; dock.dataset.mode = demo.mode; dock.dataset.t = clock().toFixed(2); dock.dataset.paused = String(hold !== null); }
-      const dTo = demo.on ? 1 : 0;
-      if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; placeCam(focus.yaw, focus.pitch); }
+      const dTo = demo.on ? 1 : 0, pTo = demo.on && panelOpen ? 1 : 0;
+      if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001 || Math.abs(pTo - focus.pan) > .001) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; focus.pan += (pTo - focus.pan) * .09; placeCam(focus.yaw, focus.pitch); }
       if (howSteps.length) { const span = ctl.max - ctl.min || 1, pr = Math.min(.9999, Math.max(0, (cur(clock()) - ctl.min) / span)); showStep(Math.min(howSteps.length - 1, Math.floor(pr * howSteps.length))); }
       if (demo.on && !demo.explore && !demo.finished && demo.end !== null && hold === null && clock() >= demo.end) { pauseClock(); setClock(demo.end); demo.finished = true; document.body.classList.add('rf-demo-done'); }
       if (demo.finished && !demo.on) demo.finished = false;

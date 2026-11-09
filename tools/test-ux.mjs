@@ -17,12 +17,14 @@ let chromium; { const { createRequire } = await import('node:module'); const req
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const state = (p) => p.evaluate(() => { const d = document.querySelector('.rf-cb-dock'); return { mode: d?.dataset.mode, t: +(d?.dataset.t || 0), paused: d?.dataset.paused === 'true' }; });
-const waitMachine = (p, tag) => p.waitForSelector('.rf-cb-dock', { state: 'attached', timeout: 60000 }).catch(() => fail.push(`${tag} : la machine ne se charge pas`));
+const waitMachine = async (p, tag) => { await p.waitForSelector('.rf-cb-dock', { state: 'attached', timeout: 90000 }).catch(() => fail.push(`${tag} : la machine ne se charge pas`)); await p.waitForFunction(() => window.__rfFlowReady && window.__rfTest, null, { timeout: 90000 }).catch(() => fail.push(`${tag} : moteurs non prêts (magie ou API de test)`)); await p.evaluate(() => window.__rfFlowReady); };
+const flowT = (p) => p.evaluate(() => window.__rfFlowTest?.state());
 async function open(slug, w, h, reduced) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: reduced ? 'reduce' : 'no-preference' }); const p = await ctx.newPage(); p.setDefaultTimeout(60000);
   p.__errs = []; p.on('pageerror', (e) => p.__errs.push(String(e).slice(0, 160)));
-  await p.goto(`http://localhost:${port}/projet-${slug}.html`, { waitUntil: 'domcontentloaded' }); return p;
+  await p.goto(`http://localhost:${port}/projet-${slug}.html?uxtest`, { waitUntil: 'domcontentloaded' }); return p;
 }
+
 
 for (const slug of PAGES) {
   if (only && only !== slug) continue;
@@ -32,82 +34,132 @@ for (const slug of PAGES) {
     // 1. habillage : surcouche transparente, supports sans pointillés
     const ov = await p.evaluate(() => { const o = document.querySelector('.fl-ov'); if (!o) return null; const c = getComputedStyle(o); return { bg: c.backgroundImage + c.backgroundColor, dashed: [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules].map((r) => r.cssText); } catch { return []; } }).filter((t) => /\.(b3|k3|lh|lv)\b[^{]*\{[^}]*dashed/.test(t)).length }; });
     if (!ov) fail.push(`${tag} : moteur d'icônes absent (.fl-ov)`); else { if (/11, 13, 14/.test(ov.bg)) fail.push(`${tag} : fond noir de la surcouche`); if (ov.dashed) fail.push(`${tag} : ${ov.dashed} règles pointillées sur les supports`); }
-    // 2. contenu : deux CTA, cinq étapes, détail repliable, plus d'analogie du livre
-    const c = await p.evaluate(() => ({ cta: document.querySelector('.rf-cta[data-demo="magic"]')?.textContent + '|' + document.querySelector('.rf-cta[data-demo="explore"]')?.textContent, steps: document.querySelectorAll('.rf-marche-steps>li').length, detail: !!document.querySelector('.rf-marche-more summary'), book: /Fig \d+\.\d|du livre/.test(document.body.textContent) }));
+    // 2. contenu
+    const c = await p.evaluate(() => ({ cta: document.querySelector('.rf-cta[data-demo="magic"]')?.textContent + '|' + document.querySelector('.rf-cta[data-demo="explore"]')?.textContent, steps: document.querySelectorAll('.rf-marche-steps>li').length, detail: !!document.querySelector('.rf-marche-more summary'), book: /Fig \d+\.\d|du livre/.test(document.body.textContent), result: !!document.querySelector('.rf-marche')?.dataset.resultTitle }));
     if (c.cta !== 'Voir la magie|Explorer la machine') fail.push(`${tag} : CTA absents ou mal nommés (${c.cta})`);
     if (c.steps !== 5) fail.push(`${tag} : ${c.steps} étapes visibles au lieu de 5`);
     if (!c.detail) fail.push(`${tag} : processus détaillé absent`);
     if (c.book) fail.push(`${tag} : analogie du livre encore présente`);
+    if (!c.result) fail.push(`${tag} : texte de résultat absent`);
     if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-1-initial.png` });
 
-    // 3. « Voir la magie » : ouverture, icônes, temps actif, pause, page cachée, fermeture, focus
+    // 3. « Voir la magie » : conditions vérifiables, pas d'attente fixe
     await p.focus('.rf-cta[data-demo="magic"]'); await p.click('.rf-cta[data-demo="magic"]', { force: true });
-    await p.waitForSelector('.fl-ov.is-open', { timeout: 5000 }).catch(() => fail.push(`${tag} : « Voir la magie » ne s'ouvre pas`));
-    await sleep(4500);
-    const mg = await p.evaluate(() => { const vw = innerWidth, vh = innerHeight, k = [...document.querySelectorAll('.fl3 .k3')]; const rs = k.map((e) => e.getBoundingClientRect()); return { cap: document.querySelector('.fl-ov-step')?.textContent || '', visible: k.filter((e) => +getComputedStyle(e).opacity > .05).length, tiles: document.querySelectorAll('.k3 svg, .k3 img').length, t: +document.querySelector('.fl-ov').dataset.t, cur: document.querySelectorAll('.k3.cur').length, wires: document.querySelectorAll('.l3-b').length, ctl: !!document.querySelector('.fl-ov-ctl [data-act="pause"]') }; });
-    if (mg.tiles < 5) fail.push(`${tag} : icônes manquantes (${mg.tiles})`);
-    if (mg.visible < 1) fail.push(`${tag} : aucune icône visible`);
-    if (mg.wires < mg.tiles - 1) fail.push(`${tag} : connexions manquantes (${mg.wires} pour ${mg.tiles} icônes)`);
+    await p.waitForSelector('.fl-ov.is-open', { timeout: 20000 }).catch(() => fail.push(`${tag} : « Voir la magie » ne s'ouvre pas`));
+    await p.waitForFunction(() => !!document.activeElement?.closest('.fl-ov'), null, { timeout: 5000 }).catch(() => {});
+    await p.waitForFunction(() => +getComputedStyle(document.querySelector('.rf-bnav')).opacity < .05, null, { timeout: 8000 }).catch(() => {});
+    const a11y = await p.evaluate(() => ({ modal: document.querySelector('.fl-ov')?.getAttribute('aria-modal'), inert: !!document.querySelector('main')?.hasAttribute('inert'), focus: !!document.activeElement?.closest(".fl-ov"), nav: getComputedStyle(document.querySelector('.rf-bnav')).opacity }));
+    if (a11y.modal !== 'true' || !a11y.inert || !a11y.focus) fail.push(`${tag} : dialogue mal formé (${JSON.stringify(a11y)})`);
+    if (+a11y.nav > .05) fail.push(`${tag} : la navigation reste visible pendant la magie`);
+    // le temps actif avance tout seul
+    await p.waitForFunction(() => window.__rfFlowTest.state().t > 400, null, { timeout: 30000 }).catch(() => fail.push(`${tag} : le temps actif de la magie n'avance pas`));
+    // étape active définie : positionnement déterministe sur la première icône atteinte
+    await p.evaluate(() => window.__rfFlowTest.seek(1500, true));
+    await p.waitForFunction(() => window.__rfFlowTest.state().cur === 0, null, { timeout: 10000 }).catch(() => fail.push(`${tag} : aucune icône active à l'arrivée du signal`));
+    await p.waitForFunction(() => [...document.querySelectorAll('.fl3 .k3')].some((e) => +getComputedStyle(e).opacity > .05), null, { timeout: 10000 }).catch(() => {});
+    const mg = await p.evaluate(() => { const k = [...document.querySelectorAll('.fl3 .k3')]; return { cap: document.querySelector('.fl-ov-step')?.textContent || '', visible: k.filter((e) => +getComputedStyle(e).opacity > .05).length, tiles: document.querySelectorAll('.k3 svg, .k3 img').length, wires: document.querySelectorAll('.l3-b').length, ctl: !!document.querySelector('.fl-ov-ctl [data-act="pause"]'), cur: document.querySelectorAll('.k3.cur').length }; });
+    if (!/Étape 1 \/ \d+/.test(mg.cap)) fail.push(`${tag} : légende de l'étape active absente (${mg.cap.slice(0, 30)})`);
+    if (mg.cur !== 1) fail.push(`${tag} : ${mg.cur} icônes actives au lieu d'une`);
+    if (mg.tiles < 5 || mg.visible < 1) fail.push(`${tag} : icônes manquantes (${mg.tiles}/${mg.visible})`);
+    if (mg.wires < mg.tiles - 1) fail.push(`${tag} : connexions manquantes (${mg.wires} pour ${mg.tiles})`);
     if (!mg.ctl) fail.push(`${tag} : commande de pause absente`);
-    if (!(mg.t > 500)) fail.push(`${tag} : le temps actif de la magie n'avance pas (${mg.t})`);
     if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-2b-magie.png` });
-    // pause réelle
-    await p.click('.fl-ov-ctl [data-act="pause"]', { force: true }); await sleep(400);
-    const t1 = +(await p.evaluate(() => document.querySelector('.fl-ov').dataset.t)); await sleep(1500);
-    const t2 = +(await p.evaluate(() => document.querySelector('.fl-ov').dataset.t));
-    if (t2 - t1 > 120) fail.push(`${tag} : la pause de la magie ne fige pas le temps (${t1} -> ${t2})`);
+    // zones mobiles : légende, processus et commandes ne se chevauchent pas, rien sous l'encoche
+    if (vp === 'mobile') {
+      const z = await p.evaluate(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); return { step: r('.fl-ov-step'), win: r('.fl-ov-w'), ctl: r('.fl-ov-ctl'), x: r('.fl-ov-x') }; });
+      if (z.step.bottom > z.win.top + 4) fail.push(`${tag} : la légende chevauche le processus (${Math.round(z.step.bottom)} > ${Math.round(z.win.top)})`);
+      if (z.win.bottom > z.ctl.top + 4) fail.push(`${tag} : le processus chevauche les commandes`);
+      if (z.x.top < 0 || z.x.right > w) fail.push(`${tag} : bouton fermer hors écran`);
+    }
+    // pause réelle : le temps ne bouge plus
+    await p.evaluate(() => window.__rfFlowTest.seek(1500, false));
     await p.click('.fl-ov-ctl [data-act="pause"]', { force: true });
+    await p.waitForFunction(() => window.__rfFlowTest.state().playing === false, null, { timeout: 5000 }).catch(() => fail.push(`${tag} : la pause n'est pas effective`));
+    const t1 = (await flowT(p)).t; await p.evaluate(() => new Promise((r) => setTimeout(r, 1200))); const t2 = (await flowT(p)).t;
+    if (t2 !== t1) fail.push(`${tag} : la pause de la magie ne fige pas le temps (${t1} -> ${t2})`);
+    await p.click('.fl-ov-ctl [data-act="pause"]', { force: true });
+    await p.waitForFunction(() => window.__rfFlowTest.state().playing === true, null, { timeout: 5000 });
     // page cachée : le temps de l'absence n'est pas compté
-    const a0 = +(await p.evaluate(() => document.querySelector('.fl-ov').dataset.t));
+    const a0 = (await flowT(p)).t;
     await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); document.dispatchEvent(new Event('visibilitychange')); });
-    await sleep(4000);
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 3500)));
+    const aMid = (await flowT(p)).t;
     await p.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => false }); document.dispatchEvent(new Event('visibilitychange')); });
-    await sleep(900);
-    const a1 = +(await p.evaluate(() => document.querySelector('.fl-ov').dataset.t));
-    if (a1 - a0 > 2600) fail.push(`${tag} : le temps passé page cachée est compté (${a0} -> ${a1})`);
-    await p.keyboard.press('Escape'); await sleep(1700);
-    if (await p.evaluate(() => document.querySelector('.fl-ov').classList.contains('is-open'))) fail.push(`${tag} : Échap ne ferme pas la magie`);
+    if (aMid - a0 > 300) fail.push(`${tag} : le temps avance page cachée (${a0} -> ${aMid})`);
+    await p.waitForFunction((m) => window.__rfFlowTest.state().t > m, aMid, { timeout: 20000 }).catch(() => fail.push(`${tag} : le temps ne reprend pas au retour`));
+    // résultat : positionnement sur la fin, scène finale, liste, rejeu
+    await p.evaluate(() => window.__rfFlowTest.seek(window.__rfFlowTest.run() + 400, true));
+    await p.waitForFunction(() => !document.querySelector('.fl-ov-end').hidden && !document.querySelector('.fl-ov-result').hidden, null, { timeout: 15000 }).catch(() => fail.push(`${tag} : la scène de résultat n'apparaît pas`));
+    const res = await p.evaluate(() => ({ title: document.querySelector('.fl-ov-result b')?.textContent, done: document.querySelectorAll('.k3.done').length, tiles: document.querySelectorAll('.k3').length, big: parseFloat(getComputedStyle(document.querySelector('.fl-ov-result b')).fontSize), step: document.querySelector('.fl-ov-step').textContent, btns: [...document.querySelectorAll('.fl-ov-end button')].map((b) => b.textContent) }));
+    if (!res.title || res.done !== res.tiles) fail.push(`${tag} : résultat incomplet (${res.title}, ${res.done}/${res.tiles})`);
+    if (res.big < 24) fail.push(`${tag} : titre du résultat trop discret (${res.big}px)`);
+    if (res.step) fail.push(`${tag} : la légende d'étape reste affichée sur le résultat`);
+    if (!res.btns.includes('Explorer la machine') || !res.btns.includes('Rejouer') || !res.btns.includes('Revoir les étapes')) fail.push(`${tag} : actions finales incomplètes (${res.btns.join(', ')})`);
+    if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3b-resultat.png` });
+    await p.click('.fl-ov-end [data-act="steps"]', { force: true });
+    await p.waitForSelector('.fl-ov-list.open', { timeout: 5000 }).catch(() => fail.push(`${tag} : « Revoir les étapes » ne s'ouvre pas`));
+    const li = await p.evaluate(() => ({ n: document.querySelectorAll('.fl-ov-list li').length, tiles: document.querySelectorAll('.k3').length, exp: document.querySelector('[data-act="steps"]').getAttribute('aria-expanded') }));
+    if (li.n !== li.tiles || li.exp !== 'true') fail.push(`${tag} : liste des étapes incomplète (${li.n}/${li.tiles}, ${li.exp})`);
+    if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3d-liste.png` });
+    await p.keyboard.press('Escape');
+    await p.waitForFunction(() => !document.querySelector('.fl-ov-list.open'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : Échap ne referme pas la liste`));
+    if (!(await p.evaluate(() => document.querySelector('.fl-ov').classList.contains('is-open')))) fail.push(`${tag} : Échap sur la liste ferme aussi la magie`);
+    await p.click('.fl-ov-end [data-act="replay"]', { force: true });
+    await p.waitForFunction(() => document.querySelector('.fl-ov-result').hidden && window.__rfFlowTest.state().t < 1500, null, { timeout: 8000 }).catch(() => fail.push(`${tag} : le rejeu ne réinitialise pas l'état`));
+    // fermeture : Échap, focus, arrière-plan réactivé, rien ne reste
+    await p.keyboard.press('Escape');
+    await p.waitForFunction(() => !document.querySelector('.fl-ov').classList.contains('is-open'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : Échap ne ferme pas la magie`));
     if (!(await p.evaluate(() => document.activeElement?.dataset?.demo === 'magic'))) fail.push(`${tag} : le focus n'est pas rendu au bouton`);
-    const leak = await p.evaluate(() => document.querySelectorAll('.fl-ov .fl3').length); await sleep(1700);
-    if (await p.evaluate(() => document.querySelectorAll('.fl-ov .fl3').length)) fail.push(`${tag} : le processus reste dans le DOM après fermeture (${leak})`);
+    if (await p.evaluate(() => !!document.querySelector('[inert]'))) fail.push(`${tag} : l'arrière-plan reste inerte après fermeture`);
+    await p.waitForFunction(() => !document.querySelector('.fl-ov .fl3'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le processus reste dans le DOM après fermeture`));
 
-    // 4. « Explorer la machine » : mode Explorer d'emblée, commandes avancées ouvertes, aucune démonstration imposée
+    // ouvertures et fermetures successives : aucun nœud ni écouteur résiduel
+    for (let k = 0; k < 3; k++) {
+      await p.click('.rf-cta[data-demo="magic"]', { force: true }); await p.waitForSelector('.fl-ov.is-open', { timeout: 10000 });
+      await p.waitForFunction(() => window.__rfFlowTest.state().t > 100, null, { timeout: 20000 }).catch(() => fail.push(`${tag} : réouverture ${k + 1} : le temps n'avance pas`));
+      await p.keyboard.press('Escape'); await p.waitForFunction(() => !document.querySelector('.fl-ov').classList.contains('is-open') && !document.querySelector('[inert]'), null, { timeout: 8000 }).catch(() => fail.push(`${tag} : réouverture ${k + 1} : fermeture incomplète`));
+    }
+    await p.waitForFunction(() => document.querySelectorAll('.fl3').length === 0, null, { timeout: 8000 }).catch(() => fail.push(`${tag} : nœuds résiduels après plusieurs ouvertures`));
+
+    // 4. « Explorer la machine » : mode Explorer d'emblée, panneau placé hors de la machine, aucune démonstration imposée
     await p.click('.rf-cta[data-demo="explore"]', { force: true });
-    await p.waitForFunction(() => document.body.classList.contains('rf-explore'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : « Explorer la machine » n'active pas le mode Explorer`));
-    await p.waitForSelector('.cv-cb-cap', { timeout: 30000 }).catch(() => fail.push(`${tag} : capsule de commandes absente`));
-    await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 40000 }).catch(() => fail.push(`${tag} : les commandes avancées ne s'ouvrent pas d'emblée`));
-    const ex = await p.evaluate(() => ({ demo: document.body.classList.contains('rf-demo'), sec: [...document.querySelectorAll('.cv-cb-panel.is-open .cv-cb-sec:not([hidden]) h4')].map((x) => x.textContent), cap: +getComputedStyle(document.querySelector('.rf-demo-cap')).opacity > .1 }));
+    await p.waitForFunction(() => document.querySelector('.rf-cb-dock')?.dataset.mode === 'explore', null, { timeout: 15000 }).catch(() => fail.push(`${tag} : « Explorer la machine » n'active pas le mode Explorer`));
+    await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 60000 }).catch(() => fail.push(`${tag} : les commandes avancées ne s'ouvrent pas d'emblée`));
+    const ex = await p.evaluate(() => ({ demo: document.body.classList.contains('rf-demo'), sec: [...document.querySelectorAll('.cv-cb-panel.is-open .cv-cb-sec:not([hidden]) h4')].map((x) => x.textContent), cap: +getComputedStyle(document.querySelector('.rf-demo-cap')).opacity > .1, pr: (() => { const r = document.querySelector('.cv-cb-panel').getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })() }));
     if (ex.demo || ex.cap) fail.push(`${tag} : Explorer lance la démonstration guidée`);
     if (!ex.sec.includes('Démonstration') || !ex.sec.includes('Vues')) fail.push(`${tag} : panneau Explorer incomplet (${ex.sec.join(', ')})`);
-    if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3-explorer.png` });
+    if (vp === 'desktop' && ex.pr[0] < w * .6) fail.push(`${tag} : le panneau n'est pas latéral (${ex.pr.map(Math.round).join(',')})`);
+    if (vp === 'mobile' && (ex.pr[0] < 0 || ex.pr[2] > w || ex.pr[3] > h)) fail.push(`${tag} : le tiroir sort de l'écran (${ex.pr.map(Math.round).join(',')})`);
+    await p.waitForFunction(() => true); if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3-explorer.png` });
     const box = await p.evaluate(() => { const r = document.querySelector('.cv-cb-cap').getBoundingClientRect(); return [r.left, r.right, r.bottom]; });
     if (box[0] < -1 || box[1] > w + 1 || box[2] > h + 1) fail.push(`${tag} : capsule hors de l'écran (${box.map((x) => Math.round(x)).join(',')})`);
-    // vue rapprochée, inspection, retour à l'ensemble
     await p.evaluate(() => { const bs = [...document.querySelectorAll('.cv-cb-panel .cv-cb-sec button')]; bs.find((x) => x.textContent.includes('Séparer'))?.click(); });
-    await sleep(500);
+    await p.evaluate(() => new Promise((r) => setTimeout(r, 400)));
     await p.evaluate(() => { const bs = [...document.querySelectorAll('.cv-cb-panel .cv-cb-sec button')]; bs.find((x) => x.textContent.includes('Rassembler'))?.click(); bs.find((x) => x.textContent === 'Ensemble')?.click(); });
-
-    // 5. démonstration guidée (depuis le panneau) : mode guidé, légende, temps qui avance, pause, reprise
+    // 5. démonstration guidée (panneau) : mode guidé, légende, temps qui avance, pause, reprise, fin sur le résultat
     await p.evaluate(() => [...document.querySelectorAll('.cv-cb-panel button')].find((x) => x.textContent.includes('Démonstration guidée'))?.click());
     await p.waitForFunction(() => document.querySelector('.rf-cb-dock')?.dataset.mode === 'guided', null, { timeout: 20000 }).catch(() => fail.push(`${tag} : la démonstration guidée ne démarre pas`));
-    await sleep(2500);
-    const g1 = await state(p), cap = await p.evaluate(() => document.querySelector('.rf-demo-cap')?.textContent || '');
+    const m0 = await p.evaluate(() => window.__rfTest.time());
+    await p.waitForFunction((t) => window.__rfTest.time() > t + .5, m0, { timeout: 40000 }).catch(() => fail.push(`${tag} : la démonstration n'avance pas`));
+    const cap = await p.evaluate(() => document.querySelector('.rf-demo-cap')?.textContent || '');
     if (!/Étape \d \/ 5/.test(cap)) fail.push(`${tag} : légende de démonstration absente (${cap.slice(0, 40)})`);
-    let g2 = g1; for (let i = 0; i < 24 && !(g2.t - g1.t > .8); i++) { await sleep(400); g2 = await state(p); }
-    if (!(g2.t - g1.t > .8)) fail.push(`${tag} : la démonstration n'avance pas (${g1.t} -> ${g2.t})`);
-    // pause et reprise tout de suite (la démonstration guidée s'arrête d'elle-même sur son résultat)
-    await p.click('.cv-cb-play', { force: true }); await sleep(600);
-    const q1 = await state(p); await sleep(1500); const q2 = await state(p);
-    if (!q1.paused || Math.abs(q2.t - q1.t) > .3) fail.push(`${tag} : la pause ne fige pas la machine (${q1.t} -> ${q2.t})`);
-    await p.click('.cv-cb-play', { force: true }); await sleep(1500);
-    if ((await state(p)).paused) fail.push(`${tag} : la reprise ne relance pas la machine`);
+    // placement déterministe loin de la fin, puis pause et reprise
+    await p.evaluate(() => window.__rfTest.seek(window.__rfTest.min() + 1));
+    await p.click('.cv-cb-play', { force: true });
+    await p.waitForFunction(() => document.querySelector('.rf-cb-dock')?.dataset.paused === 'true', null, { timeout: 8000 }).catch(() => fail.push(`${tag} : la pause n'est pas effective`));
+    const q1 = await p.evaluate(() => window.__rfTest.time()); await p.evaluate(() => new Promise((r) => setTimeout(r, 1000))); const q2 = await p.evaluate(() => window.__rfTest.time());
+    if (q2 !== q1) fail.push(`${tag} : la pause ne fige pas la machine (${q1} -> ${q2})`);
+    await p.click('.cv-cb-play', { force: true });
+    await p.waitForFunction((t) => window.__rfTest.time() > t + .4, q2, { timeout: 30000 }).catch(() => fail.push(`${tag} : la reprise ne relance pas la machine`));
+    // fin de chronologie : la machine s'arrête sur son résultat
+    await p.evaluate(() => { const e = window.__rfTest.end(); if (e) window.__rfTest.seek(e - .2); });
+    await p.waitForFunction(() => document.body.classList.contains('rf-demo-done') || window.__rfTest.end() === null, null, { timeout: 30000 }).catch(() => fail.push(`${tag} : la machine ne s'arrête pas sur son résultat`));
     if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-2-demo.png` });
-    // sortie : Échap referme le panneau s'il est ouvert, puis quitte
-    await p.keyboard.press('Escape'); await sleep(300); await p.keyboard.press('Escape'); await sleep(500);
-    if (await p.evaluate(() => document.body.classList.contains('rf-demo') || document.body.classList.contains('rf-explore'))) fail.push(`${tag} : Échap ne quitte pas la machine`);
-    // nouvelle ouverture
-    await p.click('.rf-cta[data-demo="explore"]', { force: true }); await sleep(800);
-    if (!(await p.evaluate(() => document.body.classList.contains('rf-explore')))) fail.push(`${tag} : la machine ne se rouvre pas`);
+    // sortie
+    await p.keyboard.press('Escape');
+    await p.waitForFunction(() => !document.body.classList.contains('rf-demo') && !document.body.classList.contains('rf-explore'), null, { timeout: 5000 }).catch(async () => { await p.keyboard.press('Escape'); await p.waitForFunction(() => !document.body.classList.contains('rf-demo') && !document.body.classList.contains('rf-explore'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : Échap ne quitte pas la machine`)); });
+    await p.click('.rf-cta[data-demo="explore"]', { force: true });
+    await p.waitForFunction(() => document.body.classList.contains('rf-explore'), null, { timeout: 8000 }).catch(() => fail.push(`${tag} : la machine ne se rouvre pas`));
     if (p.__errs.length) fail.push(`${tag} : erreurs de page : ${p.__errs.slice(0, 2).join(' | ')}`);
     log(fail.some((f) => f.startsWith(tag)) ? 'ÉCHEC ' : 'ok    ', tag);
     await p.context().close();
@@ -117,22 +169,18 @@ for (const slug of PAGES) {
     const tag = `${slug} reduced`;
     const p = await open(slug, 1440, 900, true); await waitMachine(p, tag);
     await p.click('.rf-cta[data-demo="magic"]', { force: true });
-    await p.waitForSelector('.fl-ov.is-open', { timeout: 5000 }).catch(() => fail.push(`${tag} : la magie ne s'ouvre pas`));
-    await sleep(800);
-    const r = await p.evaluate(() => ({ done: document.querySelectorAll('.k3.done').length, tiles: document.querySelectorAll('.k3').length, end: !document.querySelector('.fl-ov-end').hidden, list: document.querySelectorAll('.fl-ov-all li').length }));
-    if (r.done !== r.tiles || !r.end) fail.push(`${tag} : la lecture statique n'affiche pas le processus complet (${r.done}/${r.tiles}, fin ${r.end})`);
-    if (r.list !== r.tiles) fail.push(`${tag} : liste des étapes incomplète (${r.list}/${r.tiles})`);
-    if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-3b-resultat.png` });
-    await p.click('.fl-ov-end [data-act="replay"]', { force: true }); await sleep(500);
-    if (await p.evaluate(() => document.querySelectorAll('.k3.done').length) !== r.tiles) fail.push(`${tag} : le rejeu ne réinitialise pas l'état`);
+    await p.waitForSelector('.fl-ov.is-open', { timeout: 20000 }).catch(() => fail.push(`${tag} : la magie ne s'ouvre pas`));
+    await p.waitForFunction(() => !document.querySelector('.fl-ov-end').hidden, null, { timeout: 10000 }).catch(() => {});
+    const r = await p.evaluate(() => ({ done: document.querySelectorAll('.k3.done').length, tiles: document.querySelectorAll('.k3').length, end: !document.querySelector('.fl-ov-end').hidden, list: document.querySelectorAll('.fl-ov-list li').length, open: !!document.querySelector('.fl-ov-list.open'), res: !document.querySelector('.fl-ov-result').hidden }));
+    if (r.done !== r.tiles || !r.end || !r.res) fail.push(`${tag} : la lecture statique n'affiche pas le résultat complet (${r.done}/${r.tiles}, fin ${r.end})`);
+    if (r.list !== r.tiles || !r.open) fail.push(`${tag} : liste des étapes absente ou fermée (${r.list}/${r.tiles}, ouverte ${r.open})`);
+    if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-3b-resultat-reduit.png` });
     await p.click('.fl-ov-end [data-act="machine"]', { force: true });
-    await p.waitForFunction(() => document.body.classList.contains('rf-explore'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : « Explorer la machine » (fin de la magie) n'active pas l'Explorer`));
-    await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 30000 }).catch(() => fail.push(`${tag} : le panneau Explorer ne s'ouvre pas après la magie`));
-    await p.waitForFunction(() => document.querySelector('.rf-cb-dock')?.dataset.mode === 'explore', null, { timeout: 15000 }).catch(() => {});
-    await sleep(1200);
-    const after = await p.evaluate(() => ({ ov: document.querySelector('.fl-ov').classList.contains('is-open'), lock: document.body.classList.contains('fl-lock'), demo: document.body.classList.contains('rf-demo'), mode: document.querySelector('.rf-cb-dock')?.dataset.mode }));
-    if (after.ov || after.lock) fail.push(`${tag} : la magie ne se ferme pas proprement`);
-    if (after.demo || after.mode !== 'explore') fail.push(`${tag} : le passage magie → machine redirige vers la démonstration (${after.mode})`);
+    await p.waitForFunction(() => document.querySelector('.rf-cb-dock')?.dataset.mode === 'explore', null, { timeout: 20000 }).catch(() => fail.push(`${tag} : « Explorer la machine » (fin de la magie) n'active pas l'Explorer`));
+    await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 60000 }).catch(() => fail.push(`${tag} : le panneau Explorer ne s'ouvre pas après la magie`));
+    await p.waitForFunction(() => !document.querySelector('.fl-ov').classList.contains('is-open') && !document.body.classList.contains('fl-lock'), null, { timeout: 8000 }).catch(() => fail.push(`${tag} : la magie ne se ferme pas proprement`));
+    if (await p.evaluate(() => !!document.querySelector('[inert]'))) fail.push(`${tag} : l'arrière-plan reste inerte après le passage vers la machine`);
+    if (await p.evaluate(() => document.body.classList.contains('rf-demo'))) fail.push(`${tag} : le passage magie → machine lance la démonstration`);
     if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-3c-transition-machine.png` });
     if (p.__errs.length) fail.push(`${tag} : erreurs de page : ${p.__errs.slice(0, 2).join(' | ')}`);
     log(fail.some((f) => f.startsWith(tag)) ? 'ÉCHEC ' : 'ok    ', tag);
@@ -142,8 +190,8 @@ for (const slug of PAGES) {
   {
     const tag = `${slug} 1920`;
     const p = await open(slug, 1920, 1080, false); await waitMachine(p, tag);
-    await p.click('.rf-cta[data-demo="magic"]', { force: true }); await p.waitForSelector('.fl-ov.is-open', { timeout: 5000 }).catch(() => fail.push(`${tag} : la magie ne s'ouvre pas`));
-    await sleep(2500);
+    await p.click('.rf-cta[data-demo="magic"]', { force: true }); await p.waitForSelector('.fl-ov.is-open', { timeout: 20000 }).catch(() => fail.push(`${tag} : la magie ne s'ouvre pas`));
+    await p.waitForFunction(() => window.__rfFlowTest.state().t > 300, null, { timeout: 30000 });
     const fit = await p.evaluate(() => { const r = document.querySelector('.fl3').getBoundingClientRect(); return [r.left, r.right, r.top, r.bottom]; });
     if (fit[0] < -2 || fit[1] > 1922) fail.push(`${tag} : la composition déborde horizontalement (${fit.map(Math.round).join(',')})`);
     if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-wide-2b-magie.png` });
@@ -152,4 +200,4 @@ for (const slug of PAGES) {
   }
 }
 await b.close(); srv.close();
-if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); } log('\nonze fiches : magie (temps actif, pause, résultat, rejeu, fermeture, passage vers la machine) et machine (Explorer, démonstration guidée, pause, sortie) : ok');
+if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); } log('\nonze fiches : magie (temps actif, pause, page cachée, résultat, liste, rejeu, fermeture, passage vers la machine) et machine (Explorer, panneau latéral / tiroir, démonstration guidée, pause, fin, sortie) : ok');

@@ -108,7 +108,7 @@ const easeInOut = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) /
    Le nombre d'étapes fixe le nombre de colonnes, l'ordre de lecture est toujours celui du parcours. */
 function layoutSnake(n, narrow) {
   if (narrow) {
-    const BOX = 84, GAP = 132, W = 300, M = 50;
+    const BOX = 76, GAP = 118, W = 300, M = 44;
     const pos = Array.from({ length: n }, (_, i) => ({ x: W / 2 - BOX / 2 + (i % 2 ? 1 : -1) * 44, y: M + i * GAP, r: i, c: i % 2, i }));
     return { BOX, cols: 1, W, H: M * 2 + (n - 1) * GAP + BOX, pos, rows: n, mobile: true };
   }
@@ -239,29 +239,39 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   const ov = document.createElement('div');
   ov.className = 'fl-ov'; ov.setAttribute('aria-hidden', 'true'); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Voir la magie : le processus étape par étape');
   const I = { pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.8" height="14" rx="1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1"/></svg>', play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.6.6 0 0 0 .9.5l10.5-6.8a.6.6 0 0 0 0-1L8.9 4.7a.6.6 0 0 0-.9.5z"/></svg>', replay: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"/></svg>' };
-  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><div class="fl-ov-ctl"><button type="button" class="fl-ov-b" data-act="pause" aria-label="Mettre en pause">' + I.pause + '</button><i class="fl-ov-prog" aria-hidden="true"><b></b></i><button type="button" class="fl-ov-b" data-act="again" aria-label="Rejouer depuis le début">' + I.replay + '</button></div><p class="fl-ov-cap">ÉCHAP POUR FERMER</p>';
+  ov.setAttribute('aria-modal', 'true');
+  const result = (() => { const m = root.closest('.rf-marche'); return { title: m?.dataset.resultTitle || 'Processus terminé.', text: m?.dataset.result || '' }; })();
+  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c" aria-hidden="true"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-result" role="status" aria-live="polite" hidden></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="steps" aria-expanded="false">Revoir les étapes</button><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><aside class="fl-ov-list" aria-label="Les étapes du processus" hidden><div class="fl-ov-list-h"><h3>Les étapes</h3><button type="button" class="fl-ov-b" data-act="steps-close" aria-label="Fermer la liste des étapes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><ol>' + items.map((it, i) => '<li><span aria-hidden="true">' + (i + 1) + '</span><div><b>' + esc(it.title) + '</b><p>' + esc(it.text) + '</p></div></li>').join('') + '</ol></aside><div class="fl-ov-ctl"><button type="button" class="fl-ov-b" data-act="pause" aria-label="Mettre en pause">' + I.pause + '</button><i class="fl-ov-prog" aria-hidden="true"><b></b></i><button type="button" class="fl-ov-b" data-act="again" aria-label="Rejouer depuis le début">' + I.replay + '</button></div><p class="fl-ov-cap" aria-hidden="true">ÉCHAP POUR FERMER</p>';
   document.body.append(ov);
-  const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w'), stepBox = ov.querySelector('.fl-ov-step'), endBox = ov.querySelector('.fl-ov-end'), prog = ov.querySelector('.fl-ov-prog b'), pauseBtn = ov.querySelector('[data-act="pause"]');
-  let L = null, st = null, tl = null, ra = 0, last = 0, tAct = 0, playing = true, timer = 0, opener = null, isOpen = false, shown = -2, fit = 1, Hv = 0;
-  const fitOf = () => Math.min(center.clientWidth / L.W, L.mobile ? 9 : innerHeight * .5 / L.H) || 1;   // le processus tient dans la moitié de la hauteur : de l'air autour, légende et commandes dégagées
+  const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w'), stepBox = ov.querySelector('.fl-ov-step'), endBox = ov.querySelector('.fl-ov-end'), resBox = ov.querySelector('.fl-ov-result'), listBox = ov.querySelector('.fl-ov-list'), listBtn = ov.querySelector('[data-act="steps"]'), prog = ov.querySelector('.fl-ov-prog b'), pauseBtn = ov.querySelector('[data-act="pause"]');
+  let wv = 0, L = null, st = null, tl = null, ra = 0, last = 0, tAct = 0, playing = true, timer = 0, opener = null, isOpen = false, shown = -2, fit = 1, Hv = 0;
+  const fitOf = () => Math.min(center.clientWidth / L.W, L.mobile ? .98 : innerHeight * .5 / L.H) || 1;
+  /* zones sans chevauchement (mobile) : haut = légende, centre = processus, bas = commandes */
+  const ZT = 170, ZB = 132;
+  const zones = () => { if (L.mobile) { Hv = Math.max(220, innerHeight - ZT - ZB); center.style.marginTop = ZT + 'px'; center.style.alignSelf = 'start'; } else { Hv = Math.round(L.H * fit); center.style.marginTop = ''; center.style.alignSelf = ''; } wrap.style.height = Hv + 'px'; };   // le processus tient dans la moitié de la hauteur : de l'air autour, légende et commandes dégagées
   const caption = (i) => { if (i === shown) return; shown = i; if (i < 0) { stepBox.innerHTML = ''; return; } const it = items[i]; stepBox.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + items.length + '</small><b>' + esc(it.title) + '</b><span>' + esc(it.text) + '</span>'; };
   /* caméra : vue d'ensemble au début et à la fin, rapprochement discret de l'icône active entre les deux (mobile : elle suit le signal) */
   const camera = (r, dt, snap) => {
-    const cam = st.cam, Wv = center.clientWidth, overview = r.finished || tAct < T.lead || reduced;
-    const zFull = L.mobile ? Math.min(1, Hv / (L.H * fit)) : 1;
-    const tz = overview ? zFull : (L.mobile ? 1.18 : 1.08);
+    const cam = st.cam, Wv = wv, overview = r.finished || tAct < T.lead || reduced;
+    const zFull = L.mobile ? Math.max(.6, Math.min(1, Hv / (L.H * fit))) : 1;
+    const tz = overview ? zFull : (L.mobile ? 1.04 : 1.08);
     const cx = L.W / 2, cy = L.H / 2, hx = r.head.x, hy = r.head.y;
     const tx = overview ? cx : L.mobile ? hx : cx + (hx - cx) * .3, ty = overview ? cy : L.mobile ? hy : cy + (hy - cy) * .3;
     const k = snap ? 1 : 1 - Math.exp(-dt * 2.6);
     cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; cam.z += (tz - cam.z) * k;
     const sc = fit * cam.z;
-    if (L.mobile) st.cells.forEach((c, i) => { const d = clamp(1 - Math.abs(L.pos[i].y + L.BOX / 2 - cam.y) / 330, .1, 1).toFixed(2); if (c.d !== d) { c.d = d; c.tile.style.setProperty('--d', d); c.lab.style.setProperty('--d', d); } });   // mobile : les étapes lointaines s'estompent, le contexte reste lisible
+    if (L.mobile) st.cells.forEach((c, i) => { const d = clamp(1 - Math.abs(L.pos[i].y + L.BOX / 2 - cam.y) / 470, .22, 1).toFixed(2); if (c.d !== d) { c.d = d; c.tile.style.setProperty('--d', d); c.lab.style.setProperty('--d', d); } });   // mobile : les étapes lointaines s'estompent, le contexte reste lisible
     st.plane.style.transform = 'translate3d(' + (Wv / 2 - cam.x * sc).toFixed(1) + 'px,' + (Hv / 2 - cam.y * sc).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
   };
-  const showEnd = () => { endBox.hidden = false; ov.classList.add('is-done'); pauseBtn.disabled = true; };
+  const showEnd = () => {
+    stepBox.innerHTML = ''; shown = -4;
+    resBox.innerHTML = '<b>' + esc(result.title) + '</b>' + (result.text ? '<p>' + esc(result.text) + '</p>' : '') + '<small>Résultat de démonstration : données fictives, aucun traitement réel.</small>'; resBox.hidden = false;
+    endBox.hidden = false; ov.classList.add('is-done'); pauseBtn.disabled = true;
+  };
+  const toggleList = (v) => { const on = v ?? listBox.hidden; if (on) { listBox.hidden = false; void listBox.offsetWidth; } listBox.classList.toggle('open', on); listBtn.setAttribute('aria-expanded', String(on)); if (!on) setTimeout(() => { if (!listBox.classList.contains('open')) listBox.hidden = true; }, 450); };
   const sync = (dt, snap) => {
     const r = draw3d(st, items, L, tl, tAct);
-    if (r.finished) caption(items.length - 1); else if (!r.moving && r.reach >= 0) caption(r.reach);
+    if (!r.finished && !r.moving && r.reach >= 0) caption(r.reach);
     ov.dataset.t = String(Math.round(tAct)); ov.dataset.playing = String(playing);
     camera(r, dt, snap); prog.style.transform = 'scaleX(' + clamp(tAct / tl.total, 0, 1).toFixed(4) + ')';
     if (r.finished && endBox.hidden) showEnd();
@@ -278,9 +288,9 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   const onVis = () => { last = 0; if (!document.hidden) kick(); else if (ra) { cancelAnimationFrame(ra); ra = 0; } };
   const setPlaying = (v) => { playing = v; pauseBtn.innerHTML = v ? I.pause : I.play; pauseBtn.setAttribute('aria-label', v ? 'Mettre en pause' : 'Reprendre'); if (v) kick(); else if (ra) { cancelAnimationFrame(ra); ra = 0; } };
   const start = () => {
-    cancelAnimationFrame(ra); ra = 0; tAct = 0; last = 0; shown = -2; endBox.hidden = true; ov.classList.remove('is-done'); pauseBtn.disabled = false; setPlaying(true);
+    cancelAnimationFrame(ra); ra = 0; tAct = 0; last = 0; shown = -2; endBox.hidden = true; resBox.hidden = true; resBox.innerHTML = ''; toggleList(false); ov.classList.remove('is-done'); pauseBtn.disabled = false; setPlaying(true);
     if (st) { st.cam.x = L.W / 2; st.cam.y = L.H / 2; st.cam.z = 1; }
-    if (reduced) { tAct = tl.total; stepBox.innerHTML = '<ol class="fl-ov-all">' + items.map((it, i) => '<li><b>' + esc(it.title) + '</b> ' + esc(it.text) + '</li>').join('') + '</ol>'; shown = -3; const r = draw3d(st, items, L, tl, tAct); camera(r, 0, true); showEnd(); prog.style.transform = 'scaleX(1)'; return; }
+    if (reduced) { tAct = tl.total; const r = draw3d(st, items, L, tl, tAct); camera(r, 0, true); showEnd(); toggleList(true); prog.style.transform = 'scaleX(1)'; return; }   // mouvements réduits : état final complet, liste des étapes ouverte
     sync(0, true); kick();
   };
   open = () => {
@@ -288,18 +298,19 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
     clearTimeout(timer); opener = document.activeElement;
     L = layoutSnake(items.length, matchMedia('(max-width: 640px)').matches); tl = timeline(items.length);
     st = build3d(items, L);
-    fit = fitOf(); Hv = L.mobile ? Math.round(innerHeight * .6) : Math.round(L.H * fit);
-    wrap.style.height = Hv + 'px'; wrap.replaceChildren(st.plane);
+    wv = center.clientWidth; fit = fitOf(); zones(); wrap.replaceChildren(st.plane); st.plane.setAttribute('aria-hidden', 'true');
     isOpen = true; document.addEventListener('visibilitychange', onVis);
+    for (const e of [...document.body.children]) if (e !== ov && !e.hasAttribute('inert') && e.tagName !== 'SCRIPT') { e.setAttribute('inert', ''); e.dataset.flInert = '1'; }   // l'arrière-plan n'est plus interactif
     void ov.offsetWidth;
     ov.classList.add('is-open'); ov.setAttribute('aria-hidden', 'false'); document.body.classList.add('fl-lock');
-    start(); ov.querySelector('.fl-ov-x').focus({ preventScroll: true });
+    start(); const xb = ov.querySelector('.fl-ov-x'); void ov.offsetWidth; xb.focus({ preventScroll: true }); if (!ov.contains(document.activeElement)) requestAnimationFrame(() => xb.focus({ preventScroll: true }));   // le focus entre dans le dialogue
   };
   close = (silent) => {
     if (!isOpen) return;
     isOpen = false; cancelAnimationFrame(ra); ra = 0; document.removeEventListener('visibilitychange', onVis);
     ov.classList.remove('is-open', 'is-done', 'is-leaving'); ov.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fl-lock');
-    stepBox.textContent = ''; if (!silent) opener?.focus?.({ preventScroll: true });
+    for (const e of document.querySelectorAll('[data-fl-inert]')) { e.removeAttribute('inert'); delete e.dataset.flInert; }
+    stepBox.textContent = ''; resBox.hidden = true; toggleList(false); if (!silent) opener?.focus?.({ preventScroll: true });
     timer = setTimeout(() => { if (!isOpen) { wrap.replaceChildren(); st = null; } }, 1450);   // plus aucune animation ni nœud actif après la fermeture
   };
   /* sortie vers la machine : le processus se redresse et s'efface, la machine prend le relais sans second clic */
@@ -309,14 +320,18 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
     setTimeout(() => close(true), 900);
   };
   ov.querySelector('[data-act="replay"]').addEventListener('click', start);
+  listBtn.addEventListener('click', () => toggleList());
+  ov.querySelector('[data-act="steps-close"]').addEventListener('click', () => { toggleList(false); listBtn.focus({ preventScroll: true }); });
   ov.querySelector('[data-act="again"]').addEventListener('click', start);
   ov.querySelector('[data-act="machine"]').addEventListener('click', toMachine);
   pauseBtn.addEventListener('click', () => setPlaying(!playing));
-  addEventListener('resize', () => { if (isOpen && !reduced) { fit = fitOf(); Hv = L.mobile ? Math.round(innerHeight * .6) : Math.round(L.H * fit); wrap.style.height = Hv + 'px'; if (!playing || tAct >= tl.total) sync(0, true); } });
+  /* API de test (non exposée en production : activée seulement par ?uxtest) : positionne la chronologie à un instant donné */
+  if (/[?&]uxtest\b/.test(location.search)) window.__rfFlowTest = { seek(ms, hold) { tAct = clamp(ms, 0, tl.total); if (hold === true) setPlaying(false); else if (hold === false) setPlaying(true); sync(0, true); kick(); }, total: () => tl.total, run: () => tl.run, state: () => ({ t: tAct, playing, open: isOpen, finished: tAct >= tl.run, cur: st ? st.cells.findIndex((c) => c.tile.classList.contains('cur')) : -1 }) };
+  addEventListener('resize', () => { if (isOpen && !reduced) { wv = center.clientWidth; fit = fitOf(); zones(); if (!playing || tAct >= tl.total) sync(0, true); } });
   root.querySelector('.rf-flow-magic')?.addEventListener('click', open);
   ov.querySelector('.fl-ov-x').addEventListener('click', () => close());
   ov.addEventListener('click', (e) => { if (e.target === ov || e.target === center) close(); });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) close(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen) { if (listBox.classList.contains('open') && !reduced) toggleList(false); else close(); } });
   }
   return { open, close, remeasure, kick };
 }

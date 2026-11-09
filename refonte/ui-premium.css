@@ -87,8 +87,8 @@ body.rf-demo .rf-demo-cap{opacity:1;transform:translate(-50%,0)}
 .rf-demo-cap small{display:block;margin-bottom:6px;font:500 11px/1 var(--rf-mono,ui-monospace,monospace);letter-spacing:.18em;text-transform:uppercase;color:rgb(255 255 255 / .78)}
 .rf-demo-cap b{display:block;font:500 clamp(20px,2.6vw,26px)/1.2 var(--rf-sans,"Inter",system-ui,sans-serif);letter-spacing:-.01em}
 .rf-demo-cap span{display:block;margin-top:6px;font:400 15.5px/1.45 var(--rf-sans,"Inter",system-ui,sans-serif);color:rgb(240 246 255 / .92)}
-.rf-cb-dock{position:fixed;left:50%;bottom:18px;z-index:2147483000;width:max-content;max-width:calc(100vw - 16px);opacity:0;pointer-events:none;transform:translate(-50%,14px);transition:opacity .45s,transform .6s var(--up-ease)}
-body.rf-demo .rf-cb-dock,body.rf-explore .rf-cb-dock{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.rf-cb-dock{position:fixed;left:0;right:0;margin:0 auto;bottom:6px;z-index:2147483000;width:fit-content;max-width:calc(100vw - 16px);opacity:0;pointer-events:none;transition:opacity .45s,bottom .6s var(--up-ease)}   /* pas de transform : le panneau fixe se place par rapport à l'écran */
+body.rf-demo .rf-cb-dock,body.rf-explore .rf-cb-dock{opacity:1;pointer-events:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 18px)}
 @media (max-width:600px){.rf-demo-cap{bottom:92px}.rf-demo-cap span{font-size:14.5px}.rf-cb-dock{bottom:12px}}
 @media (prefers-reduced-motion:reduce){.rf-cb-dock,.rf-demo-cap{transition:none}}
 
@@ -193,4 +193,51 @@ html body .fl-ov.is-leaving .fl-ov-w{transform:translate3d(0,0,0) rotateX(0) rot
 .fl-ov.is-leaving .fl-ov-step,.fl-ov.is-leaving .fl-ov-end,.fl-ov.is-leaving .fl-ov-ctl,.fl-ov.is-leaving .fl-ov-cap{opacity:0;transition:opacity .3s}
 .fl-ov.is-leaving,dialog.fl-ov.is-leaving{background:transparent}
 @media (max-width:640px){.fl-ov-prog{width:min(120px,28vw)}.fl-ov-end{gap:8px}}
-@media (max-width:640px){.fl-ov-c{margin-top:14vh}}
+
+
+/* ---------- 7. Résultat de la magie, liste des étapes, zones mobiles, décor contextuel, accessibilité ---------- */
+.fl-ov-x{top:calc(env(safe-area-inset-top,0px) + 18px);right:calc(env(safe-area-inset-right,0px) + 18px);z-index:6}
+.fl-ov-step{top:calc(env(safe-area-inset-top,0px) + 92px)}
+body.fl-lock .rf-bnav{opacity:0!important;pointer-events:none!important;transition:opacity .4s}
+.fl-ov-result{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 88px);transform:translateX(-50%);width:min(660px,calc(100vw - 40px));text-align:center;color:#fff;z-index:2;pointer-events:none;text-shadow:0 0 24px rgb(2 6 50 / .95),0 1px 3px rgb(2 6 50 / .6);animation:up-rise .9s var(--up-ease) both}
+.fl-ov-result::before{content:"";position:absolute;inset:-30px -50px;z-index:-1;background:radial-gradient(closest-side,rgb(4 12 60 / .5),transparent)}
+.fl-ov-result b{display:block;font:500 clamp(28px,4vw,42px)/1.12 var(--rf-sans,"Inter",system-ui,sans-serif);letter-spacing:-.02em}
+.fl-ov-result p{margin:12px auto 0;max-width:52ch;font:400 clamp(16px,1.6vw,19px)/1.5 var(--rf-sans,"Inter",system-ui,sans-serif);color:rgb(240 246 255 / .94)}
+.fl-ov-result small{display:block;margin-top:12px;font:400 12px/1.4 var(--rf-sans,"Inter",system-ui,sans-serif);letter-spacing:.04em;color:rgb(240 246 255 / .6)}
+.fl-ov-result[hidden]{display:none}
+@keyframes up-rise{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.fl-ov-end{z-index:3}
+.fl-ov-list{position:absolute;right:calc(env(safe-area-inset-right,0px) + 24px);top:50%;width:min(380px,calc(100vw - 48px));max-height:68vh;overflow:auto;padding:6px 18px 16px;border-radius:24px;border:1px solid var(--up-line);background:linear-gradient(180deg,rgb(14 24 70 / .94),rgb(8 16 52 / .92));box-shadow:inset 0 1px 0 rgb(255 255 255 / .2),0 24px 50px -20px rgb(2 8 50 / .8);color:#fff;z-index:5;opacity:0;transform:translate(24px,-50%);transition:opacity .4s,transform .5s var(--up-ease)}
+.fl-ov-list.open{opacity:1;transform:translate(0,-50%)}
+.fl-ov-list[hidden]{display:none}
+.fl-ov-list-h{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;padding:8px 0 4px;background:linear-gradient(rgb(14 24 70 / .98),rgb(14 24 70 / 0))}
+.fl-ov-list h3{margin:0;font:500 11px/1 var(--rf-mono,ui-monospace,monospace);letter-spacing:.16em;text-transform:uppercase;color:rgb(255 255 255 / .7)}
+.fl-ov-list ol{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:14px}
+.fl-ov-list li{display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start}
+.fl-ov-list li>span{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;border:1px solid rgb(255 255 255 / .3);font:500 12px/1 var(--rf-mono,ui-monospace,monospace);color:rgb(255 255 255 / .85)}
+.fl-ov-list b{display:block;font:500 16px/1.25 var(--rf-sans,"Inter",system-ui,sans-serif)}
+.fl-ov-list p{margin:3px 0 0;font:400 14px/1.45 var(--rf-sans,"Inter",system-ui,sans-serif);color:rgb(240 246 255 / .85)}
+/* l'étape active gagne en contraste localement, sans voile général */
+.fl3 .k3.cur::before{content:"";position:absolute;inset:-46%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgb(4 12 60 / .42),transparent)}
+/* décor : tracés secondaires atténués pendant la magie et l'exploration, structures et bleu conservés */
+.rf-bp{transition:filter .6s}
+body.fl-lock .rf-bp{filter:brightness(.8) saturate(1.05)}
+body.rf-explore .rf-bp,body.rf-demo .rf-bp{filter:brightness(.88)}
+@media (max-width:640px){
+  .fl3 .k3.cur{transform:translateZ(calc(var(--z,50px) + 24px)) scale(1.18)}
+  .fl-ov-step{top:calc(env(safe-area-inset-top,0px) + 58px);width:calc(100vw - 32px)}
+  .fl-ov-result{top:calc(env(safe-area-inset-top,0px) + 62px)}
+  .fl-ov-result b{font-size:26px}.fl-ov-result p{font-size:15px;margin-top:8px}.fl-ov-result small{display:none}
+  .fl-ov-ctl{bottom:calc(env(safe-area-inset-bottom,0px) + 14px)}
+  .fl-ov-end{bottom:calc(env(safe-area-inset-bottom,0px) + 74px);left:12px;right:12px;transform:none;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .fl-ov-end .rf-cta{justify-content:center;padding:0 10px}.fl-ov-end [data-act="machine"]{grid-column:1 / -1;order:-1}
+  .fl-ov-list{right:0;left:0;top:auto;bottom:0;width:auto;max-height:56vh;border-radius:24px 24px 0 0;transform:translateY(100%);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
+  .fl-ov-list.open{transform:translateY(0)}
+  .fl-ov-c{-webkit-mask-image:linear-gradient(transparent 0,#000 16%,#000 84%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 16%,#000 84%,transparent 100%)}
+}
+@media (prefers-reduced-motion:reduce){.fl-ov-result{animation:none}.fl-ov-list{transition:none}.rf-bp{transition:none}}
+@media (max-width:899px){body.rf-explore .rf-post-head h1,body.rf-demo .rf-post-head h1{opacity:.12;transition:opacity .5s}}
+/* ouverture : visible tout de suite (le focus peut entrer), fermeture : masquée après le fondu */
+.fl-ov.is-open{transition:opacity .45s,visibility 0s,background .6s}
+/* fermée (ou en cours de fermeture) : la surcouche n'intercepte plus aucun clic, même ses nœuds 3D encore présents */
+.fl-ov:not(.is-open),.fl-ov:not(.is-open) *{pointer-events:none!important}
