@@ -22,6 +22,8 @@ if (raw) {
     blur: '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}',
     filter: '*,*::before,*::after{filter:none!important;text-shadow:none!important}',
     anim: '*,*::before,*::after{animation:none!important;transition:none!important}' }[DIAG.fx]
-    || { off: '.rf-grain{display:none!important}', static: '.rf-grain{animation:none!important}' }[DIAG.grain];
+    || { off: '.rf-grain{display:none!important}', static: '.rf-grain{animation:none!important}' }[DIAG.grain]
+    || { off: '.rf-cta,.rf-cta--quiet{animation:none!important}' }[DIAG.float]
+    || { off: '*,*::before,*::after{transition:none!important}' }[DIAG.trans];
   if (FX) { const s = document.createElement('style'); s.textContent = FX; document.head.append(s); }
 }
