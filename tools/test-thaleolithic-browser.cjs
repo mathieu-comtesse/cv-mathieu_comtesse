@@ -4,7 +4,7 @@ const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require(process.env.THALEOLITHIC_PLAYWRIGHT || 'playwright');
 
-const root = path.resolve(__dirname, '../thaleolithic');
+const root = path.resolve(process.env.THALEOLITHIC_TEST_ROOT ?? path.join(__dirname, '../thaleolithic'));
 const baseline = process.env.THALEOLITHIC_BASELINE;
 const real = process.argv.includes('--real') || Boolean(baseline);
 const intercepted = !baseline && process.env.THALEOLITHIC_INTERCEPT === '1';

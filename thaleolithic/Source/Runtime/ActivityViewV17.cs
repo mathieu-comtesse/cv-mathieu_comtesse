@@ -150,11 +150,18 @@ namespace UngaBunga45001
   }
   void OnDestroy(){if(activity!=null)activity.Changed-=Render;}
  }
+ [RequireComponent(typeof(CanvasGroup))]
  public sealed class ActivityDragV17:MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler
  {
   public ActivityViewV17 view;Vector2 start;CanvasGroup group;int pointer;bool dragging,dropped;
+  void Awake(){group=GetComponent<CanvasGroup>();}
   public void OnBeginDrag(PointerEventData e)
-  {if(dragging||view==null||!view.isActiveAndEnabled)return;pointer=e.pointerId;dragging=true;dropped=false;start=((RectTransform)transform).anchoredPosition;group=GetComponent<CanvasGroup>()??gameObject.AddComponent<CanvasGroup>();group.blocksRaycasts=false;}
+  {
+   if(dragging||view==null||!view.isActiveAndEnabled)return;
+   pointer=e.pointerId;dragging=true;dropped=false;
+   start=((RectTransform)transform).anchoredPosition;
+   group.blocksRaycasts=false;
+  }
   public void OnDrag(PointerEventData e){if(dragging&&pointer==e.pointerId)((RectTransform)transform).anchoredPosition+=e.delta/Mathf.Max(.001f,transform.lossyScale.x);}
   public void OnEndDrag(PointerEventData e){if(dragging&&pointer==e.pointerId)Cancel();}
   public bool Accept(int id){if(!dragging||dropped||pointer!=id)return false;dropped=true;return true;}

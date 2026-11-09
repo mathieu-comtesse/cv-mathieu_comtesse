@@ -95,6 +95,7 @@ namespace UngaBunga45001
         }
         private void OnDisable()
         {
+            bool interrupted = IsPlaying;
             if (routine != null) StopCoroutine(routine);
             RestoreListeners();
             if(IsPlaying){GetComponent<CinematicStage>()?.Abort();SequenceState="FAILED";}
@@ -103,7 +104,7 @@ namespace UngaBunga45001
             if (IsPlaying && Time.timeScale == 0) Time.timeScale = 1;
             IsPlaying = false;
             routine = null;
-            campaign?.ReconcileControls();
+            if (interrupted && campaign != null && campaign.isActiveAndEnabled) campaign.ReconcileControls();
         }
     }
 }
