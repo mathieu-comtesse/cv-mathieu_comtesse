@@ -8,6 +8,7 @@ const root = path.resolve(process.env.THALEOLITHIC_TEST_ROOT ?? path.join(__dirn
 const baseline = process.env.THALEOLITHIC_BASELINE;
 const real = process.argv.includes('--real') || Boolean(baseline);
 const intercepted = !baseline && process.env.THALEOLITHIC_INTERCEPT === '1';
+const softwareRunner = process.argv.includes('--ci');
 const types = {'.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json',
   '.css': 'text/css', '.webp': 'image/webp'};
 
@@ -131,6 +132,11 @@ async function run() {
           'START_REQUESTED', 'INITIALIZING', 'READY_TO_PLAY', 'RUNNING']);
       record('Démarrage, accusé obsolète, échec et reprise sur la même instance');
     } else {
+      if (softwareRunner) {
+        await page.locator('#settings').click();
+        await page.locator('#quality').selectOption('0');
+        await page.locator('#settings-dialog > button').click();
+      }
       await page.locator('#play').click();
       await page.waitForFunction(() => window.ungaRuntime?.player === 'dylan', null, {timeout: 90000});
       if (!baseline) assert.deepEqual(await page.evaluate(() => bridgeEvents.filter(event =>
@@ -143,6 +149,13 @@ async function run() {
         return actual && Object.entries(expected).every(([key, value]) => actual[key] === value);
       }, value, {timeout: 20000});
       const gameplay = {controls: true, camera: true, suspended: false, paused: false};
+      if (softwareRunner) {
+        for (let attempts = 0; attempts < 4 && await page.evaluate(() => window.ungaRuntime?.film); attempts++) {
+          // Native desktop skip button on the 1280 × 720 QA viewport.
+          await page.mouse.click(1163, 687);
+          await page.waitForTimeout(1000);
+        }
+      }
       await page.waitForFunction(() => window.ungaRuntime && !window.ungaRuntime.film, null, {timeout: 150000});
       await waitState(gameplay);
       record('Cinématique terminée, Dylan et caméra actifs', await state());
