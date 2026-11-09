@@ -134,6 +134,13 @@ namespace UngaBunga45001.Editor
                 yield return null;
             }
             campaign.CloseQuest();
+            float actionDeadline = Time.realtimeSinceStartup + campaign.FindAction(firstAction).durationSeconds + 15;
+            while ((!campaign.ControlsAvailable || !campaign.State.completedActions.Contains(firstAction)) &&
+                Time.realtimeSinceStartup < actionDeadline)
+            {
+                if (campaign.cinematicDirector.IsPlaying) campaign.cinematicDirector.Skip();
+                yield return null;
+            }
             Check(campaign.Dialogue == null && campaign.ControlsAvailable && campaign.State.completedActions.Contains(firstAction),
                 "Réponse enregistrée, Dylan et caméra disponibles");
             campaign.Save();
