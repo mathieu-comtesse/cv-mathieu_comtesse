@@ -37,7 +37,7 @@ if (fig && bpCanvas && stage) {
   const visH = () => 2 * Math.hypot(...cam.position.toArray().map((v, i) => v - [cam.__tx ?? 0, cam.__ty ?? AIM_Y(), cam.__tz ?? 0][i])) * Math.tan(15 * Math.PI / 180);
   const placeCam = (yaw, pitch = FR.pitch * Math.PI / 180) => {
     focus.yaw = yaw; focus.pitch = pitch;
-    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), fitK = cam.aspect < 1.1 ? Math.min(2.1, Math.max(1, 1.1 / Math.max(.4, cam.aspect) * .85)) : 1, dist = (FR.dist * fitK + (11 - FR.dist * fitK) * F) * (1 - .2 * focus.d);
+    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), fitK = cam.aspect < 1.1 ? Math.min(2.1, Math.max(1, 1.1 / Math.max(.4, cam.aspect) * .85)) : 1, base = FR.dist * fitK, near = Math.max(11, base * (mobile() ? .6 : .38)), dist = (base + (near - base) * F) * (1 - .2 * focus.d);   // gros plan sur un organe : plus mesuré sur mobile
     const tx = .1 + ((P ? P.x : .1) - .1) * F, ty = AIM_Y() + ((P ? P.y : AIM_Y()) - AIM_Y()) * F, tz = -.2 + ((P ? P.z : -.2) + .2) * F;
     /* panneau Explorer ouvert : la composition se décale (bureau : vers la gauche, mobile : vers le haut) au lieu d'être recouverte */
     const vis = 2 * dist * Math.tan(15 * Math.PI / 180), panX = innerWidth < 900 ? 0 : focus.sz / 2 * cam.aspect * vis, liftY = innerWidth < 900 ? focus.lv : .3 * focus.sz * vis;   // le décalage suit la taille réelle du panneau (bureau : largeur ; mobile : hauteur du tiroir)
@@ -88,19 +88,19 @@ if (fig && bpCanvas && stage) {
     document.querySelectorAll('.rf-marche-steps>li').forEach((li, i, all) => { li.style.cursor = 'pointer'; li.addEventListener('click', () => apply(ctl.min + (ctl.max - ctl.min) * (+li.dataset.at || i / all.length))); });
     /* Commandes : une capsule silencieuse (refonte/m3d/control-bar.js, la même qu'à l'accueil) ; elle n'apparaît qu'avec la démonstration ou le mode Explorer. */
     const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
-    let demoTick = 0;   // dernier relevé de l'état observable (200 ms)
+    let lastRender = 0, demoTick = 0;   // dernier relevé de l'état observable (200 ms)
     const dock = document.createElement('div'); dock.className = 'rf-cb-dock'; document.body.append(dock); machine.bar = dock;
     const how = document.querySelector('.rf-marche'), howSteps = how ? [...how.querySelectorAll('.rf-marche-steps>li')] : [];
     const cap2 = document.createElement('div'); cap2.className = 'rf-demo-cap'; cap2.setAttribute('role', 'status'); cap2.setAttribute('aria-live', 'polite'); document.body.append(cap2);
     const demo = { on: false, explore: false, mode: 'idle', finished: false, end: null, step: -1 };
-    let barUI = null, panelOpen = false, panelSize = 0;
+    let barUI = null, panelOpen = false, panelSize = 0, pendingView = null;
     /* API de test, activée seulement par ?uxtest (jamais en production) : positionne la machine à un instant donné */
     if (/[?&]uxtest\b/.test(location.search)) window.__rfTest = { seek: (t) => setClock(t), time: clock, end: () => demo.end, min: () => (ctl.seek ? ctl.seek(ctl.min) : 0), max: () => (ctl.seek ? ctl.seek(ctl.max) : 0) };
     const mountBar = () => {
       if (barUI) return;
       const mc = { ...machine, api: machine.api && { ...machine.api, setInspect: machine.api.inspect } };
       const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } dock.dataset.paused = String(hold !== null); dock.dataset.t = clock().toFixed(2); }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
-      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo(), onGuide: () => enter(false), onToggle: (v, g) => { panelOpen = v; panelSize = v ? g.size : 0; } }); if (demo.explore) barUI.open(true); });
+      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo(), onGuide: () => enter(false), onToggle: (v, g) => { panelOpen = v; panelSize = v ? g.size : 0; } }); if (demo.explore) barUI.open(true); if (pendingView) barUI.markView(pendingView); });
     };
     const showStep = (i) => {
       if (!howSteps.length || i === demo.step) return; demo.step = i;
@@ -127,7 +127,7 @@ if (fig && bpCanvas && stage) {
       document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'true');
     };
     const exitDemo = () => {
-      demo.on = false; demo.mode = dock.dataset.mode = 'idle'; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
+      pendingView = null; demo.on = false; demo.mode = dock.dataset.mode = 'idle'; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
       document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'false');
     };
     demo.f = 0; demo.to = 0;
@@ -138,7 +138,7 @@ if (fig && bpCanvas && stage) {
         b.setAttribute('aria-busy', 'true'); (window.__rfFlowReady || Promise.resolve()).then(() => { b.removeAttribute('aria-busy'); document.querySelector('.rf-flow-magic')?.click(); });
       } else enter(b.dataset.demo === 'explore');
     });
-    document.addEventListener('rf-explore-machine', (e) => { enter(true); if (e.detail?.fromMagic && FR.focus) setFocus(FR.focus); });   // depuis la magie : la caméra va droit au mécanisme principal
+    document.addEventListener('rf-explore-machine', (e) => { enter(true); if (e.detail?.fromMagic && FR.focus) { setFocus(FR.focus); pendingView = FR.focus; barUI?.markView(FR.focus); } });   // depuis la magie : la caméra va droit au mécanisme principal
     addEventListener('keydown', (e) => { if (e.key === 'Escape' && demo.on) exitDemo(); });
     const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += (fig.dataset.fig === 'vrestudio-musicbox' ? ', attrapez la machine et glissez : ' : ' · attrapez la machine et glissez : ') + ctl.label.toLowerCase();
     const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
@@ -183,13 +183,15 @@ if (fig && bpCanvas && stage) {
       let lvMoving = false;
       if (innerWidth < 900) {
         let want = 0;
-        if (pTo > 0 && machine.center) { const top = .13, bottom = 1 - focus.sz - .02, tgt = 1 - 2 * ((top + bottom) / 2); const e = (projV.copy(machine.center()).project(cam).y - tgt); want = focus.lv - e * (visH() / 2) * .5; }
+        if (pTo > 0 && machine.center) { const top = .13, bottom = 1 - focus.sz - .02, tgt = 1 - 2 * ((top + bottom) / 2); const e = (projV.copy(focus.f > .5 && focus.p ? focus.p : machine.center()).project(cam).y - tgt); want = focus.lv - e * (visH() / 2) * .5; }
         if (Math.abs(want - focus.lv) > .004) { focus.lv += (want - focus.lv) * .35; lvMoving = true; }
       }
       if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001 || Math.abs(pTo - focus.sz) > .001 || lvMoving) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; focus.sz += (pTo - focus.sz) * .09; placeCam(focus.yaw, focus.pitch); }
       if (howSteps.length) { const span = ctl.max - ctl.min || 1, pr = Math.min(.9999, Math.max(0, (cur(clock()) - ctl.min) / span)); showStep(Math.min(howSteps.length - 1, Math.floor(pr * howSteps.length))); }
       if (demo.on && !demo.explore && !demo.finished && demo.end !== null && hold === null && clock() >= demo.end) { pauseClock(); setClock(demo.end); demo.finished = true; document.body.classList.add('rf-demo-done'); }
       if (demo.finished && !demo.on) demo.finished = false;
+      /* pendant « Voir la magie » la machine n'est qu'un fond à 16 % d'opacité : elle ne se redessine plus qu'à 4 images par seconde (le temps reste celui de l'horloge, rien ne saute au retour) */
+      const nowR = performance.now(); if (document.body.classList.contains('fl-lock') && nowR - lastRender < 250) return; lastRender = nowR;
       machine.render(reduced ? 6 + shift : clock());
     };
     loop();

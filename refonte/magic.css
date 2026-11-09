@@ -24,7 +24,7 @@ body.rf-explore .rf-bp,body.rf-demo .rf-bp{filter:brightness(.88)}
 /* sortie vers la machine : le processus se redresse et s'efface, le décor reste */
 .fl-ov.is-leaving{background:transparent}
 .fl-ov.is-leaving .fl-ov-w{transform:translate3d(0,0,0) scale(1);opacity:0;transition:transform .8s cubic-bezier(.22,1,.36,1),opacity .6s .1s}
-.fl-ov.is-leaving :is(.fl-ov-step,.fl-ov-result,.fl-ov-end,.fl-ov-ctl,.fl-ov-cap,.fl-ov-list){opacity:0;transition:opacity .3s}
+.fl-ov.is-leaving :is(.fl-ov-step,.fl-ov-result,.fl-ov-end,.fl-ov-ctl,.fl-ov-cap,.fl-ov-list){opacity:0;animation:none;transition:opacity .3s}
 
 /* ---------- plan, icônes, liaisons, signal ---------- */
 .fl3{position:relative;transform-origin:0 0;transform-style:preserve-3d}
@@ -140,7 +140,7 @@ body.rf-explore .rf-bp,body.rf-demo .rf-bp{filter:brightness(.88)}
   .fl-ov-list{left:calc(env(safe-area-inset-left,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 10px);top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:auto;max-height:46vh;border-radius:22px;transform:translateY(calc(100% + 24px))}
   .fl-ov-list.open{transform:translateY(0)}
   .fl-ov-list[data-size="full"]{max-height:80vh}
-  .fl-ov.list-open :is(.fl-ov-end,.fl-ov-ctl){opacity:0;pointer-events:none;transition:opacity .3s}   /* le tiroir prend la place des commandes, rien ne transparaît derrière lui */
+  .fl-ov.list-open :is(.fl-ov-end,.fl-ov-ctl){visibility:hidden;pointer-events:none}   /* le tiroir prend la place des commandes, rien ne transparaît derrière lui */
   .fl-ov-list-h{padding:2px 4px 2px 18px}
   .fl-ov-list-h [data-act="steps-size"]{display:grid}
   .fl-ov-list ol{padding:14px 18px calc(env(safe-area-inset-bottom,0px) + 18px);gap:18px}

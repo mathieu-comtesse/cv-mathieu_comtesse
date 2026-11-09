@@ -23,7 +23,7 @@ for (const slug of slugs) for (const [vp, w, h] of [['desktop', 1440, 900], ['mo
   await p.evaluate(() => window.__rfFlowTest.seek(window.__rfFlowTest.run() + 400, true)); await p.waitForFunction(() => !document.querySelector('.fl-ov-end').hidden);
   const tTr0 = Date.now(); await p.click('.fl-ov-end [data-act="machine"]', { force: true }); await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 60000 }); const tTr = Date.now() - tTr0;
   const explore = fmt(await win('explorer', 6000));
-  out[`${slug} ${vp}`] = { chargement_machine_ms: tLoad, ouverture_magie_ms: tOpen, magie_vers_machine_ms: tTr, repos: idle, magie, explorer: explore };
+  out[`${slug} ${vp}`] = { chargement_machine_ms: tLoad, ouverture_magie_ms: tOpen, magie_vers_machine_ms: tTr, repos: idle, magie: magic, explorer: explore };
   console.log(slug, vp, JSON.stringify(out[`${slug} ${vp}`]));
   await ctx.close();
 }

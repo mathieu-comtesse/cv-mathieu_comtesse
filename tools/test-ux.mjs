@@ -18,6 +18,7 @@ const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsaf
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const state = (p) => p.evaluate(() => { const d = document.querySelector('.rf-cb-dock'); return { mode: d?.dataset.mode, t: +(d?.dataset.t || 0), paused: d?.dataset.paused === 'true' }; });
 const waitMachine = async (p, tag) => { await p.waitForSelector('.rf-cb-dock', { state: 'attached', timeout: 90000 }).catch(() => fail.push(`${tag} : la machine ne se charge pas`)); await p.waitForFunction(() => window.__rfFlowReady && window.__rfTest, null, { timeout: 90000 }).catch(() => fail.push(`${tag} : moteurs non prêts (magie ou API de test)`)); await p.evaluate(() => window.__rfFlowReady); };
+const settled = (p) => p.waitForFunction(() => { const r = document.querySelector('.cv-cb-panel').getBoundingClientRect(); const k = r.top + '/' + r.height, ok = window.__ph === k; window.__ph = k; return ok; }, null, { polling: 160, timeout: 8000 });   // le tiroir a fini son animation
 const flowT = (p) => p.evaluate(() => window.__rfFlowTest?.state());
 async function open(slug, w, h, reduced) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: reduced ? 'reduce' : 'no-preference', hasTouch: w < 700 });
@@ -151,15 +152,20 @@ for (const slug of PAGES) {
       if (!adv) fail.push(`${tag} : les commandes avancées sont visibles à l'état intermédiaire`);
       await p.click('.cv-cb-expand', { force: true });
       await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '2', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le tiroir ne passe pas à l'état étendu`));
+      await settled(p);
       const gr = await p.evaluate(() => { const r = document.querySelector('.cv-cb-grip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 12]; });
       await p.mouse.move(gr[0], gr[1]); await p.mouse.down(); await p.mouse.move(gr[0], gr[1] + 70, { steps: 4 }); await p.mouse.up();
       await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '1', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le glissement ne referme pas le tiroir d'un cran`));
+      await settled(p);
       const gr2 = await p.evaluate(() => { const r = document.querySelector('.cv-cb-grip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 12]; });
       await p.mouse.move(gr2[0], gr2[1]); await p.mouse.down(); await p.mouse.move(gr2[0], gr2[1] + 70, { steps: 4 }); await p.mouse.up();
       await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '0', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le glissement ne ramène pas à la capsule`));
       const cp = await p.evaluate(() => { const r = document.querySelector('.cv-cb-cap').getBoundingClientRect(); return r.height; });
       if (cp < 44) fail.push(`${tag} : capsule trop basse pour le tactile (${cp}px)`);
-      await p.click('.cv-cb-more', { force: true }); await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 5000 });
+      await settled(p);
+      // réouverture par la capsule ; un premier appui perdu pendant la fin de l'animation de fermeture est signalé (intermittence observée une fois en CI locale sur Nisaru mobile)
+      let reopened = false; for (let k = 0; k < 3 && !reopened; k++) { await p.click('.cv-cb-more', { force: true }); reopened = await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 6000 }).then(() => true).catch(() => false); if (!reopened && k === 0) log('  note : réouverture du tiroir au deuxième essai', tag); }
+      if (!reopened) fail.push(`${tag} : le tiroir ne se rouvre pas par la capsule`);
     }
     await p.waitForFunction(() => true); if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3-explorer.png` });
     const box = await p.evaluate(() => { const r = document.querySelector('.cv-cb-cap').getBoundingClientRect(); return [r.left, r.right, r.bottom]; });

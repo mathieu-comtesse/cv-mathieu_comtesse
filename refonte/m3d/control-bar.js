@@ -137,7 +137,8 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   const setView = (name, b) => { ctl.focus(name); vb.forEach((x) => x.setAttribute('aria-pressed', String(x === b))); };
   const sv = section('Vues');
   const over = choice('Ensemble', () => setView(null, over), { pressed: true, aria: 'Vue d’ensemble' }); vb.push(over); sv.r.append(over);
-  views.forEach((v) => { const b = choice(v.label, () => setView(v.anchor, b), { aria: 'Gros plan : ' + v.label }); vb.push(b); sv.r.append(b); });
+  views.forEach((v) => { const b = choice(v.label, () => setView(v.anchor, b), { aria: 'Gros plan : ' + v.label }); b.dataset.anchor = v.anchor; vb.push(b); sv.r.append(b); });
+  const markView = (anchor) => vb.forEach((x) => x.setAttribute('aria-pressed', String(anchor ? x.dataset.anchor === anchor : x === over)));   // la caméra a été placée de l'extérieur (ex. après la magie)
   if (!views.length) sv.s.hidden = true;
 
   /* section Inspection */
@@ -183,5 +184,5 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   }, 250);
   if (slider) { slider.__paint(); out.textContent = out.__fmt(+slider.value); }
   panel.append(expand);
-  return { bar, open: setOpen, snap: setSnap, isOpen: () => snap > 0, geo, sync: syncPlay, dispose() { clearInterval(timer); intervals.forEach(clearInterval); removeEventListener('keydown', onKey, true); bar.remove(); } };
+  return { bar, open: setOpen, snap: setSnap, markView, isOpen: () => snap > 0, geo, sync: syncPlay, dispose() { clearInterval(timer); intervals.forEach(clearInterval); removeEventListener('keydown', onKey, true); bar.remove(); } };
 }
