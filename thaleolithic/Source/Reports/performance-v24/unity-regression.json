@@ -26,6 +26,8 @@
         "Rechargement de la sauvegarde SST",
         "Pièce retrouvée après rechargement",
         "Les pièces posées attendent la validation",
-        "Validation SST unique et retour au GPS"
+        "Validation SST unique et retour au GPS",
+        "FIN_1 sélectionnée avec des risques critiques",
+        "FIN_2 sélectionnée avec audit et système incomplet"
     ]
 }

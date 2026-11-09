@@ -24,7 +24,9 @@ La V24 a tourné sous Windows avec Chromium 156 et une Radeon RX 9070 XT via ANG
 | Feu et qualité | Les foyers proches gardent leur flamme, leurs braises et leur lumière. Les foyers éloignés actualisent moins de particules. Le profil automatique Web écarte la RAM système annoncée et attend plusieurs fenêtres lentes avant de réduire l’échelle. | Captures comparatives et p95 avant/après. Le HUD, la charpente et les foyers restent lisibles dans les captures comparatives. La télémétrie recense deux foyers et vingt personnages au village initial. |
 | Diagnostics | Le panneau `?diagnostic=1` expose p50, p95, p99, qualité, mémoire Unity, appels de rendu et triangles quand les compteurs sont accessibles. Il exporte les mesures en JSON et CSV. | Le navigateur final a remonté les échantillons Unity et les compteurs de rendu dans les deux profils. |
 
-La suite Unity V24 valide 25 contrôles, dont l’acceptation de la mission de Mathieu, la réponse puis son rechargement, 1 274° d’orbite, l’évitement d’un mur et la reprise du SST. Le vrai WebAssembly final passe les scénarios Chromium de bureau et tactile émulé. Le test de bureau obtient puis libère le Pointer Lock après un clic.
+La suite Unity V24 valide 27 contrôles, dont l’acceptation de la mission de Mathieu, la réponse puis son rechargement, 1 274° d’orbite, l’évitement d’un mur et la reprise du SST. Le vrai WebAssembly final passe les scénarios Chromium de bureau et tactile émulé. Le test de bureau obtient puis libère le Pointer Lock après un clic.
+
+Le pilote Unity a terminé une campagne neuve en 13 min 17 s. Il a validé les 10 quêtes principales et les 24 activités, franchi le chantier, l’évacuation et l’audit, puis obtenu `FIN_3`. Le rapport compte zéro erreur et 159 échantillons de mémoire allouée, entre 606 et 668 Mio dans l’éditeur. Deux états isolés déclenchent `FIN_1` et `FIN_2` avec leurs cinématiques correspondantes. Le pilote choisit les réponses connues.
 
 ## Rejouer la comparaison
 
@@ -33,4 +35,4 @@ La suite Unity V24 valide 25 contrôles, dont l’acceptation de la mission de M
 3. Dans Unity, lance `CinematicTemperateBuildV19.WebV24` sur `Unity-Web`. Le build sort dans `Builds/Web-V24`. Le projet local contient les assets natifs nécessaires.
 4. Pour le parcours instrumenté, lance `-executeMethod UngaBunga45001.TemperateJourneyV19.RunV24Audit -thaleolithicJourneyV24`. Le pilote utilise une sauvegarde isolée et sélectionne les réponses connues. Le rapport Unity est distinct des mesures navigateur.
 
-La production sert V22.1. Les essais iPhone, Android et macOS physiques, les benchmarks dédiés des scènes tardives, la validation des trois fins et le découpage du chargement par chapitre restent ouverts. Les objectifs de réduction de 30 % du pic mémoire et de 40 à 60 % du téléchargement initial restent des cibles.
+La production sert V22.1. Les essais iPhone, Android et macOS physiques, une session Web continue de 45 minutes, les benchmarks Web dédiés des scènes tardives, les parcours complets de `FIN_1` et `FIN_2` et le découpage du chargement par chapitre restent ouverts. Les objectifs de réduction de 30 % du pic mémoire et de 40 à 60 % du téléchargement initial restent des cibles.

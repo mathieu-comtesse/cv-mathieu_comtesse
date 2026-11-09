@@ -243,6 +243,20 @@ namespace UngaBunga45001.Editor
             activity.ConfirmSstAssembly();
             Check(!activity.Active && activity.AssemblyPhase == SstAssemblyPhase.Success && campaign.ControlsAvailable &&
                 campaign.State.completedActions.Count(id => id == data.id) == 1, "Validation SST unique et retour au GPS");
+
+            // Isolated outcome fixtures. FIN_3 is exercised by the full campaign runner.
+            foreach (var risk in campaign.State.risks) risk.value = 3;
+            campaign.FinishCampaign();
+            Check(campaign.Ending?.id == "FIN_1" && CinematicCatalogueV15.Ending(campaign) == "F15_C14_BAD",
+                "FIN_1 sélectionnée avec des risques critiques");
+            campaign.FreePlayV17();
+            foreach (var risk in campaign.State.risks) risk.value = 0;
+            if (campaign.State.risks.Count == 0) campaign.State.risks.Add(new NamedValue("fixture-v24", 0));
+            campaign.Apply(new EffectDefinition { kind = "flag", target = "audit_performed", value = 1 });
+            campaign.Apply(new EffectDefinition { kind = "flag", target = "events_analyzed", value = 1 });
+            campaign.FinishCampaign();
+            Check(campaign.Ending?.id == "FIN_2" && CinematicCatalogueV15.Ending(campaign) == "F15_C14_MIXED",
+                "FIN_2 sélectionnée avec audit et système incomplet");
         }
 
         static void Click(Button button) => ExecuteEvents.Execute(button.gameObject,
