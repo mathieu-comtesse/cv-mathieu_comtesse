@@ -29,7 +29,7 @@ namespace UngaBunga45001
     for(int i=0;i<count;i++){var h=rayHits[i];if(h.distance>.025f&&!(h.collider is TerrainCollider)&&!(h.collider is CharacterController)&&h.collider.GetComponentInParent<NavMeshAgent>()==null&&!h.transform.IsChildOf(actor))return false;}return count<rayHits.Length;
    }
    desired.y=HutCollapse.TerrainFloor(desired);bool goal=false;
-   for(float radius=0;radius<=5&&!goal;radius+=.6f)for(int angle=0;angle<(radius==0?1:16);angle++){var p=desired+Quaternion.Euler(0,angle*22.5f,0)*Vector3.forward*radius;p.y=HutCollapse.TerrainFloor(p);if(Clear(p)){desired=p;goal=true;break;}}
+   for(float radius=0;radius<=(allowNearbyGoal?5:0)&&!goal;radius+=.6f)for(int angle=0;angle<(radius==0?1:16);angle++){var p=desired+Quaternion.Euler(0,angle*22.5f,0)*Vector3.forward*radius;p.y=HutCollapse.TerrainFloor(p);if(Clear(p)){desired=p;goal=true;break;}}
    if(!goal||!Clear(start)){LastFailure=!goal?"No clear goal":"Start occupied";return false;}
    var origin=new Vector3(Mathf.Min(start.x,desired.x)-padding,0,Mathf.Min(start.z,desired.z)-padding);int width=Mathf.CeilToInt((Mathf.Abs(start.x-desired.x)+padding*2)/cell)+1,height=Mathf.CeilToInt((Mathf.Abs(start.z-desired.z)+padding*2)/cell)+1;if(width>180||height>180){LastFailure="Outside bounded route area";return false;}
    int size=width*height;var positions=new Vector3[size];var tested=new byte[size];var closed=new bool[size];var costs=new float[size];var parents=new int[size];for(int i=0;i<size;i++){costs[i]=float.PositiveInfinity;parents[i]=-1;}

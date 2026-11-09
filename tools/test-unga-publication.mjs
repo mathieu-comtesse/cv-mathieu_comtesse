@@ -29,7 +29,9 @@ for(const key of ['loaderUrl','dataUrl','frameworkUrl','codeUrl']){
 }
 const html=fs.readFileSync(path.join(game,'index.html'),'utf8');
 for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(match[1].trim())new vm.Script(match[1]);
-assert.ok(html.includes('autoSyncPersistentDataPath:true'));
+const bridge=fs.readFileSync(path.join(game,'browser-bridge.js'),'utf8');
+new vm.Script(bridge);
+assert.match(bridge,/autoSyncPersistentDataPath:\s*true/);
 assert.ok(html.includes('viewport-fit=cover'));
 assert.ok(html.includes('safe-area-inset-left'));
 for(const alias of ['talas-refonte','unga-bunga-45001']){

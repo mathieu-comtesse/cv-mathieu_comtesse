@@ -14,11 +14,9 @@ namespace UngaBunga45001
         public Vector2 Movement{get;private set;}public Vector2 Look{get;private set;}public bool Running=>runHeld||settings.preferences.autoRun&&Movement.magnitude>.82f;
         public float Units=>safeArea==null?1:safeArea.rect.width/Mathf.Max(1,Viewport.x);public Vector2 Viewport=>CssWidth>0?new Vector2(CssWidth,CssHeight):new Vector2(Screen.width,Screen.height)/Mathf.Max(1,Screen.dpi/160);
         CampaignRuntime campaign;UISettingsController settings;Canvas canvas;TMP_FontAsset font;RectTransform safeArea,surface,menuSurface,joystick,knob,rotation,resume,skipFilm;UnityEngine.UI.Button interact,orders;
-        bool usingTouch,runHeld,jump,crouch,portraitPause,background,previousPause;Vector2 requestedMovement;float lastTouch;
-        public bool PortraitPaused=>portraitPause;public bool UnderlyingPause=>previousPause;
+        bool usingTouch,runHeld,jump,crouch,portraitPause,background;Vector2 requestedMovement;float lastTouch;
+        public static int ContactCount => Touchscreen.current?.touches.Count(t => t.press.isPressed) ?? 0;
         bool OverlayOpen=>campaign.GetComponent<AdventureMenus>().IsOpen||campaign.GetComponent<CampaignMap>().IsOpen;
-        bool BasePause()=>campaign.GetComponent<AdventureMenus>().IsOpen?campaign.GetComponent<AdventureMenus>().PauseBeforeOpen:campaign.GetComponent<CampaignMap>().IsOpen?campaign.GetComponent<CampaignMap>().PauseBeforeOpen:campaign.UserPaused;
-        public bool RestoreOverlayPause(bool previous)=>previous||portraitPause||background;
         readonly System.Collections.Generic.Dictionary<string,RectTransform> lookup=new System.Collections.Generic.Dictionary<string,RectTransform>();
         readonly System.Collections.Generic.List<Action> restore=new System.Collections.Generic.List<Action>();bool mobileLayout;
         public void Build(CampaignRuntime runtime,Canvas root,TMP_FontAsset sourceFont)
@@ -40,10 +38,10 @@ namespace UngaBunga45001
             Button("Caméra",Vector2.right,Vector2.right,new Vector2(-82,88),new Vector2(78,48),()=>campaign.bindings.player.GetComponent<ThirdPersonMotor>().FaceDirection(campaign.bindings.player.GetComponent<ThirdPersonMotor>().visual.forward));
             orders=Button("Ordres",Vector2.right,Vector2.right,new Vector2(-170,88),new Vector2(72,48),()=>campaign.GetComponent<AdventureMenus>().Open("Commandes"));
             int index=0;foreach(var mode in new[]{"Sac","Fabriquer","Journal","Pause"})
-            {string value=mode;var button=Button(value,new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(-156+index++*104,-10),new Vector2(98,44),()=>campaign.GetComponent<AdventureMenus>().Open(value=="Sac"?"Inventaire":value=="Fabriquer"?"Fabrication":value=="Journal"?"Missions":"Réglages"));button.transform.SetParent(menuSurface,false);}
+            {string value=mode;var button=Button(value,new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(-156+index++*104,-10),new Vector2(98,44),()=>campaign.GetComponent<AdventureMenus>().Open(value=="Sac"?"Inventaire":value=="Fabriquer"?"Fabrication":value=="Journal"?"Missions":"Pause"));button.transform.SetParent(menuSurface,false);}
             Button("Chemin",Vector2.right,Vector2.right,new Vector2(-250,22),new Vector2(78,54),()=>{campaign.GetComponent<QuestNavigationController>().TemporaryGuidance=true;campaign.GetComponent<QuestNavigationController>().ForceRefresh();});
             rotation=AdventureUI.Rect(safeArea,"Passer en paysage",Vector2.one*.5f,Vector2.one*.5f,Vector2.zero,new Vector2(320,180));AdventureUI.Panel(rotation,new Color(.035f,.025f,.04f,.95f)).raycastTarget=true;AdventureUI.Text(AdventureUI.Fill(rotation,"Orientation",20),font,"Tourne ton téléphone pour profiter du jeu en paysage.\n\nLe menu reste accessible.",20,AdventureUI.Paper,TextAlignmentOptions.Center);
-            resume=AdventureUI.Rect(safeArea,"Reprendre après interruption",Vector2.one*.5f,Vector2.one*.5f,Vector2.zero,new Vector2(320,150));AdventureUI.Panel(resume,new Color(.035f,.025f,.04f,.96f)).raycastTarget=true;AdventureUI.Button(AdventureUI.Fill(resume,"Reprendre",20),font,"Reprendre la partie",()=>{background=false;campaign.SetPause(previousPause||portraitPause||OverlayOpen);});
+            resume=AdventureUI.Rect(safeArea,"Reprendre après interruption",Vector2.one*.5f,Vector2.one*.5f,Vector2.zero,new Vector2(320,150));AdventureUI.Panel(resume,new Color(.035f,.025f,.04f,.96f)).raycastTarget=true;AdventureUI.Button(AdventureUI.Fill(resume,"Reprendre",20),font,"Reprendre la partie",()=>{background=false;campaign.SetMobileInterruption(portraitPause,false);});
             var map=Find("Minimap encadrée");if(map!=null){var button=map.gameObject.AddComponent<UnityEngine.UI.Button>();var graphic=map.GetComponent<UnityEngine.UI.Graphic>();if(graphic!=null){graphic.raycastTarget=true;button.targetGraphic=graphic;}button.onClick.AddListener(()=>campaign.GetComponent<CampaignMap>().Open());}
             surface.SetAsFirstSibling();rotation.gameObject.SetActive(false);resume.gameObject.SetActive(false);
             skipFilm=AdventureUI.Rect(safeArea,"Passer le film tactile",Vector2.one,Vector2.one,new Vector2(-14,-14),new Vector2(160,48));AdventureUI.Button(skipFilm,font,"Passer le film",()=>campaign.cinematicDirector.Skip());skipFilm.gameObject.SetActive(false);
@@ -60,23 +58,31 @@ namespace UngaBunga45001
         public bool ConsumeJump(){bool result=jump;jump=false;return result;}
         void Update()
         {
-            if(campaign==null)return;if(Touchscreen.current!=null&&Touchscreen.current.touches.Any(t=>t.press.isPressed)){usingTouch=true;lastTouch=Time.unscaledTime;}
+            if(campaign == null || campaign.State == null) return;
+            if(ContactCount > 0){usingTouch=true;lastTouch=Time.unscaledTime;}
             if(Keyboard.current?.anyKey.wasPressedThisFrame==true&&Time.unscaledTime-lastTouch>1)usingTouch=false;
-            bool gameplay=Active&&!campaign.IsModal&&!campaign.IsBusy&&Screen.width>Screen.height;
+            bool portrait = Active && Viewport.x < Viewport.y;
+            if (portrait != portraitPause)
+            {
+                portraitPause = portrait;
+                ResetTransientInput();
+                campaign.GetComponent<ActivityViewV17>()?.CancelDrag();
+                campaign.SetMobileInterruption(portrait, background);
+            }
+            bool gameplay = Active && campaign.ControlsAvailable;
             if(Active){Cursor.lockState=CursorLockMode.None;Cursor.visible=true;}
             Movement=Vector2.MoveTowards(Movement,gameplay?requestedMovement:Vector2.zero,Time.unscaledDeltaTime*12);
-            if(!gameplay){requestedMovement=Vector2.zero;Look=Vector2.zero;knob.anchoredPosition=Vector2.zero;}
+            if(!gameplay && surface.gameObject.activeSelf) ResetTransientInput();
             surface.gameObject.SetActive(gameplay);interact.interactable=campaign.GetComponent<WorldInteraction>().FocusActions.Any(a=>campaign.CanExecute(a,out _));
             menuSurface.gameObject.SetActive(Active&&!OverlayOpen&&!campaign.IsBusy&&!campaign.cinematicDirector.IsPlaying&&campaign.Dialogue==null&&!campaign.QuestOverlay&&!campaign.IncidentModal&&campaign.Ending==null&&!background);
             skipFilm.gameObject.SetActive(Active&&campaign.cinematicDirector.IsPlaying);
             string actor=campaign.GetComponent<WorldInteraction>().FocusBindingId;interact.GetComponentInChildren<TMP_Text>().text=actor!=null&&campaign.Data.characters.Any(c=>c.id==actor)?"Parler à "+campaign.CharacterName(actor):"Interagir";
             orders.gameObject.SetActive(campaign.GetComponent<InventoryController>().CommandTarget()!=null);
-            bool portrait=Active&&Screen.width<Screen.height;if(portrait&&!portraitPause){if(!background)previousPause=BasePause();campaign.SetPause(true);portraitPause=true;}else if(!portrait&&portraitPause){portraitPause=false;if(!background)campaign.SetPause(previousPause||OverlayOpen);}
             rotation.gameObject.SetActive(portrait&&!campaign.GetComponent<AdventureMenus>().IsOpen&&!campaign.GetComponent<CampaignMap>().IsOpen);resume.gameObject.SetActive(background);if(background)resume.SetAsLastSibling();
         }
         void LateUpdate()
         {
-            if(safeArea==null)return;var safe=Screen.safeArea;safeArea.anchorMin=safe.min/new Vector2(Screen.width,Screen.height);safeArea.anchorMax=safe.max/new Vector2(Screen.width,Screen.height);safeArea.offsetMin=safeArea.offsetMax=Vector2.zero;
+            if(safeArea==null||campaign?.State==null)return;var safe=Screen.safeArea;safeArea.anchorMin=safe.min/new Vector2(Screen.width,Screen.height);safeArea.anchorMax=safe.max/new Vector2(Screen.width,Screen.height);safeArea.offsetMin=safeArea.offsetMax=Vector2.zero;
             if(!Active){if(mobileLayout){foreach(var action in restore)action();restore.Clear();mobileLayout=false;}return;}
             if(!mobileLayout){foreach(var name in new[]{"Portrait et survie","Minimap encadrée","Inventaire rapide","Quête suivie","Conseil des Sages","Aides contextuelles","États actifs","Interaction ciblée","SousTitres"}){var r=Find(name);if(r==null)continue;var pos=r.anchoredPosition;var scale=r.localScale;var size=r.sizeDelta;bool enabled=r.gameObject.activeSelf;var text=r.GetComponent<TMP_Text>();float fontSize=text!=null?text.fontSize:0;restore.Add(()=>{r.anchoredPosition=pos;r.localScale=scale;r.sizeDelta=size;r.gameObject.SetActive(enabled);if(text!=null)text.fontSize=fontSize;});}var hotbar=Find("Inventaire rapide");if(hotbar!=null)restore.Add(()=>{foreach(Transform child in hotbar)child.gameObject.SetActive(true);});mobileLayout=true;}
             float u=Units;surface.sizeDelta=menuSurface.sizeDelta=Viewport;surface.localScale=menuSurface.localScale=Vector3.one*u;rotation.localScale=resume.localScale=skipFilm.localScale=Vector3.one*u;
@@ -90,8 +96,23 @@ namespace UngaBunga45001
             var timer=Find("Conseil des Sages");if(timer!=null)timer.gameObject.SetActive(false);var hints=Find("Aides contextuelles");if(hints!=null)hints.gameObject.SetActive(false);var state=Find("États actifs");if(state!=null)state.gameObject.SetActive(false);
             var prompt=Find("Interaction ciblée");if(prompt!=null)prompt.gameObject.SetActive(false);
         }
-        public void PauseForBackground(){if(campaign?.State==null||background)return;if(!portraitPause)previousPause=BasePause();campaign.Save();MobileBrowserBridge.Flush();campaign.SetPause(true);background=true;requestedMovement=Movement=Vector2.zero;}
-        void OnApplicationFocus(bool focus){if(!focus&&Active)PauseForBackground();}
+        public void PauseForBackground()
+        {
+            if (campaign?.State == null || background) return;
+            background = true;
+            ResetTransientInput();
+            campaign.GetComponent<ActivityViewV17>()?.CancelDrag();
+            campaign.SetMobileInterruption(portraitPause, true);
+            campaign.Save();
+        }
+        public void ResetTransientInput()
+        {
+            requestedMovement=Movement=Look=Vector2.zero;
+            runHeld=jump=crouch=false;
+            if(knob!=null)knob.anchoredPosition=Vector2.zero;
+            if(surface!=null)foreach(var gesture in surface.GetComponentsInChildren<MobileGesture>(true))gesture.CancelPointer();
+        }
+        void OnApplicationFocus(bool focus){if(!focus){ResetTransientInput();if(Application.platform!=RuntimePlatform.WebGLPlayer&&Active)PauseForBackground();}}
         void OnDestroy(){if(Instance==this)Instance=null;}
     }
     public sealed class MobileHold:MonoBehaviour,IPointerDownHandler,IPointerUpHandler
@@ -101,7 +122,8 @@ namespace UngaBunga45001
         public MobileControls controls;public bool cameraZone;int pointer=int.MinValue;
         public void OnPointerDown(PointerEventData e){if(pointer!=int.MinValue)return;pointer=e.pointerId;if(!cameraZone)controls.SetJoystick(e);}
         public void OnDrag(PointerEventData e){if(e.pointerId!=pointer)return;if(cameraZone)controls.DragCamera(e.delta);else controls.SetJoystick(e);}
-        public void OnPointerUp(PointerEventData e){if(e.pointerId!=pointer)return;pointer=int.MinValue;if(!cameraZone)controls.SetJoystick(e,true);}
-        void OnDisable(){pointer=int.MinValue;}
+        public void OnPointerUp(PointerEventData e){if(e.pointerId!=pointer)return;CancelPointer();if(cameraZone)controls.ConsumeLook();else controls.SetJoystick(e,true);}
+        public void CancelPointer(){pointer=int.MinValue;}
+        void OnDisable(){CancelPointer();}
     }
 }

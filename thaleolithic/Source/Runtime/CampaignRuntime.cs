@@ -7,6 +7,14 @@ using UnityEngine;
 
 namespace UngaBunga45001
 {
+    [Flags]
+    public enum ControlLocks
+    {
+        None = 0, Loading = 1, PauseMenu = 2, Settings = 4, Dialogue = 8, Question = 16,
+        Inspection = 32, SSTAssembly = 64, Cinematic = 128, BrowserFocus = 256,
+        GameOver = 512, Activity = 1024, Orientation = 2048, Background = 4096, Error = 8192, Busy = 16384
+    }
+
     public sealed partial class CampaignRuntime : MonoBehaviour
     {
         public TextAsset campaignJson;
@@ -20,9 +28,69 @@ namespace UngaBunga45001
         public EndingDefinition Ending { get; private set; }
         public string Message { get; private set; } = "";
         public string Subtitle { get; set; } = "";
-        public bool UserPaused { get; private set; }
+        bool userPaused;
+        public bool UserPaused
+        {
+            get => userPaused || GetComponent<AdventureMenus>()?.IsOpen == true || GetComponent<CampaignMap>()?.IsOpen == true;
+            private set => userPaused = value;
+        }
+        public bool BrowserInputSuspended { get; private set; }
         public bool IsBusy { get; private set; }
-        public bool IsModal => MenhirActive || QuestOverlay || IncidentModal || Dialogue != null || UserPaused || Ending != null || (cinematicDirector != null && cinematicDirector.IsPlaying);
+        public bool StartupReady { get; private set; }
+        public string StartupError { get; private set; }
+        bool launching, orientationBlocked, backgroundBlocked, reportedControlFault;
+        readonly HashSet<string> startupSaves = new HashSet<string>();
+        public bool IsModal => (ActiveControlLocks & ~(ControlLocks.Loading | ControlLocks.Busy)) != ControlLocks.None;
+        public bool IsPaused => (ActiveControlLocks & (ControlLocks.PauseMenu | ControlLocks.Settings |
+            ControlLocks.Orientation | ControlLocks.Background | ControlLocks.BrowserFocus)) != 0;
+        public bool BrowserPointerLocked { get; internal set; }
+        public bool ControlsAvailable => ActiveControlLocks == ControlLocks.None && GameplayRigAvailable();
+        public ControlLocks ActiveControlLocks
+        {
+            get
+            {
+                var locks = ControlLocks.None;
+                if (State == null) locks |= ControlLocks.Loading;
+                if (StartupError != null) locks |= ControlLocks.Error;
+                if (BrowserInputSuspended) locks |= ControlLocks.BrowserFocus;
+                if (orientationBlocked) locks |= ControlLocks.Orientation;
+                if (backgroundBlocked) locks |= ControlLocks.Background;
+                var menus = GetComponent<AdventureMenus>();
+                if (UserPaused)
+                    locks |= menus?.IsOpen == true && menus.Mode == "Réglages" ? ControlLocks.Settings : ControlLocks.PauseMenu;
+                if (Dialogue != null) locks |= ControlLocks.Dialogue;
+                if (QuestOverlay) locks |= ControlLocks.Question;
+                if (IncidentModal || GetComponent<VillageUpgradeViewV18>()?.Open == true) locks |= ControlLocks.Inspection;
+                var activity = GetComponent<CampaignActivitiesV17>();
+                if (activity?.BlocksGameplay == true)
+                    locks |= activity.Current.mode == "assemble" ? ControlLocks.SSTAssembly : ControlLocks.Activity;
+                if (MenhirActive) locks |= ControlLocks.Activity;
+                if (IsBusy) locks |= ControlLocks.Busy;
+                if (cinematicDirector?.IsPlaying == true || GetComponent<ConstructionFilmV19>()?.Playing == true ||
+                    GetComponent<VillageUpgradeV18>()?.Presenting == true) locks |= ControlLocks.Cinematic;
+                if (Ending != null) locks |= ControlLocks.GameOver;
+                return locks;
+            }
+        }
+
+        public string InterfaceState
+        {
+            get
+            {
+                var locks = ActiveControlLocks;
+                if (locks.HasFlag(ControlLocks.Error)) return "ERROR";
+                if (locks.HasFlag(ControlLocks.Loading)) return "LOADING";
+                if (locks.HasFlag(ControlLocks.Cinematic)) return "CINEMATIC";
+                if (locks.HasFlag(ControlLocks.GameOver)) return "GAME_OVER";
+                if (locks.HasFlag(ControlLocks.Dialogue)) return "DIALOGUE";
+                if (locks.HasFlag(ControlLocks.Question)) return "QUESTION";
+                if (locks.HasFlag(ControlLocks.SSTAssembly)) return "SST_ASSEMBLY";
+                if (locks.HasFlag(ControlLocks.Inspection)) return "INSPECTION";
+                if ((locks & (ControlLocks.Activity | ControlLocks.Busy)) != 0) return "ACTIVITY";
+                if (locks.HasFlag(ControlLocks.Settings)) return "SETTINGS";
+                return locks == ControlLocks.None ? "GAMEPLAY" : "PAUSE";
+            }
+        }
         public ActDefinition CurrentAct => Data != null && State != null && State.actIndex >= 0 && State.actIndex < Data.acts.Length ? Data.acts[State.actIndex] : null;
         public float RemainingSeconds => State == null || Data == null ? 0 : Mathf.Max(0, Data.durationSeconds - State.elapsedSeconds);
         public event Action Changed;
@@ -41,25 +109,127 @@ namespace UngaBunga45001
 
         private void Start()
         {
-            if (campaignJson == null || bindings == null) { enabled = false; Debug.LogError("Campagne et SceneBindings explicitement requis.", this); return; }
-            try { Data = JsonUtility.FromJson<CampaignData>(campaignJson.text); PrepareQuestData(); ValidateData(); }
-            catch (Exception e) { enabled = false; Debug.LogError("Campagne invalide : " + e.Message, this); return; }
-            if (!bindings.Validate(out string issues)) { enabled = false; Debug.LogError("Bindings incomplets : " + issues, this); return; }
+            try { PrepareScene(); }
+            catch (Exception error)
+            {
+                StartupError = error.Message;
+                Debug.LogException(error, this);
+                enabled = false;
+            }
+        }
+
+        private void PrepareScene()
+        {
+            if (campaignJson == null || bindings == null) throw new InvalidOperationException("Campagne et SceneBindings requis.");
+            Data = JsonUtility.FromJson<CampaignData>(campaignJson.text);
+            PrepareQuestData();
+            ValidateData();
+            GetComponent<TemperateVillageV19>()?.PrepareData(this);
+            if (!bindings.Validate(out string issues)) throw new InvalidOperationException("Bindings incomplets : " + issues);
+            if (!GameplayRigAvailable(false) || cinematicDirector == null || GetComponent<UISettingsController>() == null)
+                throw new InvalidOperationException("Le moteur, la caméra ou les réglages de Dylan sont absents.");
             CampaignSaveMigration.Ensure(this);
             CinematicWorldResetV15.For(this);
             if(GetComponent<CinematicTriggersV15>()==null)gameObject.AddComponent<CinematicTriggersV15>();
             CinematicWorldPropsV15.For(this);
-            #if UNITY_WEBGL && !UNITY_EDITOR
-            bindings.SetGameplayBlocked(true);
-            return;
-            #endif
+            CinematicBuildingStateV16.For(this);
+            VillageUpgradeV18.For(this);
+            if(GetComponent<TemperateVillageV19>()!=null&&GetComponent<ConstructionFilmV19>()==null)gameObject.AddComponent<ConstructionFilmV19>();
+            if(GetComponent<TemperateVillageV19>()!=null&&GetComponent<TemperateWeatherV19>()==null)gameObject.AddComponent<TemperateWeatherV19>();
+            if(GetComponent<TemperateVillageV19>()!=null&&GetComponent<TemperateTreeVisibilityV19>()==null)gameObject.AddComponent<TemperateTreeVisibilityV19>();
+            if(GetComponent<VillageUpgradeViewV18>()==null)gameObject.AddComponent<VillageUpgradeViewV18>();
+            if(GetComponent<VillagePresentationViewV18>()==null)gameObject.AddComponent<VillagePresentationViewV18>();
+            CinematicFireV18.For(this);
+            if(GetComponent<NavigationCollidersV18>()==null)gameObject.AddComponent<NavigationCollidersV18>();
+            if(GetComponent<NavEntryRepairV18>()==null)gameObject.AddComponent<NavEntryRepairV18>();
+            if(GetComponent<WorkNavigationV18>()==null)gameObject.AddComponent<WorkNavigationV18>();
+            if(GetComponent<MainQuestMarkerV18>()==null)gameObject.AddComponent<MainQuestMarkerV18>();
+            StartupReady = true;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            ReconcileControls();
+#else
             BeginCampaign(false);
+#endif
         }
         public void BeginCampaign(bool fresh)
         {
             if(Data==null)return;
             if (fresh || !resumeOnStart || !Load(SavePath)) NewCampaign();
-            else { InitializeQuests(); ResolveEnding(); SyncWorld(); CinematicSpawnSafetyV15.Repair(this);Notify(); if(!string.IsNullOrEmpty(State.activeCinematicId)) cinematicDirector.Play(State.activeCinematicId); }
+            else ResumeCampaign();
+        }
+
+        void ResumeCampaign()
+        {
+            InitializeQuests();
+            ResolveEnding();
+            SyncWorld();
+            CinematicSpawnSafetyV15.Repair(this);
+            Notify();
+            if (!string.IsNullOrEmpty(State.activeCinematicId)) cinematicDirector.Play(State.activeCinematicId);
+        }
+
+        public void BeginBrowserCampaign(bool fresh)
+        {
+            if (!StartupReady) throw new InvalidOperationException(StartupError ?? "La scène est en préparation.");
+            launching = true;
+            try
+            {
+                if (fresh) NewCampaign();
+                else
+                {
+                    if (!Load(SavePath) && !Load(SavePath + ".bak"))
+                        throw new InvalidDataException("La sauvegarde et sa copie de secours sont introuvables ou illisibles.");
+                    ResumeCampaign();
+                }
+                ReconcileControls();
+                if (CurrentAct == null || State.characters.Find(c => c.id == Data.playerCharacterId) == null ||
+                    !GameplayRigAvailable(false) || (ActiveControlLocks == ControlLocks.None && !ControlsAvailable))
+                    throw new InvalidOperationException("La campagne ou le contrôle de Dylan n’a pas été initialisé.");
+            }
+            catch
+            {
+                if (cinematicDirector.IsPlaying)
+                {
+                    cinematicDirector.enabled = false;
+                    cinematicDirector.enabled = true;
+                }
+                GetComponent<CampaignActivitiesV17>()?.Suspend();
+                State = null;
+                startupSaves.Clear();
+                ReconcileControls();
+                throw;
+            }
+            finally { launching = false; }
+
+            foreach (var path in startupSaves) TrySave(path);
+            startupSaves.Clear();
+        }
+
+        bool GameplayRigAvailable(bool requireEnabled = true)
+        {
+            if (bindings == null || bindings.player == null || bindings.gameplayCamera == null) return false;
+            var motor = bindings.player.GetComponent<ThirdPersonMotor>();
+            var controller = bindings.player.GetComponent<CharacterController>();
+            return motor != null && motor.viewCamera == bindings.gameplayCamera && controller != null &&
+                (!requireEnabled || (motor.isActiveAndEnabled && controller.enabled && bindings.gameplayCamera.isActiveAndEnabled));
+        }
+
+        public void ReconcileControls()
+        {
+            if (bindings == null) return;
+            var locks = ActiveControlLocks;
+            bindings.SetGameplayBlocked(locks != ControlLocks.None);
+            bool fault = locks == ControlLocks.None && !GameplayRigAvailable();
+            if (fault && !reportedControlFault) Debug.LogError("GAMEPLAY actif alors que le moteur, le contrôleur ou la caméra de Dylan est indisponible.", this);
+            reportedControlFault = fault;
+        }
+
+        public void SetMobileInterruption(bool portrait, bool background)
+        {
+            if (orientationBlocked == portrait && backgroundBlocked == background) return;
+            orientationBlocked = portrait;
+            backgroundBlocked = background;
+            ReconcileControls();
         }
         private void ValidateData()
         {
@@ -72,29 +242,38 @@ namespace UngaBunga45001
         }
         public void NewCampaign()
         {
+            GetComponent<ConstructionFilmV19>()?.Cancel();
+            GetComponent<ActivityActingV18>()?.ReleaseForFilm();GetComponent<WorkNavigationV18>()?.PrepareForFilm();GetComponent<VillageUpgradeViewV18>()?.Close();GetComponent<CampaignActivitiesV17>()?.Suspend();
             if(cinematicDirector.IsPlaying){bool active=cinematicDirector.enabled;cinematicDirector.enabled=false;cinematicDirector.enabled=active;}
             if(State!=null){var duel=GetComponent<MenhirDuel>();if(duel!=null&&duel.Active)duel.Leave();GetComponent<AccidentDirector>()?.ResetPresentation();}
             State = new CampaignSave { campaignId = Data.id };
             foreach (var v in Data.stats) State.stats.Add(new NamedValue(v.id, v.value));
             foreach (var v in Data.resources) State.resources.Add(new NamedValue(v.id, v.value));
             foreach (var c in Data.characters) State.characters.Add(new CharacterState { id = c.id,competence=c.id=="dylan"?15:c.id=="petit_os"?10:70 });
-            Ending = null; Dialogue = null; UserPaused = false; pendingAction = null; QuestPanel="";PresentedQuestId="";ConversationActorId="";InitializeQuests(true);
+            Ending = null; Dialogue = null; userPaused = false; pendingAction = null; QuestPanel="";PresentedQuestId="";ConversationActorId="";InitializeQuests(true);
             CinematicWorldResetV15.For(this).Restore();CinematicWorldPropsV15.For(this);CinematicSpawnSafetyV15.Repair(this);EnterAct();
         }
         private void Update()
         {
+            ReconcileControls();
             if (State == null || Ending != null) return;
-            // Reading and important decisions pause the clock; cinematics are included in 45 min.
-            if (!UserPaused && Dialogue == null && !QuestOverlay && !IncidentModal && !(cinematicDirector!=null&&cinematicDirector.IsPlaying&&cinematicDirector.SequenceState=="LOADING")) State.elapsedSeconds += Time.deltaTime;
-            if (RemainingSeconds <= 0 && !IsModal && !IsBusy) FinishCampaign();
+            // V17 includes reading, decisions, travel, work and films in the measured campaign.
+            if (!IsPaused && !(State.campaignV17?.freePlay??false) && !(cinematicDirector!=null&&cinematicDirector.IsPlaying&&cinematicDirector.SequenceState=="LOADING")) State.elapsedSeconds += Time.deltaTime;
+            // An overrun is measured, never disguised as a completed campaign.
+            if (ActivitiesV17==null && RemainingSeconds <= 0 && !IsModal && !IsBusy) FinishCampaign();
             notifyTimer += Time.unscaledDeltaTime; autosaveTimer += Time.unscaledDeltaTime;
             if (notifyTimer >= .25f) { notifyTimer = 0; Notify(); }
             float saveInterval=Application.platform==RuntimePlatform.WebGLPlayer?5:30;
             if (autosaveTimer >= saveInterval && !IsBusy && Dialogue == null && !(cinematicDirector != null && cinematicDirector.IsPlaying)) { autosaveTimer = 0; Save(); }
-            bindings.SetGameplayBlocked(IsModal || IsBusy);
         }
-        public void TogglePause() { if (Dialogue != null || Ending != null || QuestOverlay || IncidentModal) return; UserPaused = !UserPaused; Notify(); }
-        public void SetPause(bool pause) { UserPaused = pause; Notify(); }
+        public void TogglePause() { if (Dialogue != null || Ending != null || QuestOverlay || IncidentModal) return; SetPause(!UserPaused); }
+        public void SetPause(bool pause) { userPaused = pause; ReconcileControls(); Notify(); }
+        public void SetBrowserInputSuspended(bool suspended)
+        {
+            if(BrowserInputSuspended==suspended)return;
+            BrowserInputSuspended=suspended;
+            ReconcileControls();
+        }
         public bool HasFlag(string id) => State != null && State.flags.Contains(id);
         public float Value(string kind, string id)
         {
@@ -117,20 +296,22 @@ namespace UngaBunga45001
             #else
             if(actionCache.TryGetValue(bindingId,out var cached))return cached;
             #endif
-            var result=Data == null ? Array.Empty<ActionDefinition>() : Data.actions.Where(a => a.targetBindingId == bindingId && (a.actId == CurrentAct?.id || a.actId == "*") && (a.repeatable || !State.completedActions.Contains(a.id))).Where(a=>ActiveQuestAction(a,out _)).Concat(QuestInteractions(bindingId)).OrderBy(a => CanExecute(a, out _) ? 0 : 1).ToArray();actionCache[bindingId]=result;return result;
+            var result=Data == null ? Array.Empty<ActionDefinition>() : Data.actions.Where(a => a.targetBindingId == bindingId && CurrentActAction(a) && (a.repeatable || !State.completedActions.Contains(a.id))).Where(a=>ActiveQuestAction(a,out _)).Concat(QuestInteractions(bindingId)).Concat(VillageActionsV18(bindingId)).OrderBy(a => CanExecute(a, out _) ? 0 : 1).ToArray();actionCache[bindingId]=result;return result;
         }
+        bool CurrentActAction(ActionDefinition action)=>action.actId==CurrentAct?.id||action.actId=="*"||(State.campaignV17.freePlay&&action.actId=="FREE_V16");
         public bool CanExecute(ActionDefinition action, out string reason, bool ignoreInterface=false,string actingCharacterId=null)
         {
             reason = "";
             if (action == null || State == null) { reason = "Action inconnue."; return false; }
             if(!MenhirActionAllowed(action,out reason))return false;
             if (!ignoreInterface&&(IsModal || IsBusy)) { reason = "Termine l'action en cours."; return false; }
+            if(action.interactionType=="FurnitureV19"&&!(GetComponent<TemperateVillageV19>()?.CanUse(action.id,out reason)??false))return false;
             if(action.id.StartsWith("travel:",StringComparison.Ordinal))return bindings.Find(action.targetBindingId)!=null&&(State.characters.FirstOrDefault(c=>c.id==action.targetBindingId)?.alive??true);
             if(action.id.StartsWith("quest:",StringComparison.Ordinal))return ActiveQuestAction(action,out reason)&&(State.characters.FirstOrDefault(c=>c.id==action.targetBindingId)?.alive??false);
             if(!ActiveQuestAction(action,out reason))return false;
             if(!StructuralCondition(action,out reason))return false;
             if(action.minimumCompetence>0&&(State.characters.Find(c=>c.id==(actingCharacterId??Data.playerCharacterId))?.competence??0)<action.minimumCompetence){reason="Compétence nécessaire : "+action.minimumCompetence.ToString("0");return false;}
-            if (action.actId != CurrentAct?.id && action.actId != "*") { reason = "Cette action appartient à un autre acte."; return false; }
+            if (!CurrentActAction(action)) { reason = "Cette action appartient à un autre acte."; return false; }
             if (!action.repeatable && State.completedActions.Contains(action.id)) { reason = "Action déjà réalisée."; return false; }
             if (!FlagsMatch(action.requiredFlags, action.forbiddenFlags)) { reason = "Observe, consulte et prépare les conditions requises."; return false; }
             if (action.dangerous && Value("stat", "fatigue") >= 80) { reason = "Fatigue élevée : organise un repos avant cette intervention."; return false; }
@@ -143,6 +324,8 @@ namespace UngaBunga45001
         {
             var action = FindAction(id);
             if (!CanExecute(action, out string reason)) { Inform(reason); return; }
+            if(action.interactionType=="ActivityV17"){GetComponent<CampaignActivitiesV17>().Begin(id);return;}
+            if(id.StartsWith("upgrade:v18:")){GetComponent<VillageUpgradeViewV18>().Show(id.Substring(12));return;}
             if(action.interactionType=="Document"){OpenCareRegister();return;}
             if(id==MenhirActionId||id==MenhirReplayId){GetComponent<MenhirDuel>().Begin(id==MenhirReplayId);return;}
             if(action.id.StartsWith("quest:",StringComparison.Ordinal)){var parts=action.id.Split(':');OpenQuest(string.Join(":",parts.Skip(2)),parts[1]=="offer"?"Offer":"Details",true);return;}
@@ -172,7 +355,9 @@ namespace UngaBunga45001
             IsBusy = true; Message = action.title; Notify();
             float elapsed = 0;
             float duration = action.durationSeconds * (action.dangerous && Value("stat", "energy") < 20 ? 1.5f : 1f);
-            while (elapsed < duration) { if (!UserPaused) elapsed += Time.deltaTime; yield return null; }
+            if(action.interactionType=="FurnitureV19")
+            {var furniture=GetComponent<TemperateVillageV19>();yield return furniture.Use(action);if(!furniture.ActionSucceeded){IsBusy=false;Notify();yield break;}}
+            else while (elapsed < duration) { if (!UserPaused) elapsed += Time.deltaTime; yield return null; }
             ApplyActionOutcome(action);
             IsBusy = false; SyncWorld(); Save(); Notify();
             if (!string.IsNullOrEmpty(action.cinematicId) && cinematicDirector != null) cinematicDirector.Play(action.cinematicId);
@@ -268,7 +453,7 @@ namespace UngaBunga45001
         {
             if (act < 0 || act >= Data.acts.Length || IsBusy || (cinematicDirector != null && cinematicDirector.IsPlaying)) return;
             if (!Load(CheckpointPath(act))) { Inform("Cet acte n'a pas encore de point de reprise."); return; }
-            Dialogue = null; pendingAction = null; UserPaused = false; Ending = null;
+            Dialogue = null; pendingAction = null; userPaused = false; Ending = null;
             ResolveEnding(); SyncWorld(); Save(); Notify();
         }
         public void FinishCampaign()
@@ -285,12 +470,13 @@ namespace UngaBunga45001
         private void ResolveEnding() { Ending = string.IsNullOrEmpty(State.endingId) ? null : Data.endings.FirstOrDefault(e => e.id == State.endingId); }
         private void Record(string id, string text, string consequence) { State.history.Add(new DecisionRecord { id = id, text = text, consequence = consequence, elapsedSeconds = State.elapsedSeconds }); }
         public void Inform(string text) { Message = text; Notify(); }
-        private void Notify() { actionCache.Clear(); RefreshQuests(); Changed?.Invoke(); }
-        private void SyncWorld() { if (bindings != null && State != null){bindings.Apply(State, attenuatedAccidents);RefreshStructuralClosure();} }
+        private void Notify() { ReconcileControls(); actionCache.Clear(); RefreshQuests(); Changed?.Invoke(); }
+        private void SyncWorld() { if (bindings != null && State != null){bindings.Apply(State, attenuatedAccidents);RefreshStructuralClosure();GetComponent<ActivityWorldV17>()?.InvalidatePainting();} }
         public void Save() { if (Data != null && State != null) Save(SavePath); }
         private void Save(string path) => TrySave(path);
         private bool TrySave(string path)
         {
+            if (launching) { startupSaves.Add(path); return true; }
             if(TribalInterfaceAudit.Requested&&!Path.GetFullPath(path).StartsWith(Path.GetFullPath(TribalInterfaceAudit.IsolatedSaveRoot)+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("V8 audit write outside isolated directory refused.");
             if(QuestIntegrationAudit.Requested&&!Path.GetFullPath(path).StartsWith(Path.GetFullPath(QuestIntegrationAudit.IsolatedSaveRoot)+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Audit write outside isolated directory refused.");
             try
@@ -315,12 +501,15 @@ namespace UngaBunga45001
             {
                 var candidate = JsonUtility.FromJson<CampaignSave>(File.ReadAllText(path));
                 if (candidate == null || candidate.campaignId != Data.id || candidate.version != 1 || candidate.actIndex < 0 || candidate.actIndex >= Data.acts.Length) return false;
+                if(GetComponent<TemperateVillageV19>()!=null&&candidate.environmentSchema<TemperateVillageV19.CurrentEnvironmentSchema)
+                {string backup=path+(candidate.environmentSchema<19?".pre-temperate-v19.bak":".pre-temperate-v19-banks.bak");if(!File.Exists(backup))File.Copy(path,backup,false);TemperateVillageV19.Migrate(candidate);}
+                RestoreVerifiedShelter(candidate);
                 State = candidate; InitializeQuests(); return true;
             }
             catch (Exception e) { Debug.LogWarning("Sauvegarde illisible : " + e.Message, this); return false; }
         }
         private void OnApplicationPause(bool paused) { if (paused) Save(); }
         private void OnApplicationQuit() => Save();
-        private void OnDisable() { if (bindings != null) bindings.SetGameplayBlocked(false); }
+        private void OnDisable() { if (bindings != null) bindings.SetGameplayBlocked(StartupError != null); }
     }
 }

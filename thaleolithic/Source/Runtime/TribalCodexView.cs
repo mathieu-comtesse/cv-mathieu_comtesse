@@ -8,7 +8,7 @@ namespace UngaBunga45001
     public sealed partial class TribalInterface
     {
         sealed class CodexEntry{public string id,title,body,icon;public bool discovered=true;public string destination;}
-        bool codexDetail;readonly string[] codexCategories={"ISO 45001","Personnages","Métiers","Dangers","Incidents","Mesures","Ateliers","Animaux","Ressources","Glossaire"};
+        bool codexDetail;readonly string[] codexCategories={"Carnet des Crânes","ISO 45001","Personnages","Métiers","Dangers","Incidents","Mesures","Ateliers","Animaux","Ressources","Glossaire"};
         IEnumerable<CodexEntry> CodexEntries()
         {
             switch(codexCategory)
@@ -40,6 +40,7 @@ namespace UngaBunga45001
         }
         void DrawCodex()
         {
+            if(codexCategory=="Carnet des Crânes"){DrawEvidenceV17();return;}
             float categoryWidth=Narrow?W:Mathf.Min(Small?150:210,W*.18f),left=Narrow?W:Mathf.Min(Small?215:330,W*.28f),gap=Small?12:22;float top=Narrow?52:0;
             if(Narrow){int index=Array.IndexOf(codexCategories,codexCategory);ActionButton(Content,codexCategory.ToUpperInvariant()+"  ›",0,0,W,44,()=>{codexCategory=codexCategories[(index+1)%codexCategories.Length];selectedCodex="";codexDetail=false;owner.Render();});}
             else{var categories=TribalStyle.Scroll(Content,"Catégories du Codex",0,0,categoryWidth,H);foreach(string value in codexCategories){string category=value;var row=TribalStyle.Row(categories,category,48);var button=TribalStyle.Button(row,font,category.ToUpperInvariant(),()=>{codexCategory=category;selectedCodex="";owner.Render();},category==codexCategory);button.GetComponentInChildren<TMP_Text>().fontSize=Small?12:15;}}

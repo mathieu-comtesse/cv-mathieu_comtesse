@@ -119,7 +119,11 @@ namespace UngaBunga45001
             var k=Keyboard.current;var g=Gamepad.current;bool down=k?.downArrowKey.wasPressedThisFrame==true||g?.dpad.down.wasPressedThisFrame==true,up=k?.upArrowKey.wasPressedThisFrame==true||g?.dpad.up.wasPressedThisFrame==true;
             if(down)Select(selection+1);if(up)Select(selection-1);
             // EventSystem owns Enter/Submit, avoiding a second click when keyboard navigation is used.
-            if(k?.escapeKey.wasPressedThisFrame==true){settings.ConsumedEscapeFrame=Time.frameCount;if(campaign.Dialogue?.id.StartsWith("interaction:")==true||campaign.Dialogue?.id.StartsWith("document:")==true)campaign.Choose("interaction:cancel");else if(campaign.QuestOverlay){if(campaign.QuestPanel=="Offer")campaign.DeferQuest(campaign.PresentedQuestId);else campaign.CloseQuest();}}
+        }
+        public void Back()
+        {
+            if(campaign.Dialogue?.id.StartsWith("interaction:")==true||campaign.Dialogue?.id.StartsWith("document:")==true)campaign.Choose("interaction:cancel");
+            else if(campaign.QuestOverlay){if(campaign.QuestPanel=="Offer")campaign.DeferQuest(campaign.PresentedQuestId);else campaign.CloseQuest();}
         }
         void OnDestroy(){if(campaign!=null)campaign.Changed-=Refresh;}
     }

@@ -13,6 +13,8 @@ namespace UngaBunga45001
   }
   void LateUpdate()
   {
+   if(campaign.GetComponent<TemperateVillageV19>()?.ControlsBody(actorId)??false){if(!body.enabled)body.enabled=true;Velocity=body.velocity;return;}
+   var work=campaign.GetComponent<WorkNavigationV18>();if(work!=null&&work.Controls(actorId)){if(!body.enabled)body.enabled=true;Velocity=work.Velocity(actorId);return;}
    bool alive=campaign.State?.characters.Find(c=>c.id==actorId)?.alive??true;bool cinematic=campaign.cinematicDirector.IsPlaying||campaign.IncidentModal||!alive;
    if(cinematic||!agent.enabled||!agent.isOnNavMesh){body.enabled=false;Velocity=Vector3.zero;wasCinematic=true;return;}
    if(!body.enabled){body.enabled=true;agent.nextPosition=transform.position;falling=-2;}

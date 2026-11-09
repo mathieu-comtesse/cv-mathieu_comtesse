@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -20,6 +20,7 @@ namespace UngaBunga45001
         public ActionDefinition Resolve()
         {
             if(campaign.State==null||campaign.CurrentAct==null)return null;
+            if(GetComponent<CampaignActivitiesV17>()?.Current?.mode=="runner")return campaign.FindAction("travel:rassemblement");
             if(!string.IsNullOrEmpty(campaign.State.trackedActionId))
             {var chosen=campaign.FindAction(campaign.State.trackedActionId);if(chosen!=null&&(!chosen.id.StartsWith("travel:")||!campaign.Near(chosen.targetBindingId))&&campaign.CanExecute(chosen,out _,true)&&!(chosen.repeatable&&campaign.State.trackedActionHistoryIndex>=0&&campaign.State.history.Skip(campaign.State.trackedActionHistoryIndex).Any(r=>r.id==chosen.id)))return chosen;campaign.State.trackedActionId="";}
             var quest=campaign.QuestDestination();if(quest!=null)return quest;
@@ -37,7 +38,7 @@ namespace UngaBunga45001
         void Update()
         {
             if(campaign.State==null||settings==null)return;
-            bool visible=!campaign.cinematicDirector.IsPlaying&&!campaign.UserPaused&&!campaign.QuestOverlay&&!campaign.IncidentModal&&campaign.Dialogue==null&&settings.preferences.worldMarkers&&!Replanning;
+            bool visible=!(campaign.GetComponent<ConstructionFilmV19>()?.Playing??false)&&!campaign.cinematicDirector.IsPlaying&&!campaign.UserPaused&&!campaign.QuestOverlay&&!campaign.IncidentModal&&campaign.Dialogue==null&&settings.preferences.worldMarkers&&!Replanning;
             if(markerRoot!=null)markerRoot.gameObject.SetActive(visible);
             if(Time.unscaledTime<nextCheck||Replanning)return;nextCheck=Time.unscaledTime+.65f;
             var next=Resolve();Action=next;Target=Action==null?null:campaign.bindings.Find(Action.targetBindingId);
@@ -101,7 +102,7 @@ namespace UngaBunga45001
             var camera=campaign.bindings.gameplayCamera;targetMarker.position=Target.position+Vector3.up*(2.7f+Mathf.Sin(Time.unscaledTime*2)*.06f);
             float distance=Vector3.Distance(camera.transform.position,targetMarker.position);float desiredHeight=2*distance*Mathf.Tan(camera.fieldOfView*Mathf.Deg2Rad*.5f)*28/Mathf.Max(1,Screen.height);
             targetMarker.localScale=Vector3.one*Mathf.Clamp(desiredHeight/.2f,.005f,3);targetMarker.rotation=camera.transform.rotation;
-            targetMarker.GetComponent<MeshRenderer>().enabled=camera.WorldToViewportPoint(targetMarker.position).z>camera.nearClipPlane+.15f&&distance<90;
+            targetMarker.GetComponent<MeshRenderer>().enabled=camera.WorldToViewportPoint(targetMarker.position).z>camera.nearClipPlane+.15f&&distance<90&&GetComponent<MainQuestMarkerV18>()?.TargetId!=Action?.targetBindingId;
         }
     }
 }

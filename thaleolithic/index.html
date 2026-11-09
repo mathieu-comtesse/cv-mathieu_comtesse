@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#171b17"><meta name="description" content="Incarne Dylan dans un village préhistorique. Observe les dangers, dialogue et transforme les ateliers pour découvrir la prévention des risques."><title>THALEOLITHIC : L’âge de la prévention · Jouer</title><link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://comtesse.me/thaleolithic/">
 <link rel="stylesheet" href="title-screen.css?v=12a"><link rel="preload" as="image" href="thaleolithic-accueil.webp?v=12a"></head><body>
-<main id="game"><canvas id="unity-canvas" width="1280" height="720" tabindex="-1" aria-label="THALEOLITHIC : village préhistorique en 3D"></canvas><button id="resume-pointer" hidden>Cliquer pour reprendre la caméra</button></main>
+<main id="game"><canvas id="unity-canvas" width="1280" height="720" tabindex="-1" aria-label="THALEOLITHIC : village préhistorique en 3D"></canvas><button id="resume-pointer" hidden>Cliquer pour reprendre la caméra</button><button id="resume-game" hidden>Reprendre la partie</button></main>
 <section id="welcome" aria-labelledby="title">
 <img class="title-art" src="thaleolithic-accueil.webp?v=12a" alt="" width="1672" height="941" fetchpriority="high">
 <div class="intro"><p class="kicker">Les Crânes Fendus</p><h1 id="title">THALEOLITHIC</h1><p class="subtitle">L’âge de la prévention</p>
@@ -13,61 +13,8 @@
 <dialog id="new-dialog" aria-labelledby="new-title"><h2 id="new-title">Commencer une nouvelle partie ?</h2><p>Ta progression enregistrée dans ce navigateur sera remplacée. Choisis Continuer dans le menu pour reprendre ta sauvegarde.</p><div class="dialog-actions"><button id="cancel-new">Annuler</button><button id="confirm-new" class="danger">Commencer et remplacer</button></div></dialog>
 <dialog id="command-dialog"><button aria-label="Fermer les commandes">Fermer</button><h2>Commandes</h2><p><b>Tactile</b> : joystick à gauche, caméra à droite. Approche un habitant puis touche « Parler ». Sac, fabrication et journal restent accessibles en haut de l’écran. Touche la minicarte pour l’agrandir.</p><p><b>Clavier</b> : W A S D pour marcher, Maj pour courir, Espace pour sauter, C pour s’accroupir, E pour interagir, Tab pour le sac, V pour fabriquer, M pour la carte, J pour les missions, T pour l’arbre ISO. Les touches sont modifiables dans les réglages.</p><p>Les dialogues du village arrêtent le compte à rebours. Le duel du menhir possède ses propres commandes affichées à l’écran : J/K pour les coups, L pour la garde et E pour décider.</p></dialog>
 <dialog id="settings-dialog"><button aria-label="Fermer les paramètres">Fermer</button><h2>Paramètres de démarrage</h2><div class="options"><label>Commandes<select id="input-mode"><option value="0">Automatiques</option><option value="1">Tactiles</option><option value="2">Clavier et souris</option></select></label><label>Graphismes<select id="quality"><option value="3">Automatiques</option><option value="0">Économes</option><option value="1">Moyens</option><option value="2">Élevés</option></select></label></div><p>Les sous-titres, les aides, les touches et les effets d’accidents se règlent dans le jeu.</p></dialog>
-<div id="error" hidden role="alert"><div><h2>Le village n’a pas pu démarrer</h2><p id="error-message"></p><button onclick="location.reload()">Réessayer</button> <a class="home" href="../projet-talas">Retour au projet</a></div></div><div id="save-warning" role="status"></div><div id="tools"><button id="fullscreen">Plein écran</button></div>
-<style>#game{inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);width:auto;height:auto}canvas{position:absolute}#resume-pointer{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);z-index:1}@media(pointer:coarse){#tools,#resume-pointer{display:none!important}}</style>
-<script src="render-budget.js?v=14"></script>
-<script>
-'use strict';
-const canvas=document.querySelector('canvas'),welcome=document.querySelector('#welcome'),label=document.querySelector('#loading-label');
-let instance,ready=false,saved=false,started=false,customOptions=false;
-const resumePointer=document.querySelector('#resume-pointer');
-let inputState=null, browserFocused=null, hadPointerLock=false;
-const inputLog=[];
-const inGameFocus=()=>!document.hidden&&document.hasFocus()&&!document.querySelector('dialog[open]');
-function recordInput(source){
- const prior=inputLog.at(-1);
- const current={source,at:performance.now(),previousWindow:prior?.window??'',...(inputState??{}),focus:document.activeElement===canvas,pointer:document.pointerLockElement===canvas};
- inputLog.push(current);if(inputLog.length>100)inputLog.shift();
-}
-if(new URLSearchParams(location.search).get('diagnostic')==='1')window.thaleolithicInputLog=()=>inputLog.map(entry=>({...entry}));
-function updatePointerHint(){resumePointer.hidden=!(started&&inGameFocus()&&hadPointerLock&&!document.pointerLockElement&&inputState?.controls&&!inputState.touch);}
-function browserFocus(source,forceHidden=false){
- if(!started)return;
- const focused=!forceHidden&&inGameFocus();
- if(focused)canvas.focus({preventScroll:true});
- if(focused!==browserFocused){browserFocused=focused;send('BrowserFocus',focused?'1':'0');recordInput(source);}
- updatePointerHint();
-}
-function pointerGesture(){
- if(!started||!inGameFocus())return;
- canvas.focus({preventScroll:true});
- if(inputState?.controls&&!inputState.touch&&!document.pointerLockElement)send('BrowserPointerGesture','1');
-}
-for(const target of [canvas,resumePointer])target.addEventListener('pointerdown',event=>{if(event.button===0&&event.pointerType!=='touch')pointerGesture();});
-resumePointer.addEventListener('keydown',event=>{if(!event.repeat&&(event.key==='Enter'||event.key===' '))pointerGesture();});
-document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===canvas)hadPointerLock=true;recordInput('pointerlock');updatePointerHint();});
-// Unity must not consume native menu keys while the HTML title or a dialog is focused.
-for(const type of ['keydown','keypress','keyup'])window.addEventListener(type,event=>{if(!started)event.stopImmediatePropagation();},true);
-function error(message){document.querySelector('#error-message').textContent=String(message);document.querySelector('#error').hidden=false;}
-function send(method,value){if(instance)instance.SendMessage('UNGA_WEB_BRIDGE',method,value);}
-function renderRatio(){const box=canvas.getBoundingClientRect();return ThaleolithicRenderBudget.pixelRatio(box.width,box.height,devicePixelRatio,Number(document.querySelector('#quality').value));}
-function viewport(){const box=canvas.getBoundingClientRect();if(instance?.Module)instance.Module.devicePixelRatio=renderRatio();send('BrowserViewport',JSON.stringify({width:box.width,height:box.height,touch:matchMedia('(pointer:coarse)').matches&&navigator.maxTouchPoints>0}));}
-function enable(){if(!ready||!instance)return;document.querySelector('#play').disabled=false;document.querySelector('#continue').disabled=!saved;welcome.dataset.ready='true';document.querySelector('#continue').title=saved?'Reprendre ta sauvegarde':'Aucune sauvegarde dans ce navigateur';label.textContent=saved?'Ta sauvegarde est disponible.':'Le village est prêt · Commence une nouvelle partie.';viewport();}
-window.addEventListener('unga-game',e=>{if(e.detail.type==='ready'){ready=true;saved=e.detail.saved;if(!customOptions){document.querySelector('#input-mode').value=String(e.detail.inputMode??0);document.querySelector('#quality').value=String(e.detail.graphicsProfile??3);}enable();}else if(e.detail.type==='state'){window.ungaRuntime=Object.freeze(e.detail);document.querySelector('#tools').style.display=started&&!e.detail.paused&&!e.detail.film&&!e.detail.duel&&!e.detail.dialogue&&!e.detail.quest?'block':'none';}else if(e.detail.type==='input'){inputState=e.detail;recordInput('unity');updatePointerHint();}});
-window.addEventListener('unga-save-error',()=>{document.querySelector('#save-warning').textContent='La sauvegarde locale a échoué. Vérifie que le stockage de ce navigateur est autorisé.';});
-for(const selector of ['#input-mode','#quality'])document.querySelector(selector).addEventListener('change',()=>{customOptions=true;viewport();});
-function options(){viewport();if(customOptions)send('Configure',JSON.stringify({inputMode:Number(document.querySelector('#input-mode').value),graphicsProfile:Number(document.querySelector('#quality').value)}));}
-function begin(mode){if(!ready||!instance||started)return;started=true;options();send('BeginGame',mode);welcome.hidden=true;document.querySelector('#tools').style.display='block';viewport();canvas.tabIndex=0;browserFocus('begin');}
-document.querySelector('#play').onclick=()=>{if(saved)document.querySelector('#new-dialog').showModal();else begin('new');};document.querySelector('#continue').onclick=()=>begin('continue');
-document.querySelector('#cancel-new').onclick=()=>document.querySelector('#new-dialog').close();document.querySelector('#confirm-new').onclick=()=>{document.querySelector('#new-dialog').close();begin('new');};
-for(const [button,dialog] of [['commands','command-dialog'],['settings','settings-dialog'],['credits','credits-dialog']]){const panel=document.getElementById(dialog);document.getElementById(button).onclick=()=>{panel.showModal();browserFocus('dialog-open');};panel.querySelector('button').onclick=()=>panel.close();panel.addEventListener('close',()=>browserFocus('dialog-close'));}
-document.querySelector('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else instance.SetFullscreen(1);}catch{canvas.focus();}};
-addEventListener('resize',viewport);visualViewport?.addEventListener('resize',viewport);
-document.addEventListener('visibilitychange',()=>browserFocus('visibility'));
-addEventListener('blur',()=>browserFocus('blur',true));
-addEventListener('focus',()=>browserFocus('focus'));
-addEventListener('pagehide',()=>browserFocus('pagehide',true));
-addEventListener('pageshow',()=>browserFocus('pageshow'));
-canvas.addEventListener('webglcontextlost',()=>error('Le navigateur a interrompu le rendu 3D. Recharge la page puis choisis Continuer.'));
-(async()=>{const probe=document.createElement('canvas');if(!probe.getContext('webgl2'))throw new Error('WebGL 2 est requis. Active l’accélération graphique ou utilise un navigateur compatible.');const config=await fetch('game-config.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('Configuration du jeu indisponible ('+r.status+').');return r.json();});await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=config.loaderUrl;script.onload=resolve;script.onerror=()=>reject(new Error('Le chargeur Unity est indisponible. Vérifie ta connexion.'));document.body.append(script);});instance=await createUnityInstance(canvas,{...config,companyName:'Talas',productName:'THALEOLITHIC',productVersion:'0.22.1',autoSyncPersistentDataPath:true,devicePixelRatio:renderRatio(),showBanner:(message,type)=>{if(type==='error')error(message);}},p=>{document.querySelector('#progress').value=p;label.textContent=p<1?'Chargement du village : '+Math.round(p*100)+' %':'Préparation des personnages et des chemins…';});enable();})().catch(error);
-</script></body></html>
+<div id="error" hidden role="alert"><div><h2>Le lancement de THALÉOLITHIC a échoué.</h2><p id="error-message"></p><p id="error-environment"></p><button id="retry">Réessayer</button> <button id="copy-diagnostic">Copier le diagnostic</button></div></div><div id="save-warning" role="status"></div><div id="tools"><button id="fullscreen">Plein écran</button></div>
+<details id="dev-diagnostic" hidden><summary>Diagnostic</summary><button id="download-diagnostic">Exporter en JSON</button><pre id="diagnostic-data"></pre></details>
+<style>#game{inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);width:auto;height:auto}canvas{position:absolute}#resume-pointer,#resume-game{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);z-index:2}#dev-diagnostic{position:fixed;bottom:0;left:0;z-index:8;max-width:min(30rem,90vw);background:#171b17;color:#fff;padding:.5rem}#diagnostic-data{max-height:50vh;overflow:auto}@media(pointer:coarse){#tools,#resume-pointer{display:none!important}}</style>
+<script src="render-budget.js?v=23.1"></script>
+<script src="browser-bridge.js?v=23.1"></script></body></html>

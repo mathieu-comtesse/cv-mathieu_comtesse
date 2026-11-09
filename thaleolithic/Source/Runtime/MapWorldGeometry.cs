@@ -8,6 +8,8 @@ namespace UngaBunga45001
         public struct Footprint{public Bounds bounds;public Color color;}
         public readonly List<Footprint> footprints=new List<Footprint>();
         readonly Dictionary<Transform,MeshRenderer[]> sources=new Dictionary<Transform,MeshRenderer[]>();CampaignRuntime campaign;float refreshAt;
+        readonly List<Transform> stale=new List<Transform>();
+        public void Register(Transform root){if(root!=null)sources[root]=root.GetComponentsInChildren<MeshRenderer>(true);}
         public void Build(CampaignRuntime runtime)
         {
             campaign=runtime;var roots=new HashSet<Transform>();var village=GameObject.Find("Village complet V2")?.transform;
@@ -19,11 +21,13 @@ namespace UngaBunga45001
         void Update(){if(campaign!=null&&Time.unscaledTime>refreshAt){refreshAt=Time.unscaledTime+.5f;Refresh();}}
         void Refresh()
         {
-            footprints.Clear();foreach(var source in sources)
+            footprints.Clear();stale.Clear();foreach(var source in sources)
             {
+                if(source.Key==null){stale.Add(source.Key);continue;}
                 if(!source.Key.gameObject.activeInHierarchy)continue;bool started=false;var bounds=new Bounds();foreach(var r in source.Value)if(r!=null&&r.enabled&&r.gameObject.activeInHierarchy){if(!started){bounds=r.bounds;started=true;}else bounds.Encapsulate(r.bounds);}
                 if(!started||bounds.size.x<.2f||bounds.size.z<.2f)continue;var color=source.Key.name.ToLowerInvariant().Contains("grindstone")?new Color(.56f,.55f,.49f):new Color(.53f,.32f,.15f);footprints.Add(new Footprint{bounds=bounds,color=color});
             }
+            foreach(var key in stale)sources.Remove(key);
         }
     }
     [RequireComponent(typeof(CanvasRenderer))]public sealed class MapFootprintsGraphic:UnityEngine.UI.MaskableGraphic

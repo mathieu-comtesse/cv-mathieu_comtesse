@@ -14,8 +14,9 @@ namespace UngaBunga45001
         {
             string name=(gpu??"").ToLowerInvariant();
             if(name.Contains("610m")||name.Contains("620m")||name.Contains("radeon(tm) graphics")||name.Contains("radeon graphics")||name.Contains("vega")||name.Contains("intel(r) uhd")||name.Contains("iris")||name.Contains("intel(r) hd"))return 0;
-            if(systemMemory>0&&systemMemory<=8192)return 0;
-            if(touch||graphicsMemory<=0||graphicsMemory<4096)return 1;
+            // Start touch hardware with headroom. Runtime frame samples adjust the render scale.
+            if(touch)return 0;
+            if(graphicsMemory<=0||graphicsMemory<4096||(systemMemory>0&&systemMemory<=8192))return 1;
             return 2;
         }
         void Ensure(){if(settings==null)settings=GetComponent<UISettingsController>();if(campaign==null)campaign=GetComponent<CampaignRuntime>();}
@@ -41,7 +42,7 @@ namespace UngaBunga45001
             Ensure();if(requested!=settings.preferences.graphicsProfile)Apply();float dt=Time.unscaledDeltaTime;elapsed+=dt;frames++;if(dt>.1f)SlowFrames++;
             if(elapsed>=5){AverageFrameMilliseconds=elapsed/frames*1000;elapsed=frames=0;}
             // Automatic resolution uses a full warm window; background tabs are not GPU measurements.
-            if(requested!=3||!Application.isFocused||Time.unscaledTime<nextAdjustment||dt>.25f)return;
+            if(requested!=3||campaign.State==null||campaign.IsPaused||!Application.isFocused||Time.unscaledTime<nextAdjustment||dt>.25f)return;
             samples[sampleCount++]=dt*1000;if(sampleCount<samples.Length)return;Array.Sort(samples);float p90=samples[(int)(samples.Length*.9f)];sampleCount=0;nextAdjustment=Time.unscaledTime+4;
             float ceiling=AppliedProfile==0?.85f:AppliedProfile==1?.9f:1;
             if(p90>(AppliedProfile<2?42:23)){SetScale(Mathf.Max(.55f,RenderScale-.08f));healthySince=0;}

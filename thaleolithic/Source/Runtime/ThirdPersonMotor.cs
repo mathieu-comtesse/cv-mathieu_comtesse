@@ -16,8 +16,13 @@ namespace UngaBunga45001
         public float cameraDistance = 5.4f, cameraHeight = 1.4f, sensitivity = .13f;
         public float gravity = -22f;
         private CharacterController controller; private EnvironmentInteraction environment;
-        private Renderer[] avatarRenderers;private bool hiddenNearCamera;
+        private Renderer[] avatarRenderers;
         private float yaw, pitch = 24, vertical;
+        private float orbitDistance;
+        private readonly RaycastHit[] orbitHits = new RaycastHit[24];
+        public float Yaw => yaw;
+        public float Pitch => pitch;
+        public float OrbitDistance => orbitDistance;
         private readonly int speedKey = Animator.StringToHash("Speed");
         private bool hasSpeed;
         public const float CrouchedHeight=1.3f;
@@ -43,7 +48,10 @@ namespace UngaBunga45001
             avatarRenderers=visual!=null?visual.GetComponentsInChildren<Renderer>():System.Array.Empty<Renderer>();
             if (viewCamera != null) yaw = viewCamera.transform.eulerAngles.y;
             hasSpeed = animator != null && animator.parameters.Any(p => p.name == "Speed" && p.type == AnimatorControllerParameterType.Float);
+            orbitDistance = cameraDistance;
+#if !UNITY_WEBGL || UNITY_EDITOR
             Cursor.lockState = CursorLockMode.Locked; Cursor.visible = false;
+#endif
         }
         private void Update()
         {
@@ -51,7 +59,8 @@ namespace UngaBunga45001
             if(inputSettings!=null&&inputSettings.Pressed("crouch"))SetCrouched(!Crouching,true);
             if(MobileControls.TouchActive&&MobileControls.Instance.ConsumeCrouch())SetCrouched(!Crouching,true);
             Vector2 input = ReadMovement(); LastMovementInput=input; Vector2 look = ReadLook();
-            yaw += look.x * sensitivity; pitch = Mathf.Clamp(pitch - look.y * sensitivity, -8, 65);
+            yaw = Mathf.Repeat(yaw + look.x * sensitivity, 360);
+            pitch = Mathf.Clamp(pitch - look.y * sensitivity, -8, 65);
             Vector3 direction = Quaternion.Euler(0, yaw, 0) * new Vector3(input.x, 0, input.y);
             bool running = !Crouching&&IsRun()&&(campaign==null||campaign.Value("stat","energy")>=3); float speed = Crouching?walkSpeed*.48f:running ? runSpeed : walkSpeed;
             
@@ -71,26 +80,26 @@ namespace UngaBunga45001
         {
             if (viewCamera == null || !viewCamera.enabled) return;
             Vector3 target = transform.position + Vector3.up * (Crouching?cameraHeight*.67f:cameraHeight);
-            Vector3 offset = Quaternion.Euler(pitch, yaw, 0) * Vector3.back * cameraDistance;
-            float distance = cameraDistance;
-            foreach (var hit in Physics.SphereCastAll(target, .18f, offset.normalized, cameraDistance, ~0, QueryTriggerInteraction.Ignore))
-                if (!hit.transform.IsChildOf(transform)) distance = Mathf.Min(distance, Mathf.Max(.7f, hit.distance - .12f));
-            viewCamera.transform.position = target + offset.normalized * distance;
-            viewCamera.transform.LookAt(target);
-            // Keep the complete native body visible. Try a free orbit when a wall crowds the camera.
-            if(distance<1.6f)
-            {
-                Vector3 best=offset.normalized*distance;float bestDistance=distance;
-                foreach(float angle in new[]{-35f,35f,-70f,70f,-110f,110f})
-                {
-                    var candidate=Quaternion.Euler(0,angle,0)*offset;float available=cameraDistance;
-                    foreach(var hit in Physics.SphereCastAll(target,.18f,candidate.normalized,cameraDistance,~0,QueryTriggerInteraction.Ignore))
-                        if(!hit.transform.IsChildOf(transform))available=Mathf.Min(available,Mathf.Max(.7f,hit.distance-.12f));
-                    if(available>bestDistance){bestDistance=available;best=candidate.normalized*available;}
-                }
-                viewCamera.transform.position=target+best;viewCamera.transform.LookAt(target);
-            }
-            foreach(var renderer in avatarRenderers)renderer.forceRenderingOff=false;
+            var rotation = Quaternion.Euler(pitch, yaw, 0);
+            var direction = rotation * Vector3.back;
+            const float clearance = .12f;
+            const float radius = .18f;
+            float range = cameraDistance + clearance;
+            int count = Physics.SphereCastNonAlloc(target, radius, direction, orbitHits, range, ~0, QueryTriggerInteraction.Ignore);
+            // A full buffer does not guarantee that the closest collider was returned.
+            var hits = count == orbitHits.Length
+                ? Physics.SphereCastAll(target, radius, direction, range, ~0, QueryTriggerInteraction.Ignore)
+                : orbitHits;
+            if (hits != orbitHits) count = hits.Length;
+            float available = cameraDistance;
+            for (int i = 0; i < count; i++)
+                if (!hits[i].transform.IsChildOf(transform))
+                    available = Mathf.Min(available, Mathf.Max(0, hits[i].distance - clearance));
+
+            // The collision limit is hard. Recovery is eased along the same orbit.
+            float blend = 1 - Mathf.Exp(-8 * Time.unscaledDeltaTime);
+            orbitDistance = Mathf.Min(available, Mathf.Lerp(orbitDistance, available, blend));
+            viewCamera.transform.SetPositionAndRotation(target + direction * orbitDistance, rotation);
         }
         private Vector2 ReadMovement()
         {
@@ -108,6 +117,9 @@ namespace UngaBunga45001
         private Vector2 ReadLook()
         {
             if(MobileControls.TouchActive)return MobileControls.Instance.ConsumeLook();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (campaign == null || !campaign.BrowserPointerLocked) return Vector2.zero;
+#endif
 #if ENABLE_INPUT_SYSTEM
             return Mouse.current == null ? Vector2.zero : Mouse.current.delta.ReadValue();
 #elif ENABLE_LEGACY_INPUT_MANAGER
@@ -139,7 +151,7 @@ namespace UngaBunga45001
 #endif
         }
         public void FaceDirection(Vector3 direction){if(direction.sqrMagnitude>.001f)yaw=Quaternion.LookRotation(new Vector3(direction.x,0,direction.z)).eulerAngles.y;}
-        private void OnDisable() { if (hasSpeed && animator != null) animator.SetFloat(speedKey, 0);if(avatarRenderers!=null)foreach(var renderer in avatarRenderers)if(renderer!=null)renderer.forceRenderingOff=false;hiddenNearCamera=false; }
+        private void OnDisable() { if (hasSpeed && animator != null) animator.SetFloat(speedKey, 0);if(avatarRenderers!=null)foreach(var renderer in avatarRenderers)if(renderer!=null)renderer.forceRenderingOff=false; }
     }
 }
 

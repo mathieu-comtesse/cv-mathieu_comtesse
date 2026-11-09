@@ -12,15 +12,17 @@ namespace UngaBunga45001
  [Serializable]public sealed class FilmPropV15{public string id,actor,assistant,kind,site,destination;public Vector3 offset,finalOffset,size;public float pickup,release,impact;public bool persistent;}
  [Serializable]public sealed class FilmEventV15{public string kind,target,sound;public float at;}
  [Serializable]public sealed class FilmContactV15{public string actor,target,bone="RightUpperArm",hand="Left";public float start,end;public Vector3 offset;}
- [Serializable]public sealed class FilmActorStateV15{public string id;public Vector3 position;public Quaternion rotation=Quaternion.identity;}
+ [Serializable]public sealed class FilmRouteStateV16{public string actor;public FilmBlockingV15 spec;public Vector3[] corners;public float length;}
+ [Serializable]public sealed class FilmPropStateV16{public string id;public Vector3 position;public Quaternion rotation;public bool released;}
+ [Serializable]public sealed class FilmActorStateV15{public string id;public Vector3 position;public Quaternion rotation=Quaternion.identity;public float distance;public bool running;}
  [Serializable]public sealed class FilmV15
  {public string id,title,summary,site,mood,condition;public float duration;public FilmCueV15[] cues=Array.Empty<FilmCueV15>();public FilmShotV15[] shots=Array.Empty<FilmShotV15>();public FilmBlockingV15[] blocking=Array.Empty<FilmBlockingV15>();public FilmPropV15[] props=Array.Empty<FilmPropV15>();public FilmEventV15[] events=Array.Empty<FilmEventV15>();public FilmContactV15[] contacts=Array.Empty<FilmContactV15>();}
  [Serializable]public sealed class FilmLibraryV15{public FilmClipV15[] clips=Array.Empty<FilmClipV15>();public FilmV15[] films=Array.Empty<FilmV15>();}
  public static class CinematicCatalogueV15
  {
   static FilmLibraryV15 library;static readonly Dictionary<string,AnimationClip> clips=new Dictionary<string,AnimationClip>();
-  public static FilmLibraryV15 Library=>library??=JsonUtility.FromJson<FilmLibraryV15>(Resources.Load<TextAsset>("CinematicLibraryV15").text);
-  public static AnimationClip Clip(string id){if(!clips.TryGetValue(id,out var clip)){clip=Resources.Load<AnimationClip>("CinematicsV15/Clips/"+id);clips[id]=clip;}return clip;}
+  public static FilmLibraryV15 Library=>library??=JsonUtility.FromJson<FilmLibraryV15>((Resources.Load<TextAsset>("CinematicLibraryV16")??Resources.Load<TextAsset>("CinematicLibraryV15")).text);
+  public static AnimationClip Clip(string id){if(!clips.TryGetValue(id,out var clip)){clip=Resources.Load<AnimationClip>("CinematicsV16/Clips/"+id)??Resources.Load<AnimationClip>("CinematicsV15/Clips/"+id);clips[id]=clip;}return clip;}
   public static FilmV15 Find(string id)=>Library.films.FirstOrDefault(f=>f.id==id);
   // Existing save IDs retain their original meaning; V15 scenes have separate identities.
   public static string Resolve(string id,CampaignRuntime c)

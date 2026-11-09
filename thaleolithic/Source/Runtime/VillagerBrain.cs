@@ -35,10 +35,16 @@ namespace UngaBunga45001
             if(!state.alive){Behaviour=VillagerBehaviour.DEAD;Stop();if(load!=null)load.carrying=false;return;}
             if(campaign.cinematicDirector.IsPlaying){Behaviour=VillagerBehaviour.CINEMATIC_CONTROL;return;}
             if(campaign.UserPaused){Stop();return;}
-            if(!agent.enabled||!agent.isOnNavMesh){Behaviour=VillagerBehaviour.IDLE;BlockedReason="Navigation indisponible";return;}
             var definition=campaign.Data.characters.FirstOrDefault(c=>c.id==id);
             bool speaking=campaign.ConversationActorId==id&&(campaign.Dialogue!=null||campaign.QuestOverlay)||campaign.Dialogue!=null&&definition!=null&&campaign.Dialogue.speaker.StartsWith(definition.name,StringComparison.OrdinalIgnoreCase);
             if(speaking){if(!wasSpeaking)ActivityBeforeConversation=ActivityLabel;wasSpeaking=true;Stop();Face(campaign.bindings.player.position);Pose("Talk");Behaviour=VillagerBehaviour.SOCIALIZE;return;}wasSpeaking=false;
+            var physical=campaign.GetComponent<WorkNavigationV18>();if(physical?.Controls(id)??false){Behaviour=physical.Evacuating(id)?VillagerBehaviour.EVACUATE:VillagerBehaviour.BUILD;return;}
+            if(campaign.GetComponent<ActivityWorldV17>()?.EvacuationDestination(id,out var assemblyPoint)==true)
+            {Behaviour=VillagerBehaviour.EVACUATE;Move(assemblyPoint,1.65f);if(Arrived()){Stop();Pose("Listen");}return;}
+            if(campaign.GetComponent<VillageUpgradeV18>()?.WorkDestination(id,out var workPoint)==true)
+            {Behaviour=VillagerBehaviour.BUILD;Move(workPoint,1.3f);if(Arrived()){Stop();if(!(animator.GetComponent<CinematicActorV15>()?.Owned??false))Pose("Build");}return;}
+            if(animator.GetComponent<CinematicActorV15>()?.Owned??false){Stop();Behaviour=VillagerBehaviour.CINEMATIC_CONTROL;return;}
+            if(!agent.enabled||!agent.isOnNavMesh){Behaviour=VillagerBehaviour.IDLE;BlockedReason="Navigation indisponible";return;}
             if(agent.hasPath&&agent.remainingDistance>.5f&&agent.velocity.sqrMagnitude<.006f&&!agent.pathPending)stuckTime+=Time.deltaTime;else stuckTime=0;
             if(stuckTime>3){agent.ResetPath();decisionAt=0;stuckTime=0;PathFailures++;BlockedReason="Itinéraire réévalué après obstacle";}
             // Near actors think at 5 Hz; distant actors keep their current safe route between 1 Hz decisions.
@@ -107,6 +113,7 @@ namespace UngaBunga45001
         Vector3 requestedGoal=Vector3.positiveInfinity;
         void Move(Vector3 target,float speed)
         {
+            if(agent==null||!agent.enabled||!agent.isOnNavMesh){BlockedReason="Navigation indisponible : attente d’un itinéraire sûr";return;}
             agent.speed=speed*(state.life<70?.7f:1);agent.acceleration=2.8f;
             if((requestedGoal-target).sqrMagnitude>.35f||!agent.hasPath&&!Arrived())
             {
