@@ -7,6 +7,7 @@
      shadow:off      ombre portée de la machine désactivée
      aa:off          antialiasing désactivé
      fx:off          animations, transitions, filtres et flous CSS coupés ; fx:blur (flous d'arrière-plan seuls), fx:filter (filtres et ombres de texte), fx:anim (animations et transitions)
+     grain:off       voile de grain CSS (.rf-grain, mix-blend-mode overlay) retiré ; grain:static le laisse mais sans animation
      copy:off        accueil : plus de copie WebGL vers Canvas2D (drawImage)
    Les marques de performance (performance.mark « rf:… ») sont toujours posées : coût nul. */
 const raw = new URLSearchParams(location.search).get('diag');
@@ -20,6 +21,7 @@ if (raw) {
   const FX = { off: '*,*::before,*::after{animation:none!important;transition:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}',
     blur: '*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}',
     filter: '*,*::before,*::after{filter:none!important;text-shadow:none!important}',
-    anim: '*,*::before,*::after{animation:none!important;transition:none!important}' }[DIAG.fx];
+    anim: '*,*::before,*::after{animation:none!important;transition:none!important}' }[DIAG.fx]
+    || { off: '.rf-grain{display:none!important}', static: '.rf-grain{animation:none!important}' }[DIAG.grain];
   if (FX) { const s = document.createElement('style'); s.textContent = FX; document.head.append(s); }
 }
