@@ -154,11 +154,11 @@ for (const slug of PAGES) {
       await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '2', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le tiroir ne passe pas à l'état étendu`));
       await settled(p);
       const gr = await p.evaluate(() => { const r = document.querySelector('.cv-cb-grip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 12]; });
-      await p.mouse.move(gr[0], gr[1]); await p.mouse.down(); await p.mouse.move(gr[0], gr[1] + 70, { steps: 4 }); await p.mouse.up();
+      await p.mouse.move(gr[0], gr[1]); await p.mouse.down(); await p.waitForTimeout(80); await p.mouse.move(gr[0], gr[1] + 70, { steps: 10 }); await p.waitForTimeout(80); await p.mouse.up();   // geste proche d'un vrai doigt : appui, glissé en plusieurs étapes, relâchement ; le navigateur de CI, saturé par le rendu logiciel, perd parfois les événements d'un geste trop bref
       await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '1', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le glissement ne referme pas le tiroir d'un cran`));
       await settled(p);
       const gr2 = await p.evaluate(() => { const r = document.querySelector('.cv-cb-grip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 12]; });
-      await p.mouse.move(gr2[0], gr2[1]); await p.mouse.down(); await p.mouse.move(gr2[0], gr2[1] + 70, { steps: 4 }); await p.mouse.up();
+      await p.mouse.move(gr2[0], gr2[1]); await p.mouse.down(); await p.waitForTimeout(80); await p.mouse.move(gr2[0], gr2[1] + 70, { steps: 10 }); await p.waitForTimeout(80); await p.mouse.up();   // geste proche d'un vrai doigt : appui, glissé en plusieurs étapes, relâchement ; le navigateur de CI, saturé par le rendu logiciel, perd parfois les événements d'un geste trop bref
       await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '0', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le glissement ne ramène pas à la capsule`));
       const cp = await p.evaluate(() => { const r = document.querySelector('.cv-cb-cap').getBoundingClientRect(); return r.height; });
       if (cp < 44) fail.push(`${tag} : capsule trop basse pour le tactile (${cp}px)`);
