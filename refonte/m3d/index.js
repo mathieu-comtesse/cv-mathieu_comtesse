@@ -37,6 +37,8 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
       return hit(g);
     },
     /* la carte d'ombre (2048², filtrée) n'est recalculée qu'une image sur deux : l'ombre suit la machine avec 16 ms de retard, invisible ; la passe d'ombre est l'un des coûts de rendu les plus lourds */
+    /** compteurs du dernier rendu (diagnostic) : appels de dessin, triangles, géométries, textures, programmes */
+    info: () => { let meshes = 0, inst = 0, shadow = 0; const geo = new Set(), mat = new Set(); g.traverse((o) => { if (o.isMesh) { meshes++; geo.add(o.geometry.uuid); mat.add(o.material.uuid); if (o.isInstancedMesh) inst++; if (o.castShadow) shadow++; } }); return { meshes, instanced: inst, castShadow: shadow, uniqueGeometries: geo.size, uniqueMaterials: mat.size,  calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, programs: renderer.info.programs?.length ?? 0 }; },
     render(time) { m.update(time); renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = (frameN++ & 1) === 0 || document.body.classList.contains('fl-lock'); renderer.render(scene, cam); glow(); },
     dispose() { renderer.dispose(); }
   };

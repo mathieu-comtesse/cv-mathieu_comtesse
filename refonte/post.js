@@ -96,7 +96,7 @@ if (fig && bpCanvas && stage) {
     const demo = { on: false, explore: false, mode: 'idle', finished: false, end: null, step: -1 };
     let barUI = null, panelOpen = false, panelSize = 0, pendingView = null;
     /* API de test, activée seulement par ?uxtest (jamais en production) : positionne la machine à un instant donné */
-    if (/[?&]uxtest\b/.test(location.search)) window.__rfTest = { seek: (t) => setClock(t), time: clock, end: () => demo.end, min: () => (ctl.seek ? ctl.seek(ctl.min) : 0), max: () => (ctl.seek ? ctl.seek(ctl.max) : 0) };
+    if (/[?&]uxtest\b/.test(location.search)) window.__rfTest = { gpuInfo: () => machine.info?.(), seek: (t) => setClock(t), time: clock, end: () => demo.end, min: () => (ctl.seek ? ctl.seek(ctl.min) : 0), max: () => (ctl.seek ? ctl.seek(ctl.max) : 0) };
     const mountBar = () => {
       if (barUI) return;
       const mc = { ...machine, api: machine.api && { ...machine.api, setInspect: machine.api.inspect } };
