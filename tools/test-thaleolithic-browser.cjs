@@ -194,6 +194,10 @@ async function run() {
           record('20 cycles Échap, Réglages, croix et Reprendre');
         }
         const before = await page.evaluate(() => window.ungaRuntime.position);
+        const waitForMovement = timeout => page.waitForFunction(start => {
+          const position = window.ungaRuntime.position;
+          return Math.hypot(position.x - start.x, position.z - start.z) > .3;
+        }, before, {timeout, polling: 200});
         if (mobile) {
           const client = await context.newCDPSession(page);
           const touch = (type, points) => client.send('Input.dispatchTouchEvent', {type, touchPoints: points});
@@ -211,17 +215,26 @@ async function run() {
           await page.setViewportSize({width: 852, height: 393});
           await waitState(gameplay);
           record('Multitouch déplacement/caméra et rotation écran');
+          await waitForMovement(15000);
         } else {
-          await page.keyboard.down('s');
-          await page.waitForTimeout(1300);
-          await page.keyboard.up('s');
+          await page.locator('#unity-canvas').focus();
+          const directions = softwareRunner ? ['s', 'd', 'a'] : ['s'];
+          for (const direction of directions) {
+            await page.keyboard.down(direction);
+            try {
+              await waitForMovement(softwareRunner ? 15000 : 30000);
+              break;
+            } catch (error) {
+              if (error.name !== 'TimeoutError' || direction === directions.at(-1)) throw error;
+            } finally { await page.keyboard.up(direction); }
+          }
         }
-        await page.waitForFunction(before => {
-          const p = window.ungaRuntime.position;
-          return Math.hypot(p.x - before.x, p.z - before.z) > .3;
-        }, before, {timeout: 10000});
         const position = await page.evaluate(() => window.ungaRuntime.position);
         record('Dylan a bougé', Math.hypot(position.x - before.x, position.z - before.z));
+        if (!mobile) {
+          await page.keyboard.press('Escape');
+          await waitState({window: 'Pause', controls: false});
+        }
         await page.waitForTimeout(6000);
         await page.reload({waitUntil: 'domcontentloaded'});
         await page.waitForFunction(() => !document.getElementById('continue').disabled, null, {timeout: 180000});
