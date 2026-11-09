@@ -241,3 +241,4 @@ body.rf-explore .rf-bp,body.rf-demo .rf-bp{filter:brightness(.88)}
 .fl-ov.is-open{transition:opacity .45s,visibility 0s,background .6s}
 /* fermée (ou en cours de fermeture) : la surcouche n'intercepte plus aucun clic, même ses nœuds 3D encore présents */
 .fl-ov:not(.is-open),.fl-ov:not(.is-open) *{pointer-events:none!important}
+.fl-ov-list:not(.open){pointer-events:none}
