@@ -20,7 +20,8 @@ const state = (p) => p.evaluate(() => { const d = document.querySelector('.rf-cb
 const waitMachine = async (p, tag) => { await p.waitForSelector('.rf-cb-dock', { state: 'attached', timeout: 90000 }).catch(() => fail.push(`${tag} : la machine ne se charge pas`)); await p.waitForFunction(() => window.__rfFlowReady && window.__rfTest, null, { timeout: 90000 }).catch(() => fail.push(`${tag} : moteurs non prêts (magie ou API de test)`)); await p.evaluate(() => window.__rfFlowReady); };
 const flowT = (p) => p.evaluate(() => window.__rfFlowTest?.state());
 async function open(slug, w, h, reduced) {
-  const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: reduced ? 'reduce' : 'no-preference' }); const p = await ctx.newPage(); p.setDefaultTimeout(60000);
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, reducedMotion: reduced ? 'reduce' : 'no-preference', hasTouch: w < 700 });
+  await ctx.addInitScript(() => { const c = { vis: 0, key: 0 }; window.__lc = c; for (const T of [document, window]) { const a = T.addEventListener.bind(T), r = T.removeEventListener.bind(T); T.addEventListener = (t, f, o) => { if (t === 'visibilitychange') c.vis++; if (t === 'keydown') c.key++; return a(t, f, o); }; T.removeEventListener = (t, f, o) => { if (t === 'visibilitychange') c.vis--; if (t === 'keydown') c.key--; return r(t, f, o); }; } }); const p = await ctx.newPage(); p.setDefaultTimeout(60000);
   p.__errs = []; p.on('pageerror', (e) => p.__errs.push(String(e).slice(0, 160)));
   await p.goto(`http://localhost:${port}/projet-${slug}.html?uxtest`, { waitUntil: 'domcontentloaded' }); return p;
 }
@@ -100,6 +101,16 @@ for (const slug of PAGES) {
     await p.waitForSelector('.fl-ov-list.open', { timeout: 5000 }).catch(() => fail.push(`${tag} : « Revoir les étapes » ne s'ouvre pas`));
     const li = await p.evaluate(() => ({ n: document.querySelectorAll('.fl-ov-list li').length, tiles: document.querySelectorAll('.k3').length, exp: document.querySelector('[data-act="steps"]').getAttribute('aria-expanded') }));
     if (li.n !== li.tiles || li.exp !== 'true') fail.push(`${tag} : liste des étapes incomplète (${li.n}/${li.tiles}, ${li.exp})`);
+    await p.waitForFunction(() => { const l = document.querySelector('.fl-ov-list'), r = l.getBoundingClientRect(); return +getComputedStyle(l).opacity === 1 && r.bottom <= innerHeight + 1; }, null, { timeout: 8000 }).catch(() => {});
+    const lt = await p.evaluate(() => { const l = document.querySelector('.fl-ov-list'), r = l.getBoundingClientRect(), li = l.querySelector('li'), b = li.querySelector('b'), d = li.querySelector('p'), ol = l.querySelector('ol'), hh = l.querySelector('.fl-ov-list-h').getBoundingClientRect(); return { h: r.height, w: r.width, top: r.top, bottom: r.bottom, left: r.left, right: r.right, cols: getComputedStyle(li).gridTemplateColumns.split(' ').length, bs: parseFloat(getComputedStyle(b).fontSize), ds: parseFloat(getComputedStyle(d).fontSize), ov: getComputedStyle(ol).overflowY, head: hh.height, scroll: ol.scrollHeight > ol.clientHeight }; });
+    if (lt.cols !== 2 || lt.ov !== 'auto' || lt.bs < 14.5 || lt.bs <= lt.ds) fail.push(`${tag} : hiérarchie typographique de la liste (${JSON.stringify(lt)})`);
+    if (lt.left < 0 || lt.right > w + 1 || lt.bottom > h + 1 || lt.top < 0) fail.push(`${tag} : la liste sort de l'écran`);
+    if (vp === 'mobile') {
+      if (lt.h > h * .5) fail.push(`${tag} : le tiroir de la liste occupe ${Math.round(lt.h / h * 100)} % de la hauteur à l'ouverture`);
+      await p.click('[data-act="steps-size"]', { force: true });
+      await p.waitForFunction((h0) => document.querySelector('.fl-ov-list').getBoundingClientRect().height > h0 + 40, lt.h, { timeout: 5000 }).catch(() => fail.push(`${tag} : le tiroir de la liste ne s'étend pas`));
+      await p.click('[data-act="steps-size"]', { force: true });
+    }
     if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3d-liste.png` });
     await p.keyboard.press('Escape');
     await p.waitForFunction(() => !document.querySelector('.fl-ov-list.open'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : Échap ne referme pas la liste`));
@@ -120,6 +131,9 @@ for (const slug of PAGES) {
       await p.keyboard.press('Escape'); await p.waitForFunction(() => !document.querySelector('.fl-ov').classList.contains('is-open') && !document.querySelector('[inert]'), null, { timeout: 8000 }).catch(() => fail.push(`${tag} : réouverture ${k + 1} : fermeture incomplète`));
     }
     await p.waitForFunction(() => document.querySelectorAll('.fl3').length === 0, null, { timeout: 8000 }).catch(() => fail.push(`${tag} : nœuds résiduels après plusieurs ouvertures`));
+    for (let k = 0; k < 7; k++) { await p.click('.rf-cta[data-demo="magic"]', { force: true }); await p.waitForSelector('.fl-ov.is-open', { timeout: 10000 }); await p.keyboard.press('Escape'); await p.waitForFunction(() => !document.querySelector('.fl-ov').classList.contains('is-open'), null, { timeout: 8000 }); }
+    const lc = await p.evaluate(() => window.__lc);
+    if (lc.vis > 0) fail.push(`${tag} : écouteurs visibilitychange accumulés après dix ouvertures (${lc.vis})`);
 
     // 4. « Explorer la machine » : mode Explorer d'emblée, panneau placé hors de la machine, aucune démonstration imposée
     await p.click('.rf-cta[data-demo="explore"]', { force: true });
@@ -130,6 +144,23 @@ for (const slug of PAGES) {
     if (!ex.sec.includes('Démonstration') || !ex.sec.includes('Vues')) fail.push(`${tag} : panneau Explorer incomplet (${ex.sec.join(', ')})`);
     if (vp === 'desktop' && ex.pr[0] < w * .6) fail.push(`${tag} : le panneau n'est pas latéral (${ex.pr.map(Math.round).join(',')})`);
     if (vp === 'mobile' && (ex.pr[0] < 0 || ex.pr[2] > w || ex.pr[3] > h)) fail.push(`${tag} : le tiroir sort de l'écran (${ex.pr.map(Math.round).join(',')})`);
+    if (vp === 'mobile') {
+      if (ex.pr[3] - ex.pr[1] > h * .5) fail.push(`${tag} : tiroir intermédiaire trop haut (${Math.round((ex.pr[3] - ex.pr[1]) / h * 100)} %)`);
+      if ((await p.evaluate(() => document.querySelector('.cv-cb-panel').dataset.snap)) !== '1') fail.push(`${tag} : le tiroir ne s'ouvre pas à l'état intermédiaire`);
+      const adv = await p.evaluate(() => [...document.querySelectorAll('.cv-cb-sec[data-adv]')].every((x) => getComputedStyle(x).display === 'none'));
+      if (!adv) fail.push(`${tag} : les commandes avancées sont visibles à l'état intermédiaire`);
+      await p.click('.cv-cb-expand', { force: true });
+      await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '2', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le tiroir ne passe pas à l'état étendu`));
+      const gr = await p.evaluate(() => { const r = document.querySelector('.cv-cb-grip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 12]; });
+      await p.mouse.move(gr[0], gr[1]); await p.mouse.down(); await p.mouse.move(gr[0], gr[1] + 70, { steps: 4 }); await p.mouse.up();
+      await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '1', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le glissement ne referme pas le tiroir d'un cran`));
+      const gr2 = await p.evaluate(() => { const r = document.querySelector('.cv-cb-grip').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 12]; });
+      await p.mouse.move(gr2[0], gr2[1]); await p.mouse.down(); await p.mouse.move(gr2[0], gr2[1] + 70, { steps: 4 }); await p.mouse.up();
+      await p.waitForFunction(() => document.querySelector('.cv-cb-panel').dataset.snap === '0', null, { timeout: 5000 }).catch(() => fail.push(`${tag} : le glissement ne ramène pas à la capsule`));
+      const cp = await p.evaluate(() => { const r = document.querySelector('.cv-cb-cap').getBoundingClientRect(); return r.height; });
+      if (cp < 44) fail.push(`${tag} : capsule trop basse pour le tactile (${cp}px)`);
+      await p.click('.cv-cb-more', { force: true }); await p.waitForSelector('.cv-cb-panel.is-open', { timeout: 5000 });
+    }
     await p.waitForFunction(() => true); if (SHOTS) await p.screenshot({ path: `${SHOTS}/${slug}-${vp}-3-explorer.png` });
     const box = await p.evaluate(() => { const r = document.querySelector('.cv-cb-cap').getBoundingClientRect(); return [r.left, r.right, r.bottom]; });
     if (box[0] < -1 || box[1] > w + 1 || box[2] > h + 1) fail.push(`${tag} : capsule hors de l'écran (${box.map((x) => Math.round(x)).join(',')})`);

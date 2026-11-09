@@ -189,7 +189,7 @@ function draw3d(st, items, L, tl, t) {
   st.cells.forEach((c, i) => {
     const on = t >= 120 + i * 110, here = i === cur, done = fin ? true : i < dn || (i === i0 && moving && cur !== i);
     c.tile.classList.toggle('in', on); c.tile.classList.toggle('cur', here); c.tile.classList.toggle('done', done && !here);
-    c.lab.classList.toggle('on', here); c.lab.classList.toggle('dn', done && !here);
+    c.lab.classList.toggle('on', here); c.lab.classList.toggle('dn', done && !here); c.tile.classList.toggle('final', fin && i === n - 1);
   });
   return { reach, moving, finished: fin, p, cur, head };
 }
@@ -241,7 +241,7 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   const I = { pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.8" height="14" rx="1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1"/></svg>', play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.6.6 0 0 0 .9.5l10.5-6.8a.6.6 0 0 0 0-1L8.9 4.7a.6.6 0 0 0-.9.5z"/></svg>', replay: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"/></svg>' };
   ov.setAttribute('aria-modal', 'true');
   const result = (() => { const m = root.closest('.rf-marche'); return { title: m?.dataset.resultTitle || 'Processus terminé.', text: m?.dataset.result || '' }; })();
-  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c" aria-hidden="true"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-result" role="status" aria-live="polite" hidden></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="steps" aria-expanded="false">Revoir les étapes</button><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><aside class="fl-ov-list" aria-label="Les étapes du processus" hidden><div class="fl-ov-list-h"><h3>Les étapes</h3><button type="button" class="fl-ov-b" data-act="steps-close" aria-label="Fermer la liste des étapes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><ol>' + items.map((it, i) => '<li><span aria-hidden="true">' + (i + 1) + '</span><div><b>' + esc(it.title) + '</b><p>' + esc(it.text) + '</p></div></li>').join('') + '</ol></aside><div class="fl-ov-ctl"><button type="button" class="fl-ov-b" data-act="pause" aria-label="Mettre en pause">' + I.pause + '</button><i class="fl-ov-prog" aria-hidden="true"><b></b></i><button type="button" class="fl-ov-b" data-act="again" aria-label="Rejouer depuis le début">' + I.replay + '</button></div><p class="fl-ov-cap" aria-hidden="true">ÉCHAP POUR FERMER</p>';
+  ov.innerHTML = '<button type="button" class="fl-ov-x" aria-label="Fermer la magie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><div class="fl-ov-c" aria-hidden="true"><div class="fl-ov-w"></div></div><div class="fl-ov-step" role="status" aria-live="polite"></div><div class="fl-ov-result" role="status" aria-live="polite" hidden></div><div class="fl-ov-end" hidden><button type="button" class="rf-cta rf-cta--quiet" data-act="steps" aria-expanded="false">Revoir les étapes</button><button type="button" class="rf-cta rf-cta--quiet" data-act="replay">Rejouer</button><button type="button" class="rf-cta" data-act="machine">Explorer la machine</button></div><aside class="fl-ov-list" aria-label="Les étapes du processus" hidden><div class="fl-ov-list-h"><h3>Les étapes</h3><button type="button" class="fl-ov-b" data-act="steps-size" aria-label="Agrandir la liste" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5"/></svg></button><button type="button" class="fl-ov-b" data-act="steps-close" aria-label="Fermer la liste des étapes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><ol>' + items.map((it, i) => '<li><span aria-hidden="true">' + (i + 1) + '</span><div><b>' + esc(it.title) + '</b><p>' + esc(it.text) + '</p></div></li>').join('') + '</ol></aside><div class="fl-ov-ctl"><button type="button" class="fl-ov-b" data-act="pause" aria-label="Mettre en pause">' + I.pause + '</button><i class="fl-ov-prog" aria-hidden="true"><b></b></i><button type="button" class="fl-ov-b" data-act="again" aria-label="Rejouer depuis le début">' + I.replay + '</button></div><p class="fl-ov-cap" aria-hidden="true">ÉCHAP POUR FERMER</p>';
   document.body.append(ov);
   const center = ov.querySelector('.fl-ov-c'), wrap = ov.querySelector('.fl-ov-w'), stepBox = ov.querySelector('.fl-ov-step'), endBox = ov.querySelector('.fl-ov-end'), resBox = ov.querySelector('.fl-ov-result'), listBox = ov.querySelector('.fl-ov-list'), listBtn = ov.querySelector('[data-act="steps"]'), prog = ov.querySelector('.fl-ov-prog b'), pauseBtn = ov.querySelector('[data-act="pause"]');
   let wv = 0, L = null, st = null, tl = null, ra = 0, last = 0, tAct = 0, playing = true, timer = 0, opener = null, isOpen = false, shown = -2, fit = 1, Hv = 0;
@@ -265,10 +265,10 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   };
   const showEnd = () => {
     stepBox.innerHTML = ''; shown = -4;
-    resBox.innerHTML = '<b>' + esc(result.title) + '</b>' + (result.text ? '<p>' + esc(result.text) + '</p>' : '') + '<small>Résultat de démonstration : données fictives, aucun traitement réel.</small>'; resBox.hidden = false;
+    resBox.innerHTML = '<b>' + esc(result.title) + '</b>' + (result.text ? '<p>' + esc(result.text) + '</p>' : '') + '<small>Démonstration du cas nominal : données fictives, aucun traitement réel.</small>'; resBox.hidden = false;
     endBox.hidden = false; ov.classList.add('is-done'); pauseBtn.disabled = true;
   };
-  const toggleList = (v) => { const on = v ?? listBox.hidden; if (on) { listBox.hidden = false; void listBox.offsetWidth; } listBox.classList.toggle('open', on); listBtn.setAttribute('aria-expanded', String(on)); if (!on) setTimeout(() => { if (!listBox.classList.contains('open')) listBox.hidden = true; }, 450); };
+  const toggleList = (v) => { const on = v ?? listBox.hidden; if (on) { listBox.hidden = false; void listBox.offsetWidth; } listBox.classList.toggle('open', on); ov.classList.toggle('list-open', on); listBtn.setAttribute('aria-expanded', String(on)); if (!on) setTimeout(() => { if (!listBox.classList.contains('open')) listBox.hidden = true; }, 450); };
   const sync = (dt, snap) => {
     const r = draw3d(st, items, L, tl, tAct);
     if (!r.finished && !r.moving && r.reach >= 0) caption(r.reach);
@@ -321,6 +321,7 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
   };
   ov.querySelector('[data-act="replay"]').addEventListener('click', start);
   listBtn.addEventListener('click', () => toggleList());
+  ov.querySelector('[data-act="steps-size"]').addEventListener('click', (e) => { const full = listBox.dataset.size !== 'full'; listBox.dataset.size = full ? 'full' : ''; e.currentTarget.setAttribute('aria-pressed', String(full)); e.currentTarget.setAttribute('aria-label', full ? 'Réduire la liste' : 'Agrandir la liste'); });
   ov.querySelector('[data-act="steps-close"]').addEventListener('click', () => { toggleList(false); listBtn.focus({ preventScroll: true }); });
   ov.querySelector('[data-act="again"]').addEventListener('click', start);
   ov.querySelector('[data-act="machine"]').addEventListener('click', toMachine);

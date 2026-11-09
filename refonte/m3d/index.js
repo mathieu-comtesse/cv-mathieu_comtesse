@@ -20,9 +20,11 @@ export async function mountMachine(name, canvas, cam, origin = new THREE.Vector3
   const w = () => { renderer.setSize(innerWidth, innerHeight, false); };
   w();
   const glow = trackGlow(g, ACCENT[name]);
+  const mid = new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3());   // centre de la machine (cadrage des panneaux)
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   return {
     resize: w,
+    center: () => mid,
     controls: m.controls,
     api: m.api ? { inspect: (v) => m.api.setInspect(v), anchor: (n) => { const o = m.api.anchors[n]; return o ? o.getWorldPosition(new THREE.Vector3()) : null; }, views: m.api.views, scenarios: m.api.scenarios, setScenario: m.api.setScenario, frames: m.api.frames, params: m.api.params, status: m.api.status, drag: m.api.drag } : null,
     /** rayon monde sous le pointeur (pour api.drag : glisser des éléments de la machine) */

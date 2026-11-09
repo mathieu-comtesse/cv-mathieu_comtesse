@@ -70,7 +70,6 @@
 .fl-mv-i{position:absolute;inset:0;display:grid;place-items:center;color:#39ff88;opacity:.6;transition:opacity .4s}
 .fl-mv.fl-done .fl-mv-i{opacity:1;color:#8dffb8}
 .fl-mv-ico{width:calc(var(--bx) * .47);height:calc(var(--bx) * .47)}
-.m3.fl-done .m3-i{opacity:1;color:#c6e66b}
 html body .cv-pf-main .cv-bpfig{width:100%;aspect-ratio:1.25;min-height:380px;pointer-events:auto}
 html body .cv-bpfig .rf-bp-frame{display:block;width:100%;height:100%;border:0;background:transparent;color-scheme:light}
 html body .cv-room3d .room-zoom{background:#fff;color:#000;border-radius:9999px;padding:6px 16px;box-shadow:0 10px 24px #0006;gap:10px}
@@ -153,55 +152,12 @@ html body .cv-pf-gains p{font-size:14px!important;opacity:.8}
 [data-f26-page] .rf-flow-magic{display:none!important}
 html body .cv-pf-flowbox{position:relative}
 .game-mute{display:none!important}
-.lh{border-top:1px solid rgb(255 255 255 / .22)}
-.lv{border-left:1px solid rgb(255 255 255 / .22)}
-@media (min-width:641px){html body .fl-ov.is-open .fl-ov-w{transform:translate3d(-20px,40px,50px) rotateY(20deg) rotateX(50deg) scale(.95)}}
-.l3{height:0;width:0}
-.b3{display:none}
-.t3{text-align:center;line-height:1.25;pointer-events:none}
-.t3 b{display:block;font:500 11px/1.25 var(--rf-sans);color:#6c6f73}
-.t3 i{display:block;font:500 9.5px/1.3 var(--rf-mono);color:#45484b;font-style:normal;letter-spacing:.04em}
-.s3{width:59px;height:59px;border-radius:9.5px;background:#000;filter:blur(10px);opacity:0;transition:opacity .9s}
-.s3.up{opacity:.45}
-.d3{width:6px;height:6px;border-radius:50%;background:#38393B;opacity:0;transform:translateZ(0);transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .6s,background .4s,box-shadow .4s}
-.d3.up{opacity:1;transform:translateZ(62px)}
-.d3.cur{background:rgb(147 192 34);box-shadow:0 0 10px rgb(147 192 34)}
-.d3.cur{background:#f5c542;box-shadow:0 0 10px #f5c542}
-.d3.ok{background:rgb(147 192 34);box-shadow:0 0 10px rgb(147 192 34)}
-.d3.up.ok{background:rgb(147 192 34)}
-.d3{opacity:1;background:#4a4d50}
-.d3.up{transform:translateZ(62px)}
-.d3.cur{background:#ffd028;box-shadow:0 0 10px #ffd028}
-.d3.ok,.d3.up.ok{background:#2fe277;box-shadow:0 0 10px #2fe277}
-.fl3{position:relative;transform-origin:0 0;transform-style:preserve-3d}
-.fl3>div{position:absolute;box-sizing:border-box}
-.k3{width:59px;height:59px;border:1px solid #34373a;border-radius:9.5px;background:linear-gradient(#1c1e20,#0e0f10);display:grid;place-items:center;color:#8c9196;opacity:0;transform:translateZ(0);transition:transform .9s cubic-bezier(.22,1,.36,1),opacity .6s}
-.k3.up{opacity:1;transform:translateZ(50px)}
-.k3-i{width:28px;height:28px}
-.m3{width:59px;height:59px;transform:translate3d(0,0,1px);will-change:transform}
-.m3 i{position:absolute;inset:0;border-radius:9.5px;box-sizing:border-box;opacity:0}
-.m3-h{opacity:1;background:#0E0F10;border:1px solid #2D2E2F}
-.m3-o{inset:3px!important;border-radius:7px!important;border:1px dashed rgb(147 192 34)}
-.m3-s{inset:3px!important;border-radius:7px!important;background:rgb(147 192 34 / .1);border:1px solid rgb(147 192 34 / .7)}
-.m3-c{background:linear-gradient(#26330f,#10170a);border:1.2px solid rgb(147 192 34);box-shadow:0 0 14px rgb(147 192 34 / .5)}
-.m3-i{position:absolute;inset:0;display:grid;place-items:center;color:rgb(147 192 34);opacity:.65}
-.m3-ico{width:28px;height:28px}
-.fl-ov{position:fixed;inset:0;background:rgb(11 13 14 / .985);z-index:5000;display:grid;place-items:center;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
-.fl-ov.is-open{opacity:1;visibility:visible}
-.fl-ov-c{width:min(1100px,90vw);transform-style:preserve-3d;perspective:1450px;position:relative}
-.fl-ov-w{width:100%;transform-style:preserve-3d;transform-origin:50% 50%;transform:translate3d(0,20px,0) rotateX(0) rotateY(0) scale(.92);transition:transform 1.35s cubic-bezier(.22,1,.36,1)}
-.fl-ov.is-open .fl-ov-w{transform:translate3d(-20px,100px,50px) rotateY(20deg) rotateX(50deg) scale(1.5)}
-.fl-ov-cap{position:absolute;left:6vw;bottom:6vh;margin:0;font:11px/1.6 var(--rf-mono);letter-spacing:.12em;color:#91949a}
-.fl-ov-x{position:absolute;right:28px;top:22px;z-index:2;width:39px;height:39px;color:#fff;border:1px solid #35373a;border-radius:9px;background:#1b1c1e;cursor:pointer;font-size:24px;line-height:1}
-.fl-ov-x:hover{background:#343637}
-body.fl-lock{overflow:hidden}@media (max-width:640px){.fl-ov.is-open .fl-ov-w{transform:translate3d(0,50px,0) rotateY(12deg) rotateX(35deg) scale(1.3)}.fl-ov-cap{font-size:9px}}
 
 .fl-img{object-fit:contain;display:block}
 .fl-b .fl-img,.fl-mv-ico.fl-img{width:calc(var(--bx) * .5);height:calc(var(--bx) * .5)}
-.k3 .fl-img,.m3-ico.fl-img{width:30px;height:30px}
 
 /* case mobile : plus de hachures */
-.fl-mv-h,.m3-h{background:#0E0F10!important}
+.fl-mv-h{background:#0E0F10!important}
 
 /* voyants : éteint → jaune à l'arrivée de la case mobile → vert quand elle repart (comme sur le site de référence) */
 .fl-b.fl-on .fl-led{background:#38393B;box-shadow:none}
@@ -214,10 +170,10 @@ body.fl-lock{overflow:hidden}@media (max-width:640px){.fl-ov.is-open .fl-ov-w{tr
 .fl-b.fl-ok .fl-led{background:#2fe277;box-shadow:0 0 9px #2fe277}
 
 /* croix de fermeture : même icône, même animation partout (album, stèle, télés, fenêtre projet, vue magie) */
-html body .film-close,html body .jvc-close,html body .rf-close,html body .fl-ov-x{box-sizing:border-box;display:grid;place-items:center;width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border:1px solid rgb(255 255 255 / .3);border-radius:50%;background:rgb(20 22 26 / .72);color:#fff;font-size:0;line-height:0;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .2s,border-color .2s}
-html body .film-close svg,html body .jvc-close svg,html body .rf-close svg,html body .fl-ov-x svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-html body .film-close:hover,html body .jvc-close:hover,html body .rf-close:hover,html body .fl-ov-x:hover,html body .film-close:focus-visible,html body .jvc-close:focus-visible,html body .rf-close:focus-visible,html body .fl-ov-x:focus-visible{background:rgb(255 255 255 / .16);border-color:rgb(255 255 255 / .6);transform:rotate(90deg) scale(1.08)}
-html body .film-close:active,html body .jvc-close:active,html body .rf-close:active,html body .fl-ov-x:active{transform:rotate(90deg) scale(.9)}@media (prefers-reduced-motion:reduce){html body .film-close,html body .jvc-close,html body .rf-close,html body .fl-ov-x{transition-duration:.01ms}}
+html body .film-close,html body .jvc-close,html body .rf-close{box-sizing:border-box;display:grid;place-items:center;width:40px;height:40px;min-width:40px;min-height:40px;padding:0;border:1px solid rgb(255 255 255 / .3);border-radius:50%;background:rgb(20 22 26 / .72);color:#fff;font-size:0;line-height:0;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .2s,border-color .2s}
+html body .film-close svg,html body .jvc-close svg,html body .rf-close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+html body .film-close:hover,html body .jvc-close:hover,html body .rf-close:hover,html body .film-close:focus-visible,html body .jvc-close:focus-visible,html body .rf-close:focus-visible{background:rgb(255 255 255 / .16);border-color:rgb(255 255 255 / .6);transform:rotate(90deg) scale(1.08)}
+html body .film-close:active,html body .jvc-close:active,html body .rf-close:active{transform:rotate(90deg) scale(.9)}@media (prefers-reduced-motion:reduce){html body .film-close,html body .jvc-close,html body .rf-close{transition-duration:.01ms}}
 @font-face{font-family:"Inter";src:url("https://comtesse.me/refonte/fonts/Inter-latin.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:"Inter";src:url("https://comtesse.me/refonte/fonts/Inter-italic-latin.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap}
 @font-face{font-family:"Instrument Serif";src:url("https://comtesse.me/refonte/fonts/InstrumentSerif-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
@@ -255,9 +211,6 @@ html body .film-close:active,html body .jvc-close:active,html body .rf-close:act
 .cv-legacy.cv-legacy .rf-copied .rf-link-ic svg.rf-ic-copy{display:none}
 .cv-legacy.cv-legacy .pc-inf{height:440px;margin:0 0 24px;--html-in-canvas-rise:.8}
 .cv-legacy.cv-legacy .pc-inf canvas{height:100%}
-dialog.fl-ov{inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0;margin:0;padding:0;color:#e0ebfd;background:#05080d;overflow:auto;--rf-sans:"Inter",system-ui,sans-serif;--rf-mono:"iAWriterQuattroV",Consolas,monospace}
-dialog.fl-ov::backdrop{background:#05080d}
-dialog.fl-ov:not([open]){display:none}
 .cv-legacy .annual-pig-wrap{min-height:280px}
 .cv-legacy .piggy-3d{--html-in-canvas-rise:.6}
 .cv-legacy.cv-legacy .rf-gx-page .rf-tirelire .annual-gains{overflow:visible}
@@ -493,7 +446,7 @@ html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h
 .cv-zoom-bar{position:fixed;left:0;right:0;margin:0 auto;width:fit-content;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:1;max-width:calc(100vw - 16px)}.cv-zoom{transition:padding .5s cubic-bezier(.22,1,.36,1)}@media(min-width:900px){.cv-zoom.has-panel{padding-right:390px}}.cv-zoom-cap{position:fixed;left:50%;bottom:98px;transform:translateX(-50%);z-index:1;width:min(580px,calc(100vw - 32px));text-align:center;color:#fff;pointer-events:none;text-shadow:0 0 22px rgb(2 6 50 / .95),0 1px 3px rgb(2 6 50 / .6)}.cv-zoom-cap small{display:block;margin-bottom:6px;font:500 11px/1 monospace;letter-spacing:.18em;text-transform:uppercase;color:rgb(255 255 255 / .78)}.cv-zoom-cap b{display:block;font:500 clamp(20px,2.4vw,26px)/1.2 'Shopify Inter',Inter,sans-serif}.cv-zoom-cap span{display:block;margin-top:6px;font:400 15px/1.45 'Shopify Inter',Inter,sans-serif;color:rgb(240 246 255 / .92)}
 @media(max-width:760px){.cv-zoom-bar{bottom:12px}.cv-zoom-cap{bottom:88px}}
 @media(max-width:760px){.cv-zoom{padding:56px 8px 150px 70px}}
-</style><link rel="stylesheet" href="https://comtesse.me/refonte/gains.css"><link rel="stylesheet" href="refonte/ui-premium.css?v=up2"><script type="module" src="refonte/premium-cta.js"></script><link rel="stylesheet" href="refonte/ui-premium.css?v=up1"><script type="module" src="refonte/premium-cta.js"></script><link rel="stylesheet" href="https://comtesse.me/refonte/room-dialogs.css"><script src="refonte/boot-graph.js?v=perf2"></script><script src="refonte/boot-native.js?v=perf2"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D."><meta property="og:title" content="Mathieu Comtesse · Parcours"><meta property="og:description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D."><meta property="og:site_name" content="Mathieu Comtesse"><meta property="og:type" content="website"><meta name="robots" content="max-image-preview:large"><link rel="canonical" href="https://comtesse.me/"><meta name="image" property="og:image" content="https://cdn.shopify.com/s/files/1/0762/1885/9705/files/Social_Share-Card_Final_1200x630_1x_85902a32-9449-4be8-8084-264d1528dce8.webp?v=1792099430"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@Shopify"><meta name="twitter:account_id" content="17136315"><meta name="twitter:title" content="Mathieu Comtesse · Parcours"><meta name="twitter:description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D."><meta name="twitter:image" content="https://comtesse.me/assets/og-home-blueprint.png"><link type="image/png" rel="icon" sizes="16x16" href="https://comtesse.me/favicon.svg"><link type="image/png" rel="icon" sizes="32x32" href="https://comtesse.me/favicon.svg"><link type="image/png" rel="apple-touch-icon" sizes="180x180" href="https://comtesse.me/favicon.svg"><link rel="stylesheet" onerror="document.documentElement.dataset.cssFallback=1;var f=document.createElement('link');f.rel='stylesheet';f.href='refonte/site.css';document.head.appendChild(f)" href="https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/tailwind-yGPyQBNf.css" data-rmx-key="https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/tailwind-yGPyQBNf.css" data-rmx-preserve-dom=""><script>if(/[?&]css=local\b/.test(location.search)){var l=document.currentScript.previousElementSibling;l.removeAttribute('onerror');l.href='refonte/site.css';}</script><style>
+</style><link rel="stylesheet" href="https://comtesse.me/refonte/gains.css"><link rel="stylesheet" href="refonte/ui-premium.css?v=up2"><link rel="stylesheet" href="refonte/magic.css?v=v3"><script type="module" src="refonte/premium-cta.js"></script><link rel="stylesheet" href="refonte/ui-premium.css?v=up1"><script type="module" src="refonte/premium-cta.js"></script><link rel="stylesheet" href="https://comtesse.me/refonte/room-dialogs.css"><script src="refonte/boot-graph.js?v=perf2"></script><script src="refonte/boot-native.js?v=perf2"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D."><meta property="og:title" content="Mathieu Comtesse · Parcours"><meta property="og:description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D."><meta property="og:site_name" content="Mathieu Comtesse"><meta property="og:type" content="website"><meta name="robots" content="max-image-preview:large"><link rel="canonical" href="https://comtesse.me/"><meta name="image" property="og:image" content="https://cdn.shopify.com/s/files/1/0762/1885/9705/files/Social_Share-Card_Final_1200x630_1x_85902a32-9449-4be8-8084-264d1528dce8.webp?v=1792099430"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@Shopify"><meta name="twitter:account_id" content="17136315"><meta name="twitter:title" content="Mathieu Comtesse · Parcours"><meta name="twitter:description" content="Le CV de Mathieu Comtesse, ingénieur maintenance et qualité : présentation, projets professionnels et leur fonctionnement, expérience, compétences, formation. La page se parcourt en 3D."><meta name="twitter:image" content="https://comtesse.me/assets/og-home-blueprint.png"><link type="image/png" rel="icon" sizes="16x16" href="https://comtesse.me/favicon.svg"><link type="image/png" rel="icon" sizes="32x32" href="https://comtesse.me/favicon.svg"><link type="image/png" rel="apple-touch-icon" sizes="180x180" href="https://comtesse.me/favicon.svg"><link rel="stylesheet" onerror="document.documentElement.dataset.cssFallback=1;var f=document.createElement('link');f.rel='stylesheet';f.href='refonte/site.css';document.head.appendChild(f)" href="https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/tailwind-yGPyQBNf.css" data-rmx-key="https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/tailwind-yGPyQBNf.css" data-rmx-preserve-dom=""><script>if(/[?&]css=local\b/.test(location.search)){var l=document.currentScript.previousElementSibling;l.removeAttribute('onerror');l.href='refonte/site.css';}</script><style>
 @property --kiln-font-scale { syntax: '<number>'; inherits: true; initial-value: 1; }
 [data-figma-motion-stage] { all: initial; display: block; -webkit-font-smoothing: auto; -moz-osx-font-smoothing: auto; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 [data-figma-motion-stage] *:where(:not(svg, svg *)), [data-figma-motion-stage] *::before, [data-figma-motion-stage] *::after { all: revert; }
@@ -791,14 +744,14 @@ async function startMachines(){
     root.setAttribute('data-html-in-canvas-own-clicks','');return buildControlBar(root,m,ctl,{label:item.label,...extra});}
   /* Clic sur une machine ou sur la pièce : vue agrandie. Les règles Tourner (horizontale) et Incliner (verticale) n'existent que dans cet état. */
   let zoom=null,zoomRulers=null;
-  function closeZoom(){if(!zoom)return;const z=zoom;zoom=null;clearInterval(z.cap);if(z.src)z.src.elapsed=z.item.elapsed;const i=active.indexOf(z.item);if(i>=0)active.splice(i,1);z.el.remove();if(zoomRulers){zoomRulers.onview=null;zoomRulers.el.hidden=true;}document.removeEventListener('keydown',z.key,true);document.documentElement.classList.remove('cv-zoomed');z.from?.focus?.({preventScroll:true});}
+  function closeZoom(){if(!zoom)return;const z=zoom;zoom=null;clearInterval(z.cap);z.ui?.dispose?.();if(z.src)z.src.elapsed=z.item.elapsed;const i=active.indexOf(z.item);if(i>=0)active.splice(i,1);z.el.remove();if(zoomRulers){zoomRulers.onview=null;zoomRulers.el.hidden=true;}document.removeEventListener('keydown',z.key,true);document.documentElement.classList.remove('cv-zoomed');z.from?.focus?.({preventScroll:true});}
   function openZoom(src,from,opts={}){
     if(zoom)return;
     const el=document.createElement('div');el.className='cv-zoom';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label',(src.label||'Vue agrandie')+' : vue agrandie, règles pour tourner et incliner');el.setAttribute('data-lenis-prevent','');
     el.innerHTML='<div class="cv-zoom-stage"><canvas aria-hidden="true"></canvas></div><button type="button" class="cv-zoom-close" aria-label="Fermer la vue agrandie"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg></button>';if(src.href){const a=document.createElement('a');a.className='cv-zoom-link';a.setAttribute('href',src.href);a.textContent=src.linkText;el.append(a);}
     document.body.append(el);const stage=q('.cv-zoom-stage',el),canvas=q('canvas',stage);
     const view={yaw:0,pitch:0,radius:src.home?.radius||src.geometry.view.radius,center:(src.home?.center||src.geometry.view.center).clone()},item={host:stage,machine:src.machine,scene:src.scene,camera:new THREE.PerspectiveCamera(31,1,.1,src.camera.far),canvas,ctx:canvas.getContext('2d',{alpha:true}),renderer:src.renderer,zoom:true,fit:src.zfit||1,base:src.zbase,elapsed:src.elapsed||0,geometry:{view,publish:()=>false}};
-    stage.__visible=true;active.push(item);if(src.machine.api||src.machine.controls?.seek){const bar=document.createElement('div');bar.className='cv-zoom-bar';el.append(bar);attachBar(item,bar,{onGuide:()=>{clearInterval(zoom?.cap);startDemo(src,item,el);}}).then(ui=>{if(opts.explore)ui?.open(true);}).catch(()=>{});}
+    stage.__visible=true;active.push(item);if(src.machine.api||src.machine.controls?.seek){const bar=document.createElement('div');bar.className='cv-zoom-bar';el.append(bar);attachBar(item,bar,{onGuide:()=>{clearInterval(zoom?.cap);startDemo(src,item,el);}}).then(ui=>{if(zoom&&zoom.item===item)zoom.ui=ui;else ui?.dispose?.();if(opts.explore)ui?.open(true);}).catch(()=>{});}
     /* machines à éléments déplaçables (api.drag) : glisser un cadre directement sur la machine */
     if(src.machine.api?.drag){const rc=new THREE.Raycaster(),nd=new THREE.Vector2();let held=false;const ray=e=>{const r=canvas.getBoundingClientRect();nd.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);item.camera.updateMatrixWorld();rc.setFromCamera(nd,item.camera);return rc.ray;};
       canvas.addEventListener('pointerdown',e=>{if(src.machine.api.drag.pick(ray(e))){held=true;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';e.preventDefault();}});
