@@ -1,11 +1,13 @@
 import {THREE} from './kit.js?v=cv-scene-v29';
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-const time={value:0},wind={value:1},tracked=[];
+export function createFoliageMotion(){
+const time={value:0},wind={value:1},tracked=new Map();
+const origin=new THREE.Vector3();
 // One GPU deformation per canopy, rather than moving/uploading every leaf on the CPU.
-export function animateFoliage(root,{tree=false}={}){
+function animate(root,{tree=false}={}){
  root.updateWorldMatrix(true,true);
  const bounds=new THREE.Box3().setFromObject(root),height=bounds.max.y-bounds.min.y;
- const base={value:bounds.min.y+(tree?.28:.30)*height},span={value:Math.max(.08,height*.7)},amount={value:tree?.035:.022},scale={value:root.getWorldScale(new THREE.Vector3()).x},materials=new Map();
+ const base={value:bounds.min.y+(tree?.28:.30)*height},offset=base.value-root.getWorldPosition(origin).y,span={value:Math.max(.08,height*.7)},amount={value:tree?.035:.022},scale={value:root.getWorldScale(new THREE.Vector3()).x},materials=new Map();
  const declaration='uniform float foliageTime,foliageWind,foliageBase,foliageSpan,foliageAmount,foliageScale;';
  const deformation=`vec4 leafLocal=vec4(transformed,1.0);float leafScale=1.0;
  #ifdef USE_INSTANCING
@@ -18,10 +20,17 @@ export function animateFoliage(root,{tree=false}={}){
  transformed.z+=cos(foliageTime*1.1+leafWorld.x*2.0)*foliageAmount*.35*leafWeight*foliageWind/max(.001,foliageScale*leafScale);`;
  const shader=s=>{Object.assign(s.uniforms,{foliageTime:time,foliageWind:wind,foliageBase:base,foliageSpan:span,foliageAmount:amount,foliageScale:scale});s.vertexShader=declaration+'\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n'+deformation);};
  const meshes=[];root.traverse(o=>{if(!o.isMesh||o.userData.isInk||Array.isArray(o.material))return;const c=o.material.color;if(!c)return;const green=c.g>c.r*1.1&&c.g>c.b*.95,autumn=tree&&c.r>c.g*1.45&&c.r>c.b*1.5;if(green||autumn||!tree&&o.material.map)meshes.push(o);});
- for(const o of meshes){let m=materials.get(o.material);if(!m){m=o.material.clone();m.onBeforeCompile=shader;m.customProgramCacheKey=()=> 'foliage-v49';materials.set(o.material,m);}o.material=m;const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,side:m.side});depth.onBeforeCompile=shader;depth.customProgramCacheKey=()=> 'foliage-depth-v49';o.customDepthMaterial=depth;o.userData.foliage=true;}
- root.userData.foliageMeshes=meshes.length;tracked.push({root,base,height});
+ for(const o of meshes){let m=materials.get(o.material);if(!m){m=o.material.clone();m.onBeforeCompile=shader;m.customProgramCacheKey=()=> 'foliage-v49';materials.set(o.material,m);}o.material=m;const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,side:m.side,map:m.map,alphaMap:m.alphaMap,alphaTest:m.alphaTest});depth.onBeforeCompile=shader;depth.customProgramCacheKey=()=> 'foliage-depth-v49';o.customDepthMaterial=depth;o.userData.foliage=true;}
+ root.userData.foliageMeshes=meshes.length;tracked.set(root,{base,offset});
 }
-export function updateFoliage(t,strength=1){time.value=t;wind.value=reduced.matches?0:strength;for(const q of tracked){q.base.value=q.root.getWorldPosition(new THREE.Vector3()).y+q.height*.30;}}
+function update(t,strength=1){
+  time.value=t;
+  wind.value=reduced.matches?0:strength;
+  if (!wind.value) return;
+  for (const [root, entry] of tracked) entry.base.value=root.getWorldPosition(origin).y+entry.offset;
+}
+return { animate, update };
+}
 export function createFallingLeaves(garden,trees){
  const count=matchMedia('(max-width:809px)').matches?20:36,shape=new THREE.Shape();shape.moveTo(0,.065);shape.bezierCurveTo(.06,.02,.045,-.035,0,-.06);shape.bezierCurveTo(-.045,-.035,-.06,.02,0,.065);
  const geo=new THREE.ShapeGeometry(shape,4),fade=new THREE.InstancedBufferAttribute(new Float32Array(count),1);geo.setAttribute('leafFade',fade);

@@ -1,8 +1,8 @@
-import {animateFoliage,updateFoliage,createFallingLeaves} from './foliage.js?v=cv-scene-v49';
+import {createFoliageMotion,createFallingLeaves} from './foliage.js?v=room-art-v1';
 import {createPS1Sound} from './ps1-sound.js?v=cv-scene-v51';
 import {yamahaTurntable} from './user-props.js?v=cv-scene-v50';
 import { THREE, group, mat, inkify, ink, contactShadow, tube, box, mergeStatic } from './kit.js?v=cv-scene-v29';
-import * as F from './furniture.js?v=cv-scene-v50';
+import * as F from './furniture.js?v=room-art-v1';
 import { createCharacter } from './character.js?v=cv-scene-v49';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 import { loadBuffer } from './kit.js?v=cv-scene-v29';
@@ -17,7 +17,8 @@ import { createThought } from './thought.js?v=cv-scene-v29';
 import { createWeather } from './weather.js?v=cv-scene-v29';
 import { createJukebox } from './jukebox.js?v=cv-scene-v48';
 import { TRACKS, COVER } from './music.js?v=m122';
-import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
+import { createRoomLighting, createRoomFinishes } from './room-art-direction.js?v=room-art-v1';
+import { addRoomArchitecture } from './room-architecture.js?v=room-art-v1';
 import {createBicyclePump} from './bicycle-pump.js?v=cv-scene-v43';
 import {installDeskEquipment} from './desk-equipment.js?v=cv-scene-v54';
 import {createPumpSound} from './pump-sound.js?v=cv-scene-v43';
@@ -41,37 +42,25 @@ const easeOutBounce = (x) => {
 
 export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé ; options.noRender : sans rendu propre ; options.view : vue externe {ray, ground, pick, project} (parcours 3D du CV)
   const mobile=matchMedia('(max-width:809px)');
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
-  const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: !mobile.matches, alpha: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false;                       // carte d'ombres recalculée seulement 1 image sur 3 (la pièce est quasi statique)
   container.appendChild(renderer.domElement);
-  renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;image-rendering:pixelated';
+  renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y';
 
   const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.22;
-
-  const hemi = new THREE.HemisphereLight('#fff7e8', '#c9b99c', 0.85);
-  const sun = new THREE.DirectionalLight('#fff0dc', 2.0);
-  sun.position.set(3.5, 7.5, -2.2);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(mobile.matches?512:1024,mobile.matches?512:1024);
-  Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 20 });
-  sun.shadow.radius = 5; sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
-  scene.add(hemi, sun);
-
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.3, color: '#3b4a73', depthWrite: false }));
-  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
-  scene.add(ground);
+  const lightRoom = createRoomLighting(scene, renderer, mobile.matches);
+  const finishRoom = createRoomFinishes();
+  const foliageMotion = createFoliageMotion();
 
   /* ─── textures ─── */
   const loader = new THREE.TextureLoader();
   const load = (url) => new Promise((res) => loader.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
-  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/road-bike-clean-v44.glb?v=cv-scene-v44').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
+  const [rugTex, paintTex, coverTex, ekGltf, setuGltf, sofaGltf, falkGltf, borneGltf, bikeGltf] = await Promise.all([load('assets/tapis.webp?v=cv-scene-v17'), load('assets/tableau.jpg?v=cv-scene-v17'), load(COVER.file), loadBuffer('assets/ekstrem-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/setu-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/ds450-v25.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/falkland.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/borne-beton.glb?v=cv-scene-v17').then((b) => new Promise((res, rej) => new GLTFLoader().parse(b, '', res, rej))), loadBuffer('assets/room-stylized/road-bike-clean-v44-facets-v1.glb').then(b=>new Promise((res,rej)=>new GLTFLoader().parse(b,'',res,rej))).catch(()=>null)]);
 
   const seatCalibration=await fetch('assets/seat-calibration-v26.json').then(r=>{if(!r.ok)throw Error('Seat calibration missing');return r.json();});
 
@@ -88,7 +77,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   /* ─── mobilier ─── */
   const world = group(); scene.add(world);
   const model = file => loadBuffer('assets/'+file+'?v=cv-scene-v17').then(b=>new Promise((resolve,reject)=>new GLTFLoader().parse(b,'',resolve,reject)));
-  const [gamingDeskModel,consoleModel,controllerModel,olivettiModel,mamiyaModel]=await Promise.all(['gaming-desk-user-v42.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','olivetti-user-v41.glb','mamiya-user-v41.glb'].map(model));
+  const [gamingDeskModel,consoleModel,controllerModel,olivettiModel,mamiyaModel]=await Promise.all(['gaming-desk-user-v42.glb','ps1-console-user-v41.glb','ps1-controller-user-v41.glb','room-stylized/olivetti-user-v41-facets-v1.glb','room-stylized/mamiya-user-v41-facets-v1.glb'].map(model));
   const [deskModel,mobileModel,mouseModel,towerModel,stripModel,tvModel,barModel,powerModel]=await Promise.all(['usm-table-user-v43.glb','usm-mobile-user-v43.glb','mx-master-user-v43.glb','dream-pc-user-v43.glb','powerstrip-user-v43.glb','magnavox-tv-user-v43.glb','screenbar-v43.glb','power-plugs.glb'].map(model));
   const [booksModel,yamahaModel,notesModel]=await Promise.all(['books-user-v49.glb','yamaha-user-v49.glb','post-it-user-v49.glb'].map(model));
   const windowsWallpaper=await load('assets/windows11-bloom-v43.webp');
@@ -259,6 +248,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   // pièce du thé excentrée (plate-forme de tatamis, shoji coulissants, balcon en bois, mer) ; origine du thé = zabuton de l'invité
   const CS = { x: -5.5, z: 7.3 };
   const cs = createChashitsu({ lite: !!options.noTea });
+  addRoomArchitecture(scene, !options.noTea);
   add('chashitsu', cs.group, CS.x, CS.z, 0, 0, 0.5, world, 0);
   const TEA = { x: CS.x, z: CS.z - 0.45, y: cs.spec.RH - 0.055 };
   const tea = teaSet({ mat: false });
@@ -368,6 +358,8 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       bt.position.set(-c.x,-bb.min.y,-c.z);const wrap=new THREE.Group();wrap.add(bt);wrap.scale.setScalar(.5/(bb.max.y-bb.min.y));
       for(const ch of [...bonsai.children])bonsai.remove(ch);bonsai.add(wrap);
       bonsai.userData.waterTarget=new THREE.Vector3(0,.115,0);bonsai.userData.waterRadius=.11;
+      finishRoom(bonsai, 'plant');
+      foliageMotion.animate(bonsai);
     }
     { // Stèle de Burdigala (un clic ouvre js/stele.js) : posée sur le sol, face à la pièce, elle fait ~65 cm de haut
       const st=steleModel.scene;st.traverse(o=>{if(o.isMesh)o.material.side=THREE.DoubleSide;});
@@ -376,6 +368,9 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       const root=install({scene:wrap},'SteleBordeaux',world,STELE.x,0,STELE.z,STELE.yaw);root.userData.id='stele';
     }
     const stone=install(stoneModel,'SuisekiKamogawaishi',whiteShelf,-.535,.835,0,0);stone.scale.setScalar(.90);
+    for (const name of ['HikingBackpack', 'HikingPoles', 'BuddhaFourFaces', 'SteleBordeaux']) finishRoom(world.getObjectByName(name), 'personal');
+    finishRoom(stone, 'tea');
+    finishRoom(jvcRoot, 'electronics');
     container.dataset.detailProps='ready';renderer.shadowMap.needsUpdate=true;
   }).catch(e=>{container.dataset.detailProps='error';console.warn('[Room props]',e);});
 
@@ -394,10 +389,17 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
     world.updateMatrixWorld(true); let made = 0; for (const it of items) made += mergeStatic(it.obj);
     const swivel=chair.userData.swivel;swivel.userData.dynamic=false;made+=mergeStatic(swivel);swivel.userData.dynamic=true;fallbackDeskChildren.splice(0,fallbackDeskChildren.length,...deskSet.children); if (location.search.includes('perf')) console.log('fusion :', made, 'maillages'); }
 
-  for(const plant of [bonsai,alo,dra])animateFoliage(plant);
-  const gardenTrees=[];cs.garden.traverse(o=>{if(o.userData.tree)gardenTrees.push(o);});for(const tree of gardenTrees)animateFoliage(tree,{tree:true});
+  const families = {
+    desk: 'desk', chair: 'desk', usm: 'enamel', jblL: 'audio', jblR: 'audio',
+    tv: 'electronics', sofa: 'textile', ekstrem: 'textile',
+    bonsai: 'plant', alocasia: 'plant', dracaena: 'plant', chashitsu: 'tea', cha: 'tea',
+  };
+  for (const it of items) finishRoom(it.obj, families[it.id] ?? 'personal');
+  for(const plant of [bonsai,alo,dra])foliageMotion.animate(plant);
+  const gardenTrees=[];cs.garden.traverse(o=>{if(o.userData.tree)gardenTrees.push(o);});for(const tree of gardenTrees)foliageMotion.animate(tree,{tree:true});
   const fallingLeaves=createFallingLeaves(cs.garden,gardenTrees);
   const hero = await createCharacter();
+  finishRoom(hero.group, 'character');
   hero.group.visible = false; world.add(hero.group);
   if (/[?&]squelette/.test(location.search)) scene.add(new THREE.SkeletonHelper(hero.group));
   const ritual = createRitual({ hero, tea });
@@ -1060,11 +1062,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
 
   /* gouttes d'arrosage */
 
-  /* ─── lumière : toujours le jour, le site n'a plus de mode sombre ─── */
-  const night = false, sunBase = 2.0, hemiBase = 0.85;
-  hemi.intensity = hemiBase; hemi.color.set('#fff7e8'); hemi.groundColor.set('#cdbfa5');
-  sun.intensity = sunBase; sun.color.set('#fff0dc');
-  scene.environmentIntensity = 0.22; ground.material.opacity = 0.22;
+  const night = false;
   for (const k in lamps) if (!lamps[k].manual) lamps[k].on = false;
 
   /* ─── boucle ─── */
@@ -1088,13 +1086,25 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   };
 
   const clock = new THREE.Clock();
-  let running = true, roomVisible=true, workshopOpen=false, albumOpen=false;
+  let running = true, roomVisible=true, workshopOpen=false, albumOpen=false, contextLost=false;
   // Une seule boucle de rendu : sans ce garde-fou, chaque retour sur l'onglet / dans la zone visible relançait une boucle de plus
   // alors que l'ancienne était encore en attente (rAF suspendu en arrière-plan), et la scène était rendue 2, 3… fois par image.
   let rafPending = false;
   const kick = () => { if (!rafPending) { rafPending = true; requestAnimationFrame(frame); } };
-  document.addEventListener('film-album-change',e=>{albumOpen=e.detail.open;if(albumOpen){running=false;pumpSound.stop();ps1Sound.stop();}else if(roomVisible&&!document.hidden&&!workshopOpen&&!running){running=true;clock.getDelta();kick();}});
-  document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!albumOpen&&!running){running=true;clock.getDelta();kick();}});
+  const syncRendering = () => {
+    const visible = roomVisible && !document.hidden && !workshopOpen && !albumOpen && !contextLost;
+    if (visible && !running) { running = true; clock.getDelta(); kick(); }
+    else if (!visible && running) { running = false; pumpSound.stop(); ps1Sound.stop(); }
+  };
+  document.addEventListener('film-album-change', e => { albumOpen = e.detail.open; syncRendering(); });
+  document.addEventListener('project-workshop', e => { workshopOpen = e.detail.open; syncRendering(); });
+  el.addEventListener('webglcontextlost', e => { e.preventDefault(); contextLost = true; syncRendering(); });
+  el.addEventListener('webglcontextrestored', () => {
+    lightRoom.restoreEnvironment();
+    contextLost = false;
+    renderer.shadowMap.needsUpdate = true;
+    syncRendering();
+  });
   const startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
@@ -1116,7 +1126,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       if(it.entranceDone)continue;
       const p = Math.min(1, Math.max(0, (since - it.delay) / 0.85));
       it.holder.visible = since >= it.delay;
-      const k = easeOutBounce(p);
+      const k = reducedMotion.matches ? 1 : easeOutBounce(p);
       it.obj.position.y = it.base.y + (1 - k) * 2.2;
       const sq = p < 1 ? 1 + Math.sin(p * Math.PI) * 0.0 : 1;
       it.obj.scale.setScalar(sq);if(p===1)it.entranceDone=true;
@@ -1131,8 +1141,9 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
     scrollOff += (scrollT - scrollOff) * kv; orient(); applyFrustum();
     // personnage
     if (ritual.state.active) ritual.update(dt);
-    wx.update(dt); sun.intensity = sunBase * (1 - 0.55 * wx.k.cloud); hemi.intensity = hemiBase * (1 + 0.15 * wx.k.cloud);
-    cs.update(dt, t, night, wx.k);updateFoliage(t,1+wx.k.rain*.6);if(cs.vista.visible)fallingLeaves.update(dt,1+wx.k.rain*.6); retro.update(dt);
+    wx.update(dt);
+    lightRoom.update(wx.k);
+    cs.update(dt, t, night, wx.k);foliageMotion.update(t,1+wx.k.rain*.6);if(cs.vista.visible)fallingLeaves.update(dt,1+wx.k.rain*.6); retro.update(dt);
     // vapeur du bol et de la kama
     { const ud = tea.userData; ud.sBowl.position.copy(ritual.object.position).y += 0.075; ud.sKama.position.copy(ud.fk.position).add(ud.fk.userData.steamAnchor);
       const drunk = ud.bowl.userData.tea.visible ? 1 : 0; updateSteam(ud.sBowl, t, 0.3, 0.1, drunk); updateSteam(ud.sKama, t + 1.3, 0.34, 0.13, 0.8); }
@@ -1308,7 +1319,8 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
       if (L.glow.update) L.glow.update(L.k);
       L.light.intensity = L.k * (L.intensity ?? (k === 'arc' ? 14 : k === 'beton' ? 0.9 : k === 'falk' ? 2.4 : 1.1));
     }
-    renderer.shadowMap.needsUpdate = since < 3.2 || frameNo % (mobile.matches?15:8) === 0;
+    const shadowInterval = director.mode === 'idle' ? (mobile.matches ? 30 : 24) : (mobile.matches ? 15 : 8);
+    if (since < 3.2 || frameNo % shadowInterval === 0) renderer.shadowMap.needsUpdate = true;
     if (!options.noRender) {   // options.noRender : la scène est dessinée par un autre moteur (parcours 3D), inutile de la dessiner deux fois
       try {
         renderer.render(scene, camera);
@@ -1328,9 +1340,9 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   kick();
 
   // économie : on arrête quand l'onglet est caché ou le composant hors écran
-  const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen; if (vis && !running) { running = true; clock.getDelta(); kick(); } else if (!vis) {running = false;pumpSound.stop();ps1Sound.stop();} });
+  const io = new IntersectionObserver(([e]) => { roomVisible = e.isIntersecting; syncRendering(); });
   io.observe(container);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) {running = false;pumpSound.stop();ps1Sound.stop();} else if (roomVisible&&!workshopOpen&&!albumOpen&&!running) { running = true; clock.getDelta(); kick(); } });
+  document.addEventListener('visibilitychange', syncRendering);
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
