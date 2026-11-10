@@ -365,6 +365,10 @@ try {
   }
   const publicPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await serve(publicPage.context());
+  let roomFromCheckout = false;
+  publicPage.on('response', response => {
+    if (response.url().startsWith(base + '/js/room.js?') && response.ok()) roomFromCheckout = true;
+  });
   const homeErrors = [];
   publicPage.on('pageerror', error => homeErrors.push(error.message));
   try {
@@ -382,15 +386,21 @@ try {
     result.home.error = error.message;
     result.home.pageErrors = homeErrors.slice(0, 12);
     console.error('HOME_DIAGNOSTIC', JSON.stringify(result.home));
-    throw error;
+    if (!source) throw error;
   }
-  result.home = await publicPage.evaluate(() => ({
-    ready: document.querySelector('[data-cv-room3d]').dataset.sceneReady,
-    detailProps: document.querySelector('[data-cv-room3d]').dataset.detailProps,
-    teaPanels: window.__cvRoom3d.cs.panels.length,
-    mode: window.__cvRoom3d.cameraMode,
-  }));
-  if (initial) assert.ok(result.home.teaPanels > 0, 'Tea room available on current home');
+  if (!result.home?.error) {
+    result.home = await publicPage.evaluate(() => ({
+      ready: document.querySelector('[data-cv-room3d]').dataset.sceneReady,
+      detailProps: document.querySelector('[data-cv-room3d]').dataset.detailProps,
+      teaPanels: window.__cvRoom3d.cs.panels.length,
+      art: Boolean(window.__cvRoom3d.scene.getObjectByName('Socle de la pièce')),
+      mode: window.__cvRoom3d.cameraMode,
+    }));
+    if (!source) {
+      assert.ok(roomFromCheckout && result.home.art, 'Home loads the room from this checkout');
+      assert.ok(result.home.teaPanels > 0, 'Tea room available on current home');
+    }
+  }
   await publicPage.close();
 } finally {
   await writeFile(resolve(output, 'room-scene.json'), JSON.stringify(result, null, 2) + '\n');

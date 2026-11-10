@@ -3260,10 +3260,8 @@
       "/vendor/three.module.min.js"
     ],
     "home": {
-      "ready": "true",
-      "detailProps": "ready",
       "teaPanels": 0,
-      "mode": "follow"
+      "source": "config du commit de référence"
     }
   },
   "after": {
@@ -6264,7 +6262,10 @@
       "ready": "true",
       "detailProps": "ready",
       "teaPanels": 3,
-      "mode": "follow"
+      "art": true,
+      "mode": "follow",
+      "source": "checkout",
+      "browsers": ["Chromium", "Firefox", "WebKit"]
     }
   }
 }
