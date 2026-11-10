@@ -27,27 +27,34 @@ body.fl-lock .rf-bnav{opacity:0!important;pointer-events:none!important;transiti
 /* ---------- plan, icônes, liaisons, signal ---------- */
 .fl3{position:relative;transform-origin:0 0;transform-style:preserve-3d}
 .fl3>div{position:absolute;box-sizing:border-box}
+.fl3 .t3{transform:translateZ(3px)}
 .fl-img{object-fit:contain;display:block}
-.l3-svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;transform:translateZ(2px)}
-.l3-b{fill:none;stroke:rgb(255 255 255 / .16);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}       /* liaison pas encore parcourue : discrète */
+.l3-svg{position:absolute;left:0;top:0;overflow:hidden;pointer-events:none;transform:translateZ(2px)}   /* le tracé est calculé pour tenir dans le plan (flow.js, boundsOf) : le masquage n'est qu'une protection */
+.l3-b{fill:none;stroke:rgb(255 255 255 / .27);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}       /* liaison pas encore parcourue : discrète */
 .l3-f{fill:none;stroke:rgb(255 255 255 / .62);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}         /* trajet parcouru */
 .l3-g{fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgb(170 205 255 / .95)) drop-shadow(0 0 1px rgb(2 8 60 / .9))}   /* traînée : liseré sombre pour rester lisible sur les lignes claires du décor */
-.fl3 .k3{width:var(--bx);height:var(--bx);border-radius:calc(var(--bx) * .26);border:1px solid rgb(255 255 255 / .24);
-  background:radial-gradient(circle at 30% 16%,rgb(255 255 255 / .2),rgb(255 255 255 / .03) 72%);color:rgb(255 255 255 / .92);
-  box-shadow:inset 0 1px 0 rgb(255 255 255 / .4),0 22px 24px -20px rgb(2 8 50 / .8);
+.fl3 .k3{width:var(--bx);height:var(--bx);border-radius:calc(var(--bx) * .26);border:1px solid rgb(255 255 255 / .3);
+  background:radial-gradient(circle at 30% 14%,rgb(140 175 255 / .34),rgb(140 175 255 / 0) 62%),linear-gradient(158deg,rgb(30 58 178 / .96),rgb(10 26 116 / .97));color:rgb(255 255 255 / .92);   /* verre bleu quasi opaque : le décor (règles, cotes, cercles) ne transparaît plus à travers l'icône */
+  box-shadow:inset 0 1px 0 rgb(255 255 255 / .45),inset 0 -10px 18px -12px rgb(2 8 60 / .7);
   display:grid;place-items:center;opacity:0;transform:translateZ(0) scale(.7);
   transition:transform 1s cubic-bezier(.22,1,.36,1),opacity .7s,border-color .5s,filter .6s}
+/* ombre portée sur le plan (z = 1, sous l'icône) : plus l'icône monte, plus l'ombre s'écarte et s'étale */
+.fl3 .s3{width:var(--bx);height:var(--bx);border-radius:calc(var(--bx) * .3);background:radial-gradient(closest-side,rgb(1 6 48 / .7),rgb(1 6 48 / 0));opacity:0;transform:translateZ(1px) translate(0,0) scale(.8);transition:transform 1s cubic-bezier(.22,1,.36,1),opacity .7s;pointer-events:none}
+.fl3 .k3.in+.s3{opacity:calc(.55 * var(--d,1));transform:translateZ(1px) translate(4px,16px) scale(.96)}
+.fl3 .k3.cur+.s3{opacity:var(--d,1);transform:translateZ(1px) translate(8px,28px) scale(1.3)}
+.fl3 .k3.done+.s3{opacity:calc(.6 * var(--d,1));transform:translateZ(1px) translate(5px,20px) scale(1)}
 .fl3 .k3 .k3-i{width:calc(var(--bx) * .46);height:calc(var(--bx) * .46)}
 .fl3 .k3 .fl-img{width:calc(var(--bx) * .5);height:calc(var(--bx) * .5)}
-.fl3 .k3.in{opacity:calc(.5 * var(--d,1));transform:translateZ(10px) rotateZ(var(--rz,0deg)) scale(.88)}                       /* inactive : visible, discrète */
-.fl3 .k3.cur{opacity:var(--d,1);transform:translateZ(calc(var(--z,50px) + 36px)) scale(1.3);border-color:rgb(255 255 255 / .9);filter:drop-shadow(0 0 14px rgb(190 220 255 / .5))}
+.fl3 .k3.in{opacity:calc(.88 * var(--d,1));transform:translateZ(22px) rotateZ(var(--rz,0deg)) scale(.9)}                       /* inactive : flotte au-dessus du plan, lisible */
+.fl3 .k3.cur{opacity:var(--d,1);transform:translateZ(calc(var(--z,50px) * .5 + 30px)) scale(1.22);border-color:rgb(255 255 255 / .9);filter:drop-shadow(0 0 14px rgb(190 220 255 / .5))}
 .fl3 .k3.cur::before{content:"";position:absolute;inset:-46%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgb(4 12 60 / .5),transparent)}   /* contraste local autour de l'étape active */
-.fl3 .k3.done{opacity:calc(.92 * var(--d,1));transform:translateZ(22px) scale(.94);border-color:rgb(255 255 255 / .42)}
+.fl3 .k3.done{opacity:calc(.96 * var(--d,1));transform:translateZ(30px) scale(.96);border-color:rgb(255 255 255 / .42)}
 .fl3 .k3.done::after{content:"";position:absolute;right:6px;top:6px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgb(255 255 255 / .8)}
 .fl3 .k3.final{animation:up-final 1.2s ease-out both}                                                                          /* la dernière icône répond à l'arrivée du signal */
 @keyframes up-final{0%{filter:drop-shadow(0 0 0 rgb(190 220 255 / 0))}40%{filter:drop-shadow(0 0 22px rgb(190 220 255 / .85))}100%{filter:drop-shadow(0 0 6px rgb(190 220 255 / .3))}}
 .fl3 .t3{text-align:center;line-height:1.25;pointer-events:none;opacity:calc(.55 * var(--d,1));transition:opacity .5s}
 .fl3 .t3.on{opacity:var(--d,1)}.fl3 .t3.dn{opacity:calc(.82 * var(--d,1))}
+.fl3 .t3-l{text-align:right}.fl3 .t3-r{text-align:left}
 .fl3 .t3 b{display:block;font:500 calc(var(--bx) * .17)/1.25 var(--rf-sans,"Inter",system-ui,sans-serif);color:#fff;text-shadow:0 0 10px rgb(2 8 60 / .95),0 0 2px rgb(2 8 60 / .9)}
 .fl3 .t3 i{display:block;font:500 calc(var(--bx) * .13)/1.3 var(--rf-mono,ui-monospace,monospace);font-style:normal;letter-spacing:.04em;color:rgb(235 243 255 / .78);text-shadow:0 0 8px rgb(2 8 60 / .95)}
 .fl3 .m3{width:18px;height:18px;transition:none;will-change:transform}

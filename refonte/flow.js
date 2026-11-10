@@ -107,35 +107,60 @@ const easeInOut = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) /
 /* Disposition : serpentin compact légèrement courbe sur ordinateur ; colonne qui défile sous la caméra sur mobile.
    Le nombre d'étapes fixe le nombre de colonnes, l'ordre de lecture est toujours celui du parcours. */
 function layoutSnake(n, narrow) {
+  let L;
   if (narrow) {
-    const BOX = 76, GAP = 118, W = 300, M = 44;
-    const pos = Array.from({ length: n }, (_, i) => ({ x: W / 2 - BOX / 2 + (i % 2 ? 1 : -1) * 44, y: M + i * GAP, r: i, c: i % 2, i }));
-    return { BOX, cols: 1, W, H: M * 2 + (n - 1) * GAP + BOX, pos, rows: n, mobile: true };
+    /* mobile : zigzag serré ; les libellés sont rangés de part et d'autre (à gauche des icônes de gauche, à droite des icônes de droite), jamais sous l'icône : la liaison ne les traverse donc jamais */
+    const BOX = 76, GAP = 122, W = 340, M = 44, SH = 36;
+    const pos = Array.from({ length: n }, (_, i) => ({ x: W / 2 - BOX / 2 + (i % 2 ? 1 : -1) * SH, y: M + i * GAP, r: i, c: i % 2, i }));
+    L = { BOX, cols: 1, W, H: M * 2 + (n - 1) * GAP + BOX, pos, rows: n, mobile: true };
+  } else {
+    /* ordinateur : serpentin ; chaque changement de ligne est une boucle qui contourne les libellés de l'extrémité, la marge latérale M la contient entièrement */
+    const BOX = 78, cols = clamp(Math.ceil(n / 2), 3, 5), PX = 148, ROW = 190, TOP = 44, M = 112;
+    const rows = Math.ceil(n / cols), W = 2 * M + (cols - 1) * PX + BOX;
+    const pos = Array.from({ length: n }, (_, i) => {
+      const r = Math.floor(i / cols); let c = i % cols; if (r % 2) c = cols - 1 - c;
+      const bow = Math.sin((cols > 1 ? c / (cols - 1) : .5) * Math.PI) * 16 * (r % 2 ? 1 : -1);
+      return { x: M + c * PX, y: TOP + r * ROW + bow, r, c, i };
+    });
+    L = { BOX, cols, W, H: TOP + (rows - 1) * ROW + BOX + 84, pos, rows, mobile: false };
   }
-  const BOX = 78, cols = clamp(Math.ceil(n / 2), 3, 5), W = 150 * cols - 20, ROW = 156, TOP = 40, M = 40;
-  const px = (W - 2 * M - BOX) / Math.max(1, cols - 1), rows = Math.ceil(n / cols);
-  const pos = Array.from({ length: n }, (_, i) => {
-    const r = Math.floor(i / cols); let c = i % cols; if (r % 2) c = cols - 1 - c;
-    const bow = Math.sin((cols > 1 ? c / (cols - 1) : .5) * Math.PI) * 18 * (r % 2 ? 1 : -1);
-    return { x: M + c * px, y: TOP + r * ROW + bow, r, c, i };
-  });
-  return { BOX, cols, W, H: TOP + (rows - 1) * ROW + BOX + 80, pos, rows, mobile: false };
+  /* garantie de contenance : emprise réelle (icônes agrandies, libellés, courbes) ; si elle sort du plan, le plan est agrandi et le tout recentré */
+  const b = boundsOf(L), pad = 10;
+  const dx = Math.max(0, pad - b.x0), dy = Math.max(0, pad - b.y0), W = Math.max(L.W + dx, b.x1 + dx + pad), H = Math.max(L.H + dy, b.y1 + dy + pad);
+  if (dx || dy || W !== L.W || H !== L.H) { L = { ...L, W, H, pos: L.pos.map((q) => ({ ...q, x: q.x + dx, y: q.y + dy })) }; }
+  return L;
 }
 
-/* liaison entre deux icônes : courbe douce échantillonnée (position du signal à l'abscisse curviligne), tronquée aux bords des icônes pour le tracé */
+/* emprise de tout ce qui se dessine sur le plan : icônes (jusqu'à l'échelle de l'étape active), libellés, courbes */
+function boundsOf(L) {
+  const { BOX, pos } = L, e = BOX * .16;   // l'icône active grossit de ~24 %
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const add = (x, y) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+  pos.forEach((p) => {
+    add(p.x - e, p.y - e); add(p.x + BOX + e, p.y + BOX + e);
+    if (L.mobile) { const left = p.c === 0; add(left ? p.x - 102 : p.x + BOX + 102, p.y + BOX / 2 - 26); add(left ? p.x - 102 : p.x + BOX + 102, p.y + BOX / 2 + 26); }
+    else { add(p.x - 34, p.y + BOX + 10); add(p.x + BOX + 34, p.y + BOX + 56); }
+  });
+  for (let i = 0; i < pos.length - 1; i++) { const k = linkOf(pos[i], pos[i + 1], L); k.pts.forEach((q) => add(q.x, q.y)); }
+  return { x0, y0, x1, y1 };
+}
+
+/* liaison entre deux icônes : courbe de Bézier cubique échantillonnée (position du signal à l'abscisse curviligne), tronquée au bord des icônes pour le tracé.
+   Même ligne : arc doux, qui alterne haut / bas d'une ligne à l'autre. Changement de ligne : boucle extérieure assez large pour passer au-delà des libellés. Mobile : S vertical. */
 function linkOf(a, b, L) {
   const h = L.BOX / 2, ca = { x: a.x + h, y: a.y + h }, cb = { x: b.x + h, y: b.y + h };
   let p1, p2;
   if (L.mobile) { p1 = { x: ca.x, y: ca.y + (cb.y - ca.y) * .55 }; p2 = { x: cb.x, y: cb.y - (cb.y - ca.y) * .55 }; }
-  else if (a.r === b.r) { const d = Math.abs(cb.x - ca.x) * .4, sg = Math.sign(cb.x - ca.x); p1 = { x: ca.x + sg * d, y: ca.y - 26 }; p2 = { x: cb.x - sg * d, y: cb.y - 26 }; }
-  else { const o = ca.x > L.W / 2 ? 1 : -1, d = 76; p1 = { x: ca.x + o * d, y: ca.y + (cb.y - ca.y) * .08 }; p2 = { x: cb.x + o * d, y: cb.y - (cb.y - ca.y) * .08 }; }
-  const N = 48, pts = [], cum = [0];
+  else if (a.r === b.r) { const d = Math.abs(cb.x - ca.x) * .38, sg = Math.sign(cb.x - ca.x), bw = a.r % 2 ? 22 : -22; p1 = { x: ca.x + sg * d, y: ca.y + bw }; p2 = { x: cb.x - sg * d, y: cb.y + bw }; }
+  else { const o = ca.x > L.W / 2 ? 1 : -1, d = 128, dy = (cb.y - ca.y) * .06; p1 = { x: ca.x + o * d, y: ca.y + dy }; p2 = { x: cb.x + o * d, y: cb.y - dy }; }
+  const N = 64, pts = [], cum = [0];
   for (let k = 0; k <= N; k++) { const u = k / N, v = 1 - u; pts.push({ x: v * v * v * ca.x + 3 * v * v * u * p1.x + 3 * v * u * u * p2.x + u * u * u * cb.x, y: v * v * v * ca.y + 3 * v * v * u * p1.y + 3 * v * u * u * p2.y + u * u * u * cb.y }); if (k) cum.push(cum[k - 1] + Math.hypot(pts[k].x - pts[k - 1].x, pts[k].y - pts[k - 1].y)); }
-  const len = cum[N], R = L.BOX * .62, keep = pts.map((q, k) => Math.hypot(q.x - ca.x, q.y - ca.y) > R && Math.hypot(q.x - cb.x, q.y - cb.y) > R ? k : -1).filter((k) => k >= 0);
-  const k0 = keep[0] ?? 0, k1 = keep[keep.length - 1] ?? N, start = cum[k0], tlen = Math.max(1, cum[k1] - cum[k0]);
+  /* la partie tracée commence et finit au bord de l'icône (carré arrondi + 6 px), pas à un rayon arbitraire */
+  const R = h + 6, outside = (q, c) => Math.max(Math.abs(q.x - c.x), Math.abs(q.y - c.y)) > R;
+  const keep = pts.map((q, k) => (outside(q, ca) && outside(q, cb) ? k : -1)).filter((k) => k >= 0);
+  const len = cum[N], k0 = keep[0] ?? 0, k1 = keep[keep.length - 1] ?? N, start = cum[k0], tlen = Math.max(1, cum[k1] - cum[k0]);
   const d = pts.slice(k0, k1 + 1).map((q, k) => (k ? 'L' : 'M') + q.x.toFixed(1) + ' ' + q.y.toFixed(1)).join('');
   const at = (u) => { const s = clamp(u, 0, 1) * len; let k = 1; while (k < N && cum[k] < s) k++; const f = (s - cum[k - 1]) / Math.max(1e-6, cum[k] - cum[k - 1]); return { x: pts[k - 1].x + (pts[k].x - pts[k - 1].x) * f, y: pts[k - 1].y + (pts[k].y - pts[k - 1].y) * f }; };
-  return { d, len, start, tlen, at };
+  return { d, len, start, tlen, at, pts: pts.slice(k0, k1 + 1) };
 }
 
 function build3d(items, L) {
@@ -149,8 +174,11 @@ function build3d(items, L) {
   plane.append(svg);
   const cells = pos.map((p, i) => {
     const it = items[i];
-    put('t3', { left: (p.x - 34) + 'px', top: (p.y + BOX + 10) + 'px', width: (BOX + 68) + 'px' }, '<b>' + esc(cut(it.title, L.mobile ? 26 : 24)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>');
+    L.mobile
+      ? put('t3 t3-' + (p.c === 0 ? 'l' : 'r'), { left: (p.c === 0 ? p.x - 102 : p.x + BOX + 22) + 'px', top: (p.y + BOX / 2 - 26) + 'px', width: '80px' }, '<b>' + esc(cut(it.title, 34)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>')
+      : put('t3', { left: (p.x - 34) + 'px', top: (p.y + BOX + 10) + 'px', width: (BOX + 68) + 'px' }, '<b>' + esc(cut(it.title, 24)) + '</b><i>' + esc(TECH[it.icon] || '') + '</i>');
     const tile = put('k3', { left: p.x + 'px', top: p.y + 'px' }, svgIcon(it.icon, 'k3-i')); tile.dataset.k = it.icon;
+    put('s3', { left: p.x + 'px', top: p.y + 'px' });   // ombre portée sur le plan : sépare visiblement l'icône du sol
     tile.style.setProperty('--z', (40 + ((i * 7) % 4) * 10) + 'px'); tile.style.setProperty('--rz', (((i % 3) - 1) * 2).toFixed(1) + 'deg');
     const lab = tile.previousElementSibling;
     return { tile, lab };
@@ -256,11 +284,11 @@ export function initFlow(root, opt = {}) {   // opt.tops() : position des étape
     const zFull = L.mobile ? Math.max(.6, Math.min(1, Hv / (L.H * fit))) : 1;
     const tz = overview ? zFull : (L.mobile ? 1.04 : 1.08);
     const cx = L.W / 2, cy = L.H / 2, hx = r.head.x, hy = r.head.y;
-    const tx = overview ? cx : L.mobile ? hx : cx + (hx - cx) * .3, ty = overview ? cy : L.mobile ? hy : cy + (hy - cy) * .3;
+    const tx = overview || L.mobile ? cx : cx + (hx - cx) * .3, ty = overview ? cy : L.mobile ? hy : cy + (hy - cy) * .3;
     const k = snap ? 1 : 1 - Math.exp(-dt * 2.6);
     cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; cam.z += (tz - cam.z) * k;
     const sc = fit * cam.z;
-    if (L.mobile) st.cells.forEach((c, i) => { const d = clamp(1 - Math.abs(L.pos[i].y + L.BOX / 2 - cam.y) / 470, .22, 1).toFixed(2); if (c.d !== d) { c.d = d; c.tile.style.setProperty('--d', d); c.lab.style.setProperty('--d', d); } });   // mobile : les étapes lointaines s'estompent, le contexte reste lisible
+    if (L.mobile) st.cells.forEach((c, i) => { const d = (overview ? 1 : clamp(1 - Math.abs(L.pos[i].y + L.BOX / 2 - cam.y) / 700, .62, 1)).toFixed(2); if (c.d !== d) { c.d = d; c.tile.style.setProperty('--d', d); c.lab.style.setProperty('--d', d); } });   // mobile : les étapes lointaines s'estompent, le contexte reste lisible
     st.plane.style.transform = 'translate3d(' + (Wv / 2 - cam.x * sc).toFixed(1) + 'px,' + (Hv / 2 - cam.y * sc).toFixed(1) + 'px,0) scale(' + sc.toFixed(4) + ')';
   };
   const showEnd = () => {
