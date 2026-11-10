@@ -28,7 +28,11 @@ for (const site of sites) for (const [w, h] of VP) {
   try {
     await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 }); await p.waitForTimeout(site === 'shopify' ? 12000 : 9000);
     const res = { site, w, h, shots: [] };
-    for (const y of [0, Math.round(h * 0.45), Math.round(h * 1.1)]) { await p.evaluate((yy) => scrollTo({ top: yy, behavior: 'instant' }), y); await p.waitForTimeout(2500); const els = await p.evaluate(collect); (res.states ||= {})[y] = els; await p.screenshot({ path: path.join(OUT, `${site}-${w}-${y}.jpg`), type: 'jpeg', quality: 78, timeout: 120000 }).catch(() => {}); res.shots.push(`${site}-${w}-${y}.jpg`); }
+    await p.evaluate(() => document.fonts.ready); await p.evaluate(() => scrollTo({ top: 340, behavior: 'instant' })).catch(() => {});   // la boucle de rendu de comtesse.me démarre au premier défilement
+    const STATES = process.env.ETATS ? process.env.ETATS.split(',').map(Number) : [0, 0.45, 1.1, 2, 3.5, 5.5, 8].map((k) => Math.round(h * k));
+    for (const y of STATES) { await p.evaluate((yy) => scrollTo({ top: yy, behavior: 'instant' }), y); await p.waitForTimeout(2000); await p.evaluate(() => document.fonts.ready);
+      /* stabilisation : positions identiques sur deux relevés successifs (max 8 essais) */
+      for (let k = 0, prev = ''; k < 8; k++) { const sig = await p.evaluate(() => [...document.querySelectorAll('h1,h2,h3,p,figcaption')].slice(0, 40).map((e) => { const r = e.getBoundingClientRect(); return [r.x | 0, r.y | 0, r.width | 0].join(); }).join('|')); if (sig === prev) break; prev = sig; await p.waitForTimeout(700); } const els = await p.evaluate(collect); (res.states ||= {})[y] = els; await p.screenshot({ path: path.join(OUT, `${site}-${w}-${y}.jpg`), type: 'jpeg', quality: 78, timeout: 120000 }).catch(() => {}); res.shots.push(`${site}-${w}-${y}.jpg`); }
     fs.writeFileSync(path.join(OUT, `${site}-${w}.json`), JSON.stringify(res, null, 1)); rows.push(res); console.log('ok', site, w, Object.values(res.states).map((a) => a.length));
   } catch (e) { console.log('ECHEC', site, w, String(e.message).split('\n')[0]); }
   await ctx.close();
