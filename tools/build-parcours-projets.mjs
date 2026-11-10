@@ -3,6 +3,7 @@
 // (le projet, ce que ça change) ; pour l'équipe ; comment ça marche (cinq étapes + processus détaillé repliable) ; le bouton « Voir la démonstration » flotte sur la machine ; construction.
 // Usage : node tools/build-parcours-projets.mjs   (relancer après toute modification d'une fiche)
 import { readFileSync, writeFileSync } from 'node:fs';
+import { showcaseHTML } from '../refonte/showcase/build.mjs';
 
 const ROOT = new URL('..', import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), 'utf8');
@@ -37,11 +38,18 @@ for (const m of html.matchAll(START)) {
     .replace(/class="rf-post-note"/g, 'class="cv-pf-note"');
   const flow = (/<div class="rf-marche"[\s\S]*?<\/details><\/div>/.exec(body) || [''])[0].replace(/ rf-tl-rv/g, '').replace('<div class="rf-marche"', `<div class="rf-marche" data-proj="${slug}"`);
   const opt = (t, cls) => { const c = part(body, t); return c ? `<div class="${cls}"><h4>${t}</h4>${c}</div>` : ''; };
+  /* vitrine « outil réel » (refonte/showcase/config.mjs) : étapes et résultat repris de la fiche, jamais inventés */
+  const showcase = showcaseHTML(slug, {
+    steps: [...flow.matchAll(/<li data-at="[^"]*"><span class="rf-marche-n"[^>]*>\d+<\/span><h3>([\s\S]*?)<\/h3>/g)].map((x) => x[1].replace(/<[^>]+>/g, '').trim()),
+    result: { title: one(/data-result-title="([^"]*)"/, flow), text: one(/data-result="([^"]*)"/, flow) }
+  });
   out.push(html.slice(at, copy) +
-`<div data-card-copy="" class="cv-card-content cv-pf-main" data-fiche="${slug}"><div class="cv-pframe cv-pf-text" style="--html-in-canvas-rise:.45"><p class="cv-pf-kicker">${kicker}</p><h3 class="trim-cap font-sans font-medium">${title}</h3><p class="cv-pf-sub">${sub}</p><h4>L’idée</h4>${part(body, 'L’idée')}<h4>L’objet en action</h4>${action}</div>${machine}</div><div class="cv-card-body"><div class="cv-legacy cv-project" data-html-in-canvas-flat=""><div class="cv-pf-pair"><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Le projet</h4>${part(body, 'Le projet')}${part(body, 'Distinction') ? '<h4>Distinction</h4>' + part(body, 'Distinction') : ''}</section><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Ce que ça change</h4>${gains}</section></div>${opt('Pour l’équipe', 'cv-pf-more')}<div class="cv-pf-flowbox"><div class="rf-post-body pc-flowwrap cv-pframe cv-pf-flow" data-flow="" style="--html-in-canvas-rise:.45"><h2>Comment ça marche</h2>${flow}</div></div>${opt('Construction', 'cv-pf-more')}</div></div><!-- /pf -->`);
+`<div data-card-copy="" class="cv-card-content cv-pf-main" data-fiche="${slug}"><div class="cv-pframe cv-pf-text" style="--html-in-canvas-rise:.45"><p class="cv-pf-kicker">${kicker}</p><h3 class="trim-cap font-sans font-medium">${title}</h3><p class="cv-pf-sub">${sub}</p><h4>L’idée</h4>${part(body, 'L’idée')}<h4>L’objet en action</h4>${action}</div>${machine}</div><div class="cv-card-body"><div class="cv-legacy cv-project" data-html-in-canvas-flat="">${showcase}<div class="cv-pf-pair"><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Le projet</h4>${part(body, 'Le projet')}${part(body, 'Distinction') ? '<h4>Distinction</h4>' + part(body, 'Distinction') : ''}</section><section class="cv-pframe cv-pf-half" style="--html-in-canvas-rise:.45"><h4>Ce que ça change</h4>${gains}</section></div>${opt('Pour l’équipe', 'cv-pf-more')}<div class="cv-pf-flowbox"><div class="rf-post-body pc-flowwrap cv-pframe cv-pf-flow" data-flow="" style="--html-in-canvas-rise:.45"><h2>Comment ça marche</h2>${flow}</div></div>${opt('Construction', 'cv-pf-more')}</div></div><!-- /pf -->`);
   at = end + marker.length - '</article>'.length;
   count++;
 }
 html = out.join('') + html.slice(at);
+/* feuille de style et script de la vitrine : ajoutés une seule fois (idempotent) */
+if (!html.includes('refonte/showcase.css')) html = html.replace('</head>', '<link rel="stylesheet" href="refonte/showcase.css?v=sc1"><script type="module" src="refonte/showcase.js?v=sc1"></script></head>');
 writeFileSync(new URL('index.html', ROOT), html);
 console.log(count + ' projets repris des fiches → index.html');
