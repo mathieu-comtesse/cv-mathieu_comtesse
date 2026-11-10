@@ -19,7 +19,7 @@ if (frames.length) {
   const apply = (st, step, frac) => {
     if (step !== st.step) {
       st.step = step;
-      st.wins.forEach((w) => { const s = +w.dataset.step, on = step >= s; w.classList.toggle('on', on); w.classList.toggle('front', on && s === step); w.classList.toggle('back', on && s < step); });
+      st.wins.forEach((w) => { const s = +w.dataset.step, on = step >= s; w.classList.toggle('on', on); w.classList.toggle('front', on && s === step); w.classList.toggle('back', on && s < step); w.dataset.age = on ? Math.min(3, step - s) : ''; });   // âge = nombre d'étapes depuis l'apparition : la fenêtre active domine, les anciennes s'effacent progressivement
       if (st.res) st.res.classList.toggle('on', step >= st.N);
       st.tabs.forEach((b, i) => b.setAttribute('aria-selected', String(i + 1 === step)));
     }

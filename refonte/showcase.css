@@ -36,8 +36,10 @@ html body .cv-pf-showcase .sc-result p{margin:0!important;font-size:clamp(11.5px
 /* états pilotés par showcase.js (une seule boucle partagée) : apparition, premier plan, recul */
 .cv-pf-showcase.sc-js .sc-win,.cv-pf-showcase.sc-js .sc-result{opacity:0;transform:translateY(22px) scale(.93);pointer-events:none}
 .cv-pf-showcase.sc-js .sc-win.on{opacity:1;transform:none;pointer-events:auto}
-.cv-pf-showcase.sc-js .sc-win.back{opacity:1;transform:translateY(-3px) scale(.985);filter:brightness(.86) saturate(.9)}
-.cv-pf-showcase.sc-js .sc-win.front{transform:translateY(-6px) scale(1.012);box-shadow:0 26px 40px -16px rgb(0 6 40 / .95),0 2px 0 rgb(255 255 255 / .25) inset;filter:none}
+.cv-pf-showcase.sc-js .sc-win.back{opacity:.8;transform:translateY(-3px) scale(.97);filter:brightness(.82) saturate(.85)}
+.cv-pf-showcase.sc-js .sc-win.back[data-age="2"]{opacity:.55;transform:translateY(-5px) scale(.95);filter:brightness(.72) saturate(.75)}
+.cv-pf-showcase.sc-js .sc-win.back[data-age="3"]{opacity:.34;transform:translateY(-7px) scale(.93);filter:brightness(.62) saturate(.65)}   /* trois étapes et plus : fenêtre en retrait, elle ne masque plus la fenêtre active */
+.cv-pf-showcase.sc-js .sc-win.front{transform:translateY(-6px) scale(1.03);z-index:5;box-shadow:0 26px 40px -16px rgb(0 6 40 / .95),0 2px 0 rgb(255 255 255 / .25) inset;filter:none}
 .cv-pf-showcase.sc-js .sc-result.on{opacity:1;transform:none;pointer-events:auto}
 .cv-pf-showcase .sc-win[role="button"]{cursor:zoom-in}
 .cv-pf-showcase.sc-js .sc-win[role="button"].on:hover,.cv-pf-showcase .sc-win[role="button"]:focus-visible{transform:translateY(-9px) scale(1.02);outline:2px solid #fff;outline-offset:2px;z-index:5}
