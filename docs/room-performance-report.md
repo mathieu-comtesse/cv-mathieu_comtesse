@@ -13,6 +13,8 @@ Chromium (Chrome Windows), ANGLE Direct3D 11, AMD Radeon RX 9070 XT. Comparaison
 | Textures dans `renderer.info` | 139 | 138 | 136 | 135 |
 | Poids des ressources locales observées | 19 162 068 o | 19 152 734 o | 19 162 068 o | 19 152 734 o |
 
+Une seconde exécution, avec le contrôle de l’accueil local, a relevé une médiane de 14,5 ms sur desktop et de 13,7 ms sur mobile émulé. Le premier comparatif reste présenté dans le tableau.
+
 Les temps d’image portent sur 3,5 s, avec 240 échantillons desktop et 230 en mobile pour la branche. Aucune tâche longue n’a été observée sur ces intervalles. Le décompte des appels et des triangles dépend de la phase de rafraîchissement des ombres.
 
 Le budget en triangles baisse d’environ 5 %. Les temps d’image et le démarrage à froid desktop régressent dans cette mesure. Les seuils de 60 FPS desktop en régime stable et 30 FPS sur mobile physique restent à confirmer sur les configurations cibles. Cette mesure ne sépare pas le temps de traitement GPU, l’utilisation VRAM, ni le coût des rotations, du jardin en activité ou de la veille prolongée.

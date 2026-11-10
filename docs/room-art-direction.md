@@ -22,3 +22,5 @@ La hiérarchie, les couleurs identitaires et les textures fonctionnelles sont co
 | Bureau | [Avant](room-review/avant-bureau.webp) | [Après](room-review/apres-bureau.webp) |
 | Écoute | [Avant](room-review/avant-audio.webp) | [Après](room-review/apres-audio.webp) |
 | Chashitsu | [Avant](room-review/avant-chashitsu.webp) | [Après](room-review/apres-chashitsu.webp) |
+
+[Rotation de cinq secondes filmée dans l’accueil](room-review/rotation.webm)
