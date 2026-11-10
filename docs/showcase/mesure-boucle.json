@@ -1,0 +1,76 @@
+{
+ "avant": [
+  {
+   "repos": {
+    "ticks": 8,
+    "updates": 16,
+    "calculs": 0,
+    "ignores": 0,
+    "cpu_ms": 4,
+    "reveils": 0
+   },
+   "defilement": {
+    "ticks": 48,
+    "updates": 96,
+    "calculs": 0,
+    "ignores": 0,
+    "cpu_ms": 0.9,
+    "reveils": 0
+   },
+   "arret_apres_derniere_molette_ms": ">6000 (ne s'arrête pas)",
+   "etape": {
+    "ticks": 10,
+    "updates": 20,
+    "calculs": 0,
+    "ignores": 0,
+    "cpu_ms": 0.3,
+    "reveils": 0
+   },
+   "capture": {
+    "ticks": 14,
+    "updates": 28,
+    "calculs": 0,
+    "ignores": 0,
+    "cpu_ms": 0.3,
+    "reveils": 0
+   }
+  }
+ ],
+ "apres": [
+  {
+   "repos": {
+    "ticks": 0,
+    "updates": 0,
+    "calculs": 0,
+    "ignores": 0,
+    "cpu_ms": 0,
+    "reveils": 0
+   },
+   "defilement": {
+    "ticks": 46,
+    "updates": 92,
+    "calculs": 80,
+    "ignores": 12,
+    "cpu_ms": 1.1,
+    "reveils": 47
+   },
+   "arret_apres_derniere_molette_ms": 2040,
+   "etape": {
+    "ticks": 15,
+    "updates": 30,
+    "calculs": 9,
+    "ignores": 6,
+    "cpu_ms": 0.2,
+    "reveils": 1
+   },
+   "capture": {
+    "ticks": 16,
+    "updates": 32,
+    "calculs": 13,
+    "ignores": 3,
+    "cpu_ms": 0.1,
+    "reveils": 1
+   }
+  }
+ ]
+}
