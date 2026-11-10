@@ -2,12 +2,13 @@
 using System;using System.Collections;using System.Collections.Generic;using System.IO;using System.Linq;using UnityEngine;
 namespace UngaBunga45001{
 public sealed class TemperateJourneyV19:MonoBehaviour{
- static readonly bool V24=Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyV24");
+ static readonly bool V241=Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyV241");
+ static readonly bool V24=V241||Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyV24");
  static readonly bool Resume=Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyResumeV19");
- static string Out=>V24?"E:/UNGA-BUNGA-45001/Revision24/Journey/":"E:/UNGA-BUNGA-45001/Revision19/Environment/"+(Resume?"JourneyResume/":Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyFinalV19")?"JourneyFinal/":"Journey/");
+ static string Out=>V241?"E:/UNGA-BUNGA-45001/Revision24-1/Journey/":V24?"E:/UNGA-BUNGA-45001/Revision24/Journey/":"E:/UNGA-BUNGA-45001/Revision19/Environment/"+(Resume?"JourneyResume/":Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyFinalV19")?"JourneyFinal/":"Journey/");
  [Serializable]class Step{public string stage,detail;public float seconds;public Vector3 position;}
  [Serializable]class Perf {public float second,frameMs;public long allocatedMiB,reservedMiB;}
- [Serializable]class Report{public Perf[] performance;public string runtime=Application.isEditor?"Unity Editor":"Windows player";public string endingId;public string version=Application.version;public bool resumed=Resume;public string status,scope="Automated campaign (see resumed field) using real quest/action/choice/minigame APIs and CharacterController routes. Known correct answers are selected automatically. The test driver injects no quest unlock/completion flags and does not teleport the player; native cinematics retain their authored staging. Not a first-time human reading-time study or hardware performance certification.",stage,failure;public float realSeconds,campaignSeconds,walkedMetres;public int claimed,activities,chapters;public Step[] steps;public string[] errors;}
+ [Serializable]class Report{public Perf[] performance;public string runtime=Application.isEditor?"Unity Editor":"Windows player";public string endingId, receiver;public string version=Application.version;public bool resumed=Resume;public string status,scope="Automated campaign (see resumed field) using real quest/action/choice/minigame APIs and CharacterController routes. Known correct answers are selected automatically. The test driver injects no quest unlock/completion flags and does not teleport the player; native cinematics retain their authored staging. Not a first-time human reading-time study or hardware performance certification.",stage,failure;public float realSeconds,campaignSeconds,walkedMetres;public int claimed,activities,chapters;public Step[] steps;public string[] errors;}
  CampaignRuntime c;CampaignActivitiesV17 activity;ThirdPersonMotor motor;CharacterController body;float start,walked,nextReport;string stage="startup",failure="";bool completed,reached;readonly List<Step> steps=new List<Step>();readonly List<string> errors=new List<string>();readonly List<Perf> performance=new List<Perf>();
 #if UNITY_EDITOR
  public static void RunV24Audit()
@@ -19,8 +20,19 @@ public sealed class TemperateJourneyV19:MonoBehaviour{
 #endif
  [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]static void Boot(){if(Application.isEditor?!V24:!Environment.GetCommandLineArgs().Contains("-thaleolithicJourneyV19"))return;Application.runInBackground=true;var go=new GameObject("TH19 real campaign journey");DontDestroyOnLoad(go);go.AddComponent<TemperateJourneyV19>();}
  void Log(string message,string trace,LogType t){if(t==LogType.Error||t==LogType.Exception)errors.Add(message);}
- void Write(){Directory.CreateDirectory(Out);File.WriteAllText(Out+"validation.json",JsonUtility.ToJson(new Report{performance=performance.ToArray(),endingId=c?.State?.endingId??"",status=failure!=""||errors.Count>0?"failed":completed?"passed":"running",stage=stage,failure=failure,realSeconds=Time.realtimeSinceStartup-start,campaignSeconds=c?.State?.elapsedSeconds??0,walkedMetres=walked,claimed=c?.Data?.quests.Count(q=>q.required&&c.QuestState(q.id).claimed)??0,activities=c?.State?.campaignV17?.activities.Count(a=>a.completed&&a.verified)??0,chapters=c?.State?.villageV18?.chapters.Count??0,steps=steps.ToArray(),errors=errors.ToArray()},true));}
- void Mark(string label,string detail=""){stage=label;steps.Add(new Step{stage=label,detail=detail,seconds=Time.realtimeSinceStartup-start,position=c.bindings.player.position});Write();}
+ void Write(){Directory.CreateDirectory(Out);File.WriteAllText(Out+"validation.json",JsonUtility.ToJson(new Report{performance=performance.ToArray(),receiver=c?.gameObject.name,endingId=c?.State?.endingId??"",status=failure!=""||errors.Count>0?"failed":completed?"passed":"running",stage=stage,failure=failure,realSeconds=Time.realtimeSinceStartup-start,campaignSeconds=c?.State?.elapsedSeconds??0,walkedMetres=walked,claimed=c?.Data?.quests.Count(q=>q.required&&c.QuestState(q.id).claimed)??0,activities=c?.State?.campaignV17?.activities.Count(a=>a.completed&&a.verified)??0,chapters=c?.State?.villageV18?.chapters.Count??0,steps=steps.ToArray(),errors=errors.ToArray()},true));}
+ void Mark(string label,string detail="")
+ {
+  stage=label;
+  steps.Add(new Step{stage=label,detail=detail,seconds=Time.realtimeSinceStartup-start,position=c.bindings.player.position});
+  Write();
+  if(!V241||!(label.StartsWith("action:",StringComparison.Ordinal)||label=="claim:V17_IMPROVEMENT"))return;
+  c.Save();
+  string folder=Path.Combine(Out,"fixtures");
+  Directory.CreateDirectory(folder);
+  string id=label.Replace(':','-');
+  File.Copy(c.CurrentSavePath,Path.Combine(folder,id+".json"),true);
+ }
  void Update(){if(c!=null&&Time.realtimeSinceStartup>nextReport){nextReport=Time.realtimeSinceStartup+5;
  if(V24)performance.Add(new Perf{second=Time.realtimeSinceStartup-start,frameMs=Time.smoothDeltaTime*1000,
   allocatedMiB=UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong()/1048576,

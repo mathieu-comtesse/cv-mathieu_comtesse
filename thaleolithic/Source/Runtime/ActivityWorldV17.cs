@@ -23,14 +23,18 @@ namespace UngaBunga45001
   {
    if(painting!=null)return;var go=new GameObject("V17 · vues correspondantes du village réel");go.transform.SetParent(transform);painting=go.AddComponent<Camera>();painting.CopyFrom(c.bindings.gameplayCamera);painting.enabled=false;painting.orthographic=true;painting.orthographicSize=30;painting.aspect=1;painting.transform.position=c.bindings.Find("grand_menhir").position+new Vector3(0,45,-18);painting.transform.LookAt(c.bindings.Find("grand_menhir").position+Vector3.back*5);
    var data=go.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();data.renderShadows=false;
-   Before=new RenderTexture(512,512,24);Now=new RenderTexture(512,512,24);
+   Before=new RenderTexture(512,512,24);
    if(!string.IsNullOrEmpty(c.State.campaignV17.beforePainting)){var saved=new Texture2D(2,2);saved.LoadImage(System.Convert.FromBase64String(c.State.campaignV17.beforePainting));var previous=RenderTexture.active;try{Graphics.Blit(saved,Before);}finally{RenderTexture.active=previous;Destroy(saved);}}
    else{RenderPainting(Before);var old=RenderTexture.active;RenderTexture.active=Before;var image=new Texture2D(512,512,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,512,512),0,0);image.Apply();c.State.campaignV17.beforePainting=System.Convert.ToBase64String(image.EncodeToPNG());Destroy(image);RenderTexture.active=old;}
-   RenderPainting(Now);paintingDirty=false;
   }
   void RenderPainting(RenderTexture target){var previous=RenderTexture.active;try{UnityEngine.Rendering.RenderPipeline.SubmitRenderRequest(painting,new UnityEngine.Rendering.RenderPipeline.StandardRequest{destination=target});PaintingRenders++;}finally{RenderTexture.active=previous;}}
   public void InvalidatePainting(){paintingDirty=true;}
-  public void RefreshPainting(){EnsurePainting();if(paintingDirty){RenderPainting(Now);paintingDirty=false;}}
+  public void RefreshPainting()
+  {
+   EnsurePainting();
+   if(Now==null){Now=new RenderTexture(512,512,24);paintingDirty=true;}
+   if(paintingDirty){RenderPainting(Now);paintingDirty=false;}
+  }
   public Vector2 PaintingUv(string site){EnsurePainting();var target=c.bindings.Find(site);if(target==null)return Vector2.one*.5f;var p=painting.WorldToViewportPoint(target.position);return new Vector2(p.x,p.y);}
   public void ApplyMeasure(ActivityDefinitionV17 definition)
   {

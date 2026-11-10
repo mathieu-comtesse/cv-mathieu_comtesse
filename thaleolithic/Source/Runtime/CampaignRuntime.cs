@@ -126,6 +126,7 @@ namespace UngaBunga45001
             ValidateData();
             GetComponent<TemperateVillageV19>()?.PrepareData(this);
             if (!bindings.Validate(out string issues)) throw new InvalidOperationException("Bindings incomplets : " + issues);
+            if (GetComponent<ChapterMotionV241>() == null) gameObject.AddComponent<ChapterMotionV241>();
             if (!GameplayRigAvailable(false) || cinematicDirector == null || GetComponent<UISettingsController>() == null)
                 throw new InvalidOperationException("Le moteur, la caméra ou les réglages de Dylan sont absents.");
             CampaignSaveMigration.Ensure(this);

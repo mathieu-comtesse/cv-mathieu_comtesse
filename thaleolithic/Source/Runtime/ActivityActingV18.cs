@@ -7,24 +7,13 @@ namespace UngaBunga45001
  {
   sealed class Owned {public CinematicActorV15 actor;public Animator animator;public AnimationClip clip;public Transform handGoal;public GameObject prop;}
   readonly Dictionary<string,Owned> owned=new Dictionary<string,Owned>();readonly HashSet<string> wanted=new HashSet<string>();
-  readonly Dictionary<string,AnimationClip> clips=new Dictionary<string,AnimationClip>();
   readonly List<string> released=new List<string>();
-  CampaignRuntime c;CampaignActivitiesV17 activity;VillageUpgradeV18 village;ConstructionFilmV19 construction;CinematicFireV18 fire;float began;string old="";Vector3 briefingOrigin;readonly List<Transform> fruits=new List<Transform>();Mesh fruitMesh;Material fruitMaterial;float nextThrow;int serial;
+  CampaignRuntime c;CampaignActivitiesV17 activity;ChapterMotionV241 motion;VillageUpgradeV18 village;ConstructionFilmV19 construction;CinematicFireV18 fire;float began;string old="";Vector3 briefingOrigin;readonly List<Transform> fruits=new List<Transform>();Mesh fruitMesh;Material fruitMaterial;float nextThrow;int serial;
   public int FruitHits{get;private set;}
-  void Start(){c=GetComponent<CampaignRuntime>();activity=GetComponent<CampaignActivitiesV17>();}
-  AnimationClip Clip(string id)
-  {
-   if(!clips.TryGetValue(id,out var clip))
-   {
-    clip=Resources.Load<AnimationClip>("CinematicsV18/Clips/"+id);
-    if(clip==null)Debug.LogError("Animation d’activité introuvable : "+id,this);
-    clips.Add(id,clip);
-   }
-   return clip;
-  }
+  void Start(){c=GetComponent<CampaignRuntime>();activity=GetComponent<CampaignActivitiesV17>();motion=GetComponent<ChapterMotionV241>();}
   Owned Take(string id,string clip)
   {
-   var animation=Clip(clip);if(animation==null)return null;
+   var animation=motion.Clip(clip);if(animation==null)return null;
    if(!owned.TryGetValue(id,out var o))
    {
     var animator=c.bindings.AnimatorFor(id);if(animator==null)return null;var performer=animator.GetComponent<CinematicActorV15>()??animator.gameObject.AddComponent<CinematicActorV15>();if(performer.Owned)return null;

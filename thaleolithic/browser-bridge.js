@@ -9,7 +9,24 @@ const inputLog = [], performanceSamples = [];
 let instance, bootTask, ready = false, saved = false, customOptions = false;
 let phase = 'NOT_STARTED', step = 'WEBGL', build = 'inconnu', request = 0, sequence = 0;
 let startDeadline, inputState, lastFocus, lastError, engineFault, metrics, retrying = false;
-let lastAck = 0, lastEngineError = '';
+let lastAck = 0, lastEngineError = '', lastUnityEvent = null;
+const journalKey = 'thaleolithic.boot.' + location.pathname;
+let previousBoot = null;
+try { previousBoot = JSON.parse(sessionStorage.getItem(journalKey)); } catch {}
+
+function rememberBoot(source) {
+  try {
+    sessionStorage.setItem(journalKey, JSON.stringify({
+      build, phase, step, source, atMs: Math.round(performance.now()),
+      visible: !document.hidden, lastUnityEvent, error: lastError, engineError: lastEngineError
+    }));
+  } catch {}
+}
+
+function setStep(value) {
+  step = value;
+  rememberBoot('step');
+}
 
 function log(source) {
   inputLog.push({source, at: Math.round(performance.now()), phase, step, ...inputState});
@@ -19,7 +36,14 @@ function log(source) {
 function diagnostic() {
   const agent = navigator.userAgent;
   const browser = /(?:EdgA?|EdgiOS|CriOS|Chrome|Firefox|FxiOS|Version)\/\d+/i.exec(agent)?.[0] ?? 'inconnu';
+  const resources = performance.getEntriesByType('resource').filter(entry => {
+    const path = new URL(entry.name, location.href).pathname;
+    return /\/(?:game-config\.json|Web-[^/]+|iso-\d{2}-[a-f0-9]+\.bundle)$/.test(path);
+  }).slice(-16).map(entry => ({file: new URL(entry.name).pathname.split('/').at(-1),
+    ms: Math.round(entry.duration), bytes: entry.transferSize, status: entry.responseStatus || null}));
   return {build, browser, phase, step, error: lastError, engineError: lastEngineError,
+    boot: {previous: previousBoot, lastUnityEvent, resources, navigation: performance.getEntriesByType('navigation')[0]?.type},
+    chapters: window.ungaRuntime?.chapterPacks ?? null,
     viewport: {width: canvas.clientWidth, height: canvas.clientHeight, pixelRatio: renderRatio()},
     focus: document.hasFocus(), visible: !document.hidden, pointer: document.pointerLockElement === canvas,
     touchPoints: navigator.maxTouchPoints, jsHeapMiB: performance.memory?.usedJSHeapSize / 1048576 || null,
@@ -35,6 +59,7 @@ function setPhase(value, source) {
   phase = value;
   welcome.dataset.phase = phase;
   log(source);
+  rememberBoot(source);
 }
 
 function fail(code, message, recoverEngine = false) {
@@ -112,7 +137,7 @@ function finishStart(event) {
   clearTimeout(startDeadline);
   saved = event.saved;
   setPhase('READY_TO_PLAY', event.type);
-  step = 'GAMEPLAY';
+  setStep('GAMEPLAY');
   setPhase('RUNNING', 'confirmed');
   canvas.tabIndex = 0;
   if (canFocus()) canvas.focus({preventScroll: true});
@@ -121,6 +146,10 @@ function finishStart(event) {
 }
 
 window.addEventListener('unga-game', ({detail: event}) => {
+  if (['ready', 'GAME_STARTING', 'GAME_STARTED', 'GAME_START_FAILED'].includes(event.type)) {
+    lastUnityEvent = {type: event.type, atMs: Math.round(performance.now()), code: event.code || null};
+    rememberBoot('unity');
+  }
   switch (event.type) {
     case 'ready':
       ready = true;
@@ -140,7 +169,7 @@ window.addEventListener('unga-game', ({detail: event}) => {
     case 'GAME_START_FAILED':
       if (!event.request || event.request === request) {
         queueMicrotask(() => {
-          step = event.phase;
+          setStep(event.phase);
           fail(event.code, event.message, !event.request);
         });
       }
@@ -172,7 +201,7 @@ window.addEventListener('unga-game', ({detail: event}) => {
 function begin(mode) {
   if (phase !== 'NOT_STARTED' || !ready || !instance) return;
   const current = ++request;
-  step = 'CAMPAIGN';
+  setStep('CAMPAIGN');
   setPhase('START_REQUESTED', mode);
   label.textContent = 'Initialisation de la partie…';
   refresh();
@@ -263,9 +292,15 @@ window.visualViewport?.addEventListener('resize', viewport);
 document.addEventListener('visibilitychange', () => browserChange('visibility'));
 addEventListener('blur', () => browserChange('blur', false, true));
 addEventListener('focus', () => browserChange('focus'));
-addEventListener('pagehide', () => browserChange('pagehide', true));
+addEventListener('pagehide', () => {
+  rememberBoot('pagehide');
+  browserChange('pagehide', true);
+});
 addEventListener('pageshow', () => browserChange('pageshow'));
-addEventListener('error', event => { lastEngineError = failureText(event.message); });
+addEventListener('error', event => {
+  lastEngineError = failureText(event.message);
+  rememberBoot('error');
+});
 addEventListener('unhandledrejection', event => { lastEngineError = failureText(event.reason?.message ?? event.reason); });
 addEventListener('unga-save-error', () => {
   select('save-warning').textContent = 'La sauvegarde locale a échoué. Vérifie le stockage de ce navigateur.';
@@ -308,11 +343,11 @@ async function boot() {
   bootTask = Promise.resolve().then(async () => {
     let timeout;
     try {
-      step = 'WEBGL';
+      setStep('WEBGL');
       const probe = document.createElement('canvas').getContext('webgl2');
       if (!probe) throw new Error('WebGL 2 est requis.');
       probe.getExtension('WEBGL_lose_context')?.loseContext();
-      step = 'CONFIG';
+      setStep('CONFIG');
       const controller = new AbortController();
       const configTimer = setTimeout(() => controller.abort(), 20000);
       const config = await fetch('game-config.json', {cache: 'no-cache', signal: controller.signal}).then(response => {
@@ -320,7 +355,7 @@ async function boot() {
         return response.json();
       }).finally(() => clearTimeout(configTimer));
       build = config.version ?? /Web-([^./]+(?:\.[^./]+)?)\.loader/.exec(config.loaderUrl)?.[1] ?? 'inconnu';
-      step = 'LOADER';
+      setStep('LOADER');
       if (typeof createUnityInstance !== 'function') await new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = config.loaderUrl;
@@ -329,10 +364,10 @@ async function boot() {
         script.onerror = () => { clearTimeout(timer); script.remove(); reject(new Error('Chargeur Unity indisponible.')); };
         document.body.append(script);
       });
-      step = 'ENGINE';
+      setStep('ENGINE');
       timeout = setTimeout(() => fail('ENGINE_TIMEOUT', 'Le moteur Unity n’a pas fini de charger.'), 120000);
       instance = await createUnityInstance(canvas, {...config, companyName: 'Talas', productName: 'THALEOLITHIC',
-        productVersion: config.productVersion ?? '0.24.0', autoSyncPersistentDataPath: true, devicePixelRatio: renderRatio(),
+        productVersion: config.productVersion ?? '0.24.1', autoSyncPersistentDataPath: true, devicePixelRatio: renderRatio(),
         showBanner: (message, type) => { if (type === 'error') lastEngineError = failureText(message); }
       }, progress => {
         select('progress').value = progress;
@@ -340,7 +375,7 @@ async function boot() {
           ? `Chargement du village · ${Math.round(progress * 100)} %`
           : 'Préparation des personnages et des chemins…';
       });
-      step = 'SCENE';
+      setStep('SCENE');
       if (!ready && phase !== 'FAILED') startDeadline = setTimeout(() => {
         if (!ready) fail('SCENE_TIMEOUT', 'Le pont Unity n’a pas confirmé la préparation de la scène.', true);
       }, 25000);

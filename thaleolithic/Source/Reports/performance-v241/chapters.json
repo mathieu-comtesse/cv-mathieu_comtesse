@@ -1,0 +1,89 @@
+{
+  "mode": "WebAssembly V24.1",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Nouvelle partie sans requête de lot ISO",
+      "value": true
+    },
+    {
+      "name": "Reprise avancée et nouvel essai automatique du lot après HTTP 503",
+      "value": {
+        "act": "ACTE_IV",
+        "chapterPacks": "07:ready,08:ready"
+      }
+    },
+    {
+      "name": "Diagnostic de l’instance précédente conservé",
+      "value": "GAME_STARTED"
+    },
+    {
+      "name": "Profil WebAssembly à la reprise du chapitre",
+      "value": {
+        "act": "ACTE_IV",
+        "position": {
+          "x": 353.3475036621094,
+          "y": 11.848071098327637,
+          "z": 278.5523681640625
+        },
+        "heapMiB": 382.375,
+        "metrics": {
+          "type": "diagnostic",
+          "yaw": 128.36898803710938,
+          "pitch": 24,
+          "distance": 5.400000095367432,
+          "fps": 101.5032730102539,
+          "navRebuildMs": 588,
+          "touches": 0,
+          "allocatedMiB": 256,
+          "performance": {
+            "fps": 61.4124870300293,
+            "medianMs": 9.999993324279785,
+            "p95Ms": 43,
+            "p99Ms": 81,
+            "cpuMs": -1,
+            "gpuMs": -1,
+            "renderScale": 0.8999999761581421,
+            "allocatedMiB": 256,
+            "peakMiB": 256,
+            "reservedMiB": 272,
+            "gcBytes": -1,
+            "drawCalls": 398,
+            "setPassCalls": 43,
+            "triangles": 371247,
+            "frames": 180,
+            "profile": 1,
+            "animatedActors": 20
+          }
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

@@ -23,7 +23,7 @@ namespace UngaBunga45001
         [Serializable] class StartRequest { public int request; public string mode; }
         [Serializable] class Receipt
         {
-            public string type = "state", player, act, dialogue, quest, duel;
+            public string type = "state", player, act, dialogue, quest, duel, chapterPacks;
             public float elapsed, frameMs;
             public bool paused, touch, film;
             public Vector3 position;
@@ -38,7 +38,7 @@ namespace UngaBunga45001
         [Serializable] class Diagnostics
         {
             public string type = "diagnostic";
-            public float yaw, pitch, distance, fps;
+            public float yaw, pitch, distance, fps, navRebuildMs;
             public int touches, allocatedMiB;
             public WebFrameMetricsV24.Sample performance;
         }
@@ -96,6 +96,7 @@ namespace UngaBunga45001
                 {
                     Emit(new Receipt { player = campaign.Data.playerCharacterId, act = campaign.CurrentAct?.id,
                         dialogue = campaign.Dialogue?.id, quest = campaign.State.trackedQuestId,
+                        chapterPacks = campaign.GetComponent<ChapterMotionV241>()?.Status,
                         duel = campaign.MenhirActive ? campaign.GetComponent<MenhirDuel>().Phase.ToString() : "",
                         elapsed = campaign.State.elapsedSeconds, paused = campaign.UserPaused, touch = MobileControls.TouchActive,
                         film = campaign.cinematicDirector.IsPlaying, position = campaign.bindings.player.position,
@@ -107,6 +108,7 @@ namespace UngaBunga45001
                         var motor = campaign.bindings.player.GetComponent<ThirdPersonMotor>();
                         Emit(new Diagnostics { yaw = motor.Yaw, pitch = motor.Pitch, distance = motor.OrbitDistance,
                             fps = 1 / Mathf.Max(.0001f, Time.smoothDeltaTime), touches = MobileControls.ContactCount,
+                            navRebuildMs = campaign.GetComponent<VillageNavigation>()?.LastRebuildMs ?? 0,
                             allocatedMiB = (int)(UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / (1024 * 1024)),
                             performance = performance?.Read(campaign) });
                     }

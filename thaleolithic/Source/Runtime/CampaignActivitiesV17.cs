@@ -109,11 +109,15 @@ namespace UngaBunga45001
     ? SstAssemblyPhase.Paused : assemblyPhase;
   public bool WorkReady=>Current!=null&&Current.mode=="risk"&&CurrentProgress.card>=Current.cards.Length;
   float feedbackUntil;Vector3 lastPlayer;float telemetryTick;
+  ChapterMotionV241 motion;
   void Awake(){c=GetComponent<CampaignRuntime>();}
+  void Start(){motion=GetComponent<ChapterMotionV241>();}
   public bool Begin(string id)
   {
    if(Active||c.IsBusy||c.IsModal)return false;var a=c.ActivitiesV17?.activities.FirstOrDefault(x=>x.id==id);var action=c.FindAction(id);
    if(a==null||!c.CanExecute(action,out _)||!c.Near(a.site))return false;
+   var chapter=a.mode=="briefing"?"07":a.mode=="differences"||a.mode=="audit"?"08":null;
+   if(chapter!=null&&motion!=null&&!motion.Require(chapter))return false;
    c.InitializeCampaignV17();var p=Progress(id);if(p==null||p.completed)return false;
    if(a.mode=="assemble")
    {

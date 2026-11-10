@@ -27,6 +27,12 @@ for(const key of ['loaderUrl','dataUrl','frameworkUrl','codeUrl']){
     if(key==='frameworkUrl')new vm.Script(zlib.gunzipSync(buffer).toString('utf8'));
   }
 }
+for(const name of config.chapterBundles??[]){
+  assert.match(name,/^iso-\d{2}-[a-f0-9]{12}\.bundle$/);
+  const bundle=fs.readFileSync(path.join(game,'StreamingAssets',name));
+  assert.equal(bundle.subarray(0,7).toString(),'UnityFS');
+  assert.ok(name.endsWith('-'+crypto.createHash('sha256').update(bundle).digest('hex').slice(0,12)+'.bundle'));
+}
 const html=fs.readFileSync(path.join(game,'index.html'),'utf8');
 for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(match[1].trim())new vm.Script(match[1]);
 const bridge=fs.readFileSync(path.join(game,'browser-bridge.js'),'utf8');
