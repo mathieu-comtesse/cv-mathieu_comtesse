@@ -40,7 +40,7 @@ for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] o
 }
 await b.close(); srv.close(); fs.writeFileSync(path.join(OUT, 'mesures.json'), JSON.stringify(res, null, 1));
 /* ---- analyses ---- */
-const fails = [], ok = {}, mark = (k, msg) => { fails.push(`${k} ${msg}`); ok[k] = false; }; 'ABCDEFGH'.split('').forEach((k) => (ok[k] = true));
+const fails = [], ok = {}, mark = (k, msg) => { fails.push(`${k} ${msg}`); ok[k] = false; }; 'ABCDEFGHI'.split('').forEach((k) => (ok[k] = true));
 const eq = (a, c, tol) => (typeof a === 'number' && typeof c === 'number') ? Math.abs(a - c) <= tol : (Array.isArray(a) && Array.isArray(c) && a.length === c.length && a.every((v, i) => eq(v, c[i], tol))) || (a === c);
 const isHeroOff = (q) => q.title === '' && q.id == null;                     // en mode ?topo=off le drapeau hero est faux : on retrouve les trois cartes sans titre ni identifiant
 const heroOn = (w, y) => res.on[w][y].boxes.filter((q) => q.hero).sort((a, c) => a.index - c.index);
@@ -58,6 +58,11 @@ for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
     if (!on.every((q) => q.pitchDeg > 5)) mark('C', `${tag} : inclinaison non significative ${on.map((q) => q.pitchDeg)}`);
     /* épaisseur : slab.depth - base = 20 px dans le repère du monde, et visible à l'écran (> 2 px) ; angle après combinaison raise.tiltOf() x view.rise */
     on.forEach((q) => { if (Math.abs(q.thick - 20) > 1e-6) mark('C', `${tag} carte ${q.index + 1} : épaisseur ${q.thick} px (20 attendus)`); if (!(q.thickPx > 2)) mark('C', `${tag} carte ${q.index + 1} : épaisseur à l'écran ${q.thickPx} px (non visible)`); if (!Number.isFinite(q.rise)) mark('C', `${tag} carte ${q.index + 1} : view.rise absent`); else { const exp = Math.max(q.raiseTilt, 0) ; if (q.tilted + 1e-9 < exp) mark('C', `${tag} carte ${q.index + 1} : tilted ${q.tilted} < raise.tiltOf ${q.raiseTilt}`); if (!(q.pitchDeg >= 5 && q.pitchDeg <= 60)) mark('C', `${tag} carte ${q.index + 1} : tangage final ${q.pitchDeg}° hors de 5 à 60° (view.rise ${q.rise})`); } });
+    /* I : composition : écart d'altitude 85 à 125 px, aucun chevauchement des quatre coins projetés, aucun coin sous le plateau (z >= 0) */
+    { const gap = on[0].altitude - on[2].altitude; if (!(gap >= 85 && gap <= 125)) mark('I', `${tag} : écart d'altitude ${gap.toFixed(1)} px (85 à 125 attendus)`);
+      const inq = (P, x, yy) => { let s2 = 0; for (let i = 0; i < 4; i++) { const a2 = P[i], c2 = P[(i + 1) % 4], cr = (c2[0] - a2[0]) * (yy - a2[1]) - (c2[1] - a2[1]) * (x - a2[0]); if (cr > 0) s2++; else if (cr < 0) s2--; } return Math.abs(s2) === 4; };
+      for (let i = 0; i < 2; i++) { const A = on[i].cornersProjected, B = on[i + 1].cornersProjected; let n = 0, m = 0; const xs = A.map((q) => q[0]), ys2 = A.map((q) => q[1]); for (let x = Math.min(...xs); x <= Math.max(...xs); x += 2) for (let yy = Math.min(...ys2); yy <= Math.max(...ys2); yy += 2) if (inq(A, x, yy)) { m++; if (inq(B, x, yy)) n++; } if (m && n / m > 0.01) mark('I', `${tag} : cartes ${i + 1} et ${i + 2} se chevauchent (${(100 * n / m).toFixed(1)} % de la surface)`); }
+      on.forEach((q) => { if (Math.min(...q.cornersWorld.map((c) => c[2])) < -0.01) mark('I', `${tag} carte ${q.index + 1} : coin sous le plateau (z ${Math.min(...q.cornersWorld.map((c) => c[2])).toFixed(2)})`); }); }
     const plane = (q) => ({ n: q.normal, p: q.cornersWorld[0] }), dist = (pl, pt) => Math.abs(pl.n.reduce((s, v, i) => s + v * (pt[i] - pl.p[i]), 0));
     for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) { const d = Math.max(...on[j].cornersWorld.map((c) => dist(plane(on[i]), c))); if (d < 5) mark('D', `${tag} : cartes ${i + 1} et ${j + 1} coplanaires (écart max ${d.toFixed(2)} px)`); }
     if (new Set(on.map((q) => q.pitchDeg)).size < 3) mark('D', `${tag} : inclinaisons identiques`);
@@ -108,5 +113,5 @@ for (const [mode, name] of [['on', 'normal'], ['off', 'topo-off']]) {
     svg += `<polygon points="${poly}" fill="none" stroke="${col}" stroke-width="3"/>`; const top = c.reduce((a, p) => (p[2] > a[2] ? p : a)), bot = c.reduce((a, p) => (p[2] < a[2] ? p : a)); svg += `<line x1="${X(top[1])}" y1="${Y(top[2]) }" x2="${X(top[1])}" y2="${Y(top[2] - (mode === 'on' ? q.thick : 0))}" stroke="${col}" stroke-width="2" stroke-dasharray="3 2"/>`;
     svg += `<text x="${X(bot[1]) }" y="${Y(top[2]) - 8}" fill="${col}">carte ${i + 1} · alt ${q.altitude} · ${q.pitchDeg}° · ép ${q.thick}</text>`; });
   svg += `<text x="8" y="16" fill="#cfe0ff">Vue latérale (${name}) · proche de la caméra à droite</text></svg>`; fs.writeFileSync(path.join(OUT, `vue-laterale-${name}.svg`), svg); }
-fs.writeFileSync(path.join(OUT, 'tableau.md'), md.join('\n') + '\n'); console.log(md.join('\n')); console.log('\nVerdicts : ' + 'ABCDEFGH'.split('').map((k) => `${k} ${ok[k] ? 'OK' : 'ÉCHEC'}`).join(' · ')); console.log(fails.length ? '\nÉCARTS :\n - ' + [...new Set(fails)].slice(0, 60).join('\n - ') : '\nTests A à H conformes');
+fs.writeFileSync(path.join(OUT, 'tableau.md'), md.join('\n') + '\n'); console.log(md.join('\n')); console.log('\nVerdicts : ' + 'ABCDEFGHI'.split('').map((k) => `${k} ${ok[k] ? 'OK' : 'ÉCHEC'}`).join(' · ')); console.log(fails.length ? '\nÉCARTS :\n - ' + [...new Set(fails)].slice(0, 60).join('\n - ') : '\nTests A à I conformes');
 process.exit(fails.length ? 1 : 0);
