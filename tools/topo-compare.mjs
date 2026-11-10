@@ -5,11 +5,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), O
 const T = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.glb': 'model/gltf-binary' };
 let OLD = false;
 const srv = http.createServer((q, r) => { const u = new URL(q.url, 'http://x'), f = path.join(root, decodeURIComponent(u.pathname)); if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.statusCode = 404; return r.end(); } r.setHeader('content-type', T[path.extname(f)] || 'application/octet-stream');
-  if (u.pathname === '/index.html' && OLD) { const s = fs.readFileSync(f, 'utf8'), m = 'slopeDeg:6,pitchDeg:12,step:8'; if (!s.includes(m)) throw new Error('constantes introuvables'); return r.end(s.replace(m, 'slopeDeg:12,pitchDeg:12,step:26')); } fs.createReadStream(f).pipe(r); });
+  if (u.pathname === '/index.html' && OLD) { const s = fs.readFileSync(f, 'utf8'), m = 'slopeDeg:11,pitchDeg:12,step:10'; if (!s.includes(m)) throw new Error('constantes introuvables'); if (!s.includes('depth:ht?top-base:top')) throw new Error('profondeur introuvable'); return r.end(s.replace(m, 'slopeDeg:12,pitchDeg:12,step:26').replace('depth:ht?top-base:top', 'depth:top'));   // V8.4 : profondeur = lift + 20 (base comptée deux fois) } fs.createReadStream(f).pipe(r); });
 await new Promise((o) => srv.listen(0, o));
 let chromium; { const req = createRequire(root + '/'); try { ({ chromium } = req('playwright')); } catch { ({ chromium } = createRequire('/tmp/q1/')('playwright')); } }
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
-const rows = [], modes = [['off', 'initiale ?topo=off', '&topo=off', false], ['v84', 'V8.4 (rampe 12°, marche 26 px)', '', true], ['v85', 'V8.5 recalibrée', '', false]];
+const rows = [], modes = [['off', 'initiale ?topo=off', '&topo=off', false], ['v84', 'V8.4 (rampe 12°, marche 26 px, profondeur lift + 20)', '', true], ['v85', 'V8.5 recalibrée', '', false]];
 for (const [key, label, qs, old] of modes) {
   OLD = old; const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }), p = await ctx.newPage(); p.setDefaultTimeout(120000);
   await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest${qs}`, { waitUntil: 'domcontentloaded' }); await p.waitForFunction(() => window.__cvParity?.boxes); await p.waitForTimeout(6000);
