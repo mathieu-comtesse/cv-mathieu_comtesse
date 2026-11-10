@@ -1,11 +1,11 @@
 {
-  "version": "V24.1",
-  "productVersion": "0.24.1",
+  "version": "V24.4",
+  "productVersion": "0.24.4",
   "streamingAssetsUrl": "StreamingAssets",
-  "loaderUrl": "Build/Web-V24.1.loader.js?v=b86062b4dfa5",
-  "dataUrl": "Build/Web-V24.1.data.unityweb?v=ede72ccadcea",
-  "frameworkUrl": "Build/Web-V24.1.framework.js.unityweb?v=6f5e748d862d",
-  "codeUrl": "Build/Web-V24.1.wasm.unityweb?v=467e39af86ec",
+  "loaderUrl": "Build/Web-V24.4.loader.js?v=bf51962d7a8c",
+  "dataUrl": "Build/Web-V24.4.data.unityweb?v=e9b2ddfd610d",
+  "frameworkUrl": "Build/Web-V24.4.framework.js.unityweb?v=53c139a9f287",
+  "codeUrl": "Build/Web-V24.4.wasm.unityweb?v=641550955c4c",
   "chapterBundles": [
     "iso-07-f2831fb1b97a.bundle",
     "iso-08-da07bd32c7b4.bundle"

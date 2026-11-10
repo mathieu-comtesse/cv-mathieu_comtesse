@@ -229,9 +229,10 @@ namespace UngaBunga45001.Editor
             Check(activity.Begin(data.id) && activity.CurrentProgress.card == 1, "Pièce retrouvée au retour");
             campaign.Save();
             Check(campaign.ReloadSavedCampaign(), "Rechargement de la sauvegarde SST");
-            yield return null;
-            yield return null;
-            Check(activity.Begin(data.id) && activity.CurrentProgress.answers.Count == 1, "Pièce retrouvée après rechargement");
+            float resumeDeadline = Time.realtimeSinceStartup + 5;
+            while (!activity.Active && Time.realtimeSinceStartup < resumeDeadline) yield return null;
+            Check(activity.Current?.id == data.id && activity.CurrentProgress.answers.Count == 1,
+                "Assemblage rouvert automatiquement avec la pièce sauvegardée");
             while (activity.CurrentProgress.card < data.cards.Length)
             {
                 if (!activity.Submit(data.cards[activity.CurrentProgress.card].correct))

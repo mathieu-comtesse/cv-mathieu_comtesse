@@ -36,7 +36,9 @@ namespace UngaBunga45001
     {
      float y=Narrow?65:20;if(Narrow)ActionButton(panel,"RETOUR AUX PREUVES",15,10,W-30,44,()=>{codexDetail=false;owner.Render();});
      Label(panel,"Objet tangible",20,y,W-x-40,80,selected.name.ToUpperInvariant(),Small?22:28,TribalStyle.Gold,true);
-     string text=$"ISO {selected.clause}\nÉTAT : {StageNameV17(selected.stage)}\nÉTAPE : {TimeSpan.FromSeconds(selected.at):mm\\:ss}\nSOURCE : {selected.source}\n\nACTION ET RÉSULTAT\n{selected.result}\n\nPREUVE DE VÉRIFICATION\n{(string.IsNullOrEmpty(selected.verification)?"À réaliser ; une décision ne prouve pas la maîtrise.":selected.verification)}";
+     var step=campaign.Objectives.Current;
+     string next=step?.Activity?.id==selected.activity?"\n\nÉTAPE ACTIVE\n"+step.Validation+"\nEnsuite · "+step.NextLabel:"";
+     string text=$"ISO {selected.clause}\nÉTAT : {StageNameV17(selected.stage)}\nÉTAPE : {TimeSpan.FromSeconds(selected.at):mm\\:ss}\nSOURCE : {selected.source}\n\nACTION ET RÉSULTAT\n{selected.result}\n\nPREUVE DE VÉRIFICATION\n{(string.IsNullOrEmpty(selected.verification)?"À réaliser. Une décision ne prouve pas la maîtrise.":selected.verification)}"+next;
      TextBody(panel,"Traçabilité",20,y+95,W-x-40,Mathf.Max(80,panel.rect.height-y-115),text);
     }
    }

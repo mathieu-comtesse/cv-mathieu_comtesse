@@ -74,7 +74,10 @@ namespace UngaBunga45001
             }
             float left=compact?28:36,width=compact?464:780,titleY=compact?122:25;
             Text(p,"Titre de la mission",compact?left:70,titleY,width-(compact?0:40),compact?70:80,(campaign.QuestPanel=="Completion"?"QUÊTE TERMINÉE\n":"")+q.title,compact?25:27,AdventureUI.Gold);
-            float y=compact?204:110;Text(p,"Dialogue de mission",left,y,width,compact?89:85,r.validated?q.completion:q.description,compact?20:23);y+=compact?103:102;
+            var step=campaign.Objectives.ForQuest(q);
+            string missionText=r.validated?q.completion:r.accepted&&step?.Action!=null?
+                $"{step.Title} · {step.Site}\n{step.Instruction}":step?.Requirement??q.description;
+            float y=compact?204:110;Text(p,"Dialogue de mission",left,y,width,compact?89:85,missionText,compact?20:23);y+=compact?103:102;
             Text(p,"GOAL",left,y,width,29,"GOAL",21,AdventureUI.Gold);y+=37;
             for(int i=0;i<q.actionIds.Length;i++)
             {
@@ -96,7 +99,8 @@ namespace UngaBunga45001
                 else if(r.status==QuestStatus.READY_TO_VALIDATE){label=campaign.Near(q.giverId)?"Vérifier avec "+campaign.CharacterName(q.giverId):"Rejoindre "+campaign.CharacterName(q.giverId);callback=()=>{if(campaign.Near(q.giverId))campaign.ValidateQuest(q.id);else campaign.TrackQuest(q.id);};}
                 else if(!r.accepted){label="Voir la proposition";callback=()=>campaign.OpenQuest(q.id,"Offer",true);}
                 else if(r.claimed){label="Revenir au village";callback=campaign.CloseQuest;}
-                else{label="Suivre la quête";callback=()=>campaign.TrackQuest(q.id);}
+                else if(step?.Action!=null){label="Guider vers l’activité";callback=()=>{campaign.TrackQuest(q.id);GetComponent<QuestNavigationController>().Follow(step.Action.id);};}
+                else{label="Voir le prérequis";callback=()=>campaign.Inform(step?.Requirement??"Consulte le journal de la mission.");}
                 Button(p,label,355,720,600,55,callback,true);Button(p,"Fermer",1130,725,155,45,campaign.CloseQuest);
                 if(r.status==QuestStatus.ACTION_COMPLETED)Text(p,"Vérification requise",36,670,1100,35,"Travaux ou vérification encore nécessaires : aucune récompense distribuée.",19,AdventureUI.Gold);
             }

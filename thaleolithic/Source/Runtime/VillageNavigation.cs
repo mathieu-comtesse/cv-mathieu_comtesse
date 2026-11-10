@@ -12,12 +12,14 @@ namespace UngaBunga45001
         public NavMeshSurface surface;
         public bool Rebuilding{get;private set;}
         public int Revision{get;private set;}
+        public int TopologyRevision{get;private set;}
         public event Action Changed;
-        bool requested;float refreshAt;
+        bool requested, requestedTopology, rebuildingTopology;float refreshAt;
         static readonly Collider[] overlapHits = new Collider[24];
         static readonly RaycastHit[] segmentHits = new RaycastHit[32];
         public float LastRebuildMs { get; private set; }
         public bool Pending=>requested||Rebuilding;
+        public bool TopologyPending=>requestedTopology||rebuildingTopology;
         public static NavMeshQueryFilter Filter(int agentType=0)
         {
             var f=new NavMeshQueryFilter{agentTypeID=agentType,areaMask=NavMesh.AllAreas&~(1<<1)&~(1<<3)};
@@ -89,16 +91,21 @@ namespace UngaBunga45001
                 }
             return false;
         }
-        public void RequestRebuild(){requested=true;refreshAt=Time.time+.25f;}
+        public void RequestRebuild(bool topologyChanged=true)
+        {
+            requested=true;requestedTopology|=topologyChanged;refreshAt=Time.time+.25f;
+        }
         void Update(){if(requested&&!Rebuilding&&Time.time>=refreshAt&&surface!=null)StartCoroutine(Rebuild());}
         IEnumerator Rebuild()
         {
-            requested=false;Rebuilding=true;
+            requested=false;Rebuilding=true;rebuildingTopology=requestedTopology;requestedTopology=false;
             double startedAt=Time.realtimeSinceStartupAsDouble;
             Physics.SyncTransforms();
             var work=surface.UpdateNavMesh(surface.navMeshData);yield return work;
             LastRebuildMs=(float)((Time.realtimeSinceStartupAsDouble-startedAt)*1000);
-            Revision++;Rebuilding=false;Changed?.Invoke();
+            Revision++;
+            if(rebuildingTopology)TopologyRevision++;
+            Rebuilding=false;rebuildingTopology=false;Changed?.Invoke();
             foreach(var agent in FindObjectsByType<NavMeshAgent>(FindObjectsSortMode.None))if(agent.enabled&&agent.isOnNavMesh&&agent.hasPath)agent.SetDestination(agent.destination);
         }
     }

@@ -4,6 +4,7 @@ const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require(process.env.THALEOLITHIC_PLAYWRIGHT || 'playwright');
 const { installSave, runScenes } = require('./thaleolithic-scene-bench.cjs');
+const { runSst } = require('./test-thaleolithic-sst.cjs');
 
 const root = path.resolve(process.env.THALEOLITHIC_TEST_ROOT ?? path.join(__dirname, '../thaleolithic'));
 const baseline = process.env.THALEOLITHIC_BASELINE;
@@ -12,6 +13,8 @@ const intercepted = !baseline && process.env.THALEOLITHIC_INTERCEPT === '1';
 const softwareRunner = process.argv.includes('--ci');
 const chapterSave = process.env.THALEOLITHIC_CHAPTER_SAVE;
 const sceneFixtures = process.env.THALEOLITHIC_SCENE_FIXTURES;
+const sstSave = process.env.THALEOLITHIC_SST_SAVE;
+const videoDir = process.env.THALEOLITHIC_RECORD_DIR;
 const enduranceMinutes = Number(process.env.THALEOLITHIC_ENDURANCE_MINUTES || 0);
 if (!Number.isFinite(enduranceMinutes) || enduranceMinutes < 0 || (enduranceMinutes && !real))
   throw new Error('L’endurance exige une durée positive et le mode --real');
@@ -37,15 +40,16 @@ async function run() {
   const chapterRequests = [];
   const report = {mode: baseline ? 'public V22.1' : real ? 'WebAssembly ' + buildVersion : 'pont JavaScript simulé', steps: [], errors: []};
   const record = (name, value = true) => { report.steps.push({name, value}); console.log(name, value); };
-  let browser, page;
+  let browser, context, page;
   try {
     browser = await chromium.launch({executablePath: process.env.THALEOLITHIC_CHROMIUM,
       args: [process.platform === 'win32' ? '--use-angle=d3d11' : '--use-angle=swiftshader',
         '--enable-webgl', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader']});
     const mobile = Boolean(baseline) || process.argv.includes('--touch');
-    const context = await browser.newContext(mobile
+    const device = mobile
       ? {viewport: {width: 852, height: 393}, deviceScaleFactor: 2, isMobile: true, hasTouch: true}
-      : {viewport: {width: 1280, height: 720}});
+      : {viewport: {width: 1280, height: 720}};
+    context = await browser.newContext({...device, ...(videoDir && {recordVideo: {dir: videoDir, size: device.viewport}})});
     page = await context.newPage();
     page.on('pageerror', error => report.errors.push(String(error)));
     page.on('crash', () => report.errors.push('Onglet Chromium interrompu'));
@@ -106,7 +110,7 @@ async function run() {
         return route.fulfill({path: path.join(root, 'StreamingAssets', name), contentType: 'application/octet-stream'});
       });
     }
-    if (chapterSave || sceneFixtures)
+    if (chapterSave || sceneFixtures || sstSave)
       await page.route(origin + 'fixture.html', route => route.fulfill({contentType: 'text/html', body: '<title>Fixture locale</title>'}));
     if (!real) {
       await page.route('**/*.loader.js*', route => route.fulfill({contentType: 'application/javascript', body: `
@@ -183,6 +187,13 @@ async function run() {
       await page.waitForFunction(() => window.ungaRuntime && !window.ungaRuntime.film, null, {timeout: 150000});
       await waitState(gameplay);
       record('Cinématique terminée, Dylan et caméra actifs', await state());
+      if (sstSave) {
+        await runSst({page, origin, filename: sstSave, mobile, record, waitState, gameplay,
+          reportFile: process.env.THALEOLITHIC_REPORT, buildVersion});
+        assert.deepEqual(report.errors, []);
+        report.status = 'passed';
+        return;
+      }
       if (enduranceMinutes) {
         const deadline = journeyStarted + enduranceMinutes * 60_000;
         report.endurance = {targetMinutes: enduranceMinutes, scope: 'une instance Web, ouverture, village, clavier, menus et sauvegardes',
@@ -357,6 +368,7 @@ async function run() {
     throw error;
   } finally {
     if (process.env.THALEOLITHIC_REPORT) fs.writeFileSync(process.env.THALEOLITHIC_REPORT, JSON.stringify(report, null, 2));
+    await context?.close();
     await browser?.close();
     server.close();
   }

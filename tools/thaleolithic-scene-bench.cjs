@@ -219,4 +219,4 @@ async function runScenes({page, origin, directory, report, record, waitState, ga
   assert.equal(report.sceneFailures.length, 0, 'Scènes sans mesure');
 }
 
-module.exports = {installSave, runScenes};
+module.exports = {installSave, runScenes, approachActor, browserSave};

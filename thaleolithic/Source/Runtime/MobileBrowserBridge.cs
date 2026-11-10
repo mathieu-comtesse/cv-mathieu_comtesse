@@ -41,6 +41,21 @@ namespace UngaBunga45001
             public float yaw, pitch, distance, fps, navRebuildMs;
             public int touches, allocatedMiB;
             public WebFrameMetricsV24.Sample performance;
+            public QuestNavigationController.GpsSample gps;
+            public SstDiagnostics sst;
+            public ObjectiveDiagnostic objective;
+        }
+        [Serializable] class ObjectiveDiagnostic
+        {
+            public string quest, action, target, site, helper, giver, phase, instruction, command, validation, next, requirement;
+            public bool guide, optional;
+            public int resolved, finished, total;
+        }
+        [Serializable] class SstDiagnostics
+        {
+            public string phase, feedback, marker;
+            public bool intro, completed, markerVisible;
+            public int nextTablet, linked;
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -106,11 +121,27 @@ namespace UngaBunga45001
                     if (browser.diagnostic)
                     {
                         var motor = campaign.bindings.player.GetComponent<ThirdPersonMotor>();
+                        var activity = campaign.GetComponent<CampaignActivitiesV17>();
+                        var marker = campaign.GetComponent<MainQuestMarkerV18>();
+                        var assembly = activity?.Progress(QuestGuidanceV243.Sst);
+                        var step = campaign.Objectives.Current;
                         Emit(new Diagnostics { yaw = motor.Yaw, pitch = motor.Pitch, distance = motor.OrbitDistance,
                             fps = 1 / Mathf.Max(.0001f, Time.smoothDeltaTime), touches = MobileControls.ContactCount,
                             navRebuildMs = campaign.GetComponent<VillageNavigation>()?.LastRebuildMs ?? 0,
                             allocatedMiB = (int)(UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / (1024 * 1024)),
-                            performance = performance?.Read(campaign) });
+                            performance = performance?.Read(campaign),
+                            gps = campaign.GetComponent<QuestNavigationController>()?.Diagnostic() ?? default,
+                            objective = new ObjectiveDiagnostic { quest = step?.QuestId, action = step?.Action?.id,
+                                target = step?.TargetBindingId, site = step?.Site, helper = step?.HelperId, giver = step?.GiverId,
+                                phase = step?.Phase.ToString(), instruction = step?.Instruction, validation = step?.Validation,
+                                command = step == null ? "" : QuestGuidanceV243.Command(campaign.GetComponent<UISettingsController>(), step.Phase),
+                                next = step?.NextId, requirement = step?.Requirement, optional = step?.Optional ?? false,
+                                guide = activity?.GuideOpen ?? false, resolved = campaign.Objectives.Resolutions,
+                                finished = step?.Finished ?? 0, total = step?.Total ?? 0 },
+                            sst = new SstDiagnostics { phase = activity?.AssemblyPhase.ToString(), feedback = activity?.Feedback,
+                                intro = activity?.IntroPlaying ?? false, completed = assembly?.completed ?? false,
+                                nextTablet = assembly?.card ?? 0, linked = assembly?.answers.Count ?? 0,
+                                marker = marker?.TargetId, markerVisible = marker?.Visible ?? false } });
                     }
                 }
                 yield return new WaitForSecondsRealtime(1);

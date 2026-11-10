@@ -10,6 +10,18 @@ const {UNIV}=await import('../js/projects-data.js');
 assert.equal(UNIV.title,'THALEOLITHIC');
 assert.equal(UNIV.url,'thaleolithic/');
 const game=path.join(root,'thaleolithic');
+const pedagogy=JSON.parse(fs.readFileSync(path.join(game,'Source','Resources','CampaignV17.json'),'utf8'));
+const activityIds=new Set(pedagogy.activities.map(activity=>activity.id));
+assert.equal(activityIds.size,24,'Catalogue pédagogique de 24 activités distinctes');
+for(const activity of pedagogy.activities){
+  assert.equal(pedagogy.quests.filter(quest=>quest.actionIds.includes(activity.id)).length,1,activity.id+' doit avoir une quête parente');
+  assert.ok(activity.site&&activity.actor&&activity.clause&&activity.evidence&&activity.cards.length,activity.id+' métadonnées pédagogiques');
+  assert.ok(activity.cards.every(card=>card.question&&card.choices[card.correct]),activity.id+' réponses canoniques');
+}
+const sst=pedagogy.activities.find(activity=>activity.id==='V17_SYSTEM');
+assert.deepEqual([sst.site,sst.actor,sst.clause,sst.mode],['grand_menhir','mathieu','4.4','assemble']);
+assert.deepEqual(sst.cards.map(card=>card.correct),[0,1,2,0],'Réponses SST préservées');
+assert.equal(pedagogy.quests.find(quest=>quest.id==='V17_CONTEXT').giverId,'aurelien');
 const config=JSON.parse(fs.readFileSync(path.join(game,'game-config.json'),'utf8'));
 let bytes=0;
 for(const key of ['loaderUrl','dataUrl','frameworkUrl','codeUrl']){

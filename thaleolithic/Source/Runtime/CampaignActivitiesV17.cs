@@ -21,7 +21,7 @@ namespace UngaBunga45001
  }
  [Serializable] public sealed class ActivityProgressV17
  {
-  public string id;public int card,mistakes,lane=1;public float seconds,workSeconds,routeDistance;public bool completed,observed,worked,verified;
+  public string id;public int card,mistakes,lane=1;public float seconds,workSeconds,routeDistance;public bool completed,observed,worked,verified,introSeen,guideSeen;
   public int[] allocation={0,0,0};public List<string> answers=new List<string>();public List<string> observations=new List<string>();public List<string> people=new List<string>();
  }
  [Serializable] public sealed class TimeSegmentV17 {public string sequence,category;public float seconds;}
@@ -61,6 +61,12 @@ namespace UngaBunga45001
     newActions.Add(new ActionDefinition{id=a.id,title=a.title,actId=q.actId,targetBindingId=a.site,interactionType="ActivityV17",reference="ISO 45001 · "+a.clause,requiredFlags=index>0?new[]{"done:"+q.actionIds[index-1]}:Array.Empty<string>(),effects=new[]{new EffectDefinition{kind="flag",target="done:"+a.id,value=1},new EffectDefinition{kind="evidence",target=a.evidence,value=1}}});
    }
    Data.actions=Data.actions.Concat(newActions).ToArray();
+   Data.actions=Data.actions.Append(new ActionDefinition{id="V243_SST_HELP",title="Demander à Mathieu à quoi servent les tablettes SST",
+    actId="ACTE_I",targetBindingId="mathieu",dialogueId="V243_SST_HELP",repeatable=true,
+    requiredFlags=new[]{"done:V17_SCOPE"},forbiddenFlags=new[]{"done:V17_SYSTEM"}}).ToArray();
+   Data.dialogues=Data.dialogues.Append(new DialogueDefinition{id="V243_SST_HELP",speaker="Mathieu",
+    text="Le Grand Menhir porte les quatre tablettes. Relie chaque tablette à une fonction du système. Observe comment les résultats du contrôle alimentent le cycle suivant. Quand l’ensemble est vérifié, montre-le à Aurélien.",
+    choices=new[]{new ChoiceDefinition{id="V243_SST_HELP_CLOSE",text="Rejoindre le Grand Menhir"}}}).ToArray();
    string[] titles={"LE GRAND RÉVEIL · LE CONTEXTE","LE CHEF CONTRE-ATTAQUE","LA CHASSE AUX RISQUES","LA TRIBU A DES MOYENS","LES 15 DIFFÉRENCES","AU FEU !!!","LES ANCIENS VIENNENT AUDITER","LE PROCHAIN CYCLE"};
    float[] budgets={360,360,420,360,360,300,300,180};
    for(int i=0;i<Data.acts.Length;i++)
@@ -104,20 +110,26 @@ namespace UngaBunga45001
   public ActivityProgressV17 Progress(string id)=>c?.State?.campaignV17?.activities.Find(a=>a.id==id);
   public ActivityProgressV17 CurrentProgress=>Current==null?null:Progress(Current.id);
   public bool SstExitPromptOpen{get;private set;}
+  QuestSstIntroV243 intro;
+  public bool IntroPlaying => intro != null && intro.Playing;
+  public bool GuideOpen => Current != null && Current.mode!="assemble" && !CurrentProgress.guideSeen &&
+   CurrentProgress.answers.Count==0 && CurrentProgress.card==0;
   SstAssemblyPhase assemblyPhase;
   public SstAssemblyPhase AssemblyPhase => Current?.mode == "assemble" && (c.IsPaused || SstExitPromptOpen)
     ? SstAssemblyPhase.Paused : assemblyPhase;
   public bool WorkReady=>Current!=null&&Current.mode=="risk"&&CurrentProgress.card>=Current.cards.Length;
-  float feedbackUntil;Vector3 lastPlayer;float telemetryTick;
+  float feedbackUntil,nextResume;Vector3 lastPlayer;float telemetryTick;
+  string resumeActivity;
   ChapterMotionV241 motion;
   void Awake(){c=GetComponent<CampaignRuntime>();}
   void Start(){motion=GetComponent<ChapterMotionV241>();}
-  public bool Begin(string id)
+  public bool Begin(string id) => Begin(id,false);
+  bool Begin(string id,bool restoring)
   {
    if(Active||c.IsBusy||c.IsModal)return false;var a=c.ActivitiesV17?.activities.FirstOrDefault(x=>x.id==id);var action=c.FindAction(id);
-   if(a==null||!c.CanExecute(action,out _)||!c.Near(a.site))return false;
-   var chapter=a.mode=="briefing"?"07":a.mode=="differences"||a.mode=="audit"?"08":null;
-   if(chapter!=null&&motion!=null&&!motion.Require(chapter))return false;
+   if(a==null||!c.CanExecute(action,out _)||!(restoring?CanResumeFromHere(a):c.Near(a.site)))return false;
+   var chapter=Chapter(a);
+   if(chapter!=null&&motion!=null&&!(restoring?motion.Prepare(chapter):motion.Require(chapter)))return false;
    c.InitializeCampaignV17();var p=Progress(id);if(p==null||p.completed)return false;
    if(a.mode=="assemble")
    {
@@ -126,14 +138,38 @@ namespace UngaBunga45001
     if (p.card < 0) p.card = a.cards.Length;
     assemblyPhase = SstAssemblyPhase.Ready;
    }
-   Current=a;Feedback=a.intro??"";TimedOut=false;SstExitPromptOpen=false;feedbackUntil=0;c.State.campaignV17.active=id;
+   Current=a;Feedback=a.mode=="assemble"&&p.answers.Count>0
+    ? $"Assemblage repris · {p.answers.Count} tablettes sur {a.cards.Length} déjà reliées."
+    : a.intro??"";TimedOut=false;SstExitPromptOpen=false;feedbackUntil=0;c.State.campaignV17.active=id;
    observed=c.State;
    if(a.mode=="prepare")GetComponent<ActivityWorldV17>()?.PrepareEmergencyRoster();
-   c.SetEvidenceV17(a,p.worked?EvidenceStageV17.Realised:p.answers.Count>0?EvidenceStageV17.Decided:EvidenceStageV17.Discovered,p.worked?a.measure:"Activité observée, décisions et acquis conservés.");c.CaptureDecisionCheckpoint();Changed?.Invoke();return true;
+   if(!restoring)
+   {
+    c.SetEvidenceV17(a,p.worked?EvidenceStageV17.Realised:p.answers.Count>0?EvidenceStageV17.Decided:EvidenceStageV17.Discovered,p.worked?a.measure:"Activité observée, décisions et acquis conservés.");
+    c.CaptureDecisionCheckpoint();
+   }
+   c.Objectives.Invalidate();Changed?.Invoke();c.Save();return true;
+  }
+  // A saved conversation stays open if its speaker walks away while Dylan is in the activity.
+  bool CanResumeFromHere(ActivityDefinitionV17 activity) => c.Near(activity.site) || activity.mode=="runner" ||
+   c.State.characters.Exists(character=>character.id==activity.site);
+  static string Chapter(ActivityDefinitionV17 a)=>a.mode=="briefing"?"07":a.mode=="differences"||a.mode=="audit"?"08":null;
+  public void DismissGuide()
+  {
+   if(!GuideOpen)return;
+   CurrentProgress.guideSeen=true;
+   c.Save();Changed?.Invoke();
+  }
+  public void BeginFromWorld(string id)
+  {
+   if(!Begin(id)||id!=QuestGuidanceV243.Sst||CurrentProgress.introSeen||CurrentProgress.answers.Count>0)return;
+   if(intro==null)intro=gameObject.AddComponent<QuestSstIntroV243>();
+   intro.Play(c,this);
   }
   public void Suspend()
   {
    if(!Active)return;
+   intro?.Cancel();
    if(Current.mode=="assemble")assemblyPhase=SstAssemblyPhase.Exited;
    GetComponent<ActivityViewV17>()?.CancelDrag();
    c.State.campaignV17.active="";Current=null;Feedback="";SstExitPromptOpen=false;feedbackUntil=0;Changed?.Invoke();
@@ -141,26 +177,27 @@ namespace UngaBunga45001
   }
   public void ToggleSstExitPrompt()
   {
-   if(Current?.mode!="assemble")return;
+   if(Current?.mode!="assemble"||IntroPlaying)return;
    GetComponent<ActivityViewV17>()?.CancelDrag();
    SstExitPromptOpen=!SstExitPromptOpen;Changed?.Invoke();
   }
   public bool Submit(int answer)
   {
-   if(!Active||SstExitPromptOpen||c.IsPaused||TimedOut||Time.unscaledTime<feedbackUntil)return false;var p=CurrentProgress;
+   if(!Active||IntroPlaying||SstExitPromptOpen||c.IsPaused||TimedOut||Time.unscaledTime<feedbackUntil)return false;var p=CurrentProgress;
    if(Current.mode=="differences"&&!p.observed)return false;
    if(p.card<0||p.card>=Current.cards.Length||answer<0||answer>=Current.cards[p.card].choices.Length)return false;
    var card=Current.cards[p.card];bool proof=string.IsNullOrEmpty(card.requiredEvidence)||c.HasFlag(card.requiredEvidence)||c.State.campaignV17.evidence.Any(e=>e.id==card.requiredEvidence&&e.stage==EvidenceStageV17.Verified);
    bool correct=answer==card.correct&&proof;
    if(!correct){if(Current.mode=="assemble")assemblyPhase=SstAssemblyPhase.Error;p.mistakes++;Feedback=proof?"Réessaie : "+card.explanation:"La preuve correspondante n’est pas encore vérifiée. Reprends le contrôle sur le terrain.";feedbackUntil=Time.unscaledTime+.45f;Changed?.Invoke();return false;}
    if(!p.answers.Contains(card.id))p.answers.Add(card.id);
+   p.guideSeen=true;
    p.card++;
    if(Current.mode=="assemble")
    {
     assemblyPhase=SstAssemblyPhase.Assembling;
     while(p.card<Current.cards.Length&&p.answers.Contains(Current.cards[p.card].id))p.card++;
    }
-   Feedback=card.explanation;feedbackUntil=Time.unscaledTime+.45f;
+   Feedback=Current.mode=="assemble"?"Tablette reliée. "+card.explanation:card.explanation;feedbackUntil=Time.unscaledTime+.45f;
    c.SetEvidenceV17(Current,EvidenceStageV17.Decided,string.Join(" · ",p.answers));
    if(Current.mode=="differences")
    {p.observed=false;string key="difference:"+card.id;if(!c.State.campaignV17.evidence.Any(e=>e.id==key))c.State.campaignV17.evidence.Add(new EvidenceRecordV17{id=key,name=card.question,clause=card.clause,source=card.source,activity=Current.id,stage=EvidenceStageV17.Verified,result=card.before+"\n→ "+card.after+"\n\n"+card.dialogue+"\n\n"+card.explanation,verification="Localisation et explication associées par Dylan.",at=c.State.elapsedSeconds});Changed?.Invoke();c.Save();return true;}
@@ -168,7 +205,7 @@ namespace UngaBunga45001
   }
   public void ConfirmSstAssembly()
   {
-   if(Current?.mode!="assemble"||CurrentProgress.card<Current.cards.Length||c.IsPaused||SstExitPromptOpen||
+   if(Current?.mode!="assemble"||IntroPlaying||CurrentProgress.card<Current.cards.Length||c.IsPaused||SstExitPromptOpen||
       assemblyPhase==SstAssemblyPhase.Validating)return;
    assemblyPhase=SstAssemblyPhase.Validating;
    try { Finish(); }
@@ -235,14 +272,33 @@ namespace UngaBunga45001
   }
   void Update()
   {
-   if(c.State==null)return;if(observed!=c.State){observed=c.State;c.InitializeCampaignV17();c.State.campaignV17.active="";Current=null;SstExitPromptOpen=false;assemblyPhase=SstAssemblyPhase.Exited;}
+   if(c.State==null)return;
+   if(observed!=c.State)
+   {
+    intro?.Cancel();observed=c.State;c.InitializeCampaignV17();
+    resumeActivity=c.State.campaignV17.active;nextResume=0;Current=null;SstExitPromptOpen=false;assemblyPhase=SstAssemblyPhase.Exited;
+    c.Objectives.Invalidate();
+   }
+   if(!string.IsNullOrEmpty(resumeActivity)&&Time.unscaledTime>=nextResume&&!c.IsModal&&!c.IsBusy)
+   {
+    nextResume=Time.unscaledTime+.5f;
+    var previous=c.ActivitiesV17.activities.FirstOrDefault(entry=>entry.id==resumeActivity);
+    if(previous==null||Progress(resumeActivity)?.completed!=false||!c.CanExecute(c.FindAction(resumeActivity),out _,true)||
+       !CanResumeFromHere(previous))
+    {
+     if(previous!=null&&Progress(resumeActivity)?.completed==false)
+      c.Inform("Rejoins "+QuestGuidanceV243.Site(c,previous.site)+" pour reprendre l’activité. Tes acquis sont conservés.");
+     c.State.campaignV17.active=resumeActivity="";c.Save();
+    }
+    else if(Begin(resumeActivity,true))resumeActivity="";
+   }
    float dt=Time.unscaledDeltaTime;if(!c.IsPaused&&c.Ending==null&&!c.State.campaignV17.freePlay)
    {
     var save=c.State.campaignV17;save.wallSeconds+=dt;string sequence=Current?.id??c.MainQuestFrontier()?.id??c.CurrentAct?.id??"conclusion";
     string category=c.cinematicDirector.IsPlaying?"cinematic":Active?"minigame":c.Dialogue!=null||c.QuestOverlay?"reading":c.IsBusy?"interaction":(c.bindings.player.position-lastPlayer).sqrMagnitude>.00001f?"travel":"observation";
     var segment=save.timing.FindLast(s=>s.sequence==sequence&&s.category==category);if(segment==null){segment=new TimeSegmentV17{sequence=sequence,category=category};save.timing.Add(segment);}segment.seconds+=dt;
    }lastPlayer=c.bindings.player.position;
-   if(!Active||SstExitPromptOpen||c.IsPaused||TimedOut)return;var p=CurrentProgress;p.seconds+=dt;
+   if(!Active||IntroPlaying||GuideOpen||SstExitPromptOpen||c.IsPaused||TimedOut)return;var p=CurrentProgress;p.seconds+=dt;
    if(WorkReady&&p.worked)p.workSeconds+=dt;
    if(Current.duration>0&&p.seconds>=Current.duration&&!(Current.mode=="assemble"&&p.card>=Current.cards.Length))
    {if(Current.mode=="briefing"&&p.card>=Current.cards.Length){Finish();return;}if(Current.mode!="runner"){TimedOut=true;Feedback="Temps écoulé. Les acquis sont conservés ; reprends l’essai pour compléter la maîtrise.";Changed?.Invoke();}}

@@ -48,9 +48,13 @@ namespace UngaBunga45001
             Label(detail,"Clause",18,top,dw-36,Small?70:96,chosen.id+"\n"+chosen.title,Small?20:26,TribalStyle.Gold,true);float y=top+(Small?74:106);var quests=ClauseQuests(chosen.id);string body=ClauseStatus(chosen.id)+"\n\nMISSIONS LIÉES\n"+string.Join("\n",quests.Select(q=>(ClauseVerified(q,chosen.id)?"Vérifiée · ":"À vérifier · ")+q.title));
             body+="\n\nPRÉREQUIS\n"+string.Join("\n",quests.SelectMany(q=>q.prerequisites).Distinct().Select(id=>campaign.Data.quests.FirstOrDefault(q=>q.id==id)?.title??id));
             if(chosen.id=="4.1"||chosen.id=="4.2")body+="\n\nAmd 1:2024 · examine la pertinence du changement climatique et les attentes associées pour les activités de la tribu.";
+            var step=campaign.Objectives.Current;
+            bool currentClause=step?.Activity?.clause==chosen.id||step?.Quest?.iso.Contains(chosen.id)==true&&step.Activity==null;
+            if(currentClause&&step?.Action!=null)body="ÉTAPE ACTUELLE\n"+step.Title+" · "+step.Site+"\n"+step.Validation+"\n\n"+body;
             body+="\n\nFRAGMENTS DE SAVOIR : "+campaign.Value("resource","knowledge").ToString("0")+"\n\nUne mesure construite doit encore être contrôlée. Les titres sont des repères pédagogiques ; ils ne constituent pas une certification.";
             TextBody(detail,"Application de la notion",18,y,dw-36,Mathf.Max(32,H-y-72),body);
-            var linked=quests.FirstOrDefault(q=>campaign.QuestState(q.id)?.claimed!=true&&campaign.QuestState(q.id)?.status!=QuestStatus.LOCKED)??quests.FirstOrDefault();var follow=ActionButton(detail,"VOIR LA MISSION LIÉE",18,H-58,dw-36,44,()=>{selectedQuest=linked.id;owner.Open("Quêtes");},true);follow.interactable=linked!=null;
+            var linked=currentClause?step?.Quest:quests.FirstOrDefault(q=>campaign.QuestState(q.id)?.claimed!=true&&campaign.QuestState(q.id)?.status!=QuestStatus.LOCKED)??quests.FirstOrDefault();
+            var follow=ActionButton(detail,"VOIR LA MISSION LIÉE",18,H-58,dw-36,44,()=>{selectedQuest=linked.id;owner.Open("Quêtes");},true);follow.interactable=linked!=null;
         }
         void TextBody(RectTransform parent,string name,float x,float y,float width,float height,string value)
         {var list=TribalStyle.Scroll(parent,name,x,y,width,height);var row=TribalStyle.Row(list,"Texte",100);var text=TribalStyle.Text(AdventureUI.Fill(row,"Contenu",2),font,value,FontSize);float preferred=text.GetPreferredValues(value,width-8,Mathf.Infinity).y+12;row.GetComponent<UnityEngine.UI.LayoutElement>().preferredHeight=Mathf.Max(60,preferred);}

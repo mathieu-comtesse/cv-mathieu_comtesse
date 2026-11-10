@@ -26,7 +26,10 @@ namespace UngaBunga45001
             if(GetComponent<CampaignActivitiesV17>()?.Active??false){FocusBindingId=null;return;}
             if (campaign.IsModal || campaign.IsBusy) { FocusBindingId = null; return; }
             FocusBindingId = null; float nearest = interactionDistance;
-            foreach (var binding in campaign.bindings.objects)
+            var step = campaign.Objectives.Current;
+            if (step?.Action != null && step.Phase != ObjectivePhase.Travel && campaign.BindingDistance(step.TargetBindingId) <= interactionDistance)
+                FocusBindingId = step.TargetBindingId;
+            else foreach (var binding in campaign.bindings.objects)
             {
                 if (binding.target == null || !binding.target.gameObject.activeInHierarchy) continue;
                 float distance=campaign.BindingDistance(binding.id);float squaredDistance=distance*distance;
@@ -76,10 +79,14 @@ namespace UngaBunga45001
         public void Interact()
         {
             if(campaign.IsModal||campaign.IsBusy)return;
+                if(SstFocused()){Execute(QuestGuidanceV243.Sst);return;}
                 var available=FocusActions.Where(a=>campaign.CanExecute(a,out _)).ToArray();
                 if(available.Length>1)campaign.OpenActionMenu(FocusBindingId);
                 else if(available.Length==1)Execute(available[0].id);
         }
+        bool SstFocused() => GetComponent<QuestNavigationController>()?.Action?.id == QuestGuidanceV243.Sst &&
+            campaign.BindingDistance(QuestGuidanceV243.Menhir) <= interactionDistance &&
+            campaign.CanExecute(campaign.FindAction(QuestGuidanceV243.Sst),out _);
         public void Execute(string id)
         {
             var action = campaign.FindAction(id);
@@ -91,7 +98,8 @@ namespace UngaBunga45001
         private bool PressedInteract()
         {
 #if ENABLE_INPUT_SYSTEM
-            return GetComponent<UISettingsController>()?.Pressed("interact")??false;
+            return (GetComponent<UISettingsController>()?.Pressed("interact")??false) ||
+                Gamepad.current?.buttonWest.wasPressedThisFrame == true;
 #elif ENABLE_LEGACY_INPUT_MANAGER
             return Input.GetKeyDown(KeyCode.E);
 #else

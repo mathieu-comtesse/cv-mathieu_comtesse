@@ -44,7 +44,7 @@ namespace UngaBunga45001
   {
    float pw=Mathf.Min(620,w-28),ph=Mathf.Min(370,h-96);var panel=Center(w,h,pw,ph,"Mode du duel");Text(panel,"Titre",20,14,pw-40,34,"LA POLITIQUE DU MENHIR",23,TribalStyle.Gold);var body=TribalStyle.Scroll(panel,"Choix du mode",14,58,pw-28,ph-72);
    string[] labels={"Arcade · esquive, garde et décisions","Pédagogique · sans attaques automatiques","Avec indices · aide visible pour chaque décision"};for(int i=0;i<3;i++){int mode=i;var row=TribalStyle.Row(body,"Mode "+i,66);Button(row,"Choisir mode "+i,0,0,pw-32,62,labels[i],()=>duel.ChooseMode(mode),i==1);}
-   var note=TribalStyle.Row(body,"Commandes",70);Text(note,"Aide",8,0,pw-50,70,"A/D : bouger · Espace : sauter · J/K : coups · L : garde.\nLes coups ne remplacent jamais une bonne décision.",15,TribalStyle.Muted);
+   var note=TribalStyle.Row(body,"Commandes",112);Text(note,"Aide",8,0,pw-50,112,"Réponds aux décisions du chapitre 5 pour avancer dans le duel.\nA/D : bouger · Espace : sauter · J/K : coups · L : garde. Sur mobile, utilise les commandes à l’écran.\nLe menu du duel permet de quitter et conserve les décisions acquises.",15,TribalStyle.Muted);
   }
   void Question(float w,float h,float pad)
   {

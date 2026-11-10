@@ -34,8 +34,8 @@ namespace UngaBunga45001
    foreach(var p in proxies)
    {
     bool active=p.source!=null&&p.source.enabled&&p.source.gameObject.activeInHierarchy;
-    if(p.obstacle.enabled!=active)p.obstacle.enabled=active;if(!active)continue;var b=p.source.bounds;
-    if((b.center-p.bounds.center).sqrMagnitude>.0025f||(b.size-p.bounds.size).sqrMagnitude>.0025f){p.obstacle.transform.position=b.center;p.obstacle.size=b.size;p.bounds=b;c.GetComponent<QuestNavigationController>()?.ForceRefresh();}
+    if(p.obstacle.enabled!=active){p.obstacle.enabled=active;c.GetComponent<QuestNavigationController>()?.Revalidate();}if(!active)continue;var b=p.source.bounds;
+    if((b.center-p.bounds.center).sqrMagnitude>.0025f||(b.size-p.bounds.size).sqrMagnitude>.0025f){p.obstacle.transform.position=b.center;p.obstacle.size=b.size;p.bounds=b;c.GetComponent<QuestNavigationController>()?.Revalidate();}
    }
   }
  }

@@ -1,0 +1,310 @@
+{
+  "version": "V24.4",
+  "device": "bureau",
+  "delivery": "ressources locales interceptées par Playwright",
+  "wasmSampling": "HEAPU8 observable une fois l’instance Unity rendue au navigateur",
+  "files": {
+    "loaderUrl": 47338,
+    "dataUrl": 58917493,
+    "frameworkUrl": 91970,
+    "codeUrl": 9424737
+  },
+  "stages": [
+    {
+      "name": "Cinématique d’ouverture",
+      "browserFrames": 411,
+      "browserFps": 51.2551909910584,
+      "medianMs": 5.799999999999272,
+      "p95Ms": 11.200000000000728,
+      "p99Ms": 11.399999999997817,
+      "mainThreadMs": 8008.434999999999,
+      "scriptMs": 7933.005000000001,
+      "longTasks": 2,
+      "wasmPeakMiB": 382.375,
+      "jsPeakMiB": 307.89757347106934,
+      "runtime": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "chapterPacks": "07:pending,08:pending",
+        "elapsed": 3.353322744369507,
+        "frameMs": 7.417049407958984,
+        "paused": false,
+        "touch": false,
+        "film": true,
+        "position": {
+          "x": 350.9822082519531,
+          "y": 11.832328796386719,
+          "z": 278.455810546875
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "diagnostic": {
+        "type": "diagnostic",
+        "yaw": 59.33151626586914,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 134.8245086669922,
+        "navRebuildMs": 671,
+        "touches": 0,
+        "allocatedMiB": 256,
+        "performance": {
+          "fps": 132.2556915283203,
+          "medianMs": 7,
+          "p95Ms": 9,
+          "p99Ms": 10,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 256,
+          "peakMiB": 258,
+          "reservedMiB": 273,
+          "gcBytes": -1,
+          "drawCalls": 990,
+          "setPassCalls": 41,
+          "triangles": 592508,
+          "frames": 180,
+          "profile": 1,
+          "animatedActors": 7
+        },
+        "gps": {
+          "enabled": true,
+          "visible": false,
+          "mapRouteVisible": true,
+          "recalculating": false,
+          "mode": "complet",
+          "objective": "mathieu",
+          "state": "HIDDEN_BY_MODAL",
+          "lastHidden": "INITIALISATION",
+          "status": "GUIDAGE DES CRÂNES",
+          "routeId": 3,
+          "navMeshRevision": 1,
+          "topologyRevision": 1,
+          "points": 49,
+          "meshTriangles": 0,
+          "meshUpdates": 0,
+          "routeChanges": 3,
+          "hiddenCount": 0,
+          "calculations": 3,
+          "calculationsPerMinute": 3,
+          "totalLength": 16.343786239624023,
+          "visibleLength": 0,
+          "safeLength": 16.343786239624023,
+          "calculationMs": 4,
+          "meshMs": 0,
+          "progress": 0,
+          "nextPoint": {
+            "x": 350.31732177734375,
+            "y": 11.849814414978027,
+            "z": 277.7590026855469
+          }
+        },
+        "sst": {
+          "phase": "Exited",
+          "feedback": "",
+          "marker": "mathieu",
+          "intro": false,
+          "completed": false,
+          "markerVisible": false,
+          "nextTablet": 0,
+          "linked": 0
+        },
+        "objective": {
+          "quest": "M_I_TUTORIEL",
+          "action": "quest:offer:M_I_TUTORIEL",
+          "target": "mathieu",
+          "site": "Mathieu",
+          "helper": "mathieu",
+          "giver": "mathieu",
+          "phase": "Offer",
+          "instruction": "Parle à Mathieu et accepte la mission.",
+          "command": "E",
+          "validation": "Accepter la mission dans le dialogue.",
+          "next": "M_I_TUTORIEL_1",
+          "requirement": "",
+          "guide": false,
+          "optional": false,
+          "resolved": 2,
+          "finished": 0,
+          "total": 5
+        }
+      }
+    },
+    {
+      "name": "Village initial après la cinématique",
+      "browserFrames": 1589,
+      "browserFps": 132.26456241988384,
+      "medianMs": 5.600000000005821,
+      "p95Ms": 11.200000000011642,
+      "p99Ms": 16.5,
+      "mainThreadMs": 11981.935,
+      "scriptMs": 11704.337000000003,
+      "longTasks": 0,
+      "wasmPeakMiB": 382.375,
+      "jsPeakMiB": 302.1028137207031,
+      "runtime": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "chapterPacks": "07:pending,08:pending",
+        "elapsed": 54.367095947265625,
+        "frameMs": 7.0890092849731445,
+        "paused": false,
+        "touch": false,
+        "film": false,
+        "position": {
+          "x": 351.924072265625,
+          "y": 11.840607643127441,
+          "z": 278.20233154296875
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "diagnostic": {
+        "type": "diagnostic",
+        "yaw": 59.33151626586914,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 141.0634307861328,
+        "navRebuildMs": 136,
+        "touches": 0,
+        "allocatedMiB": 257,
+        "performance": {
+          "fps": 143.42630004882812,
+          "medianMs": 7,
+          "p95Ms": 8,
+          "p99Ms": 13,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 257,
+          "peakMiB": 268,
+          "reservedMiB": 275,
+          "gcBytes": -1,
+          "drawCalls": 433,
+          "setPassCalls": 55,
+          "triangles": 446387,
+          "frames": 180,
+          "profile": 1,
+          "animatedActors": 20
+        },
+        "gps": {
+          "enabled": true,
+          "visible": false,
+          "mapRouteVisible": true,
+          "recalculating": false,
+          "mode": "complet",
+          "objective": "mathieu",
+          "state": "OBJECTIVE_REACHED",
+          "lastHidden": "INITIALISATION",
+          "status": "Objectif atteint",
+          "routeId": 15,
+          "navMeshRevision": 2,
+          "topologyRevision": 2,
+          "points": 3,
+          "meshTriangles": 0,
+          "meshUpdates": 0,
+          "routeChanges": 15,
+          "hiddenCount": 0,
+          "calculations": 15,
+          "calculationsPerMinute": 15,
+          "totalLength": 0.41778042912483215,
+          "visibleLength": 0,
+          "safeLength": 0.41778042912483215,
+          "calculationMs": 0,
+          "meshMs": 0,
+          "progress": 0,
+          "nextPoint": {
+            "x": 351.63372802734375,
+            "y": 11.788263320922852,
+            "z": 278.3937072753906
+          }
+        },
+        "sst": {
+          "phase": "Exited",
+          "feedback": "",
+          "marker": "mathieu",
+          "intro": false,
+          "completed": false,
+          "markerVisible": true,
+          "nextTablet": 0,
+          "linked": 0
+        },
+        "objective": {
+          "quest": "M_I_TUTORIEL",
+          "action": "quest:offer:M_I_TUTORIEL",
+          "target": "mathieu",
+          "site": "Mathieu",
+          "helper": "mathieu",
+          "giver": "mathieu",
+          "phase": "Offer",
+          "instruction": "Parle à Mathieu et accepte la mission.",
+          "command": "E",
+          "validation": "Accepter la mission dans le dialogue.",
+          "next": "M_I_TUTORIEL_1",
+          "requirement": "",
+          "guide": false,
+          "optional": false,
+          "resolved": 2,
+          "finished": 0,
+          "total": 5
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "browser": "156.0.8078.4",
+  "startup": {
+    "readyAt": 9440.200000047684,
+    "playerAt": 11194.400000095367,
+    "events": [
+      {
+        "type": "ready",
+        "at": 9418.300000071526
+      },
+      {
+        "type": "BROWSER_ACK",
+        "at": 9429.300000071526
+      },
+      {
+        "type": "GAME_STARTING",
+        "at": 9555.200000047684
+      },
+      {
+        "type": "GAME_STARTED",
+        "at": 9772
+      }
+    ],
+    "wasmPeakMiB": 382.375,
+    "jsPeakMiB": 454.64410305023193,
+    "longTasks": [
+      {
+        "at": 27.700000047683716,
+        "ms": 68
+      },
+      {
+        "at": 5262.900000095367,
+        "ms": 1129
+      },
+      {
+        "at": 8417.100000023842,
+        "ms": 996
+      },
+      {
+        "at": 9551.700000047684,
+        "ms": 221
+      }
+    ]
+  },
+  "renderer": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "status": "passed"
+}

@@ -1,0 +1,53 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Retour de visibilité et reprise des commandes",
+      "value": true
+    },
+    {
+      "name": "Pointer Lock obtenu par clic puis libéré",
+      "value": true
+    },
+    {
+      "name": "20 cycles Échap, Réglages, croix et Reprendre",
+      "value": true
+    },
+    {
+      "name": "Dylan a bougé",
+      "value": 0.30058708364207454
+    },
+    {
+      "name": "Sauvegarde reprise dans le même profil navigateur",
+      "value": true
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

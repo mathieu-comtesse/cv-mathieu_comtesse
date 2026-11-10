@@ -84,15 +84,33 @@ namespace UngaBunga45001
         {
             if(safeArea==null||campaign?.State==null)return;var safe=Screen.safeArea;safeArea.anchorMin=safe.min/new Vector2(Screen.width,Screen.height);safeArea.anchorMax=safe.max/new Vector2(Screen.width,Screen.height);safeArea.offsetMin=safeArea.offsetMax=Vector2.zero;
             if(!Active){if(mobileLayout){foreach(var action in restore)action();restore.Clear();mobileLayout=false;}return;}
-            if(!mobileLayout){foreach(var name in new[]{"Portrait et survie","Minimap encadrée","Inventaire rapide","Quête suivie","Conseil des Sages","Aides contextuelles","États actifs","Interaction ciblée","SousTitres"}){var r=Find(name);if(r==null)continue;var pos=r.anchoredPosition;var scale=r.localScale;var size=r.sizeDelta;bool enabled=r.gameObject.activeSelf;var text=r.GetComponent<TMP_Text>();float fontSize=text!=null?text.fontSize:0;restore.Add(()=>{r.anchoredPosition=pos;r.localScale=scale;r.sizeDelta=size;r.gameObject.SetActive(enabled);if(text!=null)text.fontSize=fontSize;});}var hotbar=Find("Inventaire rapide");if(hotbar!=null)restore.Add(()=>{foreach(Transform child in hotbar)child.gameObject.SetActive(true);});mobileLayout=true;}
+            if(!mobileLayout){foreach(var name in new[]{"Portrait et survie","Minimap encadrée","Inventaire rapide","Quête suivie","Conseil des Sages","Aides contextuelles","États actifs","Interaction ciblée","SousTitres","Notification temporaire"}){var r=Find(name);if(r==null)continue;var pos=r.anchoredPosition;var scale=r.localScale;var size=r.sizeDelta;bool enabled=r.gameObject.activeSelf;var text=r.GetComponent<TMP_Text>();float fontSize=text!=null?text.fontSize:0;restore.Add(()=>{r.anchoredPosition=pos;r.localScale=scale;r.sizeDelta=size;r.gameObject.SetActive(enabled);if(text!=null)text.fontSize=fontSize;});}var hotbar=Find("Inventaire rapide");if(hotbar!=null)restore.Add(()=>{foreach(Transform child in hotbar)child.gameObject.SetActive(true);});mobileLayout=true;}
             float u=Units;surface.sizeDelta=menuSurface.sizeDelta=Viewport;surface.localScale=menuSurface.localScale=Vector3.one*u;rotation.localScale=resume.localScale=skipFilm.localScale=Vector3.one*u;
             int topIndex=0;foreach(RectTransform button in menuSurface){int i=topIndex++;button.anchoredPosition=Viewport.x<760?new Vector2(i%2==0?-54:54,-10-i/2*52):new Vector2(-156+i*104,-10);}
             var subtitles=Find("SousTitres");if(subtitles!=null)subtitles.GetComponent<TMP_Text>().fontSize=16*u;
             var nativeSkip=Find("Passer la cinématique");if(nativeSkip!=null)nativeSkip.gameObject.SetActive(false);
             void Layout(string name,Vector2 position,float scale){var r=Find(name);if(r==null)return;r.anchoredPosition=position*u;r.localScale=Vector3.one*(u*scale);}
             Layout("Portrait et survie",new Vector2(12,-12),.36f);Layout("Minimap encadrée",new Vector2(-12,-12),112/205f);
+            Layout("Notification temporaire",new Vector2(0,Viewport.x<760?-225:-160),.55f);
             Layout("Inventaire rapide",new Vector2(12,153),44/62f);var bar=Find("Inventaire rapide");if(bar!=null){bar.sizeDelta=new Vector2(272,75);for(int i=0;i<8;i++)bar.GetChild(i).gameObject.SetActive(i<4);}
-            var quest=Find("Quête suivie");if(quest!=null){quest.anchoredPosition=new Vector2(-12,-140)*u;quest.sizeDelta=new Vector2(190,100)*u;quest.localScale=Vector3.one;var text=quest.GetComponent<TMP_Text>();text.fontSize=16*u;var nav=campaign.GetComponent<QuestNavigationController>();text.text="<b>"+campaign.CurrentAct.title+"</b>\n"+nav.Action?.title+"\n"+nav.Distance.ToString("0")+" m";}
+            var quest=Find("Quête suivie");
+            if(quest!=null)
+            {
+                bool compact=Viewport.x<760;
+                float width=compact?Mathf.Clamp(Viewport.x-340,120,356):356;
+                float right=compact?124:(Viewport.x-width)/2;
+                quest.anchoredPosition=new Vector2(-right,compact?-122:-60)*u;
+                quest.sizeDelta=new Vector2(width,112)*u;quest.localScale=Vector3.one;
+                var text=quest.GetComponent<TMP_Text>();text.fontSize=13*u;
+                var step=campaign.Objectives.Current;var nav=campaign.GetComponent<QuestNavigationController>();
+                text.text=step?.Action==null?step?.Requirement??campaign.CurrentAct.title:
+                    "<b>"+(step.Optional?"OBJECTIF FACULTATIF":"MISSION PRINCIPALE")+
+                    (step.Total>0?" · "+step.Finished+"/"+step.Total:"")+"</b>\n"+
+                    (step.Quest==null?"":step.Quest.title+"\n")+step.Title+"\n"+step.Site+
+                    (nav.Distance<=.1f?" · à portée":" · "+nav.Distance.ToString("0")+" m")+
+                    "\n"+step.Verb+" · "+QuestGuidanceV243.Command(settings,step.Phase)+
+                    (!nav.Complete&&!nav.Replanning&&nav.Target!=null?"\n"+nav.Status:"");
+            }
             var timer=Find("Conseil des Sages");if(timer!=null)timer.gameObject.SetActive(false);var hints=Find("Aides contextuelles");if(hints!=null)hints.gameObject.SetActive(false);var state=Find("États actifs");if(state!=null)state.gameObject.SetActive(false);
             var prompt=Find("Interaction ciblée");if(prompt!=null)prompt.gameObject.SetActive(false);
         }

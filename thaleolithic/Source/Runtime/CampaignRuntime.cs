@@ -66,7 +66,7 @@ namespace UngaBunga45001
                     locks |= activity.Current.mode == "assemble" ? ControlLocks.SSTAssembly : ControlLocks.Activity;
                 if (MenhirActive) locks |= ControlLocks.Activity;
                 if (IsBusy) locks |= ControlLocks.Busy;
-                if (cinematicDirector?.IsPlaying == true || GetComponent<ConstructionFilmV19>()?.Playing == true ||
+                if (cinematicDirector?.IsPlaying == true || activity?.IntroPlaying == true || GetComponent<ConstructionFilmV19>()?.Playing == true ||
                     GetComponent<VillageUpgradeV18>()?.Presenting == true) locks |= ControlLocks.Cinematic;
                 if (Ending != null) locks |= ControlLocks.GameOver;
                 return locks;
@@ -314,9 +314,22 @@ namespace UngaBunga45001
             if(action.minimumCompetence>0&&(State.characters.Find(c=>c.id==(actingCharacterId??Data.playerCharacterId))?.competence??0)<action.minimumCompetence){reason="Compétence nécessaire : "+action.minimumCompetence.ToString("0");return false;}
             if (!CurrentActAction(action)) { reason = "Cette action appartient à un autre acte."; return false; }
             if (!action.repeatable && State.completedActions.Contains(action.id)) { reason = "Action déjà réalisée."; return false; }
-            if (!FlagsMatch(action.requiredFlags, action.forbiddenFlags)) { reason = "Observe, consulte et prépare les conditions requises."; return false; }
+            if (!FlagsMatch(action.requiredFlags, action.forbiddenFlags))
+            {
+                string required = action.requiredFlags?.FirstOrDefault(flag => !HasFlag(flag));
+                if (required != null && required.StartsWith("done:", StringComparison.Ordinal))
+                    reason = "Termine d’abord « " + (FindAction(required.Substring(5))?.title ?? required.Substring(5)) + " ».";
+                else if (required == "structure:accessClosed") reason = "Suspends d’abord l’accès à la charpente.";
+                else reason = "Consulte la consigne de cette étape et ses preuves requises dans le journal.";
+                return false;
+            }
             if (action.dangerous && Value("stat", "fatigue") >= 80) { reason = "Fatigue élevée : organise un repos avant cette intervention."; return false; }
-            foreach (var cost in action.costs) if (Value("resource", cost.id) < cost.amount) { reason = "Ressource nécessaire : " + cost.id; return false; }
+            foreach (var cost in action.costs) if (Value("resource", cost.id) < cost.amount)
+            {
+                string resource = cost.id switch { "wood" => "bois", "stone" => "pierre", "food" => "nourriture", "knowledge" => "savoir", _ => cost.id };
+                reason = $"Il manque {cost.amount - Value("resource", cost.id):0.##} unité(s) de {resource}.";
+                return false;
+            }
             var actor = State.characters.Find(c => c.id == action.targetBindingId);
             if (actor != null && (!actor.alive || !actor.available)) { reason = "Ce personnage n'est plus disponible. Affecte un remplaçant compétent."; return false; }
             return true;
@@ -325,7 +338,7 @@ namespace UngaBunga45001
         {
             var action = FindAction(id);
             if (!CanExecute(action, out string reason)) { Inform(reason); return; }
-            if(action.interactionType=="ActivityV17"){GetComponent<CampaignActivitiesV17>().Begin(id);return;}
+            if(action.interactionType=="ActivityV17"){GetComponent<CampaignActivitiesV17>().BeginFromWorld(id);return;}
             if(id.StartsWith("upgrade:v18:")){GetComponent<VillageUpgradeViewV18>().Show(id.Substring(12));return;}
             if(action.interactionType=="Document"){OpenCareRegister();return;}
             if(id==MenhirActionId||id==MenhirReplayId){GetComponent<MenhirDuel>().Begin(id==MenhirReplayId);return;}
@@ -344,7 +357,7 @@ namespace UngaBunga45001
         {
             var available=ActionsFor(bindingId).Where(a=>!a.id.StartsWith("travel:",StringComparison.Ordinal)).OrderBy(a=>InteractionContextResolver.Resolve(this,a).priority).ToArray();
             if(available.Length==0){Inform("Aucune action disponible ici pour le moment.");return;}
-            ConversationActorId=State.characters.Any(c=>c.id==bindingId)?bindingId:"mathieu";actionMenuBinding=bindingId;actionMenuPage=Mathf.Clamp(page,0,(available.Length-1)/4);
+            ConversationActorId=bindingId;actionMenuBinding=bindingId;actionMenuPage=Mathf.Clamp(page,0,(available.Length-1)/4);
             var choices=available.Skip(actionMenuPage*4).Take(4).Select(a=>new ChoiceDefinition{id="interaction:action:"+a.id,text=a.title,actionId=a.id}).ToList();
             if(actionMenuPage>0)choices.Add(new ChoiceDefinition{id="interaction:previous",text="Page précédente"});
             if((actionMenuPage+1)*4<available.Length)choices.Add(new ChoiceDefinition{id="interaction:next",text="Page suivante"});
@@ -402,6 +415,7 @@ namespace UngaBunga45001
         public void Apply(EffectDefinition effect)
         {
             if (string.IsNullOrEmpty(effect.target) || !FlagsMatch(effect.requiredFlags, effect.forbiddenFlags)) return;
+            if(effect.kind!="stat")objectiveResolver?.Invalidate();
             if (effect.kind == "flag") { if (effect.value > 0 && !HasFlag(effect.target)) State.flags.Add(effect.target); else if (effect.value <= 0) State.flags.Remove(effect.target); return; }
             if(effect.kind=="accident"){GetComponent<AccidentDirector>()?.Request(effect.target);return;}
             if (effect.kind == "evidence") { if (!State.evidence.Contains(effect.target)) State.evidence.Add(effect.target); return; }
@@ -429,11 +443,13 @@ namespace UngaBunga45001
             }
             var list = Values(effect.kind); if (list == null) { Debug.LogError("Effet inconnu : " + effect.kind, this); return; }
             var value = list.Find(v => v.id == effect.target); if (value == null) { value = new NamedValue(effect.target, 0); list.Add(value); }
+            float before = value.value;
             value.value = effect.operation == "add" ? value.value + effect.value : effect.value;
             if (effect.kind == "stat") { var definition = Data.stats.FirstOrDefault(v => v.id == effect.target); value.value = Mathf.Clamp(value.value, definition?.min ?? 0, definition?.max ?? 100); }
             if (effect.kind == "resource") value.value = Mathf.Max(0, value.value);
             if(effect.kind=="stat")
             {
+                if(effect.target=="fatigue"&&(before>=80)!=(value.value>=80))objectiveResolver?.Invalidate();
                 var player=State.characters.Find(c=>c.id==Data.playerCharacterId);if(player!=null)switch(effect.target){case "life":player.life=value.value;break;case "energy":player.energy=value.value;break;case "fatigue":player.fatigue=value.value;break;case "food":player.hunger=100-value.value;break;}
             }
         }

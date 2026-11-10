@@ -24,7 +24,7 @@ namespace UngaBunga45001
    if(!VillageNavigation.HearthSafe(from+delta,body.radius)){delta=Vector3.zero;FireStops++;agent.ResetPath();}
    falling=body.isGrounded?-2:Mathf.Max(-18,falling-22*Time.deltaTime);var collisions=body.Move(delta+Vector3.up*falling*Time.deltaTime);var moved=transform.position-from;Velocity=moved/Mathf.Max(.001f,Time.deltaTime);agent.nextPosition=transform.position;
    if((collisions&CollisionFlags.Sides)!=0&&delta.sqrMagnitude>.000001f&&new Vector2(moved.x,moved.z).magnitude<delta.magnitude*.35f)blocked+=Time.deltaTime;else blocked=0;
-   if(blocked>.55f){blocked=0;BlockedSteps++;agent.ResetPath();if(Time.time>=rebuildAt){campaign.GetComponent<VillageNavigation>()?.RequestRebuild();rebuildAt=Time.time+4;}}
+   if(blocked>.55f){blocked=0;BlockedSteps++;agent.ResetPath();if(Time.time>=rebuildAt){campaign.GetComponent<VillageNavigation>()?.RequestRebuild(topologyChanged:false);rebuildAt=Time.time+4;}}
   }
  }
 }

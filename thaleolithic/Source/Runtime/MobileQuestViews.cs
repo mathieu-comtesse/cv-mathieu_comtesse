@@ -29,7 +29,12 @@ namespace UngaBunga45001
             Portrait(p,44,9,54);Text(p,"PNJ",84,15,size.x-150,27,campaign.CharacterName(q.giverId).ToUpperInvariant(),19,AdventureUI.Gold);Text(p,"Titre",84,43,size.x-150,46,q.title,17,AdventureUI.Paper);
             if(!compact)Button(p,"X",size.x-65,10,55,45,campaign.CloseQuest);
             bool showBody=!compact&&size.x>=600;float column=showBody?Mathf.Max(280,size.x-220):size.x-32;var body=MobileScroll(p,16,99,column,size.y-169,560+q.actionIds.Length*29);
-            Text(body,"Description",0,0,column-12,76,state.validated?q.completion:q.description,16);float y=85;
+            var step=campaign.Objectives.ForQuest(q);
+            string summary=state.validated?q.completion:state.accepted&&step?.Action!=null?
+                $"{step.Title} · {step.Site}\n{step.Instruction}":step?.Requirement??q.description;
+            var description=Text(body,"Description",0,0,column-12,120,summary,16);
+            float y=Mathf.Max(85,description.GetPreferredValues(summary,column-12,0).y+12);
+            description.rectTransform.sizeDelta=new Vector2(column-12,y-6);
             Text(body,"GOAL",0,y,column-12,28,"GOAL",18,AdventureUI.Gold);y+=35;
             foreach(var id in q.actionIds){bool done=campaign.State.completedActions.Contains(id);AdventureUI.Shape(AdventureUI.Rect(body,"État objectif",new Vector2(0,1),new Vector2(0,1),new Vector2(1,-y-4),new Vector2(10,12)),done?new Color(.5f,.86f,.6f):AdventureUI.Gold,done?"check":"diamond");Text(body,"Objectif",19,y,column-32,44,campaign.FindAction(id)?.title??id,16,done?new Color(.59f,.88f,.62f):AdventureUI.Paper);y+=46;}
             Text(body,"Progression",0,y,column-10,25,$"{state.completedObjectives.Length}/{q.actionIds.Length} objectifs réalisés",14);y+=34;Text(body,"REWARDS",0,y,column-10,27,"REWARDS",18,AdventureUI.Gold);y+=34;
@@ -52,7 +57,8 @@ namespace UngaBunga45001
                 else if(state.status==QuestStatus.READY_TO_VALIDATE&&campaign.Near(q.giverId)){label="Vérifier les résultats";callback=()=>campaign.ValidateQuest(q.id);}
                 else if(state.claimed){label="Revenir au village";callback=campaign.CloseQuest;}
                 else if(!state.accepted){label="Rejoindre le référent";callback=()=>{campaign.TrackQuest(q.id);};}
-                else{label="Suivre la quête";callback=()=>campaign.TrackQuest(q.id);}
+                else if(step?.Action!=null){label="Guider vers l’activité";callback=()=>{campaign.TrackQuest(q.id);GetComponent<QuestNavigationController>().Follow(step.Action.id);};}
+                else{label="Voir le prérequis";callback=()=>campaign.Inform(step?.Requirement??"Consulte le journal de la mission.");}
                 Button(p,label,16,size.y-60,size.x-32,48,callback,true);
             }
         }
