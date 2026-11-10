@@ -7,8 +7,8 @@
    Fenêtre : id, kind, title, step, a (largeur/hauteur de l'image), src + big (WebP affiché / haute définition), alt, caption (légende + provenance),
    box { x, y, w } en % de la scène (sinon cascade automatique), fit ('contain' par défaut), badge (texte de l'étiquette, sinon par statut). */
 const IMG = (slug, n) => ({ src: `assets/showcase/${slug}/${n}.webp`, big: `assets/showcase/${slug}/${n}-hd.webp` });
-const NIS = 'Interface locale Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : écran sans rapport chargé, elle ne prouve pas un traitement. ';
-const V11 = 'Interface locale Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
+const NIS = 'Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : écran sans rapport chargé, elle ne prouve pas un traitement. ';
+const V11 = 'Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
 const FIC = 'Capture de la page de démonstration publiée du projet, données fictives. ';
 export const SHOWCASE = {
   /* 1. Point financier : trois animations pédagogiques (interface reconstituée, données financières fictives), jamais présentées comme des écrans de production */
