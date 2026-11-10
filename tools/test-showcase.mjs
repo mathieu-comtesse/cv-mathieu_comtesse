@@ -10,6 +10,8 @@ const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsaf
 const { SHOWCASE } = await import('../refonte/showcase/config.mjs');
 for (const w of WIDTHS) {
   const ctx = await b.newContext({ viewport: { width: w, height: w < 700 ? 844 : 900 }, hasTouch: w < 700 }), p = await ctx.newPage(); p.setDefaultTimeout(60000);
+  /* la page réécrit les chemins d'assets vers l'origine publique (https://comtesse.me/assets/…) : les médias des vitrines, pas encore déployés, sont servis depuis le dépôt local */
+  await ctx.route('https://comtesse.me/assets/showcase/**', (route) => { const f = path.join(root, new URL(route.request().url()).pathname); fs.existsSync(f) ? route.fulfill({ body: fs.readFileSync(f), contentType: T[path.extname(f)] || 'application/octet-stream' }) : route.fulfill({ status: 404, body: '' }); });
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest`, { waitUntil: 'domcontentloaded' }); await p.waitForFunction(() => window.__scTest, null, { timeout: 90000 }); await p.waitForTimeout(6000);
   for (const [slug, cfg] of Object.entries(SHOWCASE)) {
