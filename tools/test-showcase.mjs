@@ -27,12 +27,12 @@ for (const w of WIDTHS) {
       }, [slug, step]);
       r.wins.forEach((e) => { if (e.l < -1 || e.t < -1 || e.r > r.W + 1 || e.b > r.H + 1) fail.push(`${tag} étape ${step} : « ${e.id} » dépasse la scène (${e.l},${e.t},${e.r},${e.b} / ${r.W}x${r.H})`); const want = step >= e.step; if (e.on !== want) fail.push(`${tag} étape ${step} : « ${e.id} » ${e.on ? 'visible trop tôt' : 'absente'}`); });
       if (String(r.sel) !== String(step)) fail.push(`${tag} étape ${step} : onglet sélectionné ${r.sel}`);
-      if (step === 1 && r.shown !== 0) fail.push(`${tag} étape 1 : la console ne devrait pas avoir commencé (${r.shown} lignes)`);
-      if (step === N && r.shown !== r.total) fail.push(`${tag} dernière étape : console incomplète (${r.shown}/${r.total})`);
-      if (cfg.windows.some((x) => x.status === 'authentic') && step === 1 && !r.imgs.every((i) => i.src && i.nat > 0)) await p.waitForTimeout(1500);
+      if (step === 1 && r.total && r.shown !== 0) fail.push(`${tag} étape 1 : la console ne devrait pas avoir commencé (${r.shown} lignes)`);
+      if (step === N && r.total && r.shown !== r.total) fail.push(`${tag} dernière étape : console incomplète (${r.shown}/${r.total})`);
+      if (cfg.windows.some((x) => x.src) && step === 1 && !r.imgs.every((i) => i.src && i.nat > 0)) await p.waitForTimeout(1500);
     }
     /* captures réelles : chargées, agrandissables ; emplacements : jamais présentés comme des captures */
-    const auth = cfg.windows.filter((x) => x.status === 'authentic');
+    const auth = cfg.windows.filter((x) => x.src && x.status !== 'missing');
     for (const a of auth) {
       const loaded = await p.evaluate(([s, id]) => { const i = document.querySelector(`[data-showcase="${s}"] .sc-win[data-id="${id}"] img`); return i && i.complete && i.naturalWidth > 0; }, [slug, a.id]);
       if (!loaded) fail.push(`${tag} : capture réelle « ${a.id} » non chargée (${a.src})`);
@@ -49,6 +49,10 @@ for (const w of WIDTHS) {
     /* un emplacement ne réagit pas au clic (pas de faux agrandissement) */
     await p.evaluate((s) => document.querySelector(`[data-showcase="${s}"] .sc-win[data-status="missing"]`)?.click(), slug); await p.waitForTimeout(150);
     if (await p.evaluate(() => document.querySelector('dialog.sc-zoom')?.open)) fail.push(`${tag} : un emplacement « à fournir » ouvre un agrandissement`);
+    /* ordonnancement : une fois la page immobile (1,4 s sans mouvement), plus aucune image demandée */
+    await p.waitForTimeout(2200); await p.evaluate(() => window.__scTest.reset()); await p.waitForTimeout(1500);
+    const idle = await p.evaluate(() => ({ ticks: window.__scTest.ticks(), active: window.__scTest.active() }));
+    if (idle.ticks > 2 || idle.active) fail.push(`${tag} : la boucle des vitrines tourne alors que la page est immobile (${idle.ticks} images demandées en 1,5 s)`);
     ok++; console.log('ok    ', tag);
   }
   if (errs.length) fail.push(`${w} : erreurs JavaScript : ${errs.slice(0, 2).join(' | ')}`);
