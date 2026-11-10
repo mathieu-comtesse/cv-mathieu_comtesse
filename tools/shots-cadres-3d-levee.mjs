@@ -13,7 +13,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
   const p = await ctx.newPage(); await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest`, { waitUntil: 'domcontentloaded' }); await p.waitForFunction(() => window.__cvParity, null, { timeout: 90000 }); await p.waitForTimeout(9000);
   const shot = async (name) => { await p.waitForTimeout(3200); await p.screenshot({ path: path.join(OUT, `${TAG}-${name}-${w}.jpg`), type: 'jpeg', quality: 82 }); };
   /* l'accueil : les trois cartes du héros se dressent au défilement (c'est l'état de la référence : modules épais et grand mot latéral) */
-  for (const [name, f] of [['hero-debut', .18], ['hero-leve', .38], ['hero-fin', .62]]) { await p.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), f * h); await shot(name); }
+  for (const [name, f] of [['hero-debut', .18], ['hero-leve', .38], ['hero-fin', .62]].filter(([n]) => !process.env.ONLY || process.env.ONLY.split(',').includes(n))) { await p.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), f * h); await shot(name); }
   await ctx.close();
 }
 await b.close(); srv.close();
