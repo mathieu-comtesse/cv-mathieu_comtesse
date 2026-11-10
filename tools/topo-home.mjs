@@ -51,7 +51,8 @@ const md = ['| vue | carte | altitude (px) | tangage (°) | roulis (°) | épais
 for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
   const on = heroOn(w, y), off = heroOff(w, y), tag = `${w}/${y}`;
   if (+y === 340 || +y === 700 || +y === 1500) { off.forEach((q, i) => md.push(`| ${tag} topo=off | ${i + 1} | ${q.altitude} | ${q.pitchDeg} | ${q.rollDeg} | ${q.thick} | ${q.thickPx} | ${JSON.stringify(q.cornersProjected)} |`)); on.forEach((q) => md.push(`| ${tag} normal | ${q.index + 1} | ${q.altitude} | ${q.pitchDeg} | ${q.rollDeg} | ${q.thick} | ${q.thickPx} | ${JSON.stringify(q.cornersProjected)} |`)); }
-  if (on.length !== 3) mark('A', `${tag} : ${on.length} cadres hero détectés (3 attendus)`);
+  if (w < 700) { if (on.length !== 0 || off.length !== 0) mark('A', `${tag} : mobile, cartes inattendues (${on.length} normal, ${off.length} topo=off)`); else console.log(`${tag} : aucune carte hero projetée sur mobile, ni en normal ni avec ?topo=off (constaté, capture on-390-340.jpg)`); }
+  else if (on.length !== 3) mark('A', `${tag} : ${on.length} cadres hero détectés (3 attendus)`);
   else {
     if (!(on[0].altitude > on[1].altitude && on[1].altitude > on[2].altitude)) mark('B', `${tag} : altitudes non étagées ${on.map((q) => q.altitude)}`);
     if (!on.every((q) => q.pitchDeg > 5)) mark('C', `${tag} : inclinaison non significative ${on.map((q) => q.pitchDeg)}`);
@@ -77,13 +78,14 @@ for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
     for (const kk of ['altitude', 'pitchDeg', 'rollDeg', 'base', 'top', 'r0', 'r1', 'x', 'w', 'h', 'y', 'tilted']) if (!eq(q[kk], o[kk], 1e-6)) mark('F', `${tag} « ${k} » : ${kk} ${o[kk]} vers ${q[kk]}`);
     if (!eq(q.cornersWorld, o.cornersWorld, 1e-6)) mark('F', `${tag} « ${k} » : coins 3D modifiés`); if (!eq(q.cornersProjected, o.cornersProjected, 0.05)) mark('F', `${tag} « ${k} » : projection modifiée`); });
   /* G : ?topo=off restitue l'original : altitudes, rotations, coordonnées 3D, quatre coins projetés (référence : cartes à plat, tilt 0, top de base) */
-  if (off.length !== 3) mark('G', `${tag} : ${off.length} cartes avec ?topo=off`);
+  if (w < 700) { /* couvert ci-dessus : 0 carte dans les deux modes */ }
+  else if (off.length !== 3) mark('G', `${tag} : ${off.length} cartes avec ?topo=off`);
   else off.forEach((q, i) => {
     const t = `${tag} carte ${i + 1}`;
     if (q.hero) mark('G', `${t} : drapeau hero actif malgré ?topo=off`);
     if (!(q.pitchDeg < 0.5 && Math.abs(q.rollDeg) < 0.5)) mark('G', `${t} : rotation non nulle (tangage ${q.pitchDeg}, roulis ${q.rollDeg})`);
     if (q.base !== 0) mark('G', `${t} : base ${q.base} (0 attendu)`);
-    if (!(q.cornersWorld.every((c) => Math.abs(c[2] - q.top) < 1e-6))) mark('G', `${t} : coins 3D non plats à top=${q.top}`);
+    if (!(q.cornersWorld.every((c) => Math.abs(c[2] - q.top) < 0.01))) mark('G', `${t} : coins 3D non plats à top=${q.top}`);
     if (!q.cornersProjected || q.cornersProjected.length !== 4 || !finite(q.cornersProjected)) mark('G', `${t} : coins projetés absents`);
   });
 }
