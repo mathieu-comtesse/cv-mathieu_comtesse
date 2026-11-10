@@ -41,7 +41,7 @@ for (let r = 0; r < REPS; r++) for (const mode of r % 2 ? ['apres', 'avant'] : [
   a = await snap(p); await p.evaluate(() => document.querySelector('[data-showcase="projet-cerfa"] .sc-tabs button[data-go="3"]').click()); await p.waitForTimeout(2000); out.etape = diff(a, await snap(p));
   /* ouverture d'une capture */
   a = await snap(p); await p.evaluate(() => document.querySelector('[data-showcase="projet-cerfa"] .sc-win[role="button"]').click()); await p.waitForTimeout(2000); out.capture = diff(a, await snap(p)); await p.keyboard.press('Escape');
-  res[mode].push(out); await ctx.close();
+  res[mode].push(out); console.error('fait :', mode, JSON.stringify(out).slice(0, 160)); await ctx.close();
 }
 await b.close(); srv.close();
 const med = (xs) => { const s = [...xs].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
