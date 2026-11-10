@@ -12,7 +12,8 @@ const snap = (p) => p.evaluate(() => ({ view: (({ T, offset, pitch, fov, rise })
 for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] of [[1440, 900], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700 }); await ctx.route('https://comtesse.me/assets/showcase/**', (route) => { const f = path.join(root, new URL(route.request().url()).pathname); fs.existsSync(f) ? route.fulfill({ body: fs.readFileSync(f), contentType: T[path.extname(f)] }) : route.fulfill({ status: 404, body: '' }); });
   const p = await ctx.newPage(); await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest${qs}`, { waitUntil: 'domcontentloaded' });
-  await p.waitForFunction(() => window.__cvParity?.boxes && window.__cvParity.project(), null, { timeout: 180000 }); await p.waitForTimeout(6000);
+  await p.waitForFunction(() => window.__cvParity?.boxes, null, { timeout: 120000 }); await p.waitForTimeout(8000); await p.evaluate(() => scrollTo({ top: 340, behavior: 'instant' }));   // la boucle de rendu ne démarre qu'après un premier défilement
+  await p.waitForFunction(() => window.__cvParity.project() && window.__cvParity.boxes().length > 0, null, { timeout: 120000 }); await p.waitForTimeout(3000);
   for (const y of (w > 700 ? SCROLLS : [340, 1500])) {
     await p.evaluate((yy) => scrollTo({ top: yy, behavior: 'instant' }), y); await p.waitForTimeout(2200);
     (res[mode][w] ||= {})[y] = await snap(p);
