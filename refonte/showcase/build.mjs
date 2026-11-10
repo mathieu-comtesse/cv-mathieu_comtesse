@@ -10,8 +10,8 @@ const ratio = (a) => { const [w, h] = String(a).split('/').map(Number); return w
 const hOf = (w, a) => w / (ratio(a) * .625) + 5;
 /* cascade automatique : les fenêtres s'empilent en diagonale, la dernière au premier plan ; tout reste dans la scène par construction */
 function cascade(wins) {
-  const n = wins.length, w = n > 4 ? 52 : 56, stepX = n > 1 ? Math.min(9.5, (98 - w - 2) / (n - 1)) : 0;
-  const hmax = Math.max(...wins.map((x) => hOf(w, x.a))), stepY = n > 1 ? Math.max(0, Math.min(8.5, (96 - 3 - hmax) / (n - 1))) : 0;
+  const n = wins.length, w = n > 4 ? 52 : n > 3 ? 56 : 60, stepX = n > 1 ? Math.min(n > 3 ? 9.5 : 16, (98 - w - 2) / (n - 1)) : 0;   // peu de fenêtres : plus grandes, pour montrer de vrais écrans
+  const hmax = Math.max(...wins.map((x) => hOf(w, x.a))), stepY = n > 1 ? Math.max(0, Math.min(n > 3 ? 8.5 : 14, (96 - 3 - hmax) / (n - 1))) : 0;
   return wins.map((x, i) => ({ ...x, box: x.box || { x: +(2 + i * stepX).toFixed(1), y: +(3 + i * stepY).toFixed(1), w } }));
 }
 const box = (b, a) => `--x:${b.x}%;--y:${b.y}%;--w:${b.w}%;--a:${a}`;
