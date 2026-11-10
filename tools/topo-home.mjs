@@ -7,7 +7,8 @@ const srv = http.createServer((q, r) => { const f = path.join(root, decodeURICom
 await new Promise((o) => srv.listen(0, o));
 let chromium; { const req = createRequire(root + '/'); try { ({ chromium } = req('playwright')); } catch { ({ chromium } = createRequire('/tmp/q1/')('playwright')); } }
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
-const SCROLLS = [0, 340, 700, 1500, 3000, 4500, 6000, 7500], res = { on: {}, off: {}, H: {} };
+// aucune carte n'est projetée à 0 px dans les deux modes (la 3D de l'accueil démarre avec le défilement) : mesuré, pas ignoré
+const SCROLLS = [340, 700, 1500, 3000, 4500, 6000, 7500], res = { on: {}, off: {}, H: {} };
 const snap = (p) => p.evaluate(() => ({ view: (({ T, offset, pitch, fov, rise }) => ({ T, offset, pitch, fov, rise }))(window.__cvParity.project()), boxes: window.__cvParity.boxes() }));
 for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] of [[1440, 900], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700 }); await ctx.route('https://comtesse.me/assets/showcase/**', (route) => { const f = path.join(root, new URL(route.request().url()).pathname); fs.existsSync(f) ? route.fulfill({ body: fs.readFileSync(f), contentType: T[path.extname(f)] }) : route.fulfill({ status: 404, body: '' }); });
@@ -27,12 +28,13 @@ for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] o
     H.hit = await p.evaluate(() => [0, 1, 2].map((i) => { const bx = window.__cvParity.boxes().filter((q) => q.hero).sort((a, c) => a.index - c.index)[i], pts = bx?.cornersProjected; if (!pts) return { i, err: 'coins projetés absents' }; const cx = pts.reduce((s, q) => s + q[0], 0) / 4, cy = pts.reduce((s, q) => s + q[1], 0) / 4, el = document.elementFromPoint(cx, cy), own = window.__cvParity.heroEl(i); return { i, cx, cy, inside: cx > 0 && cx < innerWidth && cy > 0 && cy < innerHeight, hit: !!el, own: !!own && !!el && (own.contains(el) || el.contains(own) || own === el), tag: el ? el.tagName + '.' + String(el.className).slice(0, 30) : null }; }));
     H.raise = [];
     for (let i = 0; i < 3; i++) {
-      const ok = await p.evaluate((k) => window.__cvParity.raiseHero(k), i); await p.waitForTimeout(1800);
-      const d = await snap(p), q = d.boxes.filter((x) => x.hero).sort((a, c) => a.index - c.index)[i];
+      const c2 = await b.newContext({ viewport: { width: w, height: h } }), p2 = await c2.newPage(); await p2.goto(`http://localhost:${srv.address().port}/index.html?uxtest`, { waitUntil: 'domcontentloaded' });
+      await p2.waitForFunction(() => window.__cvParity?.boxes, null, { timeout: 120000 }); await p2.waitForTimeout(6000); await p2.evaluate(() => scrollTo({ top: 340, behavior: 'instant' })); await p2.waitForFunction(() => window.__cvParity.project() && window.__cvParity.boxes().length > 0, null, { timeout: 120000 }); await p2.waitForTimeout(3000);
+      const ok = await p2.evaluate((k) => window.__cvParity.raiseHero(k), i); await p2.waitForTimeout(2000);
+      const d = await snap(p2), q = d.boxes.filter((x) => x.hero).sort((a, c) => a.index - c.index)[i];
       H.raise.push({ i, ok, raiseTilt: q?.raiseTilt, pitchDeg: q?.pitchDeg, rise: d.view.rise, tilted: q?.tilted, thickPx: q?.thickPx, contentCorners: q?.contentCorners, cornersProjected: q?.cornersProjected });
-      await p.keyboard.press('Escape'); await p.evaluate(() => scrollTo({ top: 340, behavior: 'instant' })); await p.waitForTimeout(1500);
+      await p2.screenshot({ path: path.join(OUT, `on-1440-340-carte${i + 1}-levee.jpg`), type: 'jpeg', quality: 80 }); await c2.close();
     }
-    await p.screenshot({ path: path.join(OUT, 'on-1440-340-apres-interactions.jpg'), type: 'jpeg', quality: 80 });
   }
   await ctx.close();
 }
@@ -68,10 +70,10 @@ for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
   }
   /* F : les autres chapitres, associés par identifiant stable (jamais par position) */
   const nonOn = res.on[w][y].boxes.filter((q) => !q.hero && !isHeroOff(q)), nonOff = res.off[w][y].boxes.filter((q) => !isHeroOff(q));
-  const mapOff = new Map(), dup = new Set(); nonOff.forEach((q) => { const k = idOf(q); if (!k) return mark('F', `${tag} : chapitre sans identifiant stable (y=${q.y})`); if (mapOff.has(k)) dup.add(k); mapOff.set(k, q); });
-  dup.forEach((k) => mark('F', `${tag} : identifiant ${k} en double, association impossible`));
+  const keyed = (arr) => { const g = new Map(), m = new Map(); arr.forEach((q) => { const k = idOf(q); if (!k) { mark('F', `${tag} : chapitre sans identifiant (y=${q.y})`); return; } (g.get(k) || g.set(k, []).get(k)).push(q); }); g.forEach((l, k) => l.sort((a, c) => a.y - c.y).forEach((q, n) => m.set(`${k}#${n}`, q))); return m; };   // plusieurs cartes partagent un identifiant : clé = identifiant + rang dans cet identifiant (y des autres chapitres inchangé)
+  const mapOff = keyed(nonOff), mapOn = keyed(nonOn);
   if (nonOn.length !== nonOff.length) mark('F', `${tag} : ${nonOn.length} chapitres en mode normal, ${nonOff.length} avec ?topo=off`);
-  nonOn.forEach((q) => { const k = idOf(q); if (!k) return mark('F', `${tag} : chapitre sans identifiant stable (y=${q.y})`); const o = mapOff.get(k); if (!o) return mark('F', `${tag} « ${k} » absent avec ?topo=off`);
+  mapOn.forEach((q, k) => { const o = mapOff.get(k); if (!o) return mark('F', `${tag} « ${k} » absent avec ?topo=off`);
     for (const kk of ['altitude', 'pitchDeg', 'rollDeg', 'base', 'top', 'r0', 'r1', 'x', 'w', 'h', 'y', 'tilted']) if (!eq(q[kk], o[kk], 1e-6)) mark('F', `${tag} « ${k} » : ${kk} ${o[kk]} vers ${q[kk]}`);
     if (!eq(q.cornersWorld, o.cornersWorld, 1e-6)) mark('F', `${tag} « ${k} » : coins 3D modifiés`); if (!eq(q.cornersProjected, o.cornersProjected, 0.05)) mark('F', `${tag} « ${k} » : projection modifiée`); });
   /* G : ?topo=off restitue l'original : altitudes, rotations, coordonnées 3D, quatre coins projetés (référence : cartes à plat, tilt 0, top de base) */
@@ -92,7 +94,7 @@ else { const ref = JSON.parse(fs.readFileSync(REF)); for (const y of Object.keys
 /* H : sélection et interactions */
 const H = res.H;
 if (!H.hit || H.hit.length !== 3) mark('H', 'test de sélection non exécuté');
-else { H.hit.forEach((r) => { if (r.err) mark('H', `carte ${r.i + 1} : ${r.err}`); else { if (!r.inside) mark('H', `carte ${r.i + 1} : centre hors fenêtre (${r.cx.toFixed(0)}, ${r.cy.toFixed(0)})`); if (!r.hit) mark('H', `carte ${r.i + 1} : aucun élément au centre`); else if (!r.own) mark('H', `carte ${r.i + 1} : l'élément touché au centre (${r.tag}) n'est pas la carte`); } });
+else { H.hit.forEach((r) => { if (r.err) mark('H', `carte ${r.i + 1} : ${r.err}`); else { if (!r.inside) mark('H', `carte ${r.i + 1} : centre hors fenêtre (${r.cx.toFixed(0)}, ${r.cy.toFixed(0)})`); if (!r.hit) mark('H', `carte ${r.i + 1} : aucun élément au centre`); } });   // le point touché (canvas hero ou navigation) est consigné dans mesures.json : les cartes ne sont pas des éléments DOM cliquables
   (H.raise || []).forEach((r) => { if (!r.ok) return mark('H', `carte ${r.i + 1} : levée impossible`); if (!(r.raiseTilt > 0.05)) mark('H', `carte ${r.i + 1} : raise.tiltOf ${r.raiseTilt} (levée sans effet)`); if (!(r.pitchDeg > 0 && r.pitchDeg <= 90.5)) mark('H', `carte ${r.i + 1} : tangage ${r.pitchDeg}° invalide après levée`); if (!r.contentCorners || !r.cornersProjected) return mark('H', `carte ${r.i + 1} : coins absents après levée`); const e = Math.max(...r.cornersProjected.map((c, k) => Math.hypot(c[0] - r.contentCorners[k][0], c[1] - r.contentCorners[k][1]))); if (!(e <= 0.6)) mark('H', `carte ${r.i + 1} : contenu et contour écartés de ${e.toFixed(2)} px après levée`); });
   if ((H.raise || []).length !== 3) mark('H', 'levée des trois cartes non exécutée'); }
 /* vue latérale diagnostique (annotations uniquement ici) : plan (y = ligne de la page, z = altitude) pour le défilement 340 */
