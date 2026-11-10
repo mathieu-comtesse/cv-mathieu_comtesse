@@ -14,6 +14,9 @@
  "states": {
   "0": [
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -31,6 +34,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -48,6 +54,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -65,6 +74,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -82,6 +94,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -99,6 +114,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -116,6 +134,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -133,6 +154,9 @@
     "text": "Start for free"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "figcaption",
     "cls": "flex-none px-4 pt-4 pb-7 font-mono text-mono text-pretty",
     "size": 12,
@@ -150,6 +174,9 @@
     "text": "1B+ products in our catalog can get disc"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "figcaption",
     "cls": "flex-none px-4 pt-4 pb-7 font-mono text-mono text-pretty",
     "size": 12,
@@ -167,6 +194,9 @@
     "text": "400M+ shoppers with Shop Pay accounts"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "figcaption",
     "cls": "flex-none px-4 pt-4 pb-7 font-mono text-mono text-pretty",
     "size": 12,
@@ -184,6 +214,9 @@
     "text": "Shopify Payments prevents 12K+ high-risk"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "hero-tagline -mt-12 ml-auto max-w-2/3 text-right font-mono t",
     "size": 11,
@@ -201,6 +234,9 @@
     "text": "Everything new for non-linear growth"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -218,6 +254,9 @@
     "text": "Agentic"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -235,6 +274,9 @@
     "text": "01"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -252,6 +294,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -269,6 +314,9 @@
     "text": "02"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -286,6 +334,9 @@
     "text": "Online"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -303,6 +354,9 @@
     "text": "03"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -320,6 +374,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -337,6 +394,9 @@
     "text": "04"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -354,6 +414,9 @@
     "text": "Retail"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -371,6 +434,9 @@
     "text": "05"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -388,6 +454,9 @@
     "text": "Payments"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -405,6 +474,9 @@
     "text": "06"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -422,6 +494,9 @@
     "text": "Operations"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -439,6 +514,9 @@
     "text": "07"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -456,6 +534,9 @@
     "text": "Shop"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -473,6 +554,9 @@
     "text": "08"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -490,6 +574,9 @@
     "text": "Marketing"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -507,6 +594,9 @@
     "text": "09"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -524,6 +614,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -541,6 +634,9 @@
     "text": "10"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-8 underline-metrics group",
     "size": 11,
@@ -558,6 +654,9 @@
     "text": "Developer"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "relative z-1 justify-self-start pr-6 opacity-60 group-hover:",
     "size": 11,
@@ -575,6 +674,9 @@
     "text": "11"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -592,6 +694,9 @@
     "text": "Agentic"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -609,6 +714,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -626,6 +734,9 @@
     "text": "Online"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -643,6 +754,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -660,6 +774,9 @@
     "text": "Retail"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -670,13 +787,16 @@
     "family": "Sohne Mono",
     "maxW": "none",
     "lines": 1,
-    "x": 1045,
+    "x": 1046,
     "y": 272,
     "w": 69,
     "h": 14,
     "text": "Payments"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -687,13 +807,16 @@
     "family": "Sohne Mono",
     "maxW": "none",
     "lines": 1,
-    "x": 869,
+    "x": 868,
     "y": 807,
     "w": 82,
     "h": 14,
     "text": "Operations"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -711,6 +834,9 @@
     "text": "Shop"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -728,6 +854,9 @@
     "text": "Marketing"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -745,6 +874,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -762,6 +894,9 @@
     "text": "Developer"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "group-data-[truncated]:block group-data-[truncated]:max-w-[2",
     "size": 11,
@@ -779,6 +914,9 @@
     "text": "Exponential Socks"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -796,6 +934,9 @@
     "text": "16"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -813,6 +954,9 @@
     "text": "12"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -830,6 +974,9 @@
     "text": "17"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -841,12 +988,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 656,
-    "y": 641,
+    "y": 640,
     "w": 12,
     "h": 13,
     "text": "20"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -864,6 +1014,9 @@
     "text": "30"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -874,13 +1027,16 @@
     "family": "Sohne Mono",
     "maxW": "none",
     "lines": 1,
-    "x": 939,
+    "x": 938,
     "y": 803,
     "w": 12,
     "h": 13,
     "text": "23"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -892,12 +1048,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 849,
-    "y": 283,
+    "y": 282,
     "w": 12,
     "h": 13,
     "text": "10"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -915,6 +1074,9 @@
     "text": "19"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 10,
     "tag": "span",
     "cls": "ms-4 align-super text-mono-sm leading-none text-white/60",
     "size": 10,
@@ -934,6 +1096,9 @@
   ],
   "405": [
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -951,6 +1116,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -968,6 +1136,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -985,6 +1156,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -1002,6 +1176,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -1019,6 +1196,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -1036,6 +1216,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -1055,6 +1238,9 @@
   ],
   "990": [
    {
+    "role": "grand-titre",
+    "proj": 1,
+    "visible": 120,
     "tag": "h2",
     "cls": "text-section-title global-lg:text-section-title-desktop focu",
     "size": 120,
@@ -1072,6 +1258,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -1089,6 +1278,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -1106,6 +1298,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -1123,6 +1318,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -1140,6 +1338,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -1157,6 +1358,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -1174,6 +1378,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -1191,6 +1398,9 @@
     "text": "Start for free"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1208,6 +1418,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1225,6 +1438,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1242,6 +1458,9 @@
     "text": "Online"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1259,6 +1478,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1276,6 +1498,9 @@
     "text": "Retail"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1293,6 +1518,9 @@
     "text": "Payments"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1310,6 +1538,9 @@
     "text": "Operations"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1327,6 +1558,9 @@
     "text": "Shop"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1344,6 +1578,9 @@
     "text": "Marketing"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1361,6 +1598,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1378,6 +1618,9 @@
     "text": "Developer"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "border-b border-current/5 pr-16 pb-8 text-current/70",
     "size": 11,
@@ -1397,6 +1640,9 @@
   ],
   "1800": [
    {
+    "role": "grand-titre",
+    "proj": 1,
+    "visible": 120,
     "tag": "h2",
     "cls": "text-section-title global-lg:text-section-title-desktop focu",
     "size": 120,
@@ -1414,6 +1660,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -1431,6 +1680,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -1448,6 +1700,9 @@
     "text": "Shop skill for any agent"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -1465,6 +1720,9 @@
     "text": "Give ChatGPT, Claude, or other agents"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 18,
@@ -1482,6 +1740,9 @@
     "text": "shop.md"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 18,
@@ -1499,6 +1760,9 @@
     "text": "Shop Pay"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -1516,6 +1780,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -1533,6 +1800,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -1550,6 +1820,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -1567,6 +1840,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -1584,6 +1860,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -1601,6 +1880,9 @@
     "text": "Start for free"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1618,6 +1900,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1635,6 +1920,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1652,6 +1940,9 @@
     "text": "Online"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1669,6 +1960,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1686,6 +1980,9 @@
     "text": "Retail"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1703,6 +2000,9 @@
     "text": "Payments"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1720,6 +2020,9 @@
     "text": "Operations"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1737,6 +2040,9 @@
     "text": "Shop"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1754,6 +2060,9 @@
     "text": "Marketing"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1771,6 +2080,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -1788,6 +2100,9 @@
     "text": "Developer"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "button",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
@@ -1805,6 +2120,9 @@
     "text": "Copy prompt"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "border-b border-current/5 pr-16 pb-8 text-current/70",
     "size": 11,
@@ -1822,6 +2140,9 @@
     "text": "Notes"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "absolute top-8 left-0 text-current/60",
     "size": 11,
@@ -1839,6 +2160,9 @@
     "text": "[1]"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "",
     "size": 11,
@@ -1856,6 +2180,9 @@
     "text": "All the tools we used to create this ski"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 11,
@@ -1873,6 +2200,9 @@
     "text": "shop.dev"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "absolute top-8 left-0 text-current/60",
     "size": 11,
@@ -1890,6 +2220,9 @@
     "text": "[2]"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 11,
@@ -1907,6 +2240,9 @@
     "text": "Shop Pay"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "",
     "size": 11,
@@ -1926,6 +2262,9 @@
   ],
   "3150": [
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -1943,6 +2282,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -1960,6 +2302,9 @@
     "text": "Store preview in agents"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -1977,6 +2322,9 @@
     "text": "Start building a store with"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 18,
@@ -1994,6 +2342,9 @@
     "text": "Shopify CLI"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -2011,6 +2362,9 @@
     "text": "Digital products in agents"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -2028,6 +2382,9 @@
     "text": "Give a digital file to Claude, ChatGPT, "
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -2045,6 +2402,9 @@
     "text": "Product sourcing in agents"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -2062,6 +2422,9 @@
     "text": "Describe what you want to sell in ChatGP"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 18,
@@ -2079,6 +2442,9 @@
     "text": "Shopify Collective"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -2096,6 +2462,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -2113,6 +2482,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -2130,6 +2502,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -2147,6 +2522,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -2164,6 +2542,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -2181,6 +2562,9 @@
     "text": "Start for free"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -2191,13 +2575,16 @@
     "family": "Inter",
     "maxW": "none",
     "lines": 1,
-    "x": 874,
-    "y": 20,
+    "x": 870,
+    "y": 22,
     "w": 194,
     "h": 8,
     "text": "I'm looking for an espresso machine that"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 13.8,
     "tag": "span",
     "cls": "",
     "size": 13.8,
@@ -2215,6 +2602,9 @@
     "text": "Connect Muse"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2232,6 +2622,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2249,6 +2642,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2266,6 +2662,9 @@
     "text": "Online"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2283,6 +2682,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2300,6 +2702,9 @@
     "text": "Retail"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2317,6 +2722,9 @@
     "text": "Payments"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2334,6 +2742,9 @@
     "text": "Operations"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2351,6 +2762,9 @@
     "text": "Shop"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2368,6 +2782,9 @@
     "text": "Marketing"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2385,6 +2802,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -2402,6 +2822,9 @@
     "text": "Developer"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "a",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
@@ -2419,6 +2842,9 @@
     "text": "Read dev docs"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "a",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
@@ -2436,6 +2862,9 @@
     "text": "Read help doc"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "a",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
@@ -2453,6 +2882,9 @@
     "text": "Read what's new"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "border-b border-current/5 pr-16 pb-8 text-current/70",
     "size": 11,
@@ -2470,6 +2902,9 @@
     "text": "Notes"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "span",
     "cls": "absolute top-8 left-0 text-current/60",
     "size": 11,
@@ -2487,6 +2922,9 @@
     "text": "[1]"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 11,
     "tag": "p",
     "cls": "",
     "size": 11,
@@ -2504,6 +2942,9 @@
     "text": "All the tools for adding Shop Pay to any"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 11,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 11,
@@ -2521,6 +2962,9 @@
     "text": "shop.dev"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8.4,
     "tag": "span",
     "cls": "",
     "size": 8.4,
@@ -2538,6 +2982,9 @@
     "text": "shop.app"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8,
     "tag": "span",
     "cls": "",
     "size": 8,
@@ -2549,12 +2996,15 @@
     "maxW": "none",
     "lines": 4,
     "x": 897,
-    "y": 2,
+    "y": -37,
     "w": 145,
     "h": 43,
     "text": "I'm looking for an espresso machine that"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8,
     "tag": "span",
     "cls": "",
     "size": 8,
@@ -2565,13 +3015,16 @@
     "family": "Shopify Inter",
     "maxW": "none",
     "lines": 1,
-    "x": 811,
-    "y": 80,
-    "w": 124,
-    "h": 11,
+    "x": 812,
+    "y": 38,
+    "w": 150,
+    "h": 14,
     "text": "Let me find you some options"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8,
     "tag": "span",
     "cls": "",
     "size": 8,
@@ -2583,12 +3036,15 @@
     "maxW": "none",
     "lines": 3,
     "x": 925,
-    "y": 380,
+    "y": 342,
     "w": 104,
     "h": 32,
     "text": "I want the Maison Espresso Machine in th"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8,
     "tag": "span",
     "cls": "",
     "size": 8,
@@ -2600,12 +3056,15 @@
     "maxW": "none",
     "lines": 2,
     "x": 809,
-    "y": 592,
+    "y": 553,
     "w": 116,
     "h": 18,
     "text": "Pulling up your order summary now for yo"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8,
     "tag": "span",
     "cls": "",
     "size": 8,
@@ -2617,12 +3076,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 846,
-    "y": 823,
+    "y": 785,
     "w": 19,
     "h": 10,
     "text": "Total"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 8,
     "tag": "span",
     "cls": "",
     "size": 8,
@@ -2634,12 +3096,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 936,
-    "y": 824,
+    "y": 785,
     "w": 55,
     "h": 10,
     "text": "Total: $523.95"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7.9,
     "tag": "span",
     "cls": "",
     "size": 7.9,
@@ -2657,6 +3122,9 @@
     "text": "Review permissions before connecting"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7.9,
     "tag": "span",
     "cls": "",
     "size": 7.9,
@@ -2674,6 +3142,9 @@
     "text": "Connect"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7.5,
     "tag": "span",
     "cls": "",
     "size": 7.5,
@@ -2685,12 +3156,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 837,
-    "y": 463,
+    "y": 425,
     "w": 101,
     "h": 10,
     "text": "Shop Pay"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7.5,
     "tag": "span",
     "cls": "",
     "size": 7.5,
@@ -2702,12 +3176,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 862,
-    "y": 493,
+    "y": 455,
     "w": 31,
     "h": 10,
     "text": "Connect"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7.5,
     "tag": "span",
     "cls": "",
     "size": 7.5,
@@ -2719,12 +3196,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 869,
-    "y": 850,
+    "y": 811,
     "w": 19,
     "h": 10,
     "text": "Deny"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7.5,
     "tag": "span",
     "cls": "",
     "size": 7.5,
@@ -2736,12 +3216,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 948,
-    "y": 851,
+    "y": 813,
     "w": 20,
     "h": 7,
     "text": "Allow"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2753,12 +3236,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 199,
+    "y": 161,
     "w": 78,
     "h": 8,
     "text": "Maison Espresso Machine"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2770,12 +3256,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 230,
+    "y": 192,
     "w": 69,
     "h": 8,
     "text": "Lido Espresso Machine"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2787,12 +3276,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 262,
+    "y": 223,
     "w": 72,
     "h": 8,
     "text": "Bellamy Espresso Maker"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2804,12 +3296,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 293,
+    "y": 254,
     "w": 62,
     "h": 8,
     "text": "Osti Semi-Automatic"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2821,12 +3316,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 814,
-    "y": 327,
+    "y": 289,
     "w": 114,
     "h": 8,
     "text": "View all"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2838,12 +3336,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 839,
-    "y": 683,
+    "y": 644,
     "w": 32,
     "h": 9,
     "text": "Checkout"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 7,
     "tag": "span",
     "cls": "",
     "size": 7,
@@ -2855,12 +3356,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 868,
-    "y": 793,
+    "y": 755,
     "w": 52,
     "h": 9,
     "text": "Visa •••• 4242"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.9,
     "tag": "span",
     "cls": "",
     "size": 6.9,
@@ -2878,6 +3382,9 @@
     "text": "james@email.com"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.9,
     "tag": "span",
     "cls": "",
     "size": 6.9,
@@ -2895,6 +3402,9 @@
     "text": "View contact information"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.9,
     "tag": "span",
     "cls": "",
     "size": 6.9,
@@ -2912,6 +3422,9 @@
     "text": "Prepare checkouts"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.9,
     "tag": "span",
     "cls": "",
     "size": 6.9,
@@ -2929,6 +3442,9 @@
     "text": "Use wallet for payment"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.9,
     "tag": "span",
     "cls": "",
     "size": 6.9,
@@ -2946,6 +3462,9 @@
     "text": "Approve payment requests"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.9,
     "tag": "span",
     "cls": "",
     "size": 6.9,
@@ -2963,6 +3482,9 @@
     "text": "Get order information"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.6,
     "tag": "span",
     "cls": "",
     "size": 6.6,
@@ -2974,12 +3496,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 864,
-    "y": 708,
+    "y": 669,
     "w": 82,
     "h": 8,
     "text": "Maison Espresso Machine"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.6,
     "tag": "span",
     "cls": "",
     "size": 6.6,
@@ -2991,12 +3516,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 867,
-    "y": 741,
+    "y": 703,
     "w": 100,
     "h": 8,
     "text": "Free Delivery by Monday, Nov 2"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.6,
     "tag": "span",
     "cls": "",
     "size": 6.6,
@@ -3008,12 +3536,75 @@
     "maxW": "none",
     "lines": 1,
     "x": 867,
-    "y": 768,
+    "y": 729,
     "w": 55,
     "h": 8,
     "text": "stella@email.com"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
+    "tag": "span",
+    "cls": "",
+    "size": 6.1,
+    "lh": 8,
+    "lhRatio": 1.31,
+    "weight": "400",
+    "ls": "normal",
+    "family": "Shopify Inter",
+    "maxW": "none",
+    "lines": 1,
+    "x": 843,
+    "y": 169,
+    "w": 20,
+    "h": 6,
+    "text": "Cocotte"
+   },
+   {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
+    "tag": "span",
+    "cls": "",
+    "size": 6.1,
+    "lh": 8,
+    "lhRatio": 1.31,
+    "weight": "400",
+    "ls": "normal",
+    "family": "Shopify Inter",
+    "maxW": "none",
+    "lines": 1,
+    "x": 843,
+    "y": 177,
+    "w": 21,
+    "h": 6,
+    "text": "$499.00"
+   },
+   {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
+    "tag": "span",
+    "cls": "",
+    "size": 6.1,
+    "lh": 8,
+    "lhRatio": 1.31,
+    "weight": "400",
+    "ls": "normal",
+    "family": "Shopify Inter",
+    "maxW": "none",
+    "lines": 1,
+    "x": 843,
+    "y": 200,
+    "w": 28,
+    "h": 6,
+    "text": "Casa Ferro"
+   },
+   {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3026,11 +3617,14 @@
     "lines": 1,
     "x": 843,
     "y": 208,
-    "w": 20,
+    "w": 21,
     "h": 6,
-    "text": "Cocotte"
+    "text": "$495.00"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3042,12 +3636,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 216,
-    "w": 21,
+    "y": 232,
+    "w": 27,
     "h": 6,
-    "text": "$499.00"
+    "text": "Dune & Co"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3060,62 +3657,14 @@
     "lines": 1,
     "x": 843,
     "y": 239,
-    "w": 28,
-    "h": 6,
-    "text": "Casa Ferro"
-   },
-   {
-    "tag": "span",
-    "cls": "",
-    "size": 6.1,
-    "lh": 8,
-    "lhRatio": 1.31,
-    "weight": "400",
-    "ls": "normal",
-    "family": "Shopify Inter",
-    "maxW": "none",
-    "lines": 1,
-    "x": 843,
-    "y": 247,
-    "w": 21,
-    "h": 6,
-    "text": "$495.00"
-   },
-   {
-    "tag": "span",
-    "cls": "",
-    "size": 6.1,
-    "lh": 8,
-    "lhRatio": 1.31,
-    "weight": "400",
-    "ls": "normal",
-    "family": "Shopify Inter",
-    "maxW": "none",
-    "lines": 1,
-    "x": 843,
-    "y": 270,
-    "w": 27,
-    "h": 6,
-    "text": "Dune & Co"
-   },
-   {
-    "tag": "span",
-    "cls": "",
-    "size": 6.1,
-    "lh": 8,
-    "lhRatio": 1.31,
-    "weight": "400",
-    "ls": "normal",
-    "family": "Shopify Inter",
-    "maxW": "none",
-    "lines": 1,
-    "x": 843,
-    "y": 278,
     "w": 21,
     "h": 6,
     "text": "$680.00"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3127,12 +3676,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 301,
+    "y": 263,
     "w": 39,
     "h": 6,
     "text": "Morning Works"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3144,12 +3696,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 843,
-    "y": 309,
+    "y": 271,
     "w": 25,
     "h": 6,
     "text": "$1,200.00"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3161,12 +3716,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 864,
-    "y": 718,
+    "y": 679,
     "w": 41,
     "h": 7,
     "text": "Qty: 1 • Forest"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 6.1,
     "tag": "span",
     "cls": "",
     "size": 6.1,
@@ -3178,12 +3736,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 878,
-    "y": 805,
+    "y": 767,
     "w": 27,
     "h": 7,
     "text": "Shop Pay"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.9,
     "tag": "span",
     "cls": "",
     "size": 5.9,
@@ -3201,6 +3762,9 @@
     "text": "Name, email, phone, and addresses"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.9,
     "tag": "span",
     "cls": "",
     "size": 5.9,
@@ -3218,6 +3782,9 @@
     "text": "Pre-fill with contact info, phone, and a"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.9,
     "tag": "span",
     "cls": "",
     "size": 5.9,
@@ -3235,6 +3802,9 @@
     "text": "Use an eligible saved payment method at "
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.9,
     "tag": "span",
     "cls": "",
     "size": 5.9,
@@ -3252,6 +3822,9 @@
     "text": "Allow Muse to approve payment requests o"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.9,
     "tag": "span",
     "cls": "",
     "size": 5.9,
@@ -3269,6 +3842,9 @@
     "text": "Order details, tracking status, and retu"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.6,
     "tag": "span",
     "cls": "",
     "size": 5.6,
@@ -3280,12 +3856,15 @@
     "maxW": "none",
     "lines": 2,
     "x": 881,
-    "y": 538,
+    "y": 500,
     "w": 95,
     "h": 11,
     "text": "To help you buy this item, your order in"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.6,
     "tag": "span",
     "cls": "",
     "size": 5.6,
@@ -3297,12 +3876,15 @@
     "maxW": "none",
     "lines": 1,
     "x": 948,
-    "y": 544,
+    "y": 506,
     "w": 27,
     "h": 5,
     "text": "Learn more"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.6,
     "tag": "span",
     "cls": "",
     "size": 5.6,
@@ -3314,12 +3896,15 @@
     "maxW": "none",
     "lines": 2,
     "x": 847,
-    "y": 871,
+    "y": 832,
     "w": 144,
     "h": 13,
     "text": "By continuing, you agree to Cocottes’s t"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.6,
     "tag": "span",
     "cls": "",
     "size": 5.6,
@@ -3331,12 +3916,15 @@
     "maxW": "none",
     "lines": 2,
     "x": 886,
-    "y": 871,
+    "y": 832,
     "w": 104,
     "h": 13,
     "text": "privacy policy"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.6,
     "tag": "span",
     "cls": "",
     "size": 5.6,
@@ -3348,14 +3936,37 @@
     "maxW": "none",
     "lines": 1,
     "x": 916,
-    "y": 878,
+    "y": 839,
     "w": 34,
     "h": 6,
     "text": "return policy"
+   },
+   {
+    "role": "autre",
+    "proj": 1,
+    "visible": 5.6,
+    "tag": "span",
+    "cls": "",
+    "size": 5.6,
+    "lh": 7,
+    "lhRatio": 1.25,
+    "weight": "400",
+    "ls": "normal",
+    "family": "Shopify Inter",
+    "maxW": "none",
+    "lines": 1,
+    "x": 855,
+    "y": 919,
+    "w": 147,
+    "h": 7,
+    "text": "You’ve approved Muse’s purchase from Coc"
    }
   ],
   "4950": [
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -3373,6 +3984,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -3390,6 +4004,9 @@
     "text": "Your business details in AI channels"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -3407,6 +4024,9 @@
     "text": "Review and approve the facts that get sh"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -3424,6 +4044,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -3441,6 +4064,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -3458,6 +4084,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -3475,6 +4104,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -3492,6 +4124,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -3509,6 +4144,9 @@
     "text": "Start for free"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3526,6 +4164,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3543,6 +4184,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3560,6 +4204,9 @@
     "text": "Online"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3577,6 +4224,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3594,6 +4244,9 @@
     "text": "Retail"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3611,6 +4264,9 @@
     "text": "Payments"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3628,6 +4284,9 @@
     "text": "Operations"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3645,6 +4304,9 @@
     "text": "Shop"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3662,6 +4324,9 @@
     "text": "Marketing"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3679,6 +4344,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -3696,6 +4364,9 @@
     "text": "Developer"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "a",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
@@ -3715,6 +4386,9 @@
   ],
   "7200": [
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "-translate-y-full absolute z-10 flex h-full px-20 items-cent",
     "size": 18,
@@ -3732,6 +4406,9 @@
     "text": "Skip to main content"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -3749,6 +4426,9 @@
     "text": "Recommendations tested by Sidekick"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -3766,6 +4446,9 @@
     "text": "Review proposed improvements to your sto"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 18,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 18,
@@ -3783,6 +4466,9 @@
     "text": "SimGym"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 18,
     "tag": "h3",
     "cls": "trim-cap font-sans font-medium global-lg:text-body-lg",
     "size": 18,
@@ -3800,6 +4486,9 @@
     "text": "Guidance from Sidekick on more of your s"
    },
    {
+    "role": "description",
+    "proj": 1,
+    "visible": 18,
     "tag": "p",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 18,
@@ -3817,6 +4506,9 @@
     "text": "Get recommendations for growth opportuni"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "",
     "size": 14,
@@ -3834,6 +4526,9 @@
     "text": "Shopify Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "span",
     "cls": "opacity-60",
     "size": 14,
@@ -3851,6 +4546,9 @@
     "text": "Fall ’26"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -3868,6 +4566,9 @@
     "text": "Editions"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "button",
     "cls": "navButton text-label-1 [&>.icon]:transition-colors [&>.icon]",
     "size": 14,
@@ -3885,6 +4586,9 @@
     "text": "Search"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "navButton text-label-1",
     "size": 14,
@@ -3902,6 +4606,9 @@
     "text": "Shopify.com"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "roundedButton text-label-1",
     "size": 14,
@@ -3919,6 +4626,9 @@
     "text": "Start for free"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -3936,6 +4646,9 @@
     "text": "Make a plan, approve once, and watch Sid"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -3953,6 +4666,9 @@
     "text": "multiple changes"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -3970,6 +4686,9 @@
     "text": "Chat with Sidekick from a floating promp"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -3987,6 +4706,9 @@
     "text": "redesigned admin"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -4004,6 +4726,9 @@
     "text": "When you open the admin, your"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4021,6 +4746,9 @@
     "text": "personalized recommendations"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -4038,6 +4766,9 @@
     "text": "Ask Sidekick to create or edit"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4055,6 +4786,9 @@
     "text": "draft orders"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -4072,6 +4806,9 @@
     "text": "Upload or generate a design with Sidekic"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4089,6 +4826,9 @@
     "text": "print-on-demand"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -4106,6 +4846,9 @@
     "text": "Ask Sidekick a"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4123,6 +4866,9 @@
     "text": "pricing question"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4140,6 +4886,9 @@
     "text": "Shopify Smart Pricing"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -4157,6 +4906,9 @@
     "text": "Ask Sidekick why a"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4174,6 +4926,9 @@
     "text": "payout"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4191,6 +4946,9 @@
     "text": "Shopify Payments"
    },
    {
+    "role": "titre-cadre",
+    "proj": 1,
+    "visible": 14,
     "tag": "h3",
     "cls": "trim-cap space-y-8 text-pretty [&_li+li]:mt-8 [&_ol]:list-de",
     "size": 14,
@@ -4208,6 +4966,9 @@
     "text": "Build and optimize customizations in the"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4225,6 +4986,9 @@
     "text": "checkout and accounts editor"
    },
    {
+    "role": "autre",
+    "proj": 1,
+    "visible": 14,
     "tag": "a",
     "cls": "inline-link-decoration focus-visible:outline-2 focus-visible",
     "size": 14,
@@ -4242,6 +5006,9 @@
     "text": "Checkout Blocks"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4259,6 +5026,9 @@
     "text": "Agentic"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4276,6 +5046,9 @@
     "text": "Sidekick"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4293,6 +5066,9 @@
     "text": "Online"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4310,6 +5086,9 @@
     "text": "Merchandising"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4327,6 +5106,9 @@
     "text": "Retail"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4344,6 +5126,9 @@
     "text": "Payments"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4361,6 +5146,9 @@
     "text": "Operations"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4378,6 +5166,9 @@
     "text": "Shop"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4395,6 +5186,9 @@
     "text": "Marketing"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4412,6 +5206,9 @@
     "text": "Fulfillment"
    },
    {
+    "role": "navigation",
+    "proj": 1,
+    "visible": 12,
     "tag": "span",
     "cls": "trim-cap min-w-0 flex-1 wrap-anywhere underline-metrics tran",
     "size": 12,
@@ -4429,6 +5226,9 @@
     "text": "Developer"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "a",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
@@ -4446,6 +5246,9 @@
     "text": "Read help doc"
    },
    {
+    "role": "legende",
+    "proj": 1,
+    "visible": 12,
     "tag": "a",
     "cls": "button-control cursor-pointer focus-visible:outline-2 focus-",
     "size": 12,
