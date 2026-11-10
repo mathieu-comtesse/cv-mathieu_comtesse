@@ -50,6 +50,6 @@ for (const m of html.matchAll(START)) {
 }
 html = out.join('') + html.slice(at);
 /* feuille de style et script de la vitrine : ajoutés une seule fois (idempotent) */
-if (!html.includes('refonte/showcase.css')) html = html.replace('</head>', '<link rel="stylesheet" href="refonte/showcase.css?v=sc1"><script type="module" src="refonte/showcase.js?v=sc1"></script></head>');
+if (!html.includes('refonte/showcase.css')) { const tags = '<link rel="stylesheet" href="refonte/showcase.css?v=sc1"><script type="module" src="refonte/showcase.js?v=sc1"></script>', at0 = html.indexOf('<!-- seo:start -->'); html = at0 > 0 ? html.slice(0, at0) + tags + '\n' + html.slice(at0) : html.replace('</head>', tags + '</head>'); }   // avant le bloc SEO (tools/seo-build.mjs, à relancer ensuite)
 writeFileSync(new URL('index.html', ROOT), html);
 console.log(count + ' projets repris des fiches → index.html');

@@ -22,7 +22,7 @@ export const SHOWCASE = {
       { id: 'xl', kind: 'excel', title: 'Excel · suivi', step: 3, box: { x: 3, y: 52, w: 47 }, a: '16/10', status: 'missing',
         need: 'Classeur de suivi avec la ligne retrouvée et la cellule renseignée.', anonymize: 'références d’équipement, noms de sites, données personnelles' }
     ],
-    console: { title: 'Reporteur Q18', step: 2, box: { x: 56, y: 6, w: 41 }, a: '16/11' }
+    console: { title: 'Reporteur Q18', step: 2, box: { x: 56, y: 4, w: 41 }, a: '16/11' }
   },
   /* Cadre qui prouve le chemin « captures authentiques » : deux captures réelles de l'outil CERFA (données fictives de démonstration). */
   'projet-cerfa': {
@@ -32,9 +32,9 @@ export const SHOWCASE = {
     windows: [
       { id: 'a', kind: 'app', title: 'Extracteur CERFA · dépôt', step: 1, box: { x: 2, y: 6, w: 50 }, a: '1280/900', status: 'authentic',
         src: 'assets/media/demo-cerfa-poster.jpg', alt: 'Interface de l’extracteur CERFA : dépôt des fiches, aucun fichier chargé.', caption: 'Écran de dépôt de l’outil (données de démonstration).' },
-      { id: 'b', kind: 'app', title: 'Extracteur CERFA · parc extrait', step: 3, box: { x: 42, y: 30, w: 54 }, a: '720/506', status: 'authentic',
+      { id: 'b', kind: 'app', title: 'Extracteur CERFA · parc extrait', step: 3, box: { x: 46, y: 38, w: 50 }, a: '720/506', status: 'authentic',
         src: 'assets/projets/cerfa.jpg', alt: 'Interface de l’extracteur CERFA : fiches lues, indicateurs et tableau du parc.', caption: 'Résultat de la lecture : indicateurs et tableau du parc (données de démonstration).' }
     ],
-    console: { title: 'Extracteur CERFA', step: 2, box: { x: 54, y: 4, w: 43 }, a: '16/10' }
+    console: { title: 'Extracteur CERFA', step: 2, box: { x: 2, y: 68, w: 42 }, a: '16/6' }
   }
 };
