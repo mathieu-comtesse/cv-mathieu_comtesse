@@ -921,7 +921,7 @@ async function startMachines(){
     const item={host,preview:true,machine:{},scene:room.scene,camera,canvas,ctx,renderer:rr,geometry:{view:{yaw:0,pitch:0,radius:7,center:new THREE.Vector3(-1.3,1.2,2.6)},publish:()=>false},follow:1,fit:.7,zfit:.6,base:{yaw:.35,pitch:.6},zbase:{yaw:.35,pitch:.6},label:'La pièce de Mathieu',href:'#cv-decor',linkText:'Entrer dans la pièce'};
     if(rr.extensions.has('KHR_parallel_shader_compile')){
       await room.detailPropsReady.catch(()=>{});
-      try{await rr.compileAsync(room.scene,camera);}catch(error){console.warn('Préparation de l’aperçu de la pièce',error);}
+      try{await room.prepareShaders(rr,camera);}catch(error){console.warn('Préparation de l’aperçu de la pièce',error);}
     }
     active.push(item);host.setAttribute('data-ready','');
   })();
@@ -1264,7 +1264,7 @@ startParityPath().catch(e=>fail('parité Shopify',e));
 // à plat elle se dessine elle-même ; sur le chemin, ses volumes sont repris par le chemin et ses interactions passent par __cvRoomView
 (function startRoom3d(){const host=document.querySelector('[data-cv-room3d]');if(!host)return;let started=false;
  const go=async()=>{if(started)return;started=true;try{
-  const [{createRoom},{createBlueprintPlane},T]=await Promise.all([import(base+'js/room.js?v=fall26-shaders'),import(base+'refonte/blueprint-hero.js'),import('three')]);
+  const [{createRoom},{createBlueprintPlane},T]=await Promise.all([import(base+'js/room.js?v=fall26-transmission'),import(base+'refonte/blueprint-hero.js'),import('three')]);
   const options={noTea:true,warmShaders:true},parity=()=>document.documentElement.classList.contains('cv-parity-active');let pathView=null;
   Object.defineProperty(options,'view',{get:()=>parity()&&pathView?pathView:undefined});
   const bubble=document.createElement('div');bubble.className='bubble';host.append(bubble);

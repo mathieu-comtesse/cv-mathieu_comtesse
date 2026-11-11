@@ -39,6 +39,20 @@ const easeOutBounce = (x) => {
   return n * (x -= 2.625 / d) * x + 0.984375;
 };
 
+async function prepareRoomShaders(renderer, scene, camera) {
+  await renderer.compileAsync(scene, camera);
+  // Le verre dessine les objets opaques une deuxième fois, en espace linéaire.
+  const target = new THREE.WebGLRenderTarget(1, 1, { colorSpace: THREE.ColorManagement.workingColorSpace });
+  const previous = renderer.getRenderTarget();
+  try {
+    renderer.setRenderTarget(target);
+    await renderer.compileAsync(scene, camera);
+  } finally {
+    renderer.setRenderTarget(previous);
+    target.dispose();
+  }
+}
+
 export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé ; options.noRender : sans rendu propre ; options.view : vue externe {ray, ground, pick, project} (parcours 3D du CV)
   const mobile=matchMedia('(max-width:809px)');
   container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
@@ -1329,7 +1343,7 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   if (shadersReady) kick();
   else {
     // Laisse le pilote compiler les matériaux pendant que le navigateur traite le défilement.
-    Promise.resolve().then(() => renderer.compileAsync(scene, camera)).catch(error => console.warn('Préparation des shaders de la pièce', error)).finally(() => {
+    prepareRoomShaders(renderer, scene, camera).catch(error => console.warn('Préparation des shaders de la pièce', error)).finally(() => {
       shadersReady = true;
       startAt = performance.now();
       kick();
@@ -1343,5 +1357,5 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { get appOpen(){return appOpen;}, detailPropsReady, bonsaiNext:(prune=true)=>{pruneNext=!!prune;}, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
+  return { get appOpen(){return appOpen;}, detailPropsReady, prepareShaders: (targetRenderer, viewCamera) => prepareRoomShaders(targetRenderer, scene, viewCamera), bonsaiNext:(prune=true)=>{pruneNext=!!prune;}, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }

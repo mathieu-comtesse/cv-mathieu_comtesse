@@ -37,9 +37,15 @@ Les mesures Chrome donnent un écart de 0 px en hauteur, de 0 ms sur la durée C
 
 ## Performance
 
-Mesures sur Chrome à 1 440 × 900 et Radeon RX 9070 XT, avec une impulsion de molette de 815 px. Le profil CPU attribue un blocage de 7 253 ms au premier passage de compilation synchrone des programmes WebGL de la pièce. La préparation asynchrone de la pièce et de l'aperçu ramène la plus longue tâche à 3 513 ms. En suspendant aussi le rendu de l'aperçu lorsque la transition le masque, la plus longue tâche descend à 504 ms. L'objectif de 60 FPS et la disparition des saccades à froid restent ouverts.
+Mesures sur Chrome à 1 440 × 900 et Radeon RX 9070 XT, avec une impulsion de molette de 815 px. Le profil CPU attribue un blocage de 7 253 ms au premier passage de compilation synchrone des programmes WebGL de la pièce. La branche prépare les shaders de la pièce et de l'aperçu, y compris la passe de transmission du verre, et suspend le rendu de l'aperçu quand il devient invisible. La plus longue tâche observée dans les profils finaux dure 528 ms au défilement et 653 ms au repos. La vignette continue de se rendre au repos à 320 × 216 px.
 
-Dans le relevé isolé avant préparation des shaders, le P95 des images du scénario passe de 578 ms sur le site public à 55,6 ms sur la branche. Le P99 augmente de 578 ms à 7 957,6 ms à cause du premier rendu. Ce relevé ne représente pas la cadence en régime stable. Le relevé direct compte un écouteur `pointermove` sur `document` sur la branche, contre deux sur le site public. Les deux sites utilisent également des écouteurs dans d'autres éléments.
+| Fenêtre de défilement à froid | Images échantillonnées | Durée moyenne | P95 | P99 |
+| --- | ---: | ---: | ---: | ---: |
+| Shopify | 321 | 5,6 ms | 5,6 ms | 5,7 ms |
+| Site public | 19 | 96,8 ms | 578 ms | 578 ms |
+| Branche finale | 84 | 21,4 ms | 72,3 ms | 472,4 ms |
+
+Le débit moyen échantillonné de la branche finale est de 46,7 images/s sur cette fenêtre. L'objectif de 60 FPS et la disparition des saccades à froid restent ouverts. Le relevé direct compte un écouteur `pointermove` sur `document` sur la branche, contre deux sur le site public. Les deux sites utilisent également des écouteurs dans d'autres éléments.
 
 Les chargements et les compteurs d'octets du site public et du clone n'ont pas la même provenance réseau. Le test de fiches en SwiftShader valide les commandes sur rendu logiciel. Ses durées ne servent pas à estimer le débit d'images sur la Radeon.
 
