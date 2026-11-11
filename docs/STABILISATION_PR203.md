@@ -85,3 +85,32 @@ Le run précédent (`b6ad62d8`) avait été annulé à 45 minutes pile : la suit
 Jobs `syntax` : réussi.
 
 Les attentes fixes remplacées par des attentes d'état réel pendant cette stabilisation : images rendues (`scene-runtime`), retombée de la pulsation JBL (`lifecycle`), capture à 120 s (`film-book-v50`). Les intermittences de `test-v52` (objet « immobile », mesure d'échelle sur une fenêtre de 720 ms) et de la bulle de pensée de `test-v51` sont du même type (mesure sur fenêtre fixe, cadence variable) : non reproduites sur les 3 derniers runs CI, cause non établie.
+
+## Résultat CI sur `0bd9c087` (déclenchements manuels, runs 43102422228 et 43102427130)
+- **Scene smoke check : réussi** (jobs `syntax` et `runtime`, 14 tests sur 14, 44 minutes).
+- **Machines 3D : réussi** (jobs `ux` et `machines`).
+- Jobs `Site integrity` et `THALEOLITHIC Web publication` : réussis sur le même commit (événement `pull_request`).
+- Le run `pull_request` du même commit avait échoué sur `test-v49-mobile-book` et sur le job `ux`, qui avaient réussi sur le commit précédent ; leurs logs étaient illisibles (erreurs 502 de GitHub) et les relances `rerun_failed_jobs` ont fini en `startup_failure` (incident GitHub). Ces deux échecs ne se sont pas reproduits au déclenchement suivant sur le même code : **intermittents, cause non établie**, comme celles de `test-v52` (objet « immobile ») et de la bulle de `test-v51`.
+
+## Bilan : corrections séparées
+**Application (1 changement) :** attribution CC BY 4.0 de la tirelire remise dans le pied de page de `gains.html` (disparue à la refonte du 20 octobre 2026). Aucun autre changement d'application dans cette stabilisation.
+**Workflow (1 changement) :** `timeout-minutes` du job `runtime` de 45 à 80 (la suite complète dure environ 45 minutes ; elle avait été annulée à 45 minutes pile).
+**Tests (13 fichiers) :** sélecteurs (iframe de shupi, album photo parmi six boîtes `film-album`), contrats remplacés avec justification dans chaque fichier (page Expériences, tirelire sur `gains.html`, vitrines des cadres à la place de la galerie, retour de zoom de l'accueil, poussière seulement en marche, lecture par le meuble USM, extras glTF lus dans la provenance), attentes d'état réel à la place de délais fixes (images rendues, retombée JBL, premier défilement), captures à 120 s.
+
+## Non-régression
+Aucune modification de `js/`, `style.css`, `ps1-menu.css`, `info.html`, des onze machines, de « Voir la magie », des vitrines, des trois cadres topographiques ni de la typographie V9.1 dans cette stabilisation. Contrôles verts sur `0bd9c087` : `ux`, `machines`, `integrity`, `publication`, `syntax`, `runtime` (14 tests).
+
+## V9.1 : ce qui reste non validé
+- Titres de chapitre de comtesse.me : 15 à 22 px visibles contre 120 px chez Shopify (comparaison correcte : titre de chapitre contre titre de section) : à traiter, aucune correction faite.
+- Le titre d'accueil (128,2 px, SVG de même structure que Shopify) n'est pas à comparer au titre de chapitre « Agentic » (120 px) : diagnostic « typographie globalement trop grande » abandonné.
+- Cadres de l'accueil : bord de la carte 1 qui touche le texte de la carte 2, liste de navigation de gauche et lettres 3D qui passent sur les cartes (capture V8.5), matériaux vitrés non repris.
+- Mode à plat non mesuré ; mobile : les trois cartes n'existent pas (constaté, non validé) ; rien mesuré sur GPU réel.
+- Attributions CC BY des autres modèles tiers (prises BlackCube, clé ZwiebelGames, manette Sony, PS1 Lars Maes) : absentes du site, emplacement à décider.
+
+## Découpage proposé des PR suivantes (après stabilisation de #203)
+Branches empilées, chacune avec sa PR et une base explicite ; aucune publication avant validation.
+1. `claude/v9-1-typo-cadres` (base : `claude/finition-magie`) : titres de chapitre à l'échelle de la référence, chevauchements des trois cadres, jetons typographiques, puis matériaux vitrés des seuls trois cadres.
+2. `claude/v9-2-mode-a-plat` (base : V9.1) : reconstruction du mode à plat, partage des données et des jetons avec le mode immersif, sans saut de mise en page.
+3. `claude/v9-3-branches-etoilees` (base : V9.2) : graphe unique `{nodes, edges, branches, clusters, pulses, timeline}`, croissance progressive, étoiles, un seul moteur pour l'ouverture, les transitions et les constellations.
+4. `claude/v9-4-room-2d` (base : `main` après fusion de #203, indépendante des autres) : pièce isométrique 2D (`?room=2d|3d`, `refonte/room2d/`), sans `THREE.WebGLRenderer` ni chargement des GLB en 2D.
+5. `claude/v9-5-integration` (base : V9.3 et V9.4 fusionnées) : intégration, performance, comparaisons visuelles, non-régression.
