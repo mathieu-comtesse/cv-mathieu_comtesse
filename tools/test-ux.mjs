@@ -52,7 +52,8 @@ for (const slug of PAGES) {
       if (!(await p.evaluate(() => document.querySelector('.fl-ov-end').hidden))) fail.push(`${tag} : Rejouer ne relance pas`);
     }
     await p.keyboard.press('Escape');
-    await p.locator('.fl-ov.is-open').waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
+    await p.waitForFunction(() => !document.querySelector('.fl-ov.is-open, .fl-ov-w > *'), null, { timeout: 10000 })
+      .catch(() => fail.push(`${tag} : la transition de fermeture de la magie reste active`));
     if (await p.evaluate(() => document.querySelector('.fl-ov').classList.contains('is-open'))) fail.push(`${tag} : Échap ne ferme pas la magie`);
     if (!(await p.evaluate(() => document.activeElement?.dataset?.demo === 'magic'))) fail.push(`${tag} : le focus n'est pas rendu au bouton`);
     // 3. démonstration réelle
@@ -104,4 +105,5 @@ for (const slug of PAGES) {
   }
 }
 await b.close();
-if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); } log('\nonze fiches : une seule démonstration, CTA, légende, pause, Explorer, sortie : ok');
+if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); }
+log('\n' + (only ? 'fiche ' + only : 'onze fiches') + ' : une seule démonstration, CTA, légende, pause, Explorer, sortie : ok');
