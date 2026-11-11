@@ -62,3 +62,26 @@ Tests passés au vert en local après réécriture documentée (ancien contrat, 
 Restant : `test-scene-lifecycle` (nuages d'atterrissage : cause non établie ; la règle de `js/native-room.js` n'affiche la poussière qu'en marche ou en course, le test lit les enfants du groupe) ; intermittents non expliqués : objet « immobile » de `test-v52`, bulle de pensée de `test-v51`, capture de `test-film-book-v50`.
 
 **Défaut réel trouvé** : plus aucune attribution des modèles tiers sous licence CC BY sur le site depuis la refonte du 20 octobre (prises BlackCube, clé ZwiebelGames, manette Sony, PS1 Lars Maes ; texte d'origine : `git show cb94f8bd^:index.html`). Seule la tirelire est restaurée (gains.html). Emplacement des autres à décider.
+
+## Résultat CI final (run 43077777019, commit `b26e9823`, durée 43 minutes, limite du job relevée de 45 à 80 minutes)
+Le run précédent (`b6ad62d8`) avait été annulé à 45 minutes pile : la suite complète, avec les 14 tests exécutés à la suite, dépasse l'ancienne limite.
+
+| # | test | CI `b26e9823` |
+|---|---|---|
+| 1 | test-v52 | réussi |
+| 2 | test-v49-mobile-book | réussi |
+| 3 | test-v49-seat-book | réussi |
+| 4 | test-v49-features | réussi |
+| 5 | test-v51-interactions | réussi |
+| 6 | test-film-book-v50 | réussi (captures à 120 s) |
+| 7 | test-ps1-v50 | réussi |
+| 8 | test-scene-runtime | réussi (attente de l'état réel des images) |
+| 9 | test-user-room-props | réussi |
+| 10 | test-scene-lifecycle | **échec** : `evidence.soundPaused.every(w=>w.scale[1]===1)` : la pulsation des caisses JBL n'était pas retombée 250 ms après la pause (attente fixe) ; corrigé par une attente de l'état réel (échelle 1), réussi en local |
+| 11 | test-project-scroll | réussi |
+| 12 | test-annual-gains-browser | réussi |
+| 13 | test-motion-fit | réussi |
+| 14 | test-custom-scene | réussi |
+Jobs `syntax` : réussi.
+
+Les attentes fixes remplacées par des attentes d'état réel pendant cette stabilisation : images rendues (`scene-runtime`), retombée de la pulsation JBL (`lifecycle`), capture à 120 s (`film-book-v50`). Les intermittences de `test-v52` (objet « immobile », mesure d'échelle sur une fenêtre de 720 ms) et de la bulle de pensée de `test-v51` sont du même type (mesure sur fenêtre fixe, cadence variable) : non reproduites sur les 3 derniers runs CI, cause non établie.
