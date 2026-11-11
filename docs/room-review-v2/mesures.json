@@ -1,0 +1,1515 @@
+{
+  "reference": "90f6b5d5655ce46eb563e90f466f04bcebdb1765",
+  "profiles": {
+    "desktop": {
+      "before": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "usableMs": 12676.5,
+        "performance": {
+          "gpu": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "samples": 232,
+          "frameMedianMs": 14.600000023841858,
+          "frameP95Ms": 19.600000023841858,
+          "renderCpuMedianMs": 11.399999976158142,
+          "longTasks": [],
+          "frame": 342,
+          "calls": 979,
+          "triangles": 462385,
+          "points": 0,
+          "lines": 0,
+          "geometries": 449,
+          "textures": 139,
+          "width": 979,
+          "height": 612
+        },
+        "assetBytes": 19162068,
+        "ids": [
+          "alocasia",
+          "arc",
+          "backpack",
+          "beton",
+          "bike",
+          "bonsai",
+          "brontes",
+          "buddha",
+          "cha",
+          "chair",
+          "chashitsu",
+          "coffee",
+          "desk",
+          "deskstrip",
+          "dracaena",
+          "drawer",
+          "ekstrem",
+          "falk",
+          "jblCableLblack",
+          "jblCableLred",
+          "jblCableRblack",
+          "jblCableRred",
+          "jblL",
+          "jblR",
+          "mamiya",
+          "olivetti",
+          "painting",
+          "pc",
+          "ps1power",
+          "pump",
+          "rug",
+          "screenbar",
+          "shelf1",
+          "shoes",
+          "shoji0",
+          "shoji1",
+          "shoji2",
+          "sofa",
+          "stele",
+          "stool",
+          "strip",
+          "tv",
+          "usm",
+          "videosphere"
+        ],
+        "stations": {
+          "desk": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "bike": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          },
+          "ekstrem": {
+            "position": [
+              2.3,
+              0,
+              -0.95
+            ],
+            "approach": [
+              1.85,
+              0.15
+            ],
+            "yaw": -0.45,
+            "label": "Lire dans le fauteuil",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "read"
+          },
+          "usm": {
+            "position": [
+              -1,
+              0,
+              -1.7
+            ],
+            "approach": [
+              -1.05,
+              -1.65
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Écouter un vinyle",
+            "clip": "Idle_Loop"
+          },
+          "alocasia": {
+            "position": [
+              -2.35,
+              0,
+              3.25
+            ],
+            "approach": [
+              -2.35,
+              3.25
+            ],
+            "yaw": -1.57,
+            "label": "Arroser l’alocasia",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "bonsai": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "dracaena": {
+            "position": [
+              3.75,
+              0,
+              -2.45
+            ],
+            "approach": [
+              3.75,
+              -2.45
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Arroser le dragonnier",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "sofa": {
+            "position": [
+              -0.35,
+              0,
+              4.43
+            ],
+            "approach": [
+              -1.15,
+              3.85
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Jouer à la console",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "game"
+          },
+          "cha": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chair": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "stool": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "shoes": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chashitsu": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "pump": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          }
+        }
+      },
+      "after": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "usableMs": 6384.399999976158,
+        "performance": {
+          "gpu": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "samples": 315,
+          "frameMedianMs": 10.899999976158142,
+          "frameP95Ms": 14.799999952316284,
+          "renderCpuMedianMs": 6.599999904632568,
+          "longTasks": [],
+          "frame": 449,
+          "calls": 444,
+          "triangles": 251827,
+          "points": 0,
+          "lines": 0,
+          "geometries": 261,
+          "textures": 33,
+          "width": 979,
+          "height": 612
+        },
+        "assetBytes": 21960547,
+        "ids": [
+          "alocasia",
+          "arc",
+          "backpack",
+          "beton",
+          "bike",
+          "bonsai",
+          "brontes",
+          "buddha",
+          "cha",
+          "chair",
+          "chashitsu",
+          "coffee",
+          "desk",
+          "deskstrip",
+          "dracaena",
+          "drawer",
+          "ekstrem",
+          "falk",
+          "jblCableLblack",
+          "jblCableLred",
+          "jblCableRblack",
+          "jblCableRred",
+          "jblL",
+          "jblR",
+          "mamiya",
+          "olivetti",
+          "painting",
+          "pc",
+          "ps1power",
+          "pump",
+          "rug",
+          "screenbar",
+          "shelf1",
+          "shoes",
+          "shoji0",
+          "shoji1",
+          "shoji2",
+          "sofa",
+          "stele",
+          "stool",
+          "strip",
+          "tv",
+          "usm",
+          "videosphere"
+        ],
+        "stations": {
+          "desk": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "bike": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          },
+          "ekstrem": {
+            "position": [
+              2.3,
+              0,
+              -0.95
+            ],
+            "approach": [
+              1.85,
+              0.15
+            ],
+            "yaw": -0.45,
+            "label": "Lire dans le fauteuil",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "read"
+          },
+          "usm": {
+            "position": [
+              -1,
+              0,
+              -1.7
+            ],
+            "approach": [
+              -1.05,
+              -1.65
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Écouter un vinyle",
+            "clip": "Idle_Loop"
+          },
+          "alocasia": {
+            "position": [
+              -2.35,
+              0,
+              3.25
+            ],
+            "approach": [
+              -2.35,
+              3.25
+            ],
+            "yaw": -1.57,
+            "label": "Arroser l’alocasia",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "bonsai": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "dracaena": {
+            "position": [
+              3.75,
+              0,
+              -2.45
+            ],
+            "approach": [
+              3.75,
+              -2.45
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Arroser le dragonnier",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "sofa": {
+            "position": [
+              -0.35,
+              0,
+              4.43
+            ],
+            "approach": [
+              -1.15,
+              3.85
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Jouer à la console",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "game"
+          },
+          "cha": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chair": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "stool": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "shoes": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chashitsu": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "pump": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          }
+        },
+        "interactions": {
+          "deskPower": true,
+          "musicDrawer": true,
+          "tea": true,
+          "consolePower": true,
+          "resume": true,
+          "keyboardRotation": true,
+          "walkAndWater": true,
+          "deskSeated": true,
+          "teaRitual": true,
+          "contextRestored": true
+        }
+      }
+    },
+    "mobile": {
+      "before": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "usableMs": 2763.0999999046326,
+        "performance": {
+          "gpu": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "samples": 251,
+          "frameMedianMs": 13.699999928474426,
+          "frameP95Ms": 17.399999976158142,
+          "renderCpuMedianMs": 10.799999952316284,
+          "longTasks": [],
+          "frame": 437,
+          "calls": 956,
+          "triangles": 447439,
+          "points": 0,
+          "lines": 0,
+          "geometries": 449,
+          "textures": 136,
+          "width": 181,
+          "height": 391
+        },
+        "assetBytes": 19162068,
+        "ids": [
+          "alocasia",
+          "arc",
+          "backpack",
+          "beton",
+          "bike",
+          "bonsai",
+          "brontes",
+          "buddha",
+          "cha",
+          "chair",
+          "chashitsu",
+          "coffee",
+          "desk",
+          "deskstrip",
+          "dracaena",
+          "drawer",
+          "ekstrem",
+          "falk",
+          "jblCableLblack",
+          "jblCableLred",
+          "jblCableRblack",
+          "jblCableRred",
+          "jblL",
+          "jblR",
+          "mamiya",
+          "olivetti",
+          "painting",
+          "pc",
+          "ps1power",
+          "pump",
+          "rug",
+          "screenbar",
+          "shelf1",
+          "shoes",
+          "shoji0",
+          "shoji1",
+          "shoji2",
+          "sofa",
+          "stele",
+          "stool",
+          "strip",
+          "tv",
+          "usm",
+          "videosphere"
+        ],
+        "stations": {
+          "desk": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "bike": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          },
+          "ekstrem": {
+            "position": [
+              2.3,
+              0,
+              -0.95
+            ],
+            "approach": [
+              1.85,
+              0.15
+            ],
+            "yaw": -0.45,
+            "label": "Lire dans le fauteuil",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "read"
+          },
+          "usm": {
+            "position": [
+              -1,
+              0,
+              -1.7
+            ],
+            "approach": [
+              -1.05,
+              -1.65
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Écouter un vinyle",
+            "clip": "Idle_Loop"
+          },
+          "alocasia": {
+            "position": [
+              -2.35,
+              0,
+              3.25
+            ],
+            "approach": [
+              -2.35,
+              3.25
+            ],
+            "yaw": -1.57,
+            "label": "Arroser l’alocasia",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "bonsai": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "dracaena": {
+            "position": [
+              3.75,
+              0,
+              -2.45
+            ],
+            "approach": [
+              3.75,
+              -2.45
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Arroser le dragonnier",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "sofa": {
+            "position": [
+              -0.35,
+              0,
+              4.43
+            ],
+            "approach": [
+              -1.15,
+              3.85
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Jouer à la console",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "game"
+          },
+          "cha": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chair": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "stool": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "shoes": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chashitsu": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "pump": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          }
+        }
+      },
+      "after": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "usableMs": 2358.6999999284744,
+        "performance": {
+          "gpu": "ANGLE (AMD, AMD Radeon RX 9070 XT (0x00007550) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "samples": 396,
+          "frameMedianMs": 8.5,
+          "frameP95Ms": 11.200000047683716,
+          "renderCpuMedianMs": 5.399999976158142,
+          "longTasks": [],
+          "frame": 873,
+          "calls": 432,
+          "triangles": 241707,
+          "points": 0,
+          "lines": 0,
+          "geometries": 257,
+          "textures": 32,
+          "width": 181,
+          "height": 391
+        },
+        "assetBytes": 21960547,
+        "ids": [
+          "alocasia",
+          "arc",
+          "backpack",
+          "beton",
+          "bike",
+          "bonsai",
+          "brontes",
+          "buddha",
+          "cha",
+          "chair",
+          "chashitsu",
+          "coffee",
+          "desk",
+          "deskstrip",
+          "dracaena",
+          "drawer",
+          "ekstrem",
+          "falk",
+          "jblCableLblack",
+          "jblCableLred",
+          "jblCableRblack",
+          "jblCableRred",
+          "jblL",
+          "jblR",
+          "mamiya",
+          "olivetti",
+          "painting",
+          "pc",
+          "ps1power",
+          "pump",
+          "rug",
+          "screenbar",
+          "shelf1",
+          "shoes",
+          "shoji0",
+          "shoji1",
+          "shoji2",
+          "sofa",
+          "stele",
+          "stool",
+          "strip",
+          "tv",
+          "usm",
+          "videosphere"
+        ],
+        "stations": {
+          "desk": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "bike": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          },
+          "ekstrem": {
+            "position": [
+              2.3,
+              0,
+              -0.95
+            ],
+            "approach": [
+              1.85,
+              0.15
+            ],
+            "yaw": -0.45,
+            "label": "Lire dans le fauteuil",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "read"
+          },
+          "usm": {
+            "position": [
+              -1,
+              0,
+              -1.7
+            ],
+            "approach": [
+              -1.05,
+              -1.65
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Écouter un vinyle",
+            "clip": "Idle_Loop"
+          },
+          "alocasia": {
+            "position": [
+              -2.35,
+              0,
+              3.25
+            ],
+            "approach": [
+              -2.35,
+              3.25
+            ],
+            "yaw": -1.57,
+            "label": "Arroser l’alocasia",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "bonsai": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "dracaena": {
+            "position": [
+              3.75,
+              0,
+              -2.45
+            ],
+            "approach": [
+              3.75,
+              -2.45
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Arroser le dragonnier",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "sofa": {
+            "position": [
+              -0.35,
+              0,
+              4.43
+            ],
+            "approach": [
+              -1.15,
+              3.85
+            ],
+            "yaw": 3.141592653589793,
+            "label": "Jouer à la console",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "game"
+          },
+          "cha": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chair": {
+            "position": [
+              -2.12,
+              0,
+              0.48
+            ],
+            "approach": [
+              -2.05,
+              1.25
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Travailler au bureau",
+            "clip": "Sitting_Idle_Loop",
+            "nativeMode": "work"
+          },
+          "stool": {
+            "position": [
+              2.85,
+              0,
+              4.55
+            ],
+            "approach": [
+              2.85,
+              4.55
+            ],
+            "yaw": -1.57,
+            "label": "Arroser le bonsaï",
+            "clip": "Idle_Loop",
+            "nativeMode": "water"
+          },
+          "shoes": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "chashitsu": {
+            "position": [
+              -5.5,
+              0,
+              6.85
+            ],
+            "approach": [
+              -5.5,
+              6.85
+            ],
+            "yaw": 0,
+            "label": "Cérémonie du thé",
+            "ritual": true
+          },
+          "pump": {
+            "position": [
+              2.95,
+              0,
+              -4.15
+            ],
+            "approach": [
+              3.18,
+              -4.15
+            ],
+            "yaw": -1.5707963267948966,
+            "label": "Regonfler les pneus du vélo",
+            "clip": "Idle_Loop"
+          }
+        },
+        "interactions": {
+          "deskPower": true,
+          "musicDrawer": true,
+          "tea": true,
+          "consolePower": true,
+          "resume": true,
+          "touchZoom": true
+        }
+      }
+    }
+  },
+  "mathieu": {
+    "smile": true,
+    "bare": true,
+    "hip": 0.6050000335849202,
+    "liveJoints": true,
+    "restoredShoes": true
+  },
+  "home": {
+    "ready": "true",
+    "detailProps": "ready",
+    "native": "ready",
+    "teaPanels": 3,
+    "art": true,
+    "mode": "follow",
+    "actions": {
+      "shoji": [
+        true,
+        true,
+        true
+      ],
+      "mugReturned": true
+    }
+  },
+  "homeSupplement": {
+    "shoji": [
+      true,
+      true,
+      true
+    ],
+    "arc": true,
+    "mugMoved": true,
+    "mugReturned": true,
+    "recordSelected": true,
+    "photoAlbum": true
+  },
+  "models": [
+    {
+      "model": "Tapis",
+      "owner": "rug",
+      "visible": true,
+      "triangles": 2154
+    },
+    {
+      "model": "BureauUSM",
+      "owner": "desk",
+      "visible": true,
+      "triangles": 632
+    },
+    {
+      "model": "CaissonUSM",
+      "owner": "desk",
+      "visible": true,
+      "triangles": 820
+    },
+    {
+      "model": "BarreEcran",
+      "owner": "screenbar",
+      "visible": true,
+      "triangles": 116
+    },
+    {
+      "model": "EcranLarge",
+      "owner": "pc",
+      "visible": true,
+      "triangles": 780
+    },
+    {
+      "model": "SupportEcrans",
+      "owner": "desk",
+      "visible": true,
+      "triangles": 576
+    },
+    {
+      "model": "EcranPortrait",
+      "owner": "pc",
+      "visible": true,
+      "triangles": 360
+    },
+    {
+      "model": "Moonlander",
+      "owner": "desk",
+      "visible": true,
+      "triangles": 3448
+    },
+    {
+      "model": "MXMaster",
+      "owner": "desk",
+      "visible": true,
+      "triangles": 240
+    },
+    {
+      "model": "Tour",
+      "owner": "desk",
+      "visible": true,
+      "triangles": 2452
+    },
+    {
+      "model": "SetuAssise",
+      "owner": "chair",
+      "visible": true,
+      "triangles": 652
+    },
+    {
+      "model": "Trek",
+      "owner": "bike",
+      "visible": true,
+      "triangles": 5024
+    },
+    {
+      "model": "PompeCorps",
+      "owner": "pump",
+      "visible": true,
+      "triangles": 172
+    },
+    {
+      "model": "Bonsai",
+      "owner": "bonsai",
+      "visible": true,
+      "triangles": 1396
+    },
+    {
+      "model": "Alocasia",
+      "owner": "alocasia",
+      "visible": true,
+      "triangles": 1368
+    },
+    {
+      "model": "DS450",
+      "owner": "sofa",
+      "visible": true,
+      "triangles": 624
+    },
+    {
+      "model": "Falkland",
+      "owner": "falk",
+      "visible": true,
+      "triangles": 3340
+    },
+    {
+      "model": "Ekstrem",
+      "owner": "ekstrem",
+      "visible": true,
+      "triangles": 1372
+    },
+    {
+      "model": "Tatami",
+      "owner": "chashitsu",
+      "visible": true,
+      "triangles": 4516
+    },
+    {
+      "model": "ShojiBois",
+      "owner": "shoji0",
+      "visible": true,
+      "triangles": 1020
+    },
+    {
+      "model": "ShojiBois",
+      "owner": "shoji1",
+      "visible": true,
+      "triangles": 1020
+    },
+    {
+      "model": "ShojiBois",
+      "owner": "shoji2",
+      "visible": true,
+      "triangles": 1020
+    },
+    {
+      "model": "Kawara",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 9020
+    },
+    {
+      "model": "PinJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 380
+    },
+    {
+      "model": "CerisierJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 820
+    },
+    {
+      "model": "CerisierJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 820
+    },
+    {
+      "model": "PinJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 380
+    },
+    {
+      "model": "GinkgoJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 820
+    },
+    {
+      "model": "ErableJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 820
+    },
+    {
+      "model": "ErableJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 820
+    },
+    {
+      "model": "GinkgoJardin",
+      "owner": "chashitsu",
+      "visible": false,
+      "triangles": 820
+    },
+    {
+      "model": "Zabuton",
+      "owner": "cha",
+      "visible": true,
+      "triangles": 200
+    },
+    {
+      "model": "Zabuton",
+      "owner": "cha",
+      "visible": true,
+      "triangles": 200
+    },
+    {
+      "model": "Chawan",
+      "owner": "cha",
+      "visible": true,
+      "triangles": 140
+    },
+    {
+      "model": "Tabouret",
+      "owner": "stool",
+      "visible": true,
+      "triangles": 140
+    },
+    {
+      "model": "MagnavoxCoque",
+      "owner": "tv",
+      "visible": true,
+      "triangles": 1140
+    },
+    {
+      "model": "PlayStation",
+      "owner": "tv",
+      "visible": true,
+      "triangles": 532
+    },
+    {
+      "model": "Manette",
+      "owner": "tv",
+      "visible": true,
+      "triangles": 468
+    },
+    {
+      "model": "BuffetUSM",
+      "owner": "usm",
+      "visible": true,
+      "triangles": 2064
+    },
+    {
+      "model": "TiroirUSM",
+      "owner": "drawer",
+      "visible": true,
+      "triangles": 148
+    },
+    {
+      "model": "Amplificateur",
+      "owner": "usm",
+      "visible": true,
+      "triangles": 804
+    },
+    {
+      "model": "YamahaChassis",
+      "owner": "usm",
+      "visible": true,
+      "triangles": 264
+    },
+    {
+      "model": "JBL",
+      "owner": "jblL",
+      "visible": true,
+      "triangles": 5340
+    },
+    {
+      "model": "JBL",
+      "owner": "jblR",
+      "visible": true,
+      "triangles": 5340
+    },
+    {
+      "model": "GestoTerra",
+      "owner": "arc",
+      "visible": true,
+      "triangles": 964
+    },
+    {
+      "model": "PiedEtCadre",
+      "owner": "painting",
+      "visible": true,
+      "triangles": 480
+    },
+    {
+      "model": "Dracaena",
+      "owner": "dracaena",
+      "visible": true,
+      "triangles": 1968
+    },
+    {
+      "model": "CadreOmni",
+      "owner": "shelf1",
+      "visible": true,
+      "triangles": 1200
+    },
+    {
+      "model": "Olivetti280",
+      "owner": "olivetti",
+      "visible": true,
+      "triangles": 3148
+    },
+    {
+      "model": "Mamiya645",
+      "owner": "mamiya",
+      "visible": true,
+      "triangles": 980
+    },
+    {
+      "model": "Suiseki",
+      "owner": "shelf1",
+      "visible": true,
+      "triangles": 120
+    },
+    {
+      "model": "SacRando",
+      "owner": "backpack",
+      "visible": true,
+      "triangles": 704
+    },
+    {
+      "model": "Batons",
+      "visible": true,
+      "triangles": 592
+    },
+    {
+      "model": "Geta",
+      "owner": "shoes",
+      "visible": true,
+      "triangles": 704
+    },
+    {
+      "model": "Bouddha",
+      "owner": "buddha",
+      "visible": true,
+      "triangles": 456
+    },
+    {
+      "model": "Stèle",
+      "owner": "stele",
+      "visible": true,
+      "triangles": 1740
+    },
+    {
+      "model": "Tasse",
+      "owner": "coffee",
+      "visible": true,
+      "triangles": 264
+    }
+  ]
+}

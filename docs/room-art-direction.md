@@ -1,5 +1,7 @@
 # Direction artistique de Ma pièce
 
+La [direction de la deuxième refonte](room-remaster-direction.md) et son [banc de validation](room-remaster-validation.md) décrivent les nouveaux modèles. Les vues ci-dessous documentent la première proposition.
+
 La pièce prend la forme d’un diorama ouvert. Un parquet à joints décalés donne un sol commun au bureau, au coin musique, au salon et aux plantes. Le chant chanfreiné indigo dessine la silhouette. Le chashitsu reprend cette tranche sombre avec un sol en bois et une liaison à la pièce. Le tableau repose sur un support mince derrière le meuble hi-fi.
 
 | Matière | Application |

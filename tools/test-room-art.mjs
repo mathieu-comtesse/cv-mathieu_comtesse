@@ -26,7 +26,7 @@ const fixture = '<!doctype html><html lang="fr"><meta charset="utf-8"><title>Ma 
   + '<script type="importmap">{"imports":{"three":"/vendor/three.module.min.js","three/addons/":"/vendor/"}}</script>'
   + '<div id="room"><div class="bubble"></div></div><script type="module">'
   + 'import {createRoom} from "/js/room.js"; import * as THREE from "three"; window.THREE=THREE;'
-  + 'performance.mark("room-start"); window.room=await createRoom(document.querySelector("#room"),document.querySelector(".bubble"));'
+  + 'performance.mark("room-start"); try { window.room=await createRoom(document.querySelector("#room"),document.querySelector(".bubble")); } catch (error) { window.roomBootError=error.stack; console.error(error.stack); throw error; }'
   + 'window.room.pauseAutonomy(600000); window.room.opts.noAdapt=true; performance.mark("room-created");'
   + '</script></html>';
 
@@ -82,7 +82,8 @@ try {
     await serve(context);
     const page = await context.newPage();
     const errors = [];
-    page.on('pageerror', error => errors.push(error.message));
+    page.on('pageerror', error => { errors.push(error.message); console.error(error.stack); });
+    page.on('console', message => { if (message.type() === 'error') console.error(message.text()); });
     const assets = new Map();
     page.on('response', response => {
       const u = new URL(response.url());
@@ -91,7 +92,10 @@ try {
       }
     });
     await page.goto(base + '/_room-review', { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => window.room && document.querySelector('#room').dataset.sceneReady === 'true', null, { timeout: 90_000 });
+    await page.waitForFunction(() => window.roomBootError ||
+      window.room && document.querySelector('#room').dataset.sceneReady === 'true', null, { timeout: 50_000 });
+    const bootError = await page.evaluate(() => window.roomBootError);
+    assert.equal(bootError, undefined, bootError);
     const usableMs = await page.evaluate(() => performance.now() - performance.getEntriesByName('room-start')[0].startTime);
     await page.waitForFunction(() => {
       const data = document.querySelector('#room').dataset;
@@ -148,6 +152,7 @@ try {
         const list = object.material ? [object.material].flat() : [];
         nodes.push({
           key, type: object.type, name: object.name || undefined, id: object.userData.id, owner,
+          authored: object.userData.roomRemaster || undefined,
           position: round(object.position.toArray()), rotation: round(object.quaternion.toArray()),
           scale: round(object.scale.toArray()), visible,
           mesh: geometry ? {
@@ -187,18 +192,12 @@ try {
       assert.deepEqual(inventory.ids, previous.ids, profile + ' interaction IDs');
       assert.deepEqual(JSON.parse(JSON.stringify(inventory.stations)), previous.stations, profile + ' activity anchors');
       assert.deepEqual(inventory.nav, previous.nav, profile + ' navigation interface');
-      // Native trees choose a seasonal name when the scene loads.
-      const keyOf = node => node.key.replace(/(living-tree-[^/:]+)-(spring|summer|autumn)(?=:)/g, '$1');
-      const after = new Map(inventory.nodes.map(node => [keyOf(node), node]));
-      for (const node of previous.nodes) {
-        const current = after.get(keyOf(node));
-        assert.equal(current?.type, node.type, profile + ' missing ' + node.key);
-        if (node.id && !node.dynamic && node.visible) {
-          assert.ok(current.visible, node.key + ' visibility');
-          assert.deepEqual(current.position, node.position, node.key + ' position');
-          assert.deepEqual(current.scale, node.scale, node.key + ' scale');
-          assert.deepEqual(current.rotation, node.rotation, node.key + ' orientation');
-        }
+      const authored = inventory.nodes.filter(node => node.visible && node.mesh && node.authored);
+      assert.ok(authored.length >= 19, profile + ' authored visual coverage');
+      assert.ok(inventory.nodes.some(node => node.visible && node.name === 'MathieuMesh-v2'), profile + ' rebuilt character');
+      for (const id of previous.ids) {
+        const wasVisible = previous.nodes.some(node => node.id === id && node.visible);
+        if (wasVisible) assert.ok(inventory.nodes.some(node => node.id === id && node.visible), profile + ' active anchor ' + id);
       }
     }
     const controls = await page.evaluate(() => {
@@ -228,10 +227,19 @@ try {
         ['ensemble', [-.65, .65, 1.1], 6.8],
         ['bureau', [-3.02, .63, .36], 1.63],
         ['audio', [-.78, .69, -2.20], 1.87],
+        ['salon', [1.0, .51, 2.85], 2.16],
+        ['personnels', [2.55, .85, 1.68], 1.25],
+        ['vegetation', [-2.90, .80, 3.23], 1.42],
         ['chashitsu', [-5.45, .68, 7.54], 2.35],
+        ['jardin', [-5.45, 1.1, 9.45], 3.18],
       ]) {
-        await page.evaluate(({ target, span }) => {
-          const { camera, renderer, scene } = window.room;
+        await page.evaluate(({ name, target, span }) => {
+          const { camera, renderer, scene, cs, wx } = window.room;
+          if (name === 'jardin') {
+            cs.setPanels(1);
+            cs.setRoofFade(.3);
+            cs.update(1.1, 2, false, wx.k);
+          }
           const center = new THREE.Vector3(...target);
           const distance = new THREE.Vector3(7, 5.8, 9);
           camera.position.copy(center).add(distance);
@@ -253,7 +261,7 @@ try {
           }
           display.src = canvas.toDataURL();
           gl.finish();
-        }, { target, span });
+        }, { name, target, span });
         await page.locator('#room-proof').evaluate(image => image.decode());
         await page.screenshot({ path: resolve(output, name + '.png') });
       }
@@ -330,6 +338,22 @@ try {
           return r.director.mode === 'activity' && r.director.current === r.stations.alocasia;
         });
         result[profile].interactions.walkAndWater = true;
+        await page.evaluate(() => {
+          const r = window.room;
+          r.leave();
+          r.director.spawn(...r.stations.desk.approach, .7);
+          r.goTo('desk');
+        });
+        await page.waitForFunction(() => {
+          const r = window.room;
+          return r.director.current === r.stations.desk && r.director.mode === 'activity';
+        }, null, { timeout: 24_000 });
+        result[profile].interactions.deskSeated = await page.evaluate(() => {
+          const r = window.room;
+          return Number.isFinite(r.hero.hipContactY()) &&
+            r.hero.wp('hand_l').distanceTo(r.hero.wp('hand_r')) > .12;
+        });
+        assert.ok(result[profile].interactions.deskSeated, 'rebuilt character in desk activity');
 
         await page.evaluate(() => {
           const r = window.room;
@@ -389,13 +413,65 @@ try {
     if (!source) throw error;
   }
   if (!result.home?.error) {
+    const homeActions = {};
+    if (!source && !smoke) {
+      await publicPage.waitForFunction(() => {
+        const room = window.__cvRoom3d;
+        const data = document.querySelector('[data-cv-room3d]').dataset;
+        return data.native === 'ready' && room.nativeBridge?.coffeeMug.getObjectByName('Tasse');
+      }, null, { timeout: 30_000 });
+      const frame = await publicPage.locator('[data-cv-room3d]').getAttribute('data-scene-frames');
+      await publicPage.waitForFunction(previous => {
+        const data = document.querySelector('[data-cv-room3d]').dataset;
+        return data.native === 'ready' && Number(data.sceneFrames) > Number(previous) + 12;
+      }, frame);
+      homeActions.shoji = await publicPage.evaluate(() => {
+        const room = window.__cvRoom3d;
+        room.pauseAutonomy(600000);
+        return room.cs.panels.map((panel, i) => {
+          const before = panel.target;
+          room.activate('shoji' + i);
+          const toggled = panel.target !== before;
+          room.activate('shoji' + i);
+          return toggled && panel.target === before;
+        });
+      });
+      assert.deepEqual(homeActions.shoji, [true, true, true]);
+      await publicPage.evaluate(() => {
+        const room = window.__cvRoom3d;
+        room.leave();
+        room.director.spawn(...room.stations.desk.approach, .7);
+        room.goTo('desk');
+      });
+      await publicPage.waitForFunction(() => {
+        const room = window.__cvRoom3d;
+        return room.director.current === room.stations.desk && room.director.mode === 'activity';
+      }, null, { timeout: 24_000 });
+      const mugPosition = await publicPage.evaluate(() => {
+        const room = window.__cvRoom3d;
+        room.activate('coffee');
+        return room.nativeBridge.coffeeMug.position.toArray();
+      });
+      await publicPage.waitForFunction(position => {
+        const mug = window.__cvRoom3d.nativeBridge.coffeeMug;
+        return mug.position.distanceTo(mug.position.clone().fromArray(position)) > .15;
+      }, mugPosition);
+      await publicPage.waitForFunction(position => {
+        const mug = window.__cvRoom3d.nativeBridge.coffeeMug;
+        return mug.position.distanceTo(mug.position.clone().fromArray(position)) < .06;
+      }, mugPosition);
+      homeActions.mugReturned = true;
+    }
     result.home = await publicPage.evaluate(() => ({
       ready: document.querySelector('[data-cv-room3d]').dataset.sceneReady,
       detailProps: document.querySelector('[data-cv-room3d]').dataset.detailProps,
+      native: document.querySelector('[data-cv-room3d]').dataset.native,
       teaPanels: window.__cvRoom3d.cs.panels.length,
-      art: Boolean(window.__cvRoom3d.scene.getObjectByName('Socle de la pièce')),
+      art: Boolean(window.__cvRoom3d.scene.getObjectByName('MathieuMesh-v2') &&
+      window.__cvRoom3d.scene.getObjectByName('Modèle BureauUSM')),
       mode: window.__cvRoom3d.cameraMode,
     }));
+    result.home.actions = homeActions;
     if (!source) {
       assert.ok(roomFromCheckout && result.home.art, 'Home loads the room from this checkout');
       assert.ok(result.home.teaPanels > 0, 'Tea room available on current home');

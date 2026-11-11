@@ -9,7 +9,7 @@ export function createRoomLighting(scene, renderer, mobile) {
     const generator = new THREE.PMREMGenerator(renderer);
     const environment = new RoomEnvironment();
     environmentTarget?.dispose();
-    environmentTarget = generator.fromScene(environment, .07);
+    environmentTarget = generator.fromScene(environment, .032);
     scene.environment = environmentTarget.texture;
     environment.dispose();
     generator.dispose();
@@ -72,7 +72,7 @@ export function createRoomFinishes() {
     const finish = finishes[family];
     const tint = new THREE.Color(finish.tint);
     root.traverse(object => {
-      if (!object.isMesh) return;
+      if (!object.isMesh || !object.visible || object.userData.roomRemaster) return;
       if (object.userData.isInk) {
         if (family !== 'character') object.visible = false;
         return;

@@ -19,7 +19,7 @@ function animate(root,{tree=false}={}){
  transformed.x+=leafWave*foliageAmount*leafWeight*foliageWind/max(.001,foliageScale*leafScale);
  transformed.z+=cos(foliageTime*1.1+leafWorld.x*2.0)*foliageAmount*.35*leafWeight*foliageWind/max(.001,foliageScale*leafScale);`;
  const shader=s=>{Object.assign(s.uniforms,{foliageTime:time,foliageWind:wind,foliageBase:base,foliageSpan:span,foliageAmount:amount,foliageScale:scale});s.vertexShader=declaration+'\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n'+deformation);};
- const meshes=[];root.traverse(o=>{if(!o.isMesh||o.userData.isInk||Array.isArray(o.material))return;const c=o.material.color;if(!c)return;const green=c.g>c.r*1.1&&c.g>c.b*.95,autumn=tree&&c.r>c.g*1.45&&c.r>c.b*1.5;if(green||autumn||!tree&&o.material.map)meshes.push(o);});
+ const meshes=[];root.traverse(o=>{if(!o.isMesh||!o.visible||o.userData.isInk||Array.isArray(o.material))return;const c=o.material.color;if(!c)return;const green=c.g>c.r*1.1&&c.g>c.b*.95,autumn=tree&&c.r>c.g*1.45&&c.r>c.b*1.5;if(o.userData.roomFoliage||green||autumn||!tree&&o.material.map)meshes.push(o);});
  for(const o of meshes){let m=materials.get(o.material);if(!m){m=o.material.clone();m.onBeforeCompile=shader;m.customProgramCacheKey=()=> 'foliage-v49';materials.set(o.material,m);}o.material=m;const depth=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,side:m.side,map:m.map,alphaMap:m.alphaMap,alphaTest:m.alphaTest});depth.onBeforeCompile=shader;depth.customProgramCacheKey=()=> 'foliage-depth-v49';o.customDepthMaterial=depth;o.userData.foliage=true;}
  root.userData.foliageMeshes=meshes.length;tracked.set(root,{base,offset});
 }
