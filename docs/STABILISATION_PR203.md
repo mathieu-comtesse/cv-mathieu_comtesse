@@ -46,3 +46,19 @@ Constats : (a) `main` brut échoue sur 13 tests sur 14, la plupart par un délai
 
 ## Règles tenues
 Aucun test supprimé, aucune assertion affaiblie ; les attentes de temps remplacées par des attentes d'état ; chaque changement de contrat est documenté dans le test (ancien contrat, contrat actuel).
+
+## Mise à jour (commits suivants)
+Tests passés au vert en local après réécriture documentée (ancien contrat, contrat actuel, justification dans le fichier de test) :
+| test | contrat remplacé | preuve |
+|---|---|---|
+| test-annual-gains-browser | tirelire de `gains.html` (la route « / » servait `accueil.html`) ; bilan calendaire et reprise annuelle retirés (`js/home.js` plus chargé) ; rotation par les règles (`rf-tabview`) ; attribution CC BY 4.0 de la tirelire remise dans le pied de page de `gains.html` | `PIG_CALENDAR_RESPONSIVE_OK` |
+| test-project-scroll | la galerie `.process-gallery` n'existe plus (`initProjectDioramas` n'est appelée par aucune page) ; remplacé par : images des vitrines des cadres chargées et restant dans leur cadre pendant le défilement (18 images observées) | `PROJECT_IMAGES_ATTACHED_OK 18` |
+| test-v49-seat-book | galerie retirée ; album photo ciblé parmi six boîtes `film-album` | `SEAT_BOOK_OK` |
+| test-v49-mobile-book | pincement : l'accueil remet le zoom à 1, 700 ms après le relâchement (`lockView`, `refonte/main.js`) : zoom contrôlé doigts posés puis retour à 1 ; bord gauche = règle « Incliner » ; page Expériences ; galerie retirée | `V49_OK` (2 exécutions) |
+| test-user-room-props | extras glTF non embarqués depuis la compression des modèles (3-4 novembre) : remplacement `RTX2080ti` lu dans la provenance versionnée | `SUPPLIED_ROOM_PROPS_OK` |
+| test-v49-features | pièce sans thé (jardin masqué, 0 arbre, feuilles non animées hors vue) ; dialogue des projets, courriels de la finance et cartes Power BI retirés (code non servi) | `FEATURES_OK` |
+| test-v52, test-v51-interactions, test-ps1-v50 | voir plus haut | CI `7984b66e` : réussis |
+
+Restant : `test-scene-lifecycle` (nuages d'atterrissage : cause non établie ; la règle de `js/native-room.js` n'affiche la poussière qu'en marche ou en course, le test lit les enfants du groupe) ; intermittents non expliqués : objet « immobile » de `test-v52`, bulle de pensée de `test-v51`, capture de `test-film-book-v50`.
+
+**Défaut réel trouvé** : plus aucune attribution des modèles tiers sous licence CC BY sur le site depuis la refonte du 20 octobre (prises BlackCube, clé ZwiebelGames, manette Sony, PS1 Lars Maes ; texte d'origine : `git show cb94f8bd^:index.html`). Seule la tirelire est restaurée (gains.html). Emplacement des autres à décider.
