@@ -719,6 +719,8 @@ for(const [C,key]of [[HTMLIFrameElement,'src'],[HTMLLinkElement,'href']]){
 }
 const errors=[];
 const state=window.__cvTransfer={machines:[],room:'idle',gains:'idle',errors};
+let resolveRoomPreview;
+const roomPreviewReady=new Promise(resolve=>{resolveRoomPreview=resolve;});
 const fail=(part,error)=>{errors.push({part,error:String(error)});console.warn('CV '+part,error);};
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 // Keep the existing source navigation geometry; local results use the transplanted content.
@@ -868,7 +870,7 @@ async function startMachines(){
   for(const host of qa('[data-cv-machine]'))loader.observe(host);
   let last=0;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.8;
-  let skip=0;function frame(time){requestAnimationFrame(frame);if(document.hidden)return;const Q=window.__cvBus?window.__cvBus.quality:1;if(Q<=.5&&(skip^=1))return;last=time;for(const item of active){if(zoom&&!item.zoom&&item.machine===zoom.item.machine){item.lastTime=time;continue;}/* une seule évolution logique par image : la vue agrandie porte seule le temps de la machine */if(!item.host.__visible||item.host.clientWidth<=0||item.host.clientHeight<=0){item.lastTime=time;continue;}const dt=Math.min(.05,Math.max(0,(time-(item.lastTime??time))/1000));item.lastTime=time;if(item.seek!=null){item.elapsed=item.seek;item.seek=null;}item.elapsed=(item.elapsed||0)+(item.paused?0:dt*(item.speed||1));if(item.demoEnd!=null&&item.elapsed>=item.demoEnd){item.elapsed=item.demoEnd;item.paused=true;item.demoEnd=null;item.demoDone=true;}const sc=item.zoom?Math.min(devicePixelRatio||1,2):1,w=Math.min(item.zoom?1800:Math.round((cvLowEnd?560:900)*Q),Math.max(Math.round(320*Q),Math.round(item.host.clientWidth*sc))),h=Math.round(w/(item.host.clientWidth/item.host.clientHeight));if(item.canvas.width!==w||item.canvas.height!==h){item.canvas.width=w;item.canvas.height=h;}const R=item.renderer||renderer;R.setSize(w,h,false);item.camera.aspect=w/h;if(item.follow){const goal=reducedMotion.matches?0:1-Math.min(1,Math.max(0,scrollY/(innerHeight*.8)));item.t=item.t??goal;item.t+=(goal-item.t)*(1-Math.exp(-8*dt));item.geometry.view.yaw=item.t*1.1;item.geometry.view.pitch=-item.t*.4;}const b=item.base||{yaw:.56,pitch:.55},view=item.geometry.view;if(item.goal){const k=1-Math.exp(-6*dt);view.center.lerp(item.goal.center,k);view.radius+=(item.goal.radius-view.radius)*k;}const angle=Math.min(item.camera.fov*Math.PI/360,Math.atan(Math.tan(item.camera.fov*Math.PI/360)*w/h)),distance=view.radius/Math.sin(angle)*1.18*(item.fit||1);item.camera.position.copy(view.center).add(new THREE.Vector3(Math.sin(view.yaw+b.yaw)*Math.cos(view.pitch+b.pitch),Math.sin(view.pitch+b.pitch),Math.cos(view.yaw+b.yaw)*Math.cos(view.pitch+b.pitch)).multiplyScalar(distance));item.camera.lookAt(view.center);item.camera.updateProjectionMatrix();item.machine.update?.(item.elapsed);item.ctx.clearRect(0,0,w,h);if(!item.geometry.publish()){R.render(item.scene,item.camera);item.ctx.drawImage(R.domElement,0,0);}}}
+  let skip=0;function frame(time){requestAnimationFrame(frame);if(document.hidden)return;const Q=window.__cvBus?window.__cvBus.quality:1;if(Q<=.5&&(skip^=1))return;last=time;for(const item of active){if(zoom&&!item.zoom&&item.machine===zoom.item.machine){item.lastTime=time;continue;}/* une seule évolution logique par image : la vue agrandie porte seule le temps de la machine */if(!item.host.__visible||item.host.clientWidth<=0||item.host.clientHeight<=0||item.preview&&item.host.checkVisibility?.({opacityProperty:true,visibilityProperty:true})===false){item.lastTime=time;continue;}const dt=Math.min(.05,Math.max(0,(time-(item.lastTime??time))/1000));item.lastTime=time;if(item.seek!=null){item.elapsed=item.seek;item.seek=null;}item.elapsed=(item.elapsed||0)+(item.paused?0:dt*(item.speed||1));if(item.demoEnd!=null&&item.elapsed>=item.demoEnd){item.elapsed=item.demoEnd;item.paused=true;item.demoEnd=null;item.demoDone=true;}const sc=item.zoom?Math.min(devicePixelRatio||1,2):1,w=Math.min(item.zoom?1800:Math.round((cvLowEnd?560:900)*Q),Math.max(Math.round(320*Q),Math.round(item.host.clientWidth*sc))),h=Math.round(w/(item.host.clientWidth/item.host.clientHeight));if(item.canvas.width!==w||item.canvas.height!==h){item.canvas.width=w;item.canvas.height=h;}const R=item.renderer||renderer;R.setSize(w,h,false);item.camera.aspect=w/h;if(item.follow){const goal=reducedMotion.matches?0:1-Math.min(1,Math.max(0,scrollY/(innerHeight*.8)));item.t=item.t??goal;item.t+=(goal-item.t)*(1-Math.exp(-8*dt));item.geometry.view.yaw=item.t*1.1;item.geometry.view.pitch=-item.t*.4;}const b=item.base||{yaw:.56,pitch:.55},view=item.geometry.view;if(item.goal){const k=1-Math.exp(-6*dt);view.center.lerp(item.goal.center,k);view.radius+=(item.goal.radius-view.radius)*k;}const angle=Math.min(item.camera.fov*Math.PI/360,Math.atan(Math.tan(item.camera.fov*Math.PI/360)*w/h)),distance=view.radius/Math.sin(angle)*1.18*(item.fit||1);item.camera.position.copy(view.center).add(new THREE.Vector3(Math.sin(view.yaw+b.yaw)*Math.cos(view.pitch+b.pitch),Math.sin(view.pitch+b.pitch),Math.cos(view.yaw+b.yaw)*Math.cos(view.pitch+b.pitch)).multiplyScalar(distance));item.camera.lookAt(view.center);item.camera.updateProjectionMatrix();item.machine.update?.(item.elapsed);item.ctx.clearRect(0,0,w,h);if(!item.geometry.publish()){R.render(item.scene,item.camera);item.ctx.drawImage(R.domElement,0,0);}}}
   /* commandes communes (refonte/m3d/control-bar.js) : lecture, étape, scénario, vue, inspection */
   function focusOn(item,name){const v=item.geometry.view;item.home??={center:v.center.clone(),radius:v.radius};if(!name){item.goal=item.home;return;}const o=item.machine.api?.anchors?.[name];if(!o)return;item.goal={center:o.getWorldPosition(new THREE.Vector3()),radius:item.home.radius*.38};}
   async function attachBar(item,root){const m=item.machine;if(!m.controls?.seek&&!m.api)return;const {buildControlBar}=await import(base+'refonte/m3d/control-bar.js');
@@ -912,11 +914,15 @@ async function startMachines(){
   (async function roomCard(){
     const host=q('[data-cv-room-card]');if(!host)return;
     new IntersectionObserver(es=>{host.__visible=es.some(e=>e.isIntersecting);},{rootMargin:'200px'}).observe(host);
-    let room;while(!(room=window.__cvRoom3d?.scene&&window.__cvRoom3d)){await new Promise(r=>setTimeout(r,500));}
+    const room=await roomPreviewReady;
     const rr=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});rr.setPixelRatio(1);rr.setClearColor(0,0);
     const ro=room.renderer;rr.outputColorSpace=ro.outputColorSpace;rr.toneMapping=ro.toneMapping;rr.toneMappingExposure=ro.toneMappingExposure;rr.shadowMap.enabled=ro.shadowMap.enabled;rr.shadowMap.type=ro.shadowMap.type;
     const canvas=q('canvas',host),ctx=canvas.getContext('2d',{alpha:true}),camera=new THREE.PerspectiveCamera(31,1,.1,500);
-    const item={host,machine:{},scene:room.scene,camera,canvas,ctx,renderer:rr,geometry:{view:{yaw:0,pitch:0,radius:7,center:new THREE.Vector3(-1.3,1.2,2.6)},publish:()=>false},follow:1,fit:.7,zfit:.6,base:{yaw:.35,pitch:.6},zbase:{yaw:.35,pitch:.6},label:'La pièce de Mathieu',href:'#cv-decor',linkText:'Entrer dans la pièce'};
+    const item={host,preview:true,machine:{},scene:room.scene,camera,canvas,ctx,renderer:rr,geometry:{view:{yaw:0,pitch:0,radius:7,center:new THREE.Vector3(-1.3,1.2,2.6)},publish:()=>false},follow:1,fit:.7,zfit:.6,base:{yaw:.35,pitch:.6},zbase:{yaw:.35,pitch:.6},label:'La pièce de Mathieu',href:'#cv-decor',linkText:'Entrer dans la pièce'};
+    if(rr.extensions.has('KHR_parallel_shader_compile')){
+      await room.detailPropsReady.catch(()=>{});
+      try{await rr.compileAsync(room.scene,camera);}catch(error){console.warn('Préparation de l’aperçu de la pièce',error);}
+    }
     active.push(item);host.setAttribute('data-ready','');
   })();
   requestAnimationFrame(frame);
@@ -1258,8 +1264,8 @@ startParityPath().catch(e=>fail('parité Shopify',e));
 // à plat elle se dessine elle-même ; sur le chemin, ses volumes sont repris par le chemin et ses interactions passent par __cvRoomView
 (function startRoom3d(){const host=document.querySelector('[data-cv-room3d]');if(!host)return;let started=false;
  const go=async()=>{if(started)return;started=true;try{
-  const [{createRoom},{createBlueprintPlane},T]=await Promise.all([import(base+'js/room.js?v=nt6-20261026'),import(base+'refonte/blueprint-hero.js'),import('three')]);
-  const options={noTea:true},parity=()=>document.documentElement.classList.contains('cv-parity-active');let pathView=null;
+  const [{createRoom},{createBlueprintPlane},T]=await Promise.all([import(base+'js/room.js?v=fall26-shaders'),import(base+'refonte/blueprint-hero.js'),import('three')]);
+  const options={noTea:true,warmShaders:true},parity=()=>document.documentElement.classList.contains('cv-parity-active');let pathView=null;
   Object.defineProperty(options,'view',{get:()=>parity()&&pathView?pathView:undefined});
   const bubble=document.createElement('div');bubble.className='bubble';host.append(bubble);
   const room=await createRoom(host,bubble,options);
@@ -1272,7 +1278,7 @@ startParityPath().catch(e=>fail('parité Shopify',e));
     if(key!==lastKey){lastKey=key;bp.plane.scale.set(half*2,z1-z0,1);bp.plane.position.set(0,-.01,(z0+z1)/2);const u0=.5-half/30,u1=.5+half/30,vTop=.5-z0/30,vBottom=.5-z1/30;uv.array.set([u0,vTop,u1,vTop,u0,vBottom,u1,vBottom]);uv.needsUpdate=true;}}setTimeout(frame,400);};frame();
   /* boutons et canvas de la pièce, créés après l'entrée en 3D : repris comme pièces du chemin (les boutons flottent) */
   const adopt=()=>{if(!parity())return;for(const e of host.querySelectorAll(':scope>.room-navigation,:scope>.room-camera,:scope>.scene-controls,:scope>.room-zoom')){if(e.inert||e.closest('.cv-parity-part')||!(e.querySelector('button')||e.matches('.room-camera')))continue;window.__cvAdopt?.(e,host);}};setInterval(adopt,1500);
-  const wait=()=>window.__cvRoomView?(pathView=window.__cvRoomView(entry)):setTimeout(wait,200);wait();state.room3d='ready';window.__cvRoom3d=room;
+  const wait=()=>window.__cvRoomView?(pathView=window.__cvRoomView(entry)):setTimeout(wait,200);wait();state.room3d='ready';window.__cvRoom3d=room;resolveRoomPreview(room);
   // bulle de pensée : sur le chemin, elle suit la tête du personnage projetée par le chemin
   const layer=document.createElement('div');layer.className='cv-room3d-layer';document.body.append(layer);const head=new T.Vector3();
   (function place(){requestAnimationFrame(place);const on=parity()&&pathView;if(on&&bubble.parentElement!==layer)layer.append(bubble);if(!on&&bubble.parentElement!==host)host.append(bubble);if(!on||!bubble.classList.contains('show'))return;
