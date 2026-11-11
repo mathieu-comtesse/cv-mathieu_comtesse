@@ -71,7 +71,8 @@ try {
       mode: window.room.director.mode,
     }));
     const before = await state();
-    await page.waitForTimeout(2000);
+    /* attente de l'état réel (plus de 5 images rendues) plutôt que d'un délai fixe de 2 s : en rendu logiciel sur un runner chargé, la cadence tombe sous 3 images par seconde */
+    await page.waitForFunction(b => Number(document.getElementById('room').dataset.sceneFrames) > b + 5, before.frames, { timeout: 60000 }).catch(() => {});
     const after = await state();
     const deskBounds = await page.evaluate(() => window.room.bbox('desk'));
     assert.ok(deskBounds[1].every((max, i) => max - deskBounds[0][i] < 4), 'Imported desk must retain its physical size');
