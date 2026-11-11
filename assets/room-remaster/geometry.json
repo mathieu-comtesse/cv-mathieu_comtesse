@@ -1,0 +1,163 @@
+{
+  "desk": {
+    "BureauUSM": {
+      "triangles": 632
+    },
+    "CaissonUSM": {
+      "triangles": 820
+    },
+    "SetuAssise": {
+      "triangles": 652
+    },
+    "Moonlander": {
+      "triangles": 3448
+    },
+    "MXMaster": {
+      "triangles": 240
+    },
+    "Tour": {
+      "triangles": 2452
+    },
+    "SupportEcrans": {
+      "triangles": 576
+    },
+    "EcranLarge": {
+      "triangles": 780
+    },
+    "EcranPortrait": {
+      "triangles": 360
+    },
+    "BarreEcran": {
+      "triangles": 116
+    },
+    "Tasse": {
+      "triangles": 264
+    }
+  },
+  "furniture": {
+    "DS450": {
+      "triangles": 624
+    },
+    "Ekstrem": {
+      "triangles": 1372
+    },
+    "Tabouret": {
+      "triangles": 140
+    },
+    "Tapis": {
+      "triangles": 2154
+    },
+    "PiedEtCadre": {
+      "triangles": 480
+    },
+    "GestoTerra": {
+      "triangles": 964
+    },
+    "CadreOmni": {
+      "triangles": 1200
+    },
+    "Falkland": {
+      "triangles": 3340
+    }
+  },
+  "audio": {
+    "BuffetUSM": {
+      "triangles": 2064
+    },
+    "TiroirUSM": {
+      "triangles": 148
+    },
+    "JBL": {
+      "triangles": 5340
+    },
+    "Amplificateur": {
+      "triangles": 804
+    },
+    "YamahaChassis": {
+      "triangles": 264
+    }
+  },
+  "electronics": {
+    "MagnavoxCoque": {
+      "triangles": 1140
+    },
+    "PlayStation": {
+      "triangles": 532
+    },
+    "Manette": {
+      "triangles": 468
+    }
+  },
+  "personal": {
+    "Mamiya645": {
+      "triangles": 980
+    },
+    "Olivetti280": {
+      "triangles": 3148
+    },
+    "SacRando": {
+      "triangles": 704
+    },
+    "Trek": {
+      "triangles": 5024
+    },
+    "Stèle": {
+      "triangles": 1740
+    },
+    "Bouddha": {
+      "triangles": 456
+    },
+    "Suiseki": {
+      "triangles": 120
+    },
+    "Batons": {
+      "triangles": 592
+    },
+    "PompeCorps": {
+      "triangles": 172
+    },
+    "Geta": {
+      "triangles": 704
+    }
+  },
+  "foliage": {
+    "Alocasia": {
+      "triangles": 1368
+    },
+    "Dracaena": {
+      "triangles": 1968
+    },
+    "Bonsai": {
+      "triangles": 1396
+    },
+    "PinJardin": {
+      "triangles": 380
+    },
+    "CerisierJardin": {
+      "triangles": 820
+    },
+    "ErableJardin": {
+      "triangles": 820
+    },
+    "GinkgoJardin": {
+      "triangles": 820
+    }
+  },
+  "chashitsu": {
+    "Chawan": {
+      "triangles": 140
+    },
+    "Zabuton": {
+      "triangles": 200
+    },
+    "Tatami": {
+      "triangles": 4516
+    },
+    "ShojiBois": {
+      "triangles": 1020
+    },
+    "Kawara": {
+      "triangles": 9020
+    }
+  }
+}

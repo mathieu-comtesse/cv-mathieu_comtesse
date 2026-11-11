@@ -1,5 +1,5 @@
 import { THREE } from './kit.js?v=cv-scene-v29';
-import { cloneNativeObject } from './native-geometry.js?v=render-recovery-v10';
+import { cloneNativeObject } from './native-geometry.js?v=room-art-v2';
 
 const SOURCE_TO_TARGET = {
   Base_HumanPelvis001: 'pelvis',

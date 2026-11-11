@@ -1,3 +1,4 @@
+import { attachMathieuRemaster, mathieuRemasterUrl } from './mathieu-remaster.js';
 import { THREE, mat, loadBuffer } from './kit.js?v=cv-scene-v29';
 import { GLTFLoader } from 'three/addons/GLTFLoader.js';
 
@@ -104,13 +105,17 @@ export async function createCharacter({
   animsUrl = 'assets/anims.glb?v=cv-scene-v13',
   targetHeight = 1.72,
   referenceAppearance = true,
+  remaster = false,
 } = {}) {
-  const [modelBuffer, rigBuffer, animBuffer] = await Promise.all([
+  const [modelBuffer, rigBuffer, animBuffer, remasterBuffer] = await Promise.all([
     loadBuffer(modelUrl), loadBuffer(rigUrl), loadBuffer(animsUrl),
+    remaster ? loadBuffer(mathieuRemasterUrl).catch(() => null) : null,
   ]);
   const loader = new GLTFLoader();
   const parse = (b) => new Promise((res, rej) => loader.parse(b, '', res, rej));
-  const [characterGltf, animGltf] = await Promise.all([parse(modelBuffer), parse(animBuffer)]);
+  const [characterGltf, animGltf, newAppearance] = await Promise.all([
+    parse(modelBuffer), parse(animBuffer), remasterBuffer ? parse(remasterBuffer).catch(() => null) : null,
+  ]);
 
   // Référence de peau (squelette + matrice de liaison des jambes d'origine) : les vêtements ajoutés se lient au même squelette.
   const skinRef = (() => { let r = null; characterGltf.scene.traverse((o) => { if (!r && o.isSkinnedMesh && /^legs/.test(o.name)) r = o; }); return r && { skeleton: r.skeleton, bindMatrix: r.bindMatrix.clone(), names: r.skeleton.bones.map((b) => b.name) }; })();
@@ -149,7 +154,7 @@ export async function createCharacter({
   // NB992_OPTIONAL : le modèle New Balance 992 (Sketchfab) se place dans assets/nb992.glb. Sans ce fichier, les chaussures d'origine restent.
   let nb992Gltf = null;
   let fittedShoesGltf=null;
-  if(referenceAppearance)try { fittedShoesGltf=await parse(await loadBuffer('assets/nb992-fitted-v27.glb')); } catch (_) {}
+  if(referenceAppearance && !newAppearance)try { fittedShoesGltf=await parse(await loadBuffer('assets/nb992-fitted-v27.glb')); } catch (_) {}
   if(!referenceAppearance)try { nb992Gltf = await parse(await loadBuffer('assets/nb992.glb?v=cv-scene-v13')); } catch (_) {}
   const rig = JSON.parse(new TextDecoder().decode(rigBuffer));
   const sourceRig = Object.fromEntries(rig.map((b) => [b.n, b]));
@@ -212,7 +217,7 @@ export async function createCharacter({
   const authoredBones = [];
   model.traverse(o => { if(o.isBone) authoredBones.push({bone:o,p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()}); });
   const resetBindPose = () => { for(const r of authoredBones){r.bone.position.copy(r.p);r.bone.quaternion.copy(r.q);r.bone.scale.copy(r.s);} group.updateMatrixWorld(true); };
-  if(referenceAppearance) model.getObjectByName('arm')?.traverse(o => {
+  if(referenceAppearance && !newAppearance) model.getObjectByName('arm')?.traverse(o => {
     if(!o.isSkinnedMesh) return;
     const g=o.geometry.clone(),si=g.attributes.skinIndex,sw=g.attributes.skinWeight;
     const right=i=>{let w=0;for(let j=0;j<4;j++)if(/^(upperarm|lowerarm|hand)_r$/.test(o.skeleton.bones[si.getComponent(i,j)]?.name||''))w+=sw.getComponent(i,j);return w;};
@@ -225,7 +230,7 @@ export async function createCharacter({
   // Preserve black frames / transparent lenses. Prefer the exact Native expression textures
   // extracted from /info/; fall back to the local procedural face if an asset is unavailable.
   const faces = {};
-  for (const k of ['neutral','blink','happy','amazed','talkA','talkO','sip']) faces[k] = faceTexture(k);
+  if (!newAppearance) for (const k of ['neutral','blink','happy','amazed','talkA','talkO','sip']) faces[k] = faceTexture(k);
   const loadExactFace = (name) => new Promise((resolve) => {
     new THREE.TextureLoader().load(
       referenceAppearance ? `assets/reference-faces/${name}.png?v=cv-scene-v22` : `assets/native-head/${name}.png?v=native-head-v1`,
@@ -254,13 +259,13 @@ export async function createCharacter({
     );
   });
   const faceNames = referenceAppearance ? ['neutral','happy','amazed','blink','aa','ee','th','l','mpb','o','oo','sss','fv'] : ['neutral','blink','happy','amazed'];
-  const exactFaces = await Promise.all(faceNames.map(loadExactFace));
+  const exactFaces = newAppearance ? [] : await Promise.all(faceNames.map(loadExactFace));
   faceNames.forEach((k, i) => { if (exactFaces[i]) faces[k] = exactFaces[i]; });
   if (referenceAppearance) { faces.talkA = faces.aa || faces.neutral; faces.talkO = faces.o || faces.neutral; faces.sip = faces.mpb || faces.neutral; }
 
   const plate = model.getObjectByName('expression_plate');
   let plateMat = null;
-  if (plate?.isMesh || plate?.isSkinnedMesh) {
+  if (!newAppearance && (plate?.isMesh || plate?.isSkinnedMesh)) {
     plateMat = new THREE.MeshBasicMaterial({ map: faces.neutral, transparent: true, alphaTest: 0.02, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
     plate.material = plateMat; plate.castShadow = false;
   }
@@ -454,6 +459,7 @@ export async function createCharacter({
     group.updateMatrixWorld(true);
     attachFittedShoes();
   }else attachNB992();
+  const styled = newAppearance && attachMathieuRemaster(newAppearance, group, model, bones);
   let nativePose = null, nativePoseW = 0;
   const _poseP = new THREE.Vector3(), _poseQ = new THREE.Quaternion();
 
@@ -499,7 +505,13 @@ export async function createCharacter({
     aim(upper, E); aim(lower, S.clone().addScaledVector(dir, dist));
   };
   const wp = (n) => bones[n]?.getWorldPosition(new THREE.Vector3());
-  const setFace = (kind) => { if (plateMat && faces[kind] && plateMat.map !== faces[kind]) { plateMat.map = faces[kind]; plateMat.needsUpdate = true; } };
+  const setFace = (kind) => {
+    if (styled) styled.setFace(kind);
+    else if (plateMat && faces[kind] && plateMat.map !== faces[kind]) {
+      plateMat.map = faces[kind];
+      plateMat.needsUpdate = true;
+    }
+  };
 
   // Portrait interaction extracted from the local portrait runtime: the outer page forwards
   // normalized pointer coordinates (-1..1) to shupiPortrait.lookAtPointer().
@@ -602,6 +614,8 @@ export async function createCharacter({
     hipSamples.push({mesh,indices});
   });
   const hipContactY = () => {
+    const contact = styled?.hipContactY();
+    if (Number.isFinite(contact)) return contact;
     group.updateMatrixWorld(true);
     let lowest=Infinity;const point=new THREE.Vector3();
     for(const {mesh,indices} of hipSamples) {
@@ -628,6 +642,7 @@ export async function createCharacter({
     },
     setShoes(on) {
       shoesOn = !!on;
+      if (styled) { styled.setShoes(shoesOn); return; }
       if (shoeVisuals.length) shoeVisuals.forEach((o) => { o.visible = shoesOn; });
       else if (shoes) shoes.visible = shoesOn;
       sockVisuals.forEach((o) => { o.visible = fittedShoesGltf ? true : !shoesOn; });
