@@ -9,6 +9,14 @@
     const root = document.documentElement;
     const body = document.body;
     if (!body) return;
+    /* Le CSS est appliqué après les autres feuilles, sans deuxième téléchargement. */
+    if (!document.querySelector('link[href*="comtesse-motion.css"]')) {
+      const sheet = document.createElement("link");
+      sheet.rel = "stylesheet";
+      sheet.href = "/refonte/comtesse-motion.css?v=20261111";
+      sheet.dataset.cmStyle = "";
+      document.head.append(sheet);
+    }
     root.classList.add("cm-enhanced");
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     const fine = matchMedia("(hover:hover) and (pointer:fine)");
@@ -84,7 +92,7 @@
 
     /* Une révélation uniquement pour les surfaces textuelles, jamais les
        conteneurs 3D, ni les cartes utilisées comme solides HTML-in-Canvas. */
-    const candidates = [...document.querySelectorAll('.rf-bmain .rf-tile,.rf-exp-main .rf-tile,.rf-post-body .rf-marche,.cv-card-content > h3')];
+    const candidates = [...document.querySelectorAll('.rf-bmain .rf-tile,.rf-exp-main .rf-tile,.rf-post-body .rf-marche')];
     if (!reduce.matches && "IntersectionObserver" in window) {
       const io = new IntersectionObserver(entries => {
         for (const entry of entries) {
