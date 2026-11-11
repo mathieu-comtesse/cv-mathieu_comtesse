@@ -1,3 +1,4 @@
+import './comtesse-motion.js';
 // Refonte : scène fixe (plan blueprint + vraie pièce 3D du site) qui s'estompe au défilement, titre et règles fixes,
 // puis présentation « About » qui se fige un moment (paragraphes révélés en suivant le défilement), signature, tirelire,
 // sections, contact. Le blog vit dans sa propre page (blog).

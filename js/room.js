@@ -39,6 +39,20 @@ const easeOutBounce = (x) => {
   return n * (x -= 2.625 / d) * x + 0.984375;
 };
 
+async function prepareRoomShaders(renderer, scene, camera) {
+  await renderer.compileAsync(scene, camera);
+  // Le verre dessine les objets opaques une deuxième fois, en espace linéaire.
+  const target = new THREE.WebGLRenderTarget(1, 1, { colorSpace: THREE.ColorManagement.workingColorSpace });
+  const previous = renderer.getRenderTarget();
+  try {
+    renderer.setRenderTarget(target);
+    await renderer.compileAsync(scene, camera);
+  } finally {
+    renderer.setRenderTarget(previous);
+    target.dispose();
+  }
+}
+
 export async function createRoom(container, bubbleEl, options = {}) {   // options.noTea : sans la pièce du thé ; options.noRender : sans rendu propre ; options.view : vue externe {ray, ground, pick, project} (parcours 3D du CV)
   const mobile=matchMedia('(max-width:809px)');
   container.dataset.renderProfile=mobile.matches?'mobile':'desktop';
@@ -1092,10 +1106,11 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
   // Une seule boucle de rendu : sans ce garde-fou, chaque retour sur l'onglet / dans la zone visible relançait une boucle de plus
   // alors que l'ancienne était encore en attente (rAF suspendu en arrière-plan), et la scène était rendue 2, 3… fois par image.
   let rafPending = false;
-  const kick = () => { if (!rafPending) { rafPending = true; requestAnimationFrame(frame); } };
+  let shadersReady = !options.warmShaders || !renderer.extensions.has('KHR_parallel_shader_compile');
+  const kick = () => { if (shadersReady && running && !rafPending) { rafPending = true; requestAnimationFrame(frame); } };
   document.addEventListener('film-album-change',e=>{albumOpen=e.detail.open;if(albumOpen){running=false;pumpSound.stop();ps1Sound.stop();}else if(roomVisible&&!document.hidden&&!workshopOpen&&!running){running=true;clock.getDelta();kick();}});
   document.addEventListener('project-workshop',e=>{workshopOpen=e.detail.open;if(workshopOpen){running=false;pumpSound.stop();}else if(roomVisible&&!document.hidden&&!albumOpen&&!running){running=true;clock.getDelta();kick();}});
-  const startAt = performance.now();
+  let startAt = performance.now();
   const v3 = new THREE.Vector3(), lookRight = new THREE.Vector3(), lookTo = new THREE.Vector3();
   let fpsEma = 0.016, frameNo = 0, lastUp = 0;
   let lastMobileFrame=0;
@@ -1325,7 +1340,15 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
     kick();
   }
   resize();
-  kick();
+  if (shadersReady) kick();
+  else {
+    // Laisse le pilote compiler les matériaux pendant que le navigateur traite le défilement.
+    prepareRoomShaders(renderer, scene, camera).catch(error => console.warn('Préparation des shaders de la pièce', error)).finally(() => {
+      shadersReady = true;
+      startAt = performance.now();
+      kick();
+    });
+  }
 
   // économie : on arrête quand l'onglet est caché ou le composant hors écran
   const io = new IntersectionObserver(([e]) => { roomVisible=e.isIntersecting;const vis=roomVisible&&!document.hidden&&!workshopOpen&&!albumOpen; if (vis && !running) { running = true; clock.getDelta(); kick(); } else if (!vis) {running = false;pumpSound.stop();ps1Sound.stop();} });
@@ -1334,5 +1357,5 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
 
   const bbox = (id) => { const it = items.find((i) => i.id === id); const b = new THREE.Box3().setFromObject(it.holder); return [b.min.toArray(), b.max.toArray()].map((a) => a.map((v) => +v.toFixed(2))); };
   const toScreen = (x, y, z) => { const q = new THREE.Vector3(x, y, z).project(camera), r = el.getBoundingClientRect(); return [r.left + (q.x + 1) / 2 * r.width, r.top + (1 - q.y) / 2 * r.height]; };
-  return { get appOpen(){return appOpen;}, detailPropsReady, bonsaiNext:(prune=true)=>{pruneNext=!!prune;}, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
+  return { get appOpen(){return appOpen;}, detailPropsReady, prepareShaders: (targetRenderer, viewCamera) => prepareRoomShaders(targetRenderer, scene, viewCamera), bonsaiNext:(prune=true)=>{pruneNext=!!prune;}, get nativeBridge(){return nativeBridge;}, foliage:{fallingLeaves,gardenTrees}, ps1Sound, pumpSound, bicyclePump, setCameraMode, get cameraMode(){return cameraMode;}, setSceneMuted, wx, setScroll: (p) => { scrollT = p; }, pauseAutonomy, crate, toScreen, bbox, activate, leave, director, nav, stations, floorY, goTo, lamps, view, target: tgt, opts, hero, ritual, tea, retro, deskEquipment, cs, scene, camera, renderer };
 }

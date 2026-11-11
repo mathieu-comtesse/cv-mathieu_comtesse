@@ -10,49 +10,37 @@
   --up-icon-more:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8h9M17 8h3M4 16h3M11 16h9'/%3E%3Ccircle cx='15' cy='8' r='2'/%3E%3Ccircle cx='9' cy='16' r='2'/%3E%3C/svg%3E");
 }
 
-/* ---------- 1. CTA : un petit objet de verre qui flotte (fiches : .rf-cta ; accueil : .cv-magic3d) ---------- */
-.rf-cta,html body .cv-magic3d,html body .cv-explore3d{
-  --mx:0;--my:0;--sx:50%;--sy:0%;
-  position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;gap:10px;
-  min-height:48px;padding:0 24px 0 18px;border:1px solid rgb(255 255 255 / .34);border-radius:9999px;
-  color:var(--up-fg);font:500 15px/1 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.005em;white-space:nowrap;
-  background:linear-gradient(180deg,rgb(255 255 255 / .3) 0%,rgb(255 255 255 / .1) 48%,rgb(255 255 255 / .16) 100%);
-  -webkit-backdrop-filter:blur(10px) saturate(1.5);backdrop-filter:blur(10px) saturate(1.5);
-  box-shadow:inset 0 1px 0 rgb(255 255 255 / .75),inset 0 -1px 0 rgb(2 10 60 / .28),0 18px 30px -16px rgb(2 8 50 / .75),0 2px 0 -1px rgb(2 8 50 / .35),0 6px 12px -6px rgb(2 8 50 / .4);
-  text-shadow:0 1px 12px rgb(2 6 40 / .5);cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transform:perspective(700px) translate3d(calc(var(--mx) * 3px),calc(var(--my) * 2px),0) rotateX(calc(var(--my) * -2.5deg)) rotateY(calc(var(--mx) * 2.5deg));
-  transition:transform .55s var(--up-ease),box-shadow .55s var(--up-ease),border-color .3s,background .3s;
-  animation:up-float 7.5s ease-in-out infinite;
+/* Commandes des machines, inspirées de la capsule sombre des cartes Editions. */
+.rf-cta[data-demo], .cv-magic3d, .cv-explore3d {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 24px; padding: 4px 12px;
+  border: 0; border-radius: 999px;
+  background: var(--f26-section-button, #071047); color: #fff;
+  font: 400 12px/16px ui-monospace, monospace; white-space: nowrap;
+  cursor: pointer;
 }
-.rf-cta::before,html body .cv-magic3d,html body .cv-explore3d::before{content:"";width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:var(--up-icon) center/contain no-repeat;mask:var(--up-icon) center/contain no-repeat}
-.rf-cta[data-demo="explore"]::before{-webkit-mask-image:var(--up-icon-more);mask-image:var(--up-icon-more)}
-/* reflet directionnel qui suit le pointeur */
-.rf-cta::after,html body .cv-magic3d,html body .cv-explore3d::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(130px 64px at var(--sx) var(--sy),rgb(255 255 255 / .42),transparent 70%);opacity:.0;transition:opacity .4s}
-.rf-cta--quiet{background:transparent;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .06),0 8px 18px -12px rgb(2 8 50 / .6);color:var(--up-fg-dim);animation-delay:-3.2s}
-@media (hover:hover){
-  .rf-cta:hover,html body .cv-magic3d:hover,html body .cv-explore3d:hover{
-    border-color:rgb(255 255 255 / .55);color:#fff;
-    background:linear-gradient(180deg,rgb(255 255 255 / .4) 0%,rgb(255 255 255 / .14) 48%,rgb(255 255 255 / .2) 100%);
-    transform:perspective(700px) translate3d(calc(var(--mx) * 3px),calc(var(--my) * 2px - 3px),0) rotateX(calc(var(--my) * -2.5deg)) rotateY(calc(var(--mx) * 2.5deg));
-    box-shadow:inset 0 1px 0 rgb(255 255 255 / .85),inset 0 -1px 0 rgb(2 10 60 / .28),0 26px 38px -16px rgb(2 8 50 / .8),0 2px 0 -1px rgb(2 8 50 / .35),0 8px 14px -6px rgb(2 8 50 / .4);
-  }
-  .rf-cta:hover::after,html body .cv-magic3d:hover::after,html body .cv-explore3d:hover::after{opacity:1}
+.rf-cta[data-demo]::before, .cv-magic3d::before, .cv-explore3d::before {
+  content: ""; width: 14px; height: 14px; flex: none; background: currentColor;
+  -webkit-mask: var(--up-icon) center/contain no-repeat;
+  mask: var(--up-icon) center/contain no-repeat;
 }
-.rf-cta:active,html body .cv-magic3d:active,html body .cv-explore3d:active{transform:perspective(700px) scale(.96);transition-duration:.1s;box-shadow:inset 0 1px 0 rgb(255 255 255 / .5),inset 0 2px 6px rgb(2 10 60 / .35),0 6px 12px -8px rgb(2 8 50 / .7)}
-.rf-cta:focus-visible,html body .cv-magic3d:focus-visible,html body .cv-explore3d:focus-visible{outline:2px solid rgb(255 255 255 / .9);outline-offset:3px}
-.rf-cta[disabled],html body .cv-magic3d[disabled],html body .cv-explore3d[disabled]{opacity:.45;cursor:not-allowed;animation:none}
-.rf-cta[aria-busy="true"]::before,html body .cv-magic3d[aria-busy="true"]::before{-webkit-mask:none;mask:none;background:none;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:up-spin .8s linear infinite}
-@keyframes up-float{0%,100%{translate:0 0}50%{translate:0 -3px}}
-@keyframes up-spin{to{transform:rotate(360deg)}}
-.rf-post-act{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:28px 0 0}
-.rf-post--bp .rf-post-act{position:relative;z-index:2}
-/* accueil : le CTA flotte au bas de la machine, il ne vit plus dans un cadre de texte */
-html body .cv-machine .cv-cta-row{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;z-index:3}
-html body .cv-explore3d{background:transparent;color:var(--up-fg-dim);animation-delay:-3.2s}
-html body .cv-explore3d::before{-webkit-mask-image:var(--up-icon-more);mask-image:var(--up-icon-more)}
-.rf-cta[data-demo="magic"]::before,html body .cv-magic3d::before{-webkit-mask-image:var(--up-icon-magic);mask-image:var(--up-icon-magic)}
-@media (max-width:640px){.rf-cta,html body .cv-magic3d,html body .cv-explore3d{min-height:48px;font-size:14.5px}}
-@media (prefers-reduced-motion:reduce){.rf-cta,html body .cv-magic3d,html body .cv-explore3d{animation:none;transition:none;transform:none}.rf-cta::after,html body .cv-magic3d,html body .cv-explore3d::after{display:none}}
+:is(.rf-cta[data-demo], .cv-magic3d, .cv-explore3d):focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+:is(.rf-cta[data-demo], .cv-magic3d, .cv-explore3d):disabled { opacity: .45; cursor: not-allowed; }
+:is(.rf-cta[data-demo], .cv-magic3d, .cv-explore3d)[aria-busy=true]::before {
+  -webkit-mask: none; mask: none; background: none;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
+  animation: up-spin .8s linear infinite;
+}
+@keyframes up-spin { to { transform: rotate(360deg); } }
+.rf-post-act { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 28px 0 0; }
+.rf-post--bp .rf-post-act { position: relative; z-index: 2; }
+html body .cv-machine .cv-cta-row { position: absolute; inset: auto 0 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; z-index: 3; }
+.rf-cta[data-demo=explore]::before, .cv-explore3d::before { -webkit-mask-image: var(--up-icon-more); mask-image: var(--up-icon-more); }
+.rf-cta[data-demo=magic]::before, .cv-magic3d::before { -webkit-mask-image: var(--up-icon-magic); mask-image: var(--up-icon-magic); }
+@media (pointer:coarse) { :is(.rf-cta[data-demo], .cv-magic3d, .cv-explore3d) { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) {
+  :is(.rf-cta[data-demo], .cv-magic3d, .cv-explore3d)[aria-busy=true]::before { animation: none; }
+}
 
 /* ---------- 2. « Comment ça marche » : cinq étapes éditoriales, un seul accent, aucun cadre ---------- */
 .rf-marche{margin:26px 0 12px}

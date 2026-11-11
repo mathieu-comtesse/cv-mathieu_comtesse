@@ -2,24 +2,27 @@
 // une seule démonstration par projet (la machine), plus d'ancienne surcouche en perspective, CTA fonctionnel, démonstration pilotée par la machine,
 // pause / reprise, panneau « Explorer », sortie, capsule contenue dans l'écran mobile.
 // Usage : node tools/test-ux.mjs [slug]   (SHOTS=dossier pour enregistrer les captures)
-import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { fileURLToPath } from 'node:url';
+import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+import { routeCheckout } from './route-checkout.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); const fail = []; const log = (...a) => console.log(...a);
 const PAGES = ['moteur44', 'studio', 'gares', 'cerfa', 'finance', 'vmvre', 'pa', 'powerbi', 'vre', 'suivi', 'lecteur-vre'];
 const only = process.argv[2], SHOTS = process.env.SHOTS;
 if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf' };
-const srv = http.createServer((q, r) => { const f = path.join(root, decodeURIComponent(new URL(q.url, 'http://x').pathname)); if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'content-type': types[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r); });
-await new Promise((ok) => srv.listen(0, ok)); const port = srv.address().port;
+const origin = 'http://cv.test';
 let chromium; { const { createRequire } = await import('node:module'); const req = createRequire(root + '/'); try { ({ chromium } = req('playwright')); } catch { ({ chromium } = createRequire('/tmp/q18/')('playwright')); } }
-const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (const slug of PAGES) {
   if (only && only !== slug) continue;
   for (const [vp, w, h] of [['desktop', 1440, 900], ['mobile', 390, 844]]) {
     const tag = `${slug} ${vp}`, errs = [];
+    log('test  ', tag);
     const p = await b.newPage({ viewport: { width: w, height: h } }); p.setDefaultTimeout(60000);
     p.on('pageerror', (e) => errs.push(String(e).slice(0, 160)));
-    await p.goto(`http://localhost:${port}/projet-${slug}.html`, { waitUntil: 'domcontentloaded' });
+    const consoleErrors = [];
+    p.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 200)); });
+    await routeCheckout(p.context(), root, origin);
+    await p.goto(`${origin}/projet-${slug}.html`, { waitUntil: 'domcontentloaded' });
     await p.waitForSelector('.rf-cb-dock', { state: 'attached', timeout: 60000 }).catch(() => fail.push(`${tag} : la machine ne se charge pas`));
     // 1. habillage : surcouche transparente, plus de contours pointillés ni de plaque noire
     const ov = await p.evaluate(() => { const o = document.querySelector('.fl-ov'); if (!o) return null; const c = getComputedStyle(o); return { bg: c.backgroundImage + c.backgroundColor, dashed: [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules].map((r) => r.cssText); } catch { return []; } }).filter((t) => /\.(b3|k3|lh|lv)\b[^{]*\{[^}]*dashed/.test(t)).length }; });
@@ -48,13 +51,24 @@ for (const slug of PAGES) {
       await p.click('.fl-ov-end [data-act="replay"]', { force: true }); await sleep(1500);
       if (!(await p.evaluate(() => document.querySelector('.fl-ov-end').hidden))) fail.push(`${tag} : Rejouer ne relance pas`);
     }
-    await p.keyboard.press('Escape'); await sleep(1700);
+    await p.keyboard.press('Escape');
+    await p.waitForFunction(() => !document.querySelector('.fl-ov.is-open, .fl-ov-w > *'), null, { timeout: 10000 })
+      .catch(() => fail.push(`${tag} : la transition de fermeture de la magie reste active`));
     if (await p.evaluate(() => document.querySelector('.fl-ov').classList.contains('is-open'))) fail.push(`${tag} : Échap ne ferme pas la magie`);
     if (!(await p.evaluate(() => document.activeElement?.dataset?.demo === 'magic'))) fail.push(`${tag} : le focus n'est pas rendu au bouton`);
     // 3. démonstration réelle
     await p.click('.rf-cta[data-demo="explore"]', { force: true });
     await p.waitForFunction(() => document.body.classList.contains('rf-demo'), null, { timeout: 5000 }).catch(() => fail.push(`${tag} : « Explorer la machine » ne lance pas la machine`));
-    await p.waitForSelector('.cv-cb-cap', { timeout: 30000 }).catch(() => fail.push(`${tag} : capsule de commandes absente`));
+    const capsule = await p.waitForSelector('.cv-cb-cap', { timeout: 30000 }).catch(() => null);
+    if (!capsule) {
+      const classes = await p.locator('body').getAttribute('class');
+      const details = [...errs, ...consoleErrors].slice(0, 4).join(' | ');
+      const failure = `${tag} : capsule de commandes absente (${classes || 'aucune classe'}) ${details}`;
+      fail.push(failure);
+      log('ÉCHEC ', failure);
+      await p.close();
+      continue;
+    }
     await sleep(2500);
     const s1 = await p.evaluate(() => ({ cap: document.querySelector('.rf-demo-cap')?.textContent || '', val: document.querySelector('.cv-cb input[type=range]')?.value }));
     if (!/Étape \d \/ 5/.test(s1.cap)) fail.push(`${tag} : légende de démonstration absente (${s1.cap.slice(0, 40)})`);
@@ -90,5 +104,6 @@ for (const slug of PAGES) {
     await p.close();
   }
 }
-await b.close(); srv.close();
-if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); } log('\nonze fiches : une seule démonstration, CTA, légende, pause, Explorer, sortie : ok');
+await b.close();
+if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); }
+log('\n' + (only ? 'fiche ' + only : 'onze fiches') + ' : une seule démonstration, CTA, légende, pause, Explorer, sortie : ok');

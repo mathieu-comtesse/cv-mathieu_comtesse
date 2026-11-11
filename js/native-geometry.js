@@ -55,6 +55,13 @@ export function copyNativeGeometry(source) {
 export function cloneNativeObject(source, geometries = new WeakMap()) {
   const clone = source.clone(true);
   clone.traverse((object) => {
+    // L’objet cloné garde le prototype de la scène source, parfois antérieur à r187.
+    if (typeof object.intersectsFrustum !== 'function') {
+      const Constructor = object.isSprite ? THREE.Sprite
+        : (object.isMesh || object.isLine || object.isPoints) ? THREE.Mesh : null;
+      const cull = Constructor?.prototype.intersectsFrustum;
+      if (cull) object.intersectsFrustum = cull;
+    }
     if (!object.geometry) return;
     const sourceGeometry = object.geometry;
     if (!geometries.has(sourceGeometry)) geometries.set(sourceGeometry, copyNativeGeometry(sourceGeometry));
