@@ -527,6 +527,7 @@ html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h
     inset: 0;
   }
 } }</style>
+<link rel="stylesheet" href="/refonte/comtesse-motion.css?v=20261111">
 <!-- seo:start -->
 <meta property="og:locale" content="fr_FR">
 <meta property="og:url" content="https://comtesse.me/">
@@ -1140,4 +1141,5 @@ startParityPath().catch(e=>fail('parité Shopify',e));
  new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))go();},{rootMargin:'1200px'}).observe(host);setTimeout(go,4000);})();
 // « Voir la magie » : chaque bouton flottant ouvre la vue de son « Comment ça marche » (lien fixé avant le passage en 3D)
 for(const b of document.querySelectorAll('.cv-magic3d,.cv-explore3d'))b.onclick=e=>{e.stopPropagation();const h=b.closest('[data-cv-machine]'),slug=h?.dataset.proj;if(b.classList.contains('cv-explore3d'))return window.__cvDemo?.(b);document.querySelector('.rf-flow[data-proj="'+slug+'"] .rf-flow-magic, .rf-marche[data-proj="'+slug+'"] .rf-flow-magic')?.click();};
-</script></body></html><!-- rmx:flush document -->
+</script><script src="/refonte/comtesse-motion.js?v=20261111" defer></script>
+</body></html><!-- rmx:flush document -->
