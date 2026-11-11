@@ -1,0 +1,191 @@
+/*
+ * Comtesse Motion Layer — lecture des micro-interactions Fall '26.
+ * Création indépendante, sans ressources tierces ni dépendance JS.
+ * Ne touche ni aux matrices, ni au rendu canvas/WebGPU/Three.js.
+ */
+:root {
+  --cm-ease: cubic-bezier(.65, 0, .35, 1);
+  --cm-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --cm-fast: 170ms;
+  --cm-medium: 350ms;
+  --cm-stroke: rgb(255 255 255 / .22);
+  --cm-stroke-strong: rgb(255 255 255 / .68);
+  --cm-ink: #f9faff;
+}
+
+/* Typographie locale, même rythme sur les surfaces éditoriales.
+   Police Inter déjà distribuée par le site, sans CDN supplémentaire. */
+@font-face {
+  font-family: "Comtesse Motion Sans";
+  src: url("/refonte/fonts/Inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+html.cm-enhanced body {
+  --cm-sans: "Comtesse Motion Sans", Inter, system-ui, sans-serif;
+}
+html.cm-enhanced :is(.cv-site-nav,.rf-bnav,.ex-topbar,.cv-card-content,.rf-post-head,.rf-post-body) {
+  font-family: var(--cm-sans);
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+}
+html.cm-enhanced :is(.cv-site-nav,.rf-bnav,.ex-topbar) {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cadres : filet fin, éclaircissement directionnel, aucune mise à l'échelle
+   du bloc qui servirait de géométrie au parcours HTML-in-Canvas. */
+@media (hover:hover) and (pointer:fine) {
+  html.cm-enhanced:not(.cv-parity-active):not(.cv-standard-active)
+  :is(.product-card,.rf-tile,.rf-d,.rf-post-fig,.pc-card) {
+    outline: 1px solid var(--cm-stroke);
+    outline-offset: -1px;
+    transition: outline-color var(--cm-medium) var(--cm-ease),
+      box-shadow var(--cm-medium) var(--cm-ease),
+      border-color var(--cm-medium) var(--cm-ease);
+  }
+  html.cm-enhanced:not(.cv-parity-active):not(.cv-standard-active)
+  :is(.product-card,.rf-tile,.rf-d,.rf-post-fig,.pc-card):is(:hover,:focus-within) {
+    outline-color: var(--cm-stroke-strong);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .20),
+      0 0 0 1px rgb(255 255 255 / .10);
+  }
+  html.cm-enhanced .rf-tile .rf-tile-bg img {
+    transition: transform 650ms var(--cm-ease-out), filter 650ms var(--cm-ease-out);
+  }
+  html.cm-enhanced .rf-tile:hover .rf-tile-bg img {
+    transform: scale(1.045);
+  }
+  /* Pas de changement de dimensions, ni d'interpolation des matrices de scène. */
+  html.cm-enhanced :is(.cv-hero-art,.cv-machine,.cv-room3d,.cv-room) > canvas {
+    transition-property: opacity;
+  }
+}
+
+/* Liens : un filet se déploie, la graisse et la taille restent fixes.
+   Ne pas toucher aux liens du moteur graphique, gérés séparément. */
+html.cm-enhanced :is(.cv-site-nav,.rf-bnav,.ex-topbar) a[href]:not(.cv-contact-button),
+html.cm-enhanced :is(.cv-related,.rf-post-body,.rf-d-text) a[href] {
+  text-decoration-color: transparent;
+  background-image: linear-gradient(currentColor,currentColor);
+  background-position: left calc(100% - 1px);
+  background-repeat: no-repeat;
+  background-size: 0 1px;
+  transition: background-size var(--cm-medium) var(--cm-ease),
+    opacity var(--cm-fast) ease;
+}
+html.cm-enhanced :is(.cv-site-nav,.rf-bnav,.ex-topbar) a[href]:not(.cv-contact-button):is(:hover,:focus-visible),
+html.cm-enhanced :is(.cv-related,.rf-post-body,.rf-d-text) a[href]:is(:hover,:focus-visible) {
+  background-size: 100% 1px;
+}
+
+/* Navigation des chapitres : traitement des repères déjà existants,
+   sans recréer les étoiles ni modifier le layout de la navigation. */
+html.cm-enhanced .hero-nav-link :is(.hero-nav-point,[data-section-dot]) {
+  transition: background-color var(--cm-medium) var(--cm-ease),
+    border-color var(--cm-medium) var(--cm-ease),
+    opacity var(--cm-medium) var(--cm-ease),
+    scale var(--cm-medium) var(--cm-ease);
+}
+html.cm-enhanced .hero-nav-link:is(:hover,:focus-visible) :is(.hero-nav-point,[data-section-dot]) {
+  opacity: 1;
+  scale: 1.15;
+}
+
+/* Boutons : même grammaire de survol et de pression, sans écraser les
+   transformations 3D existantes des boutons Voir la magie. */
+html.cm-enhanced :is(.cv-contact-button,.rf-cta,.cv-magic3d,.cv-explore3d,
+  .ex-top-actions button,.ex-tabs button,.rf-marche-more summary) {
+  transition-timing-function: var(--cm-ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+html.cm-enhanced .cv-site-nav .cv-contact-button {
+  transition: background-color var(--cm-medium) var(--cm-ease),
+    color var(--cm-medium) var(--cm-ease),
+    box-shadow var(--cm-medium) var(--cm-ease);
+}
+html.cm-enhanced .cv-site-nav .cv-contact-button:is(:hover,:focus-visible) {
+  background: #0b1030;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .8);
+}
+html.cm-enhanced :is(.rf-cta,.cv-magic3d,.cv-explore3d) {
+  --sx: var(--cm-pointer-x,50%);
+  --sy: var(--cm-pointer-y,0%);
+}
+html.cm-enhanced :is(.rf-cta,.cv-magic3d,.cv-explore3d):is(:hover,:focus-visible) {
+  border-color: rgb(255 255 255 / .75);
+}
+html.cm-enhanced :is(.ex-result,.ex-waypoints button,.rf-bnav a) {
+  transition-timing-function: var(--cm-ease);
+}
+
+/* Entrées éditoriales, une seule fois, jamais les scènes ni les éléments
+   dont le moteur pilote la translation, le scale et la profondeur. */
+html.cm-enhanced .cm-reveal {
+  opacity: 0;
+  translate: 0 14px;
+  transition: opacity 560ms var(--cm-ease-out), translate 560ms var(--cm-ease-out);
+}
+html.cm-enhanced .cm-reveal.cm-visible {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* Focus clavier explicite et stable. */
+html.cm-enhanced :is(a[href],button,[role="button"],summary,input,select,textarea):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Curseur dessiné une seule fois, déplacé uniquement sur pointermove.
+   Mix-blend-mode évite de choisir une couleur par chapitre. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  html.cm-cursor, html.cm-cursor body,
+  html.cm-cursor :is(a[href],button,[role="button"],summary,canvas,
+    input[type="range"],[data-cv-room3d]) { cursor: none !important; }
+  html.cm-cursor :is(input:not([type="range"]),textarea,[contenteditable="true"]) {
+    cursor: text !important;
+  }
+  .cm-cursor-dot {
+    position: fixed;
+    inset: 0 auto auto 0;
+    z-index: 2147483646;
+    width: 20px; height: 20px;
+    pointer-events: none;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    transform: translate3d(-100px,-100px,0) translate(-50%,-50%);
+    opacity: 0;
+    mix-blend-mode: difference;
+    will-change: transform;
+    transition: width 210ms var(--cm-ease-out), height 210ms var(--cm-ease-out),
+      border-color 210ms, background-color 210ms, opacity 120ms;
+  }
+  .cm-cursor-dot::after {
+    content:"";
+    position:absolute;left:50%;top:50%;width:3px;height:3px;
+    border-radius:50%;background:currentColor;
+    transform:translate(-50%,-50%);
+  }
+  html.cm-cursor.cm-pointer-seen .cm-cursor-dot { opacity: 1; }
+  html.cm-cursor.cm-pointer-hot .cm-cursor-dot {
+    width: 42px; height: 42px;
+    background-color: rgb(255 255 255 / .15);
+  }
+  html.cm-cursor.cm-pointer-down .cm-cursor-dot {
+    width: 14px; height: 14px;
+  }
+  html.cm-cursor.cm-pointer-edit .cm-cursor-dot { opacity: 0; }
+}
+
+/* Les appareils tactiles et la réduction du mouvement gardent le
+   curseur, les états et l'accessibilité natifs. */
+@media (hover:none),(pointer:coarse),(prefers-reduced-motion:reduce) {
+  html.cm-enhanced .cm-reveal { opacity: 1; translate: none; transition: none; }
+  html.cm-enhanced :is(.product-card,.rf-tile,.rf-d,.rf-post-fig,.pc-card) {
+    transition: none;
+  }
+  .cm-cursor-dot { display:none!important; }
+}
