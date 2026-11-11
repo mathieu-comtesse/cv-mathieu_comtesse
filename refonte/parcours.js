@@ -1,3 +1,4 @@
+import './comtesse-motion.js';
 import * as THREE from 'three';
 import { loadMachine } from './m3d/registry.js';
 import { drawMat, blueprintMaterial } from './blueprint-hero.js';
