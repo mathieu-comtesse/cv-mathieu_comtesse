@@ -1,3 +1,4 @@
+import './comtesse-motion.js';
 // Page Expériences : hublot (store à tirer), chronologie liée au défilement, apparitions, pied de page, barre.
 import './footer.js';
 import './navfx.js';
