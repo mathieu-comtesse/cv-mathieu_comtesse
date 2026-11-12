@@ -26,7 +26,3 @@ Le monde de `monde3d/` (code dans `monde3d/jeu/`) est écrit pour ce dépôt. So
 |---|---|---|
 | Patrick Hand SC (`monde3d/police/`) | lettrage de l'interface | SIL Open Font License 1.1, texte dans `monde3d/police/OFL.txt` |
 | meshoptimizer (outil de construction uniquement) | allègement des modèles | MIT, <https://github.com/zeux/meshoptimizer> |
-
-## L'exposition (`expo.html`)
-
-Page écrite pour ce dépôt (`expo/expo.js`, `expo/donnees.js`), sans aucun module, feuille de style, police ni image de tiers en dehors de Three.js (MIT) et de Patrick Hand SC (OFL). Elle réutilise le rendu encre et hachures de `monde3d/jeu/rendu.js`. La forme générale (un parcours par chapitres, des cadres inclinés, un mode à plat, des branches qui relient les chapitres) s'inspire de pages éditoriales en 3D telles que Shopify Editions ; aucun fichier de ces pages n'est repris.
