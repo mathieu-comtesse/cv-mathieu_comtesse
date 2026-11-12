@@ -46,7 +46,7 @@ export function creerPensee(el, piece) {
       if (visible <= 0) return;
       visible -= dt; if (visible <= 0) { el.classList.remove('vu'); courant = null; return; }
       v.copy(tete).project(camera);
-      el.style.transform = `translate(${((v.x + 1) / 2 * innerWidth).toFixed(1)}px, ${((1 - v.y) / 2 * innerHeight).toFixed(1)}px) translate(-50%, -100%) scale(${Math.min(1, Math.max(0.5, innerWidth / 820)).toFixed(3)})`;
+      el.style.transform = `translate(${((v.x + 1) / 2 * innerWidth).toFixed(1)}px, ${((1 - v.y) / 2 * innerHeight).toFixed(1)}px) translate(-50%, -100%) scale(${Math.min(1, Math.max(0.3, innerWidth / 820)).toFixed(3)})`;
       tourne.rotation.y += dt * 0.9;
       if (++image % 3 === 0) renderer.render(scene, cam);
     },
