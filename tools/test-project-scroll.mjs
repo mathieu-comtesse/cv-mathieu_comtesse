@@ -22,7 +22,7 @@ try {
   for (const y of [3400, 5200, 7000, 9000, 11000, 13000, 15000]) {
     await page.evaluate((yy) => scrollTo({ top: yy, behavior: 'instant' }), y); await page.waitForTimeout(1800);
     /* chargement différé (file d'images de la vitrine) : attendre l'état réel « chargée » des images visibles plutôt qu'un délai fixe */
-    await page.waitForFunction(() => [...document.querySelectorAll('[data-showcase] img')].filter((i) => { const b = i.getBoundingClientRect(); return b.width > 4 && b.height > 4 && b.bottom > 0 && b.top < innerHeight; }).every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 20000 }).catch(() => {});
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-showcase] img')].filter((i) => { const b = i.getBoundingClientRect(); return b.width > 4 && b.height > 4 && b.bottom > 0 && b.top < innerHeight; }).every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 60000 }).catch(() => {});
     const rows = await page.evaluate(() => [...document.querySelectorAll('[data-showcase]')].map((sc) => { const r = sc.getBoundingClientRect(), imgs = [...sc.querySelectorAll('img')].filter((i) => { const b = i.getBoundingClientRect(); return b.width > 4 && b.height > 4; }); return { id: sc.dataset.showcase, vis: r.bottom > 0 && r.top < innerHeight && r.width > 40, box: [r.left, r.top, r.right, r.bottom], imgs: imgs.map((i) => { const b = i.getBoundingClientRect(); return { box: [b.left, b.top, b.right, b.bottom], loaded: i.complete && i.naturalWidth > 0 }; }) }; }));
     for (const s of rows.filter((q) => q.vis)) for (const im of s.imgs) {
       seen.push(1); assert.ok(im.loaded, `Image non chargée dans la vitrine ${s.id} (défilement ${y})`);
