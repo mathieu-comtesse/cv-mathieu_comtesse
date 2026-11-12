@@ -1,5 +1,5 @@
 import { makePond } from './pond.js?v=zen2';
-import { makeGarden } from './garden.js?v=zen17';
+import { makeGarden } from './garden.js?v=room-art-v2-zen17';
 import { THREE, mat, mesh, box, cyl, sph, group, rbox, rng, canvasTexture, bake } from './kit.js?v=cv-scene-v29';
 
 /* ───────────── Pièce du thé (chashitsu), engawa et mer ─────────────
@@ -49,7 +49,7 @@ function shojiPanel(W = 0.9, H = 1.75) {
   return bake(g);
 }
 
-export function createChashitsu({ lite = false } = {}) {
+export function createChashitsu({ lite = false, treeFactory } = {}) {
   const g = group();
   const { w: RW, d: RD, h: RH } = ROOM;
   if (lite) {   // sans pièce du thé ni jardin : rien n'est construit, seule l'emprise (invisible) reste pour le cadrage de la caméra
@@ -61,7 +61,7 @@ export function createChashitsu({ lite = false } = {}) {
 
   /* plate-forme de tatamis */
   const floorM = [mat('#3a2a1e'), mat('#3a2a1e'), new THREE.MeshStandardMaterial({ map: floorTexture(), roughness: 1 }), mat('#3a2a1e'), mat('#3a2a1e'), mat('#3a2a1e')];
-  const floor = mesh(new THREE.BoxGeometry(RW, RH, RD), floorM); floor.position.y = RH / 2; g.add(floor);
+  const floor = mesh(new THREE.BoxGeometry(RW, RH, RD), floorM); floor.position.y = RH / 2; floor.name = 'TatamiPlatform'; g.add(floor);
 
   /* poteaux d'angle + poutres sur les trois côtés fermés */
   const post = WOOD(), beam = DARK();
@@ -161,10 +161,12 @@ export function createChashitsu({ lite = false } = {}) {
   const sea = makePond({ cx: 0.15, cz: 2.95, seed: 11, floorZ: DK.z0 + 0.12, posts, padMinZ: DK.z0 + DK.depth + 0.15, rainRect: { x0: -2.05, x1: 2.05, z0: ZB, z1: ZF + 0.1 }, rainH: 2.9, reedExclude: (x, z) => Math.abs(x) < 2.1 && z < DK.z0 + DK.depth + 0.15, mistOutside: { count: 170, exclude: (x, z) => Math.abs(x) < 2.25 && z < 3.2 } }); sea.position.set(0.15, WL, 2.95); vista.add(sea);
 
   /* jardin : traits de mousse et d'herbe, sans limite ; couloir libre (pas japonais) le long du côté droit pour entrer par le balcon */
-  const garden = makeGarden({ shape: sea.userData.shape, pc: [0.15, 2.95], uni: sea.userData.uni, exclude: excl }); vista.add(garden);
+  const garden = makeGarden({ shape: sea.userData.shape, pc: [0.15, 2.95], uni: sea.userData.uni, exclude: excl, treeFactory }); vista.add(garden);
 
   return {
     garden, group: g, lantern, lanternGlow: paperL, panels, vista,
+    roofSlab: slab,
+    registerRoofMaterial(material) { roofMats.add(material); },
     setRoofFade(v) { roofTarget = v; },
     togglePanel(i) { const q = panels[i]; if (q) q.target = q.target ? 0 : 1; },
     setPanels(v) { panels.forEach((q) => { q.target = v; }); },

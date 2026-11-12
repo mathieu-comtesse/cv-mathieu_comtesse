@@ -1,5 +1,5 @@
 /* Redirige vers des modules originaux (refonte/shop/) les petits modules qui venaient du CDN Shopify.
-   Table d'import ajoutée avant les autres : ses entrées priment. `?shop=cdn` désactive la redirection (comparaison avec les originaux). */
+   Entrées reprises dans la table d'import commune de l'accueil. `?shop=cdn` désactive la redirection (comparaison avec les originaux). */
 (() => {
   if (/[?&]shop=cdn\b/.test(location.search)) return;
   const cdn = 'https://cdn.shopify.com/oxygen-v2/58886/167724/342939/4935485/assets/', local = new URL('shop/', document.currentScript.src).href;
@@ -15,5 +15,5 @@
   if (/[?&]shop=all\b/.test(location.search)) map['HtmlInCanvasEntry-DeumE3Cj'] = 'htmlInCanvasEntry';
   const imports = {};
   for (const [hashed, name] of Object.entries(map)) imports[`${cdn}${hashed}.js`] = `${local}${name}.js`;
-  document.write('<script type="importmap">' + JSON.stringify({ imports }) + '<' + '/script>');
+  window.__cvShopImports = imports;
 })();
