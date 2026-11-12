@@ -10,7 +10,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) for (const mode of ['off', 'on']
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700 }), p = await ctx.newPage(); p.setDefaultTimeout(120000);
   await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest${mode === 'off' ? '&title=off' : ''}`, { waitUntil: 'domcontentloaded' }); await p.waitForFunction(() => window.__cvParity?.boxes, null, { timeout: 120000 }); await p.waitForTimeout(6000); await p.evaluate(() => document.fonts.ready);
   await p.evaluate(() => scrollTo({ top: 340, behavior: 'instant' })); await p.waitForFunction(() => window.__cvParity.project() && window.__cvParity.boxes().length > 0, null, { timeout: 120000 }); await p.waitForTimeout(2500);
-  const tops = await p.evaluate(() => ['decor', 'shop', 'marketing', 'fulfillment', 'developer'].map((id) => { const e = document.getElementById(id); return [id, e ? Math.round(e.getBoundingClientRect().top + scrollY) : null]; }));
+  const tops = await p.evaluate(() => ['shop', 'marketing', 'fulfillment', 'developer'].map((id) => { const e = document.getElementById(id); return [id, e ? Math.round(e.getBoundingClientRect().top + scrollY) : null]; }));
   for (const [id, top] of tops) { if (top == null) continue; await p.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), Math.max(0, top - 40)); await p.waitForTimeout(2800); await p.screenshot({ path: path.join(OUT, `${mode}-${w}-${id}.jpg`), type: 'jpeg', quality: 80, timeout: 120000 }).catch(() => {}); res.push({ mode, w, id, top }); }
   await ctx.close(); console.log('ok', mode, w);
 }
