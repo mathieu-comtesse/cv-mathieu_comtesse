@@ -800,7 +800,7 @@ async function startRoom(){
       room.renderer.domElement.setAttribute('aria-label','Pièce interactive de Mathieu en 3D');
       const geometry=await cvRegisterGeometry(room.renderer.domElement,room.scene,room.camera,{maxExtent:30,clear:()=>{room.renderer.setClearAlpha(0);room.renderer.clear();}}),render=room.renderer.render.bind(room.renderer);
       room.renderer.render=(scene,camera)=>{if(geometry.publish()){room.renderer.setClearAlpha(0);room.renderer.clear();}else render(scene,camera);};
-      const {initUI}=await import(base+'js/ui.js?v=cv-monde3d-32');initUI();state.room='ready';let meshes=0;room.scene.traverse(o=>{if(o.isMesh)meshes++;});state.roomMeshes=meshes;
+      const {initUI}=await import(base+'js/ui.js?v=cv-monde3d-33');initUI();state.room='ready';let meshes=0;room.scene.traverse(o=>{if(o.isMesh)meshes++;});state.roomMeshes=meshes;
     }catch(e){state.room='failed';button.textContent='Réessayer';button.onclick=()=>{state.room='idle';button.click();};fail('pièce',e);}
   });
 }

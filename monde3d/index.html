@@ -1,84 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<base href="../" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Mathieu Comtesse, la pièce flottante</title>
+<meta name="description" content="Un archipel à explorer dans le navigateur : la pièce de Mathieu Comtesse, sa platine, son jardin et son atelier, à parcourir en courant et en sautant d'île en île." />
+<meta property="og:site_name" content="Mathieu Comtesse" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Mathieu Comtesse, la pièce flottante" />
+<meta property="og:description" content="Un archipel à explorer dans le navigateur : courir, sauter d'île en île, réunir les cristaux." />
+<meta property="og:image" content="monde3d/social/share-1200x630.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="monde3d/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="monde3d/favicon/apple-touch-icon.png" />
+<meta name="theme-color" content="#e9dcc0" />
+<link rel="preload" href="monde3d/police/patrick-hand-sc.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+  /* Interface dessinée comme une planche : lettrage à la main, récitatifs jaune pâle, bulles blanches, trait fin sans ombre. */
+  @font-face { font-family: "Lettrage"; src: url("monde3d/police/patrick-hand-sc.woff2") format("woff2"); font-display: swap; }
+  :root { --bulle: #fbf7ec; --recit: #f5e6a6; --encre: #2a2530; --orange: #ee8a3a; --turquoise: #7cc4b4; --main: 255px 18px 225px 16px / 16px 225px 18px 255px; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #e9dcc0; color: var(--encre); font: 400 18px/1.25 "Lettrage", "Comic Sans MS", "Trebuchet MS", sans-serif; letter-spacing: .03em; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+  .bulle, .recit { border: 2px solid var(--encre); border-radius: var(--main); color: var(--encre); }
+  .bulle { background: var(--bulle); } .recit { background: var(--recit); }
+  button { font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; }
+  button.bulle:hover { background: #fff; } button.bulle:active { transform: translateY(2px); }
+  button:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+  .haut { position: fixed; top: max(12px, env(safe-area-inset-top)); display: flex; gap: 10px; z-index: 5; }
+  #gauche { left: max(12px, env(safe-area-inset-left)); } #droite { right: max(12px, env(safe-area-inset-right)); }
+  .haut > * { height: 42px; padding: 0 14px; display: flex; align-items: center; gap: 8px; font-size: 17px; }
+  .haut svg { width: 19px; height: 19px; flex: none; }
+  #son .barre { display: none; } #son.coupe .barre { display: block; } #son.coupe .ondes { display: none; }
+  #cristaux, #son, #auto { opacity: 0; transition: opacity .4s; } .jeu #cristaux, .jeu #son, .jeu #auto { opacity: 1; }
+  #auto.actif { background: var(--turquoise); }
+  @media (max-width: 620px) { #auto span, #monde-x span { display: none; } }
+  #cristaux.gagne { animation: gagne .45s; } @keyframes gagne { 30% { transform: scale(1.16) rotate(-3deg); background: #fff3a8; } }
+  #compte { font-variant-numeric: tabular-nums; font-size: 19px; }
+  #lieu { position: fixed; top: 15%; left: 50%; transform: translate(-50%, 0) rotate(-1deg); padding: 8px 26px 10px; text-align: center; opacity: 0; pointer-events: none; z-index: 4; max-width: 92vw; }
+  #lieu b { display: block; font-weight: 400; font-size: clamp(26px, 4.6vw, 44px); line-height: 1; letter-spacing: .1em; }
+  #lieu small { display: block; font-size: clamp(15px, 2vw, 19px); margin-top: 4px; }
+  #lieu small:empty { display: none; }
+  #lieu.vu { animation: lieu 3.4s both; } @keyframes lieu { 0% { opacity: 0; transform: translate(-50%, 14px) rotate(-1deg); } 10%, 82% { opacity: 1; transform: translate(-50%, 0) rotate(-1deg); } 100% { opacity: 0; transform: translate(-50%, -10px) rotate(-1deg); } }
+  #invite { position: fixed; left: 50%; bottom: max(22%, 120px); transform: translate(-50%, 10px); padding: 10px 22px 12px; display: flex; align-items: center; gap: 10px; font-size: 20px; border-radius: 50% / 46%; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 6; }
+  #invite.vu { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+  #invite::after { content: ""; position: absolute; left: 50%; bottom: -13px; width: 18px; height: 18px; margin-left: -22px; background: var(--bulle); border: solid var(--encre); border-width: 0 2px 2px 0; transform: skewX(28deg) rotate(45deg); }
+  #invite:hover::after { background: #fff; }
+  kbd { display: inline-block; min-width: 26px; padding: 0 7px 1px; border: 2px solid var(--encre); border-radius: 7px 5px 8px 4px; background: var(--bulle); font: inherit; font-size: 15px; text-align: center; }
+  #aide { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom)); padding: 10px 16px 12px; display: none; grid-template-columns: auto auto; gap: 5px 14px; align-items: center; font-size: 16px; z-index: 4; transition: opacity .8s; transform: rotate(.6deg); }
+  .jeu #aide { display: grid; } @media (max-width: 900px), (max-height: 560px) { .jeu #aide { display: none; } }
+  #aide.discret { opacity: .3; } #aide:hover { opacity: 1; } .tactile #aide { display: none; }
+  #manette { position: fixed; width: 132px; height: 132px; margin: -66px 0 0 -66px; border: 2px solid var(--encre); border-radius: 50%; background: rgba(251, 247, 236, .3); display: none; pointer-events: none; z-index: 4; }
+  #manette.vu { display: block; } #pouce { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; border-radius: 50%; background: var(--bulle); border: 2px solid var(--encre); transform: translate(-50%, -50%); }
+  #saut { position: fixed; right: max(22px, env(safe-area-inset-right)); bottom: max(26px, env(safe-area-inset-bottom)); width: 86px; height: 86px; border-radius: 50%; display: none; align-items: center; justify-content: center; z-index: 5; touch-action: none; }
+  #saut svg { width: 34px; height: 34px; } .tactile.jeu #saut { display: flex; }
+  #pensee { position: fixed; left: 0; top: 0; width: 186px; height: 155px; margin-top: -14px; opacity: 0; pointer-events: none; z-index: 3; transition: opacity .25s; will-change: transform; }
+  #pensee.vu { opacity: 1; }
+  #pensee svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  #pensee canvas { position: absolute; left: 50%; top: 14px; width: 84px; height: 84px; transform: translateX(-50%); }
+  #pensee span { position: absolute; left: 30px; right: 30px; bottom: 36px; text-align: center; font-size: 15px; line-height: 1; }
+  #pensee i { position: absolute; left: 50%; border-radius: 50%; background: var(--bulle); border: 2px solid var(--encre); }
+  #pensee i:nth-of-type(1) { width: 15px; height: 14px; bottom: -6px; margin-left: -4px; } #pensee i:nth-of-type(2) { width: 9px; height: 8px; bottom: -18px; margin-left: -12px; }
+  /* page de titre : une case de bande dessinée */
+  #accueil { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 8; transition: opacity .5s, visibility .5s; }
+  .jeu #accueil { opacity: 0; visibility: hidden; pointer-events: none; }
+  #accueil .case { max-width: 470px; width: 100%; padding: 26px 28px 24px; text-align: center; background: var(--bulle); border: 2px solid var(--encre); border-radius: 6px 3px 7px 4px; outline: 2px solid var(--encre); outline-offset: 5px; }
+  #accueil .astre { width: 74px; height: 74px; margin: 0 auto 6px; display: block; }
+  #accueil h1 { margin: 0; font-weight: 400; font-size: clamp(38px, 9vw, 58px); line-height: .92; letter-spacing: .08em; }
+  #accueil .signature { margin: 6px 0 16px; font-size: 17px; letter-spacing: .18em; }
+  #accueil .recit { margin: 0 0 16px; padding: 10px 16px 12px; text-align: left; font-size: 18px; transform: rotate(-.5deg); }
+  #accueil ul { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 7px; text-align: left; font-size: 16px; }
+  #accueil li { display: flex; gap: 10px; align-items: center; } #accueil li span:first-child { flex: 0 0 136px; white-space: nowrap; }
+  .tactile .clavier, .tactile #accueil li.clavier { display: none; } body:not(.tactile) #accueil li.doigt { display: none; }
+  #jouer { padding: 9px 34px 11px; font-size: 24px; letter-spacing: .12em; background: var(--orange); border: 2px solid var(--encre); border-radius: var(--main); }
+  #jouer:hover { background: #f7a055; } #jouer:disabled { background: var(--bulle); cursor: progress; opacity: .75; }
+  @media (max-height: 600px) { #accueil ul, #accueil .astre { display: none; } #accueil .case { padding: 16px 20px; } }
+</style>
 
-        <link rel="icon" href="./favicon/favicon.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<script src="monde3d/CONFIG_LIENS.js"></script>
+</head>
+<body>
+<canvas id="scene" tabindex="0" aria-label="Archipel en trois dimensions"></canvas>
 
-        <!-- HTML Meta Tags -->
-        <title>Mathieu Comtesse</title>
-        <meta
-            name="description"
-            content="Explorez un univers 3D interactif, ses décors, ses animations et ses portails."
-        />
+<div class="haut" id="gauche">
+  <button class="bulle" id="monde-x" type="button" aria-label="Sortir et revenir au site">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6.5l12 11.5M18 6L6.5 18"/></svg><span>Sortir</span>
+  </button>
+</div>
+<div class="haut" id="droite">
+  <div class="recit" id="cristaux" aria-live="polite" title="Cristaux réunis">
+    <svg viewBox="0 0 24 24" fill="#fbf7ec" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2l6 8-6 12-6-12z"/><path d="M6 10h12M12 2v20" fill="none"/></svg><span id="compte">0 / 0</span>
+  </div>
+  <button class="bulle" id="auto" type="button" aria-pressed="false" title="Laisser Mathieu explorer seul">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor"/></svg><span>Errance</span>
+  </button>
+  <button class="bulle" id="son" type="button" aria-label="Son" aria-pressed="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path class="ondes" d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/><path class="barre" d="M17 9l5 6M22 9l-5 6"/></svg>
+  </button>
+</div>
 
-        <meta itemprop="name" content="Mathieu Comtesse - Portfolio 3D" />
-        <meta
-            itemprop="description"
-            content="Explorez un univers 3D interactif, ses décors, ses animations et ses portails."
-        />
-        <meta
-            itemprop="image"
-            content="./social/share-1200x630.png"
-        />
+<div id="pensee" aria-hidden="true"></div>
+<div class="recit" id="lieu" role="status"><b></b><small></small></div>
+<button class="bulle" id="invite" type="button"><kbd class="clavier">E</kbd><span>Franchir la porte</span><strong id="invite-nom"></strong></button>
+<div class="recit" id="aide">
+  <span><kbd>Z</kbd> <kbd>Q</kbd> <kbd>S</kbd> <kbd>D</kbd></span><span>Courir (ou les flèches)</span>
+  <span><kbd>Maj</kbd></span><span>Sprinter</span>
+  <span><kbd>Espace</kbd></span><span>Sauter, et encore une fois en l'air</span>
+  <span>Souris</span><span>Glisser pour tourner, molette pour reculer</span>
+</div>
+<div id="manette"><div id="pouce"></div></div>
+<button class="bulle" id="saut" type="button" aria-label="Sauter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5 11l7-7 7 7"/></svg></button>
 
-        <!-- Facebook Meta Tags -->
-        <meta property="og:site_name" content="Mathieu Comtesse" />
-        <meta property="og:url" content="https://comtesse.me" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Mathieu Comtesse - Portfolio 3D" />
-        <meta
-            property="og:description"
-            content="Explorez un univers 3D interactif, ses décors, ses animations et ses portails."
-        />
-        <meta
-            property="og:image"
-            content="./social/share-1200x630.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta
-            property="og:image:alt"
-            content="A low-poly floating island at night with a forge, portals and lantern-lit paths"
-        />
+<div id="accueil">
+  <div class="case">
+    <svg class="astre" viewBox="0 0 80 80" fill="none" stroke="#2a2530" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><circle cx="40" cy="34" r="24" fill="#f5e6a6"/><path d="M12 52c8-5 18-6 28-6s20 1 28 6l-9 14-19 10-19-10z" fill="#cc917f"/><path d="M21 66l19-8 19 8M40 46v12" /><path d="M40 12l6 9-6 13-6-13z" fill="#fbf7ec"/></svg>
+    <h1>La pièce flottante</h1>
+    <p class="signature">Mathieu Comtesse</p>
+    <p class="recit">Un matin, ma pièce a quitté le sol. Elle dérive depuis au-dessus du désert, avec ma platine, mon jardin et mon atelier. Vingt cristaux flottent entre les îles. Au sommet, trois portes.</p>
+    <ul>
+      <li class="clavier"><span><kbd>Z</kbd> <kbd>Q</kbd> <kbd>S</kbd> <kbd>D</kbd></span><span>Courir, <kbd>Maj</kbd> pour sprinter</span></li>
+      <li class="clavier"><span><kbd>Espace</kbd></span><span>Sauter, et encore une fois en l'air</span></li>
+      <li class="clavier"><span>Souris</span><span>Glisser pour tourner la vue</span></li>
+      <li class="doigt"><span>Pouce gauche</span><span>Courir, pousser à fond pour sprinter</span></li>
+      <li class="doigt"><span>La flèche</span><span>Sauter, et encore une fois en l'air</span></li>
+      <li class="doigt"><span>Pouce droit</span><span>Glisser pour tourner la vue</span></li>
+      <li><span>Ne rien toucher</span><span>Mathieu part errer tout seul</span></li>
+    </ul>
+    <button id="jouer" type="button" disabled>Un instant</button>
+  </div>
+</div>
 
-        <!-- Twitter Meta Tags -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:domain" content="comtesse.me" />
-        <meta property="twitter:url" content="https://comtesse.me" />
-        <meta name="twitter:title" content="Mathieu Comtesse - Portfolio 3D" />
-        <meta
-            name="twitter:description"
-            content="Explorez un univers 3D interactif, ses décors, ses animations et ses portails."
-        />
-        <meta
-            name="twitter:image"
-            content="./social/share-1200x630.png"
-        />
-        <meta
-            name="twitter:image:alt"
-            content="A low-poly floating island at night with a forge, portals and lantern-lit paths"
-        />
-
-        <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png" />
-        <link rel="manifest" href="./favicon/site.webmanifest" />
-        <link rel="mask-icon" href="./favicon/safari-pinned-tab.svg" color="#659fdd" />
-        <meta name="apple-mobile-web-app-title" content="Mathieu Comtesse" />
-        <meta name="application-name" content="Mathieu Comtesse" />
-        <meta name="msapplication-TileColor" content="#4f7aa8" />
-        <meta name="msapplication-config" content="./favicon/browserconfig.xml" />
-        <meta name="theme-color" content="#000000" />
-      <script type="module" crossorigin src="./assets/index-mathieu14.js"></script>
-      <link rel="modulepreload" crossorigin href="./assets/preload-helper-D48scW0T.js">
-      <link rel="modulepreload" crossorigin href="./assets/three-BHG2g8t5.js">
-      <link rel="stylesheet" crossorigin href="./assets/index-rXTjwVHg.css">
-      <script src="./CONFIG_LIENS.js"></script>
-    </head>
-    <body>
-        <div id="root"></div>
-
-    <style>#monde-x{position:fixed;top:14px;left:14px;z-index:99999;font:600 11px/1 system-ui,sans-serif;letter-spacing:.14em;color:#fff;background:rgba(10,24,44,.6);border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:10px 13px;cursor:pointer}#monde-x:hover{background:rgba(120,200,240,.3)}</style><button id="monde-x" type="button">FERMER</button><script>(function(){var c=function(){if(parent!==window)parent.postMessage({type:"monde-close"},"*");else location.href="../refonte.html"};document.getElementById("monde-x").onclick=c;addEventListener("keydown",function(e){if(e.key==="Escape")c()})})()</script></body>
+<script>(function(){var c=function(){if(parent!==window)parent.postMessage({type:"monde-close"},"*");else location.href="index.html"};document.getElementById("monde-x").onclick=c;addEventListener("keydown",function(e){if(e.key==="Escape")c()})})()</script>
+<script type="module" src="monde3d/jeu/main.js?v=m15"></script>
+</body>
 </html>
