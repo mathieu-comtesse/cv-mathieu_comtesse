@@ -9,8 +9,8 @@ let chromium; { const req = createRequire(root + '/'); try { ({ chromium } = req
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 // aucune carte n'est projetée à 0 px dans les deux modes (la 3D de l'accueil démarre avec le défilement) : mesuré, pas ignoré
 const SCROLLS = [340, 700, 1500, 3000, 4500, 6000, 7500], res = { on: {}, off: {}, H: {} };
-const snap = (p) => p.evaluate(() => ({ view: (({ T, offset, pitch, fov, rise }) => ({ T, offset, pitch, fov, rise }))(window.__cvParity.project()), boxes: window.__cvParity.boxes(), titles: window.__cvParity.titles(), navOpacity: window.__cvParity.navOpacity(), innerWidth }));
-for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] of [[1440, 900], [390, 844]]) {
+const snap = (p) => p.evaluate(() => ({ view: (({ T, offset, pitch, fov, rise }) => ({ T, offset, pitch, fov, rise }))(window.__cvParity.project()), boxes: window.__cvParity.boxes(), titles: window.__cvParity.titles(), navOpacity: window.__cvParity.navOpacity(), innerWidth, innerHeight }));
+for (const [mode, qs] of [['off', '&topo=off&title=off'], ['on', '']]) for (const [w, h] of [[1440, 900], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700 }); await ctx.route('https://comtesse.me/assets/showcase/**', (route) => { const f = path.join(root, new URL(route.request().url()).pathname); fs.existsSync(f) ? route.fulfill({ body: fs.readFileSync(f), contentType: T[path.extname(f)] }) : route.fulfill({ status: 404, body: '' }); });
   const p = await ctx.newPage(); await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest${qs}`, { waitUntil: 'domcontentloaded' });
   await p.waitForFunction(() => window.__cvParity?.boxes, null, { timeout: 120000 }); await p.waitForTimeout(8000); await p.evaluate(() => scrollTo({ top: 340, behavior: 'instant' }));   // la boucle de rendu ne démarre qu'après un premier défilement
@@ -63,10 +63,11 @@ for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
       const inq = (P, x, yy) => { let s2 = 0; for (let i = 0; i < 4; i++) { const a2 = P[i], c2 = P[(i + 1) % 4], cr = (c2[0] - a2[0]) * (yy - a2[1]) - (c2[1] - a2[1]) * (x - a2[0]); if (cr > 0) s2++; else if (cr < 0) s2--; } return Math.abs(s2) === 4; };
       for (let i = 0; i < 2; i++) { const A = on[i].cornersProjected, B = on[i + 1].cornersProjected; let n = 0, m = 0; const xs = A.map((q) => q[0]), ys2 = A.map((q) => q[1]); for (let x = Math.min(...xs); x <= Math.max(...xs); x += 2) for (let yy = Math.min(...ys2); yy <= Math.max(...ys2); yy += 2) if (inq(A, x, yy)) { m++; if (inq(B, x, yy)) n++; } if (m && n / m > 0.01) mark('I', `${tag} : cartes ${i + 1} et ${i + 2} se chevauchent (${(100 * n / m).toFixed(1)} % de la surface)`); }
       on.forEach((q) => { if (Math.min(...q.cornersWorld.map((c) => c[2])) < -0.01) mark('I', `${tag} carte ${q.index + 1} : coin sous le plateau (z ${Math.min(...q.cornersWorld.map((c) => c[2])).toFixed(2)})`); }); }
-    /* J : dégagement entre cartes consécutives : le bas de la carte (épaisseur comprise) ne touche pas la carte suivante (4 px minimum) */
-    for (let i = 0; i < 2; i++) { const gapPx = Math.min(...on[i + 1].cornersProjected.map((c) => c[1])) - Math.max(...on[i].cornersProjected.map((c) => c[1])) - on[i].thickPx; if (!(gapPx >= 4)) mark('J', `${tag} : cartes ${i + 1} et ${i + 2} : dégagement ${gapPx.toFixed(1)} px (4 minimum)`); }
-    /* K : la navigation latérale est masquée tant que les cartes sont à l'écran */
-    if (Number(res.on[w][y].navOpacity) > 0.05) mark('K', `${tag} : navigation latérale visible (opacité ${res.on[w][y].navOpacity}) alors que les trois cartes sont à l'écran`);
+    /* J : dégagement entre cartes consécutives à l'écran : le bas de la carte (épaisseur comprise) ne touche pas la carte suivante (4 px minimum) */
+    const seen = (q) => q.cornersProjected.some((c) => c[0] > 0 && c[0] < res.on[w][y].innerWidth && c[1] > 0 && c[1] < res.on[w][y].innerHeight), anySeen = on.some(seen);
+    for (let i = 0; i < 2; i++) if (seen(on[i]) && seen(on[i + 1])) { const gapPx = Math.min(...on[i + 1].cornersProjected.map((c) => c[1])) - Math.max(...on[i].cornersProjected.map((c) => c[1])) - on[i].thickPx; if (!(gapPx >= 4)) mark('J', `${tag} : cartes ${i + 1} et ${i + 2} : dégagement ${gapPx.toFixed(1)} px (4 minimum)`); }
+    /* K : la navigation latérale est masquée tant qu'une carte est à l'écran, et visible dès qu'aucune ne l'est */
+    const navO = Number(res.on[w][y].navOpacity); if (anySeen && navO > 0.05) mark('K', `${tag} : navigation latérale visible (opacité ${navO}) alors qu'une carte est à l'écran`); if (!anySeen && navO < 0.95) mark('K', `${tag} : navigation latérale masquée (opacité ${navO}) alors qu'aucune carte n'est à l'écran`);
     const plane = (q) => ({ n: q.normal, p: q.cornersWorld[0] }), dist = (pl, pt) => Math.abs(pl.n.reduce((s, v, i) => s + v * (pt[i] - pl.p[i]), 0));
     for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) { const d = Math.max(...on[j].cornersWorld.map((c) => dist(plane(on[i]), c))); if (d < 5) mark('D', `${tag} : cartes ${i + 1} et ${j + 1} coplanaires (écart max ${d.toFixed(2)} px)`); }
     if (new Set(on.map((q) => q.pitchDeg)).size < 3) mark('D', `${tag} : inclinaisons identiques`);
