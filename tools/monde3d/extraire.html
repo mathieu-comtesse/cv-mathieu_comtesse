@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- Banc d'extraction : ouvre la vraie pièce (js/room.js) pour en exporter le décor vers le monde 3D. Utilisé par tools/build-monde3d.mjs. -->
+<html lang="fr"><head><meta charset="utf-8"><base href="../../">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<style>html,body{margin:0;height:100%}#hote{position:fixed;inset:0}</style></head>
+<body><div id="hote"></div>
+<script type="module">
+import * as THREE from 'three';
+import { createRoom } from './js/room.js?v=nt6-20261026';
+const hote = document.getElementById('hote'), bulle = document.createElement('div'); hote.append(bulle);
+try { const piece = await createRoom(hote, bulle, { noTea: true }); await piece.detailPropsReady; window.THREE = THREE; window.piece = piece; window.pret = true; }
+catch (e) { window.erreur = String(e && e.stack || e); }
+</script></body></html>

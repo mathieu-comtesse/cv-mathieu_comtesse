@@ -17,3 +17,12 @@ Les poids du détecteur (`assets/vision/*.bin`) sont ceux publiés par Ultralyti
 ## Lettres machines
 
 Les lettres de `jeux/lettres-machines-scene.html` (`jeux/lettres-machines.js`) sont dessinées par le code de ce dépôt, sans composant tiers. Le style (trait d'encre, hachures, lavis, alphabet fait de mécanismes) s'inspire des illustrations de David Macaulay dans « The Way Things Work » ; aucune image de l'ouvrage n'est reproduite.
+
+## La pièce flottante (monde 3D)
+
+Le monde de `monde3d/` (code dans `monde3d/jeu/`) est écrit pour ce dépôt. Son décor vient de la pièce de l'accueil, exporté et allégé par `tools/build-monde3d.mjs` vers `monde3d/assets/piece.bin`. Le principe (un personnage qui court et saute d'île flottante en île flottante) s'inspire du portfolio 3D de Mike Fernandez ; aucun fichier, modèle, texture ni son de ce site n'est repris. Le rendu (aplats, trait d'encre, hachures, lettrage à la main) s'inspire du dessin de Mœbius ; aucune image de l'auteur n'est reproduite.
+
+| Composant | Rôle | Licence |
+|---|---|---|
+| Patrick Hand SC (`monde3d/police/`) | lettrage de l'interface | SIL Open Font License 1.1, texte dans `monde3d/police/OFL.txt` |
+| meshoptimizer (outil de construction uniquement) | allègement des modèles | MIT, <https://github.com/zeux/meshoptimizer> |
