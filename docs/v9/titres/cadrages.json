@@ -1,0 +1,122 @@
+[
+ {
+  "mode": "off",
+  "w": 1440,
+  "id": "decor",
+  "top": 900
+ },
+ {
+  "mode": "off",
+  "w": 1440,
+  "id": "shop",
+  "top": 2567
+ },
+ {
+  "mode": "off",
+  "w": 1440,
+  "id": "marketing",
+  "top": 15865
+ },
+ {
+  "mode": "off",
+  "w": 1440,
+  "id": "fulfillment",
+  "top": 21137
+ },
+ {
+  "mode": "off",
+  "w": 1440,
+  "id": "developer",
+  "top": 32584
+ },
+ {
+  "mode": "on",
+  "w": 1440,
+  "id": "decor",
+  "top": 900
+ },
+ {
+  "mode": "on",
+  "w": 1440,
+  "id": "shop",
+  "top": 2567
+ },
+ {
+  "mode": "on",
+  "w": 1440,
+  "id": "marketing",
+  "top": 15865
+ },
+ {
+  "mode": "on",
+  "w": 1440,
+  "id": "fulfillment",
+  "top": 21137
+ },
+ {
+  "mode": "on",
+  "w": 1440,
+  "id": "developer",
+  "top": 32584
+ },
+ {
+  "mode": "off",
+  "w": 390,
+  "id": "decor",
+  "top": 844
+ },
+ {
+  "mode": "off",
+  "w": 390,
+  "id": "shop",
+  "top": 2089
+ },
+ {
+  "mode": "off",
+  "w": 390,
+  "id": "marketing",
+  "top": 20944
+ },
+ {
+  "mode": "off",
+  "w": 390,
+  "id": "fulfillment",
+  "top": 28663
+ },
+ {
+  "mode": "off",
+  "w": 390,
+  "id": "developer",
+  "top": 33141
+ },
+ {
+  "mode": "on",
+  "w": 390,
+  "id": "decor",
+  "top": 844
+ },
+ {
+  "mode": "on",
+  "w": 390,
+  "id": "shop",
+  "top": 2089
+ },
+ {
+  "mode": "on",
+  "w": 390,
+  "id": "marketing",
+  "top": 20944
+ },
+ {
+  "mode": "on",
+  "w": 390,
+  "id": "fulfillment",
+  "top": 28663
+ },
+ {
+  "mode": "on",
+  "w": 390,
+  "id": "developer",
+  "top": 33141
+ }
+]

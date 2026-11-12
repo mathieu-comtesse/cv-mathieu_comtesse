@@ -55,7 +55,8 @@ function sharedMaterial(e, glass) {
   return (e[k] = m);
 }
 function variantOf(e, g, color, f, opacity, owner) {
-  const key = color[0].toFixed(3) + ',' + color[1].toFixed(3) + ',' + color[2].toFixed(3) + ',' + f[0].toFixed(2) + ',' + f[1].toFixed(2) + ',' + opacity.toFixed(2);
+  /* clé numérique (mêmes quantifications que l'ancienne clé texte : 3 décimales pour la couleur, 2 pour les facteurs) : aucune chaîne allouée par pièce et par image */
+  const key = ((((((Math.round(color[0] * 1000) * 2001 + Math.round(color[1] * 1000)) * 2001 + Math.round(color[2] * 1000)) * 101 + Math.round(f[0] * 100)) * 101 + Math.round(f[1] * 100)) * 101) + Math.round(opacity * 100));
   let per = e.geos.get(g); if (!per) { per = new Map(); e.geos.set(g, per); }
   let bg = per.get(key);
   if (!bg) {
@@ -71,6 +72,7 @@ function variantOf(e, g, color, f, opacity, owner) {
 }
 
 function paint(e, frame, canvas, ctx, owner) {
+  const t0 = performance.now();
   const { THREE, renderer, scene, camera, pool } = e, w = canvas.width, h = canvas.height;
   if (e.size[0] !== w || e.size[1] !== h) { renderer.setSize(w, h, false); e.size = [w, h]; }
   camera.projectionMatrix.fromArray(frame.projection); camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
@@ -87,8 +89,12 @@ function paint(e, frame, canvas, ctx, owner) {
     m.matrix.fromArray(dr.world); m.matrixWorld.copy(m.matrix); m.visible = true; n++;
   }
   for (let i = n; i < pool.length; i++) pool[i].visible = false;
+  const t1 = performance.now();
   renderer.render(scene, camera);
-  ctx.drawImage(renderer.domElement, 0, 0, w, h);
+  const t2 = performance.now();
+  if (!window.__diagNoCopy) ctx.drawImage(renderer.domElement, 0, 0, w, h);
+  const t3 = performance.now(), P = (window.__cvGpu ||= { n: 0, prepare: 0, render: 0, copy: 0, maxCopy: 0, maxRender: 0, note: 'temps CPU autour des appels (soumission, éventuelle attente de synchronisation) : pas des durées GPU' });
+  P.n++; P.prepare += t1 - t0; P.render += t2 - t1; P.copy += t3 - t2; P.maxCopy = Math.max(P.maxCopy, t3 - t2); P.maxRender = Math.max(P.maxRender, t2 - t1);
 }
 const LIGHT_GAIN = 2.2, SKY_GAIN = 1.6;
 
