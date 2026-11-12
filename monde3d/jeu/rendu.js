@@ -105,6 +105,7 @@ export function creerRendu(canvas) {
   const scenePasse = new THREE.Scene(); scenePasse.add(passe);
   const camPasse = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   let qualite = Math.min(window.devicePixelRatio || 1, 2);
+  if (new URLSearchParams(location.search).has('vitrine')) qualite = Math.min(qualite, 1.5);
 
   function taille(camera) {
     const w = Math.max(1, canvas.clientWidth), h = Math.max(1, canvas.clientHeight);

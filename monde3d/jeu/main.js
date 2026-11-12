@@ -9,9 +9,12 @@ import { creerPensee } from './pensee.js';
 import { creerAuto } from './auto.js';
 
 const $ = (id) => document.getElementById(id);
+/* ?vitrine : vue isométrique sans interface, Mathieu vit seul dans sa pièce (carte « Ma pièce » de l'accueil) */
+const VITRINE = new URLSearchParams(location.search).has('vitrine');
+document.body.classList.toggle('vitrine', VITRINE);
 const canvas = $('scene'), liens = window.CONFIG_LIENS_3D || {};
 const rendu = creerRendu(canvas), son = creerSon();
-const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, 1, 0.5, 2600);
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(VITRINE ? 13 : 50, 1, VITRINE ? 20 : 0.5, 2600);
 scene.add(new THREE.HemisphereLight(0xffffff, 0xa397a8, 1.1));
 const soleil = new THREE.DirectionalLight(0xffffff, 2.6), dirSoleil = new THREE.Vector3(-0.5, 0.82, 0.42).normalize();
 soleil.castShadow = true; soleil.shadow.mapSize.set(2048, 2048); soleil.shadow.bias = -0.0006; soleil.shadow.normalBias = 0.05;
@@ -106,7 +109,7 @@ const basculeSon = () => { son.pret(); const m = son.bascule(); $('son').classLi
 $('son').addEventListener('click', basculeSon); $('son').classList.toggle('coupe', son.muet);
 
 /* exploration autonome : bouton, ou 14 secondes sans rien toucher ; le moindre geste rend la main */
-function geste() { dernierGeste = temps; if (auto?.actif) { auto.arrete(); majAuto(); } }
+function geste() { dernierGeste = temps; if (auto?.actif && !VITRINE) { auto.arrete(); majAuto(); } }
 function majAuto() { $('auto').classList.toggle('actif', !!auto?.actif); $('auto').setAttribute('aria-pressed', String(!!auto?.actif)); }
 $('auto').addEventListener('click', () => { if (!auto) return; if (auto.actif) auto.arrete(); else { auto.demarre(); dit('Errance', 'Mathieu explore seul, un geste et il vous revient'); } dernierGeste = temps; majAuto(); });
 
@@ -175,6 +178,11 @@ function majParticules(dt) {
 }
 
 function majCamera(dt) {
+  if (VITRINE) {   // longue focale, de loin et de trois quarts : une vue presque isométrique, fixe sur la pièce
+    const d = 62 * Math.max(1, 0.8 / camera.aspect), cp = Math.cos(0.62); cam.cible.set(-0.2, 0.6, 0.3);
+    camera.position.set(cam.cible.x + Math.sin(0.72) * cp * d, cam.cible.y + Math.sin(0.62) * d, cam.cible.z + Math.cos(0.72) * cp * d); camera.lookAt(cam.cible);
+    soleil.target.position.set(0, 0, 0); soleil.position.set(dirSoleil.x * 70, dirSoleil.y * 70, dirSoleil.z * 70); return;
+  }
   const cible = heros ? heros.pos : monde.depart;
   if (!demarre) cam.cap += dt * 0.07;
   else if (heros && temps - dernierCam > 1.4) {
@@ -213,14 +221,18 @@ function evenements() {
 
 /* boucle */
 let avant = performance.now(), nImages = 0, cumul = 0, lents = 0;
+let visible = true;
+if (VITRINE && 'IntersectionObserver' in window) new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); }).observe(canvas);
 function image(maintenant) {
   requestAnimationFrame(image);
+  if (!visible) { avant = maintenant; return; }
   const brut = (maintenant - avant) / 1000; avant = maintenant;
   const dt = Math.min(0.05, Math.max(0.001, brut)); temps += dt;
   monde.maj(temps, dt);
   if (heros) {
     lireEntrees();
-    if (demarre && !auto.actif && temps - dernierGeste > 14 && !fete) { auto.demarre(); majAuto(); dit('Errance', 'Mathieu explore seul, un geste et il vous revient'); }
+    if (VITRINE && demarre && !auto.actif) auto.demarre();
+    if (!VITRINE && demarre && !auto.actif && temps - dernierGeste > 14 && !fete) { auto.demarre(); majAuto(); dit('Errance', 'Mathieu explore seul, un geste et il vous revient'); }
     if (auto.actif) { auto.maj(dt, entree, cam.cap); if (entree.x || entree.y) dernierCam = Math.min(dernierCam, temps - 2); }
     if (demarre && !enRetour) heros.maj(dt, entree, cam.cap); else heros.maj(dt, { x: 0, y: 0, saut: false, sautPresse: false, sprint: false }, cam.cap);
     entree.sautPresse = false;
@@ -248,6 +260,7 @@ addEventListener('resize', () => rendu.taille(camera));
 rendu.taille(camera);
 requestAnimationFrame(image);
 creerPerso(scene, monde).then((h) => {
-  heros = h; auto = creerAuto(monde, heros, pensee); $('jouer').disabled = false; $('jouer').textContent = 'Entrer'; fonduCible = 1;
+  heros = h; auto = creerAuto(monde, heros, pensee, { pieceSeule: VITRINE }); $('jouer').disabled = false;
+  if (VITRINE) { demarre = true; fonduCible = 0; document.body.classList.add('jeu'); heros.sur = 'La pièce'; return; } $('jouer').textContent = 'Entrer'; fonduCible = 1;
 }).catch((err) => { console.error(err); $('jouer').textContent = 'Le rêve ne répond pas'; });
 window.__monde = { monde, cam, rendu, get auto() { return auto; }, get heros() { return heros; }, get pris() { return pris; }, lancer };

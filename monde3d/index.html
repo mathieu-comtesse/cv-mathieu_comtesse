@@ -75,6 +75,7 @@
   .tactile .clavier, .tactile #accueil li.clavier { display: none; } body:not(.tactile) #accueil li.doigt { display: none; }
   #jouer { padding: 9px 34px 11px; font-size: 24px; letter-spacing: .12em; background: var(--orange); border: 2px solid var(--encre); border-radius: var(--main); }
   #jouer:hover { background: #f7a055; } #jouer:disabled { background: var(--bulle); cursor: progress; opacity: .75; }
+  .vitrine .haut, .vitrine #accueil, .vitrine #aide, .vitrine #lieu, .vitrine #invite, .vitrine #saut, .vitrine #manette { display: none !important; }
   @media (max-height: 600px) { #accueil ul, #accueil .astre { display: none; } #accueil .case { padding: 16px 20px; } }
 </style>
 
@@ -133,6 +134,6 @@
 </div>
 
 <script>(function(){var c=function(){if(parent!==window)parent.postMessage({type:"monde-close"},"*");else location.href="index.html"};document.getElementById("monde-x").onclick=c;addEventListener("keydown",function(e){if(e.key==="Escape")c()})})()</script>
-<script type="module" src="monde3d/jeu/main.js?v=m15"></script>
+<script type="module" src="monde3d/jeu/main.js?v=m16"></script>
 </body>
 </html>
