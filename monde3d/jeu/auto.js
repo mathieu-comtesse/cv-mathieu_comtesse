@@ -2,7 +2,7 @@
  * Il suit une liste de points de passage, saute quand le sol manque ou que le point est plus haut, attend l'ascenseur, et pense à ce qu'il va faire. */
 import { dedans } from './monde.js';
 
-export function creerAuto(monde, heros, pensee) {
+export function creerAuto(monde, heros, pensee, { pieceSeule = false } = {}) {
   const ECH = 1.35, piece = (x, z, plus = {}) => ({ x: x * ECH + 0.47, y: 0, z: z * ECH - 0.34, ...plus });
   const ile = (o, x, z, plus = {}) => ({ x: o[0] + x, y: o[1], z: o[2] + z, ...plus });
   const JARDIN = [-40, 3.5, -24], BELV = [0, 13, -76], ATELIER = [42, 7, -50], PLATINE = [44, 2.5, 0];
@@ -33,6 +33,7 @@ export function creerAuto(monde, heros, pensee) {
     ...[...g.platine].reverse(),
     { x: 13.2, y: 0, z: 0 }, { x: 8.5, y: 0, z: 3.6 },
   ];
+  if (pieceSeule) R.length = 9;   // vitrine : Mathieu reste dans sa pièce et enchaîne ses activités
   let actif = false, i = 0, tAttente = 0, tBloque = 0, nBloque = 0, repere = { x: 0, z: 0 }, double = false;
   const annonce = () => { for (let k = 0; k < 4; k++) { const w = R[(i + k) % R.length]; if (w.pense) { pensee.montre(w.pense[0], w.pense[1], 9); return; } if (w.sur || w.attends) return; } };
   const solA = (x, z, y) => { for (const c of monde.cols) if (c.actif && c.top <= y + 0.5 && c.top >= y - 0.7 && dedans(c, x, z)) return true; return false; };
