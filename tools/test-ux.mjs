@@ -5,15 +5,16 @@
 //    (depuis le panneau), progression du temps, pause, reprise, inspection, sortie.
 // Trois tailles : 1920 × 1080 (magie), 1440 × 900 et 390 × 844 (tout).
 // Usage : node tools/test-ux.mjs [slug]   (SHOTS=dossier pour enregistrer les captures)
-import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
-import { routeCheckout } from './route-checkout.mjs';
+import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); const fail = []; const log = (...a) => console.log(...a);
 const PAGES = ['moteur44', 'studio', 'gares', 'cerfa', 'finance', 'vmvre', 'pa', 'powerbi', 'vre', 'suivi', 'lecteur-vre'];
 const only = process.argv[2], SHOTS = process.env.SHOTS;
 if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
-const origin = 'http://cv.test';
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf' };
+const srv = http.createServer((q, r) => { const f = path.join(root, decodeURIComponent(new URL(q.url, 'http://x').pathname)); if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'content-type': types[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r); });
+await new Promise((ok) => srv.listen(0, ok)); const port = srv.address().port;
 let chromium; { const { createRequire } = await import('node:module'); const req = createRequire(root + '/'); try { ({ chromium } = req('playwright')); } catch { ({ chromium } = createRequire('/tmp/q18/')('playwright')); } }
-const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const state = (p) => p.evaluate(() => { const d = document.querySelector('.rf-cb-dock'); return { mode: d?.dataset.mode, t: +(d?.dataset.t || 0), paused: d?.dataset.paused === 'true' }; });
 const waitMachine = async (p, tag) => { await p.waitForSelector('.rf-cb-dock', { state: 'attached', timeout: 90000 }).catch(() => fail.push(`${tag} : la machine ne se charge pas`)); await p.waitForFunction(() => window.__rfFlowReady && window.__rfTest, null, { timeout: 90000 }).catch(() => fail.push(`${tag} : moteurs non prêts (magie ou API de test)`)); await p.evaluate(() => window.__rfFlowReady); };
@@ -235,5 +236,5 @@ for (const slug of PAGES) {
     await p.context().close();
   }
 }
-await b.close();
+await b.close(); srv.close();
 if (fail.length) { console.error('\n' + fail.join('\n')); process.exit(1); } log('\nonze fiches : magie (temps actif, pause, page cachée, résultat, liste, rejeu, fermeture, passage vers la machine) et machine (Explorer, panneau latéral / tiroir, démonstration guidée, pause, fin, sortie) : ok');
