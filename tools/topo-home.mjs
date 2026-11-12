@@ -9,7 +9,7 @@ let chromium; { const req = createRequire(root + '/'); try { ({ chromium } = req
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 // aucune carte n'est projetée à 0 px dans les deux modes (la 3D de l'accueil démarre avec le défilement) : mesuré, pas ignoré
 const SCROLLS = [340, 700, 1500, 3000, 4500, 6000, 7500], res = { on: {}, off: {}, H: {} };
-const snap = (p) => p.evaluate(() => ({ view: (({ T, offset, pitch, fov, rise }) => ({ T, offset, pitch, fov, rise }))(window.__cvParity.project()), boxes: window.__cvParity.boxes() }));
+const snap = (p) => p.evaluate(() => ({ view: (({ T, offset, pitch, fov, rise }) => ({ T, offset, pitch, fov, rise }))(window.__cvParity.project()), boxes: window.__cvParity.boxes(), titles: window.__cvParity.titles(), navOpacity: window.__cvParity.navOpacity(), innerWidth }));
 for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] of [[1440, 900], [390, 844]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700 }); await ctx.route('https://comtesse.me/assets/showcase/**', (route) => { const f = path.join(root, new URL(route.request().url()).pathname); fs.existsSync(f) ? route.fulfill({ body: fs.readFileSync(f), contentType: T[path.extname(f)] }) : route.fulfill({ status: 404, body: '' }); });
   const p = await ctx.newPage(); await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest${qs}`, { waitUntil: 'domcontentloaded' });
@@ -40,7 +40,7 @@ for (const [mode, qs] of [['off', '&topo=off'], ['on', '']]) for (const [w, h] o
 }
 await b.close(); srv.close(); fs.writeFileSync(path.join(OUT, 'mesures.json'), JSON.stringify(res, null, 1));
 /* ---- analyses ---- */
-const fails = [], ok = {}, mark = (k, msg) => { fails.push(`${k} ${msg}`); ok[k] = false; }; 'ABCDEFGHI'.split('').forEach((k) => (ok[k] = true));
+const fails = [], ok = {}, mark = (k, msg) => { fails.push(`${k} ${msg}`); ok[k] = false; }; 'ABCDEFGHIJKL'.split('').forEach((k) => (ok[k] = true));
 const eq = (a, c, tol) => (typeof a === 'number' && typeof c === 'number') ? Math.abs(a - c) <= tol : (Array.isArray(a) && Array.isArray(c) && a.length === c.length && a.every((v, i) => eq(v, c[i], tol))) || (a === c);
 const isHeroOff = (q) => q.title === '' && q.id == null;                     // en mode ?topo=off le drapeau hero est faux : on retrouve les trois cartes sans titre ni identifiant
 const heroOn = (w, y) => res.on[w][y].boxes.filter((q) => q.hero).sort((a, c) => a.index - c.index);
@@ -63,6 +63,10 @@ for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
       const inq = (P, x, yy) => { let s2 = 0; for (let i = 0; i < 4; i++) { const a2 = P[i], c2 = P[(i + 1) % 4], cr = (c2[0] - a2[0]) * (yy - a2[1]) - (c2[1] - a2[1]) * (x - a2[0]); if (cr > 0) s2++; else if (cr < 0) s2--; } return Math.abs(s2) === 4; };
       for (let i = 0; i < 2; i++) { const A = on[i].cornersProjected, B = on[i + 1].cornersProjected; let n = 0, m = 0; const xs = A.map((q) => q[0]), ys2 = A.map((q) => q[1]); for (let x = Math.min(...xs); x <= Math.max(...xs); x += 2) for (let yy = Math.min(...ys2); yy <= Math.max(...ys2); yy += 2) if (inq(A, x, yy)) { m++; if (inq(B, x, yy)) n++; } if (m && n / m > 0.01) mark('I', `${tag} : cartes ${i + 1} et ${i + 2} se chevauchent (${(100 * n / m).toFixed(1)} % de la surface)`); }
       on.forEach((q) => { if (Math.min(...q.cornersWorld.map((c) => c[2])) < -0.01) mark('I', `${tag} carte ${q.index + 1} : coin sous le plateau (z ${Math.min(...q.cornersWorld.map((c) => c[2])).toFixed(2)})`); }); }
+    /* J : dégagement entre cartes consécutives : le bas de la carte (épaisseur comprise) ne touche pas la carte suivante (4 px minimum) */
+    for (let i = 0; i < 2; i++) { const gapPx = Math.min(...on[i + 1].cornersProjected.map((c) => c[1])) - Math.max(...on[i].cornersProjected.map((c) => c[1])) - on[i].thickPx; if (!(gapPx >= 4)) mark('J', `${tag} : cartes ${i + 1} et ${i + 2} : dégagement ${gapPx.toFixed(1)} px (4 minimum)`); }
+    /* K : la navigation latérale est masquée tant que les cartes sont à l'écran */
+    if (Number(res.on[w][y].navOpacity) > 0.05) mark('K', `${tag} : navigation latérale visible (opacité ${res.on[w][y].navOpacity}) alors que les trois cartes sont à l'écran`);
     const plane = (q) => ({ n: q.normal, p: q.cornersWorld[0] }), dist = (pl, pt) => Math.abs(pl.n.reduce((s, v, i) => s + v * (pt[i] - pl.p[i]), 0));
     for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) { const d = Math.max(...on[j].cornersWorld.map((c) => dist(plane(on[i]), c))); if (d < 5) mark('D', `${tag} : cartes ${i + 1} et ${j + 1} coplanaires (écart max ${d.toFixed(2)} px)`); }
     if (new Set(on.map((q) => q.pitchDeg)).size < 3) mark('D', `${tag} : inclinaisons identiques`);
@@ -94,6 +98,10 @@ for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) {
     if (!q.cornersProjected || q.cornersProjected.length !== 4 || !finite(q.cornersProjected)) mark('G', `${t} : coins projetés absents`);
   });
 }
+/* L : échelle des titres de chapitre : au moins un titre mis à l'échelle (> 1) en mode normal, tous à 1 avec ?title=off ; jamais au delà du facteur visé ; titre de l'accueil (hero) inchangé */
+for (const w of [1440, 390]) for (const y of Object.keys(res.on[w])) { const on = (res.on[w][y].titles || []).filter((q) => !q.hero), off = (res.off[w][y].titles || []).filter((q) => !q.hero), max = w > 700 ? 1.6 : 2;
+  if (!on.length) continue; if (off.some((q) => q.scale !== 1)) mark('L', `${w}/${y} : titres de chapitre mis à l'échelle malgré ?title=off`); if (on.some((q) => q.scale > max + 1e-9 || q.scale < 1)) mark('L', `${w}/${y} : échelle de titre hors de 1 à ${max} (${on.map((q) => q.scale)})`); }
+{ const all = [1440, 390].flatMap((w) => Object.values(res.on[w]).flatMap((d) => (d.titles || []).filter((q) => !q.hero).map((q) => q.scale))); if (!all.some((v) => v > 1)) mark('L', 'aucun titre de chapitre mis à l\'échelle sur toutes les mesures'); if (all.length === 0) mark('L', 'aucun titre de chapitre relevé'); }
 /* G (suite) : l'original est la géométrie d'avant la modification (mesures de référence figées lors de la première exécution de ce banc, comparées si elles existent) */
 const REF = path.join(OUT, 'reference-origine.json'), refNow = { 1440: {} }; for (const y of Object.keys(res.off[1440])) refNow[1440][y] = heroOff(1440, y).map((q) => ({ altitude: q.altitude, pitchDeg: q.pitchDeg, rollDeg: q.rollDeg, cornersWorld: q.cornersWorld, cornersProjected: q.cornersProjected }));
 if (!fs.existsSync(REF)) { fs.writeFileSync(REF, JSON.stringify(refNow, null, 1)); console.log('référence ?topo=off enregistrée (première exécution)'); }
@@ -113,5 +121,5 @@ for (const [mode, name] of [['on', 'normal'], ['off', 'topo-off']]) {
     svg += `<polygon points="${poly}" fill="none" stroke="${col}" stroke-width="3"/>`; const top = c.reduce((a, p) => (p[2] > a[2] ? p : a)), bot = c.reduce((a, p) => (p[2] < a[2] ? p : a)); svg += `<line x1="${X(top[1])}" y1="${Y(top[2]) }" x2="${X(top[1])}" y2="${Y(top[2] - (mode === 'on' ? q.thick : 0))}" stroke="${col}" stroke-width="2" stroke-dasharray="3 2"/>`;
     svg += `<text x="${X(bot[1]) }" y="${Y(top[2]) - 8}" fill="${col}">carte ${i + 1} · alt ${q.altitude} · ${q.pitchDeg}° · ép ${q.thick}</text>`; });
   svg += `<text x="8" y="16" fill="#cfe0ff">Vue latérale (${name}) · proche de la caméra à droite</text></svg>`; fs.writeFileSync(path.join(OUT, `vue-laterale-${name}.svg`), svg); }
-fs.writeFileSync(path.join(OUT, 'tableau.md'), md.join('\n') + '\n'); console.log(md.join('\n')); console.log('\nVerdicts : ' + 'ABCDEFGHI'.split('').map((k) => `${k} ${ok[k] ? 'OK' : 'ÉCHEC'}`).join(' · ')); console.log(fails.length ? '\nÉCARTS :\n - ' + [...new Set(fails)].slice(0, 60).join('\n - ') : '\nTests A à I conformes');
+fs.writeFileSync(path.join(OUT, 'tableau.md'), md.join('\n') + '\n'); console.log(md.join('\n')); console.log('\nVerdicts : ' + 'ABCDEFGHIJKL'.split('').map((k) => `${k} ${ok[k] ? 'OK' : 'ÉCHEC'}`).join(' · ')); console.log(fails.length ? '\nÉCARTS :\n - ' + [...new Set(fails)].slice(0, 60).join('\n - ') : '\nTests A à L conformes');
 process.exit(fails.length ? 1 : 0);
