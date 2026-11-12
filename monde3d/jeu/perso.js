@@ -6,7 +6,7 @@ import { dedans, repousse } from './monde.js';
 import { createCharacter } from '../../js/character.js?v=cv-scene-v49';
 
 /* Le personnage est celui de la pièce, tel quel (squelette, chaussures, visage, corrections de posture) ; seules ses matières passent en aplats encrés. */
-async function charger() {
+export async function charger() {
   const perso = await createCharacter();
   const mats = new Map();
   const conv = (m) => { if (!mats.has(m)) mats.set(m, encre({ emissive: (m.color ? m.color.clone() : new THREE.Color('#888')).multiplyScalar(m.map ? 0 : 0.28), emissiveMap: null, color: m.color ? m.color.clone() : new THREE.Color('#888'), map: m.map || null, vertexColors: !!m.vertexColors, side: THREE.DoubleSide, alphaTest: m.map ? 0.4 : 0 })); return mats.get(m); };

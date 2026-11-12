@@ -5,7 +5,7 @@ import { mergeGeometries } from 'three/addons/BufferGeometryUtils.js';
 import { encre } from './rendu.js';
 
 const PI = Math.PI;
-const K = {
+export const K = {
   noir: '#2b2731', noir2: '#3b3743', blanc: '#f3ecdc', chrome: '#c6cbd0', bois: '#b9814f', boisClair: '#dcc79c', noyer: '#80492c',
   vertUsm: '#4aa23a', rouge: '#d2452f', orange: '#ee8a3a', jaune: '#f0cf5a', ecran: '#bfe3e6',
   sable: '#e6cfa6', sable2: '#d9b98d', rose: '#cc917f', mauve: '#a97a8c', ocre: '#d6a068', brique: '#c5795f',
@@ -14,7 +14,7 @@ const K = {
 };
 const couleurs = new Map();
 const teinte = (h) => { let c = couleurs.get(h); if (!c) { c = new THREE.Color(h); couleurs.set(h, c); } return c; };
-const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+export const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 const HAUT = new THREE.Vector3(0, 1, 0);
 
@@ -43,7 +43,7 @@ export function repousse(c, p, r) {
 }
 
 /* ───────── bâtisseur : primitives colorées, empilées dans un repère courant (position, cap, échelle) ───────── */
-class Batisseur {
+export class Batisseur {
   constructor(monde) { this.monde = monde; this.geos = []; this.m = new THREE.Matrix4(); this.pile = []; this.cap = 0; this.ech = 1; }
   pousse(x, y, z, ry = 0, s = 1) {
     this.pile.push([this.m.clone(), this.cap, this.ech]);
@@ -121,7 +121,7 @@ class Lots {
 }
 
 /* ───────── terrain ───────── */
-function ile(B, o) {
+export function ile(B, o) {
   const { x, z, y, r, graine = 1, sol = K.sable, bord = K.sable2, roche = [K.rose, K.mauve], prof = r * 1.15, nom } = o;
   const a1 = graine * 1.7, a2 = graine * 2.9, a3 = graine * 4.1, rd = alea(graine * 977);
   const rf = (t) => r * (1 + 0.045 * Math.sin(2 * t + a1) + 0.03 * Math.sin(3 * t + a2) + 0.018 * Math.sin(5 * t + a3));
@@ -153,9 +153,9 @@ function pierre(B, x, y, z, r = 1.3, c = K.rose, c2 = K.mauve, graine = 1) {
   return B.monde.col({ t: 'c', x, z, r, top: y, bas: y - 1.0, fixe: true });
 }
 function gue(B, a, b, n, fn) { const out = []; for (let i = 1; i <= n; i++) { const u = i / (n + 1); out.push(fn(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u, i)); } return out; }
-function rocher(B, x, y, z, r, c = K.rose, graine = 1) { const rd = alea(graine * 31 + 7); B.s(c, r, 0, x, y + r * 0.45, z, 1 + rd() * 0.5, 0.7 + rd() * 0.5, 1 + rd() * 0.4, rd() * 6); }
-function eclat(B, x, y, z, h = 1.2, c = K.cristal, incl = 0.15, ry = 0) { B.c(c, h * 0.16, h * 0.2, h * 0.7, 5, x, y, z, incl, ry, incl * 0.6); B.c(c, 0, h * 0.16, h * 0.3, 5, x + Math.sin(incl * 0.6) * -h * 0.5, y + h * 0.68, z + Math.sin(incl) * h * 0.5, incl, ry, incl * 0.6); }
-function touffe(B, x, y, z, c = K.herbe2, h = 0.45) { for (let i = 0; i < 3; i++) B.c(c, 0, 0.07, h * (0.7 + i * 0.2), 3, x + (i - 1) * 0.1, y, z + (i % 2) * 0.08, (i - 1) * 0.25, i, (i - 1) * 0.3); }
+export function rocher(B, x, y, z, r, c = K.rose, graine = 1) { const rd = alea(graine * 31 + 7); B.s(c, r, 0, x, y + r * 0.45, z, 1 + rd() * 0.5, 0.7 + rd() * 0.5, 1 + rd() * 0.4, rd() * 6); }
+export function eclat(B, x, y, z, h = 1.2, c = K.cristal, incl = 0.15, ry = 0) { B.c(c, h * 0.16, h * 0.2, h * 0.7, 5, x, y, z, incl, ry, incl * 0.6); B.c(c, 0, h * 0.16, h * 0.3, 5, x + Math.sin(incl * 0.6) * -h * 0.5, y + h * 0.68, z + Math.sin(incl) * h * 0.5, incl, ry, incl * 0.6); }
+export function touffe(B, x, y, z, c = K.herbe2, h = 0.45) { for (let i = 0; i < 3; i++) B.c(c, 0, 0.07, h * (0.7 + i * 0.2), 3, x + (i - 1) * 0.1, y, z + (i % 2) * 0.08, (i - 1) * 0.25, i, (i - 1) * 0.3); }
 function decor(B, o, graine, { rochers = 6, eclats = 3, touffes = 14, cT = K.herbe2, min = 0.62 } = {}) {
   const rd = alea(graine), pos = () => { const t = rd() * PI * 2, d = o.r * (min + rd() * (0.9 - min)); return [o.x + Math.cos(t) * d, o.z + Math.sin(t) * d]; };
   for (let i = 0; i < rochers; i++) { const [x, z] = pos(); rocher(B, x, o.y, z, 0.35 + rd() * 0.55, i % 2 ? K.rose : K.mauve, graine + i); }

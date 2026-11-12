@@ -4,12 +4,14 @@
  * Le trait vient du laplacien de la profondeur brute, nul sur une face plane : il ne reste que les arêtes et les silhouettes. */
 import * as THREE from 'three';
 
-export function encre(o = {}) {
+/* plat : la surface garde sa couleur exacte, sans ombre ni hachure ni encrage de ses motifs (faces imprimées, textes) */
+export function encre(o = {}, { plat = false } = {}) {
   const m = new THREE.MeshLambertMaterial({ flatShading: true, ...o });
+  m.customProgramCacheKey = () => 'encre' + (plat ? 1 : 0);
   m.onBeforeCompile = (s) => {
     s.fragmentShader = s.fragmentShader.replace('#include <dithering_fragment>', `
       float lum_ = dot(outgoingLight, vec3(0.3333)) / max(dot(diffuseColor.rgb, vec3(0.3333)), 0.004);
-      gl_FragColor = vec4(pow(max(diffuseColor.rgb, 0.0), vec3(0.4545)), clamp(lum_ * 0.5, 0.0, 1.0));`);
+      gl_FragColor = vec4(pow(max(diffuseColor.rgb, 0.0), vec3(0.4545)), ${plat ? '1.0' : 'clamp(lum_ * 0.5, 0.0, 0.96)'});`);
   };
   return m;
 }
@@ -31,8 +33,11 @@ void main(){
   float k = max(1.0, res.y / 820.0);
   vec2 fc = vUv * res / k;
   vec2 trembl = (vec2(bruit(fc/11.0), bruit(fc/11.0 + 37.0)) - 0.5) * 1.5 * k / res;
-  vec2 uv = vUv + trembl;
-  vec2 px = vec2(k) / res;
+  /* échantillons calés sur le centre des texels, à un nombre entier de texels d'écart : sinon l'arrondi décale les prises de façon inégale
+     et une surface plane paraît pliée (faux traits d'encre sur les écrans denses) */
+  float pas = floor(k + 0.5);
+  vec2 uv = (floor((vUv + trembl) * res) + 0.5) / res;
+  vec2 px = vec2(pas) / res;
   float d = prof(uv);
   float dl = prof(uv - vec2(px.x, 0.)), dr = prof(uv + vec2(px.x, 0.)), dh = prof(uv + vec2(0., px.y)), db = prof(uv - vec2(0., px.y));
   float d1 = prof(uv + px), d2 = prof(uv - px), d3 = prof(uv + vec2(px.x, -px.y)), d4 = prof(uv + vec2(-px.x, px.y));
@@ -43,13 +48,13 @@ void main(){
   #define TRI(x, y) t_ = min(x, y); y = max(x, y); x = t_;
   TRI(a0, a1) TRI(a3, a4) TRI(a2, a4) TRI(a2, a3) TRI(a0, a3) TRI(a0, a2) TRI(a1, a4) TRI(a1, a3) TRI(a1, a2)
   float lap = max(0.0, 2.0 * (a3 - a1) - plancher);
-  float arete = lap / max(1.0 - dmin, 1e-7) / (pixAngle * k);
+  float arete = lap / max(1.0 - dmin, 1e-7) / (pixAngle * pas);
   float z = zLin(dmin);
   vec4 c = texture2D(tC, uv);
   vec3 cl = texture2D(tC, uv - vec2(px.x, 0.)).rgb, cr = texture2D(tC, uv + vec2(px.x, 0.)).rgb;
   vec3 ch = texture2D(tC, uv + vec2(0., px.y)).rgb, cb = texture2D(tC, uv - vec2(0., px.y)).rgb;
   float teinte = max(max(distance(c.rgb, cl), distance(c.rgb, cr)), max(distance(c.rgb, ch), distance(c.rgb, cb)));
-  float trait = max(smoothstep(0.42, 0.9, arete), smoothstep(0.07, 0.16, teinte) * (1.0 - 0.85 * smoothstep(12.0, 38.0, z)));   // au loin, les limites de couleur ne sont plus encrées (textes, motifs)
+  float trait = max(smoothstep(0.42, 0.9, arete), smoothstep(0.07, 0.16, teinte) * (1.0 - 0.85 * smoothstep(12.0, 38.0, z)) * (1.0 - step(0.975, c.a)));   // au loin, les limites de couleur ne sont plus encrées (textes, motifs)
   trait *= 1.0 - 0.8 * smoothstep(140.0, 520.0, z);
 
   vec3 col;

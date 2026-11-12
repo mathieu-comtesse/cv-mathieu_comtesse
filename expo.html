@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Mathieu Comtesse, l'exposition</title>
+<meta name="description" content="Le profil de Mathieu Comtesse, ingénieur maintenance et qualité, en exposition à parcourir : projets professionnels, parcours, compétences, mondes et jeux, études, contact." />
+<meta property="og:title" content="Mathieu Comtesse, l'exposition" />
+<meta property="og:description" content="Projets professionnels, parcours, compétences, mondes et jeux : une exposition dessinée à parcourir." />
+<meta property="og:image" content="https://comtesse.me/monde3d/social/share-1200x630.png" />
+<link rel="icon" href="favicon.svg" />
+<meta name="theme-color" content="#e9dcc0" />
+<link rel="preload" href="monde3d/police/patrick-hand-sc.woff2" as="font" type="font/woff2" crossorigin />
+<style>
+  @font-face { font-family: "Lettrage"; src: url("monde3d/police/patrick-hand-sc.woff2") format("woff2"); font-display: swap; }
+  :root { --bulle: #fbf7ec; --recit: #f5e6a6; --encre: #2a2530; --orange: #ee8a3a; --turquoise: #7cc4b4; --main: 255px 18px 225px 16px / 16px 225px 18px 255px; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #e9dcc0; color: var(--encre); font: 400 18px/1.25 "Lettrage", "Comic Sans MS", "Trebuchet MS", sans-serif; letter-spacing: .03em; }
+  body:not(.texte) { overflow: hidden; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; opacity: 0; transition: opacity .6s; }
+  .pret #scene { opacity: 1; }
+  .bulle, .recit { border: 2px solid var(--encre); border-radius: var(--main); color: var(--encre); text-decoration: none; }
+  .bulle { background: var(--bulle); } .recit { background: var(--recit); }
+  button, a.bulle { font: inherit; letter-spacing: inherit; cursor: pointer; }
+  button.bulle:hover, a.bulle:hover { background: #fff; } button:focus-visible, a:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+  .haut { position: fixed; top: max(12px, env(safe-area-inset-top)); display: flex; gap: 10px; z-index: 5; }
+  #gauche { left: max(12px, env(safe-area-inset-left)); } #droite { right: max(12px, env(safe-area-inset-right)); }
+  .haut > * { height: 42px; padding: 0 14px; display: flex; align-items: center; gap: 8px; font-size: 17px; }
+  .haut svg { width: 19px; height: 19px; flex: none; }
+  #nom { font-size: 21px; letter-spacing: .1em; }
+  #sommaire { position: fixed; left: max(12px, env(safe-area-inset-left)); top: 50%; transform: translateY(-50%); display: grid; gap: 4px; z-index: 4; padding-left: 12px; }
+  #sommaire::before { content: ""; position: absolute; left: 2px; top: 6px; bottom: 6px; width: 2px; background: var(--encre); opacity: .25; }
+  #jauge { position: absolute; left: 2px; top: 6px; bottom: 6px; width: 2px; background: var(--encre); transform-origin: top; transform: scaleY(0); }
+  #sommaire button { display: flex; gap: 8px; align-items: baseline; background: none; border: 0; padding: 3px 8px; color: var(--encre); font-size: 16px; opacity: .55; text-align: left; transition: opacity .2s, transform .2s; }
+  #sommaire button i { font-style: normal; font-size: 13px; } #sommaire button:hover { opacity: 1; }
+  #sommaire button.actif { opacity: 1; transform: translateX(6px); font-size: 19px; } #sommaire button.actif span { background: var(--recit); border: 2px solid var(--encre); border-radius: var(--main); padding: 0 9px 1px; }
+  #lieu { position: fixed; top: 76px; left: 50%; transform: translate(-50%, 0) rotate(-1deg); padding: 6px 22px 8px; text-align: center; opacity: 0; pointer-events: none; z-index: 4; max-width: 92vw; }
+  #lieu b { display: block; font-weight: 400; font-size: clamp(22px, 3.4vw, 34px); line-height: 1; letter-spacing: .1em; } #lieu small { display: block; font-size: 16px; margin-top: 3px; }
+  #lieu.vu { animation: lieu 3.2s both; } @keyframes lieu { 0% { opacity: 0; transform: translate(-50%, 12px) rotate(-1deg); } 10%, 80% { opacity: 1; transform: translate(-50%, 0) rotate(-1deg); } 100% { opacity: 0; transform: translate(-50%, -8px) rotate(-1deg); } }
+  #fiche { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translate(-50%, 16px); padding: 10px 14px 12px 20px; display: flex; align-items: center; gap: 14px; max-width: min(94vw, 760px); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 6; }
+  #fiche.vu { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+  #fiche div { min-width: 0; } #fiche b { display: block; font-weight: 400; font-size: 21px; line-height: 1.05; } #fiche small { font-size: 15px; opacity: .75; }
+  #fiche a { padding: 5px 16px 7px; white-space: nowrap; background: var(--orange); } #fiche a:hover { background: #f7a055; } #fiche a + a { background: var(--bulle); }
+  #fiche-fermer { width: 36px; height: 36px; flex: none; display: grid; place-items: center; padding: 0; border-radius: 50%; } #fiche-fermer svg { width: 16px; height: 16px; }
+  #aide { position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); padding: 6px 14px 8px; font-size: 15px; z-index: 3; transform: rotate(.7deg); transition: opacity .6s; }
+  .a-plat #aide { opacity: .6; }
+  /* curseur : une pastille d'encre qui suit la souris et annonce l'action au survol d'un cadre */
+  #curseur { position: fixed; left: 0; top: 0; z-index: 7; pointer-events: none; display: none; will-change: transform; }
+  .souris #curseur { display: block; }
+  #curseur i { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border: 2px solid var(--encre); border-radius: 50%; transition: transform .22s cubic-bezier(.3, 1.4, .5, 1), background .2s; }
+  .vise #curseur i { transform: scale(2.6); background: rgba(245, 230, 166, .55); }
+  #curseur-mot { position: absolute; left: 30px; top: 8px; padding: 1px 10px 3px; white-space: nowrap; font-size: 15px; background: var(--recit); border: 2px solid var(--encre); border-radius: var(--main); opacity: 0; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+  .vise #curseur-mot:not(:empty) { opacity: 1; transform: none; }
+  #monde { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; z-index: 20; background: #e9dcc0; }
+  .en-jeu .haut, .en-jeu #sommaire, .en-jeu #aide, .en-jeu #fiche, .en-jeu #curseur { display: none; }
+  /* version texte */
+  #texte { display: none; max-width: 760px; margin: 0 auto; padding: 90px 22px 80px; font-size: 19px; line-height: 1.4; outline: none; }
+  .texte #texte { display: block; } .texte #scene, .texte #sommaire, .texte #aide, .texte #fiche, .texte #curseur, .texte #lieu, .texte #mode { display: none; }
+  #texte h2 { font-weight: 400; font-size: 40px; letter-spacing: .08em; margin: 46px 0 0; line-height: 1; } #texte .sous { margin: 4px 0 14px; opacity: .75; }
+  #texte article { background: var(--bulle); border: 2px solid var(--encre); border-radius: var(--main); padding: 12px 18px 14px; margin: 0 0 12px; }
+  #texte h3 { font-weight: 400; font-size: 25px; margin: 0 0 4px; } #texte p { margin: 0 0 6px; } #texte a { color: var(--encre); margin-right: 14px; }
+  @media (max-width: 760px) { #sommaire button span { display: none; } #sommaire button.actif span { display: inline; } #nom { display: none; } #aide { display: none; } .haut > * span { display: none; } #fiche { flex-wrap: wrap; } }
+  noscript p { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: #e9dcc0; z-index: 30; }
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+<!-- seo:start -->
+<link rel="canonical" href="https://comtesse.me/expo">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mathieu Comtesse">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="https://comtesse.me/expo">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mathieu Comtesse, l'exposition">
+<meta name="twitter:description" content="Le profil de Mathieu Comtesse, ingénieur maintenance et qualité, en exposition à parcourir : projets professionnels, parcours, compétences, mondes et jeux, études, contact.">
+<meta name="twitter:image" content="https://comtesse.me/assets/og-home-blueprint.png">
+<!-- seo:end -->
+</head>
+<body>
+<canvas id="scene" tabindex="0" aria-label="Exposition en trois dimensions : utilisez la version texte pour lire le contenu"></canvas>
+
+<div class="haut" id="gauche"><a class="bulle" id="nom" href="expo.html">Mathieu Comtesse</a></div>
+<div class="haut" id="droite">
+  <button class="bulle" id="mode" type="button" aria-pressed="false" title="Passer de l'exposition en perspective à la vue à plat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 16l8 4 8-4-8-4z"/><path d="M4 16V9l8-4 8 4v7"/></svg><span>Mode à plat</span>
+  </button>
+  <button class="bulle" id="lire" type="button" title="Lire le même contenu en page ordinaire">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 6h14M5 11h14M5 16h9"/></svg><span>Version texte</span>
+  </button>
+</div>
+
+<nav id="sommaire" aria-label="Chapitres"><div id="jauge"></div></nav>
+<div class="recit" id="lieu" role="status"><b></b><small></small></div>
+<div class="bulle" id="fiche">
+  <div><b></b><small></small></div>
+  <a class="bulle" id="fiche-lien" href="#"></a><a class="bulle" id="fiche-lien2" href="#" hidden></a>
+  <button class="bulle" id="fiche-fermer" type="button" aria-label="Refermer le cadre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6.5l12 11.5M18 6L6.5 18"/></svg></button>
+</div>
+<div class="recit" id="aide">Molette ou glisser pour avancer · clic pour regarder un cadre</div>
+<div id="curseur" aria-hidden="true"><i></i><span id="curseur-mot"></span></div>
+
+<main id="texte" tabindex="-1"><h1 style="font-weight:400;font-size:52px;letter-spacing:.08em;line-height:1;margin:0">Mathieu Comtesse</h1></main>
+<noscript><p>Cette exposition demande JavaScript. Le CV est disponible ici : <a href="assets/cv-ats-mathieu-comtesse.pdf">CV en PDF</a>.</p></noscript>
+<script type="module" src="expo/expo.js?v=e1"></script>
+</body>
+</html>
