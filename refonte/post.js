@@ -7,6 +7,7 @@ import './viewbtn.js';
 if (document.querySelector('.rf-code')) import('./hl.js').catch(() => {});   // coloration des extraits de code des études
 import * as THREE from 'three';
 import { initBlueprint } from './blueprint-hero.js';
+import { diagOn, mark } from './diag.js';
 import { initRulers } from './rulers.js';
 import { framingOf } from './m3d/registry.js';
 
@@ -32,13 +33,18 @@ if (fig && bpCanvas && stage) {
   const FR = framingOf(fig.dataset.fig);   // cadrage propre à la machine (refonte/m3d/registry.js)
   const mobile = () => innerWidth < 700;
   const AIM_Y = () => (mobile() ? FR.aimYm : FR.aimY);   // la visée est au-dessus du plan : la machine se place sous le titre et les boutons
-  const focus = { f: 0, to: 0, d: 0, p: null, yaw: 0, pitch: FR.pitch * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
+  const focus = { f: 0, to: 0, d: 0, sz: 0, lv: 0, p: null, yaw: 0, pitch: FR.pitch * Math.PI / 180 };   // vue rapprochée : la caméra principale reste, elle s'approche d'un point d'ancrage
+  const projV = new THREE.Vector3();
+  const visH = () => 2 * Math.hypot(...cam.position.toArray().map((v, i) => v - [cam.__tx ?? 0, cam.__ty ?? AIM_Y(), cam.__tz ?? 0][i])) * Math.tan(15 * Math.PI / 180);
   const placeCam = (yaw, pitch = FR.pitch * Math.PI / 180) => {
     focus.yaw = yaw; focus.pitch = pitch;
-    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), fitK = cam.aspect < 1.1 ? Math.min(2.1, Math.max(1, 1.1 / Math.max(.4, cam.aspect) * .85)) : 1, dist = (FR.dist * fitK + (11 - FR.dist * fitK) * F) * (1 - .2 * focus.d);
+    const F = focus.f * focus.f * (3 - 2 * focus.f), P = focus.p, cp = Math.cos(pitch), fitK = cam.aspect < 1.1 ? Math.min(2.1, Math.max(1, 1.1 / Math.max(.4, cam.aspect) * .85)) : 1, base = FR.dist * fitK, near = Math.max(11, base * (mobile() ? .6 : .38)), dist = (base + (near - base) * F) * (1 - .2 * focus.d);   // gros plan sur un organe : plus mesuré sur mobile
     const tx = .1 + ((P ? P.x : .1) - .1) * F, ty = AIM_Y() + ((P ? P.y : AIM_Y()) - AIM_Y()) * F, tz = -.2 + ((P ? P.z : -.2) + .2) * F;
-    cam.position.set(tx + Math.sin(yaw) * cp * dist, ty + Math.sin(pitch) * dist, tz + Math.cos(yaw) * cp * dist);
-    cam.lookAt(tx, ty, tz); cam.updateMatrixWorld(true);
+    /* panneau Explorer ouvert : la composition se décale (bureau : vers la gauche, mobile : vers le haut) au lieu d'être recouverte */
+    const vis = 2 * dist * Math.tan(15 * Math.PI / 180), panX = innerWidth < 900 ? 0 : focus.sz / 2 * cam.aspect * vis, liftY = innerWidth < 900 ? focus.lv : .3 * focus.sz * vis;   // le décalage suit la taille réelle du panneau (bureau : largeur ; mobile : hauteur du tiroir)
+    const tx2 = tx + Math.cos(yaw) * panX, tz2 = tz - Math.sin(yaw) * panX, ty2 = ty - liftY;
+    cam.position.set(tx2 + Math.sin(yaw) * cp * dist, ty2 + Math.sin(pitch) * dist, tz2 + Math.cos(yaw) * cp * dist);
+    cam.lookAt(tx2, ty2, tz2); cam.__tx = tx2; cam.__ty = ty2; cam.__tz = tz2; cam.updateMatrixWorld(true);
   };
   const bp = initBlueprint(bpCanvas, stage);
   bp.plane.scale.setScalar(2.6);          // plan plus étendu : pas d'horizon noir à ce faible angle
@@ -46,7 +52,7 @@ if (fig && bpCanvas && stage) {
   /* ---- la machine : modèle 3D posé sur le plan, rendu avec la même caméra (même perspective, même profondeur) ---- */
   const view = { yaw: FR.yaw * Math.PI / 180 };
   const aspect = () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); placeCam(focus.yaw, focus.pitch); machine?.resize(); };
-  let machine = null;
+  let machine = null, firstR = 0;
   placeCam(view.yaw); bp.link(cam);
   aspect(); addEventListener('resize', aspect);
   const rulers = document.querySelectorAll('.rf-ruler');   // les règles ne se voient que sur le blueprint, tant que la machine est visible
@@ -57,8 +63,8 @@ if (fig && bpCanvas && stage) {
     fr.className = 'rf-bp-frame'; fr.src = 'figures-livre/' + BP_FIG[fig.dataset.fig] + '.html?v=b6'; fr.scrolling = 'no'; fr.title = fig.querySelector('figcaption')?.textContent || 'Figure';
     fig.querySelector('img')?.replaceWith(fr);
   } else
-  import('./m3d/index.js').then(({ mountMachine }) => mountMachine(fig.dataset.fig, canvas, cam)).then((m) => {
-    machine = m; machine.resize(); fig.querySelector('img')?.remove();
+  import('./m3d/index.js').then(({ mountMachine }) => (mark('machine-start'), mountMachine(fig.dataset.fig, canvas, cam))).then((m) => {
+    mark('machine-built'); machine = m; machine.resize(); fig.querySelector('img')?.remove();
     const t0 = performance.now();
     /* Interaction directement sur la machine 3D, comme sur la figure d'origine : on attrape la machine et on glisse (ou flèches gauche / droite)
        pour changer son réglage propre (seuil en %, pondération, lot, jour, heure, rapport…) ; un clic sur la machine avance d'un cran. */
@@ -83,16 +89,19 @@ if (fig && bpCanvas && stage) {
     document.querySelectorAll('.rf-marche-steps>li').forEach((li, i, all) => { li.style.cursor = 'pointer'; li.addEventListener('click', () => apply(ctl.min + (ctl.max - ctl.min) * (+li.dataset.at || i / all.length))); });
     /* Commandes : une capsule silencieuse (refonte/m3d/control-bar.js, la même qu'à l'accueil) ; elle n'apparaît qu'avec la démonstration ou le mode Explorer. */
     const setFocus = (name) => { focus.to = name ? 1 : 0; if (name) focus.p = machine.api.anchor(name) || focus.p; };
+    let lastRender = 0, demoTick = 0;   // dernier relevé de l'état observable (200 ms)
     const dock = document.createElement('div'); dock.className = 'rf-cb-dock'; document.body.append(dock); machine.bar = dock;
     const how = document.querySelector('.rf-marche'), howSteps = how ? [...how.querySelectorAll('.rf-marche-steps>li')] : [];
     const cap2 = document.createElement('div'); cap2.className = 'rf-demo-cap'; cap2.setAttribute('role', 'status'); cap2.setAttribute('aria-live', 'polite'); document.body.append(cap2);
-    const demo = { on: false, explore: false, finished: false, end: null, step: -1 };
-    let barUI = null;
+    const demo = { on: false, explore: false, mode: 'idle', finished: false, end: null, step: -1 };
+    let barUI = null, panelOpen = false, panelSize = 0, pendingView = null;
+    /* API de test, activée seulement par ?uxtest (jamais en production) : positionne la machine à un instant donné */
+    if (/[?&]uxtest\b/.test(location.search)) window.__rfTest = { gpuInfo: () => machine.info?.(), seek: (t) => setClock(t), time: clock, end: () => demo.end, min: () => (ctl.seek ? ctl.seek(ctl.min) : 0), max: () => (ctl.seek ? ctl.seek(ctl.max) : 0) };
     const mountBar = () => {
       if (barUI) return;
       const mc = { ...machine, api: machine.api && { ...machine.api, setInspect: machine.api.inspect } };
-      const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
-      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo() }); if (demo.explore) barUI.open(true); });
+      const ctlBar = { time: clock, seek: setClock, get paused() { return hold !== null; }, setPaused: (b) => { if (b) pauseClock(); else { if (demo.finished) { demo.finished = false; document.body.classList.remove('rf-demo-done'); setClock(ctl.seek ? ctl.seek(ctl.min) : 0); } resumeClock(); } dock.dataset.paused = String(hold !== null); dock.dataset.t = clock().toFixed(2); }, get speed() { return rate; }, setSpeed: setRate, scenario: (i) => machine.api?.setScenario?.(i), focus: (n) => setFocus(n) };
+      import('./m3d/control-bar.js').then(({ buildControlBar }) => { barUI = buildControlBar(dock, mc, ctlBar, { label: fig.querySelector('figcaption')?.textContent || 'machine', onClose: () => exitDemo(), onGuide: () => enter(false), onToggle: (v, g) => { panelOpen = v; panelSize = v ? g.size : 0; } }); if (demo.explore) barUI.open(true); if (pendingView) barUI.markView(pendingView); });
     };
     const showStep = (i) => {
       if (!howSteps.length || i === demo.step) return; demo.step = i;
@@ -100,27 +109,37 @@ if (fig && bpCanvas && stage) {
       howSteps[0].parentElement.style.setProperty('--pf', ((i + .5) / howSteps.length).toFixed(3));
       const li = howSteps[i]; if (li) cap2.innerHTML = '<small>Étape ' + (i + 1) + ' / ' + howSteps.length + '</small><b>' + li.querySelector('h3').innerHTML + '</b><span>' + li.querySelector('p').innerHTML + '</span>';
     };
-    const enter = (explore) => {
-      if (demo.on) { if (explore && barUI) barUI.open(true); return; }
-      demo.on = true; demo.explore = explore; demo.finished = false;
-      document.body.classList.remove('rf-demo-done'); document.body.classList.add(explore ? 'rf-explore' : 'rf-demo'); mountBar();
-      scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
-      if (!explore) {
-        machine.api?.setScenario?.(null); const t1 = ctl.seek ? ctl.seek(ctl.max) : null; demo.end = Number.isFinite(t1) && t1 > 3 ? t1 : null;
-        setClock(ctl.seek ? ctl.seek(ctl.min) : 0); resumeClock();
-      }
-      demo.to = 1; document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'true');
+    /* Deux entrées distinctes : « guidée » rejoue le scénario depuis le début et s'arrête sur son résultat (légende des étapes) ;
+       « explorer » ouvre tout de suite les commandes avancées et laisse la machine libre (aucune démonstration imposée). */
+    const guided = () => {
+      demo.explore = false; demo.finished = false; demo.mode = dock.dataset.mode = 'guided';
+      document.body.classList.remove('rf-explore', 'rf-demo-done'); document.body.classList.add('rf-demo');
+      machine.api?.setScenario?.(null); const t1 = ctl.seek ? ctl.seek(ctl.max) : null; demo.end = Number.isFinite(t1) && t1 > 3 ? t1 : null;
+      setClock(ctl.seek ? ctl.seek(ctl.min) : 0); resumeClock(); barUI?.open(false);
+    };
+    const explore = () => {
+      demo.explore = true; demo.finished = false; demo.mode = dock.dataset.mode = 'explore'; demo.end = null;
+      document.body.classList.remove('rf-demo', 'rf-demo-done'); document.body.classList.add('rf-explore'); resumeClock(); barUI?.open(true);
+    };
+    const enter = (wantExplore) => {
+      const first = !demo.on; demo.on = true; demo.to = 1;
+      if (first) { mountBar(); scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); }
+      if (wantExplore) explore(); else guided();
+      document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'true');
     };
     const exitDemo = () => {
-      demo.on = false; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
+      pendingView = null; demo.on = false; demo.mode = dock.dataset.mode = 'idle'; demo.to = 0; document.body.classList.remove('rf-demo', 'rf-explore', 'rf-demo-done'); setFocus(null); machine.api?.inspect?.(false); barUI?.open(false); resumeClock();
       document.querySelector('.rf-demo-start')?.setAttribute('aria-pressed', 'false');
     };
     demo.f = 0; demo.to = 0;
     document.addEventListener('click', (e) => {
       const b = e.target.closest?.('[data-demo]'); if (!b) return;
-      e.preventDefault(); if (b.dataset.demo === 'magic') document.querySelector('.rf-flow-magic')?.click(); else { if (demo.on && demo.finished) exitDemo(); enter(false); }
+      e.preventDefault();
+      if (b.dataset.demo === 'magic') {   // le moteur d'icônes se charge à part : le bouton attend qu'il soit prêt au lieu de rester sans effet
+        b.setAttribute('aria-busy', 'true'); (window.__rfFlowReady || Promise.resolve()).then(() => { b.removeAttribute('aria-busy'); document.querySelector('.rf-flow-magic')?.click(); });
+      } else enter(b.dataset.demo === 'explore');
     });
-    document.addEventListener('rf-explore-machine', () => { if (demo.on && demo.finished) exitDemo(); enter(false); });
+    document.addEventListener('rf-explore-machine', (e) => { enter(true); if (e.detail?.fromMagic && FR.focus) { setFocus(FR.focus); pendingView = FR.focus; barUI?.markView(FR.focus); } });   // depuis la magie : la caméra va droit au mécanisme principal
     addEventListener('keydown', (e) => { if (e.key === 'Escape' && demo.on) exitDemo(); });
     const cap = fig.querySelector('figcaption'); if (cap) cap.textContent += (fig.dataset.fig === 'vrestudio-musicbox' ? ', attrapez la machine et glissez : ' : ' · attrapez la machine et glissez : ') + ctl.label.toLowerCase();
     const isUI = (t) => !!(t.closest && t.closest('a,button,input,textarea,select,summary,nav,dialog,.rf-ruler,.rf-post-pn,.rf-post-head,.rf-post-body'));
@@ -159,12 +178,24 @@ if (fig && bpCanvas && stage) {
       if (machine.bar) { machine.bar.style.opacity = o.toFixed(3); machine.bar.style.pointerEvents = o < .05 ? 'none' : ''; }
       rulers.forEach((r) => { r.style.opacity = o.toFixed(3); r.style.pointerEvents = o < .05 ? 'none' : ''; });
       if (document.hidden) return;
-      const dTo = demo.on ? 1 : 0;
-      if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; placeCam(focus.yaw, focus.pitch); }
+      const nowMs = performance.now(); if (nowMs - demoTick > 200) { demoTick = nowMs; dock.dataset.mode = demo.mode; dock.dataset.t = clock().toFixed(2); dock.dataset.paused = String(hold !== null); }
+      const dTo = demo.on ? 1 : 0, pTo = demo.on && panelOpen ? panelSize : 0;
+      /* mobile : la machine est recentrée dans l'espace réellement libre entre la navigation et le tiroir (boucle fermée sur sa position à l'écran, propre à chaque machine) */
+      let lvMoving = false;
+      if (innerWidth < 900) {
+        let want = 0;
+        if (pTo > 0 && machine.center) { const top = .13, bottom = 1 - focus.sz - .02, tgt = 1 - 2 * ((top + bottom) / 2); const e = (projV.copy(focus.f > .5 && focus.p ? focus.p : machine.center()).project(cam).y - tgt); want = focus.lv - e * (visH() / 2) * .5; }
+        if (Math.abs(want - focus.lv) > .004) { focus.lv += (want - focus.lv) * .35; lvMoving = true; }
+      }
+      if (Math.abs(focus.to - focus.f) > .001 || Math.abs(dTo - focus.d) > .001 || Math.abs(pTo - focus.sz) > .001 || lvMoving) { focus.f += (focus.to - focus.f) * .08; focus.d += (dTo - focus.d) * .06; focus.sz += (pTo - focus.sz) * .09; placeCam(focus.yaw, focus.pitch); }
       if (howSteps.length) { const span = ctl.max - ctl.min || 1, pr = Math.min(.9999, Math.max(0, (cur(clock()) - ctl.min) / span)); showStep(Math.min(howSteps.length - 1, Math.floor(pr * howSteps.length))); }
       if (demo.on && !demo.explore && !demo.finished && demo.end !== null && hold === null && clock() >= demo.end) { pauseClock(); setClock(demo.end); demo.finished = true; document.body.classList.add('rf-demo-done'); }
       if (demo.finished && !demo.on) demo.finished = false;
+      /* pendant « Voir la magie » la machine n'est qu'un fond à 16 % d'opacité : elle ne se redessine plus qu'à 4 images par seconde (le temps reste celui de l'horloge, rien ne saute au retour) */
+      const nowR = performance.now(); if (document.body.classList.contains('fl-lock') && nowR - lastRender < 250) return; lastRender = nowR;
+      if (diagOn('machine')) return;
       machine.render(reduced ? 6 + shift : clock());
+      if (!firstR) { firstR = 1; mark('first-render'); }
     };
     loop();
   }).catch((e) => { console.warn('machine 3D indisponible', e); canvas.remove(); fig.classList.add('rf-fallback'); });
@@ -215,4 +246,4 @@ if (fig && bpCanvas && stage) {
 }
 
 /* ---- schéma des étapes (d'après la reconstitution fournie) ---- */
-if (document.querySelector('.rf-flow')) import('./flow.js').then(({ initFlow }) => document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } })).catch((e) => console.warn('schéma indisponible', e));
+if (document.querySelector('.rf-flow')) window.__rfFlowReady = import('./flow.js').then(({ initFlow }) => document.querySelectorAll('.rf-flow').forEach((r) => { try { initFlow(r); } catch (e) { console.warn('schéma indisponible', e); } })).catch((e) => console.warn('schéma indisponible', e));
