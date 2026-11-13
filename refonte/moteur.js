@@ -333,7 +333,10 @@ export class Ciel {
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 
 /* ---------- Arêtes et ombres des cadres ---------- */
-export function dessineContours(ctx, view, boxes) {
+/* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
+   de verre, bande claire oblique qui glisse avec la position horizontale du pointeur. Renvoie le cadre survolé. */
+export function dessineContours(ctx, view, boxes, souris = null) {
+  let survole = null;
   ctx.save(); ctx.lineJoin = 'round';
   const dessus = (b) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => b.slab ? p(view, ...cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r)) : p(view, x, r, b.top));
   const ordre = [...boxes].sort((a, c) => a.r1 - c.r1);                        // du fond vers l'observateur
@@ -356,7 +359,20 @@ export function dessineContours(ctx, view, boxes) {
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1; trace(haut); ctx.stroke();
+    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
+    if (dedansQuad) survole = b;
+    if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
+      const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
+      g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; trace(haut); ctx.fill();
+    }
+    ctx.strokeStyle = dedansQuad ? '#fff' : 'rgba(255,255,255,.85)'; ctx.lineWidth = dedansQuad ? 1.8 : 1; trace(haut); ctx.stroke();
+    if (dedansQuad) {                                                            // repères d'angle du cadre survolé
+      ctx.lineWidth = 1.8; ctx.beginPath();
+      for (let i = 0; i < 4; i++) { const q = haut[i], n = haut[(i + 1) % 4], m = haut[(i + 3) % 4], l1 = Math.hypot(n.x - q.x, n.y - q.y) || 1, l2 = Math.hypot(m.x - q.x, m.y - q.y) || 1, k = 12;
+        ctx.moveTo(q.x - (n.x - q.x) / l1 * k, q.y - (n.y - q.y) / l1 * k); ctx.lineTo(q.x, q.y); ctx.lineTo(q.x - (m.x - q.x) / l2 * k, q.y - (m.y - q.y) / l2 * k); }
+      ctx.stroke();
+    }
     if (b.title && b.tilted > 0.5) {                                             // cadre relevé : son nom et ses cotes au-dessus du bord haut
       ctx.globalAlpha = Math.min(1, (b.tilted - 0.5) * 2); ctx.font = '500 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
       ctx.fillText(b.title.slice(0, 48), haut[0].x, haut[0].y - 8); ctx.textAlign = 'right'; ctx.fillText(Math.round(b.x1 - b.x0) + ' × ' + Math.round(b.r1 - b.r0), haut[1].x, haut[1].y - 8); ctx.globalAlpha = 1;
@@ -364,6 +380,7 @@ export function dessineContours(ctx, view, boxes) {
     ctx.restore();
   }
   ctx.restore();
+  return survole;
 }
 
 /* ---------- Règles graduées des deux bords du sol : une graduation tous les 100 px de page, chiffrée tous les 500, et le nom de chaque chapitre ---------- */
