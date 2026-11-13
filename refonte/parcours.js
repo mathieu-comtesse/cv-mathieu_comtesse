@@ -1,3 +1,4 @@
+import './comtesse-motion.js';
 import * as THREE from 'three';
 import { loadMachine } from './m3d/registry.js';
 import { drawMat, blueprintMaterial } from './blueprint-hero.js';
@@ -111,7 +112,7 @@ async function start() {
   // page Gains : construite par les scripts du site (tableau de bord, graphique, tableau) ; la tirelire 3D du parcours prend la place de la sienne
   if ($('#work')) {
     try {
-      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([import('../js/gains-dashboard.js?v=monde-20261025'), import('../js/gains-table.js?v=ind-20261101')]);
+      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([import('../js/gains-dashboard.js?v=fall26-int2'), import('../js/gains-table.js?v=ind-20261101')]);
       initGainsDashboard(); initGainsTable(); $('.annual-pig-wrap')?.setAttribute('data-pig', '');
     } catch (e) { console.warn('page Gains indisponible', e); }
   }
@@ -512,7 +513,7 @@ async function start() {
         else { follow = false; cb.querySelector('[data-a="follow"]').classList.remove('on'); anchor.copy(c0); R.reset(); } });
       roomFollow = () => { if (follow && window.__room) { const hp = g.localToWorld(window.__room.hero.group.position.clone()); anchor.x += (c0.x - hp.x) * 0.06; anchor.z += (c0.z - hp.z) * 0.06; } syncBp(); };
       // — interactions du décor : les objets réagissent au clic comme sur le site (la pièce a perdu son propre canvas, on relaie) —
-      import('../js/ui.js?v=cv-monde3d-32').then(({ initUI }) => initUI()).catch((e) => console.warn('applications du décor indisponibles', e)); // PC « atelier » et console PS1
+      import('../js/ui.js?v=cv-ui-34').then(({ initUI }) => initUI()).catch((e) => console.warn('applications du décor indisponibles', e)); // PC « atelier » et console PS1
       const OPEN = new Set(['stele', 'buddha', 'backpack', 'videosphere', 'mamiya', 'shoes', 'tv', 'ps1power', 'pc', 'deskstrip', 'strip', 'coffee']);
       const inv = new THREE.Matrix4(), tb = new THREE.Box3(), cands = [];
       const scan = () => { g.updateMatrixWorld(true); inv.copy(g.matrixWorld).invert(); cands.length = 0;

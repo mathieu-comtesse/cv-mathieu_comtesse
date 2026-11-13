@@ -131,22 +131,6 @@ function retroApp(onClose) {
   return { close: done };
 }
 
-/* ───────────────────────── PC de bureau : l'atelier des processus (monde.html, île low poly à explorer) ───────────────────────── */
-function mondeApp(onClose) {
-  const root = el('div', 'ov'); root.id = 'monde-ov';
-  const frame = document.createElement('iframe');
-  frame.src = 'monde3d/index.html?v=m14'; frame.title = 'L’atelier des processus de Mathieu Comtesse'; frame.setAttribute('allow', 'fullscreen');
-  frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b1330';
-  root.append(frame); document.body.append(root);
-  let closing = false;
-  function off() { if (closing) return; closing = true; window.removeEventListener('message', msg); window.removeEventListener('keydown', key); hide(root, () => { root.remove(); onClose(); }); }
-  function msg(e) { if (e.data && e.data.type === 'monde-close') off(); }
-  function key(e) { if (e.key === 'Escape') off(); }
-  window.addEventListener('message', msg); window.addEventListener('keydown', key);
-  show(root);
-  return { close: off };
-}
-
 /* ───────────────────────── liaison avec la pièce 3D ───────────────────────── */
 export function initUI() {
   inject();
@@ -155,6 +139,7 @@ export function initUI() {
   window.addEventListener('room-open', (e) => {
     if (cur) return;
     const done = () => { cur = null; window.dispatchEvent(new CustomEvent('room-close', { detail: e.detail })); };
-    cur = e.detail.kind === 'xp' ? mondeApp(done) : retroApp(done);
+    if (e.detail.kind === 'xp') { done(); return; }   // l'ordinateur du bureau n'ouvre plus rien : l'ancien monde 3D est retiré
+    cur = retroApp(done);
   });
 }

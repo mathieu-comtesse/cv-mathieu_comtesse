@@ -1,0 +1,180 @@
+{
+ "environnement": "Chromium, rendu logiciel (SwiftShader), pas de GPU : intervalles d'images CPU, pas une cadence GPU",
+ "date": "2026-11-09T18:05:47.456Z",
+ "mesures": {
+  "moteur44 desktop": {
+   "chargement_machine_ms": 12618,
+   "ouverture_magie_ms": 5819,
+   "magie_vers_machine_ms": 4147,
+   "repos": {
+    "images": 10,
+    "moyenne_ms": 550,
+    "p95_ms": 616.7,
+    "max_ms": 616.7,
+    "taches_longues": 11,
+    "heap_Mo": 14
+   },
+   "magie": {
+    "images": 8,
+    "moyenne_ms": 793.7,
+    "p95_ms": 899.9,
+    "max_ms": 899.9,
+    "taches_longues": 7,
+    "heap_Mo": 14
+   },
+   "explorer": {
+    "images": 9,
+    "moyenne_ms": 688.9,
+    "p95_ms": 850,
+    "max_ms": 850,
+    "taches_longues": 8,
+    "heap_Mo": 14
+   }
+  },
+  "moteur44 mobile": {
+   "chargement_machine_ms": 7421,
+   "ouverture_magie_ms": 1623,
+   "magie_vers_machine_ms": 2324,
+   "repos": {
+    "images": 24,
+    "moyenne_ms": 210.4,
+    "p95_ms": 233.4,
+    "max_ms": 233.4,
+    "taches_longues": 24,
+    "heap_Mo": 10
+   },
+   "magie": {
+    "images": 23,
+    "moyenne_ms": 262.3,
+    "p95_ms": 283.4,
+    "max_ms": 299.9,
+    "taches_longues": 22,
+    "heap_Mo": 10
+   },
+   "explorer": {
+    "images": 24,
+    "moyenne_ms": 262.5,
+    "p95_ms": 300,
+    "max_ms": 300,
+    "taches_longues": 24,
+    "heap_Mo": 10
+   }
+  },
+  "studio desktop": {
+   "chargement_machine_ms": 10470,
+   "ouverture_magie_ms": 3825,
+   "magie_vers_machine_ms": 3415,
+   "repos": {
+    "images": 11,
+    "moyenne_ms": 457.6,
+    "p95_ms": 533.3,
+    "max_ms": 533.3,
+    "taches_longues": 11,
+    "heap_Mo": 11
+   },
+   "magie": {
+    "images": 10,
+    "moyenne_ms": 641.6,
+    "p95_ms": 699.9,
+    "max_ms": 699.9,
+    "taches_longues": 9,
+    "heap_Mo": 11
+   },
+   "explorer": {
+    "images": 9,
+    "moyenne_ms": 683.3,
+    "p95_ms": 800,
+    "max_ms": 800,
+    "taches_longues": 8,
+    "heap_Mo": 11
+   }
+  },
+  "studio mobile": {
+   "chargement_machine_ms": 5171,
+   "ouverture_magie_ms": 1169,
+   "magie_vers_machine_ms": 1139,
+   "repos": {
+    "images": 32,
+    "moyenne_ms": 160.4,
+    "p95_ms": 183.4,
+    "max_ms": 200,
+    "taches_longues": 33,
+    "heap_Mo": 11
+   },
+   "magie": {
+    "images": 46,
+    "moyenne_ms": 133.3,
+    "p95_ms": 233.3,
+    "max_ms": 250.1,
+    "taches_longues": 29,
+    "heap_Mo": 11
+   },
+   "explorer": {
+    "images": 30,
+    "moyenne_ms": 199.4,
+    "p95_ms": 266.7,
+    "max_ms": 266.8,
+    "taches_longues": 30,
+    "heap_Mo": 11
+   }
+  },
+  "lecteur-vre desktop": {
+   "chargement_machine_ms": 6049,
+   "ouverture_magie_ms": 928,
+   "magie_vers_machine_ms": 1252,
+   "repos": {
+    "images": 16,
+    "moyenne_ms": 317.7,
+    "p95_ms": 366.7,
+    "max_ms": 366.7,
+    "taches_longues": 15,
+    "heap_Mo": 14
+   },
+   "magie": {
+    "images": 15,
+    "moyenne_ms": 401.1,
+    "p95_ms": 449.9,
+    "max_ms": 449.9,
+    "taches_longues": 14,
+    "heap_Mo": 14
+   },
+   "explorer": {
+    "images": 15,
+    "moyenne_ms": 406.6,
+    "p95_ms": 499.9,
+    "max_ms": 499.9,
+    "taches_longues": 15,
+    "heap_Mo": 14
+   }
+  },
+  "lecteur-vre mobile": {
+   "chargement_machine_ms": 2425,
+   "ouverture_magie_ms": 925,
+   "magie_vers_machine_ms": 1686,
+   "repos": {
+    "images": 39,
+    "moyenne_ms": 131.2,
+    "p95_ms": 150.1,
+    "max_ms": 166.7,
+    "taches_longues": 38,
+    "heap_Mo": 11
+   },
+   "magie": {
+    "images": 64,
+    "moyenne_ms": 92.4,
+    "p95_ms": 183.4,
+    "max_ms": 200.1,
+    "taches_longues": 33,
+    "heap_Mo": 11
+   },
+   "explorer": {
+    "images": 48,
+    "moyenne_ms": 126,
+    "p95_ms": 183.3,
+    "max_ms": 216.6,
+    "taches_longues": 48,
+    "heap_Mo": 11
+   }
+  }
+ }
+}

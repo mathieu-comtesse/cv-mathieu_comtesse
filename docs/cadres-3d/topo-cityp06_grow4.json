@@ -1,0 +1,6578 @@
+{
+ "variante": {
+  "city": ".06",
+  "grow": "4"
+ },
+ "stats": [
+  {
+   "scrollY": 340,
+   "n": 3,
+   "tops": [
+    {
+     "t": "",
+     "r0": 1861,
+     "top": 298,
+     "tilted": 0
+    },
+    {
+     "t": "",
+     "r0": 2080,
+     "top": 274.4,
+     "tilted": 0
+    },
+    {
+     "t": "",
+     "r0": 2299,
+     "top": 250.7,
+     "tilted": 0
+    }
+   ],
+   "pente_hauteur_par_px": -0.108,
+   "angle_deg": 6.16,
+   "ecarts": [
+    23.7,
+    23.7
+   ]
+  },
+  {
+   "scrollY": 1500,
+   "n": 3,
+   "tops": [
+    {
+     "t": "",
+     "r0": 701,
+     "top": 423.3,
+     "tilted": 0
+    },
+    {
+     "t": "",
+     "r0": 920,
+     "top": 399.7,
+     "tilted": 0
+    },
+    {
+     "t": "",
+     "r0": 1139,
+     "top": 376,
+     "tilted": 0
+    }
+   ],
+   "pente_hauteur_par_px": -0.108,
+   "angle_deg": 6.16,
+   "ecarts": [
+    23.7,
+    23.7
+   ]
+  },
+  {
+   "scrollY": 3000,
+   "n": 2,
+   "tops": [
+    {
+     "t": "Point financier · Powe",
+     "r0": 3063,
+     "top": 135.5,
+     "tilted": 0
+    },
+    {
+     "t": "Du classeur Excel à la",
+     "r0": 3911,
+     "top": 32.6,
+     "tilted": 0
+    }
+   ],
+   "pente_hauteur_par_px": -0.0974,
+   "angle_deg": 5.56,
+   "ecarts": [
+    102.8
+   ]
+  },
+  {
+   "scrollY": 4500,
+   "n": 5,
+   "tops": [
+    {
+     "t": "Point financier · Powe",
+     "r0": 1563,
+     "top": 297.5,
+     "tilted": 0
+    },
+    {
+     "t": "Du classeur Excel à la",
+     "r0": 2411,
+     "top": 194.6,
+     "tilted": 0
+    },
+    {
+     "t": "Le projet",
+     "r0": 3463,
+     "top": 111.2,
+     "tilted": 0
+    },
+    {
+     "t": "Ce que ça change",
+     "r0": 3463,
+     "top": 111.2,
+     "tilted": 0
+    },
+    {
+     "t": "Comment ça marche",
+     "r0": 4124,
+     "top": 26.1,
+     "tilted": 0
+    }
+   ],
+   "pente_hauteur_par_px": -0.1134,
+   "angle_deg": 6.47,
+   "ecarts": [
+    102.8,
+    83.5,
+    0,
+    85.1
+   ]
+  },
+  {
+   "scrollY": 6000,
+   "n": 7,
+   "tops": [
+    {
+     "t": "Point financier · Powe",
+     "r0": 63,
+     "top": 459.5,
+     "tilted": 0
+    },
+    {
+     "t": "Du classeur Excel à la",
+     "r0": 911,
+     "top": 356.6,
+     "tilted": 0
+    },
+    {
+     "t": "Le projet",
+     "r0": 1963,
+     "top": 273.2,
+     "tilted": 0
+    },
+    {
+     "t": "Ce que ça change",
+     "r0": 1963,
+     "top": 273.2,
+     "tilted": 0
+    },
+    {
+     "t": "Comment ça marche",
+     "r0": 2624,
+     "top": 188.1,
+     "tilted": 0
+    },
+    {
+     "t": "VRE · traitement par V",
+     "r0": 3580,
+     "top": 80.2,
+     "tilted": 0
+    },
+    {
+     "t": "Le traitement VRE par ",
+     "r0": 4418,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "pente_hauteur_par_px": -0.0988,
+   "angle_deg": 5.64,
+   "ecarts": [
+    102.8,
+    83.5,
+    0,
+    85.1,
+    107.9,
+    55.9
+   ]
+  },
+  {
+   "scrollY": 7500,
+   "n": 8,
+   "tops": [
+    {
+     "t": "Du classeur Excel à la",
+     "r0": -589,
+     "top": 518.6,
+     "tilted": 0
+    },
+    {
+     "t": "Le projet",
+     "r0": 463,
+     "top": 435.2,
+     "tilted": 0
+    },
+    {
+     "t": "Ce que ça change",
+     "r0": 463,
+     "top": 435.2,
+     "tilted": 0
+    },
+    {
+     "t": "Comment ça marche",
+     "r0": 1124,
+     "top": 350.1,
+     "tilted": 0
+    },
+    {
+     "t": "VRE · traitement par V",
+     "r0": 2080,
+     "top": 242.2,
+     "tilted": 0
+    },
+    {
+     "t": "Le traitement VRE par ",
+     "r0": 2918,
+     "top": 143.3,
+     "tilted": 0
+    },
+    {
+     "t": "Le projet",
+     "r0": 3907,
+     "top": 63.3,
+     "tilted": 0
+    },
+    {
+     "t": "Ce que ça change",
+     "r0": 3907,
+     "top": 63.3,
+     "tilted": 0
+    }
+   ],
+   "pente_hauteur_par_px": -0.1092,
+   "angle_deg": 6.23,
+   "ecarts": [
+    83.5,
+    0,
+    85.1,
+    107.9,
+    98.9,
+    80.1,
+    0
+   ]
+  }
+ ],
+ "rows": [
+  {
+   "scrollY": 340,
+   "view": {
+    "T": 4500,
+    "offset": -1278,
+    "pitch": -0.5443483512219351,
+    "fov": 0.7868412166683219,
+    "rise": 0.9849465886147286,
+    "camY": 932.5293047582421,
+    "camZ": -927.251864108639
+   },
+   "boxes": [
+    {
+     "title": "",
+     "y": 583,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": 1861,
+     "r1": 2070,
+     "base": 0,
+     "top": 298.026,
+     "tilted": 0,
+     "pts": [
+      [
+       145,
+       230
+      ],
+      [
+       296,
+       230
+      ],
+      [
+       251,
+       285
+      ],
+      [
+       85,
+       285
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 802,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": 2080,
+     "r1": 2289,
+     "base": 0,
+     "top": 274.37399999999997,
+     "tilted": 0,
+     "pts": [
+      [
+       87,
+       302
+      ],
+      [
+       253,
+       302
+      ],
+      [
+       197,
+       371
+      ],
+      [
+       11,
+       371
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 1021,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": 2299,
+     "r1": 2508,
+     "base": 0,
+     "top": 250.72199999999998,
+     "tilted": 0,
+     "pts": [
+      [
+       13,
+       390
+      ],
+      [
+       199,
+       390
+      ],
+      [
+       127,
+       477
+      ],
+      [
+       -84,
+       477
+      ]
+     ]
+    },
+    {
+     "title": "Point financier · Power Automate",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 4444.734375,
+     "h": 815.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 5722.734375,
+     "r1": 6538.25,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Du classeur Excel à la notification (animation pédagogique)",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 5293.25,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 6571.25,
+     "r1": 7594.328125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 7623.125,
+     "r1": 8087.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 7623.125,
+     "r1": 8087.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 7006.4375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 8284.4375,
+     "r1": 9002.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "VRE · traitement par VM",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 7961.53125,
+     "h": 805.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 9239.53125,
+     "r1": 10045.046875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le traitement VRE par VM en situation",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 8800.046875,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 10078.046875,
+     "r1": 11038.125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 11066.921875,
+     "r1": 11531.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 11066.921875,
+     "r1": 11531.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 10450.234375,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 11728.234375,
+     "r1": 12468.46875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Reporteur Q18",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 11657.21875,
+     "h": 954.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 12935.21875,
+     "r1": 13889.734375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Reporteur Q18 en situation",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 12644.734375,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 13922.734375,
+     "r1": 14882.8125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 14911.609375,
+     "r1": 15349.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 14911.609375,
+     "r1": 15349.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 14267.921875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 15545.921875,
+     "r1": 16286.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power Automate · chaîne des PP",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 15245.515625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 16523.515625,
+     "r1": 17318.03125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "La chaîne des plans de prévention en situation",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 16073.03125,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 17351.03125,
+     "r1": 18311.109375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 18339.90625,
+     "r1": 18717.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 18339.90625,
+     "r1": 18717.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17468.46875,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 18746.46875,
+     "r1": 19464.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "CERFA v3",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 18423.5625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 19701.5625,
+     "r1": 20496.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Metadata Studio V11 : du PDF aux livrables",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 19251.078125,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 20529.078125,
+     "r1": 21552.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 21580.953125,
+     "r1": 21951.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 21580.953125,
+     "r1": 21951.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20870.265625,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 22148.265625,
+     "r1": 22888.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Extracteur VRE",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 21847.859375,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 23125.859375,
+     "r1": 23944.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "L’Extracteur VRE en situation",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 22699.375,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 23977.375,
+     "r1": 25000.453125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 25029.25,
+     "r1": 25507.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 25029.25,
+     "r1": 25507.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 24426.5,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 25704.5,
+     "r1": 26422.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru, intelligence documentaire et apprentissage supervisé",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 25381.59375,
+     "h": 1086.1875,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 26659.59375,
+     "r1": 27745.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru : de l’import PDF à l’export, avec contrôle humain",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 26500.78125,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 27778.78125,
+     "r1": 28843.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 28872.65625,
+     "r1": 29295.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 28872.65625,
+     "r1": 29295.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 28257.359375,
+     "h": 830.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 29535.359375,
+     "r1": 30365.59375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power BI · PP & MOSO",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 29429.984375,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 30707.984375,
+     "r1": 31502.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le rapport PP + MOSO en situation",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 30257.5,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 31535.5,
+     "r1": 32600.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 32629.375,
+     "r1": 33063.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 32629.375,
+     "r1": 33063.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31981.625,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 33259.625,
+     "r1": 33977.359375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Studio d’extracteurs PDF",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 32936.71875,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 34214.71875,
+     "r1": 35033.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Studio d’extracteurs PDF en situation",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 33788.234375,
+     "h": 1002.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 35066.234375,
+     "r1": 36068.3125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 36097.109375,
+     "r1": 36498.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 36097.109375,
+     "r1": 36498.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 35417.421875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 36695.421875,
+     "r1": 37435.65625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 36624.40625,
+     "h": 717.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 37902.40625,
+     "r1": 38619.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi en situation",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 37374.921875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 38652.921875,
+     "r1": 39676,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 39704.796875,
+     "r1": 39976.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 39704.796875,
+     "r1": 39976.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38895.109375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 40173.109375,
+     "r1": 40890.84375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 39850.203125,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 41128.203125,
+     "r1": 41946.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires en situation",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 40701.71875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 41979.71875,
+     "r1": 43002.796875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 43031.59375,
+     "r1": 43444.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 43031.59375,
+     "r1": 43444.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 42362.84375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 43640.84375,
+     "r1": 44358.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Une année de temps libéré",
+     "id": "cv-gains",
+     "y": 44533.109375,
+     "h": 1432.671875,
+     "w": 1180,
+     "x": 130,
+     "r0": 45811.109375,
+     "r1": 47243.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Les chiffres en tableau",
+     "id": "cv-gains",
+     "y": 46021.78125,
+     "h": 673.96875,
+     "w": 1180,
+     "x": 130,
+     "r0": 47299.78125,
+     "r1": 47973.75,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Prévention & sécurité",
+     "id": "cv-parcours-complet",
+     "y": 48560.8125,
+     "h": 279.390625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 49838.8125,
+     "r1": 50118.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "THALEOLITHIC",
+     "id": "cv-9-0-thaleolithic",
+     "y": 54912.953125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 56190.953125,
+     "r1": 57092.609375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Lettres machines",
+     "id": "cv-9-1-lettres-machines",
+     "y": 55854.609375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 57132.609375,
+     "r1": 58034.265625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Contrôle de ligne",
+     "id": "cv-9-2-controle-de-ligne",
+     "y": 56796.265625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 58074.265625,
+     "r1": 58975.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "LIMEN",
+     "id": "cv-9-3-limen",
+     "y": 57737.921875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59015.921875,
+     "r1": 59917.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nacre",
+     "id": "cv-9-4-nacre",
+     "y": 58679.578125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59957.578125,
+     "r1": 60859.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Labyrinthe",
+     "id": "cv-9-5-labyrinthe",
+     "y": 59621.234375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 60899.234375,
+     "r1": 61800.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Route & vigilance",
+     "id": "cv-9-6-route-vigilance",
+     "y": 60562.890625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 61840.890625,
+     "r1": 62742.546875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Arène des arcanes",
+     "id": "cv-9-7-arene-des-arcanes",
+     "y": 61504.546875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 62782.546875,
+     "r1": 63684.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Sandboard",
+     "id": "cv-9-10-sandboard",
+     "y": 62446.203125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 63724.203125,
+     "r1": 64625.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Pixels",
+     "id": "cv-9-11-pixels",
+     "y": 63387.859375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 64665.859375,
+     "r1": 65567.515625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Fond d’écran Gouache",
+     "id": "cv-9-12-fond-d-ecran-gouache",
+     "y": 64329.515625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 65607.515625,
+     "r1": 66509.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "vh": 900
+  },
+  {
+   "scrollY": 1500,
+   "view": {
+    "T": 4500,
+    "offset": -118,
+    "pitch": -0.5270894341022876,
+    "fov": 0.7853981633974483,
+    "rise": 1,
+    "camY": 913.5106007592616,
+    "camZ": -900.2154546458748
+   },
+   "boxes": [
+    {
+     "title": "",
+     "y": 583,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": 701,
+     "r1": 910,
+     "base": 0,
+     "top": 423.30600000000004,
+     "tilted": 0,
+     "pts": [
+      [
+       303,
+       -50
+      ],
+      [
+       412,
+       -50
+      ],
+      [
+       401,
+       -13
+      ],
+      [
+       287,
+       -13
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 802,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": 920,
+     "r1": 1129,
+     "base": 0,
+     "top": 399.65399999999994,
+     "tilted": 0,
+     "pts": [
+      [
+       290,
+       -1
+      ],
+      [
+       403,
+       -1
+      ],
+      [
+       386,
+       36
+      ],
+      [
+       267,
+       36
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 1021,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": 1139,
+     "r1": 1348,
+     "base": 0,
+     "top": 376.002,
+     "tilted": 0,
+     "pts": [
+      [
+       269,
+       49
+      ],
+      [
+       388,
+       49
+      ],
+      [
+       366,
+       85
+      ],
+      [
+       240,
+       85
+      ]
+     ]
+    },
+    {
+     "title": "Point financier · Power Automate",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 4444.734375,
+     "h": 815.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 4562.734375,
+     "r1": 5378.25,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Du classeur Excel à la notification (animation pédagogique)",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 5293.25,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 5411.25,
+     "r1": 6434.328125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 6463.125,
+     "r1": 6927.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 6463.125,
+     "r1": 6927.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 7006.4375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 7124.4375,
+     "r1": 7842.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "VRE · traitement par VM",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 7961.53125,
+     "h": 805.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 8079.53125,
+     "r1": 8885.046875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le traitement VRE par VM en situation",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 8800.046875,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 8918.046875,
+     "r1": 9878.125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 9906.921875,
+     "r1": 10371.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 9906.921875,
+     "r1": 10371.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 10450.234375,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 10568.234375,
+     "r1": 11308.46875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Reporteur Q18",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 11657.21875,
+     "h": 954.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 11775.21875,
+     "r1": 12729.734375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Reporteur Q18 en situation",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 12644.734375,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 12762.734375,
+     "r1": 13722.8125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 13751.609375,
+     "r1": 14189.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 13751.609375,
+     "r1": 14189.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 14267.921875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 14385.921875,
+     "r1": 15126.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power Automate · chaîne des PP",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 15245.515625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 15363.515625,
+     "r1": 16158.03125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "La chaîne des plans de prévention en situation",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 16073.03125,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 16191.03125,
+     "r1": 17151.109375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 17179.90625,
+     "r1": 17557.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 17179.90625,
+     "r1": 17557.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17468.46875,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 17586.46875,
+     "r1": 18304.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "CERFA v3",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 18423.5625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 18541.5625,
+     "r1": 19336.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Metadata Studio V11 : du PDF aux livrables",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 19251.078125,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 19369.078125,
+     "r1": 20392.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 20420.953125,
+     "r1": 20791.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 20420.953125,
+     "r1": 20791.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20870.265625,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 20988.265625,
+     "r1": 21728.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Extracteur VRE",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 21847.859375,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 21965.859375,
+     "r1": 22784.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "L’Extracteur VRE en situation",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 22699.375,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 22817.375,
+     "r1": 23840.453125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 23869.25,
+     "r1": 24347.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 23869.25,
+     "r1": 24347.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 24426.5,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 24544.5,
+     "r1": 25262.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru, intelligence documentaire et apprentissage supervisé",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 25381.59375,
+     "h": 1086.1875,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 25499.59375,
+     "r1": 26585.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru : de l’import PDF à l’export, avec contrôle humain",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 26500.78125,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 26618.78125,
+     "r1": 27683.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 27712.65625,
+     "r1": 28135.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 27712.65625,
+     "r1": 28135.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 28257.359375,
+     "h": 830.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 28375.359375,
+     "r1": 29205.59375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power BI · PP & MOSO",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 29429.984375,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 29547.984375,
+     "r1": 30342.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le rapport PP + MOSO en situation",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 30257.5,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 30375.5,
+     "r1": 31440.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 31469.375,
+     "r1": 31903.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 31469.375,
+     "r1": 31903.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31981.625,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 32099.625,
+     "r1": 32817.359375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Studio d’extracteurs PDF",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 32936.71875,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 33054.71875,
+     "r1": 33873.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Studio d’extracteurs PDF en situation",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 33788.234375,
+     "h": 1002.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 33906.234375,
+     "r1": 34908.3125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 34937.109375,
+     "r1": 35338.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 34937.109375,
+     "r1": 35338.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 35417.421875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 35535.421875,
+     "r1": 36275.65625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 36624.40625,
+     "h": 717.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 36742.40625,
+     "r1": 37459.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi en situation",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 37374.921875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 37492.921875,
+     "r1": 38516,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 38544.796875,
+     "r1": 38816.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 38544.796875,
+     "r1": 38816.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38895.109375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 39013.109375,
+     "r1": 39730.84375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 39850.203125,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 39968.203125,
+     "r1": 40786.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires en situation",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 40701.71875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 40819.71875,
+     "r1": 41842.796875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 41871.59375,
+     "r1": 42284.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 41871.59375,
+     "r1": 42284.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 42362.84375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 42480.84375,
+     "r1": 43198.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Une année de temps libéré",
+     "id": "cv-gains",
+     "y": 44533.109375,
+     "h": 1432.671875,
+     "w": 1180,
+     "x": 130,
+     "r0": 44651.109375,
+     "r1": 46083.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Les chiffres en tableau",
+     "id": "cv-gains",
+     "y": 46021.78125,
+     "h": 673.96875,
+     "w": 1180,
+     "x": 130,
+     "r0": 46139.78125,
+     "r1": 46813.75,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Prévention & sécurité",
+     "id": "cv-parcours-complet",
+     "y": 48560.8125,
+     "h": 279.390625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 48678.8125,
+     "r1": 48958.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "THALEOLITHIC",
+     "id": "cv-9-0-thaleolithic",
+     "y": 54912.953125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 55030.953125,
+     "r1": 55932.609375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Lettres machines",
+     "id": "cv-9-1-lettres-machines",
+     "y": 55854.609375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 55972.609375,
+     "r1": 56874.265625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Contrôle de ligne",
+     "id": "cv-9-2-controle-de-ligne",
+     "y": 56796.265625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 56914.265625,
+     "r1": 57815.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "LIMEN",
+     "id": "cv-9-3-limen",
+     "y": 57737.921875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 57855.921875,
+     "r1": 58757.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nacre",
+     "id": "cv-9-4-nacre",
+     "y": 58679.578125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 58797.578125,
+     "r1": 59699.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Labyrinthe",
+     "id": "cv-9-5-labyrinthe",
+     "y": 59621.234375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59739.234375,
+     "r1": 60640.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Route & vigilance",
+     "id": "cv-9-6-route-vigilance",
+     "y": 60562.890625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 60680.890625,
+     "r1": 61582.546875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Arène des arcanes",
+     "id": "cv-9-7-arene-des-arcanes",
+     "y": 61504.546875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 61622.546875,
+     "r1": 62524.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Sandboard",
+     "id": "cv-9-10-sandboard",
+     "y": 62446.203125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 62564.203125,
+     "r1": 63465.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Pixels",
+     "id": "cv-9-11-pixels",
+     "y": 63387.859375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 63505.859375,
+     "r1": 64407.515625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Fond d’écran Gouache",
+     "id": "cv-9-12-fond-d-ecran-gouache",
+     "y": 64329.515625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 64447.515625,
+     "r1": 65349.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "vh": 900
+  },
+  {
+   "scrollY": 3000,
+   "view": {
+    "T": 4500,
+    "offset": 1382,
+    "pitch": -0.5270894341022876,
+    "fov": 0.7853981633974483,
+    "rise": 1,
+    "camY": 913.5106007592616,
+    "camZ": -900.2154546458748
+   },
+   "boxes": [
+    {
+     "title": "",
+     "y": 583,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -799,
+     "r1": -590,
+     "base": 0,
+     "top": 585.306,
+     "tilted": 0,
+     "pts": [
+      [
+       303,
+       -50
+      ],
+      [
+       412,
+       -50
+      ],
+      [
+       401,
+       -13
+      ],
+      [
+       287,
+       -13
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 802,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -580,
+     "r1": -371,
+     "base": 0,
+     "top": 561.654,
+     "tilted": 0,
+     "pts": [
+      [
+       290,
+       -1
+      ],
+      [
+       403,
+       -1
+      ],
+      [
+       386,
+       36
+      ],
+      [
+       267,
+       36
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 1021,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -361,
+     "r1": -152,
+     "base": 0,
+     "top": 538.002,
+     "tilted": 0,
+     "pts": [
+      [
+       269,
+       49
+      ],
+      [
+       388,
+       49
+      ],
+      [
+       366,
+       85
+      ],
+      [
+       240,
+       85
+      ]
+     ]
+    },
+    {
+     "title": "Point financier · Power Automate",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 4444.734375,
+     "h": 815.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 3062.734375,
+     "r1": 3878.25,
+     "base": 0,
+     "top": 135.48684375,
+     "tilted": 0,
+     "pts": [
+      [
+       -119,
+       961
+      ],
+      [
+       636,
+       961
+      ],
+      [
+       244,
+       6300
+      ],
+      [
+       -4030,
+       6300
+      ]
+     ]
+    },
+    {
+     "title": "Du classeur Excel à la notification (animation pédagogique)",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 5293.25,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 3911.25,
+     "r1": 4934.328125,
+     "base": 0,
+     "top": 32.63878125,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 4963.125,
+     "r1": 5427.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 4963.125,
+     "r1": 5427.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 7006.4375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 5624.4375,
+     "r1": 6342.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "VRE · traitement par VM",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 7961.53125,
+     "h": 805.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 6579.53125,
+     "r1": 7385.046875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le traitement VRE par VM en situation",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 8800.046875,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 7418.046875,
+     "r1": 8378.125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 8406.921875,
+     "r1": 8871.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 8406.921875,
+     "r1": 8871.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 10450.234375,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 9068.234375,
+     "r1": 9808.46875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Reporteur Q18",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 11657.21875,
+     "h": 954.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 10275.21875,
+     "r1": 11229.734375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Reporteur Q18 en situation",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 12644.734375,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 11262.734375,
+     "r1": 12222.8125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 12251.609375,
+     "r1": 12689.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 12251.609375,
+     "r1": 12689.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 14267.921875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 12885.921875,
+     "r1": 13626.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power Automate · chaîne des PP",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 15245.515625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 13863.515625,
+     "r1": 14658.03125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "La chaîne des plans de prévention en situation",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 16073.03125,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 14691.03125,
+     "r1": 15651.109375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 15679.90625,
+     "r1": 16057.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 15679.90625,
+     "r1": 16057.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17468.46875,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 16086.46875,
+     "r1": 16804.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "CERFA v3",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 18423.5625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 17041.5625,
+     "r1": 17836.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Metadata Studio V11 : du PDF aux livrables",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 19251.078125,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 17869.078125,
+     "r1": 18892.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 18920.953125,
+     "r1": 19291.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 18920.953125,
+     "r1": 19291.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20870.265625,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 19488.265625,
+     "r1": 20228.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Extracteur VRE",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 21847.859375,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 20465.859375,
+     "r1": 21284.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "L’Extracteur VRE en situation",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 22699.375,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 21317.375,
+     "r1": 22340.453125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 22369.25,
+     "r1": 22847.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 22369.25,
+     "r1": 22847.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 24426.5,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 23044.5,
+     "r1": 23762.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru, intelligence documentaire et apprentissage supervisé",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 25381.59375,
+     "h": 1086.1875,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 23999.59375,
+     "r1": 25085.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru : de l’import PDF à l’export, avec contrôle humain",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 26500.78125,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 25118.78125,
+     "r1": 26183.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 26212.65625,
+     "r1": 26635.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 26212.65625,
+     "r1": 26635.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 28257.359375,
+     "h": 830.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 26875.359375,
+     "r1": 27705.59375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power BI · PP & MOSO",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 29429.984375,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 28047.984375,
+     "r1": 28842.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le rapport PP + MOSO en situation",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 30257.5,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 28875.5,
+     "r1": 29940.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 29969.375,
+     "r1": 30403.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 29969.375,
+     "r1": 30403.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31981.625,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 30599.625,
+     "r1": 31317.359375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Studio d’extracteurs PDF",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 32936.71875,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 31554.71875,
+     "r1": 32373.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Studio d’extracteurs PDF en situation",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 33788.234375,
+     "h": 1002.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 32406.234375,
+     "r1": 33408.3125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 33437.109375,
+     "r1": 33838.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 33437.109375,
+     "r1": 33838.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 35417.421875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 34035.421875,
+     "r1": 34775.65625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 36624.40625,
+     "h": 717.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 35242.40625,
+     "r1": 35959.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi en situation",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 37374.921875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 35992.921875,
+     "r1": 37016,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 37044.796875,
+     "r1": 37316.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 37044.796875,
+     "r1": 37316.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38895.109375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 37513.109375,
+     "r1": 38230.84375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 39850.203125,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 38468.203125,
+     "r1": 39286.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires en situation",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 40701.71875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 39319.71875,
+     "r1": 40342.796875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 40371.59375,
+     "r1": 40784.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 40371.59375,
+     "r1": 40784.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 42362.84375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 40980.84375,
+     "r1": 41698.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Une année de temps libéré",
+     "id": "cv-gains",
+     "y": 44533.109375,
+     "h": 1432.671875,
+     "w": 1180,
+     "x": 130,
+     "r0": 43151.109375,
+     "r1": 44583.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Les chiffres en tableau",
+     "id": "cv-gains",
+     "y": 46021.78125,
+     "h": 673.96875,
+     "w": 1180,
+     "x": 130,
+     "r0": 44639.78125,
+     "r1": 45313.75,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Prévention & sécurité",
+     "id": "cv-parcours-complet",
+     "y": 48560.8125,
+     "h": 279.390625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 47178.8125,
+     "r1": 47458.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "THALEOLITHIC",
+     "id": "cv-9-0-thaleolithic",
+     "y": 54912.953125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 53530.953125,
+     "r1": 54432.609375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Lettres machines",
+     "id": "cv-9-1-lettres-machines",
+     "y": 55854.609375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 54472.609375,
+     "r1": 55374.265625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Contrôle de ligne",
+     "id": "cv-9-2-controle-de-ligne",
+     "y": 56796.265625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 55414.265625,
+     "r1": 56315.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "LIMEN",
+     "id": "cv-9-3-limen",
+     "y": 57737.921875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 56355.921875,
+     "r1": 57257.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nacre",
+     "id": "cv-9-4-nacre",
+     "y": 58679.578125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 57297.578125,
+     "r1": 58199.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Labyrinthe",
+     "id": "cv-9-5-labyrinthe",
+     "y": 59621.234375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 58239.234375,
+     "r1": 59140.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Route & vigilance",
+     "id": "cv-9-6-route-vigilance",
+     "y": 60562.890625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59180.890625,
+     "r1": 60082.546875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Arène des arcanes",
+     "id": "cv-9-7-arene-des-arcanes",
+     "y": 61504.546875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 60122.546875,
+     "r1": 61024.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Sandboard",
+     "id": "cv-9-10-sandboard",
+     "y": 62446.203125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 61064.203125,
+     "r1": 61965.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Pixels",
+     "id": "cv-9-11-pixels",
+     "y": 63387.859375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 62005.859375,
+     "r1": 62907.515625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Fond d’écran Gouache",
+     "id": "cv-9-12-fond-d-ecran-gouache",
+     "y": 64329.515625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 62947.515625,
+     "r1": 63849.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "vh": 900
+  },
+  {
+   "scrollY": 4500,
+   "view": {
+    "T": 4500,
+    "offset": 2882,
+    "pitch": -0.5270894341022876,
+    "fov": 0.7853981633974483,
+    "rise": 1,
+    "camY": 913.5106007592616,
+    "camZ": -900.2154546458748
+   },
+   "boxes": [
+    {
+     "title": "",
+     "y": 583,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -2299,
+     "r1": -2090,
+     "base": 0,
+     "top": 747.306,
+     "tilted": 0,
+     "pts": [
+      [
+       303,
+       -50
+      ],
+      [
+       412,
+       -50
+      ],
+      [
+       401,
+       -13
+      ],
+      [
+       287,
+       -13
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 802,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -2080,
+     "r1": -1871,
+     "base": 0,
+     "top": 723.6540000000001,
+     "tilted": 0,
+     "pts": [
+      [
+       290,
+       -1
+      ],
+      [
+       403,
+       -1
+      ],
+      [
+       386,
+       36
+      ],
+      [
+       267,
+       36
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 1021,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -1861,
+     "r1": -1652,
+     "base": 0,
+     "top": 700.0020000000001,
+     "tilted": 0,
+     "pts": [
+      [
+       269,
+       49
+      ],
+      [
+       388,
+       49
+      ],
+      [
+       366,
+       85
+      ],
+      [
+       240,
+       85
+      ]
+     ]
+    },
+    {
+     "title": "Point financier · Power Automate",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 4444.734375,
+     "h": 815.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 1562.734375,
+     "r1": 2378.25,
+     "base": 0,
+     "top": 297.48684375,
+     "tilted": 0,
+     "pts": [
+      [
+       363,
+       166
+      ],
+      [
+       684,
+       166
+      ],
+      [
+       667,
+       380
+      ],
+      [
+       190,
+       380
+      ]
+     ]
+    },
+    {
+     "title": "Du classeur Excel à la notification (animation pédagogique)",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 5293.25,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 2411.25,
+     "r1": 3434.328125,
+     "base": 0,
+     "top": 194.63878125000002,
+     "tilted": 0,
+     "pts": [
+      [
+       200,
+       464
+      ],
+      [
+       1240,
+       464
+      ],
+      [
+       2143,
+       1609
+      ],
+      [
+       -703,
+       1609
+      ]
+     ]
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 3463.125,
+     "r1": 3927.890625,
+     "base": 0,
+     "top": 111.18515625000002,
+     "tilted": 0,
+     "pts": [
+      [
+       -656,
+       1751
+      ],
+      [
+       690,
+       1751
+      ],
+      [
+       590,
+       8210
+      ],
+      [
+       -5252,
+       8210
+      ]
+     ]
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 3463.125,
+     "r1": 3927.890625,
+     "base": 0,
+     "top": 111.18515625000002,
+     "tilted": 0,
+     "pts": [
+      [
+       750,
+       1751
+      ],
+      [
+       2096,
+       1751
+      ],
+      [
+       6692,
+       8210
+      ],
+      [
+       850,
+       8210
+      ]
+     ]
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 7006.4375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 4124.4375,
+     "r1": 4842.171875,
+     "base": 0,
+     "top": 26.10309375,
+     "tilted": 0
+    },
+    {
+     "title": "VRE · traitement par VM",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 7961.53125,
+     "h": 805.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 5079.53125,
+     "r1": 5885.046875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le traitement VRE par VM en situation",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 8800.046875,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 5918.046875,
+     "r1": 6878.125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 6906.921875,
+     "r1": 7371.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 6906.921875,
+     "r1": 7371.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 10450.234375,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 7568.234375,
+     "r1": 8308.46875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Reporteur Q18",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 11657.21875,
+     "h": 954.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 8775.21875,
+     "r1": 9729.734375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Reporteur Q18 en situation",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 12644.734375,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 9762.734375,
+     "r1": 10722.8125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 10751.609375,
+     "r1": 11189.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 10751.609375,
+     "r1": 11189.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 14267.921875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 11385.921875,
+     "r1": 12126.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power Automate · chaîne des PP",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 15245.515625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 12363.515625,
+     "r1": 13158.03125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "La chaîne des plans de prévention en situation",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 16073.03125,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 13191.03125,
+     "r1": 14151.109375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 14179.90625,
+     "r1": 14557.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 14179.90625,
+     "r1": 14557.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17468.46875,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 14586.46875,
+     "r1": 15304.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "CERFA v3",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 18423.5625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 15541.5625,
+     "r1": 16336.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Metadata Studio V11 : du PDF aux livrables",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 19251.078125,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 16369.078125,
+     "r1": 17392.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 17420.953125,
+     "r1": 17791.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 17420.953125,
+     "r1": 17791.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20870.265625,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 17988.265625,
+     "r1": 18728.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Extracteur VRE",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 21847.859375,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 18965.859375,
+     "r1": 19784.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "L’Extracteur VRE en situation",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 22699.375,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 19817.375,
+     "r1": 20840.453125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 20869.25,
+     "r1": 21347.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 20869.25,
+     "r1": 21347.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 24426.5,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 21544.5,
+     "r1": 22262.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru, intelligence documentaire et apprentissage supervisé",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 25381.59375,
+     "h": 1086.1875,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 22499.59375,
+     "r1": 23585.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru : de l’import PDF à l’export, avec contrôle humain",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 26500.78125,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 23618.78125,
+     "r1": 24683.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 24712.65625,
+     "r1": 25135.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 24712.65625,
+     "r1": 25135.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 28257.359375,
+     "h": 830.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 25375.359375,
+     "r1": 26205.59375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power BI · PP & MOSO",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 29429.984375,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 26547.984375,
+     "r1": 27342.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le rapport PP + MOSO en situation",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 30257.5,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 27375.5,
+     "r1": 28440.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 28469.375,
+     "r1": 28903.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 28469.375,
+     "r1": 28903.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31981.625,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 29099.625,
+     "r1": 29817.359375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Studio d’extracteurs PDF",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 32936.71875,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 30054.71875,
+     "r1": 30873.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Studio d’extracteurs PDF en situation",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 33788.234375,
+     "h": 1002.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 30906.234375,
+     "r1": 31908.3125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 31937.109375,
+     "r1": 32338.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 31937.109375,
+     "r1": 32338.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 35417.421875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 32535.421875,
+     "r1": 33275.65625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 36624.40625,
+     "h": 717.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 33742.40625,
+     "r1": 34459.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi en situation",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 37374.921875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 34492.921875,
+     "r1": 35516,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 35544.796875,
+     "r1": 35816.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 35544.796875,
+     "r1": 35816.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38895.109375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 36013.109375,
+     "r1": 36730.84375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 39850.203125,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 36968.203125,
+     "r1": 37786.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires en situation",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 40701.71875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 37819.71875,
+     "r1": 38842.796875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 38871.59375,
+     "r1": 39284.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 38871.59375,
+     "r1": 39284.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 42362.84375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 39480.84375,
+     "r1": 40198.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Une année de temps libéré",
+     "id": "cv-gains",
+     "y": 44533.109375,
+     "h": 1432.671875,
+     "w": 1180,
+     "x": 130,
+     "r0": 41651.109375,
+     "r1": 43083.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Les chiffres en tableau",
+     "id": "cv-gains",
+     "y": 46021.78125,
+     "h": 673.96875,
+     "w": 1180,
+     "x": 130,
+     "r0": 43139.78125,
+     "r1": 43813.75,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Prévention & sécurité",
+     "id": "cv-parcours-complet",
+     "y": 48560.8125,
+     "h": 279.390625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 45678.8125,
+     "r1": 45958.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "THALEOLITHIC",
+     "id": "cv-9-0-thaleolithic",
+     "y": 54912.953125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 52030.953125,
+     "r1": 52932.609375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Lettres machines",
+     "id": "cv-9-1-lettres-machines",
+     "y": 55854.609375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 52972.609375,
+     "r1": 53874.265625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Contrôle de ligne",
+     "id": "cv-9-2-controle-de-ligne",
+     "y": 56796.265625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 53914.265625,
+     "r1": 54815.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "LIMEN",
+     "id": "cv-9-3-limen",
+     "y": 57737.921875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 54855.921875,
+     "r1": 55757.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nacre",
+     "id": "cv-9-4-nacre",
+     "y": 58679.578125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 55797.578125,
+     "r1": 56699.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Labyrinthe",
+     "id": "cv-9-5-labyrinthe",
+     "y": 59621.234375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 56739.234375,
+     "r1": 57640.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Route & vigilance",
+     "id": "cv-9-6-route-vigilance",
+     "y": 60562.890625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 57680.890625,
+     "r1": 58582.546875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Arène des arcanes",
+     "id": "cv-9-7-arene-des-arcanes",
+     "y": 61504.546875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 58622.546875,
+     "r1": 59524.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Sandboard",
+     "id": "cv-9-10-sandboard",
+     "y": 62446.203125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59564.203125,
+     "r1": 60465.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Pixels",
+     "id": "cv-9-11-pixels",
+     "y": 63387.859375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 60505.859375,
+     "r1": 61407.515625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Fond d’écran Gouache",
+     "id": "cv-9-12-fond-d-ecran-gouache",
+     "y": 64329.515625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 61447.515625,
+     "r1": 62349.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "vh": 900
+  },
+  {
+   "scrollY": 6000,
+   "view": {
+    "T": 4500,
+    "offset": 4382,
+    "pitch": -0.5270894341022876,
+    "fov": 0.7853981633974483,
+    "rise": 1,
+    "camY": 913.5106007592616,
+    "camZ": -900.2154546458748
+   },
+   "boxes": [
+    {
+     "title": "",
+     "y": 583,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -3799,
+     "r1": -3590,
+     "base": 0,
+     "top": 909.306,
+     "tilted": 0,
+     "pts": [
+      [
+       303,
+       -50
+      ],
+      [
+       412,
+       -50
+      ],
+      [
+       401,
+       -13
+      ],
+      [
+       287,
+       -13
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 802,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -3580,
+     "r1": -3371,
+     "base": 0,
+     "top": 885.654,
+     "tilted": 0,
+     "pts": [
+      [
+       290,
+       -1
+      ],
+      [
+       403,
+       -1
+      ],
+      [
+       386,
+       36
+      ],
+      [
+       267,
+       36
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 1021,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -3361,
+     "r1": -3152,
+     "base": 0,
+     "top": 862.0020000000001,
+     "tilted": 0,
+     "pts": [
+      [
+       269,
+       49
+      ],
+      [
+       388,
+       49
+      ],
+      [
+       366,
+       85
+      ],
+      [
+       240,
+       85
+      ]
+     ]
+    },
+    {
+     "title": "Point financier · Power Automate",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 4444.734375,
+     "h": 815.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 62.734375,
+     "r1": 878.25,
+     "base": 0,
+     "top": 459.48684375,
+     "tilted": 0,
+     "pts": [
+      [
+       430,
+       -145
+      ],
+      [
+       691,
+       -145
+      ],
+      [
+       689,
+       -35
+      ],
+      [
+       412,
+       -35
+      ]
+     ]
+    },
+    {
+     "title": "Du classeur Excel à la notification (animation pédagogique)",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 5293.25,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 911.25,
+     "r1": 1934.328125,
+     "base": 0,
+     "top": 356.63878125,
+     "tilted": 0,
+     "pts": [
+      [
+       420,
+       16
+      ],
+      [
+       1020,
+       16
+      ],
+      [
+       1146,
+       212
+      ],
+      [
+       294,
+       212
+      ]
+     ]
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 1963.125,
+     "r1": 2427.890625,
+     "base": 0,
+     "top": 273.18515625000003,
+     "tilted": 0,
+     "pts": [
+      [
+       300,
+       269
+      ],
+      [
+       711,
+       269
+      ],
+      [
+       708,
+       417
+      ],
+      [
+       178,
+       417
+      ]
+     ]
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 1963.125,
+     "r1": 2427.890625,
+     "base": 0,
+     "top": 273.18515625000003,
+     "tilted": 0,
+     "pts": [
+      [
+       729,
+       269
+      ],
+      [
+       1140,
+       269
+      ],
+      [
+       1262,
+       417
+      ],
+      [
+       732,
+       417
+      ]
+     ]
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 7006.4375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 2624.4375,
+     "r1": 3342.171875,
+     "base": 0,
+     "top": 188.10309375,
+     "tilted": 0,
+     "pts": [
+      [
+       123,
+       571
+      ],
+      [
+       1317,
+       571
+      ],
+      [
+       1942,
+       1371
+      ],
+      [
+       -502,
+       1371
+      ]
+     ]
+    },
+    {
+     "title": "VRE · traitement par VM",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 7961.53125,
+     "h": 805.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 3579.53125,
+     "r1": 4385.046875,
+     "base": 0,
+     "top": 80.21278124999999,
+     "tilted": 0
+    },
+    {
+     "title": "Le traitement VRE par VM en situation",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 8800.046875,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 4418.046875,
+     "r1": 5378.125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 5406.921875,
+     "r1": 5871.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 5406.921875,
+     "r1": 5871.6875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 10450.234375,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 6068.234375,
+     "r1": 6808.46875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Reporteur Q18",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 11657.21875,
+     "h": 954.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 7275.21875,
+     "r1": 8229.734375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Reporteur Q18 en situation",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 12644.734375,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 8262.734375,
+     "r1": 9222.8125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 9251.609375,
+     "r1": 9689.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 9251.609375,
+     "r1": 9689.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 14267.921875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 9885.921875,
+     "r1": 10626.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power Automate · chaîne des PP",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 15245.515625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 10863.515625,
+     "r1": 11658.03125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "La chaîne des plans de prévention en situation",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 16073.03125,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 11691.03125,
+     "r1": 12651.109375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 12679.90625,
+     "r1": 13057.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 12679.90625,
+     "r1": 13057.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17468.46875,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 13086.46875,
+     "r1": 13804.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "CERFA v3",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 18423.5625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 14041.5625,
+     "r1": 14836.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Metadata Studio V11 : du PDF aux livrables",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 19251.078125,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 14869.078125,
+     "r1": 15892.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 15920.953125,
+     "r1": 16291.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 15920.953125,
+     "r1": 16291.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20870.265625,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 16488.265625,
+     "r1": 17228.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Extracteur VRE",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 21847.859375,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 17465.859375,
+     "r1": 18284.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "L’Extracteur VRE en situation",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 22699.375,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 18317.375,
+     "r1": 19340.453125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 19369.25,
+     "r1": 19847.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 19369.25,
+     "r1": 19847.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 24426.5,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 20044.5,
+     "r1": 20762.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru, intelligence documentaire et apprentissage supervisé",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 25381.59375,
+     "h": 1086.1875,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 20999.59375,
+     "r1": 22085.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru : de l’import PDF à l’export, avec contrôle humain",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 26500.78125,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 22118.78125,
+     "r1": 23183.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 23212.65625,
+     "r1": 23635.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 23212.65625,
+     "r1": 23635.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 28257.359375,
+     "h": 830.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 23875.359375,
+     "r1": 24705.59375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power BI · PP & MOSO",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 29429.984375,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 25047.984375,
+     "r1": 25842.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le rapport PP + MOSO en situation",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 30257.5,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 25875.5,
+     "r1": 26940.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 26969.375,
+     "r1": 27403.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 26969.375,
+     "r1": 27403.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31981.625,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 27599.625,
+     "r1": 28317.359375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Studio d’extracteurs PDF",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 32936.71875,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 28554.71875,
+     "r1": 29373.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Studio d’extracteurs PDF en situation",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 33788.234375,
+     "h": 1002.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 29406.234375,
+     "r1": 30408.3125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 30437.109375,
+     "r1": 30838.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 30437.109375,
+     "r1": 30838.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 35417.421875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 31035.421875,
+     "r1": 31775.65625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 36624.40625,
+     "h": 717.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 32242.40625,
+     "r1": 32959.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi en situation",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 37374.921875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 32992.921875,
+     "r1": 34016,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 34044.796875,
+     "r1": 34316.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 34044.796875,
+     "r1": 34316.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38895.109375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 34513.109375,
+     "r1": 35230.84375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 39850.203125,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 35468.203125,
+     "r1": 36286.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires en situation",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 40701.71875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 36319.71875,
+     "r1": 37342.796875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 37371.59375,
+     "r1": 37784.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 37371.59375,
+     "r1": 37784.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 42362.84375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 37980.84375,
+     "r1": 38698.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Une année de temps libéré",
+     "id": "cv-gains",
+     "y": 44533.109375,
+     "h": 1432.671875,
+     "w": 1180,
+     "x": 130,
+     "r0": 40151.109375,
+     "r1": 41583.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Les chiffres en tableau",
+     "id": "cv-gains",
+     "y": 46021.78125,
+     "h": 673.96875,
+     "w": 1180,
+     "x": 130,
+     "r0": 41639.78125,
+     "r1": 42313.75,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Prévention & sécurité",
+     "id": "cv-parcours-complet",
+     "y": 48560.8125,
+     "h": 279.390625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 44178.8125,
+     "r1": 44458.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "THALEOLITHIC",
+     "id": "cv-9-0-thaleolithic",
+     "y": 54912.953125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 50530.953125,
+     "r1": 51432.609375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Lettres machines",
+     "id": "cv-9-1-lettres-machines",
+     "y": 55854.609375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 51472.609375,
+     "r1": 52374.265625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Contrôle de ligne",
+     "id": "cv-9-2-controle-de-ligne",
+     "y": 56796.265625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 52414.265625,
+     "r1": 53315.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "LIMEN",
+     "id": "cv-9-3-limen",
+     "y": 57737.921875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 53355.921875,
+     "r1": 54257.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nacre",
+     "id": "cv-9-4-nacre",
+     "y": 58679.578125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 54297.578125,
+     "r1": 55199.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Labyrinthe",
+     "id": "cv-9-5-labyrinthe",
+     "y": 59621.234375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 55239.234375,
+     "r1": 56140.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Route & vigilance",
+     "id": "cv-9-6-route-vigilance",
+     "y": 60562.890625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 56180.890625,
+     "r1": 57082.546875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Arène des arcanes",
+     "id": "cv-9-7-arene-des-arcanes",
+     "y": 61504.546875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 57122.546875,
+     "r1": 58024.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Sandboard",
+     "id": "cv-9-10-sandboard",
+     "y": 62446.203125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 58064.203125,
+     "r1": 58965.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Pixels",
+     "id": "cv-9-11-pixels",
+     "y": 63387.859375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59005.859375,
+     "r1": 59907.515625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Fond d’écran Gouache",
+     "id": "cv-9-12-fond-d-ecran-gouache",
+     "y": 64329.515625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 59947.515625,
+     "r1": 60849.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "vh": 900
+  },
+  {
+   "scrollY": 7500,
+   "view": {
+    "T": 4500,
+    "offset": 5882,
+    "pitch": -0.5270894341022876,
+    "fov": 0.7853981633974483,
+    "rise": 1,
+    "camY": 913.5106007592616,
+    "camZ": -900.2154546458748
+   },
+   "boxes": [
+    {
+     "title": "",
+     "y": 583,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -5299,
+     "r1": -5090,
+     "base": 0,
+     "top": 1071.306,
+     "tilted": 0,
+     "pts": [
+      [
+       303,
+       -50
+      ],
+      [
+       412,
+       -50
+      ],
+      [
+       401,
+       -13
+      ],
+      [
+       287,
+       -13
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 802,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -5080,
+     "r1": -4871,
+     "base": 0,
+     "top": 1047.6540000000002,
+     "tilted": 0,
+     "pts": [
+      [
+       290,
+       -1
+      ],
+      [
+       403,
+       -1
+      ],
+      [
+       386,
+       36
+      ],
+      [
+       267,
+       36
+      ]
+     ]
+    },
+    {
+     "title": "",
+     "y": 1021,
+     "h": 209,
+     "w": 244.796875,
+     "x": -213.25909423828125,
+     "r0": -4861,
+     "r1": -4652,
+     "base": 0,
+     "top": 1024.002,
+     "tilted": 0,
+     "pts": [
+      [
+       269,
+       49
+      ],
+      [
+       388,
+       49
+      ],
+      [
+       366,
+       85
+      ],
+      [
+       240,
+       85
+      ]
+     ]
+    },
+    {
+     "title": "Point financier · Power Automate",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 4444.734375,
+     "h": 815.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": -1437.265625,
+     "r1": -621.75,
+     "base": 0,
+     "top": 621.48684375,
+     "tilted": 0,
+     "pts": [
+      [
+       430,
+       -145
+      ],
+      [
+       691,
+       -145
+      ],
+      [
+       689,
+       -35
+      ],
+      [
+       412,
+       -35
+      ]
+     ]
+    },
+    {
+     "title": "Du classeur Excel à la notification (animation pédagogique)",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 5293.25,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": -588.75,
+     "r1": 434.328125,
+     "base": 0,
+     "top": 518.63878125,
+     "tilted": 0,
+     "pts": [
+      [
+       422,
+       -163
+      ],
+      [
+       1018,
+       -163
+      ],
+      [
+       1018,
+       -131
+      ],
+      [
+       422,
+       -131
+      ]
+     ]
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 463.125,
+     "r1": 927.890625,
+     "base": 0,
+     "top": 435.18515625000003,
+     "tilted": 0,
+     "pts": [
+      [
+       431,
+       -97
+      ],
+      [
+       714,
+       -97
+      ],
+      [
+       713,
+       -16
+      ],
+      [
+       411,
+       -16
+      ]
+     ]
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 6345.125,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 463.125,
+     "r1": 927.890625,
+     "base": 0,
+     "top": 435.18515625000003,
+     "tilted": 0,
+     "pts": [
+      [
+       726,
+       -97
+      ],
+      [
+       1009,
+       -97
+      ],
+      [
+       1029,
+       -16
+      ],
+      [
+       727,
+       -16
+      ]
+     ]
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-0-point-financier-power-automate",
+     "y": 7006.4375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 1124.4375,
+     "r1": 1842.171875,
+     "base": 0,
+     "top": 350.10309374999997,
+     "tilted": 0,
+     "pts": [
+      [
+       405,
+       58
+      ],
+      [
+       1035,
+       58
+      ],
+      [
+       1127,
+       195
+      ],
+      [
+       313,
+       195
+      ]
+     ]
+    },
+    {
+     "title": "VRE · traitement par VM",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 7961.53125,
+     "h": 805.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 2079.53125,
+     "r1": 2885.046875,
+     "base": 0,
+     "top": 242.21278125,
+     "tilted": 0,
+     "pts": [
+      [
+       280,
+       319
+      ],
+      [
+       676,
+       319
+      ],
+      [
+       645,
+       701
+      ],
+      [
+       -32,
+       701
+      ]
+     ]
+    },
+    {
+     "title": "Le traitement VRE par VM en situation",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 8800.046875,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 2918.046875,
+     "r1": 3878.125,
+     "base": 0,
+     "top": 143.30671875000002,
+     "tilted": 0,
+     "pts": [
+      [
+       -16,
+       809
+      ],
+      [
+       1456,
+       809
+      ],
+      [
+       5601,
+       6402
+      ],
+      [
+       -4161,
+       6402
+      ]
+     ]
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 3906.921875,
+     "r1": 4371.6875,
+     "base": 0,
+     "top": 63.25509374999999,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 9788.921875,
+     "h": 464.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 3906.921875,
+     "r1": 4371.6875,
+     "base": 0,
+     "top": 63.25509374999999,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-1-vre-traitement-par-vm",
+     "y": 10450.234375,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 4568.234375,
+     "r1": 5308.46875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Reporteur Q18",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 11657.21875,
+     "h": 954.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 5775.21875,
+     "r1": 6729.734375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Reporteur Q18 en situation",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 12644.734375,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 6762.734375,
+     "r1": 7722.8125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 7751.609375,
+     "r1": 8189.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 13633.609375,
+     "h": 437.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 7751.609375,
+     "r1": 8189.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-2-reporteur-q18",
+     "y": 14267.921875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 8385.921875,
+     "r1": 9126.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power Automate · chaîne des PP",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 15245.515625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 9363.515625,
+     "r1": 10158.03125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "La chaîne des plans de prévention en situation",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 16073.03125,
+     "h": 960.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 10191.03125,
+     "r1": 11151.109375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 11179.90625,
+     "r1": 11557.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17061.90625,
+     "h": 377.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 11179.90625,
+     "r1": 11557.671875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-3-power-automate-chaine-des-pp",
+     "y": 17468.46875,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 11586.46875,
+     "r1": 12304.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "CERFA v3",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 18423.5625,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 12541.5625,
+     "r1": 13336.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Metadata Studio V11 : du PDF aux livrables",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 19251.078125,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 13369.078125,
+     "r1": 14392.15625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 14420.953125,
+     "r1": 14791.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20302.953125,
+     "h": 370.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 14420.953125,
+     "r1": 14791.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-4-cerfa-v3",
+     "y": 20870.265625,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 14988.265625,
+     "r1": 15728.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Extracteur VRE",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 21847.859375,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 15965.859375,
+     "r1": 16784.375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "L’Extracteur VRE en situation",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 22699.375,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 16817.375,
+     "r1": 17840.453125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 17869.25,
+     "r1": 18347.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 23751.25,
+     "h": 478.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 17869.25,
+     "r1": 18347.953125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-5-extracteur-vre",
+     "y": 24426.5,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 18544.5,
+     "r1": 19262.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru, intelligence documentaire et apprentissage supervisé",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 25381.59375,
+     "h": 1086.1875,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 19499.59375,
+     "r1": 20585.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nisaru : de l’import PDF à l’export, avec contrôle humain",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 26500.78125,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 20618.78125,
+     "r1": 21683.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 21712.65625,
+     "r1": 22135.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 27594.65625,
+     "h": 422.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 21712.65625,
+     "r1": 22135.421875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-6-lecteur-vre-modele-multimodal",
+     "y": 28257.359375,
+     "h": 830.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 22375.359375,
+     "r1": 23205.59375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Power BI · PP & MOSO",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 29429.984375,
+     "h": 794.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 23547.984375,
+     "r1": 24342.5,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le rapport PP + MOSO en situation",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 30257.5,
+     "h": 1065.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 24375.5,
+     "r1": 25440.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 25469.375,
+     "r1": 25903.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31351.375,
+     "h": 433.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 25469.375,
+     "r1": 25903.078125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-7-power-bi-pp-moso",
+     "y": 31981.625,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 26099.625,
+     "r1": 26817.359375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Studio d’extracteurs PDF",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 32936.71875,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 27054.71875,
+     "r1": 27873.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le Studio d’extracteurs PDF en situation",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 33788.234375,
+     "h": 1002.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 27906.234375,
+     "r1": 28908.3125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 28937.109375,
+     "r1": 29338.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 34819.109375,
+     "h": 401.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 28937.109375,
+     "r1": 29338.875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-8-studio-d-extracteurs-pdf",
+     "y": 35417.421875,
+     "h": 740.234375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 29535.421875,
+     "r1": 30275.65625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 36624.40625,
+     "h": 717.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 30742.40625,
+     "r1": 31459.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Retrouver tout le suivi en situation",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 37374.921875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 31492.921875,
+     "r1": 32516,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 32544.796875,
+     "r1": 32816.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38426.796875,
+     "h": 271.765625,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 32544.796875,
+     "r1": 32816.5625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-9-retrouver-tout-le-suivi",
+     "y": 38895.109375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 33013.109375,
+     "r1": 33730.84375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 39850.203125,
+     "h": 818.515625,
+     "w": 593.6875,
+     "x": 60.1875,
+     "r0": 33968.203125,
+     "r1": 34786.71875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Gares prioritaires en situation",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 40701.71875,
+     "h": 1023.078125,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 34819.71875,
+     "r1": 35842.796875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Le projet",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.40625,
+     "x": 59.1875,
+     "r0": 35871.59375,
+     "r1": 36284.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Ce que ça change",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 41753.59375,
+     "h": 412.703125,
+     "w": 646.421875,
+     "x": 734.390625,
+     "r0": 35871.59375,
+     "r1": 36284.296875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Comment ça marche",
+     "id": "cv-7-10-gares-prioritaires",
+     "y": 42362.84375,
+     "h": 717.734375,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 36480.84375,
+     "r1": 37198.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Une année de temps libéré",
+     "id": "cv-gains",
+     "y": 44533.109375,
+     "h": 1432.671875,
+     "w": 1180,
+     "x": 130,
+     "r0": 38651.109375,
+     "r1": 40083.78125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Les chiffres en tableau",
+     "id": "cv-gains",
+     "y": 46021.78125,
+     "h": 673.96875,
+     "w": 1180,
+     "x": 130,
+     "r0": 40139.78125,
+     "r1": 40813.75,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Prévention & sécurité",
+     "id": "cv-parcours-complet",
+     "y": 48560.8125,
+     "h": 279.390625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 42678.8125,
+     "r1": 42958.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "THALEOLITHIC",
+     "id": "cv-9-0-thaleolithic",
+     "y": 54912.953125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 49030.953125,
+     "r1": 49932.609375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Lettres machines",
+     "id": "cv-9-1-lettres-machines",
+     "y": 55854.609375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 49972.609375,
+     "r1": 50874.265625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Contrôle de ligne",
+     "id": "cv-9-2-controle-de-ligne",
+     "y": 56796.265625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 50914.265625,
+     "r1": 51815.921875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "LIMEN",
+     "id": "cv-9-3-limen",
+     "y": 57737.921875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 51855.921875,
+     "r1": 52757.578125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Nacre",
+     "id": "cv-9-4-nacre",
+     "y": 58679.578125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 52797.578125,
+     "r1": 53699.234375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Labyrinthe",
+     "id": "cv-9-5-labyrinthe",
+     "y": 59621.234375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 53739.234375,
+     "r1": 54640.890625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Route & vigilance",
+     "id": "cv-9-6-route-vigilance",
+     "y": 60562.890625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 54680.890625,
+     "r1": 55582.546875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Arène des arcanes",
+     "id": "cv-9-7-arene-des-arcanes",
+     "y": 61504.546875,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 55622.546875,
+     "r1": 56524.203125,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Sandboard",
+     "id": "cv-9-10-sandboard",
+     "y": 62446.203125,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 56564.203125,
+     "r1": 57465.859375,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Pixels",
+     "id": "cv-9-11-pixels",
+     "y": 63387.859375,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 57505.859375,
+     "r1": 58407.515625,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    },
+    {
+     "title": "Fond d’écran Gouache",
+     "id": "cv-9-12-fond-d-ecran-gouache",
+     "y": 64329.515625,
+     "h": 901.65625,
+     "w": 1321.625,
+     "x": 59.1875,
+     "r0": 58447.515625,
+     "r1": 59349.171875,
+     "base": 0,
+     "top": 24.3,
+     "tilted": 0
+    }
+   ],
+   "vh": 900
+  }
+ ]
+}
