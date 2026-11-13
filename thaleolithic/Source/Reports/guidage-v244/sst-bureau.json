@@ -1,0 +1,189 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Résolution mise en cache à objectif constant",
+      "value": {
+        "before": 2,
+        "after": 2
+      }
+    },
+    {
+      "name": "Grand Menhir comme objectif du SST",
+      "value": {
+        "enabled": true,
+        "visible": false,
+        "mapRouteVisible": false,
+        "recalculating": false,
+        "mode": "complet",
+        "objective": "grand_menhir",
+        "state": "OBJECTIVE_REACHED",
+        "lastHidden": "INITIALISATION",
+        "status": "Objectif atteint",
+        "routeId": 0,
+        "navMeshRevision": 3,
+        "topologyRevision": 1,
+        "points": 0,
+        "meshTriangles": 0,
+        "meshUpdates": 0,
+        "routeChanges": 0,
+        "hiddenCount": 0,
+        "calculations": 0,
+        "calculationsPerMinute": 0,
+        "totalLength": 0,
+        "visibleLength": 0,
+        "safeLength": 0,
+        "calculationMs": 0,
+        "meshMs": 0,
+        "progress": 0,
+        "nextPoint": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      }
+    },
+    {
+      "name": "Introduction courte suivie du mini-jeu",
+      "value": true
+    },
+    {
+      "name": "Erreur récupérable et reprise à la troisième tablette",
+      "value": {
+        "phase": "Ready",
+        "feedback": "Assemblage repris · 2 tablettes sur 4 déjà reliées.",
+        "marker": "grand_menhir",
+        "intro": false,
+        "completed": false,
+        "markerVisible": false,
+        "nextTablet": 2,
+        "linked": 2
+      }
+    },
+    {
+      "name": "Validation SST, retour des commandes et nouvelle destination",
+      "value": {
+        "type": "diagnostic",
+        "yaw": 0,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 57.272796630859375,
+        "navRebuildMs": 783,
+        "touches": 0,
+        "allocatedMiB": 254,
+        "performance": {
+          "fps": 92.2131118774414,
+          "medianMs": 9,
+          "p95Ms": 16,
+          "p99Ms": 61,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 254,
+          "peakMiB": 255,
+          "reservedMiB": 271,
+          "gcBytes": -1,
+          "drawCalls": 442,
+          "setPassCalls": 49,
+          "triangles": 381540,
+          "frames": 180,
+          "profile": 1,
+          "animatedActors": 20
+        },
+        "gps": {
+          "enabled": true,
+          "visible": true,
+          "mapRouteVisible": true,
+          "recalculating": false,
+          "mode": "complet",
+          "objective": "aurelien",
+          "state": "VISIBLE",
+          "lastHidden": "INITIALISATION",
+          "status": "GUIDAGE DES CRÂNES",
+          "routeId": 1,
+          "navMeshRevision": 1,
+          "topologyRevision": 1,
+          "points": 7,
+          "meshTriangles": 8,
+          "meshUpdates": 1,
+          "routeChanges": 1,
+          "hiddenCount": 0,
+          "calculations": 1,
+          "calculationsPerMinute": 1,
+          "totalLength": 1.5436187982559204,
+          "visibleLength": 0.9124647974967957,
+          "safeLength": 1.5436187982559204,
+          "calculationMs": 4,
+          "meshMs": 0,
+          "progress": 0.011153996922075748,
+          "nextPoint": {
+            "x": 349.177978515625,
+            "y": 12.48076343536377,
+            "z": 292.3975524902344
+          }
+        },
+        "sst": {
+          "phase": "Success",
+          "feedback": "Assemblage terminé. Retourne voir Aurélien pour valider la mission.",
+          "marker": "aurelien",
+          "intro": false,
+          "completed": true,
+          "markerVisible": false,
+          "nextTablet": 4,
+          "linked": 4
+        },
+        "objective": {
+          "quest": "V17_CONTEXT",
+          "action": "quest:details:V17_CONTEXT",
+          "target": "aurelien",
+          "site": "Aurélien",
+          "helper": "aurelien",
+          "giver": "aurelien",
+          "phase": "Validate",
+          "instruction": "Présente les preuves à Aurélien et fais vérifier le résultat.",
+          "command": "E",
+          "validation": "Faire vérifier les actions et les preuves de la mission.",
+          "next": "quest:details:V17_CONTEXT",
+          "requirement": "",
+          "guide": false,
+          "optional": false,
+          "resolved": 4,
+          "finished": 4,
+          "total": 4
+        }
+      }
+    },
+    {
+      "name": "Vérification de la mission auprès d’Aurélien",
+      "value": true
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

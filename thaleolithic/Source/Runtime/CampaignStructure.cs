@@ -54,11 +54,14 @@ namespace UngaBunga45001
   }
   bool StructuralCondition(ActionDefinition action,out string reason)
   {reason="";if(action.id=="WORK_M_V_ABRI"&&HasFlag("incident:structure")&&!HasFlag("done:STRUCTURE_CAUSES")){reason="Avant de reconstruire, examine les débris puis analyse les causes avec Mathieu.";return false;}return true;}
+  internal NavMeshObstacle StructuralClosure => structuralClosure;
   void RefreshStructuralClosure()
   {
-   if(structuralClosure==null&&!HasFlag("structure:accessClosed"))return;
-   if(structuralClosure==null){var go=new GameObject("Accès à la charpente suspendu");go.transform.SetParent(transform,false);go.transform.position=bindings.Find("habitations").position+Vector3.up;structuralClosure=go.AddComponent<NavMeshObstacle>();structuralClosure.shape=NavMeshObstacleShape.Box;structuralClosure.size=new Vector3(5.6f,2,5.6f);structuralClosure.carving=true;structuralClosure.carveOnlyStationary=false;}
-   structuralClosure.enabled=HasFlag("structure:accessClosed");GetComponent<VillageNavigation>()?.RequestRebuild();GetComponent<QuestNavigationController>()?.ForceRefresh();
+   bool closed=HasFlag("structure:accessClosed");
+   if(structuralClosure==null&&!closed)return;
+   if(structuralClosure==null){var go=new GameObject("Accès à la charpente suspendu");go.transform.SetParent(transform,false);go.transform.position=bindings.Find("habitations").position+Vector3.up;structuralClosure=go.AddComponent<NavMeshObstacle>();structuralClosure.enabled=false;structuralClosure.shape=NavMeshObstacleShape.Box;structuralClosure.size=new Vector3(5.6f,2,5.6f);structuralClosure.carving=true;structuralClosure.carveOnlyStationary=false;}
+   if(structuralClosure.enabled==closed)return;
+   structuralClosure.enabled=closed;GetComponent<VillageNavigation>()?.RequestRebuild();GetComponent<QuestNavigationController>()?.ForceRefresh();
   }
  }
 }

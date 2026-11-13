@@ -1,0 +1,69 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Lancer l’amélioration referme le panneau et rend les commandes",
+      "value": true
+    },
+    {
+      "name": "Chantier en cours repris après rechargement sans nouveau paiement",
+      "value": true
+    },
+    {
+      "name": "Amélioration du Grand Menhir et trois contrôles enregistrés",
+      "value": {
+        "id": "menhir_aurelien",
+        "site": "grand_menhir",
+        "type": "monument",
+        "owner": "aurelien",
+        "builder": "georges",
+        "tier": 1,
+        "pendingTier": 1,
+        "phase": 4,
+        "workSeconds": 12,
+        "filmTier": 0,
+        "usable": true,
+        "positionSaved": true,
+        "gateClosed": false,
+        "position": {
+          "x": 350.9200134277344,
+          "y": 12.607876777648926,
+          "z": 291.8800048828125
+        },
+        "controls": [
+          "stability",
+          "access",
+          "use"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

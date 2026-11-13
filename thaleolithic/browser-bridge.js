@@ -5,11 +5,28 @@ let canvas = select('unity-canvas');
 const welcome = select('welcome'), label = select('loading-label');
 const failure = select('error'), resumePointer = select('resume-pointer'), resumeGame = select('resume-game');
 const diagnosticMode = new URLSearchParams(location.search).get('diagnostic') === '1';
-const inputLog = [];
+const inputLog = [], performanceSamples = [];
 let instance, bootTask, ready = false, saved = false, customOptions = false;
 let phase = 'NOT_STARTED', step = 'WEBGL', build = 'inconnu', request = 0, sequence = 0;
 let startDeadline, inputState, lastFocus, lastError, engineFault, metrics, retrying = false;
-let lastAck = 0, lastEngineError = '';
+let lastAck = 0, lastEngineError = '', lastUnityEvent = null;
+const journalKey = 'thaleolithic.boot.' + location.pathname;
+let previousBoot = null;
+try { previousBoot = JSON.parse(sessionStorage.getItem(journalKey)); } catch {}
+
+function rememberBoot(source) {
+  try {
+    sessionStorage.setItem(journalKey, JSON.stringify({
+      build, phase, step, source, atMs: Math.round(performance.now()),
+      visible: !document.hidden, lastUnityEvent, error: lastError, engineError: lastEngineError
+    }));
+  } catch {}
+}
+
+function setStep(value) {
+  step = value;
+  rememberBoot('step');
+}
 
 function log(source) {
   inputLog.push({source, at: Math.round(performance.now()), phase, step, ...inputState});
@@ -19,11 +36,19 @@ function log(source) {
 function diagnostic() {
   const agent = navigator.userAgent;
   const browser = /(?:EdgA?|EdgiOS|CriOS|Chrome|Firefox|FxiOS|Version)\/\d+/i.exec(agent)?.[0] ?? 'inconnu';
+  const resources = performance.getEntriesByType('resource').filter(entry => {
+    const path = new URL(entry.name, location.href).pathname;
+    return /\/(?:game-config\.json|Web-[^/]+|iso-\d{2}-[a-f0-9]+\.bundle)$/.test(path);
+  }).slice(-16).map(entry => ({file: new URL(entry.name).pathname.split('/').at(-1),
+    ms: Math.round(entry.duration), bytes: entry.transferSize, status: entry.responseStatus || null}));
   return {build, browser, phase, step, error: lastError, engineError: lastEngineError,
+    boot: {previous: previousBoot, lastUnityEvent, resources, navigation: performance.getEntriesByType('navigation')[0]?.type},
+    chapters: window.ungaRuntime?.chapterPacks ?? null,
     viewport: {width: canvas.clientWidth, height: canvas.clientHeight, pixelRatio: renderRatio()},
     focus: document.hasFocus(), visible: !document.hidden, pointer: document.pointerLockElement === canvas,
     touchPoints: navigator.maxTouchPoints, jsHeapMiB: performance.memory?.usedJSHeapSize / 1048576 || null,
-    lastAck, input: inputState, metrics, transitions: inputLog.slice()};
+    wasmHeapMiB: (instance?.Module?.HEAPU8 ?? instance?.Module?.HEAP8)?.buffer.byteLength / 1048576 || null,
+    lastAck, input: inputState, metrics, transitions: inputLog.slice(), samples: performanceSamples.slice()};
 }
 
 function failureText(value) {
@@ -34,6 +59,7 @@ function setPhase(value, source) {
   phase = value;
   welcome.dataset.phase = phase;
   log(source);
+  rememberBoot(source);
 }
 
 function fail(code, message, recoverEngine = false) {
@@ -95,7 +121,7 @@ function refresh() {
     !document.pointerLockElement && !!canvas.requestPointerLock);
   resumeGame.hidden = !(running && canFocus() && inputState?.resumeRequired);
   select('retry').disabled = !!bootTask || retrying;
-  if (diagnosticMode) select('diagnostic-data').textContent = JSON.stringify(diagnostic(), null, 2);
+  if (diagnosticMode && select('dev-diagnostic').open) select('diagnostic-data').textContent = JSON.stringify(diagnostic(), null, 2);
 }
 
 function engineReady() {
@@ -111,7 +137,7 @@ function finishStart(event) {
   clearTimeout(startDeadline);
   saved = event.saved;
   setPhase('READY_TO_PLAY', event.type);
-  step = 'GAMEPLAY';
+  setStep('GAMEPLAY');
   setPhase('RUNNING', 'confirmed');
   canvas.tabIndex = 0;
   if (canFocus()) canvas.focus({preventScroll: true});
@@ -120,6 +146,10 @@ function finishStart(event) {
 }
 
 window.addEventListener('unga-game', ({detail: event}) => {
+  if (['ready', 'GAME_STARTING', 'GAME_STARTED', 'GAME_START_FAILED'].includes(event.type)) {
+    lastUnityEvent = {type: event.type, atMs: Math.round(performance.now()), code: event.code || null};
+    rememberBoot('unity');
+  }
   switch (event.type) {
     case 'ready':
       ready = true;
@@ -139,7 +169,7 @@ window.addEventListener('unga-game', ({detail: event}) => {
     case 'GAME_START_FAILED':
       if (!event.request || event.request === request) {
         queueMicrotask(() => {
-          step = event.phase;
+          setStep(event.phase);
           fail(event.code, event.message, !event.request);
         });
       }
@@ -158,6 +188,11 @@ window.addEventListener('unga-game', ({detail: event}) => {
       break;
     case 'diagnostic':
       metrics = event;
+      if (event.performance?.frames) {
+        performanceSamples.push({atMs: Math.round(performance.now()), act: window.ungaRuntime?.act ?? '',
+          phase: inputState?.phase ?? '', ...event.performance});
+        if (performanceSamples.length > 180) performanceSamples.shift();
+      }
       refresh();
       break;
   }
@@ -166,7 +201,7 @@ window.addEventListener('unga-game', ({detail: event}) => {
 function begin(mode) {
   if (phase !== 'NOT_STARTED' || !ready || !instance) return;
   const current = ++request;
-  step = 'CAMPAIGN';
+  setStep('CAMPAIGN');
   setPhase('START_REQUESTED', mode);
   label.textContent = 'Initialisation de la partie…';
   refresh();
@@ -257,28 +292,46 @@ window.visualViewport?.addEventListener('resize', viewport);
 document.addEventListener('visibilitychange', () => browserChange('visibility'));
 addEventListener('blur', () => browserChange('blur', false, true));
 addEventListener('focus', () => browserChange('focus'));
-addEventListener('pagehide', () => browserChange('pagehide', true));
+addEventListener('pagehide', () => {
+  rememberBoot('pagehide');
+  browserChange('pagehide', true);
+});
 addEventListener('pageshow', () => browserChange('pageshow'));
-addEventListener('error', event => { lastEngineError = failureText(event.message); });
+addEventListener('error', event => {
+  lastEngineError = failureText(event.message);
+  rememberBoot('error');
+});
 addEventListener('unhandledrejection', event => { lastEngineError = failureText(event.reason?.message ?? event.reason); });
 addEventListener('unga-save-error', () => {
   select('save-warning').textContent = 'La sauvegarde locale a échoué. Vérifie le stockage de ce navigateur.';
   log('save-error');
 });
 
-function downloadDiagnostic() {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(diagnostic(), null, 2)], {type: 'application/json'}));
+function download(contents, type, filename) {
+  const url = URL.createObjectURL(new Blob([contents], {type}));
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'thaleolithic-diagnostic.json';
+  link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function downloadDiagnostic() {
+  download(JSON.stringify(diagnostic(), null, 2), 'application/json', 'thaleolithic-diagnostic.json');
+}
+function downloadMetrics() {
+  const fields = ['atMs', 'act', 'phase', 'frames', 'fps', 'medianMs', 'p95Ms', 'p99Ms', 'cpuMs', 'gpuMs',
+    'allocatedMiB', 'peakMiB', 'reservedMiB', 'gcBytes', 'drawCalls', 'setPassCalls', 'triangles', 'profile', 'renderScale', 'animatedActors'];
+  const escape = value => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+  const csv = [fields.join(','), ...performanceSamples.map(row => fields.map(field => escape(row[field])).join(','))].join('\n');
+  download(csv, 'text/csv;charset=utf-8', 'thaleolithic-performances.csv');
 }
 select('copy-diagnostic').onclick = async () => {
   try { await navigator.clipboard.writeText(JSON.stringify(diagnostic(), null, 2)); }
   catch { downloadDiagnostic(); }
 };
 select('download-diagnostic').onclick = downloadDiagnostic;
+select('download-metrics').onclick = downloadMetrics;
+select('dev-diagnostic').addEventListener('toggle', refresh);
 select('dev-diagnostic').hidden = !diagnosticMode;
 if (diagnosticMode) {
   window.thaleolithicInputLog = () => inputLog.map(entry => ({...entry}));
@@ -290,11 +343,11 @@ async function boot() {
   bootTask = Promise.resolve().then(async () => {
     let timeout;
     try {
-      step = 'WEBGL';
+      setStep('WEBGL');
       const probe = document.createElement('canvas').getContext('webgl2');
       if (!probe) throw new Error('WebGL 2 est requis.');
       probe.getExtension('WEBGL_lose_context')?.loseContext();
-      step = 'CONFIG';
+      setStep('CONFIG');
       const controller = new AbortController();
       const configTimer = setTimeout(() => controller.abort(), 20000);
       const config = await fetch('game-config.json', {cache: 'no-cache', signal: controller.signal}).then(response => {
@@ -302,7 +355,7 @@ async function boot() {
         return response.json();
       }).finally(() => clearTimeout(configTimer));
       build = config.version ?? /Web-([^./]+(?:\.[^./]+)?)\.loader/.exec(config.loaderUrl)?.[1] ?? 'inconnu';
-      step = 'LOADER';
+      setStep('LOADER');
       if (typeof createUnityInstance !== 'function') await new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = config.loaderUrl;
@@ -311,10 +364,10 @@ async function boot() {
         script.onerror = () => { clearTimeout(timer); script.remove(); reject(new Error('Chargeur Unity indisponible.')); };
         document.body.append(script);
       });
-      step = 'ENGINE';
+      setStep('ENGINE');
       timeout = setTimeout(() => fail('ENGINE_TIMEOUT', 'Le moteur Unity n’a pas fini de charger.'), 120000);
       instance = await createUnityInstance(canvas, {...config, companyName: 'Talas', productName: 'THALEOLITHIC',
-        productVersion: config.productVersion ?? '0.23.1', autoSyncPersistentDataPath: true, devicePixelRatio: renderRatio(),
+        productVersion: config.productVersion ?? '0.24.1', autoSyncPersistentDataPath: true, devicePixelRatio: renderRatio(),
         showBanner: (message, type) => { if (type === 'error') lastEngineError = failureText(message); }
       }, progress => {
         select('progress').value = progress;
@@ -322,7 +375,7 @@ async function boot() {
           ? `Chargement du village · ${Math.round(progress * 100)} %`
           : 'Préparation des personnages et des chemins…';
       });
-      step = 'SCENE';
+      setStep('SCENE');
       if (!ready && phase !== 'FAILED') startDeadline = setTimeout(() => {
         if (!ready) fail('SCENE_TIMEOUT', 'Le pont Unity n’a pas confirmé la préparation de la scène.', true);
       }, 25000);

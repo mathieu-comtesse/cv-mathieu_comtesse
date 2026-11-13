@@ -13,6 +13,26 @@ namespace UngaBunga45001
  {
   public string assemblyId,site="habitations";public MeshRenderer intactRenderer;public StructuralPiece[] pieces=Array.Empty<StructuralPiece>();public Collider[] intactColliders=Array.Empty<Collider>();public Material dustMaterial;
   public bool Running{get;private set;}public bool Broken{get;private set;}public int ImpactCount{get;private set;}public int ReleasedCount=>pieces.Count(p=>p.root.gameObject.activeSelf&&p.root.GetComponent<Rigidbody>() is Rigidbody rb&&!rb.isKinematic);
+  int boundsFrame=-1;
+  Bounds inspectionBounds;
+  internal Bounds InspectionBounds
+  {
+   get
+   {
+    if(!Broken)return intactRenderer.bounds;
+    if(boundsFrame==Time.frameCount)return inspectionBounds;
+    boundsFrame=Time.frameCount;
+    bool hasDebris=false;
+    foreach(var piece in pieces)
+    {
+     if(!piece.root.gameObject.activeInHierarchy||!piece.root.TryGetComponent<Renderer>(out var renderer))continue;
+     if(hasDebris)inspectionBounds.Encapsulate(renderer.bounds);
+     else { inspectionBounds=renderer.bounds;hasDebris=true; }
+    }
+    if(!hasDebris)inspectionBounds=intactRenderer.bounds;
+    return inspectionBounds;
+   }
+  }
   CampaignRuntime campaign;CampaignSave observed;float age;HutFailureRecord record;NavMeshObstacle obstacle;AudioSource sound;Vector3 fixedPosition;Quaternion fixedRotation;bool recorded,cracked;int dustCount;
   void Start(){campaign=FindFirstObjectByType<CampaignRuntime>();fixedPosition=transform.position;fixedRotation=transform.rotation;}
   void Update()

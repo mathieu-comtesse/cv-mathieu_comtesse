@@ -1,0 +1,70 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Lorette regarde Dylan pendant l’activité",
+      "value": {
+        "direction": 206.92868041992188,
+        "target": -153.07131182535733
+      }
+    },
+    {
+      "name": "Tous les choix attendus ont validé l’activité",
+      "value": {
+        "id": "V17_PARTIES",
+        "card": 3,
+        "mistakes": 0,
+        "lane": 1,
+        "seconds": 3.130995512008667,
+        "workSeconds": 0,
+        "routeDistance": 0,
+        "completed": true,
+        "observed": false,
+        "worked": false,
+        "verified": true,
+        "introSeen": false,
+        "guideSeen": true,
+        "allocation": [
+          0,
+          0,
+          0
+        ],
+        "answers": [
+          "workers",
+          "contractor",
+          "seasons"
+        ],
+        "observations": [],
+        "people": []
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

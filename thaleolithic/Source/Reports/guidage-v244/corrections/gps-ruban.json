@@ -1,0 +1,126 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Trajet de comparaison vers le même lieu",
+      "value": {
+        "type": "diagnostic",
+        "yaw": 358.4512023925781,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 136.29002380371094,
+        "navRebuildMs": 88,
+        "touches": 0,
+        "allocatedMiB": 255,
+        "performance": {
+          "fps": 46.22871017456055,
+          "medianMs": 7.000007152557373,
+          "p95Ms": 45,
+          "p99Ms": 593,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 255,
+          "peakMiB": 255,
+          "reservedMiB": 272,
+          "gcBytes": -1,
+          "drawCalls": 419,
+          "setPassCalls": 50,
+          "triangles": 343222,
+          "frames": 95,
+          "profile": 1,
+          "animatedActors": 20
+        },
+        "gps": {
+          "enabled": true,
+          "visible": true,
+          "mapRouteVisible": true,
+          "recalculating": false,
+          "mode": "complet",
+          "objective": "stockage",
+          "state": "VISIBLE",
+          "lastHidden": "INITIALISATION",
+          "status": "GUIDAGE DES CRÂNES",
+          "routeId": 1,
+          "navMeshRevision": 2,
+          "topologyRevision": 1,
+          "points": 84,
+          "meshTriangles": 162,
+          "meshUpdates": 1,
+          "routeChanges": 1,
+          "hiddenCount": 0,
+          "calculations": 1,
+          "calculationsPerMinute": 1,
+          "totalLength": 30.399091720581055,
+          "visibleLength": 29.776453018188477,
+          "safeLength": 30.399091720581055,
+          "calculationMs": 23,
+          "meshMs": 0,
+          "progress": 0.0026391437277197838,
+          "nextPoint": {
+            "x": 349.5610046386719,
+            "y": 12.261120796203613,
+            "z": 289.79742431640625
+          }
+        },
+        "sst": {
+          "phase": "Exited",
+          "feedback": "",
+          "marker": "stockage",
+          "intro": false,
+          "completed": false,
+          "markerVisible": false,
+          "nextTablet": 0,
+          "linked": 0
+        },
+        "objective": {
+          "quest": "",
+          "action": "travel:stockage",
+          "target": "stockage",
+          "site": "Réserves",
+          "helper": "",
+          "giver": "",
+          "phase": "Travel",
+          "instruction": "Rejoins le point indiqué sur la carte.",
+          "command": "W A S D",
+          "validation": "Atteindre le point d’interaction.",
+          "next": "",
+          "requirement": "",
+          "guide": false,
+          "optional": true,
+          "resolved": 3,
+          "finished": 0,
+          "total": 0
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

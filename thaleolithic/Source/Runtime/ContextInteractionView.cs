@@ -14,7 +14,7 @@ namespace UngaBunga45001
             narrative.sizeDelta=new Vector2(width,height);narrative.localScale=Vector3.one*(touch?MobileUnit:1);narrative.anchoredPosition=Vector2.zero;
             TribalStyle.Portrait(TribalStyle.Top(narrative,"Portrait de l’interlocuteur",20,15,64,64),actor);
             var person=campaign.Data.characters.FirstOrDefault(p=>p.id==actor);
-            Text(narrative,"Interlocuteur",100,12,width-180,40,(person?.name??"Actions sur place").ToUpperInvariant(),touch?20:24,TribalStyle.Paper).overflowMode=TextOverflowModes.Overflow;
+            Text(narrative,"Interlocuteur",100,12,width-180,40,(person?.name??QuestGuidanceV243.Site(campaign,actor)).ToUpperInvariant(),touch?20:24,TribalStyle.Paper).overflowMode=TextOverflowModes.Overflow;
             Text(narrative,"Fonction",100,48,width-125,28,person?.role??"Poste du village",touch?12:16,TribalStyle.Muted);
             var brain=campaign.bindings.Find(actor)?.GetComponent<VillagerBrain>();
             if(brain!=null)Text(narrative,"Activité du PNJ",22,86,width-44,25,"AVANT L’ÉCHANGE · "+brain.ConversationActivity,touch?12:15,TribalStyle.Muted);
@@ -31,7 +31,8 @@ namespace UngaBunga45001
                 var ink=main?new Color(.13f,.07f,.02f):TribalStyle.Paper;
                 Text(row2,"Catégorie",74,8,width-125,20,model.heading,touch?11:13,main?ink:tint);
                 Text(row2,"Action",74,29,width-125,28,model.title,touch?16:20,ink);
-                Text(row2,"Progression ou condition",74,main?64:56,width-130,main?24:20,model.detail,touch?11:13,main?ink:TribalStyle.Muted);
+                var detail=Text(row2,"Progression ou condition",74,main?64:53,width-130,main?24:23,model.detail,touch?11:13,main?ink:TribalStyle.Muted);
+                detail.enableAutoSizing=true;detail.fontSizeMin=10;detail.fontSizeMax=touch?11:13;
             }
             Button(narrative,"Revenir au village",20,height-51,width-40,39,()=>campaign.Choose("interaction:cancel"));Select(choices.FindIndex(b=>b.interactable));
         }

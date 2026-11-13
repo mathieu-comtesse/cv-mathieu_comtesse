@@ -73,7 +73,7 @@ namespace UngaBunga45001
             if(window==null||campaign.State==null)return;
             if(!campaign.BrowserInputSuspended&&settings.ConsumedEscapeFrame!=Time.frameCount&&settings.Pressed("map")&&campaign.Dialogue==null&&!campaign.cinematicDirector.IsPlaying){if(IsOpen)Close();else Open();}
             miniRect.parent.localScale=Vector3.one*settings.preferences.hudScale;
-            bool visible=!campaign.MenhirActive&&!campaign.cinematicDirector.IsPlaying&&!IsOpen&&!campaign.GetComponent<AdventureMenus>().IsOpen;miniRect.parent.gameObject.SetActive(visible);
+            bool visible=!campaign.MenhirActive&&!campaign.cinematicDirector.IsPlaying&&GetComponent<CampaignActivitiesV17>()?.IntroPlaying!=true&&!IsOpen&&!campaign.GetComponent<AdventureMenus>().IsOpen;miniRect.parent.gameObject.SetActive(visible);
             if(Time.unscaledTime<nextRefresh)return;nextRefresh=Time.unscaledTime+.08f;
             var player=campaign.bindings.player;float yaw=player.GetComponent<ThirdPersonMotor>().visual.eulerAngles.y;float heading=settings.preferences.headingUp?yaw:0;
             MiniCrop=Crop(player.position,45);Background(miniImage,Crop(player.position,45*Mathf.Sqrt(2)));miniBuildings.SetView(MiniCrop,heading);miniImage.rectTransform.localEulerAngles=new Vector3(0,0,heading);
@@ -83,7 +83,7 @@ namespace UngaBunga45001
             foreach(var site in miniSites)Place(site.marker,Projection.Project(site.target.position,MiniCrop,heading));
             foreach(var risk in hazards){var state=campaign.State.risks.FirstOrDefault(v=>v.id==risk.id);bool known=state!=null&&showDangers;risk.mini.gameObject.SetActive(known);if(known){Place(risk.mini,Projection.Project(risk.target.position,MiniCrop,heading));risk.mini.GetComponent<AdventureShape>().color=state.value>=2?new Color(1,.3f,.2f):state.value>0?AdventureUI.Gold:new Color(.4f,.9f,.5f);}}
             coordinates.gameObject.SetActive(true);coordinates.text=(settings.preferences.coordinates?$"{player.position.x:0}, {player.position.y:0}, {player.position.z:0} · ":"")+settings.Binding("map")+" : Carte";north.text="N";var northDirection=(Vector2)(Quaternion.Euler(0,0,heading)*Vector2.up);north.rectTransform.anchorMin=north.rectTransform.anchorMax=Vector2.one*.5f+northDirection*.43f;north.rectTransform.pivot=Vector2.one*.5f;north.rectTransform.anchoredPosition=Vector2.zero;
-            miniRoute.SetRoute(navigation.Corners.Select(p=>Projection.Project(p,MiniCrop,heading)).ToArray(),(settings.preferences.gpsMode!=2||navigation.TemporaryGuidance)&&navigation.Complete,settings.preferences.highContrast);
+            miniRoute.SetRoute(navigation.Corners.Select(p=>Projection.Project(p,MiniCrop,heading)).ToArray(),navigation.MapRouteVisible,settings.preferences.highContrast);
             if(!IsOpen)return;SyncIncidentMarkers();
             float side=1/Zoom;FullCrop=new Rect(center-Vector2.one*side*.5f,Vector2.one*side);Background(fullImage,FullCrop);fullBuildings.SetView(FullCrop,0);
             Place(fullPlayer,Projection.Project(player.position,FullCrop));fullPlayer.localEulerAngles=new Vector3(0,0,-yaw);
@@ -94,7 +94,7 @@ namespace UngaBunga45001
             }
             foreach(var risk in hazards){var state=campaign.State.risks.FirstOrDefault(v=>v.id==risk.id);bool known=state!=null&&showDangers;risk.full.gameObject.SetActive(known);if(known){Place(risk.full,Projection.Project(risk.target.position,FullCrop));risk.full.GetComponent<AdventureShape>().color=state.value>=2?new Color(1,.3f,.2f):state.value>0?AdventureUI.Gold:new Color(.4f,.9f,.5f);}}
             fullTarget.gameObject.SetActive(navigation.Target!=null);if(navigation.Target!=null)Place(fullTarget,Projection.Project(navigation.Target.position,FullCrop),true);
-            fullRoute.SetRoute(navigation.Corners.Select(p=>Projection.Project(p,FullCrop)).ToArray(),(settings.preferences.gpsMode!=2||navigation.TemporaryGuidance)&&navigation.Complete,settings.preferences.highContrast);
+            fullRoute.SetRoute(navigation.Corners.Select(p=>Projection.Project(p,FullCrop)).ToArray(),navigation.MapRouteVisible,settings.preferences.highContrast);
             string riskCount=campaign.State.risks.Count==0?"À évaluer":campaign.State.risks.Count(r=>r.value>=2).ToString();
             caption.text=$"{(navigation.Replanning?"Actualisation du parcours":navigation.Status)}\n{navigation.Action?.title}\n{navigation.Distance:0} m\n\nRisques critiques : {riskCount}\nZoom : {Zoom:0.0}x";
             if(inspected!=null)caption.text+="\nLieu repéré : "+(names.FirstOrDefault(k=>campaign.bindings.Find(k.Key)==inspected).Value??campaign.Data.characters.FirstOrDefault(c=>campaign.bindings.Find(c.id)==inspected)?.name??"Lieu");

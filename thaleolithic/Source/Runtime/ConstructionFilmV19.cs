@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +16,15 @@ namespace UngaBunga45001
   public bool Owns(string id)=>Playing&&(crew.Any(p=>p.id==id)||id=="dylan");
   readonly ConstructionCameraV19 cine=new ConstructionCameraV19();public bool CinemachineActive=>cine.Active;
   public float BeamHeight=>beam!=null?beam.position.y-staging.position.y:0;
-  CampaignRuntime c;VillageUpgradeV18 village;Coroutine job;CampaignSave state;readonly List<Crew> crew=new List<Crew>();readonly HashSet<int> shots=new HashSet<int>();CinematicTimelineV16 timeline;Transform staging,beam,crate,incoming;Transform[] handGoals;Renderer[] oldRenderers;bool[] oldHidden;Renderer[] walls;Transform newRoof;Crew main,assistant,delivery,player;Camera camera;Vector3 oldCamera;Quaternion oldRotation;CinematicCameraV16 rig;readonly HashSet<Collider> foliage=new HashSet<Collider>();AnimationCurve lift;bool skipped,furnished;UnityEngine.UI.Button skip;
-  void Start(){c=GetComponent<CampaignRuntime>();village=GetComponent<VillageUpgradeV18>();}
-  public bool HoldsWork(string id){var s=village.StateFor(id);return s!=null&&s.phase==InstallationPhaseV18.Building&&s.filmTier<s.pendingTier&&Resources.Load<TimelineAsset>("TemperateV19/Timeline/Construction")!=null;}
+  CampaignRuntime c;VillageUpgradeV18 village;ChapterMotionV241 motion;Coroutine job;CampaignSave state;readonly List<Crew> crew=new List<Crew>();readonly HashSet<int> shots=new HashSet<int>();CinematicTimelineV16 timeline;Transform staging,beam,crate,incoming;Transform[] handGoals;Renderer[] oldRenderers;bool[] oldHidden;Renderer[] walls;Transform newRoof;Crew main,assistant,delivery,player;Camera camera;Vector3 oldCamera;Quaternion oldRotation;CinematicCameraV16 rig;readonly HashSet<Collider> foliage=new HashSet<Collider>();AnimationCurve lift;bool skipped,furnished;UnityEngine.UI.Button skip;
+  void Start(){c=GetComponent<CampaignRuntime>();village=GetComponent<VillageUpgradeV18>();motion=GetComponent<ChapterMotionV241>();}
+  public bool HoldsWork(string id)
+  {
+   var s=village.StateFor(id);
+   // The monument is worked on site. The roof-lifting sequence requires a building site.
+   return s!=null&&s.type!="monument"&&s.phase==InstallationPhaseV18.Building&&
+    s.filmTier<s.pendingTier&&Resources.Load<TimelineAsset>("TemperateV19/Timeline/Construction")!=null;
+  }
   Crew Take(string id,bool control)
   {
    var root=c.bindings.Find(id);var p=new Crew{id=id,root=root,animator=c.bindings.AnimatorFor(id),brain=root.GetComponent<VillagerBrain>(),agent=root.GetComponent<NavMeshAgent>(),body=root.GetComponent<CharacterController>(),collision=root.GetComponent<VillagerCollisionMotor>(),start=root.position};p.brainWas=p.brain!=null&&p.brain.enabled;p.agentWas=p.agent!=null&&p.agent.enabled;p.collisionWas=p.collision!=null&&p.collision.enabled;p.load=p.animator.GetComponent<CarriedLoad>();p.carryingWas=p.load!=null&&p.load.carrying;
@@ -45,7 +51,14 @@ namespace UngaBunga45001
   static float Flat(Vector3 a,Vector3 b){a.y=b.y=0;return Vector3.Distance(a,b);}
   void Update()
   {
-   if(c?.State==null||job!=null||c.IsModal||c.IsBusy)return;var next=c.State.villageV18.installations.FirstOrDefault(s=>HoldsWork(s.id)&&village.WorkerOnSite(s));if(next!=null){state=c.State;WorkingId=next.id;job=StartCoroutine(Produce(next));}
+   if(c?.State==null||job!=null||c.IsBusy)return;
+   var panel=c.GetComponent<VillageUpgradeViewV18>();
+   bool inspecting=panel?.Open==true&&c.ActiveControlLocks==ControlLocks.Inspection&&!c.IncidentModal;
+   if(c.IsModal&&!inspecting)return;
+   var next=c.State.villageV18.installations.FirstOrDefault(s=>HoldsWork(s.id)&&village.WorkerOnSite(s)&&(!inspecting||panel.Selected==s.id));
+   if(next==null||!motion.Prepare("07")||!motion.Prepare("08"))return;
+   if(inspecting)panel.Close();
+   state=c.State;WorkingId=next.id;job=StartCoroutine(Produce(next));
   }
   GameObject Spawn(string id,Transform parent,Vector3 local)
   {var source=Resources.Load<GameObject>((id.StartsWith("TH19_")?"NativeArchitectureV19":id.StartsWith("TH18_")?"VillageV18":"TemperateV19")+"/Prefabs/"+id);if(source==null)throw new InvalidOperationException("Construction prefab missing: "+id);var go=Instantiate(source,parent);go.transform.localPosition=local;go.transform.localRotation=Quaternion.identity;return go;}
@@ -96,7 +109,7 @@ namespace UngaBunga45001
    }
   }
   void Pose(Crew person,string clip,float t,Vector3 look)
-  {if(person.pose==null)return;var animation=Resources.Load<AnimationClip>("CinematicsV18/Clips/"+clip);person.pose.Sample(animation,Mathf.Repeat(t,animation.length),1);person.pose.Look(look,.75f);}
+  {if(person.pose==null)return;var animation=motion.Clip(clip);if(animation==null)return;person.pose.Sample(animation,Mathf.Repeat(t,animation.length),1);person.pose.Look(look,.75f);}
   void Present(InstallationStateV18 s,Transform house,Vector3 toward,Vector3 right)
   {
    int shot=Mathf.Clamp(timeline.ShotIndex,0,8);float t=Clock;beam.localPosition=Vector3.up*lift.Evaluate(Mathf.Clamp(t-4.5f,0,3.8f));var face=staging.position;

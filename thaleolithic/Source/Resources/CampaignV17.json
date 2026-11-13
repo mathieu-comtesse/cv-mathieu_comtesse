@@ -186,6 +186,8 @@
       "actor": "mathieu",
       "site": "grand_menhir",
       "evidence": "Tablette du système SST",
+      "intro": "Lis la tablette centrale et associe-la à la bonne fonction du système SST.",
+      "outro": "Assemblage terminé. Retourne voir Aurélien pour valider la mission.",
       "cards": [
         {
           "id": "cycle",
@@ -1438,7 +1440,7 @@
         "V17_SCOPE",
         "V17_SYSTEM"
       ],
-      "description": "LE VILLAGE N’EST PAS SEUL AU MONDE. Observe, agis puis conserve les preuves.",
+      "description": "La tribu a identifié son contexte, les besoins de ses habitants et les limites de ses activités. Il reste maintenant à relier ces éléments dans un système cohérent de prévention.\n\nUne fois ces observations terminées, rejoins le Grand Menhir. Mathieu est le référent pédagogique de l’assemblage des quatre tablettes du système SST. Interagis avec le Menhir pour commencer.\n\nAssocie chaque tablette à sa fonction, puis vérifie l’ensemble avant de présenter le résultat à Aurélien.",
       "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
       "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
       "required": true,

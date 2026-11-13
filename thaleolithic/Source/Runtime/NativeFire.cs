@@ -13,9 +13,16 @@ namespace UngaBunga45001
         public bool lit=true;public float radius=.45f,height=1.05f;
         public int AnimatedFlames=>flames?.Length??0;public Light WarmLight{get;private set;}
         Transform[] flames,embers;AudioSource audioSource;float phase;Mesh flameMesh,coalMesh;
+        CampaignRuntime campaign;
+        float nextLod, nextAnimation;
+        int lod, shownFlames = -1, shownEmbers = -1;
+        bool obstacleLit;
+        float obstacleRadius;
         void Start()
         {
+            campaign=FindFirstObjectByType<CampaignRuntime>();
             phase=Mathf.Abs(transform.position.x*3.71f+transform.position.z*1.13f);
+            obstacleLit=lit;obstacleRadius=radius;
             flameMesh=new Mesh{name="Flamme polyédrique"};flameMesh.vertices=new[]{new Vector3(-.5f,0,-.3f),new Vector3(.5f,0,-.3f),new Vector3(0,0,.5f),new Vector3(-.22f,.45f,-.12f),new Vector3(.22f,.45f,-.12f),new Vector3(0,.45f,.22f),new Vector3(.04f,1,0)};flameMesh.triangles=new[]{0,1,3,1,4,3,1,2,4,2,5,4,2,0,5,0,3,5,3,4,6,4,5,6,5,3,6,2,1,0};flameMesh.RecalculateNormals();
             coalMesh=new Mesh{name="Braise polygonale"};coalMesh.vertices=new[]{Vector3.up*.4f,Vector3.down*.4f,Vector3.left*.5f,Vector3.right*.5f,Vector3.forward*.5f,Vector3.back*.5f};coalMesh.triangles=new[]{0,4,3,0,2,4,0,5,2,0,3,5,1,3,4,1,4,2,1,2,5,1,5,3};coalMesh.RecalculateNormals();
             Transform Make(string name,Mesh mesh,Material material){var go=new GameObject(name);go.transform.SetParent(transform,false);go.AddComponent<MeshFilter>().sharedMesh=mesh;var renderer=go.AddComponent<MeshRenderer>();renderer.sharedMaterial=material;renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;return go.transform;}
@@ -28,14 +35,41 @@ namespace UngaBunga45001
         }
         void Update()
         {
-            if(exclusion!=null){exclusion.enabled=lit;exclusion.radius=radius+.8f;}
-            if(flames==null)return;float t=Time.time+phase;bool active=lit;
-            foreach(var f in flames)if(f.gameObject.activeSelf!=active)f.gameObject.SetActive(active);
-            foreach(var e in embers)if(e.gameObject.activeSelf!=active)e.gameObject.SetActive(active);
-            WarmLight.enabled=active;if(!active){if(audioSource.isPlaying)audioSource.Stop();return;}if(!audioSource.isPlaying&&crackle!=null)audioSource.Play();
-            for(int i=0;i<flames.Length;i++){float a=i*2.399f,s=i<4?1:.56f;flames[i].localPosition=new Vector3(Mathf.Sin(a)*radius*.42f,0,Mathf.Cos(a)*radius*.42f);flames[i].localScale=new Vector3(radius*s*(.75f+.15f*Mathf.Sin(t*8+i)),height*s*(.85f+.18f*Mathf.Sin(t*5.7f+i*1.4f)),radius*s);flames[i].localRotation=Quaternion.Euler(Mathf.Sin(t*4+i)*6,t*13+i*65,Mathf.Cos(t*3+i)*7);}
-            for(int i=0;i<embers.Length;i++){float y=Mathf.Repeat(t*.43f+i*.23f,1);embers[i].localPosition=new Vector3(Mathf.Sin(t*.8f+i)*radius*.7f,y*height*2.2f,Mathf.Cos(t+i)*radius*.6f);embers[i].localScale=Vector3.one*(1-y)*.045f;}
-            WarmLight.intensity=(RenderBackend.HDRP?1800:2.5f)*(.92f+.08f*Mathf.Sin(t*17)+.045f*Mathf.Sin(t*31));
+            if(exclusion!=null && (obstacleLit!=lit || obstacleRadius!=radius))
+            {
+                exclusion.enabled=lit;exclusion.radius=radius+.8f;obstacleLit=lit;obstacleRadius=radius;
+            }
+            if(flames==null)return;
+            float now=Time.unscaledTime;
+            if(now>=nextLod)
+            {
+                nextLod=now+.25f;
+                var cinematic=campaign?.cinematicDirector?.cinematicCamera;
+                var view=cinematic!=null&&cinematic.isActiveAndEnabled?cinematic:campaign?.bindings?.gameplayCamera;
+                if(view!=null)
+                {
+                    float sqrDistance=(transform.position-view.transform.position).sqrMagnitude;
+                    lod=sqrDistance<18*18?0:sqrDistance<45*45?1:2;
+                }
+            }
+            SetVisibleCount(flames,lit?(lod==0?flames.Length:lod==1?4:2):0,ref shownFlames);
+            SetVisibleCount(embers,lit?(lod==0?embers.Length:lod==1?2:0):0,ref shownEmbers);
+            bool nearby=lit&&lod==0;
+            if(WarmLight.enabled!=nearby)WarmLight.enabled=nearby;
+            if(!nearby){if(audioSource.isPlaying)audioSource.Stop();}
+            else if(!audioSource.isPlaying&&crackle!=null)audioSource.Play();
+            if(!lit||now<nextAnimation)return;
+            nextAnimation=now+(lod==0?0:lod==1?.066f:.2f);
+            float t=Time.time+phase;
+            for(int i=0;i<shownFlames;i++){float a=i*2.399f,s=i<4?1:.56f;flames[i].localPosition=new Vector3(Mathf.Sin(a)*radius*.42f,0,Mathf.Cos(a)*radius*.42f);flames[i].localScale=new Vector3(radius*s*(.75f+.15f*Mathf.Sin(t*8+i)),height*s*(.85f+.18f*Mathf.Sin(t*5.7f+i*1.4f)),radius*s);flames[i].localRotation=Quaternion.Euler(Mathf.Sin(t*4+i)*6,t*13+i*65,Mathf.Cos(t*3+i)*7);}
+            for(int i=0;i<shownEmbers;i++){float y=Mathf.Repeat(t*.43f+i*.23f,1);embers[i].localPosition=new Vector3(Mathf.Sin(t*.8f+i)*radius*.7f,y*height*2.2f,Mathf.Cos(t+i)*radius*.6f);embers[i].localScale=Vector3.one*(1-y)*.045f;}
+            if(nearby)WarmLight.intensity=(RenderBackend.HDRP?1800:2.5f)*(.92f+.08f*Mathf.Sin(t*17)+.045f*Mathf.Sin(t*31));
+        }
+        static void SetVisibleCount(Transform[] elements,int count,ref int shown)
+        {
+            if(shown==count)return;
+            for(int i=0;i<elements.Length;i++)elements[i].gameObject.SetActive(i<count);
+            shown=count;
         }
         void OnDestroy(){if(flameMesh!=null)Destroy(flameMesh);if(coalMesh!=null)Destroy(coalMesh);}
     }

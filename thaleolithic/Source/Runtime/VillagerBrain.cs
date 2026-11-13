@@ -12,14 +12,27 @@ namespace UngaBunga45001
         public int CompletedCycles{get;private set;}public int PathFailures{get;private set;}public float Travelled{get;private set;}
         public string BlockedReason{get;private set;}="";public Vector3 Destination{get;private set;}
         public float RoutineProgress=>phase==2?Mathf.Clamp01(timer/(7+(turn+StableId())%7)):phase==4?Mathf.Clamp01(timer/2):0;
-        VillageLife life;NavMeshAgent agent;CharacterState state;CampaignSave save;float timer,decisionAt,stuckTime;int phase,turn;Vector3 previous;bool moving,resting;
+        VillageLife life;NavMeshAgent agent;CharacterState state;CampaignSave save;
+        CharacterDefinition definition;WorkNavigationV18 physical;ActivityWorldV17 emergency;VillageUpgradeV18 village;TribalTaskRuntime tasks;
+        CampaignActivitiesV17 activities;
+        int stableId;float timer,decisionAt,stuckTime;int phase,turn;Vector3 previous;bool moving,resting;
         void Awake(){agent=GetComponent<NavMeshAgent>();previous=transform.position;life=FindFirstObjectByType<VillageLife>();}
         public void Bind(CampaignRuntime runtime,VillagerRoutine job,Animator controller)
-        {campaign=runtime;routine=job;id=job.id;animator=controller;}
+        {
+            campaign=runtime;routine=job;id=job.id;animator=controller;
+            stableId=0;
+            foreach(char letter in id)stableId=(stableId*31+letter)&0x7fffffff;
+        }
         public void ResumeAfterCinematic(){phase=0;timer=0;decisionAt=0;stuckTime=0;moving=false;previous=transform.position;}
         void Restore()
         {
             save=campaign.State;state=save.characters.FirstOrDefault(c=>c.id==id);if(state==null)return;
+            definition=campaign.Data.characters.FirstOrDefault(character=>character.id==id);
+            physical=campaign.GetComponent<WorkNavigationV18>();
+            emergency=campaign.GetComponent<ActivityWorldV17>();
+            village=campaign.GetComponent<VillageUpgradeV18>();
+            tasks=campaign.GetComponent<TribalTaskRuntime>();
+            activities=campaign.GetComponent<CampaignActivitiesV17>();
             if(state.positionSaved&&VillageNavigation.Clear(state.position,transform))
             {if(agent.enabled&&agent.isOnNavMesh)agent.Warp(state.position);else transform.position=state.position;transform.rotation=Quaternion.Euler(0,state.yaw,0);}
             phase=state.taskPhase;timer=state.taskTimer;turn=state.taskTurn;decisionAt=Time.time+.1f;resting=false;
@@ -35,21 +48,25 @@ namespace UngaBunga45001
             if(!state.alive){Behaviour=VillagerBehaviour.DEAD;Stop();if(load!=null)load.carrying=false;return;}
             if(campaign.cinematicDirector.IsPlaying){Behaviour=VillagerBehaviour.CINEMATIC_CONTROL;return;}
             if(campaign.UserPaused){Stop();return;}
-            var definition=campaign.Data.characters.FirstOrDefault(c=>c.id==id);
+            if(activities?.BlocksGameplay==true&&activities.Current.site==id&&activities.Current.actor==id)
+            {
+                Stop();Face(campaign.bindings.player.position);Pose("Listen");Behaviour=VillagerBehaviour.SOCIALIZE;return;
+            }
             bool speaking=campaign.ConversationActorId==id&&(campaign.Dialogue!=null||campaign.QuestOverlay)||campaign.Dialogue!=null&&definition!=null&&campaign.Dialogue.speaker.StartsWith(definition.name,StringComparison.OrdinalIgnoreCase);
             if(speaking){if(!wasSpeaking)ActivityBeforeConversation=ActivityLabel;wasSpeaking=true;Stop();Face(campaign.bindings.player.position);Pose("Talk");Behaviour=VillagerBehaviour.SOCIALIZE;return;}wasSpeaking=false;
-            var physical=campaign.GetComponent<WorkNavigationV18>();if(physical?.Controls(id)??false){Behaviour=physical.Evacuating(id)?VillagerBehaviour.EVACUATE:VillagerBehaviour.BUILD;return;}
-            if(campaign.GetComponent<ActivityWorldV17>()?.EvacuationDestination(id,out var assemblyPoint)==true)
+            if(physical?.Controls(id)??false){Behaviour=physical.Evacuating(id)?VillagerBehaviour.EVACUATE:VillagerBehaviour.BUILD;return;}
+            if(emergency?.EvacuationDestination(id,out var assemblyPoint)==true)
             {Behaviour=VillagerBehaviour.EVACUATE;Move(assemblyPoint,1.65f);if(Arrived()){Stop();Pose("Listen");}return;}
-            if(campaign.GetComponent<VillageUpgradeV18>()?.WorkDestination(id,out var workPoint)==true)
+            if(village?.WorkDestination(id,out var workPoint)==true)
             {Behaviour=VillagerBehaviour.BUILD;Move(workPoint,1.3f);if(Arrived()){Stop();if(!(animator.GetComponent<CinematicActorV15>()?.Owned??false))Pose("Build");}return;}
             if(animator.GetComponent<CinematicActorV15>()?.Owned??false){Stop();Behaviour=VillagerBehaviour.CINEMATIC_CONTROL;return;}
             if(!agent.enabled||!agent.isOnNavMesh){Behaviour=VillagerBehaviour.IDLE;BlockedReason="Navigation indisponible";return;}
             if(agent.hasPath&&agent.remainingDistance>.5f&&agent.velocity.sqrMagnitude<.006f&&!agent.pathPending)stuckTime+=Time.deltaTime;else stuckTime=0;
             if(stuckTime>3){agent.ResetPath();decisionAt=0;stuckTime=0;PathFailures++;BlockedReason="Itinéraire réévalué après obstacle";}
-            // Near actors think at 5 Hz; distant actors keep their current safe route between 1 Hz decisions.
+            // Emergency and authored movement above remain frame-driven. Ordinary decisions are staggered by distance.
             if(Time.time<decisionAt){AnimateMovement();return;}
-            float distance=Vector3.Distance(transform.position,campaign.bindings.player.position);float dt=distance<65?.2f:1;decisionAt=Time.time+dt;
+            float distance=(transform.position-campaign.bindings.player.position).sqrMagnitude;
+            float dt=distance<32*32?.2f:distance<65*65?.4f:1;decisionAt=Time.time+dt;
             state.energy=Mathf.Max(0,state.energy-(moving?.14f:.055f)*dt);state.fatigue=Mathf.Min(100,state.fatigue+(moving?.13f:.055f)*dt);state.hunger=Mathf.Min(100,state.hunger+.065f*dt);
             bool evacuation=campaign.HasFlag("emergency_active")||(campaign.HasFlag("done:M_VI_URGENCE_1")&&!campaign.HasFlag("done:M_VI_URGENCE_3"));
             if(evacuation){Behaviour=VillagerBehaviour.EVACUATE;Move(Slot("rassemblement",1.6f),1.8f);if(Arrived()){Stop();Pose("Listen");}return;}
@@ -69,7 +86,7 @@ namespace UngaBunga45001
                 Behaviour=VillagerBehaviour.EAT;Move(Slot("foyer",1.4f),1.1f);
                 if(Arrived()){Stop();Pose("Eat");timer+=dt;if(timer>5){state.hunger=Mathf.Max(0,state.hunger-45);timer=0;}}return;
             }
-            if(campaign.GetComponent<TribalTaskRuntime>()?.Handle(this,dt)==true)return;
+            if(tasks?.Handle(this,dt)==true)return;
             if(id=="mathieu")
             {
                 var player=campaign.bindings.player;var side=player.right*(turn%2==0?1:-1);var goal=player.position-player.forward*2.5f+side*1.2f;
@@ -108,7 +125,7 @@ namespace UngaBunga45001
             Behaviour=VillagerBehaviour.SOCIALIZE;Move(Slot(site,1.8f),1.05f+(StableId()%3)*.1f);
             if(Arrived()){Stop();Pose(turn%3==0?"Talk":turn%3==1?"Listen":"Laugh");Face(campaign.bindings.Find(site).position);timer+=dt;if(timer>7+(StableId()+turn)%11){timer=0;turn++;}}
         }
-        int StableId(){int h=0;foreach(char c in id)h=(h*31+c)&0x7fffffff;return h;}
+        int StableId()=>stableId;
         Vector3 Slot(string site,float radius){var target=campaign.bindings.Find(site);if(target==null)return routine.workplace;return target.position+Quaternion.Euler(0,(StableId()%12)*30,0)*Vector3.forward*radius;}
         Vector3 requestedGoal=Vector3.positiveInfinity;
         void Move(Vector3 target,float speed)

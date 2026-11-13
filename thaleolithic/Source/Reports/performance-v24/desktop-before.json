@@ -1,0 +1,143 @@
+{
+  "version": "V23.1",
+  "device": "bureau",
+  "delivery": "ressources locales interceptées par Playwright",
+  "files": {
+    "loaderUrl": 47338,
+    "dataUrl": 96843677,
+    "frameworkUrl": 90632,
+    "codeUrl": 9349375
+  },
+  "stages": [
+    {
+      "name": "Cinématique d’ouverture",
+      "browserFrames": 358,
+      "browserFps": 44.67739922625732,
+      "medianMs": 11.099999999998545,
+      "p95Ms": 16.599999999998545,
+      "p99Ms": 22.099999999998545,
+      "mainThreadMs": 8000.807000000002,
+      "scriptMs": 7923.683,
+      "longTasks": 2,
+      "wasmPeakMiB": 458.875,
+      "jsPeakMiB": 535.8214445114136,
+      "runtime": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 3.3523311614990234,
+        "frameMs": 10.059601783752441,
+        "paused": false,
+        "touch": false,
+        "film": true,
+        "position": {
+          "x": 350.9819641113281,
+          "y": 11.83238410949707,
+          "z": 278.4559020996094
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "diagnostic": {
+        "type": "diagnostic",
+        "yaw": 59.33151626586914,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 99.40751647949219,
+        "touches": 0,
+        "allocatedMiB": 327
+      }
+    },
+    {
+      "name": "Village initial après la cinématique",
+      "browserFrames": 1147,
+      "browserFps": 95.60325067722442,
+      "medianMs": 11.099999999998545,
+      "p95Ms": 16.69999999999709,
+      "p99Ms": 22.200000000004366,
+      "mainThreadMs": 11980.856000000003,
+      "scriptMs": 11798.828,
+      "longTasks": 0,
+      "wasmPeakMiB": 458.875,
+      "jsPeakMiB": 435.04309844970703,
+      "runtime": {
+        "type": "state",
+        "player": "dylan",
+        "act": "ACTE_I",
+        "dialogue": "",
+        "quest": "",
+        "duel": "",
+        "elapsed": 54.35004425048828,
+        "frameMs": 12.371463775634766,
+        "paused": false,
+        "touch": false,
+        "film": false,
+        "position": {
+          "x": 351.924072265625,
+          "y": 11.840607643127441,
+          "z": 278.20233154296875
+        },
+        "fires": 2,
+        "characters": 20,
+        "claimed": 0
+      },
+      "diagnostic": {
+        "type": "diagnostic",
+        "yaw": 59.33151626586914,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 80.8311767578125,
+        "touches": 0,
+        "allocatedMiB": 330
+      }
+    }
+  ],
+  "errors": [],
+  "startup": {
+    "readyAt": 12306.699999928474,
+    "playerAt": 14100.699999928474,
+    "events": [
+      {
+        "type": "ready",
+        "at": 12281.199999928474
+      },
+      {
+        "type": "BROWSER_ACK",
+        "at": 12293.299999952316
+      },
+      {
+        "type": "GAME_STARTING",
+        "at": 12445.799999952316
+      },
+      {
+        "type": "GAME_STARTED",
+        "at": 12684
+      }
+    ],
+    "wasmPeakMiB": 458.875,
+    "jsPeakMiB": 653.2737846374512,
+    "longTasks": [
+      {
+        "at": 26.5,
+        "ms": 63
+      },
+      {
+        "at": 8118.599999904633,
+        "ms": 1240
+      },
+      {
+        "at": 11375.899999976158,
+        "ms": 900
+      },
+      {
+        "at": 12441.799999952316,
+        "ms": 242
+      }
+    ]
+  },
+  "status": "passed"
+}
