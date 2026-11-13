@@ -112,7 +112,7 @@ async function start() {
   // page Gains : construite par les scripts du site (tableau de bord, graphique, tableau) ; la tirelire 3D du parcours prend la place de la sienne
   if ($('#work')) {
     try {
-      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([import('../js/gains-dashboard.js?v=monde-20261025'), import('../js/gains-table.js?v=ind-20261101')]);
+      const [{ initGainsDashboard }, { initGainsTable }] = await Promise.all([import('../js/gains-dashboard.js?v=fall26-int2'), import('../js/gains-table.js?v=ind-20261101')]);
       initGainsDashboard(); initGainsTable(); $('.annual-pig-wrap')?.setAttribute('data-pig', '');
     } catch (e) { console.warn('page Gains indisponible', e); }
   }

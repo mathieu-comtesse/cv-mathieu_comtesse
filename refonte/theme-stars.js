@@ -1,110 +1,131 @@
-/* Titres de thème en étoile (mode à plat) : chaque titre (« Faire fonctionner », « Fichiers retrouvés »…) devient le foyer d'une étoile.
- * Le libellé se place au centre, à côté d'un nœud carré blanc ; des branches en partent :
- *   - branches éditoriales, vers chaque fiche du thème (une par vrai projet, jamais plus) ;
- *   - branches graphiques, vers des points secondaires tirés du nom du thème (toujours les mêmes), reliés entre eux par des traits fins.
- * Les branches se tracent depuis le foyer à l'entrée dans l'écran, les points dérivent lentement et s'écartent un peu du curseur.
- * Code original ; tracé en SVG dans la grille des fiches. En chemin 3D, le moteur garde ses lettres en volume : l'étoile est masquée. */
+/* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
+ * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
+ *   - branches éditoriales : une par vrai contenu du chapitre ou du thème, terminée par une vignette cliquable (elle mène à la fiche) ;
+ *   - branches graphiques : points secondaires tirés du libellé du titre (toujours les mêmes), sans contenu associé.
+ * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
+ * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
+ * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
 style.textContent = `
-.cv-star-layer{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
+.cv-star-layer{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
 html.cv-parity-active .cv-star-layer{display:none}
-html:not(.cv-parity-active) .cv-theme-heading.cv-star{position:relative;height:clamp(250px,30vw,400px);padding:0;border-top:0}
-html:not(.cv-parity-active) .cv-theme-heading.cv-star h2{position:absolute;left:50%;top:50%;margin:0;transform:translate(calc(-100% - 16px),-50%);padding:3px 7px 4px;white-space:nowrap;font:700 15px/1 "Söhne Mono","JetBrains Mono",ui-monospace,monospace;letter-spacing:.01em;color:#fff;background:rgb(0 12 96 / .42)}
-.cv-star-layer line{stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;opacity:var(--o,.7);transition:stroke-dashoffset .9s cubic-bezier(.16,1,.3,1) var(--d,0s),opacity .25s,stroke-width .25s}
+.cv-star-host{position:relative}
+html:not(.cv-parity-active) .cv-theme-heading.cv-star-host h2{color:#fff}
+.cv-star-host>h2,.cv-star-host>div>h2,.cv-star-host h2{position:relative;z-index:1}
+.cv-star-layer line{stroke:#cfe0ff;stroke-width:1;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;opacity:var(--o,.5);transition:stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1) var(--d,0s),opacity .25s,stroke .25s}
 .cv-star-layer .vu line{stroke-dashoffset:0}
-.cv-star-layer line.fort{stroke-width:2;--o:1}
-.cv-star-layer line.lien{--o:.26}
-.cv-star-layer line.fiche{stroke-width:1.5;--o:.92}
-.cv-star-layer line.fiche.actif,.cv-star-layer g.tout line.fiche{stroke-width:2.6;--o:1}
-.cv-star-layer g.tout line:not(.lien){--o:1}
-.cv-star-layer circle,.cv-star-layer rect{fill:#fff;opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.2);transition:opacity .35s var(--d,0s),transform .5s cubic-bezier(.16,1,.3,1) var(--d,0s)}
-.cv-star-layer .vu circle,.cv-star-layer .vu rect{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.cv-star-layer line,.cv-star-layer circle,.cv-star-layer rect{transition:none}}
+.cv-star-layer line.fiche{--o:.8;stroke:#fff}
+.cv-star-layer line.vif{stroke:#5fe6ff;--o:1}
+.cv-star-layer g.noeud.actif~line,.cv-star-layer line.actif{stroke:#fff;--o:1;stroke-width:2}
+.cv-star-layer line.onde{stroke:#fff;stroke-dasharray:.07 1;stroke-dashoffset:1.07;opacity:0;transition:none}
+.cv-star-layer .vu line.onde{opacity:.95;animation:cv-star-onde 3.4s linear var(--d,0s) infinite}
+@keyframes cv-star-onde{0%{stroke-dashoffset:1.07;opacity:0}8%{opacity:.95}70%{stroke-dashoffset:0;opacity:.95}78%,100%{stroke-dashoffset:0;opacity:0}}
+.cv-star-layer circle{fill:#dfe9ff;opacity:0;transition:opacity .4s var(--d,0s)}
+.cv-star-layer .vu circle{opacity:.9}
+.cv-star-layer rect.foyer{fill:#fff;opacity:0;transition:opacity .3s}
+.cv-star-layer .vu rect.foyer{opacity:1}
+.cv-star-layer g.noeud{pointer-events:auto;cursor:pointer;opacity:0;transition:opacity .4s var(--d,0s)}
+.cv-star-layer .vu g.noeud{opacity:1}
+.cv-star-layer g.noeud rect{fill:#fff;stroke:#fff;stroke-width:1;fill-opacity:.92;transition:fill-opacity .2s}
+.cv-star-layer g.noeud rect.cadre{fill:none;stroke-opacity:.75}
+.cv-star-layer g.noeud text{font:500 11px/1 "Söhne Mono","JetBrains Mono",ui-monospace,monospace;fill:#fff;opacity:0;transition:opacity .2s;paint-order:stroke;stroke:rgb(0 10 90 / .55);stroke-width:4px}
+.cv-star-layer g.noeud:hover text,.cv-star-layer g.noeud:focus-visible text{opacity:1}
+.cv-star-layer g.noeud:focus-visible{outline:none}.cv-star-layer g.noeud:focus-visible rect.cadre{stroke-width:2;stroke-opacity:1}
+@media (prefers-reduced-motion:reduce){.cv-star-layer line,.cv-star-layer circle,.cv-star-layer g.noeud{transition:none}.cv-star-layer .vu line.onde{animation:none;opacity:0}}
 `;
 document.head.append(style);
 
 const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const el = (nom, attrs = {}) => { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+const libelle = (a) => (a.querySelector('h3, h2')?.textContent || a.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 60);
 
 function installe() {
-  const titres = [...document.querySelectorAll('.cv-theme-heading[data-cv-theme]')];
-  if (!titres.length) return;
-  const grilles = new Map();
-  for (const titre of titres) {
-    const grille = titre.parentElement; if (!grilles.has(grille)) grilles.set(grille, []);
-    grilles.get(grille).push(titre);
+  const cibles = [];
+  for (const sec of document.querySelectorAll('section[data-f26-page-section]')) {
+    const pin = sec.querySelector(':scope > .section-hero-pin'), h = pin?.querySelector('h2'); if (!h) continue;
+    let fiches = [...sec.querySelectorAll('article[data-cv-type], article.product-card')].filter((a) => libelle(a));
+    if (!fiches.length) fiches = [...sec.querySelectorAll('h3')].filter((x) => x.textContent.trim()).map((x) => x.closest('article, li, div') || x);
+    cibles.push({ hote: pin, titre: h, fiches: fiches.slice(0, 16), nom: h.textContent.trim(), chapitre: true });
   }
+  for (const t of document.querySelectorAll('.cv-theme-heading[data-cv-theme]')) {
+    const h = t.querySelector('h2'), nom = t.dataset.cvTheme; if (!h) continue;
+    cibles.push({ hote: t, titre: h, fiches: [...t.parentElement.querySelectorAll('article[data-cv-theme]')].filter((a) => a.dataset.cvTheme === nom), nom, chapitre: false });
+  }
+  if (!cibles.length) return;
   const etoiles = [], souris = { x: -1e4, y: -1e4 };
-  for (const [grille, liste] of grilles) {
-    if (getComputedStyle(grille).position === 'static') grille.style.position = 'relative';
-    const svg = el('svg', { class: 'cv-star-layer', 'aria-hidden': 'true' }); grille.prepend(svg);
-    for (const titre of liste) {
-      const nom = titre.dataset.cvTheme, fiches = [...grille.querySelectorAll('article[data-cv-theme]')].filter((a) => a.dataset.cvTheme === nom);
-      const g = el('g'); svg.append(g); titre.classList.add('cv-star');
-      const rd = alea(hache(nom)), N = 8 + Math.floor(rd() * 4), deco = [];
-      for (let k = 0; k < N; k++) deco.push({ a: (k + (rd() - 0.5) * 0.7) / N * Math.PI * 2, r: 0.62 + rd() * 0.38, phase: rd() * 6.28, fort: rd() < 0.3 });
-      const e = { titre, grille, svg, g, fiches, deco, lignes: [], vu: false, hub: null };
-      /* branches graphiques, liens entre points voisins, branches éditoriales, puis les points par-dessus */
-      deco.forEach((d, k) => { d.rayon = el('line', { class: d.fort ? 'fort' : '', pathLength: 1, style: `--d:${(k * 0.045).toFixed(3)}s` }); g.append(d.rayon); });
-      deco.forEach((d, k) => { d.lien = el('line', { class: 'lien', pathLength: 1, style: `--d:${(0.5 + k * 0.03).toFixed(3)}s` }); g.append(d.lien); });
-      e.editos = fiches.map((fiche, k) => {
-        const ligne = el('line', { class: 'fiche', pathLength: 1, style: `--d:${(0.15 + k * 0.08).toFixed(3)}s` }), noeud = el('rect', { width: 9, height: 9, style: `--d:${(0.55 + k * 0.08).toFixed(3)}s` });
-        g.append(ligne);
-        const on = () => ligne.classList.add('actif'), off = () => ligne.classList.remove('actif');
-        fiche.addEventListener('pointerenter', on); fiche.addEventListener('pointerleave', off); fiche.addEventListener('focusin', on); fiche.addEventListener('focusout', off);
-        return { fiche, ligne, noeud };
-      });
-      deco.forEach((d, k) => { d.point = el('circle', { r: 3, style: `--d:${(0.3 + k * 0.045).toFixed(3)}s` }); g.append(d.point); });
-      for (const q of e.editos) g.append(q.noeud);
-      e.hub = el('rect', { width: 13, height: 13 }); g.append(e.hub);
-      const h2 = titre.querySelector('h2');
-      h2?.addEventListener('pointerenter', () => g.classList.add('tout')); h2?.addEventListener('pointerleave', () => g.classList.remove('tout'));
-      if (h2) h2.style.pointerEvents = 'auto';
-      etoiles.push(e);
-    }
+  for (const c of cibles) {
+    c.hote.classList.add('cv-star-host');
+    const svg = el('svg', { class: 'cv-star-layer', 'aria-hidden': 'true' }), g = el('g'); svg.append(g); c.hote.prepend(svg);
+    const rd = alea(hache(c.nom)), branches = [];
+    /* éventail : la plupart des branches partent vers la droite et le haut, quelques-unes vers le bas et la gauche (relevé sur la référence) */
+    const angle = () => { const u = rd(); return (u < 0.72 ? -1.75 + rd() * 2.85 : 1.25 + rd() * 2.1); };
+    const nDeco = (c.chapitre ? 12 : 8) + Math.floor(rd() * 4);
+    c.fiches.forEach((fiche, k) => branches.push({ fiche, a: -1.2 + (k + 0.5) / c.fiches.length * 2.5 + (rd() - 0.5) * 0.25, r: 0.55 + rd() * 0.45, phase: rd() * 6.28 }));
+    for (let k = 0; k < nDeco; k++) branches.push({ a: angle(), r: 0.3 + rd() * 0.7, phase: rd() * 6.28 });
+    branches.forEach((b, k) => {
+      const d = `--d:${(k * 0.04).toFixed(3)}s`;
+      b.ligne = el('line', { class: b.fiche ? (k < 2 ? 'fiche vif' : 'fiche') : '', pathLength: 1, style: d }); g.append(b.ligne);
+      if (b.fiche) { b.onde = el('line', { class: 'onde', pathLength: 1, style: `--d:${(1.2 + k * 0.37).toFixed(2)}s` }); g.append(b.onde); }
+    });
+    branches.forEach((b, k) => {
+      const d = `--d:${(0.45 + k * 0.04).toFixed(3)}s`;
+      if (!b.fiche) { b.point = el('circle', { r: 1.6 + (k % 3) * 0.5, style: d }); g.append(b.point); return; }
+      const n = el('g', { class: 'noeud', tabindex: '0', role: 'link', style: d }), t = el('text', { x: 14, y: 4 }); t.textContent = libelle(b.fiche);
+      n.append(el('rect', { class: 'cadre', x: -9, y: -7, width: 18, height: 14 }), el('rect', { x: -6, y: -4, width: 12, height: 8 }), t); n.setAttribute('aria-label', libelle(b.fiche)); g.append(n); b.noeud = n;
+      const va = () => b.fiche.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
+      n.addEventListener('click', va); n.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') va(); });
+      const on = () => b.ligne.classList.add('actif'), off = () => b.ligne.classList.remove('actif');
+      n.addEventListener('pointerenter', on); n.addEventListener('pointerleave', off); b.fiche.addEventListener('pointerenter', on); b.fiche.addEventListener('pointerleave', off);
+    });
+    const foyer = el('rect', { class: 'foyer', width: 9, height: 9 }); g.append(foyer);
+    etoiles.push({ ...c, svg, g, branches, foyer, vu: false });
   }
+  svgAccessible(etoiles);
   const place = (ligne, x1, y1, x2, y2) => { ligne.setAttribute('x1', x1.toFixed(1)); ligne.setAttribute('y1', y1.toFixed(1)); ligne.setAttribute('x2', x2.toFixed(1)); ligne.setAttribute('y2', y2.toFixed(1)); };
-  /* géométrie : relevée dans la page (repère de la grille), recalculée quand la grille change de taille */
   function mesure(e) {
-    const G = e.grille.getBoundingClientRect(), T = e.titre.getBoundingClientRect();
-    e.cx = T.left - G.left + T.width / 2; e.cy = T.top - G.top + T.height / 2; e.ry = T.height * 0.46; e.rx = Math.min(T.width * 0.44, e.ry * 2.5);
-    e.hub.setAttribute('x', (e.cx - 6.5).toFixed(1)); e.hub.setAttribute('y', (e.cy - 6.5).toFixed(1));
-    for (const q of e.editos) {
-      const m = q.fiche.querySelector('[data-card-marker]'), R = (m && m.offsetParent ? m : q.fiche).getBoundingClientRect();
-      q.x = R.left - G.left + (m && m.offsetParent ? R.width / 2 : 20); q.y = R.top - G.top + (m && m.offsetParent ? R.height / 2 : 24);
-      place(q.ligne, e.cx, e.cy, q.x, q.y); q.noeud.setAttribute('x', (q.x - 4.5).toFixed(1)); q.noeud.setAttribute('y', (q.y - 4.5).toFixed(1));
-    }
-    e.haut = T.top - G.top; e.G = G;
-    trace(e, 0);
+    const H = e.hote.getBoundingClientRect(), T = e.titre.getBoundingClientRect(), W = document.documentElement.clientWidth;
+    /* largeur réelle du texte (le bloc du titre peut être plus large que ses lettres) */
+    const r = document.createRange(); r.selectNodeContents(e.titre); const L = r.getBoundingClientRect();
+    /* foyer à droite du titre ; si le titre est trop long pour laisser la place aux branches, le foyer passe au-dessus */
+    const limite = W * 0.64, voulu = L.right + Math.max(40, W * 0.085), dessus = voulu > limite && L.right > limite - 30;
+    e.x0 = (dessus ? L.left + L.width * 0.66 : Math.min(voulu, limite)) - H.left; e.y0 = L.top - H.top + (dessus ? -58 : e.chapitre ? -8 : L.height * 0.1);
+    e.R = Math.min(e.chapitre ? 640 : 460, W * (e.chapitre ? 0.46 : 0.36)); e.H = H;
+    trace(e, performance.now() / 1000);
   }
   function trace(e, t) {
-    const libre = !reduit.matches, sx = souris.x - e.G.left, sy = souris.y - e.G.top;
-    e.deco.forEach((d) => {
-      let x = e.cx + Math.cos(d.a) * e.rx * d.r, y = e.cy + Math.sin(d.a) * e.ry * d.r;
+    const libre = !reduit.matches, H = e.H, sx = souris.x - H.left, sy = souris.y - H.top;
+    /* le foyer glisse un peu avec le défilement : plus haut quand le titre entre par le bas, plus bas quand il sort par le haut */
+    const prog = Math.max(-1, Math.min(1, (H.top + e.y0 - innerHeight * 0.5) / innerHeight)), cx = e.x0, cy = e.y0 + (libre ? -prog * 46 : 0);
+    e.foyer.setAttribute('x', (cx - 4.5).toFixed(1)); e.foyer.setAttribute('y', (cy - 4.5).toFixed(1));
+    for (const b of e.branches) {
+      let x = cx + Math.cos(b.a) * e.R * b.r, y = cy + Math.sin(b.a) * e.R * b.r * 0.72;
       if (libre) {
-        x += Math.sin(t * 0.42 + d.phase) * 5; y += Math.cos(t * 0.35 + d.phase * 1.7) * 4;
-        const dx = x - sx, dy = y - sy, dist = Math.hypot(dx, dy); if (dist < 150 && dist > 1) { const k = (1 - dist / 150) * 14 / dist; x += dx * k; y += dy * k; }   // le point s'écarte du curseur
+        x += Math.sin(t * 0.4 + b.phase) * 6; y += Math.cos(t * 0.33 + b.phase * 1.7) * 5;
+        const dx = x - sx, dy = y - sy, d = Math.hypot(dx, dy); if (d < 160 && d > 1) { const k = (1 - d / 160) * 16 / d; x += dx * k; y += dy * k; }
       }
-      d.x = x; d.y = y; place(d.rayon, e.cx, e.cy, x, y); d.point.setAttribute('cx', x.toFixed(1)); d.point.setAttribute('cy', y.toFixed(1));
-    });
-    e.deco.forEach((d, k) => { const n = e.deco[(k + 1) % e.deco.length]; place(d.lien, d.x, d.y, n.x, n.y); });
+      place(b.ligne, cx, cy, x, y); if (b.onde) place(b.onde, cx, cy, x, y);
+      if (b.point) { b.point.setAttribute('cx', x.toFixed(1)); b.point.setAttribute('cy', y.toFixed(1)); }
+      if (b.noeud) b.noeud.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    }
   }
   const tout = () => { for (const e of etoiles) mesure(e); };
-  const ro = new ResizeObserver(tout); for (const grille of grilles.keys()) ro.observe(grille);
+  const ro = new ResizeObserver(tout); for (const e of etoiles) ro.observe(e.hote);
   addEventListener('resize', tout); document.fonts?.ready.then(tout); tout();
-  const io = new IntersectionObserver((es) => { for (const x of es) { const e = etoiles.find((q) => q.titre === x.target); if (!e) continue; e.vu = x.isIntersecting; if (x.isIntersecting) e.g.classList.add('vu'); } }, { rootMargin: '0px 0px -12% 0px' });
-  for (const e of etoiles) io.observe(e.titre);
+  const io = new IntersectionObserver((es) => { for (const x of es) { const e = etoiles.find((q) => q.hote === x.target); if (!e) continue; e.vu = x.isIntersecting; if (x.isIntersecting) e.g.classList.add('vu'); } }, { rootMargin: '30% 0px -8% 0px' });
+  for (const e of etoiles) io.observe(e.hote);
   addEventListener('pointermove', (ev) => { souris.x = ev.clientX; souris.y = ev.clientY; }, { passive: true });
   let dernier = 0;
   function image(t) {
     requestAnimationFrame(image);
-    if (reduit.matches || document.hidden || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return; dernier = t;
-    for (const e of etoiles) if (e.vu) { e.G = e.grille.getBoundingClientRect(); trace(e, t / 1000); }
+    if (document.hidden || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return; dernier = t;
+    for (const e of etoiles) if (e.vu) { e.H = e.hote.getBoundingClientRect(); trace(e, t / 1000); }
   }
   requestAnimationFrame(image);
-  window.__cvThemeStars = { etoiles: () => etoiles.map((e) => ({ theme: e.titre.dataset.cvTheme, fiches: e.editos.length, points: e.deco.length, vu: e.vu, centre: [Math.round(e.cx), Math.round(e.cy)] })), mesure: tout };
+  window.__cvThemeStars = { etoiles: () => etoiles.map((e) => ({ titre: e.nom, chapitre: e.chapitre, fiches: e.fiches.length, points: e.branches.length - e.fiches.length, vu: e.vu, foyer: [Math.round(e.x0), Math.round(e.y0)] })), mesure: tout };
 }
+/* les vignettes sont des liens utilisables au clavier : la couche n'est donc pas cachée aux lecteurs d'écran */
+function svgAccessible(etoiles) { for (const e of etoiles) if (e.fiches.length) { e.svg.removeAttribute('aria-hidden'); e.svg.setAttribute('role', 'group'); e.svg.setAttribute('aria-label', 'Contenus de ' + e.nom); } }
 if (document.readyState === 'loading') addEventListener('DOMContentLoaded', installe); else installe();

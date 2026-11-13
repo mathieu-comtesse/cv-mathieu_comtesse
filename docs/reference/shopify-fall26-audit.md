@@ -5,8 +5,8 @@ Ce document complète le relevé de la PR #208 ([FALL26-AUDIT.md](../FALL26-AUDI
 ## Conditions
 
 - Navigateur : Chromium piloté par Playwright, **rendu logiciel** (SwiftShader), sans WebGPU. Les durées et la fluidité observées ici ne valent pas pour une carte graphique réelle.
-- Fenêtre : 1 440 × 900. Les résolutions 1 920 × 1 080, 2 560 × 1 440 et 390 × 844 n'ont **pas** été capturées sur la référence pendant cette session.
-- États capturés sur la référence : arrivée (défilement 0) et défilement à 340 px. Les états suivants n'ont pas été capturés (le script s'est arrêté après le deuxième état).
+- Fenêtres : 1 440 × 900, 1 920 × 1 080, 2 560 × 1 440 et 390 × 844 (relevés DOM et captures aux quatre ; analyse visuelle détaillée à 1 440 × 900 seulement).
+- États : arrivée, 340 px, 815 px, puis autour du premier chapitre (−40 px, +0,5 écran, +1,5 écran).
 - Les captures de la référence servent de preuve de mesure et ne sont pas versées au dépôt (visuels de tiers).
 
 ## Arrivée, 1 440 × 900 : mesures sur capture
@@ -32,6 +32,28 @@ Ce document complète le relevé de la PR #208 ([FALL26-AUDIT.md](../FALL26-AUDI
 
 Le moteur embarqué définit `tilt:{angle:55}` ; `index.html` forçait `N.L.tilt.angle = 90`. La valeur d'origine (55°) est rétablie par la constante `EXPO_CARD_TILT_DEG`. L'angle apparent à l'écran sur la référence n'a pas été mesuré pendant cette session.
 
+## Mesures aux quatre résolutions (relevé DOM, script `ref2`, mêmes états sur les deux sites)
+
+| Mesure | 1 440 × 900 | 1 920 × 1 080 | 2 560 × 1 440 | 390 × 844 |
+|---|---|---|---|---|
+| Haut du premier chapitre, référence | 1 454 px | 1 767 px | 2 394 px | 844 px |
+| Haut du premier chapitre, comtesse.me avant correction | 900 px | 1 080 px | 1 440 px | 844 px |
+| Haut du premier chapitre, comtesse.me après correction | 1 454 px | 1 767 px | 2 394 px | 844 px |
+| Titre de chapitre, référence | 120 px / 120 px, graisse 500, contour 1 px sans remplissage | idem | idem | 48,72 px, blanc plein |
+| Titre de chapitre, comtesse.me (mode à plat) | 120 px / 120 px, graisse 500, contour 1 px | idem | idem | 48,72 px, blanc plein |
+| Position du titre, référence | x = 192, 208 px sous le haut du chapitre | x = 337 | x = 657 | x = 16 |
+| Position du titre, comtesse.me | x = 226, 128 px sous le haut du chapitre (titre sur deux lignes) | non relevé | non relevé | x = 36 |
+
+**Délai du premier chapitre.** Sur la référence, le premier chapitre porte une marge haute `--f26-first-delay`, fixée par le script du site. Elle ne dépend que de la hauteur de fenêtre : 368 px à 700, 554 à 900, 687 à 1 080, 954 à 1 440 ; aucune sur mobile. comtesse.me ne la définissait pas : le grand titre arrivait donc 554 px trop tôt (visible dès 340 px de défilement). Correction : loi ajustée sur ces quatre mesures (`0,74 × hauteur − 112 px` à partir de 900 px ; `554 px − 0,93 × (900 px − hauteur)` en dessous), en CSS dans `index.html`. La loi entre 700 et 900 px ne repose que sur deux points.
+
+**Couleurs de fond par chapitre** (attribut `data-html-in-canvas-colour` et pixel relevé à l'écran, identiques) : bleu `#051DAA`, violet `#7000A9`, rose `#B2005B`, orange `#B03400`, bleu, vert `#00632E`, rose, violet, orange, vert, ardoise `#0F0F0F`. comtesse.me suivait les rangs 8, 9, 10, 11 (violet, orange, vert, ardoise). Correction : les chapitres suivent maintenant l'ordre de la référence depuis le début : Projets professionnels en bleu, Parcours et compétences en violet, Mondes et jeux en rose, Blog et contact en ardoise.
+
+**Étoile du titre en mode à plat** (capture de la référence à 1 440 × 900, défilement au haut du chapitre + 450 px, et capture fournie par Mathieu) : grand titre plein blanc, foyer carré blanc à droite du titre, une quinzaine de branches fines partant surtout vers la droite et le haut, vignettes blanches cadrées au bout de certaines branches, deux branches plus claires. Reconstruit dans `refonte/theme-stars.js` (chapitres et thèmes). Les longueurs, l'épaisseur exacte et les durées d'animation des branches de la référence n'ont pas été mesurées : valeurs estimées sur capture.
+
+## Comparaisons produites
+
+Captures côte à côte référence / comtesse.me à 1 440 × 900 pour les états : arrivée, 340 px, 815 px, haut du premier chapitre − 40 px, + 450 px, + 1 350 px. Elles restent hors dépôt (visuels de tiers) ; le script de relevé est reproductible.
+
 ## Non mesuré pendant cette session
 
-Tailles apparentes des titres de chapitre, trajectoires et durées des animations, états de survol, curseur, matériaux vitrés, constellations des chapitres, mode expo de la référence, comportements à 1 920, 2 560 et 390 px. Pour ces points, les seules mesures disponibles sont celles de la PR #208 (bandeau, commandes, liens, cartes planes) et de la PR #203 (titres : 120 px de référence contre 15 à 22 px visibles, docs/v9/).
+Trajectoires et durées des animations, états de survol, curseur, matériaux vitrés, densité exacte du graphe, mode expo de la référence, angle apparent des cadres. Pour ces points, les seules mesures disponibles sont celles de la PR #208 (bandeau, commandes, liens, cartes planes) et de la PR #203 (titres : 120 px de référence contre 15 à 22 px visibles, docs/v9/).
