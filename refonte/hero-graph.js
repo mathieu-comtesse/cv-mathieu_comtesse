@@ -42,7 +42,7 @@ export function demarre(chapitres) {
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    ciel.place('accueil', [W / 2, H * 0.56, Math.min(H * 0.12, 90)], Math.min(W * 0.5, H * 0.66) * ouvre);
+    ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], Math.min(W * 0.4, H * 0.5) * ouvre);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt });
   }
