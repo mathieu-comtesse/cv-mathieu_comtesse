@@ -93,8 +93,9 @@ async function verifyFilmSave(page, campaign, scene) {
   throw new Error('Cinématique attendue absente de la sauvegarde : ' + scene.film);
 }
 
-async function approachActor(page, receiver, campaign, actor) {
+async function approachActor(page, receiver, campaign, actor, mobile = false) {
   await page.locator('#unity-canvas').focus();
+  const client = mobile ? await page.context().newCDPSession(page) : null;
   let distance;
   for (let attempt = 0; attempt < 24; attempt++) {
     await page.evaluate(receiver => instance.SendMessage(receiver, 'Save'), receiver);
@@ -111,6 +112,16 @@ async function approachActor(page, receiver, campaign, actor) {
     const yaw = cameraYaw * Math.PI / 180;
     const forward = dx * Math.sin(yaw) + dz * Math.cos(yaw);
     const right = dx * Math.cos(yaw) - dz * Math.sin(yaw);
+    if (client) {
+      const x = 76, y = page.viewportSize().height - 78, length = Math.hypot(right, forward);
+      const touch = (type, touchPoints) => client.send('Input.dispatchTouchEvent', {type, touchPoints});
+      await touch('touchStart', [{x, y, id: 1}]);
+      try {
+        await touch('touchMove', [{x: x + right * 38 / length, y: y - forward * 38 / length, id: 1}]);
+        await delay(600);
+      } finally { await touch('touchEnd', []); }
+      continue;
+    }
     const keys = [];
     if (distance > 6) keys.push('Shift');
     if (Math.abs(forward) >= .45 * Math.abs(right)) keys.push(forward > 0 ? 'w' : 's');

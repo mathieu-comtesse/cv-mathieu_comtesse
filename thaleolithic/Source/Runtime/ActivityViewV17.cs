@@ -8,7 +8,8 @@ namespace UngaBunga45001
 {
  public sealed class ActivityViewV17:MonoBehaviour
  {
-  CampaignRuntime c;CampaignActivitiesV17 activity;RectTransform root,content;UnityEngine.UI.ScrollRect scroll;TMP_Text timer;float next;bool ready,mobile;int selectedDifference=-1,lastWidth,lastHeight,padChoice;readonly System.Collections.Generic.List<UnityEngine.UI.Button> choices=new System.Collections.Generic.List<UnityEngine.UI.Button>();
+  CampaignRuntime c;CampaignActivitiesV17 activity;RectTransform root,content;UnityEngine.UI.ScrollRect scroll;TMP_Text timer;float next;bool ready,mobile;int selectedDifference=-1,lastWidth,lastHeight;readonly System.Collections.Generic.List<UnityEngine.UI.Button> choices=new System.Collections.Generic.List<UnityEngine.UI.Button>();
+  static readonly string[] SwotLabels={"Force\nUn atout du village","Faiblesse\nUn problème du village","Opportunité\nUne aide de l’extérieur","Menace\nUn danger de l’extérieur"};
   public RectTransform Root=>root;
   void Start(){c=GetComponent<CampaignRuntime>();activity=GetComponent<CampaignActivitiesV17>();activity.Changed+=Render;}
   void Ensure()
@@ -40,10 +41,10 @@ namespace UngaBunga45001
     Button(content,"QUITTER L’ASSEMBLAGE",25,265,w-50,56,activity.Suspend);
     return;
    }
-   if(a.mode=="assemble"){DrawSst(w);return;}
+   if(a.mode=="assemble"){DrawSst(w);ConfigureChoices();return;}
    if(activity.GuideOpen){DrawGuide(w,runner);return;}
    timer=Text(content,"Temps et observations",mobile?10:w-240,mobile?48:5,mobile?w-20:230,40,"",22,TribalStyle.Cyan);timer.alignment=mobile?TextAlignmentOptions.TopLeft:TextAlignmentOptions.TopRight;
-   if(a.mode=="differences"){DrawDifferences(w);return;}
+   if(a.mode=="differences"){DrawDifferences(w);ConfigureChoices();return;}
    if(a.mode=="allocation"){DrawAllocation(w);return;}
    if(a.mode=="dashboard"||a.mode=="review")
    {
@@ -67,8 +68,11 @@ namespace UngaBunga45001
     else DrawLanes(w,top+140);
     Footer(w);return;
    }
-   var card=a.cards[p.card];Text(content,"Question avant les réponses",20,top,w-40,runner?56:165,card.question,runner?22:30);
-   if(a.mode=="sort"||a.mode=="swipe")
+   var card=a.cards[p.card];
+   if(a.id=="V17_SWOT"){DrawSwot(w,card,p);ConfigureChoices();return;}
+   bool compactPair=mobile&&a.mode=="pair";
+   Text(content,"Question avant les réponses",20,top,w-40,runner?56:compactPair?70:165,card.question,runner?22:30);
+   if(a.mode=="swipe")
    {
     var drag=TribalStyle.Top(content,"Tablette à déplacer",w*.24f,top+175,w*.52f,96);TribalStyle.Panel(drag,"panel",TribalStyle.Violet,null,true);
     Text(drag,"Geste",15,15,drag.rect.width-30,70,"GLISSE LA TABLETTE VERS UNE ZONE\nOu clique sur la destination",20);
@@ -78,12 +82,57 @@ namespace UngaBunga45001
    }
    else
    {
-    float by=top+(runner?66:190),height=runner?42:76;
+    float by=top+(runner?66:compactPair?75:190),height=runner?42:compactPair?46:76;
     for(int i=0;i<card.choices.Length;i++)
-    {int answer=i;float width=runner?(w-35)/card.choices.Length:w-40;var b=Button(content,(i+1)+" · "+card.choices[i],runner?15+i*(width+5):20,by+(runner?0:i*(height+12)),width,height,()=>activity.Submit(answer),i==0);choices.Add(b);}
+    {int answer=i;float width=runner?(w-35)/card.choices.Length:w-40;var b=Button(content,(i+1)+" · "+card.choices[i],runner?15+i*(width+5):20,by+(runner?0:i*(height+8)),width,height,()=>activity.Submit(answer));choices.Add(b);}
    }
    if(a.mode=="briefing")DrawLanes(w,650);
-   Footer(w);
+   if(compactPair)CompactFooter(w,by:top+75+card.choices.Length*54);
+   else Footer(w);
+   ConfigureChoices();
+  }
+  void DrawSwot(float w,ActivityCardV17 card,ActivityProgressV17 progress)
+  {
+   float top=mobile?54:82;
+   Text(content,"Consigne de classement",20,top,w-40,30,$"{progress.card+1}/{activity.Current.cards.Length} · Choisis la catégorie de cette observation.",21,TribalStyle.Cyan);
+   var tablet=TribalStyle.Top(content,"Tablette à déplacer",20,top+34,w-40,mobile?50:86);
+   TribalStyle.Panel(tablet,"panel",TribalStyle.Violet,null,true);
+   Text(tablet,"Observation",15,8,w-70,mobile?42:68,card.question,26);
+   tablet.gameObject.AddComponent<ActivityDragV17>().view=this;
+   float y=top+(mobile?91:132),height=mobile?46:75,width=(w-50)/2;
+   for(int i=0;i<SwotLabels.Length;i++)
+   {
+    int answer=i;
+    var button=Button(content,SwotLabels[i],20+(i%2)*(width+10),y+i/2*(height+8),width,height,()=>activity.Submit(answer));
+    var drop=button.gameObject.AddComponent<ActivityDropV17>();drop.view=this;drop.answer=answer;
+    choices.Add(button);
+   }
+   CompactFooter(w,y+2*(height+8));
+  }
+  void CompactFooter(float w,float by)
+  {
+   Text(content,"Explication courte",20,by,w-40,mobile?52:88,activity.Feedback,21,TribalStyle.Cyan);
+   float y=by+(mobile?54:90);
+   Button(content,"REVENIR AU VILLAGE · ACQUIS CONSERVÉS",20,y,w-40,43,activity.Suspend);
+   content.sizeDelta=new Vector2(w,y+48);
+  }
+  void ConfigureChoices()
+  {
+   if(choices.Count==0)return;
+   bool arrowsMoveDylan=activity.Current.mode=="briefing";
+   var available=choices.Where(button=>button.interactable).ToArray();
+   for(int i=0;i<available.Length;i++)
+   {
+    var button=available[i];
+    var accent=button.gameObject.AddComponent<ActivityChoiceAccent>();
+    accent.Bind(button);
+    var previous=available[(i+available.Length-1)%available.Length];
+    var following=available[(i+1)%available.Length];
+    button.navigation=new UnityEngine.UI.Navigation{mode=UnityEngine.UI.Navigation.Mode.Explicit,
+     selectOnUp=previous,selectOnLeft=arrowsMoveDylan?null:previous,
+     selectOnDown=following,selectOnRight=arrowsMoveDylan?null:following};
+   }
+   if(available.Length>0)EventSystem.current?.SetSelectedGameObject(available[0].gameObject);
   }
   void DrawGuide(float w,bool runner)
   {
@@ -155,8 +204,7 @@ namespace UngaBunga45001
    Button(content,"QUITTER · ACQUIS CONSERVÉS",margin,bottom+69,usable,46,activity.ToggleSstExitPrompt);
    content.sizeDelta=new Vector2(w,bottom+128);
    scroll.vertical=mobile;
-   timer=null;padChoice=0;
-   if(Gamepad.current!=null&&choices.Count>0)EventSystem.current?.SetSelectedGameObject(choices[0].gameObject);
+   timer=null;
   }
   void DrawAllocation(float w)
   {
@@ -190,7 +238,7 @@ namespace UngaBunga45001
    if(selectedDifference>=0&&selectedDifference<a.cards.Length)
    {
     var card=a.cards[selectedDifference];Text(content,"Observation",25,474,w-50,125,card.question+" · ISO "+card.clause+"\nAVANT : "+card.before+"\nMAINTENANT : "+card.after,24);
-    for(int i=0;i<card.choices.Length;i++){int answer=i;var button=Button(content,card.choices[i],25+i*(w-50)/2,618,(w-65)/2,56,()=>activity.Submit(answer),i==0);button.interactable=!p.answers.Contains(card.id);}
+    for(int i=0;i<card.choices.Length;i++){int answer=i;var button=Button(content,card.choices[i],25+i*(w-50)/2,618,(w-65)/2,56,()=>activity.Submit(answer));button.interactable=!p.answers.Contains(card.id);choices.Add(button);}
    }
    else Text(content,"Repérage",25,480,w-50,90,"Sélectionne une modification sur l’une des stèles, puis associe son explication.",28);
    Button(content,"OBSERVATION PRÉCÉDENTE",25,686,(w-65)/2,48,()=>SelectDifference((selectedDifference+a.cards.Length-1)%a.cards.Length));
@@ -216,19 +264,29 @@ namespace UngaBunga45001
     var control=root.GetComponentsInChildren<UnityEngine.UI.Button>().FirstOrDefault(b=>b.name=="V17VerifyWork");if(control!=null)control.interactable=p.worked&&p.workSeconds>=3;
    }
    if(activity.SstExitPromptOpen||activity.GuideOpen||c.IsPaused)return;
-   var gamepad=Gamepad.current;
-   if(activity.Current.mode=="assemble"&&gamepad!=null&&choices.Count>0)
-   {
-    int shift=gamepad.dpad.left.wasPressedThisFrame||gamepad.dpad.up.wasPressedThisFrame?-1:
-     gamepad.dpad.right.wasPressedThisFrame||gamepad.dpad.down.wasPressedThisFrame?1:0;
-    if(shift!=0){padChoice=(padChoice+shift+choices.Count)%choices.Count;EventSystem.current?.SetSelectedGameObject(choices[padChoice].gameObject);}
-   }
    var keys=Keyboard.current;if(keys==null)return;
-   if(activity.Current.mode=="swipe"){if(keys.leftArrowKey.wasPressedThisFrame)activity.Submit(0);if(keys.upArrowKey.wasPressedThisFrame)activity.Submit(1);if(keys.rightArrowKey.wasPressedThisFrame)activity.Submit(2);}
-   else{if(keys.digit1Key.wasPressedThisFrame)activity.Submit(0);if(keys.digit2Key.wasPressedThisFrame)activity.Submit(1);if(keys.digit3Key.wasPressedThisFrame)activity.Submit(2);if(keys.digit4Key.wasPressedThisFrame)activity.Submit(3);}
+   if(keys.digit1Key.wasPressedThisFrame)activity.Submit(0);if(keys.digit2Key.wasPressedThisFrame)activity.Submit(1);if(keys.digit3Key.wasPressedThisFrame)activity.Submit(2);if(keys.digit4Key.wasPressedThisFrame)activity.Submit(3);
    if(activity.Current?.mode=="briefing"){if(keys.leftArrowKey.wasPressedThisFrame)activity.MoveLane(-1);if(keys.rightArrowKey.wasPressedThisFrame)activity.MoveLane(1);}
   }
   void OnDestroy(){if(activity!=null)activity.Changed-=Render;}
+ }
+ public sealed class ActivityChoiceAccent:MonoBehaviour,ISelectHandler,IDeselectHandler,IPointerEnterHandler
+ {
+  TribalPolygon face;
+  TMP_Text label;
+  public void Bind(UnityEngine.UI.Button button)
+  {face=(TribalPolygon)button.targetGraphic;label=button.GetComponentInChildren<TMP_Text>();}
+  void SetSelected(bool active)
+  {
+   if(face==null)return;
+   face.left=active?TribalStyle.Gold:TribalStyle.Ink;
+   face.right=active?TribalStyle.Orange:TribalStyle.Ink;
+   label.color=active?new Color(.06f,.035f,.025f):TribalStyle.Paper;
+   face.SetVerticesDirty();
+  }
+  public void OnSelect(BaseEventData data)=>SetSelected(true);
+  public void OnDeselect(BaseEventData data)=>SetSelected(false);
+  public void OnPointerEnter(PointerEventData data)=>EventSystem.current?.SetSelectedGameObject(gameObject);
  }
  [RequireComponent(typeof(CanvasGroup))]
  public sealed class ActivityDragV17:MonoBehaviour,IBeginDragHandler,IDragHandler,IEndDragHandler

@@ -12,12 +12,12 @@ namespace UngaBunga45001
   {
    var target=bindings.Find(id);if(target==null)return float.PositiveInfinity;
    if(id=="charpente"||id=="habitations")
-   {float nearest=float.PositiveInfinity;foreach(var h in Structures(StructureRoot(id)))if(h!=null&&h.gameObject.activeInHierarchy&&h.intactRenderer!=null)nearest=Mathf.Min(nearest,(point-h.intactRenderer.bounds.ClosestPoint(point)).sqrMagnitude);if(!float.IsPositiveInfinity(nearest))return Mathf.Sqrt(nearest);}
+   {float nearest=float.PositiveInfinity;foreach(var h in Structures(StructureRoot(id)))if(h!=null&&h.gameObject.activeInHierarchy&&h.intactRenderer!=null)nearest=Mathf.Min(nearest,h.InspectionBounds.SqrDistance(point));if(!float.IsPositiveInfinity(nearest))return Mathf.Sqrt(nearest);}
    return Vector3.Distance(point,target.position);
   }
   public float BindingSearchRadius(string id)
   {
-   var target=StructureRoot(id);if(target==null||id!="charpente"&&id!="habitations")return 3.2f;float size=-1;foreach(var h in Structures(target))if(h!=null&&h.gameObject.activeInHierarchy&&h.intactRenderer!=null)size=Mathf.Max(size,Mathf.Max(h.intactRenderer.bounds.extents.x,h.intactRenderer.bounds.extents.z));return size<0?3.2f:size+2.8f;
+   var target=StructureRoot(id);if(target==null||id!="charpente"&&id!="habitations")return 3.2f;float size=-1;foreach(var h in Structures(target))if(h!=null&&h.gameObject.activeInHierarchy&&h.intactRenderer!=null){var bounds=h.InspectionBounds;var reach=bounds.extents+bounds.center-target.position;var opposite=bounds.extents-bounds.center+target.position;size=Mathf.Max(size,Mathf.Max(Mathf.Max(reach.x,reach.z),Mathf.Max(opposite.x,opposite.z)));}return size<0?3.2f:size+2.8f;
   }
  }
 }

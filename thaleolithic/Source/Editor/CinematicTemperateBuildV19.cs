@@ -27,6 +27,8 @@ public static class CinematicTemperateBuildV19
   {
    var target=web?BuildTarget.WebGL:BuildTarget.StandaloneWindows64;var named=web?NamedBuildTarget.WebGL:NamedBuildTarget.Standalone;
    var output=Root+(v244?"/Builds/Web-V24.4":v243?"/Builds/Web-V24.3":v241?"/Builds/Web-V24.1":v24?"/Builds/Web-V24":v231?"/Builds/Web-V23.1":v221?(web?"/Builds/Web-V22.1":"/Builds/Windows-V22.1/THALEOLITHIC.exe"):(web?"/Builds/Web-V19-Temperate-r9":"/Builds/Windows-V19-Temperate-r9/THALEOLITHIC.exe"));
+   if(v244&&!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("THALEOLITHIC_WEB_BUILD_DIR")))
+    output=Path.GetFullPath(Environment.GetEnvironmentVariable("THALEOLITHIC_WEB_BUILD_DIR"));
    if(web?Directory.Exists(output):File.Exists(output))throw new IOException("Existing V19 build must be preserved before a rebuild: "+output);
    if(EditorUserBuildSettings.activeBuildTarget!=target&&!EditorUserBuildSettings.SwitchActiveBuildTarget(web?BuildTargetGroup.WebGL:BuildTargetGroup.Standalone,target))throw new Exception("Build target switch failed");
    PlayerSettings.SetScriptingDefineSymbols(named,"UNGA_WEB_RENDERER;THALEOLITHIC_CINEMACHINE");EditorSceneManager.OpenScene(Scene);
@@ -68,5 +70,10 @@ public static class CinematicTemperateBuildV19
   }
   catch(Exception e){File.WriteAllText(Receipt(v221,v231,v24,v241,v243,v244,label,"error"),e.ToString());Debug.LogException(e);if(v221||v231||v24||v241)throw;}
  }
- static string Receipt(bool v221,bool v231,bool v24,bool v241,bool v243,bool v244,string label,string kind)=>Root+(v244?"/Revision24-4/"+label:v243?"/Revision24-3/"+label:v241?"/Revision24-1/"+label:v24?"/Revision24/"+label:v231?"/Revision23-1/"+label:v221?"/Revision22-1/"+label:"/Revision19/Environment/"+label+"-r9")+"-build-"+kind+".txt";
+ static string Receipt(bool v221,bool v231,bool v24,bool v241,bool v243,bool v244,string label,string kind)
+ {
+  string reportDir=v244?Environment.GetEnvironmentVariable("THALEOLITHIC_WEB_REPORT_DIR"):null;
+  if(!string.IsNullOrEmpty(reportDir))return Path.Combine(reportDir,label+"-build-"+kind+".txt");
+  return Root+(v244?"/Revision24-4/"+label:v243?"/Revision24-3/"+label:v241?"/Revision24-1/"+label:v24?"/Revision24/"+label:v231?"/Revision23-1/"+label:v221?"/Revision22-1/"+label:"/Revision19/Environment/"+label+"-r9")+"-build-"+kind+".txt";
+ }
 }

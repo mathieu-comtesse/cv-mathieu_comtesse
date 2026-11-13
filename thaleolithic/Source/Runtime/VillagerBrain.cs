@@ -14,6 +14,7 @@ namespace UngaBunga45001
         public float RoutineProgress=>phase==2?Mathf.Clamp01(timer/(7+(turn+StableId())%7)):phase==4?Mathf.Clamp01(timer/2):0;
         VillageLife life;NavMeshAgent agent;CharacterState state;CampaignSave save;
         CharacterDefinition definition;WorkNavigationV18 physical;ActivityWorldV17 emergency;VillageUpgradeV18 village;TribalTaskRuntime tasks;
+        CampaignActivitiesV17 activities;
         int stableId;float timer,decisionAt,stuckTime;int phase,turn;Vector3 previous;bool moving,resting;
         void Awake(){agent=GetComponent<NavMeshAgent>();previous=transform.position;life=FindFirstObjectByType<VillageLife>();}
         public void Bind(CampaignRuntime runtime,VillagerRoutine job,Animator controller)
@@ -31,6 +32,7 @@ namespace UngaBunga45001
             emergency=campaign.GetComponent<ActivityWorldV17>();
             village=campaign.GetComponent<VillageUpgradeV18>();
             tasks=campaign.GetComponent<TribalTaskRuntime>();
+            activities=campaign.GetComponent<CampaignActivitiesV17>();
             if(state.positionSaved&&VillageNavigation.Clear(state.position,transform))
             {if(agent.enabled&&agent.isOnNavMesh)agent.Warp(state.position);else transform.position=state.position;transform.rotation=Quaternion.Euler(0,state.yaw,0);}
             phase=state.taskPhase;timer=state.taskTimer;turn=state.taskTurn;decisionAt=Time.time+.1f;resting=false;
@@ -46,6 +48,10 @@ namespace UngaBunga45001
             if(!state.alive){Behaviour=VillagerBehaviour.DEAD;Stop();if(load!=null)load.carrying=false;return;}
             if(campaign.cinematicDirector.IsPlaying){Behaviour=VillagerBehaviour.CINEMATIC_CONTROL;return;}
             if(campaign.UserPaused){Stop();return;}
+            if(activities?.BlocksGameplay==true&&activities.Current.site==id&&activities.Current.actor==id)
+            {
+                Stop();Face(campaign.bindings.player.position);Pose("Listen");Behaviour=VillagerBehaviour.SOCIALIZE;return;
+            }
             bool speaking=campaign.ConversationActorId==id&&(campaign.Dialogue!=null||campaign.QuestOverlay)||campaign.Dialogue!=null&&definition!=null&&campaign.Dialogue.speaker.StartsWith(definition.name,StringComparison.OrdinalIgnoreCase);
             if(speaking){if(!wasSpeaking)ActivityBeforeConversation=ActivityLabel;wasSpeaking=true;Stop();Face(campaign.bindings.player.position);Pose("Talk");Behaviour=VillagerBehaviour.SOCIALIZE;return;}wasSpeaking=false;
             if(physical?.Controls(id)??false){Behaviour=physical.Evacuating(id)?VillagerBehaviour.EVACUATE:VillagerBehaviour.BUILD;return;}

@@ -14,10 +14,12 @@ namespace UngaBunga45001
         static readonly Unity.Profiling.ProfilerMarker UpdateMarker=new Unity.Profiling.ProfilerMarker("THALEOLITHIC.Interactions");
         public string FocusBindingId { get; private set; }
         public ActionDefinition[] FocusActions => string.IsNullOrEmpty(FocusBindingId) ? System.Array.Empty<ActionDefinition>() : campaign.ActionsFor(FocusBindingId);
+        public ActionDefinition FocusInspection { get; private set; }
         private void Update()
         {
             using var profile=UpdateMarker.Auto();
             if (campaign == null || campaign.State == null) return;
+            FocusInspection = null;
             if (PressedEscape() && GetComponent<UISettingsController>()?.ConsumedEscapeFrame!=Time.frameCount)
             {
                 HandleEscape();FocusBindingId=null;return;
@@ -27,6 +29,9 @@ namespace UngaBunga45001
             if (campaign.IsModal || campaign.IsBusy) { FocusBindingId = null; return; }
             FocusBindingId = null; float nearest = interactionDistance;
             var step = campaign.Objectives.Current;
+            if (step?.Action?.interactionType == "Inspection" &&
+                campaign.BindingDistance(step.TargetBindingId) <= interactionDistance && campaign.CanExecute(step.Action, out _))
+                FocusInspection = step.Action;
             if (step?.Action != null && step.Phase != ObjectivePhase.Travel && campaign.BindingDistance(step.TargetBindingId) <= interactionDistance)
                 FocusBindingId = step.TargetBindingId;
             else foreach (var binding in campaign.bindings.objects)
@@ -36,7 +41,7 @@ namespace UngaBunga45001
                 if(squaredDistance>nearest*nearest||campaign.ActionsFor(binding.id).Length==0)continue;
                 nearest=Mathf.Sqrt(squaredDistance);FocusBindingId=binding.id;
             }
-            if (PressedInteract() && FocusActions.Length > 0)
+            if (PressedInteract() && (FocusInspection != null || FocusActions.Length > 0))
                 Interact();
         }
         public void HandleEscape()
@@ -79,10 +84,11 @@ namespace UngaBunga45001
         public void Interact()
         {
             if(campaign.IsModal||campaign.IsBusy)return;
-                if(SstFocused()){Execute(QuestGuidanceV243.Sst);return;}
-                var available=FocusActions.Where(a=>campaign.CanExecute(a,out _)).ToArray();
-                if(available.Length>1)campaign.OpenActionMenu(FocusBindingId);
-                else if(available.Length==1)Execute(available[0].id);
+            if(FocusInspection!=null){Execute(FocusInspection.id);return;}
+            if(SstFocused()){Execute(QuestGuidanceV243.Sst);return;}
+            var available=FocusActions.Where(a=>campaign.CanExecute(a,out _)).ToArray();
+            if(available.Length>1)campaign.OpenActionMenu(FocusBindingId);
+            else if(available.Length==1)Execute(available[0].id);
         }
         bool SstFocused() => GetComponent<QuestNavigationController>()?.Action?.id == QuestGuidanceV243.Sst &&
             campaign.BindingDistance(QuestGuidanceV243.Menhir) <= interactionDistance &&

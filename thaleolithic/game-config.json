@@ -2,10 +2,10 @@
   "version": "V24.4",
   "productVersion": "0.24.4",
   "streamingAssetsUrl": "StreamingAssets",
-  "loaderUrl": "Build/Web-V24.4.loader.js?v=bf51962d7a8c",
-  "dataUrl": "Build/Web-V24.4.data.unityweb?v=e9b2ddfd610d",
-  "frameworkUrl": "Build/Web-V24.4.framework.js.unityweb?v=53c139a9f287",
-  "codeUrl": "Build/Web-V24.4.wasm.unityweb?v=641550955c4c",
+  "loaderUrl": "Build/Web-V24.4.loader.js?v=035ff8960dda",
+  "dataUrl": "Build/Web-V24.4.data.unityweb?v=931bba4d6fec",
+  "frameworkUrl": "Build/Web-V24.4.framework.js.unityweb?v=5cdb3514e1b5",
+  "codeUrl": "Build/Web-V24.4.wasm.unityweb?v=6072acb43118",
   "chapterBundles": [
     "iso-07-f2831fb1b97a.bundle",
     "iso-08-da07bd32c7b4.bundle"

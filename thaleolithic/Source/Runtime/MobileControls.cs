@@ -73,10 +73,13 @@ namespace UngaBunga45001
             if(Active){Cursor.lockState=CursorLockMode.None;Cursor.visible=true;}
             Movement=Vector2.MoveTowards(Movement,gameplay?requestedMovement:Vector2.zero,Time.unscaledDeltaTime*12);
             if(!gameplay && surface.gameObject.activeSelf) ResetTransientInput();
-            surface.gameObject.SetActive(gameplay);interact.interactable=campaign.GetComponent<WorldInteraction>().FocusActions.Any(a=>campaign.CanExecute(a,out _));
+            var world=campaign.GetComponent<WorldInteraction>();
+            surface.gameObject.SetActive(gameplay);interact.interactable=world.FocusInspection!=null||world.FocusActions.Any(a=>campaign.CanExecute(a,out _));
             menuSurface.gameObject.SetActive(Active&&!OverlayOpen&&!campaign.IsBusy&&!campaign.cinematicDirector.IsPlaying&&campaign.Dialogue==null&&!campaign.QuestOverlay&&!campaign.IncidentModal&&campaign.Ending==null&&!background);
             skipFilm.gameObject.SetActive(Active&&campaign.cinematicDirector.IsPlaying);
-            string actor=campaign.GetComponent<WorldInteraction>().FocusBindingId;interact.GetComponentInChildren<TMP_Text>().text=actor!=null&&campaign.Data.characters.Any(c=>c.id==actor)?"Parler à "+campaign.CharacterName(actor):"Interagir";
+            string actor=world.FocusBindingId;
+            interact.GetComponentInChildren<TMP_Text>().text=world.FocusInspection!=null?"Examiner":
+                actor!=null&&campaign.Data.characters.Any(c=>c.id==actor)?"Parler à "+campaign.CharacterName(actor):"Interagir";
             orders.gameObject.SetActive(campaign.GetComponent<InventoryController>().CommandTarget()!=null);
             rotation.gameObject.SetActive(portrait&&!campaign.GetComponent<AdventureMenus>().IsOpen&&!campaign.GetComponent<CampaignMap>().IsOpen);resume.gameObject.SetActive(background);if(background)resume.SetAsLastSibling();
         }

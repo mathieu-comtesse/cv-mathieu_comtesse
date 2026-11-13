@@ -85,3 +85,10 @@ Un lancement neuf par version, dans Chromium Windows sur la même Radeon RX 9070
 3. Lance `node tools/test-thaleolithic-browser.cjs --real` avec `THALEOLITHIC_SST_SAVE` pointant vers la sauvegarde avant `V17_SYSTEM`. Ajoute `--touch` pour l’émulation tactile. Le script reprend dans IndexedDB et utilise les commandes du jeu. Pour vérifier la reprise d’un tutoriel générique, utilise la sauvegarde avant `V17_SCOPE` avec `THALEOLITHIC_SCOPE_GUIDE=1`.
 4. Pour suivre le ruban, utilise la même sauvegarde avec `THALEOLITHIC_GPS_TRAVEL=stockage` et `THALEOLITHIC_GPS_WALK_SECONDS=120`. Le diagnostic expose le trajet, le temps de calcul, le coût du mesh, les révisions et les masquages.
 5. Pour le parcours Unity complet et l’audit des bindings, lance `-executeMethod UngaBunga45001.TemperateJourneyV19.RunV24Audit -thaleolithicJourneyV244` dans le projet natif. Le contrôle du ruban utilise `-executeMethod UngaBunga45001.QuestGpsAuditV243.RunAudit -thaleolithicGpsAuditV243 -gpsReport <chemin-JSON>`.
+
+## Corrections des interactions du 13 novembre
+
+- **Charpente tombée**. La portée suit les débris et l’inspection active se lance avec E ou « Examiner ». La preuve est enregistrée dans la sauvegarde.
+- **Passages**. Les contrôleurs des PNJ laissent passer Dylan. L’audit Unity teste la traversée d’un PNJ, puis l’arrêt devant un obstacle du décor.
+- **Questionnaires**. Les quatre catégories du transat sont définies à côté des réponses. La surbrillance jaune-orange suit le choix. Les flèches déplacent la sélection et Entrée la valide. Lorette reste face à Dylan pendant les questions.
+- **Grand Menhir**. Le lancement ferme le panneau. Le chantier avance sur place, puis les trois contrôles font passer l’installation au niveau 1. Un chantier déjà lancé reprend depuis son état sauvegardé.

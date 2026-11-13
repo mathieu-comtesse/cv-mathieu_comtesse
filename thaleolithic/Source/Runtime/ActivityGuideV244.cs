@@ -3,7 +3,7 @@ namespace UngaBunga45001
     internal static class ActivityGuideV244
     {
         public static string Instruction(ActivityDefinitionV17 activity) => activity.mode switch {
-            "sort" => "Classe les observations du village. Glisse la tablette ou sélectionne directement sa catégorie.",
+            "sort" => "Classe quatre observations sur la sécurité. Force et faiblesse viennent du village. Opportunité et menace viennent de l’extérieur.",
             "pair" => "Associe chaque situation au besoin ou à la réponse qui lui correspond.",
             "scope" => "Indique ce qui entre dans le périmètre de prévention de la tribu.",
             "assemble" => "Interagis avec le Grand Menhir. Associe quatre tablettes aux fonctions du système SST.",
@@ -38,9 +38,10 @@ namespace UngaBunga45001
         public static string Controls(ActivityDefinitionV17 activity)
         {
             if (activity.mode == "runner") return "Déplace Dylan au clavier ou au joystick tactile. Sélectionne les réponses à l’écran.";
+            if (activity.mode == "briefing") return "Utilise ↑ et ↓ puis Entrée pour répondre. Les flèches gauche et droite déplacent Dylan.";
             if (activity.mode == "assemble" || activity.mode == "sort" || activity.mode == "swipe")
-                return "Glisse la tablette, clique ou touche une réponse. Le glisser-déposer est facultatif.";
-            return "Clique ou touche une réponse. Sur PC, les chiffres sélectionnent aussi les choix affichés.";
+                return "Glisse la tablette ou choisis une réponse au clic, au toucher, ou avec les flèches puis Entrée.";
+            return "Clique ou touche une réponse. Au clavier, déplace le choix avec les flèches puis valide avec Entrée.";
         }
     }
 }

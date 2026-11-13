@@ -72,6 +72,135 @@ async function runSst({page, origin, filename, mobile, record, waitState, gamepl
     assert.ok(viewport.touches > 0);
     record('Fenêtre tactile réellement appliquée', viewport);
   }
+  if (process.env.THALEOLITHIC_CHARPENTE === '1') {
+    const inspection = 'M_I_TUTORIEL_2';
+    const save = await browserSave(page, campaign);
+    assert.ok(save.completedActions.includes('M_I_TUTORIEL_1'));
+    assert.ok(!save.completedActions.includes(inspection));
+    assert.ok(save.hutFailures.some(entry => entry.site === 'charpente' && !entry.repaired));
+    await shot('charpente-avant');
+    await input();
+    for (let attempt = 0; attempt < 28; attempt++) {
+      const current = await browserSave(page, campaign);
+      if (current.completedActions.includes(inspection)) {
+        assert.ok(current.evidence.includes(inspection));
+        await shot('charpente-examinee');
+        record('Inspection des débris enregistrée avec la commande Interagir', current.playerPosition);
+        return;
+      }
+      await page.waitForTimeout(500);
+    }
+    throw new Error('La commande Interagir n’a pas terminé l’examen de la charpente.');
+  }
+  const scenario = process.env.THALEOLITHIC_INTERACTION_TEST;
+  if (scenario === 'documents') {
+    const activity = 'V17_DOCUMENTS';
+    await execute(activity);
+    await waitState({window: 'Activité', activity});
+    await wait(() => thaleolithicDiagnostic().metrics?.objective?.guide === true);
+    const p = await panel();
+    await tap(p.x + (16 + (p.innerWidth - 44) * .27) * p.scale, p.y + 409 * p.scale);
+    await wait(() => thaleolithicDiagnostic().metrics?.objective?.guide === false);
+    const progress = async () => (await browserSave(page, campaign)).campaignV17.activities.find(entry => entry.id === activity);
+    await page.locator('#unity-canvas').focus();
+    await page.keyboard.press('Enter', {delay: 120});
+    await page.waitForTimeout(850);
+    assert.equal((await progress()).card, 1);
+    for (let index = 0; index < 2; index++) await page.keyboard.press('ArrowRight', {delay: 160});
+    await page.waitForTimeout(850);
+    assert.equal((await progress()).card, 1, 'Les flèches déplacent le choix sans valider');
+    await shot('archive-selection');
+    await page.keyboard.press('Enter', {delay: 120});
+    await page.waitForTimeout(850);
+    assert.equal((await progress()).card, 2);
+    record('Documents : le troisième choix se sélectionne avec les flèches et se valide avec Entrée');
+    return;
+  }
+  if (scenario === 'upgrade') {
+    const id = 'menhir_aurelien';
+    const installation = async () => (await browserSave(page, campaign)).villageV18.installations.find(entry => entry.id === id);
+    assert.equal((await installation()).phase, 0);
+    await execute('upgrade:v18:' + id);
+    await waitState({phase: 'INSPECTION'});
+    await shot('amelioration');
+    await tap(640, 480);
+    await waitState(gameplay);
+    record('Lancer l’amélioration referme le panneau et rend les commandes');
+    for (let attempt = 0; attempt < 12 && (await installation()).phase === 0; attempt++) await page.waitForTimeout(250);
+    const launched = await installation();
+    assert.equal(launched.phase, 2);
+    const materials = async () => (await browserSave(page, campaign)).resources.filter(item => ['wood', 'fiber', 'stone'].includes(item.id));
+    const paid = await materials();
+    if (process.env.THALEOLITHIC_RELOAD_CHANTIER === '1') {
+      await boot();
+      assert.equal((await installation()).phase, 2);
+      assert.deepEqual(await materials(), paid);
+      record('Chantier en cours repris après rechargement sans nouveau paiement');
+    }
+    for (let attempt = 0; attempt < 180 && (await installation()).phase !== 3; attempt++) await page.waitForTimeout(500);
+    assert.equal((await installation()).phase, 3);
+    await execute('upgrade:v18:' + id);
+    await waitState({phase: 'INSPECTION'});
+    await shot('controles');
+    for (const x of [440, 640, 840]) await tap(x, 524);
+    await page.waitForTimeout(2200);
+    const verified = await installation();
+    assert.equal(verified.tier, 1);
+    assert.equal(verified.phase, 4);
+    assert.deepEqual(verified.controls, ['stability', 'access', 'use']);
+    record('Amélioration du Grand Menhir et trois contrôles enregistrés', verified);
+    return;
+  }
+  if (scenario === 'parties' || scenario === 'swot') {
+    const parties = scenario === 'parties';
+    const activity = parties ? 'V17_PARTIES' : 'V17_SWOT';
+    const actor = parties ? 'lorette' : 'aurelien';
+    const progress = async () => (await browserSave(page, campaign)).campaignV17.activities.find(entry => entry.id === activity);
+    await approachActor(page, receiver, campaign, actor, mobile);
+    await execute(activity);
+    await waitState({window: 'Activité', activity});
+    await wait(() => thaleolithicDiagnostic().metrics?.objective?.guide === true);
+    const p = await panel();
+    await tap(p.x + (16 + (p.innerWidth - 44) * .27) * p.scale, p.y + (p.nativeMobile ? 291 : 409) * p.scale);
+    await wait(() => thaleolithicDiagnostic().metrics?.objective?.guide === false);
+    const answerAt = async (index, keyboard = false) => {
+      if (keyboard) {
+        await page.mouse.move(6, 140);
+        await page.locator('#unity-canvas').focus();
+        for (let i = 0; i < index; i++) await page.keyboard.press('ArrowDown', {delay: 160});
+        await shot('choix-clavier-' + index);
+        await page.keyboard.press('Enter', {delay: 120});
+      } else {
+        const x = parties ? p.innerWidth / 2 : 20 + (index % 2 + .5) * ((p.innerWidth - 50) / 2) + (index % 2) * 10;
+        const y = parties ? (p.nativeMobile ? 188 + index * 54 : 318 + index * 84)
+          : (p.nativeMobile ? 168 + Math.floor(index / 2) * 54 : 252 + Math.floor(index / 2) * 83);
+        await tap(p.x + x * p.scale, p.y + y * p.scale);
+      }
+      await page.waitForTimeout(850);
+    };
+    await shot('consigne');
+    await answerAt(0);
+    assert.equal((await progress()).card, 1);
+    if (parties) {
+      const save = await browserSave(page, campaign);
+      const lorette = save.characters.find(entry => entry.id === actor);
+      const target = Math.atan2(save.playerPosition.x - lorette.position.x, save.playerPosition.z - lorette.position.z) * 180 / Math.PI;
+      assert.ok(Math.abs(((target - lorette.yaw + 540) % 360) - 180) < 15, 'Lorette doit rester face à Dylan');
+      record('Lorette regarde Dylan pendant l’activité', {direction: lorette.yaw, target});
+    }
+    await answerAt(1);
+    assert.equal((await progress()).card, 2, 'Le clic sur la deuxième réponse doit avancer');
+    if (parties) await answerAt(0);
+    else {
+      await answerAt(2, !mobile);
+      assert.equal((await progress()).card, 3, 'La troisième réponse doit avancer');
+      await answerAt(3);
+    }
+    assert.ok((await progress()).completed);
+    await waitState(gameplay);
+    record('Tous les choix attendus ont validé l’activité', await progress());
+    return;
+  }
   if (process.env.THALEOLITHIC_GPS_TRAVEL) {
     await runRibbon({page, receiver, metric, shot, record, buildVersion, mobile});
     return;

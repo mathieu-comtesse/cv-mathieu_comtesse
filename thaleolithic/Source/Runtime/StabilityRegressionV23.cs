@@ -191,6 +191,35 @@ namespace UngaBunga45001.Editor
             controller.enabled = true;
             motor.gravity = savedGravity;
 
+            var resident = campaign.bindings.Find("lorette").GetComponent<CharacterController>();
+            Check(resident.enabled && Physics.GetIgnoreCollision(controller, resident),
+                "Le contrôleur de Dylan laisse passer le joueur au travers des PNJ");
+            var positionBeforeContact = player.position;
+            controller.enabled = false;
+            player.position = resident.transform.position + Vector3.up * 10 + Vector3.back * 2;
+            controller.enabled = true;
+            motor.gravity = 0;
+            var residentPosition = resident.transform.position;
+            resident.transform.position += Vector3.up * 10;
+            Physics.SyncTransforms();
+            yield return null;
+            Check(Physics.GetIgnoreCollision(controller, resident), "La règle de passage est rétablie après réactivation du contrôleur");
+            var barrier = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            barrier.transform.position = player.position + Vector3.forward * 4 + Vector3.up * .9f;
+            barrier.transform.localScale = new Vector3(3, 2, .2f);
+            Physics.SyncTransforms();
+            controller.Move(Vector3.forward * 3);
+            Check(player.position.z > residentPosition.z + .5f, "Dylan traverse la trajectoire du PNJ");
+            var hit = controller.Move(Vector3.forward * 2);
+            Check((hit & CollisionFlags.Sides) != 0 && player.position.z < barrier.transform.position.z,
+                "Le même déplacement s’arrête devant un obstacle du décor");
+            Destroy(barrier);
+            resident.transform.position = residentPosition;
+            controller.enabled = false;
+            player.position = positionBeforeContact;
+            controller.enabled = true;
+            motor.gravity = savedGravity;
+
             var data = campaign.ActivitiesV17.activities.Single(a => a.id == "V17_SYSTEM");
             var quest = campaign.Data.quests.Single(q => q.actionIds.Contains(data.id));
             foreach (var prior in campaign.Data.quests.TakeWhile(q => q.id != quest.id).Where(q => q.required))

@@ -13,13 +13,19 @@ namespace UngaBunga45001
    panel=AdventureUI.Rect(hud.Canvas.transform,"Améliorations des installations V18",new Vector2(.5f,.5f),new Vector2(.5f,.5f),Vector2.zero,new Vector2(950,710));TribalStyle.Panel(panel,"panel",TribalStyle.Ink,null,true);
    title=TribalStyle.Text(TribalStyle.Top(panel,"Titre",35,25,880,50),hud.font,"AMÉLIORATIONS",30,TribalStyle.Gold,true);
    details=TribalStyle.Text(TribalStyle.Top(panel,"Conditions réelles",35,95,880,390),hud.font,"",24);details.overflowMode=TextOverflowModes.Overflow;
-   launch=TribalStyle.Button(TribalStyle.Top(panel,"Lancer les travaux",35,510,880,55),hud.font,"LANCER L’AMÉLIORATION",()=>{village.BeginUpgrade(selected);Render();},true);
+   launch=TribalStyle.Button(TribalStyle.Top(panel,"Lancer les travaux",35,510,880,55),hud.font,"LANCER L’AMÉLIORATION",Launch,true);
    controls=new UnityEngine.UI.Button[3];var ids=new[]{"stability","access","use"};var labels=new[]{"STABILITÉ","ACCÈS ET PASSAGES","CONDITIONS D’USAGE"};
    for(int i=0;i<3;i++){string id=ids[i];controls[i]=TribalStyle.Button(TribalStyle.Top(panel,labels[i],35+i*294,577,285,48),hud.font,labels[i],()=>{village.Control(selected,id);Render();});}
    TribalStyle.Button(TribalStyle.Top(panel,"Retour",35,643,880,45),hud.font,"REVENIR AU VILLAGE",Close);panel.gameObject.SetActive(false);
   }
   public void Show(string id){Ensure();if(panel==null||village.StateFor(id)==null)return;selected=id;panel.gameObject.SetActive(true);c.SetPause(false);Render();}
-  public void Close(){if(panel!=null)panel.gameObject.SetActive(false);}
+  public void Close(){if(!Open)return;panel.gameObject.SetActive(false);c.ReconcileControls();}
+  void Launch()
+  {
+   if(!village.BeginUpgrade(selected)){Render();return;}
+   Close();
+   c.Inform("Chantier lancé. Reste près de l’installation pour voir les travaux, puis reviens vérifier les trois critères.");
+  }
   void Render()
   {
    var s=village.StateFor(selected);if(s==null){Close();return;}int next=Mathf.Min(3,s.tier+1);

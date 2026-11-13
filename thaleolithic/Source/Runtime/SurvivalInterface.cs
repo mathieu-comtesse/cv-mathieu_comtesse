@@ -73,6 +73,7 @@ namespace UngaBunga45001
             notification.gameObject.SetActive(Time.unscaledTime<notificationUntil);
             var interaction=GetComponent<WorldInteraction>();var available=interaction.FocusActions.Where(a=>campaign.CanExecute(a,out _)).ToArray();
             string name=campaign.Data.characters.FirstOrDefault(c=>c.id==interaction.FocusBindingId)?.name;prompt.text=available.Length==0?"":settings.Binding("interact")+" : "+(name!=null?"Parler à "+name:available[0].title);
+            if(interaction.FocusInspection!=null)prompt.text=QuestGuidanceV243.Command(settings)+" · "+interaction.FocusInspection.title;
             if(nav.Action?.id==QuestGuidanceV243.Sst&&campaign.Near(QuestGuidanceV243.Menhir))prompt.text=QuestGuidanceV243.AtMenhir+"\n"+QuestGuidanceV243.Command(settings);
             for(int i=0;i<8;i++){float quantity=inventory.Quantity(inventory.items[i].id);quantities[i].text=quantity>0?quantity.ToString("0"):"";slots[i].GetComponent<UnityEngine.UI.Image>().color=i==inventory.Selected?AdventureUI.Gold:new Color(.55f,.52f,.46f,quantity>0?.65f:.3f);slots[i].Find("Objet").localScale=Vector3.one*settings.preferences.iconScale;slots[i].Find("Objet").GetComponent<UnityEngine.UI.RawImage>().color=quantity>0?Color.white:new Color(.4f,.4f,.4f,.35f);}
             controlsRoot.gameObject.SetActive(settings.ControlsVisible||inventory.CommandTarget()!=null&&settings.preferences.controls);var hints=new System.Collections.Generic.List<(string,string)>{("Inventaire",settings.Binding("inventory")),("Fabrication",settings.Binding("craft"))};
