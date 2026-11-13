@@ -15,9 +15,10 @@ await p.route('https://comtesse.me/**', async (r) => { const u = new URL(r.reque
 p.on('pageerror', (e) => erreurs.push(String(e.message).slice(0, 200)));
 const verifie = (ok, texte) => { console.log((ok ? 'ok     ' : 'ÉCHEC  ') + texte); if (!ok) echecs.push(texte); };
 await p.goto(`http://localhost:${port}/index.html?uxtest`, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(15000);
-const etat = await p.evaluate(() => ({ sections: [...document.querySelectorAll('section[id]')].map((s) => s.id), secours: document.documentElement.dataset.cssFallback === '1', largeurTitre: Math.round(document.querySelector('#shop h2')?.getBoundingClientRect().width || 0), parite: !!window.__cvParity?.boxes, etoiles: window.__cvThemeStars?.etoiles().length || 0, decor: !!document.querySelector('[data-cv-decor-card] iframe'), machines: document.querySelectorAll('[data-cv-machine] canvas').length, corps: getComputedStyle(document.body).fontFamily.slice(0, 60) }));
+await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(2500); const grapheAPlat = await p.evaluate(() => window.__cvHeroGraph?.etat());
+const etat = await p.evaluate(() => ({ sections: [...document.querySelectorAll('section[id]')].map((s) => s.id), secours: [...document.styleSheets].some((f) => /refonte\/site\.css/.test(f.href || '')), largeurTitre: Math.round(document.querySelector('#shop h2')?.getBoundingClientRect().width || 0), parite: !!window.__cvParity?.boxes, etoiles: window.__cvThemeStars?.etoiles().length || 0, decor: !!document.querySelector('[data-cv-decor-card] iframe'), machines: document.querySelectorAll('[data-cv-machine] canvas').length, corps: getComputedStyle(document.body).fontFamily.slice(0, 60) }));
 verifie(etat.sections[0] === 'shop' && etat.sections.length >= 6, `sections présentes, la première est Projets professionnels : ${etat.sections.join(', ')}`);
-verifie(etat.secours, 'la feuille de style de secours locale est chargée');
+verifie(etat.secours, 'la feuille de style locale (refonte/site.css) est la feuille principale');
 verifie(etat.largeurTitre > 200, `le titre du premier chapitre est mis en page (${etat.largeurTitre} px)`);
 verifie(etat.etoiles >= 8, `titres en étoile : ${etat.etoiles}`);
 verifie(etat.decor, 'la carte du décor est en place');
@@ -27,6 +28,20 @@ const avant = await p.evaluate(() => scrollY); await p.evaluate(() => document.g
 verifie((await p.evaluate(() => scrollY)) > avant + 500, 'la navigation vers un chapitre fait défiler la page');
 const bascule = await p.evaluate(() => { const t = document.querySelector('.cv-parity-toggle'); if (!t) return null; t.click(); return true; }); await p.waitForTimeout(5000);
 verifie(bascule && await p.evaluate(() => document.documentElement.classList.contains('cv-parity-active')), 'le passage en chemin 3D (mode expo) fonctionne');
+/* graphe de l'accueil à plat (relevé avant la bascule), puis contrôles du mode expo sur le moteur original */
+verifie(grapheAPlat && grapheAPlat.foyers >= 12 && grapheAPlat.editoriaux >= 60 && grapheAPlat.total > grapheAPlat.editoriaux * 2, `graphe de l'accueil à plat : ${grapheAPlat?.foyers} foyers, ${grapheAPlat?.editoriaux} nœuds éditoriaux, ${grapheAPlat?.total} nœuds`);
+const expo = await p.evaluate(async () => { const P = window.__cvParity, attend = (ms) => new Promise((r) => setTimeout(r, ms)); scrollTo(0, 0); await attend(5000);
+  const accueil = P.heroNodes().length, cadres = P.boxes().length, titres = P.titles().length; scrollTo(0, 3300); await attend(2500);
+  const etoiles = P.etoiles(), visible = P.boxes().find((b) => b.shown && !b.hero && b.title); P.raise(visible?.title || ''); await attend(4000);
+  const leve = P.boxes().find((b) => b.title === visible?.title), moteur = window.__cvState?.parity?.moteur;
+  return { accueil, cadres, titres, etoiles: etoiles.length, etoilesVues: etoiles.filter((e) => e.visible && e.libelle).length, inclinaison: leve?.pitchDeg, moteur, objets: ['.annual-pig-wrap canvas', '#rf-win', '.pc-inf canvas'].map((s) => !!document.querySelector(s)) }; });
+verifie(expo.cadres > 20 && expo.titres >= 5, `mode expo : ${expo.cadres} cadres, ${expo.titres} titres en volume`);
+verifie(expo.accueil >= 60, `mode expo : graphe de l'accueil dans la scène (${expo.accueil} vignettes éditoriales projetées)`);
+verifie(expo.etoiles >= 8 && expo.etoilesVues >= 1, `mode expo : ${expo.etoiles} étoiles de titre, ${expo.etoilesVues} visible(s) avec son libellé`);
+verifie(Math.abs(expo.inclinaison - 55) < 1.5, `mode expo : cadre relevé incliné à ${expo.inclinaison}° (nominal 55°)`);
+verifie(expo.objets.every(Boolean), 'objets 3D présents (tirelire, hublot, signe infini) : ' + expo.objets.join(', '));
+await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForTimeout(2500);
+verifie(await p.evaluate(() => !document.documentElement.classList.contains('cv-parity-active') && !!document.querySelector('#shop h2')?.getBoundingClientRect().width), 'retour au mode à plat');
 verifie(erreurs.length === 0, `aucune erreur de page (${erreurs.length}) ${erreurs.slice(0, 2).join(' | ')}`);
 const parType = {}; for (const q of bloquees) { const t = q.split(' ')[0]; parType[t] = (parType[t] || 0) + 1; }
 console.log(`\nrequêtes vers Shopify tentées puis bloquées : ${bloquees.length}`, JSON.stringify(parType)); for (const q of [...new Set(bloquees)].slice(0, 14)) console.log('   ' + q);

@@ -1,43 +1,35 @@
-# Dépendances à Shopify encore exécutées (branche `claude/integration-fall26`)
+# Indépendance vis-à-vis de Shopify (branche `claude/integration-fall26`)
 
-Relevé par `node tools/test-no-shopify.mjs` (toutes les requêtes vers `shopify.com` et `shopifycdn.com` bloquées) et par lecture de `refonte/boot-native.js`, `refonte/boot-graph.js` et `index.html`. Complète [CDN-SHOPIFY.md](../CDN-SHOPIFY.md).
+État vérifié par `node tools/test-no-shopify.mjs --strict` (tous les domaines `shopify.com` et `shopifycdn.com` bloqués) : **0 requête tentée, 18 contrôles verts.**
 
-## Requêtes tentées au chargement de l'accueil : 11
+## Ce qui a été retiré
 
-| Type | Nombre | Détail | Équivalent local | État |
-|---|---|---|---|---|
-| Feuille de style | 1 | `tailwind-*.css` (174 Ko) | `refonte/site.css`, chargée en secours | fonctionne sans Shopify ; parité visuelle non mesurée |
-| Polices | 4 | deux polices commerciales préchargées, Inter, JetBrains Mono | Inter local présent ; JetBrains Mono (OFL) à héberger ; les deux commerciales à remplacer | à faire |
-| Scripts | 6 | `entry.browser`, `mesh.wgsl`, `build-section-frame`, `shader`, `surface`, `HtmlInCanvasEntry` | aucun | **critique** : sans eux le moteur du chemin ne démarre pas |
-
-## Code tiers embarqué dans le dépôt
-
-| Fichier | Contenu | Taille |
+| Élément | Avant | Maintenant |
 |---|---|---|
-| `refonte/boot-native.js` | 3 modules : `htmlInCanvasWebGpu.client` (338,6 Ko), `ExponentialGraph` (27,7 Ko), `heroTap` (1,2 Ko) | 376 Ko |
-| `refonte/boot-graph.js` | données et références de 43 modules | 85 Ko |
+| Runtime Shopify (`entry.browser` et 140 modules chargés depuis `cdn.shopify.com`) | 142 requêtes quand le CDN répondait, 11 tentées quand il était bloqué | retiré |
+| `refonte/boot-native.js` (376 Ko, trois modules tiers embarqués) | moteur du chemin, graphe, grappes | supprimé, remplacé par `refonte/moteur.js` |
+| `refonte/boot-graph.js` (85 Ko), `refonte/boot-shop.js`, `refonte/shop/` | données et redirections de modules tiers | supprimés |
+| Feuille `tailwind-*.css` du CDN | feuille principale | `refonte/site.css` (locale) |
+| Polices du CDN (2 commerciales préchargées, Inter, JetBrains Mono, 9 `@font-face`) | chargées à distance | Inter local, JetBrains Mono local (OFL), aucune police commerciale |
+| Mini-jeu final (`index-DoKsIXi0.js`, chargé depuis le CDN) | jeu d'origine | **retiré sans remplacement** (voir Limites) |
+| Image sociale `og:image` | hébergée sur le CDN | `assets/og-home-blueprint.png` |
 
-## Fonctions du moteur consommées par `index.html` (objet `N`)
+## Ce qui les remplace (code original)
 
-| Responsabilité | Symboles | Équivalent original | Test de parité |
-|---|---|---|---|
-| Projection du chemin, caméra | `N.p` (20 usages), `N.cvView`, `N.cvUnproject`, `N.L` | aucun | `tools/topo-home.mjs` (mesure les cadres) |
-| Cadres inclinés | `N.cvSlab`, `N.cvRaise` | aucun | `tools/topo-home.mjs` |
-| Titres en volume | `N.cvTextLayout`, `N.cvTextExtrude` | aucun | `tools/v9-titres.mjs` |
-| Graphe de l'accueil | `N.cvHeroGraph`, `N.cvDrawHeroGraph`, `N.cvDrawLabels` | aucun | aucun |
-| Grappes des chapitres (mode expo) | `N.cvChapterClusters`, `N.cvDrawChapterClusters` | en mode à plat seulement : `refonte/theme-stars.js` | aucun |
-| Grille, règles, annotations, contours, ancres | `N.cvGrid`, `N.cvPageRulers`, `N.cvAnnotations`, `N.cvOutlines`, `N.cvOverlay`, `N.cvAnchor`, `N.cvCubeMotion` | `refonte/mesh-gpu.js` pour le rendu des maillages | aucun |
+| Fichier | Rôle | Interface |
+|---|---|---|
+| `refonte/moteur.js` | projection du chemin et caméra, cadres articulés, relevé animé, titres en volume, constellations, arêtes et règles | `cvAnchor`, `cvView`, `p`, `cvUnproject`, `cvSlab`, `cvRaise`, `cvFont`, `cvTextLayout`, `cvTextExtrude`, `Ciel`, `dessineContours`, `dessineRegles` |
+| `refonte/hero-graph.js` | graphe de l'accueil en mode à plat (même classe `Ciel`, projection oblique) | `demarre(chapitres)` |
+| `refonte/theme-stars.js` | étoiles des titres en mode à plat, scène plein écran des chapitres, liste fixe des chapitres | `window.__cvThemeStars`, `window.__cvStarScene` |
 
-## Résultat du test sans Shopify (état actuel)
+Calibrage : les constantes de caméra et le profil du sol ont été relevés sur l'ancien moteur aux quatre résolutions (T = 5 H, 64 pas, caméra à 1,015 H de haut, visée à 30,2°, champ 45°, redressement exponentiel du sol au loin). Les lettres en volume ne lisent plus aucune police : le texte est tracé dans un canevas avec la police de la page, son contour est relevé puis extrudé.
 
-Fonctionnent : sections, feuille de secours, titres, étoiles, carte du décor, machines 3D, navigation, absence d'erreur. **Échouent : le démarrage du moteur du chemin (cadres, graphe) et le passage en mode expo.**
+Les modules du site qui étaient remplacés au vol par des copies embarquées (`js/piggy-bank.js`, `js/gains-dashboard.js`, `refonte/infinity.js`) portent maintenant eux-mêmes le pont vers le chemin 3D.
 
-## Ordre de remplacement proposé
+## Limites constatées
 
-1. Polices : Inter et JetBrains Mono en local, deux polices libres à la place des commerciales (retire 4 requêtes).
-2. Feuille de style : `refonte/site.css` en feuille principale après comparaison de captures (retire 1 requête).
-3. Graphe de l'accueil et grappes : moteur original à partir de `refonte/theme-stars.js` (même structure foyer, branches, vignettes).
-4. Projection, cadres, titres en volume : moteur original du chemin (le plus gros chantier).
-5. Retrait de `boot-native.js` et `boot-graph.js`, puis `node tools/test-no-shopify.mjs --strict` dans la CI.
-
-Aucune de ces cinq étapes n'est faite sur cette branche.
+- **Mini-jeu final** : il venait entièrement du CDN Shopify. Il n'existe plus ; aucun jeu original ne le remplace encore.
+- **Quadrillage** : le quadrillage WebGPU tiers est remplacé par le quadrillage 2D projeté (déjà présent comme repli).
+- **Glisser un nœud du graphe** : non repris (les nœuds réagissent au pointeur, mais ne se déplacent pas à la main).
+- **Fidélité** : le moteur est calé sur des relevés, pas comparé image par image à la référence dans tous les états.
+- Mesures faites sous SwiftShader ; aucune mesure sur carte graphique matérielle.
