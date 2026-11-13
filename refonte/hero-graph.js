@@ -2,7 +2,7 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m2';
+import { Ciel } from './moteur.js?v=m5';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -24,13 +24,16 @@ export function demarre(chapitres) {
   new ResizeObserver(taille).observe(zone); addEventListener('resize', taille); document.fonts?.ready.then(taille); taille();
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
-  addEventListener('pointermove', (ev) => { [souris.x, souris.y] = local(ev); cv.style.cursor = ciel.touche(souris.x, souris.y) ? 'pointer' : ''; }, { passive: true });
-  cv.addEventListener('pointerleave', () => { souris.x = souris.y = -1e4; });
-  cv.addEventListener('click', (ev) => {
-    const n = ciel.touche(...local(ev)); if (!n) return;
-    const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (!cible) return;
-    cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
-  });
+  /* curseurs : viseur sur la zone du graphe, main ouverte sur un nœud éditorial, main fermée pendant qu'on le tient */
+  cv.style.cursor = 'crosshair';
+  const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
+  addEventListener('pointermove', (ev) => { [souris.x, souris.y] = local(ev); ciel.tire(souris.x, souris.y); const c = ciel.pris ? 'grabbing' : ciel.touche(souris.x, souris.y) ? 'grab' : 'crosshair'; cv.style.cursor = c; if (!document.documentElement.classList.contains('cv-parity-active')) document.documentElement.style.cursor = c === 'crosshair' ? '' : c; }, { passive: true });
+  cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
+  /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
+  const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
+  document.addEventListener('pointerdown', (ev) => { if (ev.button !== 0 || !dessus(ev)) return; [souris.x, souris.y] = local(ev); if (ciel.saisit(souris.x, souris.y)) { ev.preventDefault(); document.documentElement.style.cursor = 'grabbing'; } }, { capture: true });
+  const fin = (annule) => { const r = ciel.lache(); if (!r) return; document.documentElement.style.cursor = ''; if (r.clic && !annule) va(r); };
+  document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
   function image(t) {
     requestAnimationFrame(image);
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
@@ -42,10 +45,10 @@ export function demarre(chapitres) {
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], Math.min(W * 0.4, H * 0.5) * ouvre);
+    ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt });
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: W < 520 });
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
+  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
 }

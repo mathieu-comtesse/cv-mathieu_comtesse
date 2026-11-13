@@ -16,13 +16,16 @@ const PAS = 64, PROCHE = 40;
 
 export const cvAnchor = (H) => ({ row: 2.298 * H });
 
-/* Vue : profil du sol (65 points, 65 angles) et caméra. `progress` est gardé pour l'interface ; le chemin est toujours déployé. */
+/* Vue : profil du sol (65 points, 65 angles) et caméra.
+ * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
+ * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
+ * la bascule entre les deux modes est une vraie transformation de la scène, réversible à tout instant. */
 export function cvView(progress, W, H, lead = 0) {
-  const T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
-  for (let i = 0; i <= PAS; i++) ang[i] = 1.44 * Math.exp(7.33 * (i / PAS - 1));
+  const e = Math.max(0, Math.min(1, progress)), T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
+  for (let i = 0; i <= PAS; i++) ang[i] = e * 1.44 * Math.exp(7.33 * (i / PAS - 1));
   for (let i = 0; i < PAS; i++) { const th = (ang[i] + ang[i + 1]) / 2; pts[2 * i + 2] = pts[2 * i] + ds * Math.sin(th); pts[2 * i + 3] = pts[2 * i + 1] - ds * Math.cos(th); }
-  const focusRow = lead + H / 2;
-  return { W, H, T, ds, pts, ang, e: 1, rise: 1, focusRow, fov: Math.PI / 4, camY: 1.015 * H, camZ: -(T - focusRow) + 1.702 * H, pitch: -0.52709 };
+  const focusRow = lead + H / 2, fov = Math.PI / 4, a = Math.PI / 2 + (0.52709 - Math.PI / 2) * e, d = (0.5 / Math.tan(fov / 2) + (2.018 - 0.5 / Math.tan(fov / 2)) * e) * H, vise = -(T - focusRow) - 0.041 * H * e;
+  return { W, H, T, ds, pts, ang, e, rise: e, focusRow, fov, camY: d * Math.sin(a), camZ: vise + d * Math.cos(a), pitch: -a };
 }
 
 /* point du monde (x, y, z) pour une position du chemin */
@@ -196,7 +199,7 @@ const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3
 const OR = 2.399963;
 
 export class Ciel {
-  constructor() { this.etoiles = new Map(); this.images = new Map(); this.cibles = []; this.survol = null; }
+  constructor() { this.etoiles = new Map(); this.images = new Map(); this.cibles = []; this.survol = null; this.pris = null; }
   vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; }
   image(url) {
     if (!url) return null;
@@ -234,13 +237,20 @@ export class Ciel {
   ecran(groupe) { return this.cibles.filter((c) => c.etoile.groupe === groupe).map((c, index) => ({ index, point: [c.x, c.y], node: c.noeud.ed })); }
   libelles() { return [...this.etoiles.values()].filter((e) => e.ecran && e.label).map((e) => e.label); }
   /* vignette éditoriale sous le pointeur (positions de la dernière image dessinée) */
+  /* Saisie : un nœud éditorial se prend, se déplace et revient à sa place quand on le lâche (ressort).
+     lache() dit si le geste était un simple clic (moins de 5 px parcourus) et sur quel contenu. */
+  saisit(x, y) { let m = null, dm = 22; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } if (!m) return false; this.pris = { noeud: m.noeud, etoile: m.etoile, x0: x, y0: y, trajet: 0 }; return true; }
+  tire(x, y) { if (this.pris) this.pris.trajet = Math.max(this.pris.trajet, Math.hypot(x - this.pris.x0, y - this.pris.y0)); }
+  lache() { const q = this.pris; this.pris = null; return q ? { clic: q.trajet < 5, ...q.noeud.ed, chapitre: q.etoile.chapitre } : null; }
   touche(x, y) { let m = null, dm = 18; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } return m ? { ...m.noeud.ed, chapitre: m.etoile.chapitre } : null; }
 
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60 } = {}) {
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false } = {}) {
+    if (alpha <= 0.003) { this.cibles = []; this.survol = null; return; }
+    const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
     const quads = covers.map((pts) => ({ pts, z: pts.reduce((s, q) => s + q.z, 0) / 4 }));
     covers = quads;
-    ctx.save(); ctx.lineCap = 'round';
+    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = A;
     let survol = null, dSurvol = 18;
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
@@ -268,10 +278,12 @@ export class Ciel {
         if (libre) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
         const P = proj(wc, wr, wh); if (!P) return;
         let x = P.x, y = P.y;
-        if (libre) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d; x += dx * q; y += dy * q; } }
+        if (libre) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d * (n.ed ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }   // une vignette ne fuit pas le pointeur qui vient la prendre
         x = F.x + (x - F.x) * g; y = F.y + (y - F.y) * g;
+        if (this.pris && this.pris.noeud === n) { n.ox = souris.x - x; n.oy = souris.y - y; } else if (n.ox || n.oy) { n.ox *= retour; n.oy *= retour; if (Math.abs(n.ox) + Math.abs(n.oy) < 0.3) n.ox = n.oy = 0; }
+        if (n.ox || n.oy) { x += n.ox; y += n.oy; }
         const voile = cache(x, y, P.z) ? 0.12 : 1, actif = this.survol && this.survol.noeud === n;
-        ctx.globalAlpha = voile;
+        ctx.globalAlpha = voile * A;
         ctx.strokeStyle = n.ed ? (actif ? '#fff' : j < 2 ? 'rgba(95,230,255,.95)' : 'rgba(255,255,255,.78)') : e.racine ? 'rgba(170,195,255,.16)' : 'rgba(207,224,255,.42)';
         ctx.lineWidth = actif ? 2 : 1; ctx.beginPath(); ctx.moveTo(F.x, F.y); ctx.lineTo(x, y); ctx.stroke();
         if (n.ed && libre && g >= 1) {                                           // impulsion lumineuse le long de la branche
@@ -285,28 +297,28 @@ export class Ciel {
           ctx.fillStyle = 'rgba(223,233,255,.8)'; ctx.beginPath(); ctx.arc(qx, qy, 1.2, 0, 6.283); ctx.fill();
         }
         if (n.ed) {
-          const im = this.image(n.ed.image), w = (im ? 30 : 18) * ech, h = (im ? 21 : 14) * ech;
+          const im = this.image(n.ed.image), w = (im ? 30 : 18) * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * ech * (compact ? 0.62 : 1);
           if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
           else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
           if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y }; } }
         } else { ctx.fillStyle = e.racine ? 'rgba(200,215,255,.55)' : 'rgba(223,233,255,.9)'; ctx.beginPath(); ctx.arc(x, y, (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech), 0, 6.283); ctx.fill(); }
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = A;
       });
       /* foyer et libellé */
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
       ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine) {
         const a = adouci((e.age - 0.2) / 0.6);
-        ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+        ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
-          const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = (e.num ? e.num + ' ' : '') + e.label;
+          const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
           ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
           e.libelleEcran = { x: Math.round(bas.x), y: Math.round(bas.y + 12), texte };
         } else {                                                                 // étoile de titre : petit libellé contre le foyer
           ctx.font = `500 ${Math.round(Math.max(11, Math.min(15, 13 * ech)))}px Inter,ui-sans-serif,system-ui,sans-serif`; ctx.textAlign = 'left'; ctx.strokeText(e.label, F.x + cote / 2 + 7, F.y + 4.5); ctx.fillText(e.label, F.x + cote / 2 + 7, F.y + 4.5);
           e.libelleEcran = { x: Math.round(F.x + cote / 2 + 7), y: Math.round(F.y + 4.5), texte: e.label };
         }
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = A;
       }
     }
     this.cibles = cibles; this.survol = survol;
@@ -321,7 +333,10 @@ export class Ciel {
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 
 /* ---------- Arêtes et ombres des cadres ---------- */
-export function dessineContours(ctx, view, boxes) {
+/* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
+   de verre, bande claire oblique qui glisse avec la position horizontale du pointeur. Renvoie le cadre survolé. */
+export function dessineContours(ctx, view, boxes, souris = null) {
+  let survole = null;
   ctx.save(); ctx.lineJoin = 'round';
   const dessus = (b) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => b.slab ? p(view, ...cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r)) : p(view, x, r, b.top));
   const ordre = [...boxes].sort((a, c) => a.r1 - c.r1);                        // du fond vers l'observateur
@@ -344,7 +359,20 @@ export function dessineContours(ctx, view, boxes) {
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1; trace(haut); ctx.stroke();
+    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
+    if (dedansQuad) survole = b;
+    if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
+      const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
+      g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; trace(haut); ctx.fill();
+    }
+    ctx.strokeStyle = dedansQuad ? '#fff' : 'rgba(255,255,255,.85)'; ctx.lineWidth = dedansQuad ? 1.8 : 1; trace(haut); ctx.stroke();
+    if (dedansQuad) {                                                            // repères d'angle du cadre survolé
+      ctx.lineWidth = 1.8; ctx.beginPath();
+      for (let i = 0; i < 4; i++) { const q = haut[i], n = haut[(i + 1) % 4], m = haut[(i + 3) % 4], l1 = Math.hypot(n.x - q.x, n.y - q.y) || 1, l2 = Math.hypot(m.x - q.x, m.y - q.y) || 1, k = 12;
+        ctx.moveTo(q.x - (n.x - q.x) / l1 * k, q.y - (n.y - q.y) / l1 * k); ctx.lineTo(q.x, q.y); ctx.lineTo(q.x - (m.x - q.x) / l2 * k, q.y - (m.y - q.y) / l2 * k); }
+      ctx.stroke();
+    }
     if (b.title && b.tilted > 0.5) {                                             // cadre relevé : son nom et ses cotes au-dessus du bord haut
       ctx.globalAlpha = Math.min(1, (b.tilted - 0.5) * 2); ctx.font = '500 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
       ctx.fillText(b.title.slice(0, 48), haut[0].x, haut[0].y - 8); ctx.textAlign = 'right'; ctx.fillText(Math.round(b.x1 - b.x0) + ' × ' + Math.round(b.r1 - b.r0), haut[1].x, haut[1].y - 8); ctx.globalAlpha = 1;
@@ -352,6 +380,7 @@ export function dessineContours(ctx, view, boxes) {
     ctx.restore();
   }
   ctx.restore();
+  return survole;
 }
 
 /* ---------- Règles graduées des deux bords du sol : une graduation tous les 100 px de page, chiffrée tous les 500, et le nom de chaque chapitre ---------- */
