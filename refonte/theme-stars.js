@@ -24,6 +24,7 @@ html:not(.cv-parity-active) .cv-theme-heading.cv-star-host h2{color:#fff}
 @keyframes cv-star-onde{0%{stroke-dashoffset:1.07;opacity:0}8%{opacity:.95}70%{stroke-dashoffset:0;opacity:.95}78%,100%{stroke-dashoffset:0;opacity:0}}
 .cv-star-layer circle{fill:#dfe9ff;opacity:0;transition:opacity .4s var(--d,0s)}
 .cv-star-layer .vu circle{opacity:.9}
+html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-layer rect.foyer{fill:#fff;opacity:0;transition:opacity .3s}
 .cv-star-layer .vu rect.foyer{opacity:1}
 .cv-star-layer g.noeud{pointer-events:auto;cursor:pointer;opacity:0;transition:opacity .4s var(--d,0s)}
@@ -54,6 +55,12 @@ function installe() {
     const h = t.querySelector('h2'), nom = t.dataset.cvTheme; if (!h) continue;
     cibles.push({ hote: t, titre: h, fiches: [...t.parentElement.querySelectorAll('article[data-cv-theme]')].filter((a) => a.dataset.cvTheme === nom), nom, chapitre: false });
   }
+  /* tous les autres titres de la page (sous-titres de section, de tableau, de contact…) : une étoile réduite, purement graphique sauf si le bloc contient de vraies entrées */
+  const pris = new Set(cibles.map((c) => c.titre));
+  for (const h of document.querySelectorAll('[data-f26-page-section] h2')) {
+    if (pris.has(h) || !h.offsetWidth || parseFloat(getComputedStyle(h).fontSize) < 30 || h.closest('.cv-star-host, dialog, [inert]')) continue;
+    cibles.push({ hote: h.parentElement, titre: h, fiches: [], nom: h.textContent.trim(), chapitre: false, petit: true });
+  }
   if (!cibles.length) return;
   const etoiles = [], souris = { x: -1e4, y: -1e4 };
   for (const c of cibles) {
@@ -61,8 +68,8 @@ function installe() {
     const svg = el('svg', { class: 'cv-star-layer', 'aria-hidden': 'true' }), g = el('g'); svg.append(g); c.hote.prepend(svg);
     const rd = alea(hache(c.nom)), branches = [];
     /* éventail : la plupart des branches partent vers la droite et le haut, quelques-unes vers le bas et la gauche (relevé sur la référence) */
-    const angle = () => { const u = rd(); return (u < 0.72 ? -1.75 + rd() * 2.85 : 1.25 + rd() * 2.1); };
-    const nDeco = (c.chapitre ? 12 : 8) + Math.floor(rd() * 4);
+    const angle = () => { if (c.petit) return -1.35 + rd() * 1.6; const u = rd(); return (u < 0.72 ? -1.75 + rd() * 2.85 : 1.25 + rd() * 2.1); };
+    const nDeco = (c.chapitre ? 12 : c.petit ? 6 : 8) + Math.floor(rd() * 4);
     c.fiches.forEach((fiche, k) => branches.push({ fiche, a: -1.2 + (k + 0.5) / c.fiches.length * 2.5 + (rd() - 0.5) * 0.25, r: 0.55 + rd() * 0.45, phase: rd() * 6.28 }));
     for (let k = 0; k < nDeco; k++) branches.push({ a: angle(), r: 0.3 + rd() * 0.7, phase: rd() * 6.28 });
     branches.forEach((b, k) => {
@@ -92,7 +99,8 @@ function installe() {
     /* foyer à droite du titre ; si le titre est trop long pour laisser la place aux branches, le foyer passe au-dessus */
     const limite = W * 0.64, voulu = L.right + Math.max(40, W * 0.085), dessus = voulu > limite && L.right > limite - 30;
     e.x0 = (dessus ? L.left + L.width * 0.66 : Math.min(voulu, limite)) - H.left; e.y0 = L.top - H.top + (dessus ? -58 : e.chapitre ? -8 : L.height * 0.1);
-    e.R = Math.min(e.chapitre ? 640 : 460, W * (e.chapitre ? 0.46 : 0.36)); e.H = H;
+    e.R = e.petit ? Math.min(250, W * 0.2) : Math.min(e.chapitre ? 640 : 460, W * (e.chapitre ? 0.46 : 0.36));
+    if (e.petit) { e.x0 = Math.min(L.right + 36, W - 60) - H.left; e.y0 = L.top - H.top + L.height * 0.35; } e.H = H;
     trace(e, performance.now() / 1000);
   }
   function trace(e, t) {
@@ -114,8 +122,8 @@ function installe() {
   const tout = () => { for (const e of etoiles) mesure(e); };
   const ro = new ResizeObserver(tout); for (const e of etoiles) ro.observe(e.hote);
   addEventListener('resize', tout); document.fonts?.ready.then(tout); tout();
-  const io = new IntersectionObserver((es) => { for (const x of es) { const e = etoiles.find((q) => q.hote === x.target); if (!e) continue; e.vu = x.isIntersecting; if (x.isIntersecting) e.g.classList.add('vu'); } }, { rootMargin: '30% 0px -8% 0px' });
-  for (const e of etoiles) io.observe(e.hote);
+  const io = new IntersectionObserver((es) => { for (const x of es) { const e = etoiles.find((q) => q.titre === x.target); if (!e) continue; e.vu = x.isIntersecting; if (x.isIntersecting) e.g.classList.add('vu'); } }, { rootMargin: '30% 0px 30% 0px' });
+  for (const e of etoiles) io.observe(e.titre);
   addEventListener('pointermove', (ev) => { souris.x = ev.clientX; souris.y = ev.clientY; }, { passive: true });
   let dernier = 0;
   function image(t) {
