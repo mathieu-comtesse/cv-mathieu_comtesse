@@ -40,7 +40,7 @@ verifie(expo.accueil >= 60, `mode expo : graphe de l'accueil dans la scène (${e
 verifie(expo.etoiles >= 8 && expo.etoilesVues >= 1, `mode expo : ${expo.etoiles} étoiles de titre, ${expo.etoilesVues} visible(s) avec son libellé`);
 verifie(Math.abs(expo.inclinaison - 55) < 1.5, `mode expo : cadre relevé incliné à ${expo.inclinaison}° (nominal 55°)`);
 verifie(expo.objets.every(Boolean), 'objets 3D présents (tirelire, hublot, signe infini) : ' + expo.objets.join(', '));
-await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForTimeout(2500);
+await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForFunction(() => !window.__cvStandardPath.active, null, { timeout: 60000 }).catch(() => {}); await p.waitForTimeout(800);
 verifie(await p.evaluate(() => !document.documentElement.classList.contains('cv-parity-active') && !!document.querySelector('#shop h2')?.getBoundingClientRect().width), 'retour au mode à plat');
 verifie(erreurs.length === 0, `aucune erreur de page (${erreurs.length}) ${erreurs.slice(0, 2).join(' | ')}`);
 const parType = {}; for (const q of bloquees) { const t = q.split(' ')[0]; parType[t] = (parType[t] || 0) + 1; }
