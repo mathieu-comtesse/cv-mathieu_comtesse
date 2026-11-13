@@ -28,6 +28,8 @@ namespace UngaBunga45001
                 if (bindings.Find(shot.cameraBindingId) == null || bindings.Find(shot.lookAtBindingId) == null)
                 { SequenceState="FAILED";campaign.Inform("Plan réel manquant : " + shot.cameraBindingId); return; }
             }
+            campaign.GetComponent<ActivityActingV18>()?.ReleaseForFilm();
+            campaign.GetComponent<WorkNavigationV18>()?.PrepareForFilm();
             RenderBackend.CinematicCamera(cinematicCamera,bindings.gameplayCamera);
             routine = StartCoroutine(Run(data));
         }
@@ -39,7 +41,7 @@ namespace UngaBunga45001
             if(resume<=0)campaign.State.cinematicActorsV15?.Clear();
             IsPlaying=true;skip=false;CurrentSummary=data.summary;CurrentId=data.id;SequenceState="PLAYING";campaign.State.activeCinematicId=data.id;campaign.State.cinematicTimeV15=resume;campaign.Save();
             var stage=GetComponent<CinematicStage>();bool originalCamera=bindings.gameplayCamera.enabled;var home=bindings.gameplayCamera.transform.position;var homeRotation=bindings.gameplayCamera.transform.rotation;var playerStart=bindings.player.position;bool completed=false;float originalTimeScale=Time.timeScale>0?Time.timeScale:1;
-            bindings.SetGameplayBlocked(true);bindings.gameplayCamera.enabled=false;cinematicCamera.enabled=true;
+            campaign.ReconcileControls();bindings.gameplayCamera.enabled=false;cinematicCamera.enabled=true;
             homeListener=bindings.gameplayCamera.GetComponent<AudioListener>()??FindObjectsByType<AudioListener>(FindObjectsSortMode.None).FirstOrDefault(a=>a.enabled);homeListening=homeListener!=null&&homeListener.enabled;if(homeListener!=null)homeListener.enabled=false;
             filmListener=cinematicCamera.GetComponent<AudioListener>();filmListening=filmListener!=null&&filmListener.enabled;if(filmListener==null)filmListener=cinematicCamera.gameObject.AddComponent<AudioListener>();filmListener.enabled=true;
             try
@@ -49,7 +51,7 @@ namespace UngaBunga45001
                 GetComponent<CinematicWorldResetV15>()?.EnableAgents();
                 var score=GetComponent<CinematicScoreV15>()??gameObject.AddComponent<CinematicScoreV15>();var blueprint=CinematicCatalogueV15.Find(CinematicCatalogueV15.Resolve(data.id,campaign));if(blueprint!=null&&!skip){var preparation=score.Prepare(blueprint.mood);while(!skip&&preparation.MoveNext())yield return preparation.Current;if(!skip)score.Begin(blueprint.mood);}
                 var routePreparation=CinematicNavigationV15.Prepare(campaign,blueprint,()=>skip);while(routePreparation.MoveNext())yield return routePreparation.Current;
-                stage.Begin(data.id);var entry=stage.Production.PrepareEntry(cinematicCamera,()=>skip);while(entry.MoveNext())yield return entry.Current;float shotStart=0,saveAt=resume+5;
+                stage.Begin(data.id);var entry=stage.Production.PrepareEntry(cinematicCamera,()=>skip);while(entry.MoveNext())yield return entry.Current;if(resume>0)stage.Evaluate(resume,data.durationSeconds,cinematicCamera);float shotStart=0,saveAt=resume+5;
                 foreach(var shot in data.shots)
                 {
                     if(shotStart+shot.durationSeconds<=resume){shotStart+=shot.durationSeconds;continue;}
@@ -57,23 +59,23 @@ namespace UngaBunga45001
                     float timer=Mathf.Max(0,resume-shotStart);
                     while(timer<shot.durationSeconds&&!skip)
                     {
-                        SequenceState=campaign.UserPaused?"PAUSED":"PLAYING";
-                        Time.timeScale=campaign.UserPaused?0:originalTimeScale;
-                        if(!campaign.UserPaused){timer+=Time.deltaTime;float time=shotStart+timer;campaign.State.cinematicTimeV15=time;stage.Evaluate(time,data.durationSeconds,cinematicCamera);if(time>=saveAt){saveAt=time+5;campaign.Save();}}
+                        SequenceState=campaign.IsPaused?"PAUSED":"PLAYING";
+                        Time.timeScale=campaign.IsPaused?0:originalTimeScale;
+                        if(!campaign.IsPaused){timer+=Time.deltaTime;float time=shotStart+timer;campaign.State.cinematicTimeV15=time;stage.Evaluate(time,data.durationSeconds,cinematicCamera);if(time>=saveAt){saveAt=time+5;campaign.Save();}}
                         yield return null;
                     }
                     shotStart+=shot.durationSeconds;if(skip)break;
                 }
                 var destination=home+bindings.player.position-playerStart;
-                if(!skip){var from=cinematicCamera.transform.position;var rotation=cinematicCamera.transform.rotation;float t=0;while(t<.45f&&!skip){Time.timeScale=campaign.UserPaused?0:originalTimeScale;if(!campaign.UserPaused)t+=Time.deltaTime;float u=Mathf.SmoothStep(0,1,t/.45f);cinematicCamera.transform.SetPositionAndRotation(Vector3.Lerp(from,destination,u),Quaternion.Slerp(rotation,homeRotation,u));yield return null;}}
+                if(!skip){var from=cinematicCamera.transform.position;var rotation=cinematicCamera.transform.rotation;float t=0;while(t<.45f&&!skip){Time.timeScale=campaign.IsPaused?0:originalTimeScale;if(!campaign.IsPaused)t+=Time.deltaTime;float u=Mathf.SmoothStep(0,1,t/.45f);cinematicCamera.transform.SetPositionAndRotation(Vector3.Lerp(from,destination,u),Quaternion.Slerp(rotation,homeRotation,u));yield return null;}}
                 Time.timeScale=originalTimeScale;
                 stage.End();destination=home+bindings.player.position-playerStart;bindings.gameplayCamera.transform.SetPositionAndRotation(destination,homeRotation);completed=true;
             }
             finally
             {
-                Time.timeScale=originalTimeScale;if(!completed)stage?.Abort();GetComponent<CinematicScoreV15>()?.End();RestoreListeners();cinematicCamera.enabled=false;bindings.gameplayCamera.enabled=originalCamera;campaign.Subtitle="";IsPlaying=false;routine=null;CurrentId="";bindings.SetGameplayBlocked(false);
+                Time.timeScale=originalTimeScale;if(!completed)stage?.Abort();GetComponent<CinematicScoreV15>()?.End();RestoreListeners();cinematicCamera.enabled=false;bindings.gameplayCamera.enabled=originalCamera;campaign.Subtitle="";IsPlaying=false;routine=null;CurrentId="";campaign.ReconcileControls();
                 SequenceState=completed?(skip?"SKIPPED":"COMPLETED"):"FAILED";
-                if(completed){if(!campaign.State.viewedCinematics.Contains(data.id))campaign.State.viewedCinematics.Add(data.id);if(!campaign.State.viewedCinematics.Contains(resolvedId))campaign.State.viewedCinematics.Add(resolvedId);campaign.State.activeCinematicId="";campaign.State.cinematicTimeV15=0;campaign.State.cinematicActorsV15?.Clear();campaign.Save();}
+                if(completed){if(!campaign.State.viewedCinematics.Contains(data.id))campaign.State.viewedCinematics.Add(data.id);if(!campaign.State.viewedCinematics.Contains(resolvedId))campaign.State.viewedCinematics.Add(resolvedId);campaign.State.activeCinematicId="";campaign.State.cinematicTimeV15=0;campaign.State.cinematicActorsV15?.Clear();campaign.State.cinematicRoutesV16?.Clear();campaign.State.cinematicPropsV16?.Clear();campaign.Save();}
             }
             if(skip)campaign.Inform(PlayerSummary(data.id,data.title));
         }
@@ -93,12 +95,16 @@ namespace UngaBunga45001
         }
         private void OnDisable()
         {
+            bool interrupted = IsPlaying;
             if (routine != null) StopCoroutine(routine);
             RestoreListeners();
             if(IsPlaying){GetComponent<CinematicStage>()?.Abort();SequenceState="FAILED";}
             if (IsPlaying && bindings != null && bindings.gameplayCamera != null) bindings.gameplayCamera.enabled = true;
             if (cinematicCamera != null) cinematicCamera.enabled = false;
+            if (IsPlaying && Time.timeScale == 0) Time.timeScale = 1;
             IsPlaying = false;
+            routine = null;
+            if (interrupted && campaign != null && campaign.isActiveAndEnabled) campaign.ReconcileControls();
         }
     }
 }

@@ -8,10 +8,10 @@ namespace UngaBunga45001
     [DefaultExecutionOrder(-70)]public sealed partial class AdventureMenus:MonoBehaviour
     {
         public bool IsOpen=>window!=null&&window.gameObject.activeSelf;public string Mode{get;private set;}="Inventaire";
+        public string ParentMode=>settingsParent;
         TribalInterface tribal;public bool TribalReady=>tribal!=null;
         CampaignRuntime campaign;UISettingsController settings;InventoryController inventory;TMP_FontAsset font;RectTransform window,content;TMP_Text heading,detail;
-        bool previousPause;int recipeIndex;string craftCategory="Tout",selectedRecipeId="";string settingsPage="Affichage",chosenClause="";float nextRefresh;
-        bool openedInPortrait;public bool PauseBeforeOpen=>openedInPortrait&&MobileControls.Instance!=null?MobileControls.Instance.UnderlyingPause:previousPause;
+        int recipeIndex;string craftCategory="Tout",selectedRecipeId="";string settingsPage="Affichage",chosenClause="",settingsParent;float nextRefresh;
         public ActionDefinition[] Recipes=>campaign.Data.actions.Where(a=>(a.costs.Length>0||a.id.StartsWith("craft:"))&&(craftCategory=="Tout"||craftCategory=="Outils"&&a.id.StartsWith("craft:")||craftCategory=="Chantiers"&&!a.id.StartsWith("craft:"))).OrderBy(a=>campaign.CanExecute(a,out _,true)?0:1).ThenBy(a=>a.id.StartsWith("craft:")?0:1).ToArray();
         public void Build(CampaignRuntime runtime,Canvas canvas,TMP_FontAsset sourceFont)
         {
@@ -25,7 +25,6 @@ namespace UngaBunga45001
         {
             if(!IsOpen)return;
             if(tribal==null&&MobileControls.TouchActive&&(mobileMenuSize-MobileControls.Instance.Viewport).sqrMagnitude>1)Render();
-            if(Keyboard.current?.escapeKey.wasPressedThisFrame==true&&settings.Rebinding==null&&settings.ConsumedEscapeFrame!=Time.frameCount){settings.ConsumedEscapeFrame=Time.frameCount;Close();return;}
             if(tribal==null&&Mouse.current?.rightButton.wasPressedThisFrame==true){if(Mode=="Réglages"&&settingsPage=="Commandes"){settingsPage="Affichage";Render();}else Close();return;}
             if(tribal==null&&Time.unscaledTime>nextRefresh){nextRefresh=Time.unscaledTime+.3f;if(settings.Rebinding!=null)heading.text="APPUIE SUR UNE TOUCHE · ÉCHAP POUR ANNULER";else heading.text=Mode.ToUpperInvariant();}
         }
@@ -33,15 +32,37 @@ namespace UngaBunga45001
         public void OpenContainer(string id){tribal?.UseContainer(id);Open("Inventaire");}
         public void Open(string mode)
         {
-            if(campaign.State==null||campaign.IsBusy||campaign.MenhirActive||campaign.Dialogue!=null||campaign.QuestOverlay||campaign.IncidentModal||campaign.Ending!=null||campaign.cinematicDirector.IsPlaying)return;
+            if((GetComponent<CampaignActivitiesV17>()?.Active??false)||(GetComponent<VillageUpgradeV18>()?.PendingPresentation??false)||(GetComponent<VillageUpgradeViewV18>()?.Open??false))return;
+            if(campaign.State==null||campaign.BrowserInputSuspended||campaign.IsBusy||campaign.MenhirActive||campaign.Dialogue!=null||campaign.QuestOverlay||campaign.IncidentModal||campaign.Ending!=null||campaign.cinematicDirector.IsPlaying)return;
             mode=TribalInterface.Normalize(mode);GetComponent<CampaignMap>()?.SetTribalHost(null);bool entering=!IsOpen;
-            if(entering){previousPause=campaign.UserPaused;openedInPortrait=MobileControls.Instance?.PortraitPaused??false;}
+            if(mode=="Réglages"&&Mode!="Réglages")settingsParent=entering?null:Mode;
+            else if(mode!="Réglages")settingsParent=null;
             Mode=mode;window.gameObject.SetActive(true);window.SetAsLastSibling();
-            // Pause notifies the HUD synchronously. Publish the open state before notifying it.
-            if(entering){campaign.SetPause(true);campaign.Save();}
+            campaign.ReconcileControls();
+            if(entering)campaign.Save();
             if(mode=="Inventaire")settings.Learn(1);if(mode=="Fabrication")settings.Learn(2);Render();
         }
-        public void Close(){if(!IsOpen)return;tribal?.Closed();window.gameObject.SetActive(false);campaign.SetPause(MobileControls.Instance!=null?MobileControls.Instance.RestoreOverlayPause(PauseBeforeOpen):previousPause);}
+        public void Back()
+        {
+            if(!IsOpen)return;
+            if(Mode=="Réglages"&&settingsParent!=null){Open(settingsParent);return;}
+            if(Mode=="Pause"){Resume();return;}
+            Close();
+        }
+        public void Resume()
+        {
+            if(!IsOpen)return;
+            Close();
+            if(campaign.UserPaused)campaign.SetPause(false);
+        }
+        public void Close()
+        {
+            if(!IsOpen)return;
+            var selected=UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+            if(selected!=null&&selected.transform.IsChildOf(window))UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+            tribal?.Closed();window.gameObject.SetActive(false);settingsParent=null;
+            campaign.ReconcileControls();
+        }
         TMP_Text Text(string name,Vector2 position,Vector2 size,string value,int fontSize=23,Color? color=null)=>AdventureUI.Text(AdventureUI.Rect(content,name,new Vector2(0,1),new Vector2(0,1),position,size),font,value,fontSize,color);
         UnityEngine.UI.Button Button(string name,Vector2 position,Vector2 size,UnityEngine.Events.UnityAction action)=>AdventureUI.Button(AdventureUI.Rect(content,name,new Vector2(0,1),new Vector2(0,1),position,size),font,name,action);
         void Clear(){foreach(Transform child in content){child.gameObject.SetActive(false);Destroy(child.gameObject);}}

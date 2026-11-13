@@ -10,15 +10,16 @@ namespace UngaBunga45001
  {
   sealed class Actor
   {
-   public CharacterBinding binding;public Transform root;public Vector3 position;public Quaternion rotation,visual;
+   public CharacterBinding binding;public FilmActorStateV15 resume;public Transform root;public Vector3 position;public Quaternion rotation,visual;
    public NavMeshAgent agent;public bool agentEnabled,stopped,controllerEnabled,animatorEnabled;public CharacterController controller;
-   public CinematicActorV15 player;public AnimationClip walk,run,motion,rest,currentClip;public FilmCueV15[] cues;public float speed,distance,local,fade,movement,motionTime;public Vector3 lastPosition;
+   public CinematicActorV15 player;public AnimationClip walk,run,motion,rest,currentClip;public FilmCueV15[] cues;public float speed,distance,local,fade,movement,motionTime,idlePhase;public Vector3 lastPosition,groundAt;public float groundY,nextGround;
    public readonly Dictionary<Behaviour,bool> behaviours=new Dictionary<Behaviour,bool>();
   }
   sealed class Route{public FilmBlockingV15 spec;public Vector3[] corners;public float length;}
-  sealed class Prop{public FilmPropV15 spec;public Transform root,left,right,assistantLeft,assistantRight;public Vector3 start,end;public Quaternion rotation;public bool contact,released;public Rigidbody dropped;}
+  sealed class Prop{public FilmPropV15 spec;public FilmPropStateV16 saved;public Transform root,left,right,assistantLeft,assistantRight;public Vector3 start,end;public Quaternion rotation;public bool contact,released;public Rigidbody dropped;}
   readonly Dictionary<string,Actor> actors=new Dictionary<string,Actor>();readonly Dictionary<string,Route[]> routes=new Dictionary<string,Route[]>();readonly Dictionary<string,Prop> props=new Dictionary<string,Prop>();
   readonly Dictionary<string,string> roles=new Dictionary<string,string>();readonly HashSet<int> events=new HashSet<int>();readonly List<GameObject> temporary=new List<GameObject>();
+  CinematicTimelineV16 timeline;CinematicCameraV16 framingV16;float lightBase,resumedAt;
   readonly Dictionary<FilmContactV15,Transform> bodyContacts=new Dictionary<FilmContactV15,Transform>();
   readonly RaycastHit[] cameraHits=new RaycastHit[32];Renderer[] occluders=Array.Empty<Renderer>();
   CampaignRuntime campaign;CinematicStage stage;FilmV15 film;int cameraShot=-1;float cameraAngle,previousTime,fadeAt;Quaternion shotSpace;AudioSource sound;Vector3 originalAnimal;Quaternion originalAnimalRotation;bool owned,finishing;CinematicConstructionV15 construction;
@@ -28,19 +29,20 @@ namespace UngaBunga45001
   string Role(string id)=>id!=null&&roles.TryGetValue(id,out var value)?value:id;
   Transform World(string id)
   {
-   if(string.IsNullOrEmpty(id))return null;if(id[0]=='@')return props.TryGetValue(id.Substring(1),out var prop)?prop.root:null;
+   if(string.IsNullOrEmpty(id))return null;if(id=="@foundation")return construction?.Foundation;if(id[0]=='@')return props.TryGetValue(id.Substring(1),out var prop)?prop.root:null;
    if(id=="charpente"&&incidentSite!=null)return incidentSite;
    id=Role(id);if(id=="mammoth")return stage.mammoth;return campaign.bindings.Find(id);
   }
   Vector3 Point(string id)=>World(id)?.position??campaign.bindings.Find(film.site)?.position??campaign.bindings.player.position;
   bool Alive(string id)=>campaign.State.characters.FirstOrDefault(c=>c.id==id)?.alive??true;
   public string Speaker(string speaker){var character=campaign.Data.characters.FirstOrDefault(c=>c.name==speaker);return character==null?speaker:campaign.CharacterName(Role(character.id));}
-  public string Subtitle(string text)=>film.id=="F15_C08"&&!campaign.HasFlag("verified:M_V_ABRI")&&text.Contains("structure est vérifiée")?"Les travaux sont posés. Termine le contrôle avant de rouvrir les habitations.":text;
+  public string Subtitle(string text){text=timeline!=null&&timeline.Active&&timeline.Text!=null?timeline.Text:text;return film.id=="F15_C08"&&!campaign.HasFlag("verified:M_V_ABRI")&&(text.Contains("structure est vérifiée")||text.Contains("contrôles réalisés"))?"La couverture est posée. Termine le contrôle avant de rouvrir les habitations.":text;}
   public void Begin(string id,CinematicStage source)
   {
    if(owned)End(false);stage=source;campaign=source.campaign;film=CinematicCatalogueV15.Find(CinematicCatalogueV15.Resolve(id,campaign));if(film==null)throw new InvalidOperationException("No authored film: "+id);
-   campaign.GetComponent<CinematicPerformanceV15>()?.StopAll();
-   owned=true;finishing=false;PathFailures=ContactFrames=0;MaxHandGap=MaxHandGapAt=0;MaxHandGapProp="";cameraShot=-1;previousTime=0;events.Clear();roles.Clear();actors.Clear();routes.Clear();props.Clear();temporary.Clear();
+   campaign.GetComponent<CinematicPerformanceV15>()?.StopAll();timeline=GetComponent<CinematicTimelineV16>()??gameObject.AddComponent<CinematicTimelineV16>();timeline.Begin(film.id);framingV16=timeline.Active?new CinematicCameraV16():null;
+   resumedAt=campaign.State.cinematicTimeV15;if(resumedAt<=0){campaign.State.cinematicPropsV16?.Clear();campaign.State.cinematicRoutesV16?.Clear();}
+   owned=true;finishing=false;PathFailures=ContactFrames=0;MaxHandGap=MaxHandGapAt=0;MaxHandGapProp="";cameraShot=-1;previousTime=resumedAt;events.Clear();roles.Clear();actors.Clear();routes.Clear();props.Clear();temporary.Clear();
    incidentSite=null;var blocks=new List<FilmBlockingV15>(film.blocking);
    if(film.id=="F15_C12"&&campaign.State.accidents.Count>0)
    {
@@ -52,15 +54,15 @@ namespace UngaBunga45001
    foreach(var binding in campaign.bindings.characters)
    {
     var root=campaign.bindings.Find(binding.id);if(root==null||binding.animator==null||binding.meshyActor==null||!Alive(binding.id)||!binding.meshyActor.activeInHierarchy)continue;
-    if(campaign.State.cinematicTimeV15>0){var saved=campaign.State.cinematicActorsV15?.Find(s=>s.id==binding.id);if(saved!=null)root.SetPositionAndRotation(saved.position,saved.rotation);}
-    var a=new Actor{binding=binding,root=root,position=root.position,rotation=root.rotation,visual=binding.meshyActor.transform.localRotation,agent=root.GetComponent<NavMeshAgent>(),controller=root.GetComponent<CharacterController>(),speed=binding.animator.speed,lastPosition=root.position,animatorEnabled=binding.animator.enabled};actors[binding.id]=a;
+    var saved=campaign.State.cinematicTimeV15>0?campaign.State.cinematicActorsV15?.Find(s=>s.id==binding.id):null;if(saved!=null)root.SetPositionAndRotation(saved.position,saved.rotation);
+    var a=new Actor{binding=binding,idlePhase=binding.id.Sum(letter=>(int)letter)*.137f,resume=saved,distance=saved?.distance??0,groundAt=root.position,groundY=root.position.y-.04f,nextGround=resumedAt+.1f,root=root,position=root.position,rotation=root.rotation,visual=binding.meshyActor.transform.localRotation,agent=root.GetComponent<NavMeshAgent>(),controller=root.GetComponent<CharacterController>(),speed=binding.animator.speed,lastPosition=root.position,animatorEnabled=binding.animator.enabled};actors[binding.id]=a;
     if(a.agent!=null){a.agentEnabled=a.agent.enabled;a.stopped=a.agent.enabled&&a.agent.isOnNavMesh&&a.agent.isStopped;if(a.agent.enabled&&a.agent.isOnNavMesh)a.agent.isStopped=true;a.agent.enabled=false;}
     if(a.controller!=null){a.controllerEnabled=a.controller.enabled;a.controller.enabled=false;}
     foreach(var component in root.GetComponents<Behaviour>())if(component is VillagerBrain||component is VillagerCollisionMotor||component is ThirdPersonMotor){a.behaviours[component]=component.enabled;component.enabled=false;}
     a.cues=film.cues.Where(c=>Role(c.actor)==binding.id).OrderBy(c=>c.start).ToArray();
     if(a.cues.Length>0||blocks.Any(b=>Role(b.actor)==binding.id))
     {
-     binding.meshyActor.transform.localRotation=Quaternion.identity;
+     if(timeline.Active&&saved==null){var standing=root.position;standing.y=CinematicSupportV16.Height(standing,root)+.04f;root.position=standing;}binding.meshyActor.transform.localRotation=Quaternion.identity;
      var clips=binding.animator.runtimeAnimatorController.animationClips;a.walk=clips.FirstOrDefault(c=>c.name=="Basic_Walk")??clips.FirstOrDefault(c=>c.name.ToLowerInvariant().Contains("walk"));a.run=clips.FirstOrDefault(c=>c.name=="Movement_Run")??a.walk;a.rest=clips.FirstOrDefault(c=>c.name.Contains("Stand_Listen"))??clips[0];
      a.player=binding.animator.GetComponent<CinematicActorV15>()??binding.animator.gameObject.AddComponent<CinematicActorV15>();a.player.Acquire(binding.animator);
      foreach(var cue in a.cues)if(CinematicCatalogueV15.Clip(cue.clip)==null)throw new InvalidOperationException("Missing scene clip: "+cue.clip);
@@ -69,24 +71,27 @@ namespace UngaBunga45001
    }
    if(film.id=="F15_C08"){construction=new CinematicConstructionV15();construction.Begin(campaign);}else construction=null;
    Physics.SyncTransforms();
-   foreach(var group in blocks.GroupBy(b=>Role(b.actor)))
+   if(resumedAt>0&&campaign.State.cinematicRoutesV16!=null&&campaign.State.cinematicRoutesV16.Count>0){foreach(var group in campaign.State.cinematicRoutesV16.GroupBy(record=>record.actor))routes[group.Key]=group.Select(record=>new Route{spec=record.spec,corners=record.corners,length=record.length}).ToArray();}
+   else foreach(var group in blocks.GroupBy(b=>Role(b.actor)))
    {
     if(!actors.TryGetValue(group.Key,out var actor))continue;var list=new List<Route>();Vector3 from=actor.position;
     foreach(var block in group.OrderBy(b=>b.start))
     {
      if(block.end<=campaign.State.cinematicTimeV15)continue;
      var timing=new FilmBlockingV15{actor=block.actor,site=block.site,offset=block.offset,start=Mathf.Max(block.start,campaign.State.cinematicTimeV15),end=block.end};
-     var target=Point(block.site)+block.offset;target.y=HutCollapse.TerrainFloor(target)+.04f;
+     var target=Point(block.site)+block.offset;target.y=HutCollapse.TerrainFloor(target)+.04f;if(film.id=="F15_C08"&&block.actor=="georges"&&block.start==0&&construction?.Foundation!=null)target=construction.FoundationRoot;
     if(VillageNavigation.Plan(from,target,actor.root,out var path,12,0,6))
-     {var corners=new[]{from}.Concat(path.corners).ToArray();float length=0;for(int i=1;i<corners.Length;i++)length+=Vector3.Distance(corners[i-1],corners[i]);list.Add(new Route{spec=timing,corners=corners,length=length});from=corners[corners.Length-1];}
-     else if(CinematicPhysicalRouteV15.Try(from,target,actor.root,out var physical)){list.Add(new Route{spec=timing,corners=physical,length=Length(physical)});from=physical[physical.Length-1];}
+     {var corners=new[]{from}.Concat(path.corners).ToArray();
+      if(timeline.Active&&film.id=="F15_C08"&&Vector3.Distance(corners[corners.Length-1],target)>.04f){if(CinematicPhysicalRouteV15.Try(corners[corners.Length-1],target,actor.root,out var tail,false))corners=corners.Concat(tail.Skip(1)).ToArray();else{PathFailures++;Debug.LogWarning("Exact contact endpoint blocked: "+block.actor+" "+CinematicPhysicalRouteV15.LastFailure);}}
+      list.Add(new Route{spec=timing,corners=corners,length=Length(corners)});from=corners[corners.Length-1];}
+     else if(CinematicPhysicalRouteV15.Try(from,target,actor.root,out var physical,!(timeline.Active&&film.id=="F15_C08"))){list.Add(new Route{spec=timing,corners=physical,length=Length(physical)});from=physical[physical.Length-1];}
      else{PathFailures++;Debug.LogWarning("Film "+film.id+": safe route unavailable for "+block.actor+" from "+from+" to "+block.site+" at "+target);}
     }
     routes[group.Key]=list.ToArray();
    }
    foreach(var spec in film.props)CreateProp(spec);
-   bodyContacts.Clear();foreach(var contact in film.contacts??Array.Empty<FilmContactV15>())if(actors.TryGetValue(Role(contact.target),out var subject)&&Enum.TryParse<HumanBodyBones>(contact.bone,out var bone))
-   {var anchor=new GameObject("Contact de jeu · "+contact.actor+" → "+contact.target).transform;anchor.SetParent(subject.binding.animator.GetBoneTransform(bone),false);anchor.localPosition=contact.offset;bodyContacts[contact]=anchor;temporary.Add(anchor.gameObject);}
+   bodyContacts.Clear();foreach(var contact in film.contacts??Array.Empty<FilmContactV15>())
+   {Transform parent=null;if(contact.target=="@foundation")parent=construction?.Foundation;else if(actors.TryGetValue(Role(contact.target),out var subject)&&Enum.TryParse<HumanBodyBones>(contact.bone,out var bone))parent=subject.binding.animator.GetBoneTransform(bone);if(parent==null)continue;var anchor=new GameObject("Contact de jeu · "+contact.actor+" vers "+contact.target).transform;anchor.SetParent(parent,false);anchor.localPosition=contact.offset;bodyContacts[contact]=anchor;temporary.Add(anchor.gameObject);}
    var scenery=FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None).Where(r=>r.enabled).ToArray();occluders=scenery.Where(r=>r.bounds.size.y>2.2f).Cast<Renderer>().ToArray();
    foliage.Clear();foliageColliders.Clear();foreach(var renderer in scenery)if(renderer.bounds.size.y>.35f)
    {
@@ -96,7 +101,8 @@ namespace UngaBunga45001
    wildlife=GetComponent<CinematicWildlifeV15>()??gameObject.AddComponent<CinematicWildlifeV15>();wildlife.Ensure(campaign,stage.mammoth);movingHerd=false;
    weather=GetComponent<CinematicWeatherV15>()??gameObject.AddComponent<CinematicWeatherV15>();weather.Begin(campaign);
    if(sound==null){var emitter=new GameObject("Foley des scènes V15");emitter.transform.SetParent(transform,false);sound=emitter.AddComponent<AudioSource>();sound.playOnAwake=false;}sound.spatialBlend=1;sound.minDistance=2;sound.maxDistance=35;
-   if(fill==null){var go=new GameObject("Lumière douce de réalisation");go.transform.SetParent(campaign.cinematicDirector.cinematicCamera.transform,false);go.transform.localPosition=new Vector3(-.65f,.75f,0);fill=go.AddComponent<Light>();fill.type=LightType.Spot;fill.range=15;fill.spotAngle=85;fill.shadows=LightShadows.None;RenderBackend.PortraitLight(fill);fill.intensity*=1.8f;fill.cullingMask=campaign.cinematicDirector.cinematicCamera.cullingMask;}
+   if(fill==null){var go=new GameObject("Lumière douce de réalisation");go.transform.SetParent(campaign.cinematicDirector.cinematicCamera.transform,false);go.transform.localPosition=new Vector3(-.65f,.75f,0);fill=go.AddComponent<Light>();fill.type=LightType.Spot;fill.range=15;fill.spotAngle=85;fill.shadows=LightShadows.None;fill.cullingMask=campaign.cinematicDirector.cinematicCamera.cullingMask;}
+   RenderBackend.PortraitLight(fill);fill.intensity*=1.8f;lightBase=fill.intensity;
    fill.color=film.mood=="accident"||film.mood=="tension"?new Color(.8f,.87f,1):new Color(1,.92f,.82f);fill.enabled=true;
   }
   public IEnumerator PrepareEntry(Camera camera,Func<bool> skip)
@@ -129,45 +135,48 @@ namespace UngaBunga45001
   static float Length(Vector3[] points){float result=0;for(int i=1;i<points.Length;i++)result+=Vector3.Distance(points[i-1],points[i]);return result;}
   public void CaptureActors()
   {
-   if(!owned)return;var saved=campaign.State.cinematicActorsV15??=new List<FilmActorStateV15>();saved.Clear();foreach(var a in actors.Values)saved.Add(new FilmActorStateV15{id=a.binding.id,position=a.root.position,rotation=a.root.rotation});
+   if(!owned)return;var saved=campaign.State.cinematicActorsV15??=new List<FilmActorStateV15>();saved.Clear();foreach(var a in actors.Values)saved.Add(new FilmActorStateV15{id=a.binding.id,position=a.root.position,rotation=a.root.rotation,distance=a.distance,running=a.motion==a.run});var paths=campaign.State.cinematicRoutesV16??=new List<FilmRouteStateV16>();paths.Clear();foreach(var pair in routes)foreach(var route in pair.Value)paths.Add(new FilmRouteStateV16{actor=pair.Key,spec=route.spec,corners=route.corners,length=route.length});var objects=campaign.State.cinematicPropsV16??=new List<FilmPropStateV16>();objects.Clear();foreach(var p in props.Values)objects.Add(new FilmPropStateV16{id=p.spec.id,position=p.root.position,rotation=p.root.rotation,released=p.released});
   }
   void CreateProp(FilmPropV15 spec)
   {
    if(!actors.ContainsKey(Role(spec.actor)))return;
    var accident=campaign.GetComponent<AccidentDirector>();Mesh mesh=null;Material material=accident.woodMaterial;
    if(spec.id=="shared-beam"&&construction?.Beam!=null)mesh=construction.Beam.root.GetComponent<MeshFilter>().sharedMesh;
+   else if(spec.kind=="tool"){var nativeTool=actors[Role(spec.actor)].binding.animator.GetComponent<HeldWorkTool>()?.target;if(nativeTool!=null){mesh=nativeTool.GetComponent<MeshFilter>()?.sharedMesh;material=nativeTool.sharedMaterial;}}
    else if(spec.kind=="beam"||spec.kind=="staff")mesh=stage.fallingFrame?.GetComponentInChildren<HutCollapse>()?.pieces.FirstOrDefault(p=>p.kind==2)?.root.GetComponent<MeshFilter>()?.sharedMesh;
-   var go=new GameObject(film.id+" · "+spec.id);GameObject visual;if(mesh==null){visual=GameObject.CreatePrimitive(PrimitiveType.Cube);Destroy(visual.GetComponent<Collider>());}else{visual=new GameObject("Géométrie source");visual.AddComponent<MeshFilter>().sharedMesh=mesh;visual.AddComponent<MeshRenderer>();}
+   var supplied=spec.kind=="cover"?construction?.Cover:null;var go=supplied??new GameObject(film.id+" · "+spec.id);if(supplied==null){GameObject visual;if(mesh==null){visual=GameObject.CreatePrimitive(PrimitiveType.Cube);Destroy(visual.GetComponent<Collider>());}else{visual=new GameObject("Géométrie source");visual.AddComponent<MeshFilter>().sharedMesh=mesh;visual.AddComponent<MeshRenderer>();}
    visual.transform.SetParent(go.transform,false);visual.GetComponent<MeshRenderer>().sharedMaterial=material;
-   CinematicPropShapeV15.Fit(visual.transform,mesh,spec.id=="shared-beam"&&construction?.Beam!=null?Vector3.Scale(mesh.bounds.size,construction.Beam.root.lossyScale):spec.size);
-   Vector3 p=Point(spec.site)+spec.offset;go.transform.position=p;var end=Point(spec.destination)+spec.finalOffset;
-   var prop=new Prop{spec=spec,root=go.transform,start=p,end=end,rotation=go.transform.rotation};
+   CinematicPropShapeV15.Fit(visual.transform,mesh,spec.id=="shared-beam"&&construction?.Beam!=null?Vector3.Scale(mesh.bounds.size,construction.Beam.root.lossyScale):spec.size);}
+   Vector3 p=Point(spec.site)+spec.offset;if(spec.id=="shared-beam"&&construction?.Beam!=null&&timeline.Active)p=construction.PrepareBeamPickup(Point(spec.site));go.transform.position=p;var end=Point(spec.destination)+spec.finalOffset;
+   var prop=new Prop{saved=resumedAt>0?campaign.State.cinematicPropsV16?.Find(record=>record.id==spec.id):null,spec=spec,root=go.transform,start=p,end=end,rotation=go.transform.rotation};
    var l=new GameObject("Prise main gauche").transform;l.SetParent(go.transform,false);var r=new GameObject("Prise main droite").transform;r.SetParent(go.transform,false);
    // Grip spacing stays in world units, independently of the recovered mesh's source scale.
    bool shared=!string.IsNullOrEmpty(spec.assistant);l.position=p+Vector3.right*(shared?spec.size.x*.34f:-Mathf.Min(.27f,spec.size.x*.32f));r.position=p+Vector3.right*(shared?spec.size.x*.46f:Mathf.Min(.27f,spec.size.x*.32f));prop.left=l;prop.right=r;
    if(shared){var al=new GameObject("Prise second bâtisseur gauche").transform;al.SetParent(go.transform,false);al.position=p-Vector3.right*spec.size.x*.46f;var ar=new GameObject("Prise second bâtisseur droite").transform;ar.SetParent(go.transform,false);ar.position=p-Vector3.right*spec.size.x*.34f;prop.assistantLeft=al;prop.assistantRight=ar;}
+   if(spec.kind=="cover"&&construction?.Cover!=null){construction.BindCoverGrips(prop.left,prop.right,prop.assistantLeft,prop.assistantRight);var mid=(prop.left.localPosition+prop.right.localPosition+prop.assistantLeft.localPosition+prop.assistantRight.localPosition)*.25f;prop.start=Point(spec.site)+Vector3.back*2.5f-mid;go.transform.position=prop.start;var bounds=go.GetComponentInChildren<MeshRenderer>().bounds;prop.start+=Vector3.up*(HutCollapse.TerrainFloor(bounds.center)+.565f-bounds.min.y);go.transform.position=prop.start;}
    props[spec.id]=prop;temporary.Add(go);
   }
   public void Evaluate(float time,Camera camera)
   {
-   if(!owned)return;float dt=Mathf.Max(0,time-previousTime);previousTime=time;construction?.Evaluate(time);
+   if(!owned)return;timeline?.Evaluate(time);if(fill!=null&&timeline!=null&&timeline.Active)fill.intensity=lightBase*timeline.LightWeight;float dt=Mathf.Max(0,time-previousTime);previousTime=time;construction?.Evaluate(time);
    foreach(var actor in actors.Values)
    {
     if(actor.player==null)continue;float movement=0;
     if(routes.TryGetValue(actor.binding.id,out var list))foreach(var route in list)
     {
-     if(time<route.spec.start)break;float u=Mathf.Clamp01((time-route.spec.start)/Mathf.Max(.01f,route.spec.end-route.spec.start));float smooth=u*u*(3-2*u);var position=Along(route,smooth,out var tangent);position.y=HutCollapse.TerrainFloor(position)+.04f;actor.root.position=position;
+     if(time<route.spec.start)break;float u=Mathf.Clamp01((time-route.spec.start)/Mathf.Max(.01f,route.spec.end-route.spec.start));float smooth=u*u*(3-2*u);var position=Along(route,smooth,out var tangent);if(timeline.Active){if(new Vector2(actor.groundAt.x-position.x,actor.groundAt.z-position.z).sqrMagnitude>.0064f||time>=actor.nextGround){actor.groundAt=position;actor.groundY=CinematicSupportV16.Height(position,actor.root);actor.nextGround=time+.1f;}position.y=actor.groundY+.04f;}else position.y=HutCollapse.TerrainFloor(position)+.04f;actor.root.position=position;
      if(u>0&&u<1){tangent.y=0;if(tangent.sqrMagnitude>.001f)actor.root.rotation=Quaternion.Slerp(actor.root.rotation,Quaternion.LookRotation(tangent),1-Mathf.Exp(-dt*7));movement=Mathf.Clamp01(Mathf.Min(u,1-u)*9);}else movement=0;
     }
-    float moved=Vector3.Distance(actor.lastPosition,actor.root.position);actor.distance+=moved;actor.lastPosition=actor.root.position;actor.motion=dt>.0001f&&moved/dt>2.8f?actor.run:actor.walk;float stride=actor.motion==null?1:actor.motion.averageSpeed.magnitude;if(stride<.3f)stride=actor.motion==actor.run?4.3f:1.8f;actor.motionTime=actor.distance/stride;
+    float moved=Vector3.Distance(actor.lastPosition,actor.root.position);actor.distance+=moved;actor.lastPosition=actor.root.position;actor.motion=dt<=.0001f&&actor.resume!=null?(actor.resume.running?actor.run:actor.walk):dt>.0001f&&moved/dt>2.8f?actor.run:actor.walk;float stride=actor.motion==null?1:actor.motion.averageSpeed.magnitude;if(stride<.3f)stride=actor.motion==actor.run?4.3f:1.8f;actor.motionTime=actor.distance/stride;
     FilmCueV15 cue=null;foreach(var candidate in actor.cues){if(time<candidate.start)break;cue=candidate;}
-    var clip=cue==null?actor.rest:CinematicCatalogueV15.Clip(cue.clip);float local=cue==null?Mathf.Min(.35f,clip.length):Mathf.Clamp(time-cue.start,0,cue.duration-.001f);float fade=cue==null?1:Mathf.SmoothStep(0,1,(time-cue.start)/.22f);
+    var track=timeline!=null&&timeline.Active?timeline.Actor(actor.binding.id):null;if(track!=null)cue=track.cue;float restFade=1;if(timeline.Active&&cue!=null&&time>=cue.start+cue.duration){restFade=Mathf.SmoothStep(0,1,(time-cue.start-cue.duration)/.24f);cue=null;track=null;}
+    var clip=track?.clip??(cue==null?actor.rest:CinematicCatalogueV15.Clip(cue.clip));float local=track!=null?track.local:cue==null?(timeline.Active?Mathf.Min(.35f+.1f*Mathf.Sin(time*.9f+actor.idlePhase),Mathf.Max(.001f,clip.length-.001f)):Mathf.Min(.35f,clip.length)):Mathf.Clamp(time-cue.start,0,cue.duration-.001f);float fade=cue==null?restFade:Mathf.SmoothStep(0,1,(time-cue.start)/.22f);
     string looking=cue?.lookAt??film.site;var target=Point(looking);if(actors.ContainsKey(Role(looking)))target+=Vector3.up*1.55f;else if(!looking.StartsWith("@"))target+=Vector3.up*.8f;
-    if(movement<.1f){var facing=(string.IsNullOrEmpty(cue?.faceTo)?target:Point(cue.faceTo))-actor.root.position;facing.y=0;if(facing.sqrMagnitude>.1f)actor.root.rotation=Quaternion.Slerp(actor.root.rotation,Quaternion.LookRotation(facing),1-Mathf.Exp(-dt*2.6f));}
+    if(movement<.1f){var facing=(string.IsNullOrEmpty(cue?.faceTo)?target:Point(cue.faceTo))-actor.root.position;facing.y=0;if(timeline.Active&&film.id=="F15_C08"&&(actor.binding.id=="tarek"||actor.binding.id=="uma")&&time>=10&&time<=35)facing=Vector3.forward;if(facing.sqrMagnitude>.1f)actor.root.rotation=Quaternion.Slerp(actor.root.rotation,Quaternion.LookRotation(facing),1-Mathf.Exp(-dt*2.6f));}
     actor.player.Look(target,Mathf.Min(.78f,fade));actor.player.Contact(null,null,0);
     actor.currentClip=clip;actor.local=local;actor.fade=fade;actor.movement=movement;actor.player.Sample(clip,local,fade,actor.motion,actor.motionTime,movement);
    }
-   foreach(var prop in props.Values)UpdateProp(prop,time);
+   foreach(var prop in props.Values)UpdateProp(prop,timeline!=null&&timeline.Active&&timeline.PropTimes.TryGetValue(prop.spec.id,out float propTime)?propTime:time);
    foreach(var pair in bodyContacts)
    {
     var cue=pair.Key;if(time<cue.start||time>cue.end||!actors.TryGetValue(Role(cue.actor),out var actor))continue;float weight=Mathf.SmoothStep(0,1,(time-cue.start)/.4f)*(1-Mathf.SmoothStep(0,1,(time-cue.end+.4f)/.4f));actor.player.Contact(cue.hand=="Left"?pair.Value:null,cue.hand=="Right"?pair.Value:null,weight);
@@ -175,35 +184,39 @@ namespace UngaBunga45001
    // Contact constraints are evaluated after both the carrier and the object have advanced.
    foreach(var actor in actors.Values)if(actor.player!=null&&actor.player.HandWeight>.001f)actor.player.Sample(actor.currentClip,actor.local,actor.fade,actor.motion,actor.motionTime,actor.movement);
    foreach(var prop in props.Values)if(prop.contact&&actors.TryGetValue(Role(prop.spec.actor),out var carrier)){bool book=prop.spec.kind=="notebook"||prop.spec.kind=="map"||prop.spec.kind=="tablet";var a=carrier.binding.animator;float gap=Vector3.Distance(a.GetBoneTransform(book?HumanBodyBones.LeftHand:HumanBodyBones.RightHand).position,book?prop.left.position:prop.right.position);if(gap>MaxHandGap){MaxHandGap=gap;MaxHandGapAt=time;MaxHandGapProp=prop.spec.id;}}
-   for(int i=0;i<film.events.Length;i++)if(!events.Contains(i)&&film.events[i].at<=time){events.Add(i);ApplyEvent(film.events[i],finishing);}
+   for(int i=0;i<film.events.Length;i++)if(!events.Contains(i)&&(timeline!=null&&timeline.Active?timeline.EventIndices.Contains(i):film.events[i].at<=time)){events.Add(i);ApplyEvent(film.events[i],finishing);}
    if(movingHerd)wildlife.Tick(time,dt);FrameCamera(time,camera);
   }
   static Vector3 Along(Route route,float u,out Vector3 tangent)
   {
    float at=route.length*u;tangent=Vector3.forward;for(int i=1;i<route.corners.Length;i++){var d=route.corners[i]-route.corners[i-1];float length=d.magnitude;if(length<.001f)continue;tangent=d/length;if(at<=length)return route.corners[i-1]+tangent*at;at-=length;}return route.corners[route.corners.Length-1];
   }
+  Vector3 PropDestination(Prop p)=>p.spec.kind=="cover"&&construction?.Cover!=null?construction.CoverPosition:p.spec.id=="shared-beam"&&construction?.Beam!=null?construction.BeamPosition:Point(p.spec.destination)+p.spec.finalOffset;
+  Quaternion PropRotation(Prop p)=>p.spec.kind=="cover"?Quaternion.identity:p.spec.id=="shared-beam"&&construction?.Beam!=null?construction.BeamRotation:p.rotation;
+  static Vector3 ShoulderFrame(Animator animator)=>(animator.GetBoneTransform(HumanBodyBones.LeftUpperArm).position+animator.GetBoneTransform(HumanBodyBones.RightUpperArm).position)*.5f;
   void UpdateProp(Prop p,float time)
   {
    var spec=p.spec;var carrier=actors[Role(spec.actor)];bool held=time>=spec.pickup&&time<spec.release;float grip=Mathf.SmoothStep(0,1,(time-spec.pickup)/(string.IsNullOrEmpty(spec.assistant)?.75f:1.5f))*(1-Mathf.SmoothStep(0,1,(time-spec.release+.65f)/.65f));
    bool personal=spec.destination==spec.actor&&(spec.kind=="notebook"||spec.kind=="map"||spec.kind=="tablet"||spec.kind=="staff"||spec.kind=="tool");bool drop=spec.kind=="beam"&&spec.finalOffset.y<.4f;
-   if(!p.released&&time>=spec.release){p.released=true;p.end=personal?carrier.root.TransformPoint(spec.offset):spec.id=="shared-beam"&&construction?.Beam!=null?construction.BeamPosition:Point(spec.destination)+spec.finalOffset;if(drop){if(spec.destination==spec.actor)p.end+=carrier.root.forward*.6f;if(finishing)p.root.position=p.end;var collider=p.root.gameObject.AddComponent<BoxCollider>();collider.size=spec.size;p.dropped=p.root.gameObject.AddComponent<Rigidbody>();p.dropped.mass=4;var impact=p.root.gameObject.AddComponent<CinematicImpactV15>();impact.clip=campaign.GetComponent<AccidentDirector>().impact;}}
-   else if(!p.released)p.end=personal?carrier.root.TransformPoint(spec.offset):spec.id=="shared-beam"&&construction?.Beam!=null?construction.BeamPosition:Point(spec.destination)+spec.finalOffset;
+   if(!p.released&&time>=spec.release){p.released=true;if(spec.id=="shared-beam"&&construction?.Beam!=null&&timeline.Active){var filter=p.root.GetComponentInChildren<MeshFilter>();if(filter!=null)filter.gameObject.AddComponent<MeshCollider>().sharedMesh=filter.sharedMesh;}p.end=p.saved!=null&&p.saved.released?p.saved.position:personal?carrier.root.TransformPoint(spec.offset):PropDestination(p);if(drop){if(spec.destination==spec.actor)p.end+=carrier.root.forward*.6f;bool alreadyDropped=finishing||resumedAt>=spec.release;if(alreadyDropped){p.root.position=p.end;if(p.saved!=null)p.root.rotation=p.saved.rotation;}var collider=p.root.gameObject.AddComponent<BoxCollider>();collider.size=spec.size;p.dropped=p.root.gameObject.AddComponent<Rigidbody>();p.dropped.mass=4;if(alreadyDropped)p.dropped.isKinematic=true;else p.dropped.linearVelocity=carrier.root.forward*.8f;var impact=p.root.gameObject.AddComponent<CinematicImpactV15>();impact.clip=campaign.GetComponent<AccidentDirector>().impact;}}
+   else if(!p.released)p.end=personal?carrier.root.TransformPoint(spec.offset):PropDestination(p);
    if(time<spec.pickup){if(spec.site==spec.actor){p.start=carrier.root.TransformPoint(spec.offset);p.rotation=carrier.root.rotation;}p.root.position=p.start;p.root.rotation=p.rotation;}
    else if(held)
    {
     if(personal){p.start=carrier.root.TransformPoint(spec.offset);p.rotation=carrier.root.rotation;}
     var animator=carrier.binding.animator;var leftHand=animator.GetBoneTransform(HumanBodyBones.LeftHand);var rightHand=animator.GetBoneTransform(HumanBodyBones.RightHand);bool book=spec.kind=="notebook"||spec.kind=="map"||spec.kind=="tablet";bool single=spec.kind=="tool"||spec.kind=="staff";
     // A stable actor-space target avoids feeding the last IK result back into its own constraint.
-    var chest=animator.GetBoneTransform(HumanBodyBones.Chest).position;Vector3 hold=chest+Vector3.down*.18f+carrier.root.forward*(book?.36f:.4f)+(single?carrier.root.right*.25f:Vector3.zero);
-    Quaternion orientation=carrier.root.rotation;
-    if(!string.IsNullOrEmpty(spec.assistant)&&actors.TryGetValue(Role(spec.assistant),out var assistant)){hold=(carrier.root.position+assistant.root.position)*.5f+(carrier.root.forward+assistant.root.forward)*.175f;hold.y=(chest.y+assistant.binding.animator.GetBoneTransform(HumanBodyBones.Chest).position.y)*.5f-.18f;var axis=carrier.root.position-assistant.root.position;axis.y=0;if(axis.sqrMagnitude>.01f)orientation=Quaternion.FromToRotation(Vector3.right,axis.normalized);assistant.player?.Contact(p.assistantLeft,p.assistantRight,grip);}
-    float lift=Mathf.SmoothStep(0,1,(time-spec.pickup)/(string.IsNullOrEmpty(spec.assistant)?.8f:1.8f));Vector3 destination=p.end;float lower=drop?0:Mathf.SmoothStep(0,1,(time-spec.release+.65f)/.65f);
-    p.root.position=Vector3.Lerp(Vector3.Lerp(p.start,hold,lift),destination,lower);p.root.rotation=Quaternion.Slerp(p.rotation,orientation,Mathf.Min(lift,.8f));
+    var chest=timeline.Active?ShoulderFrame(animator):animator.GetBoneTransform(HumanBodyBones.Chest).position;Vector3 hold=chest+Vector3.down*(timeline.Active?.25f:.18f)+carrier.root.forward*(book?.36f:(film.id=="F15_C08"&&spec.actor=="neila"||film.id=="F15_C01"&&spec.actor=="nork")?.28f:.4f)+(single?carrier.root.right*.25f:Vector3.zero);
+    Quaternion orientation=carrier.root.rotation;if(spec.kind=="tool"&&timeline!=null&&timeline.Active){hold=rightHand.position;orientation=rightHand.rotation;}
+    if(!string.IsNullOrEmpty(spec.assistant)&&actors.TryGetValue(Role(spec.assistant),out var assistant)){hold=(carrier.root.position+assistant.root.position)*.5f+(carrier.root.forward+assistant.root.forward)*.145f;var other=timeline.Active?ShoulderFrame(assistant.binding.animator):assistant.binding.animator.GetBoneTransform(HumanBodyBones.Chest).position;hold.y=(chest.y+other.y)*.5f-(timeline.Active?.25f:.18f);var axis=timeline.Active?chest-other:carrier.root.position-assistant.root.position;if(!timeline.Active)axis.y=0;if(axis.sqrMagnitude>.01f)orientation=Quaternion.FromToRotation(Vector3.right,axis.normalized);assistant.player?.Contact(p.assistantLeft,p.assistantRight,grip);}
+    float lift=spec.pickup<=0&&spec.site==spec.actor?1:Mathf.SmoothStep(0,1,(time-spec.pickup)/(string.IsNullOrEmpty(spec.assistant)?.8f:1.8f));Vector3 destination=p.end;float lower=drop?0:Mathf.SmoothStep(0,1,(time-spec.release+.65f)/.65f);
+    p.root.position=Vector3.Lerp(Vector3.Lerp(p.start,hold,lift),destination,lower);p.root.rotation=Quaternion.Slerp(Quaternion.Slerp(p.rotation,orientation,Mathf.Min(lift,.8f)),PropRotation(p),lower);
+    if(spec.kind=="cover"&&construction?.Cover!=null){float place=Mathf.SmoothStep(0,1,Mathf.InverseLerp(28,spec.release,time));var mid=(p.left.localPosition+p.right.localPosition+p.assistantLeft.localPosition+p.assistantRight.localPosition)*.25f;orientation=Quaternion.identity;var carryRoot=hold-orientation*mid;p.root.position=Vector3.Lerp(Vector3.Lerp(p.start,carryRoot,lift),destination,place);p.root.rotation=orientation;}
    }
-   else if(p.dropped==null)p.root.position=p.end;
+   else if(p.dropped==null){p.root.position=p.end;if(spec.id=="shared-beam"||spec.kind=="cover")p.root.rotation=PropRotation(p);}
    bool oneHand=spec.kind=="tool"||spec.kind=="staff";bool leftOnly=spec.kind=="notebook"||spec.kind=="map"||spec.kind=="tablet";
    if(oneHand)p.right.position=p.root.position;
-   carrier.player?.Contact(oneHand?null:p.left,leftOnly?null:p.right,grip);
+   if(held)carrier.player?.Contact(oneHand?null:p.left,leftOnly?null:p.right,grip);
    p.contact=held&&grip>.9f;if(held)ContactFrames++;
   }
   void ApplyEvent(FilmEventV15 cue,bool skipping)
@@ -224,7 +237,7 @@ namespace UngaBunga45001
     case "navigation":campaign.GetComponent<QuestNavigationController>()?.ForceRefresh();break;
    }
    if(skipping)return;
-   var clip=cue.sound=="crack"?accident.crack:cue.sound=="tool"?campaign.bindings.AnimatorFor("brok")?.GetComponent<NativeAnimationAudio>()?.tool:cue.sound=="water"?campaign.bindings.AnimatorFor("dylan")?.GetComponent<NativeAnimationAudio>()?.waterStep:null;
+   var clip=cue.sound=="impact"?accident.impact:cue.sound=="crack"?accident.crack:cue.sound=="tool"?campaign.bindings.AnimatorFor("brok")?.GetComponent<NativeAnimationAudio>()?.tool:cue.sound=="water"?campaign.bindings.AnimatorFor("dylan")?.GetComponent<NativeAnimationAudio>()?.waterStep:null;
    if(clip!=null){sound.transform.position=Point(cue.target);sound.PlayOneShot(clip,.5f);}
   }
   void Fragment(Vector3 position,bool stone)
@@ -233,7 +246,7 @@ namespace UngaBunga45001
   }
   void FrameCamera(float t,Camera camera)
   {
-   int index=0;while(index+1<film.shots.Length&&t>=film.shots[index].end)index++;var shot=film.shots[index];float u=Mathf.SmoothStep(0,1,Mathf.InverseLerp(shot.start,shot.end,t));var target=Point(shot.focus)+Vector3.up*shot.height+shot.lookOffset;
+   int index=0;while(index+1<film.shots.Length&&t>=film.shots[index].end)index++;if(timeline!=null&&timeline.Active&&timeline.ShotIndex>=0)index=timeline.ShotIndex;var shot=film.shots[index];float u=Mathf.SmoothStep(0,1,Mathf.InverseLerp(shot.start,shot.end,t));var target=Point(shot.focus)+Vector3.up*shot.height+shot.lookOffset;
    if(shot.focus.StartsWith("@"))target=Point(shot.focus)+shot.lookOffset;
    if(!string.IsNullOrEmpty(shot.second)&&Vector3.Distance(Point(shot.second),Point(shot.focus))<5)target=Vector3.Lerp(target,Point(shot.second)+Vector3.up*shot.height,.35f);
    var offset=Vector3.Lerp(shot.from,shot.to,u);
@@ -261,7 +274,7 @@ namespace UngaBunga45001
    offset=Quaternion.Euler(0,cameraAngle,0)*offset;float distance=offset.magnitude;int count=Physics.SphereCastNonAlloc(target,.18f,offset.normalized,cameraHits,distance,~0,QueryTriggerInteraction.Ignore);
    var focus=World(shot.focus);var second=World(shot.second);
    for(int i=0;i<count;i++){var hit=cameraHits[i];if(!foliageColliders.Contains(hit.collider)&&hit.distance>.8f&&(focus==null||!hit.transform.IsChildOf(focus))&&(second==null||!hit.transform.IsChildOf(second)))distance=Mathf.Min(distance,Mathf.Max(.55f,hit.distance-.2f));}
-   Vector3 p=target+offset.normalized*distance;p.y=Mathf.Max(p.y,HutCollapse.TerrainFloor(p)+.35f);camera.transform.position=p;camera.transform.LookAt(target);camera.fieldOfView=shot.fov;
+   Vector3 p=target+offset.normalized*distance;p.y=Mathf.Max(p.y,HutCollapse.TerrainFloor(p)+.35f);camera.transform.position=p;camera.transform.LookAt(target);camera.fieldOfView=shot.fov;if(framingV16!=null){var primary=focus;var secondary=second;if(shot.focus.StartsWith("@")&&props.TryGetValue(shot.focus.Substring(1),out var tracked)){primary=World(tracked.spec.actor);if(!string.IsNullOrEmpty(tracked.spec.assistant))secondary=World(tracked.spec.assistant);}framingV16.Frame(camera,target,offset,primary,secondary,foliageColliders,index,t,Time.unscaledDeltaTime);}
    if(t>=fadeAt){fadeAt=t+.2f;var ray=new Ray(p,(target-p).normalized);float range=Vector3.Distance(p,target);foreach(var renderer in foliage)if(renderer!=null&&!renderer.forceRenderingOff&&renderer.bounds.IntersectRay(ray,out float entry)&&entry<range-.2f){renderer.forceRenderingOff=true;faded.Add(renderer);}}
   }
   public void End(bool commit=true)
@@ -280,7 +293,7 @@ namespace UngaBunga45001
     if(actor.agent!=null){actor.agent.enabled=actor.agentEnabled;if(actor.agent.enabled&&actor.agent.isOnNavMesh){actor.agent.Warp(actor.root.position);actor.agent.isStopped=actor.stopped;}}
    }
    if(commit&&film.events.Any(e=>e.kind=="collapse"))stage.fallingFrame?.GetComponentInChildren<HutCollapse>()?.CompleteSkipped();
-   wildlife?.EndTake();weather?.End();construction?.End();construction=null;
+   wildlife?.EndTake();weather?.End();construction?.End();construction=null;timeline?.End();
    if(commit)foreach(var p in props.Values)if(p.dropped!=null||p.spec.persistent){if(p.dropped!=null){var box=p.root.GetComponent<BoxCollider>().bounds;float floor=HutCollapse.TerrainFloor(box.center);p.root.position+=Vector3.up*(floor+.01f-box.min.y);}CinematicWorldPropsV15.For(campaign).Store(film.id+":"+p.spec.id,p.spec.kind,p.spec.size,p.root.gameObject);temporary.Remove(p.root.gameObject);}
    if(fill!=null)fill.enabled=false;foreach(var renderer in faded)if(renderer!=null)renderer.forceRenderingOff=false;faded.Clear();foreach(var go in temporary)if(go!=null)Destroy(go);temporary.Clear();props.Clear();owned=false;campaign.GetComponent<VillageNavigation>()?.RequestRebuild();campaign.GetComponent<QuestNavigationController>()?.ForceRefresh();
   }

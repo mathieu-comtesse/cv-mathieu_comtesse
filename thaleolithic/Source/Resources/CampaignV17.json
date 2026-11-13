@@ -1,0 +1,1627 @@
+{
+  "version": 17,
+  "activities": [
+    {
+      "id": "V17_SWOT",
+      "title": "Le chef, son transat et les quatre malheurs",
+      "mode": "sort",
+      "clause": "4.1",
+      "actor": "aurelien",
+      "site": "aurelien",
+      "evidence": "Tablette du contexte",
+      "cards": [
+        {
+          "id": "builders",
+          "question": "Les bâtisseurs expérimentés de la tribu",
+          "choices": [
+            "Force",
+            "Faiblesse",
+            "Opportunité",
+            "Menace"
+          ],
+          "correct": 0,
+          "explanation": "Une capacité interne utile au système SST."
+        },
+        {
+          "id": "novices",
+          "question": "Des nouveaux artisans n’ont pas été formés",
+          "choices": [
+            "Force",
+            "Faiblesse",
+            "Opportunité",
+            "Menace"
+          ],
+          "correct": 1,
+          "explanation": "Une faiblesse interne appelle des moyens et une formation évaluée."
+        },
+        {
+          "id": "transport",
+          "question": "Une tribu propose une technique de transport moins pénible",
+          "choices": [
+            "Force",
+            "Faiblesse",
+            "Opportunité",
+            "Menace"
+          ],
+          "correct": 2,
+          "explanation": "Une opportunité externe à évaluer avant de modifier le travail."
+        },
+        {
+          "id": "climate",
+          "question": "Des pluies plus intenses font déborder la rivière près des huttes",
+          "choices": [
+            "Force",
+            "Faiblesse",
+            "Opportunité",
+            "Menace"
+          ],
+          "correct": 3,
+          "explanation": "L’évolution du climat est pertinente ici : le contexte et les expositions doivent être réexaminés."
+        }
+      ],
+      "source": "Brief V17 · clause 4.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_PARTIES",
+      "title": "Les besoins autour de la tablette",
+      "mode": "pair",
+      "clause": "4.2",
+      "actor": "lorette",
+      "site": "lorette",
+      "evidence": "Tablette des parties intéressées",
+      "cards": [
+        {
+          "id": "workers",
+          "question": "Travailleurs : quelle attente retenir ?",
+          "choices": [
+            "Conditions de travail sûres",
+            "Un mammouth personnel",
+            "Ignorer toutes les demandes"
+          ],
+          "correct": 0,
+          "explanation": "Déterminer les besoins pertinents et les exigences applicables ; toute demande n’est pas une obligation."
+        },
+        {
+          "id": "contractor",
+          "question": "Tribu intervenante : quelle information échanger ?",
+          "choices": [
+            "Seulement le prix des peaux",
+            "Risques réciproques, accès et coordination",
+            "La couleur du menhir"
+          ],
+          "correct": 1,
+          "explanation": "Les intervenants extérieurs et les habitants ont des besoins de coordination distincts."
+        },
+        {
+          "id": "seasons",
+          "question": "Habitants près de la rivière : quelle attente est pertinente ?",
+          "choices": [
+            "Prévoir l’évolution des crues et les accès",
+            "Garantir le beau temps",
+            "Écarter les changements climatiques"
+          ],
+          "correct": 0,
+          "explanation": "Des parties intéressées peuvent avoir des exigences liées au climat."
+        }
+      ],
+      "source": "Brief V17 · clause 4.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_SCOPE",
+      "title": "Ramener le chef à la raison",
+      "mode": "scope",
+      "clause": "4.3",
+      "actor": "aurelien",
+      "site": "aurelien",
+      "evidence": "Carte du périmètre SST",
+      "cards": [
+        {
+          "id": "scope0",
+          "question": "Aurélien : « Seulement ma hutte et mon menhir ? »",
+          "choices": [
+            "Inclure : activité pertinente sous notre contrôle",
+            "Exclure pour embellir les statistiques"
+          ],
+          "correct": 0,
+          "explanation": "Le périmètre tient compte du contexte, des parties intéressées et des activités pertinentes ; il ne sert pas à masquer les risques."
+        },
+        {
+          "id": "scope1",
+          "question": "La carrière fournit les pierres du village.",
+          "choices": [
+            "Inclure : activité pertinente sous notre contrôle",
+            "Exclure pour embellir les statistiques"
+          ],
+          "correct": 0,
+          "explanation": "Le périmètre tient compte du contexte, des parties intéressées et des activités pertinentes ; il ne sert pas à masquer les risques."
+        },
+        {
+          "id": "scope2",
+          "question": "Les bâtisseurs travaillent sur les huttes.",
+          "choices": [
+            "Inclure : activité pertinente sous notre contrôle",
+            "Exclure pour embellir les statistiques"
+          ],
+          "correct": 0,
+          "explanation": "Le périmètre tient compte du contexte, des parties intéressées et des activités pertinentes ; il ne sert pas à masquer les risques."
+        },
+        {
+          "id": "scope3",
+          "question": "La réserve expose les porteurs.",
+          "choices": [
+            "Inclure : activité pertinente sous notre contrôle",
+            "Exclure pour embellir les statistiques"
+          ],
+          "correct": 0,
+          "explanation": "Le périmètre tient compte du contexte, des parties intéressées et des activités pertinentes ; il ne sert pas à masquer les risques."
+        },
+        {
+          "id": "scope4",
+          "question": "Les chemins relient nos postes de travail.",
+          "choices": [
+            "Inclure : activité pertinente sous notre contrôle",
+            "Exclure pour embellir les statistiques"
+          ],
+          "correct": 0,
+          "explanation": "Le périmètre tient compte du contexte, des parties intéressées et des activités pertinentes ; il ne sert pas à masquer les risques."
+        },
+        {
+          "id": "scope5",
+          "question": "La chasse est organisée par la tribu.",
+          "choices": [
+            "Inclure : activité pertinente sous notre contrôle",
+            "Exclure pour embellir les statistiques"
+          ],
+          "correct": 0,
+          "explanation": "Le périmètre tient compte du contexte, des parties intéressées et des activités pertinentes ; il ne sert pas à masquer les risques."
+        }
+      ],
+      "source": "Brief V17 · clause 4.3 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_SYSTEM",
+      "title": "Assembler le système SST",
+      "mode": "assemble",
+      "clause": "4.4",
+      "actor": "mathieu",
+      "site": "grand_menhir",
+      "evidence": "Tablette du système SST",
+      "cards": [
+        {
+          "id": "cycle",
+          "question": "Relie contexte, décisions, actions et contrôles.",
+          "choices": [
+            "Analyser, agir, vérifier, puis améliorer",
+            "Afficher une politique puis oublier le terrain",
+            "Attendre le prochain accident"
+          ],
+          "correct": 0,
+          "explanation": "Les chapitres se relient dans un système tenu à jour, pas dans une collection de réponses."
+        },
+        {
+          "id": "resources",
+          "question": "Relie les risques observés à ce que la tribu doit prévoir avant d’agir.",
+          "choices": ["Acheter des outils au hasard", "Planifier les mesures et attribuer les moyens", "Attendre le prochain contrôle"],
+          "correct": 1,
+          "explanation": "La planification transforme les risques observés en mesures et prévoit les moyens de les réaliser."
+        },
+        {
+          "id": "verification",
+          "question": "Où placer la tablette qui vérifie l’effet des mesures ?",
+          "choices": ["Dans les réserves", "Avant de choisir les risques", "Dans l’évaluation des résultats"],
+          "correct": 2,
+          "explanation": "L’évaluation montre si les mesures améliorent effectivement la sécurité."
+        },
+        {
+          "id": "improvement",
+          "question": "Relie les résultats du contrôle au cycle suivant.",
+          "choices": ["Corriger les écarts et réviser les mesures", "Classer la tablette sans agir", "Remplacer les mesures sans les évaluer"],
+          "correct": 0,
+          "explanation": "Les résultats servent à corriger les écarts et à orienter la prochaine planification."
+        }
+      ],
+      "source": "Brief V17 · clause 4.4 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_RISK_SILEX",
+      "title": "Taille de silex : observer, décider et contrôler",
+      "mode": "risk",
+      "clause": "6.1",
+      "actor": "georges",
+      "site": "atelier_silex",
+      "evidence": "Registre des risques · Taille de silex",
+      "cards": [
+        {
+          "id": "danger",
+          "question": "Les éclats partent parfois dans les yeux. Depuis que je les ferme, je ne les vois plus arriver.\nQuel danger observes-tu ?",
+          "choices": [
+            "Projections vers l’artisan et les passants",
+            "La mauvaise humeur du chef",
+            "Aucun : rien n’est encore arrivé"
+          ],
+          "correct": 0,
+          "explanation": "Un danger existe avant l’accident. Les observations restent dans la fiche."
+        },
+        {
+          "id": "exposure",
+          "question": "Qui est exposé pendant le travail ?",
+          "choices": [
+            "Les personnes présentes au poste et dans sa zone d’effet",
+            "Uniquement le chef absent",
+            "Personne si les yeux sont fermés"
+          ],
+          "correct": 0,
+          "explanation": "Décrire les personnes, la situation de travail et les mesures déjà présentes."
+        },
+        {
+          "id": "rating",
+          "question": "L’exposition est fréquente et la conséquence peut être grave. Quelle priorité ?",
+          "choices": [
+            "Intervenir après la fête",
+            "Priorité élevée ; sécuriser puis organiser la maîtrise",
+            "Le risque est nul faute d’accident récent"
+          ],
+          "correct": 1,
+          "explanation": "Méthode du jeu : fréquence et gravité, en tenant compte des mesures existantes."
+        },
+        {
+          "id": "measure",
+          "question": "Quelle mesure engager ?",
+          "choices": [
+            "Séparer le poste du passage, adapter les outils et protéger les expositions résiduelles",
+            "Donner seulement une consigne de prudence",
+            "Ne plus enregistrer les accidents"
+          ],
+          "correct": 0,
+          "explanation": "La mesure choisie doit être réalisée sur le poste puis son effet contrôlé."
+        }
+      ],
+      "risk": "silex",
+      "measure": "Séparer le poste du passage, adapter les outils et protéger les expositions résiduelles",
+      "responsible": "georges",
+      "source": "Brief V17 · clause 6.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_RISK_QUARRY",
+      "title": "Carrière : observer, décider et contrôler",
+      "mode": "risk",
+      "clause": "6.1",
+      "actor": "georges",
+      "site": "pierre_carriere",
+      "evidence": "Registre des risques · Carrière",
+      "cards": [
+        {
+          "id": "danger",
+          "question": "Ce petit caillou ? Il annonce parfois son grand frère.\nQuel danger observes-tu ?",
+          "choices": [
+            "Bloc instable au-dessus des travailleurs",
+            "La mauvaise humeur du chef",
+            "Aucun : rien n’est encore arrivé"
+          ],
+          "correct": 0,
+          "explanation": "Un danger existe avant l’accident. Les observations restent dans la fiche."
+        },
+        {
+          "id": "exposure",
+          "question": "Qui est exposé pendant le travail ?",
+          "choices": [
+            "Les personnes présentes au poste et dans sa zone d’effet",
+            "Uniquement le chef absent",
+            "Personne si les yeux sont fermés"
+          ],
+          "correct": 0,
+          "explanation": "Décrire les personnes, la situation de travail et les mesures déjà présentes."
+        },
+        {
+          "id": "rating",
+          "question": "L’exposition est fréquente et la conséquence peut être grave. Quelle priorité ?",
+          "choices": [
+            "Intervenir après la fête",
+            "Priorité élevée ; sécuriser puis organiser la maîtrise",
+            "Le risque est nul faute d’accident récent"
+          ],
+          "correct": 1,
+          "explanation": "Méthode du jeu : fréquence et gravité, en tenant compte des mesures existantes."
+        },
+        {
+          "id": "measure",
+          "question": "Quelle mesure engager ?",
+          "choices": [
+            "Suspendre l’accès, stabiliser et contrôler avant reprise",
+            "Donner seulement une consigne de prudence",
+            "Ne plus enregistrer les accidents"
+          ],
+          "correct": 0,
+          "explanation": "La mesure choisie doit être réalisée sur le poste puis son effet contrôlé."
+        }
+      ],
+      "risk": "carriere",
+      "measure": "Suspendre l’accès, stabiliser et contrôler avant reprise",
+      "responsible": "georges",
+      "source": "Brief V17 · clause 6.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_RISK_FIRE",
+      "title": "Préparation du feu : observer, décider et contrôler",
+      "mode": "risk",
+      "clause": "6.1",
+      "actor": "orok",
+      "site": "foyer",
+      "evidence": "Registre des risques · Préparation du feu",
+      "cards": [
+        {
+          "id": "danger",
+          "question": "La fumée m’indique toujours où je suis : juste dedans.\nQuel danger observes-tu ?",
+          "choices": [
+            "Flammes, fumées et combustibles proches",
+            "La mauvaise humeur du chef",
+            "Aucun : rien n’est encore arrivé"
+          ],
+          "correct": 0,
+          "explanation": "Un danger existe avant l’accident. Les observations restent dans la fiche."
+        },
+        {
+          "id": "exposure",
+          "question": "Qui est exposé pendant le travail ?",
+          "choices": [
+            "Les personnes présentes au poste et dans sa zone d’effet",
+            "Uniquement le chef absent",
+            "Personne si les yeux sont fermés"
+          ],
+          "correct": 0,
+          "explanation": "Décrire les personnes, la situation de travail et les mesures déjà présentes."
+        },
+        {
+          "id": "rating",
+          "question": "L’exposition est fréquente et la conséquence peut être grave. Quelle priorité ?",
+          "choices": [
+            "Intervenir après la fête",
+            "Priorité élevée ; sécuriser puis organiser la maîtrise",
+            "Le risque est nul faute d’accident récent"
+          ],
+          "correct": 1,
+          "explanation": "Méthode du jeu : fréquence et gravité, en tenant compte des mesures existantes."
+        },
+        {
+          "id": "measure",
+          "question": "Quelle mesure engager ?",
+          "choices": [
+            "Éloigner les combustibles, installer le foyer dehors et vérifier les circulations",
+            "Donner seulement une consigne de prudence",
+            "Ne plus enregistrer les accidents"
+          ],
+          "correct": 0,
+          "explanation": "La mesure choisie doit être réalisée sur le poste puis son effet contrôlé."
+        }
+      ],
+      "risk": "fumees",
+      "measure": "Éloigner les combustibles, installer le foyer dehors et vérifier les circulations",
+      "responsible": "orok",
+      "source": "Brief V17 · clause 6.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_RISK_STORAGE",
+      "title": "Stockage : observer, décider et contrôler",
+      "mode": "risk",
+      "clause": "6.1",
+      "actor": "neila",
+      "site": "stockage",
+      "evidence": "Registre des risques · Stockage",
+      "cards": [
+        {
+          "id": "danger",
+          "question": "La pile tient depuis hier. C’est presque une tradition.\nQuel danger observes-tu ?",
+          "choices": [
+            "Chute de matériaux sur les porteurs",
+            "La mauvaise humeur du chef",
+            "Aucun : rien n’est encore arrivé"
+          ],
+          "correct": 0,
+          "explanation": "Un danger existe avant l’accident. Les observations restent dans la fiche."
+        },
+        {
+          "id": "exposure",
+          "question": "Qui est exposé pendant le travail ?",
+          "choices": [
+            "Les personnes présentes au poste et dans sa zone d’effet",
+            "Uniquement le chef absent",
+            "Personne si les yeux sont fermés"
+          ],
+          "correct": 0,
+          "explanation": "Décrire les personnes, la situation de travail et les mesures déjà présentes."
+        },
+        {
+          "id": "rating",
+          "question": "L’exposition est fréquente et la conséquence peut être grave. Quelle priorité ?",
+          "choices": [
+            "Intervenir après la fête",
+            "Priorité élevée ; sécuriser puis organiser la maîtrise",
+            "Le risque est nul faute d’accident récent"
+          ],
+          "correct": 1,
+          "explanation": "Méthode du jeu : fréquence et gravité, en tenant compte des mesures existantes."
+        },
+        {
+          "id": "measure",
+          "question": "Quelle mesure engager ?",
+          "choices": [
+            "Stabiliser les supports et dégager les passages",
+            "Donner seulement une consigne de prudence",
+            "Ne plus enregistrer les accidents"
+          ],
+          "correct": 0,
+          "explanation": "La mesure choisie doit être réalisée sur le poste puis son effet contrôlé."
+        }
+      ],
+      "risk": "stockage",
+      "measure": "Stabiliser les supports et dégager les passages",
+      "responsible": "neila",
+      "source": "Brief V17 · clause 6.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_RISK_HUNT",
+      "title": "Préparation de la chasse : observer, décider et contrôler",
+      "mode": "risk",
+      "clause": "6.1",
+      "actor": "eliott",
+      "site": "chasse_clairiere",
+      "evidence": "Registre des risques · Préparation de la chasse",
+      "cards": [
+        {
+          "id": "danger",
+          "question": "On court d’abord. On discute des rôles après, si on revient.\nQuel danger observes-tu ?",
+          "choices": [
+            "Charge, fatigue et défaut de coordination",
+            "La mauvaise humeur du chef",
+            "Aucun : rien n’est encore arrivé"
+          ],
+          "correct": 0,
+          "explanation": "Un danger existe avant l’accident. Les observations restent dans la fiche."
+        },
+        {
+          "id": "exposure",
+          "question": "Qui est exposé pendant le travail ?",
+          "choices": [
+            "Les personnes présentes au poste et dans sa zone d’effet",
+            "Uniquement le chef absent",
+            "Personne si les yeux sont fermés"
+          ],
+          "correct": 0,
+          "explanation": "Décrire les personnes, la situation de travail et les mesures déjà présentes."
+        },
+        {
+          "id": "rating",
+          "question": "L’exposition est fréquente et la conséquence peut être grave. Quelle priorité ?",
+          "choices": [
+            "Intervenir après la fête",
+            "Priorité élevée ; sécuriser puis organiser la maîtrise",
+            "Le risque est nul faute d’accident récent"
+          ],
+          "correct": 1,
+          "explanation": "Méthode du jeu : fréquence et gravité, en tenant compte des mesures existantes."
+        },
+        {
+          "id": "measure",
+          "question": "Quelle mesure engager ?",
+          "choices": [
+            "Préparer l’équipe, vérifier les moyens et garder une possibilité de renoncer",
+            "Donner seulement une consigne de prudence",
+            "Ne plus enregistrer les accidents"
+          ],
+          "correct": 0,
+          "explanation": "La mesure choisie doit être réalisée sur le poste puis son effet contrôlé."
+        }
+      ],
+      "risk": "chasse",
+      "measure": "Préparer l’équipe, vérifier les moyens et garder une possibilité de renoncer",
+      "responsible": "eliott",
+      "source": "Brief V17 · clause 6.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_OBJECTIVES",
+      "title": "Le vote autour du feu",
+      "mode": "vote",
+      "clause": "6.2",
+      "actor": "lorette",
+      "site": "rassemblement",
+      "evidence": "Tablette des objectifs SST",
+      "cards": [
+        {
+          "id": "training",
+          "question": "Quel objectif peut être suivi ?",
+          "choices": [
+            "Ne plus jamais avoir d’accident",
+            "Georges forme et évalue quatre bâtisseurs avant la reprise de couverture ; temps et outils réservés",
+            "Faire plus attention"
+          ],
+          "correct": 1,
+          "explanation": "Résultat, responsable, moyens, échéance et vérification sont précisés."
+        },
+        {
+          "id": "stocks",
+          "question": "Quel objectif vient des risques observés ?",
+          "choices": [
+            "Neila vérifie trois zones de stockage avant leur remise en service, avec les porteurs",
+            "Faire un menhir deux fois plus haut",
+            "Fixer un chiffre sans méthode de suivi"
+          ],
+          "correct": 0,
+          "explanation": "Les travailleurs participent au choix d’objectifs pertinents, cohérents avec la politique."
+        }
+      ],
+      "source": "Brief V17 · clause 6.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_RESOURCES",
+      "title": "Les trois coffres d’Aurélien",
+      "mode": "allocation",
+      "clause": "7.1",
+      "actor": "neila",
+      "site": "stockage",
+      "evidence": "Plan des ressources",
+      "cards": [
+        {
+          "id": "allocation",
+          "question": "Réserve les moyens pour les objectifs : formation des bâtisseurs, stabilisation du stockage et maîtrise du feu.",
+          "choices": [
+            "Formation",
+            "Stockage",
+            "Foyer"
+          ],
+          "correct": 0,
+          "explanation": "Les trois coffres ont des besoins différents. Une répartition égale ne suffit pas."
+        }
+      ],
+      "needs": [
+        3,
+        4,
+        2
+      ],
+      "budget": 9,
+      "source": "Brief V17 · clause 7.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_SKILLS",
+      "title": "À chacun son métier",
+      "mode": "pair",
+      "clause": "7.2",
+      "actor": "mathieu",
+      "site": "mathieu",
+      "evidence": "Passeport des compétences",
+      "cards": [
+        {
+          "id": "builder",
+          "question": "Qui prépare et vérifie les assemblages ?",
+          "choices": [
+            "Georges",
+            "Petit-Os sans supervision",
+            "Aurélien parce qu’il est chef"
+          ],
+          "correct": 0,
+          "explanation": "Les rôles s’appuient sur des compétences vérifiées, pas sur le rang."
+        },
+        {
+          "id": "healer",
+          "question": "Qui prépare la prise en charge des blessés ?",
+          "choices": [
+            "Neila",
+            "Mathilde",
+            "N’importe quel porteur"
+          ],
+          "correct": 1,
+          "explanation": "Une fonction de secours demande des compétences et des moyens adaptés."
+        },
+        {
+          "id": "novice",
+          "question": "Que proposer à un bâtisseur débutant ?",
+          "choices": [
+            "Travail dangereux seul",
+            "Activité adaptée, supervision puis évaluation",
+            "Une tablette qui le déclare compétent"
+          ],
+          "correct": 1,
+          "explanation": "La formation ou l’expérience doit produire une compétence évaluée."
+        }
+      ],
+      "source": "Brief V17 · clause 7.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_BRIEFING",
+      "title": "Le point sécurité sous les projectiles",
+      "mode": "briefing",
+      "clause": "7.3",
+      "actor": "lorette",
+      "site": "rassemblement",
+      "evidence": "Point sécurité et participation",
+      "cards": [
+        {
+          "id": "policy",
+          "question": "Quel message rappeler en premier ?",
+          "choices": [
+            "La politique SST et les objectifs du poste",
+            "Le classement des plus beaux menhirs",
+            "Ne jamais signaler"
+          ],
+          "correct": 0,
+          "explanation": "Les travailleurs connaissent leur contribution, les risques et les mesures."
+        },
+        {
+          "id": "alert",
+          "question": "Un travailleur signale un danger grave. Que rappeler ?",
+          "choices": [
+            "Il sera puni",
+            "Il peut se retirer de la situation et alerter selon les dispositions pertinentes",
+            "Il doit finir coûte que coûte"
+          ],
+          "correct": 1,
+          "explanation": "L’alerte et la participation doivent être possibles sans représailles."
+        },
+        {
+          "id": "report",
+          "question": "Après un incident, que partager ?",
+          "choices": [
+            "Les causes utiles, les mesures et leurs contrôles",
+            "Seulement le nom du coupable",
+            "Rien pour ne pas faire peur"
+          ],
+          "correct": 0,
+          "explanation": "La sensibilisation traite aussi des événements et de leurs enseignements."
+        }
+      ],
+      "duration": 60,
+      "source": "Brief V17 · clause 7.3 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_COMMUNICATION",
+      "title": "Le bon message au bon destinataire",
+      "mode": "pair",
+      "clause": "7.4",
+      "actor": "lorette",
+      "site": "lorette",
+      "evidence": "Panneau de communication SST",
+      "cards": [
+        {
+          "id": "internal",
+          "question": "Le poste de silex est déplacé. Qui informer avant la reprise ?",
+          "choices": [
+            "Seulement Aurélien",
+            "Artisans et personnes concernées par le nouveau passage",
+            "Les esprits uniquement"
+          ],
+          "correct": 1,
+          "explanation": "Choisir quoi, quand, à qui et comment communiquer ; vérifier la compréhension."
+        },
+        {
+          "id": "external",
+          "question": "Une autre tribu intervient demain. Que transmettre ?",
+          "choices": [
+            "Consignes compréhensibles, risques réciproques et accès avant l’intervention",
+            "Une chanson après son départ",
+            "Aucune information interne"
+          ],
+          "correct": 0,
+          "explanation": "Les communications internes et externes se complètent et restent cohérentes."
+        }
+      ],
+      "source": "Brief V17 · clause 7.4 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_DOCUMENTS",
+      "title": "Swipe des tablettes",
+      "mode": "swipe",
+      "clause": "7.5",
+      "actor": "neila",
+      "site": "stockage",
+      "evidence": "Archives des Crânes",
+      "cards": [
+        {
+          "id": "inspection",
+          "question": "Rapport d’inspection actuel et lisible",
+          "choices": [
+            "Disponible",
+            "À mettre à jour",
+            "Archivé, usage retiré"
+          ],
+          "correct": 0,
+          "explanation": "L’information utile doit être accessible et protégée."
+        },
+        {
+          "id": "old",
+          "question": "Ancienne consigne remplacée",
+          "choices": [
+            "Disponible",
+            "À mettre à jour",
+            "Archivé, usage retiré"
+          ],
+          "correct": 2,
+          "explanation": "Retirer l’ancienne version de l’usage actif et appliquer les règles de conservation."
+        },
+        {
+          "id": "illegible",
+          "question": "Liste de compétences illisible",
+          "choices": [
+            "Disponible",
+            "À mettre à jour",
+            "Archivé, usage retiré"
+          ],
+          "correct": 1,
+          "explanation": "L’information doit rester identifiable et exploitable."
+        },
+        {
+          "id": "accident",
+          "question": "Rapport d’accident clos à conserver",
+          "choices": [
+            "Effacer définitivement",
+            "Laisser comme consigne active",
+            "Archivé, usage retiré"
+          ],
+          "correct": 2,
+          "explanation": "Une preuve ancienne peut devoir être conservée ; ne pas confondre archivage et suppression."
+        }
+      ],
+      "source": "Brief V17 · clause 7.5 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_DIFFERENCES",
+      "title": "Ouways · Les 15 différences",
+      "mode": "differences",
+      "clause": "8.1",
+      "actor": "ouways",
+      "site": "ouways",
+      "evidence": "Registre de maîtrise opérationnelle",
+      "cards": [
+        {
+          "id": "difference1",
+          "question": "Feu dans la tente",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Le foyer intérieur inutile est supprimé ; les fumées restent à maîtriser.",
+          "before": "Foyer intérieur et fumées",
+          "after": "Foyer installé dans une zone extérieure adaptée",
+          "site": "foyer",
+          "clause": "8.1.2",
+          "concept": "elimination",
+          "critical": true,
+          "requiredEvidence": "",
+          "dialogue": "O : Ah, c'est vrai que maintenant on a plus de feu dans les tentes.\nD : Oui. On a réfléchi à aménager le feu dans les tentes mais vu qu'on en avait pas besoin à l'intérieur on a simplement mis tous les feux de camps dehors. Ca permet d'éviter les incendies de tente.\nO : Etquand il fera froid l'hiver ?\nD : Nous préparerons des abris adaptés. Même dans une grotte, les fumées et la ventilation doivent être maîtrisées.",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E6"
+        },
+        {
+          "id": "difference2",
+          "question": "Chasse au mammouth",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Les équipements complètent les autres mesures ; ils ne les remplacent pas.",
+          "before": "Chasseurs fréquemment blessés",
+          "after": "Préparation collective, coordination et moyens adaptés",
+          "site": "chasse_clairiere",
+          "clause": "8.1.2",
+          "concept": "hierarchy",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : Il y a eu moins de blessés sur les dernière chasses, tu y es pour quelque chose ?\nD : En effet, mais il a fallu qu'on agisse sur plusieurs étapes. Déjà on a imposé la tenue obligatoire d'une réunion avant la chasse afin de faire un rappel des règles de sécurité et de la stratégie à adopter. Ensuite on a imposé que les chasseurs mettent des tenues plus épaisses afin d'assurer au mieux leur protection, sans les gêner dans leurs mouvementsça va de soit.",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E7"
+        },
+        {
+          "id": "difference3",
+          "question": "Préparation des peintures",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Substituer les matériaux dangereux et réduire l’exposition résiduelle.",
+          "before": "Pigments nocifs préparés en grotte",
+          "after": "Substitution et poste mieux ventilé",
+          "site": "atelier_silex",
+          "clause": "8.1.2",
+          "concept": "substitution",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : Tu as changé quelques choses sur les peintures ? J'ai moins la tête qui tourne depuis quelques temps.\nD : Oui, on a d'abord changé la base des peintures par des éléments qui rendent moins malades les personnes. Mais vu qu'il restait quelques odeurs fortes, on a déplacé la préparation en extérieur afin de limiter l'exposition directe grace au vent.",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E8"
+        },
+        {
+          "id": "difference4",
+          "question": "Cueillette des baies",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Alban transmet les connaissances ; le savoir n’est pas une garantie absolue.",
+          "before": "Ronces, lumière insuffisante et plantes mal identifiées",
+          "after": "Horaires, formation et protections adaptés",
+          "site": "alban",
+          "clause": "8.1.2",
+          "concept": "hierarchy",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : Les ceuilleurs viennent avec moins de blessures depuis quelques jours\nD : Oui, on a déjà changé les heures auxquelles ils y vont afin qu'ils aient le plus de lumière possible dans les buissons.\nOn leur a aussi fourni des gants et des peaux pour qu'ils se protègent\nO : On a aussi moins de gens qui sont empoisonnés au camp après la ceuillette\nD : Ravie de l'entendre. Il doivent maintenant obligatoirement être formé par notre shaman pour connaitre les bonnes baies à récolter, ça aide",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E9"
+        },
+        {
+          "id": "difference5",
+          "question": "Transport du mégalithe",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "La technique réduit des efforts mais crée des risques de pincement et de rupture.",
+          "before": "Charges portées à bras",
+          "after": "Rondins, cordages, leviers et formation",
+          "site": "bois_construction",
+          "clause": "8.1.3",
+          "concept": "change",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : Les constructeurs de mégalithe ont vraiment plus la forme en ce moment je trouve.\nD : C'est vrai, on a récupéré des techniques de déplacement des pierres d'une autre tribu. Et c'est bien plus pratique, on a formé nos batisseurs sur ces techniques et sur leur utilisation en sécurité, et clairement la différence se voit : leurs maux de dos ont largement diminué",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E10"
+        },
+        {
+          "id": "difference6",
+          "question": "Préparation à l’hiver",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Anticiper les changements prévisibles et adapter les conditions de travail.",
+          "before": "Besoins saisonniers non anticipés",
+          "after": "Ressources et organisation préparées avec Milena",
+          "site": "berge_observation",
+          "clause": "8.1.3",
+          "concept": "change",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : Je vois qu'on prépare des stocks pour l'hiver, mais il n'arrive que dans plusieurs mois\nD : Oui, mais si on anticipe les besoins pour les froids de l'hiver en amont, on sera mieux préparé et moins de personnes auront des blessures et des accidents à cause du froid",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E11"
+        },
+        {
+          "id": "difference7",
+          "question": "Directives du chaman",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Le travail de nuit exige une analyse des conséquences sur les risques.",
+          "before": "Nouvelles pratiques annoncées brutalement",
+          "after": "Changements discutés et préparés",
+          "site": "alban",
+          "clause": "8.1.3",
+          "concept": "change",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : J'ai l'impression que les relations avec le Shaman sont plus détendues.\nD : Oui, on est un peu arrivé à un accord. Le shaman nous prévient en avance des nouvelles règles fixées par les esprits de nos ancètres, et nous préparons en avance ces changements pour l'ensemble des activités du temps en matière de sécurité.\nO : Ok, et c'est quoi le prochain changement à venir ?\nD : L'autorisation de travailler après le coucher du soleil...\nO : Ah...",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E12"
+        },
+        {
+          "id": "difference8",
+          "question": "Chasse avec une autre tribu",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Pour une intervention extérieure, maîtriser les risques réciproques.",
+          "before": "Équipes sans coordination",
+          "after": "Responsabilités, communications et moyens coordonnés",
+          "site": "chasse_clairiere",
+          "clause": "8.1.4.2",
+          "concept": "contractor",
+          "critical": false,
+          "requiredEvidence": "",
+          "dialogue": "O : Ca se passe mieux les dernières chasses en commun avec l'autre tribu.\nD : Oui, on les intègre à nos réunions avant la chasse pour se mettre d'accord sur l'organisation. Aussi on les forme sur nos outils et équipements pour chasser en sécurité et éviter que les chasseurs se blessent entre eux.",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E13"
+        },
+        {
+          "id": "difference9",
+          "question": "Construction par une autre tribu",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Prendre en compte les risques introduits et ceux auxquels l’intervenant est exposé.",
+          "before": "Chantier dans les circulations",
+          "after": "Zone organisée, délimitée et coordonnée",
+          "site": "habitations",
+          "clause": "8.1.4.2",
+          "concept": "contractor",
+          "critical": true,
+          "requiredEvidence": "",
+          "dialogue": "O : La construction se la grande hute avance bien ? J'ai vu que ça a l'air plus organisé\nD : Tu peux le dire. On a analysé les risques qu'ils amènent sur notre camps et nos sites spécifiques qu'on créer avec eux. A partir de ça on a pris les mesures nécessaire pour assurer la sécurité de tout le monde.\nO : Et ça se voit",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E14"
+        },
+        {
+          "id": "difference10",
+          "question": "Achat des peaux",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Une acquisition n’est pas automatiquement un processus externalisé.",
+          "before": "Réception sans critère",
+          "after": "Peaux examinées selon les critères prévus",
+          "site": "stockage",
+          "clause": "8.1.4.1",
+          "concept": "purchase",
+          "critical": true,
+          "requiredEvidence": "",
+          "dialogue": "O : C'est pour faire quoi les tests sur les peaux ?\nD : Ah ça. C'est pour vérifier qu'elles ont la qualité nécessaire pour servir dans nos vêtements de protections. Elles subissent des tests qui sont notés selon des règles qu'on a établies",
+          "source": "Atelier chapitre 8.xlsx · Les 15 différences (chap 8.1) · E15"
+        },
+        {
+          "id": "difference11",
+          "question": "Atelier de silex",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "La maîtrise opérationnelle se voit dans l’organisation de l’espace.",
+          "before": "Taille proche d’un passage",
+          "after": "Poste séparé de la circulation",
+          "site": "atelier_silex",
+          "clause": "8.1.1",
+          "concept": "operations",
+          "critical": false,
+          "requiredEvidence": "",
+          "source": "Brief V17 · différence complémentaire 11"
+        },
+        {
+          "id": "difference12",
+          "question": "Réserves de Neila",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Maîtriser les risques d’écrasement et de chute d’objets.",
+          "before": "Charges empilées de manière instable",
+          "after": "Supports stabilisés et passages dégagés",
+          "site": "stockage",
+          "clause": "8.1.2",
+          "concept": "hierarchy",
+          "critical": false,
+          "requiredEvidence": "",
+          "source": "Brief V17 · différence complémentaire 12"
+        },
+        {
+          "id": "difference13",
+          "question": "Hutte reconstruite",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "C08 pose la couverture ; la vérification est une action distincte.",
+          "before": "Défauts structurels",
+          "after": "Travaux et contrôles terminés avant réoccupation",
+          "site": "habitations",
+          "clause": "8.1.3",
+          "concept": "change",
+          "critical": true,
+          "requiredEvidence": "verified:M_V_ABRI",
+          "source": "Brief V17 · différence complémentaire 13"
+        },
+        {
+          "id": "difference14",
+          "question": "Nouveau passage de rivière",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Les changements environnementaux peuvent modifier les expositions.",
+          "before": "Itinéraire devenu dangereux",
+          "after": "Itinéraire réévalué et communiqué",
+          "site": "berge_observation",
+          "clause": "8.1.3",
+          "concept": "change",
+          "critical": false,
+          "requiredEvidence": "",
+          "source": "Brief V17 · différence complémentaire 14"
+        },
+        {
+          "id": "difference15",
+          "question": "Préparation des peaux externalisée",
+          "choices": [
+            "Une mesure réelle ou un changement à maîtriser",
+            "Un simple changement décoratif"
+          ],
+          "correct": 0,
+          "explanation": "Maîtriser la fonction externalisée, au-delà du simple achat de matière.",
+          "before": "Processus confié sans maîtrise",
+          "after": "Exigences définies et résultats suivis",
+          "site": "stockage",
+          "clause": "8.1.4.3",
+          "concept": "outsourcing",
+          "critical": true,
+          "requiredEvidence": "",
+          "source": "Brief V17 · différence complémentaire 15"
+        }
+      ],
+      "duration": 300,
+      "minimum": 12,
+      "requiredConcepts": [
+        "elimination",
+        "change",
+        "contractor",
+        "purchase",
+        "outsourcing"
+      ],
+      "intro": "OUWAYS : Salut Dylan. J’ai terminé une nouvelle peinture du village. Viens comparer avec le mois dernier.\nDYLAN : Les huttes ont enfin arrêté de tomber ?",
+      "outro": "OUWAYS : Et comment gardes-tu toutes ces transformations ?\nDYLAN : Dans des supports adaptés, mis à jour quand la situation change.\nOUWAYS : Mais… ça ne sent pas un peu le brûlé ?",
+      "source": "Brief V17 · clause 8.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_PREPARE_FIRE",
+      "title": "Au feu !!! · préparer avant l’alerte",
+      "mode": "prepare",
+      "clause": "8.2",
+      "actor": "ouways",
+      "site": "foyer",
+      "evidence": "Plan d’urgence",
+      "cards": [
+        {
+          "id": "emergency1",
+          "question": "Corne d’alerte",
+          "choices": [
+            "Transmettre l’alerte",
+            "Attendre le retour du chef"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Corne d’alerte"
+        },
+        {
+          "id": "emergency2",
+          "question": "Plan d’évacuation",
+          "choices": [
+            "Itinéraires praticables et rassemblement",
+            "Le plus court chemin même enfumé"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Plan d’évacuation"
+        },
+        {
+          "id": "emergency3",
+          "question": "Peau de serre-file",
+          "choices": [
+            "Identifier une mission préparée et exercée",
+            "Désigner un passant pendant l’incendie"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Peau de serre-file"
+        },
+        {
+          "id": "emergency4",
+          "question": "Trousse d’herbes médicinales",
+          "choices": [
+            "Moyens de premiers secours avec Mathilde",
+            "Guérir toutes les blessures par magie"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Trousse d’herbes médicinales"
+        },
+        {
+          "id": "emergency5",
+          "question": "Sac d’eau",
+          "choices": [
+            "Moyen prévu pour un départ de feu si son usage est sûr",
+            "Combattre seul un incendie développé"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Sac d’eau"
+        },
+        {
+          "id": "emergency6",
+          "question": "Liste des habitants",
+          "choices": [
+            "Vérifier les personnes attendues et présentes",
+            "Deviner qui manque"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Liste des habitants"
+        },
+        {
+          "id": "emergency7",
+          "question": "Tablette de retour d’expérience",
+          "choices": [
+            "Débriefing et améliorations après l’exercice",
+            "Retourner immédiatement sans autorisation"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Tablette de retour d’expérience"
+        },
+        {
+          "id": "emergency8",
+          "question": "Pigeon voyageur · message",
+          "choices": [
+            "Prévenir les tribus extérieures concernées",
+            "Moyen universel pour toutes les urgences"
+          ],
+          "correct": 0,
+          "explanation": "Moyen préparé ou prépositionné avant l’urgence ; l’évacuation ne doit pas être retardée pour le récupérer.",
+          "object": "Pigeon voyageur · message"
+        }
+      ],
+      "source": "Brief V17 · clause 8.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_EVACUATION",
+      "title": "Au feu !!! · rejoindre le rassemblement",
+      "mode": "runner",
+      "clause": "8.2",
+      "actor": "mathilde",
+      "site": "foyer",
+      "evidence": "Liste de rassemblement",
+      "cards": [
+        {
+          "id": "alarm",
+          "question": "Une fumée se développe. Quelle priorité ?",
+          "choices": [
+            "Transmettre l’alerte et emprunter l’itinéraire praticable",
+            "Récupérer toutes les poteries",
+            "Rentrer dans la hutte enfumée"
+          ],
+          "correct": 0,
+          "explanation": "Alerter, évacuer et signaler une zone inaccessible ; ne pas y entrer sans moyens adaptés."
+        },
+        {
+          "id": "missing",
+          "question": "Une personne attendue n’est pas au rassemblement. Que faire ?",
+          "choices": [
+            "Déclarer tout le monde présent",
+            "Alerter le responsable et faire vérifier la situation sans s’exposer",
+            "Retourner seul dans la fumée"
+          ],
+          "correct": 1,
+          "explanation": "Le comptage repose sur les personnages réels de cette partie."
+        }
+      ],
+      "duration": 85,
+      "source": "Brief V17 · clause 8.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_DEBRIEF_FIRE",
+      "title": "Après l’alerte : tout le monde va bien ?",
+      "mode": "debrief",
+      "clause": "8.2",
+      "actor": "ouways",
+      "site": "ouways",
+      "evidence": "Retour d’expérience de l’urgence",
+      "cards": [
+        {
+          "id": "future",
+          "question": "Ouways : « Et si les mammouths, la rivière ou le tigre s’en mêlent ? »",
+          "choices": [
+            "Préparer, communiquer, exercer et améliorer selon les situations pertinentes",
+            "Une fréquence identique pour toutes les tribus est imposée",
+            "Ne prévoir que cet incendie"
+          ],
+          "correct": 0,
+          "explanation": "Dylan : « L’exercice de nuit face au tigre attendra les moyens adaptés. » La fréquence dépend des conditions ; aucun calendrier universel n’est inventé."
+        }
+      ],
+      "source": "Brief V17 · clause 8.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_DASHBOARD",
+      "title": "Les pierres savent compter",
+      "mode": "dashboard",
+      "clause": "9.1",
+      "actor": "mathieu",
+      "site": "grand_menhir",
+      "evidence": "Tableau des performances SST",
+      "cards": [
+        {
+          "id": "performance",
+          "question": "Le tableau vient de ta partie. Que démontre « action décidée » ?",
+          "choices": [
+            "L’efficacité est garantie",
+            "La décision existe ; réalisation et contrôle restent à démontrer",
+            "La conformité de toutes les activités"
+          ],
+          "correct": 1,
+          "explanation": "Distinguer achèvement, performance et conformité aux exigences applicables."
+        },
+        {
+          "id": "legal",
+          "question": "Comment évaluer la conformité aux exigences applicables ?",
+          "choices": [
+            "Définir les critères, examiner les preuves et consigner le résultat",
+            "Compter seulement les nouveaux bâtiments",
+            "Choisir le résultat le plus flatteur"
+          ],
+          "correct": 0,
+          "explanation": "Une observation défavorable reste visible ; le jeu n’invente pas de résultats favorables."
+        }
+      ],
+      "source": "Brief V17 · clause 9.1 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_AUDIT",
+      "title": "Le conseil des esprits",
+      "mode": "audit",
+      "clause": "9.2",
+      "actor": "alban",
+      "site": "alban",
+      "evidence": "Rapport d’audit des anciens",
+      "cards": [
+        {
+          "id": "spirit1",
+          "question": "Montre une activité dont les risques ont été évalués.",
+          "choices": [
+            "Registre des risques · Taille de silex",
+            "Une affirmation du chef sans trace",
+            "Une tablette sans lien"
+          ],
+          "correct": 0,
+          "explanation": "L’audit documente critères, périmètre, preuves, constats et actions ; une personne évalue autant que possible une activité dont elle n’est pas responsable.",
+          "requiredEvidence": "Registre des risques · Taille de silex"
+        },
+        {
+          "id": "spirit2",
+          "question": "Qui vérifie les compétences ?",
+          "choices": [
+            "Passeport des compétences",
+            "Une affirmation du chef sans trace",
+            "Une tablette sans lien"
+          ],
+          "correct": 0,
+          "explanation": "L’audit documente critères, périmètre, preuves, constats et actions ; une personne évalue autant que possible une activité dont elle n’est pas responsable.",
+          "requiredEvidence": "Passeport des compétences"
+        },
+        {
+          "id": "spirit3",
+          "question": "Comment sais-tu ce qui a changé ?",
+          "choices": [
+            "Registre de maîtrise opérationnelle",
+            "Une affirmation du chef sans trace",
+            "Une tablette sans lien"
+          ],
+          "correct": 0,
+          "explanation": "L’audit documente critères, périmètre, preuves, constats et actions ; une personne évalue autant que possible une activité dont elle n’est pas responsable.",
+          "requiredEvidence": "Registre de maîtrise opérationnelle"
+        },
+        {
+          "id": "spirit4",
+          "question": "Comment les urgences ont-elles été éprouvées ?",
+          "choices": [
+            "Retour d’expérience de l’urgence",
+            "Une affirmation du chef sans trace",
+            "Une tablette sans lien"
+          ],
+          "correct": 0,
+          "explanation": "L’audit documente critères, périmètre, preuves, constats et actions ; une personne évalue autant que possible une activité dont elle n’est pas responsable.",
+          "requiredEvidence": "Retour d’expérience de l’urgence"
+        },
+        {
+          "id": "spirit5",
+          "question": "Quels résultats sont suivis ?",
+          "choices": [
+            "Tableau des performances SST",
+            "Une affirmation du chef sans trace",
+            "Une tablette sans lien"
+          ],
+          "correct": 0,
+          "explanation": "L’audit documente critères, périmètre, preuves, constats et actions ; une personne évalue autant que possible une activité dont elle n’est pas responsable.",
+          "requiredEvidence": "Tableau des performances SST"
+        }
+      ],
+      "source": "Brief V17 · clause 9.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_REVIEW",
+      "title": "La revue autour du Grand Menhir",
+      "mode": "review",
+      "clause": "9.3",
+      "actor": "aurelien",
+      "site": "grand_menhir",
+      "evidence": "Compte rendu de revue de direction",
+      "cards": [
+        {
+          "id": "decision",
+          "question": "Les constats et actions ouvertes figurent sur le menhir. Quelle décision prendre ?",
+          "choices": [
+            "Affecter responsables et moyens, suivre les suites et communiquer les résultats pertinents",
+            "Fermer tous les écarts pour la cérémonie",
+            "Recommencer comme avant"
+          ],
+          "correct": 0,
+          "explanation": "La direction examine objectifs, résultats, événements, contexte, ressources et audit pour décider des suites."
+        }
+      ],
+      "source": "Brief V17 · clause 9.3 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_CORRECTIVE",
+      "title": "L’amélioration ne se grave pas une seule fois",
+      "mode": "corrective",
+      "clause": "10.2",
+      "actor": "mathieu",
+      "site": "mathieu",
+      "evidence": "Tablette des actions correctives",
+      "cards": [
+        {
+          "id": "correction",
+          "question": "Après un événement, quelle première distinction ?",
+          "choices": [
+            "Corriger immédiatement puis analyser les causes",
+            "Acheter une nouvelle hutte suffit",
+            "La faute du travailleur est toujours la cause"
+          ],
+          "correct": 0,
+          "explanation": "Protéger les personnes et corriger ne dispense pas d’analyser les causes avec les travailleurs."
+        },
+        {
+          "id": "causes",
+          "question": "Les décisions et alertes sont dans le carnet. Quelle suite ?",
+          "choices": [
+            "Traiter les causes et réévaluer les risques si nécessaire",
+            "Effacer les alertes",
+            "Décider une action sans la réaliser"
+          ],
+          "correct": 0,
+          "explanation": "L’action corrective doit être mise en œuvre puis évaluée."
+        },
+        {
+          "id": "effect",
+          "question": "Comment clôturer l’action ?",
+          "choices": [
+            "Contrôler l’effet réel sur le poste et conserver le résultat",
+            "Cocher dès que le chef a signé",
+            "Attendre sans critère"
+          ],
+          "correct": 0,
+          "explanation": "Une décision seule ne démontre pas l’efficacité."
+        }
+      ],
+      "source": "Brief V17 · clause 10.2 ; contenu du classeur de conception"
+    },
+    {
+      "id": "V17_IMPROVE",
+      "title": "Le cycle suivant",
+      "mode": "improvement",
+      "clause": "10.3",
+      "actor": "aurelien",
+      "site": "grand_menhir",
+      "evidence": "Plan du prochain cycle",
+      "cards": [
+        {
+          "id": "cycle",
+          "question": "Aurélien : « Maintenant, on peut recommencer comme avant ? »",
+          "choices": [
+            "Oui, la prévention est terminée",
+            "Non : consolider les acquis, suivre les actions ouvertes et réexaminer les changements",
+            "Uniquement changer le titre du menhir"
+          ],
+          "correct": 1,
+          "explanation": "Mathieu : « C’est justement le contraire de l’amélioration continue. » Les installations et preuves restent dans leur état réel."
+        }
+      ],
+      "source": "Brief V17 · clause 10.3 ; contenu du classeur de conception"
+    }
+  ],
+  "quests": [
+    {
+      "id": "V17_CONTEXT",
+      "title": "LE VILLAGE N’EST PAS SEUL AU MONDE",
+      "actId": "ACTE_I",
+      "giverId": "aurelien",
+      "iso": [
+        "4.1",
+        "4.2",
+        "4.3",
+        "4.4"
+      ],
+      "actionIds": [
+        "V17_SWOT",
+        "V17_PARTIES",
+        "V17_SCOPE",
+        "V17_SYSTEM"
+      ],
+      "description": "LE VILLAGE N’EST PAS SEUL AU MONDE. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "V17_RISKS",
+      "title": "LA CHASSE AUX RISQUES",
+      "actId": "ACTE_III",
+      "giverId": "mathieu",
+      "iso": [
+        "6.1",
+        "6.2"
+      ],
+      "actionIds": [
+        "V17_RISK_SILEX",
+        "V17_RISK_QUARRY",
+        "V17_RISK_FIRE",
+        "V17_RISK_STORAGE",
+        "V17_RISK_HUNT",
+        "V17_OBJECTIVES"
+      ],
+      "description": "LA CHASSE AUX RISQUES. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "V17_SUPPORT",
+      "title": "LA TRIBU A DES MOYENS, ENFIN PRESQUE",
+      "actId": "ACTE_IV",
+      "giverId": "neila",
+      "iso": [
+        "7.1",
+        "7.2",
+        "7.3",
+        "7.4",
+        "7.5"
+      ],
+      "actionIds": [
+        "V17_RESOURCES",
+        "V17_SKILLS",
+        "V17_BRIEFING",
+        "V17_COMMUNICATION",
+        "V17_DOCUMENTS"
+      ],
+      "description": "LA TRIBU A DES MOYENS, ENFIN PRESQUE. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "V17_OPERATIONS",
+      "title": "LES 15 DIFFÉRENCES",
+      "actId": "ACTE_V",
+      "giverId": "ouways",
+      "iso": [
+        "8.1.1",
+        "8.1.2",
+        "8.1.3",
+        "8.1.4.1",
+        "8.1.4.2",
+        "8.1.4.3"
+      ],
+      "actionIds": [
+        "V17_DIFFERENCES"
+      ],
+      "description": "LES 15 DIFFÉRENCES. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "V17_EMERGENCY",
+      "title": "AU FEU !!!",
+      "actId": "ACTE_VI",
+      "giverId": "ouways",
+      "iso": [
+        "8.2"
+      ],
+      "actionIds": [
+        "V17_PREPARE_FIRE",
+        "V17_EVACUATION",
+        "V17_DEBRIEF_FIRE"
+      ],
+      "description": "AU FEU !!!. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "V17_EVALUATION",
+      "title": "LES ANCIENS VIENNENT AUDITER",
+      "actId": "ACTE_VII",
+      "giverId": "alban",
+      "iso": [
+        "9.1",
+        "9.2",
+        "9.3"
+      ],
+      "actionIds": [
+        "V17_DASHBOARD",
+        "V17_AUDIT",
+        "V17_REVIEW"
+      ],
+      "description": "LES ANCIENS VIENNENT AUDITER. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "V17_IMPROVEMENT",
+      "title": "LE PROCHAIN CYCLE",
+      "actId": "ACTE_VIII",
+      "giverId": "mathieu",
+      "iso": [
+        "10.1",
+        "10.2",
+        "10.3"
+      ],
+      "actionIds": [
+        "V17_CORRECTIVE",
+        "V17_IMPROVE"
+      ],
+      "description": "LE PROCHAIN CYCLE. Observe, agis puis conserve les preuves.",
+      "tip": "Une décision doit être suivie d’une réalisation et d’un contrôle.",
+      "completion": "Les actions et leurs preuves sont conservées dans le Carnet des Crânes.",
+      "required": true,
+      "rewards": [
+        {
+          "kind": "knowledge",
+          "id": "knowledge",
+          "name": "Fragments de savoir",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

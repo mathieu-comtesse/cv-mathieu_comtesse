@@ -87,6 +87,9 @@ namespace UngaBunga45001
     [Serializable] public sealed class DecisionRecord { public string id, text, consequence; public float elapsedSeconds; }
     [Serializable] public sealed class CampaignSave
     {
+        public int environmentSchema;
+        public VillageSaveV18 villageV18=new VillageSaveV18();
+        public CampaignProgressV17 campaignV17=new CampaignProgressV17();
         public int version = 1, actIndex;
         public MenhirProgress menhir=new MenhirProgress();
         public string campaignId, endingId; public string activeCinematicId="";
@@ -94,6 +97,8 @@ namespace UngaBunga45001
         public System.Collections.Generic.List<string> pendingCinematicsV15=new System.Collections.Generic.List<string>();
         public System.Collections.Generic.List<CinematicAnimalV15> cinematicAnimalsV15=new System.Collections.Generic.List<CinematicAnimalV15>();
         public System.Collections.Generic.List<FilmActorStateV15> cinematicActorsV15=new System.Collections.Generic.List<FilmActorStateV15>();
+        public System.Collections.Generic.List<FilmRouteStateV16> cinematicRoutesV16=new System.Collections.Generic.List<FilmRouteStateV16>();
+        public System.Collections.Generic.List<FilmPropStateV16> cinematicPropsV16=new System.Collections.Generic.List<FilmPropStateV16>();
         public System.Collections.Generic.List<CinematicWorldPropV15> cinematicWorldPropsV15=new System.Collections.Generic.List<CinematicWorldPropV15>();
         public string trackedActionId="",equippedItem="";public int inventorySlot;public int trackedActionHistoryIndex=-1;
         public bool playerPositionSaved,playerCrouching;public Vector3 playerPosition;public float playerYaw;

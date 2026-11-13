@@ -36,7 +36,6 @@ namespace UngaBunga45001
   {
    if(c?.State==null||!Active)return;
    if(observedPause!=c.UserPaused){observedPause=c.UserPaused;foreach(var actor in c.bindings.characters)if(actor.animator!=null)actor.animator.speed=observedPause?0:1;}
-   if(Keyboard.current?.escapeKey.wasPressedThisFrame==true)Pause();
    if(c.UserPaused)return;
    Progress.elapsedSeconds+=Time.deltaTime;
    if(Phase==MenhirPhase.Combat)
@@ -60,13 +59,13 @@ namespace UngaBunga45001
   public int Stage=>Progress.aurelienLife<30?3:Progress.aurelienLife<65?2:1;
   public void Begin(bool replay=false)
   {
-   if(Active||c==null)return;bool resume=Progress.inProgress;
+   if(Active||c==null)return;GetComponent<ActivityActingV18>()?.ReleaseForFilm();GetComponent<WorkNavigationV18>()?.PrepareForFilm();bool resume=Progress.inProgress;
    if(!resume){Progress.replay=replay;Progress.question=0;Progress.cleared=new bool[5];Progress.dylanLife=Progress.aurelienLife=Progress.energy=100;Progress.streak=0;Progress.elapsedSeconds=0;Progress.arenaSet=false;Progress.returnActors.Clear();}
    if(!Progress.arenaSet&&!FindArena()){c.Inform("Aucune aire de duel dégagée près du menhir. Le combat n’a pas commencé.");return;}
    if(!resume)foreach(var actor in c.bindings.characters){var root=c.bindings.Find(actor.id);if(root==null)continue;var agent=root.GetComponent<NavMeshAgent>();Progress.returnActors.Add(new DuelReturnActor{id=actor.id,position=root.position,rotation=root.rotation,visualRotation=actor.meshyActor.transform.localRotation,agentEnabled=agent!=null&&agent.enabled});}
    Progress.started=Progress.inProgress=true;Progress.epoch++;c.CloseQuest();c.SetPause(false);
    Phase=MenhirPhase.ChooseMode;originalCamera=c.bindings.gameplayCamera.enabled;camera=c.cinematicDirector.cinematicCamera;camera.enabled=true;c.bindings.gameplayCamera.enabled=false;
-   c.bindings.SetGameplayBlocked(true);var life=GetComponent<VillageLife>();lifeWas=life.enabled;life.enabled=false;suspended.Clear();animatorSpeeds.Clear();culling.Clear();
+   c.ReconcileControls();var life=GetComponent<VillageLife>();lifeWas=life.enabled;life.enabled=false;suspended.Clear();animatorSpeeds.Clear();culling.Clear();
    foreach(var actor in c.bindings.characters)
    {var root=c.bindings.Find(actor.id);if(root==null)continue;actor.meshyActor.transform.localRotation=Quaternion.identity;foreach(var b in root.GetComponentsInChildren<Behaviour>().Where(b=>b is NavMeshAgent||b is NativeLocomotionAgent||b is FootGrounding||b is VillagerCollisionMotor||b is VillagerBrain||b is ThirdPersonMotor)){suspended[b]=b.enabled;b.enabled=false;}foreach(var cc in root.GetComponents<CharacterController>())cc.enabled=false;animatorSpeeds[actor.animator]=actor.animator.speed;actor.animator.speed=1;culling[actor.animator]=actor.animator.cullingMode;actor.animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;}
    x=-2;bx=2;height=vertical=0;PlaceFighters();PlaceAudience();CreateArenaMarks();Caption=resume?"Les acquis sont conservés. Reprends l’épreuve en cours.":"LA POLITIQUE DU MENHIR · Dylan contre Aurélien";Banner="CHOISIS TON MODE";Signal();c.Save();
@@ -181,7 +180,7 @@ namespace UngaBunga45001
    filmFocus="";CinematicPerformanceV15.For(c).StopAll();GetComponent<CinematicScoreV15>()?.End();CinematicLightRigV15.Set(camera,"leadership",false);
    foreach(var saved in Progress.returnActors){var root=c.bindings.Find(saved.id);if(root==null)continue;root.position=saved.position;root.rotation=saved.rotation;var actor=c.bindings.characters.FirstOrDefault(a=>a.id==saved.id);if(actor?.meshyActor!=null)actor.meshyActor.transform.localRotation=saved.visualRotation;}
    foreach(var pair in suspended)if(pair.Key!=null)pair.Key.enabled=pair.Value;foreach(var actor in c.bindings.characters){var root=c.bindings.Find(actor.id);if(root==null)continue;var agent=root.GetComponent<NavMeshAgent>();var cc=root.GetComponent<CharacterController>();if(cc!=null)cc.enabled=actor.id=="dylan";if(agent!=null&&agent.enabled){var saved=Progress.returnActors.FirstOrDefault(a=>a.id==actor.id);if(saved!=null)agent.Warp(saved.position);}Pose(actor.id,"Locomotion");}
-   foreach(var p in props)if(p!=null)Destroy(p);props.Clear();GetComponent<VillageLife>().enabled=lifeWas;camera.enabled=false;c.bindings.gameplayCamera.enabled=originalCamera;Phase=MenhirPhase.Inactive;TouchMove=0;TouchGuard=false;foreach(var pair in culling)if(pair.Key!=null)pair.Key.cullingMode=pair.Value;culling.Clear();animatorSpeeds.Clear();c.SetPause(false);c.bindings.SetGameplayBlocked(false);Signal();
+   foreach(var p in props)if(p!=null)Destroy(p);props.Clear();GetComponent<VillageLife>().enabled=lifeWas;camera.enabled=false;c.bindings.gameplayCamera.enabled=originalCamera;Phase=MenhirPhase.Inactive;TouchMove=0;TouchGuard=false;foreach(var pair in culling)if(pair.Key!=null)pair.Key.cullingMode=pair.Value;culling.Clear();animatorSpeeds.Clear();c.SetPause(false);Signal();
   }
   public void Pause(){if(!Active)return;c.SetPause(!c.UserPaused);foreach(var actor in c.bindings.characters)if(actor.animator!=null)actor.animator.speed=c.UserPaused?0:1;Signal();}
   void UpdateCamera()

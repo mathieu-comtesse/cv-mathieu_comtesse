@@ -1,10 +1,10 @@
 name: THALEOLITHIC Web publication
 on:
   pull_request:
-    paths: ['thaleolithic/**', 'js/projects-data.js', 'blog.html', 'projet-gares.html', 'projet-lettres.html', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', 'tools/test-thaleolithic-render-budget.cjs', '.github/workflows/unga-web.yml']
+    paths: ['thaleolithic/**', 'js/projects-data.js', 'blog.html', 'projet-gares.html', 'projet-lettres.html', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', 'tools/test-thaleolithic-*.cjs', 'tools/test-thaleolithic-*.mjs', '.github/workflows/unga-web.yml']
   push:
     branches: [main]
-    paths: ['thaleolithic/**', 'js/projects-data.js', 'blog.html', 'projet-gares.html', 'projet-lettres.html', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', 'tools/test-thaleolithic-render-budget.cjs', '.github/workflows/unga-web.yml']
+    paths: ['thaleolithic/**', 'js/projects-data.js', 'blog.html', 'projet-gares.html', 'projet-lettres.html', 'talas-refonte/index.html', 'projet-talas.html', 'index.html', 'assets/projets/unga-bunga-45001.webp', 'tools/test-unga-publication.mjs', 'tools/test-thaleolithic-*.cjs', 'tools/test-thaleolithic-*.mjs', '.github/workflows/unga-web.yml']
 jobs:
   publication:
     runs-on: ubuntu-latest
@@ -15,3 +15,16 @@ jobs:
           node-version: 24
       - run: node tools/test-unga-publication.mjs
       - run: node tools/test-thaleolithic-render-budget.cjs
+      - run: node tools/test-thaleolithic-bridge.mjs
+      - run: npm install --no-save --no-package-lock playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node tools/test-thaleolithic-browser.cjs
+      - run: node tools/test-thaleolithic-browser.cjs --real --ci
+        env:
+          THALEOLITHIC_REPORT: ${{ runner.temp }}/thaleolithic-web.json
+        timeout-minutes: 12
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: thaleolithic-web-validation
+          path: ${{ runner.temp }}/thaleolithic-web.json*

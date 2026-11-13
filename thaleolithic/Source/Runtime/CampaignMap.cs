@@ -10,7 +10,7 @@ namespace UngaBunga45001
     [DefaultExecutionOrder(-80)]public sealed partial class CampaignMap:MonoBehaviour
     {
         public CampaignRuntime campaign;public Texture2D terrainMap,villageDetail;public Vector2 worldOrigin,worldSize,detailOrigin,detailSize;
-        public bool IsOpen{get;private set;}public int ConsumedEscapeFrame{get;private set;}=-1;
+        public bool IsOpen{get;private set;}
         public Transform SelectedTarget=>navigation?.Target??inspected;public string SelectedName=>navigation?.Action?.title??"Lieu repéré";
         public WorldMapProjection Projection{get;private set;}public Rect MiniCrop{get;private set;}public Rect FullCrop{get;private set;}
         public float Zoom{get;private set;}=4;public bool showSites=true,showPeople,showDangers=true;
@@ -18,8 +18,7 @@ namespace UngaBunga45001
         readonly List<(string id,Transform target,RectTransform mini,RectTransform full)> hazards=new List<(string,Transform,RectTransform,RectTransform)>();
         RectTransform miniRect,fullRect,window,miniPlayer,fullPlayer,miniTarget,fullTarget;UnityEngine.UI.RawImage miniImage,fullImage;
         TMP_Text coordinates,caption,north;TMP_FontAsset font;UISettingsController settings;QuestNavigationController navigation;
-        MapRouteGraphic miniRoute,fullRoute;MapFootprintsGraphic miniBuildings,fullBuildings;MapWorldGeometry geometry;bool previousPause;Vector2 center;Transform inspected;float nextRefresh;
-        bool openedInPortrait;public bool PauseBeforeOpen=>openedInPortrait&&MobileControls.Instance!=null?MobileControls.Instance.UnderlyingPause:previousPause;
+        MapRouteGraphic miniRoute,fullRoute;MapFootprintsGraphic miniBuildings,fullBuildings;MapWorldGeometry geometry;Vector2 center;Transform inspected;float nextRefresh;
         readonly List<(string id,Transform target,RectTransform marker,bool person)> markers=new List<(string,Transform,RectTransform,bool)>();
         readonly Dictionary<string,string> names=new Dictionary<string,string>{{"grand_menhir","Grand Menhir"},{"habitations","Habitations"},{"atelier_silex","Atelier de silex"},{"foyer","Foyer"},{"stockage","Réserves"},{"bois_construction","Bûcherons"},{"pierre_carriere","Carrière"},{"chasse_clairiere","Clairière de chasse"},{"rassemblement","Rassemblement"},{"repos","Infirmerie"},{"charpente","Charpente"}};
         RectTransform Label(Transform p,string name,Vector2 a,Vector2 pivot,Vector2 pos,Vector2 size,string value,float fs=20){var r=AdventureUI.Rect(p,name,a,pivot,pos,size);return r;}
@@ -72,8 +71,7 @@ namespace UngaBunga45001
         void Update()
         {
             if(window==null||campaign.State==null)return;
-            if(settings.Pressed("map")&&campaign.Dialogue==null&&!campaign.cinematicDirector.IsPlaying){if(IsOpen)Close();else Open();}
-            if(IsOpen&&Keyboard.current?.escapeKey.wasPressedThisFrame==true){ConsumedEscapeFrame=Time.frameCount;settings.ConsumedEscapeFrame=Time.frameCount;Close();}
+            if(!campaign.BrowserInputSuspended&&settings.ConsumedEscapeFrame!=Time.frameCount&&settings.Pressed("map")&&campaign.Dialogue==null&&!campaign.cinematicDirector.IsPlaying){if(IsOpen)Close();else Open();}
             miniRect.parent.localScale=Vector3.one*settings.preferences.hudScale;
             bool visible=!campaign.MenhirActive&&!campaign.cinematicDirector.IsPlaying&&!IsOpen&&!campaign.GetComponent<AdventureMenus>().IsOpen;miniRect.parent.gameObject.SetActive(visible);
             if(Time.unscaledTime<nextRefresh)return;nextRefresh=Time.unscaledTime+.08f;
@@ -110,8 +108,8 @@ namespace UngaBunga45001
         }
         public void Pan(Vector2 delta){delta/=window.GetComponentInParent<Canvas>().scaleFactor*(tribalHost!=null?window.lossyScale.x/Mathf.Max(.001f,window.GetComponentInParent<Canvas>().transform.lossyScale.x):1);center-=new Vector2(delta.x/fullRect.rect.width,delta.y/fullRect.rect.height)/Zoom;center=new Vector2(Mathf.Clamp(center.x,.5f/Zoom,1-.5f/Zoom),Mathf.Clamp(center.y,.5f/Zoom,1-.5f/Zoom));nextRefresh=0;}
         public void SetZoom(float delta){Zoom=Mathf.Clamp(Zoom*Mathf.Pow(1.18f,delta),1,16);nextRefresh=0;}
-        public void Open(){if(GetComponent<AdventureMenus>()?.TribalReady==true){GetComponent<AdventureMenus>().Open("Carte");return;}if(window==null||IsOpen)return;GetComponent<AdventureMenus>()?.Close();previousPause=campaign.UserPaused;openedInPortrait=MobileControls.Instance?.PortraitPaused??false;campaign.SetPause(true);IsOpen=true;window.gameObject.SetActive(true);window.SetAsLastSibling();nextRefresh=0;}
-        public void Close(){if(tribalHost!=null){GetComponent<AdventureMenus>().Close();return;}if(!IsOpen)return;IsOpen=false;window.gameObject.SetActive(false);campaign.SetPause(MobileControls.Instance!=null?MobileControls.Instance.RestoreOverlayPause(PauseBeforeOpen):previousPause);}
+        public void Open(){if(GetComponent<AdventureMenus>()?.TribalReady==true){GetComponent<AdventureMenus>().Open("Carte");return;}if(window==null||IsOpen)return;GetComponent<AdventureMenus>()?.Close();IsOpen=true;window.gameObject.SetActive(true);window.SetAsLastSibling();campaign.ReconcileControls();nextRefresh=0;}
+        public void Close(){if(tribalHost!=null){GetComponent<AdventureMenus>().Close();return;}if(!IsOpen)return;IsOpen=false;window.gameObject.SetActive(false);campaign.ReconcileControls();}
         public void SelectNextObjective(){navigation?.ForceRefresh();}
     }
     public sealed class MapPointer:MonoBehaviour,IScrollHandler,IDragHandler

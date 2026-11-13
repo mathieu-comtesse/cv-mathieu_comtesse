@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 
 namespace UngaBunga45001
 {
+    [DefaultExecutionOrder(-60)]
     public sealed class WorldInteraction : MonoBehaviour
     {
         public CampaignRuntime campaign;
@@ -17,8 +18,12 @@ namespace UngaBunga45001
         {
             using var profile=UpdateMarker.Auto();
             if (campaign == null || campaign.State == null) return;
-            var map=GetComponent<CampaignMap>();
-            if (PressedEscape() && GetComponent<UISettingsController>()?.ConsumedEscapeFrame!=Time.frameCount && !(map?.IsOpen??false) && (map==null||map.ConsumedEscapeFrame!=Time.frameCount)){GetComponent<AdventureMenus>().Open("Réglages");}
+            if (PressedEscape() && GetComponent<UISettingsController>()?.ConsumedEscapeFrame!=Time.frameCount)
+            {
+                HandleEscape();FocusBindingId=null;return;
+            }
+            if(GetComponent<ConstructionFilmV19>()?.Playing??false){FocusBindingId=null;return;}
+            if(GetComponent<CampaignActivitiesV17>()?.Active??false){FocusBindingId=null;return;}
             if (campaign.IsModal || campaign.IsBusy) { FocusBindingId = null; return; }
             FocusBindingId = null; float nearest = interactionDistance;
             foreach (var binding in campaign.bindings.objects)
@@ -30,6 +35,43 @@ namespace UngaBunga45001
             }
             if (PressedInteract() && FocusActions.Length > 0)
                 Interact();
+        }
+        public void HandleEscape()
+        {
+            if(campaign?.State==null||campaign.BrowserInputSuspended)return;
+            var settings=GetComponent<UISettingsController>();
+            if(settings!=null)
+            {
+                if(settings.Rebinding!=null||settings.ConsumedEscapeFrame==Time.frameCount)return;
+                settings.ConsumedEscapeFrame=Time.frameCount;
+            }
+            var film=GetComponent<ConstructionFilmV19>();
+            if(film?.Playing==true){film.Skip();return;}
+            if(campaign.cinematicDirector.IsPlaying||campaign.IncidentModal||campaign.Ending!=null)return;
+            var duel=GetComponent<MenhirDuel>();
+            if(duel?.Active==true){duel.Pause();return;}
+            if(campaign.Dialogue!=null||campaign.QuestOverlay){GetComponent<QuestDialogueUI>()?.Back();return;}
+            var activity=GetComponent<CampaignActivitiesV17>();
+            if(activity?.Active==true)
+            {
+                if(activity.Current.mode=="assemble")activity.ToggleSstExitPrompt();
+                else activity.Suspend();
+                return;
+            }
+            var upgrade=GetComponent<VillageUpgradeViewV18>();
+            if(upgrade?.Open==true){upgrade.Close();return;}
+            var menus=GetComponent<AdventureMenus>();
+            if(menus?.IsOpen==true){menus.Back();return;}
+            var map=GetComponent<CampaignMap>();
+            if(map?.IsOpen==true){map.Close();return;}
+            menus?.Open("Pause");
+        }
+        public void RestoreControls()
+        {
+            var menus=GetComponent<AdventureMenus>();
+            if(menus?.Mode!="Pause"||!menus.IsOpen)return;
+            MobileControls.Instance?.ResetTransientInput();
+            menus.Resume();
         }
         public void Interact()
         {

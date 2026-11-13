@@ -34,7 +34,7 @@ namespace UngaBunga45001
    }
    if(c.State.accidents.Count>incidents){incidents=c.State.accidents.Count;Queue("F15_C12");}
    if(c.Ending!=null)Queue(CinematicCatalogueV15.Ending(c));
-   var pending=c.State.pendingCinematicsV15??=new List<string>();if(pending.Count==0||c.cinematicDirector.IsPlaying||c.IsBusy||c.MenhirActive||c.UserPaused||c.Dialogue!=null||c.QuestOverlay||c.IncidentModal||c.GetComponent<AccidentDirector>().Playing)return;
+   var pending=c.State.pendingCinematicsV15??=new List<string>();if(pending.Count==0||(GetComponent<VillageUpgradeV18>()?.PendingPresentation??false)||(GetComponent<CampaignActivitiesV17>()?.Active??false)||c.cinematicDirector.IsPlaying||c.IsBusy||c.MenhirActive||c.UserPaused||c.Dialogue!=null||c.QuestOverlay||c.IncidentModal||c.GetComponent<AccidentDirector>().Playing)return;
    string idToPlay=pending[0];pending.RemoveAt(0);if(Seen(idToPlay))return;c.cinematicDirector.Play(idToPlay);c.Save();
   }
   public void Queue(string id)

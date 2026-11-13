@@ -1,7 +1,9 @@
 {
+  "version": "V23.1",
+  "productVersion": "0.23.1",
   "streamingAssetsUrl": "StreamingAssets",
-  "loaderUrl": "Build/Web-V22.1.loader.js?v=356adf5a3486",
-  "dataUrl": "Build/Web-V22.1.data.unityweb?v=1154eef0dc89",
-  "frameworkUrl": "Build/Web-V22.1.framework.js.unityweb?v=3ea993984d66",
-  "codeUrl": "Build/Web-V22.1.wasm.unityweb?v=1117e5752e26"
+  "loaderUrl": "Build/Web-V23.1.loader.js?v=8111f856d617",
+  "dataUrl": "Build/Web-V23.1.data.unityweb?v=c00781ffc7e3",
+  "frameworkUrl": "Build/Web-V23.1.framework.js.unityweb?v=01accb268fbd",
+  "codeUrl": "Build/Web-V23.1.wasm.unityweb?v=aea2cf00944a"
 }
