@@ -40,3 +40,26 @@ Les fichiers `SHOPIFY_FALL26_EXTRACTION_COMPLETE_V1.zip` et `shopify-fall26-effe
 ## Ce que `cursor.css` contient
 
 `cursor.css` définit des curseurs natifs (`auto`, `pointer`, `grab`, `grabbing`) par variables, pour les autres pages du site. L'accueil ne le charge pas ; il utilise les mêmes valeurs natives, qui sont aussi celles relevées sur la référence. Le fichier n'a pas été modifié.
+
+## Preuves tirées du JSON brut (`shopify-fall26-effets-2026-11-13T15-17-39-071Z.json`)
+
+Session de 304,8 s, fenêtre 1 487 × 1 319 px, 8 759 événements, 4 500 échantillons de style (de 188,8 s à 304,8 s). Le fichier ne contient aucune image : tout ce qui se passe dans les canevas reste hors de sa portée.
+
+Certitude : **OBSERVÉ** (lu dans les données), **INFÉRÉ** (déduit, à confirmer), **NON DOCUMENTÉ**.
+
+| Effet | Preuve brute | Instants | Certitude | Conséquence dans le code |
+|---|---|---|---|---|
+| Défilement lissé à la molette | 398 molettes, 1 215 défilements ; après le dernier cran la page défile encore 591 ms (médiane), moitié du reste en 148 ms, 90 % en 362 ms | toute la session | OBSERVÉ pour les durées, INFÉRÉ pour la forme (sortie cubique de 600 ms : 124 ms et 322 ms) | `refonte/defilement.js`, nouveau |
+| Curseur `grab` et `grabbing` | 44 et 6 échantillons, tous sur `div.game-grab` (mini-jeu), aucun sur le graphe | 271 s | OBSERVÉ | la saisie des nœuds du graphe (PR 210) n'est **pas** un comportement de la référence ; elle est conservée comme ajout propre au site |
+| Curseur `crosshair` | 25 mouvements, tous sur un graphique de carte (`group/chart`), aucun sur le graphe de l'accueil | divers | OBSERVÉ | le viseur posé sur le graphe de l'accueil (PR 210) est retiré |
+| Curseur sur le graphe et les canevas | `auto` (94 mouvements sur `canvas`, 160 sur `#home-html-in-canvas`) | divers | OBSERVÉ | curseur normal sur le graphe, main seulement sur un nœud saisissable |
+| Libellé qui suit le pointeur | transition `left 0.12s ease-out, top 0.12s ease-out` (30 échantillons) | 188 s à 304 s | OBSERVÉ | le libellé de survol des vignettes suit avec ce retard |
+| Fondu d'état | `opacity 0.15s cubic-bezier(0.65, 0, 0.35, 1)` (390 échantillons) ; `color 0.15s` (136) | idem | OBSERVÉ | durées reprises pour les libellés et survols |
+| Apparition des cartes | `scale 0.55s cubic-bezier(0.2, 0.7, 0.2, 1)`, retards échelonnés de 0,36 s à 0,96 s | idem | OBSERVÉ | courbe de référence pour les apparitions ; non appliquée aux fiches du site, qui ont leur propre mise en page |
+| Survol de bouton | `background-size 0.25s cubic-bezier(0.2, 0.7, 0.2, 1)`, `color 0.2s`, `scale 0.1s` | idem | OBSERVÉ | non repris (boutons propres au site) |
+| Bouton du mode expo | clic sur `html-in-canvas-corner-tip` à 123,09 s, défilement à 28 132 px | 123 s | OBSERVÉ pour le clic ; l'effet visuel est NON DOCUMENTÉ dans le JSON | voir captures au ralenti ci-dessous |
+| Flou d'arrière-plan (verre CSS) | aucun `backdrop-filter` différent de `none` dans les 4 500 échantillons | 188 s à 304 s | OBSERVÉ (absence, sur les éléments échantillonnés) | aucun verre CSS à reproduire ; le reflet simulé des cadres reste un ajout propre au site |
+| Transformations CSS 3D | `matrix3d` uniquement sur `button.game-start` (mini-jeu) | 272 s | OBSERVÉ | l'inclinaison des cartes n'est pas faite en CSS sur la référence : elle vit dans le canevas |
+| Clavier | touches `d` (28), `a` (22), `z` (14), `q` (2), `e` (1), toutes après 271 s | fin de session | OBSERVÉ ; commandes du mini-jeu | sans objet (mini-jeu non repris) |
+| Tâches longues | 154, médiane 69,5 ms, maximum 341 ms | toute la session | OBSERVÉ (fil principal, avec instrumentation) | ne dit rien de la cadence d'images |
+| Trajectoire de caméra, croissance des branches, reflets | aucune donnée | sans objet | NON DOCUMENTÉ dans le JSON | voir captures |

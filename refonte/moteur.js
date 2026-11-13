@@ -244,7 +244,7 @@ export class Ciel {
   lache() { const q = this.pris; this.pris = null; return q ? { clic: q.trajet < 5, ...q.noeud.ed, chapitre: q.etoile.chapitre } : null; }
   touche(x, y) { let m = null, dm = 18; for (const c of this.cibles) { const d = Math.hypot(c.x - x, c.y - y); if (d < dm) { dm = d; m = c; } } return m ? { ...m.noeud.ed, chapitre: m.etoile.chapitre } : null; }
 
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false } = {}) {
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, plat = false } = {}) {
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; return; }
     const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
@@ -263,7 +263,8 @@ export class Ciel {
       e.ecran = F;
       const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon;
       /* trace au sol : cercle et tige (étoiles posées) */
-      if (e.sol) {
+      const vert = plat && e.parent && e.rang % 3 === 1;                         // à plat (relevé sur la référence) : foyers bleus, un sur trois tirant sur le vert, pas de trace au sol
+      if (e.sol && !plat) {
         ctx.strokeStyle = 'rgba(190,210,255,.42)'; ctx.lineWidth = 1; ctx.beginPath(); let ouvert = false;
         for (let i = 0; i <= 40; i++) { const a = i / 40 * 6.283, q = proj(c0 + Math.cos(a) * R * 0.62, r0 + Math.sin(a) * R * 0.62, 0); if (!q) { ouvert = false; continue; } ouvert ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); ouvert = true; }
         ctx.stroke();
@@ -271,7 +272,7 @@ export class Ciel {
       }
       /* liaison avec le foyer parent */
       const parent = e.parent && this.etoiles.get(e.parent);
-      if (parent?.ecran) { const g = adouci(e.age / 0.9); ctx.strokeStyle = 'rgba(200,215,255,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(parent.ecran.x, parent.ecran.y); ctx.lineTo(parent.ecran.x + (F.x - parent.ecran.x) * g, parent.ecran.y + (F.y - parent.ecran.y) * g); ctx.stroke(); }
+      if (parent?.ecran) { const g = adouci(e.age / 0.9); ctx.strokeStyle = plat ? 'rgba(110,135,255,.3)' : 'rgba(200,215,255,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(parent.ecran.x, parent.ecran.y); ctx.lineTo(parent.ecran.x + (F.x - parent.ecran.x) * g, parent.ecran.y + (F.y - parent.ecran.y) * g); ctx.stroke(); }
       e.noeuds.forEach((n, j) => {
         const g = adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04)) / 0.8); if (g <= 0) return;
         let wc = c0 + Math.cos(n.a) * R * n.r, wr = r0 + Math.sin(n.a) * R * n.r * 0.78, wh = Math.max(0, h0 + n.dh * R * 0.45);
@@ -284,7 +285,8 @@ export class Ciel {
         if (n.ox || n.oy) { x += n.ox; y += n.oy; }
         const voile = cache(x, y, P.z) ? 0.12 : 1, actif = this.survol && this.survol.noeud === n;
         ctx.globalAlpha = voile * A;
-        ctx.strokeStyle = n.ed ? (actif ? '#fff' : j < 2 ? 'rgba(95,230,255,.95)' : 'rgba(255,255,255,.78)') : e.racine ? 'rgba(170,195,255,.16)' : 'rgba(207,224,255,.42)';
+        if (plat) ctx.strokeStyle = actif ? '#fff' : e.racine ? 'rgba(96,124,255,.13)' : vert ? (n.ed ? 'rgba(70,225,175,.82)' : 'rgba(70,225,175,.4)') : n.ed ? 'rgba(125,152,255,.92)' : 'rgba(96,124,255,.5)';
+        else ctx.strokeStyle = n.ed ? (actif ? '#fff' : j < 2 ? 'rgba(95,230,255,.95)' : 'rgba(255,255,255,.78)') : e.racine ? 'rgba(170,195,255,.16)' : 'rgba(207,224,255,.42)';
         ctx.lineWidth = actif ? 2 : 1; ctx.beginPath(); ctx.moveTo(F.x, F.y); ctx.lineTo(x, y); ctx.stroke();
         if (n.ed && libre && g >= 1) {                                           // impulsion lumineuse le long de la branche
           const q = (tt * 0.3 + n.phase / 6.283) % 1, f = Math.min(1, q / 0.75), a = q < 0.75 ? 1 : (1 - q) * 4;
@@ -301,16 +303,23 @@ export class Ciel {
           if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
           else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
           if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y }; } }
-        } else { ctx.fillStyle = e.racine ? 'rgba(200,215,255,.55)' : 'rgba(223,233,255,.9)'; ctx.beginPath(); ctx.arc(x, y, (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech), 0, 6.283); ctx.fill(); }
+        } else { ctx.fillStyle = plat ? (e.racine ? 'rgba(96,124,255,.5)' : vert ? '#46e1af' : '#6381ff') : e.racine ? 'rgba(200,215,255,.55)' : 'rgba(223,233,255,.9)'; ctx.beginPath(); ctx.arc(x, y, (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech), 0, 6.283); ctx.fill(); }
         ctx.globalAlpha = A;
       });
       /* foyer et libellé */
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
-      ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
+      if (plat && e.racine) { ctx.strokeStyle = 'rgba(125,152,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(F.x, F.y, 4.2, 0, 6.283); ctx.stroke(); }   // racine : simple anneau
+      else { ctx.fillStyle = plat ? (vert ? '#46e1af' : '#6f8dff') : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote); }
       if (e.label && !e.racine) {
         const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
-        if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
+        if (plat && e.parent) {                                                  // à plat : nom contre le foyer, suivi du nombre de contenus en gris
+          const n = e.noeuds.filter((q) => q.ed).length, px = compact ? 10 : 12;
+          ctx.font = `500 ${px}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(1,4,25,.75)';
+          const tx = F.x + cote / 2 + 6, ty = F.y - cote / 2 - 4, nom = compact ? (e.num || '') : e.label; ctx.strokeText(nom, tx, ty); ctx.fillText(nom, tx, ty);
+          if (!compact) { const l = ctx.measureText(nom).width; ctx.font = `500 ${px - 2}px "JetBrains Mono",ui-monospace,monospace`; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText(String(n), tx + l + 7, ty - 3); }
+          e.libelleEcran = { x: Math.round(tx), y: Math.round(ty), texte: nom };
+        } else if (e.sol) {                                                      // étoile posée : numéro et nom sous le cercle
           const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
           ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
           e.libelleEcran = { x: Math.round(bas.x), y: Math.round(bas.y + 12), texte };
@@ -323,7 +332,9 @@ export class Ciel {
     }
     this.cibles = cibles; this.survol = survol;
     if (survol) {                                                                // nom du contenu survolé
-      const texte = (survol.noeud.ed.title || '').slice(0, 60);
+      const texte = (survol.noeud.ed.title || '').slice(0, 60), suit = 1 - Math.exp(-dt / 0.04);
+      if (this.bulle?.noeud !== survol.noeud) this.bulle = { noeud: survol.noeud, x: survol.x, y: survol.y }; else { this.bulle.x += (survol.x - this.bulle.x) * suit; this.bulle.y += (survol.y - this.bulle.y) * suit; }
+      survol = { ...survol, x: this.bulle.x, y: this.bulle.y };
       ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = survol.x > W - 260 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
       const dx = survol.x > W - 260 ? -18 : 18; ctx.strokeText(texte, survol.x + dx, survol.y + 4); ctx.fillText(texte, survol.x + dx, survol.y + 4);
     }
