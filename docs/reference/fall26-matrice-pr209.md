@@ -110,3 +110,15 @@ Captures : `docs/fall26-evidence/expo-ref-chrome157-a-plat.jpg`, `…-expo-insta
 | Courbure du sol au loin | le sol se redresse nettement | sol plat vu depuis le haut de la page | inchangé | écart résiduel (non touché : géométrie du chemin) |
 
 Opacités du quadrillage choisies à l'œil par comparaison des deux captures agrandies, pas mesurées. Captures : `docs/fall26-evidence/expo-comtesse-avant-grille.png` et `…-apres-grille.png`. Tests relancés après la modification : `test-no-shopify --strict` PASS ; `test-modes` inchangé (même unique échec antérieur).
+
+## Courbure du sol au loin
+
+Cause de l'écart : le sol n'était tracé que sur la hauteur de la page (`drawPaperFloor` bornait chaque bande à `view.doc`), alors que le chemin continue jusqu'à son extrémité lointaine, là où `cvView` le redresse (angle jusqu'à 1,44 rad). Vu du haut de la page, le sol s'arrêtait en un bord net au lieu de se redresser.
+
+Correction : la première bande démarre à la rangée 0 et la dernière va jusqu'à la rangée `T`, quel que soit le défilement. Capture : `docs/fall26-evidence/expo-comtesse-apres-courbure.png`.
+
+| Élément | Avant | Maintenant | État |
+|---|---|---|---|
+| Courbure du sol au loin | sol plat, bord net | sol qui se redresse en bande étroite, grille qui suit | **corrigé** dans l'allure ; comparaison image par image non faite (profil exact et largeur de la bande non mesurés) |
+
+Tests relancés : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-modes` avec son seul échec antérieur ; à la progression 0 la projection coïncide toujours avec la page.
