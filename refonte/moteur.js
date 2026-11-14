@@ -480,17 +480,20 @@ export function cvLit(hex, rise) {
   return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
 }
 
-/* ---------- Panneau des chapitres, courbé en 3D ----------
- * Le panneau dressé de l'accueil n'est pas un plan : il se redresse depuis son bord bas puis se couche vers l'arrière suivant la même
- * loi exponentielle que le sol (angle d'élévation qui décroît en exp(2,2 t)). Il est tracé dans le repère du chemin, point par point
- * (bord, remplissage, texte orienté ligne par ligne), et donc suit la caméra ; le calque HTML correspondant est estompé en expo.
- * spec : { x, w, r1, hp, tilt (rad), items:[{nom, num}], alpha }  -  r1 : rangée du bord bas, hp : hauteur du panneau (unités de page). */
+/* ---------- Liste des chapitres : prolongement courbe du dessus du bloc supérieur ----------
+ * Dans la référence, la liste n'est pas un panneau posé à part : c'est le dessus du premier bloc qui se prolonge vers l'arrière, d'abord à plat
+ * (raccordé à l'arête du bloc, à sa hauteur), puis se relève suivant une loi exponentielle de l'angle d'élévation jusqu'à la verticale, comme
+ * le sol de la scène. Les dernières lignes, sur la partie presque plate, sont donc écrasées par la perspective.
+ * Tracé point par point dans le repère du chemin (bords, remplissage, texte orienté ligne par ligne) : il suit la caméra ; le calque HTML
+ * correspondant est estompé en expo.
+ * spec : { x, w, r1, hp, h0, phi0, phi1, items:[{nom, num}], alpha }  -  r1 : rangée de l'arête arrière du bloc, h0 : hauteur du dessus du bloc,
+ * hp : longueur de la surface développée (unités de page), phi0 et phi1 : angles d'élévation au raccord et au sommet (rad). */
 const COURBE_K = 2.2, COURBE_LEAN = 1.05;
-export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, tilt, items = [], alpha = 1, taille = 11 }) {
+export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, phi0 = 0.05, phi1 = 1.45, items = [], alpha = 1, taille = 11 }) {
   if (alpha <= 0.004 || !(hp > 0)) return;
   const N = 48, rows = new Float32Array(N + 1), hs = new Float32Array(N + 1), ds = hp / N, e = view.e;
   const g = (t) => (Math.exp(COURBE_K * t) - 1) / (Math.exp(COURBE_K) - 1);
-  for (let k = 0; k < N; k++) { const phi = tilt - COURBE_LEAN * e * g((k + 0.5) / N); rows[k + 1] = rows[k] - ds * Math.cos(phi); hs[k + 1] = hs[k] + ds * Math.sin(phi); }
+  hs[0] = h0; for (let k = 0; k < N; k++) { const phi = phi0 + (phi1 - phi0) * e * g((k + 0.5) / N); rows[k + 1] = rows[k] - ds * Math.cos(phi); hs[k + 1] = hs[k] + ds * Math.sin(phi); }
   const at = (u, s) => { const f = Math.max(0, Math.min(N, s / ds)), k = Math.min(N - 1, Math.floor(f)), q = f - k; return p(view, x + u, r1 + rows[k] + (rows[k + 1] - rows[k]) * q, hs[k] + (hs[k + 1] - hs[k]) * q); };
   const bord = [];
   for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
