@@ -426,3 +426,54 @@ Observation de la référence (Chrome 157, zooms sur la liste des chapitres et l
 Écarts qui restent : la jonction entre le sol et le pied des blocs n'est pas modélisée (les blocs reposent sur le plan) ; la liste ne suit pas la loi exacte de la référence (non mesurée) ; le texte est orienté ligne par ligne par une approximation affine.
 
 Tests après ces changements : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-defilement` PASS, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud) ; position de lecture, coïncidence à la progression 0, mouvement réduit et mobile passent. Expo à 6,7 ms par image sur GPU (base 7,2). Captures : `expo-quartpipe-liste.png`, `expo-comtesse-2498x1319-titre-moitie.png`.
+
+# Phase 5 bis : branches et ramifications 3D du graphe de l'accueil
+
+## Observation de la référence (Chrome 157, zooms sur un foyer en expo, trois instants)
+
+- Un foyer émet un éventail d'environ 30 à 40 rayons fins, **presque droits avec une légère courbure** ; la luminosité est plus forte près du foyer et s'estompe vers l'extrémité ; chaque rayon se termine par un petit point.
+- Quelques rayons plus vifs (cyan) mènent aux vignettes encadrées ; de longues lignes faibles relient les foyers ; des **ombres sombres portées au sol** accompagnent branches et vignettes.
+- Pas d'info-bulle au survol d'un foyer.
+- **Non observé** : épaisseurs et longueurs chiffrées (relevé visuel seulement), impulsions lumineuses, croissance et réaction aux changements de chapitre, comportement pendant les transitions : aucune vidéo de la référence n'est exploitable avec l'extension (captures fixes uniquement). Ces comportements sont donc **conçus, pas reproduits** ; ils sont décrits comme tels.
+
+## Architecture (moteur existant, `Ciel` dans `refonte/moteur.js`, pas de moteur parallèle)
+
+| Élément | Réalisation |
+|---|---|
+| Quantités | **12 foyers, 83 nœuds éditoriaux, 505 nœuds**, inchangés dans cette passe. Note d'historique : la base PR 210 avait 295 nœuds (200 décoratifs) ; la PR 212 les a portés à 505 (410) d'après les 30 à 40 rayons observés par foyer ; cette passe ne les modifie plus |
+| Niveaux | niveau 0 : 83 branches éditoriales (une par vrai contenu) ; niveau 1 : 266 rayons fins issus des foyers ; niveau 2 : 108 ramifications ; niveau 3 : 36 ramifications tertiaires (calculés sur les 493 branches de l'état visible au test) |
+| Géométrie | chaque branche est une **courbe de Bézier quadratique dont le point de contrôle est calculé dans l'espace** (courbure dans le plan du sol, arche en hauteur) puis projeté ; elle n'est donc plus un segment ; 453 des 493 branches visibles s'écartent de plus de 0,8 px de leur corde |
+| Ramifications | elles partent d'un point `t0` (35 à 85 %) de la courbe de leur parent, dans son sens, tournées d'un angle propre ; raccord vérifié à 0,000 px près (144 ramifications) ; elles suivent donc le déplacement, la croissance et la caméra de leur parent |
+| Déterminisme | courbure, arche, `t0`, angle, longueur, vitesse d'impulsion dérivent de la phase de chaque nœud (aucun tirage aléatoire supplémentaire : les positions des 83 nœuds éditoriaux sont celles de la version précédente) ; même donnée, même géométrie (empreinte identique sur deux chargements) |
+| Hiérarchie visuelle | éditoriales : dégradé foyer vers carte, épaisseur 1,15 px (2,4 px survolée) ; niveau 1 : 1 px à 0,62 d'opacité, second passage plus clair sur le premier tiers ; niveau 2 : 0,85 px à 0,46 ; niveau 3 : 0,7 px à 0,34 ; racine plus discrète ; points terminaux de taille décroissante ; mélange additif (le centre des foyers s'éclaire) |
+| Impulsions | un segment de quatre points pris **sur la courbe réelle** ; à l'arrivée en `t0` d'une ramification, l'impulsion lui est transmise, puis à ses propres ramifications ; portée par les 83 branches éditoriales et environ 22 % des rayons ; vitesse propre à chaque branche ; absentes en mouvement réduit |
+| Croissance | les branches grandissent depuis le foyer, les ramifications après leur parent (jamais avant) |
+| Ombres | en expo, ombre portée au sol de chaque branche éditoriale (courbe) et de sa carte (ellipse) |
+| Foyers | liaison en arche avec la racine, dégradée ; halo |
+| Interactions | survol d'une carte : sa branche et ses descendantes sont en évidence, les autres branches du foyer sont estompées (27 estompées, 4 en évidence au test) ; **survol d'une trajectoire** (à 7 px de la courbe d'une branche éditoriale) : la branche est identifiée et mise en évidence sans carte survolée ; **seules les cartes restent cliquables** (pas de lignes cliquables arbitraires) ; saisie, retour élastique, curseurs inchangés |
+| Chapitre actif | lu au défilement (`__cvStandardPath.chapitreActif`, par exemple « shop ») : les branches et le halo du foyer correspondant sont plus présents, les autres foyers s'estompent légèrement |
+| Performance | tracés par lots (un seul tracé par niveau et par classe de rendu au lieu d'un par segment), aucune allocation par image (la géométrie est écrite dans les nœuds) |
+
+Écart avec la demande : le moteur d'origine est un canevas 2D ; l'instancing, les `BufferGeometry` et les shaders personnalisés n'ont **pas** été introduits (ils auraient exigé un second moteur). Les points de contrôle sont des points de l'espace projetés, mais la courbe elle-même est une Bézier d'écran : la perspective n'est pas exacte à l'intérieur d'une branche.
+
+## Tests
+
+`tools/test-branches.mjs` (nouveau, **PASS**, 10 contrôles) : déterminisme, quantités, hiérarchie, raccords, courbes, survol de carte, survol de trajectoire, chapitre actif en expo, aucune erreur de page. Autres tests : `test-modes` **PASS en entier** (y compris « relâché, le nœud revient à sa place », l'échec historique : il passe maintenant ; cause non établie, à surveiller comme intermittent), `test-no-shopify --strict` PASS (12 foyers, 83 nœuds éditoriaux, 505 nœuds), `test-objets-3d` PASS, `test-machines` ok, `test-defilement` PASS.
+
+## Performance (RX 9070 XT, comparé à la base PR 210 et à la version précédente)
+
+| Mesure | Base PR 210 | Avant cette passe | Après |
+|---|---:|---:|---:|
+| Expo, régime établi (ms/image, tâche) | 7,17 | 6,2 à 7,4 | 7,2 à 7,9 (deux passages) |
+| À plat, régime établi | 3,12 | 2,9 à 4,1 | 3,2 à 3,5 |
+| Balayage rapide, 1920 × 1080 (ms/image) | 17,3 | 21,4 | 20,8 |
+| Images de plus de 25 ms sur 8 s | 118 sur 334 | 83 sur 410 | 64 sur 407 |
+| Tas JS après ramasse-miettes | 59 Mo | 55 Mo | 59 Mo |
+
+Lecture : coût équivalent à la version précédente avec trois fois plus de structure ; l'expo reste à 60 images par seconde en régime établi (aucune image au-delà de 16,8 ms) ; en balayage rapide le goulot reste la compilation des programmes WebGL des machines, hérité de la base. Mesures sur une seule machine à 60 Hz.
+
+## Comparaisons et preuves
+
+Captures : `branches-avant-plat.png`, `branches-apres-plat.png`, `branches-avant-expo.png`, `branches-apres-expo.png`, zooms `branches-zoom-plat.png` et `branches-zoom-expo.png`. Séquence : `branches-sequence.webm` (12 s, GPU : croissance, impulsions, survol de trois cartes, bascule en expo et retour) et deux images extraites (`branches-video-croissance.png`, `branches-video-survol.png`). Comparaison avec la référence : qualitative (zooms de la référence : éventail, courbure légère, dégradé, ombres) ; **pas de comparaison chiffrée des épaisseurs, longueurs ni vitesses, et pas de séquence vidéo de la référence** : ces critères ne sont pas déclarés conformes.
+
+Écarts qui restent : branches un peu trop courbes par rapport au « presque droit » de la référence (amplitude `cv` ≤ 0,25 de la longueur, à réduire si la référence le confirme) ; ombres au sol non comparées en intensité ; la nature exacte des impulsions de la référence est inconnue ; le chapitre actif n'a pas d'équivalent observé sur la référence ; le mouvement des connexions pendant les déplacements de caméra suit la géométrie mais n'a pas été comparé.
