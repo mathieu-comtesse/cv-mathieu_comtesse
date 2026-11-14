@@ -1126,7 +1126,7 @@ async function startParityPath(){
 const CHAPTER_TITLE={enabled:!/[?&]title=off\b/.test(location.search),desktop:1.6,mobile:2};
 function chapterTitleScale(bounds,boxW,em){if(!CHAPTER_TITLE.enabled)return 1;const t=innerWidth>=760?CHAPTER_TITLE.desktop:CHAPTER_TITLE.mobile,w=(bounds.maxX-bounds.minX)*em;return Math.max(1,Math.min(t,w>0?.96*boxW/w:1));}
 /* Cartes de l'accueil en mode expo (relevé sur la capture de référence) : la carte des chapitres est dressée au fond, les trois cartes suivantes sont des blocs pleins à dessus plat, de hauteur décroissante vers l'observateur. */
-const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pitchDeg:74,thick:12},blocs:[118,74,20]};
+const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pitchDeg:74,thick:12},blocs:[62,40,12]};
   function homeTopoOf(p){if(!HOME_HERO_TOPO.enabled||!(p.slab&&p.hero))return null;const set=parts.filter(q=>q.slab&&q.hero).sort((a,b)=>a.y-b.y),i=set.indexOf(p);if(i<0)return null;
    if(p.dresse)return{index:i,count:set.length,lift:0,pitchDeg:HOME_HERO_TOPO.dresse.pitchDeg,top:HOME_HERO_TOPO.dresse.thick,shift:0};
    const k=set.filter(q=>!q.dresse).indexOf(p),B=HOME_HERO_TOPO.blocs;return{index:i,count:set.length,lift:0,pitchDeg:0,top:B[Math.min(k,B.length-1)],shift:0};}

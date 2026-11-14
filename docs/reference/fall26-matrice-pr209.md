@@ -189,3 +189,20 @@ Générateur : `Ciel` dans `refonte/moteur.js`. Les nœuds éditoriaux (les 83 v
 Tests : `test-no-shopify --strict` PASS (83 vignettes projetées), `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur ; mobile 390 × 844 toujours 12 foyers, 0 erreur.
 
 **Performance non établie** : en rendu logiciel à 2498 × 1319, 19 images en 5 s avant comme après (263 ms par image), le rendu 3D logiciel masque entièrement le coût du dessin 2D. Aucune mesure sur GPU matériel ; le surcoût attendu est de l'ordre de 3 à 4 fois plus de lignes 2D et un dégradé radial par foyer, à mesurer.
+
+# Passe 4 : présentoirs de gauche et titre extrudé
+
+**Correction de méthode.** Le rendu logiciel est lent (environ 260 ms par image) et la bascule avance par pas plafonnés à 70 ms : après 3,5 s, la scène n'est pas encore stabilisée. Les captures précédentes de cette série étaient donc, pour l'expo, proches de l'état final mais pas garanties stabilisées. Les captures de cette passe attendent `progress > 0,999` avant la prise (`window.__cvStandardPath`).
+
+| Élément | Avant | Maintenant | Référence | État |
+|---|---|---|---|---|
+| Hauteur des trois blocs (gradins) | 118 / 74 / 20 | **62 / 40 / 12** (`HOME_HERO_TOPO.blocs`) | gradins bas, décroissants | rapprochée ; valeurs réglées **à l'œil** sur la comparaison, non mesurées |
+| Panneau de données dressé (liste des chapitres) | dressé à 74° | inchangé | dressé | conforme dans le principe |
+| Flancs et tranche des blocs | pleins, couleur du sol assombrie | inchangés (déjà pleins) | pleins | conforme |
+| Dessus des blocs | contenu réel de la page (machine 3D, scène illustrée, visualisation) | inchangé | surface claire portant un objet 3D | **écart résiduel** : le dessus n'est pas éclairé comme sur la référence |
+| Objet 3D sur le bloc supérieur | machine 3D existante du projet, petite, dans la moitié basse du dessus | inchangée | objet posé au centre du bloc | **écart résiduel** : non déplacé ni agrandi |
+| Titre extrudé (« Mathieu Comtesse ») | vraie géométrie extrudée (maillage Three, pas de text-shadow) | inchangé | titre en volume, plus massif | **écart résiduel** : épaisseur d'extrusion, teinte (gris clair chez nous) et ombre non recalibrées |
+
+Aucun asset de la référence n'a été repris : l'appareil photo posé sur son bloc supérieur est un objet propriétaire, il n'est pas reproduit ; l'objet du site reste la machine 3D existante.
+
+Tests : `test-no-shopify --strict` PASS (73 cadres, 9 titres en volume, cadre relevé à 55°), `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur ; mobile 390 × 844 toujours 12 foyers. Comparaison : `expo-presentoirs-reference-contre-comtesse.png`.
