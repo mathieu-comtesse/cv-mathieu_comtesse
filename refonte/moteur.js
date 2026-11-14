@@ -463,3 +463,31 @@ export function cvLit(hex, rise) {
   const n = parseInt(m[1], 16), g = 1 + (GAIN_EXPO - 1) * Math.max(0, Math.min(1, rise));
   return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
 }
+
+/* ---------- Panneau des chapitres, courbé en 3D ----------
+ * Le panneau dressé de l'accueil n'est pas un plan : il se redresse depuis son bord bas puis se couche vers l'arrière suivant la même
+ * loi exponentielle que le sol (angle d'élévation qui décroît en exp(2,2 t)). Il est tracé dans le repère du chemin, point par point
+ * (bord, remplissage, texte orienté ligne par ligne), et donc suit la caméra ; le calque HTML correspondant est estompé en expo.
+ * spec : { x, w, r1, hp, tilt (rad), items:[{nom, num}], alpha }  -  r1 : rangée du bord bas, hp : hauteur du panneau (unités de page). */
+const COURBE_K = 2.2, COURBE_LEAN = 1.05;
+export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, tilt, items = [], alpha = 1, taille = 11 }) {
+  if (alpha <= 0.004 || !(hp > 0)) return;
+  const N = 48, rows = new Float32Array(N + 1), hs = new Float32Array(N + 1), ds = hp / N, e = view.e;
+  const g = (t) => (Math.exp(COURBE_K * t) - 1) / (Math.exp(COURBE_K) - 1);
+  for (let k = 0; k < N; k++) { const phi = tilt - COURBE_LEAN * e * g((k + 0.5) / N); rows[k + 1] = rows[k] - ds * Math.cos(phi); hs[k + 1] = hs[k] + ds * Math.sin(phi); }
+  const at = (u, s) => { const f = Math.max(0, Math.min(N, s / ds)), k = Math.min(N - 1, Math.floor(f)), q = f - k; return p(view, x + u, r1 + rows[k] + (rows[k + 1] - rows[k]) * q, hs[k] + (hs[k + 1] - hs[k]) * q); };
+  const bord = [];
+  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
+  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return; droite.push(q); }
+  ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = 'round';
+  ctx.beginPath(); [...bord, ...droite].forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
+  ctx.fillStyle = 'rgba(3,22,150,.86)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke();
+  const n = items.length, haut = hp - 12, pas = haut / Math.max(1, n);
+  ctx.font = `500 ${taille}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#fff';
+  const place = (u, s, texte, droit) => {
+    const P = at(u, s), X = at(u + 20, s), Y = at(u, s + 20); if (!P || !X || !Y) return;
+    ctx.save(); ctx.transform((X.x - P.x) / 20, (X.y - P.y) / 20, -(Y.x - P.x) / 20, -(Y.y - P.y) / 20, P.x, P.y); ctx.textAlign = droit ? 'right' : 'left'; ctx.fillText(texte, 0, 0); ctx.restore();
+  };
+  items.forEach((it, j) => { const s = hp - 8 - (j + 0.75) * pas; if (s < 2) return; place(10, s, it.nom, false); place(w - 10, s, it.num, true); });
+  ctx.restore();
+}

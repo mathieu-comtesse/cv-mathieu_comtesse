@@ -206,3 +206,19 @@ Tests : `test-no-shopify --strict` PASS (83 vignettes projetées), `test-objets-
 Aucun asset de la référence n'a été repris : l'appareil photo posé sur son bloc supérieur est un objet propriétaire, il n'est pas reproduit ; l'objet du site reste la machine 3D existante.
 
 Tests : `test-no-shopify --strict` PASS (73 cadres, 9 titres en volume, cadre relevé à 55°), `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur ; mobile 390 × 844 toujours 12 foyers. Comparaison : `expo-presentoirs-reference-contre-comtesse.png`.
+
+# Passe 4 (suite) : panneau des chapitres en 3D courbée
+
+Remarque de l'auteur : la liste des chapitres (Agentic, Sidekick, En ligne… dans la référence) est en **3D courbée, de type exponentiel**, comme le sol bleu, les titres et la courbe du premier plan. Notre panneau était un plan dressé droit (74°).
+
+| Élément | Avant | Maintenant | État |
+|---|---|---|---|
+| Panneau de la liste des chapitres | quadrilatère droit (homographie du calque HTML) | surface courbe tracée point par point dans le repère du chemin (`dessinePanneauCourbe`) : bord, remplissage, texte orienté ligne par ligne ; l'angle d'élévation décroît en exp(2,2 t) depuis 74° jusqu'à environ 14° en haut | ajouté ; la courbure est lisible sur le bord droit |
+| Transition | sans objet | le calque HTML s'estompe pendant que la surface courbe apparaît (rampe sur les 20 premiers pour cent de la progression), mouvement réduit : bascule immédiate | non vérifié image par image |
+| Contenu | liste du DOM | liste lue dans le DOM (`nav li a` : nom et numéro), donc les vrais chapitres de comtesse.me | conforme |
+
+Limites : l'orientation du texte est une approximation affine par ligne (la perspective n'est pas exacte à l'intérieur d'un mot) ; la loi de courbure et le coefficient de redressement (1,05 rad, hauteur du panneau multipliée par 1,55) sont réglés à l'œil, pas mesurés sur la référence ; le panneau n'a pas d'ombre portée ni d'épaisseur ; l'extraction du texte est faite une fois et ne suit pas un changement de langue en cours d'affichage.
+
+Non traité dans cette livraison : éclairage des dessus de blocs, épaisseur/teinte/ombre du titre extrudé (le titre est déjà une vraie géométrie ; les faces visibles sont à 0,63 de luminosité et non à 1,0 comme sur la référence, cause identifiée dans `cvTextExtrude`/`shade`, non corrigée), objet 3D plus visible sur le bloc supérieur.
+
+Tests : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (la position de lecture et la coïncidence à la progression 0 passent ; mobile 12 foyers). Comparaison : `expo-panneau-courbe-reference-contre-comtesse.png`.

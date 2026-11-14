@@ -992,7 +992,7 @@ function openCvCardFocus(el,details){
 // // Shopify supplies the camera, fold, hinge animation, outlines and mathematical labels.
 // Only the DOM/Three rendering adapter is local; all coordinates remain native CSS pixels.
 async function startParityPath(){
- const [T,N]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=m9')]),source=q('[data-f26-page]');if(!source)return;
+ const [T,N]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=m12')]),source=q('[data-f26-page]');if(!source)return;
  const header=q('.cv-site-nav');if(header)document.body.append(header);
  const sourceMinHeight=source.style.minHeight;
  await document.fonts?.ready;const headingFont=N.cvFont();
@@ -1173,6 +1173,7 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
   if(closest!==selected){selected=closest;rulers.reset();}rulers.el.hidden=true;state.pathFigures=[...models.values()].filter(m=>m.root.visible).length;state.pathView=selected?.view;
   placeCiel();{const c=ciel.compte('accueil');state.heroGraph={native:true,nodes:c.total,editoriaux:c.editoriaux,depth:N.L.layers.graph.heroLift*innerHeight};}if(grid){grid.render(view,null);const d=gridFallback.width/innerWidth;fallback.setTransform(d,0,0,d,0,0);fallback.clearRect(0,0,innerWidth,innerHeight);}else drawFallbackGrid();drawPaperFloor();renderer.render(scene,camera);renderer.autoClear=false;renderer.render(machineScene,camera);renderer.autoClear=true;const dpr=annotations.width/innerWidth;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,innerWidth,innerHeight);ctx.lineWidth=.85;
   const covers=visible.filter(p=>p.slab&&p.points&&p.box?.tilted>.05).map(p=>p.points);
+  {const pd=parts.find(q=>q.dresse);if(pd){const a=reduced.matches?1:Math.max(0,Math.min(1,view.e/.2)),sm=a*a*(3-2*a);if(!pd.items)pd.items=[...pd.el.querySelectorAll('nav li a')].map(x=>{const t=x.textContent.replace(/s+/g,' ').trim(),m=/^(.*?)s*(d{1,2})$/.exec(t);return {nom:m?m[1]:t,num:m?m[2]:''};});pd.wrapper.style.opacity=sm>.001?String(1-sm):'';if(sm>.001)N.dessinePanneauCourbe(ctx,view,{x:pd.x,w:pd.w,r1:pd.y-view.offset+pd.h,hp:pd.h*1.55,taille:12,tilt:HOME_HERO_TOPO.dresse.pitchDeg*Math.PI/180*view.e,items:pd.items,alpha:sm});}}
   view.cube=[-0.285*view.W,-612-view.offset,0,140*view.H/1319];N.dessineDecor(ctx,view,{t:reduced.matches?0:now/1000,numeros:cvChapterRecords.length,base:1500-view.offset});
   N.dessineRegles(ctx,view,chapters.map(c=>({row:original.get(c.el).top-view.offset,name:c.name})));
   {const sv=N.dessineContours(ctx,view,boxes,souris);state.survol=sv?(sv.title||'cadre'):null;}
