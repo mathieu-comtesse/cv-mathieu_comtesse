@@ -222,3 +222,19 @@ Limites : l'orientation du texte est une approximation affine par ligne (la pers
 Non traité dans cette livraison : éclairage des dessus de blocs, épaisseur/teinte/ombre du titre extrudé (le titre est déjà une vraie géométrie ; les faces visibles sont à 0,63 de luminosité et non à 1,0 comme sur la référence, cause identifiée dans `cvTextExtrude`/`shade`, non corrigée), objet 3D plus visible sur le bloc supérieur.
 
 Tests : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (la position de lecture et la coïncidence à la progression 0 passent ; mobile 12 foyers). Comparaison : `expo-panneau-courbe-reference-contre-comtesse.png`.
+
+# Passe 4 (fin) : titre extrudé et dessus des blocs
+
+| Élément | Avant | Maintenant | État |
+|---|---|---|---|
+| Teinte des faces du titre | gris clair (≈ 204) : le blanc 1,0 était écrêté par le *tone mapping* du rendu (histogramme des pixels du titre : pic à 200–208) | **blanc pur** : `toneMapped:false` sur la matière du titre | corrigé |
+| Teinte des flancs du titre | luminosité 0,63 | 0,42 (gris plus marqué, comme sur la référence) | réglé à l'œil |
+| Épaisseur d'extrusion du titre | 140 | 190 | réglée à l'œil ; la référence n'a pas été mesurée |
+| Titre en vraie géométrie 3D | oui (maillage extrudé) | inchangé | conforme à la contrainte « pas de text-shadow » |
+| Dessus des blocs de l'accueil | bleu de la page (#051DAA), plus sombre que le sol éclairé | teinte translucide `rgba(60,115,255, 0,28 × rise)` sur la face haute : le contenu reste lisible, le dessus se rapproche du sol éclairé | amélioré ; n'atteint pas #1442FF (le contenu du bloc est du DOM, sous le canevas) |
+
+Essai écarté : un mélange additif (`lighter`) sur la face haute. Il a masqué entièrement le contenu des blocs (le canevas est transparent au-dessus du DOM, l'addition y produit un aplat opaque). Remplacé par la teinte translucide ci-dessus.
+
+Écarts qui restent : l'éclairage des dessus n'est pas un vrai éclairage (teinte uniforme) ; l'objet 3D du bloc supérieur reste la machine existante, petite ; le titre de la référence est plus massif encore et son ombre plus marquée ; extrusion et teintes non mesurées sur la référence.
+
+Tests : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (position de lecture et coïncidence à la progression 0 passent ; mobile 12 foyers). Comparaison : `expo-titre-dessus-reference-contre-comtesse.png`.

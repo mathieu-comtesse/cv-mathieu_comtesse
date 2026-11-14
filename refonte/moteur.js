@@ -360,6 +360,8 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
     ctx.fillStyle = plein ? '#041795' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
     ctx.fillStyle = plein ? '#0a27c4' : 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    if (plein) {   // dessus éclairé comme le sol : teinte translucide (le contenu du bloc est du DOM, sous ce canevas : un mélange additif le masquerait)
+      ctx.save(); ctx.fillStyle = `rgba(60,115,255,${(0.28 * view.rise).toFixed(3)})`; trace(haut); ctx.fill(); ctx.restore(); }
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
