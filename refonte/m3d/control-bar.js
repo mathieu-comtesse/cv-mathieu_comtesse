@@ -109,7 +109,9 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   { let y0 = null, moved = false; const end = () => { y0 = null; };
     grip.addEventListener('pointerdown', (e) => { y0 = e.clientY; moved = false; grip.setPointerCapture(e.pointerId); });
     grip.addEventListener('pointermove', (e) => { if (y0 === null) return; const dy = e.clientY - y0; if (Math.abs(dy) > 40) { moved = true; y0 = null; setSnap(snap + (dy < 0 ? 1 : -1)); } });
-    grip.addEventListener('pointerup', () => { if (y0 !== null && !moved) setSnap(snap === 2 ? 1 : 2); end(); });
+    /* au relâchement, la distance parcourue fait foi : sous forte charge, le navigateur peut livrer le relâchement sans les déplacements
+       intermédiaires (regroupés), et un glissement serait alors pris pour un appui court qui bascule dans l'autre sens */
+    grip.addEventListener('pointerup', (e) => { if (y0 !== null && !moved) { const dy = e.clientY - y0; if (Math.abs(dy) > 40) setSnap(snap + (dy < 0 ? 1 : -1)); else setSnap(snap === 2 ? 1 : 2); } end(); });
     grip.addEventListener('pointercancel', end); }
   bar.append(panel, cap);
   const onKey = (e) => { if (!bar.isConnected) { removeEventListener('keydown', onKey, true); return; } if (e.key === 'Escape' && snap > 0) { setOpen(false); e.stopPropagation(); } };
