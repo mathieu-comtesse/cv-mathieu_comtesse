@@ -318,3 +318,9 @@ La machine 3D du projet (silo avec horloge et pupitre, déjà présente dans le 
 GPU matériel (RX 9070 XT, 2498 × 1319) : expo à **6,5 ms par image** sur deux répétitions, 16,8 ms au plus par image (un pic isolé à 33 ms dans une première série ne s'est pas reproduit) ; à plat 3,0 à 3,4 ms. Base PR 210 : 7,17 ms en expo.
 
 `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud) ; mouvement réduit, coïncidence à la progression 0 et mobile 12 foyers passent. Comparaison : `expo-objet-formule-reference-contre-comtesse.png`.
+
+# Tests complets : état partiel
+
+Exécutés sur la branche, tous PASS : `test-site-consistency` (40 pages), `test-indicators` (14 indicateurs), `test-annual-gains`, `test-project-metadata`, `test-navigation` (102 routes), `test-native-geometry`, `test-jukebox-sequence`, `test-conveyor-motion`, `test-static-transforms`.
+
+**Non exécutés** : `test-ux` (22 combinaisons) et les 14 tests de scène du job `runtime` (v52, v49-mobile-book, v49-seat-book, v49-features, v51-interactions, film-book-v50, ps1-v50, scene-runtime, user-room-props, scene-lifecycle, project-scroll, annual-gains-browser, motion-fit, custom-scene). Durée attendue : environ 45 minutes en rendu logiciel par passage. `docs/STABILISATION_PR203.md` indique que 13 de ces 14 tests échouaient déjà sur `main` brut pour des causes sans rapport (attente de la pièce, sélecteurs) : un passage sur la base PR 210 est nécessaire pour séparer les échecs hérités des régressions. Le pilote est prêt (une copie de `tools/` et un lien `node_modules` dans un worktree de base) mais n'a pas été lancé. `test-showcase`, `test-frame-bus` et `test-magic-geometry` utilisent un serveur en boucle locale, bloquée sur cette machine.
