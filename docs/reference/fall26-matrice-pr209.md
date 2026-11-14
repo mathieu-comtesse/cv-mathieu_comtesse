@@ -324,3 +324,29 @@ GPU matériel (RX 9070 XT, 2498 × 1319) : expo à **6,5 ms par image** sur deux
 Exécutés sur la branche, tous PASS : `test-site-consistency` (40 pages), `test-indicators` (14 indicateurs), `test-annual-gains`, `test-project-metadata`, `test-navigation` (102 routes), `test-native-geometry`, `test-jukebox-sequence`, `test-conveyor-motion`, `test-static-transforms`.
 
 **Non exécutés** : `test-ux` (22 combinaisons) et les 14 tests de scène du job `runtime` (v52, v49-mobile-book, v49-seat-book, v49-features, v51-interactions, film-book-v50, ps1-v50, scene-runtime, user-room-props, scene-lifecycle, project-scroll, annual-gains-browser, motion-fit, custom-scene). Durée attendue : environ 45 minutes en rendu logiciel par passage. `docs/STABILISATION_PR203.md` indique que 13 de ces 14 tests échouaient déjà sur `main` brut pour des causes sans rapport (attente de la pièce, sélecteurs) : un passage sur la base PR 210 est nécessaire pour séparer les échecs hérités des régressions. Le pilote est prêt (une copie de `tools/` et un lien `node_modules` dans un worktree de base) mais n'a pas été lancé. `test-showcase`, `test-frame-bus` et `test-magic-geometry` utilisent un serveur en boucle locale, bloquée sur cette machine.
+
+# Validation différentielle : 15 tests longs, branche contre base PR 210
+
+Conditions : branche `6fd30e8` (worktree `E:\Talas-v2-wt-expo`) puis base `65de99d` (`E:\Talas-v2-wt-base`), passages séquentiels sans modification du code entre les deux ; Node 24.18, Playwright 1.61.0 (Chromium 1228), rendu logiciel (SwiftShader), mêmes variables d'environnement, même ordre, 15 minutes par test (150 s pour les deux tests qui exigent la boucle locale). Après chaque test, `git status` : **0 fichier modifié** dans les deux worktrees (aucun test ne touche aux sources). Les 12 tests de scène chargent `accueil.html` par la route `http://scene.test/` (aucun socket) ; ils ne passent pas par `index.html`, la page modifiée par la branche.
+
+| Test | Branche | Base | Durée branche / base | Écart | Nature et cause | Gravité | Action |
+|---|---|---|---|---|---|---|---|
+| test-v52 | échec | échec | 10 s / 9 s | aucun | Même assertion : `HikingPoles.min[1] ≥ 0,007` (garde au sol d'un accessoire de la pièce) (héritée de la base, cat. 2) | faible | à traiter dans la pièce 3D, hors périmètre |
+| test-v49-mobile-book | échec | échec | 6 s / 7 s | aucun | Même assertion : `evidence.arm.length` = 0 (pincement du livre mobile, déjà « ouvert » dans `STABILISATION_PR203.md`) (héritée de la base, cat. 2) | faible | idem |
+| test-v49-seat-book | réussi | réussi | 33 s / 32 s | aucun | – | – | – | – |
+| test-v49-features | échec | échec | 24 s / 23 s | aucun | Même assertion : valeur 8 attendue 0 après les feuilles tombantes (héritée de la base, cat. 2) | faible | idem |
+| test-v51-interactions | réussi | **échec** | 61 s / 52 s | écart apparent | Assertion de base : `thought.gap − 34 < 2` (bulle de pensée). **Intermittent** : rejoué 3 fois, branche 3/3 réussie (4/4 avec le passage initial), base 2/3 réussie (2/4 avec le passage initial). `STABILISATION_PR203.md` le décrit déjà comme intermittent (écart 127 px contre 34 px) | cat. 2 (intermittent hérité) ; **non attribuable à la branche**, 4 essais ne prouvent pas une amélioration | faible | suivre ; ne pas compter comme amélioration |
+| test-film-book-v50 | réussi | réussi | 55 s / 54 s | aucun | – | – | – | – |
+| test-ps1-v50 | réussi | réussi | 19 s / 19 s | aucun | – | – | – | – |
+| test-scene-runtime | réussi | réussi | 112 s / 107 s | aucun | – | – | – | – |
+| test-user-room-props | réussi | réussi | 56 s / 56 s | aucun | – | – | – | – |
+| test-scene-lifecycle | réussi | réussi | 132 s / 131 s | aucun | – | – | – | – |
+| test-project-scroll | échec | échec | 22 s / 22 s | aucun | `net::ERR_CONNECTION_TIMED_OUT` sur `http://localhost:<port>/index.html?uxtest` : serveur en boucle locale | **cat. 4 : non exécutable ici** (pare-feu) | n'a pas pu s'exécuter, aucune conclusion sur la branche | l'exécuter sur une machine sans blocage ou en CI |
+| test-annual-gains-browser | réussi | réussi | 3 s / 3 s | aucun | – | – | – | – |
+| test-motion-fit | réussi | réussi | 172 s / 183 s | aucun | – | – | – | – |
+| test-custom-scene | échec | échec | 191 s / 196 s | aucun | Même assertion : « Shoes must clear both the floor and front cushion » (mêmes valeurs de garde au sol : 0,008) (héritée de la base, cat. 2) | faible | hors périmètre |
+| test-ux (22 combinaisons) | non exécutable | non exécutable | 22 s / 22 s | aucun | `net::ERR_CONNECTION_TIMED_OUT` sur `http://localhost:<port>/projet-moteur44.html?uxtest` | **cat. 4 : non exécutable ici** | aucune des 22 combinaisons n'a tourné | idem |
+
+Synthèse : **0 régression introduite par la branche** ; 5 échecs hérités de la base, identiques à l'assertion près (v52, v49-mobile-book, v49-features, custom-scene, et l'intermittent v51 pour la base) ; 2 tests non exécutables ici (boucle locale) ; 0 amélioration démontrée ; 7 réussites communes. Les tests Playwright des chapitres du chemin ne couvrent pas `index.html` en dehors de `test-modes`, `test-no-shopify`, `test-objets-3d` et `test-machines` (déjà rejoués).
+
+Réserve : les échecs hérités reposent sur la comparaison d'assertion ; leur cause profonde n'a pas été recherchée dans le code de la pièce 3D (hors périmètre de la branche). Les tests qui n'exercent pas `index.html` ne peuvent pas détecter une régression de l'accueil.
