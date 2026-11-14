@@ -477,3 +477,24 @@ Lecture : coût équivalent à la version précédente avec trois fois plus de s
 Captures : `branches-avant-plat.png`, `branches-apres-plat.png`, `branches-avant-expo.png`, `branches-apres-expo.png`, zooms `branches-zoom-plat.png` et `branches-zoom-expo.png`. Séquence : `branches-sequence.webm` (12 s, GPU : croissance, impulsions, survol de trois cartes, bascule en expo et retour) et deux images extraites (`branches-video-croissance.png`, `branches-video-survol.png`). Comparaison avec la référence : qualitative (zooms de la référence : éventail, courbure légère, dégradé, ombres) ; **pas de comparaison chiffrée des épaisseurs, longueurs ni vitesses, et pas de séquence vidéo de la référence** : ces critères ne sont pas déclarés conformes.
 
 Écarts qui restent : branches un peu trop courbes par rapport au « presque droit » de la référence (amplitude `cv` ≤ 0,25 de la longueur, à réduire si la référence le confirme) ; ombres au sol non comparées en intensité ; la nature exacte des impulsions de la référence est inconnue ; le chapitre actif n'a pas d'équivalent observé sur la référence ; le mouvement des connexions pendant les déplacements de caméra suit la géométrie mais n'a pas été comparé.
+
+# CI définitive sur la branche d'intégration (commit `039a901`) et correction de `syntax`
+
+## Cause du contrôle `syntax` (étape « Check scene entrypoints »)
+
+Le contrôle cherchait `js/room.js?v=` dans `index.html`. La pièce 3D est chargée par `accueil.html` → `refonte/main.js` → `../js/room.js?v=room-art-v2` ; `index.html` est l'accueil Fall 26 et ne la charge plus depuis la consolidation de la PR 209 (commit `ce2241f`, « Ma pièce » supprimée). L'échec était présent sur `10a5015` et `65de99d`. Le contrôle était donc **obsolète**, pas la page défectueuse ; aucune référence factice n'a été ajoutée. Correctif : `tools/test-entrypoints.mjs` (résout les chaînes d'entrée de `accueil.html` et `index.html`, vérifie que tout import existe et que l'étiquette de version de `moteur.js` est unique ; testé par mutation : il échoue si un fichier manque ou si une version diverge) et l'étape du workflow vérifie `accueil.html` → `refonte/main.js` → `js/room.js`. Les commandes exactes de l'étape, exécutées localement sous `set -euo pipefail`, passent.
+
+## Résultats définitifs (run du commit `039a901`)
+
+| Workflow, job | Résultat | Détail |
+|---|---|---|
+| Site integrity, `integrity` | réussi | – |
+| THALEOLITHIC publication, `publication` | réussi | – |
+| Scene smoke check, `syntax` | **réussi (corrigé)** | échouait sur `10a5015`, `65de99d` et `70d87cf` |
+| Machines 3D, `machines` | réussi | – |
+| Scene smoke check, `runtime` | échec hérité | 4 étapes : « screen activity locks, Japanese props and PS1 library » (v52), « mobile gestures and physical photo book » (v49-mobile-book), « supplied props, power strip, foliage, PS1 sounds and financial emails » (v49-features), « customized furniture, props and motion » (custom-scene) ; ce sont exactement les 4 échecs reproduits localement sur la base PR 210 avec la même assertion |
+| Machines 3D, `ux` | échec intermittent, non attribuable | essai 1 : `finance desktop` (pause de la machine) ; essai 2 : `finance desktop` passe, `powerbi mobile` échoue (glissement du tiroir) ; 42 à 43 combinaisons sur 44 passent à chaque fois |
+
+Intermittence de `ux` : quatre exécutions, quatre combinaisons différentes en échec : `vmvre mobile` (base `65de99d`, run 43490938308), `suivi mobile` (base `10a5015`, run 43442895198), `finance desktop` (essai 1 de `039a901`), `powerbi mobile` (essai 2). Même profil que l'échec « `cerfa mobile`, glissement du tiroir, sans cause de site identifiée » déjà noté dans `docs/PERFORMANCE_V5.md`. Ces pages (`projet-*.html`) ne chargent ni `index.html` ni `refonte/defilement.js` ni le graphe. La cause profonde n'a pas été recherchée (tests sensibles au temps, rendu logiciel de CI). Le run précédent `43615979448` (commit `70d87cf`) a été annulé par la nouvelle poussée (concurrence `cancel-in-progress`) ; son résultat `runtime` n'a donc pas été relevé, mais il montrait les mêmes étapes en échec.
+
+Classement : 0 régression de la branche ; 1 échec corrigé (`syntax`) ; 4 échecs hérités et stables (`runtime`) ; 1 échec intermittent hérité (`ux`) ; aucune amélioration revendiquée en dehors de `syntax`.
