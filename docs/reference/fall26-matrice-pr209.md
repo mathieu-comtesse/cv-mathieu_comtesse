@@ -498,3 +498,13 @@ Le contrôle cherchait `js/room.js?v=` dans `index.html`. La pièce 3D est charg
 Intermittence de `ux` : quatre exécutions, quatre combinaisons différentes en échec : `vmvre mobile` (base `65de99d`, run 43490938308), `suivi mobile` (base `10a5015`, run 43442895198), `finance desktop` (essai 1 de `039a901`), `powerbi mobile` (essai 2). Même profil que l'échec « `cerfa mobile`, glissement du tiroir, sans cause de site identifiée » déjà noté dans `docs/PERFORMANCE_V5.md`. Ces pages (`projet-*.html`) ne chargent ni `index.html` ni `refonte/defilement.js` ni le graphe. La cause profonde n'a pas été recherchée (tests sensibles au temps, rendu logiciel de CI). Le run précédent `43615979448` (commit `70d87cf`) a été annulé par la nouvelle poussée (concurrence `cancel-in-progress`) ; son résultat `runtime` n'a donc pas été relevé, mais il montrait les mêmes étapes en échec.
 
 Classement : 0 régression de la branche ; 1 échec corrigé (`syntax`) ; 4 échecs hérités et stables (`runtime`) ; 1 échec intermittent hérité (`ux`) ; aucune amélioration revendiquée en dehors de `syntax`.
+
+## Préparation de main (sans fusion)
+
+État relevé le 2026-11-14 : `origin/main` = `52bddbc`, intégration = `1169288`, base commune `90f6b5d`. `main` a 14 commits que l'intégration n'a pas (THALÉOLITHIC V23.1 à V24.4, PR 204 et 205) ; l'intégration en a 151 que `main` n'a pas.
+
+- **Recouvrement de fichiers :** aucun. Les 237 fichiers touchés par `main` sont sous `thaleolithic/` (227), `tools/` (9 scripts `*thaleolithic*` et `test-unga-publication.mjs`) et `.github/workflows/unga-web.yml`. L'intégration ne touche aucun d'eux.
+- **Simulation :** `git merge-tree --write-tree origin/claude/integration-fall26 origin/main` réussit sans conflit (arbre `cc83597`). Rien n'a été créé, poussé ni fusionné.
+- **Véhicule :** la PR 209 (`main` ← `claude/integration-fall26`, brouillon) reste la bonne. Plan : fusionner `origin/main` dans l'intégration (commit de fusion, sans réécriture d'historique ni force), attendre la CI, puis la PR 209 devient fusionnable.
+- **Point d'attention :** `unga-web.yml` et les tests THALÉOLITHIC arrivent avec la fusion ; leur CI sera exécutée pour la première fois sur l'intégration et pourrait révéler des échecs sans lien avec Fall 26.
+- **Statut :** en attente de l'autorisation explicite pour fusionner `main` dans l'intégration puis pour fusionner la PR 209.
