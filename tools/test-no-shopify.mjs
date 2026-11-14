@@ -10,11 +10,12 @@ let chromium; { const req = createRequire(root + '/'); try { ({ chromium } = req
 const b = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); p.setDefaultTimeout(120000);
 const bloquees = [], erreurs = [], echecs = [];
+await p.route('http://talas.test/**', (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.fulfill({ status: 404, body: '' }); });   // sans socket (pare-feu local)
 await p.route(/shopify(cdn)?\.com/, (r) => { bloquees.push(r.request().resourceType() + ' ' + r.request().url().replace(/\?.*$/, '').slice(0, 120)); r.abort(); });
 await p.route('https://comtesse.me/**', async (r) => { const u = new URL(r.request().url()), f = path.join(root, decodeURIComponent(u.pathname)); if (fs.existsSync(f) && fs.statSync(f).isFile()) r.fulfill({ status: 200, headers: { 'content-type': T[path.extname(f)] || 'application/octet-stream', 'access-control-allow-origin': '*' }, body: fs.readFileSync(f) }); else r.fulfill({ status: 404, body: '' }); });
 p.on('pageerror', (e) => erreurs.push(String(e.message).slice(0, 200)));
 const verifie = (ok, texte) => { console.log((ok ? 'ok     ' : 'ÉCHEC  ') + texte); if (!ok) echecs.push(texte); };
-await p.goto(`http://localhost:${port}/index.html?uxtest`, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(15000);
+await p.goto(`http://talas.test/index.html?uxtest`, { waitUntil: 'domcontentloaded' }); await p.waitForTimeout(15000);
 await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(2500); const grapheAPlat = await p.evaluate(() => window.__cvHeroGraph?.etat());
 const etat = await p.evaluate(() => ({ sections: [...document.querySelectorAll('section[id]')].map((s) => s.id), secours: [...document.styleSheets].some((f) => /refonte\/site\.css/.test(f.href || '')), largeurTitre: Math.round(document.querySelector('#shop h2')?.getBoundingClientRect().width || 0), parite: !!window.__cvParity?.boxes, etoiles: window.__cvThemeStars?.etoiles().length || 0, decor: !!document.querySelector('[data-cv-decor-card] iframe'), machines: document.querySelectorAll('[data-cv-machine] canvas').length, corps: getComputedStyle(document.body).fontFamily.slice(0, 60) }));
 verifie(etat.sections[0] === 'shop' && etat.sections.length >= 6, `sections présentes, la première est Projets professionnels : ${etat.sections.join(', ')}`);

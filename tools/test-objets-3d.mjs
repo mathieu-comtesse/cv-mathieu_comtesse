@@ -10,11 +10,12 @@ const sert = (u, res) => { const f = path.join(root, decodeURIComponent(u.pathna
 const srv = http.createServer((q, s) => sert(new URL(q.url, 'http://x'), s)).listen(0, '127.0.0.1'); await new Promise((r) => srv.listening ? r() : srv.once('listening', r)); const port = srv.address().port;
 const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); p.setDefaultTimeout(120000);
+await p.route('http://talas.test/**', (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.fulfill({ status: 404, body: '' }); });   // sans socket (pare-feu local)
 await p.route(/shopify(cdn)?\.com/, (r) => r.abort());
 await p.route('https://comtesse.me/**', (r) => { const u = new URL(r.request().url()), f = path.join(root, decodeURIComponent(u.pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.abort(); });
 const erreurs = [], echecs = []; p.on('pageerror', (e) => erreurs.push(String(e.message).slice(0, 200)));
 const verifie = (ok, texte) => { console.log((ok ? 'ok     ' : 'ÉCHEC  ') + texte); if (!ok) echecs.push(texte); };
-await p.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
+await p.goto(`http://talas.test/index.html`, { waitUntil: 'load' });
 await p.waitForFunction(() => document.querySelector('.annual-pig-wrap')?.dataset.piggy === 'ready', null, { timeout: 90000 }).catch(() => {});
 
 /* ---- tirelire ---- */
