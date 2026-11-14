@@ -158,7 +158,7 @@ function scene(chapitres) {
   cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
   document.body.append(cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0;
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -193,7 +193,7 @@ function scene(chapitres) {
       c.branches.forEach((b, k) => {
         const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
         let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
-        if (libre) { x += Math.sin(tt * 0.4 + b.phase) * 7; y += Math.cos(tt * 0.33 + b.phase * 1.7) * 6; const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 170 && d > 1) { const q = (1 - d / 170) * 22 / d; x += dx * q; y += dy * q; } }
+        if (libre) { x += Math.sin(tt * 0.4 + b.phase) * 7; y += Math.cos(tt * 0.33 + b.phase * 1.7) * 6; const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 170 && d > 1) { const q = (1 - d / 170) * 22 / d * (b.fiche ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
         const survole = b.fiche && Math.hypot(x - souris.x, y - souris.y) < 16;
         ctx.strokeStyle = b.fiche ? (survole ? '#fff' : k < 2 ? 'rgba(95,230,255,.9)' : 'rgba(255,255,255,.72)') : 'rgba(207,224,255,.26)'; ctx.lineWidth = survole ? 2 : 1;
@@ -224,7 +224,8 @@ function scene(chapitres) {
       ctx.restore();
     }
     nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
-    document.documentElement.style.cursor = cibles.some((q) => Math.hypot(q.x - souris.x, q.y - souris.y) < 16) ? 'pointer' : '';
+    /* le curseur n'est modifié que par celui qui l'a posé : le graphe de l'accueil gère le sien (main ouverte, main fermée) */
+    const dessus = cibles.some((q) => Math.hypot(q.x - souris.x, q.y - souris.y) < 16); if (dessus !== curseurPose) { curseurPose = dessus; document.documentElement.style.cursor = dessus ? 'pointer' : ''; }
   }
   requestAnimationFrame(image);
   addEventListener('pointermove', (ev) => { souris.x = ev.clientX; souris.y = ev.clientY; }, { passive: true });
