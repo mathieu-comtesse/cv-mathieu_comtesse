@@ -17,9 +17,6 @@ on:
       - "assets/dioramas-v2/**"
       - "tools/test-native-geometry.mjs"
       - "tools/scene-test-profile.mjs"
-      - "tools/test-v49-mobile-book.mjs"
-      - "tools/test-v49-seat-book.mjs"
-      - "tools/test-v49-features.mjs"
       - "tools/test-film-book-v50.mjs"
       - "tools/test-ps1-v50.mjs"
       - "assets/*-v50.*"
@@ -27,19 +24,12 @@ on:
       - "assets/*-v52.*"
       - "assets/screenshots/**"
       - "ps1-menu.css"
-      - "tools/test-v52.mjs"
       - "info.html"
-      - "tools/test-v51-interactions.mjs"
       - "style.css"
-      - "tools/test-scene-runtime.mjs"
-      - "tools/test-scene-lifecycle.mjs"
       - "tools/test-project-scroll.mjs"
       - "tools/test-annual-gains.mjs"
       - "tools/test-annual-gains-browser.mjs"
       - "project-dioramas.css"
-      - "tools/test-motion-fit.mjs"
-      - "tools/test-custom-scene.mjs"
-      - "tools/test-user-room-props.mjs"
       - "assets/*-v43.glb"
       - "assets/*-v44.glb"
       - "assets/*-v43.mp3"
@@ -65,9 +55,6 @@ on:
       - "assets/dioramas-v2/**"
       - "tools/test-native-geometry.mjs"
       - "tools/scene-test-profile.mjs"
-      - "tools/test-v49-mobile-book.mjs"
-      - "tools/test-v49-seat-book.mjs"
-      - "tools/test-v49-features.mjs"
       - "tools/test-film-book-v50.mjs"
       - "tools/test-ps1-v50.mjs"
       - "assets/*-v50.*"
@@ -75,19 +62,12 @@ on:
       - "assets/*-v52.*"
       - "assets/screenshots/**"
       - "ps1-menu.css"
-      - "tools/test-v52.mjs"
       - "info.html"
-      - "tools/test-v51-interactions.mjs"
       - "style.css"
-      - "tools/test-scene-runtime.mjs"
-      - "tools/test-scene-lifecycle.mjs"
       - "tools/test-project-scroll.mjs"
       - "tools/test-annual-gains.mjs"
       - "tools/test-annual-gains-browser.mjs"
       - "project-dioramas.css"
-      - "tools/test-motion-fit.mjs"
-      - "tools/test-custom-scene.mjs"
-      - "tools/test-user-room-props.mjs"
       - "assets/*-v43.glb"
       - "assets/*-v44.glb"
       - "assets/*-v43.mp3"
@@ -186,7 +166,7 @@ jobs:
           grep -q "hero.poseSeatedL" js/room.js
           grep -q "retro.setPadHeld" js/room.js
   runtime:
-    timeout-minutes: 80   # la suite complète (14 tests exécutés à la suite, chacun même si le précédent échoue) dure environ 50 minutes sur le runner
+    timeout-minutes: 40   # quatre tests exécutés à la suite, chacun même si le précédent échoue (les dix tests de l'ancienne pièce, accueil.html, sont retirés avec elle)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -197,48 +177,18 @@ jobs:
         run: |
           npm install --no-save playwright@1.62.1
           npx playwright install --with-deps chromium
-      - name: Check screen activity locks, Japanese props and PS1 library
-        if: ${{ !cancelled() }}
-        run: node tools/test-v52.mjs
-      - name: Check mobile gestures and physical photo book
-        if: ${{ !cancelled() }}
-        run: node tools/test-v49-mobile-book.mjs
-      - name: Check desk chair axis and page turns
-        if: ${{ !cancelled() }}
-        run: node tools/test-v49-seat-book.mjs
-      - name: Check supplied props, power strip, foliage, PS1 sounds and financial emails
-        if: ${{ !cancelled() }}
-        run: node tools/test-v49-features.mjs
-      - name: Check mobile scroll, PS1 power, props and minimal album
-        if: ${{ !cancelled() }}
-        run: node tools/test-v51-interactions.mjs
       - name: Check bound floating photo book
         if: ${{ !cancelled() }}
         run: node tools/test-film-book-v50.mjs
       - name: Check PS1 video timing and menu sounds
         if: ${{ !cancelled() }}
         run: node tools/test-ps1-v50.mjs
-      - name: Check room rendering and interactions
-        if: ${{ !cancelled() }}
-        run: node tools/test-scene-runtime.mjs
-      - name: Check supplied workstation, shelf props and PS1 cables
-        if: ${{ !cancelled() }}
-        run: node tools/test-user-room-props.mjs
-      - name: Check greeting, autonomy, activity exits and particles
-        if: ${{ !cancelled() }}
-        run: node tools/test-scene-lifecycle.mjs
       - name: Check project images stay attached while scrolling
         if: ${{ !cancelled() }}
         run: node tools/test-project-scroll.mjs
       - name: Check piggy bank, calendar and saved years
         if: ${{ !cancelled() }}
         run: node tools/test-annual-gains-browser.mjs
-      - name: Check original activities, effects and sounds
-        if: ${{ !cancelled() }}
-        run: node tools/test-motion-fit.mjs
-      - name: Check customized furniture, props and motion
-        if: ${{ !cancelled() }}
-        run: node tools/test-custom-scene.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
