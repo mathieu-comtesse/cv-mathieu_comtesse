@@ -238,3 +238,52 @@ Essai écarté : un mélange additif (`lighter`) sur la face haute. Il a masqué
 Écarts qui restent : l'éclairage des dessus n'est pas un vrai éclairage (teinte uniforme) ; l'objet 3D du bloc supérieur reste la machine existante, petite ; le titre de la référence est plus massif encore et son ombre plus marquée ; extrusion et teintes non mesurées sur la référence.
 
 Tests : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (position de lecture et coïncidence à la progression 0 passent ; mobile 12 foyers). Comparaison : `expo-titre-dessus-reference-contre-comtesse.png`.
+
+# Passe 6 : animations et performance (GPU matériel)
+
+## Mesure de fluidité sur GPU matériel
+
+Outil : `node tools/mesure-fluidite-gpu.mjs gpu` (2498 × 1319, AMD Radeon RX 9070 XT via Direct3D 11, écran à 60 Hz). Les temps d'image sont plafonnés à 16,7 ms par la synchronisation verticale ; la grandeur utile est le temps du thread principal par image (protocole de débogage, `TaskDuration` et `ScriptDuration`).
+
+| Version | Mode | Images en 5 s | Tâche (ms/image) | Script (ms/image) | Image max |
+|---|---|---:|---:|---:|---:|
+| Base PR 210 | à plat | 299 | 3,12 | 2,34 | 16,8 ms |
+| Base PR 210 | expo | 299 | 7,17 | 5,77 | 16,8 ms |
+| Branche, avant optimisation | à plat | 299 | 3,67 | 2,81 | 16,8 ms |
+| Branche, avant optimisation | expo | 296 | **12,70** | 10,82 | **33,3 ms** (une image perdue) |
+| Branche, après optimisation | à plat | 299 | 3,32 | 2,54 | 16,8 ms |
+| Branche, après optimisation | expo | 299 | **6,24** | 4,83 | 16,8 ms |
+
+Les ajouts des passes 2 à 4 avaient fait passer l'expo de 7,2 à 12,7 ms par image (+77 %). Profil CPU (200 µs) de l'état avant optimisation : quadrillage `drawFallbackGrid` 2,56 ms (mes lignes courbes : 300 colonnes × 121 projections par image), mise à jour du titre extrudé `projectPart` 2,80 ms (déjà présente sur la base), halos et branches 0,9 ms, panneau courbe 0,58 ms.
+
+Optimisations :
+
+- **Quadrillage** : à rangée fixe, la projection est linéaire en colonne (`x = W/2 + (col − W/2)·k`, `y` et `k` ne dépendent que de la rangée) ; les 121 rangées sont projetées une fois, les colonnes sont placées par multiplication, et les colonnes entièrement hors écran sont ignorées.
+- **Titre extrudé** : les sommets ne sont recalculés que lorsque la vue change (clé : progression, rangée, taille, caméra, champ). Au repos, coût nul ; cela bénéficie aussi à la base.
+
+Résultat : expo à 6,24 ms par image, soit **moins que la base** (7,17) malgré le contenu ajouté. Le rendu est inchangé à 0,4 % des points échantillonnés près (éléments animés).
+
+Limites : un seul GPU, un seul écran 60 Hz ; aucune mesure sur machine modeste ni sur mobile réel ; pas de mesure de l'énergie ni de la mémoire. En rendu logiciel (SwiftShader), le rendu 3D domine (environ 260 ms par image) et masque tout le dessin 2D : ces valeurs ne sont pas comparables.
+
+## Animations : observation de la référence (Chrome 157, trois instants)
+
+- Caméra **immobile** : aucune parallaxe avec la souris (bords du sol, panneau et blocs identiques d'une capture à l'autre).
+- Le cube filaire **tourne** (orientation différente à chaque instant).
+- **Plusieurs arcs clairs** circulent en même temps, au moins un à gauche et un à droite, dans le noir de chaque côté de la bande.
+- Les nœuds dérivent légèrement ; aucune info-bulle au survol d'un foyer.
+
+| Comportement | Avant | Maintenant | État |
+|---|---|---|---|
+| Arc clair animé | un seul, à droite, trajet traversant le sol | **trois** arcs (anneaux 2, 3 et 4, plages d'angles, vitesses et phases propres), limités à l'extérieur de la bande du sol | rapproché ; trajets, vitesses et nombre exact **inventés** par comparaison à trois instants |
+| Cube filaire | rotation lente | inchangé (0,21 et 0,17 rad/s), immobile en mouvement réduit | non comparé en vitesse (aucune vidéo) |
+| Caméra | fixe | inchangée | conforme à l'observation |
+| Dérive des nœuds, impulsions le long des branches, fuite au pointeur | existantes | inchangées | non comparées à la référence |
+| Mouvement réduit | bascule immédiate | inchangé ; arcs et cube immobiles (temps nul) ; test `mouvement réduit` passe | conforme |
+
+Tous les mouvements ajoutés sont déduits du temps de la page : reproductibles, sans graine aléatoire par image.
+
+## Non fait
+
+Vidéo de la référence (l'extension ne l'enregistre pas ici) ; comparaison fine des vitesses ; inertie du défilement ; essai sur machine modeste ; suites UX complète, de 14 tests longs, de navigation, de cohérence et de géométrie ; formule « e^(-x) cos(ωx + φ) » du bas gauche ; objet 3D sur le bloc supérieur ; éclairage réel des dessus de blocs.
+
+Tests : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud) ; mouvement réduit, position de lecture, coïncidence à la progression 0 et mobile 12 foyers passent. Comparaison : `expo-animations-reference-contre-comtesse.png`.

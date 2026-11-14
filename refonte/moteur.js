@@ -415,18 +415,22 @@ export function dessineRegles(ctx, view, chapitres) {
  * Les positions et proportions sont calées sur une comparaison à dimensions identiques avec la référence ; aucun élément n'est une image.
  * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). `numeros` : nombre de chapitres numérotés sur la courbe. */
 const ARC_RAYONS = [0.42, 0.62, 0.84, 1.08, 1.34, 1.62];   // en largeurs de page
+const ARCS_CLAIRS = [[3, 0.05, 0.4, 0.045, 0, 0.5], [4, 0.6, 0.95, 0.034, 0.37, 0.42], [2, 0.08, 0.3, 0.06, 0.64, 0.35]];   // [anneau, angle min, angle max (en π), vitesse (tours/s), phase, longueur (rad)]
 export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
   const a = view.e * view.e; if (a < 0.01) return;
   const W = view.W, H = view.H, fois = Math.min(1.6, Math.max(0.6, W / 1512));
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   /* arcs concentriques sur le plan du sol, de part et d'autre de la bande ; un arc clair les balaie lentement */
   const cx = W * 0.5, cy = Math.max(0, view.doc ? 0 : 0) + 0;
-  const trace = (r, d0, d1, pas) => { let on = false; ctx.beginPath(); for (let k = d0; k <= d1; k += pas) { const col = cx + Math.cos(k) * r * W, row = cy + Math.sin(k) * r * W; if (row < 0 || row > view.T) { on = false; continue; } const q = p(view, col, row, 0); if (!q) { on = false; continue; } if (on) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); on = true; } } ctx.stroke(); };
+  const trace = (r, d0, d1, pas) => { let on = false; ctx.beginPath(); for (let k = d0; k <= d1; k += pas) { const col = cx + Math.cos(k) * r * W, row = cy + Math.sin(k) * r * W; if (row < 0 || row > view.T || (col > 0 && col < W)) { on = false; continue; } const q = p(view, col, row, 0); if (!q) { on = false; continue; } if (on) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); on = true; } } ctx.stroke(); };
   ctx.lineWidth = 0.8 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.085 * a})`;
   for (const r of ARC_RAYONS) trace(r, 0, Math.PI, 0.02);
-  const glisse = ((t * 0.045) % 1), r0 = ARC_RAYONS[3] * W;   // arc clair : un tronçon qui parcourt l'anneau
-  const dep = Math.PI * (0.05 + 0.35 * glisse), lon = 0.5;
-  for (let s = 0; s < 6; s++) { ctx.lineWidth = (3.2 - s * 0.45) * fois; ctx.strokeStyle = `rgba(255,255,255,${(0.1 + s * 0.06) * a})`; trace(r0 / W, dep + s * lon / 6, dep + lon, 0.02); }
+  /* arcs clairs : plusieurs tronçons circulent en même temps de chaque côté de la bande (la référence en montre au moins un à gauche et un à droite) ;
+     anneau, plage d'angles, vitesse et phase propres à chacun, tous déduits du temps : reproductibles, immobiles en mouvement réduit */
+  for (const [anneau, a0, a1, vitesse, phase, longueur] of ARCS_CLAIRS) {
+    const dep = Math.PI * (a0 + (a1 - a0) * (((t * vitesse + phase) % 1 + 1) % 1)), lon = longueur;
+    for (let s = 0; s < 6; s++) { ctx.lineWidth = (3.2 - s * 0.45) * fois; ctx.strokeStyle = `rgba(255,255,255,${(0.1 + s * 0.06) * a})`; trace(ARC_RAYONS[anneau], dep + s * lon / 6, dep + lon, 0.02); }
+  }
   /* courbe exponentielle posée sur le sol, et son cadre, à la rangée de base (page 1500) */
   if (base > 0 && base < view.T) {
     const g = (u) => (Math.exp(2.2 * u) - 1) / (Math.exp(2.2) - 1), haut = 0.2 * H;
