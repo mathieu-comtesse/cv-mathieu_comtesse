@@ -2,16 +2,16 @@
 // ATTENTION : exécuté ici en rendu logiciel (SwiftShader). Ces chiffres ne décrivent PAS les performances sur carte graphique ;
 // ils servent à comparer deux versions du code dans le même banc. Usage : node tools/mesure-perf.mjs [sortie.json]
 import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { createRequire } from 'node:module';
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..'), sortie = process.argv[2] || path.join(root, 'docs/perf/fall26-moteur-swiftshader.json');
+const root = path.resolve(path.dirname(decodeURIComponent(process.platform === 'win32' ? new URL(import.meta.url).pathname.slice(1) : new URL(import.meta.url).pathname)), '..'), sortie = process.argv[2] || path.join(root, 'docs/perf/fall26-moteur-swiftshader.json');
 let chromium; { try { ({ chromium } = createRequire(root + '/')('playwright')); } catch { ({ chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright')); } }
 const T = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream', '.mp4': 'video/mp4', '.mp3': 'audio/mpeg' };
-const srv = http.createServer((q, res) => { const f = path.join(root, decodeURIComponent(new URL(q.url, 'http://x').pathname)); if (fs.existsSync(f) && fs.statSync(f).isFile()) { res.writeHead(200, { 'content-type': T[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res); } else { res.writeHead(404); res.end(); } }).listen(0); const port = srv.address().port;
+const srv = http.createServer((q, res) => { const f = path.join(root, decodeURIComponent(new URL(q.url, 'http://x').pathname)); if (fs.existsSync(f) && fs.statSync(f).isFile()) { res.writeHead(200, { 'content-type': T[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res); } else { res.writeHead(404); res.end(); } }).listen(0, '127.0.0.1'); await new Promise((r) => srv.listening ? r() : srv.once('listening', r)); const port = srv.address().port;
 const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); p.setDefaultTimeout(120000); let octets = 0, requetes = 0, shopify = 0;
 await p.route(/shopify(cdn)?\.com/, (r) => { shopify++; r.abort(); });
 await p.route('https://comtesse.me/**', (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.abort(); });
 p.on('response', async (r) => { requetes++; try { octets += (await r.body()).length; } catch {} });
-const t0 = Date.now(); await p.goto(`http://localhost:${port}/index.html`, { waitUntil: 'load' }); const chargement = Date.now() - t0;
+const t0 = Date.now(); await p.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' }); const chargement = Date.now() - t0;
 await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 90000 }); const pret = Date.now() - t0; await p.waitForTimeout(3000);
 const images = (duree, defile) => p.evaluate(async ([duree, defile]) => { const d = [], lt = []; const po = new PerformanceObserver((l) => l.getEntries().forEach((e) => lt.push(Math.round(e.duration)))); try { po.observe({ entryTypes: ['longtask'] }); } catch {} let avant = performance.now(); const debut = avant, y0 = scrollY;
   await new Promise((fin) => { const f = (t) => { d.push(t - avant); avant = t; if (defile) scrollTo(0, y0 + (t - debut) * 0.35); t - debut < duree ? requestAnimationFrame(f) : fin(); }; requestAnimationFrame(f); }); po.disconnect();

@@ -3,18 +3,18 @@
 //   hublot   : ouverture au clavier et au glisser, course du volet, lecture de la vidéo, fermeture, retour à l'état initial.
 // Usage : node tools/test-objets-3d.mjs   (code de sortie 1 en cas d'échec). Rendu logiciel : aucune mesure de fluidité ici.
 import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { createRequire } from 'node:module';
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(decodeURIComponent(process.platform === 'win32' ? new URL(import.meta.url).pathname.slice(1) : new URL(import.meta.url).pathname)), '..');
 let chromium; { try { ({ chromium } = createRequire(root + '/')('playwright')); } catch { ({ chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright')); } }
 const T = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream', '.mp4': 'video/mp4', '.mp3': 'audio/mpeg', '.webm': 'video/webm' };
 const sert = (u, res) => { const f = path.join(root, decodeURIComponent(u.pathname)); if (fs.existsSync(f) && fs.statSync(f).isFile()) { res.writeHead(200, { 'content-type': T[path.extname(f)] || 'application/octet-stream', 'access-control-allow-origin': '*' }); fs.createReadStream(f).pipe(res); } else { res.writeHead(404); res.end(); } };
-const srv = http.createServer((q, s) => sert(new URL(q.url, 'http://x'), s)).listen(0); const port = srv.address().port;
+const srv = http.createServer((q, s) => sert(new URL(q.url, 'http://x'), s)).listen(0, '127.0.0.1'); await new Promise((r) => srv.listening ? r() : srv.once('listening', r)); const port = srv.address().port;
 const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
 const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); p.setDefaultTimeout(120000);
 await p.route(/shopify(cdn)?\.com/, (r) => r.abort());
 await p.route('https://comtesse.me/**', (r) => { const u = new URL(r.request().url()), f = path.join(root, decodeURIComponent(u.pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.abort(); });
 const erreurs = [], echecs = []; p.on('pageerror', (e) => erreurs.push(String(e.message).slice(0, 200)));
 const verifie = (ok, texte) => { console.log((ok ? 'ok     ' : 'ÉCHEC  ') + texte); if (!ok) echecs.push(texte); };
-await p.goto(`http://localhost:${port}/index.html`, { waitUntil: 'load' });
+await p.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
 await p.waitForFunction(() => document.querySelector('.annual-pig-wrap')?.dataset.piggy === 'ready', null, { timeout: 90000 }).catch(() => {});
 
 /* ---- tirelire ---- */
