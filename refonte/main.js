@@ -111,7 +111,7 @@ const roomEl = $('room');
 /* Ouverture : un fond bleu (même teinte que le plan) s'affiche aussitôt avec le titre ; le plan et la pièce n'apparaissent qu'ensemble,
    déjà calés sur la même caméra, en un seul fondu. Plus de pré-image ni de plan qui change de zoom en cours de route. */
 const revealStage = () => setTimeout(() => { stage.classList.add('rf-ready'); window.ToddhamIntro?.done(); }, 80);
-createRoom(roomEl, $('bubble')).then((r) => { window.room = room = r; perspectivize(room.camera); bp.link(room.camera); refreshMute(); lockView(); onScroll(); revealStage(); }).catch((e) => {
+createRoom(roomEl, $('bubble'), { noTea: true }).then((r) => { window.room = room = r; perspectivize(room.camera); bp.link(room.camera); refreshMute(); lockView(); onScroll(); revealStage(); }).catch((e) => {
   console.error(e);
   roomEl.insertAdjacentHTML('beforeend', '<p class="hint">La pièce 3D ne peut pas s’afficher sur cet appareil.</p>');
   revealStage();

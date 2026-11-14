@@ -444,8 +444,10 @@ export async function createRoom(container, bubbleEl, options = {}) {   // optio
     const backpack = install(bagModel,'HikingBackpack',world,-2.55,0,-1.80,.38);
     redraw(backpack, 'SacRando');
     backpack.userData.id='backpack';
-    const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
+    const poles=install(polesModel,'HikingPoles',world,-2.97,0,-2.40,.10);poles.scale.setScalar(.96);poles.rotation.x=Math.PI/2;poles.userData.laidFlat=true;poles.userData.lengthMetres=1.104;
     redraw(poles, 'Batons');
+    /* posés au sol : la garde de 8 mm se mesure sur le modèle redessiné (le remplacement de la PR 206 change la géométrie après la pose) */
+    {world.updateMatrixWorld(true);const pb=new THREE.Box3().setFromObject(poles);poles.position.y+=.008-pb.min.y;world.updateMatrixWorld(true);}
     const geta = install(getaModel,'SuppliedGeta',world,shoeAnchor.x,shoeAnchor.y,shoeAnchor.z,0);
     redraw(geta, 'Geta');
     geta.userData.id='shoes';
