@@ -175,7 +175,11 @@ jobs:
       - name: Check scene entrypoints
         run: |
           set -euo pipefail
-          grep -q "js/room.js?v=" index.html
+          # La pièce 3D est chargée par accueil.html -> refonte/main.js -> js/room.js (index.html est l'accueil Fall 26 et ne la charge plus) :
+          # on vérifie la chaîne réelle, et non plus une référence dans index.html.
+          node tools/test-entrypoints.mjs
+          grep -q "refonte/main.js" accueil.html
+          grep -q "js/room.js?v=" refonte/main.js
           grep -q "character.js?v=" js/room.js
           grep -q "retro.js?v=" js/room.js
           grep -q "room.js?v=" js/main.js
