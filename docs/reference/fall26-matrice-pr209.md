@@ -96,3 +96,17 @@ Captures : `docs/fall26-evidence/expo-ref-chrome157-a-plat.jpg`, `…-expo-insta
 - `node tools/test-machines.mjs` : ok (onze machines).
 - `node tools/test-modes.mjs` : 1 échec, **identique sur la base de la PR 210** (retour élastique d'un nœud : distances 10 à 15 px et croissantes au lieu de revenir à l'origine). Le reste passe, dont l'entrée progressive (états intermédiaires de 90° à 30,2°), la réversibilité en cours de bascule, la conservation de la position de lecture et le mouvement réduit.
 - Non relancés : test UX complet, suite longue de 14 tests, tests de navigation, de cohérence et de géométrie. Mesures de fluidité sur GPU matériel : non faites.
+
+## Sol et quadrillage (mesurés sur la référence Chrome 157 et sur notre rendu, mêmes conditions de lecture de pixels)
+
+| Élément | Référence | Avant | Maintenant | État |
+|---|---|---|---|---|
+| Couleur du sol | `#061CA6` environ (échantillons `#041EA9`, `#061CA6`, `#081EA5` sur la capture JPEG) | `#051DAA` | inchangée | **conforme** (écart de 1 à 2 niveaux, dans le bruit de compression) |
+| Fond | `#050505` à `#121212` | `#000000` | inchangé | proche ; non modifié |
+| Quadrillage, lignes horizontales | présentes, fines | présentes, presque invisibles (opacité 0,045) | opacité 0,10 (0,26 toutes les 10) | amélioré |
+| Quadrillage, lignes qui suivent la courbure du sol | présentes, convergentes | **absentes** (les extrémités projetées étaient rejetées dès qu'une des deux sortait de l'écran) | tracées en polyligne sur 120 rangées, en sautant les points non projetables | **corrigé** |
+| Arcs larges et arc clair accentué du fond | présents | absents | absents | **écart résiduel** |
+| Cube filaire en haut à gauche | présent | absent | absent | écart résiduel |
+| Courbure du sol au loin | le sol se redresse nettement | sol plat vu depuis le haut de la page | inchangé | écart résiduel (non touché : géométrie du chemin) |
+
+Opacités du quadrillage choisies à l'œil par comparaison des deux captures agrandies, pas mesurées. Captures : `docs/fall26-evidence/expo-comtesse-avant-grille.png` et `…-apres-grille.png`. Tests relancés après la modification : `test-no-shopify --strict` PASS ; `test-modes` inchangé (même unique échec antérieur).
