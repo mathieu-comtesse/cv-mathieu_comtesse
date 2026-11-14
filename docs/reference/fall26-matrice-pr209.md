@@ -287,3 +287,34 @@ Tous les mouvements ajoutés sont déduits du temps de la page : reproductibles,
 Vidéo de la référence (l'extension ne l'enregistre pas ici) ; comparaison fine des vitesses ; inertie du défilement ; essai sur machine modeste ; suites UX complète, de 14 tests longs, de navigation, de cohérence et de géométrie ; formule « e^(-x) cos(ωx + φ) » du bas gauche ; objet 3D sur le bloc supérieur ; éclairage réel des dessus de blocs.
 
 Tests : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud) ; mouvement réduit, position de lecture, coïncidence à la progression 0 et mobile 12 foyers passent. Comparaison : `expo-animations-reference-contre-comtesse.png`.
+
+# Objet 3D du bloc supérieur et formule du bas gauche
+
+## Formule « e^(-x) cos(ωx + φ) »
+
+Observée sur la référence en bas à gauche, dans le noir : l'expression, la courbe amortie correspondante, et une valeur de φ qui change. Expression mathématique générique, reproduite avec notre propre code (aucun asset repris).
+
+| Élément | Avant | Maintenant | État |
+|---|---|---|---|
+| Expression « e^(-x) cos(ωx + φ) » | absente | texte posé sur le plan du sol, colonne -290, page 1367 (position calculée en projetant le pixel de la référence dans notre vue, 2498 × 1319) | ajoutée |
+| Courbe y = e^(-0,9x) cos(5x + φ) | absente | tracé de 64 points, 180 unités de large, sur le sol, suit la perspective | ajoutée ; coefficients (0,9 et 5) choisis, non relevés |
+| Valeur de φ | absente | avance de 0,45 rad/s en boucle sur 2π, affichée avec deux décimales ; courbe et valeur restent synchronisées ; immobile (φ = 0) en mouvement réduit | ajoutée ; vitesse de la référence non mesurée |
+| Taille et police | italique à chasse fixe de 15 unités | ajustées à l'œil | non comparées de façon fine |
+
+## Objet 3D du bloc supérieur
+
+La machine 3D du projet (silo avec horloge et pupitre, déjà présente dans le bloc « 11 machines 3D ») est l'objet de ce bloc ; l'appareil photo de la référence est un objet propriétaire, il n'est pas reproduit.
+
+| Élément | Avant | Maintenant | État |
+|---|---|---|---|
+| Teinte du dessus des blocs | calque translucide du canevas, au-dessus de la 3D : il assombrissait et bleuissait aussi la machine | retirée ; éclairage par **filtre CSS `brightness(1 + 0,28 × rise)` sur le DOM des seuls blocs de l'accueil** (hors panneau) : le contenu s'éclaircit, la machine 3D ne change pas | corrigé |
+| Taille de la machine en expo | 82 % de la largeur du cadre | × (1 + 0,3 × rise), donc inchangée à plat (continuité) | agrandie de 30 % en expo ; réglée à l'œil |
+| Position sur le bloc | 62 % de la hauteur du cadre | inchangée | **écart résiduel** : la référence centre l'objet sur le dessus |
+
+Écarts qui restent : la machine reste moins dominante que l'objet de la référence ; les dessus n'atteignent pas #1442FF (le filtre multiplie les canaux : le bleu de page #051DAA donne environ #0726DD, sans composante rouge ni verte supplémentaire) ; la police et la vitesse de la formule ne sont pas mesurées.
+
+## Performance et tests
+
+GPU matériel (RX 9070 XT, 2498 × 1319) : expo à **6,5 ms par image** sur deux répétitions, 16,8 ms au plus par image (un pic isolé à 33 ms dans une première série ne s'est pas reproduit) ; à plat 3,0 à 3,4 ms. Base PR 210 : 7,17 ms en expo.
+
+`test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud) ; mouvement réduit, coïncidence à la progression 0 et mobile 12 foyers passent. Comparaison : `expo-objet-formule-reference-contre-comtesse.png`.

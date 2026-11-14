@@ -360,8 +360,6 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
     ctx.fillStyle = plein ? '#041795' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
     ctx.fillStyle = plein ? '#0a27c4' : 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
-    if (plein) {   // dessus éclairé comme le sol : teinte translucide (le contenu du bloc est du DOM, sous ce canevas : un mélange additif le masquerait)
-      ctx.save(); ctx.fillStyle = `rgba(60,115,255,${(0.28 * view.rise).toFixed(3)})`; trace(haut); ctx.fill(); ctx.restore(); }
     ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
@@ -443,6 +441,18 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
       const u = 0.5 + 0.34 * (numeros > 1 ? i / (numeros - 1) : 0), q = p(view, W * u, base, haut * g(u)); if (!q) continue;
       ctx.strokeStyle = `rgba(255,255,255,${0.85 * a})`; ctx.fillStyle = `rgba(20,40,170,${0.9 * a})`; ctx.beginPath(); ctx.ellipse(q.x, q.y, 4.2 * fois, 2.6 * fois, 0, 0, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = `rgba(255,255,255,${0.75 * a})`; ctx.textAlign = 'left'; ctx.fillText(String(i + 1).padStart(2, '0'), q.x + 4 * fois, q.y + 3 * fois);
+    }
+  }
+  /* formule au sol, à gauche de la bande : e^(-x) cos(ωx + φ), la courbe correspondante et la valeur de φ qui avance avec le temps.
+     Posée sur le plan du sol (colonne -290, page 1367 à 1480) : texte et tracé suivent la perspective de la caméra. */
+  {
+    const ancre = (c, y) => p(view, c, y - view.offset, 0), O = ancre(-290, 1367), X = ancre(-270, 1367), Y = ancre(-290, 1387);
+    if (O && X && Y && !(view.offset === undefined)) {
+      const phi = (t * 0.45) % 6.2832, ax = (X.x - O.x) / 20, ay = (X.y - O.y) / 20, bx = (Y.x - O.x) / 20, by = (Y.y - O.y) / 20;
+      ctx.save(); ctx.transform(ax, ay, bx, by, O.x, O.y); ctx.globalAlpha = 0.85 * a; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1 / Math.max(0.3, Math.hypot(ax, ay));
+      ctx.font = 'italic 500 15px "JetBrains Mono",ui-monospace,monospace'; ctx.textBaseline = 'top'; ctx.fillText('e^(-x) cos(ωx + φ)', 0, 0);
+      ctx.beginPath(); for (let i = 0; i <= 64; i++) { const x = i / 64 * 5, yy = 62 - Math.exp(-x * 0.9) * Math.cos(5 * x + phi) * 24; const px = i / 64 * 180; i ? ctx.lineTo(px, yy) : ctx.moveTo(px, yy); } ctx.stroke();
+      ctx.font = 'italic 500 13px "JetBrains Mono",ui-monospace,monospace'; ctx.fillText('φ ' + phi.toFixed(2), 74, 96); ctx.restore();
     }
   }
   /* cube filaire (cube dans le cube, relié aux sommets), dans le noir à gauche de la bande, en rotation lente */
