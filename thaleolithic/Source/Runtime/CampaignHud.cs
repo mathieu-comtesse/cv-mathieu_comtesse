@@ -87,7 +87,7 @@ namespace UngaBunga45001
         {
             if (canvas == null || campaign.State == null) return;
             presenter.Refresh();
-            bool filming=campaign.cinematicDirector!=null&&campaign.cinematicDirector.IsPlaying;
+            bool filming=campaign.cinematicDirector!=null&&campaign.cinematicDirector.IsPlaying||(campaign.GetComponent<ConstructionFilmV19>()?.Playing??false);
             topFilmBar.gameObject.SetActive(filming);bottomFilmBar.gameObject.SetActive(filming);
             subtitle.gameObject.SetActive(GetComponent<UISettingsController>().preferences.subtitles);
             subtitle.rectTransform.anchorMin=filming?new Vector2(.12f,.035f):new Vector2(.15f,.14f);subtitle.rectTransform.anchorMax=filming?new Vector2(.88f,.16f):new Vector2(.85f,.3f);
@@ -118,7 +118,7 @@ namespace UngaBunga45001
                 if (shownEnding == campaign.Ending.id) return; shownEnding = campaign.Ending.id; ClearChoices();
                 ShowEnding(); return;
             }
-            if(campaign.UserPaused&&campaign.Ending==null){modal.gameObject.SetActive(false);if(!wasPaused)GetComponent<AdventureMenus>().Open("Réglages");}
+            if(campaign.UserPaused&&campaign.Ending==null){modal.gameObject.SetActive(false);}
             wasPaused = campaign.UserPaused;
         }
         private string Report() => $"Dangers identifiés : {campaign.State.flags.Count(f => f.StartsWith("observed:"))}\nRisques critiques non maîtrisés : {campaign.State.risks.Count(v => v.value >= 2)}\nPreuves : {campaign.State.evidence.Count} ; décès : {campaign.State.characters.Count(c => !c.alive)}";
@@ -215,7 +215,7 @@ namespace UngaBunga45001
             ClearChoices(); int count;
             string story=System.Text.RegularExpressions.Regex.Replace(campaign.Ending.text,@"\A\s*#{1,6}[^\r\n]*(?:\r?\n|$)","").TrimStart();
             modalText.text = Page(campaign.Ending.title + "\n\n" + story + "\n\n" + Report(), ref endingPage, out count);
-            Button(choiceArea, "Rejouer cet acte", Vector2.zero, new Vector2(.49f, .45f), () => campaign.ReplayAct(campaign.State.actIndex));
+            Button(choiceArea, "Continuer dans le village", Vector2.zero, new Vector2(.49f, .45f), campaign.FreePlayV17);
             Button(choiceArea, "Nouvelle tribu", new Vector2(.51f, 0), new Vector2(1, .45f), campaign.NewCampaign);
             if (count > 1)
             {

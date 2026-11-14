@@ -56,9 +56,10 @@ namespace UngaBunga45001
             portraitCamera.transform.position=head+front*.94f+Vector3.up*.015f;portraitCamera.transform.LookAt(head);
             var center=bounds.center+Vector3.up*.03f;bodyCamera.transform.position=center+front*4.4f+Vector3.up*.08f;bodyCamera.transform.LookAt(center);
             fill.transform.position=center+front*2.5f+Vector3.up*.8f;fill.transform.LookAt(center+Vector3.up*.3f);
-            RenderPipeline.SubmitRenderRequest(portraitCamera,new RenderPipeline.StandardRequest{destination=Portrait});if(!BodyVisible)return;RenderPipeline.SubmitRenderRequest(bodyCamera,new RenderPipeline.StandardRequest{destination=Body});
-            var renderer=copy.GetComponent<MeshRenderer>();renderer.sharedMaterial=white;foreach(var part in extras)part.rendered.sharedMaterial=white;RenderPipeline.SubmitRenderRequest(bodyCamera,new RenderPipeline.StandardRequest{destination=silhouette});renderer.sharedMaterials=source.sharedMaterials;foreach(var part in extras)part.rendered.sharedMaterials=part.original.sharedMaterials;
+            Render(portraitCamera,Portrait);if(!BodyVisible)return;Render(bodyCamera,Body);
+            var renderer=copy.GetComponent<MeshRenderer>();renderer.sharedMaterial=white;foreach(var part in extras)part.rendered.sharedMaterial=white;Render(bodyCamera,silhouette);renderer.sharedMaterials=source.sharedMaterials;foreach(var part in extras)part.rendered.sharedMaterials=part.original.sharedMaterials;
         }
+        static void Render(Camera camera,RenderTexture target){var previous=RenderTexture.active;try{RenderPipeline.SubmitRenderRequest(camera,new RenderPipeline.StandardRequest{destination=target});}finally{RenderTexture.active=previous;}}
         public void RenderNow(){nextRender=0;LateUpdate();}
         static void Release(UnityEngine.Object value){if(value==null)return;if(Application.isPlaying)Destroy(value);else DestroyImmediate(value);}
         void OnDestroy(){if(Portrait!=null){Portrait.Release();Release(Portrait);}if(body!=null){body.Release();Release(body);}if(silhouette!=null){silhouette.Release();Release(silhouette);}Release(white);Release(bodyComposite);Release(baked);Release(copy);foreach(var part in extras)Release(part.copy);if(portraitCamera!=null)Release(portraitCamera.gameObject);if(bodyCamera!=null)Release(bodyCamera.gameObject);if(fill!=null)Release(fill.gameObject);}

@@ -14,8 +14,9 @@ namespace UngaBunga45001
             new AdventureItem("wood","Bois","Matériau des structures et des supports.","wood",new Color(.65f,.35f,.14f)),new AdventureItem("stone","Pierre","Pierre brute pour les aménagements et le débitage.","stone",new Color(.69f,.67f,.62f)),
             new AdventureItem("flint","Silex","Éclats débités à l'atelier pour fabriquer un outil.","stone",new Color(.45f,.57f,.63f)),new AdventureItem("fiber","Fibres","Liens et attaches pour le montage.","fiber",new Color(.77f,.68f,.38f)),
             new AdventureItem("food","Nourriture","Consommer une unité : nourriture +25, énergie +10.","food",new Color(.86f,.4f,.28f)),new AdventureItem("tool","Hache de pierre","Outil équipé dans la main. Les travaux restent soumis à leurs prérequis.","tool",new Color(.67f,.71f,.63f)),
-            new AdventureItem("notebook","Carnet des risques","Objectifs, risques et traces des décisions.","book",new Color(.75f,.52f,.28f)),new AdventureItem("evidence","Preuves","Consulter les références et preuves enregistrées.","diamond",new Color(.78f,.35f,.89f))};
-        public int Selected=>Mathf.Clamp(campaign.State?.inventorySlot??0,0,7);public AdventureItem Item=>items[Selected];public bool CanUseCurrent=>Quantity(Item.id)>0&&(Item.id=="food"||Item.id=="tool"||Item.id=="notebook"||Item.id=="evidence");
+            new AdventureItem("notebook","Carnet des risques","Objectifs, risques et traces des décisions.","book",new Color(.75f,.52f,.28f)),new AdventureItem("evidence","Preuves","Consulter les références et preuves enregistrées.","diamond",new Color(.78f,.35f,.89f)),
+            new AdventureItem("clay","Argile","Prélevée sur la berge. Nécessaire au torchis.","stone",new Color(.54f,.32f,.20f)),new AdventureItem("straw","Paille","Tiges préparées pour les couvertures de chaume.","fiber",new Color(.60f,.49f,.32f))};
+        public int Selected=>Mathf.Clamp(campaign.State?.inventorySlot??0,0,items.Length-1);public AdventureItem Item=>items[Selected];public bool CanUseCurrent=>Quantity(Item.id)>0&&(Item.id=="food"||Item.id=="tool"||Item.id=="notebook"||Item.id=="evidence");
         public float Quantity(string id)=>id=="notebook"?1:id=="evidence"?campaign.State.evidence.Count:campaign.Value("resource",id);
         System.Collections.IEnumerator Start()
         {
@@ -28,10 +29,10 @@ namespace UngaBunga45001
             campaign.Changed+=RefreshEquipment;RefreshEquipment();
         }
         void OnDestroy(){if(campaign!=null)campaign.Changed-=RefreshEquipment;}
-        public void Select(int index){campaign.State.inventorySlot=Mathf.Clamp(index,0,7);Changed?.Invoke();}
+        public void Select(int index){campaign.State.inventorySlot=Mathf.Clamp(index,0,items.Length-1);Changed?.Invoke();}
         void Update()
         {
-            if(campaign.State==null||campaign.cinematicDirector.IsPlaying||campaign.Dialogue!=null||campaign.Ending!=null)return;
+            if(campaign.State==null||campaign.BrowserInputSuspended||campaign.cinematicDirector.IsPlaying||campaign.Dialogue!=null||campaign.Ending!=null||settings.ConsumedEscapeFrame==Time.frameCount)return;
             if(settings.Pressed("inventory"))menus.Toggle("Inventaire");if(settings.Pressed("craft"))menus.Toggle("Fabrication");if(settings.Pressed("journal"))GetComponent<CampaignHud>().OpenJournal();if(settings.Pressed("tree"))menus.Toggle("ISO 45001");
             if(settings.Pressed("commands"))menus.Toggle("Commandes");
             if(campaign.IsModal||campaign.IsBusy)return;

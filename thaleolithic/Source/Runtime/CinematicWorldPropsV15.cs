@@ -29,7 +29,7 @@ namespace UngaBunga45001
   }
   public void Store(string id,string kind,Vector3 size,GameObject go)
   {
-   observed=c.State;if(objects.TryGetValue(id,out var previous)&&previous!=null&&previous!=go){previous.SetActive(false);Destroy(previous);}objects[id]=go;go.name="Objet posé · "+id;var collider=go.GetComponent<BoxCollider>();if(collider==null)collider=go.AddComponent<BoxCollider>();collider.size=size;var rb=go.GetComponent<Rigidbody>();if(rb!=null){rb.linearVelocity=Vector3.zero;rb.angularVelocity=Vector3.zero;rb.isKinematic=true;}
+   observed=c.State;if(objects.TryGetValue(id,out var previous)&&previous!=null&&previous!=go){previous.SetActive(false);Destroy(previous);}objects[id]=go;go.name="Objet posé · "+id;var collider=go.GetComponent<BoxCollider>();if(collider==null)collider=go.AddComponent<BoxCollider>();collider.size=size;var rb=go.GetComponent<Rigidbody>();if(rb!=null){if(!rb.isKinematic){rb.linearVelocity=Vector3.zero;rb.angularVelocity=Vector3.zero;}rb.isKinematic=true;}
    var records=c.State.cinematicWorldPropsV15??=new List<CinematicWorldPropV15>();records.RemoveAll(p=>p.id==id);records.Add(new CinematicWorldPropV15{id=id,kind=kind,size=size,position=go.transform.position,rotation=go.transform.rotation});
   }
  }

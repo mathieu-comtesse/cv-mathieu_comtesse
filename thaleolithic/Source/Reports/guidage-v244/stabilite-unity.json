@@ -1,0 +1,33 @@
+{
+    "status": "passed",
+    "failure": "",
+    "passed": [
+        "Campagne et scène initialisées",
+        "Sauvegarde isolée",
+        "Retour de la cinématique",
+        "20 cycles Pause → Réglages → Pause → Gameplay",
+        "Fermeture du menu pendant la perte de focus",
+        "Le verrou portrait est indépendant",
+        "Le paysage restaure Dylan et la caméra",
+        "Mission de Mathieu acceptée",
+        "Dialogue de Mathieu actif",
+        "Réponse enregistrée, Dylan et caméra disponibles",
+        "Réponse de Mathieu retrouvée après rechargement",
+        "Trois tours horizontaux continus : 1274°",
+        "Mur évité sur le même axe",
+        "Restitution progressive de la distance",
+        "Distance nominale restaurée",
+        "Assemblage SST ouvert",
+        "Dépôt faux sans blocage",
+        "Dépôt correct enregistré",
+        "Pause de l’assemblage",
+        "Sortie SST et restauration des commandes",
+        "Pièce retrouvée au retour",
+        "Rechargement de la sauvegarde SST",
+        "Assemblage rouvert automatiquement avec la pièce sauvegardée",
+        "Les pièces posées attendent la validation",
+        "Validation SST unique et retour au GPS",
+        "FIN_1 sélectionnée avec des risques critiques",
+        "FIN_2 sélectionnée avec audit et système incomplet"
+    ]
+}

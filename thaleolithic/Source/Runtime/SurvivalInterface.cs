@@ -31,7 +31,7 @@ namespace UngaBunga45001
             states=AdventureUI.Text(AdventureUI.Rect(statusRoot,"États actifs",new Vector2(0,1),new Vector2(0,1),new Vector2(130,-111),new Vector2(350,30)),font,"",17);
             timerRoot=AdventureUI.Rect(GameplayRoot,"Conseil des Sages",new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(0,-25),new Vector2(380,35));timer=AdventureUI.Text(timerRoot,font,"",21,AdventureUI.Paper,TextAlignmentOptions.Center);
             notification=AdventureUI.Text(AdventureUI.Rect(GameplayRoot,"Notification temporaire",new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(0,-78),new Vector2(650,80)),font,"",24,AdventureUI.Gold,TextAlignmentOptions.Center);
-            questRoot=AdventureUI.Rect(GameplayRoot,"Quête suivie",Vector2.one,Vector2.one,new Vector2(-28,-275),new Vector2(338,250));quests=AdventureUI.Text(questRoot,font,"",21);quests.alignment=TextAlignmentOptions.TopLeft;
+            questRoot=AdventureUI.Rect(GameplayRoot,"Quête suivie",Vector2.one,Vector2.one,new Vector2(-28,-275),new Vector2(338,310));quests=AdventureUI.Text(questRoot,font,"",21);quests.alignment=TextAlignmentOptions.TopLeft;
             doneMark=AdventureUI.Rect(questRoot,"Objectif accompli",new Vector2(0,1),Vector2.one*.5f,Vector2.zero,new Vector2(14,16));AdventureUI.Shape(doneMark,new Color(.57f,.86f,.6f),"check");activeMark=AdventureUI.Rect(questRoot,"Objectif à suivre",new Vector2(0,1),Vector2.one*.5f,Vector2.zero,new Vector2(14,16));AdventureUI.Shape(activeMark,AdventureUI.Gold);
             hotbarRoot=AdventureUI.Rect(GameplayRoot,"Inventaire rapide",Vector2.zero,Vector2.zero,new Vector2(28,30),new Vector2(568,75));
             for(int i=0;i<8;i++)
@@ -49,28 +49,32 @@ namespace UngaBunga45001
         void OnDestroy(){if(inventory!=null)inventory.Changed-=Refresh;}
         public void Refresh()
         {
-            if(campaign?.State==null||GameplayRoot==null)return;bool film=campaign.cinematicDirector.IsPlaying;bool overlay=menus.IsOpen||GetComponent<CampaignMap>().IsOpen;
-            GameplayRoot.gameObject.SetActive(!campaign.MenhirActive&&!film&&!overlay&&!campaign.IncidentModal&&campaign.Dialogue==null&&!campaign.QuestOverlay&&campaign.Ending==null);SkipButton.gameObject.SetActive(film);
+            if(campaign?.State==null||GameplayRoot==null)return;bool nativeFilm=campaign.cinematicDirector.IsPlaying;
+            var activity=GetComponent<CampaignActivitiesV17>();
+            bool film=nativeFilm||(activity?.IntroPlaying??false);bool overlay=menus.IsOpen||GetComponent<CampaignMap>().IsOpen||activity?.BlocksGameplay==true;
+            GameplayRoot.gameObject.SetActive(!campaign.MenhirActive&&!film&&!overlay&&!campaign.IncidentModal&&campaign.Dialogue==null&&!campaign.QuestOverlay&&campaign.Ending==null);SkipButton.gameObject.SetActive(nativeFilm);
             foreach(var group in new[]{statusRoot,questRoot,hotbarRoot,controlsRoot,timerRoot})group.localScale=Vector3.one*settings.preferences.hudScale;
             for(int i=0;i<4;i++){float value=campaign.Value("stat",keys[i]);fills[i].anchorMax=new Vector2(Mathf.Clamp01(value/100),1);values[i].text=$"{value:0}/100";values[i].gameObject.SetActive(settings.preferences.numbers);fills[i].parent.parent.GetComponent<AdventureTooltip>().caption=$"{titles[i]} : {value:0}/100";}
             int sec=Mathf.CeilToInt(campaign.RemainingSeconds);timer.text=$"Conseil des Sages : {sec/60:00}:{sec%60:00}";
             states.text=(campaign.Value("stat","life")<50?"+ Blessure  ":"")+(campaign.Value("stat","fatigue")>=70?"! Fatigue critique  ":"")+(campaign.Value("stat","food")<20?"! Faim":"");
-            var act=campaign.CurrentAct;var tracked=campaign.QuestFor(nav.Action)??campaign.Data.quests.FirstOrDefault(q=>nav.Action?.id.EndsWith(":"+q.id,StringComparison.Ordinal)==true);
-            var last=campaign.State.history.Select(h=>campaign.FindAction(h.id)).LastOrDefault(a=>a!=null&&(tracked==null?a.actId==act.id:tracked.actionIds.Contains(a.id))&&campaign.State.completedActions.Contains(a.id));
-            quests.text=$"<color=#F4C567><b>{tracked?.title??act.title}</b></color>\n\n";
-            if(last!=null)quests.text+="<indent=23><color=#92DC99>"+last.title+"</color></indent>\n";
-            if(nav.Action!=null)quests.text+=$"<indent=23><color=#FFD16A>{nav.Action.title}</color></indent>\n{nav.Distance:0} m";
-            else if(campaign.IsActComplete)quests.text+="Acte terminé · ouvre le journal";
-            if(!nav.Complete&&nav.Target!=null)quests.text+=nav.Replanning?"\nActualisation du parcours":"\nAucun chemin accessible";
-            quests.text+="\n\n<size=17>Risques critiques : "+(campaign.State.risks.Count==0?"à évaluer":campaign.State.risks.Count(r=>r.value>=2).ToString())+"</size>";
-            quests.ForceMeshUpdate(true);
-            void PlaceMark(RectTransform mark,string text){int index=string.IsNullOrEmpty(text)?-1:quests.GetParsedText().IndexOf(text,StringComparison.Ordinal);bool show=index>=0&&index<quests.textInfo.characterCount;mark.gameObject.SetActive(show);if(show)mark.anchoredPosition=new Vector2(8,quests.textInfo.characterInfo[index].baseLine+6);}
-            PlaceMark(doneMark,last?.title);PlaceMark(activeMark,nav.Action?.title);
+            var step=campaign.Objectives.Current;
+            var act=campaign.CurrentAct;
+            var title=step?.Quest?.title??(step?.Optional==true?"Exploration":act.title);
+            string heading=step?.Optional==true?"OBJECTIF FACULTATIF":"MISSION PRINCIPALE";
+            string details=step?.Action==null?step?.Requirement??"Consulte le journal pour poursuivre.":
+                $"{step.Title}\n{step.Site} · {nav.Distance:0} m\n{step.Verb} · {QuestGuidanceV243.Command(settings,step.Phase)}";
+            if(step?.Activity!=null)details+="\n"+step.Instruction;
+            string progress=step?.Total>0?$"\n{step.Finished}/{step.Total} objectifs":"";
+            string unavailable=!nav.Complete&&nav.Target!=null?"\n"+nav.Status:"";
+            quests.text=$"<color=#F4C567><b>{heading}</b></color>\n{title}\n\n<color=#FFD16A>{details}</color>{progress}{unavailable}";
+            doneMark.gameObject.SetActive(false);activeMark.gameObject.SetActive(false);
             if(lastAction!=nav.Action?.id){if(lastAction!=null){notification.text="Nouvel objectif\n"+nav.Action?.title;notificationUntil=Time.unscaledTime+4;}lastAction=nav.Action?.id;}
             if(lastMessage!=campaign.Message){lastMessage=campaign.Message;if(!string.IsNullOrWhiteSpace(lastMessage)){notification.text=lastMessage;notificationUntil=Time.unscaledTime+4;}}
             notification.gameObject.SetActive(Time.unscaledTime<notificationUntil);
             var interaction=GetComponent<WorldInteraction>();var available=interaction.FocusActions.Where(a=>campaign.CanExecute(a,out _)).ToArray();
             string name=campaign.Data.characters.FirstOrDefault(c=>c.id==interaction.FocusBindingId)?.name;prompt.text=available.Length==0?"":settings.Binding("interact")+" : "+(name!=null?"Parler à "+name:available[0].title);
+            if(interaction.FocusInspection!=null)prompt.text=QuestGuidanceV243.Command(settings)+" · "+interaction.FocusInspection.title;
+            if(nav.Action?.id==QuestGuidanceV243.Sst&&campaign.Near(QuestGuidanceV243.Menhir))prompt.text=QuestGuidanceV243.AtMenhir+"\n"+QuestGuidanceV243.Command(settings);
             for(int i=0;i<8;i++){float quantity=inventory.Quantity(inventory.items[i].id);quantities[i].text=quantity>0?quantity.ToString("0"):"";slots[i].GetComponent<UnityEngine.UI.Image>().color=i==inventory.Selected?AdventureUI.Gold:new Color(.55f,.52f,.46f,quantity>0?.65f:.3f);slots[i].Find("Objet").localScale=Vector3.one*settings.preferences.iconScale;slots[i].Find("Objet").GetComponent<UnityEngine.UI.RawImage>().color=quantity>0?Color.white:new Color(.4f,.4f,.4f,.35f);}
             controlsRoot.gameObject.SetActive(settings.ControlsVisible||inventory.CommandTarget()!=null&&settings.preferences.controls);var hints=new System.Collections.Generic.List<(string,string)>{("Inventaire",settings.Binding("inventory")),("Fabrication",settings.Binding("craft"))};
             if(inventory.CanUseCurrent)hints.Add(("Utiliser","mouse-left"));hints.Add(("Cibler","mouse-right"));if(inventory.CommandTarget()!=null)hints.Add(("Commandes",settings.Binding("commands")));controlHints.Set(hints.ToArray());

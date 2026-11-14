@@ -20,7 +20,13 @@ namespace UngaBunga45001
                 var work=new ActionDefinition{id=id,title="Réaliser les mesures et réorganiser le poste",actId=decision.actId,targetBindingId=decision.targetBindingId,durationSeconds=8,requiredFlags=new[]{"done:"+decision.id},costs=new[]{new CostDefinition{id="wood",amount=2},new CostDefinition{id="stone",amount=1}},effects=new[]{new EffectDefinition{kind="flag",target="done:"+id,value=1},new EffectDefinition{kind="flag",target="measure:"+q.id,value=1},new EffectDefinition{kind="flag",target=q.verificationFlag,value=0},new EffectDefinition{kind="building",target=binding,value=1},new EffectDefinition{kind="risk",target=q.riskId,value=1}}};
                 additions.Add(work);q.actionIds=q.actionIds.Take(q.actionIds.Length-1).Concat(new[]{id,final.id}).ToArray();
                 final.requiredFlags=final.requiredFlags.Concat(new[]{"measure:"+q.id}).Distinct().ToArray();final.repeatable=true;
-                final.effects=final.effects.Concat(new[]{new EffectDefinition{kind="risk",target=q.riskId,value=0},new EffectDefinition{kind="flag",target="effective:"+q.id,value=1},new EffectDefinition{kind="flag",target=q.verificationFlag,value=1}}).ToArray();
+                string effectivenessFlag = "effective:" + q.id;
+                var conditionalEffects = final.effects.Where(effect => effect.requiredFlags.Contains(effectivenessFlag)).ToArray();
+                final.effects = final.effects.Except(conditionalEffects).Concat(new[] {
+                    new EffectDefinition { kind = "risk", target = q.riskId, value = 0 },
+                    new EffectDefinition { kind = "flag", target = effectivenessFlag, value = 1 },
+                    new EffectDefinition { kind = "flag", target = q.verificationFlag, value = 1 }
+                }).Concat(conditionalEffects).ToArray();
             }
             Data.actions=Data.actions.Concat(additions).ToArray();
         }

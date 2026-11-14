@@ -1,0 +1,49 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": true,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Fenêtre tactile réellement appliquée",
+      "value": {
+        "width": 852,
+        "height": 393,
+        "touches": 1
+      }
+    },
+    {
+      "name": "Inspection des débris enregistrée avec la commande Interagir",
+      "value": {
+        "x": 351.924072265625,
+        "y": 11.840607643127441,
+        "z": 278.20233154296875
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

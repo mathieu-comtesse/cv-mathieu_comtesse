@@ -12,6 +12,8 @@ namespace UngaBunga45001
         public string ConversationActorId{get;private set;}="";
         public QuestCatalog QuestCatalog{get;private set;}
         bool questRefresh,claiming;public bool QuestMigrationApplied{get;private set;}
+        QuestObjectiveResolver objectiveResolver;
+        internal QuestObjectiveResolver Objectives => objectiveResolver ??= new QuestObjectiveResolver(this);
         public QuestDefinition PresentedQuest=>Data?.quests.FirstOrDefault(q=>q.id==PresentedQuestId);
         public QuestRecord QuestState(string id)=>State?.quests.FirstOrDefault(q=>q.id==id);
         public QuestDefinition QuestFor(ActionDefinition action)=>action==null?null:Data.quests.FirstOrDefault(q=>q.actionIds.Contains(action.id));
@@ -37,11 +39,13 @@ namespace UngaBunga45001
             PrepareStructuralPrevention();
             PrepareMenhirDuel();
             PrepareInteractionActions();
+            PrepareCampaignV17();
         }
         void InitializeQuests(bool fresh=false)
         {
             if(State==null)return;State.quests??=new List<QuestRecord>();State.rewardReceipts??=new List<string>();State.knowledge??=new List<ISOProgress>();State.viewedDialogues??=new List<string>();State.technologies??=new List<string>();State.accidents??=new List<AccidentRecord>();
-            State.viewedCinematics??=new List<string>();InitializeTribalState();InitializeMenhirState();bool migrate=State.questSchema==0&&!fresh;QuestMigrationApplied=migrate;
+            State.viewedCinematics??=new List<string>();InitializeTribalState();InitializeMenhirState();bool previousCampaign=State.questSchema<17&&!fresh;bool migrate=State.questSchema==0&&!fresh;QuestMigrationApplied=migrate||previousCampaign;
+            if(previousCampaign&&File.Exists(SavePath)&&!File.Exists(SavePath+".pre-v17.bak"))try{File.Copy(SavePath,SavePath+".pre-v17.bak",false);}catch(Exception error){Debug.LogWarning("Copie de sécurité V16 différée : "+error.Message);}
             foreach(var q in Data.quests)if(QuestState(q.id)==null)
             {
                 var record=new QuestRecord{id=q.id};State.quests.Add(record);
@@ -50,7 +54,13 @@ namespace UngaBunga45001
                 {record.accepted=record.validated=record.claimed=true;record.status=QuestStatus.COMPLETED;State.rewardReceipts.Add("legacy:"+q.id);}
                 else if(migrate&&q.actionIds.Any(State.completedActions.Contains))record.accepted=true;
             }
-            State.questSchema=10;RefreshQuests();
+            State.questSchema=17;InitializeCampaignV17();
+            if(previousCampaign)
+            {
+                State.campaignV17.legacyEnding=State.endingId;State.endingId="";State.activeCinematicId="";State.pendingCinematicsV15?.Clear();
+                var frontier=MainQuestFrontier();if(frontier!=null){State.actIndex=Mathf.Max(0,Array.FindIndex(Data.acts,a=>a.id==frontier.actId));State.trackedQuestId=frontier.id;State.trackedActionId="";}
+            }
+            RefreshQuests();
         }
         public void RefreshQuests()
         {
@@ -58,6 +68,8 @@ namespace UngaBunga45001
             try{var main=MainQuestFrontier();var optional=OptionalQuestFrontier();foreach(var q in Data.quests)
             {
                 var r=QuestState(q.id);if(r==null)continue;
+                var previousStatus=r.status;
+                try{
                 r.completedObjectives=q.actionIds.Where(State.completedActions.Contains).ToArray();
                 if(r.claimed){r.status=QuestStatus.COMPLETED;continue;}
                 if(r.status==QuestStatus.REPLACED||r.status==QuestStatus.FAILED)continue;
@@ -72,6 +84,7 @@ namespace UngaBunga45001
                 bool safe=QuestValidationIssues(q).Length==0;
                 if(!safe)continue;
                 r.status=r.validated?QuestStatus.READY_TO_CLAIM:QuestStatus.READY_TO_VALIDATE;
+                }finally{if(r.status!=previousStatus)objectiveResolver?.Invalidate();}
             }}finally{questRefresh=false;}
         }
         void SetKnowledge(QuestDefinition q,int level)
@@ -128,7 +141,7 @@ namespace UngaBunga45001
                 Record(receipt,q.title,"Récompenses remises une seule fois à Dylan.");
                 if(!TrySave(SavePath)){State=JsonUtility.FromJson<CampaignSave>(before);return false;}
                 if(State.trackedQuestId==id){State.trackedQuestId="";State.trackedActionId="";}
-                CloseQuest();RefreshQuests();if(IsActComplete&&!IsModal)AdvanceAct();Save();GetComponent<QuestNavigationController>()?.ForceRefresh();var next=MainQuestFrontier();Inform("Mission terminée : "+q.title+" · Récompenses reçues."+(next!=null&&QuestBaseUnlocked(next)?" Nouvelle mission disponible auprès de "+CharacterName(next.giverId)+".":""));return true;
+                CloseQuest();RefreshQuests();for(int chapter=4;chapter<=10;chapter++)GetComponent<VillageUpgradeV18>()?.TryCompleteChapter(chapter);if(IsActComplete&&!IsModal&&!(GetComponent<VillageUpgradeV18>()?.PendingPresentation??false))AdvanceAct();Save();GetComponent<QuestNavigationController>()?.ForceRefresh();var next=MainQuestFrontier();Inform("Mission terminée : "+q.title+" · Récompenses reçues."+(next!=null&&QuestBaseUnlocked(next)?" Nouvelle mission disponible auprès de "+CharacterName(next.giverId)+".":""));return true;
             }finally{claiming=false;}
         }
         public bool Near(string bindingId)=>BindingDistance(bindingId)<=3.5f;
@@ -137,11 +150,16 @@ namespace UngaBunga45001
         {
             RefreshQuests();var selected=Data.quests.FirstOrDefault(q=>q.id==State.trackedQuestId&&QuestState(q.id)!=null&&!QuestState(q.id).claimed&&QuestState(q.id).status!=QuestStatus.REPLACED&&QuestState(q.id).status!=QuestStatus.FAILED);
             selected??=Data.quests.FirstOrDefault(q=>q.required&&q.actId==CurrentAct?.id&&QuestState(q.id)!=null&&QuestState(q.id).status!=QuestStatus.LOCKED&&QuestState(q.id).status!=QuestStatus.COMPLETED&&QuestState(q.id).status!=QuestStatus.REPLACED);
-            if(selected==null)return null;var r=QuestState(selected.id);if(r==null||r.status==QuestStatus.LOCKED)return null;
+            return QuestDestination(selected);
+        }
+        internal ActionDefinition QuestDestination(QuestDefinition selected)
+        {
+            if(selected==null)return null;var r=QuestState(selected.id);
+            if(r==null||r.claimed||r.status==QuestStatus.LOCKED||r.status==QuestStatus.REPLACED||r.status==QuestStatus.FAILED)return null;
             if(!r.accepted)return QuestMenuAction(selected,"offer","Parler à "+CharacterName(selected.giverId));
             if(r.status==QuestStatus.READY_TO_VALIDATE||r.status==QuestStatus.READY_TO_CLAIM)return QuestMenuAction(selected,"details","Retourner voir "+CharacterName(selected.giverId));
-            var next=selected.actionIds.Select(id=>Data.actions.FirstOrDefault(a=>a.id==id)).FirstOrDefault(a=>a!=null&&!State.completedActions.Contains(a.id)&&CanExecute(a,out _,true));
-            if(next==null&&!string.IsNullOrEmpty(selected.verificationFlag)&&!HasFlag(selected.verificationFlag))next=FindAction(selected.actionIds.Last());return next;
+            var next=selected.actionIds.Select(FindAction).FirstOrDefault(a=>a!=null&&!State.completedActions.Contains(a.id)&&CanExecute(a,out _,true));
+            return next;
         }
         ActionDefinition QuestMenuAction(QuestDefinition q,string mode,string title)=>new ActionDefinition{id="quest:"+mode+":"+q.id,title=title,targetBindingId=q.giverId,actId="*"};
         public ActionDefinition[] QuestInteractions(string binding)
@@ -151,6 +169,7 @@ namespace UngaBunga45001
         }
         public ActionDefinition FindAction(string id)
         {
+            if(id!=null&&id.StartsWith("upgrade:v18:"))return VillageActionV18(id);
             if(string.IsNullOrEmpty(id))return null;if(id.StartsWith("travel:",StringComparison.Ordinal)){string binding=id.Substring(7);return bindings.Find(binding)==null?null:new ActionDefinition{id=id,title="Rejoindre "+(GetComponent<CampaignMap>()?.DisplayName(binding)??binding),targetBindingId=binding,actId="*",repeatable=true};}
             if(id.StartsWith("quest:",StringComparison.Ordinal)){var pieces=id.Split(':');var q=Data.quests.FirstOrDefault(x=>x.id==string.Join(":",pieces.Skip(2)));return q==null?null:QuestMenuAction(q,pieces[1],q.title);}return Data.actions.FirstOrDefault(a=>a.id==id);
         }
