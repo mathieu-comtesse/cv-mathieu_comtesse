@@ -8,9 +8,10 @@
 const reduit = matchMedia('(prefers-reduced-motion: reduce)'), DUREE = 600;
 let cible = 0, depart = 0, t0 = 0, pose = -1, actif = false;
 const max = () => document.documentElement.scrollHeight - innerHeight;
-const defileSeul = (el) => { for (let e = el; e && e !== document.body && e !== document.documentElement; e = e.parentElement) { if (e.matches?.('dialog,[data-cv-wheel],.rf-win,input,textarea,select')) return true; const s = getComputedStyle(e).overflowY; if ((s === 'auto' || s === 'scroll') && e.scrollHeight > e.clientHeight + 1) return true; } return false; };
-function image(t) {
+const defileSeul = (el) => { for (let e = el instanceof Element ? el : null; e && e !== document.body && e !== document.documentElement; e = e.parentElement) { if (e.matches?.('dialog,[data-cv-wheel],.rf-win,input,textarea,select')) return true; const s = getComputedStyle(e).overflowY; if ((s === 'auto' || s === 'scroll') && e.scrollHeight > e.clientHeight + 1) return true; } return false; };
+function image() {
   if (!actif) return;
+  const t = performance.now();                                                   // même horloge que t0 (l'horodatage passé aux images peut venir d'un autre repère)
   if (Math.abs(scrollY - pose) > 2) { actif = false; return; }                     // quelqu'un d'autre a fait défiler : on rend la main
   const k = Math.min(1, (t - t0) / DUREE), y = depart + (cible - depart) * (1 - (1 - k) ** 3);
   scrollTo({ top: y, behavior: 'instant' }); pose = scrollY;

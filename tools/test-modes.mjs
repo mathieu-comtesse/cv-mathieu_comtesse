@@ -32,6 +32,14 @@ verifie(tenu.y === 0 && await p.evaluate(() => scrollY) === 0, 'un glissé ne d�
 const c1 = await p.evaluate((h) => window.__cvHeroGraph.cibles().find((c) => c.handle === h), c0.handle); await p.mouse.move(c1.x, c1.y); await p.mouse.down(); await p.mouse.up(); await p.waitForTimeout(2500);
 verifie(await p.evaluate(() => scrollY) > 400, `un clic sans déplacement mène au contenu (défilement à ${await p.evaluate(() => scrollY)} px)`);
 
+/* ---- défilement lissé à la molette (calé sur l'enregistrement de la référence : queue d'environ 600 ms) ---- */
+await p.evaluate(() => scrollTo(0, 2000)); await p.waitForTimeout(900); await p.mouse.move(700, 450);
+const roule = await p.evaluate(async () => { const y0 = scrollY, t0 = performance.now(), out = []; window.dispatchEvent(new WheelEvent('wheel', { deltaY: 300, deltaMode: 0, bubbles: true, cancelable: true })); const actif = window.__cvDefilement.actif; while (performance.now() - t0 < 2500) { out.push([Math.round(performance.now() - t0), Math.round(scrollY - y0)]); await new Promise((r) => requestAnimationFrame(r)); if (!window.__cvDefilement.actif && out.length > 2) { out.push([Math.round(performance.now() - t0), Math.round(scrollY - y0)]); break; } } return { actif, out, duree: window.__cvDefilement.duree }; });
+{ const fin = roule.out.at(-1), mono = roule.out.every((s, i) => !i || s[1] >= roule.out[i - 1][1]), inter = roule.out.filter((s) => s[1] > 5 && s[1] < 295).length;
+  verifie(roule.actif && mono && Math.abs(fin[1] - 300) <= 2 && fin[0] >= roule.duree - 120, `molette : 300 px parcourus en ${fin[0]} ms (nominal ${roule.duree} ms), ${inter} positions intermédiaires, sans retour en arrière`); }
+const coupe = await p.evaluate(async () => { window.dispatchEvent(new WheelEvent('wheel', { deltaY: 600, deltaMode: 0, bubbles: true, cancelable: true })); await new Promise((r) => setTimeout(r, 120)); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true })); const y = scrollY; await new Promise((r) => setTimeout(r, 900)); return [window.__cvDefilement.actif, Math.abs(scrollY - y)]; });
+verifie(coupe[0] === false && coupe[1] < 3, `le lissage rend la main dès une touche du clavier (défilement résiduel ${coupe[1]} px)`);
+
 /* ---- bascule animée ---- */
 await p.evaluate(() => scrollTo(0, 3000)); await p.waitForTimeout(1200);
 const avant = await p.evaluate(() => { const e = document.querySelector('.product-card h3'), r = e.getBoundingClientRect(); return { y: scrollY, x: r.left, t: r.top }; });
@@ -55,7 +63,7 @@ verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m6'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m8'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */

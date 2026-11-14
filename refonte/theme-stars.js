@@ -183,7 +183,8 @@ function scene(chapitres) {
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
       if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)), g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
+      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
+        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);

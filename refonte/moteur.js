@@ -229,7 +229,7 @@ export class Ciel {
     for (const x of enfants) {                                                   // spirale régulière : les foyers enfants couvrent le disque sans se chevaucher
       const k = x.rang, rr = rayon * (0.3 + 0.66 * Math.sqrt((k + 0.6) / n)), a = k * OR + 0.6;
       x.centre = [centre[0] + Math.cos(a) * rr * (e.etire || 1), centre[1] + Math.sin(a) * rr * 0.78, centre[2] * (0.75 + 0.5 * ((k * 7) % 5) / 4)];
-      x.rayon = rayon * 0.3;
+      x.rayon = rayon * 0.38;
     }
   }
   compte(groupe) { let total = 0, editoriaux = 0; for (const e of this.etoiles.values()) if (e.groupe === groupe) { total += e.noeuds.length + 1; editoriaux += e.noeuds.filter((n) => n.ed).length; } return { total, editoriaux }; }
@@ -301,6 +301,7 @@ export class Ciel {
         if (n.ed) {
           const im = this.image(n.ed.image), w = (im ? 30 : 18) * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * ech * (compact ? 0.62 : 1);
           if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
+          else if (plat) { ctx.fillStyle = actif ? '#fff' : vert ? '#46e1af' : '#7d98ff'; ctx.beginPath(); ctx.arc(x, y, actif ? 4.5 : 3, 0, 6.283); ctx.fill(); }   // à plat, un contenu sans image est un point (relevé sur la référence) ; il reste saisissable
           else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
           if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y }; } }
         } else { ctx.fillStyle = plat ? (e.racine ? 'rgba(96,124,255,.5)' : vert ? '#46e1af' : '#6381ff') : e.racine ? 'rgba(200,215,255,.55)' : 'rgba(223,233,255,.9)'; ctx.beginPath(); ctx.arc(x, y, (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech), 0, 6.283); ctx.fill(); }
@@ -314,7 +315,7 @@ export class Ciel {
         const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if (plat && e.parent) {                                                  // à plat : nom contre le foyer, suivi du nombre de contenus en gris
-          const n = e.noeuds.filter((q) => q.ed).length, px = compact ? 10 : 12;
+          const n = e.noeuds.filter((q) => q.ed).length, px = compact ? 10 : 11;
           ctx.font = `500 ${px}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(1,4,25,.75)';
           const tx = F.x + cote / 2 + 6, ty = F.y - cote / 2 - 4, nom = compact ? (e.num || '') : e.label; ctx.strokeText(nom, tx, ty); ctx.fillText(nom, tx, ty);
           if (!compact) { const l = ctx.measureText(nom).width; ctx.font = `500 ${px - 2}px "JetBrains Mono",ui-monospace,monospace`; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText(String(n), tx + l + 7, ty - 3); }
