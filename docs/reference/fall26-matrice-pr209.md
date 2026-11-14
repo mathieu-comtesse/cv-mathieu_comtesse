@@ -350,3 +350,63 @@ Conditions : branche `6fd30e8` (worktree `E:\Talas-v2-wt-expo`) puis base `65de9
 Synthèse : **0 régression introduite par la branche** ; 5 échecs hérités de la base, identiques à l'assertion près (v52, v49-mobile-book, v49-features, custom-scene, et l'intermittent v51 pour la base) ; 2 tests non exécutables ici (boucle locale) ; 0 amélioration démontrée ; 7 réussites communes. Les tests Playwright des chapitres du chemin ne couvrent pas `index.html` en dehors de `test-modes`, `test-no-shopify`, `test-objets-3d` et `test-machines` (déjà rejoués).
 
 Réserve : les échecs hérités reposent sur la comparaison d'assertion ; leur cause profonde n'a pas été recherchée dans le code de la pièce 3D (hors périmètre de la branche). Les tests qui n'exercent pas `index.html` ne peuvent pas détecter une régression de l'accueil.
+
+# Phase 3 : corrections visuelles restantes
+
+## A. Éclairage et profondeur des blocs
+
+| Élément | Avant | Maintenant |
+|---|---|---|
+| Dessus | `brightness(1 + 0,28 × rise)` | `brightness(1 + 0,40 × rise)` (filtre CSS sur le DOM du bloc ; la machine 3D n'est pas touchée) |
+| Flancs gauche et droit | `#041795` uni | `#02105f` : nettement plus sombres que les dessus |
+| Tranche avant | `#0a27c4` uni | dégradé vertical `#1236d6` vers `#071d8a` : lumière en haut, ombre en bas |
+| Arêtes | blanc à 0,5 | blanc bleuté `rgba(210,225,255,.7)` |
+
+Différence perceptible entre dessus, flancs et arêtes : oui sur la capture avant/après (`expo-blocs-avant-apres.png`). Limite : pas de vraie source lumineuse ni de normales ; le dessus est du DOM, éclairé par un filtre uniforme. Aucune comparaison de luminosité mesurée avec la référence.
+
+## B. Objet 3D du bloc supérieur
+
+Recalibrage conjoint de la taille et de la position (hors fit initial, valable à plat : inchangé) : échelle × (1 + 0,5 × rise) au lieu de 1 + 0,3 ; point d'appui à 50 % de la hauteur du cadre au lieu de 62 % (`.62 − .12 × rise`), donc remonté vers le centre du dessus. Horizontalement la machine était déjà centrée sur le cadre. Orientation : la machine garde son azimut et son tangage de scène (`entry.view`) ; non recalibrée. Ombre : celle de la machine existe déjà (maillage d'ombre aplati) et suit le déplacement. Écarts : l'objet reste moins dominant que celui de la référence (la machine est un silo avec pupitre, pas un objet compact) ; la position et l'échelle restent réglées à l'œil.
+
+## C. Animations de l'accueil : inventaire et limites
+
+| Animation | Valeur chez nous | Mesurée sur la référence ? |
+|---|---|---|
+| Bascule à plat vers expo | 800 ms, lissage de cinquième ordre, réversible | **oui** (`duration` de la configuration) |
+| Départ de la montée des hauteurs | 35 % de la progression | **oui** (`riseAt`) |
+| Impulsions sur les lignes de grille | vitesse 495 unités/s, longueur 300, la moitié des lignes, luminosité 0,4 ; absentes en mouvement réduit | **oui** (configuration : `pulses`), **ajoutées dans cette passe** ; la répartition entre lignes est notre choix |
+| Défilement lissé | approche exponentielle, taux 10 s^-1 (constante de temps 100 ms) | **oui, grossièrement** : 6 échantillons à environ 11 images/s sur un défilement de 500 px ; taux estimé, pas lu |
+| Rotation du cube | 0,21 et 0,17 rad/s (périodes 30 s et 37 s) | non : trois instants seulement, aucune vidéo |
+| Arcs clairs (trois) | 0,045 / 0,034 / 0,06 tour par seconde (périodes 22, 29 et 17 s) | non : leur existence et leur multiplicité seulement |
+| Valeur de φ de la formule | 0,45 rad/s (période 14 s) | non |
+| Impulsions sur les branches éditoriales | une par branche, période 3,3 s | non |
+| Dérive des nœuds | périodes 15,7 s et 19 s, amplitude 2 % du rayon | non |
+| Fuite au pointeur et retour élastique | rayon 150 px, 18 px, retour exp(−9 t) | non |
+| Relevé d'un cadre | ressort raideur 120, amortissement 17 | non |
+
+Les vitesses non mesurées ne sont **pas** présentées comme reproduites : il faudrait une vidéo de la référence (l'extension ne l'enregistre pas ici) ou des relevés image par image.
+
+## D. Inertie du défilement
+
+Nouveau module `refonte/defilement.js`. Relevé de la référence (défilement de 500 px, `scrollY` échantillonné) : reste à parcourir 231, 107, 40, 18, 6 px puis 0, rapports successifs de 0,33 à 0,46 par 75 à 115 ms : approche exponentielle sans rebond, constante de temps d'environ 100 ms. Reprise : à chaque coup de molette (delta de 40 px ou plus, ou ligne/page) la cible avance et la page la rejoint par `courant += (cible − courant) × (1 − e^(−10·dt))`, sans dépassement, arrêt net sur la cible. Non intercepté : pavé tactile (petits deltas), clavier, ancres, tactile, éléments défilables eux-mêmes, champs de saisie, zoom (Ctrl), mouvement réduit, boîtes de dialogue ouvertes. Tout défilement venu d'ailleurs resynchronise la cible (pas de lutte entre deux animations).
+
+Nouveau test `tools/test-defilement.mjs` (GPU) : arrivée exacte à 500 px, progression monotone, maximum 500,0 px (aucun dépassement), 90 % de la course en 216 ms (attendu environ 230 ms), pas de 34 px au début contre 1,1 px à la fin, petit delta natif, touche Fin non gênée, molette cohérente après le clavier, mouvement réduit natif : **PASS**. Continuité avec la caméra : le défilement pilote le chemin par `scrollY` ; la position de lecture reste exacte (test `test-modes`). Limites : estimation du taux sur un relevé grossier ; transition entre chapitres non comparée à la référence ; effet sur les autres pages du site non testé (le module n'est chargé que par `index.html`).
+
+# Phase 4 : performance (GPU matériel, RX 9070 XT, pas de rendu logiciel)
+
+Outils : `tools/mesure-fluidite-gpu.mjs`, `tools/mesure-chapitres-gpu.mjs`, profileur CPU de Chrome (échantillonnage 200 à 300 µs).
+
+| Mesure | Branche | Base PR 210 |
+|---|---:|---:|
+| Expo, régime établi, 2498 × 1319 (tâche, ms/image) | 6,2 à 7,4 selon les passages | 7,2 |
+| À plat, régime établi (tâche, ms/image) | 2,9 à 4,1 | 3,1 |
+| Balayage rapide de chapitres, 1920 × 1080, 8 s de molette (tâche, ms/image) | 21,4 | 17,3 |
+| Images de plus de 25 ms sur 8 s | 83 sur 410 | 118 sur 334 |
+| Image la plus longue | 383 ms | 367 ms |
+| p95 / p99 du temps d'image | 50 / 100 ms | 67 / 200 ms |
+| Tas JavaScript : pic, puis après ramasse-miettes | 87 Mo puis 55 Mo | 78 Mo puis 59 Mo |
+| Nœuds DOM avant et après | 10 317 puis 10 395 | 10 316 puis 10 413 |
+
+Lecture : en régime établi l'expo est au niveau de la base ou en dessous. En balayage rapide, les deux versions sont limitées par le CPU (au-dessus de 16,7 ms par image) : le profil montre que le coût vient de la compilation des programmes WebGL à la première apparition des machines (`setProgram`, `getProgram`, `getProgramInfoLog`, environ 4 ms par image, **hérité de la base**), pas du décor ajouté (quadrillage 0,7 ms, panneau courbe 0,7 ms avant culling). Le panneau courbe est maintenant ignoré hors champ ; aucun gain mesurable sur le balayage. La branche perd moins d'images que la base mais coûte 23 % de plus en moyenne : les deux chiffres sont rapportés. Pas de fuite mémoire visible (tas et nœuds DOM stables après ramasse-miettes). Nombre de calculs géométriques : environ 1 000 projections par image pour les arcs, 250 pour le quadrillage (rangées), 150 pour le panneau, 100 pour la courbe ; aucun compteur instrumenté, ordres de grandeur d'après le code. Aucun objectif d'images par seconde n'est annoncé : une seule machine, un écran 60 Hz ; les 60 images par seconde sont tenues en régime établi, pas en balayage rapide.
+
+Tests après ces modifications : `test-defilement` PASS ; `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud ; position de lecture, mouvement réduit, clavier et mobile passent). Les 15 tests longs n'ont pas été rejoués après ces modifications (ils n'exercent pas `index.html`).

@@ -358,9 +358,9 @@ export function dessineContours(ctx, view, boxes, souris = null) {
       if (ombre.every(Boolean)) { ctx.fillStyle = 'rgba(0,0,0,.22)'; trace(ombre); ctx.fill(); }
     }
     const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
-    ctx.fillStyle = plein ? '#041795' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
-    ctx.fillStyle = plein ? '#0a27c4' : 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
-    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
+    ctx.fillStyle = plein ? '#02105f' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
+    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#1236d6'); g.addColorStop(1, '#071d8a'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    ctx.strokeStyle = plein ? 'rgba(210,225,255,.7)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
     const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
@@ -495,6 +495,7 @@ export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, tilt, items = []
   const bord = [];
   for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
   const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return; droite.push(q); }
+  { let haut = Infinity, bas = -Infinity; for (const q of bord) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } for (const q of droite) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } if (bas < 0 || haut > view.H) return; }   /* hors champ : rien à tracer */
   ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = 'round';
   ctx.beginPath(); [...bord, ...droite].forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
   ctx.fillStyle = 'rgba(3,22,150,.86)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke();
