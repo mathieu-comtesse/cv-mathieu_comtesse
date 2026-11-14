@@ -43,7 +43,7 @@ Les fichiers `SHOPIFY_FALL26_EXTRACTION_COMPLETE_V1.zip` et `shopify-fall26-effe
 
 ---
 
-# Mise à jour : observation du mode Expo dans Chrome 157 (PR 211, base PR 210)
+# Mise à jour : observation du mode Expo dans Chrome 157 (branche de calibration, base PR 210)
 
 La limite « le mode Expo ne s'établit pas sans vraie carte graphique » était un mauvais diagnostic. Le mode Expo de la référence exige l'API expérimentale html-in-canvas ; le navigateur intégré à l'application ne l'a pas, le Chrome réel (extension Claude in Chrome) l'a.
 
