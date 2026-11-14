@@ -213,9 +213,10 @@ export class Ciel {
     const rd = alea(hache(id + '|' + (spec.label || ''))), ed = spec.editoriaux || [], noeuds = [];
     const eventail = (k, n) => spec.parent || spec.racine ? rd() * 6.283 : -2.5 + (k + 0.5) / n * 3.3 + (rd() - 0.5) * 0.3;     // titres : éventail ouvert vers le haut et la droite
     ed.forEach((e, k) => noeuds.push({ ed: e, a: spec.parent ? k / ed.length * 6.283 + rd() * 0.5 : eventail(k, ed.length), r: 0.62 + rd() * 0.38, dh: (rd() - 0.3) * 0.5, phase: rd() * 6.283, sous: [] }));
-    const nDeco = spec.racine ? 90 : spec.parent ? 7 + Math.floor(rd() * 5) : spec.petit ? 9 + Math.floor(rd() * 4) : 14 + Math.floor(rd() * 5);
+    const dens = typeof innerWidth !== 'undefined' && innerWidth < 520 ? 0.5 : 1;   // moins de branches sur petit écran
+    const nDeco = Math.round(dens * (spec.racine ? 120 : spec.parent ? 20 + Math.floor(rd() * 10) : spec.petit ? 24 + Math.floor(rd() * 10) : 38 + Math.floor(rd() * 14)));
     for (let k = 0; k < nDeco; k++) {
-      const n = { a: eventail(k, nDeco) + (spec.parent || spec.racine ? 0 : rd() * 1.2), r: spec.racine ? 0.12 + Math.sqrt(rd()) * 1.05 : 0.25 + rd() * 0.8, dh: (rd() - 0.4) * (spec.racine ? 1.6 : 0.6), phase: rd() * 6.283, taille: 1.1 + rd() * 1.5, sous: [] };
+      const n = { a: eventail(k, nDeco) + (spec.parent || spec.racine ? 0 : rd() * 1.2), r: spec.racine ? 0.12 + Math.sqrt(rd()) * 1.05 : 0.3 + 0.9 * rd() ** 1.3, dh: (rd() - 0.4) * (spec.racine ? 1.6 : 0.6), phase: rd() * 6.283, taille: 1.0 + rd() ** 2 * 2.6, sous: [] };
       if (!spec.racine && rd() < 0.45) for (let q = 0, m = 1 + Math.floor(rd() * 3); q < m; q++) n.sous.push({ a: n.a + (rd() - 0.5) * 1.6, r: 0.12 + rd() * 0.2 });   // ramifications secondaires
       noeuds.push(n);
     }
@@ -286,8 +287,8 @@ export class Ciel {
         if (n.ox || n.oy) { x += n.ox; y += n.oy; }
         const voile = cache(x, y, P.z) ? 0.12 : 1, actif = this.survol && this.survol.noeud === n;
         ctx.globalAlpha = voile * A;
-        ctx.strokeStyle = n.ed ? (actif ? '#fff' : j < 2 ? 'rgba(95,230,255,.95)' : 'rgba(255,255,255,.78)') : e.racine ? 'rgba(170,195,255,.16)' : 'rgba(207,224,255,.42)';
-        ctx.lineWidth = actif ? 2 : 1; ctx.beginPath(); ctx.moveTo(F.x, F.y); ctx.lineTo(x, y); ctx.stroke();
+        ctx.strokeStyle = n.ed ? (actif ? '#fff' : j < 2 ? 'rgba(95,230,255,.95)' : 'rgba(255,255,255,.78)') : e.racine ? 'rgba(190,210,255,.3)' : 'rgba(225,238,255,.72)';
+        ctx.lineWidth = actif ? 2 : 1; ctx.globalCompositeOperation = 'lighter'; ctx.beginPath(); ctx.moveTo(F.x, F.y); ctx.lineTo(x, y); ctx.stroke(); ctx.globalCompositeOperation = 'source-over';
         if (n.ed && libre && g >= 1) {                                           // impulsion lumineuse le long de la branche
           const q = (tt * 0.3 + n.phase / 6.283) % 1, f = Math.min(1, q / 0.75), a = q < 0.75 ? 1 : (1 - q) * 4;
           ctx.fillStyle = `rgba(255,255,255,${(0.95 * a).toFixed(2)})`; ctx.beginPath(); ctx.arc(F.x + (x - F.x) * f, F.y + (y - F.y) * f, 1.7, 0, 6.283); ctx.fill();
@@ -295,11 +296,11 @@ export class Ciel {
         for (const s of n.sous) {                                                // ramifications : petites branches au bout d'une branche graphique
           const Q = proj(wc + Math.cos(s.a) * R * s.r, wr + Math.sin(s.a) * R * s.r * 0.78, wh); if (!Q) continue;
           const qx = x + (Q.x - P.x) * g, qy = y + (Q.y - P.y) * g;
-          ctx.strokeStyle = 'rgba(207,224,255,.3)'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(qx, qy); ctx.stroke();
+          ctx.strokeStyle = 'rgba(225,238,255,.5)'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(qx, qy); ctx.stroke();
           ctx.fillStyle = 'rgba(223,233,255,.8)'; ctx.beginPath(); ctx.arc(qx, qy, 1.2, 0, 6.283); ctx.fill();
         }
         if (n.ed) {
-          const im = this.image(n.ed.image), w = (im ? 30 : 18) * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * ech * (compact ? 0.62 : 1);
+          const kv = 0.72 + (n.phase / 6.283) * 0.8, im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
           if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
           else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
           if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y }; } }
@@ -307,6 +308,7 @@ export class Ciel {
         ctx.globalAlpha = A;
       });
       /* foyer et libellé */
+      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, 'rgba(210,240,255,.55)'); gr.addColorStop(0.35, 'rgba(120,190,255,.22)'); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
       ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine) {

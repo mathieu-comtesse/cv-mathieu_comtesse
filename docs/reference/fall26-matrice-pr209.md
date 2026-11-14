@@ -167,3 +167,25 @@ Conclusion : la caméra, la largeur du sol à son extrémité lointaine et la pe
 Passes 3 à 6 de la mission : densité et composition du graphe central, taille et contenu des nœuds, reprise des trois présentoirs et de leurs objets (dont l'objet 3D), volume de la typographie, animations et optimisation. L'audit de la superposition montre en outre que la composition générale est déjà proche : le principal écart restant est la densité du graphe (la référence a plus de branches et de nœuds, de tailles variées).
 
 Tests après ces modifications : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud). Pas de mesure de fluidité sur GPU matériel. Captures : `expo-reference-contre-comtesse-cote-a-cote.png`, `expo-comtesse-2498x1319-decor.png`, `expo-ref-chrome157-2498x1319-reduit-1512.jpg`.
+
+# Passe 3 : graphe central, foyers, connexions, nœuds
+
+Générateur : `Ciel` dans `refonte/moteur.js`. Les nœuds éditoriaux (les 83 vignettes, liées à leurs vrais chapitres et projets) ne sont pas touchés ; seules les branches **décoratives** (points sans contenu) et le rendu changent. Aucun contenu inventé.
+
+| Élément | Avant | Maintenant | Référence (capture) | État |
+|---|---|---|---|---|
+| Branches décoratives par foyer de chapitre | 7 à 11 | 20 à 29 (38 à 51 pour les foyers libres, 120 pour la racine ; moitié sur écran de moins de 520 px) | foyers avec beaucoup de rayons fins | densifié ; **le nombre exact de la référence n'est pas relevé** |
+| Distribution des longueurs | uniforme (0,25 à 1,05) | beaucoup de courtes, quelques longues (0,3 + 0,9·u^1,3) | longueurs et angles variés | amélioré |
+| Rayonnement des foyers | aucun | halo radial additif (clair au centre, bleu au bord) et branches en mélange additif : le centre s'éclaire par recouvrement | cœur lumineux visible | ajouté |
+| Contraste des branches décoratives | blanc à 0,42 (invisible sur le sol éclairé) | blanc à 0,72 ; ramifications 0,5 ; racine 0,3 | rayons nets | corrigé |
+| Taille des vignettes | uniforme | échelle 0,72 à 1,52 selon une phase propre à chaque nœud (ne décale pas la suite aléatoire) | tailles variées | ajouté |
+| Taille des points au bout des branches | 1,1 à 2,6 | 1,0 à 3,6 (carré de l'aléa) | variée | ajouté |
+| Miniatures dans les nœuds | images du projet quand elles existent | inchangé | éléments visuels dans les nœuds | **écart résiduel** : aucune nouvelle miniature ajoutée |
+| Grandes ellipses autour des foyers | présentes (étoiles posées) | inchangées | présentes | déjà conforme dans le principe |
+| Survol, saisie, retour élastique | présents | inchangés | non observés sur la référence | non modifié |
+
+Écarts résiduels : le nombre, la teinte et la distribution exacts des rayons de la référence ; la forme de ses nœuds (carrés sombres à contour clair, plus gros près de la caméra) ; la disposition exacte des foyers (non repositionnés : la comparaison superposée montre des positions proches). Comparaison faite à dimensions identiques (2498 × 1319 ramené à 1512 × 798) : `expo-graphe-reference-contre-comtesse.png`.
+
+Tests : `test-no-shopify --strict` PASS (83 vignettes projetées), `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur ; mobile 390 × 844 toujours 12 foyers, 0 erreur.
+
+**Performance non établie** : en rendu logiciel à 2498 × 1319, 19 images en 5 s avant comme après (263 ms par image), le rendu 3D logiciel masque entièrement le coût du dessin 2D. Aucune mesure sur GPU matériel ; le surcoût attendu est de l'ordre de 3 à 4 fois plus de lignes 2D et un dégradé radial par foyer, à mesurer.
