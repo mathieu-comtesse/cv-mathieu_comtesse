@@ -27,8 +27,13 @@ verifie(r1.etat === 'ready' && r1.canvas[0] > 100, `tirelire chargée, dessin ${
 verifie(r1.out.at(-1)[4] > r1.out[0][4], `la scène est redessinée (${r1.out.at(-1)[4] - r1.out[0][4]} images en ${(r1.out.at(-1)[0] / 1000).toFixed(1)} s)`);
 let descend = 0, monte = 0; for (let i = 1; i < chutes.length; i++) if (chutes[i][1] === chutes[i - 1][1]) { if (chutes[i][3] < chutes[i - 1][3] - 1e-5) descend++; else if (chutes[i][3] > chutes[i - 1][3] + 1e-5) monte++; }
 verifie(chutes.length >= 3 && descend >= 2 && monte === 0, `chute de la pièce : ${chutes.length} positions relevées, ${descend} pas vers le bas, ${monte} vers le haut (hauteur de ${Math.max(...ys).toFixed(3)} à ${Math.min(...ys).toFixed(3)})`);
-/* accélération : l'écart parcouru entre deux relevés grandit pendant une même chute */
-{ const une = chutes.filter((s) => s[1] === chutes[0]?.[1]), d = une.slice(1).map((s, i) => (une[i][3] - s[3]) / Math.max(1, s[0] - une[i][0])); verifie(d.length < 2 || d.at(-1) > d[0], `chute accélérée (vitesse ${d[0]?.toExponential(2)} puis ${d.at(-1)?.toExponential(2)} par ms)`); }
+/* accélération : la hauteur suit une loi en carré de l'avancement (y = a - k·p²). On ajuste les deux lois (carré et droite) sur les relevés
+   d'une même chute : la loi en carré doit l'emporter nettement. Indépendant de l'espacement des relevés, donc de la charge de la machine. */
+{ const groupes = {}; for (const s of chutes) if (s[2] > 0.02 && s[2] < 0.98) (groupes[s[1]] ||= []).push(s);
+  const g = Object.values(groupes).filter((l) => new Set(l.map((s) => s[2])).size >= 3).sort((a, b) => b.length - a.length)[0] || [];
+  const ajuste = (f) => { const x = g.map((s) => f(s[2])), y = g.map((s) => s[3]), n = x.length, mx = x.reduce((a, b) => a + b, 0) / n, my = y.reduce((a, b) => a + b, 0) / n, sxy = x.reduce((a, v, i) => a + (v - mx) * (y[i] - my), 0), sxx = x.reduce((a, v) => a + (v - mx) ** 2, 0), k = sxy / sxx; return { k, r: Math.sqrt(y.reduce((a, v, i) => a + (v - (my + k * (x[i] - mx))) ** 2, 0) / n) }; };
+  if (g.length < 3) verifie(chutes.length >= 3, `chute accélérée : moins de trois positions d'une même chute (${chutes.length} positions relevées en tout)`);
+  else { const carre = ajuste((p) => p * p), droite = ajuste((p) => p); verifie(carre.k < 0 && carre.r < droite.r * 0.5 + 1e-4, `chute accélérée : ${g.length} positions, écart à la loi en carré ${carre.r.toExponential(1)}, à la droite ${droite.r.toExponential(1)}`); } }
 const pieces = r1.out.at(-1)[1] - r1.out[0][1], attendu = r1.out.at(-1)[0] / 1000 / intervalle;
 verifie(pieces >= 1 && Math.abs(pieces - attendu) <= 1.5, `répétition : ${pieces} pièce(s) en ${(r1.out.at(-1)[0] / 1000).toFixed(1)} s, attendu environ ${attendu.toFixed(1)}`);
 verifie(true, 'collision et rebond : sans objet, la pièce entre dans la fente et disparaît (aucun rebond dans le modèle)');
@@ -42,7 +47,10 @@ await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(20
 await p.evaluate(() => { const e = document.querySelector('#rf-win'); scrollTo(0, e.getBoundingClientRect().top + scrollY - 150); }); await p.waitForTimeout(1500);
 const volet = () => p.evaluate(() => { const s = document.getElementById('rf-shutter'), g = document.getElementById('rf-grip'), v = document.getElementById('rf-win-video'), t = getComputedStyle(s).transform; return { y: t === 'none' ? 0 : Math.round(new DOMMatrixReadOnly(t).m42), pct: +g.getAttribute('aria-valuenow'), texte: g.getAttribute('aria-valuetext'), video: v ? !v.paused : null, h: s.getBoundingClientRect().height }; });
 const depart = await volet(); verifie(depart.pct === 0 && depart.y === 0, `hublot fermé au départ (${depart.texte})`);
-await p.focus('#rf-grip'); await p.keyboard.press('ArrowUp'); const mi = []; for (let i = 0; i < 6; i++) { await p.waitForTimeout(90); mi.push((await volet()).y); } await p.waitForTimeout(700);
+await p.focus('#rf-grip');
+/* positions du volet relevées dans la page à chaque image, dès la touche : le relevé ne dépend plus de l'aller-retour avec le script de test */
+const mi = await p.evaluate(async () => { const s = document.getElementById('rf-shutter'), out = [], t0 = performance.now(); document.getElementById('rf-grip').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true })); while (performance.now() - t0 < 900) { const t = getComputedStyle(s).transform; out.push(t === 'none' ? 0 : Math.round(new DOMMatrixReadOnly(t).m42)); await new Promise((r) => requestAnimationFrame(r)); } return out.filter((y, i, l) => !i || y !== l[i - 1]); });
+await p.waitForTimeout(300);
 const ouvert = await volet();
 verifie(ouvert.pct === 100 && ouvert.y < -50, `ouverture au clavier : volet à ${ouvert.y} px (${ouvert.texte})`);
 verifie(mi.some((y) => y < 0 && y > ouvert.y), `mouvement du volet progressif (positions relevées : ${mi.join(', ')})`);

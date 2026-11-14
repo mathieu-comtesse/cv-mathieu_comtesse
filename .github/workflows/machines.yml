@@ -15,7 +15,6 @@ on:
       - "projet-*.html"
       - "tools/test-ux.mjs"
       - "refonte/parcours.js"
-      - "refonte/main.js"
       - "tools/test-machines.mjs"
       - "tools/machines-harness.html"
       - ".github/workflows/machines.yml"
