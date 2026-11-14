@@ -63,3 +63,21 @@ Certitude : **OBSERVÉ** (lu dans les données), **INFÉRÉ** (déduit, à confi
 | Clavier | touches `d` (28), `a` (22), `z` (14), `q` (2), `e` (1), toutes après 271 s | fin de session | OBSERVÉ ; commandes du mini-jeu | sans objet (mini-jeu non repris) |
 | Tâches longues | 154, médiane 69,5 ms, maximum 341 ms | toute la session | OBSERVÉ (fil principal, avec instrumentation) | ne dit rien de la cadence d'images |
 | Trajectoire de caméra, croissance des branches, reflets | aucune donnée | sans objet | NON DOCUMENTÉ dans le JSON | voir captures |
+
+## Observations visuelles de la référence (captures faites pendant la PR suivant la 210)
+
+Banc : Chromium 153 sans tête, WebGPU logiciel (SwiftShader), DPR 1, réseau direct, page publique `https://www.shopify.com/editions/fall2026`. Le rendu logiciel met plusieurs secondes par image ; pour échantillonner une animation, l'horloge de la page (`performance.now`, `Date.now`, horodatage des images) est ralentie d'un facteur 300 juste avant l'action. Les captures de la référence ne sont pas versées dans le dépôt.
+
+| Observation | Conditions | Résultat | Certitude | Effet sur le code |
+|---|---|---|---|---|
+| Accueil à plat, graphe rendu | 1 000 × 640 | 11 foyers carrés bleus, un anneau au centre, branches bleues dont certaines tirant sur le vert, points bleus au bout des branches, vignettes seulement pour les contenus illustrés, nom du foyer suivi d'un nombre gris, aucun cercle au sol | OBSERVÉ | CORRIGÉ : `Ciel` en mode `plat` reprend ces règles |
+| Accueil en dessous de 940 px de large | 900 × 580 | autre mise en page : titre horizontal, foyers rangés en grille, nom sous le foyer, pas de bouton de mode expo | OBSERVÉ | À AMÉLIORER : le graphe mobile du site garde une disposition rayonnante |
+| Défilement lissé | classe `lenis` sur `<html>` | la référence utilise un défilement lissé | OBSERVÉ | CONFIRMÉ : cohérent avec la queue de 591 ms mesurée dans le JSON |
+| Bouton « Expo Mode » | 1 100 × 700 | masqué sur l'accueil (`visibility: hidden`), visible une fois dans un chapitre (défilement à 3 000 px) | OBSERVÉ | CONFIRMÉ : sur le site le bouton reste visible partout, écart assumé |
+| Bascule en mode expo | clic réel sur le bouton, 10 images sur 0,5 s d'animation puis état à 9 s | une image de transition montre l'accueil recomposé par-dessus la page, puis la page reste à plat ; le mode expo ne s'établit pas dans ce banc | NON OBSERVABLE ici | la durée et la courbe de la bascule du site (0,9 s) restent un choix interne |
+| Trajectoire de caméra, cadres relevés, verre en mode expo | sans objet | dépendent du mode expo, qui exige l'API expérimentale « HTML dans le canevas » avec une vraie carte graphique | NON OBSERVABLE ici | seule référence : la capture de l'accueil expo fournie par Mathieu |
+| Transition entre chapitres à plat | vidéo fournie par Mathieu (24 s) | foyer fixe, branches longues, titre en contour rempli de droite à gauche, branche vers le premier contenu, dégradé de couleur | OBSERVÉ (vidéo) | CONFIRMÉ depuis la PR 209 |
+
+### Limite exacte de la capture
+
+Le mode expo de la référence repose sur l'API expérimentale de dessin d'éléments HTML dans un canevas. Avec l'indicateur `CanvasDrawElement` activé, l'API est présente dans le banc et le clic est accepté, mais la scène ne s'établit pas en rendu logiciel. Une capture du mode expo demande donc un navigateur avec carte graphique matérielle, que cet environnement n'a pas.
