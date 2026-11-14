@@ -122,3 +122,48 @@ Correction : la première bande démarre à la rangée 0 et la dernière va jusq
 | Courbure du sol au loin | sol plat, bord net | sol qui se redresse en bande étroite, grille qui suit | **corrigé** dans l'allure ; comparaison image par image non faite (profil exact et largeur de la bande non mesurés) |
 
 Tests relancés : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-modes` avec son seul échec antérieur ; à la progression 0 la projection coïncide toujours avec la page.
+
+# Passes 1 et 2 de la reconstruction de l'accueil (comparaison à dimensions identiques)
+
+## Conditions de comparaison
+
+Le viewport réel du Chrome de référence est **2498 × 1319** (écran large gamut P3, ratio 1), et la fenêtre n'a pas pu être redimensionnée à 1440 × 900 par l'extension. Notre rendu est donc capturé au même viewport (Playwright, rendu logiciel) puis ramené à la taille de la capture de référence (1512 × 798). Les comparaisons précédentes à 1440 × 900 contre des captures de formats différents donnaient une fausse impression de scène « trop dézoomée et trop étroite ».
+
+## Passe 1 : géométrie et caméra
+
+Bords gauche et droit du sol, mesurés ligne par ligne sur les deux captures (pixels sur 1512) :
+
+| Ligne | Référence | comtesse.me | Écart |
+|---|---|---|---|
+| 100 | 458 – 1045 | 460 – 1051 | 2 / 6 px |
+| 200 | 419 – 1084 | 420 – 1091 | 1 / 7 px |
+| 300 | 360 – 1142 | 362 – 1152 | 2 / 10 px |
+| 600 | 136 – 1365 | 134 – 1378 | 2 / 13 px |
+| 700 | 57 – 1444 | 54 – 1457 | 3 / 13 px |
+| 780 | 0 – 1502 | 0 – 1511 | 0 / 9 px |
+
+Conclusion : la caméra, la largeur du sol à son extrémité lointaine et la perspective **coïncident déjà à moins de 1 %** (écart de 13 px au plus sur 1512). Aucune modification de caméra n'a été faite : une recalibration sur ce constat aurait dégradé un accord mesuré. La superposition 50/50 montre aussi les blocs, le titre et les foyers aux mêmes endroits. La ligne 500 n'est pas comparable (le titre extrudé masque le bord gauche sur la référence).
+
+## Passe 2 : couleur du sol
+
+- La page de référence **déclare** `#051DAA` pour la section bleue (attribut `data-html-in-canvas-colour`), identique à la nôtre ; la capture de l'extension dans le même Chrome en donne `#061CA6`.
+- La capture de l'auteur montre le sol à `#1442FF`. Elle n'est pas reproductible depuis cet environnement : l'extension rend le sol sombre. L'écart vient très probablement de la gestion des couleurs (écran P3, canvas large gamut) ou de l'éclairage ; la cause n'est pas établie.
+- Les trois canaux de `#051DAA` → `#1442FF` s'accordent avec **un seul gain d'exposition d'environ 4,5 en lumière linéaire**, écrêté. `cvLit` (moteur) applique ce gain à la couleur de chaque bande du sol, de 1 (à plat, couleur de la page inchangée, donc continuité) à 4,5 (expo), selon `view.rise`. Vérifié par calcul : `cvLit('#051DAA', 1)` = `rgb(20,66,255)` = `#1442FF`.
+- Risque assumé : le modèle repose sur **une seule observation** et vaut pour l'écran de l'auteur ; sur un écran sRGB standard le sol de la référence peut apparaître plus sombre que le nôtre. À revalider avec une seconde capture de l'auteur.
+
+## Éléments ajoutés au moteur (`dessineDecor`, même repère que le sol, suivent la caméra)
+
+| Élément | Référence | Maintenant | État |
+|---|---|---|---|
+| Courbe exponentielle au premier plan et ligne de base (rangée de la page 1500) | présente | présente, numérotée 01 à 11 d'après les 11 chapitres réels | ajoutée ; hauteur de la courbe calée à l'œil, comparaison fine non faite |
+| Repères numérotés sur la courbe | 01 à 11 | 01 à 11 | ajouté ; positions réparties régulièrement, pas relevées une à une |
+| Cube filaire (cube dans le cube relié aux sommets) | haut gauche, rotation | haut gauche, rotation lente, immobile en mouvement réduit | ajouté ; taille et position calées sur la capture (échelle réglée à 140) ; pas de vidéo pour comparer la rotation |
+| Arcs concentriques du fond | faibles, de part et d'autre | 6 anneaux sur le plan du sol, opacité 0,085 | ajouté ; centre et rayons choisis, **non mesurés** |
+| Arc clair accentué | haut droit | tronçon qui parcourt un anneau lentement | ajouté ; trajet et vitesse inventés, à vérifier |
+| Formule « e^(-x) cos(ωx + φ) » à gauche | présente | absente | non fait |
+
+## Non traité dans cette livraison
+
+Passes 3 à 6 de la mission : densité et composition du graphe central, taille et contenu des nœuds, reprise des trois présentoirs et de leurs objets (dont l'objet 3D), volume de la typographie, animations et optimisation. L'audit de la superposition montre en outre que la composition générale est déjà proche : le principal écart restant est la densité du graphe (la référence a plus de branches et de nœuds, de tailles variées).
+
+Tests après ces modifications : `test-no-shopify --strict` PASS, `test-objets-3d` PASS, `test-machines` ok, `test-modes` avec son unique échec antérieur (retour élastique d'un nœud). Pas de mesure de fluidité sur GPU matériel. Captures : `expo-reference-contre-comtesse-cote-a-cote.png`, `expo-comtesse-2498x1319-decor.png`, `expo-ref-chrome157-2498x1319-reduit-1512.jpg`.

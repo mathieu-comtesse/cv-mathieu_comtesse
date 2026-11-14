@@ -405,3 +405,59 @@ export function dessineRegles(ctx, view, chapitres) {
   }
   ctx.restore();
 }
+
+/* ---------- Décor du fond en mode expo : courbe exponentielle numérotée, arcs concentriques, cube filaire ----------
+ * Tout est posé dans le repère du chemin (colonne, rangée, hauteur) et projeté par `p` : ces éléments suivent la caméra comme le sol.
+ * Les positions et proportions sont calées sur une comparaison à dimensions identiques avec la référence ; aucun élément n'est une image.
+ * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). `numeros` : nombre de chapitres numérotés sur la courbe. */
+const ARC_RAYONS = [0.42, 0.62, 0.84, 1.08, 1.34, 1.62];   // en largeurs de page
+export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
+  const a = view.e * view.e; if (a < 0.01) return;
+  const W = view.W, H = view.H, fois = Math.min(1.6, Math.max(0.6, W / 1512));
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  /* arcs concentriques sur le plan du sol, de part et d'autre de la bande ; un arc clair les balaie lentement */
+  const cx = W * 0.5, cy = Math.max(0, view.doc ? 0 : 0) + 0;
+  const trace = (r, d0, d1, pas) => { let on = false; ctx.beginPath(); for (let k = d0; k <= d1; k += pas) { const col = cx + Math.cos(k) * r * W, row = cy + Math.sin(k) * r * W; if (row < 0 || row > view.T) { on = false; continue; } const q = p(view, col, row, 0); if (!q) { on = false; continue; } if (on) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); on = true; } } ctx.stroke(); };
+  ctx.lineWidth = 0.8 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.085 * a})`;
+  for (const r of ARC_RAYONS) trace(r, 0, Math.PI, 0.02);
+  const glisse = ((t * 0.045) % 1), r0 = ARC_RAYONS[3] * W;   // arc clair : un tronçon qui parcourt l'anneau
+  const dep = Math.PI * (0.05 + 0.35 * glisse), lon = 0.5;
+  for (let s = 0; s < 6; s++) { ctx.lineWidth = (3.2 - s * 0.45) * fois; ctx.strokeStyle = `rgba(255,255,255,${(0.1 + s * 0.06) * a})`; trace(r0 / W, dep + s * lon / 6, dep + lon, 0.02); }
+  /* courbe exponentielle posée sur le sol, et son cadre, à la rangée de base (page 1500) */
+  if (base > 0 && base < view.T) {
+    const g = (u) => (Math.exp(2.2 * u) - 1) / (Math.exp(2.2) - 1), haut = 0.2 * H;
+    const A = p(view, 0, base, 0), B = p(view, W, base, 0);
+    if (A && B) { ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.55 * a})`; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
+    ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.7 * a})`; ctx.beginPath();
+    for (let i = 0; i <= 80; i++) { const u = i / 80, q = p(view, W * u, base, haut * g(u)); if (!q) continue; if (i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } ctx.stroke();
+    ctx.font = `500 ${Math.round(8 * fois)}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'top';
+    for (let i = 0; i < numeros; i++) {
+      const u = 0.5 + 0.34 * (numeros > 1 ? i / (numeros - 1) : 0), q = p(view, W * u, base, haut * g(u)); if (!q) continue;
+      ctx.strokeStyle = `rgba(255,255,255,${0.85 * a})`; ctx.fillStyle = `rgba(20,40,170,${0.9 * a})`; ctx.beginPath(); ctx.ellipse(q.x, q.y, 4.2 * fois, 2.6 * fois, 0, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = `rgba(255,255,255,${0.75 * a})`; ctx.textAlign = 'left'; ctx.fillText(String(i + 1).padStart(2, '0'), q.x + 4 * fois, q.y + 3 * fois);
+    }
+  }
+  /* cube filaire (cube dans le cube, relié aux sommets), dans le noir à gauche de la bande, en rotation lente */
+  if (view.cube) {
+    const [c0, r0c, h0, S] = view.cube, rx = t * 0.21 + 0.55, ry = t * 0.17 + 0.4;
+    const sommets = (k) => { const o = []; for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) { let X = x * k, Y = y * k, Z = z * k; const c1 = Math.cos(rx), s1 = Math.sin(rx); [Y, Z] = [Y * c1 - Z * s1, Y * s1 + Z * c1]; const c2 = Math.cos(ry), s2 = Math.sin(ry); [X, Z] = [X * c2 + Z * s2, -X * s2 + Z * c2]; o.push([X, Y, Z]); } return o; };
+    const arete = (i, j) => { let n = 0; for (let b = 0; b < 3; b++) n += ((i >> b) & 1) !== ((j >> b) & 1) ? 1 : 0; return n === 1; };
+    const ext = sommets(1), int = sommets(0.5), proj = (v) => p(view, c0 + v[0] * S, r0c + v[2] * S, h0 + v[1] * S);
+    const E = ext.map(proj), I = int.map(proj); ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.75 * a})`; ctx.beginPath();
+    for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) if (arete(i, j)) for (const L of [E, I]) if (L[i] && L[j]) { ctx.moveTo(L[i].x, L[i].y); ctx.lineTo(L[j].x, L[j].y); }
+    for (let i = 0; i < 8; i++) if (E[i] && I[i]) { ctx.moveTo(E[i].x, E[i].y); ctx.lineTo(I[i].x, I[i].y); } ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* Éclairage du sol : à plat la couleur de la page est inchangée ; en expo le sol est éclairé et devient plus clair.
+ * Modèle : gain d'exposition en lumière linéaire (1 à plat, GAIN_EXPO en expo), écrêté. Calé sur une seule observation de la référence
+ * (bleu de page #051DAA vu à #1442FF sur l'écran de l'auteur) : les trois canaux s'y accordent avec un gain d'environ 4,5. */
+const GAIN_EXPO = 4.5;
+const vers_lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+const vers_srgb = (l) => { l = Math.max(0, Math.min(1, l)); return Math.round(255 * (l <= 0.0031308 ? 12.92 * l : 1.055 * Math.pow(l, 1 / 2.4) - 0.055)); };
+export function cvLit(hex, rise) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m || !(rise > 0)) return hex;
+  const n = parseInt(m[1], 16), g = 1 + (GAIN_EXPO - 1) * Math.max(0, Math.min(1, rise));
+  return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
+}
