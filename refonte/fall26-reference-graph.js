@@ -8,17 +8,17 @@
  */
 export const REFERENCE_HUBS = Object.freeze([
   // Correspondance avec l'ordre des onze chapitres du site.
-  {x:.448,y:.169,r:1.03,points:20,tone:'blue'},  // Agentic
-  {x:.604,y:.693,r:.91,points:15,tone:'blue'},    // Sidekick
-  {x:.914,y:.518,r:.88,points:15,tone:'blue'},    // Merchandising
-  {x:.224,y:.630,r:1.04,points:21,tone:'mint'},   // Retail
+  {x:.448,y:.169,r:1.03,points:16,tone:'blue'},  // Agentic
+  {x:.604,y:.693,r:.91,points:12,tone:'blue'},    // Sidekick
+  {x:.914,y:.518,r:.88,points:9,tone:'blue'},    // Merchandising
+  {x:.224,y:.630,r:1.04,points:20,tone:'mint'},   // Retail
   {x:.660,y:.202,r:1.02,points:30,tone:'blue'},   // Payments
   {x:.550,y:.926,r:.91,points:16,tone:'cyan'},    // Operations
-  {x:.343,y:.384,r:1.09,points:20,tone:'blue'},   // Online
-  {x:.815,y:.728,r:.80,points:15,tone:'blue'},    // Marketing
+  {x:.343,y:.384,r:1.09,points:16,tone:'blue'},   // Online
+  {x:.815,y:.728,r:.80,points:9,tone:'blue'},    // Marketing
   {x:.131,y:.412,r:1.07,points:19,tone:'blue'},   // Fulfillment
   {x:.704,y:.440,r:1.09,points:57,tone:'mint'},   // Developer
-  {x:.225,y:.194,r:.72,points:14,tone:'blue'}     // Shop
+  {x:.225,y:.194,r:.72,points:11,tone:'blue'}     // Shop
 ]);
 export const REFERENCE_LINKS = Object.freeze([
   [0,4],[0,6],[0,10],[1,3],[1,5],[1,7],[1,9],
