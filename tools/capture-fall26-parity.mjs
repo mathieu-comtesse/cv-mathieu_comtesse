@@ -34,13 +34,34 @@ async function run(name,viewport,mobile=false,reduce=false){
  await page.waitForFunction(()=>!!(window.__cvStandardPath&&document.querySelector('.cv-parity-toggle')),null,{timeout:90000});
  await page.waitForTimeout(2200);
  async function capture(label){
-  await page.screenshot({path:path.join(output,name+'-'+label+'.png')});
+  const screenshot=await page.screenshot({path:path.join(output,name+'-'+label+'.png')});
+  let graphStats=null;
+  if(label==='plat-accueil'&&!mobile)graphStats=await page.evaluate(async png=>{
+    const graph=document.querySelector('.cv-hero-graph');if(!graph)return null;
+    const r=graph.getBoundingClientRect(),im=new Image();
+    im.src='data:image/png;base64,'+png;await im.decode();
+    const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=im.naturalHeight;
+    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(im,0,0);
+    const x=Math.max(0,Math.floor(r.left)),y=Math.max(0,Math.floor(r.top));
+    const w=Math.min(canvas.width-x,Math.ceil(r.right)-x),h=Math.min(canvas.height-y,Math.ceil(r.bottom)-y);
+    if(w<=0||h<=0)return null;
+    const data=context.getImageData(x,y,w,h).data;
+    let lum=0,bright70=0,bright100=0,blue=0;
+    const n=w*h;
+    for(let i=0;i<data.length;i+=4){
+      const R=data[i],G=data[i+1],B=data[i+2],l=.2126*R+.7152*G+.0722*B;
+      lum+=l;if(l>70)bright70++;if(l>100)bright100++;
+      if(B>R*1.8&&B>G*1.4&&Math.max(R,G,B)>70)blue++;
+    }
+    return{rect:{x,y,w,h},meanLuminance:+(lum/n).toFixed(3),over70Pct:+(bright70*100/n).toFixed(3),
+      over100Pct:+(bright100*100/n).toFixed(3),bluePixelsPct:+(blue*100/n).toFixed(3)};
+  },screenshot.toString('base64'));
   const details=await page.evaluate(()=>{
    const box=(x)=>{if(!x)return null;const b=x.getBoundingClientRect(),s=getComputedStyle(x);
     return{x:b.x,y:b.y,w:b.width,h:b.height,font:s.fontFamily,size:s.fontSize,color:s.color}};
    const canvases=[...document.querySelectorAll('canvas')].filter(c=>{const b=c.getBoundingClientRect();return b.width>60&&b.height>60&&b.right>0&&b.bottom>0&&b.left<innerWidth&&b.top<innerHeight});
    return {y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null};
-  });states.push({label,...details});
+  });states.push({label,...details,graphStats});
  }
  await capture('plat-accueil');
  if(!mobile){const nav=page.locator('.cv-site-nav .cv-nav-control').first();if(await nav.count()){await nav.hover();await page.waitForTimeout(350);await capture('plat-survol')}}
@@ -53,7 +74,7 @@ async function run(name,viewport,mobile=false,reduce=false){
  await page.waitForFunction(()=>!window.__cvStandardPath?.active,null,{timeout:60000});
  await page.waitForTimeout(350);await capture('plat-retour');
  if(states.find(x=>x.label==='expo-accueil')?.canvases===0)errors.push('Mode Expo sans canvas visible');
- if(states.find(x=>x.label==='plat-retour')?.expo)errors.push('Retour à plat incorrect');
+ if(states.find(x=>x.label==='plat-retour')?.expo||Math.abs(states.find(x=>x.label==='plat-retour')?.progress??1)>1e-3)errors.push('Retour à plat ou état de progression incorrect');
  if(states[0].sections<4)errors.push('Sections réelles absentes : '+states[0].sections);
  report.screens.push({name,viewport,reduce,states,errors});await ctx.close();
 }
@@ -61,5 +82,5 @@ try{await run('desktop-1440x900',{width:1440,height:900});await run('mobile-390x
 catch(e){report.problems.push(e.stack||String(e))}
 finally{await browser.close();await new Promise(r=>srv.close(r))}
 fs.writeFileSync(path.join(output,'metrics.json'),JSON.stringify(report,null,2));
-console.log(JSON.stringify({states:report.screens.map(x=>({name:x.name,steps:x.states.map(s=>s.label),errors:x.errors})),problems:report.problems,shopifyRequests:report.shopifyRequests},null,2));
+console.log(JSON.stringify({states:report.screens.map(x=>({name:x.name,steps:x.states.map(s=>s.label),errors:x.errors})),problems:report.problems,shopifyRequests:report.shopifyRequests,graphStats:report.screens[0]?.states.find(x=>x.label==='plat-accueil')?.graphStats},null,2));
 if(report.problems.length||report.shopifyRequests||report.screens.length!==2||report.screens.some(x=>x.errors.length))process.exitCode=1;
