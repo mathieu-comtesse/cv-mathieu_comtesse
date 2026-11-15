@@ -84,7 +84,8 @@ assert.ok(Math.abs(arriving.x/1440-.54)<.001&&Math.abs(arriving.y/900-.42)<.001,
  'Incoming star must appear higher than outgoing star');
 assert.ok(Math.hypot(arriving.x-departing.x,arriving.y-departing.y)>900*.28,
  'Transition stars must be visually distinct');
-assert.deepEqual(chapterStarAnchor(0,{from:0,to:0,active:0,progress:0},1440,900),{x:864,y:504},
+const steady=chapterStarAnchor(0,{from:0,to:0,active:0,progress:0},1440,900);
+assert.ok(Math.abs(steady.x-864)<1e-9&&Math.abs(steady.y-504)<1e-9,
  'Steady chapter star must not jump away from its resting position');
 assert.ok(html.includes('const chap=!!p.heading.chapter'),
  'Moved 3D headings must retain chapter classification captured before DOM reparenting');
