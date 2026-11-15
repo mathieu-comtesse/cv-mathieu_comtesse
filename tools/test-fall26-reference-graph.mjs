@@ -85,6 +85,18 @@ for(let i=0;i<hubs.length;i++){
 placeReferenceHubs(ciel,1200,760,{expo:0});
 assert.deepEqual(hubs.map(e=>({centre:[...e.centre],rayon:e.rayon})),flatLayout,
  'Returning to flat restores exact prior geometry');
+// Expansion of the 2D hero is centered and fully reversible, with no drift.
+placeReferenceHubs(ciel,1200,760,{spread:1});
+const original=hubs.map(h=>[...h.centre]);
+placeReferenceHubs(ciel,1200,760,{spread:1.42});
+for(let i=0;i<hubs.length;i++){
+  const p=original[i],q=hubs[i].centre;
+  assert.ok(Math.abs(q[0]-(600+(p[0]-600)*1.42))<1e-8);
+  assert.ok(Math.abs(q[1]-(380+(p[1]-380)*1.42))<1e-8);
+}
+placeReferenceHubs(ciel,1200,760,{spread:1});
+assert.deepEqual(hubs.map(h=>[...h.centre]),original,
+  'Restoring the flat hero must restore calibrated star positions exactly');
 placeReferenceHubs(ciel,390,844);
 assert.ok(hubs.every(h=>h.centre[0]>=0&&h.centre[0]<=390));
 assert.ok(hubs.every(h=>h.centre[1]>=0&&h.centre[1]<=844));
