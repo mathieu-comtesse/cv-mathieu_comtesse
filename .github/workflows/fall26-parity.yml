@@ -1,0 +1,41 @@
+name: Fall26 visual and interaction parity
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "refonte/moteur.js"
+      - "refonte/theme-stars.js"
+      - "refonte/hero-graph.js"
+      - "refonte/defilement.js"
+      - "refonte/site.css"
+      - "refonte/expo-technical-hud.js"
+      - "refonte/expo-reference-ornaments.js"
+      - "tools/test-modes.mjs"
+      - "tools/capture-fall26-parity.mjs"
+      - ".github/workflows/fall26-parity.yml"
+  workflow_dispatch:
+jobs:
+  experience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Chromium and Playwright
+        run: |
+          npm install --no-save playwright@1.62.1
+          npx playwright install --with-deps chromium
+      - name: Animated mode, pointer, keyboard and mobile regression
+        run: node tools/test-modes.mjs
+      - name: Capture full site at reference sizes
+        if: ${{ !cancelled() }}
+        run: node tools/capture-fall26-parity.mjs test-results/fall26-parity
+      - name: Attach evidence and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fall26-real-site-parity
+          path: test-results/fall26-parity/
+          retention-days: 30
