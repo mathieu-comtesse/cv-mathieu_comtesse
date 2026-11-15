@@ -1246,6 +1246,37 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
       e.transitionScale=pose.scale;
       e.transitionAngle=pose.angle;
     }
+    // In Expo, headings are removed from the normal flow while their cards
+    // are projected. Their original constellation can consequently have a
+    // null/off-screen centre during a chapter change. Keep a temporary 3D
+    // pivot projected into the camera, rather than losing the star entirely.
+    // The temporary pivot fades at both endpoints so the native heading star
+    // takes over without a visible jump at the boundary.
+    let transientStars=0;
+    if(handover.from!==handover.to&&handover.progress>.015&&handover.progress<.985){
+      const height=75,screenX=innerWidth*.6,screenY=innerHeight*.55;
+      const anchor=N.cvUnproject(view,screenX,screenY,height);
+      const projected=anchor&&N.p(view,anchor[0],anchor[1],height);
+      if(projected&&Math.hypot(projected.x-screenX,projected.y-screenY)<12){
+        const along=N.p(view,anchor[0]+100,anchor[1],height);
+        const k=along?Math.max(.12,Math.hypot(along.x-projected.x,along.y-projected.y)/100):1;
+        const radius=Math.min(850,Math.max(180,Math.min(innerWidth*.28,innerHeight*.38)/k));
+        const taper=Math.sin(Math.PI*handover.progress);
+        for(const chapterIndex of [handover.from,handover.to]){
+          const id=chapters[chapterIndex]?.el.id;
+          const part=parts.find(p=>p.etoile&&p.section===id&&p.el.closest('.section-hero-pin'));
+          const e=part&&ciel.etoiles.get(part.etoile);
+          if(!e)continue;
+          const natural=e.centre&&N.p(view,...e.centre);
+          const visible=natural&&natural.x>-50&&natural.x<innerWidth+50&&natural.y>-50&&natural.y<innerHeight+50;
+          if(visible)continue;
+          ciel.place(e.id,[anchor[0],anchor[1],height],radius);
+          e.transitionOpacity*=taper;
+          transientStars++;
+        }
+      }
+    }
+    state.expoHandoverStars=transientStars;
     state.chapterHandover={from:handover.from,to:handover.to,
       progress:handover.progress,colour:handover.colour};
   }
