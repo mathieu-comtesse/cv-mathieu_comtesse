@@ -202,8 +202,9 @@ function scene(chapitres) {
       // Fold the old constellation out as the next one unfolds. The same
       // eased progress drives the chromatic blend, including reverse scroll.
       const cross=handover.from!==handover.to;
-      const weight=!cross?1:chapterIndex===handover.from?1-handover.progress:
-        chapterIndex===handover.to?handover.progress:1;
+      const weight=!cross?(chapterIndex===handover.active?1:0):
+        chapterIndex===handover.from?1-handover.progress:
+        chapterIndex===handover.to?handover.progress:0;
       const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) *
         lisse(scrollY, H * 0.25, H * 0.8) * weight,
         g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
