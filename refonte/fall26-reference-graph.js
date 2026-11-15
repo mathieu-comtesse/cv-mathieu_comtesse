@@ -48,6 +48,12 @@ export const REFERENCE_CHAPTER_IDS=Object.freeze([
   'agentic','sidekick','merchandising','retail','payments','operations',
   'online','marketing','fulfillment','developer','shop'
 ]);
+export const REFERENCE_SHORT_LABELS=Object.freeze({
+  agentic:'Prévention',sidekick:'Maintenance',merchandising:'IA appliquée',
+  retail:'Référentiels',payments:'Méthodes',operations:'Savoir-être',
+  online:'Data',marketing:'Parcours',fulfillment:'Mondes & jeux',
+  developer:'Blog & études',shop:'Projets pro'
+});
 function referenceIndex(hub,fallback){
   const key=typeof hub?.id==='string'&&hub.id.startsWith('accueil:')?hub.id.slice(8):'';
   const index=REFERENCE_CHAPTER_IDS.indexOf(key);
@@ -83,6 +89,7 @@ export function calibrateReferenceBranches(ciel) {
     const refIndex=referenceIndex(e,index),ref=REFERENCE_HUBS[refIndex];
     if(!ref)return;
     e.sol=false;e.referenceFlat=true;e.flatTone=ref.tone;
+    e.referenceShortLabel=REFERENCE_SHORT_LABELS[REFERENCE_CHAPTER_IDS[refIndex]]||e.label;
     const editorial=e.noeuds.filter(n=>n.ed);
     const pool=e.noeuds.filter(n=>!n.ed);
     const count=Math.max(ref.points,editorial.length+4);
