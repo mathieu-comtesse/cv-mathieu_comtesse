@@ -38,7 +38,7 @@ function image(maintenant) {
     if (!auto.actif) auto.demarre();
     auto.maj(dt, entree, CAP); heros.maj(dt, entree, CAP); heros.evenements.length = 0;
     pensee.maj(dt, tete.copy(heros.pos).setY(heros.pos.y + 2.05), camera);
-    fondu = Math.max(0, fondu - dt * 1.6);
+    fondu = Math.max(0, fondu - Math.min(0.25, brut) * 1.6);   // fondu d'ouverture en temps réel (0,6 s), même si les images sont rares
   }
   rendu.fondu.value = fondu * fondu * (3 - 2 * fondu);
   rendu.rendre(scene, camera);
