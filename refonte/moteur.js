@@ -367,7 +367,7 @@ export class Ciel {
       const BASE = e.racine ? [0, 0.2, 0.13, 0.09] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = `rgba(${ambient ? '77,135,255' : '225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = `rgba(${ambient ? '77,135,255' : '225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE * (ambient ? 1.65 : 1)).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
@@ -407,7 +407,7 @@ export class Ciel {
         ctx.globalAlpha = voile * aE;
         const kv = (0.72 + (n.phase / 6.283) * 0.8) * (ambient ? .85 : 1), im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
-        else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
+        else { ctx.strokeStyle = ambient ? 'rgba(92,145,240,.7)' : 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = ambient ? 'rgba(75,126,235,.65)' : 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
         if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y, etoile: e }; } }
         ctx.globalAlpha = aE;
       }
