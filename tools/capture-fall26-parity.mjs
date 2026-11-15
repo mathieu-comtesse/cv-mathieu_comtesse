@@ -73,15 +73,35 @@ async function run(name,viewport,mobile=false,reduce=false){
    const box=(x)=>{if(!x)return null;const b=x.getBoundingClientRect(),s=getComputedStyle(x);
     return{x:b.x,y:b.y,w:b.width,h:b.height,font:s.fontFamily,size:s.fontSize,color:s.color}};
    const canvases=[...document.querySelectorAll('canvas')].filter(c=>{const b=c.getBoundingClientRect();return b.width>60&&b.height>60&&b.right>0&&b.bottom>0&&b.left<innerWidth&&b.top<innerHeight});
-   return {y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
+   return {chapterTransition:window.__cvChapterTransition||null,y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
   },label);states.push({label,...details,graphStats,exteriorGrid});
  }
  const firstChapterY=await page.evaluate(()=>{const h=document.querySelector('.section-hero-pin h2');return h?scrollY+h.getBoundingClientRect().top:null;});
  await capture('plat-accueil');
+ // Three evidence frames per display mode at fixed positions of the same
+ // scroll-driven chapter transition. These are not arbitrary time samples.
+ async function transitionFrames(mode){
+  if(mobile)return;
+  const points=await page.evaluate(()=>{
+    const sections=[...document.querySelectorAll('section[data-f26-page-section]')];
+    const target=sections[1].getBoundingClientRect().top+scrollY;
+    const centre=target-innerHeight*.55,half=innerHeight*.38;
+    return [.25,.5,.75].map(t=>Math.max(0,centre-half+2*half*t));
+  });
+  for(let i=0;i<points.length;i++){
+    await page.evaluate(y=>scrollTo({top:y,behavior:'instant'}),points[i]);
+    await page.waitForTimeout(200);
+    await capture(mode+'-transition-'+[25,50,75][i]);
+  }
+  await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
+  await page.waitForTimeout(220);
+ }
+ await transitionFrames('plat');
  if(!mobile){const nav=page.locator('.cv-site-nav .cv-nav-control').first();if(await nav.count()){await nav.hover();await page.waitForTimeout(350);await capture('plat-survol')}}
  await page.locator('.cv-parity-toggle').click();
  await page.waitForFunction(()=>window.__cvStandardPath?.active&&window.__cvStandardPath.progress>=.999,null,{timeout:60000});
  await page.waitForTimeout(300);await capture('expo-accueil');
+ await transitionFrames('expo');
  if(!mobile&&Number.isFinite(firstChapterY)){
   await page.evaluate(y=>scrollTo({top:Math.max(0,y-350),behavior:'instant'}),firstChapterY);
   await page.waitForTimeout(800);await capture('expo-premier-chapitre');
