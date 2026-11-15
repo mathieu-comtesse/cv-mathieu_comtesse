@@ -290,7 +290,7 @@ export class Ciel {
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
       if (e.racine && !racineVisible) continue;
-      const kT = e.groupe === 'titre' ? titres : 1, aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
+      const kT = e.groupe === 'titre' ? titres * (e.transitionOpacity??1) : 1, aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
       const [c0, r0, h0] = e.centre, F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
       if (!F || !u) continue;
@@ -298,7 +298,7 @@ export class Ciel {
       if (F.x < -e.rayon * k - 80 || F.x > W + e.rayon * k + 80 || F.y < -e.rayon * k - 80 || F.y > H + e.rayon * k + 80) { continue; }
       if (e.age < 0) e.age = 0; e.age += libre ? dt : 10;
       e.ecran = F;
-      const ambient = e.groupe === 'accueil', ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon, actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
+      const ambient = e.groupe === 'accueil', ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon * (e.groupe==='titre'?(e.transitionScale??1):1), actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
       const kE = actifC ? 1.25 : autreC ? 0.85 : 1;                              // chapitre actif : branches plus présentes ; les autres s'effacent un peu
       const F0 = proj(c0, r0, 0), ombre = !!F0 && F.y - F0.y > 1.5;                // ombres portées au sol : seulement quand le foyer est au-dessus du sol (expo)
       /* trace au sol : cercle et tige (étoiles posées) */
