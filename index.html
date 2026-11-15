@@ -1022,7 +1022,7 @@ function openCvCardFocus(el,details){
 // // Shopify supplies the camera, fold, hinge animation, outlines and mathematical labels.
 // Only the DOM/Three rendering adapter is local; all coordinates remain native CSS pixels.
 async function startParityPath(){
- const [T,N,R,C]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=fall26-225d'),import(base+'refonte/fall26-reference-graph.js?v=fall26-225d'),import(base+'refonte/fall26-chapter-transition.js?v=ct2')]),source=q('[data-f26-page]');if(!source)return;
+ const [T,N,R,C]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=fall26-225d'),import(base+'refonte/fall26-reference-graph.js?v=fall26-225d'),import(base+'refonte/fall26-chapter-transition.js?v=ct3')]),source=q('[data-f26-page]');if(!source)return;
  const header=q('.cv-site-nav');if(header)document.body.append(header);
  const sourceMinHeight=source.style.minHeight;
  await document.fonts?.ready;const headingFont=N.cvFont();
@@ -1254,26 +1254,26 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
     // takes over without a visible jump at the boundary.
     let transientStars=0;
     if(handover.from!==handover.to&&handover.progress>.015&&handover.progress<.985){
-      const height=75,screenX=innerWidth*.6,screenY=innerHeight*.55;
-      const anchor=N.cvUnproject(view,screenX,screenY,height);
-      const projected=anchor&&N.p(view,anchor[0],anchor[1],height);
-      if(projected&&Math.hypot(projected.x-screenX,projected.y-screenY)<12){
+      const height=75,taper=Math.sin(Math.PI*handover.progress);
+      // Each chapter gets its own 3D focal point. The reference places
+      // the incoming star above the outgoing one at the crossfade midpoint.
+      for(const chapterIndex of [handover.from,handover.to]){
+        const id=chapters[chapterIndex]?.el.id;
+        const part=parts.find(p=>p.etoile&&p.section===id&&p.el.closest('.section-hero-pin'));
+        const star=part&&ciel.etoiles.get(part.etoile);
+        if(!star)continue;
+        const target=C.chapterStarAnchor(chapterIndex,handover,innerWidth,innerHeight);
+        const natural=star.centre&&N.p(view,...star.centre);
+        if(natural&&Math.hypot(natural.x-target.x,natural.y-target.y)<75)continue;
+        const anchor=N.cvUnproject(view,target.x,target.y,height);
+        const projected=anchor&&N.p(view,anchor[0],anchor[1],height);
+        if(!projected||Math.hypot(projected.x-target.x,projected.y-target.y)>12)continue;
         const along=N.p(view,anchor[0]+100,anchor[1],height);
         const k=along?Math.max(.12,Math.hypot(along.x-projected.x,along.y-projected.y)/100):1;
-        const radius=Math.min(850,Math.max(180,Math.min(innerWidth*.28,innerHeight*.38)/k));
-        const taper=Math.sin(Math.PI*handover.progress);
-        for(const chapterIndex of [handover.from,handover.to]){
-          const id=chapters[chapterIndex]?.el.id;
-          const part=parts.find(p=>p.etoile&&p.section===id&&p.el.closest('.section-hero-pin'));
-          const e=part&&ciel.etoiles.get(part.etoile);
-          if(!e)continue;
-          const natural=e.centre&&N.p(view,...e.centre);
-          const visible=natural&&natural.x>-50&&natural.x<innerWidth+50&&natural.y>-50&&natural.y<innerHeight+50;
-          if(visible)continue;
-          ciel.place(e.id,[anchor[0],anchor[1],height],radius);
-          e.transitionOpacity*=taper;
-          transientStars++;
-        }
+        const radius=Math.min(950,Math.max(180,Math.min(innerWidth*.42,innerHeight*.44)/k));
+        ciel.place(star.id,[anchor[0],anchor[1],height],radius);
+        star.transitionOpacity*=taper;
+        transientStars++;
       }
     }
     state.expoHandoverStars=transientStars;
