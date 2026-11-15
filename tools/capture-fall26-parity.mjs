@@ -76,7 +76,9 @@ async function run(name,viewport,mobile=false,reduce=false){
    return {chapterTransition:window.__cvChapterTransition||null,
     bodyBackground:lab.includes('-transition-')?getComputedStyle(document.body).backgroundColor:null,
     chapterTitleFills:lab.startsWith('plat-transition-')?[...document.querySelectorAll('section[data-f26-page-section] .section-hero-pin h2')].slice(0,2).map(h=>+h.style.getPropertyValue('--cv-fill')):null,
-    y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
+    y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,
+    starFoci:lab==='expo-transition-50'?window.__cvParity?.etoiles()?.filter(x=>x.visible).map(x=>x.foyer):null,
+    hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
   },label);states.push({label,...details,graphStats,exteriorGrid});
  }
  const firstChapterY=await page.evaluate(()=>{const h=document.querySelector('.section-hero-pin h2');return h?scrollY+h.getBoundingClientRect().top:null;});
@@ -129,6 +131,11 @@ async function run(name,viewport,mobile=false,reduce=false){
    const rgb=(frame.bodyBackground||'').match(/[0-9]+/g)?.slice(0,3).map(Number);
    if(!expected||!rgb||rgb.length!==3||Math.max(...rgb.map((v,i)=>Math.abs(v-expected[i])))>3)
     errors.push('Fond de page différent du chapitre : '+label+' '+frame.bodyBackground+' / '+hex);
+   if(label==='expo-transition-50'){
+    const foci=frame.starFoci||[];
+    if(!foci.length||!foci.some(([x,y])=>Math.hypot(x-viewport.width*.6,y-viewport.height*.55)<45))
+      errors.push('Étoile absente du foyer de transition Expo : '+JSON.stringify(foci));
+   }
    if(mode==='plat'){
     const [outgoing,incoming]=frame.chapterTitleFills||[];
     if(!Number.isFinite(outgoing)||!Number.isFinite(incoming)||Math.abs(outgoing+incoming-1)>.04)
