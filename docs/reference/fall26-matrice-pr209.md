@@ -549,3 +549,15 @@ Le mode expo de la référence repose sur l'API expérimentale de dessin d'élé
 - **Véhicule :** la PR 209 (`main` ← `claude/integration-fall26`, brouillon) reste la bonne. Plan : fusionner `origin/main` dans l'intégration (commit de fusion, sans réécriture d'historique ni force), attendre la CI, puis la PR 209 devient fusionnable.
 - **Point d'attention :** `unga-web.yml` et les tests THALÉOLITHIC arrivent avec la fusion ; leur CI sera exécutée pour la première fois sur l'intégration et pourrait révéler des échecs sans lien avec Fall 26.
 - **Statut :** en attente de l'autorisation explicite pour fusionner `main` dans l'intégration puis pour fusionner la PR 209.
+
+# Passe de contrôle après les PR 211 à 220 (base `41ad3c6`, `main`)
+
+Le pack de reprise visait la tête `65de99d` de la PR 210. Elle est dépassée : la PR 210 (`3587e29`) et la chaîne des PR 211 à 220 sont fusionnées dans `main`. Cette passe part donc de `main` et ne refait pas les phases déjà livrées (JSON brut exploité ci-dessus, captures Chrome 157, branches 3D, défilement lissé, mesures GPU).
+
+| Effet | Preuve brute (JSON du 13 novembre) | État avant | Action | État |
+|---|---|---|---|---|
+| Curseur sur le graphe de l'accueil, hors nœud | `pointermove` sur les canevas : `auto` 265, `default` 15, `pointer` 2, **`crosshair` 0** ; `crosshair` seulement sur un graphique de carte (41) | la matrice déclarait le viseur retiré, mais `refonte/hero-graph.js` le posait encore | viseur retiré, curseur normal ; main ouverte et fermée conservées sur les nœuds (ajout propre au site) ; nouveau contrôle dans `tools/test-modes.mjs` | CORRIGÉ (OBSERVÉ) |
+| Défilement lissé, temps de réponse | 43 gestes isolés : à partir du dernier cran, 50 % de la course à 122 ms, 90 % à 279 ms, arrêt à 629 ms (médianes) ; environ 6 événements `scroll` par geste, soit un pas d'environ 100 ms | modèle exponentiel, constante de temps 100 ms (50 % à 69 ms, 90 % à 230 ms, arrêt vers 660 ms) | aucune : l'écart de 50 ms aux deux seuils correspond au demi-pas d'échantillonnage ; l'arrêt concorde | CONFIRMÉ (INFÉRÉ pour la forme de la courbe) |
+| Graphe sous 940 px de large | captures de la passe précédente : titre horizontal, foyers en grille, nom sous le foyer | disposition rayonnante compacte | non traité ici | À AMÉLIORER |
+
+Tests de cette passe (Chromium sans tête, rendu logiciel, aucun chiffre de cadence revendiqué) : `test-modes` PASS (19 contrôles, dont le retour élastique, en échec auparavant), `test-branches` PASS, `test-entrypoints` PASS, `test-no-shopify --strict` PASS (0 requête), `test-objets-3d` PASS, `test-machines` ok (onze machines), `test-navigation` PASS (102 routes), `test-site-consistency` PASS (40 pages), `test-defilement` PASS seul (2 échecs quand il tourne en parallèle d'une autre suite : sensible à la charge du banc).

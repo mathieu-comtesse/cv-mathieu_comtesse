@@ -19,6 +19,14 @@ async function page(opts = {}) {
 }
 const p = await page();
 
+/* ---- curseur hors nœud : `auto` comme sur les canevas de la référence (JSON brut : 265 `auto`, 0 `crosshair`) ---- */
+const vide = await p.evaluate(() => { const r = document.querySelector('.cv-hero-graph').getBoundingClientRect(), cs = window.__cvHeroGraph.cibles();
+  for (let y = r.top + 40; y < r.bottom - 40; y += 23) for (let x = r.left + 40; x < r.right - 40; x += 23) if (cs.every((c) => Math.hypot(c.x - x, c.y - y) > 60) && document.elementFromPoint(x, y)?.classList.contains('cv-hero-graph')) return { x, y };
+  return null; });
+await p.mouse.move(vide.x, vide.y); await p.waitForTimeout(300);
+const curseurVide = await p.evaluate(({ x, y }) => getComputedStyle(document.elementFromPoint(x, y)).cursor, vide);
+verifie(curseurVide === 'auto', `curseur hors nœud sur le graphe : « ${curseurVide} » (attendu auto)`);
+
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
 const c0 = (await p.evaluate(() => window.__cvHeroGraph.cibles())).find((c) => c.x > 500 && c.x < 1380 && c.y > 120 && c.y < 840);
 await p.mouse.move(c0.x, c0.y); await p.waitForTimeout(300);
