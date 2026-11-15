@@ -5,6 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
+import {chapterHandover} from './fall26-chapter-transition.js?v=ct1';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -176,14 +177,35 @@ function scene(chapitres) {
     if (document.hidden || t - dernier < 16) return; dernier = t;
     const expo = document.documentElement.classList.contains('cv-parity-active');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
+    // One continuous scroll coordinate governs both the page colour and
+    // the departure/arrival of chapter stars, in flat and Expo modes alike.
+    const timeline=chapitres.map(c=>({
+      top:c.section.getBoundingClientRect().top+scrollY,
+      colour:c.section.getAttribute('data-html-in-canvas-colour')||'#051DAA'
+    }));
+    const handover=chapterHandover(scrollY,timeline,H);
+    document.body.style.setProperty('--f26-page-blend',handover.colour,'important');
+    document.querySelector('.fall-navigation')?.style.setProperty('--f26-page-blend',handover.colour,'important');
+    document.documentElement.style.setProperty('--cv-chapter-colour',handover.colour);
+    window.__cvChapterTransition={
+      from:handover.from,to:handover.to,progress:handover.progress,
+      colour:handover.colour,active:handover.active
+    };
     if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
-    for (const c of chapitres) {
+    for (let chapterIndex=0;chapterIndex<chapitres.length;chapterIndex++) {
+      const c=chapitres[chapterIndex];
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
       if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
+      // Fold the old constellation out as the next one unfolds. The same
+      // eased progress drives the chromatic blend, including reverse scroll.
+      const cross=handover.from!==handover.to;
+      const weight=!cross?1:chapterIndex===handover.from?1-handover.progress:
+        chapterIndex===handover.to?handover.progress:1;
+      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) *
+        lisse(scrollY, H * 0.25, H * 0.8) * weight,
         g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
