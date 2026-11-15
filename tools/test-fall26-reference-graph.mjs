@@ -45,4 +45,7 @@ assert.ok(!fs.readFileSync(new URL('../index.html',import.meta.url),'utf8').incl
  "L’ancien décor de cubes latéraux ne doit pas être chargé");
 assert.ok(!fs.existsSync(new URL('../refonte/expo-reference-ornaments.js',import.meta.url)),
  'Les anciens ornements latéraux doivent être supprimés');
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+assert.ok(!html.includes('view.cube=['),'Legacy rotating cube must stay disabled');
+assert.ok(!html.includes('N.dessineDecor(ctx,view'),'Legacy 3D peripheral scene must stay disabled');
 console.log('PASS eleven flat reference stars: normalized 2D geometry, straight rays, cross-links and mobile');
