@@ -26,6 +26,22 @@ export const REFERENCE_LINKS = Object.freeze([
   [4,6],[4,9],[5,7],[6,8],[6,9],[7,9]
 ]);
 
+/* Directions principales mesurées sur la trame vidéo (degrés).
+ * Les directions supplémentaires de l'éventail sont reconstituées
+ * de façon déterministe quand une vignette n'est pas détectable. */
+export const REFERENCE_SPOKES = Object.freeze([
+  [-166,-138,-112,-68,-49,-35,-3,29,53,75,91,112,140,171,-90,-21,16,65,122,156],   // Agentic
+  [-168,-140,-88,-39,-11,-5,14,31,50,72,110,150,176,-114,92],             // Sidekick
+  [-176,-169,-146,-120,-90,-60,-28,-8,15,31,55,79,115,146,172],           // Merchandising
+  [-169,-150,-127,-99,-57,-49,-30,-24,-4,3,19,42,61,76,95,115,137,171,183,209,249], // Retail
+  [-176,-115,-98,-48,-29,-18,-13,15,28,64,94,121,135,152,172,-145,-81,49,106], // Payments
+  [-178,-174,-161,-146,-133,-107,-88,-86,-72,-66,7,30,70,110,145,176],    // Operations
+  [-172,-133,-111,-83,-45,-34,21,40,61,79,118,143,178,-152,-90,-13,6,91,161,199], // Online
+  [-176,-159,-155,-141,-106,-104,-93,-45,7,34,70,94,120,141,170],         // Marketing
+  [-174,-152,-132,-95,-81,-68,-43,-20,-4,7,19,32,47,56,69,87,106,120,150], // Fulfillment
+  [-179,-161,-150,-139,-125,-106,-83,-65,-47,-35,-12,8,21,38,51,78,95,112,129,156,176,195,229,263], // Developer
+  [-173,-165,-149,-139,-90,-57,-34,-12,9,28,63,118,139,173]              // Shop
+]);
 const GOLDEN=2.399963229728653;
 const TAU=Math.PI*2;
 
@@ -35,16 +51,21 @@ export function calibrateReferenceBranches(ciel) {
     const ref=REFERENCE_HUBS[index];
     if(!ref)return;
     e.sol=false; e.referenceFlat=true;e.flatTone=ref.tone;
-    const nodes=e.noeuds,editorial=nodes.filter(n=>n.ed),visual=nodes.filter(n=>!n.ed);
-    // Distribution radiale régulière mais asymétrique, comme les rayons filmés.
-    // Les vraies vignettes gardent leur référence, leur click et leur drag.
+    const nodes=e.noeuds,editorial=nodes.filter(n=>n.ed);
+    const visual=nodes.filter(n=>!n.ed).slice(0,Math.max(4,ref.points-editorial.length));
+    e.noeuds=[...editorial,...visual];
+    const directions=REFERENCE_SPOKES[index]||[];
+    // Les vignettes réellement cliquables demeurent intactes.
     editorial.forEach((n,i)=>{
       n.a=((i+.33)*GOLDEN+index*.42)%TAU;
       n.r=.65+.32*((i*7+index*3)%9)/8;
     });
+    // Contrairement à un soleil procédural uniforme, chaque foyer conserve
+    // les orientations irrégulières relevées dans les séquences de référence.
     visual.forEach((n,i)=>{
-      n.a=((i+.41)*GOLDEN+index*.23)%TAU;
-      n.r=.48+.68*((i*11+index*5)%17)/16;
+      const deg=directions[i]??(((i+.41)*GOLDEN+index*.23)*180/Math.PI);
+      n.a=deg*Math.PI/180;
+      n.r=.59+.59*((i*11+index*5)%17)/16;
     });
     nodes.forEach((n,i)=>{
       n.dh=0;n.cv=0;n.ar=0;n.par=null;n.enf=[];
