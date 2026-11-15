@@ -18,6 +18,12 @@ async function page(opts = {}) {
   return p;
 }
 const p = await page();
+const flatHeadingSize=await p.evaluate(()=>{
+  const h=document.querySelector('[data-f26-page-section] .section-hero-pin h2.text-section-title');
+  return h?parseFloat(getComputedStyle(h).fontSize):null;
+});
+verifie(Number.isFinite(flatHeadingSize)&&flatHeadingSize<=76,
+  `desktop flat headings must stay compact (computed ${flatHeadingSize}px)`);
 const flatSky = await p.evaluate(() => window.__cvHeroGraph.ciel.etat('accueil'));
 verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 && flatSky.filter(e => e.visible).every(e => !!e.libelle?.texte),
   `vue à plat : 11 foyers en disposition asymétrique avec leurs légendes discrètes (${flatSky.filter(e => e.visible).length} visibles)`);
@@ -117,6 +123,12 @@ await r.context().close();
 /* ---- mobile ---- */
 const m = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
+const mobileHeadingSize=await m.evaluate(()=>{
+  const h=document.querySelector('[data-f26-page-section] .section-hero-pin h2.text-section-title');
+  return h?parseFloat(getComputedStyle(h).fontSize):null;
+});
+verifie(Number.isFinite(mobileHeadingSize)&&mobileHeadingSize<=44,
+  `mobile flat headings must stay compact (computed ${mobileHeadingSize}px)`);
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
 const mobileNav=await m.evaluate(()=>({side:getComputedStyle(document.querySelector('.cv-parity-nav')).display,header:!!document.querySelector('.cv-site-nav')}));
