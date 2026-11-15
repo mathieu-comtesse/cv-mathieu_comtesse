@@ -6,11 +6,14 @@ on:
       - "refonte/moteur.js"
       - "refonte/theme-stars.js"
       - "refonte/hero-graph.js"
+      - "refonte/fall26-reference-graph.js"
+      - "refonte/fall26-chapter-transition.js"
       - "refonte/defilement.js"
       - "refonte/site.css"
-      - "refonte/expo-technical-hud.js"
-      - "refonte/expo-reference-ornaments.js"
       - "tools/test-modes.mjs"
+      - "tools/test-fall26-chapter-transition.mjs"
+      - "tools/test-fall26-reference-graph.mjs"
+      - "tools/test-fall26-title-scale.mjs"
       - "tools/capture-fall26-parity.mjs"
       - ".github/workflows/fall26-parity.yml"
   workflow_dispatch:
@@ -23,6 +26,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+      - name: Chapter timing, shared geometry and title sizing
+        run: |
+          node --check refonte/fall26-chapter-transition.js
+          node --check refonte/theme-stars.js
+          node tools/test-fall26-chapter-transition.mjs
+          node tools/test-fall26-reference-graph.mjs
+          node tools/test-fall26-title-scale.mjs
       - name: Chromium and Playwright
         run: |
           npm install --no-save playwright@1.62.1
