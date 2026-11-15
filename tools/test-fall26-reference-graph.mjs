@@ -28,6 +28,8 @@ for(let i=0;i<capturedCentres.length;i++){
 
 assert.ok(hubs[4].noeuds.length>=30,'Payments: trente ramifications');
 assert.ok(hubs[9].noeuds.length>=57,'Developer: cinquante-sept ramifications');
+assert.ok(hubs.every(h=>!h.referenceShortLabel||h.referenceShortLabel.length<=15),
+ 'Reference hub labels must remain short enough to avoid crossing neighboring branches');
 assert.ok(hubs[9].noeuds.filter(n=>n.niveau===3).length>=3,
  'Dense developer constellation must use tertiary branches');
 assert.ok(REFERENCE_LINKS.length>=16);
@@ -199,6 +201,6 @@ drawReferenceLinks({
 assert.equal(mappedCalls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length,
  'Link topology must follow reference IDs despite reordered editorial chapters');
 const graphEngine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
-assert.ok(graphEngine.includes("const texte=compact?(e.num||''):e.label;"),
-  'Visible constellation labels must omit synthetic spoke-count suffixes');
+assert.ok(graphEngine.includes("const texte=compact?(e.num||''):(e.referenceShortLabel||e.label)+' '+e.noeuds.filter(n=>n.ed).length;"),
+  'Visible labels must use concise chapter names and real editorial counts, never decorative ray counts');
 console.log('PASS eleven flat reference stars: normalized 2D geometry, straight rays, cross-links and mobile');
