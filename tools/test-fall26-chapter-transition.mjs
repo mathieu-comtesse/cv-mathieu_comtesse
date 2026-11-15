@@ -58,8 +58,8 @@ assert.ok(theme.includes('const participating=pose.participating;'),
   'Both incoming and outgoing constellations must remain alive throughout the shared transition');
 assert.ok(theme.includes('const alpha=(participating?1:localAlpha)*intro*weight;'),
   'Outgoing star opacity must follow the common timeline instead of the old heading viewport');
-assert.ok(theme.includes('hy = participating?H*.56:'),
-  'Transition stars must share a stable screen-space pivot');
+assert.ok(theme.includes('const anchor=chapterStarAnchor(chapterIndex,handover,W,H);'),
+  'Transition stars must use independent, video-calibrated screen-space pivots');
 
 for(const p of [0,.1,.25,.5,.75,.9,1]){
  const handover={from:0,to:1,progress:p,active:p>=.5?1:0};
