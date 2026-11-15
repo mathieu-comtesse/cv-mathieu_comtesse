@@ -324,7 +324,7 @@ export class Ciel {
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          wc = c0 + Math.cos(n.a) * R * n.r; wr = r0 + Math.sin(n.a) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
+          const angle=n.a+(e.groupe==='titre'?(e.transitionAngle||0):0); wc = c0 + Math.cos(angle) * R * n.r; wr = r0 + Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
           if (libre && !e.referenceFlat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
           x = P.x; y = P.y; z = P.z;
