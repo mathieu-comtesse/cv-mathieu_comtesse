@@ -1,0 +1,15 @@
+{
+  "mode": "pont JavaScript simulé",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Démarrage, accusé obsolète, échec et reprise sur la même instance",
+      "value": true
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

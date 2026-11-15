@@ -1,0 +1,65 @@
+{
+  "mode": "WebAssembly V24.1",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Trajet de comparaison vers le même lieu",
+      "value": {
+        "type": "diagnostic",
+        "yaw": 152,
+        "pitch": 24,
+        "distance": 5.400000095367432,
+        "fps": 88.49274444580078,
+        "navRebuildMs": 487,
+        "touches": 0,
+        "allocatedMiB": 253,
+        "performance": {
+          "fps": 66.24954223632812,
+          "medianMs": 10,
+          "p95Ms": 31,
+          "p99Ms": 79,
+          "cpuMs": -1,
+          "gpuMs": -1,
+          "renderScale": 0.8999999761581421,
+          "allocatedMiB": 253,
+          "peakMiB": 254,
+          "reservedMiB": 270,
+          "gcBytes": -1,
+          "drawCalls": 441,
+          "setPassCalls": 50,
+          "triangles": 453678,
+          "frames": 180,
+          "profile": 1,
+          "animatedActors": 20
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

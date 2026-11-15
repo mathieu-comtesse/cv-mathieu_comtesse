@@ -539,3 +539,13 @@ Banc : Chromium 153 sans tête, WebGPU logiciel (SwiftShader), DPR 1, réseau di
 ### Limite exacte de la capture
 
 Le mode expo de la référence repose sur l'API expérimentale de dessin d'éléments HTML dans un canevas. Avec l'indicateur `CanvasDrawElement` activé, l'API est présente dans le banc et le clic est accepté, mais la scène ne s'établit pas en rendu logiciel. Une capture du mode expo demande donc un navigateur avec carte graphique matérielle, que cet environnement n'a pas.
+
+## Préparation de main (sans fusion)
+
+État relevé le 2026-11-14 : `origin/main` = `52bddbc`, intégration = `1169288`, base commune `90f6b5d`. `main` a 14 commits que l'intégration n'a pas (THALÉOLITHIC V23.1 à V24.4, PR 204 et 205) ; l'intégration en a 151 que `main` n'a pas.
+
+- **Recouvrement de fichiers :** aucun. Les 237 fichiers touchés par `main` sont sous `thaleolithic/` (227), `tools/` (9 scripts `*thaleolithic*` et `test-unga-publication.mjs`) et `.github/workflows/unga-web.yml`. L'intégration ne touche aucun d'eux.
+- **Simulation :** `git merge-tree --write-tree origin/claude/integration-fall26 origin/main` réussit sans conflit (arbre `cc83597`). Rien n'a été créé, poussé ni fusionné.
+- **Véhicule :** la PR 209 (`main` ← `claude/integration-fall26`, brouillon) reste la bonne. Plan : fusionner `origin/main` dans l'intégration (commit de fusion, sans réécriture d'historique ni force), attendre la CI, puis la PR 209 devient fusionnable.
+- **Point d'attention :** `unga-web.yml` et les tests THALÉOLITHIC arrivent avec la fusion ; leur CI sera exécutée pour la première fois sur l'intégration et pourrait révéler des échecs sans lien avec Fall 26.
+- **Statut :** en attente de l'autorisation explicite pour fusionner `main` dans l'intégration puis pour fusionner la PR 209.
