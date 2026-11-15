@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {chapterHandover,chapterColourAtRow,mixHex} from '../refonte/fall26-chapter-transition.js';
+import {chapterHandover,chapterColourAtRow,chapterStarPose,mixHex} from '../refonte/fall26-chapter-transition.js';
 
 const sections=[
   {top:1000,colour:'#051DAA'},
@@ -34,7 +34,7 @@ const theme=fs.readFileSync(new URL('../refonte/theme-stars.js',import.meta.url)
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 assert.ok(theme.includes('chapterHandover(scrollY,timeline,H)'), 'Flat chapter animation must use shared timeline');
 assert.ok(theme.includes('document.body.style.setProperty'), 'Body colour must be updated by shared timeline');
-assert.ok(theme.includes('const shrink=.48+.52*weight;'), 'Outgoing stars must contract as the next chapter arrives');
+assert.ok(theme.includes('const shrink=pose.scale;'), 'Flat stars must use the shared star pose');
 assert.ok(html.includes('C.chapterColourAtRow(view.offset+(a+b)/2,stops,innerHeight)'),
   'Expo floor must be interpolated by the same chapter timeline');
 assert.ok(!html.includes('for(const [bi,band] of bands.entries())'),
@@ -43,15 +43,28 @@ const motor=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf
 assert.ok(motor.includes("e.transitionOpacity??1"),'Expo title stars must fade by handover weight');
 assert.ok(motor.includes("e.transitionScale??1"),'Expo title stars must shrink while leaving');
 assert.ok(motor.includes("e.transitionAngle||0"),'Expo title stars must rotate on the same timeline');
-assert.ok(html.includes('e.transitionAngle=!cross?0:'),'Expo title stars need source-driven rotation');
-assert.ok(theme.includes('chapterIndex===handover.active?1:0'),
+assert.ok(html.includes('e.transitionAngle=pose.angle;'),'Expo stars must share the flat rotation');
+assert.ok(theme.includes('const weight=pose.weight;'),
  'Non-active flat stars must stay hidden after the transition completes');
-assert.ok(html.includes("e.chapitre===chapters[handover.active]?.el.id?1:0"),
+assert.ok(html.includes('e.transitionOpacity=pose.weight;'),
  'Expo stars must not reappear after their outgoing fade completes');
-assert.ok(theme.includes('const participating=cross&&(chapterIndex===handover.from||chapterIndex===handover.to);'),
+assert.ok(theme.includes('const participating=pose.participating;'),
   'Both incoming and outgoing constellations must remain alive throughout the shared transition');
 assert.ok(theme.includes('const alpha=(participating?1:localAlpha)*intro*weight;'),
   'Outgoing star opacity must follow the common timeline instead of the old heading viewport');
 assert.ok(theme.includes('hy = participating?H*.56:'),
   'Transition stars must share a stable screen-space pivot');
+
+for(const p of [0,.1,.25,.5,.75,.9,1]){
+ const handover={from:0,to:1,progress:p,active:p>=.5?1:0};
+ const a=chapterStarPose(0,handover),b=chapterStarPose(1,handover),hidden=chapterStarPose(2,handover);
+ assert.ok(Math.abs(a.weight+b.weight-1)<1e-12,'Handover must conserve combined opacity');
+ assert.equal(hidden.weight,0,'Other chapters must remain hidden');
+ assert.ok(a.scale>=.48&&a.scale<=1&&b.scale>=.48&&b.scale<=1);
+ assert.deepEqual(chapterStarPose(0,handover),a,'Pose must be deterministic for reverse scrolling');
+}
+assert.equal(chapterStarPose(2,{from:2,to:2,active:2,progress:1}).weight,1);
+assert.equal(chapterStarPose(1,{from:2,to:2,active:2,progress:1}).weight,0);
+assert.ok(html.includes('C.chapterStarPose(chapterIndex,handover)'), 'Expo must call the shared pose');
+
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');
