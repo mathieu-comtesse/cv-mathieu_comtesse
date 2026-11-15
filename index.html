@@ -423,8 +423,12 @@ html body .cv-parity-intro .cv-card-body .pc-h:not(:first-child),html body .cv-p
 .cv-parity-part .hero-widgets figure{display:flex;flex-direction:column}
 .cv-parity-part .hero-widgets .cv-hero-art{position:relative;display:block;flex:1;width:100%;min-height:0;overflow:hidden}
 .cv-parity-part .hero-widgets .cv-hero-art img{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:contain;transform:none!important}
-.cv-parity-widget figure{display:flex;flex-direction:column;overflow:hidden!important;background:#051daa;border:1px solid #ffffff70;color:white}
-.cv-parity-widget figcaption{position:static!important;inset:auto!important;width:auto!important;transform:none!important;flex:none;padding:8px;font:12px/1.25 "Sohne Mono",monospace}
+.cv-parity-widget figure{position:relative;display:flex;flex-direction:column;overflow:hidden!important;background:color-mix(in srgb,var(--cv-theme,#051daa) 14%,#082093 86%);border:1px solid rgba(225,237,255,.47);border-radius:0;color:white;box-shadow:inset 0 1px rgba(255,255,255,.16),inset 0 -1px rgba(0,0,38,.38),0 5px 17px rgba(0,0,0,.14)}
+.cv-parity-widget figure::before{content:"";position:absolute;inset:1px;z-index:4;pointer-events:none;border:1px solid rgba(223,240,255,.14);background:linear-gradient(151deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.03) 12%,transparent 26%,transparent 79%,rgba(154,188,255,.055) 100%);mix-blend-mode:screen}
+.cv-parity-widget figure::after{content:"";position:absolute;left:2px;top:2px;width:42%;height:1px;z-index:5;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.62),rgba(255,255,255,0))}
+.cv-parity-widget figure:focus-within{outline:1px solid #eaf4ff;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.cv-parity-widget figure::before{background:none}}
+.cv-parity-widget figcaption{position:static!important;inset:auto!important;width:auto!important;transform:none!important;flex:none;padding:6px 8px;font:10px/1.25 "iAWriterQuattroV",monospace;letter-spacing:.012em;background:rgba(3,18,111,.26);border-top:1px solid rgba(220,236,255,.16)}
 .cv-parity-widget .cv-hero-art{position:relative;display:block;flex:1;width:100%;min-height:0;overflow:hidden}
 .cv-parity-widget .cv-hero-art img{position:absolute;inset:0;display:block!important;opacity:1!important;width:100%!important;height:100%!important;object-fit:contain;transform:none!important}
 #hero .hero-widgets .cv-hero-art{position:relative;display:block;flex:1;width:100%;min-height:9rem;overflow:hidden;cursor:zoom-in}
@@ -1151,7 +1155,7 @@ async function startParityPath(){
 const CHAPTER_TITLE={enabled:!/[?&]title=off\b/.test(location.search),desktop:1.6,mobile:2};
 function chapterTitleScale(bounds,boxW,em){if(!CHAPTER_TITLE.enabled)return 1;const t=innerWidth>=760?CHAPTER_TITLE.desktop:CHAPTER_TITLE.mobile,w=(bounds.maxX-bounds.minX)*em;return Math.max(1,Math.min(t,w>0?.96*boxW/w:1));}
 /* Cartes de l'accueil en mode expo (relevé sur la capture de référence) : la carte des chapitres est dressée au fond, les trois cartes suivantes sont des blocs pleins à dessus plat, de hauteur décroissante vers l'observateur. */
-const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pitchDeg:74,thick:8},blocs:[18,13,9]};
+const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pitchDeg:74,thick:6},blocs:[12,9,6]};
   function homeTopoOf(p){if(!HOME_HERO_TOPO.enabled||!(p.slab&&p.hero))return null;const set=parts.filter(q=>q.slab&&q.hero).sort((a,b)=>a.y-b.y),i=set.indexOf(p);if(i<0)return null;
    if(p.dresse)return{index:i,count:set.length,lift:0,pitchDeg:HOME_HERO_TOPO.dresse.pitchDeg,top:HOME_HERO_TOPO.dresse.thick,shift:0};
    const k=set.filter(q=>!q.dresse).indexOf(p),B=HOME_HERO_TOPO.blocs;return{index:i,count:set.length,lift:0,pitchDeg:0,top:B[Math.min(k,B.length-1)],shift:0};}
