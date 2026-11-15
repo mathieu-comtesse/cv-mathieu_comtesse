@@ -48,9 +48,9 @@ const inter = entree.filter((e) => e[0] > 0.02 && e[0] < 0.98);
 verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][0] - 1e-6), `entrée en expo progressive : ${inter.length} états intermédiaires relevés (progression ${entree.map((e) => e[0]).filter((v, i, l) => !i || v !== l[i - 1]).join(' → ')})`);
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
-const introExpo=await p.evaluate(()=>({introVisible:[...document.querySelectorAll('.cv-parity-part .pc-note')].filter(n=>/Pour moi, l.objet est l.explication|Le Reporteur Q18 retrouve/.test(n.textContent)).length,introFlat:document.querySelectorAll('#cv-processus .pc-note').length}));
-verifie(introExpo.introVisible===0 && introExpo.introFlat>=4,
-  `plateau Expo dégagé des notes de présentation, notes conservées dans la vue à plat (${JSON.stringify(introExpo)})`);
+const introExpo=await p.evaluate(()=>{const e=document.querySelector('.cv-parity-intro .cv-card-body'),notes=[...(e?.querySelector('.pc-notes')?.querySelectorAll('.pc-note')||[])];return {panels:document.querySelectorAll('.cv-parity-intro').length,notes:notes.length,visible:notes.filter(n=>getComputedStyle(n).display!=='none').length,sourceReplaced:!!document.querySelector('#cv-processus .cv-card-body')};});
+verifie(introExpo.panels===1 && introExpo.notes>=4 && introExpo.visible===3 && !introExpo.sourceReplaced,
+  `plateau Expo : introduction originale regroupée dans une plaque compacte (${JSON.stringify(introExpo)})`);
 const chapitres3D=await p.evaluate(()=>window.__cvParity.titles().filter(t=>t.chapter));
 verifie(chapitres3D.length>0&&chapitres3D.every(t=>t.lines===1&&t.width<=t.boxWidth*.98+2),
   `titres 3D sur une ligne dans les limites de leurs cadres (${JSON.stringify(chapitres3D.map(t=>[t.lines,t.width,t.boxWidth]))})`);
@@ -70,6 +70,7 @@ const repris = await p.evaluate(() => [window.__cvStandardPath.progress, window.
 verifie(mi[1] === 0 && repris[1] && Math.abs(repris[0] - 1) < 1e-3, `bascule inversée en cours de sortie : progression ${(+mi[0]).toFixed(2)} à l'interruption, retour à ${repris[0]} en expo`);
 await p.keyboard.press('Escape'); await p.waitForFunction(() => !window.__cvStandardPath.active, null, { timeout: 60000 }); await p.waitForTimeout(800);
 const plat = await p.evaluate(() => { const e = document.querySelector('.product-card h3'), r = e.getBoundingClientRect(); return { actif: document.documentElement.classList.contains('cv-parity-active'), y: scrollY, x: r.left, t: r.top, inert: !!e.closest('[inert]') }; });
+verifie(await p.evaluate(() => document.querySelectorAll('#cv-processus .pc-note').length>=4 && !document.querySelector('.cv-parity-intro')), 'retour à plat : texte introductif intégral restauré');
 verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant.x) < 1 && Math.abs(plat.t - avant.t) < 2, `sortie au clavier (Échap) : retour à plat, même position (${plat.y} px), contenu à sa place (écart ${Math.abs(plat.x - avant.x).toFixed(1)} / ${Math.abs(plat.t - avant.t).toFixed(1)} px)`);
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
