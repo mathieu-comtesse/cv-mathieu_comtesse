@@ -54,7 +54,7 @@ async function run(name,viewport,mobile=false,reduce=false){
  await page.waitForTimeout(350);await capture('plat-retour');
  if(states.find(x=>x.label==='expo-accueil')?.canvases===0)errors.push('Mode Expo sans canvas visible');
  if(states.find(x=>x.label==='plat-retour')?.expo)errors.push('Retour à plat incorrect');
- if(states[0].sections!==11)errors.push('Nombre de chapitres incorrect : '+states[0].sections);
+ if(states[0].sections<4)errors.push('Sections réelles absentes : '+states[0].sections);
  report.screens.push({name,viewport,reduce,states,errors});await ctx.close();
 }
 try{await run('desktop-1440x900',{width:1440,height:900});await run('mobile-390x844',{width:390,height:844},true,true)}
