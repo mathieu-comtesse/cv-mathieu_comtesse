@@ -56,12 +56,12 @@ async function run(name,viewport,mobile=false,reduce=false){
     return{rect:{x,y,w,h},meanLuminance:+(lum/n).toFixed(3),over70Pct:+(bright70*100/n).toFixed(3),
       over100Pct:+(bright100*100/n).toFixed(3),bluePixelsPct:+(blue*100/n).toFixed(3)};
   },screenshot.toString('base64'));
-  const details=await page.evaluate(()=>{
+  const details=await page.evaluate((lab)=>{
    const box=(x)=>{if(!x)return null;const b=x.getBoundingClientRect(),s=getComputedStyle(x);
     return{x:b.x,y:b.y,w:b.width,h:b.height,font:s.fontFamily,size:s.fontSize,color:s.color}};
    const canvases=[...document.querySelectorAll('canvas')].filter(c=>{const b=c.getBoundingClientRect();return b.width>60&&b.height>60&&b.right>0&&b.bottom>0&&b.left<innerWidth&&b.top<innerHeight});
-   return {y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null};
-  });states.push({label,...details,graphStats});
+   return {y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
+  },label);states.push({label,...details,graphStats});
  }
  await capture('plat-accueil');
  if(!mobile){const nav=page.locator('.cv-site-nav .cv-nav-control').first();if(await nav.count()){await nav.hover();await page.waitForTimeout(350);await capture('plat-survol')}}
