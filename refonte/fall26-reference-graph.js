@@ -116,6 +116,28 @@ export function calibrateReferenceBranches(ciel) {
  * Projette une seule surface quadrangulaire au sol, sans maillage
  * supplémentaire et sans interaction avec les modèles métiers.
  */
+/**
+ * Place les onze foyers selon la géométrie relevée sur la référence.
+ * La méthode Ciel.place du parent répartit les enfants en spirale :
+ * cette étape explicite doit donc être appliquée APRES le placement parent
+ * à chaque resize, scroll et transition entre les deux modes.
+ *
+ * width / height sont les dimensions du graphe et non celles de la fenêtre.
+ * left / top / lift correspondent à sa translation dans la scène courante.
+ */
+export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0}={}){
+  if(!ciel?.etoiles||!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return 0;
+  const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
+  const radius=Math.max(18,Math.min(160,width*.095,height*.145));
+  for(let i=0;i<hubs.length;i++){
+    const e=hubs[i],ref=REFERENCE_HUBS[i];
+    if(!ref)continue;
+    const centre=[left+ref.x*width,top+ref.y*height,lift];
+    ciel.place(e.id,centre,radius*ref.r);
+  }
+  return Math.min(hubs.length,REFERENCE_HUBS.length);
+}
+
 export function drawReferenceStage(ctx,ciel,project,alpha=1){
   if(!ctx||!ciel||typeof project!=='function'||alpha<=.005)return;
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil'&&e.centre);
