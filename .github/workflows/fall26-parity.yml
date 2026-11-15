@@ -12,6 +12,7 @@ on:
       - "refonte/site.css"
       - "tools/test-modes.mjs"
       - "tools/test-fall26-chapter-transition.mjs"
+      - "tools/test-fall26-expo-foci.mjs"
       - "tools/test-fall26-reference-graph.mjs"
       - "tools/test-fall26-title-scale.mjs"
       - "tools/capture-fall26-parity.mjs"
@@ -31,6 +32,7 @@ jobs:
           node --check refonte/fall26-chapter-transition.js
           node --check refonte/theme-stars.js
           node tools/test-fall26-chapter-transition.mjs
+          node tools/test-fall26-expo-foci.mjs
           node tools/test-fall26-reference-graph.mjs
           node tools/test-fall26-title-scale.mjs
       - name: Chromium and Playwright
