@@ -122,6 +122,13 @@ assert.deepEqual(hubs.map(h=>[...h.centre]),original,
 placeReferenceHubs(ciel,390,844);
 assert.ok(hubs.every(h=>h.centre[0]>=0&&h.centre[0]<=390));
 assert.ok(hubs.every(h=>h.centre[1]>=0&&h.centre[1]<=844));
+// Avoid the old, massively oversized Expo starfield: it must stay anchored
+// to the measured hero graph rather than nearly doubling its width/height.
+const sceneHTML=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+assert.ok(sceneHTML.includes('const gw=zr.width*(1+.12*view.e),gh=zr.height*(1+.25*view.e);'),
+  'Expo constellation footprint should remain close to the original reference');
+assert.ok(sceneHTML.includes('racineVisible:false'),
+  'The root staging node must not render as a twelfth star');
 assert.ok(!fs.readFileSync(new URL('../index.html',import.meta.url),'utf8').includes('expo-technical-hud.js'),
  "L’ancien décor de cubes latéraux ne doit pas être chargé");
 assert.ok(!fs.existsSync(new URL('../refonte/expo-reference-ornaments.js',import.meta.url)),
