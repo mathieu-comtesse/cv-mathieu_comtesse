@@ -15,4 +15,8 @@ assert.ok(scale(390)<=.78,'Mobile chapter title cannot be magnified');
 assert.ok(scale(1440,500,920)<.82,'Long French titles must shrink further to fit');
 assert.ok(scale(390,360,740)<.78,'Long mobile titles must remain within available width');
 assert.ok(scale(1440,500,920)>=.55,'Heading must remain readable');
+assert.match(html,/lengthadjust="spacingAndGlyphs">Comtesse\.me<\/text>/,
+  'Vertical masthead must use compact Comtesse.me label');
+assert.match(html,/compact:innerWidth<520,racineVisible:false\}\)/,
+  'The technical graph root must never render a spurious star in Expo');
 console.log('PASS flat/expo chapter typography no longer enlarged 1.6x/2x');
