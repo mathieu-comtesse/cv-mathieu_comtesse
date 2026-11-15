@@ -106,6 +106,13 @@ const referenceRadius=Math.min(210,1200*.12,760*.17);
 assert.ok(Math.abs(hubs[0].rayon-referenceRadius*REFERENCE_HUBS[0].r)<1e-8,
  'Reference rays must match the video-scale radius');
 const engine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
+assert.ok(engine.includes('referenceThumbnailScale=e.referenceFlat?.57:1;'),
+  'Reference endpoint graphics must stay scaled to native Shopify screenshot size');
+assert.ok(engine.includes('(e.referenceFlat?2.6:ambient?1.65:1)'),
+  'Star lines should retain the calibrated higher brightness');
+assert.ok(engine.includes("ctx.font='400 '+(compact?9:10)+'px"),
+  'Reference star labels should remain legible at measured size');
+
 assert.ok(engine.includes('(e.referenceFlat ? 1 : 0.78)'),
  'Flat reference rays must not use the compressed 3D Y geometry');
 
