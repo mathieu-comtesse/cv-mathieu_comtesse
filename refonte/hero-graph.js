@@ -49,7 +49,7 @@ export function demarre(chapitres) {
     ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
     for(const e of ciel.etoiles.values()) if(e.parent==='accueil') e.rayon*=1.16;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .55, compact: W < 520, racineVisible: false, labels: false });
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .49, compact: W < 520, racineVisible: false, labels: false });
     const cout = performance.now() - debutDessin;
     coutMoyen = coutMoyen ? coutMoyen * .92 + cout * .08 : cout;
     if (W >= 520 && coutMoyen > 9) { lents++; rapides = 0; }
