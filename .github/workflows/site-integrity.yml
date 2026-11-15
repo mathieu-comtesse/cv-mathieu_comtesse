@@ -24,6 +24,7 @@ jobs:
           node tools/test-ciel-fade.mjs
           node tools/test-fall26-floor-colours.mjs
           node tools/test-fall26-preview-paths.mjs
+          node tools/test-fall26-frame-glass.mjs
       - name: Indicateurs et gains
         run: |
           node tools/test-indicators.mjs
