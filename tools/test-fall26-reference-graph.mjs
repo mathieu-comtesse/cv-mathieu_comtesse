@@ -94,7 +94,7 @@ assert.equal(junction.filter(x=>x[0]==='end').length,6,
  'Only six dim connectors depart from the central junction');
 assert.ok(junction.find(x=>x[0]==='ring')[3]<=5,
  'Central junction must be far smaller than chapter hub nodes');
-const referenceRadius=Math.min(240,1200*.145,760*.195);
+const referenceRadius=Math.min(210,1200*.12,760*.17);
 assert.ok(Math.abs(hubs[0].rayon-referenceRadius*REFERENCE_HUBS[0].r)<1e-8,
  'Reference rays must match the video-scale radius');
 const engine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
