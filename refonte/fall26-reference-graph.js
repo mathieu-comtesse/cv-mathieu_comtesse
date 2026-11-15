@@ -20,6 +20,10 @@ export const REFERENCE_HUBS = Object.freeze([
   {x:.704,y:.440,r:1.09,points:57,tone:'mint'},   // Developer
   {x:.225,y:.194,r:.72,points:14,tone:'blue'}     // Shop
 ]);
+/* Number of visible project thumbnails per original star. Full chapter
+ * content remains in the page and navigation. This avoids rendering every
+ * portfolio item as a miniature in the static overview. */
+export const REFERENCE_CARD_SLOTS=Object.freeze([4,3,3,2,5,3,3,2,4,5,3]);
 export const REFERENCE_LINKS = Object.freeze([
   [0,4],[0,6],[0,10],[1,3],[1,5],[1,7],[1,9],
   [2,4],[2,7],[2,9],[3,5],[3,6],[3,8],
@@ -90,8 +94,23 @@ export function calibrateReferenceBranches(ciel) {
     if(!ref)return;
     e.sol=false;e.referenceFlat=true;e.flatTone=ref.tone;
     e.referenceShortLabel=REFERENCE_SHORT_LABELS[REFERENCE_CHAPTER_IDS[refIndex]]||e.label;
-    const editorial=e.noeuds.filter(n=>n.ed);
-    const pool=e.noeuds.filter(n=>!n.ed);
+    const allEditorial=e.noeuds.filter(n=>n.ed);
+    e.referenceEditorialCount=allEditorial.length;
+    const slots=Math.min(allEditorial.length,REFERENCE_CARD_SLOTS[refIndex]);
+    // Keep a representative project from each segment of the chapter, with
+    // priority for existing local illustrations over generic placeholders.
+    const keep=new Set();
+    for(let j=0;j<slots;j++){
+      const begin=Math.floor(j*allEditorial.length/slots);
+      const end=Math.max(begin+1,Math.floor((j+1)*allEditorial.length/slots));
+      const segment=allEditorial.slice(begin,end);
+      const chosen=segment.find(n=>n.ed?.image)||segment[0];
+      if(chosen)keep.add(chosen);
+    }
+    const editorial=allEditorial.filter(n=>keep.has(n));
+    const pool=e.noeuds.filter(n=>!n.ed).concat(
+      allEditorial.filter(n=>!keep.has(n)).map(n=>({...n,ed:null,enf:[],ox:0,oy:0,vis:false,gg:0}))
+    );
     const count=Math.max(ref.points,editorial.length);
     const decorativeCount=count-editorial.length;
     const visual=pool.slice(0,decorativeCount);
