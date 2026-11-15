@@ -214,3 +214,36 @@ export function drawReferenceLinks(ctx,ciel,proj,alpha=1){
   }
   ctx.stroke();ctx.restore();
 }
+
+/* Discrete junction visible near the middle of the reference. This is not a
+ * twelfth star: a hollow ring with a handful of near-invisible connectors.
+ * Infer the reference panel dimensions from calibrated hub centres so the
+ * junction remains correctly placed through 2D / Expo projection. */
+export function drawReferenceJunction(ctx,ciel,project,alpha=1){
+  if(!ctx||!ciel||typeof project!=='function'||alpha<=.003)return;
+  const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil');
+  const byReference=Array(REFERENCE_HUBS.length).fill(null);
+  hubs.forEach((e,i)=>{const j=referenceIndex(e,i);if(e.centre)byReference[j]=e;});
+  const a=byReference[0],b=byReference[4];
+  if(!a||!b)return;
+  const w=(b.centre[0]-a.centre[0])/(REFERENCE_HUBS[4].x-REFERENCE_HUBS[0].x);
+  const h=(b.centre[1]-a.centre[1])/(REFERENCE_HUBS[4].y-REFERENCE_HUBS[0].y);
+  if(!Number.isFinite(w+h)||Math.abs(w)<10||Math.abs(h)<10)return;
+  const left=a.centre[0]-REFERENCE_HUBS[0].x*w;
+  const top=a.centre[1]-REFERENCE_HUBS[0].y*h;
+  const center=project(left+w*.495,top+h*.507,a.centre[2]||0);
+  if(!center||!Number.isFinite(center.x+center.y))return;
+  ctx.save();
+  ctx.globalAlpha*=Math.min(1,Math.max(0,alpha));
+  ctx.strokeStyle='rgba(68,87,188,.22)';
+  ctx.lineWidth=.75;ctx.beginPath();
+  for(const i of [0,1,3,4,6,9]){
+    const hub=byReference[i],p=hub&&project(...hub.centre);
+    if(!p||!Number.isFinite(p.x+p.y))continue;
+    ctx.moveTo(center.x,center.y);ctx.lineTo(p.x,p.y);
+  }
+  ctx.stroke();
+  ctx.strokeStyle='rgba(95,119,239,.62)';ctx.lineWidth=.9;
+  ctx.beginPath();ctx.arc(center.x,center.y,4.6,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+}
