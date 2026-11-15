@@ -432,7 +432,16 @@ export class Ciel {
         ctx.globalAlpha = voile * aE;
         const kv = (0.72 + (n.phase / 6.283) * 0.8) * (ambient ? .85 : 1), im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
-        else { ctx.strokeStyle = ambient ? 'rgba(92,145,240,.7)' : 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = ambient ? 'rgba(75,126,235,.65)' : 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
+        else {
+          // The reference uses pale image-like endpoints, not dark blue
+          // placeholder tiles. Preserve their existing interactive hit targets.
+          const pale=e.referenceFlat && ambient;
+          ctx.strokeStyle=pale?'rgba(227,238,255,.87)':ambient?'rgba(92,145,240,.7)':'rgba(255,255,255,.75)';
+          ctx.lineWidth=pale?.85:1;
+          ctx.strokeRect(x-w/2,y-h/2,w,h);
+          ctx.fillStyle=pale?'rgba(236,245,255,.83)':ambient?'rgba(75,126,235,.65)':'rgba(255,255,255,.92)';
+          ctx.fillRect(x-w/3,y-h*.29,w*2/3,h*.58);
+        }
         if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y, etoile: e }; } }
         ctx.globalAlpha = aE;
       }
