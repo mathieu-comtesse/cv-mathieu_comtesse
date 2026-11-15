@@ -1240,15 +1240,11 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
     // clock: outgoing branches contract/fade while the new star unfolds.
     for(const e of ciel.etoiles.values()){
       if(e.groupe!=='titre')continue;
-      const from=chapters[handover.from]?.el.id,to=chapters[handover.to]?.el.id;
-      const cross=handover.from!==handover.to;
-      const weight=!cross?(e.chapitre===chapters[handover.active]?.el.id?1:0):
-        e.chapitre===from?1-handover.progress:
-        e.chapitre===to?handover.progress:0;
-      e.transitionOpacity=weight;
-      e.transitionScale=.48+.52*weight;
-      e.transitionAngle=!cross?0:e.chapitre===from?handover.progress*.18:
-        e.chapitre===to?-(1-handover.progress)*.18:0;
+      const chapterIndex=chapters.findIndex(c=>c.el.id===e.chapitre);
+      const pose=C.chapterStarPose(chapterIndex,handover);
+      e.transitionOpacity=pose.weight;
+      e.transitionScale=pose.scale;
+      e.transitionAngle=pose.angle;
     }
     state.chapterHandover={from:handover.from,to:handover.to,
       progress:handover.progress,colour:handover.colour};
