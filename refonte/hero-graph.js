@@ -2,7 +2,7 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m24';
+import { Ciel } from './moteur.js?v=m25';
 import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks} from './fall26-reference-graph.js?v=ref25';
 
 export function demarre(chapitres) {
