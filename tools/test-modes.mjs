@@ -18,6 +18,9 @@ async function page(opts = {}) {
   return p;
 }
 const p = await page();
+const flatSky = await p.evaluate(() => window.__cvHeroGraph.ciel.etat('accueil'));
+verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 && flatSky.every(e => !e.libelle),
+  `vue à plat : 11 constellations sans foyer central ni libellés superposés (${flatSky.filter(e => e.visible).length} visibles)`);
 
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
 const c0 = (await p.evaluate(() => window.__cvHeroGraph.cibles())).find((c) => c.x > 500 && c.x < 1380 && c.y > 120 && c.y < 840);
