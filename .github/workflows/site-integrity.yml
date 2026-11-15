@@ -17,6 +17,11 @@ jobs:
         run: node tools/seo-build.mjs --check
       - name: Cohérence du site
         run: node tools/test-site-consistency.mjs
+      - name: Fall 26 Expo ornaments
+        run: |
+          node --check refonte/expo-technical-hud.js
+          node --check refonte/expo-reference-ornaments.js
+          node tools/test-expo-technical-hud.mjs
       - name: Indicateurs et gains
         run: |
           node tools/test-indicators.mjs
