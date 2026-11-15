@@ -75,6 +75,7 @@ async function run(name,viewport,mobile=false,reduce=false){
    const canvases=[...document.querySelectorAll('canvas')].filter(c=>{const b=c.getBoundingClientRect();return b.width>60&&b.height>60&&b.right>0&&b.bottom>0&&b.left<innerWidth&&b.top<innerHeight});
    return {chapterTransition:window.__cvChapterTransition||null,
     bodyBackground:lab.includes('-transition-')?getComputedStyle(document.body).backgroundColor:null,
+    bodyGradient:lab.includes('-transition-')?getComputedStyle(document.body).backgroundImage:null,
     chapterTitleFills:lab.startsWith('plat-transition-')?[...document.querySelectorAll('section[data-f26-page-section] .section-hero-pin h2')].slice(0,2).map(h=>+h.style.getPropertyValue('--cv-fill')):null,
     y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,
     starFoci:lab==='expo-transition-50'?window.__cvParity?.etoiles()?.filter(x=>x.visible).map(x=>x.foyer):null,
@@ -138,6 +139,13 @@ async function run(name,viewport,mobile=false,reduce=false){
       if(!foci.some(([fx,fy])=>Math.hypot(fx-x,fy-y)<90))
         errors.push('Une des deux étoiles Expo est absente du foyer attendu : '+JSON.stringify({target:[x,y],foci}));
     }
+   }
+   if(mode==='plat'&&fraction===.5){
+    const wave=frame.chapterTransition?.wave;
+    if(!wave||wave.top===wave.middle||wave.bottom===wave.middle)
+      errors.push('Absence de balayage chromatique spatial : '+JSON.stringify(wave));
+    if(!String(frame.bodyGradient).includes('linear-gradient'))
+      errors.push('Dégradé chromatique absent de la page à plat : '+frame.bodyGradient);
    }
    if(mode==='plat'){
     const [outgoing,incoming]=frame.chapterTitleFills||[];
