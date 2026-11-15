@@ -136,7 +136,7 @@ export function calibrateReferenceBranches(ciel) {
     // Dense reference hubs include secondary forks which themselves fork.
     // Building from earlier visual nodes guarantees parent-before-child
     // ordering and keeps every editorial thumbnail at level zero.
-    for(let i=11;i<visual.length;i+=11){
+    for(let i=11;i<visual.length;i+=10){
       const twig=visual[i],parent=visual[i-1];
       if(!twig||!parent||parent.niveau!==2||twig.par)continue;
       twig.par=parent;parent.enf.push(twig);
