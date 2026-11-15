@@ -63,11 +63,16 @@ async function run(name,viewport,mobile=false,reduce=false){
    return {y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
   },label);states.push({label,...details,graphStats});
  }
+ const firstChapterY=await page.evaluate(()=>{const h=document.querySelector('.section-hero-pin h2');return h?scrollY+h.getBoundingClientRect().top:null;});
  await capture('plat-accueil');
  if(!mobile){const nav=page.locator('.cv-site-nav .cv-nav-control').first();if(await nav.count()){await nav.hover();await page.waitForTimeout(350);await capture('plat-survol')}}
  await page.locator('.cv-parity-toggle').click();
  await page.waitForFunction(()=>window.__cvStandardPath?.active&&window.__cvStandardPath.progress>=.999,null,{timeout:60000});
  await page.waitForTimeout(300);await capture('expo-accueil');
+ if(!mobile&&Number.isFinite(firstChapterY)){
+  await page.evaluate(y=>scrollTo({top:Math.max(0,y-350),behavior:'instant'}),firstChapterY);
+  await page.waitForTimeout(800);await capture('expo-premier-chapitre');
+ }
  await page.evaluate(()=>scrollTo({top:Math.min(3800,document.documentElement.scrollHeight-innerHeight),behavior:'instant'}));
  await page.waitForTimeout(900);await capture('expo-chapitre');
  await page.keyboard.press('Escape');
