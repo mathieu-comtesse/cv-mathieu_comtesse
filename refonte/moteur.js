@@ -285,7 +285,7 @@ export class Ciel {
     covers = quads;
     const focus = this.survol ? this.survol.noeud : this.survolBranche ? this.survolBranche.noeud : null, focusE = this.survol ? this.survol.etoile : this.survolBranche ? this.survolBranche.etoile : null;
     const MULT = [1, 0.4, 1.5, 0.12];                                            // classes de rendu : normale, estompée (voisine d'une branche survolée), mise en évidence, voilée par un cadre
-    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = aE;
+    ctx.save(); ctx.lineCap = 'round'; ctx.globalAlpha = A;
     let survol = null, dSurvol = 18, brancheMeilleure = null, dBranche = 7;
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
@@ -429,7 +429,7 @@ export class Ciel {
       }
     }
     this.cibles = cibles; this.survol = survol; this.survolBranche = survol ? null : brancheMeilleure;
-    if (survol) {                                                                // nom du contenu survolé
+    if (survol) { ctx.globalAlpha = A * (survol.etoile.groupe === 'titre' ? titres : 1);                                                                // nom du contenu survolé
       const texte = (survol.noeud.ed.title || '').slice(0, 60);
       ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = survol.x > W - 260 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
       const dx = survol.x > W - 260 ? -18 : 18; ctx.strokeText(texte, survol.x + dx, survol.y + 4); ctx.fillText(texte, survol.x + dx, survol.y + 4);
