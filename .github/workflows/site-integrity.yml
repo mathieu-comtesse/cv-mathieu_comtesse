@@ -23,6 +23,7 @@ jobs:
           node --check refonte/expo-reference-ornaments.js
           node tools/test-expo-technical-hud.mjs
           node tools/test-ciel-fade.mjs
+          node tools/test-fall26-floor-colours.mjs
       - name: Indicateurs et gains
         run: |
           node tools/test-indicators.mjs
