@@ -197,20 +197,28 @@ function scene(chapitres) {
       const c=chapitres[chapterIndex];
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
-      if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
-      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      // Fold the old constellation out as the next one unfolds. The same
-      // eased progress drives the chromatic blend, including reverse scroll.
+      // Include the outgoing chapter even after its heading has left the
+      // viewport. Without this the previous star disappears before its
+      // crossfade can run. Both stars share the same fixed-screen anchor.
       const cross=handover.from!==handover.to;
+      const participating=cross&&(chapterIndex===handover.from||chapterIndex===handover.to);
+      if (!participating&&(u < -1.7 || u > 1.5)) {
+        if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1');
+        else if (libre) c.titre.style.setProperty('--cv-fill', '0');
+        continue;
+      }
+      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
       const weight=!cross?(chapterIndex===handover.active?1:0):
         chapterIndex===handover.from?1-handover.progress:
         chapterIndex===handover.to?handover.progress:0;
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) *
-        lisse(scrollY, H * 0.25, H * 0.8) * weight,
-        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
+      const localAlpha=lisse(u,-1.6,-1.0)*(1-lisse(u,.8,1.3));
+      const intro=lisse(scrollY,H*.25,H*.8);
+      const alpha=(participating?1:localAlpha)*intro*weight;
+      const g=participating?1:lisse(u,-1.55,-.6),
+        plein=libre?lisse(u,.02,.34):1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
-      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H;
+      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = participating?H*.56:H*.56 - Math.max(0,u-.62)*H;
       const shrink=.48+.52*weight;
       const turn=cross?(chapterIndex===handover.from?handover.progress*.18:
         chapterIndex===handover.to?-(1-handover.progress)*.18:0):0;
