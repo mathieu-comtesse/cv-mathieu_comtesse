@@ -54,14 +54,14 @@ export function calibrateReferenceBranches(ciel) {
   });
   return hubs.length;
 }
-export function placeReferenceHubs(ciel,width,height) {
+export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0}={}) {
   const w=Number(width),h=Number(height);
   if(!(w>0&&h>0))return;
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
   const baseR=Math.min(w*.105,h*.145);
   for(let i=0;i<hubs.length&&i<REFERENCE_HUBS.length;i++){
-    const e=hubs[i],r=REFERENCE_HUBS[i],z=0;
-    e.centre=[r.x*w,r.y*h,z];e.rayon=baseR*r.r;
+    const e=hubs[i],r=REFERENCE_HUBS[i],z=lift;
+    e.centre=[left+r.x*w,top+r.y*h,z];e.rayon=baseR*r.r;
   }
 }
 export function drawReferenceLinks(ctx,ciel,proj,alpha=1){
