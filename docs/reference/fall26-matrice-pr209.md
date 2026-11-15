@@ -636,3 +636,5 @@ Banc : même page publique, pointeur déplacé par le navigateur sur deux foyers
 Pendant le survol d'un foyer, la mise en évidence d'une trajectoire (ajout antérieur du site) est suspendue. Capture du site : `docs/fall26-evidence/accueil-graphe-survol-foyer.png`.
 
 Tests : `test-modes` PASS (27 contrôles, dont le survol d'un foyer), `test-branches` PASS, `test-entrypoints`, `test-defilement`, `test-objets-3d`, `test-no-shopify --strict` PASS ; `test-machines` (onze machines) et `test-navigation` (102 routes) PASS, relancés sur `e972cd2` ; `test-ux` : la fiche `moteur44` passe sur ses quatre tailles quand la suite est lancée fiche par fiche (les dix autres fiches non relancées ; la suite complète dépasse 25 min dans ce banc).
+
+`test-ux` relancé fiche par fiche sur `df88def` : les onze fiches passent sur leurs quatre tailles (44 contrôles). Un échec isolé, `gares` en mobile, au premier passage ; la fiche relancée seule passe entièrement. Échec intermittent déjà consigné pour cette suite ; la branche ne modifie aucun fichier des fiches machines (seuls `index.html`, `refonte/hero-graph.js`, `refonte/moteur.js` et deux tests changent).
