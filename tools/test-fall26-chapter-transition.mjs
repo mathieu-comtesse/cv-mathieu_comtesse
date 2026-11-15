@@ -44,4 +44,8 @@ assert.ok(motor.includes("e.transitionOpacity??1"),'Expo title stars must fade b
 assert.ok(motor.includes("e.transitionScale??1"),'Expo title stars must shrink while leaving');
 assert.ok(motor.includes("e.transitionAngle||0"),'Expo title stars must rotate on the same timeline');
 assert.ok(html.includes('e.transitionAngle=!cross?0:'),'Expo title stars need source-driven rotation');
+assert.ok(theme.includes('chapterIndex===handover.active?1:0'),
+ 'Non-active flat stars must stay hidden after the transition completes');
+assert.ok(html.includes("e.chapitre===chapters[handover.active]?.el.id?1:0"),
+ 'Expo stars must not reappear after their outgoing fade completes');
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');
