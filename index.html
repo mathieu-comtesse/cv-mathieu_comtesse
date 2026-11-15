@@ -1246,6 +1246,8 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
         e.chapitre===to?handover.progress:1;
       e.transitionOpacity=weight;
       e.transitionScale=.48+.52*weight;
+      e.transitionAngle=!cross?0:e.chapitre===from?handover.progress*.18:
+        e.chapitre===to?-(1-handover.progress)*.18:0;
     }
     state.chapterHandover={from:handover.from,to:handover.to,
       progress:handover.progress,colour:handover.colour};
