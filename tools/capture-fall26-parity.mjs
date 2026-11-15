@@ -133,8 +133,11 @@ async function run(name,viewport,mobile=false,reduce=false){
     errors.push('Fond de page différent du chapitre : '+label+' '+frame.bodyBackground+' / '+hex);
    if(label==='expo-transition-50'){
     const foci=frame.starFoci||[];
-    if(!foci.length||!foci.some(([x,y])=>Math.hypot(x-viewport.width*.6,y-viewport.height*.55)<45))
-      errors.push('Étoile absente du foyer de transition Expo : '+JSON.stringify(foci));
+    const targets=[[.54,.42],[.49,.72]].map(([x,y])=>[x*viewport.width,y*viewport.height]);
+    for(const [x,y] of targets){
+      if(!foci.some(([fx,fy])=>Math.hypot(fx-x,fy-y)<90))
+        errors.push('Une des deux étoiles Expo est absente du foyer attendu : '+JSON.stringify({target:[x,y],foci}));
+    }
    }
    if(mode==='plat'){
     const [outgoing,incoming]=frame.chapterTitleFills||[];
