@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Ciel} from '../refonte/moteur.js';
-import {REFERENCE_HUBS,REFERENCE_LINKS,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks} from '../refonte/fall26-reference-graph.js';
+import {REFERENCE_HUBS,REFERENCE_LINKS,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage} from '../refonte/fall26-reference-graph.js';
 
 const ciel=new Ciel();
 ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
@@ -33,9 +33,11 @@ for(let i=0;i<hubs.length;i++){
  }
 }
 const calls=[];
-const ctx={save(){},restore(){},beginPath(){},moveTo(x,y){calls.push(['M',x,y])},lineTo(x,y){calls.push(['L',x,y])},stroke(){}};
+const ctx={save(){},restore(){},beginPath(){},closePath(){},fill(){calls.push(['F'])},moveTo(x,y){calls.push(['M',x,y])},lineTo(x,y){calls.push(['L',x,y])},stroke(){}};
 drawReferenceLinks(ctx,ciel,(x,y,z)=>({x,y,z}));
 assert.equal(calls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length);
+drawReferenceStage(ctx,ciel,(x,y,z)=>({x,y,z}),1);
+assert.ok(calls.some(x=>x[0]==='F'),'Projected dark backing is drawn below 3D hub network');
 placeReferenceHubs(ciel,1000,740,{left:200,top:-325,lift:90});
 assert.equal(hubs[0].centre[0],200+REFERENCE_HUBS[0].x*1000);
 assert.equal(hubs[0].centre[1],-325+REFERENCE_HUBS[0].y*740);
