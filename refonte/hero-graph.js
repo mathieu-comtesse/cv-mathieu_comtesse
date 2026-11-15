@@ -3,7 +3,7 @@
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
 import { Ciel } from './moteur.js?v=m25';
-import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks} from './fall26-reference-graph.js?v=ref25';
+import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceJunction} from './fall26-reference-graph.js?v=ref26';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -68,6 +68,7 @@ export function demarre(chapitres) {
     placeReferenceHubs(ciel,W,H,{spread:1+Math.min(.42,Math.max(0,s)*.42)});
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     drawReferenceLinks(ctx,ciel,proj,.49);
+    drawReferenceJunction(ctx,ciel,proj,.49);
     ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true });
     const cout = performance.now() - debutDessin;
     coutMoyen = coutMoyen ? coutMoyen * .92 + cout * .08 : cout;
