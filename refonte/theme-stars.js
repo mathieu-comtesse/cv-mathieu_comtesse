@@ -5,7 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
-import {chapterHandover} from './fall26-chapter-transition.js?v=ct1';
+import {chapterHandover,chapterStarPose} from './fall26-chapter-transition.js?v=ct2';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -200,17 +200,15 @@ function scene(chapitres) {
       // Include the outgoing chapter even after its heading has left the
       // viewport. Without this the previous star disappears before its
       // crossfade can run. Both stars share the same fixed-screen anchor.
-      const cross=handover.from!==handover.to;
-      const participating=cross&&(chapterIndex===handover.from||chapterIndex===handover.to);
+      const pose=chapterStarPose(chapterIndex,handover);
+      const participating=pose.participating;
       if (!participating&&(u < -1.7 || u > 1.5)) {
         if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1');
         else if (libre) c.titre.style.setProperty('--cv-fill', '0');
         continue;
       }
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const weight=!cross?(chapterIndex===handover.active?1:0):
-        chapterIndex===handover.from?1-handover.progress:
-        chapterIndex===handover.to?handover.progress:0;
+      const weight=pose.weight;
       const localAlpha=lisse(u,-1.6,-1.0)*(1-lisse(u,.8,1.3));
       const intro=lisse(scrollY,H*.25,H*.8);
       const alpha=(participating?1:localAlpha)*intro*weight;
@@ -219,9 +217,8 @@ function scene(chapitres) {
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = participating?H*.56:H*.56 - Math.max(0,u-.62)*H;
-      const shrink=.48+.52*weight;
-      const turn=cross?(chapterIndex===handover.from?handover.progress*.18:
-        chapterIndex===handover.to?-(1-handover.progress)*.18:0):0;
+      const shrink=pose.scale;
+      const turn=pose.angle;
       const R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g) * shrink;
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
