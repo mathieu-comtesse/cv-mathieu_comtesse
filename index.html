@@ -1063,7 +1063,7 @@ async function startParityPath(){
     Elles vivent dans le repère du chemin : le moteur les projette à chaque image, elles suivent donc la caméra. Nœuds éditoriaux : cliquables, ils mènent à leur contenu ; les autres points sont purement graphiques. */
  function monteCiel(){ciel.vide();ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Mathieu Comtesse'});
   cvChapterRecords.forEach((r,i)=>ciel.definit('accueil:'+r.id,{groupe:'accueil',parent:'accueil',num:String(i+1).padStart(2,'0'),label:r.name,chapitre:r.id,editoriaux:r.cards,sol:false}));R.calibrateReferenceBranches(ciel);
-  parts.forEach((p,i)=>{if(!p.heading||p.heading.hero)return;const chap=!!p.el.closest('.section-hero-pin'),vus=new Set(),ed=[];
+  parts.forEach((p,i)=>{if(!p.heading||p.heading.hero)return;const chap=!!p.heading.chapter,vus=new Set(),ed=[];
    if(chap)for(const c of cvChapterRecords.find(r=>r.id===p.section)?.cards||[])ed.push(c);
    else for(const s of parts)if(s.slab&&s.cardId&&s.theme===p.theme&&p.theme&&!vus.has(s.cardId)){vus.add(s.cardId);const card=document.getElementById(s.cardId)||s.el.closest('.product-card');ed.push({title:card?.querySelector('h3')?.textContent.trim()||s.title,handle:s.cardId,image:null});}
    p.etoile='titre:'+i;ciel.definit(p.etoile,{groupe:'titre',label:p.el.textContent.trim(),chapitre:p.section,editoriaux:ed.slice(0,14),petit:!chap});});
@@ -1259,7 +1259,7 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
       // the incoming star above the outgoing one at the crossfade midpoint.
       for(const chapterIndex of [handover.from,handover.to]){
         const id=chapters[chapterIndex]?.el.id;
-        const part=parts.find(p=>p.etoile&&p.section===id&&p.el.closest('.section-hero-pin'));
+        const part=parts.find(p=>p.etoile&&p.section===id&&p.heading?.chapter);
         const star=part&&ciel.etoiles.get(part.etoile);
         if(!star)continue;
         const target=C.chapterStarAnchor(chapterIndex,handover,innerWidth,innerHeight);
