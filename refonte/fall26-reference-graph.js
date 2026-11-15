@@ -95,6 +95,29 @@ export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0}={}) {
     e.centre=[left+r.x*w,top+r.y*h,z];e.rayon=baseR*r.r;
   }
 }
+/**
+ * Plateau bleu nuit sous le graphe de l'accueil en exposition.
+ * Projette une seule surface quadrangulaire au sol, sans maillage
+ * supplémentaire et sans interaction avec les modèles métiers.
+ */
+export function drawReferenceStage(ctx,ciel,project,alpha=1){
+  if(!ctx||!ciel||typeof project!=='function'||alpha<=.005)return;
+  const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil'&&e.centre);
+  if(hubs.length<3)return;
+  const xs=hubs.map(e=>e.centre[0]),ys=hubs.map(e=>e.centre[1]);
+  const x0=Math.min(...xs)-32,x1=Math.max(...xs)+72;
+  const y0=Math.min(...ys)-70,y1=Math.max(...ys)+105;
+  const pts=[[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(([x,y])=>project(x,y,0));
+  if(pts.some(p=>!p||!Number.isFinite(p.x+p.y)))return;
+  ctx.save();ctx.globalAlpha*=Math.min(1,alpha);
+  ctx.beginPath();for(let i=0;i<pts.length;i++){
+    const p=pts[i];if(!i)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+  }
+  ctx.closePath();
+  ctx.fillStyle='rgba(0,8,62,.36)';ctx.fill();
+  ctx.lineWidth=.65;ctx.strokeStyle='rgba(160,198,255,.14)';ctx.stroke();
+  ctx.restore();
+}
 export function drawReferenceLinks(ctx,ciel,proj,alpha=1){
   if(!ctx||!ciel||typeof proj!=='function')return;
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
