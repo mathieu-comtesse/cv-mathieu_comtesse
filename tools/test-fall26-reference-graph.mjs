@@ -69,6 +69,22 @@ assert.deepEqual(hubs.map(h=>[...h.centre,h.rayon]),atFlat,
 assert.equal(placeReferenceHubs(ciel,0,760),0,
   'A hidden or zero-width section does not produce invalid coordinates');
 assert.deepEqual(hubs.map(h=>[...h.centre,h.rayon]),atFlat);
+// The mode switch must affect scale but never drift the measured hub positions.
+placeReferenceHubs(ciel,1200,760,{expo:0});
+const flatLayout=hubs.map(e=>({centre:[...e.centre],rayon:e.rayon}));
+placeReferenceHubs(ciel,1200,760,{expo:.5});
+for(let i=0;i<hubs.length;i++){
+ assert.deepEqual(hubs[i].centre,flatLayout[i].centre);
+ assert.ok(Math.abs(hubs[i].rayon/flatLayout[i].rayon-.84)<1e-9);
+}
+placeReferenceHubs(ciel,1200,760,{expo:1});
+for(let i=0;i<hubs.length;i++){
+ assert.deepEqual(hubs[i].centre,flatLayout[i].centre);
+ assert.ok(Math.abs(hubs[i].rayon/flatLayout[i].rayon-.68)<1e-9);
+}
+placeReferenceHubs(ciel,1200,760,{expo:0});
+assert.deepEqual(hubs.map(e=>({centre:[...e.centre],rayon:e.rayon})),flatLayout,
+ 'Returning to flat restores exact prior geometry');
 placeReferenceHubs(ciel,390,844);
 assert.ok(hubs.every(h=>h.centre[0]>=0&&h.centre[0]<=390));
 assert.ok(hubs.every(h=>h.centre[1]>=0&&h.centre[1]<=844));
