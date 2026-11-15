@@ -430,7 +430,14 @@ export class Ciel {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const x = n.x1, y = n.y1, voile = n.cl === 3 ? 0.12 : 1;
         ctx.globalAlpha = voile * aE;
-        const kv = (0.72 + (n.phase / 6.283) * 0.8) * (ambient ? .85 : 1), im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
+        const kv = (0.72 + (n.phase / 6.283) * 0.8) * (ambient ? .85 : 1);
+        const im = this.image(n.ed.image);
+        // Normalized screenshot comparison at the same graph viewport:
+        // reference editorial endpoints are about 45% smaller than ours.
+        // Keep the clickable hit test centred on the same graph node.
+        const referenceThumbnailScale=e.referenceFlat?.57:1;
+        const w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
+        const h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
         else {
           // The reference uses pale image-like endpoints, not dark blue
