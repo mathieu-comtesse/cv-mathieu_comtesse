@@ -1022,7 +1022,7 @@ function openCvCardFocus(el,details){
 // // Shopify supplies the camera, fold, hinge animation, outlines and mathematical labels.
 // Only the DOM/Three rendering adapter is local; all coordinates remain native CSS pixels.
 async function startParityPath(){
- const [T,N,R]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=fall26-225b'),import(base+'refonte/fall26-reference-graph.js?v=fall26-225b')]),source=q('[data-f26-page]');if(!source)return;
+ const [T,N,R,C]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=fall26-225b'),import(base+'refonte/fall26-reference-graph.js?v=fall26-225b'),import(base+'refonte/fall26-chapter-transition.js?v=ct1')]),source=q('[data-f26-page]');if(!source)return;
  const header=q('.cv-site-nav');if(header)document.body.append(header);
  const sourceMinHeight=source.style.minHeight;
  await document.fonts?.ready;const headingFont=N.cvFont();
@@ -1169,7 +1169,32 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
  function drawSegments(out){for(let i=0;i<out.lines.length;i+=16){const a=N.p(view,out.lines[i],out.lines[i+1],out.lines[i+2]),b=N.p(view,out.lines[i+8],out.lines[i+9],out.lines[i+10]);if(!a||!b)continue;ctx.strokeStyle='rgba('+out.lines.slice(i+3,i+6).map(c=>Math.round(c*255)).join(',')+','+Math.min(1,out.lines[i+6])+')';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}}
  function drawGeometry(out){for(let i=0;i<out.fills.length;i+=24){const pts=[0,8,16].map(j=>N.p(view,out.fills[i+j],out.fills[i+j+1],out.fills[i+j+2]));if(!pts.every(Boolean))continue;ctx.fillStyle='rgba('+out.fills.slice(i+3,i+6).map(v=>Math.round(v*255)).join(',')+','+out.fills[i+6]+')';ctx.beginPath();pts.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();}for(let i=0;i<out.points.length;i+=8){const p=N.p(view,out.points[i],out.points[i+1],out.points[i+2]),q=N.p(view,out.points[i]+out.points[i+7],out.points[i+1],out.points[i+2]);if(!p||!q)continue;ctx.fillStyle='rgba('+out.points.slice(i+3,i+6).map(v=>Math.round(v*255)).join(',')+','+out.points[i+6]+')';ctx.beginPath();if(out.points[i+7]<0){const side=-out.points[i+7];ctx.fillRect(p.x-side/2,p.y-side/2,side,side);}else{ctx.arc(p.x,p.y,Math.max(.3,Math.abs(q.x-p.x)),0,Math.PI*2);ctx.fill();}}}
  const gridRY=new Float32Array(121),gridRK=new Float32Array(121),gridRV=new Uint8Array(121);function drawFallbackGrid(){const dpr=gridFallback.width/innerWidth;fallback.setTransform(dpr,0,0,dpr,0,0);fallback.clearRect(0,0,innerWidth,innerHeight);fallback.lineWidth=.85;const step=innerWidth/(cvLowEnd?42:60);const MAJ='rgba(255,255,255,.15)',MIN='rgba(255,255,255,.06)',RANGS=cvLowEnd?64:120;const RY=gridRY,RK=gridRK,RV=gridRV;for(let i=0;i<=RANGS;i++){const a0=N.p(view,view.W/2,view.T*i/RANGS,0),a1=a0&&N.p(view,view.W/2+1,view.T*i/RANGS,0);if(a0&&a1){RV[i]=1;RY[i]=a0.y;RK[i]=a1.x-a0.x;}else RV[i]=0;}for(let x=-innerWidth*2,k=-120;x<innerWidth*3;x+=step,k++){let dedans=false;for(let i=0;i<=RANGS&&!dedans;i++)if(RV[i]){const px=view.W/2+(x-view.W/2)*RK[i];if(px>-40&&px<innerWidth+40&&RY[i]>-40&&RY[i]<innerHeight+40)dedans=true;}if(!dedans)continue;fallback.strokeStyle=k%10===0?MAJ:MIN;fallback.beginPath();let on=false;for(let i=0;i<=RANGS;i++){if(!RV[i]){on=false;continue;}const qx=view.W/2+(x-view.W/2)*RK[i];if(on)fallback.lineTo(qx,RY[i]);else{fallback.moveTo(qx,RY[i]);on=true;}}fallback.stroke();if(view.t>0){const hh=(Math.imul(k,2654435761)>>>0)%997/997;if(hh<.5){const per=view.T+300,s0=((view.t*495+hh*per*2)%per)-300,i0=Math.max(0,Math.floor(s0/view.T*RANGS)),i1=Math.min(RANGS,Math.ceil((s0+300)/view.T*RANGS));if(i1>i0){fallback.strokeStyle='rgba(255,255,255,.27)';fallback.lineWidth=1.3;fallback.beginPath();let o2=false;for(let i=i0;i<=i1;i++){if(!RV[i]){o2=false;continue;}const qx=view.W/2+(x-view.W/2)*RK[i];if(o2)fallback.lineTo(qx,RY[i]);else{fallback.moveTo(qx,RY[i]);o2=true;}}fallback.stroke();fallback.lineWidth=.85;}}}}for(let y=0,k=0;y<view.T;y+=step,k++){fallback.strokeStyle=k%10===0?MAJ:MIN;const a=N.p(view,-innerWidth*2,y,0),b=N.p(view,innerWidth*3,y,0);if(a&&b){fallback.beginPath();fallback.moveTo(a.x,a.y);fallback.lineTo(b.x,b.y);fallback.stroke();}}}
- function drawPaperFloor(){const bands=[{top:0,end:original.get(chapters[0].el).top,colour:'#051DAA'},...chapters.map((c,i)=>({top:original.get(c.el).top,end:chapters[i+1]?original.get(chapters[i+1].el).top:documentHeight,colour:c.el.getAttribute('data-html-in-canvas-colour')||'#051DAA'}))];state.surfaceColours=bands.map(b=>b.colour);for(const [bi,band] of bands.entries()){const a=bi===0?0:Math.max(0,view.doc[0],band.top-view.offset),b=bi===bands.length-1?view.T:Math.min(view.T,view.doc[1],band.end-view.offset);if(b<=a)continue;const left=[],right=[];for(let i=0;i<=64;i++){const row=a+(b-a)*i/64,p=N.p(view,0,row,0),q=N.p(view,view.W,row,0);if(p&&q){left.push(p);right.push(q);}}const polygon=left.concat(right.reverse());if(polygon.length<4)continue;fallback.fillStyle=N.cvLit(band.colour,view.rise);fallback.beginPath();polygon.forEach((p,i)=>i?fallback.lineTo(p.x,p.y):fallback.moveTo(p.x,p.y));fallback.closePath();fallback.fill();}}
+ function drawPaperFloor(){
+  // The same chapter interpolation drives the flat body background and
+  // the projected Expo floor. Sampling small projected strips avoids the
+  // hard colour discontinuities produced by per-section solid polygons.
+  const stops=chapters.map(c=>({
+    top:original.get(c.el).top,
+    colour:c.el.getAttribute('data-html-in-canvas-colour')||'#051DAA'
+  }));
+  state.surfaceColours=stops.map(b=>b.colour);
+  const lo=Math.max(0,-view.offset),hi=Math.min(view.T,documentHeight-view.offset);
+  if(hi<=lo)return;
+  const strips=Math.max(1,Math.ceil((hi-lo)/26));
+  for(let i=0;i<strips;i++){
+    const a=lo+(hi-lo)*i/strips,b=lo+(hi-lo)*(i+1)/strips;
+    const p=N.p(view,0,a,0),q=N.p(view,view.W,a,0);
+    const r=N.p(view,view.W,b,0),z=N.p(view,0,b,0);
+    if(!p||!q||!r||!z)continue;
+    const colour=C.chapterColourAtRow(view.offset+(a+b)/2,stops,innerHeight);
+    fallback.fillStyle=N.cvLit(colour,view.rise);
+    fallback.beginPath();
+    fallback.moveTo(p.x,p.y);fallback.lineTo(q.x,q.y);
+    fallback.lineTo(r.x,r.y);fallback.lineTo(z.x,z.y);
+    fallback.closePath();fallback.fill();
+  }
+}
+
 /* rail du parcours : le rail d'origine (trait pointillé, trait de progression, train, point) continue de s'animer dans la page source masquée ;
    ses états sont lus à chaque image et redessinés sur la courbe du chemin */
  const railIcon=new Image();let railIconSrc='';
