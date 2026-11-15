@@ -1,6 +1,6 @@
 :root {
   --cv-control-time: 300ms;
-  --cv-control-ease: cubic-bezier(.4, 0, .2, 1);
+  --cv-control-ease: cubic-bezier(.65, 0, .35, 1);
   --cv-text-time: 150ms;
   --cv-control-height: 34px;
   --cv-control-radius: 4px;

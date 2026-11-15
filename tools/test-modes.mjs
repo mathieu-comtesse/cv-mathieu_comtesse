@@ -18,15 +18,26 @@ async function page(opts = {}) {
   return p;
 }
 const p = await page();
+const flatHeadingSize=await p.evaluate(()=>{
+  const h=document.querySelector('[data-f26-page-section] .section-hero-pin h2.text-section-title');
+  return h?parseFloat(getComputedStyle(h).fontSize):null;
+});
+verifie(Number.isFinite(flatHeadingSize)&&flatHeadingSize<=76,
+  `desktop flat headings must stay compact (computed ${flatHeadingSize}px)`);
+const flatSky = await p.evaluate(() => window.__cvHeroGraph.ciel.etat('accueil'));
+verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 && flatSky.filter(e => e.visible).every(e => !!e.libelle?.texte),
+  `vue à plat : 11 foyers en disposition asymétrique avec leurs légendes discrètes (${flatSky.filter(e => e.visible).length} visibles)`);
 
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
-const c0 = (await p.evaluate(() => window.__cvHeroGraph.cibles())).find((c) => c.x > 500 && c.x < 1380 && c.y > 120 && c.y < 840);
+const c0 = await p.evaluate(() => { const pts=window.__cvHeroGraph.cibles();return pts.filter(c=>c.x>540&&c.x<1330&&c.y>160&&c.y<790).map(c=>({...c,clearance:Math.min(...pts.filter(d=>d.handle!==c.handle).map(d=>Math.hypot(d.x-c.x,d.y-c.y)))})).sort((a,b)=>b.clearance-a.clearance)[0]; });
 await p.mouse.move(c0.x, c0.y); await p.waitForTimeout(300);
+const c0Survol=await p.evaluate((h)=>window.__cvHeroGraph.cibles().find(c=>c.handle===h),c0.handle);await p.mouse.move(c0Survol.x,c0Survol.y);await p.waitForTimeout(100);
 const curseurSurvol = await p.evaluate(() => document.documentElement.style.cursor || getComputedStyle(document.querySelector('.cv-hero-graph')).cursor);
-await p.mouse.down(); await p.mouse.move(c0.x + 60, c0.y + 30, { steps: 6 }); await p.waitForTimeout(500);
+await p.mouse.down();const noeudTenu=await p.evaluate(()=>window.__cvHeroGraph.ciel.pris?.noeud.ed.handle);await p.mouse.move(c0Survol.x + 60, c0Survol.y + 30, { steps: 6 }); await p.waitForTimeout(500);
 const tenu = await p.evaluate((h) => ({ c: window.__cvHeroGraph.cibles().find((c) => c.handle === h), curseur: document.documentElement.style.cursor, y: scrollY }), c0.handle);
 verifie(curseurSurvol === 'grab' && tenu.curseur === 'grabbing', `curseur : « ${curseurSurvol} » au survol d'un nœud, « ${tenu.curseur} » pendant la saisie`);
-verifie(Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)) < 6, `le nœud saisi suit le pointeur (écart ${Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)).toFixed(1)} px)`);
+verifie(noeudTenu===c0.handle, `le nœud effectivement saisi correspond à la vignette visée (${noeudTenu} / ${c0.handle})`);
+verifie(Math.hypot(tenu.c.x - (c0Survol.x + 60), tenu.c.y - (c0Survol.y + 30)) < 6, `le nœud saisi suit le pointeur (écart ${Math.hypot(tenu.c.x - (c0Survol.x + 60), tenu.c.y - (c0Survol.y + 30)).toFixed(1)} px)`);
 await p.mouse.up(); const retour = []; for (let i = 0; i < 6; i++) { await p.waitForTimeout(350); const c = await p.evaluate((h) => window.__cvHeroGraph.cibles().find((c) => c.handle === h), c0.handle); retour.push(Math.hypot(c.x - c0.x, c.y - c0.y)); }
 verifie(retour.at(-1) < 25 && retour[0] > retour.at(-1), `relâché, le nœud revient à sa place (distance à l'origine : ${retour.map((d) => d.toFixed(0)).join(', ')} px)`);
 verifie(tenu.y === 0 && await p.evaluate(() => scrollY) === 0, 'un glissé ne déclenche pas de navigation');
@@ -43,6 +54,31 @@ const inter = entree.filter((e) => e[0] > 0.02 && e[0] < 0.98);
 verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][0] - 1e-6), `entrée en expo progressive : ${inter.length} états intermédiaires relevés (progression ${entree.map((e) => e[0]).filter((v, i, l) => !i || v !== l[i - 1]).join(' → ')})`);
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
+const introExpo=await p.evaluate(()=>{const e=document.querySelector('.cv-parity-intro .cv-card-body'),notes=[...(e?.querySelector('.pc-notes')?.querySelectorAll('.pc-note')||[])];return {panels:document.querySelectorAll('.cv-parity-intro').length,notes:notes.length,visible:notes.filter(n=>getComputedStyle(n).display!=='none').length,sourceNotes:document.querySelectorAll('#cv-processus .pc-note').length};});
+verifie(introExpo.panels===1 && introExpo.notes>=4 && introExpo.visible===3 && introExpo.sourceNotes===0,
+  `plateau Expo : introduction originale regroupée dans une plaque compacte (${JSON.stringify(introExpo)})`);
+const chapitres3D=await p.evaluate(()=>window.__cvParity.titles().filter(t=>t.chapter));
+verifie(chapitres3D.length>0&&chapitres3D.every(t=>t.lines===1&&t.width<=t.boxWidth*.98+2),
+  `titres 3D sur une ligne dans les limites de leurs cadres (${JSON.stringify(chapitres3D.map(t=>[t.lines,t.width,t.boxWidth]))})`);
+const hero3DFrames=await p.evaluate(()=>window.__cvParity.boxes().filter(b=>b.hero).map(b=>({top:b.top,base:b.base,tilt:b.tilted,depth:b.depth})));
+verifie(hero3DFrames.length>=4 && hero3DFrames.every(b=>b.top-b.base<=12.5&&b.top-b.base>=5.5),
+  `cadres de l'accueil : trois plaques fines et une plaque dressée, sans blocs massifs (${JSON.stringify(hero3DFrames)})`);
+const frameMaterials=await p.evaluate(()=>{
+ const frames=[...document.querySelectorAll('.cv-parity-widget figure')].slice(0,3);
+ return frames.map(el=>{
+  const cs=getComputedStyle(el),film=getComputedStyle(el,'::before'),rim=getComputedStyle(el,'::after');
+  return {border:cs.borderTopWidth,alpha:film.content!=='none',rim:rim.content!=='none',radius:cs.borderRadius};
+ });
+});
+verifie(frameMaterials.length===3&&frameMaterials.every(f=>f.border==='1px'&&f.alpha&&f.rim&&f.radius==='0px'),
+  `accueil Expo : 3 cadres fins, verre et liserés présents (${JSON.stringify(frameMaterials)})`);
+const retourIcone=await p.evaluate(()=>{
+  const el=document.querySelector('.cv-parity-toggle'),css=getComputedStyle(el);
+  return{label:el.querySelector('.cv-pt-label')?.textContent.trim(),border:css.borderTopWidth,
+    bg:css.backgroundColor,cube:getComputedStyle(el.querySelector('.cv-pt-cube')).display};
+});
+verifie(retourIcone.label==='Retour'&&retourIcone.border==='0px'&&retourIcone.cube!=='none'&&/rgba\(0, 0, 0, 0\)/.test(retourIcone.bg),
+  `Expo : bouton de retour filaire sans pastille (${JSON.stringify(retourIcone)})`);
 verifie(Math.abs(expo.y - avant.y) < 2, `la position de lecture est conservée (${avant.y} → ${expo.y} px)`);
 /* sortie, interrompue puis reprise */
 await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForTimeout(300);
@@ -52,11 +88,12 @@ const repris = await p.evaluate(() => [window.__cvStandardPath.progress, window.
 verifie(mi[1] === 0 && repris[1] && Math.abs(repris[0] - 1) < 1e-3, `bascule inversée en cours de sortie : progression ${(+mi[0]).toFixed(2)} à l'interruption, retour à ${repris[0]} en expo`);
 await p.keyboard.press('Escape'); await p.waitForFunction(() => !window.__cvStandardPath.active, null, { timeout: 60000 }); await p.waitForTimeout(800);
 const plat = await p.evaluate(() => { const e = document.querySelector('.product-card h3'), r = e.getBoundingClientRect(); return { actif: document.documentElement.classList.contains('cv-parity-active'), y: scrollY, x: r.left, t: r.top, inert: !!e.closest('[inert]') }; });
+verifie(await p.evaluate(() => document.querySelectorAll('#cv-processus .pc-note').length>=4 && !document.querySelector('.cv-parity-intro')), 'retour à plat : texte introductif intégral restauré');
 verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant.x) < 1 && Math.abs(plat.t - avant.t) < 2, `sortie au clavier (Échap) : retour à plat, même position (${plat.y} px), contenu à sa place (écart ${Math.abs(plat.x - avant.x).toFixed(1)} / ${Math.abs(plat.t - avant.t).toFixed(1)} px)`);
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m23'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=fall26-225d'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */
@@ -80,14 +117,53 @@ const r = await page({ reducedMotion: 'reduce' });
 await r.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await r.waitForTimeout(1500);
 const rm = await r.evaluate(() => [window.__cvStandardPath.progress, window.__cvStandardPath.active]);
 await r.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await r.waitForTimeout(800);
-verifie(rm[1] && Math.abs(rm[0] - 1) < 1e-3 && !(await r.evaluate(() => window.__cvStandardPath.active)) && r.erreurs.length === 0, `mouvement réduit : entrée et sortie sans animation (progression ${rm[0]})`);
+verifie(rm[1] && Math.abs(rm[0] - 1) < 1e-3 && (await r.evaluate(() => !window.__cvStandardPath.active && Math.abs(window.__cvStandardPath.progress) < 1e-3)) && r.erreurs.length === 0, `mouvement réduit : entrée et sortie sans animation (progression ${rm[0]})`);
 await r.context().close();
 
 /* ---- mobile ---- */
 const m = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
+const mobileHeadingSize=await m.evaluate(()=>{
+  const h=document.querySelector('[data-f26-page-section] .section-hero-pin h2.text-section-title');
+  return h?parseFloat(getComputedStyle(h).fontSize):null;
+});
+verifie(Number.isFinite(mobileHeadingSize)&&mobileHeadingSize<=44,
+  `mobile flat headings must stay compact (computed ${mobileHeadingSize}px)`);
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
-verifie(gm.foyers >= 12 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
-await m.context().close(); await b.close(); srv.close();
+const mobileNav=await m.evaluate(()=>({side:getComputedStyle(document.querySelector('.cv-parity-nav')).display,header:!!document.querySelector('.cv-site-nav')}));
+verifie(mobileNav.side==='none'&&mobileNav.header,`mobile : navigation latérale masquée, menu de chapitres conservé (${JSON.stringify(mobileNav)})`);
+verifie(gm.foyers >= 11 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
+/* Mobile : l'en-tête doit quitter le champ lorsqu'on lit les projets, même après une bascule 3D. */
+await m.evaluate(() => scrollTo({top:Math.min(3800,document.documentElement.scrollHeight-innerHeight),behavior:'instant'})); await m.waitForTimeout(800);
+await m.keyboard.press('Escape'); await m.waitForFunction(() => !window.__cvStandardPath.active,null,{timeout:60000}); await m.waitForTimeout(800);
+const mobileRetour=await m.evaluate(() => ({
+  y:scrollY,progress:window.__cvStandardPath.progress,
+  heroBottom:document.querySelector('#hero h1')?.getBoundingClientRect().bottom,
+  position:getComputedStyle(document.querySelector('#hero')).position
+}));
+verifie(mobileRetour.y>2500 && Math.abs(mobileRetour.progress)<1e-3 && Number.isFinite(mobileRetour.heroBottom) && mobileRetour.heroBottom<0,
+  `mobile : retour à plat au milieu des projets sans titre collant (scroll ${mobileRetour.y}, bas du titre ${mobileRetour.heroBottom}, position ${mobileRetour.position})`);
+await m.context().close();
+/* The chapter handover is a continuous progress value and the actual CSS
+   background must change through intermediary colours, not discrete bands. */
+const transitionPage=await page();
+await transitionPage.evaluate(()=>{
+  const sections=[...document.querySelectorAll('section[data-f26-page-section]')];
+  const next=sections[1];
+  scrollTo({top:scrollY+next.getBoundingClientRect().top-innerHeight*.55,behavior:'instant'});
+});
+await transitionPage.waitForTimeout(480);
+const transitionSample=await transitionPage.evaluate(()=>{
+  const state=window.__cvChapterTransition;
+  return {state,bg:getComputedStyle(document.body).backgroundColor,
+    css:document.body.style.getPropertyValue('--f26-page-blend')};
+});
+verifie(!!transitionSample.state&&Math.abs(transitionSample.state.progress-.5)<.08,
+  `chapter handover must be halfway at chapter boundary: ${JSON.stringify(transitionSample.state)}`);
+verifie(transitionSample.css===transitionSample.state?.colour&&
+  transitionSample.state.colour!=='#051DAA'&&transitionSample.state.colour!=='#7000A9',
+  `progressive background needs a genuine intermediate colour: ${JSON.stringify(transitionSample)}`);
+await transitionPage.context().close();
+await b.close(); srv.close();
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : modes, bascule animée, saisie des nœuds, clavier, historique, mouvement réduit, mobile'); process.exit(echecs.length ? 1 : 0);
