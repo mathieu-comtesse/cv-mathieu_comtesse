@@ -399,6 +399,21 @@ export class Ciel {
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
         ctx.fill();
       }
+      if (ambient) {
+        /* Une fraction des terminaisons forme les points de haute lumière
+           de la référence, sans éclaircir l'ensemble des filaments bleus. */
+        ctx.globalAlpha = Math.min(1, aE * 1.1);
+        ctx.fillStyle = 'rgba(241,248,255,.95)';
+        ctx.beginPath();
+        for (let j = 0; j < nb; j++) {
+          const n = N[j];
+          if (!n.vis || n.ed || n.niveau > 2 || j % 12 !== 0) continue;
+          const radius = Math.max(1.7, 2.9 * Math.min(1.2, ech));
+          ctx.moveTo(n.x1 + radius, n.y1);
+          ctx.arc(n.x1, n.y1, radius, 0, 6.283);
+        }
+        ctx.fill();
+      }
       ctx.globalAlpha = aE;
       /* 7. cartes des contenus éditoriaux */
       for (let j = 0; j < nb; j++) {
