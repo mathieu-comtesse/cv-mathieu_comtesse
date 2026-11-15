@@ -80,7 +80,7 @@ const r = await page({ reducedMotion: 'reduce' });
 await r.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await r.waitForTimeout(1500);
 const rm = await r.evaluate(() => [window.__cvStandardPath.progress, window.__cvStandardPath.active]);
 await r.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await r.waitForTimeout(800);
-verifie(rm[1] && Math.abs(rm[0] - 1) < 1e-3 && !(await r.evaluate(() => window.__cvStandardPath.active)) && r.erreurs.length === 0, `mouvement réduit : entrée et sortie sans animation (progression ${rm[0]})`);
+verifie(rm[1] && Math.abs(rm[0] - 1) < 1e-3 && (await r.evaluate(() => !window.__cvStandardPath.active && Math.abs(window.__cvStandardPath.progress) < 1e-3)) && r.erreurs.length === 0, `mouvement réduit : entrée et sortie sans animation (progression ${rm[0]})`);
 await r.context().close();
 
 /* ---- mobile ---- */
