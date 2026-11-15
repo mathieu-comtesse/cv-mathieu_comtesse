@@ -42,6 +42,17 @@ export const REFERENCE_SPOKES = Object.freeze([
   [-179,-161,-150,-139,-125,-106,-83,-65,-47,-35,-12,8,21,38,51,78,95,112,129,156,176,195,229,263], // Developer
   [-173,-165,-149,-139,-90,-57,-34,-12,9,28,63,118,139,173]              // Shop
 ]);
+// Map the actual chapter IDs to the locations of the original reference hubs.
+// The site's editorial chapter order differs from the reference diagram order.
+export const REFERENCE_CHAPTER_IDS=Object.freeze([
+  'agentic','sidekick','merchandising','retail','payments','operations',
+  'online','marketing','fulfillment','developer','shop'
+]);
+function referenceIndex(hub,fallback){
+  const key=typeof hub?.id==='string'&&hub.id.startsWith('accueil:')?hub.id.slice(8):'';
+  const index=REFERENCE_CHAPTER_IDS.indexOf(key);
+  return index<0?fallback:index;
+}
 const TAU=Math.PI*2;
 /**
  * Étend les orientations relevées dans les captures sans produire des rayons
@@ -69,7 +80,7 @@ export function referenceSpokeAngles(index,count){
 export function calibrateReferenceBranches(ciel) {
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
   hubs.forEach((e,index)=>{
-    const ref=REFERENCE_HUBS[index];
+    const refIndex=referenceIndex(e,index),ref=REFERENCE_HUBS[refIndex];
     if(!ref)return;
     e.sol=false;e.referenceFlat=true;e.flatTone=ref.tone;
     const editorial=e.noeuds.filter(n=>n.ed);
@@ -87,21 +98,21 @@ export function calibrateReferenceBranches(ciel) {
         visual.push({...template,ed:null,enf:[],ox:0,oy:0,phase:(i+1)*.618%TAU,vis:false,gg:0});
     }
     e.noeuds=[...editorial,...visual];
-    const angles=referenceSpokeAngles(index,e.noeuds.length);
+    const angles=referenceSpokeAngles(refIndex,e.noeuds.length);
     const assigned=new Set();
     // Les miniatures sont réparties sur l'éventail, au lieu d'être concentrées
     // selon le nombre d'or du générateur procédural.
     editorial.forEach((n,i)=>{
       const at=Math.min(angles.length-1,Math.floor((i+.5)*angles.length/editorial.length));
       n.a=angles[at];assigned.add(at);
-      n.r=.8+.38*((i*7+index*3)%11)/10;
+      n.r=.8+.38*((i*7+refIndex*3)%11)/10;
     });
     let cursor=0;
     visual.forEach((n,i)=>{
       while(assigned.has(cursor)&&cursor<angles.length)cursor++;
       n.a=angles[cursor++]??(i+.5)*TAU/Math.max(1,visual.length);
       // Chaque direction possède une profondeur distincte, sans motif radial répété.
-      n.r=.66+.60*((i*11+index*5)%23)/22;
+      n.r=.66+.60*((i*11+refIndex*5)%23)/22;
     });
     e.noeuds.forEach((n,i)=>{
       n.dh=0;n.cv=0;n.ar=0;n.par=null;n.enf=[];
@@ -134,7 +145,7 @@ export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0,expo=0
   // Keep the calibrated positions exact at spread=1, including in Expo.
   const opening=Number.isFinite(spread)?Math.min(1.6,Math.max(.7,spread)):1;
   for(let i=0;i<hubs.length;i++){
-    const e=hubs[i],ref=REFERENCE_HUBS[i];
+    const e=hubs[i],ref=REFERENCE_HUBS[referenceIndex(e,i)];
     if(!ref)continue;
     const centre=[left+(0.5+(ref.x-.5)*opening)*width,top+(0.5+(ref.y-.5)*opening)*height,lift];
     ciel.place(e.id,centre,radius*ref.r);
@@ -163,10 +174,12 @@ export function drawReferenceStage(ctx,ciel,project,alpha=1){
 export function drawReferenceLinks(ctx,ciel,proj,alpha=1){
   if(!ctx||!ciel||typeof proj!=='function')return;
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
+  const byReference=Array.from({length:REFERENCE_HUBS.length},()=>null);
+  hubs.forEach((hub,i)=>{byReference[referenceIndex(hub,i)]=hub;});
   ctx.save();ctx.lineWidth=.65;ctx.strokeStyle='rgba(81,111,218,'+(Math.min(.2,Math.max(0,alpha)*.14)).toFixed(3)+')';
   ctx.beginPath();
   for(const [a,b] of REFERENCE_LINKS){
-    const A=hubs[a]?.centre,B=hubs[b]?.centre;
+    const A=byReference[a]?.centre,B=byReference[b]?.centre;
     if(!A||!B)continue;
     const p=proj(...A),q=proj(...B);
     if(!p||!q)continue;
