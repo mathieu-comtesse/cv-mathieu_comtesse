@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,13 +39,13 @@ namespace UngaBunga45001
         {var go=new GameObject("Conséquence persistante · "+binding.id);go.transform.SetPositionAndRotation(position,Quaternion.Euler(0,yaw,0));var ragdoll=go.AddComponent<AccidentRagdoll>();ragdoll.Create(binding,position,yaw,gore,bloodMaterial);return ragdoll;}
         IEnumerator Run(AccidentDefinition spec)
         {
-            Playing=true;DeathScreen=false;Analysis=false;Current=spec;LastGoreLevel=Mathf.Clamp(campaign.GetComponent<UISettingsController>().preferences.goreLevel,0,2);LastBloodCount=0;
+            campaign.GetComponent<ActivityActingV18>()?.ReleaseForFilm();campaign.GetComponent<WorkNavigationV18>()?.PrepareForFilm();Playing=true;DeathScreen=false;Analysis=false;Current=spec;LastGoreLevel=Mathf.Clamp(campaign.GetComponent<UISettingsController>().preferences.goreLevel,0,2);LastBloodCount=0;
             var binding=campaign.bindings.characters.First(c=>c.id==spec.victimId);var root=campaign.bindings.Find(spec.victimId);Vector3 origin=root.position;float yaw=root.eulerAngles.y;
             var structure=spec.kind=="hut"?FindObjectsByType<HutCollapse>(FindObjectsSortMode.None).Where(h=>h.site=="habitations"&&!h.Broken).OrderBy(h=>Vector3.Distance(h.transform.position,campaign.bindings.Find(spec.site).position)).FirstOrDefault():null;
             if(spec.kind=="hut"&&structure==null){Playing=false;campaign.Inform("Aucune structure utilisable à cet emplacement.");yield break;}
             if(structure!=null){origin=structure.transform.position+Vector3.forward*.35f;origin.y=HutCollapse.TerrainFloor(origin);root.position=origin;}
             var camera=campaign.cinematicDirector.cinematicCamera;bool oldCamera=campaign.bindings.gameplayCamera.enabled;campaign.bindings.gameplayCamera.enabled=false;camera.enabled=true;float oldFov=camera.fieldOfView;camera.fieldOfView=48;
-            campaign.bindings.SetGameplayBlocked(true);var victimAgent=root.GetComponent<UnityEngine.AI.NavMeshAgent>();if(victimAgent!=null&&victimAgent.enabled&&victimAgent.isOnNavMesh)victimAgent.isStopped=true;
+            campaign.ReconcileControls();var victimAgent=root.GetComponent<UnityEngine.AI.NavMeshAgent>();if(victimAgent!=null&&victimAgent.enabled&&victimAgent.isOnNavMesh)victimAgent.isStopped=true;
             var originalRotation=binding.meshyActor.transform.localRotation;
             var performance=CinematicPerformanceV15.For(campaign);var witnesses=new CinematicWitnessesV15();activeWitnesses=witnesses;witnesses.Begin(campaign,spec.victimId);campaign.Subtitle="Mathieu : "+spec.warning;Vector3 riverFlow=Vector3.forward;
             if(spec.kind=="river"&&CinematicRiverBankV15.Find(campaign,root,out var edge,out riverFlow,out var approach))
@@ -134,7 +134,7 @@ namespace UngaBunga45001
             StopAllCoroutines();activeWitnesses?.End();activeWitnesses=null;GetComponent<CinematicPerformanceV15>()?.StopAll();Playing=DeathScreen=Analysis=false;Current=null;
             foreach(var obj in transient)if(obj!=null)Destroy(obj);transient.Clear();foreach(var obj in corpses.Values)if(obj!=null)Destroy(obj);corpses.Clear();restored=null;
             foreach(var binding in campaign.bindings.characters)if(binding.meshyActor!=null)binding.meshyActor.SetActive(campaign.State.characters.FirstOrDefault(c=>c.id==binding.id)?.alive??false);
-            campaign.cinematicDirector.cinematicCamera.enabled=false;campaign.bindings.gameplayCamera.enabled=true;campaign.bindings.SetGameplayBlocked(false);
+            campaign.cinematicDirector.cinematicCamera.enabled=false;campaign.bindings.gameplayCamera.enabled=true;campaign.ReconcileControls();
         }
     }
 }

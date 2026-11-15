@@ -1,0 +1,71 @@
+{
+  "mode": "WebAssembly V24.4",
+  "steps": [
+    {
+      "name": "Moteur prêt",
+      "value": true
+    },
+    {
+      "name": "Cinématique terminée, Dylan et caméra actifs",
+      "value": {
+        "type": "input",
+        "window": "",
+        "parent": "",
+        "activity": "",
+        "quest": "",
+        "phase": "GAMEPLAY",
+        "locks": "None",
+        "controls": true,
+        "touch": false,
+        "suspended": false,
+        "paused": false,
+        "camera": true,
+        "motor": true,
+        "pointer": false,
+        "focused": true,
+        "resumeRequired": false,
+        "timeScale": 1
+      }
+    },
+    {
+      "name": "Aurélien à portée pour lancer le périmètre SST",
+      "value": 1.4783119564948277
+    },
+    {
+      "name": "Première réponse enregistrée avant rechargement",
+      "value": {
+        "distance": 3.1511077885754486
+      }
+    },
+    {
+      "name": "Périmètre SST : tutoriel de première utilisation, réponse conservée et reprise directe",
+      "value": {
+        "id": "V17_SCOPE",
+        "card": 1,
+        "mistakes": 0,
+        "lane": 1,
+        "seconds": 1.0110000371932983,
+        "workSeconds": 0,
+        "routeDistance": 0,
+        "completed": false,
+        "observed": false,
+        "worked": false,
+        "verified": false,
+        "introSeen": false,
+        "guideSeen": true,
+        "allocation": [
+          0,
+          0,
+          0
+        ],
+        "answers": [
+          "scope0"
+        ],
+        "observations": [],
+        "people": []
+      }
+    }
+  ],
+  "errors": [],
+  "status": "passed"
+}

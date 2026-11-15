@@ -66,11 +66,25 @@ namespace UngaBunga45001
             {
                 previousCursorLock = Cursor.lockState; previousCursorVisible = Cursor.visible;
                 enabledBeforeBlock.Clear();
-                foreach (var control in gameplayControls) if (control != null && control != this) { enabledBeforeBlock[control] = control.enabled; control.enabled = false; }
+                foreach (var control in gameplayControls)
+                    if (control != null && control != this && !enabledBeforeBlock.ContainsKey(control))
+                    {
+                        enabledBeforeBlock.Add(control, control.enabled);
+                        control.enabled = false;
+                    }
             }
             else { foreach (var pair in enabledBeforeBlock) if (pair.Key != null) pair.Key.enabled = pair.Value; enabledBeforeBlock.Clear(); }
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Only the browser can request pointer lock in a trusted user gesture.
+            if (blocked)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+#else
             Cursor.lockState = blocked ? CursorLockMode.None : previousCursorLock;
             Cursor.visible = blocked || previousCursorVisible;
+#endif
         }
         public void Apply(CampaignSave state, bool attenuated)
         {

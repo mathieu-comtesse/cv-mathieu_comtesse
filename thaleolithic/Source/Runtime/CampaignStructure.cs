@@ -40,13 +40,28 @@ namespace UngaBunga45001
    if(action.id=="M_V_ABRI_3"||action.id=="INV_uma_3")
    {foreach(var h in FindObjectsByType<HutCollapse>(FindObjectsInactive.Include,FindObjectsSortMode.None).Where(h=>h.site=="habitations"))h.Repair();Apply(new EffectDefinition{kind="flag",target="structure:accessClosed",value=0});if(action.id=="INV_uma_3"){foreach(var incident in State.accidents.Where(a=>a.kind=="hut"))incident.investigated=true;Apply(new EffectDefinition{kind="building",target="habitations",value=2});}RefreshStructuralClosure();}
   }
+  static void RestoreVerifiedShelter(CampaignSave save)
+  {
+   // Repair the derived building stage for saves made after a successful control.
+   // The work, effectiveness, evidence, and low risk must already be recorded.
+   var shelter = save.buildings.Find(value => value.id == "habitations");
+   if (shelter == null || shelter.value != 1 ||
+       !save.completedActions.Contains("WORK_M_V_ABRI") || !save.completedActions.Contains("M_V_ABRI_3") ||
+       !save.flags.Contains("effective:M_V_ABRI") || !save.flags.Contains("verified:M_V_ABRI") ||
+       save.flags.Contains("structure:accessClosed") || !save.evidence.Contains("M_V_ABRI_3") ||
+       !save.risks.Any(value => value.id == "abri" && value.value == 0)) return;
+   shelter.value = 2;
+  }
   bool StructuralCondition(ActionDefinition action,out string reason)
   {reason="";if(action.id=="WORK_M_V_ABRI"&&HasFlag("incident:structure")&&!HasFlag("done:STRUCTURE_CAUSES")){reason="Avant de reconstruire, examine les débris puis analyse les causes avec Mathieu.";return false;}return true;}
+  internal NavMeshObstacle StructuralClosure => structuralClosure;
   void RefreshStructuralClosure()
   {
-   if(structuralClosure==null&&!HasFlag("structure:accessClosed"))return;
-   if(structuralClosure==null){var go=new GameObject("Accès à la charpente suspendu");go.transform.SetParent(transform,false);go.transform.position=bindings.Find("habitations").position+Vector3.up;structuralClosure=go.AddComponent<NavMeshObstacle>();structuralClosure.shape=NavMeshObstacleShape.Box;structuralClosure.size=new Vector3(5.6f,2,5.6f);structuralClosure.carving=true;structuralClosure.carveOnlyStationary=false;}
-   structuralClosure.enabled=HasFlag("structure:accessClosed");GetComponent<VillageNavigation>()?.RequestRebuild();GetComponent<QuestNavigationController>()?.ForceRefresh();
+   bool closed=HasFlag("structure:accessClosed");
+   if(structuralClosure==null&&!closed)return;
+   if(structuralClosure==null){var go=new GameObject("Accès à la charpente suspendu");go.transform.SetParent(transform,false);go.transform.position=bindings.Find("habitations").position+Vector3.up;structuralClosure=go.AddComponent<NavMeshObstacle>();structuralClosure.enabled=false;structuralClosure.shape=NavMeshObstacleShape.Box;structuralClosure.size=new Vector3(5.6f,2,5.6f);structuralClosure.carving=true;structuralClosure.carveOnlyStationary=false;}
+   if(structuralClosure.enabled==closed)return;
+   structuralClosure.enabled=closed;GetComponent<VillageNavigation>()?.RequestRebuild();GetComponent<QuestNavigationController>()?.ForceRefresh();
   }
  }
 }

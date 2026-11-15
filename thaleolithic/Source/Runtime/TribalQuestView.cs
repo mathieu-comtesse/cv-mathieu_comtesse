@@ -42,6 +42,15 @@ namespace UngaBunga45001
    Label(panel,"Titre de la mission",8,y,dw-16,Small?60:78,selected.title,Small?20:28,TribalStyle.Gold,true);y+=Small?66:84;var record=campaign.QuestState(selected.id);
    Label(panel,"Référent et statut",8,y,dw-16,44,campaign.CharacterName(selected.giverId)+" · "+QuestStatusName(record)+"\nISO "+string.Join(" · ",selected.iso),Small?12:15,TribalStyle.Muted);y+=50;
    var details=TribalStyle.Scroll(panel,"Dossier de la mission",0,y,dw,Mathf.Max(32,panel.rect.height-y-62));
+   var step=campaign.Objectives.ForQuest(selected);
+   var nextAction=step?.Action;
+   if(nextAction!=null)
+   {
+    string proof=string.IsNullOrEmpty(step.Activity?.evidence)?"":$"\nPreuve · {step.Activity.evidence}";
+    string progress=step.Activity==null?"":$"\nActivité · {GetComponent<CampaignActivitiesV17>()?.Progress(step.Activity.id)?.answers.Count??0}/{step.Activity.cards.Length}";
+    QuestBlock(details,nextAction.title.ToUpperInvariant(),$"ISO 45001 · {step.Iso}\nDonneur et validation · {campaign.CharacterName(step.GiverId)}\nRéférent · {campaign.CharacterName(step.HelperId)}\nLieu · {step.Site}\nÉtape · {step.Finished}/{step.Total} objectifs acquis\nAction · {step.Instruction} ({QuestGuidanceV243.Command(GetComponent<UISettingsController>(),step.Phase)})\nRéussite · {step.Validation}{proof}{progress}\nEnsuite · {step.NextLabel}",TribalStyle.Gold);
+   }
+   else if(!string.IsNullOrEmpty(step?.Requirement))QuestBlock(details,"PRÉREQUIS ACTUEL",step.Requirement,TribalStyle.Muted);
    QuestBlock(details,"GOAL · OBJECTIF",selected.description,TribalStyle.Gold);
    foreach(var id in selected.actionIds){bool done=campaign.State.completedActions.Contains(id);QuestBlock(details,done?"✓ OBJECTIF RÉALISÉ":"OBJECTIF À RÉALISER",campaign.FindAction(id)?.title??"Objectif de la mission",done?TribalStyle.Cyan:TribalStyle.Paper);}
    if(!string.IsNullOrEmpty(selected.buildingId))QuestBlock(details,"TRAVAUX ET CONTRÔLE","Étape physique : "+campaign.Value("building",selected.buildingId).ToString("0")+" / "+selected.buildingStage+"\n"+(record.validated?"Efficacité vérifiée avec le référent.":"La vérification de l’efficacité reste obligatoire."),TribalStyle.Cyan);
@@ -49,7 +58,9 @@ namespace UngaBunga45001
    QuestBlock(details,"REWARDS · RÉCOMPENSES",string.Join("\n",selected.rewards.Select(r=>r.name+" × "+r.amount.ToString("0"))),TribalStyle.Cyan);QuestBlock(details,"TIP · CONSEIL",campaign.QuestTip(selected),TribalStyle.Pink);
    if(record.claimed)QuestBlock(details,"MISSION TERMINÉE",selected.completion,TribalStyle.Cyan);
    bool near=campaign.Near(selected.giverId);string action=record.status==QuestStatus.READY_TO_CLAIM?"RÉCUPÉRER LES RÉCOMPENSES":record.status==QuestStatus.READY_TO_VALIDATE?"FAIRE VÉRIFIER":record.accepted?"SUIVRE LA MISSION":near?"PARLER AU RÉFÉRENT":"REJOINDRE LE RÉFÉRENT";
-   var button=ActionButton(panel,action,0,panel.rect.height-50,dw,44,()=>{owner.Close();if(record.status==QuestStatus.READY_TO_CLAIM&&near)campaign.ClaimQuest(selected.id);else if(record.status==QuestStatus.READY_TO_VALIDATE&&near)campaign.ValidateQuest(selected.id);else if(!record.accepted&&near)campaign.OpenQuest(selected.id,"Offer",true);else if(!record.accepted||record.status==QuestStatus.READY_TO_CLAIM||record.status==QuestStatus.READY_TO_VALIDATE)GetComponent<QuestNavigationController>().Follow("travel:"+selected.giverId);else campaign.TrackQuest(selected.id);},true);button.interactable=!record.claimed&&record.status!=QuestStatus.FAILED&&record.status!=QuestStatus.REPLACED;
+   bool guide=nextAction!=null&&record.accepted&&selected.actionIds.Contains(nextAction.id);
+   if(guide)action="GUIDER VERS L’ACTIVITÉ";
+   var button=ActionButton(panel,action,0,panel.rect.height-50,dw,44,()=>{owner.Close();if(guide){campaign.TrackQuest(selected.id);GetComponent<QuestNavigationController>().Follow(nextAction.id);}else if(record.status==QuestStatus.READY_TO_CLAIM&&near)campaign.ClaimQuest(selected.id);else if(record.status==QuestStatus.READY_TO_VALIDATE&&near)campaign.ValidateQuest(selected.id);else if(!record.accepted&&near)campaign.OpenQuest(selected.id,"Offer",true);else if(!record.accepted||record.status==QuestStatus.READY_TO_CLAIM||record.status==QuestStatus.READY_TO_VALIDATE)GetComponent<QuestNavigationController>().Follow("travel:"+selected.giverId);else campaign.TrackQuest(selected.id);},true);button.interactable=!record.claimed&&record.status!=QuestStatus.LOCKED&&record.status!=QuestStatus.FAILED&&record.status!=QuestStatus.REPLACED;
   }
  }
 }

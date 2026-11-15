@@ -13,16 +13,19 @@ namespace UngaBunga45001
         {
             bool available=c.CanExecute(a,out string reason,true);var q=c.QuestFor(a);
             if(q==null&&a.id.StartsWith("quest:"))q=c.Data.quests.FirstOrDefault(x=>a.id.EndsWith(":"+x.id,StringComparison.Ordinal));
-            bool main=q!=null&&q.required&&q.id==c.MainQuestFrontier()?.id&&c.QuestState(q.id)?.claimed!=true;
+            var step=c.Objectives.Main;
+            bool main=step?.Action?.id==a.id;
+            var activity=c.ActivitiesV17?.activities.FirstOrDefault(candidate=>candidate.id==a.id);
+            string verb=main?step.Verb:QuestObjectiveResolver.VerbFor(a,ObjectivePhase.Interact,activity);
             var r=new InteractionContext{available=available,title=a.title,kind=main?InteractionKind.MainQuest:a.interactionType=="Document"?InteractionKind.Document:a.id.StartsWith("SOURCE_TALK_")?InteractionKind.Conversation:a.interactionType=="Inspection"?InteractionKind.Inspection:InteractionKind.Context};
             r.priority=main?0:r.kind==InteractionKind.Conversation?1:r.kind==InteractionKind.Document?2:3;
             switch(r.kind)
             {
-                case InteractionKind.MainQuest:r.heading="QUÊTE PRINCIPALE";r.icon="quest";r.detail=(q?.actionIds.Count(id=>c.State.completedActions.Contains(id))??0)+"/"+(q?.actionIds.Length??0)+" objectifs · "+q?.title;break;
-                case InteractionKind.Conversation:r.heading="DIALOGUE LIBRE";r.icon="talk";r.detail="Conversation libre · aucune validation de quête";break;
-                case InteractionKind.Document:r.heading="DOCUMENTATION";r.icon="book";r.detail="Registre consultable · faits enregistrés";break;
-                case InteractionKind.Inspection:r.heading="OBSERVATION";r.icon="inspect";r.detail="Observer sur place";break;
-                default:r.heading="ACTION SUR PLACE";r.icon="tool";r.detail=a.durationSeconds>0?a.durationSeconds.ToString("0")+" s · activité concrète":"Action contextuelle";break;
+                case InteractionKind.MainQuest:r.heading="MISSION PRINCIPALE · "+verb.ToUpperInvariant();r.icon="quest";r.detail=step.Site+" · "+step.Finished+"/"+step.Total+" objectifs";break;
+                case InteractionKind.Conversation:r.heading="PARLER · FACULTATIF";r.icon="talk";r.detail="Conversation libre avec "+c.CharacterName(a.targetBindingId);break;
+                case InteractionKind.Document:r.heading="CONSULTER";r.icon="book";r.detail="Ouvrir le registre et lire les faits enregistrés";break;
+                case InteractionKind.Inspection:r.heading="INSPECTER";r.icon="inspect";r.detail="Observer sur place et enregistrer le constat";break;
+                default:r.heading=(q?.required==false?"QUÊTE SECONDAIRE · ":"")+verb.ToUpperInvariant();r.icon=q?.required==false?"quest":"tool";r.detail=activity!=null?ActivityGuideV244.Success(activity):QuestGuidanceV243.Site(c,a.targetBindingId);break;
             }
             if(!available){r.kind=InteractionKind.Locked;r.heading="INDISPONIBLE";r.icon="lock";r.detail=reason;r.priority+=10;}
             return r;

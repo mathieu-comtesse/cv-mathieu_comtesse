@@ -18,7 +18,7 @@ namespace UngaBunga45001
         float Unit=>MobileControls.Instance!=null?MobileControls.Instance.Units:canvas.GetComponent<RectTransform>().rect.width/Mathf.Max(1,Screen.width);
         bool Narrow=>Viewport.x<600;bool Small=>Viewport.x<1000;float FontSize=>Small?16:18;float W=>Content.rect.width;float H=>Content.rect.height;
         public static string Normalize(string mode)
-        {switch(mode){case "Commandes":case "PEUPLE":return "Peuple";case "ISO 45001":case "TECHNOLOGIE":return "Technologie";case "Missions":case "Journal":case "QUÊTES":return "Quêtes";case "CARTE":return "Carte";case "INVENTAIRE":case "Sac":return "Inventaire";case "CODEX":return "Codex";case "Pause":return "Réglages";default:return mode;}}
+        {switch(mode){case "Commandes":case "PEUPLE":return "Peuple";case "ISO 45001":case "TECHNOLOGIE":return "Technologie";case "Missions":case "Journal":case "QUÊTES":return "Quêtes";case "CARTE":return "Carte";case "INVENTAIRE":case "Sac":return "Inventaire";case "CODEX":return "Codex";default:return mode;}}
         public void Build(CampaignRuntime runtime,AdventureMenus controller,Canvas target,TMP_FontAsset sourceFont)
         {
             campaign=runtime;owner=controller;canvas=target;font=sourceFont;inventory=GetComponent<InventoryController>();settings=GetComponent<UISettingsController>();
@@ -41,7 +41,7 @@ namespace UngaBunga45001
                 observedSave=campaign.State;renderedSize=Viewport;structure=StructureStamp();Root.sizeDelta=Viewport;Root.localScale=Vector3.one*Unit;float hh=Narrow?112:84,margin=Small?12:24;
                 header.sizeDelta=new Vector2(Viewport.x,hh);Content.anchoredPosition=new Vector2(margin,-hh-12);Content.sizeDelta=new Vector2(Viewport.x-margin*2,Mathf.Max(140,Viewport.y-hh-48));footer.anchoredPosition=new Vector2(margin,-Viewport.y+26);footer.sizeDelta=new Vector2(Viewport.x-margin*2,24);
                 transitionAt=Time.unscaledTime;DrawNavigation();Canvas.ForceUpdateCanvases();
-                switch(owner.Mode){case "Peuple":DrawPeople();break;case "Inventaire":DrawInventory();break;case "Fabrication":inventoryContext="Atelier";narrowInventoryPage="Atelier";DrawInventory();break;case "Carte":DrawMap();break;case "Technologie":DrawTechnology();break;case "Quêtes":DrawQuests();break;case "Codex":DrawCodex();break;case "Réglages":DrawSettings();break;default:DrawQuests();break;}
+                switch(owner.Mode){case "Peuple":DrawPeople();break;case "Inventaire":DrawInventory();break;case "Fabrication":inventoryContext="Atelier";narrowInventoryPage="Atelier";DrawInventory();break;case "Carte":DrawMap();break;case "Technologie":DrawTechnology();break;case "Quêtes":DrawQuests();break;case "Codex":DrawCodex();break;case "Réglages":DrawSettings();break;case "Pause":DrawPause();break;default:DrawQuests();break;}
                 var help=TribalStyle.Text(TribalStyle.Top(footer,"Aides",0,0,Mathf.Max(100,footer.rect.width-150),24),font,MobileControls.TouchActive?"Toucher : sélectionner  ·  Glisser : parcourir":"Sélection : clic  ·  Inventaire : "+settings.Binding("inventory")+"  ·  Carte : "+settings.Binding("map")+"  ·  Fermer : Échap",Small?12:14,TribalStyle.Muted);
                 var options=TribalStyle.Button(TribalStyle.Top(footer,"Réglages",footer.rect.width-136,-4,136,28),font,"RÉGLAGES",()=>owner.Open("Réglages"));options.GetComponentInChildren<TMP_Text>().fontSize=12;
                 RefreshValues();
@@ -57,7 +57,16 @@ namespace UngaBunga45001
                 var label=button.GetComponentInChildren<TMP_Text>();label.fontSize=Small?12:14;label.characterSpacing=Small?.5f:2;label.alignment=TextAlignmentOptions.Center;label.color=mode==current?TribalStyle.Paper:TribalStyle.Muted;
                 if(mode==current){var line=TribalStyle.Top(header,"Onglet actif",x+8,y+45,width-20,3);TribalStyle.Panel(line,"row",TribalStyle.Gold,TribalStyle.Pink);}
             }
-            var close=TribalStyle.Button(TribalStyle.Top(header,"Fermer la gestion",Viewport.x-60,14,44,44),font,"X",owner.Close);close.GetComponentInChildren<TMP_Text>().alignment=TextAlignmentOptions.Center;
+            var close=TribalStyle.Button(TribalStyle.Top(header,"Fermer la gestion",Viewport.x-60,14,44,44),font,"X",owner.Back);close.GetComponentInChildren<TMP_Text>().alignment=TextAlignmentOptions.Center;
+        }
+        void DrawPause()
+        {
+            float width=Mathf.Min(420,W-20);
+            float x=(W-width)*.5f;
+            Label(Content,"Pause",x,20,width,48,"PARTIE EN PAUSE",24,TribalStyle.Gold,true);
+            ActionButton(Content,"REPRENDRE",x,80,width,50,owner.Resume,true);
+            ActionButton(Content,"RÉGLAGES",x,140,width,50,()=>owner.Open("Réglages"));
+            ActionButton(Content,"RÉTABLIR LES COMMANDES",x,200,width,50,()=>GetComponent<WorldInteraction>().RestoreControls());
         }
         TMP_Text Label(RectTransform parent,string name,float x,float y,float width,float height,string value,float? size=null,Color? color=null,bool heading=false)
         =>TribalStyle.Text(TribalStyle.Top(parent,name,x,y,width,height),font,value,size??FontSize,color,heading);

@@ -1,0 +1,29 @@
+Unity 6000.2.12f1 · Windows · cible WebGL
+Valeurs en octets issues des fichiers écrits par Unity. La taille décompressée est mesurée en décodant le flux Gzip.
+
+                         V23.1 comprimé   V23.1 décompressé    V24 comprimé     V24 décompressé
+Données                       96 846 578          119 544 447      68 135 049          88 316 676
+Framework JavaScript              90 632              441 630          90 631             441 630
+WebAssembly                    9 348 664           29 226 749       9 347 485          29 240 496
+Chargeur JavaScript               47 338               47 338          47 338              47 338
+Total du chemin Web          106 333 212          149 260 164      77 620 503         118 046 140
+
+Synthèse des rapports BuildPipeline
+V23.1 · Succeeded · 0 erreur · 25 avertissements · 106 336 790 octets avec les fichiers annexes
+V24   · Succeeded · 0 erreur · 25 avertissements ·  77 624 073 octets avec les fichiers annexes
+
+Catégorie Unity                  V23.1       V24     (Mio d’assets utilisateur avant empaquetage)
+Textures                         144,7     144,7
+Maillages                         27,5      27,5
+Animations                        15,7      15,7
+Audio                              6,1       6,1
+Shaders                            1,0       1,0
+Autres assets                     98,5      55,3
+Total                            293,9     250,7
+
+Paramètres Web de la recette compilée
+Gzip avec décompression de secours Unity et cache IndexedDB
+IL2CPP OptimizeSize, Managed Stripping Medium, Strip Engine Code activé
+Exceptions explicites, symboles de débogage désactivés
+Wasm 2023 désactivé, heap initial 128 Mio, plafond 2 048 Mio, croissance géométrique
+Le serveur de production répond application/vnd.unity sans Content-Encoding pour les fichiers .unityweb vérifiés.

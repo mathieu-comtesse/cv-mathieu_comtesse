@@ -18,7 +18,7 @@ namespace UngaBunga45001
   bool QuestResolved(string id)
   {var r=QuestState(id);return r!=null&&(r.claimed||r.status==QuestStatus.REPLACED&&!string.IsNullOrEmpty(r.replacementId)&&QuestState(r.replacementId)?.claimed==true);}
   bool QuestBaseUnlocked(QuestDefinition q)=>
-   (q.actId=="*"||Array.FindIndex(Data.acts,a=>a.id==q.actId)<=State.actIndex)&&q.requiredFlags.All(HasFlag)&&q.prerequisites.All(QuestResolved);
+   (q.actId=="*"||Array.FindIndex(Data.acts,a=>a.id==q.actId)<=State.actIndex)&&q.requiredFlags.All(HasFlag)&&((State.campaignV17?.freePlay==true&&!q.required)||q.prerequisites.All(QuestResolved));
   public QuestDefinition MainQuestFrontier()=>Data.quests.FirstOrDefault(q=>q.required&&!QuestResolved(q.id));
   QuestDefinition OptionalQuestFrontier()
   {
