@@ -16,4 +16,15 @@ drawExpoTechnicalHud(ctx,v,{reduce:true,quality:.25});
 assert.equal(calls.save,2);assert.equal(calls.restore,2);
 drawExpoTechnicalHud(ctx,{W:0,H:0,e:1});
 assert.equal(calls.save,2,'Dimensions nulles ignorées');
+// L'habillage 3D doit suivre les coordonnées du chemin, pas la position écran.
+const projectedRows=[];
+const project=(x,row,z)=>{projectedRows.push(row);return{x:720+(x-720)*.60,y:420-(row-1800)*.42-z*.03,z:1200};};
+v.offset=2000;v.T=4500;
+drawExpoTechnicalHud(ctx,v,{project,anchors:[2200,3200],reduce:true});
+assert.ok(projectedRows.length>=4,'Ornements reprojetés depuis les chapitres');
+const before=projectedRows[0];projectedRows.length=0;
+v.offset=2300;
+drawExpoTechnicalHud(ctx,v,{project,anchors:[2200,3200],reduce:true});
+assert.ok(projectedRows.length>=4,'Ornements encore visibles après défilement');
+assert.equal(Math.round(before-projectedRows[0]),300,'Les ornements sont stables dans la scène lors du scroll');
 console.log('PASS expo hud');
