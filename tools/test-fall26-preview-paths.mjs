@@ -35,4 +35,14 @@ assert.ok(entry.includes('target.hash=location.hash')&&entry.includes('target.se
   'The full preview entrypoint must preserve deep links');
 assert.ok(html.includes('refonte/fall26-reference-graph.js'),
   'Must load the full starfield, not the simplified studio mockup');
+const flatGraph=read('refonte/hero-graph.js');
+const revision='fall26-225b';
+for(const asset of ['site.css','hero-graph.js','moteur.js','fall26-reference-graph.js']){
+  assert.ok(html.includes('refonte/'+asset+'?v='+revision),
+    'Preview must invalidate older cached '+asset);
+}
+for(const asset of ['moteur.js','fall26-reference-graph.js']){
+  assert.ok(flatGraph.includes('./'+asset+'?v='+revision),
+    'Flat overview must share the latest revision of '+asset+' with Expo');
+}
 console.log('PASS Fall26 branch preview paths and full engine');
