@@ -1,24 +1,24 @@
 /**
  * Topologie de l'accueil des éditions Fall '26.
  * Calibrée à partir de la vidéo fournie (état du graphe vers 1,7 s).
- * Coordonnées normalisées mesurées dans la fenêtre du graphe Shopify.
+ * Coordonnées normalisées recalées sur le cadre réel du graphe (capture vidéo\n * 1440 × 900 fournie, en excluant la sidebar de gauche).
  * Tous les textes et les miniatures proviennent de comtesse.me.
  *
  * Pas de code/texture/maillage/ressource Shopify.
  */
 export const REFERENCE_HUBS = Object.freeze([
   // Correspondance avec l'ordre des onze chapitres du site.
-  {x:.455,y:.181,r:1.03,points:20,tone:'blue'},  // Agentic
-  {x:.575,y:.682,r:.91,points:15,tone:'blue'},    // Sidekick
-  {x:.817,y:.485,r:.88,points:15,tone:'blue'},    // Merchandising
-  {x:.296,y:.653,r:1.04,points:21,tone:'mint'},   // Retail
-  {x:.627,y:.199,r:1.02,points:30,tone:'blue'},   // Payments
-  {x:.561,y:.922,r:.91,points:16,tone:'cyan'},    // Operations
-  {x:.367,y:.402,r:1.09,points:20,tone:'blue'},   // Online
-  {x:.737,y:.703,r:.80,points:15,tone:'blue'},    // Marketing
-  {x:.202,y:.444,r:1.07,points:19,tone:'blue'},   // Fulfillment
-  {x:.659,y:.440,r:1.09,points:57,tone:'mint'},   // Developer
-  {x:.286,y:.210,r:.72,points:14,tone:'blue'}     // Shop
+  {x:.448,y:.169,r:1.03,points:20,tone:'blue'},  // Agentic
+  {x:.604,y:.693,r:.91,points:15,tone:'blue'},    // Sidekick
+  {x:.914,y:.518,r:.88,points:15,tone:'blue'},    // Merchandising
+  {x:.224,y:.630,r:1.04,points:21,tone:'mint'},   // Retail
+  {x:.660,y:.202,r:1.02,points:30,tone:'blue'},   // Payments
+  {x:.550,y:.926,r:.91,points:16,tone:'cyan'},    // Operations
+  {x:.343,y:.384,r:1.09,points:20,tone:'blue'},   // Online
+  {x:.815,y:.728,r:.80,points:15,tone:'blue'},    // Marketing
+  {x:.131,y:.412,r:1.07,points:19,tone:'blue'},   // Fulfillment
+  {x:.704,y:.440,r:1.09,points:57,tone:'mint'},   // Developer
+  {x:.225,y:.194,r:.72,points:14,tone:'blue'}     // Shop
 ]);
 export const REFERENCE_LINKS = Object.freeze([
   [0,4],[0,6],[0,10],[1,3],[1,5],[1,7],[1,9],
