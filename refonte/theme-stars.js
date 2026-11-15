@@ -5,7 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
-import {chapterHandover,chapterStarPose,chapterStarAnchor,mixHex} from './fall26-chapter-transition.js?v=ct3';
+import {chapterHandover,chapterStarPose,chapterStarAnchor,chapterColourWave} from './fall26-chapter-transition.js?v=ct4';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -27,6 +27,13 @@ html:not(.cv-parity-active) .cv-theme-heading.cv-star-host h2{color:#fff}
 .cv-star-layer .vu circle{opacity:.9}
 html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
+html:not(.cv-parity-active)[data-f26-home] body{
+ background-image:linear-gradient(180deg,
+  var(--cv-chapter-top,#051DAA) 0%,
+  var(--cv-chapter-middle,#051DAA) 48%,
+  var(--cv-chapter-bottom,#051DAA) 100%)!important;
+ background-attachment:fixed!important;
+}
 html.cv-parity-active .cv-star-scene,html.cv-parity-active .cv-flat-nav{display:none}
 html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
 .cv-flat-nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:7px;font:500 10px/1.2 "JetBrains Mono",ui-monospace,monospace;opacity:0;pointer-events:none;transition:opacity .35s}
@@ -184,15 +191,22 @@ function scene(chapitres) {
       colour:c.section.getAttribute('data-html-in-canvas-colour')||'#051DAA'
     }));
     const handover=chapterHandover(scrollY,timeline,H);
-    if (handover.colour !== dernierFond) {
+    const from=timeline[handover.from]?.colour||handover.colour;
+    const to=timeline[handover.to]?.colour||handover.colour;
+    const wave=chapterColourWave(from,to,handover.progress);
+    const fingerprint=[handover.colour,wave.top,wave.middle,wave.bottom].join('/');
+    if (fingerprint !== dernierFond) {
       document.body.style.setProperty('--f26-page-blend',handover.colour,'important');
-      document.querySelector('.fall-navigation')?.style.setProperty('--f26-page-blend',handover.colour,'important');
+      document.querySelector('.fall-navigation')?.style.setProperty('--f26-page-blend',wave.top,'important');
       document.documentElement.style.setProperty('--cv-chapter-colour',handover.colour);
-      dernierFond = handover.colour;
+      document.body.style.setProperty('--cv-chapter-top',wave.top);
+      document.body.style.setProperty('--cv-chapter-middle',wave.middle);
+      document.body.style.setProperty('--cv-chapter-bottom',wave.bottom);
+      dernierFond = fingerprint;
     }
     window.__cvChapterTransition={
       from:handover.from,to:handover.to,progress:handover.progress,
-      colour:handover.colour,active:handover.active
+      colour:handover.colour,active:handover.active,wave
     };
     if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
