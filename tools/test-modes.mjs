@@ -23,13 +23,15 @@ verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 &&
   `vue à plat : 11 constellations sans foyer central ni libellés superposés (${flatSky.filter(e => e.visible).length} visibles)`);
 
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
-const c0 = (await p.evaluate(() => window.__cvHeroGraph.cibles())).find((c) => c.x > 500 && c.x < 1380 && c.y > 120 && c.y < 840);
+const c0 = await p.evaluate(() => { const pts=window.__cvHeroGraph.cibles();return pts.filter(c=>c.x>540&&c.x<1330&&c.y>160&&c.y<790).map(c=>({...c,clearance:Math.min(...pts.filter(d=>d.handle!==c.handle).map(d=>Math.hypot(d.x-c.x,d.y-c.y)))})).sort((a,b)=>b.clearance-a.clearance)[0]; });
 await p.mouse.move(c0.x, c0.y); await p.waitForTimeout(300);
+const c0Survol=await p.evaluate((h)=>window.__cvHeroGraph.cibles().find(c=>c.handle===h),c0.handle);await p.mouse.move(c0Survol.x,c0Survol.y);await p.waitForTimeout(100);
 const curseurSurvol = await p.evaluate(() => document.documentElement.style.cursor || getComputedStyle(document.querySelector('.cv-hero-graph')).cursor);
-await p.mouse.down(); await p.mouse.move(c0.x + 60, c0.y + 30, { steps: 6 }); await p.waitForTimeout(500);
+await p.mouse.down();const noeudTenu=await p.evaluate(()=>window.__cvHeroGraph.ciel.pris?.noeud.ed.handle);await p.mouse.move(c0Survol.x + 60, c0Survol.y + 30, { steps: 6 }); await p.waitForTimeout(500);
 const tenu = await p.evaluate((h) => ({ c: window.__cvHeroGraph.cibles().find((c) => c.handle === h), curseur: document.documentElement.style.cursor, y: scrollY }), c0.handle);
 verifie(curseurSurvol === 'grab' && tenu.curseur === 'grabbing', `curseur : « ${curseurSurvol} » au survol d'un nœud, « ${tenu.curseur} » pendant la saisie`);
-verifie(Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)) < 6, `le nœud saisi suit le pointeur (écart ${Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)).toFixed(1)} px)`);
+verifie(noeudTenu===c0.handle, `le nœud effectivement saisi correspond à la vignette visée (${noeudTenu} / ${c0.handle})`);
+verifie(Math.hypot(tenu.c.x - (c0Survol.x + 60), tenu.c.y - (c0Survol.y + 30)) < 6, `le nœud saisi suit le pointeur (écart ${Math.hypot(tenu.c.x - (c0Survol.x + 60), tenu.c.y - (c0Survol.y + 30)).toFixed(1)} px)`);
 await p.mouse.up(); const retour = []; for (let i = 0; i < 6; i++) { await p.waitForTimeout(350); const c = await p.evaluate((h) => window.__cvHeroGraph.cibles().find((c) => c.handle === h), c0.handle); retour.push(Math.hypot(c.x - c0.x, c.y - c0.y)); }
 verifie(retour.at(-1) < 25 && retour[0] > retour.at(-1), `relâché, le nœud revient à sa place (distance à l'origine : ${retour.map((d) => d.toFixed(0)).join(', ')} px)`);
 verifie(tenu.y === 0 && await p.evaluate(() => scrollY) === 0, 'un glissé ne déclenche pas de navigation');
