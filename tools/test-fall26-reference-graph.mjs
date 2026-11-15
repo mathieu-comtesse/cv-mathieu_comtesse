@@ -42,7 +42,7 @@ placeReferenceHubs(ciel,390,844);
 assert.ok(hubs.every(h=>h.centre[0]>=0&&h.centre[0]<=390));
 assert.ok(hubs.every(h=>h.centre[1]>=0&&h.centre[1]<=844));
 assert.ok(!fs.readFileSync(new URL('../index.html',import.meta.url),'utf8').includes('expo-technical-hud.js'),
- 'L'ancien décor de cubes latéraux ne doit pas être chargé');
+ "L’ancien décor de cubes latéraux ne doit pas être chargé");
 assert.ok(!fs.existsSync(new URL('../refonte/expo-reference-ornaments.js',import.meta.url)),
  'Les anciens ornements latéraux doivent être supprimés');
 console.log('PASS eleven flat reference stars: normalized 2D geometry, straight rays, cross-links and mobile');
