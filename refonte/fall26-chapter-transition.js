@@ -73,3 +73,16 @@ export function chapterStarAnchor(index,handover,width,height){
   }
   return {x:W*baseX,y:H*.56};
 }
+
+// The source video has a soft, vertically travelling colour band at a chapter
+// boundary: at mid-crossfade the middle is already strongly tinted by the
+// next chapter while the top/bottom still retain the previous chapter.
+// The pulse vanishes at progress 0 and 1, leaving exact solid end colours.
+export function chapterColourWave(from,to,progress){
+  const p=clamp01(progress),pulse=4*p*(1-p);
+  return {
+    top:mixHex(from,to,clamp01(p-.18*pulse)),
+    middle:mixHex(from,to,clamp01(p+.25*pulse)),
+    bottom:mixHex(from,to,clamp01(p-.30*pulse))
+  };
+}
