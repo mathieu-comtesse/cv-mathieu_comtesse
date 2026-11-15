@@ -469,7 +469,7 @@ html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h
     inset: 0;
   }
 } }</style>
-<link rel="stylesheet" href="/refonte/comtesse-motion.css?v=fall26-2" data-cv-motion>
+<link rel="stylesheet" href="./refonte/comtesse-motion.css?v=fall26-2" data-cv-motion>
 <link rel="stylesheet" href="refonte/showcase.css?v=sc1"><script type="module" src="refonte/showcase.js?v=sc1"></script><script type="module" src="refonte/defilement.js?v=d1"></script><script type="module" src="refonte/theme-stars.js?v=ts8"></script><style data-cv-fall26-timeline>/* Délai du premier chapitre après l'accueil, relevé sur la référence (ordinateur seulement) : 368 px à 700 px de haut, 554 à 900, 687 à 1 080, 954 à 1 440.
    Loi ajustée sur ces quatre mesures : 0,74 × hauteur − 112 px à partir de 900 px ; en dessous, 554 px − 0,93 × (900 px − hauteur). Sans ce délai, le grand titre arrivait 554 px trop tôt. */
 @media (min-width:58.75rem){[data-f26-page]{--f26-first-delay:max(0px,calc(554px - .93*(900px - 100svh)))}}
@@ -1202,7 +1202,7 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
   if(closest!==selected){selected=closest;rulers.reset();}rulers.el.hidden=true;state.pathFigures=[...models.values()].filter(m=>m.root.visible).length;state.pathView=selected?.view;
   placeCiel();{const c=ciel.compte('accueil');state.heroGraph={native:true,nodes:c.total,editoriaux:c.editoriaux,depth:N.L.layers.graph.heroLift*innerHeight};}if(grid){grid.render(view,null);const d=gridFallback.width/innerWidth;fallback.setTransform(d,0,0,d,0,0);fallback.clearRect(0,0,innerWidth,innerHeight);}else drawFallbackGrid();drawPaperFloor();renderer.render(scene,camera);renderer.autoClear=false;renderer.render(machineScene,camera);renderer.autoClear=true;const dpr=annotations.width/innerWidth;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,innerWidth,innerHeight);ctx.lineWidth=.85;
   const covers=visible.filter(p=>p.slab&&p.points&&p.box?.tilted>.05).map(p=>p.points);
-  {const pd=parts.find(q=>q.dresse);if(pd){const a=reduced.matches?1:Math.max(0,Math.min(1,view.e/.2)),sm=a*a*(3-2*a);if(!pd.items)pd.items=[...pd.el.querySelectorAll('nav li a')].map(x=>{const t=x.textContent.replace(/s+/g,' ').trim(),m=/^(.*?)s*(d{1,2})$/.exec(t);return {nom:m?m[1]:t,num:m?m[2]:''};});pd.wrapper.style.opacity=sm>.001?String(1-sm):'';if(sm>.001){const b1=parts.filter(q=>q.slab&&q.hero&&!q.dresse).sort((a,c)=>a.y-c.y)[0];if(b1&&b1.y>pd.y)N.dessinePanneauCourbe(ctx,view,{x:b1.x,w:b1.w,r1:b1.y-view.offset,hp:b1.y-pd.y,h0:HOME_HERO_TOPO.blocs[0],taille:12,items:pd.items,alpha:sm});}}}
+  {const pd=parts.find(q=>q.dresse);if(pd){const a=reduced.matches?1:Math.max(0,Math.min(1,view.e/.2)),sm=a*a*(3-2*a);if(!pd.items)pd.items=[...pd.el.querySelectorAll('nav li a')].map(x=>{const t=x.textContent.replace(/\s+/g,' ').trim(),m=/^(.*?)\s*(\d{1,2})$/.exec(t);return {nom:m?m[1]:t,num:m?m[2]:''};});pd.wrapper.style.opacity=sm>.001?String(1-sm):'';if(sm>.001){const b1=parts.filter(q=>q.slab&&q.hero&&!q.dresse).sort((a,c)=>a.y-c.y)[0];if(b1&&b1.y>pd.y)N.dessinePanneauCourbe(ctx,view,{x:b1.x,w:b1.w,r1:b1.y-view.offset,hp:b1.y-pd.y,h0:HOME_HERO_TOPO.blocs[0],taille:12,items:pd.items,alpha:sm});}}}
   /* Aucun cube, torus ni décor 3D parasite en périphérie : seuls le parcours et les vrais cadres sont dessinés. */
   N.dessineRegles(ctx,view,chapters.map(c=>({row:original.get(c.el).top-view.offset,name:c.name})));
   {{const hb=boxes.filter(b=>b.hero&&!b.slab).sort((a,c)=>a.r1-c.r1);for(let i=0;i<hb.length-1;i++)if(hb[i+1].r0>hb[i].r1)hb[i].r1=hb[i+1].r0;}const sv=N.dessineContours(ctx,view,boxes,souris);state.survol=sv?(sv.title||'cadre'):null;}
@@ -1219,5 +1219,5 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
 startParityPath().catch(e=>fail('chemin 3D',e));
 // « Voir la magie » : chaque bouton flottant ouvre la vue de son « Comment ça marche » (lien fixé avant le passage en 3D)
 for(const b of document.querySelectorAll('.cv-magic3d,.cv-explore3d'))b.onclick=e=>{e.stopPropagation();const h=b.closest('[data-cv-machine]'),slug=h?.dataset.proj;if(b.classList.contains('cv-explore3d'))return window.__cvDemo?.(b);document.querySelector('.rf-flow[data-proj="'+slug+'"] .rf-flow-magic, .rf-marche[data-proj="'+slug+'"] .rf-flow-magic')?.click();};
-</script><script src="/refonte/comtesse-motion.js?v=fall26-2" defer></script>
+</script><script src="./refonte/comtesse-motion.js?v=fall26-2" defer></script>
 </body></html><!-- rmx:flush document -->
