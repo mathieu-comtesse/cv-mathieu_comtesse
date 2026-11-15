@@ -36,3 +36,17 @@ export function chapterColourAtRow(row,sections,viewportHeight){
   // document coordinates, not at viewport row offsets.
   return chapterHandover(row-viewportHeight*.55,sections,viewportHeight).colour;
 }
+
+/** Shared geometric handover for both the flat and Expo chapter stars.
+ * Index refers to the editorial chapter order, not the hub topology.
+ * The function is stateless, reversible and never makes an inactive star visible.
+ */
+export function chapterStarPose(index,handover){
+  const {from=-1,to=-1,active=-1,progress=0}=handover||{};
+  const cross=from!==to;
+  const p=clamp01(progress);
+  const weight=!cross?(index===active?1:0):index===from?1-p:index===to?p:0;
+  const scale=.48+.52*weight;
+  const angle=!cross?0:index===from?p*.18:index===to?-(1-p)*.18:0;
+  return {weight,scale,angle,participating:cross&&(index===from||index===to)};
+}
