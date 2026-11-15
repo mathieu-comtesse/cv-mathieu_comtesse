@@ -55,8 +55,17 @@ const chapitres3D=await p.evaluate(()=>window.__cvParity.titles().filter(t=>t.ch
 verifie(chapitres3D.length>0&&chapitres3D.every(t=>t.lines===1&&t.width<=t.boxWidth*.98+2),
   `titres 3D sur une ligne dans les limites de leurs cadres (${JSON.stringify(chapitres3D.map(t=>[t.lines,t.width,t.boxWidth]))})`);
 const hero3DFrames=await p.evaluate(()=>window.__cvParity.boxes().filter(b=>b.hero).map(b=>({top:b.top,base:b.base,tilt:b.tilted,depth:b.depth})));
-verifie(hero3DFrames.length>=4 && hero3DFrames.every(b=>b.top-b.base<=18.5&&b.top-b.base>=7.5),
+verifie(hero3DFrames.length>=4 && hero3DFrames.every(b=>b.top-b.base<=12.5&&b.top-b.base>=5.5),
   `cadres de l'accueil : trois plaques fines et une plaque dressée, sans blocs massifs (${JSON.stringify(hero3DFrames)})`);
+const frameMaterials=await p.evaluate(()=>{
+ const frames=[...document.querySelectorAll('.cv-parity-widget figure')].slice(0,3);
+ return frames.map(el=>{
+  const cs=getComputedStyle(el),film=getComputedStyle(el,'::before'),rim=getComputedStyle(el,'::after');
+  return {border:cs.borderTopWidth,alpha:film.content!=='none',rim:rim.content!=='none',radius:cs.borderRadius};
+ });
+});
+verifie(frameMaterials.length===3&&frameMaterials.every(f=>f.border==='1px'&&f.alpha&&f.rim&&f.radius==='0px'),
+  `accueil Expo : 3 cadres fins, verre et liserés présents (${JSON.stringify(frameMaterials)})`);
 const retourIcone=await p.evaluate(()=>{
   const el=document.querySelector('.cv-parity-toggle'),css=getComputedStyle(el);
   return{label:el.querySelector('.cv-pt-label')?.textContent.trim(),border:css.borderTopWidth,
