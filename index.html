@@ -1242,8 +1242,9 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
       if(e.groupe!=='titre')continue;
       const from=chapters[handover.from]?.el.id,to=chapters[handover.to]?.el.id;
       const cross=handover.from!==handover.to;
-      const weight=!cross?1:e.chapitre===from?1-handover.progress:
-        e.chapitre===to?handover.progress:1;
+      const weight=!cross?(e.chapitre===chapters[handover.active]?.el.id?1:0):
+        e.chapitre===from?1-handover.progress:
+        e.chapitre===to?handover.progress:0;
       e.transitionOpacity=weight;
       e.transitionScale=.48+.52*weight;
       e.transitionAngle=!cross?0:e.chapitre===from?handover.progress*.18:
