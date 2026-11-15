@@ -418,9 +418,11 @@ export class Ciel {
         const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
-          const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
-          ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
-          e.libelleEcran = { x: Math.round(bas.x), y: Math.round(bas.y + 12), texte };
+          const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? e.label : (e.num ? e.num + ' ' : '') + e.label;   // grille (petit écran) : le nom seul, sous le foyer
+          ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center';
+          const lx = Math.max(Math.min(bas.x, W - ctx.measureText(texte).width / 2 - 4), ctx.measureText(texte).width / 2 + 4);   // le nom reste dans le cadre
+          ctx.strokeText(texte, lx, bas.y + 12); ctx.fillText(texte, lx, bas.y + 12);
+          e.libelleEcran = { x: Math.round(lx), y: Math.round(bas.y + 12), texte };
         } else {                                                                 // étoile de titre : petit libellé contre le foyer
           ctx.font = `500 ${Math.round(Math.max(11, Math.min(15, 13 * ech)))}px Inter,ui-sans-serif,system-ui,sans-serif`; ctx.textAlign = 'left'; ctx.strokeText(e.label, F.x + cote / 2 + 7, F.y + 4.5); ctx.fillText(e.label, F.x + cote / 2 + 7, F.y + 4.5);
           e.libelleEcran = { x: Math.round(F.x + cote / 2 + 7), y: Math.round(F.y + 4.5), texte: e.label };

@@ -2,7 +2,7 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m23';
+import { Ciel } from './moteur.js?v=m24';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -46,9 +46,17 @@ export function demarre(chapitres) {
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
+    /* moins de 940 px de large : foyers rangés en grille, nom sous chaque foyer, sans foyer central (disposition relevée sur la référence) */
+    const grille = innerWidth < 940;
+    if (grille) {
+      const n = chapitres.length, cols = W < 520 ? 2 : 4, rangs = Math.ceil(n / cols), cw = W / cols, ch = (H - 56) / rangs,   /* 56 px : place du bouton du chemin 3D, en bas */ R = Math.min(cw * 0.4, ch * 0.36);
+      ciel.place('accueil', null);
+      /* dernière rangée incomplète : centrée */
+      chapitres.forEach((r, k) => { const reste = n - Math.floor(k / cols) * cols, cx = (k % cols + 0.5 + (reste < cols ? (cols - reste) / 2 : 0)) * cw, cy = (Math.floor(k / cols) + 0.42) * ch;
+        ciel.place('accueil:' + r.id, [W / 2 + (cx - W / 2) * ouvre, H / 2 + (cy - H / 2) * ouvre, 10], R); });
+    } else ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], Math.min(W * 0.4, H * 0.5) * ouvre);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: W < 520 });
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille });
   }
   requestAnimationFrame(image);
   window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };

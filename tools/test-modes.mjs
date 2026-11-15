@@ -64,7 +64,7 @@ verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m23'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m24'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */
@@ -94,8 +94,13 @@ await r.context().close();
 /* ---- mobile ---- */
 const m = await page({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
+/* sous 940 px : foyers des chapitres en grille, sans foyer central, chacun nommé et entier dans le cadre (disposition de la référence) */
+const gr = await m.evaluate(() => { const c = window.__cvHeroGraph.ciel, W = window.__cvHeroGraph.etat().largeur, ch = c.etat('accueil').filter((e) => e.id !== 'accueil');
+  return { n: ch.length, racine: c.etat('accueil').find((e) => e.id === 'accueil').visible, ok: ch.filter((e) => e.visible && e.libelle?.texte === e.name && e.foyer[0] > 0 && e.foyer[0] < W && Math.abs(e.libelle.x - e.foyer[0]) < W / 2).length,
+    rangees: new Set(ch.filter((e) => e.visible).map((e) => Math.round(e.foyer[1] / 20))).size }; });
+verifie(!gr.racine && gr.ok === gr.n && gr.rangees === Math.ceil(gr.n / 2), `mobile, grille : ${gr.ok}/${gr.n} foyers nommés dans le cadre, ${gr.rangees} rangées, foyer central ${gr.racine ? 'visible' : 'masqué'}`);
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
-verifie(gm.foyers >= 12 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
+verifie(gm.foyers >= 11 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
 await m.context().close(); await b.close(); srv.close();
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : modes, bascule animée, saisie des nœuds, clavier, historique, mouvement réduit, mobile'); process.exit(echecs.length ? 1 : 0);
