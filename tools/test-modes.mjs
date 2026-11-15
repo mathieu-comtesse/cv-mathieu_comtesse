@@ -48,7 +48,7 @@ const inter = entree.filter((e) => e[0] > 0.02 && e[0] < 0.98);
 verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][0] - 1e-6), `entrée en expo progressive : ${inter.length} états intermédiaires relevés (progression ${entree.map((e) => e[0]).filter((v, i, l) => !i || v !== l[i - 1]).join(' → ')})`);
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
-const introExpo=await p.evaluate(()=>({introVisible:document.querySelectorAll('.cv-parity-part .pc-note').length,introFlat:document.querySelectorAll('#cv-processus .pc-note').length}));
+const introExpo=await p.evaluate(()=>({introVisible:[...document.querySelectorAll('.cv-parity-part .pc-note')].filter(n=>/Pour moi, l.objet est l.explication|Le Reporteur Q18 retrouve/.test(n.textContent)).length,introFlat:document.querySelectorAll('#cv-processus .pc-note').length}));
 verifie(introExpo.introVisible===0 && introExpo.introFlat>=4,
   `plateau Expo dégagé des notes de présentation, notes conservées dans la vue à plat (${JSON.stringify(introExpo)})`);
 const chapitres3D=await p.evaluate(()=>window.__cvParity.titles().filter(t=>t.chapter));
