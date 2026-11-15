@@ -615,3 +615,24 @@ Rafale de 22 captures entre 0,9 s et 27 s après la navigation (rendu logiciel :
 | Fin | tailles finales | écartement 1, grossissement 1 |
 
 Certitude : OBSERVÉ pour les deux états et l'ordre des événements ; INFÉRÉ pour les durées (1,6 s et 2,6 s) et les courbes, calées sur deux instants seulement. En mouvement réduit l'état final est affiché d'emblée. Non repris sous 940 px (grille), faute d'observation. Capture du site : `docs/fall26-evidence/accueil-graphe-apparition.png` (trois instants). Contrôle ajouté à `test-modes` (26 contrôles).
+
+## Réaction au pointeur sur le graphe à plat (observation directe, 1 400 × 900)
+
+Banc : même page publique, pointeur déplacé par le navigateur sur deux foyers, le centre, une zone vide et une ligne de balayage ; capture 2,5 s après chaque déplacement et lecture du curseur calculé. Captures de la référence non versées.
+
+| Effet | Observé sur la référence | Avant | Maintenant | État |
+|---|---|---|---|---|
+| Survol d'un foyer : couleur | rayons, points et carré du foyer en vert vif | aucun effet | idem (vert vif), bord vert sur ses vignettes | CORRIGÉ (OBSERVÉ) |
+| Survol d'un foyer : nom | nom agrandi, d'environ 12 px à environ 22 px | aucun effet | corps de 12 à 22 px | CORRIGÉ (OBSERVÉ à l'œil) |
+| Survol d'un foyer : rayons | rayons resserrés vers le foyer | aucun effet | rayon réduit de 35 % | CORRIGÉ (OBSERVÉ ; taux estimé) |
+| Survol d'un foyer : autres foyers | rayons, points et vignettes des autres foyers estompés | aucun effet | estompés de 60 % | CORRIGÉ (OBSERVÉ ; taux estimé) |
+| Survol d'un foyer : trait vers le centre | allumé, en vert | aucun effet | idem | CORRIGÉ (OBSERVÉ) |
+| Curseur | `pointer` sur un foyer et sur une vignette, `auto` au centre et dans le vide | `grab` sur une vignette, rien sur un foyer | `pointer` sur un foyer et sur une vignette ; `grabbing` pendant qu'on tient un nœud (saisie propre au site) | CORRIGÉ (OBSERVÉ) |
+| Clic sur un foyer | non essayé sur la référence | sans effet | mène au chapitre du foyer | AJOUT (cohérent avec le curseur `pointer`, non observé) |
+| Durée des transitions de survol | non mesurée (une capture par état) | sans objet | lissage de constante de temps 0,12 s | NON DOCUMENTÉ, choix interne |
+| Retour au repos | points du foyer précédent en anneaux creux pendant le retour (une capture) | sans objet | non repris | NON REPRIS |
+| Infobulle au survol d'une vignette | non déclenchée pendant ce balayage | libellé qui suit le pointeur | inchangé | NON OBSERVÉ ici (durées issues du JSON) |
+
+Pendant le survol d'un foyer, la mise en évidence d'une trajectoire (ajout antérieur du site) est suspendue. Capture du site : `docs/fall26-evidence/accueil-graphe-survol-foyer.png`.
+
+Tests : `test-modes` PASS (27 contrôles, dont le survol d'un foyer), `test-branches` PASS, `test-entrypoints`, `test-defilement`, `test-objets-3d`, `test-no-shopify --strict` PASS ; `test-machines` (onze machines) et `test-navigation` (102 routes) PASS, relancés sur `e972cd2` ; `test-ux` : la fiche `moteur44` passe sur ses quatre tailles quand la suite est lancée fiche par fiche (les dix autres fiches non relancées ; la suite complète dépasse 25 min dans ce banc).
