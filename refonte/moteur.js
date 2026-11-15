@@ -471,6 +471,17 @@ export class Ciel {
 }
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 
+/* Position du pointeur sur l'arête projetée du verre, indépendante
+ * de sa pente, de son sens et de l'inclinaison de la caméra. */
+export function projectedFramePointerRatio(start,end,souris){
+  if(!souris)return 0.5;
+  const dx=end.x-start.x,dy=end.y-start.y;
+  const length2=dx*dx+dy*dy;
+  if(length2<1e-6)return 0.5;
+  return Math.max(0,Math.min(1,
+    ((souris.x-start.x)*dx+(souris.y-start.y)*dy)/length2));
+}
+
 /* ---------- Arêtes et ombres des cadres ---------- */
 /* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
    de verre, bande claire oblique qui glisse avec la position horizontale du pointeur. Renvoie le cadre survolé. */
@@ -503,10 +514,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
       // Project pointer onto the actual upper edge so the reflection follows
       // the tilted frame even when its horizontal screen axis is reversed.
-      const edgeX=haut[1].x-haut[0].x,edgeY=haut[1].y-haut[0].y;
-      const denom=Math.max(1e-6,edgeX*edgeX+edgeY*edgeY);
-      const u=souris?Math.max(0,Math.min(1,
-        ((souris.x-haut[0].x)*edgeX+(souris.y-haut[0].y)*edgeY)/denom)):0.5;
+      const u=projectedFramePointerRatio(haut[0],haut[1],souris);
       const g=ctx.createLinearGradient(haut[0].x,haut[0].y,haut[2].x,haut[2].y);
       const c=0.2+0.6*u,a=0.13*Math.min(1,(b.tilted-0.25)*2);
       g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
