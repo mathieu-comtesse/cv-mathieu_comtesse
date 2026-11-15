@@ -161,7 +161,7 @@ export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0,expo=0
   for(let i=0;i<hubs.length;i++){
     const e=hubs[i],ref=REFERENCE_HUBS[referenceIndex(e,i)];
     if(!ref)continue;
-    const centre=[left+(0.5+(ref.x-.5)*opening)*width,top+(0.5+(ref.y-.5)*opening)*height,lift];
+    const centre=[left+(opening===1?ref.x:0.5+(ref.x-0.5)*opening)*width,top+(opening===1?ref.y:0.5+(ref.y-0.5)*opening)*height,lift];
     ciel.place(e.id,centre,radius*ref.r);
   }
   return Math.min(hubs.length,REFERENCE_HUBS.length);
