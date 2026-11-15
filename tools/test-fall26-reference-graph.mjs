@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Ciel} from '../refonte/moteur.js';
-import {REFERENCE_HUBS,REFERENCE_LINKS,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage} from '../refonte/fall26-reference-graph.js';
+import {REFERENCE_HUBS,REFERENCE_LINKS,REFERENCE_SPOKES,referenceSpokeAngles,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage} from '../refonte/fall26-reference-graph.js';
 
 const ciel=new Ciel();
 ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
@@ -31,6 +31,17 @@ for(let i=0;i<hubs.length;i++){
   assert.equal(n.dh,0,'Branches dans le plan');
   assert.ok(n.ed||n.niveau===1);
  }
+}
+for(let i=0;i<REFERENCE_HUBS.length;i++){
+ const e=hubs[i],angles=referenceSpokeAngles(i,e.noeuds.length),observed=e.noeuds.map(n=>n.a);
+ assert.equal(e.noeuds.length,REFERENCE_HUBS[i].points,'Exact ray count for star '+i);
+ assert.equal(angles.length,e.noeuds.length);
+ assert.equal(new Set(observed.map(v=>Math.round(v*1e5))).size,observed.length,
+   'Each star ray must have a unique direction');
+ assert.ok(observed.every(v=>Number.isFinite(v)&&v>=0&&v<=Math.PI*2));
+ assert.ok(observed.every(v=>angles.some(a=>Math.abs(a-v)<1e-8)),'Star ray must follow reference angular palette');
+ assert.ok(e.noeuds.every(n=>n.r>=.65&&n.r<=1.27),'Natural nonuniform spoke lengths');
+ assert.ok(REFERENCE_SPOKES[i].length>=14);
 }
 const calls=[];
 const ctx={save(){},restore(){},beginPath(){},closePath(){},fill(){calls.push(['F'])},moveTo(x,y){calls.push(['M',x,y])},lineTo(x,y){calls.push(['L',x,y])},stroke(){}};
