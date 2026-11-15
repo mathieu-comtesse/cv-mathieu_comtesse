@@ -167,8 +167,8 @@ export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0,expo=0
   if(!ciel?.etoiles||!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return 0;
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
   const transition=Math.min(1,Math.max(0,Number.isFinite(expo)?expo:0));
-  const radius=Math.max(18,Math.min(160,width*.095,height*.145))*(1-.32*transition);
-  // Opening of the flat hero constellation as the visitor scrolls toward chapter 1.
+  const radius=Math.max(22,Math.min(240,width*.145,height*.195))*(1-.18*transition);
+  // Frame-calibrated ray length: the former 9.5% width yielded stars nearly 40% too small.\n  // Opening of the flat hero constellation as the visitor scrolls toward chapter 1.
   // Keep the calibrated positions exact at spread=1, including in Expo.
   const opening=Number.isFinite(spread)?Math.min(1.6,Math.max(.7,spread)):1;
   for(let i=0;i<hubs.length;i++){
