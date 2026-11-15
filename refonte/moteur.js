@@ -431,11 +431,21 @@ export class Ciel {
       }
     }
     this.cibles = cibles; this.survol = survol; this.survolBranche = survol ? null : brancheMeilleure;
-    if (survol) {                                                                // nom du contenu survolé
-      const texte = (survol.noeud.ed.title || '').slice(0, 60);
-      ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = survol.x > W - 260 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
-      const dx = survol.x > W - 260 ? -18 : 18; ctx.strokeText(texte, survol.x + dx, survol.y + 4); ctx.fillText(texte, survol.x + dx, survol.y + 4);
+    /* Nom du contenu survolé. Relevés de la référence : le libellé suit le pointeur avec `left, top 0.12s ease-out` et son opacité change en
+       0,15 s suivant cubic-bezier(0.65, 0, 0.35, 1) (lissage cubique symétrique). Sans pointeur (tactile, clavier) il reste contre le nœud. */
+    const L = this.lib || (this.lib = { x: 0, y: 0, a: 0, texte: '' });
+    if (survol) {
+      const suit = souris.x > -1e3, cx = suit ? souris.x : survol.x, cy = suit ? souris.y : survol.y;
+      if (L.a <= 0 || !libre) { L.x = cx; L.y = cy; } else { const q = 1 - Math.exp(-dt / 0.04); L.x += (cx - L.x) * q; L.y += (cy - L.y) * q; }   // 95 % de l'écart rattrapé en 0,12 s
+      L.texte = (survol.noeud.ed.title || '').slice(0, 60);
     }
+    L.a = libre ? Math.max(0, Math.min(1, L.a + (survol ? dt : -dt) / 0.15)) : survol ? 1 : 0;
+    if (L.a > 0 && L.texte) {
+      const o = L.a < 0.5 ? 4 * L.a ** 3 : 1 - (2 - 2 * L.a) ** 3 / 2, droite = L.x > W - 260, dx = droite ? -18 : 18;
+      ctx.globalAlpha = A * o; ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = droite ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
+      ctx.strokeText(L.texte, L.x + dx, L.y + 4); ctx.fillText(L.texte, L.x + dx, L.y + 4);
+      this.libelleSurvol = { x: L.x + dx, y: L.y + 4, opacite: o, texte: L.texte };
+    } else this.libelleSurvol = null;
     ctx.restore();
   }
 }

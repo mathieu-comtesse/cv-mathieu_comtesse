@@ -27,10 +27,20 @@ await p.mouse.move(vide.x, vide.y); await p.waitForTimeout(300);
 const curseurVide = await p.evaluate(({ x, y }) => getComputedStyle(document.elementFromPoint(x, y)).cursor, vide);
 verifie(curseurVide === 'auto', `curseur hors nœud sur le graphe : « ${curseurVide} » (attendu auto)`);
 
+/* ---- bouton du mode 3D : masqué sur l'accueil, visible dans un chapitre (relevé de la référence) ---- */
+const visBouton = () => p.evaluate(() => { const c = getComputedStyle(document.querySelector('.cv-parity-toggle')); return c.visibility + '/' + c.opacity; });
+const bAccueil = await visBouton(); await p.evaluate(() => scrollTo({ top: 3000, behavior: 'instant' })); await p.waitForFunction((v) => { const c = getComputedStyle(document.querySelector('.cv-parity-toggle')); return c.visibility + '/' + c.opacity === v; }, 'visible/1', { timeout: 15000 }).catch(() => {}); const bChapitre = await visBouton();
+await p.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await p.waitForFunction((v) => { const c = getComputedStyle(document.querySelector('.cv-parity-toggle')); return c.visibility + '/' + c.opacity === v; }, 'hidden/0', { timeout: 15000 }).catch(() => {});
+verifie(bAccueil === 'hidden/0' && bChapitre === 'visible/1' && await visBouton() === 'hidden/0', `bouton du mode 3D : ${bAccueil} sur l'accueil, ${bChapitre} dans un chapitre, masqué au retour`);
+
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
 const c0 = (await p.evaluate(() => window.__cvHeroGraph.cibles())).find((c) => c.x > 500 && c.x < 1380 && c.y > 120 && c.y < 840);
 await p.mouse.move(c0.x, c0.y); await p.waitForTimeout(300);
 const curseurSurvol = await p.evaluate(() => document.documentElement.style.cursor || getComputedStyle(document.querySelector('.cv-hero-graph')).cursor);
+/* libellé de survol : contre le pointeur une fois posé, opaque, puis effacé en quittant le nœud */
+await p.waitForTimeout(500);
+const lib = await p.evaluate(() => { const l = window.__cvHeroGraph.ciel.libelleSurvol, r = document.querySelector('.cv-hero-graph').getBoundingClientRect(); return l && { x: l.x + r.left, y: l.y + r.top, o: l.opacite, t: l.texte }; });
+verifie(!!lib && lib.o > 0.99 && Math.abs(lib.x - c0.x) < 40 && Math.abs(lib.y - c0.y) < 20 && lib.t.length > 0, `libellé de survol : « ${lib?.t} » à ${lib ? Math.hypot(lib.x - c0.x, lib.y - c0.y).toFixed(0) : '?'} px du pointeur, opacité ${lib?.o.toFixed(2)}`);
 await p.mouse.down(); await p.mouse.move(c0.x + 60, c0.y + 30, { steps: 6 }); await p.waitForTimeout(500);
 const tenu = await p.evaluate((h) => ({ c: window.__cvHeroGraph.cibles().find((c) => c.handle === h), curseur: document.documentElement.style.cursor, y: scrollY }), c0.handle);
 verifie(curseurSurvol === 'grab' && tenu.curseur === 'grabbing', `curseur : « ${curseurSurvol} » au survol d'un nœud, « ${tenu.curseur} » pendant la saisie`);
@@ -64,7 +74,7 @@ verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m24'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m25'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */
