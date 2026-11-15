@@ -1203,7 +1203,7 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
   N.dessineRegles(ctx,view,chapters.map(c=>({row:original.get(c.el).top-view.offset,name:c.name})));
   {{const hb=boxes.filter(b=>b.hero&&!b.slab).sort((a,c)=>a.r1-c.r1);for(let i=0;i<hb.length-1;i++)if(hb[i+1].r0>hb[i].r1)hb[i].r1=hb[i+1].r0;}const sv=N.dessineContours(ctx,view,boxes,souris);state.survol=sv?(sv.title||'cadre'):null;}
   {let id=null;const yy=scrollY+innerHeight*.4;for(const c of chapters){if(original.get(c.el).top<=yy)id=c.el.id||id;}ciel.actif=id;}
-  R.drawReferenceLinks(ctx,ciel,(c,r,h)=>N.p(view,c,r,h),view.e*view.e*.6);ciel.dessine(ctx,(c,r,h)=>N.p(view,c,r,h),reduced.matches?null:now/1000,{covers,souris,W:innerWidth,H:innerHeight,dt:Math.min(.1,gap/1000),alpha:view.e*view.e,titres:Math.max(0,Math.min(1,(progress-.3)/.5)),compact:innerWidth<520});
+  R.drawReferenceStage(ctx,ciel,(c,r,h)=>N.p(view,c,r,h),view.e*view.e);R.drawReferenceLinks(ctx,ciel,(c,r,h)=>N.p(view,c,r,h),view.e*view.e*.6);ciel.dessine(ctx,(c,r,h)=>N.p(view,c,r,h),reduced.matches?null:now/1000,{covers,souris,W:innerWidth,H:innerHeight,dt:Math.min(.1,gap/1000),alpha:view.e*view.e,titres:Math.max(0,Math.min(1,(progress-.3)/.5)),compact:innerWidth<520});
   state.chapterStars=ciel.etat('titre');
   drawRail();
   // The menu wires use the same projected upper corner as the native card marker.
