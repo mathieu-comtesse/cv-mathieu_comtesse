@@ -280,8 +280,9 @@ html.cv-parity-active canvas[data-cv-taken]{filter:opacity(0)}
 .cv-parity-active .cv-controls-dock{display:none}
 .cv-parity-nav{position:fixed;left:15px;top:50%;transform:translateY(-50%);width:145px;z-index:502;display:grid;gap:8px;color:#ccc;font:11px/1.2 "Sohne Mono",monospace;transition:opacity .35s}
 .cv-parity-nav[hidden]{display:none}
-.cv-parity-nav a{color:inherit;text-decoration:none}
-.cv-parity-nav a:hover,.cv-parity-nav a:focus-visible{color:#fff;text-decoration:underline}
+.cv-parity-nav a{color:inherit;text-decoration:none;opacity:.65;transition:opacity .15s cubic-bezier(.65,0,.35,1),color .15s cubic-bezier(.65,0,.35,1)}
+.cv-parity-nav a:hover,.cv-parity-nav a:focus-visible{color:#fff;opacity:1;text-decoration:underline}
+@media(prefers-reduced-motion:reduce){.cv-parity-nav a{transition:none}}
 .cv-parity-toggle{position:fixed;left:16px;bottom:16px;z-index:502;border:0;color:white;background:transparent;padding:8px;cursor:pointer;font:12px "Shopify Inter",sans-serif}
 /* bouton de bascule : pastille avec un plan qui se relève en perspective, piloté par l'avancement réel de la bascule (--cv-k, 0 à plat, 1 en 3D) */
 .cv-parity-toggle{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 8px;border-radius:999px;background:rgba(8,16,70,.55);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .25s,border-color .25s,transform .25s}
