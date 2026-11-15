@@ -176,4 +176,7 @@ drawReferenceLinks({
 },shuffled,(x,y)=>({x,y}));
 assert.equal(mappedCalls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length,
  'Link topology must follow reference IDs despite reordered editorial chapters');
+const graphEngine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
+assert.ok(graphEngine.includes("const texte=compact?(e.num||''):e.label;"),
+  'Visible constellation labels must omit synthetic spoke-count suffixes');
 console.log('PASS eleven flat reference stars: normalized 2D geometry, straight rays, cross-links and mobile');
