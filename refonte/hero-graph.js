@@ -40,7 +40,7 @@ export function demarre(chapitres) {
     if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < (W < 520 ? 30 : budgetFrame) || document.documentElement.classList.contains('cv-parity-active')) return;
     const debutDessin = performance.now(), dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     /* le plan du graphe penche légèrement vers le pointeur : la hauteur des nœuds donne la profondeur */
-    penche += ((souris.x > -1e3 ? (souris.x / W - 0.5) : 0) - penche) * 0.06;
+    penche += ((souris.x > -1e3 ? (souris.x / W - 0.5) : 0) - penche) * (1 - Math.exp(-dt * 1.875));
     const proj = (c, r, h) => ({ x: c + h * penche * 0.9, y: r - h * 0.62, z: 2000 - h });
     /* sortie de l'accueil : le graphe s'ouvre (les foyers s'écartent) et s'efface ; l'étoile du premier chapitre prend le relais */
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
