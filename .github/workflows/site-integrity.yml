@@ -17,6 +17,12 @@ jobs:
         run: node tools/seo-build.mjs --check
       - name: Cohérence du site
         run: node tools/test-site-consistency.mjs
+      - name: Fall 26 starfield and colours
+        run: |
+          node --check refonte/fall26-reference-graph.js
+          node tools/test-fall26-reference-graph.mjs
+          node tools/test-ciel-fade.mjs
+          node tools/test-fall26-floor-colours.mjs
       - name: Indicateurs et gains
         run: |
           node tools/test-indicators.mjs
