@@ -1,5 +1,5 @@
 // Points d'entrée réels du site (aucun navigateur) : chaque page charge sa chaîne de scripts, et tout ce qu'elle importe existe.
-//  - accueil.html (banc des tests de scène) : refonte/main.js, qui importe js/room.js (la pièce 3D), ui.js, home.js, etc. ;
+//  - l'ancien décor (accueil.html, refonte/main.js) n'existe plus ; le décor de l'accueil est monde3d/ ;
 //  - index.html (accueil Fall 26, graphe et chemin 3D) : ses scripts locaux, et les modules du moteur (moteur.js, hero-graph.js, defilement.js) ;
 //  - l'étiquette de version de moteur.js est la même partout (un décalage donnerait deux copies du moteur en cache).
 // Remplace le contrôle « grep js/room.js?v= index.html », devenu faux depuis que index.html ne charge plus la pièce (consolidation PR 209).
@@ -14,13 +14,10 @@ const importsLocaux = (f) => { const dir = path.posix.dirname(f), src = lire(f),
   return liste; };
 const scriptsLocaux = (f) => [...lire(f).matchAll(/<script[^>]*\ssrc=["']([^"']+)["']/g)].map((m) => m[1]).filter((s) => !/^(https?:)?\/\//.test(s)).map((s) => propre(s.replace(/^\//, '')));
 
-// accueil.html : chaîne de la pièce 3D
-const acc = scriptsLocaux('accueil.html');
-verifie(acc.includes('refonte/main.js') && acc.every(existe), `accueil.html charge refonte/main.js (${acc.length} scripts locaux, tous présents)`);
-const imp = importsLocaux('refonte/main.js');
-verifie(imp.includes('js/room.js') && imp.every(existe), `refonte/main.js importe js/room.js et ${imp.length - 1} autres modules locaux, tous présents`);
-verifie(/js\/room\.js\?v=/.test(lire('refonte/main.js')), 'l\'import de js/room.js porte une étiquette de version');
-for (const f of imp.filter((x) => x.startsWith('js/') && existe(x))) { const sous = importsLocaux(f), manquants = sous.filter((x) => !existe(x)); if (manquants.length) verifie(false, `${f} importe des fichiers absents : ${manquants.join(', ')}`); }
+// ancien décor « Ma pièce » : retiré (accueil.html et refonte/main.js supprimés). js/room.js reste comme source de tools/build-monde3d.mjs.
+verifie(!existe('accueil.html') && !existe('refonte/main.js'), 'ancien décor retiré : ni accueil.html ni refonte/main.js');
+verifie(!/accueil\.html|refonte\/main\.js|js\/room\.js/.test(lire('index.html')), 'index.html ne charge pas l\'ancienne pièce');
+verifie(/monde3d\/index\.html/.test(lire('index.html')) && existe('monde3d/index.html') && existe('monde3d/jeu/scene.js'), 'le décor de l\'accueil est le monde de style Moebius (monde3d/)');
 verifie(existe('js/main.js') ? /room\.js\?v=/.test(lire('js/main.js')) : true, 'js/main.js (entrée autonome de la pièce), si présent, importe room.js avec une version');
 
 // index.html : accueil Fall 26
@@ -38,4 +35,4 @@ verifie(existe('refonte/defilement.js') ? /refonte\/defilement\.js/.test(html) :
 const versions = new Map();
 for (const f of ['index.html', 'refonte/hero-graph.js', 'tools/test-modes.mjs']) if (existe(f)) for (const m of lire(f).matchAll(/moteur\.js\?v=([a-z0-9-]+)/g)) { (versions.get(m[1]) || versions.set(m[1], []).get(m[1])).push(f); }
 verifie(versions.size === 1, `étiquette de version de moteur.js unique : ${[...versions.keys()].join(', ') || 'aucune'} (${[...versions.values()].flat().length} références)`);
-console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : points d\'entrée résolus (accueil.html : pièce 3D ; index.html : accueil Fall 26)'); process.exit(echecs.length ? 1 : 0);
+console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : points d\'entrée résolus (index.html : accueil Fall 26 et décor Moebius ; ancien décor absent)'); process.exit(echecs.length ? 1 : 0);
