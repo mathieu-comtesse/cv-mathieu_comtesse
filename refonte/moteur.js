@@ -407,8 +407,8 @@ export class Ciel {
         ctx.beginPath();
         for (let j = 0; j < nb; j++) {
           const n = N[j];
-          if (!n.vis || n.ed || n.niveau > 2 || j % 12 !== 0) continue;
-          const radius = Math.max(1.7, 2.9 * Math.min(1.2, ech));
+          if (!n.vis || n.ed || n.niveau > 2 || (j + e.rang * 3) % 5 !== 0) continue;
+          const radius = Math.max(1.6, 2.7 * Math.min(1.2, ech));
           ctx.moveTo(n.x1 + radius, n.y1);
           ctx.arc(n.x1, n.y1, radius, 0, 6.283);
         }
