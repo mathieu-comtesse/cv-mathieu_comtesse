@@ -159,7 +159,7 @@ function scene(chapitres) {
   cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
   document.body.append(cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false;
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, dernierFond = '';
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -184,9 +184,12 @@ function scene(chapitres) {
       colour:c.section.getAttribute('data-html-in-canvas-colour')||'#051DAA'
     }));
     const handover=chapterHandover(scrollY,timeline,H);
-    document.body.style.setProperty('--f26-page-blend',handover.colour,'important');
-    document.querySelector('.fall-navigation')?.style.setProperty('--f26-page-blend',handover.colour,'important');
-    document.documentElement.style.setProperty('--cv-chapter-colour',handover.colour);
+    if (handover.colour !== dernierFond) {
+      document.body.style.setProperty('--f26-page-blend',handover.colour,'important');
+      document.querySelector('.fall-navigation')?.style.setProperty('--f26-page-blend',handover.colour,'important');
+      document.documentElement.style.setProperty('--cv-chapter-colour',handover.colour);
+      dernierFond = handover.colour;
+    }
     window.__cvChapterTransition={
       from:handover.from,to:handover.to,progress:handover.progress,
       colour:handover.colour,active:handover.active
@@ -213,7 +216,9 @@ function scene(chapitres) {
       const intro=lisse(scrollY,H*.25,H*.8);
       const alpha=(participating?1:localAlpha)*intro*weight;
       const g=participating?1:lisse(u,-1.55,-.6),
-        plein=libre?lisse(u,.02,.34):1;
+        // During handover, the fill follows the same scroll clock as the branches.
+        // The outgoing letters empty while the incoming title becomes solid.
+        plein=!libre?1:participating?pose.weight:lisse(u,.02,.34);
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = participating?H*.56:H*.56 - Math.max(0,u-.62)*H;
@@ -234,7 +239,7 @@ function scene(chapitres) {
         if (b.fiche) {
           if (libre) { const q = (tt * 0.28 + b.phase / 6.283) % 1, f = Math.min(1, q / 0.75); ctx.fillStyle = `rgba(255,255,255,${(q < 0.75 ? 0.95 : (1 - q) * 3.8).toFixed(2)})`; ctx.beginPath(); ctx.arc(hx + (x - hx) * f, hy + (y - hy) * f, 1.7, 0, 6.283); ctx.fill(); }
           ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1; ctx.strokeRect(x - 9, y - 7, 18, 14); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - 6, y - 4, 12, 8);
-          cibles.push({ x, y, fiche: b.fiche });
+          cibles.push({ x, y, fiche: b.fiche, weight });
           if (survole) { const nom = libelle(b.fiche); ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = x > W - 280 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff'; ctx.strokeText(nom, x + (x > W - 280 ? -16 : 16), y + 4); ctx.fillText(nom, x + (x > W - 280 ? -16 : 16), y + 4); }
         } else if (b.fin) { ctx.fillStyle = 'rgba(223,233,255,.85)'; ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 6.283); ctx.fill(); }
       });
@@ -264,7 +269,8 @@ function scene(chapitres) {
   addEventListener('pointermove', (ev) => { souris.x = ev.clientX; souris.y = ev.clientY; }, { passive: true });
   document.addEventListener('click', (ev) => {
     if (document.documentElement.classList.contains('cv-parity-active') || ev.target.closest('a,button,input,select,textarea,[role=slider],canvas')) return;
-    const q = cibles.find((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16); if (!q) return;
+    const q = cibles.filter((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16)
+      .sort((a,b)=>b.weight-a.weight)[0]; if (!q) return;
     ev.preventDefault(); q.fiche.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
   }, { capture: true });
   window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length };
