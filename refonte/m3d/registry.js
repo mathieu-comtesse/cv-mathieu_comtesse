@@ -14,17 +14,17 @@ export const OLD_MACHINES = {
  *  le tableau des gares est plus frontal pour que ses caractères restent lisibles. Les proportions du modèle ne changent pas. */
 export const FRAMING_DEFAULT = { yaw: 36, pitch: 26, dist: 34, aimY: 6.2, aimYm: 13, scale: 1.2 };
 export const FRAMING = {
-  moteur: { yaw: 30, pitch: 24, scale: 1.15 },
-  studio: { yaw: 34, pitch: 27, aimYm: 14, scale: 1.3 },
-  gares: { yaw: 14, pitch: 18, dist: 37, aimY: 7.5, scale: 1.05 },
-  cerfa: { scale: 1.35 },
-  finance: { dist: 36, aimY: 7.5, aimYm: 14, scale: 1.0 },
-  vm: { scale: 1.2 },
-  pp: { yaw: 40, pitch: 22, aimY: 8.2, aimYm: 16, scale: 1.4 },
-  powerbi: { yaw: 36, pitch: 20, dist: 38, aimY: 8.5, aimYm: 16, scale: .95 },
-  vre: { aimY: 7.5, aimYm: 15, scale: 1.3 },
-  suivi: { dist: 36, aimY: 7.5, scale: 1.1 },
-  'vrestudio-musicbox': { yaw: 28, pitch: 24, scale: 1.3 }
+  moteur: { focus: 'head', yaw: 30, pitch: 24, scale: 1.15 },
+  studio: { focus: 'table', yaw: 34, pitch: 27, aimYm: 14, scale: 1.3 },
+  gares: { focus: 'board', yaw: 14, pitch: 18, dist: 37, aimY: 7.5, scale: 1.05 },
+  cerfa: { focus: 'reader', scale: 1.35 },
+  finance: { focus: 'tank', dist: 36, aimY: 7.5, aimYm: 14, scale: 1.0 },
+  vm: { focus: 'reader', scale: 1.2 },
+  pp: { focus: 'clock', yaw: 40, pitch: 22, aimY: 8.2, aimYm: 16, scale: 1.4 },
+  powerbi: { focus: 'loop', yaw: 36, pitch: 20, dist: 38, aimY: 8.5, aimYm: 16, scale: .95 },
+  vre: { focus: 'drum', aimY: 7.5, aimYm: 15, scale: 1.3 },
+  suivi: { focus: 'jacks', dist: 36, aimY: 7.5, scale: 1.1 },
+  'vrestudio-musicbox': { focus: 'hand', yaw: 28, pitch: 24, scale: 1.3 }
 };
 export const framingOf = (name) => ({ ...FRAMING_DEFAULT, ...(FRAMING[name] || {}) });
 export const isOld = () => typeof location !== 'undefined' && /[?&]machines=old\b/.test(location.search);

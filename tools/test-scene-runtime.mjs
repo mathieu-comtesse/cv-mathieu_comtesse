@@ -34,7 +34,7 @@ try {
     // live user profile, or network listener is needed for this regression test.
     await context.route('http://scene.test/**', async (route) => {
       const url = new URL(route.request().url());
-      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+      const filename = path.resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/accueil.html' : url.pathname));
       if (!filename.startsWith(root)) return route.fulfill({ status: 403 });
       try {
         const body = await readFile(filename);
@@ -52,7 +52,7 @@ try {
       await page.waitForFunction(() => document.getElementById('room')?.dataset.native === 'ready', null, { timeout: 60000 });
     } catch (error) {
       console.log(await page.evaluate(() => {
-        const api = document.querySelector('iframe')?.contentWindow.shupiHeader?.scene;
+        const api = document.querySelector('iframe[src*="shupi"]')?.contentWindow.shupiHeader?.scene;
         const scene = api?.shupi.scene;
         return { bridge: document.getElementById('room').dataset.native, api: Object.keys(api || {}),
           desk: ['Standing desk', 'Fractal North chalk white PC', 'Ceramic coffee mug', 'Apple Studio Display',
@@ -71,7 +71,8 @@ try {
       mode: window.room.director.mode,
     }));
     const before = await state();
-    await page.waitForTimeout(2000);
+    /* attente de l'état réel (plus de 5 images rendues) plutôt que d'un délai fixe de 2 s : en rendu logiciel sur un runner chargé, la cadence tombe sous 3 images par seconde */
+    await page.waitForFunction(b => Number(document.getElementById('room').dataset.sceneFrames) > b + 5, before.frames, { timeout: 60000 }).catch(() => {});
     const after = await state();
     const deskBounds = await page.evaluate(() => window.room.bbox('desk'));
     assert.ok(deskBounds[1].every((max, i) => max - deskBounds[0][i] < 4), 'Imported desk must retain its physical size');

@@ -69,7 +69,7 @@ function fernGeo() {
   return mergeGeometries(parts);
 }
 
-export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
+export function makeGarden({ shape, pc, uni, exclude, seed = 41, treeFactory }) {
   const g = group(), r = rng(seed), [cx, cz] = pc;
   const R = (th) => shape.radius(th);
   const at = (th, f) => [cx + Math.cos(th) * R(th) * f, cz + Math.sin(th) * R(th) * f];
@@ -138,9 +138,10 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   const l2 = toro(0.62); l2.position.set(2.35, -0.02, 2.6 - 0.0); g.add(l2); lanterns.push(l2);
   if (exclude(l2.position.x, l2.position.z) || fracOf(l2.position.x, l2.position.z) < 1.1) { const [x, z] = at(Math.PI * 0.12, 1.25); l2.position.set(x, -0.02, z); }
   const pines = [[-3.5, 0.6, 2.5, 5, 'pine'], [3.9, 1.0, 2.3, 7, 'cherry', 'spring'], [-4.4, 3.2, 2.2, 9, 'weeping', 'spring'], [-6.2, 1.2, 2.7, 11, 'pine'], [-7.4, 4.0, 2.2, 13, 'ginkgo', 'autumn'], [-5.6, 6.0, 1.9, 15, 'maple', 'autumn']];
-  for (const [x, z, h, sd, kind, season] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = makeLivingTree(kind, sd, h); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
-  const mp = makeLivingTree('maple', 3, 1.9); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
-  const mp2 = makeLivingTree('ginkgo', 6, 2.0); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
+  const makeCanopy = treeFactory || makeLivingTree;
+  for (const [x, z, h, sd, kind, season] of pines) if (z > -2 && !exclude(x, z) && fracOf(x, z) > 1.2) { const p = makeCanopy(kind, sd, h); p.position.set(x, -0.02, z); p.rotation.y = sd; g.add(p); }
+  const mp = makeCanopy('maple', 3, 1.9); const [mx, mz] = at(Math.PI * 1.02, 1.55); if (!exclude(mx, mz) && mz > -1.8) { mp.position.set(mx, -0.02, mz); g.add(mp); }
+  const mp2 = makeCanopy('ginkgo', 6, 2.0); mp2.position.set(3.4, -0.02, 3.9); if (fracOf(3.4, 3.9) > 1.2) g.add(mp2);
   void place;
 
   /* modèles 3D (js/garden-models2.js) : arbres, herbes, buissons, fougères et rochers remplacent les formes procédurales */
@@ -205,7 +206,7 @@ export function makeGarden({ shape, pc, uni, exclude, seed = 41 }) {
   };
 
   g.traverse((o) => { if (o.isMesh) { o.matrixAutoUpdate = true; } });
-  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; treeTint.setScalar(night ? 0.5 : 1); updateLivingTrees(night); for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
+  g.userData.update = (night) => { treeTime.value = performance.now() / 1000; treeTint.setScalar(night ? 0.5 : 1); if (!treeFactory) updateLivingTrees(night); for (const l of lanterns) l.userData.glow.emissiveIntensity += ((night ? 1.6 : 0.0) - l.userData.glow.emissiveIntensity) * 0.05; };
   void canvasTexture;
   return g;
 }

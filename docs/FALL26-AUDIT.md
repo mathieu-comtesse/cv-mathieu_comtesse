@@ -1,0 +1,33 @@
+# Audit comparatif Shopify Editions Fall ’26 et comtesse.me
+
+## Conditions du relevé préalable
+
+Mesures sur la page publique des deux sites et lecture du commit de départ de la [PR #207](https://github.com/mathieu-comtesse/cv-mathieu_comtesse/pull/207), 04ea496f39134d63359cca5477467fc73e725d11. Chrome piloté par Playwright, bureau 1 440 × 900 et émulation tactile 390 × 844, zoom 100 %, Radeon RX 9070 XT avec WebGL et WebGPU actifs. Les séquences de styles sont déclenchées par un vrai mouvement de souris. Un état dont le pointeur n'atteint pas la cible est indiqué comme non mesuré.
+
+[Référence Shopify Editions Fall ’26](https://www.shopify.com/editions/fall2026) · [Site public](https://comtesse.me/)
+
+## Matrice avant intervention
+
+| Famille | Shopify observé | Comtesse public et PR #207 | État initial et correction |
+| --- | --- | --- | --- |
+| Arrivée, titre vertical et colonnes | Départ en trois colonnes, en-tête à 50 px, bord intérieur à 10 px, panneau des catégories à x = 183 px | Colonnes aux mêmes x sur bureau. Le graphe et les libellés correspondent au CV. En-tête à 48 px, bleu plus clair. | Partiel. Corriger le bandeau en conservant les proportions du héros et les contenus. |
+| Curseur | Les commandes testées renvoient le curseur système pointer et le graphe en vue d'ensemble default. Les liens éditoriaux utilisent pointer. | Le site public a un anneau CSS sur les pages éditoriales. La PR superpose un anneau DOM de 20 à 42 px qui capture aussi l'état visuel des canvas. | Écart fonctionnel. Revenir aux formes natives et conserver la sémantique des outils 3D qui emploient les variables de curseur. |
+| Commande principale du bandeau | 34 px, Inter 14/14, graisse 500. Blanc → rgb(244,244,244), 300 ms, cubic-bezier(.4,0,.2,1). Pression à l'intérieur du survol, sans déplacement relevé. | 38 px, 18/18, 146,45 px pour « Me contacter ». Le public reste blanc. La PR propose une inversion blanche sur fond sombre et une ombre. | Écart mesurable de +4 px et +4 px. Appliquer la transition colorimétrique et les métriques mesurées. |
+| Recherche | Bouton 83,39 × 34 px, arrondi 4 px. Inversion blanc/noir à 300 ms. L'entrée s'étend dans le bandeau, jusqu'à 640 × 46 px. | Bouton 99,11 × 18 px, aucun survol public, champ fixe de 180 px. | Partiel. Reprendre la géométrie, les états et la fermeture clavier en gardant la recherche du CV. |
+| Menu et destinations | Menu blanc de 220 px avec séparateurs et alignement au bouton, ouverture sous la ligne des 50 px. Menu mobile séparé. | Onze liens présents dans le héros et les repères. Bandeau local sans menu correspondant. | Partiel. Rendre les onze destinations du CV accessibles depuis le bandeau, avec fermeture, focus et tap. |
+| Liens des chapitres | 234,8 × 14,81 px au premier rang, mono 11/15 px. Colonnes interpolées à 180 ms, cubic-bezier(.16,1,.3,1), soulignement du libellé enfant. | Même géométrie et même transition CSS au premier rang. La PR ajoute un agrandissement à des sélecteurs non observés. | Mesures égales sur le premier rang. Conserver l'animation existante et vérifier les autres rangs. |
+| Carte éditoriale plane | Sur la carte inspectée, filet 1 px à 10 % de blanc, fond blanc à 8 %, angle carré et aucune ombre. Aucun changement de ces styles au survol de la carte. | La carte de processus du CV est transparente. Le premier survol de sa surface est masqué par le plan canvas. La PR ajoute un filet 22 → 68 % et une double ombre. | Écart de matière. Appliquer la matière à l'habillage des cartes comparables, avec contrôle visuel du rendu en perspective. |
+| Liens textuels | Soulignement présent au repos, blanc 70 % → 100 %, transition de couleur à 150 ms ease. | Le lien d'article inspecté éclaircit de 196/206/226 à 255/255/255 sans transition. La PR dessine un nouveau trait déroulant. | Partiel. Utiliser la progression mesurée sur les liens du corps éditorial. |
+| Actions métier | Référence fonctionnelle la plus proche sur la carte inspectée : petite action en capsule sombre, sans habillage de verre. | Les CTA des fiches sont pilotés par une animation flottante de 7,5 s et une inclinaison au pointeur. La PR ajoute un second écouteur délégué. | Écart confirmé dans les sources. Revoir l'habillage à la source et tester les actions existantes dans les onze fiches. |
+| Typographie | Shopify Inter pour la navigation, PP Neue Montreal pour le titre et le corps, Söhne Mono pour les repères. | Ces familles sont déjà chargées par l'accueil public. Les pages éditoriales disposent d'Inter et d'iA Writer Quattro locaux. | Partiel. Utiliser Inter local pour le bandeau. La substitution des autres familles et sa métrique exigent un test visuel dédié. |
+| Défilement, graphe, étoiles et profondeur | Molette de 815 px, progression relevée à 743 px puis 815 px. Un canvas de graphe, retrait du panneau du héros, repères et étoiles visibles dans la scène suivante. | Graphe et objets CV déjà actifs. La source mélange des modules locaux et Shopify et utilise le chemin de rendu HTML-in-Canvas. | Partiel. Mesurer à nouveau les chapitres, l'Expo et le repli avant toute modification du moteur. |
+| Pièce, jeux, machines et panneaux | Correspondances partielles avec le graphe, les scènes du héros et les panneaux Shopify. Les contenus et contrôles divergent. | Routes de la pièce, de Nacre, des machines, du blog, de l'article, de la fiche et des expériences ouvertes en Chrome. Les commandes nécessitent leurs scénarios dédiés. | Chargement confirmé, comportement non couvert par le relevé d'arrivée. Utiliser les scénarios de régression du site. |
+
+## Limites de la base
+
+L'inventaire du dépôt documente les polices, modules et visuels Shopify préexistants. Les droits de réutilisation des ressources commerciales ne sont pas établis dans le dépôt. La conformité sur ce point reste ouverte tant que ces dépendances sont actives ou que leur licence n'est pas établie. [Inventaire CDN](CDN-SHOPIFY.md)
+
+Les mesures de performances au chargement sont des observations ponctuelles sur un GPU matériel. Elles incluent l'initialisation de la page. Les captures Playwright excluent le curseur système. Son état se vérifie avec les styles calculés et la surface réellement sous le pointeur. Les formes du graphe, l'Expo, les gestes tactiles, les retours rapides et les replis navigateur demandent des scénarios supplémentaires.
+
+Les dimensions absolues des panneaux dépendent des textes et des objets du CV. Les tolérances proposées pour les commandes comparables sont de 1 px sur la hauteur et le contour, 2 niveaux par canal sur les couleurs unies, 20 ms sur la durée CSS et 1 px pour le déplacement lorsqu'il est nul sur la référence. Les séquences du graphe demandent une comparaison de trajectoires et non un taux de pixels identiques.
+

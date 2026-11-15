@@ -527,10 +527,10 @@ export function alocasia() {
     c.lineWidth = 1.4; c.strokeStyle = 'rgba(150,190,145,0.35)';
     for (let i = 1; i < 14; i++) { const y = i / 14 * h; for (const sx of [-1, 1]) { c.beginPath(); c.moveTo(w / 2, y); c.quadraticCurveTo(w / 2 + sx * w * 0.25, y + 8, w / 2 + sx * w * 0.5, y + 34); c.stroke(); } }
   });
-  const topM = new THREE.MeshStandardMaterial({ map: veins, roughness: 0.5, metalness: 0, side: THREE.FrontSide });
-  const botM = new THREE.MeshStandardMaterial({ color: '#8aa886', roughness: 0.7, side: THREE.BackSide });
+  const topM = new THREE.MeshStandardMaterial({ map: veins, roughness: 0.82, metalness: 0, flatShading: true, side: THREE.FrontSide });
+  const botM = new THREE.MeshStandardMaterial({ color: '#8aa886', roughness: 0.84, flatShading: true, side: THREE.BackSide });
   const blade = (L, W, droop, seed) => {
-    const NU = 14, NV = 8, pos = [], uv = [], idx = [];
+    const NU = 8, NV = 2, pos = [], uv = [], idx = [];
     for (let i = 0; i <= NU; i++) {
       const t = i / NU, tt = -0.14 + t * 1.14;
       const w = W * Math.pow(Math.max(Math.sin(Math.PI * (tt + 0.14) / 1.14), 0), 0.78) * (tt < 0.08 ? 1.06 : 1);
@@ -538,7 +538,7 @@ export function alocasia() {
         const v = (j / NV) * 2 - 1;
         const x = v * w, zz = tt * L - (tt < 0 ? -v * v * W * 0.0 : 0);
         const wave = Math.sin(tt * 11 + v * 4 + seed) * 0.012 * Math.abs(v) + Math.sin(tt * 5 + seed) * 0.01;
-        const fold = Math.abs(v) * w * 0.22;
+        const fold = Math.abs(v) * w * (v < 0 ? 0.24 : 0.30);
         const y = fold + wave - droop * Math.max(tt, 0) ** 2 * L - (tt < 0 ? 0.1 * Math.abs(v) * W * (-tt) : 0);
         pos.push(x, y, zz); uv.push(0.5 + v * 0.5, t);
       }

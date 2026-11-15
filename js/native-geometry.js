@@ -55,7 +55,20 @@ export function copyNativeGeometry(source) {
 export function cloneNativeObject(source, geometries = new WeakMap()) {
   const clone = source.clone(true);
   clone.traverse((object) => {
+    // L’objet cloné garde le prototype de la scène source, parfois antérieur à r187.
+    if (typeof object.intersectsFrustum !== 'function') {
+      const Constructor = object.isSprite ? THREE.Sprite
+        : (object.isMesh || object.isLine || object.isPoints) ? THREE.Mesh : null;
+      const cull = Constructor?.prototype.intersectsFrustum;
+      if (cull) object.intersectsFrustum = cull;
+    }
     if (!object.geometry) return;
+    // The iframe can still use the older Three.js renderer. On r187 the
+    // renderer asks the object itself to test its bounds against the frustum.
+    if (typeof object.intersectsFrustum !== 'function') {
+      const local = object.isSprite ? THREE.Sprite.prototype : THREE.Mesh.prototype;
+      if (typeof local.intersectsFrustum === 'function') object.intersectsFrustum = local.intersectsFrustum;
+    }
     const sourceGeometry = object.geometry;
     if (!geometries.has(sourceGeometry)) geometries.set(sourceGeometry, copyNativeGeometry(sourceGeometry));
     object.geometry = geometries.get(sourceGeometry);

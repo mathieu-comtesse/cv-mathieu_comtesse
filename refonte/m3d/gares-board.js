@@ -73,8 +73,10 @@ export function build() {
   labels.forEach(([t, x, w]) => put(label(t, x, 2.2, 160, t === 'STATION' ? 40 : 24, 3.6, 'y', plateLabel)));
   /* un tableau de huit rangées : axe, roue à étoile et cliquet à ressort (à gauche), roue entraînée et moteur pas à pas (à droite), trois cadrans */
   const FT = flapTextures(), flapEdge = new THREE.MeshStandardMaterial({ color: '#0c0d10', roughness: .8 });
-  const flapMats = FT.front.map((f, j) => [flapEdge, flapEdge, flapEdge, flapEdge, new THREE.MeshStandardMaterial({ map: f, roughness: .5, metalness: .05 }), new THREE.MeshStandardMaterial({ map: FT.back[j], roughness: .5, metalness: .05 })]);
+  const flapMats = FT.front.map((f, j) => [flapEdge, new THREE.MeshStandardMaterial({ map: f, roughness: .5, metalness: .05 }), new THREE.MeshStandardMaterial({ map: FT.back[j], roughness: .5, metalness: .05 })]);
   const FLAP_W = 96, FLAP_H = 5.8, flapGeo = new THREE.BoxGeometry(FLAP_W, FLAP_H, .5).translate(0, FLAP_H / 2, 0);
+  /* les 4 tranches de la palette partagent un seul matériau : un seul groupe de dessin (24 indices) au lieu de quatre, soit 3 appels par palette au lieu de 6 (64 palettes : 384 appels de moins par rendu, ombre incluse) */
+  flapGeo.clearGroups(); flapGeo.addGroup(0, 24, 0); flapGeo.addGroup(24, 6, 1); flapGeo.addGroup(30, 6, 2);
   const rowsP = [], flaps = [], pawls = [], pinions = [];
   S = stat('rangées');
   for (let k = 0; k < T.ROWS; k++) {

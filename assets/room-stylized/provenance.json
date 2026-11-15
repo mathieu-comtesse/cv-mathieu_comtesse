@@ -1,0 +1,74 @@
+[
+  {
+    "source": "mamiya-user-v41.glb",
+    "output": "mamiya-user-v41-facets-v1.glb",
+    "sourceSha256": "2b1ffa5daef1e80f14297d4d34701941b2e00daac9df90cb3ebaf65dd657c11d",
+    "sha256": "1492a6515e4c91cec341a2b7f49421dda2c5774a4c41c91f183e1dbe6aab279b",
+    "sourceBytes": 564684,
+    "bytes": 529020,
+    "sourceTriangles": 5848,
+    "triangles": 4214,
+    "parts": [
+      {
+        "mesh": "lens pips_low.003_lens.001_0.005",
+        "before": 4880,
+        "after": 3366,
+        "relativeError": 0.006476528476923704
+      },
+      {
+        "mesh": "mam01_low.003_mamiyabody.001_0.002",
+        "before": 375,
+        "after": 255,
+        "relativeError": 0.014838703908026218
+      }
+    ]
+  },
+  {
+    "source": "olivetti-user-v41.glb",
+    "output": "olivetti-user-v41-facets-v1.glb",
+    "sourceSha256": "be38ea6f8d1426148b5590b72406a11fed22759e1af463138e895de6cfaa2ba7",
+    "sha256": "a8d2a83bb1da7fdd17da5a2fa16e5f9ab47ac32b3002ff1382d3be259f0f9854",
+    "sourceBytes": 93736,
+    "bytes": 115980,
+    "sourceTriangles": 2886,
+    "triangles": 2309,
+    "parts": [
+      {
+        "mesh": "Object_0.003",
+        "before": 1605,
+        "after": 1352,
+        "relativeError": 0.011968228034675121
+      },
+      {
+        "mesh": "Object_1.002",
+        "before": 1117,
+        "after": 793,
+        "relativeError": 0.003840839024633169
+      }
+    ]
+  },
+  {
+    "source": "road-bike-clean-v44.glb",
+    "output": "road-bike-clean-v44-facets-v1.glb",
+    "sourceSha256": "75e50c491005e5b9c00732fdd8a135d17b18efb62caaea67a4d344a8b111c3b3",
+    "sha256": "0acecd25dab460940e36573d9f662b0a9bd628f21d0771babc6a45d129a5cb77",
+    "sourceBytes": 354860,
+    "bytes": 348312,
+    "sourceTriangles": 15664,
+    "triangles": 15312,
+    "parts": [
+      {
+        "mesh": "0.002",
+        "before": 9531,
+        "after": 9523,
+        "relativeError": 0.008736378513276577
+      },
+      {
+        "mesh": "0.008",
+        "before": 2943,
+        "after": 2599,
+        "relativeError": 0.005897760856896639
+      }
+    ]
+  }
+]

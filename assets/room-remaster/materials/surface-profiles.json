@@ -1,0 +1,12 @@
+{
+  "BureauUSM": ["Émail et inox satiné", 0.63, 0.08],
+  "BuffetUSM": ["Émail vert et chrome satiné", 0.64, 0.09],
+  "TiroirUSM": ["Émail vert et chrome satiné", 0.64, 0.09],
+  "YamahaChassis": ["Aluminium peint", 0.59, 0.12],
+  "Amplificateur": ["Aluminium peint", 0.59, 0.12],
+  "Mamiya645": ["Alliage noir et optique", 0.55, 0.11],
+  "Tour": ["Acier peint", 0.68, 0.07],
+  "Tasse": ["Grès émaillé", 0.42, 0],
+  "DS450": ["Cuir souple", 0.82, 0],
+  "Kawara": ["Terre cuite grise", 0.74, 0]
+}

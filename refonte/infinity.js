@@ -96,6 +96,7 @@ precision highp float;
 varying vec2 vUv;uniform sampler2D tScene;uniform vec2 uRes;uniform float uPixel;
 vec3 saturateColor(vec3 rgb,float adjustment){const vec3 W=vec3(0.2125,0.7154,0.0721);vec3 intensity=vec3(dot(rgb,W));return mix(intensity,rgb,adjustment);}
 const float COLOR_NUM=32.0;
+uniform float uVoile;
 const float distortionScale=0.025;
 void main(){
   vec2 uv=vUv;
@@ -119,12 +120,14 @@ void main(){
   ogColor.rgb=saturateColor(ogColor.rgb,1.35);
   float transition=smoothstep(0.0,0.35,uv.y-pow(uv.x,2.0));
   vec3 outc=mix(asciiColor,vec4(ogColor.rgb,1.0),transition).rgb;
-  gl_FragColor=vec4(mix(pow(outc,vec3(0.41666))*1.055-vec3(0.055),outc*12.92,vec3(lessThanEqual(outc,vec3(0.0031308)))),1.0);
+  gl_FragColor=vec4(mix(pow(outc,vec3(0.41666))*1.055-vec3(0.055),outc*12.92,vec3(lessThanEqual(outc,vec3(0.0031308)))),mix(1.0,smoothstep(0.0,0.04,max(max(outc.r,outc.g),outc.b)),uVoile));
 }`;
 
 export function initInfinity(canvas) {
   const host = canvas.parentElement;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'low-power' });
+  /* accueil : fond transparent, le signe se pose sur la couleur du chapitre (à plat comme en chemin 3D) ; ailleurs, fond noir opaque */
+  const transparent = !!window.__cvRegisterGeometry;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: transparent, powerPreference: 'low-power' });
   renderer.setPixelRatio(1);                       // DPR 1 comme l'original : la pixellisation vaut 4 px d'écran
   renderer.toneMapping = THREE.NoToneMapping;
 
@@ -161,7 +164,7 @@ export function initInfinity(canvas) {
 
   const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
   const quadGeo = new THREE.PlaneGeometry(2, 2);
-  const postMat = new THREE.ShaderMaterial({ vertexShader: POST_VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false, uniforms: { tScene: { value: rt.texture }, uRes: { value: new THREE.Vector2(1, 1) }, uPixel: { value: 4 } } });
+  const postMat = new THREE.ShaderMaterial({ vertexShader: POST_VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false, uniforms: { uVoile: { value: transparent ? 1 : 0 }, tScene: { value: rt.texture }, uRes: { value: new THREE.Vector2(1, 1) }, uPixel: { value: 4 } } });
   const post = new THREE.Mesh(quadGeo, postMat); post.frustumCulled = false;
   const postScene = new THREE.Scene(); postScene.add(post);
   const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);

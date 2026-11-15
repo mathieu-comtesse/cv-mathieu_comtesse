@@ -1,0 +1,1908 @@
+{
+ "meta": {
+  "date": "2026-11-09T18:53:26.481Z",
+  "mode": "LOGICIEL",
+  "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "navigateur": "153.0.8010.12",
+  "slug": "moteur44",
+  "reps": 3,
+  "variantes": [
+   "base",
+   "machine:off",
+   "bg:static",
+   "bg:off",
+   "dpr:1",
+   "shadow:off",
+   "fx:off"
+  ],
+  "viewports": [
+   "desktop"
+  ],
+  "note": "RENDU LOGICIEL : ces intervalles mesurent le CPU qui simule le GPU. Ne pas en déduire de cadence 60/30 FPS ni de gain GPU."
+ },
+ "runs": {
+  "desktop | base": [
+   {
+    "load": {
+     "total_ms": 13864,
+     "construction_machine_ms": 645,
+     "premier_rendu_apres_construction_ms": 757
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 2875,
+     "magie_vers_machine_ms": 1516
+    },
+    "scenarios": {
+     "repos": {
+      "images": 7,
+      "mediane_ms": 616.6,
+      "p95_ms": 649.9,
+      "p99_ms": 649.9,
+      "max_ms": 649.9,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 627,
+      "taches_longues_total_ms": 3590,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.3,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 27,
+      "mediane_ms": 566.7,
+      "p95_ms": 633.3,
+      "p99_ms": 650,
+      "max_ms": 650,
+      "gt100": 27,
+      "gt200": 27,
+      "taches_longues": 28,
+      "tache_longue_max_ms": 648,
+      "taches_longues_total_ms": 15553,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 7,
+      "mediane_ms": 750,
+      "p95_ms": 850,
+      "p99_ms": 850,
+      "max_ms": 850,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 849,
+      "taches_longues_total_ms": 5072,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.3,
+      "noeuds_dom": 1201
+     },
+     "explorer": {
+      "images": 8,
+      "mediane_ms": 683.4,
+      "p95_ms": 783.3,
+      "p99_ms": 783.3,
+      "max_ms": 783.3,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 697,
+      "taches_longues_total_ms": 4567,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.6,
+      "noeuds_dom": 1390
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.57,
+     "taches_s": 51.86
+    }
+   },
+   {
+    "load": {
+     "total_ms": 13902,
+     "construction_machine_ms": 606,
+     "premier_rendu_apres_construction_ms": 634
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 1369,
+     "magie_vers_machine_ms": 2975
+    },
+    "scenarios": {
+     "repos": {
+      "images": 7,
+      "mediane_ms": 616.7,
+      "p95_ms": 683.4,
+      "p99_ms": 683.4,
+      "max_ms": 683.4,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 688,
+      "taches_longues_total_ms": 5038,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.2,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 566.7,
+      "p95_ms": 666.6,
+      "p99_ms": 683.4,
+      "max_ms": 683.4,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 679,
+      "taches_longues_total_ms": 14574,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.5,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 6,
+      "mediane_ms": 833.3,
+      "p95_ms": 850,
+      "p99_ms": 850,
+      "max_ms": 850,
+      "gt100": 6,
+      "gt200": 6,
+      "taches_longues": 5,
+      "tache_longue_max_ms": 832,
+      "taches_longues_total_ms": 4053,
+      "cpu_principal_pct": 97,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.5,
+      "noeuds_dom": 1186
+     },
+     "explorer": {
+      "images": 7,
+      "mediane_ms": 666.6,
+      "p95_ms": 833.2,
+      "p99_ms": 833.2,
+      "max_ms": 833.2,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 820,
+      "taches_longues_total_ms": 4231,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.8,
+      "noeuds_dom": 1426
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.99,
+     "taches_s": 50.48
+    }
+   },
+   {
+    "load": {
+     "total_ms": 13660,
+     "construction_machine_ms": 659,
+     "premier_rendu_apres_construction_ms": 611
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 4596,
+     "magie_vers_machine_ms": 3789
+    },
+    "scenarios": {
+     "repos": {
+      "images": 7,
+      "mediane_ms": 633.4,
+      "p95_ms": 700,
+      "p99_ms": 700,
+      "max_ms": 700,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 697,
+      "taches_longues_total_ms": 3850,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.3,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 27,
+      "mediane_ms": 600,
+      "p95_ms": 716.6,
+      "p99_ms": 783.4,
+      "max_ms": 783.4,
+      "gt100": 27,
+      "gt200": 27,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 779,
+      "taches_longues_total_ms": 15617,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.8,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 7,
+      "mediane_ms": 833.3,
+      "p95_ms": 866.6,
+      "p99_ms": 866.6,
+      "max_ms": 866.6,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 849,
+      "taches_longues_total_ms": 4851,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.3,
+      "noeuds_dom": 1131
+     },
+     "explorer": {
+      "images": 7,
+      "mediane_ms": 683.3,
+      "p95_ms": 816.6,
+      "p99_ms": 816.6,
+      "max_ms": 816.6,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 823,
+      "taches_longues_total_ms": 4952,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1371
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.29,
+     "taches_s": 57.58
+    }
+   }
+  ],
+  "desktop | machine:off": [
+   {
+    "load": {
+     "total_ms": 3816,
+     "construction_machine_ms": 515,
+     "premier_rendu_apres_construction_ms": null
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 1210,
+     "magie_vers_machine_ms": 724
+    },
+    "scenarios": {
+     "repos": {
+      "images": 26,
+      "mediane_ms": 150,
+      "p95_ms": 166.8,
+      "p99_ms": 183.3,
+      "max_ms": 183.3,
+      "gt100": 26,
+      "gt200": 0,
+      "taches_longues": 25,
+      "tache_longue_max_ms": 170,
+      "taches_longues_total_ms": 3811,
+      "cpu_principal_pct": 98,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 5.3,
+      "noeuds_dom": 981
+     },
+     "defilement": {
+      "images": 27,
+      "mediane_ms": 150.1,
+      "p95_ms": 183.4,
+      "p99_ms": 216.7,
+      "max_ms": 216.7,
+      "gt100": 27,
+      "gt200": 1,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 219,
+      "taches_longues_total_ms": 4037,
+      "cpu_principal_pct": 95,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 5.7,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 23,
+      "mediane_ms": 216.7,
+      "p95_ms": 250,
+      "p99_ms": 250,
+      "max_ms": 250,
+      "gt100": 23,
+      "gt200": 15,
+      "taches_longues": 22,
+      "tache_longue_max_ms": 229,
+      "taches_longues_total_ms": 4439,
+      "cpu_principal_pct": 92,
+      "js_pct": 0,
+      "mise_en_page_pct": 1,
+      "styles_pct": 0,
+      "tas_js_Mo": 6.9,
+      "noeuds_dom": 1200
+     },
+     "explorer": {
+      "images": 25,
+      "mediane_ms": 200,
+      "p95_ms": 283.3,
+      "p99_ms": 283.3,
+      "max_ms": 283.3,
+      "gt100": 25,
+      "gt200": 8,
+      "taches_longues": 25,
+      "tache_longue_max_ms": 262,
+      "taches_longues_total_ms": 4870,
+      "cpu_principal_pct": 97,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 1,
+      "tas_js_Mo": 8.4,
+      "noeuds_dom": 1446
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.2,
+     "taches_s": 24.78
+    }
+   },
+   {
+    "load": {
+     "total_ms": 3663,
+     "construction_machine_ms": 654,
+     "premier_rendu_apres_construction_ms": null
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 1221,
+     "magie_vers_machine_ms": 1163
+    },
+    "scenarios": {
+     "repos": {
+      "images": 25,
+      "mediane_ms": 166.6,
+      "p95_ms": 183.4,
+      "p99_ms": 199.9,
+      "max_ms": 199.9,
+      "gt100": 25,
+      "gt200": 0,
+      "taches_longues": 24,
+      "tache_longue_max_ms": 185,
+      "taches_longues_total_ms": 3788,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 5.3,
+      "noeuds_dom": 981
+     },
+     "defilement": {
+      "images": 27,
+      "mediane_ms": 166.6,
+      "p95_ms": 183.4,
+      "p99_ms": 200,
+      "max_ms": 200,
+      "gt100": 27,
+      "gt200": 0,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 180,
+      "taches_longues_total_ms": 4112,
+      "cpu_principal_pct": 95,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 5.7,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 22,
+      "mediane_ms": 233.3,
+      "p95_ms": 266.7,
+      "p99_ms": 266.7,
+      "max_ms": 266.7,
+      "gt100": 22,
+      "gt200": 20,
+      "taches_longues": 21,
+      "tache_longue_max_ms": 252,
+      "taches_longues_total_ms": 4422,
+      "cpu_principal_pct": 91,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 6.8,
+      "noeuds_dom": 1198
+     },
+     "explorer": {
+      "images": 25,
+      "mediane_ms": 200,
+      "p95_ms": 266.6,
+      "p99_ms": 283.3,
+      "max_ms": 283.3,
+      "gt100": 25,
+      "gt200": 8,
+      "taches_longues": 24,
+      "tache_longue_max_ms": 279,
+      "taches_longues_total_ms": 4853,
+      "cpu_principal_pct": 99,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 1,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1472
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.3,
+     "taches_s": 25.15
+    }
+   },
+   {
+    "load": {
+     "total_ms": 4268,
+     "construction_machine_ms": 534,
+     "premier_rendu_apres_construction_ms": null
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 1250,
+     "magie_vers_machine_ms": 1484
+    },
+    "scenarios": {
+     "repos": {
+      "images": 26,
+      "mediane_ms": 150,
+      "p95_ms": 166.8,
+      "p99_ms": 200,
+      "max_ms": 200,
+      "gt100": 26,
+      "gt200": 0,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 198,
+      "taches_longues_total_ms": 4035,
+      "cpu_principal_pct": 100,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 5.3,
+      "noeuds_dom": 981
+     },
+     "defilement": {
+      "images": 25,
+      "mediane_ms": 166.6,
+      "p95_ms": 183.4,
+      "p99_ms": 216.6,
+      "max_ms": 216.6,
+      "gt100": 25,
+      "gt200": 1,
+      "taches_longues": 25,
+      "tache_longue_max_ms": 186,
+      "taches_longues_total_ms": 3789,
+      "cpu_principal_pct": 95,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 5.7,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 22,
+      "mediane_ms": 233.3,
+      "p95_ms": 266.6,
+      "p99_ms": 266.6,
+      "max_ms": 266.6,
+      "gt100": 22,
+      "gt200": 18,
+      "taches_longues": 21,
+      "tache_longue_max_ms": 247,
+      "taches_longues_total_ms": 4472,
+      "cpu_principal_pct": 94,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 6.8,
+      "noeuds_dom": 1200
+     },
+     "explorer": {
+      "images": 26,
+      "mediane_ms": 199.9,
+      "p95_ms": 266.7,
+      "p99_ms": 266.7,
+      "max_ms": 266.7,
+      "gt100": 26,
+      "gt200": 7,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 248,
+      "taches_longues_total_ms": 5016,
+      "cpu_principal_pct": 98,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 1,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1480
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.25,
+     "taches_s": 25.58
+    }
+   }
+  ],
+  "desktop | bg:static": [
+   {
+    "load": {
+     "total_ms": 8063,
+     "construction_machine_ms": 136,
+     "premier_rendu_apres_construction_ms": 609
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 3605,
+     "magie_vers_machine_ms": 1695
+    },
+    "scenarios": {
+     "repos": {
+      "images": 11,
+      "mediane_ms": 416.7,
+      "p95_ms": 516.7,
+      "p99_ms": 516.7,
+      "max_ms": 516.7,
+      "gt100": 11,
+      "gt200": 11,
+      "taches_longues": 11,
+      "tache_longue_max_ms": 519,
+      "taches_longues_total_ms": 4824,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 9.5,
+      "noeuds_dom": 994
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 400,
+      "p95_ms": 466.7,
+      "p99_ms": 483.3,
+      "max_ms": 483.3,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 479,
+      "taches_longues_total_ms": 10959,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1013
+     },
+     "magie": {
+      "images": 9,
+      "mediane_ms": 566.7,
+      "p95_ms": 683.2,
+      "p99_ms": 683.2,
+      "max_ms": 683.2,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 674,
+      "taches_longues_total_ms": 4525,
+      "cpu_principal_pct": 97,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.2,
+      "noeuds_dom": 1115
+     },
+     "explorer": {
+      "images": 8,
+      "mediane_ms": 666.7,
+      "p95_ms": 866.6,
+      "p99_ms": 866.6,
+      "max_ms": 866.6,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 845,
+      "taches_longues_total_ms": 5632,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.7,
+      "noeuds_dom": 1340
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.56,
+     "taches_s": 41.95
+    }
+   },
+   {
+    "load": {
+     "total_ms": 9772,
+     "construction_machine_ms": 127,
+     "premier_rendu_apres_construction_ms": 645
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 3811,
+     "magie_vers_machine_ms": 1332
+    },
+    "scenarios": {
+     "repos": {
+      "images": 10,
+      "mediane_ms": 416.6,
+      "p95_ms": 466.7,
+      "p99_ms": 466.7,
+      "max_ms": 466.7,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 472,
+      "taches_longues_total_ms": 4183,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.1,
+      "noeuds_dom": 998
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 416.7,
+      "p95_ms": 466.6,
+      "p99_ms": 466.7,
+      "max_ms": 466.7,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 473,
+      "taches_longues_total_ms": 10700,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.6,
+      "noeuds_dom": 1017
+     },
+     "magie": {
+      "images": 8,
+      "mediane_ms": 633.4,
+      "p95_ms": 749.9,
+      "p99_ms": 749.9,
+      "max_ms": 749.9,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 728,
+      "taches_longues_total_ms": 4346,
+      "cpu_principal_pct": 96,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.1,
+      "noeuds_dom": 1116
+     },
+     "explorer": {
+      "images": 7,
+      "mediane_ms": 666.6,
+      "p95_ms": 1066.6,
+      "p99_ms": 1066.6,
+      "max_ms": 1066.6,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 1020,
+      "taches_longues_total_ms": 4973,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 1,
+      "tas_js_Mo": 8.3,
+      "noeuds_dom": 1330
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.1,
+     "taches_s": 43.32
+    }
+   },
+   {
+    "load": {
+     "total_ms": 9709,
+     "construction_machine_ms": 171,
+     "premier_rendu_apres_construction_ms": 641
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 2818,
+     "magie_vers_machine_ms": 2274
+    },
+    "scenarios": {
+     "repos": {
+      "images": 9,
+      "mediane_ms": 466.6,
+      "p95_ms": 500,
+      "p99_ms": 500,
+      "max_ms": 500,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 490,
+      "taches_longues_total_ms": 3634,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10,
+      "noeuds_dom": 998
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 416.7,
+      "p95_ms": 483.3,
+      "p99_ms": 500,
+      "max_ms": 500,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 25,
+      "tache_longue_max_ms": 495,
+      "taches_longues_total_ms": 10252,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.5,
+      "noeuds_dom": 1015
+     },
+     "magie": {
+      "images": 10,
+      "mediane_ms": 566.6,
+      "p95_ms": 616.6,
+      "p99_ms": 616.6,
+      "max_ms": 616.6,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 594,
+      "taches_longues_total_ms": 4688,
+      "cpu_principal_pct": 96,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.2,
+      "noeuds_dom": 1114
+     },
+     "explorer": {
+      "images": 8,
+      "mediane_ms": 650,
+      "p95_ms": 866.6,
+      "p99_ms": 866.6,
+      "max_ms": 866.6,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 844,
+      "taches_longues_total_ms": 4811,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1335
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.19,
+     "taches_s": 43.47
+    }
+   }
+  ],
+  "desktop | bg:off": [
+   {
+    "load": {
+     "total_ms": 6974,
+     "construction_machine_ms": 137,
+     "premier_rendu_apres_construction_ms": 530
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 3450,
+     "magie_vers_machine_ms": 1874
+    },
+    "scenarios": {
+     "repos": {
+      "images": 10,
+      "mediane_ms": 450,
+      "p95_ms": 466.7,
+      "p99_ms": 466.7,
+      "max_ms": 466.7,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 473,
+      "taches_longues_total_ms": 3962,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.5,
+      "noeuds_dom": 981
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 433.3,
+      "p95_ms": 533.3,
+      "p99_ms": 550,
+      "max_ms": 550,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 537,
+      "taches_longues_total_ms": 11326,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 12.7,
+      "noeuds_dom": 1013
+     },
+     "magie": {
+      "images": 9,
+      "mediane_ms": 566.6,
+      "p95_ms": 649.9,
+      "p99_ms": 649.9,
+      "max_ms": 649.9,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 626,
+      "taches_longues_total_ms": 4468,
+      "cpu_principal_pct": 96,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.3,
+      "noeuds_dom": 1114
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 600,
+      "p95_ms": 650,
+      "p99_ms": 650,
+      "max_ms": 650,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 643,
+      "taches_longues_total_ms": 5239,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8,
+      "noeuds_dom": 1339
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.19,
+     "taches_s": 41.41
+    }
+   },
+   {
+    "load": {
+     "total_ms": 10961,
+     "construction_machine_ms": 119,
+     "premier_rendu_apres_construction_ms": 593
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 1192,
+     "magie_vers_machine_ms": 3219
+    },
+    "scenarios": {
+     "repos": {
+      "images": 9,
+      "mediane_ms": 499.9,
+      "p95_ms": 533.2,
+      "p99_ms": 533.2,
+      "max_ms": 533.2,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 525,
+      "taches_longues_total_ms": 4351,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.3,
+      "noeuds_dom": 997
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 449.9,
+      "p95_ms": 516.6,
+      "p99_ms": 533.3,
+      "max_ms": 533.3,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 517,
+      "taches_longues_total_ms": 11154,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1027
+     },
+     "magie": {
+      "images": 8,
+      "mediane_ms": 616.6,
+      "p95_ms": 716.7,
+      "p99_ms": 716.7,
+      "max_ms": 716.7,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 719,
+      "taches_longues_total_ms": 4639,
+      "cpu_principal_pct": 93,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.1,
+      "noeuds_dom": 1116
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 633.2,
+      "p95_ms": 783.3,
+      "p99_ms": 783.3,
+      "max_ms": 783.3,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 650,
+      "taches_longues_total_ms": 4402,
+      "cpu_principal_pct": 97,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.1,
+      "noeuds_dom": 1344
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.15,
+     "taches_s": 44.9
+    }
+   },
+   {
+    "load": {
+     "total_ms": 10587,
+     "construction_machine_ms": 134,
+     "premier_rendu_apres_construction_ms": 729
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 3371,
+     "magie_vers_machine_ms": 3180
+    },
+    "scenarios": {
+     "repos": {
+      "images": 9,
+      "mediane_ms": 450.1,
+      "p95_ms": 483.4,
+      "p99_ms": 483.4,
+      "max_ms": 483.4,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 492,
+      "taches_longues_total_ms": 3658,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 9.7,
+      "noeuds_dom": 996
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 416.6,
+      "p95_ms": 483.3,
+      "p99_ms": 483.3,
+      "max_ms": 483.3,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 480,
+      "taches_longues_total_ms": 10394,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.4,
+      "noeuds_dom": 1011
+     },
+     "magie": {
+      "images": 9,
+      "mediane_ms": 600,
+      "p95_ms": 683.3,
+      "p99_ms": 683.3,
+      "max_ms": 683.3,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 657,
+      "taches_longues_total_ms": 4674,
+      "cpu_principal_pct": 96,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.3,
+      "noeuds_dom": 1116
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 600.1,
+      "p95_ms": 749.9,
+      "p99_ms": 749.9,
+      "max_ms": 749.9,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 762,
+      "taches_longues_total_ms": 5425,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8,
+      "noeuds_dom": 1361
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.58,
+     "taches_s": 45.73
+    }
+   }
+  ],
+  "desktop | dpr:1": [
+   {
+    "load": {
+     "total_ms": 13397,
+     "construction_machine_ms": 548,
+     "premier_rendu_apres_construction_ms": 619
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 2860,
+     "magie_vers_machine_ms": 2448
+    },
+    "scenarios": {
+     "repos": {
+      "images": 8,
+      "mediane_ms": 550,
+      "p95_ms": 600,
+      "p99_ms": 600,
+      "max_ms": 600,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 587,
+      "taches_longues_total_ms": 4394,
+      "cpu_principal_pct": 100,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.5,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 533.4,
+      "p95_ms": 633.3,
+      "p99_ms": 650.1,
+      "max_ms": 650.1,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 640,
+      "taches_longues_total_ms": 14123,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 11.2,
+      "noeuds_dom": 1039
+     },
+     "magie": {
+      "images": 7,
+      "mediane_ms": 816.6,
+      "p95_ms": 866.7,
+      "p99_ms": 866.7,
+      "max_ms": 866.7,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 841,
+      "taches_longues_total_ms": 4647,
+      "cpu_principal_pct": 97,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.5,
+      "noeuds_dom": 1144
+     },
+     "explorer": {
+      "images": 8,
+      "mediane_ms": 683.3,
+      "p95_ms": 750,
+      "p99_ms": 750,
+      "max_ms": 750,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 931,
+      "taches_longues_total_ms": 5710,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1371
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.29,
+     "taches_s": 52.92
+    }
+   },
+   {
+    "load": {
+     "total_ms": 11833,
+     "construction_machine_ms": 121,
+     "premier_rendu_apres_construction_ms": 545
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 4373,
+     "magie_vers_machine_ms": 2458
+    },
+    "scenarios": {
+     "repos": {
+      "images": 8,
+      "mediane_ms": 583.3,
+      "p95_ms": 616.6,
+      "p99_ms": 616.6,
+      "max_ms": 616.6,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 623,
+      "taches_longues_total_ms": 4566,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.3,
+      "noeuds_dom": 997
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 600,
+      "p95_ms": 650,
+      "p99_ms": 683.3,
+      "max_ms": 683.3,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 678,
+      "taches_longues_total_ms": 15277,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.2,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 7,
+      "mediane_ms": 800,
+      "p95_ms": 883.3,
+      "p99_ms": 883.3,
+      "max_ms": 883.3,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 853,
+      "taches_longues_total_ms": 4696,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.5,
+      "noeuds_dom": 1201
+     },
+     "explorer": {
+      "images": 7,
+      "mediane_ms": 749.9,
+      "p95_ms": 866.6,
+      "p99_ms": 866.6,
+      "max_ms": 866.6,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 857,
+      "taches_longues_total_ms": 4248,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.8,
+      "noeuds_dom": 1418
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.08,
+     "taches_s": 53.35
+    }
+   },
+   {
+    "load": {
+     "total_ms": 13587,
+     "construction_machine_ms": 480,
+     "premier_rendu_apres_construction_ms": 614
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 4888,
+     "magie_vers_machine_ms": 4728
+    },
+    "scenarios": {
+     "repos": {
+      "images": 7,
+      "mediane_ms": 649.9,
+      "p95_ms": 766.7,
+      "p99_ms": 766.7,
+      "max_ms": 766.7,
+      "gt100": 7,
+      "gt200": 7,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 751,
+      "taches_longues_total_ms": 3967,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.4,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 27,
+      "mediane_ms": 666.7,
+      "p95_ms": 766.6,
+      "p99_ms": 766.6,
+      "max_ms": 766.6,
+      "gt100": 27,
+      "gt200": 27,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 760,
+      "taches_longues_total_ms": 16844,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.5,
+      "noeuds_dom": 981
+     },
+     "magie": {
+      "images": 6,
+      "mediane_ms": 933.3,
+      "p95_ms": 999.9,
+      "p99_ms": 999.9,
+      "max_ms": 999.9,
+      "gt100": 6,
+      "gt200": 6,
+      "taches_longues": 6,
+      "tache_longue_max_ms": 955,
+      "taches_longues_total_ms": 5413,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.8,
+      "noeuds_dom": 1201
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 866.6,
+      "p95_ms": 1149.9,
+      "p99_ms": 1149.9,
+      "max_ms": 1149.9,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 1158,
+      "taches_longues_total_ms": 7436,
+      "cpu_principal_pct": 100,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.9,
+      "noeuds_dom": 1431
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.6,
+     "taches_s": 63.66
+    }
+   }
+  ],
+  "desktop | shadow:off": [
+   {
+    "load": {
+     "total_ms": 13314,
+     "construction_machine_ms": 611,
+     "premier_rendu_apres_construction_ms": 670
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 2540,
+     "magie_vers_machine_ms": 1344
+    },
+    "scenarios": {
+     "repos": {
+      "images": 8,
+      "mediane_ms": 533.3,
+      "p95_ms": 600,
+      "p99_ms": 600,
+      "max_ms": 600,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 609,
+      "taches_longues_total_ms": 4244,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 9.5,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 533.3,
+      "p95_ms": 600,
+      "p99_ms": 600,
+      "max_ms": 600,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 599,
+      "taches_longues_total_ms": 13175,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.2,
+      "noeuds_dom": 983
+     },
+     "magie": {
+      "images": 8,
+      "mediane_ms": 666.7,
+      "p95_ms": 749.9,
+      "p99_ms": 749.9,
+      "max_ms": 749.9,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 753,
+      "taches_longues_total_ms": 4467,
+      "cpu_principal_pct": 97,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.2,
+      "noeuds_dom": 1186
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 633.3,
+      "p95_ms": 783.4,
+      "p99_ms": 783.4,
+      "max_ms": 783.4,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 750,
+      "taches_longues_total_ms": 4861,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.1,
+      "noeuds_dom": 1419
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.3,
+     "taches_s": 48.99
+    }
+   },
+   {
+    "load": {
+     "total_ms": 12767,
+     "construction_machine_ms": 663,
+     "premier_rendu_apres_construction_ms": 558
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 3936,
+     "magie_vers_machine_ms": 2362
+    },
+    "scenarios": {
+     "repos": {
+      "images": 8,
+      "mediane_ms": 516.7,
+      "p95_ms": 566.6,
+      "p99_ms": 566.6,
+      "max_ms": 566.6,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 564,
+      "taches_longues_total_ms": 4648,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.3,
+      "noeuds_dom": 1009
+     },
+     "defilement": {
+      "images": 25,
+      "mediane_ms": 483.4,
+      "p95_ms": 533.3,
+      "p99_ms": 599.9,
+      "max_ms": 599.9,
+      "gt100": 25,
+      "gt200": 25,
+      "taches_longues": 25,
+      "tache_longue_max_ms": 580,
+      "taches_longues_total_ms": 11624,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.6,
+      "noeuds_dom": 1039
+     },
+     "magie": {
+      "images": 9,
+      "mediane_ms": 649.9,
+      "p95_ms": 716.6,
+      "p99_ms": 716.6,
+      "max_ms": 716.6,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 710,
+      "taches_longues_total_ms": 4822,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.2,
+      "noeuds_dom": 1184
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 616.6,
+      "p95_ms": 666.6,
+      "p99_ms": 666.6,
+      "max_ms": 666.6,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 672,
+      "taches_longues_total_ms": 5322,
+      "cpu_principal_pct": 99,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.4,
+      "noeuds_dom": 1425
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.9,
+     "taches_s": 48.37
+    }
+   },
+   {
+    "load": {
+     "total_ms": 11916,
+     "construction_machine_ms": 620,
+     "premier_rendu_apres_construction_ms": 485
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 4065,
+     "magie_vers_machine_ms": 2086
+    },
+    "scenarios": {
+     "repos": {
+      "images": 10,
+      "mediane_ms": 483.2,
+      "p95_ms": 516.6,
+      "p99_ms": 516.6,
+      "max_ms": 516.6,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 529,
+      "taches_longues_total_ms": 4816,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.8,
+      "noeuds_dom": 1010
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 450,
+      "p95_ms": 516.6,
+      "p99_ms": 533.3,
+      "max_ms": 533.3,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 521,
+      "taches_longues_total_ms": 11911,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 13.9,
+      "noeuds_dom": 1042
+     },
+     "magie": {
+      "images": 8,
+      "mediane_ms": 616.7,
+      "p95_ms": 700,
+      "p99_ms": 700,
+      "max_ms": 700,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 686,
+      "taches_longues_total_ms": 4238,
+      "cpu_principal_pct": 97,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.6,
+      "noeuds_dom": 1129
+     },
+     "explorer": {
+      "images": 8,
+      "mediane_ms": 666.7,
+      "p95_ms": 750,
+      "p99_ms": 750,
+      "max_ms": 750,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 7,
+      "tache_longue_max_ms": 739,
+      "taches_longues_total_ms": 4218,
+      "cpu_principal_pct": 98,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8,
+      "noeuds_dom": 1365
+     }
+    },
+    "cpu_total": {
+     "script_s": 0.88,
+     "taches_s": 49.71
+    }
+   }
+  ],
+  "desktop | fx:off": [
+   {
+    "load": {
+     "total_ms": 11819,
+     "construction_machine_ms": 559,
+     "premier_rendu_apres_construction_ms": 498
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 6119,
+     "magie_vers_machine_ms": 6990
+    },
+    "scenarios": {
+     "repos": {
+      "images": 8,
+      "mediane_ms": 516.7,
+      "p95_ms": 550,
+      "p99_ms": 550,
+      "max_ms": 550,
+      "gt100": 8,
+      "gt200": 8,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 557,
+      "taches_longues_total_ms": 4001,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.3,
+      "noeuds_dom": 996
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 533.4,
+      "p95_ms": 566.7,
+      "p99_ms": 583.3,
+      "max_ms": 583.3,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 27,
+      "tache_longue_max_ms": 587,
+      "taches_longues_total_ms": 14561,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.6,
+      "noeuds_dom": 1022
+     },
+     "magie": {
+      "images": 10,
+      "mediane_ms": 533.2,
+      "p95_ms": 550,
+      "p99_ms": 550,
+      "max_ms": 550,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 549,
+      "taches_longues_total_ms": 5076,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.2,
+      "noeuds_dom": 1239
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 783.3,
+      "p95_ms": 999.9,
+      "p99_ms": 999.9,
+      "max_ms": 999.9,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 1005,
+      "taches_longues_total_ms": 6626,
+      "cpu_principal_pct": 100,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.6,
+      "noeuds_dom": 1474
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.23,
+     "taches_s": 62.46
+    }
+   },
+   {
+    "load": {
+     "total_ms": 12165,
+     "construction_machine_ms": 486,
+     "premier_rendu_apres_construction_ms": 576
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 5885,
+     "magie_vers_machine_ms": 7852
+    },
+    "scenarios": {
+     "repos": {
+      "images": 9,
+      "mediane_ms": 500,
+      "p95_ms": 566.7,
+      "p99_ms": 566.7,
+      "max_ms": 566.7,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 554,
+      "taches_longues_total_ms": 5163,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 10.6,
+      "noeuds_dom": 996
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 500,
+      "p95_ms": 550.1,
+      "p99_ms": 566.7,
+      "max_ms": 566.7,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 558,
+      "taches_longues_total_ms": 12928,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.3,
+      "noeuds_dom": 1022
+     },
+     "magie": {
+      "images": 10,
+      "mediane_ms": 516.6,
+      "p95_ms": 566.7,
+      "p99_ms": 566.7,
+      "max_ms": 566.7,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 561,
+      "taches_longues_total_ms": 5127,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8,
+      "noeuds_dom": 1239
+     },
+     "explorer": {
+      "images": 10,
+      "mediane_ms": 883.4,
+      "p95_ms": 1166.5,
+      "p99_ms": 1166.5,
+      "max_ms": 1166.5,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 9,
+      "tache_longue_max_ms": 1176,
+      "taches_longues_total_ms": 8223,
+      "cpu_principal_pct": 100,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.4,
+      "noeuds_dom": 1475
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.26,
+     "taches_s": 65
+    }
+   },
+   {
+    "load": {
+     "total_ms": 12678,
+     "construction_machine_ms": 535,
+     "premier_rendu_apres_construction_ms": 529
+    },
+    "ouvertures": {
+     "ouverture_magie_ms": 5742,
+     "magie_vers_machine_ms": 7139
+    },
+    "scenarios": {
+     "repos": {
+      "images": 9,
+      "mediane_ms": 499.9,
+      "p95_ms": 533.3,
+      "p99_ms": 533.3,
+      "max_ms": 533.3,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 521,
+      "taches_longues_total_ms": 4915,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.1,
+      "noeuds_dom": 1008
+     },
+     "defilement": {
+      "images": 26,
+      "mediane_ms": 533.3,
+      "p95_ms": 599.9,
+      "p99_ms": 616.6,
+      "max_ms": 616.6,
+      "gt100": 26,
+      "gt200": 26,
+      "taches_longues": 26,
+      "tache_longue_max_ms": 607,
+      "taches_longues_total_ms": 13687,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 7.8,
+      "noeuds_dom": 1034
+     },
+     "magie": {
+      "images": 10,
+      "mediane_ms": 499.9,
+      "p95_ms": 550,
+      "p99_ms": 550,
+      "max_ms": 550,
+      "gt100": 10,
+      "gt200": 10,
+      "taches_longues": 10,
+      "tache_longue_max_ms": 539,
+      "taches_longues_total_ms": 5019,
+      "cpu_principal_pct": 100,
+      "js_pct": 1,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.5,
+      "noeuds_dom": 1251
+     },
+     "explorer": {
+      "images": 9,
+      "mediane_ms": 833.3,
+      "p95_ms": 933.3,
+      "p99_ms": 933.3,
+      "max_ms": 933.3,
+      "gt100": 9,
+      "gt200": 9,
+      "taches_longues": 8,
+      "tache_longue_max_ms": 933,
+      "taches_longues_total_ms": 6669,
+      "cpu_principal_pct": 100,
+      "js_pct": 0,
+      "mise_en_page_pct": 0,
+      "styles_pct": 0,
+      "tas_js_Mo": 8.7,
+      "noeuds_dom": 1475
+     }
+    },
+    "cpu_total": {
+     "script_s": 1.57,
+     "taches_s": 62.4
+    }
+   }
+  ]
+ }
+}

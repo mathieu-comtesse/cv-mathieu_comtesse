@@ -1,4 +1,4 @@
-import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v66';
+import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v69';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
 
 const f = (n, digits = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits });
@@ -44,14 +44,16 @@ export function initGainsDashboard() {
   const legend = box.querySelector('.gains-legend');
   let config = { days: 225, hours: 7 };
   try { const s = JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')); if (s&&Number.isInteger(s.days)&&Number.isInteger(s.hours*2)&&s.days >= 1 && s.days <= 366 && s.hours >= 1 && s.hours <= 24) config = s; } catch {}
+  /* en chemin 3D (accueil) le bloc est réparti en cadres : repli sur la page, hors copies inertes */
+  const cherche = sel => box.querySelector(sel) || [...document.querySelectorAll(sel)].find(el => !el.closest('[inert]'));
   const days = box.querySelector('[data-working-days]'), hours = box.querySelector('[data-working-hours]');
   days.value = config.days; hours.value = config.hours;
   function rhythm() {
     if (!days.checkValidity() || !hours.checkValidity() || +days.value < 1 || +hours.value < 1) return;
     config = { days: +days.value, hours: +hours.value };
     const r = euroCoinRhythm(ANNUAL_DECLARED, config.days, config.hours);
-    box.querySelector('[data-rhythm-short]').textContent = f(r.secondsPerEuro, 2) + ' s';
-    box.querySelector('[data-coin-rate]').textContent = 'Rythme des pièces · 1 € / ' + f(r.secondsPerEuro, 2) + ' s';
+    cherche('[data-rhythm-short]').textContent = f(r.secondsPerEuro, 2) + ' s';
+    cherche('[data-coin-rate]').textContent = 'Rythme des pièces · 1 € / ' + f(r.secondsPerEuro, 2) + ' s';
     try { localStorage.setItem('cv-piggy-work-basis-v1', JSON.stringify(config)); } catch {}
   }
   for(const event of ['input','change']){days.addEventListener(event,rhythm);hours.addEventListener(event,rhythm);} rhythm();

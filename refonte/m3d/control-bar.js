@@ -22,16 +22,38 @@ const CSS = `.cv-cb{position:relative;width:100%;display:flex;flex-direction:col
 .cv-cb output{font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgb(244 247 251 / .78);min-width:3.4em;max-width:16em;text-align:right}
 .cv-cb .cv-cb-more[aria-expanded="true"]{background:rgb(255 255 255 / .16)}
 .cv-cb .cv-cb-more i{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:#ffd028;display:none}.cv-cb .cv-cb-more.has-note i{display:block}.cv-cb .cv-cb-more{position:relative}
-.cv-cb-panel{position:absolute;left:50%;bottom:calc(100% + 10px);width:min(460px,calc(100vw - 24px));max-height:min(52vh,420px);overflow:auto;padding:6px 18px 14px;border-radius:24px;border:1px solid rgb(255 255 255 / .2);background:linear-gradient(180deg,rgb(18 26 52 / .62),rgb(10 16 36 / .5));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:inset 0 1px 0 rgb(255 255 255 / .2),0 24px 50px -20px rgb(2 6 24 / .8);transform:translate(-50%,8px) scale(.98);transform-origin:50% 100%;opacity:0;visibility:hidden;transition:opacity .3s,transform .4s cubic-bezier(.22,1,.36,1),visibility .3s}
-.cv-cb-panel.is-open{opacity:1;visibility:visible;transform:translate(-50%,0) scale(1)}
-.cv-cb-sec{padding:12px 0 2px}.cv-cb-sec+.cv-cb-sec{border-top:1px solid rgb(255 255 255 / .1)}
-.cv-cb-sec>h4{margin:0 0 8px;font:500 10.5px/1 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgb(244 247 251 / .55)}
+.cv-cb-panel{position:absolute;left:50%;bottom:calc(100% + 10px);width:min(460px,calc(100vw - 24px));max-height:min(52vh,420px);overflow:auto;overscroll-behavior:contain;padding:8px 20px 20px;border-radius:22px;border:1px solid rgb(255 255 255 / .16);background:linear-gradient(180deg,rgb(20 30 68 / .68),rgb(10 18 46 / .58));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:inset 0 1px 0 rgb(255 255 255 / .28),0 24px 50px -22px rgb(2 6 24 / .8);transform:translate(-50%,8px);opacity:0;visibility:hidden;transition:opacity .3s,transform .45s cubic-bezier(.22,1,.36,1),max-height .45s cubic-bezier(.22,1,.36,1),visibility .3s}
+.cv-cb-panel.is-open{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.cv-cb-grip{display:none}
+.cv-cb-sec{padding:0}.cv-cb-sec+.cv-cb-sec{margin-top:20px}
+.cv-cb-sec>h4{margin:12px 0 8px;font:500 10.5px/1 "Shopify Inter",Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgb(244 247 251 / .55)}
 .cv-cb-row{display:flex;flex-wrap:wrap;gap:4px}
-.cv-cb-row button{padding:0 14px;min-height:40px;color:rgb(244 247 251 / .8)}
-.cv-cb-row button[aria-pressed="true"]{background:linear-gradient(180deg,rgb(255 255 255 / .95),rgb(255 255 255 / .8));color:#0b1020}
+.cv-cb-row button{padding:0 14px;min-height:42px;border-radius:12px;color:rgb(244 247 251 / .82)}
+.cv-cb-row button[aria-pressed="true"]{background:linear-gradient(180deg,rgb(255 255 255 / .96),rgb(255 255 255 / .82));color:#0b1020;animation:cb-pop .28s cubic-bezier(.22,1,.36,1)}
+@keyframes cb-pop{0%{transform:scale(.94)}60%{transform:scale(1.03)}100%{transform:none}}
+.cv-cb-sec[data-k="sc"] .cv-cb-row{flex-direction:column;align-items:stretch;gap:2px}
+.cv-cb-sec[data-k="sc"] .cv-cb-row button{justify-content:flex-start;text-align:left}
+.cv-cb-sec[data-k="sc"] .cv-cb-row button[aria-pressed="true"]::before{content:"";width:7px;height:7px;border-radius:50%;background:#0b1020;flex:none}
+.cv-cb .cv-cb-expand{display:none;width:100%;margin-top:16px;min-height:44px;border-radius:12px;background:rgb(255 255 255 / .08);color:#fff}
+@media (min-width:900px){
+  .cv-cb-panel{position:fixed;left:auto;right:calc(env(safe-area-inset-right,0px) + 24px);top:50%;bottom:auto;width:340px;max-height:min(76vh,640px);transform:translate(28px,-50%);transform-origin:100% 50%}
+  .cv-cb-panel.is-open{transform:translate(0,-50%)}
+}
+/* mobile : tiroir à trois états (compact = capsule seule, intermédiaire = essentiel, étendu = tout) */
+@media (max-width:899px){
+  .cv-cb-panel{position:fixed;left:8px;right:8px;width:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);max-height:42vh;transform:translateY(18px);padding-top:0}
+  .cv-cb-panel.is-open{transform:translateY(0)}
+  .cv-cb-panel[data-snap="2"]{max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 190px)}
+  .cv-cb-panel:not([data-snap="2"]) .cv-cb-sec[data-adv]{display:none}
+  .cv-cb-grip{display:block;position:sticky;top:0;z-index:2;height:26px;margin:0 -20px;cursor:grab;touch-action:none}
+  .cv-cb-grip::before{content:"";display:block;width:38px;height:4px;border-radius:2px;margin:11px auto 0;background:rgb(255 255 255 / .42)}
+  .cv-cb .cv-cb-expand{display:flex}
+  .cv-cb-sec[data-k="sc"] .cv-cb-row{flex-direction:row;align-items:center;gap:4px}
+  .cv-cb-sec[data-k="sc"] .cv-cb-row button[aria-pressed="true"]::before{display:none}
+}
 .cv-cb-note{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:rgb(244 247 251 / .72);white-space:normal}
 .cv-cb-x{margin-left:2px}
-@media (max-width:600px){.cv-cb-cap{gap:2px;padding:3px}.cv-cb .cv-cb-step{gap:8px;padding:0 4px;flex:1 1 auto;min-width:0}.cv-cb .cv-cb-step input[type=range]{flex:1 1 60px;min-width:60px;width:auto}.cv-cb output{max-width:7.5em;min-width:0}.cv-cb .cv-cb-more span{display:none}.cv-cb .cv-cb-more{padding:0;width:44px}.cv-cb-panel{left:50%;width:calc(100vw - 20px);max-height:46vh}}
+@media (max-width:600px){.cv-cb-cap{gap:2px;padding:3px}.cv-cb .cv-cb-step{gap:8px;padding:0 4px;flex:1 1 auto;min-width:0}.cv-cb .cv-cb-step input[type=range]{flex:1 1 60px;min-width:60px;width:auto}.cv-cb output{max-width:7.5em;min-width:0}.cv-cb .cv-cb-more span{display:none}.cv-cb .cv-cb-more{padding:0;width:44px}}
 @media (prefers-reduced-motion:reduce){.cv-cb-panel,.cv-cb button{transition:none}}`;
 let styled = false;
 const SPEEDS = [.5, 1, 2];
@@ -41,7 +63,7 @@ const ICON = {
   more: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>',
   close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>'
 };
-export function buildControlBar(root, machine, ctl, { label = 'machine', onClose = null } = {}) {
+export function buildControlBar(root, machine, ctl, { label = 'machine', onClose = null, onGuide = null, onToggle = null } = {}) {
   if (!styled) { styled = true; const s = document.createElement('style'); s.textContent = CSS; document.head.append(s); }
   const api = machine.api || {}, c = machine.controls && machine.controls.seek ? machine.controls : null;
   const bar = document.createElement('div'); bar.className = 'cv-cb'; bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', 'Commandes : ' + label);
@@ -49,7 +71,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   const panel = document.createElement('div'); panel.className = 'cv-cb-panel'; panel.id = 'cb-' + Math.random().toString(36).slice(2, 8); panel.setAttribute('role', 'region'); panel.setAttribute('aria-label', 'Explorer la machine');
   const mkBtn = (html, onclick, aria, cls) => { const b = document.createElement('button'); b.type = 'button'; b.innerHTML = html; if (cls) b.className = cls; if (aria) b.setAttribute('aria-label', aria); b.onclick = onclick; return b; };
   const choice = (text, onclick, { pressed = false, aria } = {}) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = text; if (aria) b.setAttribute('aria-label', aria); b.setAttribute('aria-pressed', String(pressed)); b.onclick = onclick; return b; };
-  const section = (name) => { const s = document.createElement('section'); s.className = 'cv-cb-sec'; const h = document.createElement('h4'); h.textContent = name; const r = document.createElement('div'); r.className = 'cv-cb-row'; s.append(h, r); panel.append(s); return { s, r, h }; };
+  const section = (name, key, adv) => { const s = document.createElement('section'); s.className = 'cv-cb-sec'; if (key) s.dataset.k = key; if (adv) s.dataset.adv = '1'; const h = document.createElement('h4'); h.textContent = name; const r = document.createElement('div'); r.className = 'cv-cb-row'; s.append(h, r); panel.append(s); return { s, r, h }; };
 
   /* niveau 1 : lecture, progression, réglages */
   const play = mkBtn('', () => { ctl.setPaused(!ctl.paused); syncPlay(); }, 'Mettre en pause ou reprendre la démonstration', 'cv-cb-play');
@@ -68,20 +90,43 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   const more = mkBtn(ICON.more + '<span>Explorer</span><i></i>', () => setOpen(!panel.classList.contains('is-open')), 'Explorer la machine : scénarios, vues, inspection', 'cv-cb-more');
   more.setAttribute('aria-expanded', 'false'); more.setAttribute('aria-controls', panel.id); cap.append(more);
   if (onClose) cap.append(mkBtn(ICON.close, () => onClose(), 'Fermer la démonstration', 'cv-cb-x'));
-  const setOpen = (v) => { panel.classList.toggle('is-open', v); more.setAttribute('aria-expanded', String(v)); if (v) more.classList.remove('has-note'); };
+  /* états du panneau : 0 fermé (capsule seule), 1 essentiel, 2 étendu (mobile : tiroir ; bureau : panneau latéral, un seul état ouvert) */
+  let snap = 0;
+  const isSheet = () => innerWidth < 900;
+  const geo = () => (snap === 0 ? { open: false, snap, side: null, size: 0 } : isSheet() ? { open: true, snap, side: 'bottom', size: snap === 2 ? .8 : .52 } : { open: true, snap, side: 'right', size: (340 + 24) / innerWidth });
+  const apply = () => {
+    const v = snap > 0;
+    panel.classList.toggle('is-open', v); panel.dataset.snap = String(snap); more.setAttribute('aria-expanded', String(v)); if (v) more.classList.remove('has-note');
+    expand.textContent = snap === 2 ? 'Moins de commandes' : 'Plus de commandes'; expand.setAttribute('aria-expanded', String(snap === 2));
+    root.closest?.('.cv-zoom')?.classList.toggle('has-panel', v);
+    if (onToggle) onToggle(v, geo());
+  };
+  const setOpen = (v) => { snap = v ? Math.max(1, snap) : 0; apply(); };
+  const setSnap = (n) => { snap = Math.max(0, Math.min(2, n)); apply(); };
+  const expand = document.createElement('button'); expand.type = 'button'; expand.className = 'cv-cb-expand'; expand.setAttribute('aria-controls', panel.id); expand.onclick = () => setSnap(snap === 2 ? 1 : 2);
+  const grip = document.createElement('div'); grip.className = 'cv-cb-grip'; grip.setAttribute('aria-hidden', 'true'); panel.prepend(grip);
+  /* gestes verticaux du tiroir : seule la poignée glisse (le contenu défile, la machine garde ses gestes) ; un appui court bascule entre les deux hauteurs */
+  { let y0 = null, moved = false; const end = () => { y0 = null; };
+    grip.addEventListener('pointerdown', (e) => { y0 = e.clientY; moved = false; grip.setPointerCapture(e.pointerId); });
+    grip.addEventListener('pointermove', (e) => { if (y0 === null) return; const dy = e.clientY - y0; if (Math.abs(dy) > 40) { moved = true; y0 = null; setSnap(snap + (dy < 0 ? 1 : -1)); } });
+    grip.addEventListener('pointerup', () => { if (y0 !== null && !moved) setSnap(snap === 2 ? 1 : 2); end(); });
+    grip.addEventListener('pointercancel', end); }
   bar.append(panel, cap);
-  addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.classList.contains('is-open') && bar.isConnected) { setOpen(false); e.stopPropagation(); } }, true);
+  const onKey = (e) => { if (!bar.isConnected) { removeEventListener('keydown', onKey, true); return; } if (e.key === 'Escape' && snap > 0) { setOpen(false); e.stopPropagation(); } };
+  addEventListener('keydown', onKey, true);
+  const intervals = [];
 
   /* section Démonstration */
   const sd = section('Démonstration');
   const replay = choice('Rejouer', () => { ctl.scenario(null); ctl.seek(0); ctl.setPaused(false); syncPlay(); markScenario(null); refreshEdit(); }, { aria: 'Rejouer depuis le début' });
   const speed = choice('1×', () => { const i = (SPEEDS.indexOf(ctl.speed) + 1) % SPEEDS.length; ctl.setSpeed(SPEEDS[i]); speed.textContent = SPEEDS[i] + '×'; }, { aria: 'Vitesse de lecture' });
   sd.r.append(replay, speed);
+  if (onGuide) sd.r.prepend(choice('Démonstration guidée', () => { onGuide(); syncPlay(); }, { aria: 'Lancer la démonstration guidée depuis le début' }));
 
   /* section Scénarios */
   let markScenario = () => {};
   if (api.scenarios?.length) {
-    const ss = section('Scénarios'), bs = [];
+    const ss = section('Scénarios', 'sc'), bs = [];
     const mk = (text, i, aria) => { const b = choice(text, () => { ctl.scenario(i); const sc = i === null ? null : api.scenarios[i]; if (sc?.edit && sc.hold !== false) { ctl.seek(sc.editT); ctl.setPaused(true); } else if (sc?.edit) { ctl.setPaused(false); } else { ctl.seek(0); ctl.setPaused(false); } syncPlay(); markScenario(i); refreshEdit(); }, { pressed: i === null, aria }); bs.push([b, i]); ss.r.append(b); };
     mk('Auto', null, 'Scénarios en boucle'); api.scenarios.forEach((s, i) => mk(s.short, i, s.label));
     markScenario = (k) => bs.forEach(([b, i]) => b.setAttribute('aria-pressed', String(i === k)));
@@ -92,12 +137,13 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   const setView = (name, b) => { ctl.focus(name); vb.forEach((x) => x.setAttribute('aria-pressed', String(x === b))); };
   const sv = section('Vues');
   const over = choice('Ensemble', () => setView(null, over), { pressed: true, aria: 'Vue d’ensemble' }); vb.push(over); sv.r.append(over);
-  views.forEach((v) => { const b = choice(v.label, () => setView(v.anchor, b), { aria: 'Gros plan : ' + v.label }); vb.push(b); sv.r.append(b); });
+  views.forEach((v) => { const b = choice(v.label, () => setView(v.anchor, b), { aria: 'Gros plan : ' + v.label }); b.dataset.anchor = v.anchor; vb.push(b); sv.r.append(b); });
+  const markView = (anchor) => vb.forEach((x) => x.setAttribute('aria-pressed', String(anchor ? x.dataset.anchor === anchor : x === over)));   // la caméra a été placée de l'extérieur (ex. après la magie)
   if (!views.length) sv.s.hidden = true;
 
   /* section Inspection */
   if (api.setInspect) {
-    const si = section('Inspection'); let on = false;
+    const si = section('Inspection', 'in', true); let on = false;
     const b = choice('Séparer les organes', () => { on = !on; api.setInspect(on); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Rassembler les organes' : 'Séparer les organes'; }, { aria: 'Inspection : séparer ou rassembler les organes' });
     si.r.append(b);
   }
@@ -106,7 +152,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
   let refreshEdit = () => {};
   const flag = () => { if (!panel.classList.contains('is-open')) more.classList.add('has-note'); };
   if (api.frames || api.params) {
-    const sm = section('Réglages métier'); sm.s.hidden = true;
+    const sm = section('Réglages métier', 'bz', true); sm.s.hidden = true;
     const st = document.createElement('p'); st.className = 'cv-cb-note'; st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite');
     let wasShown = false; const parts = [];
     if (api.frames) {
@@ -125,7 +171,7 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
     }
     sm.s.append(st);
     refreshEdit = () => { const on = parts.some((p) => p()); sm.s.hidden = !on; if (on && !wasShown) flag(); wasShown = on; paramSync(); st.textContent = on && api.status ? api.status() : ''; };
-    const t = setInterval(() => { if (!root.isConnected) return clearInterval(t); refreshEdit(); }, 450);
+    const t = setInterval(() => { if (!root.isConnected) return clearInterval(t); refreshEdit(); }, 450); intervals.push(t);
     bar.__edit = sm.s;
   }
 
@@ -137,5 +183,6 @@ export function buildControlBar(root, machine, ctl, { label = 'machine', onClose
     if (slider && document.activeElement !== slider) { const v = c.get(ctl.time()); slider.value = v; out.textContent = out.__fmt(v); slider.__paint(); }
   }, 250);
   if (slider) { slider.__paint(); out.textContent = out.__fmt(+slider.value); }
-  return { bar, open: setOpen, sync: syncPlay, dispose() { clearInterval(timer); bar.remove(); } };
+  panel.append(expand);
+  return { bar, open: setOpen, snap: setSnap, markView, isOpen: () => snap > 0, geo, sync: syncPlay, dispose() { clearInterval(timer); intervals.forEach(clearInterval); removeEventListener('keydown', onKey, true); bar.remove(); } };
 }

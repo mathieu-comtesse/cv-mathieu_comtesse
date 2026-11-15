@@ -4,10 +4,13 @@ import vm from 'node:vm';
 import * as THREE from '../vendor/three.module.min.js';
 
 const threeURL = new URL('../vendor/three.module.min.js', import.meta.url).href;
-const source = (await readFile(new URL('../js/native-geometry.js', import.meta.url), 'utf8'))
-  .replace("from 'three'", `from '${threeURL}'`);
+const source = await readFile(new URL('../js/native-geometry.js', import.meta.url), 'utf8');
+function loadBridge(three) {
+  const module = source.replace("from 'three'", `from '${three}'`);
+  return import(`data:text/javascript;base64,${Buffer.from(module).toString('base64')}`);
+}
 const { copyNativeAttribute, copyNativeGeometry, cloneNativeObject } =
-  await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+  await loadBridge(threeURL);
 
 // vm creates the same constructor boundary as the Native iframe.
 const foreign = vm.runInNewContext(`({
@@ -62,4 +65,10 @@ instances.instanceMatrix = new THREE.InstancedBufferAttribute(foreign.positions,
 const instanceClone = cloneNativeObject(instances);
 assert.ok(instanceClone.instanceMatrix.array instanceof Float32Array);
 assert.equal(instanceClone.instanceMatrix.meshPerAttribute, 2);
+const modern = await loadBridge(new URL('../vendor/three-r187/three.module.js', import.meta.url).href);
+const legacyMesh = new THREE.Mesh(geometry);
+assert.equal(legacyMesh.intersectsFrustum, undefined);
+const projectedMesh = modern.cloneNativeObject(legacyMesh);
+assert.equal(projectedMesh.intersectsFrustum({ intersectsObject: object => object === projectedMesh }), true);
+assert.equal(legacyMesh.intersectsFrustum, undefined);
 console.log('PASS: cross-realm geometry, indices, normalized/interleaved/morph/half/instance attributes and source isolation');

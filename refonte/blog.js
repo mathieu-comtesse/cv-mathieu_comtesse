@@ -1,3 +1,4 @@
+import './comtesse-motion.js';
 // Page blog : symbole infini en particules + apparitions au défilement.
 import { initInfinity } from './infinity.js';
 import './footer.js';

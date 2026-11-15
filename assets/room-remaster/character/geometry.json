@@ -1,0 +1,23 @@
+{
+  "name": "mathieu-v2",
+  "authoring": "tools/room-remaster/build-mathieu.mjs",
+  "rig": "rig-anchors.json",
+  "originalRig": "assets/reference-character.glb",
+  "meshes": {
+    "MathieuMesh-v2": {
+      "triangles": 1857
+    },
+    "MathieuSneakers-v2": {
+      "triangles": 360
+    },
+    "MathieuSocks-v2": {
+      "triangles": 120
+    }
+  },
+  "expressions": [
+    "blink",
+    "smile",
+    "open",
+    "round"
+  ]
+}

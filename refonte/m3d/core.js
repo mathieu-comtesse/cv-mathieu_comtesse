@@ -2,6 +2,7 @@
 // le groupe de chaque machine est mis à l'échelle (S) pour tenir sur le plan blueprint. Repère de figure : x vers la droite,
 // y vers l'avant (profondeur), z vers le haut ; il devient (x, z, y) dans la scène.
 import * as THREE from 'three';
+import { diagOn, dprCap } from '../diag.js';
 import { daLook } from '../../js/da-shader.js?v=da5';
 import { snap, snapNeutral } from '../../js/lowpoly.js?v=lp11';
 
@@ -207,10 +208,10 @@ export const hash = (i) => { let h = Math.imul(i + 5, 2654435761) >>> 0; h ^= h 
 
 /* Scène d'une machine : lumières douces, ombre portée sur le plan (ShadowMaterial) et groupe mis à l'échelle. */
 export function makeStage(canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2));
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !diagOn('aa'), alpha: true, powerPreference: 'low-power' });
+  renderer.setPixelRatio(dprCap(Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 2)));
   renderer.setClearColor(0x000000, 0); renderer.localClippingEnabled = true;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = !diagOn('shadow'); renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   scene.add(DA.on ? new THREE.HemisphereLight(0xffe9d6, 0xf2a68c, 0.9) : new THREE.HemisphereLight(0xffffff, 0xa9b8e6, 1.9));
   const sun = new THREE.DirectionalLight(DA.on ? 0xffe3c4 : 0xffffff, DA.on ? 2.6 : 2.3);

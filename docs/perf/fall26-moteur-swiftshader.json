@@ -1,0 +1,78 @@
+{
+ "banc": "Chromium sans tête, rendu logiciel SwiftShader, 1440 × 900",
+ "avertissement": "Mesures en rendu logiciel : elles ne valent pas pour une carte graphique matérielle.",
+ "date": "2026-11-13",
+ "chargementMs": 499,
+ "moteurPretMs": 2670,
+ "requetes": 291,
+ "poidsMo": 11.06,
+ "requetesShopify": 0,
+ "platAccueil": {
+  "images": 31,
+  "p50": 216.7,
+  "p95": 450,
+  "p99": 533.3,
+  "max": 533.3,
+  "tachesLongues": 11,
+  "tacheLongueMax": 305,
+  "memoireMo": 57.4
+ },
+ "platDefilement": {
+  "images": 18,
+  "p50": 150,
+  "p95": 1766.7,
+  "p99": 1766.7,
+  "max": 1766.7,
+  "tachesLongues": 4,
+  "tacheLongueMax": 1033,
+  "memoireMo": 41.8
+ },
+ "bascule": {
+  "dureeMs": 14048,
+  "images": 15,
+  "nominalMs": 900
+ },
+ "expoFixe": {
+  "images": 20,
+  "p50": 66.6,
+  "p95": 1033.3,
+  "p99": 1033.3,
+  "max": 1033.3,
+  "tachesLongues": 2,
+  "tacheLongueMax": 719,
+  "memoireMo": 102.6
+ },
+ "expoDefilement": {
+  "images": 13,
+  "p50": 33.4,
+  "p95": 2699.8,
+  "p99": 2699.8,
+  "max": 2699.8,
+  "tachesLongues": 0,
+  "tacheLongueMax": 0,
+  "memoireMo": 86.1
+ },
+ "expoAccueil": {
+  "images": 20,
+  "p50": 333.3,
+  "p95": 566.6,
+  "p99": 566.6,
+  "max": 566.6,
+  "tachesLongues": 0,
+  "tacheLongueMax": 0,
+  "memoireMo": 105.4
+ },
+ "cadresExpo": 73,
+ "dixBascules": {
+  "memoireAvantMo": 78.1,
+  "memoireApresMo": 94.5,
+  "contexteWebGLPerdu": false
+ },
+ "fichiers": {
+  "index.html": 414,
+  "refonte/moteur.js": 33.1,
+  "refonte/hero-graph.js": 6.2,
+  "refonte/theme-stars.js": 21.7,
+  "refonte/site.css": 58.2
+ }
+}
