@@ -48,6 +48,9 @@ const inter = entree.filter((e) => e[0] > 0.02 && e[0] < 0.98);
 verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][0] - 1e-6), `entrée en expo progressive : ${inter.length} états intermédiaires relevés (progression ${entree.map((e) => e[0]).filter((v, i, l) => !i || v !== l[i - 1]).join(' → ')})`);
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
+const chapitres3D=await p.evaluate(()=>window.__cvParity.titles().filter(t=>t.chapter));
+verifie(chapitres3D.length>0&&chapitres3D.every(t=>t.lines===1&&t.width<=t.boxWidth*.98+2),
+  `titres 3D sur une ligne dans les limites de leurs cadres (${JSON.stringify(chapitres3D.map(t=>[t.lines,t.width,t.boxWidth]))})`);
 const retourIcone=await p.evaluate(()=>{
   const el=document.querySelector('.cv-parity-toggle'),css=getComputedStyle(el);
   return{label:el.querySelector('.cv-pt-label')?.textContent.trim(),border:css.borderTopWidth,
