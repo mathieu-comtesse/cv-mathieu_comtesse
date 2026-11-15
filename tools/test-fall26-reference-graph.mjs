@@ -107,4 +107,31 @@ assert.ok(!fs.existsSync(new URL('../refonte/expo-reference-ornaments.js',import
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 assert.ok(!html.includes('view.cube=['),'Legacy rotating cube must stay disabled');
 assert.ok(!html.includes('N.dessineDecor(ctx,view'),'Legacy 3D peripheral scene must stay disabled');
+// The editorial chapter order intentionally differs from the Shopify
+// reference order; reference geometry must remain attached to chapter ID.
+const shuffled=new Ciel();
+shuffled.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
+const keys=['agentic','sidekick','online','merchandising','retail','payments',
+ 'operations','marketing','fulfillment','developer','shop'];
+const referenceKeys=['agentic','sidekick','merchandising','retail','payments',
+ 'operations','online','marketing','fulfillment','developer','shop'];
+for(const key of keys)shuffled.definit('accueil:'+key,{
+ groupe:'accueil',parent:'accueil',label:key,editoriaux:[{title:key,handle:key}],sol:true
+});
+calibrateReferenceBranches(shuffled);
+placeReferenceHubs(shuffled,1200,760);
+for(const hub of shuffled.etoiles.values()){
+ if(hub.parent!=='accueil')continue;
+ const key=hub.id.slice('accueil:'.length),ref=REFERENCE_HUBS[referenceKeys.indexOf(key)];
+ assert.equal(hub.centre[0],ref.x*1200,'X must follow chapter identity '+key);
+ assert.equal(hub.centre[1],ref.y*760,'Y must follow chapter identity '+key);
+ assert.equal(hub.noeuds.length,ref.points,'Ray count must follow chapter identity '+key);
+}
+const mappedCalls=[];
+drawReferenceLinks({
+ save(){},restore(){},beginPath(){},moveTo(x,y){mappedCalls.push(['M',x,y])},
+ lineTo(x,y){mappedCalls.push(['L',x,y])},stroke(){}
+},shuffled,(x,y)=>({x,y}));
+assert.equal(mappedCalls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length,
+ 'Link topology must follow reference IDs despite reordered editorial chapters');
 console.log('PASS eleven flat reference stars: normalized 2D geometry, straight rays, cross-links and mobile');
