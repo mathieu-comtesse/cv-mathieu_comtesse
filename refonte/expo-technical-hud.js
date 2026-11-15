@@ -76,6 +76,6 @@ export function drawExpoTechnicalHud(ctx,view,options={}){
     }
     ctx.stroke();
   }
-  drawExpoReferenceOrnaments(ctx,view,{width:w,height:h,quality:q,reduce});
+  drawExpoReferenceOrnaments(ctx,view,{width:w,height:h,quality,reduce});
   ctx.restore();
 }
