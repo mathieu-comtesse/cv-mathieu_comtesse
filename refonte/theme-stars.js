@@ -209,13 +209,17 @@ function scene(chapitres) {
         g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
-      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
+      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H;
+      const shrink=.48+.52*weight;
+      const turn=cross?(chapterIndex===handover.from?handover.progress*.18:
+        chapterIndex===handover.to?-(1-handover.progress)*.18:0):0;
+      const R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g) * shrink;
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }
       c.branches.forEach((b, k) => {
         const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
-        let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
+        let x = hx + Math.cos(b.a+turn) * R * b.r, y = hy + Math.sin(b.a+turn) * R * b.r * 0.82;
         if (libre) { x += Math.sin(tt * 0.4 + b.phase) * 7; y += Math.cos(tt * 0.33 + b.phase * 1.7) * 6; const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 170 && d > 1) { const q = (1 - d / 170) * 22 / d * (b.fiche ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
         const survole = b.fiche && Math.hypot(x - souris.x, y - souris.y) < 16;
