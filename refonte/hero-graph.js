@@ -2,7 +2,7 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m25';
+import { Ciel } from './moteur.js?v=m26';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -54,9 +54,9 @@ export function demarre(chapitres) {
       /* dernière rangée incomplète : centrée */
       chapitres.forEach((r, k) => { const reste = n - Math.floor(k / cols) * cols, cx = (k % cols + 0.5 + (reste < cols ? (cols - reste) / 2 : 0)) * cw, cy = (Math.floor(k / cols) + 0.42) * ch;
         ciel.place('accueil:' + r.id, [W / 2 + (cx - W / 2) * ouvre, H / 2 + (cy - H / 2) * ouvre, 10], R); });
-    } else ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], Math.min(W * 0.4, H * 0.5) * ouvre);
+    } else ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], Math.min(W * 0.44, H * 0.55) * ouvre);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille });
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille, plat: true });
   }
   requestAnimationFrame(image);
   window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };

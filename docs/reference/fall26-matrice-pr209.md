@@ -563,3 +563,22 @@ Le pack de reprise visait la tête `65de99d` de la PR 210. Elle est dépassée :
 Tests de cette passe (Chromium sans tête, rendu logiciel, aucun chiffre de cadence revendiqué) : `test-modes` PASS (20 contrôles, dont le retour élastique, en échec auparavant), `test-branches` PASS, `test-entrypoints` PASS, `test-no-shopify --strict` PASS (0 requête), `test-objets-3d` PASS, `test-machines` ok (onze machines), `test-navigation` PASS (102 routes), `test-site-consistency` PASS (40 pages), `test-defilement` PASS seul (2 échecs quand il tourne en parallèle d'une autre suite : sensible à la charge du banc).
 
 `test-ux` (11 fiches machines, deux tailles) : non conclu, coupé à 25 min sans sortie dans ce banc ; il n'exerce pas l'accueil.
+
+## Suite de la passe : règles perdues à une fusion, transitions et libellé de survol
+
+Constat : les commits `c62c36b` et `25ef8fc` (branche `claude/fall26-preuves-pr210`, fusionnée) avaient calé le graphe à plat sur la capture de la référence, retiré le viseur et donné un retard au libellé de survol. La réécriture des branches en courbes 3D (`d52304b`) les a écrasés : la matrice les déclarait « CORRIGÉ » alors que le code ne les contenait plus. Ils sont reportés sur le moteur actuel et couverts par des contrôles.
+
+| Effet | Preuve | Avant cette passe | Maintenant | État |
+|---|---|---|---|---|
+| Rendu du graphe à plat | capture de la référence (`expo-ref-chrome157-a-plat.jpg`) : traits bleus fins, certains foyers verts, anneau au centre, pas de cercle au sol, nom contre le foyer suivi d'un nombre gris | branches blanches, gerbe centrale lumineuse, cercles et tiges au sol, numéro et nom sous le cercle, libellés superposés | option `plat` du moteur : traits bleus, un foyer sur trois vert, anneau central sans halo, aucune trace au sol, contenu sans image en point, nom à droite du foyer et nombre de contenus en gris ; envergure portée à 44 % de la largeur ; courbes des branches conservées (observées en zoom sur la référence) | CORRIGÉ (OBSERVÉ ; teintes et proportion de foyers verts choisies à l'œil) |
+| Libellé de survol | JSON : `left 0.12s ease-out, top 0.12s ease-out` sur l'infobulle (30 échantillons) ; opacité `0.15s cubic-bezier(0.65, 0, 0.35, 1)` | fixe contre le nœud, apparition instantanée | suit le pointeur (constante de temps 40 ms, 95 % de l'écart en 0,12 s), fondu de 0,15 s en lissage cubique symétrique ; contre le nœud sans pointeur ou en mouvement réduit | CORRIGÉ (OBSERVÉ pour les durées ; le décalage de 18 px est notre choix) |
+| Bouton du mode 3D | captures : masqué sur l'accueil, visible dans un chapitre | visible partout | masqué tant que l'accueil occupe l'écran, sauf si le mode 3D est engagé ; fondu de 0,15 s ; le clavier reste actif partout | CORRIGÉ (OBSERVÉ) |
+| Survols des liens | JSON : `color 0.15s, text-decoration-color 0.15s` (136 échantillons) | changement instantané | appliqué aux liens du site (`.cv-link`, liens des fiches et des deux navigations) | CORRIGÉ (OBSERVÉ) |
+| Survols des boutons | JSON : `background-size 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.15s, color 0.2s, scale 0.1s` | instantané, ou 0,25 s uniforme pour le bouton de mode | mêmes durées et courbe sur le fond, la bordure et la couleur des boutons du site | CORRIGÉ (OBSERVÉ pour les durées ; l'effet de fond glissant de la référence n'est pas repris) |
+| Barres de graphique | JSON : `scale 0.55s cubic-bezier(0.2, 0.7, 0.2, 1)`, retards de 0,36 à 0,96 s | sans objet | non repris : aucun graphique à barres équivalent sur l'accueil | NON APPLICABLE |
+| Curseur sur un nœud cliquable | JSON : `pointer` (2 mouvements sur canevas) | `grab` puis `grabbing` | inchangé : la saisie des nœuds est un ajout propre au site | ÉCART ASSUMÉ |
+| Fuite des nœuds devant le pointeur, inclinaison du plan | aucune donnée (rendu de canevas) | choix internes | inchangés | NON DOCUMENTÉ |
+
+Sous 940 px la référence n'a pas de bouton de mode expo ; le site le garde dans les chapitres (écart assumé, le mode 3D mobile est une fonction testée du site).
+
+Tests : `test-modes` PASS (24 contrôles, dont rendu à plat, transitions, bouton, libellé de survol, grille), `test-branches`, `test-entrypoints`, `test-no-shopify --strict`, `test-defilement`, `test-objets-3d`, `test-site-consistency` PASS. Capture : `docs/fall26-evidence/accueil-graphe-plat-avant-apres.png` (avant, après à 1 400 px, après à 390 px).
