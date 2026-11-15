@@ -1232,7 +1232,24 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
   /* Aucun cube, torus ni décor 3D parasite en périphérie : seuls le parcours et les vrais cadres sont dessinés. */
   N.dessineRegles(ctx,view,chapters.map(c=>({row:original.get(c.el).top-view.offset,name:c.name})));
   {{const hb=boxes.filter(b=>b.hero&&!b.slab).sort((a,c)=>a.r1-c.r1);for(let i=0;i<hb.length-1;i++)if(hb[i+1].r0>hb[i].r1)hb[i].r1=hb[i+1].r0;}const sv=N.dessineContours(ctx,view,boxes,souris);state.survol=sv?(sv.title||'cadre'):null;}
-  {let id=null;const yy=scrollY+innerHeight*.4;for(const c of chapters){if(original.get(c.el).top<=yy)id=c.el.id||id;}ciel.actif=id;}
+  {const stops=chapters.map(c=>({top:original.get(c.el).top,
+      colour:c.el.getAttribute('data-html-in-canvas-colour')||'#051DAA'}));
+    const handover=C.chapterHandover(scrollY,stops,innerHeight);
+    ciel.actif=chapters[handover.active]?.el.id||null;
+    // The Expo constellation handover uses exactly the flat mode's scroll
+    // clock: outgoing branches contract/fade while the new star unfolds.
+    for(const e of ciel.etoiles.values()){
+      if(e.groupe!=='titre')continue;
+      const from=chapters[handover.from]?.el.id,to=chapters[handover.to]?.el.id;
+      const cross=handover.from!==handover.to;
+      const weight=!cross?1:e.chapitre===from?1-handover.progress:
+        e.chapitre===to?handover.progress:1;
+      e.transitionOpacity=weight;
+      e.transitionScale=.48+.52*weight;
+    }
+    state.chapterHandover={from:handover.from,to:handover.to,
+      progress:handover.progress,colour:handover.colour};
+  }
   R.drawReferenceStage(ctx,ciel,(c,r,h)=>N.p(view,c,r,h),view.e*view.e);R.drawReferenceLinks(ctx,ciel,(c,r,h)=>N.p(view,c,r,h),view.e*view.e*.6);R.drawReferenceJunction(ctx,ciel,(c,r,h)=>N.p(view,c,r,h),view.e*view.e*.6);ciel.dessine(ctx,(c,r,h)=>N.p(view,c,r,h),reduced.matches?null:now/1000,{covers,souris,W:innerWidth,H:innerHeight,dt:Math.min(.1,gap/1000),alpha:view.e*view.e,titres:Math.max(0,Math.min(1,(progress-.3)/.5)),compact:innerWidth<520,racineVisible:false});
   state.chapterStars=ciel.etat('titre');
   drawRail();
