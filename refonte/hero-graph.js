@@ -49,7 +49,7 @@ export function demarre(chapitres) {
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
-    placeReferenceHubs(ciel,W,H);
+    placeReferenceHubs(ciel,W,H,{spread:1+Math.min(.42,Math.max(0,s)*.42)});
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     drawReferenceLinks(ctx,ciel,proj,.49);
     ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true });
