@@ -53,6 +53,22 @@ placeReferenceHubs(ciel,1000,740,{left:200,top:-325,lift:90});
 assert.equal(hubs[0].centre[0],200+REFERENCE_HUBS[0].x*1000);
 assert.equal(hubs[0].centre[1],-325+REFERENCE_HUBS[0].y*740);
 assert.equal(hubs[0].centre[2],90,'3D hub follows 3D lift');
+// A parent layout pass may restore the original spiral: the reference pass
+// must restore all 11 measured coordinates at every resize and mode switch.
+ciel.place('accueil',[600,380,0],300);
+assert.ok(hubs.some((hub,i)=>Math.abs(hub.centre[0]-REFERENCE_HUBS[i].x*1200)>1),
+  'Parent layout changes the reference positions before the explicit override');
+assert.equal(placeReferenceHubs(ciel,1200,760),11);
+for(let i=0;i<hubs.length;i++){
+  assert.deepEqual(hubs[i].centre,[REFERENCE_HUBS[i].x*1200,REFERENCE_HUBS[i].y*760,0]);
+}
+const atFlat=hubs.map(h=>[...h.centre,h.rayon]);
+assert.equal(placeReferenceHubs(ciel,1200,760),11);
+assert.deepEqual(hubs.map(h=>[...h.centre,h.rayon]),atFlat,
+  'Repeated draw passes do not introduce positional drift');
+assert.equal(placeReferenceHubs(ciel,0,760),0,
+  'A hidden or zero-width section does not produce invalid coordinates');
+assert.deepEqual(hubs.map(h=>[...h.centre,h.rayon]),atFlat);
 placeReferenceHubs(ciel,390,844);
 assert.ok(hubs.every(h=>h.centre[0]>=0&&h.centre[0]<=390));
 assert.ok(hubs.every(h=>h.centre[1]>=0&&h.centre[1]<=844));
