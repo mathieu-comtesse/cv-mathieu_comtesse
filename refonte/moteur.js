@@ -277,7 +277,7 @@ export class Ciel {
   distanceCourbe(n, px, py) {
     let m = 1e9; for (let i = 0; i <= 10; i++) { const q = i / 10, o = 1 - q, x = o * o * n.x0 + 2 * o * q * n.cx + q * q * n.x1, y = o * o * n.y0 + 2 * o * q * n.cy + q * q * n.y1, d = Math.hypot(x - px, y - py); if (d < m) m = d; } return m;
   }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1 } = {}) {
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, racineVisible = true, labels = true } = {}) {
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
     const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
@@ -289,6 +289,7 @@ export class Ciel {
     let survol = null, dSurvol = 18, brancheMeilleure = null, dBranche = 7;
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
+      if (e.racine && !racineVisible) continue;
       const kT = e.groupe === 'titre' ? titres : 1, aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
       const [c0, r0, h0] = e.centre, F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
@@ -414,7 +415,7 @@ export class Ciel {
       { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
       ctx.fillStyle = ambient ? (e.racine ? '#3855a2' : e.rang % 4 === 0 ? '#18ad9c' : '#538cff') : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
-      if (e.label && !e.racine) {
+      if (e.label && !e.racine && labels) {
         const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * aE; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
