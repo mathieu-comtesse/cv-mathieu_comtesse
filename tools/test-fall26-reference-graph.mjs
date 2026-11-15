@@ -137,6 +137,11 @@ assert.ok(sceneHTML.includes('const gw=zr.width*(1+.12*view.e),gh=zr.height*(1+.
   'Expo constellation footprint should remain close to the original reference');
 assert.ok(sceneHTML.includes('racineVisible:false'),
   'The root staging node must not render as a twelfth star');
+const engineSource=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
+assert.ok(engineSource.includes("const pale=e.referenceFlat && ambient;"),
+ 'Reference stars should use the pale card treatment rather than dark-blue placeholders');
+assert.ok(engineSource.includes("rgba(236,245,255,.83)"),
+ 'Editorial endpoints must keep the reference white-tinted fill');
 assert.ok(!fs.readFileSync(new URL('../index.html',import.meta.url),'utf8').includes('expo-technical-hud.js'),
  "L’ancien décor de cubes latéraux ne doit pas être chargé");
 assert.ok(!fs.existsSync(new URL('../refonte/expo-reference-ornaments.js',import.meta.url)),
