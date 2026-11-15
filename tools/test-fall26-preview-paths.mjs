@@ -21,7 +21,7 @@ assert.ok(html.includes('href="./refonte/comtesse-motion.css'),
   'Motion CSS must not resolve from the host root');
 assert.ok(html.includes('src="./refonte/comtesse-motion.js'),
   'Motion JS must not resolve from the host root');
-assert.ok(html.includes('src="./refonte/gains.css'),
+assert.ok(html.includes('href="./refonte/gains.css'),
   'Gains styles must resolve from the same checkout');
 assert.ok(!html.includes('https://comtesse.me/refonte/fonts/'),
   'Font loading must remain pinned to this revision');
