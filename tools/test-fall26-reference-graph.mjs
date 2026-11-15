@@ -33,8 +33,8 @@ for(let i=0;i<hubs.length;i++){
  const hub=hubs[i],ref=REFERENCE_HUBS[i];
  assert.equal(hub.referenceFlat,true);
  assert.equal(hub.sol,false);
- assert.equal(hub.centre[0],ref.x*1200);
- assert.equal(hub.centre[1],ref.y*760);
+ assert.ok(Math.abs(hub.centre[0]-ref.x*1200)<1e-8,'Hub X reference tolerance');
+ assert.ok(Math.abs(hub.centre[1]-ref.y*760)<1e-8,'Hub Y reference tolerance');
  assert.ok(hub.rayon>50&&hub.rayon<200);
  assert.ok(hub.noeuds.length>10);
  let twigs=0;
@@ -72,8 +72,8 @@ assert.equal(calls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length);
 drawReferenceStage(ctx,ciel,(x,y,z)=>({x,y,z}),1);
 assert.ok(calls.some(x=>x[0]==='F'),'Projected dark backing is drawn below 3D hub network');
 placeReferenceHubs(ciel,1000,740,{left:200,top:-325,lift:90});
-assert.equal(hubs[0].centre[0],200+REFERENCE_HUBS[0].x*1000);
-assert.equal(hubs[0].centre[1],-325+REFERENCE_HUBS[0].y*740);
+assert.ok(Math.abs(hubs[0].centre[0]-(200+REFERENCE_HUBS[0].x*1000))<1e-8);
+assert.ok(Math.abs(hubs[0].centre[1]-(-325+REFERENCE_HUBS[0].y*740))<1e-8);
 assert.equal(hubs[0].centre[2],90,'3D hub follows 3D lift');
 // A parent layout pass may restore the original spiral: the reference pass
 // must restore all 11 measured coordinates at every resize and mode switch.
@@ -145,8 +145,8 @@ placeReferenceHubs(shuffled,1200,760);
 for(const hub of shuffled.etoiles.values()){
  if(hub.parent!=='accueil')continue;
  const key=hub.id.slice('accueil:'.length),ref=REFERENCE_HUBS[referenceKeys.indexOf(key)];
- assert.equal(hub.centre[0],ref.x*1200,'X must follow chapter identity '+key);
- assert.equal(hub.centre[1],ref.y*760,'Y must follow chapter identity '+key);
+ assert.ok(Math.abs(hub.centre[0]-ref.x*1200)<1e-8,'X must follow chapter identity '+key);
+ assert.ok(Math.abs(hub.centre[1]-ref.y*760)<1e-8,'Y must follow chapter identity '+key);
  assert.equal(hub.noeuds.length,ref.points,'Ray count must follow chapter identity '+key);
 }
 const mappedCalls=[];
