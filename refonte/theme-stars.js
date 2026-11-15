@@ -5,7 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
-import {chapterHandover,chapterStarPose} from './fall26-chapter-transition.js?v=ct2';
+import {chapterHandover,chapterStarPose,chapterStarAnchor,mixHex} from './fall26-chapter-transition.js?v=ct3';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -221,7 +221,8 @@ function scene(chapitres) {
         plein=!libre?1:participating?pose.weight:lisse(u,.02,.34);
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
-      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = participating?H*.56:H*.56 - Math.max(0,u-.62)*H;
+      const anchor=chapterStarAnchor(chapterIndex,handover,W,H);
+      const hx=anchor.x,hy=participating?anchor.y:H*.56-Math.max(0,u-.62)*H;
       const shrink=pose.scale;
       const turn=pose.angle;
       const R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g) * shrink;
