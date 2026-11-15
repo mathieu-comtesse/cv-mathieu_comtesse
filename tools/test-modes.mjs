@@ -48,8 +48,8 @@ const inter = entree.filter((e) => e[0] > 0.02 && e[0] < 0.98);
 verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][0] - 1e-6), `entrée en expo progressive : ${inter.length} états intermédiaires relevés (progression ${entree.map((e) => e[0]).filter((v, i, l) => !i || v !== l[i - 1]).join(' → ')})`);
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
-const introExpo=await p.evaluate(()=>{const e=document.querySelector('.cv-parity-intro .cv-card-body'),notes=[...(e?.querySelector('.pc-notes')?.querySelectorAll('.pc-note')||[])];return {panels:document.querySelectorAll('.cv-parity-intro').length,notes:notes.length,visible:notes.filter(n=>getComputedStyle(n).display!=='none').length,sourceReplaced:!!document.querySelector('#cv-processus .cv-card-body')};});
-verifie(introExpo.panels===1 && introExpo.notes>=4 && introExpo.visible===3 && !introExpo.sourceReplaced,
+const introExpo=await p.evaluate(()=>{const e=document.querySelector('.cv-parity-intro .cv-card-body'),notes=[...(e?.querySelector('.pc-notes')?.querySelectorAll('.pc-note')||[])];return {panels:document.querySelectorAll('.cv-parity-intro').length,notes:notes.length,visible:notes.filter(n=>getComputedStyle(n).display!=='none').length,sourceNotes:document.querySelectorAll('#cv-processus .pc-note').length};});
+verifie(introExpo.panels===1 && introExpo.notes>=4 && introExpo.visible===3 && introExpo.sourceNotes===0,
   `plateau Expo : introduction originale regroupée dans une plaque compacte (${JSON.stringify(introExpo)})`);
 const chapitres3D=await p.evaluate(()=>window.__cvParity.titles().filter(t=>t.chapter));
 verifie(chapitres3D.length>0&&chapitres3D.every(t=>t.lines===1&&t.width<=t.boxWidth*.98+2),
