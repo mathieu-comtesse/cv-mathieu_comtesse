@@ -17,6 +17,10 @@ assert.ok(scale(390,360,740)<.78,'Long mobile titles must remain within availabl
 assert.ok(scale(1440,500,920)>=.55,'Heading must remain readable');
 assert.match(html,/lengthadjust="spacingAndGlyphs">Comtesse\.me<\/text>/,
   'Vertical masthead must use compact Comtesse.me label');
+assert.ok(html.includes('textlength="384" lengthadjust="spacingAndGlyphs">Comtesse.me</text>'),
+  'Mobile header must match the compact desktop masthead');
+assert.ok(html.includes("N.cvTextLayout(headingFont,'Comtesse.me',{fontSize:1})"),
+  '3D extruded masthead must match the flat SVG lettering');
 assert.match(html,/compact:innerWidth<520,racineVisible:false\}\)/,
   'The technical graph root must never render a spurious star in Expo');
 console.log('PASS flat/expo chapter typography no longer enlarged 1.6x/2x');
