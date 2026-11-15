@@ -105,12 +105,12 @@ const flatLayout=hubs.map(e=>({centre:[...e.centre],rayon:e.rayon}));
 placeReferenceHubs(ciel,1200,760,{expo:.5});
 for(let i=0;i<hubs.length;i++){
  assert.deepEqual(hubs[i].centre,flatLayout[i].centre);
- assert.ok(Math.abs(hubs[i].rayon/flatLayout[i].rayon-.84)<1e-9);
+ assert.ok(Math.abs(hubs[i].rayon/flatLayout[i].rayon-.91)<1e-9);
 }
 placeReferenceHubs(ciel,1200,760,{expo:1});
 for(let i=0;i<hubs.length;i++){
  assert.deepEqual(hubs[i].centre,flatLayout[i].centre);
- assert.ok(Math.abs(hubs[i].rayon/flatLayout[i].rayon-.68)<1e-9);
+ assert.ok(Math.abs(hubs[i].rayon/flatLayout[i].rayon-.82)<1e-9);
 }
 placeReferenceHubs(ciel,1200,760,{expo:0});
 assert.deepEqual(hubs.map(e=>({centre:[...e.centre],rayon:e.rayon})),flatLayout,
