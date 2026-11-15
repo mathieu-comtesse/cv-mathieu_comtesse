@@ -453,7 +453,7 @@ export class Ciel {
         const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * aE; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if(e.referenceFlat){
-          const texte=compact?(e.num||''):e.label;
+          const texte=compact?(e.num||''):(e.referenceShortLabel||e.label)+' '+e.noeuds.filter(n=>n.ed).length;
           ctx.globalAlpha=a*aE*.72;ctx.fillStyle='rgba(203,211,243,.62)';
           ctx.font='400 '+(compact?8:9)+'px "JetBrains Mono",ui-monospace,monospace';
           ctx.textAlign='left';ctx.fillText(texte,F.x+cote/2+7,F.y-4);
