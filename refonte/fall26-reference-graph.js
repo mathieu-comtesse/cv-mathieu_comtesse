@@ -92,7 +92,7 @@ export function calibrateReferenceBranches(ciel) {
     e.referenceShortLabel=REFERENCE_SHORT_LABELS[REFERENCE_CHAPTER_IDS[refIndex]]||e.label;
     const editorial=e.noeuds.filter(n=>n.ed);
     const pool=e.noeuds.filter(n=>!n.ed);
-    const count=Math.max(ref.points,editorial.length+4);
+    const count=Math.max(ref.points,editorial.length);
     const decorativeCount=count-editorial.length;
     const visual=pool.slice(0,decorativeCount);
     for(let i=visual.length;i<decorativeCount&&pool.length;i++){
