@@ -49,7 +49,7 @@ export function demarre(chapitres) {
     /* moins de 940 px de large : foyers rangés en grille, nom sous chaque foyer, sans foyer central (disposition relevée sur la référence) */
     const grille = innerWidth < 940;
     if (grille) {
-      const n = chapitres.length, cols = W < 520 ? 2 : 4, rangs = Math.ceil(n / cols), cw = W / cols, ch = (H - 56) / rangs,   /* 56 px : place du bouton du chemin 3D, en bas */ R = Math.min(cw * 0.4, ch * 0.36);
+      const n = chapitres.length, cols = W < 520 ? 2 : 4, rangs = Math.ceil(n / cols), cw = W / cols, ch = H / rangs, R = Math.min(cw * 0.4, ch * 0.36);
       ciel.place('accueil', null);
       /* dernière rangée incomplète : centrée */
       chapitres.forEach((r, k) => { const reste = n - Math.floor(k / cols) * cols, cx = (k % cols + 0.5 + (reste < cols ? (cols - reste) / 2 : 0)) * cw, cy = (Math.floor(k / cols) + 0.42) * ch;

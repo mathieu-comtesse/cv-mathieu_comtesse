@@ -121,6 +121,8 @@ const gr = await m.evaluate(() => { const c = window.__cvHeroGraph.ciel, W = win
 verifie(!gr.racine && gr.ok === gr.n && gr.rangees === Math.ceil(gr.n / 2), `mobile, grille : ${gr.ok}/${gr.n} foyers nommés dans le cadre, ${gr.rangees} rangées, foyer central ${gr.racine ? 'visible' : 'masqué'}`);
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
+const bMobile = await m.evaluate(() => getComputedStyle(document.querySelector('.cv-parity-toggle')).display);
+verifie(bMobile === 'none', `mobile : bouton du mode 3D absent de l'écran (display ${bMobile}), comme sur la référence sous 940 px`);
 verifie(gm.foyers >= 11 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
 await m.context().close(); await b.close(); srv.close();
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : modes, bascule animée, saisie des nœuds, clavier, historique, mouvement réduit, mobile'); process.exit(echecs.length ? 1 : 0);

@@ -579,6 +579,6 @@ Constat : les commits `c62c36b` et `25ef8fc` (branche `claude/fall26-preuves-pr2
 | Curseur sur un nœud cliquable | JSON : `pointer` (2 mouvements sur canevas) | `grab` puis `grabbing` | inchangé : la saisie des nœuds est un ajout propre au site | ÉCART ASSUMÉ |
 | Fuite des nœuds devant le pointeur, inclinaison du plan | aucune donnée (rendu de canevas) | choix internes | inchangés | NON DOCUMENTÉ |
 
-Sous 940 px la référence n'a pas de bouton de mode expo ; le site le garde dans les chapitres (écart assumé, le mode 3D mobile est une fonction testée du site).
+Sous 940 px la référence n'a pas de bouton de mode expo : le site le retire aussi de l'écran (décision de l'auteur : interface alignée sur la référence). Le mode 3D mobile reste dans le code et dans les tests, sans commande visible ; la réserve de 56 px de la grille est supprimée.
 
 Tests : `test-modes` PASS (24 contrôles, dont rendu à plat, transitions, bouton, libellé de survol, grille), `test-branches`, `test-entrypoints`, `test-no-shopify --strict`, `test-defilement`, `test-objets-3d`, `test-site-consistency` PASS. Capture : `docs/fall26-evidence/accueil-graphe-plat-avant-apres.png` (avant, après à 1 400 px, après à 390 px).
