@@ -30,7 +30,23 @@ export function demarre(chapitres) {
   /* curseurs : viseur sur la zone du graphe, main ouverte sur un nœud éditorial, main fermée pendant qu'on le tient */
   cv.style.cursor = 'default';
   const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
-  addEventListener('pointermove', (ev) => { [souris.x, souris.y] = local(ev); ciel.tire(souris.x, souris.y); const c = ciel.pris ? 'grabbing' : ciel.touche(souris.x, souris.y) ? 'grab' : 'default'; cv.style.cursor = c; if (!document.documentElement.classList.contains('cv-parity-active')) document.documentElement.style.cursor = c === 'default' ? '' : c; }, { passive: true });
+  addEventListener('pointermove', (ev) => {
+    const bounds=cv.getBoundingClientRect();
+    const inside=ev.clientX>=bounds.left&&ev.clientX<=bounds.right&&ev.clientY>=bounds.top&&ev.clientY<=bounds.bottom;
+    // A document-level listener is required while dragging, but should not
+    // impose a grab cursor elsewhere on the page.
+    if(!inside&&!ciel.pris){
+      souris.x=souris.y=-1e4;
+      cv.style.cursor='default';
+      if(!document.documentElement.classList.contains('cv-parity-active'))document.documentElement.style.cursor='';
+      return;
+    }
+    [souris.x,souris.y]=local(ev);
+    ciel.tire(souris.x,souris.y);
+    const cursor=ciel.pris?'grabbing':inside&&ciel.touche(souris.x,souris.y)?'grab':'default';
+    cv.style.cursor=cursor;
+    if(!document.documentElement.classList.contains('cv-parity-active'))document.documentElement.style.cursor=cursor==='default'?'':cursor;
+  }, { passive: true });
   cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
   /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
   const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
