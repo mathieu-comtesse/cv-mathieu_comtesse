@@ -3,6 +3,7 @@
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
 import { Ciel } from './moteur.js?v=m23';
+import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks} from './fall26-reference-graph.js';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -13,6 +14,7 @@ export function demarre(chapitres) {
   const ciel = new Ciel(), souris = { x: -1e4, y: -1e4 };
   ciel.definit('accueil', { groupe: 'accueil', racine: true, label: 'Mathieu Comtesse' });
   chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: false }));
+  calibrateReferenceBranches(ciel);
   let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0;
   let budgetFrame = 16, coutMoyen = 0, lents = 0, rapides = 0;
   /* le canevas n'occupe que la partie libre de la zone : à droite du nom et des cartes quand ils la recouvrent (grand écran) */
@@ -47,9 +49,10 @@ export function demarre(chapitres) {
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
-    for(const e of ciel.etoiles.values()) if(e.parent==='accueil') e.rayon*=1.16;
+    placeReferenceHubs(ciel,W,H);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .49, compact: W < 520, racineVisible: false, labels: false });
+    drawReferenceLinks(ctx,ciel,proj,.49);
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true });
     const cout = performance.now() - debutDessin;
     coutMoyen = coutMoyen ? coutMoyen * .92 + cout * .08 : cout;
     if (W >= 520 && coutMoyen > 9) { lents++; rapides = 0; }
