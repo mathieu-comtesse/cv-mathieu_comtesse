@@ -13,6 +13,8 @@ assert.equal(calibrateReferenceBranches(ciel),11);
 const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
 placeReferenceHubs(ciel,1200,760);
 assert.equal(REFERENCE_HUBS.length,11);
+assert.ok(hubs[4].noeuds.length>=30,'Payments: trente ramifications');
+assert.ok(hubs[9].noeuds.length>=57,'Developer: cinquante-sept ramifications');
 assert.ok(REFERENCE_LINKS.length>=16);
 for(let i=0;i<hubs.length;i++){
  const hub=hubs[i],ref=REFERENCE_HUBS[i];
