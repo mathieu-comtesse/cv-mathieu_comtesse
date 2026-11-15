@@ -367,7 +367,7 @@ export class Ciel {
       const BASE = e.racine ? [0, 0.2, 0.13, 0.09] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = `rgba(${e.referenceFlat?(e.flatTone==='mint'?'39,205,169':e.flatTone==='cyan'?'46,176,239':'78,103,215'):ambient?'77,135,255':'225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE * (e.referenceFlat?2.05:ambient?1.65:1)).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = `rgba(${e.referenceFlat?(e.flatTone==='mint'?'39,205,169':e.flatTone==='cyan'?'46,176,239':'78,103,215'):ambient?'77,135,255':'225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE * (e.referenceFlat?2.6:ambient?1.65:1)).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
