@@ -571,16 +571,17 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
   ctx.restore();
 }
 
-/* Éclairage du sol : à plat la couleur de la page est inchangée ; en expo le sol est éclairé et devient plus clair.
- * Modèle : gain d'exposition en lumière linéaire (1 à plat, GAIN_EXPO en expo), écrêté. Calé sur une seule observation de la référence
- * (bleu de page #051DAA vu à #1442FF sur l'écran de l'auteur) : les trois canaux s'y accordent avec un gain d'environ 4,5. */
-const GAIN_EXPO = 4.5;
+/* Couleur du sol 3D, calée sur les 3 séquences vidéo remises le 15 novembre.
+ * À plat, conserver les couleurs de marque. En Expo, corriger l'exposition en
+ * lumière linéaire par canal. Mesures de la vidéo : bleu ≈(6,20,153),
+ * rose ≈(155,0,78), orange ≈(154,33,2), sans reproduire ses pixels. */
+const GAIN_EXPO_RGB = [0.75, 0.55, 0.77];
 const vers_lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
 const vers_srgb = (l) => { l = Math.max(0, Math.min(1, l)); return Math.round(255 * (l <= 0.0031308 ? 12.92 * l : 1.055 * Math.pow(l, 1 / 2.4) - 0.055)); };
 export function cvLit(hex, rise) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m || !(rise > 0)) return hex;
-  const n = parseInt(m[1], 16), g = 1 + (GAIN_EXPO - 1) * Math.max(0, Math.min(1, rise));
-  return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
+  const n = parseInt(m[1], 16), t = Math.max(0, Math.min(1, rise));
+  return `rgb(${[16, 8, 0].map((s, i) => vers_srgb(vers_lin((n >> s) & 255) * (1 + (GAIN_EXPO_RGB[i] - 1) * t))).join(',')})`;
 }
 
 /* ---------- Liste des chapitres : prolongement courbe du dessus du bloc supérieur ----------
