@@ -24,13 +24,22 @@ for(let i=0;i<hubs.length;i++){
  assert.equal(hub.centre[1],ref.y*760);
  assert.ok(hub.rayon>50&&hub.rayon<200);
  assert.ok(hub.noeuds.length>10);
+ let twigs=0;
  for(const n of hub.noeuds){
-  assert.equal(n.par,null,'Aucune ramification courbe parasite');
-  assert.equal(n.cv,0,'Rayons rectilignes');
+  assert.equal(n.cv,0,'Branches rectilignes');
   assert.equal(n.ar,0,'Aucune arche 3D');
   assert.equal(n.dh,0,'Branches dans le plan');
-  assert.ok(n.ed||n.niveau===1);
+  assert.ok(n.ed||n.niveau===1||n.niveau===2);
+  if(n.par){
+    twigs++;
+    assert.equal(n.niveau,2,'Secondary branches are native second-level nodes');
+    assert.ok(!n.ed,'Editorial thumbnails stay attached to primary rays');
+    assert.ok(hub.noeuds.indexOf(n.par)<hub.noeuds.indexOf(n),'Parent must precede fork');
+    assert.ok(n.par.enf.includes(n),'Parent/child references remain consistent');
+    assert.ok(n.len>=.18&&n.len<=.32);
+  }
  }
+ assert.ok(twigs>=2,'Each reference constellation needs real secondary branches');
 }
 for(let i=0;i<REFERENCE_HUBS.length;i++){
  const e=hubs[i],angles=referenceSpokeAngles(i,e.noeuds.length),observed=e.noeuds.map(n=>n.a);
