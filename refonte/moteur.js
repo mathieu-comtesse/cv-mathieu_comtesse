@@ -311,7 +311,7 @@ export class Ciel {
       const parent = e.parent && this.etoiles.get(e.parent);
       if (parent?.ecran) {
         const g = adouci(e.age / 0.9), ax = parent.ecran.x, ay = parent.ecran.y, bx = ax + (F.x - ax) * g, by = ay + (F.y - ay) * g, dx = bx - ax, dy = by - ay, ccx = ax + dx / 2 - dy * 0.1, ccy = ay + dy / 2 + dx * 0.1, gl = ctx.createLinearGradient(ax, ay, bx, by);
-        gl.addColorStop(0, 'rgba(215,228,255,.62)'); gl.addColorStop(1, 'rgba(190,210,255,.28)');
+        gl.addColorStop(0, e.groupe === 'accueil' ? 'rgba(75,126,235,.55)' : 'rgba(215,228,255,.62)'); gl.addColorStop(1, e.groupe === 'accueil' ? 'rgba(42,85,196,.24)' : 'rgba(190,210,255,.28)');
         ctx.strokeStyle = gl; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo(ccx, ccy, bx, by); ctx.stroke();
       }
       /* 1. géométrie de chaque branche (une seule fois par image, sans allocation : tout est écrit dans le nœud) */
@@ -379,8 +379,8 @@ export class Ciel {
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
-        gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
-        gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
+        gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : ambient ? `rgba(69,123,243,${Math.min(1, 0.9 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
+        gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : ambient ? `rgba(57,109,228,${Math.min(1, 0.58 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
         ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
         if (!compact && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
