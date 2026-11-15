@@ -133,6 +133,19 @@ export function calibrateReferenceBranches(ciel) {
       twig.len=.18+.045*((i+refIndex)%4);
       twig.cv=0;twig.ar=0;twig.dh=0;
     }
+    // Dense reference hubs include secondary forks which themselves fork.
+    // Building from earlier visual nodes guarantees parent-before-child
+    // ordering and keeps every editorial thumbnail at level zero.
+    for(let i=11;i<visual.length;i+=11){
+      const twig=visual[i],parent=visual[i-1];
+      if(!twig||!parent||parent.niveau!==2||twig.par)continue;
+      twig.par=parent;parent.enf.push(twig);
+      twig.niveau=3;
+      twig.t0=.52+.08*((i+refIndex)%3);
+      twig.ang=(i%2?-1:1)*(.55+.06*((i+refIndex)%4));
+      twig.len=.11+.025*((i+refIndex)%4);
+      twig.cv=0;twig.ar=0;twig.dh=0;
+    }
   });
   return hubs.length;
 }
