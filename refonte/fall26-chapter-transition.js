@@ -50,3 +50,26 @@ export function chapterStarPose(index,handover){
   const angle=!cross?0:index===from?p*.18:index===to?-(1-p)*.18:0;
   return {weight,scale,angle,participating:cross&&(index===from||index===to)};
 }
+
+// The reference transition displays two distinct constellations, not two
+// superimposed radial fans. These positions were estimated from the 4.5–13 s
+// segment of Video Project 5.mp4 (portrait recording, 612 x 1080 crop).
+// At the midpoint the incoming centre is near (0.54W, 0.42H) and the
+// outgoing centre near (0.49W, 0.72H). At both ends the visible star returns
+// to its natural focal point (0.60W, 0.56H).
+export function chapterStarAnchor(index,handover,width,height){
+  const W=Math.max(1,Number(width)||1),H=Math.max(1,Number(height)||1);
+  const {from=-1,to=-1,active=-1,progress=0}=handover||{};
+  const p=clamp01(progress),baseX=W<760?.50:.60;
+  if(from===to||index===active&&!(index===from||index===to))
+    return {x:W*baseX,y:H*.56};
+  if(index===from){
+    const travel=smooth(p);
+    return {x:W*(baseX-.22*travel),y:H*(.56+.32*travel)};
+  }
+  if(index===to){
+    const travel=smooth(1-p);
+    return {x:W*(baseX-.12*travel),y:H*(.56-.28*travel)};
+  }
+  return {x:W*baseX,y:H*.56};
+}
