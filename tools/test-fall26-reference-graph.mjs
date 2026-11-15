@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Ciel} from '../refonte/moteur.js';
-import {REFERENCE_HUBS,REFERENCE_LINKS,REFERENCE_SPOKES,referenceSpokeAngles,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage,drawReferenceJunction} from '../refonte/fall26-reference-graph.js';
+import {REFERENCE_HUBS,REFERENCE_CARD_SLOTS,REFERENCE_LINKS,REFERENCE_SPOKES,referenceSpokeAngles,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage,drawReferenceJunction} from '../refonte/fall26-reference-graph.js';
 
 const ciel=new Ciel();
 ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
@@ -214,6 +214,26 @@ drawReferenceLinks({
 assert.equal(mappedCalls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length,
  'Link topology must follow reference IDs despite reordered editorial chapters');
 const graphEngine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
-assert.ok(graphEngine.includes("const texte=compact?(e.num||''):(e.referenceShortLabel||e.label)+' '+e.noeuds.filter(n=>n.ed).length;"),
+assert.ok(graphEngine.includes("e.referenceEditorialCount??e.noeuds.filter(n=>n.ed).length"),
   'Visible labels must use concise chapter names and real editorial counts, never decorative ray counts');
+// Sampling editorial endpoints should preserve the original total and
+// reduce oversized cards at star tips without removing article content.
+const sampled=new Ciel();
+sampled.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
+const records=Array.from({length:11},(_,i)=>({
+  title:'Project '+i,handle:'project-'+i,
+  image:i%3===0?'assets/test-thumbnail-'+i+'.png':null
+}));
+sampled.definit('accueil:shop',{groupe:'accueil',parent:'accueil',
+  label:'Projets professionnels',editoriaux:records,sol:false});
+calibrateReferenceBranches(sampled);
+const sampledHub=sampled.etoiles.get('accueil:shop');
+assert.equal(sampledHub.referenceEditorialCount,11,
+ 'Full editorial count must remain preserved for labels');
+assert.equal(sampledHub.noeuds.filter(n=>n.ed).length,REFERENCE_CARD_SLOTS[10],
+ 'Sampled thumbnail count must reflect the source screenshot density');
+assert.equal(sampledHub.noeuds.length,REFERENCE_HUBS[10].points,
+ 'Decorative rays must replace hidden thumbnails to preserve star geometry');
+assert.ok(sampledHub.noeuds.filter(n=>n.ed).some(n=>n.ed.image),
+ 'Prefer representative image-backed thumbnails when available');
 console.log('PASS eleven flat reference stars: normalized 2D geometry, straight rays, cross-links and mobile');
