@@ -25,10 +25,15 @@ const r1 = await releve(36000);   // au moins deux pièces à la cadence nominal
 const intervalle = r1.intervalle, chutes = r1.out.filter((s) => s[2] >= 0 && s[2] < 1), ys = chutes.map((s) => s[3]);
 verifie(r1.etat === 'ready' && r1.canvas[0] > 100, `tirelire chargée, dessin ${r1.canvas.join(' × ')} px, une pièce toutes les ${intervalle?.toFixed(2)} s`);
 verifie(r1.out.at(-1)[4] > r1.out[0][4], `la scène est redessinée (${r1.out.at(-1)[4] - r1.out[0][4]} images en ${(r1.out.at(-1)[0] / 1000).toFixed(1)} s)`);
-let descend = 0, monte = 0; for (let i = 1; i < chutes.length; i++) if (chutes[i][1] === chutes[i - 1][1]) { if (chutes[i][3] < chutes[i - 1][3] - 1e-5) descend++; else if (chutes[i][3] > chutes[i - 1][3] + 1e-5) monte++; }
-verifie(chutes.length >= 3 && descend >= 2 && monte === 0, `chute de la pièce : ${chutes.length} positions relevées, ${descend} pas vers le bas, ${monte} vers le haut (hauteur de ${Math.max(...ys).toFixed(3)} à ${Math.min(...ys).toFixed(3)})`);
-/* accélération : l'écart parcouru entre deux relevés grandit pendant une même chute */
-{ const une = chutes.filter((s) => s[1] === chutes[0]?.[1]), d = une.slice(1).map((s, i) => (une[i][3] - s[3]) / Math.max(1, s[0] - une[i][0])); verifie(d.length < 2 || d.at(-1) > d[0], `chute accélérée (vitesse ${d[0]?.toExponential(2)} puis ${d.at(-1)?.toExponential(2)} par ms)`); }
+/* Chute de la pièce. Dans ce banc (rendu logiciel), la page ne produit qu'environ une image toutes les deux secondes : une chute de 1,4 s
+   n'y laisse que deux ou trois positions. Toutes les chutes suivent la même loi (y = a - k·p², p = avancement de 0 à 1) : on réunit donc
+   les positions distinctes de toutes les chutes de la fenêtre, puis on vérifie (1) que la hauteur ne remonte jamais au sein d'une chute,
+   (2) que la loi en carré décrit bien mieux les points qu'une droite. */
+const points = [...new Map(chutes.filter((s) => s[2] > 0.02 && s[2] < 0.98).map((s) => [s[1] + ':' + s[2].toFixed(3), s])).values()];
+let monte = 0; for (const [k, l] of Object.entries(Object.groupBy(points, (s) => s[1]))) { l.sort((x, y) => x[2] - y[2]); for (let i = 1; i < l.length; i++) if (l[i][3] > l[i - 1][3] + 1e-5) monte++; }
+const ajuste = (f) => { const x = points.map((s) => f(s[2])), y = points.map((s) => s[3]), n = x.length, mx = x.reduce((a, b) => a + b, 0) / n, my = y.reduce((a, b) => a + b, 0) / n, sxy = x.reduce((a, v, i) => a + (v - mx) * (y[i] - my), 0), sxx = x.reduce((a, v) => a + (v - mx) ** 2, 0), k = sxy / sxx; return { k, r: Math.sqrt(y.reduce((a, v, i) => a + (v - (my + k * (x[i] - mx))) ** 2, 0) / n) }; };
+verifie(points.length >= 3 && monte === 0, `chute de la pièce : ${points.length} positions distinctes sur ${new Set(points.map((s) => s[1])).size} chute(s), aucune remontée (${monte}), hauteur de ${Math.max(...ys).toFixed(3)} à ${Math.min(...ys).toFixed(3)}`);
+if (points.length >= 3) { const carre = ajuste((p) => p * p), droite = ajuste((p) => p); verifie(carre.k < 0 && carre.r < droite.r * 0.5 + 1e-4, `chute accélérée : écart à la loi en carré ${carre.r.toExponential(1)}, à la droite ${droite.r.toExponential(1)}`); }
 const pieces = r1.out.at(-1)[1] - r1.out[0][1], attendu = r1.out.at(-1)[0] / 1000 / intervalle;
 verifie(pieces >= 1 && Math.abs(pieces - attendu) <= 1.5, `répétition : ${pieces} pièce(s) en ${(r1.out.at(-1)[0] / 1000).toFixed(1)} s, attendu environ ${attendu.toFixed(1)}`);
 verifie(true, 'collision et rebond : sans objet, la pièce entre dans la fente et disparaît (aucun rebond dans le modèle)');
@@ -42,10 +47,17 @@ await p.setViewportSize({ width: 1440, height: 900 }); await p.waitForTimeout(20
 await p.evaluate(() => { const e = document.querySelector('#rf-win'); scrollTo(0, e.getBoundingClientRect().top + scrollY - 150); }); await p.waitForTimeout(1500);
 const volet = () => p.evaluate(() => { const s = document.getElementById('rf-shutter'), g = document.getElementById('rf-grip'), v = document.getElementById('rf-win-video'), t = getComputedStyle(s).transform; return { y: t === 'none' ? 0 : Math.round(new DOMMatrixReadOnly(t).m42), pct: +g.getAttribute('aria-valuenow'), texte: g.getAttribute('aria-valuetext'), video: v ? !v.paused : null, h: s.getBoundingClientRect().height }; });
 const depart = await volet(); verifie(depart.pct === 0 && depart.y === 0, `hublot fermé au départ (${depart.texte})`);
-await p.focus('#rf-grip'); await p.keyboard.press('ArrowUp'); const mi = []; for (let i = 0; i < 6; i++) { await p.waitForTimeout(90); mi.push((await volet()).y); } await p.waitForTimeout(700);
+await p.focus('#rf-grip');
+/* Mouvement du volet : la page n'affiche qu'environ une image toutes les deux secondes dans ce banc, le volet (450 ms) se termine donc
+   entre deux images. On lit l'animation que le navigateur crée pour la transition, on la fige à mi-course et on lit la position. */
+const mi = await p.evaluate(async () => { const s = document.getElementById('rf-shutter'); document.getElementById('rf-grip').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+  const a = s.getAnimations().find((x) => x.transitionProperty === 'transform'); if (!a) return { anim: false };
+  const t = a.effect.getTiming(), d = typeof t.duration === 'number' ? t.duration : 0; a.pause(); a.currentTime = d / 2; const m = getComputedStyle(s).transform, y = m === 'none' ? 0 : Math.round(new DOMMatrixReadOnly(m).m42); a.play();
+  return { anim: true, duree: d, courbe: t.easing, y }; });
+await p.waitForTimeout(1200);
 const ouvert = await volet();
 verifie(ouvert.pct === 100 && ouvert.y < -50, `ouverture au clavier : volet à ${ouvert.y} px (${ouvert.texte})`);
-verifie(mi.some((y) => y < 0 && y > ouvert.y), `mouvement du volet progressif (positions relevées : ${mi.join(', ')})`);
+verifie(mi.anim && Math.abs(mi.duree - 450) < 1 && mi.y < 0 && mi.y > ouvert.y, `mouvement du volet progressif : transition de ${mi.duree} ms (${mi.courbe}), à mi-course ${mi.y} px pour ${ouvert.y} px en fin`);
 verifie(ouvert.video !== false, `vidéo du paysage ${ouvert.video === null ? 'absente' : 'en lecture'} une fois ouvert`);
 await p.keyboard.press('ArrowDown'); await p.waitForTimeout(1200); const ferme = await volet();
 verifie(ferme.pct === 0 && ferme.y === 0 && ferme.video !== true, `fermeture au clavier : retour à ${ferme.y} px, vidéo en pause`);
