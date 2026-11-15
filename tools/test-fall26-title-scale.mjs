@@ -23,4 +23,11 @@ assert.ok(html.includes("N.cvTextLayout(headingFont,'Comtesse.me',{fontSize:1})"
   '3D extruded masthead must match the flat SVG lettering');
 assert.match(html,/compact:innerWidth<520,racineVisible:false\}\)/,
   'The technical graph root must never render a spurious star in Expo');
+const flatStyle=fs.readFileSync(new URL('../refonte/site.css',import.meta.url),'utf8');
+assert.ok(flatStyle.includes('Fall26 flat chapter heading calibration'),
+  'Flat headings must be styled independently from the 3D mesh');
+assert.match(flatStyle,/font-size:clamp\(32px,5\.1vw,76px\)!important/,
+  'Desktop flat headings should cap at 76 pixels instead of 120');
+assert.match(flatStyle,/font-size:clamp\(30px,8vw,44px\)!important/,
+  'Mobile flat headings must remain compact');
 console.log('PASS flat/expo chapter typography no longer enlarged 1.6x/2x');
