@@ -119,6 +119,20 @@ export function calibrateReferenceBranches(ciel) {
       n.niveau=n.ed?0:1;n.taille=n.ed?1.5:1.1+(i%5)*.20;
       n.pul=false;
     });
+    // Reference video: the constellation is not a pure radial fan.
+    // Roughly one in five decorative tips forks from an existing spoke.
+    // Parents precede their children in the render loop, so animation,
+    // picking and spring return use the native Ciel implementation.
+    for(let i=5;i<visual.length;i+=5){
+      const twig=visual[i],parent=visual[i-2];
+      if(!twig||!parent||parent.par)continue;
+      twig.par=parent;parent.enf.push(twig);
+      twig.niveau=2;
+      twig.t0=.62+.07*((i+refIndex)%3);
+      twig.ang=(i%2?-1:1)*(.36+.08*((i+refIndex)%4));
+      twig.len=.18+.045*((i+refIndex)%4);
+      twig.cv=0;twig.ar=0;twig.dh=0;
+    }
   });
   return hubs.length;
 }
