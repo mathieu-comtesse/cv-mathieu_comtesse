@@ -39,4 +39,9 @@ assert.ok(html.includes('C.chapterColourAtRow(view.offset+(a+b)/2,stops,innerHei
   'Expo floor must be interpolated by the same chapter timeline');
 assert.ok(!html.includes('for(const [bi,band] of bands.entries())'),
   'Old hard-edged floor colour bands must be removed');
+const motor=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
+assert.ok(motor.includes("e.transitionOpacity??1"),'Expo title stars must fade by handover weight');
+assert.ok(motor.includes("e.transitionScale??1"),'Expo title stars must shrink while leaving');
+assert.ok(motor.includes("e.transitionAngle||0"),'Expo title stars must rotate on the same timeline');
+assert.ok(html.includes('e.transitionAngle=!cross?0:'),'Expo title stars need source-driven rotation');
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');
