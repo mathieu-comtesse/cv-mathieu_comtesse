@@ -35,6 +35,12 @@ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 assert.ok(theme.includes('chapterHandover(scrollY,timeline,H)'), 'Flat chapter animation must use shared timeline');
 assert.ok(theme.includes('document.body.style.setProperty'), 'Body colour must be updated by shared timeline');
 assert.ok(theme.includes('const shrink=pose.scale;'), 'Flat stars must use the shared star pose');
+assert.ok(theme.includes('plein=!libre?1:participating?pose.weight'),
+ 'Incoming and outgoing title fill must follow the same handover progression');
+assert.ok(theme.includes('if (handover.colour !== dernierFond)'),
+ 'Avoid a redundant global style invalidation on every animation frame');
+assert.ok(theme.includes('.sort((a,b)=>b.weight-a.weight)[0]'),
+ 'Click picking must favor the incoming star as it becomes dominant');
 assert.ok(html.includes('C.chapterColourAtRow(view.offset+(a+b)/2,stops,innerHeight)'),
   'Expo floor must be interpolated by the same chapter timeline');
 assert.ok(!html.includes('for(const [bi,band] of bands.entries())'),
