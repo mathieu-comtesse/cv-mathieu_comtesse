@@ -12,12 +12,12 @@ export const REFERENCE_HUBS = Object.freeze([
   {x:.575,y:.682,r:.91,points:15,tone:'blue'},    // Sidekick
   {x:.817,y:.485,r:.88,points:15,tone:'blue'},    // Merchandising
   {x:.296,y:.653,r:1.04,points:21,tone:'mint'},   // Retail
-  {x:.627,y:.199,r:1.02,points:19,tone:'blue'},   // Payments
+  {x:.627,y:.199,r:1.02,points:30,tone:'blue'},   // Payments
   {x:.561,y:.922,r:.91,points:16,tone:'cyan'},    // Operations
   {x:.367,y:.402,r:1.09,points:20,tone:'blue'},   // Online
   {x:.737,y:.703,r:.80,points:15,tone:'blue'},    // Marketing
   {x:.202,y:.444,r:1.07,points:19,tone:'blue'},   // Fulfillment
-  {x:.659,y:.440,r:1.09,points:24,tone:'mint'},   // Developer
+  {x:.659,y:.440,r:1.09,points:57,tone:'mint'},   // Developer
   {x:.286,y:.210,r:.72,points:14,tone:'blue'}     // Shop
 ]);
 export const REFERENCE_LINKS = Object.freeze([
@@ -52,7 +52,16 @@ export function calibrateReferenceBranches(ciel) {
     if(!ref)return;
     e.sol=false; e.referenceFlat=true;e.flatTone=ref.tone;
     const nodes=e.noeuds,editorial=nodes.filter(n=>n.ed);
-    const visual=nodes.filter(n=>!n.ed).slice(0,Math.max(4,ref.points-editorial.length));
+    const pool=nodes.filter(n=>!n.ed);
+    const target=Math.max(4,ref.points-editorial.length);
+    const visual=pool.slice(0,target);
+    // Ajouter des extrémités décoratives si la vidéo montre davantage
+    // de rayons que le générateur de base, sans jamais créer de liens factices.
+    for(let i=visual.length;i<target&&pool.length;i++){
+      const template=pool[i%pool.length];
+      visual.push({...template,ed:null,enf:[],ox:0,oy:0,
+        phase:(template.phase+(i+1)*.173)%TAU,vis:false,gg:0});
+    }
     e.noeuds=[...editorial,...visual];
     const directions=REFERENCE_SPOKES[index]||[];
     // Les vignettes réellement cliquables demeurent intactes.
@@ -63,11 +72,12 @@ export function calibrateReferenceBranches(ciel) {
     // Contrairement à un soleil procédural uniforme, chaque foyer conserve
     // les orientations irrégulières relevées dans les séquences de référence.
     visual.forEach((n,i)=>{
-      const deg=directions[i]??(((i+.41)*GOLDEN+index*.23)*180/Math.PI);
+      const base=directions[i%directions.length]??((i+.41)*GOLDEN*180/Math.PI);
+      const deg=base+(i>=directions.length?((Math.floor(i/directions.length)*2-1)*5.5):0);
       n.a=deg*Math.PI/180;
       n.r=.59+.59*((i*11+index*5)%17)/16;
     });
-    nodes.forEach((n,i)=>{
+    e.noeuds.forEach((n,i)=>{
       n.dh=0;n.cv=0;n.ar=0;n.par=null;n.enf=[];
       n.niveau=n.ed?0:1;n.taille=n.ed?1.5:1.2+(i%5)*.27;
       n.pul=false;
