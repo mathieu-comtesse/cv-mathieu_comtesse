@@ -81,6 +81,13 @@ async function run(name,viewport,mobile=false,reduce=false){
  if(states.find(x=>x.label==='expo-accueil')?.canvases===0)errors.push('Mode Expo sans canvas visible');
  if(states.find(x=>x.label==='plat-retour')?.expo||Math.abs(states.find(x=>x.label==='plat-retour')?.progress??1)>1e-3)errors.push('Retour à plat ou état de progression incorrect');
  if(states[0].sections<4)errors.push('Sections réelles absentes : '+states[0].sections);
+ if(!mobile){
+  const metric=states[0].graphStats,flat=states[0].flatGraph;
+  if(flat?.visible!==11||flat?.labels!==0)errors.push('Constellations visibles ou libellés non conformes : '+JSON.stringify(flat));
+  if(!metric||metric.meanLuminance>12||metric.over100Pct>1.8||metric.bluePixelsPct<.5)
+    errors.push('Luminance des constellations hors tolérance vidéo : '+JSON.stringify(metric));
+ }
+
  report.screens.push({name,viewport,reduce,states,errors});await ctx.close();
 }
 try{await run('desktop-1440x900',{width:1440,height:900});await run('mobile-390x844',{width:390,height:844},true,true)}
