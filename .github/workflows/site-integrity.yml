@@ -22,6 +22,7 @@ jobs:
           node --check refonte/fall26-reference-graph.js
           node tools/test-fall26-reference-graph.mjs
           node tools/test-fall26-title-scale.mjs
+          node tools/test-fall26-thumbnail-assets.mjs
           node tools/test-ciel-fade.mjs
           node tools/test-fall26-floor-colours.mjs
           node tools/test-fall26-preview-paths.mjs
