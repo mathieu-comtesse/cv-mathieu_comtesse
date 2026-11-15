@@ -486,7 +486,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     ctx.clip('evenodd');
     const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : 0);
     const haut = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, true)), bas = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, false));
-    if (!haut.every(Boolean) || !bas.every(Boolean)) continue;
+    if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
     if (b.slab && b.tilted > 0.02) {                                             // ombre portée au sol d'un cadre relevé
       const ombre = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => { const w = cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r); return p(view, w[0] + w[2] * 0.5, w[1] + w[2] * 0.35, 0); });
@@ -501,7 +501,14 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
     if (dedansQuad) survole = b;
     if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
-      const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
+      // Project pointer onto the actual upper edge so the reflection follows
+      // the tilted frame even when its horizontal screen axis is reversed.
+      const edgeX=haut[1].x-haut[0].x,edgeY=haut[1].y-haut[0].y;
+      const denom=Math.max(1e-6,edgeX*edgeX+edgeY*edgeY);
+      const u=souris?Math.max(0,Math.min(1,
+        ((souris.x-haut[0].x)*edgeX+(souris.y-haut[0].y)*edgeY)/denom)):0.5;
+      const g=ctx.createLinearGradient(haut[0].x,haut[0].y,haut[2].x,haut[2].y);
+      const c=0.2+0.6*u,a=0.13*Math.min(1,(b.tilted-0.25)*2);
       g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
       ctx.fillStyle = g; trace(haut); ctx.fill();
     }
