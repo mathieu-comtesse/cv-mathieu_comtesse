@@ -582,3 +582,24 @@ Constat : les commits `c62c36b` et `25ef8fc` (branche `claude/fall26-preuves-pr2
 Sous 940 px la référence n'a pas de bouton de mode expo : le site le retire aussi de l'écran (décision de l'auteur : interface alignée sur la référence). Le mode 3D mobile reste dans le code et dans les tests, sans commande visible ; la réserve de 56 px de la grille est supprimée.
 
 Tests : `test-modes` PASS (24 contrôles, dont rendu à plat, transitions, bouton, libellé de survol, grille), `test-branches`, `test-entrypoints`, `test-no-shopify --strict`, `test-defilement`, `test-objets-3d`, `test-site-consistency` PASS. Capture : `docs/fall26-evidence/accueil-graphe-plat-avant-apres.png` (avant, après à 1 400 px, après à 390 px).
+
+## Observation directe de la référence à 1 400 × 900 et recalage du graphe à plat
+
+Banc : Chromium sans tête (rendu logiciel), page publique `https://www.shopify.com/editions/fall2026`, fenêtre 1 400 × 900, captures à 3, 6, 10, 15, 22 et 30 s après le chargement. Les captures de la référence ne sont pas versées dans le dépôt. Aucune vidéo : les animations sont déduites de l'écart entre deux captures.
+
+| Effet | Mesure sur la référence | Avant | Maintenant | État |
+|---|---|---|---|---|
+| Forme des rayons, à plat | segments droits, 1 px, aucune ramification, aucune gerbe au centre (seuls des traits vers les foyers) | courbes, ramifications sur trois niveaux, 120 rayons au centre | droits, sans ramification ni rayon central ; courbes et ramifications conservées en 3D, où elles avaient été observées | CORRIGÉ (OBSERVÉ) |
+| Longueur des rayons | environ 110 à 330 px pour un cadre de 945 px | 37 à 150 px | 65 à 260 px (rayon de foyer porté à 52 % de l'envergure) | CORRIGÉ (OBSERVÉ, réglé pour rester dans le cadre) |
+| Couleur des rayons | clair et turquoise au foyer, bleu vers l'extrémité ; quelques foyers verts | teinte uniforme | dégradé radial par foyer, un foyer sur trois vert | CORRIGÉ (OBSERVÉ ; choix des foyers verts arbitraire) |
+| Extrémités | points bleus d'environ 2 px, y compris pour les foyers verts | points de 1 à 3 px, verts pour les foyers verts | points bleus de 1,9 px ; contenus sans image en points de 2,6 px | CORRIGÉ (OBSERVÉ) |
+| Halo des foyers | aucun | halo lumineux | aucun à plat | CORRIGÉ (OBSERVÉ) |
+| Impulsions sur les rayons | aucune visible sur les deux captures stabilisées | impulsions blanches | retirées à plat, conservées en 3D | CORRIGÉ (INFÉRÉ : deux images fixes seulement) |
+| Vignettes | environ 20 px de côté, bord blanc | 22 à 46 px | 20 à 25 px × 15 à 20 px | CORRIGÉ (OBSERVÉ) |
+| Libellés | nom à droite du foyer, environ 12 px ; nombre gris en exposant, environ 10 px | 11 px et 9 px | 12 px et 10 px | CORRIGÉ (OBSERVÉ à l'œil, à un pixel près) |
+| Disposition | foyers répartis sur tout le cadre, anneau au centre du cadre | foyers dans un disque, centre à 53 % de la hauteur, foyers surélevés | envergure de 41 % de la largeur, centre au milieu, foyers à hauteur nulle | CORRIGÉ (positions exactes non reprises : elles dépendent des contenus) |
+| Dérive des foyers | 5 à 20 px de déplacement entre 10 s et 30 s, soit de l'ordre de 0,3 à 1 px/s | foyers fixes | dérive sinusoïdale lente (amplitude 3,5 % de l'envergure, au plus 0,7 px/s), immobile en mouvement réduit | CORRIGÉ (OBSERVÉ pour l'ordre de grandeur ; la loi du mouvement est INFÉRÉE) |
+| Apparition du graphe | cadre noir à 3 s, graphe complet à 10 s | croissance échelonnée des rayons | inchangé | NON DOCUMENTÉ (étapes intermédiaires non capturées) |
+| Réaction au pointeur | non observée | fuite des nœuds, inclinaison du plan | inchangées | NON DOCUMENTÉ |
+
+`tools/test-branches.mjs` vérifie maintenant les deux régimes : à plat, 249 rayons droits sur 249, aucune ramification ; en 3D, courbes (seuil de 80 %, les petites branches lointaines passant sous 0,8 px en perspective) et raccords exacts. `tools/test-modes.mjs` : le contrôle du retour d'un nœud relâché porte sur la stabilité à moins de 25 px (le retour est devenu plus rapide que le premier relevé).

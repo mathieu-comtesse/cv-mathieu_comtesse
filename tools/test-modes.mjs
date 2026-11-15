@@ -56,7 +56,7 @@ const tenu = await p.evaluate((h) => ({ c: window.__cvHeroGraph.cibles().find((c
 verifie(curseurSurvol === 'grab' && tenu.curseur === 'grabbing', `curseur : « ${curseurSurvol} » au survol d'un nœud, « ${tenu.curseur} » pendant la saisie`);
 verifie(Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)) < 6, `le nœud saisi suit le pointeur (écart ${Math.hypot(tenu.c.x - (c0.x + 60), tenu.c.y - (c0.y + 30)).toFixed(1)} px)`);
 await p.mouse.up(); const retour = []; for (let i = 0; i < 6; i++) { await p.waitForTimeout(350); const c = await p.evaluate((h) => window.__cvHeroGraph.cibles().find((c) => c.handle === h), c0.handle); retour.push(Math.hypot(c.x - c0.x, c.y - c0.y)); }
-verifie(retour.at(-1) < 25 && retour[0] > retour.at(-1), `relâché, le nœud revient à sa place (distance à l'origine : ${retour.map((d) => d.toFixed(0)).join(', ')} px)`);
+verifie(Math.max(...retour.slice(-3)) < 25,   /* revenu et stable ; l'écart résiduel vient de la fuite devant le pointeur resté à 67 px */ `relâché, le nœud revient à sa place (distance à l'origine : ${retour.map((d) => d.toFixed(0)).join(', ')} px)`);
 verifie(tenu.y === 0 && await p.evaluate(() => scrollY) === 0, 'un glissé ne déclenche pas de navigation');
 const c1 = await p.evaluate((h) => window.__cvHeroGraph.cibles().find((c) => c.handle === h), c0.handle); await p.mouse.move(c1.x, c1.y); await p.mouse.down(); await p.mouse.up(); await p.waitForTimeout(2500);
 verifie(await p.evaluate(() => scrollY) > 400, `un clic sans déplacement mène au contenu (défilement à ${await p.evaluate(() => scrollY)} px)`);
@@ -84,7 +84,7 @@ verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m26'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m27'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */

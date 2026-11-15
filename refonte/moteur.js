@@ -322,6 +322,7 @@ export class Ciel {
       const N = e.noeuds, nb = N.length, cnt = this.cnt || (this.cnt = new Int16Array(16)); cnt.fill(0);
       for (let j = 0; j < nb; j++) {
         const n = N[j]; n.vis = false;
+        if (plat && (n.par || e.racine)) continue;                               // à plat : ni ramification ni gerbe centrale (observé sur la référence)
         let g = adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8);
         if (n.par) { if (!n.par.vis) continue; g = Math.min(g, n.par.gg); }
         if (g <= 0) continue;
@@ -336,7 +337,8 @@ export class Ciel {
           if (this.pris && this.pris.noeud === n) { n.ox = souris.x - x; n.oy = souris.y - y; } else if (n.ox || n.oy) { n.ox *= retour; n.oy *= retour; if (Math.abs(n.ox) + Math.abs(n.oy) < 0.3) n.ox = n.oy = 0; }
           if (n.ox || n.oy) { x += n.ox; y += n.oy; }
           const dc = wc - c0, dr = wr - r0, len = Math.hypot(dc, dr) || 1;      // courbure dans le plan du sol, arche en hauteur : la branche est une vraie courbe de l'espace
-          cwC = c0 + dc * 0.5 - dr / len * n.cv * len; cwR = r0 + dr * 0.5 + dc / len * n.cv * len; cwH = (h0 + wh) * 0.5 + n.ar * len * 0.35;
+          const kc = plat ? 0 : 1;                                              // à plat les rayons sont droits (observé) ; courbure et arche en 3D
+          cwC = c0 + dc * 0.5 - dr / len * n.cv * kc * len; cwR = r0 + dr * 0.5 + dc / len * n.cv * kc * len; cwH = (h0 + wh) * 0.5 + n.ar * kc * len * 0.35;
           const Cq = proj(cwC, cwR, cwH);
           cx = Cq ? F.x + (Cq.x - F.x) * g : (F.x + x) / 2; cy = Cq ? F.y + (Cq.y - F.y) * g : (F.y + y) / 2;
           if (n.ox || n.oy) { cx += n.ox * 0.5; cy += n.oy * 0.5; }
@@ -367,10 +369,11 @@ export class Ciel {
       }
       /* 3. rayons fins et ramifications, par niveau et par classe de rendu : un seul tracé par lot, en mélange additif (le centre des foyers s'éclaire par recouvrement) */
       ctx.globalCompositeOperation = 'lighter';
+      const degrade = (m) => { const g = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, Math.max(40, R * k)); g.addColorStop(0, `rgba(${vert ? '40,225,170' : '70,175,255'},${Math.min(1, 0.95 * m).toFixed(2)})`); g.addColorStop(0.45, `rgba(${vert ? '40,170,200' : '70,110,255'},${Math.min(1, 0.7 * m).toFixed(2)})`); g.addColorStop(1, `rgba(70,90,255,${Math.min(1, 0.5 * m).toFixed(2)})`); return g; };
       const BASE = e.racine ? (plat ? [0, 0.16, 0.1, 0.07] : [0, 0.2, 0.13, 0.09]) : plat ? [0, 0.55, 0.4, 0.3] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = `rgba(${plat ? (e.racine ? '96,124,255' : TE) : '225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = plat ? degrade(MULT[cl] * kE) : `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = (plat ? 1 : LW[lv]) * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
@@ -385,11 +388,11 @@ export class Ciel {
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
         gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : plat ? `rgba(${TE},${Math.min(1, 0.95 * m).toFixed(2)})` : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
         gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : plat ? `rgba(${TE},${Math.min(1, 0.7 * m).toFixed(2)})` : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
-        ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
+        ctx.strokeStyle = plat && !actif ? degrade(m) : gr; ctx.lineWidth = actif ? 2.4 : plat ? 1 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
         if (!compact && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
       /* 5. impulsions : le long des courbes réelles, transmises aux ramifications */
-      if (libre) for (let j = 0; j < nb; j++) {
+      if (libre && !plat) for (let j = 0; j < nb; j++) {                       // aucune impulsion visible à plat sur les captures de la référence
         const n = N[j]; if (!n.vis || n.par || n.gg < 1 || !(n.ed || n.pul)) continue;
         const q = (tt * 0.3 * n.vit + n.phase / 6.283) % 1;
         this.impulsion(ctx, n, q / 0.75);
@@ -398,8 +401,8 @@ export class Ciel {
       /* 6. extrémités des ramifications (points) */
       for (let lv = 1; lv <= 3; lv++) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.globalAlpha = A * Math.min(1, MULT[cl] * kE); ctx.fillStyle = plat ? (e.racine ? 'rgba(96,124,255,.5)' : `rgba(${TE},${lv === 1 ? 1 : 0.8})`) : e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
-        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
+        ctx.globalAlpha = A * Math.min(1, MULT[cl] * kE); ctx.fillStyle = plat ? 'rgb(88,112,255)' : e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
+        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = plat ? 1.9 : (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
         ctx.fill();
       }
       ctx.globalAlpha = A;
@@ -408,15 +411,15 @@ export class Ciel {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const x = n.x1, y = n.y1, voile = n.cl === 3 ? 0.12 : 1;
         ctx.globalAlpha = voile * A;
-        const kv = 0.72 + (n.phase / 6.283) * 0.8, im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
+        const kv = 0.72 + (n.phase / 6.283) * 0.8, im = this.image(n.ed.image), kp = 0.9 + 0.25 * (n.phase / 6.283), w = plat ? 22 * kp * (compact ? 0.8 : 1) : (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = plat ? 17 * kp * (compact ? 0.8 : 1) : (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
-        else if (plat) { const actif = focus === n; ctx.fillStyle = actif ? '#fff' : `rgb(${TE})`; ctx.beginPath(); ctx.arc(x, y, actif ? 4.5 : 3, 0, 6.283); ctx.fill(); }   // à plat, un contenu sans image est un point ; il reste saisissable
+        else if (plat) { const actif = focus === n; ctx.fillStyle = actif ? '#fff' : 'rgb(88,112,255)'; ctx.beginPath(); ctx.arc(x, y, actif ? 4.5 : 2.6, 0, 6.283); ctx.fill(); }   // à plat, un contenu sans image est un point ; il reste saisissable
         else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
         if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y, etoile: e }; } }
         ctx.globalAlpha = A;
       }
       /* foyer et libellé */
-      if (!(plat && e.racine)) { const kH = plat ? 0.45 : 1, halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE * kH).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE * kH).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      if (!plat) { const kH = 1, halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE * kH).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE * kH).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
       if (plat && e.racine) { ctx.strokeStyle = 'rgba(125,152,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(F.x, F.y, 4.2, 0, 6.283); ctx.stroke(); }   // foyer central : simple anneau
       else { ctx.fillStyle = plat ? `rgb(${TE})` : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote); }
@@ -425,9 +428,9 @@ export class Ciel {
         ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if (plat && e.parent && !compact) {                                      // à plat : nom contre le foyer, suivi du nombre de contenus en gris
           const nbEd = e.noeuds.filter((q) => q.ed).length;
-          ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(1,4,25,.75)';
-          const l = ctx.measureText(e.label).width, tx = Math.min(F.x + cote / 2 + 6, W - l - 22), ty = F.y - cote / 2 - 4; ctx.strokeText(e.label, tx, ty); ctx.fillText(e.label, tx, ty);
-          ctx.font = '500 9px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText(String(nbEd), tx + l + 7, ty - 3);
+          ctx.font = '400 12px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = 'left'; ctx.strokeStyle = 'rgba(1,4,25,.75)';
+          const l = ctx.measureText(e.label).width, tx = Math.min(F.x + cote / 2 + 7, W - l - 22), ty = F.y - cote / 2 - 4; ctx.strokeText(e.label, tx, ty); ctx.fillText(e.label, tx, ty);
+          ctx.font = '400 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText(String(nbEd), tx + l + 6, ty - 5);
           e.libelleEcran = { x: Math.round(tx), y: Math.round(ty), texte: e.label };
         } else if (e.sol) {                                                      // étoile posée : numéro et nom sous le cercle
           const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? e.label : (e.num ? e.num + ' ' : '') + e.label;   // grille (petit écran) : le nom seul, sous le foyer

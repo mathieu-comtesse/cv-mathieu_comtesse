@@ -2,7 +2,7 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m26';
+import { Ciel } from './moteur.js?v=m27';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -54,7 +54,14 @@ export function demarre(chapitres) {
       /* dernière rangée incomplète : centrée */
       chapitres.forEach((r, k) => { const reste = n - Math.floor(k / cols) * cols, cx = (k % cols + 0.5 + (reste < cols ? (cols - reste) / 2 : 0)) * cw, cy = (Math.floor(k / cols) + 0.42) * ch;
         ciel.place('accueil:' + r.id, [W / 2 + (cx - W / 2) * ouvre, H / 2 + (cy - H / 2) * ouvre, 10], R); });
-    } else ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], Math.min(W * 0.44, H * 0.55) * ouvre);
+    } else {
+      /* grand écran (mesuré sur la référence à 1 400 × 900) : foyers répartis sur tout le cadre, rayons longs (jusqu'au tiers de la largeur),
+         dérive lente de chaque foyer (de l'ordre d'un pixel par seconde ; immobile en mouvement réduit) */
+      const R0 = Math.min(W * 0.41, H * 0.5), ts = reduit.matches ? 0 : t / 1000;
+      ciel.place('accueil', [W / 2, H * 0.5, 0], R0 * ouvre);
+      chapitres.forEach((r, k) => { const e = ciel.etoiles.get('accueil:' + r.id); e.rayon = R0 * 0.52; e.centre[2] = 0;
+        e.centre[0] += Math.sin(ts * 0.05 + k * 1.7) * R0 * 0.035; e.centre[1] += Math.cos(ts * 0.043 + k * 2.3) * R0 * 0.035; });
+    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille, plat: true });
   }
