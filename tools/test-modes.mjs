@@ -144,5 +144,26 @@ const mobileRetour=await m.evaluate(() => ({
 }));
 verifie(mobileRetour.y>2500 && Math.abs(mobileRetour.progress)<1e-3 && Number.isFinite(mobileRetour.heroBottom) && mobileRetour.heroBottom<0,
   `mobile : retour à plat au milieu des projets sans titre collant (scroll ${mobileRetour.y}, bas du titre ${mobileRetour.heroBottom}, position ${mobileRetour.position})`);
-await m.context().close(); await b.close(); srv.close();
+await m.context().close();
+/* The chapter handover is a continuous progress value and the actual CSS
+   background must change through intermediary colours, not discrete bands. */
+const transitionPage=await page();
+await transitionPage.evaluate(()=>{
+  const sections=[...document.querySelectorAll('section[data-f26-page-section]')];
+  const next=sections[1];
+  scrollTo({top:scrollY+next.getBoundingClientRect().top-innerHeight*.55,behavior:'instant'});
+});
+await transitionPage.waitForTimeout(480);
+const transitionSample=await transitionPage.evaluate(()=>{
+  const state=window.__cvChapterTransition;
+  return {state,bg:getComputedStyle(document.body).backgroundColor,
+    css:document.body.style.getPropertyValue('--f26-page-blend')};
+});
+verifie(!!transitionSample.state&&Math.abs(transitionSample.state.progress-.5)<.08,
+  `chapter handover must be halfway at chapter boundary: ${JSON.stringify(transitionSample.state)}`);
+verifie(transitionSample.css===transitionSample.state?.colour&&
+  transitionSample.state.colour!=='#051DAA'&&transitionSample.state.colour!=='#7000A9',
+  `progressive background needs a genuine intermediate colour: ${JSON.stringify(transitionSample)}`);
+await transitionPage.context().close();
+await b.close(); srv.close();
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : modes, bascule animée, saisie des nœuds, clavier, historique, mouvement réduit, mobile'); process.exit(echecs.length ? 1 : 0);
