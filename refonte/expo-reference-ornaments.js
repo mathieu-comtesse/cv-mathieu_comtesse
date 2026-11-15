@@ -29,14 +29,43 @@ function building(ctx,x,y,w,h,right,alpha,q){
   ctx.stroke();
 }
 function label(ctx,x,y,value,opacity,px=10){ctx.font=`${px}px ui-monospace, Consolas, monospace`;ctx.fillStyle=`rgba(209,223,247,${opacity})`;ctx.fillText(value,x,y);}
-export function drawExpoReferenceOrnaments(ctx,view,{width=view.W,height=view.H,quality=1,reduce=false}={}){
+export function drawExpoReferenceOrnaments(ctx,view,{width=view.W,height=view.H,quality=1,reduce=false,project=null,anchors=null}={}){
   const w=Number(width),h=Number(height);if(!ctx||!view||w<600||h<=0)return;
   const q=Math.max(0,Math.min(1,Number(quality))),t=reduce?0:Number(view.t||0),depth=Math.max(0,Number(view.offset||0));
   const drift=reduce?0:Math.sin(t*.16)*4,rad=Math.min(w*.065,h*.1);
+  // Les objets du décor sont fixés à des coordonnées de la scène, non à l'écran.
+  // Chaque fois que la caméra ou le défilement avance, leur centre et leur
+  // échelle sont reprojetés avec exactement la même fonction que les cadres.
+  const isWorld=typeof project==='function'&&Array.isArray(anchors)&&anchors.length>0;
+  if(isWorld){
+    const range=Number(view.T)||h*5;
+    for(let i=0;i<anchors.length;i++){
+      const origin=Number(anchors[i]);if(!Number.isFinite(origin))continue;
+      const row=origin-depth+h*.68;
+      if(row<-h*.6||row>range+h*.5)continue;
+      const side=i%2===0?1:-1,x=side===1?w*1.11:-w*.11;
+      const center=project(x,row,55),near=project(x+90,row,55);
+      if(!center||!near||!Number.isFinite(center.x+center.y+near.x))continue;
+      const scale=Math.abs(near.x-center.x)/90;
+      const size=Math.max(0,Math.min(165,86*scale));
+      if(size<5||center.x<-w*.45||center.x>w*1.45||center.y<-h*.5||center.y>h*1.5)continue;
+      if(i%3!==1)torus(ctx,center.x,center.y,size,.28,t,q);
+      if(i%3!==2){
+        const b=project(side===1?w*1.07:-w*.07,row-h*.16,0);
+        if(b&&Number.isFinite(b.x+b.y))building(ctx,b.x,b.y,Math.max(8,Math.min(88,size*.6)),
+          Math.max(15,Math.min(205,size*1.7)),side<0,.3,q);
+      }
+      if(q>=.5&&size>=18){
+        const text=side===1?'x² + y² = r²':'y = sin(2πx + φ)';
+        label(ctx,center.x+(side===1?-65:12),center.y+size*1.45,text,.30,9);
+      }
+    }
+  } else {
   torus(ctx,w*.86,h*.31-drift,rad,.28,t,q);
   if(q>=.5)torus(ctx,w*.098,h*.72,rad*.55,.18,-t,q);
   building(ctx,w*.031,h*.85,Math.min(53,w*.043),Math.min(210,h*.23),false,.3,q);
   building(ctx,w*.925,h*.83,Math.min(61,w*.045),Math.min(185,h*.21),true,.33,q);
+  }
   const first=Math.max(0,Math.floor(depth/500)*500);
   for(let i=0;i<5;i++){
     const num=first+500*i,y=h*(.08+(num-depth)/500*.24);
