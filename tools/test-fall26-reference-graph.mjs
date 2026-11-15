@@ -28,6 +28,8 @@ for(let i=0;i<capturedCentres.length;i++){
 
 assert.ok(hubs[4].noeuds.length>=30,'Payments: trente ramifications');
 assert.ok(hubs[9].noeuds.length>=57,'Developer: cinquante-sept ramifications');
+assert.ok(hubs[9].noeuds.filter(n=>n.niveau===3).length>=3,
+ 'Dense developer constellation must use tertiary branches');
 assert.ok(REFERENCE_LINKS.length>=16);
 for(let i=0;i<hubs.length;i++){
  const hub=hubs[i],ref=REFERENCE_HUBS[i];
@@ -42,14 +44,20 @@ for(let i=0;i<hubs.length;i++){
   assert.equal(n.cv,0,'Branches rectilignes');
   assert.equal(n.ar,0,'Aucune arche 3D');
   assert.equal(n.dh,0,'Branches dans le plan');
-  assert.ok(n.ed||n.niveau===1||n.niveau===2);
+  assert.ok(n.ed||n.niveau===1||n.niveau===2||n.niveau===3);
   if(n.par){
     twigs++;
-    assert.equal(n.niveau,2,'Secondary branches are native second-level nodes');
+    assert.ok(n.niveau===2||n.niveau===3,'Branches use native 2nd or 3rd levels');
     assert.ok(!n.ed,'Editorial thumbnails stay attached to primary rays');
     assert.ok(hub.noeuds.indexOf(n.par)<hub.noeuds.indexOf(n),'Parent must precede fork');
     assert.ok(n.par.enf.includes(n),'Parent/child references remain consistent');
-    assert.ok(n.len>=.18&&n.len<=.32);
+    if(n.niveau===2){
+      assert.equal(n.par.niveau,1,'Secondary twigs must originate on primary rays');
+      assert.ok(n.len>=.18&&n.len<=.32);
+    }else{
+      assert.equal(n.par.niveau,2,'Tertiary twigs must originate on secondary rays');
+      assert.ok(n.len>=.11&&n.len<=.185);
+    }
   }
  }
  assert.ok(twigs>=2,'Each reference constellation needs real secondary branches');
