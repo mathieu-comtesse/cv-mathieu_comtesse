@@ -48,4 +48,10 @@ assert.ok(theme.includes('chapterIndex===handover.active?1:0'),
  'Non-active flat stars must stay hidden after the transition completes');
 assert.ok(html.includes("e.chapitre===chapters[handover.active]?.el.id?1:0"),
  'Expo stars must not reappear after their outgoing fade completes');
+assert.ok(theme.includes('const participating=cross&&(chapterIndex===handover.from||chapterIndex===handover.to);'),
+  'Both incoming and outgoing constellations must remain alive throughout the shared transition');
+assert.ok(theme.includes('const alpha=(participating?1:localAlpha)*intro*weight;'),
+  'Outgoing star opacity must follow the common timeline instead of the old heading viewport');
+assert.ok(theme.includes('hy = participating?H*.56:'),
+  'Transition stars must share a stable screen-space pivot');
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');
