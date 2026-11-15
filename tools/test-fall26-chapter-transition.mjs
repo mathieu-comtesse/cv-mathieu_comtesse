@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,mixHex} from '../refonte/fall26-chapter-transition.js';
+import {chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,chapterColourWave,mixHex} from '../refonte/fall26-chapter-transition.js';
 
 const sections=[
   {top:1000,colour:'#051DAA'},
@@ -37,7 +37,7 @@ assert.ok(theme.includes('document.body.style.setProperty'), 'Body colour must b
 assert.ok(theme.includes('const shrink=pose.scale;'), 'Flat stars must use the shared star pose');
 assert.ok(theme.includes('plein=!libre?1:participating?pose.weight'),
  'Incoming and outgoing title fill must follow the same handover progression');
-assert.ok(theme.includes('if (handover.colour !== dernierFond)'),
+assert.ok(theme.includes('if (fingerprint !== dernierFond)'),
  'Avoid a redundant global style invalidation on every animation frame');
 assert.ok(theme.includes('.sort((a,b)=>b.weight-a.weight)[0]'),
  'Click picking must favor the incoming star as it becomes dominant');
@@ -95,5 +95,14 @@ assert.ok(theme.includes('chapterStarAnchor(chapterIndex,handover,W,H)'),
  'Flat star geometry must use the calibrated separated centres');
 assert.ok(html.includes('C.chapterStarAnchor(chapterIndex,handover,innerWidth,innerHeight)'),
  'Expo star geometry must share the same separated centres');
+
+const waveStart=chapterColourWave('#051DAA','#7000A9',0);
+const waveHalf=chapterColourWave('#051DAA','#7000A9',.5);
+const waveEnd=chapterColourWave('#051DAA','#7000A9',1);
+assert.deepEqual(waveStart,{top:'#051DAA',middle:'#051DAA',bottom:'#051DAA'});
+assert.deepEqual(waveEnd,{top:'#7000A9',middle:'#7000A9',bottom:'#7000A9'});
+assert.notEqual(waveHalf.top,waveHalf.middle,'Colour wave must not be a uniform crossfade');
+assert.notEqual(waveHalf.bottom,waveHalf.middle,'Colour wave must be spatially graduated');
+assert.ok(theme.includes('--cv-chapter-middle'),'Flat transition must expose the video-derived colour band');
 
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');
