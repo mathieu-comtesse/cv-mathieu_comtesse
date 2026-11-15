@@ -89,5 +89,15 @@ const gm = await m.evaluate(() => window.__cvHeroGraph.etat());
 await m.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await m.waitForFunction(() => { const s = window.__cvStandardPath; return s.active && Math.abs(s.progress - 1) < 1e-3; }, null, { timeout: 60000 });
 const em = await m.evaluate(() => [window.__cvStandardPath.active, window.__cvStandardPath.progress]);
 verifie(gm.foyers >= 12 && em[0] && Math.abs(em[1] - 1) < 1e-3 && m.erreurs.length === 0, `mobile 390 × 844 : graphe ${gm.foyers} foyers dans ${gm.largeur} × ${gm.hauteur} px, expo actif, ${m.erreurs.length} erreur`);
+/* Mobile : l'en-tête doit quitter le champ lorsqu'on lit les projets, même après une bascule 3D. */
+await m.evaluate(() => scrollTo({top:Math.min(3800,document.documentElement.scrollHeight-innerHeight),behavior:'instant'})); await m.waitForTimeout(800);
+await m.keyboard.press('Escape'); await m.waitForFunction(() => !window.__cvStandardPath.active,null,{timeout:60000}); await m.waitForTimeout(800);
+const mobileRetour=await m.evaluate(() => ({
+  y:scrollY,progress:window.__cvStandardPath.progress,
+  heroBottom:document.querySelector('#hero h1')?.getBoundingClientRect().bottom,
+  position:getComputedStyle(document.querySelector('#hero')).position
+}));
+verifie(mobileRetour.y>2500 && Math.abs(mobileRetour.progress)<1e-3 && Number.isFinite(mobileRetour.heroBottom) && mobileRetour.heroBottom<0,
+  `mobile : retour à plat au milieu des projets sans titre collant (scroll ${mobileRetour.y}, bas du titre ${mobileRetour.heroBottom}, position ${mobileRetour.position})`);
 await m.context().close(); await b.close(); srv.close();
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : modes, bascule animée, saisie des nœuds, clavier, historique, mouvement réduit, mobile'); process.exit(echecs.length ? 1 : 0);
