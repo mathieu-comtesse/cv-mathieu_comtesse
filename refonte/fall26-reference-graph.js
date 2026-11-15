@@ -42,58 +42,74 @@ export const REFERENCE_SPOKES = Object.freeze([
   [-179,-161,-150,-139,-125,-106,-83,-65,-47,-35,-12,8,21,38,51,78,95,112,129,156,176,195,229,263], // Developer
   [-173,-165,-149,-139,-90,-57,-34,-12,9,28,63,118,139,173]              // Shop
 ]);
-const GOLDEN=2.399963229728653;
 const TAU=Math.PI*2;
-
+/**
+ * Étend les orientations relevées dans les captures sans produire des rayons
+ * presque confondus. Les directions d'origine sont préservées et les rayons
+ * supplémentaires sont placés dans les lacunes angulaires les plus larges.
+ */
+export function referenceSpokeAngles(index,count){
+  if(!Number.isInteger(count)||count<0)return [];
+  const raw=REFERENCE_SPOKES[index]||[];
+  const norm=d=>((d%360)+360)%360;
+  const values=[...new Set(raw.map(norm).map(d=>Math.round(d*1000)/1000))].sort((a,b)=>a-b);
+  if(!values.length)values.push(0);
+  // Les positions présentes dans la vidéo sont conservées en priorité.
+  while(values.length<count){
+    let widest=-1,at=0;
+    for(let i=0;i<values.length;i++){
+      const gap=((values[(i+1)%values.length]+(i===values.length-1?360:0))-values[i]);
+      if(gap>widest){widest=gap;at=i;}
+    }
+    const midpoint=norm(values[at]+widest/2);
+    values.push(midpoint);values.sort((a,b)=>a-b);
+  }
+  return values.slice(0,count).map(x=>x*Math.PI/180);
+}
 export function calibrateReferenceBranches(ciel) {
   const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
   hubs.forEach((e,index)=>{
     const ref=REFERENCE_HUBS[index];
     if(!ref)return;
-    e.sol=false; e.referenceFlat=true;e.flatTone=ref.tone;
-    const nodes=e.noeuds,editorial=nodes.filter(n=>n.ed);
-    const pool=nodes.filter(n=>!n.ed);
-    const target=Math.max(4,ref.points-editorial.length);
-    const visual=pool.slice(0,target);
-    // Ajouter des extrémités décoratives si la vidéo montre davantage
-    // de rayons que le générateur de base, sans jamais créer de liens factices.
-    for(let i=visual.length;i<target&&pool.length;i++){
+    e.sol=false;e.referenceFlat=true;e.flatTone=ref.tone;
+    const editorial=e.noeuds.filter(n=>n.ed);
+    const pool=e.noeuds.filter(n=>!n.ed);
+    const count=Math.max(ref.points,editorial.length+4);
+    const decorativeCount=count-editorial.length;
+    const visual=pool.slice(0,decorativeCount);
+    for(let i=visual.length;i<decorativeCount&&pool.length;i++){
       const template=pool[i%pool.length];
-      visual.push({...template,ed:null,enf:[],ox:0,oy:0,
-        phase:(template.phase+(i+1)*.173)%TAU,vis:false,gg:0});
+      visual.push({...template,ed:null,enf:[],ox:0,oy:0,phase:(template.phase+(i+1)*.173)%TAU,vis:false,gg:0});
+    }
+    if(!pool.length&&decorativeCount){ // Graceful degradation for a chapter with no generated decorative nodes.
+      const template=editorial[0];
+      for(let i=0;i<decorativeCount&&template;i++)
+        visual.push({...template,ed:null,enf:[],ox:0,oy:0,phase:(i+1)*.618%TAU,vis:false,gg:0});
     }
     e.noeuds=[...editorial,...visual];
-    const directions=REFERENCE_SPOKES[index]||[];
-    // Les vignettes réellement cliquables demeurent intactes.
+    const angles=referenceSpokeAngles(index,e.noeuds.length);
+    const assigned=new Set();
+    // Les miniatures sont réparties sur l'éventail, au lieu d'être concentrées
+    // selon le nombre d'or du générateur procédural.
     editorial.forEach((n,i)=>{
-      n.a=((i+.33)*GOLDEN+index*.42)%TAU;
-      n.r=.65+.32*((i*7+index*3)%9)/8;
+      const at=Math.min(angles.length-1,Math.floor((i+.5)*angles.length/editorial.length));
+      n.a=angles[at];assigned.add(at);
+      n.r=.8+.38*((i*7+index*3)%11)/10;
     });
-    // Contrairement à un soleil procédural uniforme, chaque foyer conserve
-    // les orientations irrégulières relevées dans les séquences de référence.
+    let cursor=0;
     visual.forEach((n,i)=>{
-      const base=directions[i%directions.length]??((i+.41)*GOLDEN*180/Math.PI);
-      const deg=base+(i>=directions.length?((Math.floor(i/directions.length)*2-1)*5.5):0);
-      n.a=deg*Math.PI/180;
-      n.r=.59+.59*((i*11+index*5)%17)/16;
+      while(assigned.has(cursor)&&cursor<angles.length)cursor++;
+      n.a=angles[cursor++]??(i+.5)*TAU/Math.max(1,visual.length);
+      // Chaque direction possède une profondeur distincte, sans motif radial répété.
+      n.r=.66+.60*((i*11+index*5)%23)/22;
     });
     e.noeuds.forEach((n,i)=>{
       n.dh=0;n.cv=0;n.ar=0;n.par=null;n.enf=[];
-      n.niveau=n.ed?0:1;n.taille=n.ed?1.5:1.2+(i%5)*.27;
+      n.niveau=n.ed?0:1;n.taille=n.ed?1.5:1.1+(i%5)*.20;
       n.pul=false;
     });
   });
   return hubs.length;
-}
-export function placeReferenceHubs(ciel,width,height,{left=0,top=0,lift=0}={}) {
-  const w=Number(width),h=Number(height);
-  if(!(w>0&&h>0))return;
-  const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
-  const baseR=Math.min(w*.105,h*.145);
-  for(let i=0;i<hubs.length&&i<REFERENCE_HUBS.length;i++){
-    const e=hubs[i],r=REFERENCE_HUBS[i],z=lift;
-    e.centre=[left+r.x*w,top+r.y*h,z];e.rayon=baseR*r.r;
-  }
 }
 /**
  * Plateau bleu nuit sous le graphe de l'accueil en exposition.
