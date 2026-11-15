@@ -367,7 +367,7 @@ export class Ciel {
       const BASE = e.racine ? [0, 0.2, 0.13, 0.09] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = `rgba(${ambient ? '77,135,255' : '225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE * (ambient ? 1.65 : 1)).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = `rgba(${e.referenceFlat?(e.flatTone==='mint'?'39,205,169':e.flatTone==='cyan'?'46,176,239':'78,103,215'):ambient?'77,135,255':'225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE * (e.referenceFlat?2.05:ambient?1.65:1)).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
@@ -415,6 +415,16 @@ export class Ciel {
         ctx.fill();
       }
       ctx.globalAlpha = aE;
+      if(e.referenceFlat){
+        /* Les rayons se terminent aussi par des anneaux évidés, visibles dans
+           la vue rapprochée des vidéos. Aucune cible interactive ajoutée. */
+        ctx.globalAlpha=aE*.65;ctx.lineWidth=.85;ctx.strokeStyle=e.flatTone==='mint'?'#42bd91':'#7187cc';
+        ctx.beginPath();
+        for(let j=0;j<nb;j++){const n=N[j];if(n.ed||!n.vis||j%5!==0)continue;
+          ctx.moveTo(n.x1+3.1,n.y1);ctx.arc(n.x1,n.y1,3.1,0,6.283);
+        }
+        ctx.stroke();ctx.globalAlpha=aE;
+      }
       /* 7. cartes des contenus éditoriaux */
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
@@ -427,13 +437,19 @@ export class Ciel {
         ctx.globalAlpha = aE;
       }
       /* foyer et libellé */
-      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
-      const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
-      ctx.fillStyle = ambient ? (e.racine ? '#3855a2' : e.rang % 4 === 0 ? '#18ad9c' : '#538cff') : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
+      if(!e.referenceFlat){ const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      const cote = (e.referenceFlat?6.5:(e.racine ? 9 : e.parent ? 7 : 9)) * Math.min(1.25, Math.max(0.8, ech));
+      ctx.fillStyle = e.referenceFlat?(e.flatTone==='mint'?'#39e4ae':e.flatTone==='cyan'?'#45cafa':'#667deb'):ambient ? (e.racine ? '#3855a2' : e.rang % 4 === 0 ? '#18ad9c' : '#538cff') : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine && labels) {
         const a = adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * aE; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
-        if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
+        if(e.referenceFlat){
+          const texte=compact?(e.num||''):(e.label+' '+e.noeuds.length);
+          ctx.globalAlpha=a*aE;ctx.fillStyle='rgba(203,211,243,.72)';
+          ctx.font='400 '+(compact?9:10)+'px "JetBrains Mono",ui-monospace,monospace';
+          ctx.textAlign='left';ctx.fillText(texte,F.x+cote/2+7,F.y-4);
+          e.libelleEcran={x:Math.round(F.x+cote/2+7),y:Math.round(F.y-4),texte};
+        }else if (e.sol) {                                                       // étoile posée : numéro et nom sous le cercle
           const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
           ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
           e.libelleEcran = { x: Math.round(bas.x), y: Math.round(bas.y + 12), texte };
