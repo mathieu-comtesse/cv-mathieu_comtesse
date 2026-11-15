@@ -1,3 +1,4 @@
+import {drawExpoReferenceOrnaments} from './expo-reference-ornaments.js';
 /**
  * Décor technique du mode exposition de comtesse.me.
  * Recréation originale d'après les vidéos Shopify Fall '26 fournies :
@@ -75,5 +76,6 @@ export function drawExpoTechnicalHud(ctx,view,options={}){
     }
     ctx.stroke();
   }
+  drawExpoReferenceOrnaments(ctx,view,{width:w,height:h,quality:q,reduce});
   ctx.restore();
 }
