@@ -2,7 +2,7 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m27';
+import { Ciel } from './moteur.js?v=m28';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -13,7 +13,7 @@ export function demarre(chapitres) {
   const ciel = new Ciel(), souris = { x: -1e4, y: -1e4 };
   ciel.definit('accueil', { groupe: 'accueil', racine: true, label: 'Mathieu Comtesse' });
   chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true }));
-  let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0;
+  let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0, debut = 0, ecarte = 1, grossi = 1;
   /* le canevas n'occupe que la partie libre de la zone : à droite du nom et des cartes quand ils la recouvrent (grand écran) */
   let largeurVue = 0;
   const mesure = () => { const r = zone.getBoundingClientRect(); let x0 = 0;
@@ -58,13 +58,18 @@ export function demarre(chapitres) {
       /* grand écran (mesuré sur la référence à 1 400 × 900) : foyers répartis sur tout le cadre, rayons longs (jusqu'au tiers de la largeur),
          dérive lente de chaque foyer (de l'ordre d'un pixel par seconde ; immobile en mouvement réduit) */
       const R0 = Math.min(W * 0.41, H * 0.5), ts = reduit.matches ? 0 : t / 1000;
-      ciel.place('accueil', [W / 2, H * 0.5, 0], R0 * ouvre);
+      /* apparition (deux instants relevés sur la référence) : foyers d'abord resserrés et trois fois plus gros, reliés au centre ; ils s'écartent
+         en 1,6 s pendant que les éléments reviennent à leur taille en 2,6 s ; rayons puis noms arrivent ensuite (gérés par le moteur) */
+      if (!debut) debut = t;
+      const tau = reduit.matches ? 9 : (t - debut) / 1000, sortie = (x) => 1 - (1 - Math.min(1, x)) ** 3;
+      ecarte = 0.45 + 0.55 * sortie(tau / 1.6); grossi = 1 + 2 * (1 - sortie(tau / 2.6));
+      ciel.place('accueil', [W / 2, H * 0.5, 0], R0 * ouvre * ecarte);
       chapitres.forEach((r, k) => { const e = ciel.etoiles.get('accueil:' + r.id); e.rayon = R0 * 0.52; e.centre[2] = 0;
         e.centre[0] += Math.sin(ts * 0.05 + k * 1.7) * R0 * 0.035; e.centre[1] += Math.cos(ts * 0.043 + k * 2.3) * R0 * 0.035; });
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille, plat: true });
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: grille, plat: true, grossi: grille ? 1 : grossi });
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
+  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H, ecarte, grossi }), ciel };
 }

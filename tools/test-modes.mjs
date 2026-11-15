@@ -37,6 +37,11 @@ verifie(platR.n === 11 && platR.bleus + platR.verts === platR.n && platR.verts >
 const trans = await p.evaluate(() => { const d = (sel) => { const e = document.querySelector(sel); return e ? getComputedStyle(e).transitionDuration + ' | ' + getComputedStyle(e).transitionTimingFunction : null; }; const t = document.querySelector('.cv-parity-toggle'), masque = t.classList.contains('cv-pt-accueil'); t.classList.remove('cv-pt-accueil'); const bouton = d('.cv-parity-toggle'); t.classList.toggle('cv-pt-accueil', masque); return { lien: d('.cv-link,.cv-related a,.cv-legacy a'), bouton }; });
 verifie(!!trans.lien && trans.lien.startsWith('0.15s, 0.15s') && !!trans.bouton && trans.bouton.startsWith('0.25s, 0.15s, 0.1s, 0.15s') && trans.bouton.includes('cubic-bezier(0.2, 0.7, 0.2, 1)') && trans.bouton.includes('cubic-bezier(0.65, 0, 0.35, 1)'), `transitions de survol : lien « ${trans.lien} », bouton « ${trans.bouton} »`);
 
+/* ---- apparition du graphe : partie d'un état resserré et grossi (0,45 et 3), terminée à 1 et 1 ; immédiate en mouvement réduit ---- */
+const app = await p.evaluate(() => { const s = window.__cvHeroGraph.etat(); return [s.ecarte, s.grossi]; });
+const appR = await (async () => { const q = await page({ reducedMotion: 'reduce' }); const v = await q.evaluate(() => { const s = window.__cvHeroGraph.etat(); return [s.ecarte, s.grossi]; }); await q.context().close(); return v; })();
+verifie(app[0] === 1 && app[1] === 1 && appR[0] === 1 && appR[1] === 1, `apparition terminée : écartement ${app[0]}, grossissement ${app[1]} ; mouvement réduit : ${appR[0]} et ${appR[1]}`);
+
 /* ---- bouton du mode 3D : masqué sur l'accueil, visible dans un chapitre (relevé de la référence) ---- */
 const visBouton = () => p.evaluate(() => { const c = getComputedStyle(document.querySelector('.cv-parity-toggle')); return c.visibility + '/' + c.opacity; });
 await p.waitForFunction(() => { const c = getComputedStyle(document.querySelector('.cv-parity-toggle')); return c.visibility + '/' + c.opacity === 'hidden/0'; }, null, { timeout: 15000 }).catch(() => {}); const bAccueil = await visBouton(); await p.evaluate(() => scrollTo({ top: 3000, behavior: 'instant' })); await p.waitForFunction((v) => { const c = getComputedStyle(document.querySelector('.cv-parity-toggle')); return c.visibility + '/' + c.opacity === v; }, 'visible/1', { timeout: 15000 }).catch(() => {}); const bChapitre = await visBouton();
@@ -84,7 +89,7 @@ verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m27'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=m28'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */

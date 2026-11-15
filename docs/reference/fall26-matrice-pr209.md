@@ -603,3 +603,15 @@ Banc : Chromium sans tête (rendu logiciel), page publique `https://www.shopify.
 | Réaction au pointeur | non observée | fuite des nœuds, inclinaison du plan | inchangées | NON DOCUMENTÉ |
 
 `tools/test-branches.mjs` vérifie maintenant les deux régimes : à plat, 249 rayons droits sur 249, aucune ramification ; en 3D, courbes (seuil de 80 %, les petites branches lointaines passant sous 0,8 px en perspective) et raccords exacts. `tools/test-modes.mjs` : le contrôle du retour d'un nœud relâché porte sur la stabilité à moins de 25 px (le retour est devenu plus rapide que le premier relevé).
+
+## Apparition du graphe à plat (rafale sur la référence, 1 400 × 900)
+
+Rafale de 22 captures entre 0,9 s et 27 s après la navigation (rendu logiciel : la page fige les captures pendant qu'elle se construit, d'où seulement deux instants utiles). Cadre noir jusqu'à 3,8 s ; une image intermédiaire saisie entre 4,9 s et 6,5 s ; une image presque finale à 6 s dans la série précédente ; état final ensuite.
+
+| Instant | Observé sur la référence | Repris |
+|---|---|---|
+| Début | foyers seuls, carrés environ trois fois plus gros qu'à l'arrivée, resserrés autour du centre, traits vers l'anneau central, quelques rayons courts, noms à peine visibles | écartement 0,45, grossissement 3, rayons en croissance, noms transparents |
+| Vers 2 s | positions presque finales, points et vignettes encore environ 1,5 fois plus gros, tous les rayons tracés, noms lisibles | écartement terminé en 1,6 s, grossissement terminé en 2,6 s (sorties cubiques), noms en fondu de 0,9 s à 1,9 s |
+| Fin | tailles finales | écartement 1, grossissement 1 |
+
+Certitude : OBSERVÉ pour les deux états et l'ordre des événements ; INFÉRÉ pour les durées (1,6 s et 2,6 s) et les courbes, calées sur deux instants seulement. En mouvement réduit l'état final est affiché d'emblée. Non repris sous 940 px (grille), faute d'observation. Capture du site : `docs/fall26-evidence/accueil-graphe-apparition.png` (trois instants). Contrôle ajouté à `test-modes` (26 contrôles).
