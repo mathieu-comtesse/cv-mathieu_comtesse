@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Ciel} from '../refonte/moteur.js';
-import {REFERENCE_HUBS,REFERENCE_LINKS,REFERENCE_SPOKES,referenceSpokeAngles,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage} from '../refonte/fall26-reference-graph.js';
+import {REFERENCE_HUBS,REFERENCE_LINKS,REFERENCE_SPOKES,referenceSpokeAngles,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage,drawReferenceJunction} from '../refonte/fall26-reference-graph.js';
 
 const ciel=new Ciel();
 ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
@@ -79,6 +79,28 @@ drawReferenceLinks(ctx,ciel,(x,y,z)=>({x,y,z}));
 assert.equal(calls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length);
 drawReferenceStage(ctx,ciel,(x,y,z)=>({x,y,z}),1);
 assert.ok(calls.some(x=>x[0]==='F'),'Projected dark backing is drawn below 3D hub network');
+
+const junction=[];
+const junctionCtx={
+ globalAlpha:1,save(){},restore(){},beginPath(){},
+ moveTo(x,y){junction.push(['start',x,y]);},
+ lineTo(x,y){junction.push(['end',x,y]);},
+ stroke(){},arc(x,y,r){junction.push(['ring',x,y,r]);}
+};
+drawReferenceJunction(junctionCtx,ciel,(x,y)=>({x,y}),1);
+assert.equal(junction.filter(x=>x[0]==='ring').length,1,
+ 'Shopify reference contains one small hollow central junction, not a twelfth star');
+assert.equal(junction.filter(x=>x[0]==='end').length,6,
+ 'Only six dim connectors depart from the central junction');
+assert.ok(junction.find(x=>x[0]==='ring')[3]<=5,
+ 'Central junction must be far smaller than chapter hub nodes');
+const referenceRadius=Math.min(240,1200*.145,760*.195);
+assert.ok(Math.abs(hubs[0].rayon-referenceRadius*REFERENCE_HUBS[0].r)<1e-8,
+ 'Reference rays must match the video-scale radius');
+const engine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
+assert.ok(engine.includes('(e.referenceFlat ? 1 : 0.78)'),
+ 'Flat reference rays must not use the compressed 3D Y geometry');
+
 placeReferenceHubs(ciel,1000,740,{left:200,top:-325,lift:90});
 assert.ok(Math.abs(hubs[0].centre[0]-(200+REFERENCE_HUBS[0].x*1000))<1e-8);
 assert.ok(Math.abs(hubs[0].centre[1]-(-325+REFERENCE_HUBS[0].y*740))<1e-8);
