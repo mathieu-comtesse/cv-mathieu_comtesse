@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {chapterHandover,chapterColourAtRow,chapterStarPose,mixHex} from '../refonte/fall26-chapter-transition.js';
+import {chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,mixHex} from '../refonte/fall26-chapter-transition.js';
 
 const sections=[
   {top:1000,colour:'#051DAA'},
@@ -72,5 +72,27 @@ for(const p of [0,.1,.25,.5,.75,.9,1]){
 assert.equal(chapterStarPose(2,{from:2,to:2,active:2,progress:1}).weight,1);
 assert.equal(chapterStarPose(1,{from:2,to:2,active:2,progress:1}).weight,0);
 assert.ok(html.includes('C.chapterStarPose(chapterIndex,handover)'), 'Expo must call the shared pose');
+
+// At 50% the source video has two different focal points, upper-right for
+// the incoming star and lower-left for the departing star.
+const half={from:0,to:1,active:1,progress:.5};
+const departing=chapterStarAnchor(0,half,1440,900);
+const arriving=chapterStarAnchor(1,half,1440,900);
+assert.ok(Math.abs(departing.x/1440-.49)<.001&&Math.abs(departing.y/900-.72)<.001,
+ 'Departing star must move down-left instead of sharing a pivot');
+assert.ok(Math.abs(arriving.x/1440-.54)<.001&&Math.abs(arriving.y/900-.42)<.001,
+ 'Incoming star must appear higher than outgoing star');
+assert.ok(Math.hypot(arriving.x-departing.x,arriving.y-departing.y)>900*.28,
+ 'Transition stars must be visually distinct');
+assert.deepEqual(chapterStarAnchor(0,{from:0,to:0,active:0,progress:0},1440,900),{x:864,y:504},
+ 'Steady chapter star must not jump away from its resting position');
+assert.ok(html.includes('const chap=!!p.heading.chapter'),
+ 'Moved 3D headings must retain chapter classification captured before DOM reparenting');
+assert.ok(html.includes('p.heading?.chapter'),
+ 'Expo fallback must locate chapter heading even after the original DOM has moved');
+assert.ok(theme.includes('chapterStarAnchor(chapterIndex,handover,W,H)'),
+ 'Flat star geometry must use the calibrated separated centres');
+assert.ok(html.includes('C.chapterStarAnchor(chapterIndex,handover,innerWidth,innerHeight)'),
+ 'Expo star geometry must share the same separated centres');
 
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');
