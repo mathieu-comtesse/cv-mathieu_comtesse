@@ -46,6 +46,13 @@ const inter = entree.filter((e) => e[0] > 0.02 && e[0] < 0.98);
 verifie(inter.length >= 1 && entree.every((e, i) => !i || e[0] >= entree[i - 1][0] - 1e-6), `entrée en expo progressive : ${inter.length} états intermédiaires relevés (progression ${entree.map((e) => e[0]).filter((v, i, l) => !i || v !== l[i - 1]).join(' → ')})`);
 { const d = entree.find((e) => Number.isFinite(e[2])); verifie(d && (Math.abs(d[2] - 90) < 12 || d[0] > 0.05) && entree.some((e) => e[2] > 31 && e[2] < 89), `la caméra part de la verticale et descend (${entree.filter((e) => Number.isFinite(e[2])).map((e) => e[2]).filter((v, i, l) => !i || v !== l[i - 1]).join('° → ')}°)`); }
 verifie(expo.actif && Math.abs(expo.p - 1) < 1e-3 && Math.abs(expo.pitch - 30.2) < 0.3, `arrivée : progression ${expo.p}, visée à ${expo.pitch.toFixed(1)}° sous l'horizontale`);
+const retourIcone=await p.evaluate(()=>{
+  const el=document.querySelector('.cv-parity-toggle'),css=getComputedStyle(el);
+  return{label:el.querySelector('.cv-pt-label')?.textContent.trim(),border:css.borderTopWidth,
+    bg:css.backgroundColor,cube:getComputedStyle(el.querySelector('.cv-pt-cube')).display};
+});
+verifie(retourIcone.label==='Retour'&&retourIcone.border==='0px'&&retourIcone.cube!=='none'&&/rgba\(0, 0, 0, 0\)/.test(retourIcone.bg),
+  `Expo : bouton de retour filaire sans pastille (${JSON.stringify(retourIcone)})`);
 verifie(Math.abs(expo.y - avant.y) < 2, `la position de lecture est conservée (${avant.y} → ${expo.y} px)`);
 /* sortie, interrompue puis reprise */
 await p.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await p.waitForTimeout(300);
