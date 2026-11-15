@@ -99,7 +99,7 @@ async function run(name,viewport,mobile=false,reduce=false){
   if(!grid||grid.meanLuminance<9||grid.meanLuminance>15.5)
     errors.push('Quadrillage extérieur trop éloigné du repère vidéo : '+JSON.stringify(grid));
   const metric=states[0].graphStats,flat=states[0].flatGraph;
-  if(flat?.visible!==11||flat?.labels!==0)errors.push('Constellations visibles ou libellés non conformes : '+JSON.stringify(flat));
+  if(flat?.visible!==11||flat?.labels!==11)errors.push('Constellations de référence ou légendes non conformes : '+JSON.stringify(flat));
   if(!metric||metric.meanLuminance>12||metric.over100Pct>1.8||metric.bluePixelsPct<.5)
     errors.push('Luminance des constellations hors tolérance vidéo : '+JSON.stringify(metric));
  }
