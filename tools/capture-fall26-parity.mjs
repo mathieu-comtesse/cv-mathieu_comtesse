@@ -36,6 +36,19 @@ async function run(name,viewport,mobile=false,reduce=false){
  async function capture(label){
   const screenshot=await page.screenshot({path:path.join(output,name+'-'+label+'.png')});
   let graphStats=null;
+  let exteriorGrid=null;
+  if(label==='expo-premier-chapitre'&&!mobile)exteriorGrid=await page.evaluate(async png=>{
+    const img=new Image();img.src='data:image/png;base64,'+png;await img.decode();
+    const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+    const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0);
+    const x=Math.floor(c.width*.05),y=Math.floor(c.height*.18);
+    const w=Math.floor(c.width*.18),h=Math.floor(c.height*.16);
+    const d=g.getImageData(x,y,w,h).data;
+    let lum=0,high=0;for(let i=0;i<d.length;i+=4){
+      const l=d[i]*.2126+d[i+1]*.7152+d[i+2]*.0722;lum+=l;if(l>25)high++;
+    }
+    return{rect:{x,y,w,h},meanLuminance:+(lum/(w*h)).toFixed(3),above25Pct:+(high*100/(w*h)).toFixed(3)};
+  },screenshot.toString('base64'));
   if(label==='plat-accueil'&&!mobile)graphStats=await page.evaluate(async png=>{
     const graph=document.querySelector('.cv-hero-graph');if(!graph)return null;
     const r=graph.getBoundingClientRect(),im=new Image();
@@ -61,7 +74,7 @@ async function run(name,viewport,mobile=false,reduce=false){
     return{x:b.x,y:b.y,w:b.width,h:b.height,font:s.fontFamily,size:s.fontSize,color:s.color}};
    const canvases=[...document.querySelectorAll('canvas')].filter(c=>{const b=c.getBoundingClientRect();return b.width>60&&b.height>60&&b.right>0&&b.bottom>0&&b.left<innerWidth&&b.top<innerHeight});
    return {y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
-  },label);states.push({label,...details,graphStats});
+  },label);states.push({label,...details,graphStats,exteriorGrid});
  }
  const firstChapterY=await page.evaluate(()=>{const h=document.querySelector('.section-hero-pin h2');return h?scrollY+h.getBoundingClientRect().top:null;});
  await capture('plat-accueil');
@@ -82,6 +95,9 @@ async function run(name,viewport,mobile=false,reduce=false){
  if(states.find(x=>x.label==='plat-retour')?.expo||Math.abs(states.find(x=>x.label==='plat-retour')?.progress??1)>1e-3)errors.push('Retour à plat ou état de progression incorrect');
  if(states[0].sections<4)errors.push('Sections réelles absentes : '+states[0].sections);
  if(!mobile){
+  const grid=states.find(x=>x.label==='expo-premier-chapitre')?.exteriorGrid;
+  if(!grid||grid.meanLuminance<9||grid.meanLuminance>15.5)
+    errors.push('Quadrillage extérieur trop éloigné du repère vidéo : '+JSON.stringify(grid));
   const metric=states[0].graphStats,flat=states[0].flatGraph;
   if(flat?.visible!==11||flat?.labels!==0)errors.push('Constellations visibles ou libellés non conformes : '+JSON.stringify(flat));
   if(!metric||metric.meanLuminance>12||metric.over100Pct>1.8||metric.bluePixelsPct<.5)
