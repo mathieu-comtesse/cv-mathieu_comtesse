@@ -73,7 +73,10 @@ async function run(name,viewport,mobile=false,reduce=false){
    const box=(x)=>{if(!x)return null;const b=x.getBoundingClientRect(),s=getComputedStyle(x);
     return{x:b.x,y:b.y,w:b.width,h:b.height,font:s.fontFamily,size:s.fontSize,color:s.color}};
    const canvases=[...document.querySelectorAll('canvas')].filter(c=>{const b=c.getBoundingClientRect();return b.width>60&&b.height>60&&b.right>0&&b.bottom>0&&b.left<innerWidth&&b.top<innerHeight});
-   return {chapterTransition:window.__cvChapterTransition||null,y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
+   return {chapterTransition:window.__cvChapterTransition||null,
+    bodyBackground:lab.includes('-transition-')?getComputedStyle(document.body).backgroundColor:null,
+    chapterTitleFills:lab.startsWith('plat-transition-')?[...document.querySelectorAll('section[data-f26-page-section] .section-hero-pin h2')].slice(0,2).map(h=>+h.style.getPropertyValue('--cv-fill')):null,
+    y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
   },label);states.push({label,...details,graphStats,exteriorGrid});
  }
  const firstChapterY=await page.evaluate(()=>{const h=document.querySelector('.section-hero-pin h2');return h?scrollY+h.getBoundingClientRect().top:null;});
@@ -111,6 +114,28 @@ async function run(name,viewport,mobile=false,reduce=false){
  await page.keyboard.press('Escape');
  await page.waitForFunction(()=>!window.__cvStandardPath?.active,null,{timeout:60000});
  await page.waitForTimeout(350);await capture('plat-retour');
+ // Cross-mode check at the same three geometric scroll positions.
+ // CSS background and flat title fill must agree with the shared progress.
+ if(!mobile){
+  for(const mode of ['plat','expo'])for(const fraction of [.25,.5,.75]){
+   const label=mode+'-transition-'+Math.round(fraction*100);
+   const frame=states.find(s=>s.label===label),p=fraction*fraction*(3-2*fraction);
+   if(!frame){errors.push('État manquant : '+label);continue;}
+   const actual=frame.chapterTransition?.progress;
+   if(!Number.isFinite(actual)||Math.abs(actual-p)>.04)
+    errors.push('Horloge de chapitre désynchronisée : '+label+' '+actual+' vs '+p);
+   const hex=frame.chapterTransition?.colour||'';
+   const expected=/^#[0-9a-f]{6}$/i.test(hex)?[0,2,4].map(i=>parseInt(hex.slice(i+1,i+3),16)):null;
+   const rgb=(frame.bodyBackground||'').match(/[0-9]+/g)?.slice(0,3).map(Number);
+   if(!expected||!rgb||rgb.length!==3||Math.max(...rgb.map((v,i)=>Math.abs(v-expected[i])))>3)
+    errors.push('Fond de page différent du chapitre : '+label+' '+frame.bodyBackground+' / '+hex);
+   if(mode==='plat'){
+    const [outgoing,incoming]=frame.chapterTitleFills||[];
+    if(!Number.isFinite(outgoing)||!Number.isFinite(incoming)||Math.abs(outgoing+incoming-1)>.04)
+      errors.push('Remplissage des deux titres désynchronisé : '+label+' '+JSON.stringify(frame.chapterTitleFills));
+   }
+  }
+ }
  if(states.find(x=>x.label==='expo-accueil')?.canvases===0)errors.push('Mode Expo sans canvas visible');
  if(states.find(x=>x.label==='plat-retour')?.expo||Math.abs(states.find(x=>x.label==='plat-retour')?.progress??1)>1e-3)errors.push('Retour à plat ou état de progression incorrect');
  if(states[0].sections<4)errors.push('Sections réelles absentes : '+states[0].sections);
