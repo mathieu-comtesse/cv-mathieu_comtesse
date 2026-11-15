@@ -19,8 +19,8 @@ async function page(opts = {}) {
 }
 const p = await page();
 const flatSky = await p.evaluate(() => window.__cvHeroGraph.ciel.etat('accueil'));
-verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 && flatSky.every(e => !e.libelle),
-  `vue à plat : 11 constellations sans foyer central ni libellés superposés (${flatSky.filter(e => e.visible).length} visibles)`);
+verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 && flatSky.filter(e => e.visible).every(e => !!e.libelle?.texte),
+  `vue à plat : 11 foyers en disposition asymétrique avec leurs légendes discrètes (${flatSky.filter(e => e.visible).length} visibles)`);
 
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
 const c0 = await p.evaluate(() => { const pts=window.__cvHeroGraph.cibles();return pts.filter(c=>c.x>540&&c.x<1330&&c.y>160&&c.y<790).map(c=>({...c,clearance:Math.min(...pts.filter(d=>d.handle!==c.handle).map(d=>Math.hypot(d.x-c.x,d.y-c.y)))})).sort((a,b)=>b.clearance-a.clearance)[0]; });
