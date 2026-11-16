@@ -78,6 +78,7 @@ async function run(name,viewport,mobile=false,reduce=false){
     bodyGradient:lab.includes('-transition-')?getComputedStyle(document.body).backgroundImage:null,
     chapterTitleFills:lab.startsWith('plat-transition-')?[...document.querySelectorAll('section[data-f26-page-section] .section-hero-pin h2')].slice(0,2).map(h=>+h.style.getPropertyValue('--cv-fill')):null,
     y:scrollY,expo:document.documentElement.classList.contains('cv-parity-active'),progress:window.__cvStandardPath?.progress,nav:box(document.querySelector('.cv-site-nav')),hero:box(document.querySelector('#hero h1')),chapter:box(document.querySelector('.section-hero-pin h2')),canvases:canvases.length,sections:document.querySelectorAll('[data-f26-page-section]').length,starsVisible:window.__cvParity?.etoiles()?.filter(x=>x.visible).length??null,
+    expoChapterTransition:lab.startsWith('expo-transition-')?window.__cvTransfer?.chapterHandover:null,
     starFoci:lab==='expo-transition-50'?window.__cvParity?.etoiles()?.filter(x=>x.visible).map(x=>x.foyer):null,
     hero3DHubs:lab==='expo-accueil'?window.__cvParity?.heroHubs?.():null,home3DFrames:lab==='expo-accueil'?window.__cvParity?.boxes?.().filter(b=>b.hero).map(b=>({title:b.title,top:b.top,thick:b.thickPx,tilt:b.tilted,corners:b.cornersProjected})):null,flatGraph:lab==='plat-accueil'?({visible:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.visible).length??null,labels:window.__cvHeroGraph?.ciel.etat('accueil').filter(s=>s.libelle).length??null,performance:window.__cvHeroGraph?.performance?.()??null}):null,mobileHeroProbe:lab==='plat-retour'&&innerWidth<600?(()=>{let e=document.querySelector('#hero h1'),out=[];for(let i=0;e&&i<7;i++,e=e.parentElement){const c=getComputedStyle(e),r=e.getBoundingClientRect();out.push({node:e.id||e.className?.toString().slice(0,60)||e.tagName,position:c.position,transform:c.transform,top:+r.top.toFixed(1),height:+r.height.toFixed(1)});}return out;})():null};
   },label);states.push({label,...details,graphStats,exteriorGrid});
@@ -88,12 +89,14 @@ async function run(name,viewport,mobile=false,reduce=false){
  // scroll-driven chapter transition. These are not arbitrary time samples.
  async function transitionFrames(mode){
   if(mobile)return;
-  const points=await page.evaluate(()=>{
+  const points=await page.evaluate((isExpo)=>{
     const sections=[...document.querySelectorAll('section[data-f26-page-section]')];
-    const target=sections[1].getBoundingClientRect().top+scrollY;
+    const section=sections[1];
+    const target=(isExpo ? window.__cvOriginalRect?.(section)?.top : undefined) ??
+      section.getBoundingClientRect().top+scrollY;
     const centre=target-innerHeight*.55,half=innerHeight*.38;
     return [.25,.5,.75].map(t=>Math.max(0,centre-half+2*half*t));
-  });
+  },mode==='expo');
   for(let i=0;i<points.length;i++){
     await page.evaluate(y=>scrollTo({top:y,behavior:'instant'}),points[i]);
     await page.waitForTimeout(200);
@@ -127,6 +130,11 @@ async function run(name,viewport,mobile=false,reduce=false){
    const actual=frame.chapterTransition?.progress;
    if(!Number.isFinite(actual)||Math.abs(actual-p)>.04)
     errors.push('Horloge de chapitre désynchronisée : '+label+' '+actual+' vs '+p);
+   if(mode==='expo'){
+    const expoProgress=frame.expoChapterTransition?.progress;
+    if(!Number.isFinite(expoProgress)||Math.abs(expoProgress-actual)>.005)
+      errors.push('Horloges du fond et de la scène Expo différentes : '+label+' '+actual+' / '+expoProgress);
+   }
    const hex=frame.chapterTransition?.colour||'';
    const expected=/^#[0-9a-f]{6}$/i.test(hex)?[0,2,4].map(i=>parseInt(hex.slice(i+1,i+3),16)):null;
    const rgb=(frame.bodyBackground||'').match(/[0-9]+/g)?.slice(0,3).map(Number);

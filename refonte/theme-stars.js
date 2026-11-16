@@ -187,7 +187,7 @@ function scene(chapitres) {
     // One continuous scroll coordinate governs both the page colour and
     // the departure/arrival of chapter stars, in flat and Expo modes alike.
     const timeline=chapitres.map(c=>({
-      top:c.section.getBoundingClientRect().top+scrollY,
+      top:(expo ? window.__cvOriginalRect?.(c.section)?.top : undefined) ?? c.section.getBoundingClientRect().top+scrollY,
       colour:c.section.getAttribute('data-html-in-canvas-colour')||'#051DAA'
     }));
     const handover=chapterHandover(scrollY,timeline,H);

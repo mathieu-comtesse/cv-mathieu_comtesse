@@ -15,7 +15,7 @@ Audit initial et corrections du 16 novembre 2026.
 
 | Composant | Référence contrôlée | État de la reconstruction | Statut |
 |---|---|---|---|
-| Navigation et structure | En-tête de 50 px et panneau graphe de x=423 à 1460, y=60 à 792 dans la capture desktop | En-tête de 50 px. Le portfolio conserve ses pages, rubriques et contenus. Les onze chapitres sont présents dans la base de travail | Structure proche sur la capture. Navigation complète à vérifier sur la branche |
+| Navigation et structure | En-tête de 50 px et panneau graphe de x=423 à 1460, y=60 à 792 dans la capture desktop | En-tête de 50 px. Le portfolio conserve ses pages, rubriques et contenus. Onze foyers sont présents dans le graphe. La page actuelle est organisée en quatre sections principales | Structure proche sur la capture. Navigation complète à vérifier sur la branche |
 | Foyers à plat | Onze carrés de chapitre et une jonction centrale creuse | Les onze centres et la jonction sont recalés sur la capture Shopify à 1 470 × 802. Le test de projection retrouve les onze centres dans une tolérance de 1 px | Projection validée. Écart entre rendus de la branche à mesurer |
 | Graphe, branches et terminaisons | Le JSON V17 contient 353 nœuds typés et 1 944 relations uniques. Le module Shopify distingue les données sémantiques, la vue de graphe et les sous-graphes de chapitre | Le moteur de la branche dessine des rayons paramétrés, des bifurcations et des liens relevés. La topologie sémantique complète reste à brancher | Partiel |
 | Luminosité du graphe | Luminance moyenne 9,94 sur 255. Pixels de luminance supérieure à 70 sur 255, 1,68 % | Production au moment de la capture, moyenne 18,44 et 6,75 %. La valeur inclut les vignettes des deux sites | Écart mesuré sur la production. Branche à recapturer |
@@ -83,7 +83,7 @@ Dix projections testées aux phases 0, 25, 50, 75 et 100 %, à 1 470 × 802 et 3
 
 ## Vérifications de la branche
 
-Lancer sous Node 24 depuis la racine. Les tests de géométrie, de transition, de typographie, de verre, de couleurs du sol, des miniatures et des chemins de prévisualisation ont réussi. Le workflow `Fall26 visual and interaction parity` prévoit les captures de la branche à 1 440 × 900 et 390 × 844 sous SwiftShader. Il complète les deux captures publiques présentées ci-dessus.
+Lancer sous Node 24 depuis la racine. Les tests de géométrie, de transition, de typographie, de verre, de couleurs du sol, des miniatures et des chemins de prévisualisation ont réussi. Le [premier contrôle Chromium](https://github.com/mathieu-comtesse/cv-mathieu_comtesse/actions/runs/43941284500) a validé la navigation, les bascules, le déplacement des nœuds, le clavier et le rendu du portfolio à 390 × 844 sous SwiftShader. Il a aussi capturé 16 états. Le contrôle visuel a échoué sur le milieu de la transition Expo, sans les deux foyers attendus. La mesure lisait les sections après déplacement des éléments, alors que le moteur Expo projette les positions d’avant bascule. La branche aligne la couleur de page et l’échantillonnage des captures sur ces positions, avec un contrôle explicite du décalage entre horloges. La nouvelle exécution doit confirmer les deux foyers.
 
 ```sh
 node tools/test-fall26-reference-graph.mjs
@@ -97,4 +97,4 @@ node tools/test-fall26-preview-paths.mjs
 node tools/test-ciel-fade.mjs
 ```
 
-Le rapport couvre le recalage des foyers et de la projection Expo. L’intégration du graphe complet, la galerie et le mini-jeu restent ouverts, ainsi que les comparaisons des transitions, des interactions et des performances.
+Le rapport couvre le recalage des foyers et de la projection Expo. L’intégration du graphe complet, les onze sections du parcours, la galerie et le mini-jeu restent ouverts, ainsi que les comparaisons des transitions, des interactions et des performances.
