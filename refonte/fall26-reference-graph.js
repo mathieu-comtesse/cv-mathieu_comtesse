@@ -1,24 +1,20 @@
 /**
- * Topologie de l'accueil des éditions Fall '26.
- * Calibrée à partir de la vidéo fournie (état du graphe vers 1,7 s).
- * Coordonnées normalisées recalées sur le cadre réel du graphe (capture vidéo\n * 1440 × 900 fournie, en excluant la sidebar de gauche).
- * Tous les textes et les miniatures proviennent de comtesse.me.
- *
- * Pas de code/texture/maillage/ressource Shopify.
+ * Foyers relevés sur Shopify Fall '26 à 1470 × 802, dans le graphe
+ * encadré par x=423–1460 et y=60–792. Les foyers bougent au survol.
+ * Les rayons et les étiquettes restent calibrés séparément.
  */
 export const REFERENCE_HUBS = Object.freeze([
-  // Correspondance avec l'ordre des onze chapitres du site.
-  {x:.448,y:.169,r:1.03,points:20,tone:'blue'},  // Agentic
-  {x:.604,y:.693,r:.91,points:15,tone:'blue'},    // Sidekick
-  {x:.914,y:.518,r:.88,points:15,tone:'blue'},    // Merchandising
-  {x:.224,y:.630,r:1.04,points:21,tone:'mint'},   // Retail
-  {x:.660,y:.202,r:1.02,points:30,tone:'blue'},   // Payments
-  {x:.550,y:.926,r:.91,points:16,tone:'cyan'},    // Operations
-  {x:.343,y:.384,r:1.09,points:20,tone:'blue'},   // Online
-  {x:.815,y:.728,r:.80,points:15,tone:'blue'},    // Marketing
-  {x:.131,y:.412,r:1.07,points:19,tone:'blue'},   // Fulfillment
-  {x:.704,y:.440,r:1.09,points:57,tone:'mint'},   // Developer
-  {x:.225,y:.194,r:.72,points:14,tone:'blue'}     // Shop
+  {x:0.4455,y:0.0751,r:1.03,points:20,tone:'blue'}, // Agentic
+  {x:0.6066,y:0.7049,r:.91,points:15,tone:'blue'}, // Sidekick
+  {x:0.9421,y:0.4822,r:.88,points:15,tone:'blue'}, // Merchandising
+  {x:0.1360,y:0.7158,r:1.04,points:21,tone:'mint'}, // Retail
+  {x:0.6567,y:0.1899,r:1.02,points:30,tone:'blue'}, // Payments
+  {x:0.5159,y:0.9167,r:.91,points:16,tone:'cyan'}, // Operations
+  {x:0.1331,y:0.3101,r:1.09,points:20,tone:'blue'}, // Online
+  {x:0.8361,y:0.6995,r:.80,points:15,tone:'blue'}, // Marketing
+  {x:0.2613,y:0.5096,r:1.07,points:19,tone:'blue'}, // Fulfillment
+  {x:0.7184,y:0.4153,r:1.09,points:57,tone:'mint'}, // Developer
+  {x:0.3790,y:0.3019,r:.72,points:14,tone:'blue'}, // Shop
 ]);
 /* Number of visible project thumbnails per original star. Full chapter
  * content remains in the page and navigation. This avoids rendering every
@@ -257,7 +253,7 @@ export function drawReferenceJunction(ctx,ciel,project,alpha=1){
   if(!Number.isFinite(w+h)||Math.abs(w)<10||Math.abs(h)<10)return;
   const left=a.centre[0]-REFERENCE_HUBS[0].x*w;
   const top=a.centre[1]-REFERENCE_HUBS[0].y*h;
-  const center=project(left+w*.495,top+h*.507,a.centre[2]||0);
+  const center=project(left+w*.5,top+h*.5,a.centre[2]||0);
   if(!center||!Number.isFinite(center.x+center.y))return;
   ctx.save();
   ctx.globalAlpha*=Math.min(1,Math.max(0,alpha));

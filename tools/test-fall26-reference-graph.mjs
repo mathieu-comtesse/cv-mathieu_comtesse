@@ -19,18 +19,19 @@ const referenceSpokeCounts=[20,15,15,21,30,16,20,15,19,57,14];
 assert.deepEqual(REFERENCE_HUBS.map(h=>h.points),referenceSpokeCounts,
   'Graph topology must not be reduced to editorial product counts');
 
-// Approximate hub centres from the user's original Shopify video frame,
-// normalized inside the graph panel (not across the full viewport).
+// Pixel measurements from the reference desktop capture. Exercise the
+// placement function with the measured panel origin and size.
 const capturedCentres=[
-  [.448,.169],[.604,.693],[.914,.518],[.224,.630],[.660,.202],
-  [.550,.926],[.343,.384],[.815,.728],[.131,.412],[.704,.440],[.225,.194]
+  [885,115],[1052,576],[1400,413],[564,584],[1104,199],[958,731],
+  [561,287],[1290,572],[694,433],[1168,364],[816,281]
 ];
+placeReferenceHubs(ciel,1037,732,{left:423,top:60});
 for(let i=0;i<capturedCentres.length;i++){
-  assert.ok(Math.abs(REFERENCE_HUBS[i].x-capturedCentres[i][0])<.015,
-    'Reference hub X must match original video: '+i);
-  assert.ok(Math.abs(REFERENCE_HUBS[i].y-capturedCentres[i][1])<.015,
-    'Reference hub Y must match original video: '+i);
+  const [x,y]=capturedCentres[i];
+  assert.ok(Math.hypot(hubs[i].centre[0]-x,hubs[i].centre[1]-y)<1,
+    'Projected hub must fall inside its measured reference pixel: '+i);
 }
+placeReferenceHubs(ciel,1200,760);
 
 assert.ok(hubs[4].noeuds.length>=30,'Payments: trente ramifications');
 assert.ok(hubs[9].noeuds.length>=57,'Developer: cinquante-sept ramifications');
