@@ -6,21 +6,22 @@
 import assert from 'node:assert/strict';
 import {Ciel} from '../refonte/moteur.js';
 const project=(x,y,z=0)=>({x,y:y-z*.18,z});
-function alphaOf(groupe,titres,alpha=1){
+function alphaOf(groupe,titres,alpha=1,{x=320,referenceFlat=false}={}){
   const labels=[],squares=[];
   const gradient=()=>({addColorStop(){}});
   const ctx=new Proxy({
     globalAlpha:1,
     createLinearGradient:gradient,
     createRadialGradient:gradient,
-    fillText(text){labels.push({text,alpha:this.globalAlpha})},
+    measureText(text){return {width:text.length*6}},
+    fillText(text,x){labels.push({text,x,align:this.textAlign,alpha:this.globalAlpha})},
     fillRect(){squares.push(this.globalAlpha)},
   },{get(target,key,proxy){
     return key in target ? Reflect.get(target,key,proxy) : ()=>{};
   }});
   const sky=new Ciel();
-  sky.definit('single',{groupe,label:'Projets professionnels',petit:true,editoriaux:[]});
-  sky.place('single',[320,310,35],100);
+  sky.definit('single',{groupe,label:'Projets professionnels',petit:true,editoriaux:[],referenceFlat});
+  sky.place('single',[x,310,35],100);
   sky.dessine(ctx,project,null,{W:1440,H:900,alpha,titres});
   return {labels,squares,visible:sky.etat(groupe)[0].visible};
 }
@@ -40,3 +41,9 @@ assert.ok(Math.abs(combined.labels[0].alpha-.2)<.001,'Combinaison opacité globa
 const welcome=alphaOf('accueil',0);
 assert.ok(Math.abs(welcome.labels[0].alpha-1)<.001,'Accueil indépendant de la transition des titres');
 console.log('PASS Fall26 Expo title star opacity: 0, .04, .25, .5, .8, 1, combined and hero');
+const border=alphaOf('accueil',0,1,{x:1390,referenceFlat:true}).labels[0];
+assert.equal(border.align,'right','Le libellé proche du bord droit se place à gauche du foyer');
+assert.ok(border.x<1390 && border.x-border.text.length*6>0);
+const inner=alphaOf('accueil',0,1,{referenceFlat:true}).labels[0];
+assert.equal(inner.align,'left','Le libellé intérieur reste à droite du foyer');
+assert.ok(inner.x>320);

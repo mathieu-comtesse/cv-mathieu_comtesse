@@ -2,7 +2,7 @@
 
 Audit initial et corrections du 16 novembre 2026.
 
-[Comparaison visuelle des accueils à plat](accueil-1470x802.jpg)
+[Comparaison visuelle des accueils à plat](accueil-1470x802.jpg) · [Comparaison Shopify et branche à 1 470 × 746](branche-shopify-1470x746.jpg)
 
 ## Périmètre
 
@@ -27,6 +27,14 @@ Audit initial et corrections du 16 novembre 2026.
 | Mobile et accélération | Capture desktop réelle. Vidéos fournies pour l’Expo | Tests géométriques desktop et mobile exécutés. Chromium local ne démarre pas, avec refus de création du socket de processus. Rendu mobile, GPU matériel et coût par frame restent à mesurer | Non validé |
 
 Les mesures de luminance utilisent la même zone de 1 037 × 732 px dans les deux captures. L’échantillon est un état d’animation de chaque site. La luminance est calculée sur les canaux RVB 8 bits avec les coefficients 0,2126, 0,7152 et 0,0722.
+
+## Contrôle de la branche dans le navigateur
+
+À 1 470 × 746, l’aperçu du commit `e927ddd` a ouvert le mode à plat, l’Expo et le retour à plat. La comparaison des onze centres relevés dans cette nouvelle paire donne environ 13,5 px d’écart moyen et 51 px au maximum. Le maximum concerne le foyer associé à Payments dans Shopify. La position varie avec le pointeur et le temps d’animation. Ce relevé est propre aux deux images capturées.
+
+Dans le rectangle commun de 1 047 × 676 px, la luminance moyenne est de 10,04 chez Shopify et de 8,44 sur la branche. Au-dessus de 70 sur 255, les proportions sont respectivement 1,77 % et 1,18 %. Le contraste des branches, des terminaisons et des vignettes reste à affiner.
+
+La capture montre aussi un libellé tronqué près du bord droit. Le rendu bascule désormais le libellé de l’autre côté du foyer lorsque sa largeur dépasse l’espace disponible. Le test canvas vérifie les deux orientations.
 
 ## Relevé des centres
 

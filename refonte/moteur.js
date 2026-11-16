@@ -523,8 +523,12 @@ export class Ciel {
           const texte=compact?(e.num||''):(e.referenceShortLabel||e.label)+' '+(e.referenceEditorialCount??e.noeuds.filter(n=>n.ed).length);
           ctx.globalAlpha=a*aE*.94;ctx.fillStyle='rgba(226,233,255,.88)';
           ctx.font='400 '+(compact?9:10)+'px "JetBrains Mono",ui-monospace,monospace';
-          ctx.textAlign='left';ctx.fillText(texte,F.x+cote/2+7,F.y-4);
-          e.libelleEcran={x:Math.round(F.x+cote/2+7),y:Math.round(F.y-4),texte};
+          const marge=cote/2+7;
+          const coteDroit=F.x+marge+ctx.measureText(texte).width<=W-4;
+          const x=F.x+(coteDroit?marge:-marge), y=F.y-4;
+          ctx.textAlign=coteDroit?'left':'right';
+          ctx.fillText(texte,x,y);
+          e.libelleEcran={x:Math.round(x),y:Math.round(y),texte};
         }else if (e.sol) {                                                       // étoile posée : numéro et nom sous le cercle
           const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
           ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
