@@ -1,6 +1,6 @@
 # Shopify Fall ’26 et comtesse.me
 
-Audit initial et première correction du 16 novembre 2026.
+Audit initial et corrections du 16 novembre 2026.
 
 [Comparaison visuelle des accueils à plat](accueil-1470x802.jpg)
 
@@ -8,7 +8,7 @@ Audit initial et première correction du 16 novembre 2026.
 
 - Production du portfolio examinée à partir de `main` (`41ad3c6`). La branche de travail reprend `refonte/fall26-original-contenus-20261115` (`f9f6646`), qui apporte la calibration, les contenus du portfolio et les tests des deux modes. Les branches `claude/integration-fall26`, `codex/fall26-parite` et `feat/fall26-video-hud-20261115` ont aussi été repérées dans le dépôt.
 - La référence visuelle est la page publique Shopify et les deux vidéos qui montrent effectivement cette page. La vidéo nommée `SHOPIFY_FALL26_ANIMATIONS_V5(1).webm` montre principalement une interface de conversation dans les images échantillonnées toutes les cinq secondes. Elle ne fournit pas de repère exploité ici.
-- Le HTML autonome V17 sert à contrôler les données intégrées et à comprendre le prototype. L’archive V13 a fourni des relevés Expo par chapitre et le moteur de projection de cette version. L’archive de calibration du 15 novembre a fourni une étude isolée du décor et des repères Expo en trois résolutions. Les ZIP V15 et V17 ainsi que l’extracteur V15 ont été localisés, avec un échec d’authentification lors de leur récupération.
+- Le HTML autonome V17 sert à contrôler les données intégrées et à comprendre le prototype. L’archive V13 a fourni des relevés Expo par chapitre et le moteur de projection de cette version. L’archive de calibration du 15 novembre a fourni une étude isolée du décor et des repères Expo en trois résolutions. L’archive source a fourni 43 captures, dont 33 en Expo, 13 modules et le JSON du graphe. Son JSON est exactement égal à celui embarqué dans la V17. Les archives V15 et V17, l’extracteur, le journal et la vidéo originale du jeu ont également été récupérés.
 - Le navigateur a affiché Shopify à plat et les deux modes de comtesse.me. Chez Shopify, la commande Expo était masquée dans ce navigateur. Le code de détection exige les API HTML-in-Canvas ainsi que la copie de l’élément HTML dans une texture WebGPU. Les séquences Expo de la référence proviennent donc des vidéos fournies. Le redimensionnement demandé à 390 px a gardé une largeur effective de 1 470 px. Il ne constitue pas une capture mobile.
 
 ## Matrice de conformité
@@ -22,7 +22,7 @@ Audit initial et première correction du 16 novembre 2026.
 | Formation, survol, curseur | Les vidéos et le module du graphe montrent des rayons, des terminaisons et variations d’état distinctes par chapitre et interaction | La branche reprend la mise en mouvement et le picking de `Ciel`. Les séquences de formation et de retour au relâchement demandent un suivi image par image | Partiel |
 | Titres et typographie | La navigation Shopify déclare PP Neue Montreal. La taille calculée de son premier h1 est 14 px. Le grand titre du héros et les titres des chapitres doivent être mesurés séparément | Premier h1 de la production à 14 px en Inter. Les tailles des chapitres de la branche ont des tests de régression | Police différente. Titres des chapitres à comparer |
 | Transition des étoiles et couleurs | Les vidéos montrent les changements de foyer et de teinte en défilement. Le module `journey` utilise une phase de progression et des fenêtres distinctes pour le dévoilement, le panoramique, l’isolation et la couleur | La branche utilise une horloge commune et des paramètres estimés. Les tests valident sa réversibilité | Partiel. Synchronisation avec Shopify à mesurer |
-| Caméra, sol et cadres Expo | Vidéos avec galerie continue et déplacement du point de vue. Moteur Expo WebGPU et shader de maillage récupérés | Base de travail avec géométrie WebGL pour les volumes et couches Canvas pour grille et annotations. V17 utilise deux surfaces Canvas 2D et une perspective calculée à la main | Garder la géométrie du dépôt. Profil du sol, matériaux et perspective à recaler |
+| Caméra, sol et cadres Expo | Vidéos avec galerie continue et déplacement du point de vue. Moteur Expo WebGPU et shader de maillage récupérés | Base de travail avec géométrie WebGL pour les volumes et couches Canvas pour grille et annotations. V17 utilise deux surfaces Canvas 2D et une perspective calculée à la main | Profil et caméra recalés avec dix projections numériques. Matériaux et scènes complètes à comparer |
 | Jeu et objets de galerie | Module `index-BYa19V1d.js` identifié. Il demande notamment les blocs et effets de parcours au module Expo. Les commandes et écrans de résultat sont recensés ci-dessous | Le mini-jeu V17 possède une simulation et un monde de données partagés avec son Expo 2D. Le moteur du portfolio n’intègre encore aucun jeu | À implémenter dans la scène du portfolio |
 | Mobile et accélération | Capture desktop réelle. Vidéos fournies pour l’Expo | Tests géométriques desktop et mobile exécutés. Chromium local ne démarre pas, avec refus de création du socket de processus. Rendu mobile, GPU matériel et coût par frame restent à mesurer | Non validé |
 
@@ -46,6 +46,12 @@ Les mesures de luminance utilisent la même zone de 1 037 × 732 px dans les deu
 
 La projection des anciennes coordonnées de la branche vers cette capture s’écartait en moyenne d’environ 80 px. Le test actualisé applique le calcul à partir du rectangle du graphe et des points relevés. Il reste à mesurer les positions du rendu navigateur, y compris les déplacements causés par le pointeur et les changements de format.
 
+## Projection Expo
+
+La branche remplace l’ancien profil exponentiel ajusté à la main avec le calcul du ruban observé dans le module Expo. Le terrain comporte 64 segments sur 5 hauteurs de fenêtre. La caméra a un champ qui évolue de 50° à 45°, une inclinaison finale de 30,2° et un plan de coupe proche à 4 px. Le relief démarre à 35 % de la bascule avec sa propre courbe de montée. Les projections Canvas et WebGL utilisent le même champ et le même plan proche.
+
+Dix projections testées aux phases 0, 25, 50, 75 et 100 %, à 1 470 × 802 et 390 × 844. L’écart entre le calcul de la branche et les valeurs de référence arrondies est inférieur à 0,01 px. Ces points valident la projection de coordonnées. Les captures navigateur restent nécessaires pour valider le placement des objets, les textures et la fluidité d’ensemble.
+
 ## Données, shaders et jeu
 
 - Le JSON V17 contient 11 sections, 222 mises à jour, 62 produits, 33 thèmes, 18 résultats et 7 profils. Les relations se répartissent en 222 `contains` et 1 722 `assigned_to`. Les enregistrements du JSON n’ont pas de coordonnées. `getExponentialGraphPayload` lie les mises à jour aux sections et choisit aussi certaines paires à relier visuellement selon leurs correspondances et leur poids. Les 1 944 relations doivent donc nourrir les données du moteur, avec une sélection d’arêtes adaptée à l’état d’affichage.
@@ -63,6 +69,16 @@ La projection des anciennes coordonnées de la branche vers cette capture s’é
 
 - Commandes de référence relevées dans les libellés originaux. Direction avec flèches gauche et droite ou A et D, vitesse avec flèches haut et bas ou W et S ou molette, saut avec espace. Le module contient également une cible tactile à déplacer.
 - Le résultat distingue la chute et l’arrivée. Il affiche distance, taille et détail des points séparant nœuds, mots et sauts. L’arrivée calcule une note. Le module référence aussi des tremplins, des zones de poussée, des trous, une animation de particules et un moteur sonore. Leur trajectoire, leur disposition et leurs déclenchements restent à valider en jeu.
+- Le journal original contient 1 756 relevés d’état et 3 308 événements sur 213,7 s. La vidéo 3 656 × 2 238 contient une piste Opus. Le départ est affiché à 42 010 px de l’arrivée sur cette session. Cette longueur dépend de la page et du point de départ.
+- Les résultats filmés permettent de vérifier le futur bilan. Le prototype V17 saute directement près des obstacles ou de l’arrivée dans ses tests automatiques. Une victoire effectuée en jouant tout le parcours reste à vérifier.
+
+| Résultat filmé | Temps | Distance | Taille | Nœuds | Mots | Sauts | Total |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Première chute | 26,1 s | 16 824 px | 156 px | 85 | 546 | 30 | 661 |
+| Deuxième chute | 53,9 s | 34 727 px | 209 px | 172 | 1 511 | 60 | 1 743 |
+
+[Première chute filmée dans Shopify](jeu-chute-shopify.jpg)
+
 - Pour l’implémentation du jeu, les identifiants, positions et collisions des objets doivent être pris dans le registre Expo. Le pas fixe peut ensuite être testé indépendamment du moteur de rendu en rejouant les mêmes entrées. Les ressources Shopify téléchargées restent des éléments d’audit.
 
 ## Vérifications de la branche
@@ -81,4 +97,4 @@ node tools/test-fall26-preview-paths.mjs
 node tools/test-ciel-fade.mjs
 ```
 
-Le rapport couvre le premier recalage des foyers. L’intégration du graphe complet, la galerie et le mini-jeu restent ouverts, ainsi que les comparaisons des transitions, des interactions et des performances.
+Le rapport couvre le recalage des foyers et de la projection Expo. L’intégration du graphe complet, la galerie et le mini-jeu restent ouverts, ainsi que les comparaisons des transitions, des interactions et des performances.

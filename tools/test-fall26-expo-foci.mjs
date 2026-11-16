@@ -21,3 +21,26 @@ for(const [W,H] of [[1440,900],[1920,1080],[390,844]]){
   }
 }
 console.log('PASS projected distinct chapter foci across desktop/mobile Expo cameras');
+
+// Points calculés avec les équations du module Expo Shopify, build 5090151.
+// Chaque point est sur la rangée lead + 0,31H, à la hauteur 38.
+const projections = [
+  { width: 1470, height: 802, samples: [
+    [0, 352.800, 248.620], [.25, 372.938, 256.923], [.5, 461.454, 297.981],
+    [.75, 510.274, 330.326], [1, 515.383, 334.571]
+  ] },
+  { width: 390, height: 844, samples: [
+    [0, 93.600, 261.640], [.25, 98.943, 270.378], [.5, 122.479, 314.029],
+    [.75, 135.419, 348.553], [1, 136.771, 353.087]
+  ] }
+];
+for (const {width, height, samples} of projections) {
+  const lead = Math.round(cvAnchor(height).row - height / 2);
+  for (const [progress, x, y] of samples) {
+    const view = cvView(progress, width, height, lead);
+    const point = p(view, width * .24, lead + height * .31, 38);
+    const error = Math.hypot(point.x - x, point.y - y);
+    assert.ok(error < .01, `Projection Shopify à ${width} × ${height}, phase ${progress}, écart ${error} px`);
+  }
+}
+console.log('PASS 10 Shopify reference camera projections within 0.01 px');

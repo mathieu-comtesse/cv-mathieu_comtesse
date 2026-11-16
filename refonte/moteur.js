@@ -12,22 +12,82 @@
  * ont été calées sur des relevés à 1440 × 900, 1920 × 1080, 2560 × 1440 et 390 × 844. */
 
 export const L = { tilt: { angle: 55 }, city: 0.005, cityGrow: 4, layers: { graph: { heroLift: 0.1, spread: 0.17 } } };
-const PAS = 64, PROCHE = 40;
+export const EXPO_NEAR = 4;
+const PAS = 64;
+const DEG = Math.PI / 180;
+const PITCH = -30.2 * DEG;
+const FOV_PLAT = 50 * DEG, FOV_EXPO = 45 * DEG;
+const HAUTEUR_EXPO = 1.015;
+const RECUL_EXPO = -1;
+const COURBURE = 6.54;
+const MONTEE = 0.35;
 
-export const cvAnchor = (H) => ({ row: 2.298 * H });
+function profilExpo(progression, hauteur) {
+  const T = 5 * hauteur;
+  const ds = T / PAS;
+  const pts = new Float32Array(2 * (PAS + 1));
+  const angles = new Float32Array(PAS);
+  const courbureMax = Math.expm1(COURBURE);
+  let y = 0, z = 0;
+  for (let i = 0; i < PAS; i++) {
+    const proportion = Math.expm1(COURBURE * (i + 0.5) / PAS) / courbureMax;
+    const orientation = Math.PI / 2 + Math.atan2(y - HAUTEUR_EXPO * hauteur, RECUL_EXPO * hauteur - z);
+    const angle = progression * proportion * orientation;
+    y += ds * Math.sin(angle);
+    z -= ds * Math.cos(angle);
+    pts[2 * i + 2] = y;
+    pts[2 * i + 3] = z;
+    angles[i] = angle;
+  }
+  return { T, ds, pts, angles };
+}
 
-/* Vue : profil du sol (65 points, 65 angles) et caméra.
- * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
- * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
- * la bascule entre les deux modes est une vraie transformation de la scène, réversible à tout instant. */
-const RISE_AT = 0.35;   // « riseAt » relevé dans la configuration de la scène de la référence (usage lu dans son bundle : hauteurs = lissage de (progression − riseAt) / (1 − riseAt))
+function ancrageExpo() {
+  // Intersection du rayon central de la caméra avec le ruban au plein Expo.
+  const hauteur = 1024;
+  const { T, ds, pts } = profilExpo(1, hauteur);
+  const directionY = Math.sin(PITCH), directionZ = -Math.cos(PITCH);
+  for (let i = 0; i < PAS; i++) {
+    const segmentY = pts[2 * i + 2] - pts[2 * i];
+    const segmentZ = pts[2 * i + 3] - pts[2 * i + 1];
+    const determinant = directionY * segmentZ - directionZ * segmentY;
+    if (Math.abs(determinant) < 1e-9) continue;
+    const deltaY = pts[2 * i] - HAUTEUR_EXPO * hauteur;
+    const deltaZ = pts[2 * i + 1] - RECUL_EXPO * hauteur;
+    const fraction = (directionZ * deltaY - directionY * deltaZ) / determinant;
+    const distance = (segmentZ * deltaY - segmentY * deltaZ) / determinant;
+    if (fraction >= 0 && fraction <= 1 && distance > 0)
+      return { row: (T - (i + fraction) * ds) / hauteur, distance: distance / hauteur };
+  }
+  return { row: 0.5, distance: 1 };
+}
+const ancrage = ancrageExpo();
+export const cvAnchor = H => ({ row: ancrage.row * H });
+
+/* Le profil et la caméra suivent le relevé du module Expo Shopify 5090151.
+ * La progression d'entrée est linéaire dans le temps. La rotation, le champ
+ * de vision et les hauteurs d'objets suivent deux courbes distinctes. */
 export function cvView(progress, W, H, lead = 0) {
-  const e = Math.max(0, Math.min(1, progress)), T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
-  for (let i = 0; i <= PAS; i++) ang[i] = e * 1.44 * Math.exp(7.33 * (i / PAS - 1));
-  for (let i = 0; i < PAS; i++) { const th = (ang[i] + ang[i + 1]) / 2; pts[2 * i + 2] = pts[2 * i] + ds * Math.sin(th); pts[2 * i + 3] = pts[2 * i + 1] - ds * Math.cos(th); }
-  const focusRow = lead + H / 2, fov = Math.PI / 4, a = Math.PI / 2 + (0.52709 - Math.PI / 2) * e, d = (0.5 / Math.tan(fov / 2) + (2.018 - 0.5 / Math.tan(fov / 2)) * e) * H, vise = -(T - focusRow) - 0.041 * H * e;
-  const montee = Math.max(0, Math.min(1, (e - RISE_AT) / (1 - RISE_AT))), rise = montee * montee * (3 - 2 * montee);   // les hauteurs ne montent qu'une fois la caméra engagée ; courbe de lissage déduite, non lue
-  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, camY: d * Math.sin(a), camZ: vise + d * Math.cos(a), pitch: -a };
+  const t = Math.max(0, Math.min(1, progress));
+  const e = t < 0.5 ? 4 * t ** 3 : 1 - 4 * (1 - t) ** 3;
+  const rise = 1 - (1 - Math.max(0, (t - MONTEE) / (1 - MONTEE))) ** 3;
+  const { T, ds, pts, angles } = profilExpo(e, H);
+  const ang = new Float32Array(PAS + 1);
+  for (let i = 0; i <= PAS; i++) ang[i] = (angles[Math.max(0, i - 1)] + angles[Math.min(PAS - 1, i)]) / 2;
+
+  const focusRow = lead + H / 2;
+  const sample = Math.max(0, Math.min(PAS, (T - focusRow) / ds));
+  const index = Math.min(PAS - 1, Math.floor(sample)), fraction = sample - index;
+  const focusY = pts[index * 2] + (pts[index * 2 + 2] - pts[index * 2]) * fraction;
+  const focusZ = pts[index * 2 + 1] + (pts[index * 2 + 3] - pts[index * 2 + 1]) * fraction;
+  const pitch = -Math.PI / 2 + (PITCH + Math.PI / 2) * e;
+  const fov = FOV_PLAT + (FOV_EXPO - FOV_PLAT) * e;
+  const flatDistance = H / (2 * Math.tan(FOV_PLAT / 2));
+  const distance = flatDistance + (H * ancrage.distance - flatDistance) * e;
+
+  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, pitch,
+    camY: focusY - distance * Math.sin(pitch),
+    camZ: focusZ + distance * Math.cos(pitch) };
 }
 
 /* point du monde (x, y, z) pour une position du chemin */
@@ -42,7 +102,7 @@ export function monde(view, col, row, h = 0) {
 export function p(view, col, row, h = 0) {
   const [X, Y, Z] = monde(view, col, row, h), dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
   const y = dy * c + dz * s, d = dy * s - dz * c;
-  if (!(d > PROCHE)) return null;
+  if (!(d >= EXPO_NEAR)) return null;
   const f = view.H / 2 / Math.tan(view.fov / 2);
   return { x: view.W / 2 + X / d * f, y: view.H / 2 - y / d * f, z: d };
 }
