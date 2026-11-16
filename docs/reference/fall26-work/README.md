@@ -106,3 +106,17 @@ node tools/test-ciel-fade.mjs
 ```
 
 Le rapport couvre le recalage des foyers et de la projection Expo. L’intégration du graphe complet, les onze sections du parcours, la galerie et le mini-jeu restent ouverts, ainsi que les comparaisons des transitions, des interactions et des performances.
+
+## Animations des chapitres et du graphe
+
+Le module `journey` du build Shopify 5090151 distingue le repli du réseau sortant, le dévoilement du suivant, le déplacement du foyer, l’ouverture de ses branches et la couleur. La branche utilise les fenêtres normalisées ci-dessous en mode à plat et en Expo.
+
+| Phase | Intervalle du défilement de transition |
+|---|---|
+| Repli du réseau sortant | 0 à 30 % |
+| Dévoilement du réseau entrant | 2 à 8 % |
+| Déplacement des foyers | 0 à 100 %, courbe cubique |
+| Ouverture du réseau entrant | 50 à 100 % |
+| Interpolation chromatique | 11 à 63 % |
+
+Les positions de départ et d’arrivée dans la page restent celles du portfolio. La géométrie et l’opacité des fils sont adaptées à son moteur Canvas. Un balayage transversal détecte maintenant le croisement d’une branche éditoriale, courbe le fil entre ses extrémités et déclenche un retour amorti. Les paramètres de retour de Shopify sont de 3,1 Hz, avec un amortissement de 0,15 et une intégration par pas de 1/240 s. Le test rejoue le geste, vérifie le passage de part et d’autre du tracé de repos et contrôle le mode de mouvement réduit. Les superpositions image par image des phases et du balayage restent à mesurer.

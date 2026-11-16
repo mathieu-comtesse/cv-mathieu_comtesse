@@ -261,9 +261,62 @@ const frac = (x) => x - Math.floor(x);
 const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3; };
 const OR = 2.399963;
 
+// Le geste transversal donne une impulsion au fil, avec les réglages
+// de retour du contrôleur de référence. Les extrémités restent ancrées.
+const WIRE_OMEGA=2*Math.PI*3.1, WIRE_DAMPING=.15;
+const WIRE_IMPULSE_LIMIT=14*WIRE_OMEGA/
+  Math.exp(-WIRE_DAMPING/Math.sqrt(1-WIRE_DAMPING**2)*Math.acos(WIRE_DAMPING));
+
+function brushWire(node, pointer, dt, now) {
+  let spring=node.wireSpring;
+  if(pointer && now-(spring?.brushed??-Infinity)>=.065){
+    const {from,to}=pointer;
+    const dx=to.x-from.x, dy=to.y-from.y;
+    const left=Math.min(node.x0,node.cx,node.x1),right=Math.max(node.x0,node.cx,node.x1);
+    const top=Math.min(node.y0,node.cy,node.y1),bottom=Math.max(node.y0,node.cy,node.y1);
+    if(Math.max(from.x,to.x)>=left && Math.min(from.x,to.x)<=right &&
+        Math.max(from.y,to.y)>=top && Math.min(from.y,to.y)<=bottom){
+      let ax=node.x0, ay=node.y0;
+      for(let i=1;i<=16;i++){
+        const at=i/16, u=1-at;
+        const bx=u*u*node.x0+2*u*at*node.cx+at*at*node.x1;
+        const by=u*u*node.y0+2*u*at*node.cy+at*at*node.y1;
+        const tx=bx-ax,ty=by-ay,det=dx*ty-dy*tx;
+        if(Math.abs(det)>1e-9){
+          const rx=ax-from.x,ry=ay-from.y;
+          const onPointer=(rx*ty-ry*tx)/det, onWire=(rx*dy-ry*dx)/det;
+          const position=(i-1+onWire)/16;
+          if(onPointer>=0 && onPointer<=1 && onWire>=0 && onWire<=1 &&
+              position>=.06 && position<=.94){
+            const len=Math.hypot(tx,ty),nx=-ty/len,ny=tx/len;
+            spring??={x:0,y:0,vx:0,vy:0};
+            const speed=(dx*nx+dy*ny)/Math.max(dt,.008);
+            const normalSpeed=spring.vx*nx+spring.vy*ny;
+            const maxImpulse=Math.max(Math.abs(normalSpeed),WIRE_IMPULSE_LIMIT);
+            const delta=Math.max(-maxImpulse,Math.min(maxImpulse,normalSpeed+speed*.2))-normalSpeed;
+            spring.vx+=nx*delta; spring.vy+=ny*delta;
+            spring.brushed=now;
+            break;
+          }
+        }
+        ax=bx;ay=by;
+      }
+    }
+  }
+  if(!spring)return;
+  for(let left=Math.min(dt,.05);left>0;left-=1/240){
+    const step=Math.min(left,1/240);
+    spring.vx-=(WIRE_OMEGA**2*spring.x+2*WIRE_DAMPING*WIRE_OMEGA*spring.vx)*step;
+    spring.vy-=(WIRE_OMEGA**2*spring.y+2*WIRE_DAMPING*WIRE_OMEGA*spring.vy)*step;
+    spring.x+=spring.vx*step; spring.y+=spring.vy*step;
+  }
+  node.wireSpring=Math.hypot(spring.x,spring.y)<.05 && Math.hypot(spring.vx,spring.vy)<.5?null:spring;
+  if(node.wireSpring){node.cx+=2*spring.x;node.cy+=2*spring.y;}
+}
+
 export class Ciel {
   constructor() { this.etoiles = new Map(); this.images = new Map(); this.cibles = []; this.survol = null; this.pris = null; }
-  vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; }
+  vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; this.wirePointer = null; }
   image(url) {
     if (!url) return null;
     let im = this.images.get(url); if (!im) { im = new Image(); im.decoding = 'async'; im.src = url; this.images.set(url, im); }
@@ -341,6 +394,12 @@ export class Ciel {
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
     const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
+    const lastPointer=this.wirePointer;
+    this.wirePointer=libre && souris.x>=0 && souris.y>=0 && souris.x<W && souris.y<H
+      ? {x:souris.x,y:souris.y}:null;
+    const pointer=lastPointer && this.wirePointer && !this.pris &&
+      (lastPointer.x!==souris.x || lastPointer.y!==souris.y)
+      ? {from:lastPointer,to:this.wirePointer}:null;
     const quads = covers.map((pts) => ({ pts, z: pts.reduce((s, q) => s + q.z, 0) / 4 }));
     covers = quads;
     const focus = this.survol ? this.survol.noeud : this.survolBranche ? this.survolBranche.noeud : null, focusE = this.survol ? this.survol.etoile : this.survolBranche ? this.survolBranche.etoile : null;
@@ -414,6 +473,9 @@ export class Ciel {
         const dim = focus && !hl && e === focusE;
         n.cl = voile ? 3 : hl ? 2 : dim ? 1 : 0;
         n.x0 = x0; n.y0 = y0; n.x1 = x; n.y1 = y; n.cx = cx; n.cy = cy; n.gg = g; n.z = z; n.vis = true; cnt[n.niveau * 4 + n.cl]++;
+        if(libre && n.ed && !n.par && (pointer || n.wireSpring))
+          brushWire(n, !voile && g>.5 ? pointer:null, dt, tt);
+        else if(!libre && n.wireSpring)n.wireSpring=null;
       }
       /* 2. ombres portées au sol des branches éditoriales et des cartes (expo) */
       if (ombre) {

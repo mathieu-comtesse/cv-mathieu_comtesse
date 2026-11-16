@@ -47,3 +47,36 @@ assert.ok(border.x<1390 && border.x-border.text.length*6>0);
 const inner=alphaOf('accueil',0,1,{referenceFlat:true}).labels[0];
 assert.equal(inner.align,'left','Le libellé intérieur reste à droite du foyer');
 assert.ok(inner.x>320);
+
+// Replay a pointer crossing a visible wire, then leave it at rest.
+const wires=new Ciel();
+wires.definit('wire',{groupe:'accueil',editoriaux:[{handle:'projet'}]});
+wires.place('wire',[320,310,0],100);
+const gradient=()=>({addColorStop(){}});
+const wireContext=new Proxy({
+  createLinearGradient:gradient,
+  createRadialGradient:gradient
+},{get(target,key){return target[key]??(()=>{});}});
+const draw=(t,souris)=>wires.dessine(wireContext,project,t,{W:1440,H:900,dt:1/60,souris,labels:false});
+const node=wires.etoiles.get('wire').noeuds[0];
+for(let i=0;i<160;i++)draw(i/60);
+assert.ok(node.gg>.99);
+const mx=(node.x0+2*node.cx+node.x1)/4,my=(node.y0+2*node.cy+node.y1)/4;
+const dx=node.x1-node.x0,dy=node.y1-node.y0,len=Math.hypot(dx,dy);
+const nx=-dy/len,ny=dx/len;
+const from={x:mx-25*nx,y:my-25*ny},to={x:mx+25*nx,y:my+25*ny};
+draw(3,from);
+draw(3+1/60,to);
+assert.ok(node.wireSpring,'Un passage transversal doit courber le fil');
+assert.ok(node.wireSpring.x*nx+node.wireSpring.y*ny>0);
+let rebounds=false;
+for(let i=2;i<160;i++){
+  draw(3+i/60,to);
+  const spring=node.wireSpring;
+  if(spring && spring.x*nx+spring.y*ny<0)rebounds=true;
+}
+assert.ok(rebounds,'Le fil doit repasser de l’autre côté de son tracé au retour');
+assert.equal(node.wireSpring,null,'Le ressort doit terminer son mouvement');
+draw(null,from); draw(null,to);
+assert.equal(node.wireSpring,null,'Le passage reste immobile en mouvement réduit');
+console.log('PASS graphe : pli du fil, oscillation amortie et mouvement réduit');

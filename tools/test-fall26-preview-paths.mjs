@@ -36,7 +36,7 @@ assert.ok(entry.includes('target.hash=location.hash')&&entry.includes('target.se
 assert.ok(html.includes('refonte/fall26-reference-graph.js'),
   'Must load the full starfield, not the simplified studio mockup');
 const flatGraph=read('refonte/hero-graph.js');
-const revision='fall26-work-animation';
+const revision='fall26-work-wire';
 for(const asset of ['site.css','hero-graph.js','moteur.js','fall26-reference-graph.js']){
   assert.ok(html.includes('refonte/'+asset+'?v='+revision),
     'Preview must invalidate older cached '+asset);
