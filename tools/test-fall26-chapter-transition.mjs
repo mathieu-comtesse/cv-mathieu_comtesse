@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,chapterColourWave,mixHex} from '../refonte/fall26-chapter-transition.js';
+import {chapterJourney,chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,chapterColourWave,mixHex} from '../refonte/fall26-chapter-transition.js';
 
 const sections=[
   {top:1000,colour:'#051DAA'},
@@ -15,7 +15,7 @@ assert.equal(chapterHandover(begin-1,sections,H).colour,'#051DAA');
 assert.equal(chapterHandover(begin,sections,H).progress,0);
 assert.equal(chapterHandover(end,sections,H).progress,1);
 assert.equal(chapterHandover(end+1,sections,H).colour,'#7000A9');
-assert.equal(chapterHandover(center,sections,H).colour,mixHex('#051DAA','#7000A9',.5));
+assert.equal(chapterHandover(center,sections,H).colour,mixHex('#051DAA','#7000A9',chapterJourney(.5).colour));
 assert.equal(chapterHandover(center,sections,H).from,0);
 assert.equal(chapterHandover(center,sections,H).to,1);
 assert.equal(chapterHandover(center,sections,H).progress,.5);
@@ -26,8 +26,8 @@ for(const x of [0,.1,.25,.5,.75,.9,1]){
   assert.deepEqual(chapterHandover(p,sections,H),chapterHandover(p,sections,H),
     'A scroll position must always produce the same output, forward and reverse');
 }
-assert.equal(chapterColourAtRow(sections[1].top,sections,H),mixHex('#051DAA','#7000A9',.5),
-  'Expo floor colour at a chapter boundary must be the same 50% blend');
+assert.equal(chapterColourAtRow(sections[1].top,sections,H),mixHex('#051DAA','#7000A9',chapterJourney(.5).colour),
+  'Expo floor colour at a chapter boundary must be the same colour phase for that scroll position');
 assert.equal(chapterColourAtRow(sections[1].top-H*.38,sections,H),'#051DAA');
 assert.equal(chapterColourAtRow(sections[1].top+H*.38,sections,H),'#7000A9');
 const theme=fs.readFileSync(new URL('../refonte/theme-stars.js',import.meta.url),'utf8');
@@ -48,15 +48,15 @@ assert.ok(!html.includes('for(const [bi,band] of bands.entries())'),
 const motor=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
 assert.ok(motor.includes("e.transitionOpacity??1"),'Expo title stars must fade by handover weight');
 assert.ok(motor.includes("e.transitionScale??1"),'Expo title stars must shrink while leaving');
-assert.ok(motor.includes("e.transitionAngle||0"),'Expo title stars must rotate on the same timeline');
-assert.ok(html.includes('e.transitionAngle=pose.angle;'),'Expo stars must share the flat rotation');
+assert.ok(motor.includes("e.transitionOpening == null"),'Expo branches must use the shared opening during handover');
+assert.ok(html.includes('e.transitionOpening=pose.participating?pose.opening:null;'),'Expo stars must share branch opening with flat');
 assert.ok(theme.includes('const weight=pose.weight;'),
  'Non-active flat stars must stay hidden after the transition completes');
-assert.ok(html.includes('e.transitionOpacity=pose.weight;'),
+assert.ok(html.includes('e.transitionOpacity=pose.opacity;'),
  'Expo stars must not reappear after their outgoing fade completes');
 assert.ok(theme.includes('const participating=pose.participating;'),
   'Both incoming and outgoing constellations must remain alive throughout the shared transition');
-assert.ok(theme.includes('const alpha=(participating?1:localAlpha)*intro*weight;'),
+assert.ok(theme.includes('const alpha=(participating?1:localAlpha)*intro*pose.opacity;'),
   'Outgoing star opacity must follow the common timeline instead of the old heading viewport');
 assert.ok(theme.includes('const anchor=chapterStarAnchor(chapterIndex,handover,W,H);'),
   'Transition stars must use independent, video-calibrated screen-space pivots');
@@ -95,6 +95,23 @@ assert.ok(theme.includes('chapterStarAnchor(chapterIndex,handover,W,H)'),
  'Flat star geometry must use the calibrated separated centres');
 assert.ok(html.includes('C.chapterStarAnchor(chapterIndex,handover,innerWidth,innerHeight)'),
  'Expo star geometry must share the same separated centres');
+
+assert.deepEqual(chapterJourney(0),{gather:0,reveal:0,pan:0,isolate:0,colour:0});
+assert.equal(chapterJourney(.08).reveal,1);
+assert.equal(chapterJourney(.11).colour,0);
+assert.equal(chapterJourney(.30).gather,1);
+assert.equal(chapterJourney(.63).colour,1);
+assert.equal(chapterJourney(.50).isolate,0);
+assert.equal(chapterJourney(.75).isolate,.5);
+assert.equal(chapterJourney(.25).pan,.0625);
+const journeyPose=(index,linear)=>chapterStarPose(index,
+ {from:0,to:1,active:linear>=.5?1:0,progress:linear,linear});
+assert.equal(journeyPose(0,0).opening,1);
+assert.equal(journeyPose(0,.3).opening,0);
+assert.equal(journeyPose(1,.02).opacity,0);
+assert.equal(journeyPose(1,.5).opening,0);
+assert.equal(journeyPose(1,.75).opening,.5);
+assert.equal(journeyPose(1,1).opening,1);
 
 const waveStart=chapterColourWave('#051DAA','#7000A9',0);
 const waveHalf=chapterColourWave('#051DAA','#7000A9',.5);

@@ -5,7 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
-import {chapterHandover,chapterStarPose,chapterStarAnchor,chapterColourWave} from './fall26-chapter-transition.js?v=ct4';
+import {chapterHandover,chapterStarPose,chapterStarAnchor,chapterColourWave,chapterJourney} from './fall26-chapter-transition.js?v=ct7';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -193,7 +193,7 @@ function scene(chapitres) {
     const handover=chapterHandover(scrollY,timeline,H);
     const from=timeline[handover.from]?.colour||handover.colour;
     const to=timeline[handover.to]?.colour||handover.colour;
-    const wave=chapterColourWave(from,to,handover.progress);
+    const wave=chapterColourWave(from,to,chapterJourney(handover.linear??handover.progress).colour);
     const fingerprint=[handover.colour,wave.top,wave.middle,wave.bottom].join('/');
     if (fingerprint !== dernierFond) {
       document.body.style.setProperty('--f26-page-blend',handover.colour,'important');
@@ -228,7 +228,7 @@ function scene(chapitres) {
       const weight=pose.weight;
       const localAlpha=lisse(u,-1.6,-1.0)*(1-lisse(u,.8,1.3));
       const intro=lisse(scrollY,H*.25,H*.8);
-      const alpha=(participating?1:localAlpha)*intro*weight;
+      const alpha=(participating?1:localAlpha)*intro*pose.opacity;
       const g=participating?1:lisse(u,-1.55,-.6),
         // During handover, the fill follows the same scroll clock as the branches.
         // The outgoing letters empty while the incoming title becomes solid.
@@ -238,14 +238,14 @@ function scene(chapitres) {
       const anchor=chapterStarAnchor(chapterIndex,handover,W,H);
       const hx=anchor.x,hy=participating?anchor.y:H*.56-Math.max(0,u-.62)*H;
       const shrink=pose.scale;
-      const turn=pose.angle;
       const R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g) * shrink;
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }
       c.branches.forEach((b, k) => {
-        const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
-        let x = hx + Math.cos(b.a+turn) * R * b.r, y = hy + Math.sin(b.a+turn) * R * b.r * 0.82;
+        const initialGrowth = lisse(g * 1.6 - k * 0.02, 0, 1);
+        const gk = initialGrowth * (.35 + .65 * pose.opening);
+        let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
         if (libre) { x += Math.sin(tt * 0.4 + b.phase) * 7; y += Math.cos(tt * 0.33 + b.phase * 1.7) * 6; const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 170 && d > 1) { const q = (1 - d / 170) * 22 / d * (b.fiche ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
         const survole = b.fiche && Math.hypot(x - souris.x, y - souris.y) < 16;

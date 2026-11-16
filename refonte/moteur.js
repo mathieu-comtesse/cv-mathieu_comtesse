@@ -379,12 +379,14 @@ export class Ciel {
       const N = e.noeuds, nb = N.length, cnt = this.cnt || (this.cnt = new Int16Array(16)); cnt.fill(0);
       for (let j = 0; j < nb; j++) {
         const n = N[j]; n.vis = false;
-        let g = adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8);
+        let g = e.transitionOpening == null
+          ? adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8)
+          : .35 + .65 * e.transitionOpening;
         if (n.par) { if (!n.par.vis) continue; g = Math.min(g, n.par.gg); }
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          const angle=n.a+(e.groupe==='titre'?(e.transitionAngle||0):0); wc = c0 + Math.cos(angle) * R * n.r; wr = r0 + Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
+          const angle=n.a; wc = c0 + Math.cos(angle) * R * n.r; wr = r0 + Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
           if (libre && !e.referenceFlat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
           x = P.x; y = P.y; z = P.z;
