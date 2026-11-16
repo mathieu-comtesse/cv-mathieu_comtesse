@@ -120,3 +120,11 @@ Le module `journey` du build Shopify 5090151 distingue le repli du réseau sorta
 | Interpolation chromatique | 11 à 63 % |
 
 Les positions de départ et d’arrivée dans la page restent celles du portfolio. La géométrie et l’opacité des fils sont adaptées à son moteur Canvas. Un balayage transversal détecte maintenant le croisement d’une branche éditoriale, courbe le fil entre ses extrémités et déclenche un retour amorti. Les paramètres de retour de Shopify sont de 3,1 Hz, avec un amortissement de 0,15 et une intégration par pas de 1/240 s. Le test rejoue le geste, vérifie le passage de part et d’autre du tracé de repos et contrôle le mode de mouvement réduit. Les superpositions image par image des phases et du balayage restent à mesurer.
+
+## Entrée du graphe, itération du 16 novembre
+
+Le graphe à plat emploie désormais les courbes d'entrée de `controller-Bky8k22R.js` (classe `Ys`, build Shopify 5090151). Départ des foyers depuis le centre, rotation amortie de −180° pour les foyers et −67° pour les feuilles, trajet quintique, décalage des foyers de 0,07 s, feuilles après 0,45 s puis 0,025 s par feuille, gonflement et retour de taille. L'horloge avance à 1,18 fois le temps affiché, comme le contrôleur original. Les libellés attendent la fin du déploiement. Le mouvement réduit affiche directement les positions finales.
+
+Contrôle numérique exécuté sur la classe originale extraite, avec un foyer et 57 feuilles, 400 pas temporels : 69 600 comparaisons de progression, visibilité et taille. Écart absolu maximal : 0,000000465509, dû notamment aux tableaux Float32 de l'original. Les tests locaux couvrent aussi la permutation des départs, les bornes, la progression monotone, les positions finales et le mouvement réduit.
+
+Limites : les trajectoires partent des positions calibrées du portfolio. La simulation dynamique et la topologie complète de Shopify ne sont pas encore reprises. Les bifurcations restent attachées aux branches du moteur existant. La jonction centrale est affichée une fois la formation achevée, son amorçage reste à reproduire. L'entrée s'applique au graphe à plat, pas encore à une arrivée directe en Expo. Les vignettes restent aux extrémités des branches, leur vol vers les cartes au défilement reste à réaliser. Aucune équivalence visuelle de cette entrée n'est déclarée sans capture synchronisée des deux sites.

@@ -409,7 +409,7 @@ export class Ciel {
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
       if (e.racine && !racineVisible) continue;
-      const kT = e.groupe === 'titre' ? titres * (e.transitionOpacity??1) : 1, aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
+      const kT = e.groupe === 'titre' ? titres * (e.transitionOpacity??1) : (e.intro?.reveal??1), aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
       const [c0, r0, h0] = e.centre, F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
       if (!F || !u) continue;
@@ -438,14 +438,14 @@ export class Ciel {
       const N = e.noeuds, nb = N.length, cnt = this.cnt || (this.cnt = new Int16Array(16)); cnt.fill(0);
       for (let j = 0; j < nb; j++) {
         const n = N[j]; n.vis = false;
-        let g = e.transitionOpening == null
+        let g = n.intro ? n.intro.reach : e.transitionOpening == null
           ? adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8)
           : .35 + .65 * e.transitionOpening;
         if (n.par) { if (!n.par.vis) continue; g = Math.min(g, n.par.gg); }
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          const angle=n.a; wc = c0 + Math.cos(angle) * R * n.r; wr = r0 + Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
+          const angle=n.a+(n.intro?.spin??0); wc = c0 + Math.cos(angle) * R * n.r; wr = r0 + Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
           if (libre && !e.referenceFlat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
           x = P.x; y = P.y; z = P.z;
@@ -520,7 +520,7 @@ export class Ciel {
       for (let lv = 1; lv <= 3; lv++) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
         ctx.globalAlpha = aE * Math.min(1, MULT[cl] * kE); ctx.fillStyle = ambient ? (lv === 1 ? 'rgba(76,137,250,.65)' : 'rgba(80,137,233,.55)') : e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
-        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
+        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.intro?.scale??1) * (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
         ctx.fill();
       }
       if (ambient) {
@@ -532,7 +532,7 @@ export class Ciel {
         for (let j = 0; j < nb; j++) {
           const n = N[j];
           if (!n.vis || n.ed || n.niveau > 2 || (j + e.rang * 3) % 5 !== 0) continue;
-          const radius = Math.max(1.6, 2.7 * Math.min(1.2, ech));
+          const radius = (n.intro?.scale??1) * Math.max(1.6, 2.7 * Math.min(1.2, ech));
           ctx.moveTo(n.x1 + radius, n.y1);
           ctx.arc(n.x1, n.y1, radius, 0, 6.283);
         }
@@ -553,13 +553,13 @@ export class Ciel {
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const x = n.x1, y = n.y1, voile = n.cl === 3 ? 0.12 : 1;
-        ctx.globalAlpha = voile * aE;
+        ctx.globalAlpha = voile * aE * (n.intro?.reveal??1);
         const kv = (0.72 + (n.phase / 6.283) * 0.8) * (ambient ? .85 : 1);
         const im = this.image(n.ed.image);
         // Normalized screenshot comparison at the same graph viewport:
         // reference editorial endpoints are about 45% smaller than ours.
         // Keep the clickable hit test centred on the same graph node.
-        const referenceThumbnailScale=e.referenceFlat?.57:1;
+        const referenceThumbnailScale=(e.referenceFlat?.57:1)*(n.intro?.scale??1);
         const w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
         const h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
@@ -578,10 +578,10 @@ export class Ciel {
       }
       /* foyer et libellé */
       if(!e.referenceFlat){ const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
-      const cote = (e.referenceFlat?6.5:(e.racine ? 9 : e.parent ? 7 : 9)) * Math.min(1.25, Math.max(0.8, ech));
+      const cote = (e.intro?.scale??1) * (e.referenceFlat?6.5:(e.racine ? 9 : e.parent ? 7 : 9)) * Math.min(1.25, Math.max(0.8, ech));
       ctx.fillStyle = e.referenceFlat?(e.flatTone==='mint'?'#39e4ae':e.flatTone==='cyan'?'#45cafa':'#667deb'):ambient ? (e.racine ? '#3855a2' : e.rang % 4 === 0 ? '#18ad9c' : '#538cff') : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine && labels) {
-        const a = adouci((e.age - 0.2) / 0.6);
+        const a = e.introLabel ?? adouci((e.age - 0.2) / 0.6);
         ctx.globalAlpha = a * aE; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
         if(e.referenceFlat){
           const texte=compact?(e.num||''):(e.referenceShortLabel||e.label)+' '+(e.referenceEditorialCount??e.noeuds.filter(n=>n.ed).length);

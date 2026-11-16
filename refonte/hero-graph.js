@@ -1,3 +1,4 @@
+import {applyHeroIntro} from './fall26-hero-intro.js?v=fall26-work-intro';
 /* Graphe de l'accueil en mode à plat. Code original : même système d'étoiles que le chemin 3D (refonte/moteur.js, classe Ciel),
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
@@ -16,6 +17,7 @@ export function demarre(chapitres) {
   chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: false }));
   calibrateReferenceBranches(ciel);
   let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0;
+  let introSeconds = 0;
   let budgetFrame = 16, coutMoyen = 0, lents = 0, rapides = 0;
   /* le canevas n'occupe que la partie libre de la zone : à droite du nom et des cartes quand ils la recouvrent (grand écran) */
   let largeurVue = 0;
@@ -66,9 +68,11 @@ export function demarre(chapitres) {
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
     placeReferenceHubs(ciel,W,H,{spread:1+Math.min(.42,Math.max(0,s)*.42)});
+    introSeconds += dt;
+    const introDone=applyHeroIntro(ciel,introSeconds,W,H,reduit.matches || s>.02);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     drawReferenceLinks(ctx,ciel,proj,.49);
-    drawReferenceJunction(ctx,ciel,proj,.49);
+    if(introDone)drawReferenceJunction(ctx,ciel,proj,.49);
     ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true });
     const cout = performance.now() - debutDessin;
     coutMoyen = coutMoyen ? coutMoyen * .92 + cout * .08 : cout;

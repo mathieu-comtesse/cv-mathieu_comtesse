@@ -14,7 +14,7 @@ async function page(opts = {}) {
   await p.route(/shopify(cdn)?\.com/, (r) => { p.shopify++; r.abort(); });
   await p.route('https://comtesse.me/**', (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.abort(); });
   p.on('pageerror', (e) => p.erreurs.push(String(e.message).slice(0, 200)));
-  await p.goto(`http://talas.test/index.html`, { waitUntil: 'load' }); await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 90000 }); await p.waitForTimeout(2500);
+  await p.goto(`http://talas.test/index.html`, { waitUntil: 'load' }); await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 90000 }); await p.waitForFunction(() => [...window.__cvHeroGraph.ciel.etoiles.values()].filter(e=>e.parent==='accueil').every(e=>e.introLabel===1), null, {timeout:30000}); await p.waitForTimeout(300);
   return p;
 }
 const p = await page();
