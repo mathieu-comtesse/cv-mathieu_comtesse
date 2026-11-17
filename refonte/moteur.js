@@ -12,22 +12,82 @@
  * ont été calées sur des relevés à 1440 × 900, 1920 × 1080, 2560 × 1440 et 390 × 844. */
 
 export const L = { tilt: { angle: 55 }, city: 0.005, cityGrow: 4, layers: { graph: { heroLift: 0.1, spread: 0.17 } } };
-const PAS = 64, PROCHE = 40;
+export const EXPO_NEAR = 4;
+const PAS = 64;
+const DEG = Math.PI / 180;
+const PITCH = -30.2 * DEG;
+const FOV_PLAT = 50 * DEG, FOV_EXPO = 45 * DEG;
+const HAUTEUR_EXPO = 1.015;
+const RECUL_EXPO = -1;
+const COURBURE = 6.54;
+const MONTEE = 0.35;
 
-export const cvAnchor = (H) => ({ row: 2.298 * H });
+function profilExpo(progression, hauteur) {
+  const T = 5 * hauteur;
+  const ds = T / PAS;
+  const pts = new Float32Array(2 * (PAS + 1));
+  const angles = new Float32Array(PAS);
+  const courbureMax = Math.expm1(COURBURE);
+  let y = 0, z = 0;
+  for (let i = 0; i < PAS; i++) {
+    const proportion = Math.expm1(COURBURE * (i + 0.5) / PAS) / courbureMax;
+    const orientation = Math.PI / 2 + Math.atan2(y - HAUTEUR_EXPO * hauteur, RECUL_EXPO * hauteur - z);
+    const angle = progression * proportion * orientation;
+    y += ds * Math.sin(angle);
+    z -= ds * Math.cos(angle);
+    pts[2 * i + 2] = y;
+    pts[2 * i + 3] = z;
+    angles[i] = angle;
+  }
+  return { T, ds, pts, angles };
+}
 
-/* Vue : profil du sol (65 points, 65 angles) et caméra.
- * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
- * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
- * la bascule entre les deux modes est une vraie transformation de la scène, réversible à tout instant. */
-const RISE_AT = 0.35;   // « riseAt » relevé dans la configuration de la scène de la référence (usage lu dans son bundle : hauteurs = lissage de (progression − riseAt) / (1 − riseAt))
+function ancrageExpo() {
+  // Intersection du rayon central de la caméra avec le ruban au plein Expo.
+  const hauteur = 1024;
+  const { T, ds, pts } = profilExpo(1, hauteur);
+  const directionY = Math.sin(PITCH), directionZ = -Math.cos(PITCH);
+  for (let i = 0; i < PAS; i++) {
+    const segmentY = pts[2 * i + 2] - pts[2 * i];
+    const segmentZ = pts[2 * i + 3] - pts[2 * i + 1];
+    const determinant = directionY * segmentZ - directionZ * segmentY;
+    if (Math.abs(determinant) < 1e-9) continue;
+    const deltaY = pts[2 * i] - HAUTEUR_EXPO * hauteur;
+    const deltaZ = pts[2 * i + 1] - RECUL_EXPO * hauteur;
+    const fraction = (directionZ * deltaY - directionY * deltaZ) / determinant;
+    const distance = (segmentZ * deltaY - segmentY * deltaZ) / determinant;
+    if (fraction >= 0 && fraction <= 1 && distance > 0)
+      return { row: (T - (i + fraction) * ds) / hauteur, distance: distance / hauteur };
+  }
+  return { row: 0.5, distance: 1 };
+}
+const ancrage = ancrageExpo();
+export const cvAnchor = H => ({ row: ancrage.row * H });
+
+/* Le profil et la caméra suivent le relevé du module Expo Shopify 5090151.
+ * La progression d'entrée est linéaire dans le temps. La rotation, le champ
+ * de vision et les hauteurs d'objets suivent deux courbes distinctes. */
 export function cvView(progress, W, H, lead = 0) {
-  const e = Math.max(0, Math.min(1, progress)), T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
-  for (let i = 0; i <= PAS; i++) ang[i] = e * 1.44 * Math.exp(7.33 * (i / PAS - 1));
-  for (let i = 0; i < PAS; i++) { const th = (ang[i] + ang[i + 1]) / 2; pts[2 * i + 2] = pts[2 * i] + ds * Math.sin(th); pts[2 * i + 3] = pts[2 * i + 1] - ds * Math.cos(th); }
-  const focusRow = lead + H / 2, fov = Math.PI / 4, a = Math.PI / 2 + (0.52709 - Math.PI / 2) * e, d = (0.5 / Math.tan(fov / 2) + (2.018 - 0.5 / Math.tan(fov / 2)) * e) * H, vise = -(T - focusRow) - 0.041 * H * e;
-  const montee = Math.max(0, Math.min(1, (e - RISE_AT) / (1 - RISE_AT))), rise = montee * montee * (3 - 2 * montee);   // les hauteurs ne montent qu'une fois la caméra engagée ; courbe de lissage déduite, non lue
-  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, camY: d * Math.sin(a), camZ: vise + d * Math.cos(a), pitch: -a };
+  const t = Math.max(0, Math.min(1, progress));
+  const e = t < 0.5 ? 4 * t ** 3 : 1 - 4 * (1 - t) ** 3;
+  const rise = 1 - (1 - Math.max(0, (t - MONTEE) / (1 - MONTEE))) ** 3;
+  const { T, ds, pts, angles } = profilExpo(e, H);
+  const ang = new Float32Array(PAS + 1);
+  for (let i = 0; i <= PAS; i++) ang[i] = (angles[Math.max(0, i - 1)] + angles[Math.min(PAS - 1, i)]) / 2;
+
+  const focusRow = lead + H / 2;
+  const sample = Math.max(0, Math.min(PAS, (T - focusRow) / ds));
+  const index = Math.min(PAS - 1, Math.floor(sample)), fraction = sample - index;
+  const focusY = pts[index * 2] + (pts[index * 2 + 2] - pts[index * 2]) * fraction;
+  const focusZ = pts[index * 2 + 1] + (pts[index * 2 + 3] - pts[index * 2 + 1]) * fraction;
+  const pitch = -Math.PI / 2 + (PITCH + Math.PI / 2) * e;
+  const fov = FOV_PLAT + (FOV_EXPO - FOV_PLAT) * e;
+  const flatDistance = H / (2 * Math.tan(FOV_PLAT / 2));
+  const distance = flatDistance + (H * ancrage.distance - flatDistance) * e;
+
+  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, pitch,
+    camY: focusY - distance * Math.sin(pitch),
+    camZ: focusZ + distance * Math.cos(pitch) };
 }
 
 /* point du monde (x, y, z) pour une position du chemin */
@@ -42,7 +102,7 @@ export function monde(view, col, row, h = 0) {
 export function p(view, col, row, h = 0) {
   const [X, Y, Z] = monde(view, col, row, h), dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
   const y = dy * c + dz * s, d = dy * s - dz * c;
-  if (!(d > PROCHE)) return null;
+  if (!(d >= EXPO_NEAR)) return null;
   const f = view.H / 2 / Math.tan(view.fov / 2);
   return { x: view.W / 2 + X / d * f, y: view.H / 2 - y / d * f, z: d };
 }
@@ -201,9 +261,62 @@ const frac = (x) => x - Math.floor(x);
 const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3; };
 const OR = 2.399963;
 
+// Le geste transversal donne une impulsion au fil, avec les réglages
+// de retour du contrôleur de référence. Les extrémités restent ancrées.
+const WIRE_OMEGA=2*Math.PI*3.1, WIRE_DAMPING=.15;
+const WIRE_IMPULSE_LIMIT=14*WIRE_OMEGA/
+  Math.exp(-WIRE_DAMPING/Math.sqrt(1-WIRE_DAMPING**2)*Math.acos(WIRE_DAMPING));
+
+function brushWire(node, pointer, dt, now) {
+  let spring=node.wireSpring;
+  if(pointer && now-(spring?.brushed??-Infinity)>=.065){
+    const {from,to}=pointer;
+    const dx=to.x-from.x, dy=to.y-from.y;
+    const left=Math.min(node.x0,node.cx,node.x1),right=Math.max(node.x0,node.cx,node.x1);
+    const top=Math.min(node.y0,node.cy,node.y1),bottom=Math.max(node.y0,node.cy,node.y1);
+    if(Math.max(from.x,to.x)>=left && Math.min(from.x,to.x)<=right &&
+        Math.max(from.y,to.y)>=top && Math.min(from.y,to.y)<=bottom){
+      let ax=node.x0, ay=node.y0;
+      for(let i=1;i<=16;i++){
+        const at=i/16, u=1-at;
+        const bx=u*u*node.x0+2*u*at*node.cx+at*at*node.x1;
+        const by=u*u*node.y0+2*u*at*node.cy+at*at*node.y1;
+        const tx=bx-ax,ty=by-ay,det=dx*ty-dy*tx;
+        if(Math.abs(det)>1e-9){
+          const rx=ax-from.x,ry=ay-from.y;
+          const onPointer=(rx*ty-ry*tx)/det, onWire=(rx*dy-ry*dx)/det;
+          const position=(i-1+onWire)/16;
+          if(onPointer>=0 && onPointer<=1 && onWire>=0 && onWire<=1 &&
+              position>=.06 && position<=.94){
+            const len=Math.hypot(tx,ty),nx=-ty/len,ny=tx/len;
+            spring??={x:0,y:0,vx:0,vy:0};
+            const speed=(dx*nx+dy*ny)/Math.max(dt,.008);
+            const normalSpeed=spring.vx*nx+spring.vy*ny;
+            const maxImpulse=Math.max(Math.abs(normalSpeed),WIRE_IMPULSE_LIMIT);
+            const delta=Math.max(-maxImpulse,Math.min(maxImpulse,normalSpeed+speed*.2))-normalSpeed;
+            spring.vx+=nx*delta; spring.vy+=ny*delta;
+            spring.brushed=now;
+            break;
+          }
+        }
+        ax=bx;ay=by;
+      }
+    }
+  }
+  if(!spring)return;
+  for(let left=Math.min(dt,.05);left>0;left-=1/240){
+    const step=Math.min(left,1/240);
+    spring.vx-=(WIRE_OMEGA**2*spring.x+2*WIRE_DAMPING*WIRE_OMEGA*spring.vx)*step;
+    spring.vy-=(WIRE_OMEGA**2*spring.y+2*WIRE_DAMPING*WIRE_OMEGA*spring.vy)*step;
+    spring.x+=spring.vx*step; spring.y+=spring.vy*step;
+  }
+  node.wireSpring=Math.hypot(spring.x,spring.y)<.05 && Math.hypot(spring.vx,spring.vy)<.5?null:spring;
+  if(node.wireSpring){node.cx+=2*spring.x;node.cy+=2*spring.y;}
+}
+
 export class Ciel {
   constructor() { this.etoiles = new Map(); this.images = new Map(); this.cibles = []; this.survol = null; this.pris = null; }
-  vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; }
+  vide() { this.etoiles.clear(); this.cibles = []; this.survol = null; this.wirePointer = null; }
   image(url) {
     if (!url) return null;
     let im = this.images.get(url); if (!im) { im = new Image(); im.decoding = 'async'; im.src = url; this.images.set(url, im); }
@@ -277,10 +390,34 @@ export class Ciel {
   distanceCourbe(n, px, py) {
     let m = 1e9; for (let i = 0; i <= 10; i++) { const q = i / 10, o = 1 - q, x = o * o * n.x0 + 2 * o * q * n.cx + q * q * n.x1, y = o * o * n.y0 + 2 * o * q * n.cy + q * q * n.y1, d = Math.hypot(x - px, y - py); if (d < m) m = d; } return m;
   }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1 } = {}) {
-    if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, racineVisible = true, labels = true, flightThumbnail = null, hideFlightThumbnail = false, pointerOnGraph = null, referenceMotionReady = true } = {}) {
+    this.thumbnailInFlight = null;
+    if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; this.referenceHoveredLeaf = null; return; }
     const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
+    const lastPointer=this.wirePointer;
+    this.wirePointer=libre && souris.x>=0 && souris.y>=0 && souris.x<W && souris.y<H
+      ? {x:souris.x,y:souris.y}:null;
+    const pointer=lastPointer && this.wirePointer && !this.pris &&
+      (lastPointer.x!==souris.x || lastPointer.y!==souris.y)
+      ? {from:lastPointer,to:this.wirePointer}:null;
+    if (this.referenceMotion) {
+      const hubs = this.referenceHubs;
+      const inView = hubs.some(hub => {
+        const point = hub.centre && proj(...hub.centre);
+        return point && point.x > -W && point.x < W*2 && point.y > -H && point.y < H*2;
+      });
+      const enabled = libre && referenceMotionReady;
+      const lift = hubs.find(hub => hub.centre)?.centre[2] ?? 0;
+      const planePoint = inView && enabled && this.wirePointer && pointerOnGraph
+        ? pointerOnGraph(souris.x, souris.y, lift) : null;
+      const pointerInPlane = planePoint?.every(Number.isFinite) ? planePoint : null;
+      if (inView || !enabled) this.referenceMotion.step(hubs, {
+        dt, pointer: pointerInPlane, viewport:[W,H], grabbed: this.pris?.noeud,
+        leafHover: !!this.referenceHoveredLeaf, enabled,
+      });
+    }
+    let referenceHoveredLeaf = null, referenceHoverDistance = 10;
     const quads = covers.map((pts) => ({ pts, z: pts.reduce((s, q) => s + q.z, 0) / 4 }));
     covers = quads;
     const focus = this.survol ? this.survol.noeud : this.survolBranche ? this.survolBranche.noeud : null, focusE = this.survol ? this.survol.etoile : this.survolBranche ? this.survolBranche.etoile : null;
@@ -289,15 +426,18 @@ export class Ciel {
     let survol = null, dSurvol = 18, brancheMeilleure = null, dBranche = 7;
     for (const e of this.etoiles.values()) {
       e.ecran = null; e.libelleEcran = null;
-      const kT = e.groupe === 'titre' ? titres : 1; ctx.globalAlpha = A * kT; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
+      if (e.racine && !racineVisible) continue;
+      const kT = e.groupe === 'titre' ? titres * (e.transitionOpacity??1) : (e.intro?.reveal??1), aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
-      const [c0, r0, h0] = e.centre, F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
+      const [originX, originY, h0] = e.centre;
+      const c0 = originX + (e.referenceMotion?.x ?? 0), r0 = originY + (e.referenceMotion?.y ?? 0);
+      const F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
       if (!F || !u) continue;
       const k = Math.abs(u.x - F.x) / 100;                                       // pixels d'écran par unité, au foyer
       if (F.x < -e.rayon * k - 80 || F.x > W + e.rayon * k + 80 || F.y < -e.rayon * k - 80 || F.y > H + e.rayon * k + 80) { continue; }
       if (e.age < 0) e.age = 0; e.age += libre ? dt : 10;
       e.ecran = F;
-      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon, actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
+      const ambient = e.groupe === 'accueil', ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon * (e.groupe==='titre'?(e.transitionScale??1):1), actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
       const kE = actifC ? 1.25 : autreC ? 0.85 : 1;                              // chapitre actif : branches plus présentes ; les autres s'effacent un peu
       const F0 = proj(c0, r0, 0), ombre = !!F0 && F.y - F0.y > 1.5;                // ombres portées au sol : seulement quand le foyer est au-dessus du sol (expo)
       /* trace au sol : cercle et tige (étoiles posées) */
@@ -309,25 +449,30 @@ export class Ciel {
       }
       /* liaison avec le foyer parent : courbe en arche, plus claire côté foyer */
       const parent = e.parent && this.etoiles.get(e.parent);
-      if (parent?.ecran) {
+      if (parent?.ecran && !e.referenceFlat) {
         const g = adouci(e.age / 0.9), ax = parent.ecran.x, ay = parent.ecran.y, bx = ax + (F.x - ax) * g, by = ay + (F.y - ay) * g, dx = bx - ax, dy = by - ay, ccx = ax + dx / 2 - dy * 0.1, ccy = ay + dy / 2 + dx * 0.1, gl = ctx.createLinearGradient(ax, ay, bx, by);
-        gl.addColorStop(0, 'rgba(215,228,255,.62)'); gl.addColorStop(1, 'rgba(190,210,255,.28)');
+        gl.addColorStop(0, e.groupe === 'accueil' ? 'rgba(75,126,235,.55)' : 'rgba(215,228,255,.62)'); gl.addColorStop(1, e.groupe === 'accueil' ? 'rgba(42,85,196,.24)' : 'rgba(190,210,255,.28)');
         ctx.strokeStyle = gl; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo(ccx, ccy, bx, by); ctx.stroke();
       }
       /* 1. géométrie de chaque branche (une seule fois par image, sans allocation : tout est écrit dans le nœud) */
       const N = e.noeuds, nb = N.length, cnt = this.cnt || (this.cnt = new Int16Array(16)); cnt.fill(0);
       for (let j = 0; j < nb; j++) {
         const n = N[j]; n.vis = false;
-        let g = adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8);
+        let g = n.intro ? n.intro.reach : e.transitionOpening == null
+          ? adouci((e.age - 0.15 - j * (e.racine ? 0.012 : 0.04) - (n.par ? 0.3 : 0)) / 0.8)
+          : .35 + .65 * e.transitionOpening;
         if (n.par) { if (!n.par.vis) continue; g = Math.min(g, n.par.gg); }
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          wc = c0 + Math.cos(n.a) * R * n.r; wr = r0 + Math.sin(n.a) * R * n.r * 0.78; wh = Math.max(0, h0 + n.dh * R * 0.45);
-          if (libre) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
+          const angle = n.a + (n.intro?.spin ?? 0);
+          wc = c0 + (n.referenceMotion?.x ?? Math.cos(angle) * R * n.r);
+          wr = r0 + (n.referenceMotion?.y ?? Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78));
+          wh = Math.max(0, h0 + n.dh * R * 0.45);
+          if (libre && !e.referenceFlat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
           x = P.x; y = P.y; z = P.z;
-          if (libre) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d * (n.ed ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }   // une vignette ne fuit pas le pointeur qui vient la prendre
+          if (libre && !e.referenceFlat && !n.ed) { const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 150 && d > 1) { const q = (1 - d / 150) * 18 / d * (n.ed ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }   // une vignette ne fuit pas le pointeur qui vient la prendre
           x = F.x + (x - F.x) * g; y = F.y + (y - F.y) * g;
           if (this.pris && this.pris.noeud === n) { n.ox = souris.x - x; n.oy = souris.y - y; } else if (n.ox || n.oy) { n.ox *= retour; n.oy *= retour; if (Math.abs(n.ox) + Math.abs(n.oy) < 0.3) n.ox = n.oy = 0; }
           if (n.ox || n.oy) { x += n.ox; y += n.oy; }
@@ -347,10 +492,20 @@ export class Ciel {
           x0 = jx; y0 = jy; x = jx + dx * L; y = jy + dy * L; cx = jx + dx * L * 0.5 - dy * n.cv * L; cy = jy + dy * L * 0.5 + dx * n.cv * L; z = p.z; n.som = false;
         }
         const voile = n.par ? n.par.cl === 3 : cache(x, y, z);
+        if (e.referenceFlat && libre && !voile && this.wirePointer) {
+          const distance = Math.hypot(x - souris.x, y - souris.y);
+          if (distance < referenceHoverDistance) {
+            referenceHoverDistance = distance;
+            referenceHoveredLeaf = n;
+          }
+        }
         let hl = false; if (focus) for (let q = n, i = 0; i < 3 && q; i++, q = q.par) if (q === focus) { hl = true; break; }
         const dim = focus && !hl && e === focusE;
         n.cl = voile ? 3 : hl ? 2 : dim ? 1 : 0;
         n.x0 = x0; n.y0 = y0; n.x1 = x; n.y1 = y; n.cx = cx; n.cy = cy; n.gg = g; n.z = z; n.vis = true; cnt[n.niveau * 4 + n.cl]++;
+        if(libre && n.ed && !n.par && (pointer || n.wireSpring))
+          brushWire(n, !voile && g>.5 ? pointer:null, dt, tt);
+        else if(!libre && n.wireSpring)n.wireSpring=null;
       }
       /* 2. ombres portées au sol des branches éditoriales et des cartes (expo) */
       if (ombre) {
@@ -366,11 +521,11 @@ export class Ciel {
       const BASE = e.racine ? [0, 0.2, 0.13, 0.09] : [0, 0.4, 0.29, 0.21], LW = [0, 0.8, 0.7, 0.6];   /* rayons fins et discrets : le centre des foyers ne sature pas */
       for (let lv = 3; lv >= 1; lv--) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.strokeStyle = `rgba(225,238,255,${Math.min(1, BASE[lv] * MULT[cl] * kE).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
+        ctx.strokeStyle = `rgba(${e.referenceFlat?(e.flatTone==='mint'?'39,205,169':e.flatTone==='cyan'?'46,176,239':'78,103,215'):ambient?'77,135,255':'225,238,255'},${Math.min(1, BASE[lv] * MULT[cl] * kE * (e.referenceFlat?2.6:ambient?1.65:1)).toFixed(3)})`; ctx.lineWidth = LW[lv] * (cl === 2 ? 1.5 : 1); ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); }
         ctx.stroke();
       }
-      if (cnt[4] + cnt[6]) {                                                     // rayons de niveau 1 : second passage plus clair sur leur premier tiers (dégradé foyer vers extrémité)
+      if (!e.referenceFlat && cnt[4] + cnt[6]) {                                                     // rayons de niveau 1 : second passage plus clair sur leur premier tiers (dégradé foyer vers extrémité)
         ctx.strokeStyle = `rgba(235,245,255,${Math.min(1, (e.racine ? 0.12 : 0.26) * kE).toFixed(3)})`; ctx.lineWidth = 1; ctx.beginPath();
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== 1 || (n.cl !== 0 && n.cl !== 2)) continue; ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.x0 + (n.cx - n.x0) * 0.4, n.y0 + (n.cy - n.y0) * 0.4, n.x0 + (n.cx - n.x0) * 0.48 + (n.x1 - n.x0) * 0.16, n.y0 + (n.cy - n.y0) * 0.48 + (n.y1 - n.y0) * 0.16); }
         ctx.stroke();
@@ -379,13 +534,13 @@ export class Ciel {
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
-        gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
-        gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
+        gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : ambient ? `rgba(69,123,243,${Math.min(1, 0.9 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
+        gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : ambient ? `rgba(57,109,228,${Math.min(1, 0.58 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
         ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
         if (!compact && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
       /* 5. impulsions : le long des courbes réelles, transmises aux ramifications */
-      if (libre) for (let j = 0; j < nb; j++) {
+      if (libre && !e.referenceFlat) for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.vis || n.par || n.gg < 1 || !(n.ed || n.pul)) continue;
         const q = (tt * 0.3 * n.vit + n.phase / 6.283) % 1;
         this.impulsion(ctx, n, q / 0.75);
@@ -394,30 +549,75 @@ export class Ciel {
       /* 6. extrémités des ramifications (points) */
       for (let lv = 1; lv <= 3; lv++) for (let cl = 0; cl < 4; cl++) {
         if (!cnt[lv * 4 + cl]) continue;
-        ctx.globalAlpha = A * Math.min(1, MULT[cl] * kE); ctx.fillStyle = e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
-        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
+        ctx.globalAlpha = aE * Math.min(1, MULT[cl] * kE); ctx.fillStyle = ambient ? (lv === 1 ? 'rgba(76,137,250,.65)' : 'rgba(80,137,233,.55)') : e.racine ? 'rgba(200,215,255,.55)' : lv === 1 ? 'rgba(223,233,255,.9)' : lv === 2 ? 'rgba(223,233,255,.75)' : 'rgba(223,233,255,.6)'; ctx.beginPath();
+        for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.intro?.scale??1) * (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
         ctx.fill();
       }
-      ctx.globalAlpha = A;
+      if (ambient && !e.referenceFlat) {
+        /* Une fraction des terminaisons forme les points de haute lumière
+           de la référence, sans éclaircir l'ensemble des filaments bleus. */
+        ctx.globalAlpha = Math.min(1, aE * 1.1);
+        ctx.fillStyle = 'rgba(241,248,255,.95)';
+        ctx.beginPath();
+        for (let j = 0; j < nb; j++) {
+          const n = N[j];
+          if (!n.vis || n.ed || n.niveau > 2 || (j + e.rang * 3) % 5 !== 0) continue;
+          const radius = (n.intro?.scale??1) * Math.max(1.6, 2.7 * Math.min(1.2, ech));
+          ctx.moveTo(n.x1 + radius, n.y1);
+          ctx.arc(n.x1, n.y1, radius, 0, 6.283);
+        }
+        ctx.fill();
+      }
+      ctx.globalAlpha = aE;
       /* 7. cartes des contenus éditoriaux */
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;
         const x = n.x1, y = n.y1, voile = n.cl === 3 ? 0.12 : 1;
-        ctx.globalAlpha = voile * A;
-        const kv = 0.72 + (n.phase / 6.283) * 0.8, im = this.image(n.ed.image), w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1), h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1);
+        ctx.globalAlpha = voile * aE * (n.intro?.reveal??1);
+        const kv = (0.72 + (n.phase / 6.283) * 0.8) * (ambient ? .85 : 1);
+        const im = this.image(n.ed.image);
+        // Normalized screenshot comparison at the same graph viewport:
+        // reference editorial endpoints are about 45% smaller than ours.
+        // Keep the clickable hit test centred on the same graph node.
+        const referenceThumbnailScale=(e.referenceFlat?.57:1)*(n.intro?.scale??1);
+        const w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
+        const h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
+        if (n === flightThumbnail) {
+          this.thumbnailInFlight = { x, y, w, h };
+          if (hideFlightThumbnail) { ctx.globalAlpha = aE; continue; }
+        }
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
-        else { ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - w / 3, y - h * 0.29, w * 2 / 3, h * 0.58); }
+        else {
+          // The reference uses pale image-like endpoints, not dark blue
+          // placeholder tiles. Preserve their existing interactive hit targets.
+          const pale=e.referenceFlat && ambient;
+          ctx.strokeStyle=pale?'rgba(227,238,255,.87)':ambient?'rgba(92,145,240,.7)':'rgba(255,255,255,.75)';
+          ctx.lineWidth=pale?.85:1;
+          ctx.strokeRect(x-w/2,y-h/2,w,h);
+          ctx.fillStyle=pale?'rgba(236,245,255,.83)':ambient?'rgba(75,126,235,.65)':'rgba(255,255,255,.92)';
+          ctx.fillRect(x-w/3,y-h*.29,w*2/3,h*.58);
+        }
         if (voile === 1) { cibles.push({ x, y, noeud: n, etoile: e }); const d = Math.hypot(x - souris.x, y - souris.y); if (d < dSurvol) { dSurvol = d; survol = { noeud: n, x, y, etoile: e }; } }
-        ctx.globalAlpha = A;
+        ctx.globalAlpha = aE;
       }
       /* foyer et libellé */
-      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
-      const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
-      ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
-      if (e.label && !e.racine) {
-        const a = adouci((e.age - 0.2) / 0.6);
-        ctx.globalAlpha = a * A; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
-        if (e.sol) {                                                             // étoile posée : numéro et nom sous le cercle
+      if(!e.referenceFlat){ const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      const cote = (e.intro?.scale??1) * (e.referenceFlat?6.5:(e.racine ? 9 : e.parent ? 7 : 9)) * Math.min(1.25, Math.max(0.8, ech));
+      ctx.fillStyle = e.referenceFlat?(e.flatTone==='mint'?'#39e4ae':e.flatTone==='cyan'?'#45cafa':'#667deb'):ambient ? (e.racine ? '#3855a2' : e.rang % 4 === 0 ? '#18ad9c' : '#538cff') : '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
+      if (e.label && !e.racine && labels) {
+        const a = e.introLabel ?? adouci((e.age - 0.2) / 0.6);
+        ctx.globalAlpha = a * aE; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(0,10,90,.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+        if(e.referenceFlat){
+          const texte=compact?(e.num||''):(e.referenceShortLabel||e.label)+' '+(e.referenceEditorialCount??e.noeuds.filter(n=>n.ed).length);
+          ctx.globalAlpha=a*aE*.94;ctx.fillStyle='rgba(226,233,255,.88)';
+          ctx.font='400 '+(compact?9:10)+'px "JetBrains Mono",ui-monospace,monospace';
+          const marge=cote/2+7;
+          const coteDroit=F.x+marge+ctx.measureText(texte).width<=W-4;
+          const x=F.x+(coteDroit?marge:-marge), y=F.y-4;
+          ctx.textAlign=coteDroit?'left':'right';
+          ctx.fillText(texte,x,y);
+          e.libelleEcran={x:Math.round(x),y:Math.round(y),texte};
+        }else if (e.sol) {                                                       // étoile posée : numéro et nom sous le cercle
           const bas = proj(c0, r0 + R * 0.7, 0) || F, texte = compact ? (e.num || '') : (e.num ? e.num + ' ' : '') + e.label;
           ctx.font = `500 ${Math.round(Math.max(9, Math.min(13, 11 * ech)))}px "JetBrains Mono",ui-monospace,monospace`; ctx.textAlign = 'center'; ctx.strokeText(texte, bas.x, bas.y + 12); ctx.fillText(texte, bas.x, bas.y + 12);
           e.libelleEcran = { x: Math.round(bas.x), y: Math.round(bas.y + 12), texte };
@@ -425,11 +625,12 @@ export class Ciel {
           ctx.font = `500 ${Math.round(Math.max(11, Math.min(15, 13 * ech)))}px Inter,ui-sans-serif,system-ui,sans-serif`; ctx.textAlign = 'left'; ctx.strokeText(e.label, F.x + cote / 2 + 7, F.y + 4.5); ctx.fillText(e.label, F.x + cote / 2 + 7, F.y + 4.5);
           e.libelleEcran = { x: Math.round(F.x + cote / 2 + 7), y: Math.round(F.y + 4.5), texte: e.label };
         }
-        ctx.globalAlpha = A;
+        ctx.globalAlpha = aE;
       }
     }
+    this.referenceHoveredLeaf = referenceHoveredLeaf;
     this.cibles = cibles; this.survol = survol; this.survolBranche = survol ? null : brancheMeilleure;
-    if (survol) {                                                                // nom du contenu survolé
+    if (survol) { ctx.globalAlpha = A * (survol.etoile.groupe === 'titre' ? titres : 1);                                                                // nom du contenu survolé
       const texte = (survol.noeud.ed.title || '').slice(0, 60);
       ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = survol.x > W - 260 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff';
       const dx = survol.x > W - 260 ? -18 : 18; ctx.strokeText(texte, survol.x + dx, survol.y + 4); ctx.fillText(texte, survol.x + dx, survol.y + 4);
@@ -438,6 +639,17 @@ export class Ciel {
   }
 }
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
+
+/* Position du pointeur sur l'arête projetée du verre, indépendante
+ * de sa pente, de son sens et de l'inclinaison de la caméra. */
+export function projectedFramePointerRatio(start,end,souris){
+  if(!souris)return 0.5;
+  const dx=end.x-start.x,dy=end.y-start.y;
+  const length2=dx*dx+dy*dy;
+  if(length2<1e-6)return 0.5;
+  return Math.max(0,Math.min(1,
+    ((souris.x-start.x)*dx+(souris.y-start.y)*dy)/length2));
+}
 
 /* ---------- Arêtes et ombres des cadres ---------- */
 /* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
@@ -454,26 +666,40 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     ctx.clip('evenodd');
     const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : 0);
     const haut = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, true)), bas = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, false));
-    if (!haut.every(Boolean) || !bas.every(Boolean)) continue;
+    if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
     if (b.slab && b.tilted > 0.02) {                                             // ombre portée au sol d'un cadre relevé
       const ombre = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => { const w = cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r); return p(view, w[0] + w[2] * 0.5, w[1] + w[2] * 0.35, 0); });
       if (ombre.every(Boolean)) { ctx.fillStyle = 'rgba(0,0,0,.22)'; trace(ombre); ctx.fill(); }
     }
     const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
-    ctx.fillStyle = plein ? '#02105f' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
-    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#1236d6'); g.addColorStop(1, '#071d8a'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
-    ctx.strokeStyle = plein ? 'rgba(210,225,255,.7)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
+    ctx.fillStyle = plein ? '#071754' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
+    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#1939ab'); g.addColorStop(1, '#071655'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    ctx.strokeStyle = plein ? 'rgba(204,224,255,.38)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
     const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
     if (dedansQuad) survole = b;
     if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
-      const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
+      // Project pointer onto the actual upper edge so the reflection follows
+      // the tilted frame even when its horizontal screen axis is reversed.
+      const u=projectedFramePointerRatio(haut[0],haut[1],souris);
+      const g=ctx.createLinearGradient(haut[0].x,haut[0].y,haut[2].x,haut[2].y);
+      const c=0.2+0.6*u,a=0.13*Math.min(1,(b.tilted-0.25)*2);
       g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
       ctx.fillStyle = g; trace(haut); ctx.fill();
     }
-    ctx.strokeStyle = dedansQuad ? '#fff' : 'rgba(255,255,255,.85)'; ctx.lineWidth = dedansQuad ? 1.8 : 1; trace(haut); ctx.stroke();
+    if(b.hero){
+      // Film vitré très fin, projeté exactement sur la surface du cadre.
+      // Ne modifie ni son contenu DOM ni ses événements.
+      const glass=ctx.createLinearGradient(haut[0].x,haut[0].y,haut[2].x,haut[2].y);
+      glass.addColorStop(0,'rgba(212,235,255,.09)');
+      glass.addColorStop(.15,'rgba(197,225,255,0)');
+      glass.addColorStop(.65,'rgba(188,212,255,.018)');
+      glass.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=glass;trace(haut);ctx.fill();
+    }
+    ctx.strokeStyle = dedansQuad ? '#fff' : b.hero ? 'rgba(214,235,255,.42)' : 'rgba(255,255,255,.85)'; ctx.lineWidth = dedansQuad ? 1.7 : b.hero ? .75 : 1; trace(haut); ctx.stroke();
     if (dedansQuad) {                                                            // repères d'angle du cadre survolé
       ctx.lineWidth = 1.8; ctx.beginPath();
       for (let i = 0; i < 4; i++) { const q = haut[i], n = haut[(i + 1) % 4], m = haut[(i + 3) % 4], l1 = Math.hypot(n.x - q.x, n.y - q.y) || 1, l2 = Math.hypot(m.x - q.x, m.y - q.y) || 1, k = 12;
@@ -571,16 +797,17 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
   ctx.restore();
 }
 
-/* Éclairage du sol : à plat la couleur de la page est inchangée ; en expo le sol est éclairé et devient plus clair.
- * Modèle : gain d'exposition en lumière linéaire (1 à plat, GAIN_EXPO en expo), écrêté. Calé sur une seule observation de la référence
- * (bleu de page #051DAA vu à #1442FF sur l'écran de l'auteur) : les trois canaux s'y accordent avec un gain d'environ 4,5. */
-const GAIN_EXPO = 4.5;
+/* Couleur du sol 3D, calée sur les 3 séquences vidéo remises le 15 novembre.
+ * À plat, conserver les couleurs de marque. En Expo, corriger l'exposition en
+ * lumière linéaire par canal. Mesures de la vidéo : bleu ≈(6,20,153),
+ * rose ≈(155,0,78), orange ≈(154,33,2), sans reproduire ses pixels. */
+const GAIN_EXPO_RGB = [0.75, 0.55, 0.77];
 const vers_lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
 const vers_srgb = (l) => { l = Math.max(0, Math.min(1, l)); return Math.round(255 * (l <= 0.0031308 ? 12.92 * l : 1.055 * Math.pow(l, 1 / 2.4) - 0.055)); };
 export function cvLit(hex, rise) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m || !(rise > 0)) return hex;
-  const n = parseInt(m[1], 16), g = 1 + (GAIN_EXPO - 1) * Math.max(0, Math.min(1, rise));
-  return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
+  const n = parseInt(m[1], 16), t = Math.max(0, Math.min(1, rise));
+  return `rgb(${[16, 8, 0].map((s, i) => vers_srgb(vers_lin((n >> s) & 255) * (1 + (GAIN_EXPO_RGB[i] - 1) * t))).join(',')})`;
 }
 
 /* ---------- Liste des chapitres : prolongement courbe du dessus du bloc supérieur ----------

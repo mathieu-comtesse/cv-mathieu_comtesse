@@ -1,0 +1,63 @@
+name: Fall26 visual and interaction parity
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "refonte/moteur.js"
+      - "refonte/theme-stars.js"
+      - "refonte/hero-graph.js"
+      - "refonte/fall26-hero-intro.js"
+      - "refonte/fall26-hero-flight.js"
+      - "tools/test-fall26-hero-flight.mjs"
+      - "tools/test-fall26-hero-intro.mjs"
+      - "refonte/fall26-reference-graph.js"
+      - "refonte/fall26-reference-topology.js"
+      - "refonte/fall26-reference-motion.js"
+      - "tools/test-fall26-reference-motion.mjs"
+      - "refonte/fall26-chapter-transition.js"
+      - "refonte/defilement.js"
+      - "refonte/site.css"
+      - "tools/test-modes.mjs"
+      - "tools/test-fall26-chapter-transition.mjs"
+      - "tools/test-fall26-expo-foci.mjs"
+      - "tools/test-fall26-reference-graph.mjs"
+      - "tools/test-fall26-title-scale.mjs"
+      - "tools/capture-fall26-parity.mjs"
+      - ".github/workflows/fall26-parity.yml"
+  workflow_dispatch:
+jobs:
+  experience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Chapter timing, shared geometry and title sizing
+        run: |
+          node --check refonte/fall26-chapter-transition.js
+          node --check refonte/theme-stars.js
+          node tools/test-fall26-hero-intro.mjs
+          node tools/test-fall26-hero-flight.mjs
+          node tools/test-fall26-chapter-transition.mjs
+          node tools/test-fall26-expo-foci.mjs
+          node tools/test-fall26-reference-graph.mjs
+          node tools/test-fall26-reference-motion.mjs
+          node tools/test-fall26-title-scale.mjs
+      - name: Chromium and Playwright
+        run: |
+          npm install --no-save playwright@1.62.1
+          npx playwright install --with-deps chromium
+      - name: Animated mode, pointer, keyboard and mobile regression
+        run: node tools/test-modes.mjs
+      - name: Capture full site at reference sizes
+        if: ${{ !cancelled() }}
+        run: node tools/capture-fall26-parity.mjs test-results/fall26-parity
+      - name: Attach evidence and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fall26-real-site-parity
+          path: test-results/fall26-parity/
+          retention-days: 30
