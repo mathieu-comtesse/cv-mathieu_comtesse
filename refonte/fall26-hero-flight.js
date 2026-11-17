@@ -98,6 +98,7 @@ export function createHeroFlight(chapter, canvas) {
       pending = {
         bounds: { left: bounds.left, top: Math.min(bounds.top, timing.arrivalLine), width: bounds.width, height: bounds.height },
         phase,
+        scroll: scrollY,
       };
     },
     draw(endpoint) {
@@ -106,7 +107,7 @@ export function createHeroFlight(chapter, canvas) {
         departure = { x: endpoint.x + panel.left, y: endpoint.y + panel.top, width: endpoint.w, height: endpoint.h };
       }
       if (!departure || !pending) return;
-      const { bounds, phase } = pending;
+      const { bounds, phase, scroll } = pending;
       const box = flightRectangle(departure, bounds, phase);
       const { style } = frame;
       style.width = `${box.width}px`;
@@ -116,6 +117,7 @@ export function createHeroFlight(chapter, canvas) {
       style.outlineOffset = `${mix(1, -1, phase.shrink)}px`;
       style.outlineColor = `color-mix(in srgb, ${getComputedStyle(marker).borderTopColor} ${phase.shrink * 100}%, rgba(255,255,255,.9))`;
       artwork.style.opacity = String(1 - smooth(range(phase.shrink, .5, 1)));
+      frame.dataset.scroll = String(scroll);
       hasTakenOff = true;
       if (!frame.isConnected) document.body.append(frame);
     },

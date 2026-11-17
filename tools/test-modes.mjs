@@ -178,10 +178,12 @@ const flightRange = await flightPage.evaluate(() => {
     to: markerTop - innerHeight * .78};
 });
 async function flightAt(progress) {
-  await flightPage.evaluate(y => scrollTo({top:y, behavior:'instant'}),
-    flightRange.from + (flightRange.to - flightRange.from) * progress);
-  await flightPage.waitForFunction(() => !!document.querySelector('.cv-hero-card-flight'));
-  await flightPage.waitForTimeout(100);
+  const expectedScroll = flightRange.from + (flightRange.to - flightRange.from) * progress;
+  await flightPage.evaluate(y => scrollTo({top:y, behavior:'instant'}), expectedScroll);
+  await flightPage.waitForFunction(y => {
+    const frame = document.querySelector('.cv-hero-card-flight');
+    return frame && Math.abs(scrollY - y) < 1 && Number(frame.dataset.scroll) === scrollY;
+  }, expectedScroll, {timeout: 15000});
   return flightPage.evaluate(() => {
     const frame = document.querySelector('.cv-hero-card-flight');
     const r = frame.getBoundingClientRect();
