@@ -390,7 +390,8 @@ export class Ciel {
   distanceCourbe(n, px, py) {
     let m = 1e9; for (let i = 0; i <= 10; i++) { const q = i / 10, o = 1 - q, x = o * o * n.x0 + 2 * o * q * n.cx + q * q * n.x1, y = o * o * n.y0 + 2 * o * q * n.cy + q * q * n.y1, d = Math.hypot(x - px, y - py); if (d < m) m = d; } return m;
   }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, racineVisible = true, labels = true } = {}) {
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, racineVisible = true, labels = true, flightThumbnail = null, hideFlightThumbnail = false } = {}) {
+    this.thumbnailInFlight = null;
     if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
     const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
@@ -562,6 +563,10 @@ export class Ciel {
         const referenceThumbnailScale=(e.referenceFlat?.57:1)*(n.intro?.scale??1);
         const w = (im ? 30 : 18) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
         const h = (im ? 21 : 14) * kv * ech * (compact ? 0.62 : 1)*referenceThumbnailScale;
+        if (n === flightThumbnail) {
+          this.thumbnailInFlight = { x, y, w, h };
+          if (hideFlightThumbnail) { ctx.globalAlpha = aE; continue; }
+        }
         if (im) { ctx.drawImage(im, x - w / 2, y - h / 2, w, h); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2, y - h / 2, w, h); }
         else {
           // The reference uses pale image-like endpoints, not dark blue

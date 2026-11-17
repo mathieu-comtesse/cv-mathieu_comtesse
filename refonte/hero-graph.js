@@ -1,3 +1,4 @@
+import {createHeroFlight} from './fall26-hero-flight.js?v=fall26-work-flight';
 import {applyHeroIntro} from './fall26-hero-intro.js?v=fall26-work-intro';
 /* Graphe de l'accueil en mode à plat. Code original : même système d'étoiles que le chemin 3D (refonte/moteur.js, classe Ciel),
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
@@ -16,6 +17,9 @@ export function demarre(chapitres) {
   ciel.definit('accueil', { groupe: 'accueil', racine: true, label: 'Mathieu Comtesse' });
   chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: false }));
   calibrateReferenceBranches(ciel);
+  const flight = createHeroFlight(chapitres.find(chapter => chapter.id === 'shop'), cv);
+  const flightNode = ciel.etoiles.get('accueil:shop')?.noeuds.find(node => node.ed?.handle === flight?.handle);
+  const heroSection = document.querySelector('[data-f26-page-section]');
   let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0;
   let introSeconds = 0;
   let budgetFrame = 16, coutMoyen = 0, lents = 0, rapides = 0;
@@ -57,13 +61,18 @@ export function demarre(chapitres) {
   document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
   function image(t) {
     requestAnimationFrame(image);
-    if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < (W < 520 ? 30 : budgetFrame) || document.documentElement.classList.contains('cv-parity-active')) return;
+    const enabled = !document.hidden && !document.documentElement.classList.contains('cv-parity-active');
+    if (!enabled) { flight?.sample({enabled:false}); return; }
+    if (t - dernier < (W < 520 ? 30 : budgetFrame)) return;
+    const fin = (heroSection?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * .8;
+    flight?.sample({ enabled: !reduit.matches, heroExit: fin, node: flightNode });
+    if (!vu || W < 120 || H < 120) { flight?.draw(); return; }
     const debutDessin = performance.now(), dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     /* le plan du graphe penche légèrement vers le pointeur : la hauteur des nœuds donne la profondeur */
     penche += ((souris.x > -1e3 ? (souris.x / W - 0.5) : 0) - penche) * (1 - Math.exp(-dt * 1.875));
     const proj = (c, r, h) => ({ x: c + h * penche * 0.9, y: r - h * 0.62, z: 2000 - h });
     /* sortie de l'accueil : le graphe s'ouvre (les foyers s'écartent) et s'efface ; l'étoile du premier chapitre prend le relais */
-    const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
+    const s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
@@ -73,7 +82,8 @@ export function demarre(chapitres) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     drawReferenceLinks(ctx,ciel,proj,.49);
     if(introDone)drawReferenceJunction(ctx,ciel,proj,.49);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true });
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true, flightThumbnail: flightNode, hideFlightThumbnail: flight?.hidesThumbnail });
+    flight?.draw(ciel.thumbnailInFlight);
     const cout = performance.now() - debutDessin;
     coutMoyen = coutMoyen ? coutMoyen * .92 + cout * .08 : cout;
     if (W >= 520 && coutMoyen > 9) { lents++; rapides = 0; }

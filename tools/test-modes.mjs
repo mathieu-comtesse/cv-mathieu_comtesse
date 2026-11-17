@@ -165,5 +165,42 @@ verifie(transitionSample.css===transitionSample.state?.colour&&
   transitionSample.state.colour!=='#051DAA'&&transitionSample.state.colour!=='#7000A9',
   `progressive background needs a genuine intermediate colour: ${JSON.stringify(transitionSample)}`);
 await transitionPage.context().close();
+// Article and graph share the same image. Scroll forward and backward through
+// the handover to verify the overlay's real position and cleanup in Chromium.
+const flightPage = await page();
+const flightRange = await flightPage.evaluate(() => {
+  const card = document.getElementById('cv-7-0-point-financier-power-automate');
+  const land = scrollY + card.getBoundingClientRect().top - innerHeight;
+  const heroExit = scrollY + document.querySelector('[data-f26-page-section]').getBoundingClientRect().top - innerHeight * .8;
+  return {from: Math.max(0, Math.min(.45 * heroExit, land - .4 * innerHeight)), to: land};
+});
+async function flightAt(progress) {
+  await flightPage.evaluate(y => scrollTo({top:y, behavior:'instant'}),
+    flightRange.from + (flightRange.to - flightRange.from) * progress);
+  await flightPage.waitForFunction(() => !!document.querySelector('.cv-hero-card-flight'));
+  return flightPage.evaluate(() => {
+    const frame = document.querySelector('.cv-hero-card-flight');
+    const r = frame.getBoundingClientRect();
+    return {x:r.x, y:r.y, w:r.width, h:r.height, opacity:+frame.style.opacity,
+      source:frame.querySelector('img').getAttribute('src')};
+  });
+}
+const takeoff = await flightAt(.14);
+const halfway = await flightAt(.4);
+const rewind = await flightAt(.14);
+verifie(takeoff.source.endsWith('/finance-light.webp') && takeoff.opacity > .5 &&
+  halfway.x < takeoff.x - 15 && Math.abs(rewind.x - takeoff.x) < 1 &&
+  Math.abs(rewind.y - takeoff.y) < 1,
+  `vol de la vignette Point financier, inversable au défilement (${JSON.stringify({takeoff, halfway, rewind})})`);
+await flightAt(.4);
+await flightPage.screenshot({path:'test-results/fall26-parity/flat-hero-card-flight.png'});
+await flightPage.evaluate(y => scrollTo({top:y, behavior:'instant'}), flightRange.to+30);
+await flightPage.waitForFunction(() => !document.querySelector('.cv-hero-card-flight'));
+await flightPage.evaluate(() => scrollTo({top:0, behavior:'instant'}));
+await flightPage.waitForFunction(() => window.__cvHeroGraph.cibles().some(c => c.handle === 'cv-7-0-point-financier-power-automate'));
+verifie(flightPage.erreurs.length === 0, 'atterrissage nettoyé et vignette de nouveau interactive à l’accueil');
+await flightPage.context().close();
+
+
 await b.close(); srv.close();
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : modes, bascule animée, saisie des nœuds, clavier, historique, mouvement réduit, mobile'); process.exit(echecs.length ? 1 : 0);

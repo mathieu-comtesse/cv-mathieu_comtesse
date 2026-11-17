@@ -7,6 +7,8 @@ on:
       - "refonte/theme-stars.js"
       - "refonte/hero-graph.js"
       - "refonte/fall26-hero-intro.js"
+      - "refonte/fall26-hero-flight.js"
+      - "tools/test-fall26-hero-flight.mjs"
       - "tools/test-fall26-hero-intro.mjs"
       - "refonte/fall26-reference-graph.js"
       - "refonte/fall26-chapter-transition.js"
@@ -34,6 +36,7 @@ jobs:
           node --check refonte/fall26-chapter-transition.js
           node --check refonte/theme-stars.js
           node tools/test-fall26-hero-intro.mjs
+          node tools/test-fall26-hero-flight.mjs
           node tools/test-fall26-chapter-transition.mjs
           node tools/test-fall26-expo-foci.mjs
           node tools/test-fall26-reference-graph.mjs
