@@ -5,7 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
-import {chapterHandover,chapterStarPose,chapterStarAnchor,chapterColourWave,chapterJourney} from './fall26-chapter-transition.js?v=ct7';
+import {chapterHandover,chapterStarPose,chapterStarAnchor,chapterColourWave,chapterJourney,chapterStarPresence,measureChapterStops} from './fall26-chapter-transition.js?v=ct8';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -169,6 +169,15 @@ function scene(chapitres) {
   const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, dernierFond = '';
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
+  const sections = chapitres.map(c => c.section);
+  const desktop = matchMedia('(min-width: 940px)');
+  let flatTimeline, layoutDirty = true, wasExpo = false;
+  const invalidateLayout = () => { layoutDirty = true; };
+  const layoutObserver = new ResizeObserver(invalidateLayout);
+  for (const section of sections) layoutObserver.observe(section);
+  const page = document.querySelector('[data-f26-page]');
+  if (page) layoutObserver.observe(page);
+  addEventListener('resize', invalidateLayout);
   for (const c of chapitres) {
     const rd = alea(hache('scene|' + c.nom)); c.branches = [];
     c.fiches.slice(0, 10).forEach((fiche, k, l) => c.branches.push({ fiche, a: -2.9 + (k + 0.5) / l.length * 5.2 + (rd() - 0.5) * 0.4, r: 0.2 + rd() * 0.3, phase: rd() * 6.28 }));
@@ -186,11 +195,13 @@ function scene(chapitres) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
     // One continuous scroll coordinate governs both the page colour and
     // the departure/arrival of chapter stars, in flat and Expo modes alike.
-    const timeline=chapitres.map(c=>({
-      top:(expo ? window.__cvOriginalRect?.(c.section)?.top : undefined) ?? c.section.getBoundingClientRect().top+scrollY,
-      colour:c.section.getAttribute('data-html-in-canvas-colour')||'#051DAA'
-    }));
-    const handover=chapterHandover(scrollY,timeline,H);
+    if (!expo && (layoutDirty || wasExpo)) {
+      flatTimeline = measureChapterStops(sections, section => section.getBoundingClientRect(), scrollY);
+      layoutDirty = false;
+    }
+    wasExpo = expo;
+    const timeline = (expo && window.__cvExpoChapterStops?.()) || flatTimeline || [];
+    const handover=chapterHandover(scrollY,timeline,H,desktop.matches);
     const from=timeline[handover.from]?.colour||handover.colour;
     const to=timeline[handover.to]?.colour||handover.colour;
     const wave=chapterColourWave(from,to,chapterJourney(handover.linear??handover.progress).colour);
@@ -206,7 +217,7 @@ function scene(chapitres) {
     }
     window.__cvChapterTransition={
       from:handover.from,to:handover.to,progress:handover.progress,
-      colour:handover.colour,active:handover.active,wave
+      colour:handover.colour,active:handover.active,wave,scroll:scrollY
     };
     if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
@@ -228,7 +239,8 @@ function scene(chapitres) {
       const weight=pose.weight;
       const localAlpha=lisse(u,-1.6,-1.0)*(1-lisse(u,.8,1.3));
       const intro=lisse(scrollY,H*.25,H*.8);
-      const alpha=(participating?1:localAlpha)*intro*pose.opacity;
+      const presence=chapterStarPresence(chapterIndex,handover,localAlpha);
+      const alpha=presence*intro*pose.opacity;
       const g=participating?1:lisse(u,-1.55,-.6),
         // During handover, the fill follows the same scroll clock as the branches.
         // The outgoing letters empty while the incoming title becomes solid.

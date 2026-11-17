@@ -148,12 +148,17 @@ await m.context().close();
 /* The chapter handover is a continuous progress value and the actual CSS
    background must change through intermediary colours, not discrete bands. */
 const transitionPage=await page();
-await transitionPage.evaluate(()=>{
-  const sections=[...document.querySelectorAll('section[data-f26-page-section]')];
-  const next=sections[1];
-  scrollTo({top:scrollY+next.getBoundingClientRect().top-innerHeight*.55,behavior:'instant'});
+const boundaryScroll = await transitionPage.evaluate(()=>{
+  const [outgoing, incoming] = document.querySelectorAll('section[data-f26-page-section]');
+  const bottom = Math.max(outgoing.getBoundingClientRect().bottom,
+    ...[...outgoing.querySelectorAll('.product-card')].map(card=>card.getBoundingClientRect().bottom));
+  const start = scrollY + bottom - innerHeight*.55;
+  const end = Math.max(start + 1, scrollY + incoming.getBoundingClientRect().top - innerHeight*.40);
+  return (start + end) / 2;
 });
-await transitionPage.waitForTimeout(480);
+await transitionPage.evaluate(y=>scrollTo({top:y,behavior:'instant'}),boundaryScroll);
+await transitionPage.waitForFunction(y=>Math.abs(scrollY-y)<1 &&
+  window.__cvChapterTransition?.scroll===scrollY,boundaryScroll,{timeout:15000});
 const transitionSample=await transitionPage.evaluate(()=>{
   const state=window.__cvChapterTransition;
   return {state,bg:getComputedStyle(document.body).backgroundColor,

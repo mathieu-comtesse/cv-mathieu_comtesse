@@ -89,17 +89,21 @@ async function run(name,viewport,mobile=false,reduce=false){
  // scroll-driven chapter transition. These are not arbitrary time samples.
  async function transitionFrames(mode){
   if(mobile)return;
-  const points=await page.evaluate((isExpo)=>{
+  const points=await page.evaluate(async isExpo=>{
+    const {chapterJourneyBounds,measureChapterStops}=await import('./refonte/fall26-chapter-transition.js?v=ct8');
     const sections=[...document.querySelectorAll('section[data-f26-page-section]')];
-    const section=sections[1];
-    const target=(isExpo ? window.__cvOriginalRect?.(section)?.top : undefined) ??
-      section.getBoundingClientRect().top+scrollY;
-    const centre=target-innerHeight*.55,half=innerHeight*.38;
-    return [.25,.5,.75].map(t=>Math.max(0,centre-half+2*half*t));
+    const stops=isExpo ? window.__cvExpoChapterStops() :
+      measureChapterStops(sections,section=>section.getBoundingClientRect(),scrollY);
+    const {start,end}=chapterJourneyBounds(stops[0],stops[1],innerHeight);
+    return [.25,.5,.75].map(t=>Math.max(0,start+(end-start)*t));
   },mode==='expo');
   for(let i=0;i<points.length;i++){
-    await page.evaluate(y=>scrollTo({top:y,behavior:'instant'}),points[i]);
-    await page.waitForTimeout(200);
+    const point=points[i];
+    await page.evaluate(y=>scrollTo({top:y,behavior:'instant'}),point);
+    await page.waitForFunction(({point,isExpo})=>Math.abs(scrollY-point)<1 &&
+      window.__cvChapterTransition?.scroll===scrollY &&
+      (!isExpo||window.__cvTransfer?.chapterHandover?.scroll===scrollY),
+    {point,isExpo:mode==='expo'},{timeout:15000});
     await capture(mode+'-transition-'+[25,50,75][i]);
   }
   await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));

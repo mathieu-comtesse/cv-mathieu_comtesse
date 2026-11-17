@@ -29,17 +29,43 @@ export function mixHex(a,b,t){
   const x=parse(a),y=parse(b),p=clamp01(t);
   return '#'+x.map((c,i)=>Math.round(c+(y[i]-c)*p).toString(16).padStart(2,'0')).join('').toUpperCase();
 }
-export function chapterHandover(scrollY,sections,viewportHeight){
+// Match Shopify's measured section extent, including any card whose flow
+// box extends beyond its section. The reader supplies the unprojected layout.
+export function measureChapterStops(elements, readRect, scrollOffset = 0) {
+  return elements.flatMap(element => {
+    const section = readRect(element);
+    if (!section) return [];
+    const top = section.top + scrollOffset;
+    let flowBottom = top + section.height;
+    for (const card of element.querySelectorAll('.product-card')) {
+      const rect = readRect(card);
+      if (rect) flowBottom = Math.max(flowBottom, rect.top + rect.height + scrollOffset);
+    }
+    return [{ top, flowBottom, colour: element.getAttribute('data-html-in-canvas-colour') || '#051DAA' }];
+  });
+}
+
+export function chapterJourneyBounds(outgoing, incoming, height, desktop = true) {
+  if (desktop && Number.isFinite(outgoing.flowBottom)) {
+    const start = outgoing.flowBottom - height * .55;
+    return { start, end: Math.max(start + 1, incoming.top - height * .40) };
+  }
+  // The source enables this particular journey on desktop. Keep the mobile
+  // fallback tied to the incoming heading while the mobile view is calibrated.
+  const centre = incoming.top - height * .55;
+  const half = height * .38;
+  return { start: centre - half, end: centre + half };
+}
+
+export function chapterHandover(scrollY,sections,viewportHeight,desktop=true){
   const list=(sections||[]).filter(x=>Number.isFinite(x.top));
   if(!list.length)return {from:-1,to:-1,progress:0,colour:'#051DAA',active:-1};
   const H=Math.max(1,viewportHeight||1);
-  // The outgoing star folds while the incoming one grows around the
-  // chapter's arrival at approximately the middle of the viewport.
   for(let i=1;i<list.length;i++){
-    const centre=list[i].top-H*.55,half=H*.38;
-    if(scrollY<centre-half)return {from:i-1,to:i-1,progress:0,colour:list[i-1].colour,active:i-1};
-    if(scrollY<=centre+half){
-      const linear=clamp01((scrollY-centre+half)/(2*half));
+    const {start,end}=chapterJourneyBounds(list[i-1],list[i],H,desktop);
+    if(scrollY<start)return {from:i-1,to:i-1,progress:0,colour:list[i-1].colour,active:i-1};
+    if(scrollY<=end){
+      const linear=clamp01((scrollY-start)/(end-start));
       const progress=smooth(linear);
       return {from:i-1,to:i,progress,linear,
         colour:mixHex(list[i-1].colour,list[i].colour,chapterJourney(linear).colour),
@@ -49,10 +75,10 @@ export function chapterHandover(scrollY,sections,viewportHeight){
   const last=list.length-1;
   return {from:last,to:last,progress:1,colour:list[last].colour,active:last};
 }
-export function chapterColourAtRow(row,sections,viewportHeight){
+export function chapterColourAtRow(row,sections,viewportHeight,desktop=true){
   // For the 3D floor, the same chromatic transition is sampled in
   // document coordinates, not at viewport row offsets.
-  return chapterHandover(row-viewportHeight*.55,sections,viewportHeight).colour;
+  return chapterHandover(row-viewportHeight*.55,sections,viewportHeight,desktop).colour;
 }
 
 /** Shared geometric handover for both the flat and Expo chapter stars.
@@ -70,6 +96,14 @@ export function chapterStarPose(index,handover){
   const opening=!participating?1:incoming?isolate:1-gather;
   const scale=.48+.52*opening;
   return {weight,opacity:incoming?weight*reveal:weight,scale,opening,participating};
+}
+
+export function chapterStarPresence(index, handover, localAlpha) {
+  const { from, to, linear } = handover;
+  if (from === to || (index !== from && index !== to)) return localAlpha;
+  const { reveal, isolate } = chapterJourney(linear ?? handover.progress);
+  const contextual = index === from ? reveal : 1 - isolate;
+  return localAlpha + (1 - localAlpha) * contextual;
 }
 
 // The reference transition displays two distinct constellations, not two

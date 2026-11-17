@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {chapterJourney,chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,chapterColourWave,mixHex} from '../refonte/fall26-chapter-transition.js';
+import {chapterJourney,chapterHandover,chapterColourAtRow,chapterStarPose,chapterStarAnchor,chapterColourWave,mixHex,chapterJourneyBounds,measureChapterStops,chapterStarPresence} from '../refonte/fall26-chapter-transition.js';
 
 const sections=[
   {top:1000,colour:'#051DAA'},
@@ -32,7 +32,7 @@ assert.equal(chapterColourAtRow(sections[1].top-H*.38,sections,H),'#051DAA');
 assert.equal(chapterColourAtRow(sections[1].top+H*.38,sections,H),'#7000A9');
 const theme=fs.readFileSync(new URL('../refonte/theme-stars.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
-assert.ok(theme.includes('chapterHandover(scrollY,timeline,H)'), 'Flat chapter animation must use shared timeline');
+assert.ok(theme.includes('chapterHandover(scrollY,timeline,H,desktop.matches)'), 'Flat chapter animation must use shared timeline');
 assert.ok(theme.includes('document.body.style.setProperty'), 'Body colour must be updated by shared timeline');
 assert.ok(theme.includes('const shrink=pose.scale;'), 'Flat stars must use the shared star pose');
 assert.ok(theme.includes('plein=!libre?1:participating?pose.weight'),
@@ -41,7 +41,7 @@ assert.ok(theme.includes('if (fingerprint !== dernierFond)'),
  'Avoid a redundant global style invalidation on every animation frame');
 assert.ok(theme.includes('.sort((a,b)=>b.weight-a.weight)[0]'),
  'Click picking must favor the incoming star as it becomes dominant');
-assert.ok(html.includes('C.chapterColourAtRow(view.offset+(a+b)/2,stops,innerHeight)'),
+assert.ok(html.includes('C.chapterColourAtRow(view.offset+(a+b)/2,stops,innerHeight,desktopJourney.matches)'),
   'Expo floor must be interpolated by the same chapter timeline');
 assert.ok(!html.includes('for(const [bi,band] of bands.entries())'),
   'Old hard-edged floor colour bands must be removed');
@@ -56,7 +56,7 @@ assert.ok(html.includes('e.transitionOpacity=pose.opacity;'),
  'Expo stars must not reappear after their outgoing fade completes');
 assert.ok(theme.includes('const participating=pose.participating;'),
   'Both incoming and outgoing constellations must remain alive throughout the shared transition');
-assert.ok(theme.includes('const alpha=(participating?1:localAlpha)*intro*pose.opacity;'),
+assert.ok(theme.includes('const alpha=presence*intro*pose.opacity;'),
   'Outgoing star opacity must follow the common timeline instead of the old heading viewport');
 assert.ok(theme.includes('const anchor=chapterStarAnchor(chapterIndex,handover,W,H);'),
   'Transition stars must use independent, video-calibrated screen-space pivots');
@@ -121,5 +121,21 @@ assert.deepEqual(waveEnd,{top:'#7000A9',middle:'#7000A9',bottom:'#7000A9'});
 assert.notEqual(waveHalf.top,waveHalf.middle,'Colour wave must not be a uniform crossfade');
 assert.notEqual(waveHalf.bottom,waveHalf.middle,'Colour wave must be spatially graduated');
 assert.ok(theme.includes('--cv-chapter-middle'),'Flat transition must expose the video-derived colour band');
+
+const card = {};
+const section = {querySelectorAll: () => [card], getAttribute: () => '#051DAA'};
+const rects = new Map([[section,{top:50,height:900}],[card,{top:850,height:200}]]);
+const [measured] = measureChapterStops([section],element=>rects.get(element),1000);
+assert.deepEqual(measured,{top:1050,flowBottom:2050,colour:'#051DAA'});
+const next = {top:2230,flowBottom:3100,colour:'#7000A9'};
+const desktop = chapterJourneyBounds(measured,next,900);
+assert.deepEqual(desktop,{start:1555,end:1870});
+assert.deepEqual(chapterJourneyBounds({flowBottom:3000},next,900),{start:2505,end:2506});
+assert.ok(Math.abs(chapterHandover(1712.5,[measured,next],900).linear-.5)<1e-12);
+assert.equal(chapterHandover(1554,[measured,next],900).linear,undefined);
+assert.notDeepEqual(chapterJourneyBounds(measured,next,900,false),desktop);
+assert.ok(Math.abs(chapterStarPresence(0,{from:0,to:1,linear:0},.25)-.25)<1e-12);
+assert.equal(chapterStarPresence(0,{from:0,to:1,linear:.08},.25),1);
+assert.ok(Math.abs(chapterStarPresence(1,{from:0,to:1,linear:1},.25)-.25)<1e-12);
 
 console.log('PASS synchronized reversible chapter stars and interpolated flat/Expo colours');

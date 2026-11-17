@@ -1,4 +1,4 @@
-import {createHeroFlight} from './fall26-hero-flight.js?v=fall26-work-flight';
+import {createHeroFlight} from './fall26-hero-flight.js?v=fall26-work-flight-2';
 import {applyHeroIntro} from './fall26-hero-intro.js?v=fall26-work-intro';
 /* Graphe de l'accueil en mode à plat. Code original : même système d'étoiles que le chemin 3D (refonte/moteur.js, classe Ciel),
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
