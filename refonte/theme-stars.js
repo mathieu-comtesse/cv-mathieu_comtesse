@@ -235,7 +235,6 @@ function scene(chapitres) {
         else if (libre) c.titre.style.setProperty('--cv-fill', '0');
         continue;
       }
-      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
       const weight=pose.weight;
       const localAlpha=lisse(u,-1.6,-1.0)*(1-lisse(u,.8,1.3));
       const intro=lisse(scrollY,H*.25,H*.8);
@@ -271,8 +270,10 @@ function scene(chapitres) {
         } else if (b.fin) { ctx.fillStyle = 'rgba(223,233,255,.85)'; ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 6.283); ctx.fill(); }
       });
       /* faisceau de fils vers les lettres du titre : ils arrivent par la droite, le remplissage les suit */
-      if (libre && u > -0.3 && plein < 1) {
-        const a = lisse(u, -0.3, -0.05) * (1 - lisse(plein, 0.85, 1));
+      if (libre && T.bottom > 0 && T.top < H && plein < 1) {
+        const range = document.createRange(); range.selectNodeContents(c.titre);
+        const L = range.getBoundingClientRect();
+        const a = lisse(Math.min(L.bottom, H - L.top), 0, 72) * (1 - lisse(plein, 0.85, 1));
         for (let k = 0; k < 8; k++) {
           const avance = Math.max(0.35, Math.min(1, plein * 8 - k + 1)), cx = L.right - (k + 0.5) / 8 * L.width, cy = L.top + L.height * 0.55;
           ctx.strokeStyle = `rgba(207,224,255,${(0.5 * a).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + (cx - hx) * avance, hy + (cy - hy) * avance); ctx.stroke();
@@ -282,8 +283,8 @@ function scene(chapitres) {
       /* branche qui relie le foyer au premier contenu du chapitre */
       const premiere = c.fiches[0];
       if (premiere && u > 0.3) {
-        const q = premiere.getBoundingClientRect(), a = lisse(u, 0.3, 0.5), cx = q.left + Math.min(q.width * 0.55, Math.max(40, hx - q.left)), cy = q.top;
-        if (cy > hy) { ctx.restore(); ctx.save(); ctx.globalAlpha = alpha * a; ctx.strokeStyle = 'rgba(95,230,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(cx, cy); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 3.2, 0, 6.283); ctx.stroke(); }
+        const q = premiere.getBoundingClientRect(), a = lisse(u, 0.3, 0.5) * lisse(H - q.top, 0, 72), cx = q.left + Math.min(q.width * 0.55, Math.max(40, hx - q.left)), cy = q.top;
+        if (cy > hy && a > .004) { ctx.restore(); ctx.save(); ctx.globalAlpha = alpha * a; ctx.strokeStyle = 'rgba(95,230,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(cx, cy); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 3.2, 0, 6.283); ctx.stroke(); }
       }
       ctx.fillStyle = '#fff'; ctx.fillRect(hx - 3.5, hy - 3.5, 7, 7);
       ctx.restore();

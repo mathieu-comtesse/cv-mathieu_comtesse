@@ -144,3 +144,5 @@ Sur ordinateur, le moteur mesure la fin du chapitre sortant et le début du suiv
 Le changement reprend les bornes du module `journey-B8CyvxC_.js` et la mesure de `HeroGraph-DVZqmklL.js` du build 5090151. Comparaison numérique directe avec le module Shopify sur cinq hauteurs de fenêtre, six espacements entre chapitres et 101 positions par fenêtre. Les 60 bornes et les 15 150 valeurs des courbes ont donné un écart numérique nul. Les captures automatisées à 25 %, 50 % et 75 % attendent que la scène ait dessiné la position demandée. Le test de retour de la vignette Point financier applique le même principe.
 
 Le tracé des branches et les points d'ancrage reposent toujours sur la reconstruction du graphe. Le dégradé spatial et les couleurs conservent l'étalonnage propre au portfolio. Le mode mobile garde son intervalle lié au titre entrant, car cette partie du module Shopify active le parcours selon les conditions desktop.
+
+La vérification à plat a montré des fils qui traversaient tout l'écran lorsque leur titre ou leur carte cible était hors champ. Le dessin des fils s'arrête désormais lorsque leur cible quitte la fenêtre, avec un fondu sur les derniers 72 px.
