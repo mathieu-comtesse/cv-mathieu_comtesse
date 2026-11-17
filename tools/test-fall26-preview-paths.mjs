@@ -36,13 +36,20 @@ assert.ok(entry.includes('target.hash=location.hash')&&entry.includes('target.se
 assert.ok(html.includes('refonte/fall26-reference-graph.js'),
   'Must load the full starfield, not the simplified studio mockup');
 const flatGraph=read('refonte/hero-graph.js');
-const revision='fall26-work-wire';
+const revisionOf = (text, asset) => {
+  const prefix = asset + '?v=';
+  return text.split(prefix)[1]?.match(/^[\w-]+/)?.[0];
+};
 for(const asset of ['site.css','hero-graph.js','moteur.js','fall26-reference-graph.js']){
-  assert.ok(html.includes('refonte/'+asset+'?v='+revision),
-    'Preview must invalidate older cached '+asset);
+  assert.ok(revisionOf(html,'refonte/'+asset),
+    'Preview must version '+asset+' to avoid older cached code');
 }
+assert.equal(revisionOf(html,'refonte/hero-graph.js'),'fall26-work-flight-2',
+  'Preview must load the synchronized thumbnail flight');
+assert.equal(revisionOf(flatGraph,'./fall26-hero-flight.js'),'fall26-work-flight-2',
+  'The flat graph must load the synchronized flight module');
 for(const asset of ['moteur.js','fall26-reference-graph.js']){
-  assert.ok(flatGraph.includes('./'+asset+'?v='+revision),
-    'Flat overview must share the latest revision of '+asset+' with Expo');
+  assert.equal(revisionOf(flatGraph,'./'+asset),revisionOf(html,'refonte/'+asset),
+    'Flat overview must share the revision of '+asset+' with Expo');
 }
 console.log('PASS Fall26 branch preview paths and full engine');
