@@ -524,7 +524,7 @@ export class Ciel {
         for (let j = 0; j < nb; j++) { const n = N[j]; if (n.ed || !n.vis || n.niveau !== lv || n.cl !== cl) continue; const r = (n.intro?.scale??1) * (n.taille || 1.6) * (e.racine ? 0.8 : 1) * Math.min(1.2, ech) * (lv === 1 ? 1 : lv === 2 ? 0.8 : 0.6); ctx.moveTo(n.x1 + r, n.y1); ctx.arc(n.x1, n.y1, r, 0, 6.283); }
         ctx.fill();
       }
-      if (ambient) {
+      if (ambient && !e.referenceFlat) {
         /* Une fraction des terminaisons forme les points de haute lumière
            de la référence, sans éclaircir l'ensemble des filaments bleus. */
         ctx.globalAlpha = Math.min(1, aE * 1.1);
@@ -540,16 +540,6 @@ export class Ciel {
         ctx.fill();
       }
       ctx.globalAlpha = aE;
-      if(e.referenceFlat){
-        /* Les rayons se terminent aussi par des anneaux évidés, visibles dans
-           la vue rapprochée des vidéos. Aucune cible interactive ajoutée. */
-        ctx.globalAlpha=aE*.65;ctx.lineWidth=.85;ctx.strokeStyle=e.flatTone==='mint'?'#42bd91':'#7187cc';
-        ctx.beginPath();
-        for(let j=0;j<nb;j++){const n=N[j];if(n.ed||!n.vis||j%5!==0)continue;
-          ctx.moveTo(n.x1+3.1,n.y1);ctx.arc(n.x1,n.y1,3.1,0,6.283);
-        }
-        ctx.stroke();ctx.globalAlpha=aE;
-      }
       /* 7. cartes des contenus éditoriaux */
       for (let j = 0; j < nb; j++) {
         const n = N[j]; if (!n.ed || !n.vis) continue;

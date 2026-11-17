@@ -1,46 +1,22 @@
+import { REFERENCE_BRANCHES, REFERENCE_PAIRS, REFERENCE_GRAPH_TOPOLOGY } from './fall26-reference-topology.js?v=fall26-topology';
+
 /**
  * Foyers relevés sur Shopify Fall '26 à 1470 × 802, dans le graphe
  * encadré par x=423–1460 et y=60–792. Les foyers bougent au survol.
  * Les rayons et les étiquettes restent calibrés séparément.
  */
 export const REFERENCE_HUBS = Object.freeze([
-  {x:0.4455,y:0.0751,r:1.03,points:20,tone:'blue'}, // Agentic
-  {x:0.6066,y:0.7049,r:.91,points:15,tone:'blue'}, // Sidekick
-  {x:0.9421,y:0.4822,r:.88,points:15,tone:'blue'}, // Merchandising
-  {x:0.1360,y:0.7158,r:1.04,points:21,tone:'mint'}, // Retail
+  {x:0.4455,y:0.0751,r:1.03,points:16,tone:'blue'}, // Agentic
+  {x:0.6066,y:0.7049,r:.91,points:12,tone:'blue'}, // Sidekick
+  {x:0.9421,y:0.4822,r:.88,points:9,tone:'blue'}, // Merchandising
+  {x:0.1360,y:0.7158,r:1.04,points:20,tone:'mint'}, // Retail
   {x:0.6567,y:0.1899,r:1.02,points:30,tone:'blue'}, // Payments
-  {x:0.5159,y:0.9167,r:.91,points:16,tone:'cyan'}, // Operations
-  {x:0.1331,y:0.3101,r:1.09,points:20,tone:'blue'}, // Online
-  {x:0.8361,y:0.6995,r:.80,points:15,tone:'blue'}, // Marketing
+  {x:0.5159,y:0.9167,r:.91,points:23,tone:'cyan'}, // Operations
+  {x:0.1331,y:0.3101,r:1.09,points:17,tone:'blue'}, // Online
+  {x:0.8361,y:0.6995,r:.80,points:9,tone:'blue'}, // Marketing
   {x:0.2613,y:0.5096,r:1.07,points:19,tone:'blue'}, // Fulfillment
   {x:0.7184,y:0.4153,r:1.09,points:57,tone:'mint'}, // Developer
-  {x:0.3790,y:0.3019,r:.72,points:14,tone:'blue'}, // Shop
-]);
-/* Number of visible project thumbnails per original star. Full chapter
- * content remains in the page and navigation. This avoids rendering every
- * portfolio item as a miniature in the static overview. */
-export const REFERENCE_CARD_SLOTS=Object.freeze([4,3,3,2,5,3,3,2,4,5,3]);
-export const REFERENCE_LINKS = Object.freeze([
-  [0,4],[0,6],[0,10],[1,3],[1,5],[1,7],[1,9],
-  [2,4],[2,7],[2,9],[3,5],[3,6],[3,8],
-  [4,6],[4,9],[5,7],[6,8],[6,9],[7,9]
-]);
-
-/* Directions principales mesurées sur la trame vidéo (degrés).
- * Les directions supplémentaires de l'éventail sont reconstituées
- * de façon déterministe quand une vignette n'est pas détectable. */
-export const REFERENCE_SPOKES = Object.freeze([
-  [-166,-138,-112,-68,-49,-35,-3,29,53,75,91,112,140,171,-90,-21,16,65,122,156],   // Agentic
-  [-168,-140,-88,-39,-11,-5,14,31,50,72,110,150,176,-114,92],             // Sidekick
-  [-176,-169,-146,-120,-90,-60,-28,-8,15,31,55,79,115,146,172],           // Merchandising
-  [-169,-150,-127,-99,-57,-49,-30,-24,-4,3,19,42,61,76,95,115,137,171,183,209,249], // Retail
-  [-176,-115,-98,-48,-29,-18,-13,15,28,64,94,121,135,152,172,-145,-81,49,106], // Payments
-  [-178,-174,-161,-146,-133,-107,-88,-86,-72,-66,7,30,70,110,145,176],    // Operations
-  [-172,-133,-111,-83,-45,-34,21,40,61,79,118,143,178,-152,-90,-13,6,91,161,199], // Online
-  [-176,-159,-155,-141,-106,-104,-93,-45,7,34,70,94,120,141,170],         // Marketing
-  [-174,-152,-132,-95,-81,-68,-43,-20,-4,7,19,32,47,56,69,87,106,120,150], // Fulfillment
-  [-179,-161,-150,-139,-125,-106,-83,-65,-47,-35,-12,8,21,38,51,78,95,112,129,156,176,195,229,263], // Developer
-  [-173,-165,-149,-139,-90,-57,-34,-12,9,28,63,118,139,173]              // Shop
+  {x:0.3790,y:0.3019,r:.72,points:10,tone:'blue'}, // Shop
 ]);
 // Map the actual chapter IDs to the locations of the original reference hubs.
 // The site's editorial chapter order differs from the reference diagram order.
@@ -59,116 +35,80 @@ function referenceIndex(hub,fallback){
   const index=REFERENCE_CHAPTER_IDS.indexOf(key);
   return index<0?fallback:index;
 }
-const TAU=Math.PI*2;
-/**
- * Étend les orientations relevées dans les captures sans produire des rayons
- * presque confondus. Les directions d'origine sont préservées et les rayons
- * supplémentaires sont placés dans les lacunes angulaires les plus larges.
- */
-export function referenceSpokeAngles(index,count){
-  if(!Number.isInteger(count)||count<0)return [];
-  const raw=REFERENCE_SPOKES[index]||[];
-  const norm=d=>((d%360)+360)%360;
-  const values=[...new Set(raw.map(norm).map(d=>Math.round(d*1000)/1000))].sort((a,b)=>a-b);
-  if(!values.length)values.push(0);
-  // Les positions présentes dans la vidéo sont conservées en priorité.
-  while(values.length<count){
-    let widest=-1,at=0;
-    for(let i=0;i<values.length;i++){
-      const gap=((values[(i+1)%values.length]+(i===values.length-1?360:0))-values[i]);
-      if(gap>widest){widest=gap;at=i;}
-    }
-    const midpoint=norm(values[at]+widest/2);
-    values.push(midpoint);values.sort((a,b)=>a-b);
-  }
-  return values.slice(0,count).map(x=>x*Math.PI/180);
-}
-export function calibrateReferenceBranches(ciel) {
-  const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
-  hubs.forEach((e,index)=>{
-    const refIndex=referenceIndex(e,index),ref=REFERENCE_HUBS[refIndex];
-    if(!ref)return;
-    e.sol=false;e.referenceFlat=true;e.flatTone=ref.tone;
-    e.referenceShortLabel=REFERENCE_SHORT_LABELS[REFERENCE_CHAPTER_IDS[refIndex]]||e.label;
-    const allEditorial=e.noeuds.filter(n=>n.ed);
-    e.referenceEditorialCount=allEditorial.length;
-    const slots=Math.min(allEditorial.length,REFERENCE_CARD_SLOTS[refIndex]);
-    // Keep a representative project from each segment of the chapter, with
-    // priority for existing local illustrations over generic placeholders.
-    const keep=new Set();
-    for(let j=0;j<slots;j++){
-      const begin=Math.floor(j*allEditorial.length/slots);
-      const end=Math.max(begin+1,Math.floor((j+1)*allEditorial.length/slots));
-      const segment=allEditorial.slice(begin,end);
-      const chosen=segment.find(n=>n.ed?.image)||segment[0];
-      if(chosen)keep.add(chosen);
-    }
-    const editorial=allEditorial.filter(n=>keep.has(n));
-    const pool=e.noeuds.filter(n=>!n.ed).concat(
-      allEditorial.filter(n=>!keep.has(n)).map(n=>({...n,ed:null,enf:[],ox:0,oy:0,vis:false,gg:0}))
-    );
-    const count=Math.max(ref.points,editorial.length);
-    const decorativeCount=count-editorial.length;
-    const visual=pool.slice(0,decorativeCount);
-    for(let i=visual.length;i<decorativeCount&&pool.length;i++){
-      const template=pool[i%pool.length];
-      visual.push({...template,ed:null,enf:[],ox:0,oy:0,phase:(template.phase+(i+1)*.173)%TAU,vis:false,gg:0});
-    }
-    if(!pool.length&&decorativeCount){ // Graceful degradation for a chapter with no generated decorative nodes.
-      const template=editorial[0];
-      for(let i=0;i<decorativeCount&&template;i++)
-        visual.push({...template,ed:null,enf:[],ox:0,oy:0,phase:(i+1)*.618%TAU,vis:false,gg:0});
-    }
-    e.noeuds=[...editorial,...visual];
-    const angles=referenceSpokeAngles(refIndex,e.noeuds.length);
-    const assigned=new Set();
-    // Les miniatures sont réparties sur l'éventail, au lieu d'être concentrées
-    // selon le nombre d'or du générateur procédural.
-    editorial.forEach((n,i)=>{
-      const at=Math.min(angles.length-1,Math.floor((i+.5)*angles.length/editorial.length));
-      n.a=angles[at];assigned.add(at);
-      n.r=.8+.38*((i*7+refIndex*3)%11)/10;
-    });
-    let cursor=0;
-    visual.forEach((n,i)=>{
-      while(assigned.has(cursor)&&cursor<angles.length)cursor++;
-      n.a=angles[cursor++]??(i+.5)*TAU/Math.max(1,visual.length);
-      // Chaque direction possède une profondeur distincte, sans motif radial répété.
-      n.r=.66+.60*((i*11+refIndex*5)%23)/22;
-    });
-    e.noeuds.forEach((n,i)=>{
-      n.dh=0;n.cv=0;n.ar=0;n.par=null;n.enf=[];
-      n.niveau=n.ed?0:1;n.taille=n.ed?1.5:1.1+(i%5)*.20;
-      n.pul=false;
-    });
-    // Reference video: the constellation is not a pure radial fan.
-    // Roughly one in five decorative tips forks from an existing spoke.
-    // Parents precede their children in the render loop, so animation,
-    // picking and spring return use the native Ciel implementation.
-    for(let i=5;i<visual.length;i+=5){
-      const twig=visual[i],parent=visual[i-2];
-      if(!twig||!parent||parent.par)continue;
-      twig.par=parent;parent.enf.push(twig);
-      twig.niveau=2;
-      twig.t0=.62+.07*((i+refIndex)%3);
-      twig.ang=(i%2?-1:1)*(.36+.08*((i+refIndex)%4));
-      twig.len=.18+.045*((i+refIndex)%4);
-      twig.cv=0;twig.ar=0;twig.dh=0;
-    }
-    // Dense reference hubs include secondary forks which themselves fork.
-    // Building from earlier visual nodes guarantees parent-before-child
-    // ordering and keeps every editorial thumbnail at level zero.
-    for(let i=11;i<visual.length;i+=10){
-      const twig=visual[i],parent=visual[i-1];
-      if(!twig||!parent||parent.niveau!==2||twig.par)continue;
-      twig.par=parent;parent.enf.push(twig);
-      twig.niveau=3;
-      twig.t0=.52+.08*((i+refIndex)%3);
-      twig.ang=(i%2?-1:1)*(.55+.06*((i+refIndex)%4));
-      twig.len=.11+.025*((i+refIndex)%4);
-      twig.cv=0;twig.ar=0;twig.dh=0;
-    }
+const REFERENCE_RADIUS = Math.min(1037 * .12, 732 * .17);
+export const REFERENCE_CARD_SLOTS = Object.freeze(REFERENCE_CHAPTER_IDS.map(
+  id => REFERENCE_BRANCHES[id].filter(([, , image]) => image).length
+));
+
+const { associations, updateSlots, conceptsByType } = REFERENCE_GRAPH_TOPOLOGY;
+const firstConcept = REFERENCE_CHAPTER_IDS.length + updateSlots.length;
+const slotKey = (chapter, index) => chapter + ':' + index;
+const productSlots = associations.map(ids => ids.filter(
+  id => id >= firstConcept && id < firstConcept + conceptsByType.product
+));
+const groupBySlot = new Map(updateSlots.map(([chapter, index], global) => [slotKey(chapter, index), global]));
+
+export function relatedReferenceUpdates(chapter, index) {
+  const own = groupBySlot.get(slotKey(chapter, index));
+  if (own === undefined) return [];
+  const products = new Set(productSlots[own]);
+  return productSlots.flatMap((ids, other) => {
+    if (own === other) return [];
+    const matches = ids.filter(id => products.has(id)).length;
+    return matches ? [{ slot: updateSlots[other], matches }] : [];
   });
+}
+
+function editorialSample(nodes, count) {
+  const selected = [];
+  for (let i = 0; i < count; i++) {
+    const start = Math.floor(i * nodes.length / count);
+    const end = Math.floor((i + 1) * nodes.length / count);
+    const segment = nodes.slice(start, end);
+    selected.push(segment.find(node => node.ed.image) ?? segment[0]);
+  }
+  return selected;
+}
+
+export function calibrateReferenceBranches(ciel) {
+  const hubs = [...ciel.etoiles.values()].filter(e => e.parent === 'accueil').sort((a,b) => a.rang-b.rang);
+  const lookup = new Map();
+  hubs.forEach((hub, index) => {
+    const reference = referenceIndex(hub, index);
+    const chapter = REFERENCE_CHAPTER_IDS[reference];
+    const rows = REFERENCE_BRANCHES[chapter];
+    if (!rows) return;
+
+    hub.sol = false;
+    hub.referenceFlat = true;
+    hub.flatTone = REFERENCE_HUBS[reference].tone;
+    hub.referenceShortLabel = REFERENCE_SHORT_LABELS[chapter] || hub.label;
+    const editorial = hub.noeuds.filter(node => node.ed);
+    hub.referenceEditorialCount = editorial.length;
+    const cards = editorialSample(editorial, Math.min(editorial.length, REFERENCE_CARD_SLOTS[reference]));
+    const dots = hub.noeuds.filter(node => !node.ed);
+    const radius = REFERENCE_RADIUS * REFERENCE_HUBS[reference].r;
+    hub.noeuds = rows.map(([dx, dy, isImage], slot) => {
+      const card = isImage ? cards.shift() : null;
+      const angle = Math.atan2(dy, dx);
+      const template = card ?? dots[slot % dots.length] ?? editorial[0];
+      const node = {
+        ...template, ed: card?.ed ?? null, a: angle < 0 ? angle + 2 * Math.PI : angle, r: Math.hypot(dx, dy) / radius,
+        phase: template?.phase ?? 0, ox: 0, oy: 0, vis: false, gg: 0, cl: 0,
+        dh: 0, cv: 0, ar: 0, par: null, enf: [], pul: false, niveau: card ? 0 : 1, taille: 2,
+        referenceSlot: [chapter, slot],
+      };
+      lookup.set(slotKey(chapter, slot), { hub, node });
+      return node;
+    });
+  });
+  ciel.referenceNodes = lookup;
+  ciel.referencePairs = REFERENCE_PAIRS.flatMap(pair => {
+    const [a, b] = pair.map(([chapter, slot]) => lookup.get(slotKey(chapter, slot)));
+    return a && b ? [[a, b]] : [];
+  });
+  ciel.referenceFocus = null;
+  ciel.referenceHoverEdges = new Map();
   return hubs.length;
 }
 /**
@@ -220,21 +160,56 @@ export function drawReferenceStage(ctx,ciel,project,alpha=1){
   ctx.lineWidth=.65;ctx.strokeStyle='rgba(160,198,255,.14)';ctx.stroke();
   ctx.restore();
 }
-export function drawReferenceLinks(ctx,ciel,proj,alpha=1){
-  if(!ctx||!ciel||typeof proj!=='function')return;
-  const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
-  const byReference=Array.from({length:REFERENCE_HUBS.length},()=>null);
-  hubs.forEach((hub,i)=>{byReference[referenceIndex(hub,i)]=hub;});
-  ctx.save();ctx.lineWidth=.65;ctx.strokeStyle='rgba(81,111,218,'+(Math.min(.2,Math.max(0,alpha)*.14)).toFixed(3)+')';
-  ctx.beginPath();
-  for(const [a,b] of REFERENCE_LINKS){
-    const A=byReference[a]?.centre,B=byReference[b]?.centre;
-    if(!A||!B)continue;
-    const p=proj(...A),q=proj(...B);
-    if(!p||!q)continue;
-    ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+/* Use the leaf coordinates from the current frame, including drag offsets. */
+export function drawReferenceLinks(ctx, ciel, alpha = 1, dt = 1/60, reduced = false) {
+  if (!ctx || !ciel.referencePairs || alpha <= .003) return;
+  const visible = ({hub,node}) => hub.ecran && node.vis && node.cl !== 3;
+  const focus = (ciel.pris ?? ciel.survol)?.noeud;
+  const active = focus?.referenceSlot ? focus : null;
+  const animated = ciel.referenceHoverEdges;
+  if (active !== ciel.referenceFocus) {
+    ciel.referenceFocus = active;
+    for (const edge of animated.values()) edge.target = 0;
+    if (active) {
+      const candidates = relatedReferenceUpdates(...active.referenceSlot)
+        .map(({slot,matches}) => ({ end: ciel.referenceNodes.get(slotKey(...slot)), matches }))
+        .filter(({end}) => end && visible(end))
+        .sort((a,b) => b.matches-a.matches ||
+          Math.hypot(a.end.node.x1-active.x1,a.end.node.y1-active.y1) -
+          Math.hypot(b.end.node.x1-active.x1,b.end.node.y1-active.y1));
+      const start = ciel.referenceNodes.get(slotKey(...active.referenceSlot));
+      for (const {end} of candidates.slice(0,6)) {
+        const key = [slotKey(...start.node.referenceSlot),slotKey(...end.node.referenceSlot)].sort().join('|');
+        const previous = animated.get(key);
+        animated.set(key, { start, end, opacity: previous?.opacity ?? 0, target: 1 });
+      }
+    }
   }
-  ctx.stroke();ctx.restore();
+  ctx.save();
+  ctx.lineWidth = .45;
+  ctx.strokeStyle = 'rgba(194,201,255,.15)';
+  ctx.beginPath();
+  for (const [a,b] of ciel.referencePairs) {
+    if (!visible(a) || !visible(b)) continue;
+    ctx.moveTo(a.node.x1,a.node.y1);
+    ctx.lineTo(b.node.x1,b.node.y1);
+  }
+  ctx.globalAlpha = alpha;
+  ctx.stroke();
+  ctx.lineWidth = .75;
+  ctx.strokeStyle = 'rgba(194,201,255,.5)';
+  for (const [key, edge] of animated) {
+    const step = reduced ? 1 : dt / .3;
+    edge.opacity = edge.target ? Math.min(1,edge.opacity + step) : Math.max(0,edge.opacity - step);
+    if (!edge.opacity && !edge.target) { animated.delete(key); continue; }
+    if (!visible(edge.start) || !visible(edge.end)) continue;
+    ctx.globalAlpha = alpha * edge.opacity;
+    ctx.beginPath();
+    ctx.moveTo(edge.start.node.x1,edge.start.node.y1);
+    ctx.lineTo(edge.end.node.x1,edge.end.node.y1);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 /* Discrete junction visible near the middle of the reference. This is not a
@@ -259,8 +234,8 @@ export function drawReferenceJunction(ctx,ciel,project,alpha=1){
   ctx.globalAlpha*=Math.min(1,Math.max(0,alpha));
   ctx.strokeStyle='rgba(68,87,188,.22)';
   ctx.lineWidth=.75;ctx.beginPath();
-  for(const i of [0,1,3,4,6,9]){
-    const hub=byReference[i],p=hub&&project(...hub.centre);
+  for(const hub of byReference){
+    const p=hub&&project(...hub.centre);
     if(!p||!Number.isFinite(p.x+p.y))continue;
     ctx.moveTo(center.x,center.y);ctx.lineTo(p.x,p.y);
   }

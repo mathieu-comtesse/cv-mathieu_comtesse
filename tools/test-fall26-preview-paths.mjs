@@ -44,8 +44,8 @@ for(const asset of ['site.css','hero-graph.js','moteur.js','fall26-reference-gra
   assert.ok(revisionOf(html,'refonte/'+asset),
     'Preview must version '+asset+' to avoid older cached code');
 }
-assert.equal(revisionOf(html,'refonte/hero-graph.js'),'fall26-work-flight-2',
-  'Preview must load the synchronized thumbnail flight');
+assert.equal(revisionOf(html,'refonte/hero-graph.js'),'fall26-topology',
+  'Preview must load the graph with the reference topology');
 assert.equal(revisionOf(flatGraph,'./fall26-hero-flight.js'),'fall26-work-flight-2',
   'The flat graph must load the synchronized flight module');
 for(const asset of ['moteur.js','fall26-reference-graph.js']){

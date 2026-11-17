@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Ciel} from '../refonte/moteur.js';
-import {REFERENCE_HUBS,REFERENCE_CARD_SLOTS,REFERENCE_LINKS,REFERENCE_SPOKES,referenceSpokeAngles,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage,drawReferenceJunction} from '../refonte/fall26-reference-graph.js';
+import {REFERENCE_HUBS,REFERENCE_CARD_SLOTS,REFERENCE_CHAPTER_IDS,relatedReferenceUpdates,calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceStage,drawReferenceJunction} from '../refonte/fall26-reference-graph.js';
+import {REFERENCE_BRANCHES,REFERENCE_PAIRS,REFERENCE_GRAPH_TOPOLOGY} from '../refonte/fall26-reference-topology.js';
 
 const ciel=new Ciel();
 ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Site'});
@@ -13,11 +14,17 @@ assert.equal(calibrateReferenceBranches(ciel),11);
 const hubs=[...ciel.etoiles.values()].filter(e=>e.parent==='accueil').sort((a,b)=>a.rang-b.rang);
 placeReferenceHubs(ciel,1200,760);
 assert.equal(REFERENCE_HUBS.length,11);
-// The labels in Shopify represent products, not exact SVG/canvas
-// spoke counts. Visual branches remain a separately calibrated topology.
-const referenceSpokeCounts=[20,15,15,21,30,16,20,15,19,57,14];
-assert.deepEqual(REFERENCE_HUBS.map(h=>h.points),referenceSpokeCounts,
-  'Graph topology must not be reduced to editorial product counts');
+const sourceCounts=[16,12,9,20,30,23,17,9,19,57,10];
+assert.deepEqual(REFERENCE_HUBS.map(h=>h.points),sourceCounts);
+const {updateSlots,associations,conceptsByType}=REFERENCE_GRAPH_TOPOLOGY;
+assert.equal(updateSlots.length,222);
+assert.equal(new Set(updateSlots.map(slot=>slot.join(':'))).size,222);
+assert.equal(associations.flat().length+updateSlots.length,1944);
+assert.equal(Object.values(conceptsByType).reduce((a,b)=>a+b)+222+11,353);
+assert.equal(REFERENCE_CARD_SLOTS.reduce((a,b)=>a+b),51);
+assert.equal(REFERENCE_PAIRS.length,42);
+for(const [chapter,index] of updateSlots) assert.ok(REFERENCE_BRANCHES[chapter][index]);
+assert.ok(REFERENCE_PAIRS.every(pair=>pair.every(([chapter,index])=>REFERENCE_BRANCHES[chapter][index])));
 
 // Pixel measurements from the reference desktop capture. Exercise the
 // placement function with the measured panel origin and size.
@@ -37,55 +44,44 @@ assert.ok(hubs[4].noeuds.length>=30,'Payments: trente ramifications');
 assert.ok(hubs[9].noeuds.length>=57,'Developer: cinquante-sept ramifications');
 assert.ok(hubs.every(h=>!h.referenceShortLabel||h.referenceShortLabel.length<=15),
  'Reference hub labels must remain short enough to avoid crossing neighboring branches');
-assert.ok(hubs[9].noeuds.filter(n=>n.niveau===3).length>=3,
- 'Dense developer constellation must use tertiary branches');
-assert.ok(REFERENCE_LINKS.length>=16);
 for(let i=0;i<hubs.length;i++){
- const hub=hubs[i],ref=REFERENCE_HUBS[i];
+ const hub=hubs[i],ref=REFERENCE_HUBS[i],chapter=REFERENCE_CHAPTER_IDS[i];
  assert.equal(hub.referenceFlat,true);
  assert.equal(hub.sol,false);
  assert.ok(Math.abs(hub.centre[0]-ref.x*1200)<1e-8,'Hub X reference tolerance');
  assert.ok(Math.abs(hub.centre[1]-ref.y*760)<1e-8,'Hub Y reference tolerance');
  assert.ok(hub.rayon>50&&hub.rayon<200);
- assert.ok(hub.noeuds.length>=9);
- let twigs=0;
- for(const n of hub.noeuds){
-  assert.equal(n.cv,0,'Branches rectilignes');
-  assert.equal(n.ar,0,'Aucune arche 3D');
-  assert.equal(n.dh,0,'Branches dans le plan');
-  assert.ok(n.ed||n.niveau===1||n.niveau===2||n.niveau===3);
-  if(n.par){
-    twigs++;
-    assert.ok(n.niveau===2||n.niveau===3,'Branches use native 2nd or 3rd levels');
-    assert.ok(!n.ed,'Editorial thumbnails stay attached to primary rays');
-    assert.ok(hub.noeuds.indexOf(n.par)<hub.noeuds.indexOf(n),'Parent must precede fork');
-    assert.ok(n.par.enf.includes(n),'Parent/child references remain consistent');
-    if(n.niveau===2){
-      assert.equal(n.par.niveau,1,'Secondary twigs must originate on primary rays');
-      assert.ok(n.len>=.18&&n.len<=.32);
-    }else{
-      assert.equal(n.par.niveau,2,'Tertiary twigs must originate on secondary rays');
-      assert.ok(n.len>=.11&&n.len<=.185);
-    }
-  }
+ assert.equal(hub.noeuds.length,sourceCounts[i]);
+ const radius=Math.min(1037*.12,732*.17)*ref.r;
+ for(const [index,node] of hub.noeuds.entries()){
+  const [dx,dy,thumbnail]=REFERENCE_BRANCHES[chapter][index];
+  assert.ok(Math.hypot(node.r*radius*Math.cos(node.a)-dx,node.r*radius*Math.sin(node.a)-dy)<1e-8);
+  assert.equal(node.par,null,'Every update connects to its real section');
+  assert.ok(node.cv===0&&node.ar===0&&node.dh===0);
+  if(node.ed)assert.equal(thumbnail,1);
  }
- assert.ok(twigs>=0,'Compact reference hubs may use direct rays without arbitrary extra forks');
-}
-for(let i=0;i<REFERENCE_HUBS.length;i++){
- const e=hubs[i],angles=referenceSpokeAngles(i,e.noeuds.length),observed=e.noeuds.map(n=>n.a);
- assert.equal(e.noeuds.length,REFERENCE_HUBS[i].points,'Exact ray count for star '+i);
- assert.equal(angles.length,e.noeuds.length);
- assert.equal(new Set(observed.map(v=>Math.round(v*1e5))).size,observed.length,
-   'Each star ray must have a unique direction');
- assert.ok(observed.every(v=>Number.isFinite(v)&&v>=0&&v<=Math.PI*2));
- assert.ok(observed.every(v=>angles.some(a=>Math.abs(a-v)<1e-8)),'Star ray must follow reference angular palette');
- assert.ok(e.noeuds.every(n=>n.r>=.65&&n.r<=1.27),'Natural nonuniform spoke lengths');
- assert.ok(REFERENCE_SPOKES[i].length>=14);
 }
 const calls=[];
 const ctx={save(){},restore(){},beginPath(){},closePath(){},fill(){calls.push(['F'])},moveTo(x,y){calls.push(['M',x,y])},lineTo(x,y){calls.push(['L',x,y])},stroke(){}};
-drawReferenceLinks(ctx,ciel,(x,y,z)=>({x,y,z}));
-assert.equal(calls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length);
+function exposeLeaves(sky){
+ for(const {hub,node} of sky.referenceNodes.values()){
+  hub.ecran={x:hub.centre[0],y:hub.centre[1]};
+  Object.assign(node,{vis:true,x1:hub.ecran.x+Math.cos(node.a)*node.r*hub.rayon,y1:hub.ecran.y+Math.sin(node.a)*node.r*hub.rayon});
+ }
+}
+exposeLeaves(ciel);
+drawReferenceLinks(ctx,ciel);
+assert.equal(calls.filter(x=>x[0]==='L').length,42);
+const sample=REFERENCE_PAIRS[0][0];
+assert.ok(relatedReferenceUpdates(...sample).length>0);
+ciel.survol={noeud:ciel.referenceNodes.get(sample.join(':')).node};
+drawReferenceLinks(ctx,ciel,1,.1);
+assert.ok(ciel.referenceHoverEdges.size>0&&ciel.referenceHoverEdges.size<=6);
+assert.ok([...ciel.referenceHoverEdges.values()].every(edge=>edge.opacity>0&&edge.opacity<1));
+ciel.survol=null;
+drawReferenceLinks(ctx,ciel,1,1,false);
+assert.equal(ciel.referenceHoverEdges.size,0);
+
 drawReferenceStage(ctx,ciel,(x,y,z)=>({x,y,z}),1);
 assert.ok(calls.some(x=>x[0]==='F'),'Projected dark backing is drawn below 3D hub network');
 
@@ -99,8 +95,8 @@ const junctionCtx={
 drawReferenceJunction(junctionCtx,ciel,(x,y)=>({x,y}),1);
 assert.equal(junction.filter(x=>x[0]==='ring').length,1,
  'Shopify reference contains one small hollow central junction, not a twelfth star');
-assert.equal(junction.filter(x=>x[0]==='end').length,6,
- 'Only six dim connectors depart from the central junction');
+assert.equal(junction.filter(x=>x[0]==='end').length,11,
+ 'One guide connects each section to the central junction');
 assert.ok(junction.find(x=>x[0]==='ring')[3]<=5,
  'Central junction must be far smaller than chapter hub nodes');
 const referenceRadius=Math.min(210,1200*.12,760*.17);
@@ -208,11 +204,12 @@ for(const hub of shuffled.etoiles.values()){
  assert.equal(hub.noeuds.length,ref.points,'Ray count must follow chapter identity '+key);
 }
 const mappedCalls=[];
+exposeLeaves(shuffled);
 drawReferenceLinks({
  save(){},restore(){},beginPath(){},moveTo(x,y){mappedCalls.push(['M',x,y])},
  lineTo(x,y){mappedCalls.push(['L',x,y])},stroke(){}
-},shuffled,(x,y)=>({x,y}));
-assert.equal(mappedCalls.filter(x=>x[0]==='L').length,REFERENCE_LINKS.length,
+},shuffled);
+assert.equal(mappedCalls.filter(x=>x[0]==='L').length,REFERENCE_PAIRS.length,
  'Link topology must follow reference IDs despite reordered editorial chapters');
 const graphEngine=fs.readFileSync(new URL('../refonte/moteur.js',import.meta.url),'utf8');
 assert.ok(graphEngine.includes("e.referenceEditorialCount??e.noeuds.filter(n=>n.ed).length"),

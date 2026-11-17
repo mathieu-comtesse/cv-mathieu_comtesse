@@ -146,3 +146,13 @@ Le changement reprend les bornes du module `journey-B8CyvxC_.js` et la mesure de
 Le tracé des branches et les points d'ancrage reposent toujours sur la reconstruction du graphe. Le dégradé spatial et les couleurs conservent l'étalonnage propre au portfolio. Le mode mobile garde son intervalle lié au titre entrant, car cette partie du module Shopify active le parcours selon les conditions desktop.
 
 La vérification à plat a montré des fils qui traversaient tout l'écran lorsque leur titre ou leur carte cible était hors champ. Le dessin des fils s'arrête désormais lorsque leur cible quitte la fenêtre, avec un fondu sur les derniers 72 px.
+
+## Branches et relations de l'accueil, 17 novembre
+
+Le graphe public de Shopify, build 5090151, contient 11 sections, 222 entrées et 120 concepts. Les 1 944 relations se répartissent entre 222 rattachements à une section et 1 722 associations aux concepts. Le module de présentation dérive aussi 42 liaisons de repos entre les entrées à partir des catégories produit. Les liaisons au survol exploitent ces associations produit et retiennent au maximum six voisins selon le nombre de catégories communes, puis leur distance à l'écran.
+
+Les 222 extrémités ont été extraites en exécutant la simulation Shopify à 1 037 × 732, après sa phase de stabilisation et sans déplacement du pointeur. Chaque vecteur est exprimé depuis son foyer et arrondi au centième de pixel. Le portfolio réutilise ces vecteurs autour de ses onze foyers relevés, dans les deux modes. Les ramifications inventées et les anciennes liaisons de foyer à foyer ont été retirées. Les 51 emplacements d'images de la source servent de repères pour les vignettes du portfolio. Les emplacements sans contenu correspondant restent des points. Les guides relient les onze foyers à la jonction centrale.
+
+Le script `tools/extract-fall26-topology.mjs` régénère le module de coordonnées et d'indices à partir des fichiers de référence. Une régénération a produit le même fichier octet pour octet. Les tests vérifient les comptes, les extrémités, les 42 liaisons, le plafond de six relations au survol et leur fondu. Les guides et les relations utilisent les coordonnées réellement dessinées, y compris pendant la saisie d'une vignette.
+
+La simulation complète de Shopify se poursuit à chaque image après son état de repos. La reconstruction utilise le moteur de déformation du portfolio autour de l'état extrait. Les foyers absolus, la saturation des traits, le placement mobile et le contenu des vignettes diffèrent encore. Les concepts servent aux relations et restent hors du graphe d'accueil, comme dans la présentation d'origine. Le panneau de détail des concepts et le mini-jeu restent à intégrer.
