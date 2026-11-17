@@ -12,6 +12,8 @@ on:
       - "tools/test-fall26-hero-intro.mjs"
       - "refonte/fall26-reference-graph.js"
       - "refonte/fall26-reference-topology.js"
+      - "refonte/fall26-reference-motion.js"
+      - "tools/test-fall26-reference-motion.mjs"
       - "refonte/fall26-chapter-transition.js"
       - "refonte/defilement.js"
       - "refonte/site.css"
@@ -41,6 +43,7 @@ jobs:
           node tools/test-fall26-chapter-transition.mjs
           node tools/test-fall26-expo-foci.mjs
           node tools/test-fall26-reference-graph.mjs
+          node tools/test-fall26-reference-motion.mjs
           node tools/test-fall26-title-scale.mjs
       - name: Chromium and Playwright
         run: |

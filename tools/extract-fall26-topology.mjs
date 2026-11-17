@@ -68,6 +68,11 @@ const associated=graph.edges.filter(edge=>edge.type==='assigned_to').reduce((gro
   return groups;
 },Array.from({length:222},()=>[]));
 const slotByUpdate=orderedNodes.filter(node=>node.type==='update').map(node=>indices.get(node.id));
+const orbitOrder = Object.fromEntries(
+  nodes.filter(node => node.role === 'section').map(node => [
+    node.handle, sim.warmState.context.sectionOrdinal[byId.get(node.id)],
+  ])
+);
 const sourceText=`// Numerical model derived from the Fall ’26 public graph and its force layout.
  // Viewport 1037 × 732, build 5090151, neutral pointer, warmed to rest.
  // Rows are [dx, dy, thumbnail] relative to the original section centre.
@@ -76,6 +81,7 @@ export const REFERENCE_BRANCHES = Object.freeze({
 ${Object.entries(leaves).map(([key,rows])=>'  '+key+': '+JSON.stringify(rows)).join(',\n')}
 });
 export const REFERENCE_PAIRS = Object.freeze(${JSON.stringify(pairs)});
+export const REFERENCE_ORBIT_ORDER = Object.freeze(${JSON.stringify(orbitOrder)});
 export const REFERENCE_GRAPH_TOPOLOGY = Object.freeze({
   conceptsByType: ${JSON.stringify(Object.fromEntries(['product','theme','outcome','persona'].map(type=>[type,nodesByType[type].length])))},
   // Local numeric concept IDs (233 and above), indexed by update order.

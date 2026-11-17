@@ -4,8 +4,8 @@ import {applyHeroIntro} from './fall26-hero-intro.js?v=fall26-work-intro';
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=fall26-topology';
-import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceJunction} from './fall26-reference-graph.js?v=fall26-topology';
+import { Ciel } from './moteur.js?v=fall26-graph-motion';
+import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceJunction} from './fall26-reference-graph.js?v=fall26-graph-motion';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -80,8 +80,8 @@ export function demarre(chapitres) {
     introSeconds += dt;
     const introDone=applyHeroIntro(ciel,introSeconds,W,H,reduit.matches || s>.02);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true, flightThumbnail: flightNode, hideFlightThumbnail: flight?.hidesThumbnail, pointerOnGraph: (x,y) => [x,y], referenceMotionReady:introDone });
     if(introDone)drawReferenceJunction(ctx,ciel,proj,.49);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true, flightThumbnail: flightNode, hideFlightThumbnail: flight?.hidesThumbnail });
     drawReferenceLinks(ctx,ciel,.62,dt,reduit.matches);
     flight?.draw(ciel.thumbnailInFlight);
     const cout = performance.now() - debutDessin;

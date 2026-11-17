@@ -28,6 +28,21 @@ const flatSky = await p.evaluate(() => window.__cvHeroGraph.ciel.etat('accueil')
 verifie(flatSky.length === 12 && flatSky.filter(e => e.visible).length === 11 && flatSky.filter(e => e.visible).every(e => !!e.libelle?.texte),
   `vue à plat : 11 foyers en disposition asymétrique avec leurs légendes discrètes (${flatSky.filter(e => e.visible).length} visibles)`);
 
+// Observe motion through the real graph, after the entrance has finished.
+const idleBefore = await p.evaluate(() => {
+  const sky = window.__cvHeroGraph.ciel;
+  const node = sky.referenceHubs[0].noeuds[0];
+  return {phase:sky.referenceMotion.phase, x:node.x1, y:node.y1};
+});
+await p.waitForFunction(phase=>window.__cvHeroGraph.ciel.referenceMotion.phase > phase + .025,
+  idleBefore.phase,{timeout:15000});
+const idleAfter = await p.evaluate(() => {
+  const node = window.__cvHeroGraph.ciel.referenceHubs[0].noeuds[0];
+  return {x:node.x1,y:node.y1};
+});
+verifie(Math.hypot(idleAfter.x-idleBefore.x,idleAfter.y-idleBefore.y)>.05,
+  `orbite à plat : déplacement visible de ${Math.hypot(idleAfter.x-idleBefore.x,idleAfter.y-idleBefore.y).toFixed(2)} px`);
+
 /* ---- saisie d'un nœud du graphe, mode à plat ---- */
 const c0 = await p.evaluate(() => { const pts=window.__cvHeroGraph.cibles();return pts.filter(c=>c.x>540&&c.x<1330&&c.y>160&&c.y<790).map(c=>({...c,clearance:Math.min(...pts.filter(d=>d.handle!==c.handle).map(d=>Math.hypot(d.x-c.x,d.y-c.y)))})).sort((a,b)=>b.clearance-a.clearance)[0]; });
 await p.mouse.move(c0.x, c0.y); await p.waitForTimeout(300);
@@ -93,7 +108,7 @@ verifie(!plat.actif && Math.abs(plat.y - avant.y) < 2 && Math.abs(plat.x - avant
 await p.keyboard.press('Backquote'); await p.waitForFunction(() => { const s = window.__cvStandardPath; return !s.active || Math.abs(s.progress - s.cible) < 1e-3; }, null, { timeout: 60000 }); await p.waitForTimeout(600);
 verifie(await p.evaluate(() => window.__cvStandardPath.active), 'entrée au clavier (touche `)');
 /* coïncidence géométrique à la progression 0 : un point du chemin se projette là où il est dans la page */
-const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=fall26-topology'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
+const coin = await p.evaluate(async () => { const M = await import('./refonte/moteur.js?v=fall26-graph-motion'), v = M.cvView(0, 1440, 900, 400), a = M.p(v, 300, 400 + 250, 0), b2 = M.p(v, 1100, 400 + 700, 40); return [a.x, a.y, b2.x, b2.y]; });
 verifie(Math.abs(coin[0] - 300) < 0.01 && Math.abs(coin[1] - 250) < 0.01 && Math.abs(coin[2] - 1100) < 0.01 && Math.abs(coin[3] - 700) < 0.01, `à la progression 0 la projection coïncide avec la page (${coin.map((v) => v.toFixed(2)).join(', ')})`);
 
 /* ---- saisie d'un nœud en expo ---- */
@@ -114,6 +129,8 @@ await p.context().close();
 
 /* ---- mouvement réduit : bascule immédiate ---- */
 const r = await page({ reducedMotion: 'reduce' });
+verifie(await r.evaluate(()=>window.__cvHeroGraph.ciel.referenceMotion.phase===0),
+  'mouvement réduit : aucune dérive des branches après le chargement');
 await r.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await r.waitForTimeout(1500);
 const rm = await r.evaluate(() => [window.__cvStandardPath.progress, window.__cvStandardPath.active]);
 await r.evaluate(() => document.querySelector('.cv-parity-toggle').click()); await r.waitForTimeout(800);

@@ -1,4 +1,5 @@
-import { REFERENCE_BRANCHES, REFERENCE_PAIRS, REFERENCE_GRAPH_TOPOLOGY } from './fall26-reference-topology.js?v=fall26-topology';
+import { REFERENCE_BRANCHES, REFERENCE_PAIRS, REFERENCE_GRAPH_TOPOLOGY, REFERENCE_ORBIT_ORDER } from './fall26-reference-topology.js?v=fall26-graph-motion';
+import { ReferenceMotion } from './fall26-reference-motion.js?v=fall26-graph-motion';
 
 /**
  * Foyers relevés sur Shopify Fall '26 à 1470 × 802, dans le graphe
@@ -81,6 +82,7 @@ export function calibrateReferenceBranches(ciel) {
 
     hub.sol = false;
     hub.referenceFlat = true;
+    hub.referenceOrbitOrder = REFERENCE_ORBIT_ORDER[chapter];
     hub.flatTone = REFERENCE_HUBS[reference].tone;
     hub.referenceShortLabel = REFERENCE_SHORT_LABELS[chapter] || hub.label;
     const editorial = hub.noeuds.filter(node => node.ed);
@@ -96,13 +98,16 @@ export function calibrateReferenceBranches(ciel) {
         ...template, ed: card?.ed ?? null, a: angle < 0 ? angle + 2 * Math.PI : angle, r: Math.hypot(dx, dy) / radius,
         phase: template?.phase ?? 0, ox: 0, oy: 0, vis: false, gg: 0, cl: 0,
         dh: 0, cv: 0, ar: 0, par: null, enf: [], pul: false, niveau: card ? 0 : 1, taille: 2,
-        referenceSlot: [chapter, slot],
+        referenceSlot: [chapter, slot], referenceCos: Math.cos(angle), referenceSin: Math.sin(angle),
       };
       lookup.set(slotKey(chapter, slot), { hub, node });
       return node;
     });
   });
   ciel.referenceNodes = lookup;
+  ciel.referenceHubs = hubs;
+  ciel.referenceMotion = new ReferenceMotion();
+  ciel.referenceHoveredLeaf = null;
   ciel.referencePairs = REFERENCE_PAIRS.flatMap(pair => {
     const [a, b] = pair.map(([chapter, slot]) => lookup.get(slotKey(chapter, slot)));
     return a && b ? [[a, b]] : [];
@@ -235,7 +240,7 @@ export function drawReferenceJunction(ctx,ciel,project,alpha=1){
   ctx.strokeStyle='rgba(68,87,188,.22)';
   ctx.lineWidth=.75;ctx.beginPath();
   for(const hub of byReference){
-    const p=hub&&project(...hub.centre);
+    const p=hub&&(hub.ecran??project(...hub.centre));
     if(!p||!Number.isFinite(p.x+p.y))continue;
     ctx.moveTo(center.x,center.y);ctx.lineTo(p.x,p.y);
   }

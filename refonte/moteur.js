@@ -390,9 +390,9 @@ export class Ciel {
   distanceCourbe(n, px, py) {
     let m = 1e9; for (let i = 0; i <= 10; i++) { const q = i / 10, o = 1 - q, x = o * o * n.x0 + 2 * o * q * n.cx + q * q * n.x1, y = o * o * n.y0 + 2 * o * q * n.cy + q * q * n.y1, d = Math.hypot(x - px, y - py); if (d < m) m = d; } return m;
   }
-  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, racineVisible = true, labels = true, flightThumbnail = null, hideFlightThumbnail = false } = {}) {
+  dessine(ctx, proj, t, { covers = [], souris = { x: -1e4, y: -1e4 }, W = innerWidth, H = innerHeight, dt = 1 / 60, alpha = 1, compact = false, titres = 1, racineVisible = true, labels = true, flightThumbnail = null, hideFlightThumbnail = false, pointerOnGraph = null, referenceMotionReady = true } = {}) {
     this.thumbnailInFlight = null;
-    if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; return; }
+    if (alpha <= 0.003) { this.cibles = []; this.survol = null; this.survolBranche = null; this.referenceHoveredLeaf = null; return; }
     const A = Math.min(1, alpha), retour = Math.exp(-dt * 9);
     const libre = t !== null, tt = t || 0, cibles = [], cache = (x, y, z) => covers.some((c) => c.z < z - 30 && dansQuad(c.pts, x, y));
     const lastPointer=this.wirePointer;
@@ -401,6 +401,23 @@ export class Ciel {
     const pointer=lastPointer && this.wirePointer && !this.pris &&
       (lastPointer.x!==souris.x || lastPointer.y!==souris.y)
       ? {from:lastPointer,to:this.wirePointer}:null;
+    if (this.referenceMotion) {
+      const hubs = this.referenceHubs;
+      const inView = hubs.some(hub => {
+        const point = hub.centre && proj(...hub.centre);
+        return point && point.x > -W && point.x < W*2 && point.y > -H && point.y < H*2;
+      });
+      const enabled = libre && referenceMotionReady;
+      const lift = hubs.find(hub => hub.centre)?.centre[2] ?? 0;
+      const planePoint = inView && enabled && this.wirePointer && pointerOnGraph
+        ? pointerOnGraph(souris.x, souris.y, lift) : null;
+      const pointerInPlane = planePoint?.every(Number.isFinite) ? planePoint : null;
+      if (inView || !enabled) this.referenceMotion.step(hubs, {
+        dt, pointer: pointerInPlane, viewport:[W,H], grabbed: this.pris?.noeud,
+        leafHover: !!this.referenceHoveredLeaf, enabled,
+      });
+    }
+    let referenceHoveredLeaf = null, referenceHoverDistance = 10;
     const quads = covers.map((pts) => ({ pts, z: pts.reduce((s, q) => s + q.z, 0) / 4 }));
     covers = quads;
     const focus = this.survol ? this.survol.noeud : this.survolBranche ? this.survolBranche.noeud : null, focusE = this.survol ? this.survol.etoile : this.survolBranche ? this.survolBranche.etoile : null;
@@ -412,7 +429,9 @@ export class Ciel {
       if (e.racine && !racineVisible) continue;
       const kT = e.groupe === 'titre' ? titres * (e.transitionOpacity??1) : (e.intro?.reveal??1), aE = A * kT; ctx.globalAlpha = aE; if (kT < 0.02) continue;   /* étoiles de titre : absentes à plat, elles n'apparaissent qu'avec la bascule */
       if (!e.centre) { e.age = -1; continue; }
-      const [c0, r0, h0] = e.centre, F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
+      const [originX, originY, h0] = e.centre;
+      const c0 = originX + (e.referenceMotion?.x ?? 0), r0 = originY + (e.referenceMotion?.y ?? 0);
+      const F = proj(c0, r0, h0), u = F && proj(c0 + 100, r0, h0);
       if (!F || !u) continue;
       const k = Math.abs(u.x - F.x) / 100;                                       // pixels d'écran par unité, au foyer
       if (F.x < -e.rayon * k - 80 || F.x > W + e.rayon * k + 80 || F.y < -e.rayon * k - 80 || F.y > H + e.rayon * k + 80) { continue; }
@@ -446,7 +465,10 @@ export class Ciel {
         if (g <= 0) continue;
         let x, y, cx, cy, x0 = F.x, y0 = F.y, z = F.z || 0, wc = 0, wr = 0, wh = 0, cwC = 0, cwR = 0, cwH = 0;
         if (!n.par) {
-          const angle=n.a+(n.intro?.spin??0); wc = c0 + Math.cos(angle) * R * n.r; wr = r0 + Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78); wh = Math.max(0, h0 + n.dh * R * 0.45);
+          const angle = n.a + (n.intro?.spin ?? 0);
+          wc = c0 + (n.referenceMotion?.x ?? Math.cos(angle) * R * n.r);
+          wr = r0 + (n.referenceMotion?.y ?? Math.sin(angle) * R * n.r * (e.referenceFlat ? 1 : 0.78));
+          wh = Math.max(0, h0 + n.dh * R * 0.45);
           if (libre && !e.referenceFlat) { wc += Math.sin(tt * 0.4 + n.phase) * R * 0.02; wr += Math.cos(tt * 0.33 + n.phase * 1.7) * R * 0.018; }
           const P = proj(wc, wr, wh); if (!P) continue;
           x = P.x; y = P.y; z = P.z;
@@ -470,6 +492,13 @@ export class Ciel {
           x0 = jx; y0 = jy; x = jx + dx * L; y = jy + dy * L; cx = jx + dx * L * 0.5 - dy * n.cv * L; cy = jy + dy * L * 0.5 + dx * n.cv * L; z = p.z; n.som = false;
         }
         const voile = n.par ? n.par.cl === 3 : cache(x, y, z);
+        if (e.referenceFlat && libre && !voile && this.wirePointer) {
+          const distance = Math.hypot(x - souris.x, y - souris.y);
+          if (distance < referenceHoverDistance) {
+            referenceHoverDistance = distance;
+            referenceHoveredLeaf = n;
+          }
+        }
         let hl = false; if (focus) for (let q = n, i = 0; i < 3 && q; i++, q = q.par) if (q === focus) { hl = true; break; }
         const dim = focus && !hl && e === focusE;
         n.cl = voile ? 3 : hl ? 2 : dim ? 1 : 0;
@@ -599,6 +628,7 @@ export class Ciel {
         ctx.globalAlpha = aE;
       }
     }
+    this.referenceHoveredLeaf = referenceHoveredLeaf;
     this.cibles = cibles; this.survol = survol; this.survolBranche = survol ? null : brancheMeilleure;
     if (survol) { ctx.globalAlpha = A * (survol.etoile.groupe === 'titre' ? titres : 1);                                                                // nom du contenu survolé
       const texte = (survol.noeud.ed.title || '').slice(0, 60);
