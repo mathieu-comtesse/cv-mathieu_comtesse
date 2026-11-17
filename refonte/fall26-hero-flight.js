@@ -29,6 +29,19 @@ export function flightRectangle(source, marker, phase) {
   };
 }
 
+export function flightWindow(scroll, cardTop, markerTop, height, heroExit) {
+  const arrivalLine = height - 32;
+  const enter = scroll + markerTop - arrivalLine;
+  const end = scroll + Math.max(cardTop - height, markerTop - height * .78);
+  const start = Math.max(0, Math.min(.45 * heroExit, enter - .4 * height));
+  // Hold the last part of the original curve until the true marker reaches
+  // the viewport. Before that, the lower edge is the visible docking point.
+  const open = scroll < enter
+    ? .54 * range(scroll, start, enter)
+    : mix(.54, .76, range(scroll, enter, end));
+  return { start, enter, end, open, arrivalLine };
+}
+
 export function createHeroFlight(chapter, canvas) {
   // Match the reference's first image-backed card with a real DOM marker.
   const entry = chapter?.cards.find(card => card.image &&
@@ -67,25 +80,25 @@ export function createHeroFlight(chapter, canvas) {
         return;
       }
       const cardTop = card.getBoundingClientRect().top;
-      const landingScroll = scrollY + cardTop - viewportHeight;
-      // The portfolio has a longer first section. Leave the hero before its
-      // graph fades and land as the actual first project enters the viewport.
-      const departureScroll = Math.max(0, Math.min(.45 * heroExit, landingScroll - .4 * viewportHeight));
-      if (scrollY <= departureScroll) {
+      const timing = flightWindow(scrollY, cardTop, bounds.top, viewportHeight, heroExit);
+      if (scrollY <= timing.start) {
         hasTakenOff = false;
         frame.remove();
         return;
       }
-      if (scrollY >= landingScroll || !node) {
+      if (scrollY >= timing.end || !node) {
         frame.remove();
         return;
       }
-      const phase = flightPhases(range(scrollY, departureScroll, landingScroll), cardTop, viewportHeight);
+      const phase = flightPhases(timing.open, cardTop, viewportHeight);
       if (phase.frameAlpha <= 0) {
         frame.remove();
         return;
       }
-      pending = { bounds, phase };
+      pending = {
+        bounds: { left: bounds.left, top: Math.min(bounds.top, timing.arrivalLine), width: bounds.width, height: bounds.height },
+        phase,
+      };
     },
     draw(endpoint) {
       if (endpoint && (!pending || !departure)) {

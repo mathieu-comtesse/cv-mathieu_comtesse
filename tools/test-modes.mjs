@@ -170,18 +170,22 @@ await transitionPage.context().close();
 const flightPage = await page();
 const flightRange = await flightPage.evaluate(() => {
   const card = document.getElementById('cv-7-0-point-financier-power-automate');
-  const land = scrollY + card.getBoundingClientRect().top - innerHeight;
+  const marker = card.querySelector('[data-card-marker]');
+  const markerTop = marker.getBoundingClientRect().top + scrollY;
+  const enter = markerTop - (innerHeight - 32);
   const heroExit = scrollY + document.querySelector('[data-f26-page-section]').getBoundingClientRect().top - innerHeight * .8;
-  return {from: Math.max(0, Math.min(.45 * heroExit, land - .4 * innerHeight)), to: land};
+  return {from: Math.max(0, Math.min(.45 * heroExit, enter - .4 * innerHeight)),
+    to: markerTop - innerHeight * .78};
 });
 async function flightAt(progress) {
   await flightPage.evaluate(y => scrollTo({top:y, behavior:'instant'}),
     flightRange.from + (flightRange.to - flightRange.from) * progress);
   await flightPage.waitForFunction(() => !!document.querySelector('.cv-hero-card-flight'));
+  await flightPage.waitForTimeout(100);
   return flightPage.evaluate(() => {
     const frame = document.querySelector('.cv-hero-card-flight');
     const r = frame.getBoundingClientRect();
-    return {x:r.x, y:r.y, w:r.width, h:r.height, opacity:+frame.style.opacity,
+    return {x:r.x, y:r.y, w:r.width, h:r.height, viewportHeight:innerHeight, opacity:+frame.style.opacity,
       source:frame.querySelector('img').getAttribute('src')};
   });
 }
@@ -189,7 +193,8 @@ const takeoff = await flightAt(.14);
 const halfway = await flightAt(.4);
 const rewind = await flightAt(.14);
 verifie(takeoff.source.endsWith('/finance-light.webp') && takeoff.opacity > .5 &&
-  halfway.x < takeoff.x - 15 && Math.abs(rewind.x - takeoff.x) < 1 &&
+  halfway.x < takeoff.x - 15 && halfway.y + halfway.h < halfway.viewportHeight &&
+  Math.abs(rewind.x - takeoff.x) < 1 &&
   Math.abs(rewind.y - takeoff.y) < 1,
   `vol de la vignette Point financier, inversable au défilement (${JSON.stringify({takeoff, halfway, rewind})})`);
 await flightAt(.4);
