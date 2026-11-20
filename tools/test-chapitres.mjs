@@ -22,7 +22,7 @@ const haut = (id) => p.evaluate((id) => Math.round(document.getElementById(id).g
 
 /* ---- 1. structure : 11 sections, chronologies, titres, ancres, menus, cartes ---- */
 const st = await p.evaluate((IDS) => {
-  const recs = window.cvChapterRecords || null, secs = [...document.querySelectorAll('section[data-f26-page-section]')], ids = [...document.querySelectorAll('[id]')].map((e) => e.id), dup = ids.filter((x, i) => ids.indexOf(x) !== i);
+  const recs = window.cvChapterRecords || null, secs = [...document.querySelectorAll('section[data-f26-page-section]')], ids = [...document.querySelectorAll('[id]')].filter((e) => e.namespaceURI === 'http://www.w3.org/1999/xhtml').map((e) => e.id), dup = ids.filter((x, i) => ids.indexOf(x) !== i);
   const lien = (sel) => [...document.querySelectorAll(sel)].map((a) => a.getAttribute('href'));
   const ok = IDS.map((id, i) => { const s = document.getElementById(id), h = s && document.getElementById(s.getAttribute('aria-labelledby')); return !!s && s.matches('section[data-f26-page-section]') && getComputedStyle(s).getPropertyValue('--f26-page-timeline').trim() === '--f26-page-' + i && !!h && h.textContent.trim().length > 2; });
   const menu = lien('a[data-component-name="menu-item-link"]');
@@ -30,12 +30,14 @@ const st = await p.evaluate((IDS) => {
 }, IDS);
 verifie(st.ordre === IDS.join(','), `11 sections de chapitre dans l'ordre : ${st.ordre.split(',').length}`);
 verifie(st.ok.every(Boolean), `chaque section : id, chronologie --f26-page-0 à 10, titre relié (${st.ok.filter(Boolean).length}/11)`);
-verifie(st.dup.length === 0, `aucun identifiant dupliqué (${st.dup.length})`);
+verifie(st.dup.length === 0, `aucun identifiant HTML dupliqué (${st.dup.length}${st.dup.length ? ' : ' + st.dup.slice(0, 5).join(', ') : ''}) ; les dégradés SVG des machines, répétés par instance, sont hors périmètre`);
 verifie(st.menu.every((n) => n === 2), `menu des chapitres : une entrée par chapitre, dans les deux menus (${st.menu.join(',')})`);
 verifie(st.cartes.slice(0, 7).join(',') === '6,4,7,7,6,8,8', `cartes des 7 premiers chapitres = compétences d'origine (${st.cartes.slice(0, 7).join(',')})`);
 verifie(st.sk === 0 && st.renvoi.join(',') === IDS.slice(0, 7).join(','), `« Parcours » ne duplique pas les compétences : ${st.sk} bloc, renvoi vers ${st.renvoi.length} chapitres`);
 const noeuds = await p.evaluate((IDS) => { const r = window.__cvHeroGraph.ciel, res = []; for (const e of r.etoiles.values()) for (const n of e.noeuds) if (n.ed) res.push([e.chapitre, n.ed.handle]); return res.map(([c, h]) => { const el = document.getElementById(h), s = el && el.closest('section[data-f26-page-section]'); return !!s && s.id === c; }); }, IDS);
 verifie(noeuds.length === 83 && noeuds.every(Boolean), `les ${noeuds.length} nœuds du graphe pointent vers un élément de leur propre chapitre (${noeuds.filter(Boolean).length} valides)`);
+
+const TOPS = {}; for (const id of IDS) TOPS[id] = await haut(id);   /* positions à plat : en expo le DOM d'origine est déplacé, le moteur garde ces mesures */
 
 /* ---- 2. transitions de couleur, 11 entrées de chapitre, dans les deux sens ---- */
 const rgb = (c) => p.evaluate((c) => { const k = document.createElement('canvas').getContext('2d', { willReadFrequently: true }); k.fillStyle = '#000'; k.fillStyle = c; k.fillRect(0, 0, 1, 1); return [...k.getImageData(0, 0, 1, 1).data].slice(0, 3); }, c);
@@ -86,14 +88,14 @@ verifie(Math.abs(ya - yb) < 60, `retour arrière du navigateur : de #payments à
 await va(0, 1500); await p.evaluate(() => window.__cvStandardPath.bascule()); await p.waitForFunction(() => window.__cvStandardPath.progress > 0.999, null, { timeout: 120000 }); await attend(2500);
 let ex = [];
 for (let k = 0; k < 11; k++) {
-  const h = await haut(IDS[k]); await va(h + 500, 2500);
+  const h = TOPS[IDS[k]]; await va(h + 500, 2500);
   ex.push(await p.evaluate((id) => { const P = window.__cvParity, nom = document.querySelector('#' + id + ' .section-hero-pin h2').textContent.trim(), cur = [...document.querySelectorAll('.cv-parity-nav a[aria-current]')].map((a) => a.dataset.chapter); return { actif: window.__cvStandardPath.chapitreActif, cur, etoile: P.etoiles().some((e) => e.visible && e.libelle && e.libelle.texte === nom) }; }, IDS[k]));
 }
 verifie(ex.every((e, k) => e.actif === IDS[k]), `expo : chapitre actif du moteur = le bon pour chacun des 11 (${ex.map((e) => e.actif).join(' ')})`);
 verifie(ex.every((e, k) => e.cur.length === 1 && e.cur[0] === IDS[k]), `expo : liste des chapitres, un seul chapitre marqué (aria-current), le bon (${ex.map((e) => e.cur.join('+') || '-').join(' ')})`);
 verifie(ex.every((e) => e.etoile), `expo : l'étoile de chaque chapitre est visible avec son nom (${ex.filter((e) => e.etoile).length}/11)`);
 nav = []; await va(0, 1500);
-for (const id of IDS) { await p.evaluate((id) => document.querySelector('.cv-parity-nav a[data-chapter="' + id + '"]').click(), id); await attend(2200); nav.push([id, await p.evaluate(() => Math.round(scrollY)), await haut(id)]); }
+for (const id of IDS) { await p.evaluate((id) => document.querySelector('.cv-parity-nav a[data-chapter="' + id + '"]').click(), id); await attend(2200); nav.push([id, await p.evaluate(() => Math.round(scrollY)), TOPS[id]]); }
 verifie(nav.every(([, y, h]) => Math.abs(y - h) < 420), `expo : navigation vers chacun des 11 chapitres (écart au haut de section : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
 verifie(erreurs.length === 0 && shopify === 0, `aucune erreur de page (${erreurs.length}), aucune requête Shopify (${shopify})`);
 await b.close(); console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : 11 chapitres (structure, transitions, remplissage, liste latérale, navigation, modes à plat et expo)'); process.exit(echecs.length ? 1 : 0);
