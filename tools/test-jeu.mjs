@@ -55,8 +55,12 @@ void sy0;
 /* ============ 3. chute dans un trou, puis relance au point de passage ============ */
 { const plan = await p.evaluate(() => window.__cvJeu.donneesPlan()), e = await etat(p);
   const cible = plan.trous.concat(plan.noirs.map((n) => ({ x0: n.x - 20, x1: n.x + 20, r0: n.r - 20, r1: n.r + 20, noir: true }))).filter((t) => t.r0 > e.r + 500).sort((a, c) => a.r0 - c.r0)[0], cx = (cible.x0 + cible.x1) / 2;
-  const chutes0 = (await etat(p)).chutes; let t0 = Date.now(), vu = null; await p.keyboard.down('ArrowDown'); await avance(p, 60); await p.keyboard.up('ArrowDown');
-  while (Date.now() - t0 < 900000) { const s = await etat(p); if (s.chutes > chutes0) { vu = s; break; } const dx = cx - s.x - s.vx * 0.3; const k = dx > 30 ? 'ArrowRight' : dx < -30 ? 'ArrowLeft' : null; for (const q of ['ArrowRight', 'ArrowLeft']) if (q !== k) await p.keyboard.up(q); if (k) await p.keyboard.down(k); await avance(p, 8); }
+  const chutes0 = (await etat(p)).chutes; let t0 = Date.now(), vu = null; const tenues = new Set(); const touche = async (k, on) => { if (on && !tenues.has(k)) { tenues.add(k); await p.keyboard.down(k); } else if (!on && tenues.has(k)) { tenues.delete(k); await p.keyboard.up(k); } };
+  /* le pilote normal (qui évite les obstacles) conduit la sphère jusqu'à 1 200 px du danger, puis on la dirige dessus sans rien éviter */
+  while (Date.now() - t0 < 1200000) { const s = await etat(p); if (s.chutes > chutes0) { vu = s; break; } if (s.phase !== 'course') break;
+    const d = cible.r0 - s.r > 1200 ? await p.evaluate(() => window.__cvJeu.pilote({ gaz: 0.85 })) : { dir: Math.max(-1, Math.min(1, (cx - s.x - s.vx * 0.3) / 60)), dgaz: s.gaz > 0.45 ? -1 : 0, saut: false };
+    await touche('ArrowRight', d.dir > 0.25); await touche('ArrowLeft', d.dir < -0.25); await touche('ArrowUp', d.dgaz > 0.2); await touche('ArrowDown', d.dgaz < -0.2); if (d.saut) await p.keyboard.press('Space'); await avance(p, 8); }
+  for (const k of [...tenues]) await touche(k, false);
   for (const q of ['ArrowRight', 'ArrowLeft']) await p.keyboard.up(q);
   verifie(!!vu, `chute : la sphère dirigée vers ${cible.noir ? 'un trou noir' : 'un trou'} tombe (chutes ${chutes0} -> ${vu ? vu.chutes : '?'}, score ${vu ? Math.round(vu.score) : '?'})`);
   await capture(p, 'jeu-chute'); const r = await p.evaluate(async () => { const a = window.__cvJeu.etat(); for (let i = 0; i < 400 && window.__cvJeu.etat().n < a.n + 330; i++) await new Promise((q) => setTimeout(q, 40)); return window.__cvJeu.etat(); });
