@@ -21,8 +21,9 @@ Reprises : les touches `a`, `d`, `z`, `q` (clavier français), la commande à sa
 - **Piste** : l'axe vertical de la page. Départ juste avant le premier chapitre, arrivée 420 px avant la fin de la page. Largeur de piste virtuelle de 1 200 unités, rambardes latérales qui renvoient la sphère.
 - **Sphère** : rayon de 28 à 56 px selon ce qu'elle a collecté. Vitesse de 420 à 1 500 px/s réglée par l'accélérateur (départ à 0,45, soit environ 900 px/s). Gravité 2 600 px/s², saut de 980 px/s (sommet 184 px), tremplin de 1 400 px/s (sommet 377 px).
 - **Objets** : 83 mots (les titres des cartes, aux rangées des vrais contenus), 15 étoiles (une par chapitre et 4 de thème), 66 nœuds (6 par chapitre, certains en hauteur : il faut sauter). Récupérés au contact ou par attraction ; chacun fait grossir la sphère et rapporte 10 (mot), 5 (nœud) ou 50 (étoile) points, avec un bonus de combo jusqu'à +40 %.
-- **Dangers** (74 sur le parcours, générés par une graine, jamais à moins de 700 px d'un point de passage) : trous partiels (480 px de passage libre), trous sur toute la largeur précédés d'un tremplin (franchissables aussi d'un saut jusqu'à 300 px), obstacles en rangées avec un couloir libre de 520 px (franchissables d'un saut), trous noirs (attraction dans un rayon de 300 px, capture à 62 px sauf si la sphère passe à plus de 150 px de haut).
-- **Chute** : une fois sous le niveau du sol dans un trou, la chute est engagée (le bord opposé ne rattrape pas la sphère). Relance au dernier point de passage (début de chapitre), score moins 30, sphère réduite de 10 % de sa croissance.
+- **Dangers** (74 sur le parcours, générés par une graine, un à deux par chapitre court, jamais à moins de 700 px d'un point de passage ; une zone mixte obstacles et trou place toujours le trou du côté opposé au couloir) : trous partiels (480 px de passage libre), trous sur toute la largeur précédés d'un tremplin (franchissables aussi d'un saut jusqu'à 300 px), obstacles en rangées avec un couloir libre de 520 px (franchissables d'un saut), trous noirs (attraction dans un rayon de 300 px, capture à 62 px sauf si la sphère passe à plus de 150 px de haut).
+- **Points de passage** : 26 (un au début de chaque chapitre, plus un environ tous les 4 000 px dans les longs chapitres, toujours à plus de 700 px de tout danger) : une chute dans le chapitre de 44 800 px ne renvoie jamais loin en arrière.
+- **Chute** : une fois sous le niveau du sol dans un trou, la chute est engagée (le bord opposé ne rattrape pas la sphère). Relance au dernier point de passage, score moins 30, sphère réduite de 10 % de sa croissance.
 - **Arrivée** : bonus de temps, écran de résultats (score, temps, mots, étoiles, nœuds, chutes, taille de la sphère, note S, A, B ou C, record local), rejouer ou revenir au site.
 
 ## Commandes
@@ -53,9 +54,18 @@ Animations : sauts avec étirement, rebonds, impulsions de tremplin (particules,
 | `tools/test-jeu-coeur.mjs` | physique et partie complète, sans navigateur (0,3 s) |
 | `tools/test-jeu.mjs` | navigateur : entrée, commandes, chute et relance, partie complète au clavier, résultats, sortie, tactile |
 
-Mesures du noyau (`node tools/test-jeu-coeur.mjs`) : sommet du saut 180,6 px (analytique 184,7, écart d'intégration numérique) ; durée de vol 0,750 s (0,754) ; tremplin 371 px (377) ; deux parties pilotées identiques à chaque empreinte ; partie complète pilotée en 103,7 s de jeu, 75 objets sur 164, 1 chute, 4 tremplins, 17 sauts, score 1 790.
+Mesures du noyau (`node tools/test-jeu-coeur.mjs`) : sommet du saut 180,6 px (analytique 184,7, écart d'intégration numérique) ; durée de vol 0,750 s (0,754) ; tremplin 371 px (377) ; deux parties pilotées identiques à chaque empreinte ; partie complète pilotée en 99,0 s de jeu, 74 objets sur 164, 2 chutes (à 9 378 et 60 969 px, jamais deux fois au même endroit), 1 choc, 3 tremplins, 18 sauts, score 1 766.
 
-Mesure du navigateur (`node tools/test-jeu.mjs`, rendu logiciel) : partie complète au clavier seul en 85,5 s de jeu, 33 mots, 11 étoiles, 18 nœuds, 0 chute, score 1 557, note B, à 1 725 px/s au plus entre deux décisions. Le pas de temps maximal par image est réduit à 0,2 s pour ce test : la simulation est identique, elle va seulement plus lentement que le temps réel (la scène Expo ne tient que 0,8 image/s en rendu logiciel avec le jeu).
+Mesure du navigateur (`node tools/test-jeu.mjs`, rendu logiciel, fenêtre de 960 × 600) : partie complète au clavier seul en 92,0 s de jeu, 36 mots, 11 étoiles, 20 nœuds, 1 chute suivie d'une relance, score 1 603, note B, vitesse moyenne maximale entre deux décisions de 1 021 px par seconde de jeu (limite physique 1 725), écran de résultats cohérent avec l'état, rejouer, sortie à la position de lecture, commandes tactiles. Durée de l'exécution : environ 25 minutes de temps réel. Le pas de temps maximal par image est réduit à 0,2 s pour ce test : la simulation est identique, elle va seulement plus lentement que le temps réel (la scène Expo ne tient que 0,8 image/s en rendu logiciel avec le jeu).
+
+## Défauts trouvés par les tests et corrigés
+
+- Une sphère déjà tombée dans un trou était « rattrapée » par le bord opposé : chute désormais engagée.
+- Étoiles en l'air hors de portée de la sphère au rayon minimal : portée de collecte et hauteurs recalées.
+- Parcours sans danger sur 15 300 px au départ : zones regénérées chapitre par chapitre.
+- Combinaison injouable d'une rangée d'obstacles et d'un trou (le pilote retombait 29 fois dans le même trou) : trou du côté opposé au couloir, contrôle « jamais deux chutes au même endroit ».
+- Chute dans un long chapitre renvoyant à 40 000 px en arrière : points de passage intermédiaires.
+- Appel de la projection de l'Expo avec la vue en premier argument (la fonction transmise a la vue déjà liée) : valeurs non finies et caméra qui s'emballait.
 
 ## Limites
 

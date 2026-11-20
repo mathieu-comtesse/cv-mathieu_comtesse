@@ -682,3 +682,17 @@ Décision de l'auteur : les 7 blocs de compétences de « Parcours » deviennent
 Tests sur le dernier code : `test-chapitres` PASS (à plat et en expo ; première passe complète du mode à plat, puis relances de la seule partie expo après réglage des attentes), `test-modes`, `test-branches`, `test-defilement`, `test-entrypoints`, `test-objets-3d`, `test-machines`, `test-navigation` (102 routes), `test-site-consistency` (40 pages), `test-no-shopify --strict` : PASS.
 
 Origine du balisage et éléments issus de la référence : `docs/reference/origine-et-elements-tiers.md`.
+
+# Mini-jeu de la sphère (PR 224)
+
+Décision de l'auteur : annulation du retrait décidé en PR 209 ; mini-jeu original réintégré au parcours final, dans la scène Expo. Détail, règles, commandes, mesures et limites : `docs/reference/mini-jeu-sphere.md`. Vérifications qui exigent un GPU réel : `docs/reference/verifications-gpu-expo.md`.
+
+| Élément | Référence | Ce dépôt | État |
+|---|---|---|---|
+| Touches | `d` 28, `a` 22, `z` 14, `q` 2, `e` 1 (journal brut) | flèches, A, D, Q, W, S, Z, Espace, molette | REPRIS pour a, d, z, q ; reste ORIGINAL |
+| Commande à saisir et glisser, bouton de départ | `div.game-grab` (curseurs `grab` et `grabbing`), `button.game-start` | zone de glisser tactile, bouton Jouer, invitation en fin de parcours | REPRIS dans le principe |
+| Règles, durée d'une partie, rendu, son | NON DOCUMENTÉS (session de 36 s dont 25 s de touches) | mécanique originale ; 1 à 3 minutes visées (92,0 s mesurées au clavier) | ORIGINAL |
+| Même environnement que l'Expo | sans objet | dessin dans le canevas de l'Expo avec la projection du moteur, caméra pilotant la position de lecture, entrée et sortie progressives | IMPLÉMENTÉ ET TESTÉ en rendu logiciel |
+| Fluidité, rendu et ressenti sur GPU | sans objet | non mesurés (scène Expo à 0,8 image/s en rendu logiciel avec le jeu) | OUVERT |
+
+Tests : `tools/test-jeu-coeur.mjs` (noyau, 0,3 s) et `tools/test-jeu.mjs` (navigateur, partie complète au clavier seul) PASS ; non-régression : `test-modes`, `test-branches`, `test-entrypoints`, `test-objets-3d`, `test-machines`, `test-navigation`, `test-site-consistency`, `test-no-shopify --strict`, `test-chapitres expo` PASS ; `test-defilement` : passe seul, échoue par intermittence quand le banc est chargé (timing de 250 ms), module de défilement non modifié.
