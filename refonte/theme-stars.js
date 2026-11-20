@@ -47,6 +47,11 @@ html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-we
 `;
 document.head.append(style);
 
+/* Remplissage du titre (contour puis plein), fonction pure de la position du titre : u = (hauteur de fenêtre - haut du titre) / hauteur de fenêtre.
+ * Relevés sur la référence (1 400 × 900, rendu logiciel) : titre invisible à u = 0,11 en arrivant par le haut, entièrement blanc dès u = 0,20.
+ * La courbe entre les deux n'est pas observée (les images prennent de 10 à 60 s) : lissage cubique, sans état, donc identique dans les deux sens
+ * de défilement, sans saut ni remise à zéro. */
+const REMPLI_DEBUT = 0.08, REMPLI_FIN = 0.2;
 const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const el = (nom, attrs = {}) => { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
@@ -184,7 +189,7 @@ function scene(chapitres) {
       if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
       const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
-        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
+        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, REMPLI_DEBUT, REMPLI_FIN) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
       const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
