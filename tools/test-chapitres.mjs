@@ -31,6 +31,8 @@ const st = await p.evaluate((IDS) => {
   return { ordre: secs.map((s) => s.id).join(','), ok, dup, menu: IDS.map((id) => menu.filter((h) => h === '#' + id).length), cartes: IDS.map((id) => document.getElementById(id).querySelectorAll('article.product-card').length), sk: document.querySelectorAll('#marketing .rf-sk-grp').length, renvoi: [...document.querySelectorAll('#marketing .rf-sk-liens a')].map((a) => a.getAttribute('href').slice(1)) };
 }, IDS);
 verifie(st.ordre === IDS.join(','), `11 sections de chapitre dans l'ordre : ${st.ordre.split(',').length}`);
+const metas = await p.evaluate(() => ({ site: document.querySelector('meta[name="twitter:site"]')?.content || '', compte: !!document.querySelector('meta[name="twitter:account_id"]'), cdn: [...document.querySelectorAll('[src],[href]')].filter((e) => /shopify(cdn)?\.com/i.test(e.getAttribute('src') || e.getAttribute('href') || '')).length }));
+verifie(!/shopify/i.test(metas.site) && !metas.compte && metas.cdn === 0, `métadonnées : aucune attribution au compte de Shopify (twitter:site « ${metas.site} »), aucune adresse shopify.com dans les balises src et href (${metas.cdn})`);
 verifie(st.ok.every(Boolean), `chaque section : id, chronologie --f26-page-0 à 10, titre relié (${st.ok.filter(Boolean).length}/11)`);
 verifie(st.dup.length === 0, `aucun identifiant HTML dupliqué (${st.dup.length}${st.dup.length ? ' : ' + st.dup.slice(0, 5).join(', ') : ''}) ; les dégradés SVG des machines, répétés par instance, sont hors périmètre`);
 verifie(st.menu.every((n) => n === 2), `menu des chapitres : une entrée par chapitre, dans les deux menus (${st.menu.join(',')})`);

@@ -655,3 +655,30 @@ Banc : même page publique et même fenêtre que le site ; `scrollTo` instantan�
 | Contenu des chapitres | visuels 3D produits, textes marketing | contenu du CV | HORS PÉRIMÈTRE (contenus propres à chaque site) |
 
 Observation annexe : le fond de page est piloté par 11 chronologies `--f26-page-0` à `--f26-page-10` ; le site n'en utilise que 4 (une par section réelle), les 7 autres restent à zéro.
+
+# Passage de 4 à 11 chapitres (PR 224)
+
+Décision de l'auteur : les 7 blocs de compétences de « Parcours » deviennent de vrais chapitres. Mesures : `tools/test-chapitres.mjs` (rendu logiciel, 1 440 × 900, Shopify bloqué). Planches du site : `docs/fall26-evidence/chapitres-plat-site.png` (à plat) et `chapitres-expo-site.png` (expo).
+
+| Élément | Avant | Maintenant | Mesure ou preuve | État |
+|---|---|---|---|---|
+| Sections de chapitre | 4 (`shop`, `marketing`, `fulfillment`, `developer`) | 11, dans l'ordre du graphe : `agentic`, `sidekick`, `online`, `merchandising`, `retail`, `payments`, `operations`, puis les 4 existantes | 11 sur 11, identifiants HTML uniques | CORRIGÉ |
+| Contenus des 7 blocs | liste de pastilles dans « Parcours » | une carte par compétence (6, 4, 7, 7, 6, 8, 8), identifiant = nœud du graphe, icônes conservées | « Parcours » ne garde qu'un renvoi vers les 7 chapitres, sans doublon | CORRIGÉ |
+| Nœuds du graphe | 83 nœuds, 7 chapitres pointant vers des blocs de 257 px dans « Parcours » | 83 nœuds pointant vers un élément de leur chapitre | 83 sur 83 | CORRIGÉ |
+| Chronologies et couleurs | 4 sections sur les chronologies 0, 1, 2 et 10 | 11 sections sur les chronologies 0 à 10, suite bleu, violet, rose, orange, bleu, vert, rose, violet, orange, vert, ardoise | couleur au cœur de chaque chapitre = couleur attendue ; moteur chromatique et paramètres inchangés | CORRIGÉ |
+| Transitions de couleur | 1 transition mesurée | 11 mesurées dans les deux sens | écart entre descente et remontée 0,000 ; fenêtre de 660 à 360 px avant le haut du chapitre (340 px avec un pas de 20 px, mesure validée) pour les chapitres 2 à 11 ; chapitre 1 de 390 à 90 px (avance d'entrée nulle, comme sur la référence) | CONFIRMÉ |
+| Avance d'entrée de « Mondes & jeux » | 0 px (un `<span id="perso">` entre deux sections cassait le sélecteur voisin) | 247,5 px comme les autres ; l'ancre `#perso` est dans la section | référence : 247,5 px pour tous sauf le premier ; fenêtre mesurée identique aux autres chapitres | CORRIGÉ |
+| Remplissage des titres | 0,02 à 0,34 de `u` (calage à l'œil) | 0,08 à 0,20 ; fonction pure de la position, donc sans état | à `u = 0,20` (haut du titre à 720 px) le titre est entièrement blanc sur la référence ; invisible à 0,11 en arrivant par le haut. Sur les 11 titres : nul avant 0,08, complet dès 0,22, croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45. La courbe entre les deux bornes n'est pas observée (le DOM de la référence ne porte aucun état : tout est peint dans le canevas) | CALIBRÉ sur deux points ; forme NON DOCUMENTÉE |
+| Hystérésis de la référence | état du titre dépendant du sens du défilement (69 pixels blancs à 5 420 px en arrivant par le haut, 7 223 en revenant de 5 500 px) | non reproduite : le site se règle sur la position seule | choix délibéré (consigne : pas de saut ni de remise à zéro) | ÉCART ASSUMÉ |
+| Liste latérale à plat | 4 noms | 11 noms, un seul actif, le bon, pour chaque chapitre | 11 sur 11 | CORRIGÉ |
+| Liste en expo | pas de chapitre actif marqué | chapitre actif marqué (`aria-current`, même style qu'à plat) | 11 sur 11 | AJOUT (non observable sur la référence, qui exige l'API HTML dans le canevas) |
+| Navigation à plat | ancres vers 4 sections | 11 ancres ; atterrissage à 359 px avant le haut de section | référence : 359 px aussi, relevé sur `#sidekick` et `#payments` ; retour arrière du navigateur exact | CONFIRMÉ |
+| Navigation en expo | non testée | défilement doux, atterrissage à +207 px (première carte moins 30 % de la fenêtre), chapitre actif juste à l'arrivée | 11 sur 11 | CONFIRMÉ |
+| Étoiles de titre en expo | 8 | 15 (11 chapitres et 4 thèmes), chaque chapitre a son foyer et son nom | 11 sur 11 visibles avec leur nom | CORRIGÉ |
+| Cartes du chapitre à plat | pleine largeur, passant sous la liste latérale | à partir de la 3e colonne dès 940 px (la référence : cartes à 187 px à 1 400 px) | recouvrement supprimé | CORRIGÉ |
+| Entrée en expo depuis un défilement profond | blocs 3D décalés d'environ 31 000 px (`scrollY` plafonné par le navigateur quand la page rétrécit, relu pendant les déplacements) | position d'entrée mémorisée | 0 étoile visible avant, 2 après dans le scénario reproduit ; défaut préexistant, révélé par la nouvelle structure | CORRIGÉ |
+| Métadonnées | `twitter:site` = `@Shopify` | retiré, avec `twitter:account_id` | contrôle dans `test-chapitres` | CORRIGÉ |
+
+Tests sur le dernier code : `test-chapitres` PASS (à plat et en expo ; première passe complète du mode à plat, puis relances de la seule partie expo après réglage des attentes), `test-modes`, `test-branches`, `test-defilement`, `test-entrypoints`, `test-objets-3d`, `test-machines`, `test-navigation` (102 routes), `test-site-consistency` (40 pages), `test-no-shopify --strict` : PASS.
+
+Origine du balisage et éléments issus de la référence : `docs/reference/origine-et-elements-tiers.md`.
