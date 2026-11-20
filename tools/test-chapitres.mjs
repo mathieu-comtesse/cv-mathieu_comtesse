@@ -44,7 +44,7 @@ const rgb = (c) => p.evaluate((c) => { const k = document.createElement('canvas'
 const lecture = (k) => p.evaluate((k) => { const s = getComputedStyle(document.body); return { f: parseFloat(s.getPropertyValue('--f26-page-fill-' + k)), c: s.backgroundColor }; }, k);
 let tousLesPlateaux = true, fenetres = [];
 for (let k = 0; k < 11; k++) {
-  const h = await haut(IDS[k]), pos = []; for (let d = 720; d >= 280; d -= 30) pos.push(h - d);
+  const h = await haut(IDS[k]), pos = []; for (let d = 720; d >= (k === 0 ? 0 : 280); d -= 30) pos.push(h - d);   /* le premier chapitre suit l'accueil : sa fenêtre est celle de l'avance d'entrée nulle (0 px sur la référence aussi), plus tardive */
   const bas = [], retour = []; for (const y of pos) { await va(y); bas.push((await lecture(k)).f); } for (const y of [...pos].reverse()) { await va(y); retour.push((await lecture(k)).f); } retour.reverse();
   const mono = bas.every((v, i) => i === 0 || v >= bas[i - 1] - 0.002), ecart = Math.max(...bas.map((v, i) => Math.abs(v - retour[i])));
   const debut = pos.findIndex((_, i) => bas[i] > 0.02), fin = pos.findIndex((_, i) => bas[i] > 0.98), dd = debut < 0 ? null : h - pos[debut], df = fin < 0 ? null : h - pos[fin];
@@ -80,7 +80,7 @@ for (let k = 0; k < 11; k++) {
 verifie(actifs.every((a, k) => a.length === 1 && a[0] === IDS[k]), `liste latérale à plat : un seul chapitre actif, le bon, pour chacun des 11 (${actifs.map((a) => a.join('+') || '-').join(' ')})`);
 await va(0, 1500);
 for (const id of IDS) { await p.evaluate((id) => document.querySelector('.cv-flat-nav a[href="#' + id + '"]').click(), id); await attend(1800); nav.push([id, await p.evaluate(() => Math.round(scrollY)), await haut(id)]); }
-verifie(nav.every(([, y, h]) => Math.abs(y - h) < 420), `navigation à plat vers chacun des 11 chapitres (écart au haut de section : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
+verifie(nav.every(([, y, h]) => Math.abs(y - h + 359) <= 6), `navigation à plat vers chacun des 11 chapitres : atterrissage à 359 px avant le haut de section, comme sur la référence (écarts : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
 await p.evaluate(() => { location.hash = '#online'; }); await attend(1500); const ya = await p.evaluate(() => scrollY); await p.evaluate(() => { location.hash = '#payments'; }); await attend(1500); await p.evaluate(() => history.back()); await attend(1500); const yb = await p.evaluate(() => scrollY);
 verifie(Math.abs(ya - yb) < 60, `retour arrière du navigateur : de #payments à #online (${Math.round(yb)} px, attendu ${Math.round(ya)} px)`);
 
