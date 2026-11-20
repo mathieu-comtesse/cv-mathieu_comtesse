@@ -638,3 +638,20 @@ Pendant le survol d'un foyer, la mise en évidence d'une trajectoire (ajout ant�
 Tests : `test-modes` PASS (27 contrôles, dont le survol d'un foyer), `test-branches` PASS, `test-entrypoints`, `test-defilement`, `test-objets-3d`, `test-no-shopify --strict` PASS ; `test-machines` (onze machines) et `test-navigation` (102 routes) PASS, relancés sur `e972cd2` ; `test-ux` : la fiche `moteur44` passe sur ses quatre tailles quand la suite est lancée fiche par fiche (les dix autres fiches non relancées ; la suite complète dépasse 25 min dans ce banc).
 
 `test-ux` relancé fiche par fiche sur `df88def` : les onze fiches passent sur leurs quatre tailles (44 contrôles). Un échec isolé, `gares` en mobile, au premier passage ; la fiche relancée seule passe entièrement. Échec intermittent déjà consigné pour cette suite ; la branche ne modifie aucun fichier des fiches machines (seuls `index.html`, `refonte/hero-graph.js`, `refonte/moteur.js` et deux tests changent).
+
+## Transitions entre chapitres (observation directe, 1 400 × 900, défilement instantané puis capture)
+
+Banc : même page publique et même fenêtre que le site ; `scrollTo` instantané à des pas de 170 px autour du haut d'un chapitre, lecture de la couleur de fond calculée et capture de la fenêtre. Référence : transition « Agentic » vers « Sidekick » (haut du chapitre suivant à 6 009 px). Site : transition « Projets professionnels » vers « Parcours » (haut à 46 272 px). Captures de la référence non versées ; planche du site : `docs/fall26-evidence/chapitres-transition-site.png`. Les captures sont lentes en rendu logiciel (de 10 s à plus de 60 s par image) : aucun état intermédiaire d'animation temporelle n'est capturable.
+
+| Effet | Référence | Site | État |
+|---|---|---|---|
+| Fond avant la transition | oklab(0,357162 −0,0193286 −0,214271) | identique | CONFIRMÉ (OBSERVÉ) |
+| Fond après la transition | oklab(0,428252 0,13336 −0,174502) | identique | CONFIRMÉ (OBSERVÉ) |
+| Fenêtre de la transition | commence entre 669 et 499 px avant le haut du chapitre : progression 0,02 à 669, 0,57 à 499, 1 à 329 | 0,01 à 680, 0,53 à 510, 1 à 340 | CONFIRMÉ à un pas d'échantillonnage près (170 px) ; la forme de la courbe entre deux points n'est pas mesurée |
+| Position verticale du titre pendant la montée | environ 69 %, 51 %, 32 % et 13 % de la hauteur de fenêtre à 329 px avant, 159 px avant, au niveau puis 181 px après le haut du chapitre | 71 %, 52 %, 33 % et 14 % aux positions équivalentes | CONFIRMÉ à 2 % près (lecture sur vignettes, à l'œil) |
+| Remplissage du titre (contour puis plein) | titre déjà plein sur toutes les captures, à 499 px avant et après | contour qui se remplit de la droite vers la gauche avec le défilement | NON DOCUMENTÉ : à position fixe, le nombre de pixels blancs du titre ne change pas entre des images prises de 13 s à 340 s d'écart (69, 12 340 puis 7 220 pixels selon la position) ; à 5 420 px il vaut 69 en arrivant par le haut et 7 223 en revenant de 5 500 px : l'état dépend du sens du défilement, pas seulement de la position. La vidéo de l'auteur (24 s) reste la seule preuve du remplissage ; le site n'est pas modifié. |
+| Liste fixe des chapitres, à gauche | 11 noms, le chapitre actif en évidence, centrée verticalement | 4 noms (les 4 sections réelles) | DIFFÉRENT : voir structure |
+| Structure | 11 sections de chapitre, chacune avec son titre et sa couleur | 4 sections réelles ; les 7 premières entrées de la liste (« Prévention & sécurité » à « Savoir-être ») sont des blocs de compétences (`rf-sk`) dans la section « Parcours », leurs ancres `#agentic` à `#operations` pointent sur ces blocs de 257 à 452 px | À DÉCIDER par l'auteur : passer à 11 sections est un choix de contenu et de structure, pas un réglage |
+| Contenu des chapitres | visuels 3D produits, textes marketing | contenu du CV | HORS PÉRIMÈTRE (contenus propres à chaque site) |
+
+Observation annexe : le fond de page est piloté par 11 chronologies `--f26-page-0` à `--f26-page-10` ; le site n'en utilise que 4 (une par section réelle), les 7 autres restent à zéro.
