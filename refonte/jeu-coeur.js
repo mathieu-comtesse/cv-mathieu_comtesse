@@ -41,15 +41,28 @@ export function construitPlan({ chapitres, mots, fin, graine = 'comtesse.me' }) 
       const g = alea(hache(graine + '|zone|' + ci + '|' + k)); let type = TYPES[Math.floor(g() * TYPES.length)];
       while (r0 + ETENDUE[type] > limite && type !== 'libre') type = ['obstacles', 'trou-partiel', 'trou-noir', 'trou-total', 'libre'][Math.floor(g() * 5)];
       if (type === 'libre' || r0 + ETENDUE[type] > limite) continue;
+      const gaucheTrou = g() < 0.5;                                                  // zone mixte : le trou est du côté opposé au couloir des obstacles (sinon le seul passage mènerait dans le trou)
       if (type === 'obstacles' || type === 'obstacles-trou') {
-        const libre = 140 + g() * 700;                                              // couloir libre de 520 px au moins
+        const libre = type === 'obstacles' ? 140 + g() * 700 : gaucheTrou ? 580 + g() * 100 : 90 + g() * 30;   // couloir libre de 520 px au moins
         for (let j = 0; j < 4; j++) { const w = 150 + g() * 40, x0 = (libre + 520 + g() * 60 + j * 90) % (LARGEUR - w); const dx = Math.abs(x0 + w / 2 - (libre + 260)); if (dx > 330) obstacles.push({ x0, x1: x0 + w, r0: r0 + j * 230, r1: r0 + j * 230 + 60, hh: 60 + Math.floor(g() * 3) * 15 }); }
       }
-      if (type === 'trou-partiel' || type === 'obstacles-trou') { const gauche = g() < 0.5, r = r0 + (type === 'trou-partiel' ? 0 : 1050); trous.push({ x0: gauche ? 0 : 480, x1: gauche ? 720 : LARGEUR, r0: r, r1: r + 420 }); }
+      if (type === 'trou-partiel') trous.push({ x0: gaucheTrou ? 0 : 480, x1: gaucheTrou ? 720 : LARGEUR, r0, r1: r0 + 420 });
+      if (type === 'obstacles-trou') trous.push({ x0: gaucheTrou ? 0 : 700, x1: gaucheTrou ? 500 : LARGEUR, r0: r0 + 1050, r1: r0 + 1470 });
       if (type === 'trou-total') { const cx = 350 + g() * 500; rampes.push({ x0: cx - 260, x1: cx + 260, r0, r1: r0 + 140 }); trous.push({ x0: 0, x1: LARGEUR, r0: r0 + 420, r1: r0 + 800 }); }
       if (type === 'trou-noir') noirs.push({ x: 300 + g() * 600, r: r0 + 600 });
     }
   });
+  /* points de passage intermédiaires : tous les 4 000 px environ, à la rangée libre de tout danger (700 px de marge) la plus proche, pour qu'une chute
+     dans un long chapitre ne renvoie jamais loin en arrière */
+  const dangers = () => [...trous.map((h) => [h.r0, h.r1]), ...rampes.map((h) => [h.r0, h.r1]), ...obstacles.map((h) => [h.r0, h.r1]), ...noirs.map((b) => [b.r - BN_INFLUENCE, b.r + BN_INFLUENCE])];
+  const libre = (r, d) => d.every(([a, b]) => r + 700 < a || r - 700 > b);
+  { const d = dangers(); let dernier = depart;
+    for (let cible = depart + 4000; cible < arrivee - 1500; cible = dernier + 4000) {
+      let ok = null; for (let ecart = 0; ecart <= 2200 && ok === null; ecart += 50) for (const s of [1, -1]) { const r = cible + s * ecart; if (r > dernier + 1500 && r < arrivee - 1200 && libre(r, d) && points.every((q) => Math.abs(q.r - r) > 800)) { ok = r; break; } }
+      if (ok === null) { dernier = cible; continue; }
+      const c = chapitres.filter((q) => q.top <= ok).at(-1) || chapitres[0]; points.push({ r: ok, chapitre: c.id, i: -1 }); dernier = ok;
+    }
+    points.sort((u, v) => u.r - v.r); points.forEach((q, k) => { q.i = k; }); }
   const tri = (a) => a.sort((u, v) => u.r0 - v.r0);
   tri(trous); tri(rampes); tri(obstacles); noirs.sort((u, v) => u.r - v.r);
   /* objets : mots aux rangées des contenus, étoiles de chapitre et de thème, nœuds en arc devant chaque étoile */

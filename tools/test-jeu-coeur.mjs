@@ -59,12 +59,13 @@ verifie(JSON.stringify(plan2) === JSON.stringify(plan), 'plan : même contenu, m
 /* arrivée */
 { const p = vide({ arrivee: 900 }), e = lance(p); const evs = joue(e, p, 2.5); verifie(evs.some((v) => v.t === 'arrivee') && e.etat === 'arrive' && e.vr === 0 && e.score > 0, `arrivée : état « ${e.etat} », vitesse nulle, bonus de temps ${e.score}`); }
 /* déterminisme : deux parties pilotées identiques, mêmes empreintes tout au long */
-const partie = (graine) => { const e = J.creeEtat(plan); J.demarre(e); const trace = []; let max = Math.round(240 / J.PAS); for (let i = 0; i < max && e.etat !== 'arrive'; i++) { J.pas(e, plan, J.pilote(e, plan)); if (i % 1200 === 0) trace.push(J.empreinte(e)); } return { e, trace }; };
+const partie = (graine) => { const e = J.creeEtat(plan); J.demarre(e); const trace = []; e.chutesR = []; let max = Math.round(240 / J.PAS); for (let i = 0; i < max && e.etat !== 'arrive'; i++) { for (const v of J.pas(e, plan, J.pilote(e, plan))) if (v.t === 'chute' || v.t === 'aspire') e.chutesR.push(e.r); if (i % 1200 === 0) trace.push(J.empreinte(e)); } return { e, trace }; };
 const A = partie(), B = partie();
 verifie(A.trace.join() === B.trace.join() && J.empreinte(A.e) === J.empreinte(B.e), `déterminisme : deux parties identiques, ${A.trace.length} empreintes égales (finale ${J.empreinte(A.e)})`);
 const e = A.e, total = plan.objets.length, pris = e.pris.reduce((s, v) => s + (v >= 0 ? 1 : 0), 0);
 verifie(e.etat === 'arrive' && e.t >= 60 && e.t <= 180, `partie complète pilotée : arrivée en ${e.t.toFixed(1)} s de jeu (cible 60 à 180 s), ${e.n} pas, aucune téléportation`);
 verifie(pris >= total * 0.3 && e.chutes <= 3, `partie complète : ${pris}/${total} objets (${e.mots} mots, ${e.etoiles} étoiles, ${e.noeuds} nœuds), ${e.chutes} chute(s), ${e.chocs} choc(s), ${e.sauts} saut(s), ${e.tremplins} tremplin(s), score ${Math.round(e.score)}, rayon ${e.rayon.toFixed(1)} px, vitesse maximale ${e.vitMax.toFixed(0)} px/s`);
+verifie(e.chutesR.every((r, i) => e.chutesR.every((q, k) => k <= i || Math.abs(q - r) > 800 || k === i + 1 && false)) || e.chutesR.length <= 1, `équité : le pilote ne retombe jamais deux fois au même endroit (chutes à ${e.chutesR.map((r) => Math.round(r)).join(', ') || 'aucune'})`);
 verifie(e.tremplins >= 3 && e.sauts >= 3, 'partie complète : tremplins et sauts effectivement utilisés');
 
 console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : noyau du mini-jeu (physique, collisions, collectes, chute, arrivée, déterminisme, partie complète)'); process.exit(echecs.length ? 1 : 0);
