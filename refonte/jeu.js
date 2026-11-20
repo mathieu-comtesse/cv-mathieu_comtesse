@@ -2,7 +2,7 @@
  * La physique est dans jeu-coeur.js (pure, déterministe). Ici : plan tiré de la page, commandes, caméra, rendu dans le canevas d'annotations de
  * l'Expo (`N.p(view, colonne, rangée, hauteur)`), particules, son synthétisé, interface, entrée et sortie progressives.
  * Le moteur d'images de l'Expo appelle `window.__cvJeu.dessine(ctx, view, P, maintenant, dt)` à chaque image, par-dessus le décor. */
-import * as J from './jeu-coeur.js?v=j1';
+import * as J from './jeu-coeur.js?v=j2';
 
 const S = { phase: 'repos', plan: null, etat: null, touches: new Set(), tactile: { dir: 0, haut: false, bas: false }, saut: false, gazDelta: 0, acc: 0, t0: 0, tPhase: 0, yEntree: 0, yDepart: 0,
   parts: [], trainee: [], cam: { v: 0, d: 0 }, secousse: 0, son: true, audio: null, dom: null, lisible: null, vue: null, reduit: matchMedia('(prefers-reduced-motion: reduce)'), meilleur: 0, pasEnCours: 0, dtMax: 0.25 };
@@ -72,7 +72,7 @@ function creeDom() {
   return el;
 }
 const dq = (n) => S.dom.querySelector(`[data-j="${n}"]`);
-const annonce = (t, ms = 1500) => { const a = dq('annonce'); a.textContent = t; a.classList.add('vu'); clearTimeout(S.tAnn); S.tAnn = setTimeout(() => a.classList.remove('vu'), ms); };
+const annonce = (t, ms = 1500, grand = false) => { const a = dq('annonce'); a.textContent = t; a.classList.toggle('grand', grand); a.classList.add('vu'); clearTimeout(S.tAnn); S.tAnn = setTimeout(() => a.classList.remove('vu'), ms); };
 
 /* ---------- commandes clavier et molette ---------- */
 const GAUCHE = new Set(['arrowleft', 'a', 'q']), DROITE = new Set(['arrowright', 'd']), HAUT = new Set(['arrowup', 'w', 'z']), BAS = new Set(['arrowdown', 's']);
@@ -98,12 +98,12 @@ export async function ouvre() {
   if (!id.active) { id.bascule(); await new Promise((r) => { const t0 = performance.now(), v = () => (id.active && id.progress > 0.999) || performance.now() - t0 > 20000 ? r() : setTimeout(v, 60); v(); }); }
   S.plan = construit(); S.etat = J.creeEtat(S.plan); S.priseHorloge = {}; creeDom(); S.yEntree = scrollY; S.yDepart = Math.max(0, S.plan.depart - innerHeight * 0.7);   /* cadrage de la course : la sphère aux trois quarts de la hauteur */ S.parts.length = 0; S.trainee.length = 0; S.cam = { v: 0, d: 0 }; S.compteur = 4;
   S.meilleur = 0; try { S.meilleur = +localStorage.getItem('cv-jeu-meilleur') || 0; } catch { /* stockage indisponible */ }
-  document.documentElement.classList.add('cv-jeu-actif'); S.dom.hidden = false; S.dom.classList.remove('sortie'); requestAnimationFrame(() => S.dom.classList.add('vu')); dq('fin').hidden = true;
+  document.documentElement.classList.add('cv-jeu-actif'); S.dom.hidden = false; S.dom.classList.remove('sortie', 'aide-masquee'); requestAnimationFrame(() => S.dom.classList.add('vu')); dq('fin').hidden = true;
   Son.init(); ecoute(true); phase('entree'); window.dispatchEvent(new CustomEvent('cv-jeu', { detail: { etat: 'ouvert' } }));
 }
 function phase(p) { S.phase = p; S.tPhase = 0; if (S.dom) S.dom.dataset.phase = p; }
-function debut() { J.demarre(S.etat); phase('course'); annonce('Go !', 900); Son.joue({ t: 'compte', fin: true }); }
-function relancePartie() { S.etat = J.creeEtat(S.plan); S.parts.length = 0; S.trainee.length = 0; S.priseHorloge = {}; S.compteur = 4; dq('fin').hidden = true; phase('entree'); S.tPhase = T.entree * 0.55; }
+function debut() { J.demarre(S.etat); phase('course'); annonce('Go !', 900, true); Son.joue({ t: 'compte', fin: true }); }
+function relancePartie() { S.dom.classList.remove('aide-masquee'); S.etat = J.creeEtat(S.plan); S.parts.length = 0; S.trainee.length = 0; S.priseHorloge = {}; S.compteur = 4; dq('fin').hidden = true; phase('entree'); S.tPhase = T.entree * 0.55; }
 export function ferme() {
   if (S.phase === 'repos' || S.phase === 'sortie') return; S.sortieDepuis = scrollY; phase('sortie'); S.dom.classList.add('sortie'); dq('fin').hidden = true; Son.stop(); S.touches.clear();
 }
@@ -173,7 +173,7 @@ function dessineParticules(ctx) { ctx.save(); for (const q of S.parts) { const p
 
 function reagit(ev, e) {
   for (const v of ev) { Son.joue(v); const R = e.rayon;
-    if (v.t === 'collecte') { emet(v.type === 'etoile' ? 18 : 8, e.x, e.r, e.h + R, v.type === 'etoile' ? 'rgba(255,225,120,A)' : 'rgba(150,235,255,A)', 260, 0.55, 300); S.priseHorloge[v.i] = S.horloge; if (v.combo > 1) annonce(`combo ×${v.combo}`, 900); if (v.type === 'etoile') annonce('Étoile !', 900); }
+    if (v.t === 'collecte') { emet(v.type === 'etoile' ? 18 : 8, e.x, e.r, e.h + R, v.type === 'etoile' ? 'rgba(255,225,120,A)' : 'rgba(150,235,255,A)', 260, 0.55, 300); S.priseHorloge[v.i] = S.horloge;  if (v.type === 'etoile') annonce('Étoile !', 900); }
     else if (v.t === 'saut') emet(6, e.x, e.r, 0, 'rgba(200,220,255,A)', 160, 0.4);
     else if (v.t === 'atterrit') { emet(10, e.x, e.r, 0, 'rgba(210,230,255,A)', 260, 0.5); S.cam.v += 300; S.secousse = Math.max(S.secousse, Math.min(6, v.v / 400)); }
     else if (v.t === 'tremplin') { emet(26, e.x, e.r, 0, 'rgba(255,220,120,A)', 520, 0.7); S.cam.v -= 700; S.secousse = 5; annonce('Tremplin !', 800); }
@@ -202,11 +202,12 @@ export function dessine(ctx, view, P, now, dt) {
   COL0 = W * 0.09; COLW = W * 0.82;
   /* machine d'états */
   if (S.phase === 'entree') { const q = S.tPhase / T.entree; e.hRend = 900 * Math.pow(1 - lisse(q), 2); if (S.tPhase >= T.entree) { phase('compte'); S.compteur = 4; } }
-  else if (S.phase === 'compte') { const n = 3 - Math.floor(S.tPhase / (T.compte / 3)); if (n !== S.compteur && n >= 1) { S.compteur = n; dq('annonce').textContent = String(n); dq('annonce').classList.add('vu'); Son.joue({ t: 'compte' }); } if (S.tPhase >= T.compte) debut(); }
+  else if (S.phase === 'compte') { const n = 3 - Math.floor(S.tPhase / (T.compte / 3)); if (n !== S.compteur && n >= 1) { S.compteur = n; dq('annonce').textContent = String(n); dq('annonce').classList.add('vu', 'grand'); Son.joue({ t: 'compte' }); } if (S.tPhase >= T.compte) debut(); }
   else if (S.phase === 'course' || S.phase === 'fin') {
     S.acc = Math.min(S.acc + dt, S.dtMax); const en = entrees(); let n = 0;
     while (S.acc >= J.PAS) { const ev = J.pas(e, pl, n === 0 ? en : { dir: en.dir, dgaz: en.dgaz }); n++; S.acc -= J.PAS; if (ev.length) reagit(ev, e); if (e.n % 3 === 0 && e.etat === 'course') { S.trainee.push({ x: e.x, r: e.r, h: e.h }); if (S.trainee.length > 26) S.trainee.shift(); } }
     if (e.etat === 'arrive' && S.phase === 'course') phase('fin');
+    if (e.t > 8) S.dom.classList.add('aide-masquee');
     if (S.phase === 'fin' && S.finDans > 0) { S.finDans -= dt; if (S.finDans <= 0) { dq('fin').hidden = false; dq('fin').querySelector('button').focus?.(); } }
   }
   if (S.phase !== 'sortie') { if (S.phase !== 'entree') e.hRend = e.h; }
@@ -234,7 +235,7 @@ function majInterface(e) {
   const mm = Math.floor(e.t / 60), ss = Math.floor(e.t % 60).toString().padStart(2, '0'), pl = S.plan;
   dq('score').textContent = String(Math.round(e.score)); dq('temps').textContent = `${mm}:${ss}`; dq('mots').textContent = e.mots; dq('etoiles').textContent = e.etoiles; dq('noeuds').textContent = e.noeuds;
   dq('vitesse').style.setProperty('--v', (bornes((e.vr - J.VMIN) / (J.VMAX - J.VMIN), 0, 1) * 100).toFixed(0) + '%'); dq('croiss').style.setProperty('--v', (bornes((e.rayon - J.RAYON_MIN) / (J.RAYON_MAX - J.RAYON_MIN), 0, 1) * 100).toFixed(0) + '%');
-  dq('progres').style.setProperty('--v', (bornes((e.r - pl.depart) / (pl.arrivee - pl.depart), 0, 1) * 100).toFixed(1) + '%'); dq('combo').textContent = e.combo > 1 && e.t - e.tCombo < 1.6 ? `combo ×${e.combo}` : '';
+  dq('progres').style.setProperty('--v', (bornes((e.r - pl.depart) / (pl.arrivee - pl.depart), 0, 1) * 100).toFixed(1) + '%'); { const c = dq('combo'), txt = e.combo > 1 && e.t - e.tCombo < 1.6 ? `combo ×${e.combo}` : ''; if (txt !== c.textContent) { c.textContent = txt; if (txt) { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); } } }
 }
 
 /* ---------- accès pour les tests et le pilote automatique ---------- */

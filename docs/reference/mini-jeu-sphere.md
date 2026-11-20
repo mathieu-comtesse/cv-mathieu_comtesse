@@ -19,7 +19,7 @@ Reprises : les touches `a`, `d`, `z`, `q` (clavier français), la commande à sa
 ## Règles
 
 - **Piste** : l'axe vertical de la page. Départ juste avant le premier chapitre, arrivée 420 px avant la fin de la page. Largeur de piste virtuelle de 1 200 unités, rambardes latérales qui renvoient la sphère.
-- **Sphère** : rayon de 28 à 56 px selon ce qu'elle a collecté. Vitesse de 420 à 1 500 px/s réglée par l'accélérateur (départ à 0,45, soit environ 900 px/s). Gravité 2 600 px/s², saut de 980 px/s (sommet 184 px), tremplin de 1 400 px/s (sommet 377 px).
+- **Sphère** : rayon de 28 à 56 px selon ce qu'elle a collecté. Vitesse de 480 à 1 500 px/s réglée par l'accélérateur (départ à 0,45, soit environ 900 px/s). Gravité 2 600 px/s², saut de 980 px/s (sommet 184 px), tremplin de 1 500 px/s (sommet 433 px), qui garantit une vitesse d'au moins 800 px/s pour franchir le trou qui suit.
 - **Objets** : 83 mots (les titres des cartes, aux rangées des vrais contenus), 15 étoiles (une par chapitre et 4 de thème), 66 nœuds (6 par chapitre, certains en hauteur : il faut sauter). Récupérés au contact ou par attraction ; chacun fait grossir la sphère et rapporte 10 (mot), 5 (nœud) ou 50 (étoile) points, avec un bonus de combo jusqu'à +40 %.
 - **Dangers** (74 sur le parcours, générés par une graine, un à deux par chapitre court, jamais à moins de 700 px d'un point de passage ; une zone mixte obstacles et trou place toujours le trou du côté opposé au couloir) : trous partiels (480 px de passage libre), trous sur toute la largeur précédés d'un tremplin (franchissables aussi d'un saut jusqu'à 300 px), obstacles en rangées avec un couloir libre de 520 px (franchissables d'un saut), trous noirs (attraction dans un rayon de 300 px, capture à 62 px sauf si la sphère passe à plus de 150 px de haut).
 - **Points de passage** : 26 (un au début de chaque chapitre, plus un environ tous les 4 000 px dans les longs chapitres, toujours à plus de 700 px de tout danger) : une chute dans le chapitre de 44 800 px ne renvoie jamais loin en arrière.
@@ -88,3 +88,23 @@ Même suite que sous rendu logiciel, exécutée sur un GPU réel (Chromium, ANGL
 Vidéo d'une partie en temps réel (entrée depuis le graphe à plat, bascule en Expo, compte à rebours, jeu au clavier, chute dans un trou noir, relance, retour au site) : `docs/fall26-evidence/jeu-partie-gpu.webm`, enregistrée par `tools/enregistre-jeu.mjs`. Les captures du test (`SHOTS=dossier`) montrent le départ, la course, la chute, l'arrivée et les résultats.
 
 Encore ouvert : ressenti de la physique et fluidité sur un autre GPU, son sur casque et haut-parleurs, et tactile sur un téléphone réel (voir `docs/reference/verifications-gpu-expo.md`).
+
+## Équilibrage et interface (21 novembre 2026)
+
+`node tools/equilibrage-jeu.mjs` fait jouer le pilote automatique, partie complète, à sept vitesses fixes (accélérateur de 0 à 1) et vérifie que la partie se termine toujours.
+
+Défaut trouvé : à faible vitesse, un trou sur toute la largeur n'était pas franchissable même en prenant le tremplin (le saut retombait dans le trou) : le pilote restait bloqué, 52 à 82 chutes au même endroit aux accélérateurs 0, 0,15 et 1. Correctifs, tous dans `refonte/jeu-coeur.js` : vitesse minimale de 420 à 480 px/s ; tremplin de 1 400 à 1 500 px/s avec une vitesse d'au moins 800 px/s après la poussée ; en l'air, la vitesse acquise ne retombe presque plus (freinage de 15 %) ; trou sur toute la largeur de 380 à 360 px. Le pilote est aussi un peu plus attentif (anticipation proportionnelle à la vitesse, marge plus large autour des trous noirs à faible vitesse, braquage plus franc à grande vitesse).
+
+| Accélérateur | Durée | Chutes | Objets pris | Score |
+|---|---|---|---|---|
+| 0 | 170 s | 0 | 87 | 1 691 |
+| 0,15 | 129 s | 0 | 76 | 1 682 |
+| 0,30 | 104 s | 0 | 66 | 1 525 |
+| 0,45 | 86 s | 0 | 59 | 1 401 |
+| 0,60 | 79 s | 1 | 54 | 1 324 |
+| 0,80 | 62 s | 0 | 51 | 1 425 |
+| 1,00 | 54 s | 0 | 50 | 1 381 |
+
+Lecture : toute vitesse mène à l'arrivée en 54 à 170 s, dans la fenêtre de 1 à 3 minutes ; rouler lentement rapporte plus d'objets, rouler vite rapporte le bonus de temps ; le pilote n'atteint pas la note S (2 300 points), qui reste à gagner. Les notes (S, A, B) ne sont pas calibrées sur des joueurs humains.
+
+Interface (`refonte/comtesse-motion.css`, `refonte/jeu.js`) : le bandeau d'informations est un panneau sombre lisible par-dessus les règles de l'Expo ; le combo n'est plus annoncé en grand une seconde fois (il reste dans le panneau et pulse à chaque incrément) ; les annonces sont plus petites et plus hautes, seuls le compte à rebours et « Go ! » restent grands ; la ligne d'aide des commandes est une pastille qui s'efface après 8 s de course et revient à chaque nouvelle partie.

@@ -15,8 +15,9 @@
 
 export const PAS = 1 / 120;
 export const LARGEUR = 1200;
-export const G = 2600, VMIN = 420, VMAX = 1500, ACC_SOL = 1400, ACC_AIR = 520, AX = 3000, AMORT_SOL = 3.2, AMORT_AIR = 0.9, VXMAX = 1000, REST = 0.35;
-export const SAUT = 980, TREMPLIN = 1400, COYOTE = 0.09, TAMPON = 0.12, RAYON_MIN = 28, RAYON_MAX = 56, CHUTE_H = -520, DUREE_CHUTE = 1.1, DUREE_ASPIRE = 0.9;
+export const G = 2600, VMIN = 480, VMAX = 1500, ACC_SOL = 1400, ACC_AIR = 520, AX = 3000, AMORT_SOL = 3.2, AMORT_AIR = 0.9, VXMAX = 1000, REST = 0.35;
+export const SAUT = 980, TREMPLIN = 1500, COYOTE = 0.09, TAMPON = 0.12, RAYON_MIN = 28, RAYON_MAX = 56, CHUTE_H = -520, DUREE_CHUTE = 1.1, DUREE_ASPIRE = 0.9;
+export const V_TREMPLIN_MIN = 800;
 export const BN_INFLUENCE = 300, BN_CAPTURE = 62, BN_FORCE = 2300;
 export const VALEUR = { mot: 10, noeud: 5, etoile: 50 }, CROISSANCE = { mot: 1, noeud: 0.5, etoile: 5 };
 export const PENALITE_CHUTE = 30;
@@ -48,7 +49,7 @@ export function construitPlan({ chapitres, mots, fin, graine = 'comtesse.me' }) 
       }
       if (type === 'trou-partiel') trous.push({ x0: gaucheTrou ? 0 : 480, x1: gaucheTrou ? 720 : LARGEUR, r0, r1: r0 + 420 });
       if (type === 'obstacles-trou') trous.push({ x0: gaucheTrou ? 0 : 700, x1: gaucheTrou ? 500 : LARGEUR, r0: r0 + 1050, r1: r0 + 1470 });
-      if (type === 'trou-total') { const cx = 350 + g() * 500; rampes.push({ x0: cx - 260, x1: cx + 260, r0, r1: r0 + 140 }); trous.push({ x0: 0, x1: LARGEUR, r0: r0 + 420, r1: r0 + 800 }); }
+      if (type === 'trou-total') { const cx = 350 + g() * 500; rampes.push({ x0: cx - 260, x1: cx + 260, r0, r1: r0 + 140 }); trous.push({ x0: 0, x1: LARGEUR, r0: r0 + 420, r1: r0 + 780 }); }
       if (type === 'trou-noir') noirs.push({ x: 300 + g() * 600, r: r0 + 600 });
     }
   });
@@ -115,7 +116,7 @@ export function pas(etat, plan, e = {}) {
   /* course */
   etat.gaz = borne(etat.gaz + (e.dgaz || 0) * 0.9 * dt + (e.gazDelta || 0), 0, 1);   /* gazDelta : variation instantanée (molette) */
   const vCible = VMIN + (VMAX - VMIN) * etat.gaz, acc = etat.sol ? ACC_SOL : ACC_AIR;
-  etat.vr += borne(vCible - etat.vr, -acc * dt, acc * dt);
+  etat.vr += borne(vCible - etat.vr, -acc * (etat.sol ? 1 : 0.15) * dt, acc * dt);   /* en l'air, la vitesse acquise ne retombe presque pas : la poussée d'un tremplin porte jusqu'au bout du saut */
   etat.vx += (e.dir || 0) * AX * dt; etat.vx -= etat.vx * (etat.sol ? AMORT_SOL : AMORT_AIR) * dt; etat.vx = borne(etat.vx, -VXMAX, VXMAX);
   etat.coyote = etat.sol ? COYOTE : Math.max(0, etat.coyote - dt); etat.tampon = e.saut ? TAMPON : Math.max(0, etat.tampon - dt);
   if (etat.tampon > 0 && etat.coyote > 0) { etat.vh = SAUT; etat.sol = false; etat.coyote = 0; etat.tampon = 0; etat.sauts++; etat.ev.push({ t: 'saut' }); }
@@ -133,7 +134,7 @@ export function pas(etat, plan, e = {}) {
   if (etat.h < CHUTE_H) { etat.etat = 'chute'; etat.tEtat = 0; etat.ev.push({ t: 'chute', cause: 'trou' }); return etat.ev; }
   /* tremplin */
   const ri = rampeEn(plan, etat.x, etat.r);
-  if (ri >= 0 && etat.h < 12 && ri !== etat.rampe) { etat.rampe = ri; etat.vh = TREMPLIN; etat.sol = false; etat.vr = Math.min(VMAX * 1.15, etat.vr * 1.12 + 60); etat.tremplins++; etat.ev.push({ t: 'tremplin', i: ri }); }
+  if (ri >= 0 && etat.h < 12 && ri !== etat.rampe) { etat.rampe = ri; etat.vh = TREMPLIN; etat.sol = false; etat.vr = Math.min(VMAX * 1.15, Math.max(V_TREMPLIN_MIN, etat.vr * 1.12 + 60));   /* même à vitesse minimale, la poussée du tremplin permet de franchir le trou qui suit (voir tools/equilibrage-jeu.mjs) */ etat.tremplins++; etat.ev.push({ t: 'tremplin', i: ri }); }
   else if (ri < 0) etat.rampe = -1;
   /* obstacles : cercle contre rectangle dans le plan de la piste, franchissable si la sphère passe au-dessus */
   for (let i = debut(plan.obstacles, etat.r - SPAN, 'r0'); i < plan.obstacles.length && plan.obstacles[i].r0 <= etat.r + R; i++) {
@@ -179,10 +180,10 @@ export const empreinte = (e) => { let h = 5381; const s = [e.n, e.r, e.x, e.h, e
 
 /* ---------- pilote automatique (tests) : mêmes entrées qu'un joueur, aucune téléportation ---------- */
 export function pilote(etat, plan, opts = {}) {
-  const gazVoulu = opts.gaz ?? 0.45, R = etat.rayon, avance = 260 + etat.vr * 0.8, fin = etat.r + avance, bloc = [];
+  const gazVoulu = opts.gaz ?? 0.45, R = etat.rayon, avance = 260 + etat.vr * 1.1, fin = etat.r + avance, bloc = [];
   let gap = null;
   for (const t of plan.trous) { if (t.r1 < etat.r - 60 || t.r0 > fin) continue; if (t.x0 <= 0 && t.x1 >= LARGEUR) gap = gap && gap.r0 < t.r0 ? gap : t; else bloc.push([t.x0 - R * 0.5 - 30, t.x1 + R * 0.5 + 30, t.r0, t.r1]); }
-  for (const b of plan.noirs) if (b.r > etat.r - 120 && b.r < fin + 120) bloc.push([b.x - 190, b.x + 190, b.r - 190, b.r + 190]);
+  for (const b of plan.noirs) if (b.r > etat.r - 120 && b.r < fin + 120) { const m = 190 + 90000 / Math.max(300, etat.vr); bloc.push([b.x - m, b.x + m, b.r - m, b.r + m]); }   /* plus lent, la sphère reste plus longtemps sous l'attraction : marge plus large */
   for (const o of plan.obstacles) if (o.r1 > etat.r - 60 && o.r0 < fin) bloc.push([o.x0 - R - 30, o.x1 + R + 30, o.r0, o.r1]);
   let cible = LARGEUR / 2, meilleur = -1e9;
   const ramp = gap ? plan.rampes.find((q) => q.r1 <= gap.r0 && q.r1 > etat.r - 40 && gap.r0 - q.r1 < 500) : null;
@@ -193,7 +194,7 @@ export function pilote(etat, plan, opts = {}) {
     for (let i = debut(plan.objets, etat.r, 'r'); i < plan.objets.length && plan.objets[i].r <= fin; i++) { if (etat.pris[i] >= 0) continue; const o = plan.objets[i]; s += (VALEUR[o.type] * 8) / (1 + Math.abs(x - o.x) / 50) / (1 + (o.r - etat.r) / 400); }
     if (s > meilleur) { meilleur = s; cible = x; }
   }
-  const dir = borne((cible - etat.x - etat.vx * 0.32) / 200, -1, 1);
+  const dir = borne((cible - etat.x - etat.vx * 0.32) / (200 - 110 * Math.min(1, etat.vr / 1500)), -1, 1);   /* plus vite, il faut braquer plus franchement */
   let saut = false;
   if (gap && !ramp && gap.r0 - etat.r < etat.vr * 0.16 && gap.r0 - etat.r > 0 && etat.sol) saut = true;
   for (const o of plan.obstacles) { if (o.r0 - etat.r > 0 && o.r0 - etat.r < etat.vr * 0.14 && etat.x > o.x0 - R && etat.x < o.x1 + R && etat.sol) saut = true; }

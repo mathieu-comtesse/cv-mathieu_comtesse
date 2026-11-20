@@ -3,7 +3,7 @@
 if (!document.querySelector('link[data-cv-motion]')) {
   const sheet = document.createElement('link');
   sheet.rel = 'stylesheet';
-  sheet.href = '/refonte/comtesse-motion.css?v=fall26-2';
+  sheet.href = '/refonte/comtesse-motion.css?v=fall26-5';
   sheet.dataset.cvMotion = '';
   document.head.append(sheet);
 }
