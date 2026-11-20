@@ -63,11 +63,11 @@ function creeDom() {
   q('son').onclick = () => { S.son = !S.son; q('son').setAttribute('aria-pressed', String(S.son)); if (!S.son) Son.stop(); else Son.init(); };
   /* commandes tactiles : glisser pour diriger (la commande observée sur la référence se saisit et se glisse), boutons de vitesse et de saut */
   const g = q('glisse'); let x0 = null, id = null;
-  g.addEventListener('pointerdown', (e) => { x0 = e.clientX; id = e.pointerId; g.setPointerCapture(id); g.classList.add('tenu'); e.preventDefault(); Son.init(); });
+  g.addEventListener('pointerdown', (e) => { x0 = e.clientX; id = e.pointerId; try { g.setPointerCapture(id); } catch { /* pointeur déjà relâché */ } g.classList.add('tenu'); e.preventDefault(); Son.init(); });
   g.addEventListener('pointermove', (e) => { if (e.pointerId !== id || x0 === null) return; S.tactile.dir = bornes((e.clientX - x0) / 55, -1, 1); g.firstElementChild.style.transform = `translateX(${S.tactile.dir * 44}px)`; });
   const fin = (e) => { if (e.pointerId !== id) return; x0 = null; id = null; S.tactile.dir = 0; g.classList.remove('tenu'); g.firstElementChild.style.transform = ''; };
   g.addEventListener('pointerup', fin); g.addEventListener('pointercancel', fin);
-  const tient = (b, f) => { b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('tenu'); f(true); Son.init(); }); const r = () => { b.classList.remove('tenu'); f(false); }; b.addEventListener('pointerup', r); b.addEventListener('pointercancel', r); };
+  const tient = (b, f) => { b.addEventListener('pointerdown', (e) => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch { /* pointeur déjà relâché */ } b.classList.add('tenu'); f(true); Son.init(); }); const r = () => { b.classList.remove('tenu'); f(false); }; b.addEventListener('pointerup', r); b.addEventListener('pointercancel', r); };
   tient(q('plus'), (v) => { S.tactile.haut = v; }); tient(q('moins'), (v) => { S.tactile.bas = v; }); tient(q('sauter'), (v) => { if (v) S.saut = true; });
   return el;
 }
