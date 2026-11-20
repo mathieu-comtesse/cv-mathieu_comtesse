@@ -62,3 +62,19 @@ Mesure du navigateur (`node tools/test-jeu.mjs`, rendu logiciel) : partie compl�
 - **Fluidité, rendu et ressenti sur GPU réel : non validés** (voir `docs/reference/verifications-gpu-expo.md`). Sur ce banc la sphère mesure environ 11 px de rayon au départ à 1 440 × 900 car la piste est vue de loin dans la perspective de l'Expo.
 - Le pilote automatique ne joue pas comme un humain : il évite les obstacles au lieu de les sauter, et récupère environ 45 % des objets.
 - Les paramètres d'équilibrage (gravité, tailles, pénalités, répartition des dangers) sont des choix, non mesurés sur la référence.
+
+## Validation sur GPU matériel (21 novembre 2026)
+
+Même suite que sous rendu logiciel, exécutée sur un GPU réel (Chromium, ANGLE d3d11) : `GPU=1 VUE=1440x900 node tools/test-jeu.mjs`. Les variables `GPU` et `VUE` sont des options du test ; sans elles il reste sous rendu logiciel, à 960 × 600.
+
+| Mesure | Résultat |
+|---|---|
+| Suite complète (entrée, commandes, molette, saut, chute, relance, partie complète, résultats, rejouer, sortie, tactile) | 24 vérifications réussies, 0 erreur de page, 0 requête Shopify |
+| Partie complète au clavier seul | arrivée à r 82 680 sur 82 656, 93,8 s de jeu, 33 mots, 13 étoiles, 24 nœuds, 0 chute, score 1 725, note A, sphère de 28 à 46 px |
+| Absence de téléportation | vitesse moyenne maximale entre deux décisions : 1 025 px/s (limite physique 1 725) |
+| Durée réelle de la partie complète | environ 91 s pour 88 s de jeu : la simulation tient le temps réel sur ce GPU, ce que le rendu logiciel ne permet pas (622 s réelles pour 77 s de jeu) |
+| Taille de la sphère | environ 25 à 75 px de rayon à 1 440 × 900 selon la rangée : lisible (la valeur de 11 px notée plus haut était celle du banc logiciel à 960 × 600) |
+
+Vidéo d'une partie en temps réel (entrée depuis le graphe à plat, bascule en Expo, compte à rebours, jeu au clavier, chute dans un trou noir, relance, retour au site) : `docs/fall26-evidence/jeu-partie-gpu.webm`, enregistrée par `tools/enregistre-jeu.mjs`. Les captures du test (`SHOTS=dossier`) montrent le départ, la course, la chute, l'arrivée et les résultats.
+
+Encore ouvert : ressenti de la physique et fluidité sur un autre GPU, son sur casque et haut-parleurs, et tactile sur un téléphone réel (voir `docs/reference/verifications-gpu-expo.md`).

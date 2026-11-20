@@ -8,10 +8,11 @@ import fs from 'node:fs'; import path from 'node:path'; import { createRequire }
 const root = path.resolve(path.dirname(decodeURIComponent(process.platform === 'win32' ? new URL(import.meta.url).pathname.slice(1) : new URL(import.meta.url).pathname)), '..');
 let chromium; { try { ({ chromium } = createRequire(root + '/')('playwright')); } catch { ({ chromium } = createRequire('/opt/node22/lib/node_modules/')('playwright')); } }
 const SHOTS = process.env.SHOTS, RAPIDE = process.argv[2] === 'rapide'; if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
-const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const GPU = !!process.env.GPU, [VW, VH] = (process.env.VUE || '960x600').split('x').map(Number);   // GPU=1 : rendu matériel (d3d11) au lieu du rendu logiciel ; VUE=1440x900 : taille de fenêtre
+const b = await chromium.launch({ args: GPU ? ['--use-gl=angle', '--use-angle=d3d11', '--ignore-gpu-blocklist'] : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const echecs = [], verifie = (ok, t) => { console.log((ok ? 'ok     ' : 'ÉCHEC  ') + t); if (!ok) echecs.push(t); };
 async function ouvrePage(opts = {}) {
-  const ctx = await b.newContext({ viewport: { width: 960, height: 600 }, ...opts }), p = await ctx.newPage(); p.setDefaultTimeout(120000); p.erreurs = []; p.shopify = 0;
+  const ctx = await b.newContext({ viewport: { width: VW, height: VH }, ...opts }), p = await ctx.newPage(); p.setDefaultTimeout(120000); p.erreurs = []; p.shopify = 0;
   const servi = (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.fulfill({ status: 404, body: '' }); };
   await p.route('http://talas.test/**', servi); await p.route('https://comtesse.me/**', servi); await p.route(/shopify(cdn)?\.com/, (r) => { p.shopify++; r.abort(); });
   p.on('pageerror', (e) => p.erreurs.push(String(e.message).slice(0, 200)));
