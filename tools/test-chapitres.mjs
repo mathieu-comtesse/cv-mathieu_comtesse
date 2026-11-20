@@ -15,8 +15,10 @@ p.on('pageerror', (e) => erreurs.push(String(e.message).slice(0, 200)));
 await p.goto('http://talas.test/index.html', { waitUntil: 'load' }); await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 90000 }); await p.waitForTimeout(3000);
 
 const IDS = ['agentic', 'sidekick', 'online', 'merchandising', 'retail', 'payments', 'operations', 'shop', 'marketing', 'fulfillment', 'developer'];
+const NOMS = ['Prévention & sécurité', 'Maintenance & exploitation', 'Data & automatisation', 'IA appliquée', 'Référentiels', 'Méthodes', 'Savoir-être', 'Projets professionnels', 'Parcours', 'Mondes & jeux', 'Blog & études'];
 const COULEURS = ['#051DAA', '#7000A9', '#B2005B', '#B03400', '#051DAA', '#00632E', '#B2005B', '#7000A9', '#B03400', '#00632E', '#0F0F0F'];
 const attend = (ms) => p.waitForTimeout(ms);
+const stable = async () => { let der = -1, n = 0; for (let i = 0; i < 100; i++) { const y = await p.evaluate(() => Math.round(scrollY)); if (y === der) { if (++n >= 6) return y; } else { n = 0; der = y; } await attend(400); } return der; };   /* défilement doux : on attend l'arrêt de la page, lente en rendu logiciel */
 const va = async (y, ms = 350) => { await p.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), y); await attend(ms); };
 const haut = (id) => p.evaluate((id) => Math.round(document.getElementById(id).getBoundingClientRect().top + scrollY), id);
 
@@ -39,6 +41,9 @@ verifie(noeuds.length === 83 && noeuds.every(Boolean), `les ${noeuds.length} nœ
 
 const TOPS = {}; for (const id of IDS) TOPS[id] = await haut(id);   /* positions à plat : en expo le DOM d'origine est déplacé, le moteur garde ces mesures */
 
+const sauter = process.argv[2] === 'expo';   /* option : node tools/test-chapitres.mjs expo (ne rejoue que la partie expo) */
+let actifs = [], nav = [];
+if (!sauter) {
 /* ---- 2. transitions de couleur, 11 entrées de chapitre, dans les deux sens ---- */
 const rgb = (c) => p.evaluate((c) => { const k = document.createElement('canvas').getContext('2d', { willReadFrequently: true }); k.fillStyle = '#000'; k.fillStyle = c; k.fillRect(0, 0, 1, 1); return [...k.getImageData(0, 0, 1, 1).data].slice(0, 3); }, c);
 const lecture = (k) => p.evaluate((k) => { const s = getComputedStyle(document.body); return { f: parseFloat(s.getPropertyValue('--f26-page-fill-' + k)), c: s.backgroundColor }; }, k);
@@ -71,7 +76,6 @@ for (const id of IDS) {
 verifie(pbRempli.length === 0, `remplissage des 11 titres : nul avant u = 0,08, complet dès 0,22, croissant, identique en descendant et en remontant (écart < 0,05), saut < 0,45 par pas de 0,02 à 0,04${pbRempli.length ? ' ; défauts : ' + pbRempli.join(' | ') : ''}`);
 
 /* ---- 4. liste latérale à plat : chapitre actif, navigation ---- */
-let actifs = [], nav = [];
 for (let k = 0; k < 11; k++) {
   const h = await haut(IDS[k]), ht = await p.evaluate((id) => document.getElementById(id).getBoundingClientRect().height, IDS[k]);
   await va(h + Math.min(300, ht / 2 - 200 > 0 ? 300 : ht / 3), 800);
@@ -84,18 +88,19 @@ verifie(nav.every(([, y, h]) => Math.abs(y - h + 359) <= 6), `navigation à plat
 await p.evaluate(() => { location.hash = '#online'; }); await attend(1500); const ya = await p.evaluate(() => scrollY); await p.evaluate(() => { location.hash = '#payments'; }); await attend(1500); await p.evaluate(() => history.back()); await attend(1500); const yb = await p.evaluate(() => scrollY);
 verifie(Math.abs(ya - yb) < 60, `retour arrière du navigateur : de #payments à #online (${Math.round(yb)} px, attendu ${Math.round(ya)} px)`);
 
+}
 /* ---- 5. expo : chapitre actif, étoile du chapitre, liste, navigation ---- */
 await va(0, 1500); await p.evaluate(() => window.__cvStandardPath.bascule()); await p.waitForFunction(() => window.__cvStandardPath.progress > 0.999, null, { timeout: 120000 }); await attend(2500);
 let ex = [];
 for (let k = 0; k < 11; k++) {
-  const h = TOPS[IDS[k]]; await va(h + 500, 2500);
-  ex.push(await p.evaluate((id) => { const P = window.__cvParity, nom = document.querySelector('#' + id + ' .section-hero-pin h2').textContent.trim(), cur = [...document.querySelectorAll('.cv-parity-nav a[aria-current]')].map((a) => a.dataset.chapter); return { actif: window.__cvStandardPath.chapitreActif, cur, etoile: P.etoiles().some((e) => e.visible && e.libelle && e.libelle.texte === nom) }; }, IDS[k]));
+  const h = TOPS[IDS[k]]; await va(h + 500, 300); await p.waitForFunction((id) => window.__cvStandardPath.chapitreActif === id, IDS[k], { timeout: 25000 }).catch(() => {}); await attend(2500);   /* attente sur condition : les durées varient en rendu logiciel */
+  ex.push(await p.evaluate(([id, nom]) => { const P = window.__cvParity, cur = [...document.querySelectorAll('.cv-parity-nav a[aria-current]')].map((a) => a.dataset.chapter); return { actif: window.__cvStandardPath.chapitreActif, cur, etoile: P.etoiles().some((e) => e.visible && e.libelle && e.libelle.texte === nom) }; }, [IDS[k], NOMS[k]]));
 }
 verifie(ex.every((e, k) => e.actif === IDS[k]), `expo : chapitre actif du moteur = le bon pour chacun des 11 (${ex.map((e) => e.actif).join(' ')})`);
 verifie(ex.every((e, k) => e.cur.length === 1 && e.cur[0] === IDS[k]), `expo : liste des chapitres, un seul chapitre marqué (aria-current), le bon (${ex.map((e) => e.cur.join('+') || '-').join(' ')})`);
 verifie(ex.every((e) => e.etoile), `expo : l'étoile de chaque chapitre est visible avec son nom (${ex.filter((e) => e.etoile).length}/11)`);
-nav = []; await va(0, 1500);
-for (const id of IDS) { await p.evaluate((id) => document.querySelector('.cv-parity-nav a[data-chapter="' + id + '"]').click(), id); await attend(2200); nav.push([id, await p.evaluate(() => Math.round(scrollY)), TOPS[id]]); }
-verifie(nav.every(([, y, h]) => Math.abs(y - h) < 420), `expo : navigation vers chacun des 11 chapitres (écart au haut de section : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
+nav = []; await va(0, 1500); await stable();
+for (const id of IDS) { const y0 = await p.evaluate(() => Math.round(scrollY)); await p.evaluate((id) => document.querySelector('.cv-parity-nav a[data-chapter="' + id + '"]').click(), id); for (let i = 0; i < 40 && Math.abs((await p.evaluate(() => Math.round(scrollY))) - y0) < 50; i++) await attend(500); const y = await stable(); await p.waitForFunction((id) => window.__cvStandardPath.chapitreActif === id, id, { timeout: 15000 }).catch(() => {}); nav.push([id, y, TOPS[id], await p.evaluate(() => window.__cvStandardPath.chapitreActif)]); }
+verifie(nav.every(([id, y, h, a]) => a === id && y - h >= -700 && y - h <= 400), `expo : navigation vers chacun des 11 chapitres, défilement doux : chapitre actif à l'arrivée = le bon, atterrissage entre 700 px avant et 400 px après le haut de section (première carte moins 30 % de la fenêtre) (écarts : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
 verifie(erreurs.length === 0 && shopify === 0, `aucune erreur de page (${erreurs.length}), aucune requête Shopify (${shopify})`);
 await b.close(); console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : 11 chapitres (structure, transitions, remplissage, liste latérale, navigation, modes à plat et expo)'); process.exit(echecs.length ? 1 : 0);
