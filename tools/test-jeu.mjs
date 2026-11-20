@@ -1,7 +1,7 @@
 // Mini-jeu de la sphère dans le navigateur, sous rendu logiciel (validation fonctionnelle ; la validation graphique sur GPU reste ouverte, voir
 // docs/reference/verifications-gpu-expo.md) : entrée progressive depuis l'Expo, compte à rebours, commandes clavier, molette et tactile, saut,
 // chute et relance, partie complète jouée par un pilote qui n'utilise que le clavier (aucune téléportation), écran de résultats, sortie.
-// Le pas de temps maximal par image est réduit (0,07 s) : la simulation est la même, elle va seulement plus lentement que le temps réel,
+// Le pas de temps maximal par image est réduit (0,1 s) : la simulation est la même, elle va seulement plus lentement que le temps réel,
 // ce qui rend la partie indépendante de la lenteur du rendu logiciel.
 // Usage : node tools/test-jeu.mjs [rapide]   (SHOTS=dossier pour enregistrer des captures ; « rapide » saute la partie complète)
 import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module';
@@ -11,11 +11,11 @@ const SHOTS = process.env.SHOTS, RAPIDE = process.argv[2] === 'rapide'; if (SHOT
 const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const echecs = [], verifie = (ok, t) => { console.log((ok ? 'ok     ' : 'ÉCHEC  ') + t); if (!ok) echecs.push(t); };
 async function ouvrePage(opts = {}) {
-  const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, ...opts }), p = await ctx.newPage(); p.setDefaultTimeout(120000); p.erreurs = []; p.shopify = 0;
+  const ctx = await b.newContext({ viewport: { width: 1100, height: 690 }, ...opts }), p = await ctx.newPage(); p.setDefaultTimeout(120000); p.erreurs = []; p.shopify = 0;
   const servi = (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.fulfill({ status: 404, body: '' }); };
   await p.route('http://talas.test/**', servi); await p.route('https://comtesse.me/**', servi); await p.route(/shopify(cdn)?\.com/, (r) => { p.shopify++; r.abort(); });
   p.on('pageerror', (e) => p.erreurs.push(String(e.message).slice(0, 200)));
-  await p.goto('http://talas.test/index.html', { waitUntil: 'load' }); await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 90000 }); await p.waitForTimeout(3000);
+  await p.goto('http://talas.test/index.html', { waitUntil: 'load' }); await p.waitForFunction(() => window.__cvStandardPath && window.__cvHeroGraph, null, { timeout: 240000 }); await p.waitForTimeout(3000);
   return p;
 }
 const cdp = new Map(); const capture = async (p, nom) => { if (!SHOTS) return; if (!cdp.has(p)) cdp.set(p, await p.context().newCDPSession(p)); const { data } = await cdp.get(p).send('Page.captureScreenshot', { captureBeyondViewport: false, format: 'jpeg', quality: 80 }); fs.writeFileSync(path.join(SHOTS, nom + '.jpg'), Buffer.from(data, 'base64')); };
@@ -23,7 +23,7 @@ const etat = (p) => p.evaluate(() => window.__cvJeu.etat());
 const attendPhase = (p, ph, ms = 90000) => p.waitForFunction((ph) => window.__cvJeu.phase() === ph, ph, { timeout: ms });
 const avance = async (p, nPas) => { const n0 = (await etat(p)).n; await p.waitForFunction(([n0, k]) => window.__cvJeu.etat().n >= n0 + k, [n0, nPas], { timeout: 120000 }); };   /* nPas pas de 1/120 s */
 const lance = async (p) => { await p.evaluate(() => window.__cvStandardPath.bascule()); await p.waitForFunction(() => window.__cvStandardPath.progress > 0.999, null, { timeout: 120000 }); await p.waitForTimeout(2500);
-  await p.evaluate(() => window.__cvJeu?.reglages?.({ dtMax: 0.07 })); };
+  await p.evaluate(() => window.__cvJeu?.reglages?.({ dtMax: 0.1 })); };
 
 /* ============ 1. entrée progressive depuis l'Expo ============ */
 const p = await ouvrePage(); await lance(p);
@@ -31,7 +31,7 @@ const btn = await p.evaluate(() => { const e = document.querySelector('.cv-jeu-b
 verifie(btn === 'flex', `bouton « Jouer » visible en mode expo (display ${btn})`);
 const invit = await p.evaluate(() => !!document.querySelector('[data-cv-jeu].cv-link'));
 verifie(invit, 'invitation « Jouer : traverser le site en sphère » présente en fin de parcours (mode à plat)');
-const yAvant = await p.evaluate(() => Math.round(scrollY)); await p.evaluate(() => window.__cvOuvreJeu()); await p.waitForFunction(() => window.__cvJeu?.phase && window.__cvJeu.phase() !== 'repos', null, { timeout: 60000 }); await p.evaluate(() => window.__cvJeu.reglages({ dtMax: 0.07 }));
+const yAvant = await p.evaluate(() => Math.round(scrollY)); await p.evaluate(() => window.__cvOuvreJeu()); await p.waitForFunction(() => window.__cvJeu?.phase && window.__cvJeu.phase() !== 'repos', null, { timeout: 60000 }); await p.evaluate(() => window.__cvJeu.reglages({ dtMax: 0.1 }));
 const traj = []; let dernier = 'x'; for (let i = 0; i < 400; i++) { const e = await etat(p); if (e.phase !== dernier) { traj.push(e.phase); dernier = e.phase; } traj.push(); if (e.phase === 'course') break; await p.waitForTimeout(150); if (i === 6) await capture(p, 'jeu-entree'); if (e.phase === 'compte' && i % 5 === 0) await capture(p, 'jeu-compte'); }
 verifie(traj.join('>') === 'entree>compte>course', `entrée progressive : ${traj.join(' > ')}`);
 const dom = await p.evaluate(() => ({ hud: !!document.querySelector('.cv-jeu-hud'), actif: document.documentElement.classList.contains('cv-jeu-actif'), expo: document.documentElement.classList.contains('cv-parity-active'), bouton: getComputedStyle(document.querySelector('.cv-jeu-bouton')).display, toggle: getComputedStyle(document.querySelector('.cv-parity-toggle')).display }));
@@ -56,7 +56,7 @@ void sy0;
 { const plan = await p.evaluate(() => window.__cvJeu.donneesPlan()), e = await etat(p);
   const cible = plan.trous.concat(plan.noirs.map((n) => ({ x0: n.x - 20, x1: n.x + 20, r0: n.r - 20, r1: n.r + 20, noir: true }))).filter((t) => t.r0 > e.r + 500).sort((a, c) => a.r0 - c.r0)[0], cx = (cible.x0 + cible.x1) / 2;
   const chutes0 = (await etat(p)).chutes; let t0 = Date.now(), vu = null; await p.keyboard.down('ArrowDown'); await avance(p, 60); await p.keyboard.up('ArrowDown');
-  while (Date.now() - t0 < 300000) { const s = await etat(p); if (s.chutes > chutes0) { vu = s; break; } const dx = cx - s.x - s.vx * 0.3; const k = dx > 30 ? 'ArrowRight' : dx < -30 ? 'ArrowLeft' : null; for (const q of ['ArrowRight', 'ArrowLeft']) if (q !== k) await p.keyboard.up(q); if (k) await p.keyboard.down(k); await avance(p, 8); }
+  while (Date.now() - t0 < 900000) { const s = await etat(p); if (s.chutes > chutes0) { vu = s; break; } const dx = cx - s.x - s.vx * 0.3; const k = dx > 30 ? 'ArrowRight' : dx < -30 ? 'ArrowLeft' : null; for (const q of ['ArrowRight', 'ArrowLeft']) if (q !== k) await p.keyboard.up(q); if (k) await p.keyboard.down(k); await avance(p, 8); }
   for (const q of ['ArrowRight', 'ArrowLeft']) await p.keyboard.up(q);
   verifie(!!vu, `chute : la sphère dirigée vers ${cible.noir ? 'un trou noir' : 'un trou'} tombe (chutes ${chutes0} -> ${vu ? vu.chutes : '?'}, score ${vu ? Math.round(vu.score) : '?'})`);
   await capture(p, 'jeu-chute'); const r = await p.evaluate(async () => { const a = window.__cvJeu.etat(); for (let i = 0; i < 400 && window.__cvJeu.etat().n < a.n + 330; i++) await new Promise((q) => setTimeout(q, 40)); return window.__cvJeu.etat(); });
@@ -64,7 +64,7 @@ void sy0;
 
 /* ============ 4. partie complète, clavier seul, sans téléportation ============ */
 if (!RAPIDE) {
-  await p.evaluate(() => window.__cvJeu.ferme()); await attendPhase(p, 'repos'); await p.evaluate(() => window.__cvOuvreJeu()); await attendPhase(p, 'course', 120000); await p.evaluate(() => window.__cvJeu.reglages({ dtMax: 0.07 }));
+  await p.evaluate(() => window.__cvJeu.ferme()); await attendPhase(p, 'repos'); await p.evaluate(() => window.__cvOuvreJeu()); await attendPhase(p, 'course', 120000); await p.evaluate(() => window.__cvJeu.reglages({ dtMax: 0.1 }));
   const tenues = new Set(); const touche = async (k, on) => { if (on && !tenues.has(k)) { tenues.add(k); await p.keyboard.down(k); } else if (!on && tenues.has(k)) { tenues.delete(k); await p.keyboard.up(k); } };
   let prev = await etat(p), maxSaut = 0, relances = 0, debutReel = Date.now(), nDec = 0, ev = []; const heure = () => ((Date.now() - debutReel) / 1000).toFixed(0);
   while ((await etat(p)).phase === 'course' && Date.now() - debutReel < 1500000) {
@@ -77,7 +77,7 @@ if (!RAPIDE) {
   await attendPhase(p, 'fin', 60000).catch(() => {}); const f = await etat(p); await capture(p, 'jeu-arrivee');
   verifie(f.phase === 'fin' && f.etat === 'arrive' && f.r >= f.arrivee, `partie complète : arrivée atteinte à r ${f.r.toFixed(0)} sur ${f.arrivee}, ${f.t.toFixed(1)} s de jeu (cible de 60 à 180 s), ${nDec} décisions du pilote au clavier`);
   verifie(f.t >= 60 && f.t <= 180, `durée de la partie : ${f.t.toFixed(1)} s de jeu`);
-  verifie(maxSaut < 240, `aucune téléportation : avance maximale entre deux décisions ${maxSaut.toFixed(0)} px (au plus 0,08 s de jeu à 1 725 px/s), ${relances} relance(s) après chute`);
+  verifie(maxSaut < 260, `aucune téléportation : avance maximale entre deux décisions ${maxSaut.toFixed(0)} px (au plus 0,1 s de jeu à 1 725 px/s), ${relances} relance(s) après chute`);
   verifie(f.mots >= 20 && f.etoiles >= 5 && f.score > 800, `collectes : ${f.mots} mots, ${f.etoiles} étoiles, ${f.noeuds} nœuds, ${f.pris} objets sur ${f.pris + 0} pris, score ${Math.round(f.score)}, sphère ${f.rayon.toFixed(1)} px (départ 28)`);
   await p.waitForFunction(() => !document.querySelector('.cv-jeu-fin').hidden, null, { timeout: 30000 }).catch(() => {});
   const res = await p.evaluate(() => { const fin = document.querySelector('.cv-jeu-fin'); return { vu: !fin.hidden, bilan: fin.querySelector('[data-j="bilan"]').innerText.replace(/\s+/g, ' '), note: fin.querySelector('[data-j="note"]').textContent }; });
@@ -89,14 +89,15 @@ if (!RAPIDE) {
 }
 
 /* ============ 5. sortie : retour à la position de lecture, l'Expo reste active ============ */
-await p.evaluate(() => { if (window.__cvJeu.phase() === 'repos') return; document.dispatchEvent(new Event('x')); }); await p.keyboard.press('Escape'); await attendPhase(p, 'repos', 60000); await p.waitForTimeout(800);
+await p.keyboard.press('Escape'); await attendPhase(p, 'repos', 60000); await p.waitForTimeout(800);
 const sortie = await p.evaluate(() => ({ y: Math.round(scrollY), expo: document.documentElement.classList.contains('cv-parity-active'), actif: document.documentElement.classList.contains('cv-jeu-actif'), bouton: getComputedStyle(document.querySelector('.cv-jeu-bouton')).display, progress: window.__cvStandardPath.progress }));
 verifie(Math.abs(sortie.y - yAvant) <= 12 && sortie.expo && !sortie.actif && sortie.bouton === 'flex' && sortie.progress > 0.999, `sortie par Échap : retour à la position de lecture (${yAvant} -> ${sortie.y} px), mode expo toujours actif, bouton « Jouer » de retour`);
 verifie(p.erreurs.length === 0 && p.shopify === 0, `aucune erreur de page (${p.erreurs.length}${p.erreurs.length ? ' : ' + p.erreurs[0] : ''}), aucune requête Shopify (${p.shopify})`);
 
 /* ============ 6. mobile : commandes tactiles ============ */
+await p.context().close();   /* libère le processeur : le rendu logiciel est lent */
 { const m = await ouvrePage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }); await lance(m);
-  await m.evaluate(() => window.__cvOuvreJeu()); await m.waitForFunction(() => window.__cvJeu?.phase && window.__cvJeu.phase() !== 'repos', null, { timeout: 60000 }); await m.evaluate(() => window.__cvJeu.reglages({ dtMax: 0.07 })); await attendPhase(m, 'course', 120000);
+  await m.evaluate(() => window.__cvOuvreJeu()); await m.waitForFunction(() => window.__cvJeu?.phase && window.__cvJeu.phase() !== 'repos', null, { timeout: 60000 }); await m.evaluate(() => window.__cvJeu.reglages({ dtMax: 0.1 })); await attendPhase(m, 'course', 120000);
   const ui = await m.evaluate(() => { const t = document.querySelector('.cv-jeu-tactile'), r = (s) => { const q = document.querySelector(s).getBoundingClientRect(); return [Math.round(q.width), Math.round(q.height)]; }; return { affiche: getComputedStyle(t).display, glisse: r('[data-j="glisse"]'), plus: r('[data-j="plus"]'), saut: r('[data-j="sauter"]'), debord: document.documentElement.scrollWidth - innerWidth }; });
   verifie(ui.affiche === 'flex' && ui.plus[0] >= 44 && ui.saut[0] >= 44 && ui.glisse[0] >= 120 && ui.debord <= 1, `mobile : commandes tactiles affichées (zone de glisser ${ui.glisse.join('×')}, boutons ${ui.plus.join('×')}), cibles d'au moins 44 px, pas de débordement`);
   const box = await m.locator('[data-j="glisse"]').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height / 2, a0 = await etat(m);

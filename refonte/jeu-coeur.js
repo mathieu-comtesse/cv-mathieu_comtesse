@@ -32,20 +32,24 @@ export function construitPlan({ chapitres, mots, fin, graine = 'comtesse.me' }) 
   const trous = [], rampes = [], obstacles = [], noirs = [], objets = [], points = [];
   /* points de passage : début de chaque chapitre ; chaque zone dangereuse en reste à plus de 700 px */
   chapitres.forEach((c, i) => points.push({ r: Math.max(depart + 120, c.top - 100), chapitre: c.id, i }));
-  const sur = (r) => points.some((p) => Math.abs(r - p.r) < 700);
-  const TYPES = ['obstacles', 'trou-partiel', 'trou-noir', 'trou-total', 'obstacles-trou', 'libre', 'trou-noir', 'trou-partiel'];
-  let k = 0;
-  for (let r0 = depart + 1500; r0 < arrivee - 1400; r0 += 2300, k++) {
-    const g = alea(hache(graine + '|zone|' + k)), type = TYPES[(k + Math.floor(g() * 3)) % TYPES.length];
-    if (type === 'libre' || sur(r0) || sur(r0 + 1200)) continue;
-    if (type === 'obstacles' || type === 'obstacles-trou') {
-      const libre = 140 + g() * 700;                                              // couloir libre de 520 px au moins
-      for (let j = 0; j < 4; j++) { const w = 150 + g() * 40, x0 = (libre + 520 + g() * 60 + j * 90) % (LARGEUR - w); const dx = Math.abs(x0 + w / 2 - (libre + 260)); if (dx > 330) obstacles.push({ x0, x1: x0 + w, r0: r0 + j * 230, r1: r0 + j * 230 + 60, hh: 60 + Math.floor(g() * 3) * 15 }); }
+  /* zones de danger, chapitre par chapitre : la première commence 800 px après le point de passage, la dernière finit 700 px avant le suivant ;
+     un chapitre trop court pour contenir une zone n'en reçoit pas ; l'écart de 700 px autour des points de passage est ainsi toujours respecté */
+  const TYPES = ['obstacles', 'trou-partiel', 'trou-noir', 'trou-total', 'obstacles-trou', 'libre', 'trou-noir', 'trou-partiel'], ETENDUE = { 'obstacles': 760, 'trou-partiel': 430, 'trou-noir': 920, 'trou-total': 810, 'obstacles-trou': 1500, 'libre': 0 };
+  points.forEach((pt, ci) => {
+    const limite = (points[ci + 1] ? points[ci + 1].r : arrivee) - 700; let k = 0;
+    for (let r0 = pt.r + 800; r0 < limite; r0 += 2300, k++) {
+      const g = alea(hache(graine + '|zone|' + ci + '|' + k)); let type = TYPES[Math.floor(g() * TYPES.length)];
+      while (r0 + ETENDUE[type] > limite && type !== 'libre') type = ['obstacles', 'trou-partiel', 'trou-noir', 'trou-total', 'libre'][Math.floor(g() * 5)];
+      if (type === 'libre' || r0 + ETENDUE[type] > limite) continue;
+      if (type === 'obstacles' || type === 'obstacles-trou') {
+        const libre = 140 + g() * 700;                                              // couloir libre de 520 px au moins
+        for (let j = 0; j < 4; j++) { const w = 150 + g() * 40, x0 = (libre + 520 + g() * 60 + j * 90) % (LARGEUR - w); const dx = Math.abs(x0 + w / 2 - (libre + 260)); if (dx > 330) obstacles.push({ x0, x1: x0 + w, r0: r0 + j * 230, r1: r0 + j * 230 + 60, hh: 60 + Math.floor(g() * 3) * 15 }); }
+      }
+      if (type === 'trou-partiel' || type === 'obstacles-trou') { const gauche = g() < 0.5, r = r0 + (type === 'trou-partiel' ? 0 : 1050); trous.push({ x0: gauche ? 0 : 480, x1: gauche ? 720 : LARGEUR, r0: r, r1: r + 420 }); }
+      if (type === 'trou-total') { const cx = 350 + g() * 500; rampes.push({ x0: cx - 260, x1: cx + 260, r0, r1: r0 + 140 }); trous.push({ x0: 0, x1: LARGEUR, r0: r0 + 420, r1: r0 + 800 }); }
+      if (type === 'trou-noir') noirs.push({ x: 300 + g() * 600, r: r0 + 600 });
     }
-    if (type === 'trou-partiel' || type === 'obstacles-trou') { const gauche = g() < 0.5, r = r0 + (type === 'trou-partiel' ? 0 : 1050); trous.push({ x0: gauche ? 0 : 480, x1: gauche ? 720 : LARGEUR, r0: r, r1: r + 420 }); }
-    if (type === 'trou-total') { const cx = 350 + g() * 500; rampes.push({ x0: cx - 260, x1: cx + 260, r0, r1: r0 + 140 }); trous.push({ x0: 0, x1: LARGEUR, r0: r0 + 420, r1: r0 + 800 }); }
-    if (type === 'trou-noir') noirs.push({ x: 300 + g() * 600, r: r0 + 600 });
-  }
+  });
   const tri = (a) => a.sort((u, v) => u.r0 - v.r0);
   tri(trous); tri(rampes); tri(obstacles); noirs.sort((u, v) => u.r - v.r);
   /* objets : mots aux rangées des contenus, étoiles de chapitre et de thème, nœuds en arc devant chaque étoile */
