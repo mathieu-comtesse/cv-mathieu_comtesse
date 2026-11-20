@@ -247,3 +247,10 @@
   .cv-site-nav :is(.cv-nav-control, .cv-nav-control svg, .cv-header-panel, .cv-header-chapters a),
   :is(.rf-post-body, .rf-d-text, .cv-related) a[href] { transition: none; }
 }
+
+/* Chapitres 1 à 7 : cartes de compétences (icône reprise de l'ancienne liste de « Parcours ») et renvoi depuis « Parcours » */
+.cv-skill-ico{display:inline-flex;align-items:center;gap:10px;color:inherit;opacity:.85}
+.cv-skill-ico .rf-exp-ico{width:28px;height:28px}
+.cv-skill-ico .cv-skill-b{display:inline-flex}.cv-skill-ico .cv-skill-b .rf-exp-ico{width:16px;height:16px}
+.rf-sk-liens{margin:0;font:400 14px/1.6 var(--rf-sans);color:var(--exp-fg)}
+.rf-sk-liens a{color:inherit;text-decoration:underline;text-underline-offset:4px}
