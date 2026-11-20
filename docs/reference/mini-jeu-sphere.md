@@ -69,7 +69,7 @@ Mesure du navigateur (`node tools/test-jeu.mjs`, rendu logiciel, fenêtre de 960
 
 ## Limites
 
-- **Fluidité, rendu et ressenti sur GPU réel : non validés** (voir `docs/reference/verifications-gpu-expo.md`). Sur ce banc la sphère mesure environ 11 px de rayon au départ à 1 440 × 900 car la piste est vue de loin dans la perspective de l'Expo.
+- **GPU réel** : la section « Validation sur GPU matériel » ci-dessous a été ajoutée par une autre session de travail sur cette branche (commit `b275c1f`), qui déclare avoir exécuté la suite sur un GPU ; ces résultats n'ont pas été reproduits sur le banc logiciel de la session qui a écrit le reste de ce document. Restent ouverts : autres GPU, son sur casque et haut-parleurs, tactile sur téléphone réel (`docs/reference/verifications-gpu-expo.md`). Sur le banc logiciel la sphère mesure environ 11 px de rayon au départ à 1 440 × 900.
 - Le pilote automatique ne joue pas comme un humain : il évite les obstacles au lieu de les sauter, et récupère environ 45 % des objets.
 - Les paramètres d'équilibrage (gravité, tailles, pénalités, répartition des dangers) sont des choix, non mesurés sur la référence.
 
