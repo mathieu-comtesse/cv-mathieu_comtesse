@@ -282,6 +282,7 @@ html.cv-parity-active canvas[data-cv-taken]{filter:opacity(0)}
 .cv-parity-nav[hidden]{display:none}
 .cv-parity-nav a{color:inherit;text-decoration:none}
 .cv-parity-nav a:hover,.cv-parity-nav a:focus-visible{color:#fff;text-decoration:underline}
+.cv-parity-nav a[aria-current]{color:#fff;font-weight:600}
 .cv-parity-toggle{position:fixed;left:16px;bottom:16px;z-index:502;border:0;color:white;background:transparent;padding:8px;cursor:pointer;font:12px "Shopify Inter",sans-serif}
 /* bouton de bascule : pastille avec un plan qui se relève en perspective, piloté par l'avancement réel de la bascule (--cv-k, 0 à plat, 1 en 3D) */
 .cv-parity-toggle{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 8px;border-radius:999px;background:rgba(8,16,70,.55);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .25s cubic-bezier(.2,.7,.2,1),border-color .15s,transform .1s,opacity .15s cubic-bezier(.65,0,.35,1),visibility 0s}
@@ -460,7 +461,7 @@ html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h
   }
 } }</style>
 <link rel="stylesheet" href="/refonte/comtesse-motion.css?v=fall26-3" data-cv-motion>
-<link rel="stylesheet" href="refonte/showcase.css?v=sc1"><script type="module" src="refonte/showcase.js?v=sc1"></script><script type="module" src="refonte/defilement.js?v=d1"></script><script type="module" src="refonte/theme-stars.js?v=ts8"></script><style data-cv-fall26-timeline>/* Délai du premier chapitre après l'accueil, relevé sur la référence (ordinateur seulement) : 368 px à 700 px de haut, 554 à 900, 687 à 1 080, 954 à 1 440.
+<link rel="stylesheet" href="refonte/showcase.css?v=sc1"><script type="module" src="refonte/showcase.js?v=sc1"></script><script type="module" src="refonte/defilement.js?v=d1"></script><script type="module" src="refonte/theme-stars.js?v=ts9"></script><style data-cv-fall26-timeline>/* Délai du premier chapitre après l'accueil, relevé sur la référence (ordinateur seulement) : 368 px à 700 px de haut, 554 à 900, 687 à 1 080, 954 à 1 440.
    Loi ajustée sur ces quatre mesures : 0,74 × hauteur − 112 px à partir de 900 px ; en dessous, 554 px − 0,93 × (900 px − hauteur). Sans ce délai, le grand titre arrivait 554 px trop tôt. */
 @media (min-width:58.75rem){[data-f26-page]{--f26-first-delay:max(0px,calc(554px - .93*(900px - 100svh)))}}
 @media (min-width:58.75rem) and (min-height:900px){[data-f26-page]{--f26-first-delay:calc(.74*100svh - 112px)}}
@@ -1195,7 +1196,7 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
   view.cube=[-0.285*view.W,-612-view.offset,0,140*view.H/1319];N.dessineDecor(ctx,view,{t:reduced.matches?0:now/1000,numeros:cvChapterRecords.length,base:1500-view.offset});
   N.dessineRegles(ctx,view,chapters.map(c=>({row:original.get(c.el).top-view.offset,name:c.name})));
   {{const hb=boxes.filter(b=>b.hero&&!b.slab).sort((a,c)=>a.r1-c.r1);for(let i=0;i<hb.length-1;i++)if(hb[i+1].r0>hb[i].r1)hb[i].r1=hb[i+1].r0;}const sv=N.dessineContours(ctx,view,boxes,souris);state.survol=sv?(sv.title||'cadre'):null;}
-  {let id=null;const yy=scrollY+innerHeight*.4;for(const c of chapters){if(original.get(c.el).top<=yy)id=c.el.id||id;}ciel.actif=id;}
+  {let id=null;const yy=scrollY+innerHeight*.4;for(const c of chapters){if(original.get(c.el).top<=yy)id=c.el.id||id;}ciel.actif=id;if(nav.dataset.actif!==String(id)){nav.dataset.actif=id;for(const l of nav.querySelectorAll('a[data-chapter]'))l.toggleAttribute('aria-current',l.dataset.chapter===id);}}   /* liste des chapitres en expo : le chapitre actif est marqué (comme la liste à plat) */
   ciel.dessine(ctx,(c,r,h)=>N.p(view,c,r,h),reduced.matches?null:now/1000,{covers,souris,W:innerWidth,H:innerHeight,dt:Math.min(.1,gap/1000),alpha:view.e*view.e,titres:Math.max(0,Math.min(1,(progress-.3)/.5)),compact:innerWidth<520});
   state.chapterStars=ciel.etat('titre');
   drawRail();
