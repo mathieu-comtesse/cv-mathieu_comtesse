@@ -16,8 +16,8 @@
 export const PAS = 1 / 120;
 export const LARGEUR = 1200;
 export const G = 2600, VMIN = 420, VMAX = 1500, ACC_SOL = 1400, ACC_AIR = 520, AX = 3000, AMORT_SOL = 3.2, AMORT_AIR = 0.9, VXMAX = 1000, REST = 0.35;
-export const SAUT = 980, TREMPLIN = 1400, COYOTE = 0.09, TAMPON = 0.12, RAYON_MIN = 18, RAYON_MAX = 40, CHUTE_H = -520, DUREE_CHUTE = 1.1, DUREE_ASPIRE = 0.9;
-export const BN_INFLUENCE = 300, BN_CAPTURE = 46, BN_FORCE = 2300;
+export const SAUT = 980, TREMPLIN = 1400, COYOTE = 0.09, TAMPON = 0.12, RAYON_MIN = 28, RAYON_MAX = 56, CHUTE_H = -520, DUREE_CHUTE = 1.1, DUREE_ASPIRE = 0.9;
+export const BN_INFLUENCE = 300, BN_CAPTURE = 62, BN_FORCE = 2300;
 export const VALEUR = { mot: 10, noeud: 5, etoile: 50 }, CROISSANCE = { mot: 1, noeud: 0.5, etoile: 5 };
 export const PENALITE_CHUTE = 30;
 
@@ -49,14 +49,14 @@ export function construitPlan({ chapitres, mots, fin, graine = 'comtesse.me' }) 
   const tri = (a) => a.sort((u, v) => u.r0 - v.r0);
   tri(trous); tri(rampes); tri(obstacles); noirs.sort((u, v) => u.r - v.r);
   /* objets : mots aux rangées des contenus, étoiles de chapitre et de thème, nœuds en arc devant chaque étoile */
-  mots.forEach((m, i) => { const g = alea(hache(graine + '|mot|' + i + m.texte)); objets.push({ type: 'mot', r: m.row, x: 150 + g() * 900, h: 0, ray: 20, texte: m.texte, chapitre: m.chapitre, id: m.id }); });
+  mots.forEach((m, i) => { const g = alea(hache(graine + '|mot|' + i + m.texte)); objets.push({ type: 'mot', r: m.row, x: 150 + g() * 900, h: 0, ray: 30, texte: m.texte, chapitre: m.chapitre, id: m.id }); });
   chapitres.forEach((c, i) => {
     const g = alea(hache(graine + '|etoile|' + c.id)), r = Math.min(c.bas - 400, c.top + 520);
-    objets.push({ type: 'etoile', r, x: 300 + g() * 600, h: 60, ray: 30, texte: c.nom, chapitre: c.id, id: 'etoile:' + c.id });
-    for (let j = 0; j < 6; j++) objets.push({ type: 'noeud', r: r + 140 + j * 120, x: borne(objets.at(-1 - j).x + Math.sin(j * 1.4 + i) * 220, 80, LARGEUR - 80), h: j % 2 ? 90 : 20, ray: 13, texte: '', chapitre: c.id, id: 'noeud:' + c.id + ':' + j });
+    objets.push({ type: 'etoile', r, x: 300 + g() * 600, h: 60, ray: 44, texte: c.nom, chapitre: c.id, id: 'etoile:' + c.id });
+    for (let j = 0; j < 6; j++) objets.push({ type: 'noeud', r: r + 140 + j * 120, x: borne(objets.at(-1 - j).x + Math.sin(j * 1.4 + i) * 220, 80, LARGEUR - 80), h: j % 2 ? 120 : 20, ray: 20, texte: '', chapitre: c.id, id: 'noeud:' + c.id + ':' + j });
   });
   const long = chapitres.reduce((m, c) => (c.bas - c.top > m.l ? { l: c.bas - c.top, c } : m), { l: 0 }).c;
-  for (let j = 0; j < 4; j++) { const g = alea(hache(graine + '|theme|' + j)), r = long.top + (j + 1) * (long.bas - long.top) / 5; objets.push({ type: 'etoile', r, x: 250 + g() * 700, h: 60, ray: 30, texte: 'thème ' + (j + 1), chapitre: long.id, id: 'theme:' + j }); }
+  for (let j = 0; j < 4; j++) { const g = alea(hache(graine + '|theme|' + j)), r = long.top + (j + 1) * (long.bas - long.top) / 5; objets.push({ type: 'etoile', r, x: 250 + g() * 700, h: 60, ray: 44, texte: 'thème ' + (j + 1), chapitre: long.id, id: 'theme:' + j }); }
   objets.sort((u, v) => u.r - v.r);
   const valeurMax = objets.reduce((s, o) => s + CROISSANCE[o.type], 0);
   return { depart, arrivee, trous, rampes, obstacles, noirs, objets, points, chapitres, valeurMax, graine, largeur: LARGEUR };
