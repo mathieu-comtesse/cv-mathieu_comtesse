@@ -63,8 +63,9 @@ void sy0;
   for (const k of [...tenues]) await touche(k, false);
   for (const q of ['ArrowRight', 'ArrowLeft']) await p.keyboard.up(q);
   verifie(!!vu, `chute : la sphère dirigée vers ${cible.noir ? 'un trou noir' : 'un trou'} tombe (chutes ${chutes0} -> ${vu ? vu.chutes : '?'}, score ${vu ? Math.round(vu.score) : '?'})`);
-  await capture(p, 'jeu-chute'); const r = await p.evaluate(async () => { const a = window.__cvJeu.etat(); for (let i = 0; i < 400 && window.__cvJeu.etat().n < a.n + 330; i++) await new Promise((q) => setTimeout(q, 40)); return window.__cvJeu.etat(); });
-  verifie(r.phase === 'course' && r.etat === 'course' && r.r < cible.r0 - 500, `relance : la partie reprend au point de passage précédent (r ${r.r.toFixed(0)}, avant le danger à ${cible.r0.toFixed(0)}), rayon ${r.rayon.toFixed(1)} px`); }
+  await capture(p, 'jeu-chute');
+  /* le compteur de chutes s'incrémente à la relance : la première lecture après la chute est donc la partie relancée */
+  verifie(!!vu && vu.phase === 'course' && vu.etat === 'course' && vu.r < cible.r0 - 500, `relance : la partie reprend au point de passage précédent (r ${vu ? vu.r.toFixed(0) : '?'}, avant le danger à ${cible.r0.toFixed(0)}), rayon ${vu ? vu.rayon.toFixed(1) : '?'} px`); }
 
 /* ============ 4. partie complète, clavier seul, sans téléportation ============ */
 if (!RAPIDE) {
@@ -74,7 +75,7 @@ if (!RAPIDE) {
   while ((await etat(p)).phase === 'course' && Date.now() - debutReel < 2700000) {
     const d = await p.evaluate(() => window.__cvJeu.pilote({ gaz: 0.5 })); await touche('ArrowRight', d.dir > 0.25); await touche('ArrowLeft', d.dir < -0.25); await touche('ArrowUp', d.dgaz > 0.2); await touche('ArrowDown', d.dgaz < -0.2);
     if (d.saut) await p.keyboard.press('Space'); await avance(p, 8); const s = await etat(p);
-    if (s.chutes > prev.chutes) relances++; else if (s.t > prev.t) maxVit = Math.max(maxVit, Math.abs(s.r - prev.r) / (s.t - prev.t)); prev = s; nDec++;
+    if (s.chutes > prev.chutes) relances++; else if (s.t > prev.t && s.etat === 'course' && prev.etat === 'course') maxVit = Math.max(maxVit, Math.abs(s.r - prev.r) / (s.t - prev.t)); prev = s; nDec++;
     if (nDec % 150 === 0) { console.log(`   ... ${heure()} s réelles : r ${s.r.toFixed(0)} / ${s.arrivee}, t ${s.t.toFixed(0)} s, score ${s.score.toFixed(0)}, ${s.mots} mots, ${s.etoiles} étoiles, ${s.chutes} chute(s)`); if (SHOTS && nDec % 600 === 0) await capture(p, 'jeu-course-' + nDec); }
   }
   for (const k of [...tenues]) await touche(k, false);
