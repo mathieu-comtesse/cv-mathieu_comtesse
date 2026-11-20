@@ -1,6 +1,6 @@
 # Origine du balisage `f26-*` et éléments issus de la référence
 
-Audit réalisé le 20 novembre 2026 sur la branche de la PR 224. Il répond à la demande de documenter l'origine des classes `f26-*` et des variables `--f26-*` et de vérifier qu'aucun élément propriétaire non autorisé n'est livré. **Conclusion : cette assurance ne peut pas être donnée en l'état** (voir « Ce qui reste à décider »).
+Audit réalisé le 20 novembre 2026 sur la branche de la PR 224. Il répond à la demande de documenter l'origine des classes `f26-*` et des variables `--f26-*` et de vérifier qu'aucun élément propriétaire non autorisé n'est livré. **Conclusion de l'audit : 53 % de `refonte/site.css` est identique à la feuille de la référence.** L'auteur du dépôt a déclaré le 20 novembre 2026 disposer d'une autorisation pour la conserver (voir « Autorisation déclarée »). Les captures de la référence listées plus bas restent à trancher.
 
 ## Ce qui est vérifié
 
@@ -57,7 +57,11 @@ Comparaison faite sur la feuille compilée publique de la référence (`tailwind
 
 La PR 224 ne verse aucune capture de la référence : les planches ajoutées (`docs/fall26-evidence/accueil-*`, `chapitres-*`) ne montrent que le site. Une formulation antérieure de la description de la PR disait « les captures de la référence ne sont pas versées dans le dépôt » : elle ne valait que pour cette PR et ne tenait pas compte des fichiers ci-dessus.
 
+## Autorisation déclarée
+
+Le 20 novembre 2026, en réponse à la question « autorisation écrite pour garder `refonte/site.css`, ou réécriture ? », l'auteur du dépôt a répondu : « J'ai une autorisation ». Cette déclaration est enregistrée ici telle quelle : la pièce n'est pas versée au dépôt, son émetteur, sa date et son périmètre (feuille de style seule, ou aussi les captures et relevés ci-dessus) ne sont pas précisés, et je n'ai pas pu les vérifier. Il est recommandé de conserver la pièce hors du dépôt et d'en indiquer ici l'émetteur et la date.
+
 ## Ce qui reste à décider
 
-1. **`refonte/site.css`** : conserver avec une autorisation écrite de l'ayant droit, ou le réécrire de façon originale (environ 58 Ko ; les sélecteurs nécessaires aux 11 chapitres et aux transitions sont listés par `tools/test-chapitres.mjs`). Tant que ce choix n'est pas fait, la PR ne doit pas être fusionnée sur la base de l'affirmation « reconstruction indépendante ».
-2. **Captures de la référence ci-dessus** : les retirer du dépôt, ou les conserver avec autorisation. Les retirer n'efface pas l'historique Git.
+1. **`refonte/site.css`** : conservé, sur autorisation déclarée (ci-dessus). La PR ne doit toutefois pas être décrite comme une « reconstruction indépendante » : le balisage et la feuille de style reprennent la structure de la référence, seuls le moteur du graphe et du chemin sont originaux.
+2. **Captures de la référence ci-dessus** : à retirer du dépôt, ou à conserver si l'autorisation les couvre. Question posée à l'auteur, sans réponse à ce jour. Les retirer n'efface pas l'historique Git.

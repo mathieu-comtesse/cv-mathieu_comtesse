@@ -104,5 +104,25 @@ verifie(ex.every((e) => e.etoile), `expo : l'étoile de chaque chapitre est visi
 nav = []; await va(0, 1500); await stable();
 for (const id of IDS) { const y0 = await p.evaluate(() => Math.round(scrollY)); await p.evaluate((id) => document.querySelector('.cv-parity-nav a[data-chapter="' + id + '"]').click(), id); for (let i = 0; i < 40 && Math.abs((await p.evaluate(() => Math.round(scrollY))) - y0) < 50; i++) await attend(500); const y = await stable(); await p.waitForFunction((id) => window.__cvStandardPath.chapitreActif === id, id, { timeout: 15000 }).catch(() => {}); nav.push([id, y, TOPS[id], await p.evaluate(() => window.__cvStandardPath.chapitreActif)]); }
 verifie(nav.every(([id, y, h, a]) => a === id && y - h >= -700 && y - h <= 400), `expo : navigation vers chacun des 11 chapitres, défilement doux : chapitre actif à l'arrivée = le bon, atterrissage entre 700 px avant et 400 px après le haut de section (première carte moins 30 % de la fenêtre) (écarts : ${nav.map(([, y, h]) => y - h).join(', ')} px)`);
+
+/* ---- 6. mobile 390 × 844 : les 11 chapitres existent, rien ne déborde, les cartes sont lisibles, la navigation et le remplissage fonctionnent ---- */
+{
+  const m = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }), q = await m.newPage(); q.setDefaultTimeout(120000); const errM = [];
+  await q.route('http://talas.test/**', (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.fulfill({ status: 404, body: '' }); });
+  await q.route(/shopify(cdn)?\.com/, (r) => r.abort()); await q.route('https://comtesse.me/**', (r) => { const f = path.join(root, decodeURIComponent(new URL(r.request().url()).pathname)); return fs.existsSync(f) && fs.statSync(f).isFile() ? r.fulfill({ path: f }) : r.abort(); });
+  q.on('pageerror', (e) => errM.push(String(e.message).slice(0, 160)));
+  await q.goto('http://talas.test/index.html', { waitUntil: 'load' }); await q.waitForFunction(() => window.__cvHeroGraph, null, { timeout: 90000 }); await q.waitForTimeout(3500);
+  const mo = await q.evaluate((IDS) => { const o = { sections: IDS.map((id) => !!document.getElementById(id)), debord: document.documentElement.scrollWidth - innerWidth, cartes: [] };
+    for (const id of IDS.slice(0, 7)) { const a = document.getElementById(id).querySelector('article.product-card').getBoundingClientRect(); o.cartes.push([Math.round(a.left), Math.round(a.right)]); } return o; }, IDS);
+  verifie(mo.sections.every(Boolean) && mo.debord <= 1, `mobile : 11 sections présentes, pas de défilement horizontal (débord ${mo.debord} px)`);
+  verifie(mo.cartes.every(([l, r]) => l >= 0 && r <= 391), `mobile : les cartes des 7 nouveaux chapitres tiennent dans la largeur (${mo.cartes.map(([l, r]) => l + '-' + r).join(' ')})`);
+  const ym = [];
+  for (const id of ['agentic', 'retail', 'operations']) { await q.evaluate((id) => { location.hash = '#' + id; }, id); await q.waitForTimeout(2500); ym.push(await q.evaluate((id) => Math.round(document.getElementById(id).getBoundingClientRect().top), id)); }
+  verifie(ym.every((y) => y > -700 && y < 400), `mobile : navigation par ancre vers 3 chapitres (haut de section à ${ym.join(', ')} px de la fenêtre)`);
+  await q.evaluate(() => { const h = document.querySelector('#payments .section-hero-pin h2'); scrollTo({ top: h.getBoundingClientRect().top + scrollY - innerHeight * 0.5, behavior: 'instant' }); }); await q.waitForTimeout(1200);
+  const fm = await q.evaluate(() => parseFloat(document.querySelector('#payments .section-hero-pin h2').style.getPropertyValue('--cv-fill')));
+  verifie(fm > 0.99, `mobile : titre rempli quand il atteint le milieu de l'écran (remplissage ${fm})`);
+  verifie(errM.length === 0, `mobile : aucune erreur de page (${errM.length})`); await m.close();
+}
 verifie(erreurs.length === 0 && shopify === 0, `aucune erreur de page (${erreurs.length}), aucune requête Shopify (${shopify})`);
 await b.close(); console.log(echecs.length ? `\n${echecs.length} échec(s)` : '\nPASS : 11 chapitres (structure, transitions, remplissage, liste latérale, navigation, modes à plat et expo)'); process.exit(echecs.length ? 1 : 0);
