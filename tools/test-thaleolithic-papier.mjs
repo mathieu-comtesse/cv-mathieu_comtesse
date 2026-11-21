@@ -55,5 +55,19 @@ while (c.nextAction() && guard++ < 60) {
 check(c.verified('verified:M_V_ABRI') && c.state.flags['effective:M_V_ABRI'] && c.state.risks.abri === 0, 'abri : vérification ou efficacité manquante');
 check(c.state.ending, 'la campagne ne se termine pas (reste ' + c.nextAction() + ')');
 check(c.state.evidence.filter((e) => e.stage === 3).length >= 22, 'preuves vérifiées insuffisantes : ' + c.state.evidence.length);
+// écrans de la tribu : savoir crédité, notions vérifiées, atelier, sac, réserves, repos
+check(c.state.resources.knowledge > 0, 'aucun fragment de savoir crédité');
+check(c.clauseStatus('5.1') === 'Vérifié dans les missions liées' && c.clauseProgress('6.1') === 1, 'notions non vérifiées en fin de campagne');
+check(!c.craft('craft:tool', true) && /Il manque/.test(c.feedback), 'hache fabriquée sans silex');
+check(!c.craft('craft:flint', false), 'silex débité hors de l’atelier');
+const stone = c.state.resources.stone; check(c.craft('craft:flint', true), 'débitage refusé'); c.tick(3.1);
+check(c.state.resources.flint === 2 && c.state.resources.stone === stone - 1, 'débitage : coûts ou produit faux');
+check(c.craft('craft:tool', true), 'hache refusée'); c.tick(3.1); check(c.state.resources.tool === 1, 'hache non fabriquée');
+check(c.useItem('tool') && c.state.equipped === 'tool', 'hache non équipée');
+const food = c.state.resources.food; c.state.player.food = 50; check(c.useItem('food') && c.state.resources.food === food - 1 && c.state.player.food === 75, 'ration mal consommée');
+check(!c.transfer('wood', 1, true, false, false), 'transfert hors des réserves accepté');
+check(c.transfer('tool', 1, true, false, true) && c.state.equipped === '', 'dépôt de la hache : elle reste équipée');
+check(!c.transfer('notebook', 1, true, false, true), 'le carnet a été transféré');
+check(c.rest('tarek') && c.memberStatus('tarek') === 'Au repos' && !c.rest('dylan'), 'repos mal géré');
 if (fail.length) { console.error(fail.join('\n')); process.exit(1); }
 console.log(`PASS : ${c.data.quests.length} quêtes, ${c.state.done.length} actions, ${modes.size} mécaniques (${[...modes].join(', ')}), ${c.state.evidence.length} preuves au Carnet.`);

@@ -3,7 +3,8 @@
 // préparation, retour d'expérience, tableau, audit, revue, correction, amélioration), analyse de risque (mesure puis
 // vérification), répartition, assemblage des tablettes, 15 différences, point sécurité sous les projectiles, course au
 // rassemblement, Duel des menhirs, dialogues à choix, Quêtes et Carnet des Crânes.
-import { STAGES } from './campaign.js';
+import { STAGES, ITEMS, RECIPES } from './campaign.js';
+import { CLAUSES } from './knowledge.js';
 
 const MODE_LABEL = { sort: 'Classer', pair: 'Associer', scope: 'Délimiter', assemble: 'Assembler', risk: 'Analyser le risque', vote: 'Voter', allocation: 'Répartir', briefing: 'Point sécurité',
   swipe: 'Trier les tablettes', differences: '15 différences', prepare: 'Préparer', runner: 'Évacuer', debrief: 'Retour d’expérience', dashboard: 'Mesurer', audit: 'Auditer', review: 'Revue', corrective: 'Corriger', improvement: 'Améliorer' };
@@ -185,10 +186,107 @@ export function createUI(campaign, world) {
     body.append(btn('Fermer', close, 'go'));
   }
 
+  // ---- Peuple (TribalPeopleView) : membres, état réel, fiche, responsabilités, repos, activités liées -----------------
+  let person = 'mathieu', peopleTab = 'INFORMATIONS', item = 'wood', invTab = 'Objet', clause = '4.1';
+  const memberRole = (id, role) => id === 'dylan' ? 'Apprenti · joueur' : id === 'mathieu' ? 'Mentor · prévention' : id === 'aurelien' ? 'Chef de la tribu' : (role || '').split('·')[0].trim();
+  const meter = (v, cls = '') => `<span class="meter ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
+  function renderPeople() {
+    const chars = campaign.data.characters, alive = chars.filter((c) => !campaign.state.dead.includes(c.id)).length;
+    body.innerHTML = `<p class="kicker">Écran Peuple</p><h2>La tribu des Crânes Fendus</h2><p class="count">${alive} / ${chars.length} membres</p>`;
+    const list = document.createElement('div'); list.className = 'people';
+    for (const c of chars) {
+      const m = campaign.state.people[c.id], dead = campaign.state.dead.includes(c.id);
+      const b = btn(`<b>${esc(c.name)}</b><small>${esc(memberRole(c.id, c.role))}</small><small>${campaign.memberStatus(c.id)}</small><small>Savoir ${meter(m.competence)} Fatigue ${meter(m.fatigue, 'cold')}</small>`, () => { person = c.id; render(); }, (c.id === person ? 'sel ' : '') + (dead ? 'done' : ''));
+      list.append(b);
+    }
+    body.append(list);
+    const c = campaign.character(person), m = campaign.state.people[person], dead = campaign.state.dead.includes(person);
+    const tabs = document.createElement('div'); tabs.className = 'tabs';
+    for (const t of ['INFORMATIONS', 'RESPONSABILITÉS', 'ACTIVITÉS']) tabs.append(btn(t, () => { peopleTab = t; render(); }, t === peopleTab ? 'sel' : ''));
+    body.insertAdjacentHTML('beforeend', `<h3>${esc(c.name.toUpperCase())}</h3>`); body.append(tabs);
+    if (peopleTab === 'ACTIVITÉS') {
+      const acts = [...campaign.data.activities.values()].filter((a) => a.actor === person || a.site === person);
+      body.insertAdjacentHTML('beforeend', acts.length ? acts.map((a) => `<div class="quest ${campaign.state.done.includes(a.id) ? 'done' : ''}"><b>${campaign.state.done.includes(a.id) ? '✓ ' : ''}${esc(a.title)}</b><span>ISO 45001 · ${esc(a.clause)}</span></div>`).join('') : `<p class="said">${person === 'dylan' ? 'Dylan · contrôlé par le joueur.' : 'Activité régulière au village.'}</p>`);
+      body.insertAdjacentHTML('beforeend', '<p class="small">La file de tâches des habitants du jeu Unity n’est pas encore portée dans cette édition.</p>');
+    } else {
+      const resp = person === 'aurelien' ? 'Responsabilité : chef de la tribu.' : person === 'mathieu' ? 'Responsabilité : mentor de Dylan et prévention.' : 'Fonction : ' + c.role;
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p>${esc(peopleTab === 'RESPONSABILITÉS' ? resp : c.role)}</p><p class="small">${dead ? 'Décédé · aucune affectation possible' : `Vie ${m.life}/100 · Énergie ${m.energy}/100 · Fatigue ${m.fatigue}/100 · Faim ${m.hunger}/100 · Moral ${m.morale}/100 · Compétence ${m.competence}`}</p><p class="small">État : ${campaign.memberStatus(person)}</p></div>`);
+      if (!dead && person !== 'dylan') body.append(btn(m.assignment === 'repos' ? 'Reprendre l’activité' : 'Ordonner un repos', () => campaign.rest(person), 'go'));
+    }
+    body.append(btn('Fermer', close, 'quiet'));
+  }
+  // ---- Carte (TribalMapView) : le village vu de haut, Dylan, l'objectif ; choisir un lieu pose le repère dessus ------
+  function renderMap() {
+    const S = world.SITES, X = (x) => (x + 30) * 8, Z = (z) => (z + 34) * 8, hero = world.H.hero.group.position, target = world.guide || campaign.nextSite();
+    const river = world.RIVER.pts.map(([x, z], i) => (i ? 'L' : 'M') + X(x).toFixed(0) + ' ' + Z(z).toFixed(0)).join(' ');
+    let svg = `<svg class="map" viewBox="0 0 496 368" role="img" aria-label="Carte du village"><path d="${river}" stroke="#6f7fb0" stroke-width="26" fill="none" stroke-linecap="round" opacity=".55"/>`;
+    for (const [id, s] of Object.entries(S)) svg += `<g class="site ${id === target ? 'on' : ''}" data-site="${id}"><circle cx="${X(s.x)}" cy="${Z(s.z)}" r="${id === target ? 9 : 6}"/><text x="${X(s.x)}" y="${Z(s.z) - 12}">${esc(s.label)}</text></g>`;
+    svg += `<circle class="me" cx="${X(hero.x)}" cy="${Z(hero.z)}" r="7"/></svg>`;
+    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2>${svg}<p class="small">● Dylan · le lieu en rouge est la prochaine étape. Choisis un lieu pour y poser le repère.</p>`;
+    body.querySelectorAll('.site').forEach((g) => { g.onclick = () => { world.guide = g.dataset.site; render(); }; });
+    if (world.guide) body.append(btn('Revenir à l’objectif de la quête', () => { world.guide = null; render(); }));
+    body.append(btn('Fermer', close, 'quiet'));
+  }
+  // ---- Inventaire (TribalInventoryView) : le sac, l'objet choisi, l'atelier et les réserves de Neila -------------------
+  function renderInventory() {
+    const st = campaign.state, nearShop = world.near('atelier_silex'), nearStore = world.near('stockage');
+    body.innerHTML = `<p class="kicker">Écran Inventaire</p><h2>Mes objets</h2>`;
+    const grid = document.createElement('div'); grid.className = 'bag';
+    for (const it of ITEMS) grid.append(btn(`<b>${esc(it.name)}</b><span>${campaign.quantity(it.id)}</span>`, () => { item = it.id; render(); }, (it.id === item ? 'sel ' : '') + (campaign.quantity(it.id) ? '' : 'done')));
+    body.append(grid);
+    const tabs = document.createElement('div'); tabs.className = 'tabs';
+    for (const t of ['Objet', 'Atelier', 'Réserve']) tabs.append(btn(t.toUpperCase(), () => { invTab = t; render(); }, t === invTab ? 'sel' : ''));
+    body.append(tabs);
+    if (invTab === 'Objet') {
+      const it = ITEMS.find((x) => x.id === item), extra = item === 'tool' ? `<br><br>État : ${st.equipped === 'tool' && st.resources.tool > 0 ? 'équipée dans la main' : 'non équipée'}.<br>L’outil ne valide pas à lui seul une mesure de prévention.` : '';
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(it.name.toUpperCase())}</b> · disponible : ${campaign.quantity(item)}</p><p class="small">${esc(it.description)}${extra}</p></div>`);
+      if (item === 'food') body.append(btn('Utiliser', () => campaign.useItem('food'), 'go'));
+      else if (item === 'tool') body.append(btn(st.equipped === 'tool' ? 'Ranger l’outil' : 'Équiper', () => campaign.useItem('tool'), 'go'));
+      else if (item === 'notebook' || item === 'evidence') body.append(btn('Consulter', () => open('journal'), 'go'));
+      else body.append(btn('Voir les recettes', () => { invTab = 'Atelier'; render(); }));
+      body.insertAdjacentHTML('beforeend', `<p class="small">Dylan · nourriture ${st.player.food} · énergie ${st.player.energy} · fatigue ${st.player.fatigue}</p>`);
+    } else if (invTab === 'Atelier') {
+      for (const r of RECIPES) {
+        const why = campaign.craftCheck(r, nearShop);
+        body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(r.title)}</b></p><p class="small">${r.costs.map((x) => x.amount + ' ' + ITEMS.find((i) => i.id === x.id).name.toLowerCase()).join(', ')} · ${r.durationSeconds} s · compétence ${r.minimumCompetence}<br>${why ? esc(why) : 'Conditions réunies.'}</p></div>`);
+        const b = btn(nearShop ? 'Fabriquer' : 'Rejoindre l’atelier', () => { if (nearShop) campaign.craft(r.id, true); else { world.guide = 'atelier_silex'; close(); } }, why && nearShop ? '' : 'go'); b.disabled = !!why && nearShop; body.append(b);
+      }
+    } else {
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>RÉSERVES DE NEILA</b></p><p class="small">Stockage du village · transfert sur place${nearStore ? '' : ' · rejoins le stockage pour transférer'}</p><p class="small">${ITEMS.filter((i) => ['wood', 'stone', 'flint', 'fiber', 'food', 'tool'].includes(i.id)).map((i) => `${i.name} : ${st.reserve[i.id] || 0}`).join(' · ')}</p></div>`);
+      const row = document.createElement('div'); row.className = 'choices sort';
+      row.append(btn('Prendre 1 · ' + esc(ITEMS.find((i) => i.id === item).name), () => campaign.transfer(item, 1, false, false, nearStore)), btn('Déposer 1', () => campaign.transfer(item, 1, true, false, nearStore)),
+        btn('Toute la réserve', () => campaign.transfer(item, 0, false, true, nearStore)), btn('Tout le sac', () => campaign.transfer(item, 0, true, true, nearStore)));
+      body.append(row);
+    }
+    if (campaign.feedback && invTab !== 'Objet') body.insertAdjacentHTML('beforeend', `<p class="fb">${esc(campaign.feedback)}</p>`);
+    body.append(btn('Fermer', close, 'quiet'));
+  }
+  // ---- Technologie (TribalKnowledgeView) : l'arbre des notions par phase, missions liées, prérequis, savoir -----------
+  function renderTech() {
+    body.innerHTML = `<p class="kicker">Écran Technologie</p><h2>Les savoirs de la tribu</h2><p class="count">Fragments de savoir : ${campaign.state.resources.knowledge}</p>`;
+    const tree = document.createElement('div'); tree.className = 'tree';
+    for (const phase of ['Planifier', 'Agir', 'Vérifier', 'Améliorer']) {
+      const col = document.createElement('div'); col.innerHTML = `<p class="kicker">${phase.toUpperCase()}</p>`;
+      for (const k of CLAUSES.filter((x) => x.phase === phase)) { const pr = campaign.clauseProgress(k.id); col.append(btn(`${esc(k.id)} · ${esc(k.title)}${meter(pr * 100)}`, () => { clause = k.id; render(); }, (k.id === clause ? 'sel ' : '') + (pr >= 1 ? 'ok' : ''))); }
+      tree.append(col);
+    }
+    body.append(tree);
+    const k = CLAUSES.find((x) => x.id === clause), qs = campaign.clauseQuests(clause), chain = campaign.data.quests;
+    const prereq = [...new Set(qs.map((q) => chain[chain.indexOf(q) - 1]).filter(Boolean))].map((q) => q.title);
+    body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(k.id)} · ${esc(k.title)}</b></p><p class="small">${esc(campaign.clauseStatus(clause))}</p>
+      <p class="small"><b>MISSIONS LIÉES</b><br>${qs.length ? qs.map((q) => (campaign.clauseVerified(q, clause) ? 'Vérifiée · ' : 'À vérifier · ') + esc(q.title)).join('<br>') : 'Aucune mission dans cette campagne.'}</p>
+      <p class="small"><b>PRÉREQUIS</b><br>${prereq.length ? prereq.map(esc).join('<br>') : '—'}</p>
+      ${clause === '4.1' || clause === '4.2' ? '<p class="small">Amd 1:2024 · examine la pertinence du changement climatique et les attentes associées pour les activités de la tribu.</p>' : ''}
+      <p class="small">Une mesure construite doit encore être contrôlée. Les titres sont des repères pédagogiques ; ils ne constituent pas une certification.</p></div>`);
+    if (qs.length) body.append(btn('Voir la mission liée', () => open('quest'), 'go'));
+    body.append(btn('Fermer', close, 'quiet'));
+  }
+
   function render() {
     root.classList.toggle('runner', mode === 'activity' && !modal());
     if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
+    else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();
   }
 
   // ---- keys: E acts, arrows during the briefing move the lanes, J K L Espace in the duel; WASD blocked behind a modal -
@@ -202,12 +300,12 @@ export function createUI(campaign, world) {
     }
     if (mode === 'activity' && campaign.current?.mode === 'briefing' && (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'KeyA' || k === 'KeyD')) { campaign.moveLane(k === 'ArrowLeft' || k === 'KeyA' ? -1 : 1); e.stopImmediatePropagation(); e.preventDefault(); return; }
     if ((k === 'KeyE' || k === 'Enter') && !mode) { act(); e.preventDefault(); return; }
+    if (!mode && (k === 'KeyI' || k === 'KeyM')) { open(k === 'KeyI' ? 'inventory' : 'map'); return; }
     if (k === 'Escape' && mode && mode !== 'dialogue') { if (mode === 'activity') suspend(); else if (mode === 'duel') { campaign.duel.close(); close(); } else close(); return; }
     if (modal() && /^(Key[WASD]|Arrow)/.test(k)) e.stopImmediatePropagation();
   }, true);
   $('prompt').onclick = act;
-  $('btn-quests').onclick = () => open('quest');
-  $('btn-journal').onclick = () => open('journal');
+  for (const [id, m] of [['btn-people', 'people'], ['btn-map', 'map'], ['btn-inventory', 'inventory'], ['btn-tech', 'tech'], ['btn-quests', 'quest'], ['btn-journal', 'journal']]) $(id).onclick = () => open(m);
 
   let refresh = 0;
   hud();

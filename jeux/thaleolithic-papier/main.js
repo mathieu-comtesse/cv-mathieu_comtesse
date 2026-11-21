@@ -13,11 +13,12 @@ const world = buildVillage(campaign);
 const ui = createUI(campaign, world);
 const { H } = world;
 
-// the marker over the place where the next action happens, and the villagers' names near Dylan
+// the marker over the place where the next action happens (or the place chosen on the map)
 const pin = document.getElementById('pin'), v = new H.THREE.Vector3();
 H.onStep((t, dt) => {
   ui.step(dt);
-  const site = campaign.nextSite(), s = site && world.SITES[site];
+  if (world.guide && world.near(world.guide)) world.guide = null;   // a place chosen on the map: the marker goes there until Dylan arrives
+  const site = world.guide || campaign.nextSite(), s = site && world.SITES[site];
   if (!s || ui.mode) { pin.hidden = true; return; }
   v.set(s.x, 5.2, s.z).project(H.camera);
   const off = Math.abs(v.x) > 0.95 || Math.abs(v.y) > 0.95;

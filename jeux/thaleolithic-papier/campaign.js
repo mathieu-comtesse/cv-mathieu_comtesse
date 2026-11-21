@@ -6,6 +6,19 @@
 // Données chargées telles quelles : CampaignV17.json, MenhirDuel.json, UngaBungaCampaign.json, UngaBungaQuests.json.
 
 export const STAGES = ['Découverte', 'Décidée', 'Réalisée', 'Vérifiée'];
+// les objets du sac (InventoryController.items) et les recettes de l'atelier de silex (craft:flint, craft:tool)
+export const ITEMS = [
+  ['wood', 'Bois', 'Matériau des structures et des supports.'], ['stone', 'Pierre', 'Pierre brute pour les aménagements et le débitage.'],
+  ['flint', 'Silex', 'Éclats débités à l’atelier pour fabriquer un outil.'], ['fiber', 'Fibres', 'Liens et attaches pour le montage.'],
+  ['food', 'Nourriture', 'Consommer une unité : nourriture +25, énergie +10.'], ['tool', 'Hache de pierre', 'Outil équipé dans la main. Les travaux restent soumis à leurs prérequis.'],
+  ['notebook', 'Carnet des risques', 'Objectifs, risques et traces des décisions.'], ['evidence', 'Preuves', 'Consulter les références et preuves enregistrées.'],
+  ['clay', 'Argile', 'Prélevée sur la berge. Nécessaire au torchis.'], ['straw', 'Paille', 'Tiges préparées pour les couvertures de chaume.'],
+].map(([id, name, description]) => ({ id, name, description }));
+export const RECIPES = [
+  { id: 'craft:flint', title: 'Débiter deux éclats de silex', site: 'atelier_silex', durationSeconds: 3, minimumCompetence: 15, costs: [{ id: 'stone', amount: 1 }], effects: [{ kind: 'resource', target: 'flint', value: 2 }, { kind: 'stat', target: 'fatigue', value: 2 }] },
+  { id: 'craft:tool', title: 'Fabriquer une hache de pierre', site: 'atelier_silex', durationSeconds: 3, minimumCompetence: 15, costs: [{ id: 'flint', amount: 2 }, { id: 'wood', amount: 1 }, { id: 'fiber', amount: 1 }], effects: [{ kind: 'resource', target: 'tool', value: 1 }, { kind: 'stat', target: 'fatigue', value: 3 }] },
+];
+const TRANSFERABLE = ['wood', 'stone', 'flint', 'fiber', 'food', 'tool'];
 // titres et budgets des actes, comme PrepareCampaignV17
 const ACT_TITLES = ['LE GRAND RÉVEIL · LE CONTEXTE', 'LE CHEF CONTRE-ATTAQUE', 'LA CHASSE AUX RISQUES', 'LA TRIBU A DES MOYENS', 'LES 15 DIFFÉRENCES', 'AU FEU !!!', 'LES ANCIENS VIENNENT AUDITER', 'LE PROCHAIN CYCLE'];
 export const MENHIR_QUEST = 'M_II_ROLES', MENHIR_ACTION = 'MENHIR_DUEL';
@@ -35,7 +48,10 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
 
   // ---- état sauvegardé --------------------------------------------------------------------------------------------
   const fresh = () => ({ version: 1, flags: {}, done: [], evidence: [], progress: {}, menhir: null, ending: false, wallSeconds: 0, risks: {}, dead: [], buildings: {}, dialogue: null, working: null,
-    resources: Object.fromEntries(base.resources.map((r) => [r.id, r.value])) });
+    resources: { ...Object.fromEntries(base.resources.map((r) => [r.id, r.value])), flint: 0, tool: 0, clay: 0, straw: 0, knowledge: 0 }, equipped: '', reserve: {},
+    player: Object.fromEntries(base.stats.map((x) => [x.id, x.value])),
+    // l'état de chaque habitant (CharacterState) : compétence 15 pour Dylan, 10 pour le Petit Os, 70 pour les autres
+    people: Object.fromEntries(characters.map((c) => [c.id, { life: 100, energy: 100, fatigue: 0, competence: c.id === 'dylan' ? 15 : c.id === 'petit_os' ? 10 : 70, hunger: 20, morale: 60, trust: 25, assignment: '' }])) });
   let state = fresh();
   if (storage) try { const s = JSON.parse(storage.getItem(key) || 'null'); if (s && s.version === 1) state = { ...fresh(), ...s }; } catch { /* sauvegarde illisible : nouvelle partie */ }
   const listeners = new Set(), emit = () => { for (const f of listeners) f(); };
@@ -162,14 +178,17 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   }
   function completeAction(id) {
     if (state.done.includes(id)) return;
+    const before = quests.filter(questDone).length;
     state.done.push(id); setFlag('done:' + id);
+    // une quête validée crédite ses récompenses de savoir (CampaignQuests : reward knowledge → ressource knowledge)
+    for (const q of quests) if (questDone(q) && !state.flags['claimed:' + q.id] && quests.filter(questDone).length > before) { setFlag('claimed:' + q.id); for (const r of q.rewards || []) if (r.kind === 'knowledge') state.resources.knowledge += r.amount; }
     if (id === 'V17_EVACUATION') setFlag('v17:alarm');
     if (!frontier()) state.ending = true;
   }
   // le minuteur (Update) : avance pendant l'activité ; temps écoulé = acquis conservés, essai à reprendre
   function tick(dt) {
     if (!state.ending) state.wallSeconds += dt;
-    if (state.working && (state.working.left -= dt) <= 0) { const id = state.working.id; state.working = null; finishAction(id); }
+    if (state.working && (state.working.left -= dt) <= 0) { const w = state.working; state.working = null; if (w.recipe) finishRecipe(w.id); else finishAction(w.id); }
     if (!current || guideOpen() || timedOut) return;
     const p = cur(); p.seconds += dt; if (workReady() && p.worked) p.workSeconds += dt;
     if (current.duration > 0 && p.seconds >= current.duration && !(current.mode === 'assemble' && p.card >= current.cards.length)) {
@@ -191,6 +210,50 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     const a = actions.get(id); if (!a || !canExecute(id) || state.working || state.dialogue) return false;
     if ((a.costs || []).some((c) => (state.resources[c.id] ?? 0) < c.amount)) { feedback = 'Ressources insuffisantes : ' + a.costs.map((c) => c.amount + ' ' + c.id).join(', ') + '.'; emit(); return false; }
     state.working = { id, left: a.durationSeconds || 2, total: a.durationSeconds || 2 }; emit(); return true;
+  }
+  // ---- la tribu, le sac, les réserves et l'atelier (TribalInterface, InventoryController, CampaignTribal) -----------
+  const quantity = (id) => (id === 'notebook' ? 1 : id === 'evidence' ? state.evidence.length : state.resources[id] ?? 0);
+  function craftCheck(r, near) {
+    if (!near) return 'Rejoins l’atelier de silex.';
+    if (state.people.dylan.competence < r.minimumCompetence) return 'Compétence insuffisante.';
+    const miss = r.costs.find((c) => quantity(c.id) < c.amount); if (miss) return 'Il manque ' + (miss.amount - quantity(miss.id)) + ' ' + ITEMS.find((i) => i.id === miss.id).name.toLowerCase() + '.';
+    return state.working ? 'Une action est déjà en cours.' : '';
+  }
+  function craft(id, near) { const r = RECIPES.find((x) => x.id === id), why = r && craftCheck(r, near); if (!r || why) { feedback = why || ''; emit(); return false; } state.working = { id, left: r.durationSeconds, total: r.durationSeconds, recipe: true }; emit(); return true; }
+  function finishRecipe(id) {
+    const r = RECIPES.find((x) => x.id === id); for (const c of r.costs) state.resources[c.id] -= c.amount;
+    for (const e of r.effects) { if (e.kind === 'resource') state.resources[e.target] = (state.resources[e.target] ?? 0) + e.value; if (e.kind === 'stat') state.player[e.target] = Math.min(100, (state.player[e.target] ?? 0) + e.value); }
+    feedback = r.title + ' · fait.'; save(); emit();
+  }
+  function useItem(id) {
+    if (id === 'food' && state.resources.food > 0) { state.resources.food--; state.player.food = Math.min(100, state.player.food + 25); state.player.energy = Math.min(100, state.player.energy + 10); }
+    else if (id === 'tool' && state.resources.tool > 0) state.equipped = state.equipped === 'tool' ? '' : 'tool';
+    else return false; save(); emit(); return true;
+  }
+  // transferts avec les réserves de Neila : sur place seulement, objets transférables, quantité bornée par ce qui existe
+  function transfer(item, requested, deposit, all, near) {
+    if (!near) { feedback = 'Rejoins les réserves pour transférer des objets.'; emit(); return false; }
+    if (!all && !TRANSFERABLE.includes(item)) { feedback = 'Cet objet ne peut pas être transféré.'; emit(); return false; }
+    let changed = false;
+    for (const id of all ? TRANSFERABLE : [item]) {
+      const available = deposit ? state.resources[id] ?? 0 : state.reserve[id] ?? 0, amount = all ? available : Math.min(available, requested); if (amount <= 0) continue;
+      state.reserve[id] = (state.reserve[id] ?? 0) + (deposit ? amount : -amount); state.resources[id] += deposit ? -amount : amount; changed = true;
+    }
+    if (deposit && state.resources.tool <= 0) state.equipped = '';
+    feedback = changed ? (deposit ? 'Objets déposés aux réserves.' : 'Objets récupérés aux réserves.') : 'Aucun objet disponible pour ce transfert.'; save(); emit(); return changed;
+  }
+  function rest(id) { const m = state.people[id]; if (!m || id === 'dylan' || state.dead.includes(id)) return false; m.assignment = m.assignment === 'repos' ? '' : 'repos'; save(); emit(); return true; }
+  const memberStatus = (id) => { const m = state.people[id]; return state.dead.includes(id) ? 'Décédé' : m.life < 50 ? 'Blessé' : m.assignment === 'repos' ? 'Au repos' : 'Disponible'; };
+  // l'arbre Technologie (TribalKnowledgeView) : missions liées à une notion, vérification (le duel par critère 5.1 à 5.4)
+  const clauseQuests = (id) => quests.filter((q) => (q.iso || []).some((i) => i === id || i.startsWith(id + '.')));
+  const menhirCriterion = (clause) => { const s = state.menhir; if (!s) return false; if (clause === '5') return s.cleared.every(Boolean); const i = ['5.1', '5.2', '5.3', '5.4'].indexOf(clause); return i < 0 || s.cleared[i]; };
+  const clauseVerified = (q, clause) => questDone(q) && (q.id !== MENHIR_QUEST || menhirCriterion(clause));
+  const clauseProgress = (id) => { const qs = clauseQuests(id); return qs.length ? qs.filter((q) => clauseVerified(q, id)).length / qs.length : 0; };
+  function clauseStatus(id) {
+    const qs = clauseQuests(id); if (!qs.length) return 'À découvrir';
+    if (qs.every((q) => clauseVerified(q, id))) return 'Vérifié dans les missions liées';
+    if (qs.includes(frontier())) return 'En cours d’application';
+    return qs.some((q) => quests.indexOf(q) <= quests.indexOf(frontier())) ? 'Accessible' : 'Prérequis à compléter';
   }
   function finishAction(id) {
     const a = actions.get(id); for (const c of a.costs || []) state.resources[c.id] -= c.amount;
@@ -260,6 +323,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   return {
     data: { characters, activities, quests, acts, chain: CHAIN },
     get state() { return state; }, get current() { return current; }, get feedback() { return feedback; }, get timedOut() { return timedOut; },
+    quantity, craft, craftCheck, useItem, transfer, rest, memberStatus, clauseQuests, clauseVerified, clauseProgress, clauseStatus,
     progress, frontier, nextAction, nextSite, kindOf, canExecute, startAction, choose, dialogue: () => dialogues.get(state.dialogue) || null, action: (id) => actions.get(id), questDone, guideOpen, workReady, differencesStatus, verified,
     begin, dismissGuide, suspend, submit, selectTablet, confirmAssembly, allocate, confirmAllocation, performWork, verifyWork, moveLane, projectileHit,
     observe, validateDifferences, validateAssembly, retryTimer, tick, duel, reset, save,

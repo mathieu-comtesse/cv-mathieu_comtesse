@@ -239,5 +239,5 @@ export function buildVillage(campaign) {
     }
   });
 
-  return { H, SITES, people, hero, sendToAssembly, sendHome, everyoneAtAssembly, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, sendToAssembly, sendHome, everyoneAtAssembly, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }
