@@ -93,7 +93,11 @@ export function monde(view, col, row, h = 0) {
 
 /* projection à l'écran : { x, y, z } (z : distance à la caméra), ou null derrière la caméra */
 export function p(view, col, row, h = 0) {
-  const [X, Y, Z] = monde(view, col, row, h), dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
+  return pMonde(view, ...monde(view, col, row, h));
+}
+
+export function pMonde(view, X, Y, Z) {
+  const dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
   const y = dy * c + dz * s, d = dy * s - dz * c;
   if (!(d > PROCHE)) return null;
   const f = view.H / 2 / Math.tan(view.fov / 2);

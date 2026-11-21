@@ -54,4 +54,6 @@ Les onze cartes du CV regroupent le résumé, la démonstration et la machine. L
 
 Les commandes d’un projet agissent sur la démonstration tout en conservant l’angle du cadre. Quand le cadre est redressé, sa face masque les titres et les modèles qui se trouvent derrière elle. Les étoiles et leurs libellés suivent le même ordre de profondeur. Le rendu extrait utilise aussi une passe de profondeur et un décalage des surfaces masquantes.
 
+Les quatre coins de la face supérieure déterminent la projection du texte et des fenêtres, le masque de profondeur et le plan d’appui des machines. Sur une carte redressée, le modèle conserve sa forme et ses commandes occupent une bande distincte sous son socle. Le menu latéral indique le chapitre actif. Sur écran étroit, un bouton déplie la liste des chapitres.
+
 Quatorze emplacements attendent des captures réelles anonymisées. Pour le Traitement VRE par VM, il faut la bibliothèque SharePoint d’arrivée, la première page d’un rapport VRE et le suivi Excel avec une ligne traitée.

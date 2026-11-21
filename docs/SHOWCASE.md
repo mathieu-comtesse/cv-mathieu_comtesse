@@ -1,6 +1,6 @@
 # Vitrines « outil réel » dans les cadres du parcours
 
-Chaque cadre projet du parcours 3D (`index.html`) peut recevoir, **dans la même carte**, une vitrine qui montre l'outil réel : fenêtres de type macOS, console du traitement, résultat. La machine 3D, « Voir la magie » et « Explorer la machine » ne changent pas. Aucune seconde scène 3D : la vitrine est un `.cv-pframe` de plus dans `.cv-card-body`, donc elle suit exactement la position, la perspective, la trajectoire et la sélection des autres cadres (HTML-in-Canvas ou repli DOM).
+Chaque carte du parcours 3D (`index.html`) réunit le résumé, la machine et une vitrine du déroulé. La vitrine, le texte et le modèle suivent la même face supérieure quand la carte se redresse. Les commandes « Voir la magie » et « Explorer la machine » restent accessibles sous le modèle.
 
 ## Fichiers
 | fichier | rôle |
@@ -74,5 +74,16 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 3. **Excel de suivi** : ligne retrouvée et cellule renseignée. Masquer : références d'équipement, noms de sites, données personnelles.
 Déposer les fichiers dans `assets/showcase/q18/`, puis dans `refonte/showcase/config.mjs` passer chaque fenêtre à `status: 'authentic'` avec `src`, `alt` et `caption`, et relancer la génération. **Anonymiser avant tout commit** : les captures sont publiées telles quelles.
 
-## État
-Cadre de référence : Reporteur Q18 (3 emplacements). Cadre qui prouve le chemin « captures réelles » : CERFA (2 captures réelles). Les neuf autres projets ne sont pas encore activés ; leur généralisation attend la validation du cadre de référence. Captures de validation : `docs/showcase/`.
+## Captures métier à fournir
+
+Les onze cartes sont actives dans le parcours. L’inventaire ci-dessous indique les visuels métier à remplacer ou à compléter. Pour chaque capture, conserver le nom du projet et l’étape qu’elle illustre. Fournir des PNG lisibles ou un enregistrement court de l’écran si la transition fait partie du déroulé.
+
+| Carte | Écrans attendus |
+|---|---|
+| Point financier | Seuil dans le classeur Excel, vue du flux Power Automate et détail d’une exécution, notification Outlook déclenchée. |
+| Chaîne des plans de prévention | Bibliothèque SharePoint à l’arrivée et après classement, flux Power Automate avec son contrôle d’échéance, relance Outlook. |
+| VRE par VM et Reporteur Q18 | Pour chaque outil, bibliothèque SharePoint, première page du rapport traité et ligne modifiée dans Excel. Ajouter la console réelle si elle est visible pendant le traitement. |
+| CERFA, Extracteur VRE, Nisaru et Studio PDF | Écran d’import, traitement ou contrôle, puis livrable ou export de l’outil décrit dans la fiche. Le Metadata Studio V11 est un outil distinct de CERFA v3. |
+| Power BI PP et MOSO, Suivi, Gares prioritaires | Rapport PP et MOSO avec filtrage et suivi, écrans EPM/EPTx, recherche et résultat d’un suivi, classement et fiche de gare. |
+
+Les fichiers diffusables doivent être anonymisés dès la capture. Masquer les noms, adresses, sites, identifiants, chemins et liens internes. Les captures locales de Nisaru et Metadata Studio montrent leurs interfaces ouvertes sans données. Les trois écrans financiers disponibles proviennent de démonstrations avec données fictives et le flux y a été reconstitué.
