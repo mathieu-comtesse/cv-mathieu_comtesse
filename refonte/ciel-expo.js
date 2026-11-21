@@ -1,10 +1,19 @@
-import { Ciel, dansQuad, hache } from './moteur.js?v=m31';
+import { Ciel, hache } from './moteur.js?v=m33';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['131,185,244', '154,169,255', '133,202,226'];
 const lumiere = [-Math.sin(-41*Math.PI/180)/Math.tan(35*Math.PI/180),-Math.cos(-41*Math.PI/180)/Math.tan(35*Math.PI/180)];
 const mix = (a,b,t) => a+(b-a)*t, phase = v => v-Math.floor(v);
 const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
+function profondeurTriangle(p,a,b,c) {
+  const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-a.x,vy=c.y-a.y;
+  const det=ux*vy-uy*vx;
+  if(Math.abs(det)<1e-6)return Infinity;
+  const dx=p.x-a.x,dy=p.y-a.y;
+  const wB=(dx*vy-dy*vx)/det,wC=(ux*dy-uy*dx)/det,wA=1-wB-wC;
+  if(Math.min(wA,wB,wC)<0)return Infinity;
+  return 1/(wA/a.z+wB/b.z+wC/c.z);
+}
 function trait(ctx,a,b) {
   ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
 }
@@ -63,7 +72,9 @@ export class CielExpo extends Ciel {
   vide(){super.vide();this.pris=null;}
 
   dessine(ctx,proj,t,{covers,souris,W,H,dt,alpha,titres,rise,unproject,segment}){
-    const quads=covers.map(corners=>({corners,z:corners.reduce((s,q)=>s+q.z,0)/corners.length}));
+    const masque=p=>covers.some(([a,b,c,d])=>
+      Math.min(profondeurTriangle(p,a,b,c),profondeurTriangle(p,a,c,d))<p.z-2
+    );
     this.cibles=[];this.survol=null;
     let nearest=18;
     ctx.save();
@@ -83,7 +94,7 @@ export class CielExpo extends Ciel {
         const radius=Math.max(24,r*.9),lit=distance(hub,souris)<14||this.pris?.etoile===e;
         anneau(ctx,proj,x,y,radius,.35+.55*Math.max(active,Number(lit)));
         const p=proj(x,y+radius+14,0), dx=proj(x+100,y+radius+14,0), texte=e.num+' '+e.label;
-        if(p&&dx){
+        if(p&&dx&&!masque(p)){
           const px=Math.min(13,Math.max(6,.15*Math.abs(dx.x-p.x)));
           ctx.font='300 '+px+'px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#fff';
           ctx.fillText(texte,p.x,p.y);e.libelleEcran={x:Math.round(p.x),y:Math.round(p.y),texte};
@@ -111,28 +122,28 @@ export class CielExpo extends Ciel {
           if(position)[wx,wy]=position;
         }
         const world=[wx,wy,hauteur];
-        const covered=quads.some(({corners,z})=>z<p.z-30&&dansQuad(corners,p.x,p.y));
-        return {p,n,covered,world,ground:ombre(world)};
+        return {p,n,covered:masque(p),world,ground:ombre(world)};
       });
       for(const [a,b] of e.liens)if(nodes[a]&&nodes[b])segment(nodes[a].world,nodes[b].world,color,.084*opacity);
       for(const node of nodes){
         if(!node)continue;
-        const {p,n,covered,ground}=node,d=distance(p,souris),hot=!covered&&d<14,visibility=covered?.12:1;
-        ctx.globalAlpha=opacity*visibility;
-        if(ground&&hubShadow){
+        const {p,n,covered,ground}=node,d=distance(p,souris),hot=!covered&&d<14;
+        segment(e.centre,node.world,hot?'255,255,255':color,(hot?.9:title?.39:.45)*opacity);
+        if(covered)continue;
+        ctx.globalAlpha=opacity;
+        if(ground&&hubShadow&&!masque(ground)&&!masque(hubShadow)){
           ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,4,37,'+(.22*rise)+')';trait(ctx,hubShadow,ground);
           if(n.ed){ctx.fillStyle='rgba(0,4,37,'+(.19*rise)+')';ctx.fillRect(ground.x-3,ground.y-2,6,4);}
         }
-        segment(e.centre,node.world,hot?'255,255,255':color,(hot?.9:title?.39:.45)*opacity*visibility);
         ctx.lineWidth=1;
-        if(t!==null&&!covered&&(n.ed||n.phases[0]%3===0))impulsions(ctx,hub,p,n.phases,t,color);
+        if(t!==null&&!masque(hub)&&(n.ed||n.phases[0]%3===0))impulsions(ctx,hub,p,n.phases,t,color);
         if(n.ed){
           const image=this.image(n.ed.image),side=(image?(title?32:16):(title?14:8))*(hot?1.5:1);
           ctx.fillStyle=image?'#050b26':hot?'#fff':title?'#b6c6e4':'#161c36';
           ctx.fillRect(p.x-side/2,p.y-side/2,side,side);
           if(image)ctx.drawImage(image,p.x-side/2+1,p.y-side/2+1,side-2,side-2);
           ctx.strokeStyle='rgba(255,255,255,.42)';ctx.lineWidth=1;ctx.strokeRect(p.x-side/2,p.y-side/2,side,side);
-          if(!covered&&p.x>=0&&p.y>=0&&p.x<=W&&p.y<=H){
+          if(p.x>=0&&p.y>=0&&p.x<=W&&p.y<=H){
             const target={x:p.x,y:p.y,noeud:n,etoile:e};this.cibles.push(target);
             if(d<nearest){this.survol=target;nearest=d;}
           }
@@ -140,12 +151,17 @@ export class CielExpo extends Ciel {
           ctx.fillStyle='rgba('+color+',.69)';ctx.beginPath();ctx.arc(p.x,p.y,n.at[2]>.35?2:1.25,0,cercle);ctx.fill();
         }
       }
+      if(masque(hub))continue;
       ctx.globalAlpha=opacity;
       const diam=title?14:8;
       ctx.fillStyle=title?'#e9efff':'#a1badc';ctx.fillRect(hub.x-diam/2,hub.y-diam/2,diam,diam);
       if(title){
         ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign='right';ctx.fillStyle='#fff';
-        const lx=hub.x-diam-8,ly=hub.y+4;ctx.fillText(e.label,lx,ly);e.libelleEcran={x:Math.round(lx),y:Math.round(ly),texte:e.label};
+        const lx=hub.x-diam-8,ly=hub.y+4;
+        const cx=lx-ctx.measureText(e.label).width/2;
+        if(!masque({x:lx,y:ly,z:hub.z})&&!masque({x:cx,y:ly,z:hub.z})){
+          ctx.fillText(e.label,lx,ly);e.libelleEcran={x:Math.round(lx),y:Math.round(ly),texte:e.label};
+        }
       }
     }
     if(this.survol){

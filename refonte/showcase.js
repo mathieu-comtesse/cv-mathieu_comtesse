@@ -8,14 +8,25 @@ if (frames.length) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const near = new Set(); let raf = 0, until = 0, ticks = 0, zoom = null, dirty = true;
   const S = new Map(frames.map((f) => {
-    const st = { f, N: +f.dataset.steps || 4, step: -1, lock: 0, wins: [...f.querySelectorAll('.sc-win')], res: f.querySelector('.sc-result'), log: f.querySelector('.sc-log'), tabs: [...f.querySelectorAll('.sc-tabs button')], shown: -1, queued: false, key: '' };
+    const st = { f, card: f.closest('.cv-pf-main'), N: +f.dataset.steps || 4, step: -1, lock: 0, wins: [...f.querySelectorAll('.sc-win')], res: f.querySelector('.sc-result'), log: f.querySelector('.sc-log'), tabs: [...f.querySelectorAll('.sc-tabs button')], shown: -1, queued: false, key: '' };
     st.lines = st.log ? [...st.log.children] : []; st.cstep = +(f.querySelector('.sc-console')?.dataset.step || 2);
     return [f, st];
   }));
   /* captures : file unique, une image à la fois (160 ms entre deux), seulement pour les cadres proches de l'écran ; actif aussi en mouvements réduits */
   const queue = []; let loading = 0;
-  const pump = () => { loading = 0; const img = queue.shift(); if (!img) return; if (!img.getAttribute('src')) img.src = img.dataset.src; loading = setTimeout(pump, 160); };
+  const chargeImage = (img) => { if (img && !img.hasAttribute('src')) img.src = img.dataset.src; };
+  const pump = () => {
+    loading = 0;
+    while (queue[0]?.hasAttribute('src')) queue.shift();
+    const img = queue.shift();
+    if (!img) return;
+    chargeImage(img);
+    loading = setTimeout(pump, 160);
+  };
   const load = (st) => { if (st.queued) return; st.queued = true; st.f.querySelectorAll('img[data-src]').forEach((i) => queue.push(i)); if (!loading) pump(); };
+  const chargeEtape = (st) => {
+    for (const w of st.wins) if (+w.dataset.step <= st.step) chargeImage(w.querySelector('img[data-src]'));
+  };
   const apply = (st, step, frac) => {
     if (step !== st.step) {
       st.step = step;
@@ -29,11 +40,21 @@ if (frames.length) {
     }
   };
   const update = (st, now) => {
-    if (st.lock && now < st.lock) return; st.lock = 0;
     const r = st.f.getBoundingClientRect(), key = (r.top | 0) + ',' + (r.height | 0) + ',' + innerHeight;
+    if (st.card) {
+      const top = st.card.getBoundingClientRect().top;
+      const reveal = clamp((innerHeight * .98 - top) / (innerHeight * .22), 0, 1);
+      const opacity = (reveal * reveal * (3 - 2 * reveal)).toFixed(3);
+      if (opacity !== st.opacity) {
+        st.opacity = opacity;
+        st.card.style.setProperty('--cv-copy-progress', opacity);
+      }
+    }
+    if (st.lock && now < st.lock) return; st.lock = 0;
     if (key === st.key && !dirty) return; st.key = key;   // rien n'a bougé : aucun calcul
     const vh = innerHeight, p = clamp((vh - r.top) / (vh + r.height), 0, 1), q = clamp((p - .22) / .5, 0, 1);
     const x = q * st.N, step = clamp(Math.floor(x) + 1, 1, st.N); apply(st, step, x - Math.floor(x));
+    if (r.top < vh && r.bottom > 0) chargeEtape(st);
   };
   /* ordonnancement : aucune image n'est demandée tant que rien ne bouge. Défilement, redimensionnement, geste ou clic réveillent la boucle ; elle s'éteint 1,4 s après le dernier mouvement de la page. */
   const tick = (t) => { raf = 0; ticks++; if (document.hidden) return; near.forEach((f) => update(S.get(f), t)); dirty = false; if (t < until) raf = requestAnimationFrame(tick); };
@@ -42,9 +63,9 @@ if (frames.length) {
     const st = S.get(f); f.classList.add('sc-js');
     if (reduce) { apply(st, st.N, 1); return; }
     apply(st, 1, 0);
-    st.tabs.forEach((b) => b.addEventListener('click', () => { apply(st, +b.dataset.go, 1); st.lock = performance.now() + 7000; }));   // choix manuel : la progression au défilement reprend après 7 s
+    st.tabs.forEach((b) => b.addEventListener('click', () => { apply(st, +b.dataset.go, 1); chargeEtape(st); st.lock = performance.now() + 7000; }));   // choix manuel : la progression au défilement reprend après 7 s
   });
-  frames.forEach((f) => { if (reduce) f.querySelectorAll('.sc-tabs button').forEach((b) => b.addEventListener('click', () => apply(S.get(f), +b.dataset.go, 1))); });
+  frames.forEach((f) => { if (reduce) f.querySelectorAll('.sc-tabs button').forEach((b) => b.addEventListener('click', () => { const st=S.get(f); apply(st, +b.dataset.go, 1); chargeEtape(st); })); });
   const io = new IntersectionObserver((es) => { es.forEach((e) => { const st = S.get(e.target); if (e.isIntersecting) { near.add(e.target); load(st); } else near.delete(e.target); }); if (!reduce) wake(); }, { rootMargin: '700px 0px 700px 0px' });
   frames.forEach((f) => io.observe(f));
   if (!reduce) {

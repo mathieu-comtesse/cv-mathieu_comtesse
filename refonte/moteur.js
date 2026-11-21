@@ -565,7 +565,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
   for (const [rang, b] of ordre.entries()) {
     /* les flancs d'un bloc passent derrière le dessus des blocs plus proches (leur contenu est du DOM, sous ce canevas) */
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, view.W, view.H);
-    for (const n of ordre.slice(rang + 1)) { const q = face(n, !n.contenuAuSol); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
+    for (const n of ordre.slice(rang + 1)) { const q = face(n, true); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
     ctx.clip('evenodd');
     const haut = face(b, true), bas = face(b, false);
     if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
@@ -575,18 +575,8 @@ export function dessineContours(ctx, view, boxes, souris = null) {
       if (ombre.every(Boolean)) { ctx.fillStyle = 'rgba(0,0,0,.22)'; trace(ombre); ctx.fill(); }
     }
     const plein = (b.hero && !b.slab) || b.project;
-    const surface = b.contenuAuSol ? bas : haut;
-    const dedansQuad = souris && dansQuad(surface, souris.x, souris.y);
+    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
     if (dedansQuad) survole = b;
-    if (b.contenuAuSol) {
-      ctx.strokeStyle = 'rgba(255,255,255,.37)'; ctx.lineWidth = .85;
-      trace(haut); ctx.stroke(); ctx.beginPath();
-      for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
-      ctx.stroke();
-      ctx.strokeStyle = dedansQuad ? '#fff' : 'rgba(255,255,255,.8)';
-      ctx.lineWidth = dedansQuad ? 1.6 : .85; trace(bas); ctx.stroke();
-      ctx.restore(); continue;
-    }
     const flanc = b.project ? `color-mix(in srgb,${b.colour||'#051daa'} 46%,#030a23)` : '#02105f';
     ctx.fillStyle = plein ? flanc : 'rgba(255,255,255,.07)';
     trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
@@ -612,7 +602,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
         ctx.moveTo(q.x - (n.x - q.x) / l1 * k, q.y - (n.y - q.y) / l1 * k); ctx.lineTo(q.x, q.y); ctx.lineTo(q.x - (m.x - q.x) / l2 * k, q.y - (m.y - q.y) / l2 * k); }
       ctx.stroke();
     }
-    if (b.title && b.tilted > 0.5) {                                             // cadre relevé : son nom et ses cotes au-dessus du bord haut
+    if (b.title && !b.project && b.tilted > 0.5) {                               // les projets portent déjà leur titre sur la face
       ctx.globalAlpha = Math.min(1, (b.tilted - 0.5) * 2); ctx.font = '500 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
       ctx.fillText(b.title.slice(0, 48), haut[0].x, haut[0].y - 8); ctx.textAlign = 'right'; ctx.fillText(Math.round(b.x1 - b.x0) + ' × ' + Math.round(b.r1 - b.r0), haut[1].x, haut[1].y - 8); ctx.globalAlpha = 1;
     }

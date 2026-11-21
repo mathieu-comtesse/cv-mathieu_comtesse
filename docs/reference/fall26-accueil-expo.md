@@ -44,10 +44,14 @@ Le moteur extrait part du rectangle des caractères visibles et de la première 
 
 Les coordonnées sont mesurées au même point de lecture, sur la géométrie rendue par Chrome. Le calcul de référence applique les paramètres extraits au texte et au cadrage de comtesse.me. La comparaison valide les bornes projetées, avec des écarts inférieurs à 0,2 px sur les bords mesurés. L’ombre et le traitement des surfaces restent à comparer visuellement.
 
-## Face des cadres de l’accueil et des projets
+## Face supérieure des cadres et cartes de projet
 
-Les trois cadres d’accueil portent le contenu sur la face au contact du parcours. Le texte, l’illustration et le point d’appui du modèle partagent le repère de cette face. La face extérieure est dessinée en filaire. La vignette du décor ouvre la page plein écran.
+Les trois légendes d’accueil, les images, le décor animé et le point d’appui de la machine utilisent la face extérieure supérieure. Le contour et le contenu se projettent avec la même hauteur. La profondeur s’étend sous cette face jusqu’au parcours.
 
-Dans les onze projets, la machine et sa fiche partagent un cadre, avec le texte aligné en haut. Les démonstrations, les résultats et les autres panneaux disposent de cadres construits sur le même principe. Chrome a vérifié les onze projets à 1 440 × 900 et 390 × 844, ainsi que le changement d’étape de la simulation financière et du terminal VRE sur bureau.
+Relevé dans Chrome sur [Shopify Editions Fall ’26](https://www.shopify.com/editions/fall2026) à 1 598 × 1 271. Le groupe observé présente une carte horizontale de 1 159 px de large puis deux cartes de 572 px, espacées de 16 px. Le CV mesure respectivement 1 158,5 px et 571,25 px, avec le même espacement. Sur la carte horizontale, le bloc texte se limite à 400 px. La marge intérieure du texte est de 24 px et sa typographie est de 18 px avec un interligne de 22 px. Le HTML d’extraction confirme le passage de cinq colonnes texte à sept colonnes média. Une partie des visuels est chargée après l’arrivée de la carte dans la zone de lecture.
 
-Les fenêtres utilisent les captures déjà intégrées. Quatorze emplacements attendent des captures réelles. Le projet Traitement VRE par VM attend le dossier SharePoint, le rapport VRE et le suivi Excel.
+Les onze cartes du CV regroupent le résumé, la démonstration et la machine. Les fiches détaillées conservent le déroulé, les gains et la construction. En mode Expo, le texte, la scène et la machine suivent la face supérieure du même cadre. Les démonstrations du CV avancent avec le défilement. Le choix manuel d’une étape et la lecture guidée de la machine restent accessibles.
+
+Les commandes d’un projet agissent sur la démonstration tout en conservant l’angle du cadre. Quand le cadre est redressé, sa face masque les titres et les modèles qui se trouvent derrière elle. Les étoiles et leurs libellés suivent le même ordre de profondeur. Le rendu extrait utilise aussi une passe de profondeur et un décalage des surfaces masquantes.
+
+Quatorze emplacements attendent des captures réelles anonymisées. Pour le Traitement VRE par VM, il faut la bibliothèque SharePoint d’arrivée, la première page d’un rapport VRE et le suivi Excel avec une ligne traitée.
