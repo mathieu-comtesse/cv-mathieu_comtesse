@@ -16,6 +16,12 @@ const PAS = 64, PROCHE = 40;
 
 export const cvAnchor = (H) => ({ row: 2.298 * H });
 
+// Le fondu suit une distance de défilement, donc se rembobine à la remontée.
+export function fonduChapitre(position, debut, distance) {
+  const t = Math.max(0, Math.min(1, (position - debut) / distance));
+  return t * t * (3 - 2 * t);
+}
+
 /* Vue : profil du sol (65 points, 65 angles) et caméra.
  * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
  * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
@@ -297,8 +303,13 @@ export class Ciel {
       if (F.x < -e.rayon * k - 80 || F.x > W + e.rayon * k + 80 || F.y < -e.rayon * k - 80 || F.y > H + e.rayon * k + 80) { continue; }
       if (e.age < 0) e.age = 0; e.age += libre ? dt : 10;
       e.ecran = F;
-      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon, actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
-      const kE = actifC ? 1.25 : autreC ? 0.85 : 1;                              // chapitre actif : branches plus présentes ; les autres s'effacent un peu
+      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon;
+      const f = this.fondu;
+      const poids = !e.chapitre ? 0 : f
+        ? (e.chapitre === f.de ? 1 - f.poids : 0) + (e.chapitre === f.vers ? f.poids : 0)
+        : Number(e.chapitre === this.actif);
+      const baseLumiere = f && !f.de ? 1 - .15 * f.poids : .85;
+      const kE = e.chapitre && (f || this.actif) ? baseLumiere + .4 * poids : 1;
       const F0 = proj(c0, r0, 0), ombre = !!F0 && F.y - F0.y > 1.5;                // ombres portées au sol : seulement quand le foyer est au-dessus du sol (expo)
       /* trace au sol : cercle et tige (étoiles posées) */
       if (e.sol) {
@@ -381,7 +392,7 @@ export class Ciel {
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
         gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
         gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
-        ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
+        ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : 1.15 + poids * .25; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
         if (!compact && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
       /* 5. impulsions : le long des courbes réelles, transmises aux ramifications */
@@ -411,7 +422,7 @@ export class Ciel {
         ctx.globalAlpha = A;
       }
       /* foyer et libellé */
-      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (1 + .25 * poids), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
       ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine) {
