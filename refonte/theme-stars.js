@@ -5,6 +5,7 @@
  * Les branches se tracent depuis le foyer à l'entrée dans l'écran, une impulsion lumineuse les parcourt, les points dérivent
  * et s'écartent du curseur, le foyer glisse légèrement avec le défilement.
  * Code original, tracé en SVG. En chemin 3D (mode expo) le moteur dessine ses propres grappes : ces étoiles sont masquées. */
+import {chapterHandover,chapterStarPose,chapterStarAnchor,chapterColourWave,chapterJourney,chapterStarPresence,measureChapterStops} from './fall26-chapter-transition.js?v=ct8';
 const NS = 'http://www.w3.org/2000/svg';
 const reduit = matchMedia('(prefers-reduced-motion: reduce)');
 const style = document.createElement('style');
@@ -26,6 +27,13 @@ html:not(.cv-parity-active) .cv-theme-heading.cv-star-host h2{color:#fff}
 .cv-star-layer .vu circle{opacity:.9}
 html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
+html:not(.cv-parity-active)[data-f26-home] body{
+ background-image:linear-gradient(180deg,
+  var(--cv-chapter-top,#051DAA) 0%,
+  var(--cv-chapter-middle,#051DAA) 48%,
+  var(--cv-chapter-bottom,#051DAA) 100%)!important;
+ background-attachment:fixed!important;
+}
 html.cv-parity-active .cv-star-scene,html.cv-parity-active .cv-flat-nav{display:none}
 html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
 .cv-flat-nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:7px;font:500 10px/1.2 "JetBrains Mono",ui-monospace,monospace;opacity:0;pointer-events:none;transition:opacity .35s}
@@ -158,9 +166,18 @@ function scene(chapitres) {
   cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
   document.body.append(cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false;
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, dernierFond = '';
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
+  const sections = chapitres.map(c => c.section);
+  const desktop = matchMedia('(min-width: 940px)');
+  let flatTimeline, layoutDirty = true, wasExpo = false;
+  const invalidateLayout = () => { layoutDirty = true; };
+  const layoutObserver = new ResizeObserver(invalidateLayout);
+  for (const section of sections) layoutObserver.observe(section);
+  const page = document.querySelector('[data-f26-page]');
+  if (page) layoutObserver.observe(page);
+  addEventListener('resize', invalidateLayout);
   for (const c of chapitres) {
     const rd = alea(hache('scene|' + c.nom)); c.branches = [];
     c.fiches.slice(0, 10).forEach((fiche, k, l) => c.branches.push({ fiche, a: -2.9 + (k + 0.5) / l.length * 5.2 + (rd() - 0.5) * 0.4, r: 0.2 + rd() * 0.3, phase: rd() * 6.28 }));
@@ -176,23 +193,69 @@ function scene(chapitres) {
     if (document.hidden || t - dernier < 16) return; dernier = t;
     const expo = document.documentElement.classList.contains('cv-parity-active');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
+    // One continuous scroll coordinate governs both the page colour and
+    // the departure/arrival of chapter stars, in flat and Expo modes alike.
+    if (!expo && (layoutDirty || wasExpo)) {
+      flatTimeline = measureChapterStops(sections, section => section.getBoundingClientRect(), scrollY);
+      layoutDirty = false;
+    }
+    wasExpo = expo;
+    const timeline = (expo && window.__cvExpoChapterStops?.()) || flatTimeline || [];
+    const handover=chapterHandover(scrollY,timeline,H,desktop.matches);
+    const from=timeline[handover.from]?.colour||handover.colour;
+    const to=timeline[handover.to]?.colour||handover.colour;
+    const wave=chapterColourWave(from,to,chapterJourney(handover.linear??handover.progress).colour);
+    const fingerprint=[handover.colour,wave.top,wave.middle,wave.bottom].join('/');
+    if (fingerprint !== dernierFond) {
+      document.body.style.setProperty('--f26-page-blend',handover.colour,'important');
+      document.querySelector('.fall-navigation')?.style.setProperty('--f26-page-blend',wave.top,'important');
+      document.documentElement.style.setProperty('--cv-chapter-colour',handover.colour);
+      document.body.style.setProperty('--cv-chapter-top',wave.top);
+      document.body.style.setProperty('--cv-chapter-middle',wave.middle);
+      document.body.style.setProperty('--cv-chapter-bottom',wave.bottom);
+      dernierFond = fingerprint;
+    }
+    window.__cvChapterTransition={
+      from:handover.from,to:handover.to,progress:handover.progress,
+      colour:handover.colour,active:handover.active,wave,scroll:scrollY
+    };
     if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
-    for (const c of chapitres) {
+    for (let chapterIndex=0;chapterIndex<chapitres.length;chapterIndex++) {
+      const c=chapitres[chapterIndex];
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
-      if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
-      const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
-        g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
+      // Include the outgoing chapter even after its heading has left the
+      // viewport. Without this the previous star disappears before its
+      // crossfade can run. Both stars share the same fixed-screen anchor.
+      const pose=chapterStarPose(chapterIndex,handover);
+      const participating=pose.participating;
+      if (!participating&&(u < -1.7 || u > 1.5)) {
+        if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1');
+        else if (libre) c.titre.style.setProperty('--cv-fill', '0');
+        continue;
+      }
+      const weight=pose.weight;
+      const localAlpha=lisse(u,-1.6,-1.0)*(1-lisse(u,.8,1.3));
+      const intro=lisse(scrollY,H*.25,H*.8);
+      const presence=chapterStarPresence(chapterIndex,handover,localAlpha);
+      const alpha=presence*intro*pose.opacity;
+      const g=participating?1:lisse(u,-1.55,-.6),
+        // During handover, the fill follows the same scroll clock as the branches.
+        // The outgoing letters empty while the incoming title becomes solid.
+        plein=!libre?1:participating?pose.weight:lisse(u,.02,.34);
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;
-      const hx = W < 760 ? W * 0.5 : W * 0.6, hy = H * 0.56 - Math.max(0, u - 0.62) * H, R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g);
+      const anchor=chapterStarAnchor(chapterIndex,handover,W,H);
+      const hx=anchor.x,hy=participating?anchor.y:H*.56-Math.max(0,u-.62)*H;
+      const shrink=pose.scale;
+      const R = Math.max(W, H) * 0.62 * (0.55 + 0.45 * g) * shrink;
       ctx.save(); ctx.globalAlpha = alpha; ctx.lineCap = 'round';
       /* les branches passent derrière les fiches : la zone des fiches visibles est retirée du tracé */
       if (u > 0.15) { ctx.beginPath(); ctx.rect(0, 0, W, H); for (const f of c.fiches) { const q = f.getBoundingClientRect(); if (q.bottom > 0 && q.top < H) ctx.rect(q.left, q.top, q.width, q.height); } ctx.clip('evenodd'); }
       c.branches.forEach((b, k) => {
-        const gk = lisse(g * 1.6 - k * 0.02, 0, 1);
+        const initialGrowth = lisse(g * 1.6 - k * 0.02, 0, 1);
+        const gk = initialGrowth * (.35 + .65 * pose.opening);
         let x = hx + Math.cos(b.a) * R * b.r, y = hy + Math.sin(b.a) * R * b.r * 0.82;
         if (libre) { x += Math.sin(tt * 0.4 + b.phase) * 7; y += Math.cos(tt * 0.33 + b.phase * 1.7) * 6; const dx = x - souris.x, dy = y - souris.y, d = Math.hypot(dx, dy); if (d < 170 && d > 1) { const q = (1 - d / 170) * 22 / d * (b.fiche ? Math.min(1, d / 60) ** 2 : 1); x += dx * q; y += dy * q; } }
         x = hx + (x - hx) * gk; y = hy + (y - hy) * gk;
@@ -202,13 +265,15 @@ function scene(chapitres) {
         if (b.fiche) {
           if (libre) { const q = (tt * 0.28 + b.phase / 6.283) % 1, f = Math.min(1, q / 0.75); ctx.fillStyle = `rgba(255,255,255,${(q < 0.75 ? 0.95 : (1 - q) * 3.8).toFixed(2)})`; ctx.beginPath(); ctx.arc(hx + (x - hx) * f, hy + (y - hy) * f, 1.7, 0, 6.283); ctx.fill(); }
           ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1; ctx.strokeRect(x - 9, y - 7, 18, 14); ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(x - 6, y - 4, 12, 8);
-          cibles.push({ x, y, fiche: b.fiche });
+          cibles.push({ x, y, fiche: b.fiche, weight });
           if (survole) { const nom = libelle(b.fiche); ctx.font = '500 11px "JetBrains Mono",ui-monospace,monospace'; ctx.textAlign = x > W - 280 ? 'right' : 'left'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,10,90,.7)'; ctx.fillStyle = '#fff'; ctx.strokeText(nom, x + (x > W - 280 ? -16 : 16), y + 4); ctx.fillText(nom, x + (x > W - 280 ? -16 : 16), y + 4); }
         } else if (b.fin) { ctx.fillStyle = 'rgba(223,233,255,.85)'; ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 6.283); ctx.fill(); }
       });
       /* faisceau de fils vers les lettres du titre : ils arrivent par la droite, le remplissage les suit */
-      if (libre && u > -0.3 && plein < 1) {
-        const a = lisse(u, -0.3, -0.05) * (1 - lisse(plein, 0.85, 1));
+      if (libre && T.bottom > 0 && T.top < H && plein < 1) {
+        const range = document.createRange(); range.selectNodeContents(c.titre);
+        const L = range.getBoundingClientRect();
+        const a = lisse(Math.min(L.bottom, H - L.top), 0, 72) * (1 - lisse(plein, 0.85, 1));
         for (let k = 0; k < 8; k++) {
           const avance = Math.max(0.35, Math.min(1, plein * 8 - k + 1)), cx = L.right - (k + 0.5) / 8 * L.width, cy = L.top + L.height * 0.55;
           ctx.strokeStyle = `rgba(207,224,255,${(0.5 * a).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + (cx - hx) * avance, hy + (cy - hy) * avance); ctx.stroke();
@@ -218,8 +283,8 @@ function scene(chapitres) {
       /* branche qui relie le foyer au premier contenu du chapitre */
       const premiere = c.fiches[0];
       if (premiere && u > 0.3) {
-        const q = premiere.getBoundingClientRect(), a = lisse(u, 0.3, 0.5), cx = q.left + Math.min(q.width * 0.55, Math.max(40, hx - q.left)), cy = q.top;
-        if (cy > hy) { ctx.restore(); ctx.save(); ctx.globalAlpha = alpha * a; ctx.strokeStyle = 'rgba(95,230,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(cx, cy); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 3.2, 0, 6.283); ctx.stroke(); }
+        const q = premiere.getBoundingClientRect(), a = lisse(u, 0.3, 0.5) * lisse(H - q.top, 0, 72), cx = q.left + Math.min(q.width * 0.55, Math.max(40, hx - q.left)), cy = q.top;
+        if (cy > hy && a > .004) { ctx.restore(); ctx.save(); ctx.globalAlpha = alpha * a; ctx.strokeStyle = 'rgba(95,230,255,.95)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(cx, cy); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 3.2, 0, 6.283); ctx.stroke(); }
       }
       ctx.fillStyle = '#fff'; ctx.fillRect(hx - 3.5, hy - 3.5, 7, 7);
       ctx.restore();
@@ -232,7 +297,8 @@ function scene(chapitres) {
   addEventListener('pointermove', (ev) => { souris.x = ev.clientX; souris.y = ev.clientY; }, { passive: true });
   document.addEventListener('click', (ev) => {
     if (document.documentElement.classList.contains('cv-parity-active') || ev.target.closest('a,button,input,select,textarea,[role=slider],canvas')) return;
-    const q = cibles.find((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16); if (!q) return;
+    const q = cibles.filter((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16)
+      .sort((a,b)=>b.weight-a.weight)[0]; if (!q) return;
     ev.preventDefault(); q.fiche.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
   }, { capture: true });
   window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length };
