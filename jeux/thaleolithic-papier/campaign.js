@@ -19,6 +19,14 @@ export const RECIPES = [
   { id: 'craft:tool', title: 'Fabriquer une hache de pierre', site: 'atelier_silex', durationSeconds: 3, minimumCompetence: 15, costs: [{ id: 'flint', amount: 2 }, { id: 'wood', amount: 1 }, { id: 'fiber', amount: 1 }], effects: [{ kind: 'resource', target: 'tool', value: 1 }, { kind: 'stat', target: 'fatigue', value: 3 }] },
 ];
 const TRANSFERABLE = ['wood', 'stone', 'flint', 'fiber', 'food', 'tool'];
+// les travaux qu'on confie aux habitants (CampaignTribal.PrepareTribalActions) et les comportements (TribalPeopleView.RoutineName)
+export const PRODUCTIONS = [
+  { id: 'work:wood', title: 'Collecter du bois', site: 'bois_construction', resource: 'wood', durationSeconds: 12, minimumCompetence: 15 },
+  { id: 'work:stone', title: 'Extraire de la pierre', site: 'pierre_carriere', resource: 'stone', durationSeconds: 14, minimumCompetence: 25 },
+  { id: 'work:fiber', title: 'Collecter des fibres', site: 'stockage', resource: 'fiber', durationSeconds: 10, minimumCompetence: 10 },
+  { id: 'work:food', title: 'Préparer des provisions', site: 'foyer', resource: 'food', durationSeconds: 12, minimumCompetence: 15 },
+];
+export const BEHAVIOUR = { MOVE_TO_TASK: 'Se rend au poste de travail', WORK: 'Travaille sur place', REST: 'Se repose', EAT: 'Prend un repas', EVACUATE: 'Évacue la zone', DEAD: 'Décédé', IDLE: 'Présent dans le village' };
 // titres et budgets des actes, comme PrepareCampaignV17
 const ACT_TITLES = ['LE GRAND RÉVEIL · LE CONTEXTE', 'LE CHEF CONTRE-ATTAQUE', 'LA CHASSE AUX RISQUES', 'LA TRIBU A DES MOYENS', 'LES 15 DIFFÉRENCES', 'AU FEU !!!', 'LES ANCIENS VIENNENT AUDITER', 'LE PROCHAIN CYCLE'];
 export const MENHIR_QUEST = 'M_II_ROLES', MENHIR_ACTION = 'MENHIR_DUEL';
@@ -48,7 +56,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
 
   // ---- état sauvegardé --------------------------------------------------------------------------------------------
   const fresh = () => ({ version: 1, flags: {}, done: [], evidence: [], progress: {}, menhir: null, ending: false, wallSeconds: 0, risks: {}, dead: [], buildings: {}, dialogue: null, working: null,
-    resources: { ...Object.fromEntries(base.resources.map((r) => [r.id, r.value])), flint: 0, tool: 0, clay: 0, straw: 0, knowledge: 0 }, equipped: '', reserve: {},
+    resources: { ...Object.fromEntries(base.resources.map((r) => [r.id, r.value])), flint: 0, tool: 0, clay: 0, straw: 0, knowledge: 0 }, equipped: '', reserve: {}, tasks: [],
     player: Object.fromEntries(base.stats.map((x) => [x.id, x.value])),
     // l'état de chaque habitant (CharacterState) : compétence 15 pour Dylan, 10 pour le Petit Os, 70 pour les autres
     people: Object.fromEntries(characters.map((c) => [c.id, { life: 100, energy: 100, fatigue: 0, competence: c.id === 'dylan' ? 15 : c.id === 'petit_os' ? 10 : 70, hunger: 20, morale: 60, trust: 25, assignment: '' }])) });
@@ -242,6 +250,62 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     if (deposit && state.resources.tool <= 0) state.equipped = '';
     feedback = changed ? (deposit ? 'Objets déposés aux réserves.' : 'Objets récupérés aux réserves.') : 'Aucun objet disponible pour ce transfert.'; save(); emit(); return changed;
   }
+  // ---- la file de tâches des habitants (CanAssignTask, QueueTask, CancelTask, TribalTaskRuntime.Handle) -------------
+  const terminal = (t) => t.status === 'done' || t.status === 'cancelled' || t.status === 'failed';
+  function canAssignTask(worker, actionId) {
+    const m = state.people[worker], a = PRODUCTIONS.find((x) => x.id === actionId);
+    if (!m || state.dead.includes(worker) || worker === 'dylan') return 'Ce membre ne peut pas recevoir cette tâche.';
+    if (m.life < 50) return 'Ce membre doit d’abord recevoir des soins.';
+    if (!a) return 'Cette activité ne possède pas de poste de travail accessible.';
+    if (m.competence < a.minimumCompetence) return 'Compétence nécessaire : ' + a.minimumCompetence;
+    return '';
+  }
+  function queueTask(worker, actionId) {
+    const why = canAssignTask(worker, actionId); if (why) { feedback = why; emit(); return false; }
+    if (state.tasks.filter((t) => t.workerId === worker && !terminal(t)).length >= 3) { feedback = 'Ce membre possède déjà trois tâches en attente.'; emit(); return false; }
+    const a = PRODUCTIONS.find((x) => x.id === actionId);
+    state.tasks.push({ id: Math.random().toString(36).slice(2, 10), workerId: worker, actionId, status: 'queued', reason: '', workedSeconds: 0, duration: a.durationSeconds }); save(); emit(); return true;
+  }
+  function cancelTask(id) { const t = state.tasks.find((x) => x.id === id); if (!t || terminal(t)) return false; t.status = 'cancelled'; t.reason = 'Annulée avant attribution du résultat.'; save(); emit(); return true; }
+  const tasksOf = (worker) => state.tasks.filter((t) => t.workerId === worker && t.status !== 'cancelled');
+  // ---- les besoins des habitants (VillagerBrain) : usure, repos (l'abri vérifié aide), repas au foyer, tâches, routine -
+  // at(id, place) dit si la carte de l'habitant est arrivée ; moving(id) s'il marche. Le village déplace les cartes vers goal.
+  const brain = {};
+  function villageStep(dt, at, moving) {
+    let changed = false;
+    for (const c of characters) {
+      const id = c.id; if (id === 'dylan') continue;
+      const m = state.people[id], b = (brain[id] ??= { behaviour: 'IDLE', goal: 'home', resting: false, timer: 0 });
+      if (state.dead.includes(id)) { b.behaviour = 'DEAD'; b.goal = null; for (const t of state.tasks) if (t.workerId === id && !terminal(t)) { t.status = 'failed'; t.reason = 'Le membre n’est plus disponible.'; changed = true; } continue; }
+      const mv = moving(id);
+      m.energy = Math.max(0, m.energy - (mv ? 0.14 : 0.055) * dt); m.fatigue = Math.min(100, m.fatigue + (mv ? 0.13 : 0.055) * dt); m.hunger = Math.min(100, m.hunger + 0.065 * dt);
+      if (m.assignment === 'repos' || m.fatigue > 68 || m.energy < 25 || b.resting) {
+        b.behaviour = 'REST'; b.resting = true; b.goal = 'home';
+        if (at(id, 'home')) { const k = (state.buildings.habitations ?? 0) >= 2 ? 1.8 : 1; m.energy = Math.min(100, m.energy + dt * 1.4 * k); m.fatigue = Math.max(0, m.fatigue - dt * 1.3 * k); if (m.energy > 80 && m.fatigue < 24 && m.assignment !== 'repos') b.resting = false; }
+        continue;
+      }
+      if (m.hunger > 72) { b.behaviour = 'EAT'; b.goal = 'foyer'; if (at(id, 'foyer') && (b.timer += dt) > 5) { m.hunger = Math.max(0, m.hunger - 45); b.timer = 0; } continue; }
+      const t = state.tasks.find((x) => x.workerId === id && !terminal(x));
+      if (t) {
+        const why = canAssignTask(id, t.actionId); if (why) { t.status = 'blocked'; t.reason = why; b.goal = 'home'; changed = true; continue; }
+        const a = PRODUCTIONS.find((x) => x.id === t.actionId); b.goal = a.site;
+        if (!at(id, a.site)) { t.status = 'moving'; b.behaviour = 'MOVE_TO_TASK'; continue; }
+        t.status = 'working'; t.reason = ''; b.behaviour = 'WORK'; t.workedSeconds = Math.min(t.duration, t.workedSeconds + dt);
+        if (t.workedSeconds >= t.duration) { t.status = 'done'; state.resources[a.resource] = (state.resources[a.resource] ?? 0) + 1; changed = true; }
+        continue;
+      }
+      b.behaviour = 'IDLE'; b.goal = 'home';
+    }
+    if (changed) { save(); emit(); }
+  }
+  // ---- la survie de Dylan (PlayerSurvival) : marcher use, s'arrêter repose, l'infirmerie soigne, la faim avance -------
+  function survive(dt, moving, atRest) {
+    const p = state.player, busy = !!state.working;
+    let energy = moving ? -0.25 : 2.5, fatigue = busy ? 0.45 : moving ? 0.07 : -0.12;
+    if (!moving && !busy && atRest) { fatigue = -1; energy = 4; }
+    p.energy = Math.max(0, Math.min(100, p.energy + energy * dt)); p.fatigue = Math.max(0, Math.min(100, p.fatigue + fatigue * dt)); p.food = Math.max(0, Math.min(100, p.food - 0.015 * dt));
+  }
+  const warnings = () => [state.player.life < 50 && '+ Blessure', state.player.fatigue >= 70 && '! Fatigue critique', state.player.food < 20 && '! Faim'].filter(Boolean);
   function rest(id) { const m = state.people[id]; if (!m || id === 'dylan' || state.dead.includes(id)) return false; m.assignment = m.assignment === 'repos' ? '' : 'repos'; save(); emit(); return true; }
   const memberStatus = (id) => { const m = state.people[id]; return state.dead.includes(id) ? 'Décédé' : m.life < 50 ? 'Blessé' : m.assignment === 'repos' ? 'Au repos' : 'Disponible'; };
   // l'arbre Technologie (TribalKnowledgeView) : missions liées à une notion, vérification (le duel par critère 5.1 à 5.4)
@@ -323,6 +387,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   return {
     data: { characters, activities, quests, acts, chain: CHAIN },
     get state() { return state; }, get current() { return current; }, get feedback() { return feedback; }, get timedOut() { return timedOut; },
+    canAssignTask, queueTask, cancelTask, tasksOf, villageStep, survive, warnings, brain: (id) => brain[id],
     quantity, craft, craftCheck, useItem, transfer, rest, memberStatus, clauseQuests, clauseVerified, clauseProgress, clauseStatus,
     progress, frontier, nextAction, nextSite, kindOf, canExecute, startAction, choose, dialogue: () => dialogues.get(state.dialogue) || null, action: (id) => actions.get(id), questDone, guideOpen, workReady, differencesStatus, verified,
     begin, dismissGuide, suspend, submit, selectTablet, confirmAssembly, allocate, confirmAllocation, performWork, verifyWork, moveLane, projectileHit,

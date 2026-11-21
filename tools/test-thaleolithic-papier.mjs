@@ -69,5 +69,20 @@ check(!c.transfer('wood', 1, true, false, false), 'transfert hors des réserves 
 check(c.transfer('tool', 1, true, false, true) && c.state.equipped === '', 'dépôt de la hache : elle reste équipée');
 check(!c.transfer('notebook', 1, true, false, true), 'le carnet a été transféré');
 check(c.rest('tarek') && c.memberStatus('tarek') === 'Au repos' && !c.rest('dylan'), 'repos mal géré');
+// file de tâches, besoins des habitants, survie de Dylan
+check(!c.queueTask('petit_os', 'work:stone') && /Compétence/.test(c.feedback), 'le Petit Os extrait de la pierre (compétence 10 < 25)');
+check(!c.queueTask('dylan', 'work:wood'), 'tâche confiée à Dylan');
+check(c.queueTask('tarek', 'work:wood') && c.queueTask('tarek', 'work:wood') && c.queueTask('tarek', 'work:food'), 'tâches refusées à Tarek');
+check(!c.queueTask('tarek', 'work:fiber') && /trois tâches/.test(c.feedback), 'quatrième tâche acceptée');
+const w0 = c.state.resources.wood, f0 = c.state.resources.food;
+c.state.people.tarek.assignment = ''; c.state.people.tarek.fatigue = 0; c.state.people.tarek.energy = 100; c.state.people.tarek.hunger = 0;
+let away = true; const at = (id, place) => !(id === 'tarek' && away && place !== 'home'), still = () => false;
+c.villageStep(0.2, at, still); check(c.tasksOf('tarek')[0].status === 'moving', 'la tâche ne part pas vers son poste');
+away = false; for (let t = 0; t < 40; t += 0.2) c.villageStep(0.2, at, still);
+check(c.state.resources.wood === w0 + 2 && c.state.resources.food === f0 + 1, 'tâches terminées sans produire');
+c.state.people.orok.fatigue = 70; c.villageStep(0.2, at, still); check(c.brain('orok').behaviour === 'REST', 'un habitant fatigué ne se repose pas');
+c.state.people.sila.hunger = 80; for (let t = 0; t < 5.4; t += 0.2) c.villageStep(0.2, at, still); check(c.state.people.sila.hunger < 40, 'un habitant affamé ne mange pas');
+const e = c.state.player.energy; c.state.player.fatigue = 50; c.survive(1, true, false); check(c.state.player.energy === e - 0.25, 'marcher n’use pas l’énergie');
+c.survive(1, false, true); check(c.state.player.fatigue === 50.07 - 1 && c.warnings().length >= 0, 'l’infirmerie ne repose pas');
 if (fail.length) { console.error(fail.join('\n')); process.exit(1); }
 console.log(`PASS : ${c.data.quests.length} quêtes, ${c.state.done.length} actions, ${modes.size} mécaniques (${[...modes].join(', ')}), ${c.state.evidence.length} preuves au Carnet.`);

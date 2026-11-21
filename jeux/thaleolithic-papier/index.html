@@ -67,6 +67,7 @@
   .tree { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 4px; } .tree .btn { display: block; width: 100%; font-size: 11px; padding: 5px 6px; } .tree .btn.ok { background: #dfe6c8; }
   .map { width: 100%; height: auto; margin: 6px 0; background: #d8c8a0; border: 1px solid var(--edge); } .map .site { cursor: pointer; } .map circle { fill: #f3e6cc; stroke: var(--ink); stroke-width: 2; }
   .map .site.on circle { fill: var(--accent); } .map text { font: 700 11px Georgia, serif; text-anchor: middle; fill: var(--ink); paint-order: stroke; stroke: #f3e6cc; stroke-width: 3px; } .map .me { fill: #4a6a8a; }
+  #vitals { margin-top: 6px !important; font-size: 11px; } #vitals span { margin-right: 6px; white-space: nowrap; } #vitals b { display: block; color: var(--accent); font-size: 12px; }
   @media (pointer: coarse) { .pad { display: grid; } #prompt { left: auto; right: 14px; transform: none; } }
   @media (max-width: 640px) { #panel { top: auto; bottom: 10px; transform: none; max-height: 62vh; } #hud { max-width: calc(100vw - 120px); } }
 </style>
@@ -74,7 +75,7 @@
 </head>
 <body>
 <div class="hint" id="hint"></div>
-<div id="hud" class="paper" aria-live="polite"><p id="act"></p><p id="quest"></p><p id="next"></p><div class="track"><div id="progress"></div></div></div>
+<div id="hud" class="paper" aria-live="polite"><p id="act"></p><p id="quest"></p><p id="next"></p><div class="track"><div id="progress"></div></div><p id="vitals"></p></div>
 <nav id="tools" aria-label="Écrans"><button class="btn" id="btn-people" type="button">Peuple</button><button class="btn" id="btn-map" type="button">Carte</button><button class="btn" id="btn-inventory" type="button">Inventaire</button><button class="btn" id="btn-tech" type="button">Technologie</button><button class="btn" id="btn-quests" type="button">Quêtes</button><button class="btn" id="btn-journal" type="button">Codex</button></nav>
 <div id="pin" class="paper" hidden><b>!</b><span></span></div>
 <button id="prompt" class="paper" type="button" hidden><kbd>E</kbd><span></span></button>

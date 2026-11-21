@@ -15,8 +15,13 @@ const { H } = world;
 
 // the marker over the place where the next action happens (or the place chosen on the map)
 const pin = document.getElementById('pin'), v = new H.THREE.Vector3();
+let last = H.hero.group.position.clone();
 H.onStep((t, dt) => {
   ui.step(dt);
+  // the village lives: the tribe's needs and tasks (not during the evacuation, which leads everyone itself), Dylan's survival
+  if (!world.evacuating && dt > 0) { campaign.villageStep(dt, world.arrivedAt, world.moving); world.lead(campaign); }
+  const p = H.hero.group.position, moved = p.distanceTo(last) > 1e-4; last.copy(p);
+  if (dt > 0) campaign.survive(dt, moved, world.near('repos', 4));
   if (world.guide && world.near(world.guide)) world.guide = null;   // a place chosen on the map: the marker goes there until Dylan arrives
   const site = world.guide || campaign.nextSite(), s = site && world.SITES[site];
   if (!s || ui.mode) { pin.hidden = true; return; }

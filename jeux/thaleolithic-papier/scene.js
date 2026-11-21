@@ -31,6 +31,7 @@ export const SITES = {
   chasse_clairiere: { x: -21, z: -23, label: 'La clairière de chasse' }, habitations: { x: 8, z: -25, label: 'Les habitations' },
   aurelien: { x: -7, z: -5, label: 'Aurélien' }, mathieu: { x: 6, z: -1, label: 'Mathieu' }, lorette: { x: -13, z: -10, label: 'Lorette' },
   nork: { x: -9, z: -24, label: 'Ouways' }, alban: { x: 5.5, z: -12.5, label: 'Alban' },
+  repos: { x: -6, z: 8.5, label: 'L’infirmerie' }, bois_construction: { x: -24, z: -9, label: 'Bûcherons' },
 };
 // where each villager stands (the givers stand on their own site)
 const HOME = { aurelien: 'aurelien', mathieu: 'mathieu', lorette: 'lorette', nork: 'nork', alban: 'alban', georges: [-16, 6], eliott: [-18, -20], mathilde: [2.5, 4.5],
@@ -162,6 +163,8 @@ export function buildVillage(campaign) {
   popup(...pots(), { x: SITES.stockage.x, z: SITES.stockage.z - 1.4 }); popup(...logs(), { x: SITES.stockage.x + 2.5, z: SITES.stockage.z - 0.4 });
   popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#c8b090'); D.rect(g, -2, 0, 4, 2.6, 0.1); g.fillStyle = ink(C.red, 'print'); D.ell(g, -0.9, 1.4, 0.45, 0.3); D.poly(g, [[0.2, 0.6], [1.6, 1.0], [0.6, 2.0]]); g.fillStyle = ink(C.ink, 'print'); for (let k = 0; k < 4; k++) D.rect(g, -1.6 + k * 0.9, 0.4, 0.08, 0.5); }, { w: 4.4, h: 2.8, name: 'painted wall' }), { x: SITES.nork.x - 0.5, z: SITES.nork.z - 1.6, yaw: 0.1 });
   mark(SITES.chasse_clairiere.x, SITES.chasse_clairiere.z, 4);
+  popup(...logs(), { x: SITES.bois_construction.x + 1.5, z: SITES.bois_construction.z - 1.6 }); popup(...logs(), { x: SITES.bois_construction.x - 1.8, z: SITES.bois_construction.z - 1.2, yaw: 0.4 });
+  popup(...pots(), { x: SITES.repos.x + 1.8, z: SITES.repos.z - 1.2 });
   // the far ridge with mammoths, crimson pines all round, rocks and tufts
   for (const [x, z, s] of [[-30, -42, 1.4], [-10, -46, 1.2], [18, -44, 1.5]]) H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 26 - k * 4, h: 7 - k * 1.6, bumps: 2 }), rnd), paint: (P) => { base2(P, sh('#8a6a8a', -0.12 + k * 0.1), 0.08); shadeIn(P, '#8a6a8a', 0.25); }, d: k * 1.6 })), { scale: s });
   const herd = [];
@@ -221,6 +224,16 @@ export function buildVillage(campaign) {
   const assembly = SITES.rassemblement;
   function sendToAssembly() { let k = 0; for (const p of Object.values(people)) { if (p.h.held) continue; const a = (k++ / 18) * 6.283; p.target = [assembly.x + Math.cos(a) * 1.8, assembly.z + Math.sin(a) * 1.4]; } }
   function sendHome() { for (const p of Object.values(people)) p.target = p.home.slice(); }
+  // the tribe's daily life (campaign.villageStep decides, the cards walk): each villager to their goal, a slot round a site
+  const ids = Object.keys(people), slotOf = (id, site) => { const s = SITES[site], a = ids.indexOf(id) * 2.4; return [s.x + Math.cos(a) * 1.5, s.z + Math.sin(a) * 1.2]; };
+  const goalPoint = (id, place) => (place === 'home' ? people[id].home : SITES[place] ? slotOf(id, place) : null);
+  const arrivedAt = (id, place) => { const p = people[id], g = goalPoint(id, place); return !!g && Math.hypot(p.x - g[0], p.z - g[1]) < 0.4; };
+  function lead(campaign) {
+    for (const id of ids) {
+      const b = campaign.brain(id), p = people[id]; if (!b || !b.goal || p.h.held) continue;
+      const g = goalPoint(id, b.goal); if (g && (!p.target || p.target[0] !== g[0] || p.target[1] !== g[1]) && !arrivedAt(id, b.goal)) p.target = g;
+    }
+  }
   const everyoneAtAssembly = () => Object.values(people).every((p) => p.h.held || Math.hypot(p.x - assembly.x, p.z - assembly.z) < 3);
   let shelterUp = false;
   function sync() {
@@ -239,5 +252,5 @@ export function buildVillage(campaign) {
     }
   });
 
-  return { H, SITES, RIVER, people, hero, sendToAssembly, sendHome, everyoneAtAssembly, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }

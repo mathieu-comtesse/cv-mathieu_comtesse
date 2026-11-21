@@ -3,7 +3,7 @@
 // préparation, retour d'expérience, tableau, audit, revue, correction, amélioration), analyse de risque (mesure puis
 // vérification), répartition, assemblage des tablettes, 15 différences, point sécurité sous les projectiles, course au
 // rassemblement, Duel des menhirs, dialogues à choix, Quêtes et Carnet des Crânes.
-import { STAGES, ITEMS, RECIPES } from './campaign.js';
+import { STAGES, ITEMS, RECIPES, PRODUCTIONS, BEHAVIOUR } from './campaign.js';
 import { CLAUSES } from './knowledge.js';
 
 const MODE_LABEL = { sort: 'Classer', pair: 'Associer', scope: 'Délimiter', assemble: 'Assembler', risk: 'Analyser le risque', vote: 'Voter', allocation: 'Répartir', briefing: 'Point sécurité',
@@ -13,6 +13,7 @@ const $ = (id) => document.getElementById(id);
 
 export function createUI(campaign, world) {
   const root = $('panel'), body = $('panel-body');
+  const meter = (v, cls = '') => `<span class="meter ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
   let mode = null;          // 'activity' | 'duel' | 'dialogue' | 'quest' | 'journal' | null
   const open = (m) => { mode = m; root.hidden = false; render(); };
   const close = () => { mode = null; root.hidden = true; };
@@ -27,6 +28,8 @@ export function createUI(campaign, world) {
     const id = campaign.nextAction(), kind = id && campaign.kindOf(id);
     const title = !id ? '' : kind === 'duel' ? 'Le Duel des menhirs' : kind === 'activity' ? campaign.data.activities.get(id).title : campaign.action(id).title;
     $('next').textContent = title;
+    const st = campaign.state.player, warn = campaign.warnings();
+    $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
     const done = campaign.data.quests.filter((x) => campaign.questDone(x)).length;
     $('progress').style.width = (done / campaign.data.quests.length * 100) + '%';
   }
@@ -187,32 +190,44 @@ export function createUI(campaign, world) {
   }
 
   // ---- Peuple (TribalPeopleView) : membres, état réel, fiche, responsabilités, repos, activités liées -----------------
-  let person = 'mathieu', peopleTab = 'INFORMATIONS', item = 'wood', invTab = 'Objet', clause = '4.1';
+  let picker = false, person = 'mathieu', peopleTab = 'TÂCHES', item = 'wood', invTab = 'Objet', clause = '4.1';
   const memberRole = (id, role) => id === 'dylan' ? 'Apprenti · joueur' : id === 'mathieu' ? 'Mentor · prévention' : id === 'aurelien' ? 'Chef de la tribu' : (role || '').split('·')[0].trim();
-  const meter = (v, cls = '') => `<span class="meter ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
   function renderPeople() {
     const chars = campaign.data.characters, alive = chars.filter((c) => !campaign.state.dead.includes(c.id)).length;
     body.innerHTML = `<p class="kicker">Écran Peuple</p><h2>La tribu des Crânes Fendus</h2><p class="count">${alive} / ${chars.length} membres</p>`;
     const list = document.createElement('div'); list.className = 'people';
     for (const c of chars) {
       const m = campaign.state.people[c.id], dead = campaign.state.dead.includes(c.id);
-      const b = btn(`<b>${esc(c.name)}</b><small>${esc(memberRole(c.id, c.role))}</small><small>${campaign.memberStatus(c.id)}</small><small>Savoir ${meter(m.competence)} Fatigue ${meter(m.fatigue, 'cold')}</small>`, () => { person = c.id; render(); }, (c.id === person ? 'sel ' : '') + (dead ? 'done' : ''));
+      const doing = c.id === 'dylan' ? 'Joueur' : BEHAVIOUR[campaign.brain(c.id)?.behaviour || (dead ? 'DEAD' : 'IDLE')];
+      const b = btn(`<b>${esc(c.name)}</b><small>${campaign.memberStatus(c.id)} · ${esc(doing)}</small><small>${meter(m.competence)}${meter(m.fatigue, 'cold')}</small>`, () => { person = c.id; picker = false; render(); }, (c.id === person ? 'sel ' : '') + (dead ? 'done' : ''));
       list.append(b);
     }
-    body.append(list);
     const c = campaign.character(person), m = campaign.state.people[person], dead = campaign.state.dead.includes(person);
     const tabs = document.createElement('div'); tabs.className = 'tabs';
-    for (const t of ['INFORMATIONS', 'RESPONSABILITÉS', 'ACTIVITÉS']) tabs.append(btn(t, () => { peopleTab = t; render(); }, t === peopleTab ? 'sel' : ''));
-    body.insertAdjacentHTML('beforeend', `<h3>${esc(c.name.toUpperCase())}</h3>`); body.append(tabs);
-    if (peopleTab === 'ACTIVITÉS') {
-      const acts = [...campaign.data.activities.values()].filter((a) => a.actor === person || a.site === person);
-      body.insertAdjacentHTML('beforeend', acts.length ? acts.map((a) => `<div class="quest ${campaign.state.done.includes(a.id) ? 'done' : ''}"><b>${campaign.state.done.includes(a.id) ? '✓ ' : ''}${esc(a.title)}</b><span>ISO 45001 · ${esc(a.clause)}</span></div>`).join('') : `<p class="said">${person === 'dylan' ? 'Dylan · contrôlé par le joueur.' : 'Activité régulière au village.'}</p>`);
-      body.insertAdjacentHTML('beforeend', '<p class="small">La file de tâches des habitants du jeu Unity n’est pas encore portée dans cette édition.</p>');
+    for (const t of ['TÂCHES', 'INFORMATIONS', 'RESPONSABILITÉS']) tabs.append(btn(t, () => { peopleTab = t; picker = false; render(); }, t === peopleTab ? 'sel' : ''));
+    body.insertAdjacentHTML('beforeend', `<h3>${esc(c.name.toUpperCase())} · <small>${esc(memberRole(person, c.role))}</small></h3>`); body.append(tabs);
+    if (peopleTab === 'TÂCHES') {
+      if (picker) {   // the work that can be given, with the reason it cannot when it cannot
+        for (const a of PRODUCTIONS) { const why = campaign.canAssignTask(person, a.id); const b = btn(`<b>${esc(a.title)}</b><small>${why ? esc(why) : `${esc(world.SITES[a.site].label)} · ${a.durationSeconds} s · compétence ${a.minimumCompetence}`}</small>`, () => { if (campaign.queueTask(person, a.id)) picker = false; render(); }, why ? 'done' : ''); body.append(b); }
+        body.append(btn('Retour', () => { picker = false; render(); }, 'quiet'));
+      } else {
+        const all = campaign.tasksOf(person), open_ = all.filter((t) => !['done', 'failed'].includes(t.status)), shown = open_.concat(all.filter((t) => t.status === 'done').slice(-3).reverse());
+        const label = { done: '✓ FAIT', blocked: 'BLOQUÉ', moving: 'EN ROUTE', working: 'EN COURS', queued: 'EN ATTENTE', failed: 'ÉCHOUÉE' };
+        for (const t of shown) {
+          const a = PRODUCTIONS.find((x) => x.id === t.actionId), pc = t.status === 'done' ? 100 : Math.round(100 * t.workedSeconds / Math.max(1, t.duration));
+          body.insertAdjacentHTML('beforeend', `<div class="quest ${t.status === 'done' ? 'done' : 'now'}"><b>${esc(a.title)}</b><span>${esc(world.SITES[a.site].label)} · ${pc} % ${meter(pc)} · ${label[t.status]}</span>${t.status === 'blocked' ? `<p class="small">${esc(t.reason)}</p>` : ''}</div>`);
+          if (!['done', 'failed'].includes(t.status)) body.append(btn('✕ Annuler', () => campaign.cancelTask(t.id), 'quiet'));
+        }
+        if (!shown.length) body.insertAdjacentHTML('beforeend', `<div class="quest"><b>${person === 'dylan' ? 'DYLAN · CONTRÔLÉ PAR LE JOUEUR' : 'ACTIVITÉ RÉGULIÈRE'}</b><span>${esc(person === 'dylan' ? '' : BEHAVIOUR[campaign.brain(person)?.behaviour || 'IDLE'])}</span></div>`);
+        const add = btn('+ Ajouter une tâche', () => { picker = true; render(); }, 'go'); add.disabled = dead || person === 'dylan' || open_.length >= 3; body.append(add);
+        if (campaign.feedback && peopleTab === 'TÂCHES') body.insertAdjacentHTML('beforeend', `<p class="fb">${esc(campaign.feedback)}</p>`);
+      }
     } else {
       const resp = person === 'aurelien' ? 'Responsabilité : chef de la tribu.' : person === 'mathieu' ? 'Responsabilité : mentor de Dylan et prévention.' : 'Fonction : ' + c.role;
       body.insertAdjacentHTML('beforeend', `<div class="card"><p>${esc(peopleTab === 'RESPONSABILITÉS' ? resp : c.role)}</p><p class="small">${dead ? 'Décédé · aucune affectation possible' : `Vie ${m.life}/100 · Énergie ${m.energy}/100 · Fatigue ${m.fatigue}/100 · Faim ${m.hunger}/100 · Moral ${m.morale}/100 · Compétence ${m.competence}`}</p><p class="small">État : ${campaign.memberStatus(person)}</p></div>`);
       if (!dead && person !== 'dylan') body.append(btn(m.assignment === 'repos' ? 'Reprendre l’activité' : 'Ordonner un repos', () => campaign.rest(person), 'go'));
     }
+    body.insertAdjacentHTML('beforeend', '<p class="count">La tribu · savoir et fatigue</p>'); body.append(list);
     body.append(btn('Fermer', close, 'quiet'));
   }
   // ---- Carte (TribalMapView) : le village vu de haut, Dylan, l'objectif ; choisir un lieu pose le repère dessus ------
@@ -321,7 +336,7 @@ export function createUI(campaign, world) {
         campaign.validateAssembly(world.near('rassemblement', 3.6), world.everyoneAtAssembly(), Object.keys(world.people));
       } else if (world.evacuating && !a) { world.evacuating = false; world.sendHome(); }
       // timers and the duel's bars: redrawn ~3 times a second (rebuilding buttons every frame would swallow clicks)
-      if ((refresh += dt) > 0.3) { refresh = 0; if ((mode === 'activity' && (a?.mode === 'risk' || a?.duration)) || (mode === 'duel' && campaign.duel.s?.phase === 'combat')) render(); }
+      if ((refresh += dt) > 0.3) { refresh = 0; hud(); if ((mode === 'activity' && (a?.mode === 'risk' || a?.duration)) || (mode === 'duel' && campaign.duel.s?.phase === 'combat') || (mode === 'people' && !picker)) render(); }
       prompt();
     },
     open, close, act, get mode() { return mode; },
