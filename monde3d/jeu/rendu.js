@@ -21,6 +21,7 @@ const FRAG = `
 precision highp float;
 uniform sampler2D tC; uniform highp sampler2D tD;
 uniform vec2 res; uniform float near; uniform float far; uniform float pixAngle; uniform float fondu; uniform float plancher;
+uniform bool vignette;
 uniform mat4 projInv; uniform mat4 camMonde; uniform vec3 astre; uniform vec3 astre2;
 uniform vec3 cZenith; uniform vec3 cHorizon; uniform vec3 cEncre; uniform vec3 cOmbre;
 varying vec2 vUv;
@@ -59,6 +60,7 @@ void main(){
 
   vec3 col;
   if (d >= 0.99999) {
+    if (vignette) { gl_FragColor = vec4(0.0); return; }
     vec4 v = projInv * vec4(vUv * 2.0 - 1.0, 1.0, 1.0);
     vec3 dir = normalize((camMonde * vec4(v.xyz / v.w, 0.0)).xyz);
     col = mix(cHorizon, cZenith, smoothstep(-0.02, 0.55, dir.y));
@@ -88,8 +90,8 @@ void main(){
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-export function creerRendu(canvas, { qualiteMax = 2 } = {}) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+export function creerRendu(canvas, { qualiteMax = 2, vignette = false } = {}) {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: vignette, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -99,7 +101,7 @@ export function creerRendu(canvas, { qualiteMax = 2 } = {}) {
   cible.depthTexture.minFilter = cible.depthTexture.magFilter = THREE.NearestFilter;
   const u = {
     tC: { value: cible.texture }, tD: { value: cible.depthTexture }, res: { value: new THREE.Vector2(4, 4) },
-    near: { value: 0.3 }, far: { value: 2000 }, pixAngle: { value: 0.001 }, plancher: { value: 6e-7 }, fondu: { value: 1 },
+    near: { value: 0.3 }, far: { value: 2000 }, pixAngle: { value: 0.001 }, plancher: { value: 6e-7 }, fondu: { value: 1 }, vignette: { value: vignette },
     projInv: { value: new THREE.Matrix4() }, camMonde: { value: new THREE.Matrix4() },
     astre: { value: new THREE.Vector3(-0.45, 0.42, -0.79).normalize() }, astre2: { value: new THREE.Vector3(0.62, 0.3, -0.72).normalize() },
     cZenith: { value: new THREE.Vector3(0.40, 0.66, 0.60) }, cHorizon: { value: new THREE.Vector3(0.87, 0.86, 0.72) },

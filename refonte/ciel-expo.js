@@ -1,4 +1,4 @@
-import { Ciel, dansQuad, hache } from './moteur.js?v=m25';
+import { Ciel, dansQuad, hache } from './moteur.js?v=m26';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['131,185,244', '154,169,255', '133,202,226'];

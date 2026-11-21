@@ -157,14 +157,15 @@ export function cvFont(family = 'Inter, ui-sans-serif, system-ui, sans-serif', w
   return font;
 }
 
-export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1 } = {}) {
+export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1, letterSpacing = 0 } = {}) {
   const c = ctxMesure(font), mots = texte.split(/\s+/).filter(Boolean), lignes = [];
+  c.letterSpacing = letterSpacing * CORPS + 'px';
   let ligne = '';
   for (const m of mots) { const essai = ligne ? ligne + ' ' + m : m; if (ligne && c.measureText(essai).width / CORPS > maxWidth) { lignes.push(ligne); ligne = m; } else ligne = essai; }
   if (ligne) lignes.push(ligne);
   const marge = 8, larg = Math.ceil(Math.max(1, ...lignes.map((l) => c.measureText(l).width))) + 2 * marge, haut = Math.ceil(CORPS * (lineHeight * (lignes.length - 1) + 1.45)) + 2 * marge;
   const cv = document.createElement('canvas'); cv.width = larg; cv.height = haut;
-  const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.letterSpacing = c.letterSpacing; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
   const base0 = marge + CORPS * 1.08;                                   // ligne de base de la première ligne, en pixels du canevas
   lignes.forEach((l, k) => g.fillText(l, marge, base0 + k * lineHeight * CORPS));
   const baseDerniere = base0 + (lignes.length - 1) * lineHeight * CORPS;
@@ -512,7 +513,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, view.W, view.H);
     for (const n of ordre.slice(rang + 1)) { const q = dessus(n); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
     ctx.clip('evenodd');
-    const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : 0);
+    const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : row === b.r1 ? (b.frontBase ?? b.base) : b.base);
     const haut = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, true)), bas = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, false));
     if (!haut.every(Boolean) || !bas.every(Boolean)) continue;
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
@@ -522,7 +523,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
     }
     const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
     ctx.fillStyle = plein ? '#02105f' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
-    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#1236d6'); g.addColorStop(1, '#071d8a'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#0e2da9'); g.addColorStop(1, '#06156c'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
     ctx.strokeStyle = plein ? 'rgba(210,225,255,.7)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
@@ -574,10 +575,10 @@ export function dessineRegles(ctx, view, chapitres) {
 /* ---------- Décor du fond en mode expo : courbe exponentielle numérotée, arcs concentriques, cube filaire ----------
  * Tout est posé dans le repère du chemin (colonne, rangée, hauteur) et projeté par `p` : ces éléments suivent la caméra comme le sol.
  * Les positions et proportions sont calées sur une comparaison à dimensions identiques avec la référence ; aucun élément n'est une image.
- * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). `numeros` : nombre de chapitres numérotés sur la courbe. */
+ * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). */
 const ARC_RAYONS = [0.42, 0.62, 0.84, 1.08, 1.34, 1.62];   // en largeurs de page
 const ARCS_CLAIRS = [[3, 0.05, 0.4, 0.045, 0, 0.5], [4, 0.6, 0.95, 0.034, 0.37, 0.42], [2, 0.08, 0.3, 0.06, 0.64, 0.35]];   // [anneau, angle min, angle max (en π), vitesse (tours/s), phase, longueur (rad)]
-export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
+export function dessineDecor(ctx, view, { t = 0 } = {}) {
   const a = view.e * view.e; if (a < 0.01) return;
   const W = view.W, H = view.H, fois = Math.min(1.6, Math.max(0.6, W / 1512));
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -592,32 +593,6 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
     const dep = Math.PI * (a0 + (a1 - a0) * (((t * vitesse + phase) % 1 + 1) % 1)), lon = longueur;
     for (let s = 0; s < 6; s++) { ctx.lineWidth = (3.2 - s * 0.45) * fois; ctx.strokeStyle = `rgba(255,255,255,${(0.1 + s * 0.06) * a})`; trace(ARC_RAYONS[anneau], dep + s * lon / 6, dep + lon, 0.02); }
   }
-  /* courbe exponentielle posée sur le sol, et son cadre, à la rangée de base (page 1500) */
-  if (base > 0 && base < view.T) {
-    const g = (u) => (Math.exp(2.2 * u) - 1) / (Math.exp(2.2) - 1), haut = 0.2 * H;
-    const A = p(view, 0, base, 0), B = p(view, W, base, 0);
-    if (A && B) { ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.55 * a})`; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
-    ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.7 * a})`; ctx.beginPath();
-    for (let i = 0; i <= 80; i++) { const u = i / 80, q = p(view, W * u, base, haut * g(u)); if (!q) continue; if (i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } ctx.stroke();
-    ctx.font = `500 ${Math.round(8 * fois)}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'top';
-    for (let i = 0; i < numeros; i++) {
-      const u = 0.5 + 0.34 * (numeros > 1 ? i / (numeros - 1) : 0), q = p(view, W * u, base, haut * g(u)); if (!q) continue;
-      ctx.strokeStyle = `rgba(255,255,255,${0.85 * a})`; ctx.fillStyle = `rgba(20,40,170,${0.9 * a})`; ctx.beginPath(); ctx.ellipse(q.x, q.y, 4.2 * fois, 2.6 * fois, 0, 0, 7); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = `rgba(255,255,255,${0.75 * a})`; ctx.textAlign = 'left'; ctx.fillText(String(i + 1).padStart(2, '0'), q.x + 4 * fois, q.y + 3 * fois);
-    }
-  }
-  /* formule au sol, à gauche de la bande : e^(-x) cos(ωx + φ), la courbe correspondante et la valeur de φ qui avance avec le temps.
-     Posée sur le plan du sol (colonne -290, page 1367 à 1480) : texte et tracé suivent la perspective de la caméra. */
-  {
-    const ancre = (c, y) => p(view, c, y - view.offset, 0), O = ancre(-290, 1367), X = ancre(-270, 1367), Y = ancre(-290, 1387);
-    if (O && X && Y && !(view.offset === undefined)) {
-      const phi = (t * 0.45) % 6.2832, ax = (X.x - O.x) / 20, ay = (X.y - O.y) / 20, bx = (Y.x - O.x) / 20, by = (Y.y - O.y) / 20;
-      ctx.save(); ctx.transform(ax, ay, bx, by, O.x, O.y); ctx.globalAlpha = 0.85 * a; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1 / Math.max(0.3, Math.hypot(ax, ay));
-      ctx.font = 'italic 500 15px "JetBrains Mono",ui-monospace,monospace'; ctx.textBaseline = 'top'; ctx.fillText('e^(-x) cos(ωx + φ)', 0, 0);
-      ctx.beginPath(); for (let i = 0; i <= 64; i++) { const x = i / 64 * 5, yy = 62 - Math.exp(-x * 0.9) * Math.cos(5 * x + phi) * 24; const px = i / 64 * 180; i ? ctx.lineTo(px, yy) : ctx.moveTo(px, yy); } ctx.stroke();
-      ctx.font = 'italic 500 13px "JetBrains Mono",ui-monospace,monospace'; ctx.fillText('φ ' + phi.toFixed(2), 74, 96); ctx.restore();
-    }
-  }
   /* cube filaire (cube dans le cube, relié aux sommets), dans le noir à gauche de la bande, en rotation lente */
   if (view.cube) {
     const [c0, r0c, h0, S] = view.cube, rx = t * 0.21 + 0.55, ry = t * 0.17 + 0.4;
@@ -629,6 +604,66 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
     for (let i = 0; i < 8; i++) if (E[i] && I[i]) { ctx.moveTo(E[i].x, E[i].y); ctx.lineTo(I[i].x, I[i].y); } ctx.stroke();
   }
   ctx.restore();
+}
+
+export function dessineCourbeAccueil(ctx, view, { x0, x1, row, chapters, souris, time }) {
+  if (x1-x0<160 || view.rise<.003) return [];
+  const profondeur = 340, hauteur = Math.exp(5)/1.35;
+  const at = (x,y) => p(view,mix(x0,x1,x/5),row-Math.min(y,Math.exp(5))/hauteur*profondeur,0);
+  const a = at(0,0), b = at(5,Math.exp(5));
+  if (!a || !b || a.y<0 || b.y>view.H) return [];
+  const markers = chapters.map((chapter,i) => {
+    const x=2.5*(1+(i+.5)/chapters.length), q=at(x,Math.exp(x));
+    return q && {...q,chapter:chapter.id,label:chapter.name,num:String(i+1).padStart(2,'0')};
+  }).filter(Boolean);
+  const focus = markers.find(q=>Math.hypot(q.x-souris.x,q.y-souris.y)<13);
+  const trace = (points,alpha) => {
+    ctx.globalAlpha=alpha*view.rise;
+    ctx.beginPath();
+    points.forEach((q,i)=>q&&(i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)));
+    ctx.stroke();
+  };
+  ctx.save();
+  ctx.strokeStyle=ctx.fillStyle='#fff';ctx.lineWidth=1;
+  for(let x=1;x<=5;x++)trace([at(x,0),at(x,hauteur)],.10);
+  for(let y=50;y<hauteur;y+=50)trace([at(0,y),at(5,y)],.10);
+  trace([at(5,0),a,at(0,hauteur)],.5);
+  const label=(text,q,alpha,align='left')=>{
+    if(!q)return;
+    ctx.font='400 10px "Expo Inter",Inter,sans-serif';ctx.textAlign=align;
+    ctx.globalAlpha=alpha*view.rise;ctx.fillText(text,q.x,q.y);
+  };
+  for(const [base,nom] of [[2,'2ˣ'],[3,'3ˣ'],[Math.E,'eˣ']]){
+    const fin=Math.min(5,Math.log(Math.exp(5))/Math.log(base));
+    trace(Array.from({length:121},(_,i)=>{const x=fin*i/120;return at(x,base**x);}),base===Math.E?(focus?.9:.42):.24);
+    label(nom,at(fin,base**fin),.62,'right');
+  }
+  for(const marker of markers){
+    ctx.globalAlpha=marker===focus?view.rise:.62*view.rise;
+    ctx.beginPath();ctx.ellipse(marker.x,marker.y,marker===focus?6:4,3,0,0,Math.PI*2);ctx.stroke();
+    label(marker.num,{x:marker.x+7,y:marker.y+8},.75);
+  }
+  if(focus)label(focus.label,{x:focus.x,y:focus.y-14},1,'center');
+  if(view.W>=700){
+    const formuleRow=row-190, col=-18, origin=p(view,col,formuleRow,0), end=p(view,col-150,formuleRow,0);
+    const phi=((view.offset/240+2)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+    if(origin&&end&&origin.y<view.H&&origin.y>0){
+      trace([origin,end],.20);
+      trace(Array.from({length:33},(_,i)=>{
+        const x=i/16-1,dy=Math.exp(-(x+1))*Math.cos(9*x+phi);
+        return p(view,col-i/32*150,formuleRow-22*dy,0);
+      }),.62);
+      label('y = e^(−x) cos(ωx + φ)',{x:origin.x,y:origin.y-13},.7,'right');
+      label('φ '+phi.toFixed(2),{x:origin.x,y:origin.y+13},.46,'right');
+    }
+  }
+  const middle=(x0+x1)/2;
+  for(let i=0;i<3;i++){
+    const r=row+56+12*i, phase=time===null?.5:.5+.5*Math.sin(2*Math.PI*(.6*time-i/3));
+    trace([p(view,middle-12,r),p(view,middle,r+8),p(view,middle+12,r)],.1+.2*phase);
+  }
+  ctx.restore();
+  return markers;
 }
 
 /* Éclairage du sol : à plat la couleur de la page est inchangée ; en expo le sol est éclairé et devient plus clair.
@@ -643,21 +678,16 @@ export function cvLit(hex, rise) {
   return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
 }
 
-/* ---------- Liste des chapitres : prolongement courbe du dessus du bloc supérieur ----------
- * Dans la référence, la liste n'est pas un panneau posé à part : c'est le dessus du premier bloc qui se prolonge vers l'arrière, d'abord à plat
- * (raccordé à l'arête du bloc, à sa hauteur), puis se relève suivant une loi exponentielle de l'angle d'élévation jusqu'à la verticale, comme
- * le sol de la scène. Les dernières lignes, sur la partie presque plate, sont donc écrasées par la perspective.
- * Tracé point par point dans le repère du chemin (bords, remplissage, texte orienté ligne par ligne) : il suit la caméra ; le calque HTML
- * correspondant est estompé en expo.
- * spec : { x, w, r1, hp, h0, phi0, phi1, items:[{nom, num}], alpha }  -  r1 : rangée de l'arête arrière du bloc, h0 : hauteur du dessus du bloc,
- * hp : longueur de la surface développée (unités de page), phi0 et phi1 : angles d'élévation au raccord et au sommet (rad). */
-const COURBE_K = 2.2, COURBE_LEAN = 1.05;
-export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, phi0 = 0.05, phi1 = 1.45, items = [], alpha = 1, taille = 11 }) {
+/* Liste des chapitres : arc circulaire tangent au dessus du premier cadre. */
+export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, items = [], alpha = 1, taille = 11 }) {
   if (alpha <= 0.004 || !(hp > 0)) return;
-  const N = 48, rows = new Float32Array(N + 1), hs = new Float32Array(N + 1), ds = hp / N, e = view.e;
-  const g = (t) => (Math.exp(COURBE_K * t) - 1) / (Math.exp(COURBE_K) - 1);
-  hs[0] = h0; for (let k = 0; k < N; k++) { const phi = phi0 + (phi1 - phi0) * e * g((k + 0.5) / N); rows[k + 1] = rows[k] - ds * Math.cos(phi); hs[k + 1] = hs[k] + ds * Math.sin(phi); }
-  const at = (u, s) => { const f = Math.max(0, Math.min(N, s / ds)), k = Math.min(N - 1, Math.floor(f)), q = f - k; return p(view, x + u, r1 + rows[k] + (rows[k + 1] - rows[k]) * q, hs[k] + (hs[k + 1] - hs[k]) * q); };
+  const N = 48, ds = hp/N, angle = 85*RAD*view.rise;
+  const rayon = hp/Math.max(.0001,angle);
+  const at = (u,s) => {
+    const theta = s/rayon;
+    const height = 2*rayon*Math.sin(theta/2)**2;
+    return p(view,x+u,r1-rayon*Math.sin(theta),h0+height/Math.max(.0001,view.rise));
+  };
   const bord = [];
   for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
   const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return; droite.push(q); }

@@ -10,6 +10,7 @@
 <style>
   @font-face { font-family: "Lettrage"; src: url("monde3d/police/patrick-hand-sc.woff2") format("woff2"); font-display: swap; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #e9dcc0; color: #2a2530; font: 400 18px/1.25 "Lettrage", "Trebuchet MS", sans-serif; letter-spacing: .03em; }
+  html.vignette, .vignette body { background: transparent; }
   #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
   .scene-controls { position: fixed; inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .scene-controls[hidden] { display: none; }
@@ -52,8 +53,8 @@
         screen.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
       });
     }
-  }
+  } else document.documentElement.classList.add('vignette');
 </script>
-<script type="module" src="monde3d/jeu/scene.js?v=d2"></script>
+<script type="module" src="monde3d/jeu/scene.js?v=d3"></script>
 </body>
 </html>
