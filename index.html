@@ -1010,14 +1010,21 @@ function openCvCardFocus(el,details){
 // // Shopify supplies the camera, fold, hinge animation, outlines and mathematical labels.
 // Only the DOM/Three rendering adapter is local; all coordinates remain native CSS pixels.
 async function startParityPath(){
- const [T,N]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=m24')]),source=q('[data-f26-page]');if(!source)return;
+ const [T,N,{CielExpo}]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=m25'),import(base+'refonte/ciel-expo.js?v=1')]),source=q('[data-f26-page]');if(!source)return;
  const header=q('.cv-site-nav');if(header)document.body.append(header);
  const sourceMinHeight=source.style.minHeight;
  await document.fonts?.ready;const headingFont=N.cvFont();
  await new Promise(resolve=>{const limit=performance.now()+12000;const check=()=>state.gains!=='idle'||performance.now()>limit?resolve():setTimeout(check,40);check();});
  await new Promise(resolve=>{const limit=performance.now()+15000;const check=()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy!=='loading'||performance.now()>limit?resolve():setTimeout(check,50);check();});
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),raise=new N.cvRaise(reduced),original=new WeakMap(),models=new Map();
- const ciel=new N.Ciel(),souris={x:-1e4,y:-1e4};let resizing=false,cibleMode=0,pDepart=0,kMode=1;   /* kMode : avancement de la bascule, compté en temps d'image plafonné (une image lente ne fait pas sauter l'animation) */
+ const ciel=new CielExpo(),souris={x:-1e4,y:-1e4};
+ const DUREE_BASCULE=800;
+ let resizing=false,cibleMode=0,modeDepart=0,modeDebut=0;
+ function progressionMode(now){
+   if(reduced.matches)return cibleMode;
+   const sens=cibleMode?1:-1;
+   return Math.max(0,Math.min(1,modeDepart+sens*Math.max(0,now-modeDebut)/DUREE_BASCULE));
+ }
  const stage=document.createElement('div');stage.className='cv-parity-stage';stage.hidden=true;
  const gridCanvas=document.createElement('canvas'),gridFallback=document.createElement('canvas'),paper=document.createElement('div'),annotations=document.createElement('canvas');paper.className='cv-parity-paper';
  const renderer=new T.WebGLRenderer({alpha:true,antialias:true});renderer.setClearColor(0,0);renderer.setPixelRatio(cvLowEnd?1:Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;
@@ -1050,18 +1057,20 @@ async function startParityPath(){
  /* Étoiles du mode expo : le graphe de l'accueil (un foyer par chapitre, ses vrais contenus en vignettes) et une étoile par grand titre (chapitre ou thème).
     Elles vivent dans le repère du chemin : le moteur les projette à chaque image, elles suivent donc la caméra. Nœuds éditoriaux : cliquables, ils mènent à leur contenu ; les autres points sont purement graphiques. */
  function monteCiel(){ciel.vide();ciel.definit('accueil',{groupe:'accueil',racine:true,label:'Mathieu Comtesse'});
-  cvChapterRecords.forEach((r,i)=>ciel.definit('accueil:'+r.id,{groupe:'accueil',parent:'accueil',num:String(i+1).padStart(2,'0'),label:r.name,chapitre:r.id,editoriaux:r.cards,sol:true}));
+  // Nombre de nœuds par chapitre dans le graphe extrait. Les vignettes restent celles du CV.
+  const densiteExpo=[16,12,17,9,20,30,23,10,9,19,57];
+  cvChapterRecords.forEach((r,i)=>ciel.definit('accueil:'+r.id,{groupe:'accueil',parent:'accueil',num:String(i+1).padStart(2,'0'),label:r.name,chapitre:r.id,editoriaux:r.cards,densite:densiteExpo[i],sol:true}));
   parts.forEach((p,i)=>{if(!p.heading||p.heading.hero)return;const chap=!!p.el.closest('.section-hero-pin'),vus=new Set(),ed=[];
    if(chap)for(const c of cvChapterRecords.find(r=>r.id===p.section)?.cards||[])ed.push(c);
    else for(const s of parts)if(s.slab&&s.cardId&&s.theme===p.theme&&p.theme&&!vus.has(s.cardId)){vus.add(s.cardId);const card=document.getElementById(s.cardId)||s.el.closest('.product-card');ed.push({title:card?.querySelector('h3')?.textContent.trim()||s.title,handle:s.cardId,image:null});}
    p.etoile='titre:'+i;ciel.definit(p.etoile,{groupe:'titre',label:p.el.textContent.trim(),chapitre:p.section,editoriaux:ed.slice(0,14),petit:!chap});});
  }
  function placeCiel(){const zone=q('.hero-entrance-hold')||q('#hero'),zr=zone&&original.get(zone);
-  if(zr&&zr.width>80&&zr.height>80)ciel.place('accueil',[zr.left+zr.width/2,zr.top-view.offset+zr.height/2,N.L.layers.graph.heroLift*innerHeight],Math.min(zr.width*.5,zr.height*.62));else ciel.place('accueil',null);
+  if(zr&&zr.width>80&&zr.height>80)ciel.place('accueil',[zr.left+zr.width/2,zr.top-view.offset+zr.height/2,.16*innerHeight],Math.min(zr.width*.5,zr.height*.62));else ciel.place('accueil',null);
   for(const p of parts){if(!p.etoile)continue;const h=p.heading,row=p.y-view.offset;
    if(p.wrapper.hidden||!h){ciel.place(p.etoile,null);continue;}
    const droite=p.x+h.bounds.maxX*h.em,col=Math.min(droite+Math.max(70,innerWidth*.07),innerWidth-innerWidth*.14),dessus=col<droite+30;
-   ciel.place(p.etoile,[dessus?p.x+h.bounds.maxX*h.em*.6:col,row+h.baseline+h.hinge,(dessus?h.bounds.maxY*h.em+150:h.bounds.maxY*h.em*.55+60)],Math.min(innerWidth*(h.scale>1?.3:.24),h.scale>1?520:380));}
+   ciel.place(p.etoile,[dessus?p.x+h.bounds.maxX*h.em*.6:col,row+h.baseline+h.hinge,.28*innerHeight],.17*innerWidth);}
  }
 
  function enter(){if(active)return;const yEntree=scrollY;   /* la position de lecture est la même avant et après la bascule */documentHeight=document.documentElement.scrollHeight;const slabs=qa('.cv-pframe,[data-cv-type="game"] > .cv-card-content,.gains-chart,.gx-table,#pc-sign',source).filter(el=>el.matches('.cv-pf-text')||!el.parentElement.closest('.cv-card-content'));const topSlabs=new Set(slabs);
@@ -1087,12 +1096,20 @@ async function startParityPath(){
   // Read all layout before moving any item: columns and vertical rhythm stay unchanged.
   const measured=items.map(([el,slab])=>{const r=original.get(el),widget=el.matches('#hero figure')?original.get(el.parentElement):null;return{el,slab,r:{left:widget?.left??r.left,top:r.top-scrollY,width:widget?.width??r.width,height:r.height}};});for(const m of measured){capture(m.el,m.slab);const p=parts[parts.length-1];if(p&&p.el===m.el){p.x=p.el.matches('.rf-win,.pc-inf,.annual-pig-wrap')?(innerWidth-m.r.width)/2:m.r.left;p.y=m.r.top+scrollY;p.w=m.r.width;p.h=m.r.height;p.el.style.width=p.w+'px';p.el.style.height=p.h+'px';}}
   monteCiel();
-  source.style.minHeight=documentHeight+'px';source.style.opacity='0';setToggle('Vue à plat');toggle.setAttribute('aria-pressed','true');cibleMode=1;pDepart=0;progress=0;kMode=0;resize();wakePath();if(Math.abs(scrollY-yEntree)>1)scrollTo({top:yEntree,behavior:'instant'});
+  source.style.minHeight=documentHeight+'px';source.style.opacity='0';setToggle('Vue à plat');toggle.setAttribute('aria-pressed','true');cibleMode=1;modeDepart=0;progress=0;resize();modeDebut=performance.now();wakePath();if(Math.abs(scrollY-yEntree)>1)scrollTo({top:yEntree,behavior:'instant'});
  }
  function leave(){if(!active)return;const ySortie=scrollY;requestAnimationFrame(()=>{if(!active&&Math.abs(scrollY-ySortie)>1)scrollTo({top:ySortie,behavior:'instant'});});active=false;document.documentElement.style.setProperty('--cv-k','0');cancelAnimationFrame(frameId);frameId=0;focusCard=null;focusZoom=0;ciel.vide();document.documentElement.style.cursor='';state.path='flat';raise.clear();for(const p of parts){if(p.heading){scene.remove(p.heading.mesh,p.heading.shadow);p.heading.shadow.geometry.dispose();p.heading.shadow.material.dispose();p.heading.mesh.geometry.dispose();p.heading.mesh.material.dispose();}p.marker.replaceWith(p.el);if(p.original===null)p.el.removeAttribute('style');else p.el.setAttribute('style',p.original);p.wrapper.remove();}parts=[];for(const m of models.values()){scene.remove(m.root);for(const o of m.objects){if(o.shadow){scene.remove(o.shadow);o.shadow.geometry.dispose();o.shadow.material.dispose();}}}models.clear();source.style.opacity='';source.style.minHeight=sourceMinHeight;stage.hidden=true;nav.hidden=true;rulers.el.hidden=true;document.documentElement.classList.remove('cv-standard-active','cv-parity-active');setToggle('Chemin 3D');toggle.setAttribute('aria-pressed','false');}
- /* Bascule entre les deux modes : animée (0,9 s), réversible en cours de route. La sortie ramène la caméra à la verticale ;
-    à la fin, l'image du chemin coïncide avec la page et le DOM d'origine reprend sa place. */
- function bascule(){if(active){if(reduced.matches){leave();return;}pDepart=progress;cibleMode=cibleMode?0:1;kMode=0;setToggle(cibleMode?'Vue à plat':'Chemin 3D');toggle.setAttribute('aria-pressed',String(!!cibleMode));}}
+ /* Inverse le temps de la bascule à partir de sa position actuelle. */
+ function bascule(){
+   if(!active)return;
+   if(reduced.matches){leave();return;}
+   const now=performance.now();
+   modeDepart=progressionMode(now);
+   modeDebut=now;
+   cibleMode=cibleMode?0:1;
+   setToggle(cibleMode?'Vue à plat':'Chemin 3D');
+   toggle.setAttribute('aria-pressed',String(!!cibleMode));
+ }
  toggle.onclick=()=>{if(active)bascule();else{enter();const p=parts[0];if(p&&scrollY<p.y-innerHeight*.6)scrollTo({top:p.y-innerHeight*.25,behavior:'instant'});}};
  document.addEventListener('keydown',e=>{if(['play','over','finish'].includes(nativeGame?.inspect()?.phase))return;if(e.target.closest('input,textarea,select,[role=slider]')||q('dialog[open]'))return;if(e.key==='Escape'&&q('.cv-site-nav [aria-expanded=true]'))return;if(e.key==='Escape'&&focusCard){raise.raise(null,scrollY);focusCard=null;state.focus='flat';e.preventDefault();e.stopImmediatePropagation();return;}if(e.code==='Backquote'||e.key==='Escape'&&active){e.preventDefault();e.stopImmediatePropagation();active?bascule():enter();}},{capture:true});
  let touchStart=null,lastTouch=0,focusPending=false;addEventListener('scroll',()=>{if(focusCard&&Math.abs(scrollY-focusAt)>Math.max(innerHeight,focusCard.h)){raise.raise(null,scrollY);focusCard=null;state.focus='flat';state.zoom=100;}},{passive:true});
@@ -1238,7 +1255,14 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
  function wakePath(){if(active&&!document.hidden&&!frameId){last=performance.now();frameId=requestAnimationFrame(frame);}}
  document.addEventListener('visibilitychange',wakePath);
  function frame(now){frameId=0;if(!active||document.hidden)return;frameId=requestAnimationFrame(frame);if(cvLowEnd&&now-last<30)return;const gap=now-last;if(!document.hidden&&gap>0&&gap<250){frameAvg+=(gap-frameAvg)*.05;if(!cvLowEnd&&frameAvg>30&&++slowFrames>120){cvLowEnd=true;renderer.setPixelRatio(1);resize();}}const dt=Math.min(1/30,Math.max(0,(now-last)/1000));last=now;if(document.hidden)return;
-  {kMode=reduced.matches?1:Math.min(1,kMode+Math.min(gap,70)/800);const k=kMode,s=k*k*k*(k*(k*6-15)+10);progress=pDepart+(cibleMode-pDepart)*s;document.documentElement.style.setProperty('--cv-k',progress.toFixed(3));state.path=k<1?(cibleMode?'entering':'leaving'):'active';if(cibleMode===0&&k>=1){leave();return;}}focusZoom+=((focusCard?1:0)-focusZoom)*(1-Math.exp(-10*dt));const lead=Math.max(0,Math.round(N.cvAnchor(innerHeight).row-innerHeight/2));view=N.cvView(progress,innerWidth,innerHeight,lead);view.offset=scrollY-lead+(nativeGame?.over||0);view.doc=[-view.offset,documentHeight-view.offset];view.fade=1;view.t=reduced.matches?0:now/1000;view.fov=2*Math.atan(Math.tan(view.fov/2)/(1+.08*focusZoom));if(focusCard?.box){const p=focusCard,f=p.box,row=p.y-focusAt+lead,slab={tilt:EXPO_CARD_TILT_DEG*Math.PI/180*raise.tiltOf(p.el)*view.e,depth:f.top},at=N.cvSlab(view,slab,row+p.h,f.base,p.x+p.w/2,p.h/2),world=bend(...at),target=world[1]+(world[2]-view.camZ)*Math.tan(view.pitch);view.camY+=(target-view.camY)*focusZoom*.35;}
+  progress=progressionMode(now);
+  state.path=progress===cibleMode?'active':cibleMode?'entering':'leaving';
+  if(cibleMode===0&&progress===0){leave();return;}
+  focusZoom+=((focusCard?1:0)-focusZoom)*(1-Math.exp(-10*dt));
+  const lead=Math.max(0,Math.round(N.cvAnchor(innerHeight).row-innerHeight/2));
+  view=N.cvView(progress,innerWidth,innerHeight,lead);
+  document.documentElement.style.setProperty('--cv-k',view.e.toFixed(3));
+  view.offset=scrollY-lead+(nativeGame?.over||0);view.doc=[-view.offset,documentHeight-view.offset];view.fade=1;view.t=reduced.matches?0:now/1000;view.fov=2*Math.atan(Math.tan(view.fov/2)/(1+.08*focusZoom));if(focusCard?.box){const p=focusCard,f=p.box,row=p.y-focusAt+lead,slab={tilt:EXPO_CARD_TILT_DEG*Math.PI/180*raise.tiltOf(p.el)*view.e,depth:f.top},at=N.cvSlab(view,slab,row+p.h,f.base,p.x+p.w/2,p.h/2),world=bend(...at),target=world[1]+(world[2]-view.camZ)*Math.tan(view.pitch);view.camY+=(target-view.camY)*focusZoom*.35;}
   camera.fov=view.fov*180/Math.PI;camera.aspect=innerWidth/innerHeight;camera.position.set(0,view.camY,view.camZ);camera.rotation.set(view.pitch,0,0);camera.updateProjectionMatrix();camera.updateMatrixWorld();U.pv.value.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);U.inverse.value.copy(U.pv.value).invert();U.T.value=view.T;U.ds.value=view.ds;U.rise.value=view.rise;U.W.value=view.W;for(let i=0;i<65;i++){U.points.value[i].set(view.pts[i*2],view.pts[i*2+1]);U.angles.value[i]=view.ang[i];}
   raise.view(focusCard?focusCard.y:scrollY,innerHeight);raise.step(dt);boxes=[];const visible=parts.filter(projectPart);for(const m of models.values()){m.root.visible=false;for(const o of m.objects)if(o.shadow)o.shadow.visible=false;}let closest=null,distance=Infinity;
   for(const entry of cvGeometryEntries){const part=visible.find(p=>p.el===entry.canvas||p.el.contains(entry.canvas));if(!part)continue;const sourceRect=original.get(entry.canvas.closest('[data-cv-machine]')||entry.canvas.parentElement)||original.get(entry.canvas);if(!sourceRect)continue;if(entry.live&&now-(entry.checkedAt||0)>1000){entry.checkedAt=now;let n=0;entry.scene.traverse(o=>{if(o.isMesh)n++;});if(entry.meshes!==undefined&&n!==entry.meshes){const old=models.get(entry);if(old){scene.remove(old.root);models.delete(entry);}}entry.meshes=n;}const m=modelFor(entry);m.root.visible=true;entry.scene.updateMatrixWorld(true);const bounds=new T.Box3();for(const o of m.objects){if(o.merged){if(isSame(o,o.snap))continue;unmerge(o);}if(!o.snap){o.snap=stateOf(o);o.lastMove=now;}else if(!isSame(o,o.snap)){o.snap=stateOf(o);o.lastMove=now;}o.copy.matrix.copy(o.source.matrixWorld);if(entry.accent){const e=o.source.matrixWorld.elements;if(!o.prev){o.prev=e.slice();o.until=0;}let mv=false;for(let k=0;k<16;k++)if(Math.abs(e[k]-o.prev[k])>1e-5){mv=true;break;}if(mv){for(let k=0;k<16;k++)o.prev[k]=e[k];o.until=now+420;}o.glow=Math.max(0,Math.min(1,(o.until-now)/420));}o.copy.visible=o.source.visible;for(let parent=o.source.parent;parent;parent=parent.parent)if(!parent.visible)o.copy.visible=false;const sourceMats=Array.isArray(o.source.material)?o.source.material:[o.source.material],copyMats=Array.isArray(o.copy.material)?o.copy.material:[o.copy.material];sourceMats.forEach((mat,i)=>{const copy=copyMats[i];if(copy?.color&&mat.color)copy.color.copy(mat.color);if(copy?.emissive&&mat.emissive){copy.emissive.copy(mat.emissive);if(o.glow>0)copy.emissive.lerp(entry.accent,o.glow*.5);}if(copy){copy.opacity=mat.opacity;copy.visible=mat.visible;}});if(!m.stableBounds&&!o.source.userData.cvNoFit)bounds.union(new T.Box3().setFromObject(o.source));}if(now-(m.lastMerge||0)>2000){m.lastMerge=now;mergeStill(m,now);}if(!m.stableBounds){if(bounds.isEmpty())continue;m.stableBounds=bounds.clone();}bounds.copy(m.stableBounds);const center=bounds.getCenter(new T.Vector3()),size=bounds.getSize(new T.Vector3());const fit=(entry.fitScale||1)*(part.hero?1+.5*view.rise:1)*Math.min(Math.min(sourceRect.width,part.w)*.82/Math.max(Math.hypot(size.x,size.z),1),sourceRect.height*.9/Math.max(size.y,1));m.normal.scale.setScalar(fit);m.normal.position.set(-center.x*fit,-bounds.min.y*fit,-center.z*fit);m.flat.scale.copy(m.normal.scale);m.flat.position.copy(m.normal.position);
@@ -1266,7 +1290,7 @@ const HOME_HERO_TOPO={enabled:!/[?&]topo=off\b/.test(location.search),dresse:{pi
     ciel.actif=id;ciel.fondu=fondu;
     state.chapterTransition=fondu;
   }
-  ciel.dessine(ctx,(c,r,h)=>N.p(view,c,r,h),reduced.matches?null:now/1000,{covers,souris,W:innerWidth,H:innerHeight,dt:Math.min(.1,gap/1000),alpha:view.e*view.e,titres:Math.max(0,Math.min(1,(progress-.3)/.5)),compact:innerWidth<520});
+  ciel.dessine(ctx,(c,r,h)=>N.p(view,c,r,h),reduced.matches?null:now/1000,{covers,souris,W:innerWidth,H:innerHeight,dt:Math.min(.1,gap/1000),alpha:view.e,titres:view.rise});
   state.chapterStars=ciel.etat('titre');
   drawRail();
   // The menu wires use the same projected upper corner as the native card marker.

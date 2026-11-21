@@ -14,7 +14,47 @@
 export const L = { tilt: { angle: 55 }, city: 0.005, cityGrow: 4, layers: { graph: { heroLift: 0.1, spread: 0.17 } } };
 const PAS = 64, PROCHE = 40;
 
-export const cvAnchor = (H) => ({ row: 2.298 * H });
+const RAD = Math.PI / 180;
+const PITCH_EXPO = -30.2 * RAD, FOV_PLAT = 50 * RAD, FOV_EXPO = 45 * RAD;
+const CAMERA_HEIGHT = 1.015, CAMERA_BACK = -1;
+const mix = (a, b, t) => a + (b - a) * t;
+
+function profilSol(progression, H) {
+  const T = 5 * H, ds = T / PAS;
+  const pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
+  const sharpness = 6.54, vitessePli = Math.expm1(sharpness);
+  let y = 0, z = 0;
+  for (let i = 0; i < PAS; i++) {
+    const face = Math.PI / 2 + Math.atan2(y - CAMERA_HEIGHT * H, CAMERA_BACK * H - z);
+    const pli = progression * Math.expm1(sharpness * (i + .5) / PAS) / vitessePli * face;
+    y += ds * Math.sin(pli);
+    z -= ds * Math.cos(pli);
+    pts[2 * i + 2] = y;
+    pts[2 * i + 3] = z;
+    if (i === 0) ang[0] = pli;
+    ang[i] = (ang[i] + pli) / 2;
+    ang[i + 1] = pli;
+  }
+  return { T, ds, pts, ang };
+}
+
+// Le centre en mode expo est l’intersection de l’axe optique avec le sol déplié.
+function ancreExpo() {
+  const { T, ds, pts } = profilSol(1, 1);
+  const dy = Math.sin(PITCH_EXPO), dz = -Math.cos(PITCH_EXPO);
+  for (let i = 0; i < PAS; i++) {
+    const y = pts[2 * i], z = pts[2 * i + 1];
+    const sy = pts[2 * i + 2] - y, sz = pts[2 * i + 3] - z;
+    const det = dy * sz - dz * sy;
+    if (Math.abs(det) < 1e-9) continue;
+    const segment = (dz * (y - CAMERA_HEIGHT) - dy * (z - CAMERA_BACK)) / det;
+    const dist = (sz * (y - CAMERA_HEIGHT) - sy * (z - CAMERA_BACK)) / det;
+    if (segment >= 0 && segment <= 1 && dist > 0) return { row: T - (i + segment) * ds, dist };
+  }
+  return { row: .5, dist: 1 };
+}
+const ANCRE = ancreExpo();
+export const cvAnchor = (H) => ({ row: ANCRE.row * H });
 
 // Le fondu suit une distance de défilement, donc se rembobine à la remontée.
 export function fonduChapitre(position, debut, distance) {
@@ -26,14 +66,21 @@ export function fonduChapitre(position, debut, distance) {
  * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
  * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
  * la bascule entre les deux modes est une vraie transformation de la scène, réversible à tout instant. */
-const RISE_AT = 0.35;   // « riseAt » relevé dans la configuration de la scène de la référence (usage lu dans son bundle : hauteurs = lissage de (progression − riseAt) / (1 − riseAt))
+const RISE_AT = .35;
 export function cvView(progress, W, H, lead = 0) {
-  const e = Math.max(0, Math.min(1, progress)), T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
-  for (let i = 0; i <= PAS; i++) ang[i] = e * 1.44 * Math.exp(7.33 * (i / PAS - 1));
-  for (let i = 0; i < PAS; i++) { const th = (ang[i] + ang[i + 1]) / 2; pts[2 * i + 2] = pts[2 * i] + ds * Math.sin(th); pts[2 * i + 3] = pts[2 * i + 1] - ds * Math.cos(th); }
-  const focusRow = lead + H / 2, fov = Math.PI / 4, a = Math.PI / 2 + (0.52709 - Math.PI / 2) * e, d = (0.5 / Math.tan(fov / 2) + (2.018 - 0.5 / Math.tan(fov / 2)) * e) * H, vise = -(T - focusRow) - 0.041 * H * e;
-  const montee = Math.max(0, Math.min(1, (e - RISE_AT) / (1 - RISE_AT))), rise = montee * montee * (3 - 2 * montee);   // les hauteurs ne montent qu'une fois la caméra engagée ; courbe de lissage déduite, non lue
-  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, camY: d * Math.sin(a), camZ: vise + d * Math.cos(a), pitch: -a };
+  const t = Math.max(0, Math.min(1, progress));
+  const e = t < .5 ? 4 * t ** 3 : 1 - 4 * (1 - t) ** 3;
+  const rise = 1 - (1 - Math.max(0, (t - RISE_AT) / (1 - RISE_AT))) ** 3;
+  const profil = profilSol(e, H);
+  const focusRow = lead + H / 2;
+  const row = Math.max(0, Math.min(PAS, (profil.T - focusRow) / profil.ds));
+  const i = Math.min(Math.floor(row), PAS - 1), f = row - i;
+  const y = mix(profil.pts[2 * i], profil.pts[2 * i + 2], f);
+  const z = mix(profil.pts[2 * i + 1], profil.pts[2 * i + 3], f);
+  const pitch = mix(-Math.PI / 2, PITCH_EXPO, e);
+  const dist = H * mix(.5 / Math.tan(FOV_PLAT / 2), ANCRE.dist, e);
+  return { W, H, ...profil, e, rise, focusRow, fov: mix(FOV_PLAT, FOV_EXPO, e),
+    camY: y - dist * Math.sin(pitch), camZ: z + dist * Math.cos(pitch), pitch };
 }
 
 /* point du monde (x, y, z) pour une position du chemin */
@@ -201,7 +248,7 @@ export function cvTextExtrude(layout, { depth = 1, T }) {
  * vignette cliquable) et des branches graphiques (points et ramifications tirés du nom, sans contenu associé, non interactives).
  * Toutes les positions sont dans le repère fourni par `proj` : le chemin 3D en mode expo, le plan de la page en mode à plat.
  * Les étoiles bougent donc avec la caméra, sans calque HTML superposé. */
-const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
+export const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const frac = (x) => x - Math.floor(x);
 const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3; };
@@ -449,6 +496,8 @@ export class Ciel {
   }
 }
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
+
+export { dansQuad };
 
 /* ---------- Arêtes et ombres des cadres ---------- */
 /* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
