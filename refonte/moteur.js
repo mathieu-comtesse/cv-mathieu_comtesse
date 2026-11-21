@@ -558,29 +558,48 @@ export { dansQuad };
 export function dessineContours(ctx, view, boxes, souris = null) {
   let survole = null;
   ctx.save(); ctx.lineJoin = 'round';
-  const dessus = (b) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => b.slab ? p(view, ...cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r)) : p(view, x, r, b.top));
+  const face = (b, epais) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, row]) => b.slab
+    ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row))
+    : p(view, x, row, epais ? b.top : b.base));
   const ordre = [...boxes].sort((a, c) => a.r1 - c.r1);                        // du fond vers l'observateur
   for (const [rang, b] of ordre.entries()) {
     /* les flancs d'un bloc passent derrière le dessus des blocs plus proches (leur contenu est du DOM, sous ce canevas) */
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, view.W, view.H);
-    for (const n of ordre.slice(rang + 1)) { const q = dessus(n); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
+    for (const n of ordre.slice(rang + 1)) { const q = face(n, !n.contenuAuSol); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
     ctx.clip('evenodd');
-    const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : row === b.r1 ? (b.frontBase ?? b.base) : b.base);
-    const haut = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, true)), bas = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, false));
-    if (!haut.every(Boolean) || !bas.every(Boolean)) continue;
+    const haut = face(b, true), bas = face(b, false);
+    if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
     if (b.slab && b.tilted > 0.02) {                                             // ombre portée au sol d'un cadre relevé
       const ombre = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => { const w = cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r); return p(view, w[0] + w[2] * 0.5, w[1] + w[2] * 0.35, 0); });
       if (ombre.every(Boolean)) { ctx.fillStyle = 'rgba(0,0,0,.22)'; trace(ombre); ctx.fill(); }
     }
-    const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
-    ctx.fillStyle = plein ? '#02105f' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
-    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#0e2da9'); g.addColorStop(1, '#06156c'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    const plein = (b.hero && !b.slab) || b.project;
+    const surface = b.contenuAuSol ? bas : haut;
+    const dedansQuad = souris && dansQuad(surface, souris.x, souris.y);
+    if (dedansQuad) survole = b;
+    if (b.contenuAuSol) {
+      ctx.strokeStyle = 'rgba(255,255,255,.37)'; ctx.lineWidth = .85;
+      trace(haut); ctx.stroke(); ctx.beginPath();
+      for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
+      ctx.stroke();
+      ctx.strokeStyle = dedansQuad ? '#fff' : 'rgba(255,255,255,.8)';
+      ctx.lineWidth = dedansQuad ? 1.6 : .85; trace(bas); ctx.stroke();
+      ctx.restore(); continue;
+    }
+    const flanc = b.project ? `color-mix(in srgb,${b.colour||'#051daa'} 46%,#030a23)` : '#02105f';
+    ctx.fillStyle = plein ? flanc : 'rgba(255,255,255,.07)';
+    trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
+    if (plein) {
+      const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y);
+      g.addColorStop(0,b.project?`color-mix(in srgb,${b.colour||'#051daa'} 75%,#102b84)`:'#0e2da9');
+      g.addColorStop(1,b.project?flanc:'#06156c');
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = 'rgba(255,255,255,.14)';
+    trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();
     ctx.strokeStyle = plein ? 'rgba(210,225,255,.7)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
-    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
-    if (dedansQuad) survole = b;
     if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
       const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
       g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');

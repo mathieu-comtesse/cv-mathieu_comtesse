@@ -1,7 +1,8 @@
-import { Ciel, dansQuad, hache } from './moteur.js?v=m29';
+import { Ciel, dansQuad, hache } from './moteur.js?v=m31';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['131,185,244', '154,169,255', '133,202,226'];
+const lumiere = [-Math.sin(-41*Math.PI/180)/Math.tan(35*Math.PI/180),-Math.cos(-41*Math.PI/180)/Math.tan(35*Math.PI/180)];
 const mix = (a,b,t) => a+(b-a)*t, phase = v => v-Math.floor(v);
 const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
 function trait(ctx,a,b) {
@@ -39,7 +40,7 @@ export class CielExpo extends Ciel {
     const noeuds=Array.from({length:total},(_,i)=>{
       const key=id+':'+i, z=1-2*(i+.5)/total, radius=.6+.4*hache(key)/2**32;
       const a=i*angleOr+hache(key+':angle')/2**32, r=Math.sqrt(1-z*z)*radius;
-      return {ed:editoriaux.get(i), at:[Math.cos(a)*r,Math.sin(a)*r,z*radius*.7],
+      return {ed:editoriaux.get(i), at:[Math.cos(a)*r,Math.sin(a)*r,z*radius*.7], hemisphere:i%2?1:-1,
         phases:[hache(key+':dot:0'),hache(key+':dot:1')],dx:0,dy:0,vx:0,vy:0};
     });
     const liens=new Map();
@@ -50,9 +51,18 @@ export class CielExpo extends Ciel {
     });
     this.etoiles.set(id,{id,...spec,noeuds,liens:[...liens.values()],rang:this.etoiles.size-1,centre:null});
   }
+  place(id,centre,rayon){
+    super.place(id,centre,rayon);
+    if(id!=='accueil')return;
+    for(const e of this.etoiles.values()){
+      if(e.parent!==id)continue;
+      if(centre&&e.centre)e.centre[2]=centre[2]*.57;
+      else e.centre=null;
+    }
+  }
   vide(){super.vide();this.pris=null;}
 
-  dessine(ctx,proj,t,{covers,souris,W,H,dt,alpha,titres}){
+  dessine(ctx,proj,t,{covers,souris,W,H,dt,alpha,titres,rise,unproject,segment}){
     const quads=covers.map(corners=>({corners,z:corners.reduce((s,q)=>s+q.z,0)/corners.length}));
     this.cibles=[];this.survol=null;
     let nearest=18;
@@ -61,14 +71,14 @@ export class CielExpo extends Ciel {
       e.ecran=e.libelleEcran=null;
       const title=e.groupe==='titre',opacity=title?titres:alpha;
       if(!e.centre||opacity<=.003)continue;
-      const [x,y,h]=e.centre,r=e.rayon,hub=proj(x,y,h),floor=proj(x,y,0);
+      const [x,y,h]=e.centre,r=e.rayon,hub=proj(x,y,h);
       if(!hub||hub.x<-W/2||hub.x>1.5*W||hub.y<-H/2||hub.y>1.5*H)continue;
       e.ecran=hub;
       const color=title?'255,255,255':tons[Math.max(0,e.rang)%tons.length];
       ctx.globalAlpha=opacity;
-      const parent=e.parent&&this.etoiles.get(e.parent)?.ecran;
-      if(parent){ctx.lineWidth=1;ctx.strokeStyle='rgba('+color+',.3)';trait(ctx,parent,hub);}
-      if(e.sol&&floor){
+      const parent=e.parent&&this.etoiles.get(e.parent);
+      if(parent?.ecran)segment(parent.centre,e.centre,color,.3*opacity);
+      if(e.sol){
         const f=this.fondu,active=f?(e.chapitre===f.de?1-f.poids:0)+(e.chapitre===f.vers?f.poids:0):Number(e.chapitre===this.actif);
         const radius=Math.max(24,r*.9),lit=distance(hub,souris)<14||this.pris?.etoile===e;
         anneau(ctx,proj,x,y,radius,.35+.55*Math.max(active,Number(lit)));
@@ -79,8 +89,13 @@ export class CielExpo extends Ciel {
           ctx.fillText(texte,p.x,p.y);e.libelleEcran={x:Math.round(p.x),y:Math.round(p.y),texte};
         }
       }
+      const ombre=([c,row,haut])=>proj(c+lumiere[0]*haut*rise,row+lumiere[1]*haut*rise,0);
+      const hubShadow=ombre(e.centre);
       const nodes=e.noeuds.map(n=>{
-        const wx=x+r*n.at[0],wy=y+r*n.at[1],p=proj(wx,wy,Math.max(12,h+r*n.at[2]));
+        const [nx,ny,nz]=n.at;
+        let wx=x+r*nx,wy=y+r*ny;
+        const hauteur=Math.max(12,h+(title?r*nz:n.hemisphere*.85*h*Math.sqrt(Math.max(0,1-nx*nx-ny*ny))));
+        const p=proj(wx,wy,hauteur);
         if(!p)return null;
         if(this.pris?.noeud===n){n.dx=souris.x-p.x;n.dy=souris.y-p.y;n.vx=n.vy=0;}
         else if(t===null){n.dx=n.dy=n.vx=n.vy=0;}
@@ -91,17 +106,25 @@ export class CielExpo extends Ciel {
           if(Math.abs(n.dx)+Math.abs(n.dy)+Math.abs(n.vx)+Math.abs(n.vy)<.03){n.dx=n.dy=n.vx=n.vy=0;break;}
         }
         p.x+=n.dx;p.y+=n.dy;
+        if(n.dx||n.dy){
+          const position=unproject(p.x,p.y,hauteur,[wx,wy]);
+          if(position)[wx,wy]=position;
+        }
+        const world=[wx,wy,hauteur];
         const covered=quads.some(({corners,z})=>z<p.z-30&&dansQuad(corners,p.x,p.y));
-        return {p,n,covered,ground:proj(wx,wy,0)};
+        return {p,n,covered,world,ground:ombre(world)};
       });
-      ctx.lineWidth=.45;ctx.strokeStyle='rgba('+color+',.084)';
-      for(const [a,b] of e.liens)if(nodes[a]&&nodes[b])trait(ctx,nodes[a].p,nodes[b].p);
+      for(const [a,b] of e.liens)if(nodes[a]&&nodes[b])segment(nodes[a].world,nodes[b].world,color,.084*opacity);
       for(const node of nodes){
         if(!node)continue;
         const {p,n,covered,ground}=node,d=distance(p,souris),hot=!covered&&d<14,visibility=covered?.12:1;
         ctx.globalAlpha=opacity*visibility;
-        if(ground&&floor){ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,4,37,.17)';trait(ctx,floor,ground);}
-        ctx.lineWidth=1;ctx.strokeStyle='rgba('+(hot?'255,255,255':color)+','+(hot?.9:title?.39:.45)+')';trait(ctx,hub,p);
+        if(ground&&hubShadow){
+          ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,4,37,'+(.22*rise)+')';trait(ctx,hubShadow,ground);
+          if(n.ed){ctx.fillStyle='rgba(0,4,37,'+(.19*rise)+')';ctx.fillRect(ground.x-3,ground.y-2,6,4);}
+        }
+        segment(e.centre,node.world,hot?'255,255,255':color,(hot?.9:title?.39:.45)*opacity*visibility);
+        ctx.lineWidth=1;
         if(t!==null&&!covered&&(n.ed||n.phases[0]%3===0))impulsions(ctx,hub,p,n.phases,t,color);
         if(n.ed){
           const image=this.image(n.ed.image),side=(image?(title?32:16):(title?14:8))*(hot?1.5:1);

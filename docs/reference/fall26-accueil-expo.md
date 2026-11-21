@@ -4,7 +4,7 @@ Les paramètres proviennent de `htmlInCanvasWebGpu.client-Q-9vA8ER.js`, `tailwin
 
 - **Titres.** Le nom Mathieu Comtesse et les titres de chapitre sont extrudés en PP Neue Montreal. Le nom suit le tracé vertical de l’accueil sur bureau et horizontal sur mobile. La profondeur vaut 34 px à une taille de référence de 120 px. Les titres de chapitre utilisent 70 % de cette profondeur. Les titres éditoriaux se redressent à 90°.
 - **Courbe.** Le tracé principal échantillonne `eˣ` avec `2ˣ` et `3ˣ`, dans le repère du sol, sur l’intervalle de 0 à 5. Les 11 repères ouvrent les chapitres du CV. La formule amortie et son tracé sont visibles à gauche sur écran large.
-- **Cadres.** Les trois hauteurs sont calculées avec les coefficients 1,05, 0,70 et 0,35. Les faces avant rejoignent le cadre suivant. La liste des chapitres suit un arc de 85° calculé sur ses dimensions et son relief propres. Le décor animé est rendu sur fond transparent dans sa vignette.
+- **Cadres.** Les trois hauteurs sont calculées avec les coefficients 1,05, 0,70 et 0,35. La liste des chapitres suit un arc de 85° calculé sur ses dimensions et son relief propres. Le décor animé est rendu sur fond transparent dans sa vignette.
 
 La mise en page conserve les textes et visuels du CV. Leur composition et leur éclairage restent à comparer avec la référence dans des captures au même cadrage.
 
@@ -43,3 +43,11 @@ Le moteur extrait part du rectangle des caractères visibles et de la première 
 | 390 × 844 | 335,95 px | 349,13 px | 348,97 px | 54,68 px |
 
 Les coordonnées sont mesurées au même point de lecture, sur la géométrie rendue par Chrome. Le calcul de référence applique les paramètres extraits au texte et au cadrage de comtesse.me. La comparaison valide les bornes projetées, avec des écarts inférieurs à 0,2 px sur les bords mesurés. L’ombre et le traitement des surfaces restent à comparer visuellement.
+
+## Face des cadres de l’accueil et des projets
+
+Les trois cadres d’accueil portent le contenu sur la face au contact du parcours. Le texte, l’illustration et le point d’appui du modèle partagent le repère de cette face. La face extérieure est dessinée en filaire. La vignette du décor ouvre la page plein écran.
+
+Dans les onze projets, la machine et sa fiche partagent un cadre, avec le texte aligné en haut. Les démonstrations, les résultats et les autres panneaux disposent de cadres construits sur le même principe. Chrome a vérifié les onze projets à 1 440 × 900 et 390 × 844, ainsi que le changement d’étape de la simulation financière et du terminal VRE sur bureau.
+
+Les fenêtres utilisent les captures déjà intégrées. Quatorze emplacements attendent des captures réelles. Le projet Traitement VRE par VM attend le dossier SharePoint, le rapport VRE et le suivi Excel.
