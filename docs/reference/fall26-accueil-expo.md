@@ -32,3 +32,14 @@ La capture Expo archivée de Shopify correspond à un écran de 2 498 × 1 319. 
 | Jonction du panneau et de sa face avant | ≈ 285 px | 298 px | 286 px |
 
 Le panneau utilisait auparavant la hauteur et la rangée de la première vignette. Le panneau possède son propre volume et la bande bleue reste visible derrière lui en Expo. Les zones cliquables suivent les rangées projetées à l’écran. Chrome a vérifié les 11 liens présents, le survol, l’ouverture de Projets professionnels à la souris et le lien Prévention au clavier. Les coordonnées de l’archive sont lues sur une image réduite et donnent une précision d’environ 1 px.
+
+## Position et hauteur du titre « Projets professionnels »
+
+Le moteur extrait part du rectangle des caractères visibles et de la première ligne de base. Il calcule la charnière sous le point le plus bas du texte, en tenant compte des lignes suivantes et des descendantes. La projection du CV utilisait le rectangle du bloc et la dernière ligne de base. La correction lit les deux lignes affichées dans Chrome et leur encrage, puis les extrude autour de l’appui issu de ces mesures.
+
+| Écran | Haut avant | Haut corrigé | Haut calculé d’après l’extraction | Hauteur corrigée |
+| --- | ---: | ---: | ---: | ---: |
+| 1 440 × 900 | 306,35 px | 339,52 px | 339,55 px | 148,18 px |
+| 390 × 844 | 335,95 px | 349,13 px | 348,97 px | 54,68 px |
+
+Les coordonnées sont mesurées au même point de lecture, sur la géométrie rendue par Chrome. Le calcul de référence applique les paramètres extraits au texte et au cadrage de comtesse.me. La comparaison valide les bornes projetées, avec des écarts inférieurs à 0,2 px sur les bords mesurés. L’ombre et le traitement des surfaces restent à comparer visuellement.

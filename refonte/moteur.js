@@ -157,23 +157,75 @@ export function cvFont(family = 'Inter, ui-sans-serif, system-ui, sans-serif', w
   return font;
 }
 
-export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1, letterSpacing = 0 } = {}) {
-  const c = ctxMesure(font), mots = texte.split(/\s+/).filter(Boolean), lignes = [];
+export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1, letterSpacing = 0, lignes = [], premiereLigne = false } = {}) {
+  const c = ctxMesure(font);
   c.letterSpacing = letterSpacing * CORPS + 'px';
-  let ligne = '';
-  for (const m of mots) { const essai = ligne ? ligne + ' ' + m : m; if (ligne && c.measureText(essai).width / CORPS > maxWidth) { lignes.push(ligne); ligne = m; } else ligne = essai; }
-  if (ligne) lignes.push(ligne);
+  if (!lignes.length) {
+    lignes = [];
+    let ligne = '';
+    for (const mot of texte.split(/\s+/).filter(Boolean)) {
+      const essai = ligne ? ligne + ' ' + mot : mot;
+      if (ligne && c.measureText(essai).width / CORPS > maxWidth) {
+        lignes.push(ligne);
+        ligne = mot;
+      } else ligne = essai;
+    }
+    if (ligne) lignes.push(ligne);
+  }
   const marge = 8, larg = Math.ceil(Math.max(1, ...lignes.map((l) => c.measureText(l).width))) + 2 * marge, haut = Math.ceil(CORPS * (lineHeight * (lignes.length - 1) + 1.45)) + 2 * marge;
   const cv = document.createElement('canvas'); cv.width = larg; cv.height = haut;
   const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.letterSpacing = c.letterSpacing; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
   const base0 = marge + CORPS * 1.08;                                   // ligne de base de la première ligne, en pixels du canevas
   lignes.forEach((l, k) => g.fillText(l, marge, base0 + k * lineHeight * CORPS));
-  const baseDerniere = base0 + (lignes.length - 1) * lineHeight * CORPS;
-  const boucles = contours(g.getImageData(0, 0, larg, haut)).map((b) => b.map(([x, y]) => [(x - marge) / CORPS, (baseDerniere - y) / CORPS]));   // en cadratins, y vers le haut, ligne de base de la dernière ligne à 0
+  const origine = premiereLigne ? base0 : base0 + (lignes.length - 1) * lineHeight * CORPS;
+  const boucles = contours(g.getImageData(0, 0, larg, haut)).map((b) => b.map(([x, y]) => [(x - marge) / CORPS, (origine - y) / CORPS]));
   const bounds = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
   for (const b of boucles) for (const [x, y] of b) { bounds.minX = Math.min(bounds.minX, x); bounds.maxX = Math.max(bounds.maxX, x); bounds.minY = Math.min(bounds.minY, y); bounds.maxY = Math.max(bounds.maxY, y); }
   if (!boucles.length) Object.assign(bounds, { minX: 0, maxX: 0, minY: 0, maxY: 0 });
   return { boucles, bounds, width: bounds.maxX - bounds.minX, lignes };
+}
+
+// Lit les retours à la ligne et le rectangle du texte dans la mise en page à plat.
+export function cvMesureTitre(el, font) {
+  const style = getComputedStyle(el), boite = el.getBoundingClientRect();
+  const taille = parseFloat(style.fontSize), interligne = parseFloat(style.lineHeight) || taille;
+  const range = document.createRange(), lignes = [];
+  const textes = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: node => node.parentElement.closest('[aria-hidden="true"]')
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  let gauche = Infinity, haut = Infinity, bas = -Infinity, ligne;
+  for (let node = textes.nextNode(); node; node = textes.nextNode()) {
+    let i = 0;
+    for (const caractere of node.data) {
+      range.setStart(node, i);
+      i += caractere.length;
+      range.setEnd(node, i);
+      const rect = range.getBoundingClientRect();
+      if (!rect.height) continue;
+      if (caractere.trim()) {
+        if (!ligne || rect.top > ligne.top + rect.height / 2) {
+          ligne = { top: rect.top, texte: '' };
+          lignes.push(ligne);
+        }
+        gauche = Math.min(gauche, rect.left);
+        haut = Math.min(haut, rect.top);
+        bas = Math.max(bas, rect.bottom);
+      }
+      if (ligne) ligne.texte += caractere;
+    }
+  }
+  if (!lignes.length) return null;
+  const c = ctxMesure(font);
+  c.font = style.font;
+  const { fontBoundingBoxAscent: ascent, fontBoundingBoxDescent: descent } = c.measureText('M');
+  const ajustement = (bas-haut)/(ascent+descent+(lignes.length-1)*interligne);
+  return {
+    lignes: lignes.map(l => l.texte.trim().normalize('NFC')),
+    x: gauche-boite.left, y: haut-boite.top,
+    em: taille*ajustement, baseline: ascent*ajustement, taille,
+    lineHeight: interligne/taille, letterSpacing: (parseFloat(style.letterSpacing)||0)/taille
+  };
 }
 
 /* contours fermés du masque alpha (seuil 50 %, interpolé), simplifiés */
