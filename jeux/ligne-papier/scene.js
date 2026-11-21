@@ -82,9 +82,9 @@ const BLOCKS = [
 ];
 const BUREAU = [1, -15, 9, 5, 6.5, 0], CLOCK = [-5.2, -16.5];
 const TOWERS = [   // a watchtower and the loop its searchlight sweeps: centre, radii, speed, phase
-  { at: [-20, -18], c: [-10, -14], r: [3.2, 7], w: 0.32, ph: 0 },
-  { at: [-2, -33], c: [-2, -26], r: [7, 2.6], w: 0.27, ph: 2 },
-  { at: [24, -32], c: [15, -27], r: [4.5, 3.5], w: 0.36, ph: 4 },
+  { at: [-20, -18], c: [-10, -14], r: [3.2, 7], w: 0.48, ph: 0 },
+  { at: [-2, -33], c: [-2, -26], r: [7, 2.6], w: 0.41, ph: 2 },
+  { at: [24, -32], c: [15, -27], r: [4.5, 3.5], w: 0.54, ph: 4 },
 ];
 const inBox = (x, z, [bx, bz, w, d, , yaw], m = 0) => { const c = Math.cos(yaw), s = Math.sin(yaw), u = (x - bx) * c - (z - bz) * s, v = (x - bx) * s + (z - bz) * c; return Math.abs(u) < w / 2 + m && v < m && v > -d - m; };
 
@@ -540,7 +540,7 @@ H.onRestart(() => life.reset(H.target));
 // ---- 11. the game: light the relays under the searchlights before the Pli, then the last railcar leaves ------------
 const $ = (id) => document.getElementById(id);
 const pips = $('pips'); ZONES.forEach(() => pips.appendChild(document.createElement('i')));
-const LIMIT = 210, START = [11.5, -0.9];
+const LIMIT = 150, START = [11.5, -0.9];
 const ANNOUNCE = ['Le Bureau des Plis vous remercie de votre calme.', 'Ce qui est plié n’a jamais existé.', 'Rentrez chez vous. Dormez.', 'Tout souvenir doit être déclaré au guichet.'];
 let started = false, done = false, t0 = 0, toastT = 0, caughtT = 0, announceT = 18, ann = 0, respawn = START, warned = false;
 const fmt = (s) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.floor(Math.max(0, s) % 60)).padStart(2, '0')}`;
@@ -588,7 +588,7 @@ H.onStep((t, dt) => {
     if ((announceT -= dt) <= 0) { announceT = 26; toast(ANNOUNCE[ann++ % ANNOUNCE.length], 3400); }
     const p = H.hero.group.position;
     for (const Zn of ZONES) if (!Zn.up && Math.hypot(p.x - Zn.c[0], p.z - Zn.c[1]) < 3.7) unfold(Zn);
-    if ((caughtT -= dt) <= 0 && !done && lights.some((L) => Math.hypot(p.x - L.x, p.z - L.z) < 2.5)) caught();
+    if ((caughtT -= dt) <= 0 && !done && lights.some((L) => Math.hypot(p.x - L.x, p.z - L.z) < 2.8)) caught();
   }
   if (!train.live || !CAR) return;
   if (train.wait > 0) { train.wait -= dt; return; }
