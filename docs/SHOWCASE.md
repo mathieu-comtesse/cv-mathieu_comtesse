@@ -49,7 +49,7 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 ## Mapping final des onze vitrines
 | projet | machine conservée | fenêtres | statuts |
 |---|---|---|---|
-| Point financier | réservoir | classeur Excel, flux Power Automate, courriel préventif | 3 démo |
+| Point financier | réservoir | bouton vers le portail officiel Power Automate | lien du flux à fournir |
 | VRE par VM | tri postal | SharePoint, rapport, suivi Excel + console pédagogique | 3 manquantes |
 | Reporteur Q18 | machine à écrire | SharePoint, rapport PDF, Excel + console pédagogique | 3 manquantes |
 | Chaîne des PP | horloge-calendrier | SharePoint, flux, relance + console pédagogique | 3 manquantes |

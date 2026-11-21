@@ -15,7 +15,16 @@ for (const w of WIDTHS) {
   const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   await p.goto(`http://localhost:${srv.address().port}/index.html?uxtest`, { waitUntil: 'domcontentloaded' }); await p.waitForFunction(() => window.__scTest, null, { timeout: 90000 }); await p.waitForTimeout(6000);
   for (const [slug, cfg] of Object.entries(SHOWCASE)) {
-    const tag = `${slug} ${w}`, N = cfg.steps.length;
+    const tag = `${slug} ${w}`;
+    if (cfg.portal) {
+      const card = p.locator(`[data-fiche="${slug}"]`);
+      const link = card.locator('.cv-pf-portal a');
+      if (await link.getAttribute('href') !== cfg.portal || await link.getAttribute('target') !== '_blank') fail.push(`${tag} : lien vers le portail incorrect`);
+      if (await card.locator('.cv-pf-showcase').count()) fail.push(`${tag} : la simulation est encore présente`);
+      ok++;
+      continue;
+    }
+    const N = cfg.steps.length;
     /* chargement différé : les captures ne sont pas demandées tant que le cadre n'est pas proche de l'écran */
     const pre = await p.evaluate((s) => [...document.querySelectorAll(`[data-showcase="${s}"] img[data-src]`)].map((i) => !!i.getAttribute('src')), slug);
     if (pre.some(Boolean)) fail.push(`${tag} : capture chargée avant l'approche du cadre`);

@@ -118,6 +118,8 @@ html body .cv-pf-text p { color: rgb(255 255 255 / .84); }
 .cv-pf-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .cv-pf-visual { min-width: 0; display: grid; gap: 12px; }
+.cv-pf-portal { padding: 16px; border: 1px solid rgb(255 255 255 / .16); }
+html body .cv-pf-main[data-fiche] .cv-pf-portal p { margin: 8px 0 0; }
 html body .cv-pf-visual .cv-pf-showcase {
   margin: 0;
   padding: 0;

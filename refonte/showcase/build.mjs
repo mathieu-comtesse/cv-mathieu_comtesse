@@ -26,6 +26,9 @@ const win = (w) => {
 /** @param {string} slug fiche (projet-xxx)  @param {{steps:string[], result:{title:string,text:string}}} ctx  titres des étapes « Comment ça marche » et résultat, repris de la fiche */
 export function showcaseHTML(slug, ctx) {
   const c = SHOWCASE[slug]; if (!c) return '';
+  if (c.portal) {
+    return `<div class="cv-pf-portal"><a class="cv-pf-link" href="${esc(c.portal)}" target="_blank" rel="noopener noreferrer">Ouvrir ${esc(c.label)}<span class="sr-only"> (nouvel onglet)</span></a><p>${esc(c.note)}</p></div>`;
+  }
   const N = c.steps.length, lines = ctx.steps.slice(0, 7), wins = c.layout === 'cascade' ? cascade(c.windows) : c.windows;
   const con = c.console ? `<figure class="sc-win sc-console" data-kind="console" data-step="${c.console.step}" style="${box(c.console.box, c.console.a)}" aria-label="${esc(c.console.title)} : animation pédagogique du déroulé"><div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(c.console.title)}</span><em class="sc-badge" data-status="demo">Animation pédagogique</em></div>` +
     `<ol class="sc-log" data-lines="${q(JSON.stringify(lines))}">${lines.map((l) => `<li><span class="sc-p">✓</span>${l}</li>`).join('')}</ol></figure>` : '';
