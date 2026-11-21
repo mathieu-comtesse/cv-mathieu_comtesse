@@ -678,23 +678,38 @@ export function cvLit(hex, rise) {
   return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
 }
 
-/* Liste des chapitres : arc circulaire tangent au dessus du premier cadre. */
-export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, panneau, alpha = 1 }) {
-  if (alpha <= 0.004 || !(hp > 0)) return;
+/* La liste et ses flancs se plient dans les dimensions du cadre. */
+export function dessinePanneauCourbe(ctx, view, { box, panneau, alpha = 1, souris }) {
+  const { x0:x, x1, r0, r1, base, top }=box;
+  const w=x1-x, hp=r1-r0;
+  if (alpha <= 0.004 || !(hp > 0)) return [];
   const N = 48, ds = hp/N, angle = 85*RAD*view.rise;
   const rayon = hp/Math.max(.0001,angle);
   const at = (u,s) => {
     const theta = s/rayon;
     const height = 2*rayon*Math.sin(theta/2)**2;
-    return p(view,x+u,r1-rayon*Math.sin(theta),h0+height/Math.max(.0001,view.rise));
+    return p(view,x+u,r1-rayon*Math.sin(theta),top+height/Math.max(.0001,view.rise));
   };
   const bord = [];
-  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
-  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return; droite.push(q); }
-  { let haut = Infinity, bas = -Infinity; for (const q of bord) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } for (const q of droite) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } if (bas < 0 || haut > view.H) return; }   /* hors champ : rien à tracer */
-  ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = 'round';
-  ctx.beginPath(); [...bord, ...droite].forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
-  ctx.fillStyle = 'rgba(3,22,150,.86)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke();
+  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return []; bord.push(q); }
+  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return []; droite.push(q); }
+  const dessus=[...bord,...droite];
+  if(dessus.every(q=>q.y<0)||dessus.every(q=>q.y>view.H))return [];
+  const forme=points=>{
+    if(!points.every(Boolean))return false;
+    ctx.beginPath();
+    points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));
+    ctx.closePath();
+    return true;
+  };
+  ctx.save();ctx.globalAlpha=alpha;ctx.lineJoin='round';
+  const bas=[p(view,x,r1,base),p(view,x1,r1,base)];
+  ctx.fillStyle='rgba(2,12,85,.30)';
+  if(forme([...droite,bas[1],p(view,x1,r0,base)]))ctx.fill();
+  ctx.fillStyle='#051daa';ctx.strokeStyle='rgba(255,255,255,.52)';ctx.lineWidth=.85;
+  if(forme([bord[0],droite[N],bas[1],bas[0]])){ctx.fill();ctx.stroke();}
+  forme(dessus);
+  ctx.fill();ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1;ctx.stroke();
   const sx=w/panneau.width, sy=hp/panneau.height;
   const project=(cx,cy)=>at(cx*sx,hp-cy*sy);
   const curve=panneau.curve;
@@ -722,8 +737,13 @@ export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, panneau,
     ctx.fillText(text,0,0);
     ctx.restore();
   };
+  const zones=[];
   for(const item of panneau.items){
-    const focused=item.link.matches(':focus-visible');
+    const b=item.row;
+    const points=b&&[project(b.x,b.y),project(b.x+b.w,b.y),project(b.x+b.w,b.y+b.h),project(b.x,b.y+b.h)];
+    const projected=points?.every(Boolean);
+    if(projected)zones.push({link:item.link,points});
+    const focused=item.link.matches(':focus-visible')||(projected&&souris&&dansQuad(points,souris.x,souris.y));
     place(item.labelBox,item.label,1);
     place(item.numberBox,item.number,focused?1:.6);
     if(focused&&item.point){
@@ -732,4 +752,5 @@ export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, panneau,
     }
   }
   ctx.restore();
+  return zones;
 }
