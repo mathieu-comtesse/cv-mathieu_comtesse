@@ -10,13 +10,30 @@ const MODE_LABEL = { sort: 'Classer', pair: 'Associer', scope: 'Délimiter', ass
   swipe: 'Trier les tablettes', differences: '15 différences', prepare: 'Préparer', runner: 'Évacuer', debrief: 'Retour d’expérience', dashboard: 'Mesurer', audit: 'Auditer', review: 'Revue', corrective: 'Corriger', improvement: 'Améliorer' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/\n/g, '<br>');
 const $ = (id) => document.getElementById(id);
+const ico = (n, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;   // the cut-paper icons of index.html
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function createUI(campaign, world) {
   const root = $('panel'), body = $('panel-body');
   const meter = (v, cls = '') => `<span class="meter ${cls}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
   let mode = null;          // 'activity' | 'duel' | 'dialogue' | 'quest' | 'journal' | null
-  const open = (m) => { mode = m; root.hidden = false; render(); };
-  const close = () => { mode = null; root.hidden = true; };
+  // the sheet slides up from below with a small rising flap, and slides away with the closing one; the open screen's
+  // button stays marked
+  const TOOL = { people: 'btn-people', map: 'btn-map', inventory: 'btn-inventory', tech: 'btn-tech', quest: 'btn-quests', journal: 'btn-journal' };
+  const flap = (up) => world.H.sound?.flap({ size: 0.3, up, key: 'sheet' });
+  const mark = () => { for (const [m, id] of Object.entries(TOOL)) $(id).classList.toggle('sel', m === mode); };
+  const open = (m) => {
+    const fresh = root.hidden || root.classList.contains('out');
+    mode = m; root.classList.remove('out'); root.hidden = false;
+    if (fresh) { root.classList.remove('in'); void root.offsetWidth; root.classList.add('in'); flap(true); body.scrollTop = 0; }
+    render(); mark();
+  };
+  const close = () => {
+    if (!mode) return; mode = null; mark(); flap(false);
+    root.classList.remove('in');
+    if (still()) root.hidden = true; else root.classList.add('out');
+  };
+  root.addEventListener('animationend', (e) => { if (e.target === root && root.classList.contains('out')) { root.hidden = true; root.classList.remove('out'); } });
   const modal = () => mode && !(mode === 'activity' && campaign.current?.mode === 'runner' && campaign.progress(campaign.current.id).card >= campaign.current.cards.length);
   campaign.on(() => { if (mode) render(); hud(); });
 
@@ -32,6 +49,7 @@ export function createUI(campaign, world) {
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
     const done = campaign.data.quests.filter((x) => campaign.questDone(x)).length;
     $('progress').style.width = (done / campaign.data.quests.length * 100) + '%';
+    root.style.setProperty('--top', Math.round($('hud').getBoundingClientRect().bottom + 14) + 'px');   // the sheet sits just under the HUD, whatever its height
   }
   function prompt() {
     const el = $('prompt'), id = campaign.nextAction(), site = campaign.nextSite();
@@ -63,7 +81,7 @@ export function createUI(campaign, world) {
     const p = campaign.progress(a.id), timer = a.duration ? `<p class="timer">${Math.max(0, Math.ceil(a.duration - p.seconds))} s</p>` : '';
     body.innerHTML = header(a) + timer;
     if (campaign.guideOpen()) { body.insertAdjacentHTML('beforeend', `<p class="said">${esc(a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')}</p>`); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
-    if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }
+    if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${ico('cross', 's')}${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }
     const fb = campaign.feedback ? `<p class="fb">${esc(campaign.feedback)}</p>` : '';
     if (a.mode === 'allocation') return allocation(a, p, fb);
     if (a.mode === 'assemble') return assemble(a, p, fb);
@@ -83,7 +101,7 @@ export function createUI(campaign, world) {
     const extra = [card.object && `<b>Objet</b> : ${esc(card.object)}`, card.before && `<b>Avant</b> : ${esc(card.before)}<br><b>Après</b> : ${esc(card.after)}`].filter(Boolean).join('<br>');
     body.insertAdjacentHTML('beforeend', `<p class="count">Carte ${p.card + 1} / ${a.cards.length}</p><div class="card"><p>${esc(card.question)}</p>${extra ? `<p class="small">${extra}</p>` : ''}</div>`);
     const row = document.createElement('div'); row.className = 'choices ' + a.mode;
-    card.choices.forEach((c, i) => row.append(btn((a.mode === 'swipe' ? (i === 0 ? '← ' : '→ ') : '') + esc(c), () => campaign.submit(i))));
+    card.choices.forEach((c, i) => row.append(btn((a.mode === 'swipe' ? ico('arrow', 's' + (i === 0 ? ' left' : '')) : '') + esc(c), () => campaign.submit(i))));
     body.append(row); body.insertAdjacentHTML('beforeend', fb);
     if (a.mode === 'briefing') body.append(lanes(a, p));
     body.append(btn('Interrompre', suspend, 'quiet'));
@@ -97,7 +115,7 @@ export function createUI(campaign, world) {
   }
   function assemble(a, p, fb) {
     const row = document.createElement('div'); row.className = 'tablets';
-    a.cards.forEach((c, i) => { const done = p.answers.includes(c.id); const b = btn(`${done ? '✓ ' : ''}${esc(c.question)}`, () => campaign.selectTablet(i), done ? 'done' : i === p.card ? 'sel' : ''); b.disabled = done; row.append(b); });
+    a.cards.forEach((c, i) => { const done = p.answers.includes(c.id); const b = btn(`${done ? ico('check', 's') : ''}${esc(c.question)}`, () => campaign.selectTablet(i), done ? 'done' : i === p.card ? 'sel' : ''); b.disabled = done; row.append(b); });
     body.insertAdjacentHTML('beforeend', `<p class="count">Tablettes reliées : ${p.answers.length} / ${a.cards.length}</p>`); body.append(row);
     const card = a.cards[p.card];
     if (card && !p.answers.includes(card.id)) { const ch = document.createElement('div'); ch.className = 'choices'; card.choices.forEach((c, i) => ch.append(btn(esc(c), () => campaign.submit(i)))); body.insertAdjacentHTML('beforeend', `<p class="small">Fonction de la tablette choisie :</p>`); body.append(ch); }
@@ -107,9 +125,9 @@ export function createUI(campaign, world) {
   }
   function differences(a, p, fb) {
     const st = campaign.differencesStatus();
-    body.insertAdjacentHTML('beforeend', `<p class="count">Différences expliquées : ${st.found} / ${a.cards.length} · minimum ${st.minimum} · critiques ${st.critical ? '✓' : '…'} · notions ${st.concepts ? '✓' : '…'}</p>`);
+    body.insertAdjacentHTML('beforeend', `<p class="count">Différences expliquées : ${st.found} / ${a.cards.length} · minimum ${st.minimum} · critiques ${st.critical ? ico('check', 's') : 'à trouver'} · notions ${st.concepts ? ico('check', 's') : 'à trouver'}</p>`);
     const grid = document.createElement('div'); grid.className = 'diffs';
-    a.cards.forEach((c, i) => { const done = p.answers.includes(c.id); const b = btn(`${done ? '✓' : i + 1} · ${esc(c.question)}`, () => campaign.observe(i), done ? 'done' : p.observed && p.card === i ? 'sel' : ''); b.disabled = done; grid.append(b); });
+    a.cards.forEach((c, i) => { const done = p.answers.includes(c.id); const b = btn(`${done ? ico('check', 's') : i + 1 + ' · '}${esc(c.question)}`, () => campaign.observe(i), done ? 'done' : p.observed && p.card === i ? 'sel' : ''); b.disabled = done; grid.append(b); });
     body.append(grid);
     if (p.observed) { const c = a.cards[p.card], ch = document.createElement('div'); ch.className = 'choices'; c.choices.forEach((x, i) => ch.append(btn(esc(x), () => campaign.submit(i)))); body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(c.question)}</b></p><p class="small">Avant : ${esc(c.before)}<br>Après : ${esc(c.after)}</p></div>`); body.append(ch); }
     body.insertAdjacentHTML('beforeend', fb);
@@ -177,7 +195,7 @@ export function createUI(campaign, world) {
     body.innerHTML = '<p class="kicker">Écran Quêtes</p><h2>La campagne ISO 45001</h2>';
     for (const q of campaign.data.quests) {
       const done = campaign.questDone(q), now = q === f;
-      body.insertAdjacentHTML('beforeend', `<div class="quest ${done ? 'done' : now ? 'now' : 'later'}"><b>${done ? '✓ ' : ''}${esc(q.title)}</b><span>${esc(campaign.act(q)?.title || '')} · ${esc((q.iso || []).join(', '))}</span>${now ? `<p>${esc(q.description)}</p><p class="small">${esc(q.tip || '')}</p>` : ''}</div>`);
+      body.insertAdjacentHTML('beforeend', `<div class="quest ${done ? 'done' : now ? 'now' : 'later'}"><b>${done ? ico('check', 's') : ''}${esc(q.title)}</b><span>${esc(campaign.act(q)?.title || '')} · ${esc((q.iso || []).join(', '))}</span>${now ? `<p>${esc(q.description)}</p><p class="small">${esc(q.tip || '')}</p>` : ''}</div>`);
     }
     body.append(btn('Fermer', close, 'go'));
   }
@@ -212,11 +230,11 @@ export function createUI(campaign, world) {
         body.append(btn('Retour', () => { picker = false; render(); }, 'quiet'));
       } else {
         const all = campaign.tasksOf(person), open_ = all.filter((t) => !['done', 'failed'].includes(t.status)), shown = open_.concat(all.filter((t) => t.status === 'done').slice(-3).reverse());
-        const label = { done: '✓ FAIT', blocked: 'BLOQUÉ', moving: 'EN ROUTE', working: 'EN COURS', queued: 'EN ATTENTE', failed: 'ÉCHOUÉE' };
+        const label = { done: 'FAIT', blocked: 'BLOQUÉ', moving: 'EN ROUTE', working: 'EN COURS', queued: 'EN ATTENTE', failed: 'ÉCHOUÉE' };
         for (const t of shown) {
           const a = PRODUCTIONS.find((x) => x.id === t.actionId), pc = t.status === 'done' ? 100 : Math.round(100 * t.workedSeconds / Math.max(1, t.duration));
-          body.insertAdjacentHTML('beforeend', `<div class="quest ${t.status === 'done' ? 'done' : 'now'}"><b>${esc(a.title)}</b><span>${esc(world.SITES[a.site].label)} · ${pc} % ${meter(pc)} · ${label[t.status]}</span>${t.status === 'blocked' ? `<p class="small">${esc(t.reason)}</p>` : ''}</div>`);
-          if (!['done', 'failed'].includes(t.status)) body.append(btn('✕ Annuler', () => campaign.cancelTask(t.id), 'quiet'));
+          body.insertAdjacentHTML('beforeend', `<div class="quest ${t.status === 'done' ? 'done' : 'now'}"><b>${t.status === 'done' ? ico('check', 's') : ''}${esc(a.title)}</b><span>${esc(world.SITES[a.site].label)} · ${pc} % ${meter(pc)} · ${label[t.status]}</span>${t.status === 'blocked' ? `<p class="small">${esc(t.reason)}</p>` : ''}</div>`);
+          if (!['done', 'failed'].includes(t.status)) body.append(btn(ico('cross', 's') + 'Annuler', () => campaign.cancelTask(t.id), 'quiet'));
         }
         if (!shown.length) body.insertAdjacentHTML('beforeend', `<div class="quest"><b>${person === 'dylan' ? 'DYLAN · CONTRÔLÉ PAR LE JOUEUR' : 'ACTIVITÉ RÉGULIÈRE'}</b><span>${esc(person === 'dylan' ? '' : BEHAVIOUR[campaign.brain(person)?.behaviour || 'IDLE'])}</span></div>`);
         const add = btn('+ Ajouter une tâche', () => { picker = true; render(); }, 'go'); add.disabled = dead || person === 'dylan' || open_.length >= 3; body.append(add);
@@ -234,10 +252,20 @@ export function createUI(campaign, world) {
   function renderMap() {
     const S = world.SITES, X = (x) => (x + 30) * 8, Z = (z) => (z + 34) * 8, hero = world.H.hero.group.position, target = world.guide || campaign.nextSite();
     const river = world.RIVER.pts.map(([x, z], i) => (i ? 'L' : 'M') + X(x).toFixed(0) + ' ' + Z(z).toFixed(0)).join(' ');
-    let svg = `<svg class="map" viewBox="0 0 496 368" role="img" aria-label="Carte du village"><path d="${river}" stroke="#6f7fb0" stroke-width="26" fill="none" stroke-linecap="round" opacity=".55"/>`;
-    for (const [id, s] of Object.entries(S)) svg += `<g class="site ${id === target ? 'on' : ''}" data-site="${id}"><circle cx="${X(s.x)}" cy="${Z(s.z)}" r="${id === target ? 9 : 6}"/><text x="${X(s.x)}" y="${Z(s.z) - 12}">${esc(s.label)}</text></g>`;
-    svg += `<circle class="me" cx="${X(hero.x)}" cy="${Z(hero.z)}" r="7"/></svg>`;
-    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2>${svg}<p class="small">● Dylan · le lieu en rouge est la prochaine étape. Choisis un lieu pour y poser le repère.</p>`;
+    // printed like an atlas plate: graticule, neatline, the river in ink and wash, the target as an inked ring with a
+    // cross, Dylan as the one red pin, a compass
+    let svg = `<svg class="map" viewBox="0 0 496 368" role="img" aria-label="Carte du village"><defs><pattern id="grat" width="31" height="23" patternUnits="userSpaceOnUse"><path d="M31 0V23H0" fill="none" stroke="#2a1a1e" stroke-opacity=".08"/></pattern></defs>
+      <rect width="496" height="368" fill="#f4ead6"/><rect width="496" height="368" fill="url(#grat)"/>
+      <rect x="6" y="6" width="484" height="356" fill="none" stroke="#2a1a1e" stroke-opacity=".7" stroke-width="1.2"/><rect x="10" y="10" width="476" height="348" fill="none" stroke="#2a1a1e" stroke-opacity=".35" stroke-width=".6"/>
+      <path d="${river}" stroke="#6f7fb0" stroke-width="24" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".42"/><path d="${river}" stroke="#2a1a1e" stroke-opacity=".5" stroke-width="1.1" stroke-dasharray="7 5" fill="none"/>`;
+    for (const [id, s] of Object.entries(S)) {
+      const x = X(s.x), y = Z(s.z), goal = id === target;
+      svg += `<g class="site" data-site="${id}"><circle cx="${x}" cy="${y}" r="16" fill="transparent" stroke="none"/>${goal ? `<circle class="goal" cx="${x}" cy="${y}" r="11"/><path class="x" d="M${x - 3.4} ${y - 3.4}l6.8 6.8M${x + 3.4} ${y - 3.4}l-6.8 6.8"/>` : `<circle cx="${x}" cy="${y}" r="4.6"/>`}<text x="${x}" y="${y - 15}">${esc(s.label)}</text></g>`;
+    }
+    const hx = X(hero.x), hz = Z(hero.z);
+    svg += `<ellipse cx="${hx + 2}" cy="${hz + 1}" rx="5" ry="2" fill="#2a1828" opacity=".3"/><path d="M${hx} ${hz}v-13" stroke="#2a1a1e" stroke-width="1.6"/><circle cx="${hx}" cy="${hz - 16}" r="6" fill="#a83a2a" stroke="#4a2c24"/><circle cx="${hx - 2}" cy="${hz - 18}" r="1.8" fill="#fbf6ea" opacity=".8"/>
+      <g transform="translate(456 326)" stroke="#2a1a1e" stroke-width=".8"><path d="M0-18L3.4 0 0 18-3.4 0z" fill="#efe0c2"/><path d="M0-18L3.4 0H-3.4z" fill="#a83a2a"/><path d="M-14 0H14" stroke-opacity=".6"/></g><text x="456" y="300">N</text></svg>`;
+    body.innerHTML = `<p class="kicker">Écran Carte</p><h2>Le village des Crânes Fendus</h2>${svg}<p class="small">L’épingle rouge est Dylan, le cercle à croix la prochaine étape. Choisis un lieu pour y poser le repère.</p>`;
     body.querySelectorAll('.site').forEach((g) => { g.onclick = () => { world.guide = g.dataset.site; render(); }; });
     if (world.guide) body.append(btn('Revenir à l’objectif de la quête', () => { world.guide = null; render(); }));
     body.append(btn('Fermer', close, 'quiet'));
@@ -290,7 +318,7 @@ export function createUI(campaign, world) {
     const prereq = [...new Set(qs.map((q) => chain[chain.indexOf(q) - 1]).filter(Boolean))].map((q) => q.title);
     body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(k.id)} · ${esc(k.title)}</b></p><p class="small">${esc(campaign.clauseStatus(clause))}</p>
       <p class="small"><b>MISSIONS LIÉES</b><br>${qs.length ? qs.map((q) => (campaign.clauseVerified(q, clause) ? 'Vérifiée · ' : 'À vérifier · ') + esc(q.title)).join('<br>') : 'Aucune mission dans cette campagne.'}</p>
-      <p class="small"><b>PRÉREQUIS</b><br>${prereq.length ? prereq.map(esc).join('<br>') : '—'}</p>
+      <p class="small"><b>PRÉREQUIS</b><br>${prereq.length ? prereq.map(esc).join('<br>') : 'Aucun'}</p>
       ${clause === '4.1' || clause === '4.2' ? '<p class="small">Amd 1:2024 · examine la pertinence du changement climatique et les attentes associées pour les activités de la tribu.</p>' : ''}
       <p class="small">Une mesure construite doit encore être contrôlée. Les titres sont des repères pédagogiques ; ils ne constituent pas une certification.</p></div>`);
     if (qs.length) body.append(btn('Voir la mission liée', () => open('quest'), 'go'));

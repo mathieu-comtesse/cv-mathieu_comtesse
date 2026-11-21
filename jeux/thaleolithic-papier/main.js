@@ -29,7 +29,7 @@ H.onStep((t, dt) => {
   const off = Math.abs(v.x) > 0.95 || Math.abs(v.y) > 0.95;
   pin.hidden = false; pin.classList.toggle('edge', off);
   const x = Math.max(-0.92, Math.min(0.92, v.x)), y = Math.max(-0.88, Math.min(0.88, v.y));
-  pin.style.transform = `translate(${(x + 1) / 2 * innerWidth}px, ${(1 - y) / 2 * innerHeight}px) translate(-50%, -100%)`;
+  pin.style.transform = `translate(${(x + 1) / 2 * innerWidth}px, ${(1 - y) / 2 * innerHeight}px) translate(-50%, calc(-100% - 19px))`;
   pin.querySelector('span').textContent = s.label;
 });
 

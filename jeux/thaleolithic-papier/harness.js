@@ -372,6 +372,7 @@ export function createHarness({ bounds = { x0: -64, x1: 64, z0: -62, z1: 38 }, g
 
     // choreography: the nearest card lies on top of the flat stack, so it rises first; closing is the exact reverse
     const sound = new PaperSound();
+    H.sound = sound;                                                     // papercraft: the game's paper sheets flap with the same engine
     let up = false;
     function setOpen(open) {
       up = open;
