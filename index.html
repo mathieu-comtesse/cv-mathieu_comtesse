@@ -470,6 +470,7 @@ html .cv-parity-part .rf-contact-in .rf-cp,html .cv-parity-part .rf-contact-in h
 html:not(.cv-parity-active) .cv-legacy .pc-hublot{margin-block:56px 96px}
 /* le graphe de l'accueil est prêt dès le chargement : plus d'attente de dix secondes avant d'afficher le nom et les cartes */
 .hero-entrance-hold{animation:none!important}</style>
+<link rel="stylesheet" href="refonte/expo-typographie.css?v=1">
 <!-- seo:start -->
 <meta property="og:locale" content="fr_FR">
 <meta property="og:url" content="https://comtesse.me/">
@@ -1012,12 +1013,12 @@ function openCvCardFocus(el,details){
 // // Shopify supplies the camera, fold, hinge animation, outlines and mathematical labels.
 // Only the DOM/Three rendering adapter is local; all coordinates remain native CSS pixels.
 async function startParityPath(){
- const [T,N,{CielExpo}]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=m26'),import(base+'refonte/ciel-expo.js?v=2')]),source=q('[data-f26-page]');if(!source)return;
+ const [T,N,{CielExpo}]=await Promise.all([import('three'),import(base+'refonte/moteur.js?v=m27'),import(base+'refonte/ciel-expo.js?v=3')]),source=q('[data-f26-page]');if(!source)return;
  const header=q('.cv-site-nav');if(header)document.body.append(header);
  const sourceMinHeight=source.style.minHeight;
  await document.fonts?.ready;
- await Promise.allSettled(['500 120px "Expo Inter"','500 120px "PP Neue Montreal"'].map(font=>document.fonts.load(font)));
- const headingFont=N.cvFont('"Expo Inter", Inter, sans-serif'), wordmarkFont=N.cvFont('"PP Neue Montreal", Inter, sans-serif');
+ await Promise.allSettled(['300 11px "Sohne Mono"','500 120px "PP Neue Montreal"','500 10px "Expo Inter"'].map(font=>document.fonts.load(font)));
+ const headingFont=N.cvFont('"PP Neue Montreal", Inter, sans-serif');
  await new Promise(resolve=>{const limit=performance.now()+12000;const check=()=>state.gains!=='idle'||performance.now()>limit?resolve():setTimeout(check,40);check();});
  await new Promise(resolve=>{const limit=performance.now()+15000;const check=()=>document.querySelector('.annual-pig-wrap')?.dataset.piggy!=='loading'||performance.now()>limit?resolve():setTimeout(check,50);check();});
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),raise=new N.cvRaise(reduced),original=new WeakMap(),models=new Map();
@@ -1057,7 +1058,7 @@ async function startParityPath(){
    const logo=hero&&qa('svg.hero-logo',el).find(svg=>svg.getBoundingClientRect().width>0);
    const texte=logo?q('text',logo):el;
    const vertical=!!logo&&logo.viewBox.baseVal.height>logo.viewBox.baseVal.width;
-   const font=hero?wordmarkFont:headingFont;
+   const font=headingFont;
    const em=logo?Number(texte.getAttribute('font-size'))*Math.min(r.width/logo.viewBox.baseVal.width,r.height/logo.viewBox.baseVal.height):parseFloat(css.fontSize);
    const layout=N.cvTextLayout(font,texte.textContent.trim(),{
      maxWidth:hero?Infinity:r.width/em,
@@ -1115,6 +1116,20 @@ async function startParityPath(){
   const entry={dresse:!!el.querySelector(':scope nav[aria-label="Sections"]')&&!!el.closest('.hero-sidebar'),bpfig:el.matches('.cv-bpfig'),theme:el.closest('[data-cv-theme]')?.getAttribute('data-cv-theme')||'',float:el.matches('.cv-magic3d,.cv-explore3d,.room-navigation,.room-camera,.scene-controls,.room-zoom,.cv-bpfig'),hero:el.id==='hero'||!!el.closest('#hero'),el,marker,wrapper,original:el.getAttribute('style'),x:r.left,y:r.top+scrollY,w:r.width,h:r.height,slab,cardId:el.closest('.product-card')?.id,section:el.closest('[data-f26-page-section]')?.id,title:el.querySelector('h1,h2,h3,h4')?.textContent.trim()||el.getAttribute('aria-label')||el.closest('.product-card')?.querySelector('h3')?.textContent.trim()||''};
   if(el.matches("h2")&&el.closest(".section-hero-pin,.cv-theme-heading")||el.matches("#hero h1")){
     try{entry.heading=fabriqueTitre(el,r);}catch(e){console.warn("CV heading",e);}
+  }
+  if(entry.section)wrapper.dataset.cvEditorial='';
+  if(entry.dresse){
+    const rel=child=>{
+      const box=original.get(child);
+      return box?{x:box.left-r.left,y:box.top-r.top-scrollY,w:box.width,h:box.height}:null;
+    };
+    entry.panneau={
+      width:r.width,height:r.height,curve:rel(q('svg',el)),
+      items:qa('nav li a',el).map(link=>{
+        const [label,number,point]=qa(':scope > span',link);
+        return {link,label:label.textContent.trim(),number:number.textContent.trim(),labelBox:rel(label),numberBox:rel(number),point:rel(point)};
+      })
+    };
   }
     if(el.id==='hero')wrapper.classList.add('cv-parity-hero');if(el.matches('#hero figure'))wrapper.classList.add('cv-parity-widget');wrapper.dataset.cvType=el.closest('[data-cv-type]')?.dataset.cvType||'';
   wrapper.style.setProperty('--cv-theme',el.closest('[data-cv-theme]')?.style.getPropertyValue('--cv-theme')||el.closest('[data-f26-page-section]')?.getAttribute('data-html-in-canvas-colour')||'#153f8d');el.replaceWith(marker);into.append(el);el.style.cssText='position:relative;inset:auto;box-sizing:border-box;width:'+r.width+'px;height:'+r.height+'px;margin:0;overflow:visible'+(entry.heading?';opacity:0':'');(el.matches('.rf-win,.pc-inf,.annual-pig-wrap')?paperTop:paper).append(wrapper);parts.push(entry);
@@ -1348,7 +1363,16 @@ async function startParityPath(){
   if(closest!==selected){selected=closest;rulers.reset();}rulers.el.hidden=true;state.pathFigures=[...models.values()].filter(m=>m.root.visible).length;state.pathView=selected?.view;
   placeCiel();{const c=ciel.compte('accueil');state.heroGraph={native:true,nodes:c.total,editoriaux:c.editoriaux,depth:N.L.layers.graph.heroLift*innerHeight};}if(grid){grid.render(view,null);const d=gridFallback.width/innerWidth;fallback.setTransform(d,0,0,d,0,0);fallback.clearRect(0,0,innerWidth,innerHeight);}else drawFallbackGrid();drawPaperFloor();renderer.render(scene,camera);renderer.autoClear=false;renderer.render(machineScene,camera);renderer.autoClear=true;const dpr=annotations.width/innerWidth;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,innerWidth,innerHeight);ctx.lineWidth=.85;
   const covers=visible.filter(p=>p.slab&&p.points&&p.box?.tilted>.05).map(p=>p.points);
-  {const pd=parts.find(q=>q.dresse);if(pd){const a=reduced.matches?1:Math.max(0,Math.min(1,view.e/.2)),sm=a*a*(3-2*a);if(!pd.items)pd.items=[...pd.el.querySelectorAll('nav li a')].map(x=>{const t=x.textContent.replace(/\s+/g,' ').trim(),m=/^(.*?)\s*(\d{1,2})$/.exec(t);return {nom:m?m[1]:t,num:m?m[2]:''};});pd.wrapper.style.opacity=sm>.001?String(1-sm):'';if(sm>.001){const b1=parts.filter(q=>q.slab&&q.hero&&!q.dresse).sort((a,c)=>a.y-c.y)[0];if(b1&&b1.y>pd.y)N.dessinePanneauCourbe(ctx,view,{x:b1.x,w:b1.w,r1:b1.y-view.offset,hp:b1.y-pd.y,h0:b1.box.top,taille:12,items:pd.items,alpha:sm});}}}
+  const pd=parts.find(p=>p.dresse);
+  if(pd?.panneau){
+    const t=reduced.matches?1:Math.max(0,Math.min(1,view.e/.2)),opacity=t*t*(3-2*t);
+    pd.wrapper.style.opacity=opacity>.001?String(1-opacity):'';
+    const b1=parts.find(p=>p.slab&&p.hero&&!p.dresse);
+    if(opacity>.001&&b1?.box&&b1.y>pd.y){
+      N.dessinePanneauCourbe(ctx,view,{x:b1.x,w:b1.w,r1:b1.y-view.offset,
+        hp:b1.y-pd.y,h0:b1.box.top,panneau:pd.panneau,alpha:opacity});
+    }
+  }
   view.cube=[-0.285*view.W,-612-view.offset,0,140*view.H/1319];N.dessineDecor(ctx,view,{t:reduced.matches?0:now/1000});
   const graph=original.get(q('.hero-entrance-hold'));
   const plotLeft=innerWidth<700?14:Math.max(18,(graph?.left||0)*.08);

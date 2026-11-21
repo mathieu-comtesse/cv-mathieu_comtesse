@@ -1,4 +1,4 @@
-import { Ciel, dansQuad, hache } from './moteur.js?v=m26';
+import { Ciel, dansQuad, hache } from './moteur.js?v=m27';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
 const tons = ['131,185,244', '154,169,255', '133,202,226'];
@@ -75,7 +75,7 @@ export class CielExpo extends Ciel {
         const p=proj(x,y+radius+14,0), dx=proj(x+100,y+radius+14,0), texte=e.num+' '+e.label;
         if(p&&dx){
           const px=Math.min(13,Math.max(6,.15*Math.abs(dx.x-p.x)));
-          ctx.font='400 '+px+'px "JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#fff';
+          ctx.font='300 '+px+'px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#fff';
           ctx.fillText(texte,p.x,p.y);e.libelleEcran={x:Math.round(p.x),y:Math.round(p.y),texte};
         }
       }
@@ -121,13 +121,13 @@ export class CielExpo extends Ciel {
       const diam=title?14:8;
       ctx.fillStyle=title?'#e9efff':'#a1badc';ctx.fillRect(hub.x-diam/2,hub.y-diam/2,diam,diam);
       if(title){
-        ctx.font='400 11px "JetBrains Mono",monospace';ctx.textAlign='right';ctx.fillStyle='#fff';
+        ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign='right';ctx.fillStyle='#fff';
         const lx=hub.x-diam-8,ly=hub.y+4;ctx.fillText(e.label,lx,ly);e.libelleEcran={x:Math.round(lx),y:Math.round(ly),texte:e.label};
       }
     }
     if(this.survol){
       const {x,y,noeud}=this.survol,isRight=x>W/2;
-      ctx.globalAlpha=1;ctx.font='400 11px "JetBrains Mono",monospace';ctx.textAlign=isRight?'right':'left';
+      ctx.globalAlpha=1;ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign=isRight?'right':'left';
       ctx.fillStyle='#fff';ctx.fillText(noeud.ed.title,x+(isRight?-18:18),y+4);
     }
     ctx.restore();

@@ -679,7 +679,7 @@ export function cvLit(hex, rise) {
 }
 
 /* Liste des chapitres : arc circulaire tangent au dessus du premier cadre. */
-export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, items = [], alpha = 1, taille = 11 }) {
+export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, panneau, alpha = 1 }) {
   if (alpha <= 0.004 || !(hp > 0)) return;
   const N = 48, ds = hp/N, angle = 85*RAD*view.rise;
   const rayon = hp/Math.max(.0001,angle);
@@ -695,12 +695,41 @@ export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, items = 
   ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = 'round';
   ctx.beginPath(); [...bord, ...droite].forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
   ctx.fillStyle = 'rgba(3,22,150,.86)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke();
-  const n = items.length, haut = hp - 12, pas = haut / Math.max(1, n);
-  ctx.font = `500 ${taille}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#fff';
-  const place = (u, s, texte, droit) => {
-    const P = at(u, s), X = at(u + 20, s), Y = at(u, s + 20); if (!P || !X || !Y) return;
-    ctx.save(); ctx.transform((X.x - P.x) / 20, (X.y - P.y) / 20, -(Y.x - P.x) / 20, -(Y.y - P.y) / 20, P.x, P.y); ctx.textAlign = droit ? 'right' : 'left'; ctx.fillText(texte, 0, 0); ctx.restore();
+  const sx=w/panneau.width, sy=hp/panneau.height;
+  const project=(cx,cy)=>at(cx*sx,hp-cy*sy);
+  const curve=panneau.curve;
+  if(curve){
+    ctx.beginPath();
+    for(let i=0;i<=40;i++){
+      const t=i/40, u=1-t;
+      const cx=u**3+3*u*u*t+3*u*t*t*.6103;
+      const cy=.0455*u**3+.503*3*u*u*t+.9545*(3*u*t*t+t**3);
+      const q=project(curve.x+cx*curve.w,curve.y+cy*curve.h);
+      if(q)i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+    }
+    ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=.5;ctx.stroke();
+  }
+  ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#fff';
+  const place=(box,text,opacity)=>{
+    if(!box)return;
+    const mx=box.x,my=box.y+box.h/2,d=4;
+    const P=project(mx,my),X=project(mx+d,my),Y=project(mx,my+d);
+    if(!P||!X||!Y)return;
+    ctx.save();
+    ctx.globalAlpha=alpha*opacity;
+    ctx.transform((X.x-P.x)/d,(X.y-P.y)/d,(Y.x-P.x)/d,(Y.y-P.y)/d,P.x,P.y);
+    ctx.fillText(text,0,0);
+    ctx.restore();
   };
-  items.forEach((it, j) => { const s = hp - 8 - (j + 0.75) * pas; if (s < 2) return; place(10, s, it.nom, false); place(w - 10, s, it.num, true); });
+  for(const item of panneau.items){
+    const focused=item.link.matches(':focus-visible');
+    place(item.labelBox,item.label,1);
+    place(item.numberBox,item.number,focused?1:.6);
+    if(focused&&item.point){
+      const dot=project(item.point.x+item.point.w/2,item.point.y+item.point.h/2);
+      if(dot){ctx.globalAlpha=alpha;ctx.fillRect(dot.x-1,dot.y-1,2,2);}
+    }
+  }
   ctx.restore();
 }
