@@ -17,3 +17,7 @@ Les poids du détecteur (`assets/vision/*.bin`) sont ceux publiés par Ultralyti
 ## Lettres machines
 
 Les lettres de `jeux/lettres-machines-scene.html` (`jeux/lettres-machines.js`) sont dessinées par le code de ce dépôt, sans composant tiers. Le style (trait d'encre, hachures, lavis, alphabet fait de mécanismes) s'inspire des illustrations de David Macaulay dans « The Way Things Work » ; aucune image de l'ouvrage n'est reproduite.
+
+## La Ville pliée
+
+Le jeu « La Ville pliée » (`jeux/ligne-papier/`) s'appuie sur le kit du skill « papercraft » (`jeux/ligne-papier/papercraft/lib/`, `jeux/ligne-papier/harness.js`, légèrement adapté), Copyright (c) 2026 Shikhar, licence MIT, <https://github.com/xikhar/papercraft>. Le skill complet est installé dans `.claude/skills/papercraft/`. La ville, les pièces, l'héroïne et la logique de jeu (`scene.js`) sont propres à ce dépôt.
