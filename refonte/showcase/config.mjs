@@ -11,15 +11,11 @@ const NIS = 'Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : �
 const V11 = 'Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
 const FIC = 'Capture de la page de démonstration publiée du projet, données fictives. ';
 export const SHOWCASE = {
-  /* 1. Point financier : trois animations pédagogiques (interface reconstituée, données financières fictives), jamais présentées comme des écrans de production */
+  /* 1. Point financier : ouvrir le portail jusqu’à réception d’un lien approuvé vers le flux. */
   'projet-finance': {
-    label: 'Du classeur Excel à la notification (animation pédagogique)', layout: 'cascade', steps: ['Le classeur Excel', 'Le flux Power Automate', 'La notification'],
-    note: 'Les trois fenêtres sont des images tirées d’animations pédagogiques : données financières fictives, interface reconstituée d’après l’export du flux. Ce ne sont pas des captures de production.',
-    windows: [
-      { id: 'xl', kind: 'excel', title: 'Excel · seuil d’alerte', step: 1, a: '16/9', status: 'demo', ...IMG('finance', 'excel-seuil'), alt: 'Classeur Excel de configuration des alertes : la ligne 02.10 PSE passe de 70 à 75 %.', caption: 'Animation pédagogique : modification du seuil dans le classeur de paramètres (données fictives, interface reconstituée).' },
-      { id: 'pa', kind: 'app', title: 'Power Automate · flux 02.10', step: 2, a: '16/9', status: 'demo', ...IMG('finance', 'flux'), alt: 'Exécution simulée du flux Power Automate 02.10 : étapes et résultat de la dernière action.', caption: 'Animation pédagogique : exécution simulée du flux à partir de son export (données fictives).' },
-      { id: 'ol', kind: 'app', title: 'Outlook · courriel préventif', step: 3, a: '16/9', status: 'demo', ...IMG('finance', 'mail'), alt: 'Courriel HTML préventif : référence d’exemple, contrat, restant et niveau de vigilance.', caption: 'Animation pédagogique : rendu du courriel HTML préventif (référence d’exemple, données fictives).' }
-    ]
+    label: 'Power Automate',
+    portal: 'https://make.powerautomate.com/',
+    note: 'Connecte-toi avec un compte autorisé pour retrouver le flux dans Mes flux.'
   },
   /* 2. VRE par VM : aucune capture propre à cet outil dans le dépôt ni dans le dossier */
   'projet-vmvre': {

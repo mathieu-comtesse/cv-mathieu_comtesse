@@ -70,3 +70,107 @@ dialog.sc-zoom button,dialog.sc-zoom a{min-height:44px;display:inline-flex;align
   .cv-pf-showcase .sc-tabs button{flex:1 1 calc(50% - 8px);justify-content:flex-start}
 }
 @media(prefers-reduced-motion:reduce){.cv-pf-showcase .sc-win,.cv-pf-showcase .sc-result{transition:none}.cv-pf-showcase .sc-log li.run::after{animation:none}}
+
+/* Cartes du parcours, lues sur la même face à plat et en Expo. */
+html body [data-f26-page-section] .product-card[data-cv-type="machine"] {
+  background: none;
+  border: 0;
+}
+
+html body .cv-card-content.cv-pf-main[data-fiche] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  gap: 16px;
+  min-height: 0;
+  padding: 20px;
+  border: 1px solid rgb(255 255 255 / .16);
+  background: rgb(255 255 255 / .08) !important;
+}
+html body .cv-pf-text {
+  max-width: 400px;
+  min-width: 0;
+  opacity: var(--cv-copy-progress, 1);
+  transform: translateY(calc(12px * (1 - var(--cv-copy-progress, 1))));
+}
+
+html body .cv-pf-text:focus-within { opacity: 1; transform: none; }
+html body .cv-pf-text h3,
+html body .cv-pf-text p {
+  font: 500 var(--expo-body)/var(--expo-leading) var(--expo-sans) !important;
+  margin: 0 0 8px;
+}
+html body .cv-pf-text p { color: rgb(255 255 255 / .84); }
+
+.cv-pf-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  margin-top: 4px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / .46);
+  color: #fff;
+  font: 300 12px/16px var(--expo-mono);
+}
+.cv-pf-link:hover { background: rgb(0 0 0 / .65); }
+.cv-pf-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+.cv-pf-visual { min-width: 0; display: grid; gap: 12px; }
+.cv-pf-portal { padding: 16px; border: 1px solid rgb(255 255 255 / .16); }
+html body .cv-pf-main[data-fiche] .cv-pf-portal p { margin: 8px 0 0; }
+html body .cv-pf-visual .cv-pf-showcase {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent !important;
+}
+.cv-pf-visual .sc-stage {
+  background: none;
+  border: 0;
+}
+.cv-pf-visual .sc-stage::before { display: none; }
+html body .cv-pf-main[data-fiche] .cv-pf-visual .sc-note { font: 400 12px/16px var(--expo-sans) !important; }
+html body .cv-pf-main[data-fiche] .cv-pf-showcase .sc-result p {
+  font-size: clamp(12px, .9vw, 14px) !important;
+  line-height: 1.35;
+}
+.cv-pf-visual .sc-tabs button { min-height: 36px; font-size: 12px; }
+.cv-pf-visual .sc-tabs button i { width: 21px; height: 21px; }
+html body .cv-pf-main[data-fiche] > .cv-machine {
+  min-height: 148px;
+  height: 148px;
+  aspect-ratio: auto;
+  background: rgb(255 255 255 / .04);
+}
+
+@media (min-width: 58.75rem) {
+  html body #shop > .grid-layout { padding-inline: 8px; }
+  html body #shop [data-card-group] {
+    grid-column: 3 / span 12 !important;
+  }
+  html body #shop [data-card-group] > :has(> .product-card[data-cv-type="machine"]) {
+    row-gap: 16px;
+  }
+  html body #shop .product-card[data-cv-type="machine"][data-card-variant="stack"] {
+    grid-column: span 6 / span 6 !important;
+  }
+  html body [data-f26-page-section] .product-card[data-cv-type="game"]:not(:has([data-cv-end-game])),
+  html body [data-f26-page-section] .product-card[data-cv-type="link"] {
+    grid-column: span 8 / span 8 !important;
+  }
+  html body .cv-card-content.cv-pf-main[data-fiche] { padding: 24px; }
+  html body .cv-card-content.cv-pf-main[data-card-variant="horizontal"] {
+    grid-template-areas: "copy demo" "machine demo";
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    grid-template-rows: auto 1fr;
+  }
+  .cv-pf-main[data-card-variant="horizontal"] > .cv-pf-text { grid-area: copy; }
+  .cv-pf-main[data-card-variant="horizontal"] > .cv-pf-visual { grid-area: demo; }
+  .cv-pf-main[data-card-variant="horizontal"] > .cv-machine { grid-area: machine; align-self: end; }
+}
+
+@media(prefers-reduced-motion: reduce) {
+  html body .cv-pf-text { opacity: 1; transform: none; }
+}
