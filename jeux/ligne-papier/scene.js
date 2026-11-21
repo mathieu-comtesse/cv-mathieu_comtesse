@@ -2,10 +2,10 @@
 //
 // PAPER SPEC ---------------------------------------------------------------------------------------------------------
 // BRIEF    un jeu original pour le site : un plateau de Provence en fin de matinée, début d'été ; une petite ligne à
-//          voie unique fermée ; le joueur, un cheminot en gilet orange, relève 5 sémaphores couchés pour rouvrir la
+//          voie unique fermée ; le joueur, Lila l'aiguilleuse (sans chapeau, nuage de boucles), relève 5 sémaphores couchés pour rouvrir la
 //          ligne, puis l'autorail repart. Ton calme, miniature, lisible. Pas de texte de marque, pas de neon.
 // SUBJECT  la voie qui dessine un grand C à travers lavandes et oliviers ; le twist : des coins du monde restent
-//          pliés à plat tant que le héros ne les a pas rejoints, et ils se déplient sous ses pas.
+//          pliés à plat tant que l'héroïne ne les a pas rejoints, et ils se déplient sous ses pas.
 // STOCK    carte crème légèrement fibrée pour tout ; le sol en papier aquarelle mat (fibre 1.5, mottle 0.08).
 // PALETTE  sol calcaire paille #d9d0b4 / #cfc8a6 ; famille principale lavande #8a72b6 #664f93 #b6a2d6 ;
 //          oliviers #7d8a52 #a9b28a ; accents : coquelicot #c9442e, genêt #e2b737 ; encre prune #3b2633 ;
@@ -389,67 +389,123 @@ function hillSail(w, h, col) {
   return [pts, paint];
 }
 
-// ---- 5. the hero: a cheminot as a 3D paper model (frontal + profile card per part, limbs on pivots) ----------------
+// ---- 5. the hero: Lila, the signalwoman, as a 3D paper model (frontal + profile card per part, limbs on pivots) ---
+// No hat: her silhouette is a big cloud of curls cut as scalloped paper, a lavender sprig tucked in it. A teal
+// dungaree over a cream striped top, mustard rain boots, a long red scarf that trails behind her and swings as she
+// walks, a red-and-cream signal flag in her left hand whose cloth snaps with her steps, a satchel with lavender.
+const L = {
+  skin: '#a8693f', skinSide: '#985e38', hair: '#3a2440', curl: '#5d3d66', cheek: '#c9705a',
+  top: '#efe4cc', stripe: '#c4473a', dung: '#2f6f7a', dungDark: '#245761', brass: '#d9a94a',
+  boot: '#e0a43a', bootDark: '#b98228', scarf: '#c9442e', satchel: '#b48a5a',
+};
 const heroDoll = () => {
   const THREE = H.THREE, g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-  const PROFILE = -Math.PI / 2;
+  const PROFILE = -Math.PI / 2;                                       // a profile card: its +x points forward (+z)
   const card = ([pts, paint], seed, { x = 0, y = 0, z = 0, ry = 0, parent = body, back = 'mirror' } = {}) => {
-    const m = makeCard(pts, { paint, paper: H.paper, thickness: 0.05, edgeWidth: 0.04, pxPerUnit: 64, seed, back, folds: [] });
+    const m = makeCard(pts, { paint, paper: H.paper, thickness: 0.05, edgeWidth: 0.04, pxPerUnit: 72, seed, back, folds: [] });
     m.position.set(x, y, z); m.rotation.y = ry; parent.add(m); return m;
   };
   const plain = (c) => (P) => { P.gradient(sh(c, 0.08), sh(c, -0.1), 0.5); P.felt(); P.innerShade(sh(c, -0.5), { alpha: 0.25, blurPx: 8 }); };
-  const boot = '#3a2a24', band = '#f4ecd4';
-  const legs = [-0.13, 0.13].map((x, i) => {
+  const stripes = (gg, ink, x0, y0, w, h, n) => { gg.fillStyle = ink(L.stripe, 'print'); for (let k = 0; k < n; k++) D.rect(gg, x0, y0 + (k + 0.5) * h / n, w, h / n * 0.38); };
+  // legs: rolled dungaree legs, mustard rain boots (the profile boot runs forward)
+  const legs = [-0.14, 0.14].map((x, i) => {
     const hip = new THREE.Group(); hip.position.set(x, 0.95, 0); body.add(hip);
-    const art = (c, wide) => P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(c); D.rect(gg, -0.11, 0.18, 0.22, 0.82, 0.05); gg.fillStyle = ink(boot); D.rect(gg, -0.13, 0, wide ? 0.36 : 0.26, 0.24, 0.07); gg.fillStyle = ink(band, 'print'); D.rect(gg, -0.11, 0.36, 0.22, 0.05); }, { w: wide ? 0.5 : 0.32, h: 1.0, name: 'leg' });
-    card(art(C.navy, false), 410 + i, { y: -0.97, parent: hip }); card(art(sh(C.navy, -0.08), true), 420 + i, { y: -0.97, z: -0.2, ry: PROFILE, parent: hip });
+    const art = (side) => P2.drawnPiece((gg, ink) => {
+      gg.fillStyle = ink(side ? L.dungDark : L.dung); D.rect(gg, -0.13, 0.36, 0.26, 0.66, 0.05);
+      gg.fillStyle = ink(L.top); D.rect(gg, -0.14, 0.34, 0.28, 0.1, 0.03);
+      gg.fillStyle = ink(L.boot); D.rect(gg, -0.14, 0, side ? 0.42 : 0.28, 0.4, 0.08);
+      gg.fillStyle = ink(L.bootDark, 'print'); D.rect(gg, -0.14, 0, side ? 0.42 : 0.28, 0.07); D.rect(gg, -0.14, 0.3, 0.28, 0.04);
+    }, { w: side ? 0.58 : 0.34, h: 1.04, name: 'leg' });
+    card(art(false), 410 + i, { y: -0.97, parent: hip }); card(art(true), 420 + i, { y: -0.97, z: -0.2, ry: PROFILE, parent: hip });
     return hip;
   });
-  // torso: navy shirt under an orange safety vest with two cream reflective bands
+  // torso: the striped top under the dungaree bib (straps, brass buttons, a pocket with a pencil)
   card(P2.drawnPiece((gg, ink) => {
-    gg.fillStyle = ink(C.navy); D.rect(gg, -0.4, 0, 0.8, 1.3, 0.2);
-    gg.fillStyle = ink(C.vest); D.poly(gg, [[-0.4, 0.05], [0.4, 0.05], [0.38, 1.12], [0.14, 1.25], [0.05, 0.62], [-0.05, 0.62], [-0.14, 1.25], [-0.38, 1.12]]);
-    gg.fillStyle = ink(band, 'print'); D.rect(gg, -0.4, 0.28, 0.8, 0.09); D.rect(gg, -0.4, 0.52, 0.8, 0.09);
-    gg.fillStyle = ink('#2a1e30', 'print'); D.rect(gg, -0.3, 0.75, 0.16, 0.14, 0.03);
-  }, { w: 0.85, h: 1.3, name: 'vest' }), 401, { y: 0.78, back: (P) => { plain(C.vest)(P); P.draw((gg) => { gg.fillStyle = band; gg.fillRect(-0.4, 0.95, 0.8, 0.09); gg.fillRect(-0.04, 0.05, 0.08, 1.2); }); } });
-  card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(sh(C.vest, -0.08)); D.rect(gg, -0.25, 0, 0.5, 1.24, 0.16); gg.fillStyle = ink(band, 'print'); D.rect(gg, -0.25, 0.28, 0.5, 0.09); D.rect(gg, -0.25, 0.52, 0.5, 0.09); }, { w: 0.55, h: 1.3, name: 'vest side' }), 402, { y: 0.8, z: -0.28, ry: PROFILE });
-  // head: face in front, a moustache; profile behind with an ear
+    gg.fillStyle = ink(L.top); D.rect(gg, -0.4, 0.2, 0.8, 1.08, 0.2);
+    stripes(gg, ink, -0.4, 0.55, 0.8, 0.72, 4);
+    gg.fillStyle = ink(L.dung); D.rect(gg, -0.38, 0, 0.76, 0.62, 0.08); D.rect(gg, -0.24, 0.5, 0.48, 0.42, 0.05);
+    gg.fillStyle = ink(L.dung); D.poly(gg, [[-0.24, 0.88], [-0.3, 1.24], [-0.2, 1.24], [-0.14, 0.88]]); D.poly(gg, [[0.24, 0.88], [0.3, 1.24], [0.2, 1.24], [0.14, 0.88]]);
+    gg.fillStyle = ink(L.dungDark); D.rect(gg, -0.14, 0.58, 0.28, 0.22, 0.03);
+    gg.fillStyle = ink(L.stripe, 'print'); D.rect(gg, 0.04, 0.72, 0.05, 0.16, 0.02);
+    gg.fillStyle = ink(L.brass, 'print'); D.ell(gg, -0.19, 0.86, 0.04, 0.04); D.ell(gg, 0.19, 0.86, 0.04, 0.04);
+  }, { w: 0.86, h: 1.32, name: 'dungaree' }), 401, { y: 0.76, back: (P) => { plain(L.top)(P); P.draw((gg) => { gg.fillStyle = L.dung; gg.fillRect(-0.4, 0, 0.8, 0.6); gg.beginPath(); gg.moveTo(-0.3, 0.6); gg.lineTo(0.22, 1.28); gg.lineTo(0.32, 1.28); gg.lineTo(-0.2, 0.6); gg.moveTo(0.3, 0.6); gg.lineTo(-0.22, 1.28); gg.lineTo(-0.32, 1.28); gg.lineTo(0.2, 0.6); gg.fill(); }); } });
   card(P2.drawnPiece((gg, ink) => {
-    gg.fillStyle = ink(C.skin); D.ell(gg, 0, 0.38, 0.36, 0.38);
-    gg.fillStyle = ink('#2a1608', 'print'); D.ell(gg, -0.12, 0.38, 0.04, 0.05); D.ell(gg, 0.12, 0.38, 0.04, 0.05);
-    gg.fillStyle = ink('#d98a6a', 'print'); D.ell(gg, -0.2, 0.27, 0.05, 0.035); D.ell(gg, 0.2, 0.27, 0.05, 0.035);
-    gg.fillStyle = ink('#5a3a28', 'print'); D.ell(gg, 0, 0.2, 0.14, 0.045);
-  }, { w: 0.8, h: 0.8, name: 'face' }), 404, { y: 1.88, back: plain('#5a3a28') });
+    gg.fillStyle = ink(sh(L.top, -0.05)); D.rect(gg, -0.25, 0.2, 0.5, 1.06, 0.16);
+    stripes(gg, ink, -0.25, 0.55, 0.5, 0.7, 4);
+    gg.fillStyle = ink(L.dungDark); D.rect(gg, -0.25, 0, 0.5, 0.62, 0.08); D.rect(gg, -0.04, 0.5, 0.08, 0.76);
+  }, { w: 0.55, h: 1.3, name: 'top side' }), 402, { y: 0.78, z: -0.31, ry: PROFILE });
+  // the hair: a cloud of curls (a scalloped card) behind the face and round the profile, a lavender sprig in it
+  const r0 = P2.rng(77), cloud = P2.shape.radial(r0, { cx: 0, cy: 0.5, rx: 0.62, ry: 0.56, lobes: 11, depth: 0.16 });
+  const curls = (P) => {
+    P.gradient(sh(L.hair, 0.1), sh(L.hair, -0.1), 0.5); P.felt(0.5);
+    P.layer((gg) => { const r = P2.rng(78); for (let k = 0; k < 16; k++) { const a = r() * 6.283, rr = Math.sqrt(r()) * 0.48; gg.fillStyle = k % 3 ? L.curl : sh(L.curl, 0.12); D.ell(gg, Math.cos(a) * rr, 0.5 + Math.sin(a) * rr * 0.9, 0.09, 0.08); } }, L.curl);
+    P.innerShade(sh(L.hair, -0.5), { alpha: 0.3, blurPx: 8 });
+  };
+  const sprig = (P) => { curls(P); P.layer((gg) => { gg.fillStyle = '#6f7d43'; D.rect(gg, 0.34, 0.78, 0.04, 0.32); gg.fillStyle = C.lav; for (let k = 0; k < 4; k++) D.ell(gg, 0.36, 0.98 + k * 0.06, 0.06, 0.035); }, C.lav); };
+  card([cloud, sprig], 403, { y: 1.72, z: -0.08, back: curls });
+  card([cloud.map(([x, y]) => [x * 0.8, 0.04 + (y - 0.04) * 0.92]), curls], 408, { y: 1.72, z: -0.56, ry: PROFILE });
+  // the face: big eyes with a highlight, freckles, a wide smile, the fringe of curls printed over the brow
   card(P2.drawnPiece((gg, ink) => {
-    gg.fillStyle = ink(sh(C.skin, -0.04)); D.ell(gg, 0, 0.38, 0.34, 0.38);
-    gg.fillStyle = ink('#5a3a28'); D.ell(gg, -0.14, 0.42, 0.2, 0.28);
-    gg.fillStyle = ink('#e0b896', 'print'); D.ell(gg, 0.0, 0.36, 0.06, 0.08);
-    gg.fillStyle = ink('#2a1608', 'print'); D.ell(gg, 0.22, 0.38, 0.03, 0.045);
-  }, { w: 0.75, h: 0.8, name: 'head side' }), 405, { y: 1.86, z: -0.37, ry: PROFILE });
-  // the cap: navy crown, a red band, a peak toward +z on the profile
-  card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(C.navy); D.rect(gg, -0.36, 0, 0.72, 0.34, 0.12); gg.fillStyle = ink(C.red); D.rect(gg, -0.37, 0.02, 0.74, 0.1, 0.03); gg.fillStyle = ink('#e8c25a', 'print'); D.ell(gg, 0, 0.22, 0.06, 0.05); }, { w: 0.8, h: 0.4, name: 'cap' }), 406, { y: 2.48, z: 0.02 });
-  card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(sh(C.navy, -0.06)); D.rect(gg, -0.34, 0, 0.62, 0.34, 0.12); gg.fillStyle = ink(C.red); D.rect(gg, -0.35, 0.02, 0.64, 0.1, 0.03); gg.fillStyle = ink(sh(C.navy, -0.2)); D.poly(gg, [[0.15, 0.02], [0.55, 0.0], [0.5, 0.1], [0.15, 0.12]]); }, { w: 1.2, h: 0.5, name: 'cap side' }), 407, { y: 2.5, z: -0.37, ry: PROFILE });
-  // arms on shoulder pivots; the right hand carries a signal lantern
+    gg.fillStyle = ink(L.skin); D.ell(gg, 0, 0.38, 0.36, 0.38);
+    gg.fillStyle = ink(L.hair); for (const [x, y] of [[-0.24, 0.68], [-0.08, 0.74], [0.08, 0.74], [0.24, 0.68]]) D.ell(gg, x, y, 0.12, 0.09);
+    gg.fillStyle = ink('#fbf3e4', 'print'); D.ell(gg, -0.13, 0.4, 0.075, 0.085); D.ell(gg, 0.13, 0.4, 0.075, 0.085);
+    gg.fillStyle = ink('#2a1608', 'print'); D.ell(gg, -0.12, 0.39, 0.05, 0.06); D.ell(gg, 0.14, 0.39, 0.05, 0.06);
+    gg.fillStyle = ink('#fff8ea', 'print'); D.ell(gg, -0.1, 0.42, 0.017, 0.017); D.ell(gg, 0.16, 0.42, 0.017, 0.017);
+    gg.fillStyle = ink(L.cheek, 'print'); D.ell(gg, -0.22, 0.26, 0.06, 0.035); D.ell(gg, 0.22, 0.26, 0.06, 0.035);
+    gg.fillStyle = ink('#5a3020', 'print'); for (const x of [-0.25, -0.2, 0.2, 0.25]) D.ell(gg, x, 0.31, 0.012, 0.012);
+    gg.fillStyle = ink('#6a2418', 'print'); gg.beginPath(); gg.ellipse(0.01, 0.2, 0.1, 0.06, 0, Math.PI, 2 * Math.PI); gg.fill();
+  }, { w: 0.8, h: 0.86, name: 'face' }), 404, { y: 1.84, back: plain(L.hair) });
+  card(P2.drawnPiece((gg, ink) => {
+    gg.fillStyle = ink(L.skinSide); D.ell(gg, 0.05, 0.38, 0.3, 0.38);
+    gg.fillStyle = ink(L.skin); D.poly(gg, [[0.33, 0.4], [0.42, 0.32], [0.32, 0.28]]);
+    gg.fillStyle = ink('#2a1608', 'print'); D.ell(gg, 0.24, 0.4, 0.035, 0.05);
+    gg.fillStyle = ink(L.cheek, 'print'); D.ell(gg, 0.18, 0.27, 0.05, 0.03);
+  }, { w: 0.8, h: 0.8, name: 'head side' }), 405, { y: 1.84, z: -0.5, ry: PROFILE });
+  // the scarf: a knot at the throat, its long fringed tail on a pivot at the nape (it trails and swings)
+  card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(L.scarf); D.rect(gg, -0.3, 0, 0.6, 0.18, 0.08); D.ell(gg, 0.18, 0.1, 0.1, 0.1); gg.fillStyle = ink(L.top, 'print'); D.rect(gg, -0.3, 0.07, 0.6, 0.035); }, { w: 0.7, h: 0.3, name: 'knot' }), 406, { y: 1.88, z: 0.06 });
+  const nape = new THREE.Group(); nape.position.set(0.08, 1.98, -0.3); body.add(nape);
+  const tail = P2.drawnPiece((gg, ink) => {
+    gg.fillStyle = ink(L.scarf); D.poly(gg, [[-0.1, 0.18], [0.12, 0.16], [0.1, 1.14], [-0.1, 1.14]]);
+    gg.fillStyle = ink(L.top, 'print'); for (const y of [0.5, 0.82]) D.rect(gg, -0.12, y, 0.25, 0.05);
+    gg.fillStyle = ink(sh(L.scarf, -0.15)); for (let k = 0; k < 4; k++) D.rect(gg, -0.09 + k * 0.055, 0.0, 0.035, 0.22, 0.015);
+  }, { w: 0.34, h: 1.18, name: 'scarf' });
+  card(tail, 407, { y: -1.12, ry: PROFILE, parent: nape });
+  // the satchel on her back, lavender poking out
+  card(P2.drawnPiece((gg, ink) => {
+    gg.fillStyle = ink('#6f7d43'); for (const x of [-0.12, 0, 0.12]) D.rect(gg, x - 0.02, 0.4, 0.04, 0.34);
+    gg.fillStyle = ink(C.lav); for (const x of [-0.12, 0, 0.12]) D.ell(gg, x, 0.72, 0.05, 0.1);
+    gg.fillStyle = ink(L.satchel); D.rect(gg, -0.3, 0, 0.6, 0.5, 0.08);
+    gg.fillStyle = ink(sh(L.satchel, -0.2)); D.rect(gg, -0.3, 0.3, 0.6, 0.2, 0.06);
+    gg.fillStyle = ink(L.brass, 'print'); D.rect(gg, -0.05, 0.27, 0.1, 0.08);
+  }, { w: 0.64, h: 0.86, name: 'satchel' }), 460, { y: 0.95, z: -0.32 });
+  // arms on shoulder pivots: striped sleeves; the left hand holds the signal flag
   const arms = [-0.46, 0.46].map((x, i) => {
     const s = new THREE.Group(); s.position.set(x, 1.98, 0); body.add(s);
-    const art = (c) => P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(c); D.rect(gg, -0.1, 0.14, 0.2, 0.66, 0.09); gg.fillStyle = ink(C.skin); D.ell(gg, 0, 0.08, 0.09, 0.08); }, { w: 0.26, h: 0.82, name: 'arm' });
-    card(art(C.navy), 430 + i, { y: -0.8, parent: s }); card(art(sh(C.navy, -0.06)), 440 + i, { y: -0.8, z: -0.12, ry: PROFILE, parent: s });
+    const art = (skin) => P2.drawnPiece((gg, ink) => {
+      gg.fillStyle = ink(skin); D.rect(gg, -0.08, 0.12, 0.16, 0.5, 0.07); D.ell(gg, 0, 0.09, 0.09, 0.09);
+      gg.fillStyle = ink(L.top); D.rect(gg, -0.12, 0.5, 0.24, 0.32, 0.08);
+      stripes(gg, ink, -0.12, 0.52, 0.24, 0.3, 2);
+    }, { w: 0.28, h: 0.84, name: 'arm' });
+    card(art(L.skin), 430 + i, { y: -0.82, parent: s }); card(art(L.skinSide), 440 + i, { y: -0.82, z: -0.12, ry: PROFILE, parent: s });
     return s;
   });
-  card(P2.drawnPiece((gg, ink) => {
-    gg.fillStyle = ink(C.iron); D.rect(gg, -0.18, 0, 0.36, 0.42, 0.05); D.rect(gg, -0.05, 0.4, 0.1, 0.16);
-    gg.fillStyle = ink(C.red); D.ell(gg, 0, 0.2, 0.12, 0.12); gg.fillStyle = ink('#ffd98a', 'print'); D.ell(gg, -0.03, 0.23, 0.04, 0.04);
-  }, { w: 0.45, h: 0.6, name: 'lantern' }), 450, { y: -1.28, z: 0.05, parent: arms[1] });
-  // a canvas satchel on the back
-  card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink('#b49a6a'); D.rect(gg, -0.28, 0, 0.56, 0.5, 0.08); gg.fillStyle = ink(sh('#b49a6a', -0.2)); D.rect(gg, -0.28, 0.32, 0.56, 0.18, 0.06); gg.fillStyle = ink('#e8c25a', 'print'); D.rect(gg, -0.05, 0.28, 0.1, 0.08); }, { w: 0.6, h: 0.55, name: 'satchel' }), 460, { y: 1.15, z: -0.3 });
-  // the stride: the phase runs with the distance walked; rotation only, a small double bob
-  const legLen = 0.97 * 1.25, stepLen = 1.2, R = stepLen / (2 * legLen);
+  card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(L.satchel); D.rect(gg, -0.035, 0, 0.07, 2.3, 0.03); gg.fillStyle = ink(L.brass); D.ell(gg, 0, 2.3, 0.06, 0.06); }, { w: 0.16, h: 2.4, name: 'pole' }), 451, { y: -1.15, z: 0.08, parent: arms[1] });
+  const flag = new THREE.Group(); flag.position.set(0, 1.1, 0.08); arms[1].add(flag);   // the cloth on its own pivot at the pole
+  card(P2.drawnPiece((gg, ink) => {                                    // drawn from x = -0.33 (the pole) to +0.33
+    gg.fillStyle = ink(C.red); D.poly(gg, [[-0.33, 0], [0.29, 0.04], [0.25, 0.22], [0.33, 0.42], [-0.33, 0.44]]);
+    gg.fillStyle = ink(C.cream); D.poly(gg, [[-0.33, 0.15], [0.27, 0.18], [0.28, 0.28], [-0.33, 0.29]]);
+  }, { w: 0.7, h: 0.48, name: 'flag' }), 452, { x: 0.33, parent: flag });
+  // the stride: the phase runs with the distance walked; rotation only, a small double bob; the scarf trails, the flag snaps
+  const legLen = 0.97 * 1.25, stepLen = 1.1, R = stepLen / (2 * legLen);
   const leg = (ph, gait) => { const u = (ph / Math.PI) % 2, A = gait * R; if (u >= 1) return A * (3 - 2 * u); const e = u * u * (3 - 2 * u); return A * (2 * e - 1); };
   g.userData.stride = (walked, gait) => {
     const ph = walked / stepLen * Math.PI, l0 = leg(ph, gait), l1 = leg(ph + Math.PI, gait);
     legs[0].rotation.x = -l0; legs[1].rotation.x = -l1;
-    arms[0].rotation.x = l0 * 0.7; arms[1].rotation.x = l1 * 0.25;
-    body.position.y = Math.abs(Math.sin(ph)) * 0.04 * gait;
+    arms[0].rotation.x = l0 * 0.75; arms[1].rotation.x = l1 * 0.2;
+    body.position.y = Math.abs(Math.sin(ph)) * 0.05 * gait;
+    nape.rotation.x = 0.08 + 0.5 * gait + Math.sin(ph * 2) * 0.08 * gait;   // the tail lifts behind her as she walks
+    nape.rotation.z = Math.sin(ph) * 0.12 * gait;
+    flag.rotation.y = -0.3 - 0.3 * gait + Math.sin(ph * 2) * 0.35 * gait;                   // the cloth turns about the pole
   };
   return g;
 };
@@ -571,7 +627,7 @@ function buildStation() {
   popup(...cypress(8.5), { x: 22.5, z: -7.4, cross: true, sway: 0.3 });
   // the hero, on the platform
   const doll = heroDoll();
-  hero = popup(null, null, { node: doll, height: 3.1, x: 11.5, z: -0.9, sway: 0.15, scale: 1.25 });
+  hero = popup(null, null, { node: doll, height: 3.1, x: 11.5, z: -0.9, sway: 0.15, scale: 1.45 });
   H.setHero(hero, { stride: doll.userData.stride });
   // the railcar, folded flat on the track until the line is open
   const [tx, tz] = trackAt(S_STATION);
@@ -680,7 +736,7 @@ life.reset(H.target);
 H.onStep((t, dt) => life.update(dt, H.target));
 H.onRestart(() => life.reset(H.target));
 
-// ---- 10. the game: unfold each zone when the cheminot reaches its chalk ring, then send the railcar ----------------
+// ---- 10. the game: unfold each zone when Lila reaches its chalk ring, then send the railcar ----------------
 const $ = (id) => document.getElementById(id);
 const pips = $('pips'); ZONES.forEach(() => pips.appendChild(document.createElement('i')));
 let started = false, done = false, t0 = 0, tEnd = 0, toastT = 0;
