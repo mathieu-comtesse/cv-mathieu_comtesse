@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Ligne de papier</title>
+<meta name="description" content="Un jeu pop-up en papier : relever les sémaphores d’une petite ligne de Provence pour que l’autorail reparte.">
+<meta name="theme-color" content="#d9d0b4">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<style>
+  :root { --ink: #3b2633; --card: #f6eedb; --card-2: #efe3c6; --edge: #c9b48e; --accent: #c63c30; --lav: #6f58a0; --shadow: rgba(92, 52, 30, .28); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #d9d0b4; color: var(--ink); }
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  .hint { display: none; }
+  /* Les panneaux sont des cartes de papier : crème, bord découpé brun, ombre chaude courte. */
+  .paper { background: var(--card); border: 1px solid var(--edge); border-radius: 3px;
+           box-shadow: 0 1px 0 #fffaf0 inset, 2px 3px 0 -1px var(--card-2), 3px 5px 10px var(--shadow); }
+  .hud { position: fixed; top: max(14px, env(safe-area-inset-top)); left: 16px; padding: 10px 14px 9px; transform: rotate(-1.2deg);
+         font: 600 13px/1.25 Georgia, 'Times New Roman', serif; letter-spacing: .02em; user-select: none; pointer-events: none; }
+  .hud b { display: block; font-size: 26px; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--lav); }
+  .hud .row { display: flex; gap: 18px; align-items: end; }
+  .hud small { font-weight: 400; font-style: italic; opacity: .8; }
+  .hud .pips { display: flex; gap: 5px; margin-top: 6px; }
+  .hud .pips i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; transition: background .3s; }
+  .hud .pips i.on { background: var(--accent); }
+  .toast { position: fixed; left: 50%; top: 18%; transform: translate(-50%, 0) rotate(.8deg); padding: 8px 16px; opacity: 0;
+           font: italic 17px/1.3 Georgia, serif; transition: opacity .35s, transform .35s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translate(-50%, -6px) rotate(.8deg); }
+  .sheet { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(60, 38, 40, .18); z-index: 5; }
+  .sheet[hidden] { display: none; }
+  .sheet .paper { max-width: 420px; padding: 22px 24px 20px; transform: rotate(-.6deg); font: 16px/1.45 Georgia, serif; }
+  .sheet h1 { margin: 0 0 4px; font: 700 28px/1.1 Georgia, serif; letter-spacing: .01em; }
+  .sheet .kicker { margin: 0 0 12px; font: italic 14px/1.3 Georgia, serif; color: var(--lav); }
+  .sheet p { margin: 0 0 10px; }
+  .sheet .keys { font-size: 14px; opacity: .85; }
+  .sheet kbd { display: inline-block; min-width: 1.4em; padding: 0 4px; border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 3px;
+               background: #fffaf0; font: 600 12px/1.6 ui-monospace, monospace; text-align: center; }
+  .btn { margin-top: 8px; padding: 9px 18px; border: 1.5px solid var(--ink); border-radius: 3px; background: var(--accent); color: #fdf4e4;
+         font: 700 15px/1 Georgia, serif; letter-spacing: .03em; cursor: pointer; box-shadow: 2px 3px 0 var(--ink); }
+  .btn:active { transform: translate(2px, 3px); box-shadow: none; }
+  .btn:focus-visible { outline: 2px dashed var(--lav); outline-offset: 3px; }
+  .pad { position: fixed; right: 18px; bottom: max(18px, env(safe-area-inset-bottom)); display: none; grid-template: repeat(3, 52px) / repeat(3, 52px); gap: 4px; z-index: 4; }
+  .pad button { border: 1.5px solid var(--ink); border-radius: 50%; background: var(--card); color: var(--ink); font: 700 18px/1 Georgia, serif;
+                box-shadow: 1px 2px 0 var(--ink); touch-action: none; -webkit-user-select: none; user-select: none; }
+  .pad button:active, .pad button.on { background: var(--card-2); transform: translate(1px, 2px); box-shadow: none; }
+  @media (pointer: coarse) { .pad { display: grid; } }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+<!-- "papercraft/" pointe vers le dossier qui contient lib/ (le kit du skill papercraft, licence MIT) -->
+<script type="importmap">{ "imports": { "three": "../../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
+</head>
+<body>
+<div class="hint" id="hint"></div>
+
+<div class="hud paper" id="hud" aria-live="polite">
+  <div class="row"><div>Sémaphores<b id="count">0 / 5</b></div><div>Chrono<b id="clock">0:00</b></div></div>
+  <div class="pips" id="pips"></div>
+</div>
+<div class="toast paper" id="toast" role="status"></div>
+
+<div class="sheet" id="intro">
+  <div class="paper">
+    <h1>La Ligne de papier</h1>
+    <p class="kicker">Un petit monde pop-up, plié à plat</p>
+    <p>Sur le plateau, la ligne est fermée : ses cinq sémaphores sont couchés dans l’herbe. Rejoins chaque cercle de craie pour les relever, et l’autorail pourra repartir.</p>
+    <p class="keys"><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> ou les flèches pour marcher · glisser pour regarder autour</p>
+    <button class="btn" id="go" type="button">En route</button>
+  </div>
+</div>
+
+<div class="sheet" id="end" hidden>
+  <div class="paper">
+    <h1>Ligne rouverte</h1>
+    <p class="kicker" id="endTime"></p>
+    <p>Les cinq sémaphores sont levés. L’autorail quitte la gare et traverse les lavandes.</p>
+    <button class="btn" id="again" type="button">Rejouer</button>
+    <button class="btn" id="stay" type="button" style="background:var(--card);color:var(--ink)">Regarder le train</button>
+  </div>
+</div>
+
+<div class="pad" id="pad" aria-hidden="true">
+  <span></span><button data-k="KeyW">▲</button><span></span>
+  <button data-k="KeyA">◀</button><span></span><button data-k="KeyD">▶</button>
+  <span></span><button data-k="KeyS">▼</button><span></span>
+</div>
+
+<script type="module" src="./scene.js"></script>
+</body>
+</html>
