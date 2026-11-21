@@ -21,3 +21,7 @@ Les lettres de `jeux/lettres-machines-scene.html` (`jeux/lettres-machines.js`) s
 ## La Ville pliée
 
 Le jeu « La Ville pliée » (`jeux/ligne-papier/`) s'appuie sur le kit du skill « papercraft » (`jeux/ligne-papier/papercraft/lib/`, `jeux/ligne-papier/harness.js`, légèrement adapté), Copyright (c) 2026 Shikhar, licence MIT, <https://github.com/xikhar/papercraft>. Le skill complet est installé dans `.claude/skills/papercraft/`. La ville, les pièces, l'héroïne et la logique de jeu (`scene.js`) sont propres à ce dépôt.
+
+## THALEOLITHIC · papier
+
+`jeux/thaleolithic-papier/` rejoue la campagne ISO 45001 de THALEOLITHIC avec un rendu en papier découpé. Les contenus (quêtes, activités, dialogues, Duel des menhirs) sont lus tels quels dans `thaleolithic/Source/Resources/` ; la logique de jeu est portée en JavaScript depuis `thaleolithic/Source/Runtime/` (`campaign.js`). Le rendu s'appuie sur le kit du skill « papercraft » (`jeux/thaleolithic-papier/papercraft/lib/`, `harness.js`), Copyright (c) 2026 Shikhar, licence MIT, <https://github.com/xikhar/papercraft>.

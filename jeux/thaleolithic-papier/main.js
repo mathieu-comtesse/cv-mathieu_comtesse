@@ -1,0 +1,44 @@
+// THALEOLITHIC · papier : charge les données du jeu Unity telles quelles, puis relie la campagne, le village et l'interface.
+import { createCampaign } from './campaign.js';
+import { buildVillage } from './scene.js';
+import { createUI } from './ui.js';
+
+const RES = '../../thaleolithic/Source/Resources/';
+const load = (f) => fetch(RES + f).then((r) => { if (!r.ok) throw new Error(f + ' : ' + r.status); return r.json(); });
+const [v17, menhir, base, legacy] = await Promise.all(['CampaignV17.json', 'MenhirDuel.json', 'UngaBungaCampaign.json', 'UngaBungaQuests.json'].map(load));
+let storage = null; try { storage = localStorage; localStorage.getItem('x'); } catch { storage = null; }
+const Q = new URLSearchParams(location.search);
+const campaign = createCampaign({ v17, menhir, base, legacy, storage: Q.has('capture') ? null : storage });
+const world = buildVillage(campaign);
+const ui = createUI(campaign, world);
+const { H } = world;
+
+// the marker over the place where the next action happens, and the villagers' names near Dylan
+const pin = document.getElementById('pin'), v = new H.THREE.Vector3();
+H.onStep((t, dt) => {
+  ui.step(dt);
+  const site = campaign.nextSite(), s = site && world.SITES[site];
+  if (!s || ui.mode) { pin.hidden = true; return; }
+  v.set(s.x, 5.2, s.z).project(H.camera);
+  const off = Math.abs(v.x) > 0.95 || Math.abs(v.y) > 0.95;
+  pin.hidden = false; pin.classList.toggle('edge', off);
+  const x = Math.max(-0.92, Math.min(0.92, v.x)), y = Math.max(-0.88, Math.min(0.88, v.y));
+  pin.style.transform = `translate(${(x + 1) / 2 * innerWidth}px, ${(1 - y) / 2 * innerHeight}px) translate(-50%, -100%)`;
+  pin.querySelector('span').textContent = s.label;
+});
+
+// the welcome sheet: continue or begin anew
+const intro = document.getElementById('intro');
+const started = campaign.state.done.length > 0;
+document.getElementById('continue').hidden = !started;
+document.getElementById('continue').onclick = () => { intro.hidden = true; };
+document.getElementById('play').onclick = () => { if (started) campaign.reset(); intro.hidden = true; };
+addEventListener('keydown', (e) => { if (!intro.hidden) e.stopImmediatePropagation(); }, true);
+if (Q.has('capture')) { intro.hidden = true; for (const id of ['hud', 'tools']) document.getElementById(id).hidden = true; }
+for (const b of document.querySelectorAll('#pad button')) {
+  const code = b.dataset.k, send = (type) => dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
+  b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on'); send('keydown'); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, () => { if (!b.classList.contains('on')) return; b.classList.remove('on'); send('keyup'); });
+}
+window.__thaleo = { campaign, world, ui };
+H.start();
