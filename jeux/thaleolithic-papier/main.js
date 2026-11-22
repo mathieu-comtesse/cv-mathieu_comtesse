@@ -81,10 +81,24 @@ document.getElementById('continue').onclick = () => { intro.hidden = true; };
 document.getElementById('play').onclick = () => { if (started) campaign.reset(); intro.hidden = true; sfx.unlock(); cinema.start('C01'); };   // a new game opens on « Le village catastrophe »
 addEventListener('keydown', (e) => { if (!intro.hidden) e.stopImmediatePropagation(); }, true);
 if (Q.has('capture')) { intro.hidden = true; for (const id of ['hud', 'tools']) document.getElementById(id).hidden = true; }
-for (const b of document.querySelectorAll('#pad button')) {
-  const code = b.dataset.k, send = (type) => dispatchEvent(new KeyboardEvent(type, { code, bubbles: true }));
-  b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on'); send('keydown'); });
-  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, () => { if (!b.classList.contains('on')) return; b.classList.remove('on'); send('keyup'); });
-}
+// touch: the stone joystick sends the walking keys (8 ways, a dead zone), the red blob acts (E); it lights up when an
+// action is at hand
+const stick = document.getElementById('stick'), knob = stick.querySelector('.knob'), actBtn = document.getElementById('act-btn');
+const keyState = {}, sendKey = (code, down) => { if (!!keyState[code] === down) return; keyState[code] = down; dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code, bubbles: true })); };
+let stickId = null;
+const stickMove = (e) => {
+  const r = stick.getBoundingClientRect(), R = r.width * 0.36, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let dx = e.clientX - cx, dy = e.clientY - cy; const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; }
+  knob.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.atan2(dy, dx)}rad)`;
+  const ux = dx / R, uy = dy / R, live = Math.hypot(ux, uy) > 0.25;
+  sendKey('KeyW', live && uy < -0.38); sendKey('KeyS', live && uy > 0.38); sendKey('KeyA', live && ux < -0.38); sendKey('KeyD', live && ux > 0.38);
+};
+const stickEnd = () => { stickId = null; stick.classList.remove('on'); knob.style.transform = ''; for (const k of ['KeyW', 'KeyS', 'KeyA', 'KeyD']) sendKey(k, false); };
+stick.addEventListener('pointerdown', (e) => { e.preventDefault(); stickId = e.pointerId; try { stick.setPointerCapture(e.pointerId); } catch {} stick.classList.add('on'); stickMove(e); });
+stick.addEventListener('pointermove', (e) => { if (e.pointerId === stickId) stickMove(e); });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.addEventListener(ev, (e) => { if (e.pointerId === stickId) stickEnd(); });
+actBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); actBtn.classList.add('on'); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', bubbles: true })); });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEventListener(ev, () => { actBtn.classList.remove('on'); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE', bubbles: true })); });
+H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
 window.__thaleo = { campaign, world, ui, cinema, sfx };
 H.start();

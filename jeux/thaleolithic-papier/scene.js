@@ -90,7 +90,7 @@ export function buildVillage(campaign) {
     for (let k = 0; k < 220; k++) { const x = SITES.bois_construction.x + (r() - 0.5) * 4.5, z = SITES.bois_construction.z - 1 + (r() - 0.5) * 3; g.fillStyle = rgba('#e0c08a', 0.7); g.fillRect(X(x), Z(z), 0.1 * ppu, 0.06 * ppu); }
     // garden plots behind the huts: rows of sprouts
     for (const [x0, z0] of [[17, 1], [-21, 1.5], [8, -27]]) for (let row = 0; row < 5; row++) for (let k = 0; k < 9; k++) { g.fillStyle = rgba(k % 2 ? '#6a7a3a' : '#8a9a4a', 0.9); g.beginPath(); g.ellipse(X(x0 + k * 0.55), Z(z0 + row * 0.7), 0.16 * ppu, 0.1 * ppu, 0, 0, 7); g.fill(); }
-    water(bandOf(RIVER.pts, 3.2), { colors: [C.water, sh(C.water, -0.2)], rim: '#e8d8b4', flow: 1.3, marks: 'ripples', foam: rgba('#f4ead4', 0.7) });
+    water(bandOf(RIVER.pts, 3.2), { colors: [C.water, sh(C.water, -0.2)], rim: '#e8d8b4', marks: 'none' });   // its strokes flow on a ribbon above (below)
     drifts((x, y) => { g.strokeStyle = rgba(r() < 0.5 ? '#8a8a4a' : '#a09a5a', 0.75); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 3, y - 5 - r() * 5); g.stroke(); if (r() < 0.12) { g.fillStyle = r() < 0.5 ? '#c86a8a' : '#e0c050'; g.beginPath(); g.arc(x, y - 6, 1.7, 0, 7); g.fill(); } }, { n: 12000 });
     for (let k = 0; k < 14; k++) { const a = k / 14 * 6.283, x = SITES.rassemblement.x + Math.cos(a) * 2.8, z = SITES.rassemblement.z + Math.sin(a) * 2.2; g.fillStyle = '#efe4cc'; g.beginPath(); g.ellipse(X(x), Z(z), 0.32 * ppu, 0.22 * ppu, 0, 0, 7); g.fill(); }
   }, { seed: 12 });
@@ -506,27 +506,38 @@ export function buildVillage(campaign) {
   const RV = (() => { const pts = RIVER.pts, L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, L, len: L[L.length - 1] }; })();
   const along = (s) => { let i = 1; while (i < RV.L.length - 1 && RV.L[i] < s) i++; const [x0, z0] = RV.pts[i - 1], [x1, z1] = RV.pts[i], u = (s - RV.L[i - 1]) / Math.max(1e-6, RV.L[i] - RV.L[i - 1]), l = Math.hypot(x1 - x0, z1 - z0) || 1; return [x0 + (x1 - x0) * u, z0 + (z1 - z0) * u, (x1 - x0) / l, (z1 - z0) / l]; };
   const inkTex = (draw) => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d'); g.lineCap = 'round'; draw(g); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
-  const rippleTex = inkTex((g) => { g.strokeStyle = '#4e5a8c'; g.lineWidth = 9; g.beginPath(); g.arc(64, 74, 50, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); g.strokeStyle = '#e8e2f0'; g.lineWidth = 6; g.beginPath(); g.arc(64, 70, 50, Math.PI * 1.18, Math.PI * 1.82); g.stroke(); });
+  // the river's strokes flow: the pale dashes and the foam lines along the banks are drawn on two ribbons laid on its
+  // bed, their print sliding downstream (the near layer faster), seamless along the course
+  const strokeTile = (seed, n, foam) => { const W = 512, c = document.createElement('canvas'); c.width = c.height = W; const g = c.getContext('2d'), r = P2.rng(seed); g.lineCap = 'round';
+    const line = (x0, y0, x1, y1, col, w) => { for (const o of [-W, 0, W]) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x0 + o, y0); g.lineTo(x1 + o, y1); g.stroke(); } };
+    for (let k = 0; k < n; k++) { const x = r() * W, y = W * (0.12 + r() * 0.76), l = W * (0.035 + r() * 0.07), a = (r() - 0.5) * 0.2; line(x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, r() < 0.78 ? 'rgba(250,244,228,0.85)' : 'rgba(70,82,130,0.55)', 5 + r() * 4); }
+    if (foam) for (const y of [W * 0.05, W * 0.95]) for (let x = 0; x < W; x += W / 6) line(x + r() * 20, y + (r() - 0.5) * 8, x + W / 10 + r() * 20, y + (r() - 0.5) * 8, 'rgba(244,234,212,0.75)', 10);
+    const t = new THREE.CanvasTexture(c); t.wrapS = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
+  const ribbon = (half, tex, y) => {
+    const pos = [], uv = [], idx = [], TILE = 6; let s0 = 0;
+    RIVER.pts.forEach(([x, z], i) => { const [x1, z1] = RIVER.pts[Math.min(i + 1, RIVER.pts.length - 1)], [x0, z0] = RIVER.pts[Math.max(i - 1, 0)], l = Math.hypot(x1 - x0, z1 - z0) || 1, nx = -(z1 - z0) / l, nz = (x1 - x0) / l;
+      if (i) s0 += Math.hypot(x - RIVER.pts[i - 1][0], z - RIVER.pts[i - 1][1]);
+      pos.push(x + nx * half, y, z + nz * half, x - nx * half, y, z - nz * half); uv.push(s0 / TILE, 0, s0 / TILE, 1);
+      if (i) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } });
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.15, depthWrite: false, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
+    m.receiveShadow = true; H.scene.add(m); return tex; };
+  const FLOW = [[ribbon(2.7, strokeTile(77, 30, true), 0.03), 1.45], [ribbon(2.3, strokeTile(91, 12, false), 0.035), 0.85]];
+  H.onStep((t, dt) => { for (const [tex, sp] of FLOW) tex.offset.x -= sp * dt / 6; });
   const ringTex = inkTex((g) => { g.strokeStyle = '#e0dcf0'; g.lineWidth = 5; g.beginPath(); g.ellipse(64, 32, 52, 26, 0, 0, 7); g.stroke(); });
   const flatMat = (map) => new THREE.MeshStandardMaterial({ map, transparent: true, alphaTest: 0.25, depthWrite: false, roughness: 1, side: THREE.DoubleSide });
-  const RN = 170, rip = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 0.5), flatMat(rippleTex), RN), RG = 60, rings = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 0.5), flatMat(ringTex), RG);
-  for (const m of [rip, rings]) { m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); H.scene.add(m); }
-  const R = Array.from({ length: RN }, () => ({ s: Math.random() * RV.len, off: (Math.random() - 0.5) * 2.2, sp: 1.1 + Math.random() * 0.8, age: Math.random() * 3, life: 2.5 + Math.random() * 2, w: 1.1 + Math.random() * 0.9 }));
+  const RG = 60, rings = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 0.5), flatMat(ringTex), RG);
+  rings.frustumCulled = false; rings.instanceMatrix.setUsage(THREE.DynamicDrawUsage); H.scene.add(rings);
   const G = Array.from({ length: RG }, () => ({ age: 9, life: 0.9, x: 0, z: 0 }));
   const _o = new THREE.Object3D(); let ringAt = 0;
   H.onStep((t, dt) => {
-    R.forEach((r, i) => {
-      r.age += dt; r.s += r.sp * dt; if (r.age > r.life || r.s > RV.len) Object.assign(r, { s: Math.random() * RV.len * 0.97, off: (Math.random() - 0.5) * 2.2, age: 0, life: 2.5 + Math.random() * 2 });
-      const [x, z, tx, tz] = along(r.s), k = Math.sin(Math.PI * Math.min(1, r.age / r.life)) * r.w;
-      _o.position.set(x - tz * r.off, 0.06, z + tx * r.off); _o.rotation.set(-Math.PI / 2, 0, Math.atan2(-tz, tx) + Math.PI / 2); _o.scale.set(k, k, 1); _o.updateMatrix(); rip.setMatrixAt(i, _o.matrix);
-    });
     ringAt -= dt * (2 + 40 * weather.rain);
     G.forEach((g, i) => {
       g.age += dt; if (g.age > g.life && ringAt <= 0 && weather.rain > 0.05) { ringAt += 1; const [x, z, tx, tz] = along(Math.random() * RV.len), off = (Math.random() - 0.5) * 2.6; Object.assign(g, { age: 0, x: x - tz * off, z: z + tx * off }); }
       const u = Math.min(1, g.age / g.life), k = g.age < g.life ? 0.3 + 1.3 * u : 0.001;
       _o.position.set(g.x, 0.065, g.z); _o.rotation.set(-Math.PI / 2, 0, 0); _o.scale.set(k, k, 1); _o.updateMatrix(); rings.setMatrixAt(i, _o.matrix);
     });
-    rip.instanceMatrix.needsUpdate = true; rings.instanceMatrix.needsUpdate = true; rings.material.opacity = 1;
+    rings.instanceMatrix.needsUpdate = true;
   });
   const riverNear = (x, z) => Math.max(0, 1 - RIVER.dist(x, z) / 16);
 

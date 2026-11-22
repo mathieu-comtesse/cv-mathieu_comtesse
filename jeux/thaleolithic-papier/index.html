@@ -156,7 +156,6 @@
   .pad button.on { transform: translate(1px, 2px); box-shadow: var(--cut), 1px 1px 1px rgb(var(--sh) / .45); }
   .up { transform: rotate(-90deg); } .down { transform: rotate(90deg); } .left { transform: rotate(180deg); }
 
-  @media (pointer: coarse) { .pad { display: grid; } #prompt { left: auto; right: 14px; transform: none; } }
   @media (max-width: 640px) {
     #panel { top: auto; bottom: 10px; --tilt: none; max-height: 62vh; } #panel-body { padding: 20px 20px; } #hud { width: calc(100vw - 80px); } #vitals { gap: 4px 7px; } #vitals span { letter-spacing: .03em; font-size: 10.5px; }
     #tools { flex-direction: column; max-width: none; } #tools .btn { padding: 7px; } #tools .btn span { display: none; }
@@ -260,6 +259,22 @@
   #cine-skip { position: absolute; right: 3vw; top: 3.4vh; z-index: 1; pointer-events: auto; color: #f4e6c6; text-decoration-color: rgb(244 230 198 / .6); }
   body.cine-on #hud, body.cine-on #tools, body.cine-on #pin, body.cine-on #prompt, body.cine-on #work, body.cine-on #panel { visibility: hidden !important; }
   @media (prefers-reduced-motion: reduce) { #cine .band { transition: none; } }
+
+  /* touch: a stone joystick (a flint nick for each way, an ochre pebble for the thumb) and the red "Agir" blob */
+  .stick { position: fixed; left: max(22px, env(safe-area-inset-left)); bottom: max(26px, env(safe-area-inset-bottom)); width: 132px; height: 132px; display: none; z-index: 3; touch-action: none; user-select: none;
+    border-radius: 48% 52% 46% 54% / 53% 47% 53% 47%; background: var(--stone-t, none) #a9a2bc; box-shadow: var(--cut), 3px 4px 0 #6a6280, 6px 10px 12px rgb(var(--sh) / .4); }
+  .stick::before { content: ''; position: absolute; inset: 16px; border-radius: 50%; border: 2px dashed rgb(42 26 30 / .35); }
+  .stick .nick { position: absolute; width: 0; height: 0; border: 9px solid transparent; }
+  .stick .n { left: 57px; top: 6px; border-bottom-color: #4a4460; } .stick .s { left: 57px; bottom: 6px; border-top-color: #4a4460; }
+  .stick .w { top: 57px; left: 6px; border-right-color: #4a4460; } .stick .e { top: 57px; right: 6px; border-left-color: #4a4460; }
+  .stick .knob { position: absolute; left: 36px; top: 36px; width: 60px; height: 60px; display: grid; place-items: center; border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%; color: #fbf1de;
+    background: var(--ochre-t, none) #e0a24a; box-shadow: var(--cut), 2px 4px 0 #8a5a22, 4px 8px 8px rgb(var(--sh) / .45); transition: transform .18s cubic-bezier(.3, 1.8, .5, 1); }
+  .stick .knob .ico { width: 26px; height: 26px; opacity: .0; transition: opacity .15s; } .stick.on .knob .ico { opacity: 1; } .stick.on .knob { transition: none; }
+  .act-btn { position: fixed; right: max(22px, env(safe-area-inset-right)); bottom: max(34px, env(safe-area-inset-bottom)); width: 96px; height: 96px; display: none; place-items: center; z-index: 3; border: 0; touch-action: none;
+    font: 400 24px/1 var(--caps); letter-spacing: .03em; color: #fbf1de; text-shadow: 1px 1px 0 #4a140e; background: var(--blood-t, none) #9a3328; border-radius: 52% 48% 55% 45% / 47% 55% 45% 53%;
+    outline: 2px dashed rgb(251 241 222 / .6); outline-offset: -9px; box-shadow: var(--cut), 3px 5px 0 #5a1a14, 6px 10px 12px rgb(var(--sh) / .4); transition: transform .2s cubic-bezier(.3, 1.8, .5, 1), opacity .2s; }
+  .act-btn.off { opacity: .45; filter: saturate(.4); } .act-btn.on, .act-btn:active { transform: translate(2px, 4px) scale(.97); box-shadow: var(--cut), 1px 1px 0 #5a1a14; }
+  @media (pointer: coarse) { .stick { display: block; } .act-btn { display: grid; } #prompt { left: 50%; right: auto; bottom: max(150px, calc(env(safe-area-inset-bottom) + 150px)); transform: translateX(-50%) rotate(.5deg); } }
 </style>
 <script type="importmap">{ "imports": { "three": "../../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
 </head>
@@ -322,11 +337,8 @@
 
 <div id="cine" hidden aria-live="polite"><div class="band top"><p id="cine-title"></p></div><div class="band bottom"></div><div class="sub"><b id="cine-who"></b><span id="cine-line"></span></div><button class="btn quiet" id="cine-skip" type="button">Passer</button></div>
 
-<div class="pad" id="pad" aria-hidden="true">
-  <span></span><button data-k="KeyW"><svg class="ico up"><use href="#i-arrow"/></svg></button><span></span>
-  <button data-k="KeyA"><svg class="ico left"><use href="#i-arrow"/></svg></button><span></span><button data-k="KeyD"><svg class="ico "><use href="#i-arrow"/></svg></button>
-  <span></span><button data-k="KeyS"><svg class="ico down"><use href="#i-arrow"/></svg></button><span></span>
-</div>
+<div class="stick" id="stick" aria-hidden="true"><i class="nick n"></i><i class="nick e"></i><i class="nick s"></i><i class="nick w"></i><div class="knob"><svg class="ico"><use href="#i-arrow"/></svg></div></div>
+<button class="act-btn off" id="act-btn" type="button" aria-label="Agir"><span>Agir</span></button>
 <script type="module" src="./main.js"></script>
 </body>
 </html>
