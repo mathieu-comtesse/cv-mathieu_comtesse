@@ -4,7 +4,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 /* les titres et le résultat viennent de la fiche : déjà du HTML valide (entités comprises), on ne les échappe pas une seconde fois */
 const q = (s) => String(s ?? '').replace(/"/g, '&quot;');
 const ICON = { sharepoint: 'S', pdf: 'PDF', excel: 'X', app: '', console: '>_' };
-const BADGE = { authentic: 'Interface locale', demo: 'Démo · données fictives', mockup: 'Maquette', missing: 'Capture à fournir' };
+const BADGE = { authentic: 'Interface locale', editor: 'Concepteur réel', demo: 'Démo · données fictives', mockup: 'Maquette', missing: 'Capture à fournir' };
 const ratio = (a) => { const [w, h] = String(a).split('/').map(Number); return w / (h || 1); };
 /* hauteur d'une fenêtre en % de la hauteur de la scène (scène 16/10, barre de titre ≈ 5 %) */
 const hOf = (w, a) => w / (ratio(a) * .625) + 5;
@@ -16,25 +16,35 @@ function cascade(wins) {
 }
 const box = (b, a) => `--x:${b.x}%;--y:${b.y}%;--w:${b.w}%;--a:${a}`;
 const win = (w) => {
-  const zoomable = w.src && w.status !== 'missing', badge = w.badge || BADGE[w.status];
-  const body = zoomable
-    ? `<img class="sc-img" data-src="${esc(w.src)}" ${w.big ? `data-big="${esc(w.big)}"` : ''} alt="${esc(w.alt)}" decoding="async" draggable="false">`
+  const captured = w.src && w.status !== 'missing', badge = w.badge || BADGE[w.status];
+  const address = w.browser ? `<div class="sc-address">${esc(w.browser)}</div>` : '';
+  const body = captured
+    ? `<img class="sc-img" data-src="${esc(w.src)}" alt="${esc(w.alt)}" decoding="async" draggable="false">`
     : `<div class="sc-slot"><span class="sc-ico" aria-hidden="true">${ICON[w.kind] || ''}</span><b>Capture à fournir</b><span>${esc(w.need)}</span></div>`;
-  return `<figure class="sc-win" data-id="${w.id}" data-kind="${w.kind}" data-status="${w.status}" data-step="${w.step}" style="${box(w.box, w.a)}"${zoomable ? ` tabindex="0" role="button" aria-label="Agrandir : ${esc(w.title)}" data-caption="${esc(w.caption || '')}" data-badge="${esc(badge)}"` : ' aria-label="' + esc(w.title + ' : capture à fournir') + '"'}>` +
-    `<div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(w.title)}</span><em class="sc-badge" data-status="${w.status}">${esc(badge)}</em></div><div class="sc-body">${body}</div></figure>`;
+  return `<figure class="sc-win" data-id="${w.id}" data-kind="${w.kind}" data-status="${w.status}" data-step="${w.step}" style="${box(w.box, w.a)}"${w.browser ? ' data-sc-browser' : ''} aria-label="${esc(w.title)}">` +
+    `<div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(w.title)}</span><em class="sc-badge" data-status="${w.status}">${esc(badge)}</em></div>${address}<div class="sc-body">${body}</div></figure>`;
 };
 /** @param {string} slug fiche (projet-xxx)  @param {{steps:string[], result:{title:string,text:string}}} ctx  titres des étapes « Comment ça marche » et résultat, repris de la fiche */
 export function showcaseHTML(slug, ctx) {
   const c = SHOWCASE[slug]; if (!c) return '';
+  if (c.portal) {
+    return `<div class="cv-pf-portal"><a class="cv-pf-link" href="${esc(c.portal)}" target="_blank" rel="noopener noreferrer">Ouvrir ${esc(c.label)}<span class="sr-only"> (nouvel onglet)</span></a><p>${esc(c.note)}</p></div>`;
+  }
   const N = c.steps.length, lines = ctx.steps.slice(0, 7), wins = c.layout === 'cascade' ? cascade(c.windows) : c.windows;
   const con = c.console ? `<figure class="sc-win sc-console" data-kind="console" data-step="${c.console.step}" style="${box(c.console.box, c.console.a)}" aria-label="${esc(c.console.title)} : animation pédagogique du déroulé"><div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(c.console.title)}</span><em class="sc-badge" data-status="demo">Animation pédagogique</em></div>` +
     `<ol class="sc-log" data-lines="${q(JSON.stringify(lines))}">${lines.map((l) => `<li><span class="sc-p">✓</span>${l}</li>`).join('')}</ol></figure>` : '';
-  const res = `<aside class="sc-result" data-step="${N}" aria-label="Résultat"><small>Résultat</small><b>${ctx.result.title}</b>${ctx.result.text ? `<p>${ctx.result.text}</p>` : ''}<a class="sc-fiche" href="${slug}.html">Fiche complète du projet</a></aside>`;
+  const res = c.layout === 'finance' ? '' : `<aside class="sc-result" data-step="${N}" aria-label="Résultat"><small>Résultat</small><b>${ctx.result.title}</b>${ctx.result.text ? `<p>${ctx.result.text}</p>` : ''}<a class="sc-fiche" href="${slug}.html">Fiche complète du projet</a></aside>`;
   const tabs = c.steps.map((t, i) => `<button type="button" role="tab" data-go="${i + 1}" aria-selected="${i === N - 1}"><i>${i + 1}</i>${esc(t)}</button>`).join('');
   const kinds = [...new Set(c.windows.map((w) => w.status))];
-  const legend = ['authentic', 'demo', 'mockup', 'missing'].filter((k) => kinds.includes(k)).map((k) => ({ authentic: 'Interface locale : capture de l’interface d’un fichier HTML ouvert hors connexion, sans traitement réel.', demo: 'Démo : données fictives ou animation pédagogique, jamais un écran de production.', mockup: 'Maquette : référence graphique.', missing: 'Capture à fournir : emplacement, aucune image n’est simulée.' }[k])).join(' ');
-  return `<section class="cv-pframe cv-pf-showcase" data-showcase="${slug}" data-steps="${N}" data-layout="${c.layout}" style="--html-in-canvas-rise:.5" aria-label="${esc(c.label)}">` +
-    `<h4>${esc(c.label)}</h4><div class="sc-stage" data-step="${N}">${wins.map(win).join('')}${con}${res}</div>` +
+  const legend = [
+    kinds.includes('authentic') && 'Captures de l’interface locale',
+    kinds.includes('editor') && 'Captures du concepteur Power Automate',
+    kinds.includes('demo') && 'Démo sur données fictives',
+    kinds.includes('mockup') && 'Maquette',
+    kinds.includes('missing') && 'Captures à compléter'
+  ].filter(Boolean).join(' · ');
+  return `<section class="cv-pframe cv-pf-showcase" data-showcase="${slug}" data-steps="${N}" data-layout="${c.layout}"${c.auto ? ' data-sc-auto' : ''} style="--html-in-canvas-rise:.5" aria-label="${esc(c.label)}">` +
+    `<div class="sc-stage" data-step="${N}">${wins.map(win).join('')}${con}${res}</div>` +
     `<div class="sc-tabs" role="tablist" aria-label="Étapes du traitement">${tabs}</div>` +
-    `<p class="cv-pf-note sc-note">${esc(legend)}${c.note ? ' ' + esc(c.note) : ''}</p></section>`;
+    `<p class="cv-pf-note sc-note">${esc(c.note || legend)}</p></section>`;
 }

@@ -14,20 +14,73 @@
 export const L = { tilt: { angle: 55 }, city: 0.005, cityGrow: 4, layers: { graph: { heroLift: 0.1, spread: 0.17 } } };
 const PAS = 64, PROCHE = 40;
 
-export const cvAnchor = (H) => ({ row: 2.298 * H });
+const RAD = Math.PI / 180;
+const PITCH_EXPO = -30.2 * RAD, FOV_PLAT = 50 * RAD, FOV_EXPO = 45 * RAD;
+const CAMERA_HEIGHT = 1.015, CAMERA_BACK = -1;
+const mix = (a, b, t) => a + (b - a) * t;
+
+function profilSol(progression, H) {
+  const T = 5 * H, ds = T / PAS;
+  const pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
+  const sharpness = 6.54, vitessePli = Math.expm1(sharpness);
+  let y = 0, z = 0;
+  for (let i = 0; i < PAS; i++) {
+    const face = Math.PI / 2 + Math.atan2(y - CAMERA_HEIGHT * H, CAMERA_BACK * H - z);
+    const pli = progression * Math.expm1(sharpness * (i + .5) / PAS) / vitessePli * face;
+    y += ds * Math.sin(pli);
+    z -= ds * Math.cos(pli);
+    pts[2 * i + 2] = y;
+    pts[2 * i + 3] = z;
+    if (i === 0) ang[0] = pli;
+    ang[i] = (ang[i] + pli) / 2;
+    ang[i + 1] = pli;
+  }
+  return { T, ds, pts, ang };
+}
+
+// Le centre en mode expo est l’intersection de l’axe optique avec le sol déplié.
+function ancreExpo() {
+  const { T, ds, pts } = profilSol(1, 1);
+  const dy = Math.sin(PITCH_EXPO), dz = -Math.cos(PITCH_EXPO);
+  for (let i = 0; i < PAS; i++) {
+    const y = pts[2 * i], z = pts[2 * i + 1];
+    const sy = pts[2 * i + 2] - y, sz = pts[2 * i + 3] - z;
+    const det = dy * sz - dz * sy;
+    if (Math.abs(det) < 1e-9) continue;
+    const segment = (dz * (y - CAMERA_HEIGHT) - dy * (z - CAMERA_BACK)) / det;
+    const dist = (sz * (y - CAMERA_HEIGHT) - sy * (z - CAMERA_BACK)) / det;
+    if (segment >= 0 && segment <= 1 && dist > 0) return { row: T - (i + segment) * ds, dist };
+  }
+  return { row: .5, dist: 1 };
+}
+const ANCRE = ancreExpo();
+export const cvAnchor = (H) => ({ row: ANCRE.row * H });
+
+// Le fondu suit une distance de défilement, donc se rembobine à la remontée.
+export function fonduChapitre(position, debut, distance) {
+  const t = Math.max(0, Math.min(1, (position - debut) / distance));
+  return t * t * (3 - 2 * t);
+}
 
 /* Vue : profil du sol (65 points, 65 angles) et caméra.
  * `progress` va de 0 (vue à plat : caméra à la verticale, à la distance où un pixel du chemin vaut un pixel d'écran, sol plan,
  * hauteurs nulles : l'image coïncide avec la page) à 1 (vue expo). Entre les deux, la caméra tourne autour du point visé :
  * la bascule entre les deux modes est une vraie transformation de la scène, réversible à tout instant. */
-const RISE_AT = 0.35;   // « riseAt » relevé dans la configuration de la scène de la référence (usage lu dans son bundle : hauteurs = lissage de (progression − riseAt) / (1 − riseAt))
+const RISE_AT = .35;
 export function cvView(progress, W, H, lead = 0) {
-  const e = Math.max(0, Math.min(1, progress)), T = 5 * H, ds = T / PAS, pts = new Float32Array(2 * (PAS + 1)), ang = new Float32Array(PAS + 1);
-  for (let i = 0; i <= PAS; i++) ang[i] = e * 1.44 * Math.exp(7.33 * (i / PAS - 1));
-  for (let i = 0; i < PAS; i++) { const th = (ang[i] + ang[i + 1]) / 2; pts[2 * i + 2] = pts[2 * i] + ds * Math.sin(th); pts[2 * i + 3] = pts[2 * i + 1] - ds * Math.cos(th); }
-  const focusRow = lead + H / 2, fov = Math.PI / 4, a = Math.PI / 2 + (0.52709 - Math.PI / 2) * e, d = (0.5 / Math.tan(fov / 2) + (2.018 - 0.5 / Math.tan(fov / 2)) * e) * H, vise = -(T - focusRow) - 0.041 * H * e;
-  const montee = Math.max(0, Math.min(1, (e - RISE_AT) / (1 - RISE_AT))), rise = montee * montee * (3 - 2 * montee);   // les hauteurs ne montent qu'une fois la caméra engagée ; courbe de lissage déduite, non lue
-  return { W, H, T, ds, pts, ang, e, rise, focusRow, fov, camY: d * Math.sin(a), camZ: vise + d * Math.cos(a), pitch: -a };
+  const t = Math.max(0, Math.min(1, progress));
+  const e = t < .5 ? 4 * t ** 3 : 1 - 4 * (1 - t) ** 3;
+  const rise = 1 - (1 - Math.max(0, (t - RISE_AT) / (1 - RISE_AT))) ** 3;
+  const profil = profilSol(e, H);
+  const focusRow = lead + H / 2;
+  const row = Math.max(0, Math.min(PAS, (profil.T - focusRow) / profil.ds));
+  const i = Math.min(Math.floor(row), PAS - 1), f = row - i;
+  const y = mix(profil.pts[2 * i], profil.pts[2 * i + 2], f);
+  const z = mix(profil.pts[2 * i + 1], profil.pts[2 * i + 3], f);
+  const pitch = mix(-Math.PI / 2, PITCH_EXPO, e);
+  const dist = H * mix(.5 / Math.tan(FOV_PLAT / 2), ANCRE.dist, e);
+  return { W, H, ...profil, e, rise, focusRow, fov: mix(FOV_PLAT, FOV_EXPO, e),
+    camY: y - dist * Math.sin(pitch), camZ: z + dist * Math.cos(pitch), pitch };
 }
 
 /* point du monde (x, y, z) pour une position du chemin */
@@ -40,7 +93,11 @@ export function monde(view, col, row, h = 0) {
 
 /* projection à l'écran : { x, y, z } (z : distance à la caméra), ou null derrière la caméra */
 export function p(view, col, row, h = 0) {
-  const [X, Y, Z] = monde(view, col, row, h), dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
+  return pMonde(view, ...monde(view, col, row, h));
+}
+
+export function pMonde(view, X, Y, Z) {
+  const dy = Y - view.camY, dz = Z - view.camZ, c = Math.cos(view.pitch), s = Math.sin(view.pitch);
   const y = dy * c + dz * s, d = dy * s - dz * c;
   if (!(d > PROCHE)) return null;
   const f = view.H / 2 / Math.tan(view.fov / 2);
@@ -104,22 +161,75 @@ export function cvFont(family = 'Inter, ui-sans-serif, system-ui, sans-serif', w
   return font;
 }
 
-export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1 } = {}) {
-  const c = ctxMesure(font), mots = texte.split(/\s+/).filter(Boolean), lignes = [];
-  let ligne = '';
-  for (const m of mots) { const essai = ligne ? ligne + ' ' + m : m; if (ligne && c.measureText(essai).width / CORPS > maxWidth) { lignes.push(ligne); ligne = m; } else ligne = essai; }
-  if (ligne) lignes.push(ligne);
+export function cvTextLayout(font, texte, { maxWidth = Infinity, lineHeight = 1.1, letterSpacing = 0, lignes = [], premiereLigne = false } = {}) {
+  const c = ctxMesure(font);
+  c.letterSpacing = letterSpacing * CORPS + 'px';
+  if (!lignes.length) {
+    lignes = [];
+    let ligne = '';
+    for (const mot of texte.split(/\s+/).filter(Boolean)) {
+      const essai = ligne ? ligne + ' ' + mot : mot;
+      if (ligne && c.measureText(essai).width / CORPS > maxWidth) {
+        lignes.push(ligne);
+        ligne = mot;
+      } else ligne = essai;
+    }
+    if (ligne) lignes.push(ligne);
+  }
   const marge = 8, larg = Math.ceil(Math.max(1, ...lignes.map((l) => c.measureText(l).width))) + 2 * marge, haut = Math.ceil(CORPS * (lineHeight * (lignes.length - 1) + 1.45)) + 2 * marge;
   const cv = document.createElement('canvas'); cv.width = larg; cv.height = haut;
-  const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
+  const g = cv.getContext('2d', { willReadFrequently: true }); g.font = c.font; g.letterSpacing = c.letterSpacing; g.fillStyle = '#000'; g.textBaseline = 'alphabetic';
   const base0 = marge + CORPS * 1.08;                                   // ligne de base de la première ligne, en pixels du canevas
   lignes.forEach((l, k) => g.fillText(l, marge, base0 + k * lineHeight * CORPS));
-  const baseDerniere = base0 + (lignes.length - 1) * lineHeight * CORPS;
-  const boucles = contours(g.getImageData(0, 0, larg, haut)).map((b) => b.map(([x, y]) => [(x - marge) / CORPS, (baseDerniere - y) / CORPS]));   // en cadratins, y vers le haut, ligne de base de la dernière ligne à 0
+  const origine = premiereLigne ? base0 : base0 + (lignes.length - 1) * lineHeight * CORPS;
+  const boucles = contours(g.getImageData(0, 0, larg, haut)).map((b) => b.map(([x, y]) => [(x - marge) / CORPS, (origine - y) / CORPS]));
   const bounds = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
   for (const b of boucles) for (const [x, y] of b) { bounds.minX = Math.min(bounds.minX, x); bounds.maxX = Math.max(bounds.maxX, x); bounds.minY = Math.min(bounds.minY, y); bounds.maxY = Math.max(bounds.maxY, y); }
   if (!boucles.length) Object.assign(bounds, { minX: 0, maxX: 0, minY: 0, maxY: 0 });
   return { boucles, bounds, width: bounds.maxX - bounds.minX, lignes };
+}
+
+// Lit les retours à la ligne et le rectangle du texte dans la mise en page à plat.
+export function cvMesureTitre(el, font) {
+  const style = getComputedStyle(el), boite = el.getBoundingClientRect();
+  const taille = parseFloat(style.fontSize), interligne = parseFloat(style.lineHeight) || taille;
+  const range = document.createRange(), lignes = [];
+  const textes = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: node => node.parentElement.closest('[aria-hidden="true"]')
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  let gauche = Infinity, haut = Infinity, bas = -Infinity, ligne;
+  for (let node = textes.nextNode(); node; node = textes.nextNode()) {
+    let i = 0;
+    for (const caractere of node.data) {
+      range.setStart(node, i);
+      i += caractere.length;
+      range.setEnd(node, i);
+      const rect = range.getBoundingClientRect();
+      if (!rect.height) continue;
+      if (caractere.trim()) {
+        if (!ligne || rect.top > ligne.top + rect.height / 2) {
+          ligne = { top: rect.top, texte: '' };
+          lignes.push(ligne);
+        }
+        gauche = Math.min(gauche, rect.left);
+        haut = Math.min(haut, rect.top);
+        bas = Math.max(bas, rect.bottom);
+      }
+      if (ligne) ligne.texte += caractere;
+    }
+  }
+  if (!lignes.length) return null;
+  const c = ctxMesure(font);
+  c.font = style.font;
+  const { fontBoundingBoxAscent: ascent, fontBoundingBoxDescent: descent } = c.measureText('M');
+  const ajustement = (bas-haut)/(ascent+descent+(lignes.length-1)*interligne);
+  return {
+    lignes: lignes.map(l => l.texte.trim().normalize('NFC')),
+    x: gauche-boite.left, y: haut-boite.top,
+    em: taille*ajustement, baseline: ascent*ajustement, taille,
+    lineHeight: interligne/taille, letterSpacing: (parseFloat(style.letterSpacing)||0)/taille
+  };
 }
 
 /* contours fermés du masque alpha (seuil 50 %, interpolé), simplifiés */
@@ -195,7 +305,7 @@ export function cvTextExtrude(layout, { depth = 1, T }) {
  * vignette cliquable) et des branches graphiques (points et ramifications tirés du nom, sans contenu associé, non interactives).
  * Toutes les positions sont dans le repère fourni par `proj` : le chemin 3D en mode expo, le plan de la page en mode à plat.
  * Les étoiles bougent donc avec la caméra, sans calque HTML superposé. */
-const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
+export const hache = (t) => { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; };
 const alea = (g) => () => { g |= 0; g = g + 0x6D2B79F5 | 0; let t = Math.imul(g ^ g >>> 15, 1 | g); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const frac = (x) => x - Math.floor(x);
 const adouci = (x) => { x = Math.max(0, Math.min(1, x)); return 1 - (1 - x) ** 3; };
@@ -297,8 +407,13 @@ export class Ciel {
       if (F.x < -e.rayon * k - 80 || F.x > W + e.rayon * k + 80 || F.y < -e.rayon * k - 80 || F.y > H + e.rayon * k + 80) { continue; }
       if (e.age < 0) e.age = 0; e.age += libre ? dt : 10;
       e.ecran = F;
-      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon, actifC = !!this.actif && e.chapitre === this.actif, autreC = !!this.actif && !!e.chapitre && e.chapitre !== this.actif;
-      const kE = actifC ? 1.25 : autreC ? 0.85 : 1;                              // chapitre actif : branches plus présentes ; les autres s'effacent un peu
+      const ech = Math.max(0.55, Math.min(1.5, k)), R = e.rayon;
+      const f = this.fondu;
+      const poids = !e.chapitre ? 0 : f
+        ? (e.chapitre === f.de ? 1 - f.poids : 0) + (e.chapitre === f.vers ? f.poids : 0)
+        : Number(e.chapitre === this.actif);
+      const baseLumiere = f && !f.de ? 1 - .15 * f.poids : .85;
+      const kE = e.chapitre && (f || this.actif) ? baseLumiere + .4 * poids : 1;
       const F0 = proj(c0, r0, 0), ombre = !!F0 && F.y - F0.y > 1.5;                // ombres portées au sol : seulement quand le foyer est au-dessus du sol (expo)
       /* trace au sol : cercle et tige (étoiles posées) */
       if (e.sol) {
@@ -381,7 +496,7 @@ export class Ciel {
         const actif = focus === n, gr = ctx.createLinearGradient(n.x0, n.y0, n.x1, n.y1), cy = j < 2, m = MULT[n.cl] * (n.cl === 0 ? kE : 1);
         gr.addColorStop(0, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(120,235,255,${Math.min(1, 1 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.95 * m).toFixed(2)})`);
         gr.addColorStop(1, actif ? 'rgba(255,255,255,1)' : cy ? `rgba(95,230,255,${Math.min(1, 0.7 * m).toFixed(2)})` : `rgba(255,255,255,${Math.min(1, 0.55 * m).toFixed(2)})`);
-        ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : actifC ? 1.4 : 1.15; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
+        ctx.strokeStyle = gr; ctx.lineWidth = actif ? 2.4 : 1.15 + poids * .25; ctx.beginPath(); ctx.moveTo(n.x0, n.y0); ctx.quadraticCurveTo(n.cx, n.cy, n.x1, n.y1); ctx.stroke();
         if (!compact && libre && !this.pris && souris.x > -1e3) { const d = this.distanceCourbe(n, souris.x, souris.y); if (d < dBranche && n.cl !== 3) { dBranche = d; brancheMeilleure = { noeud: n, etoile: e }; } }
       }
       /* 5. impulsions : le long des courbes réelles, transmises aux ramifications */
@@ -411,7 +526,7 @@ export class Ciel {
         ctx.globalAlpha = A;
       }
       /* foyer et libellé */
-      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (actifC ? 1.25 : 1), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+      { const halo = Math.max(16, Math.min(70, (e.racine ? 0.2 : 0.17) * R * k)) * (1 + .25 * poids), gr = ctx.createRadialGradient(F.x, F.y, 0, F.x, F.y, halo); gr.addColorStop(0, `rgba(210,240,255,${Math.min(1, 0.4 * kE).toFixed(2)})`); gr.addColorStop(0.35, `rgba(120,190,255,${Math.min(1, 0.14 * kE).toFixed(2)})`); gr.addColorStop(1, 'rgba(80,140,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(F.x, F.y, halo, 0, 6.283); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
       const cote = (e.racine ? 9 : e.parent ? 7 : 9) * Math.min(1.25, Math.max(0.8, ech));
       ctx.fillStyle = '#fff'; ctx.fillRect(F.x - cote / 2, F.y - cote / 2, cote, cote);
       if (e.label && !e.racine) {
@@ -439,35 +554,48 @@ export class Ciel {
 }
 function dansQuad(q, x, y) { let c = false; for (let i = 0, j = 3; i < 4; j = i++) { const a = q[i], b = q[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) c = !c; } return c; }
 
+export { dansQuad };
+
 /* ---------- Arêtes et ombres des cadres ---------- */
 /* `souris` (optionnel) : le cadre sous le pointeur est rehaussé (contour épais, repères d'angle) ; un cadre relevé porte un reflet
    de verre, bande claire oblique qui glisse avec la position horizontale du pointeur. Renvoie le cadre survolé. */
 export function dessineContours(ctx, view, boxes, souris = null) {
   let survole = null;
   ctx.save(); ctx.lineJoin = 'round';
-  const dessus = (b) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => b.slab ? p(view, ...cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r)) : p(view, x, r, b.top));
+  const face = (b, epais) => [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, row]) => b.slab
+    ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row))
+    : p(view, x, row, epais ? b.top : b.base));
   const ordre = [...boxes].sort((a, c) => a.r1 - c.r1);                        // du fond vers l'observateur
   for (const [rang, b] of ordre.entries()) {
     /* les flancs d'un bloc passent derrière le dessus des blocs plus proches (leur contenu est du DOM, sous ce canevas) */
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, view.W, view.H);
-    for (const n of ordre.slice(rang + 1)) { const q = dessus(n); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
+    for (const n of ordre.slice(rang + 1)) { const q = face(n, true); if (q.every(Boolean)) { ctx.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y); ctx.closePath(); } }
     ctx.clip('evenodd');
-    const coin = (x, row, epais) => b.slab ? p(view, ...cvSlab(view, { tilt: b.slab.tilt, depth: epais ? b.slab.depth : 0 }, b.r1, b.base, x, b.r1 - row)) : p(view, x, row, epais ? b.top : 0);
-    const haut = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, true)), bas = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => coin(x, r, false));
-    if (!haut.every(Boolean) || !bas.every(Boolean)) continue;
+    const haut = face(b, true), bas = face(b, false);
+    if (!haut.every(Boolean) || !bas.every(Boolean)) { ctx.restore(); continue; }
     const trace = (pts) => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); };
     if (b.slab && b.tilted > 0.02) {                                             // ombre portée au sol d'un cadre relevé
       const ombre = [[b.x0, b.r0], [b.x1, b.r0], [b.x1, b.r1], [b.x0, b.r1]].map(([x, r]) => { const w = cvSlab(view, b.slab, b.r1, b.base, x, b.r1 - r); return p(view, w[0] + w[2] * 0.5, w[1] + w[2] * 0.35, 0); });
       if (ombre.every(Boolean)) { ctx.fillStyle = 'rgba(0,0,0,.22)'; trace(ombre); ctx.fill(); }
     }
-    const plein = b.hero && !b.slab;                                           // blocs de l'accueil : flancs opaques, à la couleur du sol assombrie
-    ctx.fillStyle = plein ? '#02105f' : 'rgba(255,255,255,.07)'; trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
-    if (plein) { const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y); g.addColorStop(0, '#1236d6'); g.addColorStop(1, '#071d8a'); ctx.fillStyle = g; } else ctx.fillStyle = 'rgba(255,255,255,.14)'; trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();          // tranche avant
+    const plein = (b.hero && !b.slab) || b.project;
+    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
+    if (dedansQuad) survole = b;
+    const flanc = b.project ? `color-mix(in srgb,${b.colour||'#051daa'} 46%,#030a23)` : '#02105f';
+    ctx.fillStyle = plein ? flanc : 'rgba(255,255,255,.07)';
+    trace([haut[1], haut[2], bas[2], bas[1]]); ctx.fill(); trace([haut[0], haut[3], bas[3], bas[0]]); ctx.fill();
+    if (plein) {
+      const g = ctx.createLinearGradient(0, haut[3].y, 0, bas[3].y);
+      g.addColorStop(0,b.project?`color-mix(in srgb,${b.colour||'#051daa'} 75%,#102b84)`:'#0e2da9');
+      g.addColorStop(1,b.project?flanc:'#06156c');
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = 'rgba(255,255,255,.14)';
+    trace([haut[3], haut[2], bas[2], bas[3]]); ctx.fill();
     ctx.strokeStyle = plein ? 'rgba(210,225,255,.7)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 0.85; ctx.beginPath();
     for (let i = 0; i < 4; i++) { ctx.moveTo(haut[i].x, haut[i].y); ctx.lineTo(bas[i].x, bas[i].y); }
     ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[2].x, bas[2].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.moveTo(bas[3].x, bas[3].y); ctx.lineTo(bas[0].x, bas[0].y); ctx.stroke();
-    const dedansQuad = souris && dansQuad(haut, souris.x, souris.y);
-    if (dedansQuad) survole = b;
+    ctx.strokeStyle = 'rgba(220,230,255,.38)';
+    ctx.beginPath(); ctx.moveTo(bas[0].x, bas[0].y); ctx.lineTo(bas[1].x, bas[1].y); ctx.stroke();
     if (b.slab && b.tilted > 0.25 && !b.hero) {                                  // reflet de verre d'un cadre relevé
       const u = souris ? Math.max(0, Math.min(1, (souris.x - haut[0].x) / Math.max(1, haut[1].x - haut[0].x))) : 0.5, g = ctx.createLinearGradient(haut[0].x, haut[0].y, haut[2].x, haut[2].y), c = 0.2 + 0.6 * u, a = 0.13 * Math.min(1, (b.tilted - 0.25) * 2);
       g.addColorStop(Math.max(0, c - 0.22), 'rgba(255,255,255,0)'); g.addColorStop(c, `rgba(255,255,255,${a.toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.05), `rgba(255,255,255,${(a * 0.25).toFixed(3)})`); g.addColorStop(Math.min(1, c + 0.3), 'rgba(255,255,255,0)');
@@ -480,7 +608,7 @@ export function dessineContours(ctx, view, boxes, souris = null) {
         ctx.moveTo(q.x - (n.x - q.x) / l1 * k, q.y - (n.y - q.y) / l1 * k); ctx.lineTo(q.x, q.y); ctx.lineTo(q.x - (m.x - q.x) / l2 * k, q.y - (m.y - q.y) / l2 * k); }
       ctx.stroke();
     }
-    if (b.title && b.tilted > 0.5) {                                             // cadre relevé : son nom et ses cotes au-dessus du bord haut
+    if (b.title && !b.project && b.tilted > 0.5) {                               // les projets portent déjà leur titre sur la face
       ctx.globalAlpha = Math.min(1, (b.tilted - 0.5) * 2); ctx.font = '500 10px "JetBrains Mono",ui-monospace,monospace'; ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
       ctx.fillText(b.title.slice(0, 48), haut[0].x, haut[0].y - 8); ctx.textAlign = 'right'; ctx.fillText(Math.round(b.x1 - b.x0) + ' × ' + Math.round(b.r1 - b.r0), haut[1].x, haut[1].y - 8); ctx.globalAlpha = 1;
     }
@@ -514,10 +642,10 @@ export function dessineRegles(ctx, view, chapitres) {
 /* ---------- Décor du fond en mode expo : courbe exponentielle numérotée, arcs concentriques, cube filaire ----------
  * Tout est posé dans le repère du chemin (colonne, rangée, hauteur) et projeté par `p` : ces éléments suivent la caméra comme le sol.
  * Les positions et proportions sont calées sur une comparaison à dimensions identiques avec la référence ; aucun élément n'est une image.
- * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). `numeros` : nombre de chapitres numérotés sur la courbe. */
+ * `t` : temps en secondes (0 en mouvement réduit : tout reste immobile). */
 const ARC_RAYONS = [0.42, 0.62, 0.84, 1.08, 1.34, 1.62];   // en largeurs de page
 const ARCS_CLAIRS = [[3, 0.05, 0.4, 0.045, 0, 0.5], [4, 0.6, 0.95, 0.034, 0.37, 0.42], [2, 0.08, 0.3, 0.06, 0.64, 0.35]];   // [anneau, angle min, angle max (en π), vitesse (tours/s), phase, longueur (rad)]
-export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
+export function dessineDecor(ctx, view, { t = 0 } = {}) {
   const a = view.e * view.e; if (a < 0.01) return;
   const W = view.W, H = view.H, fois = Math.min(1.6, Math.max(0.6, W / 1512));
   ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -532,32 +660,6 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
     const dep = Math.PI * (a0 + (a1 - a0) * (((t * vitesse + phase) % 1 + 1) % 1)), lon = longueur;
     for (let s = 0; s < 6; s++) { ctx.lineWidth = (3.2 - s * 0.45) * fois; ctx.strokeStyle = `rgba(255,255,255,${(0.1 + s * 0.06) * a})`; trace(ARC_RAYONS[anneau], dep + s * lon / 6, dep + lon, 0.02); }
   }
-  /* courbe exponentielle posée sur le sol, et son cadre, à la rangée de base (page 1500) */
-  if (base > 0 && base < view.T) {
-    const g = (u) => (Math.exp(2.2 * u) - 1) / (Math.exp(2.2) - 1), haut = 0.2 * H;
-    const A = p(view, 0, base, 0), B = p(view, W, base, 0);
-    if (A && B) { ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.55 * a})`; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke(); }
-    ctx.lineWidth = 1 * fois; ctx.strokeStyle = `rgba(255,255,255,${0.7 * a})`; ctx.beginPath();
-    for (let i = 0; i <= 80; i++) { const u = i / 80, q = p(view, W * u, base, haut * g(u)); if (!q) continue; if (i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); } ctx.stroke();
-    ctx.font = `500 ${Math.round(8 * fois)}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'top';
-    for (let i = 0; i < numeros; i++) {
-      const u = 0.5 + 0.34 * (numeros > 1 ? i / (numeros - 1) : 0), q = p(view, W * u, base, haut * g(u)); if (!q) continue;
-      ctx.strokeStyle = `rgba(255,255,255,${0.85 * a})`; ctx.fillStyle = `rgba(20,40,170,${0.9 * a})`; ctx.beginPath(); ctx.ellipse(q.x, q.y, 4.2 * fois, 2.6 * fois, 0, 0, 7); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = `rgba(255,255,255,${0.75 * a})`; ctx.textAlign = 'left'; ctx.fillText(String(i + 1).padStart(2, '0'), q.x + 4 * fois, q.y + 3 * fois);
-    }
-  }
-  /* formule au sol, à gauche de la bande : e^(-x) cos(ωx + φ), la courbe correspondante et la valeur de φ qui avance avec le temps.
-     Posée sur le plan du sol (colonne -290, page 1367 à 1480) : texte et tracé suivent la perspective de la caméra. */
-  {
-    const ancre = (c, y) => p(view, c, y - view.offset, 0), O = ancre(-290, 1367), X = ancre(-270, 1367), Y = ancre(-290, 1387);
-    if (O && X && Y && !(view.offset === undefined)) {
-      const phi = (t * 0.45) % 6.2832, ax = (X.x - O.x) / 20, ay = (X.y - O.y) / 20, bx = (Y.x - O.x) / 20, by = (Y.y - O.y) / 20;
-      ctx.save(); ctx.transform(ax, ay, bx, by, O.x, O.y); ctx.globalAlpha = 0.85 * a; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1 / Math.max(0.3, Math.hypot(ax, ay));
-      ctx.font = 'italic 500 15px "JetBrains Mono",ui-monospace,monospace'; ctx.textBaseline = 'top'; ctx.fillText('e^(-x) cos(ωx + φ)', 0, 0);
-      ctx.beginPath(); for (let i = 0; i <= 64; i++) { const x = i / 64 * 5, yy = 62 - Math.exp(-x * 0.9) * Math.cos(5 * x + phi) * 24; const px = i / 64 * 180; i ? ctx.lineTo(px, yy) : ctx.moveTo(px, yy); } ctx.stroke();
-      ctx.font = 'italic 500 13px "JetBrains Mono",ui-monospace,monospace'; ctx.fillText('φ ' + phi.toFixed(2), 74, 96); ctx.restore();
-    }
-  }
   /* cube filaire (cube dans le cube, relié aux sommets), dans le noir à gauche de la bande, en rotation lente */
   if (view.cube) {
     const [c0, r0c, h0, S] = view.cube, rx = t * 0.21 + 0.55, ry = t * 0.17 + 0.4;
@@ -569,6 +671,66 @@ export function dessineDecor(ctx, view, { t = 0, numeros = 0, base = 0 } = {}) {
     for (let i = 0; i < 8; i++) if (E[i] && I[i]) { ctx.moveTo(E[i].x, E[i].y); ctx.lineTo(I[i].x, I[i].y); } ctx.stroke();
   }
   ctx.restore();
+}
+
+export function dessineCourbeAccueil(ctx, view, { x0, x1, row, chapters, souris, time }) {
+  if (x1-x0<160 || view.rise<.003) return [];
+  const profondeur = 340, hauteur = Math.exp(5)/1.35;
+  const at = (x,y) => p(view,mix(x0,x1,x/5),row-Math.min(y,Math.exp(5))/hauteur*profondeur,0);
+  const a = at(0,0), b = at(5,Math.exp(5));
+  if (!a || !b || a.y<0 || b.y>view.H) return [];
+  const markers = chapters.map((chapter,i) => {
+    const x=2.5*(1+(i+.5)/chapters.length), q=at(x,Math.exp(x));
+    return q && {...q,chapter:chapter.id,label:chapter.name,num:String(i+1).padStart(2,'0')};
+  }).filter(Boolean);
+  const focus = markers.find(q=>Math.hypot(q.x-souris.x,q.y-souris.y)<13);
+  const trace = (points,alpha) => {
+    ctx.globalAlpha=alpha*view.rise;
+    ctx.beginPath();
+    points.forEach((q,i)=>q&&(i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)));
+    ctx.stroke();
+  };
+  ctx.save();
+  ctx.strokeStyle=ctx.fillStyle='#fff';ctx.lineWidth=1;
+  for(let x=1;x<=5;x++)trace([at(x,0),at(x,hauteur)],.10);
+  for(let y=50;y<hauteur;y+=50)trace([at(0,y),at(5,y)],.10);
+  trace([at(5,0),a,at(0,hauteur)],.5);
+  const label=(text,q,alpha,align='left')=>{
+    if(!q)return;
+    ctx.font='400 10px "Expo Inter",Inter,sans-serif';ctx.textAlign=align;
+    ctx.globalAlpha=alpha*view.rise;ctx.fillText(text,q.x,q.y);
+  };
+  for(const [base,nom] of [[2,'2ˣ'],[3,'3ˣ'],[Math.E,'eˣ']]){
+    const fin=Math.min(5,Math.log(Math.exp(5))/Math.log(base));
+    trace(Array.from({length:121},(_,i)=>{const x=fin*i/120;return at(x,base**x);}),base===Math.E?(focus?.9:.42):.24);
+    label(nom,at(fin,base**fin),.62,'right');
+  }
+  for(const marker of markers){
+    ctx.globalAlpha=marker===focus?view.rise:.62*view.rise;
+    ctx.beginPath();ctx.ellipse(marker.x,marker.y,marker===focus?6:4,3,0,0,Math.PI*2);ctx.stroke();
+    label(marker.num,{x:marker.x+7,y:marker.y+8},.75);
+  }
+  if(focus)label(focus.label,{x:focus.x,y:focus.y-14},1,'center');
+  if(view.W>=700){
+    const formuleRow=row-190, col=-18, origin=p(view,col,formuleRow,0), end=p(view,col-150,formuleRow,0);
+    const phi=((view.offset/240+2)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+    if(origin&&end&&origin.y<view.H&&origin.y>0){
+      trace([origin,end],.20);
+      trace(Array.from({length:33},(_,i)=>{
+        const x=i/16-1,dy=Math.exp(-(x+1))*Math.cos(9*x+phi);
+        return p(view,col-i/32*150,formuleRow-22*dy,0);
+      }),.62);
+      label('y = e^(−x) cos(ωx + φ)',{x:origin.x,y:origin.y-13},.7,'right');
+      label('φ '+phi.toFixed(2),{x:origin.x,y:origin.y+13},.46,'right');
+    }
+  }
+  const middle=(x0+x1)/2;
+  for(let i=0;i<3;i++){
+    const r=row+56+12*i, phase=time===null?.5:.5+.5*Math.sin(2*Math.PI*(.6*time-i/3));
+    trace([p(view,middle-12,r),p(view,middle,r+8),p(view,middle+12,r)],.1+.2*phase);
+  }
+  ctx.restore();
+  return markers;
 }
 
 /* Éclairage du sol : à plat la couleur de la page est inchangée ; en expo le sol est éclairé et devient plus clair.
@@ -583,34 +745,79 @@ export function cvLit(hex, rise) {
   return `rgb(${[16, 8, 0].map((s) => vers_srgb(vers_lin((n >> s) & 255) * g)).join(',')})`;
 }
 
-/* ---------- Liste des chapitres : prolongement courbe du dessus du bloc supérieur ----------
- * Dans la référence, la liste n'est pas un panneau posé à part : c'est le dessus du premier bloc qui se prolonge vers l'arrière, d'abord à plat
- * (raccordé à l'arête du bloc, à sa hauteur), puis se relève suivant une loi exponentielle de l'angle d'élévation jusqu'à la verticale, comme
- * le sol de la scène. Les dernières lignes, sur la partie presque plate, sont donc écrasées par la perspective.
- * Tracé point par point dans le repère du chemin (bords, remplissage, texte orienté ligne par ligne) : il suit la caméra ; le calque HTML
- * correspondant est estompé en expo.
- * spec : { x, w, r1, hp, h0, phi0, phi1, items:[{nom, num}], alpha }  -  r1 : rangée de l'arête arrière du bloc, h0 : hauteur du dessus du bloc,
- * hp : longueur de la surface développée (unités de page), phi0 et phi1 : angles d'élévation au raccord et au sommet (rad). */
-const COURBE_K = 2.2, COURBE_LEAN = 1.05;
-export function dessinePanneauCourbe(ctx, view, { x, w, r1, hp, h0 = 0, phi0 = 0.05, phi1 = 1.45, items = [], alpha = 1, taille = 11 }) {
-  if (alpha <= 0.004 || !(hp > 0)) return;
-  const N = 48, rows = new Float32Array(N + 1), hs = new Float32Array(N + 1), ds = hp / N, e = view.e;
-  const g = (t) => (Math.exp(COURBE_K * t) - 1) / (Math.exp(COURBE_K) - 1);
-  hs[0] = h0; for (let k = 0; k < N; k++) { const phi = phi0 + (phi1 - phi0) * e * g((k + 0.5) / N); rows[k + 1] = rows[k] - ds * Math.cos(phi); hs[k + 1] = hs[k] + ds * Math.sin(phi); }
-  const at = (u, s) => { const f = Math.max(0, Math.min(N, s / ds)), k = Math.min(N - 1, Math.floor(f)), q = f - k; return p(view, x + u, r1 + rows[k] + (rows[k + 1] - rows[k]) * q, hs[k] + (hs[k + 1] - hs[k]) * q); };
-  const bord = [];
-  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return; bord.push(q); }
-  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return; droite.push(q); }
-  { let haut = Infinity, bas = -Infinity; for (const q of bord) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } for (const q of droite) { if (q.y < haut) haut = q.y; if (q.y > bas) bas = q.y; } if (bas < 0 || haut > view.H) return; }   /* hors champ : rien à tracer */
-  ctx.save(); ctx.globalAlpha = alpha; ctx.lineJoin = 'round';
-  ctx.beginPath(); [...bord, ...droite].forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath();
-  ctx.fillStyle = 'rgba(3,22,150,.86)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1; ctx.stroke();
-  const n = items.length, haut = hp - 12, pas = haut / Math.max(1, n);
-  ctx.font = `500 ${taille}px "JetBrains Mono",ui-monospace,monospace`; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#fff';
-  const place = (u, s, texte, droit) => {
-    const P = at(u, s), X = at(u + 20, s), Y = at(u, s + 20); if (!P || !X || !Y) return;
-    ctx.save(); ctx.transform((X.x - P.x) / 20, (X.y - P.y) / 20, -(Y.x - P.x) / 20, -(Y.y - P.y) / 20, P.x, P.y); ctx.textAlign = droit ? 'right' : 'left'; ctx.fillText(texte, 0, 0); ctx.restore();
+/* La liste et ses flancs se plient dans les dimensions du cadre. */
+export function dessinePanneauCourbe(ctx, view, { box, panneau, alpha = 1, souris }) {
+  const { x0:x, x1, r0, r1, base, top }=box;
+  const w=x1-x, hp=r1-r0;
+  if (alpha <= 0.004 || !(hp > 0)) return [];
+  const N = 48, ds = hp/N, angle = 85*RAD*view.rise;
+  const rayon = hp/Math.max(.0001,angle);
+  const at = (u,s) => {
+    const theta = s/rayon;
+    const height = 2*rayon*Math.sin(theta/2)**2;
+    return p(view,x+u,r1-rayon*Math.sin(theta),top+height/Math.max(.0001,view.rise));
   };
-  items.forEach((it, j) => { const s = hp - 8 - (j + 0.75) * pas; if (s < 2) return; place(10, s, it.nom, false); place(w - 10, s, it.num, true); });
+  const bord = [];
+  for (let k = 0; k <= N; k++) { const q = at(0, k * ds); if (!q) return []; bord.push(q); }
+  const droite = []; for (let k = N; k >= 0; k--) { const q = at(w, k * ds); if (!q) return []; droite.push(q); }
+  const dessus=[...bord,...droite];
+  if(dessus.every(q=>q.y<0)||dessus.every(q=>q.y>view.H))return [];
+  const forme=points=>{
+    if(!points.every(Boolean))return false;
+    ctx.beginPath();
+    points.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));
+    ctx.closePath();
+    return true;
+  };
+  ctx.save();ctx.globalAlpha=alpha;ctx.lineJoin='round';
+  const bas=[p(view,x,r1,base),p(view,x1,r1,base)];
+  ctx.fillStyle='rgba(2,12,85,.30)';
+  if(forme([...droite,bas[1],p(view,x1,r0,base)]))ctx.fill();
+  ctx.fillStyle='#051daa';ctx.strokeStyle='rgba(255,255,255,.52)';ctx.lineWidth=.85;
+  if(forme([bord[0],droite[N],bas[1],bas[0]])){ctx.fill();ctx.stroke();}
+  forme(dessus);
+  ctx.fill();ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1;ctx.stroke();
+  const sx=w/panneau.width, sy=hp/panneau.height;
+  const project=(cx,cy)=>at(cx*sx,hp-cy*sy);
+  const curve=panneau.curve;
+  if(curve){
+    ctx.beginPath();
+    for(let i=0;i<=40;i++){
+      const t=i/40, u=1-t;
+      const cx=u**3+3*u*u*t+3*u*t*t*.6103;
+      const cy=.0455*u**3+.503*3*u*u*t+.9545*(3*u*t*t+t**3);
+      const q=project(curve.x+cx*curve.w,curve.y+cy*curve.h);
+      if(q)i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y);
+    }
+    ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=.5;ctx.stroke();
+  }
+  ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';
+  ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#fff';
+  const place=(box,text,opacity)=>{
+    if(!box)return;
+    const mx=box.x,my=box.y+box.h/2,d=4;
+    const P=project(mx,my),X=project(mx+d,my),Y=project(mx,my+d);
+    if(!P||!X||!Y)return;
+    ctx.save();
+    ctx.globalAlpha=alpha*opacity;
+    ctx.transform((X.x-P.x)/d,(X.y-P.y)/d,(Y.x-P.x)/d,(Y.y-P.y)/d,P.x,P.y);
+    ctx.fillText(text,0,0);
+    ctx.restore();
+  };
+  const zones=[];
+  for(const item of panneau.items){
+    const b=item.row;
+    const points=b&&[project(b.x,b.y),project(b.x+b.w,b.y),project(b.x+b.w,b.y+b.h),project(b.x,b.y+b.h)];
+    const projected=points?.every(Boolean);
+    if(projected)zones.push({link:item.link,points});
+    const focused=item.link.matches(':focus-visible')||(projected&&souris&&dansQuad(points,souris.x,souris.y));
+    place(item.labelBox,item.label,1);
+    place(item.numberBox,item.number,focused?1:.6);
+    if(focused&&item.point){
+      const dot=project(item.point.x+item.point.w/2,item.point.y+item.point.h/2);
+      if(dot){ctx.globalAlpha=alpha;ctx.fillRect(dot.x-1,dot.y-1,2,2);}
+    }
+  }
   ctx.restore();
+  return zones;
 }
