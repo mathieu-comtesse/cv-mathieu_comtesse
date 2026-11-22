@@ -1,11 +1,28 @@
+import {surfaceGraph,fluidePointeur} from './fall26-graph-adapter.js?v=1';
+import {tonePapier} from './section-colours.js?v=2';
 // La poussière est attachée au papier. Les éclats du pointeur vivent dans le plan de l’écran.
 const grains=Array.from({length:110},()=>({
   x:Math.random(),y:Math.random(),phase:Math.random()*6.28,size:Math.random()>.92?3:1.4
 }));
 const sparks=[];
+let fluide,graph,lastFrame=0;
+function flatPointer(){
+  if(!graph){graph=surfaceGraph("position:fixed;inset:0;pointer-events:none;z-index:4;width:100%;height:100%");graph.canvas.dataset.cvPointerShader="";document.body.append(graph.canvas);fluide=fluidePointeur();}
+  return graph;
+}
 let last=null,overlay,raf=0;
 function paintSparks(time){
   raf=0;
+  const expo=document.documentElement.classList.contains('cv-parity-active');
+  if(graph)graph.canvas.style.display=expo?'none':'';
+  if(graph?.active&&!expo){
+    const t=time/1000,settings=fluide.settings,e=fluide.alive(t,settings);
+    const root=document.documentElement,tone=tonePapier(root.dataset.cvInk);
+    const intensity=root.hasAttribute('data-cv-flat-colour')?1:.4;
+    graph.render(innerWidth,innerHeight,Math.min(2,devicePixelRatio||1),[],fluide.frame(tone,settings,intensity,0,t));
+    if(e){raf=requestAnimationFrame(paintSparks);lastFrame=t;return;}
+    if(t-lastFrame<.1){raf=requestAnimationFrame(paintSparks);return;}
+  }
   if(!overlay){
     overlay=document.createElement('canvas');
     overlay.setAttribute('aria-hidden','true');
@@ -24,8 +41,13 @@ addEventListener('pointermove',e=>{
   if(e.pointerType==='touch'||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const now=performance.now()/1000;
   if(last&&now-last.t<.035)return;
-  const distance=last?Math.hypot(e.clientX-last.x,e.clientY-last.y):0;
+  const previous=last, distance=previous?Math.hypot(e.clientX-previous.x,e.clientY-previous.y):0;
   last={x:e.clientX,y:e.clientY,t:now};
+  if(!document.documentElement.classList.contains("cv-parity-active")&&flatPointer().active&&previous){
+    fluide.stir(previous,last,Math.max(.008,now-previous.t),now,fluide.settings);
+    if(!raf)raf=requestAnimationFrame(paintSparks);
+    return;
+  }
   if(distance<3)return;
   for(let i=0;i<Math.min(4,Math.ceil(distance/12));i++){
     sparks.push({x:e.clientX+(Math.random()-.5)*12,y:e.clientY+(Math.random()-.5)*12,t:now,

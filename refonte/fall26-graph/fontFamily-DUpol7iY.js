@@ -1,0 +1,1 @@
+const o={sans:["PP Neue Montreal","Noto Sans JP","PP Neue Montreal Fallback","system-ui","sans-serif"],mono:["Sohne Mono","Noto Sans JP","ui-monospace","SFMono-Regular","Menlo","monospace"]};export{o as f};
