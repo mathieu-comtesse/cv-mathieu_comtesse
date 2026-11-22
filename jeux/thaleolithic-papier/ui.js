@@ -43,6 +43,14 @@ export function createUI(campaign, world) {
   campaign.on(() => { if (mode) render(); hud(); });
 
   // ---- HUD: act, quest, where to go, the prompt when Dylan stands at the place --------------------------------------
+  // the prehistoric timer: a twisted fibre wick burning down (ash behind the ember, a curl of smoke), and a bone where
+  // what is left is cut in notches, grouped by five and struck through like a tally; no modern digits
+  function fuse(frac, notches, label) {
+    const f = Math.max(0, Math.min(1, frac)), n = Math.max(0, Math.round(notches));
+    let marks = ''; for (let i = 0; i < n; i++) { const grp = Math.floor(i / 5), j = i % 5, x = 4 + grp * 17 + j * 3.2; marks += j < 4 ? `<path d="M${x.toFixed(1)} 3v11"/>` : `<path d="M${(x - 13.6).toFixed(1)} 12.5L${(x + 0.6).toFixed(1)} 4.5"/>`; }
+    const w = Math.max(24, 8 + Math.ceil(n / 5) * 17);
+    return `<span class="fuse" role="timer" aria-label="${esc(label)}"><span class="cord"><i class="ash" style="width:${((1 - f) * 100).toFixed(1)}%"></i><b class="ember" style="left:${((1 - f) * 100).toFixed(1)}%"></b></span><span class="bone"><svg viewBox="0 0 ${w} 17" width="${w}" height="17" aria-hidden="true">${marks}</svg></span></span>`;
+  }
   function hud() {
     const q = campaign.frontier(), act = campaign.act(q);
     $('act').textContent = q ? clean(act ? act.title : '') : 'Le cycle continue';
@@ -53,6 +61,10 @@ export function createUI(campaign, world) {
     $('next').textContent = clean(title);
     const st = campaign.state.player, warn = campaign.warnings();
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
+    // the Council of the Sages comes in 45 minutes (the Unity game's own countdown, shown as it is there: it does not end the game)
+    const left = Math.max(0, (campaign.data.durationSeconds || 2700) - campaign.state.wallSeconds), mins = Math.ceil(left / 60);
+    const council = $('council'); if (council && council.dataset.m !== String(mins)) { council.dataset.m = String(mins); council.innerHTML = `<small>Conseil des Sages</small>${fuse(left / (campaign.data.durationSeconds || 2700), mins, `Le Conseil des Sages arrive dans ${mins} minutes`)}`; }
+    if (council) { const f = council.querySelector('.ash'), e = council.querySelector('.ember'), u = (1 - left / (campaign.data.durationSeconds || 2700)) * 100; if (f) f.style.width = u + '%'; if (e) e.style.left = u + '%'; }
     const done = campaign.data.quests.filter((x) => campaign.questDone(x)).length;
     $('progress').style.width = (done / campaign.data.quests.length * 100) + '%';
     root.style.setProperty('--top', Math.round($('hud').getBoundingClientRect().bottom + 40) + 'px');   // the sheet sits just under the HUD, whatever its height
@@ -104,7 +116,7 @@ export function createUI(campaign, world) {
       body.innerHTML = `<p class="kicker">Preuve vérifiée</p><h2>Carnet des Crânes</h2><p class="said">${esc(campaign.feedback)}</p>`;
       body.append(btn('Continuer', close, 'go')); return;
     }
-    const p = campaign.progress(a.id), timer = a.duration ? `<p class="timer">${Math.max(0, Math.ceil(a.duration - p.seconds))} s</p>` : '';
+    const p = campaign.progress(a.id), tl = a.duration ? Math.max(0, a.duration - p.seconds) : 0, timer = a.duration ? `<p class="timer">${fuse(tl / a.duration, Math.ceil(tl / 10), `Il reste ${Math.ceil(tl)} secondes`)}</p>` : '';   // one notch per ten seconds left
     body.innerHTML = header(a) + timer;
     if (campaign.guideOpen()) { body.append(speech('in:' + a.id, campaign.character(a.actor)?.name || 'Mathieu', a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
     if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${ico('cross', 's')}${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }

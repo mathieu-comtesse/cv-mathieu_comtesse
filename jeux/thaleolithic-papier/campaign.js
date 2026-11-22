@@ -460,7 +460,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   // ---- vue d'ensemble -----------------------------------------------------------------------------------------------
   function reset() { state = fresh(); current = null; feedback = ''; timedOut = false; save(); emit(); }
   return {
-    data: { characters, activities, quests, acts, chain: CHAIN },
+    data: { characters, activities, quests, acts, chain: CHAIN, durationSeconds: base.durationSeconds || 2700 },
     get state() { return state; }, get current() { return current; }, get feedback() { return feedback; }, get timedOut() { return timedOut; },
     canAssignTask, queueTask, cancelTask, tasksOf, villageStep, survive, warnings, brain: (id) => brain[id],
     quantity, craft, craftCheck, useItem, transfer, rest, memberStatus, clauseQuests, clauseVerified, clauseProgress, clauseStatus,

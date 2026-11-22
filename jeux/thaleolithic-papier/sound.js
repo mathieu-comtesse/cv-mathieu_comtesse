@@ -57,6 +57,7 @@ export const SFX = {
   // formants (the syllable's own vowel, scaled by the speaker's size), a growl (a fast tremor) for the rough voices, a
   // waver for the old, a breath of noise; the pitch falls (a statement) or rises (a question)
   grunt(ac, out, t, { f0 = 120, dur = 0.16, vowel = 'a', v = 0.2, rough = 0, trem = 0, breath = 0.15, bend = -0.12, size = 1, closed = false } = {}) {
+    const ok = (x, d) => (Number.isFinite(x) ? x : d); f0 = Math.max(40, ok(f0, 120)); dur = Math.max(0.05, ok(dur, 0.16)); size = ok(size, 1) || 1; rough = ok(rough, 0); trem = ok(trem, 0); bend = ok(bend, -0.1); v = ok(v, 0.15);
     const F = { a: [760, 1250], e: [520, 1800], i: [330, 2250], o: [500, 880], u: [350, 760], y: [330, 1900] }[vowel] || [600, 1300];
     const o = osc(ac, 'sawtooth', f0, t, dur + 0.1); o.frequency.exponentialRampToValueAtTime(Math.max(40, f0 * (1 + bend)), t + dur);
     if (trem) { const l = osc(ac, 'sine', 6.5, t, dur + 0.1), lg = ac.createGain(); lg.gain.value = f0 * trem; chain(l, lg); lg.connect(o.frequency); }
@@ -148,7 +149,7 @@ export function createSound() {
 export async function renderOffline(events, duration, levels = () => ({ gust: 0.4, rain: 0, fire: 0.3 }), { sampleRate = 44100 } = {}) {
   const ac = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate), M = master(ac, ac.destination), B = beds(ac, M.bus);
   for (let t = 0; t < duration; t += 0.1) B.set(t, levels(t), 0.1);
-  for (const [t, name, opts] of events) { const f = SFX[name] || MOTIF[name]; if (f) f(ac, M.bus, t, opts); }
+  for (const [t, name, opts] of events) { const f = SFX[name] || MOTIF[name]; if (f) try { f(ac, M.bus, t, opts); } catch { /* one bad sound is skipped, never the whole soundtrack */ } }
   let crack = 0; for (let t = 0; t < duration; t += 0.05) { const f = levels(t).fire; if (f > 0.05 && t > crack) { SFX.crackle(ac, M.bus, t, { v: 0.1 * f }); crack = t + 0.05 + Math.random() * 0.25 / f; } }
   const buf = await ac.startRendering(), n = buf.length, wav = new ArrayBuffer(44 + n * 4), v = new DataView(wav);
   const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };

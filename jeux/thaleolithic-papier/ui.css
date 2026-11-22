@@ -301,3 +301,19 @@
   .bigmap svg { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
   .bigmap .zoom { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; z-index: 2; } .bigmap .zoom .btn { width: 38px; height: 38px; padding: 0; font: 400 22px/1 var(--caps); }
   .bigmap .site text { font: 400 11px/1 var(--caps); fill: #2a1a1e; paint-order: stroke; stroke: #fbf1de; stroke-width: 3px; }
+
+  /* the prehistoric timer: a burning wick and a tally bone */
+  .fuse { display: inline-flex; align-items: center; gap: 8px; vertical-align: middle; }
+  .fuse .cord { position: relative; width: 120px; height: 8px; border-radius: 4px; background: repeating-linear-gradient(-58deg, #c8a870 0 4px, #8a6a3a 4px 6px, #d8bc84 6px 9px); box-shadow: 1px 1px 0 rgb(42 26 30 / .45); }
+  .fuse .ash { position: absolute; left: 0; top: 1px; bottom: 1px; border-radius: 4px 0 0 4px; background: repeating-linear-gradient(-58deg, #3a302e 0 3px, #5a504c 3px 5px); opacity: .85; transition: width .3s linear; }
+  .fuse .ember { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: radial-gradient(circle, #fff3c0 0 18%, #ffb040 40%, #e0501e 70%, rgb(224 80 30 / 0) 72%); filter: drop-shadow(0 0 4px #ff9a3a); animation: ember .45s steps(3) infinite; transition: left .3s linear; }
+  .fuse .ember::after { content: ''; position: absolute; left: 3px; top: -11px; width: 7px; height: 9px; border-radius: 50%; background: rgb(200 190 200 / .5); filter: blur(1.5px); animation: smoke 1.6s ease-out infinite; }
+  @keyframes ember { 0% { transform: scale(1); } 33% { transform: scale(1.18) rotate(20deg); } 66% { transform: scale(.92); } }
+  @keyframes smoke { 0% { transform: translate(0, 4px) scale(.6); opacity: .7; } 100% { transform: translate(5px, -10px) scale(1.4); opacity: 0; } }
+  .fuse .bone { display: inline-block; padding: 2px 8px 1px; background: var(--bone-t, none) #f4e6c6; border-radius: 9px 4px 10px 4px / 6px 9px 5px 10px; box-shadow: var(--cut), 1px 2px 0 rgb(var(--sh) / .3); }
+  .fuse .bone svg path { stroke: #4a2028; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+  #council { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; }
+  #council small { font: 400 12px/1 var(--caps); letter-spacing: .04em; color: #7a2430; white-space: nowrap; }
+  #council .fuse .cord { width: 90px; }
+  .timer { float: right; margin: 0 0 6px 10px; transform: rotate(2deg); }
+  @media (prefers-reduced-motion: reduce) { .fuse .ember, .fuse .ember::after { animation: none; } }
