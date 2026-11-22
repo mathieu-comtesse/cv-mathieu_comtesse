@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le carnet des morts</title>
+<meta name="description" content="THALEOLITHIC en papier : les statistiques anonymes des parties, les morts par accident et par victime, la progression dans la campagne ISO 45001.">
+<meta name="robots" content="noindex">
+<style>
+  @font-face { font-family: 'Henny Penny'; src: url(fonts/henny-penny-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Kavoon'; src: url(fonts/kavoon-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Shantell Sans'; font-weight: 300 800; src: url(fonts/shantell-sans-latin-full-normal.woff2) format('woff2'); font-display: swap; }
+  :root { --paper: #f4e6c6; --card: #fbf3df; --ink: #2a1a1e; --ink2: #5a4440; --muted: #8a7468; --bar: #b5602a; --bar-hi: #8e3e18; --track: #e8d6b0; --line: #c9b28a; --accent: #9a3328; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #2a1830; --card: #3a2440; --ink: #f4e6c6; --ink2: #d8c4b0; --muted: #a8949c; --bar: #e0a24a; --bar-hi: #f3c878; --track: #4a3450; --line: #5a4460; --accent: #f08a6a; } }
+  :root[data-theme="dark"] { --paper: #2a1830; --card: #3a2440; --ink: #f4e6c6; --ink2: #d8c4b0; --muted: #a8949c; --bar: #e0a24a; --bar-hi: #f3c878; --track: #4a3450; --line: #5a4460; --accent: #f08a6a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 'Shantell Sans', system-ui, sans-serif; }
+  main { max-width: 1060px; margin: 0 auto; padding: 28px 16px 60px; }
+  h1 { margin: 0; font: 400 clamp(30px, 6vw, 52px)/1.05 'Henny Penny', serif; color: var(--accent); transform: rotate(-1deg); }
+  .lede { margin: 8px 0 18px; color: var(--ink2); max-width: 70ch; }
+  .state { padding: 10px 14px; border: 1.5px dashed var(--line); border-radius: 10px 18px 12px 20px; background: var(--card); margin: 0 0 18px; }
+  .state button { font: inherit; margin-left: 8px; padding: 4px 12px; border-radius: 8px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .tile, .panel { background: var(--card); border-radius: 10px 22px 12px 24px / 18px 10px 20px 12px; box-shadow: 0 0 0 1.5px var(--line), 3px 4px 0 var(--line); }
+  .tile { padding: 12px 14px; }
+  .tile b { display: block; font: 400 34px/1 'Kavoon', serif; font-variant-numeric: tabular-nums; }
+  .tile span { color: var(--ink2); font-size: 13.5px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 16px; }
+  .panel { padding: 14px 16px 12px; }
+  .panel h2 { margin: 0 0 2px; font: 400 21px/1.2 'Kavoon', serif; }
+  .panel p.sub { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+  .bars { display: grid; gap: 6px; }
+  .row { display: grid; grid-template-columns: minmax(96px, 34%) 1fr 42px; align-items: center; gap: 8px; padding: 2px 0; border-radius: 6px; }
+  .row:hover, .row:focus-visible { background: color-mix(in srgb, var(--track) 55%, transparent); outline: none; }
+  .row .lab { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .trk { height: 14px; border-radius: 4px; background: var(--track); position: relative; }
+  .row .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--bar); min-width: 2px; }
+  .row:hover .fill { background: var(--bar-hi); }
+  .row .val { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink2); font-size: 14px; }
+  details { margin-top: 10px; font-size: 13.5px; } summary { cursor: pointer; color: var(--muted); }
+  .scroll { overflow-x: auto; } table { width: 100%; border-collapse: collapse; margin-top: 6px; } th, td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--line); } td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); font-style: italic; }
+  #tip { position: fixed; pointer-events: none; z-index: 5; padding: 6px 10px; border-radius: 8px; background: var(--ink); color: var(--paper); font-size: 13px; max-width: 280px; opacity: 0; transition: opacity .1s; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Le carnet des morts</h1>
+  <p class="lede">Les parties de THALEOLITHIC en papier, comptées sans rien savoir des joueurs : qui est mort, de quel accident, à quel chapitre ; jusqu’où va la campagne ISO 45001. Chaque mort renvoie à l’analyse que le jeu affiche : danger, causes, action corrective.</p>
+  <p class="state" id="state">Lecture de la base…</p>
+  <section class="tiles" id="tiles" aria-label="Chiffres clés"></section>
+  <section class="grid">
+    <article class="panel"><h2>Les accidents, par type</h2><p class="sub">Nombre de morts, tous lieux confondus</p><div class="bars" id="by-kind"></div></article>
+    <article class="panel"><h2>Les victimes</h2><p class="sub">Dylan meurt et reprend ; les habitants restent au cimetière</p><div class="bars" id="by-victim"></div></article>
+    <article class="panel"><h2>Jusqu’où va la campagne</h2><p class="sub">Parties qui terminent chaque chapitre, et temps de jeu moyen à ce moment</p><div class="bars" id="quests"></div></article>
+    <article class="panel"><h2>Les erreurs, par chapitre</h2><p class="sub">Réponses fausses aux épreuves des activités</p><div class="bars" id="mistakes"></div></article>
+    <article class="panel" style="grid-column: 1 / -1"><h2>Les 16 accidents du jeu</h2><p class="sub">Chaque accident, sa victime et combien de fois il est arrivé</p><div id="acc-table"></div></article>
+  </section>
+  <p class="lede" style="margin-top: 22px"><a href="./">Retour au village</a></p>
+</main>
+<div id="tip" role="status"></div>
+<script src="../talas-config.js?v=2"></script>
+<script type="module">
+  const SB = window.THALEO_SB || window.TALAS_SB, RES = '../../thaleolithic/Source/Resources/';
+  const $ = (id) => document.getElementById(id), tip = $('tip');
+  const KIND = { tree: 'Arbre abattu', rock: 'Bloc de carrière', mammoth: 'Mammouth', hut: 'Toiture effondrée', fire: 'Feu', stock: 'Pile des réserves', river: 'Berge', workshop: 'Poste de l’atelier' };
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const [legacy, v17] = await Promise.all(['UngaBungaQuests.json', 'CampaignV17.json'].map((f) => fetch(RES + f).then((r) => r.json()).catch(() => null)));
+  const ACC = legacy?.accidents || [], NAMES = Object.fromEntries((legacy?.characters || []).map((c) => [c.id, c.name]));
+  const nameOf = (id) => id === 'nork' ? 'Ouways' : NAMES[id] || String(id || '').split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const calm = (t) => { const s = String(t || '').toLowerCase().replace(/!!!/, '!'); return s.charAt(0).toUpperCase() + s.slice(1); };   // the game's titles are in capitals
+  const QT = Object.fromEntries([...(v17?.quests || []).map((q) => [q.id, calm(q.title)]), ['M_II_ROLES', 'Le duel des menhirs'], ['M_V_ABRI', 'L’abri']]);
+  const ORDER = ['V17_CONTEXT', 'M_II_ROLES', 'V17_RISKS', 'V17_SUPPORT', 'M_V_ABRI', 'V17_OPERATIONS', 'V17_EMERGENCY', 'V17_EVALUATION', 'V17_IMPROVEMENT'];
+  // one series per chart: bars in a single ochre, the value printed at the end, a tooltip with the exact count
+  function bars(el, rows, unit = '') {
+    el.innerHTML = ''; const max = Math.max(1, ...rows.map((r) => r.n));
+    if (!rows.length) { el.innerHTML = '<p class="empty">Rien encore.</p>'; return; }
+    for (const r of rows) {
+      const d = document.createElement('div'); d.className = 'row'; d.tabIndex = 0;
+      d.innerHTML = `<span class="lab" title="${esc(r.label)}">${esc(r.label)}</span><span class="trk"><span class="fill" style="width:${(r.n / max) * 100}%"></span></span><span class="val">${r.n}${unit}</span>`;
+      const show = (x, y) => { tip.textContent = r.tip || `${r.label} : ${r.n}${unit}`; tip.style.left = Math.min(innerWidth - 290, x + 14) + 'px'; tip.style.top = (y + 14) + 'px'; tip.style.opacity = 1; };
+      d.addEventListener('pointermove', (e) => show(e.clientX, e.clientY)); d.addEventListener('pointerleave', () => { tip.style.opacity = 0; });
+      d.addEventListener('focus', () => { const b = d.getBoundingClientRect(); show(b.left + b.width / 2, b.bottom); }); d.addEventListener('blur', () => { tip.style.opacity = 0; });
+      el.append(d);
+    }
+    const t = document.createElement('details'); t.innerHTML = `<summary>Voir en tableau</summary><table><tbody>${rows.map((r) => `<tr><td>${esc(r.label)}</td><td class="n">${r.n}${unit}</td></tr>`).join('')}</tbody></table>`; el.append(t);
+  }
+  function render(s, sample) {
+    const lost = s.deaths - s.dylan_deaths, pct = (a, b) => (b ? Math.round((a / b) * 100) + ' %' : '–');
+    $('tiles').innerHTML = [[s.sessions, 'parties commencées'], [s.deaths, 'morts en tout'], [s.dylan_deaths, 'morts de Dylan'], [lost, 'habitants au cimetière'], [s.retries, 'reprises avant la décision'], [pct(s.endings, s.sessions), 'campagnes terminées'], [pct(s.duel.won, s.duel.won + s.duel.lost), 'duels gagnés']]
+      .map(([n, l]) => `<div class="tile"><b>${n}</b><span>${l}</span></div>`).join('');
+    bars($('by-kind'), s.by_kind.map((k) => ({ label: KIND[k.kind] || k.kind, n: k.n })));
+    bars($('by-victim'), s.by_victim.map((v) => ({ label: nameOf(v.victim), n: v.n })));
+    const qs = [...s.quests].sort((a, b) => ORDER.indexOf(a.chapter) - ORDER.indexOf(b.chapter));
+    bars($('quests'), qs.map((q) => ({ label: QT[q.chapter] || q.chapter, n: q.sessions, tip: `${QT[q.chapter] || q.chapter} : ${q.sessions} parties, à ${q.minutes ?? '–'} min de jeu en moyenne` })));
+    bars($('mistakes'), s.mistakes_by_chapter.map((m) => ({ label: QT[m.chapter] || m.chapter || 'Hors chapitre', n: m.n })));
+    const count = Object.fromEntries(s.by_accident.map((a) => [a.accident + ':' + a.victim, a.n]));
+    $('acc-table').innerHTML = `<div class="scroll"><table><thead><tr><th>Accident</th><th>Type</th><th>Victime</th><th style="text-align:right">Morts</th></tr></thead><tbody>${ACC.map((a) => `<tr><td>${esc(calm(a.title))}</td><td>${esc(KIND[a.kind] || a.kind)}</td><td>${esc(nameOf(a.victimId))}</td><td class="n">${count[a.id + ':' + a.victimId] || 0}</td></tr>`).join('')}</tbody></table></div>`;
+    $('state').innerHTML = sample ? 'Exemple de rendu (données inventées, aucune vraie partie) : la base n’est pas joignable ou pas encore installée (<code>supabase/schema.sql</code>).' : `Données réelles, mises à jour le ${new Date(s.updated).toLocaleString('fr-FR')}.`;
+  }
+  const SAMPLE = { sessions: 48, sessions_touch: 17, endings: 21, deaths: 63, dylan_deaths: 41, retries: 39, mistakes: 212, duel: { won: 36, lost: 9 },
+    by_kind: [['tree', 12], ['mammoth', 11], ['fire', 10], ['river', 9], ['rock', 8], ['hut', 6], ['stock', 4], ['workshop', 3]].map(([kind, n]) => ({ kind, n })),
+    by_victim: [['dylan', 41], ['georges', 5], ['eliott', 4], ['orok', 3], ['tarek', 3], ['alban', 2], ['milena', 2], ['uma', 2], ['neila', 1]].map(([victim, n]) => ({ victim, n })),
+    quests: ORDER.map((c, i) => ({ chapter: c, sessions: Math.round(46 - i * 3.1), minutes: Math.round((4 + i * 6.5) * 10) / 10 })),
+    mistakes_by_chapter: [['V17_RISKS', 61], ['V17_SUPPORT', 44], ['V17_CONTEXT', 38], ['V17_OPERATIONS', 29], ['V17_EVALUATION', 22], ['V17_EMERGENCY', 18]].map(([chapter, n]) => ({ chapter, n })),
+    by_accident: [], updated: new Date().toISOString() };
+  SAMPLE.by_accident = ACC.map((a, i) => ({ accident: a.id, kind: a.kind, victim: a.victimId, n: a.victimId === 'dylan' ? [7, 5, 6, 4, 6, 3, 6, 4][i % 8] : (SAMPLE.by_victim.find((v) => v.victim === a.victimId)?.n || 0) }));
+  try {
+    if (!SB?.url) throw new Error('config');
+    const r = await fetch(SB.url.replace(/\/+$/, '') + '/rest/v1/rpc/thaleo_stats', { method: 'POST', headers: { apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) throw new Error(r.status); render(await r.json(), false);
+  } catch { render(SAMPLE, true); }
+</script>
+</body>
+</html>

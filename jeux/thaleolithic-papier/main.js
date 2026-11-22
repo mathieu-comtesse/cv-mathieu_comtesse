@@ -6,6 +6,7 @@ import { installTiles, paperize, cutLetters } from './paper-ui.js';
 import { createSound } from './sound.js';
 import { createCinema } from './cine.js';
 import { createTalk } from './talk.js';
+import { createStats } from './stats.js';
 
 // the windows are printed on the village's own paper: tiles for the small pieces, a printed card behind each sheet
 installTiles();
@@ -106,6 +107,8 @@ for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.add
 actBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); actBtn.classList.add('on'); dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', bubbles: true })); });
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) actBtn.addEventListener(ev, () => { actBtn.classList.remove('on'); dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyE', bubbles: true })); });
 H.onStep(() => { actBtn.classList.toggle('off', document.getElementById('prompt').hidden); });
-window.__thaleo = { campaign, world, ui, cinema, sfx, talk };
+// the game's statistics, sent to Supabase like the Village Talas (stats.js; read back on stats.html)
+const stats = createStats(campaign, { touch: matchMedia('(pointer: coarse)').matches, off: Q.has('capture') });
+window.__thaleo = { campaign, world, ui, cinema, sfx, talk, stats };
 if (campaign.state.accident?.played) ui.open('death');   // a death screen left open: it comes back
 H.start();
