@@ -768,7 +768,8 @@ export function buildVillage(campaign) {
     });
     if (ctl.burn?.on && quest('V17_EMERGENCY')()) ctl.burn.stop();
     const engraved = quest(MENHIR_QUEST)();
-    if (!engraved) engraving.hideAll();
+    // before the ceremony, the menhir carries the trials already won in the duel (each one cut as it is won)
+    if (!engraved) { const cl = campaign.state.menhir?.cleared || []; if (!engraving.job) PICTO.forEach((_, k) => { if (!cl[k] && engraving.shown[k]) { engraving.shown[k] = false; paintGroove(k, 0); } }); }
     else if (!booted) engraving.showAll(false);
     else if (!engraving.shown.some(Boolean)) later(0.6, () => { if (!engraving.cine) engraving.showAll(true); });
     const pend = campaign.state.accident && !campaign.state.accident.played ? campaign.state.accident.victim : null;   // a death to come in its cinematic
@@ -1075,6 +1076,7 @@ export function buildVillage(campaign) {
   const chipMats = ['#8a5a32', '#a8885a', '#c8b090', '#e0a24a', '#c84a2a', '#f4e6c6'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
   const burst = (x, y, z, n, mats, up = 6, spread = 4) => { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(bitGeo, chipMats[mats[i % mats.length]]); m.scale.set(0.12 + Math.random() * 0.12, 0.08 + Math.random() * 0.1, 1); m.position.set(x, y, z); H.scene.add(m); bits.push({ m, v: [(Math.random() - 0.5) * spread, up * (0.4 + Math.random() * 0.8), (Math.random() - 0.2) * 2], w: [Math.random() * 12, Math.random() * 12], life: 3 + Math.random() * 2, down: false }); } };
   H.onStep((t, dt) => { for (const f of Object.values(FX)) { if (f.t > f.dur) { if (f.m.scale.x > 0.001) f.m.scale.setScalar(0.001); continue; } f.t += dt; const u = Math.min(1, f.t / f.dur), k = u < 0.3 ? u / 0.3 * 1.15 : 1.15 - (u - 0.3) / 0.7 * 1.15; f.m.scale.setScalar(Math.max(0.001, k * f.s)); f.m.position.set(f.x, f.y, f.z); f.m.rotation.set(0, 0, f.a0 + u * (f === FX.swoosh ? -1.6 : 0.6)); } });
+  const _cw = new THREE.Vector3();
   function duelStep(dt, s, active) {
     const A = people.aurelien;
     shield.group.visible = !shield.held || shield.p > 0.02;
@@ -1115,7 +1117,12 @@ export function buildVillage(campaign) {
     if (won && !dz.won) { dz.won = true; burst(A.h.group.position.x, 3.2, dyz, 40, [3, 4, 5, 2], 9, 7); fx('gold', A.h.group.position.x, 2.6, dyz, 1.8); dz.shake = 0.3; }
     if (!won) dz.won = false;
     dz.shake = Math.max(0, dz.shake - dt * 1.4); const sk = dz.shake * dz.shake * 2.2;
-    H.look(ARENA.x + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 21);
+    // each trial won is cut into the Grand Menhir behind them at once: the lens turns to the stone, the burin bites, chips
+    // fly and the stone rumbles, then back to the fight
+    if (!engraving.job && (s.phase === 'combat' || s.phase === 'victory')) { const k = (s.cleared || []).findIndex((c, i) => c && !engraving.shown[i]);
+      if (k >= 0) { engraving.show(k, true, 1.9); dz.carve = 2.6; dz.carveK = k; H.sfx?.play('rumble', { dur: 1.4 }); H.sfx?.play('chant', { dur: 1.2 }); const c = engraving.cards[k]; c.getWorldPosition(_cw); fx('gold', _cw.x, _cw.y, _cw.z + 0.3, 1.3); burst(_cw.x, _cw.y, _cw.z + 0.2, 16, [0, 1, 2], 4, 3); } }
+    if (dz.carve > 0) { dz.carve -= dt; engraving.cards[dz.carveK].getWorldPosition(_cw); H.look(_cw.x, _cw.z, 17, _cw.y - 1.2); }
+    else H.look(ARENA.x + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 21);
     // the duel's sounds: skin drums while they fight, a bone crack on each blow, the chief's horn as he charges
     const sx = H.sfx; if (!sx) return;
     if ((s.lastHit ?? -9) !== dz.hitAt && s.lastHit != null) { dz.hitAt = s.lastHit; sx.play('hit'); }
