@@ -718,7 +718,7 @@ export function buildVillage(campaign) {
   function sendToAssembly() { let k = 0; for (const p of Object.values(people)) { if (p.h.held) continue; const a = (k++ / 19) * 6.283; p.hurry = true; p.target = [assembly.x + Math.cos(a) * 1.8, assembly.z + Math.sin(a) * 1.4]; } burn.start(); }
   function sendHome() { burn.stop(); for (const p of Object.values(people)) { if (p.crew || (burn.douse && burn.douse.crew.includes(p.id))) continue; p.hurry = false; p.target = p.home.slice(); } }
   // the tribe's daily life (campaign.villageStep decides, the cards walk): each villager to their goal, a slot round a site
-  const ids = Object.keys(people), slotOf = (id, site) => { const s = SITES[site], a = ids.indexOf(id) * 2.4; return [s.x + Math.cos(a) * 1.5, s.z + Math.sin(a) * 1.2]; };
+  const ids = Object.keys(people), slotOf = (id, site) => { const s = SITES[site], a = ids.indexOf(id) * 2.4, r = site === 'foyer' ? 3.4 : 1.5; return [s.x + Math.cos(a) * r, s.z + Math.sin(a) * r * 0.8]; };   // round the great hearth, not in its flames
   const goalPoint = (id, place) => { if (place === 'home') return people[id].home; if (SITES[place]) return slotOf(id, place); if (place?.startsWith('visit:')) { const host = people[place.slice(6)]; if (host) return [host.home[0] + 1.25, host.home[1] + 0.5]; } return null; };
   const arrivedAt = (id, place) => { const p = people[id], g = goalPoint(id, place); return !!g && Math.hypot(p.x - g[0], p.z - g[1]) < 0.4; };
   let chatClock = 0;
