@@ -79,7 +79,8 @@ export function buildVillage(campaign) {
   const PATHS = [[[0, 11], [0, 4], [0, -5]], [[0, -5], [0, -12], [0, -18]], [[0, -5], [-7, -3], [-15, -2], [-19, -11]], [[0, -5], [7, -4], [14, -6], [13, -17]],
     [[0, 11], [6, 11.2], [12, 10]], [[0, 2], [-8, 4]],   // to the gathering point through the gate, never through the stakes
     // trails beyond the stakes: through the north-west gap to the western clearings, north from the hunt and the quarry, south from the gate
-    [[-22, -29], [-30, -33], [-37, -25], [-39, -14]], [[-22, -29], [-14, -37]], [[22, -28], [28, -37]], [[0, 11], [-6, 18], [-20, 21], [-35, 9]], [[12, 10], [20, 13]], [[-39, -14], [-38, 2]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]]];
+    [[-22, -29], [-30, -33], [-37, -25], [-39, -14]], [[-22, -29], [-14, -37]], [[22, -28], [28, -37]], [[0, 11], [-6, 18], [-20, 21], [-35, 9]], [[12, 10], [20, 13]], [[-39, -14], [-38, 2]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]],
+    [[18, -22], [21, -25.5], [26, -20], [27.8, -12.5]]];   // to the bank by the north-east gap (no gate on the river side)
   H.printGround(({ g, ppu, X, Z, rnd: r, washes, torn, bandOf, drifts, water }) => {
     washes([C.grassA, C.grassA, C.grassB, '#b8a77a']);
     // inside the wall the grass is trodden paler; the square is beaten earth; a ditch runs outside the stakes
@@ -591,18 +592,35 @@ export function buildVillage(campaign) {
     const node = (x, z) => { for (let i = 0; i < nodes.length; i++) if (Math.hypot(nodes[i][0] - x, nodes[i][1] - z) < 0.9) return i; nodes.push([x, z]); adj.push([]); return nodes.length - 1; };
     const link = (a, b) => { if (a === b) return; const d = Math.hypot(nodes[a][0] - nodes[b][0], nodes[a][1] - nodes[b][1]); adj[a].push([b, d]); adj[b].push([a, d]); };
     for (const pl of PATHS) { let prev = null; for (let i = 0; i < pl.length - 1; i++) { const [x0, z0] = pl[i], [x1, z1] = pl[i + 1], n = Math.max(1, Math.round(Math.hypot(x1 - x0, z1 - z0) / 2)); for (let k = i ? 1 : 0; k <= n; k++) { const id = node(x0 + (x1 - x0) * k / n, z0 + (z1 - z0) * k / n); if (prev != null) link(prev, id); prev = id; } } }
+    // a ring of waypoints round every big obstacle that stands on a path (the great hearth, the shaman's tipi...): the
+    // way goes round it, never through the fire; which links are really walkable is checked at each route (route())
+    const onNet = nodes.length;
+    for (const q of walk.solids) { if (q.seg || q.r < 0.9 || !nodes.slice(0, onNet).some(([x, z]) => Math.hypot(x - q.x, z - q.z) < q.r + 1.5)) continue;
+      const R = q.r + 1.3, ring = Array.from({ length: 10 }, (_, k) => { nodes.push([q.x + Math.cos(k / 10 * 6.283) * R, q.z + Math.sin(k / 10 * 6.283) * R]); adj.push([]); return nodes.length - 1; });
+      ring.forEach((id, k) => { link(id, ring[(k + 1) % 10]); for (let j = 0; j < onNet; j++) if (Math.hypot(nodes[j][0] - nodes[id][0], nodes[j][1] - nodes[id][1]) < R + 2.4) link(id, j); }); }
     return { nodes, adj };
   })();
   const nearestNodes = (x, z, k = 2) => NET.nodes.map((n, i) => [i, Math.hypot(n[0] - x, n[1] - z)]).sort((a, b) => a[1] - b[1]).slice(0, k);
+  // a stretch is walkable when nothing stops a walker anywhere along it (the hearth's fire, a house, a fence, a hidden
+  // stage's solid is gone, so it never counts): the GPS ribbon and the villagers only ever take walkable stretches.
+  // The links of the network are checked once per state of the solids (a staged hut that rises changes it).
+  const clear = (a, b) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 0.45)); for (let k = 1; k < n; k++) if (walk.why(a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n)) return false; return true; };
+  let linkSig = null, linkOk = null;
+  const links = () => { const sig = walk.solids.reduce((t, q, i) => t + (q.r || 0) * (i + 1), 0); if (sig !== linkSig) { linkSig = sig; linkOk = NET.adj.map((ls, i) => ls.filter(([j]) => !walk.why(...NET.nodes[j]) && !walk.why(...NET.nodes[i]) && clear(NET.nodes[i], NET.nodes[j]))); } return linkOk; };
+  const freeNear = (p) => { if (!walk.why(p[0], p[1])) return p; for (let r = 0.6; r < 6; r += 0.6) for (let k = 0; k < 12; k++) { const q = [p[0] + Math.cos(k / 12 * 6.283) * r, p[1] + Math.sin(k / 12 * 6.283) * r]; if (!walk.why(q[0], q[1])) return q; } return p; };   // a goal inside the hearth or a house: its nearest free spot
   function route(from, to) {
+    to = freeNear(to); from = freeNear(from);
     const N = NET.nodes.length, S = N, T = N + 1, dist = new Float64Array(N + 2).fill(Infinity), prev = new Int32Array(N + 2).fill(-1), done = new Uint8Array(N + 2);
-    const direct = Math.hypot(to[0] - from[0], to[1] - from[1]);
-    const extra = (i) => (i === S ? nearestNodes(from[0], from[1]).map(([j, d]) => [j, d]) : i < N ? [...NET.adj[i], ...nearestNodes(to[0], to[1]).filter(([j]) => j === i).map(([, d]) => [T, d])] : []);
+    const direct = Math.hypot(to[0] - from[0], to[1] - from[1]), ok = links(), straight = clear(from, to);
+    const ends = (p) => nearestNodes(p[0], p[1], 6).filter(([j]) => clear(p, NET.nodes[j])).slice(0, 2);   // joined to the network by a clear stretch
+    const into = new Map(ends(to).map(([j, d]) => [j, d]));
+    const extra = (i) => (i === S ? ends(from) : i < N ? [...ok[i], ...(into.has(i) ? [[T, into.get(i)]] : [])] : []);
     dist[S] = 0;
     for (;;) { let u = -1, best = Infinity; for (let i = 0; i < N + 2; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; } if (u < 0 || u === T) break; done[u] = 1; for (const [v, w] of extra(u)) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; } }
-    if (!isFinite(dist[T]) || direct < 4 || dist[T] > direct * 2.6) return [from.slice(), to.slice()];   // close by, or the network goes the long way round: straight
+    if (straight && (!isFinite(dist[T]) || direct < 4 || dist[T] > direct * 2.6)) return [from.slice(), to.slice()];   // close by and clear, or the network goes the long way round: straight
+    if (!isFinite(dist[T])) return [from.slice(), to.slice()];   // nothing better known
     const pts = []; for (let v = T; v >= 0; v = prev[v]) pts.unshift(v === S ? from.slice() : v === T ? to.slice() : NET.nodes[v].slice());
-    return pts.filter((q, i) => { if (i === 0 || i === pts.length - 1) return true; const a = pts[i - 1], c = pts[i + 1], ux = q[0] - a[0], uz = q[1] - a[1], vx = c[0] - q[0], vz = c[1] - q[1]; return Math.abs(ux * vz - uz * vx) > 0.25 * Math.hypot(ux, uz) * Math.hypot(vx, vz) * 0.2 + 0.05; });
+    return pts.filter((q, i) => { if (i === 0 || i === pts.length - 1) return true; const a = pts[i - 1], c = pts[i + 1], ux = q[0] - a[0], uz = q[1] - a[1], vx = c[0] - q[0], vz = c[1] - q[1]; return Math.abs(ux * vz - uz * vx) > 0.25 * Math.hypot(ux, uz) * Math.hypot(vx, vz) * 0.2 + 0.05 || !clear(a, c); });   // a point is dropped only if the shortcut is clear
   }
 
   // ---- the villagers -------------------------------------------------------------------------------------------------
@@ -649,7 +667,7 @@ export function buildVillage(campaign) {
   // the tribe's working grounds outside the stakes (the quarry, the hunting clearing, the bank, the gathering point, the
   // cemetery) and the trails from the gates to them are guarded: no beast goes there, nobody is attacked there. The wild
   // is dangerous off those trails, not on the way to a mission.
-  const SAFE_TRAILS = [[[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, 11], [6, 11.2], [12, 10], [20, 13]], [[14, -6], [24, -9], [27.8, -12.5]]].map((pl) => P2.pathLine(pl, { step: 0.5 }));
+  const SAFE_TRAILS = [[[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, 11], [6, 11.2], [12, 10], [20, 13]], [[18, -22], [21, -25.5], [26, -20], [27.8, -12.5]]].map((pl) => P2.pathLine(pl, { step: 0.5 }));
   const GROUNDS = Object.values(SITES).filter((st) => ovalE(st.x, st.z) > 1);
   const guarded = (x, z) => GROUNDS.some((st) => Math.hypot(x - st.x, z - st.z) < 8) || SAFE_TRAILS.some((t) => t.dist(x, z) < 3);
   const wild = createWild({ H, world: null, campaign, cinema: { get playing() { return document.body.classList.contains('cine-on'); } }, popup, beast, ovalE, guarded, riverDist: (x, z) => RIVER.dist(x, z),
@@ -998,6 +1016,11 @@ export function buildVillage(campaign) {
         ax -= az * side * push; az += (dx / d) * side * push;
         if (od < 0.95 && ahead > 0.75 && (q.hero || (q.target && (p.seed < q.seed)))) wait = true;
       }
+      // and nobody walks into the fire or through a wall: a solid ahead (the hearth, a house, a tipi) is walked round
+      for (const q of walk.solids) { if (q.seg || !(q.r > 0.5)) continue; const ox = q.x - p.x, oz = q.z - p.z, od = Math.hypot(ox, oz), reach = q.r + 0.9; if (od > reach + 0.6 || od < 1e-3) continue;
+        const ahead = (ox * ax + oz * az) / od; if (ahead < 0) continue; const side = Math.sign(ox * az - oz * ax) || 1, push = Math.min(1.6, (reach + 0.6 - od) / 0.6) * (0.4 + ahead);
+        const ax0 = ax; ax -= az * side * push; az += ax0 * side * push;   // a step to the side, as round a person
+        if (od < reach) { const k = (reach - od) / reach * 2; ax -= ox / od * k; az -= oz / od * k; } }   // and never inside it
       if (wait && (p.waitT = (p.waitT || 0) + dt) < 0.9) continue; if (!wait) p.waitT = 0;
       const al = Math.hypot(ax, az) || 1; ax /= al; az /= al;
       const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI;
