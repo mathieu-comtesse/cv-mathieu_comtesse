@@ -26,10 +26,11 @@ export function createUI(campaign, world) {
   const TOOL = { people: 'btn-people', map: 'btn-map', inventory: 'btn-inventory', tech: 'btn-tech', quest: 'btn-quests', journal: 'btn-journal' };
   const flap = (up) => world.H.sound?.flap({ size: 0.3, up, key: 'sheet' });
   const mark = () => { for (const [m, id] of Object.entries(TOOL)) $(id).classList.toggle('sel', m === mode); };
+  let opened = Math.floor(Math.random() * 997);
   const open = (m) => {
     const fresh = root.hidden || root.classList.contains('out');
     mode = m; root.classList.remove('out'); root.hidden = false;
-    if (fresh) { root.classList.remove('in'); void root.offsetWidth; root.classList.add('in'); flap(true); body.scrollTop = 0; }
+    if (fresh) { root.classList.remove('in'); void root.offsetWidth; root.classList.add('in'); flap(true); body.scrollTop = 0; root.reseed?.(5 + (opened = (opened + 1) % 997) * 131); }   // never the same bones and feathers twice
     render(); mark();
   };
   const close = () => {

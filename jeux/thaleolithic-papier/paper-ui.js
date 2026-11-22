@@ -67,30 +67,52 @@ function stitches(g, pts, inset, r) {
   g.restore();
 }
 
-// ---- ornaments, printed once and reused --------------------------------------------------------------------------------
+// ---- ornaments: a whole family of bones, feathers, teeth, shells, flints and beads, each drawn from its own seed, so
+// no two windows ever wear the same: different pieces, shapes, colours, places and tilts. Printed once per variant.
 const ORN = {};
-function ornament(name) {
-  if (ORN[name]) return ORN[name];
-  const k = K() * 2, r = rng(name.length * 977);
+const FEATHER_COLS = [['#c8402e', '#e0a24a'], ['#2a1a1e', '#f4ecdc'], ['#6f7fb0', '#d8e0f0'], ['#e0a24a', '#7a3a1a'], ['#5a7a3a', '#e0c070'], ['#8a5a8a', '#f3c878'], ['#f4ecdc', '#3a2a3a']];
+const BEAD_COLS = [COL.blood, COL.ochre, '#6f7fb0', '#2a1a1e', COL.bone, '#5a7a3a', '#c86a8a', '#d8d0e0'];
+const KINDS = {
+  femur: (g, r) => { const L = 18 + r() * 8; g.fillRect(-L, 6, 2 * L, 7 + r() * 3); for (const [x, y] of [[-L - 2, 6.5], [-L - 2, 13.5], [L + 2, 6.5], [L + 2, 13.5]]) { g.beginPath(); g.arc(x, y, 4.5 + r() * 1.5, 0, 7); g.fill(); } },
+  rib: (g, r) => { g.lineCap = 'round'; g.lineWidth = 5 + r() * 2; g.beginPath(); g.arc(0, -12, 30 + r() * 8, 0.35 + r() * 0.2, 2.6 - r() * 0.3); g.stroke(); },
+  jaw: (g, r) => { g.beginPath(); g.moveTo(-26, 4); g.quadraticCurveTo(0, -6, 24, 4); g.lineTo(26, 16); g.quadraticCurveTo(0, 8, -24, 14); g.closePath(); g.fill(); for (let k = 0; k < 7; k++) { const x = -18 + k * 6; g.beginPath(); g.moveTo(x - 2, 12 - (k % 3)); g.lineTo(x, 20 + r() * 3); g.lineTo(x + 2, 12 - (k % 3)); g.fill(); } },
+  vertebra: (g, r) => { g.beginPath(); g.ellipse(0, 12, 9, 7, 0, 0, 7); g.fill(); for (const a of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) { g.save(); g.translate(Math.cos(a) * 10, 12 + Math.sin(a) * 8); g.rotate(a); g.fillRect(0, -2.5, 8 + r() * 5, 5); g.restore(); } },
+  antler: (g, r) => { g.lineCap = 'round'; g.lineWidth = 4.5; g.beginPath(); g.moveTo(-22, 22); g.quadraticCurveTo(0, 18, 24, 0); const n = 3 + Math.floor(r() * 2); for (let k = 0; k < n; k++) { const t = 0.25 + k * 0.22, x = -22 + 46 * t, y = 22 - 22 * t; g.moveTo(x, y); g.lineTo(x + 4, y - 9 - r() * 6); } g.stroke(); },
+  claw: (g, r) => { g.beginPath(); g.moveTo(-6, 0); g.quadraticCurveTo(-8, 22, 10 + r() * 4, 30); g.quadraticCurveTo(2, 18, 6, 0); g.closePath(); g.fill(); },
+  teeth: (g, r) => { g.lineWidth = 1.6; g.beginPath(); g.moveTo(-28, 2); g.quadraticCurveTo(0, 14, 28, 2); g.stroke(); for (let k = 0; k < 7; k++) { const t = k / 6, x = -24 + 48 * t, y = 4 + 9 * Math.sin(t * Math.PI); g.beginPath(); g.moveTo(x - 2.4, y); g.quadraticCurveTo(x, y + 10 + r() * 5, x + 2.4, y); g.fill(); } },
+  birdskull: (g) => { g.beginPath(); g.ellipse(-4, 12, 10, 9, 0, 0, 7); g.fill(); g.beginPath(); g.moveTo(4, 9); g.lineTo(26, 13); g.lineTo(4, 17); g.fill(); },
+  fishbone: (g, r) => { g.lineCap = 'round'; g.lineWidth = 2.2; g.beginPath(); g.moveTo(-26, 12); g.lineTo(22, 12); for (let k = 0; k < 7; k++) { const x = -18 + k * 6; g.moveTo(x, 12); g.lineTo(x - 4, 4 - r() * 2); g.moveTo(x, 12); g.lineTo(x - 4, 20 + r() * 2); } g.stroke(); g.beginPath(); g.moveTo(22, 12); g.lineTo(30, 5); g.lineTo(30, 19); g.closePath(); g.fill(); g.beginPath(); g.moveTo(-26, 12); g.lineTo(-34, 6); g.lineTo(-32, 12); g.lineTo(-34, 18); g.closePath(); g.fill(); },
+  shell: (g, r) => { const n = 7 + Math.floor(r() * 4); g.beginPath(); g.moveTo(0, 0); for (let k = 0; k <= n; k++) { const a = Math.PI * (0.1 + 0.8 * k / n); g.lineTo(Math.cos(a) * 16, Math.sin(a) * 18); } g.closePath(); g.fill(); g.fillRect(-5, -4, 10, 5); },
+  flint: (g, r) => { const pts = [[0, 0], [6 + r() * 3, 12], [5, 28 + r() * 6], [-2, 38 + r() * 6], [-8 - r() * 3, 24], [-6, 10]]; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); },
+  tusk: (g, r) => { g.lineCap = 'round'; const turn = 2.6 + r() * 1.6; for (let i = 0; i < 26; i++) { const t = i / 25, a = -0.4 + t * turn, R = 20 - t * 11; g.lineWidth = 9 - t * 6.5; g.beginPath(); g.arc(0, 25, R, a, a + 0.2); g.stroke(); } },
+};
+const BONE_KINDS = ['femur', 'rib', 'jaw', 'vertebra', 'antler', 'claw', 'teeth', 'birdskull', 'fishbone'];
+function ornament(name, v = 0) {
+  const key = name + ':' + v; if (ORN[key]) return ORN[key];
+  const k = K() * 2, r = rng(name.length * 977 + v * 7919 + 13);
   const trace = (draw, w, h) => shape.fromDrawing((g) => { g.fillStyle = g.strokeStyle = '#fff'; draw(g); }, { w, h, res: 6 });
   let card;
-  if (name === 'bone') {             // a knobbly cut-paper bone, 60 px long
-    const pts = trace((g) => { g.fillRect(-22, 6, 44, 8); for (const [x, y] of [[-24, 6.5], [-24, 13.5], [24, 6.5], [24, 13.5]]) { g.beginPath(); g.arc(x, y, 5.2, 0, 7); g.fill(); } }, 64, 20);
-    card = print(cut(pts, r, 0.6), COL.bone, 31, (P) => { P.g.fillStyle = 'rgba(160,120,70,.35)'; P.g.fillRect(-18, 9, 36, 2); }, k);
-  } else if (name === 'flint') {     // a shard of flint with two facets, stuck in like a pin
-    const pts = [[0, 0], [7, 14], [5, 30], [-2, 40], [-8, 26], [-6, 12]];
-    card = print(cut(pts, r, 0.5), '#8f8aa0', 37, (P) => { const g = P.g; g.fillStyle = 'rgba(255,255,255,.28)'; g.beginPath(); g.moveTo(-2, 40); g.lineTo(-1, 20); g.lineTo(-6, 12); g.lineTo(-8, 26); g.fill(); g.fillStyle = 'rgba(40,20,50,.25)'; g.beginPath(); g.moveTo(0, 0); g.lineTo(7, 14); g.lineTo(-1, 20); g.fill(); }, k);
-  } else if (name === 'tusk') {      // a curling mammoth tusk
-    const pts = trace((g) => { g.lineCap = 'round'; for (let i = 0; i < 26; i++) { const t = i / 25, a = -0.4 + t * 3.6, R = 20 - t * 12; g.lineWidth = 9 - t * 6.5; g.beginPath(); g.arc(0, 25, R, a, a + 0.2); g.stroke(); } }, 54, 52);
-    card = print(cut(pts, r, 0.5), '#efe2c0', 41, (P) => { const g = P.g; g.strokeStyle = 'rgba(150,110,60,.4)'; g.lineWidth = 0.8; for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(0, 25, 20 - i * 1.7, 0.2 + i * 0.4, 0.5 + i * 0.4); g.stroke(); } }, k);
-  } else if (name === 'bead-r' || name === 'bead-o' || name === 'bead-s') {
-    const pts = blob(11, 13, r, { amp: 0.8, lobes: 3 });
-    card = print(pts, { 'bead-r': COL.blood, 'bead-o': COL.ochre, 'bead-s': '#6f7fb0' }[name], 43, (P) => { const g = P.g; g.fillStyle = 'rgba(255,240,210,.5)'; g.beginPath(); g.ellipse(-2, 9, 2, 1.4, 0, 0, 7); g.fill(); }, k);
-  } else if (name === 'feather') {   // a crimson feather with ochre barbs
-    const pts = trace((g) => { g.beginPath(); g.ellipse(0, 22, 7, 22, 0, 0, 7); g.fill(); g.fillRect(-1, 0, 2, 4); }, 16, 46);
-    card = print(cut(pts, r, 1.4), '#c8402e', 47, (P) => { const g = P.g; g.strokeStyle = '#e0a24a'; g.lineWidth = 1; for (let i = 0; i < 9; i++) { g.beginPath(); g.moveTo(0, 6 + i * 4); g.lineTo(i % 2 ? 6 : -6, 10 + i * 4); g.stroke(); } g.strokeStyle = '#4a2c24'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, 1); g.lineTo(0, 42); g.stroke(); }, k);
+  if (name === 'feather') {   // long, broad, split or banded; in one of seven colourings
+    const [c0, c1] = FEATHER_COLS[v % FEATHER_COLS.length], len = 18 + r() * 9, wid = 4 + r() * 5, form = v % 4;
+    const pts = trace((g) => { g.beginPath(); g.ellipse(0, len, wid, len, 0, 0, 7); g.fill(); g.fillRect(-1, 0, 2, 4); if (form === 2) { g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.moveTo(wid, len * 1.3); g.lineTo(0, len * 1.1); g.lineTo(wid, len * 1.0); g.fill(); g.globalCompositeOperation = 'source-over'; } }, wid * 2 + 4, len * 2 + 6);
+    card = print(cut(pts, r, 1.4), c0, 47 + v, (P) => { const g = P.g; g.strokeStyle = c1; g.lineWidth = 1; const n = Math.round(len / 2.4); for (let i = 0; i < n; i++) { g.beginPath(); g.moveTo(0, 6 + i * (2 * len - 10) / n); g.lineTo(i % 2 ? wid - 1 : -wid + 1, 10 + i * (2 * len - 10) / n); g.stroke(); } if (form === 3) { g.fillStyle = c1; for (let i = 0; i < 3; i++) g.fillRect(-wid, len * (0.6 + i * 0.4), wid * 2, 2.5); } g.strokeStyle = '#4a2c24'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, 1); g.lineTo(0, len * 2 - 2); g.stroke(); }, k);
+  } else if (name.startsWith('bead')) {
+    const pts = blob(9 + r() * 5, 11 + r() * 4, r, { amp: 0.8, lobes: 3 });
+    card = print(pts, BEAD_COLS[v % BEAD_COLS.length], 43 + v, (P) => { const g = P.g; g.fillStyle = 'rgba(255,240,210,.5)'; g.beginPath(); g.ellipse(-2, 9, 2, 1.4, 0, 0, 7); g.fill(); }, k);
+  } else {
+    const col = name === 'flint' ? ['#8f8aa0', '#7a7488', '#a9a2bc', '#5a5470'][v % 4] : name === 'shell' ? ['#f4e6c6', '#e8c8b0', '#d8d0e0', '#f3c878'][v % 4] : ['#ead9b8', '#e2cfa6', '#f4ecdc', '#d8c4a0'][v % 4];
+    const pts = trace((g) => { g.lineWidth = 4; KINDS[name](g, r); }, 74, 52);
+    card = print(cut(pts, r, 0.6), col, 31 + v, (P) => { const g = P.g; g.strokeStyle = 'rgba(120,90,60,.35)'; g.lineWidth = 0.8; for (let i = 0; i < 3; i++) { g.beginPath(); g.moveTo(-14 + i * 10, 6 + r() * 10); g.lineTo(-8 + i * 10, 8 + r() * 10); g.stroke(); } }, k);
   }
-  return (ORN[name] = card);
+  return (ORN[key] = card);
+}
+// the set a sheet wears: from 3 to 5 pieces, no two alike, each anchored to its own spot round the edge
+function ornamentSet(seed, big) {
+  const r = rng(seed * 104729 + 7), spots = [['tl', -0.7], ['tr', 0.45], ['r', 0.95], ['br', 0.25], ['bl', -0.2], ['l', -1.1]].sort(() => r() - 0.5);
+  const kinds = [...BONE_KINDS, 'feather', 'feather', 'shell', 'flint', 'tusk', 'beads'].sort(() => r() - 0.5), used = new Set(), out = [];
+  const n = big ? 3 + Math.floor(r() * 3) : 2;
+  for (const kind of kinds) { if (out.length >= n) break; if (used.has(kind) && kind !== 'feather') continue; used.add(kind); const [spot, a] = spots[out.length]; out.push({ kind, spot, a: a + (r() - 0.5) * 0.6, s: 1.4 + r() * 0.7, v: Math.floor(r() * 997) }); }
+  return out;
 }
 // draw a printed card (its outline in its own units, y up) on a canvas at (x, y) in CSS px, rotated by a
 function place(g, card, x, y, a = 0, s = 1) {
@@ -111,8 +133,8 @@ function cord(g, x0, y0, x1, y1) {
 // ---- composition --------------------------------------------------------------------------------------------------------
 const STYLES = {
   // the big sheets: blood backing, pinked ochre, stitched cream, all the ornaments
-  sheet: { back: COL.blood, pink: COL.ochre, color: COL.page, amp: 12, stitch: true, orn: ['bone', 'flint', 'tusk', 'beads', 'feather'] },
-  hud: { back: COL.plum, pink: COL.ochre, color: COL.page, amp: 8, stitch: true, cords: true, orn: ['flint'] },
+  sheet: { back: COL.blood, pink: COL.ochre, color: COL.page, amp: 12, stitch: true, orn: true },
+  hud: { back: COL.plum, pink: COL.ochre, color: COL.page, amp: 8, stitch: true, cords: true, orn: 'hud' },
   slip: { back: COL.blood, color: COL.bone, amp: 4 },
   tag: { color: COL.bone, amp: 2, cords: 'one' },
   pin: { color: COL.bone, amp: 2 },
@@ -130,13 +152,14 @@ function compose(w, h, seed, st, color) {
   const main = cut(blob(w, h, r, { amp: st.amp }), r);
   at(print(main, color || st.color, seed, st.stitch ? (P) => stitches(P.g, main, 9, r) : null));
   if (st.cords && st.stitch) for (const x of [w * 0.18 + M, w * 0.82 + M]) { g.fillStyle = 'rgba(42,26,30,.8)'; g.beginPath(); g.arc(x, M + 9, 2.6, 0, 7); g.fill(); }
-  for (const o of st.orn || []) {
+  if (st.orn) {
     const big = st === STYLES.sheet ? 1 : 0.62;
-    if (o === 'bone') place(g, ornament('bone'), M + 10 * big, M + 18 * big, -0.7, 1.9 * big);
-    if (o === 'flint') place(g, ornament('flint'), W - M - 26 * big, M + 10 * big, 0.45, 1.6 * big);
-    if (o === 'tusk') place(g, ornament('tusk'), W - M - 6, H - M + 14, 0.25, 1.8 * big);
-    if (o === 'feather') place(g, ornament('feather'), W - M + 8, M + 86, 0.95, 1.8 * big);
-    if (o === 'beads') { const x = M + 34, y = H - M - 4; cord(g, x, y - 16, x - 6, y + 56); ['bead-r', 'bead-o', 'bead-s'].forEach((b, i) => place(g, ornament(b), x - 1 - i * 2.2, y + 6 + i * 17, 0.12 * i, 1.5)); }
+    const AT = { tl: [M + 10 * big, M + 18 * big], tr: [W - M - 26 * big, M + 10 * big], r: [W - M + 8, M + 86 + (h * 0.25)], br: [W - M - 6, H - M + 14], bl: [M + 30, H - M - 2], l: [M - 6, M + h * 0.5] };
+    for (const o of (st.orn === 'hud' ? ornamentSet(seed, false).slice(0, 1) : ornamentSet(seed, big === 1))) {
+      const [x, y] = AT[o.spot];
+      if (o.kind === 'beads') { const n = 3 + (o.v % 3); cord(g, x, y - 16, x - 6, y + 20 + n * 17); for (let i = 0; i < n; i++) place(g, ornament('bead', o.v + i * 3), x - 1 - i * 2.2, y + 6 + i * 17, 0.12 * i, 1.5); }
+      else place(g, ornament(o.kind, o.v), x, y, o.a, o.s * big);
+    }
   }
   return { cv, M };
 }
@@ -148,7 +171,7 @@ function compose(w, h, seed, st, color) {
  */
 export function paperize(el, { seed = 1, style = 'sheet', color = null, quantize = 0, watch = null } = {}) {
   const st = STYLES[style];
-  let face = document.createElement('canvas'), size = '', queued = false;
+  let face = document.createElement('canvas'), size = '', queued = false, seedNow = seed;
   const cache = new Map();
   face.className = 'face'; el.prepend(face); el.classList.add('printed', 'p-' + style);
   const draw = () => {
@@ -158,13 +181,14 @@ export function paperize(el, { seed = 1, style = 'sheet', color = null, quantize
     if (quantize) { const max = parseFloat(getComputedStyle(el).maxHeight) || 1e9; h = Math.min(max, Math.ceil(h / quantize) * quantize); el.style.minHeight = h + 'px'; }
     const key = w + 'x' + h; if (key === size) return; size = key;
     let made = cache.get(key);
-    if (!made) { made = compose(w, h, seed, st, color); if (cache.size > 12) cache.delete(cache.keys().next().value); cache.set(key, made); }
+    if (!made) { made = compose(w, h, seedNow, st, color); if (cache.size > 12) cache.delete(cache.keys().next().value); cache.set(key, made); }
     const cv = document.createElement('canvas'); cv.width = made.cv.width; cv.height = made.cv.height; cv.getContext('2d').drawImage(made.cv, 0, 0);
     cv.className = 'face'; cv.setAttribute('aria-hidden', 'true');
     Object.assign(cv.style, { left: -made.M + 'px', top: -made.M + 'px', width: w + 2 * made.M + 'px', height: h + 2 * made.M + 'px' });
     face.replaceWith(cv); face = cv;
   };
   const ro = new ResizeObserver(() => { if (!queued) { queued = true; requestAnimationFrame(draw); } });
+  el.reseed = (s) => { seedNow = s; size = ''; cache.clear(); draw(); };   // a sheet that changes its ornaments (the panel, at each opening)
   ro.observe(el); if (watch) ro.observe(watch);   // watch: the content, so a held min-height can shrink back
   draw();
 }
