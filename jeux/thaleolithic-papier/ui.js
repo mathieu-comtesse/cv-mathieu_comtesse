@@ -5,6 +5,7 @@
 // rassemblement, Duel des menhirs, dialogues à choix, Quêtes et Carnet des Crânes.
 import { STAGES, ITEMS, RECIPES, PRODUCTIONS, BEHAVIOUR } from './campaign.js';
 import { CLAUSES } from './knowledge.js';
+import { cutLetters } from './paper-ui.js';
 
 const MODE_LABEL = { sort: 'Classer', pair: 'Associer', scope: 'Délimiter', assemble: 'Assembler', risk: 'Analyser le risque', vote: 'Voter', allocation: 'Répartir', briefing: 'Point sécurité',
   swipe: 'Trier les tablettes', differences: '15 différences', prepare: 'Préparer', runner: 'Évacuer', debrief: 'Retour d’expérience', dashboard: 'Mesurer', audit: 'Auditer', review: 'Revue', corrective: 'Corriger', improvement: 'Améliorer' };
@@ -41,7 +42,8 @@ export function createUI(campaign, world) {
   function hud() {
     const q = campaign.frontier(), act = campaign.act(q);
     $('act').textContent = q ? (act ? act.title : '') : 'Le cycle continue';
-    $('quest').textContent = q ? q.title : 'Campagne terminée';
+    const qtitle = q ? q.title : 'Campagne terminée', qel = $('quest');
+    if (qel.dataset.text !== qtitle) { qel.dataset.text = qtitle; qel.textContent = qtitle; delete qel.dataset.cut; cutLetters(qel); }
     const id = campaign.nextAction(), kind = id && campaign.kindOf(id);
     const title = !id ? '' : kind === 'duel' ? 'Le Duel des menhirs' : kind === 'activity' ? campaign.data.activities.get(id).title : campaign.action(id).title;
     $('next').textContent = title;
@@ -49,7 +51,7 @@ export function createUI(campaign, world) {
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
     const done = campaign.data.quests.filter((x) => campaign.questDone(x)).length;
     $('progress').style.width = (done / campaign.data.quests.length * 100) + '%';
-    root.style.setProperty('--top', Math.round($('hud').getBoundingClientRect().bottom + 14) + 'px');   // the sheet sits just under the HUD, whatever its height
+    root.style.setProperty('--top', Math.round($('hud').getBoundingClientRect().bottom + 40) + 'px');   // the sheet sits just under the HUD, whatever its height
   }
   function prompt() {
     const el = $('prompt'), id = campaign.nextAction(), site = campaign.nextSite();
@@ -287,7 +289,7 @@ export function createUI(campaign, world) {
       else if (item === 'tool') body.append(btn(st.equipped === 'tool' ? 'Ranger l’outil' : 'Équiper', () => campaign.useItem('tool'), 'go'));
       else if (item === 'notebook' || item === 'evidence') body.append(btn('Consulter', () => open('journal'), 'go'));
       else body.append(btn('Voir les recettes', () => { invTab = 'Atelier'; render(); }));
-      body.insertAdjacentHTML('beforeend', `<p class="small">Dylan · nourriture ${st.player.food} · énergie ${st.player.energy} · fatigue ${st.player.fatigue}</p>`);
+      body.insertAdjacentHTML('beforeend', `<p class="small">Dylan · nourriture ${Math.round(st.player.food)} · énergie ${Math.round(st.player.energy)} · fatigue ${Math.round(st.player.fatigue)}</p>`);
     } else if (invTab === 'Atelier') {
       for (const r of RECIPES) {
         const why = campaign.craftCheck(r, nearShop);
@@ -330,6 +332,7 @@ export function createUI(campaign, world) {
     if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
     else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();
+    for (const h of body.querySelectorAll('h2')) cutLetters(h);   // titles cut out letter by letter
   }
 
   // ---- keys: E acts, arrows during the briefing move the lanes, J K L Espace in the duel; WASD blocked behind a modal -

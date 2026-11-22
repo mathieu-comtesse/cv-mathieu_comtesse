@@ -2,17 +2,19 @@
 import { createCampaign } from './campaign.js';
 import { buildVillage } from './scene.js';
 import { createUI } from './ui.js';
-import { installTiles, paperize } from './paper-ui.js';
+import { installTiles, paperize, cutLetters } from './paper-ui.js';
 
 // the windows are printed on the village's own paper: tiles for the small pieces, a printed card behind each sheet
 installTiles();
-paperize(document.getElementById('hud'), { seed: 3 });
-paperize(document.getElementById('panel'), { seed: 5, frame: true });
-paperize(document.querySelector('#intro .paper'), { seed: 7, frame: true });
-paperize(document.getElementById('prompt'), { seed: 9, tear: 0.8 });
-paperize(document.getElementById('pin'), { seed: 13, tear: 0.6 });
-paperize(document.getElementById('work'), { seed: 17, tear: 0.8 });
-document.querySelectorAll('#tools .btn').forEach((b, i) => paperize(b, { seed: 20 + i, color: '#fdf6e8', tear: 0.6 }));
+paperize(document.getElementById('hud'), { seed: 3, style: 'hud' });
+paperize(document.getElementById('panel'), { seed: 5, style: 'sheet', quantize: 36, watch: document.getElementById('panel-body') });
+paperize(document.querySelector('#intro .paper'), { seed: 7, style: 'sheet' });
+paperize(document.getElementById('prompt'), { seed: 9, style: 'slip' });
+paperize(document.getElementById('pin'), { seed: 13, style: 'pin' });
+paperize(document.getElementById('work'), { seed: 17, style: 'slip' });
+const PLATES = ['#f4e6c6', '#f3c878', '#dfe3b4', '#d8d2e6', '#f4e6c6', '#f3c878'];
+document.querySelectorAll('#tools .btn').forEach((b, i) => paperize(b, { seed: 20 + i, style: 'tag', color: PLATES[i] }));
+cutLetters(document.querySelector('#intro h1'), { chips: true });
 
 const RES = '../../thaleolithic/Source/Resources/';
 const load = (f) => fetch(RES + f).then((r) => { if (!r.ok) throw new Error(f + ' : ' + r.status); return r.json(); });

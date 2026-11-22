@@ -8,9 +8,10 @@
 <meta name="theme-color" content="#2a1830">
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
 <style>
-  @font-face { font-family: 'IM Fell DW Pica'; src: url(fonts/im-fell-dw-pica-latin-400-normal.woff2) format('woff2'); font-display: swap; }
-  @font-face { font-family: 'IM Fell DW Pica'; font-style: italic; src: url(fonts/im-fell-dw-pica-latin-400-italic.woff2) format('woff2'); font-display: swap; }
-  @font-face { font-family: 'IM Fell English SC'; src: url(fonts/im-fell-english-sc-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Henny Penny'; src: url(fonts/henny-penny-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Chicle'; src: url(fonts/chicle-latin-400-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Shantell Sans'; font-weight: 300 800; src: url(fonts/shantell-sans-latin-full-normal.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Shantell Sans'; font-style: italic; font-weight: 300 800; src: url(fonts/shantell-sans-latin-full-italic.woff2) format('woff2'); font-display: swap; }
   /* Interface en papier (skill papercraft, paper-ui.md) : feuilles de carton fibré, bord découpé, épaisseur et deux
      ombres prune, double filet d'atlas, boutons qui s'enfoncent, icônes en papier découpé. Palette tirée de la scène :
      encre prune, page crème, rouge des pins, feu, rivière. */
@@ -24,7 +25,7 @@
     --cast: 10px 14px 22px rgb(var(--sh) / .3);
     --frame: inset 0 0 0 7px var(--page), inset 0 0 0 8px var(--ink-55), inset 0 0 0 10px var(--page), inset 0 0 0 10.6px var(--ink-30);
     --tilt: rotate(-.3deg);
-    --serif: 'IM Fell DW Pica', Georgia, serif; --caps: 'IM Fell English SC', Georgia, serif; --ink-t: rgb(42 26 30 / .9);
+    --serif: 'Shantell Sans', 'Comic Sans MS', sans-serif; --caps: 'Chicle', 'Shantell Sans', sans-serif; --title: 'Henny Penny', 'Chicle', serif; --ink-t: rgb(42 26 30 / .9);
   }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #2a1830; color: var(--ink-t); font: 16px/1.45 var(--serif); }
   b, strong { font-weight: 700; } .btn b { font-weight: 400; }
@@ -162,21 +163,125 @@
     .tree { grid-template-columns: repeat(2, 1fr); }
   }
   @media (prefers-reduced-motion: reduce) { #panel.in, #panel.out, #panel.in::after, .sheet .paper { animation: none; } .btn, .lanes b { transition: none; } }
+
+  /* ===== the extravagant layer: hand-cut, lopsided, hanging, twitching ===================================================
+     Shantell Sans bounces (BNCE) for the text, Chicle for labels and buttons, Henny Penny cut letter by letter for titles. */
+  body { font-variation-settings: 'BNCE' 45, 'INFM' 55; }
+  .printed { filter: drop-shadow(2px 3px 0 rgb(var(--sh) / .32)) drop-shadow(10px 16px 12px rgb(var(--sh) / .38)); }
+  .cut .w { display: inline-block; white-space: nowrap; }
+  .cut .l { display: inline-block; transform: rotate(var(--a0)) translateY(var(--y0)); }
+  [data-boil="1"] .cut .l { transform: rotate(var(--a1)) translateY(var(--y1)); } [data-boil="2"] .cut .l { transform: rotate(var(--a2)) translateY(var(--y2)); }
+  [data-boil="1"] #tools .ico { transform: rotate(-4deg); } [data-boil="2"] #tools .ico { transform: rotate(3deg) translateY(-1px); }
+  @keyframes sway { from { transform: rotate(-2.2deg); } to { transform: rotate(2.2deg); } }
+
+  /* HUD: a sign hung on two cords, swinging a little */
+  #hud { width: min(390px, calc(100vw - 170px)); padding: 15px 20px 14px; top: max(30px, env(safe-area-inset-top)); transform-origin: 50% -60px; animation: sway 6s ease-in-out infinite alternate; }
+  #hud::before { display: none; }
+  #act { font: 400 15px/1.1 var(--caps); letter-spacing: .04em; color: #9a3328; }
+  #quest { font: 400 22px/1.08 var(--title); color: #6a1e28; margin-top: 4px !important; }
+  #next { font: italic 500 13.5px/1.3 var(--serif); }
+  #vitals span { font: 400 13.5px/1.1 var(--caps); letter-spacing: .03em; }
+  .meter, .track { height: 8px; border-radius: 6px; } .meter i, #progress { border-radius: 6px; clip-path: none; } .meter i { background: var(--ochre-t, none) #e0a24a; } .meter.cold i { background: #6f7fb0; }
+  #progress { background: var(--blood-t, none) #9a3328; } #vitals b { font: 400 15px/1.2 var(--caps); color: #9a3328; }
+
+  /* the screens: totems hanging from cords, swaying out of step */
+  #tools { top: max(26px, env(safe-area-inset-top)); gap: 8px 12px; }
+  #tools .btn { flex-direction: column; gap: 4px; padding: 9px 11px 8px; font: 400 15.5px/1 var(--caps); letter-spacing: .03em; transform-origin: 50% -50px; animation: sway 4.2s ease-in-out infinite alternate; }
+  #tools .btn:nth-child(2n) { animation-duration: 3.5s; animation-delay: -1.3s; } #tools .btn:nth-child(3n) { animation-duration: 4.8s; animation-delay: -2.6s; }
+  #tools .ico { width: 42px; height: 42px; transition: transform .3s cubic-bezier(.3, 1.8, .5, 1); }
+  #tools .btn:hover .ico, #tools .btn.sel .ico { transform: rotate(-9deg) scale(1.14); }
+  #tools .btn.sel span { color: #9a3328; }
+
+  /* the sheet's title: a blood-red ribbon with cut letters; the kicker: a bone tag with a punched hole */
+  #panel-body { padding: 30px 34px 34px; }
+  #panel h2 { display: block; width: fit-content; max-width: calc(100% - 6px); margin: 2px 0 16px -14px; padding: 7px 20px 9px 18px; border: 0; font: 400 27px/1.06 var(--title); color: #fbf1de; background: var(--blood-t, none) #9a3328;
+    border-radius: 4px 16px 5px 18px / 14px 4px 16px 5px; transform: rotate(-1.8deg); box-shadow: var(--cut), 2px 3px 0 #5a1a14, 5px 8px 9px rgb(var(--sh) / .35); text-shadow: 1px 2px 0 #4a140e; }
+  .kicker { position: relative; display: inline-block; margin: 0 0 8px 4px; padding: 3px 12px 4px 19px; font: 400 15.5px/1.1 var(--caps); letter-spacing: .04em; color: #7a2430;
+    background: var(--bone-t, none) #f4e6c6; border-radius: 3px 13px 4px 13px; transform: rotate(1.6deg); box-shadow: var(--cut), 2px 2px 0 rgb(var(--sh) / .25); }
+  .kicker::before { content: ''; position: absolute; left: 6px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #4a2838; box-shadow: inset 1px 1px 1px rgb(0 0 0 / .45), 0 0 0 1px rgb(251 241 222 / .6); }
+  .tree .kicker { display: block; margin: 8px 0 2px; transform: rotate(-1deg); }
+  h3 { font: 400 22px/1.1 var(--title); color: #6a1e28; letter-spacing: 0; } h3 small { font: italic 500 14px var(--serif); }
+
+  /* buttons: lopsided scraps, tilted in turn, springy; the main action is a stitched blood-red blob */
+  .btn { font: 500 15px/1.3 var(--serif); border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px; box-shadow: var(--cut), 2px 3px 0 var(--edge), 3px 5px 5px rgb(var(--sh) / .28); transition: transform .3s cubic-bezier(.3, 1.8, .5, 1), box-shadow .1s; }
+  .choices .btn:nth-child(odd) { transform: rotate(-.8deg); } .choices .btn:nth-child(even) { transform: rotate(.7deg) translateX(5px); }
+  .btn:hover, .choices .btn:hover { transform: rotate(-1.6deg) translateY(-2px) scale(1.015); }
+  .btn:active, .choices .btn:active { transform: translate(1px, 3px); box-shadow: var(--cut), 1px 1px 1px rgb(var(--sh) / .45); transition-duration: .06s; }
+  .btn.go { padding: 11px 22px 12px; font: 400 20px/1.05 var(--caps); letter-spacing: .04em; color: #fbf1de; background: var(--blood-t, none) #9a3328; border-radius: 24px 8px 28px 10px / 12px 26px 10px 24px;
+    outline: 1.6px dashed rgb(251 241 222 / .6); outline-offset: -6px; text-shadow: 1px 1px 0 #4a140e; box-shadow: var(--cut), 3px 4px 0 #5a1a14, 4px 7px 7px rgb(var(--sh) / .32); }
+  .btn.go:focus-visible { outline: 2px dashed var(--ink); outline-offset: 3px; }
+  .btn.sel { background: var(--ochre-t, none) #e0a24a; } .btn.ok { background: var(--moss-t, none) #a9b27a; }
+  .btn.quiet { font: 400 17px/1.3 var(--caps); letter-spacing: .03em; color: #7a2430; text-decoration: underline wavy rgb(154 51 40 / .55) 1.5px; text-underline-offset: 5px; }
+  kbd { padding: 3px 7px 4px; font: 400 14px/1 var(--caps); color: #fbf1de; background: var(--plum-t, none) #7a3858; border-radius: 48% 52% 45% 55% / 55% 45% 55% 45%; text-shadow: 0 1px 0 #2a1018; box-shadow: var(--cut), 1px 2px 0 #4a2038; }
+
+  /* tabs: pebbles; cards: lopsided scraps pinned with a thorn */
+  .tabs { gap: 8px; border-bottom: 0; padding: 0; }
+  .tabs .btn { font: 400 16.5px/1 var(--caps); letter-spacing: .03em; padding: 10px 8px 11px; border-radius: 46% 54% 40% 60% / 60% 50% 50% 40%; background: var(--stone-t, none) #a9a2bc; color: #2a1a1e; transform: rotate(-1.4deg); }
+  .tabs .btn:nth-child(2) { transform: rotate(1.6deg) translateY(2px); } .tabs .btn.sel { background: var(--ochre-t, none) #e0a24a; transform: rotate(-2.4deg) translateY(-3px) scale(1.05); }
+  .card, .quest, .ev, .chest { position: relative; border-radius: 16px 5px 18px 6px / 6px 16px 5px 18px; }
+  .card { transform: rotate(-.6deg); } .quest:nth-of-type(even), .ev:nth-of-type(even) { transform: rotate(.5deg); }
+  .card::before { content: ''; position: absolute; right: 16px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #e86a48, #8e2f2a 70%); box-shadow: 1px 2px 1px rgb(var(--sh) / .5); }
+  .quest { border-left: 0; padding-left: 16px; box-shadow: var(--cut), inset 6px 0 0 var(--edge), 2px 3px 5px rgb(var(--sh) / .2); }
+  .quest.now { box-shadow: var(--cut), inset 6px 0 0 #9a3328, 2px 3px 5px rgb(var(--sh) / .2); } .quest.done { box-shadow: var(--cut), inset 6px 0 0 #a9b27a, 2px 3px 5px rgb(var(--sh) / .2); }
+  .quest b { font: 400 17px/1.2 var(--caps); letter-spacing: .02em; }
+  .fb { font: italic 500 14.5px/1.4 var(--serif); background: var(--ochre-t, none) #f3c46e; border-left: 0; padding: 10px 18px 11px 30px; transform: rotate(-.8deg); position: relative; }
+  .fb::before { content: ''; position: absolute; left: 10px; top: 12px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #e86a48, #8e2f2a 70%); }
+  .count { font: italic 600 14px/1.35 var(--serif); } .timer { font: 400 22px var(--caps); color: #9a3328; transform: rotate(4deg); }
+  .chest span, .bag span { font: 400 30px/1.1 var(--title); color: #6a1e28; }
+  .banner { font: 400 17px/1.2 var(--caps); color: #9a3328; } .bar, .arena .f { font-family: var(--caps); font-size: 14px; }
+  .map text { font: 400 13px var(--caps); }
+
+  /* the welcome sheet: the name in cut-out scraps of every colour */
+  .sheet .paper { max-width: 520px; padding: 40px 42px 36px; }
+  .sheet h1 { font: 400 46px/1.1 var(--title); letter-spacing: .02em; border: 0; box-shadow: none; padding: 0; margin: 0 0 14px; }
+  .cut.chips .l { margin: 0 1px; padding: 0 .1em .04em; background: var(--chip, none) #f4e6c6; color: #6a1e28; border-radius: 4px 9px 3px 8px; box-shadow: var(--cut), 2px 3px 0 rgb(var(--sh) / .3); }
+  .cut.chips .l:nth-child(even) { color: #2a1a1e; }
+  .sheet .sub { font: italic 600 17px/1.3 var(--serif); color: #9a3328; }
+  #prompt { font: 400 19px/1.2 var(--caps); letter-spacing: .03em; padding: 12px 22px; }
+  #pin { font: 400 16px/1.1 var(--caps); letter-spacing: .03em; padding: 6px 12px 7px; }
+  #work { font: 400 16px/1.2 var(--caps); }
+  @media (max-width: 640px) { #tools .ico { width: 34px; height: 34px; } #tools .btn { padding: 6px; } #hud { width: calc(100vw - 86px); padding: 12px 14px; } #panel-body { padding: 26px 24px 28px; } .sheet h1 { font-size: 36px; } }
+  @media (prefers-reduced-motion: reduce) { #hud, #tools .btn { animation: none; } }
 </style>
 <script type="importmap">{ "imports": { "three": "../../vendor/three-r187/three.module.js", "papercraft/": "./papercraft/" } }</script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <!-- icônes en papier découpé : la pièce colorée, son trait de coupe brun, quelques traits d'encre ; ni texte ni contour noir -->
-  <symbol id="i-people" viewBox="0 0 24 24"><g stroke="#4a2c24" stroke-width="1" stroke-linejoin="round"><path d="M13.6 21.2v-5.6c0-2.3 1.5-3.9 3.7-3.9s3.7 1.6 3.7 3.9v5.6z" fill="#8a5a3a"/><circle cx="17.3" cy="8.5" r="2.7" fill="#d9a07a"/><path d="M3 21.2v-6.4c0-2.7 1.8-4.5 4.3-4.5s4.3 1.8 4.3 4.5v6.4z" fill="#a0683e"/><circle cx="7.3" cy="6.4" r="3.1" fill="#d9a07a"/></g><path d="M5 15.5h4.6M15.3 16.4h4" stroke="#ead9b8" stroke-width="1.1" stroke-linecap="round"/></symbol>
-  <symbol id="i-map" viewBox="0 0 24 24"><path d="M2.6 6.2l5.4-2 8 2 5.4-2v14.2l-5.4 2-8-2-5.4 2z" fill="#efe0c2" stroke="#4a2c24" stroke-width="1" stroke-linejoin="round"/><path d="M8 4.2v14.2M16 6.2v14.2" stroke="#4a2c24" stroke-width=".6" opacity=".7"/><path d="M4.6 15.4c2.2-3 4.2-.8 6.2-3.8s4.4-2 6.2-5" fill="none" stroke="#a83a2a" stroke-width="1.3" stroke-dasharray="1.7 1.4" stroke-linecap="round"/><circle cx="17.2" cy="6.8" r="1.5" fill="#a83a2a"/></symbol>
-  <symbol id="i-bag" viewBox="0 0 24 24"><g stroke="#4a2c24" stroke-width="1" stroke-linejoin="round"><path d="M7.2 9.2c-3.3 3.1-4.2 8.2-1.6 10.6 2.6 2 10.2 2 12.8 0 2.6-2.4 1.7-7.5-1.6-10.6z" fill="#8a5a3a"/><path d="M8.4 9.4l1.1-4.6h5l1.1 4.6z" fill="#a0683e"/></g><path d="M7.4 9.6c2.8.8 6.4.8 9.2 0" fill="none" stroke="#ead9b8" stroke-width="1.4" stroke-linecap="round"/><path d="M9 14.5c1.6 1.2 4.4 1.2 6 0" fill="none" stroke="#c98a3a" stroke-width="1" stroke-linecap="round"/></symbol>
-  <symbol id="i-tech" viewBox="0 0 24 24"><path d="M5.2 21l9.4-13.4" stroke="#4a2c24" stroke-width="3.2" stroke-linecap="round"/><path d="M5.2 21l9.4-13.4" stroke="#a0683e" stroke-width="1.6" stroke-linecap="round"/><path d="M10.6 6.2l4.4-3.4 6.3 4.3-2.2 5.4-5.4-2.4z" fill="#8f8aa0" stroke="#4a2c24" stroke-width="1" stroke-linejoin="round"/><path d="M15 5l3.6 2.6" stroke="#ead9b8" stroke-width=".9" stroke-linecap="round"/><path d="M11.3 9.4l2.6 1.6M10.5 10.6l2.6 1.6" stroke="#ead9b8" stroke-width="1" stroke-linecap="round"/></symbol>
-  <symbol id="i-quests" viewBox="0 0 24 24"><g stroke="#4a2c24" stroke-width="1" stroke-linejoin="round"><path d="M5.5 5h13v14h-13z" fill="#efe0c2"/><rect x="4" y="3" width="16" height="3.2" rx="1.6" fill="#dcc79f"/><rect x="4" y="17.8" width="16" height="3.2" rx="1.6" fill="#dcc79f"/></g><path d="M8 9.4h8M8 12h6.4M8 14.6h7.2" stroke="#2a1a1e" stroke-width=".9" stroke-linecap="round" opacity=".75"/><circle cx="16.6" cy="14.6" r="1.3" fill="#a83a2a"/></symbol>
-  <symbol id="i-codex" viewBox="0 0 24 24"><g stroke="#4a2c24" stroke-width="1" stroke-linejoin="round"><path d="M5 4.2h11.8c1.2 0 2 .8 2 2v13.6H7c-1.2 0-2-.8-2-2z" fill="#7a3a2a"/><path d="M7 17.2h11.8v2.6H7c-.7 0-1.3-.6-1.3-1.3s.6-1.3 1.3-1.3z" fill="#ead9b8"/></g><path d="M12 7.4c-2 0-3.2 1.3-3.2 3 0 1.1.6 1.9 1.4 2.4v1.4h3.6v-1.4c.8-.5 1.4-1.3 1.4-2.4 0-1.7-1.2-3-3.2-3z" fill="#ead9b8"/><circle cx="10.8" cy="10.5" r=".8" fill="#2a1a1e"/><circle cx="13.2" cy="10.5" r=".8" fill="#2a1a1e"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.4 12.8c1.6 1.2 2.9 2.7 4.2 4.4C11.6 12.3 15 8.7 19.8 5.6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-cross" viewBox="0 0 24 24"><path d="M5.6 5.4c4.4 4.2 8.4 8.6 12.8 13.2" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M18.4 5.8c-4.6 4.4-8.6 8.4-12.6 12.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
-  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7.2 4.6l11.2 7.4-11.2 7.4c.6-4.9.6-9.9 0-14.8z" fill="currentColor"/></symbol>
+  <!-- icônes extravagantes en papier découpé : pièces superposées, trait de coupe brun, yeux et dents ; aucune lettre -->
+  <symbol id="i-people" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round">
+    <path d="M27 9.5l9-6.5-2.4 10.2z" fill="#c8402e"/><path d="M13 9.5L3.6 3.4l2.8 10z" fill="#6f7fb0"/>
+    <path d="M10.6 38.6l1.6-11.4h15.6l1.8 11.4z" fill="#9a3328"/>
+    <rect x="11.2" y="16.4" width="17.6" height="12" rx="4.6" fill="#e0a24a"/>
+    <path d="M12.2 17.4c-.6-11.8 16.2-11.8 15.6 0z" fill="#a9b27a"/></g>
+    <circle cx="16.6" cy="12.6" r="2.4" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="17.200000000000003" cy="13.0" r="1.08" fill="#2a1a1e"/><circle cx="23.4" cy="12.2" r="2.8" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="22.9" cy="12.799999999999999" r="1.26" fill="#2a1a1e"/><circle cx="16.4" cy="21.6" r="2.2" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="17.099999999999998" cy="21.3" r="0.99" fill="#2a1a1e"/><circle cx="23.8" cy="21.8" r="2.2" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="23.2" cy="22.0" r="0.99" fill="#2a1a1e"/>
+    <path d="M15.4 33.4l1.6-2 1.6 2 1.6-2 1.6 2 1.6-2 1.6 2" fill="none" stroke="#fbf1de" stroke-width="1.4" stroke-linejoin="round"/><path d="M17 25.6c1.8 1.2 4.2 1.2 6 0" fill="none" stroke="#3a2018" stroke-width="1.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-map" viewBox="0 0 40 40"><path d="M4.4 9.6c3.6-3.4 8-1 11.6-3.6 4.2 2.6 9.2-.8 13.2 1.6 3.4 2 6.6.4 7.2 3.8-1.6 6 1.4 11.4-.4 17.6-.8 3.4-4.6 3.6-7.4 5.6-4.4-1.8-9.4 1-13.6-.6-3.8 2.4-8.6.4-10.2-2.6 1.6-6-1.6-11.6-.4-17.4z" fill="#d8b483" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M7 11.4l.8 1.6M7.4 17l.8 1.4M7 23.2l.8 1.6M32.6 12l.8 1.4M33 19l.8 1.6M32.4 26l.8 1.4" stroke="#3a2018" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M11 29c-1-5 4-8 7.4-5.4 3 2.4-.4 6.6-3 4-2.4-2.6 1.6-9 6.8-9.2 4.6-.2 5.4-4.6 6.4-7.4" fill="none" stroke="#9a3328" stroke-width="1.7" stroke-dasharray="2 2.1" stroke-linecap="round"/>
+    <path d="M26.6 9.4l5.2 5.2M31.8 9.4l-5.2 5.2" stroke="#9a3328" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="11" cy="14" r="3" fill="#e0a24a" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><path d="M11 9.2v1.4M11 17.4v1.4M6.2 14h1.4M14.4 14h1.4" stroke="#e0a24a" stroke-width="1.3" stroke-linecap="round"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M12.4 15.4c-6.4 4.4-8.6 13-4.6 18.4 4.4 5 19.6 5 24.4 0 4.2-5.4 1.8-14-4.6-18.4z" fill="#8a5a3a"/>
+    <path d="M14 15.8l2-8.6c2.6 1.4 5.4 1.4 8 0l2 8.6c-3.8 1.4-8.2 1.4-12 0z" fill="#a0683e"/><path d="M15.2 16.4c3.4 1.4 6.2 1.4 9.6 0l-1 3.6c-2.4.8-5.2.8-7.6 0z" fill="#f4e6c6"/>
+    <path d="M10.4 30.6c3.2 2 15.6 2 19.2 0" fill="none" stroke="#e0a24a" stroke-width="1.6"/></g>
+    <ellipse cx="20" cy="25" rx="5.4" ry="4.6" fill="#fbf1de" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="21.2" cy="25.6" r="2.4" fill="#6f7fb0"/><circle cx="21.4" cy="25.8" r="1.2" fill="#2a1a1e"/><path d="M14.6 23.2c3-3.8 7.8-3.8 10.8 0" fill="none" stroke="#3a2018" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M7.6 8.6c2.4 1.6 4 4 4.4 6.8M32.4 8.6c-2.4 1.6-4 4-4.4 6.8" fill="none" stroke="#3a2018" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 1.6"/><circle cx="7" cy="8" r="2" fill="#9a3328" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><circle cx="33" cy="8" r="2" fill="#e0a24a" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tech" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M8.4 36.4l20.4-24.8 2.6 2.2-20.4 24.8z" fill="#8a5a3a"/>
+    <path d="M21.4 4.4l9.6-1 6.4 8.4-4.6 7.4-9.2-4.6z" fill="#a9a2bc"/><path d="M31 3.4l1.6 7.6-9.2 4.2" fill="none" stroke="#3a2018" stroke-width="1"/>
+    <path d="M31.4 36.6L12.2 14.4l2.4-2.2 19.2 22.2z" fill="#a0683e"/>
+    <path d="M10.4 13.8c-4.6-3.6-3-9.6 1-12.2-.2 3.4 2.4 3.4 3.6 1.4 2.4 3.6 1.6 8.8-1.8 11z" fill="#c8402e"/><path d="M11.4 12.4c-1.8-2-1-4.6.8-5.6.4 1.6 1.6 1.4 2 .6.8 2 .2 4.2-1.6 5.2z" fill="#f0c050"/></g>
+    <path d="M24.4 9.8l3 1.6M23.4 12l3 1.6" stroke="#fbf1de" stroke-width="1.1" stroke-linecap="round"/><path d="M4 22l2.4-1M5.6 27.4l2.2.4M35.6 24l-2.4-.4" stroke="#e0a24a" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-quests" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M8 7.4h22.6c2.6 0 3.4 3 1 4.4v20.4c2.4 1.4 1.6 4.4-1 4.4H8c-2.6 0-3.4-3-1-4.4V11.8c-2.4-1.4-1.6-4.4 1-4.4z" fill="#f4e6c6"/>
+    <rect x="4.4" y="4.6" width="30.6" height="6" rx="3" fill="#e0a24a"/><rect x="4.4" y="31.6" width="30.6" height="6" rx="3" fill="#e0a24a"/></g>
+    <path d="M19.4 21.6c0-1 1.6-1 1.6.2 0 1.8-3 1.8-3-.4 0-3 4.8-3 4.8.4 0 4-6.4 4-6.4-.6 0-5.2 8-5.2 8 .6" fill="none" stroke="#3a2018" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="29" cy="28" r="3.8" fill="#9a3328" stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.2 28.4l1.4 1.4 2.6-3" fill="none" stroke="#fbf1de" stroke-width="1.2" stroke-linecap="round"/><path d="M26.6 31.4l-1.2 5M31 31.6l1.4 4.6" stroke="#9a3328" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-codex" viewBox="0 0 40 40"><g stroke="#3a2018" stroke-width="1.3" stroke-linejoin="round"><path d="M7.4 6.2h22.4c2 0 3.2 1.4 3.2 3.2v24.4H10.6c-2 0-3.2-1.4-3.2-3.2z" fill="#7a3858"/>
+    <path d="M10.4 29.6h22.6v4.6H10.6c-1.4 0-2.4-1-2.4-2.3s1-2.3 2.2-2.3z" fill="#f4e6c6"/>
+    <path d="M20.6 10c-4.4 0-7 2.8-7 6.4 0 2.4 1.2 4 3 5v3h8v-3c1.8-1 3-2.6 3-5 0-3.6-2.6-6.4-7-6.4z" fill="#f4e6c6"/>
+    <path d="M27.4 33.6v5.6l1.8-1.6 1.8 1.6v-5.6" fill="#e0a24a"/></g>
+    <circle cx="18" cy="16.6" r="2.1" fill="#2a1a1e"/><circle cx="23.2" cy="16.6" r="2.1" fill="#2a1a1e"/><circle cx="18.4" cy="16.2" r=".6" fill="#e0a24a"/><path d="M20.6 19l-.9 1.6h1.8z" fill="#2a1a1e"/><path d="M17.8 24.4v-2M19.6 24.4v-2M21.4 24.4v-2M23.2 24.4v-2" stroke="#3a2018" stroke-width="1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M3.4 12.4c1.4-1.4 3-1.2 3.8.4l2 3.4c3-5.6 6.6-9.4 11-11.6 1.4.2 1.8 1.6.8 2.6-3.6 3-6.8 7.4-9.6 12.6-1 1.4-2.8 1.4-3.6 0z" fill="#e0a24a" stroke="#3a2018" stroke-width="1.1" stroke-linejoin="round"/></symbol>
+  <symbol id="i-cross" viewBox="0 0 24 24"><g fill="#f4e6c6" stroke="#3a2018" stroke-width="1" stroke-linejoin="round"><path d="M6.2 4.4l13.2 13.2a2.2 2.2 0 1 1-1.8 1.8L4.4 6.2a2.2 2.2 0 1 1 1.8-1.8z"/><path d="M17.8 4.4L4.6 17.6a2.2 2.2 0 1 0 1.8 1.8L19.6 6.2a2.2 2.2 0 1 0-1.8-1.8z"/></g></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M3.4 9.6l9-.6L12 4.4l9.2 7.6-9.2 7.6.4-4.6-9 -.6c-1.6-1.4-1.6-3.4 0-4.8z" fill="#a9a2bc" stroke="#3a2018" stroke-width="1.1" stroke-linejoin="round"/><path d="M14 9.4l3.4 2.6" stroke="#fbf1de" stroke-width="1" stroke-linecap="round"/></symbol>
 </svg>
 <div class="hint" id="hint"></div>
 <div id="hud" class="paper" aria-live="polite"><p id="act"></p><p id="quest"></p><p id="next"></p><div class="track"><div id="progress"></div></div><p id="vitals"></p></div>
