@@ -302,24 +302,33 @@
   .bigmap .zoom { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; z-index: 2; } .bigmap .zoom .btn { width: 38px; height: 38px; padding: 0; font: 400 22px/1 var(--caps); }
   .bigmap .site text { font: 400 11px/1 var(--caps); fill: #2a1a1e; paint-order: stroke; stroke: #fbf1de; stroke-width: 3px; }
 
-  /* the prehistoric timer: a burning wick and a tally bone */
-  .fuse { display: inline-flex; align-items: center; gap: 8px; vertical-align: middle; }
-  .fuse .cord { position: relative; width: 120px; height: 8px; border-radius: 4px; background: repeating-linear-gradient(-58deg, #c8a870 0 4px, #8a6a3a 4px 6px, #d8bc84 6px 9px); box-shadow: 1px 1px 0 rgb(42 26 30 / .45); }
-  .fuse .ash { position: absolute; left: 0; top: 1px; bottom: 1px; border-radius: 4px 0 0 4px; background: repeating-linear-gradient(-58deg, #3a302e 0 3px, #5a504c 3px 5px); opacity: .85; transition: width .3s linear; }
-  .fuse .ember { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: radial-gradient(circle, #fff3c0 0 18%, #ffb040 40%, #e0501e 70%, rgb(224 80 30 / 0) 72%); filter: drop-shadow(0 0 4px #ff9a3a); animation: ember .45s steps(3) infinite; transition: left .3s linear; }
-  .fuse .ember::after { content: ''; position: absolute; left: 3px; top: -11px; width: 7px; height: 9px; border-radius: 50%; background: rgb(200 190 200 / .5); filter: blur(1.5px); animation: smoke 1.6s ease-out infinite; }
-  @keyframes ember { 0% { transform: scale(1); } 33% { transform: scale(1.18) rotate(20deg); } 66% { transform: scale(.92); } }
-  @keyframes smoke { 0% { transform: translate(0, 4px) scale(.6); opacity: .7; } 100% { transform: translate(5px, -10px) scale(1.4); opacity: 0; } }
-  .fuse .stone { position: relative; display: inline-block; padding: 3px 11px 4px; background: var(--stone-t, none) #a9a2bc; border-radius: 12px 6px 13px 5px / 8px 12px 6px 11px; box-shadow: var(--cut), inset 1px 1px 0 rgb(255 250 240 / .4), 1px 2px 0 rgb(var(--sh) / .35); }
-  .fuse .stone b { display: block; font: 400 19px/1 'Kavoon', var(--caps); letter-spacing: .04em; color: #2e2a3c; text-shadow: 0 1px 0 rgb(244 236 250 / .55), 0 -1px 0 rgb(20 14 26 / .35); font-variant-numeric: tabular-nums; }
-  .fuse .stone.low b { color: #8a1e1a; }
-  .fuse .stone.tick b { animation: chisel .32s ease-out; }
-  .fuse .stone .chip { position: absolute; right: 6px; top: 4px; width: 5px; height: 4px; background: #d8d0e8; clip-path: polygon(0 30%, 70% 0, 100% 60%, 40% 100%); opacity: 0; }
-  .fuse .stone.tick .chip { animation: chip .5s ease-out; }
-  @keyframes chisel { 0% { transform: translate(1px, 1px) scale(.94); } 40% { transform: translate(-1px, 0) scale(1.05); } 100% { transform: none; } }
-  @keyframes chip { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(9px, -12px) rotate(160deg); } }
-  #council { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; }
-  #council small { font: 400 12px/1 var(--caps); letter-spacing: .04em; color: #7a2430; white-space: nowrap; }
-  #council .fuse .cord { width: 90px; }
-  .timer { float: none; display: flex; justify-content: flex-end; margin: 0 30px 8px 0; transform: rotate(1.5deg); }
-  @media (prefers-reduced-motion: reduce) { .fuse .ember, .fuse .ember::after, .fuse .stone b, .fuse .stone .chip { animation: none !important; } }
+  /* the prehistoric timer: a sun-stone with a burning wick round its rim and the time carved in the middle */
+  .sunstone { position: relative; display: inline-grid; place-items: center; width: var(--sz); height: var(--sz); border-radius: 50% 46% 52% 48% / 48% 52% 47% 51%; background: radial-gradient(circle at 34% 30%, rgb(255 250 240 / .35), transparent 55%), var(--stone-t, none) #a9a2bc;
+    box-shadow: var(--cut), inset 2px 3px 0 rgb(255 250 240 / .35), inset -3px -4px 0 rgb(58 40 70 / .4), 2px 4px 0 #5a4e66, 4px 8px 10px rgb(var(--sh) / .4); }
+  .sunstone svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .sunstone .notches path { stroke: #3e3650; stroke-width: 2.4; stroke-linecap: round; opacity: .75; }
+  .sunstone .wick { fill: none; stroke: #c8a870; stroke-width: 5.5; stroke-dasharray: 3 2; }
+  .sunstone .ash { fill: none; stroke: #3a302e; stroke-width: 6.5; stroke-linecap: round; transition: stroke-dasharray .3s linear; }
+  .sunstone .ember { transition: transform .3s linear; }
+  .sunstone .ember .glow { fill: #ff9a3a; opacity: .45; filter: blur(2px); animation: glow .5s steps(3) infinite; }
+  .sunstone .ember .core { fill: #fff0b0; stroke: #e0501e; stroke-width: 1.6; animation: ember .45s steps(3) infinite; transform-box: fill-box; transform-origin: center; }
+  .sunstone .ember .puff { fill: rgb(220 210 225 / .7); animation: puff 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  .sunstone b { position: relative; font: 400 calc(var(--sz) * .24)/1 'Kavoon', var(--caps); letter-spacing: .02em; color: #2a2236; font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgb(244 236 250 / .6), 0 -1px 0 rgb(20 14 26 / .45); }
+  .sunstone.low b { color: #9a1e1a; } .sunstone.low { animation: shake .25s linear infinite; }
+  .sunstone.tick { animation: jolt .32s ease-out; } .sunstone.low.tick { animation: jolt .32s ease-out, shake .25s linear .32s infinite; }
+  .sunstone .chip { position: absolute; left: 62%; top: 40%; width: 6px; height: 5px; background: #d8d0e8; clip-path: polygon(0 30%, 70% 0, 100% 60%, 40% 100%); opacity: 0; }
+  .sunstone.tick .chip { animation: chip .55s ease-out; } .sunstone.tick .chip.c2 { left: 34%; animation: chip2 .55s ease-out; }
+  @keyframes jolt { 0% { transform: rotate(-4deg) scale(.95); } 45% { transform: rotate(2deg) scale(1.04); } 100% { transform: none; } }
+  @keyframes shake { 0%, 100% { translate: 0 0; } 25% { translate: -1.5px 1px; } 75% { translate: 1.5px -1px; } }
+  @keyframes chip { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(16px, -18px) rotate(200deg); } }
+  @keyframes chip2 { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(-14px, -16px) rotate(-160deg); } }
+  @keyframes ember { 0% { transform: scale(1); } 33% { transform: scale(1.25); } 66% { transform: scale(.9); } }
+  @keyframes glow { 0% { opacity: .35; } 50% { opacity: .7; } }
+  @keyframes puff { 0% { transform: translate(0, 0) scale(.5); opacity: .8; } 100% { transform: translate(4px, -14px) scale(1.8); opacity: 0; } }
+  /* the Council of the Sages hangs on a cord beside the HUD; in an activity the stone sits centred above the card */
+  #council { position: absolute; left: calc(100% + 18px); top: 6px; display: grid; justify-items: center; gap: 6px; margin: 0; pointer-events: none; }
+  #council::before { content: ''; position: absolute; left: 50%; top: -24px; width: 2px; height: 26px; background: repeating-linear-gradient(#c8a870 0 3px, #8a6a3a 3px 5px); }
+  #council small { padding: 3px 9px 4px; font: 400 12px/1 var(--caps); letter-spacing: .04em; color: #7a2430; white-space: nowrap; background: var(--bone-t, none) #f4e6c6; border-radius: 3px 10px 4px 10px; box-shadow: var(--cut), 1px 2px 0 rgb(var(--sh) / .3); transform: rotate(-3deg); }
+  .timer { float: none; display: flex; justify-content: center; margin: 4px 0 12px; }
+  @media (max-width: 640px) { #hud { padding-right: 74px; } #council { left: auto; right: 6px; top: 6px; } #council small { display: none; } #council::before { display: none; } #council .sunstone { --sz: 58px !important; } }
+  @media (prefers-reduced-motion: reduce) { .sunstone, .sunstone *, .sunstone.tick, .sunstone.low { animation: none !important; } }

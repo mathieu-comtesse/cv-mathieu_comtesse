@@ -43,13 +43,20 @@ export function createUI(campaign, world) {
   campaign.on(() => { if (mode) render(); hud(); });
 
   // ---- HUD: act, quest, where to go, the prompt when Dylan stands at the place --------------------------------------
-  // the prehistoric timer: a twisted fibre wick burning down (ash behind the ember, a curl of smoke), and the time left
-  // carved in plain figures on a flat stone; each second a burin taps the stone and a chip flies off
+  // the prehistoric timer: a round sun-stone. A twisted fibre wick runs round its rim and burns down (ash behind, an
+  // ember that runs and smokes), twelve notches are cut in the rim, the time left is carved in plain figures in the
+  // middle; each second a burin taps it (the stone jolts, a chip flies); in the last thirty seconds it shakes and reddens
   const ticks = {};
-  function fuse(frac, secs, label, key) {
+  function fuse(frac, secs, label, key, size = 78) {
     const f = Math.max(0, Math.min(1, frac)), s = Math.max(0, Math.ceil(secs)), txt = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     const tick = ticks[key] !== s; ticks[key] = s;
-    return `<span class="fuse" role="timer" aria-label="${esc(label)}"><span class="cord"><i class="ash" style="width:${((1 - f) * 100).toFixed(1)}%"></i><b class="ember" style="left:${((1 - f) * 100).toFixed(1)}%"></b></span><span class="stone${tick ? ' tick' : ''}${s <= 30 ? ' low' : ''}"><b>${txt}</b><i class="chip"></i></span></span>`;
+    const R = 34, C = 2 * Math.PI * R, used = (1 - f) * C, a = (1 - f) * 2 * Math.PI - Math.PI / 2, ex = 40 + Math.cos(a) * R, ey = 40 + Math.sin(a) * R;
+    let notches = ''; for (let i = 0; i < 12; i++) { const t = i / 12 * 2 * Math.PI; notches += `<path d="M${(40 + Math.cos(t) * 24).toFixed(1)} ${(40 + Math.sin(t) * 24).toFixed(1)}L${(40 + Math.cos(t) * 28).toFixed(1)} ${(40 + Math.sin(t) * 28).toFixed(1)}"/>`; }
+    return `<span class="sunstone${tick ? ' tick' : ''}${s <= 30 ? ' low' : ''}" role="timer" aria-label="${esc(label)}" style="--sz:${size}px">`
+      + `<svg viewBox="0 0 80 80" aria-hidden="true"><g class="notches">${notches}</g>`
+      + `<circle class="wick" cx="40" cy="40" r="${R}"/><circle class="ash" cx="40" cy="40" r="${R}" stroke-dasharray="${used.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/>`
+      + `<g class="ember" transform="translate(${ex.toFixed(1)} ${ey.toFixed(1)})"><circle class="glow" r="7"/><circle class="core" r="3.2"/><circle class="puff" r="3"/></g></svg>`
+      + `<b>${txt}</b><i class="chip"></i><i class="chip c2"></i></span>`;
   }
   function hud() {
     const q = campaign.frontier(), act = campaign.act(q);
@@ -63,7 +70,7 @@ export function createUI(campaign, world) {
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
     // the Council of the Sages comes in 45 minutes (the Unity game's own countdown, shown as it is there: it does not end the game)
     const left = Math.max(0, (campaign.data.durationSeconds || 2700) - campaign.state.wallSeconds), mins = Math.ceil(left / 60);
-    const council = $('council'), secs = Math.ceil(left); if (council && council.dataset.s !== String(secs)) { council.dataset.s = String(secs); council.innerHTML = `<small>Conseil des Sages</small>${fuse(left / (campaign.data.durationSeconds || 2700), secs, `Le Conseil des Sages arrive dans ${mins} minutes`, 'council')}`; }
+    const council = $('council'), secs = Math.ceil(left); if (council && council.dataset.s !== String(secs)) { council.dataset.s = String(secs); council.innerHTML = `${fuse(left / (campaign.data.durationSeconds || 2700), secs, `Le Conseil des Sages arrive dans ${mins} minutes`, 'council', 86)}<small>Conseil des Sages</small>`; }
     const done = campaign.data.quests.filter((x) => campaign.questDone(x)).length;
     $('progress').style.width = (done / campaign.data.quests.length * 100) + '%';
     root.style.setProperty('--top', Math.round($('hud').getBoundingClientRect().bottom + 40) + 'px');   // the sheet sits just under the HUD, whatever its height
@@ -115,7 +122,7 @@ export function createUI(campaign, world) {
       body.innerHTML = `<p class="kicker">Preuve vérifiée</p><h2>Carnet des Crânes</h2><p class="said">${esc(campaign.feedback)}</p>`;
       body.append(btn('Continuer', close, 'go')); return;
     }
-    const p = campaign.progress(a.id), tl = a.duration ? Math.max(0, a.duration - p.seconds) : 0, timer = a.duration ? `<p class="timer">${fuse(tl / a.duration, tl, `Il reste ${Math.ceil(tl)} secondes`, a.id)}</p>` : '';
+    const p = campaign.progress(a.id), tl = a.duration ? Math.max(0, a.duration - p.seconds) : 0, timer = a.duration ? `<p class="timer">${fuse(tl / a.duration, tl, `Il reste ${Math.ceil(tl)} secondes`, a.id, 92)}</p>` : '';
     body.innerHTML = header(a) + timer;
     if (campaign.guideOpen()) { body.append(speech('in:' + a.id, campaign.character(a.actor)?.name || 'Mathieu', a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
     if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${ico('cross', 's')}${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }
