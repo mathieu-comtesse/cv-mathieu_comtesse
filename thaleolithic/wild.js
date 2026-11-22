@@ -29,14 +29,21 @@ export const WILD = [
 ];
 export const ROLE_OF = (kind) => ROLE[kind]?.role;
 
+// each beast's gait from its own card (papercraft motion: big is slow and low, small bounds): the step length and the
+// hop and roll of the card as it goes, all from the height and width of the print
+function gaitOf(pts, sc, young = false) {
+  let x0 = Infinity, x1 = -Infinity, y1 = 0; for (const q of pts) { const x = q.x ?? q[0], y = q.y ?? q[1]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const H = y1 * sc, W = (x1 - x0) * sc, small = H < 1.2;
+  return { size: H, stepLen: Math.max(0.3, 0.38 * W), hopAmp: H * (small ? 0.14 : H < 2.4 ? 0.045 : 0.016) * (young ? 1.8 : 1), rollAmp: small ? 0.07 : H < 2.4 ? 0.04 : 0.018 };
+}
 export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, riverDist, onAttack, guarded = () => false }) {
   const agents = [];
   for (const [kind, homes, young] of WILD) homes.forEach(([x, z], k) => {
-    const R = ROLE[kind], h = popup(...beast(kind, k), { x, z, scale: kind === 'canariomys' || kind === 'hare' ? 0.8 : 1 });
-    const a = { kind, ...R, h, x, z, home: [x, z], tx: x, tz: z, face: 1, ph: Math.random() * 6, t: Math.random() * 4, state: 'roam', y: 0, seed: agents.length };
+    const R = ROLE[kind], art = beast(kind, k), sc = kind === 'canariomys' || kind === 'hare' ? 0.8 : 1, h = popup(...art, { x, z, scale: sc });
+    const a = { kind, ...R, h, x, z, home: [x, z], tx: x, tz: z, face: 1, ph: Math.random() * 6, t: Math.random() * 4, state: 'roam', y: 0, seed: agents.length, ...gaitOf(art[0], sc), gait: 0, graze: 4 + Math.random() * 6 };
     if (R.role === 'flyer') { a.ang = Math.random() * 6.283; a.y = 9; }
     agents.push(a);
-    if (young && k === 0) { const yh = popup(...beast(kind, k + 1), { x: x + 1.5, z: z + 0.8, scale: 0.5 }); agents.push({ kind, role: 'young', parent: a, h: yh, x: x + 1.5, z: z + 0.8, face: 1, ph: 0, off: [1.6, 0.9], speed: R.speed, run: R.run }); a.child = agents[agents.length - 1]; }
+    if (young && k === 0) { const yh = popup(...beast(kind, k + 1), { x: x + 1.5, z: z + 0.8, scale: 0.5 }); agents.push({ kind, role: 'young', parent: a, h: yh, x: x + 1.5, z: z + 0.8, face: 1, ph: 0, off: [1.6, 0.9], speed: R.speed, run: R.run, ...gaitOf(art[0], 0.5, true), gait: 0, graze: 3 + Math.random() * 4 }); a.child = agents[agents.length - 1]; }
   });
   const outside = (x, z) => ovalE(x, z) > 1.14;
   const pick = (a) => { for (let i = 0; i < 8; i++) { const an = Math.random() * 6.283, r = Math.random() * a.leash * 0.5, x = a.home[0] + Math.cos(an) * r, z = a.home[1] + Math.sin(an) * r; if (outside(x, z) && (a.role === 'lurker' ? riverDist(x, z) < 1.2 : riverDist(x, z) > 3.4)) return [x, z]; } return a.home.slice(); };
@@ -49,7 +56,7 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
     if (a.role !== 'lurker' && guarded(nx, nz) && !guarded(a.x, a.z)) return d;   // nor the tribe's guarded grounds and trails
     if (a.role !== 'flyer' && a.role !== 'lurker' && riverDist(nx, nz) < 2.8) return d;
     if (a.role === 'lurker' && a.state === 'hunt' && riverDist(nx, nz) > 2.4) return d;   // it hunts in the water only
-    a.x = nx; a.z = nz; a.ph += st * 2.2; if (Math.abs(dx) > 0.05) a.face = Math.sign(dx); return d;
+    a.x = nx; a.z = nz; a.ph += st / a.stepLen * Math.PI; a.moved = true; if (Math.abs(dx) > 0.05) a.face = Math.sign(dx); return d;   // the gait follows the distance, never the clock
   }
   function step(t, dt) {
     const hp = H.hero.group.position, out = ovalE(hp.x, hp.z) > 1.03 && !guarded(hp.x, hp.z), busy = cinema.playing || !!campaign.state.accident;
@@ -91,10 +98,20 @@ export function createWild({ H, world, campaign, cinema, popup, beast, ovalE, ri
         else { a.y = -0.45 + 0.06 * Math.sin(t * 0.8 + a.seed); if (a.state === 'sink' && moveTo(a, a.home[0], a.home[1], 1.2, dt) < 0.3) a.state = 'roam'; }
       }
       if (a.state === 'roam' && a.role !== 'young' && a.role !== 'flyer') { if (a.t <= 0) { a.t = 3 + Math.random() * 6; [a.tx, a.tz] = pick(a); } moveTo(a, a.tx, a.tz, a.speed, dt); }
-      // the card: it hops and rocks as it goes, turns (never edge-on), flies or lurks at its height
-      const g = a.h.group, moving = a.state !== 'roam' || Math.hypot(a.tx - a.x, a.tz - a.z) > 0.1;
-      g.position.set(a.x, (a.y || 0) + (moving && a.role !== 'flyer' && a.role !== 'lurker' ? 0.08 * Math.abs(Math.sin(a.ph)) : 0), a.z);
-      g.rotation.z = a.role === 'flyer' ? 0.15 * Math.sin(t * 2 + a.seed) : moving ? 0.05 * Math.sin(a.ph) : 0;
+      // the card, a paper puppet: its gait grows in and fades out with the distance really covered (never snaps); the
+      // small ones bound, the giants rock slowly and low; running, it leans into the chase or the charge; standing, it
+      // breathes and now and then dips its head to graze; the flyers bank and beat; the lurker floats at its height
+      const g = a.h.group, moving = !!a.moved; a.moved = false;
+      a.gait = (a.gait || 0) + ((moving ? 1 : 0) - (a.gait || 0)) * Math.min(1, dt * (moving ? 10 : 6));
+      const run = a.state === 'chase' || a.state === 'charge' || a.state === 'flee' || a.state === 'lunge' || (a.role === 'young' && a.parent?.state === 'flee') ? 1 : 0;
+      a.runK = (a.runK || 0) + (run - (a.runK || 0)) * Math.min(1, dt * 5);
+      if (!moving) { const k = Math.round(a.ph / Math.PI) * Math.PI; a.ph += (k - a.ph) * Math.min(1, dt * 10); }
+      if (!moving && a.role !== 'flyer' && a.role !== 'lurker' && a.role !== 'predator') { a.graze -= dt; if (a.graze < -1.6) a.graze = 5 + Math.random() * 7; }
+      const dip = a.state === 'stalk' ? 0.6 : a.graze < 0 ? Math.sin(Math.min(1, -a.graze / 1.6) * Math.PI) : 0;   // a stalking predator prowls low
+      const hop = (a.role === 'flyer' || a.role === 'lurker') ? 0 : (a.hopAmp ?? 0.08) * (1 + a.runK * 0.8) * a.gait * Math.abs(Math.sin(a.ph));
+      g.position.set(a.x, (a.y || 0) + hop + (a.role === 'flyer' && a.state === 'roam' ? 0.22 * Math.sin(t * 5.2 + a.seed) : 0), a.z);
+      if (a.role === 'flyer') g.rotation.z = 0.15 * Math.sin(t * 2 + a.seed) - a.face * 0.12 * a.runK;
+      else g.rotation.z = (a.rollAmp ?? 0.05) * a.gait * Math.sin(a.ph) - a.face * (0.08 * a.runK + 0.1 * dip) + (1 - a.gait) * 0.012 * Math.sin(t * 1.9 + (a.seed || 0));
       if (a.h.pivot) a.h.pivot.scale.x += ((a.face || 1) - a.h.pivot.scale.x) * Math.min(1, dt * 10), Math.abs(a.h.pivot.scale.x) < 0.3 && (a.h.pivot.scale.x = (a.face || 1) * 0.3);
     }
   }

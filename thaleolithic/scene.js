@@ -567,8 +567,8 @@ export function buildVillage(campaign) {
   for (let gz = -52; gz <= 30; gz += 3.4) for (let gx = -57; gx <= 57; gx += 3.4) {
     const x = gx + (rnd() - 0.5) * 2.4, z = gz + (rnd() - 0.5) * 2.4, e = ovalE(x, z);
     if (!H.inReach(x, z, 0.05, 4) || !free(x, z, 0.5)) continue;
-    if (e > 1.12 && (z < -24 || Math.abs(x) > 27 || z > 12) && rnd() < 0.8 && Math.hypot(x - SITES.rassemblement.x, z - SITES.rassemblement.z) > 5) { const [pts, mat] = PV[Math.floor(rnd() * PV.length)]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: true, scale: 0.85 + rnd() * 0.3, sway: 0.3 })); mark(x, z, 2.6); }
-    else if (rnd() < (e < 1 ? 0.18 : 0.35)) { popup(...(e < 1 || rnd() < 0.5 ? tuft() : rock(between(1.6, 2.6))), { x, z, scale: 0.8 + rnd() * 0.4, sway: 0.4 }); mark(x, z, 1.6); }
+    if (e > 1.12 && (z < -24 || Math.abs(x) > 27 || z > 12) && rnd() < 0.8 && Math.hypot(x - SITES.rassemblement.x, z - SITES.rassemblement.z) > 5) { const [pts, mat] = PV[Math.floor(rnd() * PV.length)]; TREES.push(Object.assign(popup(pts, null, { materials: mat, x, z, cross: true, scale: 0.85 + rnd() * 0.3, sway: 1.25 }), { baseSway: 1.25 })); mark(x, z, 2.6); }
+    else if (rnd() < (e < 1 ? 0.18 : 0.35)) { const grass = e < 1 || rnd() < 0.5; popup(...(grass ? tuft() : rock(between(1.6, 2.6))), { x, z, scale: 0.8 + rnd() * 0.4, sway: grass ? 1.0 : 0 }); mark(x, z, 1.6); }   // grass is loose, a rock never sways
   }
 
 
@@ -576,10 +576,12 @@ export function buildVillage(campaign) {
   // the river, palms and cycads to the south, ginkgos to the north
   const plant = (k) => { const Pl = PLANTS[k]; return P2.drawnPiece((g, ink) => Pl.draw(g, ink, D, P2, C), { w: Pl.w, h: Pl.h, name: k }); };
   const PL = Object.fromEntries(Object.keys(PLANTS).map((k) => { const [pts, paint] = plant(k); return [k, [pts, H.printed(pts, paint, { cross: k !== 'horsetail' })]]; }));
+  // how far each plant gives in the wind (degrees x1.6 at the harness): the tall fronds the most, the stiff cycad least
+  const PLANT_SWAY = { palm: 1.3, treeFern: 1.2, ginkgo: 1.15, horsetail: 1.05, cycad: 0.7 };
   for (let i = 0; i < 400; i++) {
     const x = -58 + rnd() * 116, z = -53 + rnd() * 86; if (ovalE(x, z) < 1.16 || !free(x, z, 0.2)) continue;
     const rv = RIVER.dist(x, z), k = rv < 9 ? (rnd() < 0.5 ? 'horsetail' : 'treeFern') : z > 8 ? (rnd() < 0.5 ? 'palm' : 'cycad') : z < -28 ? (rnd() < 0.6 ? 'ginkgo' : 'treeFern') : ['cycad', 'treeFern', 'horsetail', 'palm'][Math.floor(rnd() * 4)];
-    if (rnd() > 0.32) continue; const [pts, mat] = PL[k]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: k !== 'horsetail', scale: 0.8 + rnd() * 0.5, sway: 0.35 })); mark(x, z, 1.8);
+    if (rnd() > 0.32) continue; const [pts, mat] = PL[k], sw = PLANT_SWAY[k] ?? 1; TREES.push(Object.assign(popup(pts, null, { materials: mat, x, z, cross: k !== 'horsetail', scale: 0.8 + rnd() * 0.5, sway: sw }), { baseSway: sw })); mark(x, z, 1.8);
   }
   // ---- the paths as a network: villagers (and the GPS ribbon) go from place to place along them, not through the huts.
   // Nodes every ~2 units along each path, merged where paths meet; a route joins the start and the end to their nearest
@@ -687,7 +689,7 @@ export function buildVillage(campaign) {
     const target = weather.forced ?? (shower ? 1 : 0);
     weather.rain += (target - weather.rain) * (1 - Math.exp(-dt * 0.6)); rain.day = rain.night = weather.rain;
     weather.gust = 0.3 + 0.7 * Math.max(0, Math.sin(t * 0.21) * Math.sin(t * 0.53 + 1.3)) + 0.45 * weather.rain + weather.gustBoost;
-    for (const h of TREES) h.swayAmp = 0.3 * (0.5 + 2.0 * weather.gust);
+    for (const h of TREES) h.swayAmp = Math.min(1.55, (h.baseSway || 1) * (0.55 + 0.9 * weather.gust));   // each its own stiffness, the gusts on top, never past 2.5 deg
     const frame = Math.floor(t * 8);
     FIRES.forEach((fl, i) => fl.forEach((f, k) => { f.group.visible = k === (frame + i) % 3 && (!f.held || f.p > 0.02); }));
     if (!H.lights || !H.post) return;
@@ -958,8 +960,11 @@ export function buildVillage(campaign) {
       // it goes (never seen edge-on); the mascot scampers about its home
       if (p.dying || p.acting) continue;
       const pr = p.pr, h = p.h;
+      // the flip of a cut-out: the card narrows and widens mirrored, cut at the middle so it is never seen edge-on
+      const flipTo = (want) => { p.fl ??= want; p.fl += (want - p.fl) * Math.min(1, dt * 11); if (Math.abs(p.fl) < 0.22) p.fl = Math.sign(want) * 0.22; h.pivot.scale.x = p.fl; };
       if (!p.target) {
-        p.ph = 0;
+        // coming to rest: the stride fades and the feet come together (the phase eased to the nearest footfall)
+        p.gait = (p.gait || 0) * Math.max(0, 1 - dt * 16); const k = Math.round(p.ph / Math.PI) * Math.PI; p.ph += (k - p.ph) * Math.min(1, dt * 14);
         if (pr.wander && !p.busy && t > (p.nextWander ?? 0)) { p.nextWander = t + 2 + Math.random() * 3; const a = Math.random() * 6.283, r = 1 + Math.random() * pr.wander; p.target = [p.home[0] + Math.cos(a) * r, p.home[1] + Math.sin(a) * r]; }
         if (!p.g && pr.gesture && !p.busy && !p.beat) { p.nextG ??= t + Math.random() * pr.every; if (t > p.nextG) p.g = { k: GESTURE[pr.gesture], t0: t, knocked: 0 }; }
         let o = {};
@@ -969,11 +974,11 @@ export function buildVillage(campaign) {
           else { o = p.g.k.at(u); const kn = o.knock || []; if (p.g.knocked < kn.length && u >= kn[p.g.knocked]) { p.g.knocked++; if (Math.hypot(p.x - H.hero.group.position.x, p.z - H.hero.group.position.z) < 14) H.sfx?.play('bone', { f: 700 + Math.random() * 500, v: 0.14 }); } }
         }
         if (p.talkT > 0) { p.talkT -= dt; o = { ...o, y: (o.y || 0) + 0.07 * Math.abs(Math.sin(t * 19 + p.seed)), rz: (o.rz || 0) + 0.025 * Math.sin(t * 11) }; }   // speaking: the puppet bobs with its syllables
-        h.group.position.y = p.y0 + (o.y || 0) + (p.perch || 0);
+        h.group.position.y = p.y0 + (o.y || 0) + (p.perch || 0) + pr.hop * p.gait * Math.abs(Math.sin(p.ph));
         if (p.carving) continue;
         h.group.rotation.z = p.beat ? 0.38 * Math.sin(t * 8 + p.seed) : 0.016 * Math.sin(t * 2.0 + p.seed) + 0.008 * Math.sin(t * 1.27 + p.seed * 2) - (o.rz || 0) * p.face;
         h.group.rotation.x = (o.rx || 0) + (pr.bow || 0);   // a bearing at rest: the sage stooped, the chief's chest out
-        h.pivot.scale.x = o.flip ? -p.face : p.face;
+        flipTo(o.flip ? -p.face : p.face);
         if (p.propG) { p.propG.rotation.z = (o.prop || 0); p.propG.position.y = p.propY + (o.lift || 0); }
         if (p.map) p.map.scale.x = 0.25 + 0.75 * (o.open || 0);
         if (p.smoke) p.smoke.rotation.x = o.lift > 0.3 ? 0 : Math.PI / 2;
@@ -998,8 +1003,8 @@ export function buildVillage(campaign) {
       const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += ax * step; p.z += az * step; p.ph += step / pr.step * Math.PI;
       h.group.position.x = p.x; h.group.position.z = p.z;
       if (Math.abs(dx) > 0.2) { const want = Math.sign(dx); if (want !== p.face) p.face = want; }
-      h.pivot.scale.x = p.face;
-      h.group.position.y = p.y0 + pr.hop * Math.abs(Math.sin(p.ph)); h.group.rotation.z = pr.rock * Math.sin(p.ph) - pr.lean * p.face; h.group.rotation.x = 0;
+      flipTo(p.face); p.gait = (p.gait || 0) + (1 - (p.gait || 0)) * Math.min(1, dt * 16);   // the stride grows in, never snaps
+      h.group.position.y = p.y0 + pr.hop * p.gait * Math.abs(Math.sin(p.ph)); h.group.rotation.z = (pr.rock * Math.sin(p.ph) - pr.lean * p.face) * p.gait; h.group.rotation.x = 0;
       if (p.propG) p.propG.rotation.z = 0.12 * Math.sin(p.ph) * (pr.prop === 'beam' ? 0.3 : 1);
     }
   });
