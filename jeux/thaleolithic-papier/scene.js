@@ -38,7 +38,7 @@ export const SITES = {
   foyer: { x: 0, z: -5, label: 'Le foyer' }, grand_menhir: { x: 0, z: -18, label: 'Le Grand Menhir' }, rassemblement: { x: 12, z: 10, label: 'Point de rassemblement' },
   atelier_silex: { x: -15, z: -2, label: 'L’atelier de silex' }, pierre_carriere: { x: 22, z: -28, label: 'La carrière' }, stockage: { x: 14, z: -6, label: 'Le stockage' },
   chasse_clairiere: { x: -22, z: -29, label: 'La clairière de chasse' }, habitations: { x: 13, z: -17, label: 'Les habitations' },
-  aurelien: { x: -4, z: -10, label: 'Aurélien' }, mathieu: { x: 5, z: -2, label: 'Mathieu' }, lorette: { x: -9, z: -13, label: 'Lorette' },
+  aurelien: { x: -4, z: -10, label: 'Aurélien' }, mathieu: { x: 5, z: -2, label: 'Mathieu' }, lorette: { x: -11, z: -11.4, label: 'Lorette' },
   nork: { x: -11, z: -20, label: 'Ouways' }, alban: { x: 5, z: -17, label: 'Alban' },
   repos: { x: -8, z: 4, label: 'L’infirmerie' }, bois_construction: { x: -19, z: -11, label: 'Bûcherons' },
   berge_observation: { x: 27.8, z: -12.5, label: 'La berge' }, cimetiere: { x: 21.5, z: 14, label: 'Le cimetière' },
@@ -76,7 +76,7 @@ export function buildVillage(campaign) {
 
   // ---- the printed ground: dry grass, the beaten square, paths, the wall's ditch, garden plots, the river -----------
   const PATHS = [[[0, 11], [0, 4], [0, -5]], [[0, -5], [0, -12], [0, -18]], [[0, -5], [-7, -3], [-15, -2], [-19, -11]], [[0, -5], [7, -4], [14, -6], [13, -17]],
-    [[0, 4], [6, 8], [12, 10]], [[0, 2], [-8, 4]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -10], [-9, -13]]];
+    [[0, 4], [6, 8], [12, 10]], [[0, 2], [-8, 4]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]]];
   H.printGround(({ g, ppu, X, Z, rnd: r, washes, torn, bandOf, drifts, water }) => {
     washes([C.grassA, C.grassA, C.grassB, '#b8a77a']);
     // inside the wall the grass is trodden paler; the square is beaten earth; a ditch runs outside the stakes
@@ -152,12 +152,13 @@ export function buildVillage(campaign) {
   };
   // a house of wattle and daub on a timber frame, thatched: while it is being built the wattle shows bare and the roof
   // is half thatched over its rafters; a box fold that rises from the page like the huts
-  const daubWall = (wattle, door, seed, sign = 'hand') => (P) => {
+  const daubWall = (wattle, door, seed, sign = 'hand', tint = '#c9a476', band = null) => (P) => {
     const { box } = P, r = P2.rng(seed);
     const weave = (g, x0, x1, y0, y1) => { g.fillStyle = '#7a5a32'; g.fillRect(x0, y0, x1 - x0, y1 - y0); g.strokeStyle = '#d8b880'; g.lineWidth = 0.075; for (let y = y0 + 0.08; y < y1; y += 0.19) { g.beginPath(); for (let x = x0; x <= x1; x += 0.1) g.lineTo(x, y + Math.sin(x * 9 + y * 13) * 0.045); g.stroke(); } g.fillStyle = '#5a3a22'; for (let x = x0 + 0.3; x < x1; x += 0.6) g.fillRect(x, y0, 0.07, y1 - y0); };
     if (wattle) { P.fill('#7a5a32'); P.draw((g) => weave(g, box.x0, box.x1, box.y0, box.y1)); }
     else {
-      base2(P, '#c9a476', 0.08, 0.6); P.marks('hatch', { color: '#8a6a40', alpha: 0.18, size: 0.05, angle: 0.9 });
+      base2(P, tint, 0.08, 0.6); P.marks('hatch', { color: sh(tint, -0.35), alpha: 0.18, size: 0.05, angle: 0.9 });
+      if (band) P.layer((g) => { g.fillStyle = band; D.rect(g, box.x0, box.y0 + box.h * 0.12, box.w, box.h * 0.1, 0.02); D.rect(g, box.x0, box.y0 + box.h * 0.78, box.w, box.h * 0.06, 0.02); }, band, { lip: 0.4 });
       P.draw((g) => { for (let k = 0; k < 2; k++) { const cx = box.x0 + box.w * (0.2 + 0.55 * k + r() * 0.1), cy = box.y0 + box.h * (0.3 + r() * 0.3); g.save(); g.beginPath(); g.ellipse(cx, cy, 0.38, 0.26, r(), 0, 7); g.clip(); weave(g, cx - 0.5, cx + 0.5, cy - 0.4, cy + 0.4); g.restore(); } });
     }
     P.layer((g) => { g.fillStyle = '#5a3a22'; D.rect(g, box.x0, box.y0, 0.24, box.h); D.rect(g, box.x1 - 0.24, box.y0, 0.24, box.h); D.rect(g, box.x0, box.y0, box.w, 0.16); if (door) { D.rect(g, box.x0, box.y1 - 0.22, box.w, 0.22); g.save(); g.translate(box.x0 + 0.2, box.y0 + 0.16); g.rotate(Math.atan2(box.h - 0.4, box.w * 0.28)); D.rect(g, 0, -0.08, Math.hypot(box.w * 0.28, box.h - 0.4), 0.16); g.restore(); } }, '#5a3a22');
@@ -166,21 +167,21 @@ export function buildVillage(campaign) {
     // leaf and hand; any other house, a red hand
     if (door && !wattle && sign !== 'hand') P.layer((g) => { const hx = box.x0 + box.w * 0.8, hy = box.y0 + box.h * 0.55;
       if (sign === 'horns') { g.fillStyle = '#7a3a2a'; D.ell(g, hx, hy, 0.3, 0.36); g.fillStyle = '#ead9b8'; for (const sd of [-1, 1]) P2.fillLimb(g, hx + sd * 0.22, hy + 0.25, hx + sd * 0.7, hy + 0.35, hx + sd * 0.6, hy + 0.75, 0.1, 0.04); g.fillStyle = '#e0a24a'; D.rect(g, box.x0 + box.w * 0.08, box.y0 + box.h * 0.88, box.w * 0.84, 0.12, 0.03); }
-      if (sign === 'spiral') { g.strokeStyle = '#3a2a3a'; g.lineWidth = 0.08; g.beginPath(); for (let t = 0; t < 15; t += 0.2) { const rr = 0.025 * t; g.lineTo(hx + Math.cos(t) * rr, hy + 0.1 + Math.sin(t) * rr); } g.stroke(); g.fillStyle = '#f4ecdc'; g.beginPath(); g.moveTo(box.x0 + box.w * 0.08, hy); g.quadraticCurveTo(box.x0 + box.w * 0.18, hy + 0.3, box.x0 + box.w * 0.28, hy); g.quadraticCurveTo(box.x0 + box.w * 0.18, hy - 0.3, box.x0 + box.w * 0.08, hy); g.fill(); g.fillStyle = '#2a1a1e'; D.ell(g, box.x0 + box.w * 0.18, hy, 0.07, 0.07); }
+      if (sign === 'spiral') { g.strokeStyle = '#f4ecdc'; g.lineWidth = 0.1; g.beginPath(); for (let t = 0; t < 15; t += 0.2) { const rr = 0.025 * t; g.lineTo(hx + Math.cos(t) * rr, hy + 0.1 + Math.sin(t) * rr); } g.stroke(); g.fillStyle = '#f4ecdc'; g.beginPath(); g.moveTo(box.x0 + box.w * 0.08, hy); g.quadraticCurveTo(box.x0 + box.w * 0.18, hy + 0.3, box.x0 + box.w * 0.28, hy); g.quadraticCurveTo(box.x0 + box.w * 0.18, hy - 0.3, box.x0 + box.w * 0.08, hy); g.fill(); g.fillStyle = '#2a1a1e'; D.ell(g, box.x0 + box.w * 0.18, hy, 0.07, 0.07); }
       if (sign === 'leaf') { g.fillStyle = '#5a7a32'; P2.fillLeaf(g, hx, hy - 0.3, 0.8, Math.PI / 2, 0.4); g.fillStyle = '#c84a2a'; D.ell(g, hx, hy + 0.45, 0.14, 0.16); g.fillStyle = '#8a9a4a'; for (let k = 0; k < 3; k++) D.rect(g, box.x0 + box.w * (0.08 + k * 0.06), box.y0 + box.h * 0.55, 0.06, box.h * 0.3, 0.02); }
     }, '#c84a2a');
     if (door && !wattle && sign === 'hand') P.layer((g) => { g.fillStyle = '#c84a2a'; const hx = box.x0 + box.w * 0.8, hy = box.y0 + box.h * 0.55; D.ell(g, hx, hy, 0.18, 0.22); for (let f = 0; f < 5; f++) { const a = -0.9 + f * 0.45; D.ell(g, hx + Math.sin(a) * 0.3, hy + Math.cos(a) * 0.3, 0.05, 0.13, -a); } g.fillStyle = '#e0a24a'; D.rect(g, box.x0 + box.w * 0.12, box.y0 + box.h * 0.5, 0.5, 0.42, 0.06); }, '#c84a2a');
-    shadeIn(P, '#a07a52', 0.3);
+    shadeIn(P, wattle ? '#a07a52' : sh(tint, -0.25), 0.3);
   };
-  const thatch = (bare) => (P) => {
+  const thatch = (bare, tint = '#c8a050') => (P) => {
     const { box } = P;
     if (bare) { P.fill('#6a4a2a'); P.draw((g) => { g.fillStyle = '#4a2c1a'; for (let x = box.x0 + 0.3; x < box.x1; x += 0.7) g.fillRect(x, box.y0, 0.12, box.h); }); }
-    else base2(P, '#c8a050', 0.1, 0.4);
-    P.draw((g) => { const top = bare ? box.y0 + box.h * 0.45 : box.y1; g.fillStyle = '#c8a050'; if (bare) g.fillRect(box.x0, box.y0, box.w, top - box.y0); g.strokeStyle = 'rgba(110,72,26,.55)'; g.lineWidth = 0.05; for (let x = box.x0; x < box.x1; x += 0.085) { g.beginPath(); g.moveTo(x, box.y0); g.lineTo(x + 0.06, top); g.stroke(); } g.fillStyle = 'rgba(130,88,36,.55)'; for (let y = box.y0 + 0.45; y < top; y += 0.55) g.fillRect(box.x0, y, box.w, 0.07); });
-    shadeIn(P, '#c8a050', 0.25);
+    else base2(P, tint, 0.1, 0.4);
+    P.draw((g) => { const top = bare ? box.y0 + box.h * 0.45 : box.y1; g.fillStyle = tint; if (bare) g.fillRect(box.x0, box.y0, box.w, top - box.y0); g.strokeStyle = 'rgba(110,72,26,.55)'; g.lineWidth = 0.05; for (let x = box.x0; x < box.x1; x += 0.085) { g.beginPath(); g.moveTo(x, box.y0); g.lineTo(x + 0.06, top); g.stroke(); } g.fillStyle = 'rgba(130,88,36,.55)'; for (let y = box.y0 + 0.45; y < top; y += 0.55) g.fillRect(box.x0, y, box.w, 0.07); });
+    shadeIn(P, tint, 0.25);
   };
-  const houseOf = (x, z, { w = 4.4, d = 3.4, wallH = 2.2, roofH = 2.0, wattle = false, seed = 1, sign = 'hand', crest = null } = {}) => {
-    const g = boxFold({ w, d, wallH, roofH, overhang: 0.35, paper: H.paper, seed, print: { pxPerUnit: 36 }, paints: { front: daubWall(wattle, true, seed, sign), gable: daubWall(wattle, false, seed + 1), roof: thatch(wattle) } });
+  const houseOf = (x, z, { w = 4.4, d = 3.4, wallH = 2.2, roofH = 2.0, wattle = false, seed = 1, sign = 'hand', crest = null, wall = '#c9a476', roof = '#c8a050', band = null } = {}) => {
+    const g = boxFold({ w, d, wallH, roofH, overhang: 0.35, paper: H.paper, seed, print: { pxPerUnit: 36 }, paints: { front: daubWall(wattle, true, seed, sign, wall, band), gable: daubWall(wattle, false, seed + 1, 'hand', wall, band), roof: thatch(wattle, roof) } });
     let top = null;
     if (!wattle) {   // a chimney of daubed stones on the ridge: it rides the roof and folds flat with it; the smoke comes from its top
       const chH = roofH * 0.8, [cp, cpaint] = P2.drawnPiece((gg, ink) => { gg.fillStyle = ink('#8f8aa0'); D.poly(gg, [[-0.32, 0], [0.32, 0], [0.27, chH], [-0.27, chH]]); gg.fillStyle = ink('#c9a476'); for (let k = 0; k < 4; k++) D.rect(gg, -0.3 + (k % 2) * 0.1, k * chH / 4 + 0.05, 0.42, chH / 4 - 0.1, 0.06); gg.fillStyle = ink('#5a5470'); D.rect(gg, -0.36, chH - 0.12, 0.72, 0.18, 0.05); gg.fillStyle = ink('#2a1a1e'); D.ell(gg, 0, chH + 0.02, 0.2, 0.06); }, { w: 0.9, h: chH + 0.3, name: 'chimney' });
@@ -336,7 +337,16 @@ export function buildVillage(campaign) {
   const crestArt = { horns: () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#ead9b8'); D.ell(g, 0, 0.45, 0.42, 0.36); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.3, 0.6, sd * 1.2, 0.8, sd * 1.05, 1.5, 0.16, 0.05); g.fillStyle = ink('#2a1a1e', 'print'); D.ell(g, -0.14, 0.48, 0.08, 0.09); D.ell(g, 0.14, 0.48, 0.08, 0.09); g.fillStyle = ink('#c84a2a'); D.poly(g, [[-0.05, 0.1], [0.05, 0.1], [0, -0.3]]); }, { w: 2.8, h: 1.9, name: 'crest horns' }),
     antlers: () => P2.drawnPiece((g, ink) => { g.strokeStyle = ink('#c8a870'); g.lineWidth = 0.13; g.lineCap = 'round'; for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(sd * 0.6, 0.6, sd * 0.9, 1.6); g.moveTo(sd * 0.45, 0.55); g.lineTo(sd * 0.95, 0.7); g.moveTo(sd * 0.7, 1.0); g.lineTo(sd * 1.2, 1.2); g.moveTo(sd * 0.82, 1.35); g.lineTo(sd * 0.6, 1.75); g.stroke(); } g.fillStyle = ink('#c84a2a'); P2.fillLeaf(g, 0.2, 0.1, 0.5, -1.2, 0.3); g.fillStyle = ink('#e0a24a'); P2.fillLeaf(g, -0.2, 0.1, 0.45, -1.9, 0.3); }, { w: 2.8, h: 2.0, name: 'crest antlers' }),
     herbs: () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -1.0, 0.0, 2.0, 0.1); for (let k = 0; k < 6; k++) { g.fillStyle = ink(k % 2 ? '#6a8a3a' : '#a0a04a'); P2.fillLeaf(g, -0.85 + k * 0.34, 0.05, 0.7, Math.PI / 2 + (k % 3 - 1) * 0.2, 0.4); } }, { w: 2.4, h: 0.9, name: 'crest herbs' }) };
-  const OWN = { 0: { who: 'Chez Aurélien, le chef', sign: 'horns', crest: crestArt.horns }, 6: { who: 'Chez Alban, le chaman', sign: 'spiral', crest: crestArt.antlers, mark: 'spiral' }, 4: { who: 'Chez Mathilde, la guérisseuse', sign: 'leaf', crest: crestArt.herbs, mark: 'leaf' } };
+  // each standing household has its own colours and silhouette, seen from across the village: the chief's red ochre and
+  // the biggest of all, the shaman's dark violet and tall, the healer's pale limewash and green
+  const OWN = { 0: { who: 'Chez Aurélien, le chef', sign: 'horns', crest: crestArt.horns, hide: '#9a3a2a', r: 4.0, wall: '#c06a44', roof: '#d8a038', band: '#e0a24a', scale: { w: 1.85, d: 1.25, wallH: 1.45, roofH: 1.35 } },
+    6: { who: 'Chez Alban, le chaman', sign: 'spiral', crest: crestArt.antlers, mark: 'spiral', wall: '#4e4462', roof: '#6a5a48', band: '#f4ecdc', scale: { w: 1.25, d: 1.1, wallH: 1.45, roofH: 2.0 } },
+    4: { who: 'Chez Mathilde, la guérisseuse', sign: 'leaf', crest: crestArt.herbs, mark: 'leaf', hide: '#d8c8a0', r: 2.8, wall: '#ece4cc', roof: '#8a9a52', band: '#6a8a3a', scale: { w: 1.35, d: 1.15, wallH: 1.0, roofH: 0.95 } } };
+  const SMOKE = { violet: [], steam: [] };   // emitters standing up only while their piece stands
+  const emitAt = (kind, h, x, y, z, obj = null) => { const o = obj || new THREE.Object3D(); if (!obj) { o.position.set(x, y, z); H.scene.add(o); } SMOKE[kind].push({ h, o }); };
+  const boneFence = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.bone); for (let k = 0; k < 9; k++) { const x = -3.2 + k * 0.8, hh = 0.9 + (k % 2) * 0.35; D.rect(g, x - 0.09, 0, 0.18, hh, 0.06); D.ell(g, x, hh, 0.16, 0.12); } g.fillStyle = ink('#c84a2a'); D.rect(g, -3.3, 0.45, 6.6, 0.08); }, { w: 7.0, h: 1.5, name: 'bone fence' });
+  const steamPot = () => P2.drawnPiece((g, ink) => { g.strokeStyle = ink('#5a3a22'); g.lineWidth = 0.1; g.lineCap = 'round'; for (const sd of [-1, 0.1, 1]) { g.beginPath(); g.moveTo(sd * 0.7, 0); g.lineTo(0, 1.7); g.stroke(); } g.fillStyle = ink('#6a4a3a'); D.ell(g, 0, 0.75, 0.5, 0.42); g.fillStyle = ink('#8a9a4a'); D.ell(g, 0, 1.05, 0.42, 0.1); g.fillStyle = ink('#f08a3a'); D.ell(g, 0, 0.15, 0.3, 0.1); }, { w: 1.8, h: 1.9, name: 'steam pot' });
+  const herbBeds = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#7a5a3a'); D.rect(g, -2.0, 0, 4.0, 0.22, 0.08); for (let k = 0; k < 11; k++) { g.fillStyle = ink(k % 3 === 0 ? '#c86a8a' : k % 2 ? '#6a8a3a' : '#8aaa4a'); P2.fillLeaf(g, -1.8 + k * 0.36, 0.18, 0.55 + (k % 3) * 0.15, Math.PI / 2 + (k % 2 ? 0.25 : -0.25), 0.4); } }, { w: 4.4, h: 1.1, name: 'herb beds' });
   const tuskArch = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.bone); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 1.9, 0, sd * 2.2, 2.6, sd * 0.15, 3.6, 0.36, 0.1); g.fillStyle = ink('#c84a2a'); D.rect(g, -0.3, 3.3, 0.6, 0.3, 0.05); g.fillStyle = ink('#5a3a22'); D.rect(g, -2.3, 0, 0.5, 0.3, 0.1); D.rect(g, 1.8, 0, 0.5, 0.3, 0.1); }, { w: 5.0, h: 3.9, name: 'tusk arch' });
   const skullPole = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.1, 0, 0.2, 3.2); g.fillStyle = ink(C.bone); D.ell(g, 0, 3.35, 0.42, 0.36); D.rect(g, -0.2, 2.95, 0.4, 0.3, 0.06); for (const sd of [-1, 1]) P2.fillLimb(g, sd * 0.3, 3.5, sd * 1.1, 3.7, sd * 1.0, 4.3, 0.14, 0.05); g.fillStyle = ink('#2a1a1e', 'print'); D.ell(g, -0.14, 3.38, 0.08, 0.09); D.ell(g, 0.14, 3.38, 0.08, 0.09); g.fillStyle = ink('#c84a2a'); for (let k = 0; k < 3; k++) D.poly(g, [[0.1, 2.6 - k * 0.3], [0.7, 2.45 - k * 0.3], [0.1, 2.4 - k * 0.3]]); }, { w: 2.6, h: 4.5, name: 'skull pole' });
   const banner = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.08, 0, 0.16, 4.4); D.rect(g, -0.08, 4.0, 1.7, 0.12); g.fillStyle = ink('#9a3328'); D.poly(g, [[0.05, 4.0], [1.55, 4.0], [1.5, 2.3], [0.8, 2.6], [0.1, 2.3]]); g.fillStyle = ink('#e0a24a', 'print'); D.ell(g, 0.8, 3.4, 0.22, 0.26); for (let f = 0; f < 5; f++) { const a = -0.9 + f * 0.45; D.ell(g, 0.8 + Math.sin(a) * 0.36, 3.4 + Math.cos(a) * 0.36, 0.06, 0.15, -a); } }, { w: 2.0, h: 4.6, name: 'banner' });
@@ -348,16 +358,18 @@ export function buildVillage(campaign) {
   const stretcher = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); for (const sd of [-1, 1]) { D.poly(g, [[sd * 1.2 - 0.1, 0], [sd * 1.2 + 0.1, 0], [sd * 1.0 + 0.05, 0.6], [sd * 1.0 - 0.1, 0.6]]); } D.rect(g, -1.7, 0.6, 3.4, 0.1); g.fillStyle = ink('#b8885a'); D.rect(g, -1.4, 0.68, 2.8, 0.18, 0.05); g.fillStyle = ink('#7a8a4a', 'print'); D.rect(g, -0.4, 0.68, 0.8, 0.18); }, { w: 3.6, h: 1.0, name: 'stretcher' });
   const bedsPorch = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); for (const x of [-2.0, 2.0]) D.rect(g, x - 0.1, 0, 0.2, 2.2); g.fillStyle = ink('#8a5a3a'); D.poly(g, [[-2.4, 2.1], [2.4, 2.3], [2.4, 2.65], [-2.4, 2.45]]); for (const x of [-1.2, 0.2]) { g.fillStyle = ink('#d8b870'); D.rect(g, x - 0.6, 0, 1.2, 0.35, 0.12); g.fillStyle = ink('#a05a3a'); D.rect(g, x - 0.3, 0.25, 0.85, 0.18, 0.06); } g.fillStyle = ink('#6a8a3a'); for (let k = 0; k < 6; k++) P2.fillLeaf(g, -2.0 + k * 0.8, 2.15, 0.55, -Math.PI / 2, 0.4); g.fillStyle = ink('#b8683a'); D.ell(g, 1.6, 0.35, 0.3, 0.35); }, { w: 5.0, h: 2.9, name: 'beds porch' });
   HUTS.forEach(([x, z, r, hide, m], i) => {
+    if (OWN[i]?.hide) hide = OWN[i].hide;
     mark(x, z, r + 1.4);
     const [t1, t2] = i === 0 ? [quest('V17_EVALUATION'), quest('V17_IMPROVEMENT')] : i % 2 ? [quest('V17_SUPPORT'), quest('V17_OPERATIONS')] : [quest('V17_OPERATIONS'), quest('V17_IMPROVEMENT')];
-    const big = i === 0 ? 1.25 : 1, size = { w: r * 1.6 * big, d: r * 1.15 * big, wallH: 2.0 * big, roofH: 1.9 * big };
+    const own0 = OWN[i], k = own0?.scale || { w: 1, d: 1, wallH: 1, roofH: 1 }, size = { w: r * 1.6 * k.w, d: r * 1.15 * k.d, wallH: 2.0 * k.wallH, roofH: 1.9 * k.roofH };
+    if (own0?.r) r = own0.r;
     const slot = { i, x, z };
     const own = OWN[i], fz = z + size.d / 2 + 0.9;   // in front of the door
     staged(t1, () => {
-      if (i === 6) { popup(...tipi(), { x, z, cross: true }); popup(...drum(), { x: x + 2.4, z: z + 1.6 }); popup(...spiritPoles(), { x: x - 2.6, z: z + 1.2 }); walk.solid(x, z, 2.0); }
+      if (i === 6) { const tp = popup(...tipi(), { x, z, cross: true, scale: 1.45 }); emitAt('violet', tp, x, 9.4, z); popup(...drum(), { x: x + 3.0, z: z + 1.8 }); popup(...spiritPoles(), { x: x - 3.2, z: z + 1.2 }); popup(...spiritPoles(), { x: x + 3.4, z: z - 1.0, scale: 0.9 }); walk.solid(x, z, 2.6); }
       else hut(x, z, r, { hide, mark: own?.mark || m });
-      if (i === 0) { popup(...tuskArch(), { x, z: z + r * 0.95, yaw: 0 }); popup(...skullPole(), { x: x + r + 0.9, z: z + 1.2 }); popup(...banner(), { x: x - r - 0.8, z: z + 0.8 }); }
-      if (i === 4) { popup(...herbRack(), { x: x + r + 0.6, z: z + 0.8 }); popup(...stretcher(), { x: x - 0.3, z: z + r + 1.4 }); }
+      if (i === 0) { popup(...tuskArch(), { x, z: z + r * 0.95, yaw: 0, scale: 1.35 }); popup(...skullPole(), { x: x + r + 0.9, z: z + 1.2, scale: 1.5 }); popup(...banner(), { x: x - r - 0.8, z: z + 0.8, scale: 1.3 }); popup(...banner(), { x: x + r + 0.6, z: z - 1.6, scale: 1.1 }); popup(...boneFence(), { x, z: z + r + 2.0, scale: 1.1 }); }
+      if (i === 4) { popup(...herbRack(), { x: x + r + 0.6, z: z + 0.8 }); popup(...stretcher(), { x: x - 0.3, z: z + r + 1.4 }); popup(...herbBeds(), { x: x - r - 1.6, z: z + 1.4 }); const sp = popup(...steamPot(), { x: x + r + 0.9, z: z + 2.4 }); emitAt('steam', sp, x + r + 0.9, 1.2, z + 2.4); }
     }, { undo: true, slot: { ...slot, kind: 'hut' } });
     staged(() => t1() && !t2(), () => {
       houseOf(x, z - 0.3, { ...size, wattle: true, seed: 900 + i * 7 });
@@ -366,10 +378,11 @@ export function buildVillage(campaign) {
       if (i === 4) popup(...herbRack(), { x: x + size.w / 2 + 0.6, z: z + 0.8 });
     }, { slot: { ...slot, kind: 'wattle' } });
     staged(t2, () => {
-      const c = houseOf(x, z - 0.3, { ...size, seed: 950 + i * 7, sign: own?.sign || 'hand', crest: own?.crest || null }); c.dummy = new THREE.Object3D(); c.top.add(c.dummy); CHIMNEYS.push(c);
-      if (i === 0) { popup(...porch(), { x, z: fz, yaw: 0, scale: 1.1 }); popup(...skullPole(), { x: x + size.w / 2 + 1.2, z: z + 1.2 }); popup(...banner(), { x: x - size.w / 2 - 1.1, z: z + 1.0 }); }
-      if (i === 6) { popup(...spiritPoles(), { x: x - size.w / 2 - 1.0, z: z + 1.0 }); popup(...drum(), { x: x + size.w / 2 + 0.8, z: z + 1.3 }); }
-      if (i === 4) { popup(...bedsPorch(), { x: x + 0.2, z: fz + 0.3 }); popup(...herbRack(), { x: x + size.w / 2 + 0.9, z: z + 0.8 }); }
+      const c = houseOf(x, z - 0.3, { ...size, seed: 950 + i * 7, sign: own?.sign || 'hand', crest: own?.crest || null, wall: own?.wall, roof: own?.roof, band: own?.band });
+      if (i === 6) { const v = new THREE.Object3D(); c.top.add(v); emitAt('violet', c.h, 0, 0, 0, v); } else { c.dummy = new THREE.Object3D(); c.top.add(c.dummy); CHIMNEYS.push(c); }
+      if (i === 0) { popup(...porch(), { x, z: fz, yaw: 0, scale: 1.3 }); popup(...skullPole(), { x: x + size.w / 2 + 1.2, z: z + 1.2, scale: 1.5 }); popup(...banner(), { x: x - size.w / 2 - 1.1, z: z + 1.0, scale: 1.3 }); popup(...banner(), { x: x + size.w / 2 + 0.5, z: z - 1.8, scale: 1.1 }); popup(...boneFence(), { x, z: fz + 2.2, scale: 1.1 }); }
+      if (i === 6) { popup(...spiritPoles(), { x: x - size.w / 2 - 1.0, z: z + 1.0 }); popup(...spiritPoles(), { x: x + size.w / 2 + 1.0, z: z - 1.0, scale: 0.9 }); popup(...drum(), { x: x + size.w / 2 + 0.8, z: z + 1.6 }); }
+      if (i === 4) { popup(...bedsPorch(), { x: x + 0.2, z: fz + 0.3 }); popup(...herbRack(), { x: x + size.w / 2 + 0.9, z: z + 0.8 }); popup(...herbBeds(), { x: x - size.w / 2 - 1.8, z: z + 1.4 }); const sp = popup(...steamPot(), { x: x + size.w / 2 + 1.2, z: fz + 1.0 }); emitAt('steam', sp, x + size.w / 2 + 1.2, 1.2, fz + 1.0); }
     }, { slot: { ...slot, kind: 'torchis' } });
   });
   // ---- the sanctuary: the Grand Menhir at the far end; the policy tablet appears once the duel is won ---------------
@@ -590,6 +603,9 @@ export function buildVillage(campaign) {
   life.mist({ count: 6, y: 0.7, alpha: 0.08, color: '#d8c8d8' });
   // smoke from the houses' roofs, only once they stand (a marker laid flat until then: the kit puffs only upright emitters)
   H.onStep(() => { for (const c of CHIMNEYS) c.dummy.rotation.x = !c.h.held && c.h.p > 0.9 ? 0 : Math.PI / 2; });
+  H.onStep(() => { for (const k of ['violet', 'steam']) for (const e of SMOKE[k]) e.o.rotation.x = !e.h.held && e.h.p > 0.9 ? 0 : Math.PI / 2; });
+  if (SMOKE.violet.length) life.puffs({ at: SMOKE.violet.map((e) => ({ object: e.o, offset: [0, 0, 0] })), perEmitter: 4, life: 5, rise: 0.5, size: [0.3, 0.55], colors: ['#8a6aa8', '#a88ac0', '#6a5a8a'] });
+  if (SMOKE.steam.length) life.puffs({ at: SMOKE.steam.map((e) => ({ object: e.o, offset: [0, 0, 0] })), perEmitter: 3, life: 2.5, rise: 0.6, size: [0.15, 0.3], colors: ['#f4f0ec', '#e8e4ec'] });
   if (CHIMNEYS.length) life.puffs({ at: CHIMNEYS.map((c) => ({ object: c.dummy, offset: [0, 0, 0] })), perEmitter: 3, life: 4.5, rise: 0.45, size: [0.22, 0.4], colors: ['#d8c8c0', '#c8b8b8'] });
   life.reset(H.target);
   H.onStep((t, dt) => life.update(dt, H.target));
