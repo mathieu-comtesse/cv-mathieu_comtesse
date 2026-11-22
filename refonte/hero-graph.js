@@ -1,8 +1,74 @@
-/* Graphe de l'accueil en mode à plat. Code original : même système d'étoiles que le chemin 3D (refonte/moteur.js, classe Ciel),
- * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
- * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
- * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
+/* Graphe à plat. Les foyers et vignettes utilisent la même constellation que le chemin Expo. */
 import { CielExpo } from './ciel-expo.js?v=12';
+
+const borne = t => Math.max(0, Math.min(1,t));
+const lisse = t => { const t0=borne(t); return t0*t0*(3-2*t0); };
+const imagesCles = fabrique => Array.from({length:21},(_,i)=>({offset:i/20,...fabrique(i/20)}));
+
+function entreeAccueil(zone, reduit) {
+  const hero=zone.closest('#hero');
+  if(!hero||reduit.matches||innerWidth<940||scrollY>4)return;
+  const items=[...hero.querySelectorAll('.hero-entrance-item')];
+  const wordmark=hero.querySelector('.hero-logo.global-lg\\:block')||hero.querySelector('.hero-logo');
+  const tagline=hero.querySelector('.hero-tagline');
+  const rect=zone.getBoundingClientRect(), width=document.documentElement.clientWidth;
+  if(!items.length||rect.width<120)return;
+  const travel=rect.left-(width-rect.right);
+  const temps = seconds => seconds/1.18*1000;
+  const timing={delay:temps(1.4),duration:temps(1.2),easing:'cubic-bezier(.83,0,.17,1)',fill:'backwards'};
+  const cover=document.createElement('div');
+  cover.className='cv-hero-intro-cover';
+  cover.setAttribute('aria-hidden','true');
+  Object.assign(cover.style,{left:'10px',top:rect.top+'px',width:Math.max(0,rect.left-10)+'px',height:rect.height+'px'});
+  zone.prepend(cover);
+  hero.setAttribute('data-cv-intro','');
+  const curtain=cover.animate([{transform:'scaleX(1)'},{transform:'scaleX(0)'}],{...timing,fill:'both'});
+  const animations=[curtain];
+  const widgetFrames=imagesCles(t=>({
+    transform:'translateX('+(-1.11*travel*(1-t))+'px)',
+    marginLeft:(-65*(1-t)**1.5)+'%',
+    opacity:lisse(t*2)
+  }));
+  for(const [i,item] of items.entries())animations.push(item.animate(widgetFrames,{...timing,delay:temps(1.4+.08*i)}));
+  if(wordmark)animations.push(wordmark.animate(imagesCles(t=>({
+    transform:'translateX('+(-140*(1-t))+'px)',opacity:lisse(t*2)
+  })),{...timing,delay:temps(1.75),duration:temps(1.05)}));
+  const wordmarkWidth=wordmark?.getBoundingClientRect().width;
+  if(tagline&&wordmarkWidth){
+    const span=1.2+.08*(items.length-1),count=Math.ceil(temps(span)*.06);
+    const widgetWidth=items[0].offsetWidth;
+    const frames=Array.from({length:count+1},(_,i)=>{
+      const seconds=i/count*span;
+      let intrusion=0;
+      for(let j=0;j<items.length;j++){
+        const t=borne((seconds-j*.08)/1.2);
+        const remaining=1-(t<.5?16*t**5:1-(-2*t+2)**5/2);
+        intrusion=Math.min(intrusion,-1.11*travel*remaining-.65*widgetWidth*remaining**1.5);
+      }
+      return {opacity:lisse((1+intrusion/wordmarkWidth-.72)/.28)};
+    });
+    animations.push(tagline.animate(frames,{delay:timing.delay,duration:temps(span),fill:'backwards'}));
+  }
+  let actif=true;
+  const events=new AbortController();
+  function termine(){
+    if(!actif)return;
+    actif=false;
+    for(const animation of animations)animation.cancel();
+    cover.remove();
+    hero.removeAttribute('data-cv-intro');
+    events.abort();
+  }
+  for(const type of ['wheel','touchstart','keydown','resize','pointerdown'])addEventListener(type,termine,{once:true,passive:true,signal:events.signal});
+  addEventListener('scroll',()=>{if(scrollY>4)termine();},{passive:true,signal:events.signal});
+  reduit.addEventListener('change',termine,{once:true,signal:events.signal});
+  Promise.allSettled(animations.map(a=>a.finished)).then(termine);
+  return {
+    decalage:()=>actif?travel*(1-(curtain.effect.getComputedTiming().progress??0))*.5:0,
+    enCours:()=>actif,
+    termine
+  };
+}
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -16,7 +82,8 @@ export function demarre(chapitres) {
   etiquette.className = 'cv-graph-hover';
   etiquette.setAttribute('aria-hidden','true');
   document.body.append(etiquette);
-  const arrivee = performance.now();
+  const entree=entreeAccueil(zone,reduit);
+  const arrivee=performance.now();
   let W = 0, H = 0, dpr = 1, vu = false, dernier = 0;
   /* le canevas n'occupe que la partie libre de la zone : à droite du nom et des cartes quand ils la recouvrent (grand écran) */
   let largeurVue = 0;
@@ -57,20 +124,12 @@ export function demarre(chapitres) {
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + .8 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
-    const reveal=reduit.matches||scrollY>4?1:Math.min(1,Math.max(0,(t-arrivee-650)/1250));
-    ciel.place('accueil',[W/2,H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
-      largeur:W*.51,hauteur:H*.48,etalement:(.36+.64*(1-(1-reveal)**3))*ouvre
+    const reveal=entree?.enCours()?lisse((t-arrivee)/1017):1;
+    ciel.place('accueil',[W/2-(entree?.decalage()||0),H*.5,Math.min(H*.12,90)],Math.min(W,H)*.48,{
+      largeur:W*.51,hauteur:H*.48,etalement:ouvre
     });
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
     ciel.dessine(ctx,proj,reduit.matches?null:t/1000,{souris,W,H,dt,plat:true,ouverture:reveal});
-  }
-  if(!reduit.matches&&scrollY<4&&innerWidth>=940&&matchMedia('(pointer:fine)').matches){
-    const widgets=[...document.querySelectorAll('#hero .hero-sidebar nav,#hero .hero-widgets figure')];
-    const marque=document.querySelector('#hero h1');
-    for(const [i,item] of [...widgets,marque].entries()){
-      item?.animate([{opacity:0,transform:'translate3d(-22px,9px,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],
-        {delay:1400+i*80,duration:1200,fill:'backwards',easing:'cubic-bezier(.83,0,.17,1)'});
-    }
   }
   requestAnimationFrame(image);
   window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };

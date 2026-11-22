@@ -1,4 +1,6 @@
+import {poussiere,notesCadre} from './card-effects.js?v=1';
 import { fonduChapitre } from './moteur.js?v=m35';
+import { avanceBranche, brancheCarte } from './card-wires.js?v=1';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
@@ -165,7 +167,7 @@ function scene(chapitres) {
   cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
   document.body.append(cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '';
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '', liensLus = 0;
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -256,6 +258,24 @@ function scene(chapitres) {
       ctx.restore();
     }
     nav.classList.toggle('vu', vuNav); for (const c of chapitres) c.lien.classList.toggle('actif', c === actif);
+    liensLus=0;
+    poussiere(ctx,W,H,libre?tt:null,scrollY);
+    const notes=[];
+    if(vuNav&&W>=940)for(const c of chapitres){
+      const r=c.lien.getBoundingClientRect(),a={x:r.right-2,y:r.top+r.height/2};
+      const depart=c.section===actif?.section;
+      for(const card of c.fiches){
+        const marker=card.querySelector(':scope > [data-card-marker]');
+        const dot=marker?.getBoundingClientRect();
+        if(!dot?.width||dot.top<54||dot.top>H)continue;
+        const b={x:dot.left+dot.width/2,y:dot.top+dot.height/2};
+        const fiche=card.querySelector('[data-fiche]');
+        if(fiche){const edge=card.getBoundingClientRect();notes.push({element:fiche,x:edge.right,y:b.y,bottom:edge.bottom});}
+        if(brancheCarte(ctx,a,b,{t:libre?tt:null,id:card.id,progress:avanceBranche(b.y,H,!libre),active:depart,pointer:souris}))liensLus++;
+      }
+    }
+    notesCadre(ctx,notes,W,H,souris);
+
     /* le curseur n'est modifié que par celui qui l'a posé : le graphe de l'accueil gère le sien (main ouverte, main fermée) */
     const dessus = cibles.some((q) => Math.hypot(q.x - souris.x, q.y - souris.y) < 16); if (dessus !== curseurPose) { curseurPose = dessus; document.documentElement.style.cursor = dessus ? 'pointer' : ''; }
   }
@@ -266,6 +286,6 @@ function scene(chapitres) {
     const q = cibles.find((q) => Math.hypot(q.x - ev.clientX, q.y - ev.clientY) < 16); if (!q) return;
     ev.preventDefault(); q.fiche.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' });
   }, { capture: true });
-  window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length };
+  window.__cvStarScene = { etat: () => chapitres.map((c) => { const T = c.titre.getBoundingClientRect(); return { titre: c.nom, u: +((H - T.top) / H).toFixed(2), remplissage: +c.titre.style.getPropertyValue('--cv-fill'), fiches: c.fiches.length, branches: c.branches.length }; }), vignettes: () => cibles.length, liens:()=>liensLus };
 }
 if (document.readyState === 'loading') addEventListener('DOMContentLoaded', installe); else installe();

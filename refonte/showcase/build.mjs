@@ -34,6 +34,12 @@ export function showcaseHTML(slug, ctx) {
   const con = c.console ? `<figure class="sc-win sc-console" data-kind="console" data-step="${c.console.step}" style="${box(c.console.box, c.console.a)}" aria-label="${esc(c.console.title)} : animation pédagogique du déroulé"><div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">${esc(c.console.title)}</span><em class="sc-badge" data-status="demo">Animation pédagogique</em></div>` +
     `<ol class="sc-log" data-lines="${q(JSON.stringify(lines))}">${lines.map((l) => `<li><span class="sc-p">✓</span>${l}</li>`).join('')}</ol></figure>` : '';
   const res = c.layout === 'finance' ? '' : `<aside class="sc-result" data-step="${N}" aria-label="Résultat"><small>Résultat</small><b>${ctx.result.title}</b>${ctx.result.text ? `<p>${ctx.result.text}</p>` : ''}<a class="sc-fiche" href="${slug}.html">Fiche complète du projet</a></aside>`;
+  const camera = c.camera ? `<figure class="sc-camera" data-camera="${esc(JSON.stringify(c.camera.waypoints))}" data-actions="${esc(JSON.stringify(c.camera.actions))}">
+    <div class="sc-bar"><i></i><i></i><i></i><span class="sc-title">Point financier · exécution CS V8</span><em class="sc-badge">Test</em></div>
+    <div class="sc-address">make.powerautomate.com</div>
+    <div class="sc-camera-viewport"><img src="${esc(c.camera.src)}" width="${c.camera.width}" height="${c.camera.height}" alt="Canevas complet de l’exécution de test dans le vrai Power Automate" loading="lazy" decoding="async" draggable="false"></div>
+    <figcaption><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" d="m3 8 3 3 7-7"/></svg><span>${esc(c.camera.waypoints[0][3])}</span></figcaption>
+  </figure>` : '';
   const tabs = c.steps.map((t, i) => `<button type="button" role="tab" data-go="${i + 1}" aria-selected="${i === N - 1}"><i>${i + 1}</i>${esc(t)}</button>`).join('');
   const kinds = [...new Set(c.windows.map((w) => w.status))];
   const legend = [
@@ -44,7 +50,7 @@ export function showcaseHTML(slug, ctx) {
     kinds.includes('missing') && 'Captures à compléter'
   ].filter(Boolean).join(' · ');
   return `<section class="cv-pframe cv-pf-showcase" data-showcase="${slug}" data-steps="${N}" data-layout="${c.layout}"${c.auto ? ' data-sc-auto' : ''} style="--html-in-canvas-rise:.5" aria-label="${esc(c.label)}">` +
-    `<div class="sc-stage" data-step="${N}">${wins.map(win).join('')}${con}${res}</div>` +
+    `<div class="sc-stage" data-step="${N}">${wins.map(win).join('')}${con}${res}${camera}</div>` +
     `<div class="sc-tabs" role="tablist" aria-label="Étapes du traitement">${tabs}</div>` +
     `<p class="cv-pf-note sc-note">${esc(c.note || legend)}</p></section>`;
 }
