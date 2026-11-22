@@ -51,6 +51,8 @@ export const SFX = {
   },
   // the paper ghost: a wobbling, rising moan
   ghost(ac, out, t, { v = 0.12, dur = 2.4 } = {}) { const o = osc(ac, 'sine', 320, t, dur); o.frequency.exponentialRampToValueAtTime(760, t + dur); const l = osc(ac, 'sine', 6.5, t, dur), lg = ac.createGain(); lg.gain.value = 22; chain(l, lg); lg.connect(o.frequency); chain(o, env(ac, t, 0.4, dur - 0.9, 0.5, v), out); },
+  // water thrown on embers: a splash, then a long hiss of steam that dies away
+  hiss(ac, out, t, { v = 0.3, dur = 1.4 } = {}) { chain(src(ac, t, 0.18, 0.8), filt(ac, 'lowpass', 900, 1), env(ac, t, 0.004, 0.03, 0.15, v * 0.9), out); const b = filt(ac, 'highpass', 3800, 0.7); chain(src(ac, t + 0.05, dur, 1.3), b, env(ac, t + 0.05, 0.06, dur * 0.2, dur * 0.8, v * 0.6), out); },
   // a slide whistle down: beaten
   slide(ac, out, t, { v = 0.15 } = {}) { const o = osc(ac, 'triangle', 1300, t, 1.0); o.frequency.exponentialRampToValueAtTime(240, t + 0.9); chain(o, env(ac, t, 0.02, 0.6, 0.3, v), out); },
   // the tribe shouts and sings: a short vowel chord

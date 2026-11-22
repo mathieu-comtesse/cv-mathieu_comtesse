@@ -50,8 +50,8 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
   }
   const Q = menhir.questions || [];
   custom.GRAVURE = { title: 'Le menhir est gravé', shots: [...Q.map((q) => ({ speaker: `${q.clause} ${q.title}`, subtitle: (q.answers.find((a) => a.quality === 2) || {}).text || '' })), { speaker: '', subtitle: 'La politique de la tribu est gravée dans la pierre, à la vue de tous.' }],
-    spec: [{ from: [0, -15, 26, 3], to: [0, -21.5, 14, 4], dur: 2.6, line: null, at: () => { world.engraving.cine = true; sfx?.play('stinger'); } },
-      ...Q.map((_, k) => ({ from: [0, -22.2, 10.5, 1.9 + k * 1.32], to: [0.2, -22.3, 9.5, 1.9 + k * 1.32], dur: 3.2, line: k, at: () => world.engraving.show(k) })),   // on the stone's face, plaque by plaque
+    spec: [{ from: [0, -15, 26, 3], to: [0, -21.5, 14, 4], dur: 2.6, line: null, at: () => { world.engraving.cine = true; world.engraving.hideAll(); sfx?.play('stinger'); const o = world.people.nork; if (o && !o.dying) { o.busy = true; o.target = [-1.6, -21.2]; } } },
+      ...Q.map((_, k) => ({ pin: k, from: [-0.7, 0, 8.6], to: [-0.45, 0, 7.6], dur: 3.4, line: k, at: () => world.engraving.show(k, true, 2.9) })),   // on the stone where it is cut, Ouways at work on his ladder
       { from: [0, -22, 13, 4.5], to: [0, -20, 22, 4.5], dur: 3.5, line: Q.length, at: () => sfx?.play('chant', { dur: 1.6 }) }] };
   const ctl = {
     sfx,
@@ -61,12 +61,16 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     stumble(id) { const p = world.people[id]; if (!p) return; p.busy = true; p.target = [p.x + 2.2, p.z + 0.4]; setTimeout(() => { p.target = null; p.h.set(0, 0); sfx?.play('log'); sfx?.play('crumple', { v: 0.25 }); }, 700); setTimeout(() => { p.h.set(1, 0); }, 3200); },
     rain(sec) { world.weather.forced = 1; world.weather.metamorph = sec; setTimeout(() => { world.weather.forced = null; }, sec * 1000); },
   };
+  // a close shot on the stone wants it sharp from top to bottom: the lens's band widens for the cinematic
+  let lens0 = null;
+  const sharpen = (on) => { const P = world.H.post; if (!P) return; if (on && !lens0) { lens0 = { focusBand: P.o.focusBand, maxBlur: P.o.maxBlur }; Object.assign(P.o, { focusBand: 0.85, maxBlur: 5 }); P.apply(); } else if (!on && lens0) { Object.assign(P.o, lens0); lens0 = null; P.apply(); } };
   function start(id) {
     const cu = custom[id], spec = cu ? cu.spec : SCRIPTS[id], c = cu || shots[id]; if (!spec || !c) return false;
     if (run) { if (run.id !== id && !queue.includes(id)) queue.push(id); return true; }
     campaign.state.flags['cine:' + id] = true;
     ui.close(); document.body.classList.add('cine-on'); root.hidden = false; root.classList.remove('out'); void root.offsetWidth; root.classList.add('in');
     title.textContent = clean(c.title); delete title.dataset.cut; cutLetters(title, { chips: true });
+    if (id === 'GRAVURE') sharpen(true);
     run = { id, spec, c, k: -1, t: 0 }; next(); return true;
   }
   function next() {
@@ -78,7 +82,7 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     sh.at?.(ctl); sh.act?.(ctl);
   }
   function stop() {
-    if (!run) return; if (run.id === 'GRAVURE') { world.engraving.cine = false; world.engraving.showAll(false); } run = null; root.classList.remove('in'); root.classList.add('out');
+    if (!run) return; if (run.id === 'GRAVURE') { world.engraving.cine = false; world.engraving.release(); world.engraving.showAll(false); } sharpen(false); run = null; root.classList.remove('in'); root.classList.add('out');
     setTimeout(() => { if (run) return; root.hidden = true; root.classList.remove('out'); document.body.classList.remove('cine-on'); }, 450);   // unless another began
     for (const p of Object.values(world.people)) if (p.busy && !p.dying) { p.busy = false; p.target = p.home.slice(); }
     world.H.unlook();
@@ -92,7 +96,8 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
       if (waitDuel && ui.mode !== 'duel') { waitDuel = false; start('GRAVURE'); }
       if (!run) return; const sh = run.spec[run.k]; run.t += dt;
       const u = ease(Math.min(1, run.t / sh.dur)), at = sh.from.map((v, i) => v + (sh.to[i] - v) * u);
-      world.H.look(at[0], at[1], at[2], at[3]);
+      if (sh.pin != null) { const c = world.engraving.cards[sh.pin], w = c.getWorldPosition(c.userData.wp ??= c.position.clone()); world.H.look(w.x + at[0], w.z + at[1], at[2], w.y); }
+      else world.H.look(at[0], at[1], at[2], at[3]);
       if (run.t >= sh.dur) next();
     },
     // which cinematic a change of the campaign calls for: the opening on a new game, then after these quests
