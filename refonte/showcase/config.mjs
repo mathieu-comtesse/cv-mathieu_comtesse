@@ -11,19 +11,23 @@ const IMG = (slug, n) => ({ src: `assets/showcase/${slug}/${n}.webp`, big: `asse
 const NIS = 'Nisaru (R27), capture d’un fichier HTML ouvert hors connexion : écran sans rapport chargé, elle ne prouve pas un traitement. ';
 const V11 = 'Metadata Studio V11 (outil distinct de l’extracteur CERFA v3 décrit dans la fiche), capture d’un fichier HTML ouvert hors connexion, sans document chargé : elle ne prouve pas un traitement. ';
 const FIC = 'Capture de la page de démonstration publiée du projet, données fictives. ';
+const finance = (id, title, description, step, x, y, w) => ({
+  id, kind: 'app', title, step, a: '16/10', status: 'demo', browser: 'make.powerautomate.com',
+  badge: 'Exécution de test', src: `assets/showcase/finance/cs-v8-${id}.jpg`,
+  caption: description, alt: description, box: { x, y, w }
+});
 export const SHOWCASE = {
   /* 1. Point financier : un seul export de référence, le CS V8. */
   'projet-finance': {
-    label: 'Point financier 02.01 CS V8',
-    recording: {
-      src: 'assets/showcase/finance/cs-v8-power-automate-sorbonne.mp4',
-      poster: 'assets/showcase/finance/cs-v8-power-automate-apercu.jpg',
-      address: 'make.powerautomate.com',
-      chapters: [
-        [0, 'Vue d’ensemble'], [3, 'Entrée Power BI'], [7, 'Branches'],
-        [17.12, 'Alerte PRG'], [21.12, 'État final']
-      ]
-    },
+    label: 'Point financier 02.01 CS V8', layout: 'finance', auto: true,
+    steps: ['Vue d’ensemble', 'Entrée Power BI', 'Branches', 'Alerte PRG', 'État final'],
+    windows: [
+      finance('vue-complete-reelle', 'Vue d’ensemble', 'Exécution de test dans Power Automate. Vue d’ensemble du flux et de ses branches dépliées.', 1, 3, 5, 66),
+      finance('02-requete-power-bi', 'Entrée Power BI', 'Le panneau RequeteDAX montre le compte de démonstration et son montant initial.', 2, 18, 12, 74),
+      finance('reel-007', 'Branches', 'Le canevas du flux affiche les branches parcourues et le statut de chaque action.', 3, 23, 18, 74),
+      finance('detail-alerte-prg', 'Alerte PRG', 'Le résultat de l’action Envoyer_Prevention_PRC indique une exécution en simulation.', 4, 13, 6, 76),
+      finance('detail-etat-final', 'État final', 'Le résultat de la mise à jour du fichier d’état apparaît dans la dernière partie du flux.', 5, 22, 15, 74)
+    ],
     note: 'Une exécution Power Automate, 76 actions dépliées. Données et appels externes fictifs.'
   },
   /* 2. VRE par VM : accès au portail pendant la collecte des captures. */
@@ -44,7 +48,7 @@ export const SHOWCASE = {
   },
   /* 4. Chaîne des PP : la vitrine utilise les captures du concepteur fournies le 27 octobre. */
   'projet-pa': {
-    tourSteps: [2, 3],
+    auto: true,
     label: 'La chaîne des plans de prévention dans Power Automate', layout: 'pp-editor', steps: ['Le dépôt', 'Le traitement Excel', 'Les notifications', 'Le résultat'],
     note: 'Captures du concepteur Power Automate du 27 octobre 2026. Elles documentent la configuration du flux.',
     windows: [

@@ -1,3 +1,5 @@
+import { fonduChapitre } from './moteur.js?v=m35';
+
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
  *   - branches éditoriales : une par vrai contenu du chapitre ou du thème, terminée par une vignette cliquable (elle mène à la fiche) ;
@@ -28,11 +30,16 @@ html:not(.cv-parity-active) .cv-star-host h2{text-wrap:balance}
 .cv-star-scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:2;pointer-events:none}
 html.cv-parity-active .cv-star-scene,html.cv-parity-active .cv-flat-nav{display:none}
 html:not(.cv-parity-active) .section-hero-pin h2{color:transparent!important;-webkit-text-stroke:1px rgb(255 255 255 / .62);background:linear-gradient(270deg,#fff calc(var(--cv-fill,1)*108% - 8%),rgb(255 255 255 / 0) calc(var(--cv-fill,1)*108%));-webkit-background-clip:text;background-clip:text;width:fit-content;max-width:100%}
-.cv-flat-nav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:3;display:grid;gap:7px;font:500 10px/1.2 "JetBrains Mono",ui-monospace,monospace;opacity:0;pointer-events:none;transition:opacity .35s}
-.cv-flat-nav.vu{opacity:1;pointer-events:auto}
-.cv-flat-nav a{color:rgb(255 255 255 / .55);text-decoration:none;display:flex;align-items:center;gap:8px;justify-content:space-between;min-width:104px}
-.cv-flat-nav a::after{content:"";width:4px;height:4px;background:currentColor}
+.cv-flat-nav{position:fixed;left:12px;top:calc(50% + 17px);transform:translateY(-50%);z-index:3;display:grid;max-width:min(164px,14vw);font:11px/1.2 "Sohne Mono",ui-monospace,monospace;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s}
+.cv-flat-nav.vu{opacity:1;visibility:visible;pointer-events:auto}
+.cv-flat-nav a{color:rgb(255 255 255 / .7);text-decoration:none;display:flex;align-items:center;gap:12px;justify-content:space-between;min-height:24px}
+.cv-flat-nav a::after{content:"";width:4px;height:4px;box-sizing:border-box;border:1px solid currentColor;border-radius:50%;flex:none}
 .cv-flat-nav a.actif,.cv-flat-nav a:hover,.cv-flat-nav a:focus-visible{color:#fff}
+.cv-flat-nav a:is(.actif,:hover,:focus-visible)::after{background:currentColor}
+.cv-flat-nav a:is(:hover,:focus-visible){text-decoration:underline}
+html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page]{background:var(--cv-flat-colour)!important}
+html[data-cv-flat-colour]:not(.cv-parity-active) [data-f26-page-section]{background:transparent!important}
+html[data-cv-flat-colour]:not(.cv-parity-active) .cv-site-nav{background:color-mix(in oklab,var(--cv-flat-colour) 88%,#121420)!important}
 @media (max-width:939px){.cv-flat-nav{display:none}}
 .cv-star-layer rect.foyer{fill:#fff;opacity:0;transition:opacity .3s}
 .cv-star-layer .vu rect.foyer{opacity:1}
@@ -158,7 +165,7 @@ function scene(chapitres) {
   cv.className = 'cv-star-scene'; cv.setAttribute('aria-hidden', 'true');
   document.body.append(cv);
   const lisse = (x, a, b) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false;
+  const souris = { x: -1e4, y: -1e4 }; let W = 0, H = 0, dpr = 1, cibles = [], dernier = 0, curseurPose = false, ancienneCouleur = '';
   const taille = () => { W = innerWidth; H = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); };
   addEventListener('resize', taille); taille();
   for (const c of chapitres) {
@@ -178,12 +185,36 @@ function scene(chapitres) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); cibles = [];
     if (expo) return;
     const libre = !reduit.matches, tt = t / 1000; let actif = null, vuNav = false;
+    const root = document.documentElement;
+    const sections = chapitres.map(c => c.section.getBoundingClientRect());
+    const distance = H * .4;
+    let couleur = '#051daa', sortant = null, entrant = null, poids = 0;
+    for (const [i,c] of chapitres.entries()) {
+      const avant = i ? Math.max(160,H*.6)*.5-H*.025 : 0;
+      const début = sections[i].top - avant - 1;
+      if (début > H*.5) break;
+      const cible=c.section.dataset.htmlInCanvasColour || couleur;
+      poids=libre ? fonduChapitre(H*.5,début,distance) : Number(H*.5>=début+distance/2);
+      if (poids < 1) {
+        entrant=c;
+        couleur=`color-mix(in oklab, ${couleur} ${(100-poids*100).toFixed(2)}%, ${cible})`;
+        break;
+      }
+      sortant=c;
+      couleur=cible;
+    }
+    if(couleur!==ancienneCouleur){
+      ancienneCouleur=couleur;
+      root.style.setProperty('--cv-flat-colour',couleur);
+    }
+    root.toggleAttribute('data-cv-flat-colour',Boolean(sortant||entrant));
     for (const c of chapitres) {
       const S = c.section.getBoundingClientRect(); if (S.top < H * 0.5 && S.bottom > H * 0.5) actif = c; if (S.top < H * 1.4) vuNav = true;
       const T = c.titre.getBoundingClientRect(), u = (H - T.top) / H;
       if (u < -1.7 || u > 1.5) { if (u > 1.5) c.titre.style.setProperty('--cv-fill', '1'); else if (libre) c.titre.style.setProperty('--cv-fill', '0'); continue; }
       const r = document.createRange(); r.selectNodeContents(c.titre); const L = r.getBoundingClientRect();
-      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8),   /* jamais par-dessus l'accueil : l'étoile n'apparaît qu'une fois l'accueil quitté */
+      const relais = entrant && c===sortant ? 1-poids : c===entrant ? poids : 1;
+      const alpha = lisse(u, -1.6, -1.0) * (1 - lisse(u, 0.8, 1.3)) * lisse(scrollY, H * 0.25, H * 0.8) * (.26+.74*relais),
         g = lisse(u, -1.55, -0.6), plein = libre ? lisse(u, 0.02, 0.34) : 1;
       c.titre.style.setProperty('--cv-fill', plein.toFixed(3));
       if (alpha <= 0.004) continue;

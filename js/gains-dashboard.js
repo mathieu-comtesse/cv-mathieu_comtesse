@@ -36,12 +36,19 @@ export function initGainsDashboard() {
     <section class="gains-chart" aria-labelledby="gains-chart-title"><div class="gains-chart-head"><h2 id="gains-chart-title">Une année de temps libéré</h2>
     <div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="year" aria-pressed="true">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
     <p class="gains-hint">Survole une courbe · touche-la · ou explore avec Tab et les flèches.</p>
-    <div class="gains-legend" aria-label="Légende"></div><div class="gains-plot"><svg class="gains-svg" viewBox="0 0 800 370" aria-label="Gains annuels, courbes linéaires de projection"></svg>
+    <div class="gains-metric"><span>Volumes fournis</span><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><small>${f(mean(ANNUAL_DECLARED))} € valorisés par an</small></div>
+    <div class="gains-plot"><svg class="gains-svg" viewBox="0 0 800 370" aria-label="Gains annuels, courbes linéaires de projection"></svg>
     <div class="gains-tip" id="gains-tip" role="status" aria-live="polite" hidden></div></div>
+    <div class="gains-legend" aria-label="Légende"></div>
     <div class="gains-method"><label>Jours/an <input data-working-days type="number" min="1" max="366" step="1" value="225"></label><label>Heures/jour <input data-working-hours type="number" min="1" max="24" step="0.5" value="7"></label><span data-coin-rate></span></div>
     </section></div>`;
   const box = head.querySelector('.annual-gains'), svg = box.querySelector('svg'), tip = box.querySelector('.gains-tip');
   const legend = box.querySelector('.gains-legend');
+  const chart=box.querySelector('.gains-chart');
+  const reveal=new IntersectionObserver(([entry])=>{
+    if(entry.isIntersecting){chart.dataset.visible='';reveal.disconnect();}
+  },{threshold:.18});
+  reveal.observe(chart);
   let config = { days: 225, hours: 7 };
   try { const s = JSON.parse(localStorage.getItem('cv-piggy-work-basis-v1')); if (s&&Number.isInteger(s.days)&&Number.isInteger(s.hours*2)&&s.days >= 1 && s.days <= 366 && s.hours >= 1 && s.hours <= 24) config = s; } catch {}
   /* en chemin 3D (accueil) le bloc est réparti en cadres : repli sur la page, hors copies inertes */
@@ -62,7 +69,7 @@ export function initGainsDashboard() {
   subjectObserver.observe(box.querySelector('.annual-pig-wrap'));
   addEventListener('pagehide',()=>subjectObserver.disconnect(),{once:true});
   const series = [
-    { id: 'declared', title: 'Volumes fournis', total: ANNUAL_DECLARED, color: '#a5c8ff', note: 'Le total en tête de page compte uniquement les volumes fournis. Heures cumulées entre tâches et équipes, et non temps de travail d’une seule personne. Un poste = 225 jours de 7 h. Les gains quotidiens reposent sur 225 jours/an. Les montants valorisent du temps libéré, sans encaissement. L’effet cascade réduit aussi l’attente, les recherches et les ressaisies entre équipes ; aucun multiplicateur n’est appliqué.' },
+    { id: 'declared', title: 'Volumes fournis', total: ANNUAL_DECLARED, color: '#b8f5ff', note: 'Le total en tête de page compte uniquement les volumes fournis. Heures cumulées entre tâches et équipes, et non temps de travail d’une seule personne. Un poste = 225 jours de 7 h. Les gains quotidiens reposent sur 225 jours/an. Les montants valorisent du temps libéré, sans encaissement. L’effet cascade réduit aussi l’attente, les recherches et les ressaisies entre équipes ; aucun multiplicateur n’est appliqué.' },
     { id: 'total', title: 'Avec estimations', total: ANNUAL_TOTAL, color: '#ad9ce8', dashed: true, note: 'Ajoute la capacité théorique de l’extracteur VRE et les consultations supposées de PP & MOSO et Gares prioritaires. Ces estimations restent séparées des volumes fournis.' },
     { id: 'net', title: 'Net · année 1', total: ANNUAL_NET, color: '#83d8c3', note: costNote }
   ];
@@ -102,36 +109,48 @@ export function initGainsDashboard() {
     pinned = false; tip.hidden = true; svg.replaceChildren(); legend.replaceChildren();
     const mobile=box.clientWidth<600, width=mobile?360:800, start=mobile?44:66, end=mobile?344:766;
     svg.setAttribute('viewBox',`0 0 ${width} ${view==='projects'&&mobile?530:370}`);
-    const items = view === 'year' ? series : ANNUAL_GAINS.map(r => ({ ...r, total: r, color: r.estimated ? '#ad9ce8' : '#a5c8ff', dashed: r.estimated, note: notes[r.id] }));
-    const legends = view === 'year' ? series : [{ title: 'Volumes fournis', color: '#a5c8ff' }, { title: 'Estimations', color: '#ad9ce8', dashed: true }];
+    const items = view === 'year' ? series : ANNUAL_GAINS.map(r => ({ ...r, total: r, color: r.estimated ? '#12834c' : '#00869a', dashed: r.estimated, note: notes[r.id] }));
+    chart.dataset.view=view;
+    const legends = view === 'year' ? series : [{ title: 'Volumes fournis', color: '#00869a' }, { title: 'Estimations', color: '#12834c' }];
     legends.forEach(s => { const span = document.createElement('span'); span.innerHTML = `<i style="--line:${s.color};border-top-style:${s.dashed ? 'dashed' : 'solid'}"></i>${s.title}`; legend.append(span); });
     box.querySelector('h2').textContent = view === 'year' ? 'Une année de temps libéré' : 'La part de chaque action';
     if (view === 'year') {
       const max = 1000000, y = v => 322 - v / max * 282;
       [0, 250000, 500000, 750000, 1000000].forEach(v => { svg.append(svgNode('line', { x1: start, x2: end, y1: y(v), y2: y(v), class: 'gains-grid' })); svg.append(svgNode('text', { x: start-12, y: y(v) + 4, 'text-anchor': 'end' }, v === 1000000 ? '1 M€' : f(v / 1000) + ' k€')); });
       ['Jan.', 'Avr.', 'Juil.', 'Oct.', '31 déc.'].forEach((m, i) => svg.append(svgNode('text', { x: start + i * (end-start)/4, y: 356, 'text-anchor': 'middle' }, m)));
+      const defs=svgNode('defs',{}), gradient=svgNode('linearGradient',{id:'gains-area',x1:0,y1:0,x2:0,y2:1});
+      gradient.append(svgNode('stop',{offset:0,'stop-color':'#8ee8fb','stop-opacity':.36}),svgNode('stop',{offset:1,'stop-color':'#8ee8fb','stop-opacity':0}));
+      defs.append(gradient);
+      svg.append(defs);
+      const traces=svgNode('g',{class:'gains-reveal'});
+      svg.append(traces);
       items.forEach((s, i) => {
         const cost = s.id === 'net' ? (ANNUAL_COST.build + ANNUAL_COST.upkeep) * 104.74 : 0;
         const end = s.id === 'net' ? mean(ANNUAL_DECLARED) - cost : mean(s.total);
         const d = `M${start} ${y(-cost)} L${mobile?344:766} ${y(end)}`;
-        svg.append(svgNode('path', { d, stroke: s.color, class: 'gains-line', 'stroke-dasharray': s.dashed ? '7 6' : '' }));
+        if(i===0)traces.append(svgNode('path',{d:`${d} L${mobile?344:766} 322 H${start} Z`,fill:'url(#gains-area)'}));
+        traces.append(svgNode('path', { d, stroke: s.color, class: 'gains-line', 'stroke-dasharray': s.dashed ? '5 4' : '' }));
         interactive(svgNode('path', { d, class: 'gains-hit', stroke: s.color }), s, i);
-        svg.append(svgNode('circle', { cx: mobile?344:766, cy: y(end), r: 4, fill: s.color }));
+        traces.append(svgNode('circle', { cx: mobile?344:766, cy: y(end), r: i===0?5:3, fill: s.color, stroke:'#264140', 'stroke-width':1 }));
       });
     } else {
-      const max = 275000;
-      items.forEach((s, i) => {
-        const y = (mobile?48:25) + i * (mobile?68:46), x1 = mobile?12:290, span=mobile?330:460, x2 = x1 + mean(s.total) / max * span;
-        svg.append(svgNode('text', { x: 12, y: mobile?y-18:y+5 }, s.title));
-        svg.append(svgNode('line', { x1, x2: mobile?344:766, y1: y, y2: y, class: 'gains-grid' }));
-        // Segment fin = fourchette ; point = moyenne. Même échelle pour les sept actions.
-        svg.append(svgNode('line', { x1: x1 + s.minMoney / max * span, x2: x1 + s.maxMoney / max * span, y1: y, y2: y, stroke: s.color, class: 'gains-range' }));
-        const d = `M${x1} ${y} L${x2} ${y}`;
-        svg.append(svgNode('path', { d, stroke: s.color, class: 'gains-line', 'stroke-dasharray': s.dashed ? '5 5' : '' }));
-        interactive(svgNode('path', { d: `M0 ${y} L${width-12} ${y}`, class: 'gains-hit', stroke: s.color }), s, i);
-        svg.append(svgNode('circle', { cx: x2, cy: y, r: 4, fill: s.color }));
+      const max = 275000, baseline=mobile?440:318, plotHeight=mobile?367:255;
+      const y=value=>baseline-value/max*plotHeight;
+      const bars=svgNode('g',{class:'gains-columns'});
+      for(const value of [0,100000,200000]){
+        svg.append(svgNode('line',{x1:start,x2:end,y1:y(value),y2:y(value),class:'gains-grid'}));
+        svg.append(svgNode('text',{x:start-8,y:y(value)+4,'text-anchor':'end'},f(value/1000)+' k€'));
+      }
+      svg.append(bars);
+      const step=(end-start)/items.length, barWidth=Math.min(32,step*.38);
+      items.forEach((s,i)=>{
+        const x=start+(i+.5)*step, mid=y(mean(s.total));
+        bars.append(svgNode('rect',{x:x-barWidth/2,y:mid,width:barWidth,height:baseline-mid,rx:3,fill:s.color}));
+        bars.append(svgNode('line',{x1:x,x2:x,y1:y(s.minMoney),y2:y(s.maxMoney),stroke:s.estimated?'#7bd59e':'#7ae3e9','stroke-width':3}));
+        bars.append(svgNode('circle',{cx:x,cy:mid,r:3,fill:'#fff'}));
+        svg.append(svgNode('text',{x,y:baseline+24,'text-anchor':'middle'},String(i+1).padStart(2,'0')));
+        interactive(svgNode('path',{d:'M'+x+' '+Math.min(y(s.maxMoney),baseline-16)+' V'+baseline,class:'gains-hit',stroke:s.color}),s,i);
       });
-      [0, 100000, 200000].forEach(v => svg.append(svgNode('text', { x: (mobile?12:290) + v / max * (mobile?330:460), y: mobile?520:358, 'text-anchor': v===0?'start':'middle' }, f(v / 1000) + ' k€/an')));
     }
   }
   box.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => { view = button.dataset.view; box.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b === button))); render(); }));

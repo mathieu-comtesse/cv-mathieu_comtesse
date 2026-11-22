@@ -3,32 +3,62 @@
    - la progression se lit sur la position réelle du cadre (getBoundingClientRect : elle suit donc la perspective et le défilement du parcours, en HTML-in-Canvas comme en repli DOM) ;
    - aucune écoute de pointeur sur la scène : seuls les clics sur une capture réelle ou sur un onglet agissent, les gestes de navigation 3D passent ;
    - captures chargées uniquement à l'approche du cadre ; console reconstituée à partir des étapes de la fiche (aucune sortie inventée). */
-for (const recording of document.querySelectorAll('.cv-pf-video')) {
-  const video = recording.querySelector('video');
-  const chapters = [...recording.querySelectorAll('[data-video-start]')];
-  if (!video || !chapters.length) continue;
-  function selectChapter(current) {
-    for (const chapter of chapters) {
-      if (chapter === current) chapter.setAttribute('aria-current', 'step');
-      else chapter.removeAttribute('aria-current');
-    }
-  }
-  video.addEventListener('timeupdate', () => {
-    const current = chapters.findLast(chapter => Number(chapter.dataset.videoStart) <= video.currentTime + .04);
-    selectChapter(current || chapters[0]);
-  });
-  for (const chapter of chapters) {
-    chapter.addEventListener('click', () => {
-      video.currentTime = Number(chapter.dataset.videoStart);
-      selectChapter(chapter);
-      video.play().catch(() => {}); // Les commandes natives restent utilisables.
-    });
-  }
-}
 const frames = [...document.querySelectorAll('.cv-pf-showcase')];
+const motion=matchMedia('(prefers-reduced-motion: reduce)');
+const ambient=[...document.querySelectorAll('video[data-cv-ambient]')];
+if(ambient.length){
+  const visible=new Set();
+  const sync=()=>{
+    for(const video of ambient){
+      if(visible.has(video)&&!document.hidden&&!motion.matches){
+        if(video.paused)video.play().catch(()=>{});
+      }else video.pause();
+    }
+  };
+  const media=new IntersectionObserver(entries=>{
+    for(const entry of entries){
+      if(entry.isIntersecting)visible.add(entry.target);
+      else visible.delete(entry.target);
+    }
+    sync();
+  },{threshold:.15});
+  ambient.forEach(video=>media.observe(video));
+  document.addEventListener('visibilitychange',sync);
+  motion.addEventListener('change',sync);
+}
+const playLinks=[...document.querySelectorAll('.cv-game-card a[data-cv-play]')];
+if(playLinks.length){
+  const dialog=document.createElement('dialog');
+  dialog.className='cv-game-player';
+  dialog.setAttribute('aria-label','Jeu plein écran');
+  dialog.innerHTML='<div class="cv-game-screen"><iframe allow="fullscreen; autoplay" allowfullscreen></iframe><button type="button" aria-label="Fermer le jeu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>';
+  document.body.append(dialog);
+  const screen=dialog.firstElementChild, frame=screen.querySelector('iframe'), close=screen.querySelector('button');
+  let opener=null, fullscreen=false;
+  close.addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('close',()=>{
+    if(document.fullscreenElement===screen)document.exitFullscreen().catch(()=>{});
+    frame.removeAttribute('src');
+    opener?.focus({preventScroll:true});
+  });
+  document.addEventListener('fullscreenchange',()=>{
+    if(document.fullscreenElement===screen)fullscreen=true;
+    else if(fullscreen){fullscreen=false;if(dialog.open)dialog.close();}
+  });
+  for(const a of playLinks)a.addEventListener('click',event=>{
+    if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey||event.button!==0)return;
+    event.preventDefault();
+    opener=a;
+    frame.title=a.closest('.cv-game-card').querySelector('h3').textContent;
+    frame.src=a.href;
+    dialog.showModal();
+    if(document.fullscreenEnabled&&screen.requestFullscreen)screen.requestFullscreen().catch(()=>{});
+    frame.focus();
+  });
+}
 if (frames.length) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const near = new Set(); let raf = 0, until = 0, ticks = 0, zoom = null, dirty = true;
+  const near = new Set(); let raf = 0, until = 0, ticks = 0, dirty = true;
   const S = new Map(frames.map((f) => {
     const st = { f, card: f.closest('.cv-pf-main'), N: +f.dataset.steps || 4, step: -1, lock: 0, wins: [...f.querySelectorAll('.sc-win')], res: f.querySelector('.sc-result'), log: f.querySelector('.sc-log'), tabs: [...f.querySelectorAll('.sc-tabs button')], shown: -1, queued: false, key: '' };
     st.lines = st.log ? [...st.log.children] : []; st.cstep = +(f.querySelector('.sc-console')?.dataset.step || 2);
@@ -49,47 +79,12 @@ if (frames.length) {
   const chargeEtape = (st) => {
     for (const w of st.wins) if (+w.dataset.step <= st.step) chargeImage(w.querySelector('img[data-src]'));
   };
-  function bindTour(st) {
-    const button = st.f.querySelector('[data-sc-tour]');
-    if (!button) return;
-    const steps = button.dataset.scTour.split(',').map(Number);
-    let timer = 0, playing = false, run = 0;
-    const stop = () => {
-      clearTimeout(timer);
-      playing = false;
-      run++;
-      st.lock = 0;
-      st.f.classList.remove('sc-tour-playing');
-      button.setAttribute('aria-pressed', 'false');
-      button.textContent = 'Animer les captures';
-    };
-    st.tabs.forEach(tab => tab.addEventListener('click', () => { if (playing) stop(); }, {capture: true}));
-    button.addEventListener('click', () => {
-      if (playing) { stop(); return; }
-      playing = true;
-      const id = ++run;
-      const duration = reduce ? 1600 : 4200;
-      button.setAttribute('aria-pressed', 'true');
-      button.textContent = 'Arrêter l’animation';
-      const show = async index => {
-        const step = steps[index];
-        st.lock = Infinity;
-        st.f.classList.remove('sc-tour-playing');
-        apply(st, step, 1);
-        const image = st.wins.find(w => +w.dataset.step === step && w.hasAttribute('data-sc-browser'))?.querySelector('img');
-        chargeImage(image);
-        try { await image?.decode(); } catch { if (run === id) stop(); return; }
-        if (run !== id) return;
-        requestAnimationFrame(() => { if (run === id) st.f.classList.add('sc-tour-playing'); });
-        timer = setTimeout(index + 1 < steps.length ? () => show(index + 1) : stop, duration);
-      };
-      show(0);
-    });
-  }
   const apply = (st, step, frac) => {
     if (step !== st.step) {
       st.step = step;
       st.wins.forEach((w) => { const s = +w.dataset.step, on = step >= s; w.classList.toggle('on', on); w.classList.toggle('front', on && s === step); w.classList.toggle('back', on && s < step); w.dataset.age = on ? Math.min(3, step - s) : ''; });   // âge = nombre d'étapes depuis l'apparition : la fenêtre active domine, les anciennes s'effacent progressivement
+      st.wins.forEach(w => { w.inert = +w.dataset.step > step; });
+      st.f.querySelector('.sc-stage').dataset.step = step;
       if (st.res) st.res.classList.toggle('on', step >= st.N);
       st.tabs.forEach((b, i) => b.setAttribute('aria-selected', String(i + 1 === step)));
     }
@@ -109,6 +104,27 @@ if (frames.length) {
         st.card.style.setProperty('--cv-copy-progress', opacity);
       }
     }
+    if (st.f.hasAttribute('data-sc-auto')) {
+      const visible = r.bottom > innerHeight * .18 && r.top < innerHeight * .82;
+      if (!visible || st.f.matches(':focus-within')) { st.nextStep = 0; st.position = null; return false; }
+      const at = r.top;
+      const threshold = Math.max(35, r.height * .16);
+      if (st.position === null) {
+        st.position = at;
+        st.nextStep = now + 2100;
+      } else if (Math.abs(at - st.position) >= threshold) {
+        const change = Math.trunc((st.position - at) / threshold);
+        st.position -= change * threshold;
+        st.lock = 0;
+        apply(st, clamp(st.step + change, 1, st.N), 1);
+        st.nextStep = now + 2100;
+      } else if (st.step < st.N && now >= Math.max(st.nextStep, st.lock || 0)) {
+        apply(st, st.step + 1, 1);
+        st.nextStep = now + 2100;
+      }
+      chargeEtape(st);
+      return st.step < st.N;
+    }
     if (st.lock && now < st.lock) return; st.lock = 0;
     if (key === st.key && !dirty) return; st.key = key;   // rien n'a bougé : aucun calcul
     const vh = innerHeight, p = clamp((vh - r.top) / (vh + r.height), 0, 1), q = clamp((p - .22) / .5, 0, 1);
@@ -116,11 +132,20 @@ if (frames.length) {
     if (r.top < vh && r.bottom > 0) chargeEtape(st);
   };
   /* ordonnancement : aucune image n'est demandée tant que rien ne bouge. Défilement, redimensionnement, geste ou clic réveillent la boucle ; elle s'éteint 1,4 s après le dernier mouvement de la page. */
-  const tick = (t) => { raf = 0; ticks++; if (document.hidden) return; near.forEach((f) => update(S.get(f), t)); dirty = false; if (t < until) raf = requestAnimationFrame(tick); };
+  const tick = (t) => {
+    raf = 0;
+    ticks++;
+    if (document.hidden) return;
+    let playing = false;
+    for (const f of near) { if (update(S.get(f), t)) playing = true; }
+    dirty = false;
+    if (playing || t < until) raf = requestAnimationFrame(tick);
+  };
   const wake = (ms = 1400) => { until = performance.now() + ms; dirty = true; if (!raf && near.size && !document.hidden) raf = requestAnimationFrame(tick); };
   frames.forEach((f) => {
     const st = S.get(f); f.classList.add('sc-js');
-    bindTour(st);
+    st.position = null;
+    f.addEventListener('focusout', () => { if (!reduce) wake(); });
     if (reduce) { apply(st, st.N, 1); return; }
     apply(st, 1, 0);
     st.tabs.forEach((b) => b.addEventListener('click', () => { apply(st, +b.dataset.go, 1); chargeEtape(st); st.lock = performance.now() + 7000; }));   // choix manuel : la progression au défilement reprend après 7 s
@@ -133,22 +158,5 @@ if (frames.length) {
     document.addEventListener('click', () => wake(2200), { passive: true });   // un clic sur un cadre déclenche un déplacement de caméra du parcours : la boucle suit ce mouvement
     document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
   }
-  /* agrandir une capture (dialogue natif : focus, Échap, retour du focus ; molette / glissé pour parcourir l'image haute définition) */
-  const open = (w) => {
-    const img = w.querySelector('img'); if (!img) return;
-    if (!zoom) {
-      zoom = document.createElement('dialog'); zoom.className = 'sc-zoom'; zoom.setAttribute('aria-label', 'Capture agrandie');
-      zoom.innerHTML = '<img alt=""><div class="sc-zoom-t"><span></span><span><a href="#">Fiche complète du projet</a> <button type="button">Fermer</button></span></div>';
-      zoom.querySelector('button').addEventListener('click', () => zoom.close());
-      zoom.addEventListener('click', (e) => { if (e.target === zoom) zoom.close(); });
-      document.body.append(zoom);
-    }
-    const z = zoom.querySelector('img'); z.src = img.dataset.big || img.currentSrc || img.src; z.alt = img.alt;
-    zoom.querySelector('.sc-zoom-t span').textContent = (w.dataset.badge ? w.dataset.badge + ' · ' : '') + (w.dataset.caption || img.alt);
-    zoom.querySelector('a').href = w.closest('.cv-pf-showcase').dataset.showcase + '.html';
-    zoom.showModal();
-  };
-  frames.forEach((f) => f.addEventListener('click', (e) => { const w = e.target.closest('.sc-win[role="button"]'); if (w) open(w); }));
-  frames.forEach((f) => f.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.sc-win[role="button"]')) { e.preventDefault(); open(e.target); } }));
   window.__scTest = new URLSearchParams(location.search).has('uxtest') ? { go: (slug, step) => { const st = S.get(frames.find((f) => f.dataset.showcase === slug)); load(st); queue.splice(0).forEach((i) => { i.src = i.dataset.src; }); apply(st, step, 1); st.lock = performance.now() + 60000; }, state: (slug) => { const st = S.get(frames.find((f) => f.dataset.showcase === slug)); return { step: st.step, near: near.has(st.f) }; }, ticks: () => ticks, active: () => !!raf, reset: () => { ticks = 0; } } : undefined;
 }

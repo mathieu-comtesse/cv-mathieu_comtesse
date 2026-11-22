@@ -1,7 +1,10 @@
-import { Ciel, hache } from './moteur.js?v=m34';
+import { Ciel, hache } from './moteur.js?v=m35';
 
 const angleOr = 2.399963, cercle = Math.PI * 2;
-const tons = ['131,185,244', '154,169,255', '133,202,226'];
+const tons = ['25,122,220', '85,238,172', '105,131,251'];
+const tonsVolume = tons.map(ton=>ton.split(',').map(v=>Math.round(.65*Number(v)+.35*255)).join(','));
+const densiteAccueil = [16,12,17,9,20,30,23,10,9,19,57];
+const placesAccueil = [[.02,-.47],[.23,.80],[-.41,-.68],[.34,.34],[-.74,-.31],[.8,.15],[-.46,.08],[.45,-.2],[-.65,.52],[.45,-.69],[-.15,.47]];
 const lumiere = [-Math.sin(-41*Math.PI/180)/Math.tan(35*Math.PI/180),-Math.cos(-41*Math.PI/180)/Math.tan(35*Math.PI/180)];
 const mix = (a,b,t) => a+(b-a)*t, phase = v => v-Math.floor(v);
 const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
@@ -34,7 +37,7 @@ function anneau(ctx,proj,x,y,r,alpha){
   ctx.strokeStyle='rgba(255,255,255,'+alpha+')';ctx.lineWidth=.85;ctx.beginPath();
   let open=false;
   for(let i=0;i<=64;i++){
-    const t=i*cercle/64,p=proj(x+Math.cos(t)*r,y+Math.sin(t)*r,0);
+    const t=i*cercle/64,p=proj(x+Math.cos(t)*r*1.2,y+Math.sin(t)*r,0);
     if(!p){open=false;continue;}
     if(open)ctx.lineTo(p.x,p.y);else ctx.moveTo(p.x,p.y);
     open=true;
@@ -43,13 +46,22 @@ function anneau(ctx,proj,x,y,r,alpha){
 }
 
 export class CielExpo extends Ciel {
+  accueil(chapitres, label) {
+    this.definit('accueil',{groupe:'accueil',racine:true,label});
+    chapitres.forEach((c,i)=>this.definit('accueil:'+c.id,{
+      groupe:'accueil',parent:'accueil',num:String(i+1).padStart(2,'0'),label:c.name,chapitre:c.id,
+      editoriaux:c.cards,densite:densiteAccueil[i],sol:true
+    }));
+  }
+
   definit(id,spec){
     const cards=spec.editoriaux||[], total=Math.max(cards.length,spec.densite||0);
     const editoriaux=new Map(cards.map((card,i)=>[Math.floor(i*total/cards.length),card]));
     const noeuds=Array.from({length:total},(_,i)=>{
-      const key=id+':'+i, z=1-2*(i+.5)/total, radius=.6+.4*hache(key)/2**32;
+      const key=id+':'+i, z=1-2*(i+.5)/total, radius=.46+.54*hache(key)/2**32;
       const a=i*angleOr+hache(key+':angle')/2**32, r=Math.sqrt(1-z*z)*radius;
       return {ed:editoriaux.get(i), at:[Math.cos(a)*r,Math.sin(a)*r,z*radius*.7], hemisphere:i%2?1:-1,
+        phase:hache(key+':orbit')/2**32*cercle, fx:0, fy:0,
         phases:[hache(key+':dot:0'),hache(key+':dot:1')],dx:0,dy:0,vx:0,vy:0};
     });
     const liens=new Map();
@@ -60,36 +72,66 @@ export class CielExpo extends Ciel {
     });
     this.etoiles.set(id,{id,...spec,noeuds,liens:[...liens.values()],rang:this.etoiles.size-1,centre:null});
   }
-  place(id,centre,rayon){
+  place(id,centre,rayon,{largeur=rayon,hauteur=rayon,etalement=1}={}){
     super.place(id,centre,rayon);
     if(id!=='accueil')return;
     for(const e of this.etoiles.values()){
       if(e.parent!==id)continue;
-      if(centre&&e.centre)e.centre[2]=centre[2]*.57;
-      else e.centre=null;
+      if(!centre){e.centre=null;continue;}
+      const position=placesAccueil[e.rang] || [0,0];
+      e.centre=[centre[0]+position[0]*largeur*etalement,centre[1]+position[1]*hauteur*etalement,centre[2]*.57];
+      e.rayon=Math.min(largeur,hauteur)*(.29+.10*Math.sqrt(e.noeuds.length/57));
     }
   }
   vide(){super.vide();this.pris=null;}
 
-  dessine(ctx,proj,t,{covers,souris,W,H,dt,alpha,titres,rise,unproject,segment}){
+  dessine(ctx,proj,t,{covers=[],souris,W,H,dt,alpha=1,titres=1,rise=0,unproject,segment,plat=false,ouverture=1}){
     const masque=p=>covers.some(([a,b,c,d])=>
       Math.min(profondeurTriangle(p,a,b,c),profondeurTriangle(p,a,c,d))<p.z-2
     );
     this.cibles=[];this.survol=null;
     let nearest=18;
     ctx.save();
+    const foyers=[...this.etoiles.values()].filter(e=>e.parent&&e.centre);
+    for(const [i,e] of foyers.entries()){
+      const voisins=foyers.filter((n,j)=>j<i&&n.centre).map(n=>({n,d:Math.hypot(n.centre[0]-e.centre[0],n.centre[1]-e.centre[1])})).sort((a,b)=>a.d-b.d).slice(0,2);
+      for(const {n} of voisins){
+        if(segment)segment(e.centre,n.centre,'123,147,243',.125*alpha*ouverture);
+        else{
+          const a=proj(...e.centre),b=proj(...n.centre);
+          if(!a||!b)continue;
+          ctx.strokeStyle='rgba(128,147,245,'+(.2*ouverture)+')';
+          ctx.lineWidth=.55;
+          trait(ctx,a,b);
+        }
+      }
+    }
     for(const e of this.etoiles.values()){
       e.ecran=e.libelleEcran=null;
-      const title=e.groupe==='titre',opacity=title?titres:alpha;
+      const title=e.groupe==='titre';
+      const fondu=this.fondu;
+      const relais=fondu&&e.chapitre===fondu.de?1-fondu.poids:fondu&&e.chapitre===fondu.vers?fondu.poids:1;
+      const opacity=(title?titres*(.26+.74*relais):alpha)*ouverture;
       if(!e.centre||opacity<=.003)continue;
       const [x,y,h]=e.centre,r=e.rayon,hub=proj(x,y,h);
       if(!hub||hub.x<-W/2||hub.x>1.5*W||hub.y<-H/2||hub.y>1.5*H)continue;
       e.ecran=hub;
-      const color=title?'255,255,255':tons[Math.max(0,e.rang)%tons.length];
+      const palette=plat?tons:tonsVolume;
+      const color=title?'255,255,255':palette[Math.max(0,e.rang)%palette.length];
       ctx.globalAlpha=opacity;
       const parent=e.parent&&this.etoiles.get(e.parent);
-      if(parent?.ecran)segment(parent.centre,e.centre,color,.3*opacity);
-      if(e.sol){
+      const trace=(a,b,ink,opacity)=>{
+        if(segment)segment(a,b,ink,opacity);
+        else{
+          const p=proj(...a),q=proj(...b);
+          if(!p||!q)return;
+          const g=ctx.createLinearGradient(p.x,p.y,q.x,q.y);
+          g.addColorStop(0,'rgba('+ink+','+opacity+')');g.addColorStop(1,'rgba(118,137,254,'+opacity*.48+')');
+          ctx.strokeStyle=g;ctx.lineWidth=.75;trait(ctx,p,q);
+        }
+      };
+      if(parent?.ecran)trace(parent.centre,e.centre,color,(plat?.46:.26)*opacity);
+      if(e.sol&&!plat){
         const f=this.fondu,active=f?(e.chapitre===f.de?1-f.poids:0)+(e.chapitre===f.vers?f.poids:0):Number(e.chapitre===this.actif);
         const radius=Math.max(24,r*.9),lit=distance(hub,souris)<14||this.pris?.etoile===e;
         anneau(ctx,proj,x,y,radius,.35+.55*Math.max(active,Number(lit)));
@@ -102,12 +144,19 @@ export class CielExpo extends Ciel {
       }
       const ombre=([c,row,haut])=>proj(c+lumiere[0]*haut*rise,row+lumiere[1]*haut*rise,0);
       const hubShadow=ombre(e.centre);
+      const orbit=title?0:(t??0)*.02*(e.rang%2?-1:1);
+      const co=Math.cos(orbit),si=Math.sin(orbit);
       const nodes=e.noeuds.map(n=>{
         const [nx,ny,nz]=n.at;
-        let wx=x+r*nx,wy=y+r*ny;
+        let wx=x+r*(co*nx-si*ny),wy=y+r*(si*nx+co*ny);
         const hauteur=Math.max(12,h+(title?r*nz:n.hemisphere*.85*h*Math.sqrt(Math.max(0,1-nx*nx-ny*ny))));
         const p=proj(wx,wy,hauteur);
         if(!p)return null;
+        const sx=p.x-souris.x,sy=p.y-souris.y,d=Math.hypot(sx,sy);
+        const push=t===null||d<18||d>90?0:14*(1-d/90)**2;
+        n.fx+=((d?push*sx/d:0)-n.fx)*(1-Math.exp(-15*dt));
+        n.fy+=((d?push*sy/d:0)-n.fy)*(1-Math.exp(-15*dt));
+        p.x+=n.fx;p.y+=n.fy;
         if(this.pris?.noeud===n){n.dx=souris.x-p.x;n.dy=souris.y-p.y;n.vx=n.vy=0;}
         else if(t===null){n.dx=n.dy=n.vx=n.vy=0;}
         else if(n.dx||n.dy||n.vx||n.vy)for(let rest=Math.min(.1,dt);rest>1e-4;rest-=1/120){
@@ -117,32 +166,32 @@ export class CielExpo extends Ciel {
           if(Math.abs(n.dx)+Math.abs(n.dy)+Math.abs(n.vx)+Math.abs(n.vy)<.03){n.dx=n.dy=n.vx=n.vy=0;break;}
         }
         p.x+=n.dx;p.y+=n.dy;
-        if(n.dx||n.dy){
-          const position=unproject(p.x,p.y,hauteur,[wx,wy]);
+        if(n.dx||n.dy||n.fx||n.fy){
+          const position=unproject?.(p.x,p.y,hauteur,[wx,wy]) || (plat?[p.x,p.y]:null);
           if(position)[wx,wy]=position;
         }
         const world=[wx,wy,hauteur];
         return {p,n,covered:masque(p),world,ground:ombre(world)};
       });
-      for(const [a,b] of e.liens)if(nodes[a]&&nodes[b])segment(nodes[a].world,nodes[b].world,color,.084*opacity);
+      for(const [a,b] of e.liens)if(nodes[a]&&nodes[b])trace(nodes[a].world,nodes[b].world,color,.09*opacity);
       for(const node of nodes){
         if(!node)continue;
         const {p,n,covered,ground}=node,d=distance(p,souris),hot=!covered&&d<14;
-        segment(e.centre,node.world,hot?'255,255,255':color,(hot?.9:title?.39:.45)*opacity);
+        trace(e.centre,node.world,hot?'255,255,255':color,(hot?.9:title?.39:plat?.68:.43)*opacity);
         if(covered)continue;
         ctx.globalAlpha=opacity;
-        if(ground&&hubShadow&&!masque(ground)&&!masque(hubShadow)){
+        if(!plat&&ground&&hubShadow&&!masque(ground)&&!masque(hubShadow)){
           ctx.lineWidth=1.1;ctx.strokeStyle='rgba(0,4,37,'+(.22*rise)+')';trait(ctx,hubShadow,ground);
           if(n.ed){ctx.fillStyle='rgba(0,4,37,'+(.19*rise)+')';ctx.fillRect(ground.x-3,ground.y-2,6,4);}
         }
         ctx.lineWidth=1;
         if(t!==null&&!masque(hub)&&(n.ed||n.phases[0]%3===0))impulsions(ctx,hub,p,n.phases,t,color);
         if(n.ed){
-          const image=this.image(n.ed.image),side=(image?(title?32:16):(title?14:8))*(hot?1.5:1);
+          const image=this.image(n.ed.image),side=(image?(title?32:16):(title?7:4))*(hot?1.5:1);
           ctx.fillStyle=image?'#050b26':hot?'#fff':title?'#b6c6e4':'#161c36';
           ctx.fillRect(p.x-side/2,p.y-side/2,side,side);
           if(image)ctx.drawImage(image,p.x-side/2+1,p.y-side/2+1,side-2,side-2);
-          ctx.strokeStyle='rgba(255,255,255,.42)';ctx.lineWidth=1;ctx.strokeRect(p.x-side/2,p.y-side/2,side,side);
+          if(image){ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.strokeRect(p.x-side/2,p.y-side/2,side,side);}
           if(p.x>=0&&p.y>=0&&p.x<=W&&p.y<=H){
             const target={x:p.x,y:p.y,noeud:n,etoile:e};this.cibles.push(target);
             if(d<nearest){this.survol=target;nearest=d;}
@@ -154,7 +203,15 @@ export class CielExpo extends Ciel {
       if(masque(hub))continue;
       ctx.globalAlpha=opacity;
       const diam=title?14:8;
-      ctx.fillStyle=title?'#e9efff':'#a1badc';ctx.fillRect(hub.x-diam/2,hub.y-diam/2,diam,diam);
+      ctx.fillStyle=title?'#e9efff':plat?'#7385ff':'#a1badc';
+      if(e.racine){ctx.strokeStyle='#7281ff';ctx.beginPath();ctx.arc(hub.x,hub.y,4,0,cercle);ctx.stroke();}
+      else ctx.fillRect(hub.x-diam/2,hub.y-diam/2,diam,diam);
+      if(plat&&e.sol){
+        const left=hub.x>W*.73;
+        ctx.font=(W<520?'8':'11')+'px "Sohne Mono",monospace';
+        ctx.textAlign=left?'right':'left';ctx.fillStyle='#fff';
+        ctx.fillText(e.label,hub.x+(left?-9:9),hub.y-9);
+      }
       if(title){
         ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign='right';ctx.fillStyle='#fff';
         const lx=hub.x-diam-8,ly=hub.y+4;
@@ -164,7 +221,7 @@ export class CielExpo extends Ciel {
         }
       }
     }
-    if(this.survol){
+    if(this.survol&&!plat){
       const {x,y,noeud}=this.survol,isRight=x>W/2;
       ctx.globalAlpha=1;ctx.font='300 11px "Sohne Mono","JetBrains Mono",monospace';ctx.textAlign=isRight?'right':'left';
       ctx.fillStyle='#fff';ctx.fillText(noeud.ed.title,x+(isRight?-18:18),y+4);
