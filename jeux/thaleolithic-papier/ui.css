@@ -310,10 +310,16 @@
   .fuse .ember::after { content: ''; position: absolute; left: 3px; top: -11px; width: 7px; height: 9px; border-radius: 50%; background: rgb(200 190 200 / .5); filter: blur(1.5px); animation: smoke 1.6s ease-out infinite; }
   @keyframes ember { 0% { transform: scale(1); } 33% { transform: scale(1.18) rotate(20deg); } 66% { transform: scale(.92); } }
   @keyframes smoke { 0% { transform: translate(0, 4px) scale(.6); opacity: .7; } 100% { transform: translate(5px, -10px) scale(1.4); opacity: 0; } }
-  .fuse .bone { display: inline-block; padding: 2px 8px 1px; background: var(--bone-t, none) #f4e6c6; border-radius: 9px 4px 10px 4px / 6px 9px 5px 10px; box-shadow: var(--cut), 1px 2px 0 rgb(var(--sh) / .3); }
-  .fuse .bone svg path { stroke: #4a2028; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+  .fuse .stone { position: relative; display: inline-block; padding: 3px 11px 4px; background: var(--stone-t, none) #a9a2bc; border-radius: 12px 6px 13px 5px / 8px 12px 6px 11px; box-shadow: var(--cut), inset 1px 1px 0 rgb(255 250 240 / .4), 1px 2px 0 rgb(var(--sh) / .35); }
+  .fuse .stone b { display: block; font: 400 19px/1 'Kavoon', var(--caps); letter-spacing: .04em; color: #2e2a3c; text-shadow: 0 1px 0 rgb(244 236 250 / .55), 0 -1px 0 rgb(20 14 26 / .35); font-variant-numeric: tabular-nums; }
+  .fuse .stone.low b { color: #8a1e1a; }
+  .fuse .stone.tick b { animation: chisel .32s ease-out; }
+  .fuse .stone .chip { position: absolute; right: 6px; top: 4px; width: 5px; height: 4px; background: #d8d0e8; clip-path: polygon(0 30%, 70% 0, 100% 60%, 40% 100%); opacity: 0; }
+  .fuse .stone.tick .chip { animation: chip .5s ease-out; }
+  @keyframes chisel { 0% { transform: translate(1px, 1px) scale(.94); } 40% { transform: translate(-1px, 0) scale(1.05); } 100% { transform: none; } }
+  @keyframes chip { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(9px, -12px) rotate(160deg); } }
   #council { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; }
   #council small { font: 400 12px/1 var(--caps); letter-spacing: .04em; color: #7a2430; white-space: nowrap; }
   #council .fuse .cord { width: 90px; }
-  .timer { float: right; margin: 0 0 6px 10px; transform: rotate(2deg); }
-  @media (prefers-reduced-motion: reduce) { .fuse .ember, .fuse .ember::after { animation: none; } }
+  .timer { float: none; display: flex; justify-content: flex-end; margin: 0 30px 8px 0; transform: rotate(1.5deg); }
+  @media (prefers-reduced-motion: reduce) { .fuse .ember, .fuse .ember::after, .fuse .stone b, .fuse .stone .chip { animation: none !important; } }
