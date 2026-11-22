@@ -66,7 +66,8 @@ if (frames.length) {
     if(camera){
       const viewport=camera.querySelector('.sc-camera-viewport');
       const action=document.createElement('b');
-      camera.querySelector('figcaption').append(action);
+      action.className='sc-camera-action';
+      viewport.append(action);
       st.camera={viewport,image:viewport.querySelector('img'),caption:camera.querySelector('figcaption span'),places:JSON.parse(camera.dataset.camera),groups:JSON.parse(camera.dataset.actions),action,index:0};
       new ResizeObserver(()=>cadreCamera(st)).observe(viewport);
     }
@@ -78,13 +79,14 @@ if (frames.length) {
     const [x,y,field,caption]=point;
     const width=c.viewport.clientWidth,height=c.viewport.clientHeight;
     if(!width||!height)return;
-    const scale=width/field;
+    const scale=Math.max(width/1260,Math.min(1.1,width/field));
     const left=clamp(width/2-x*scale,Math.min(0,width-1260*scale),0);
     const top=clamp(height/2-y*scale,Math.min(0,height-1910*scale),0);
     c.image.style.transform=`translate(${left}px,${top}px) scale(${scale})`;
     c.caption.textContent=caption;
     const group=c.groups[st.step-1],[name,status]=group[c.index]||group[0];
     const ordinal=c.groups.slice(0,st.step-1).reduce((sum,g)=>sum+g.length,0)+c.index+1;
+    c.action.dataset.status=status;
     c.action.textContent=ordinal+'/76 · '+name.replaceAll('_',' ')+' · '+status;
   }
   function nextAction(st){

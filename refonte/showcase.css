@@ -249,3 +249,9 @@ html body .cv-document{color:#f9f9ff;background:#191c28}
 html body .cv-document .cv-document-copy>p:not(.cv-document-format){font:400 16px/1.48 var(--expo-sans,system-ui)!important;color:#d4d7e1}
 html body .cv-document .cv-document-copy>.cv-document-format{font:500 12px/1.3 "Sohne Mono",monospace!important;color:#cbd2e5}
 @media(max-width:600px){html body .cv-document .cv-document-copy>p:not(.cv-document-format){font-size:14px!important}}
+
+.sc-camera .sc-camera-action{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:84%;padding:8px 12px;border:1px solid #1b7453;border-radius:5px;background:#f9fffd;color:#14372c;box-shadow:0 4px 18px #17342d29;font:600 clamp(12px,1.2vw,17px)/1.3 var(--expo-sans,system-ui);text-align:center}
+.sc-camera-action[data-status="Ignorée"]{border-color:#737885;color:#323844;background:#f5f7f9}
+.sc-camera-action:empty{display:none}
+
+html.cv-standard-active [data-cv-machine][data-cv-projected-canvas][data-ready]>canvas{opacity:1!important;filter:none!important}

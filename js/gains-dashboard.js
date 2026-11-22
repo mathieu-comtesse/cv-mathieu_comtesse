@@ -1,5 +1,5 @@
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v69';
-import { createGainsOverview } from './gains-overview.js?v=1';
+import { createGainsOverview } from './gains-overview.js?v=2';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
 
 const f = (n, digits = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits });
@@ -28,6 +28,7 @@ export function initGainsDashboard() {
   const head = document.querySelector('#work > .strip-head');
   if (!head) return;
   head.classList.add('gains-heading');
+  const embedded=head.closest('[data-no-piggy]')!==null;
   head.innerHTML = `<div class="annual-gains"><div class="annual-pig-wrap"></div>
     <div class="gains-intro"><span class="gains-eyebrow">Du temps rendu aux équipes</span><h1>Les gains, en clair.</h1>
     <p>Du temps libéré, valorisé à 104,74 €/h.</p></div>
@@ -35,7 +36,7 @@ export function initGainsDashboard() {
     <div><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><span>${f(mean(ANNUAL_DECLARED, 'Hours') / HOURS_PER_FTE, 1)} postes équivalents</span></div>
     <div><strong data-rhythm-short>15,03 s</strong><span>par pièce de 1 €</span></div></div>
     <section class="gains-chart" aria-labelledby="gains-chart-title"><div class="gains-side"><div class="gains-chart-head"><h2 id="gains-chart-title">Une année de temps libéré</h2>
-    <div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="overview" aria-pressed="true">Vue d’ensemble</button><button type="button" data-view="year" aria-pressed="false">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
+    ${embedded ? '<a class="gains-details-link" href="gains.html">Voir les chiffres</a>' : ''}<div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="overview" aria-pressed="true">Vue d’ensemble</button><button type="button" data-view="year" aria-pressed="false">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
     <p class="gains-hint">Survole une courbe · touche-la · ou explore avec Tab et les flèches.</p>
     <div class="gains-metric"><span>Volumes fournis</span><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><small>${f(mean(ANNUAL_DECLARED))} € valorisés par an</small></div>
     <div class="gains-legend" aria-label="Légende"></div></div>
@@ -116,7 +117,7 @@ export function initGainsDashboard() {
     chart.dataset.view=view;
     if(view==='overview'){
       chart.querySelector('h2').textContent='Une année de temps libéré';
-      chart.querySelector('.gains-hint').textContent='Les gains des projets de maintenance et de qualité, valorisés à 104,74 € par heure.';
+      chart.querySelector('.gains-hint').textContent='Explore les heures libérées par mes outils de maintenance et de qualité, et leur valorisation à 104,74 € par heure.';
       return;
     }
     chart.querySelector('.gains-hint').textContent='Survole une courbe ou explore les valeurs avec les flèches.';
@@ -168,7 +169,7 @@ export function initGainsDashboard() {
     }
   }
   const switches=[...chart.querySelectorAll('.gains-switch button')];
-  const overview=createGainsOverview({declared:ANNUAL_DECLARED,projects:ANNUAL_GAINS,net:ANNUAL_NET,select:selectView});
+  const overview=createGainsOverview({declared:ANNUAL_DECLARED,projects:ANNUAL_GAINS,net:ANNUAL_NET,select:id=>embedded&&id!=='overview'?location.assign('gains.html#work'):selectView(id),embedded});
   chart.append(overview);
   function selectView(id){
     view=id;

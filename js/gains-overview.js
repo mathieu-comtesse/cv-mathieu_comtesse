@@ -9,7 +9,7 @@ const icon=(x,y,i)=>{
   const paths=['M2 7 7 2l5 5v6H8V9H6v4H2Z','M2 2h4v4H2zM9 2h4v4H9zM2 9h4v4H2zM9 9h4v4H9z','M2 6h11l-2-4H4ZM3 7v6h9V7','M2 3h7l4 4-6 6-5-5Z','M2 11h11M4 9V5m4 4V2m4 7V6'];
   return `<path d="${paths[i%paths.length]}" transform="translate(${x} ${y}) scale(.67)" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>`;
 };
-export function createGainsOverview({declared,projects,net,select}){
+export function createGainsOverview({declared,projects,net,select,embedded}){
   const host=document.createElement('div');host.className='gains-overview';
   const annual=(declared.minHours+declared.maxHours)/2,money=(declared.minMoney+declared.maxMoney)/2;
   const rows=projects.slice(0,5).map((p,i)=>{
@@ -18,12 +18,14 @@ export function createGainsOverview({declared,projects,net,select}){
   }).join('');
   const nav=['Accueil','Projections','Contributions','Méthode'];
   const actions=['overview','year','projects','method'];
-  const curve='M278 153 C294 147 304 135 321 135 S342 141 360 134 S382 126 397 131 S429 144 447 149 S465 152 476 153';
+  const first='M278 153 C294 147 304 135 321 135 S342 141 360 134 S382 126 397 131 S429 144 447 149 S465 152 476 153';
+  const curve=embedded?first+' S491 148 512 157 S528 174 548 174 S571 169 592 180 S615 189 628 194 S651 201 667 196 S689 196 701 199 S722 193 742 179':first;
+  const travel=embedded?465:200;
   const seed=Array.from({length:60},(_,i)=>box((i*179+26)%742,(i*191+9)%639,i%6===0?3:1.6,i%6===0?3:1.6,'#a5aaa8'));
   host.innerHTML=`<svg class="gains-dashboard-art" viewBox="0 0 742 639" role="group" aria-label="Tableau de bord du temps libéré">
     <defs><linearGradient id="overview-area" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#87d4e5" stop-opacity=".46"/><stop offset="1" stop-color="#87d4e5" stop-opacity="0"/></linearGradient>
-    <clipPath id="overview-sweep"><rect class="overview-sweep" x="278" y="115" width="200" height="190"/></clipPath></defs>
-    ${box(0,0,742,639,'#4b4b4b')}${seed.join('')}
+    <clipPath id="overview-sweep"><rect class="overview-sweep" x="278" y="115" width="${travel}" height="190"/></clipPath></defs>
+    ${embedded?'':box(0,0,742,639,'#4b4b4b')+seed.join('')}
     ${box(81,14,850,603,'#232a25',18)}${box(92,25,146,579,'#343f3b',9,'#5e6a66')}
     ${text(105,50,'MC',14,'fill="#77f5c2" font-weight="700"')}${text(130,50,'/ gains',11,'fill="#77f5c2" font-family="monospace"')}
     ${box(100,73,130,25,'#44504c',4)}${box(100,81,2,9,'#96eed8')}
@@ -36,7 +38,7 @@ export function createGainsOverview({declared,projects,net,select}){
     ${[139,187,235,283].map(y=>box(278,y,513,.7,'#59645e')).join('')}
     ${text(256,142,'10 h',9)}${text(256,190,'8 h',9)}
     <g clip-path="url(#overview-sweep)"><path d="${curve} V305 H278 Z" fill="url(#overview-area)"/><path class="overview-line" d="${curve}" fill="none" stroke="#baf4ff" stroke-width="1.75"/></g>
-    <circle class="overview-point" cx="476" cy="153" r="4.3" fill="#e1fcff" stroke="#9befff"/>
+    <circle class="overview-point" cx="${embedded?742:476}" cy="${embedded?179:153}" r="4.3" fill="#e1fcff" stroke="#9befff"/>
     <path class="overview-hit" d="${curve}" fill="none" stroke="transparent" stroke-width="30" pointer-events="stroke" tabindex="0" role="slider" aria-label="Jour du scénario mensuel" aria-valuemin="1" aria-valuemax="30" aria-valuenow="30"/>
     ${box(249,336,570,1,'#59645e')}${box(521,336,1,61,'#59645e')}${text(533,356,'Projets chiffrés',10)}${text(533,381,String(projects.length),14)}
     ${box(248,405,670,201,'#343f3b',7,'#5e6a66')}${rows}
@@ -82,7 +84,7 @@ export function createGainsOverview({declared,projects,net,select}){
     const start=performance.now(),clip=svg.querySelector('.overview-sweep');
     function tick(now){
       const k=Math.min(1,(now-start)/1450),p=line.getPointAtLength(len*(1-(1-k)**2));
-      if(host.hasAttribute('data-explore')){clip.setAttribute('width',200);return;}
+      if(host.hasAttribute('data-explore')){clip.setAttribute('width',travel);return;}
       clip.setAttribute('width',Math.max(1,p.x-277));point.setAttribute('cx',p.x);point.setAttribute('cy',p.y);
       if(k<1)requestAnimationFrame(tick);
     }
