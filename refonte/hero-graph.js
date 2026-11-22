@@ -2,7 +2,8 @@
  * dessiné ici dans un canevas 2D posé dans la zone du graphe, avec une projection oblique (la hauteur décale vers le haut).
  * Un foyer par chapitre du site ; ses vignettes sont ses vrais contenus (cliquables, elles y mènent) ; les autres points et
  * ramifications sont purement graphiques et n'ont ni lien ni libellé. */
-import { Ciel } from './moteur.js?v=m23';
+import { Ciel } from './moteur.js?v=fall26-225d';
+import {calibrateReferenceBranches,placeReferenceHubs,drawReferenceLinks,drawReferenceJunction} from './fall26-reference-graph.js?v=fall26-225d';
 
 export function demarre(chapitres) {
   const zone = document.querySelector('.hero-entrance-hold'); if (!zone || zone.querySelector('.cv-hero-graph')) return;
@@ -12,8 +13,10 @@ export function demarre(chapitres) {
   zone.append(cv); zone.querySelector('.hero-graph-spinner-track')?.remove();
   const ciel = new Ciel(), souris = { x: -1e4, y: -1e4 };
   ciel.definit('accueil', { groupe: 'accueil', racine: true, label: 'Mathieu Comtesse' });
-  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: true }));
+  chapitres.forEach((r, i) => ciel.definit('accueil:' + r.id, { groupe: 'accueil', parent: 'accueil', num: String(i + 1).padStart(2, '0'), label: r.name, chapitre: r.id, editoriaux: r.cards, sol: false }));
+  calibrateReferenceBranches(ciel);
   let W = 0, H = 0, dpr = 1, vu = false, dernier = 0, penche = 0;
+  let budgetFrame = 16, coutMoyen = 0, lents = 0, rapides = 0;
   /* le canevas n'occupe que la partie libre de la zone : à droite du nom et des cartes quand ils la recouvrent (grand écran) */
   let largeurVue = 0;
   const mesure = () => { const r = zone.getBoundingClientRect(); let x0 = 0;
@@ -25,9 +28,25 @@ export function demarre(chapitres) {
   new IntersectionObserver(([e]) => { vu = e.isIntersecting; }).observe(zone);
   const local = (ev) => { const r = cv.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; };
   /* curseurs : viseur sur la zone du graphe, main ouverte sur un nœud éditorial, main fermée pendant qu'on le tient */
-  cv.style.cursor = 'crosshair';
+  cv.style.cursor = 'default';
   const va = (n) => { const cible = document.getElementById(n.handle) || document.getElementById(n.chapitre); if (cible) cible.scrollIntoView({ behavior: reduit.matches ? 'auto' : 'smooth', block: 'start' }); };
-  addEventListener('pointermove', (ev) => { [souris.x, souris.y] = local(ev); ciel.tire(souris.x, souris.y); const c = ciel.pris ? 'grabbing' : ciel.touche(souris.x, souris.y) ? 'grab' : 'crosshair'; cv.style.cursor = c; if (!document.documentElement.classList.contains('cv-parity-active')) document.documentElement.style.cursor = c === 'crosshair' ? '' : c; }, { passive: true });
+  addEventListener('pointermove', (ev) => {
+    const bounds=cv.getBoundingClientRect();
+    const inside=ev.clientX>=bounds.left&&ev.clientX<=bounds.right&&ev.clientY>=bounds.top&&ev.clientY<=bounds.bottom;
+    // A document-level listener is required while dragging, but should not
+    // impose a grab cursor elsewhere on the page.
+    if(!inside&&!ciel.pris){
+      souris.x=souris.y=-1e4;
+      cv.style.cursor='default';
+      if(!document.documentElement.classList.contains('cv-parity-active'))document.documentElement.style.cursor='';
+      return;
+    }
+    [souris.x,souris.y]=local(ev);
+    ciel.tire(souris.x,souris.y);
+    const cursor=ciel.pris?'grabbing':inside&&ciel.touche(souris.x,souris.y)?'grab':'default';
+    cv.style.cursor=cursor;
+    if(!document.documentElement.classList.contains('cv-parity-active'))document.documentElement.style.cursor=cursor==='default'?'':cursor;
+  }, { passive: true });
   cv.addEventListener('pointerleave', () => { if (!ciel.pris) souris.x = souris.y = -1e4; });
   /* écoute au niveau du document : d'autres calques de l'accueil passent au-dessus du canevas et recevraient l'appui à sa place */
   const dessus = (ev) => { const r = cv.getBoundingClientRect(); return !document.documentElement.classList.contains('cv-parity-active') && ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom && !ev.target.closest('a,button,input,select,textarea,.cv-site-nav'); };
@@ -36,19 +55,29 @@ export function demarre(chapitres) {
   document.addEventListener('pointerup', () => fin(false), { capture: true }); document.addEventListener('pointercancel', () => fin(true));
   function image(t) {
     requestAnimationFrame(image);
-    if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < 30 || document.documentElement.classList.contains('cv-parity-active')) return;
-    const dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
+    if (!vu || document.hidden || W < 120 || H < 120 || t - dernier < (W < 520 ? 30 : budgetFrame) || document.documentElement.classList.contains('cv-parity-active')) return;
+    const debutDessin = performance.now(), dt = Math.min(0.1, (t - dernier) / 1000); dernier = t;
     /* le plan du graphe penche légèrement vers le pointeur : la hauteur des nœuds donne la profondeur */
-    penche += ((souris.x > -1e3 ? (souris.x / W - 0.5) : 0) - penche) * 0.06;
+    penche += ((souris.x > -1e3 ? (souris.x / W - 0.5) : 0) - penche) * (1 - Math.exp(-dt * 1.875));
     const proj = (c, r, h) => ({ x: c + h * penche * 0.9, y: r - h * 0.62, z: 2000 - h });
     /* sortie de l'accueil : le graphe s'ouvre (les foyers s'écartent) et s'efface ; l'étoile du premier chapitre prend le relais */
     const fin = (document.querySelector('[data-f26-page-section]')?.getBoundingClientRect().top ?? 1e9) + scrollY - innerHeight * 0.8, s = Math.max(0, Math.min(1, scrollY / Math.max(200, fin))), ouvre = 1 + 1.9 * s * s;
     cv.style.opacity = String(1 - Math.max(0, Math.min(1, (s - 0.45) / 0.5)));
     if (s > 0.02 || largeurVue !== innerWidth) { largeurVue = innerWidth; const avant = W; mesure(); if (Math.abs(W - avant) > 1) taille(); }
     ciel.place('accueil', [W / 2, H * 0.53, Math.min(H * 0.12, 90)], (W < 520 ? Math.min(W * 0.52, H * 0.44) : Math.min(W * 0.4, H * 0.5)) * ouvre);
+    placeReferenceHubs(ciel,W,H,{spread:1+Math.min(.42,Math.max(0,s)*.42)});
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, compact: W < 520 });
+    drawReferenceLinks(ctx,ciel,proj,.49);
+    drawReferenceJunction(ctx,ciel,proj,.49);
+    ciel.dessine(ctx, proj, reduit.matches ? null : t / 1000, { souris, W, H, dt, alpha: .62, compact: W < 520, racineVisible: false, labels: true });
+    const cout = performance.now() - debutDessin;
+    coutMoyen = coutMoyen ? coutMoyen * .92 + cout * .08 : cout;
+    if (W >= 520 && coutMoyen > 9) { lents++; rapides = 0; }
+    else if (W >= 520 && coutMoyen < 4.5) { rapides++; lents = 0; }
+    else { lents = 0; rapides = 0; }
+    if (lents >= 12) { budgetFrame = 30; lents = 0; }
+    else if (rapides >= 100) { budgetFrame = 16; rapides = 0; }
   }
   requestAnimationFrame(image);
-  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), ciel };
+  window.__cvHeroGraph = { cibles: () => { const r = cv.getBoundingClientRect(); return ciel.cibles.map((c) => ({ x: c.x + r.left, y: c.y + r.top, handle: c.noeud.ed.handle })); }, etat: () => ({ ...ciel.compte('accueil'), vignettes: ciel.ecran('accueil').length, foyers: ciel.etat('accueil').filter((e) => e.visible).length, largeur: W, hauteur: H }), performance: () => ({ budgetFrame, dessinMoyenMs: +coutMoyen.toFixed(2), mobile: W < 520 }), ciel };
 }
