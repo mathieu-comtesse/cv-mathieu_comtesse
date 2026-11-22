@@ -42,7 +42,10 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   // ---- données : personnages (Nork devient Ouways, le graveur et peintre du village), quêtes, activités -------------
   const characters = base.characters.map((c) => (c.id === 'nork' ? { ...c, name: 'Ouways', role: 'Graveur et peintre du village' } : { ...c }));
   if (!characters.some((c) => c.id === 'alban')) characters.push({ id: 'alban', name: 'Alban', role: 'Ancien du conseil' });
-  const activities = new Map(v17.activities.map((a) => [a.id, { ...a, actor: a.actor === 'ouways' ? 'nork' : a.actor, site: a.site === 'ouways' ? 'nork' : a.site }]));
+  // the team's feedback (Google Sheets, « Remontées jeu ») : the game of answers to the director needs a timer long enough
+  // to read everything : 30 s per proposal of the chief (6 proposals), the progress kept if it runs out
+  const TIMERS = { V17_SCOPE: 180 };
+  const activities = new Map(v17.activities.map((a) => [a.id, { ...a, actor: a.actor === 'ouways' ? 'nork' : a.actor, site: a.site === 'ouways' ? 'nork' : a.site, ...(TIMERS[a.id] ? { duration: TIMERS[a.id] } : {}) }]));
   const menhirQuest = legacy.quests.find((q) => q.id === MENHIR_QUEST);
   // actions et dialogues génériques du jeu (l'abri) : leurs effets s'appliquent comme dans CampaignRuntime
   const actions = new Map(base.actions.map((a) => [a.id, a])), dialogues = new Map(base.dialogues.map((d) => [d.id, d]));
