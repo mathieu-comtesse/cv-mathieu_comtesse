@@ -1,4 +1,4 @@
-// THALEOLITHIC · papier : les fenêtres sont des assemblages de papier découpé, imprimés avec le kit du village (la même
+// THALEOLITHIC papier : les fenêtres sont des assemblages de papier découpé, imprimés avec le kit du village (la même
 // feuille paperSheet que les cartes de la scène, printCard et son bord de coupe P.rim). Chaque fenêtre empile un fond
 // rouge sang aux bords bosselés, une bande ocre crantée aux ciseaux cranteurs et la feuille crème bosselée, cousue au
 // point avant ; des ornements découpés s'y accrochent (un os en travers du coin, un éclat de silex planté comme une

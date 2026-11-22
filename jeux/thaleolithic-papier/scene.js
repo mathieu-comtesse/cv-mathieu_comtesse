@@ -1,4 +1,4 @@
-// THALEOLITHIC · papier : le village des Crânes Fendus en pop-up de carton (skill papercraft). Seul le rendu change :
+// THALEOLITHIC : papier : le village des Crânes Fendus en pop-up de carton (skill papercraft). Seul le rendu change :
 // la campagne, les quêtes, les mini-jeux et les contenus ISO 45001 sont ceux du jeu Unity (campaign.js + ses données).
 //
 // PAPER SPEC ---------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ export const SITES = {
 export const WALL = { cx: 0, cz: -9, rx: 25, rz: 17.5, gates: [[0, 0.13], [2.41, 0.15], [-2.44, 0.15]] };   // angle 0 = south (toward the camera)
 // where each villager stands (the givers stand on their own site)
 const HOME = { aurelien: 'aurelien', mathieu: 'mathieu', lorette: 'lorette', nork: 'nork', alban: 'alban', georges: [-13, 0], eliott: [-20, -25], mathilde: [3, 0.5],
-  neila: [16.5, -3.5], orok: [-2.5, -1.5], brok: [-17, 0.5], tarek: [-21, -8.5], uma: [10.5, -20], kora: [-24, -26], sila: [-3.5, 0], varg: [7, 8], grumb: [-6.5, -17.5], petit_os: [1.5, 0] };
+  neila: [16.5, -3.5], orok: [-2.5, -1.5], brok: [-17, 0.5], tarek: [-21, -8.5], uma: [10.5, -20], kora: [-24, -26], sila: [-3.5, 0], varg: [7, 8], grumb: [-8, -16.8], petit_os: [1.5, 0] };
 
 const LOOK = {   // tunic, trim, hair, a prop: each villager in their own colours
   aurelien: ['#7a3a2a', '#e0b04a', '#5a3a28', 'transat'], mathieu: ['#4a6a6a', '#ead9b8', '#2a1a12', 'tablette'], lorette: ['#8a5a8a', '#ead9b8', '#6a2a1a', null],
@@ -197,7 +197,7 @@ export function buildVillage(campaign) {
   const clutter = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#7a4a2a'); D.rect(g, -1.4, 0, 2.6, 0.32, 0.12); D.poly(g, [[-0.6, 0.3], [1.6, 0.9], [1.5, 1.15], [-0.7, 0.55]]); g.fillStyle = ink(C.stone); D.ell(g, 1.2, 0.3, 0.4, 0.3); D.ell(g, -1.5, 0.25, 0.3, 0.25); }, { w: 3.6, h: 1.4, name: 'clutter' });
   const smoke = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#8a7a7a'); for (const [x, y, rr] of [[0, 0.6, 0.5], [0.3, 1.3, 0.6], [-0.2, 2.1, 0.75], [0.4, 2.9, 0.85]]) D.ell(g, x, y, rr, rr * 0.8); }, { w: 2.2, h: 3.8, name: 'smoke' });
   const rubble = () => P2.drawnPiece((g, ink) => { g.strokeStyle = ink(C.bone); g.lineWidth = 0.28; g.lineCap = 'round'; for (const [a, b, c, d] of [[-2.6, 0.1, -0.4, 1.6], [2.4, 0.1, 0.1, 1.3], [-1.2, 0.2, 1.6, 0.9]]) { g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); } g.fillStyle = ink('#7a4a32'); D.poly(g, [[-2.8, 0], [2.8, 0], [2.0, 0.7], [0.2, 1.1], [-1.8, 0.8]]); g.fillStyle = ink('#c84a2a'); D.poly(g, [[-0.2, 1.0], [0.4, 1.0], [0.1, 2.4]]); }, { w: 6.0, h: 2.6, name: 'rubble' });
-  const props = () => P2.drawnPiece((g, ink) => { g.strokeStyle = ink('#5a3a22'); g.lineWidth = 0.18; g.lineCap = 'round'; for (const s of [-1, 1]) { g.beginPath(); g.moveTo(s * 3.3, 0); g.lineTo(s * 1.6, 2.6); g.stroke(); } g.fillStyle = ink('#c8b090'); D.rect(g, -0.9, 1.6, 1.0, 0.7, 0.05); g.fillStyle = ink('#c84a2a', 'print'); D.poly(g, [[-0.6, 1.75], [-0.2, 2.15], [0.0, 1.75]]); }, { w: 7.0, h: 2.8, name: 'props' });
+  const props = () => P2.drawnPiece((g, ink) => { g.lineCap = 'round'; for (const sd of [-1, 1]) { g.strokeStyle = ink('#6a4024'); g.lineWidth = 0.42; g.beginPath(); g.moveTo(sd * 3.9, 0); g.lineTo(sd * 1.2, 3.4); g.stroke(); g.strokeStyle = ink('#c8a870'); g.lineWidth = 0.16; for (const t of [0.35, 0.7]) { g.beginPath(); g.moveTo(sd * (3.9 - 2.7 * t) - 0.25, 3.4 * t); g.lineTo(sd * (3.9 - 2.7 * t) + 0.25, 3.4 * t + 0.1); g.stroke(); } } g.fillStyle = ink('#c8402e'); D.poly(g, [[-2.75, 2.0], [-2.1, 2.1], [-2.3, 1.2], [-2.6, 1.4]]); g.fillStyle = ink('#d8c090'); D.rect(g, -0.9, 2.2, 1.2, 0.8, 0.05); g.fillStyle = ink('#6f7fb0'); D.rect(g, 0.6, 1.5, 0.9, 0.7, 0.05); g.fillStyle = ink('#2a1a1e', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -0.85 + k * 0.3, 2.95, 0.05, 0.1); }, { w: 8.4, h: 3.8, name: 'props' });
   const tablet = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.stoneB); D.poly(g, [[-0.9, 0], [0.9, 0], [0.85, 1.7], [0, 1.95], [-0.85, 1.7]]); g.fillStyle = ink(sh(C.stone, -0.3), 'print'); for (let k = 0; k < 5; k++) D.rect(g, -0.6, 0.3 + k * 0.26, 1.2 - (k % 2) * 0.3, 0.05); g.fillStyle = ink('#c84a2a'); D.ell(g, 0.5, 0.35, 0.16, 0.16); }, { w: 2.0, h: 2.1, name: 'tablet' });
   const stepping = () => P2.drawnPiece((g, ink) => { for (const [x, s] of [[-2.4, 0.5], [-0.8, 0.4], [0.8, 0.45], [2.4, 0.5]]) { g.fillStyle = ink(C.stone); D.ell(g, x, s * 0.6, s * 1.2, s * 0.6); } }, { w: 6, h: 0.8, name: 'stepping' });
   const pigmentHood = () => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); for (const s of [-1, 1]) D.rect(g, s * 1.3 - 0.08, 0, 0.16, 2.2); g.fillStyle = ink('#b8885a'); D.poly(g, [[-1.7, 2.1], [1.7, 2.1], [0, 3.1]]); g.fillStyle = ink('#2a1a1e'); D.ell(g, 0, 2.55, 0.25, 0.18); for (const [x, c] of [[-0.6, '#c84a2a'], [0, '#e0a24a'], [0.6, '#2a1a1e']]) { g.fillStyle = ink(c); D.ell(g, x, 0.35, 0.28, 0.32); } }, { w: 3.6, h: 3.3, name: 'hood' });
@@ -295,44 +295,44 @@ export function buildVillage(campaign) {
   staged(quest(MENHIR_QUEST), () => popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#6a4024'); D.rect(g, -3.6, 3.7, 7.2, 0.35, 0.1); g.fillStyle = ink(C.bone); D.ell(g, 0, 4.35, 0.75, 0.6); D.rect(g, -0.4, 3.85, 0.8, 0.4, 0.1); for (const s2 of [-1, 1]) P2.fillLimb(g, s2 * 0.5, 4.5, s2 * 1.8, 5.4, s2 * 1.4, 4.1, 0.22, 0.08); g.fillStyle = ink('#2a1a1e', 'print'); D.ell(g, -0.28, 4.4, 0.16, 0.18); D.ell(g, 0.28, 4.4, 0.16, 0.18); }, { w: 7.6, h: 5.6, name: 'lintel' }), { x: 0, z: 8.25, yaw: 0 }));
 
   // ---- chapters and choices -----------------------------------------------------------------------------------------
-  // I · context: the scope is staked out, ochre-tipped markers round the village
-  staged(quest('V17_CONTEXT'), () => { for (const [x, z] of [[-27, -6], [27, -6], [-6, -29.5], [17, 10.5], [-14, 9.5]]) popup(...marker(), { x, z }); });
-  // II · the duel won: the policy carved on a tablet at the menhir's foot
+  // I : context: the scope is staked out, ochre-tipped markers round the village
+  staged(quest('V17_CONTEXT'), () => { for (const [x, z] of [[-27, -6], [27, -6], [-6, -29.5], [17, 10.5], [-14, 9.5]]) popup(...marker(), { x, z, scale: 1.5 }); });
+  // II : the duel won: the policy carved on a tablet at the menhir's foot
   staged(quest(MENHIR_QUEST), () => popup(...tablet(), { x: 0, z: -19.3 }));
-  // III · the hunt for risks: the flint workshop, cut too close to the path (difference 11), gets a wicker screen and a roped-off zone
+  // III : the hunt for risks: the flint workshop, cut too close to the path (difference 11), gets a wicker screen and a roped-off zone
   staged(quest('V17_RISKS'), () => { popup(...wicker(), { x: A.x + 1.2, z: A.z + 0.6, yaw: -0.1 }); popup(...rope(5.5), { x: A.x - 0.5, z: A.z - 5.2, yaw: 0 }); });
-  // IV · the means: three chests at the stores, the notice post with the tablets on the square
+  // IV : the means: three chests at the stores, the notice post with the tablets on the square
   staged(quest('V17_SUPPORT'), () => { popup(...chests(), { x: S.x - 2.4, z: S.z - 0.2 }); popup(...noticePost(), { x: 4.6, z: -10.2 }); });
-  // V · the shelter: bare arches until the roof is chosen; C (checked) a sound hut; B (makeshift) the hut on props;
+  // V : the shelter: bare arches until the roof is chosen; C (checked) a sound hut; B (makeshift) the hut on props;
   //     A maintained against the alert: the collapse, and a cairn for the builder
   const Hb = SITES.habitations;
   staged(any(flag('choice:D_ABRI_A'), flag('choice:D_ABRI_B'), flag('choice:D_ABRI_C')), () => popup(...P2.drawnPiece((g, ink) => { g.strokeStyle = ink(C.bone); g.lineWidth = 0.3; for (const s of [-1.6, 0, 1.6]) { g.beginPath(); g.ellipse(s, 0, 1.3, 2.9, 0, Math.PI, 0, true); g.stroke(); } g.fillStyle = ink(C.bone); D.rect(g, -3, 0, 6, 0.3); g.fillStyle = ink('#7a4a2a'); D.rect(g, 2.2, 0, 1.4, 0.4, 0.1); }, { w: 6.6, h: 3.2, name: 'frame' }), { x: Hb.x, z: Hb.z - 0.6, yaw: 0 }), { undo: true });
   staged(any(flag('effective:M_V_ABRI'), flag('choice:D_ABRI_B')), () => hut(Hb.x, Hb.z - 1, 2.9, { hide: '#9a6a42', mark: 'hands', solid: false }));
-  staged(flag('choice:D_ABRI_B'), () => popup(...props(), { x: Hb.x, z: Hb.z + 1.4 }));
+  staged(flag('choice:D_ABRI_B'), () => popup(...props(), { x: Hb.x, z: Hb.z + 1.9 }));
   staged(flag('catastrophe'), () => { popup(...rubble(), { x: Hb.x, z: Hb.z - 0.6 }); popup(...rock(1.6), { x: Hb.x + 3.4, z: Hb.z + 1.2, scale: 0.8 }); });
-  // VI · the 15 differences: what the tribe changed
-  //   1 · the fire inside the tent: smoke out of the doorway, then the hearth moved outside in its stone ring
+  // VI : the 15 differences: what the tribe changed
+  //   1 : the fire inside the tent: smoke out of the doorway, then the hearth moved outside in its stone ring
   staged(quest('V17_OPERATIONS'), () => popup(...smoke(), { x: -11, z: -5.2, cross: true, sway: 0.4 }), { undo: true });
   staged(quest('V17_OPERATIONS'), () => hearthAt(-11, -3.9, { lamp: false }));
-  //   9 · the building site in the walkways: clutter on the path, then a roped-off zone
+  //   9 : the building site in the walkways: clutter on the path, then a roped-off zone
   staged(quest('V17_OPERATIONS'), () => popup(...clutter(), { x: 11.5, z: -13.2, yaw: 0.4 }), { undo: true });
   staged(quest('V17_OPERATIONS'), () => popup(...rope(6.5, '#c84a2a'), { x: Hb.x, z: Hb.z + 3.1 }));
-  //  12 · Neila's stores stacked unsteadily, then a braced rack and clear passages
+  //  12 : Neila's stores stacked unsteadily, then a braced rack and clear passages
   staged(quest('V17_OPERATIONS'), () => popup(...wobblyPile(), { x: S.x - 2.6, z: S.z - 2.4 }), { undo: true });
   staged(quest('V17_OPERATIONS'), () => popup(...rack(), { x: S.x - 2.2, z: S.z - 2.8 }));
-  //  14 · the river ford grown dangerous, then a footbridge; 5 · the megalith on rollers with levers; 3 · the pigments
-  //  under a ventilated hood; 15 · the hides heaped on the square, then racks checked outside the wall
+  //  14 : the river ford grown dangerous, then a footbridge; 5 : the megalith on rollers with levers; 3 : the pigments
+  //  under a ventilated hood; 15 : the hides heaped on the square, then racks checked outside the wall
   staged(quest('V17_OPERATIONS'), () => popup(...stepping(), { x: 32, z: -10, yaw: 0 }), { undo: true });
   staged(quest('V17_OPERATIONS'), () => popup(...bridge(), { x: 31.5, z: -10, yaw: 0 }));
   staged(quest('V17_OPERATIONS'), () => popup(...rollers(), { x: SITES.pierre_carriere.x - 4.4, z: SITES.pierre_carriere.z + 1.6 }));
   staged(quest('V17_OPERATIONS'), () => popup(...pigmentHood(), { x: SITES.nork.x + 2.6, z: SITES.nork.z - 1.6 }));
   staged(quest('V17_OPERATIONS'), () => popup(...hideHeap(), { x: -3.6, z: -1.8 }), { undo: true });
   staged(quest('V17_OPERATIONS'), () => { for (const [x, z] of [[-28, -17], [-25.5, -21]]) popup(...hidesRack(), { x, z }); });
-  // VII · fire!: the alarm horn on the square and water jars by the huts
-  staged(quest('V17_EMERGENCY'), () => { popup(...hornPost(), { x: -4.4, z: -9.5 }); for (const [x, z] of [[-5, 1.5], [12.6, 1.6], [-8.6, -6], [10, -11.5]]) popup(...pots(), { x, z, scale: 0.6 }); });
-  // VIII · the elders' audit: a ring of seats by the sanctuary
-  staged(quest('V17_EVALUATION'), () => popup(...seats(), { x: -7.5, z: -21.2, yaw: 0.25 }));
-  // IX · the next cycle: bunting over the square, a watchtower by the wall
+  // VII : fire!: the alarm horn on the square and water jars by the huts
+  staged(quest('V17_EMERGENCY'), () => { popup(...hornPost(), { x: -4.4, z: -9.5, scale: 1.4 }); for (const [x, z] of [[-5, 1.5], [12.6, 1.6], [-8.6, -6], [10, -11.5]]) popup(...pots(), { x, z, scale: 0.6 }); });
+  // VIII : the elders' audit: a ring of seats by the sanctuary
+  staged(quest('V17_EVALUATION'), () => popup(...seats(), { x: -4.2, z: -18.4, yaw: 0.2, scale: 0.8 }));
+  // IX : the next cycle: bunting over the square, a watchtower by the wall
   staged(quest('V17_IMPROVEMENT'), () => { popup(...bunting(10), { x: 0, z: -9.6 }); popup(...tower(), { x: 16, z: -22 }); });
   // the uprooted fire of the tent stays out (difference 1), kept clear of the walk
   walk.solid(-11, -3.9, 1.2);

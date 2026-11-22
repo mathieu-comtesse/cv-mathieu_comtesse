@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>THALEOLITHIC · papier</title>
+<title>THALEOLITHIC en papier</title>
 <meta name="description" content="THALEOLITHIC en pop-up de papier : la même campagne ISO 45001 et les mêmes mini-jeux que le jeu Unity, dans un village préhistorique en carton.">
 <meta name="theme-color" content="#2a1830">
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
@@ -129,8 +129,8 @@
   .banner { margin: 6px 0 2px; font: 400 14.5px/1.3 var(--caps); letter-spacing: .05em; text-transform: none; color: var(--accent); }
 
   /* quests, the Codex, people, bag, knowledge tree, folder tabs */
-  .quest { margin: 8px 0; padding: 9px 12px 9px 14px; border-left: 4px solid var(--edge); } .quest b { display: flex; align-items: center; gap: 6px; } .quest span { font-size: 12px; color: var(--ink-80); } .quest p { margin: 6px 0 0; }
-  .quest.done { border-color: #7a8a4a; } .quest.now { border-color: var(--accent); } .quest.later { opacity: .55; box-shadow: inset 0 0 0 1px var(--ink-30); background: none; }
+  .quest { margin: 8px 0; padding: 9px 12px 9px 14px; } .quest b { display: flex; align-items: center; gap: 6px; } .quest span { font-size: 12px; color: var(--ink-80); } .quest p { margin: 6px 0 0; }
+  .quest.later { opacity: .55; box-shadow: inset 0 0 0 1px var(--ink-30); background: none; }
   .ev { margin: 6px 0; padding: 8px 11px; } .ev summary { cursor: pointer; } .ev span { font-size: 12px; color: var(--ink-80); }
   .people, .bag { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 6px; } .people .btn, .bag .btn { font-size: 12px; padding: 7px 9px; } .people small { display: block; font-weight: 400; color: var(--ink-80); }
   .bag span { display: block; font: italic 400 21px/1.2 var(--serif); }
@@ -221,8 +221,7 @@
   .card, .quest, .ev, .chest { position: relative; border-radius: 16px 5px 18px 6px / 6px 16px 5px 18px; }
   .card { transform: rotate(-.6deg); } .quest:nth-of-type(even), .ev:nth-of-type(even) { transform: rotate(.5deg); }
   .card::before { content: ''; position: absolute; right: 16px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #e86a48, #8e2f2a 70%); box-shadow: 1px 2px 1px rgb(var(--sh) / .5); }
-  .quest { border-left: 0; padding-left: 16px; box-shadow: var(--cut), inset 6px 0 0 var(--edge), 2px 3px 5px rgb(var(--sh) / .2); }
-  .quest.now { box-shadow: var(--cut), inset 6px 0 0 #9a3328, 2px 3px 5px rgb(var(--sh) / .2); } .quest.done { box-shadow: var(--cut), inset 6px 0 0 #a9b27a, 2px 3px 5px rgb(var(--sh) / .2); }
+  .quest { border-left: 0; padding-left: 14px; }
   .quest b { font: 400 17px/1.2 var(--caps); letter-spacing: .02em; }
   .fb { font: italic 500 14.5px/1.4 var(--serif); background: var(--ochre-t, none) #f3c46e; border-left: 0; padding: 10px 18px 11px 30px; transform: rotate(-.8deg); position: relative; }
   .fb::before { content: ''; position: absolute; left: 10px; top: 12px; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #e86a48, #8e2f2a 70%); }
@@ -297,7 +296,7 @@
 <div class="sheet" id="intro">
   <div class="paper">
     <h1>THALEOLITHIC</h1>
-    <p class="sub">L’âge de la prévention · édition papier</p>
+    <p class="sub">L’âge de la prévention, édition papier</p>
     <p>Dylan, apprenti préventeur, découvre le village des Crânes Fendus avec Mathieu, son mentor. La campagne ISO 45001 est celle du jeu : neuf quêtes, vingt-quatre activités, le Duel des menhirs et l’abri à vérifier, de la clause 4 à la clause 10.</p>
     <p class="small">Le repère <b>!</b> indique où aller. <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> ou les flèches pour marcher, <kbd>E</kbd> pour agir, <kbd>I</kbd> inventaire, <kbd>M</kbd> carte, glisser pour regarder autour. Les acquis sont gardés dans ce navigateur.</p>
     <button class="btn go" id="continue" type="button" hidden>Continuer</button>

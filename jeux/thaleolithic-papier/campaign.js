@@ -1,4 +1,4 @@
-// THALEOLITHIC · papier : la logique de campagne, portée du jeu Unity (thaleolithic/Source/Runtime) sans rien changer aux
+// THALEOLITHIC papier : la logique de campagne, portée du jeu Unity (thaleolithic/Source/Runtime) sans rien changer aux
 // règles ni aux contenus ISO 45001. Aucun rendu ici : le village (scene.js) et l'interface (ui.js) lisent cet état.
 // Sources C# reprises : CampaignActivitiesV17.cs (chaîne V17, progression, Submit, Allocate, PerformWork, VerifyWork,
 // ObserveDifference, ValidateDifferences, ValidateAssembly, ConfirmSstAssembly, minuteurs, preuves), CampaignMenhir.cs
@@ -28,7 +28,7 @@ export const PRODUCTIONS = [
 ];
 export const BEHAVIOUR = { MOVE_TO_TASK: 'Se rend au poste de travail', WORK: 'Travaille sur place', REST: 'Se repose', EAT: 'Prend un repas', EVACUATE: 'Évacue la zone', DEAD: 'Décédé', IDLE: 'Présent dans le village' };
 // titres et budgets des actes, comme PrepareCampaignV17
-const ACT_TITLES = ['LE GRAND RÉVEIL · LE CONTEXTE', 'LE CHEF CONTRE-ATTAQUE', 'LA CHASSE AUX RISQUES', 'LA TRIBU A DES MOYENS', 'LES 15 DIFFÉRENCES', 'AU FEU !!!', 'LES ANCIENS VIENNENT AUDITER', 'LE PROCHAIN CYCLE'];
+const ACT_TITLES = ['LE GRAND RÉVEIL : LE CONTEXTE', 'LE CHEF CONTRE-ATTAQUE', 'LA CHASSE AUX RISQUES', 'LA TRIBU A DES MOYENS', 'LES 15 DIFFÉRENCES', 'AU FEU !!!', 'LES ANCIENS VIENNENT AUDITER', 'LE PROCHAIN CYCLE'];
 export const MENHIR_QUEST = 'M_II_ROLES', MENHIR_ACTION = 'MENHIR_DUEL';
 // la chaîne obligatoire de la V17 (PrepareCampaignV17), l'abri compris : sa vérification (verified:M_V_ABRI) est exigée par
 // une des 15 différences. Seul le tutoriel de déplacement (M_I_TUTORIEL) est remplacé par l'accueil de cette version.
@@ -86,7 +86,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   function setEvidence(a, stage, result, proof = '') {
     let e = state.evidence.find((x) => x.id === a.evidence);
     if (!e) { e = { id: a.evidence, name: a.evidence, clause: a.clause, activity: a.id }; state.evidence.push(e); }
-    Object.assign(e, { source: a.source || 'V17 · documents de conception', stage, result, verification: proof, at: Math.round(state.wallSeconds) });
+    Object.assign(e, { source: a.source || 'V17, documents de conception', stage, result, verification: proof, at: Math.round(state.wallSeconds) });
   }
   const verified = (id) => flag(id) || state.evidence.some((e) => e.id === id && e.stage === 3);
 
@@ -99,7 +99,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     const p = progress(id); if (p.completed) return false;
     if (a.mode === 'assemble') { p.answers = a.cards.filter((c) => p.answers.includes(c.id)).map((c) => c.id); p.card = a.cards.findIndex((c) => !p.answers.includes(c.id)); if (p.card < 0) p.card = a.cards.length; }
     current = a; timedOut = false;
-    feedback = a.mode === 'assemble' && p.answers.length ? `Assemblage repris · ${p.answers.length} tablettes sur ${a.cards.length} déjà reliées.` : a.intro || '';
+    feedback = a.mode === 'assemble' && p.answers.length ? `Assemblage repris : ${p.answers.length} tablettes sur ${a.cards.length} déjà reliées.` : a.intro || '';
     setEvidence(a, p.worked ? 2 : p.answers.length ? 1 : 0, p.worked ? a.measure : 'Activité observée, décisions et acquis conservés.');
     save(); emit(); return true;
   }
@@ -118,7 +118,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     p.guideSeen = true; p.card++;
     if (a.mode === 'assemble') while (p.card < a.cards.length && p.answers.includes(a.cards[p.card].id)) p.card++;
     feedback = a.mode === 'assemble' ? 'Tablette reliée. ' + card.explanation : card.explanation;
-    setEvidence(a, 1, p.answers.join(' · '));
+    setEvidence(a, 1, p.answers.join(', '));
     if (a.mode === 'differences') {
       p.observed = false; const k = 'difference:' + card.id;
       if (!state.evidence.some((e) => e.id === k)) state.evidence.push({ id: k, name: card.question, clause: card.clause, source: card.source, activity: a.id, stage: 3, result: `${card.before}\n→ ${card.after}\n\n${card.dialogue || ''}\n\n${card.explanation}`, verification: 'Localisation et explication contrôlées' });
@@ -231,7 +231,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   function finishRecipe(id) {
     const r = RECIPES.find((x) => x.id === id); for (const c of r.costs) state.resources[c.id] -= c.amount;
     for (const e of r.effects) { if (e.kind === 'resource') state.resources[e.target] = (state.resources[e.target] ?? 0) + e.value; if (e.kind === 'stat') state.player[e.target] = Math.min(100, (state.player[e.target] ?? 0) + e.value); }
-    feedback = r.title + ' · fait.'; save(); emit();
+    feedback = r.title + ' : fait.'; save(); emit();
   }
   function useItem(id) {
     if (id === 'food' && state.resources.food > 0) { state.resources.food--; state.player.food = Math.min(100, state.player.food + 25); state.player.energy = Math.min(100, state.player.energy + 10); }
@@ -322,7 +322,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   function finishAction(id) {
     const a = actions.get(id); for (const c of a.costs || []) state.resources[c.id] -= c.amount;
     for (const e of a.effects || []) apply(e);
-    completeAction(id); feedback = a.title + ' · fait.';
+    completeAction(id); feedback = a.title + ' : fait.';
     if (a.dialogueId && dialogues.has(a.dialogueId)) state.dialogue = a.dialogueId;
     save(); emit();
   }
@@ -339,7 +339,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     get s() { return state.menhir; },
     start() { state.menhir = state.menhir && state.menhir.phase !== 'victory' ? { ...state.menhir, phase: 'choose' } : duelFresh(); emit(); },
     choose(mode) { const s = state.menhir; if (s?.phase !== 'choose') return; s.mode = mode; this.round(); },
-    round() { const s = state.menhir; s.phase = 'combat'; s.combat = 0; s.cooldown = 0; s.bossAt = s.t + 5; s.question = s.cleared.findIndex((c) => !c); s.banner = `ÉPREUVE ${s.question + 1} · ${Q[s.question].title}`; s.caption = 'Mathieu : « Cinq décisions. Les coups seuls ne valident aucune épreuve. »'; emit(); },
+    round() { const s = state.menhir; s.phase = 'combat'; s.combat = 0; s.cooldown = 0; s.bossAt = s.t + 5; s.question = s.cleared.findIndex((c) => !c); s.banner = `ÉPREUVE ${s.question + 1} : ${Q[s.question].title}`; s.caption = 'Mathieu : « Cinq décisions. Les coups seuls ne valident aucune épreuve. »'; emit(); },
     get canQuestion() { const s = state.menhir; return s?.phase === 'combat' && s.combat >= 4; },
     get stage() { const c = state.menhir?.chief ?? 100; return c < 30 ? 3 : c < 65 ? 2 : 1; },
     openQuestion() { if (this.canQuestion) { state.menhir.phase = 'question'; emit(); } },
@@ -354,7 +354,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     answer(i) {
       const s = state.menhir; if (s?.phase !== 'question') return;
       const q = Q[s.question], a = q.answers[i]; s.caption = a.reply;
-      s.banner = a.quality === 2 ? 'DÉCISION VÉRIFIÉE' : a.quality === 1 ? 'PARTIEL · LA PRÉVENTION RESTE À ORGANISER' : 'CONTRE DU CHEF · CORRIGE TA DÉCISION';
+      s.banner = a.quality === 2 ? 'DÉCISION VÉRIFIÉE' : a.quality === 1 ? 'PARTIEL, LA PRÉVENTION RESTE À ORGANISER' : 'CONTRE DU CHEF, CORRIGE TA DÉCISION';
       if (a.quality === 2) {
         s.cleared[s.question] = true; s.chief = Math.min(s.chief, 100 - s.cleared.filter(Boolean).length * 20);
         s.dylan = Math.min(100, s.dylan + 12); s.energy = Math.min(100, s.energy + 30); s.feedback = q.correction;
@@ -365,7 +365,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
       s.feedback = s.mode === 2 ? q.hint : q.correction;
       if (s.dylan <= 0) this.defeat(); save(); emit();
     },
-    defeat() { const s = state.menhir; s.phase = 'defeat'; s.banner = 'DYLAN À TERRE · LES ACQUIS RESTENT'; s.caption = 'Reprends l’épreuve en cours avec ta vie et ton énergie restaurées. Les réponses déjà comprises sont conservées.'; },
+    defeat() { const s = state.menhir; s.phase = 'defeat'; s.banner = 'DYLAN À TERRE, LES ACQUIS RESTENT'; s.caption = 'Reprends l’épreuve en cours avec ta vie et ton énergie restaurées. Les réponses déjà comprises sont conservées.'; },
     retry() { const s = state.menhir; if (s?.phase !== 'defeat') return; s.dylan = s.energy = 100; this.round(); },
     close() { const s = state.menhir; if (s && s.phase !== 'victory') s.phase = 'paused'; save(); emit(); },
     tick(dt) {

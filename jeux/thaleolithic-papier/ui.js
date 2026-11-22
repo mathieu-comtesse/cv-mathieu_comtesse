@@ -1,4 +1,4 @@
-// THALEOLITHIC · papier : l'interface en papier découpé. Elle affiche l'état de campaign.js et lui transmet les gestes ;
+// THALEOLITHIC papier : l'interface en papier découpé. Elle affiche l'état de campaign.js et lui transmet les gestes ;
 // aucune règle n'est décidée ici. Un rendu par mécanique : cartes à choix (tri, paires, périmètre, vote, glissement,
 // préparation, retour d'expérience, tableau, audit, revue, correction, amélioration), analyse de risque (mesure puis
 // vérification), répartition, assemblage des tablettes, 15 différences, point sécurité sous les projectiles, course au
@@ -9,7 +9,9 @@ import { cutLetters } from './paper-ui.js';
 
 const MODE_LABEL = { sort: 'Classer', pair: 'Associer', scope: 'Délimiter', assemble: 'Assembler', risk: 'Analyser le risque', vote: 'Voter', allocation: 'Répartir', briefing: 'Point sécurité',
   swipe: 'Trier les tablettes', differences: '15 différences', prepare: 'Préparer', runner: 'Évacuer', debrief: 'Retour d’expérience', dashboard: 'Mesurer', audit: 'Auditer', review: 'Revue', corrective: 'Corriger', improvement: 'Améliorer' };
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/\n/g, '<br>');
+// the game's texts keep no middle dot and no dash: '·' becomes ':', a dash a comma, '5.1–5.4' reads '5.1 à 5.4'
+export const clean = (s) => String(s ?? '').replace(/(\d)\s*[–—]\s*(\d)/g, '$1 à $2').replace(/\s*[—–]\s*/g, ', ').replace(/\s*·\s*/g, ' : ');
+const esc = (s) => clean(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/\n/g, '<br>');
 const $ = (id) => document.getElementById(id);
 const ico = (n, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="#i-${n}"/></svg>`;   // the cut-paper icons of index.html
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -41,12 +43,12 @@ export function createUI(campaign, world) {
   // ---- HUD: act, quest, where to go, the prompt when Dylan stands at the place --------------------------------------
   function hud() {
     const q = campaign.frontier(), act = campaign.act(q);
-    $('act').textContent = q ? (act ? act.title : '') : 'Le cycle continue';
-    const qtitle = q ? q.title : 'Campagne terminée', qel = $('quest');
+    $('act').textContent = q ? clean(act ? act.title : '') : 'Le cycle continue';
+    const qtitle = q ? clean(q.title) : 'Campagne terminée', qel = $('quest');
     if (qel.dataset.text !== qtitle) { qel.dataset.text = qtitle; qel.textContent = qtitle; delete qel.dataset.cut; cutLetters(qel); }
     const id = campaign.nextAction(), kind = id && campaign.kindOf(id);
     const title = !id ? '' : kind === 'duel' ? 'Le Duel des menhirs' : kind === 'activity' ? campaign.data.activities.get(id).title : campaign.action(id).title;
-    $('next').textContent = title;
+    $('next').textContent = clean(title);
     const st = campaign.state.player, warn = campaign.warnings();
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
     const done = campaign.data.quests.filter((x) => campaign.questDone(x)).length;
@@ -58,7 +60,7 @@ export function createUI(campaign, world) {
     if (mode || !id || !site || campaign.state.working || !world.near(site)) { el.hidden = true; return; }
     const kind = campaign.kindOf(id);
     el.hidden = false;
-    el.querySelector('span').textContent = kind === 'duel' ? 'Défier Aurélien au Grand Menhir' : kind === 'activity' ? campaign.data.activities.get(id).title : campaign.action(id).title;
+    el.querySelector('span').textContent = clean(kind === 'duel' ? 'Défier Aurélien au Grand Menhir' : kind === 'activity' ? campaign.data.activities.get(id).title : campaign.action(id).title);
   }
   function act() {
     const id = campaign.nextAction(), site = campaign.nextSite(); if (mode || !id || !world.near(site)) return;
@@ -72,7 +74,7 @@ export function createUI(campaign, world) {
   const btn = (label, onclick, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + cls; b.innerHTML = label; b.onclick = onclick; return b; };
   function header(a) {
     const actor = campaign.character(a.actor);
-    return `<p class="kicker">ISO 45001 · ${esc(a.clause)} · ${esc(MODE_LABEL[a.mode] || a.mode)}${actor ? ' · avec ' + esc(actor.name) : ''}</p><h2>${esc(a.title)}</h2>`;
+    return `<p class="kicker">ISO 45001 ${esc(a.clause)}, ${esc(MODE_LABEL[a.mode] || a.mode)}${actor ? ' avec ' + esc(actor.name) : ''}</p><h2>${esc(a.title)}</h2>`;
   }
   function renderActivity() {
     const a = campaign.current;
@@ -92,7 +94,7 @@ export function createUI(campaign, world) {
       if (a.mode === 'risk') {
         body.insertAdjacentHTML('beforeend', `<p class="said"><b>Mesure</b> : ${esc(a.measure)}<br><b>Responsable</b> : ${esc(a.responsible || '')}</p>${fb}`);
         if (!p.worked) body.append(btn('Appliquer la mesure sur le terrain', () => campaign.performWork(), 'go'));
-        else if (p.workSeconds < 3) body.insertAdjacentHTML('beforeend', `<p class="timer">Mesure en place · contrôle possible dans ${Math.ceil(3 - p.workSeconds)} s</p>`);
+        else if (p.workSeconds < 3) body.insertAdjacentHTML('beforeend', `<p class="timer">Mesure en place, contrôle possible dans ${Math.ceil(3 - p.workSeconds)} s</p>`);
         else body.append(btn('Vérifier l’efficacité', () => campaign.verifyWork(), 'go'));
         return;
       }
@@ -127,9 +129,9 @@ export function createUI(campaign, world) {
   }
   function differences(a, p, fb) {
     const st = campaign.differencesStatus();
-    body.insertAdjacentHTML('beforeend', `<p class="count">Différences expliquées : ${st.found} / ${a.cards.length} · minimum ${st.minimum} · critiques ${st.critical ? ico('check', 's') : 'à trouver'} · notions ${st.concepts ? ico('check', 's') : 'à trouver'}</p>`);
+    body.insertAdjacentHTML('beforeend', `<p class="count">Différences expliquées : ${st.found} / ${a.cards.length}, minimum ${st.minimum}, critiques ${st.critical ? ico('check', 's') : 'à trouver'}, notions ${st.concepts ? ico('check', 's') : 'à trouver'}</p>`);
     const grid = document.createElement('div'); grid.className = 'diffs';
-    a.cards.forEach((c, i) => { const done = p.answers.includes(c.id); const b = btn(`${done ? ico('check', 's') : i + 1 + ' · '}${esc(c.question)}`, () => campaign.observe(i), done ? 'done' : p.observed && p.card === i ? 'sel' : ''); b.disabled = done; grid.append(b); });
+    a.cards.forEach((c, i) => { const done = p.answers.includes(c.id); const b = btn(`${done ? ico('check', 's') : i + 1 + '. '}${esc(c.question)}`, () => campaign.observe(i), done ? 'done' : p.observed && p.card === i ? 'sel' : ''); b.disabled = done; grid.append(b); });
     body.append(grid);
     if (p.observed) { const c = a.cards[p.card], ch = document.createElement('div'); ch.className = 'choices'; c.choices.forEach((x, i) => ch.append(btn(esc(x), () => campaign.submit(i)))); body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(c.question)}</b></p><p class="small">Avant : ${esc(c.before)}<br>Après : ${esc(c.after)}</p></div>`); body.append(ch); }
     body.insertAdjacentHTML('beforeend', fb);
@@ -159,10 +161,10 @@ export function createUI(campaign, world) {
   function renderDuel() {
     const d = campaign.duel, s = d.s; if (!s) return close();
     const bar = (label, v, cls) => `<div class="bar ${cls}"><span>${label}</span><i style="width:${Math.max(0, v)}%"></i></div>`;
-    body.innerHTML = `<p class="kicker">ISO 45001 · 5.1 à 5.4 · Leadership</p><h2>LA POLITIQUE DU MENHIR</h2>`;
+    body.innerHTML = `<p class="kicker">ISO 45001 5.1 à 5.4, Leadership</p><h2>LA POLITIQUE DU MENHIR</h2>`;
     if (s.phase === 'choose') {
       body.insertAdjacentHTML('beforeend', '<p class="said">Mathieu : « Cinq décisions. Les coups seuls ne valident aucune épreuve. »</p>');
-      ['Arcade · esquive, garde et décisions', 'Pédagogique · sans attaques automatiques', 'Avec indices · aide visible pour chaque décision'].forEach((l, i) => body.append(btn(l, () => d.choose(i), i === 0 ? 'go' : '')));
+      ['Arcade : esquive, garde et décisions', 'Pédagogique : sans attaques automatiques', 'Avec indices : aide visible pour chaque décision'].forEach((l, i) => body.append(btn(l, () => d.choose(i), i === 0 ? 'go' : '')));
       body.append(btn('Plus tard', () => { d.close(); close(); }, 'quiet')); return;
     }
     const pips = s.cleared.map((c) => `<i class="${c ? 'on' : ''}"></i>`).join('');
@@ -175,7 +177,7 @@ export function createUI(campaign, world) {
       const q = btn(d.canQuestion ? 'Répondre à l’épreuve <kbd>E</kbd>' : 'Épreuve dans un instant…', () => d.openQuestion(), 'go'); q.disabled = !d.canQuestion; body.append(q);
     } else if (s.phase === 'question') {
       const q = d.question();
-      body.insertAdjacentHTML('beforeend', `<div class="card"><p class="small">${esc(q.clause)} · ${esc(q.title)}</p><p>${esc(q.question)}</p>${s.mode === 2 ? `<p class="small">Indice : ${esc(q.hint)}</p>` : ''}</div>`);
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p class="small">${esc(q.clause)} : ${esc(q.title)}</p><p>${esc(q.question)}</p>${s.mode === 2 ? `<p class="small">Indice : ${esc(q.hint)}</p>` : ''}</div>`);
       const row = document.createElement('div'); row.className = 'choices'; q.answers.forEach((a, i) => row.append(btn(esc(a.text), () => d.answer(i)))); body.append(row);
     } else if (s.phase === 'defeat') body.append(btn('Reprendre l’épreuve', () => d.retry(), 'go'));
     else if (s.phase === 'victory') body.append(btn('Continuer', close, 'go'));
@@ -195,21 +197,21 @@ export function createUI(campaign, world) {
     body.innerHTML = '<p class="kicker">Écran Quêtes</p><h2>La campagne ISO 45001</h2>';
     for (const q of campaign.data.quests) {
       const done = campaign.questDone(q), now = q === f;
-      body.insertAdjacentHTML('beforeend', `<div class="quest ${done ? 'done' : now ? 'now' : 'later'}"><b>${done ? ico('check', 's') : ''}${esc(q.title)}</b><span>${esc(campaign.act(q)?.title || '')} · ${esc((q.iso || []).join(', '))}</span>${now ? `<p>${esc(q.description)}</p><p class="small">${esc(q.tip || '')}</p>` : ''}</div>`);
+      body.insertAdjacentHTML('beforeend', `<div class="quest ${done ? 'done' : now ? 'now' : 'later'}"><b>${done ? ico('check', 's') : ''}${esc(q.title)}</b><span>${esc(campaign.act(q)?.title || '')} (${esc((q.iso || []).join(', '))})</span>${now ? `<p>${esc(q.description)}</p><p class="small">${esc(q.tip || '')}</p>` : ''}</div>`);
     }
     body.append(btn('Fermer', close, 'go'));
   }
   function renderJournal() {
     const ev = campaign.state.evidence;
-    body.innerHTML = `<p class="kicker">Écran Codex</p><h2>Le Carnet des Crânes</h2><p class="count">${ev.length} preuves · ${ev.filter((e) => e.stage === 3).length} vérifiées</p>`;
+    body.innerHTML = `<p class="kicker">Écran Codex</p><h2>Le Carnet des Crânes</h2><p class="count">${ev.length} preuves, ${ev.filter((e) => e.stage === 3).length} vérifiées</p>`;
     if (!ev.length) body.insertAdjacentHTML('beforeend', '<p class="said">Les preuves apparaîtront ici au fil des activités : découvertes, décidées, réalisées puis vérifiées.</p>');
-    for (const e of ev.slice().reverse()) body.insertAdjacentHTML('beforeend', `<details class="ev"><summary><b>${esc(e.name)}</b> <span>${esc(e.clause || '')} · ${STAGES[e.stage] || ''}</span></summary><p class="small">${esc(e.result)}</p></details>`);
+    for (const e of ev.slice().reverse()) body.insertAdjacentHTML('beforeend', `<details class="ev"><summary><b>${esc(e.name)}</b> <span>${esc(e.clause || '')}, ${STAGES[e.stage] || ''}</span></summary><p class="small">${esc(e.result)}</p></details>`);
     body.append(btn('Fermer', close, 'go'));
   }
 
   // ---- Peuple (TribalPeopleView) : membres, état réel, fiche, responsabilités, repos, activités liées -----------------
   let picker = false, person = 'mathieu', peopleTab = 'TÂCHES', item = 'wood', invTab = 'Objet', clause = '4.1';
-  const memberRole = (id, role) => id === 'dylan' ? 'Apprenti · joueur' : id === 'mathieu' ? 'Mentor · prévention' : id === 'aurelien' ? 'Chef de la tribu' : (role || '').split('·')[0].trim();
+  const memberRole = (id, role) => id === 'dylan' ? 'Apprenti, joueur' : id === 'mathieu' ? 'Mentor en prévention' : id === 'aurelien' ? 'Chef de la tribu' : (role || '').split('·')[0].trim();
   function renderPeople() {
     const chars = campaign.data.characters, alive = chars.filter((c) => !campaign.state.dead.includes(c.id)).length;
     body.innerHTML = `<p class="kicker">Écran Peuple</p><h2>La tribu des Crânes Fendus</h2><p class="count">${alive} / ${chars.length} membres</p>`;
@@ -217,35 +219,35 @@ export function createUI(campaign, world) {
     for (const c of chars) {
       const m = campaign.state.people[c.id], dead = campaign.state.dead.includes(c.id);
       const doing = c.id === 'dylan' ? 'Joueur' : BEHAVIOUR[campaign.brain(c.id)?.behaviour || (dead ? 'DEAD' : 'IDLE')];
-      const b = btn(`<b>${esc(c.name)}</b><small>${campaign.memberStatus(c.id)} · ${esc(doing)}</small><small>${meter(m.competence)}${meter(m.fatigue, 'cold')}</small>`, () => { person = c.id; picker = false; render(); }, (c.id === person ? 'sel ' : '') + (dead ? 'done' : ''));
+      const b = btn(`<b>${esc(c.name)}</b><small>${campaign.memberStatus(c.id)}, ${esc(doing).toLowerCase()}</small><small>${meter(m.competence)}${meter(m.fatigue, 'cold')}</small>`, () => { person = c.id; picker = false; render(); }, (c.id === person ? 'sel ' : '') + (dead ? 'done' : ''));
       list.append(b);
     }
     const c = campaign.character(person), m = campaign.state.people[person], dead = campaign.state.dead.includes(person);
     const tabs = document.createElement('div'); tabs.className = 'tabs';
     for (const t of ['TÂCHES', 'INFORMATIONS', 'RESPONSABILITÉS']) tabs.append(btn(t, () => { peopleTab = t; picker = false; render(); }, t === peopleTab ? 'sel' : ''));
-    body.insertAdjacentHTML('beforeend', `<h3>${esc(c.name.toUpperCase())} · <small>${esc(memberRole(person, c.role))}</small></h3>`); body.append(tabs);
+    body.insertAdjacentHTML('beforeend', `<h3>${esc(c.name.toUpperCase())} <small>${esc(memberRole(person, c.role))}</small></h3>`); body.append(tabs);
     if (peopleTab === 'TÂCHES') {
       if (picker) {   // the work that can be given, with the reason it cannot when it cannot
-        for (const a of PRODUCTIONS) { const why = campaign.canAssignTask(person, a.id); const b = btn(`<b>${esc(a.title)}</b><small>${why ? esc(why) : `${esc(world.SITES[a.site].label)} · ${a.durationSeconds} s · compétence ${a.minimumCompetence}`}</small>`, () => { if (campaign.queueTask(person, a.id)) picker = false; render(); }, why ? 'done' : ''); body.append(b); }
+        for (const a of PRODUCTIONS) { const why = campaign.canAssignTask(person, a.id); const b = btn(`<b>${esc(a.title)}</b><small>${why ? esc(why) : `${esc(world.SITES[a.site].label)}, ${a.durationSeconds} s, compétence ${a.minimumCompetence}`}</small>`, () => { if (campaign.queueTask(person, a.id)) picker = false; render(); }, why ? 'done' : ''); body.append(b); }
         body.append(btn('Retour', () => { picker = false; render(); }, 'quiet'));
       } else {
         const all = campaign.tasksOf(person), open_ = all.filter((t) => !['done', 'failed'].includes(t.status)), shown = open_.concat(all.filter((t) => t.status === 'done').slice(-3).reverse());
         const label = { done: 'FAIT', blocked: 'BLOQUÉ', moving: 'EN ROUTE', working: 'EN COURS', queued: 'EN ATTENTE', failed: 'ÉCHOUÉE' };
         for (const t of shown) {
           const a = PRODUCTIONS.find((x) => x.id === t.actionId), pc = t.status === 'done' ? 100 : Math.round(100 * t.workedSeconds / Math.max(1, t.duration));
-          body.insertAdjacentHTML('beforeend', `<div class="quest ${t.status === 'done' ? 'done' : 'now'}"><b>${t.status === 'done' ? ico('check', 's') : ''}${esc(a.title)}</b><span>${esc(world.SITES[a.site].label)} · ${pc} % ${meter(pc)} · ${label[t.status]}</span>${t.status === 'blocked' ? `<p class="small">${esc(t.reason)}</p>` : ''}</div>`);
+          body.insertAdjacentHTML('beforeend', `<div class="quest ${t.status === 'done' ? 'done' : 'now'}"><b>${t.status === 'done' ? ico('check', 's') : ''}${esc(a.title)}</b><span>${esc(world.SITES[a.site].label)}, ${pc} % ${meter(pc)} ${label[t.status]}</span>${t.status === 'blocked' ? `<p class="small">${esc(t.reason)}</p>` : ''}</div>`);
           if (!['done', 'failed'].includes(t.status)) body.append(btn(ico('cross', 's') + 'Annuler', () => campaign.cancelTask(t.id), 'quiet'));
         }
-        if (!shown.length) body.insertAdjacentHTML('beforeend', `<div class="quest"><b>${person === 'dylan' ? 'DYLAN · CONTRÔLÉ PAR LE JOUEUR' : 'ACTIVITÉ RÉGULIÈRE'}</b><span>${esc(person === 'dylan' ? '' : BEHAVIOUR[campaign.brain(person)?.behaviour || 'IDLE'])}</span></div>`);
+        if (!shown.length) body.insertAdjacentHTML('beforeend', `<div class="quest"><b>${person === 'dylan' ? 'DYLAN, CONTRÔLÉ PAR LE JOUEUR' : 'ACTIVITÉ RÉGULIÈRE'}</b><span>${esc(person === 'dylan' ? '' : BEHAVIOUR[campaign.brain(person)?.behaviour || 'IDLE'])}</span></div>`);
         const add = btn('+ Ajouter une tâche', () => { picker = true; render(); }, 'go'); add.disabled = dead || person === 'dylan' || open_.length >= 3; body.append(add);
         if (campaign.feedback && peopleTab === 'TÂCHES') body.insertAdjacentHTML('beforeend', `<p class="fb">${esc(campaign.feedback)}</p>`);
       }
     } else {
       const resp = person === 'aurelien' ? 'Responsabilité : chef de la tribu.' : person === 'mathieu' ? 'Responsabilité : mentor de Dylan et prévention.' : 'Fonction : ' + c.role;
-      body.insertAdjacentHTML('beforeend', `<div class="card"><p>${esc(peopleTab === 'RESPONSABILITÉS' ? resp : c.role)}</p><p class="small">${dead ? 'Décédé · aucune affectation possible' : `Vie ${m.life}/100 · Énergie ${m.energy}/100 · Fatigue ${m.fatigue}/100 · Faim ${m.hunger}/100 · Moral ${m.morale}/100 · Compétence ${m.competence}`}</p><p class="small">État : ${campaign.memberStatus(person)}</p></div>`);
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p>${esc(peopleTab === 'RESPONSABILITÉS' ? resp : c.role)}</p><p class="small">${dead ? 'Décédé, aucune affectation possible' : `Vie ${m.life}/100, Énergie ${m.energy}/100, Fatigue ${m.fatigue}/100, Faim ${m.hunger}/100, Moral ${m.morale}/100, Compétence ${m.competence}`}</p><p class="small">État : ${campaign.memberStatus(person)}</p></div>`);
       if (!dead && person !== 'dylan') body.append(btn(m.assignment === 'repos' ? 'Reprendre l’activité' : 'Ordonner un repos', () => campaign.rest(person), 'go'));
     }
-    body.insertAdjacentHTML('beforeend', '<p class="count">La tribu · savoir et fatigue</p>'); body.append(list);
+    body.insertAdjacentHTML('beforeend', '<p class="count">La tribu : savoir et fatigue</p>'); body.append(list);
     body.append(btn('Fermer', close, 'quiet'));
   }
   // ---- Carte (TribalMapView) : le village vu de haut, Dylan, l'objectif ; choisir un lieu pose le repère dessus ------
@@ -282,22 +284,22 @@ export function createUI(campaign, world) {
     body.append(tabs);
     if (invTab === 'Objet') {
       const it = ITEMS.find((x) => x.id === item), extra = item === 'tool' ? `<br><br>État : ${st.equipped === 'tool' && st.resources.tool > 0 ? 'équipée dans la main' : 'non équipée'}.<br>L’outil ne valide pas à lui seul une mesure de prévention.` : '';
-      body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(it.name.toUpperCase())}</b> · disponible : ${campaign.quantity(item)}</p><p class="small">${esc(it.description)}${extra}</p></div>`);
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(it.name.toUpperCase())}</b> (disponible : ${campaign.quantity(item)})</p><p class="small">${esc(it.description)}${extra}</p></div>`);
       if (item === 'food') body.append(btn('Utiliser', () => campaign.useItem('food'), 'go'));
       else if (item === 'tool') body.append(btn(st.equipped === 'tool' ? 'Ranger l’outil' : 'Équiper', () => campaign.useItem('tool'), 'go'));
       else if (item === 'notebook' || item === 'evidence') body.append(btn('Consulter', () => open('journal'), 'go'));
       else body.append(btn('Voir les recettes', () => { invTab = 'Atelier'; render(); }));
-      body.insertAdjacentHTML('beforeend', `<p class="small">Dylan · nourriture ${Math.round(st.player.food)} · énergie ${Math.round(st.player.energy)} · fatigue ${Math.round(st.player.fatigue)}</p>`);
+      body.insertAdjacentHTML('beforeend', `<p class="small">Dylan : nourriture ${Math.round(st.player.food)}, énergie ${Math.round(st.player.energy)}, fatigue ${Math.round(st.player.fatigue)}</p>`);
     } else if (invTab === 'Atelier') {
       for (const r of RECIPES) {
         const why = campaign.craftCheck(r, nearShop);
-        body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(r.title)}</b></p><p class="small">${r.costs.map((x) => x.amount + ' ' + ITEMS.find((i) => i.id === x.id).name.toLowerCase()).join(', ')} · ${r.durationSeconds} s · compétence ${r.minimumCompetence}<br>${why ? esc(why) : 'Conditions réunies.'}</p></div>`);
+        body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(r.title)}</b></p><p class="small">${r.costs.map((x) => x.amount + ' ' + ITEMS.find((i) => i.id === x.id).name.toLowerCase()).join(', ')}, ${r.durationSeconds} s, compétence ${r.minimumCompetence}<br>${why ? esc(why) : 'Conditions réunies.'}</p></div>`);
         const b = btn(nearShop ? 'Fabriquer' : 'Rejoindre l’atelier', () => { if (nearShop) campaign.craft(r.id, true); else { world.guide = 'atelier_silex'; close(); } }, why && nearShop ? '' : 'go'); b.disabled = !!why && nearShop; body.append(b);
       }
     } else {
-      body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>RÉSERVES DE NEILA</b></p><p class="small">Stockage du village · transfert sur place${nearStore ? '' : ' · rejoins le stockage pour transférer'}</p><p class="small">${ITEMS.filter((i) => ['wood', 'stone', 'flint', 'fiber', 'food', 'tool'].includes(i.id)).map((i) => `${i.name} : ${st.reserve[i.id] || 0}`).join(' · ')}</p></div>`);
+      body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>RÉSERVES DE NEILA</b></p><p class="small">Stockage du village, transfert sur place${nearStore ? '' : ', rejoins le stockage pour transférer'}</p><p class="small">${ITEMS.filter((i) => ['wood', 'stone', 'flint', 'fiber', 'food', 'tool'].includes(i.id)).map((i) => `${i.name} : ${st.reserve[i.id] || 0}`).join(', ')}</p></div>`);
       const row = document.createElement('div'); row.className = 'choices sort';
-      row.append(btn('Prendre 1 · ' + esc(ITEMS.find((i) => i.id === item).name), () => campaign.transfer(item, 1, false, false, nearStore)), btn('Déposer 1', () => campaign.transfer(item, 1, true, false, nearStore)),
+      row.append(btn('Prendre 1 ' + esc(ITEMS.find((i) => i.id === item).name.toLowerCase()), () => campaign.transfer(item, 1, false, false, nearStore)), btn('Déposer 1', () => campaign.transfer(item, 1, true, false, nearStore)),
         btn('Toute la réserve', () => campaign.transfer(item, 0, false, true, nearStore)), btn('Tout le sac', () => campaign.transfer(item, 0, true, true, nearStore)));
       body.append(row);
     }
@@ -310,16 +312,16 @@ export function createUI(campaign, world) {
     const tree = document.createElement('div'); tree.className = 'tree';
     for (const phase of ['Planifier', 'Agir', 'Vérifier', 'Améliorer']) {
       const col = document.createElement('div'); col.innerHTML = `<p class="kicker">${phase.toUpperCase()}</p>`;
-      for (const k of CLAUSES.filter((x) => x.phase === phase)) { const pr = campaign.clauseProgress(k.id); col.append(btn(`${esc(k.id)} · ${esc(k.title)}${meter(pr * 100)}`, () => { clause = k.id; render(); }, (k.id === clause ? 'sel ' : '') + (pr >= 1 ? 'ok' : ''))); }
+      for (const k of CLAUSES.filter((x) => x.phase === phase)) { const pr = campaign.clauseProgress(k.id); col.append(btn(`${esc(k.id)} ${esc(k.title)}${meter(pr * 100)}`, () => { clause = k.id; render(); }, (k.id === clause ? 'sel ' : '') + (pr >= 1 ? 'ok' : ''))); }
       tree.append(col);
     }
     body.append(tree);
     const k = CLAUSES.find((x) => x.id === clause), qs = campaign.clauseQuests(clause), chain = campaign.data.quests;
     const prereq = [...new Set(qs.map((q) => chain[chain.indexOf(q) - 1]).filter(Boolean))].map((q) => q.title);
-    body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(k.id)} · ${esc(k.title)}</b></p><p class="small">${esc(campaign.clauseStatus(clause))}</p>
-      <p class="small"><b>MISSIONS LIÉES</b><br>${qs.length ? qs.map((q) => (campaign.clauseVerified(q, clause) ? 'Vérifiée · ' : 'À vérifier · ') + esc(q.title)).join('<br>') : 'Aucune mission dans cette campagne.'}</p>
+    body.insertAdjacentHTML('beforeend', `<div class="card"><p><b>${esc(k.id)} ${esc(k.title)}</b></p><p class="small">${esc(campaign.clauseStatus(clause))}</p>
+      <p class="small"><b>MISSIONS LIÉES</b><br>${qs.length ? qs.map((q) => (campaign.clauseVerified(q, clause) ? 'Vérifiée : ' : 'À vérifier : ') + esc(q.title)).join('<br>') : 'Aucune mission dans cette campagne.'}</p>
       <p class="small"><b>PRÉREQUIS</b><br>${prereq.length ? prereq.map(esc).join('<br>') : 'Aucun'}</p>
-      ${clause === '4.1' || clause === '4.2' ? '<p class="small">Amd 1:2024 · examine la pertinence du changement climatique et les attentes associées pour les activités de la tribu.</p>' : ''}
+      ${clause === '4.1' || clause === '4.2' ? '<p class="small">Amd 1:2024, examine la pertinence du changement climatique et les attentes associées pour les activités de la tribu.</p>' : ''}
       <p class="small">Une mesure construite doit encore être contrôlée. Les titres sont des repères pédagogiques ; ils ne constituent pas une certification.</p></div>`);
     if (qs.length) body.append(btn('Voir la mission liée', () => open('quest'), 'go'));
     body.append(btn('Fermer', close, 'quiet'));

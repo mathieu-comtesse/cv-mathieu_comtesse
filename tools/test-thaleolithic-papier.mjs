@@ -1,4 +1,4 @@
-// Joue toute la campagne de THALEOLITHIC · papier avec la logique portée (jeux/thaleolithic-papier/campaign.js) et les
+// Joue toute la campagne de THALEOLITHIC papier avec la logique portée (jeux/thaleolithic-papier/campaign.js) et les
 // données du jeu Unity : chaque quête s'ouvre, chaque mini-jeu se termine selon ses propres règles, le duel se gagne.
 // Vérifie aussi quelques refus attendus (mauvaise réponse, budget, différences incomplètes, rassemblement incomplet).
 import { readFileSync } from 'node:fs';
@@ -49,7 +49,7 @@ while (c.nextAction() && guard++ < 60) {
     if (a.mode === 'briefing') { for (let t = 0; t < a.duration + 1 && c.current; t++) c.tick(1); }
     if (a.mode === 'runner') { check(!c.validateAssembly(true, false), 'rassemblement incomplet accepté'); check(c.validateAssembly(true, true, ['tous']), 'rassemblement refusé'); }
   }
-  check(c.state.done.includes(id), 'activité non terminée : ' + id + ' · ' + c.feedback.slice(0, 80));
+  check(c.state.done.includes(id), 'activité non terminée : ' + id + ' : ' + c.feedback.slice(0, 80));
   if (!c.state.done.includes(id)) break;
 }
 check(c.verified('verified:M_V_ABRI') && c.state.flags['effective:M_V_ABRI'] && c.state.risks.abri === 0, 'abri : vérification ou efficacité manquante');

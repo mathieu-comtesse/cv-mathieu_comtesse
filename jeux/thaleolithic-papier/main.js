@@ -1,4 +1,4 @@
-// THALEOLITHIC · papier : charge les données du jeu Unity telles quelles, puis relie la campagne, le village et l'interface.
+// THALEOLITHIC papier : charge les données du jeu Unity telles quelles, puis relie la campagne, le village et l'interface.
 import { createCampaign } from './campaign.js';
 import { buildVillage } from './scene.js';
 import { createUI } from './ui.js';
