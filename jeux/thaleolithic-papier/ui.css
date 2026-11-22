@@ -307,10 +307,13 @@
     box-shadow: var(--cut), inset 2px 3px 0 rgb(255 250 240 / .35), inset -3px -4px 0 rgb(58 40 70 / .4), 2px 4px 0 #5a4e66, 4px 8px 10px rgb(var(--sh) / .4); }
   .sunstone svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .sunstone .notches path { stroke: #3e3650; stroke-width: 2.4; stroke-linecap: round; opacity: .75; }
-  .sunstone .groove { fill: none; stroke: #6e6886; stroke-width: 7.5; opacity: .8; filter: drop-shadow(0 1px 0 rgb(244 236 250 / .5)); }
-  .sunstone .powder circle { fill: none; stroke: #1a1416; stroke-width: 2.6; stroke-linecap: round; } .sunstone .powder .heap { stroke: #3a3034; stroke-width: 5.5; stroke-linecap: butt; } .sunstone .powder .p2 { stroke: #2e2628; stroke-width: 2.4; } .sunstone .powder .p3 { stroke: #5a4a44; stroke-width: 2; }
+  .sunstone .groove { fill: none; stroke: #5e5876; stroke-width: 7.5; opacity: .85; filter: drop-shadow(0 1px 0 rgb(244 236 250 / .55)); }
+  .sunstone .powder path { stroke: rgb(20 12 14 / .55); stroke-width: .28; stroke-linejoin: round; }
+  .sunstone .g-char { fill: #1c1618; } .sunstone .g-grey { fill: #4a4246; } .sunstone .g-brown { fill: #5a4434; } .sunstone .g-sul { fill: #e8cc40; } .sunstone .g-salt { fill: #f4f0e8; }
+  .sunstone .g-hot { fill: #f07a2a; stroke: rgb(120 30 10 / .6) !important; animation: hot .5s steps(3) infinite; animation-delay: var(--t); } .sunstone .g-ash { fill: #c8c0c4; opacity: .8; }
+  @keyframes hot { 0% { fill: #f07a2a; } 33% { fill: #ffc04a; } 66% { fill: #d8501e; } }
   .sunstone .scorch { fill: none; stroke: #b8aeb0; stroke-width: 4; opacity: .75; stroke-dasharray: none; filter: blur(.4px); transition: stroke-dasharray .3s linear; }
-  .sunstone .cinders { fill: none; stroke: #f07a2a; stroke-width: 2.6; stroke-linecap: butt; filter: drop-shadow(.4px .6px 0 rgb(42 26 30 / .5)); animation: cinders .6s steps(4) infinite; animation-delay: var(--t); }
+  .sunstone .cinders { display: none; fill: none; stroke: #f07a2a; stroke-width: 2.6; stroke-linecap: butt; filter: drop-shadow(.4px .6px 0 rgb(42 26 30 / .5)); animation: cinders .6s steps(4) infinite; animation-delay: var(--t); }
   .sunstone .fire { transition: transform .3s linear; }
   .sunstone .halo { fill: #ff8a2a; opacity: .4; filter: blur(3px); animation: halo .4s steps(3) infinite; animation-delay: var(--t); }
   .sunstone .paper { filter: drop-shadow(.5px .8px 0 rgb(42 26 30 / .55)) drop-shadow(0 0 2.5px rgb(255 150 60 / .55)); }
@@ -341,3 +344,15 @@
   .timer { float: none; display: flex; justify-content: center; margin: 4px 0 12px; }
   @media (max-width: 640px) { #hud { padding-right: 74px; } #council { left: auto; right: 6px; top: 6px; } #council small { display: none; } #council::before { display: none; } #council .sunstone { --sz: 58px !important; } }
   @media (prefers-reduced-motion: reduce) { .sunstone, .sunstone *, .sunstone.tick, .sunstone.low { animation: none !important; } .sunstone .spark { opacity: .85; transform: translate(var(--dx), var(--dy)); } .sunstone .p0 { opacity: 1; } .sunstone .smoke { opacity: .5; transform: translate(3px, -14px) scale(1.5); } }
+
+  /* time is up: the sun-stone bursts into paper rock shards */
+  .sunstone.boom { background: none; box-shadow: none; animation: none; }
+  .sunstone.boom b { color: #9a1e1a; animation: boomtxt .6s ease-out both; animation-delay: var(--e); }
+  .sunstone.boom .flash { position: absolute; inset: -30%; width: 160%; height: 160%; animation: flash .5s ease-out both; animation-delay: var(--e); filter: drop-shadow(1px 2px 0 rgb(42 26 30 / .5)); }
+  .sunstone.boom .flash path { fill: #f3c878; stroke: rgb(90 30 20 / .6); stroke-width: .4; } .sunstone.boom .flash .in { fill: #fff6d8; }
+  .sunstone.boom .shard { position: absolute; left: calc(50% - var(--w) / 2); top: calc(50% - var(--h) / 2); width: var(--w); height: var(--h); background: var(--stone-t, none) #a9a2bc; filter: drop-shadow(.8px 1.2px 0 rgb(42 26 30 / .6)); animation: shard 1.1s cubic-bezier(.2, .7, .4, 1) both; animation-delay: var(--e); }
+  .sunstone.boom .dust { position: absolute; left: 50%; top: 55%; width: 16px; height: 16px; margin: -8px; border-radius: 50%; background: #d8d0dc; box-shadow: inset 0 0 0 1px rgb(60 40 60 / .3); animation: dust 1.4s ease-out both; animation-delay: calc(var(--e) + var(--dd)); }
+  @keyframes flash { 0% { transform: scale(.2) rotate(0); opacity: 1; } 60% { transform: scale(1.1) rotate(25deg); opacity: 1; } 100% { transform: scale(1.3) rotate(35deg); opacity: 0; } }
+  @keyframes shard { 0% { transform: translate(0, 0) rotate(0); } 45% { transform: translate(calc(var(--dx) * .8), calc(var(--up) + var(--dy) * .3)) rotate(calc(var(--r) * .6)); } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); } }
+  @keyframes dust { 0% { transform: translate(0, 0) scale(.3); opacity: .9; } 100% { transform: translate(var(--dx), -20px) scale(2.6); opacity: 0; } }
+  @keyframes boomtxt { 0% { transform: scale(2) rotate(-10deg); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1) rotate(-6deg); opacity: 1; } }

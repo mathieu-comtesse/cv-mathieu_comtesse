@@ -47,9 +47,32 @@ export function createUI(campaign, world) {
   // ember that runs and smokes), twelve notches are cut in the rim, the time left is carved in plain figures in the
   // middle; each second a burin taps it (the stone jolts, a chip flies); in the last thirty seconds it shakes and reddens
   const ticks = {};
+  // the powder in the groove: grains of charcoal, sulphur and saltpetre cut in paper, each its own shape; ahead of the
+  // flame they wait, just behind it they still glow, further back only ash flakes are left
+  const GRAINS = Array.from({ length: 96 }, (_, i) => { const h = (n) => { const x = Math.sin(i * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); }; return { t: (i + h(1) * 0.8) / 96, dr: (h(2) - 0.5) * 3.4, s: 0.7 + h(3) * 1.1, rot: h(4) * 360, col: h(5) < 0.08 ? 'sul' : h(5) < 0.14 ? 'salt' : h(5) < 0.55 ? 'char' : h(5) < 0.8 ? 'grey' : 'brown', k: Math.floor(h(6) * 3) }; });
+  const GRAIN_SHAPE = ['M-1 -.7L.9 -.9L1 .6L-.6 1Z', 'M0 -1.1L1 .5L-.9 .8Z', 'M-1 0L-.3 -1L.9 -.4L.7 .8L-.4 .9Z'];
+  function powder(f, R) {
+    const burnt = 1 - f; let g = '';
+    for (const q of GRAINS) {
+      const a = q.t * 2 * Math.PI - Math.PI / 2, x = 40 + Math.cos(a) * (R + q.dr), y = 40 + Math.sin(a) * (R + q.dr), behind = burnt - q.t;
+      const cls = behind < 0 ? 'g-' + q.col : behind < 0.05 ? 'g-hot' : 'g-ash', sc = behind < 0 ? q.s : behind < 0.05 ? q.s * 0.9 : q.s * 0.55;
+      g += `<path class="${cls}" d="${GRAIN_SHAPE[q.k]}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${q.rot.toFixed(0)}) scale(${sc.toFixed(2)})"/>`;
+    }
+    return `<g class="powder">${g}</g>`;
+  }
+  // time is up: the sun-stone bursts into paper rock shards (a cut star of light, shards spinning out and falling, dust)
+  function boom(key, size, label) {
+    const k = key + ':boom'; if (!ticks[k]) { ticks[k] = performance.now(); const sx = world.H.sfx; sx?.play('rumble', { dur: 1.2 }); sx?.play('hit', { v: 0.7 }); sx?.play('crumple', { v: 0.5, dur: 0.8 }); for (let i = 0; i < 4; i++) setTimeout(() => sx?.play('bone', { f: 900 + Math.random() * 900, v: 0.25 }), 380 + i * 110); }
+    const el = -((performance.now() - ticks[k]) / 1000);
+    let shards = ''; for (let i = 0; i < 16; i++) { const an = i / 16 * 2 * Math.PI + (i % 3) * 0.2, d = 34 + (i * 13) % 26, sz = 9 + (i * 7) % 12, pts = [[0, 0], [1, 0.15 + (i % 4) * 0.1], [0.75, 1], [0.1, 0.8]].map(([u, v]) => `${(u * 100).toFixed(0)}% ${(v * 100).toFixed(0)}%`).join(','); shards += `<i class="shard" style="--dx:${(Math.cos(an) * d).toFixed(0)}px;--dy:${(Math.sin(an) * d * 0.7 + 18).toFixed(0)}px;--up:${(-10 - (i * 5) % 18)}px;--r:${(i % 2 ? 1 : -1) * (180 + i * 37)}deg;--w:${sz}px;--h:${(sz * 0.8).toFixed(0)}px;clip-path:polygon(${pts})"></i>`; }
+    let dust = ''; for (let i = 0; i < 5; i++) dust += `<i class="dust" style="--dx:${(i - 2) * 14}px;--dd:${(i * 0.07).toFixed(2)}s"></i>`;
+    return `<span class="sunstone boom" role="timer" aria-label="${esc(label)} : temps écoulé" style="--sz:${size}px;--e:${el.toFixed(2)}s"><svg class="flash" viewBox="-20 -20 40 40" aria-hidden="true"><path d="M0 -19L4 -6L17 -9L7 0L17 9L4 6L0 19L-4 6L-17 9L-7 0L-17 -9L-4 -6Z"/><path class="in" d="M0 -11L2.4 -3.5L10 -5L4 0L10 5L2.4 3.5L0 11L-2.4 3.5L-10 5L-4 0L-10 -5L-2.4 -3.5Z"/></svg>${shards}${dust}<b>0:00</b></span>`;
+  }
   function fuse(frac, secs, label, key, size = 78) {
     const f = Math.max(0, Math.min(1, frac)), s = Math.max(0, Math.ceil(secs)), txt = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     const tick = ticks[key] !== s; ticks[key] = s;
+    if (s <= 0 && frac <= 0) return boom(key, size, label);
+    if (s > 0) delete ticks[key + ':boom'];
     const R = 34, C = 2 * Math.PI * R, used = (1 - f) * C, rem = f * C, a = (1 - f) * 2 * Math.PI - Math.PI / 2, ex = 40 + Math.cos(a) * R, ey = 40 + Math.sin(a) * R, id = 'pw-' + String(key).replace(/\W/g, '');
     let notches = ''; for (let i = 0; i < 12; i++) { const t = i / 12 * 2 * Math.PI; notches += `<path d="M${(40 + Math.cos(t) * 22).toFixed(1)} ${(40 + Math.sin(t) * 22).toFixed(1)}L${(40 + Math.cos(t) * 26).toFixed(1)} ${(40 + Math.sin(t) * 26).toFixed(1)}"/>`; }
     const start = -90 + (1 - f) * 360, glowLen = Math.min(used, 22);
@@ -62,11 +85,10 @@ export function createUI(campaign, world) {
     let sparks = ''; for (let i = 0; i < 8; i++) { const an = -Math.PI / 2 + (i - 3.5) * 0.45, d = 10 + (i * 7) % 8; sparks += `<path class="spark ${i % 2 ? 'sp-o' : 'sp-r'}" d="M0 -1.4L1.2 0.4L-1 0.8Z" style="--dx:${(Math.cos(an) * d).toFixed(1)}px;--dy:${(Math.sin(an) * d).toFixed(1)}px;--d:${(i * 0.09).toFixed(3)}s;--r:${(i % 2 ? 1 : -1) * (200 + i * 40)}deg"/>`; }
     const puff = (cls, r) => `<g class="smoke ${cls}"><circle r="${r}"/><path d="M0.3 -0.2a0.6 0.6 0 1 1 -1 0.4a1.3 1.3 0 1 1 2.3 -0.8a2 2 0 1 1 -3.4 1.2" transform="scale(${(r / 3).toFixed(2)})"/></g>`;
     return `<span class="sunstone${tick ? ' tick' : ''}${s <= 30 ? ' low' : ''}" role="timer" aria-label="${esc(label)}" style="--sz:${size}px;--t:${(-(performance.now() % 6000) / 1000).toFixed(2)}s">`
-      + `<svg viewBox="0 0 80 80" aria-hidden="true"><defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="80" height="80"><circle cx="40" cy="40" r="${R}" fill="none" stroke="#fff" stroke-width="8" stroke-dasharray="${rem.toFixed(1)} ${C.toFixed(1)}" transform="rotate(${start.toFixed(1)} 40 40)"/></mask></defs>`
+      + `<svg viewBox="0 0 80 80" aria-hidden="true">`
       + `<g class="notches">${notches}</g><circle class="groove" cx="40" cy="40" r="${R}"/>`
       + `<circle class="scorch" cx="40" cy="40" r="${R}" stroke-dasharray="${used.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 40 40)"/>`
-      + `<circle class="cinders" cx="40" cy="40" r="${R}" stroke-dasharray="1 2.4" stroke-dashoffset="0" style="stroke-dasharray:0 ${(used - glowLen).toFixed(1)} 1 2.2 1 2.6 1 1.8 1 2.4 1 2 1 ${C.toFixed(1)}" transform="rotate(-90 40 40)"/>`
-      + `<g mask="url(#${id})" class="powder"><circle cx="40" cy="40" r="${R}" class="heap"/><circle cx="40" cy="40" r="${R - 1.5}" stroke-dasharray="1.6 1.4"/><circle cx="40" cy="40" r="${R + 0.2}" stroke-dasharray="2.1 1.1" stroke-dashoffset="1" class="p2"/><circle cx="40" cy="40" r="${R + 1.7}" stroke-dasharray="1.2 1.9" stroke-dashoffset="2" class="p3"/></g>`
+      + powder(f, R)
       + (f > 0 ? `<g class="fire" transform="translate(${ex.toFixed(1)} ${ey.toFixed(1)}) scale(1.35)"><circle class="halo" r="8"/>${puff('s1', 3.2)}${puff('s2', 2.5)}${sparks}<g class="paper">${flame}</g></g>` : '')
       + `</svg>`
       + `<b>${txt}</b><i class="chip"></i><i class="chip c2"></i></span>`;
