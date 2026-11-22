@@ -95,7 +95,7 @@ export function buildVillage(campaign) {
     for (let k = 0; k < 220; k++) { const x = SITES.bois_construction.x + (r() - 0.5) * 4.5, z = SITES.bois_construction.z - 1 + (r() - 0.5) * 3; g.fillStyle = rgba('#e0c08a', 0.7); g.fillRect(X(x), Z(z), 0.1 * ppu, 0.06 * ppu); }
     // garden plots behind the huts: rows of sprouts
     for (const [x0, z0] of [[17, 1], [-21, 1.5], [8, -27]]) for (let row = 0; row < 5; row++) for (let k = 0; k < 9; k++) { g.fillStyle = rgba(k % 2 ? '#6a7a3a' : '#8a9a4a', 0.9); g.beginPath(); g.ellipse(X(x0 + k * 0.55), Z(z0 + row * 0.7), 0.16 * ppu, 0.1 * ppu, 0, 0, 7); g.fill(); }
-    water(bandOf(RIVER.pts, 3.2), { colors: [C.water, sh(C.water, -0.2)], rim: '#e8d8b4', marks: 'none' });   // its strokes flow on a ribbon above (below)
+    water(bandOf(RIVER.pts, 3.2), { colors: [C.water, null], rim: '#e8d8b4', rimPts: bandOf(RIVER.pts, 3.75), marks: 'none' });   // one bed: its bank follows the course (a deep band's torn edges drew a second bed)   // its strokes flow on a ribbon above (below)
     drifts((x, y) => { g.strokeStyle = rgba(r() < 0.5 ? '#8a8a4a' : '#a09a5a', 0.75); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 3, y - 5 - r() * 5); g.stroke(); if (r() < 0.12) { g.fillStyle = r() < 0.5 ? '#c86a8a' : '#e0c050'; g.beginPath(); g.arc(x, y - 6, 1.7, 0, 7); g.fill(); } }, { n: 12000 });
     for (let k = 0; k < 14; k++) { const a = k / 14 * 6.283, x = SITES.rassemblement.x + Math.cos(a) * 2.8, z = SITES.rassemblement.z + Math.sin(a) * 2.2; g.fillStyle = '#efe4cc'; g.beginPath(); g.ellipse(X(x), Z(z), 0.32 * ppu, 0.22 * ppu, 0, 0, 7); g.fill(); }
   }, { seed: 12 });

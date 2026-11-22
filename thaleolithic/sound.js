@@ -63,7 +63,8 @@ export const SFX = {
     if (trem) { const l = osc(ac, 'sine', 6.5, t, dur + 0.1), lg = ac.createGain(); lg.gain.value = f0 * trem; chain(l, lg); lg.connect(o.frequency); }
     const g = env(ac, t, 0.012, dur * 0.55, dur * 0.45 + 0.04, v);
     if (rough) { const am = osc(ac, 'square', 31 + Math.random() * 12, t, dur + 0.1), ag = ac.createGain(); ag.gain.value = v * rough * 0.7; chain(am, ag); ag.connect(g.gain); }
-    for (const [k, [ff, q, lv]] of [[F[0] * size, 7, 1], [F[1] * size, 9, 0.55]].entries()) {   // the two formants that make the vowel const b = filt(ac, 'bandpass', ff, q), bg = ac.createGain(); bg.gain.value = lv * (closed ? (k ? 0.25 : 0.8) : 1) * 3.2; chain(o, b, bg, g); }
+    // the two formants that make the vowel
+    for (const [k, [ff, q, lv]] of [[F[0] * size, 7, 1], [F[1] * size, 9, 0.55]].entries()) { const b = filt(ac, 'bandpass', ff, q), bg = ac.createGain(); bg.gain.value = lv * (closed ? (k ? 0.25 : 0.8) : 1) * 3.2; chain(o, b, bg, g); }
     if (closed) { const lp = filt(ac, 'lowpass', 380, 1), lg = ac.createGain(); lg.gain.value = 0.9; chain(o, lp, lg, g); }
     g.connect(out);
     if (breath) chain(src(ac, t, dur, 1.2), filt(ac, 'bandpass', F[1] * size * 1.3, 2), env(ac, t, 0.01, dur * 0.3, dur * 0.5, v * breath), out);
