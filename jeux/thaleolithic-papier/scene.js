@@ -980,7 +980,7 @@ export function buildVillage(campaign) {
     b.flames = []; b.smoke = new THREE.Object3D(); b.smoke.position.set(b.x, 4.2, b.z - 0.5); b.smoke.rotation.x = Math.PI / 2; H.scene.add(b.smoke);
     for (const [dx, dz, sc] of [[-1.4, 1.1, 1.0], [0.3, 1.5, 1.25], [1.6, 0.9, 0.95], [-0.3, -0.4, 1.35]]) { const set = BIG.map(([pts, mat]) => { const f = popup(pts, null, { materials: mat, x: b.x + dx, z: b.z + dz, cross: true, sway: 0.7, scale: sc }); f.held = true; H.glowing(f.group); return f; }); FIRES.push(set); b.flames.push(...set); }
   }
-  life.puffs({ at: burnSlots.map((b) => ({ object: b.smoke, offset: [0, 0, 0] })), perEmitter: 5, life: 5, rise: 0.8, size: [0.5, 0.9], colors: ['#3a2a30', '#4a3a3a', '#2a2026'] });
+  life.puffs({ at: burnSlots.map((b) => ({ object: b.smoke, offset: [0, 0, 0] })), perEmitter: 4, life: 4.5, rise: 0.9, size: [0.3, 0.55], colors: ['#5a4a4a', '#6a5a58', '#4a3c3e'] });   // the fire's smoke: dark, but never a wall in front of the lens
   // steam: white clouds that rise off a fire as the water hits it (an emitter laid flat when not steaming)
   for (const b of burnSlots) { b.steam = new THREE.Object3D(); b.steam.position.set(b.x, 1.6, b.z + 0.8); b.steam.rotation.x = Math.PI / 2; H.scene.add(b.steam); b.level = 0; }
   life.puffs({ at: burnSlots.map((b) => ({ object: b.steam, offset: [0, 0, 0] })), perEmitter: 5, life: 2.0, rise: 1.0, size: [0.22, 0.45], colors: ['#f4f0ec', '#e4e0e8', '#d8d4dc'] });
