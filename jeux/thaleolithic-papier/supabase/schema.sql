@@ -68,3 +68,4 @@ as $$
 $$;
 revoke all on function public.thaleo_stats() from public;
 grant execute on function public.thaleo_stats() to anon;
+revoke execute on function public.thaleo_stats() from authenticated;
