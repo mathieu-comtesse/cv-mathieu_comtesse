@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le carnet des morts</title>
+<meta name="description" content="THALEOLITHIC en papier : les statistiques anonymes des parties, les morts par accident et par victime, la progression dans la campagne ISO 45001.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2a1830">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="ui.css">
+<style>
+  /* the game's own interface (ui.css), laid out as a book of sheets pinned on the dusk: the village's paper, its cut
+     letters, its bone tags and stone slabs; the bars are strips of red card on a kraft groove */
+  html, body { height: auto; overflow: auto; background: var(--plum-t, none) #2a1830; }
+  main { max-width: 1080px; margin: 0 auto; padding: 26px 16px 64px; display: grid; gap: 22px; }
+  .leaf { padding: 30px 32px 28px; }
+  #head { transform: rotate(-.4deg); }
+  #head h1 { margin: 4px 0 10px; font: 400 clamp(34px, 6.4vw, 58px)/1 var(--title); color: #6a1e28; }
+  #head .speech { margin: 22px 0 8px; }
+  #state { margin: 8px 0 0; font: italic 400 14px/1.4 var(--serif); color: var(--ink-80, #5a4440); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 16px 14px; }
+  .tile { padding: 12px 14px 13px; text-align: center; }
+  .tile:nth-child(odd) { transform: rotate(-1.2deg); } .tile:nth-child(even) { transform: rotate(1deg) translateY(3px); }
+  .tile b { display: block; font: 400 36px/1 'Kavoon', var(--caps); color: #2a1a1e; font-variant-numeric: tabular-nums; }
+  .tile span { display: block; margin-top: 4px; font: 400 14px/1.15 var(--caps); letter-spacing: .03em; color: #5a2a28; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(470px, 100%), 1fr)); gap: 22px; }
+  .grid .leaf:nth-child(odd) { transform: rotate(-.5deg); } .grid .leaf:nth-child(even) { transform: rotate(.45deg); }
+  .leaf h2 { font-size: 24px; }
+  .leaf .kicker { margin-bottom: 14px; }
+  .bars { display: grid; gap: 7px; }
+  .row { display: grid; grid-template-columns: minmax(96px, 36%) 1fr 40px; align-items: center; gap: 10px; padding: 3px 4px; border-radius: 6px 10px 5px 9px; }
+  .row:hover, .row:focus-visible { background: rgb(224 162 74 / .18); outline: none; }
+  .row .lab { font: 500 14.5px/1.2 var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .trk { position: relative; height: 15px; background: var(--kraft-t, none) #ead6b2; border-radius: 3px 6px 4px 7px; box-shadow: inset 1px 1px 2px rgb(var(--sh) / .4); }
+  .row .fill { position: absolute; left: 0; top: 1px; bottom: 1px; min-width: 3px; background: var(--accent-t, none) #b8432f; border-radius: 2px 6px 5px 3px; box-shadow: var(--cut), 1px 2px 0 #5a1a14; }
+  .row:hover .fill { background: var(--blood-t, none) #9a3328; }
+  .row .val { text-align: right; font: 400 18px/1 'Kavoon', var(--caps); color: #2a1a1e; font-variant-numeric: tabular-nums; }
+  details { margin-top: 12px; } summary { cursor: pointer; font: 400 14px/1.2 var(--caps); color: #7a2430; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; font: 400 14px/1.35 var(--serif); }
+  th { text-align: left; padding: 5px 8px; font: 400 15px/1.1 var(--caps); letter-spacing: .03em; color: #7a2430; border-bottom: 1.5px solid rgb(var(--sh) / .45); }
+  td { padding: 4px 8px; border-bottom: 1px dashed rgb(var(--sh) / .3); } td.n { text-align: right; font: 400 16px/1 'Kavoon', var(--caps); }
+  tr.hit td { background: rgb(184 67 47 / .1); }
+  .empty { font-style: italic; color: #7a6a60; }
+  #tip { position: fixed; z-index: 9; pointer-events: none; max-width: 300px; padding: 7px 12px 8px; font: 500 14px/1.3 var(--serif); color: #2a1a1e; background: var(--bone-t, none) #f4e6c6; border-radius: 4px 12px 5px 13px; box-shadow: var(--cut), 2px 3px 0 rgb(var(--sh) / .35); opacity: 0; transition: opacity .1s; transform: rotate(-1deg); }
+  .back { justify-self: start; display: inline-block; padding: 10px 18px; font: 400 17px/1 var(--caps); color: #fbf1de; text-decoration: none; background: var(--blood-t, none) #9a3328; border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px; box-shadow: var(--cut), 2px 3px 0 #5a1a14; transform: rotate(-1deg); }
+  @media (max-width: 640px) { .leaf { padding: 24px 20px 22px; } .tile b { font-size: 30px; } }
+</style>
+</head>
+<body>
+<main>
+  <header class="leaf paper" id="head">
+    <p class="kicker">THALEOLITHIC en papier</p>
+    <h1 id="title">Le carnet des morts</h1>
+    <div class="speech"><span class="who">Mathieu</span><p class="line" id="say"></p></div>
+    <p id="state">Lecture de la base…</p>
+  </header>
+  <section class="tiles" id="tiles" aria-label="Chiffres clés"></section>
+  <section class="grid">
+    <article class="leaf paper"><h2>Les accidents, par type</h2><p class="kicker">Morts, tous lieux confondus</p><div class="bars" id="by-kind"></div></article>
+    <article class="leaf paper"><h2>Les victimes</h2><p class="kicker">Dylan reprend, les habitants restent au cimetière</p><div class="bars" id="by-victim"></div></article>
+    <article class="leaf paper"><h2>Jusqu’où va la campagne</h2><p class="kicker">Parties qui terminent chaque chapitre</p><div class="bars" id="quests"></div></article>
+    <article class="leaf paper"><h2>Les erreurs</h2><p class="kicker">Réponses fausses, par chapitre</p><div class="bars" id="mistakes"></div></article>
+  </section>
+  <article class="leaf paper"><h2>Les 16 accidents du jeu</h2><p class="kicker">Chacun, sa victime, combien de fois</p><div id="acc-table"></div></article>
+  <a class="back" href="./">Retour au village</a>
+</main>
+<div id="tip" role="status"></div>
+<script src="../jeux/talas-config.js?v=2"></script>
+<script type="module">
+  import { installTiles, paperize, cutLetters } from './paper-ui.js';
+  import { createTalk, voiceOf } from './talk.js';
+  installTiles();
+  const SB = window.THALEO_SB || window.TALAS_SB, RES = 'Source/Resources/';
+  const $ = (id) => document.getElementById(id), tip = $('tip');
+  const KIND = { tree: 'Arbre abattu', rock: 'Bloc de carrière', mammoth: 'Mammouth', hut: 'Toiture effondrée', fire: 'Feu', stock: 'Pile des réserves', river: 'Berge', workshop: 'Poste de l’atelier', beast: 'Bête sauvage (prédateur)', trample: 'Grand herbivore effrayé' };
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const calm = (t) => { const s = String(t || '').toLowerCase().replace(/!!!/, '!'); return s.charAt(0).toUpperCase() + s.slice(1); };   // the game's titles are in capitals
+  const [legacy, v17] = await Promise.all(['UngaBungaQuests.json', 'CampaignV17.json'].map((f) => fetch(RES + f).then((r) => r.json()).catch(() => null)));
+  const ACC = legacy?.accidents || [], NAMES = Object.fromEntries((legacy?.characters || []).map((c) => [c.id, c.name]));
+  const nameOf = (id) => id === 'nork' ? 'Ouways' : NAMES[id] || String(id || '').split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const QT = Object.fromEntries([...(v17?.quests || []).map((q) => [q.id, calm(q.title)]), ['M_II_ROLES', 'Le duel des menhirs'], ['M_V_ABRI', 'L’abri']]);
+  const ORDER = ['V17_CONTEXT', 'M_II_ROLES', 'V17_RISKS', 'V17_SUPPORT', 'M_V_ABRI', 'V17_OPERATIONS', 'V17_EMERGENCY', 'V17_EVALUATION', 'V17_IMPROVEMENT'];
+  // one series per chart: strips of red card, the count at the end, a bone-tag tooltip with the exact figure
+  function bars(el, rows) {
+    el.innerHTML = ''; const max = Math.max(1, ...rows.map((r) => r.n));
+    if (!rows.length) { el.innerHTML = '<p class="empty">Rien encore.</p>'; return; }
+    for (const r of rows) {
+      const d = document.createElement('div'); d.className = 'row'; d.tabIndex = 0;
+      d.innerHTML = `<span class="lab" title="${esc(r.label)}">${esc(r.label)}</span><span class="trk"><span class="fill" style="width:${(r.n / max) * 100}%"></span></span><span class="val">${r.n}</span>`;
+      const show = (x, y) => { tip.textContent = r.tip || `${r.label} : ${r.n}`; tip.style.left = Math.min(innerWidth - 310, x + 14) + 'px'; tip.style.top = (y + 16) + 'px'; tip.style.opacity = 1; };
+      d.addEventListener('pointermove', (e) => show(e.clientX, e.clientY)); d.addEventListener('pointerleave', () => { tip.style.opacity = 0; });
+      d.addEventListener('focus', () => { const b = d.getBoundingClientRect(); show(b.left + b.width / 2, b.bottom); }); d.addEventListener('blur', () => { tip.style.opacity = 0; });
+      el.append(d);
+    }
+    const t = document.createElement('details'); t.innerHTML = `<summary>Voir en tableau</summary><table><tbody>${rows.map((r) => `<tr><td>${esc(r.label)}</td><td class="n">${r.n}</td></tr>`).join('')}</tbody></table>`; el.append(t);
+  }
+  const PLATES = ['#f4e6c6', '#f3c878', '#dfe3b4', '#d8d2e6', '#f4e6c6', '#f3c878', '#dfe3b4'];
+  function render(s, sample) {
+    const lost = s.deaths - s.dylan_deaths, pct = (a, b) => (b ? Math.round((a / b) * 100) + ' %' : '–');
+    $('tiles').innerHTML = [[s.sessions, 'parties commencées'], [s.deaths, 'morts en tout'], [s.dylan_deaths, 'morts de Dylan'], [lost, 'habitants au cimetière'], [s.retries, 'reprises avant la décision'], [pct(s.endings, s.sessions), 'campagnes terminées'], [pct(s.duel.won, s.duel.won + s.duel.lost), 'duels gagnés']]
+      .map(([n, l]) => `<div class="tile paper"><b>${n}</b><span>${l}</span></div>`).join('');
+    document.querySelectorAll('.tile').forEach((el, i) => paperize(el, { seed: 60 + i, style: 'slip', color: PLATES[i % PLATES.length] }));
+    bars($('by-kind'), s.by_kind.map((k) => ({ label: KIND[k.kind] || k.kind, n: k.n })));
+    bars($('by-victim'), s.by_victim.map((v) => ({ label: nameOf(v.victim), n: v.n })));
+    const qs = [...s.quests].sort((a, b) => ORDER.indexOf(a.chapter) - ORDER.indexOf(b.chapter));
+    bars($('quests'), qs.map((q) => ({ label: QT[q.chapter] || q.chapter, n: q.sessions, tip: `${QT[q.chapter] || q.chapter} : ${q.sessions} parties, à ${q.minutes ?? '–'} min de jeu en moyenne` })));
+    bars($('mistakes'), s.mistakes_by_chapter.map((m) => ({ label: QT[m.chapter] || m.chapter || 'Hors chapitre', n: m.n })));
+    const count = Object.fromEntries(s.by_accident.map((a) => [a.accident + ':' + a.victim, a.n]));
+    $('acc-table').innerHTML = `<div class="scroll"><table><thead><tr><th>Accident</th><th>Type</th><th>Victime</th><th style="text-align:right">Morts</th></tr></thead><tbody>${ACC.map((a) => { const n = count[a.id + ':' + a.victimId] || 0; return `<tr class="${n ? 'hit' : ''}"><td>${esc(calm(a.title))}</td><td>${esc(KIND[a.kind] || a.kind)}</td><td>${esc(nameOf(a.victimId))}</td><td class="n">${n}</td></tr>`; }).join('')}</tbody></table></div>`;
+    $('state').textContent = sample ? 'Exemple de rendu, données inventées : la base ne répond pas encore.' : `Vraies parties, mises à jour le ${new Date(s.updated).toLocaleString('fr-FR')}.`;
+    // Mathieu reads the book out: the figures that matter, in a sentence
+    const top = s.by_kind[0], line = s.sessions
+      ? `${sample ? 'Pour l’exemple : ' : ''}${s.sessions} parties, ${s.deaths} morts. Dylan est mort ${s.dylan_deaths} fois${s.retries ? ', et il a repris avant la décision ' + s.retries + ' fois' : ''}. ${lost} habitants reposent au cimetière.${top ? ' L’accident le plus fréquent : ' + (KIND[top.kind] || top.kind).toLowerCase() + '.' : ''}`
+      : 'Aucune partie encore. Le carnet attend ses premiers morts.';
+    talk.say($('say'), line, { voice: voiceOf('Mathieu') });
+  }
+  const talk = createTalk({ sfx: null }); let last = performance.now();
+  const loop = (now) => { talk.step(Math.min(0.1, (now - last) / 1000)); last = now; requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+  $('say').closest('.speech').addEventListener('pointerdown', () => talk.skip());
+  document.querySelectorAll('.leaf').forEach((el, i) => paperize(el, { seed: 40 + i, style: 'sheet' }));
+  document.querySelectorAll('.leaf h1, .leaf h2').forEach((el) => cutLetters(el, { chips: true }));
+  const SAMPLE = { sessions: 48, sessions_touch: 17, endings: 21, deaths: 63, dylan_deaths: 41, retries: 39, mistakes: 212, duel: { won: 36, lost: 9 },
+    by_kind: [['tree', 12], ['mammoth', 11], ['fire', 10], ['river', 9], ['rock', 8], ['hut', 6], ['stock', 4], ['workshop', 3]].map(([kind, n]) => ({ kind, n })),
+    by_victim: [['dylan', 41], ['georges', 5], ['eliott', 4], ['orok', 3], ['tarek', 3], ['alban', 2], ['milena', 2], ['uma', 2], ['neila', 1]].map(([victim, n]) => ({ victim, n })),
+    quests: ORDER.map((c, i) => ({ chapter: c, sessions: Math.round(46 - i * 3.1), minutes: Math.round((4 + i * 6.5) * 10) / 10 })),
+    mistakes_by_chapter: [['V17_RISKS', 61], ['V17_SUPPORT', 44], ['V17_CONTEXT', 38], ['V17_OPERATIONS', 29], ['V17_EVALUATION', 22], ['V17_EMERGENCY', 18]].map(([chapter, n]) => ({ chapter, n })),
+    by_accident: [], updated: new Date().toISOString() };
+  SAMPLE.by_accident = ACC.map((a, i) => ({ accident: a.id, kind: a.kind, victim: a.victimId, n: a.victimId === 'dylan' ? [7, 5, 6, 4, 6, 3, 6, 4][i % 8] : (SAMPLE.by_victim.find((v) => v.victim === a.victimId)?.n || 0) }));
+  try {
+    if (!SB?.url) throw new Error('config');
+    const r = await fetch(SB.url.replace(/\/+$/, '') + '/rest/v1/rpc/thaleo_stats', { method: 'POST', headers: { apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) throw new Error(r.status); render(await r.json(), false);
+  } catch { render(SAMPLE, true); }
+</script>
+</body>
+</html>
