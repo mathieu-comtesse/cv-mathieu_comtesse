@@ -61,10 +61,11 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     const name = campaign.nameOf(acc.victim), [x, z] = acc.at || world.accident.spotOf(spec), C = world.SITES.cimetiere;
     const lines = [{ speaker: 'Mathieu', subtitle: spec.warning }, { speaker: '', subtitle: acc.at ? `${spec.danger} ${name} était seul, loin de la palissade.` : `${spec.danger} ${name} y va quand même.` }, { speaker: spec.speaker || 'Aurélien', subtitle: spec.punchline }, { speaker: 'Mathieu', subtitle: spec.reply }];
     const sp = [
-      { from: [x - 3, z + 9, 26], to: [x - 1.4, z + 3, 17], dur: 3.4, line: 0, at: () => { world.accident.begin(spec, acc.victim, acc.at || null, acc.beast ?? null); sfx?.play('stinger'); } },
-      { from: [x - 1.4, z + 2.4, spec.kind === 'mammoth' || spec.kind === 'trample' ? 19 : 14], to: [x - 0.6, z + 1.6, spec.kind === 'mammoth' || spec.kind === 'trample' ? 17 : 12], dur: spec.kind === 'river' ? 4.2 : spec.kind === 'fire' ? 3.6 : 3.2, line: 1, at: () => world.accident.strike() },
-      { from: [x + 0.6, z + 1.2, 11], to: [x + 0.8, z + 2.4, 15], dur: 3.8, line: 2 },
-      { from: [x + 0.8, z + 2.4, 15], to: [x, z + 4, 20], dur: 3.4, line: 3 },
+      // every shot aims at the victim (a little above the ground, where the body is): never beside it
+      { from: [x - 0.8, z + 0.6, 26, 1.1], to: [x - 0.3, z + 0.2, 17, 1.1], dur: 3.4, line: 0, at: () => { world.accident.begin(spec, acc.victim, acc.at || null, acc.beast ?? null); sfx?.play('stinger'); } },
+      { from: [x - 0.3, z + 0.2, spec.kind === 'mammoth' || spec.kind === 'trample' ? 19 : 14, 1.1], to: [x, z, spec.kind === 'mammoth' || spec.kind === 'trample' ? 17 : 12, 1.1], dur: spec.kind === 'river' ? 4.2 : spec.kind === 'fire' ? 3.6 : 3.2, line: 1, at: () => world.accident.strike() },
+      { from: [x, z, 11, 0.9], to: [x + 0.2, z + 0.2, 14, 0.9], dur: 3.8, line: 2 },
+      { from: [x + 0.2, z + 0.2, 14, 0.9], to: [x, z + 0.4, 19, 0.9], dur: 3.4, line: 3 },
     ];
     if (acc.victim !== 'dylan') { lines.push({ speaker: '', subtitle: `${name} repose désormais au cimetière du village. Une enquête est ouverte auprès de Mathieu.` }); sp.push({ from: [C.x - 2, C.z + 4, 16], to: [C.x, C.z + 1, 12], dur: 4.2, line: 4, at: () => { campaign.markPlayed(); sfx?.play('chant', { dur: 1.8, root: 'A2' }); } }); }
     custom.ACC = { title: spec.title, shots: lines, spec: sp };
@@ -96,7 +97,7 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     const L = sh.line != null ? run.c.shots[sh.line] : null;
     who.textContent = L ? clean(L.speaker || 'Le narrateur') : '';
     if (L) world.talk?.say(line, clean(L.subtitle), { voice: voiceOf(L.speaker || 'narrateur', campaign.data.characters), fit: Math.max(1.2, sh.dur - 0.7) }); else { world.talk?.stop(line); line.textContent = ''; }
-    root.classList.toggle('narrator', !!L && !L.speaker); root.querySelector('.sub').hidden = !L;
+    root.classList.toggle('narrator', !!L && !L.speaker); root.querySelector('.sub').hidden = !L; $('cine-next').classList.remove('ready');
     sh.at?.(ctl); sh.act?.(ctl);
   }
   function stop() {
@@ -107,8 +108,12 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
     world.H.unlook();
     if (queue.length) start(queue.shift());
   }
-  addEventListener('keydown', (e) => { if (!run) return; if (e.code === 'Escape') stop(); else if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !world.talk?.skip()) stop(); e.stopImmediatePropagation(); e.preventDefault(); }, true);   // Enter finishes the line, then skips
-  $('cine-skip').onclick = stop;
+  // a line stays on screen until the player asks for the next one: Suivant (or Entrée, Espace) first finishes the
+  // line being typed, then moves on; Passer (or Échap) skips the whole cinematic. The films (?capture) run on alone.
+  const AUTO = new URLSearchParams(location.search).has('capture');
+  const go = () => { if (run && !world.talk?.skip()) next(); };
+  addEventListener('keydown', (e) => { if (!run) return; if (e.code === 'Escape') stop(); else if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat) go(); e.stopImmediatePropagation(); e.preventDefault(); }, true);
+  $('cine-skip').onclick = stop; $('cine-next').onclick = go;
   return {
     start, stop, tour, accident, get playing() { return !!run; },
     step(dt) {
@@ -117,7 +122,7 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
       const u = ease(Math.min(1, run.t / sh.dur)), at = sh.from.map((v, i) => v + (sh.to[i] - v) * u);
       if (sh.pin != null) { const c = world.engraving.cards[sh.pin], w = c.getWorldPosition(c.userData.wp ??= c.position.clone()); world.H.look(w.x + at[0], w.z + at[1], at[2], w.y); }
       else world.H.look(at[0], at[1], at[2], at[3]);
-      if (run.t >= sh.dur) next();
+      if (run.t >= sh.dur) { if (sh.line != null && !AUTO) { run.t = sh.dur; $('cine-next').classList.add('ready'); } else next(); }   // a line waits for Suivant
     },
     // which cinematic a change of the campaign calls for: the opening on a new game, then after these quests
     after(questId) { const id = { M_II_ROLES: 'GRAVURE', V17_RISKS: 'C02', V17_OPERATIONS: 'C03', V17_IMPROVEMENT: 'C06' }[questId]; if (!id || campaign.state.flags['cine:' + id]) return; if (id === 'GRAVURE' && ui.mode === 'duel') { waitDuel = true; world.engraving.cine = true; return; } start(id); },

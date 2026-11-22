@@ -304,6 +304,8 @@
   #cine.in .sub { opacity: 1; }
   #cine-who { display: block; margin-bottom: 3px; font: 400 19px/1.1 var(--caps); letter-spacing: .03em; color: #9a3328; } #cine-line { font: 500 18px/1.42 var(--serif); }
   #cine.narrator #cine-line { font-style: italic; }
+  #cine-next { display: block; margin: 12px 0 0 auto; padding: 8px 18px 9px; font-size: 17px; pointer-events: auto; opacity: .55; transition: opacity .3s; }
+  #cine-next.ready { opacity: 1; animation: nextpulse 1.1s ease-in-out infinite; } @keyframes nextpulse { 50% { transform: translateX(4px) rotate(-1deg); box-shadow: var(--cut), 3px 4px 0 #5a1a14, 0 0 16px 4px rgb(240 160 64 / .55); } }
   #cine-skip { position: absolute; right: 3vw; top: 3.4vh; z-index: 1; pointer-events: auto; color: #f4e6c6; text-decoration-color: rgb(244 230 198 / .6); }
   body.cine-on #hud, body.cine-on #tools, body.cine-on #pin, body.cine-on #prompt, body.cine-on #work, body.cine-on #panel { visibility: hidden !important; }
   @media (prefers-reduced-motion: reduce) { #cine .band { transition: none; } }
