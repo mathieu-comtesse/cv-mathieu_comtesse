@@ -426,19 +426,24 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     },
     guard() { const s = state.menhir; if (s?.phase === 'combat') { s.guardUntil = s.t + 0.6; emit(); } },
     jump() { const s = state.menhir; if (s?.phase === 'combat' && s.t >= s.jumpUntil) { s.jumpUntil = s.t + 0.7; emit(); } },
+    // a decision is never asked twice: a wrong one costs life and points, then the right answer and its reason are
+    // shown (phase 'verdict') and the duel moves to the next trial
     answer(i) {
       const s = state.menhir; if (s?.phase !== 'question') return;
-      const q = Q[s.question], a = q.answers[i]; s.caption = a.reply;
-      s.banner = a.quality === 2 ? 'DÉCISION VÉRIFIÉE' : a.quality === 1 ? 'PARTIEL, LA PRÉVENTION RESTE À ORGANISER' : 'CONTRE DU CHEF, CORRIGE TA DÉCISION';
-      if (a.quality === 2) {
-        s.cleared[s.question] = true; s.chief = Math.min(s.chief, 100 - s.cleared.filter(Boolean).length * 20);
-        s.dylan = Math.min(100, s.dylan + 12); s.energy = Math.min(100, s.energy + 30); s.feedback = q.correction;
-        if (s.cleared.every(Boolean)) { s.phase = 'victory'; s.banner = 'LA POLITIQUE DU MENHIR EST GRAVÉE'; completeAction(MENHIR_ACTION); save(); emit(); return; }
-        this.round(); save(); return;
-      }
-      s.mistakes[s.question]++; s.dylan = Math.max(0, s.dylan - (a.quality === 1 ? 5 : 14)); if (a.quality === 1) s.chief = Math.max(5, s.chief - 3);
-      s.feedback = s.mode === 2 ? q.hint : q.correction;
-      if (s.dylan <= 0) this.defeat(); save(); emit();
+      const q = Q[s.question], a = q.answers[i], best = q.answers.find((x) => x.quality === 2); s.caption = a.reply;
+      s.picked = i; s.points = (s.points || 0) + a.quality; s.cleared[s.question] = true;
+      if (a.quality < 2) s.mistakes[s.question]++;
+      s.banner = a.quality === 2 ? 'DÉCISION VÉRIFIÉE' : a.quality === 1 ? 'DÉCISION PARTIELLE' : 'MAUVAISE DÉCISION';
+      s.feedback = a.quality === 2 ? q.correction : `La bonne décision : « ${best.text.replace(/\.$/, "")} ». ${q.correction}`;
+      s.chief = Math.min(s.chief, 100 - s.cleared.filter(Boolean).length * 20);
+      if (a.quality === 2) { s.dylan = Math.min(100, s.dylan + 12); s.energy = Math.min(100, s.energy + 30); }
+      else s.dylan = Math.max(8, s.dylan - (a.quality === 1 ? 6 : 15));
+      s.phase = 'verdict'; save(); emit();
+    },
+    next() {
+      const s = state.menhir; if (s?.phase !== 'verdict') return;
+      if (s.cleared.every(Boolean)) { s.phase = 'victory'; const k = s.points / (Q.length * 2); s.grade = k >= 0.8 ? 2 : k >= 0.5 ? 1 : 0; s.banner = ['LE MENHIR PENCHE, LA POLITIQUE EST BANCALE', 'LA POLITIQUE DU MENHIR EST GRAVÉE, AVEC DES RATURES', 'LA POLITIQUE DU MENHIR EST GRAVÉE'][s.grade]; completeAction(MENHIR_ACTION); save(); emit(); return; }
+      this.round(); save();
     },
     defeat() { const s = state.menhir; s.phase = 'defeat'; s.banner = 'DYLAN À TERRE, LES ACQUIS RESTENT'; s.caption = 'Reprends l’épreuve en cours avec ta vie et ton énergie restaurées. Les réponses déjà comprises sont conservées.'; },
     retry() { const s = state.menhir; if (s?.phase !== 'defeat') return; s.dylan = s.energy = 100; this.round(); },

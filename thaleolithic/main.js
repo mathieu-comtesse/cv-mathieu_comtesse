@@ -85,8 +85,19 @@ H.onStep((t, dt) => {
 const intro = document.getElementById('intro');
 const started = campaign.state.done.length > 0;
 document.getElementById('continue').hidden = !started;
-document.getElementById('continue').onclick = () => { intro.hidden = true; };
-document.getElementById('play').onclick = () => { if (started) campaign.reset(); intro.hidden = true; sfx.unlock(); cinema.start('C01'); };   // a new game opens on « Le village catastrophe »
+// the title buttons are cut stone: hovered, the letters hop one after the other and an ember glows; clicked, the
+// slab is struck, paper chips fly, then the game goes on
+const struck = (b, go) => {
+  b.innerHTML = [...b.textContent].map((c, i) => `<span class="pl" style="--i:${i}">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+  b.onclick = () => {
+    if (b.classList.contains('hit')) return; sfx.unlock(); sfx.play('hit'); b.classList.add('hit');
+    for (let k = 0; k < 14; k++) { const c = document.createElement('i'), a = Math.random() * 6.283, d = 40 + Math.random() * 70; c.className = 'chip'; c.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d * 0.7 - 20}px;--r:${(Math.random() - 0.5) * 540}deg;--c:${['#e0a24a', '#fbf1de', '#9a3328', '#a9a2bc'][k % 4]}`; b.append(c); }
+    setTimeout(() => { b.classList.remove('hit'); b.querySelectorAll('.chip').forEach((c) => c.remove()); go(); }, 520);
+  };
+};
+struck(document.getElementById('continue'), () => { intro.hidden = true; });
+document.getElementById('play').classList.toggle('go', !started);
+struck(document.getElementById('play'), () => { if (started) campaign.reset(); intro.hidden = true; cinema.start('C01'); });   // a new game opens on « Le village catastrophe »
 addEventListener('keydown', (e) => { if (!intro.hidden) e.stopImmediatePropagation(); }, true);
 if (Q.has('capture')) { intro.hidden = true; for (const id of ['hud', 'tools']) document.getElementById(id).hidden = true; }
 // touch: the stone joystick sends the walking keys (8 ways, a dead zone), the red blob acts (E); it lights up when an

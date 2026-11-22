@@ -77,7 +77,7 @@ export function buildVillage(campaign) {
 
   // ---- the printed ground: dry grass, the beaten square, paths, the wall's ditch, garden plots, the river -----------
   const PATHS = [[[0, 11], [0, 4], [0, -5]], [[0, -5], [0, -12], [0, -18]], [[0, -5], [-7, -3], [-15, -2], [-19, -11]], [[0, -5], [7, -4], [14, -6], [13, -17]],
-    [[0, 4], [6, 8], [12, 10]], [[0, 2], [-8, 4]],
+    [[0, 11], [6, 11.2], [12, 10]], [[0, 2], [-8, 4]],   // to the gathering point through the gate, never through the stakes
     // trails beyond the stakes: through the north-west gap to the western clearings, north from the hunt and the quarry, south from the gate
     [[-22, -29], [-30, -33], [-37, -25], [-39, -14]], [[-22, -29], [-14, -37]], [[22, -28], [28, -37]], [[0, 11], [-6, 18], [-20, 21], [-35, 9]], [[12, 10], [20, 13]], [[-39, -14], [-38, 2]], [[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, -18], [-6, -19], [-11, -20]], [[0, -5], [-4, -9], [-11, -11.4]]];
   H.printGround(({ g, ppu, X, Z, rnd: r, washes, torn, bandOf, drifts, water }) => {
@@ -321,7 +321,8 @@ export function buildVillage(campaign) {
   // the village changes with the campaign: pieces built under a condition stay folded flat until it holds (built later
   // in the story), or stand until it holds and then fold away (what the tribe corrects)
   const STAGES = [];
-  const staged = (when, make, { undo = false, slot = null } = {}) => { const n0 = H.hinges.length; make(); const hs = H.hinges.slice(n0); if (!undo) for (const h of hs) h.held = true; STAGES.push({ when, hs, undo, on: undo, slot }); return hs; };
+  // a staged piece's solids stand only while it does: a folded-away hearth is no invisible wall
+  const staged = (when, make, { undo = false, slot = null } = {}) => { const n0 = H.hinges.length, s0 = walk.solids.length; make(); const hs = H.hinges.slice(n0), sol = walk.solids.slice(s0).map((q) => [q, q.r]); if (!undo) { for (const h of hs) h.held = true; for (const [q] of sol) q.r = 0; } STAGES.push({ when, hs, sol, undo, on: undo, slot }); return hs; };
   const quest = (id) => { const q = campaign.data.quests.find((x) => x.id === id); return () => !!q && campaign.questDone(q); };
   const flag = (k) => () => !!campaign.state.flags[k];
   const any = (...fs) => () => fs.some((f) => f());
@@ -486,8 +487,6 @@ export function buildVillage(campaign) {
   staged(quest('V17_IMPROVEMENT'), () => popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink(C.stone); D.ell(g, 0, 2.6, 2.5, 2.5); g.fillStyle = ink(sh(C.stone, 0.12)); D.ell(g, -0.2, 2.75, 2.0, 2.0); g.fillStyle = ink('#3a3448'); D.ell(g, 0, 2.6, 0.45, 0.45); g.fillStyle = ink(sh(C.stone, -0.3), 'print'); for (let k = 0; k < 8; k++) { const a = k / 8 * 6.283; D.poly(g, [[Math.cos(a) * 0.6, 2.6 + Math.sin(a) * 0.6], [Math.cos(a + 0.12) * 1.9, 2.6 + Math.sin(a + 0.12) * 1.9], [Math.cos(a - 0.12) * 1.9, 2.6 + Math.sin(a - 0.12) * 1.9]]); } g.fillStyle = ink('#5a3a22'); D.poly(g, [[-1.6, 0], [-0.6, 0], [-1.1, 0.5]]); D.poly(g, [[0.6, 0], [1.6, 0], [1.1, 0.5]]); }, { w: 5.4, h: 5.4, name: 'wheel' }), { x: -7, z: 10.5 })); mark(-7, 10.5, 5);
   // IX : the next cycle: bunting over the square, a watchtower by the wall
   staged(quest('V17_IMPROVEMENT'), () => { popup(...bunting(10), { x: 0, z: -9.6 }); popup(...tower(), { x: 16, z: -22 }); });
-  // the uprooted fire of the tent stays out (difference 1), kept clear of the walk
-  walk.solid(-11, -3.9, 1.2);
 
   // ---- torches: a bound stake, a cup of clay, a little fire that flickers and lights the path ---------------------
   const torchCard = P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.poly(g, [[-0.1, 0], [0.1, 0], [0.14, 2.5], [-0.14, 2.5]]); g.fillStyle = ink('#c8a870'); D.rect(g, -0.2, 2.2, 0.4, 0.14); D.rect(g, -0.2, 1.4, 0.4, 0.1); g.fillStyle = ink('#4a3030'); D.poly(g, [[-0.3, 2.45], [0.3, 2.45], [0.2, 2.85], [-0.2, 2.85]]); }, { w: 0.9, h: 3.0, name: 'torch' });
@@ -745,7 +744,7 @@ export function buildVillage(campaign) {
     const bySlot = new Map();
     for (const st of STAGES) {
       const want = st.undo ? !st.when() : st.when(); if (want === st.on) continue;
-      st.on = want;
+      st.on = want; for (const [q, r] of st.sol) q.r = want ? r : 0;
       if (st.slot && booted) { const k = st.slot.i; if (!bySlot.has(k)) bySlot.set(k, { slot: st.slot, out: [], in: [] }); bySlot.get(k)[want ? 'in' : 'out'].push(st); continue; }
       if (want) st.hs.forEach((h, i) => { h.held = false; h.set(1, 0.2 + i * 0.07); }); else fold(st, 0);
     }
@@ -1072,7 +1071,7 @@ export function buildVillage(campaign) {
       dz.on = true; dz.back = H.heroAt(); A.busy = true; A.target = null;
       H.placeHero(ARENA.x - ARENA.d, ARENA.z);
       A.x = ARENA.x + ARENA.d; A.z = ARENA.z; A.h.group.position.x = A.x; A.h.group.position.z = A.z;
-      H.look(ARENA.x - 1.6, ARENA.z - 0.6, 17);
+      H.look(ARENA.x, ARENA.z - 0.6, 21);
       // the tribe comes to watch: a half-ring of spectators behind the fighters
       dz.crowd = ['mathieu', 'lorette', 'georges', 'neila', 'orok', 'sila', 'petit_os', 'mathilde', 'grumb'].filter((id) => people[id] && !people[id].h.held);
       dz.crowd.forEach((id, k) => { const p = people[id], a = -1.25 + k * 2.5 / (dz.crowd.length - 1); p.busy = true; p.target = [ARENA.x + Math.sin(a) * 6.2, ARENA.z - 2.2 - Math.cos(a) * 2.6]; });
@@ -1087,7 +1086,7 @@ export function buildVillage(campaign) {
     const t = s.t || 0, bump = (since, len) => { const u = since / len; return u >= 0 && u < 1 ? Math.sin(u * Math.PI) : 0; };
     const hit = bump(t - (s.lastHit ?? -9), 0.3), boss = bump(t - (s.lastBoss ?? -9), 0.45), jumping = t < (s.jumpUntil ?? 0), guarding = t < (s.guardUntil ?? 0);
     const down = s.phase === 'defeat', won = s.phase === 'victory';
-    doll.rotation.y = Math.PI / 2 - hero.group.rotation.y;
+    doll.rotation.y = -hero.group.rotation.y;   // the card faces the lens: turned toward the chief it would show its edges
     doll.position.x = hit * 1.1 - (guarding ? 0 : boss * 0.7);
     doll.position.y = jumping ? Math.sin(Math.min(1, (s.jumpUntil - t) / 0.6) * Math.PI) * 1.6 : 0;
     doll.rotation.z = down ? -1.35 : hit * 0.12 - (guarding ? 0 : boss * 0.4);
@@ -1105,7 +1104,7 @@ export function buildVillage(campaign) {
     if (won && !dz.won) { dz.won = true; burst(A.h.group.position.x, 3.2, dyz, 40, [3, 4, 5, 2], 9, 7); fx('gold', A.h.group.position.x, 2.6, dyz, 1.8); dz.shake = 0.3; }
     if (!won) dz.won = false;
     dz.shake = Math.max(0, dz.shake - dt * 1.4); const sk = dz.shake * dz.shake * 2.2;
-    H.look(ARENA.x - 1.6 + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 17);
+    H.look(ARENA.x + (Math.random() - 0.5) * sk, ARENA.z - 0.6 + (Math.random() - 0.5) * sk, 21);
     // the duel's sounds: skin drums while they fight, a bone crack on each blow, the chief's horn as he charges
     const sx = H.sfx; if (!sx) return;
     if ((s.lastHit ?? -9) !== dz.hitAt && s.lastHit != null) { dz.hitAt = s.lastHit; sx.play('hit'); }

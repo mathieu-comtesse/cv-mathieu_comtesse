@@ -35,7 +35,7 @@ export function createUI(campaign, world) {
     render(); mark();
   };
   const close = () => {
-    if (!mode || (mode === 'death' && campaign.state.accident)) return; mode = null; mark(); flap(false);
+    if (!mode || (mode === 'death' && campaign.state.accident)) return; mode = null; $('fight').hidden = true; root.classList.remove('away', 'full'); document.body.classList.remove('dueling'); mark(); flap(false);
     root.classList.remove('in');
     if (still()) root.hidden = true; else root.classList.add('out');
   };
@@ -239,30 +239,58 @@ export function createUI(campaign, world) {
   function suspend() { campaign.suspend(); close(); }
 
   // ---- the Duel des menhirs --------------------------------------------------------------------------------------------
+  // the fight is played in the village under a fighting-game HUD (#fight): the two lives face to face from the
+  // corners, Dylan's energy under his, the trials as stones in the middle, the call of the round in big cut letters,
+  // the moves at the bottom. The decisions themselves take the whole screen (#panel.full).
+  const fightEl = $('fight');
+  function fightHud(s) {
+    const d = campaign.duel;
+    if (!fightEl.firstChild) {
+      fightEl.innerHTML = `<div class="fbar l"><b class="who">Dylan</b><div class="life"><s></s><i></i></div><div class="nrg"><i></i></div><span class="face">D</span></div>
+        <div class="fmid"><p class="pips"></p><small>Épreuves</small></div>
+        <div class="fbar r"><b class="who">Aurélien</b><div class="life"><s></s><i></i></div><span class="face">A</span></div>
+        <p class="call"></p><p class="line"></p>
+        <div class="fpad"><div class="moves"></div><div class="go-row"></div></div>`;
+      const mv = fightEl.querySelector('.moves');
+      mv.append(btn('Frapper <kbd>J</kbd>', () => d.attack(false)), btn('Coup de pied <kbd>K</kbd>', () => d.attack(true)), btn('Garde <kbd>L</kbd>', () => d.guard()), btn('Sauter <kbd>Espace</kbd>', () => d.jump()));
+    }
+    const set = (sel, v) => { for (const el of fightEl.querySelectorAll(sel)) el.style.width = Math.max(0, Math.min(100, v)) + '%'; };
+    set('.l .life i', s.dylan); set('.l .life s', s.dylan); set('.l .nrg i', s.energy); set('.r .life i', s.chief); set('.r .life s', s.chief);
+    fightEl.querySelector('.l .life').classList.toggle('low', s.dylan < 30);
+    const pips = s.cleared.map((c, i) => `<i class="${c ? 'on' : i === s.question && s.phase === 'combat' ? 'now' : ''}"></i>`).join(''), pe = fightEl.querySelector('.pips'); if (pe.dataset.h !== pips) { pe.dataset.h = pips; pe.innerHTML = pips; }
+    const call = fightEl.querySelector('.call'); if (call.dataset.t !== s.banner) { call.dataset.t = s.banner; call.textContent = s.banner; call.classList.remove('pop'); void call.offsetWidth; call.classList.add('pop'); }
+    fightEl.querySelector('.line').textContent = s.caption || '';
+    fightEl.querySelector('.moves').hidden = s.phase !== 'combat';
+    const row = fightEl.querySelector('.go-row'), want = s.phase + (s.phase === 'combat' ? (d.canQuestion ? 1 : 0) : '');
+    if (row.dataset.k !== want) {
+      row.dataset.k = want; row.innerHTML = '';
+      if (s.phase === 'combat') { const q = btn(d.canQuestion ? 'Répondre à l’épreuve <kbd>E</kbd>' : 'Épreuve dans un instant…', () => d.openQuestion(), 'go'); q.disabled = !d.canQuestion; row.append(q); }
+      else if (s.phase === 'defeat') row.append(btn('Se relever et continuer', () => d.retry(), 'go'));
+      else if (s.phase === 'victory') row.append(btn('Continuer', close, 'go'));
+      if (s.phase !== 'victory') row.append(btn('Quitter le duel', () => { d.close(); close(); }, 'quiet'));
+    }
+  }
   function renderDuel() {
     const d = campaign.duel, s = d.s; if (!s) return close();
-    const bar = (label, v, cls) => `<div class="bar ${cls}"><span>${label}</span><i style="width:${Math.max(0, v)}%"></i></div>`;
+    const fighting = s.phase === 'combat' || s.phase === 'defeat' || s.phase === 'victory';
+    root.classList.toggle('away', fighting); root.classList.toggle('full', !fighting); fightEl.hidden = !fighting; document.body.classList.add('dueling');
+    if (fighting) { fightHud(s); body.innerHTML = ''; return; }
     body.innerHTML = `<p class="kicker">ISO 45001 5.1 à 5.4, Leadership</p><h2>LA POLITIQUE DU MENHIR</h2>`;
     if (s.phase === 'choose') {
       body.insertAdjacentHTML('beforeend', '<p class="said">Mathieu : « Cinq décisions. Les coups seuls ne valident aucune épreuve. »</p>');
-      ['Arcade : esquive, garde et décisions', 'Pédagogique : sans attaques automatiques', 'Avec indices : aide visible pour chaque décision'].forEach((l, i) => body.append(btn(l, () => d.choose(i), i === 0 ? 'go' : '')));
-      body.append(btn('Plus tard', () => { d.close(); close(); }, 'quiet')); return;
+      const row = document.createElement('div'); row.className = 'choices modes';
+      ['Arcade : esquive, garde et décisions', 'Pédagogique : sans attaques automatiques', 'Avec indices : aide visible pour chaque décision'].forEach((l, i) => row.append(btn(l, () => d.choose(i), i === 0 ? 'go' : '')));
+      body.append(row, btn('Plus tard', () => { d.close(); close(); }, 'quiet')); return;
     }
-    const pips = s.cleared.map((c) => `<i class="${c ? 'on' : ''}"></i>`).join('');
-    body.insertAdjacentHTML('beforeend', `${bar('Dylan', s.dylan, 'life')}${bar('Énergie', s.energy, 'energy')}${bar('Aurélien', s.chief, 'chief')}<p class="pips">${pips}</p>
-      <p class="banner">${esc(s.banner)}</p><p class="said">${esc(s.caption)}</p>${s.feedback ? `<p class="fb">${esc(s.feedback)}</p>` : ''}`);
-    if (s.phase === 'combat') {
-      const row = document.createElement('div'); row.className = 'choices duelpad';
-      row.append(btn('Frapper <kbd>J</kbd>', () => d.attack(false)), btn('Coup de pied <kbd>K</kbd>', () => d.attack(true)), btn('Garde <kbd>L</kbd>', () => d.guard()), btn('Sauter <kbd>Espace</kbd>', () => d.jump()));
-      body.append(row);
-      const q = btn(d.canQuestion ? 'Répondre à l’épreuve <kbd>E</kbd>' : 'Épreuve dans un instant…', () => d.openQuestion(), 'go'); q.disabled = !d.canQuestion; body.append(q);
-    } else if (s.phase === 'question') {
-      const q = d.question();
-      body.insertAdjacentHTML('beforeend', `<div class="card"><p class="small">${esc(q.clause)} : ${esc(q.title)}</p><p>${esc(q.question)}</p>${s.mode === 2 ? `<p class="small">Indice : ${esc(q.hint)}</p>` : ''}</div>`);
-      const row = document.createElement('div'); row.className = 'choices'; q.answers.forEach((a, i) => row.append(btn(esc(a.text), () => d.answer(i)))); body.append(row);
-    } else if (s.phase === 'defeat') body.append(btn('Reprendre l’épreuve', () => d.retry(), 'go'));
-    else if (s.phase === 'victory') body.append(btn('Continuer', close, 'go'));
-    if (s.phase !== 'victory') body.append(btn('Quitter le duel', () => { d.close(); close(); }, 'quiet'));
+    const q = d.question();
+    body.insertAdjacentHTML('beforeend', `<div class="card ask"><p class="small">Épreuve ${s.question + 1} sur ${s.cleared.length} · ${esc(q.clause)} : ${esc(q.title)}</p><p class="q">${esc(q.question)}</p>${s.mode === 2 && s.phase === 'question' ? `<p class="small">Indice : ${esc(q.hint)}</p>` : ''}</div>`);
+    const row = document.createElement('div'); row.className = 'choices answers';
+    q.answers.forEach((a, i) => { const b = btn(esc(a.text), () => d.answer(i)); if (s.phase === 'verdict') { b.disabled = true; b.classList.add(a.quality === 2 ? 'right' : i === s.picked ? 'wrong' : 'other'); } row.append(b); });
+    body.append(row);
+    if (s.phase === 'verdict') {
+      body.insertAdjacentHTML('beforeend', `<p class="banner">${esc(s.banner)}</p><p class="fb${q.answers[s.picked]?.quality < 2 ? ' bad' : ''}">${esc(s.feedback)}</p>`);
+      body.append(btn('Épreuve suivante', () => d.next(), 'go'));
+    }
   }
 
   // ---- dialogues with choices (the shelter's roof) and the action in progress ----------------------------------------
@@ -432,12 +460,16 @@ export function createUI(campaign, world) {
 
   function render() {
     root.classList.toggle('runner', mode === 'activity' && !modal());
-    root.classList.toggle('duel', mode === 'duel');   // docked low: the fight itself is played in the village
+    if (mode !== 'duel') { fightEl.hidden = true; root.classList.remove('away', 'full'); document.body.classList.remove('dueling'); }
     if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue(); else if (mode === 'death') renderDeath();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
     else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();
     for (const h of body.querySelectorAll('h2')) cutLetters(h);   // titles cut out letter by letter
+    fit();
   }
+  // never a scroll bar: a sheet whose content would overflow is set a little smaller until it fits
+  function fit() { body.style.zoom = ''; let k = 1; while (k > 0.62 && body.scrollHeight > body.clientHeight + 2) { k -= 0.05; body.style.zoom = k; } }
+  addEventListener('resize', () => { if (mode) fit(); });
 
   // ---- keys: E acts, arrows during the briefing move the lanes, J K L Espace in the duel; WASD blocked behind a modal -
   addEventListener('keydown', (e) => {
@@ -462,6 +494,7 @@ export function createUI(campaign, world) {
   return {
     step(dt) {
       campaign.tick(dt); campaign.duel.tick(dt); stepLanes(dt);
+      if (mode === 'duel' && !fightEl.hidden && campaign.duel.s) fightHud(campaign.duel.s);   // the fight's bars and its call follow every frame
       if (campaign.state.dialogue && mode !== 'dialogue') open('dialogue');
       const w = campaign.state.working; $('work').hidden = !w; if (w) $('work').querySelector('i').style.width = ((1 - w.left / w.total) * 100) + '%';
       // the evacuation: once the cards are answered, everybody walks to the gathering point and Dylan joins them
