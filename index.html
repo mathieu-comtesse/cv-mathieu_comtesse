@@ -1631,7 +1631,9 @@ async function startParityPath(){
      m.root.position.set(at[0],at[2],at[1]);
      m.root.rotation.x=b.slab?.tilt??0;
    }
-   m.spin.rotation.set(rigide?0:entry.view.pitch||0,entry.view.yaw||0,0);
+   const inclinaisonPresentation=rigide?Math.min(.38,Math.abs(b.slab?.tilt||0)*.38):0;
+   m.spin.rotation.set(rigide?-inclinaisonPresentation:entry.view.pitch||0,(entry.view.yaw||0)-(rigide?.36:0),0);
+   m.spin.position.y=rigide?Math.sin(inclinaisonPresentation)*Math.hypot(size.x,size.z)*fit/2:0;
    if(entry.heroPreview)entry.canvas.dataset.cvNativeExpo='';
    m.root.updateMatrixWorld(true);
    const v=new T.Vector3(), plan=normale?m.root.position.dot(normale):0;
