@@ -12,7 +12,7 @@ export function pointBranche(a,b,t) {
 }
 
 const springs=new Map();
-export function brancheCarte(ctx,a,b,{t,id,progress,active,pointer,emit}) {
+export function brancheCarte(ctx,a,b,{t,id,progress,active,pointer,emit,expo=false}) {
   if(progress<=0||Math.abs(b.x-a.x)<6)return false;
   let spring=springs.get(id);
   if(!spring){spring={y:0,v:0,pos:.5,time:t||0,last:null,brushed:-Infinity};springs.set(id,spring);}
@@ -64,7 +64,7 @@ export function brancheCarte(ctx,a,b,{t,id,progress,active,pointer,emit}) {
   ctx.save();
   ctx.lineCap='round';
   ctx.lineWidth=active?1:0.75;
-  ctx.strokeStyle=active?'rgba(255,255,255,.62)':'rgba(221,232,255,.3)';
+  ctx.strokeStyle=expo?'#fff':active?'rgba(255,255,255,.62)':'rgba(221,232,255,.3)';
   if(emit){
     // Opacité du profil des fils dans wire-BRlyKbjJ.js : départ, milieu, arrivée.
     for(let i=0;i<24;i++){

@@ -112,7 +112,7 @@ function mountNotes(){
   noteText=document.createElement('p');noteLink=document.createElement('a');
   notePanel.append(title,noteText,noteLink);document.body.append(notePanel);
 }
-export function notesCadre(ctx,targets,W,H,pointer,expo=false){
+export function notesCadre(ctx,targets,W,H,pointer){
   if(!notePanel)mountNotes();
   // Choix stable lors du passage de la carte à sa note.
   const current=targets.filter(n=>n.y<H*.82&&n.bottom>H*.16);
@@ -123,17 +123,8 @@ export function notesCadre(ctx,targets,W,H,pointer,expo=false){
   const {element,x,y}=target,link=element.querySelector('.cv-pf-link'),source=element.querySelector('.sc-note');
   if(!link||!source){notePanel.hidden=true;shown=null;return;}
   const room=W-x-23,edge=Math.max(55,Math.min(H-58,y));
-  if(expo&&room>115){
-    const title=element.querySelector('h3')?.textContent||'';
-    const tx=x+22,ty=edge-19;
-    ctx.save();ctx.strokeStyle=ctx.fillStyle='white';ctx.lineWidth=1;
-    ctx.font='600 13px system-ui';ctx.textAlign='left';
-    const width=Math.min(room-22,ctx.measureText(title).width);
-    ctx.beginPath();ctx.moveTo(x,edge);ctx.lineTo(tx,ty);ctx.lineTo(tx+width,ty);ctx.stroke();
-    ctx.fillText(title,tx,ty-4,Math.max(1,room-22));ctx.restore();
-  }
-  // Dans les grilles très larges, placer la note au bord droit de la carte.
-  const width=Math.min(270,Math.max(158,room-12));
+  const width=Math.min(270,room-12);
+  if(width<142){notePanel.hidden=true;shown=null;return;}
   const nx=Math.min(W-width-12,x+32);
 
   if(element!==shown){
