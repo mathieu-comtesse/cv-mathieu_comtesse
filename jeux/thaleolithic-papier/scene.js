@@ -1159,6 +1159,7 @@ export function buildVillage(campaign) {
     begin(spec, victim, at = null, beastIdx = null) {
       accident.clear(true); const spot = at ? at.slice() : S_(spec), v = vic(victim), ag = beastIdx != null ? wild.agents[beastIdx] : null;
       ACC.cur = { spec, victim, v, spot, kind: spec.kind, from: at ? spot.slice() : [spot[0] - 3.4, spot[1] + 2.6], ag }; ACC.t = -1; ACC.walk = at ? 1 : 0; ACC.killed = false;
+      if (at) { ACC.hidden = TREES.filter((t) => { const q = t.group.position; return q.z > spot[1] - 1 && q.z < spot[1] + 16 && Math.abs(q.x - spot[0]) < 8; }); for (const t of ACC.hidden) t.group.visible = false; }   // the pines between the camera and him step aside
       if (ag) { ag.held = true; const dx = ag.x - spot[0], dz = ag.z - spot[1], l = Math.hypot(dx, dz) || 1, r = spec.kind === 'trample' ? 7 : 4; ag.x = spot[0] + dx / l * r; ag.z = spot[1] + dz / l * r * 0.5; ag.h.group.position.set(ag.x, ag.y > 1 ? 6 : 0, ag.z); ACC.cur.agFrom = [ag.x, ag.z, ag.y > 1 ? 6 : 0]; }
       if (victim !== 'dylan') { const p = people[victim]; p.acting = true; p.busy = true; p.target = null; } else ACC.back = H.heroAt();
       v.put(...ACC.cur.from); v.pose();
@@ -1173,7 +1174,7 @@ export function buildVillage(campaign) {
     strike() { if (ACC.cur && ACC.t < 0) { ACC.t = 0; H.sfx?.play('grunt', { f0: 260, dur: 0.35, vowel: 'o', bend: 0.5, v: 0.22 }); } },
     clear(quiet = false) {
       for (const h of Object.values(P)) hide(h); for (const f of fireOn) { f.group.visible = false; f.held = true; }
-      const c = ACC.cur; ACC.cur = null; ACC.t = -1; if (c?.ag) c.ag.held = false;
+      const c = ACC.cur; ACC.cur = null; ACC.t = -1; if (c?.ag) c.ag.held = false; for (const t of ACC.hidden || []) t.group.visible = true; ACC.hidden = null;
       if (c?.victim === 'dylan') { for (const [par, o] of heroGore) par.remove(o); heroGore.length = 0; ACC.gore = null; doll.rotation.set(0, 0, 0); doll.position.set(0, 0, 0); doll.scale.set(1, 1, 1); for (const f of fireOn) if (f.group.parent !== H.scene) H.scene.add(f.group); const s0 = SITES[c.spec.site] || SITES.foyer; if (!quiet) { if (c.spec.beast) H.placeHero(0, 7); else H.placeHero(s0.x, s0.z + 4.5); } }   // after a beast: back inside the gate
       else if (c && !ACC.killed) { const p = people[c.victim]; p.acting = false; p.busy = false; p.target = p.home.slice(); }
     },
