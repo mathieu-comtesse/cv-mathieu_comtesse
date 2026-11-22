@@ -1,9 +1,9 @@
 import {transitionsPapier,etatCouleur,radialCouleur,couleurAuPoint} from './section-colours.js?v=2';
 import {initFlatColourRenderer} from './flat-colour-renderer.js?v=1';
 import {surfaceGraph,brancheSpectrale} from './fall26-graph-adapter.js?v=1';
-import {poussiere,notesCadre} from './card-effects.js?v=3';
+import {poussiere,notesCadre} from './card-effects.js?v=4';
 import { fonduChapitre } from './moteur.js?v=m36';
-import { avanceBranche, brancheCarte } from './card-wires.js?v=3';
+import { avanceBranche, brancheCarte } from './card-wires.js?v=4';
 
 /* Étoiles des titres (mode à plat). Chaque grand titre (chapitre : « Projets professionnels » ; thème : « Faire fonctionner »…)
  * garde sa taille et reçoit une étoile : un foyer carré blanc posé près du titre, d'où partent des branches.
