@@ -50,7 +50,7 @@ export function createNav({ world, campaign, ui, cinema }) {
   const speakerId = (name) => { const n = String(name || '').toLowerCase(); return campaign.data.characters.find((c) => n.includes(String(c.name).toLowerCase()))?.id || null; };
 
   // ---- the minimap: the village seen from straight above, rendered from the scene itself -------------------------------
-  const A = H.walkArea || { x0: -46, x1: 46, z0: -48, z1: 26 }, MW = A.x1 - A.x0, MH = A.z1 - A.z0, PXW = 720, PXH = Math.round(PXW * MH / MW);
+  const A = H.walkArea || { x0: -58, x1: 58, z0: -53, z1: 33 }, MW = A.x1 - A.x0, MH = A.z1 - A.z0, PXW = 720, PXH = Math.round(PXW * MH / MW);
   const ortho = new THREE.OrthographicCamera(A.x0, A.x1, -A.z0, -A.z1, 1, 200); ortho.position.set(0, 120, 0); ortho.up.set(0, 0, -1); ortho.lookAt(0, 0, 0);
   ortho.left = A.x0; ortho.right = A.x1; ortho.top = -A.z0; ortho.bottom = -A.z1; ortho.updateProjectionMatrix();
   const rt = new THREE.WebGLRenderTarget(PXW, PXH, { colorSpace: THREE.SRGBColorSpace }), pix = new Uint8Array(PXW * PXH * 4);

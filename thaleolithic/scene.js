@@ -61,7 +61,7 @@ const LOOK = {   // tunic, trim, hair, a prop: each villager in their own colour
 export function buildVillage(campaign) {
   const H = createHarness({ ground: C.ground, stock: '#f6ecdc', mood: 'crepuscule', moods: { crepuscule: CREPUSCULE }, play: true, clickFold: false,
     view: innerWidth < innerHeight ? { pitch: 47, dist: 78, target: [2, 1.5, -7], follow: [-1.5, -8] } : { pitch: 47, dist: 62, target: [0, 1.5, -8] },
-    walkArea: { x0: -46, x1: 46, z0: -48, z1: 26 } });
+    walkArea: { x0: -58, x1: 58, z0: -53, z1: 33 } });   // the wild reaches the mountains' feet
   const { walk } = H;
   const FIRES = [], TREES = [];   // the flames that flicker (three prints shown in turn), the pines the wind bends
   let rnd = P2.rng(301);
@@ -533,11 +533,22 @@ export function buildVillage(campaign) {
   H.onStep(() => { for (const gv of graves.list) gv.h.group.visible = !gv.h.held || gv.h.p > 0.02; });
 
   // ---- outside the wall: the far ridge with mammoths, crimson pines in the woods, rocks; inside, tufts only ------------
-  for (const [x, z, s] of [[-30, -44, 1.4], [-10, -48, 1.2], [18, -46, 1.5]]) H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 26 - k * 4, h: 7 - k * 1.6, bumps: 2 }), rnd), paint: (P) => { base2(P, sh('#8a6a8a', -0.12 + k * 0.1), 0.08); shadeIn(P, '#8a6a8a', 0.25); }, d: k * 1.6 })), { scale: s });
+  // the relief round the plain: snow-capped mountains along the north (three ranks, the back one tallest and bluest),
+  // their foothills, and rolling hills of grass and ochre down the west and east edges; all beyond where Dylan walks
+  const peaks = (w, h, n) => { const pts = [[-w / 2, 0]], tops = []; for (let i = 0; i < n; i++) { const x0 = -w / 2 + w * i / n, x1 = -w / 2 + w * (i + 1) / n, px = x0 + (x1 - x0) * (0.35 + rnd() * 0.3), ph = h * (0.55 + 0.45 * rnd());
+    pts.push([x0 + (px - x0) * 0.45, ph * (0.42 + rnd() * 0.12)], [px - (x1 - x0) * 0.06, ph * 0.9], [px, ph], [px + (x1 - x0) * 0.08, ph * 0.86], [x1 - (x1 - px) * 0.3, ph * (0.36 + rnd() * 0.1)]); tops.push([px, ph, (x1 - x0) * 0.22]); }
+    pts.push([w / 2, h * 0.3], [w / 2, 0]); return { pts, tops }; };
+  const range = (x, z, sc, tint) => H.stack(x, z, [0, 1, 2].map((k) => { const { pts, tops } = peaks(30 - k * 5, 14 - k * 3.6, 4 - (k > 1 ? 1 : 0)), col = sh(tint, -0.16 + k * 0.12);
+    return { pts: P2.roughen(pts, rnd), d: k * 2.2, dx: (k - 1) * 3, paint: (P) => { base2(P, col, 0.07); shadeIn(P, tint, 0.28);
+      if (k < 2) P.layer((g) => { for (const [px, ph, sw] of tops) { g.beginPath(); g.moveTo(px - sw, ph - sw * 1.1); g.lineTo(px, ph); g.lineTo(px + sw * 0.9, ph - sw * 1.0); g.lineTo(px + sw * 0.35, ph - sw * 0.75); g.lineTo(px, ph - sw * 1.05); g.lineTo(px - sw * 0.45, ph - sw * 0.8); g.closePath(); g.fill(); } }, '#f4f0ea', { lip: 0.6 }); } }; }), { scale: sc, yaw: 0 });
+  for (const [x, z, sc] of [[-50, -60, 1.5], [-24, -61, 1.7], [4, -61.5, 1.55], [30, -61, 1.75], [54, -60, 1.5]]) range(x, z, sc, '#7a7a9a');
+  const hills = (x, z, sc, tint, yaw) => H.stack(x, z, [0, 1, 2].map((k) => ({ pts: P2.roughen(P2.shape.hill(rnd, { w: 22 - k * 4, h: 5.5 - k * 1.4, bumps: 2 + k }), rnd), d: k * 1.7, paint: (P) => { base2(P, sh(tint, -0.1 + k * 0.09), 0.08); shadeIn(P, tint, 0.22); } })), { scale: sc, yaw });
+  for (const [x, z, sc] of [[-40, -56.5, 1.1], [-8, -57, 1.0], [20, -57, 1.15], [46, -56.5, 1.0]]) hills(x, z, sc, '#8a8a5a', 0);   // the foothills
+  for (const z of [-44, -26, -8, 10, 26]) { hills(-62, z, 1.0 + rnd() * 0.3, rnd() < 0.5 ? '#9a8a4a' : '#7a8a4a', Math.PI / 2); hills(62, z + 7, 1.0 + rnd() * 0.3, rnd() < 0.5 ? '#9a8a4a' : '#7a8a4a', -Math.PI / 2); }
   const herd = [];
   for (const [, homes] of WILD) for (const [x, z] of homes) mark(x, z, 2.6);   // the beasts' grounds stay clear of pines
   const PV = Array.from({ length: 4 }, () => { const [pts, paint] = pine(); return [pts, H.printed(pts, paint, { cross: true })]; });
-  for (let gz = -42; gz <= 16; gz += 3.4) for (let gx = -42; gx <= 42; gx += 3.4) {
+  for (let gz = -52; gz <= 30; gz += 3.4) for (let gx = -57; gx <= 57; gx += 3.4) {
     const x = gx + (rnd() - 0.5) * 2.4, z = gz + (rnd() - 0.5) * 2.4, e = ovalE(x, z);
     if (!H.inReach(x, z, 0.05, 4) || !free(x, z, 0.5)) continue;
     if (e > 1.12 && (z < -24 || Math.abs(x) > 27 || z > 12) && rnd() < 0.8 && Math.hypot(x - SITES.rassemblement.x, z - SITES.rassemblement.z) > 5) { const [pts, mat] = PV[Math.floor(rnd() * PV.length)]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: true, scale: 0.85 + rnd() * 0.3, sway: 0.3 })); mark(x, z, 2.6); }
@@ -549,8 +560,8 @@ export function buildVillage(campaign) {
   // the river, palms and cycads to the south, ginkgos to the north
   const plant = (k) => { const Pl = PLANTS[k]; return P2.drawnPiece((g, ink) => Pl.draw(g, ink, D, P2, C), { w: Pl.w, h: Pl.h, name: k }); };
   const PL = Object.fromEntries(Object.keys(PLANTS).map((k) => { const [pts, paint] = plant(k); return [k, [pts, H.printed(pts, paint, { cross: k !== 'horsetail' })]]; }));
-  for (let i = 0; i < 260; i++) {
-    const x = -46 + rnd() * 92, z = -48 + rnd() * 74; if (ovalE(x, z) < 1.16 || !free(x, z, 0.2)) continue;
+  for (let i = 0; i < 400; i++) {
+    const x = -58 + rnd() * 116, z = -53 + rnd() * 86; if (ovalE(x, z) < 1.16 || !free(x, z, 0.2)) continue;
     const rv = RIVER.dist(x, z), k = rv < 9 ? (rnd() < 0.5 ? 'horsetail' : 'treeFern') : z > 8 ? (rnd() < 0.5 ? 'palm' : 'cycad') : z < -28 ? (rnd() < 0.6 ? 'ginkgo' : 'treeFern') : ['cycad', 'treeFern', 'horsetail', 'palm'][Math.floor(rnd() * 4)];
     if (rnd() > 0.32) continue; const [pts, mat] = PL[k]; TREES.push(popup(pts, null, { materials: mat, x, z, cross: k !== 'horsetail', scale: 0.8 + rnd() * 0.5, sway: 0.35 })); mark(x, z, 1.8);
   }
