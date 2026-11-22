@@ -10,7 +10,13 @@
 <style>
   @font-face { font-family: "Lettrage"; src: url("monde3d/police/patrick-hand-sc.woff2") format("woff2"); font-display: swap; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #e9dcc0; color: #2a2530; font: 400 18px/1.25 "Lettrage", "Trebuchet MS", sans-serif; letter-spacing: .03em; }
+  html.vignette, .vignette body { background: transparent; }
   #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .scene-controls { position: fixed; inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .scene-controls[hidden] { display: none; }
+  .scene-controls :is(a,button) { border: 1px solid #453d3c; background: #fbf7ec; color: #2a2530; font: 600 14px/1.2 system-ui, sans-serif; border-radius: 6px; padding: 10px 14px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; cursor: pointer; }
+  .scene-controls button[hidden] { display: none; }
+  .scene-controls :focus-visible { outline: 3px solid #3328a4; outline-offset: 3px; }
   #pensee { transform-origin: 50% 100%; position: fixed; left: 0; top: 0; width: 186px; height: 155px; margin-top: -14px; opacity: 0; pointer-events: none; transition: opacity .25s; will-change: transform; }
   #pensee.vu { opacity: 1; }
   #pensee svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -24,6 +30,31 @@
 <body>
 <canvas id="scene" aria-label="Le décor de Mathieu : il s'y déplace seul d'une activité à l'autre"></canvas>
 <div id="pensee" aria-hidden="true"></div>
-<script type="module" src="monde3d/jeu/scene.js?v=d2"></script>
+<nav class="scene-controls" aria-label="Commandes du décor" hidden>
+  <a href="/">Retour au CV</a>
+  <button type="button" hidden>Plein écran</button>
+</nav>
+<script type="module">
+  if (window.self === window.top) {
+    const controls = document.querySelector('.scene-controls');
+    const screen = controls.querySelector('button');
+    controls.hidden = false;
+    if (document.fullscreenEnabled) {
+      screen.hidden = false;
+      screen.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch {
+          screen.hidden = true;
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        screen.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
+      });
+    }
+  } else document.documentElement.classList.add('vignette');
+</script>
+<script type="module" src="monde3d/jeu/scene.js?v=d3"></script>
 </body>
 </html>

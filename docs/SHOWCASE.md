@@ -1,6 +1,6 @@
 # Vitrines « outil réel » dans les cadres du parcours
 
-Chaque cadre projet du parcours 3D (`index.html`) peut recevoir, **dans la même carte**, une vitrine qui montre l'outil réel : fenêtres de type macOS, console du traitement, résultat. La machine 3D, « Voir la magie » et « Explorer la machine » ne changent pas. Aucune seconde scène 3D : la vitrine est un `.cv-pframe` de plus dans `.cv-card-body`, donc elle suit exactement la position, la perspective, la trajectoire et la sélection des autres cadres (HTML-in-Canvas ou repli DOM).
+Chaque carte du parcours 3D (`index.html`) réunit le résumé, la machine et une vitrine du déroulé. La vitrine, le texte et le modèle suivent la même face supérieure quand la carte se redresse. Les commandes « Voir la magie » et « Explorer la machine » restent accessibles sous le modèle.
 
 ## Fichiers
 | fichier | rôle |
@@ -40,19 +40,21 @@ Le dossier est resté **hors du dépôt** (`/tmp`), `06_SOURCES_PRIVEES_A_NE_PAS
 | `metadata-laboratoire-ia` | **écartée** | chemin de dossier local visible (`C:\LayoutLMv3-base`) |
 | `epm-controles`, `epm-documents`, `epm-eptx`, `epm-operations`, `epm-sources` | **écartées** | données internes : identifiants d'opérations, noms de sites et de secteurs, projets, comptages, liens SharePoint, équipes. À anonymiser avant tout usage ; emplacement « Suivi EPM / EPTx » documenté |
 | `suivi-emt` | **écartée** | écran de connexion protégé, aucune illustration de résultat |
-| `01` à `03_Classeur / Flux / Mail` (vidéos Power Automate finance) | trois images fixes publiées (`assets/showcase/finance/`) | **animations pédagogiques** (« données financières fictives ; interface reconstituée ») : statut `demo`, jamais « capture réelle » |
+| `01` à `03_Classeur / Flux / Mail` (vidéos Power Automate finance) | écartées de la carte Point financier | animations pédagogiques avec données fictives et interface reconstituée |
+| Exécution du flux de démonstration Point financier | conservée hors de la carte | capture du vrai Power Automate avec quatre cas fictifs, issue d’un flux distinct du CS V8 |
+| Captures des plans de prévention du 27 octobre 2026 | deux captures animées dans des fenêtres navigateur | configuration Power Automate du traitement Excel et des notifications. Le mouvement parcourt les images source |
 | captures historiques VRE Studio, flux Power Automate anciens, maquettes Figma, vidéos VRE/Nisaru | non utilisées | version et provenance non établies pour les outils actuels ; maquettes sans valeur de preuve |
 
 ## Médias du dépôt réutilisés (page de démonstration publiée, données fictives, statut `demo`)
-Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/studio`), PP + MOSO (`demo-powerbi-poster`, `projets/pp`), Extracteur VRE (`demo-vre-poster`), Retrouver tout le suivi (`projets/suivi`). **`projets/pp.jpg` est le rapport PP + MOSO (Power BI), pas la chaîne Power Automate des PP** : la chaîne des PP n'a donc aucune capture associée.
+Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/studio`), PP + MOSO (`demo-powerbi-poster`, `projets/pp`), Extracteur VRE (`demo-vre-poster`), Retrouver tout le suivi (`projets/suivi`). Le rapport Power BI PP + MOSO utilise `projets/pp.jpg`. La chaîne des PP utilise les captures du concepteur Power Automate du 27 octobre.
 
 ## Mapping final des onze vitrines
 | projet | machine conservée | fenêtres | statuts |
 |---|---|---|---|
-| Point financier | réservoir | classeur Excel, flux Power Automate, courriel préventif | 3 démo |
-| VRE par VM | tri postal | SharePoint, rapport, suivi Excel + console pédagogique | 3 manquantes |
+| Point financier | réservoir | vidéo de l’historique d’une exécution Power Automate dans Sorbonne, référence unique 02.01 CS V8 | copie de test avec 76 actions, 11 groupes dépliés et 12 appels externes remplacés |
+| VRE par VM | tri postal | lien vers le portail Power Automate | captures du récapitulatif, du dépôt SharePoint et du suivi Excel à fournir |
 | Reporteur Q18 | machine à écrire | SharePoint, rapport PDF, Excel + console pédagogique | 3 manquantes |
-| Chaîne des PP | horloge-calendrier | SharePoint, flux, relance + console pédagogique | 3 manquantes |
+| Chaîne des PP | horloge-calendrier | SharePoint, traitement Excel et notifications dans Power Automate, courriel Outlook | 2 captures du concepteur, 2 manquantes |
 | CERFA | trieuse | Metadata Studio V11 : import, vue d'ensemble, fluides, contrôle qualité, livrables | 5 locales |
 | Extracteur VRE | boulier | dépôt et vérification, export | 1 démo, 1 manquante |
 | Nisaru | ascenseur, main humaine | import, analyse, assistant, contrôle humain, mémoire, export | 5 locales, 1 manquante |
@@ -61,7 +63,7 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 | Retrouver tout le suivi | standard téléphonique | recherche, résultat | 1 démo, 1 manquante |
 | Gares prioritaires | tambours | classement, fiche | 1 démo, 1 manquante |
 
-Éléments encore manquants : captures SharePoint, Excel, rapports PDF (Q18, VRE par VM, chaîne des PP), export Nisaru, flux et relance de la chaîne des PP, fiche de gare, suivi fonctionnel, résultat du Studio, EPM / EPTx anonymisées.
+Éléments encore manquants : captures SharePoint, Excel et rapports PDF pour VRE par VM et Q18, récapitulatif VRE dans Power Automate, dépôt SharePoint et notification Outlook de la chaîne des PP, export Nisaru, fiche de gare, suivi fonctionnel, résultat du Studio et EPM / EPTx anonymisées.
 
 ## Interactions et ordonnancement (V8)
 - Agrandissement : clic souris réel (vérifié sur les cadres Nisaru, finance, CERFA et PP + MOSO dans le parcours 3D), Entrée ou Espace au clavier, Échap pour fermer ; image haute définition (1440 px) ; légende avec statut et provenance.
@@ -74,5 +76,16 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 3. **Excel de suivi** : ligne retrouvée et cellule renseignée. Masquer : références d'équipement, noms de sites, données personnelles.
 Déposer les fichiers dans `assets/showcase/q18/`, puis dans `refonte/showcase/config.mjs` passer chaque fenêtre à `status: 'authentic'` avec `src`, `alt` et `caption`, et relancer la génération. **Anonymiser avant tout commit** : les captures sont publiées telles quelles.
 
-## État
-Cadre de référence : Reporteur Q18 (3 emplacements). Cadre qui prouve le chemin « captures réelles » : CERFA (2 captures réelles). Les neuf autres projets ne sont pas encore activés ; leur généralisation attend la validation du cadre de référence. Captures de validation : `docs/showcase/`.
+## Captures métier à fournir
+
+Les onze cartes sont actives dans le parcours. L’inventaire ci-dessous indique les visuels métier à remplacer ou à compléter. Pour chaque capture, conserver le nom du projet et l’étape qu’elle illustre. Fournir des PNG lisibles ou un enregistrement court de l’écran si la transition fait partie du déroulé.
+
+| Carte | Écrans attendus |
+|---|---|
+| Point financier 02.01 CS V8 | Seuil dans le classeur Excel, vue du flux Power Automate et détail d’une exécution, notification Outlook déclenchée. |
+| Chaîne des plans de prévention | Bibliothèque SharePoint à l’arrivée et après classement, flux Power Automate avec son contrôle d’échéance, relance Outlook. |
+| VRE par VM et Reporteur Q18 | Pour chaque outil, bibliothèque SharePoint, première page du rapport traité et ligne modifiée dans Excel. Ajouter la console réelle si elle est visible pendant le traitement. |
+| CERFA, Extracteur VRE, Nisaru et Studio PDF | Écran d’import, traitement ou contrôle, puis livrable ou export de l’outil décrit dans la fiche. Le Metadata Studio V11 est un outil distinct de CERFA v3. |
+| Power BI PP et MOSO, Suivi, Gares prioritaires | Rapport PP et MOSO avec filtrage et suivi, écrans EPM/EPTx, recherche et résultat d’un suivi, classement et fiche de gare. |
+
+Les fichiers diffusables doivent être anonymisés dès la capture. Masquer les noms, adresses, sites, identifiants, chemins et liens internes. Les captures locales de Nisaru et Metadata Studio montrent leurs interfaces ouvertes sans données.

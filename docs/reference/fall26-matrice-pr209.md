@@ -69,7 +69,7 @@ Test de disponibilité lu dans le code de la référence : `requestPaint` sur le
 | `tilt.angle` | 55° | inclinaison des cadres | identique (55°, vérifié par test) |
 | `phone.tilt` | 35° | inclinaison du téléphone dans la scène | non repris : aucun téléphone dans la scène de comtesse.me |
 
-Non établi : la courbe d'accélération de la caméra de la référence (la fonction `Do` n'a pas été retrouvée ; la nôtre reste un lissage de cinquième ordre sur le temps).
+La courbe d’accélération était encore inconnue lors de ce relevé. Elle a depuis été retrouvée et vérifiée dans [le comparatif de trajectoire](fall26-camera.md).
 
 ## Observations visuelles (Chrome 157)
 

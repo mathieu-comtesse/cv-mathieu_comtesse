@@ -2,14 +2,15 @@
  * Mathieu y vit seul : il enchaîne ses activités d'un meuble à l'autre et pense à ce qu'il va faire.
  * Utilisée dans la carte de l'accueil ; se met en pause hors écran et quand l'onglet est caché. */
 import * as THREE from 'three';
-import { creerRendu } from './rendu.js';
+import { creerRendu } from './rendu.js?v=d3';
 import { creerMonde, chargerPiece } from './monde.js';
 import { creerPerso } from './perso.js';
 import { creerPensee } from './pensee.js';
 import { creerAuto } from './auto.js';
 
 const canvas = document.getElementById('scene');
-const rendu = creerRendu(canvas, { qualiteMax: 1.5 });
+const vignette = window.self !== window.top;
+const rendu = creerRendu(canvas, { qualiteMax: 1.5, vignette });
 const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(13, 1, 20, 2600);
 scene.add(new THREE.HemisphereLight(0xffffff, 0xa397a8, 1.1));
 const soleil = new THREE.DirectionalLight(0xffffff, 2.6), dirSoleil = new THREE.Vector3(-0.5, 0.82, 0.42).normalize();
@@ -21,7 +22,7 @@ const monde = creerMonde(scene, {}, await chargerPiece());
 for (const l of monde.lampes.filter((q) => q.id !== 'screenbar')) { const pl = new THREE.PointLight(l.couleur, 9, 9, 2); pl.position.copy(l.p); scene.add(pl); }
 const pensee = creerPensee(document.getElementById('pensee'), monde.piece), tete = new THREE.Vector3(), cible = new THREE.Vector3(-0.2, 0.6, 0.3);
 const entree = { x: 0, y: 0, saut: false, sautPresse: false, sprint: false }, CAP = 0.72, PENTE = 0.62;
-let heros = null, auto = null, temps = 0, avant = performance.now(), visible = true, fondu = 1, nIm = 0, cumul = 0;
+let heros = null, auto = null, temps = 0, avant = performance.now(), visible = true, fondu = vignette ? 0 : 1, nIm = 0, cumul = 0;
 if ('IntersectionObserver' in window) new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); }).observe(canvas);
 
 function cadre() {
