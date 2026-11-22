@@ -62,8 +62,35 @@ if (frames.length) {
   const S = new Map(frames.map((f) => {
     const st = { f, card: f.closest('.cv-pf-main'), N: +f.dataset.steps || 4, step: -1, lock: 0, wins: [...f.querySelectorAll('.sc-win')], res: f.querySelector('.sc-result'), log: f.querySelector('.sc-log'), tabs: [...f.querySelectorAll('.sc-tabs button')], shown: -1, queued: false, key: '' };
     st.lines = st.log ? [...st.log.children] : []; st.cstep = +(f.querySelector('.sc-console')?.dataset.step || 2);
+    const camera=f.querySelector('.sc-camera');
+    if(camera){
+      const viewport=camera.querySelector('.sc-camera-viewport');
+      const action=document.createElement('b');
+      camera.querySelector('figcaption').append(action);
+      st.camera={viewport,image:viewport.querySelector('img'),caption:camera.querySelector('figcaption span'),places:JSON.parse(camera.dataset.camera),groups:JSON.parse(camera.dataset.actions),action,index:0};
+      new ResizeObserver(()=>cadreCamera(st)).observe(viewport);
+    }
     return [f, st];
   }));
+  function cadreCamera(st){
+    const c=st.camera, point=c?.places[st.step-1];
+    if(!point)return;
+    const [x,y,field,caption]=point;
+    const width=c.viewport.clientWidth,height=c.viewport.clientHeight;
+    if(!width||!height)return;
+    const scale=width/field;
+    const left=clamp(width/2-x*scale,Math.min(0,width-1260*scale),0);
+    const top=clamp(height/2-y*scale,Math.min(0,height-1910*scale),0);
+    c.image.style.transform=`translate(${left}px,${top}px) scale(${scale})`;
+    c.caption.textContent=caption;
+    const group=c.groups[st.step-1],[name,status]=group[c.index]||group[0];
+    const ordinal=c.groups.slice(0,st.step-1).reduce((sum,g)=>sum+g.length,0)+c.index+1;
+    c.action.textContent=ordinal+'/76 · '+name.replaceAll('_',' ')+' · '+status;
+  }
+  function nextAction(st){
+    if(!st.camera||st.camera.index+1>=st.camera.groups[st.step-1].length)return false;
+    st.camera.index++;cadreCamera(st);return true;
+  }
   /* captures : file unique, une image à la fois (160 ms entre deux), seulement pour les cadres proches de l'écran ; actif aussi en mouvements réduits */
   const queue = []; let loading = 0;
   const chargeImage = (img) => { if (img && !img.hasAttribute('src')) img.src = img.dataset.src; };
@@ -82,9 +109,11 @@ if (frames.length) {
   const apply = (st, step, frac) => {
     if (step !== st.step) {
       st.step = step;
+      if(st.camera)st.camera.index=0;
       st.wins.forEach((w) => { const s = +w.dataset.step, on = step >= s; w.classList.toggle('on', on); w.classList.toggle('front', on && s === step); w.classList.toggle('back', on && s < step); w.dataset.age = on ? Math.min(3, step - s) : ''; });   // âge = nombre d'étapes depuis l'apparition : la fenêtre active domine, les anciennes s'effacent progressivement
       st.wins.forEach(w => { w.inert = +w.dataset.step > step; });
       st.f.querySelector('.sc-stage').dataset.step = step;
+      cadreCamera(st);
       if (st.res) st.res.classList.toggle('on', step >= st.N);
       st.tabs.forEach((b, i) => b.setAttribute('aria-selected', String(i + 1 === step)));
     }
@@ -111,19 +140,19 @@ if (frames.length) {
       const threshold = Math.max(35, r.height * .16);
       if (st.position === null) {
         st.position = at;
-        st.nextStep = now + 2100;
+        st.nextStep = now + (st.camera ? 3000 : 2100);
       } else if (Math.abs(at - st.position) >= threshold) {
         const change = Math.trunc((st.position - at) / threshold);
         st.position -= change * threshold;
         st.lock = 0;
         apply(st, clamp(st.step + change, 1, st.N), 1);
-        st.nextStep = now + 2100;
-      } else if (st.step < st.N && now >= Math.max(st.nextStep, st.lock || 0)) {
-        apply(st, st.step + 1, 1);
-        st.nextStep = now + 2100;
+        st.nextStep = now + (st.camera ? 3000 : 2100);
+      } else if (now >= Math.max(st.nextStep, st.lock || 0)) {
+        if(!nextAction(st)&&st.step<st.N)apply(st,st.step+1,1);
+        st.nextStep=now+(st.camera?1350:2100);
       }
       chargeEtape(st);
-      return st.step < st.N;
+      return st.step<st.N||Boolean(st.camera&&st.camera.index+1<st.camera.groups[st.step-1].length);
     }
     if (st.lock && now < st.lock) return; st.lock = 0;
     if (key === st.key && !dirty) return; st.key = key;   // rien n'a bougé : aucun calcul
@@ -146,7 +175,7 @@ if (frames.length) {
     const st = S.get(f); f.classList.add('sc-js');
     st.position = null;
     f.addEventListener('focusout', () => { if (!reduce) wake(); });
-    if (reduce) { apply(st, st.N, 1); return; }
+    if (reduce) { apply(st, st.camera ? 1 : st.N, 1); return; }
     apply(st, 1, 0);
     st.tabs.forEach((b) => b.addEventListener('click', () => { apply(st, +b.dataset.go, 1); chargeEtape(st); st.lock = performance.now() + 7000; }));   // choix manuel : la progression au défilement reprend après 7 s
   });

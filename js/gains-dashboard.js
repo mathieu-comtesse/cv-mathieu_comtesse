@@ -33,13 +33,14 @@ export function initGainsDashboard() {
     <div class="gains-stats"><div><strong>${f(mean(ANNUAL_DECLARED))} €</strong><span>par an · volumes fournis</span></div>
     <div><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><span>${f(mean(ANNUAL_DECLARED, 'Hours') / HOURS_PER_FTE, 1)} postes équivalents</span></div>
     <div><strong data-rhythm-short>15,03 s</strong><span>par pièce de 1 €</span></div></div>
-    <section class="gains-chart" aria-labelledby="gains-chart-title"><div class="gains-chart-head"><h2 id="gains-chart-title">Une année de temps libéré</h2>
+    <section class="gains-chart" aria-labelledby="gains-chart-title"><div class="gains-side"><div class="gains-chart-head"><h2 id="gains-chart-title">Une année de temps libéré</h2>
     <div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="year" aria-pressed="true">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
     <p class="gains-hint">Survole une courbe · touche-la · ou explore avec Tab et les flèches.</p>
     <div class="gains-metric"><span>Volumes fournis</span><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><small>${f(mean(ANNUAL_DECLARED))} € valorisés par an</small></div>
+    <div class="gains-legend" aria-label="Légende"></div></div>
     <div class="gains-plot"><svg class="gains-svg" viewBox="0 0 800 370" aria-label="Gains annuels, courbes linéaires de projection"></svg>
     <div class="gains-tip" id="gains-tip" role="status" aria-live="polite" hidden></div></div>
-    <div class="gains-legend" aria-label="Légende"></div>
+
     <div class="gains-method"><label>Jours/an <input data-working-days type="number" min="1" max="366" step="1" value="225"></label><label>Heures/jour <input data-working-hours type="number" min="1" max="24" step="0.5" value="7"></label><span data-coin-rate></span></div>
     </section></div>`;
   const box = head.querySelector('.annual-gains'), svg = box.querySelector('svg'), tip = box.querySelector('.gains-tip');
@@ -85,8 +86,12 @@ export function initGainsDashboard() {
     if (annual && item.id === 'net') tip.querySelector('strong').innerHTML = f(mean(ANNUAL_DECLARED) * fraction - (ANNUAL_COST.build + ANNUAL_COST.upkeep) * 104.74) + ' € <small>· ' + f(mean(ANNUAL_DECLARED, 'Hours') * fraction - ANNUAL_COST.build - ANNUAL_COST.upkeep, 1) + ' h</small>';
     const close=document.createElement('button');close.type='button';close.className='gains-tip-close';close.setAttribute('aria-label','Fermer le détail');close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';close.addEventListener('click',()=>{pinned=false;hide();});tip.prepend(close);
     tip.hidden = false;
-    tip.style.left = (fraction > .5 ? '4%' : 'auto'); tip.style.right = (fraction > .5 ? 'auto' : '4%');
-    tip.style.top = (view === 'projects' && index > 3 ? '0' : 'auto'); tip.style.bottom = (view === 'projects' && index > 3 ? 'auto' : '0');
+    const dot=svg.querySelector('.gains-probe');
+    if(dot){
+      const p=el.getPointAtLength(el.getTotalLength()*fraction);
+      dot.setAttribute('cx',p.x);dot.setAttribute('cy',p.y);
+      dot.setAttribute('fill',item.color);
+    }
   }
   function interactive(path, item, index) {
     let fraction = 1;
@@ -113,7 +118,7 @@ export function initGainsDashboard() {
     chart.dataset.view=view;
     const legends = view === 'year' ? series : [{ title: 'Volumes fournis', color: '#00869a' }, { title: 'Estimations', color: '#12834c' }];
     legends.forEach(s => { const span = document.createElement('span'); span.innerHTML = `<i style="--line:${s.color};border-top-style:${s.dashed ? 'dashed' : 'solid'}"></i>${s.title}`; legend.append(span); });
-    box.querySelector('h2').textContent = view === 'year' ? 'Une année de temps libéré' : 'La part de chaque action';
+    chart.querySelector('h2').textContent = view === 'year' ? 'Une année de temps libéré' : 'La part de chaque action';
     if (view === 'year') {
       const max = 1000000, y = v => 322 - v / max * 282;
       [0, 250000, 500000, 750000, 1000000].forEach(v => { svg.append(svgNode('line', { x1: start, x2: end, y1: y(v), y2: y(v), class: 'gains-grid' })); svg.append(svgNode('text', { x: start-12, y: y(v) + 4, 'text-anchor': 'end' }, v === 1000000 ? '1 M€' : f(v / 1000) + ' k€')); });
@@ -133,6 +138,7 @@ export function initGainsDashboard() {
         interactive(svgNode('path', { d, class: 'gains-hit', stroke: s.color }), s, i);
         traces.append(svgNode('circle', { cx: mobile?344:766, cy: y(end), r: i===0?5:3, fill: s.color, stroke:'#264140', 'stroke-width':1 }));
       });
+      svg.append(svgNode('circle',{class:'gains-probe',r:6,stroke:'#fff','stroke-width':2,'pointer-events':'none'}));
     } else {
       const max = 275000, baseline=mobile?440:318, plotHeight=mobile?367:255;
       const y=value=>baseline-value/max*plotHeight;
