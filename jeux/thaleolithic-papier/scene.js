@@ -169,7 +169,7 @@ export function buildVillage(campaign) {
   };
   const houseOf = (x, z, { w = 4.4, d = 3.4, wallH = 2.2, roofH = 2.0, wattle = false, seed = 1 } = {}) => {
     const g = boxFold({ w, d, wallH, roofH, overhang: 0.35, paper: H.paper, seed, print: { pxPerUnit: 36 }, paints: { front: daubWall(wattle, true, seed), gable: daubWall(wattle, false, seed + 1), roof: thatch(wattle) } });
-    const h = popup(null, null, { node: g, self: true, x, z, height: wallH + roofH });
+    const h = popup(null, null, { node: g, x, z, yaw: 0, height: wallH + roofH });   // lifted from the page like a card, its walls and roof unfolding
     return { h, x, y: wallH + roofH, z };
   };
   // the hearth: a ring of stones, a teepee of sticks, the flame, a spit on forked sticks, log seats round it
@@ -289,7 +289,7 @@ export function buildVillage(campaign) {
   // the village changes with the campaign: pieces built under a condition stay folded flat until it holds (built later
   // in the story), or stand until it holds and then fold away (what the tribe corrects)
   const STAGES = [];
-  const staged = (when, make, { undo = false } = {}) => { const n0 = H.hinges.length; make(); const hs = H.hinges.slice(n0); if (!undo) for (const h of hs) h.held = true; STAGES.push({ when, hs, undo, on: undo }); return hs; };
+  const staged = (when, make, { undo = false, slot = null } = {}) => { const n0 = H.hinges.length; make(); const hs = H.hinges.slice(n0); if (!undo) for (const h of hs) h.held = true; STAGES.push({ when, hs, undo, on: undo, slot }); return hs; };
   const quest = (id) => { const q = campaign.data.quests.find((x) => x.id === id); return () => !!q && campaign.questDone(q); };
   const flag = (k) => () => !!campaign.state.flags[k];
   const any = (...fs) => () => fs.some((f) => f());
@@ -306,12 +306,13 @@ export function buildVillage(campaign) {
     mark(x, z, r + 1.4);
     const [t1, t2] = i === 0 ? [quest('V17_EVALUATION'), quest('V17_IMPROVEMENT')] : i % 2 ? [quest('V17_SUPPORT'), quest('V17_OPERATIONS')] : [quest('V17_OPERATIONS'), quest('V17_IMPROVEMENT')];
     const big = i === 0 ? 1.25 : 1, size = { w: r * 1.6 * big, d: r * 1.15 * big, wallH: 2.0 * big, roofH: 1.9 * big };
-    staged(t1, () => hut(x, z, r, { hide, mark: m }), { undo: true });
-    staged(() => t1() && !t2(), () => houseOf(x, z - 0.3, { ...size, wattle: true, seed: 900 + i * 7 }));
-    staged(t2, () => { const c = houseOf(x, z - 0.3, { ...size, seed: 950 + i * 7 }); c.dummy = new THREE.Object3D(); c.dummy.position.set(c.x - size.w * 0.25, c.y - 0.6, c.z - 0.4); H.scene.add(c.dummy); CHIMNEYS.push(c); });
+    const slot = { i, x, z };
+    staged(t1, () => hut(x, z, r, { hide, mark: m }), { undo: true, slot: { ...slot, kind: 'hut' } });
+    staged(() => t1() && !t2(), () => houseOf(x, z - 0.3, { ...size, wattle: true, seed: 900 + i * 7 }), { slot: { ...slot, kind: 'wattle' } });
+    staged(t2, () => { const c = houseOf(x, z - 0.3, { ...size, seed: 950 + i * 7 }); c.dummy = new THREE.Object3D(); c.dummy.position.set(c.x - size.w * 0.25, c.y - 0.6, c.z - 0.4); H.scene.add(c.dummy); CHIMNEYS.push(c); }, { slot: { ...slot, kind: 'torchis' } });
   });
   // ---- the sanctuary: the Grand Menhir at the far end; the policy tablet appears once the duel is won ---------------
-  menhir(0, -22.5); mark(0, -22.5, 7);
+  const MEN = menhir(0, -22.5); mark(0, -22.5, 7);
   // ---- the trades: the flint workshop (west), the woodcutters, the stores (east) ---------------------------------
   const A = SITES.atelier_silex, B = SITES.bois_construction, S = SITES.stockage;
   popup(...leanTo('flint'), { x: A.x - 1.2, z: A.z - 3.2, yaw: 0.15 }); popup(...anvil(), { x: A.x + 0.4, z: A.z - 1.3 }); mark(A.x, A.z - 2, 3.4);
@@ -496,12 +497,31 @@ export function buildVillage(campaign) {
   }
   const everyoneAtAssembly = () => Object.values(people).every((p) => p.h.held || Math.hypot(p.x - assembly.x, p.z - assembly.z) < 3);
   // the stages unfold (or fold away) as their condition starts (or stops) to hold; a new game folds everything back
+  // the dwellings change one after the other, west to east: the old one folds down flat like a sheet laid back on the
+  // page, then the new one is lifted in its place; the tour cinematic follows the same order and times
+  const timers = []; let clock = 0; const swaps = [];
+  const later = (dt, fn) => timers.push([clock + dt, fn]);
+  const fold = (st, at) => { st.hs.forEach((h, i) => { h.held = true; h.set(0, at + i * 0.08); }); };
+  const lift = (st, at) => later(at, () => { if (!st.on) return; st.hs.forEach((h, i) => { h.held = false; h.set(1, i * 0.12); }); });
   function sync() {
+    const bySlot = new Map();
     for (const st of STAGES) {
-      const want = st.undo ? !st.when() : st.when();
-      if (want && !st.on) { st.on = true; st.hs.forEach((h, i) => { h.held = false; h.set(1, 0.2 + i * 0.07); }); }
-      else if (!want && st.on) { st.on = false; st.hs.forEach((h, i) => { h.held = true; h.set(0, i * 0.03); }); }
+      const want = st.undo ? !st.when() : st.when(); if (want === st.on) continue;
+      st.on = want;
+      if (st.slot && booted) { const k = st.slot.i; if (!bySlot.has(k)) bySlot.set(k, { slot: st.slot, out: [], in: [] }); bySlot.get(k)[want ? 'in' : 'out'].push(st); continue; }
+      if (want) st.hs.forEach((h, i) => { h.held = false; h.set(1, 0.2 + i * 0.07); }); else fold(st, 0);
     }
+    [...bySlot.values()].sort((a, b) => a.slot.x - b.slot.x).forEach((c, k) => {
+      const t0 = 0.9 + k * 2.6;
+      for (const st of c.out) fold(st, t0);
+      for (const st of c.in) lift(st, t0 + (c.out.length ? 1.1 : 0));
+      const from = c.out.map((st) => st.slot.kind)[0], to = c.in.map((st) => st.slot.kind)[0];
+      swaps.push({ x: c.slot.x, z: c.slot.z, at: t0, from, to, chief: c.slot.i === 0 });
+    });
+    const engraved = quest(MENHIR_QUEST)();
+    if (!engraved) engraving.hideAll();
+    else if (!booted) engraving.showAll(false);
+    else if (!engraving.shown.some(Boolean)) later(0.6, () => { if (!engraving.cine) engraving.showAll(true); });
     for (const id of campaign.state.dead) if (people[id] && !deaths.has(id)) die(id, booted);
     for (const id of [...deaths.keys()]) if (!campaign.state.dead.includes(id)) revive(id);
   }
@@ -522,6 +542,11 @@ export function buildVillage(campaign) {
     if (!animate) { h.reset(0); return; }
     const ghost = flatCard(...ghostShape, 617); ghost.position.set(p.x, 0.5, p.z); ghost.scale.setScalar(0.001); H.scene.add(ghost); d.ghost = ghost; d.parts.push([H.scene, ghost]);
     for (let k = 0; k < 40; k++) { const m = new THREE.Mesh(bitGeo, bitMats[k % 4]); const ribbon = k % 5 === 0; m.scale.set(ribbon ? 0.12 : 0.22, ribbon ? 0.7 : 0.22, 1); m.position.set(p.x, 1.6, p.z); H.scene.add(m); const a = Math.random() * 6.283, sp = 2 + Math.random() * 4; bits.push({ m, v: [Math.cos(a) * sp, 6 + Math.random() * 6, Math.sin(a) * sp * 0.6], w: [Math.random() * 9, Math.random() * 9], life: 9 + Math.random() * 3, down: false }); }
+    for (const sd of [-1, 1]) {   // the eyes pop out of the head and bounce away
+      const eye = new THREE.Group(), white = new THREE.Mesh(new THREE.CircleGeometry(0.17, 16), new THREE.MeshStandardMaterial({ color: '#f4ecdc', roughness: 1, side: THREE.DoubleSide })), pupil = new THREE.Mesh(new THREE.CircleGeometry(0.07, 12), new THREE.MeshStandardMaterial({ color: '#2a1a1e', roughness: 1, side: THREE.DoubleSide }));
+      pupil.position.z = 0.01; eye.add(white, pupil); eye.position.set(p.x + sd * 0.15, 2.2, p.z + 0.1); H.scene.add(eye);
+      bits.push({ m: eye, v: [sd * (1.5 + Math.random()), 7 + Math.random() * 2, 1.5], w: [Math.random() * 6, Math.random() * 6], life: 10, down: false, bounce: 1 });
+    }
     H.sound?.flap({ size: 0.7, up: false, key: 'death:' + id }); H.sfx?.play('death');
     weather.death = { at: [p.x, p.z], t: 0 };
   }
@@ -530,6 +555,33 @@ export function buildVillage(campaign) {
     for (const [par, o] of d.parts) par.remove(o);
     p.dying = null; p.busy = false; p.h.held = false; p.h.group.rotation.z = 0; p.h.set(1, 0);
   }
+  // ---- the Grand Menhir engraved: the duel's five decisions cut into its face, one after the other, each a sunken
+  // plaque with a pale edge and dark grooves: a hand over the flame (5.1), the policy tablet (5.2), the three roles
+  // (5.3), the ring of the tribe (5.4), the eye that checks the facts (5.1 à 5.4). Chips of stone fly as each is cut.
+  const stoneMats = ['#8f8aa0', '#a9a2bc', '#6a6480'].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, side: THREE.DoubleSide }));
+  const PICTO = [
+    (g) => { g.beginPath(); g.moveTo(0, 0.18); g.quadraticCurveTo(-0.28, 0.42, 0, 0.72); g.quadraticCurveTo(0.28, 0.42, 0, 0.18); g.stroke(); g.beginPath(); g.moveTo(-0.45, 0.78); g.lineTo(-0.45, 0.95); g.moveTo(-0.3, 0.8); g.lineTo(-0.3, 1.0); g.moveTo(-0.15, 0.8); g.lineTo(-0.15, 0.98); g.moveTo(-0.5, 0.78); g.quadraticCurveTo(-0.3, 0.68, -0.05, 0.8); g.stroke(); },
+    (g) => { g.strokeRect(-0.3, 0.14, 0.6, 0.78); for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(-0.2, 0.3 + k * 0.15); g.lineTo(0.2 - (k % 2) * 0.1, 0.3 + k * 0.15); g.stroke(); } g.beginPath(); g.arc(0.5, 0.8, 0.1, 0, 7); g.stroke(); },
+    (g) => { for (const [x, hat] of [[-0.4, 0], [0, 1], [0.4, 2]]) { g.beginPath(); g.arc(x, 0.72, 0.08, 0, 7); g.moveTo(x, 0.64); g.lineTo(x, 0.38); g.lineTo(x - 0.1, 0.16); g.moveTo(x, 0.38); g.lineTo(x + 0.1, 0.16); g.moveTo(x - 0.12, 0.55); g.lineTo(x + 0.12, 0.55); if (hat === 1) { g.moveTo(x - 0.1, 0.82); g.lineTo(x, 0.94); g.lineTo(x + 0.1, 0.82); } if (hat === 2) { g.moveTo(x + 0.16, 0.2); g.lineTo(x + 0.16, 0.7); } g.stroke(); } },
+    (g) => { g.beginPath(); g.arc(0, 0.55, 0.08, 0, 7); g.stroke(); for (let k = 0; k < 6; k++) { const a = k / 6 * 6.283; g.beginPath(); g.arc(Math.cos(a) * 0.38, 0.55 + Math.sin(a) * 0.32, 0.06, 0, 7); g.stroke(); g.beginPath(); g.moveTo(Math.cos(a) * 0.28, 0.55 + Math.sin(a) * 0.24); g.lineTo(Math.cos(a) * 0.12, 0.55 + Math.sin(a) * 0.1); g.stroke(); } },
+    (g) => { g.beginPath(); g.moveTo(-0.5, 0.55); g.quadraticCurveTo(0, 0.95, 0.5, 0.55); g.quadraticCurveTo(0, 0.15, -0.5, 0.55); g.stroke(); g.beginPath(); g.arc(0, 0.55, 0.13, 0, 7); g.stroke(); g.beginPath(); g.moveTo(0.25, 0.15); g.lineTo(0.36, 0.05); g.lineTo(0.58, 0.3); g.stroke(); },
+  ];
+  const plaque = (k) => P2.drawnPiece((g, ink) => { g.fillStyle = ink('#6e6886'); D.rect(g, -0.72, 0, 1.44, 1.06, 0.14); g.lineCap = g.lineJoin = 'round'; g.lineWidth = 0.075;
+    g.save(); g.translate(0.025, -0.025); g.strokeStyle = ink('#c8c0dc', 'print'); PICTO[k](g); g.restore(); g.strokeStyle = ink('#2e2a3c', 'print'); PICTO[k](g); }, { w: 1.6, h: 1.15, name: 'engraving' });
+  const engraving = { cine: false, shown: [], cards: [] };
+  PICTO.forEach((_, k) => { const c = flatCard(...plaque(k), 700 + k); c.position.set(0.05 + Math.sin(k * 2.1) * 0.08, 1.4 + k * 1.32, 0.06); c.scale.setScalar(0.001); MEN[0].pivot.add(c); engraving.cards.push(c); engraving.shown.push(false); });
+  engraving.show = (k, animate = true) => {
+    if (engraving.shown[k]) return; engraving.shown[k] = true; const c = engraving.cards[k];
+    if (!animate) { c.scale.setScalar(1); return; }
+    const t0 = clock; c.userData.pop = t0;
+    const w = new THREE.Vector3(); c.getWorldPosition(w);
+    for (let i = 0; i < 16; i++) { const m = new THREE.Mesh(bitGeo, stoneMats[i % 3]); m.scale.set(0.12 + Math.random() * 0.1, 0.1 + Math.random() * 0.1, 1); m.position.copy(w); H.scene.add(m); bits.push({ m, v: [(Math.random() - 0.5) * 5, 2 + Math.random() * 4, 2 + Math.random() * 3], w: [Math.random() * 12, Math.random() * 12], life: 6 + Math.random() * 2, down: false }); }
+    for (let i = 0; i < 3; i++) later(i * 0.13, () => H.sfx?.play('bone', { f: 2600 + i * 300, v: 0.32 }));
+  };
+  engraving.showAll = (animate = false) => PICTO.forEach((_, k) => engraving.show(k, animate));
+  engraving.hideAll = () => engraving.cards.forEach((c, k) => { c.scale.setScalar(0.001); engraving.shown[k] = false; });
+  H.onStep(() => { for (const c of engraving.cards) { if (c.userData.pop == null) continue; const u = Math.min(1, (clock - c.userData.pop) / 0.35); c.scale.setScalar(Math.max(0.001, u < 1 ? u * (1 + 0.08 * Math.sin(u * Math.PI)) : 1)); if (u >= 1) c.userData.pop = null; } });
+
   H.onStep((t, dt) => {
     for (const [id, d] of deaths) {
       if (d.t > 8) continue; d.t += dt; const p = people[id], h = p.h;
@@ -540,7 +592,7 @@ export function buildVillage(campaign) {
     }
     for (let i = bits.length - 1; i >= 0; i--) {
       const b = bits[i]; b.life -= dt;
-      if (!b.down) { b.v[1] -= 22 * dt; b.m.position.x += b.v[0] * dt; b.m.position.y += b.v[1] * dt; b.m.position.z += b.v[2] * dt; b.m.rotation.x += b.w[0] * dt; b.m.rotation.y += b.w[1] * dt; if (b.m.position.y < 0.04) { b.down = true; b.m.position.y = 0.04; b.m.rotation.set(-Math.PI / 2, 0, Math.random() * 6); } }
+      if (!b.down) { b.v[1] -= 22 * dt; b.m.position.x += b.v[0] * dt; b.m.position.y += b.v[1] * dt; b.m.position.z += b.v[2] * dt; b.m.rotation.x += b.w[0] * dt; b.m.rotation.y += b.w[1] * dt; if (b.m.position.y < 0.04 && b.bounce) { b.bounce = 0; b.m.position.y = 0.05; b.v[1] = -b.v[1] * 0.45; b.v[0] *= 0.6; b.v[2] *= 0.6; H.sfx?.play('bone', { f: 900, v: 0.2 }); } else if (b.m.position.y < 0.04) { b.down = true; b.m.position.y = 0.04; b.m.rotation.set(-Math.PI / 2, 0, Math.random() * 6); } }
       if (b.life < 1) b.m.scale.multiplyScalar(Math.max(0, 1 - dt * 3)); if (b.life <= 0) { H.scene.remove(b.m); bits.splice(i, 1); }
     }
   });
@@ -549,6 +601,7 @@ export function buildVillage(campaign) {
   // a piece not built yet (or taken down) is not lying about: once folded flat it is put away
   const stagedHinges = STAGES.flatMap((st) => st.hs);
   H.onStep((t, dt) => {
+    clock += dt; for (let i = timers.length - 1; i >= 0; i--) if (timers[i][0] <= clock) { const fn = timers[i][1]; timers.splice(i, 1); fn(); }
     for (const h of stagedHinges) if (!h.flame) h.group.visible = !h.held || h.p > 0.02;
     for (const p of Object.values(people)) {
       // a paper puppet: still, it breathes (0.9 deg); walking, it hops a little per step and rocks on its feet, its gait
@@ -611,5 +664,5 @@ export function buildVillage(campaign) {
   const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-12.6, 0.2], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
   const fireNear = (x, z) => firePlaces.reduce((m, [fx, fz, k]) => Math.max(m, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 13)), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
-  return { H, SITES, RIVER, people, hero, duelStep, weather, fireNear, quest, deaths, bits, onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
+  return { H, SITES, RIVER, people, hero, duelStep, weather, fireNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
 }

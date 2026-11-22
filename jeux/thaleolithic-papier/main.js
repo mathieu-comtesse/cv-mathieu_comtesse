@@ -30,7 +30,7 @@ const { H } = world;
 
 // sound: unlocked by the first gesture (browsers ask it), N mutes; the beds follow the weather and the nearest fire
 const sfx = createSound(); H.sfx = sfx;
-const cinema = createCinema({ campaign, world, ui, sfx, data: base });
+const cinema = createCinema({ campaign, world, ui, sfx, data: base, menhir });
 addEventListener('pointerdown', () => sfx.unlock(), { capture: true }); addEventListener('keydown', (e) => { sfx.unlock(); if (e.code === 'KeyN' && !e.repeat) sfx.mute(); }, { capture: true });
 document.addEventListener('click', (e) => { if (e.target.closest('.btn')) sfx.play('bone', { f: 1500 + Math.random() * 700, v: 0.2 }); });
 // the story's sounds: an action done, a proof verified, a mistake, a quest completed, the fire alarm, the end
@@ -42,6 +42,7 @@ campaign.on(() => {
   if (now.ending && !was.ending) sfx.play('ending'); else if (now.quests > was.quests) sfx.play('quest'); else if (now.proofs > was.proofs) sfx.play('evidence'); else if (now.done > was.done) sfx.play('action');
   if (now.mistakes > was.mistakes) sfx.play('log');
   if (now.frontier === 'V17_EMERGENCY' && was.frontier !== 'V17_EMERGENCY') sfx.play('alarm');
+  cinema.tour(world.takeSwaps());   // the dwellings that change, one after the other, before the chapter's own cinematic
   for (const q of now.done_q) if (!was.done_q.includes(q)) cinema.after(q);   // C02, C03, C06 when their chapter ends
   was = now;
 });

@@ -31,10 +31,28 @@ const SCRIPTS = {
 };
 const ease = (u) => u * u * (3 - 2 * u);
 
-export function createCinema({ campaign, world, ui, sfx, data }) {
+export function createCinema({ campaign, world, ui, sfx, data, menhir = { questions: [] } }) {
   const $ = (id) => document.getElementById(id), root = $('cine'), who = $('cine-who'), line = $('cine-line'), title = $('cine-title');
   const shots = Object.fromEntries((data.cinematics || []).map((c) => [c.id, c]));
   let run = null; const queue = [];   // a cinematic asked while another plays waits its turn
+  // two of our own, in the same grammar: the dwellings that change (built from the swaps the village schedules, same
+  // order and times) and the Grand Menhir engraved with the duel's five decisions (their lines from MenhirDuel.json)
+  const KIND = { hut: 'la hutte de peau', wattle: 'la charpente de clayonnage', torchis: 'la maison de torchis' };
+  const up = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const custom = {}; let waitDuel = false;   // the engraving waits for the duel's victory sheet to be closed
+  function tour(swaps) {
+    if (!swaps.length) return;
+    const lines = swaps.map((w) => ({ speaker: w.chief ? 'La maison du chef' : '', subtitle: w.from ? `${up(KIND[w.from])} se rabat, ${KIND[w.to] || 'rien'} se lève à sa place.` : `${up(KIND[w.to])} se lève.` }));
+    const spec = [{ from: [0, -8, 52], to: [swaps[0].x, swaps[0].z - 0.5, 16], dur: Math.max(0.6, swaps[0].at - 0.2), line: null, at: (c) => c.sfx?.play('stinger') }];
+    swaps.forEach((w, k) => { const nx = swaps[k + 1]; spec.push({ from: [w.x, w.z - 0.5, 16], to: [w.x + 0.4, w.z - 0.8, 14], dur: nx ? nx.at - w.at : 3.2, line: k }); });
+    custom.TOUR = { title: 'Le village se transforme', shots: lines, spec: [...spec, { from: [swaps.at(-1).x, swaps.at(-1).z, 14], to: [0, -8, 56], dur: 3.5, line: null }] };
+    start('TOUR');
+  }
+  const Q = menhir.questions || [];
+  custom.GRAVURE = { title: 'Le menhir est gravé', shots: [...Q.map((q) => ({ speaker: `${q.clause} ${q.title}`, subtitle: (q.answers.find((a) => a.quality === 2) || {}).text || '' })), { speaker: '', subtitle: 'La politique de la tribu est gravée dans la pierre, à la vue de tous.' }],
+    spec: [{ from: [0, -14, 26, 3], to: [0, -18, 15, 4], dur: 2.6, line: null, at: () => { world.engraving.cine = true; sfx?.play('stinger'); } },
+      ...Q.map((_, k) => ({ from: [0, -19.4, 11, 1.9 + k * 1.32], to: [0.3, -19.8, 10, 1.9 + k * 1.32], dur: 3.2, line: k, at: () => world.engraving.show(k) })),
+      { from: [0, -19, 14, 4.2], to: [0, -16, 24, 4], dur: 3.5, line: Q.length, at: () => sfx?.play('chant', { dur: 1.6 }) }] };
   const ctl = {
     sfx,
     face(id) { const p = world.people[id]; if (p) { p.h.group.rotation.z = 0.12; setTimeout(() => { p.h.group.rotation.z = 0; }, 260); } },
@@ -44,7 +62,7 @@ export function createCinema({ campaign, world, ui, sfx, data }) {
     rain(sec) { world.weather.forced = 1; world.weather.metamorph = sec; setTimeout(() => { world.weather.forced = null; }, sec * 1000); },
   };
   function start(id) {
-    const spec = SCRIPTS[id], c = shots[id]; if (!spec || !c) return false;
+    const cu = custom[id], spec = cu ? cu.spec : SCRIPTS[id], c = cu || shots[id]; if (!spec || !c) return false;
     if (run) { if (run.id !== id && !queue.includes(id)) queue.push(id); return true; }
     campaign.state.flags['cine:' + id] = true;
     ui.close(); document.body.classList.add('cine-on'); root.hidden = false; root.classList.remove('out'); void root.offsetWidth; root.classList.add('in');
@@ -60,7 +78,7 @@ export function createCinema({ campaign, world, ui, sfx, data }) {
     sh.at?.(ctl); sh.act?.(ctl);
   }
   function stop() {
-    if (!run) return; run = null; root.classList.remove('in'); root.classList.add('out');
+    if (!run) return; if (run.id === 'GRAVURE') { world.engraving.cine = false; world.engraving.showAll(false); } run = null; root.classList.remove('in'); root.classList.add('out');
     setTimeout(() => { if (run) return; root.hidden = true; root.classList.remove('out'); document.body.classList.remove('cine-on'); }, 450);   // unless another began
     for (const p of Object.values(world.people)) if (p.busy && !p.dying) { p.busy = false; p.target = p.home.slice(); }
     world.H.unlook();
@@ -69,14 +87,15 @@ export function createCinema({ campaign, world, ui, sfx, data }) {
   addEventListener('keydown', (e) => { if (!run) return; if (e.code === 'Escape' || e.code === 'Enter' || e.code === 'Space') stop(); e.stopImmediatePropagation(); e.preventDefault(); }, true);
   $('cine-skip').onclick = stop;
   return {
-    start, stop, get playing() { return !!run; },
+    start, stop, tour, get playing() { return !!run; },
     step(dt) {
+      if (waitDuel && ui.mode !== 'duel') { waitDuel = false; start('GRAVURE'); }
       if (!run) return; const sh = run.spec[run.k]; run.t += dt;
       const u = ease(Math.min(1, run.t / sh.dur)), at = sh.from.map((v, i) => v + (sh.to[i] - v) * u);
-      world.H.look(at[0], at[1], at[2]);
+      world.H.look(at[0], at[1], at[2], at[3]);
       if (run.t >= sh.dur) next();
     },
     // which cinematic a change of the campaign calls for: the opening on a new game, then after these quests
-    after(questId) { const id = { V17_RISKS: 'C02', V17_OPERATIONS: 'C03', V17_IMPROVEMENT: 'C06' }[questId]; if (id && !campaign.state.flags['cine:' + id]) start(id); },
+    after(questId) { const id = { M_II_ROLES: 'GRAVURE', V17_RISKS: 'C02', V17_OPERATIONS: 'C03', V17_IMPROVEMENT: 'C06' }[questId]; if (!id || campaign.state.flags['cine:' + id]) return; if (id === 'GRAVURE' && ui.mode === 'duel') { waitDuel = true; world.engraving.cine = true; return; } start(id); },
   };
 }
