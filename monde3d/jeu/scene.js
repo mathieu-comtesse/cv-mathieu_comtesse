@@ -23,6 +23,55 @@ for (const l of monde.lampes.filter((q) => q.id !== 'screenbar')) { const pl = n
 const pensee = creerPensee(document.getElementById('pensee'), monde.piece), tete = new THREE.Vector3(), cible = new THREE.Vector3(-0.2, 0.6, 0.3);
 const entree = { x: 0, y: 0, saut: false, sautPresse: false, sprint: false }, CAP = 0.72, PENTE = 0.62;
 let heros = null, auto = null, temps = 0, avant = performance.now(), visible = true, fondu = vignette ? 0 : 1, nIm = 0, cumul = 0;
+let balade = true, sautPresse = false;
+const touches = new Map();
+if (!vignette) {
+  const commandes = document.querySelector('.scene-play');
+  const boutonAuto = document.querySelector('[data-scene-auto]');
+  commandes.hidden = false;
+  function setBalade(active) {
+    balade = active;
+    boutonAuto.setAttribute('aria-pressed', String(active));
+    if (!active) auto?.arrete();
+    else { touches.clear(); sautPresse = false; }
+  }
+  function presse(id, action) {
+    setBalade(false);
+    touches.set(id, action);
+    if (action === 'jump') sautPresse = true;
+  }
+  const clavier = {
+    ArrowUp:'up', KeyW:'up', KeyZ:'up', ArrowDown:'down', KeyS:'down',
+    ArrowLeft:'left', KeyA:'left', KeyQ:'left', ArrowRight:'right', KeyD:'right',
+    Space:'jump', ShiftLeft:'sprint', ShiftRight:'sprint'
+  };
+  addEventListener('keydown', event => {
+    const action = clavier[event.code];
+    if (!action || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input, textarea, select, button, a')) return;
+    event.preventDefault();
+    if (!event.repeat) presse(event.code, action);
+  });
+  addEventListener('keyup', event => touches.delete(event.code));
+  addEventListener('blur', () => { touches.clear(); sautPresse = false; });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { touches.clear(); sautPresse = false; }
+  });
+  for (const bouton of commandes.querySelectorAll('[data-scene-key]')) {
+    bouton.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      bouton.setPointerCapture(event.pointerId);
+      presse(event.pointerId, bouton.dataset.sceneKey);
+    });
+    for (const type of ['pointerup','pointercancel','lostpointercapture']) bouton.addEventListener(type, event => touches.delete(event.pointerId));
+    bouton.addEventListener('click', event => {
+      if (event.detail !== 0) return;
+      presse(bouton, bouton.dataset.sceneKey);
+      setTimeout(() => touches.delete(bouton), 180);
+    });
+  }
+  boutonAuto.addEventListener('click', () => { setBalade(!balade); boutonAuto.blur(); });
+}
 if ('IntersectionObserver' in window) new IntersectionObserver((es) => { visible = es.some((e) => e.isIntersecting); }).observe(canvas);
 
 function cadre() {
@@ -36,8 +85,21 @@ function image(maintenant) {
   const brut = (maintenant - avant) / 1000, dt = Math.min(0.05, Math.max(0.001, brut)); avant = maintenant; temps += dt;
   monde.maj(temps, dt);
   if (heros) {
-    if (!auto.actif) auto.demarre();
-    auto.maj(dt, entree, CAP); heros.maj(dt, entree, CAP); heros.evenements.length = 0;
+    if (balade) {
+      if (!auto.actif) auto.demarre();
+      auto.maj(dt, entree, CAP);
+    } else {
+      const actions = new Set(touches.values());
+      entree.x = Number(actions.has('right')) - Number(actions.has('left'));
+      entree.y = Number(actions.has('up')) - Number(actions.has('down'));
+      entree.sprint = actions.has('sprint');
+      entree.saut = actions.has('jump');
+      entree.sautPresse = sautPresse;
+      sautPresse = false;
+    }
+    heros.maj(dt, entree, CAP);
+    if (heros.evenements.includes('chute')) heros.replace(monde.depart);
+    heros.evenements.length = 0;
     pensee.maj(dt, tete.copy(heros.pos).setY(heros.pos.y + 2.05), camera);
     fondu = Math.max(0, fondu - dt * 1.6);
   }

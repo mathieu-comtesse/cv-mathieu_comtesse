@@ -38,7 +38,7 @@ for (const m of html.matchAll(START)) {
   const fig = one(/<figure class="rf-post-fig[^"]*" data-fig="([^"]+)"/, page);
   const figTitle = one(/<h1>([\s\S]*?)<\/h1>/, page);
   // machine 3D de chaque projet (Q18, PP et VRE · VM : volumes des figures du livre, repeints aux couleurs du dessin)
-  const machine = BP_FIG[fig] ? `<div class="cv-bpfig"><iframe class="rf-bp-frame" src="figures-livre/${BP_FIG[fig]}.html?v=b6" title="${figTitle}" scrolling="no" loading="lazy"></iframe></div>` : `<div class="cv-machine" data-cv-machine="${fig}" data-proj="${slug}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-cta-row"><button type="button" class="cv-magic3d">Voir la magie</button><button type="button" class="cv-explore3d">Explorer la machine</button></div></div>`;
+  const machine = BP_FIG[fig] ? `<div class="cv-bpfig"><iframe class="rf-bp-frame" src="figures-livre/${BP_FIG[fig]}.html?v=b6" title="${figTitle}" scrolling="no" loading="lazy"></iframe></div>` : `<div class="cv-machine" data-cv-machine="${fig}" data-proj="${slug}"><img src="https://comtesse.me/assets/figures/${fig}-light.webp" alt="Machine du projet ${figTitle}" loading="lazy"><canvas aria-label="Machine interactive ${figTitle}"></canvas><div class="cv-cta-row"><button type="button" class="cv-explore3d">Explorer la machine</button></div></div>`;
   const from = page.indexOf('<div class="rf-post-body">'), to = page.slice(from).search(/<\/div>\s*(?:<nav class="rf-post-pn"|<\/article>)/);
   if (to < 0) throw new Error('fin du corps introuvable : ' + slug);
   const body = page.slice(from, from + to);

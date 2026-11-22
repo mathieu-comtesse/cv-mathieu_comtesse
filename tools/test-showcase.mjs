@@ -1,4 +1,4 @@
-// Vitrines « outil réel » des cadres du parcours : contenance des fenêtres, états par étape, chargement différé, agrandissement, honnêteté des emplacements.
+// Vitrines « outil réel » : contenance, étapes, chargement différé et captures non interactives.
 //   node tools/test-showcase.mjs        LARGEURS=390,768,1440,1920
 import fs from 'node:fs'; import path from 'node:path'; import http from 'node:http'; import { fileURLToPath } from 'node:url'; import { createRequire } from 'node:module';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'), WIDTHS = (process.env.LARGEURS || '390,768,1440,1920').split(',').map(Number);
@@ -42,7 +42,7 @@ for (const w of WIDTHS) {
       if (step === N && r.total && r.shown !== r.total) fail.push(`${tag} dernière étape : console incomplète (${r.shown}/${r.total})`);
       if (cfg.windows.some((x) => x.src) && step === 1 && !r.imgs.every((i) => i.src && i.nat > 0)) await p.waitForTimeout(1500);
     }
-    /* captures réelles : chargées, agrandissables ; emplacements : jamais présentés comme des captures */
+    /* Les captures réelles sont chargées. Un emplacement reste dépourvu d’image. */
     const auth = cfg.windows.filter((x) => x.src && x.status !== 'missing');
     for (const a of auth) {
       const loaded = await p.evaluate(([s, id]) => { const i = document.querySelector(`[data-showcase="${s}"] .sc-win[data-id="${id}"] img`); return i && i.complete && i.naturalWidth > 0; }, [slug, a.id]);
@@ -53,9 +53,8 @@ for (const w of WIDTHS) {
     if (lies) fail.push(`${tag} : un emplacement « à fournir » contient une image`);
     if (auth.length) {
       await p.evaluate(([s, id]) => document.querySelector(`[data-showcase="${s}"] .sc-win[data-id="${id}"]`).click(), [slug, auth[0].id]); await p.waitForTimeout(400);
-      if (!(await p.evaluate(() => document.querySelector('dialog.sc-zoom')?.open))) fail.push(`${tag} : la capture ne s'agrandit pas au clic`);
-      await p.keyboard.press('Escape'); await p.waitForTimeout(250);
-      if (await p.evaluate(() => document.querySelector('dialog.sc-zoom')?.open)) fail.push(`${tag} : Échap ne ferme pas l'agrandissement`);
+      const buttons = await p.locator(`[data-showcase="${slug}"] .sc-win:is([role="button"],[tabindex]), [data-showcase="${slug}"] video[controls], dialog.sc-zoom[open]`).count();
+      if (buttons) fail.push(`${tag} : la vitrine offre un zoom ou des commandes de lecture`);
     }
     /* un emplacement ne réagit pas au clic (pas de faux agrandissement) */
     await p.evaluate((s) => document.querySelector(`[data-showcase="${s}"] .sc-win[data-status="missing"]`)?.click(), slug); await p.waitForTimeout(150);

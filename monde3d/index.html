@@ -14,7 +14,19 @@
   #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
   .scene-controls { position: fixed; inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) auto max(12px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .scene-controls[hidden] { display: none; }
-  .scene-controls :is(a,button) { border: 1px solid #453d3c; background: #fbf7ec; color: #2a2530; font: 600 14px/1.2 system-ui, sans-serif; border-radius: 6px; padding: 10px 14px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; cursor: pointer; }
+  :is(.scene-controls,.scene-play) :is(a,button) { border: 2px solid #2a2530; background: #fbf7ec; color: #2a2530; font: 400 18px/1 "Lettrage", sans-serif; border-radius: 11px 9px 12px 8px; box-shadow: 2px 3px 0 #2a2530; padding: 8px 13px; min-height: 44px; display: inline-flex; align-items: center; cursor: pointer; }
+  :is(.scene-controls,.scene-play) button[aria-pressed="true"], .scene-play button:active { background: #f8d979; box-shadow: 0 1px #2a2530; translate: 1px 2px; }
+  .scene-tools { display: flex; gap: 8px; }
+  .scene-play { position: fixed; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: end; pointer-events: none; }
+  .scene-play[hidden] { display: none; }
+  .scene-play button { pointer-events: auto; touch-action: none; user-select: none; justify-content: center; }
+  .scene-dpad { display: grid; grid-template-columns: repeat(3,44px); gap: 5px; }
+  .scene-dpad button { padding: 0; }
+  .scene-dpad button:first-child { grid-column: 2; }
+  .scene-dpad button:nth-child(2) { grid-column: 1; }
+  .scene-dpad svg { width: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .scene-play :focus-visible { outline: 3px solid #3328a4; outline-offset: 3px; }
+  @media(max-width:480px) { .scene-controls :is(a,button) { padding-inline: 8px; font-size: 16px; } }
   .scene-controls button[hidden] { display: none; }
   .scene-controls :focus-visible { outline: 3px solid #3328a4; outline-offset: 3px; }
   #pensee { transform-origin: 50% 100%; position: fixed; left: 0; top: 0; width: 186px; height: 155px; margin-top: -14px; opacity: 0; pointer-events: none; transition: opacity .25s; will-change: transform; }
@@ -28,16 +40,25 @@
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
 </head>
 <body>
-<canvas id="scene" aria-label="Le décor de Mathieu : il s'y déplace seul d'une activité à l'autre"></canvas>
+<canvas id="scene" aria-label="Le décor de Mathieu"></canvas>
 <div id="pensee" aria-hidden="true"></div>
 <nav class="scene-controls" aria-label="Commandes du décor" hidden>
   <a href="/">Retour au CV</a>
-  <button type="button" hidden>Plein écran</button>
+  <div class="scene-tools"><button type="button" data-scene-auto aria-pressed="true">Balade auto</button><button type="button" data-scene-screen hidden>Plein écran</button></div>
 </nav>
+<div class="scene-play" role="group" aria-label="Déplacer Mathieu" hidden>
+  <div class="scene-dpad">
+    <button type="button" data-scene-key="up" aria-label="Avancer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg></button>
+    <button type="button" data-scene-key="left" aria-label="Aller à gauche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button>
+    <button type="button" data-scene-key="down" aria-label="Reculer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg></button>
+    <button type="button" data-scene-key="right" aria-label="Aller à droite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button>
+  </div>
+  <button type="button" data-scene-key="jump">Sauter</button>
+</div>
 <script type="module">
   if (window.self === window.top) {
     const controls = document.querySelector('.scene-controls');
-    const screen = controls.querySelector('button');
+    const screen = controls.querySelector('[data-scene-screen]');
     controls.hidden = false;
     if (document.fullscreenEnabled) {
       screen.hidden = false;
@@ -55,6 +76,6 @@
     }
   } else document.documentElement.classList.add('vignette');
 </script>
-<script type="module" src="monde3d/jeu/scene.js?v=d3"></script>
+<script type="module" src="monde3d/jeu/scene.js?v=d4"></script>
 </body>
 </html>

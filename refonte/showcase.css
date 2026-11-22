@@ -42,30 +42,14 @@ html body .cv-pf-showcase .sc-result p{margin:0!important;font-size:clamp(11.5px
 .cv-pf-showcase.sc-js .sc-win.back[data-age="3"]{opacity:.34;transform:translateY(-7px) scale(.93);filter:brightness(.62) saturate(.65)}   /* trois étapes et plus : fenêtre en retrait, elle ne masque plus la fenêtre active */
 .cv-pf-showcase.sc-js .sc-win.front{transform:translateY(-6px) scale(1.03);z-index:5;box-shadow:0 26px 40px -16px rgb(0 6 40 / .95),0 2px 0 rgb(255 255 255 / .25) inset;filter:none}
 .cv-pf-showcase.sc-js .sc-result.on{opacity:1;transform:none;pointer-events:auto}
-.cv-pf-showcase .sc-win[role="button"]{cursor:zoom-in}
-.cv-pf-showcase.sc-js .sc-win[role="button"].on:hover,.cv-pf-showcase .sc-win[role="button"]:focus-visible{transform:translateY(-9px) scale(1.02);outline:2px solid #fff;outline-offset:2px;z-index:5}
 .cv-pf-showcase .sc-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .cv-pf-showcase .sc-tabs button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px 0 8px;border:1px solid rgb(255 255 255 / .32);border-radius:9999px;background:rgb(255 255 255 / .06);color:#fff;font:500 13px/1 var(--rf-sans,system-ui,sans-serif);cursor:pointer;transition:background .25s,border-color .25s}
 .cv-pf-showcase .sc-tabs button i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:rgb(255 255 255 / .16);font:600 12px/1 "iAWriterQuattroV",Consolas,monospace;font-style:normal}
 .cv-pf-showcase .sc-tabs button[aria-selected="true"]{background:rgb(255 255 255 / .94);color:#0c2a78;border-color:#fff}.cv-pf-showcase .sc-tabs button[aria-selected="true"] i{background:#0c2a78;color:#fff}
 .cv-pf-showcase .sc-tabs button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 html body .cv-pf-showcase .sc-note{margin:12px 0 0}
-.cv-pf-showcase .sc-tour{margin-top:9px;padding:7px 11px;min-height:36px;color:#fff;background:#162a79;border:1px solid #a1b0eb;border-radius:4px;font:500 12px/1.3 var(--expo-sans,system-ui,sans-serif);cursor:pointer}
-.cv-pf-showcase .sc-tour:focus-visible{outline:2px solid white;outline-offset:2px}
-.cv-pf-showcase.sc-tour-playing .sc-win[data-sc-browser].front .sc-body{overflow:hidden}
-.cv-pf-showcase.sc-tour-playing .sc-win[data-sc-browser].front .sc-img{animation:sc-browser-pan 4.2s ease-in-out both}
-@keyframes sc-browser-pan{
-  0%,100%{transform:scale(1);transform-origin:50% 12%}
-  24%{transform:scale(1.15);transform-origin:50% 12%}
-  76%{transform:scale(1.15);transform-origin:50% 88%}
-}
-@media(prefers-reduced-motion:reduce){.cv-pf-showcase.sc-tour-playing .sc-win[data-sc-browser].front .sc-img{animation:none}}
+
 /* agrandissement d'une capture réelle */
-dialog.sc-zoom{max-width:min(1100px,94vw);max-height:92vh;padding:0;border:1px solid rgb(255 255 255 / .35);background:#0a1240;color:#fff;overflow:auto}
-dialog.sc-zoom::backdrop{background:rgb(2 6 30 / .8)}
-dialog.sc-zoom img{display:block;width:100%;height:auto}dialog.sc-zoom p{margin:0}
-dialog.sc-zoom .sc-zoom-t{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 16px;font:500 14px/1.4 var(--rf-sans,system-ui,sans-serif)}
-dialog.sc-zoom button,dialog.sc-zoom a{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border:1px solid rgb(255 255 255 / .4);border-radius:9999px;background:rgb(255 255 255 / .08);color:#fff;font:500 13px/1 var(--rf-sans,system-ui,sans-serif);cursor:pointer;text-decoration:none}
 /* mise en page mobile : même composition, recalée dans une scène plus haute */
 @media(max-width:699px){
   .cv-pf-showcase .sc-stage{aspect-ratio:4/5}
@@ -133,18 +117,35 @@ html body .cv-pf-text p { color: rgb(255 255 255 / .84); }
 .cv-pf-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 
 .cv-pf-visual { min-width: 0; display: grid; gap: 12px; }
-.cv-pf-video { margin: 0; min-width: 0; overflow: hidden; border: 1px solid rgb(255 255 255 / .35); border-radius: 9px; background: #131a2e; }
-.cv-pf-video-bar { padding: 8px 12px 6px; display: flex; align-items: center; gap: 12px; color: #fff; font: 500 12px/1.35 var(--expo-sans, system-ui, sans-serif); }
-.cv-pf-video-bar::before { content: ""; flex: none; width: 27px; height: 7px; background: radial-gradient(circle at 3px 50%,#e0776c 2.5px,transparent 3.5px),radial-gradient(circle at 13px 50%,#dfbc68 2.5px,transparent 3.5px),radial-gradient(circle at 23px 50%,#82bd91 2.5px,transparent 3.5px); }
-.cv-pf-video-address { padding: 0 12px 8px; color: #e4edff; font: 400 11px/1.4 var(--expo-mono, monospace); }
-.cv-pf-video-address span { display: block; padding: 3px 9px; border: 1px solid #40527a; border-radius: 4px; overflow-wrap: anywhere; }
-.cv-pf-video video { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 8/5; object-fit: contain; background: #fff; }
-.cv-pf-video-chapters { display: flex; flex-wrap: wrap; gap: 4px; padding: 7px 8px 1px; }
-.cv-pf-video-chapters button { min-height: 32px; padding: 3px 7px; border: 1px solid #50628b; border-radius: 4px; color: #ecf2ff; background: #1e2945; font: 500 11px/1.3 var(--expo-sans, system-ui, sans-serif); cursor: pointer; }
-.cv-pf-video-chapters button[aria-current="step"] { background: #e2eaff; color: #15203e; }
-.cv-pf-video-chapters button:focus-visible { outline: 2px solid white; outline-offset: 2px; }
-.cv-pf-video figcaption { display: grid; gap: 8px; padding: 8px 12px; color: #fff; font: 400 12px/1.4 var(--expo-sans, system-ui, sans-serif); }
-.cv-pf-video .cv-pf-link { justify-self: start; }
+.cv-game-card a[data-cv-play]{cursor:pointer}
+.cv-game-card .cv-game-cover{display:block;text-decoration:none}
+.cv-game-card .cv-game-cover:hover h3{text-decoration:underline}
+.cv-game-card .cv-game-details{max-width:68ch}
+.cv-game-card .cv-game-details h2{font-size:clamp(17px,1.5vw,25px);margin:1.2em 0 .35em}
+.cv-game-card :is(.cv-game-meta,.rf-post-tech){display:flex;gap:12px 28px;flex-wrap:wrap;margin:12px 0}
+.cv-game-card :is(.cv-game-meta,.rf-post-tech)>div{display:grid;gap:3px}
+.cv-game-card :is(dt,.cv-game-meta span){font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.74}
+.cv-game-card dd{margin:0}
+.cv-game-card figure{margin:16px 0}
+.cv-game-card :is(video,figure img){display:block;max-width:100%;height:auto;border-radius:6px}
+.cv-game-card video{width:min(100%,420px);margin-inline:auto;background:#08080f;pointer-events:none}
+.cv-game-player{position:fixed;inset:0;margin:0;padding:0;border:0;width:100%;height:100%;max-width:none;max-height:none;background:#000}
+.cv-game-screen{position:relative;width:100%;height:100%;background:#000}
+.cv-game-screen iframe{display:block;border:0;width:100%;height:100%}
+.cv-game-screen button{position:absolute;inset:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) auto auto;display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffff82;border-radius:50%;background:#111827e8;color:#fff;cursor:pointer}
+.cv-game-screen button svg{width:20px;fill:none;stroke:currentColor;stroke-width:2}
+.cv-game-screen button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+html body :is(.cv-pf-main .cv-pf-link,.cv-pf-main .cv-explore3d,.cv-game-card .rf-cta){display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:#071047;padding:6px 13px;color:white;font:500 12px/1.25 "Sohne Mono",monospace;text-decoration:none;box-shadow:0 2px 0 #030823;transition:background .2s,scale .1s,box-shadow .15s}
+html body :is(.cv-pf-main .cv-pf-link,.cv-pf-main .cv-explore3d,.cv-game-card .rf-cta):hover{background:#14276b;box-shadow:0 3px 0 #030823}
+html body :is(.cv-pf-main .cv-pf-link,.cv-pf-main .cv-explore3d,.cv-game-card .rf-cta):active{scale:.98;box-shadow:0 1px 0 #030823}
+.cv-pf-showcase[data-layout="finance"] .sc-win[data-sc-browser]{box-shadow:0 16px 30px #06092e55;pointer-events:none}
+.cv-pf-showcase[data-layout="finance"] .sc-win.front{box-shadow:0 24px 32px #06092e80}
+.cv-pf-showcase[data-layout="finance"] .sc-stage{aspect-ratio:16/11}
+@media(max-width:600px){
+ .cv-pf-showcase[data-layout="finance"] .sc-stage{aspect-ratio:4/5}
+ .cv-pf-showcase[data-layout="finance"] .sc-win{left:5%;width:90%}
+ .cv-pf-showcase[data-layout="finance"] .sc-win.back{left:2%;width:80%}
+}
 .cv-pf-portal { padding: 16px; border: 1px solid rgb(255 255 255 / .16); }
 html body .cv-pf-main[data-fiche] .cv-pf-portal p { margin: 8px 0 0; }
 html body .cv-pf-visual .cv-pf-showcase {

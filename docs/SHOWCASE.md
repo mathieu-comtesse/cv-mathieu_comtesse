@@ -1,6 +1,6 @@
 # Vitrines « outil réel » dans les cadres du parcours
 
-Chaque carte du parcours 3D (`index.html`) réunit le résumé, la machine et une vitrine du déroulé. La vitrine, le texte et le modèle suivent la même face supérieure quand la carte se redresse. Les commandes « Voir la magie » et « Explorer la machine » restent accessibles sous le modèle.
+Chaque carte du parcours 3D (`index.html`) réunit le résumé, la machine et une vitrine du déroulé. La vitrine, le texte et le modèle suivent la même face supérieure quand la carte se redresse. La commande « Explorer la machine » reste accessible sous le modèle.
 
 ## Fichiers
 | fichier | rôle |
@@ -9,7 +9,7 @@ Chaque carte du parcours 3D (`index.html`) réunit le résumé, la machine et un
 | `refonte/showcase/build.mjs` | génère le HTML (lisible sans JavaScript) |
 | `tools/build-parcours-projets.mjs` | insère la vitrine dans chaque carte, ajoute CSS et JS une seule fois ; **une régénération conserve les vitrines** |
 | `refonte/showcase.css`, `refonte/showcase.js` | rendu 2D et animation : une seule boucle partagée, active seulement près de l'écran |
-| `tools/test-showcase.mjs` | contenance des fenêtres, états par étape, chargement différé, agrandissement, honnêteté des emplacements |
+| `tools/test-showcase.mjs` | contenance des fenêtres, états par étape, chargement différé et captures non interactives |
 
 Ordre de régénération : `node tools/build-parcours-projets.mjs` puis `node tools/seo-build.mjs`.
 
@@ -19,7 +19,7 @@ Ordre de régénération : `node tools/build-parcours-projets.mjs` puis `node to
 - Les captures ne se chargent qu'à l'approche du cadre (`IntersectionObserver`, 700 px). Pas de vidéo dans le cadre (HTML-in-Canvas) : les vidéos de démonstration restent des médias à part.
 
 ## Interactions
-Seuls les clics sur une capture réelle (agrandissement dans un `<dialog>` natif : Échap, retour du focus, lien vers la fiche) et sur les onglets d'étape agissent. Aucune écoute de pointeur sur la scène : les gestes de navigation 3D passent. Choix manuel d'une étape : la progression au défilement reprend après 7 s. Mouvements réduits : état final, sans animation.
+Les fenêtres sont passives. Les onglets permettent de retrouver une étape. Le Point financier et la chaîne des plans de prévention avancent seuls lorsqu'ils sont visibles et réagissent au défilement. En mouvements réduits, les étapes se choisissent sans animation.
 
 ## Statuts des visuels (V8)
 | statut | sens | étiquette | exemples |
@@ -51,7 +51,7 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 ## Mapping final des onze vitrines
 | projet | machine conservée | fenêtres | statuts |
 |---|---|---|---|
-| Point financier | réservoir | vidéo de l’historique d’une exécution Power Automate dans Sorbonne, référence unique 02.01 CS V8 | copie de test avec 76 actions, 11 groupes dépliés et 12 appels externes remplacés |
+| Point financier | réservoir | cinq fenêtres issues de l’historique d’une exécution de test Power Automate, référence unique 02.01 CS V8 | copie de test avec 76 actions, 11 groupes dépliés et 12 appels externes remplacés |
 | VRE par VM | tri postal | lien vers le portail Power Automate | captures du récapitulatif, du dépôt SharePoint et du suivi Excel à fournir |
 | Reporteur Q18 | machine à écrire | SharePoint, rapport PDF, Excel + console pédagogique | 3 manquantes |
 | Chaîne des PP | horloge-calendrier | SharePoint, traitement Excel et notifications dans Power Automate, courriel Outlook | 2 captures du concepteur, 2 manquantes |
@@ -66,8 +66,7 @@ Gares prioritaires (`demo-gares-poster`), Studio (`studio-poster`, `projets/stud
 Éléments encore manquants : captures SharePoint, Excel et rapports PDF pour VRE par VM et Q18, récapitulatif VRE dans Power Automate, dépôt SharePoint et notification Outlook de la chaîne des PP, export Nisaru, fiche de gare, suivi fonctionnel, résultat du Studio et EPM / EPTx anonymisées.
 
 ## Interactions et ordonnancement (V8)
-- Agrandissement : clic souris réel (vérifié sur les cadres Nisaru, finance, CERFA et PP + MOSO dans le parcours 3D), Entrée ou Espace au clavier, Échap pour fermer ; image haute définition (1440 px) ; légende avec statut et provenance.
-- Mobile : les fenêtres sont petites dans la perspective du parcours ; l'agrandissement au toucher est le moyen de lire un écran.
+- Les fenêtres Power Automate se superposent et se relaient au fil des étapes. Les onglets restent utilisables sur écran tactile.
 - Boucle : plus de `requestAnimationFrame` permanent. Défilement, redimensionnement, geste ou clic réveillent une boucle unique, éteinte 1,4 s après le dernier mouvement ; images chargées une par une (160 ms), aussi en mouvements réduits.
 
 ## Visuels à fournir pour Q18 (emplacements déjà configurés)
