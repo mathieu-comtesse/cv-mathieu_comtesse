@@ -43,7 +43,7 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
   const custom = {}; let waitDuel = false;   // the engraving waits for the duel's victory sheet to be closed
   function tour(swaps) {
     if (!swaps.length) return;
-    const lines = swaps.map((w) => ({ speaker: w.chief ? 'La maison du chef' : '', subtitle: w.from ? `${up(KIND[w.from])} se rabat, ${KIND[w.to] || 'rien'} se lève à sa place.` : `${up(KIND[w.to])} se lève.` }));
+    const lines = swaps.map((w) => ({ speaker: w.who || '', subtitle: w.from ? `${up(KIND[w.from])} se rabat, ${KIND[w.to] || 'rien'} se lève à sa place.` : `${up(KIND[w.to])} se lève.` }));
     const spec = [{ from: [0, -8, 52], to: [swaps[0].x, swaps[0].z - 0.5, 16], dur: Math.max(0.6, swaps[0].at - 0.2), line: null, at: (c) => c.sfx?.play('stinger') }];
     swaps.forEach((w, k) => { const nx = swaps[k + 1]; spec.push({ from: [w.x, w.z - 0.5, 16], to: [w.x + 0.4, w.z - 0.8, 14], dur: nx ? nx.at - w.at : 3.2, line: k }); });
     custom.TOUR = { title: 'Le village se transforme', shots: lines, spec: [...spec, { from: [swaps.at(-1).x, swaps.at(-1).z, 14], to: [0, -8, 56], dur: 3.5, line: null }] };
