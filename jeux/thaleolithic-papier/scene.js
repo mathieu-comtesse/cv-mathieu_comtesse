@@ -17,6 +17,7 @@ import { makeCard, clusterLayout, boxFold } from 'papercraft/lib/paperkit-3d.js'
 import { createLife } from 'papercraft/lib/paper-life.js';
 import { createHarness } from './harness.js';
 import { MENHIR_QUEST } from './campaign.js';
+import { PROFILE, DEFAULT, GESTURE, PROPS, dress, dressTop } from './characters.js';
 
 export const C = {
   ground: '#a6a274', dirt: '#c8a47c', grassA: '#9a9a66', grassB: '#aca676', pine: '#b8402e', pineDeep: '#8e2f2a', trunk: '#4a2c24',
@@ -43,10 +44,10 @@ export const SITES = {
 export const WALL = { cx: 0, cz: -9, rx: 25, rz: 17.5, gates: [[0, 0.13], [2.41, 0.15], [-2.44, 0.15]] };   // angle 0 = south (toward the camera)
 // where each villager stands (the givers stand on their own site)
 const HOME = { aurelien: 'aurelien', mathieu: 'mathieu', lorette: 'lorette', nork: 'nork', alban: 'alban', georges: [-13, 0], eliott: [-20, -25], mathilde: [3, 0.5],
-  neila: [16.5, -3.5], orok: [-2.5, -1.5], brok: [-17, 0.5], tarek: [-21, -8.5], uma: [10.5, -20], kora: [-24, -26], sila: [-3.5, 0], varg: [7, 8], grumb: [-8, -16.8], petit_os: [1.5, 0] };
+  milena: [26.6, -6.2], neila: [16.5, -3.5], orok: [-2.5, -1.5], brok: [-17, 0.5], tarek: [-21, -8.5], uma: [10.5, -20], kora: [-24, -26], sila: [-3.5, 0], varg: [7, 8], grumb: [-6, -19.6], petit_os: [1.5, 0] };
 
 const LOOK = {   // tunic, trim, hair, a prop: each villager in their own colours
-  aurelien: ['#7a3a2a', '#e0b04a', '#5a3a28', 'transat'], mathieu: ['#4a6a6a', '#ead9b8', '#2a1a12', 'tablette'], lorette: ['#8a5a8a', '#ead9b8', '#6a2a1a', null],
+  milena: ['#5a6a8a', '#c8d0e8', '#3a2418', null], aurelien: ['#7a3a2a', '#e0b04a', '#5a3a28', null], mathieu: ['#4a6a6a', '#ead9b8', '#2a1a12', 'tablette'], lorette: ['#8a5a8a', '#ead9b8', '#6a2a1a', null],
   nork: ['#5a6a8a', '#e0b04a', '#2a1a12', 'pinceau'], alban: ['#ead9b8', '#8a5a3a', '#d8d0c0', 'baton'], georges: ['#8a6a3a', '#3a2a1a', '#3a2a1a', 'masse'],
   eliott: ['#5a7a4a', '#c98a3a', '#4a2a18', 'lance'], mathilde: ['#c8c0a0', '#a83a2a', '#7a3a1a', null], neila: ['#a0683e', '#4a6a6a', '#1a1210', null],
   orok: ['#6a4a3a', '#f0a040', '#2a1a12', null], brok: ['#7a5a4a', '#ead9b8', '#4a3a2a', null], tarek: ['#5a4a2a', '#c98a3a', '#2a1a12', 'hache'],
@@ -263,21 +264,25 @@ export function buildVillage(campaign) {
   // a villager: one card, hide tunic in their colours, hair, face, a prop of their trade
   const villager = (id) => {
     const [tunic, trim, hair, prop] = LOOK[id] || ['#8a6a4a', '#ead9b8', '#3a2418', null], tall = id === 'petit_os' ? 0.7 : 1;
+    const own = PROFILE[id]?.prop;   // an accessory on a pivot is its own card, not printed here
     return P2.drawnPiece((g, ink) => {
-      if (prop === 'lance' || prop === 'baton') { g.fillStyle = ink('#6a4a2a'); D.rect(g, 0.62, 0, 0.1, 3.1 * tall); if (prop === 'lance') { g.fillStyle = ink(C.stone); D.poly(g, [[0.52, 3.05 * tall], [0.82, 3.05 * tall], [0.67, 3.5 * tall]]); } }
+      dress(id, g, ink, D, P2, C, tall, 'under');
+      if (!own && (prop === 'lance' || prop === 'baton')) { g.fillStyle = ink('#6a4a2a'); D.rect(g, 0.62, 0, 0.1, 3.1 * tall); if (prop === 'lance') { g.fillStyle = ink(C.stone); D.poly(g, [[0.52, 3.05 * tall], [0.82, 3.05 * tall], [0.67, 3.5 * tall]]); } }
       g.fillStyle = ink(C.skinB); D.rect(g, -0.26, 0, 0.2, 0.9 * tall, 0.06); D.rect(g, 0.06, 0, 0.2, 0.9 * tall, 0.06);
       g.fillStyle = ink(tunic); D.poly(g, [[-0.55, 0.65 * tall], [0.55, 0.65 * tall], [0.42, 2.0 * tall], [-0.42, 2.0 * tall]]);
       g.fillStyle = ink(trim, 'print'); for (let k = 0; k < 5; k++) D.poly(g, [[-0.55 + k * 0.22, 0.65 * tall], [-0.44 + k * 0.22, 0.85 * tall], [-0.33 + k * 0.22, 0.65 * tall]]); D.rect(g, -0.45, 1.6 * tall, 0.9, 0.08);
       g.fillStyle = ink(C.skin); D.rect(g, -0.68, 1.15 * tall, 0.18, 0.75 * tall, 0.08); D.rect(g, 0.5, 1.15 * tall, 0.18, 0.75 * tall, 0.08);
+      dress(id, g, ink, D, P2, C, tall, 'over');
       g.fillStyle = ink(hair); D.ell(g, 0, 2.42 * tall, 0.4, 0.42); g.fillStyle = ink(C.skin); D.ell(g, 0, 2.32 * tall, 0.32, 0.34);
       g.fillStyle = ink(hair); D.ell(g, 0, 2.6 * tall, 0.36, 0.16);
-      if (id === 'alban' || id === 'grumb' || id === 'aurelien') { g.fillStyle = ink(hair); D.poly(g, [[-0.25, 2.18 * tall], [0.25, 2.18 * tall], [0, 1.75 * tall]]); }
+      if (id === 'aurelien') { g.fillStyle = ink(hair); D.poly(g, [[-0.25, 2.18 * tall], [0.25, 2.18 * tall], [0, 1.75 * tall]]); }
       g.fillStyle = ink(C.ink, 'print'); D.ell(g, -0.12, 2.36 * tall, 0.045, 0.055); D.ell(g, 0.12, 2.36 * tall, 0.045, 0.055); D.rect(g, -0.08, 2.17 * tall, 0.16, 0.03);
-      if (prop === 'tablette') { g.fillStyle = ink(C.stoneB); D.rect(g, -0.85, 1.1 * tall, 0.55, 0.7, 0.06); g.fillStyle = ink(C.ink, 'print'); for (let k = 0; k < 3; k++) D.rect(g, -0.78, 1.25 * tall + k * 0.18, 0.4, 0.04); }
-      if (prop === 'masse' || prop === 'hache') { g.fillStyle = ink('#6a4a2a'); D.rect(g, 0.55, 0.9, 0.09, 1.2); g.fillStyle = ink(C.stone); D.ell(g, 0.6, 2.1, 0.28, 0.2); }
-      if (prop === 'pinceau') { g.fillStyle = ink('#6a4a2a'); D.rect(g, 0.55, 1.2, 0.07, 1.0); g.fillStyle = ink(C.red); D.ell(g, 0.58, 2.2, 0.09, 0.14); }
+      dressTop(id, g, ink, D, P2, C, tall);
+      if (!own && prop === 'tablette') { g.fillStyle = ink(C.stoneB); D.rect(g, -0.85, 1.1 * tall, 0.55, 0.7, 0.06); g.fillStyle = ink(C.ink, 'print'); for (let k = 0; k < 3; k++) D.rect(g, -0.78, 1.25 * tall + k * 0.18, 0.4, 0.04); }
+      if (!own && (prop === 'masse' || prop === 'hache')) { g.fillStyle = ink('#6a4a2a'); D.rect(g, 0.55, 0.9, 0.09, 1.2); g.fillStyle = ink(C.stone); D.ell(g, 0.6, 2.1, 0.28, 0.2); }
+      if (!own && prop === 'pinceau') { g.fillStyle = ink('#6a4a2a'); D.rect(g, 0.55, 1.2, 0.07, 1.0); g.fillStyle = ink(C.red); D.ell(g, 0.58, 2.2, 0.09, 0.14); }
       if (prop === 'transat') { g.fillStyle = ink('#a0683e'); D.poly(g, [[-1.2, 0], [-1.05, 0], [-0.62, 1.3], [-0.8, 1.4]]); D.rect(g, -0.85, 1.15, 0.4, 0.14); }
-    }, { w: 2.8, h: 3.7 * tall, name: 'villager ' + id });
+    }, { w: 3.0, h: 3.9 * tall, name: 'villager ' + id });
   };
 
   // ---- placement helpers -------------------------------------------------------------------------------------------
@@ -388,7 +393,7 @@ export function buildVillage(campaign) {
   const torchCard = P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.poly(g, [[-0.1, 0], [0.1, 0], [0.14, 2.5], [-0.14, 2.5]]); g.fillStyle = ink('#c8a870'); D.rect(g, -0.2, 2.2, 0.4, 0.14); D.rect(g, -0.2, 1.4, 0.4, 0.1); g.fillStyle = ink('#4a3030'); D.poly(g, [[-0.3, 2.45], [0.3, 2.45], [0.2, 2.85], [-0.2, 2.85]]); }, { w: 0.9, h: 3.0, name: 'torch' });
   const torchMat = H.printed(torchCard[0], torchCard[1]);
   const torchFire = [0, 1, 2].map((k) => { const [pts, paint] = tongues(77 + k * 5, 2.8, 0.42); return [pts, H.printed(pts, (P) => { paint(P); P.glow((g) => { g.fillStyle = '#fff'; g.fillRect(-1, 2.6, 2, 2); }); }, { cross: true })]; });
-  for (const [x, z] of [[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-12.6, 0.2], [10.8, -9.8]]) {
+  for (const [x, z] of [[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]]) {
     popup(torchCard[0], null, { materials: torchMat, x, z, yaw: 0 }); walk.solid(x, z, 0.35);
     FIRES.push(torchFire.map(([pts, mat]) => { const f = popup(pts, null, { materials: mat, x, z, cross: true, sway: 0.5 }); H.glowing(f.group); return f; }));
     H.lamp(x, 3.0, z, 0.55, 7);
@@ -412,10 +417,23 @@ export function buildVillage(campaign) {
   for (const id of Object.keys(LOOK)) {
     const home = HOME[id], [x, z] = typeof home === 'string' ? [SITES[home].x, SITES[home].z] : home;
     const h = popup(...villager(id), { x, z, yaw: 0 });
-    people[id] = { h, home: [x, z], x, z, target: null, y0: h.group.position.y, seed: Object.keys(people).length * 1.7, ph: 0, face: 1 };
+    const pr = { ...DEFAULT, ...(PROFILE[id] || {}) }, tall = id === 'petit_os' ? 0.7 : 1;
+    const p = people[id] = { h, home: [x, z], x, z, target: null, y0: h.group.position.y, seed: Object.keys(people).length * 1.7, ph: 0, face: 1, pr };
+    if (pr.prop) {   // the accessory turns about the right hand
+      const A = PROPS[pr.prop], [ppts, ppaint] = P2.drawnPiece((g, ink) => A.draw(g, ink, D, P2, C), { w: A.w + 0.4, h: A.h + 1.6, name: 'prop ' + pr.prop }), card = makeCard(ppts, { paint: ppaint, paper: H.paper, thickness: 0.04, edgeWidth: 0.03, pxPerUnit: 56, seed: 800 + p.seed * 10, back: 'mirror', folds: [] });
+      const g = new THREE.Group(); g.position.set(0.6, 1.5 * tall, 0.05); g.add(card); h.pivot.add(g); p.propG = g; p.propY = g.position.y;
+      if (pr.prop === 'map') { card.position.x = -0.1; p.map = card; card.scale.x = 0.25; }
+      if (pr.prop === 'staff') { p.smoke = new THREE.Object3D(); p.smoke.position.set(0, A.tip + 0.1, 0); g.add(p.smoke); }
+    }
     walk.solid(x, z, 0.5);
   }
-  if (campaign.state.dead.includes('uma')) people.uma.h.held = true;
+  // Aurélien's deck chair beside him; Alban's ritual circle with its smoking bowl; Milena's lookout stone on the bank
+  popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#a0683e'); D.poly(g, [[-0.9, 0], [-0.75, 0], [0.1, 1.5], [-0.08, 1.6]]); D.poly(g, [[0.5, 0], [0.65, 0], [0.35, 0.7], [0.2, 0.7]]); g.fillStyle = ink('#c8402e'); D.poly(g, [[-0.62, 0.55], [0.6, 0.6], [0.05, 1.45], [-0.15, 1.42]]); g.fillStyle = ink('#e0a24a', 'print'); for (let k = 0; k < 4; k++) D.rect(g, -0.4 + k * 0.22, 0.7 + k * 0.17, 0.08, 0.35); }, { w: 1.9, h: 1.8, name: 'transat' }), { x: SITES.aurelien.x - 1.4, z: SITES.aurelien.z - 0.5 });
+  const AL = SITES.alban;
+  for (let k = 0; k < 9; k++) { const a = k / 9 * 6.283; if (Math.cos(a) > 0.6) continue; popup(...rock(0.9), { x: AL.x + Math.sin(a) * 1.9, z: AL.z + Math.cos(a) * 1.3, scale: 0.5, yaw: 0 }); }
+  popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.poly(g, [[-0.3, 0], [0.3, 0], [0.18, 0.5], [-0.18, 0.5]]); g.fillStyle = ink('#3a2a2a'); D.ell(g, 0, 0.62, 0.42, 0.18); g.fillStyle = ink('#e0a24a'); D.ell(g, 0, 0.7, 0.2, 0.06); }, { w: 1.0, h: 0.9, name: 'bowl' }), { x: AL.x + 1.1, z: AL.z - 0.9 });
+  popup(...rock(2.0), { x: 26.6, z: -7.4, scale: 0.8 });
+  popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.05, 0, 0.1, 2.2); g.fillStyle = ink('#e0e8f4'); P2.fillLeaf(g, 0.05, 2.0, 0.6, 0.15, 0.35); g.fillStyle = ink('#6f7fb0'); P2.fillLeaf(g, 0.05, 1.7, 0.45, -0.3, 0.35); }, { w: 1.0, h: 2.6, name: 'vane' }), { x: 27.6, z: -6.8 });
 
   // ---- Dylan, the apprentice: a 3D paper model (frontal + profile card per part, limbs on pivots) ------------------
   const dylan = () => {
@@ -440,6 +458,9 @@ export function buildVillage(campaign) {
 
   // ---- life: embers over the fire, swallows, butterflies in the grass, smoke, the mammoths grazing -------------------
   const life = createLife({ scene: H.scene, camera: H.camera, heroHeight: H.heroHeight, seed: 41, wind: [0.9, 0.4] });
+  // the incense of the rites: from the bowl of Alban's circle, and from his staff when he raises it
+  life.puffs({ at: [[AL.x + 1.1, 0.9, AL.z - 0.9]], perEmitter: 2, life: 4, rise: 0.35, size: [0.15, 0.3], colors: ['#e0d8e8', '#c8c0d8'] });
+  if (people.alban?.smoke) life.puffs({ at: [{ object: people.alban.smoke, offset: [0, 0, 0] }], perEmitter: 3, life: 3.5, rise: 0.4, size: [0.14, 0.28], colors: ['#e8e0f0', '#d0c8e0'] });
   life.puffs({ at: [[SITES.foyer.x, 2.6, SITES.foyer.z]], perEmitter: 4, life: 5, rise: 0.5, size: [0.3, 0.55], colors: ['#d8c8c0', '#c8b8b8'] });
   life.motes({ count: 18, colors: ['#ffb060', '#ffd080'], size: [0.05, 0.09], rise: 0.6, glow: 1, height: [0.5, 3] });
   life.flock({ size: 5, height: 4, colors: ['#3a2a3a', '#f0e0d0'] });
@@ -512,8 +533,8 @@ export function buildVillage(campaign) {
   // ---- what the campaign changes in the world -------------------------------------------------------------------------
   // the evacuation: the villagers walk to the gathering point
   const assembly = SITES.rassemblement;
-  function sendToAssembly() { let k = 0; for (const p of Object.values(people)) { if (p.h.held) continue; const a = (k++ / 18) * 6.283; p.target = [assembly.x + Math.cos(a) * 1.8, assembly.z + Math.sin(a) * 1.4]; } }
-  function sendHome() { for (const p of Object.values(people)) p.target = p.home.slice(); }
+  function sendToAssembly() { let k = 0; for (const p of Object.values(people)) { if (p.h.held) continue; const a = (k++ / 19) * 6.283; p.hurry = true; p.target = [assembly.x + Math.cos(a) * 1.8, assembly.z + Math.sin(a) * 1.4]; } }
+  function sendHome() { for (const p of Object.values(people)) { p.hurry = false; p.target = p.home.slice(); } }
   // the tribe's daily life (campaign.villageStep decides, the cards walk): each villager to their goal, a slot round a site
   const ids = Object.keys(people), slotOf = (id, site) => { const s = SITES[site], a = ids.indexOf(id) * 2.4; return [s.x + Math.cos(a) * 1.5, s.z + Math.sin(a) * 1.2]; };
   const goalPoint = (id, place) => (place === 'home' ? people[id].home : SITES[place] ? slotOf(id, place) : null);
@@ -633,16 +654,40 @@ export function buildVillage(campaign) {
     clock += dt; for (let i = timers.length - 1; i >= 0; i--) if (timers[i][0] <= clock) { const fn = timers[i][1]; timers.splice(i, 1); fn(); }
     for (const h of stagedHinges) if (!h.flame) h.group.visible = !h.held || h.p > 0.02;
     for (const p of Object.values(people)) {
-      // a paper puppet: still, it breathes (0.9 deg); walking, it hops a little per step and rocks on its feet, its gait
-      // from the distance covered (never from time), and flips to face the way it goes (never seen edge-on)
+      // a paper puppet with its own bearing (characters.js): at rest it breathes and, now and then, makes the gesture of
+      // its trade (the chief's pose, the rites' staff, Milena scanning and unrolling her map...); walking, its gait is set
+      // from the distance covered (never from time): its own speed, stride, hop, rock and lean, flipping to face the way
+      // it goes (never seen edge-on); the mascot scampers about its home
       if (p.dying) continue;
-      if (!p.target) { p.ph = 0; p.h.group.position.y = p.y0; p.h.group.rotation.z = 0.016 * Math.sin(t * 2.0 + p.seed) + 0.008 * Math.sin(t * 1.27 + p.seed * 2); continue; }
+      const pr = p.pr, h = p.h;
+      if (!p.target) {
+        p.ph = 0;
+        if (pr.wander && !p.busy && t > (p.nextWander ?? 0)) { p.nextWander = t + 2 + Math.random() * 3; const a = Math.random() * 6.283, r = 1 + Math.random() * pr.wander; p.target = [p.home[0] + Math.cos(a) * r, p.home[1] + Math.sin(a) * r]; }
+        if (!p.g && pr.gesture && !p.busy) { p.nextG ??= t + Math.random() * pr.every; if (t > p.nextG) p.g = { k: GESTURE[pr.gesture], t0: t, knocked: 0 }; }
+        let o = {};
+        if (p.g) {
+          const u = (t - p.g.t0) / p.g.k.dur;
+          if (u >= 1) { p.g = null; p.nextG = t + pr.every * (0.7 + Math.random() * 0.6); }
+          else { o = p.g.k.at(u); const kn = o.knock || []; if (p.g.knocked < kn.length && u >= kn[p.g.knocked]) { p.g.knocked++; if (Math.hypot(p.x - H.hero.group.position.x, p.z - H.hero.group.position.z) < 14) H.sfx?.play('bone', { f: 700 + Math.random() * 500, v: 0.14 }); } }
+        }
+        h.group.position.y = p.y0 + (o.y || 0);
+        h.group.rotation.z = 0.016 * Math.sin(t * 2.0 + p.seed) + 0.008 * Math.sin(t * 1.27 + p.seed * 2) - (o.rz || 0) * p.face;
+        h.group.rotation.x = (o.rx || 0) + (pr.bow || 0);   // a bearing at rest: the sage stooped, the chief's chest out
+        h.pivot.scale.x = o.flip ? -p.face : p.face;
+        if (p.propG) { p.propG.rotation.z = (o.prop || 0); p.propG.position.y = p.propY + (o.lift || 0); }
+        if (p.map) p.map.scale.x = 0.25 + 0.75 * (o.open || 0);
+        if (p.smoke) p.smoke.rotation.x = o.lift > 0.3 ? 0 : Math.PI / 2;
+        continue;
+      }
+      if (p.g) { p.g = null; if (p.propG) { p.propG.rotation.z = 0; p.propG.position.y = p.propY; } if (p.map) p.map.scale.x = 0.25; if (p.smoke) p.smoke.rotation.x = Math.PI / 2; }
       const dx = p.target[0] - p.x, dz = p.target[1] - p.z, d = Math.hypot(dx, dz);
       if (d < 0.05) { p.target = null; continue; }
-      const step = Math.min(d, 5 * dt); p.x += dx / d * step; p.z += dz / d * step; p.ph += step / 1.9 * Math.PI;
-      p.h.group.position.x = p.x; p.h.group.position.z = p.z;
-      p.h.group.position.y = p.y0 + 0.12 * Math.abs(Math.sin(p.ph)); p.h.group.rotation.z = 0.05 * Math.sin(p.ph);
-      if (Math.abs(dx) > 0.2) { const want = Math.sign(dx); if (want !== p.face) { p.face = want; p.h.pivot.scale.x = want; } }
+      const step = Math.min(d, pr.speed * (p.hurry ? 1.7 : 1) * dt); p.x += dx / d * step; p.z += dz / d * step; p.ph += step / pr.step * Math.PI;
+      h.group.position.x = p.x; h.group.position.z = p.z;
+      if (Math.abs(dx) > 0.2) { const want = Math.sign(dx); if (want !== p.face) p.face = want; }
+      h.pivot.scale.x = p.face;
+      h.group.position.y = p.y0 + pr.hop * Math.abs(Math.sin(p.ph)); h.group.rotation.z = pr.rock * Math.sin(p.ph) - pr.lean * p.face; h.group.rotation.x = 0;
+      if (p.propG) p.propG.rotation.z = 0.12 * Math.sin(p.ph) * (pr.prop === 'beam' ? 0.3 : 1);
     }
   });
 
@@ -690,7 +735,7 @@ export function buildVillage(campaign) {
     if (s.phase === 'combat') { dz.beat = (dz.beat ?? 0) - dt; if (dz.beat <= 0) { dz.beat = 0.3; dz.n = (dz.n ?? 0) + 1; sx.play('drum', { f: dz.n % 4 === 0 ? 62 : dz.n % 2 ? 96 : 80, v: dz.n % 4 === 0 ? 0.32 : 0.16, slap: 0.4 }); } }
   }
 
-  const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-12.6, 0.2], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
+  const firePlaces = [[SITES.foyer.x, SITES.foyer.z, 1], [-11, -3.9, 0.8], ...[[-4.6, 7.2], [4.6, 7.2], [-7.6, -8.8], [7.6, -8.4], [-3.4, -17.8], [7, -17.6], [-10.6, -1.4], [10.8, -9.8]].map(([x, z]) => [x, z, 0.35])];
   const fireNear = (x, z) => firePlaces.reduce((m, [fx, fz, k]) => Math.max(m, k * Math.max(0, 1 - Math.hypot(x - fx, z - fz) / 13)), 0);
   const onPath = (x, z) => Math.hypot((x - SITES.foyer.x) / 8.5, (z - SITES.foyer.z) / 5.8) < 1 || PATHS.some((pl) => P2.pathLine(pl, { step: 1 }).dist(x, z) < 1.2);
   return { H, SITES, RIVER, people, hero, duelStep, weather, fireNear, riverNear, quest, deaths, bits, engraving, takeSwaps: () => swaps.splice(0), onPath, sendToAssembly, sendHome, everyoneAtAssembly, lead, arrivedAt, moving: (id) => !!people[id]?.target, sync, near: (site, r = 3.4) => { const s = SITES[site], p = H.hero.group.position; return !!s && Math.hypot(p.x - s.x, p.z - s.z) < r; }, hearth };
