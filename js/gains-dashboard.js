@@ -1,4 +1,5 @@
 import { initPiggyBank } from './piggy-bank.js?v=cv-scene-v69';
+import { createGainsOverview } from './gains-overview.js?v=1';
 import { ANNUAL_GAINS, ANNUAL_DECLARED, ANNUAL_TOTAL, ANNUAL_NET, ANNUAL_COST, HOURS_PER_FTE, euroCoinRhythm } from './annual-gains.js?v=cv-scene-v60';
 
 const f = (n, digits = 0) => n.toLocaleString('fr-FR', { maximumFractionDigits: digits });
@@ -34,7 +35,7 @@ export function initGainsDashboard() {
     <div><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><span>${f(mean(ANNUAL_DECLARED, 'Hours') / HOURS_PER_FTE, 1)} postes équivalents</span></div>
     <div><strong data-rhythm-short>15,03 s</strong><span>par pièce de 1 €</span></div></div>
     <section class="gains-chart" aria-labelledby="gains-chart-title"><div class="gains-side"><div class="gains-chart-head"><h2 id="gains-chart-title">Une année de temps libéré</h2>
-    <div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="year" aria-pressed="true">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
+    <div class="gains-switch" role="group" aria-label="Vue du graphique"><button type="button" data-view="overview" aria-pressed="true">Vue d’ensemble</button><button type="button" data-view="year" aria-pressed="false">Année</button><button type="button" data-view="projects" aria-pressed="false">Contributions</button></div></div>
     <p class="gains-hint">Survole une courbe · touche-la · ou explore avec Tab et les flèches.</p>
     <div class="gains-metric"><span>Volumes fournis</span><strong>${f(mean(ANNUAL_DECLARED, 'Hours'))} h</strong><small>${f(mean(ANNUAL_DECLARED))} € valorisés par an</small></div>
     <div class="gains-legend" aria-label="Légende"></div></div>
@@ -74,7 +75,7 @@ export function initGainsDashboard() {
     { id: 'total', title: 'Avec estimations', total: ANNUAL_TOTAL, color: '#ad9ce8', dashed: true, note: 'Ajoute la capacité théorique de l’extracteur VRE et les consultations supposées de PP & MOSO et Gares prioritaires. Ces estimations restent séparées des volumes fournis.' },
     { id: 'net', title: 'Net · année 1', total: ANNUAL_NET, color: '#83d8c3', note: costNote }
   ];
-  let view = 'year', pinned = false;
+  let view = 'overview', pinned = false;
   const hide = () => { if (!pinned) { tip.hidden = true; svg.querySelectorAll('.is-active').forEach(el => el.classList.remove('is-active')); } };
   function show(item, fraction, index, el) {
     const t = item.total, annual = view === 'year';
@@ -112,6 +113,13 @@ export function initGainsDashboard() {
   }
   function render() {
     pinned = false; tip.hidden = true; svg.replaceChildren(); legend.replaceChildren();
+    chart.dataset.view=view;
+    if(view==='overview'){
+      chart.querySelector('h2').textContent='Une année de temps libéré';
+      chart.querySelector('.gains-hint').textContent='Les gains des projets de maintenance et de qualité, valorisés à 104,74 € par heure.';
+      return;
+    }
+    chart.querySelector('.gains-hint').textContent='Survole une courbe ou explore les valeurs avec les flèches.';
     const mobile=box.clientWidth<600, width=mobile?360:800, start=mobile?44:66, end=mobile?344:766;
     svg.setAttribute('viewBox',`0 0 ${width} ${view==='projects'&&mobile?530:370}`);
     const items = view === 'year' ? series : ANNUAL_GAINS.map(r => ({ ...r, total: r, color: r.estimated ? '#12834c' : '#00869a', dashed: r.estimated, note: notes[r.id] }));
@@ -159,7 +167,15 @@ export function initGainsDashboard() {
       });
     }
   }
-  box.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => { view = button.dataset.view; box.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b === button))); render(); }));
+  const switches=[...chart.querySelectorAll('.gains-switch button')];
+  const overview=createGainsOverview({declared:ANNUAL_DECLARED,projects:ANNUAL_GAINS,net:ANNUAL_NET,select:selectView});
+  chart.append(overview);
+  function selectView(id){
+    view=id;
+    switches.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===id)));
+    render();
+  }
+  switches.forEach(b=>b.addEventListener('click',()=>selectView(b.dataset.view)));
   box.querySelector('.gains-plot').addEventListener('pointerleave', hide);
   // Choisir la courbe la plus proche, même lorsque les zones de survol du brut et du net se chevauchent.
   function nearestCurve(event,pin=false){
