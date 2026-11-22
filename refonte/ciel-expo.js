@@ -8,6 +8,16 @@ const placesAccueil = [[.02,-.47],[.23,.80],[-.41,-.68],[.34,.34],[-.74,-.31],[.
 const lumiere = [-Math.sin(-41*Math.PI/180)/Math.tan(35*Math.PI/180),-Math.cos(-41*Math.PI/180)/Math.tan(35*Math.PI/180)];
 const mix = (a,b,t) => a+(b-a)*t, phase = v => v-Math.floor(v);
 const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
+function pasVolume(osc,dt){
+  // Amortissement et ressort de rappel des constellations Expo.
+  for(let left=Math.min(.1,dt);left>1e-4;left-=1/120){
+    const step=Math.min(1/120,left),decay=Math.exp(-6.5*step);
+    for(let axis=0;axis<3;axis++){
+      osc.v[axis]=(osc.v[axis]-14*osc.at[axis]*step)*decay;
+      osc.at[axis]+=osc.v[axis]*step;
+    }
+  }
+}
 function profondeurTriangle(p,a,b,c) {
   const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-a.x,vy=c.y-a.y;
   const det=ux*vy-uy*vx;
@@ -90,6 +100,9 @@ export class CielExpo extends Ciel {
       Math.min(profondeurTriangle(p,a,b,c),profondeurTriangle(p,a,c,d))<p.z-2
     );
     this.cibles=[];this.survol=null;
+    const prev=this.pointerExpo;
+    this.pointerExpo=plat||t===null||souris.x<0?null:{x:souris.x,y:souris.y};
+    const mouvement=prev&&this.pointerExpo?distance(prev,this.pointerExpo):0;
     let nearest=18;
     ctx.save();
     const foyers=[...this.etoiles.values()].filter(e=>e.parent&&e.centre);
@@ -151,11 +164,27 @@ export class CielExpo extends Ciel {
       const nodes=e.noeuds.map(n=>{
         const [nx,ny,nz]=n.at;
         let wx=x+r*(co*nx-si*ny),wy=y+r*(si*nx+co*ny);
-        const hauteur=Math.max(12,h+(title?r*nz:n.hemisphere*.85*h*Math.sqrt(Math.max(0,1-nx*nx-ny*ny))));
-        const p=proj(wx,wy,hauteur);
+        let hauteur=Math.max(12,h+(title?r*nz:n.hemisphere*.85*h*Math.sqrt(Math.max(0,1-nx*nx-ny*ny))));
+        let p=proj(wx,wy,hauteur);
         if(!p)return null;
+        if(!plat&&t!==null&&unproject){
+          const hit=distance(p,souris);
+          if(mouvement>0&&hit<90&&masque(p)===false&&this.pris?.noeud!==n){
+            const [x0,y0]=unproject(souris.x,souris.y,hauteur,[wx,wy])||[wx,wy];
+            let dx=wx-x0,dy=wy-y0,length=Math.hypot(dx,dy);
+            if(length<2){dx=souris.x-prev.x;dy=souris.y-prev.y;length=mouvement;}
+            const impulse=Math.min(360,14*mouvement*(1-hit/90)**2);
+            n.volume??={at:[0,0,0],v:[0,0,0]};
+            n.volume.v[0]+=dx/length*impulse;n.volume.v[1]+=dy/length*impulse;n.volume.v[2]+=.7*impulse;
+          }
+          if(n.volume){
+            pasVolume(n.volume,dt);
+            wx+=n.volume.at[0];wy+=n.volume.at[1];hauteur=Math.max(12,hauteur+n.volume.at[2]);
+            p=proj(wx,wy,hauteur);if(!p)return null;
+          }
+        }else if(t===null)n.volume=null;
         const sx=p.x-souris.x,sy=p.y-souris.y,d=Math.hypot(sx,sy);
-        const push=t===null||d<18||d>90?0:14*(1-d/90)**2;
+        const push=!plat||t===null||d<18||d>90?0:14*(1-d/90)**2;
         n.fx+=((d?push*sx/d:0)-n.fx)*(1-Math.exp(-15*dt));
         n.fy+=((d?push*sy/d:0)-n.fy)*(1-Math.exp(-15*dt));
         p.x+=n.fx;p.y+=n.fy;
