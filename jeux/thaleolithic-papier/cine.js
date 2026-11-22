@@ -50,9 +50,9 @@ export function createCinema({ campaign, world, ui, sfx, data, menhir = { questi
   }
   const Q = menhir.questions || [];
   custom.GRAVURE = { title: 'Le menhir est gravé', shots: [...Q.map((q) => ({ speaker: `${q.clause} ${q.title}`, subtitle: (q.answers.find((a) => a.quality === 2) || {}).text || '' })), { speaker: '', subtitle: 'La politique de la tribu est gravée dans la pierre, à la vue de tous.' }],
-    spec: [{ from: [0, -14, 26, 3], to: [0, -18, 15, 4], dur: 2.6, line: null, at: () => { world.engraving.cine = true; sfx?.play('stinger'); } },
-      ...Q.map((_, k) => ({ from: [0, -19.4, 11, 1.9 + k * 1.32], to: [0.3, -19.8, 10, 1.9 + k * 1.32], dur: 3.2, line: k, at: () => world.engraving.show(k) })),
-      { from: [0, -19, 14, 4.2], to: [0, -16, 24, 4], dur: 3.5, line: Q.length, at: () => sfx?.play('chant', { dur: 1.6 }) }] };
+    spec: [{ from: [0, -15, 26, 3], to: [0, -21.5, 14, 4], dur: 2.6, line: null, at: () => { world.engraving.cine = true; sfx?.play('stinger'); } },
+      ...Q.map((_, k) => ({ from: [0, -22.2, 10.5, 1.9 + k * 1.32], to: [0.2, -22.3, 9.5, 1.9 + k * 1.32], dur: 3.2, line: k, at: () => world.engraving.show(k) })),   // on the stone's face, plaque by plaque
+      { from: [0, -22, 13, 4.5], to: [0, -20, 22, 4.5], dur: 3.5, line: Q.length, at: () => sfx?.play('chant', { dur: 1.6 }) }] };
   const ctl = {
     sfx,
     face(id) { const p = world.people[id]; if (p) { p.h.group.rotation.z = 0.12; setTimeout(() => { p.h.group.rotation.z = 0; }, 260); } },
