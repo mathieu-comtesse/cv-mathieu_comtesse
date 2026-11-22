@@ -625,18 +625,16 @@ export function buildVillage(campaign) {
   popup(...rock(2.0), { x: 26.6, z: -7.4, scale: 0.8 });
   popup(...P2.drawnPiece((g, ink) => { g.fillStyle = ink('#5a3a22'); D.rect(g, -0.05, 0, 0.1, 2.2); g.fillStyle = ink('#e0e8f4'); P2.fillLeaf(g, 0.05, 2.0, 0.6, 0.15, 0.35); g.fillStyle = ink('#6f7fb0'); P2.fillLeaf(g, 0.05, 1.7, 0.45, -0.3, 0.35); }, { w: 1.0, h: 2.6, name: 'vane' }), { x: 27.6, z: -6.8 });
 
-  // ---- Dylan, the apprentice: a 3D paper model (frontal + profile card per part, limbs on pivots) ------------------
+  // ---- Dylan, the apprentice: a flat paper puppet like the villagers (one card per part, limbs on pivots); he turns by
+  // flipping, as a cut-out does, never showing a profile card inside him ------------------------------------------------
   const dylan = () => {
     const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-    const PROFILE = -Math.PI / 2;
     const card = ([pts, paint], seed, { x = 0, y = 0, z = 0, ry = 0, parent = body } = {}) => { const m = makeCard(pts, { paint, paper: H.paper, thickness: 0.05, edgeWidth: 0.04, pxPerUnit: 64, seed, back: 'mirror', folds: [] }); m.position.set(x, y, z); m.rotation.y = ry; parent.add(m); return m; };
     const tunic = '#a0683e', sash = '#4a6a8a', skin = C.skin, hair = '#4a2a18';
-    const legs = [-0.13, 0.13].map((x, i) => { const hip = new THREE.Group(); hip.position.set(x, 0.95, 0); body.add(hip); const art = (side) => P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(C.skinB); D.rect(gg, -0.1, 0.2, 0.2, 0.82, 0.06); gg.fillStyle = ink('#6a4a2a'); D.rect(gg, -0.13, 0, side ? 0.36 : 0.26, 0.26, 0.08); gg.fillStyle = ink(C.bone, 'print'); D.rect(gg, -0.13, 0.22, side ? 0.36 : 0.26, 0.05); }, { w: side ? 0.5 : 0.32, h: 1.05, name: 'leg' }); card(art(false), 410 + i, { y: -0.97, parent: hip }); card(art(true), 420 + i, { y: -0.97, z: -0.2, ry: PROFILE, parent: hip }); return hip; });
+    const legs = [-0.13, 0.13].map((x, i) => { const hip = new THREE.Group(); hip.position.set(x, 0.95, 0); body.add(hip); const art = (side) => P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(C.skinB); D.rect(gg, -0.1, 0.2, 0.2, 0.82, 0.06); gg.fillStyle = ink('#6a4a2a'); D.rect(gg, -0.13, 0, side ? 0.36 : 0.26, 0.26, 0.08); gg.fillStyle = ink(C.bone, 'print'); D.rect(gg, -0.13, 0.22, side ? 0.36 : 0.26, 0.05); }, { w: side ? 0.5 : 0.32, h: 1.05, name: 'leg' }); card(art(false), 410 + i, { y: -0.97, parent: hip }); return hip; });
     card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(tunic); D.poly(gg, [[-0.45, 0], [0.45, 0], [0.38, 1.3], [-0.38, 1.3]]); gg.fillStyle = ink(sash); D.poly(gg, [[-0.38, 1.25], [-0.2, 1.3], [0.42, 0.2], [0.28, 0.12]]); gg.fillStyle = ink(C.bone, 'print'); for (let k = 0; k < 5; k++) D.poly(gg, [[-0.45 + k * 0.18, 0], [-0.36 + k * 0.18, 0.16], [-0.27 + k * 0.18, 0]]); gg.fillStyle = ink(C.stoneB); D.rect(gg, -0.36, 0.35, 0.32, 0.42, 0.04); gg.fillStyle = ink(C.ink, 'print'); for (let k = 0; k < 3; k++) D.rect(gg, -0.32, 0.45 + k * 0.1, 0.24, 0.03); }, { w: 0.95, h: 1.35, name: 'tunic' }), 401, { y: 0.72 });
-    card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(sh(tunic, -0.08)); D.poly(gg, [[-0.26, 0], [0.26, 0], [0.22, 1.28], [-0.22, 1.28]]); }, { w: 0.6, h: 1.3, name: 'tunic side' }), 402, { y: 0.74, z: -0.3, ry: PROFILE });
     card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(hair); D.ell(gg, 0, 0.46, 0.42, 0.4); gg.fillStyle = ink(skin); D.ell(gg, 0, 0.36, 0.34, 0.36); gg.fillStyle = ink(hair); D.poly(gg, [[-0.38, 0.55], [0.38, 0.55], [0.3, 0.75], [-0.1, 0.66], [-0.34, 0.74]]); gg.fillStyle = ink(C.ink, 'print'); D.ell(gg, -0.12, 0.36, 0.04, 0.05); D.ell(gg, 0.12, 0.36, 0.04, 0.05); gg.fillStyle = ink('#8a3a22', 'print'); D.rect(gg, -0.08, 0.18, 0.16, 0.03); }, { w: 0.9, h: 0.88, name: 'face' }), 404, { y: 1.88 });
-    card(P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(sh(skin, -0.05)); D.ell(gg, 0.04, 0.36, 0.3, 0.36); gg.fillStyle = ink(hair); D.ell(gg, -0.1, 0.46, 0.3, 0.36); gg.fillStyle = ink(C.ink, 'print'); D.ell(gg, 0.2, 0.37, 0.03, 0.045); }, { w: 0.8, h: 0.85, name: 'head side' }), 405, { y: 1.86, z: -0.46, ry: PROFILE });
-    const arms = [-0.46, 0.46].map((x, i) => { const s = new THREE.Group(); s.position.set(x, 1.96, 0); body.add(s); const art = (c) => P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(c); D.rect(gg, -0.09, 0.12, 0.18, 0.68, 0.08); gg.fillStyle = ink(tunic); D.rect(gg, -0.12, 0.55, 0.24, 0.27, 0.08); }, { w: 0.26, h: 0.84, name: 'arm' }); card(art(skin), 430 + i, { y: -0.82, parent: s }); card(art(C.skinB), 440 + i, { y: -0.82, z: -0.12, ry: PROFILE, parent: s }); return s; });
+    const arms = [-0.46, 0.46].map((x, i) => { const s = new THREE.Group(); s.position.set(x, 1.96, 0); body.add(s); const art = (c) => P2.drawnPiece((gg, ink) => { gg.fillStyle = ink(c); D.rect(gg, -0.09, 0.12, 0.18, 0.68, 0.08); gg.fillStyle = ink(tunic); D.rect(gg, -0.12, 0.55, 0.24, 0.27, 0.08); }, { w: 0.26, h: 0.84, name: 'arm' }); card(art(skin), 430 + i, { y: -0.82, parent: s }); return s; });
     const legLen = 1.2, stepLen = 1.15, R = stepLen / (2 * legLen);
     const leg = (ph, gait) => { const u = (ph / Math.PI) % 2, A = gait * R; if (u >= 1) return A * (3 - 2 * u); const e = u * u * (3 - 2 * u); return A * (2 * e - 1); };
     g.userData.stride = (walked, gait) => { const ph = walked / stepLen * Math.PI, l0 = leg(ph, gait), l1 = leg(ph + Math.PI, gait); legs[0].rotation.x = -l0; legs[1].rotation.x = -l1; arms[0].rotation.x = l0 * 0.7; arms[1].rotation.x = l1 * 0.7; body.position.y = Math.abs(Math.sin(ph)) * 0.04 * gait; };
@@ -644,9 +642,15 @@ export function buildVillage(campaign) {
   };
   const doll = dylan();
   const hero = popup(null, null, { node: doll, height: 3.1, x: 2, z: 3, sway: 0.1, scale: 1.3 });
-  H.setHero(hero, { stride: doll.userData.stride });
+  H.setHero(hero, { stride: doll.userData.stride, turn: 'flip' });
   // ---- the beasts outside the stakes (wild.js): an attack that reaches Dylan becomes an accident of the game
-  const wild = createWild({ H, world: null, campaign, cinema: { get playing() { return document.body.classList.contains('cine-on'); } }, popup, beast, ovalE, riverDist: (x, z) => RIVER.dist(x, z),
+  // the tribe's working grounds outside the stakes (the quarry, the hunting clearing, the bank, the gathering point, the
+  // cemetery) and the trails from the gates to them are guarded: no beast goes there, nobody is attacked there. The wild
+  // is dangerous off those trails, not on the way to a mission.
+  const SAFE_TRAILS = [[[13, -17], [18, -22], [22, -28]], [[-19, -11], [-19, -21], [-22, -29]], [[0, 11], [6, 11.2], [12, 10], [20, 13]], [[14, -6], [24, -9], [27.8, -12.5]]].map((pl) => P2.pathLine(pl, { step: 0.5 }));
+  const GROUNDS = Object.values(SITES).filter((st) => ovalE(st.x, st.z) > 1);
+  const guarded = (x, z) => GROUNDS.some((st) => Math.hypot(x - st.x, z - st.z) < 8) || SAFE_TRAILS.some((t) => t.dist(x, z) < 3);
+  const wild = createWild({ H, world: null, campaign, cinema: { get playing() { return document.body.classList.contains('cine-on'); } }, popup, beast, ovalE, guarded, riverDist: (x, z) => RIVER.dist(x, z),
     onAttack: (a) => { if (campaign.state.accident) return; const hp = hero.group.position; campaign.wildDeath(a.kind === 'mammoth' ? 'mammoth' : a.kind, [hp.x, hp.z], wild.agents.indexOf(a)); } });
   H.onStep((t, dt) => wild.step(t, dt));
 
