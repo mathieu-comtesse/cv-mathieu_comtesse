@@ -93,12 +93,12 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   }
 
   // ---- état sauvegardé --------------------------------------------------------------------------------------------
-  const fresh = () => ({ version: 1, flags: {}, done: [], evidence: [], progress: {}, menhir: null, ending: false, wallSeconds: 0, risks: {}, dead: [], buildings: {}, dialogue: null, working: null, accident: null, deathLog: [], dylanDeaths: 0,
+  const fresh = () => ({ version: 1, flags: {}, done: [], evidence: [], progress: {}, menhir: null, ending: false, wallSeconds: 0, risks: {}, dead: [], buildings: {}, dialogue: null, working: null, accident: null, deathLog: [], dylanDeaths: 0, tally: { right: 0, wrong: 0 },
     resources: { ...Object.fromEntries(base.resources.map((r) => [r.id, r.value])), flint: 0, tool: 0, clay: 0, straw: 0, knowledge: 0 }, equipped: '', reserve: {}, tasks: [],
     player: Object.fromEntries(base.stats.map((x) => [x.id, x.value])),
     // l'état de chaque habitant (CharacterState) : compétence 15 pour Dylan, 10 pour le Petit Os, 70 pour les autres
     people: Object.fromEntries(characters.map((c) => [c.id, { life: 100, energy: 100, fatigue: 0, competence: c.id === 'dylan' ? 15 : c.id === 'petit_os' ? 10 : 70, hunger: 20, morale: 60, trust: 25, assignment: '' }])) });
-  let state = fresh();
+  let state = fresh(), wrongLast = false;
   if (storage) try { const s = JSON.parse(storage.getItem(key) || 'null'); if (s && s.version === 1) state = { ...fresh(), ...s }; } catch { /* sauvegarde illisible : nouvelle partie */ }
   const listeners = new Set(), emit = () => { for (const f of listeners) f(); };
   const save = () => { if (storage) try { storage.setItem(key, JSON.stringify(state)); } catch { /* stockage indisponible */ } };
@@ -151,11 +151,15 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     if (p.card < 0 || p.card >= a.cards.length) return false;
     const card = a.cards[p.card]; if (answer < 0 || answer >= card.choices.length) return false;
     const proof = !card.requiredEvidence || verified(card.requiredEvidence);
-    if (answer !== card.correct || !proof) { p.mistakes++; feedback = proof ? 'Réessaie : ' + card.explanation : 'La preuve correspondante n’est pas encore vérifiée. Reprends le contrôle sur le terrain.'; save(); emit(); return false; }
+    if (!proof) { feedback = 'La preuve correspondante n’est pas encore vérifiée. Reprends le contrôle sur le terrain.'; save(); emit(); return false; }
+    // never asked twice: a wrong choice is counted against the village (the prosperity gauge), the right answer and its
+    // reason are given, and the activity goes on
+    const right = answer === card.correct; wrongLast = !right; state.tally[right ? 'right' : 'wrong']++; if (!right) p.mistakes++;
     if (!p.answers.includes(card.id)) p.answers.push(card.id);
     p.guideSeen = true; p.card++;
     if (a.mode === 'assemble') while (p.card < a.cards.length && p.answers.includes(a.cards[p.card].id)) p.card++;
-    feedback = a.mode === 'assemble' ? 'Tablette reliée. ' + card.explanation : card.explanation;
+    const why = right ? card.explanation : `Mauvaise réponse. La bonne réponse : « ${String(card.choices[card.correct]).replace(/\.$/, '')} ». ${card.explanation}`;
+    feedback = a.mode === 'assemble' ? (right ? 'Tablette reliée. ' : '') + why : why;
     setEvidence(a, 1, p.answers.join(', '));
     if (a.mode === 'differences') {
       p.observed = false; const k = 'difference:' + card.id;
@@ -163,7 +167,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     }
     // Finish → ValidateDifferencesInternal : les différences ne se valident que si le minimum, les critiques et les notions y sont
     const ready = a.mode !== 'differences' || (() => { const st = differencesStatus(); return st.found >= st.minimum && st.critical && st.concepts; })();
-    if (p.card >= a.cards.length && !HOLD.has(a.mode) && ready) finish(); else { save(); emit(); }
+    if (p.card >= a.cards.length && !HOLD.has(a.mode) && ready) finish(right ? '' : why); else { save(); emit(); }
     return true;
   }
   // l'assemblage peut se faire dans n'importe quel ordre : on choisit la tablette, puis sa fonction
@@ -176,8 +180,9 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   }
   function confirmAllocation() {
     if (current?.mode !== 'allocation') return false; const p = cur();
-    if ([0, 1, 2].some((i) => p.allocation[i] < current.needs[i])) { feedback = 'Les objectifs ont des besoins différents : formation 3, stockage 4, foyer 2. Ajuste les moyens.'; emit(); return false; }
-    p.card = current.cards.length; finish(); return true;
+    const ok = [0, 1, 2].every((i) => p.allocation[i] >= current.needs[i]); state.tally[ok ? 'right' : 'wrong']++; wrongLast = !ok;
+    if (!ok) { p.mistakes++; p.allocation = current.needs.slice(); }
+    p.card = current.cards.length; finish(ok ? '' : `Répartition corrigée : formation ${current.needs[0]}, stockage ${current.needs[1]}, foyer ${current.needs[2]}. Chaque objectif a ses propres besoins.`); return true;
   }
   const workReady = () => current?.mode === 'risk' && cur().card >= current.cards.length;
   function performWork() {
@@ -212,14 +217,14 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     cur().people = people; finish(); return true;
   }
   function retryTimer() { if (!timedOut) return; cur().seconds = 0; timedOut = false; feedback = 'Les observations et preuves acquises sont conservées.'; emit(); }
-  function finish() {
+  function finish(note = '') {   // note: the correction of the last decision, kept above the outro
     const a = current, p = cur();
     p.completed = p.verified = true;
     setEvidence(a, 3, a.outro || 'Résultat conservé.', 'Choix et preuves contrôlés à l’étape de jeu ' + Math.round(state.wallSeconds));
     if (a.id === 'V17_DEBRIEF_FIRE') setFlag('v17:alarm', false);
     if (FINISH_FLAGS[a.id]) setFlag(FINISH_FLAGS[a.id]);
     current = null; completeAction(a.id);
-    feedback = a.outro || 'Preuve enregistrée dans le Carnet des Crânes.';
+    feedback = (note ? note + '\n\n' : '') + (a.outro || 'Preuve enregistrée dans le Carnet des Crânes.');
     save(); emit();
   }
   function completeAction(id) {
@@ -258,6 +263,11 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
   }
   // a beast reached Dylan outside the stakes: its cinematic, the analysis, then the game takes up again before the outing
   function wildDeath(kind, at, beast) { const a = accident('W_' + kind); if (!a || state.accident) return false; state.accident = { id: a.id, victim: 'dylan', played: false, at, beast }; state.dylanDeaths++; logDeath(a, 'dylan'); save(); emit(); return true; }
+  // the prosperity of the village (0 to 100): the decisions taken right or wrong, the villagers lost, Dylan's own deaths;
+  // it decides how the village fares, decays or thrives, and which ending the campaign gets
+  function prosperity() { const { right, wrong } = state.tally || { right: 0, wrong: 0 }, lost = state.deathLog.filter((d) => d.victim !== 'dylan').length;
+    return Math.round(Math.max(0, Math.min(100, 55 + 45 * (right - wrong) / Math.max(8, right + wrong) - 7 * lost - 1.5 * state.dylanDeaths))); }
+  const tier = () => { const g = prosperity(); return g >= 80 ? 'florissant' : g >= 60 ? 'debout' : g >= 40 ? 'fragile' : 'delabre'; };
   function logDeath(a, who) { state.deathLog.push({ id: a.id, kind: a.kind, victim: who, site: a.site, quest: frontier()?.id || null, at: Math.round(state.wallSeconds) }); }
   // the exposure points open (their chapter's game done), and those standing where Dylan is
   const exposures = () => EXPOSURES.filter((x) => state.done.includes(x.unlock) && !state.accident);
@@ -432,6 +442,7 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
       const s = state.menhir; if (s?.phase !== 'question') return;
       const q = Q[s.question], a = q.answers[i], best = q.answers.find((x) => x.quality === 2); s.caption = a.reply;
       s.picked = i; s.points = (s.points || 0) + a.quality; s.cleared[s.question] = true;
+      state.tally[a.quality === 2 ? 'right' : 'wrong']++;
       if (a.quality < 2) s.mistakes[s.question]++;
       s.banner = a.quality === 2 ? 'DÉCISION VÉRIFIÉE' : a.quality === 1 ? 'DÉCISION PARTIELLE' : 'MAUVAISE DÉCISION';
       s.feedback = a.quality === 2 ? q.correction : `La bonne décision : « ${best.text.replace(/\.$/, "")} ». ${q.correction}`;
@@ -475,6 +486,6 @@ export function createCampaign({ v17, menhir, base, legacy, storage = null, key 
     on: (f) => { listeners.add(f); return () => listeners.delete(f); },
     act: (q) => acts.find((a) => a.id === q?.actId),
     character: (id) => characters.find((c) => c.id === id),
-    accidents: ACCIDENTS, accident, nameOf, wildDeath, exposures, examine, closeAccident, markPlayed,
+    accidents: ACCIDENTS, accident, nameOf, wildDeath, exposures, examine, closeAccident, markPlayed, prosperity, tier, get wrongLast() { return wrongLast; },
   };
 }

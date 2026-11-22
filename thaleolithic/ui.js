@@ -99,6 +99,7 @@ export function createUI(campaign, world) {
       + `</svg>`
       + `<b>${txt}</b><i class="chip"></i><i class="chip c2"></i></span>`;
   }
+  const TIER = { florissant: 'Florissant', debout: 'Debout', fragile: 'Fragile', delabre: 'Délabré' };
   function hud() {
     const q = campaign.frontier(), act = campaign.act(q);
     $('act').textContent = q ? clean(act ? act.title : '') : 'Le cycle continue';
@@ -109,6 +110,8 @@ export function createUI(campaign, world) {
     $('next').textContent = clean(title);
     const st = campaign.state.player, warn = campaign.warnings();
     $('vitals').innerHTML = [['Vie', st.life], ['Énergie', st.energy], ['Nourriture', st.food], ['Fatigue', st.fatigue]].map(([l, v]) => `<span>${l} ${meter(v, l === 'Fatigue' ? 'cold' : '')}</span>`).join('') + (warn.length ? `<b>${warn.join('  ')}</b>` : '');
+    // the village's prosperity: every decision, right or wrong, every villager lost moves it
+    const g = campaign.prosperity(), tr = campaign.tier(); $('prosper').innerHTML = `<span>Prospérité du village</span>${meter(g, tr)}<b class="${tr}">${TIER[tr]}</b>`;
     // the Council of the Sages comes in 45 minutes (the Unity game's own countdown, shown as it is there: it does not end the game)
     const left = Math.max(0, (campaign.data.durationSeconds || 2700) - campaign.state.wallSeconds), mins = Math.ceil(left / 60);
     const council = $('council'), secs = Math.ceil(left); if (council && council.dataset.s !== String(secs)) { council.dataset.s = String(secs); council.innerHTML = `${fuse(left / (campaign.data.durationSeconds || 2700), secs, `Le Conseil des Sages arrive dans ${mins} minutes`, 'council', 86)}<small>Conseil des Sages</small>`; }
@@ -160,14 +163,14 @@ export function createUI(campaign, world) {
   function renderActivity() {
     const a = campaign.current;
     if (!a) {   // finished: the outro and what the Carnet now holds
-      body.innerHTML = `<p class="kicker">Preuve vérifiée</p><h2>Carnet des Crânes</h2><p class="said">${esc(campaign.feedback)}</p>`;
+      body.innerHTML = `<p class="kicker">Preuve vérifiée</p><h2>Carnet des Crânes</h2><p class="said">${esc(campaign.feedback).replace(/\n/g, '<br>')}</p>`;
       body.append(btn('Continuer', close, 'go')); return;
     }
     const p = campaign.progress(a.id), tl = a.duration ? Math.max(0, a.duration - p.seconds) : 0, timer = a.duration ? `<p class="timer">${fuse(tl / a.duration, tl, `Il reste ${Math.ceil(tl)} secondes`, a.id, 92)}</p>` : '';
     body.innerHTML = header(a) + timer;
     if (campaign.guideOpen()) { body.append(speech('in:' + a.id, campaign.character(a.actor)?.name || 'Mathieu', a.intro || 'Observe, décide, puis vérifie sur le terrain. Les acquis restent conservés si tu t’interromps.')); body.append(btn('Commencer', () => campaign.dismissGuide(), 'go'), btn('Plus tard', suspend)); return; }
     if (campaign.timedOut) { body.insertAdjacentHTML('beforeend', `<p class="fb bad">${ico('cross', 's')}${esc(campaign.feedback)}</p>`); body.append(btn('Reprendre l’essai', () => campaign.retryTimer(), 'go')); return; }
-    const fb = campaign.feedback ? `<p class="fb">${esc(campaign.feedback)}</p>` : '';
+    const fb = campaign.feedback ? `<p class="fb${campaign.wrongLast ? ' bad' : ''}">${esc(campaign.feedback)}</p>` : '';
     if (a.mode === 'allocation') return allocation(a, p, fb);
     if (a.mode === 'assemble') return assemble(a, p, fb);
     if (a.mode === 'differences') return differences(a, p, fb);
@@ -291,6 +294,23 @@ export function createUI(campaign, world) {
       body.insertAdjacentHTML('beforeend', `<p class="banner">${esc(s.banner)}</p><p class="fb${q.answers[s.picked]?.quality < 2 ? ' bad' : ''}">${esc(s.feedback)}</p>`);
       body.append(btn('Épreuve suivante', () => d.next(), 'go'));
     }
+  }
+
+  // ---- the end of the campaign: four endings, by the prosperity the decisions left the village ----------------------
+  const ENDINGS = {
+    florissant: ['Le village florissant', 'Les huttes sont devenues des maisons, la politique est gravée droite sur le Grand Menhir et plus personne ne se fait écraser par un mammouth. Aurélien s’attribue tout le mérite. Mathieu le laisse dire, et remplit le registre.'],
+    debout: ['Le village tient debout', 'Les mesures sont en place, avec quelques ratures sur le menhir. Les accidents se font rares, les palabres aussi. Le Conseil des Sages hoche la tête : on verra à la prochaine lune.'],
+    fragile: ['Le village survit, de justesse', 'Des mesures à moitié appliquées, un registre plein de trous, un foyer qui fume encore dans une maison. Aurélien parle déjà de « culture sécurité » en se grattant la tête. Tout reste à refaire, mais tout le monde est là. Presque.'],
+    delabre: ['Le village se délabre', 'Les toits fuient, les bêtes rôdent jusqu’aux pieux, le cimetière s’agrandit plus vite que le village. Les derniers Crânes Fendus partent rejoindre la tribu d’à côté, qui, elle, a un registre. Aurélien reste. Seul. Sur son transat.'],
+  };
+  function renderEnding() {
+    const tr = campaign.tier(), [title, text] = ENDINGS[tr], t = campaign.state.tally || { right: 0, wrong: 0 }, lost = campaign.state.deathLog.filter((d) => d.victim !== 'dylan').length;
+    body.innerHTML = `<p class="kicker">Fin de la campagne</p><h2>${esc(title)}</h2>
+      <p class="ending-gauge"><span>Prospérité du village</span>${meter(campaign.prosperity(), tr)}<b class="${tr}">${campaign.prosperity()} / 100</b></p>
+      <p class="small">Décisions justes : ${t.right} · décisions corrigées : ${t.wrong} · villageois perdus : ${lost} · morts de Dylan : ${campaign.state.dylanDeaths}</p>`;
+    body.append(speech('end:' + tr, 'Mathieu', text));
+    const seen = () => { campaign.state.flags['ending:seen'] = true; campaign.save(); };
+    body.append(btn('Continuer à explorer', () => { seen(); close(); }, 'go'), btn('Nouvelle partie', () => { seen(); campaign.reset(); location.reload(); }, 'quiet'));
   }
 
   // ---- dialogues with choices (the shelter's roof) and the action in progress ----------------------------------------
@@ -461,7 +481,7 @@ export function createUI(campaign, world) {
   function render() {
     root.classList.toggle('runner', mode === 'activity' && !modal());
     if (mode !== 'duel') { fightEl.hidden = true; root.classList.remove('away', 'full'); document.body.classList.remove('dueling'); }
-    if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue(); else if (mode === 'death') renderDeath();
+    if (mode === 'activity') renderActivity(); else if (mode === 'duel') renderDuel(); else if (mode === 'dialogue') renderDialogue(); else if (mode === 'death') renderDeath(); else if (mode === 'ending') renderEnding();
     else if (mode === 'quest') renderQuests(); else if (mode === 'journal') renderJournal();
     else if (mode === 'people') renderPeople(); else if (mode === 'map') renderMap(); else if (mode === 'inventory') renderInventory(); else if (mode === 'tech') renderTech();
     for (const h of body.querySelectorAll('h2')) cutLetters(h);   // titles cut out letter by letter
@@ -496,6 +516,7 @@ export function createUI(campaign, world) {
       campaign.tick(dt); campaign.duel.tick(dt); stepLanes(dt);
       if (mode === 'duel' && !fightEl.hidden && campaign.duel.s) fightHud(campaign.duel.s);   // the fight's bars and its call follow every frame
       if (campaign.state.dialogue && mode !== 'dialogue') open('dialogue');
+      if (campaign.state.ending && !campaign.state.flags['ending:seen'] && !mode && !document.body.classList.contains('cine-on')) open('ending');   // the end, once its cinematic is over
       const w = campaign.state.working; $('work').hidden = !w; if (w) $('work').querySelector('i').style.width = ((1 - w.left / w.total) * 100) + '%';
       // the evacuation: once the cards are answered, everybody walks to the gathering point and Dylan joins them
       const a = campaign.current;

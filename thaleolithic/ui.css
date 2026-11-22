@@ -45,6 +45,13 @@
   #vitals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 10px; margin-top: 8px !important; }
   #vitals span { display: flex; flex-direction: column; gap: 3px; font: 400 11.5px/1.2 var(--caps); letter-spacing: .05em; text-transform: none; color: var(--ink-80); white-space: nowrap; }
   #vitals .meter { width: 100%; margin: 0; }
+  /* the village's prosperity: a gauge under the vitals, its word coloured by the tier; the same on the ending sheet */
+  #prosper, .ending-gauge { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin: 8px 0 0 !important; font: 400 11.5px/1.2 var(--caps); letter-spacing: .05em; color: var(--ink-80); }
+  #prosper .meter, .ending-gauge .meter { width: 100%; height: 9px; margin: 0; }
+  #prosper b, .ending-gauge b { font: 400 13px/1 var(--caps); letter-spacing: .04em; }
+  .meter.florissant i { background: #6a8a3a; } .meter.debout i { background: #c98a3a; } .meter.fragile i { background: #d8683a; } .meter.delabre i { background: #8e2f2a; }
+  b.florissant { color: #4a6a2a; } b.debout { color: #8a5a1a; } b.fragile { color: #b04a24; } b.delabre { color: #8e2f2a; }
+  .ending-gauge { font-size: 15px; margin: 4px 0 10px !important; } .ending-gauge .meter { height: 14px; } .ending-gauge b { font-size: 18px; }
   #vitals b { grid-column: 1 / -1; display: flex; align-items: center; gap: 5px; color: var(--accent); font: italic 400 12px/1.2 var(--serif); }
   .meter { display: inline-block; width: 34px; height: 6px; margin: 0 3px 1px 5px; vertical-align: middle; } .meter i { display: block; height: 100%; background: var(--ochre); } .meter.cold i { background: var(--cool); }
 
